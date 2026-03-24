@@ -918,22 +918,14 @@ bool CBaseObject::HasDistTouchedFlag(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::RemoveToFromDontFree(CEmbeddedObject* pcPointedTo)
+void CBaseObject::RemoveToFromDontFree(CEmbeddedObject* pcPointedTo)
 {
 	CBaseObject*	pcBaseObject;
 
-	if (pcPointedTo)
+	if ((pcPointedTo) && (pcPointedTo->IsBaseObject()))
 	{
-		if (pcPointedTo->IsBaseObject())
-		{
-			pcBaseObject = (CBaseObject*)pcPointedTo;
-			pcBaseObject->PrivateRemoveHeapFrom(this);  //If the object pointed to us is also being killed then we needed remove our from from it.
-		}
-		return true;
-	}
-	else
-	{
-		return false;
+		pcBaseObject = (CBaseObject*)pcPointedTo;
+		pcBaseObject->PrivateRemoveHeapFrom(this);  //If the object pointed to us is also being killed then we needed remove our from from it.
 	}
 }
 

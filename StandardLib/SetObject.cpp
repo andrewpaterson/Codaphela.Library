@@ -73,11 +73,12 @@ void CSetObject::TouchAll(void)
 {
 	SSetIterator	sIter;
 	CPointer		p;
+	bool			bExists;
 
-	p = StartIterationPointer(&sIter);
-	while (p.IsNotNull())
+	p = StartIterationPointer(&sIter, &bExists);
+	while (bExists)
 	{
-		p = IteratePointer(&sIter);
+		p = IteratePointer(&sIter, &bExists);
 	}
 }
 

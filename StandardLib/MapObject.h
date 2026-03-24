@@ -35,6 +35,7 @@ protected:
 
 public:
 	Ptr<CMapObject>		Init(void);
+	void				Class(void) override;
 	void				Free(void) override;
 };
 

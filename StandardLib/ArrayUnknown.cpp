@@ -96,7 +96,7 @@ void CArrayUnknown::Remove(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayUnknown::Remove(CUnknown* pcUnknown)
+size CArrayUnknown::Remove(CUnknown* pcUnknown)
 {
 	return CArrayCommonUnknown::Remove(pcUnknown);
 }

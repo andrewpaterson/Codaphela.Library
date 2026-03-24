@@ -20,23 +20,122 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __INDEX_OBJECT_H__
 #define __INDEX_OBJECT_H__
-#include "BaseLib/IndexTreeMemory.h"
+#include "StandardLib/IndexUnknown.h"
 #include "Collection.h"
 #include "Pointer.h"
 
 
+//Consider which methods using Iterate internally could rather use the Unsafe iterators.
 class CIndexObject : public CCollection
 {
 CONSTRUCTABLE(CIndexObject)
 DESTRUCTABLE(CIndexObject)
 protected:
-	CIndexTreeMemory	mcIndex;
-	bool				mbSubRoot;
+	CIndexUnknown	mcIndex;
 
 public:
 	Ptr<CIndexObject>	Init(void);
+	void				Class(void) override;
 	void				Free(void) override;
+
+	bool				Put(char* szKey, CPointer& pObject);
+	bool				Put(uint8* pvKey, size iKeySize, CPointer& pObject);
+
+	size 				NumElements(void) override;
+	size 				NonNullElements(void) override;
+	bool				IsEmpty(void) override;
+
+	void				SetPointerTosExpectedDistToRoot(int iDistToRoot) override;
+
+	size 				NumPointerTos(void) override;
+	size 				BaseNumPointerTos(void)  override;
+	void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos) override;
+	void				BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos) override;
+	bool				ContainsPointerTo(CEmbeddedObject* pcEmbedded) override;
+	void				RemoveAllPointerTosDontFree(void) override;
+	void				RemoveAllPointerTosTryFree(void) override;
+	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters) override;
+
+	bool				Remove(char* szKey);
+	bool				Remove(uint8* pvKey, size iKeySize);
+
+	CPointer			Get(char* szKey);
+	CPointer			Get(uint8* pvKey, size iKeySize);
+	template<class M>
+	Ptr<M>				Get(char* szKey);
+	template<class M>
+	Ptr<M>				Get(uint8* pvKey, size iKeySize);
+
+	CPointer			StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, bool* bExists = NULL);
+	CPointer			Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, bool* bExists = NULL);
+	template<class M>
+	Ptr<M>				StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, bool* bExists = NULL);
+	template<class M>
+	Ptr<M>				Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, bool* bExists = NULL);
+
+	CPointer			StartIterationPointer(SIndexTreeMemoryIterator* psIter);
+	CPointer			IteratePointer(SIndexTreeMemoryIterator* psIter);
+
+	bool				Save(CObjectWriter* pcFile) override;
+	bool				Load(CObjectReader* pcFile) override;
+
+	void				TouchAll(void) override;
+	void				KillAll(void) override;
+
+	void				ValidatePointerTos(void) override;
+
+protected:
+	void				FreePointers(void) override;
+	void				RemovePointerTo(CEmbeddedObject* pcTo) override;
+	size 				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
+	void				SetPointedTosDistToRoot(int iDistToRoot);
+
+	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) override;
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+Ptr<M> CIndexObject::Get(char* szKey)
+{
+	return (M*)Get(szKey);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+Ptr<M> CIndexObject::Get(uint8* pvKey, size iKeySize)
+{
+	return (M*)Get(pvKey, iKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+Ptr<M> CIndexObject::StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, bool* bExists)
+{
+	return (M*)StartIteration(psIterator, pvKey, piKeySize, iMaxKeySize, bExists);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+Ptr<M> CIndexObject::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, bool* bExists)
+{
+	return (M*)Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, bExists);
+}
 
 
 #endif // __INDEX_OBJECT_H__

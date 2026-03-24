@@ -40,8 +40,8 @@ public:
 	bool	Remove(M* pcUnknown);
 	void	RemoveDuringIteration(SSetIterator* psIter);
 
-	M*		StartIteration(SSetIterator* psIter);
-	M*		Iterate(SSetIterator* psIter);
+	bool	StartIteration(SSetIterator* psIter, M** ppcUnknown);
+	bool	Iterate(SSetIterator* psIter, M** ppcUnknown);
 
 	bool	Contains(M* pcUnknown);
 
@@ -146,9 +146,9 @@ void CSetType<M>::RemoveDuringIteration(SSetIterator* psIter)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CSetType<M>::StartIteration(SSetIterator* psIter)
+bool CSetType<M>::StartIteration(SSetIterator* psIter, M** ppcUnknown)
 {
-	return (M*)CSetUnknown::StartIteration(psIter);
+	return CSetUnknown::StartIteration(psIter, (CUnknown**)ppcUnknown);
 }
 
 
@@ -157,9 +157,9 @@ M* CSetType<M>::StartIteration(SSetIterator* psIter)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CSetType<M>::Iterate(SSetIterator* psIter)
+bool CSetType<M>::Iterate(SSetIterator* psIter, M** ppcUnknown)
 {
-	return (M*)CSetUnknown::Iterate(psIter);
+	return CSetUnknown::Iterate(psIter, (CUnknown**)ppcUnknown);
 }
 
 

@@ -49,8 +49,6 @@ public:
 	size 					NonNullElements(void) override;
 	bool					IsEmpty(void) override;
 
-	void					SetPointerTosExpectedDistToRoot(int iDistToRoot) override;
-
 	size 					NumPointerTos(void) override;
 	size 					BaseNumPointerTos(void)  override;
 	void					GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos) override;
@@ -67,14 +65,14 @@ public:
 
 	CBaseObject*			UnsafeGet(size  iIndex);
 	bool					UnsafeRemove(CBaseObject* pcObject);
-	CEmbeddedObject*		GetEmbeddedObject(size iIndex);
-	void					UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld);
 
-	void					BaseValidatePointerTos(void) override;
+	CEmbeddedObject*		GetEmbeddedObject(size iIndex) override;
+	void					UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld) override;
+
 	void					ValidatePointerTos(void) override;
-	void					ValidateConsistency(void) override;
-	CPointer				StartIterationPointer(SSetIterator* psIter) override;
-	CPointer				IteratePointer(SSetIterator* psIter) override;
+
+	CPointer				StartIterationPointer(SSetIterator* psIter, bool* pbExists);
+	CPointer				IteratePointer(SSetIterator* psIter, bool* pbExists);
 
 	void					TouchAll(void) override;
 	void					KillAll(void) override;
@@ -84,7 +82,7 @@ protected:
 	void					Free(void) override;
 	void					RemovePointerTo(CEmbeddedObject* pcTo) override;
 	size 					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
-	void					SetPointedTosDistToRoot(int iDistToRoot);
+	void					SetPointedTosDistToRoot(int iDistToRoot) override;
 
 	void					UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) override;
 

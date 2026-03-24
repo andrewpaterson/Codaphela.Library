@@ -24,6 +24,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StackPointers.h"
 #include "StandardLib/SetIterator.h"
 
+
 //Note: This class has no fields.
 class CObjects;
 class CCollection : public CBaseObject
@@ -42,9 +43,6 @@ public:
 	virtual void			TouchAll(void) =0;
 	virtual void			KillAll(void) =0;
 
-	virtual CPointer		StartIterationPointer(SSetIterator* psIter) =0;
-	virtual CPointer		IteratePointer(SSetIterator* psIter) =0;
-
 	virtual size			NumElements(void) =0;
 			size			Length(void);
 			size			Size(void);
@@ -59,12 +57,21 @@ public:
 
 	virtual void			UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld) =0;
 
+			void			BaseValidatePointerTos(void) override;
+			void			ValidateConsistency(void);
+
 protected:
 			void			Class(void) override;
 			void			EmbedFields(void);
 
+			bool			RemovePointerToTryFree(CBaseObject* pcPointedTo);
+			bool			RemovePointerToDontFree(CBaseObject* pcPointedTo);
+
 			bool			AddObjectFrom(CEmbeddedObject* pcObject, bool bResult);
 			bool			RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult);
+
+	virtual	void			SetPointedTosDistToRoot(int iDistToRoot) =0;
+			void			SetPointerTosExpectedDistToRoot(int iDistToRoot);
 };
 
 

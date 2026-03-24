@@ -65,7 +65,7 @@ void CSetUnknown::Add(CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSetUnknown::Remove(CUnknown* pcUnknown)
+size CSetUnknown::Remove(CUnknown* pcUnknown)
 {
 	return CArrayCommonUnknown::Remove(pcUnknown);
 }
@@ -85,9 +85,9 @@ void CSetUnknown::RemoveDuringIteration(SSetIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnknown* CSetUnknown::StartIteration(SSetIterator* psIter)
+bool CSetUnknown::StartIteration(SSetIterator* psIter, CUnknown** ppcUnknown)
 {
-	return CArrayCommonUnknown::StartIteration(psIter);
+	return CArrayCommonUnknown::StartIteration(psIter, ppcUnknown);
 }
 
 
@@ -95,8 +95,8 @@ CUnknown* CSetUnknown::StartIteration(SSetIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnknown* CSetUnknown::Iterate(SSetIterator* psIter)
+bool CSetUnknown::Iterate(SSetIterator* psIter, CUnknown** ppcUnknown)
 {
-	return CArrayCommonUnknown::Iterate(psIter);
+	return CArrayCommonUnknown::Iterate(psIter, ppcUnknown);
 }
 

@@ -51,7 +51,9 @@ public:
 template<class M>
 Ptr<M> CSetObject::StartIteration(SSetIterator* psIter)
 {
-	return (M*)StartIteration(psIter);
+	bool	bExists;
+
+	return (M*)StartIteration(psIter, &bExists);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -61,7 +63,9 @@ Ptr<M> CSetObject::StartIteration(SSetIterator* psIter)
 template<class M>
 Ptr<M> CSetObject::Iterate(SSetIterator* psIter)
 {
-	return (M*)Iterate(psIter);
+	bool	bExists;
+
+	return (M*)Iterate(psIter, &bExists);
 }
 
 

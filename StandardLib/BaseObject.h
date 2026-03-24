@@ -72,6 +72,8 @@ template<class M>
 friend class Ptr;
 friend class CPointer;
 friend class CArrayCommonObject;
+friend class CIndexObject;
+friend class CMapObject;
 friend class CObject;
 friend class CObjects;
 friend class CObjectRemapFrom;
@@ -214,7 +216,7 @@ protected:
 
 			void				FreePointers(void) override;
 			size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
-			bool				RemoveToFromDontFree(CEmbeddedObject* pcPointedTo);
+			void				RemoveToFromDontFree(CEmbeddedObject* pcPointedTo);
 			void				SetExpectedDistToRoot(int iExpectedDistToRoot);
 			void				SetCalculatedDistToRoot(void);
 			int					CalculateDistToRootFromPointedFroms(void);

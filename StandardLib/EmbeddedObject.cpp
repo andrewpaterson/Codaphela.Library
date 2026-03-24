@@ -360,8 +360,7 @@ bool CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject, bool bVal
 	bRemoved = PrivateRemoveHeapFrom(pcFromObject);
 	if (!bRemoved)
 	{
-		gcLogger.Error2(__METHOD__, " Could not remove Object {", ObjectToString(pcFromObject), "} Heap-From from Object {", ObjectToString(this), "}.", NULL);
-		return false;
+		return gcLogger.Error2(__METHOD__, " Could not remove Object {", ObjectToString(pcFromObject), "} Heap-From from Object {", ObjectToString(this), "}.", NULL);
 	}
 
 	pcContainer = GetEmbeddingContainer();
@@ -743,8 +742,7 @@ bool CEmbeddedObject::RemoveStackFromTryFree(CCollection* pcPointer, bool bFreeI
 			return true;
 		}
 	}
-	gcLogger.Error2(__METHOD__, " Could not remove Collection Stack-From from Object {", ObjectToString(this), "}.", NULL);
-	return false;
+	return gcLogger.Error2(__METHOD__, " Could not remove Collection Stack-From from Object {", ObjectToString(this), "}.", NULL);
 }
 
 
@@ -1059,7 +1057,7 @@ void CEmbeddedObject::LogNotExpectedToBeEmbedded(char* szMethod)
 	pcContainer = GetEmbeddingContainer();
 	szContainerClass = pcContainer->ClassName();
 
-	//If DESTRUCTABLE(xxx) is not present at the top of the class after CONSTRUCTABLE(xxx) then wrong destructor on BaseObject will be called.
+	//If DESTRUCTABLE(x) is not present at the top of the class after CONSTRUCTABLE(x) then wrong destructor on BaseObject will be called.
 	gcLogger.Error2(szMethod, " Cannot be called on embedded object of class [", ClassName(), "] with embedding index [", IndexToString(pcContainer->GetIndex()), "] and embedding class [", szContainerClass, "].  Ensure DESTRUCTABLE(", szContainerClass, "); is present.", NULL);
 }
 
