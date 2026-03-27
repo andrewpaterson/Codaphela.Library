@@ -510,7 +510,7 @@ void CArrayCommonObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		if (pcPointedTo)
 		{
-			papcTos->Add(&pcPointedTo);
+			papcTos->Add(pcPointedTo);
 		}
 	}
 }

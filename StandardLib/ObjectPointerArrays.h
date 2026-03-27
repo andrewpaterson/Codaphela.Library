@@ -4,7 +4,7 @@
 
 
 class CEmbeddedObject;
-typedef CArrayTemplate<CEmbeddedObject*>			CArrayTemplateEmbeddedObjectPtr;
+typedef CArrayTemplatePtr<CEmbeddedObject>			CArrayTemplateEmbeddedObjectPtr;
 
 
 class CBaseObject;

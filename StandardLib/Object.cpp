@@ -701,7 +701,7 @@ void CObject::BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 		pcPointedTo = (*ppPointer)->Object();
 		if (pcPointedTo)
 		{
-			papcTos->Add(&pcPointedTo);
+			papcTos->Add(pcPointedTo);
 		}
 	}
 }
