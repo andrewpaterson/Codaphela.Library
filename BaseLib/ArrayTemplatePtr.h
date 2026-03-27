@@ -27,6 +27,8 @@ public:
 	int32	Find(M* pv);
 	void 	Push(M* pv);
 	M*		Pop(void);
+
+	bool	ContainsVoidPtr(void* pv);
 };
 
 
@@ -221,6 +223,28 @@ M* CArrayTemplatePtr<M>::Pop(void)
 	return pv;
 }
 
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+bool CArrayTemplatePtr<M>::ContainsVoidPtr(void* pv)
+{
+	size	uiNumElements;
+	size	ui;
+	M*		pvObject;
+
+	uiNumElements = NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		pvObject = GetPtr(ui);
+		if (pvObject == pv)
+		{
+			return true;
+		}
+	}
+	return false;
+}
 
 #endif // __ARRAY_TEMPLATE_POINTER_H__
 

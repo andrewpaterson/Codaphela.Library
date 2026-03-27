@@ -309,6 +309,16 @@ void CIndexObject::ValidatePointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CIndexUnknown* CIndexObject::GetIndexForTesting(void)
+{
+	return &mcIndex;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CIndexObject::GetEmbeddedObject(size iIndex)
 {
 	if (iIndex == 0)
@@ -355,7 +365,7 @@ void CIndexObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 	{
 		if (pcPointedTo)
 		{
-			papcTos->Add(&pcPointedTo);
+			papcTos->Add(pcPointedTo);
 		}
 		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
 	}
@@ -430,7 +440,6 @@ void CIndexObject::RemoveAllPointerTosTryFree(void)
 	bool							bExists;
 	bool							bResult;
 	CBaseObject**					ppcNodePointer;
-
 
 	bResult = true;
 	bExists = mcIndex.StartIteration(&sIter, (CUnknown**)&pcPointedTo);

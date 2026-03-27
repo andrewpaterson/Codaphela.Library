@@ -86,6 +86,7 @@ public:
 
 	CEmbeddedObject*	GetEmbeddedObject(size iIndex) override;
 	void				ValidatePointerTos(void) override;
+	CIndexUnknown*		GetIndexForTesting(void);
 
 protected:
 	void				FreePointers(void) override;
