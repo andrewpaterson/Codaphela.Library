@@ -31,7 +31,6 @@ CONSTRUCTABLE(CMapObject)
 DESTRUCTABLE(CMapObject)
 protected:
 	CMapUnknownUnknown		mcMap;
-	bool					mbSubRoot;
 
 public:
 	Ptr<CMapObject>		Init(void);

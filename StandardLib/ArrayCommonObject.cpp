@@ -277,12 +277,14 @@ bool CArrayCommonObject::RemoveAll(void)
 	size 			i;
 	CBaseObject*	pcObject;
 	size 			uiNumElements;
+	bool			bResult;
 
+	bResult = true;
 	uiNumElements = mcArray.UnsafeNumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcObject = UnsafeGet(i);
-		RemovePointerToTryFree(pcObject);
+		bResult &= RemovePointerToTryFree(pcObject);
 	}
 
 	mcArray.ReInit();
@@ -291,7 +293,7 @@ bool CArrayCommonObject::RemoveAll(void)
 	mpcObjectsThisIn->ValidateObjectsConsistency();
 #endif // _DEBUG
 
-	return true;
+	return bResult;
 }
 
 
@@ -687,6 +689,7 @@ CPointer CArrayCommonObject::IteratePointer(SSetIterator* psIter, bool* pbExists
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
 {
+	//Implement me please.
 }
 
 

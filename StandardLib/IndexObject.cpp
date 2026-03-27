@@ -32,7 +32,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 Ptr<CIndexObject> CIndexObject::Init(void)
 {
 	CCollection::Init();
-
+	mcIndex.Init(false, true);
 	return Ptr<CIndexObject>(this);
 }
 
@@ -46,7 +46,6 @@ void CIndexObject::Class(void)
 	CCollection::Class();
 
 	U_Unknown(CIndexUnknown, mcIndex);
-
 }
 
 
@@ -56,6 +55,7 @@ void CIndexObject::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexObject::Free(void)
 {
+	mcIndex.Kill();
 }
 
 
@@ -295,10 +295,28 @@ void CIndexObject::ValidatePointerTos(void)
 	bExists = mcIndex.StartIteration(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
 	while (bExists)
 	{
-		ValidatePointerTo(pcPointedTo);
+		if (pcPointedTo)
+		{
+			ValidatePointerTo(pcPointedTo);
+		}
 		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
 		iCount++;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CIndexObject::GetEmbeddedObject(size iIndex)
+{
+	if (iIndex == 0)
+	{
+		return this;
+	}
+
+	return NULL;
 }
 
 
@@ -426,6 +444,39 @@ void CIndexObject::RemoveAllPointerTosTryFree(void)
 
 	mcIndex.ReInit();
 	//return bResult;  // This can return an error but RemoveAllPointerTosTryFree callers don't handle it.
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexObject::RemoveAll(void)
+{
+	CBaseObject*					pcObject;
+	SIndexTreeMemoryUnsafeIterator	sIter;
+	bool							bExists;
+	bool							bResult;
+
+	bResult = true;
+	bExists = mcIndex.StartIteration(&sIter, (CUnknown**)&pcObject);
+	while (bExists)
+	{
+		bResult &= RemovePointerToTryFree(pcObject);
+		bExists = mcIndex.Iterate(&sIter, (CUnknown**)&pcObject);
+	}
+
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexObject::UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
+{
+	//Implement me please.
 }
 
 
