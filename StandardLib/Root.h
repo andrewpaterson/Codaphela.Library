@@ -57,6 +57,7 @@ public:
 						CPointer		Get(char* szObjectName);
 	template<class M>	Ptr<M>			Get(char* szObjectName);
 						Ptr<CSetObject>	GetAll(void);
+	template<class M>	Ptr<M>			GetFirst(void);
 						int				NumObjects(void);
 
 						void			CreateSet(void);
@@ -97,6 +98,12 @@ Ptr<M> CRoot::Get(char* szObjectName)
 	return pM;
 }
 
+
+template<class M>
+Ptr<M> CRoot::GetFirst(void)
+{
+	return Get<M>(0);
+}
 
 #endif // __ROOT_H__
 

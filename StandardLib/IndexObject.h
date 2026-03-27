@@ -52,9 +52,11 @@ public:
 	void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos) override;
 	void				BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos) override;
 	bool				ContainsPointerTo(CEmbeddedObject* pcEmbedded) override;
+	bool				RemoveAll(void);
 	void				RemoveAllPointerTosDontFree(void) override;
 	void				RemoveAllPointerTosTryFree(void) override;
 	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters) override;
+	void				UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld) override;
 
 	bool				Remove(char* szKey);
 	bool				Remove(uint8* pvKey, size iKeySize);
@@ -78,10 +80,11 @@ public:
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
-
+	
 	void				TouchAll(void) override;
 	void				KillAll(void) override;
 
+	CEmbeddedObject*	GetEmbeddedObject(size iIndex) override;
 	void				ValidatePointerTos(void) override;
 
 protected:
