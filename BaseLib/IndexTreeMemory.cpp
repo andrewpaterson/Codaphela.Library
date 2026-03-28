@@ -682,7 +682,7 @@ bool CIndexTreeMemory::Remove(CIndexTreeNodeMemory*	pcCurrent)
 	CIndexTreeNodeMemory*	pcNode;
 	bool					bResizeNode;
 	size					tNewNodeSize;
-	size			uiOldDataSize;
+	size					uiOldDataSize;
 
 	uiOldDataSize = pcCurrent->GetDataSize();
 	if (uiOldDataSize == 0)

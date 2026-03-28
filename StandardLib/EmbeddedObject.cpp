@@ -282,7 +282,7 @@ void CEmbeddedObject::RemoveAllHeapFroms(void)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, bool bValidate)
 {
-	CBaseObject*	pcEmbedding;
+	CBaseObject* pcEmbedding;
 	int				iDistToRoot;
 
 	if (pcFromObject != NULL)
@@ -296,14 +296,24 @@ void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, bool bValidate)
 		}
 
 #ifdef _DEBUG
-		if (bValidate)
-		{
-			if (IsAllocatedInObjects())
-			{
-				GetObjectsThisIn()->ValidateObjectsConsistency();
-			}
-		}
+		ValidateObjectsConsistency(bValidate);
 #endif // _DEBUG
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::ValidateObjectsConsistency(bool bValidate)
+{
+	if (bValidate)
+	{
+		if (IsAllocatedInObjects())
+		{
+			GetObjectsThisIn()->ValidateObjectsConsistency();
+		}
 	}
 }
 
@@ -798,10 +808,7 @@ void CEmbeddedObject::RemoveAllStackFroms(void)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::IsAllocatedInObjects(void)
 {
-	CObjects*	pcObjects;
-
-	pcObjects = GetObjectsThisIn();
-	return pcObjects != NULL;
+	return  GetObjectsThisIn() != NULL;
 }
 
 
