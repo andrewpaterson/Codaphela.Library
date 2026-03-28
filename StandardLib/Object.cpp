@@ -742,7 +742,7 @@ void CObject::RemoveAllPointerTosDontFree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::RemoveAllPointerTosTryFree(void)
+bool CObject::RemoveAllPointerTosTryFree(void)
 {
 	//Called by KillInternal.
 
@@ -751,6 +751,7 @@ void CObject::RemoveAllPointerTosTryFree(void)
 	CBaseObject*	pcEmbedded;
 	size			uiNumPointers;
 	CPointer**		ppPointer;
+	bool			bResult;
 
 	uiNumPointers = mapPointers.NumElements();
 	for (i = 0; i < uiNumPointers; i++)
@@ -759,12 +760,15 @@ void CObject::RemoveAllPointerTosTryFree(void)
 		(*ppPointer)->PointToNull();
 	}
 
+	bResult = true;
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->RemoveAllPointerTosTryFree();
+		bResult &= pcEmbedded->RemoveAllPointerTosTryFree();
 	}
+
+	return bResult;
 }
 
 

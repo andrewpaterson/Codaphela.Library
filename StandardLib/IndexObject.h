@@ -52,9 +52,8 @@ public:
 	void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos) override;
 	void				BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos) override;
 	bool				ContainsPointerTo(CEmbeddedObject* pcEmbedded) override;
-	bool				RemoveAll(void);
 	void				RemoveAllPointerTosDontFree(void) override;
-	void				RemoveAllPointerTosTryFree(void) override;
+	bool				RemoveAllPointerTosTryFree(void) override;
 	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters) override;
 	void				UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld) override;
 

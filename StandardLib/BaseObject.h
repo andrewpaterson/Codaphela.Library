@@ -206,7 +206,7 @@ protected:
 			void				TryFree(bool bKillIfNoRoot, bool bHeapFromChanged);
 
 	virtual void				RemoveAllPointerTosDontFree(void) =0;
-	virtual void				RemoveAllPointerTosTryFree(void) =0;
+	virtual bool				RemoveAllPointerTosTryFree(void) =0;
 
 			bool				SaveManaged(CObjectWriter* pcFile);
 			bool				LoadManaged(CObjectReader* pcFile);

@@ -19,8 +19,6 @@ public:
 	CArrayBlockObjectPtr*	Calculate(CBaseObject* pcFromChanged, bool bHeapFromChanged);
 	CArrayBlockObjectPtr*	CalculateHeapFromChanged(CBaseObject* pcFromChanged);
 	CArrayBlockObjectPtr*	CalculateStackFromChanged(CBaseObject* pcFromChanged);
-	void					ClearTouchedFlags(CDistCalculatorParameters* pcParameters);
-	void					ChangeClearedDistToUnattachedDist(CDistCalculatorParameters* pcParameters);
 };
 
 

@@ -431,51 +431,25 @@ void CIndexObject::RemoveAllPointerTosDontFree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexObject::RemoveAllPointerTosTryFree(void)
+bool CIndexObject::RemoveAllPointerTosTryFree(void)
 {
-	//Called by KillInternal.
+	//Called by KillInternal and RemoveAll.
 
 	CBaseObject*					pcPointedTo;
 	SIndexTreeMemoryUnsafeIterator	sIter;
 	bool							bExists;
 	bool							bResult;
-	CBaseObject**					ppcNodePointer;
 
 	bResult = true;
 	bExists = mcIndex.StartIteration(&sIter, (CUnknown**)&pcPointedTo);
 	while (bExists)
 	{
 		bResult &= RemovePointerToTryFree(pcPointedTo);
-		ppcNodePointer = (CBaseObject**)sIter.pcNode->GetNodeData();
-		*ppcNodePointer = NULL;
 		bExists = mcIndex.Iterate(&sIter, (CUnknown**)&pcPointedTo);
 	}
 
 	mcIndex.ReInit();
-	//return bResult;  // This can return an error but RemoveAllPointerTosTryFree callers don't handle it.
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIndexObject::RemoveAll(void)
-{
-	CBaseObject*					pcObject;
-	SIndexTreeMemoryUnsafeIterator	sIter;
-	bool							bExists;
-	bool							bResult;
-
-	bResult = true;
-	bExists = mcIndex.StartIteration(&sIter, (CUnknown**)&pcObject);
-	while (bExists)
-	{
-		bResult &= RemovePointerToTryFree(pcObject);
-		bExists = mcIndex.Iterate(&sIter, (CUnknown**)&pcObject);
-	}
-
-	return bResult;
+	return bResult;  // This can return an error but RemoveAllPointerTosTryFree callers don't handle it.
 }
 
 

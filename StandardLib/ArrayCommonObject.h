@@ -43,7 +43,6 @@ public:
 	bool					Remove(CPointer& pObject);
 	bool					Remove(CEmbeddedObject* pcObject);
 	bool					RemoveEnd(size iIndexInclusive);
-	bool					RemoveAll(void) override;
 
 	size 					NumElements(void) override;
 	size 					NonNullElements(void) override;
@@ -55,7 +54,7 @@ public:
 	void					BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos) override;
 	bool					ContainsPointerTo(CEmbeddedObject* pcEmbedded) override;
 	void					RemoveAllPointerTosDontFree(void) override;
-	void					RemoveAllPointerTosTryFree(void) override;
+	bool					RemoveAllPointerTosTryFree(void) override;
 	void					CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters) override;
 
 	void					GrowTo(size iNumElements);

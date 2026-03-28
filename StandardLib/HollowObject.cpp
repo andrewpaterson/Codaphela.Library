@@ -225,8 +225,9 @@ void CHollowObject::RemoveAllPointerTosDontFree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::RemoveAllPointerTosTryFree(void)
+bool CHollowObject::RemoveAllPointerTosTryFree(void)
 {
+	return true;
 }
 
 

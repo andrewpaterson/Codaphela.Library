@@ -47,7 +47,7 @@ public:
 			size				NumHeapFroms(void);
 			size				NumStackFroms(void);
 			void				RemoveAllPointerTosDontFree(void);
-			void				RemoveAllPointerTosTryFree(void);
+			bool				RemoveAllPointerTosTryFree(void);
 			void				BaseValidatePointerTos(void);
 			void				ValidateConsistency(void);
 

@@ -272,10 +272,12 @@ bool CArrayCommonObject::Remove(CEmbeddedObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonObject::RemoveAll(void)
+bool CArrayCommonObject::RemoveAllPointerTosTryFree(void)
 {
+	//Called by KillInternal and RemoveAll.
+
+	CBaseObject*	pcPointedTo;
 	size 			i;
-	CBaseObject*	pcObject;
 	size 			uiNumElements;
 	bool			bResult;
 
@@ -283,17 +285,11 @@ bool CArrayCommonObject::RemoveAll(void)
 	uiNumElements = mcArray.UnsafeNumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		pcObject = UnsafeGet(i);
-		bResult &= RemovePointerToTryFree(pcObject);
+		pcPointedTo = UnsafeGet(i);
+		bResult &= RemovePointerToTryFree(pcPointedTo);
 	}
-
 	mcArray.ReInit();
-
-#ifdef _DEBUG
-	mpcObjectsThisIn->ValidateObjectsConsistency();
-#endif // _DEBUG
-
-	return bResult;
+	return bResult;  // This can return an error but RemoveAllPointerTosTryFree callers don't handle it.
 }
 
 
@@ -312,38 +308,12 @@ void CArrayCommonObject::RemoveAllPointerTosDontFree(void)
 	uiNumElements = mcArray.UnsafeNumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
+		pcPointedTo = UnsafeGet(i);
 		bResult &= RemovePointerToDontFree(pcPointedTo);
 	}
 	mcArray.ReInit();
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::RemoveAllPointerTosTryFree(void)
-{
-	//Called by KillInternal.
-
-	CBaseObject*	pcPointedTo;
-	size 			i;
-	size 			uiNumElements;
-	bool			bResult;
-
-	bResult = true;
-	uiNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		bResult &= RemovePointerToTryFree(pcPointedTo);  
-		mcArray.UnsafeSet(i, NULL);
-
-	}
-	mcArray.ReInit();
-	//return bResult;  // This can return an error but RemoveAllPointerTosTryFree callers don't handle it.
-}
 
 
 //////////////////////////////////////////////////////////////////////////
