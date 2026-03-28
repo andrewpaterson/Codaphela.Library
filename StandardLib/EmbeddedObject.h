@@ -137,6 +137,7 @@ protected:
 	virtual CStackPointers*		GetStackPointers(void);
 	virtual CEmbeddedObject*	GetClosestFromForCanFindRoot(void);
 	virtual void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) =0;
+			void				ValidateObjectsConsistency(bool bValidate);
 };
 
 

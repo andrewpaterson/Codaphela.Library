@@ -189,7 +189,7 @@ bool CCollection::RemoveAll(void)
 	bResult = RemoveAllPointerTosTryFree();
 
 #ifdef _DEBUG
-	mpcObjectsThisIn->ValidateObjectsConsistency();
+	ValidateObjectsConsistency(true);
 #endif // _DEBUG
 
 	return bResult;

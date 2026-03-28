@@ -84,9 +84,51 @@ bool CIndexObject::Put(uint8* pvKey, size iKeySize, CPointer& pObject)
 
 	pvObject = pObject.Object();
 	pcPointedTo = (CBaseObject*)mcIndex.Get(pvKey, iKeySize);
+	if (pcPointedTo)
+	{
+		bResult = mcIndex.Put(pvKey, iKeySize, NULL);
+		bResult = RemoveObjectTryFree(pcPointedTo, bResult);
+		if (!bResult)
+		{
+			return bResult;
+		}
+	}
 	bResult = mcIndex.Put(pvKey, iKeySize, pvObject);
-	bResult = RemoveObjectTryFree(pcPointedTo, bResult);
+	if (!bResult)
+	{
+		return bResult;
+	}
+
 	bResult = AddObjectFrom(pvObject, bResult);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexObject::Remove(char* szKey)
+{
+	size	uiLength;
+
+	uiLength = StrLen(szKey);
+	return Remove((uint8*)szKey, uiLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexObject::Remove(uint8* pvKey, size iKeySize)
+{
+	CBaseObject*	pcPointedTo;
+	bool			bResult;
+
+	pcPointedTo = (CBaseObject*)mcIndex.Get(pvKey, iKeySize);
+	bResult = mcIndex.Remove(pvKey, iKeySize);
+	bResult = RemoveObjectTryFree(pcPointedTo, bResult);
 	return bResult;
 }
 
@@ -484,35 +526,6 @@ void CIndexObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalcul
 		}
 		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIndexObject::Remove(char* szKey)
-{
-	size	uiLength;
-
-	uiLength = StrLen(szKey);
-	return Remove((uint8*)szKey, uiLength);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIndexObject::Remove(uint8* pvKey, size iKeySize)
-{
-	CEmbeddedObject*	pcObject;
-	bool				bResult;
-
-	pcObject = (CEmbeddedObject*)mcIndex.Get(pvKey, iKeySize);
-	bResult = mcIndex.Remove(pvKey, iKeySize);
-	bResult = RemoveObjectTryFree(pcObject, bResult);
-	return bResult;
 }
 
 
