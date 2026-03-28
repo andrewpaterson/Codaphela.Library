@@ -83,15 +83,16 @@ Ptr<CFont> CFontList::Get(char* szName)
 {
 	SSetIterator	sIter;
 	Ptr<CFont>		pcFont;
+	bool			bExists;
 
-	pcFont = maFonts.StartIteration(&sIter);
-	while (pcFont.IsNotNull())
+	pcFont = maFonts.StartIteration(&sIter, &bExists);
+	while (bExists)
 	{
-		if (pcFont->Is(szName))
+		if (pcFont.IsNotNull() && (pcFont->Is(szName)))
 		{
 			return pcFont;
 		}
-		pcFont = maFonts.Iterate(&sIter);
+		pcFont = maFonts.Iterate(&sIter, &bExists);
 	}
 	return NULL;
 }

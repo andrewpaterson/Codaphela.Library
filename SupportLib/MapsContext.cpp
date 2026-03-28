@@ -89,17 +89,18 @@ CMovableBlockType* CMapsContext::AddBlockType(char* szTypeName)
 //////////////////////////////////////////////////////////////////////////
 CMovableBlockType* CMapsContext::GetBlockType(char* szTypeName)
 {
-	SSetIterator	sIter;
-	CMovableBlockType*		pcType;
+	SSetIterator		sIter;
+	CMovableBlockType*	pcType;
+	bool				bExists;
 
-	pcType = (CMovableBlockType*)macBlockTypes.StartIteration(&sIter);
-	while (pcType)
+	bExists = macBlockTypes.StartIteration(&sIter, &pcType);
+	while (bExists)
 	{
-		if (pcType->Is(szTypeName))
+		if ((pcType != NULL) && (pcType->Is(szTypeName)))
 		{
 			return pcType;
 		}
-		pcType = (CMovableBlockType*)macBlockTypes.Iterate(&sIter);
+		bExists = macBlockTypes.Iterate(&sIter, &pcType);
 	}
 	return NULL;
 }
@@ -127,15 +128,16 @@ CSpriteType* CMapsContext::GetSpriteType(char* szTypeName)
 {
 	SSetIterator	sIter;
 	CSpriteType*	pcType;
+	bool			bExists;
 
-	pcType = (CSpriteType*)macSpriteTypes.StartIteration(&sIter);
-	while (pcType)
+	bExists = macSpriteTypes.StartIteration(&sIter, &pcType);
+	while (bExists)
 	{
-		if (pcType->Is(szTypeName))
+		if ((pcType != NULL) && pcType->Is(szTypeName))
 		{
 			return pcType;
 		}
-		pcType = (CSpriteType*)macSpriteTypes.Iterate(&sIter);
+		bExists = macSpriteTypes.Iterate(&sIter, &pcType);
 	}
 	return NULL;
 }

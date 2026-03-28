@@ -43,8 +43,6 @@ public:
 	void					AddDetachedFromRoot(CBaseObject* pcObject);
 	int						NumDetachedFromRoot(void);
 	CBaseObject*			GetDetachedFromRoot(int iIndex);
-	CBaseObject**			GetNextDetachedFromRoot(void);
-	void					RemoveDetachedFromRoot(CBaseObject** ppcObject);
 
 	void					AddCompletelyDetached(CBaseObject* pcObject);
 	int						NumCompletelyDetached(void);
