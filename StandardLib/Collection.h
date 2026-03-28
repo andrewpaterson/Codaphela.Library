@@ -42,6 +42,7 @@ public:
 			CBaseObject*	Dehollow(void);
 	virtual void			TouchAll(void) =0;
 	virtual void			KillAll(void) =0;
+			bool			RemoveAll(void);
 
 	virtual size			NumElements(void) =0;
 			size			Length(void);
@@ -49,7 +50,6 @@ public:
 	virtual size			NonNullElements(void) =0;
 	virtual bool			IsEmpty(void) =0;
 
-	virtual bool			RemoveAll(void) =0;
 			bool			Clear(void);
 
 			void			MakeSubRoot(void);

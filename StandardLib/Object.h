@@ -93,7 +93,7 @@ protected:
 	void				FreePointers(void) override;
 	void				RemovePointerTo(CEmbeddedObject* pcTo);
 	void				RemoveAllPointerTosDontFree(void);
-	void				RemoveAllPointerTosTryFree(void);
+	bool				RemoveAllPointerTosTryFree(void);
 	void				RemoveAllHeapFroms(void);
 	void				RemoveAllStackFroms(void);
 	CBaseObject*		GetClosestFromForCanFindRoot(void);
