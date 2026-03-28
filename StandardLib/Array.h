@@ -38,8 +38,8 @@ public:
 	void			Insert(size iIndex, Ptr<M> pObject);
 	Ptr<M>			Get(size iIndex);
 	void			Set(size iIndex, Ptr<M> pObject);
-	Ptr<M>			StartIteration(SSetIterator* psIter);
-	Ptr<M>			Iterate(SSetIterator* psIter);
+	Ptr<M>			StartIteration(SSetIterator* psIter, bool* pbExists);
+	Ptr<M>			Iterate(SSetIterator* psIter, bool* pbExists);
 
 	bool			RemoveAt(size iIndex);
 	bool			Remove(Ptr<M> pObject);
@@ -108,19 +108,20 @@ void CArray<M>::Set(size iIndex, Ptr<M> pObject)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M> CArray<M>::StartIteration(SSetIterator* psIter)
+Ptr<M> CArray<M>::StartIteration(SSetIterator* psIter, bool* pbExists)
 {
-	return CArrayObject::StartIterationPointer(psIter);
+	return CArrayObject::StartIterationPointer(psIter, pbExists);
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M> CArray<M>::Iterate(SSetIterator* psIter)
+Ptr<M> CArray<M>::Iterate(SSetIterator* psIter, bool* pbExists)
 {
-	return CArrayObject::IteratePointer(psIter);
+	return CArrayObject::IteratePointer(psIter, pbExists);
 }
 
 

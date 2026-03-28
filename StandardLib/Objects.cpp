@@ -674,7 +674,7 @@ bool CObjects::EvictInMemory(void)
 	while (oi != INVALID_O_INDEX)
 	{
 		pcBaseObject = GetFromMemory(oi);
-		apcBaseObjects.Add(&pcBaseObject);
+		apcBaseObjects.Add(pcBaseObject);
 		iCount++;
 
 		if (iCount == CLEAR_MEMORY_CHUNK_SIZE)

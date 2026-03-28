@@ -264,22 +264,25 @@ void CImageCombiner::CalculateChannelsFromCels(void)
 	Ptr<CImageCel>	pcCel;
 	CArrayChannel	asChannels;
 	Ptr<CImage>		pcLastImage;
+	bool			bExists;
 
 	pcLastImage = NULL;
-	pcCel = mcSourceCels.StartIteration(&sIter);
-	while (pcCel)
+	pcCel = mcSourceCels.StartIteration(&sIter, &bExists);
+	while (bExists)
 	{
-		if (pcCel->GetSourceImage() != pcLastImage)
+		if (pcCel.IsNotNull())
 		{
-			asChannels.Init();
-			pcCel->GetAllChannels(&asChannels);
-			UpdateChannels(&asChannels);
-			asChannels.Kill();
+			if (pcCel->GetSourceImage() != pcLastImage)
+			{
+				asChannels.Init();
+				pcCel->GetAllChannels(&asChannels);
+				UpdateChannels(&asChannels);
+				asChannels.Kill();
 
-			pcLastImage = pcCel->GetSourceImage();
+				pcLastImage = pcCel->GetSourceImage();
+			}
 		}
-			
-		pcCel = mcSourceCels.Iterate(&sIter);
+		pcCel = mcSourceCels.Iterate(&sIter, &bExists);
 	}
 }
 
@@ -374,25 +377,30 @@ CRectanglePacker* CImageCombiner::GetPacker(void)
 //////////////////////////////////////////////////////////////////////////
 SInt2 CImageCombiner::Pack(CArrayPackedRectangle* pacPackedRects)
 {
-	CRectanglePacker*		pcPacker;
-	SSetIterator			sIter;
-	Ptr<CImageCel>			pcCel;
-	SInt2					sTextureSize;
-	bool					bResult;
-	bool					bNonEmpty;
+	CRectanglePacker*	pcPacker;
+	SSetIterator		sIter;
+	Ptr<CImageCel>		pcCel;
+	SInt2				sTextureSize;
+	bool				bResult;
+	bool				bNonEmpty;
+	bool				bExists;
 
 	pcPacker = GetPacker();
 
-	pcCel = mcSourceCels.StartIteration(&sIter);
 	bNonEmpty = false;
-	while (pcCel)
+	pcCel = mcSourceCels.StartIteration(&sIter, &bExists);
+	while (bExists)
 	{
-		if (!pcCel->GetSubImage()->IsImageEmpty())
+		if (pcCel.IsNotNull())
 		{
-			bResult = pcPacker->AddRectangle(&pcCel);
-			bNonEmpty = true;
+			if (!pcCel->GetSubImage()->IsImageEmpty())
+			{
+				bResult = pcPacker->AddRectangle(&pcCel);
+				bNonEmpty = true;
+			}
 		}
-		pcCel = mcSourceCels.Iterate(&sIter);
+
+		pcCel = mcSourceCels.Iterate(&sIter, &bExists);
 	}
 
 	pcPacker->Pack();

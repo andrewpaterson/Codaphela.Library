@@ -39,8 +39,8 @@ public:
 
 	void			RemoveDuringIteration(SSetIterator* psIter);
 
-	Ptr<M>			StartIteration(SSetIterator* psIter);
-	Ptr<M>			Iterate(SSetIterator* psIter);
+	Ptr<M>			StartIteration(SSetIterator* psIter, bool* pbExists);
+	Ptr<M>			Iterate(SSetIterator* psIter, bool* pbExists);
 };
 
 
@@ -116,9 +116,9 @@ void CSet<M>::RemoveDuringIteration(SSetIterator* psIter)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M> CSet<M>::StartIteration(SSetIterator* psIter)
+Ptr<M> CSet<M>::StartIteration(SSetIterator* psIter, bool* pbExists)
 {
-	return StartIterationPointer(psIter);
+	return StartIterationPointer(psIter, pbExists);
 }
 
 
@@ -127,9 +127,9 @@ Ptr<M> CSet<M>::StartIteration(SSetIterator* psIter)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M> CSet<M>::Iterate(SSetIterator* psIter)
+Ptr<M> CSet<M>::Iterate(SSetIterator* psIter, bool* pbExists)
 {
-	return IteratePointer(psIter);
+	return IteratePointer(psIter, pbExists);
 }
 
 

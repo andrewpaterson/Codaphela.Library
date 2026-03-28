@@ -269,51 +269,55 @@ void CImageCelsSource::AddModifier(CImageModifier* pcModifier)
 //////////////////////////////////////////////////////////////////////////
 bool CImageCelsSource::Load(void)
 {
-	SSetIterator				sIter;
-	CImageSourceWithCelSources*	pcImageSourceWithCelSources;
-	bool						bResult;
-	Ptr<CImage>					pcMask;
-	CImageSource*				pcImageSource;
-	CImageCelSource*			pcCelsSource;
-	int							iFirstCelIndex;
-	Ptr<CImage>					pcCombined;
+	SSetIterator					sIter;
+	CImageSourceWithCelSources*		pcImageSourceWithCelSources;
+	bool							bResult;
+	Ptr<CImage>						pcMask;
+	CImageSource*					pcImageSource;
+	CImageCelSource*				pcCelsSource;
+	int								iFirstCelIndex;
+	Ptr<CImage>						pcCombined;
+	bool							bExists;
 
-	pcImageSourceWithCelSources = (CImageSourceWithCelSources*)macImageSources.StartIteration(&sIter);
-	while (pcImageSourceWithCelSources)
+	bExists = macImageSources.StartIteration(&sIter, &pcImageSourceWithCelSources);
+	while (bExists)
 	{
-		pcMask = NULL;
-		pcImageSource = pcImageSourceWithCelSources->GetImageSource();
-		pcCelsSource = pcImageSourceWithCelSources->GetCelsSource();
-
-		bResult = pcImageSource->LoadImage();
-		if (!bResult)
+		if (pcImageSourceWithCelSources)
 		{
-			return false;
-		}
+			pcMask = NULL;
+			pcImageSource = pcImageSourceWithCelSources->GetImageSource();
+			pcCelsSource = pcImageSourceWithCelSources->GetCelsSource();
 
-		mcModifiers.SetImage(&pcImageSource->GetImage());  //Not sure if this is a hack or not.
-		mcModifiers.ApplyAll();
-
-		if (pcCelsSource->NeedsMask())
-		{
-			pcMask = OMallocNoI<CImage>();
-			maFillMasks.Add(pcMask);
-		}
-		iFirstCelIndex = maImageCels.NumElements();
-		pcCelsSource->Divide((CImage*)pcImageSource->GetImage().Object(), &maImageCels, (CImage*)pcMask.Object());
-
-		if (mbPackOnLoad)
-		{
-			pcCombined = Combine(iFirstCelIndex);
-			pcImageSource->GetImage()->Kill();
-			pcImageSource->SetImage(pcCombined);
-			if (pcMask.IsNotNull())
+			bResult = pcImageSource->LoadImage();
+			if (!bResult)
 			{
-				maFillMasks.Remove(pcMask);
+				return false;
+			}
+
+			mcModifiers.SetImage(&pcImageSource->GetImage());  //Not sure if this is a hack or not.
+			mcModifiers.ApplyAll();
+
+			if (pcCelsSource->NeedsMask())
+			{
+				pcMask = OMallocNoI<CImage>();
+				maFillMasks.Add(pcMask);
+			}
+			iFirstCelIndex = maImageCels.NumElements();
+			pcCelsSource->Divide((CImage*)pcImageSource->GetImage().Object(), &maImageCels, (CImage*)pcMask.Object());
+
+			if (mbPackOnLoad)
+			{
+				pcCombined = Combine(iFirstCelIndex);
+				pcImageSource->GetImage()->Kill();
+				pcImageSource->SetImage(pcCombined);
+				if (pcMask.IsNotNull())
+				{
+					maFillMasks.Remove(pcMask);
+				}
 			}
 		}
 
-		pcImageSourceWithCelSources = (CImageSourceWithCelSources*)macImageSources.Iterate(&sIter);
+		bExists = macImageSources.Iterate(&sIter, &pcImageSourceWithCelSources);
 	}
 
 	mcModifiers.SetImage(NULL);

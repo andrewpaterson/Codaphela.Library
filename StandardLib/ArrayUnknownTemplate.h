@@ -45,8 +45,8 @@ public:
 	M*		Get(int iIndex);
 
 	M*		Last(void);
-	M*		StartIteration(SSetIterator* psIter);
-	M*		Iterate(SSetIterator* psIter);
+	bool	StartIteration(SSetIterator* psIter, M** ppcUnknown);
+	bool	Iterate(SSetIterator* psIter, M** ppcUnknown);
 
 protected:
 	bool	LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown);
@@ -181,9 +181,9 @@ M* CArrayUnknownTemplate<M>::Last(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayUnknownTemplate<M>::StartIteration(SSetIterator* psIter)
+bool CArrayUnknownTemplate<M>::StartIteration(SSetIterator* psIter, M** ppcUnknown)
 {
-	return (M*)CArrayUnknown::StartIteration(psIter);
+	return CArrayUnknown::StartIteration(psIter, (CUnknown**)ppcUnknown);
 }
 
 
@@ -192,9 +192,9 @@ M* CArrayUnknownTemplate<M>::StartIteration(SSetIterator* psIter)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayUnknownTemplate<M>::Iterate(SSetIterator* psIter)
+bool CArrayUnknownTemplate<M>::Iterate(SSetIterator* psIter, M** ppcUnknown)
 {
-	return (M*)CArrayUnknown::Iterate(psIter);
+	return CArrayUnknown::Iterate(psIter, (CUnknown**)ppcUnknown);
 }
 
 

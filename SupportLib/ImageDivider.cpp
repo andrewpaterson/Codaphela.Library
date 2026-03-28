@@ -256,14 +256,18 @@ void CImageDivider::CropTransparentBorders(void)
 {
 	SSetIterator		sIter;
 	Ptr<CImageCel>		pcImageCel;
+	bool				bExists;
 
 	if (mbCropTransparentBorders)
 	{
-		pcImageCel = mcDestImageCels.StartIteration(&sIter);
-		while (pcImageCel.IsNotNull())
+		pcImageCel = mcDestImageCels.StartIteration(&sIter, &bExists);
+		while (bExists)
 		{
-			pcImageCel->CropTransparentBorders();
-			pcImageCel = mcDestImageCels.Iterate(&sIter);
+			if (pcImageCel.IsNotNull())
+			{
+				pcImageCel->CropTransparentBorders();
+				pcImageCel = mcDestImageCels.Iterate(&sIter, &bExists);
+			}
 		}
 	}
 }
