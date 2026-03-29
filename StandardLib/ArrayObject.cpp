@@ -36,9 +36,9 @@ Ptr<CArrayObject> CArrayObject::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayObject::Add(CPointer& pObject)
+bool CArrayObject::Add(CPointer& pObject)
 {
-	CArrayCommonObject::Add(pObject);
+	return CArrayCommonObject::Add(pObject);
 }
 
 
@@ -46,9 +46,9 @@ void CArrayObject::Add(CPointer& pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayObject::AddAll(Ptr<CArrayObject> pcArray)
+bool CArrayObject::AddAll(Ptr<CArrayObject> pcArray)
 {
-	CArrayCommonObject::AddAll((CArrayCommonObject*)pcArray.Dereference());
+	return CArrayCommonObject::AddAll((CArrayCommonObject*)pcArray.Dereference());
 }
 
 
