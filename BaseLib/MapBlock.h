@@ -32,9 +32,11 @@ public:
 	void				Init(CMallocator* pcMalloc, DataCompare fKeyCompare, bool bOverwrite = true);
 	void				Init(CMallocator* pcMalloc, DataCompare fKeyCompare, DataCompare fCompare, bool bOverwrite);
 	void				Kill(void);
+	void				ReInit(void);
 
 	bool				Get(void* pvKey, size iKeySize, void** ppvData, size* piDataSize);
 	void*				Get(void* pvKey, size iKeySize);
+	SMNode*				GetNode(void* pvKey, size iKeySize);
 
 	void*				Put(void* pvKey, size iKeySize, size iDataSize);
 	bool				Put(void* psKey, size iKeySize, void* pvData, size iDataSize);
@@ -48,6 +50,7 @@ public:
 	size				NumElements(void);
 	size				GetSortedSize(void);
 	size				GetHoldingSize(void);
+	size				NonNullElements(void);
 
 	CArrayBlockSorted*	GetArray(void);
 	void				SetDataFreeCallback(CDataFree* pcDataFree);
@@ -83,7 +86,6 @@ protected:
 
 	void				InsertHoldingIntoSorted(void);
 	void				GetInSorted(size iIndex, void** ppvKey, void** ppvData);
-	SMNode*				GetNode(void* pvKey, size iKeySize);
 
 	bool				WriteData(CFileWriter* pcFileWriter, void* pvData);
 	bool				ReadData(CFileReader* pcFileReader, void* pvData);

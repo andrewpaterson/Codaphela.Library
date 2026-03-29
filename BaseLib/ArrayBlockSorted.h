@@ -70,6 +70,8 @@ public:
 	void			Dump(void);
 	void			Sort(void);
 
+	DataCompare		GetCompare(void);
+
 protected:
 	bool			AddIntoHoldingArrays(void* pv, bool* pbUpdateSortedArray);
 	void			ClearHoldingArrays(void);
