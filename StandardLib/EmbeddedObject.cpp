@@ -815,7 +815,7 @@ void CEmbeddedObject::RemoveAllStackFroms(void)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::IsAllocatedInObjects(void)
 {
-	return  GetObjectsThisIn() != NULL;
+	return GetObjectsThisIn() != NULL;
 }
 
 

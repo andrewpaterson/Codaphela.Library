@@ -106,12 +106,11 @@ bool CMapObject::Remove(CPointer& pKey)
 	bool			bResult;
 	CBaseObject*	pcKey;
 
-
 	pcKey = (CBaseObject*)pKey.Object();
 	pcPointedTo = (CBaseObject*)mcMap.Get(pcKey);
 	bResult = mcMap.Remove(pcKey);
-	bResult = RemoveObjectTryFree(pcPointedTo, bResult, true);  
-	//The Key object will be freed (if necessary) when the pKey pointer goes out of scope.
+	bResult = RemoveObjectTryFree(pcPointedTo, bResult, false);  
+	bResult = RemoveObjectTryFree(pcKey, bResult, true);
 	return bResult;
 }
 
@@ -224,13 +223,11 @@ void CMapObject::SetPointerTosExpectedDistToRoot(int iDistToRoot)
 	CBaseObject*	pcPointedToKey;
 	CBaseObject*	pcPointedToValue;
 	SMapIterator	sIter;
-	CMapEntry		cEntry;
+	bool			bExists;
 
-	cEntry = StartIteration(&sIter);
-	while (cEntry.Exists())
+	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+	while (bExists)
 	{
-		pcPointedToKey = (CBaseObject*)cEntry.KeyObject();
-		pcPointedToValue = (CBaseObject*)cEntry.ValueObject();
 		if (iDistToRoot >= ROOT_DIST_TO_ROOT)
 		{
 			pcContainer = pcPointedToKey->GetEmbeddingContainer();
@@ -256,7 +253,7 @@ void CMapObject::SetPointerTosExpectedDistToRoot(int iDistToRoot)
 			gcLogger.Error2(__METHOD__, "Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
 		}
 
-		cEntry = Iterate(&sIter);
+		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}
 }
 
@@ -271,21 +268,18 @@ void CMapObject::ValidatePointerTos(void)
 	CBaseObject*	pcPointedToKey;
 	CBaseObject*	pcPointedToValue;
 	SMapIterator	sIter;
-	CMapEntry		cEntry;
+	bool			bExists;
 
 	iCount = 0;
-	cEntry = StartIteration(&sIter);
-	while (cEntry.Exists())
+	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+	while (bExists)
 	{
-		pcPointedToKey = (CBaseObject*)cEntry.KeyObject();
-		pcPointedToValue = (CBaseObject*)cEntry.ValueObject();
-
 		ValidatePointerTo(pcPointedToKey);
 		if (pcPointedToValue)
 		{
 			ValidatePointerTo(pcPointedToValue);
 		}
-		cEntry = Iterate(&sIter);
+		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 		iCount++;
 	}
 }
@@ -345,20 +339,17 @@ void CMapObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 	CBaseObject*	pcPointedToKey;
 	CBaseObject*	pcPointedToValue;
 	SMapIterator	sIter;
-	CMapEntry		cEntry;
+	bool			bExists;
 
-	cEntry = StartIteration(&sIter);
-	while (cEntry.Exists())
+	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+	while (bExists)
 	{
-		pcPointedToKey = (CBaseObject*)cEntry.KeyObject();
-		pcPointedToValue = (CBaseObject*)cEntry.ValueObject();
-
 		papcTos->Add(pcPointedToKey);
 		if (pcPointedToValue)
 		{
 			papcTos->Add(pcPointedToValue);
 		}
-		cEntry = Iterate(&sIter);
+		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}
 }
 
@@ -382,14 +373,11 @@ bool CMapObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 	CBaseObject*	pcPointedToKey;
 	CBaseObject*	pcPointedToValue;
 	SMapIterator	sIter;
-	CMapEntry		cEntry;
+	bool			bExists;
 
-	cEntry = StartIteration(&sIter);
-	while (cEntry.Exists())
+	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+	while (bExists)
 	{
-		pcPointedToKey = (CBaseObject*)cEntry.KeyObject();
-		pcPointedToValue = (CBaseObject*)cEntry.ValueObject();
-
 		if (pcPointedToKey == pcEmbedded)
 		{
 			return true;
@@ -398,7 +386,7 @@ bool CMapObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 		{
 			return true;
 		}
-		cEntry = Iterate(&sIter);
+		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}
 	return false;
 }
@@ -413,19 +401,16 @@ void CMapObject::RemoveAllPointerTosDontFree(void)
 	CBaseObject*	pcPointedToKey;
 	CBaseObject*	pcPointedToValue;
 	SMapIterator	sIter;
-	CMapEntry		cEntry;
 	bool			bResult;
+	bool			bExists;
 
 	bResult = true;
-	cEntry = StartIteration(&sIter);
-	while (cEntry.Exists())
+	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+	while (bExists)
 	{
-		pcPointedToKey = (CBaseObject*)cEntry.KeyObject();
-		pcPointedToValue = (CBaseObject*)cEntry.ValueObject();
-		
 		bResult &= RemovePointerToDontFree(pcPointedToKey);
-		bResult &= RemovePointerToDontFree(pcPointedToKey);
-		cEntry = Iterate(&sIter);
+		bResult &= RemovePointerToDontFree(pcPointedToValue);
+		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}
 	mcMap.ReInit();
 }
@@ -443,18 +428,15 @@ bool CMapObject::RemoveAllPointerTosTryFree(void)
 	CBaseObject*	pcPointedToKey;
 	CBaseObject*	pcPointedToValue;
 	SMapIterator	sIter;
-	CMapEntry		cEntry;
+	bool			bExists;
 
 	bResult = true;
-	cEntry = StartIteration(&sIter);
-	while (cEntry.Exists())
+	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+	while (bExists)
 	{
-		pcPointedToKey = (CBaseObject*)cEntry.KeyObject();
-		pcPointedToValue = (CBaseObject*)cEntry.ValueObject();
-		
 		bResult &= RemovePointerToTryFree(pcPointedToKey);
 		bResult &= RemovePointerToTryFree(pcPointedToValue);
-		cEntry = Iterate(&sIter);
+		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}
 
 	mcMap.ReInit();
@@ -472,14 +454,11 @@ void CMapObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculat
 	CBaseObject*	pcPointedToKey;
 	CBaseObject*	pcPointedToValue;
 	SMapIterator	sIter;
-	CMapEntry		cEntry;
+	bool			bExists;
 
-	cEntry = StartIteration(&sIter);
-	while (cEntry.Exists())
+	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+	while (bExists)
 	{
-		pcPointedToKey = (CBaseObject*)cEntry.KeyObject();
-		pcPointedToValue = (CBaseObject*)cEntry.ValueObject();
-
 		pcContainer = pcPointedToKey->GetEmbeddingContainer();
 		pcContainer->CollectAndClearInvalidDistToRootObjects(pcParameters);
 		if (pcPointedToValue)
@@ -487,7 +466,7 @@ void CMapObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculat
 			pcContainer = pcPointedToValue->GetEmbeddingContainer();
 			pcContainer->CollectAndClearInvalidDistToRootObjects(pcParameters);
 		}
-		cEntry = Iterate(&sIter);
+		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}
 }
 
@@ -501,19 +480,17 @@ bool CMapObject::Save(CObjectWriter* pcFile)
 	//CBaseObject*				pcPointedTo;
 	//SMapIterator				sIter;
 	//bool						bExists;
-	//uint8						auiKey[MAX_KEY_SIZE];
-	//size						uiKeySize;
-
+	
 	//ReturnOnFalse(mcMap.WriteMapUnknownHeader(pcFile));
 	//ReturnOnFalse(pcFile->WriteBool(mbSubRoot));
 
-	//bExists = mcMap.StartIteration(&sIter, auiKey, &uiKeySize, MAX_KEY_SIZE, (CUnknown**)&pcPointedTo);
+	//bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	//while (bExists)
 	//{
 	//	ReturnOnFalse(pcFile->WriteSize(uiKeySize));
 	//	ReturnOnFalse(pcFile->WriteData(auiKey, uiKeySize));
 	//	ReturnOnFalse(pcFile->WriteDependent(pcPointedTo));
-	//	bExists = mcMap.Iterate(&sIter, auiKey, &uiKeySize, MAX_KEY_SIZE, (CUnknown**)&pcPointedTo);
+	//  bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	//}
 	//return true;
 
@@ -571,20 +548,17 @@ void CMapObject::TouchAll(void)
 	CBaseObject*	pcPointedToKey;
 	CBaseObject*	pcPointedToValue;
 	SMapIterator	sIter;
-	CMapEntry		cEntry;
+	bool			bExists;
 
-	cEntry = StartIteration(&sIter);
-	while (cEntry.Exists())
+	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+	while (bExists)
 	{
-		pcPointedToKey = (CBaseObject*)cEntry.KeyObject();
-		pcPointedToValue = (CBaseObject*)cEntry.ValueObject();
-
 		pKey.AssignObject(pcPointedToKey);
 		if (pcPointedToValue)
 		{
 			pValue.AssignObject(pcPointedToValue);
 		}
-		cEntry = Iterate(&sIter);
+		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}
 }
 
@@ -597,22 +571,24 @@ void CMapObject::KillAll(void)
 {
 	CBaseObject*	pcPointedToKey;
 	CBaseObject*	pcPointedToValue;
+	CBaseObject*	pcPointedToKeyNext;
+	CBaseObject*	pcPointedToValueNext;
 	SMapIterator	sIter;
-	CMapEntry		cEntry;
+	bool			bExists;
 
-	cEntry = StartIteration(&sIter);
-	while (cEntry.Exists())
+	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+	while (bExists)
 	{
-		pcPointedToKey = (CBaseObject*)cEntry.KeyObject();
-		pcPointedToValue = (CBaseObject*)cEntry.ValueObject();
-
-		cEntry = Iterate(&sIter);
+		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKeyNext, (CUnknown**)&pcPointedToValueNext);
 
 		pcPointedToKey->Kill();
 		if (pcPointedToValue)
 		{
 			pcPointedToValue->Kill();
 		}
+
+		pcPointedToKey = pcPointedToKeyNext;
+		pcPointedToValue = pcPointedToValueNext;
 	}
 }
 
@@ -647,16 +623,13 @@ size CMapObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 	CBaseObject*	pcPointedToKey;
 	CBaseObject*	pcPointedToValue;
 	SMapIterator	sIter;
-	CMapEntry		cEntry;
+	bool			bExists;
 	size 			iCount;
 
 	iCount = 0;
-	cEntry = StartIteration(&sIter);
-	while (cEntry.Exists())
+	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+	while (bExists)
 	{
-		pcPointedToKey = (CBaseObject*)cEntry.KeyObject();
-		pcPointedToValue = (CBaseObject*)cEntry.ValueObject();
-
 		if (pcPointedToKey == pcOld)
 		{
 			mcMap.Remove(pcOld);
@@ -670,7 +643,7 @@ size CMapObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 			iCount++;
 		}
 
-		cEntry = Iterate(&sIter);
+		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}
 	return iCount;
 }
@@ -685,19 +658,14 @@ void CMapObject::SetPointedTosDistToRoot(int iDistToRoot)
 	CBaseObject*	pcPointedToKey;
 	CBaseObject*	pcPointedToValue;
 	SMapIterator	sIter;
-	CMapEntry		cEntry;
+	bool			bExists;
 	CBaseObject*	pcContainer;
 
 	if (iDistToRoot >= ROOT_DIST_TO_ROOT)
 	{
-		cEntry = StartIteration(&sIter);
-		while (cEntry.Exists())
+		bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+		while (bExists)
 		{
-			pcPointedToKey = (CBaseObject*)cEntry.KeyObject();
-			pcPointedToValue = (CBaseObject*)cEntry.ValueObject();
-
-			cEntry = Iterate(&sIter);
-
 			pcContainer = pcPointedToKey->GetEmbeddingContainer();
 			pcContainer->SetExpectedDistToRoot(iDistToRoot + 1);
 
@@ -706,19 +674,14 @@ void CMapObject::SetPointedTosDistToRoot(int iDistToRoot)
 				pcContainer = pcPointedToValue->GetEmbeddingContainer();
 				pcContainer->SetExpectedDistToRoot(iDistToRoot + 1);
 			}
-			cEntry = Iterate(&sIter);
+			bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 		}
 	}
 	else if (iDistToRoot == UNATTACHED_DIST_TO_ROOT)
 	{
-		cEntry = StartIteration(&sIter);
-		while (cEntry.Exists())
+		bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+		while (bExists)
 		{
-			pcPointedToKey = (CBaseObject*)cEntry.KeyObject();
-			pcPointedToValue = (CBaseObject*)cEntry.ValueObject();
-
-			cEntry = Iterate(&sIter);
-
 			pcContainer = pcPointedToKey->GetEmbeddingContainer();
 			pcContainer->SetCalculatedDistToRoot();
 
@@ -727,7 +690,7 @@ void CMapObject::SetPointedTosDistToRoot(int iDistToRoot)
 				pcContainer = pcPointedToValue->GetEmbeddingContainer();
 				pcContainer->SetCalculatedDistToRoot();
 			}
-			cEntry = Iterate(&sIter);
+			bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 		}
 	}
 	else
@@ -746,22 +709,17 @@ void CMapObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculato
 	CBaseObject*	pcPointedToKey;
 	CBaseObject*	pcPointedToValue;
 	SMapIterator	sIter;
-	CMapEntry		cEntry;
+	bool			bExists;
 
-	cEntry = StartIteration(&sIter);
-	while (cEntry.Exists())
+	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+	while (bExists)
 	{
-		pcPointedToKey = (CBaseObject*)cEntry.KeyObject();
-		pcPointedToValue = (CBaseObject*)cEntry.ValueObject();
-
-		cEntry = Iterate(&sIter);
-
 		AddExpectedDistToRoot(pcPointedToKey, iExpectedDist + 1, pcParameters);
 		if (pcPointedToValue)
 		{
 			AddExpectedDistToRoot(pcPointedToValue, iExpectedDist + 1, pcParameters);
 		}
-		cEntry = Iterate(&sIter);
+		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}
 }
 
