@@ -31,8 +31,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 Ptr<CIndexObject> CIndexObject::Init(EIndexKeyReverse eKeyReverse)
 {
+	PreInit();
 	CCollection::Init();
-	mcIndex.Init(false, true);
+	mcIndex.Init(false, true, eKeyReverse);
+	PostInit();
 	return Ptr<CIndexObject>(this);
 }
 
@@ -55,7 +57,6 @@ void CIndexObject::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexObject::Free(void)
 {
-	mcIndex.Kill();
 }
 
 
@@ -86,8 +87,7 @@ bool CIndexObject::Put(uint8* pvKey, size iKeySize, CPointer& pObject)
 	pcPointedTo = (CBaseObject*)mcIndex.Get(pvKey, iKeySize);
 	if (pcPointedTo)
 	{
-		bResult = mcIndex.Put(pvKey, iKeySize, NULL);
-		bResult = RemoveObjectTryFree(pcPointedTo, bResult);
+		bResult = RemoveObjectTryFree(pcPointedTo, true, false);
 		if (!bResult)
 		{
 			return bResult;
@@ -99,7 +99,7 @@ bool CIndexObject::Put(uint8* pvKey, size iKeySize, CPointer& pObject)
 		return bResult;
 	}
 
-	bResult = AddObjectFrom(pvObject, bResult);
+	bResult = AddObjectFrom(pvObject, bResult, true);
 	return bResult;
 }
 
@@ -128,7 +128,7 @@ bool CIndexObject::Remove(uint8* pvKey, size iKeySize)
 
 	pcPointedTo = (CBaseObject*)mcIndex.Get(pvKey, iKeySize);
 	bResult = mcIndex.Remove(pvKey, iKeySize);
-	bResult = RemoveObjectTryFree(pcPointedTo, bResult);
+	bResult = RemoveObjectTryFree(pcPointedTo, bResult, true);
 	return bResult;
 }
 

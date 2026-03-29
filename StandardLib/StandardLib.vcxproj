@@ -187,6 +187,7 @@
     <ClInclude Include="Classes.h" />
     <ClInclude Include="IndexObject.h" />
     <ClInclude Include="IndexUnknown.h" />
+    <ClInclude Include="MapEntry.h" />
     <ClInclude Include="MapObject.h" />
     <ClInclude Include="MapUnknownUnknown.h" />
     <ClInclude Include="PrimitiveClasses.h" />
@@ -304,6 +305,7 @@
     <ClCompile Include="Classes.cpp" />
     <ClCompile Include="IndexObject.cpp" />
     <ClCompile Include="IndexUnknown.cpp" />
+    <ClCompile Include="MapEntry.cpp" />
     <ClCompile Include="MapObject.cpp" />
     <ClCompile Include="MapUnknownUnknown.cpp" />
     <ClCompile Include="Pointer.cpp" />
