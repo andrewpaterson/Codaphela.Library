@@ -98,8 +98,8 @@ public:
 			CBaseObject*		GetHeapFrom(size iFromIndex);
 			void				UnsafeAddHeapFrom(CBaseObject* pcFromObject);
 
-			void				AddStackFrom(CPointer* pcPointer);
-			void				AddStackFrom(CCollection* pcCollection);
+			void				AddStackFrom(CPointer* pcPointer, bool bValidate);
+			void				AddStackFrom(CCollection* pcCollection, bool bValidate);
 			void				AddStackFroms(CStackPointer* pcStackPointer);
 			bool				HasStackPointers(void);
 			void				PrivateRemoveStackFrom(CPointer* pcPointer);
