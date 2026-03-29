@@ -55,8 +55,6 @@ public:
 			void			MakeSubRoot(void);
 			bool			IsSubRoot(void);
 
-	virtual void			UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld) =0;  //Called by RemapEmbedded
-
 			void			BaseValidatePointerTos(void) override;
 			void			ValidateConsistency(void);
 

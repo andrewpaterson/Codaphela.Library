@@ -509,7 +509,7 @@ CEmbeddedObject* CPointer::DereferenceArrow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPointer::MorphInto(CEmbeddedObject* pcNew)
+size CPointer::MorphInto(CEmbeddedObject* pcNew)
 {
 	CObjectRemapFrom	cRemapper;
 	int					iCount;

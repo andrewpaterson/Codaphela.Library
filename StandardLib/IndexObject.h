@@ -34,7 +34,7 @@ protected:
 	CIndexUnknown	mcIndex;
 
 public:
-	Ptr<CIndexObject>	Init(void);
+	Ptr<CIndexObject>	Init(EIndexKeyReverse eKeyReverse = IKR_No);
 	void				Class(void) override;
 	void				Free(void) override;
 
@@ -55,7 +55,6 @@ public:
 	void				RemoveAllPointerTosDontFree(void) override;
 	bool				RemoveAllPointerTosTryFree(void) override;
 	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters) override;
-	void				UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld) override;
 
 	bool				Remove(char* szKey);
 	bool				Remove(uint8* pvKey, size iKeySize);

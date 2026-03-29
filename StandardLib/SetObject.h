@@ -40,7 +40,6 @@ public:
 	template<class M>	Ptr<M>			Iterate(SSetIterator* psIter);
 
 						void			TouchAll(void);
-						void			UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld);
 };
 
 
