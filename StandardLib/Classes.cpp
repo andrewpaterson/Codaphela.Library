@@ -79,7 +79,7 @@ void CClasses::AddSystemClasses(void)
 	AddSystemClassAndConstructor<CString>();
 	AddSystemClassAndConstructor<CPointerContainer>();
 	AddSystemClassAndConstructor<CIndexObject>();
-	//AddSystemClassAndConstructor<CMapObject>();
+	AddSystemClassAndConstructor<CMapObject>();
 }
 
 

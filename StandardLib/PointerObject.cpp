@@ -343,7 +343,7 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject, bool bKillIfNoRoot)
 
 			if (mpcObject)
 			{
-				mpcObject->AddStackFrom(this);
+				mpcObject->AddStackFrom(this, false);
 			}
 		}
 	}
@@ -750,7 +750,7 @@ void CPointer::AssignObject(CEmbeddedObject* pcObject)
 	mpcObject = pcObject;
 	if (mpcObject)
 	{
-		mpcObject->AddStackFrom(this);
+		mpcObject->AddStackFrom(this, false);
 	}
 }
 

@@ -14,6 +14,8 @@ private:
 public:	
 	void		Init(bool bKillElements = true, bool bOverwriteExisting = true);
 	void		Kill(void);
+	void		ReInit(void);
+
 	bool		Save(CFileWriter* pcFile);
 	bool		Load(CFileReader* pcFile);
 
@@ -24,9 +26,14 @@ public:
 	template<class M, class N>
 	N*			Get(M* pcKey);
 	CUnknown*	Get(CUnknown* pcKey);
+	SMNode*		GetNode(CUnknown* pcKey);
+
 	size		NumElements(void);
 	size		GetSortedSize(void);
 	size		GetHoldingSize(void);
+	size		NonNullElements(void);
+
+	bool		Remove(CUnknown* pcKey);
 
 	bool		StartIteration(SMapIterator* psIterator, CUnknown** ppvKey, CUnknown** ppvData);
 	bool		Iterate(SMapIterator* psIterator, CUnknown** ppvKey, CUnknown** ppvData);

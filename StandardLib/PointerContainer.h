@@ -17,24 +17,7 @@ public:
 	Ptr<CPointerContainer>	Init(CEmbeddedObject* pcObject);
 	void					Free(void) override;
 
-	void					Clear();
-};
-
-
-class CNamedPointerContainer : public CObject
-{
-CONSTRUCTABLE(CNamedPointerContainer)
-DESTRUCTABLE(CNamedPointerContainer)
-public:
-	Ptr<>	mp;
-
-	Ptr<CNamedPointerContainer>	Init(void);
-	Ptr<CNamedPointerContainer>	Init(CPointer& pPointer);
-	Ptr<CNamedPointerContainer>	Init(CEmbeddedObject* pcObject);
-	void						Free(void) override;
-	void						Class(void) override;
-
-	void						Clear();
+	void					Clear(void);
 };
 
 

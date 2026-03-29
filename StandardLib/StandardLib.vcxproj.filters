@@ -489,6 +489,9 @@
     <ClInclude Include="MapUnknownUnknown.h">
       <Filter>Source\Object\Unknown\Collection\Map</Filter>
     </ClInclude>
+    <ClInclude Include="MapEntry.h">
+      <Filter>Source\Object\Object\Collection\Map</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -793,6 +796,9 @@
     </ClCompile>
     <ClCompile Include="MapUnknownUnknown.cpp">
       <Filter>Source\Object\Unknown\Collection\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="MapEntry.cpp">
+      <Filter>Source\Object\Object\Collection\Map</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
