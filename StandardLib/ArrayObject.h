@@ -32,8 +32,8 @@ DESTRUCTABLE(CArrayObject)
 public:
 	Ptr<CArrayObject>	Init(void);
 
-	void				Add(CPointer& pObject);
-	void				AddAll(Ptr<CArrayObject> pcArray);
+	bool				Add(CPointer& pObject);
+	bool				AddAll(Ptr<CArrayObject> pcArray);
 	CPointer			Get(size  iIndex);
 	bool				Insert(size  iIndex, CPointer& pObject);
 	bool				Remove(size  iIndex);
