@@ -117,14 +117,16 @@ void CArrayBit::GrowBy(size iNumBits)
 	if ((uiOldByteSize <= uiTransitionSize) && (uiNewByteSize > uiTransitionSize))
 	{
 		pvData = Malloc(uiNewByteSize);
-		memcpy_fast(pvData, GetData(), uiNewByteSize);
+		memcpy_fast(pvData, GetData(), uiOldByteSize);
         u.aLarge.mpvData = pvData;
 		miNumBits += iNumBits;
 		return;
 	}
-
-	miNumBits += iNumBits;
-    u.aLarge.mpvData = Realloc(u.aLarge.mpvData, uiNewByteSize);
+	else
+	{
+		miNumBits += iNumBits;
+		u.aLarge.mpvData = Realloc(u.aLarge.mpvData, uiNewByteSize);
+	}
 }
 
 
