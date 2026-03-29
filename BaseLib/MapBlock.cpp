@@ -18,6 +18,7 @@ void CMapBlock::_Init(void)
 	mpcDataFree = NULL;
 	mpcDataIO = this;
 	mfKeyCompare = NULL;
+	mpcMalloc = NULL;
 }
 
 
@@ -105,6 +106,33 @@ void CMapBlock::Kill(void)
 	miLargestKeySize = 0;
 	mapArray.Kill();
 	CMalloc::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapBlock::ReInit(void)
+{
+	CMallocator*		pcMalloc;
+	DataCompare			fKeyCompare;
+	DataCompare			fCompare;
+	bool				bOverwrite;
+	CDataFree*			pcDataFree;
+	CDataIO*			pcDataIO;
+
+	fCompare = mapArray.GetCompare();
+	pcMalloc = mpcMalloc;
+	fKeyCompare = mfKeyCompare;
+	bOverwrite = mbOverwrite;
+	pcDataFree = mpcDataFree;
+	pcDataIO = mpcDataIO;
+
+	Kill();
+	Init(pcMalloc, fKeyCompare, fCompare, bOverwrite);
+	SetDataFreeCallback(pcDataFree);
+	SetDataIOCallback(pcDataIO);
 }
 
 
@@ -367,6 +395,31 @@ size CMapBlock::GetSortedSize(void)
 size CMapBlock::GetHoldingSize(void)
 {
 	return mapArray.GetHoldingSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMapBlock::NonNullElements(void)
+{
+	SMapIterator	sIter;
+	void*			pvData;
+	bool			bExists;
+	size			iCount;
+
+	iCount = 0;
+	bExists = StartIteration(&sIter, NULL, NULL, &pvData, NULL);
+	while (bExists)
+	{
+		if (pvData)
+		{
+			iCount++;
+		}
+		bExists = Iterate(&sIter, NULL, NULL, &pvData, NULL);
+	}
+	return iCount;
 }
 
 
