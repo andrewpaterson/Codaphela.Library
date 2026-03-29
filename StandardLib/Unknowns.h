@@ -58,6 +58,7 @@ public:
 
 	template<class M>	void			AddConstructor(void);
 	template<class M>	M*				GetConstructor(void);
+						CConstructors*	GetConstructors(void);
 						bool			LoadUnknown(CFileReader* pcFile, CUnknown** ppcUnknown);
 						bool			SaveUnknown(CFileWriter* pcFile, CUnknown* pcUnknown);
 

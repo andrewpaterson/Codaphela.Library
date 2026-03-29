@@ -329,7 +329,7 @@ CPointer CIndexObject::IteratePointer(SIndexTreeMemoryIterator* psIter)
 void CIndexObject::ValidatePointerTos(void)
 {
 	size 						iCount;
-	CEmbeddedObject*			pcPointedTo;
+	CBaseObject*				pcPointedTo;
 	SIndexTreeMemoryIterator	sIter;
 	bool						bExists;
 
@@ -398,7 +398,7 @@ size CIndexObject::BaseNumPointerTos(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 {
-	CEmbeddedObject*			pcPointedTo;
+	CBaseObject*				pcPointedTo;
 	SIndexTreeMemoryIterator	sIter;
 	bool						bExists;
 
@@ -430,7 +430,7 @@ void CIndexObject::BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 {
-	CEmbeddedObject*			pcPointedTo;
+	CBaseObject*				pcPointedTo;
 	SIndexTreeMemoryIterator	sIter;
 	bool						bExists;
 
@@ -501,7 +501,7 @@ bool CIndexObject::RemoveAllPointerTosTryFree(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexObject::UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
 {
-	//Implement me please.
+	gcLogger.Error2(__METHOD__, " Not yet implemented.", NULL);
 }
 
 
@@ -511,7 +511,7 @@ void CIndexObject::UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
 //////////////////////////////////////////////////////////////////////////
 void CIndexObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
 {
-	CEmbeddedObject*			pcPointedTo;
+	CBaseObject*				pcPointedTo;
 	SIndexTreeMemoryIterator	sIter;
 	bool						bExists;
 	CBaseObject*				pcContainer;
@@ -535,7 +535,24 @@ void CIndexObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalcul
 //////////////////////////////////////////////////////////////////////////
 bool CIndexObject::Save(CObjectWriter* pcFile)
 {
-	return gcLogger.Error2(__METHOD__, " Not yet implemented.", NULL);
+	CBaseObject*				pcPointedTo;
+	SIndexTreeMemoryIterator	sIter;
+	bool						bExists;
+	uint8						auiKey[MAX_KEY_SIZE];
+	size						uiKeySize;
+
+	ReturnOnFalse(mcIndex.WriteIndexUnknownHeader(pcFile));
+	ReturnOnFalse(pcFile->WriteBool(mbSubRoot));
+
+	bExists = mcIndex.StartIteration(&sIter, auiKey, &uiKeySize, MAX_KEY_SIZE, (CUnknown**)&pcPointedTo);
+	while (bExists)
+	{
+		ReturnOnFalse(pcFile->WriteSize(uiKeySize));
+		ReturnOnFalse(pcFile->WriteData(auiKey, uiKeySize));
+		ReturnOnFalse(pcFile->WriteDependent(pcPointedTo));
+		bExists = mcIndex.Iterate(&sIter, auiKey, &uiKeySize, MAX_KEY_SIZE, (CUnknown**)&pcPointedTo);
+	}
+	return true;
 }
 
 
@@ -545,7 +562,35 @@ bool CIndexObject::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexObject::Load(CObjectReader* pcFile)
 {
-	return gcLogger.Error2(__METHOD__, " Not yet implemented.", NULL);
+	size				iCount;
+	size				i;
+	CEmbeddedObject**	pcPointedTo;
+	uint8				auiKey[MAX_KEY_SIZE];
+	size				uiKeySize;
+
+	iCount = mcIndex.ReadIndexUnknownHeader(pcFile);
+	if (iCount == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return false;
+	}
+	ReturnOnFalse(pcFile->ReadBool(&mbSubRoot));
+	
+	for (i = 0; i < iCount; i++)
+	{
+		ReturnOnFalse(pcFile->ReadSize(&uiKeySize));
+		if (uiKeySize >= MAX_KEY_SIZE)
+		{
+			return false;
+		}
+		ReturnOnFalse(pcFile->ReadData(auiKey, uiKeySize));
+		pcPointedTo = (CEmbeddedObject**)mcIndex.PutNode(auiKey, uiKeySize);
+		if (pcPointedTo == NULL)
+		{
+			return false;
+		}
+		ReturnOnFalse(pcFile->ReadDependent(pcPointedTo, this));
+	}
+	return true;
 }
 
 
@@ -700,7 +745,7 @@ void CIndexObject::SetPointedTosDistToRoot(int iDistToRoot)
 //////////////////////////////////////////////////////////////////////////
 void CIndexObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
 {
-	CEmbeddedObject*			pcPointedTo;
+	CBaseObject*				pcPointedTo;
 	SIndexTreeMemoryIterator	sIter;
 	bool						bExists;
 

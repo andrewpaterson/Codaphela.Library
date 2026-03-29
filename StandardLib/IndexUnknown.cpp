@@ -76,6 +76,19 @@ bool CIndexUnknown::Put(char* szKey, CUnknown* pcValue)
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
+CUnknown** CIndexUnknown::PutNode(uint8* pvKey, size iKeySize)
+{
+	void* pvData;
+
+	pvData = mcIndex.Put(pvKey, iKeySize, NULL, sizeof(CUnknown*));
+	return (CUnknown**)pvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 CUnknown* CIndexUnknown::Get(uint8* pvKey, size iKeySize)
 {
 	size		uiDataSize;
@@ -184,13 +197,53 @@ size CIndexUnknown::NonNullElements(void)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexUnknown::WriteIndexUnknownHeader(CFileWriter* pcFileWriter)
+{
+	ReturnOnFalse(pcFileWriter->WriteInt16(muiFlags));
+	return mcIndex.WriteIndexTreeHeader(pcFileWriter);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+size CIndexUnknown::ReadIndexUnknownHeader(CFileReader* pcFileReader)
+{
+	if (!pcFileReader->ReadInt16(&muiFlags))
+	{
+		return ARRAY_ELEMENT_NOT_FOUND;
+	}
+
+	return mcIndex.ReadIndexTreeHeader(pcFileReader);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+size CIndexUnknown::ReadIndexUnknownHeader(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree)
+{
+	if (!pcFileReader->ReadInt16(&muiFlags))
+	{
+		return ARRAY_ELEMENT_NOT_FOUND;
+	}
+	return mcIndex.ReadIndexTreeHeader(pcFileReader, pcDataIO, pcDataSize, pcDataFree);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 bool CIndexUnknown::Save(CFileWriter* pcFileWriter)
 {
-	ReturnOnFalse(pcFileWriter->WriteInt16(muiFlags));
-	return mcIndex.Write(pcFileWriter);
+	ReturnOnFalse(WriteIndexUnknownHeader(pcFileWriter));
+	return mcIndex.WriteElements(pcFileWriter);
 }
 
 
@@ -200,8 +253,14 @@ bool CIndexUnknown::Save(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexUnknown::Load(CFileReader* pcFileReader)
 {
-	ReturnOnFalse(pcFileReader->ReadInt16(&muiFlags));
-	return mcIndex.Read(pcFileReader, this, this, this);
+	size	iCount;
+
+	iCount = ReadIndexUnknownHeader(pcFileReader, this, this, this);
+	if (iCount == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return false;
+	}
+	return mcIndex.ReadElements(pcFileReader, iCount);
 }
 
 

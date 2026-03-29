@@ -124,7 +124,6 @@ bool CArrayCommonObject::Load(CObjectReader* pcFile)
 	size 				uiNumElements;
 	CEmbeddedObject**	pcPointedTo;
 
-	//Note: This function has never been called.
 	ReturnOnFalse(mcArray.LoadArrayHeader(pcFile, &iFlags, &uiNumElements));
 
 	ReturnOnFalse(pcFile->ReadBool(&mbSubRoot));

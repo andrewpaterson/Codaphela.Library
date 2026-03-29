@@ -96,6 +96,11 @@ public:
 	bool					ReadConfig(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree);
 	bool					WriteElement(CFileWriter* pcFileWriter, void* pvKey, size iKeySize, void* pvData, size iDataSize);
 	bool					ReadElement(CFileReader* pcFileReader);
+	bool					WriteIndexTreeHeader(CFileWriter* pcFileWriter);
+	size					ReadIndexTreeHeader(CFileReader* pcFileReader);
+	size					ReadIndexTreeHeader(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree);
+	bool					WriteElements(CFileWriter* pcFileWriter);
+	bool					ReadElements(CFileReader* pcFileReader, size iCount);
 
 	bool					WriteData(CFileWriter* pcFileWriter, void* pvData) override;
 	bool					ReadData(CFileReader* pcFileReader, void* pvData) override;

@@ -802,16 +802,8 @@ bool CIndexTreeMemory::WriteConfig(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
+bool CIndexTreeMemory::WriteIndexTreeHeader(CFileWriter* pcFileWriter)
 {
-	SIndexTreeMemoryUnsafeIterator	sIter;
-	void*							pvData;
-	size							iDataSize;
-	size							iKeySize;
-	bool							bResult;
-	uint8							acKey[MAX_KEY_SIZE];
-	size							iCount;
-
 	if (!pcFileWriter)
 	{
 		return false;
@@ -826,6 +818,34 @@ bool CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 	{
 		return false;
 	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
+{
+	ReturnOnFalse(WriteIndexTreeHeader(pcFileWriter));
+	return WriteElements(pcFileWriter);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexTreeMemory::WriteElements(CFileWriter* pcFileWriter)
+{
+	SIndexTreeMemoryUnsafeIterator	sIter;
+	void*							pvData;
+	size							iDataSize;
+	size							iKeySize;
+	bool							bResult;
+	uint8							acKey[MAX_KEY_SIZE];
+	size							iCount;
 
 	iCount = 0;
 	bResult = StartIteration(&sIter, &pvData, &iDataSize);
@@ -927,18 +947,55 @@ bool CIndexTreeMemory::Read(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndex
 	//Do not call .Init() before Read().
 
 	size	iCount;
+
+	iCount = ReadIndexTreeHeader(pcFileReader, pcDataIO, pcDataSize, pcDataFree);
+	if (iCount == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return false;
+	}
+
+	return ReadElements(pcFileReader, iCount);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CIndexTreeMemory::ReadIndexTreeHeader(CFileReader* pcFileReader)
+{
+	return ReadIndexTreeHeader(pcFileReader, this, this, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CIndexTreeMemory::ReadIndexTreeHeader(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree)
+{
+	size	iCount;
+
+	ReturnOnFalse(ReadConfig(pcFileReader, pcDataIO, pcDataSize, pcDataFree));
+	if (pcFileReader->ReadSize(&iCount))
+	{
+		return iCount;
+	}
+	else
+	{
+		return ARRAY_ELEMENT_NOT_FOUND;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexTreeMemory::ReadElements(CFileReader* pcFileReader, size iCount)
+{
 	size	i;
 	bool	bResult;
-
-	if (!ReadConfig(pcFileReader, pcDataIO, pcDataSize, pcDataFree))
-	{
-		return false;
-	}
-
-	if (!pcFileReader->ReadSize(&iCount))
-	{
-		return false;
-	}
 
 	for (i = 0; i < iCount; i++)
 	{
