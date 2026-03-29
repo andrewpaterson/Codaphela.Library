@@ -36,9 +36,9 @@ Ptr<CMapEntry> CMapEntry::Init(void)
 Ptr<CMapEntry> CMapEntry::Init(CPointer& pKey, CPointer& pValue)
 {
 	PreInit();
+	PostInit();
 	mpKey = pKey;
 	mpValue = pValue;
-	PostInit();
 	return this;
 }
 
@@ -50,9 +50,9 @@ Ptr<CMapEntry> CMapEntry::Init(CPointer& pKey, CPointer& pValue)
 Ptr<CMapEntry> CMapEntry::Init(CBaseObject* pcKey, CBaseObject* pcValue)
 {
 	PreInit();
+	PostInit();
 	mpKey = pcKey;
 	mpValue = pcValue;
-	PostInit();
 	return this;
 }
 

@@ -9,14 +9,15 @@ class CMapEntry : public CObject
 {
 CONSTRUCTABLE(CMapEntry)
 DESTRUCTABLE(CMapEntry)
-public:
+protected:
 	Ptr<>	mpKey;
 	Ptr<>	mpValue;
 
-	void			Class(void) override;
+public:
 	Ptr<CMapEntry>	Init(void);
 	Ptr<CMapEntry>	Init(CPointer& pKey, CPointer& pValue);
 	Ptr<CMapEntry>	Init(CBaseObject* pcKey, CBaseObject* pcValue);
+	void			Class(void) override;
 	void			Free(void) override;
 
 	void			Clear(void);
