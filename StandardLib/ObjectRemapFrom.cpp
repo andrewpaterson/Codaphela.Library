@@ -6,13 +6,13 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
+size CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
-	int					iCount;
+	size				iCount;
 	CEmbeddedObject*	pcEmbeddedOld;
-	int					iNumEmbedded;
+	size				iNumEmbedded;
 	CEmbeddedObject*	pcEmbeddedNew;
-	int					i;
+	size				i;
 	bool				bHeapFromChanged;
 
 	bHeapFromChanged = pcOld->HasHeapFroms();
@@ -37,12 +37,12 @@ int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
+size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
 {
-	int					iNumHeapFroms;
-	int					i;
+	size				iNumHeapFroms;
+	size				i;
 	CBaseObject*		pvFrom;
-	int					iCount;
+	size				iCount;
 	CStackPointer*		pcStackPointer;
 	CStackPointer*		pcFirstStackPointer;
 	SStackPointer*		psStackPointer;
@@ -78,10 +78,11 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 			if (psStackPointer->meType == SPT_Pointer)
 			{
 				psStackPointer->u.pcPointer->UnsafePointTo(pcNew);
+				iCount++;
 			}
 			else if (psStackPointer->meType == SPT_Collection)
 			{
-				psStackPointer->u.pcCollection->UnsafePointTo(pcOld, pcNew);
+				iCount += psStackPointer->u.pcCollection->RemapPointerTos(pcOld, pcNew);
 			}
 			else
 			{
@@ -102,11 +103,11 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObjectRemapFrom::CalculateNumEmbedded(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
+size CObjectRemapFrom::CalculateNumEmbedded(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
-	int	iNumEmbeddedOld;
-	int	iNumEmbeddedNew;
-	int	iNumEmbedded;
+	size	iNumEmbeddedOld;
+	size	iNumEmbeddedNew;
+	size	iNumEmbedded;
 
 	iNumEmbeddedNew = pcNew->NumEmbedded();
 	iNumEmbeddedOld = pcOld->NumEmbedded();

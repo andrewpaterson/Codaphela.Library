@@ -29,7 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CIndexObject> CIndexObject::Init(void)
+Ptr<CIndexObject> CIndexObject::Init(EIndexKeyReverse eKeyReverse)
 {
 	CCollection::Init();
 	mcIndex.Init(false, true);
@@ -499,16 +499,6 @@ bool CIndexObject::RemoveAllPointerTosTryFree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexObject::UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
-{
-	gcLogger.Error2(__METHOD__, " Not yet implemented.", NULL);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CIndexObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
 {
 	CBaseObject*				pcPointedTo;
@@ -670,26 +660,23 @@ void CIndexObject::RemovePointerTo(CEmbeddedObject* pcTo)
 //////////////////////////////////////////////////////////////////////////
 size CIndexObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
-	size 						iCount;
-	uint8						auiKey[MAX_KEY_SIZE];
-	size						uiKeyLength;
-	CBaseObject* pcPointedTo;
-	SIndexTreeMemoryIterator	sIter;
-	bool						bExists;
+	CBaseObject*					pcPointedTo;
+	SIndexTreeMemoryUnsafeIterator	sIter;
+	bool							bExists;
+	CIndexTreeNodeMemory*			pcNode;
+	size 							iCount;
 
 	iCount = 0;
-	bExists = mcIndex.StartIteration(&sIter, auiKey, &uiKeyLength, 0, (CUnknown**)&pcPointedTo);
+	bExists = mcIndex.StartIteration(&sIter, (CUnknown**)&pcPointedTo);
 	while (bExists)
 	{
-		if (pcPointedTo)
+		if (pcPointedTo == pcOld)
 		{
-			if (pcPointedTo == pcOld)
-			{
-				mcIndex.Put(auiKey, uiKeyLength, pcNew);
-				iCount++;
-			}
+			pcNode = sIter.pcNode;
+			pcNode->SetData(&pcNew, sizeof(CUnknown*));
+			iCount++;
 		}
-		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
+		bExists = mcIndex.Iterate(&sIter, (CUnknown**)&pcPointedTo);
 	}
 	return iCount;
 }

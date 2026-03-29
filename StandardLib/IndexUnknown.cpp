@@ -6,11 +6,11 @@
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-void CIndexUnknown::Init(bool bKillElements, bool bOverwriteExisting)
+void CIndexUnknown::Init(bool bKillElements, bool bOverwriteExisting, EIndexKeyReverse eKeyReverse)
 {
 	muiFlags = 0;
 	SetFlagShort(&muiFlags, INDEX_TREE_KILL_ELEMENT, bKillElements);
-	mcIndex.Init();
+	mcIndex.Init(eKeyReverse);
 	mcIndex.SetDataFreeCallback(this);
 	mcIndex.SetDataIOCallback(this, this);
 }

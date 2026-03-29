@@ -66,7 +66,6 @@ public:
 	bool					UnsafeRemove(CBaseObject* pcObject);
 
 	CEmbeddedObject*		GetEmbeddedObject(size iIndex) override;
-	void					UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld) override;
 
 	void					ValidatePointerTos(void) override;
 
