@@ -161,7 +161,7 @@ bool CArrayCommonObject::Add(CEmbeddedObject* pcObject)
 	bool				bAdded;
 
 	bAdded = mcArray.Add(pcObject);
-	bAdded = AddObjectFrom(pcObject, bAdded);
+	bAdded = AddObjectFrom(pcObject, bAdded, true);
 	return bAdded;
 }
 
@@ -209,8 +209,8 @@ bool CArrayCommonObject::Set(size iIndex, CPointer& pObject)
 	pvObject = pObject.Object();
 	pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(iIndex);
 	bResult = mcArray.Set(iIndex, pvObject);
-	bResult = RemoveObjectTryFree(pcPointedTo, bResult);
-	bResult = AddObjectFrom(pvObject, bResult);
+	bResult = RemoveObjectTryFree(pcPointedTo, bResult, false);
+	bResult = AddObjectFrom(pvObject, bResult, true);
 	return bResult;
 }
 
@@ -713,7 +713,7 @@ bool CArrayCommonObject::InsertAt(size iIndex, CEmbeddedObject* pcObject)
 	bool				bResult;
 
 	bResult = mcArray.Insert(iIndex, pcObject);
-	bResult = AddObjectFrom(pcObject, bResult);
+	bResult = AddObjectFrom(pcObject, bResult, true);
 	return bResult;
 }
 
@@ -732,7 +732,7 @@ bool CArrayCommonObject::RemoveAt(size iIndex)
 	{
 		pcObject = UnsafeGet(iIndex);
 		bResult = mcArray.Remove(iIndex);
-		bResult = RemoveObjectTryFree(pcObject, bResult);
+		bResult = RemoveObjectTryFree(pcObject, bResult, true);
 		return bResult;
 	}
 	return false;
@@ -757,7 +757,7 @@ bool CArrayCommonObject::RemoveEnd(size iIndexInclusive)
 		for (i = iIndexInclusive; i < uiNumElements; i++)
 		{
 			pcObject = UnsafeGet(i);
-			bResult = RemoveObjectTryFree(pcObject, bResult);
+			bResult = RemoveObjectTryFree(pcObject, bResult, false);
 			if (!bResult)
 			{
 				break;
@@ -769,6 +769,10 @@ bool CArrayCommonObject::RemoveEnd(size iIndexInclusive)
 	{
 		bResult = false;
 	}
+
+#ifdef _DEBUG
+	ValidateObjectsConsistency(true);
+#endif // _DEBUG
 	return bResult;
 }
 

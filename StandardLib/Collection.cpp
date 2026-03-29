@@ -200,17 +200,17 @@ bool CCollection::RemoveAll(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCollection::AddObjectFrom(CEmbeddedObject* pcObject, bool bResult)
+bool CCollection::AddObjectFrom(CEmbeddedObject* pcObject, bool bResult, bool bValidate)
 {
 	if (bResult && pcObject)
 	{
 		if (IsEmbeddingContainerAllocatedInObjects())
 		{
-			pcObject->AddHeapFrom(this, true);
+			pcObject->AddHeapFrom(this, bValidate);
 		}
 		else
 		{
-			pcObject->AddStackFrom(this);
+			pcObject->AddStackFrom(this, bValidate);
 		}
 	}
 	return bResult;
@@ -221,17 +221,17 @@ bool CCollection::AddObjectFrom(CEmbeddedObject* pcObject, bool bResult)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCollection::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult)
+bool CCollection::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult, bool bValidate)
 {
 	if (bResult && pcObject)
 	{
 		if (IsEmbeddingContainerAllocatedInObjects())
 		{
-			bResult = pcObject->RemoveHeapFromTryFree(this, true);
+			bResult = pcObject->RemoveHeapFromTryFree(this, bValidate);
 		}
 		else
 		{
-			bResult = pcObject->RemoveStackFromTryFree(this, true);
+			bResult = pcObject->RemoveStackFromTryFree(this, bValidate);
 		}
 	}
 	return bResult;

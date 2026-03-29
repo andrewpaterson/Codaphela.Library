@@ -632,7 +632,7 @@ bool CEmbeddedObject::ContainsFrom(CEmbeddedObject* pcBaseObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::AddStackFrom(CPointer* pcPointer)
+void CEmbeddedObject::AddStackFrom(CPointer* pcPointer, bool bValidate)
 {
 	CStackPointers*		pcStackPointers;
 
@@ -647,6 +647,10 @@ void CEmbeddedObject::AddStackFrom(CPointer* pcPointer)
 		{
 			mpcStackFroms = pcStackPointers->Add(pcPointer);
 		}
+
+#ifdef _DEBUG
+		ValidateObjectsConsistency(bValidate);
+#endif // _DEBUG
 	}
 }
 
@@ -655,7 +659,7 @@ void CEmbeddedObject::AddStackFrom(CPointer* pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::AddStackFrom(CCollection* pcCollection)
+void CEmbeddedObject::AddStackFrom(CCollection* pcCollection, bool bValidate)
 {
 	CStackPointers* pcStackPointers;
 
@@ -670,6 +674,9 @@ void CEmbeddedObject::AddStackFrom(CCollection* pcCollection)
 		{
 			mpcStackFroms = pcStackPointers->Add(pcCollection);
 		}
+#ifdef _DEBUG
+		ValidateObjectsConsistency(bValidate);
+#endif // _DEBUG
 	}
 }
 
