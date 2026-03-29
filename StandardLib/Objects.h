@@ -128,6 +128,7 @@ public:
 
 						CStackPointers*			GetStackPointers(void);
 						CClasses*				GetClasses(void);
+						CConstructors*			GetConstructors(void);
 
 						OIndex					StartMemoryIteration(SIndexesIterator* psIter);
 						OIndex					IterateMemory(SIndexesIterator* psIter);

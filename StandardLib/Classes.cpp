@@ -4,6 +4,8 @@
 #include "Set.h"
 #include "Root.h"
 #include "ArrayObject.h"
+#include "IndexObject.h"
+#include "MapObject.h"
 #include "String.h"
 #include "PointerContainer.h"
 #include "Classes.h"
@@ -76,6 +78,8 @@ void CClasses::AddSystemClasses(void)
 	AddSystemClassAndConstructor<CRoot>();
 	AddSystemClassAndConstructor<CString>();
 	AddSystemClassAndConstructor<CPointerContainer>();
+	AddSystemClassAndConstructor<CIndexObject>();
+	//AddSystemClassAndConstructor<CMapObject>();
 }
 
 

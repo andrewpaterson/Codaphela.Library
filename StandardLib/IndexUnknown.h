@@ -49,6 +49,7 @@ public:
 	template<class M>
 	M*			Put(char* szKey);
 	bool		Put(char* szKey, CUnknown* pcValue);
+	CUnknown**	PutNode(uint8* pvKey, size iKeySize);
 	CUnknown*	Get(char* szKey);
 	CUnknown*	Get(uint8* pvKey, size iKeySize);
 	bool		Remove(char* szKey);
@@ -67,6 +68,10 @@ public:
 	bool		Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, CUnknown** ppvData);
 	bool		StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, CUnknown** ppvData);
 	bool		Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, CUnknown** ppvData);
+
+	bool		WriteIndexUnknownHeader(CFileWriter* pcFileWriter);
+	size		ReadIndexUnknownHeader(CFileReader* pcFileReader);
+	size		ReadIndexUnknownHeader(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree);
 
 protected:
 	void		FreeData(void* pvData);
