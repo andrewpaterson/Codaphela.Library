@@ -166,7 +166,6 @@ void CObject::EmbedEmbeddedObjectFields(void)
 void CObject::FreePointers(void)
 {
 	CBaseObject::FreePointers();
-
 	mapEmbedded.Kill();
 	mapPointers.Kill();
 }
@@ -995,9 +994,6 @@ bool CObject::RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, size* piIndex)
 //////////////////////////////////////////////////////////////////////////
 size CObject::NumEmbedded(void)
 {
-	size			i;
-	CBaseObject*	pcEmbedded;
-	size			uiCount;
 	size			uiNumEmbedded;
 
 	uiNumEmbedded = GetNumEmbeddedFromFlags();
@@ -1006,16 +1002,33 @@ size CObject::NumEmbedded(void)
 		return (uint16)uiNumEmbedded;
 	}
 
+	uiNumEmbedded = CountNumEmbedded();
+
+	SetFlagNumEmbedded(uiNumEmbedded);
+	return uiNumEmbedded;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CObject::CountNumEmbedded(void)
+{
+	size			uiCount;
+	size			uiNumEmbedded;
+	size			i;
+	CBaseObject*	pcEmbedded;
+
 	uiCount = 1;
 	uiNumEmbedded = mapEmbedded.NumElements();
-	for (i = 0; i < uiNumEmbedded; i++)	
+	for (i = 0; i < uiNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
 
 		uiCount += pcEmbedded->NumEmbedded();
 	}
 
-	SetFlagNumEmbedded(uiCount);
 	return uiCount;
 }
 

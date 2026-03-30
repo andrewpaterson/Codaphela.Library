@@ -62,8 +62,7 @@ CBaseObject::~CBaseObject()
 	//All the CBaseObject is pushed into its immediate sub-classes (anything : public CBaseObject).  
 	//  CCollection
 	//  CHollowObject
-	//  CObject 
-
+	//  CObject
 	//This is because FreePointers() is virtual and overridden in at least Object.
 }
 

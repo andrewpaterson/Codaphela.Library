@@ -23,15 +23,15 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Collection.h"
 #include "ArrayCommonUnknown.h"
 
-
+//Do not sub-class this class (unless you clean up the destructor calls).
 class CArrayCommonObject : public CCollection
 {
 CONSTRUCTABLE(CArrayCommonObject)
-DESTRUCTABLE(CArrayCommonObject)
 protected:
 	CArrayCommonUnknown		mcArray;
 
 public:
+							~CArrayCommonObject();
 	Ptr<CArrayCommonObject>	Init(bool bUnique, bool bIgnoreNull, bool bPreserveOrder);
 	void					Class(void) override;
 

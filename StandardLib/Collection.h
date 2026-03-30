@@ -34,7 +34,6 @@ protected:
 	bool	mbSubRoot;
 
 public:
-							~CCollection();
 			void			Init(void);
 			void			Kill(void) final;
 			bool			IsCollection(void) override;

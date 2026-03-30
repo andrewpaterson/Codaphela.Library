@@ -8,12 +8,16 @@
 class CMapEntry : public CObject
 {
 CONSTRUCTABLE(CMapEntry)
-DESTRUCTABLE(CMapEntry)
 protected:
 	Ptr<>	mpKey;
 	Ptr<>	mpValue;
 
 public:
+					CMapEntry();
+					~CMapEntry();
+					CMapEntry(CMapEntry& other);
+	void			operator = (CMapEntry& pcPointer);
+
 	Ptr<CMapEntry>	Init(void);
 	Ptr<CMapEntry>	Init(CPointer& pKey, CPointer& pValue);
 	Ptr<CMapEntry>	Init(CBaseObject* pcKey, CBaseObject* pcValue);
@@ -26,6 +30,7 @@ public:
 	CPointer		Value(void);
 	CBaseObject*	KeyObject(void);
 	CBaseObject*	ValueObject(void);
+	bool			ValidatePointersEmbedded(void);
 };
 
 

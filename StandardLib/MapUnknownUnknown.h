@@ -42,6 +42,7 @@ public:
 	void		Print(CChars* psz);
 	void		Dump(void);
 	void		Sort(void);
+	CMapPtrPtr* GetMapForTesting(void);
 
 protected:
 	void		FreeData(void* pvData) override;
