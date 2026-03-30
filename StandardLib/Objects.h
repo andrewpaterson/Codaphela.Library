@@ -124,7 +124,7 @@ public:
 						CBaseObject*			Dehollow(char* szObjectName);
 
 						bool					ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject);
-						bool					RemoveMemoryIdentifiers(CBaseObject* pvObject);
+						bool					TestRemoveMemoryIdentifiers(CBaseObject* pvObject);
 
 						CStackPointers*			GetStackPointers(void);
 						CClasses*				GetClasses(void);
@@ -176,7 +176,6 @@ protected:
 						
 						void					KillDontFreeObjects(CArrayBlockObjectPtr* papcObjectPts);
 						void					KillObjects(CArrayBlockObjectPtr* papcObjectPts);
-						void					FreeObject(CBaseObject* pvObject);
 
 						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, bool bEmbedded);
 						void					ValidateSceneGraph(void);
