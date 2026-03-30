@@ -26,14 +26,15 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Pointer.h"
 
 
+//Do not sub-class this class (unless you clean up the destructor calls).
 class CMapObject : public CCollection
 {
 CONSTRUCTABLE(CMapObject)
-DESTRUCTABLE(CMapObject)
 protected:
 	CMapUnknownUnknown		mcMap;
 
 public:
+						~CMapObject();
 	Ptr<CMapObject>		Init(void);
 	void				Class(void) override;
 	void				Free(void) override;

@@ -36,6 +36,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
+//Object is abstract (due to Class() and Free) and should remaain that way.
 class CObject : public CBaseObject
 {
 template<class M>
@@ -62,6 +63,7 @@ public:
 	bool				IsDirty(void);
 	size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 	size				NumEmbedded(void);
+	size				CountNumEmbedded(void);
 	CEmbeddedObject*	GetEmbeddedObject(size iIndex);
 	CBaseObject*		Dehollow(void);
 	size				NumHeapFroms(void);
