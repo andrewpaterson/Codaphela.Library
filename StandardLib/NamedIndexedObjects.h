@@ -56,6 +56,8 @@ public:
 
 	bool				ValidateNoDirty(void);
 	bool				FreeObjects(void);
+	bool				RemoveIdentifiers(CBaseObject* pcObject);
+	void				FreeObject(CBaseObject* pcObject);
 
 	void				Dump(void);
 };

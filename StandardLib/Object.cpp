@@ -61,6 +61,8 @@ CObject::~CObject()
 	{
 		//Skip all destruction as this object was only constructed to get its ClassName().
 		muiFlags = 0;
+		mapPointers.Kill();
+		mapEmbedded.Kill();
 	}
 }
 

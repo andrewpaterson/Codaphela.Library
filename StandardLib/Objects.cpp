@@ -736,7 +736,7 @@ void CObjects::KillObjects(CArrayBlockObjectPtr* papcObjectPts)
 		for (i = 0; i < uiNumElements; i++)
 		{
 			pcBaseObject = (*papcObjectPts->Get(i));
-			FreeObject(pcBaseObject);
+			mcMemory.FreeObject(pcBaseObject);
 		}
 
 		pvData = (CUnknown**)papcObjectPts->GetData();
@@ -830,26 +830,6 @@ bool CObjects::AddIntoMemoryWithNameAndIndex(CBaseObject* pcObject)
 	{
 		return false;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CObjects::RemoveMemoryIdentifiers(CBaseObject* pcObject)
-{
-	char*	szName;
-	bool	bResult;
-
-	bResult = mcMemory.RemoveIndex(pcObject->GetIndex());
-
-	szName = pcObject->GetName();
-	if (!StrEmpty(szName))
-	{
-		bResult &= mcMemory.RemoveName(szName);
-	}
-	return bResult;
 }
 
 
@@ -1449,18 +1429,6 @@ CBaseObject* CObjects::AllocateUninitialisedByClassName(const char* szClassName,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::FreeObject(CBaseObject* pcObject)
-{
-	pcObject->FreePointers();
-	RemoveMemoryIdentifiers(pcObject);
-	pcObject->FreeIdentifiers();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 OIndex CObjects::StartMemoryIteration(SIndexesIterator* psIter)
 {
 	CIndexedObjects*	pcIndexedObjects;
@@ -1868,7 +1836,7 @@ bool CObjects::ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pcObject)
 		{
 			return gcLogger.Error2(__METHOD__, " Cannot remap.  Object has head froms already.", NULL);
 		}
-		RemoveMemoryIdentifiers(pvExisting);
+		mcMemory.RemoveIdentifiers(pvExisting);
 
 		iCount = cRemapper.Remap(pvExisting, pcObject);
 
@@ -1878,6 +1846,16 @@ bool CObjects::ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pcObject)
 	{
 		return false;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::TestRemoveMemoryIdentifiers(CBaseObject* pvObject)
+{
+	return mcMemory.RemoveIdentifiers(pvObject);
 }
 
 

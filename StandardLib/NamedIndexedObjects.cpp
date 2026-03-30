@@ -406,6 +406,39 @@ bool CNamedIndexedObjects::FreeObjects(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CNamedIndexedObjects::FreeObject(CBaseObject* pcObject)
+{
+	//This order is important.
+	pcObject->FreePointers();
+	RemoveIdentifiers(pcObject);
+	pcObject->FreeIdentifiers();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CNamedIndexedObjects::RemoveIdentifiers(CBaseObject* pcObject)
+{
+	char* szName;
+	bool	bResult;
+
+	bResult = RemoveIndex(pcObject->GetIndex());
+
+	szName = pcObject->GetName();
+	if (!StrEmpty(szName))
+	{
+		bResult &= RemoveName(szName);
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CNamedIndexedObjects::Dump(void)
 {
 	CChars	sz;
