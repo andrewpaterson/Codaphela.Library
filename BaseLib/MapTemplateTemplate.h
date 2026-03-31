@@ -42,6 +42,8 @@ public:
 	bool	HasKey(M* psKey);
 
 	bool	Remove(M* psKey);
+
+	bool	PutInSorted(size iIndex, M* ppsKey, D* ppsData);
 };
 
 
@@ -100,6 +102,17 @@ template<class M, class D>
 bool CMapTemplateTemplate<M, D>::Remove(M* psKey)
 {
 	return CMapBlock::Remove(psKey, sizeof(M));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class D>
+bool CMapTemplateTemplate<M, D>::PutInSorted(size iIndex, M* ppsKey, D* ppsData)
+{
+	return CMapBlock::PutInSorted(iIndex, ppsKey, sizeof(M), ppsData, sizeof(D));
 }
 
 

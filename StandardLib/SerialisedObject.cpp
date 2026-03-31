@@ -83,7 +83,7 @@ OIndex CSerialisedObject::GetIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CSerialisedObject::GetLength(void)
+size CSerialisedObject::GetLength(void)
 {
 	return miLength;
 }
@@ -93,7 +93,7 @@ int CSerialisedObject::GetLength(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSerialisedObject::SetLength(int iLength)
+void CSerialisedObject::SetLength(size iLength)
 {
 	miLength = iLength;
 }

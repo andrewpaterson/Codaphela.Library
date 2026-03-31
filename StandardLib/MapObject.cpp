@@ -322,7 +322,7 @@ void CMapObject::ValidatePointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMapUnknownUnknown* CMapObject::GetMapForTesting(void)
+CMapUnknownUnknown* CMapObject::GetMap(void)
 {
 	return &mcMap;
 }
@@ -510,24 +510,28 @@ void CMapObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculat
 //////////////////////////////////////////////////////////////////////////
 bool CMapObject::Save(CObjectWriter* pcFile)
 {
-	//CBaseObject*				pcPointedTo;
-	//SMapIterator				sIter;
-	//bool						bExists;
-	
-	//ReturnOnFalse(mcMap.WriteMapUnknownHeader(pcFile));
-	//ReturnOnFalse(pcFile->WriteBool(mbSubRoot));
+	void*						pvKey;
+	void*						pvValue;
+	CBaseObject*				pcPointedToKey;
+	CBaseObject*				pcPointedToValue;
+	CMapPtrPtr*					pcMapPtrPtr;
+	size						iNumElements;
+	size						i;
 
-	//bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-	//while (bExists)
-	//{
-	//	ReturnOnFalse(pcFile->WriteSize(uiKeySize));
-	//	ReturnOnFalse(pcFile->WriteData(auiKey, uiKeySize));
-	//	ReturnOnFalse(pcFile->WriteDependent(pcPointedTo));
-	//  bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-	//}
-	//return true;
+	ReturnOnFalse(mcMap.WriteMapUnknownHeader(pcFile));
+	ReturnOnFalse(pcFile->WriteBool(mbSubRoot));
 
-	return false;
+	pcMapPtrPtr = mcMap.GetMap();
+	iNumElements = pcMapPtrPtr->GetSortedSize();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pcMapPtrPtr->GetInSorted(i, &pvKey, &pvValue);
+		pcPointedToKey = *((CBaseObject**)pvKey);
+		pcPointedToValue = *((CBaseObject**)pvValue);
+		ReturnOnFalse(pcFile->WriteDependent(pcPointedToKey));
+		ReturnOnFalse(pcFile->WriteDependent(pcPointedToValue));
+	}
+	return true;
 }
 
 
@@ -537,36 +541,44 @@ bool CMapObject::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMapObject::Load(CObjectReader* pcFile)
 {
-	//size				iCount;
-	//size				i;
-	//CEmbeddedObject**	pcPointedTo;
-	//uint8				auiKey[MAX_KEY_SIZE];
-	//size				uiKeySize;
+	CEmbeddedObject**	pcPointedToKey;
+	CEmbeddedObject**	pcPointedToValue;
+	CMapPtrPtr*			pcMapPtrPtr; 
+	size				iNumElements;
+	size				i;
 
-	//iCount = mcMap.ReadMapUnknownHeader(pcFile);
-	//if (iCount == ARRAY_ELEMENT_NOT_FOUND)
-	//{
-	//	return false;
-	//}
-	//ReturnOnFalse(pcFile->ReadBool(&mbSubRoot));
-	//
-	//for (i = 0; i < iCount; i++)
-	//{
-	//	ReturnOnFalse(pcFile->ReadSize(&uiKeySize));
-	//	if (uiKeySize >= MAX_KEY_SIZE)
-	//	{
-	//		return false;
-	//	}
-	//	ReturnOnFalse(pcFile->ReadData(auiKey, uiKeySize));
-	//	pcPointedTo = (CEmbeddedObject**)mcMap.PutNode(auiKey, uiKeySize);
-	//	if (pcPointedTo == NULL)
-	//	{
-	//		return false;
-	//	}
-	//	ReturnOnFalse(pcFile->ReadDependent(pcPointedTo, this));
-	//}
-	//return true;
-	return false;
+	ReturnOnFalse(mcMap.ReadMapUnknownHeader(pcFile));
+	ReturnOnFalse(pcFile->ReadBool(&mbSubRoot));
+
+	pcMapPtrPtr = mcMap.GetMap();
+	iNumElements = pcMapPtrPtr->GetSortedSize();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pcMapPtrPtr->PutInSorted(i, (void**)(&pcPointedToKey), (void**)&pcPointedToValue);
+		ReturnOnFalse(pcFile->ReadDependent((CEmbeddedObject**)pcPointedToKey, this));
+		ReturnOnFalse(pcFile->ReadDependent((CEmbeddedObject**)pcPointedToValue, this));
+	}
+
+	//Sort can't be called because the dependant objects have not acutally been read.
+	//pcMapPtrPtr->Sort();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapObject::Sort(void)
+{
+	if (mcMap.GetHoldingSize() == 0)
+	{
+		mcMap.Sort();
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Cannot sort map obbject, holding arrays must be empty.", NULL);
+	}
 }
 
 
