@@ -18,6 +18,9 @@ public:
 
 	bool		Save(CFileWriter* pcFile);
 	bool		Load(CFileReader* pcFile);
+	bool		WriteMapUnknownHeader(CFileWriter* pcFileWriter);
+	bool		ReadMapUnknownHeader(CFileReader* pcFileReader);
+	bool		ReadMapUnknownHeader(CFileReader* pcFileReader, CDataIO* pcDataIO, CDataFree* pcDataFree);
 
 	template<class M, class N>
 	N*			Put(M* pcKey);  //Note this allocates N and returns a pointer to it.  Not a pointer to the pointer in the map.
@@ -42,7 +45,7 @@ public:
 	void		Print(CChars* psz);
 	void		Dump(void);
 	void		Sort(void);
-	CMapPtrPtr* GetMapForTesting(void);
+	CMapPtrPtr* GetMap(void);
 
 protected:
 	void		FreeData(void* pvData) override;

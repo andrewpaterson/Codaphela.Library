@@ -16,10 +16,10 @@ struct SSerialisedName
 class CSerialisedObject
 {
 protected:
-	int					miLength;
+	size				miLength;
 	char				mszMagic[4];
 	char				mszType[4];
-	int					miIgnored;
+	size				miIgnored;
 
 	OIndex				moi;
 
@@ -32,8 +32,8 @@ public:
 
 	char*	GetName(void);
 	OIndex	GetIndex(void);
-	int		GetLength(void);
-	void	SetLength(int iLength);
+	size	GetLength(void);
+	void	SetLength(size iLength);
 };
 
 

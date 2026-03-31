@@ -587,7 +587,7 @@ bool CIndexObject::Load(CObjectReader* pcFile)
 {
 	size				iCount;
 	size				i;
-	CEmbeddedObject**	pcPointedTo;
+	CEmbeddedObject**	ppcPointedTo;
 	uint8				auiKey[MAX_KEY_SIZE];
 	size				uiKeySize;
 
@@ -606,12 +606,12 @@ bool CIndexObject::Load(CObjectReader* pcFile)
 			return false;
 		}
 		ReturnOnFalse(pcFile->ReadData(auiKey, uiKeySize));
-		pcPointedTo = (CEmbeddedObject**)mcIndex.PutNode(auiKey, uiKeySize);
-		if (pcPointedTo == NULL)
+		ppcPointedTo = (CEmbeddedObject**)mcIndex.PutNode(auiKey, uiKeySize);
+		if (ppcPointedTo == NULL)
 		{
 			return false;
 		}
-		ReturnOnFalse(pcFile->ReadDependent(pcPointedTo, this));
+		ReturnOnFalse(pcFile->ReadDependent(ppcPointedTo, this));
 	}
 	return true;
 }

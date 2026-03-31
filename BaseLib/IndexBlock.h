@@ -16,53 +16,53 @@ class CIndexBlock : public CDataIO, public CIndexTreeDataSize, public CDataFree
 {
 friend class CIndexBlockDataFree;
 protected:
-	CIndexTreeMemory		mcIndex;
+	CIndexTreeMemory	mcIndex;
 	
 public:
-	void				Init(void);
-	void				Init(CLifeInit<CMallocator> cMalloc);
-	void				Init(CIndexTreeConfig* pcConfig);
-	void				Kill(void);
+	void	Init(void);
+	void	Init(CLifeInit<CMallocator> cMalloc);
+	void	Init(CIndexTreeConfig* pcConfig);
+	void	Kill(void);
 
-	bool				Get(uint8* pvKey, size iKeySize, void** ppvData, size* piDataSize);
-	void*				Get(uint8* pvKey, size iKeySize);
+	bool	Get(uint8* pvKey, size iKeySize, void** ppvData, size* piDataSize);
+	void*	Get(uint8* pvKey, size iKeySize);
 
-	bool				GetLongestPartial(uint8* pvKey, size iKeySize, void** ppvData, size* piDataSize);
-	void*				GetLongestPartial(uint8* pvKey, size iKeySize);
+	bool	GetLongestPartial(uint8* pvKey, size iKeySize, void** ppvData, size* piDataSize);
+	void*	GetLongestPartial(uint8* pvKey, size iKeySize);
 
-	void*				Put(uint8* pvKey, size iKeySize, size iDataSize);
-	bool				Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize);
+	void*	Put(uint8* pvKey, size iKeySize, size iDataSize);
+	bool	Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize);
 
-	bool				Remove(uint8* pvKey, size iKeySize);
+	bool	Remove(uint8* pvKey, size iKeySize);
 
-	size				DataSize(uint8* pvKey, size iKeySize);
+	size	DataSize(uint8* pvKey, size iKeySize);
 
-	bool				HasKey(uint8* pvKey, size iKeySize);
+	bool	HasKey(uint8* pvKey, size iKeySize);
 
-	size				NumElements(void);
-	void				SetDataFreeCallback(CDataFree* pcDataFree);
-	void				Dump(void);
+	size	NumElements(void);
+	void	SetDataFreeCallback(CDataFree* pcDataFree);
+	void	Dump(void);
 
-	bool				StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size* puiDataSize, void* pvDestKey, size* puiKeySize, size uiMaxKeySize);
-	bool				Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size* puiDataSize, void* pvDestKey, size* puiKeySize, size uiMaxKeySize);
-	bool				StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void** ppvData, size* puiDataSize, size uiMaxDataSize);
-	bool				Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void** ppvData, size* puiDataSize, size uiMaxDataSize);
+	bool	StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size* puiDataSize, void* pvDestKey, size* puiKeySize, size uiMaxKeySize);
+	bool	Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size* puiDataSize, void* pvDestKey, size* puiKeySize, size uiMaxKeySize);
+	bool	StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void** ppvData, size* puiDataSize, size uiMaxDataSize);
+	bool	Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void** ppvData, size* puiDataSize, size uiMaxDataSize);
 
-	bool				Write(CFileWriter* pcFileWriter);
-	bool				Read(CFileReader* pcFileReader);
+	bool	Write(CFileWriter* pcFileWriter);
+	bool	Read(CFileReader* pcFileReader);
 
-	bool				WriteData(CFileWriter* pcFileWriter, void* pvData);
-	bool				ReadData(CFileReader* pcFileReader, void* pvData);
+	bool	WriteData(CFileWriter* pcFileWriter, void* pvData);
+	bool	ReadData(CFileReader* pcFileReader, void* pvData);
 
-	bool				ValidateIndexTree(void);
+	bool	ValidateIndexTree(void);
 
-	size				AdjustDataSize(void* pvValue, size iValueSize);
-	void				FreeData(void* pvData);
+	size	AdjustDataSize(void* pvValue, size iValueSize);
+	void	FreeData(void* pvData);
 
 protected:
-	void*				Malloc(size uiSize);
-	void*				Realloc(void* pv, size iMemSize);
-	void				Free(void* pv);
+	void*	Malloc(size uiSize);
+	void*	Realloc(void* pv, size iMemSize);
+	void	Free(void* pv);
 };
 
 

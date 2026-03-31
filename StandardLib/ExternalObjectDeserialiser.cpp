@@ -156,8 +156,10 @@ bool CExternalObjectDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 	char*				szObjectName;
 	CObjectReader		cDeserialiser;
 	CBaseObject*		pvObject;
+	OIndex				oiOld;
 
 	pcSerialised = NULL;
+	oiOld = pcDependent->GetOldIndex();
 	if (pcDependent->IsNamed())
 	{
 		szObjectName = pcDependent->GetName();
@@ -169,16 +171,16 @@ bool CExternalObjectDeserialiser::ReadUnread(CDependentReadObject* pcDependent)
 	}
 	else
 	{
-		pcSerialised = mpcReader->Read(pcDependent->GetOldIndex());
+		pcSerialised = mpcReader->Read(oiOld);
 		if (!pcSerialised)
 		{
 			return false;
 		}
 	}
 
-	if (pcDependent->GetOldIndex() != pcSerialised->GetIndex())
+	if (oiOld != pcSerialised->GetIndex())
 	{
-		gcLogger.Error2(__METHOD__, " pcDependent->GetOldIndex [", IndexToString(pcDependent->GetOldIndex()), "] != pcSerialised->GetIndex [", IndexToString(pcSerialised->GetIndex()), "]", NULL);
+		gcLogger.Error2(__METHOD__, " pcDependent->GetOldIndex [", IndexToString(oiOld), "] != pcSerialised->GetIndex [", IndexToString(pcSerialised->GetIndex()), "]", NULL);
 		return false;
 	}
 
@@ -200,10 +202,12 @@ CBaseObject* CExternalObjectDeserialiser::ReadSerialsed(CSerialisedObject* pcSer
 	OIndex			oiNew;
 	OIndex			oiOld;
 	CMemoryFile		cMemoryFile;
+	size			uiLength;
 
 	oiOld = pcSerialised->GetIndex();
 
-	cMemoryFile.Init(pcSerialised, pcSerialised->GetLength());
+	uiLength = pcSerialised->GetLength();
+	cMemoryFile.Init(pcSerialised, uiLength);
 	cMemoryFile.Open(EFM_Read);
 	cReader.Init(&cMemoryFile, this);
 

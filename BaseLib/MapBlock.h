@@ -64,13 +64,16 @@ public:
 	bool				Read(CFileReader* pcFileReader, DataCompare fKeyCompare);
 	bool				Read(CFileReader* pcFileReader, DataCompare fKeyCompare, CDataIO* pcDataIO, CDataFree* pcDataFree);
 
+	bool				WriteMapBlockHeader(CFileWriter* pcFileWriter);
+	bool				ReadMapBlockHeader(CFileReader* pcFileReader, DataCompare fKeyCompare, CDataIO* pcDataIO, CDataFree* pcDataFree);
+	bool				WriteMapBlockElements(CFileWriter* pcFileWriter);
+	bool				ReadMapBlockElements(CFileReader* pcFileReader);
+
 	size				ByteSize(void);
 	void				Dump(void);
 	void				Pack(void);
 
 public:
-	bool				WriteExceptData(CFileWriter* pcFileWriter);
-	bool				ReadExceptData(CFileReader* pcFileReader, DataCompare fKeyCompare);
 	SMNode*				WriteSizes(CFileWriter* pcFileWriter, size iIndex);
 	SMNode*				ReadSizes(CFileReader* pcFileReader, size iIndex);
 
@@ -81,11 +84,11 @@ public:
 
 	SMNode*				AllocateNode(size iKeySize, size iDataSize);
 	void				FreeNode(SMNode* psNode);
+	bool				GetInSorted(size iIndex, void** ppvKey, void** ppvData);
+	bool				PutInSorted(size iIndex, void** ppvKey, size uiKeySize, void** ppvData, size uiValueSize);
 
 protected:
-
 	void				InsertHoldingIntoSorted(void);
-	void				GetInSorted(size iIndex, void** ppvKey, void** ppvData);
 
 	bool				WriteData(CFileWriter* pcFileWriter, void* pvData);
 	bool				ReadData(CFileReader* pcFileReader, void* pvData);

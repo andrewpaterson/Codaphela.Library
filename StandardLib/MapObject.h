@@ -67,13 +67,14 @@ public:
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
+	void				Sort(void);
 
 	void				TouchAll(void) override;
 	void				KillAll(void) override;
 
 	CEmbeddedObject*	GetEmbeddedObject(size iMap) override;
 	void				ValidatePointerTos(void) override;
-	CMapUnknownUnknown*	GetMapForTesting(void);
+	CMapUnknownUnknown*	GetMap(void);
 
 protected:
 	void				FreePointers(void) override;

@@ -485,7 +485,7 @@ bool CMapBlock::Iterate(SMapIterator* psIterator, void** ppvKey, size* piKeySize
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapBlock::WriteExceptData(CFileWriter* pcFileWriter)
+bool CMapBlock::WriteMapBlockHeader(CFileWriter* pcFileWriter)
 {
 	bool	bResult;
 
@@ -516,10 +516,15 @@ bool CMapBlock::WriteExceptData(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapBlock::ReadExceptData(CFileReader* pcFileReader, DataCompare fKeyCompare)
+bool CMapBlock::ReadMapBlockHeader(CFileReader* pcFileReader, DataCompare fKeyCompare, CDataIO* pcDataIO, CDataFree* pcDataFree)
 {
 	CMallocator*	pcMalloc;
 	bool			bResult;
+
+	if (fKeyCompare == NULL)
+	{
+		return false;
+	}
 
 	pcMalloc = gcMallocators.Read(pcFileReader);
 	if (pcMalloc == NULL)
@@ -541,6 +546,8 @@ bool CMapBlock::ReadExceptData(CFileReader* pcFileReader, DataCompare fKeyCompar
 
 	CMalloc::Init(pcMalloc);
 
+	mpcDataFree = pcDataFree;
+	mpcDataIO = pcDataIO;
 	mfKeyCompare = fKeyCompare;
 	miLargestKeySize = 0;
 
@@ -609,16 +616,28 @@ SMNode* CMapBlock::ReadSizes(CFileReader* pcFileReader, size iIndex)
 //////////////////////////////////////////////////////////////////////////
 bool CMapBlock::Write(CFileWriter* pcFileWriter)
 {
-	size		iNumElements;
-	size		i;
-	bool		bResult;
-	SMNode*		psNode;
+	bool	bResult;
 
-	bResult = WriteExceptData(pcFileWriter);
+	bResult = WriteMapBlockHeader(pcFileWriter);
 	if (!bResult)
 	{
 		return false;
 	}
+
+	return WriteMapBlockElements(pcFileWriter);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapBlock::WriteMapBlockElements(CFileWriter* pcFileWriter)
+{
+	size		iNumElements;
+	size		i;
+	bool		bResult;
+	SMNode*		psNode;
 
 	iNumElements = mapArray.GetSortedSize();
 	for (i = 0; i < iNumElements; i++)
@@ -665,22 +684,29 @@ bool CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare)
 //////////////////////////////////////////////////////////////////////////
 bool CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare, CDataIO* pcDataIO, CDataFree* pcDataFree)
 {
+	bool		bResult;
+
+	bResult = ReadMapBlockHeader(pcFileReader, fKeyCompare, pcDataIO, pcDataFree);
+	if (!bResult)
+	{
+		return false;
+	}
+	
+	return ReadMapBlockElements(pcFileReader);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapBlock::ReadMapBlockElements(CFileReader* pcFileReader)
+{
 	size		i;
 	size		iNumElements;
 	SMNode*		psNode;
 	bool		bResult;
 
-	if (fKeyCompare == NULL)
-	{
-		return false;
-	}
-
-	mpcDataFree = pcDataFree;
-	mpcDataIO = pcDataIO;
-	if (!ReadExceptData(pcFileReader, fKeyCompare))
-	{
-		return false;
-	}
 	
 	iNumElements = mapArray.GetSortedSize();
 	for (i = 0; i < iNumElements; i++)
@@ -838,7 +864,7 @@ void CMapBlock::InsertHoldingIntoSorted(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlock::GetInSorted(size iIndex, void** ppvKey, void** ppvData)
+bool CMapBlock::GetInSorted(size iIndex, void** ppvKey, void** ppvData)
 {
 	SMNode**	ppsNode;
 	void*		pvKey;
@@ -849,15 +875,42 @@ void CMapBlock::GetInSorted(size iIndex, void** ppvKey, void** ppvData)
 	{
 		pvKey = RemapSinglePointer(*ppsNode, sizeof(SMNode));
 		pvData = RemapSinglePointer(pvKey, (*ppsNode)->iKeySize);
+		*ppvKey = pvKey;
+		*ppvData = pvData;
+		return true;
 	}
 	else
 	{
-		pvKey = NULL;
-		pvData = NULL;
+		return false;
 	}
+}
 
-	*ppvKey = pvKey;
-	*ppvData = pvData;
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapBlock::PutInSorted(size iIndex, void** ppvKey, size uiKeySize, void** ppvData, size uiValueSize)
+{
+	SMNode**	ppsNode;
+	void*		pvKey;
+	void*		pvData;
+
+	ppsNode = (SMNode**)mapArray.GetInSorted(iIndex);
+	if (ppsNode)
+	{
+		*ppsNode = AllocateNode(uiKeySize, uiValueSize);
+
+		pvKey = RemapSinglePointer(*ppsNode, sizeof(SMNode));
+		pvData = RemapSinglePointer(pvKey, uiKeySize);
+		*ppvKey = pvKey;
+		*ppvData = pvData;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 
