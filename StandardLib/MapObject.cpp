@@ -67,6 +67,7 @@ Ptr<CMapObject> CMapObject::Init(void)
 	PreInit();
 	CCollection::Init();
 	mcMap.Init(false, true);
+	mbSorted = true;
 	PostInit();
 	return Ptr<CMapObject>(this);
 }
@@ -104,6 +105,8 @@ bool CMapObject::Put(CPointer& pKey, CPointer& pValue)
 	CBaseObject*		pcKey;
 	CBaseObject*		pcValue;
 
+	EnsureSorted();
+
 	pcKey = (CBaseObject*)pKey.Object();
 	pcValue = (CBaseObject*)pValue.Object();
 
@@ -139,6 +142,8 @@ bool CMapObject::Remove(CPointer& pKey)
 	bool			bResult;
 	CBaseObject*	pcKey;
 
+	EnsureSorted();
+
 	pcKey = (CBaseObject*)pKey.Object();
 	pcPointedTo = (CBaseObject*)mcMap.Get(pcKey);
 	bResult = mcMap.Remove(pcKey);
@@ -164,6 +169,8 @@ size CMapObject::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 size CMapObject::NonNullElements(void)
 {
+	EnsureSorted();
+
 	return mcMap.NonNullElements();
 }
 
@@ -188,6 +195,8 @@ CPointer CMapObject::Get(CPointer& pKey)
 	CPointer		pValue;
 	CBaseObject*	pcKey;
 
+	EnsureSorted();
+
 	pcKey = (CBaseObject*)pKey.Object();
 	pcValue = (CBaseObject*)mcMap.Get(pcKey);
 	if (pcValue)
@@ -208,6 +217,8 @@ CMapEntry CMapObject::StartIteration(SMapIterator* psIterator)
 	bool			bExists;
 	CBaseObject*	pcKey;
 	CBaseObject*	pcValue;
+
+	EnsureSorted();
 
 	bExists = mcMap.StartIteration(psIterator, (CUnknown**)&pcKey, (CUnknown**)&pcValue);
 	if (bExists)
@@ -283,7 +294,7 @@ void CMapObject::SetPointerTosExpectedDistToRoot(int iDistToRoot)
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, "Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
 		}
 
 		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
@@ -322,7 +333,7 @@ void CMapObject::ValidatePointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMapUnknownUnknown* CMapObject::GetMap(void)
+CMapUnknownUnknown* CMapObject::GetUnknownMap(void)
 {
 	return &mcMap;
 }
@@ -374,6 +385,7 @@ void CMapObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 	SMapIterator	sIter;
 	bool			bExists;
 
+	//No need to EnsureSorted().  If the pointers come out in an unsorted order it doesn't matter.
 	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	while (bExists)
 	{
@@ -408,6 +420,7 @@ bool CMapObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 	SMapIterator	sIter;
 	bool			bExists;
 
+	//No need to EnsureSorted().
 	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	while (bExists)
 	{
@@ -437,6 +450,7 @@ void CMapObject::RemoveAllPointerTosDontFree(void)
 	bool			bResult;
 	bool			bExists;
 
+	//No need to EnsureSorted().
 	bResult = true;
 	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	while (bExists)
@@ -463,6 +477,7 @@ bool CMapObject::RemoveAllPointerTosTryFree(void)
 	SMapIterator	sIter;
 	bool			bExists;
 
+	//No need to EnsureSorted().
 	bResult = true;
 	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	while (bExists)
@@ -489,6 +504,7 @@ void CMapObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculat
 	SMapIterator	sIter;
 	bool			bExists;
 
+	//No need to EnsureSorted().
 	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	while (bExists)
 	{
@@ -518,10 +534,12 @@ bool CMapObject::Save(CObjectWriter* pcFile)
 	size						iNumElements;
 	size						i;
 
+	EnsureSorted();
+
 	ReturnOnFalse(mcMap.WriteMapUnknownHeader(pcFile));
 	ReturnOnFalse(pcFile->WriteBool(mbSubRoot));
 
-	pcMapPtrPtr = mcMap.GetMap();
+	pcMapPtrPtr = mcMap.GetPointerMap();
 	iNumElements = pcMapPtrPtr->GetSortedSize();
 	for (i = 0; i < iNumElements; i++)
 	{
@@ -550,7 +568,7 @@ bool CMapObject::Load(CObjectReader* pcFile)
 	ReturnOnFalse(mcMap.ReadMapUnknownHeader(pcFile));
 	ReturnOnFalse(pcFile->ReadBool(&mbSubRoot));
 
-	pcMapPtrPtr = mcMap.GetMap();
+	pcMapPtrPtr = mcMap.GetPointerMap();
 	iNumElements = pcMapPtrPtr->GetSortedSize();
 	for (i = 0; i < iNumElements; i++)
 	{
@@ -559,8 +577,7 @@ bool CMapObject::Load(CObjectReader* pcFile)
 		ReturnOnFalse(pcFile->ReadDependent((CEmbeddedObject**)pcPointedToValue, this));
 	}
 
-	//Sort can't be called because the dependant objects have not acutally been read.
-	//pcMapPtrPtr->Sort();
+	mbSorted = false;
 	return true;
 }
 
@@ -571,14 +588,8 @@ bool CMapObject::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMapObject::Sort(void)
 {
-	if (mcMap.GetHoldingSize() == 0)
-	{
-		mcMap.Sort();
-	}
-	else
-	{
-		gcLogger.Error2(__METHOD__, " Cannot sort map obbject, holding arrays must be empty.", NULL);
-	}
+	mcMap.Sort();
+	mbSorted = true;
 }
 
 
@@ -740,7 +751,7 @@ void CMapObject::SetPointedTosDistToRoot(int iDistToRoot)
 	}
 	else
 	{
-		gcLogger.Error2(__METHOD__, "Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Don't know how to set dist to root to [", IntToString(iDistToRoot), "].", NULL);
 	}
 }
 
@@ -768,3 +779,44 @@ void CMapObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculato
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapObject::EnsureSorted(void)
+{
+	if (!mbSorted)
+	{
+		Sort();
+		mbSorted = true;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapObject::IsSorted(void)
+{
+	return mbSorted;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapObject::ValidateInternalConsistency(void)
+{
+	bool	bSorted;
+	if (mbSorted)
+	{
+		bSorted = mcMap.IsSorted();
+		if (!bSorted)
+		{
+			gcLogger.Error2(__METHOD__, " Map is not sorted.", NULL);
+		}
+	}
+}

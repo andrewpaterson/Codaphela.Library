@@ -69,6 +69,7 @@ public:
 	void			Print(CChars* psz);
 	void			Dump(void);
 	void			Sort(void);
+	bool			IsSorted(void);
 
 	DataCompare		GetCompare(void);
 

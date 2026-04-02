@@ -28,7 +28,6 @@ void BubbleSort(DataCompare fCompare, void* pvArray, size uiStride, size iNumEle
 		iIndex = 0;
 		bSwapped = false;
 
-
 		while ((iIndex + 1) != (iNumElements - iNumDone))
 		{
 			pvLeft = RemapSinglePointer(pvArray, uiStride * iIndex);

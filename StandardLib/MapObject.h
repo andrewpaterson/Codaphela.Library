@@ -32,6 +32,7 @@ class CMapObject : public CCollection
 CONSTRUCTABLE(CMapObject)
 protected:
 	CMapUnknownUnknown		mcMap;
+	bool					mbSorted;
 
 public:
 						~CMapObject();
@@ -74,7 +75,10 @@ public:
 
 	CEmbeddedObject*	GetEmbeddedObject(size iMap) override;
 	void				ValidatePointerTos(void) override;
-	CMapUnknownUnknown*	GetMap(void);
+	CMapUnknownUnknown*	GetUnknownMap(void);
+
+	bool				IsSorted(void);
+	void				ValidateInternalConsistency(void);
 
 protected:
 	void				FreePointers(void) override;
@@ -83,6 +87,8 @@ protected:
 	void				SetPointedTosDistToRoot(int iDistToRoot);
 
 	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) override;
+
+	void				EnsureSorted(void);
 };
 
 

@@ -1605,6 +1605,38 @@ bool CArrayBlock::Read(CFileReader* pcFileReader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+bool CArrayBlock::IsSorted(DataCompare fCompare)
+{
+	size	ui;
+	size	uiNumElements;
+	void*	pvLeft;
+	void*	pvRight;
+	int		iResult;
+
+	if (miUsedElements < 2)
+	{
+		return true;
+	}
+
+	uiNumElements = miUsedElements - 1;
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		pvLeft = Get(ui);
+		pvRight = Get(ui+1);
+		iResult = fCompare(pvLeft, pvRight);
+		if (iResult > 0)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void* CArrayBlock::Push(void) { return Add(); }
 bool CArrayBlock::PopFirst(void) { return RemoveFirst(); }
 size CArrayBlock::ByteSize() { return miUsedElements * miElementSize; }
