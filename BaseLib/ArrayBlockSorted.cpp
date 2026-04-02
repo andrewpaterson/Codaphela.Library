@@ -827,7 +827,7 @@ size CArrayBlockSorted::ByteSize(void)
 {
 	size			uiSize;
 	CArrayBlock*	paHoldingArray;
-	size				i;
+	size			i;
 
 	uiSize = 0;
 	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
@@ -885,6 +885,42 @@ void CArrayBlockSorted::Dump(void)
 void CArrayBlockSorted::Sort(void)
 {
 	maSortedArray.QuickSort(mfCompare);
+
+	CArrayBlock*	paHoldingArray;
+	size			i;
+
+	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	{
+		paHoldingArray = maaHoldingArrays.Get(i);
+		paHoldingArray->QuickSort(mfCompare);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayBlockSorted::IsSorted(void)
+{
+	if (!maSortedArray.IsSorted(mfCompare))
+	{
+		return false;
+	}
+
+	CArrayBlock* paHoldingArray;
+	size			i;
+
+	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	{
+		paHoldingArray = maaHoldingArrays.Get(i);
+		if (!paHoldingArray->IsSorted(mfCompare))
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 

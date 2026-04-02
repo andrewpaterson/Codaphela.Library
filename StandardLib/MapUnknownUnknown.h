@@ -45,7 +45,8 @@ public:
 	void		Print(CChars* psz);
 	void		Dump(void);
 	void		Sort(void);
-	CMapPtrPtr* GetMap(void);
+	bool		IsSorted(void);
+	CMapPtrPtr* GetPointerMap(void);
 
 protected:
 	void		FreeData(void* pvData) override;

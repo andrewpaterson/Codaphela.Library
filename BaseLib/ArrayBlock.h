@@ -98,6 +98,7 @@ public:
 	void	BubbleSort(DataCompare fCompare);
 	void	QuickSort(DataCompare fCompare);
 	void	TimSort(DataCompare fCompare);
+	bool	IsSorted(DataCompare fCompare);
 
 	void	Reverse(void);
 	void	Shuffle(CRandom* pcRandom = NULL);

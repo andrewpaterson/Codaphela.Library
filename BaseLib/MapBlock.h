@@ -81,6 +81,7 @@ public:
 	void*				GetKey(SMNode* psNode);
 	static void			RemapKeyAndData(SMNode* psNode, void** ppvKey, void** ppvData);
 	void				Sort(void);
+	bool				IsSorted(void);
 
 	SMNode*				AllocateNode(size iKeySize, size iDataSize);
 	void				FreeNode(SMNode* psNode);

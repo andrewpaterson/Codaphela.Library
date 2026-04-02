@@ -190,6 +190,7 @@ public:
 			void				ValidateHasClassField(char* szMethod);
 			void				ValidateInitCalled(void);
 			void				ValidateKillCalled(void);
+	virtual void				ValidateInternalConsistency(void);
 	
 protected:
 	virtual void				Allocate(CObjects* pcObjects);

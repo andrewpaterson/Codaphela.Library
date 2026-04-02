@@ -158,6 +158,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 	mcClasses.Init(this);
 
 	mbInitialised = true;
+	mbValidateConsistency = true;
 }
 
 
@@ -470,9 +471,13 @@ void CObjects::ValidateObjectsConsistency(void)
 	//If this method is called from an Object - rather than a test case - then it should be wrapped with a #ifdef _DEBUG
 	//This is because it is still useful to have ValidateObjectsConsistency called in RELEASE from tests.
 
-	ValidateSceneGraph();
-	ValidateIndexedObjects();
-	ClearValidationFlags();
+	if (mbValidateConsistency)
+	{
+		ValidateSceneGraph();
+		ValidateIndexedObjects();
+		ClearValidationFlags();
+		ValidateObjectInternals();
+	}
 }
 
 
@@ -520,6 +525,24 @@ void CObjects::ClearValidationFlags(void)
 	while (pcBaseObject)
 	{
 		pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, false);
+		pcBaseObject = mcMemory.Iterate(&sIter);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::ValidateObjectInternals(void)
+{
+	SIndexesIterator	sIter;
+	CBaseObject*		pcBaseObject;
+
+	pcBaseObject = mcMemory.StartIteration(&sIter);
+	while (pcBaseObject)
+	{
+		pcBaseObject->ValidateInternalConsistency();
 		pcBaseObject = mcMemory.Iterate(&sIter);
 	}
 }
@@ -1987,6 +2010,26 @@ CBaseObject* CObjects::GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CObjects::EnableValidation(void)
+{
+	mbValidateConsistency = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::DisableValidation(void)
+{
+	mbValidateConsistency = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void ObjectsInit(void)
 {
 	ObjectsInit(NULL, &gcTransientSequence);
@@ -2107,4 +2150,3 @@ Ptr<CRoot> ORoot(void)
 {
 	return gcObjects.Root();
 }
-

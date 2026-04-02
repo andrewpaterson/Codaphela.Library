@@ -81,6 +81,8 @@ protected:
 	AllocationCallback		mAllocationCallback;
 	HollocationCallback		mHollocationCallback;
 	DestructionCallback		mDestructionCallback;
+	
+	bool					mbValidateConsistency;
 
 public:
 												CObjects();
@@ -149,6 +151,9 @@ public:
 						void					SetHollocationCallback(HollocationCallback fHollocationCallback);
 						void					SetDestructionCallback(DestructionCallback fDestructionCallback);
 
+						void					EnableValidation(void);
+						void					DisableValidation(void);
+
 protected:
 						Ptr<CRoot>				GetRoot(void);
 						bool					HasRoot(void);
@@ -156,6 +161,7 @@ protected:
 						bool					AddIntoMemory(CBaseObject* pvObject);
 						bool					AddIntoMemoryWithIndex(CBaseObject* pvObject);
 						bool					AddIntoMemoryWithNameAndIndex(CBaseObject* pvObject);
+
 	template<class M> 	Ptr<M>					PointTo(M* pcObject);
 	template<class M> 	Ptr<M>					PointToSetDirty(M* pcObject);
 	template<class M>	M*						AllocateUninitialisedByTemplate(void);
@@ -166,6 +172,7 @@ protected:
 						CBaseObject*			AllocateUninitialisedByClassName(const char* szClassName, const char* szObjectName, OIndex oi);
 						bool					ValidateCanAllocate(const char* szClassName);
 						bool					ValidateCanAllocate(void);
+
 						CBaseObject*			GetFromMemory(OIndex oi);
 						CBaseObject*			GetFromMemory(char* szObjectName);
 						CBaseObject*			GetFromMemory(char* szObjectName, OIndex oi);
@@ -181,6 +188,7 @@ protected:
 						void					ValidateSceneGraph(void);
 						void					ValidateIndexedObjects(void);
 						void					ClearValidationFlags(void);
+						void					ValidateObjectInternals(void);
 						void					RecurseValidateSceneGraph(CBaseObject* pcBaseObject);
 						CHollowObject*			AllocateHollow(size uiNumEmbedded, OIndex oi);
 						CHollowObject*			AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi);
