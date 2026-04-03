@@ -23,12 +23,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Collection.h"
 #include "ArrayCommonUnknown.h"
 
+
 //Do not sub-class this class (unless you clean up the destructor calls).
 class CArrayCommonObject : public CCollection
 {
 CONSTRUCTABLE(CArrayCommonObject)
 protected:
 	CArrayCommonUnknown		mcArray;
+	bool					mbSorted;
 
 public:
 							~CArrayCommonObject();
@@ -39,6 +41,7 @@ public:
 	bool					Add(CEmbeddedObject* pcObject);
 	bool					AddAll(CArrayCommonObject* pcArray);
 	bool					Set(size iIndex, CPointer& pObject);
+	CEmbeddedObject*		Dereference(CEmbeddedObject** ppcObject);
 
 	bool					Remove(CPointer& pObject);
 	bool					Remove(CEmbeddedObject* pcObject);
@@ -61,6 +64,7 @@ public:
 
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
+	void					Sort(void);
 
 	CBaseObject*			UnsafeGet(size  iIndex);
 	bool					UnsafeRemove(CBaseObject* pcObject);
@@ -74,6 +78,9 @@ public:
 
 	void					TouchAll(void) override;
 	void					KillAll(void) override;
+
+	void					EnsureSorted(void);
+	bool					IsSorted(void);
 
 protected:
 	void					FreePointers(void) override;

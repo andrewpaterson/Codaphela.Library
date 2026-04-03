@@ -82,6 +82,7 @@ void CMapObject::Class(void)
 	CCollection::Class();
 
 	U_Unknown(CMapUnknownUnknown, mcMap);
+	U_Bool(mbSorted);
 }
 
 
@@ -789,7 +790,6 @@ void CMapObject::EnsureSorted(void)
 	if (!mbSorted)
 	{
 		Sort();
-		mbSorted = true;
 	}
 }
 
