@@ -66,6 +66,7 @@ Ptr<CArrayCommonObject> CArrayCommonObject::Init(bool bUnique, bool bIgnoreNull,
 	PreInit();
 	CCollection::Init();
 	mcArray.Init(false, false, bUnique, bIgnoreNull, bPreserveOrder);
+	mbSorted = true;
 	PostInit();
 	return this;
 }
@@ -80,6 +81,7 @@ void CArrayCommonObject::Class(void)
 	CCollection::Class();
 
 	U_Unknown(CArrayCommonUnknown, mcArray);
+	U_Bool(mbSorted);
 }
 
 
@@ -166,8 +168,42 @@ bool CArrayCommonObject::Load(CObjectReader* pcFile)
 		ReturnOnFalse(pcFile->ReadDependent(pcPointedTo, this));
 	}
 
-	mcArray.PostLoad(iFlags);
+	mbSorted = false;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::Sort(void)
+{
+	mcArray.Sort();
+	mbSorted = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::EnsureSorted(void)
+{
+	if (!mbSorted)
+	{
+		Sort();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::IsSorted(void)
+{
+	return mbSorted;
 }
 
 
@@ -178,6 +214,8 @@ bool CArrayCommonObject::Load(CObjectReader* pcFile)
 bool CArrayCommonObject::Add(CPointer& pObject)
 {
 	CEmbeddedObject*	pcObject;
+
+	EnsureSorted();
 
 	pcObject = pObject.Object();
 	return Add(pcObject);
@@ -191,6 +229,8 @@ bool CArrayCommonObject::Add(CPointer& pObject)
 bool CArrayCommonObject::Add(CEmbeddedObject* pcObject)
 {
 	bool				bAdded;
+
+	EnsureSorted();
 
 	bAdded = mcArray.Add(pcObject);
 	bAdded = AddObjectFrom(pcObject, bAdded, true);
@@ -208,6 +248,8 @@ bool CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
 	size 			uiNumElements;
 	CBaseObject*	pcObject;
 	bool			bAdded;
+
+	EnsureSorted();
 
 	uiNumElements = pcArray->NumElements();
 	for (i = 0; i < uiNumElements; i++)
@@ -238,12 +280,36 @@ bool CArrayCommonObject::Set(size iIndex, CPointer& pObject)
 		return false;
 	}
 
+	EnsureSorted();
+
 	pvObject = pObject.Object();
 	pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(iIndex);
 	bResult = mcArray.Set(iIndex, pvObject);
 	bResult = RemoveObjectTryFree(pcPointedTo, bResult, false);
 	bResult = AddObjectFrom(pvObject, bResult, true);
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CArrayCommonObject::Dereference(CEmbeddedObject** ppcObject)
+{
+	if (*ppcObject)
+	{
+		*ppcObject = (*ppcObject)->Dehollow();
+		if (mcArray.IsMustSort() && IsSorted())
+		{
+			mbSorted = false;
+		}
+		return *ppcObject;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -267,6 +333,8 @@ bool CArrayCommonObject::Remove(CPointer& pObject)
 
 	if (pObject.IsNotNull())
 	{
+		EnsureSorted();
+
 		pcObject = pObject.Object();
 		return Remove(pcObject);
 	}
@@ -282,6 +350,8 @@ bool CArrayCommonObject::Remove(CEmbeddedObject* pcObject)
 {
 	if (pcObject)
 	{
+		EnsureSorted();
+
 		if (mcArray.Remove(pcObject))
 		{
 			if (IsEmbeddingContainerAllocatedInObjects())
@@ -660,6 +730,8 @@ CPointer CArrayCommonObject::StartIterationPointer(SSetIterator* psIter, bool* p
 	CPointer		pObject;
 	bool			bExists;
 
+	EnsureSorted();
+
 	bExists = mcArray.StartIteration(psIter, (CUnknown**)&pcObject);
 	*pbExists = bExists;
 	pObject.AssignObject(pcObject);
@@ -731,6 +803,8 @@ bool CArrayCommonObject::InsertAt(size iIndex, CPointer& pObject)
 {
 	CEmbeddedObject* pcObject;
 
+	EnsureSorted();
+
 	pcObject = pObject.Object();
 	return InsertAt(iIndex, pcObject);
 }
@@ -743,6 +817,8 @@ bool CArrayCommonObject::InsertAt(size iIndex, CPointer& pObject)
 bool CArrayCommonObject::InsertAt(size iIndex, CEmbeddedObject* pcObject)
 {
 	bool				bResult;
+
+	EnsureSorted();
 
 	bResult = mcArray.Insert(iIndex, pcObject);
 	bResult = AddObjectFrom(pcObject, bResult, true);
@@ -762,6 +838,8 @@ bool CArrayCommonObject::RemoveAt(size iIndex)
 
 	if (iIndex < mcArray.UnsafeNumElements())
 	{
+		EnsureSorted();
+
 		pcObject = UnsafeGet(iIndex);
 		bResult = mcArray.Remove(iIndex);
 		bResult = RemoveObjectTryFree(pcObject, bResult, true);
@@ -781,6 +859,8 @@ bool CArrayCommonObject::RemoveEnd(size iIndexInclusive)
 	size				i;
 	CEmbeddedObject*	pcObject;
 	bool				bResult;
+
+	EnsureSorted();
 
 	bResult = true;
 	uiNumElements = mcArray.UnsafeNumElements();

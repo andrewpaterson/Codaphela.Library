@@ -233,10 +233,10 @@ bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectPointe
 
 	if (pcExistingObject)
 	{
+		*ppcPtrToBeUpdated = pcExistingObject;
 		AddHeapFrom(pcExistingObject, pcObjectContainingPtrToBeUpdated);
 		return true;
 	}
-
 
 	oiNew = pcObjectPointerToIdentifier->moi;
 	bIsNamed = pcObjectPointerToIdentifier->IsNamed();

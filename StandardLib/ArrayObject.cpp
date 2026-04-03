@@ -68,13 +68,15 @@ bool CArrayObject::Insert(size iIndex, CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 CPointer CArrayObject::Get(size iIndex)
 {
-	CBaseObject*	pcObject;
-	CPointer		pObject;
+	CEmbeddedObject**	ppcObject;
+	CEmbeddedObject*	pcDehollowed;
+	CPointer			pObject;
 
 	if (iIndex < mcArray.UnsafeNumElements())
 	{
-		pcObject = (CBaseObject*)mcArray.UnsafeGet(iIndex);
-		pObject.AssignObject(pcObject);
+		ppcObject = (CEmbeddedObject**)mcArray.UnsafeGetPointer(iIndex);
+		pcDehollowed = Dereference(ppcObject);
+		pObject.AssignObject(pcDehollowed);
 		return pObject;
 	}
 	return pObject;

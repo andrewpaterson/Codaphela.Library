@@ -470,10 +470,7 @@ CEmbeddedObject* CPointer::Dereference(void)
 {
 	if (mpcObject)
 	{
-		if (mpcObject->IsHollow())
-		{
-			mpcObject = mpcObject->Dehollow();
-		}
+		mpcObject = mpcObject->Dehollow();
 		return mpcObject;
 	}
 	else
@@ -491,10 +488,7 @@ CEmbeddedObject* CPointer::DereferenceArrow(void)
 {
 	if (mpcObject)
 	{
-		if (mpcObject->IsHollow())
-		{
-			mpcObject = mpcObject->Dehollow();
-		}
+		mpcObject = mpcObject->Dehollow();
 		return mpcObject;
 	}
 	else

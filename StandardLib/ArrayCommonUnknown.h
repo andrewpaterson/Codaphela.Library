@@ -46,7 +46,7 @@ class CArrayCommonUnknown : public CUnknown
 {
 CONSTRUCTABLE(CArrayCommonUnknown)
 protected:
-	uint16				miFlags;
+	uint16				muiFlags;
 
 private:
 	CArrayUnknownPtr	mcArray;  //CArrayTemplate<CUnknown*>
@@ -94,6 +94,7 @@ public:
 			bool				IsKillElements(void);
 			bool				IsEmpty(void);
 			bool				IsNotEmpty(void);
+			bool				IsMustSort(void);
 			void				UnsafeSet(size iIndex, CUnknown* pcUnknown);
 			CUnknown*			UnsafeGet(size iIndex);
 			CUnknown**			UnsafeGetPointer(size iIndex);

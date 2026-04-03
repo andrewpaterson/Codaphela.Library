@@ -50,7 +50,6 @@ public:
 	virtual bool			IsEmpty(void) =0;
 
 			bool			Clear(void);
-
 			void			MakeSubRoot(void);
 			bool			IsSubRoot(void);
 
