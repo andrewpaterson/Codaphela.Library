@@ -197,14 +197,16 @@ bool CArrayBlockSorted::InsertIntoArrayBlock(CArrayBlock* paBlock, void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlockSorted::InsertHoldingIntoSorted(void)
+size CArrayBlockSorted::InsertHoldingIntoSorted(void)
 {
 	CArrayBlock		aMergedHoldingArrays;
 	size*			paiInsertionIndices;
 	size			oldLength;
+	size			uiInserted;
 
 	aMergedHoldingArrays.Init(mpcMalloc, miElementSize);
 	MergeHoldingArrays(&aMergedHoldingArrays);
+	uiInserted = aMergedHoldingArrays.NumElements();
 
 	if (aMergedHoldingArrays.IsNotEmpty())
 	{
@@ -225,6 +227,8 @@ void CArrayBlockSorted::InsertHoldingIntoSorted(void)
 		ClearHoldingArrays();
 	}
 	aMergedHoldingArrays.Kill();
+
+	return uiInserted;
 }
 
 
@@ -882,7 +886,7 @@ void CArrayBlockSorted::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlockSorted::Sort(void)
+size CArrayBlockSorted::Sort(void)
 {
 	maSortedArray.QuickSort(mfCompare);
 
@@ -894,6 +898,8 @@ void CArrayBlockSorted::Sort(void)
 		paHoldingArray = maaHoldingArrays.Get(i);
 		paHoldingArray->QuickSort(mfCompare);
 	}
+
+	return InsertHoldingIntoSorted();
 }
 
 

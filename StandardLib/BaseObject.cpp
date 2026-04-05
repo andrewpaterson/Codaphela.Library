@@ -1295,12 +1295,12 @@ bool CBaseObject::SaveEmbeddedObjectsHeapFroms(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::SavePointers(CObjectWriter* pcFile)
 {
-	size					uiNumFields;
-	CPointerField**			ppacPointerFields;
-	CArrayVoidPtr*			papv;
-	size					i;
-	CPointer*				pcPointer;
-	bool					bResult;
+	size				uiNumFields;
+	CPointerField**		ppacPointerFields;
+	CArrayVoidPtr*		papv;
+	size				i;
+	CPointer*			pcPointer;
+	bool				bResult;
 
 	papv = mpcClass->GetPointerFields();
 	ppacPointerFields = (CPointerField**)papv->GetData();

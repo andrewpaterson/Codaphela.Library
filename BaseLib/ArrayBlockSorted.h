@@ -63,12 +63,12 @@ public:
 	void*			GetInSorted(size iIndex);
 	void*			GetInHolding(size iArray, size iIndex);
 
-	void			InsertHoldingIntoSorted(void);
+	size			InsertHoldingIntoSorted(void);
 	CArrayBlock*	GetSortedArray(void);
 
 	void			Print(CChars* psz);
 	void			Dump(void);
-	void			Sort(void);
+	size			Sort(void);
 	bool			IsSorted(void);
 
 	DataCompare		GetCompare(void);

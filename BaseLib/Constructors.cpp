@@ -74,6 +74,7 @@ void* CConstructors::Construct(const char* szConstructorName, CMallocator* pcMal
 	return pcObject;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //

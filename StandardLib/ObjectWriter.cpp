@@ -204,20 +204,20 @@ bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriter::InitObjectHeader(CObjectHeader* psHeader, CBaseObject* pcObject)
+void CObjectWriter::InitObjectHeader(CObjectHeader* pcHeader, CBaseObject* pcObject)
 {
 	const char* szClassName;
 
-	InitIdentifier(psHeader, pcObject);
+	InitIdentifier(pcHeader, pcObject);
 
 	if (pcObject)
 	{
 		szClassName = pcObject->ClassName();
-		psHeader->mszClassName.Fake(szClassName);
+		pcHeader->mszClassName.Fake(szClassName);
 	}
 	else
 	{
-		psHeader->mszClassName._Init();
+		pcHeader->mszClassName._Init();
 	}
 }
 
@@ -226,7 +226,7 @@ void CObjectWriter::InitObjectHeader(CObjectHeader* psHeader, CBaseObject* pcObj
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriter::InitIdentifier(CObjectIdentifier* psHeader, CBaseObject* pcObject)
+void CObjectWriter::InitIdentifier(CObjectIdentifier* pcObjectIdentifier, CBaseObject* pcObject)
 {
 	OIndex			oi;
 	const char*		szObjectName;
@@ -237,23 +237,19 @@ void CObjectWriter::InitIdentifier(CObjectIdentifier* psHeader, CBaseObject* pcO
 
 		if (!pcObject->IsNamed())
 		{
-			psHeader->mcType = OBJECT_POINTER_ID;
-			psHeader->moi = oi;
-			psHeader->mszObjectName._Init();
+			pcObjectIdentifier->Init(oi, OBJECT_IDENTIFIER_SIZE_NOT_SET);
 		}
 		else
 		{
 			szObjectName = pcObject->GetName();
-			psHeader->mcType = OBJECT_POINTER_NAMED;
-			psHeader->moi = oi;
-			psHeader->mszObjectName.Fake(szObjectName);
+			pcObjectIdentifier->Init(szObjectName, oi, OBJECT_IDENTIFIER_SIZE_NOT_SET);
 		}
 	}
 	else
 	{
-		psHeader->mcType = OBJECT_POINTER_NULL;
-		psHeader->moi = NULL_O_INDEX;
-		psHeader->mszObjectName._Init();
+		pcObjectIdentifier->meType = OBJECT_POINTER_NULL;
+		pcObjectIdentifier->moi = NULL_O_INDEX;
+		pcObjectIdentifier->mszObjectName._Init();
 	}
 }
 
@@ -262,10 +258,10 @@ void CObjectWriter::InitIdentifier(CObjectIdentifier* psHeader, CBaseObject* pcO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectWriter::WriteObjectHeader(CObjectHeader* psHeader)
+bool CObjectWriter::WriteObjectHeader(CObjectHeader* pcHeader)
 {
-	ReturnOnFalse(WriteIdentifier(psHeader));
-	return WriteString(psHeader->mszClassName.Text());
+	ReturnOnFalse(WriteIdentifier(pcHeader));
+	return WriteString(pcHeader->mszClassName.Text());
 }
 
 
@@ -273,24 +269,27 @@ bool CObjectWriter::WriteObjectHeader(CObjectHeader* psHeader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectWriter::WriteIdentifier(CObjectIdentifier* psIdentifier)
+bool CObjectWriter::WriteIdentifier(CObjectIdentifier* pcObjectIdentifier)
 {
 	bool bResult;
 
-	bResult = WriteInt32(psIdentifier->mcType);
+	bResult = WriteInt32(pcObjectIdentifier->meType);
 	ReturnOnFalse(bResult);
 
 	bResult = WriteInt32(0xffffffff);
 	ReturnOnFalse(bResult);
 
-	if (psIdentifier->mcType != OBJECT_POINTER_NULL)
+	if (pcObjectIdentifier->meType != OBJECT_POINTER_NULL)
 	{
-		bResult = WriteInt64(psIdentifier->moi);
+		bResult = WriteInt64(pcObjectIdentifier->moi);
 		ReturnOnFalse(bResult);
 
-		if (psIdentifier->mcType == OBJECT_POINTER_NAMED)
+		bResult = WriteInt16(pcObjectIdentifier->muiSize);
+		ReturnOnFalse(bResult);
+
+		if (pcObjectIdentifier->meType == OBJECT_POINTER_NAMED)
 		{
-			bResult = WriteString(psIdentifier->mszObjectName.Text());
+			bResult = WriteString(pcObjectIdentifier->mszObjectName.Text());
 			ReturnOnFalse(bResult);
 		}
 	}

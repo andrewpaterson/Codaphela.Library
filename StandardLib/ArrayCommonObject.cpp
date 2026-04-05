@@ -157,11 +157,13 @@ bool CArrayCommonObject::Load(CObjectReader* pcFile)
 	uint16 				iFlags;
 	size 				uiNumElements;
 	CEmbeddedObject**	pcPointedTo;
+	bool				bFatHollow;
 
 	ReturnOnFalse(mcArray.LoadArrayHeader(pcFile, &iFlags, &uiNumElements));
 
 	ReturnOnFalse(pcFile->ReadBool(&mbSubRoot));
 
+	bFatHollow = mcArray.IsMustSort();
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcPointedTo = (CEmbeddedObject**)mcArray.UnsafeGetPointer(i);

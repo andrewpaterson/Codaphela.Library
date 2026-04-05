@@ -45,11 +45,11 @@ public:
 	bool			WriteDependent(CEmbeddedObject* pcBaseObject);
 
 protected:
-	bool			WriteObjectHeader(CObjectHeader* psHeader);
-	bool			WriteIdentifier(CObjectIdentifier* psIdentifier);
+	bool			WriteObjectHeader(CObjectHeader* pcHeader);
+	bool			WriteIdentifier(CObjectIdentifier* pcObjectIdentifier);
 
-	void			InitObjectHeader(CObjectHeader* psHeader, CBaseObject* pcObject);
-	void			InitIdentifier(CObjectIdentifier* psHeader, CBaseObject* pcObject);
+	void			InitObjectHeader(CObjectHeader* pcHeader, CBaseObject* pcObject);
+	void			InitIdentifier(CObjectIdentifier* pcObjectIdentifier, CBaseObject* pcObject);
 
 	size			Write(const void* pvSource, size iSize, size iCount);
 };

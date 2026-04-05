@@ -6,11 +6,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentReadObject::Init(CObjectIdentifier* pcObjectPtr)
+void CDependentReadObject::Init(CObjectIdentifier* pcObjectIdentifier)
 {
-	mcType = pcObjectPtr->mcType;
-	moi = pcObjectPtr->moi;
-	mszObjectName.Init(pcObjectPtr->GetName());
+	meType = pcObjectIdentifier->meType;
+	moi = pcObjectIdentifier->moi;
+	mszObjectName.Init(pcObjectIdentifier->GetName());
 	miFlags = 0;
 }
 

@@ -15,7 +15,7 @@ protected:
 	int		miFlags;
 
 public:
-	void	Init(CObjectIdentifier* pcObjectPtr);
+	void	Init(CObjectIdentifier* pcObjectIdentifier);
 	void	Kill(void);
 
 	char*	GetName(void);

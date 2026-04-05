@@ -198,6 +198,7 @@ CPointer CMapObject::Get(CPointer& pKey)
 
 	EnsureSorted();
 
+
 	pcKey = (CBaseObject*)pKey.Object();
 	pcValue = (CBaseObject*)mcMap.Get(pcKey);
 	if (pcValue)
@@ -532,8 +533,8 @@ bool CMapObject::Save(CObjectWriter* pcFile)
 	CBaseObject*				pcPointedToKey;
 	CBaseObject*				pcPointedToValue;
 	CMapPtrPtr*					pcMapPtrPtr;
-	size						iNumElements;
-	size						i;
+	size						uiNumElements;
+	size						ui;
 
 	EnsureSorted();
 
@@ -541,10 +542,10 @@ bool CMapObject::Save(CObjectWriter* pcFile)
 	ReturnOnFalse(pcFile->WriteBool(mbSubRoot));
 
 	pcMapPtrPtr = mcMap.GetPointerMap();
-	iNumElements = pcMapPtrPtr->GetSortedSize();
-	for (i = 0; i < iNumElements; i++)
+	uiNumElements = pcMapPtrPtr->GetSortedSize();
+	for (ui = 0; ui < uiNumElements; ui++)
 	{
-		pcMapPtrPtr->GetInSorted(i, &pvKey, &pvValue);
+		pcMapPtrPtr->GetInSorted(ui, &pvKey, &pvValue);
 		pcPointedToKey = *((CBaseObject**)pvKey);
 		pcPointedToValue = *((CBaseObject**)pvValue);
 		ReturnOnFalse(pcFile->WriteDependent(pcPointedToKey));
@@ -563,15 +564,15 @@ bool CMapObject::Load(CObjectReader* pcFile)
 	CEmbeddedObject**	pcPointedToKey;
 	CEmbeddedObject**	pcPointedToValue;
 	CMapPtrPtr*			pcMapPtrPtr; 
-	size				iNumElements;
+	size				uiNumElements;
 	size				i;
 
 	ReturnOnFalse(mcMap.ReadMapUnknownHeader(pcFile));
 	ReturnOnFalse(pcFile->ReadBool(&mbSubRoot));
 
 	pcMapPtrPtr = mcMap.GetPointerMap();
-	iNumElements = pcMapPtrPtr->GetSortedSize();
-	for (i = 0; i < iNumElements; i++)
+	uiNumElements = pcMapPtrPtr->GetSortedSize();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcMapPtrPtr->PutInSorted(i, (void**)(&pcPointedToKey), (void**)&pcPointedToValue);
 		ReturnOnFalse(pcFile->ReadDependent((CEmbeddedObject**)pcPointedToKey, this));
@@ -589,8 +590,30 @@ bool CMapObject::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMapObject::Sort(void)
 {
-	mcMap.Sort();
+	size			uiNumInserted;
+
+	uiNumInserted = mcMap.Sort();
+
 	mbSorted = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObject* CMapObject::Dereference(CEmbeddedObject** ppcObject)
+{
+	if (*ppcObject)
+	{
+		*ppcObject = (*ppcObject)->Dehollow();
+		mbSorted = false;
+		return *ppcObject;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 

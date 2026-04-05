@@ -890,6 +890,27 @@ bool CMapBlock::GetInSorted(size iIndex, void** ppvKey, void** ppvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void* CMapBlock::GetKeyInSorted(size iIndex)
+{
+	SMNode**	ppsNode;
+	void*		pvKey;
+
+	ppsNode = (SMNode**)mapArray.GetInSorted(iIndex);
+	if (ppsNode)
+	{
+		pvKey = RemapSinglePointer(*ppsNode, sizeof(SMNode));
+		return pvKey;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CMapBlock::PutInSorted(size iIndex, void** ppvKey, size uiKeySize, void** ppvData, size uiValueSize)
 {
 	SMNode**	ppsNode;
@@ -971,9 +992,9 @@ void CMapBlock::Pack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlock::Sort(void)
+size CMapBlock::Sort(void)
 {
-	mapArray.Sort();
+	return mapArray.Sort();
 }
 
 
