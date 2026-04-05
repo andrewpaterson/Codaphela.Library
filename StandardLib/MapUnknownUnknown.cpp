@@ -376,9 +376,9 @@ void CMapUnknownUnknown::Pack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapUnknownUnknown::Sort(void)
+size CMapUnknownUnknown::Sort(void)
 {
-	mcMap.Sort();
+	return mcMap.Sort();
 }
 
 

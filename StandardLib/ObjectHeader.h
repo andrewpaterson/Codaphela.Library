@@ -4,16 +4,20 @@
 #include "BaseLib/IndexedGeneral.h"
 
 
+#define OBJECT_IDENTIFIER_SIZE_NOT_SET	0xFFFF
+
+
 class CObjectIdentifier
 {
 public:
-	int32	mcType;
+	int32	meType;  //See ObjectFileGeneral.h
 	CChars	mszObjectName;
 	OIndex	moi;
+	uint16	muiSize;  //This is the in memory allocated size (or -1).  Not the serialised size.
 
 	void	Init(void);
-	void	Init(OIndex oi);
-	void	Init(char* szName);
+	void	Init(OIndex oi, uint16 uiSize);
+	void	Init(const char* szName, OIndex oi, uint16 uiSize);
 	void	Kill(void);
 
 	bool	IsNamed(void);

@@ -80,13 +80,14 @@ public:
 	void*				GetValue(SMNode* psNode);
 	void*				GetKey(SMNode* psNode);
 	static void			RemapKeyAndData(SMNode* psNode, void** ppvKey, void** ppvData);
-	void				Sort(void);
+	size				Sort(void);
 	bool				IsSorted(void);
 
 	SMNode*				AllocateNode(size iKeySize, size iDataSize);
 	void				FreeNode(SMNode* psNode);
 	bool				GetInSorted(size iIndex, void** ppvKey, void** ppvData);
 	bool				PutInSorted(size iIndex, void** ppvKey, size uiKeySize, void** ppvData, size uiValueSize);
+	void*				GetKeyInSorted(size iIndex);
 
 protected:
 	void				InsertHoldingIntoSorted(void);

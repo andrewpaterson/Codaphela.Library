@@ -398,14 +398,14 @@ bool CExternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDepe
 	if (!pcBaseObject)
 	{
 		pcDependentReadObject = GetObject(pcDependentReadPointer->moiPointedTo);
-		if (pcDependentReadObject->mcType == OBJECT_POINTER_NAMED)
+		if (pcDependentReadObject->meType == OBJECT_POINTER_NAMED)
 		{
 			//Should CExternalObjectDeserialiser be calling GetNamedObjectInMemoryOrAllocateHollow?  It's more an CInternalObjectDeserialiser thing.
 			pvObject = mpcObjects->GetNamedObjectInMemoryOrAllocateHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadPointer->miNumEmbedded);
 			AddIndexRemap(pvObject->GetIndex(), pcDependentReadPointer->moiPointedTo);
 			pcBaseObject = pvObject;
 		}
-		else if (pcDependentReadObject->mcType == OBJECT_POINTER_ID)
+		else if (pcDependentReadObject->meType == OBJECT_POINTER_ID)
 		{
 			return false;
 		}
@@ -426,18 +426,18 @@ CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 	char*	szName;
 	char*	szClassName;
 
-	if (pcHeader->mcType == OBJECT_POINTER_NULL)
+	if (pcHeader->meType == OBJECT_POINTER_NULL)
 	{
 		return NULL;
 	}
 	else
 	{
 		szClassName = pcHeader->mszClassName.Text();
-		if (pcHeader->mcType == OBJECT_POINTER_ID)
+		if (pcHeader->meType == OBJECT_POINTER_ID)
 		{
 			return mpcObjects->AllocateUninitialisedByClassNameAndAddIntoMemory(szClassName);
 		}
-		else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
+		else if (pcHeader->meType == OBJECT_POINTER_NAMED)
 		{
 			szName = pcHeader->mszObjectName.Text();
 			if (!StrEmpty(szName))
@@ -459,7 +459,7 @@ CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
+bool CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
 {
 	CDependentReadObject	cDependent;
 	bool					bOiExistsInDependents;
@@ -467,19 +467,26 @@ bool CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcHeader, CEmb
 	CDependentReadPointer*	pcPointer;
 	bool					bNameExistsInDatabase;
 
-	if (!((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID)))
+	if (!((pcObjectIdentifier->meType == OBJECT_POINTER_NAMED) || (pcObjectIdentifier->meType == OBJECT_POINTER_ID)))
 	{
-		return true;
+		if (pcObjectIdentifier->meType == OBJECT_POINTER_NULL)
+		{
+			return true;
+		}
+		else
+		{
+			return gcLogger.Error2(__METHOD__, " Cannot add depenent with unknown type [", IntToString(pcObjectIdentifier->meType, 16), "].", NULL);
+		}
 	}
 
-	cDependent.Init(pcHeader);
+	cDependent.Init(pcObjectIdentifier);
 
 	bOiExistsInDependents = mcReadObjects.FindInSorted(&cDependent, &CompareDependentReadObject, &iIndex);
 	if (!bOiExistsInDependents)
 	{
-		if (pcHeader->IsNamed())
+		if (pcObjectIdentifier->IsNamed())
 		{
-			bNameExistsInDatabase = mpcObjects->Contains(pcHeader->mszObjectName.Text());
+			bNameExistsInDatabase = mpcObjects->Contains(pcObjectIdentifier->mszObjectName.Text());
 			if (bNameExistsInDatabase)
 			{
 				cDependent.SetExisting();
@@ -494,7 +501,7 @@ bool CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcHeader, CEmb
 	}
 
 	pcPointer = mcPointers.Add();
-	pcPointer->Init(ppcPtrToBeUpdated, pcObjectContainingPtrToBeUpdated, pcHeader->moi, iNumEmbedded, iEmbeddedIndex);
+	pcPointer->Init(ppcPtrToBeUpdated, pcObjectContainingPtrToBeUpdated, pcObjectIdentifier->moi, iNumEmbedded, iEmbeddedIndex);
 
 	return true;
 }
@@ -504,16 +511,16 @@ bool CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcHeader, CEmb
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CExternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex, int iDistToRoot)
+bool CExternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcObjectIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex, int iDistToRoot)
 {
 	return true;
 }
 
 
-////////////////////////////////////////////////////////////////////////
-
-
-////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CDependentReadObject* CExternalObjectDeserialiser::GetUnread(void)
 {
 	size					iOldIndex;

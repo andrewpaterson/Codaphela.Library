@@ -13,6 +13,7 @@ struct SSerialisedName
 };
 
 
+#pragma pack(push, 1)
 class CSerialisedObject
 {
 protected:
@@ -22,6 +23,7 @@ protected:
 	size				miIgnored;
 
 	OIndex				moi;
+	uint16				muiSize;
 
 	SSerialisedName		msName;
 
@@ -35,6 +37,7 @@ public:
 	size	GetLength(void);
 	void	SetLength(size iLength);
 };
+#pragma pack(pop)
 
 
 #endif // __SERIALISED_OBJECT_H__

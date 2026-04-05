@@ -62,6 +62,7 @@ CBaseObject* CObjectReader::Read(void)
 	size			iExpectedLength;
 	CObjectHeader	sHeader;
 	int32			iMagic;
+	CBaseObject*	pcObject;
 
 	iStart = mcFile.GetFilePos();
 	bResult = ReadSize(&iExpectedLength);
@@ -91,10 +92,8 @@ CBaseObject* CObjectReader::Read(void)
 		return NULL;
 	}
 
-	CBaseObject*	pvObject;
-
-	pvObject = mpcDependents->AllocateForDeserialisation(&sHeader);
-	if (pvObject == NULL)
+	pcObject = mpcDependents->AllocateForDeserialisation(&sHeader);
+	if (pcObject == NULL)
 	{
 		CChars	sz;
 		sz.Init();
@@ -104,8 +103,7 @@ CBaseObject* CObjectReader::Read(void)
 		return NULL;
 	}
 
-
-	bResult = pvObject->LoadManaged(this);
+	bResult = pcObject->LoadManaged(this);
 	if (!bResult)
 	{
 		CChars	sz;
@@ -113,7 +111,7 @@ CBaseObject* CObjectReader::Read(void)
 		gcLogger.Error2(__METHOD__, " Could not load serialised object [", sHeader.GetIdentifier(&sz), "] fields.", NULL);
 		sHeader.Kill();
 		sz.Kill();
-		pvObject->Kill();
+		pcObject->Kill();
 		return NULL;
 	}
 
@@ -128,13 +126,12 @@ CBaseObject* CObjectReader::Read(void)
 		gcLogger.Error2(__METHOD__, " Could not load serialised object [", sHeader.GetIdentifier(&sz), "] fields.", NULL);
 		sHeader.Kill();
 		sz.Kill();
-		pvObject->Kill();
+		pcObject->Kill();
 		return NULL;
 	}
 
-
-	pvObject->Initialised();
-	return pvObject;
+	pcObject->Initialised();
+	return pcObject;
 }
 
 
@@ -192,27 +189,41 @@ bool CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectReader::ReadIdentifier(CObjectIdentifier* pcPointerHeader)
+bool CObjectReader::ReadIdentifier(CObjectIdentifier* pcObjectIdentifier)
 {
 	int		iIgnored;
+	bool	bResult;
 
-	pcPointerHeader->Init();
+	pcObjectIdentifier->Init();
 
-	ReturnOnFalse(ReadInt32(&pcPointerHeader->mcType));
-	ReturnOnFalse(ReadInt32(&iIgnored));
+	bResult = ReadInt32(&pcObjectIdentifier->meType);
+	ReturnOnFalse(bResult);
 
-	if (pcPointerHeader->mcType == OBJECT_POINTER_NULL)
+	bResult = ReadInt32(&iIgnored);
+	ReturnOnFalse(bResult);
+
+	if (pcObjectIdentifier->meType == OBJECT_POINTER_NULL)
 	{
 		return true;
 	}
-	else if (pcPointerHeader->mcType == OBJECT_POINTER_ID)
+	else if (pcObjectIdentifier->meType == OBJECT_POINTER_ID)
 	{
-		ReturnOnFalse(ReadInt64(&pcPointerHeader->moi));
+		bResult = ReadInt64(&pcObjectIdentifier->moi);
+		ReturnOnFalse(bResult);
+
+		bResult = ReadInt16(&pcObjectIdentifier->muiSize);
+		ReturnOnFalse(bResult);
 	}
-	else if (pcPointerHeader->mcType == OBJECT_POINTER_NAMED)
+	else if (pcObjectIdentifier->meType == OBJECT_POINTER_NAMED)
 	{
-		ReturnOnFalse(ReadInt64(&pcPointerHeader->moi));
-		ReturnOnFalse(pcPointerHeader->mszObjectName.ReadChars(this));
+		bResult = ReadInt64(&pcObjectIdentifier->moi);
+		ReturnOnFalse(bResult);
+
+		bResult = ReadInt16(&pcObjectIdentifier->muiSize);
+		ReturnOnFalse(bResult);
+
+		bResult = pcObjectIdentifier->mszObjectName.ReadChars(this);
+		ReturnOnFalse(bResult);
 	}
 	else
 	{
@@ -265,7 +276,7 @@ bool CObjectReader::ReadPointer(CPointer* pObject)
 		return false;
 	}
 
-	if ((cHeader.mcType == OBJECT_POINTER_NAMED) || (cHeader.mcType == OBJECT_POINTER_ID))
+	if ((cHeader.meType == OBJECT_POINTER_NAMED) || (cHeader.meType == OBJECT_POINTER_ID))
 	{
 		bResult = ReadInt16(&cHeader.miNumEmbedded);
 		bResult &= ReadInt16(&cHeader.miEmbeddedIndex);
@@ -286,7 +297,6 @@ bool CObjectReader::ReadPointer(CPointer* pObject)
 		return true;
 	}
 
-
 	//cHeader is killed by mpcDependents.
 }
 
@@ -303,7 +313,7 @@ bool CObjectReader::ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* p
 	bResult = ReadIdentifier(&cHeader);
 	if (bResult)
 	{
-		if ((cHeader.mcType == OBJECT_POINTER_NAMED) || (cHeader.mcType == OBJECT_POINTER_ID))
+		if ((cHeader.meType == OBJECT_POINTER_NAMED) || (cHeader.meType == OBJECT_POINTER_ID))
 		{
 			bResult = ReadInt16(&cHeader.miNumEmbedded);
 			bResult &= ReadInt16(&cHeader.miEmbeddedIndex);
@@ -342,7 +352,7 @@ bool CObjectReader::ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseOb
 	bResult = ReadIdentifier(&cHeader);
 	if (bResult)
 	{
-		if ((cHeader.mcType == OBJECT_POINTER_NAMED) || (cHeader.mcType == OBJECT_POINTER_ID))
+		if ((cHeader.meType == OBJECT_POINTER_NAMED) || (cHeader.meType == OBJECT_POINTER_ID))
 		{
 			bResult = ReadInt16(&cHeader.miNumEmbedded);
 			bResult &= ReadInt16(&cHeader.miEmbeddedIndex);
@@ -354,7 +364,7 @@ bool CObjectReader::ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseOb
 			cHeader.Kill();
 			return bResult;
 		}
-		else if (cHeader.mcType == OBJECT_POINTER_NULL)
+		else if (cHeader.meType == OBJECT_POINTER_NULL)
 		{
 			return true;
 		}

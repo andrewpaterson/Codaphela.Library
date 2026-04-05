@@ -8,9 +8,10 @@
 //////////////////////////////////////////////////////////////////////////
 void CObjectIdentifier::Init(void)
 {
-	mcType = 0;
+	meType = 0;
 	mszObjectName._Init();
 	moi = INVALID_O_INDEX;
+	muiSize = OBJECT_IDENTIFIER_SIZE_NOT_SET;
 }
 
 
@@ -18,11 +19,12 @@ void CObjectIdentifier::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectIdentifier::Init(OIndex oi)
+void CObjectIdentifier::Init(OIndex oi, uint16 uiSize)
 {
-	mcType = OBJECT_POINTER_ID;
+	meType = OBJECT_POINTER_ID;
 	moi = oi;
-	mszObjectName._Init();
+	mszObjectName.Init();
+	muiSize = uiSize;
 }
 
 
@@ -30,11 +32,12 @@ void CObjectIdentifier::Init(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectIdentifier::Init(char* szName)
+void CObjectIdentifier::Init(const char* szName, OIndex oi, uint16 uiSize)
 {
-	mcType = OBJECT_POINTER_NAMED;
-	moi = INVALID_O_INDEX;
-	mszObjectName.Init(szName);
+	meType = OBJECT_POINTER_NAMED;
+	moi = oi;
+	mszObjectName.Fake(szName);
+	muiSize = uiSize;
 }
 
 
@@ -54,7 +57,7 @@ void CObjectIdentifier::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CObjectIdentifier::IsNamed(void)
 {
-	if (mcType != OBJECT_POINTER_NAMED)
+	if (meType != OBJECT_POINTER_NAMED)
 	{
 		return false;
 	}
@@ -74,12 +77,12 @@ bool CObjectIdentifier::IsNamed(void)
 //////////////////////////////////////////////////////////////////////////
 bool CObjectIdentifier::IsIndexed(void)
 {
-	if (mcType == OBJECT_POINTER_ID)
+	if (meType == OBJECT_POINTER_ID)
 	{
 		return true;
 	}
 
-	if (mcType == OBJECT_POINTER_NAMED && mszObjectName.Empty())
+	if (meType == OBJECT_POINTER_NAMED && mszObjectName.Empty())
 	{
 		return true;
 	}
@@ -94,7 +97,7 @@ bool CObjectIdentifier::IsIndexed(void)
 //////////////////////////////////////////////////////////////////////////
 char* CObjectIdentifier::GetName(void)
 {
-	if (mcType == OBJECT_POINTER_NAMED)
+	if (meType == OBJECT_POINTER_NAMED)
 	{
 		if (!mszObjectName.Empty())
 		{
@@ -111,7 +114,7 @@ char* CObjectIdentifier::GetName(void)
 //////////////////////////////////////////////////////////////////////////
 OIndex CObjectIdentifier::GetIndex()
 {
-	if (mcType == OBJECT_POINTER_ID || mcType == OBJECT_POINTER_NAMED)
+	if (meType == OBJECT_POINTER_ID || meType == OBJECT_POINTER_NAMED)
 	{
 		return moi;
 	}
@@ -126,15 +129,15 @@ OIndex CObjectIdentifier::GetIndex()
 //////////////////////////////////////////////////////////////////////////
 char* CObjectIdentifier::GetType(void)
 {
-	if (mcType == OBJECT_POINTER_ID)
+	if (meType == OBJECT_POINTER_ID)
 	{
 		return "IDX";
 	}
-	else if (mcType == OBJECT_POINTER_NAMED)
+	else if (meType == OBJECT_POINTER_NAMED)
 	{
 		return "NAM";
 	}
-	else if (mcType == OBJECT_POINTER_NULL)
+	else if (meType == OBJECT_POINTER_NULL)
 	{
 		return "NUL";
 	}
@@ -204,7 +207,7 @@ char* CObjectHeader::GetIdentifier(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CPointerHeader::Init(void)
 {
-	//This should not call CObjectIdentifier::Init.
+	//This must not call CObjectIdentifier::Init.
 	miEmbeddedIndex = 0;
 }
 

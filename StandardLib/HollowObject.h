@@ -32,7 +32,7 @@ public:
 			void				Init(size iNumEmbedded);
 			void				Kill(void) final;
 
-			bool				IsHollow(void);
+			bool				IsHollow(void) override;
 
 			bool				Save(CObjectWriter* pcFile) override;
 			bool				Load(CObjectReader* pcFile) override;

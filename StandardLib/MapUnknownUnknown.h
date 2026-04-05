@@ -44,7 +44,7 @@ public:
 	void		Pack(void);
 	void		Print(CChars* psz);
 	void		Dump(void);
-	void		Sort(void);
+	size		Sort(void);
 	bool		IsSorted(void);
 	CMapPtrPtr* GetPointerMap(void);
 

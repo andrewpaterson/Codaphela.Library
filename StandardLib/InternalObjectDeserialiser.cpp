@@ -157,18 +157,18 @@ CBaseObject* CInternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 	char*	szName;
 	char*	szClassName;
 
-	if (pcHeader->mcType == OBJECT_POINTER_NULL)
+	if (pcHeader->meType == OBJECT_POINTER_NULL)
 	{
 		return NULL;
 	}
 	else
 	{
 		szClassName = pcHeader->mszClassName.Text();
-		if (pcHeader->mcType == OBJECT_POINTER_ID)
+		if (pcHeader->meType == OBJECT_POINTER_ID)
 		{
 			return mpcObjects->AllocateForInternalDeserialisationWithIndex(szClassName, pcHeader->moi);
 		}
-		else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
+		else if (pcHeader->meType == OBJECT_POINTER_NAMED)
 		{
 			szName = pcHeader->mszObjectName.Text();
 			if (!StrEmpty(szName))
@@ -194,12 +194,12 @@ CBaseObject* CInternalObjectDeserialiser::GetFromMemory(CObjectIdentifier* pcIde
 {
 	OIndex	oiNew;
 
-	if (pcIdentifier->mcType == OBJECT_POINTER_ID)
+	if (pcIdentifier->meType == OBJECT_POINTER_ID)
 	{
 		oiNew = pcIdentifier->moi;
 		return mpcMemory->Get(oiNew);
 	}
-	else if (pcIdentifier->mcType == OBJECT_POINTER_NAMED)
+	else if (pcIdentifier->meType == OBJECT_POINTER_NAMED)
 	{
 		oiNew = pcIdentifier->moi;
 		return mpcMemory->Get(pcIdentifier->GetName(), oiNew);
@@ -215,7 +215,7 @@ CBaseObject* CInternalObjectDeserialiser::GetFromMemory(CObjectIdentifier* pcIde
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectPointerToIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
+bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
 {
 	CEmbeddedObject*	pcEmbeddedObject;
 	OIndex				oiNew;
@@ -224,12 +224,20 @@ bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectPointe
 	bool				bIsNamed;
 	char*				szName;
 
-	if (!((pcObjectPointerToIdentifier->mcType == OBJECT_POINTER_NAMED) || (pcObjectPointerToIdentifier->mcType == OBJECT_POINTER_ID)))
+	if (!((pcObjectIdentifier->meType == OBJECT_POINTER_NAMED) || (pcObjectIdentifier->meType == OBJECT_POINTER_ID)))
 	{
-		return (pcObjectPointerToIdentifier->mcType == OBJECT_POINTER_NULL);
+		if (pcObjectIdentifier->meType == OBJECT_POINTER_NULL)
+		{
+			return true;
+		}
+		else
+		{
+			return gcLogger.Error2(__METHOD__, " Cannot add depenent with unknown type [", IntToString(pcObjectIdentifier->meType, 16), "].", NULL);
+		}
+
 	}
 
-	pcExistingObject = GetFromMemory(pcObjectPointerToIdentifier);
+	pcExistingObject = GetFromMemory(pcObjectIdentifier);
 
 	if (pcExistingObject)
 	{
@@ -238,12 +246,12 @@ bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectPointe
 		return true;
 	}
 
-	oiNew = pcObjectPointerToIdentifier->moi;
-	bIsNamed = pcObjectPointerToIdentifier->IsNamed();
+	oiNew = pcObjectIdentifier->moi;
+	bIsNamed = pcObjectIdentifier->IsNamed();
 
 	if (bIsNamed)
 	{
-		szName = pcObjectPointerToIdentifier->GetName();
+		szName = pcObjectIdentifier->GetName();
 		pcHollowObject = mpcObjects->AllocateHollowWithNameAndIndex(szName, oiNew, iNumEmbedded);
 	}
 	else
@@ -274,17 +282,17 @@ bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectPointe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex, int iDistToRoot)
+bool CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcObjectIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex, int iDistToRoot)
 {
 	CDependentReadObject	cDependent;
 	CPointer				pExisitingInDatabase;
 
-	if (!((pcHeader->mcType == OBJECT_POINTER_NAMED) || (pcHeader->mcType == OBJECT_POINTER_ID)))
+	if (!((pcObjectIdentifier->meType == OBJECT_POINTER_NAMED) || (pcObjectIdentifier->meType == OBJECT_POINTER_ID)))
 	{
-		return (pcHeader->mcType == OBJECT_POINTER_NULL);
+		return (pcObjectIdentifier->meType == OBJECT_POINTER_NULL);
 	}
 
-	cDependent.Init(pcHeader);
+	cDependent.Init(pcObjectIdentifier);
 
 	cDependent.Kill();
 
