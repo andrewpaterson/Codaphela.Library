@@ -551,12 +551,21 @@ bool CArrayCommonUnknown::Insert(size iIndex, CUnknown* pcUnknown)
 //////////////////////////////////////////////////////////////////////////
 size CArrayCommonUnknown::InsertIntoSorted(DataCompare fCompare, CUnknown* pcUnknown, bool bOverwriteExisting)
 {
+	size	uiIndex;
+
 	if (!(muiFlags & ARRAY_COMMOM_IS_PTR_SORTED))
 	{
 		Sort();
 	}
 
-	return mcArray.InsertIntoSorted(fCompare, &pcUnknown, bOverwriteExisting);
+	uiIndex = mcArray.InsertIntoSorted(fCompare, &pcUnknown, bOverwriteExisting);
+
+	if (pcUnknown != NULL)
+	{
+		miNonNullElements++;
+	}
+
+	return uiIndex;
 }
 
 
@@ -1106,6 +1115,39 @@ bool CArrayCommonUnknown::IsKillElements(void)
 bool CArrayCommonUnknown::IsSorted(void)
 {
 	return muiFlags & ARRAY_COMMOM_IS_PTR_SORTED;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonUnknown::CalculateIsSorted(void)
+{
+	size		ui;
+	size		uiNumElements;
+	CUnknown*	pcLeft;
+	CUnknown*	pcRight;
+	int			iResult;
+
+	uiNumElements = mcArray.NumElements();
+	if (uiNumElements < 2)
+	{
+		return true;
+	}
+
+	for (ui = 0; ui < uiNumElements - 1; ui++)
+	{
+		pcLeft = UnsafeGet(ui);
+		pcRight = UnsafeGet(ui + 1);
+
+		iResult = mfCompare(pcLeft, pcRight);
+		if (iResult < 0)
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 

@@ -73,6 +73,7 @@ public:
 
 			void				Sort(void);
 			bool				IsSorted(void);
+			bool				CalculateIsSorted(void);
 			bool				IsMustSort(void);
 
 			bool				Contains(CUnknown* pcUnknown);

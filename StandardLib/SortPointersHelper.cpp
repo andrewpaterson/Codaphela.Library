@@ -34,7 +34,7 @@ DataCompare CalculateDataCompareForSortPoiners(bool bSortPointers)
 	fCompare = NULL;
 	if (bSortPointers)
 	{
-		fCompare = ComparePtr;
+		fCompare = ComparePtrPtr;
 	}
 	return fCompare;
 }
