@@ -115,16 +115,16 @@ CBaseObject* CInternalObjectDeserialiser::Read(char* szObjectName)
 CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSerialised, size iSize)
 {
 	CObjectReader	cReader;
-	CBaseObject*	pvObject;
+	CBaseObject*	pcBaseObject;
 	bool			bResult;
 	CMemoryFile		cMemoryFile;
 
 	cMemoryFile.Init(pcSerialised, iSize);
 	cMemoryFile.Open(EFM_Read);
 	cReader.Init(&cMemoryFile, this);
-	pvObject = cReader.Read();
+	pcBaseObject = cReader.Read();
 
-	if (!pvObject)
+	if (!pcBaseObject)
 	{
 		cMemoryFile.Close();
 		cReader.Kill();
@@ -132,7 +132,7 @@ CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSe
 		return NULL;
 	}
 
-	bResult = cReader.ReadHeapFroms(pvObject);
+	bResult = cReader.ReadHeapFroms(pcBaseObject);
 
 	cMemoryFile.Close();
 	cReader.Kill();
@@ -143,7 +143,7 @@ CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSe
 		return NULL;
 	}
 
-	return pvObject;
+	return pcBaseObject;
 }
 
 
@@ -252,11 +252,11 @@ bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 	if (bIsNamed)
 	{
 		szName = pcObjectIdentifier->GetName();
-		pcHollowObject = mpcObjects->AllocateHollowWithNameAndIndex(szName, oiNew, iNumEmbedded);
+		pcHollowObject = mpcObjects->AllocateInternalHollowWithNameAndIndex(szName, oiNew, iNumEmbedded, pcObjectIdentifier->GetFatSize());
 	}
 	else
 	{
-		pcHollowObject = mpcObjects->AllocateHollowWithIndex(oiNew, iNumEmbedded);
+		pcHollowObject = mpcObjects->AllocateInternalHollowWithIndex(oiNew, iNumEmbedded, pcObjectIdentifier->GetFatSize());
 	}
 
 	if (!pcHollowObject)

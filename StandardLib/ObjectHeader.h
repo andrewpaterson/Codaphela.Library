@@ -22,10 +22,12 @@ public:
 
 	bool	IsNamed(void);
 	bool	IsIndexed(void);
+	bool	IsFat(void);
 
 	char*	GetName(void);
 	OIndex	GetIndex();
 	char*	GetType(void);
+	uint16	GetFatSize(void);
 };
 
 

@@ -1219,7 +1219,7 @@ bool CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcHeapFrom = (CBaseObject*)mapHeapFroms.GetPtr(i);
-		bResult = pcFile->WriteDependent(pcHeapFrom);
+		bResult = pcFile->WriteDependent(pcHeapFrom, false);
 		iDistToRoot = pcHeapFrom->GetDistToRoot();
 		bResult &= pcFile->WriteSInt(iDistToRoot);
 		ReturnOnFalse(bResult);

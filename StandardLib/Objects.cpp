@@ -1013,7 +1013,7 @@ CBaseObject* CObjects::GetFromMemory(char* szObjectName, OIndex oi)
 CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 {
 	CInternalObjectDeserialiser		cDeserialiser;
-	CBaseObject*					pvBaseObject;
+	CBaseObject*					pcBaseObject;
 
 	if (!mpcDataConnection)
 	{
@@ -1027,21 +1027,21 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 
 	cDeserialiser.Init(this, mpcDataConnection, &mcMemory);
 
-	pvBaseObject = cDeserialiser.Read(oi);
+	pcBaseObject = cDeserialiser.Read(oi);
 	cDeserialiser.Kill();
 
-	if (!pvBaseObject)
+	if (!pcBaseObject)
 	{
 		return NULL;
 	}
 
-	if (pvBaseObject->GetIndex() != oi)
+	if (pcBaseObject->GetIndex() != oi)
 	{
-		gcLogger.Error2(__METHOD__, " Requested object with index [", IndexToString(oi), "] but object had index [", IndexToString(pvBaseObject->GetIndex()), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Requested object with index [", IndexToString(oi), "] but object had index [", IndexToString(pcBaseObject->GetIndex()), "].", NULL);
 		return NULL;
 	}
 
-	return pvBaseObject;
+	return pcBaseObject;
 }
 
 
@@ -1552,6 +1552,76 @@ CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObject
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, OIndex oi, size uiFatSize)
+{
+	CHollowObject*	pcHollow;
+	size			uiHollowSize;
+	CHollowObject*	pcConstructor;
+
+	if (uiNumEmbedded == 0)
+	{
+		return NULL;
+	}
+
+	pcConstructor = mpcUnknownsAllocatingFrom->GetConstructor<CHollowObject>(&uiHollowSize);
+	if (pcConstructor)
+	{
+		if (uiHollowSize < uiFatSize)
+		{
+			gcLogger.Error2(__METHOD__, " Hollow size [", SizeToString(uiHollowSize), "] is larger than Fat Object size [", SizeToString(uiFatSize), "].", NULL);
+			return NULL;
+		}
+		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(oi, uiFatSize - uiHollowSize);
+		pcHollow->Init(uiNumEmbedded);
+		return pcHollow;
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Could not find HollowObject constructor.", NULL);
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi, size uiFatSize)
+{
+	CHollowObject*	pcHollow;
+	size			uiHollowSize;
+	CHollowObject*	pcConstructor;
+
+	if (uiNumEmbedded == 0)
+	{
+		return NULL;
+	}
+
+	pcConstructor = mpcUnknownsAllocatingFrom->GetConstructor<CHollowObject>(&uiHollowSize);
+	if (pcConstructor)
+	{
+		if (uiHollowSize < uiFatSize)
+		{
+			gcLogger.Error2(__METHOD__, " Hollow size [", SizeToString(uiHollowSize), "] is larger than Fat Object size [", SizeToString(uiFatSize), "].", NULL);
+			return NULL;
+		}
+		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(szObjectName, oi, uiFatSize - uiHollowSize);
+		pcHollow->Init(uiNumEmbedded);
+		return pcHollow;
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Could not find HollowObject constructor.", NULL);
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObjects::AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded) 
 {
 	size					i;
@@ -1670,6 +1740,7 @@ CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWi
 	OIndex			oi;
 	bool			bResult;
 
+	//This overwrites an existing object with a new object (with the same name).
 	//Only called by the ExternalObjectDeserialiser.
 
 	pvOldObject = GetFromMemory(szObjectName);
@@ -1886,7 +1957,7 @@ bool CObjects::TestRemoveMemoryIdentifiers(CBaseObject* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject* CObjects::AllocateHollowWithIndex(OIndex oi, size uiNumEmbedded)
+CHollowObject* CObjects::AllocateInternalHollowWithIndex(OIndex oi, size uiNumEmbedded, size uiObjectSize)
 {
 	CHollowObject*	pcHollow;
 	bool			bResult;
@@ -1899,7 +1970,15 @@ CHollowObject* CObjects::AllocateHollowWithIndex(OIndex oi, size uiNumEmbedded)
 		return NULL;
 	}
 
-	pcHollow = AllocateHollow(uiNumEmbedded, oi);
+	if (uiObjectSize == OBJECT_IDENTIFIER_SIZE_NOT_SET)
+	{
+		pcHollow = AllocateHollow(uiNumEmbedded, oi);
+	}
+	else
+	{
+		pcHollow = AllocateHollow(uiNumEmbedded, oi, uiObjectSize);
+	}
+
 	if (pcHollow)
 	{
 		LOG_OBJECT_ALLOCATION(pcHollow);
@@ -1924,7 +2003,7 @@ CHollowObject* CObjects::AllocateHollowWithIndex(OIndex oi, size uiNumEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject* CObjects::AllocateHollowWithNameAndIndex(char* szObjectName, OIndex oi, size uiNumEmbedded)
+CHollowObject* CObjects::AllocateInternalHollowWithNameAndIndex(char* szObjectName, OIndex oi, size uiNumEmbedded, size uiObjectSize)
 {
 	CHollowObject*	pcHollow;
 	bool			bResult;
@@ -1942,7 +2021,15 @@ CHollowObject* CObjects::AllocateHollowWithNameAndIndex(char* szObjectName, OInd
 		gcLogger.Error2(__METHOD__, " Cannot allocate a named hollow object with no name.", NULL);
 	}
 
-	pcHollow = AllocateHollow(uiNumEmbedded, szObjectName, oi);
+	if (uiObjectSize == OBJECT_IDENTIFIER_SIZE_NOT_SET)
+	{
+		pcHollow = AllocateHollow(uiNumEmbedded, szObjectName, oi);
+	}
+	else
+	{
+		pcHollow = AllocateHollow(uiNumEmbedded, szObjectName, oi, uiObjectSize);
+	}
+
 	if (pcHollow)
 	{
 		LOG_OBJECT_ALLOCATION(pcHollow);
@@ -1968,7 +2055,7 @@ CHollowObject* CObjects::AllocateHollowWithNameAndIndex(char* szObjectName, OInd
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName, size uiNumEmbedded)
+CBaseObject* CObjects::GetExternalNamedObjectInMemoryOrAllocateHollow(char* szObjectName, size uiNumEmbedded)
 {
 	CHollowObject*	pcHollow;
 	bool			bResult;

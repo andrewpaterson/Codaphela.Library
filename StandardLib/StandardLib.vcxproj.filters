@@ -492,6 +492,9 @@
     <ClInclude Include="MapEntry.h">
       <Filter>Source\Object\Object\Collection\Map</Filter>
     </ClInclude>
+    <ClInclude Include="SortPointersHelper.h">
+      <Filter>Source\Object\Unknown\Collection\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -799,6 +802,9 @@
     </ClCompile>
     <ClCompile Include="MapEntry.cpp">
       <Filter>Source\Object\Object\Collection\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="SortPointersHelper.cpp">
+      <Filter>Source\Object\Unknown\Collection\Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

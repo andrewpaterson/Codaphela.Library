@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CActions::Init(void)
 {
-	mlcActions.Init();
+	mlcActions.Init(false);
 }
 
 

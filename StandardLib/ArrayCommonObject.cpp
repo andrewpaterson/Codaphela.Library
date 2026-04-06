@@ -22,7 +22,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Objects.h"
 #include "ObjectWriter.h"
 #include "ObjectReader.h"
+#include "SortPointersHelper.h"
 #include "ArrayCommonObject.h"
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -61,11 +63,12 @@ CArrayCommonObject::~CArrayCommonObject()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CArrayCommonObject> CArrayCommonObject::Init(bool bUnique, bool bIgnoreNull, bool bPreserveOrder)
+Ptr<CArrayCommonObject> CArrayCommonObject::Init(bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers)
 {
 	PreInit();
 	CCollection::Init();
-	mcArray.Init(false, false, bUnique, bIgnoreNull, bPreserveOrder);
+
+	mcArray.Init(false, false, bUnique, bIgnoreNull, bPreserveOrder, CalculateDataCompareForSortPoiners(bSortPointers));
 	mbSorted = true;
 	PostInit();
 	return this;
@@ -129,19 +132,21 @@ void CArrayCommonObject::Free(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::Save(CObjectWriter* pcFile)
 {
-	size 			i;
-	size 			uiNumElements;
-	CBaseObject*	pcPointedTo;
+	size 				i;
+	size 				uiNumElements;
+	CEmbeddedObject*	pcPointedTo;
+	bool				bFatHollow;
 
-	ReturnOnFalse(mcArray.SaveArrayHeader(pcFile));
+	ReturnOnFalse(mcArray.WriteArrayHeader(pcFile));
 
 	ReturnOnFalse(pcFile->WriteBool(mbSubRoot));
 
+	bFatHollow = mcArray.IsMustSort();
 	uiNumElements = mcArray.UnsafeNumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		ReturnOnFalse(pcFile->WriteDependent(pcPointedTo));
+		pcPointedTo = (CEmbeddedObject*)mcArray.UnsafeGet(i);
+		ReturnOnFalse(pcFile->WriteDependent(pcPointedTo, bFatHollow));
 	}
 	return true;
 }
@@ -159,7 +164,7 @@ bool CArrayCommonObject::Load(CObjectReader* pcFile)
 	CEmbeddedObject**	pcPointedTo;
 	bool				bFatHollow;
 
-	ReturnOnFalse(mcArray.LoadArrayHeader(pcFile, &iFlags, &uiNumElements));
+	ReturnOnFalse(mcArray.ReadArrayHeader(pcFile, &iFlags, &uiNumElements));
 
 	ReturnOnFalse(pcFile->ReadBool(&mbSubRoot));
 

@@ -49,8 +49,8 @@ public:
 	bool	Iterate(SSetIterator* psIter, M** ppcUnknown);
 
 protected:
-	bool	LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown);
-	bool	SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown);
+	bool	ReadElement(CFileReader* pcFile, CUnknown** ppcUnknown);
+	bool	WriteElement(CFileWriter* pcFile, CUnknown* pcUnknown);
 };
 
 
@@ -203,7 +203,7 @@ bool CArrayUnknownTemplate<M>::Iterate(SSetIterator* psIter, M** ppcUnknown)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CArrayUnknownTemplate<M>::LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown)
+bool CArrayUnknownTemplate<M>::ReadElement(CFileReader* pcFile, CUnknown** ppcUnknown)
 {
 	M*	pcUnknown;
 
@@ -219,7 +219,7 @@ bool CArrayUnknownTemplate<M>::LoadElement(CFileReader* pcFile, CUnknown** ppcUn
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CArrayUnknownTemplate<M>::SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown)
+bool CArrayUnknownTemplate<M>::WriteElement(CFileWriter* pcFile, CUnknown* pcUnknown)
 {
 	return pcUnknown->Save(pcFile);
 }

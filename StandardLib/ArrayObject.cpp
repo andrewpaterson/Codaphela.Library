@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 Ptr<CArrayObject> CArrayObject::Init(void)
 {
-	CArrayCommonObject::Init(false, false, true);
+	CArrayCommonObject::Init(false, false, true, false);
 	return Ptr<CArrayObject>(this);
 }
 

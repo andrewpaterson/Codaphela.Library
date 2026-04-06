@@ -42,14 +42,14 @@ public:
 
 	bool			WritePointer(CPointer& pObject);
 	bool			WritePointer(CPointer* pObject);
-	bool			WriteDependent(CEmbeddedObject* pcBaseObject);
+	bool			WriteDependent(CEmbeddedObject* pcBaseObject, bool bFatHollow);
 
 protected:
 	bool			WriteObjectHeader(CObjectHeader* pcHeader);
 	bool			WriteIdentifier(CObjectIdentifier* pcObjectIdentifier);
 
-	void			InitObjectHeader(CObjectHeader* pcHeader, CBaseObject* pcObject);
-	void			InitIdentifier(CObjectIdentifier* pcObjectIdentifier, CBaseObject* pcObject);
+	void			InitObjectHeader(CObjectHeader* pcHeader, CBaseObject* pcObject, bool bFatHollow);
+	void			InitIdentifier(CObjectIdentifier* pcObjectIdentifier, CBaseObject* pcObject, bool bFatHollow);
 
 	size			Write(const void* pvSource, size iSize, size iCount);
 };

@@ -34,7 +34,7 @@ protected:
 
 public:
 							~CArrayCommonObject();
-	Ptr<CArrayCommonObject>	Init(bool bUnique, bool bIgnoreNull, bool bPreserveOrder);
+	Ptr<CArrayCommonObject>	Init(bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers);
 	void					Class(void) override;
 
 	bool					Add(CPointer& pObject);
