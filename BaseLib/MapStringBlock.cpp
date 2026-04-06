@@ -44,7 +44,7 @@ void CMapStringBlock::Kill(void)
 void* CMapStringBlock::Get(const char* szKey)
 {
 	void*	pvData;
-	size		iStrLen;
+	size	iStrLen;
 
 	if (!szKey)
 	{
@@ -61,7 +61,7 @@ void* CMapStringBlock::Get(const char* szKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMapStringBlock::Get(const char* szKey, size* piDataSize)
+void* CMapStringBlock::Get(const char* szKey, size* puiDataSize)
 {
 	void*	pvData;
 	bool	bFound;
@@ -73,7 +73,7 @@ void* CMapStringBlock::Get(const char* szKey, size* piDataSize)
 	}
 
 	iStrLen = strlen(szKey) + 1;
-	bFound = CMapBlock::Get((void*)szKey, iStrLen, &pvData, piDataSize);
+	bFound = CMapBlock::Get((void*)szKey, iStrLen, &pvData, puiDataSize);
 	if (bFound)
 	{
 		return pvData;
@@ -89,7 +89,7 @@ void* CMapStringBlock::Get(const char* szKey, size* piDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMapStringBlock::Put(char* szKey, size iDataSize)
+void* CMapStringBlock::Put(char* szKey, size uiDataSize)
 {
 	void*	pvData;
 	size	iStrLen;
@@ -100,7 +100,7 @@ void* CMapStringBlock::Put(char* szKey, size iDataSize)
 	}
 
 	iStrLen = strlen(szKey) + 1;
-	pvData = CMapBlock::Put(szKey, iStrLen, iDataSize);
+	pvData = CMapBlock::Put(szKey, iStrLen, uiDataSize);
 	return (void*)pvData;
 }
 
@@ -109,7 +109,7 @@ void* CMapStringBlock::Put(char* szKey, size iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapStringBlock::Put(char* szKey, void* psData, size iDataSize)
+bool CMapStringBlock::Put(char* szKey, void* psData, size uiDataSize)
 {
 	size	iStrLen;
 
@@ -119,7 +119,7 @@ bool CMapStringBlock::Put(char* szKey, void* psData, size iDataSize)
 	}
 
 	iStrLen = strlen(szKey) + 1;
-	return CMapBlock::Put(szKey, iStrLen, psData, iDataSize);
+	return CMapBlock::Put(szKey, iStrLen, psData, uiDataSize);
 }
 
 
@@ -127,9 +127,9 @@ bool CMapStringBlock::Put(char* szKey, void* psData, size iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMapStringBlock::Put(const char* szKey, size iDataSize)
+void* CMapStringBlock::Put(const char* szKey, size uiDataSize)
 {
-	return Put((char*)szKey, iDataSize);
+	return Put((char*)szKey, uiDataSize);
 }
 
 
@@ -137,9 +137,9 @@ void* CMapStringBlock::Put(const char* szKey, size iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapStringBlock::Put(const char* szKey, void* psData, size iDataSize)
+bool CMapStringBlock::Put(const char* szKey, void* psData, size uiDataSize)
 {
-	return Put((char*)szKey, psData, iDataSize);
+	return Put((char*)szKey, psData, uiDataSize);
 }
 
 

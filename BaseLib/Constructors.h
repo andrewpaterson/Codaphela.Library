@@ -39,6 +39,8 @@ public:
 	template<class M>	M*		Add(void);
 
 	template<class M>	M*		Get(void);
+	template<class M>	M*		Get(size* puiSize);
+						void*	Get(const char* szConstructorName, size* puiSize);
 
 						void*	Construct(const char* szConstructorName, CMallocator* pcMalloc, char(**pacDebugName)[4] = NULL);
 						void*	Construct(const char* szConstructorName, CMallocator* pcMalloc, size uiAdditionalSize, char(**pacDebugName)[4] = NULL);
@@ -175,6 +177,30 @@ M* CConstructors::Get(void)
 	return NULL;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CConstructors::Get(size* puiSize)
+{
+	M*				pvM;
+	CStackMemory<>	cStack;
+	const char*		szClassName;
+
+	pvM = StackConstruct<M>(&cStack);
+	szClassName = pvM->ClassName();
+	pvM = (M*)mcConstructors.Get(szClassName, puiSize);
+	if (pvM)
+	{
+		if (StringCompare(pvM->ClassName(), szClassName) == 0)
+		{
+			return pvM;
+		}
+	}
+	return NULL;
+}
 
 #endif // __CONSTRUCTORS_H__
 
