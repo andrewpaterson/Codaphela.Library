@@ -26,6 +26,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CHollowObject : public CBaseObject
 {
 CONSTRUCTABLE(CHollowObject)
+protected:
+			uint16				muiSize;
+
 public:
 								CHollowObject();
 								~CHollowObject();
@@ -33,17 +36,23 @@ public:
 			void				Kill(void) final;
 
 			bool				IsHollow(void) override;
+			bool				IsFatHollow(void);
+			uint16				GetFatSize(void);
 
 			bool				Save(CObjectWriter* pcFile) override;
 			bool				Load(CObjectReader* pcFile) override;
+
 			bool				IsCollection(void) override;
 			bool				IsObject(void) override;
+
 			void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
 			void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 			size				NumPointerTos(void);
-			size				NumEmbedded(void);
+
 			CEmbeddedObject*	GetEmbeddedObject(size iIndex);
 			size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
+			size				NumEmbedded(void);
+
 			size				NumHeapFroms(void);
 			size				NumStackFroms(void);
 			void				RemoveAllPointerTosDontFree(void);

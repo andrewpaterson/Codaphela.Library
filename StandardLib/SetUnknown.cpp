@@ -18,17 +18,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "SetUnknown.h"
 #include "BaseLib/PointerFunctions.h"
+#include "SortPointersHelper.h"
+#include "SetUnknown.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSetUnknown::Init(void)
+void CSetUnknown::Init(bool bSortPointers)
 {
-	CArrayCommonUnknown::Init(false, true, false, true, false);
+
+	CArrayCommonUnknown::Init(false, true, false, true, bSortPointers, CalculateDataCompareForSortPoiners(bSortPointers));
 }
 
 
@@ -36,10 +38,21 @@ void CSetUnknown::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSetUnknown::Init(size iChunkSize)
+void CSetUnknown::Init(size iChunkSize, bool bSortPointers)
 {
-	CArrayCommonUnknown::Init(false, true, false, true, false, iChunkSize);
+	CArrayCommonUnknown::Init(false, true, false, true, bSortPointers, CalculateDataCompareForSortPoiners(bSortPointers), iChunkSize);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSetUnknown::Init(bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, size iChunkSize, bool bSortPointers)
+{
+	CArrayCommonUnknown::Init(false, bKillElements, bUnique, bIgnoreNull, bPreserveOrder, CalculateDataCompareForSortPoiners(bSortPointers), iChunkSize);
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -57,7 +70,14 @@ void CSetUnknown::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CSetUnknown::Add(CUnknown* pcUnknown)
 {
-	CArrayCommonUnknown::Add(pcUnknown);
+	if (!mfCompare)
+	{
+		CArrayCommonUnknown::Add(pcUnknown);
+	}
+	else
+	{
+		CArrayCommonUnknown::InsertIntoSorted(mfCompare, pcUnknown, muiFlags & ARRAY_COMMOM_UNIQUE_ONLY);
+	}
 }
 
 

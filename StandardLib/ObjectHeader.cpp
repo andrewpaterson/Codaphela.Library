@@ -8,10 +8,9 @@
 //////////////////////////////////////////////////////////////////////////
 void CObjectIdentifier::Init(void)
 {
-	meType = 0;
-	mszObjectName._Init();
+	meType = OBJECT_POINTER_NULL;
 	moi = INVALID_O_INDEX;
-	muiSize = OBJECT_IDENTIFIER_SIZE_NOT_SET;
+	mszObjectName.Init();
 }
 
 
@@ -95,6 +94,16 @@ bool CObjectIdentifier::IsIndexed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CObjectIdentifier::IsFat(void)
+{
+	return muiSize != OBJECT_IDENTIFIER_SIZE_NOT_SET;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 char* CObjectIdentifier::GetName(void)
 {
 	if (meType == OBJECT_POINTER_NAMED)
@@ -145,6 +154,16 @@ char* CObjectIdentifier::GetType(void)
 	{
 		return NULL;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CObjectIdentifier::GetFatSize(void)
+{
+	return muiSize;
 }
 
 
@@ -220,4 +239,5 @@ void CPointerHeader::Kill(void)
 {
 	CObjectIdentifier::Kill();
 }
+
 

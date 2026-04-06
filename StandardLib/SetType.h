@@ -29,8 +29,8 @@ class CSetType : public CSetUnknown
 {
 CONSTRUCTABLE(CSetType)
 public:
-	void 	Init(void);
-	void 	Init(CUnknowns* pcUnknownsAllocatingFrom);
+	void 	Init(bool bSortPointers);
+	void 	Init(CUnknowns* pcUnknownsAllocatingFrom, bool bSortPointers);
 	void 	Kill(void);
 
 	void	Add(M* pcUnknown);
@@ -46,8 +46,8 @@ public:
 	bool	Contains(M* pcUnknown);
 
 protected:
-	bool	LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown);
-	bool	SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown);
+	bool	ReadElement(CFileReader* pcFile, CUnknown** ppcUnknown);
+	bool	WriteElement(CFileWriter* pcFile, CUnknown* pcUnknown);
 };
 
 
@@ -56,9 +56,9 @@ protected:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CSetType<M>::Init(void)
+void CSetType<M>::Init(bool bSortPointers)
 {
-	CSetUnknown::Init();
+	CSetUnknown::Init(bSortPointers);
 	TypeKnown(true);
 }
 
@@ -68,7 +68,7 @@ void CSetType<M>::Init(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CSetType<M>::Init(CUnknowns* pcUnknownsAllocatingFrom)
+void CSetType<M>::Init(CUnknowns* pcUnknownsAllocatingFrom, bool bSortPointers)
 {
 	CSetUnknown::Init(pcUnknownsAllocatingFrom, iChunkSize);
 	TypeKnown(true);
@@ -179,7 +179,7 @@ bool CSetType<M>::Contains(M* pcUnknown)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CSetType<M>::LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown)
+bool CSetType<M>::ReadElement(CFileReader* pcFile, CUnknown** ppcUnknown)
 {
 	M*	pcUnknown;
 
@@ -195,7 +195,7 @@ bool CSetType<M>::LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CSetType<M>::SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown)
+bool CSetType<M>::WriteElement(CFileWriter* pcFile, CUnknown* pcUnknown)
 {
 	return pcUnknown->Save(pcFile);
 }

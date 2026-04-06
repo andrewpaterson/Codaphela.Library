@@ -191,7 +191,9 @@ protected:
 						void					ValidateObjectInternals(void);
 						void					RecurseValidateSceneGraph(CBaseObject* pcBaseObject);
 						CHollowObject*			AllocateHollow(size uiNumEmbedded, OIndex oi);
+						CHollowObject*			AllocateHollow(size uiNumEmbedded, OIndex oi, size uiFatSize);
 						CHollowObject*			AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi);
+						CHollowObject*			AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi, size uiFatSize);
 						void					AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded) ;
 						void					PrintMemoryUseIteration(CChars* psz);
 						void					PrintMemoryUseRecursion(CChars* psz);
@@ -200,11 +202,12 @@ public:
 						CBaseObject*			AllocateUninitialisedByClassNameAndAddIntoMemory(char* szClassName);
 						CBaseObject*			AllocateNamedUninitialisedByClassNameAndAddIntoMemory(char* szClassName, char* szObjectName);
 
-						CBaseObject*			GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName(char* szClassName, char* szObjectName);  //This overwrites an existing object with a new object (with the same name).
 						CBaseObject*			AllocateForInternalDeserialisationWithIndex(char* szClassName, OIndex oi);
-						CHollowObject*			AllocateHollowWithIndex(OIndex oi, size uiNumEmbedded);
-						CBaseObject*			GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName, size uiNumEmbedded);
-						CHollowObject*			AllocateHollowWithNameAndIndex(char* szObjectName, OIndex oi, size uiNumEmbedded);
+						CHollowObject*			AllocateInternalHollowWithIndex(OIndex oi, size uiNumEmbedded, size uiObjectSize);
+						CHollowObject*			AllocateInternalHollowWithNameAndIndex(char* szObjectName, OIndex oi, size uiNumEmbedded, size uiObjectSize);
+
+						CBaseObject*			GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName(char* szClassName, char* szObjectName);
+						CBaseObject*			GetExternalNamedObjectInMemoryOrAllocateHollow(char* szObjectName, size uiNumEmbedded);
 
 protected:
 						CBaseObject*			AllocateForInternalDeserialisationWithNameAndIndex(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);

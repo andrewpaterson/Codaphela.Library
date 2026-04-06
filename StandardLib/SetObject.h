@@ -30,16 +30,16 @@ class CSetObject : public CArrayCommonObject
 CONSTRUCTABLE(CSetObject)
 DESTRUCTABLE(CSetObject)
 public:
-						Ptr<CSetObject> Init(void);
+						Ptr<CSetObject>		Init(bool bSortPointers);
 
-						CPointer		Get(size iIndex);
+						CPointer			Get(size iIndex);
 
-						void			RemoveDuringIteration(SSetIterator* psIter);
+						void				RemoveDuringIteration(SSetIterator* psIter);
 
-	template<class M>	Ptr<M>			StartIteration(SSetIterator* psIter);
-	template<class M>	Ptr<M>			Iterate(SSetIterator* psIter);
+	template<class M>	Ptr<M>				StartIteration(SSetIterator* psIter);
+	template<class M>	Ptr<M>				Iterate(SSetIterator* psIter);
 
-						void			TouchAll(void);
+						void				TouchAll(void);
 };
 
 

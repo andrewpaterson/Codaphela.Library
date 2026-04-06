@@ -32,6 +32,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define ARRAY_COMMOM_PRESERVE_ORDER	0x0010
 #define ARRAY_COMMOM_TYPE_KNOWN		0x0020
 
+// ARRAY_COMMOM_IS_PTR_SORTED  indicates if the array is sorted, not if it must be sorted.
+// ARRAY_COMMOM_IGNORE_NULL    determines if iterate skips NULL elements.  Will also cause NULL additions to fail.
 
 enum EArrayUnsetReturn
 {
@@ -47,6 +49,7 @@ class CArrayCommonUnknown : public CUnknown
 CONSTRUCTABLE(CArrayCommonUnknown)
 protected:
 	uint16				muiFlags;
+	DataCompare			mfCompare;  //If the array is sorted.
 
 private:
 	CArrayUnknownPtr	mcArray;  //CArrayTemplate<CUnknown*>
@@ -56,8 +59,8 @@ private:
 	void				PrivateKill(void);
 
 public:
-			void 				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder);
-			void				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, size iChunkSize);
+			void 				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, DataCompare fCompare);
+			void				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, DataCompare fCompare, size iChunkSize);
 			void 				Kill(void) override;
 	virtual void 				ReInit(void);  //This should be virtual.
 
@@ -67,48 +70,63 @@ public:
 			//Most of these should be protected or virtual.
 			size				NumElements(void);
 			void				KillElements(bool bKill);
-			void				UniqueElements(bool bUnique);
-			void				IgnoreNullElements(bool bIgnoreNull);
-			void				PreserveOrder(bool bPreserveOrder);
+
 			void				Sort(void);
+			bool				IsSorted(void);
+			bool				IsMustSort(void);
+
 			bool				Contains(CUnknown* pcUnknown);
 			size				Find(CUnknown* pcUnknown);
 			size				FindNext(CUnknown* pcUnknown, size uiStartIndex);
+
 			void				CleanNullsIfNecessary(bool bCleanNullsIfNecessary);
 			void				CleanNullsIfNecessary(void);
-			void				TypeKnown(bool bTypeKnown);
+
 			bool				Add(CUnknown* pcUnknown, bool bCleanNullsIfNecessary = true);
 			bool				AddAll(CArrayCommonUnknown* pcSource);
 			bool				Set(size iIndex, CUnknown* pcUnknown, bool bCleanNullsIfNecessary = true);
 			bool				Insert(size iIndex, CUnknown* pcUnknown);
+			size				InsertIntoSorted(DataCompare fCompare, CUnknown* pcUnknown, bool bOverwriteExisting);
+
 			bool				RemoveEnd(size iIndexInclusive);
 	virtual size				Remove(CUnknown* pcUnknown);
 			bool				Remove(size iIndex, bool bCleanNullsIfNecessary = true);
 			bool				RemoveLast(bool bCleanNullsIfNecessary = true);
 			bool				RemoveDuringIteration(SSetIterator* psIter);
+
 			EArrayUnsetReturn	Unset(size iIndex);
+
 			CUnknown*			First(void);
 			CUnknown*			Last(void);
+
 			bool				StartIteration(SSetIterator* psIter, CUnknown** ppcUnknown);
 			bool				Iterate(SSetIterator* psIter, CUnknown** ppcUnknown);
+
+			void				PreserveOrder(bool bPreserveOrder);
+			void				TypeKnown(bool bTypeKnown);
 			bool				IsKillElements(void);
 			bool				IsEmpty(void);
 			bool				IsNotEmpty(void);
-			bool				IsMustSort(void);
+
 			void				UnsafeSet(size iIndex, CUnknown* pcUnknown);
 			CUnknown*			UnsafeGet(size iIndex);
 			CUnknown**			UnsafeGetPointer(size iIndex);
 			size				UnsafeNumElements(void);
 			size				UnsafeNonNullElements(void);
-			bool				LoadArrayHeader(CFileReader* pcFile, uint16* piFlags, size* piNumElements);
-			bool				SaveArrayHeader(CFileWriter* pcFile);
+
+			bool				ReadArrayHeader(CFileReader* pcFile, uint16* piFlags, size* piNumElements);
+			bool				WriteArrayHeader(CFileWriter* pcFile);
 			void				PostLoad(uint16 iFlags);
+
 			void				SetChunkSize(size iChunkSize);
 			void				GrowTo(size iNumElements);
 
 protected:
-	virtual bool		LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown);
-	virtual bool		SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown);
+	virtual bool				ReadElement(CFileReader* pcFile, CUnknown** ppcUnknown);
+	virtual bool				WriteElement(CFileWriter* pcFile, CUnknown* pcUnknown);
+
+			bool				WriteElements(CFileWriter* pcFile);
+			bool				ReadElements(CFileReader* pcFile, size iNumElements);
 };
 
 

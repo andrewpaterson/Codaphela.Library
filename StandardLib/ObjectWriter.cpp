@@ -83,7 +83,7 @@ bool CObjectWriter::Write(CBaseObject* pcThis)
 	bResult = mcFile.WriteInt32(OBJECT_DATA);
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object magic saving object [", sz.Text(), "].", NULL);
 
-	InitObjectHeader(&sHeader, pcThis);
+	InitObjectHeader(&sHeader, pcThis, false);
 	bResult &= WriteObjectHeader(&sHeader);
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object header saving object [", sz.Text(), "].", NULL);
 
@@ -142,7 +142,7 @@ bool CObjectWriter::WritePointer(CPointer& pObject)
 	CEmbeddedObject* pcEmbeddedObject;
 
 	pcEmbeddedObject = pObject.Object();
-	return WriteDependent(pcEmbeddedObject);
+	return WriteDependent(pcEmbeddedObject, false);
 }
 
 
@@ -155,7 +155,7 @@ bool CObjectWriter::WritePointer(CPointer* pObject)
 	CEmbeddedObject* pcEmbeddedObject;
 
 	pcEmbeddedObject = pObject->Object();
-	return WriteDependent(pcEmbeddedObject);
+	return WriteDependent(pcEmbeddedObject, false);
 }
 
 
@@ -163,7 +163,7 @@ bool CObjectWriter::WritePointer(CPointer* pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent)
+bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent, bool bFatHollow)
 {
 	bool				bResult;
 	CBaseObject*		pcContainer;
@@ -177,7 +177,7 @@ bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent)
 		iEmbeddedIndex = pcContainer->GetEmbeddedIndex(pcDependent);
 		iNumEmbedded = pcContainer->NumEmbedded();
 
-		InitIdentifier(&sIdentifier, pcContainer);
+		InitIdentifier(&sIdentifier, pcContainer, bFatHollow);
 		bResult = WriteIdentifier(&sIdentifier);
 		bResult &= WriteInt16((uint16)iNumEmbedded);
 		bResult &= WriteInt16((uint16)iEmbeddedIndex);
@@ -193,7 +193,7 @@ bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent)
 	}
 	else
 	{
-		InitIdentifier(&sIdentifier, NULL);
+		InitIdentifier(&sIdentifier, NULL, bFatHollow);
 		bResult = WriteIdentifier(&sIdentifier);
 		return bResult;
 	}
@@ -204,11 +204,11 @@ bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriter::InitObjectHeader(CObjectHeader* pcHeader, CBaseObject* pcObject)
+void CObjectWriter::InitObjectHeader(CObjectHeader* pcHeader, CBaseObject* pcObject, bool bFatHollow)
 {
 	const char* szClassName;
 
-	InitIdentifier(pcHeader, pcObject);
+	InitIdentifier(pcHeader, pcObject, bFatHollow);
 
 	if (pcObject)
 	{
@@ -226,30 +226,38 @@ void CObjectWriter::InitObjectHeader(CObjectHeader* pcHeader, CBaseObject* pcObj
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectWriter::InitIdentifier(CObjectIdentifier* pcObjectIdentifier, CBaseObject* pcObject)
+void CObjectWriter::InitIdentifier(CObjectIdentifier* pcObjectIdentifier, CBaseObject* pcObject, bool bFatHollow)
 {
 	OIndex			oi;
 	const char*		szObjectName;
+	uint16			uiSize;
 
 	if (pcObject)
 	{
+		if (bFatHollow)
+		{
+			uiSize = (uint16)pcObject->ClassSize();
+		}
+		else
+		{
+			uiSize = OBJECT_IDENTIFIER_SIZE_NOT_SET;
+		}
+
 		oi = pcObject->GetIndex();
 
 		if (!pcObject->IsNamed())
 		{
-			pcObjectIdentifier->Init(oi, OBJECT_IDENTIFIER_SIZE_NOT_SET);
+			pcObjectIdentifier->Init(oi, uiSize);
 		}
 		else
 		{
 			szObjectName = pcObject->GetName();
-			pcObjectIdentifier->Init(szObjectName, oi, OBJECT_IDENTIFIER_SIZE_NOT_SET);
+			pcObjectIdentifier->Init(szObjectName, oi, uiSize);
 		}
 	}
 	else
 	{
-		pcObjectIdentifier->meType = OBJECT_POINTER_NULL;
-		pcObjectIdentifier->moi = NULL_O_INDEX;
-		pcObjectIdentifier->mszObjectName._Init();
+		pcObjectIdentifier->Init();
 	}
 }
 

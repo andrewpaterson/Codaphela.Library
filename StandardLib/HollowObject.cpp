@@ -20,6 +20,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "Objects.h"
 #include "HollowEmbeddedObject.h"
+#include "ClassDefines.h"
+#include "ObjectHeader.h"
 #include "HollowObject.h"
 
 
@@ -92,6 +94,7 @@ void CHollowObject::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CHollowObject::Class(void)
 {
+	U_UInt16(muiSize);
 }
 
 
@@ -171,6 +174,26 @@ bool CHollowObject::IsCollection(void)
 bool CHollowObject::IsObject(void)
 {
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CHollowObject::IsFatHollow(void)
+{
+	return muiSize == OBJECT_IDENTIFIER_SIZE_NOT_SET;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CHollowObject::GetFatSize(void)
+{
+	return muiSize;
 }
 
 

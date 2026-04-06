@@ -18,6 +18,7 @@ public:
 
 	bool		Save(CFileWriter* pcFile);
 	bool		Load(CFileReader* pcFile);
+
 	bool		WriteMapUnknownHeader(CFileWriter* pcFileWriter);
 	bool		ReadMapUnknownHeader(CFileReader* pcFileReader);
 	bool		ReadMapUnknownHeader(CFileReader* pcFileReader, CDataIO* pcDataIO, CDataFree* pcDataFree);

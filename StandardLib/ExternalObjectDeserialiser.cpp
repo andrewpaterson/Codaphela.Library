@@ -400,8 +400,7 @@ bool CExternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDepe
 		pcDependentReadObject = GetObject(pcDependentReadPointer->moiPointedTo);
 		if (pcDependentReadObject->meType == OBJECT_POINTER_NAMED)
 		{
-			//Should CExternalObjectDeserialiser be calling GetNamedObjectInMemoryOrAllocateHollow?  It's more an CInternalObjectDeserialiser thing.
-			pvObject = mpcObjects->GetNamedObjectInMemoryOrAllocateHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadPointer->miNumEmbedded);
+			pvObject = mpcObjects->GetExternalNamedObjectInMemoryOrAllocateHollow(pcDependentReadObject->mszObjectName.Text(), pcDependentReadPointer->miNumEmbedded);
 			AddIndexRemap(pvObject->GetIndex(), pcDependentReadPointer->moiPointedTo);
 			pcBaseObject = pvObject;
 		}
