@@ -495,6 +495,9 @@
     <ClInclude Include="SortPointersHelper.h">
       <Filter>Source\Object\Unknown\Collection\Common</Filter>
     </ClInclude>
+    <ClInclude Include="FatHollowConfiguration.h">
+      <Filter>Source\Object\Object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -805,6 +808,9 @@
     </ClCompile>
     <ClCompile Include="SortPointersHelper.cpp">
       <Filter>Source\Object\Unknown\Collection\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="FatHollowConfiguration.cpp">
+      <Filter>Source\Object\Object</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

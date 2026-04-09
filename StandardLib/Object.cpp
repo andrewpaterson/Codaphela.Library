@@ -118,11 +118,11 @@ void CObject::EmbedFields(void)
 //////////////////////////////////////////////////////////////////////////
 void CObject::EmbedPointerFields(void)
 {
-	size					uiNumFields;
-	CPointerField**			ppacPointerFields;
-	CArrayVoidPtr*			papv;
-	size					i;
-	CPointer*				pcPointer;
+	size				uiNumFields;
+	CPointerField**		ppacPointerFields;
+	CArrayVoidPtr*		papv;
+	size				i;
+	CPointer*			pcPointer;
 
 	papv = mpcClass->GetPointerFields();
 	ppacPointerFields = (CPointerField**)papv->GetData();
@@ -1342,6 +1342,19 @@ void CObject::GetStackFroms(CArrayStackPointer* papcFroms)
 
 		pcEmbedded->GetStackFroms(papcFroms);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::CopyFields(CEmbeddedObject* pcOther)
+{
+	CObject* pcObject;
+
+	pcObject = (CObject*)pcOther;
+	CBaseObject::CopyFields(pcOther);
 }
 
 

@@ -220,7 +220,7 @@ M* CUnknowns::GetConstructor(size* puiSize)
 {
 	if (mpcConstructors)
 	{
-		return mpcConstructors->Get<M>();
+		return mpcConstructors->Get<M>(puiSize);
 	}
 	else
 	{

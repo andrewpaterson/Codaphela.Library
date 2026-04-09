@@ -36,7 +36,7 @@ public:
 	CBaseObject*			Read(char* szObjectName);
 			 
 	//Used by CObjectReader
-	CBaseObject*			AllocateForDeserialisation(CObjectHeader* pcHeader);
+	CBaseObject*			AllocateForDeserialisation(CObjectHeader* pcHeader) override;
 
 	//I don't know what these are
 	OIndex					GetNewIndexFromOld(OIndex oiOld);  //Is this used?

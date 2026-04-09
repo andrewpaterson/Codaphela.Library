@@ -181,6 +181,7 @@ CBaseObject* CInternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 			}
 		}
 	}
+
 	gcLogger.Error("Cant allocate object for unknown header type.");
 	return NULL;
 }
@@ -218,9 +219,9 @@ CBaseObject* CInternalObjectDeserialiser::GetFromMemory(CObjectIdentifier* pcIde
 bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
 {
 	CEmbeddedObject*	pcEmbeddedObject;
-	OIndex				oiNew;
 	CBaseObject*		pcHollowObject;
 	CBaseObject*		pcExistingObject;
+	OIndex				oiNew;
 	bool				bIsNamed;
 	char*				szName;
 
@@ -234,7 +235,6 @@ bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 		{
 			return gcLogger.Error2(__METHOD__, " Cannot add depenent with unknown type [", IntToString(pcObjectIdentifier->meType, 16), "].", NULL);
 		}
-
 	}
 
 	pcExistingObject = GetFromMemory(pcObjectIdentifier);
@@ -284,17 +284,45 @@ bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 //////////////////////////////////////////////////////////////////////////
 bool CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcObjectIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex, int iDistToRoot)
 {
-	CDependentReadObject	cDependent;
-	CPointer				pExisitingInDatabase;
+	CPointer		pExisitingInDatabase;
+	CBaseObject*	pcExistingObject;
+	CBaseObject*	pcHollowObject;
+	OIndex			oiNew;
+	bool			bIsNamed;
+	char*			szName;
 
 	if (!((pcObjectIdentifier->meType == OBJECT_POINTER_NAMED) || (pcObjectIdentifier->meType == OBJECT_POINTER_ID)))
 	{
 		return (pcObjectIdentifier->meType == OBJECT_POINTER_NULL);
 	}
 
-	cDependent.Init(pcObjectIdentifier);
+	pcExistingObject = GetFromMemory(pcObjectIdentifier);
 
-	cDependent.Kill();
+	if (pcExistingObject)
+	{
+		SafeAssign(ppcPtrToBeUpdated, pcExistingObject);
+		return true;
+	}
+
+	oiNew = pcObjectIdentifier->moi;
+	bIsNamed = pcObjectIdentifier->IsNamed();
+
+	if (bIsNamed)
+	{
+		szName = pcObjectIdentifier->GetName();
+		pcHollowObject = mpcObjects->AllocateInternalHollowWithNameAndIndex(szName, oiNew, iNumEmbedded, pcObjectIdentifier->GetFatSize());
+	}
+	else
+	{
+		pcHollowObject = mpcObjects->AllocateInternalHollowWithIndex(oiNew, iNumEmbedded, pcObjectIdentifier->GetFatSize());
+	}
+
+	if (!pcHollowObject)
+	{
+		return false;
+	}
+
+	SafeAssign(ppcPtrToBeUpdated, pcHollowObject);
 
 	return true;
 }

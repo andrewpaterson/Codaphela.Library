@@ -20,7 +20,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/DebugOutput.h"
-#include "BaseLib/Logger.h"
 #include "BaseLib/StackMemory.h"
 #include "BaseLib/DataConnection.h"
 #include "BaseLib/TransientSequence.h"
@@ -1426,6 +1425,53 @@ CBaseObject* CObjects::AllocateUninitialisedByClassName(const char* szClassName,
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::ConvertFatHollowToUninitialisedByClassName(CHollowObject* pcHollowObject, const char* szClassName)
+{
+	CBaseObject*	pcObject;
+	bool			bResult;
+	size			uiClassSize;
+	size			uiHollowSize;
+	void*			pvConstructor;
+	OIndex			oi;
+	CHollowObject	cHollow;
+
+	bResult = ValidateCanAllocate(szClassName);
+	if (!bResult)
+	{
+		return NULL;
+	}
+
+	oi = pcHollowObject->GetIndex();
+	pvConstructor = mpcUnknownsAllocatingFrom->GetConstructors()->Get(szClassName, &uiClassSize);
+	if (!pvConstructor)
+	{
+		gcLogger.Error2(__METHOD__, " No constructor found for class [", szClassName, "].", NULL);
+		return NULL;
+	}
+
+	uiHollowSize = pcHollowObject->GetFatSize();
+	if (uiHollowSize != uiClassSize)
+	{
+		gcLogger.Error2(__METHOD__, " Class [", szClassName, "] size [", SizeToString(uiClassSize), "] does not match fat Hollow size [", SizeToString(uiHollowSize), "].", NULL);
+		return NULL;
+	}
+
+	memcpy(&cHollow, pcHollowObject, sizeof(CHollowObject));
+
+	pcObject = pcHollowObject;
+	memcpy(pcObject, pvConstructor, uiClassSize);
+	pcObject->Allocate(this);  
+	pcObject->CopyFields(&cHollow);
+
+	cHollow.StopDestructor();
+	return pcObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AllocateUninitialisedByClassName(const char* szClassName, const char* szObjectName, OIndex oi)
 {
 	CBaseObject*	pcObject;
@@ -1552,11 +1598,12 @@ CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObject
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, OIndex oi, size uiFatSize)
+CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, OIndex oi, uint16 uiFatSize)
 {
 	CHollowObject*	pcHollow;
 	size			uiHollowSize;
 	CHollowObject*	pcConstructor;
+	void*			pvEmbedded;
 
 	if (uiNumEmbedded == 0)
 	{
@@ -1566,13 +1613,17 @@ CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, OIndex oi, size uiFa
 	pcConstructor = mpcUnknownsAllocatingFrom->GetConstructor<CHollowObject>(&uiHollowSize);
 	if (pcConstructor)
 	{
-		if (uiHollowSize < uiFatSize)
+		if (uiHollowSize > uiFatSize)
 		{
 			gcLogger.Error2(__METHOD__, " Hollow size [", SizeToString(uiHollowSize), "] is larger than Fat Object size [", SizeToString(uiFatSize), "].", NULL);
 			return NULL;
 		}
 		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(oi, uiFatSize - uiHollowSize);
-		pcHollow->Init(uiNumEmbedded);
+		pcHollow->Init(uiNumEmbedded, uiFatSize);
+
+		pvEmbedded = RemapSinglePointer(pcHollow, sizeof(CHollowObject));
+		AppenedHollowEmbeddedObjects(pcHollow, uiNumEmbedded, pvEmbedded);
+
 		return pcHollow;
 	}
 	else
@@ -1587,12 +1638,12 @@ CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, OIndex oi, size uiFa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi, size uiFatSize)
+CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi, uint16 uiFatSize)
 {
 	CHollowObject*	pcHollow;
 	size			uiHollowSize;
 	CHollowObject*	pcConstructor;
-
+	void*			pvEmbedded;
 	if (uiNumEmbedded == 0)
 	{
 		return NULL;
@@ -1601,13 +1652,17 @@ CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObject
 	pcConstructor = mpcUnknownsAllocatingFrom->GetConstructor<CHollowObject>(&uiHollowSize);
 	if (pcConstructor)
 	{
-		if (uiHollowSize < uiFatSize)
+		if (uiHollowSize > uiFatSize)
 		{
 			gcLogger.Error2(__METHOD__, " Hollow size [", SizeToString(uiHollowSize), "] is larger than Fat Object size [", SizeToString(uiFatSize), "].", NULL);
 			return NULL;
 		}
 		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(szObjectName, oi, uiFatSize - uiHollowSize);
 		pcHollow->Init(uiNumEmbedded);
+
+		pvEmbedded = RemapSinglePointer(pcHollow, sizeof(CHollowObject));
+		AppenedHollowEmbeddedObjects(pcHollow, uiNumEmbedded, pvEmbedded);
+
 		return pcHollow;
 	}
 	else
@@ -1799,14 +1854,22 @@ CBaseObject* CObjects::AllocateForInternalDeserialisationWithIndex(char* szClass
 		if (pcObject->IsHollow())
 		{
 			pcHollowObject = (CHollowObject*)pcObject;
-			pcAllocatedObject = AllocateUninitialisedByClassName(szClassName, oi);
-			bResult = ReplaceBaseObject(pcHollowObject, pcAllocatedObject);
-			if (!bResult)
+			if (!pcHollowObject->IsFatHollow())
 			{
-				return NULL;
+				pcAllocatedObject = AllocateUninitialisedByClassName(szClassName, oi);
+				bResult = ReplaceBaseObject(pcHollowObject, pcAllocatedObject);
+				if (!bResult)
+				{
+					return NULL;
+				}
+				else
+				{
+					return pcAllocatedObject;
+				}
 			}
 			else
 			{
+				pcAllocatedObject = ConvertFatHollowToUninitialisedByClassName(pcHollowObject, szClassName);
 				return pcAllocatedObject;
 			}
 		}
@@ -1861,14 +1924,22 @@ CBaseObject* CObjects::AllocateForInternalDeserialisationWithNameAndIndex(char* 
 			}
 			else
 			{
-				pcAllocatedObject = AllocateUninitialisedByClassName(szClassName, szObjectName, oi);
-				bResult = ReplaceBaseObject(pcHollowObject, pcAllocatedObject);
-				if (!bResult)
+				if (!pcHollowObject->IsFatHollow())
 				{
-					return NULL;
+					pcAllocatedObject = AllocateUninitialisedByClassName(szClassName, szObjectName, oi);
+					bResult = ReplaceBaseObject(pcHollowObject, pcAllocatedObject);
+					if (!bResult)
+					{
+						return NULL;
+					}
+					else
+					{
+						return pcAllocatedObject;
+					}
 				}
 				else
 				{
+					pcAllocatedObject = ConvertFatHollowToUninitialisedByClassName(pcHollowObject, szClassName);
 					return pcAllocatedObject;
 				}
 			}
@@ -1928,7 +1999,7 @@ bool CObjects::ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pcObject)
 	{
 		if (pcObject->HasHeapFroms())
 		{
-			return gcLogger.Error2(__METHOD__, " Cannot remap.  Object has head froms already.", NULL);
+			return gcLogger.Error2(__METHOD__, " Cannot remap.  Object has heap froms already.", NULL);
 		}
 		mcMemory.RemoveIdentifiers(pvExisting);
 
@@ -1957,7 +2028,7 @@ bool CObjects::TestRemoveMemoryIdentifiers(CBaseObject* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject* CObjects::AllocateInternalHollowWithIndex(OIndex oi, size uiNumEmbedded, size uiObjectSize)
+CHollowObject* CObjects::AllocateInternalHollowWithIndex(OIndex oi, size uiNumEmbedded, uint16 uiObjectSize)
 {
 	CHollowObject*	pcHollow;
 	bool			bResult;
@@ -2003,7 +2074,7 @@ CHollowObject* CObjects::AllocateInternalHollowWithIndex(OIndex oi, size uiNumEm
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject* CObjects::AllocateInternalHollowWithNameAndIndex(char* szObjectName, OIndex oi, size uiNumEmbedded, size uiObjectSize)
+CHollowObject* CObjects::AllocateInternalHollowWithNameAndIndex(char* szObjectName, OIndex oi, size uiNumEmbedded, uint16 uiObjectSize)
 {
 	CHollowObject*	pcHollow;
 	bool			bResult;
@@ -2237,3 +2308,4 @@ Ptr<CRoot> ORoot(void)
 {
 	return gcObjects.Root();
 }
+

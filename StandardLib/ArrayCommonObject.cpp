@@ -218,6 +218,16 @@ bool CArrayCommonObject::IsSorted(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::IsMustSort(void)
+{
+	return mcArray.IsMustSort();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::Add(CPointer& pObject)
 {
 	CEmbeddedObject*	pcObject;
@@ -894,4 +904,5 @@ bool CArrayCommonObject::RemoveEnd(size iIndexInclusive)
 #endif // _DEBUG
 	return bResult;
 }
+
 

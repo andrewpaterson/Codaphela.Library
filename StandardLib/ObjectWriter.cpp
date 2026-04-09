@@ -21,6 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ObjectFileGeneral.h"
 #include "PointerObject.h"
 #include "Object.h"
+#include "FatHollowConfiguration.h"
 #include "ObjectWriter.h"
 
 
@@ -177,7 +178,7 @@ bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent, bool bFatHollow
 		iEmbeddedIndex = pcContainer->GetEmbeddedIndex(pcDependent);
 		iNumEmbedded = pcContainer->NumEmbedded();
 
-		InitIdentifier(&sIdentifier, pcContainer, bFatHollow);
+		InitIdentifier(&sIdentifier, pcContainer, bFatHollow || gbForceFatHollows);
 		bResult = WriteIdentifier(&sIdentifier);
 		bResult &= WriteInt16((uint16)iNumEmbedded);
 		bResult &= WriteInt16((uint16)iEmbeddedIndex);

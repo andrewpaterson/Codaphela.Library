@@ -81,6 +81,7 @@ public:
 
 	void					EnsureSorted(void);
 	bool					IsSorted(void);
+	bool					IsMustSort(void);
 
 protected:
 	void					FreePointers(void) override;

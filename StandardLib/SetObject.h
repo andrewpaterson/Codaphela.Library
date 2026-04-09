@@ -30,11 +30,14 @@ class CSetObject : public CArrayCommonObject
 CONSTRUCTABLE(CSetObject)
 DESTRUCTABLE(CSetObject)
 public:
-						Ptr<CSetObject>		Init(bool bSortPointers);
+						Ptr<CSetObject>		Init(bool bSortPointers = true);
 
-						CPointer			Get(size iIndex);
+						CPointer			UnsafeGet(size iIndex);
 
 						void				RemoveDuringIteration(SSetIterator* psIter);
+
+						CPointer			StartIteration(SSetIterator* psIter);
+						CPointer			Iterate(SSetIterator* psIter);
 
 	template<class M>	Ptr<M>				StartIteration(SSetIterator* psIter);
 	template<class M>	Ptr<M>				Iterate(SSetIterator* psIter);
@@ -52,8 +55,9 @@ Ptr<M> CSetObject::StartIteration(SSetIterator* psIter)
 {
 	bool	bExists;
 
-	return (M*)StartIteration(psIter, &bExists);
+	return (M*)StartIterationPointer(psIter, &bExists);
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -64,7 +68,7 @@ Ptr<M> CSetObject::Iterate(SSetIterator* psIter)
 {
 	bool	bExists;
 
-	return (M*)Iterate(psIter, &bExists);
+	return (M*)IteratePointer(psIter, &bExists);
 }
 
 

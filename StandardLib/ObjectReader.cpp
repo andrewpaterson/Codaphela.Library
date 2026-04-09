@@ -358,7 +358,7 @@ bool CObjectReader::ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseOb
 			bResult &= ReadInt16(&cHeader.miEmbeddedIndex);
 			bResult &= ReadSInt(&iDistToRoot);
 
-			*ppcObjectPtr = NULL;
+			SafeAssign(ppcObjectPtr, NULL);
 			
 			bResult &= mpcDependents->AddReverseDependent(&cHeader, ppcObjectPtr, pcContaining, cHeader.miNumEmbedded, cHeader.miEmbeddedIndex, iDistToRoot);
 			cHeader.Kill();
