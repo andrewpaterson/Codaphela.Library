@@ -190,10 +190,10 @@ bool CRoot::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CRoot::Get(int iIndex)
+CPointer CRoot::UnsafeGet(int iIndex)
 {
 	mpObjects.Dereference();
-	CPointer pObject = mpObjects->Get(iIndex);
+	CPointer pObject = mpObjects->UnsafeGet(iIndex);
 	return pObject;
 }
 
@@ -240,7 +240,7 @@ CPointer CRoot::Get(char* szObjectName)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CSetObject> CRoot::GetAll(void)
 {
-	return mpObjects;
+	return &mpObjects;
 }
 
 

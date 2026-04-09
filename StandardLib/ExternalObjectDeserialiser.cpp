@@ -449,6 +449,7 @@ CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 			}
 		}
 	}
+
 	gcLogger.Error("Cant allocate object for unknown header type.");
 	return NULL;
 }

@@ -52,8 +52,8 @@ public:
 
 						bool			Load(CObjectReader* pcFile) override;
 
-						CPointer		Get(int iIndex);
-	template<class M>	Ptr<M>			Get(int iIndex);
+						CPointer		UnsafeGet(int iIndex);
+	template<class M>	Ptr<M>			UnsafeGet(int iIndex);
 						CPointer		Get(char* szObjectName);
 	template<class M>	Ptr<M>			Get(char* szObjectName);
 						Ptr<CSetObject>	GetAll(void);
@@ -80,9 +80,9 @@ protected:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M> CRoot::Get(int iIndex)
+Ptr<M> CRoot::UnsafeGet(int iIndex)
 {
-	Ptr<M> pM = Get(iIndex);
+	Ptr<M> pM = UnsafeGet(iIndex);
 	return pM;
 }
 
@@ -102,7 +102,7 @@ Ptr<M> CRoot::Get(char* szObjectName)
 template<class M>
 Ptr<M> CRoot::GetFirst(void)
 {
-	return Get<M>(0);
+	return UnsafeGet<M>(0);
 }
 
 #endif // __ROOT_H__

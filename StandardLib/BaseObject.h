@@ -158,6 +158,7 @@ public:
 			CStackPointers*		GetStackPointers(void);
 	virtual void				SetDistToStack(int iDistToStack);
 			CClass*				CompleteClass(CClasses* pcClasses);
+			void				CopyFields(CEmbeddedObject* pcOther) override;
 
 	virtual bool				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 			CEmbeddedObject* 	TestGetPointerTo(size iToIndex);
@@ -167,6 +168,7 @@ public:
 			uint16				GetFlags(void);
 			bool				CanFindRoot(void);
 			bool				CanFindRootThroughValidPath(void);
+			void				StopDestructor(void);
 
 			void				DumpFroms(void);
 			void				DumpPointerTos(void);

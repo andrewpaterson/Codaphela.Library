@@ -33,6 +33,7 @@ public:
 								CHollowObject();
 								~CHollowObject();
 			void				Init(size iNumEmbedded);
+			void				Init(size iNumEmbedded, uint16 uiFatSize);
 			void				Kill(void) final;
 
 			bool				IsHollow(void) override;

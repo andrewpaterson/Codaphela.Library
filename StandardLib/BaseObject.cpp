@@ -316,6 +316,26 @@ bool CBaseObject::IsKilled(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CBaseObject::CopyFields(CEmbeddedObject* pcOther)
+{
+	CBaseObject* pcBaseObject;
+
+	pcBaseObject = (CBaseObject*)pcOther;
+	moi = pcBaseObject->moi;
+	mon = pcBaseObject->mon;
+	miDistToRoot = pcBaseObject->miDistToRoot;
+	miDistToStack = pcBaseObject->miDistToStack;
+	muiNumEmbedded = pcBaseObject->muiNumEmbedded;
+	muiPreInits = 1;
+	muiPostInits = 1;
+	CEmbeddedObject::CopyFields(pcOther);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CBaseObject::Flush(void)
 {
 	bool	bResult;
@@ -926,6 +946,16 @@ void CBaseObject::RemoveToFromDontFree(CEmbeddedObject* pcPointedTo)
 		pcBaseObject = (CBaseObject*)pcPointedTo;
 		pcBaseObject->PrivateRemoveHeapFrom(this);  //If the object pointed to us is also being killed then we needed remove our from from it.
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::StopDestructor(void)
+{
+	muiFlags = OBJECT_FLAGS_CALLED_CONSTRUCTOR;
 }
 
 
@@ -1573,15 +1603,15 @@ bool CBaseObject::LoadUnmanaged(CObjectReader* pcFile)
 bool CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
 {
 	bool				bResult;
-	size				i;
-	size				uiNumElements;
-	CEmbeddedObject*	pcHeapFrom;
 	int					iDistToRoot;
 	
 	bResult = pcFile->ReadSInt(&iDistToRoot);
 	ReturnOnFalse(bResult);
 
 	miDistToRoot = iDistToRoot;
+
+	size				i;
+	size				uiNumElements;
 
 	bResult = LoadEmbeddedObjectsHeapFroms(pcFile);
 	ReturnOnFalse(bResult);
@@ -1591,7 +1621,7 @@ bool CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
 
 	for (i = 0; i < uiNumElements; i++)
 	{
-		bResult = pcFile->ReadReverseDependent(&pcHeapFrom, this);
+		bResult = pcFile->ReadReverseDependent(NULL, this);
 		ReturnOnFalse(bResult);
 	}
 

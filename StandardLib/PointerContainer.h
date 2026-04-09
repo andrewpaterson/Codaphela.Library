@@ -18,6 +18,8 @@ public:
 	void					Free(void) override;
 
 	void					Clear(void);
+	CEmbeddedObject*		PointerObject(void);
+	CEmbeddedObject**		PointerObjectPtr(void);
 };
 
 

@@ -421,7 +421,7 @@ void CNamedIndexedObjects::FreeObject(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 bool CNamedIndexedObjects::RemoveIdentifiers(CBaseObject* pcObject)
 {
-	char* szName;
+	char*	szName;
 	bool	bResult;
 
 	bResult = RemoveIndex(pcObject->GetIndex());

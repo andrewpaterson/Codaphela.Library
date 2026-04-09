@@ -54,6 +54,8 @@ public:
 	void				AddConstructorAndIO(void);
 	template<class Class>
 	void				AddSystemClassAndConstructor(void);
+	template<class Class>
+	void				AddConstructor(void);
 
 protected:
 	uint32				GetNextClassType(void);
@@ -108,13 +110,37 @@ void CClasses::AddSystemClassAndConstructor(void)
 	szClassName = pvM->ClassName();
 	pcClass = pvM->CBaseObject::CompleteClass(this);
 	pcClass->System();
-	cStack.Kill();
 
 	bConstructor = gcConstructors.Contains(szClassName);
 	if (!bConstructor)
 	{
 		gcConstructors.Add<Class>();
 	}
+	cStack.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class Class>
+void CClasses::AddConstructor(void)
+{
+	bool			bConstructor;
+	Class*			pvM;
+	CStackMemory<>	cStack;
+	const char*		szClassName;
+
+	pvM = StackConstruct<Class>(&cStack);
+	szClassName = pvM->ClassName();
+
+	bConstructor = gcConstructors.Contains(szClassName);
+	if (!bConstructor)
+	{
+		gcConstructors.Add<Class>();
+	}
+	cStack.Kill();
 }
 
 

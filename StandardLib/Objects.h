@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __OBJECTS_H__
 #include "BaseLib/DataConnection.h"
 #include "BaseLib/IndexedGeneral.h"
+#include "BaseLib/Logger.h"
 #include "NamedIndexedObjects.h"
 #include "Unknowns.h"
 #include "Null.h"
@@ -191,9 +192,9 @@ protected:
 						void					ValidateObjectInternals(void);
 						void					RecurseValidateSceneGraph(CBaseObject* pcBaseObject);
 						CHollowObject*			AllocateHollow(size uiNumEmbedded, OIndex oi);
-						CHollowObject*			AllocateHollow(size uiNumEmbedded, OIndex oi, size uiFatSize);
+						CHollowObject*			AllocateHollow(size uiNumEmbedded, OIndex oi, uint16 uiFatSize);
 						CHollowObject*			AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi);
-						CHollowObject*			AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi, size uiFatSize);
+						CHollowObject*			AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi, uint16 uiFatSize);
 						void					AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded) ;
 						void					PrintMemoryUseIteration(CChars* psz);
 						void					PrintMemoryUseRecursion(CChars* psz);
@@ -203,14 +204,15 @@ public:
 						CBaseObject*			AllocateNamedUninitialisedByClassNameAndAddIntoMemory(char* szClassName, char* szObjectName);
 
 						CBaseObject*			AllocateForInternalDeserialisationWithIndex(char* szClassName, OIndex oi);
-						CHollowObject*			AllocateInternalHollowWithIndex(OIndex oi, size uiNumEmbedded, size uiObjectSize);
-						CHollowObject*			AllocateInternalHollowWithNameAndIndex(char* szObjectName, OIndex oi, size uiNumEmbedded, size uiObjectSize);
+						CHollowObject*			AllocateInternalHollowWithIndex(OIndex oi, size uiNumEmbedded, uint16 uiObjectSize);
+						CHollowObject*			AllocateInternalHollowWithNameAndIndex(char* szObjectName, OIndex oi, size uiNumEmbedded, uint16 uiObjectSize);
 
 						CBaseObject*			GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName(char* szClassName, char* szObjectName);
 						CBaseObject*			GetExternalNamedObjectInMemoryOrAllocateHollow(char* szObjectName, size uiNumEmbedded);
 
 protected:
 						CBaseObject*			AllocateForInternalDeserialisationWithNameAndIndex(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
+						CBaseObject*			ConvertFatHollowToUninitialisedByClassName(CHollowObject* pcHollowObject, const char* szClassName);
 };
 
 
@@ -446,6 +448,11 @@ template<class SpecificClass>
 void CObjects::AddConstructor(void)
 {
 	SpecificClass*	pcClass;
+
+	if (mpcUnknownsAllocatingFrom == NULL)
+	{
+		gcLogger.Error2(__METHOD__, " UnknownsAllocatingFrom is NULL.  Probably Objects has not been initialsed.", NULL);
+	}
 
 	pcClass = mpcUnknownsAllocatingFrom->GetConstructor<SpecificClass>();
 	if (!pcClass)

@@ -185,6 +185,7 @@
     <ClInclude Include="Class.h" />
     <ClInclude Include="ClassDefines.h" />
     <ClInclude Include="Classes.h" />
+    <ClInclude Include="FatHollowConfiguration.h" />
     <ClInclude Include="IndexObject.h" />
     <ClInclude Include="IndexUnknown.h" />
     <ClInclude Include="MapEntry.h" />
@@ -304,6 +305,7 @@
     <ClCompile Include="ChannelDebugDescriptor.cpp" />
     <ClCompile Include="Class.cpp" />
     <ClCompile Include="Classes.cpp" />
+    <ClCompile Include="FatHollowConfiguration.cpp" />
     <ClCompile Include="IndexObject.cpp" />
     <ClCompile Include="IndexUnknown.cpp" />
     <ClCompile Include="MapEntry.cpp" />

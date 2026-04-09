@@ -8,6 +8,7 @@
 #include "MapObject.h"
 #include "String.h"
 #include "PointerContainer.h"
+#include "HollowObject.h"
 #include "Classes.h"
 
 
@@ -80,6 +81,8 @@ void CClasses::AddSystemClasses(void)
 	AddSystemClassAndConstructor<CPointerContainer>();
 	AddSystemClassAndConstructor<CIndexObject>();
 	AddSystemClassAndConstructor<CMapObject>();
+
+	AddConstructor<CHollowObject>();
 }
 
 

@@ -38,7 +38,7 @@ Ptr<CSetObject> CSetObject::Init(bool bSortPointers)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CSetObject::Get(size iIndex)
+CPointer CSetObject::UnsafeGet(size iIndex)
 {
 	CBaseObject*	pcObject;
 	CPointer		pObject;
@@ -80,5 +80,29 @@ void CSetObject::TouchAll(void)
 	{
 		p = IteratePointer(&sIter, &bExists);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointer CSetObject::StartIteration(SSetIterator* psIter)
+{
+	bool	bExists;
+
+	return StartIterationPointer(psIter, &bExists);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointer CSetObject::Iterate(SSetIterator* psIter)
+{
+	bool	bExists;
+
+	return IteratePointer(psIter, &bExists);
 }
 

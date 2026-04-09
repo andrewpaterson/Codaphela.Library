@@ -34,7 +34,7 @@ public:
 
 	bool			Add(Ptr<M> pObject);
 	void			AddAll(Ptr<CArrayCommonObject> pcSet);
-	Ptr<M>			Get(int iIndex);
+	Ptr<M>			UnsafeGet(int iIndex);
 	bool			Remove(Ptr<M> pObject);
 
 	void			RemoveDuringIteration(SSetIterator* psIter);
@@ -84,9 +84,9 @@ void CSet<M>::AddAll(Ptr<CArrayCommonObject> pcSet)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M> CSet<M>::Get(int iIndex)
+Ptr<M> CSet<M>::UnsafeGet(int iIndex)
 {
-	return CSetObject::Get(iIndex);
+	return CSetObject::UnsafeGet(iIndex);
 }
 
 

@@ -43,7 +43,7 @@ public:
 	CBaseObject*	Read(OIndex oi);
 	CBaseObject*	Read(char* szObjectName);
 
-	CBaseObject*	AllocateForDeserialisation(CObjectHeader* pcHeader);
+	CBaseObject*	AllocateForDeserialisation(CObjectHeader* pcHeader) override;
 
 protected:
 	CBaseObject*	GetFromMemory(CObjectIdentifier* pcIdentifier);

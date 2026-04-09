@@ -31,6 +31,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 CHollowObject::CHollowObject()
 {
+	//I Don'think this does anything.  It just gets overwritten by CBaseObject().
 	muiFlags &= ~OBJECT_FLAGS_DIRTY;
 }
 
@@ -74,6 +75,20 @@ void CHollowObject::Init(size iNumEmbedded)
 {
 	PreInit();
 	SetFlagNumEmbedded(iNumEmbedded);
+	muiSize = OBJECT_IDENTIFIER_SIZE_NOT_SET;
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CHollowObject::Init(size iNumEmbedded, uint16 uiFatSize)
+{
+	PreInit();
+	SetFlagNumEmbedded(iNumEmbedded);
+	muiSize = uiFatSize;
 	PostInit();
 }
 
@@ -183,7 +198,7 @@ bool CHollowObject::IsObject(void)
 //////////////////////////////////////////////////////////////////////////
 bool CHollowObject::IsFatHollow(void)
 {
-	return muiSize == OBJECT_IDENTIFIER_SIZE_NOT_SET;
+	return muiSize != OBJECT_IDENTIFIER_SIZE_NOT_SET;
 }
 
 
