@@ -106,3 +106,37 @@ CPointer CSetObject::Iterate(SSetIterator* psIter)
 	return IteratePointer(psIter, &bExists);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSetObject::Dump(void)
+{
+	size				uiNumElements;
+	size				ui;
+	CEmbeddedObject*	pcEmbedded;
+	CChars				sz;
+	CChars				szLineNumber;
+	size				uiPadding;
+
+	sz.Init();
+	uiNumElements = mcArray.NumElements();
+	uiPadding = NumberOfDigits(uiNumElements);
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		pcEmbedded = (CEmbeddedObject*)mcArray.UnsafeGet(ui);
+		szLineNumber.Init();
+		szLineNumber.Append(ui);
+		szLineNumber.RightAlign(' ', uiPadding);
+		szLineNumber.Append(": ");
+
+		sz.Append(szLineNumber);
+		sz.AppendPointer(pcEmbedded);
+		sz.AppendNewLine();
+
+		szLineNumber.Kill();
+	}
+	sz.DumpKill();
+}
+

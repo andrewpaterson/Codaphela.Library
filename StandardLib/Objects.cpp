@@ -1644,6 +1644,7 @@ CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObject
 	size			uiHollowSize;
 	CHollowObject*	pcConstructor;
 	void*			pvEmbedded;
+
 	if (uiNumEmbedded == 0)
 	{
 		return NULL;
@@ -1658,7 +1659,7 @@ CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObject
 			return NULL;
 		}
 		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(szObjectName, oi, uiFatSize - uiHollowSize);
-		pcHollow->Init(uiNumEmbedded);
+		pcHollow->Init(uiNumEmbedded, uiFatSize);
 
 		pvEmbedded = RemapSinglePointer(pcHollow, sizeof(CHollowObject));
 		AppenedHollowEmbeddedObjects(pcHollow, uiNumEmbedded, pvEmbedded);
