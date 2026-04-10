@@ -586,6 +586,9 @@ bool CArrayBlock::RemoveFirst(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Finalise(void)
 {
+	//THIS DOES NOT WORK.
+	//Chunk Size is recalculated in SetArraySize so setting the chunk size to 1 here does nothing.
+
 	miChunkSize = 1;
 	SetArraySize(miUsedElements);
 }

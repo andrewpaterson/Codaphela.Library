@@ -240,8 +240,6 @@ bool CArrayCommonObject::Add(CPointer& pObject)
 {
 	CEmbeddedObject*	pcObject;
 
-	EnsureSorted();
-
 	pcObject = pObject.Object();
 	return Add(pcObject);
 }
@@ -358,8 +356,6 @@ bool CArrayCommonObject::Remove(CPointer& pObject)
 
 	if (pObject.IsNotNull())
 	{
-		EnsureSorted();
-
 		pcObject = pObject.Object();
 		return Remove(pcObject);
 	}
@@ -704,6 +700,10 @@ size CArrayCommonObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject
 			}
 		}
 	}
+	if (iCount > 0)
+	{
+		mbSorted = false;
+	}
 	return iCount;
 }
 
@@ -913,4 +913,18 @@ bool CArrayCommonObject::RemoveEnd(size iIndexInclusive)
 	return bResult;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::Contains(CPointer& pObject)
+{
+	CEmbeddedObject* pcObject;
+
+	EnsureSorted();
+
+	pcObject = pObject.Object();
+	return mcArray.Contains(pcObject);
+}
 
