@@ -47,6 +47,8 @@ public:
 	bool					Remove(CEmbeddedObject* pcObject);
 	bool					RemoveEnd(size iIndexInclusive);
 
+	bool					Contains(CPointer& pObject);
+
 	size 					NumElements(void) override;
 	size 					NonNullElements(void) override;
 	bool					IsEmpty(void) override;

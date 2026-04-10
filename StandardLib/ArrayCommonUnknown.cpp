@@ -443,8 +443,16 @@ bool CArrayCommonUnknown::Add(CUnknown* pcUnknown, bool bCleanNullsIfNecessary)
 		}
 	}
 
-	mcArray.Add(&pcUnknown);
-	SetFlagShort(&muiFlags, ARRAY_COMMOM_IS_PTR_SORTED, false);
+	if (((muiFlags & ARRAY_COMMOM_IS_PTR_SORTED) || mcArray.NumElements() < 2) && (mfCompare != NULL))
+	{
+		mcArray.InsertIntoSorted(mfCompare, &pcUnknown, false);
+		SetFlagShort(&muiFlags, ARRAY_COMMOM_IS_PTR_SORTED, true);
+	}
+	else
+	{
+		mcArray.Add(&pcUnknown);
+		SetFlagShort(&muiFlags, ARRAY_COMMOM_IS_PTR_SORTED, false);
+	}
 
 	if (pcUnknown != NULL)
 	{

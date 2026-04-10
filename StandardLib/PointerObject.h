@@ -71,7 +71,7 @@ public:
 	CEmbeddedObject**	ObjectPtr(void);
 	void				UnsafePointTo(CEmbeddedObject* pcNewObject);
 	CBaseObject*		BaseObject(void);
-	size				MorphInto(CEmbeddedObject* pcOld);
+	size				MorphInto(CEmbeddedObject* pcNew);
 
 	bool				IsHollow(void);
 	bool				Load(CObjectReader* pcFile);
