@@ -32,11 +32,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 CArrayCommonObject::~CArrayCommonObject()
 {
-	Kill();
-
 	//This Destructor code will only be called if the object was allocated on the stack.
 	if (muiFlags != OBJECT_FLAGS_CALLED_CONSTRUCTOR)
 	{
+		Kill();
+
 		if (mpcUnknownsThisIn == NULL)
 		{
 			if (!HasClass())

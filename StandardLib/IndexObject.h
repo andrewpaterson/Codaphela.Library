@@ -82,7 +82,7 @@ public:
 	
 	void				TouchAll(void) override;
 	void				KillAll(void) override;
-
+	
 	CEmbeddedObject*	GetEmbeddedObject(size iIndex) override;
 	void				ValidatePointerTos(void) override;
 	CIndexUnknown*		GetIndexForTesting(void);
