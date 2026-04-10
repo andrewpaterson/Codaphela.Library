@@ -719,8 +719,8 @@ bool CEmbeddedObject::IsInStack(void)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::RemoveStackFromTryFree(CPointer* pcPointer, bool bFreeIfNoRoot)
 {
-	CStackPointers*	pcStackPointers;
-	CBaseObject*	pcContainer;
+	CStackPointers*		pcStackPointers;
+	CBaseObject*		pcContainer;
 
 	if (mpcStackFroms)
 	{
