@@ -162,13 +162,11 @@ bool CArrayCommonObject::Load(CObjectReader* pcFile)
 	uint16 				iFlags;
 	size 				uiNumElements;
 	CEmbeddedObject**	pcPointedTo;
-	bool				bFatHollow;
 
 	ReturnOnFalse(mcArray.ReadArrayHeader(pcFile, &iFlags, &uiNumElements));
 
 	ReturnOnFalse(pcFile->ReadBool(&mbSubRoot));
 
-	bFatHollow = mcArray.IsMustSort();
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcPointedTo = (CEmbeddedObject**)mcArray.UnsafeGetPointer(i);
@@ -211,6 +209,16 @@ void CArrayCommonObject::EnsureSorted(void)
 bool CArrayCommonObject::IsSorted(void)
 {
 	return mbSorted;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::CalculateIsSorted(void)
+{
+	return mcArray.CalculateIsSorted();
 }
 
 

@@ -224,6 +224,7 @@ bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 	OIndex				oiNew;
 	bool				bIsNamed;
 	char*				szName;
+	uint16				uiFatSize;
 
 	if (!((pcObjectIdentifier->meType == OBJECT_POINTER_NAMED) || (pcObjectIdentifier->meType == OBJECT_POINTER_ID)))
 	{
@@ -248,15 +249,16 @@ bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 
 	oiNew = pcObjectIdentifier->moi;
 	bIsNamed = pcObjectIdentifier->IsNamed();
+	uiFatSize = pcObjectIdentifier->GetFatSize();
 
 	if (bIsNamed)
 	{
 		szName = pcObjectIdentifier->GetName();
-		pcHollowObject = mpcObjects->AllocateInternalHollowWithNameAndIndex(szName, oiNew, iNumEmbedded, pcObjectIdentifier->GetFatSize());
+		pcHollowObject = mpcObjects->AllocateInternalHollowWithNameAndIndex(szName, oiNew, iNumEmbedded, uiFatSize);
 	}
 	else
 	{
-		pcHollowObject = mpcObjects->AllocateInternalHollowWithIndex(oiNew, iNumEmbedded, pcObjectIdentifier->GetFatSize());
+		pcHollowObject = mpcObjects->AllocateInternalHollowWithIndex(oiNew, iNumEmbedded, uiFatSize);
 	}
 
 	if (!pcHollowObject)

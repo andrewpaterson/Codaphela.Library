@@ -1141,8 +1141,8 @@ bool CArrayCommonUnknown::CalculateIsSorted(void)
 		pcLeft = UnsafeGet(ui);
 		pcRight = UnsafeGet(ui + 1);
 
-		iResult = mfCompare(pcLeft, pcRight);
-		if (iResult < 0)
+		iResult = mfCompare(&pcLeft, &pcRight);
+		if (iResult > 0)
 		{
 			return false;
 		}

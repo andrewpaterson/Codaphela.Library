@@ -43,6 +43,8 @@ public:
 	template<class M>	Ptr<M>				Iterate(SSetIterator* psIter);
 
 						void				TouchAll(void);
+
+						void				Dump(void);
 };
 
 

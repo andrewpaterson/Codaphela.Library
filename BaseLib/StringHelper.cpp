@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include <ctype.h>
+#include <cmath>
 #include "PointerFunctions.h"
 #include "DataTypes.h"
 #include "EscapeCodes.h"
@@ -1262,5 +1263,25 @@ char* BoolToString(char* szDest, size iDestLength, bool b)
 		StrCpySafe(szDest, "false", iDestLength);
 	}
 	return szDest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size NumberOfDigits(size uiNumber)
+{
+	long double		f;
+
+	if (uiNumber == 0)
+	{
+		return 1;
+	}
+
+	f = log10(uiNumber);
+	f = floor(f) + 1;
+
+	return (size)f;
 }
 

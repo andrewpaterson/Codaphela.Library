@@ -1,4 +1,5 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2025 Andrew Paterson
 

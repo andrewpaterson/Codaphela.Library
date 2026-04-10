@@ -52,6 +52,7 @@ bool		StrEmpty(const char* szString);
 char*		NullToEmpty(const char* szString);
 char		GetHexChar(size c4Bit);
 size		GetCharHex(char cHexChar);
+size		NumberOfDigits(size uiNumber);
 
 char*		ByteToString(char* szDest, size iDestLength, int8 iValue, uint16 iBase = 10);
 char*		ByteToString(char* szDest, size iDestLength, uint8 iValue, uint16 iBase = 10);
