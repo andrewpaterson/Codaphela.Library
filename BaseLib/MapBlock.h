@@ -37,6 +37,7 @@ public:
 	bool				Get(void* pvKey, size iKeySize, void** ppvData, size* piDataSize);
 	void*				Get(void* pvKey, size iKeySize);
 	SMNode*				GetNode(void* pvKey, size iKeySize);
+	SMNode*				GetNode(SMapIterator* psIterator);
 
 	void*				Put(void* pvKey, size iKeySize, size iDataSize);
 	bool				Put(void* psKey, size iKeySize, void* pvData, size iDataSize);

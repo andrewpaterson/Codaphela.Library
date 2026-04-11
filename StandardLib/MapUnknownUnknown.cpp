@@ -212,7 +212,43 @@ bool CMapUnknownUnknown::Remove(CUnknown* pcKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapUnknownUnknown::StartIteration(SMapIterator* psIterator, CUnknown** ppcKey, CUnknown** ppcData)
+void CMapUnknownUnknown::SetKey(SMapIterator* psIter, CUnknown* pcNewKey)
+{
+	SMNode*		psNode;
+	void*		pvValue;
+	void*		pvKey;
+	CUnknown**	ppcOldKey;
+
+	psNode = mcMap.GetNode(psIter);
+	mcMap.RemapKeyAndData(psNode, &pvKey, &pvValue);
+	ppcOldKey = (CUnknown**)pvKey;
+	*ppcOldKey = pcNewKey;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapUnknownUnknown::SetValue(SMapIterator* psIter, CUnknown* pcNewValue)
+{
+	SMNode*		psNode;
+	void*		pvValue;
+	void*		pvKey;
+	CUnknown**	ppcOldValue;
+
+	psNode = mcMap.GetNode(psIter);
+	mcMap.RemapKeyAndData(psNode, &pvKey, &pvValue);
+	ppcOldValue = (CUnknown**)pvValue;
+	*ppcOldValue = pcNewValue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapUnknownUnknown::StartIteration(SMapIterator* psIterator, CUnknown** ppcKey, CUnknown** ppcValue)
 {
 	CUnknown**	ppcK;
 	CUnknown**	ppcV;
@@ -222,7 +258,7 @@ bool CMapUnknownUnknown::StartIteration(SMapIterator* psIterator, CUnknown** ppc
 	if (bResult)
 	{
 		*ppcKey = *ppcK;
-		*ppcData = *ppcV;
+		*ppcValue = *ppcV;
 	}
 	return bResult;
 }
@@ -232,7 +268,7 @@ bool CMapUnknownUnknown::StartIteration(SMapIterator* psIterator, CUnknown** ppc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapUnknownUnknown::Iterate(SMapIterator* psIterator, CUnknown** ppcKey, CUnknown** ppcData)
+bool CMapUnknownUnknown::Iterate(SMapIterator* psIterator, CUnknown** ppcKey, CUnknown** ppcValue)
 {
 	CUnknown**	ppcK;
 	CUnknown**	ppcV;
@@ -242,7 +278,7 @@ bool CMapUnknownUnknown::Iterate(SMapIterator* psIterator, CUnknown** ppcKey, CU
 	if (bResult)
 	{
 		*ppcKey = *ppcK;
-		*ppcData = *ppcV;
+		*ppcValue = *ppcV;
 	}
 	return bResult;
 }

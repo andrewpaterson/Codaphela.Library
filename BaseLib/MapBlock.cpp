@@ -458,10 +458,10 @@ bool CMapBlock::StartIteration(SMapIterator* psIterator, void** ppvKey, size* pi
 //////////////////////////////////////////////////////////////////////////
 bool CMapBlock::Iterate(SMapIterator* psIterator, void** ppvKey, size* piKeySize, void** ppvData, size* piDataSize)
 {
-	SMNode**	ppsNode;
 	void*		pvKey;
 	void*		pvData;
 	SMNode*		psNode;
+	SMNode**	ppsNode;
 
 	ppsNode = (SMNode**)mapArray.Iterate(psIterator);
 	if (!ppsNode)
@@ -478,6 +478,23 @@ bool CMapBlock::Iterate(SMapIterator* psIterator, void** ppvKey, size* piKeySize
 	SafeAssign(piDataSize, psNode->iValueSize);
 
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SMNode* CMapBlock::GetNode(SMapIterator* psIterator)
+{
+	SMNode** ppsNode;
+
+	ppsNode = (SMNode**)mapArray.GetIterated(psIterator);
+	if (ppsNode)
+	{
+		return *ppsNode;
+	}
+	return NULL;
 }
 
 

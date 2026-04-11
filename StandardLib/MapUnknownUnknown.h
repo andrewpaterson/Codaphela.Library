@@ -32,6 +32,9 @@ public:
 	CUnknown*	Get(CUnknown* pcKey);
 	SMNode*		GetNode(CUnknown* pcKey);
 
+	void		SetKey(SMapIterator* psIter, CUnknown* pcNewKey);
+	void		SetValue(SMapIterator* psIter, CUnknown* pcNewValue);
+
 	size		NumElements(void);
 	size		GetSortedSize(void);
 	size		GetHoldingSize(void);
@@ -39,8 +42,8 @@ public:
 
 	bool		Remove(CUnknown* pcKey);
 
-	bool		StartIteration(SMapIterator* psIterator, CUnknown** ppvKey, CUnknown** ppvData);
-	bool		Iterate(SMapIterator* psIterator, CUnknown** ppvKey, CUnknown** ppvData);
+	bool		StartIteration(SMapIterator* psIterator, CUnknown** ppvKey, CUnknown** ppvValue);
+	bool		Iterate(SMapIterator* psIterator, CUnknown** ppvKey, CUnknown** ppvValue);
 
 	void		Pack(void);
 	void		Print(CChars* psz);

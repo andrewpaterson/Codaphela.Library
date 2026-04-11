@@ -320,10 +320,13 @@ bool CArrayCommonObject::Set(size iIndex, CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject* CArrayCommonObject::Dereference(CEmbeddedObject** ppcObject)
 {
-	if (*ppcObject)
+	CEmbeddedObject*	pcOldObject;
+
+	pcOldObject = *ppcObject;
+	if (pcOldObject)
 	{
-		*ppcObject = (*ppcObject)->Dehollow();
-		if (mcArray.IsMustSort() && IsSorted())
+		*ppcObject = pcOldObject->Dehollow();
+		if (*ppcObject != pcOldObject)
 		{
 			mbSorted = false;
 		}

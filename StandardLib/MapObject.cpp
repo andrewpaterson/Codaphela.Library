@@ -198,12 +198,12 @@ CPointer CMapObject::Get(CPointer& pKey)
 
 	EnsureSorted();
 
-
 	pcKey = (CBaseObject*)pKey.Object();
 	pcValue = (CBaseObject*)mcMap.Get(pcKey);
 	if (pcValue)
 	{
-		pValue.AssignObject(pcValue);
+		pcValue = pcValue->Dehollow();
+		pValue = pcValue;
 	}
 	return pValue;
 }
@@ -633,10 +633,10 @@ void CMapObject::TouchAll(void)
 	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	while (bExists)
 	{
-		pKey.AssignObject(pcPointedToKey);
+		pKey = pcPointedToKey;
 		if (pcPointedToValue)
 		{
-			pValue.AssignObject(pcPointedToValue);
+			pValue = pcPointedToValue;
 		}
 		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
 	}
@@ -712,14 +712,20 @@ size CMapObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 	{
 		if (pcPointedToKey == pcOld)
 		{
-			mcMap.Remove(pcOld);
-			mcMap.Put(pcNew, pcPointedToValue);
+			if (pcOld != pcNew)
+			{
+				mcMap.SetKey(&sIter, pcNew);
+				mbSorted = false;
+			}
 			iCount++;
 		}
 
 		if (pcPointedToValue == pcOld)
 		{
-			mcMap.Put(pcPointedToKey, pcNew);
+			if (pcOld != pcNew)
+			{
+				mcMap.SetValue(&sIter, pcNew);
+			}
 			iCount++;
 		}
 
