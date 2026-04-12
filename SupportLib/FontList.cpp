@@ -32,7 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 void CFontList::Init(void)
 {
 	PreInit();
-	maFonts.Init();
+	maFonts.Init(true);
 	PostInit();
 }
 
