@@ -74,6 +74,7 @@ CBaseObject::~CBaseObject()
 void CBaseObject::Allocate(CObjects* pcObjects)
 {
 	//Allocate is only called if an object is allocated in Objects.
+	CEmbeddedObject::Allocate(pcObjects);
 	mpcObjectsThisIn = pcObjects;
 	SetFlag(OBJECT_FLAGS_CALLED_ALLOCATE, true);
 	PreClass();

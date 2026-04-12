@@ -131,6 +131,7 @@ public:
 			void				TestRemoveStackFrom(CPointer* pcPointer);
 
 protected:
+	virtual void				Allocate(CObjects* pcObjects);
 	virtual void				RemoveAllHeapFroms(void);
 	virtual void				RemoveAllStackFroms(void);
 			bool				PrivateRemoveHeapFrom(CBaseObject* pcFrom);
