@@ -45,6 +45,7 @@ void CEmbeddedObject::KillInternal(bool bHeapFromChanged, bool bValidateNotEmbed
 	NotImplemented(__METHOD__);
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -52,6 +53,16 @@ void CEmbeddedObject::KillInternal(bool bHeapFromChanged, bool bValidateNotEmbed
 void CEmbeddedObject::Evict(void)
 {
 	NotImplemented(__METHOD__);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::Allocate(CObjects* pcObjects)
+{
+	mapHeapFroms.Init();
 }
 
 
@@ -244,7 +255,7 @@ void CEmbeddedObject::FreePointers(void)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::PostRemapFroms(void)
 {
-	mapHeapFroms.Kill();
+	mapHeapFroms.ReInit();
 	mpcStackFroms = NULL;
 }
 

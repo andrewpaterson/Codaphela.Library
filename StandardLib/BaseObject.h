@@ -195,7 +195,7 @@ public:
 	virtual void				ValidateInternalConsistency(void);
 	
 protected:
-	virtual void				Allocate(CObjects* pcObjects);
+			void				Allocate(CObjects* pcObjects) override;
 			void				PreClass(void);
 			void				SetClass(CClass* pcClass);
 
