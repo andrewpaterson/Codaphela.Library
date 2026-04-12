@@ -840,6 +840,7 @@ bool CMapObject::IsSorted(void)
 void CMapObject::ValidateInternalConsistency(void)
 {
 	bool	bSorted;
+
 	if (mbSorted)
 	{
 		bSorted = mcMap.IsSorted();
@@ -849,3 +850,5 @@ void CMapObject::ValidateInternalConsistency(void)
 		}
 	}
 }
+
+
