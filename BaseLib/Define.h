@@ -56,6 +56,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <malloc.h>
 #include <memory.h>
 
+#define restrict __restrict
+
 #define FILE_SEPARATOR "\\"
 #define _FS_ FILE_SEPARATOR
 #define OTHER_OS_FILE_SEPARATOR "/"

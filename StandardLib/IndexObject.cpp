@@ -313,16 +313,16 @@ void CIndexObject::SetPointerTosExpectedDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CIndexObject::StartIterationPointer(SIndexTreeMemoryIterator* psIter)
+CPointer CIndexObject::StartIterationPointer(SIndexTreeMemoryIterator* psIterator)
 {
 	CBaseObject*	pcObject;
 	CPointer		pObject;
 	bool			bExists;
 
-	bExists = mcIndex.StartIteration(psIter, NULL, NULL, 0, (CUnknown**)&pcObject);
+	bExists = mcIndex.StartIteration(psIterator, NULL, NULL, 0, (CUnknown**)&pcObject);
 	while (bExists && (pcObject == NULL))
 	{
-		bExists = mcIndex.Iterate(psIter, NULL, NULL, 0, (CUnknown**)&pcObject);
+		bExists = mcIndex.Iterate(psIterator, NULL, NULL, 0, (CUnknown**)&pcObject);
 	}
 	if (pcObject)
 	{
@@ -336,16 +336,16 @@ CPointer CIndexObject::StartIterationPointer(SIndexTreeMemoryIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CIndexObject::IteratePointer(SIndexTreeMemoryIterator* psIter)
+CPointer CIndexObject::IteratePointer(SIndexTreeMemoryIterator* psIterator)
 {
 	CBaseObject*	pcObject;
 	CPointer		pObject;
 	bool			bExists;
 
-	bExists = mcIndex.Iterate(psIter, NULL, NULL, 0, (CUnknown**)&pcObject);
+	bExists = mcIndex.Iterate(psIterator, NULL, NULL, 0, (CUnknown**)&pcObject);
 	while (bExists && (pcObject == NULL))
 	{
-		bExists = mcIndex.Iterate(psIter, NULL, NULL, 0, (CUnknown**)&pcObject);
+		bExists = mcIndex.Iterate(psIterator, NULL, NULL, 0, (CUnknown**)&pcObject);
 	}
 	if (pcObject)
 	{

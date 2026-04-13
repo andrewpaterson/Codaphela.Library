@@ -29,7 +29,6 @@ template<class M = CBaseObject>
 class CArray final : public CArrayObject
 {
 CONSTRUCTABLE(CArray)
-DESTRUCTABLE(CArray)
 public:
 	Ptr<CArray<M>>	Init(void);
 

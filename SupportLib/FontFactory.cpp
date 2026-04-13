@@ -160,7 +160,7 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 
 	ui = 0;
 	cUTF8.Init(&szCharacters);
-	uiLength = cUTF8.GetLength();
+	uiLength = cUTF8.Step();
 	while ((uiLength != 0) && (uiLength != cUTF8.GetError()))
 	{
 		pCel = cCels.Get(ui);
@@ -184,7 +184,7 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 		}
 		
 		ui++;
-		uiLength = cUTF8.GetLength();
+		uiLength = cUTF8.Step();
 	}
 	cCels.Kill();
 	szCharacters.Kill();

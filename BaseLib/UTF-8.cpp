@@ -7,8 +7,24 @@
 //////////////////////////////////////////////////////////////////////////
 void CUTF8::Init(CChars* sz)
 {
-	mpsz = sz;
+	mszText = sz->Text();
+	muiTextLength = sz->Length();
 	muiPos = 0;
+	muiGlyphLength = 0;
+	muiError = UNICODE_ERROR;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CUTF8::Init(char* sz)
+{
+	mszText = sz;
+	muiTextLength = StrLen(sz);
+	muiPos = 0;
+	muiGlyphLength = 0;
 	muiError = UNICODE_ERROR;
 }
 
@@ -19,8 +35,11 @@ void CUTF8::Init(CChars* sz)
 //////////////////////////////////////////////////////////////////////////
 void CUTF8::Kill(void)
 {
-	mpsz = NULL;
+	mszText = NULL;
+	muiTextLength = 0;
+	muiGlyphLength = 0;
 	muiPos = 0;
+	muiError = UNICODE_ERROR;
 }
 
 
@@ -35,12 +54,12 @@ uint16 CUTF8::GetUint16(void)
 	uint8*	pc;
 	uint16	c16;
 
-	if (muiPos >= mpsz->Length())
+	if (muiPos >= muiTextLength)
 	{
 		return 0;
 	}
 
-	pc = (uint8*)mpsz->Text();
+	pc = (uint8*)mszText;
 	c = pc[muiPos];
 	if (c < 0x7F)
 	{
@@ -50,7 +69,7 @@ uint16 CUTF8::GetUint16(void)
 		
 	if ((c & 0xE0) == 0xC0)
 	{
-		if (muiPos + 1 >= mpsz->Length())
+		if (muiPos + 1 >= muiTextLength)
 		{
 			return 0xFFFF;
 		}
@@ -88,12 +107,12 @@ uint32 CUTF8::GetUint32(void)
 	uint8*	pc;
 	uint32	c32;
 
-	if (muiPos >= mpsz->Length())
+	if (muiPos >= muiTextLength)
 	{
 		return 0;
 	}
 
-	pc = (uint8*)mpsz->Text();
+	pc = (uint8*)mszText;
 	c = pc[muiPos];
 	if (c < 0x7F)
 	{
@@ -103,7 +122,7 @@ uint32 CUTF8::GetUint32(void)
 		
 	if ((c & 0xE0) == 0xC0)
 	{
-		if (muiPos + 1 >= mpsz->Length())
+		if (muiPos + 1 >= muiTextLength)
 		{
 			return 0xFFFF;
 		}
@@ -116,7 +135,7 @@ uint32 CUTF8::GetUint32(void)
 
 	if ((c & 0xF0) == 0xE0) 
 	{
-		if (muiPos + 2 >= mpsz->Length())
+		if (muiPos + 2 >= muiTextLength)
 		{
 			return 0xFFFF;
 		}
@@ -140,7 +159,7 @@ uint32 CUTF8::GetUint32(void)
 
 	if ((c & 0xF8) == 0xF0) 
 	{
-		if (muiPos + 3 >= mpsz->Length())
+		if (muiPos + 3 >= muiTextLength)
 		{
 			return 0xFFFF;
 		}
@@ -178,7 +197,7 @@ size CUTF8::GetMulti(uint8* puiBuffer, size uiBufferLength)
 	size	uiStartPos;
 	size	uiTotalLength;
 
-	if (muiPos >= mpsz->Length())
+	if (muiPos >= muiTextLength)
 	{
 		return 0;
 	}
@@ -222,7 +241,7 @@ size CUTF8::GetMulti(uint8* puiBuffer, size uiBufferLength)
 						muiPos = uiStartPos;
 						return muiError;
 					}
-					memcpy(puiBuffer, mpsz->Text(uiStartPos), uiTotalLength);
+					memcpy(puiBuffer, &mszText[uiStartPos], uiTotalLength);
 				}
 				return uiTotalLength;
 			}
@@ -236,7 +255,7 @@ size CUTF8::GetMulti(uint8* puiBuffer, size uiBufferLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CUTF8::GetLength(void)
+size CUTF8::Step(void)
 {
 	size	uiLength;
 	bool	bLastZWJ;
@@ -270,6 +289,7 @@ size CUTF8::GetLength(void)
 			else
 			{
 				muiPos = uiStartPos;
+				muiGlyphLength = uiTotalLength;
 				return uiTotalLength;
 			}
 			bLastZWJ = false;
@@ -291,12 +311,12 @@ size CUTF8::GetElementLength(void)
 	uint8*	pc;
 	uint32	c32;
 
-	if (muiPos >= mpsz->Length())
+	if (muiPos >= muiTextLength)
 	{
 		return 0;
 	}
 
-	pc = (uint8*)mpsz->Text();
+	pc = (uint8*)mszText;
 	c = pc[muiPos];
 	if (c < 0x7F)
 	{
@@ -305,7 +325,7 @@ size CUTF8::GetElementLength(void)
 		
 	if ((c & 0xE0) == 0xC0)
 	{
-		if (muiPos + 1 >= mpsz->Length())
+		if (muiPos + 1 >= muiTextLength)
 		{
 			return muiError;
 		}
@@ -314,7 +334,7 @@ size CUTF8::GetElementLength(void)
 
 	if ((c & 0xF0) == 0xE0) 
 	{
-		if (muiPos + 2 >= mpsz->Length())
+		if (muiPos + 2 >= muiTextLength)
 		{
 			return muiError;
 		}
@@ -342,7 +362,7 @@ size CUTF8::GetElementLength(void)
 
 	if ((c & 0xF8) == 0xF0) 
 	{
-		if (muiPos + 3 >= mpsz->Length())
+		if (muiPos + 3 >= muiTextLength)
 		{
 			return muiError;
 		}
@@ -372,18 +392,7 @@ size CUTF8::GetElementLength(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CUTF8::GetPosition(void)
-{
-	return muiPos;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-size CUTF8::GetError(void)
-{
-	return muiError;
-}
+size CUTF8::GetPosition(void) { return muiPos; }
+size CUTF8::GetError(void) { return muiError; }
+size CUTF8::GetGlyphLength(void) { return muiGlyphLength; }
 

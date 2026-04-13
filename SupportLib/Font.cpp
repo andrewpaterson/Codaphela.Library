@@ -22,6 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ClassDefines.h"
+#include "BaseLib/UTF-8.h"
 #include "ImageCopier.h"
 #include "ImageAccessorCreator.h"
 #include "Font.h"
@@ -64,7 +65,7 @@ void CFont::Class(void)
 	U_Size(miHeight);
 	U_Bool(mbFixedWidh);
 	U_Int16(miSpaceWidth);
-	U_Unknown(CArrayGlyph, macGlyphs);
+	M_Embedded(macGlyphs);
 	U_Int16(miAscent);
 	U_Int16(miDescent);
 	U_Int16(miTabSpaceCount);
@@ -77,7 +78,6 @@ void CFont::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CFont::Free(void)
 {
-	macGlyphs.Kill();
 	mszName.Kill();
 }
 
@@ -108,18 +108,21 @@ bool CFont::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CFont::Done(void)
 {
-	size			i;
-	Ptr<CGlyph>		pGlyph;
-	size			iTotalWidth;
-	size			iLastWidth;
-	size			iWidth;
+	size						i;
+	Ptr<CGlyph>					pGlyph;
+	size						iTotalWidth;
+	size						iLastWidth;
+	size						iWidth;
+	SIndexTreeMemoryIterator	sIter;
 
 	iTotalWidth = 0;
 	iWidth = 0;
 	mbFixedWidh = true;
-	for (i = 0; i < macGlyphs.NumElements(); i++)
+
+	i = 0;
+	pGlyph = macGlyphs.StartIterationPointer(&sIter);
+	while (pGlyph.IsNotNull())
 	{
-		pGlyph = macGlyphs.Get(i);
 		iLastWidth = iWidth;
 		iWidth = pGlyph->GetFullWidth();
 		iTotalWidth += pGlyph->GetFullWidth();
@@ -129,7 +132,11 @@ void CFont::Done(void)
 		}
 		pGlyph->GetSubImage()->SetHorizontalAlignment(SUB_IMAGE_ALIGNMENT_LEFT);
 		pGlyph->GetSubImage()->msAlignment.y = -miAscent;
+
+		i++;
+		pGlyph = macGlyphs.IteratePointer(&sIter);
 	}
+
 	miAverageWidth = iTotalWidth / macGlyphs.NumElements();
 }
 
@@ -148,31 +155,69 @@ bool CFont::Is(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+Ptr<CGlyph> CFont::GetGlyph(CUTF8* pcUTF8)
+{
+	uint16			c16;
+	uint32			c32;
+	uint8			auiBuffer[64];
+	size			uiLength;
+
+	uiLength = pcUTF8->GetGlyphLength();
+	if (uiLength <= 2)
+	{
+		c16 = pcUTF8->GetUint16();
+		if ((c16 != 0xFFFD) && (c16 != 0xFFFF))
+		{
+			return GetGlyph(c16);
+		}
+	}
+	else if (uiLength <= 4)
+	{
+		c32 = pcUTF8->GetUint32();
+		if ((c32 != 0xFFFD) && (c32 != 0xFFFF))
+		{
+			return GetGlyph(c32);
+		}
+	}
+	else
+	{
+		uiLength = pcUTF8->GetMulti(auiBuffer, 64);
+		if ((uiLength != 0) || (uiLength != pcUTF8->GetError()))
+		{
+			return GetGlyph(auiBuffer, uiLength);
+		}
+	}
+
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 size CFont::Width(char* szText)
 {
-	size	iLen;
-	size	i;
-	size	iChar;
-	size	iWidth;
+	CUTF8			cUTF8;
+	size			uiLength;
+	size			ui;
+	size			iWidth;
+	Ptr<CGlyph>		pGlyph;
 
-	iLen = (size)strlen(szText);
+	ui = 0;
 	iWidth = 0;
-	for (i = 0; i < iLen; i++)
+	cUTF8.Init(szText);
+	uiLength = cUTF8.Step();
+	while ((uiLength != 0) && (uiLength != cUTF8.GetError()))
 	{
-		iChar = (size)szText[i];
+		pGlyph = GetGlyph(&cUTF8);
 
-		if ((iChar < FIRST_LETTER) || (iChar >= FIRST_LETTER + macGlyphs.NumElements()))
+		if (pGlyph.IsNotNull())
 		{
-			iWidth += 0;
+			iWidth += pGlyph->GetFullWidth();
+			ui++;
 		}
-		else if (iChar == FIRST_LETTER)
-		{
-			iWidth += miSpaceWidth;
-		}
-		else
-		{
-			iWidth += macGlyphs.Get(iChar - FIRST_LETTER)->GetFullWidth();
-		}
+		uiLength = cUTF8.Step();
 	}
 	return iWidth;
 }
@@ -199,14 +244,27 @@ bool CFont::IsWhitespace(uint16 c)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CGlyph> CFont::GetGlyph(uint16 c)
 {
-	size	iChar;
+	return macGlyphs.Get((uint8*)&c, sizeof(uint16));
+}
 
-	iChar = c;
-	if ((iChar < FIRST_LETTER) || (iChar >= FIRST_LETTER + macGlyphs.NumElements()))
-	{
-		return NULL;
-	}
-	return macGlyphs.Get(iChar - FIRST_LETTER);
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CGlyph> CFont::GetGlyph(uint32 c)
+{
+	return macGlyphs.Get((uint8*)&c, sizeof(uint32));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CGlyph> CFont::GetGlyph(uint8* puiBuffer, size uiLength)
+{
+	return macGlyphs.Get(puiBuffer, uiLength);
 }
 
 
@@ -218,9 +276,8 @@ Ptr<CGlyph> CFont::PutGlyph(uint16 c, Ptr<CImageCel> pCel, int16 iStep)
 {
 	Ptr<CGlyph>		pGlyph;
 
-	macGlyphs.GrowTo(c);
 	pGlyph = OMalloc<CGlyph>(pCel, iStep);
-	macGlyphs.Set(c, pGlyph);
+	macGlyphs.Put((uint8*)&c, sizeof(uint16), pGlyph);
 	return pGlyph;
 }
 
@@ -233,9 +290,8 @@ Ptr<CGlyph> CFont::PutGlyph(uint32 c, Ptr<CImageCel> pCel, int16 iStep)
 {
 	Ptr<CGlyph>		pGlyph;
 
-	macGlyphs.GrowTo(c);
 	pGlyph = OMalloc<CGlyph>(pCel, iStep);
-	macGlyphs.Set(c, pGlyph);
+	macGlyphs.Put((uint8*)&c, sizeof(uint32), pGlyph);
 	return pGlyph;
 }
 
@@ -248,9 +304,8 @@ Ptr<CGlyph> CFont::PutGlyph(uint8* puiBuffer, size uiLength, Ptr<CImageCel> pCel
 {
 	Ptr<CGlyph>		pGlyph;
 
-	//macGlyphs.GrowTo(c);
 	pGlyph = OMalloc<CGlyph>(pCel, iStep);
-	//macGlyphs.Set(c, pGlyph);
+	macGlyphs.Put(puiBuffer, uiLength, pGlyph);
 	return pGlyph;
 }
 

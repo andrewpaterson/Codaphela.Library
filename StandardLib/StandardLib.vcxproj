@@ -186,6 +186,7 @@
     <ClInclude Include="ClassDefines.h" />
     <ClInclude Include="Classes.h" />
     <ClInclude Include="FatHollowConfiguration.h" />
+    <ClInclude Include="Index.h" />
     <ClInclude Include="IndexObject.h" />
     <ClInclude Include="IndexUnknown.h" />
     <ClInclude Include="MapEntry.h" />
