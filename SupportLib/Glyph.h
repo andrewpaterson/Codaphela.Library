@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __GLYPH_H__
 #include "ImageCel.h"
 #include "StandardLib/Array.h"
+#include "StandardLib/Index.h"
 
 
 class CGlyph : public CObject
@@ -55,7 +56,7 @@ public:
 };
 
 
-typedef CArray<CGlyph> CArrayGlyph;
+typedef CIndex<CGlyph> CIndexGlyph;
 
 
 #endif // __GLYPH_H__

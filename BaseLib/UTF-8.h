@@ -31,21 +31,27 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CUTF8
 {
 protected:
-	CChars*		mpsz;  //underlying byte array.
+	char*		mszText;  //underlying byte array.
+	size		muiTextLength;
+
 	size		muiPos;
+	size		muiGlyphLength;
 	size		muiError;
 
 public:
-	void Init(CChars* sz);
-	void Kill(void);
+	void	Init(CChars* sz);
+	void	Init(char* sz);
+	void	Kill(void);
 
 	uint16	GetUint16(void);  // Retuns 0xFFFD if larger than uint16
 	uint32	GetUint32(void);  // Retuns 0xFFFD if larger than uint32
 	size	GetMulti(uint8* puiBuffer, size uiBufferLength);
 
-	size	GetLength(void);
+	size	Step(void);
+
 	size	GetPosition(void);
 	size	GetError(void);
+	size	GetGlyphLength(void);
 
 protected:
 	size	GetElementLength(void);

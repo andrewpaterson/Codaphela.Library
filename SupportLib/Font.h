@@ -33,6 +33,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define FIRST_LETTER	32
 
 
+class CUTF8;
 class CFont : public CObject
 {
 CONSTRUCTABLE(CFont);
@@ -44,7 +45,7 @@ protected:
 	size				miHeight;
 	bool				mbFixedWidh;
 	int16				miSpaceWidth;
-	CArrayGlyph			macGlyphs;
+	CIndexGlyph			macGlyphs;
 	int16				miAscent;
 	int16				miDescent;
 	int16				miTabSpaceCount;  //tab width = miTabSpaceCount * miSpaceWidth.
@@ -63,6 +64,9 @@ public:
 	size			Height(void);
 	bool			IsWhitespace(uint16 c);
 	Ptr<CGlyph>		GetGlyph(uint16 c);
+	Ptr<CGlyph>		GetGlyph(uint32 c);
+	Ptr<CGlyph>		GetGlyph(uint8* puiBuffer, size uiLength);
+	Ptr<CGlyph>		GetGlyph(CUTF8* pcUTF8);
 	Ptr<CGlyph>		PutGlyph(uint16 c, Ptr<CImageCel> pCel, int16 iStep);
 	Ptr<CGlyph>		PutGlyph(uint32 c, Ptr<CImageCel> pCel, int16 iStep);
 	Ptr<CGlyph>		PutGlyph(uint8* puiBuffer, size uiLength, Ptr<CImageCel> pCel, int16 iStep);

@@ -74,8 +74,8 @@ public:
 	template<class M>
 	Ptr<M>				Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, bool* bExists = NULL);
 
-	CPointer			StartIterationPointer(SIndexTreeMemoryIterator* psIter);
-	CPointer			IteratePointer(SIndexTreeMemoryIterator* psIter);
+	CPointer			StartIterationPointer(SIndexTreeMemoryIterator* psIterator);
+	CPointer			IteratePointer(SIndexTreeMemoryIterator* psIterator);
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
