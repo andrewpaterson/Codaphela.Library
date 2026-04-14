@@ -217,7 +217,6 @@ protected:
 			bool				SaveHeapFroms(CObjectWriter* pcFile);
 			bool				LoadHeapFroms(CObjectReader* pcFile);
 
-			void				FreePointers(void) override;
 			size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			void				RemoveToFromDontFree(CEmbeddedObject* pcPointedTo);
 			void				SetExpectedDistToRoot(int iExpectedDistToRoot);

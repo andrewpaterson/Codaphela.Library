@@ -409,6 +409,7 @@ bool CNamedIndexedObjects::FreeObjects(void)
 void CNamedIndexedObjects::FreeObject(CBaseObject* pcObject)
 {
 	//This order is important.
+	pcObject->RemoveAllStackFroms();
 	pcObject->FreePointers();
 	RemoveIdentifiers(pcObject);
 	pcObject->FreeIdentifiers();
