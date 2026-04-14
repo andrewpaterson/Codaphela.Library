@@ -245,7 +245,6 @@ void CEmbeddedObject::SetEmbedding(CBaseObject* pcEmbedded)
 void CEmbeddedObject::FreePointers(void)
 {
 	mapHeapFroms.Kill();
-	RemoveAllStackFroms();
 }
 
 

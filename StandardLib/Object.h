@@ -98,8 +98,8 @@ protected:
 	void				RemovePointerTo(CEmbeddedObject* pcTo);
 	void				RemoveAllPointerTosDontFree(void);
 	bool				RemoveAllPointerTosTryFree(void);
-	void				RemoveAllHeapFroms(void);
-	void				RemoveAllStackFroms(void);
+	void				RemoveAllHeapFroms(void) override;
+	void				RemoveAllStackFroms(void) override;
 	CBaseObject*		GetClosestFromForCanFindRoot(void);
 	size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
 	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);

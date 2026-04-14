@@ -393,16 +393,6 @@ void CBaseObject::FreeInternal(bool bAllocatedInObjects)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::FreePointers(void)
-{
-	CEmbeddedObject::FreePointers();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CBaseObject::CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcParameters)
 {
 	//It is assumed at this point that all the tos and froms have been updated.

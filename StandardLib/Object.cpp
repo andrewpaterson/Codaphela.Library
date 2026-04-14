@@ -167,7 +167,18 @@ void CObject::EmbedEmbeddedObjectFields(void)
 //////////////////////////////////////////////////////////////////////////
 void CObject::FreePointers(void)
 {
+	size			uiNumEmbedded;
+	CBaseObject* pcEmbedded;
+	size			i;
+
+	uiNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < uiNumEmbedded; i++)
+	{
+		pcEmbedded = *mapEmbedded.Get(i);
+		pcEmbedded->FreePointers();
+	}
 	CBaseObject::FreePointers();
+
 	mapEmbedded.Kill();
 	mapPointers.Kill();
 }
@@ -275,7 +286,7 @@ void CObject::RemoveAllHeapFroms(void)
 	size				uiNumEmbedded;
 	CBaseObject*		pcEmbedded;
 
-	CEmbeddedObject::RemoveAllHeapFroms();
+	CBaseObject::RemoveAllHeapFroms();
 
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
@@ -296,7 +307,7 @@ void CObject::RemoveAllStackFroms(void)
 	size				uiNumEmbedded;
 	CBaseObject*		pcEmbedded;
 
-	CEmbeddedObject::RemoveAllStackFroms();
+	CBaseObject::RemoveAllStackFroms();
 
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
