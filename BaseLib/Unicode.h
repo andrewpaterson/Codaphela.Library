@@ -1,5 +1,5 @@
-#ifndef __UTF_8_H__
-#define __UTF_8_H__
+#ifndef __UNICODE_H__
+#define __UNICODE_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2025 Andrew Paterson
@@ -22,39 +22,16 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "Chars.h"
-#include "Unicode.h"
+#include "PrimitiveTypes.h"
 
 
-class CUTF8
-{
-protected:
-	uint8*		mszText;  //underlying byte array.
-	size		muiTextLength;
-
-	size		muiPos;
-	size		muiError;
-
-public:
-	void	Init(CChars* sz);
-	void	Init(char* sz);
-	void	Kill(void);
-
-	uint16	GetUint16(void);  // Retuns 0xFFFD if larger than uint16
-	uint32	GetUint32(void);  // Retuns 0xFFFD if larger than uint32
-	size	GetMulti(uint8* puiBuffer, size uiBufferLength);
-
-	size	Step(void);
-
-	size	GetPosition(void);
-	size	GetError(void);
-
-protected:
-	size	GetUTF8ElementLength(void);
-	size	Append(uint16 uiCodePoint, size uiLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
-	size	Append(uint32 uiCodePoint, size uiLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
-};
+#define UNICODE_ZWJ 0x200D
+#define UNICODE_ERROR SIZE_MAX
 
 
-#endif // __UTF_8_H__
+size GetUnicodeCodePointLength(uint16 uiChar);
+size GetUnicodeCodePointLength(uint32 uiChar);
+
+
+#endif // __UNICODE_H__
 

@@ -1285,3 +1285,16 @@ size NumberOfDigits(size uiNumber)
 	return (size)f;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* NextString(const char* szCurrent)
+{
+	size	uiLength;
+
+	uiLength = StrLen(szCurrent);
+	return (char*)&szCurrent[uiLength + 1];
+}
+

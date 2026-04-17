@@ -164,7 +164,12 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 	while ((uiLength != 0) && (uiLength != cUTF8.GetError()))
 	{
 		pCel = cCels.Get(ui);
-		if (uiLength <= 2)
+		if (uiLength == 1)
+		{
+			c16 = cUTF8.GetUint16();
+			pFont->PutGlyph((uint8)c16, pCel, pcParams->msCharSize.x);
+		}
+		else if (uiLength <= 2)
 		{
 			c16 = cUTF8.GetUint16();
 			pFont->PutGlyph(c16, pCel, pcParams->msCharSize.x);
@@ -172,7 +177,7 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 		else if (uiLength <= 4)
 		{
 			c32 = cUTF8.GetUint32();
-			pFont->PutGlyph(c32, pCel, pcParams->msCharSize.x);
+			pFont->PutGlyph(c32, uiLength, pCel, pcParams->msCharSize.x);
 		}
 		else
 		{
