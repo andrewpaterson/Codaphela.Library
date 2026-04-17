@@ -1,3 +1,5 @@
+#ifndef __UTF_8_H__
+#define __UTF_8_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2025 Andrew Paterson
@@ -20,22 +22,17 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __UTF_8_H__
-#define __UTF_8_H__
 #include "Chars.h"
+#include "Unicode.h"
 
-
-#define	UNICODE_ZWJ		0x200D
-#define UNICODE_ERROR	SIZE_MAX;
 
 class CUTF8
 {
 protected:
-	char*		mszText;  //underlying byte array.
+	uint8*		mszText;  //underlying byte array.
 	size		muiTextLength;
 
 	size		muiPos;
-	size		muiGlyphLength;
 	size		muiError;
 
 public:
@@ -51,10 +48,11 @@ public:
 
 	size	GetPosition(void);
 	size	GetError(void);
-	size	GetGlyphLength(void);
 
 protected:
-	size	GetElementLength(void);
+	size	GetUTF8ElementLength(void);
+	size	Append(uint16 uiCodePoint, size uiLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
+	size	Append(uint32 uiCodePoint, size uiLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
 };
 
 

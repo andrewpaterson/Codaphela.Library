@@ -63,12 +63,14 @@ public:
 	size 			Width(char* szText);
 	size			Height(void);
 	bool			IsWhitespace(uint16 c);
+	Ptr<CGlyph>		GetGlyph(uint8 c);
 	Ptr<CGlyph>		GetGlyph(uint16 c);
-	Ptr<CGlyph>		GetGlyph(uint32 c);
+	Ptr<CGlyph>		GetGlyph(uint32 c, size uiLength);
 	Ptr<CGlyph>		GetGlyph(uint8* puiBuffer, size uiLength);
 	Ptr<CGlyph>		GetGlyph(CUTF8* pcUTF8);
+	Ptr<CGlyph>		PutGlyph(uint8 c, Ptr<CImageCel> pCel, int16 iStep);
 	Ptr<CGlyph>		PutGlyph(uint16 c, Ptr<CImageCel> pCel, int16 iStep);
-	Ptr<CGlyph>		PutGlyph(uint32 c, Ptr<CImageCel> pCel, int16 iStep);
+	Ptr<CGlyph>		PutGlyph(uint32 c, size uiLength, Ptr<CImageCel> pCel, int16 iStep);
 	Ptr<CGlyph>		PutGlyph(uint8* puiBuffer, size uiLength, Ptr<CImageCel> pCel, int16 iStep);
 	Ptr<CImage>		GetImage(void);
 	void			SetImage(Ptr<CImage> pImage);
@@ -76,6 +78,11 @@ public:
 	int16			GetDescent(void);
 	int16			GetTabSpaceCount(void);
 	int16			GetSpaceWidth(void);
+
+	size			NumGlyphs(void);
+
+	bool			StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize);
+	bool			Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize);
 };
 
 

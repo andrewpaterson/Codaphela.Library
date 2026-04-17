@@ -176,7 +176,7 @@ Ptr<CGlyph> CFont::GetGlyph(CUTF8* pcUTF8)
 		c32 = pcUTF8->GetUint32();
 		if ((c32 != 0xFFFD) && (c32 != 0xFFFF))
 		{
-			return GetGlyph(c32);
+			return GetGlyph(c32, uiLength);
 		}
 	}
 	else
@@ -252,9 +252,19 @@ Ptr<CGlyph> CFont::GetGlyph(uint16 c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CGlyph> CFont::GetGlyph(uint32 c)
+Ptr<CGlyph> CFont::GetGlyph(uint8 c)
 {
-	return macGlyphs.Get((uint8*)&c, sizeof(uint32));
+	return macGlyphs.Get((uint8*)&c, sizeof(uint8));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CGlyph> CFont::GetGlyph(uint32 c, size uiLength)
+{
+	return macGlyphs.Get((uint8*)&c, uiLength);
 }
 
 
@@ -265,6 +275,20 @@ Ptr<CGlyph> CFont::GetGlyph(uint32 c)
 Ptr<CGlyph> CFont::GetGlyph(uint8* puiBuffer, size uiLength)
 {
 	return macGlyphs.Get(puiBuffer, uiLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CGlyph> CFont::PutGlyph(uint8 c, Ptr<CImageCel> pCel, int16 iStep)
+{
+	Ptr<CGlyph>		pGlyph;
+
+	pGlyph = OMalloc<CGlyph>(pCel, iStep);
+	macGlyphs.Put((uint8*)&c, sizeof(uint8), pGlyph);
+	return pGlyph;
 }
 
 
@@ -286,12 +310,12 @@ Ptr<CGlyph> CFont::PutGlyph(uint16 c, Ptr<CImageCel> pCel, int16 iStep)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CGlyph> CFont::PutGlyph(uint32 c, Ptr<CImageCel> pCel, int16 iStep)
+Ptr<CGlyph> CFont::PutGlyph(uint32 c, size uiLength, Ptr<CImageCel> pCel, int16 iStep)
 {
 	Ptr<CGlyph>		pGlyph;
 
 	pGlyph = OMalloc<CGlyph>(pCel, iStep);
-	macGlyphs.Put((uint8*)&c, sizeof(uint32), pGlyph);
+	macGlyphs.Put((uint8*)&c, uiLength, pGlyph);
 	return pGlyph;
 }
 
@@ -317,6 +341,44 @@ Ptr<CGlyph> CFont::PutGlyph(uint8* puiBuffer, size uiLength, Ptr<CImageCel> pCel
 void CFont::SetImage(Ptr<CImage> pImage)
 {
 	mpImage = pImage;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CFont::NumGlyphs(void)
+{
+	return macGlyphs.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFont::StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize)
+{
+	bool	bExists;
+
+	macGlyphs.StartIteration(psIterator, pvKey, piKeySize, iMaxKeySize, &bExists);
+
+	return bExists;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFont::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize)
+{
+	bool	bExists;
+
+	macGlyphs.Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, &bExists);
+
+	return bExists;
 }
 
 

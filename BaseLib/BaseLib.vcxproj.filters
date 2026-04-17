@@ -1734,6 +1734,12 @@
     <ClInclude Include="DataFree.h">
       <Filter>Source\Data</Filter>
     </ClInclude>
+    <ClInclude Include="Unicode.h">
+      <Filter>Source\Text\Encoding</Filter>
+    </ClInclude>
+    <ClInclude Include="UTF-16.h">
+      <Filter>Source\Text\Encoding</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2773,6 +2779,12 @@
     </ClCompile>
     <ClCompile Include="IndexPtr.cpp">
       <Filter>Source\Data\Map\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="Unicode.cpp">
+      <Filter>Source\Text\Encoding</Filter>
+    </ClCompile>
+    <ClCompile Include="UTF-16.cpp">
+      <Filter>Source\Text\Encoding</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

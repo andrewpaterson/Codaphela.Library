@@ -677,7 +677,7 @@ bool CArrayTemplateEmbedded<M, I>::TestInternalConsistency(void)
 		}
 		return miUsedElements <= I;
 	}
-	else if (IsArray)
+	else if (IsArray())
 	{
 		if (muiFlags & ARRAY_EMBEDDED_FLAG_EMBEDDED)
 		{
