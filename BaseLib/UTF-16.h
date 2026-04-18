@@ -1,5 +1,5 @@
-#ifndef __UTF_8_H__
-#define __UTF_8_H__
+#ifndef __UTF_16_H__
+#define __UTF_16_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2025 Andrew Paterson
@@ -26,36 +26,36 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Unicode.h"
 
 
-class CUTF8
+class CUTF16
 {
 protected:
-	uint8*		mszText;  //underlying byte array.
-	size		muiTextLength;
+	uint16*		mszText;  //underlying wide char array.
+	size		muiTextLength;  //count of uint16s (not bytes).
 
 	size		muiPos;
+	size		muiCodeLength;  //This is the UTF8 encoded length, not the unicode code point length.
 	size		muiError;
 
 public:
-	void	Init(CChars* sz);
-	void	Init(char* sz);
-	void	Kill(void);
+    void Init(uint16* sz);  // raw UTF-16 buffer (null-terminated)
+    void Init(uint16* sz, size length); // explicit length version
+    void Kill(void);
 
-	uint16	GetUint16(void);  // Retuns 0xFFFD if larger than uint16
-	uint32	GetUint32(void);  // Retuns 0xFFFD if larger than uint32
-	size	GetMulti(uint8* puiBuffer, size uiBufferLength);
+    uint16 GetUint16(void);  // Retuns 0xFFFD if larger than uint16
+    uint32 GetUint32(void);  // Retuns 0xFFFD if larger than uint32
 
-	size	Step(void);
-	size	Peek(void);
+    size GetMulti(uint16* puiBuffer, size uiBufferLength);
 
-	size	GetPosition(void);
-	size	GetError(void);
+    size Step(void);
+
+    size GetPosition(void);
+    size GetError(void);
+    size GetCodeLength(void);
 
 protected:
-	size	GetUTF8ElementLength(void);
-	size	Append(uint16 uiCodePoint, size uiLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
-	size	Append(uint32 uiCodePoint, size uiLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
+    size GetElementLength(void);
 };
 
 
-#endif // __UTF_8_H__
+#endif // __UTF_16_H__
 

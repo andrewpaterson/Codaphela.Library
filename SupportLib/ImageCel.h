@@ -1,3 +1,5 @@
+#ifndef __IMAGE_CEL_H__
+#define __IMAGE_CEL_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2012 Andrew Paterson
@@ -21,12 +23,11 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __IMAGE_CEL_H__
-#define __IMAGE_CEL_H__
 #include "StandardLib/Unknown.h"
 #include "StandardLib/ArrayUnknownTemplate.h"
 #include "Image.h"
 #include "SubImage.h"
+#include "ImageCopyDimension.h"
 #include "PixelOpacity.h"
 
 
@@ -54,6 +55,8 @@ public:
 			bool			Load(CObjectReader* pcFile);
 
 			void			Copy(CImageCel* pcSource);
+			void			Print(CChars* psz);
+			void			Dump(void);
 
 	//Remove these from CImageCel, create a new class CDividerCel and put them there.
 	virtual	void			CropTransparentBorders(void);
@@ -68,6 +71,8 @@ public:
 			CSubImage*		GetSubImage(void);
 			void			SetSubImage(CSubImage* pcSubImage);
 			Ptr<CImage>		GetSourceImage(void);
+
+			void			CopyParam(SImageCopy* psCopy, int iDestX, int iDestY, int iDestWith, int iDestHeight);
 };
 
 

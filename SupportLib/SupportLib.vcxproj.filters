@@ -696,6 +696,9 @@
     <ClInclude Include="FontImportParameters.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
+    <ClInclude Include="ImageCopyDimension.h">
+      <Filter>Source\Image\Cel</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1168,6 +1171,9 @@
     </ClCompile>
     <ClCompile Include="FontImportParameters.cpp">
       <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageCopyDimension.cpp">
+      <Filter>Source\Image\Cel</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

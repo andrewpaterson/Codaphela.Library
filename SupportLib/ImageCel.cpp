@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/ClassDefines.h"
 #include "ImageAccessorCreator.h"
 #include "ImageColour.h"
+#include "ColourARGB32.h"
 #include "ImageCel.h"
 
 
@@ -191,6 +192,107 @@ void CImageCel::CropTransparentBorders(CPixelOpacityBase* pcPixelOpacity)
 	}
 	
 	mcSubImage.AdjustImageRect(iLeft, iTop, iRight+1, iBottom+1);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCel::CopyParam(SImageCopy* psCopy, int iDestX, int iDestY, int iDestWith, int iDestHeight)
+{
+	SInt2	sPos;
+
+	sPos = mcSubImage.GetImageDestPos(iDestX, iDestY);
+	psCopy->Init(sPos.x, sPos.y, mcSubImage.mcImageRect.miLeft, mcSubImage.mcImageRect.miTop, mcSubImage.mcImageRect.miRight, mcSubImage.mcImageRect.miBottom, iDestWith, iDestHeight);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCel::Print(CChars* psz)
+{
+	CImageAccessor*		pcAccessorRGB;
+	CImageAccessor*		pcAccessorOpacity;
+	ARGB32				sRGB;
+	uint				uiGrey;
+	char				c;
+	uint8				uiOpacity;
+	SImageCopy			sCopy;
+	uint				isx;
+	uint				isy;
+	uint				idx;
+	uint				idy;
+
+	CopyParam(&sCopy, 0, 0, mcSubImage.GetFullWidth(), mcSubImage.GetFullHeight());
+	if (!sCopy.bValid)
+	{
+		return;
+	}
+
+	pcAccessorRGB = CImageAccessorCreator::Create(&mpSourceImage, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
+	pcAccessorOpacity = CImageAccessorCreator::Create(&mpSourceImage, PT_uint8, IMAGE_OPACITY, CHANNEL_ZERO);
+
+	pcAccessorRGB->SyncDataCache();
+
+	for (isy = sCopy.uiSourceY1; isy < sCopy.uiSourceY2; isy++)
+	{
+		idy = sCopy.uiDestY + isy - sCopy.uiSourceY1;
+		for (isx = sCopy.uiSourceX1; isx < sCopy.uiSourceX2; isx++)
+		{
+			idx = sCopy.uiDestX + isx - sCopy.uiSourceX1;
+
+			sRGB = 0;
+			pcAccessorRGB->Get(isx, isy, &sRGB);
+			pcAccessorOpacity->Get(isx, isy, &uiOpacity);
+			uiGrey = (uint)Get8BitRedColour(sRGB) + (uint)Get8BitGreenColour(sRGB) + (uint)Get8BitBlueColour(sRGB);
+			uiGrey /= 3;
+			if (uiOpacity > 0)
+			{
+				if (uiGrey <= 51)
+				{
+					c = '·';
+				}
+				else if (uiGrey <= 102)
+				{
+					c = '•';
+				}
+				else if (uiGrey <= 154)
+				{
+					c = 'o';
+				}
+				else if (uiGrey <= 205)
+				{
+					c = 'O';
+				}
+				else
+				{
+					c = '@';
+				}
+			}
+			else
+			{
+				c = ' ';
+			}
+			psz->Append(c);
+		}
+		psz->AppendNewLine();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCel::Dump(void)
+{
+	CChars	sz;
+
+	sz.Init();
+	Print(&sz);
+	sz.DumpKill();
 }
 
 

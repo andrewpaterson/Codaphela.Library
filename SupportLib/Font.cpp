@@ -160,10 +160,10 @@ Ptr<CGlyph> CFont::GetGlyph(CUTF8* pcUTF8)
 	uint16			c16;
 	uint32			c32;
 	uint8			auiBuffer[64];
-	size			uiLength;
+	size			uiElementLength;
 
-	uiLength = pcUTF8->GetGlyphLength();
-	if (uiLength <= 2)
+	uiElementLength = pcUTF8->Step();
+	if (uiElementLength <= 2)
 	{
 		c16 = pcUTF8->GetUint16();
 		if ((c16 != 0xFFFD) && (c16 != 0xFFFF))
@@ -171,20 +171,20 @@ Ptr<CGlyph> CFont::GetGlyph(CUTF8* pcUTF8)
 			return GetGlyph(c16);
 		}
 	}
-	else if (uiLength <= 4)
+	else if (uiElementLength <= 4)
 	{
 		c32 = pcUTF8->GetUint32();
 		if ((c32 != 0xFFFD) && (c32 != 0xFFFF))
 		{
-			return GetGlyph(c32, uiLength);
+			return GetGlyph(c32, uiElementLength);
 		}
 	}
 	else
 	{
-		uiLength = pcUTF8->GetMulti(auiBuffer, 64);
-		if ((uiLength != 0) || (uiLength != pcUTF8->GetError()))
+		uiElementLength = pcUTF8->GetMulti(auiBuffer, 64);
+		if ((uiElementLength != 0) || (uiElementLength != pcUTF8->GetError()))
 		{
-			return GetGlyph(auiBuffer, uiLength);
+			return GetGlyph(auiBuffer, uiElementLength);
 		}
 	}
 
@@ -199,7 +199,7 @@ Ptr<CGlyph> CFont::GetGlyph(CUTF8* pcUTF8)
 size CFont::Width(char* szText)
 {
 	CUTF8			cUTF8;
-	size			uiLength;
+	size			uiUTFElementLength;
 	size			ui;
 	size			iWidth;
 	Ptr<CGlyph>		pGlyph;
@@ -207,8 +207,8 @@ size CFont::Width(char* szText)
 	ui = 0;
 	iWidth = 0;
 	cUTF8.Init(szText);
-	uiLength = cUTF8.Step();
-	while ((uiLength != 0) && (uiLength != cUTF8.GetError()))
+	uiUTFElementLength = cUTF8.Peek();
+	while ((uiUTFElementLength != 0) && (uiUTFElementLength != cUTF8.GetError()))
 	{
 		pGlyph = GetGlyph(&cUTF8);
 
@@ -217,7 +217,7 @@ size CFont::Width(char* szText)
 			iWidth += pGlyph->GetFullWidth();
 			ui++;
 		}
-		uiLength = cUTF8.Step();
+		uiUTFElementLength = cUTF8.Step();
 	}
 	return iWidth;
 }

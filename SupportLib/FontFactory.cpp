@@ -58,6 +58,7 @@ void CFontFactory::Class(void)
 {
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -111,7 +112,8 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 	Ptr<CFont>				pFont;
 	bool					bResult;
 	CUTF8					cUTF8;
-	size					uiLength;
+	size					uiElementLength;
+	size					uiCodePointLength;
 	uint8					auiBuffer[64];
 	uint16					c16;
 	uint32					c32;
@@ -160,36 +162,40 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 
 	ui = 0;
 	cUTF8.Init(&szCharacters);
-	uiLength = cUTF8.Step();
-	while ((uiLength != 0) && (uiLength != cUTF8.GetError()))
+	uiElementLength = cUTF8.Step();
+	while ((uiElementLength != 0) && (uiElementLength != cUTF8.GetError()))
 	{
 		pCel = cCels.Get(ui);
-		if (uiLength == 1)
+		if (uiElementLength <= 2)
 		{
 			c16 = cUTF8.GetUint16();
-			pFont->PutGlyph((uint8)c16, pCel, pcParams->msCharSize.x);
+			uiCodePointLength = GetUnicodeCodePointLength(c16);
+			if (uiCodePointLength == 1)
+			{
+				pFont->PutGlyph((uint8)c16, pCel, pcParams->msCharSize.x);
+			}
+			else
+			{
+				pFont->PutGlyph(c16, pCel, pcParams->msCharSize.x);
+			}
 		}
-		else if (uiLength <= 2)
-		{
-			c16 = cUTF8.GetUint16();
-			pFont->PutGlyph(c16, pCel, pcParams->msCharSize.x);
-		}
-		else if (uiLength <= 4)
+		else if (uiElementLength <= 4)
 		{
 			c32 = cUTF8.GetUint32();
-			pFont->PutGlyph(c32, uiLength, pCel, pcParams->msCharSize.x);
+			uiCodePointLength = GetUnicodeCodePointLength(c32);
+			pFont->PutGlyph(c32, uiCodePointLength, pCel, pcParams->msCharSize.x);
 		}
 		else
 		{
-			uiLength = cUTF8.GetMulti(auiBuffer, 64);
-			if ((uiLength != 0) || (uiLength != cUTF8.GetError()))
+			uiCodePointLength = cUTF8.GetMulti(auiBuffer, 64);
+			if ((uiCodePointLength != 0) || (uiCodePointLength != cUTF8.GetError()))
 			{
-				pFont->PutGlyph(auiBuffer, uiLength, pCel, pcParams->msCharSize.x);
+				pFont->PutGlyph(auiBuffer, uiCodePointLength, pCel, pcParams->msCharSize.x);
 			}
 		}
 		
 		ui++;
-		uiLength = cUTF8.Step();
+		uiElementLength = cUTF8.Step();
 	}
 	cCels.Kill();
 	szCharacters.Kill();
