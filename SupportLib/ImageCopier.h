@@ -26,6 +26,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/Pointer.h"
 #include "ImageAccessor.h"
 #include "Rectangle.h"
+#include "ImageCopyDimension.h"
 
 
 class CImageCel;
@@ -53,6 +54,7 @@ public:
 	void Copy(int iDestX, int iDestY, CImageCel* pcSourceCel);
 	void Copy(int iDestX, int iDestY, CRectangle* psSourceRect = NULL);
 	void Copy(int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2);
+	void Copy(SImageCopy* psCopy);
 };
 
 

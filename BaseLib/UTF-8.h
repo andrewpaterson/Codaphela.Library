@@ -45,6 +45,7 @@ public:
 	size	GetMulti(uint8* puiBuffer, size uiBufferLength);
 
 	size	Step(void);
+	size	Peek(void);
 
 	size	GetPosition(void);
 	size	GetError(void);

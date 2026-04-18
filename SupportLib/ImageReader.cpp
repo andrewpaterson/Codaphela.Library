@@ -121,12 +121,12 @@ Ptr<CImage> LoadPictureIPicture(char *szFilename, bool bAddDebug)
 	// Copy the pixels to our texture descriptor whilst
 	// Converting from BGR To RGB format and adding alpha of 255
 	//----------------------------------------------------------------------------------------
-	int							x, y;
-	uint32				iAlpha;
-	bool						bNonZeroAlpha;
-	CImage						cImageImport;
-	int							i;
-	CImageCopier				cCopier;
+	int				x, y;
+	uint32			iAlpha;
+	bool			bNonZeroAlpha;
+	CImage			cImageImport;
+	int				i;
+	CImageCopier	cCopier;
 
 	bNonZeroAlpha = false;
 	for (y = 0; y < lHeightPixels; y++)

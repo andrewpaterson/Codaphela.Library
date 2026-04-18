@@ -107,10 +107,11 @@ void CImageCopier::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CImageCopier::Copy(int iDestX, int iDestY, CImageCel* pcSourceCel)
 {
-	SInt2	sPos;
+	SInt2		sPos;
+	SImageCopy	sCopy;
 
-	sPos = pcSourceCel->GetSubImage()->GetImageDestPos(iDestX, iDestY);
-	Copy(sPos.x, sPos.y, &pcSourceCel->GetSubImage()->mcImageRect);
+	pcSourceCel->CopyParam(&sCopy, iDestX, iDestY, mpcDest->miWidth, mpcDest->miHeight);
+	Copy(&sCopy);
 }
 
 
@@ -120,14 +121,18 @@ void CImageCopier::Copy(int iDestX, int iDestY, CImageCel* pcSourceCel)
 //////////////////////////////////////////////////////////////////////////
 void CImageCopier::Copy(int iDestX, int iDestY, CRectangle* psSourceRect)
 {
+	SImageCopy	sCopy;
+
 	if (psSourceRect)
 	{
-		Copy(iDestX, iDestY, psSourceRect->miLeft, psSourceRect->miTop, psSourceRect->miRight, psSourceRect->miBottom);
+		sCopy.Init(iDestX, iDestY, psSourceRect->miLeft, psSourceRect->miTop, psSourceRect->miRight, psSourceRect->miBottom, mpcDest->miWidth, mpcDest->miHeight);
 	}
 	else
 	{
-		Copy(iDestX, iDestY, 0, 0, mpcSource->miWidth, mpcSource->miHeight);
+		sCopy.Init(iDestX, iDestY, 0, 0, mpcSource->miWidth, mpcSource->miHeight, mpcDest->miWidth, mpcDest->miHeight);
 	}
+
+	Copy(&sCopy);
 }
 
 
@@ -137,57 +142,40 @@ void CImageCopier::Copy(int iDestX, int iDestY, CRectangle* psSourceRect)
 //////////////////////////////////////////////////////////////////////////
 void CImageCopier::Copy(int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2)
 {
-	int						isx;
-	int						isy;
-	int						idx;
-	int						idy;
-	void*					pvData;
+	SImageCopy	sCopy;
 
-	if (mpcDestAccessor->IsEmpty())
+	sCopy.Init(iDestX, iDestY, iSourceX1, iSourceY1, iSourceX2, iSourceY2, mpcDest->miWidth, mpcDest->miHeight);
+	Copy(&sCopy);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCopier::Copy(SImageCopy* psCopy)
+{
+	uint	isx;
+	uint	isy;
+	uint	idx;
+	uint	idy;
+	void*	pvData;
+
+	if (mpcDestAccessor->IsEmpty() || (!psCopy->bValid))
 	{
 		//There was no overlap between the channels in the images.
-		return;
-	}
-
-	if (iDestY < 0)
-	{
-		iSourceY1 += -iDestY;
-		iDestY = 0;
-	}
-	if (iDestX < 0)
-	{
-		iSourceX1 += -iDestX;
-		iDestX = 0;
-	}
-
-	if ((iSourceX1 >= iSourceX2) || (iSourceY1 >= iSourceY2))
-	{
-		return;
-	}
-
-	if (((iSourceX2 - iSourceX1) + iDestX) >= mpcDest->GetWidth())
-	{
-		iSourceX2 = iSourceX1 + mpcDest->GetWidth() - iDestX;
-	}
-	if (((iSourceY2 - iSourceY1) + iDestY) >= mpcDest->GetHeight())
-	{
-		iSourceY2 = iSourceY1 + mpcDest->GetHeight() - iDestY;
-	}
-
-	if ((iSourceX2 <= 0) || (iSourceY2 <= 0))
-	{
 		return;
 	}
 
 	mpcSourceAccessor->SyncDataCache();
 	mpcDestAccessor->SyncDataCache();
 
-	for (isy = iSourceY1; isy < iSourceY2; isy++)
+	for (isy = psCopy->uiSourceY1; isy < psCopy->uiSourceY2; isy++)
 	{
-		idy = iDestY + isy - iSourceY1;
-		for (isx = iSourceX1; isx < iSourceX2; isx++)
+		idy = psCopy->uiDestY + isy - psCopy->uiSourceY1;
+		for (isx = psCopy->uiSourceX1; isx < psCopy->uiSourceX2; isx++)
 		{
-			idx = iDestX + isx - iSourceX1;
+			idx = psCopy->uiDestX + isx - psCopy->uiSourceX1;
 
 			pvData = mpcSourceAccessor->Get(isx, isy);
 			mpcDestAccessor->Set(idx, idy, pvData);

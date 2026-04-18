@@ -51,6 +51,7 @@ void CImageDraw::SetColour(CImageColour* pcColour)
 	mpcAccessor->MakeColour(&msColour, pcColour);
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
