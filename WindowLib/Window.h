@@ -44,6 +44,8 @@ public:
 	bool					ClearContainer(void);
 
 	CNativeWindowFactory*	GetFactory(void);
+
+	void					SetRequiredSize(void) override;
 };
 
 

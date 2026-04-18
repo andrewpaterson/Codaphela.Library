@@ -51,11 +51,11 @@ void CFlowContainer::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CFlowContainer::SetRequiredSize(void)
 {
-	Ptr<CComponent>	pComponent;
-	size					uiSize;
-	size					i;
-	SInt2					sSize;
-	SInt2					sTotalSize;
+	Ptr<CComponent>		pComponent;
+	size				uiSize;
+	size				i;
+	SInt2				sSize;
+	SInt2				sTotalSize;
 
 	//This works out how much space the component needs, not where it needs that space.
 

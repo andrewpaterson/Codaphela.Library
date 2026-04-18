@@ -30,69 +30,70 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CPlainTextEditor : public CTextEditor
 {
 public:
-	bool		mbMultiLine;
-	size		miTabWidth;  //In Spaces
+	bool	mbMultiLine;
+	size	miTabWidth;  //In Spaces
 
-	CChars		mszText;
+	CChars	mszText;
 
-	size		miEditPos;
-	size		miPageLength;  //Characters to step up or down on page up or page down.
+	size	miEditPos;
+	size	miPageLength;  //Characters to step up or down on page up or page down.
 
-	size		miSelectionAnchor;  // -1 for no selection.
-	size		miSelectionFloating;  // -1 for no selection.
-	size		miUpDownCharCount;
+	size	miSelectionAnchor;  // -1 for no selection.
+	size	miSelectionFloating;  // -1 for no selection.
+	size	miUpDownCharCount;
 
 	void	Init(void);
 	void 	Init(char* szText);
 	void 	Kill(void);
 
-	void 	Up(void);
-	void 	Down(void);
-	void 	Left(void);
-	void 	Right(void);
-	void 	WordLeft(void);
-	void 	WordRight(void);
-	void 	Delete(void);
-	void 	Backspace(void);
-	void 	Enter(void);
-	void 	Printable(char c, bool bInsert);
+	void 	Up(void) override;
+	void 	Down(void) override;
+	void 	Left(void) override;
+	void 	Right(void) override;
+	void 	WordLeft(void) override;
+	void 	WordRight(void) override;
+	void 	Delete(void) override;
+	void 	Backspace(void) override;
+	void 	Enter(void) override;
+	void 	Printable(char c, bool bInsert) override;
+	void 	Home(void) override;
+	void 	End(void) override;
+	void 	DocumentHome(void) override;
+	void 	DocumentEnd(void) override;
+	void 	PageUp(void) override;
+	void 	PageDown(void) override;
+	void 	SelectUp(void) override;
+	void 	SelectDown(void) override;
+	void 	SelectLeft(void) override;
+	void 	SelectRight(void) override;
+	void 	SelectWordLeft(void) override;
+	void 	SelectWordRight(void) override;
+	void 	SelectHome(void) override;
+	void 	SelectEnd(void) override;
+	void 	SelectDocumentHome(void) override;
+	void 	SelectDocumentEnd(void) override;
+	void 	SelectPageUp(void) override;
+	void 	SelectPageDown(void) override;
+	void 	SelectWholeWord(void) override;
+	void	SelectAll(void) override;
+	void	ClearSelection(void) override;
+	void 	Cut(CChars* pszDest) override;
+	void 	Copy(CChars* pszDest) override;
+	void 	Paste(char* szSource) override;
+	void 	CutLine(CChars* pszDest) override;
+	void 	Duplicate(void) override;
+	void 	DeleteWordRemainingRight(void) override;
+	void 	DeleteWordRemainingLeft(void) override;
+	void 	DeleteLine(void) override;
+	void 	EndEnter(void) override;
+	void 	HomeEnter(void) override;
+	void 	Space(bool bInsert) override;
+	void 	Tab(bool bInsert) override;
+	void 	BackTab(void) override;
+
 	void 	Printable(char c);
-	void 	Home(void);
-	void 	End(void);
-	void 	DocumentHome(void);
-	void 	DocumentEnd(void);
-	void 	PageUp(void);
-	void 	PageDown(void);
-	void 	SelectUp(void);
-	void 	SelectDown(void);
-	void 	SelectLeft(void);
-	void 	SelectRight(void);
-	void 	SelectWordLeft(void);
-	void 	SelectWordRight(void);
-	void 	SelectHome(void);
-	void 	SelectEnd(void);
-	void 	SelectDocumentHome(void);
-	void 	SelectDocumentEnd(void);
-	void 	SelectPageUp(void);
-	void 	SelectPageDown(void);
-	void 	SelectWholeWord(void);
-	void	SelectAll(void);
-	void	ClearSelection(void);
-	void 	Cut(CChars* pszDest);
-	void 	Copy(CChars* pszDest);
-	void 	Paste(char* szSource);
-	void 	CutLine(CChars* pszDest);
-	void 	Duplicate(void);
-	void 	DeleteWordRemainingRight(void);
-	void 	DeleteWordRemainingLeft(void);
-	void 	DeleteLine(void);
-	void 	EndEnter(void);
-	void 	HomeEnter(void);
-	void 	Space(bool bInsert);
 	void 	Space(void);
-	void 	Tab(bool bInsert);
 	void 	Tab(void);
-	void 	BackTab(void);
 
 	char*	Text(void);
 	char*	Line(CChars* pszDest, bool bFromEditPosition = true);

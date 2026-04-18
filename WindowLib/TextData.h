@@ -29,23 +29,24 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CTextChar
 {
 protected:
-	SInt2				msTopLeft;
-	uint16				mcChar;	 //Could be a tab or a space.
-	CFont*				mpcFont;
+	SInt2	msTopLeft;
+	uint32	mcChar;	 //UTF-8, Could be a tab or a space.
+	CFont*	mpcFont;
 
 public:
-	void 				Init(uint16 c, CFont* pcFont);
-	void				Layout(int x, int y);
-	size				GetWidth(void);
-	size				GetHeight(void);
-	int					GetRight(void);
-	bool				IsWhiteSpace(void);
-	bool				GetBounds(CRectangle* pcDest);
-	char				GetASCIIChar(void);
-	int					GetX(void);
-	int					GetY(void);
-	int					GetAscent(void);
-	int					GetDescent(void);
+	void 	Init(uint16 c, CFont* pcFont);
+	void	Layout(int x, int y);
+	size	GetWidth(void);
+	size	GetHeight(void);
+	int		GetRight(void);
+	bool	IsWhiteSpace(void);
+	bool	GetBounds(CRectangle* pcDest);
+	char	GetASCIIChar(void);
+	int		GetX(void);
+	int		GetY(void);
+	int		GetAscent(void);
+	int		GetDescent(void);
+	uint32	GetChar(void);
 };
 
 

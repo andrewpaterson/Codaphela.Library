@@ -28,7 +28,7 @@ class CCaret : public CComponent
 CONSTRUCTABLE(CCaret);
 DESTRUCTABLE(CCaret);
 protected:
-
+	//You need a caret per largest font per line size.  Or just per per font.
 
 public:
 	Ptr<CCaret>		Init(Ptr<CWindow> pWindow);
@@ -40,6 +40,8 @@ public:
 
 	void			Layout(SInt2 sPosition, SInt2 sAreaSize) override;
 	bool			Draw(void) override;
+
+	void			SetRequiredSize(void) override;
 };
 
 

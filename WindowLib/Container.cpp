@@ -31,7 +31,6 @@ void CContainer::Init(Ptr<CWindow> pWindow)
 	PreInit();
 
 	CComponent::Init(pWindow);
-	msRequiredSize.Init(-1, -1);
 	msBounds.Init();
 
 	PostInit();
@@ -56,7 +55,6 @@ void CContainer::Class(void)
 {
 	CComponent::Class();
 	U_Data(SContainerBounds, msBounds);
-	U_2Int32(msRequiredSize);
 }
 
 

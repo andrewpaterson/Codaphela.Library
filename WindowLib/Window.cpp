@@ -201,6 +201,16 @@ bool CWindow::ClearContainer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CWindow::SetRequiredSize(void)
+{
+	msRequiredSize.Init(msDesiredSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 Ptr<CCanvas>			CWindow::GetCanvas(void) { return mpCanvas; }
 Ptr<CFocus>				CWindow::GetFocus(void) { return &mFocus; }
 Ptr<CContainer>			CWindow::GetContainer(void) { return mpCanvas->GetContainer(); }

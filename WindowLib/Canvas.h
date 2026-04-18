@@ -68,6 +68,7 @@ public:
 	void				DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas);
 	void				DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour);
 	void				DrawPixel(int iX, int iY, ARGB32 sColour);
+	void				SetRequiredSize(void) override;
 };
 
 
