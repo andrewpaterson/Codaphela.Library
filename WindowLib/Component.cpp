@@ -15,6 +15,7 @@ void CComponent::Init(Ptr<CWindow> pWindow)
 	msActualSize.Init(0, 0);
 	msPosition.Init(0, 0);
 	msDesiredSize.Init(-1, -1);
+	msRequiredSize.Init(-1, -1);
 	mbCanGetFocus = false;
 	mpParent = NULL;
 	mpWindow = pWindow;
@@ -41,6 +42,7 @@ void CComponent::Class(void)
 	U_2Int32(msActualSize);
 	U_2Int32(msPosition);
 	U_2Int32(msDesiredSize);
+	U_2Int32(msRequiredSize);
 	U_Bool(mbCanGetFocus);
 	M_Pointer(mpParent);
 	M_Embedded(maChildren);

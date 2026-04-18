@@ -62,12 +62,12 @@ void CFillContainer::SetFillStyle(EContainerStyleHorizontal eH, EContainerStyleV
 //////////////////////////////////////////////////////////////////////////
 void CFillContainer::SetRequiredSize(void)
 {
-	size					i;
-	Ptr<CComponent>	pComponent;
-	size					uiSize;
-	SInt2					sSize;
+	size				i;
+	Ptr<CComponent>		pComponent;
+	size				uiSize;
+	SInt2				sSize;
 
-	//There should only be one componet, but if there are the largest size will be used.
+	//There should only be one componet, but if there are more then the largest size will be used.
 	msRequiredSize.Init(0, 0);
 	
 	uiSize = maChildren.Size();

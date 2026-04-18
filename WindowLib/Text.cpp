@@ -35,6 +35,7 @@ Ptr<CText> CText::Init(Ptr<CWindow> pWindow)
 	mcTextData.Init();
 	mbCaretVisible = false;
 	msCaretPos.Init(0, 0);
+	msRequiredSize.Init(-1, -1);
 
 	mpCaret = OMalloc<CCaret>(pWindow);
 	AddComponent(mpCaret);
@@ -151,17 +152,16 @@ void CText::SetText(CChars sz, Ptr<CFont> pFont)
 }
 
 
-////////////////////////////////////////////////////////////////////////////
-////
-////
-////////////////////////////////////////////////////////////////////////////
-//void CText::SetRequiredSize(void)
-//{
-//	SInt2		sSize;
+//////////////////////////////////////////////////////////////////////////
 //
-//	sSize = mcTextData.GetRequiredSize();
-//	msRequiredSize.x = sSize.x;
-//	msRequiredSize.y = sSize.y;
-//}
+//
+//////////////////////////////////////////////////////////////////////////
+void CText::SetRequiredSize(void)
+{
+	SInt2		sSize;
 
+	sSize = mcTextData.GetRequiredSize();
+	msRequiredSize.x = sSize.x;
+	msRequiredSize.y = sSize.y;
+}
 

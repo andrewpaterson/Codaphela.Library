@@ -37,23 +37,23 @@ protected:
 	size		muiError;
 
 public:
-    void Init(uint16* sz);  // raw UTF-16 buffer (null-terminated)
-    void Init(uint16* sz, size length); // explicit length version
-    void Kill(void);
+    void    Init(uint16* sz);  // raw UTF-16 buffer (null-terminated)
+    void    Init(uint16* sz, size length); // explicit length version
+    void    Kill(void);
 
-    uint16 GetUint16(void);  // Retuns 0xFFFD if larger than uint16
-    uint32 GetUint32(void);  // Retuns 0xFFFD if larger than uint32
+    uint16  GetUint16(void);  // Retuns 0xFFFD if larger than uint16
+    uint32  GetUint32(void);  // Retuns 0xFFFD if larger than uint32
 
-    size GetMulti(uint16* puiBuffer, size uiBufferLength);
+    size    GetMulti(uint16* puiBuffer, size uiBufferLength);
 
-    size Step(void);
+    size    Step(void);
 
-    size GetPosition(void);
-    size GetError(void);
-    size GetCodeLength(void);
+    size    GetPosition(void);
+    size    GetError(void);
+    size    GetCodeLength(void);
 
 protected:
-    size GetElementLength(void);
+    size    GetElementLength(void);
 };
 
 

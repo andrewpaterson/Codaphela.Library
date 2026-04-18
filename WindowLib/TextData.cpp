@@ -19,6 +19,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "SupportLib/Font.h"
+#include "BaseLib/Unicode.h"
 #include "TextData.h"
 
 
@@ -50,6 +51,8 @@ void CTextChar::Layout(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 size CTextChar::GetWidth(void)
 {
+	size	uiLength;
+
 	if (mcChar == ' ')
 	{
 		return mpcFont->GetSpaceWidth();
@@ -60,7 +63,8 @@ size CTextChar::GetWidth(void)
 	}
 	else
 	{
-		return mpcFont->GetGlyph(mcChar)->GetFullWidth();
+		uiLength = GetUnicodeCodePointLength(mcChar);
+		return mpcFont->GetGlyph(mcChar, uiLength)->GetFullWidth();
 	}
 }
 
@@ -85,9 +89,11 @@ size CTextChar::GetHeight(void)
 //////////////////////////////////////////////////////////////////////////
 int CTextChar::GetRight(void)
 {
-	CGlyph*		pcGlyph;
+	Ptr<CGlyph>		pcGlyph;
+	size			uiLength;
 
-	pcGlyph = mpcFont->GetGlyph(mcChar);
+	uiLength = GetUnicodeCodePointLength(mcChar);
+	pcGlyph = mpcFont->GetGlyph(mcChar, uiLength);
 	return pcGlyph->GetFullDestRight(msTopLeft.x) - 1;
 }
 
@@ -108,9 +114,11 @@ bool CTextChar::IsWhiteSpace(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTextChar::GetBounds(CRectangle* pcDest)
 {
-	CGlyph*		pcGlyph;
+	Ptr<CGlyph>		pcGlyph;
+	size			uiLength;
 
-	pcGlyph = mpcFont->GetGlyph(mcChar);
+	uiLength = GetUnicodeCodePointLength(mcChar);
+	pcGlyph = mpcFont->GetGlyph(mcChar, uiLength);
 	pcGlyph->GetFullDestBounds(msTopLeft.x, msTopLeft.y, pcDest);
 	pcDest->miRight--;
 	pcDest->miBottom--;
@@ -124,11 +132,11 @@ bool CTextChar::GetBounds(CRectangle* pcDest)
 //
 //////////////////////////////////////////////////////////////////////////
 char CTextChar::GetASCIIChar(void) { return (char)mcChar; }
+uint32 CTextChar::GetChar(void) { return mcChar; }
 int CTextChar::GetX(void) { return msTopLeft.x; }
 int CTextChar::GetY(void) { return msTopLeft.y; }
 int CTextChar::GetAscent(void) { return mpcFont->GetAscent(); }
 int CTextChar::GetDescent(void) { return mpcFont->GetDescent(); }
-
 
 //////////////////////////////////////////////////////////////////////////
 //

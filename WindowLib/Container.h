@@ -32,8 +32,7 @@ class CContainer : public CComponent
 CONSTRUCTABLE(CContainer);
 DESTRUCTABLE(CContainer);
 protected:
-	SContainerBounds		msBounds;
-	SInt2					msRequiredSize;
+	SContainerBounds	msBounds;
 
 public:
 			void	Init(Ptr<CWindow> pWindow);
@@ -43,7 +42,6 @@ public:
 			bool	GetContainerBounds(SContainerBounds* psDest);
 			void	SetBounds(SInt2 sPosition, SInt2 sAreaSize);
 
-	virtual void	SetRequiredSize(void) =0;
 			void	Layout(SInt2 sPosition, SInt2 sAreaSize) override;
 };
 

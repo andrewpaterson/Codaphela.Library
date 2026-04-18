@@ -18,13 +18,14 @@ class CComponent : public CObject, public CFocusListener, public CComponentListe
 CONSTRUCTABLE(CComponent);
 DESTRUCTABLE(CComponent);
 protected:
-	SInt2						msActualSize;
-	SInt2	 					msPosition;
-	SInt2						msDesiredSize;
-	bool						mbCanGetFocus;
+	SInt2				msActualSize;
+	SInt2	 			msPosition;
+	SInt2				msDesiredSize;
+	bool				mbCanGetFocus;
+	SInt2				msRequiredSize;
 	Ptr<CComponent>		mpParent;
-	CArray<CComponent>		maChildren;
-	Ptr<CWindow>				mpWindow;
+	CArray<CComponent>	maChildren;
+	Ptr<CWindow>		mpWindow;
 
 public:
 			void					Init(Ptr<CWindow> pWindow);
@@ -45,7 +46,7 @@ public:
 
 			bool					IsPointIn(int x, int y);
 			bool					HasFocus(void);
-			Ptr<CComponent>	FindComponentAt(int x, int y);
+			Ptr<CComponent>			FindComponentAt(int x, int y);
 			void					ToChildSpace(Ptr<CComponent> pcChildComponent, int x, int y, int* px, int* py);
 			void					FromChildSpace(Ptr<CComponent> pcChildComponent, int x, int y, int* px, int* py);
 
@@ -63,6 +64,8 @@ public:
 			SInt2					GetDesiredSize(void);
 			void					SetDesiredSize(int fWidth, int fHeight);
 			SInt2					GetActualSize(void);
+
+	virtual void					SetRequiredSize(void) =0;
 };
 
 

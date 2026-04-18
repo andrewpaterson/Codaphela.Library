@@ -48,7 +48,7 @@ public:
 	bool		Load(CObjectReader* pcFile) override;
 
 	bool		Draw(void) override;
-	void 		SetRequiredSize(void);
+	void 		SetRequiredSize(void) override;
 	void		Layout(SInt2 sPosition, SInt2 sAreaSize) override;
 
 	void 		SetText(char* sz, Ptr<CFont> pFont);
