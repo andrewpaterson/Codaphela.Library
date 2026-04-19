@@ -190,6 +190,9 @@
     <Filter Include="Source\Map\MovableBlock\Specific">
       <UniqueIdentifier>{c1cebc11-9ee0-4f3e-85f2-4f354c0dabb8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Text">
+      <UniqueIdentifier>{555a01b8-e76b-48d0-b2d7-cdc23c2f4cc6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CopyPaste.h">

@@ -108,12 +108,6 @@
     <ClInclude Include="NativeCanvas.h">
       <Filter>Source\Component\Drawing\Canvas</Filter>
     </ClInclude>
-    <ClInclude Include="Text.h">
-      <Filter>Source\Component\Drawing\Text</Filter>
-    </ClInclude>
-    <ClInclude Include="TextData.h">
-      <Filter>Source\Component\Drawing\Text</Filter>
-    </ClInclude>
     <ClInclude Include="Caret.h">
       <Filter>Source\Component\Drawing\Text</Filter>
     </ClInclude>
@@ -172,12 +166,6 @@
     </ClCompile>
     <ClCompile Include="NativeCanvas.cpp">
       <Filter>Source\Component\Drawing\Canvas</Filter>
-    </ClCompile>
-    <ClCompile Include="Text.cpp">
-      <Filter>Source\Component\Drawing\Text</Filter>
-    </ClCompile>
-    <ClCompile Include="TextData.cpp">
-      <Filter>Source\Component\Drawing\Text</Filter>
     </ClCompile>
     <ClCompile Include="Caret.cpp">
       <Filter>Source\Component\Drawing\Text</Filter>
