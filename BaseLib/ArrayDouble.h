@@ -28,7 +28,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CArrayDouble : public CArrayTemplatePrimitive<double>
 {
 public:
-	void 	AddList(double iStop, ...);
 };
 
 

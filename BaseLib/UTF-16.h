@@ -26,34 +26,36 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Unicode.h"
 
 
-class CUTF16
+#define UTF16_BIG_ENDIAN_BOM    0xFFFE
+#define UTF16_LITTLE_ENDIAN_BOM 0xFEFF
+
+
+class CUTF16 : public CUnicode
 {
 protected:
 	uint16*		mszText;  //underlying wide char array.
 	size		muiTextLength;  //count of uint16s (not bytes).
+    bool        mbLittleEndian;
 
 	size		muiPos;
-	size		muiCodeLength;  //This is the UTF8 encoded length, not the unicode code point length.
-	size		muiError;
 
 public:
-    void    Init(uint16* sz);  // raw UTF-16 buffer (null-terminated)
-    void    Init(uint16* sz, size length); // explicit length version
+    void    Init(uint16* sz, size length);
     void    Kill(void);
+    void    SetBigEndian(void);
 
+    bool    GetByteOrderMark(void);
     uint16  GetUint16(void);  // Retuns 0xFFFD if larger than uint16
     uint32  GetUint32(void);  // Retuns 0xFFFD if larger than uint32
+    size    GetMulti(uint8* puiBuffer, size uiBufferLength);
 
-    size    GetMulti(uint16* puiBuffer, size uiBufferLength);
-
-    size    Step(void);
+    size	Peek(void);
 
     size    GetPosition(void);
     size    GetError(void);
-    size    GetCodeLength(void);
 
 protected:
-    size    GetElementLength(void);
+    size	GetUTF16ElementLength(void);
 };
 
 

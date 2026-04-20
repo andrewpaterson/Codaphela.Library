@@ -33,5 +33,19 @@ size GetUnicodeCodePointLength(uint16 uiChar);
 size GetUnicodeCodePointLength(uint32 uiChar);
 
 
+class CUnicode
+{
+protected:
+	size		muiError;
+
+public:
+	void	Init(void);
+
+protected:
+	size	Append(uint16 uiCodePoint, size uiLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
+	size	Append(uint32 uiCodePoint, size uiLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
+};
+
+
 #endif // __UNICODE_H__
 

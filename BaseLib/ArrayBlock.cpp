@@ -62,6 +62,18 @@ void CArrayBlock::Init(CMallocator* pcMalloc, size iElementSize, size iChunkSize
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void CArrayBlock::Init(CMallocator* pcMalloc, size iElementSize, void* pvData, size uiNumData)
+{
+	Init(pcMalloc, iElementSize);
+	Resize(uiNumData);
+	memcpy(mpvArray, pvData, iElementSize * uiNumData);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Fake(size iElementSize, void* pvData, size iNum, size iChunkSize)
 {
 	CMalloc::Init(&gcNullAllocator);

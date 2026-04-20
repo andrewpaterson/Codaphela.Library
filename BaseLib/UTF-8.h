@@ -26,14 +26,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Unicode.h"
 
 
-class CUTF8
+class CUTF8 : public CUnicode
 {
 protected:
 	uint8*		mszText;  //underlying byte array.
 	size		muiTextLength;
 
 	size		muiPos;
-	size		muiError;
 
 public:
 	void	Init(CChars* sz);
@@ -44,7 +43,6 @@ public:
 	uint32	GetUint32(void);  // Retuns 0xFFFD if larger than uint32
 	size	GetMulti(uint8* puiBuffer, size uiBufferLength);
 
-	size	Step(void);
 	size	Peek(void);
 
 	size	GetPosition(void);
@@ -52,8 +50,6 @@ public:
 
 protected:
 	size	GetUTF8ElementLength(void);
-	size	Append(uint16 uiCodePoint, size uiLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
-	size	Append(uint32 uiCodePoint, size uiLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
 };
 
 

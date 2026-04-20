@@ -33,6 +33,7 @@ public:
 	void 	Init(void);
 	void 	Init(CMallocator* pcMalloc);
 	void 	Init(CMallocator* pcMalloc, size iChunkSize);
+	void	Init(CMallocator* pcMalloc, M* pvData, size uiNumData);
 	void	Fake(M* pvData, size iNum, size iChunkSize = 1);
 	void	Kill(void);
 
@@ -86,6 +87,7 @@ public:
 template<class M> void	CArrayTemplate<M>::Init(void) { CArrayBlock::Init(sizeof(M)); }
 template<class M> void	CArrayTemplate<M>::Init(CMallocator* pcMalloc) { CArrayBlock::Init(pcMalloc, sizeof(M)); }
 template<class M> void	CArrayTemplate<M>::Init(CMallocator* pcMalloc, size iChunkSize) { CArrayBlock::Init(pcMalloc, sizeof(M), iChunkSize); }
+template<class M> void	CArrayTemplate<M>::Init(CMallocator* pcMalloc, M* pvData, size uiNumData) { CArrayBlock::Init(pcMalloc, sizeof(M), pvData, uiNumData); }
 template<class M> void	CArrayTemplate<M>::Kill(void) { CArrayBlock::Kill(); }
 template<class M> M*	CArrayTemplate<M>::SafeGet(size iIndex) { return (M*)CArrayBlock::SafeGet(iIndex); }
 template<class M> bool	CArrayTemplate<M>::SafeSet(size iIndex, M* pvData) { return CArrayBlock::SafeSet(iIndex, pvData); }

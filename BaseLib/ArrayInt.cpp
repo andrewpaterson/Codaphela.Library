@@ -29,82 +29,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt::AddRemap(size iElementPos, uint iRemapNum)
-{
-	uint*		pi;
-	size		iIndex;
-	size		iNumToAdd;
-	size		iMinusOne;
-
-	if (miUsedElements > iElementPos)
-	{
-		pi = CArrayTemplate<uint>::Get(iElementPos);
-		(*pi) = iRemapNum;
-	}
-	else
-	{
-		iMinusOne = SIZE_MAX;
-		iNumToAdd = (iElementPos - miUsedElements);
-
-		for (iIndex = 0; iIndex < iNumToAdd; iIndex++)
-		{
-			Add(iMinusOne);
-		}
-		Add(iRemapNum);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CArrayInt::RemoveRemap(size iElementPos)
-{
-	uint*	pi;
-	size	iIndex;
-	size	iCutDown;
-
-	if (iElementPos < miUsedElements)
-	{
-		pi = CArrayTemplate<uint>::Get(iElementPos);
-		(*pi) = -1;
-	}
-
-	iCutDown = miUsedElements;
-	iIndex = miUsedElements;
-	if (iIndex != 0)
-	{
-		do
-		{
-			iIndex--;
-			pi = CArrayTemplate<uint>::Get(iElementPos);
-			if (*pi == -1)
-			{
-				iCutDown = iIndex;
-			}
-			else
-			{
-				break;
-			}
-			if (iIndex == 0)
-			{
-				break;
-			}
-		}
-		while (iIndex != 0);
-	}
-	if (iCutDown != miUsedElements)
-	{
-		SetUsedElements(iCutDown);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 size CArrayInt::FindUnusedInSorted(void)
 {
 	size	iIndex;
@@ -124,26 +48,6 @@ size CArrayInt::FindUnusedInSorted(void)
 		}
 	}
 	return miUsedElements;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CArrayInt::AddList(uint iStop, ...)
-{
-	va_list		vaMarker;
-	uint		iValue;
-
-	va_start(vaMarker, iStop);
-	iValue = va_arg(vaMarker, uint);
-	while (iValue != iStop)
-	{
-		Add(iValue);
-		iValue = va_arg(vaMarker, uint);
-	}
-	va_end(vaMarker);
 }
 
 

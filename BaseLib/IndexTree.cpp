@@ -392,7 +392,7 @@ void CIndexTree::GetNodeKey(CIndexTreeNode* pcNode, CArrayChar* pacKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeDataOrderer* CIndexTree::GetDataOrderer()
+CIndexTreeDataOrderer* CIndexTree::GetDataOrderer(void)
 {
 	return mpcDataOrderer;
 }
@@ -402,7 +402,7 @@ CIndexTreeDataOrderer* CIndexTree::GetDataOrderer()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMallocator* CIndexTree::GetMallocator()
+CMallocator* CIndexTree::GetMalloc(void)
 {
 	return mpcMalloc;
 }

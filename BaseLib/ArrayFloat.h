@@ -25,10 +25,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayTemplatePrimitive.h"
 
 
-class CArrayFloat : public CArrayTemplatePrimitive<float>
+class CArrayFloat : public CArrayTemplatePrimitive<float32>
 {
 public:
-	void 	AddList(double iStop, ...);
 };
 
 
