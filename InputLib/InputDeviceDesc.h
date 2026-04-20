@@ -79,10 +79,10 @@ public:
 	void						RemoveDevice(CInputDevice* pcDevice);
 	size						GetUnusedID(void);
 	CInputVirtualDeviceDesc*	CreateDefaultVirtualDesc(void);
-	CInputDeviceVariableDesc*	StartVariablesIteration(SSetIterator* psIter);
-	CInputDeviceVariableDesc*	IterateVariables(SSetIterator* psIter);
-	CInputSourceDesc*			StartInputsIteration(SSetIterator* psIter);
-	CInputSourceDesc*			IterateInputs(SSetIterator* psIter);
+	bool						StartVariablesIteration(SSetIterator* psIter, CInputDeviceVariableDesc** ppcVariableDesc);
+	bool						IterateVariables(SSetIterator* psIter, CInputDeviceVariableDesc** ppcVariableDesc);
+	bool						StartInputsIteration(SSetIterator* psIter, CInputSourceDesc** ppcSourceDesc);
+	bool						IterateInputs(SSetIterator* psIter, CInputSourceDesc** ppcSourceDesc);
 	size						NumInputs(void);
 	CInputDataFormat*			GetDataFormat(void);
 	CInputChordDescs*			GetVariableChordDescs(void);

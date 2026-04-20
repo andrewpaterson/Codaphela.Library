@@ -52,8 +52,8 @@ public:
 	bool						AddChord(char* szActionName, int iDescID, char* szFriendlyName);
 	bool						AddOrderedAction(char* szActionName, int iDescID, char* szFriendlyName, ...);
 
-	CInputVirtualSourceDesc* 	StartInputSourceDescsIteration(SSetIterator* psIter);
-	CInputVirtualSourceDesc* 	IterateInputSourceDescs(SSetIterator* psIter);
+	bool					 	StartInputSourceDescsIteration(SSetIterator* psIter, CInputVirtualSourceDesc** ppcSourceDesc);
+	bool					 	IterateInputSourceDescs(SSetIterator* psIter, CInputVirtualSourceDesc** ppcSourceDesc);
 	bool						IsDeviceAgnostic(void);
 	char*						GetName(void);
 	CInputChordDescs*			GetChordDescs(void);

@@ -91,8 +91,8 @@ public:
 	bool 					Process(void* pvData, float* pfValue);
 	CInputSouceChannel*		AddChannel(size iChannel, EInputSourceChannelComparator eCompare, void* pvTest);
 	void 					CopyChannels(CInputSourceValue* pcInputSourceValue);
-	CInputSouceChannel*		StartChannelsIteration(SSetIterator* psIter);
-	CInputSouceChannel*		IterateChannels(SSetIterator* psIter);
+	bool					StartChannelsIteration(SSetIterator* psIter, CInputSouceChannel** ppcSourceChannel);
+	bool					IterateChannels(SSetIterator* psIter, CInputSouceChannel** ppcSourceChannel);
 	CInputDataFormat*		GetDataFormat(void);
 	size					GetOrder(void);
 	void					SetOrder(size iOrder);

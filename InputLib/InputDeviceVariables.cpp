@@ -33,7 +33,7 @@ void CInputDeviceVariables::Init(void)
 {
 	mpcChords = NULL;
 	mbChordThisFrame = false;
-	mlcVariables.Init();
+	mlcVariables.Init(false);
 }
 
 
@@ -76,16 +76,17 @@ void CInputDeviceVariables::AddVariablesFromDesc(CInputDeviceDesc* pcDesc)
 	SSetIterator				sIter;
 	CInputDeviceVariableDesc*	pcVariableDesc;
 	CInputDeviceVariable*		pcVariable;
+	bool						bExists;
 
-	pcVariableDesc = pcDesc->StartVariablesIteration(&sIter);
-	while (pcVariableDesc)
+	bExists = pcDesc->StartVariablesIteration(&sIter, &pcVariableDesc);
+	while (bExists)
 	{
 		pcVariable = mlcVariables.Add();
 
 		pcVariable->Init(pcVariableDesc);
 		AddVariableValuesFromDesc(pcVariableDesc, pcVariable);
 
-		pcVariableDesc = pcDesc->IterateVariables(&sIter);
+		bExists = pcDesc->IterateVariables(&sIter, &pcVariableDesc);
 	}
 };
 
@@ -99,9 +100,10 @@ void CInputDeviceVariables::AddVariableValuesFromDesc(CInputDeviceVariableDesc* 
 	SSetIterator					sIter;
 	CInputDeviceVariableValueDesc*	pcValueDesc;
 	CInputDeviceVariableValue*		pcValue;
+	bool							bExists;
 
-	pcValueDesc = pcVariableDesc->StartValuesIteration(&sIter);
-	while (pcValueDesc)
+	bExists = pcVariableDesc->StartValuesIteration(&sIter, &pcValueDesc);
+	while (bExists)
 	{
 		pcValue = pcVariable->AddValue(pcValueDesc);
 
@@ -110,14 +112,14 @@ void CInputDeviceVariables::AddVariableValuesFromDesc(CInputDeviceVariableDesc* 
 			pcVariable->SetValue(pcValue);
 		}
 
-		pcValueDesc = pcVariableDesc->IterateValues(&sIter);
+		bExists = pcVariableDesc->IterateValues(&sIter, &pcValueDesc);
 	}
 
-	pcValue = pcVariable->StartValuesIteration(&sIter);
-	while (pcValue)
+	bExists = pcVariable->StartValuesIteration(&sIter, &pcValue);
+	while (bExists)
 	{
 		AddVariableConditionsFromDescription(pcValue->GetDesc(), pcValue);
-		pcValue = pcVariable->IterateValues(&sIter);
+		bExists = pcVariable->IterateValues(&sIter, &pcValue);
 	}
 }
 
@@ -162,20 +164,21 @@ CInputChord* CInputDeviceVariables::GetChordForDesc(CInputChordDesc* pcChordDesc
 {
 	SSetIterator	sIter;
 	CInputChord*	pcChord;
+	bool			bExists;
 
 	if (pcChordDesc == NULL)
 	{
 		return NULL;
 	}
 
-	pcChord = mpcChords->StartChordsIteration(&sIter);
-	while (pcChord)
+	bExists = mpcChords->StartChordsIteration(&sIter, &pcChord);
+	while (bExists)
 	{
 		if (pcChord->GetDesc() == pcChordDesc)
 		{
 			return pcChord;
 		}
-		pcChord = mpcChords->IterateChords(&sIter);
+		bExists = mpcChords->IterateChords(&sIter, &pcChord);
 	}
 	return NULL;
 }
@@ -191,20 +194,22 @@ CInputDeviceVariableValue* CInputDeviceVariables::GetValueForDesc(CInputDeviceVa
 	CInputDeviceVariable*		pcVariable;
 	SSetIterator				sIter2;
 	CInputDeviceVariableValue*	pcValue;
+	bool						bExists;
+	bool						bExists2;
 
-	pcVariable = mlcVariables.StartIteration(&sIter);
-	while (pcVariable)
+	bExists = mlcVariables.StartIteration(&sIter, &pcVariable);
+	while (bExists)
 	{
-		pcValue = pcVariable->StartValuesIteration(&sIter2);
-		while (pcValue)
+		bExists2 = pcVariable->StartValuesIteration(&sIter2, &pcValue);
+		while (bExists2)
 		{
 			if (pcValue->GetDesc() == pcValueDesc)
 			{
 				return pcValue;
 			}
-			pcValue = pcVariable->IterateValues(&sIter2);
+			bExists2 = pcVariable->IterateValues(&sIter2, &pcValue);
 		}
-		pcVariable = mlcVariables.Iterate(&sIter);
+		bExists = mlcVariables.Iterate(&sIter, &pcVariable);
 	}
 	return NULL;
 }
@@ -220,6 +225,7 @@ void CInputDeviceVariables::VariableAction(CInputChord* pcChord)
 	CInputDeviceVariable*				pcVariable;
 	CArrayInputDeviceVariableValuePtr	apcVariableValues;
 	bool								bAnyChange;
+	bool								bExists;
 
 	if (mbChordThisFrame)
 	{
@@ -227,11 +233,11 @@ void CInputDeviceVariables::VariableAction(CInputChord* pcChord)
 	}
 
 	apcVariableValues.Init();
-	pcVariable = mlcVariables.StartIteration(&sIter);
-	while (pcVariable)
+	bExists = mlcVariables.StartIteration(&sIter, &pcVariable);
+	while (bExists)
 	{
 		VariableAction(pcVariable, pcChord, &apcVariableValues);
-		pcVariable = mlcVariables.Iterate(&sIter);
+		bExists = mlcVariables.Iterate(&sIter, &pcVariable);
 	}
 
 	bAnyChange = UpdateChordVariableValues(&apcVariableValues);
@@ -258,16 +264,17 @@ void CInputDeviceVariables::VariableAction(CInputDeviceVariable* pcVariable, CIn
 	SSetIterator				sIter;
 	CInputDeviceVariableValue*	pcValue;
 	bool						bResult;
+	bool						bExists;
 
-	pcValue = pcVariable->StartValuesIteration(&sIter);
-	while (pcValue)
+	bExists = pcVariable->StartValuesIteration(&sIter, &pcValue);
+	while (bExists)
 	{
 		bResult = pcValue->MatchCondition(pcChord);
 		if (bResult)
 		{
 			papcVariableValues->Add(&pcValue);
 		}
-		pcValue = pcVariable->IterateValues(&sIter);
+		bExists = pcVariable->IterateValues(&sIter, &pcValue);
 	}
 }
 
@@ -309,17 +316,18 @@ bool CInputDeviceVariables::UpdateNonChordVariableValues(void)
 	CInputDeviceVariable*	pcVariable;
 	bool					bResult;
 	bool					bAnyChange;
+	bool					bExists;
 
 	bAnyChange = false;
-	pcVariable = mlcVariables.StartIteration(&sIter);
-	while (pcVariable)
+	bExists = mlcVariables.StartIteration(&sIter, &pcVariable);
+	while (bExists)
 	{
 		bResult = UpdateNonChordVariableValues(pcVariable);
 		if (bResult)
 		{
 			bAnyChange = true;
 		}
-		pcVariable = mlcVariables.Iterate(&sIter);
+		bExists = mlcVariables.Iterate(&sIter, &pcVariable);
 	}
 	return bAnyChange;
 }
@@ -335,10 +343,11 @@ bool CInputDeviceVariables::UpdateNonChordVariableValues(CInputDeviceVariable* p
 	CInputDeviceVariableValue*	pcValue;
 	bool						bResult;
 	bool						bAnyChange;
+	bool						bExists;
 
 	bAnyChange = false;
-	pcValue = pcVariable->StartValuesIteration(&sIter);
-	while (pcValue)
+	bExists = pcVariable->StartValuesIteration(&sIter, &pcValue);
+	while (bExists)
 	{
 		bResult = pcValue->MatchNonChordCondition();
 		if (bResult)
@@ -349,7 +358,7 @@ bool CInputDeviceVariables::UpdateNonChordVariableValues(CInputDeviceVariable* p
 				bAnyChange = true;
 			}
 		}
-		pcValue = pcVariable->IterateValues(&sIter);
+		bExists = pcVariable->IterateValues(&sIter, &pcValue);
 	}
 	return bAnyChange;
 }

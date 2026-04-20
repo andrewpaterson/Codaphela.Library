@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CInputChordDescs::Init(void)
 {
-	mlcChordDescs.Init();
+	mlcChordDescs.Init(false);
 }
 
 
@@ -67,17 +67,18 @@ CInputChordDesc* CInputChordDescs::AddChordDesc(char* szActionName)
 //////////////////////////////////////////////////////////////////////////
 void CInputChordDescs::GetInputSourceDescs(CArrayIntAndPointer* apcDest, CInputDeviceDesc* pcDeviceDesc)
 {
-	CInputChordDesc*		pcChordDesc;
-	SSetIterator			sIter;
+	CInputChordDesc*	pcChordDesc;
+	SSetIterator		sIter;
+	bool				bExists;
 	
-	pcChordDesc = mlcChordDescs.StartIteration(&sIter);
-	while (pcChordDesc)
+	bExists = mlcChordDescs.StartIteration(&sIter, &pcChordDesc);
+	while (bExists)
 	{
 		if (pcChordDesc->GetRootCriteriaDesc())
 		{
 			pcChordDesc->GetRootCriteriaDesc()->GetInputSourceDescs(apcDest, pcDeviceDesc);
 		}
-		pcChordDesc = mlcChordDescs.Iterate(&sIter);
+		bExists = mlcChordDescs.Iterate(&sIter, &pcChordDesc);
 	}
 }
 
@@ -91,9 +92,10 @@ void CInputChordDescs::CopyChordDescs(CInputChordDescs* pcSource, CInputDeviceCo
 	CInputChordDesc*	pcSourceChordDesc;
 	SSetIterator		sIter;
 	CInputChordDesc*	pcDestChordDesc;
+	bool				bExists;
 
-	pcSourceChordDesc = pcSource->mlcChordDescs.StartIteration(&sIter);
-	while (pcSourceChordDesc)
+	bExists = pcSource->mlcChordDescs.StartIteration(&sIter, &pcSourceChordDesc);
+	while (bExists)
 	{
 		pcDestChordDesc = AddChordDesc(pcSourceChordDesc->GetActionName());
 		pcContext->mmppChords.Put(pcSourceChordDesc, pcDestChordDesc);
@@ -102,7 +104,7 @@ void CInputChordDescs::CopyChordDescs(CInputChordDescs* pcSource, CInputDeviceCo
 		{
 			CopyChordDesc(pcDestChordDesc, pcSourceChordDesc->GetRootCriteriaDesc(), pcContext);
 		}
-		pcSourceChordDesc = pcSource->mlcChordDescs.Iterate(&sIter);
+		bExists = pcSource->mlcChordDescs.Iterate(&sIter, &pcSourceChordDesc);
 	}
 }
 
@@ -111,9 +113,9 @@ void CInputChordDescs::CopyChordDescs(CInputChordDescs* pcSource, CInputDeviceCo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputChordDesc* CInputChordDescs::StartChordDescsIteration(SSetIterator* psIter)
+bool CInputChordDescs::StartChordDescsIteration(SSetIterator* psIter, CInputChordDesc** pcChordDesc)
 {
-	return mlcChordDescs.StartIteration(psIter);
+	return mlcChordDescs.StartIteration(psIter, pcChordDesc);
 }
 
 
@@ -121,9 +123,9 @@ CInputChordDesc* CInputChordDescs::StartChordDescsIteration(SSetIterator* psIter
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputChordDesc* CInputChordDescs::IterateChordDescs(SSetIterator* psIter)
+bool CInputChordDescs::IterateChordDescs(SSetIterator* psIter, CInputChordDesc** pcChordDesc)
 {
-	return mlcChordDescs.Iterate(psIter);
+	return mlcChordDescs.Iterate(psIter, pcChordDesc);
 }
 
 

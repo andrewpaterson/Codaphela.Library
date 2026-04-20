@@ -56,14 +56,15 @@ bool CInputDeviceState::Rest(CInputDevice* pcDevice)
 	CInputSourceDesc*	pcSourceDesc;
 	SInputSourceState*	psSourceState;
 	SSetIterator		sIter;
+	bool				bExists;
 
 	mpcDevice = pcDevice;
 	macSourceStates.Kill();
 	macSourceStates.Init();
 	macSourceStates.Resize(pcDevice->GetDesc()->NumInputs());
-	pcSourceDesc = pcDevice->GetDesc()->StartInputsIteration(&sIter);
+	bExists = pcDevice->GetDesc()->StartInputsIteration(&sIter, &pcSourceDesc);
 	i = 0;
-	while (pcSourceDesc)
+	while (bExists)
 	{
 		psSourceState = macSourceStates.Get(i);
 		psSourceState->pcDesc = pcSourceDesc;
@@ -83,7 +84,7 @@ bool CInputDeviceState::Rest(CInputDevice* pcDevice)
 			return false;
 		}
 
-		pcSourceDesc = pcDevice->GetDesc()->IterateInputs(&sIter);
+		bExists = pcDevice->GetDesc()->IterateInputs(&sIter, &pcSourceDesc);
 		i++;
 	}
 	return true;

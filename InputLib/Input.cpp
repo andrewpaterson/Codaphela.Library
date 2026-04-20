@@ -122,12 +122,13 @@ void CInput::ClearEvents(void)
 {
 	CInputDevice*	pcInputDevice;
 	SSetIterator	sIter;
+	bool			bExists;
 
-	pcInputDevice = mcDevices.mlcDevices.StartIteration(&sIter);
+	bExists = mcDevices.mlcDevices.StartIteration(&sIter, &pcInputDevice);
 	while (pcInputDevice)
 	{
 		pcInputDevice->ClearEvents();
-		pcInputDevice = mcDevices.mlcDevices.Iterate(&sIter);
+		bExists = mcDevices.mlcDevices.Iterate(&sIter, &pcInputDevice);
 	}
 }
 
@@ -140,12 +141,13 @@ void CInput::SortEvents(void)
 {
 	CInputDevice*	pcInputDevice;
 	SSetIterator	sIter;
+	bool			bExists;
 
-	pcInputDevice = mcDevices.mlcDevices.StartIteration(&sIter);
+	bExists = mcDevices.mlcDevices.StartIteration(&sIter, &pcInputDevice);
 	while (pcInputDevice)
 	{
 		pcInputDevice->SortEvents();
-		pcInputDevice = mcDevices.mlcDevices.Iterate(&sIter);
+		bExists = mcDevices.mlcDevices.Iterate(&sIter, &pcInputDevice);
 	}
 }
 
@@ -158,12 +160,13 @@ void CInput::DumpEvents()
 {
 	CInputDevice*	pcInputDevice;
 	SSetIterator	sIter;
+	bool			bExists;
 
-	pcInputDevice = mcDevices.mlcDevices.StartIteration(&sIter);
+	bExists = mcDevices.mlcDevices.StartIteration(&sIter, &pcInputDevice);
 	while (pcInputDevice)
 	{
 		pcInputDevice->DumpEvents();
-		pcInputDevice = mcDevices.mlcDevices.Iterate(&sIter);
+		bExists = mcDevices.mlcDevices.Iterate(&sIter, &pcInputDevice);
 	}
 }
 
@@ -176,12 +179,13 @@ void CInput::ClearStateFlags(void)
 {
 	CInputDevice*	pcInputDevice;
 	SSetIterator	sIter;
+	bool			bExists;
 
-	pcInputDevice = mcDevices.mlcDevices.StartIteration(&sIter);
+	bExists = mcDevices.mlcDevices.StartIteration(&sIter, &pcInputDevice);
 	while (pcInputDevice)
 	{
 		pcInputDevice->ClearStateFlags();
-		pcInputDevice = mcDevices.mlcDevices.Iterate(&sIter);
+		bExists = mcDevices.mlcDevices.Iterate(&sIter, &pcInputDevice);
 	}
 }
 
@@ -194,12 +198,13 @@ void CInput::UpdateRestEvents(void)
 {
 	CInputDevice*	pcInputDevice;
 	SSetIterator	sIter;
+	bool			bExists;
 
-	pcInputDevice = mcDevices.mlcDevices.StartIteration(&sIter);
+	bExists = mcDevices.mlcDevices.StartIteration(&sIter, &pcInputDevice);
 	while (pcInputDevice)
 	{
 		pcInputDevice->UpdateRestEvents(muiSequence);
-		pcInputDevice = mcDevices.mlcDevices.Iterate(&sIter);
+		bExists = mcDevices.mlcDevices.Iterate(&sIter, &pcInputDevice);
 	}
 }
 
@@ -212,12 +217,13 @@ void CInput::CallListeners(void)
 {
 	CInputVirtualDevice*	pcVirtual;
 	SSetIterator			sIter;
+	bool					bExists;
 
-	pcVirtual = mcDevices.mlcVirtuals.StartIteration(&sIter);
+	bExists = mcDevices.mlcVirtuals.StartIteration(&sIter, &pcVirtual);
 	while (pcVirtual)
 	{
 		pcVirtual->CallListeners();
-		pcVirtual = mcDevices.mlcVirtuals.Iterate(&sIter);
+		bExists = mcDevices.mlcVirtuals.Iterate(&sIter, &pcVirtual);
 	}
 }
 

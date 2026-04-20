@@ -33,12 +33,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CInputDevices::Init(CInputActions* pcInputActions)
 {
 	mpcInputActions = pcInputActions;
-	mlcDeviceDescs.Init();
-	mlcDevices.Init();
+	mlcDeviceDescs.Init(false);
+	mlcDevices.Init(false);
 	mcCategories.Init(this);
 	mcDataFormats.Init();
-	mlcVirtualsDescs.Init();
-	mlcVirtuals.Init();
+	mlcVirtualsDescs.Init(false);
+	mlcVirtuals.Init(false);
 	mbCommonalityDirty = false;
 }
 
@@ -272,10 +272,11 @@ bool CInputDevices::AddChords(CInputVirtualDevice* pcVirtual, CInputChordDescs* 
 	bool				bResult;
 	bool				bResult2;
 	CInputChord*		pcChord;
+	bool				bExists;
 
 	bResult = true;
-	pcChordDesc = pcChordDescs->StartChordDescsIteration(&sIter);
-	while (pcChordDesc)
+	bExists = pcChordDescs->StartChordDescsIteration(&sIter, &pcChordDesc);
+	while (bExists)
 	{
 		pcAction = mpcInputActions->GetAction(pcChordDesc->GetActionName());
 		if (pcAction)
@@ -291,7 +292,7 @@ bool CInputDevices::AddChords(CInputVirtualDevice* pcVirtual, CInputChordDescs* 
 				}
 			}
 
-			pcChordDesc = pcChordDescs->IterateChordDescs(&sIter);
+			bExists = pcChordDescs->IterateChordDescs(&sIter, &pcChordDesc);
 		}
 		else
 		{
@@ -313,6 +314,7 @@ CInputVirtualDevice* CInputDevices::CreateVirtualDevice(CInputVirtualDeviceDesc*
 	CInputVirtualSourceDesc*	pcVirtualSourceDesc;
 	CInputDevice*				pcDevice;
 	bool						bResult;
+	bool						bExists;
 
 	if (!pcVirtualDesc->IsDeviceAgnostic())
 	{
@@ -320,8 +322,8 @@ CInputVirtualDevice* CInputDevices::CreateVirtualDevice(CInputVirtualDeviceDesc*
 		//Either because it spans multiple physical devices 
 		//or because the user has explicitly mapped inputs from one physical device.
 
-		pcVirtualSourceDesc = pcVirtualDesc->StartInputSourceDescsIteration(&sIter);
-		while (pcVirtualSourceDesc)
+		bExists = pcVirtualDesc->StartInputSourceDescsIteration(&sIter, &pcVirtualSourceDesc);
+		while (bExists)
 		{
 			pcDevice = GetDeviceForVirtualSourceDesc(pcVirtualSourceDesc);
 			if (!pcDevice)
@@ -329,16 +331,16 @@ CInputVirtualDevice* CInputDevices::CreateVirtualDevice(CInputVirtualDeviceDesc*
 				//The physical device is not plugged in so a virtual device using it cannot be created.
 				return NULL;
 			}
-			pcVirtualSourceDesc = pcVirtualDesc->IterateInputSourceDescs(&sIter);
+			bExists = pcVirtualDesc->IterateInputSourceDescs(&sIter, &pcVirtualSourceDesc);
 		}
 
 		pcVirtual = CreateVirtualDevice(pcVirtualDesc->GetName());
-		pcVirtualSourceDesc = pcVirtualDesc->StartInputSourceDescsIteration(&sIter);
-		while (pcVirtualSourceDesc)
+		bExists = pcVirtualDesc->StartInputSourceDescsIteration(&sIter, &pcVirtualSourceDesc);
+		while (bExists)
 		{
 			pcDevice = GetDeviceForVirtualSourceDesc(pcVirtualSourceDesc);
 			pcVirtual->AddSource(pcDevice, pcVirtualSourceDesc->GetSourceDesc());
-			pcVirtualSourceDesc = pcVirtualDesc->IterateInputSourceDescs(&sIter);
+			bExists = pcVirtualDesc->IterateInputSourceDescs(&sIter, &pcVirtualSourceDesc);
 		}
 
 		pcVirtual->DoneAddingSources();
@@ -373,6 +375,7 @@ bool CInputDevices::CreateVirtualDevices(CArrayInputDeviceVirtualDevice* pacCrea
 	SInputDeviceVirtualDevicePair*	psPair;
 	bool							bResult;
 	size							uiNumElements;
+	bool							bExists;
 
 	if (pcVirtualDesc->IsDeviceAgnostic())
 	{
@@ -399,11 +402,11 @@ bool CInputDevices::CreateVirtualDevices(CArrayInputDeviceVirtualDevice* pacCrea
 		{
 			pcDevice = *apDevices.Get(i);
 			pcVirtual = CreateVirtualDevice(pcVirtualDesc->GetName());
-			pcVirtualSourceDesc = pcVirtualDesc->StartInputSourceDescsIteration(&sIter);
-			while (pcVirtualSourceDesc)
+			bExists = pcVirtualDesc->StartInputSourceDescsIteration(&sIter, &pcVirtualSourceDesc);
+			while (bExists)
 			{
 				pcVirtual->AddSource(pcDevice, pcVirtualSourceDesc->GetSourceDesc());
-				pcVirtualSourceDesc = pcVirtualDesc->IterateInputSourceDescs(&sIter);
+				bExists = pcVirtualDesc->IterateInputSourceDescs(&sIter, &pcVirtualSourceDesc);
 			}
 
 			pcVirtual->DoneAddingSources();
@@ -451,15 +454,16 @@ CInputDevice* CInputDevices::GetDevice(int iDeviceID)
 {
 	CInputDevice*	pcDevice;
 	SSetIterator	sIter;
+	bool			bExists;
 
-	pcDevice = mlcDevices.StartIteration(&sIter);
-	while (pcDevice)
+	bExists = mlcDevices.StartIteration(&sIter, &pcDevice);
+	while (bExists)
 	{
 		if (pcDevice->GetDeviceID() == iDeviceID)
 		{
 			return pcDevice;
 		}
-		pcDevice = mlcDevices.Iterate(&sIter);
+		bExists = mlcDevices.Iterate(&sIter, &pcDevice);
 	}
 	return NULL;
 }
@@ -473,15 +477,16 @@ void CInputDevices::GetDevicesForCategory(CArrayInputDevicePtr* pcDevices, char*
 {
 	CInputDevice*	pcDevice;
 	SSetIterator	sIter;
+	bool			bExists;
 
-	pcDevice = mlcDevices.StartIteration(&sIter);
-	while (pcDevice)
+	bExists = mlcDevices.StartIteration(&sIter, &pcDevice);
+	while (bExists)
 	{
 		if (pcDevice->GetDesc()->GetCategory()->Is(szCategory))
 		{
 			pcDevices->Add(&pcDevice);
 		}
-		pcDevice = mlcDevices.Iterate(&sIter);
+		bExists = mlcDevices.Iterate(&sIter, &pcDevice);
 	}
 }
 
@@ -494,12 +499,13 @@ void CInputDevices::GetDevices(CArrayInputDevicePtr* pcDevices)
 {
 	CInputDevice*	pcDevice;
 	SSetIterator	sIter;
+	bool			bExists;
 
-	pcDevice = mlcDevices.StartIteration(&sIter);
-	while (pcDevice)
+	bExists = mlcDevices.StartIteration(&sIter, &pcDevice);
+	while (bExists)
 	{
 		pcDevices->Add(&pcDevice);
-		pcDevice = mlcDevices.Iterate(&sIter);
+		bExists = mlcDevices.Iterate(&sIter, &pcDevice);
 	}
 }
 
@@ -512,15 +518,16 @@ void CInputDevices::GetDevicesForDeviceDesc(CArrayInputDevicePtr* pcDevices, CIn
 {
 	CInputDevice*	pcDevice;
 	SSetIterator	sIter;
+	bool			bExists;
 
-	pcDevice = mlcDevices.StartIteration(&sIter);
-	while (pcDevice)
+	bExists = mlcDevices.StartIteration(&sIter, &pcDevice);
+	while (bExists)
 	{
 		if (pcDevice->GetDesc() == pcDesc)
 		{
 			pcDevices->Add(&pcDevice);
 		}
-		pcDevice = mlcDevices.Iterate(&sIter);
+		bExists = mlcDevices.Iterate(&sIter, &pcDevice);
 	}
 }
 
@@ -533,6 +540,7 @@ CInputDeviceDesc* CInputDevices::GetDescriptionForVirtualDesc(CInputVirtualDevic
 	SSetIterator				sIter;
 	CInputVirtualSourceDesc*	pcVirtualSourceDesc;
 	CInputDeviceDesc*			pcDeviceDesc;
+	bool						bExists;
 
 	if (!pcVirtualDesc->IsDeviceAgnostic())
 	{
@@ -542,7 +550,7 @@ CInputDeviceDesc* CInputDevices::GetDescriptionForVirtualDesc(CInputVirtualDevic
 	else
 	{
 		pcDeviceDesc = NULL;
-		pcVirtualSourceDesc = pcVirtualDesc->StartInputSourceDescsIteration(&sIter);
+		bExists = pcVirtualDesc->StartInputSourceDescsIteration(&sIter, &pcVirtualSourceDesc);
 		while (pcVirtualSourceDesc)
 		{
 			if (pcDeviceDesc == NULL)
@@ -556,11 +564,12 @@ CInputDeviceDesc* CInputDevices::GetDescriptionForVirtualDesc(CInputVirtualDevic
 					return NULL;
 				}
 			}
-			pcVirtualSourceDesc = pcVirtualDesc->IterateInputSourceDescs(&sIter);
+			bExists = pcVirtualDesc->IterateInputSourceDescs(&sIter, &pcVirtualSourceDesc);
 		}
 		return pcDeviceDesc;
 	}
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -588,10 +597,10 @@ CInputDevice* CInputDevices::GetDeviceForSourceDesc(CInputSourceDesc* pcSourceDe
 {
 	CInputDevice*	pcDevice;
 	SSetIterator	sIter;
+	bool			bExists;
 
-
-	pcDevice = mlcDevices.StartIteration(&sIter);
-	while (pcDevice)
+	bExists = mlcDevices.StartIteration(&sIter, &pcDevice);
+	while (bExists)
 	{
 		if (pcSourceDesc->GetDeviceDesc() == pcDevice->GetDesc())
 		{
@@ -600,7 +609,7 @@ CInputDevice* CInputDevices::GetDeviceForSourceDesc(CInputSourceDesc* pcSourceDe
 				return pcDevice;
 			}
 		}
-		pcDevice = mlcDevices.Iterate(&sIter);
+		bExists = mlcDevices.Iterate(&sIter, &pcDevice);
 	}
 	return NULL;
 }
@@ -634,17 +643,18 @@ CInputDeviceDesc* CInputDevices::CreateDescription(char* szID, char* szFriendlyN
 //////////////////////////////////////////////////////////////////////////
 CInputDeviceDesc* CInputDevices::GetDescription(char* szID)
 {
-	CInputDeviceDesc*	psDesc;
+	CInputDeviceDesc*	pcDeviceDesc;
 	SSetIterator		sIter;
+	bool				bExists;
 
-	psDesc = mlcDeviceDescs.StartIteration(&sIter);
-	while (psDesc != NULL)
+	bExists = mlcDeviceDescs.StartIteration(&sIter, &pcDeviceDesc);
+	while (bExists)
 	{
-		if (psDesc->Is(szID))
+		if (pcDeviceDesc->Is(szID))
 		{
-			return psDesc;
+			return pcDeviceDesc;
 		}
-		psDesc = mlcDeviceDescs.Iterate(&sIter);
+		bExists = mlcDeviceDescs.Iterate(&sIter, &pcDeviceDesc);
 	}
 	return NULL;
 }
@@ -660,22 +670,24 @@ void CInputDevices::UpdateCommonality(void)
 	CInputVirtualDevice*	pcVirtual;
 	SSetIterator			sIter2;
 	CInputVirtualDevice*	pcVirtual2;
+	bool					bExists;
+	bool					bExists2;
 
-	pcVirtual = mlcVirtuals.StartIteration(&sIter);
-	while (pcVirtual)
+	bExists = mlcVirtuals.StartIteration(&sIter, &pcVirtual);
+	while (bExists)
 	{
 		pcVirtual->ClearCommonality();
-		pcVirtual2 = mlcVirtuals.StartIteration(&sIter2);
-		while (pcVirtual2)
+		bExists2 = mlcVirtuals.StartIteration(&sIter2, &pcVirtual2);
+		while (bExists2)
 		{
 			if (pcVirtual != pcVirtual2)
 			{
 				pcVirtual->AddCommonalityIfShared(pcVirtual2);
 			}
-			pcVirtual2 = mlcVirtuals.Iterate(&sIter2);
+			bExists2 = mlcVirtuals.Iterate(&sIter2, &pcVirtual2);
 		}
 		pcVirtual->SortCommonality();
-		pcVirtual = mlcVirtuals.Iterate(&sIter);
+		bExists = mlcVirtuals.Iterate(&sIter, &pcVirtual);
 	}
 	mbCommonalityDirty = false;
 }
@@ -689,12 +701,13 @@ void CInputDevices::DumpDevicesToFile(void)
 {
 	CInputDeviceDesc*	pcDeviceDesc;
 	SSetIterator		sIter;
+	bool				bExists;
 
-	pcDeviceDesc = mlcDeviceDescs.StartIteration(&sIter);
-	while (pcDeviceDesc)
+	bExists = mlcDeviceDescs.StartIteration(&sIter, &pcDeviceDesc);
+	while (bExists)
 	{
 		pcDeviceDesc->Dump();
-		pcDeviceDesc = mlcDeviceDescs.Iterate(&sIter);
+		bExists = mlcDeviceDescs.Iterate(&sIter, &pcDeviceDesc);
 	}
 }
 
@@ -717,15 +730,16 @@ void CInputDevices::UpdateVirtualDevicesEvents(void)
 {
 	CInputVirtualDevice*	pcVirtual;
 	SSetIterator			sIter;
+	bool					bExists;
 
-	pcVirtual = mlcVirtuals.StartIteration(&sIter);
-	while (pcVirtual)
+	bExists = mlcVirtuals.StartIteration(&sIter, &pcVirtual);
+	while (bExists)
 	{
 		pcVirtual->ClearEvents();
 		pcVirtual->UpdateEvents();
 		pcVirtual->SortEvents();
 
-		pcVirtual = mlcVirtuals.Iterate(&sIter);
+		bExists = mlcVirtuals.Iterate(&sIter, &pcVirtual);
 	}
 }
 

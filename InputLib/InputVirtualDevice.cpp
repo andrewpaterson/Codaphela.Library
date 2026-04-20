@@ -34,7 +34,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CInputVirtualDevice::Init(char* szName)
 {
 	mszName.Init(szName);
-	mlcHistorySources.Init();
+	mlcHistorySources.Init(false);
 	mcCommonality.Init(this);
 	mcListeners.Init();
 	mcListeners.AddAllowedClass<CInputListener>();
@@ -172,15 +172,16 @@ bool CInputVirtualDevice::ContainsSource(SInputDeviceValueSource* psSource, CSet
 {
 	CInputVirtualDeviceSource*	pcTestDesc;
 	SSetIterator				sIter;
+	bool						bExists;
 
-	pcTestDesc = pcSetSources->StartIteration(&sIter);
-	while (pcTestDesc)
+	bExists = pcSetSources->StartIteration(&sIter, &pcTestDesc);
+	while (bExists)
 	{
 		if (pcTestDesc->Equals(psSource))
 		{
 			return true;
 		}
-		pcTestDesc = pcSetSources->Iterate(&sIter);
+		bExists = pcSetSources->Iterate(&sIter, &pcTestDesc);
 	}
 	return false;
 }
@@ -190,9 +191,9 @@ bool CInputVirtualDevice::ContainsSource(SInputDeviceValueSource* psSource, CSet
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputVirtualDeviceSource* CInputVirtualDevice::StartHistorySourcesIteration(SSetIterator* psIter)
+bool CInputVirtualDevice::StartHistorySourcesIteration(SSetIterator* psIter, CInputVirtualDeviceSource** ppcVirtualDeviceSource)
 {
-	return mlcHistorySources.StartIteration(psIter);
+	return mlcHistorySources.StartIteration(psIter, ppcVirtualDeviceSource);
 }
 
 
@@ -200,9 +201,9 @@ CInputVirtualDeviceSource* CInputVirtualDevice::StartHistorySourcesIteration(SSe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputVirtualDeviceSource* CInputVirtualDevice::IterateHistorySources(SSetIterator* psIter)
+bool CInputVirtualDevice::IterateHistorySources(SSetIterator* psIter, CInputVirtualDeviceSource** ppcVirtualDeviceSource)
 {
-	return mlcHistorySources.Iterate(psIter);
+	return mlcHistorySources.Iterate(psIter, ppcVirtualDeviceSource);
 }
 
 
@@ -311,15 +312,16 @@ void CInputVirtualDevice::DoneAddingSources(void)
 	CInputVirtualDeviceSource*	pcSource;
 	SSetIterator				sIter;
 	CInputDevice*				pcDevice;
+	bool						bExists;
 
 	mapcDevices.ReInit();
 
-	pcSource = mlcHistorySources.StartIteration(&sIter);
-	while (pcSource)
+	bExists = mlcHistorySources.StartIteration(&sIter, &pcSource);
+	while (bExists)
 	{
 		pcDevice = pcSource->GetSourceDevice();
 		mapcDevices.AddIfUnique(&pcDevice);
-		pcSource = mlcHistorySources.Iterate(&sIter);
+		bExists = mlcHistorySources.Iterate(&sIter, &pcSource);
 	}
 }
 
@@ -331,7 +333,7 @@ void CInputVirtualDevice::DoneAddingSources(void)
 void CInputVirtualDevice::ClearSources(void)
 {
 	mlcHistorySources.Kill();
-	mlcHistorySources.Init();
+	mlcHistorySources.Init(false);
 
 	mapcDevices.ReInit();
 }
@@ -345,8 +347,9 @@ CInputDevices* CInputVirtualDevice::GetInputDevices(void)
 {
 	CInputVirtualDeviceSource*	pcSource;
 	SSetIterator				sIter;
+	bool						bExists;
 
-	pcSource = mlcHistorySources.StartIteration(&sIter);
+	bExists = mlcHistorySources.StartIteration(&sIter, &pcSource);
 	return pcSource->GetSourceDevice()->GetInputDevices();
 }
 
@@ -417,15 +420,16 @@ CInputVirtualDeviceSource* CInputVirtualDevice::GetSource(char* szFriendlyName)
 {
 	CInputVirtualDeviceSource*	pcSource;
 	SSetIterator				sIter;
+	bool						bExists;
 
-	pcSource = mlcHistorySources.StartIteration(&sIter);
-	while (pcSource)
+	bExists = mlcHistorySources.StartIteration(&sIter, &pcSource);
+	while (bExists)
 	{
 		if (pcSource->GetSourceDesc()->Is(szFriendlyName))
 		{
 			return pcSource;
 		}
-		pcSource = mlcHistorySources.Iterate(&sIter);
+		bExists = mlcHistorySources.Iterate(&sIter, &pcSource);
 	}
 	return NULL;
 }

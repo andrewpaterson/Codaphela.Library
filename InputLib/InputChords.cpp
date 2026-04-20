@@ -34,8 +34,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CInputChords::Init(void)
 {
-	mlcChords.Init();
-	mscEvaluators.Init();
+	mlcChords.Init(false);
+	mscEvaluators.Init(false);
 	macHistory.Init();
 	muiEvictionAge = 300;  // Milliseconds.
 }
@@ -67,25 +67,26 @@ void CInputChords::Copy(CInputChords* pcSource, CInputDeviceCopyContext* pcConte
 	SSetIterator			sEvaluatorIter;
 	CInputSourceEvaluator*	pcSourceInputSourceEvaluator;
 	CInputSourceEvaluator*	pcDestInputSourceEvaluator;
+	bool					bExists;
 
 	muiEvictionAge = pcSource->muiEvictionAge;
 
-	pcSourceInputSourceEvaluator = pcSource->mscEvaluators.StartIteration(&sEvaluatorIter);
-	while (pcSourceInputSourceEvaluator)
+	bExists = pcSource->mscEvaluators.StartIteration(&sEvaluatorIter, &pcSourceInputSourceEvaluator);
+	while (bExists)
 	{
 		pcDestInputSourceEvaluator = mscEvaluators.Add();
 		pcDestInputSourceEvaluator->Copy(pcSourceInputSourceEvaluator, NULL);  //NULL used to be pcOverwriteDevice
 		pcContext->mmppEvaluators.Put(pcSourceInputSourceEvaluator, pcDestInputSourceEvaluator);
-		pcSourceInputSourceEvaluator = pcSource->mscEvaluators.Iterate(&sEvaluatorIter);
+		bExists = pcSource->mscEvaluators.Iterate(&sEvaluatorIter, &pcSourceInputSourceEvaluator);
 	}
 
-	pcSourceInputChord = pcSource->mlcChords.StartIteration(&sActionIter);
-	while (pcSourceInputChord)
+	bExists = pcSource->mlcChords.StartIteration(&sActionIter, &pcSourceInputChord);
+	while (bExists)
 	{
 		pcDestInputChord = mlcChords.Add();
 		pcContext->mmppChords.Put(pcSourceInputChord, pcDestInputChord);
 		pcDestInputChord->Copy(pcSourceInputChord, pcContext, this);
-		pcSourceInputChord = pcSource->mlcChords.Iterate(&sActionIter);
+		bExists = pcSource->mlcChords.Iterate(&sActionIter, &pcSourceInputChord);
 	}
 }
 
@@ -105,6 +106,7 @@ void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
 	size					iLowestIndex;
 	SChordInputEvent		sChordInputEvent;
 	CInputVirtualDevice*	pcVirtual;
+	bool					bExists;
 
 	psEvent = (CInputDeviceValue*)pvContext;
 	pcVirtual = (CInputVirtualDevice*)pcSource;
@@ -125,8 +127,8 @@ void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
 	sMatch.bTotalMatch = false;
 	sMatch.bPotentialMatch = false;
 	iLowestIndex = MAX_UINT;
-	pcChord = mlcChords.StartIteration(&sIter);
-	while (pcChord)
+	bExists = mlcChords.StartIteration(&sIter, &pcChord);
+	while (bExists)
 	{
 		//You need to look at this logic.  It's out of date.
 		sResult = pcChord->Match(&macHistory);
@@ -154,11 +156,11 @@ void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
 				}
 			}
 		}
-		pcChord = mlcChords.Iterate(&sIter);
+		bExists = mlcChords.Iterate(&sIter, &pcChord);
 	}
 
-	pcChord = mlcChords.StartIteration(&sIter);
-	while (pcChord)
+	bExists = mlcChords.StartIteration(&sIter, &pcChord);
+	while (bExists)
 	{
 		if ((pcChord->GetMatchedCriteria() == sMatch.iLength) && 
 			(pcChord->GetTotalCriteria() == sMatch.iLength))
@@ -168,7 +170,7 @@ void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
 			pcChord->Call(&sChordInputEvent);
 			sMatch.bTotalMatch = true;
 		}
-		pcChord = mlcChords.Iterate(&sIter);
+		bExists = mlcChords.Iterate(&sIter, &pcChord);
 	}
 
 	if (sMatch.bPotentialMatch)
@@ -221,9 +223,9 @@ CInputChord* CInputChords::AddChord(CAction* pcAction, CInputChordDesc* pcDesc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputChord* CInputChords::StartChordsIteration(SSetIterator* psIter)
+bool CInputChords::StartChordsIteration(SSetIterator* psIter, CInputChord** ppChord)
 {
-	return mlcChords.StartIteration(psIter);
+	return mlcChords.StartIteration(psIter, ppChord);
 }
 
 
@@ -231,9 +233,9 @@ CInputChord* CInputChords::StartChordsIteration(SSetIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputChord* CInputChords::IterateChords(SSetIterator* psIter)
+bool CInputChords::IterateChords(SSetIterator* psIter, CInputChord** ppChord)
 {
-	return mlcChords.Iterate(psIter);
+	return mlcChords.Iterate(psIter, ppChord);
 }
 
 
@@ -246,6 +248,7 @@ void CInputChords::ToString(CChars* psz)
 	SSetIterator				sIter;
 	CInputSourceEvaluator*		pcEvaluator;
 	CInputChord*				pcChord;
+	bool						bExists;
 
 	psz->Append(" --- CInputChords ---\n");
 
@@ -254,19 +257,19 @@ void CInputChords::ToString(CChars* psz)
 	psz->AppendNewLine();
 
 	psz->Append(" - CInputSourceEvaluator : mscEvaluators -\n");
-	pcEvaluator = mscEvaluators.StartIteration(&sIter);
-	while (pcEvaluator)
+	bExists = mscEvaluators.StartIteration(&sIter, &pcEvaluator);
+	while (bExists)
 	{
 		pcEvaluator->ToString(psz);
-		pcEvaluator = mscEvaluators.Iterate(&sIter);
+		bExists = mscEvaluators.Iterate(&sIter, &pcEvaluator);
 	}
 
 	psz->Append(" - CInputChord : mlcChords -\n");
-	pcChord = mlcChords.StartIteration(&sIter);
-	while (pcChord)
+	bExists = mlcChords.StartIteration(&sIter, &pcChord);
+	while (bExists)
 	{
 		pcChord->ToString(psz);
-		pcChord = mlcChords.Iterate(&sIter);
+		bExists = mlcChords.Iterate(&sIter, &pcChord);
 	}
 }
 

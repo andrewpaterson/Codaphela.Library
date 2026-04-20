@@ -57,8 +57,8 @@ public:
 	void							CopyActions(CInputSourceDesc* pcInputSourceDesc);
 	void							SetRest(float fRestValue, bool bEmitRestEvent, bool bHasRestValue);
 	bool							Is(char* szFriendlyName);
-	CInputSourceValue*				StartValuesIteration(SSetIterator* psIter);
-	CInputSourceValue*				IterateValues(SSetIterator* psIter);
+	bool							StartValuesIteration(SSetIterator* psIter, CInputSourceValue** ppcSourceValue);
+	bool							IterateValues(SSetIterator* psIter, CInputSourceValue** ppcSourceValue);
 	float							GetRestValue(void);
 	bool							HasRestValue(void);
 	CInputDeviceDesc*				GetDeviceDesc(void);

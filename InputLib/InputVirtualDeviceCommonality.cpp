@@ -90,16 +90,17 @@ void CInputVirtualDeviceCommonality::AddIfShared(CInputVirtualDevice* pcOtherVir
 {
 	SSetIterator				sIter;
 	CInputVirtualDeviceSource*	pcVirtualSourceDesc;
+	bool						bExists;
 
-	pcVirtualSourceDesc = mpcVirtualDevice->StartHistorySourcesIteration(&sIter);
-	while (pcVirtualSourceDesc)
+	bExists = mpcVirtualDevice->StartHistorySourcesIteration(&sIter, &pcVirtualSourceDesc);
+	while (bExists)
 	{
 		if (pcOtherVirtualDevice->ContainsHistorySource(pcVirtualSourceDesc->GetSource()))
 		{
 			mapcSharedDeviceSources.AddIfUnique(&pcOtherVirtualDevice);
 			break;
 		}
-		pcVirtualSourceDesc = mpcVirtualDevice->IterateHistorySources(&sIter);
+		bExists = mpcVirtualDevice->IterateHistorySources(&sIter, &pcVirtualSourceDesc);
 	}
 }
 

@@ -87,12 +87,13 @@ void CInputDevice::Process(void* pvInput, uint32 uiSequence)
 {
 	CInputSourceDesc*	pcSourceDesc;
 	SSetIterator		sIter;
+	bool				bExists;
 
-	pcSourceDesc = mpcDesc->StartInputsIteration(&sIter);
-	while (pcSourceDesc)
+	bExists = mpcDesc->StartInputsIteration(&sIter, &pcSourceDesc);
+	while (bExists)
 	{
 		pcSourceDesc->Process(pvInput, &mcState, &mcInputValues, uiSequence);
-		pcSourceDesc = mpcDesc->IterateInputs(&sIter);
+		bExists = mpcDesc->IterateInputs(&sIter, &pcSourceDesc);
 	}
 }
 
@@ -125,15 +126,16 @@ void CInputDevice::GetSources(CArrayInputSourceDescPtr* pcSources, CInputCategor
 {
 	CInputSourceDesc*	pcSource;
 	SSetIterator		sIter;
+	bool				bExists;
 
-	pcSource = mpcDesc->StartInputsIteration(&sIter);
-	while (pcSource)
+	bExists = mpcDesc->StartInputsIteration(&sIter, &pcSource);
+	while (bExists)
 	{
 		if (pcSource->GetGenerics()->Contains(&pcGeneric))
 		{
 			pcSources->Add(&pcSource);
 		}
-		pcSource = mpcDesc->IterateInputs(&sIter);
+		bExists = mpcDesc->IterateInputs(&sIter, &pcSource);
 	}
 }
 
@@ -190,6 +192,7 @@ CInputVirtualDevice* CInputDevice::CreateDefaultVirtualDeviceFromThis(char* szNa
 	CInputSourceDesc*		pcSource;
 	CInputDevices*			pcInputDevices;
 	CChars					szTemp;
+	bool					bExists;
 
 	pcInputDevices = GetInputDevices();
 
@@ -205,11 +208,11 @@ CInputVirtualDevice* CInputDevice::CreateDefaultVirtualDeviceFromThis(char* szNa
 	pcVirtual = pcInputDevices->CreateVirtualDevice(szTemp.Text());
 	szTemp.Kill();
 
-	pcSource = mpcDesc->StartInputsIteration(&sIter);
-	while (pcSource)
+	bExists = mpcDesc->StartInputsIteration(&sIter, &pcSource);
+	while (bExists)
 	{
 		pcVirtual->AddSource(this, pcSource);
-		pcSource = mpcDesc->IterateInputs(&sIter);
+		bExists = mpcDesc->IterateInputs(&sIter, &pcSource);
 	}
 	pcVirtual->DoneAddingSources();
 	pcInputDevices->UpdateCommonality();

@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CInputCategories::Init(CInputDevices* pcDevices)
 {
 	mpcDevices = pcDevices;
-	mlcCategories.Init();
+	mlcCategories.Init(false);
 }
 
 
@@ -68,15 +68,17 @@ CInputCategory* CInputCategories::GetCategory(char* szName)
 {
 	CInputCategory*		pcInputCategory;
 	SSetIterator		sIter;
+	bool				bExists;
 
-	pcInputCategory = mlcCategories.StartIteration(&sIter);
-	while (pcInputCategory)
+	bExists = mlcCategories.StartIteration(&sIter, &pcInputCategory);
+	while (bExists)
 	{
 		if (pcInputCategory->Is(szName))
 		{
 			return pcInputCategory;
 		}
-		pcInputCategory = mlcCategories.Iterate(&sIter);
+		bExists = mlcCategories.Iterate(&sIter, &pcInputCategory);
 	}
 	return NULL;
 }
+

@@ -47,8 +47,8 @@ public:
 	CInputDeviceVariableValueDesc*	GetValue(char* szName);
 
 	void							ToString(CChars* psz);
-	CInputDeviceVariableValueDesc*	StartValuesIteration(SSetIterator* psIter);
-	CInputDeviceVariableValueDesc*	IterateValues(SSetIterator* psIter);
+	bool							StartValuesIteration(SSetIterator* psIter, CInputDeviceVariableValueDesc** ppcVariableValueDesc);
+	bool							IterateValues(SSetIterator* psIter, CInputDeviceVariableValueDesc** ppcVariableValueDesc);
 
 	char*								GetName(void);
 	CInputDeviceDesc*					GetDeviceDesc(void);

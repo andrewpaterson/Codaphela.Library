@@ -32,7 +32,7 @@ void CInputDeviceVariable::Init(CInputDeviceVariableDesc* pcDesc)
 {
 	mpcDesc = pcDesc;
 	mpcCurrent = NULL;
-	mlcValues.Init();
+	mlcValues.Init(false);
 }
 
 
@@ -86,9 +86,9 @@ CInputDeviceVariableValue* CInputDeviceVariable::GetCurrent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDeviceVariableValue* CInputDeviceVariable::StartValuesIteration(SSetIterator* psIter)
+bool CInputDeviceVariable::StartValuesIteration(SSetIterator* psIter, CInputDeviceVariableValue** ppcVariableValue)
 {
-	return mlcValues.StartIteration(psIter);
+	return mlcValues.StartIteration(psIter, ppcVariableValue);
 }
 
 
@@ -96,9 +96,9 @@ CInputDeviceVariableValue* CInputDeviceVariable::StartValuesIteration(SSetIterat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDeviceVariableValue* CInputDeviceVariable::IterateValues(SSetIterator* psIter)
+bool CInputDeviceVariable::IterateValues(SSetIterator* psIter, CInputDeviceVariableValue** ppcVariableValue)
 {
-	return mlcValues.Iterate(psIter);
+	return mlcValues.Iterate(psIter, ppcVariableValue);
 }
 
 
