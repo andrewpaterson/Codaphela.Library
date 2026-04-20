@@ -28,9 +28,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CArrayInt : public CArrayTemplatePrimitive<uint>
 {
 public:
-	void	AddRemap(size iElementPos, uint iRemapNum);
-	void 	AddList(uint iStop, ...);
-	void	RemoveRemap(size iElementPos);
 	size	FindUnusedInSorted(void);
 	void	Dump(void);
 };

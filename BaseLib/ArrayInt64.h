@@ -1,3 +1,5 @@
+#ifndef __ARRAY_INT64_H__
+#define __ARRAY_INT64_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2025 Andrew Paterson
@@ -20,16 +22,15 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_DOUBLE_H__
-#define __ARRAY_DOUBLE_H__
 #include "ArrayTemplatePrimitive.h"
 
 
-class CArrayDouble : public CArrayTemplatePrimitive<double>
+class CArrayInt64 : public CArrayTemplatePrimitive<int64>
 {
 public:
+	void	Dump(void);
 };
 
 
-#endif // __ARRAY_DOUBLE_H__
+#endif // __ARRAY_INT64_H__
 

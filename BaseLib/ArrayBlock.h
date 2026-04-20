@@ -13,9 +13,9 @@
 
 struct SArrayTemplateHeader
 {
-	size		miElementSize;
-	size		miUsedElements;
-	size		miChunkSize;
+	size	miElementSize;
+	size	miUsedElements;
+	size	miChunkSize;
 };
 
 //Elements in an array are always of the same size.  Array elements are indexed from the start of the array.
@@ -37,6 +37,7 @@ public:
 	void 	Init(size iElementSize);
 	void 	Init(CMallocator* pcMalloc, size iElementSize);
 	void	Init(CMallocator* pcMalloc, size iElementSize, size iChunkSize);
+	void	Init(CMallocator* pcMalloc, size iElementSize, void* pvData, size uiNumData);
 	void 	ReInit(void);
 
 	void 	Finalise(void);

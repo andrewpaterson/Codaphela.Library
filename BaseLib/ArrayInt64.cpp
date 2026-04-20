@@ -23,36 +23,16 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <stdlib.h>
 #include "DebugOutput.h"
 #include "StringHelper.h"
-#include "ArrayLong.h"
+#include "ArrayInt64.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayLong::AddList(int64 iStop, ...)
+void CArrayInt64::Dump(void)
 {
-	va_list		vaMarker;
-	int64		iValue;
-
-	va_start(vaMarker, iStop);
-	iValue = va_arg(vaMarker, int64);
-	while (iValue != iStop)
-	{
-		Add(iValue);
-		iValue = va_arg(vaMarker, int64);
-	}
-	va_end(vaMarker);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CArrayLong::Dump(void)
-{
-	uint32	i;
+	size	i;
 	int64	iValue;
 	char	sz[32];
 

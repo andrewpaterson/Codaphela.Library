@@ -617,7 +617,7 @@ bool __CEnumeratorTemplate<M>::GetWithID(size iID, M** pvData, char** pcName)
 	}
 	else
 	{
-		psNode = (SENode*)(size) this->mcIDArray.SafeGetValue(iID);
+		psNode = (SENode*)(size) this->mcIDArray.SafeGetValue(iID, -1);
 		if (psNode == (void*)-1)
 		{
 			psNode = NULL;

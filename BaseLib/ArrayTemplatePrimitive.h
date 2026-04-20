@@ -31,7 +31,7 @@ class CArrayTemplatePrimitive : public CArrayTemplate<M>
 {
 public:
 	M 		GetValue(size iIndex);
-	M		SafeGetValue(size iIndex);
+	M		SafeGetValue(size iIndex, M iNotFound);
 	M 		operator[](size iIndex);
 	void	SetValue(size iIndex, M iElement);
 	void 	Add(M iElement);
@@ -53,6 +53,10 @@ public:
 	size	FindFinalContiguousInSorted(void);
 	M		Pop(void);
 	void 	Push(M iElement);
+
+	void	AddRemap(size iElementPos, M iRemapNum);
+	void 	AddList(M iStop, ...);
+	void	RemoveRemap(size iElementPos);
 };
 
 
@@ -102,13 +106,13 @@ M CArrayTemplatePrimitive<M>::operator[](size iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M CArrayTemplatePrimitive<M>::SafeGetValue(size iIndex)
+M CArrayTemplatePrimitive<M>::SafeGetValue(size iIndex, M iNotFound)
 {
 	if (iIndex < miUsedElements)
 	{
 		return ((M*)mpvArray)[iIndex];
 	}
-	return -1;
+	return iNotFound;
 }
 
 
@@ -519,6 +523,104 @@ template<class M>
 void CArrayTemplatePrimitive<M>::Push(M iElement)
 {
 	Add(iElement);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplatePrimitive<M>::AddRemap(size iElementPos, M iRemapNum)
+{
+	M*		pi;
+	size	iIndex;
+	size	iNumToAdd;
+	size	iMinusOne;
+
+	if (miUsedElements > iElementPos)
+	{
+		pi = CArrayTemplate<M>::Get(iElementPos);
+		(*pi) = iRemapNum;
+	}
+	else
+	{
+		iMinusOne = SIZE_MAX;
+		iNumToAdd = (iElementPos - miUsedElements);
+
+		for (iIndex = 0; iIndex < iNumToAdd; iIndex++)
+		{
+			Add(iMinusOne);
+		}
+		Add(iRemapNum);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplatePrimitive<M>::RemoveRemap(size iElementPos)
+{
+	M*		pi;
+	size	iIndex;
+	size	iCutDown;
+
+	if (iElementPos < miUsedElements)
+	{
+		pi = CArrayTemplate<M>::Get(iElementPos);
+		(*pi) = -1;
+	}
+
+	iCutDown = miUsedElements;
+	iIndex = miUsedElements;
+	if (iIndex != 0)
+	{
+		do
+		{
+			iIndex--;
+			pi = CArrayTemplate<M>::Get(iElementPos);
+			if (*pi == -1)
+			{
+				iCutDown = iIndex;
+			}
+			else
+			{
+				break;
+			}
+			if (iIndex == 0)
+			{
+				break;
+			}
+		} while (iIndex != 0);
+	}
+	if (iCutDown != miUsedElements)
+	{
+		SetUsedElements(iCutDown);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplatePrimitive<M>::AddList(M iStop, ...)
+{
+	va_list		vaMarker;
+	M			iValue;
+
+	va_start(vaMarker, iStop);
+	iValue = va_arg(vaMarker, M);
+	while (iValue != iStop)
+	{
+		Add(iValue);
+		iValue = va_arg(vaMarker, M);
+	}
+	va_end(vaMarker);
 }
 
 

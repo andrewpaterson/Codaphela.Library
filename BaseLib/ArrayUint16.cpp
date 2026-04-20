@@ -20,18 +20,31 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __LONG_ARRAY_H__
-#define __LONG_ARRAY_H__
-#include "ArrayTemplatePrimitive.h"
+#include <stdlib.h>
+#include "DebugOutput.h"
+#include "StringHelper.h"
+#include "ArrayUint16.h"
 
 
-class CArrayLong : public CArrayTemplatePrimitive<int64>
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayUint16::Dump(void)
 {
-public:
-	void 	AddList(int64 iStop, ...);
-	void	Dump(void);
-};
+	size	i;
+	uint16	iValue;
+	char	sz[32];
 
 
-#endif // __LONG_ARRAY_H__
+	EngineOutput("[");
+	for (i = 0; i < miUsedElements; i++)
+	{
+		iValue = GetValue(i);
+		ShortToString(sz, 32, iValue);
+		EngineOutput(sz);
+		EngineOutput(" ");
+	}
+	EngineOutput("]\n");
+}
 

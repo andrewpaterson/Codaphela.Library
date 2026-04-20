@@ -52,8 +52,8 @@ public:
 			void					GetNodeKey(CIndexTreeNode* pcNode, CArrayChar* pacKey);
 	virtual void					Dump(void) =0;
 
-			CIndexTreeDataOrderer*	GetDataOrderer();
-			CMallocator*			GetMallocator();
+			CIndexTreeDataOrderer*	GetDataOrderer(void);
+			CMallocator*			GetMalloc(void);
 
 protected:
 			void*					Malloc(size uiSize);

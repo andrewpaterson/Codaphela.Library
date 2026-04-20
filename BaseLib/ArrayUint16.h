@@ -1,5 +1,5 @@
-#ifndef __UTF_8_H__
-#define __UTF_8_H__
+#ifndef __ARRAY_INT64_H__
+#define __ARRAY_INT64_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2025 Andrew Paterson
@@ -22,36 +22,15 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "Chars.h"
-#include "Unicode.h"
+#include "ArrayTemplatePrimitive.h"
 
 
-class CUTF8 : public CUnicode
+class CArrayUint16 : public CArrayTemplatePrimitive<uint16>
 {
-protected:
-	uint8*		mszText;  //underlying byte array.
-	size		muiTextLength;
-
-	size		muiPos;
-
 public:
-	void	Init(CChars* sz);
-	void	Init(char* sz);
-	void	Kill(void);
-
-	uint16	GetUint16(void);  // Retuns 0xFFFD if larger than uint16
-	uint32	GetUint32(void);  // Retuns 0xFFFD if larger than uint32
-	size	GetMulti(uint8* puiBuffer, size uiBufferLength);
-
-	size	Peek(void);
-
-	size	GetPosition(void);
-	size	GetError(void);
-
-protected:
-	size	GetUTF8ElementLength(void);
+	void	Dump(void);
 };
 
 
-#endif // __UTF_8_H__
+#endif // __ARRAY_INT64_H__
 

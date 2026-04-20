@@ -66,7 +66,7 @@ uint16 CUTF8::GetUint16(void)
 	{
 		if (muiPos + 1 >= muiTextLength)
 		{
-			return 0xFFFF;
+			return (uint16)muiError;
 		}
 
 		c2 = mszText[muiPos + 1];
@@ -85,7 +85,7 @@ uint16 CUTF8::GetUint16(void)
 		return 0xFFFD;
 	}
 
-	return 0xFFFF;
+	return (uint16)muiError;
 }
 
 
@@ -117,7 +117,7 @@ uint32 CUTF8::GetUint32(void)
 	{
 		if (muiPos + 1 >= muiTextLength)
 		{
-			return 0xFFFF;
+			return muiError;
 		}
 
 		c2 = mszText[muiPos + 1];
@@ -130,7 +130,7 @@ uint32 CUTF8::GetUint32(void)
 	{
 		if (muiPos + 2 >= muiTextLength)
 		{
-			return 0xFFFF;
+			return muiError;
 		}
 
 		c2 = mszText[muiPos + 1];
@@ -138,13 +138,13 @@ uint32 CUTF8::GetUint32(void)
 
 		if (((c2 & 0xC0) != 0x80) || ((c3 & 0xC0) != 0x80))
 		{
-			return 0xFFFF;
+			return muiError;
 		}
 
 		c32 = ((c & 0x0F) << 12) | ((c2 & 0x3F) << 6) | (c3 & 0x3F);
 		if (c32 < 0x0800 || (c32 >= 0xD800 && c32 <= 0xDFFF))
 		{
-			return 0xFFFF;
+			return muiError;
 		}
 		muiPos += 3;
 		return c32;
@@ -154,7 +154,7 @@ uint32 CUTF8::GetUint32(void)
 	{
 		if (muiPos + 3 >= muiTextLength)
 		{
-			return 0xFFFF;
+			return muiError;
 		}
 
 		c2 = mszText[muiPos + 1];
@@ -163,13 +163,13 @@ uint32 CUTF8::GetUint32(void)
 
 		if (((c2 & 0xC0) != 0x80) || ((c3 & 0xC0) != 0x80) || ((c4 & 0xC0) != 0x80))
 		{
-			return 0xFFFF;
+			return muiError;
 		}
 
 		c32 = ((c & 0x07) << 18) | ((c2 & 0x3F) << 12) | ((c3 & 0x3F) << 6) | (c4 & 0x3F);
 		if (c32 < 0x10000 || c32 > 0x10FFFF)
 		{
-			return 0xFFFF;
+			return muiError;
 		}
 		muiPos += 4;
 		return c32;
@@ -272,7 +272,7 @@ size CUTF8::GetMulti(uint8* puiBuffer, size uiBufferLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CUTF8::Step(void)
+size CUTF8::Peek(void)
 {
 	size	uiLength;
 	bool	bLastZWJ;
@@ -318,30 +318,12 @@ size CUTF8::Step(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CUTF8::Peek(void)
-{
-	size	uiPos;
-	size	uiElementLength;
-
-	uiPos = muiPos;
-	uiElementLength = Step();
-	muiPos = uiPos;
-
-	return uiElementLength;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 size CUTF8::GetUTF8ElementLength(void)
 {
 	uint8	c;
 	uint8	c2;
 	uint8	c3;
 	uint8	c4;
-	uint8*	pc;
 	uint32	c32;
 
 	if (muiPos >= muiTextLength)
@@ -349,8 +331,7 @@ size CUTF8::GetUTF8ElementLength(void)
 		return 0;
 	}
 
-	pc = (uint8*)mszText;
-	c = pc[muiPos];
+	c = mszText[muiPos];
 	if (c < 0x7F)
 	{
 		return 1;
@@ -372,8 +353,8 @@ size CUTF8::GetUTF8ElementLength(void)
 			return muiError;
 		}
 
-		c2 = pc[muiPos + 1];
-		c3 = pc[muiPos + 2];
+		c2 = mszText[muiPos + 1];
+		c3 = mszText[muiPos + 2];
 
 		if (((c2 & 0xC0) != 0x80) || ((c3 & 0xC0) != 0x80))
 		{
@@ -400,9 +381,9 @@ size CUTF8::GetUTF8ElementLength(void)
 			return muiError;
 		}
 
-		c2 = pc[muiPos + 1];
-		c3 = pc[muiPos + 2];
-		c4 = pc[muiPos + 3];
+		c2 = mszText[muiPos + 1];
+		c3 = mszText[muiPos + 2];
+		c4 = mszText[muiPos + 3];
 
 		if (((c2 & 0xC0) != 0x80) || ((c3 & 0xC0) != 0x80) || ((c4 & 0xC0) != 0x80))
 		{
@@ -418,70 +399,6 @@ size CUTF8::GetUTF8ElementLength(void)
 	}
 
 	return muiError;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-size CUTF8::Append(uint32 uiCodePoint, size uiLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength)
-{
-	if (uiLength + uiBufferPos > uiBufferLength)
-	{
-		return muiError;
-	}
-
-	if (uiLength == 1)
-	{
-		memcpy_fast_1byte(&puiBuffer[uiBufferPos], &uiCodePoint);
-	}
-	else if (uiLength == 2)
-	{
-		memcpy_fast_2bytes(&puiBuffer[uiBufferPos], &uiCodePoint);
-	}
-	else if (uiLength == 3)
-	{
-		memcpy_fast_3bytes(&puiBuffer[uiBufferPos], &uiCodePoint);
-	}
-	else if (uiLength == 4)
-	{
-		memcpy_fast_4bytes(&puiBuffer[uiBufferPos], &uiCodePoint);
-	}
-	else
-	{
-		return muiError;
-	}
-
-	return uiLength + uiBufferPos;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-size CUTF8::Append(uint16 uiCodePoint, size uiLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength)
-{
-	if (uiLength + uiBufferPos > uiBufferLength)
-	{
-		return muiError;
-	}
-
-	if (uiLength == 1)
-	{
-		memcpy_fast_1byte(&puiBuffer[uiBufferPos], &uiCodePoint);
-	}
-	else if (uiLength == 2)
-	{
-		memcpy_fast_2bytes(&puiBuffer[uiBufferPos], &uiCodePoint);
-	}
-	else
-	{
-		return muiError;
-	}
-
-	return uiLength + uiBufferPos;
 }
 
 

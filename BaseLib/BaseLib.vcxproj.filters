@@ -810,7 +810,7 @@
     <ClInclude Include="ArrayCharMinimal.h">
       <Filter>Source\Data\Array\Minimal\Specific</Filter>
     </ClInclude>
-    <ClInclude Include="ArrayLong.h">
+    <ClInclude Include="ArrayInt64.h">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClInclude>
     <ClInclude Include="ArrayChar.h">
@@ -1740,6 +1740,9 @@
     <ClInclude Include="UTF-16.h">
       <Filter>Source\Text\Encoding</Filter>
     </ClInclude>
+    <ClInclude Include="ArrayUint16.h">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2006,7 +2009,7 @@
     <ClCompile Include="ArrayInt.cpp">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClCompile>
-    <ClCompile Include="ArrayLong.cpp">
+    <ClCompile Include="ArrayInt64.cpp">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClCompile>
     <ClCompile Include="ArrayBlock.cpp">
@@ -2785,6 +2788,9 @@
     </ClCompile>
     <ClCompile Include="UTF-16.cpp">
       <Filter>Source\Text\Encoding</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayUint16.cpp">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
