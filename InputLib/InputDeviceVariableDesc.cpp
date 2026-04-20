@@ -33,7 +33,7 @@ void CInputDeviceVariableDesc::Init(char* szName, CInputDeviceDesc* pcDeviceDesc
 {
 	mpcDeviceDesc = pcDeviceDesc;
 	mszName.Init(szName);
-	mlcValues.Init();
+	mlcValues.Init(false);
 }
 
 
@@ -81,15 +81,16 @@ CInputDeviceVariableValueDesc* CInputDeviceVariableDesc::GetValue(char* szName)
 {
 	CInputDeviceVariableValueDesc*	pcValue;
 	SSetIterator					sIter;
+	bool							bExists;
 
-	pcValue = mlcValues.StartIteration(&sIter);
-	while (pcValue)
+	bExists = mlcValues.StartIteration(&sIter, &pcValue);
+	while (bExists)
 	{
 		if (pcValue->Equals(szName))
 		{
 			return pcValue;
 		}
-		pcValue = mlcValues.Iterate(&sIter);
+		bExists = mlcValues.Iterate(&sIter, &pcValue);
 	}
 	return NULL;
 }
@@ -105,12 +106,13 @@ void CInputDeviceVariableDesc::Copy(CInputDeviceVariableDesc* pcSourceDesc, CInp
 	CInputDeviceVariableValueDesc*	pcSourceValue;
 	SSetIterator					sIter;
 	CInputDeviceVariableDesc*		pcVariableDesc;
+	bool							bExists;
 
 	mszName.Init(pcSourceDesc->mszName.Text());
 	mpcDeviceDesc = pcContext->mpcDestDeviceDesc;
 
-	pcSourceValue = pcSourceDesc->mlcValues.StartIteration(&sIter);
-	while (pcSourceValue)
+	bExists = pcSourceDesc->mlcValues.StartIteration(&sIter, &pcSourceValue);
+	while (bExists)
 	{
 		pcDestValue = mlcValues.Add();
 		pcContext->mmppValues.Put(pcSourceValue, pcDestValue);
@@ -118,16 +120,16 @@ void CInputDeviceVariableDesc::Copy(CInputDeviceVariableDesc* pcSourceDesc, CInp
 		pcVariableDesc = (CInputDeviceVariableDesc*)pcContext->mmppVariables.Get(pcSourceValue->GetVariableDesc());
 		pcDestValue->Init(pcSourceValue->GetName(), pcVariableDesc);
 
-		pcSourceValue = pcSourceDesc->mlcValues.Iterate(&sIter);
+		bExists = pcSourceDesc->mlcValues.Iterate(&sIter, &pcSourceValue);
 	}
 
-	pcSourceValue = pcSourceDesc->mlcValues.StartIteration(&sIter);
-	while (pcSourceValue)
+	bExists = pcSourceDesc->mlcValues.StartIteration(&sIter, &pcSourceValue);
+	while (bExists)
 	{
 		pcDestValue = (CInputDeviceVariableValueDesc*)pcContext->mmppValues.Get(pcSourceValue);
 
 		pcDestValue->Copy(pcSourceValue, pcContext);
-		pcSourceValue = pcSourceDesc->mlcValues.Iterate(&sIter);
+		bExists = pcSourceDesc->mlcValues.Iterate(&sIter, &pcSourceValue);
 	}
 
 }
@@ -137,9 +139,9 @@ void CInputDeviceVariableDesc::Copy(CInputDeviceVariableDesc* pcSourceDesc, CInp
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDeviceVariableValueDesc* CInputDeviceVariableDesc::StartValuesIteration(SSetIterator* psIter)
+bool CInputDeviceVariableDesc::StartValuesIteration(SSetIterator* psIter, CInputDeviceVariableValueDesc** ppcVariableValueDesc)
 {
-	return mlcValues.StartIteration(psIter);
+	return mlcValues.StartIteration(psIter, ppcVariableValueDesc);
 }
 
 
@@ -147,9 +149,9 @@ CInputDeviceVariableValueDesc* CInputDeviceVariableDesc::StartValuesIteration(SS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDeviceVariableValueDesc* CInputDeviceVariableDesc::IterateValues(SSetIterator* psIter)
+bool CInputDeviceVariableDesc::IterateValues(SSetIterator* psIter, CInputDeviceVariableValueDesc** ppcVariableValueDesc)
 {
-	return mlcValues.Iterate(psIter);
+	return mlcValues.Iterate(psIter, ppcVariableValueDesc);
 }
 
 

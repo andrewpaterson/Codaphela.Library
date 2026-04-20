@@ -43,8 +43,8 @@ public:
 	CInputDeviceVariableValue*	AddValue(CInputDeviceVariableValueDesc* pcVariableDesc);
 	CInputDeviceVariableValue*	GetCurrent(void);
 	void						SetCurrent(CInputDeviceVariableValue* pcCurrent);
-	CInputDeviceVariableValue*	StartValuesIteration(SSetIterator* psIter);
-	CInputDeviceVariableValue*	IterateValues(SSetIterator* psIter);
+	bool						StartValuesIteration(SSetIterator* psIter, CInputDeviceVariableValue** ppcVariableValue);
+	bool						IterateValues(SSetIterator* psIter, CInputDeviceVariableValue** ppcVariableValue);
 };
 
 

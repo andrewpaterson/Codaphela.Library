@@ -34,7 +34,7 @@ void CInputSourceDesc::Init(CInputDeviceDesc* pcDeviceDesc, EInputSourceType eTy
 {
 	meType = eType;
 	mszFriendlyName.Init(szFriendlyName);
-	mlcValues.Init();
+	mlcValues.Init(false);
 	mapcGenerics.Init();
 	mfRestValue = 0.0f;
 	mbHasRestValue = false;
@@ -68,9 +68,10 @@ void CInputSourceDesc::Process(void* pvData, CInputDeviceState* pcState, CInputD
 	bool				bValid;
 	bool				bNewValue;
 	SSetIterator		sIter;
+	bool				bExists;
 
-	pcSourceValue = mlcValues.StartIteration(&sIter);
-	while (pcSourceValue)
+	bExists = mlcValues.StartIteration(&sIter, &pcSourceValue);
+	while (bExists)
 	{
 		bValid = pcSourceValue->Process(pvData, &fValue);
 		if (bValid)
@@ -81,7 +82,7 @@ void CInputSourceDesc::Process(void* pvData, CInputDeviceState* pcState, CInputD
 				pcEvents->Add(pcState->mpcDevice, this, fValue, uiSequence, false, pcSourceValue->GetOrder());
 			}
 		}
-		pcSourceValue = mlcValues.Iterate(&sIter);
+		bExists = mlcValues.Iterate(&sIter, &pcSourceValue);
 	}
 }
 
@@ -123,9 +124,10 @@ void CInputSourceDesc::CopyValues(CInputSourceDesc* pcInputSourceDesc)
 	CInputSourceValue*	pcInputSourceValue;
 	CInputSourceValue*	pcInputDestValue;
 	SSetIterator		sIter;
+	bool				bExists;
 
-	pcInputSourceValue = pcInputSourceDesc->StartValuesIteration(&sIter);
-	while (pcInputSourceValue)
+	bExists = pcInputSourceDesc->StartValuesIteration(&sIter, &pcInputSourceValue);
+	while (bExists)
 	{
 		pcInputDestValue = mlcValues.Add();
 		if (pcInputSourceValue->GetValueType() == ISVT_Numeric)
@@ -147,7 +149,7 @@ void CInputSourceDesc::CopyValues(CInputSourceDesc* pcInputSourceDesc)
 		}
 
 		pcInputDestValue->CopyChannels(pcInputSourceValue);
-		pcInputSourceValue = pcInputSourceDesc->IterateValues(&sIter);
+		bExists = pcInputSourceDesc->IterateValues(&sIter, &pcInputSourceValue);
 	}
 }
 
@@ -187,8 +189,8 @@ bool CInputSourceDesc::Is(char* szFriendlyName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceValue* CInputSourceDesc::StartValuesIteration(SSetIterator* psIter) { return mlcValues.StartIteration(psIter); }
-CInputSourceValue* CInputSourceDesc::IterateValues(SSetIterator* psIter) { return mlcValues.Iterate(psIter); }
+bool CInputSourceDesc::StartValuesIteration(SSetIterator* psIter, CInputSourceValue** ppcSourceValue) { return mlcValues.StartIteration(psIter, ppcSourceValue); }
+bool CInputSourceDesc::IterateValues(SSetIterator* psIter, CInputSourceValue** ppcSourceValue) { return mlcValues.Iterate(psIter, ppcSourceValue); }
 float CInputSourceDesc::GetRestValue(void) { return mfRestValue; }
 bool CInputSourceDesc::HasRestValue(void) { return mbHasRestValue; }
 CInputDeviceDesc* CInputSourceDesc::GetDeviceDesc(void) { return mpcDeviceDesc; }
@@ -209,6 +211,7 @@ void CInputSourceDesc::ToString(CChars* psz)
 	SSetIterator		sIter;
 	CInputSourceValue*	pcInputSourceValue;
 	size				uiNumElements;
+	bool				bExists;
 
 	psz->Append(" --- CInputSourceDesc ---\n");
 	psz->Append("Name: ");
@@ -234,11 +237,11 @@ void CInputSourceDesc::ToString(CChars* psz)
 	}
 
 	psz->Append(" - CSetInputSourceValue : mlcValues -\n");
-	pcInputSourceValue = mlcValues.StartIteration(&sIter);
-	while (pcInputSourceValue)
+	bExists = mlcValues.StartIteration(&sIter, &pcInputSourceValue);
+	while (bExists)
 	{
 		pcInputSourceValue->ToString(psz, meType);
-		pcInputSourceValue = mlcValues.Iterate(&sIter);
+		bExists = mlcValues.Iterate(&sIter, &pcInputSourceValue);
 	}
 }
 

@@ -34,7 +34,7 @@ void CInputSourceValue::PrivateInit(CInputSourceDesc* pcSourceDesc, CInputDataFo
 	meValueType = ISVT_Unknown;
 	mpcSourceDesc = pcSourceDesc;
 	mpcDataFormat = pcDataFormat;
-	mlcChannels.Init();
+	mlcChannels.Init(false);
 	miOrder = 1;
 }
 
@@ -112,16 +112,17 @@ bool CInputSourceValue::Process(void* pvData, float* pfValue)
 	bool					bResult;
 	float					f;
 	SSetIterator			sIter;
+	bool					bExists;
 
-	pcSourceChannel = mlcChannels.StartIteration(&sIter);
-	while (pcSourceChannel)
+	bExists = mlcChannels.StartIteration(&sIter, &pcSourceChannel);
+	while (bExists)
 	{
 		bResult = pcSourceChannel->Compare(pvData);
 		if (!bResult)
 		{
 			return false;
 		}
-		pcSourceChannel = mlcChannels.Iterate(&sIter);
+		bExists = mlcChannels.Iterate(&sIter, &pcSourceChannel);
 	}
 
 	if (meValueType == ISVT_Numeric)
@@ -168,13 +169,14 @@ void CInputSourceValue::CopyChannels(CInputSourceValue* pcInputSourceValue)
 	CInputSouceChannel*		pcInputSourceChannel;
 	CInputSouceChannel*		pcInputDestChannel;
 	SSetIterator			sIter;
+	bool					bExists;
 
-	pcInputSourceChannel = pcInputSourceValue->StartChannelsIteration(&sIter);
+	bExists = pcInputSourceValue->StartChannelsIteration(&sIter, &pcInputSourceChannel);
 	while (pcInputSourceChannel)
 	{
 		pcInputDestChannel = mlcChannels.Add();
 		pcInputDestChannel->Init(this, pcInputSourceChannel->GetChannel(), pcInputSourceChannel->GetCompare(), pcInputSourceChannel->GetTest());
-		pcInputSourceChannel = pcInputSourceValue->IterateChannels(&sIter);
+		bExists = pcInputSourceValue->IterateChannels(&sIter, &pcInputSourceChannel);
 	}
 }
 
@@ -183,8 +185,8 @@ void CInputSourceValue::CopyChannels(CInputSourceValue* pcInputSourceValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSouceChannel* CInputSourceValue::StartChannelsIteration(SSetIterator* psIter) { return mlcChannels.StartIteration(psIter); }
-CInputSouceChannel* CInputSourceValue::IterateChannels(SSetIterator* psIter) { return mlcChannels.Iterate(psIter); }
+bool CInputSourceValue::StartChannelsIteration(SSetIterator* psIter, CInputSouceChannel** ppcSourceChannel) { return mlcChannels.StartIteration(psIter, ppcSourceChannel); }
+bool CInputSourceValue::IterateChannels(SSetIterator* psIter, CInputSouceChannel** ppcSourceChannel) { return mlcChannels.Iterate(psIter, ppcSourceChannel); }
 CInputDataFormat* CInputSourceValue::GetDataFormat(void) { return mpcDataFormat; }
 size CInputSourceValue::GetOrder(void) { return miOrder; }
 void CInputSourceValue::SetOrder(size iOrder) { miOrder = iOrder; }
@@ -205,6 +207,7 @@ void CInputSourceValue::ToString(CChars* psz, EInputSourceType eType)
 {
 	SSetIterator			sIter;
 	CInputSouceChannel*		pcInputSouceChannel;
+	bool					bExists;
 
 	psz->Append(" --- CInputSourceValue ---\n");
 	psz->Append("Value Type: ");
@@ -254,11 +257,11 @@ void CInputSourceValue::ToString(CChars* psz, EInputSourceType eType)
 
 	psz->Append(" - CInputSouceChannel : mlcChannels -\n");
 
-	pcInputSouceChannel = mlcChannels.StartIteration(&sIter);
-	while (pcInputSouceChannel)
+	bExists = mlcChannels.StartIteration(&sIter, &pcInputSouceChannel);
+	while (bExists)
 	{
 		pcInputSouceChannel->ToString(psz);
-		pcInputSouceChannel = mlcChannels.Iterate(&sIter);
+		bExists = mlcChannels.Iterate(&sIter, &pcInputSouceChannel);
 	}
 }
 

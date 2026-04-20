@@ -40,8 +40,8 @@ public:
 	CInputChordDesc*	AddChordDesc(char* szActionName);
 	void				GetInputSourceDescs(CArrayIntAndPointer* apcDest, CInputDeviceDesc* pcDeviceDesc);
 	void				CopyChordDescs(CInputChordDescs* pcSource, CInputDeviceCopyContext* pcContext);
-	CInputChordDesc*	StartChordDescsIteration(SSetIterator* psIter);
-	CInputChordDesc*	IterateChordDescs(SSetIterator* psIter);
+	bool				StartChordDescsIteration(SSetIterator* psIter, CInputChordDesc** pcChordDesc);
+	bool				IterateChordDescs(SSetIterator* psIter, CInputChordDesc** pcChordDesc);
 
 private:
 	void				CopyChordDesc(CInputChordDesc* pcDest, CInputChordCriteriaDesc* pcSource, CInputDeviceCopyContext* pcContext);

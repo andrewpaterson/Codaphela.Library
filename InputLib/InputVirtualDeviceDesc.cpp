@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CInputVirtualDeviceDesc::Init(char* szName, bool bDeviceAgnostic)
 {
-	mlcInputSourceDescs.Init();
+	mlcInputSourceDescs.Init(false);
 	mcChordDescs.Init();
 	mszName.Init(szName);
 	mbDeviceAgnostic = bDeviceAgnostic;
@@ -139,14 +139,15 @@ CInputVirtualSourceDesc* CInputVirtualDeviceDesc::GetSource(char* szFriendlyName
 {
 	CInputVirtualSourceDesc*	pcSource;
 	SSetIterator				sIter;
+	bool						bExists;
 
 	if ((!mbDeviceAgnostic) && (iDescID < 0))
 	{
 		return NULL;
 	}
 
-	pcSource = mlcInputSourceDescs.StartIteration(&sIter);
-	while (pcSource)
+	bExists = mlcInputSourceDescs.StartIteration(&sIter, &pcSource);
+	while (bExists)
 	{
 		if ((mbDeviceAgnostic) || (pcSource->GetDescriptionID() == iDescID))
 		{
@@ -155,7 +156,7 @@ CInputVirtualSourceDesc* CInputVirtualDeviceDesc::GetSource(char* szFriendlyName
 				return pcSource;
 			}
 		}
-		pcSource = mlcInputSourceDescs.Iterate(&sIter);
+		bExists = mlcInputSourceDescs.Iterate(&sIter, &pcSource);
 	}
 	return NULL;
 }
@@ -169,9 +170,10 @@ CInputVirtualSourceDesc* CInputVirtualDeviceDesc::GetSource(CInputSourceDesc* pc
 {
 	CInputVirtualSourceDesc*	pcSource;
 	SSetIterator				sIter;
+	bool						bExists;
 
-	pcSource = mlcInputSourceDescs.StartIteration(&sIter);
-	while (pcSource)
+	bExists = mlcInputSourceDescs.StartIteration(&sIter, &pcSource);
+	while (bExists)
 	{
 		if ((mbDeviceAgnostic) || (pcSource->GetDescriptionID() == iDescID))
 		{
@@ -180,11 +182,10 @@ CInputVirtualSourceDesc* CInputVirtualDeviceDesc::GetSource(CInputSourceDesc* pc
 				return pcSource;
 			}
 		}
-		pcSource = mlcInputSourceDescs.Iterate(&sIter);
+		bExists = mlcInputSourceDescs.Iterate(&sIter, &pcSource);
 	}
 	return NULL;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -256,6 +257,6 @@ bool CInputVirtualDeviceDesc::AddOrderedAction(char* szActionName, int iDescID, 
 //////////////////////////////////////////////////////////////////////////
 bool CInputVirtualDeviceDesc::IsDeviceAgnostic(void) { return mbDeviceAgnostic; }
 char* CInputVirtualDeviceDesc::GetName(void) { return mszName.Text(); }
-CInputVirtualSourceDesc* CInputVirtualDeviceDesc::StartInputSourceDescsIteration(SSetIterator* psIter) { return mlcInputSourceDescs.StartIteration(psIter); }
-CInputVirtualSourceDesc* CInputVirtualDeviceDesc::IterateInputSourceDescs(SSetIterator* psIter) { return mlcInputSourceDescs.Iterate(psIter); }
+bool CInputVirtualDeviceDesc::StartInputSourceDescsIteration(SSetIterator* psIter, CInputVirtualSourceDesc** ppcSourceDesc) { return mlcInputSourceDescs.StartIteration(psIter, ppcSourceDesc); }
+bool CInputVirtualDeviceDesc::IterateInputSourceDescs(SSetIterator* psIter, CInputVirtualSourceDesc** ppcSourceDesc) { return mlcInputSourceDescs.Iterate(psIter, ppcSourceDesc); }
 CInputChordDescs* CInputVirtualDeviceDesc::GetChordDescs(void) { return &mcChordDescs; }

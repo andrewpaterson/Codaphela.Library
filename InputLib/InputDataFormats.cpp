@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CInputDataFormats::Init(void)
 {
-	mlcFormats.Init();
+	mlcFormats.Init(false);
 }
 
 
@@ -80,9 +80,10 @@ CInputDataFormat* CInputDataFormats::Get(char* szName)
 {
 	CInputDataFormat*	pcDataFormat;
 	SSetIterator		sIter;
+	bool				bExists;
 
-	pcDataFormat = mlcFormats.StartIteration(&sIter);
-	while (pcDataFormat)
+	bExists = mlcFormats.StartIteration(&sIter, &pcDataFormat);
+	while (bExists)
 	{
 		if (pcDataFormat->IsCommon())
 		{
@@ -95,7 +96,7 @@ CInputDataFormat* CInputDataFormats::Get(char* szName)
 		{
 			break;
 		}
-		pcDataFormat = mlcFormats.Iterate(&sIter);
+		bExists = mlcFormats.Iterate(&sIter, &pcDataFormat);
 	}
 	return NULL;
 }

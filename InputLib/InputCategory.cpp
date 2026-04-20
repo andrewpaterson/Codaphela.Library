@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CInputCategory::Init(char* szCategory, CInputDevices* pcInputDevices)
 {
-	mlcGenerics.Init();
+	mlcGenerics.Init(false);
 	mszCategory.Init(szCategory);
 	mpcInputDevices = pcInputDevices;
 }
@@ -93,15 +93,16 @@ CInputCategoryGeneric* CInputCategory::GetGeneric(char* szGeneric)
 {
 	SSetIterator			sIter;
 	CInputCategoryGeneric*	pcCurrent;
+	bool					bExists;
 
-	pcCurrent = mlcGenerics.StartIteration(&sIter);
-	while (pcCurrent)
+	bExists = mlcGenerics.StartIteration(&sIter, &pcCurrent);
+	while (bExists)
 	{
 		if (pcCurrent->Is(szGeneric))
 		{
 			return pcCurrent;
 		}
-		pcCurrent = mlcGenerics.Iterate(&sIter);
+		bExists = mlcGenerics.Iterate(&sIter, &pcCurrent);
 	}
 	return NULL;
 }
@@ -115,9 +116,10 @@ CInputDevice* CInputCategory::GetFirstDevice(bool bPhysical)
 {
 	CInputDevice*	pcDevice;
 	SSetIterator	sIter;
+	bool			bExists;
 
-	pcDevice = mpcInputDevices->mlcDevices.StartIteration(&sIter);
-	while (pcDevice)
+	bExists = mpcInputDevices->mlcDevices.StartIteration(&sIter, &pcDevice);
+	while (bExists)
 	{
 		if (pcDevice->GetDesc()->GetCategory() == this)
 		{
@@ -126,7 +128,7 @@ CInputDevice* CInputCategory::GetFirstDevice(bool bPhysical)
 				return pcDevice;
 			}
 		}
-		pcDevice = mpcInputDevices->mlcDevices.Iterate(&sIter);
+		bExists = mpcInputDevices->mlcDevices.Iterate(&sIter, &pcDevice);
 	}
 	return NULL;
 }
@@ -140,9 +142,10 @@ void CInputCategory::GetDevices(CArrayInputDevicePtr* pcDevices, bool bPhysical)
 {
 	CInputDevice*	pcDevice;
 	SSetIterator	sIter;
+	bool			bExists;
 
-	pcDevice = mpcInputDevices->mlcDevices.StartIteration(&sIter);
-	while (pcDevice)
+	bExists = mpcInputDevices->mlcDevices.StartIteration(&sIter, &pcDevice);
+	while (bExists)
 	{
 		if (pcDevice->GetDesc()->GetCategory() == this)
 		{
@@ -151,7 +154,7 @@ void CInputCategory::GetDevices(CArrayInputDevicePtr* pcDevices, bool bPhysical)
 				pcDevices->Add(&pcDevice);
 			}
 		}
-		pcDevice = mpcInputDevices->mlcDevices.Iterate(&sIter);
+		bExists = mpcInputDevices->mlcDevices.Iterate(&sIter, &pcDevice);
 	}
 }
 

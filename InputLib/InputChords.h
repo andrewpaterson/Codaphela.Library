@@ -74,8 +74,8 @@ public:
 	CInputSourceEvaluator*	AddEvaluator(void);
 	CInputChord*			AddChord(CAction* pcAction, CInputChordDesc* pcDesc);
 
-	CInputChord*			StartChordsIteration(SSetIterator* psIter);
-	CInputChord*			IterateChords(SSetIterator* psIter);
+	bool					StartChordsIteration(SSetIterator* psIter, CInputChord** ppChord);
+	bool					IterateChords(SSetIterator* psIter, CInputChord** ppChord);
 };
 
 

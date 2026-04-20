@@ -69,8 +69,8 @@ public:
 
 	bool 						ContainsHistorySource(SInputDeviceValueSource* psSource);
 	bool						ContainsSource(SInputDeviceValueSource* psSource, CSetInputVirtualDeviceSource* pcSetSources);
-	CInputVirtualDeviceSource*	StartHistorySourcesIteration(SSetIterator* psIter);
-	CInputVirtualDeviceSource*	IterateHistorySources(SSetIterator* psIter);
+	bool						StartHistorySourcesIteration(SSetIterator* psIter, CInputVirtualDeviceSource** ppcVirtualDeviceSource);
+	bool						IterateHistorySources(SSetIterator* psIter, CInputVirtualDeviceSource** ppcVirtualDeviceSource);
 
 	void 						ClearCommonality(void);
 	void 						AddCommonalityIfShared(CInputVirtualDevice* pcOtherVirtual);
