@@ -1,3 +1,5 @@
+#ifndef __MESH_H__
+#define __MESH_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -18,8 +20,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MESH_H__
-#define __MESH_H__
 #include "StandardLib/Object.h"
 #include "ShapesIndexed.h"
 #include "MeshFaceReturn.h"
@@ -58,7 +58,6 @@ public:
 
 	bool			Load(CObjectReader* pcFile);
 	bool			Save(CObjectWriter* pcFile);
-	void			Copy(CMesh* pcMesh);
 	
 	bool			Touch(void);
 

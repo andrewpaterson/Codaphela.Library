@@ -162,7 +162,7 @@ Ptr<CGlyph> CFont::GetGlyph(CUTF8* pcUTF8)
 	uint8			auiBuffer[64];
 	size			uiElementLength;
 
-	uiElementLength = pcUTF8->Step();
+	uiElementLength = pcUTF8->Peek();
 	if (uiElementLength <= 2)
 	{
 		c16 = pcUTF8->GetUint16();
@@ -217,7 +217,7 @@ size CFont::Width(char* szText)
 			iWidth += pGlyph->GetFullWidth();
 			ui++;
 		}
-		uiUTFElementLength = cUTF8.Step();
+		uiUTFElementLength = cUTF8.Peek();
 	}
 	return iWidth;
 }

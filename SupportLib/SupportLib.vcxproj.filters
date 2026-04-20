@@ -193,6 +193,9 @@
     <Filter Include="Source\Text">
       <UniqueIdentifier>{555a01b8-e76b-48d0-b2d7-cdc23c2f4cc6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Text\UTF16">
+      <UniqueIdentifier>{a74b0a24-aa44-4978-b5d3-69dc0a725ae4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CopyPaste.h">
@@ -702,6 +705,24 @@
     <ClInclude Include="ImageCopyDimension.h">
       <Filter>Source\Image\Cel</Filter>
     </ClInclude>
+    <ClInclude Include="Text.h">
+      <Filter>Source\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="TextRun.h">
+      <Filter>Source\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="TextRunCommon.h">
+      <Filter>Source\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="TextRunUTF16Short.h">
+      <Filter>Source\Text\UTF16</Filter>
+    </ClInclude>
+    <ClInclude Include="TextRunUTF16Long.h">
+      <Filter>Source\Text\UTF16</Filter>
+    </ClInclude>
+    <ClInclude Include="TextRunUTF16Multi.h">
+      <Filter>Source\Text\UTF16</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1177,6 +1198,24 @@
     </ClCompile>
     <ClCompile Include="ImageCopyDimension.cpp">
       <Filter>Source\Image\Cel</Filter>
+    </ClCompile>
+    <ClCompile Include="Text.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="TextRunCommon.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="TextRun.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="TextRunUTF16Short.cpp">
+      <Filter>Source\Text\UTF16</Filter>
+    </ClCompile>
+    <ClCompile Include="TextRunUTF16Long.cpp">
+      <Filter>Source\Text\UTF16</Filter>
+    </ClCompile>
+    <ClCompile Include="TextRunUTF16Multi.cpp">
+      <Filter>Source\Text\UTF16</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

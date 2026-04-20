@@ -181,6 +181,9 @@
     <ClInclude Include="ColourFormat.h" />
     <ClInclude Include="CopyPaste.h" />
     <ClInclude Include="ChannelTypes.h" />
+    <ClInclude Include="TextRunUTF16Long.h" />
+    <ClInclude Include="TextRunUTF16Multi.h" />
+    <ClInclude Include="TextRunUTF16Short.h" />
     <ClInclude Include="FakeTracker.h" />
     <ClInclude Include="FontFactory.h" />
     <ClInclude Include="FontImportParameters.h" />
@@ -199,6 +202,9 @@
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="SpriteMap.h" />
     <ClInclude Include="Maps.h" />
+    <ClInclude Include="Text.h" />
+    <ClInclude Include="TextRun.h" />
+    <ClInclude Include="TextRunCommon.h" />
     <ClInclude Include="TrackerTypes.h" />
     <ClInclude Include="VertexArray.h" />
     <ClInclude Include="VertexChannel.h" />
@@ -384,6 +390,12 @@
     <ClCompile Include="ImageReader.cpp" />
     <ClCompile Include="PNGReader.cpp" />
     <ClCompile Include="RADReader.cpp" />
+    <ClCompile Include="Text.cpp" />
+    <ClCompile Include="TextRun.cpp" />
+    <ClCompile Include="TextRunCommon.cpp" />
+    <ClCompile Include="TextRunUTF16Long.cpp" />
+    <ClCompile Include="TextRunUTF16Multi.cpp" />
+    <ClCompile Include="TextRunUTF16Short.cpp" />
     <ClCompile Include="TGAReader.cpp" />
     <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="SubImage.cpp" />
