@@ -23,14 +23,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "Chars.h"
-#include "Unicode.h"
+#include "UnicodeReader.h"
 
 
 #define UTF16_BIG_ENDIAN_BOM    0xFFFE
 #define UTF16_LITTLE_ENDIAN_BOM 0xFEFF
 
 
-class CUTF16 : public CUnicode
+class CUTF16 : public CUnicodeReader
 {
 protected:
 	uint16*		mszText;  //underlying wide char array.
@@ -41,18 +41,18 @@ protected:
 
 public:
     void    Init(uint16* sz, size length);
-    void    Kill(void);
+    void    Kill(void) override;
     void    SetBigEndian(void);
 
     bool    GetByteOrderMark(void);
-    uint16  GetUint16(void);  // Retuns 0xFFFD if larger than uint16
-    uint32  GetUint32(void);  // Retuns 0xFFFD if larger than uint32
-    size    GetMulti(uint8* puiBuffer, size uiBufferLength);
 
-    size	Peek(void);
+    uint16  GetCodePointUint16(void) override;
+    uint32  GetCodePointUint32(void) override;
+    size    GetCodePointMulti(uint8* puiBuffer, size uiBufferLength) override;
 
-    size    GetPosition(void);
-    size    GetError(void);
+    size	Peek(void) override;
+
+    size    GetPosition(void) override;
 
 protected:
     size	GetUTF16ElementLength(void);

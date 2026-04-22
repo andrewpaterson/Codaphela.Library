@@ -23,10 +23,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "Chars.h"
-#include "Unicode.h"
+#include "UnicodeReader.h"
 
 
-class CUTF8 : public CUnicode
+class CUTF8 : public CUnicodeReader
 {
 protected:
 	uint8*		mszText;  //underlying byte array.
@@ -37,16 +37,15 @@ protected:
 public:
 	void	Init(CChars* sz);
 	void	Init(char* sz);
-	void	Kill(void);
+	void	Kill(void) override;
 
-	uint16	GetUint16(void);  // Retuns 0xFFFD if larger than uint16
-	uint32	GetUint32(void);  // Retuns 0xFFFD if larger than uint32
-	size	GetMulti(uint8* puiBuffer, size uiBufferLength);
+	uint16	GetCodePointUint16(void) override;
+	uint32	GetCodePointUint32(void) override;
+	size	GetCodePointMulti(uint8* puiBuffer, size uiBufferLength) override;
 
-	size	Peek(void);
+	size	Peek(void) override;
 
-	size	GetPosition(void);
-	size	GetError(void);
+	size	GetPosition(void) override;
 
 protected:
 	size	GetUTF8ElementLength(void);

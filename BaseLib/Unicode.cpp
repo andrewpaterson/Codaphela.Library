@@ -1,3 +1,4 @@
+#include "Logger.h"
 #include "FastMemcpy.h"
 #include "Unicode.h"
 
@@ -6,7 +7,27 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size GetUnicodeCodePointLength(uint16 uiChar)
+void CUnicode::Init(void)
+{
+	muiError = UNICODE_NON_CHARACTER;
+	muiTooSmall = UNICODE_REPLACEMENT_CHARACTER;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CUnicode::Kill(void)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size CUnicode::GetUnicodeCodePointLength(uint16 uiChar)
 {
 	if (uiChar < 0xff)
 	{
@@ -20,7 +41,7 @@ size GetUnicodeCodePointLength(uint16 uiChar)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size GetUnicodeCodePointLength(uint32 uiChar)
+size CUnicode::GetUnicodeCodePointLength(uint32 uiChar)
 {
 	if (uiChar < 0xff)
 	{
@@ -42,36 +63,26 @@ size GetUnicodeCodePointLength(uint32 uiChar)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CUnicode::Init(void)
+size CUnicode::AppendCodePoint(uint32 uiCodePoint, size uiCodePointLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength)
 {
-	muiError = UNICODE_ERROR;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-size CUnicode::Append(uint32 uiCodePoint, size uiLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength)
-{
-	if (uiLength + uiBufferPos > uiBufferLength)
+	if (uiCodePointLength + uiBufferPos > uiBufferLength)
 	{
 		return muiError;
 	}
 
-	if (uiLength == 1)
+	if (uiCodePointLength == 1)
 	{
 		memcpy_fast_1byte(&puiBuffer[uiBufferPos], &uiCodePoint);
 	}
-	else if (uiLength == 2)
+	else if (uiCodePointLength == 2)
 	{
 		memcpy_fast_2bytes(&puiBuffer[uiBufferPos], &uiCodePoint);
 	}
-	else if (uiLength == 3)
+	else if (uiCodePointLength == 3)
 	{
 		memcpy_fast_3bytes(&puiBuffer[uiBufferPos], &uiCodePoint);
 	}
-	else if (uiLength == 4)
+	else if (uiCodePointLength == 4)
 	{
 		memcpy_fast_4bytes(&puiBuffer[uiBufferPos], &uiCodePoint);
 	}
@@ -80,7 +91,7 @@ size CUnicode::Append(uint32 uiCodePoint, size uiLength, uint8* puiBuffer, size 
 		return muiError;
 	}
 
-	return uiLength + uiBufferPos;
+	return uiCodePointLength + uiBufferPos;
 }
 
 
@@ -88,18 +99,18 @@ size CUnicode::Append(uint32 uiCodePoint, size uiLength, uint8* puiBuffer, size 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CUnicode::Append(uint16 uiCodePoint, size uiLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength)
+size CUnicode::AppendCodePoint(uint16 uiCodePoint, size uiCodePointLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength)
 {
-	if (uiLength + uiBufferPos > uiBufferLength)
+	if (uiCodePointLength + uiBufferPos > uiBufferLength)
 	{
 		return muiError;
 	}
 
-	if (uiLength == 1)
+	if (uiCodePointLength == 1)
 	{
 		memcpy_fast_1byte(&puiBuffer[uiBufferPos], &uiCodePoint);
 	}
-	else if (uiLength == 2)
+	else if (uiCodePointLength == 2)
 	{
 		memcpy_fast_2bytes(&puiBuffer[uiBufferPos], &uiCodePoint);
 	}
@@ -108,6 +119,203 @@ size CUnicode::Append(uint16 uiCodePoint, size uiLength, uint8* puiBuffer, size 
 		return muiError;
 	}
 
-	return uiLength + uiBufferPos;
+	return uiCodePointLength + uiBufferPos;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size CUnicode::GetUTF8Length(uint32 uiCodePoint)
+{
+	if ((uiCodePoint > 0x10FFFF) || (uiCodePoint >= 0xD800 && uiCodePoint <= 0xDFFF))
+	{
+		return muiError;
+	}
+
+	if (uiCodePoint <= 0x7F)
+	{
+		return 1;
+	}
+	else if (uiCodePoint <= 0x7FF)
+	{
+		return 2;
+	}
+	else if (uiCodePoint <= 0xFFFF)
+	{
+		return  3;
+	}
+	else
+	{
+		return 4;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+uint16 CUnicode::GetUTF8ElementUint16(uint32 uiCodePoint)
+{
+	uint16	uiHigh;
+	uint16	uiLow;
+
+	if ((uiCodePoint > 0x10FFFF) || (uiCodePoint >= 0xD800 && uiCodePoint <= 0xDFFF))
+	{
+		return muiError;
+	}
+
+	if (uiCodePoint <= 0x7F)
+	{
+		return uiCodePoint;
+	}
+	else if (uiCodePoint <= 0x7FF)
+	{
+		uiLow = 0xC0 | (uiCodePoint >> 6);
+		uiHigh = 0x80 | (uiCodePoint & 0x3F);
+		return  uiHigh << 8 | uiLow;
+	}
+	else
+	{
+		return muiTooSmall;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+uint32 CUnicode::GetUTF8ElementUint32(uint32 uiCodePoint)
+{
+	uint16	uiHigh;
+	uint16	ui3;
+	uint16	ui2;
+	uint16	uiLow;
+
+	if ((uiCodePoint > 0x10FFFF) || (uiCodePoint >= 0xD800 && uiCodePoint <= 0xDFFF))
+	{
+		return muiError;
+	}
+
+	if (uiCodePoint <= 0x7F) 
+	{
+		return uiCodePoint;
+	}
+	else if (uiCodePoint <= 0x7FF) 
+	{
+		uiLow = 0xC0 | (uiCodePoint >> 6);
+		ui2 = 0x80 | (uiCodePoint & 0x3F);
+		return  ui2 << 8 | uiLow;
+	}
+	else if (uiCodePoint <= 0xFFFF) 
+	{
+		uiLow = 0xE0 | (uiCodePoint >> 12);
+		ui2 = 0x80 | ((uiCodePoint >> 6) & 0x3F);
+		ui3 = 0x80 | (uiCodePoint & 0x3F);
+		return  ui3 << 16 | ui2 << 8 | uiLow;
+	}
+	else 
+	{
+		uiLow = 0xF0 | (uiCodePoint >> 18);
+		ui2 = 0x80 | ((uiCodePoint >> 12) & 0x3F);
+		ui3 = 0x80 | ((uiCodePoint >> 6) & 0x3F);
+		uiHigh = 0x80 | (uiCodePoint & 0x3F);
+		return uiHigh << 24 | ui3 << 16 | ui2 << 8 | uiLow;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size CUnicode::GetUTF16Length(uint32 uiCodePoint)
+{
+	if (uiCodePoint > 0x10FFFF)
+	{
+		return muiError;
+	}
+
+	if (uiCodePoint <= 0xFFFF)
+	{
+		if (uiCodePoint >= 0xD800 && uiCodePoint <= 0xDFFF)
+		{
+			return muiError;
+		}
+		return 1;  //one uint16
+	}
+	else
+	{
+		return 2;  //two uint16s
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+uint16 CUnicode::GetUTF16ElementUint16(uint32 uiCodePoint)
+{
+	if (uiCodePoint > 0x10FFFF)
+	{
+		return muiError;
+	}
+
+	if (uiCodePoint <= 0xFFFF)
+	{
+		if (uiCodePoint >= 0xD800 && uiCodePoint <= 0xDFFF)
+		{
+			return muiError;
+		}
+		return uiCodePoint;
+	}
+	else
+	{
+		return muiTooSmall;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+uint32 CUnicode::GetUTF16ElementUint32(uint32 uiCodePoint)
+{
+	uint16	uiHighSurrogate;
+	uint16	uiLowSurrogate;
+
+	if (uiCodePoint > 0x10FFFF) 
+	{
+		return muiError;
+	}
+
+	if (uiCodePoint <= 0xFFFF) 
+	{
+		if (uiCodePoint >= 0xD800 && uiCodePoint <= 0xDFFF) 
+		{
+			return muiError;
+		}
+		return uiCodePoint;
+	}
+	else 
+	{
+		uiCodePoint &= 0xFFFF;
+		uiHighSurrogate = 0xD800 + (uiCodePoint >> 10);
+		uiLowSurrogate = 0xDC00 + (uiCodePoint & 0x3FF);
+
+		return (uiHighSurrogate << 16) + uiLowSurrogate;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size CUnicode::GetError(void) { return muiError; }
 
