@@ -7,10 +7,10 @@
 //////////////////////////////////////////////////////////////////////////
 void CUTF8::Init(CChars* sz)
 {
+	CUnicodeReader::Init();
 	mszText = (uint8*)sz->Text();
 	muiTextLength = sz->Length();
 	muiPos = 0;
-	muiError = UNICODE_ERROR;
 }
 
 
@@ -20,10 +20,10 @@ void CUTF8::Init(CChars* sz)
 //////////////////////////////////////////////////////////////////////////
 void CUTF8::Init(char* sz)
 {
+	CUnicodeReader::Init();
 	mszText = (uint8*)sz;
 	muiTextLength = StrLen(sz);
 	muiPos = 0;
-	muiError = UNICODE_ERROR;
 }
 
 
@@ -36,7 +36,7 @@ void CUTF8::Kill(void)
 	mszText = NULL;
 	muiTextLength = 0;
 	muiPos = 0;
-	muiError = UNICODE_ERROR;
+	CUnicodeReader::Kill();
 }
 
 
@@ -44,7 +44,7 @@ void CUTF8::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint16 CUTF8::GetUint16(void)
+uint16 CUTF8::GetCodePointUint16(void)
 {
 	uint8	c;
 	uint8	c2;
@@ -77,15 +77,15 @@ uint16 CUTF8::GetUint16(void)
 
 	if ((c & 0xF0) == 0xE0)
 	{
-		return 0xFFFD;
+		return muiTooSmall;
 	}
 
 	if ((c & 0xF8) == 0xF0)
 	{
-		return 0xFFFD;
+		return muiTooSmall;
 	}
 
-	return (uint16)muiError;
+	return muiError;
 }
 
 
@@ -93,7 +93,7 @@ uint16 CUTF8::GetUint16(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint32 CUTF8::GetUint32(void)
+uint32 CUTF8::GetCodePointUint32(void)
 {
 	uint8	c;
 	uint8	c2;
@@ -175,7 +175,7 @@ uint32 CUTF8::GetUint32(void)
 		return c32;
 	}
 
-	return 0xFFFD;
+	return muiTooSmall;
 }
 
 
@@ -183,7 +183,7 @@ uint32 CUTF8::GetUint32(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CUTF8::GetMulti(uint8* puiBuffer, size uiBufferLength)
+size CUTF8::GetCodePointMulti(uint8* puiBuffer, size uiBufferLength)
 {
 	size	uiLength;
 	bool	bLastZWJ;
@@ -225,7 +225,7 @@ size CUTF8::GetMulti(uint8* puiBuffer, size uiBufferLength)
 			muiPos += 3;
 			uiTotalElementLength += 3;
 			bLastZWJ = true;
-			uiBufferPos = Append((uint16)0, 1, puiBuffer, uiBufferPos, uiBufferLength);
+			uiBufferPos = AppendCodePoint((uint16)0, 1, puiBuffer, uiBufferPos, uiBufferLength);
 			uiUsedBuffer += 1;
 		}
 		else
@@ -234,16 +234,16 @@ size CUTF8::GetMulti(uint8* puiBuffer, size uiBufferLength)
 			{
 				if (uiLength <= 2)
 				{
-					c16 = GetUint16();
+					c16 = GetCodePointUint16();
 					uiCodePointLength = GetUnicodeCodePointLength(c16);
-					uiBufferPos = Append(c16, uiCodePointLength, puiBuffer, uiBufferPos, uiBufferLength);
+					uiBufferPos = AppendCodePoint(c16, uiCodePointLength, puiBuffer, uiBufferPos, uiBufferLength);
 					uiUsedBuffer += uiCodePointLength;
 				}
 				else
 				{
-					c32 = GetUint32();
+					c32 = GetCodePointUint32();
 					uiCodePointLength = GetUnicodeCodePointLength(c32);
-					uiBufferPos = Append(c32, uiCodePointLength, puiBuffer, uiBufferPos, uiBufferLength);
+					uiBufferPos = AppendCodePoint(c32, uiCodePointLength, puiBuffer, uiBufferPos, uiBufferLength);
 					uiUsedBuffer += uiCodePointLength;
 				}
 				
@@ -259,7 +259,7 @@ size CUTF8::GetMulti(uint8* puiBuffer, size uiBufferLength)
 						return muiError;
 					}
 				}
-				Append((uint16)0, 1, puiBuffer, uiBufferPos, uiBufferLength);  //Append a final trailing 0 if possible but don't include it in the buffer size.
+				AppendCodePoint((uint16)0, 1, puiBuffer, uiBufferPos, uiBufferLength);  //Append a final trailing 0 if possible but don't include it in the buffer size.
 				return uiUsedBuffer;
 			}
 			bLastZWJ = false;
@@ -407,6 +407,4 @@ size CUTF8::GetUTF8ElementLength(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 size CUTF8::GetPosition(void) { return muiPos; }
-size CUTF8::GetError(void) { return muiError; }
-
 

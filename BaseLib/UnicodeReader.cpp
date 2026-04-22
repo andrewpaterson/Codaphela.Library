@@ -1,5 +1,3 @@
-#ifndef __UTF_16_H__
-#define __UTF_16_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2025 Andrew Paterson
@@ -22,42 +20,25 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "Chars.h"
 #include "UnicodeReader.h"
 
 
-#define UTF16_BIG_ENDIAN_BOM    0xFFFE
-#define UTF16_LITTLE_ENDIAN_BOM 0xFEFF
-
-
-class CUTF16 : public CUnicodeReader
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CUnicodeReader::Init(void)
 {
-protected:
-	uint16*		mszText;  //underlying wide char array.
-	size		muiTextLength;  //count of uint16s (not bytes).
-    bool        mbLittleEndian;
-
-	size		muiPos;
-
-public:
-    void    Init(uint16* sz, size length);
-    void    Kill(void) override;
-    void    SetBigEndian(void);
-
-    bool    GetByteOrderMark(void);
-
-    uint16  GetCodePointUint16(void) override;
-    uint32  GetCodePointUint32(void) override;
-    size    GetCodePointMulti(uint8* puiBuffer, size uiBufferLength) override;
-
-    size	Peek(void) override;
-
-    size    GetPosition(void) override;
-
-protected:
-    size	GetUTF16ElementLength(void);
-};
+	CUnicode::Init();
+}
 
 
-#endif // __UTF_16_H__
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CUnicodeReader::Kill(void)
+{
+	CUnicode::Kill();
+}
 

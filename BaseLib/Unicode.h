@@ -23,27 +23,40 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "PrimitiveTypes.h"
+#include "Killable.h"
 
 
 #define UNICODE_ZWJ 0x200D
-#define UNICODE_ERROR SIZE_MAX
+#define UNICODE_NON_CHARACTER 0xFFFF
+#define UNICODE_REPLACEMENT_CHARACTER 0xFFFD
 
 
-size GetUnicodeCodePointLength(uint16 uiChar);
-size GetUnicodeCodePointLength(uint32 uiChar);
 
-
-class CUnicode
+class CUnicode : public CKillable
 {
 protected:
-	size		muiError;
+	uint16	muiError;
+	uint16	muiTooSmall;
 
 public:
 	void	Init(void);
+	void	Kill(void) override;
 
-protected:
-	size	Append(uint16 uiCodePoint, size uiLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
-	size	Append(uint32 uiCodePoint, size uiLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
+	size	GetUnicodeCodePointLength(uint16 uiChar);
+	size	GetUnicodeCodePointLength(uint32 uiChar);
+
+	size	AppendCodePoint(uint16 uiCodePoint, size uiCodePointLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
+	size	AppendCodePoint(uint32 uiCodePoint, size uiCodePointLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
+
+	size	GetUTF16Length(uint32 uiCodePoint);
+	uint16  GetUTF16ElementUint16(uint32 uiCodePoint);
+	uint32  GetUTF16ElementUint32(uint32 uiCodePoint);
+
+	size	GetUTF8Length(uint32 uiCodePoint);
+	uint16  GetUTF8ElementUint16(uint32 uiCodePoint);
+	uint32  GetUTF8ElementUint32(uint32 uiCodePoint);
+
+	size    GetError(void);
 };
 
 

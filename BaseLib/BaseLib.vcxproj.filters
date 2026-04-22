@@ -1743,6 +1743,9 @@
     <ClInclude Include="ArrayUint16.h">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClInclude>
+    <ClInclude Include="UnicodeReader.h">
+      <Filter>Source\Text\Encoding</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2791,6 +2794,9 @@
     </ClCompile>
     <ClCompile Include="ArrayUint16.cpp">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="UnicodeReader.cpp">
+      <Filter>Source\Text\Encoding</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
