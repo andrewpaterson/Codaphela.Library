@@ -21,7 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "DebugOutput.h"
-#include "ArrayInt.h"
+#include "ArrayUInt.h"
 #include "StringHelper.h"
 
 
@@ -29,10 +29,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CArrayInt::FindUnusedInSorted(void)
+size CArrayUint::FindUnusedInSorted(void)
 {
 	size	iIndex;
-	int	iValue;
+	uint	iValue;
 
 	if (miUsedElements == 0)
 	{
@@ -55,10 +55,10 @@ size CArrayInt::FindUnusedInSorted(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt::Dump(void)
+void CArrayUint::Dump(void)
 {
 	size	iIndex;
-	int	iValue;
+	uint	iValue;
 	char	sz[32];
 
 

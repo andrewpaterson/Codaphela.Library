@@ -816,10 +816,10 @@
     <ClInclude Include="ArrayChar.h">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClInclude>
-    <ClInclude Include="ArrayDouble.h">
+    <ClInclude Include="ArrayFloat64.h">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClInclude>
-    <ClInclude Include="ArrayFloat.h">
+    <ClInclude Include="ArrayFloat32.h">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClInclude>
     <ClInclude Include="ArrayInt.h">
@@ -1745,6 +1745,24 @@
     </ClInclude>
     <ClInclude Include="UnicodeReader.h">
       <Filter>Source\Text\Encoding</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayUint8.h">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayInt16.h">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayUint64.h">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayUint32.h">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayInt32.h">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayUint.h">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -2797,6 +2815,30 @@
     </ClCompile>
     <ClCompile Include="UnicodeReader.cpp">
       <Filter>Source\Text\Encoding</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayUint8.cpp">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayInt16.cpp">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayFloat32.cpp">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayFloat64.cpp">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayUint64.cpp">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayUint32.cpp">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayInt32.cpp">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayUint.cpp">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -180,10 +180,16 @@
   <ItemGroup>
     <ClInclude Include="AccessDataOrderer.h" />
     <ClInclude Include="ArrayElementNotFound.h" />
+    <ClInclude Include="ArrayInt16.h" />
+    <ClInclude Include="ArrayInt32.h" />
     <ClInclude Include="ArrayNameIntAndPointer.h" />
     <ClInclude Include="ArrayTemplateEmbeddedPtr.h" />
     <ClInclude Include="ArrayTemplatePtr.h" />
+    <ClInclude Include="ArrayUint.h" />
     <ClInclude Include="ArrayUint16.h" />
+    <ClInclude Include="ArrayUint32.h" />
+    <ClInclude Include="ArrayUint64.h" />
+    <ClInclude Include="ArrayUint8.h" />
     <ClInclude Include="BaseParser.h" />
     <ClInclude Include="BinarySearch.h" />
     <ClInclude Include="BubbleSort.h" />
@@ -280,9 +286,9 @@
     <ClInclude Include="DataMacro.h" />
     <ClInclude Include="ArrayBit.h" />
     <ClInclude Include="ArrayChar.h" />
-    <ClInclude Include="ArrayDouble.h" />
+    <ClInclude Include="ArrayFloat64.h" />
     <ClInclude Include="ArrayTemplateEmbedded.h" />
-    <ClInclude Include="ArrayFloat.h" />
+    <ClInclude Include="ArrayFloat32.h" />
     <ClInclude Include="ArrayInt.h" />
     <ClInclude Include="ArrayInt2D.h" />
     <ClInclude Include="ArrayInt64.h" />
@@ -604,8 +610,16 @@
   <ItemGroup>
     <ClCompile Include="AccessDataOrderer.cpp" />
     <ClCompile Include="ArrayChar.cpp" />
+    <ClCompile Include="ArrayFloat64.cpp" />
+    <ClCompile Include="ArrayFloat32.cpp" />
+    <ClCompile Include="ArrayInt16.cpp" />
+    <ClCompile Include="ArrayInt32.cpp" />
     <ClCompile Include="ArrayNameIntAndPointer.cpp" />
+    <ClCompile Include="ArrayUint.cpp" />
     <ClCompile Include="ArrayUint16.cpp" />
+    <ClCompile Include="ArrayUint32.cpp" />
+    <ClCompile Include="ArrayUint64.cpp" />
+    <ClCompile Include="ArrayUint8.cpp" />
     <ClCompile Include="BaseParser.cpp" />
     <ClCompile Include="BinarySearch.cpp" />
     <ClCompile Include="BubbleSort.cpp" />

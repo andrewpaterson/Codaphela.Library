@@ -21,55 +21,30 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "DebugOutput.h"
-#include "ArrayInt.h"
-#include "StringHelper.h"
+#include "ArrayFloat32.h"
+#include "FloatPrinter.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CArrayInt::FindUnusedInSorted(void)
+void CArrayFloat::Dump(void)
 {
-	size	iIndex;
-	int	iValue;
-
-	if (miUsedElements == 0)
-	{
-		return 0;
-	}
-
-	for (iIndex = 0; iIndex < miUsedElements; iIndex++)
-	{
-		iValue = *Get(iIndex);
-		if (iValue != iIndex)
-		{
-			return iIndex;
-		}
-	}
-	return miUsedElements;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CArrayInt::Dump(void)
-{
-	size	iIndex;
-	int	iValue;
+	size	i;
+	float32	fValue;
 	char	sz[32];
 
 
 	EngineOutput("[");
-	for (iIndex = 0; iIndex < miUsedElements; iIndex++)
+	for (i = 0; i < miUsedElements; i++)
 	{
-		iValue = GetValue(iIndex);
-		IntToString(sz, 32, iValue, 10);
+		fValue = GetValue(i);
+		FloatToString(sz, 32, fValue);
 		EngineOutput(sz);
 		EngineOutput(" ");
 	}
 	EngineOutput("]\n");
 }
+
 

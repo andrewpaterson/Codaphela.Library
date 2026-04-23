@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CUTF16::Init(uint16* sz, size length)
 {
-    CUnicode::Init();
+    CUnicodeReader::Init();
     mszText = sz;
     muiTextLength = length;
     muiPos = 0;
@@ -62,7 +62,6 @@ bool CUTF16::GetByteOrderMark(void)
     {
         return false;
     }
-
 }
 
 

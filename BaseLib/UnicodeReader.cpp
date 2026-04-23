@@ -30,6 +30,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CUnicodeReader::Init(void)
 {
 	CUnicode::Init();
+
+	muiUTF8ZWJBytes = 0x8D80E2;
+	muiUTF16LEZWJBytes = 0x0D20;
+	muiUTF16BEZWJBytes = 0x200D;
 }
 
 
@@ -40,5 +44,116 @@ void CUnicodeReader::Init(void)
 void CUnicodeReader::Kill(void)
 {
 	CUnicode::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CUnicodeReader::IsTooSmallOrError(uint16 ui)
+{
+	return (ui == muiError) || (ui == muiTooSmall);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CUnicodeReader::IsError(uint16 ui)
+{
+	return ui == muiError;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CUnicodeReader::IsTooSmall(uint16 ui)
+{
+	return ui == muiTooSmall;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size CUnicodeReader::GetUTFZWJLength(EUnicodeEncoding eEncoding)
+{
+	switch (eEncoding)
+	{
+	case UE_UTF8:
+	case UE_UTF8BOM:
+		return 3;
+	case UE_UTF16LE:
+	case UE_UTF16BE:
+		return 2;
+	default:
+		return 0;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+uint8* CUnicodeReader::GetUTFZWJBytes(EUnicodeEncoding eEncoding)
+{
+	switch (eEncoding)
+	{
+	case UE_UTF8:
+	case UE_UTF8BOM:
+		return (uint8*)&muiUTF8ZWJBytes;
+	case UE_UTF16LE:
+		return (uint8*)&muiUTF16LEZWJBytes;
+	case UE_UTF16BE:
+		return (uint8*)&muiUTF16BEZWJBytes;
+	default:
+		return 0;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+uint32 CUnicodeReader::MakeCodePointUint32FromBuffer(uint8* puiCodePointBuffer, size uiBufferLength)
+{
+	uint32	uiCodePoint;
+	size	uiShift;
+	size	ui;
+
+	ui = 0;
+	uiShift = 0;
+	uiCodePoint = 0;
+	while (ui != uiBufferLength)
+	{
+		uiCodePoint |= puiCodePointBuffer[ui] << uiShift;
+		ui++;
+		uiShift += 8;
+	}
+	return uiCodePoint;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+uint16 CUnicodeReader::MakeCodePointUint16FromBuffer(uint8* puiCodePointBuffer, size uiBufferLength)
+{
+	uint16	uiCodePoint;
+
+	uiCodePoint = puiCodePointBuffer[0];
+	if (uiBufferLength == 2)
+	{
+		uiCodePoint |= puiCodePointBuffer[1] << 8;
+	}
+	return uiCodePoint;
 }
 

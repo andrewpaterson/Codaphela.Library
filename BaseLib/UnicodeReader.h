@@ -27,6 +27,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CUnicodeReader : public CUnicode
 {
+protected:
+	uint32		muiUTF8ZWJBytes;
+	uint32      muiUTF16LEZWJBytes;
+	uint32      muiUTF16BEZWJBytes;
+
 public:
 	void	Init(void);
 	void	Kill(void) override;
@@ -35,9 +40,19 @@ public:
 	virtual uint32  GetCodePointUint32(void) =0;  // Retuns 0xFFFD if larger than uint32
 	virtual size    GetCodePointMulti(uint8* puiBuffer, size uiBufferLength) =0;
 
-	virtual size	Peek(void) = 0;
+	virtual size	Peek(void) =0;
 
-	virtual size    GetPosition(void) = 0;
+	virtual size    GetPosition(void) =0;
+
+			size	GetUTFZWJLength(EUnicodeEncoding eEncoding);
+			uint8*	GetUTFZWJBytes(EUnicodeEncoding eEncoding);
+
+			bool	IsTooSmallOrError(uint16 ui);
+			bool	IsError(uint16 ui);
+			bool	IsTooSmall(uint16 ui);
+
+			uint32	MakeCodePointUint32FromBuffer(uint8* puiCodePointBuffer, size uiBufferLength);
+			uint16	MakeCodePointUint16FromBuffer(uint8* puiCodePointBuffer, size uiBufferLength);
 };
 
 

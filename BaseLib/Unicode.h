@@ -31,32 +31,53 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define UNICODE_REPLACEMENT_CHARACTER 0xFFFD
 
 
+#define UTF8_BOM				0xBFBBEF
+#define UTF8_BOM_MASK			0xFFFFFF
+
+#define UTF16_BIG_ENDIAN_BOM    0xFFFE
+#define UTF16_LITTLE_ENDIAN_BOM 0xFEFF
+#define UTF16_BOM_MASK			0xFFFF
+
+
+enum EUnicodeEncoding
+{
+	UE_UTF8,
+	UE_UTF8BOM,
+	UE_UTF16LE,
+	UE_UTF16BE,
+};
+
 
 class CUnicode : public CKillable
 {
 protected:
 	uint16	muiError;
 	uint16	muiTooSmall;
+	
+	uint16	muiZWJ;
 
 public:
-	void	Init(void);
-	void	Kill(void) override;
+	void				Init(void);
+	void				Kill(void) override;
 
-	size	GetUnicodeCodePointLength(uint16 uiChar);
-	size	GetUnicodeCodePointLength(uint32 uiChar);
+	size				GetUnicodeCodePointLength(uint16 uiChar);
+	size				GetUnicodeCodePointLength(uint32 uiChar);
 
-	size	AppendCodePoint(uint16 uiCodePoint, size uiCodePointLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
-	size	AppendCodePoint(uint32 uiCodePoint, size uiCodePointLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
+	size				AppendCodePoint(uint16 uiCodePoint, size uiCodePointLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
+	size				AppendCodePoint(uint32 uiCodePoint, size uiCodePointLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
 
-	size	GetUTF16Length(uint32 uiCodePoint);
-	uint16  GetUTF16ElementUint16(uint32 uiCodePoint);
-	uint32  GetUTF16ElementUint32(uint32 uiCodePoint);
+	size				GetUTF16Length(uint32 uiCodePoint);
+	uint16				GetUTF16ElementUint16(uint32 uiCodePoint);
+	uint32				GetUTF16ElementUint32(uint32 uiCodePoint);
 
-	size	GetUTF8Length(uint32 uiCodePoint);
-	uint16  GetUTF8ElementUint16(uint32 uiCodePoint);
-	uint32  GetUTF8ElementUint32(uint32 uiCodePoint);
+	size				GetUTF8Length(uint32 uiCodePoint);
+	uint16				GetUTF8ElementUint16(uint32 uiCodePoint);
+	uint32				GetUTF8ElementUint32(uint32 uiCodePoint);
 
-	size    GetError(void);
+	size				GetError(void);
+
+	EUnicodeEncoding	GetEncoding(void* puiData);
+	uint16				GetZWJCodePoint(void);
 };
 
 

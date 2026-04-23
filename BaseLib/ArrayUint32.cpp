@@ -20,53 +20,28 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include <stdlib.h>
 #include "DebugOutput.h"
-#include "ArrayInt.h"
 #include "StringHelper.h"
+#include "ArrayUint32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CArrayInt::FindUnusedInSorted(void)
+void CArrayUint32::Dump(void)
 {
-	size	iIndex;
-	int	iValue;
-
-	if (miUsedElements == 0)
-	{
-		return 0;
-	}
-
-	for (iIndex = 0; iIndex < miUsedElements; iIndex++)
-	{
-		iValue = *Get(iIndex);
-		if (iValue != iIndex)
-		{
-			return iIndex;
-		}
-	}
-	return miUsedElements;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CArrayInt::Dump(void)
-{
-	size	iIndex;
-	int	iValue;
+	size	i;
+	uint32	iValue;
 	char	sz[32];
 
 
 	EngineOutput("[");
-	for (iIndex = 0; iIndex < miUsedElements; iIndex++)
+	for (i = 0; i < miUsedElements; i++)
 	{
-		iValue = GetValue(iIndex);
-		IntToString(sz, 32, iValue, 10);
+		iValue = GetValue(i);
+		IntToString(sz, 32, iValue);
 		EngineOutput(sz);
 		EngineOutput(" ");
 	}
