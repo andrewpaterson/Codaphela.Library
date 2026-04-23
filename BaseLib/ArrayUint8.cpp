@@ -20,16 +20,31 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_FLOAT_H__
-#define __ARRAY_FLOAT_H__
-#include "ArrayTemplatePrimitive.h"
+#include <stdlib.h>
+#include "DebugOutput.h"
+#include "StringHelper.h"
+#include "ArrayUint8.h"
 
 
-class CArrayFloat : public CArrayTemplatePrimitive<float32>
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayUint8::Dump(void)
 {
-public:
-};
+	size	i;
+	uint8	iValue;
+	char	sz[32];
 
 
-#endif // __ARRAY_FLOAT_H__
+	EngineOutput("[");
+	for (i = 0; i < miUsedElements; i++)
+	{
+		iValue = GetValue(i);
+		ByteToString(sz, 32, iValue);
+		EngineOutput(sz);
+		EngineOutput(" ");
+	}
+	EngineOutput("]\n");
+}
 

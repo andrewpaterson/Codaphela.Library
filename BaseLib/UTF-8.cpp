@@ -44,6 +44,28 @@ void CUTF8::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+bool CUTF8::GetByteOrderMark(void)
+{
+	uint32  uiBOM;
+
+	uiBOM = *(uint32*)(&mszText[muiPos]);
+	uiBOM &= 0xFFFFFF;
+	if (uiBOM == UTF8_BOM)
+	{
+		muiPos += 3;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 uint16 CUTF8::GetCodePointUint16(void)
 {
 	uint8	c;

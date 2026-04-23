@@ -1,13 +1,14 @@
 #ifndef __CHUNK_FILE_FILE_SYSTEM_H__
 #define __CHUNK_FILE_FILE_SYSTEM_H__
 #include "ArrayChars.h"
+#include "ArrayUint.h"
 #include "ChunkFile.h"
 
 
 struct SChunkFilenameIterator
 {
 	CChars		szFullName;
-	CArrayInt	aiIndex;
+	CArrayUint	aiIndex;
 	bool		bDone;
 	CChars		szValue;
 

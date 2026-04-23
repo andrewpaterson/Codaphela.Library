@@ -20,16 +20,17 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_DOUBLE_H__
-#define __ARRAY_DOUBLE_H__
+#ifndef __ARRAY_FLOAT_64_H__
+#define __ARRAY_FLOAT_64_H__
 #include "ArrayTemplatePrimitive.h"
 
 
-class CArrayDouble : public CArrayTemplatePrimitive<double>
+class CArrayFloat64 : public CArrayTemplatePrimitive<float64>
 {
 public:
+	void	Dump(void);
 };
 
 
-#endif // __ARRAY_DOUBLE_H__
+#endif // __ARRAY_FLOAT_64_H__
 

@@ -39,6 +39,8 @@ public:
 	void	Init(char* sz);
 	void	Kill(void) override;
 
+	bool	GetByteOrderMark(void);
+
 	uint16	GetCodePointUint16(void) override;
 	uint32	GetCodePointUint32(void) override;
 	size	GetCodePointMulti(uint8* puiBuffer, size uiBufferLength) override;

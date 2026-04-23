@@ -26,10 +26,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "UnicodeReader.h"
 
 
-#define UTF16_BIG_ENDIAN_BOM    0xFFFE
-#define UTF16_LITTLE_ENDIAN_BOM 0xFEFF
-
-
 class CUTF16 : public CUnicodeReader
 {
 protected:

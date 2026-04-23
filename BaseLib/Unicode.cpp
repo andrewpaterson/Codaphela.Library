@@ -11,6 +11,7 @@ void CUnicode::Init(void)
 {
 	muiError = UNICODE_NON_CHARACTER;
 	muiTooSmall = UNICODE_REPLACEMENT_CHARACTER;
+	muiZWJ = UNICODE_ZWJ;
 }
 
 
@@ -308,7 +309,36 @@ uint32 CUnicode::GetUTF16ElementUint32(uint32 uiCodePoint)
 		uiHighSurrogate = 0xD800 + (uiCodePoint >> 10);
 		uiLowSurrogate = 0xDC00 + (uiCodePoint & 0x3FF);
 
-		return (uiHighSurrogate << 16) + uiLowSurrogate;
+		return (uiLowSurrogate << 16) + uiHighSurrogate;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+EUnicodeEncoding CUnicode::GetEncoding(void* puiData)
+{
+	uint32 uiData;
+
+	uiData = *((uint32*)puiData);
+
+	if ((uiData & UTF8_BOM_MASK) == UTF8_BOM)
+	{
+		return UE_UTF8BOM;
+	}
+	else if ((uiData & UTF16_BOM_MASK) == UTF16_LITTLE_ENDIAN_BOM)
+	{
+		return UE_UTF16LE;
+	}
+	else if ((uiData & UTF16_BOM_MASK) == UTF16_BIG_ENDIAN_BOM)
+	{
+		return UE_UTF16BE;
+	}
+	else
+	{
+		return UE_UTF8;
 	}
 }
 
@@ -318,4 +348,5 @@ uint32 CUnicode::GetUTF16ElementUint32(uint32 uiCodePoint)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 size CUnicode::GetError(void) { return muiError; }
+uint16 CUnicode::GetZWJCodePoint(void) { return muiZWJ; }
 

@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 size CArrayInt::FindUnusedInSorted(void)
 {
 	size	iIndex;
-	uint	iValue;
+	int	iValue;
 
 	if (miUsedElements == 0)
 	{
@@ -58,7 +58,7 @@ size CArrayInt::FindUnusedInSorted(void)
 void CArrayInt::Dump(void)
 {
 	size	iIndex;
-	uint	iValue;
+	int	iValue;
 	char	sz[32];
 
 

@@ -1,5 +1,5 @@
-#ifndef __ARRAY_INT64_H__
-#define __ARRAY_INT64_H__
+#ifndef __ARRAY_UINT16_H__
+#define __ARRAY_UINT16_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2025 Andrew Paterson
@@ -32,5 +32,5 @@ public:
 };
 
 
-#endif // __ARRAY_INT64_H__
+#endif // __ARRAY_UINT16_H__
 
