@@ -31,6 +31,9 @@ protected:
 	uint32		muiUTF8ZWJBytes;
 	uint32      muiUTF16LEZWJBytes;
 	uint32      muiUTF16BEZWJBytes;
+	uint32		muiUTF8BOMBytes;
+	uint32      muiUTF16LEBOMBytes;
+	uint32      muiUTF16BEBOMBytes;
 
 public:
 	void	Init(void);
@@ -44,8 +47,10 @@ public:
 
 	virtual size    GetPosition(void) =0;
 
-			size	GetUTFZWJLength(EUnicodeEncoding eEncoding);
-			uint8*	GetUTFZWJBytes(EUnicodeEncoding eEncoding);
+			size	GetZWJLength(EUnicodeEncoding eEncoding);
+			uint8*	GetZWJBytes(EUnicodeEncoding eEncoding);
+			size	GetBOMLength(EUnicodeEncoding eEncoding);
+			uint8*	GetBOMBytes(EUnicodeEncoding eEncoding);
 
 			bool	IsTooSmallOrError(uint16 ui);
 			bool	IsError(uint16 ui);
@@ -53,6 +58,7 @@ public:
 
 			uint32	MakeCodePointUint32FromBuffer(uint8* puiCodePointBuffer, size uiBufferLength);
 			uint16	MakeCodePointUint16FromBuffer(uint8* puiCodePointBuffer, size uiBufferLength);
+
 };
 
 

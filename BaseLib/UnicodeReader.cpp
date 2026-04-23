@@ -32,8 +32,12 @@ void CUnicodeReader::Init(void)
 	CUnicode::Init();
 
 	muiUTF8ZWJBytes = 0x8D80E2;
-	muiUTF16LEZWJBytes = 0x0D20;
-	muiUTF16BEZWJBytes = 0x200D;
+	muiUTF16LEZWJBytes = 0x200D;
+	muiUTF16BEZWJBytes = 0x0D20;
+
+	muiUTF8BOMBytes = UTF8_BOM;
+	muiUTF16LEBOMBytes = UTF16_LITTLE_ENDIAN_BOM;
+	muiUTF16BEBOMBytes = UTF16_BIG_ENDIAN_BOM;
 }
 
 
@@ -81,7 +85,50 @@ bool CUnicodeReader::IsTooSmall(uint16 ui)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CUnicodeReader::GetUTFZWJLength(EUnicodeEncoding eEncoding)
+size CUnicodeReader::GetBOMLength(EUnicodeEncoding eEncoding)
+{
+	switch (eEncoding)
+	{
+	case UE_UTF8:
+		return 0;
+	case UE_UTF8BOM:
+		return 3;
+	case UE_UTF16LE:
+	case UE_UTF16BE:
+		return 2;
+	default:
+		return 0;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+uint8* CUnicodeReader::GetBOMBytes(EUnicodeEncoding eEncoding)
+{
+	switch (eEncoding)
+	{
+	case UE_UTF8:
+		return NULL;
+	case UE_UTF8BOM:
+		return (uint8*)&muiUTF8BOMBytes;
+	case UE_UTF16LE:
+		return (uint8*)&muiUTF16LEBOMBytes;
+	case UE_UTF16BE:
+		return (uint8*)&muiUTF16BEBOMBytes;
+	default:
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size CUnicodeReader::GetZWJLength(EUnicodeEncoding eEncoding)
 {
 	switch (eEncoding)
 	{
@@ -101,7 +148,7 @@ size CUnicodeReader::GetUTFZWJLength(EUnicodeEncoding eEncoding)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint8* CUnicodeReader::GetUTFZWJBytes(EUnicodeEncoding eEncoding)
+uint8* CUnicodeReader::GetZWJBytes(EUnicodeEncoding eEncoding)
 {
 	switch (eEncoding)
 	{
@@ -113,7 +160,7 @@ uint8* CUnicodeReader::GetUTFZWJBytes(EUnicodeEncoding eEncoding)
 	case UE_UTF16BE:
 		return (uint8*)&muiUTF16BEZWJBytes;
 	default:
-		return 0;
+		return NULL;
 	}
 }
 
