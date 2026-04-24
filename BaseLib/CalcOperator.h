@@ -55,6 +55,7 @@ enum ECalcOperator
 	CO_LessThan,
 	CO_GreaterThan,
 	CO_BitwiseNot,
+	CO_NumExplicitOperators = CO_BitwiseNot,
 
 	//Implied operators
 	CO_UnaryAdd,
@@ -62,6 +63,7 @@ enum ECalcOperator
 
 	//Special operators
 	CO_Assignment,
+	CO_NumOperators = CO_Assignment,
 };
 
 

@@ -333,7 +333,7 @@ CCalcOperator* CCalculatorParser::Operator(void)
 	mpcParser->PushPosition();
 
 	pacOperators = mpcCalculator->GetOperators();
-	uiNumOperators = CO_BitwiseNot;
+	uiNumOperators = CO_NumExplicitOperators;
 
 	for (i = CO_Invalid+1; i <= uiNumOperators; i++)
 	{
