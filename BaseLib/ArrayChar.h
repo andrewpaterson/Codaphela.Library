@@ -1,3 +1,5 @@
+#ifndef __ARRAY_CHAR_H__
+#define __ARRAY_CHAR_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2025 Andrew Paterson
@@ -20,8 +22,6 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_CHAR_H__
-#define __ARRAY_CHAR_H__
 #include "ArrayTemplatePrimitive.h"
 
 

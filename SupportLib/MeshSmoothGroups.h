@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_SMOOTH_GROUPS_H__
 #define __MESH_SMOOTH_GROUPS_H__
-#include "BaseLib/ArrayInt.h"
+#include "BaseLib/ArraySize.h"
 #include "MeshModifier.h"
 
 
@@ -40,7 +40,7 @@ class CMeshSmoothGroups : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshSmoothGroups);
 public:
-	CArrayInt				mcSmoothingGroups;  //mcSmoothingGroups.NumElements == mpcMesh->mcFaces.NumElements
+	CArraySize				mcSmoothingGroups;  //mcSmoothingGroups.NumElements == mpcMesh->mcFaces.NumElements
 	int						miAddGroup;
 	ESmoothGenerationStyle	meGenerationStyle;
 	float					mfSharpAngle;
@@ -61,8 +61,8 @@ public:
 
 	void	AddFace(int iCorner1, int iCorner2, int iCorner3);
 
-	void	RemoveFace(int iFace);
-	void	RemoveFaces(CArrayInt* paiFaces);
+	void	RemoveFace(size iFace);
+	void	RemoveFaces(CArraySize* paiFaces);
 
 	void	SetAllGroups(int iGroup);
 };

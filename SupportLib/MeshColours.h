@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_VERTEX_COLOURS_H__
 #define __MESH_VERTEX_COLOURS_H__
-#include "BaseLib/ArrayInt.h"
+#include "BaseLib/ArrayUint32.h"
 #include "MeshDefines.h"
 #include "MeshDetail.h"
 
@@ -42,7 +42,7 @@ class CMeshColours : public CMeshDetail
 CONSTRUCTABLE(CMeshColours);
 DESTRUCTABLE(CMeshColours);
 public:
-	CArrayInt				mcColours;
+	CArrayUint32			mcColours;
 	CArrayMeshFaceColours	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements.
 
 	void 	Init(void);

@@ -1,5 +1,3 @@
-#ifndef __ARRAY_UINT_H__
-#define __ARRAY_UINT_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2025 Andrew Paterson
@@ -22,10 +20,12 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#ifndef __ARRAY_SIZE_H__
+#define __ARRAY_SIZE_H__
 #include "ArrayTemplatePrimitive.h"
 
 
-class CArrayUint : public CArrayTemplatePrimitive<uint>
+class CArraySize : public CArrayTemplatePrimitive<int>
 {
 public:
 	size	FindUnusedInSorted(void);
@@ -33,5 +33,5 @@ public:
 };
 
 
-#endif // __ARRAY_UINT_H__
+#endif // __ARRAY_SIZE_H__
 

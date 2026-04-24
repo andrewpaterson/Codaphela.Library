@@ -421,7 +421,7 @@ void CMeshSmoothGroups::AddFace(int iCorner1, int iCorner2, int iCorner3)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::RemoveFace(int iFace)
+void CMeshSmoothGroups::RemoveFace(size iFace)
 {
 	mcSmoothingGroups.RemoveAt(iFace, true);
 }
@@ -431,9 +431,9 @@ void CMeshSmoothGroups::RemoveFace(int iFace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::RemoveFaces(CArrayInt* paiFaces)
+void CMeshSmoothGroups::RemoveFaces(CArraySize* paiFaces)
 {
-	mcSmoothingGroups.RemoveAt(paiFaces->GetData(), paiFaces->NumElements());
+	mcSmoothingGroups.RemoveAt((size*)paiFaces->GetData(), paiFaces->NumElements());
 }
 
 
