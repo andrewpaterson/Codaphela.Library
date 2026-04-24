@@ -1,3 +1,5 @@
+#ifndef __ARRAY_UINT_H__
+#define __ARRAY_UINT_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2025 Andrew Paterson
@@ -20,8 +22,6 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __UINT_ARRAY_H__
-#define __UINT_ARRAY_H__
 #include "ArrayTemplatePrimitive.h"
 
 
@@ -33,5 +33,5 @@ public:
 };
 
 
-#endif // __UINT_ARRAY_H__
+#endif // __ARRAY_UINT_H__
 

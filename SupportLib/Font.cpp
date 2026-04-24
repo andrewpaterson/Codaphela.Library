@@ -165,7 +165,7 @@ Ptr<CGlyph> CFont::GetGlyph(CUTF8* pcUTF8)
 	uiElementLength = pcUTF8->Peek();
 	if (uiElementLength <= 2)
 	{
-		c16 = pcUTF8->GetUint16();
+		c16 = pcUTF8->GetCodePointUint16();
 		if ((c16 != 0xFFFD) && (c16 != 0xFFFF))
 		{
 			return GetGlyph(c16);
@@ -173,7 +173,7 @@ Ptr<CGlyph> CFont::GetGlyph(CUTF8* pcUTF8)
 	}
 	else if (uiElementLength <= 4)
 	{
-		c32 = pcUTF8->GetUint32();
+		c32 = pcUTF8->GetCodePointUint32();
 		if ((c32 != 0xFFFD) && (c32 != 0xFFFF))
 		{
 			return GetGlyph(c32, uiElementLength);
@@ -181,7 +181,7 @@ Ptr<CGlyph> CFont::GetGlyph(CUTF8* pcUTF8)
 	}
 	else
 	{
-		uiElementLength = pcUTF8->GetMulti(auiBuffer, 64);
+		uiElementLength = pcUTF8->GetCodePointMulti(auiBuffer, 64);
 		if ((uiElementLength != 0) || (uiElementLength != pcUTF8->GetError()))
 		{
 			return GetGlyph(auiBuffer, uiElementLength);

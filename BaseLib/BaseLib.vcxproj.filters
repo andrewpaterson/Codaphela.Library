@@ -1764,6 +1764,9 @@
     <ClInclude Include="ArrayUint.h">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClInclude>
+    <ClInclude Include="ArraySize.h">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2838,6 +2841,9 @@
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClCompile>
     <ClCompile Include="ArrayUint.cpp">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="ArraySize.cpp">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClCompile>
   </ItemGroup>

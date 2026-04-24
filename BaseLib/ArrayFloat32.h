@@ -1,3 +1,5 @@
+#ifndef __ARRAY_FLOAT32_H__
+#define __ARRAY_FLOAT32_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2025 Andrew Paterson
@@ -20,17 +22,15 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_FLOAT_H__
-#define __ARRAY_FLOAT_H__
 #include "ArrayTemplatePrimitive.h"
 
 
-class CArrayFloat : public CArrayTemplatePrimitive<float32>
+class CArrayFloat32 : public CArrayTemplatePrimitive<float32>
 {
 public:
 	void	Dump(void);
 };
 
 
-#endif // __ARRAY_FLOAT_H__
+#endif // __ARRAY_FLOAT32_H__
 
