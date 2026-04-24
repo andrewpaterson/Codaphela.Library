@@ -41,11 +41,7 @@ void CCalculator::Init(CCalculatorSymbols* pcSymbols)
 //////////////////////////////////////////////////////////////////////////
 void CCalculator::Init(CCalculatorSymbols* pcSymbols, bool bUseUserError)
 {
-	mcErrors.Init(bUseUserError);
-
-	mcVariables.Init();
-
-	mpcSymbols = pcSymbols;
+	Init(pcSymbols, true, bUseUserError);
 }
 
 
