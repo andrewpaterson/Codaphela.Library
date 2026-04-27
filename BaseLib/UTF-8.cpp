@@ -294,7 +294,7 @@ size CUTF8::GetCodePointMulti(uint8* puiBuffer, size uiBufferLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CUTF8::Peek(void)
+size CUTF8::PeekUTFBytes(void)
 {
 	size	uiLength;
 	bool	bLastZWJ;

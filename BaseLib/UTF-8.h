@@ -45,7 +45,7 @@ public:
 	uint32	GetCodePointUint32(void) override;
 	size	GetCodePointMulti(uint8* puiBuffer, size uiBufferLength) override;
 
-	size	Peek(void) override;
+	size	PeekUTFBytes(void) override;
 
 	size	GetPosition(void) override;
 

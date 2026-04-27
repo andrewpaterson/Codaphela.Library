@@ -1,5 +1,5 @@
-#ifndef __UTF_16_H__
-#define __UTF_16_H__
+#ifndef __UNICODE_WRITER_H__
+#define __UNICODE_WRITER_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2025 Andrew Paterson
@@ -22,38 +22,21 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "Chars.h"
-#include "UnicodeReader.h"
+#include "PrimitiveTypes.h"
+#include "Killable.h"
+#include "ArrayUint8.h"
+#include "ArrayUint16.h"
 
 
-class CUTF16 : public CUnicodeReader
+class CUnicodeReader;
+class CUnicodeWriter : public CKillable
 {
-protected:
-	uint16*		mszText;  //underlying wide char array.
-	size		muiTextLength;  //count of uint16s (not bytes).
-    bool        mbLittleEndian;
-
-	size		muiPos;
-
 public:
-    void    Init(uint16* sz, size length);
-    void    Kill(void) override;
-    void    SetBigEndian(void);
-
-    bool    GetByteOrderMark(void);
-
-    uint16  GetCodePointUint16(void) override;
-    uint32  GetCodePointUint32(void) override;
-    size    GetCodePointMulti(uint8* puiBuffer, size uiBufferLength) override;
-
-    size	PeekUTFBytes(void) override;
-
-    size    GetPosition(void) override;
-
-protected:
-    size	GetUTF16ElementLength(void);
+	size WriteUTF16LE(CUnicodeReader* pcUnicodeReader, CArrayUint16* puiUTF16Dest, size uiMaxToWrite = SIZE_MAX);
+	size WriteUTF16BE(CUnicodeReader* pcUnicodeReader, CArrayUint16* puiUTF16Dest, size uiMaxToWrite = SIZE_MAX);
+	size WriteUTF8(CUnicodeReader* pcUnicodeReader, CArrayUint8* puiUTF8Dest, size uiMaxToWrite = SIZE_MAX);
 };
 
 
-#endif // __UTF_16_H__
+#endif // __UNICODE_WRITER_H__
 
