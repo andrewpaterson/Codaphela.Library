@@ -22,7 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/TextFile.h"
-#include "BaseLib/UTF-8.h"
+#include "BaseLib/UTF8.h"
 #include "StandardLib/ClassDefines.h"
 #include "SupportLib/Image.h"
 #include "SupportLib/ImageReader.h"
@@ -162,7 +162,7 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 
 	ui = 0;
 	cUTF8.Init(&szCharacters);
-	uiElementLength = cUTF8.Peek();
+	uiElementLength = cUTF8.PeekUTFBytes();
 	while ((uiElementLength != 0) && (uiElementLength != cUTF8.GetError()))
 	{
 		pCel = cCels.Get(ui);
@@ -195,7 +195,7 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 		}
 		
 		ui++;
-		uiElementLength = cUTF8.Peek();
+		uiElementLength = cUTF8.PeekUTFBytes();
 	}
 	cCels.Kill();
 	szCharacters.Kill();
