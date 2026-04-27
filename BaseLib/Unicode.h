@@ -41,6 +41,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 enum EUnicodeEncoding
 {
+	UE_Unknown,
 	UE_UTF8,
 	UE_UTF8BOM,
 	UE_UTF16LE,

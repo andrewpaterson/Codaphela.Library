@@ -39,25 +39,28 @@ public:
 	void	Init(void);
 	void	Kill(void) override;
 
-	virtual uint16  GetCodePointUint16(void) =0;  // Retuns 0xFFFD if larger than uint16
-	virtual uint32  GetCodePointUint32(void) =0;  // Retuns 0xFFFD if larger than uint32
-	virtual size    GetCodePointMulti(uint8* puiBuffer, size uiBufferLength) =0;
+	virtual uint16				GetCodePointUint16(void) =0;  // Retuns 0xFFFD if larger than uint16
+	virtual uint32				GetCodePointUint32(void) =0;  // Retuns 0xFFFD if larger than uint32
+	virtual size				GetCodePointMulti(uint8* puiBuffer, size uiBufferLength) =0;
 
-	virtual size	PeekUTFBytes(void) =0;
+	virtual void*				GetCurrentData(void) =0;
+	virtual bool				GetByteOrderMark(void) =0;
 
-	virtual size    GetPosition(void) =0;
+	virtual size				PeekUTFBytes(void) =0;
 
-			size	GetZWJLength(EUnicodeEncoding eEncoding);
-			uint8*	GetZWJBytes(EUnicodeEncoding eEncoding);
-			size	GetBOMLength(EUnicodeEncoding eEncoding);
-			uint8*	GetBOMBytes(EUnicodeEncoding eEncoding);
+	virtual size				GetPosition(void) =0;
 
-			bool	IsTooSmallOrError(uint16 ui);
-			bool	IsError(uint16 ui);
-			bool	IsTooSmall(uint16 ui);
+			size				GetZWJLength(EUnicodeEncoding eEncoding);
+			uint8*				GetZWJBytes(EUnicodeEncoding eEncoding);
+			size				GetBOMLength(EUnicodeEncoding eEncoding);
+			uint8*				GetBOMBytes(EUnicodeEncoding eEncoding);
 
-			uint32	MakeCodePointUint32FromBuffer(uint8* puiCodePointBuffer, size uiBufferLength);
-			uint16	MakeCodePointUint16FromBuffer(uint8* puiCodePointBuffer, size uiBufferLength);
+			bool				IsTooSmallOrError(uint16 ui);
+			bool				IsError(uint16 ui);
+			bool				IsTooSmall(uint16 ui);
+
+			uint32				MakeCodePointUint32FromBuffer(uint8* puiCodePointBuffer, size uiBufferLength);
+			uint16				MakeCodePointUint16FromBuffer(uint8* puiCodePointBuffer, size uiBufferLength);
 
 };
 

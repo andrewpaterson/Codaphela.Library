@@ -1,15 +1,15 @@
-#include "UTF-16.h"
+#include "UTF16.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CUTF16::Init(uint16* sz, size length)
+void CUTF16::Init(uint16* sz, size uiLength)
 {
     CUnicodeReader::Init();
     mszText = sz;
-    muiTextLength = length;
+    muiTextLength = uiLength;
     muiPos = 0;
     mbLittleEndian = true;
 }
@@ -62,6 +62,16 @@ bool CUTF16::GetByteOrderMark(void)
     {
         return false;
     }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void* CUTF16::GetCurrentData(void)
+{
+    return (&mszText[muiPos]);
 }
 
 
