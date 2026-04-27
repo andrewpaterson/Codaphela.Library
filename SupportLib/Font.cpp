@@ -22,7 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ClassDefines.h"
-#include "BaseLib/UTF-8.h"
+#include "BaseLib/UTF8.h"
 #include "ImageCopier.h"
 #include "ImageAccessorCreator.h"
 #include "Font.h"
@@ -162,7 +162,7 @@ Ptr<CGlyph> CFont::GetGlyph(CUTF8* pcUTF8)
 	uint8			auiBuffer[64];
 	size			uiElementLength;
 
-	uiElementLength = pcUTF8->Peek();
+	uiElementLength = pcUTF8->PeekUTFBytes();
 	if (uiElementLength <= 2)
 	{
 		c16 = pcUTF8->GetCodePointUint16();
@@ -207,7 +207,7 @@ size CFont::Width(char* szText)
 	ui = 0;
 	iWidth = 0;
 	cUTF8.Init(szText);
-	uiUTFElementLength = cUTF8.Peek();
+	uiUTFElementLength = cUTF8.PeekUTFBytes();
 	while ((uiUTFElementLength != 0) && (uiUTFElementLength != cUTF8.GetError()))
 	{
 		pGlyph = GetGlyph(&cUTF8);
@@ -217,7 +217,7 @@ size CFont::Width(char* szText)
 			iWidth += pGlyph->GetFullWidth();
 			ui++;
 		}
-		uiUTFElementLength = cUTF8.Peek();
+		uiUTFElementLength = cUTF8.PeekUTFBytes();
 	}
 	return iWidth;
 }
