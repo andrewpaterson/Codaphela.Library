@@ -1722,7 +1722,7 @@
     <ClInclude Include="CharsImmutable.h">
       <Filter>Source\Data\String</Filter>
     </ClInclude>
-    <ClInclude Include="UTF-8.h">
+    <ClInclude Include="UTF8.h">
       <Filter>Source\Text\Encoding</Filter>
     </ClInclude>
     <ClInclude Include="IndexPtr.h">
@@ -1737,7 +1737,7 @@
     <ClInclude Include="Unicode.h">
       <Filter>Source\Text\Encoding</Filter>
     </ClInclude>
-    <ClInclude Include="UTF-16.h">
+    <ClInclude Include="UTF16.h">
       <Filter>Source\Text\Encoding</Filter>
     </ClInclude>
     <ClInclude Include="ArrayUint16.h">
@@ -2804,7 +2804,7 @@
     <ClCompile Include="CharsImmutable.cpp">
       <Filter>Source\Data\String</Filter>
     </ClCompile>
-    <ClCompile Include="UTF-8.cpp">
+    <ClCompile Include="UTF8.cpp">
       <Filter>Source\Text\Encoding</Filter>
     </ClCompile>
     <ClCompile Include="IndexPtr.cpp">
@@ -2813,7 +2813,7 @@
     <ClCompile Include="Unicode.cpp">
       <Filter>Source\Text\Encoding</Filter>
     </ClCompile>
-    <ClCompile Include="UTF-16.cpp">
+    <ClCompile Include="UTF16.cpp">
       <Filter>Source\Text\Encoding</Filter>
     </ClCompile>
     <ClCompile Include="ArrayUint16.cpp">

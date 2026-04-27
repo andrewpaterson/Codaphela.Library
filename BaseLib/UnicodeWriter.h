@@ -23,18 +23,33 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "PrimitiveTypes.h"
-#include "Killable.h"
 #include "ArrayUint8.h"
 #include "ArrayUint16.h"
+#include "Unicode.h"
 
 
 class CUnicodeReader;
-class CUnicodeWriter : public CKillable
+class CUnicodeWriter
 {
+private:
+	EUnicodeEncoding	meOutputEncoding;
+	CUnicodeReader*		mpcReader;
+	CArrayBlock*		mpauiDest;
+
 public:
-	size WriteUTF16LE(CUnicodeReader* pcUnicodeReader, CArrayUint16* puiUTF16Dest, size uiMaxToWrite = SIZE_MAX);
-	size WriteUTF16BE(CUnicodeReader* pcUnicodeReader, CArrayUint16* puiUTF16Dest, size uiMaxToWrite = SIZE_MAX);
-	size WriteUTF8(CUnicodeReader* pcUnicodeReader, CArrayUint8* puiUTF8Dest, size uiMaxToWrite = SIZE_MAX);
+	void	Init(CUnicodeReader* pcReader, EUnicodeEncoding eEncoding, CArrayBlock* pauiDest);
+	void	Kill(void);
+
+	bool	ReadBOM(void);
+
+	bool	WriteBOM(void);
+	int		WriteCharacters(size uiMaxToWrite = SIZE_MAX);
+
+
+protected:
+	size	WriteUTF16LE(CUnicodeReader* pcUnicodeReader, CArrayUint16* puiUTF16Dest, size uiMaxToWrite);
+	size	WriteUTF16BE(CUnicodeReader* pcUnicodeReader, CArrayUint16* puiUTF16Dest, size uiMaxToWrite);
+	size	WriteUTF8(CUnicodeReader* pcUnicodeReader, CArrayUint8* puiUTF8Dest, size uiMaxToWrite);
 };
 
 

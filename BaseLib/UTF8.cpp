@@ -1,4 +1,4 @@
-#include "UTF-8.h"
+#include "UTF8.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -23,6 +23,19 @@ void CUTF8::Init(char* sz)
 	CUnicodeReader::Init();
 	mszText = (uint8*)sz;
 	muiTextLength = StrLen(sz);
+	muiPos = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CUTF8::Init(uint8* sz, size uiLength)
+{
+	CUnicodeReader::Init();
+	mszText = sz;
+	muiTextLength = uiLength;
 	muiPos = 0;
 }
 
@@ -59,6 +72,16 @@ bool CUTF8::GetByteOrderMark(void)
 	{
 		return false;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void* CUTF8::GetCurrentData(void)
+{
+	return (&mszText[muiPos]);
 }
 
 

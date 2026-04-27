@@ -36,11 +36,12 @@ protected:
 	size		muiPos;
 
 public:
-    void    Init(uint16* sz, size length);
+    void    Init(uint16* sz, size uiLength);
     void    Kill(void) override;
     void    SetBigEndian(void);
 
     bool    GetByteOrderMark(void);
+    void*   GetCurrentData(void);
 
     uint16  GetCodePointUint16(void) override;
     uint32  GetCodePointUint32(void) override;

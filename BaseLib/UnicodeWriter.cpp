@@ -7,6 +7,98 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CUnicodeWriter::Init(CUnicodeReader* pcReader, EUnicodeEncoding eEncoding, CArrayBlock* pauiDest)
+{
+	mpcReader = pcReader;
+	meOutputEncoding = eEncoding;
+	mpauiDest = pauiDest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CUnicodeWriter::Kill(void)
+{
+	mpcReader = NULL;
+	meOutputEncoding = UE_Unknown;
+	mpauiDest = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CUnicodeWriter::ReadBOM(void)
+{
+	return mpcReader->GetByteOrderMark();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CUnicodeWriter::WriteBOM(void)
+{
+	switch (meOutputEncoding)
+	{
+	case UE_UTF8:
+	case UE_UTF8BOM:
+		((CArrayUint8*)mpauiDest)->InsertBlockAfterEnd((uint8*)mpcReader->GetBOMBytes(meOutputEncoding), mpcReader->GetBOMLength(meOutputEncoding));
+		return true;
+	case UE_UTF16LE:
+	case UE_UTF16BE:
+		((CArrayUint16*)mpauiDest)->InsertBlockAfterEnd((uint16*)mpcReader->GetBOMBytes(meOutputEncoding), mpcReader->GetBOMLength(meOutputEncoding) / sizeof(uint16));
+		return true;
+	default:
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CUnicodeWriter::WriteCharacters(size uiMaxToWrite)
+{
+	size uiNumWritten;
+
+	switch (meOutputEncoding)
+	{
+	case UE_UTF8:
+	case UE_UTF8BOM:
+		uiNumWritten = WriteUTF8(mpcReader, ((CArrayUint8*)mpauiDest), uiMaxToWrite);
+		break;
+	case UE_UTF16LE:
+		uiNumWritten = WriteUTF16LE(mpcReader, ((CArrayUint16*)mpauiDest), uiMaxToWrite);
+		break;
+	case UE_UTF16BE:
+		uiNumWritten = WriteUTF16BE(mpcReader, ((CArrayUint16*)mpauiDest), uiMaxToWrite);
+		break;
+	default:
+		return 0;
+	}
+
+	if (uiNumWritten == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return 0;
+	}
+	if (uiNumWritten >= uiMaxToWrite)
+	{
+		return 1;
+	}
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 size CUnicodeWriter::WriteUTF16LE(CUnicodeReader* pcUnicodeReader, CArrayUint16* puiUTF16Dest, size uiMaxToWrite)
 {
 	uint32				cCodePoint32;
@@ -134,7 +226,6 @@ size CUnicodeWriter::WriteUTF8(CUnicodeReader* pcUnicodeReader, CArrayUint8* pui
 	uint8*				puiCodePoint;
 	size				uiCodePointsLength;
 	size				uiCodePointLength;
-	CArrayUint8			auiUTF8Dest;
 	size				uiNumWritten;
 
 	uiNumWritten = 0;
@@ -156,12 +247,12 @@ size CUnicodeWriter::WriteUTF8(CUnicodeReader* pcUnicodeReader, CArrayUint8* pui
 				if (uiUTF8Length == 1)
 				{
 					uiNumWritten++;
-					auiUTF8Dest.Push((uint8)cUTF8Element16);
+					puiUTF8Dest->Push((uint8)cUTF8Element16);
 				}
 				else
 				{
 					uiNumWritten += uiUTF8Length;
-					auiUTF8Dest.InsertBlockAfterEnd((uint8*)&cUTF8Element16, uiUTF8Length);
+					puiUTF8Dest->InsertBlockAfterEnd((uint8*)&cUTF8Element16, uiUTF8Length);
 				}
 			}
 			else if (uiUTF8Length <= 4)
@@ -175,12 +266,12 @@ size CUnicodeWriter::WriteUTF8(CUnicodeReader* pcUnicodeReader, CArrayUint8* pui
 				if (uiUTF8Length == 1)
 				{
 					uiNumWritten++;
-					auiUTF8Dest.Push((uint8)cUTF8Element32);
+					puiUTF8Dest->Push((uint8)cUTF8Element32);
 				}
 				else
 				{
 					uiNumWritten += uiUTF8Length;
-					auiUTF8Dest.InsertBlockAfterEnd((uint8*)&cUTF8Element32, uiUTF8Length);
+					puiUTF8Dest->InsertBlockAfterEnd((uint8*)&cUTF8Element32, uiUTF8Length);
 				}
 			}
 		}
@@ -198,12 +289,12 @@ size CUnicodeWriter::WriteUTF8(CUnicodeReader* pcUnicodeReader, CArrayUint8* pui
 				if (uiUTF8Length == 1)
 				{
 					uiNumWritten++;
-					auiUTF8Dest.Push((uint8)cUTF8Element32);
+					puiUTF8Dest->Push((uint8)cUTF8Element32);
 				}
 				else
 				{
 					uiNumWritten += uiUTF8Length;
-					auiUTF8Dest.InsertBlockAfterEnd((uint8*)&cUTF8Element32, uiUTF8Length);
+					puiUTF8Dest->InsertBlockAfterEnd((uint8*)&cUTF8Element32, uiUTF8Length);
 				}
 
 				puiCodePoint = (uint8*)NextString((char*)puiCodePoint);
@@ -215,7 +306,7 @@ size CUnicodeWriter::WriteUTF8(CUnicodeReader* pcUnicodeReader, CArrayUint8* pui
 
 				uiUTF8Length = pcUnicodeReader->GetZWJLength(UE_UTF8);
 				uiNumWritten += uiUTF8Length;
-				auiUTF8Dest.InsertBlockAfterEnd(pcUnicodeReader->GetZWJBytes(UE_UTF8), uiUTF8Length);
+				puiUTF8Dest->InsertBlockAfterEnd(pcUnicodeReader->GetZWJBytes(UE_UTF8), uiUTF8Length);
 				uiCodePointsLength -= (uiCodePointLength + 1);
 			}
 		}

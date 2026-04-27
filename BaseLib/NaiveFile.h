@@ -49,7 +49,8 @@ public:
 	void*		Get(void);
 	void*		Get(int iOffset);
 	void		Set(void* pvMem, size iSize);
-	filePos		Size();
+	filePos		Size(void);
+	filePos		Length(void);
 
 	int			Compare(void* pvOther, size iSize);
 };
