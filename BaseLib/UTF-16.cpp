@@ -227,7 +227,7 @@ size CUTF16::GetCodePointMulti(uint8* puiBuffer, size uiBufferLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CUTF16::Peek(void)
+size CUTF16::PeekUTFBytes(void)
 {
     size	uiLength;
     bool	bLastZWJ;
@@ -261,7 +261,7 @@ size CUTF16::Peek(void)
             else
             {
                 muiPos = uiStartPos;
-                return uiTotalLength;
+                return uiTotalLength * sizeof(uint16);
             }
             bLastZWJ = false;
         }

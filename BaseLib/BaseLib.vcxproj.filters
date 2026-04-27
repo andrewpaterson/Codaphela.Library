@@ -1767,6 +1767,9 @@
     <ClInclude Include="ArraySize.h">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClInclude>
+    <ClInclude Include="UnicodeWriter.h">
+      <Filter>Source\Text\Encoding</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2845,6 +2848,9 @@
     </ClCompile>
     <ClCompile Include="ArraySize.cpp">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="UnicodeWriter.cpp">
+      <Filter>Source\Text\Encoding</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
