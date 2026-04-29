@@ -1,4 +1,3 @@
-#include "BaseLib/NaiveFile.h"
 #include "BaseLib/UnicodeWriter.h"
 #include "BaseLib/UTF8.h"
 #include "BaseLib/UTF16.h"
@@ -13,6 +12,7 @@
 void CSimpleTextReader::Init(CFont* pcFont)
 {
 	mpcFont = pcFont;
+	mcFile.Init();
 }
 
 
@@ -22,6 +22,7 @@ void CSimpleTextReader::Init(CFont* pcFont)
 //////////////////////////////////////////////////////////////////////////
 void CSimpleTextReader::Kill(void)
 {
+	mcFile.Kill();
 	mpcFont = NULL;
 }
 
@@ -32,25 +33,24 @@ void CSimpleTextReader::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CUnicodeReader* CSimpleTextReader::CreateReader(char* szFilename)
 {
-	CUTF8* pcUTF8;
-	CUTF16* pcUTF16;
-	CNaiveFile			cFile;
+	CUTF8*				pcUTF8;
+	CUTF16*				pcUTF16;
 	bool				bResult;
-	void* pvData;
+	void*				pvData;
 	size				uiLength;
 	EUnicodeEncoding	eEncoding;
-	CUnicodeReader* pcReader;
+	CUnicodeReader*		pcReader;
 
-	cFile.Init();
-	bResult = cFile.Read(szFilename);
+	mcFile.Init();
+	bResult = mcFile.Read(szFilename);
 	if (!bResult)
 	{
-		cFile.Kill();
+		mcFile.Kill();
 		return NULL;
 	}
 
-	pvData = cFile.Get();
-	uiLength = (size)cFile.Length();
+	pvData = mcFile.Get();
+	uiLength = (size)mcFile.Length();
 
 	eEncoding = GetUnicodeEncoding(pvData, uiLength);
 	if (eEncoding == UE_UTF8 || eEncoding == UE_UTF8BOM)
@@ -64,7 +64,7 @@ CUnicodeReader* CSimpleTextReader::CreateReader(char* szFilename)
 			{
 				pcUTF8->Kill();
 				free(pcUTF8);
-				cFile.Kill();
+				mcFile.Kill();
 				return NULL;
 			}
 		}
@@ -79,14 +79,14 @@ CUnicodeReader* CSimpleTextReader::CreateReader(char* szFilename)
 		{
 			pcUTF16->Kill();
 			free(pcUTF16);
-			cFile.Kill();
+			mcFile.Kill();
 			return NULL;
 		}
 		pcReader = pcUTF16;
 	}
 	else
 	{
-		cFile.Kill();
+		mcFile.Kill();
 		pcReader = NULL;
 	}
 
@@ -128,6 +128,8 @@ Ptr<CText> CSimpleTextReader::Read(char* szFilename)
 			cCodePoint32 = pcUnicodeReader->GetCodePointUint32();
 			if (pcUnicodeReader->IsError(cCodePoint32))
 			{
+				cTextBuilder.Kill();
+				SafeKill(pcUnicodeReader);
 				return NULL;
 			}
 
@@ -136,6 +138,8 @@ Ptr<CText> CSimpleTextReader::Read(char* szFilename)
 				bResult = cTextBuilder.PushNewLine();
 				if (!bResult)
 				{
+					cTextBuilder.Kill();
+					SafeKill(pcUnicodeReader);
 					return NULL;
 				}
 			}
@@ -148,6 +152,8 @@ Ptr<CText> CSimpleTextReader::Read(char* szFilename)
 				bResult = cTextBuilder.Push(cCodePoint32);
 				if (!bResult)
 				{
+					cTextBuilder.Kill();
+					SafeKill(pcUnicodeReader);
 					return NULL;
 				}
 			}
@@ -158,6 +164,8 @@ Ptr<CText> CSimpleTextReader::Read(char* szFilename)
 			bResult = cTextBuilder.Push(auiBuffer, uiCodePointsLength);
 			if (!bResult)
 			{
+				cTextBuilder.Kill();
+				SafeKill(pcUnicodeReader);
 				return NULL;
 			}
 		}
@@ -170,6 +178,8 @@ Ptr<CText> CSimpleTextReader::Read(char* szFilename)
 	{
 		return NULL;
 	}
+
+	SafeKill(pcUnicodeReader);
 	cTextBuilder.Kill();
 
 	return pText;

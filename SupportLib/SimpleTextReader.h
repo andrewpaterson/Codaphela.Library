@@ -23,6 +23,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/NaiveFile.h"
 #include "Font.h"
 #include "Text.h"
 
@@ -30,7 +31,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CSimpleTextReader
 {
 protected:
-	CFont*	mpcFont;
+	CFont*			mpcFont;
+	CNaiveFile		mcFile;
 
 public:
 	void				Init(CFont* pcFont);

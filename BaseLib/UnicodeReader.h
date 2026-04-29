@@ -61,7 +61,6 @@ public:
 
 			uint32	MakeCodePointUint32FromBuffer(uint8* puiCodePointBuffer, size uiBufferLength);
 			uint16	MakeCodePointUint16FromBuffer(uint8* puiCodePointBuffer, size uiBufferLength);
-
 };
 
 

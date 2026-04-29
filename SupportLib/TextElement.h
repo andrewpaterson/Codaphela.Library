@@ -27,7 +27,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ObjectWriter.h"
 
 
-class CTextElement : public CKillable
+class CTextElement : public CConstructable, public CKillable
 {
 CONSTRUCTABLE(CTextElement)
 protected:
