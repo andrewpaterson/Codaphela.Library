@@ -31,9 +31,11 @@ enum ETextRunRelativeDirection
 	TRRD_Down,
 };
 
-class CTextRunUTF16Short;
-class CTextRunUTF16Long;
-class CTextRunUTF16Multi;
+
+class CTextUTF16Short;
+class CTextUTF16Long;
+class CTextUTF16Multi;
+class CTextNewLine;
 class CText : public CObject
 {
 CONSTRUCTABLE(CText)
@@ -55,10 +57,16 @@ public:
 
 	CMallocator*			GetMalloc(void);
 
-protected:
-	CTextRunUTF16Short*		AllocateUTF16Short(size uiNumShorts);
-	CTextRunUTF16Long*		AllocateUTF16Long(size uiNumLongs);
-	CTextRunUTF16Multi*		AllocateUTF16Multi(size uiNumShorts);
+	CTextRun*				AllocateRun(CFont* pcFont);
+
+	CTextUTF16Short*		AllocateUTF16Short(size uiNumShorts, uint16* puiData);
+	CTextUTF16Long*			AllocateUTF16Long(size uiNumLongs, uint32* puiData);
+	CTextUTF16Multi*		AllocateUTF16Multi(size uiByteSize, void* pvData);
+
+	CTextNewLine*			AllocateNewLine(void);
+
+	size					NumRuns(void);
+	CTextRun*				GetRun(size uiIndex);
 };
 
 

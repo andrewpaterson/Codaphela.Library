@@ -1,5 +1,5 @@
-#ifndef __TEXT_RUN_UTF16_MULTI_H__
-#define __TEXT_RUN_UTF16_MULTI_H__
+#ifndef __TEXT_NEWLINE_H__
+#define __TEXT_NEWLINE_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -20,22 +20,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "TextRunCommon.h"
+#include "TextElement.h"
 
 
-//Multi is a single, multi-code point glyph.  i.e. it's a number of codepoints connected with ZWJs (zero width joiner).
-class CTextRunUTF16Multi : public CTextRunCommon
+class CTextNewLine : public CTextElement
 {
-CONSTRUCTABLE(CTextRunUTF16Multi);
-protected:
+CONSTRUCTABLE(CTextNewLine);
 public:
-	void		Init(size uiNumShorts);
-	uint16*		GetChar(void);
+	void		Init(void);
 
 	bool		Load(CObjectReader* pcFile) override;
 	bool		Save(CObjectWriter* pcFile) override;
+
+	bool		IsNewLine(void) override;
 };
 
 
-#endif // __TEXT_RUN_UTF16_MULTI_H__
+#endif // __TEXT_NEWLINE_H__
 

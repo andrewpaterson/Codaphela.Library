@@ -20,19 +20,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "TextRunCommon.h"
+#include "TextDrawable.h"
 
 
-class CTextRunUTF16Long : public CTextRunCommon
+class CTextUTF16Long : public CTextDrawable
 {
-CONSTRUCTABLE(CTextRunUTF16Long);
+CONSTRUCTABLE(CTextUTF16Long);
 protected:
 public:
 	void		Init(size uiNumChars);
 	uint32*		GetChars(void);  //This can include UTF16 encoded two byte characters padded to 4 bytes if that uses less memory.
+	void		Copy(uint32* puiData);
 
 	bool		Load(CObjectReader* pcFile) override;
 	bool		Save(CObjectWriter* pcFile) override;
+
+	bool		IsUTF16Long(void) override;
 };
 
 

@@ -1,5 +1,5 @@
-#ifndef __MESH_FACE_RETURN_H__
-#define __MESH_FACE_RETURN_H__
+#ifndef __SIMPLE_TEXT_READER_H__
+#define __SIMPLE_TEXT_READER_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2012 Andrew Paterson
@@ -23,30 +23,25 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/PrimitiveTypes.h"
+#include "Font.h"
+#include "Text.h"
 
 
-class CMFRet
+class CSimpleTextReader
 {
+protected:
+	CFont*	mpcFont;
+
 public:
-	int				miFirstFace;
-	uint8	manCorners[4];
+	void				Init(CFont* pcFont);
+	void				Kill(void);
 
-	void	PackEmpty(void);
-	void	Pack(int iFirstFace, int iCorner1, int iCorner2, int iCorner3, int iNewEdges);
-	void	Pack(int iFirstFace, int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iCorner5, int iCorner6, int iNewEdges);
-	void	Pack2(CMFRet r2);
-	void	Repack(int iCorner1, int iCorner2, int iCorner3);
-	void	Repack(int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iCorner5, int iCorner6);
-	void	PackOverflow(void);
+	Ptr<CText>			Read(char* szFilename);
 
-	int		NumFaces(void);  //A value of 3 implies that this structure has overflowed.  Result is elsewhere.
-	int		NewEdges(void);
-
-	void	Unpack1(int* piCorner1, int* piCorner2, int* piCorner3);
-	void	Unpack2(int* piCorner4, int* piCorner5, int* piCorner6);
+protected:
+	CUnicodeReader*		CreateReader(char* szFilename);
 };
 
 
-#endif // __MESH_FACE_RETURN_H__
+#endif // __SIMPLE_TEXT_READER_H__
 

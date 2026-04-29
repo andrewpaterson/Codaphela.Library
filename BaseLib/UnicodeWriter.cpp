@@ -7,10 +7,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnicodeWriter::Init(CUnicodeReader* pcReader, EUnicodeEncoding eEncoding, CArrayBlock* pauiDest)
+void CUnicodeWriter::Init(CUnicodeReader* pcReader, EUnicodeEncoding eOutputEncoding, CArrayBlock* pauiDest)
 {
 	mpcReader = pcReader;
-	meOutputEncoding = eEncoding;
+	meOutputEncoding = eOutputEncoding;
 	mpauiDest = pauiDest;
 }
 
@@ -101,22 +101,22 @@ int CUnicodeWriter::WriteCharacters(size uiMaxToWrite)
 //////////////////////////////////////////////////////////////////////////
 size CUnicodeWriter::WriteUTF16LE(CUnicodeReader* pcUnicodeReader, CArrayUint16* puiUTF16Dest, size uiMaxToWrite)
 {
-	uint32				cCodePoint32;
-	uint16				cUTF16Element16;
-	uint32				cUTF16Element32;
-	size				uiUTFLength;
-	size				uiUTF16Length;
-	uint8				auiBuffer[0x13];
-	uint8*				puiCodePoint;
-	size				uiCodePointsLength;
-	size				uiCodePointLength;
-	size				uiNumWritten;
+	uint32	cCodePoint32;
+	uint16	cUTF16Element16;
+	uint32	cUTF16Element32;
+	size	uiUTFLength;
+	size	uiUTF16Length;
+	uint8	auiBuffer[0x13];
+	uint8*	puiCodePoint;
+	size	uiCodePointsLength;
+	size	uiCodePointLength;
+	size	uiNumWritten;
 	
 	uiNumWritten = 0;
 	uiUTFLength = pcUnicodeReader->PeekUTFBytes();
 	while ((uiUTFLength != 0) && (uiNumWritten < uiMaxToWrite))
 	{
-		if (uiUTFLength <= 2)
+		if (uiUTFLength <= 4)
 		{
 			cCodePoint32 = pcUnicodeReader->GetCodePointUint32();
 			uiUTF16Length = pcUnicodeReader->GetUTF16Length(cCodePoint32);
@@ -158,10 +158,19 @@ size CUnicodeWriter::WriteUTF16LE(CUnicodeReader* pcUnicodeReader, CArrayUint16*
 					puiUTF16Dest->InsertBlockAfterEnd((uint16*)&cUTF16Element32, uiUTF16Length);
 				}
 			}
+			else if (mpcReader->IsError(uiUTF16Length))
+			{
+				return ARRAY_ELEMENT_NOT_FOUND;
+			}
 		}
 		else
 		{
 			uiCodePointsLength = pcUnicodeReader->GetCodePointMulti(auiBuffer, 0x13);
+			if (uiCodePointsLength == 0)
+			{
+				return ARRAY_ELEMENT_NOT_FOUND;
+			}
+
 			puiCodePoint = auiBuffer;
 			for (;;)
 			{
@@ -217,16 +226,16 @@ size CUnicodeWriter::WriteUTF16BE(CUnicodeReader* pcUnicodeReader, CArrayUint16*
 //////////////////////////////////////////////////////////////////////////
 size CUnicodeWriter::WriteUTF8(CUnicodeReader* pcUnicodeReader, CArrayUint8* puiUTF8Dest, size uiMaxToWrite)
 {
-	uint32				cCodePoint32;
-	uint16				cUTF8Element16;
-	uint32				cUTF8Element32;
-	size				uiUTFLength;
-	size				uiUTF8Length;
-	uint8				auiBuffer[0x13];
-	uint8*				puiCodePoint;
-	size				uiCodePointsLength;
-	size				uiCodePointLength;
-	size				uiNumWritten;
+	uint32	cCodePoint32;
+	uint16	cUTF8Element16;
+	uint32	cUTF8Element32;
+	size	uiUTFLength;
+	size	uiUTF8Length;
+	uint8	auiBuffer[0x13];
+	uint8*	puiCodePoint;
+	size	uiCodePointsLength;
+	size	uiCodePointLength;
+	size	uiNumWritten;
 
 	uiNumWritten = 0;
 	uiUTFLength = pcUnicodeReader->PeekUTFBytes();

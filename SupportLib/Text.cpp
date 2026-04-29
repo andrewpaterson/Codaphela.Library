@@ -21,9 +21,10 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/UTF16.h"
 #include "StandardLib/ClassDefines.h"
-#include "TextRunUTF16Long.h"
-#include "TextRunUTF16Short.h"
-#include "TextRunUTF16Multi.h"
+#include "TextUTF16Long.h"
+#include "TextUTF16Short.h"
+#include "TextUTF16Multi.h"
+#include "TextNewLine.h"
 #include "Text.h"
 
 
@@ -122,14 +123,13 @@ CMallocator* CText::GetMalloc(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTextRunUTF16Short* CText::AllocateUTF16Short(size uiNumShorts)
+CTextRun* CText::AllocateRun(CFont* pcFont)
 {
-	CTextRunUTF16Short*		pcUTF16Short;
+	CTextRun*	pcTextRun;
 
-	pcUTF16Short = (CTextRunUTF16Short*)mpcMalloc->Malloc(sizeof(CTextRunUTF16Short) + (uiNumShorts * sizeof(uint16)));
-	New<CTextRunUTF16Short>(pcUTF16Short);
-	pcUTF16Short->Init(uiNumShorts);
-	return pcUTF16Short;
+	pcTextRun = macText.Add();
+	pcTextRun->Init(pcFont, this);
+	return pcTextRun;
 }
 
 
@@ -137,14 +137,19 @@ CTextRunUTF16Short* CText::AllocateUTF16Short(size uiNumShorts)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTextRunUTF16Long* CText::AllocateUTF16Long(size uiNumLongs)
+CTextUTF16Short* CText::AllocateUTF16Short(size uiNumShorts, uint16* puiData)
 {
-	CTextRunUTF16Long* pcUTF16Long;
+	CTextUTF16Short*		pcUTF16Short;
 
-	pcUTF16Long = (CTextRunUTF16Long*)mpcMalloc->Malloc(sizeof(CTextRunUTF16Long) + (uiNumLongs * sizeof(uint16)));
-	New<CTextRunUTF16Long>(pcUTF16Long);
-	pcUTF16Long->Init(uiNumLongs);
-	return pcUTF16Long;
+	pcUTF16Short = (CTextUTF16Short*)mpcMalloc->Malloc(sizeof(CTextUTF16Short) + (uiNumShorts * sizeof(uint16)));
+	if (pcUTF16Short)
+	{
+		New<CTextUTF16Short>(pcUTF16Short);
+		pcUTF16Short->Init(uiNumShorts);
+		pcUTF16Short->Copy(puiData);
+		return pcUTF16Short;
+	}
+	return NULL;
 }
 
 
@@ -152,13 +157,78 @@ CTextRunUTF16Long* CText::AllocateUTF16Long(size uiNumLongs)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTextRunUTF16Multi* CText::AllocateUTF16Multi(size uiNumShorts)
+CTextUTF16Long* CText::AllocateUTF16Long(size uiNumLongs, uint32* puiData)
 {
-	CTextRunUTF16Multi* pcUTF16Multi;
+	CTextUTF16Long*		pcUTF16Long;
 
-	pcUTF16Multi = (CTextRunUTF16Multi*)mpcMalloc->Malloc(sizeof(CTextRunUTF16Multi) + (uiNumShorts * sizeof(uint16)));
-	New<CTextRunUTF16Multi>(pcUTF16Multi);
-	pcUTF16Multi->Init(uiNumShorts);
-	return pcUTF16Multi;
+	pcUTF16Long = (CTextUTF16Long*)mpcMalloc->Malloc(sizeof(CTextUTF16Long) + (uiNumLongs * sizeof(uint32)));
+	if (pcUTF16Long)
+	{
+		New<CTextUTF16Long>(pcUTF16Long);
+		pcUTF16Long->Init(uiNumLongs);
+		pcUTF16Long->Copy(puiData);
+		return pcUTF16Long;
+	}
+	return NULL;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CTextUTF16Multi* CText::AllocateUTF16Multi(size uiByteSize, void* pvData)
+{
+	CTextUTF16Multi*		pcUTF16Multi;
+
+	pcUTF16Multi = (CTextUTF16Multi*)mpcMalloc->Malloc(sizeof(CTextUTF16Multi) + uiByteSize);
+	if (pcUTF16Multi)
+	{
+		New<CTextUTF16Multi>(pcUTF16Multi);
+		pcUTF16Multi->Init(uiByteSize);
+		pcUTF16Multi->Copy(pvData);
+		return pcUTF16Multi;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CTextNewLine* CText::AllocateNewLine(void)
+{
+	CTextNewLine*	pcNewLine;
+
+	pcNewLine = (CTextNewLine*)mpcMalloc->Malloc(sizeof(CTextUTF16Multi));
+	if (pcNewLine)
+	{
+		New<CTextNewLine>(pcNewLine);
+		pcNewLine->Init();
+		return pcNewLine;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CText::NumRuns(void)
+{
+	return macText.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CTextRun* CText::GetRun(size uiIndex)
+{
+	return macText.Get(uiIndex);
+}
+
 

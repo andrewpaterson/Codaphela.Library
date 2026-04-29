@@ -318,35 +318,60 @@ uint32 CUnicode::GetUTF16ElementUint32(uint32 uiCodePoint)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-EUnicodeEncoding CUnicode::GetEncoding(void* puiData)
+size CUnicode::GetError(void) { return muiError; }
+uint16 CUnicode::GetZWJCodePoint(void) { return muiZWJ; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+EUnicodeEncoding GetUnicodeEncoding(void* puiData, size uiDataLength)
 {
-	uint32 uiData;
+	uint32	uiData32;
+	uint16	uiData16;
 
-	uiData = *((uint32*)puiData);
-
-	if ((uiData & UTF8_BOM_MASK) == UTF8_BOM)
-	{
-		return UE_UTF8BOM;
-	}
-	else if ((uiData & UTF16_BOM_MASK) == UTF16_LITTLE_ENDIAN_BOM)
-	{
-		return UE_UTF16LE;
-	}
-	else if ((uiData & UTF16_BOM_MASK) == UTF16_BIG_ENDIAN_BOM)
-	{
-		return UE_UTF16BE;
-	}
-	else
+	if (uiDataLength <= 1)
 	{
 		return UE_UTF8;
 	}
+	else if (uiDataLength == 2)
+	{
+		uiData16 = *((uint16*)puiData);
+
+		if ((uiData16 & UTF16_BOM_MASK) == UTF16_LITTLE_ENDIAN_BOM)
+		{
+			return UE_UTF16LE;
+		}
+		else if ((uiData16 & UTF16_BOM_MASK) == UTF16_BIG_ENDIAN_BOM)
+		{
+			return UE_UTF16BE;
+		}
+		else
+		{
+			return UE_UTF8;
+		}
+	}
+	else
+	{
+		uiData32 = *((uint32*)puiData);
+
+		if ((uiData32 & UTF8_BOM_MASK) == UTF8_BOM)
+		{
+			return UE_UTF8BOM;
+		}
+		else if ((uiData32 & UTF16_BOM_MASK) == UTF16_LITTLE_ENDIAN_BOM)
+		{
+			return UE_UTF16LE;
+		}
+		else if ((uiData32 & UTF16_BOM_MASK) == UTF16_BIG_ENDIAN_BOM)
+		{
+			return UE_UTF16BE;
+		}
+		else
+		{
+			return UE_UTF8;
+		}
+	}
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-size CUnicode::GetError(void) { return muiError; }
-uint16 CUnicode::GetZWJCodePoint(void) { return muiZWJ; }
 

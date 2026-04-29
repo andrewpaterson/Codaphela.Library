@@ -1,5 +1,5 @@
-#ifndef __TEXT_RUN_UTF16_SHORT_H__
-#define __TEXT_RUN_UTF16_SHORT_H__
+#ifndef __TEXT_BUILDER_UTF_COMMON_H__
+#define __TEXT_BUILDER_UTF_COMMON_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -20,21 +20,27 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "TextRunCommon.h"
+#include "BaseLib/Constructable.h"
+#include "BaseLib/ArrayTemplatePtr.h"
+#include "BaseLib/Killable.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 
 
-class CTextRunUTF16Short : public CTextRunCommon
+class CTextBuilderUTFCommon : public CKillable
 {
-CONSTRUCTABLE(CTextRunUTF16Short);
-protected:
+CONSTRUCTABLE(CTextBuilderUTFCommon)
 public:
-	void		Init(size uiNumChars);
-	uint16*		GetChars(void);
+			void		Init(void);
+			void		Kill(void) override;  //This should do nothing.
 
-	bool		Load(CObjectReader* pcFile) override;
-	bool		Save(CObjectWriter* pcFile) override;
+	virtual size		NumElements(void) =0;
+	virtual void*		GetData(void) =0;
+
+	virtual bool		IsUTF16Short(void);
+	virtual bool		IsUTF16Long(void);
 };
 
 
-#endif // __TEXT_RUN_UTF16_SHORT_H__
+#endif // __TEXT_BUILDER_UTF_COMMON_H__
 

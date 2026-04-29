@@ -1,5 +1,5 @@
-#ifndef __TEXT_RUN_H__
-#define __TEXT_RUN_H__
+#ifndef __TEXT_RUN_UTF16_MULTI_H__
+#define __TEXT_RUN_UTF16_MULTI_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -20,42 +20,27 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/Constructable.h"
-#include "BaseLib/Int2.h"
-#include "BaseLib/ArrayTemplate.h"
-#include "StandardLib/ObjectReader.h"
-#include "StandardLib/ObjectWriter.h"
-#include "Font.h"
 #include "TextDrawable.h"
 
 
-class CText;
-class CTextRun
+//Multi is a single, multi-code point glyph.  i.e. it's a number of codepoints connected with ZWJs (zero width joiner).
+class CTextUTF16Multi : public CTextDrawable
 {
-CONSTRUCTABLE(CTextRun)
+CONSTRUCTABLE(CTextUTF16Multi);
 protected:
-	CFont*					mpcFont;  //Not a Ptr<CFont> because CTextRun does not extend CObject.
-	CText*					mpcText;  //Ditto Ptr<CText>
-	CArrayTextElementPtr	mapcText;
-
 public:
-	void			Init(CFont* mpcFont, CText* pcText);
-	void 			Kill(void);
+	void		Init(size uiByteSize);
+	uint16*		GetChar(void);
+	void		Copy(void* pviData);
 
-	bool			Load(CObjectReader* pcFile);
-	bool			Save(CObjectWriter* pcFile);
-	CMallocator*	GetMalloc(void);
-	
-	void			Add(CTextElement* pcElement);
-	void			Done(void);
+	size		ByteSize(void);
 
-	size			NumElements(void);
-	CTextElement*	GetElement(size uiIndex);
+	bool		Load(CObjectReader* pcFile) override;
+	bool		Save(CObjectWriter* pcFile) override;
+
+	bool		IsUTF16Multi(void) override;
 };
 
 
-typedef CArrayTemplate<CTextRun>	CArrayTextRun;
-
-
-#endif // __TEXT_RUN_H__
+#endif // __TEXT_RUN_UTF16_MULTI_H__
 

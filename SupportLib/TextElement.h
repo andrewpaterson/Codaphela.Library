@@ -1,5 +1,5 @@
-#ifndef __TEXT_RUN_H__
-#define __TEXT_RUN_H__
+#ifndef __TEXT_RUN_ELEMENT_H__
+#define __TEXT_RUN_ELEMENT_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -21,41 +21,31 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Constructable.h"
-#include "BaseLib/Int2.h"
-#include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/ArrayTemplatePtr.h"
+#include "BaseLib/Killable.h"
 #include "StandardLib/ObjectReader.h"
 #include "StandardLib/ObjectWriter.h"
-#include "Font.h"
-#include "TextDrawable.h"
 
 
-class CText;
-class CTextRun
+class CTextElement : public CKillable
 {
-CONSTRUCTABLE(CTextRun)
+CONSTRUCTABLE(CTextElement)
 protected:
-	CFont*					mpcFont;  //Not a Ptr<CFont> because CTextRun does not extend CObject.
-	CText*					mpcText;  //Ditto Ptr<CText>
-	CArrayTextElementPtr	mapcText;
-
 public:
-	void			Init(CFont* mpcFont, CText* pcText);
-	void 			Kill(void);
+			void		Kill(void) override;  //This should do nothing.
 
-	bool			Load(CObjectReader* pcFile);
-	bool			Save(CObjectWriter* pcFile);
-	CMallocator*	GetMalloc(void);
-	
-	void			Add(CTextElement* pcElement);
-	void			Done(void);
+	virtual bool		Load(CObjectReader* pcFile) =0;
+	virtual bool		Save(CObjectWriter* pcFile) =0;
 
-	size			NumElements(void);
-	CTextElement*	GetElement(size uiIndex);
+	virtual bool		IsNewLine(void);
+	virtual bool		IsUTF16Short(void);
+	virtual bool		IsUTF16Long(void);
+	virtual bool		IsUTF16Multi(void);
 };
 
 
-typedef CArrayTemplate<CTextRun>	CArrayTextRun;
+typedef	CArrayTemplatePtr<CTextElement>	CArrayTextElementPtr;
 
 
-#endif // __TEXT_RUN_H__
+#endif // __TEXT_RUN_ELEMENT_H__
 

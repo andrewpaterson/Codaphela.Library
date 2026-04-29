@@ -1,5 +1,5 @@
-#ifndef __TEXT_RUN_H__
-#define __TEXT_RUN_H__
+#ifndef __TEXT_DRAWABLE_H__
+#define __TEXT_DRAWABLE_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -20,42 +20,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/Constructable.h"
-#include "BaseLib/Int2.h"
-#include "BaseLib/ArrayTemplate.h"
-#include "StandardLib/ObjectReader.h"
-#include "StandardLib/ObjectWriter.h"
-#include "Font.h"
-#include "TextDrawable.h"
+#include "TextElement.h"
 
 
-class CText;
-class CTextRun
+class CTextDrawable : public CTextElement
 {
-CONSTRUCTABLE(CTextRun)
+CONSTRUCTABLE(CTextDrawable)
 protected:
-	CFont*					mpcFont;  //Not a Ptr<CFont> because CTextRun does not extend CObject.
-	CText*					mpcText;  //Ditto Ptr<CText>
-	CArrayTextElementPtr	mapcText;
+	size		muiNumChars;  //Sometimes this is NumBytes.
 
 public:
-	void			Init(CFont* mpcFont, CText* pcText);
-	void 			Kill(void);
+			void		Init(size uiNumChars);
 
-	bool			Load(CObjectReader* pcFile);
-	bool			Save(CObjectWriter* pcFile);
-	CMallocator*	GetMalloc(void);
-	
-	void			Add(CTextElement* pcElement);
-	void			Done(void);
-
-	size			NumElements(void);
-	CTextElement*	GetElement(size uiIndex);
+	virtual bool		Load(CObjectReader* pcFile) =0;
+	virtual bool		Save(CObjectWriter* pcFile) =0;
 };
 
 
-typedef CArrayTemplate<CTextRun>	CArrayTextRun;
-
-
-#endif // __TEXT_RUN_H__
+#endif // __TEXT_DRAWABLE_H__
 

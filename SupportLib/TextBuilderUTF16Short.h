@@ -1,5 +1,5 @@
-#ifndef __TEXT_RUN_H__
-#define __TEXT_RUN_H__
+#ifndef __TEXT_BUILDER_UTF_16_SHORT_H__
+#define __TEXT_BUILDER_UTF_16_SHORT_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -20,42 +20,30 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/Constructable.h"
-#include "BaseLib/Int2.h"
-#include "BaseLib/ArrayTemplate.h"
-#include "StandardLib/ObjectReader.h"
-#include "StandardLib/ObjectWriter.h"
-#include "Font.h"
-#include "TextDrawable.h"
+#include "BaseLib/ArrayUint16.h"
+#include "TextUTF16Short.h"
+#include "TextBuilderUTFCommon.h"
 
 
-class CText;
-class CTextRun
+class CTextBuilderUTF16Short : public CTextBuilderUTFCommon
 {
-CONSTRUCTABLE(CTextRun)
+CONSTRUCTABLE(CTextBuilderUTF16Short)
 protected:
-	CFont*					mpcFont;  //Not a Ptr<CFont> because CTextRun does not extend CObject.
-	CText*					mpcText;  //Ditto Ptr<CText>
-	CArrayTextElementPtr	mapcText;
+	CArrayUint16	mauiUTF16;
 
 public:
-	void			Init(CFont* mpcFont, CText* pcText);
-	void 			Kill(void);
-
-	bool			Load(CObjectReader* pcFile);
-	bool			Save(CObjectWriter* pcFile);
-	CMallocator*	GetMalloc(void);
+	void		Init(void);
+	void		Kill(void) override;
 	
-	void			Add(CTextElement* pcElement);
-	void			Done(void);
+	size		NumElements(void) override;
+	void*		GetData(void) override;
+	uint16*		GetChars(void);
 
-	size			NumElements(void);
-	CTextElement*	GetElement(size uiIndex);
+	void		Push(uint16 uiChar);
+
+	bool		IsUTF16Short(void) override;
 };
 
 
-typedef CArrayTemplate<CTextRun>	CArrayTextRun;
-
-
-#endif // __TEXT_RUN_H__
+#endif // __TEXT_BUILDER_UTF_16_SHORT_H__
 

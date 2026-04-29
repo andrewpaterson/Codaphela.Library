@@ -1,5 +1,5 @@
-#ifndef __MESH_FACE_RETURN_H__
-#define __MESH_FACE_RETURN_H__
+#ifndef __TEXT_BUILDER_H__
+#define __TEXT_BUILDER_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2012 Andrew Paterson
@@ -23,30 +23,39 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/PrimitiveTypes.h"
+#include "BaseLib/UnicodeReader.h"
+#include "Font.h"
+#include "Text.h"
+#include "TextBuilderUTFCommon.h"
+#include "TextBuilderUTF16Long.h"
+#include "TextBuilderUTF16Short.h"
 
 
-class CMFRet
+class CTextBuilder
 {
+protected:
+	CUnicodeReader*			mpcUTF;
+	CText*					mpcText;
+	CFont*					mpcFont;
+	CTextBuilderUTFCommon*	mpcCommon;
+	CTextBuilderUTF16Short	mcShort;
+	CTextBuilderUTF16Long	mcLong;
+	CTextRun*				mpcRun;
+
 public:
-	int				miFirstFace;
-	uint8	manCorners[4];
+	void		Init(CUnicodeReader* pcUTF, CText* pcText, CFont* pcFont);
+	void		Kill(void);
 
-	void	PackEmpty(void);
-	void	Pack(int iFirstFace, int iCorner1, int iCorner2, int iCorner3, int iNewEdges);
-	void	Pack(int iFirstFace, int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iCorner5, int iCorner6, int iNewEdges);
-	void	Pack2(CMFRet r2);
-	void	Repack(int iCorner1, int iCorner2, int iCorner3);
-	void	Repack(int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iCorner5, int iCorner6);
-	void	PackOverflow(void);
+	bool		Push(uint32 cCodePoint32);
+	bool		Push(uint8* puiCodePoint, size uiCodePointsLength);
+	bool		PushNewLine(void);
 
-	int		NumFaces(void);  //A value of 3 implies that this structure has overflowed.  Result is elsewhere.
-	int		NewEdges(void);
-
-	void	Unpack1(int* piCorner1, int* piCorner2, int* piCorner3);
-	void	Unpack2(int* piCorner4, int* piCorner5, int* piCorner6);
+	bool		PushCurrent(void);
+	bool		Done(void);
+	
+	bool		EnsureRun(void);
 };
 
 
-#endif // __MESH_FACE_RETURN_H__
+#endif // __TEXT_BUILDER_H__
 

@@ -1,14 +1,14 @@
 #include "BaseLib/PointerRemapper.h"
-#include "TextRunUTF16Long.h"
+#include "TextUTF16Short.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CTextRunUTF16Long::Init(size uiNumChars)
+void CTextUTF16Short::Init(size uiNumChars)
 {
-	CTextRunCommon::Init(uiNumChars);
+	CTextDrawable::Init(uiNumChars);
 }
 
 
@@ -16,9 +16,9 @@ void CTextRunUTF16Long::Init(size uiNumChars)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint32* CTextRunUTF16Long::GetChars(void)
+uint16* CTextUTF16Short::GetChars(void)
 {
-	return (uint32*)RemapSinglePointer(this, sizeof(CTextRunUTF16Long));
+	return (uint16*)RemapSinglePointer(this, sizeof(CTextUTF16Short));
 }
 
 
@@ -26,7 +26,17 @@ uint32* CTextRunUTF16Long::GetChars(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextRunUTF16Long::Load(CObjectReader* pcFile)
+void CTextUTF16Short::Copy(uint16* puiData)
+{
+	memcpy_fast(GetChars(), puiData, muiNumChars * sizeof(uint32));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CTextUTF16Short::Load(CObjectReader* pcFile)
 {
 	return false;
 }
@@ -36,8 +46,18 @@ bool CTextRunUTF16Long::Load(CObjectReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextRunUTF16Long::Save(CObjectWriter* pcFile)
+bool CTextUTF16Short::Save(CObjectWriter* pcFile)
 {
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CTextUTF16Short::IsUTF16Short(void)
+{
+	return true;
 }
 

@@ -1,14 +1,12 @@
-#include "BaseLib/PointerRemapper.h"
-#include "TextRunUTF16Short.h"
+#include "TextNewLine.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CTextRunUTF16Short::Init(size uiNumChars)
+void CTextNewLine::Init(void)
 {
-	CTextRunCommon::Init(uiNumChars);
 }
 
 
@@ -16,17 +14,7 @@ void CTextRunUTF16Short::Init(size uiNumChars)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint16* CTextRunUTF16Short::GetChars(void)
-{
-	return (uint16*)RemapSinglePointer(this, sizeof(CTextRunUTF16Short));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CTextRunUTF16Short::Load(CObjectReader* pcFile)
+bool CTextNewLine::Load(CObjectReader* pcFile)
 {
 	return false;
 }
@@ -36,8 +24,18 @@ bool CTextRunUTF16Short::Load(CObjectReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextRunUTF16Short::Save(CObjectWriter* pcFile)
+bool CTextNewLine::Save(CObjectWriter* pcFile)
 {
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CTextNewLine::IsNewLine(void)
+{
+	return true;
 }
 

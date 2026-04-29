@@ -1,5 +1,5 @@
-#ifndef __TEXT_RUN_COMMON_H__
-#define __TEXT_RUN_COMMON_H__
+#ifndef __TEXT_RUN_UTF16_SHORT_H__
+#define __TEXT_RUN_UTF16_SHORT_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -20,31 +20,24 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/Constructable.h"
-#include "BaseLib/ArrayTemplatePtr.h"
-#include "BaseLib/Killable.h"
-#include "StandardLib/ObjectReader.h"
-#include "StandardLib/ObjectWriter.h"
+#include "TextDrawable.h"
 
 
-class CTextRunCommon : public CKillable
+class CTextUTF16Short : public CTextDrawable
 {
-CONSTRUCTABLE(CTextRunCommon)
+CONSTRUCTABLE(CTextUTF16Short);
 protected:
-	size		muiNumChars;
-	int16		miStepToEnd;
-
 public:
-			void		Init(size uiNumChars);
-			void		Kill(void) override;  //This should do nothing.
+	void		Init(size uiNumChars);
+	uint16*		GetChars(void);
+	void		Copy(uint16* puiData);
 
-	virtual bool		Load(CObjectReader* pcFile) =0;
-	virtual bool		Save(CObjectWriter* pcFile) =0;
+	bool		Load(CObjectReader* pcFile) override;
+	bool		Save(CObjectWriter* pcFile) override;
+
+	bool		IsUTF16Short(void) override;
 };
 
 
-typedef	CArrayTemplatePtr<CTextRunCommon>	CArrayTextRunCommonPtr;
-
-
-#endif // __TEXT_RUN_COMMON_H__
+#endif // __TEXT_RUN_UTF16_SHORT_H__
 

@@ -1,14 +1,12 @@
-#include "BaseLib/PointerRemapper.h"
-#include "TextRunUTF16Multi.h"
+#include "TextBuilderUTFCommon.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CTextRunUTF16Multi::Init(size uiNumShorts)
+void CTextBuilderUTFCommon::Init(void)
 {
-	CTextRunCommon::Init(uiNumShorts);
 }
 
 
@@ -16,17 +14,16 @@ void CTextRunUTF16Multi::Init(size uiNumShorts)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint16* CTextRunUTF16Multi::GetChar(void)
+void CTextBuilderUTFCommon::Kill(void)
 {
-	return (uint16*)RemapSinglePointer(this, sizeof(CTextRunUTF16Multi));
 }
-
+	
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextRunUTF16Multi::Load(CObjectReader* pcFile)
+bool CTextBuilderUTFCommon::IsUTF16Short(void)
 {
 	return false;
 }
@@ -36,7 +33,7 @@ bool CTextRunUTF16Multi::Load(CObjectReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextRunUTF16Multi::Save(CObjectWriter* pcFile)
+bool CTextBuilderUTFCommon::IsUTF16Long(void)
 {
 	return false;
 }

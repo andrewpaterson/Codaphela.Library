@@ -37,14 +37,13 @@ private:
 	CArrayBlock*		mpauiDest;
 
 public:
-	void	Init(CUnicodeReader* pcReader, EUnicodeEncoding eEncoding, CArrayBlock* pauiDest);
+	void	Init(CUnicodeReader* pcReader, EUnicodeEncoding eOutputEncoding, CArrayBlock* pauiDest);
 	void	Kill(void);
 
 	bool	ReadBOM(void);
 
 	bool	WriteBOM(void);
 	int		WriteCharacters(size uiMaxToWrite = SIZE_MAX);
-
 
 protected:
 	size	WriteUTF16LE(CUnicodeReader* pcUnicodeReader, CArrayUint16* puiUTF16Dest, size uiMaxToWrite);

@@ -1,3 +1,5 @@
+#ifndef __TEXT_BUILDER_UTF_16_LONG_H__
+#define __TEXT_BUILDER_UTF_16_LONG_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -18,25 +20,29 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "TextRunCommon.h"
+#include "BaseLib/ArrayUint32.h"
+#include "TextUTF16Long.h"
+#include "TextBuilderUTFCommon.h"
 
 
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CTextRunCommon::Init(size uiNumChars)
+class CTextBuilderUTF16Long : public CTextBuilderUTFCommon
 {
-	miStepToEnd = -1;
-	muiNumChars = uiNumChars;
-}
+CONSTRUCTABLE(CTextBuilderUTF16Long)
+protected:
+	CArrayUint32	mauiUTF32;
+
+public:
+	void		Init(void);
+	void		Kill(void) override;
+
+	size		NumElements(void) override;
+	void*		GetData(void) override;
+	uint32*		GetChars(void);
+
+	void		Push(uint32 uiChar);
+	bool		IsUTF16Long(void) override;
+};
 
 
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CTextRunCommon::Kill(void)
-{
-}
+#endif // __TEXT_BUILDER_UTF_16_LONG_H__
 
