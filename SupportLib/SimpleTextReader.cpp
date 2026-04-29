@@ -143,7 +143,7 @@ Ptr<CText> CSimpleTextReader::Read(char* szFilename)
 					return NULL;
 				}
 			}
-			else if (cCodePoint32 == UNICODE_LINE_FEED)
+			else if (cCodePoint32 == UNICODE_CARRIAGE_RETURN)
 			{
 				// Do nothing.
 			}

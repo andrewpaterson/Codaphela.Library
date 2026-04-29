@@ -36,6 +36,8 @@ public:
 	bool		Save(CObjectWriter* pcFile) override;
 
 	bool		IsUTF16Short(void) override;
+
+	void		PrintAsASCII(CChars* psz);
 };
 
 
