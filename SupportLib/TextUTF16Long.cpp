@@ -28,7 +28,7 @@ uint32* CTextUTF16Long::GetChars(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextUTF16Long::Copy(uint32* puiData)
 {
-	memcpy_fast(GetChars(), puiData, muiNumChars * sizeof(uint16));
+	memcpy_fast(GetChars(), puiData, muiNumChars * sizeof(uint32));
 }
 
 
