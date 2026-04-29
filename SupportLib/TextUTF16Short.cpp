@@ -61,3 +61,29 @@ bool CTextUTF16Short::IsUTF16Short(void)
 	return true;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CTextUTF16Short::PrintAsASCII(CChars* psz)
+{
+	uint16*		puiChars;
+	size		ui;
+	uint16		uiChar;
+
+	puiChars = GetChars();
+	for (ui = 0; ui < muiNumChars; ui++)
+	{
+		uiChar = puiChars[ui];
+		if (uiChar <= 0xFF)
+		{
+			psz->Append((char)uiChar);
+		}
+		else
+		{
+			psz->Append(' ');
+		}
+	}
+}
+
