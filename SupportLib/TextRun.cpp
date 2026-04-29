@@ -26,9 +26,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CTextRun::Init(SInt2* psPosition, CFont* pcFont, CText* pcText)
+void CTextRun::Init(CFont* pcFont, CText* pcText)
 {
-	msPosition = *psPosition;
 	mpcFont = pcFont;
 	mpcText = pcText;
 	mapcText.Init();
@@ -41,18 +40,18 @@ void CTextRun::Init(SInt2* psPosition, CFont* pcFont, CText* pcText)
 //////////////////////////////////////////////////////////////////////////
 void CTextRun::Kill(void)
 {
-	size				ui;
-	size				uiNumElements;
-	CTextRunCommon*		pcTextCommon;
-	CMallocator*		pcMalloc;
+	size			ui;
+	size			uiNumElements;
+	CTextElement*	pcTextElement;
+	CMallocator*	pcMalloc;
 
 	pcMalloc = GetMalloc();
 	uiNumElements = mapcText.NumElements();
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
-		pcTextCommon = mapcText.GetPtr(ui);
-		pcTextCommon->Kill();
-		pcMalloc->Free(pcTextCommon);
+		pcTextElement = mapcText.GetPtr(ui);
+		pcTextElement->Kill();
+		pcMalloc->Free(pcTextElement);
 	}
 	mapcText.Kill();
 }
@@ -74,11 +73,9 @@ bool CTextRun::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CTextRun::Save(CObjectWriter* pcFile)
 {
-	size				ui;
-	size				uiNumElements;
-	CTextRunCommon*		pcTextCommon;
-
-	ReturnOnFalse(pcFile->WriteData(&msPosition, sizeof(SInt2)));
+	size			ui;
+	size			uiNumElements;
+	CTextElement*	pcTextElement;
 
 	//Still need to do
 	//mpcFont;
@@ -88,8 +85,8 @@ bool CTextRun::Save(CObjectWriter* pcFile)
 
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
-		pcTextCommon = mapcText.GetPtr(ui);
-		ReturnOnFalse(pcTextCommon->Save(pcFile));
+		pcTextElement = mapcText.GetPtr(ui);
+		ReturnOnFalse(pcTextElement->Save(pcFile));
 	}
 
 	return true;
@@ -103,5 +100,44 @@ bool CTextRun::Save(CObjectWriter* pcFile)
 CMallocator* CTextRun::GetMalloc(void)
 {
 	return mpcText->GetMalloc();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CTextRun::Add(CTextElement* pcElement)
+{
+	mapcText.Add(pcElement);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CTextRun::Done(void)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size CTextRun::NumElements(void)
+{
+	return mapcText.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CTextElement* CTextRun::GetElement(size uiIndex)
+{
+	return mapcText.GetPtr(uiIndex);
 }
 

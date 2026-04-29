@@ -26,7 +26,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ObjectReader.h"
 #include "StandardLib/ObjectWriter.h"
 #include "Font.h"
-#include "TextRunCommon.h"
+#include "TextDrawable.h"
 
 
 class CText;
@@ -34,18 +34,23 @@ class CTextRun
 {
 CONSTRUCTABLE(CTextRun)
 protected:
-	SInt2						msPosition;
-	CFont*						mpcFont;  //Not a Ptr<CFont> because CTextRun does not extend CObject.
-	CText*						mpcText;  //Ditto Ptr<CText>
-	CArrayTextRunCommonPtr		mapcText;
+	CFont*					mpcFont;  //Not a Ptr<CFont> because CTextRun does not extend CObject.
+	CText*					mpcText;  //Ditto Ptr<CText>
+	CArrayTextElementPtr	mapcText;
 
 public:
-	void			Init(SInt2* psPosition, CFont* mpcFont, CText* pcText);
+	void			Init(CFont* mpcFont, CText* pcText);
 	void 			Kill(void);
 
 	bool			Load(CObjectReader* pcFile);
 	bool			Save(CObjectWriter* pcFile);
 	CMallocator*	GetMalloc(void);
+	
+	void			Add(CTextElement* pcElement);
+	void			Done(void);
+
+	size			NumElements(void);
+	CTextElement*	GetElement(size uiIndex);
 };
 
 

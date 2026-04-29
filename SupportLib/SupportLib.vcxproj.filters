@@ -193,7 +193,16 @@
     <Filter Include="Source\Text">
       <UniqueIdentifier>{555a01b8-e76b-48d0-b2d7-cdc23c2f4cc6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Text\UTF16">
+    <Filter Include="Source\Text\Reader">
+      <UniqueIdentifier>{b86eda1f-a364-4531-ada1-553f31af67c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Text\Builder">
+      <UniqueIdentifier>{911435a4-f7ea-468b-978c-7af48bee8fe5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Text\Element">
+      <UniqueIdentifier>{9de13103-1900-4b6f-b887-a6c9594e4330}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Text\Element\UTF16">
       <UniqueIdentifier>{a74b0a24-aa44-4978-b5d3-69dc0a725ae4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -711,17 +720,38 @@
     <ClInclude Include="TextRun.h">
       <Filter>Source\Text</Filter>
     </ClInclude>
-    <ClInclude Include="TextRunCommon.h">
-      <Filter>Source\Text</Filter>
+    <ClInclude Include="TextUTF16Short.h">
+      <Filter>Source\Text\Element\UTF16</Filter>
     </ClInclude>
-    <ClInclude Include="TextRunUTF16Short.h">
-      <Filter>Source\Text\UTF16</Filter>
+    <ClInclude Include="TextUTF16Long.h">
+      <Filter>Source\Text\Element\UTF16</Filter>
     </ClInclude>
-    <ClInclude Include="TextRunUTF16Long.h">
-      <Filter>Source\Text\UTF16</Filter>
+    <ClInclude Include="TextUTF16Multi.h">
+      <Filter>Source\Text\Element\UTF16</Filter>
     </ClInclude>
-    <ClInclude Include="TextRunUTF16Multi.h">
-      <Filter>Source\Text\UTF16</Filter>
+    <ClInclude Include="SimpleTextReader.h">
+      <Filter>Source\Text\Reader</Filter>
+    </ClInclude>
+    <ClInclude Include="TextBuilder.h">
+      <Filter>Source\Text\Builder</Filter>
+    </ClInclude>
+    <ClInclude Include="TextBuilderUTF16Short.h">
+      <Filter>Source\Text\Builder</Filter>
+    </ClInclude>
+    <ClInclude Include="TextBuilderUTFCommon.h">
+      <Filter>Source\Text\Builder</Filter>
+    </ClInclude>
+    <ClInclude Include="TextBuilderUTF16Long.h">
+      <Filter>Source\Text\Builder</Filter>
+    </ClInclude>
+    <ClInclude Include="TextNewLine.h">
+      <Filter>Source\Text\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="TextDrawable.h">
+      <Filter>Source\Text\Element</Filter>
+    </ClInclude>
+    <ClInclude Include="TextElement.h">
+      <Filter>Source\Text\Element</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1202,20 +1232,41 @@
     <ClCompile Include="Text.cpp">
       <Filter>Source\Text</Filter>
     </ClCompile>
-    <ClCompile Include="TextRunCommon.cpp">
-      <Filter>Source\Text</Filter>
-    </ClCompile>
     <ClCompile Include="TextRun.cpp">
       <Filter>Source\Text</Filter>
     </ClCompile>
-    <ClCompile Include="TextRunUTF16Short.cpp">
-      <Filter>Source\Text\UTF16</Filter>
+    <ClCompile Include="TextUTF16Short.cpp">
+      <Filter>Source\Text\Element\UTF16</Filter>
     </ClCompile>
-    <ClCompile Include="TextRunUTF16Long.cpp">
-      <Filter>Source\Text\UTF16</Filter>
+    <ClCompile Include="TextUTF16Long.cpp">
+      <Filter>Source\Text\Element\UTF16</Filter>
     </ClCompile>
-    <ClCompile Include="TextRunUTF16Multi.cpp">
-      <Filter>Source\Text\UTF16</Filter>
+    <ClCompile Include="TextUTF16Multi.cpp">
+      <Filter>Source\Text\Element\UTF16</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleTextReader.cpp">
+      <Filter>Source\Text\Reader</Filter>
+    </ClCompile>
+    <ClCompile Include="TextBuilder.cpp">
+      <Filter>Source\Text\Builder</Filter>
+    </ClCompile>
+    <ClCompile Include="TextBuilderUTF16Short.cpp">
+      <Filter>Source\Text\Builder</Filter>
+    </ClCompile>
+    <ClCompile Include="TextBuilderUTFCommon.cpp">
+      <Filter>Source\Text\Builder</Filter>
+    </ClCompile>
+    <ClCompile Include="TextBuilderUTF16Long.cpp">
+      <Filter>Source\Text\Builder</Filter>
+    </ClCompile>
+    <ClCompile Include="TextDrawable.cpp">
+      <Filter>Source\Text\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="TextElement.cpp">
+      <Filter>Source\Text\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="TextNewLine.cpp">
+      <Filter>Source\Text\Element</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

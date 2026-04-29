@@ -1,3 +1,5 @@
+#ifndef __MESH_FACE_RETURN_H__
+#define __MESH_FACE_RETURN_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2012 Andrew Paterson
@@ -21,8 +23,6 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MESH_FACE_RETURN_H__
-#define __MESH_FACE_RETURN_H__
 #include "BaseLib/PrimitiveTypes.h"
 
 

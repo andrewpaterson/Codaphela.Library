@@ -55,7 +55,7 @@ void CUnicodeReader::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CUnicodeReader::IsTooSmallOrError(uint16 ui)
+bool CUnicodeReader::IsTooSmallOrError(size ui)
 {
 	return (ui == muiError) || (ui == muiTooSmall);
 }
@@ -65,7 +65,7 @@ bool CUnicodeReader::IsTooSmallOrError(uint16 ui)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CUnicodeReader::IsError(uint16 ui)
+bool CUnicodeReader::IsError(size ui)
 {
 	return ui == muiError;
 }
@@ -75,7 +75,7 @@ bool CUnicodeReader::IsError(uint16 ui)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CUnicodeReader::IsTooSmall(uint16 ui)
+bool CUnicodeReader::IsTooSmall(size ui)
 {
 	return ui == muiTooSmall;
 }
