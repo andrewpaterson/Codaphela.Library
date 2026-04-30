@@ -119,7 +119,14 @@ Ptr<CTileLayer> CTileMap::AddLayer(char* szName, Ptr<CMovableBlockType> pTileTyp
 {
 	Ptr<CTileLayer> pLayer;
 
-	pLayer = OMalloc<CTileLayer>(szName, this, pTileType);
+	if (StrEmpty(szName))
+	{
+		pLayer = OMalloc<CTileLayer>(this, pTileType);
+	}
+	else
+	{
+		pLayer = ONMalloc<CTileLayer>(szName, this, pTileType);
+	}
 	maTileLayers.Add(pLayer);
 	return pLayer;
 }

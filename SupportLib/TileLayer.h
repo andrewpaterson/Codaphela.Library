@@ -36,13 +36,12 @@ CONSTRUCTABLE(CTileLayer);
 DESTRUCTABLE(CTileLayer);
 protected:
 	CArrayMovableBlock		maTiles;
-	CCharsImmutable			mszName;
 	Ptr<CTileMap>			mpTileMap;
 	bool					mbVisible;
 	Ptr<CMovableBlockType>	mpTileType;
 
 public:
-	void				Init(char* szName, Ptr<CTileMap> pTileMap, Ptr<CMovableBlockType> pTileType);
+	void				Init(Ptr<CTileMap> pTileMap, Ptr<CMovableBlockType> pTileType);
 	void 				Free(void);
 	void				Class(void);
 
