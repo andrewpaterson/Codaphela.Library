@@ -120,7 +120,7 @@ size CUnicodeWriter::WriteUTF16LE(CUnicodeReader* pcUnicodeReader, CArrayUint16*
 		{
 			cCodePoint32 = pcUnicodeReader->GetCodePointUint32();
 			uiUTF16Length = pcUnicodeReader->GetUTF16Length(cCodePoint32);
-			if (uiUTF16Length <= 2)
+			if (uiUTF16Length == 1)
 			{
 				cUTF16Element16 = pcUnicodeReader->GetUTF16ElementUint16(cCodePoint32);
 				if (pcUnicodeReader->IsTooSmallOrError(cUTF16Element16))
@@ -139,7 +139,7 @@ size CUnicodeWriter::WriteUTF16LE(CUnicodeReader* pcUnicodeReader, CArrayUint16*
 					puiUTF16Dest->InsertBlockAfterEnd(&cUTF16Element16, uiUTF16Length);
 				}
 			}
-			else if (uiUTF16Length <= 4)
+			else if (uiUTF16Length == 2)
 			{
 				cUTF16Element32 = pcUnicodeReader->GetUTF16ElementUint32(cCodePoint32);
 				if (pcUnicodeReader->IsTooSmallOrError(cUTF16Element32))
@@ -158,7 +158,7 @@ size CUnicodeWriter::WriteUTF16LE(CUnicodeReader* pcUnicodeReader, CArrayUint16*
 					puiUTF16Dest->InsertBlockAfterEnd((uint16*)&cUTF16Element32, uiUTF16Length);
 				}
 			}
-			else if (mpcReader->IsError(uiUTF16Length))
+			else if ((uiUTF16Length == 0) || mpcReader->IsError(uiUTF16Length))
 			{
 				return ARRAY_ELEMENT_NOT_FOUND;
 			}

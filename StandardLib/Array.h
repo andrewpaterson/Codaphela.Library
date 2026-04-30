@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2013 Andrew Paterson
+Copyright (c) 2026 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela StandardLib
 

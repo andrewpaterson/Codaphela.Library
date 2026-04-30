@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2025 Andrew Paterson
+Copyright (c) 2026 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela BaseLib
 
@@ -27,6 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "TextEditor.h"
 
 
+//Rename this to CASCIITextEditor and write a second one for UTF16 base ont CText.
 class CPlainTextEditor : public CTextEditor
 {
 public:

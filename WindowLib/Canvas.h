@@ -2,7 +2,7 @@
 #define __CANVAS_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2012 Andrew Paterson
+Copyright (c) 2026 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela WindowLib
 
