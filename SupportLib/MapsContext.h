@@ -53,12 +53,10 @@ public:
 	bool							Save(CObjectWriter* pcFile);
 	bool							Load(CObjectReader* pcFile);
 
-	Ptr<CMovableBlockType>			AddBlockType(char* szTypeName);
-	Ptr<CMovableBlockType>			GetBlockType(char* szTypeName);
+	Ptr<CMovableBlockType>			AddBlockType(char* szTypeName = NULL);
 	Ptr<CArrayMovableBlockType>		GetBlockTypes(void);
 
-	Ptr<CSpriteType>				AddSpriteType(char* szTypeName);
-	Ptr<CSpriteType>				GetSpriteType(char* szTypeName);
+	Ptr<CSpriteType>				AddSpriteType(char* szTypeName = NULL);
 
 	void							AddImages(Ptr<CArrayImage> paImages);
 	void							AddGroup(Ptr<CImageCelGroup> pGroup);

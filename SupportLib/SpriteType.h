@@ -34,19 +34,15 @@ CONSTRUCTABLE(CSpriteType);
 DESTRUCTABLE(CSpriteType);
 protected:
 	CArrayMovableBlock	macBlockLayers;
-	CCharsImmutable		mszTypeName;
 
 public:
-	void 				Init(char* szTypeName);
+	void 				Init(void);
 	void 				Free(void);
 	void				Class(void);
 
 	bool				Save(CObjectWriter* pcFile);
 	bool				Load(CObjectReader* pcFile);
 
-	bool 				Is(char* szTypeName);
-
-	Ptr<CMovableBlock>	GetNull(void);
 	void				AddTile(CMovableBlock* pcTile);
 	Ptr<CMovableBlock>	Get(size iIndex);
 };

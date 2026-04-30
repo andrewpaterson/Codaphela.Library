@@ -31,11 +31,9 @@ class CImageCelsSource;
 class CImageCelsSourceXML
 {
 public:
-	CMapsContext*		mpcContext;
-
-	bool Import(CMapsContext* pcWorld, CMarkupTag* pcTag, char* szTexturePath);
-	bool ImportCelSource(CMarkupTag* pcBrushSourceTag, char* szTexturePath);
-	bool ImportCels(CMarkupTag* pcCelsTag, char* szFilename);
+	bool Import(Ptr<CMapsContext> pcWorld, CMarkupTag* pcTag, char* szTexturePath);
+	bool ImportCelSource(Ptr<CMapsContext> pcTileWorld, CMarkupTag* pcBrushSourceTag, char* szTexturePath);
+	bool ImportCels(Ptr<CMapsContext> pcTileWorld, CMarkupTag* pcCelsTag, char* szFilename);
 };
 
 

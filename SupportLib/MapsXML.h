@@ -35,24 +35,23 @@ class CMapsXML
 protected:
 	CChars				mszMapName;
 	CChars				mszTexturePath;
-	CMapsContext*		mpcContext;
 	CMaps*				mpcMaps;
 
 public:
 	void Init(char* szMapName, char* szTexturePath);
 	void Kill(void);
 
-	bool Import(CMapsContext* pcTileWorld);
+	bool Import(Ptr<CMapsContext> pcTileWorld);
 
 protected:
-	bool ImportImageCels(CMarkupTag* pcTag);
-	bool ImportObjectSources(CMarkupTag* pcTag);
+	bool ImportImageCels(CMarkupTag* pcTag, Ptr<CMapsContext> pcTileWorld);
+	bool ImportObjectSources(CMarkupTag* pcTag, Ptr<CMapsContext> pcTileWorld);
 	bool ImportMaps(CMarkupTag* pcTag);
 	bool ImportTileMap(CMarkupTag* pcTag);
-	bool ImportTileMap(CMarkupTag* pcTag, CTileMap* pcMap);
-	bool ImportLayers(CMarkupTag* pcTag, CTileMap* pcMap);
-	bool ImportLayer(CMarkupTag* pcTag, CTileMap* pcMap);
-	bool ImportTiles(CMarkupTag* pcTag, CTileLayer* pcLayer);
+	bool ImportTileMap(CMarkupTag* pcTag, Ptr<CTileMap> pcMap);
+	bool ImportLayers(CMarkupTag* pcTag, Ptr<CTileMap> pcMap);
+	bool ImportLayer(CMarkupTag* pcTag, Ptr<CTileMap> pcMap);
+	bool ImportTiles(CMarkupTag* pcTag, Ptr<CTileLayer> pcLayer);
 };
 
 

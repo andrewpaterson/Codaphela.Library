@@ -36,18 +36,16 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageCelsSourceXML::Import(CMapsContext* pcWorld, CMarkupTag* pcTag, char* szTexturePath)
+bool CImageCelsSourceXML::Import(Ptr<CMapsContext> pcTileWorld, CMarkupTag* pcTag, char* szTexturePath)
 {
 	STagIterator	sIter;
 	CMarkupTag*		pcBrushSourceTag;
 	bool			bResult;
 
-	mpcContext = pcWorld;
-
 	pcBrushSourceTag = pcTag->GetTag("BrushSource", &sIter);
 	while (pcBrushSourceTag)
 	{
-		bResult = ImportCelSource(pcBrushSourceTag, szTexturePath);
+		bResult = ImportCelSource(pcTileWorld, pcBrushSourceTag, szTexturePath);
 		if (!bResult)
 		{
 			return false;
@@ -62,7 +60,7 @@ bool CImageCelsSourceXML::Import(CMapsContext* pcWorld, CMarkupTag* pcTag, char*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageCelsSourceXML::ImportCelSource(CMarkupTag* pcBrushSourceTag, char* szTexturePath)
+bool CImageCelsSourceXML::ImportCelSource(Ptr<CMapsContext> pcTileWorld, CMarkupTag* pcBrushSourceTag, char* szTexturePath)
 {
 	CMarkupTag*			pcFileName;
 	CChars				szFilename;
@@ -96,7 +94,7 @@ bool CImageCelsSourceXML::ImportCelSource(CMarkupTag* pcBrushSourceTag, char* sz
 	szFilename.Init(szTexturePath);
 	cFileUtil.AppendToPath(&szFilename, szShortFileName.Text());
 
-	bResult = ImportCels(pcCels, szFilename.Text());
+	bResult = ImportCels(pcTileWorld, pcCels, szFilename.Text());
 	return bResult;
 }
 
@@ -105,7 +103,7 @@ bool CImageCelsSourceXML::ImportCelSource(CMarkupTag* pcBrushSourceTag, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageCelsSourceXML::ImportCels(CMarkupTag* pcCelsTag, char* szFilename)
+bool CImageCelsSourceXML::ImportCels(Ptr<CMapsContext> pcTileWorld, CMarkupTag* pcCelsTag, char* szFilename)
 {
 	STagIterator				sIter;
 	CSubImageXML				cSubImageXML;
@@ -143,10 +141,10 @@ bool CImageCelsSourceXML::ImportCels(CMarkupTag* pcCelsTag, char* szFilename)
 	cCelsSource.AddDiskFileSource(szFilename, szGroupName.Text(), &cSubImagesSource);
 	cCelsSource.Load();
 
-	mpcContext->AddImages(cCelsSource.GetImages());
+	pcTileWorld->AddImages(cCelsSource.GetImages());
 
 	pcGroup = ONMalloc<CImageCelGroup>(szGroupName.Text());
-	mpcContext->AddGroup(pcGroup);
+	pcTileWorld->AddGroup(pcGroup);
 	pcGroup->AddCels(cCelsSource.GetImageCels());
 
 	szGroupName.Kill();

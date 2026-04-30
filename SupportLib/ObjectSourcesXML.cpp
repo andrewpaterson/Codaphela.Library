@@ -32,17 +32,17 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSourcesXML::Import(Ptr<CMapsContext> pWorld, CMarkupTag* pcTag)
+bool CObjectSourcesXML::Import(Ptr<CMapsContext> pcTileWorld, CMarkupTag* pcTag)
 {
 	CMarkupTag*		pcObjectClass;
 	STagIterator	sIter;
 	bool			bResult;
 	
-	mpcContext = &pWorld;
+	mpcContext = &pcTileWorld;
 	pcObjectClass = pcTag->GetTag("ObjectClass", &sIter);
 	while (pcObjectClass)
 	{
-		bResult = ImportObjectClass(pWorld, pcObjectClass);
+		bResult = ImportObjectClass(pcTileWorld, pcObjectClass);
 		if (!bResult)
 		{
 			return false;
@@ -58,7 +58,7 @@ bool CObjectSourcesXML::Import(Ptr<CMapsContext> pWorld, CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSourcesXML::ImportObjectClass(Ptr<CMapsContext> pWorld, CMarkupTag* pcTag)
+bool CObjectSourcesXML::ImportObjectClass(Ptr<CMapsContext> pcTileWorld, CMarkupTag* pcTag)
 {
 	CMarkupTag*				pcClass;
 	CMarkupTag*				pcFields;
@@ -87,12 +87,12 @@ bool CObjectSourcesXML::ImportObjectClass(Ptr<CMapsContext> pWorld, CMarkupTag* 
 	bResult = false;
 	if (szClass.EqualsIgnoreCase("Image"))
 	{
-		pType = pWorld->GetBlockType("Image");
+		pType = gcObjects.Get("MovableBlockType.Image");
 		bResult = ImportImages(pType, pcObjects);
 	}
 	else if (szClass.EqualsIgnoreCase("Boolean"))
 	{
-		pType = pWorld->GetBlockType("Boolean");
+		pType = gcObjects.Get("MovableBlockType.Boolean");
 		bResult = ImportBooleans(pType, pcObjects);
 	}
 	else
@@ -197,10 +197,10 @@ bool CObjectSourcesXML::ImportImage(Ptr<CMovableBlockType> pType, CMarkupTag* pc
 
 
 	pcGroup = mpcContext->GetGroup(szSourceName.Text());
+	szSourceName.Kill();
 	if (!pcGroup)
 	{
 		szName.Kill();
-		szSourceName.Kill();
 		gcLogger.Error("Couldn't find Cel Group.");
 		return false;
 	}
@@ -209,7 +209,6 @@ bool CObjectSourcesXML::ImportImage(Ptr<CMovableBlockType> pType, CMarkupTag* pc
 	if (!pcCel)
 	{
 		szName.Kill();
-		szSourceName.Kill();
 		gcLogger.Error("Couldn't find Cel.");
 		return false;
 	}
@@ -224,6 +223,7 @@ bool CObjectSourcesXML::ImportImage(Ptr<CMovableBlockType> pType, CMarkupTag* pc
 		//Need to append MovableBlockImageCel to the name.
 		pcTile = ONMalloc<CMovableBlockImageCel>(szName.Text(), pcCel);
 	}
+	szName.Kill();
 	
 	pType->AddBlock(pcTile);
 

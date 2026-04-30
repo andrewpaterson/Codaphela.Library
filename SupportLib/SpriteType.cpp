@@ -28,12 +28,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSpriteType::Init(char* szTypeName)
+void CSpriteType::Init(void)
 {
 	PreInit();
 
 	macBlockLayers.Init();
-	mszTypeName.Init(szTypeName);
 
 	PostInit();
 }
@@ -45,7 +44,6 @@ void CSpriteType::Init(char* szTypeName)
 //////////////////////////////////////////////////////////////////////////
 void CSpriteType::Free(void)
 {
-	mszTypeName.Kill();
 }
 
 
@@ -56,7 +54,6 @@ void CSpriteType::Free(void)
 void CSpriteType::Class(void)
 {
 	M_Embedded(macBlockLayers);
-	U_Data(CCharsImmutable, mszTypeName);
 }
 
 
@@ -77,27 +74,6 @@ bool CSpriteType::Load(CObjectReader* pcFile)
 bool CSpriteType::Save(CObjectWriter* pcFile)
 {
 	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CSpriteType::Is(char* szTypeName)
-{
-	return mszTypeName.Equals(szTypeName);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CMovableBlock> CSpriteType::GetNull(void)
-{
-	//The 'NULL' tile is always the zero'th tile.
-	return macBlockLayers.Get(0);
 }
 
 

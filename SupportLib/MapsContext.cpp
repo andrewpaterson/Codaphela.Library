@@ -46,11 +46,11 @@ void CMapsContext::Init(void)
 	maImages.Init();
 	maGroups.Init();
 
-	pcImageType = AddBlockType("Image");
+	pcImageType = AddBlockType("MovableBlockType.Image");
 	pcNullImageTile = OMalloc<CMovableBlockImageCel>(CPointer());
 	pcImageType->AddBlock(pcNullImageTile);
 
-	pcBooleanType = AddBlockType("Boolean");
+	pcBooleanType = AddBlockType("MovableBlockType.Boolean");
 	pcNullBooleanTile = OMalloc<CMovableBlockBoolean>(false);
 	pcBooleanType->AddBlock(pcNullBooleanTile);
 
@@ -108,32 +108,16 @@ Ptr<CMovableBlockType> CMapsContext::AddBlockType(char* szTypeName)
 {
 	Ptr<CMovableBlockType>	pcType;
 
-	pcType = OMalloc<CMovableBlockType>(szTypeName);
+	if (StrEmpty(szTypeName))
+	{
+		pcType = OMalloc<CMovableBlockType>();
+	}
+	else
+	{
+		pcType = ONMalloc<CMovableBlockType>(szTypeName);
+	}
 	maBlockTypes.Add(pcType);
 	return pcType;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CMovableBlockType> CMapsContext::GetBlockType(char* szTypeName)
-{
-	Ptr<CMovableBlockType>	pcType;
-	size					uiNumElements;
-	size					ui;
-
-	uiNumElements = maBlockTypes.NumElements();
-	for (ui = 0; ui < uiNumElements; ui++)
-	{
-		pcType = maBlockTypes.Get(ui);
-		if (pcType.IsNotNull() && (pcType->Is(szTypeName)))
-		{
-			return pcType;
-		}
-	}
-	return NULL;
 }
 
 
@@ -145,32 +129,17 @@ Ptr<CSpriteType> CMapsContext::AddSpriteType(char* szTypeName)
 {
 	Ptr<CSpriteType>	pcType;
 
-	pcType = OMalloc<CSpriteType>(szTypeName);
+	if (StrEmpty(szTypeName))
+	{
+		pcType = OMalloc<CSpriteType>();
+	}
+	else
+	{
+		pcType = ONMalloc<CSpriteType>(szTypeName);
+
+	}
 	maSpriteTypes.Add(pcType);
 	return pcType;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CSpriteType> CMapsContext::GetSpriteType(char* szTypeName)
-{
-	Ptr<CSpriteType>	pcType;
-	size				uiNumElements;
-	size				ui;
-
-	uiNumElements = maSpriteTypes.NumElements();
-	for (ui = 0; ui < uiNumElements; ui++)
-	{
-		pcType = maSpriteTypes.Get(ui);
-		if (pcType.IsNotNull() && pcType->Is(szTypeName))
-		{
-			return pcType;
-		}
-	}
-	return NULL;
 }
 
 

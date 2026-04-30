@@ -39,7 +39,6 @@ void CMapsXML::Init(char* szMapName, char* szTexturePath)
 {
 	CFileUtil		cFileUtil;
 
-	mpcContext = NULL;
 	mpcMaps = NULL;
 
 	mszMapName.Init(szMapName);
@@ -56,7 +55,6 @@ void CMapsXML::Init(char* szMapName, char* szTexturePath)
 //////////////////////////////////////////////////////////////////////////
 void CMapsXML::Kill(void)
 {
-	mpcContext = NULL;
 	mpcMaps = NULL;
 
 	mszTexturePath.Kill();
@@ -68,7 +66,7 @@ void CMapsXML::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapsXML::Import(CMapsContext* pcTileWorld)
+bool CMapsXML::Import(Ptr<CMapsContext> pcTileWorld)
 {
 	CXMLFile		cXMLFile;
 	CMarkup*		pcMarkup;
@@ -80,8 +78,8 @@ bool CMapsXML::Import(CMapsContext* pcTileWorld)
 	CChars			szDirectory;
 	CFileUtil		cFileUtil;
 
-	mpcContext = pcTileWorld;
-	mpcContext->Init();
+
+	pcTileWorld->Init();
 
 	szFilename.Init();
 	szDirectory.Init();
@@ -127,14 +125,14 @@ bool CMapsXML::Import(CMapsContext* pcTileWorld)
 		return false;
 	}
 
-	bResult = ImportImageCels(pcTagBrushSources);
+	bResult = ImportImageCels(pcTagBrushSources, pcTileWorld);
 	if (!bResult)
 	{
 		pcMarkup->Kill();
 		return false;
 	}
 
-	bResult = ImportObjectSources(pcTagObjectSources);
+	bResult = ImportObjectSources(pcTagObjectSources, pcTileWorld);
 	if (!bResult)
 	{
 		pcMarkup->Kill();
@@ -157,12 +155,12 @@ bool CMapsXML::Import(CMapsContext* pcTileWorld)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapsXML::ImportObjectSources(CMarkupTag* pcTag)
+bool CMapsXML::ImportObjectSources(CMarkupTag* pcTag, Ptr<CMapsContext> pcTileWorld)
 {
 	CObjectSourcesXML	cObjectSourcesXML;
 	bool				bResult;
 
-	bResult = cObjectSourcesXML.Import(mpcContext, pcTag);
+	bResult = cObjectSourcesXML.Import(pcTileWorld, pcTag);
 
 	if (!bResult)
 	{
@@ -176,12 +174,12 @@ bool CMapsXML::ImportObjectSources(CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapsXML::ImportImageCels(CMarkupTag* pcTag)
+bool CMapsXML::ImportImageCels(CMarkupTag* pcTag, Ptr<CMapsContext> pcTileWorld)
 {
 	CImageCelsSourceXML		cImageCelsSourceXML;
 	bool					bResult;
 
-	bResult = cImageCelsSourceXML.Import(mpcContext, pcTag, mszTexturePath.Text());
+	bResult = cImageCelsSourceXML.Import(pcTileWorld, pcTag, mszTexturePath.Text());
 	if (!bResult)
 	{
 		return false;
@@ -290,7 +288,7 @@ bool CMapsXML::ImportTileMap(CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapsXML::ImportTileMap(CMarkupTag* pcTag, CTileMap* pcMap)
+bool CMapsXML::ImportTileMap(CMarkupTag* pcTag, Ptr<CTileMap> pcMap)
 {
 	CMarkupTag*		pcWidth;
 	CMarkupTag*		pcHeight;
@@ -335,7 +333,7 @@ bool CMapsXML::ImportTileMap(CMarkupTag* pcTag, CTileMap* pcMap)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapsXML::ImportLayers(CMarkupTag* pcTag, CTileMap* pcMap)
+bool CMapsXML::ImportLayers(CMarkupTag* pcTag, Ptr<CTileMap> pcMap)
 {
 	STagIterator	sIter;
 	CMarkupTag*		pcLayer;
@@ -359,16 +357,16 @@ bool CMapsXML::ImportLayers(CMarkupTag* pcTag, CTileMap* pcMap)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapsXML::ImportLayer(CMarkupTag* pcTag, CTileMap* pcMap)
+bool CMapsXML::ImportLayer(CMarkupTag* pcTag, Ptr<CTileMap> pcMap)
 {
-	CMarkupTag*			pcName;
-	CMarkupTag*			pcObjectClass;
-	CMarkupTag*			pcTiles;
-	CChars				szName;
-	CChars				szObjectClass;
-	bool				bResult;
-	CMovableBlockType*	pcType;
-	CTileLayer*			pcLayer;
+	CMarkupTag*				pcName;
+	CMarkupTag*				pcObjectClass;
+	CMarkupTag*				pcTiles;
+	CChars					szName;
+	CChars					szObjectClass;
+	bool					bResult;
+	Ptr<CMovableBlockType>	pcType;
+	Ptr<CTileLayer>			pcLayer;
 
 	pcName = CMarkupTextParser::GetTag(pcTag, "Name");
 	if (!pcName)
@@ -405,7 +403,8 @@ bool CMapsXML::ImportLayer(CMarkupTag* pcTag, CTileMap* pcMap)
 		return false;
 	}
 
-	pcType = &mpcContext->GetBlockType(szObjectClass.Text());
+	szObjectClass.Insert(0, "MovableBlockType.");
+	pcType = gcObjects.Get(szObjectClass.Text());
 	if (!pcType)
 	{
 		CMarkupTextParser::LogError(pcObjectClass, "Could not find a TileType for Tag.");
@@ -426,7 +425,7 @@ bool CMapsXML::ImportLayer(CMarkupTag* pcTag, CTileMap* pcMap)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapsXML::ImportTiles(CMarkupTag* pcTag, CTileLayer* pcLayer)
+bool CMapsXML::ImportTiles(CMarkupTag* pcTag, Ptr<CTileLayer> pcLayer)
 {
 	CChars				szCSV;
 	CCSVFileImmutable	cCSVFile;
