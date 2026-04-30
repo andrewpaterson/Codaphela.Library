@@ -33,7 +33,7 @@ protected:
 	bool	mbValue;
 
 public:
-	void	Init(bool bValue, Ptr<CMovableBlockType> pType, const char* szName);
+	void	Init(bool bValue);
 	void	Class(void);
 	void 	Free(void);
 

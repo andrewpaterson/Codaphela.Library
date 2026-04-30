@@ -28,11 +28,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockImageCel::Init(Ptr<CImageCel> pImageCel, Ptr<CMovableBlockType> pType, const char* szName)
+void CMovableBlockImageCel::Init(Ptr<CImageCel> pImageCel)
 {
 	PreInit();
 
-	CMovableBlock::Init(pType, szName);
+	CMovableBlock::Init();
 	mpImageCel = pImageCel;
 
 	PostInit();

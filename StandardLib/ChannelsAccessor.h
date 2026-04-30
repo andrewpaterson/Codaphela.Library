@@ -37,20 +37,20 @@ protected:
 	size					miBufferSize;  //How many bytes in the buffer.
 
 public:
-	void						Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize, size iBufferSize);
-	virtual void				Kill(void);
+	void					Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize, size iBufferSize);
+	virtual void			Kill(void);
 
-	virtual void*				Get(size iPos) =0;
-	virtual void				Set(size iPos, void* pvData) =0;
+	virtual void*			Get(size iPos) =0;
+	virtual void			Set(size iPos, void* pvData) =0;
 
-	virtual bool				IsContiguous(void);
+	virtual bool			IsContiguous(void);
 
-	EPrimitiveType				GetType(void);
-	size						GetBitSize(void);
-	size						GetByteSize(void);
-	size						GetBufferSize(void);
-	CArrayChannelAccessor*		GetAccessors(void);
-	CChannels*					GetChannels(void);
+	EPrimitiveType			GetType(void);
+	size					GetBitSize(void);
+	size					GetByteSize(void);
+	size					GetBufferSize(void);
+	CArrayChannelAccessor*	GetAccessors(void);
+	CChannels*				GetChannels(void);
 };
 
 

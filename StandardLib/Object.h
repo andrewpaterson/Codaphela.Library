@@ -55,6 +55,7 @@ protected:
 public:
 						CObject();
 						~CObject();
+
 	void				Allocate(CObjects* pcObjects);
 	void				Kill(void) final override;
 	bool				IsCollection(void) override;

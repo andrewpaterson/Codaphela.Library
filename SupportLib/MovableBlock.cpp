@@ -28,12 +28,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlock::Init(Ptr<CMovableBlockType> pType, const char* szName)
+void CMovableBlock::Init(void)
 {
 	PreInit();
-
-	mpType = pType;
-	mszName.Init(szName);
 
 	PostInit();
 }
@@ -45,7 +42,6 @@ void CMovableBlock::Init(Ptr<CMovableBlockType> pType, const char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CMovableBlock::Free(void)
 {
-	mszName.Kill();
 }
 
 
@@ -55,8 +51,6 @@ void CMovableBlock::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CMovableBlock::Class(void)
 {
-	M_Pointer(mpType);
-	U_Data(CCharsImmutable, mszName);
 }
 
 
@@ -78,12 +72,4 @@ bool CMovableBlock::Save(CObjectWriter* pcFile)
 {
 	return false;
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CMovableBlock::GetName(void) { return mszName.Text(); }
-Ptr<CMovableBlockType> CMovableBlock::GetType(void) { return mpType; }
 

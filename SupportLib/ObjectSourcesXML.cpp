@@ -147,7 +147,7 @@ bool CObjectSourcesXML::ImportImage(Ptr<CMovableBlockType> pType, CMarkupTag* pc
 	int64						iCelIndex;
 	int64						iBrushID;
 	CChars						szSourceName;
-	CMovableBlockImageCel*		pcTile;
+	Ptr<CMovableBlockImageCel>	pcTile;
 	Ptr<CImageCelGroup>			pcGroup;
 	Ptr<CImageCel>				pcCel;
 
@@ -214,8 +214,17 @@ bool CObjectSourcesXML::ImportImage(Ptr<CMovableBlockType> pType, CMarkupTag* pc
 		return false;
 	}
 
-	pcTile = UMalloc(CMovableBlockImageCel);
-	pcTile->Init(pcCel, pType, szName.Text());
+	szName.StripWhitespace(true);
+	if (szName.Empty())
+	{
+		pcTile = OMalloc<CMovableBlockImageCel>(pcCel);
+	}
+	else
+	{
+		//Need to append MovableBlockImageCel to the name.
+		pcTile = ONMalloc<CMovableBlockImageCel>(szName.Text(), pcCel);
+	}
+	
 	pType->AddBlock(pcTile);
 
 	return true;

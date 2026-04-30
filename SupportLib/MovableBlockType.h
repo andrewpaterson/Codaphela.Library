@@ -34,9 +34,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMovableBlockType : public CObject
 {
 CONSTRUCTABLE(CMovableBlockType);
+DESTRUCTABLE(CMovableBlockType);
 protected:
-	CArrayMovableBlock		maBlocksOfType;  //These are ALL the blocks of this type, e.g. all the image cel blocks 
-	CCharsImmutable			mszTypeName;
+	CArrayMovableBlock	maBlocksOfType;  //These are ALL the blocks of this type, e.g. all the image cel blocks 
+	CCharsImmutable		mszTypeName;
 
 public:
 	void 				Init(char* szTypeName);

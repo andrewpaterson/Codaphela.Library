@@ -33,6 +33,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMaps : public CObject
 {
 CONSTRUCTABLE(CMaps);
+DESTRUCTABLE(CMaps);
 protected:
 	CArrayMovableBlockMap	maMaps;
 	Ptr<CMapsContext>		mpContext;
