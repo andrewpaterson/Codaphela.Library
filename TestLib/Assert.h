@@ -20,25 +20,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include <string.h>
-#include <stdio.h>
-#include "BaseLib/Define.h"
-#include "BaseLib/NumberControl.h"
-#include "BaseLib/ErrorTypes.h"
-#include "BaseLib/Chars.h"
-#include "BaseLib/Define.h"
 #include "BaseLib/FloatHelper.h"
 #include "BaseLib/GeometricTypes.h"
 #include "BaseLib/Validation.h"
+#include "AssertStatistics.h"
+#include "AssertStringHelper.h"
 
-
-void PrivateBeginTests(char* szFile);
-void PrivateTestStatistics();
-int  TestTotalStatistics(void);
-void InitTotalStatistics(void);
-
-bool Pass(void);
-bool Failed(size iLine, char* szFile);
 
 bool PrivateAssertTristate(TRISTATE tExpected, TRISTATE tActual, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertBool(bool bExpected, bool bActual, char* szPrefix, size iLine, char* szFile);
@@ -87,10 +74,7 @@ bool PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, siz
 bool PrivateAssertFileString(const char* szExpectedFilename, const char* szString, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertStringStartsWith(const char* szExpected, const char* szActual, bool bTestCase, char* szPrefix, size iLine, char* szFile);
 
-bool Failed(const char* szExpected, const char* szActual, char* szPrefix, size iLine, char* szFile, bool bNewLine);
 
-#define TestStatistics()					PrivateTestStatistics()
-#define BeginTests()						PrivateBeginTests(__FILE__)
 #define AssertString(e, a)					Validate(PrivateAssertString(e, a, true, NULL, __LINE__, __FILE__))
 #define AssertStringCase(e, a, c)			Validate(PrivateAssertString(e, a, c, NULL, __LINE__, __FILE__))
 #define AssertStringApproximate(e, a)		Validate(PrivateAssertStringApproximate(e, a, true, NULL, __LINE__, __FILE__))
@@ -128,7 +112,7 @@ bool Failed(const char* szExpected, const char* szActual, char* szPrefix, size i
 #define AssertFile(e, a)					Validate(PrivateAssertFile(e, a, NULL, __LINE__, __FILE__))
 #define AssertFileMemory(e, a, l)			Validate(PrivateAssertFileMemory(e, a, l, NULL, __LINE__, __FILE__))
 #define AssertFileString(e, a)				Validate(PrivateAssertFileString(e, a, NULL, __LINE__, __FILE__))
-#define Fail()								Validate(Failed(__LINE__, __FILE__))
+
 
 #endif // __ASSERT_FUNCTIONS_H__
 

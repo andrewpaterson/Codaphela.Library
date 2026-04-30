@@ -1,0 +1,433 @@
+#include <string.h>
+#include <stdio.h>
+#include "BaseLib/NewLine.h"
+#include "BaseLib/ArrayChars.h"
+#include "BaseLib/Logger.h"
+#include "BaseLib/FileCompare.h"
+#include "BaseLib/Float3.h"
+#include "AssertStringHelper.h"
+#include "AssertStatistics.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool Failed(size iLine, char* szFile)
+{
+	char    szLine[1024];
+	CChars  szError;
+
+	Failed();
+
+	IntToString(szLine, 1024, iLine, 10);
+	szError.Init("Failed: ");
+	szError.Append(szFile);
+	szError.Append(" line ");
+	szError.Append(szLine);
+	szError.AppendNewLine();
+
+	gcLogger.Add(szError.Text());
+
+	szError.Kill();
+
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool Failed(const char* szExpected, const char* szActual, char* szPrefix, size iLine, char* szFile, bool bNewLine)
+{
+	char    szLine[1024];
+	CChars  szError;
+
+	Failed();
+
+	IntToString(szLine, 1024, iLine, 10);
+	szError.Init("Failed: ");
+	szError.Append(szFile);
+	szError.Append(" line ");
+	szError.Append(szLine);
+	szError.AppendNewLine();
+
+	if (!StrEmpty(szPrefix))
+	{
+		szError.Append(szPrefix);
+		szError.Append(" ");
+	}
+	szError.Append("Expected: ");
+	if (bNewLine)
+	{
+		szError.Append("--->");
+		szError.AppendNewLine();
+	}
+	szError.Append(szExpected);
+	if (bNewLine)
+	{
+		szError.Append("<---");
+	}
+	szError.AppendNewLine();
+
+	if (!StrEmpty(szPrefix))
+	{
+		szError.Append(szPrefix);
+		szError.Append(" ");
+	}
+	szError.Append("Actual:   ");
+	if (bNewLine)
+	{
+		szError.Append("--->");
+		szError.AppendNewLine();
+	}
+	szError.Append(szActual);
+	if (bNewLine)
+	{
+		szError.Append("<---");
+	}
+	szError.AppendNewLine();
+	szError.AppendNewLine();
+
+	gcLogger.Add(szError.Text());
+
+	szError.Kill();
+
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsMultiLine(const char* szExpected, const char* szActual)
+{
+	int		iCount;
+
+	iCount = CountNewLines((char*)szExpected, StrLen(szExpected));
+	if (iCount > 0)
+	{
+		return true;
+	}
+
+	iCount = CountNewLines((char*)szActual, StrLen(szActual));
+	if (iCount > 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToTristateString(TRISTATE t, char* szString, size iStringLength)
+{
+	if (t == TRITRUE)
+	{
+		StrCpySafe(szString, "TRITRUE", iStringLength);
+	}
+	else if (t == TRIFALSE)
+	{
+		StrCpySafe(szString, "TRIFALSE", iStringLength);
+	}
+	else if (t == TRIERROR)
+	{
+		StrCpySafe(szString, "TRIERROR", iStringLength);
+	}
+	else if (t == TRIGNORED)
+	{
+		StrCpySafe(szString, "TRIGNORED", iStringLength);
+	}
+	else
+	{
+		StrCpySafe(szString, "UNDEFINED", iStringLength);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToBoolString(bool b, char* szString, size iStringLength)
+{
+	if (b)
+	{
+		StrCpySafe(szString, "true", iStringLength);
+	}
+	else
+	{
+		StrCpySafe(szString, "false", iStringLength);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToShortString(int16 i, char* szString, size iStringLength)
+{
+	ShortToString(szString, iStringLength, i, 10);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToShortString(uint16 i, char* szString, size iStringLength)
+{
+	ShortToString(szString, iStringLength, i, 10);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToIntString(int32 i, char* szString, size iStringLength)
+{
+	IntToString(szString, iStringLength, i, 10);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToIntString(uint32 i, char* szString, size iStringLength)
+{
+	IntToString(szString, iStringLength, i, 10);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToLongString(int64 i, char* szString, size iStringLength)
+{
+	LongToString(szString, iStringLength, i, 10);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToLongString(uint64 i, char* szString, size iStringLength)
+{
+	LongToString(szString, iStringLength, i, 10);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToByteHexString(int8 i, char* szString, size iStringLength)
+{
+	return ToByteHexString((uint8)i, szString, iStringLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToByteHexString(uint8 i, char* szString, size iStringLength)
+{
+	ByteToString(&szString[2], iStringLength - 2, i, 16);
+	szString[0] = '0';
+	szString[1] = 'x';
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToShortHexString(int16 i, char* szString, size iStringLength)
+{
+	return ToShortHexString((uint16)i, szString, iStringLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToShortHexString(uint16 i, char* szString, size iStringLength)
+{
+	ShortToString(&szString[2], iStringLength - 2, i, 16);
+	szString[0] = '0';
+	szString[1] = 'x';
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToIntHexString(int32 i, char* szString, size iStringLength)
+{
+	return ToIntHexString((uint32)i, szString, iStringLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToIntHexString(uint32 i, char* szString, size iStringLength)
+{
+	IntToString(&szString[2], iStringLength - 2, i, 16);
+	szString[0] = '0';
+	szString[1] = 'x';
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToCharString(uint8 c, char* szString, size iStringLength)
+{
+	return ToCharString((char)c, szString, iStringLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToCharString(char c, char* szString, size iStringLength)
+{
+	CharToString(c);
+	if ((c >= 0 && c <= 31) || (c == 127) || ((uint8)c >= 128 && (uint8)c <= 159))
+	{
+		ToIntHexString(c, szString, iStringLength);
+	}
+	else
+	{
+		szString[0] = c;
+		szString[1] = 0;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToFloatString(float f, char* sz, int iDecimals)
+{
+	char szFormatter[10];
+
+	sprintf(szFormatter, "%%.%if", iDecimals);
+	sprintf(sz, szFormatter, f);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToFloat3String(SFloat3* psFloat3, char* sz, int iWholeNumbers, int iDecimals)
+{
+	CChars	c;
+
+	c.Init();
+	psFloat3->Print(&c, iWholeNumbers, iDecimals);
+	c.CopyIntoBuffer(sz, -1);
+	c.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToDoubleString(double f, char* sz, int iDecimals)
+{
+	char szFormatter[20];
+
+	sprintf(szFormatter, "%%.%if", iDecimals);
+	sprintf(sz, szFormatter, f);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToLongDoubleString(float96 f, char* sz, int iDecimals)
+{
+	char szFormatter[20];
+
+	sprintf(szFormatter, "%%.%ifL", iDecimals);
+	sprintf(sz, szFormatter, f);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToLongHexString(int64 i, char* szString, size iStringLength)
+{
+	return ToLongHexString((uint64)i, szString, iStringLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToLongHexString(uint64 i, char* szString, size iStringLength)
+{
+	LongToString(&szString[2], iStringLength - 2, i, 16);
+	szString[0] = '0';
+	szString[1] = 'x';
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToPointerString(void* pv, char* szString, size iStringLength)
+{
+	CChars	c;
+
+	IntToString(szString, iStringLength, (uint32)pv, 16);
+
+	c.Init(szString);
+	c.RightAlign('0', 8);
+	c.Insert(0, "0x");
+	strcpy(szString, c.Text());
+	c.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToMD5String(uint8* puc, char* sz, size iStringLength)
+{
+	CChars	c;
+
+	c.Init();
+	c.AppendHexLoHi(puc, 16);
+	c.CopyIntoBuffer(sz, iStringLength);
+	c.Kill();
+}
+

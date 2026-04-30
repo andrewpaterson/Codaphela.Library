@@ -179,12 +179,16 @@
     <ClCompile Include="Assert.cpp" />
     <ClCompile Include="AssertFile.cpp" />
     <ClCompile Include="AssertGeometric.cpp" />
+    <ClCompile Include="AssertStatistics.cpp" />
+    <ClCompile Include="AssertStringHelper.cpp" />
     <ClCompile Include="Words.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Assert.h" />
     <ClInclude Include="AssertFile.h" />
     <ClInclude Include="AssertGeometric.h" />
+    <ClInclude Include="AssertStatistics.h" />
+    <ClInclude Include="AssertStringHelper.h" />
     <ClInclude Include="Words.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
