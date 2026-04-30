@@ -594,7 +594,8 @@ void CArrayTemplatePrimitive<M>::RemoveRemap(size iElementPos)
 			{
 				break;
 			}
-		} while (iIndex != 0);
+		} 
+		while (iIndex != 0);
 	}
 	if (iCutDown != miUsedElements)
 	{

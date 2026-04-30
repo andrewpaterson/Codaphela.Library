@@ -161,7 +161,8 @@ void CCalculator::ConvertToUnaryOperators(CCalcObjectArray* papcExpressions)
 			}
 			pcPrevious = pcObject;
 
-		} while (i != 0);
+		} 
+		while (i != 0);
 
 		if (pcPrevious != NULL)
 		{

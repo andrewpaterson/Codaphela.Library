@@ -202,7 +202,8 @@ void CCircularMemoryList::RemapSameMemory(size uiCacheSize)
 			}
 		}
 		psCacheBasedDescriptor = GetNext(psCacheBasedDescriptor);
-	} while (!IsFirst(psCacheBasedDescriptor));
+	} 
+	while (!IsFirst(psCacheBasedDescriptor));
 
 	if (psLargest == NULL)
 	{
@@ -232,7 +233,8 @@ void CCircularMemoryList::RemapSameMemory(size uiCacheSize)
 		psLargest = psNew;
 		
 		psCacheBasedDescriptor = GetNext(psCacheBasedDescriptor);
-	} while (!IsFirst(psCacheBasedDescriptor));
+	} 
+	while (!IsFirst(psCacheBasedDescriptor));
 
 	mpsDetail->mpsTail = MapFromCacheBasedToZeroBased(psLargest);
 	GetFirst()->psPrev = mpsDetail->mpsTail;

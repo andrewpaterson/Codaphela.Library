@@ -1,3 +1,5 @@
+#ifndef __OBJECT_H__
+#define __OBJECT_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -18,13 +20,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __OBJECT_H__
-#define __OBJECT_H__
 #include "Integer.h"
 #include "Float.h"
 #include "Character.h"
 #include "PrimitiveVoid.h"
 #include "BaseObject.h"
+
 
 /* Implement these on anything extending CObject
 	void	Init(void);

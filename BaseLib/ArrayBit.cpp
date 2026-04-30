@@ -342,7 +342,8 @@ void CArrayBit::Print(CChars* psz)
 			{
 				psz->Append('0');
 			}
-		} while (ui);
+		}
+		while (ui);
 	}
 }
 

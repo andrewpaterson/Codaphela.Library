@@ -1458,7 +1458,8 @@ uint32 CFatVolume::AllocateClusters(SFatRawDirectoryEntry* psParentDirectory, ui
 
 			CalculateFATIndexAndOffset(&uiOffsetInSector, uiCluster, &uiFirstClusterSector);
 
-		} while (uiCurrentSector == uiFirstClusterSector);
+		} 
+		while (uiCurrentSector == uiFirstClusterSector);
 	}
 }
 

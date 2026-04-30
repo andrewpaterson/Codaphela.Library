@@ -120,7 +120,9 @@ void _quicksort(void* const pbase, size total_elems, size uiSize, DataCompare cm
                     right_ptr -= uiSize;
                     break;
                 }
-            } while (left_ptr <= right_ptr);
+            } 
+            while (left_ptr <= right_ptr);
+
             /* Set up pointers for next iteration.  First determine whether
                left and right partitions are below the threshold uiSize.  If so,
                ignore one or both.  Otherwise, push the larger partition's

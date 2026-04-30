@@ -63,7 +63,8 @@ int StringCompare(const char* ps1, const char* ps2)
 		s2 = *ps2++;
 		if (s1 == 0)
 			break;
-	} while (s1 == s2);
+	} 
+	while (s1 == s2);
 
 	return (s1 < s2) ? -1 : (s1 > s2);
 }
@@ -100,7 +101,8 @@ int StringInsensitiveCompare(const char* ps1, const char* ps2)
 			break;
 		s1 = ToLower(s1);
 		s2 = ToLower(s2);
-	} while (s1 == s2);
+	} 
+	while (s1 == s2);
 
 	return (s1 < s2) ? -1 : (s1 > s2);
 }
@@ -381,7 +383,8 @@ char* IntToString(char* szDest, size iDestLength, int32 iValue, uint16 iBase)
 		szDest[iPos] = gszDigits[iDigit];
 		iPos++;
 
-	} while (iQuotient != 0);
+	} 
+	while (iQuotient != 0);
 
 	if (bNegative)
 	{
@@ -425,7 +428,8 @@ char* IntToString(char* szDest, size iDestLength, uint32 iValue, uint16 iBase)
 		szDest[iPos] = gszDigits[iDigit];
 		iPos++;
 
-	} while (iQuotient != 0);
+	} 
+	while (iQuotient != 0);
 
 
 	szDest[iPos] = '\0';
@@ -486,8 +490,8 @@ char* LongToString(char* szDest, size iDestLength, uint64 ulliValue, uint16 iBas
 		szDest[iPos] = gszDigits[iDigit];
 		iPos++;
 
-	} while (ulliQuotient != 0);
-
+	} 
+	while (ulliQuotient != 0);
 
 	szDest[iPos] = '\0';
 
@@ -530,7 +534,8 @@ char* LongToString(char* szDest, size iDestLength, int64 lliValue, uint16 iBase)
 		szDest[iPos] = gszDigits[iDigit];
 		iPos++;
 
-	} while (lliQuotient != 0);
+	} 
+	while (lliQuotient != 0);
 
 
 	// Only apply negative sign for iBase 10
@@ -689,7 +694,8 @@ size FindCharIndex(char chr, char* str, size index)
 			return i;
 		}
 		i++;
-	} while (str[i]);
+	} 
+	while (str[i]);
 
 	return -1;
 }
