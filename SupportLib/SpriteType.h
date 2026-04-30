@@ -23,29 +23,35 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __SPRITE_TYPE_H__
 #define __SPRITE_TYPE_H__
-#include "StandardLib/Unknown.h"
-#include "StandardLib/ArrayUnknownTemplate.h"
+#include "StandardLib/Object.h"
+#include "StandardLib/Array.h"
 #include "MovableBlock.h"
 
 
-class CSpriteType : public CUnknown
+class CSpriteType : public CObject
 {
 CONSTRUCTABLE(CSpriteType);
 protected:
-	CArrayUnknown		macBlockLayers;
+	CArrayMovableBlock	macBlockLayers;
 	CCharsImmutable		mszTypeName;
 
 public:
-	void 			Init(char* szTypeName);
-	void 			Kill(void);
-	bool 			Is(char* szTypeName);
-	CMovableBlock*	GetNull(void);
-	void			AddTile(CMovableBlock* pcTile);
-	CMovableBlock*	Get(size iIndex);
+	void 				Init(char* szTypeName);
+	void 				Free(void);
+	void				Class(void);
+
+	bool				Save(CObjectWriter* pcFile);
+	bool				Load(CObjectReader* pcFile);
+
+	bool 				Is(char* szTypeName);
+
+	Ptr<CMovableBlock>	GetNull(void);
+	void				AddTile(CMovableBlock* pcTile);
+	Ptr<CMovableBlock>	Get(size iIndex);
 };
 
 
-typedef CArrayUnknownTemplate<CSpriteType>	CArraySpriteType;
+typedef CArray<CSpriteType>	CArraySpriteType;
 
 
 #endif // __SPRITE_TYPE_H__

@@ -1,27 +1,32 @@
 #ifndef __SPRITE_H__
 #define __SPRITE_H__
 #include "BaseLib/Int2.h"
-#include "StandardLib/Unknown.h"
+#include "StandardLib/Object.h"
+#include "StandardLib/Array.h"
 #include "SpriteType.h"
 
 
-class CSprite : public CUnknown
+class CSprite : public CObject
 {
 CONSTRUCTABLE(CSprite);
 protected:
-	CSpriteType*	mpcType;
-	SInt2			msPosition;
+	Ptr<CSpriteType>	mpType;
+	SInt2				msPosition;
 
 public:
-	void			Init(CSpriteType* pcType, int32 x, int32 y);
-	void			Kill(void);
+	void				Init(Ptr<CSpriteType> pType, int32 x, int32 y);
+	void 				Free(void);
+	void				Class(void);
 
-	CSpriteType*	GetType(void);
-	SInt2*			GetPosition(void);
+	bool				Save(CObjectWriter* pcFile);
+	bool				Load(CObjectReader* pcFile);
+
+	Ptr<CSpriteType>	GetType(void);
+	SInt2*				GetPosition(void);
 };
 
 
-typedef CArrayUnknownTemplate<CSprite>	CArraySprite;
+typedef CArray<CSprite>	CArraySprite;
 
 
 #endif // __SPRITE_H__

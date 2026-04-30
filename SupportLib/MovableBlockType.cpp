@@ -1,26 +1,3 @@
-/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
-
-Copyright (c) 2026 Andrew Paterson
-
-This file is part of The Codaphela Project: Codaphela SupportLib
-
-Codaphela SupportLib is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Codaphela SupportLib is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
-
-libpng is Copyright Glenn Randers-Pehrson
-zlib is Copyright Jean-loup Gailly and Mark Adler
-
-** ------------------------------------------------------------------------ **/
 #include "MovableBlockType.h"
 
 
@@ -30,8 +7,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMovableBlockType::Init(char* szTypeName)
 {
-	macBlocksOfType.Init();
+	PreInit();
+
+	maBlocksOfType.Init();
 	mszTypeName.Init(szTypeName);
+
+	PostInit();
 }
 
 
@@ -39,10 +20,40 @@ void CMovableBlockType::Init(char* szTypeName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockType::Kill(void)
+void CMovableBlockType::Free(void)
 {
 	mszTypeName.Kill();
-	macBlocksOfType.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMovableBlockType::Class(void)
+{
+	M_Embedded(maBlocksOfType);
+	U_Data(CCharsImmutable, mszTypeName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CMovableBlockType::Load(CObjectReader* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CMovableBlockType::Save(CObjectWriter* pcFile)
+{
+	return false;
 }
 
 
@@ -60,10 +71,10 @@ bool CMovableBlockType::Is(char* szTypeName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMovableBlock* CMovableBlockType::GetNullBlock(void)
+Ptr<CMovableBlock> CMovableBlockType::GetNullBlock(void)
 {
 	//The 'NULL' tile is always the zero'th tile.
-	return (CMovableBlock*)macBlocksOfType.Get(0);
+	return maBlocksOfType.Get(0);
 }
 
 
@@ -73,7 +84,7 @@ CMovableBlock* CMovableBlockType::GetNullBlock(void)
 //////////////////////////////////////////////////////////////////////////
 size CMovableBlockType::NumBlocks(void)
 {
-	return macBlocksOfType.NumElements();
+	return maBlocksOfType.NumElements();
 }
 
 
@@ -81,9 +92,9 @@ size CMovableBlockType::NumBlocks(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockType::AddBlock(CMovableBlock* pcTile)
+void CMovableBlockType::AddBlock(Ptr<CMovableBlock> pcTile)
 {
-	macBlocksOfType.Add(pcTile);
+	maBlocksOfType.Add(pcTile);
 }
 
 
@@ -91,9 +102,9 @@ void CMovableBlockType::AddBlock(CMovableBlock* pcTile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMovableBlock* CMovableBlockType::GetBlock(size uiIndex)
+Ptr<CMovableBlock> CMovableBlockType::GetBlock(size uiIndex)
 {
-	return (CMovableBlock*)macBlocksOfType.Get(uiIndex);
+	return maBlocksOfType.Get(uiIndex);
 }
 
 

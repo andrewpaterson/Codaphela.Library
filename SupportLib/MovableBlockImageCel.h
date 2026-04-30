@@ -34,16 +34,21 @@ protected:
 	Ptr<CImageCel>	mpImageCel;
 
 public:
-	void			Init(Ptr<CImageCel> pImageCel, CMovableBlockType* pcType, char* szName);
-	void			Kill(void);
+	void			Init(Ptr<CImageCel> pImageCel, Ptr<CMovableBlockType> pType, const char* szName);
+	void 			Free(void);
+	void			Class(void);
+
+	bool			Save(CObjectWriter* pcFile);
+	bool			Load(CObjectReader* pcFile);
+
 
 	Ptr<CImageCel>	GetCel(void);
 
-	void			Abstract(void) override;
+	void			MovableBlockAbstract(void) override;
 };
 
 
-typedef CArrayUnknownTemplate<CMovableBlockImageCel>	CArrayTileImageCel;
+typedef CArray<CMovableBlockImageCel>	CArrayTileImageCel;
 
 
 #endif // __MOVABLE_BLOCK_IMAGE_CEL_H__

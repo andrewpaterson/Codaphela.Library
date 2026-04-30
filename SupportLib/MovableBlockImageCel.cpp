@@ -28,10 +28,14 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockImageCel::Init(Ptr<CImageCel> pImageCel, CMovableBlockType* pcType, char* szName)
+void CMovableBlockImageCel::Init(Ptr<CImageCel> pImageCel, Ptr<CMovableBlockType> pType, const char* szName)
 {
-	CMovableBlock::Init(pcType, szName);
+	PreInit();
+
+	CMovableBlock::Init(pType, szName);
 	mpImageCel = pImageCel;
+
+	PostInit();
 }
 
 
@@ -39,9 +43,9 @@ void CMovableBlockImageCel::Init(Ptr<CImageCel> pImageCel, CMovableBlockType* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockImageCel::Kill(void)
+void CMovableBlockImageCel::Free(void)
 {
-	CMovableBlock::Kill();
+	CMovableBlock::Free();
 }
 
 
@@ -49,8 +53,30 @@ void CMovableBlockImageCel::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockImageCel::Abstract(void)
+void CMovableBlockImageCel::Class(void)
 {
+	CMovableBlock::Class();
+	M_Pointer(mpImageCel);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CMovableBlockImageCel::Load(CObjectReader* pcFile)
+{
+	return CMovableBlock::Load(pcFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CMovableBlockImageCel::Save(CObjectWriter* pcFile)
+{
+	return CMovableBlock::Save(pcFile);
 }
 
 
@@ -58,5 +84,6 @@ void CMovableBlockImageCel::Abstract(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CMovableBlockImageCel::MovableBlockAbstract(void) {}
 Ptr<CImageCel> CMovableBlockImageCel::GetCel(void) { return mpImageCel; }
 

@@ -229,7 +229,7 @@ bool CMapsXML::ImportTileMap(CMarkupTag* pcTag)
 	CChars			szName;
 	int64			iCelWidth;
 	int64			iCelHeight;
-	CTileMap*		pcMap;
+	Ptr<CTileMap>	pMap;
 
 	pcTileMap = CMarkupTextParser::GetTag(pcTag, "TileMap");
 	if (!pcTileMap)
@@ -273,9 +273,9 @@ bool CMapsXML::ImportTileMap(CMarkupTag* pcTag)
 		return false;
 	}
 
-	pcMap = mpcMaps->AddTileMap(szName.Text(), (int)iCelWidth, (int)iCelHeight);
+	pMap = mpcMaps->AddTileMap(szName.Text(), (int)iCelWidth, (int)iCelHeight);
 
-	bResult = ImportTileMap(pcTileMap, pcMap);
+	bResult = ImportTileMap(pcTileMap, &pMap);
 	if (!bResult)
 	{
 		return false;
@@ -361,14 +361,14 @@ bool CMapsXML::ImportLayers(CMarkupTag* pcTag, CTileMap* pcMap)
 //////////////////////////////////////////////////////////////////////////
 bool CMapsXML::ImportLayer(CMarkupTag* pcTag, CTileMap* pcMap)
 {
-	CMarkupTag*		pcName;
-	CMarkupTag*		pcObjectClass;
-	CMarkupTag*		pcTiles;
-	CChars			szName;
-	CChars			szObjectClass;
-	bool			bResult;
-	CMovableBlockType*		pcType;
-	CTileLayer*		pcLayer;
+	CMarkupTag*			pcName;
+	CMarkupTag*			pcObjectClass;
+	CMarkupTag*			pcTiles;
+	CChars				szName;
+	CChars				szObjectClass;
+	bool				bResult;
+	CMovableBlockType*	pcType;
+	CTileLayer*			pcLayer;
 
 	pcName = CMarkupTextParser::GetTag(pcTag, "Name");
 	if (!pcName)
@@ -405,14 +405,14 @@ bool CMapsXML::ImportLayer(CMarkupTag* pcTag, CTileMap* pcMap)
 		return false;
 	}
 
-	pcType = mpcContext->GetBlockType(szObjectClass.Text());
+	pcType = &mpcContext->GetBlockType(szObjectClass.Text());
 	if (!pcType)
 	{
 		CMarkupTextParser::LogError(pcObjectClass, "Could not find a TileType for Tag.");
 		return false;
 	}
 
-	pcLayer = pcMap->AddLayer(szName.Text(), pcType);
+	pcLayer = &pcMap->AddLayer(szName.Text(), pcType);
 
 	bResult = ImportTiles(pcTiles, pcLayer);
 
@@ -483,7 +483,7 @@ bool CMapsXML::ImportTiles(CMarkupTag* pcTag, CTileLayer* pcLayer)
 				return false;
 			}
 			
-			pcTile = pcLayer->GetTile((size)iCelIndex);
+			pcTile = &pcLayer->GetTile((size)iCelIndex);
 			if (pcTile)
 			{
 				pcLayer->SetTile(i, iRow, pcTile);

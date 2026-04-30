@@ -33,26 +33,28 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMapsContext::Init(void)
 {
-	CMovableBlockImageCel*	pcNullImageTile;
-	CMovableBlockBoolean*	pcNullBooleanTile;
-	CMovableBlockType*		pcBooleanType;
-	CMovableBlockType*		pcImageType;
+	PreInit();
 
-	macBlockTypes.Init();
-	macSpriteTypes.Init();
+	Ptr<CMovableBlockImageCel>	pcNullImageTile;
+	Ptr<CMovableBlockBoolean>	pcNullBooleanTile;
+	Ptr<CMovableBlockType>		pcBooleanType;
+	Ptr<CMovableBlockType>		pcImageType;
 
-	macImages.Init();
-	macGroups.Init();
+	maBlockTypes.Init();
+	maSpriteTypes.Init();
+
+	maImages.Init();
+	maGroups.Init();
 
 	pcImageType = AddBlockType("Image");
-	pcNullImageTile = UMalloc(CMovableBlockImageCel);
-	pcNullImageTile->Init(NULL, pcImageType, "NULL");
+	pcNullImageTile = OMalloc<CMovableBlockImageCel>(CPointer(), pcImageType, "NULL");
 	pcImageType->AddBlock(pcNullImageTile);
 
 	pcBooleanType = AddBlockType("Boolean");
-	pcNullBooleanTile = UMalloc(CMovableBlockBoolean);
-	pcNullBooleanTile->Init(false, pcBooleanType, "NULL");
+	pcNullBooleanTile = OMalloc<CMovableBlockBoolean>(false, pcBooleanType, "NULL");
 	pcBooleanType->AddBlock(pcNullBooleanTile);
+
+	PostInit();
 }
 
 
@@ -60,12 +62,8 @@ void CMapsContext::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapsContext::Kill(void)
+void CMapsContext::Free(void)
 {
-	macGroups.Kill();
-	macImages.Kill();
-	macSpriteTypes.Kill();
-	macBlockTypes.Kill();
 }
 
 
@@ -73,12 +71,45 @@ void CMapsContext::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMovableBlockType* CMapsContext::AddBlockType(char* szTypeName)
+void CMapsContext::Class(void)
 {
-	CMovableBlockType*	pcType;
+	M_Embedded(maBlockTypes);
+	M_Embedded(maSpriteTypes);
+	M_Embedded(maImages);
+	M_Embedded(maGroups);
+}
 
-	pcType = macBlockTypes.Add();
-	pcType->Init(szTypeName);
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CMapsContext::Load(CObjectReader* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CMapsContext::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CMovableBlockType> CMapsContext::AddBlockType(char* szTypeName)
+{
+	Ptr<CMovableBlockType>	pcType;
+
+	pcType = OMalloc<CMovableBlockType>(szTypeName);
+	maBlockTypes.Add(pcType);
 	return pcType;
 }
 
@@ -87,20 +118,20 @@ CMovableBlockType* CMapsContext::AddBlockType(char* szTypeName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMovableBlockType* CMapsContext::GetBlockType(char* szTypeName)
+Ptr<CMovableBlockType> CMapsContext::GetBlockType(char* szTypeName)
 {
-	SSetIterator		sIter;
-	CMovableBlockType*	pcType;
-	bool				bExists;
+	Ptr<CMovableBlockType>	pcType;
+	size					uiNumElements;
+	size					ui;
 
-	bExists = macBlockTypes.StartIteration(&sIter, &pcType);
-	while (bExists)
+	uiNumElements = maBlockTypes.NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
 	{
-		if ((pcType != NULL) && (pcType->Is(szTypeName)))
+		pcType = maBlockTypes.Get(ui);
+		if (pcType.IsNotNull() && (pcType->Is(szTypeName)))
 		{
 			return pcType;
 		}
-		bExists = macBlockTypes.Iterate(&sIter, &pcType);
 	}
 	return NULL;
 }
@@ -110,12 +141,12 @@ CMovableBlockType* CMapsContext::GetBlockType(char* szTypeName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSpriteType* CMapsContext::AddSpriteType(char* szTypeName)
+Ptr<CSpriteType> CMapsContext::AddSpriteType(char* szTypeName)
 {
-	CSpriteType*	pcType;
+	Ptr<CSpriteType>	pcType;
 
-	pcType = macSpriteTypes.Add();
-	pcType->Init(szTypeName);
+	pcType = OMalloc<CSpriteType>(szTypeName);
+	maSpriteTypes.Add(pcType);
 	return pcType;
 }
 
@@ -124,20 +155,20 @@ CSpriteType* CMapsContext::AddSpriteType(char* szTypeName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSpriteType* CMapsContext::GetSpriteType(char* szTypeName)
+Ptr<CSpriteType> CMapsContext::GetSpriteType(char* szTypeName)
 {
-	SSetIterator	sIter;
-	CSpriteType*	pcType;
-	bool			bExists;
+	Ptr<CSpriteType>	pcType;
+	size				uiNumElements;
+	size				ui;
 
-	bExists = macSpriteTypes.StartIteration(&sIter, &pcType);
-	while (bExists)
+	uiNumElements = maSpriteTypes.NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
 	{
-		if ((pcType != NULL) && pcType->Is(szTypeName))
+		pcType = maSpriteTypes.Get(ui);
+		if (pcType.IsNotNull() && pcType->Is(szTypeName))
 		{
 			return pcType;
 		}
-		bExists = macSpriteTypes.Iterate(&sIter, &pcType);
 	}
 	return NULL;
 }
@@ -147,9 +178,9 @@ CSpriteType* CMapsContext::GetSpriteType(char* szTypeName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapsContext::AddImages(Ptr<CArrayImage> pacImages)
+void CMapsContext::AddImages(Ptr<CArrayImage> paImages)
 {
-	macImages.AddAll(pacImages);
+	maImages.AddAll(paImages);
 }
 
 
@@ -157,9 +188,9 @@ void CMapsContext::AddImages(Ptr<CArrayImage> pacImages)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapsContext::AddGroup(Ptr<CImageCelGroup> pcGroup)
+void CMapsContext::AddGroup(Ptr<CImageCelGroup> pGroup)
 {
-	macGroups.Add(pcGroup);
+	maGroups.Add(pGroup);
 }
 
 
@@ -172,9 +203,9 @@ Ptr<CImageCelGroup> CMapsContext::GetGroup(char* szName)
 	size					i;
 	Ptr<CImageCelGroup>		pcImageCelGroup;
 
-	for (i = 0; i < macGroups.NumElements(); i++)
+	for (i = 0; i < maGroups.NumElements(); i++)
 	{
-		pcImageCelGroup = macGroups.Get(i);
+		pcImageCelGroup = maGroups.Get(i);
 		if (pcImageCelGroup->IsNamed(szName))
 		{
 			return pcImageCelGroup;
@@ -189,8 +220,8 @@ Ptr<CImageCelGroup> CMapsContext::GetGroup(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayMovableBlockType* CMapsContext::GetBlockTypes(void)
+Ptr<CArrayMovableBlockType> CMapsContext::GetBlockTypes(void)
 {
-	return &macBlockTypes;
+	return &maBlockTypes;
 }
 

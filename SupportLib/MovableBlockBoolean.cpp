@@ -28,10 +28,14 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockBoolean::Init(bool bValue, CMovableBlockType* pcType, char* szName)
+void CMovableBlockBoolean::Init(bool bValue, Ptr<CMovableBlockType> pType, const char* szName)
 {
-	CMovableBlock::Init(pcType, szName);
+	PreInit();
+
+	CMovableBlock::Init(pType, szName);
 	mbValue = bValue;
+
+	PostInit();
 }
 
 
@@ -39,9 +43,9 @@ void CMovableBlockBoolean::Init(bool bValue, CMovableBlockType* pcType, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockBoolean::Kill(void)
+void CMovableBlockBoolean::Free(void)
 {
-	CMovableBlock::Kill();
+	CMovableBlock::Free();
 }
 
 
@@ -49,8 +53,30 @@ void CMovableBlockBoolean::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockBoolean::Abstract(void)
+void CMovableBlockBoolean::Class(void)
 {
+	CMovableBlock::Class();
+	U_Bool(mbValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CMovableBlockBoolean::Load(CObjectReader* pcFile)
+{
+	return CMovableBlock::Load(pcFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CMovableBlockBoolean::Save(CObjectWriter* pcFile)
+{
+	return CMovableBlock::Save(pcFile);
 }
 
 
@@ -58,5 +84,6 @@ void CMovableBlockBoolean::Abstract(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CMovableBlockBoolean::MovableBlockAbstract(void) {}
 bool CMovableBlockBoolean::GetValue(void) { return mbValue; }
 

@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __SPRITE_MAP_H__
 #define __SPRITE_MAP_H__
-#include "StandardLib/ArrayUnknownTemplate.h"
+#include "StandardLib/Array.h"
 #include "BaseLib/Int2.h"
 #include "Sprite.h"
 #include "MovableBlockMap.h"
@@ -33,20 +33,24 @@ class CSpriteMap : public CMovableBlockMap
 {
 CONSTRUCTABLE(CSpriteMap);
 protected:
-	CArraySprite		macSprites;
+	CArraySprite		maSprites;
 
 public:
 	void			Init(void);
 	void 			Init(char* szName);
-	void 			Kill(void);
+	void 			Free(void);
+	void			Class(void);
 
-	CSprite*		AddSprite(CSpriteType* pcSpriteType, int32 x, int32 y);
+	bool			Save(CObjectWriter* pcFile);
+	bool			Load(CObjectReader* pcFile);
 
-	void			Abstract(void) override;
+	Ptr<CSprite>	AddSprite(Ptr<CSpriteType> pSpriteType, int32 x, int32 y);
+
+	void			MovableBlockMapAbstract(void) override;
 };
 
 
-typedef CArrayUnknownTemplate<CSpriteMap>	CArraySpriteMap;
+typedef CArray<CSpriteMap>	CArraySpriteMap;
 
 
 #endif // __SPRITE_MAP_H__

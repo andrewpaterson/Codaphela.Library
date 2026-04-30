@@ -30,10 +30,14 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CTileMap::Init(void)
 {
+	PreInit();
+
 	CMovableBlockMap::Init();
 	msMapSize.Init(0, 0);
 	msCelSize.Init(0, 0);
-	macTileLayers.Init();
+	maTileLayers.Init();
+
+	PostInit();
 }
 
 
@@ -43,10 +47,14 @@ void CTileMap::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CTileMap::Init(char* szName, int iCelSizeX, int iCelSizeY)
 {
+	PreInit();
+
 	CMovableBlockMap::Init(szName);
 	msMapSize.Init(0, 0);
 	msCelSize.Init(iCelSizeX, iCelSizeY);
-	macTileLayers.Init();
+	maTileLayers.Init();
+
+	PostInit();
 }
 
 
@@ -64,10 +72,9 @@ void CTileMap::SetMapSize(int iMapSizeX, int iMapSizeY)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileMap::Kill(void)
+void CTileMap::Free(void)
 {
-	macTileLayers.Kill();
-	CMovableBlockMap::Kill();
+	CMovableBlockMap::Free();
 }
 
 
@@ -75,13 +82,32 @@ void CTileMap::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTileLayer* CTileMap::AddLayer(char* szName, CMovableBlockType* pcTileType)
+void CTileMap::Class(void)
 {
-	CTileLayer* pcLayer;
+	CMovableBlockMap::Class();
+	M_Embedded(maTileLayers);
+	U_2Int32(msMapSize);
+	U_2Int32(msCelSize);
+}	
 
-	pcLayer = macTileLayers.Add();
-	pcLayer->Init(szName, this, pcTileType);
-	return pcLayer;
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CTileMap::Load(CObjectReader* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CTileMap::Save(CObjectWriter* pcFile)
+{
+	return false;
 }
 
 
@@ -89,8 +115,13 @@ CTileLayer* CTileMap::AddLayer(char* szName, CMovableBlockType* pcTileType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileMap::Abstract(void)
+Ptr<CTileLayer> CTileMap::AddLayer(char* szName, Ptr<CMovableBlockType> pTileType)
 {
+	Ptr<CTileLayer> pLayer;
+
+	pLayer = OMalloc<CTileLayer>(szName, this, pTileType);
+	maTileLayers.Add(pLayer);
+	return pLayer;
 }
 
 
@@ -98,6 +129,7 @@ void CTileMap::Abstract(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CTileMap::MovableBlockMapAbstract(void) {}
 int CTileMap::GetMapSizeX(void) { return msMapSize.x; }
 int CTileMap::GetMapSizeY(void) { return msMapSize.y; }
 

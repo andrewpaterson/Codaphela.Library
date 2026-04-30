@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/Objects.h"
 #include "SpriteMap.h"
 
 
@@ -30,8 +31,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CSpriteMap::Init(void)
 {
+	PreInit();
+
 	CMovableBlockMap::Init();
-	macSprites.Init();
+	maSprites.Init();
+
+	PostInit();
 }
 
 
@@ -41,9 +46,13 @@ void CSpriteMap::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CSpriteMap::Init(char* szName)
 {
+	PreInit();
+
 	CMovableBlockMap::Init(szName);
 	mszName.Init(szName);
-	macSprites.Init();
+	maSprites.Init();
+
+	PostInit();
 }
 
 
@@ -51,10 +60,9 @@ void CSpriteMap::Init(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSpriteMap::Kill(void)
+void CSpriteMap::Free(void)
 {
-	macSprites.Kill();
-	CMovableBlockMap::Kill();
+	CMovableBlockMap::Free();
 }
 
 
@@ -62,22 +70,50 @@ void CSpriteMap::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSprite* CSpriteMap::AddSprite(CSpriteType* pcSpriteType, int32 x, int32 y)
+void CSpriteMap::Class(void)
 {
-	CSprite* pcSprite;
-
-	pcSprite = macSprites.Add();
-	pcSprite->Init(pcSpriteType, x, y);
-	return pcSprite;
+	CMovableBlockMap::Class();
+	M_Embedded(maSprites);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-//
+//																		//
+//																		//
 //////////////////////////////////////////////////////////////////////////
-void CSpriteMap::Abstract(void)
+bool CSpriteMap::Load(CObjectReader* pcFile)
 {
+	return false;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSpriteMap::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CSprite> CSpriteMap::AddSprite(Ptr<CSpriteType> pSpriteType, int32 x, int32 y)
+{
+	Ptr<CSprite>	pSprite;
+
+	pSprite = OMalloc<CSprite>(pSpriteType, x, y);
+	maSprites.Add(pSprite);
+	return pSprite;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSpriteMap::MovableBlockMapAbstract(void) {}
 

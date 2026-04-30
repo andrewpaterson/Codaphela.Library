@@ -30,8 +30,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CSpriteType::Init(char* szTypeName)
 {
+	PreInit();
+
 	macBlockLayers.Init();
 	mszTypeName.Init(szTypeName);
+
+	PostInit();
 }
 
 
@@ -39,10 +43,40 @@ void CSpriteType::Init(char* szTypeName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSpriteType::Kill(void)
+void CSpriteType::Free(void)
 {
 	mszTypeName.Kill();
-	macBlockLayers.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSpriteType::Class(void)
+{
+	M_Embedded(macBlockLayers);
+	U_Data(CCharsImmutable, mszTypeName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSpriteType::Load(CObjectReader* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSpriteType::Save(CObjectWriter* pcFile)
+{
+	return false;
 }
 
 
@@ -60,10 +94,10 @@ bool CSpriteType::Is(char* szTypeName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMovableBlock* CSpriteType::GetNull(void)
+Ptr<CMovableBlock> CSpriteType::GetNull(void)
 {
 	//The 'NULL' tile is always the zero'th tile.
-	return (CMovableBlock*)macBlockLayers.Get(0);
+	return macBlockLayers.Get(0);
 }
 
 
@@ -81,8 +115,8 @@ void CSpriteType::AddTile(CMovableBlock* pcTile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMovableBlock* CSpriteType::Get(size uiIndex)
+Ptr<CMovableBlock> CSpriteType::Get(size uiIndex)
 {
-	return (CMovableBlock*)macBlockLayers.Get(uiIndex);
+	return macBlockLayers.Get(uiIndex);
 }
 

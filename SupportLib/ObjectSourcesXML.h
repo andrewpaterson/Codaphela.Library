@@ -34,11 +34,11 @@ class CObjectSourcesXML
 public:
 	CMapsContext*		mpcContext;
 
-	bool	Import(CMapsContext* pcWorld, CMarkupTag* pcTag);
-	bool	ImportObjectClass(CMapsContext* pcWorld, CMarkupTag* pcTag);
-	bool	ImportImages(CMovableBlockType* pcType, CMarkupTag* pcTag);
-	bool	ImportImage(CMovableBlockType* pcType, CMarkupTag* pcTag);
-	bool	ImportBooleans(CMovableBlockType* pcType, CMarkupTag* pcTag);
+	bool	Import(Ptr<CMapsContext> pWorld, CMarkupTag* pcTag);
+	bool	ImportObjectClass(Ptr<CMapsContext> pWorld, CMarkupTag* pcTag);
+	bool	ImportImages(Ptr<CMovableBlockType> pType, CMarkupTag* pcTag);
+	bool	ImportImage(Ptr<CMovableBlockType> pType, CMarkupTag* pcTag);
+	bool	ImportBooleans(Ptr<CMovableBlockType> pType, CMarkupTag* pcTag);
 };
 
 
