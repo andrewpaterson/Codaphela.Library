@@ -25,13 +25,6 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TextRun.h"
 
 
-enum ETextRunRelativeDirection
-{
-	TRRD_Right,
-	TRRD_Down,
-};
-
-
 class CTextUTF16Short;
 class CTextUTF16Long;
 class CTextUTF16Multi;
@@ -42,11 +35,10 @@ CONSTRUCTABLE(CText)
 DESTRUCTABLE(CText)
 protected:
 	CArrayTextRun				macText;
-	ETextRunRelativeDirection	meRunDirection;
 	CMallocator*				mpcMalloc;
 
 public:
-	void					Init(ETextRunRelativeDirection eRunDirection = TRRD_Right, CMallocator* pcMalloc = NULL);
+	void					Init(CMallocator* pcMalloc = NULL);
 	void 					Free(void);
 	void					Class(void);
 

@@ -181,7 +181,6 @@
     <ClInclude Include="Component.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="CanvasDraw.h" />
-    <ClInclude Include="Caret.h" />
     <ClInclude Include="ComponentListener.h" />
     <ClInclude Include="Container.h" />
     <ClInclude Include="ContainerBounds.h" />
@@ -197,6 +196,8 @@
     <ClInclude Include="NativeComponent.h" />
     <ClInclude Include="NativeWindow.h" />
     <ClInclude Include="NativeWindowFactory.h" />
+    <ClInclude Include="TextArea.h" />
+    <ClInclude Include="TextField.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowTick.h" />
   </ItemGroup>
@@ -204,7 +205,6 @@
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="CanvasDraw.cpp" />
-    <ClCompile Include="Caret.cpp" />
     <ClCompile Include="Container.cpp" />
     <ClCompile Include="ContainerBounds.cpp" />
     <ClCompile Include="ContainerStyles.cpp" />

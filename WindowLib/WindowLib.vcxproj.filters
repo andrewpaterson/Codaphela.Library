@@ -108,7 +108,10 @@
     <ClInclude Include="NativeCanvas.h">
       <Filter>Source\Component\Drawing\Canvas</Filter>
     </ClInclude>
-    <ClInclude Include="Caret.h">
+    <ClInclude Include="TextField.h">
+      <Filter>Source\Component\Drawing\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="TextArea.h">
       <Filter>Source\Component\Drawing\Text</Filter>
     </ClInclude>
   </ItemGroup>
@@ -166,9 +169,6 @@
     </ClCompile>
     <ClCompile Include="NativeCanvas.cpp">
       <Filter>Source\Component\Drawing\Canvas</Filter>
-    </ClCompile>
-    <ClCompile Include="Caret.cpp">
-      <Filter>Source\Component\Drawing\Text</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

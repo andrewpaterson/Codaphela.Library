@@ -32,9 +32,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CText::Init(ETextRunRelativeDirection eRunDirection, CMallocator* pcMalloc)
+void CText::Init(CMallocator* pcMalloc)
 {
-	meRunDirection = eRunDirection;
 	macText.Init();
 
 	if (pcMalloc == NULL)
@@ -72,7 +71,6 @@ void CText::Free(void)
 void CText::Class(void)
 {
 	U_Data(CArrayTextRun, macText);
-	U_Enum(meRunDirection);
 	U_Pointer(mpcMalloc);
 }
 
