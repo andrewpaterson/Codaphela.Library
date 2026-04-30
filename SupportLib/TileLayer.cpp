@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileLayer::Init(char* szName, Ptr<CTileMap> pTileMap, Ptr<CMovableBlockType> pTileType)
+void CTileLayer::Init(Ptr<CTileMap> pTileMap, Ptr<CMovableBlockType> pTileType)
 {
 	PreInit();
 
@@ -39,7 +39,6 @@ void CTileLayer::Init(char* szName, Ptr<CTileMap> pTileMap, Ptr<CMovableBlockTyp
 	int					iSize;
 
 	maTiles.Init();
-	mszName.Init(szName);
 	mpTileMap = pTileMap;
 	mbVisible = true;
 	mpTileType = pTileType;
@@ -61,7 +60,6 @@ void CTileLayer::Init(char* szName, Ptr<CTileMap> pTileMap, Ptr<CMovableBlockTyp
 //////////////////////////////////////////////////////////////////////////
 void CTileLayer::Free(void)
 {
-	mszName.Kill();
 }
 
 
@@ -72,7 +70,6 @@ void CTileLayer::Free(void)
 void CTileLayer::Class(void)
 {
 	M_Embedded(maTiles);
-	U_Data(CCharsImmutable, mszName);
 	M_Pointer(mpTileMap);
 	U_Bool(mbVisible);
 	M_Pointer(mpTileType);
