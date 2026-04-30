@@ -205,6 +205,9 @@
     <Filter Include="Source\Text\Element\UTF16">
       <UniqueIdentifier>{a74b0a24-aa44-4978-b5d3-69dc0a725ae4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Text\Layout">
+      <UniqueIdentifier>{abe22dbf-3f8a-4280-9a7a-8f286703421e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CopyPaste.h">

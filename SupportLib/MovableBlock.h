@@ -1,3 +1,5 @@
+#ifndef __MOVABLE_BLOCK_H__
+#define __MOVABLE_BLOCK_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -21,8 +23,6 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MOVABLE_BLOCK_H__
-#define __MOVABLE_BLOCK_H__
 #include "BaseLib/CharsImmutable.h"
 #include "StandardLib/Unknown.h"
 #include "StandardLib/ArrayUnknownTemplate.h"
