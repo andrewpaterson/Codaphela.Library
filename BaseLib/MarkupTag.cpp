@@ -351,13 +351,13 @@ bool CMarkupTag::Is(char* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CMarkupTag::GetText(CChars* psz, bool bFirstContiguous, bool bFirstTag)
 {
-	CMarkupBase*	pcBase;
-	CMarkupText*	pcText;
-	CMarkupRefText*	pcRefText;
-	size			i;
-	bool			bContiguous;
-	bool			bPreviousTag;
-	size			uiNumElements;
+	CMarkupBase*		pcBase;
+	CMarkupText*		pcText;
+	CMarkupRefText*		pcRefText;
+	size				i;
+	bool				bContiguous;
+	bool				bPreviousTag;
+	size				uiNumElements;
 
 	uiNumElements = macBases.NumElements();
 	bContiguous = true;

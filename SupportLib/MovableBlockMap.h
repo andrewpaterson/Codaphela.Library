@@ -31,6 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMovableBlockMap : public CObject
 {
 CONSTRUCTABLE(CMovableBlockMap);
+DESTRUCTABLE(CMovableBlockMap);
 protected:
 	CCharsImmutable		mszName;
 

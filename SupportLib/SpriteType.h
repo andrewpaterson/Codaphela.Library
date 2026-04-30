@@ -31,6 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CSpriteType : public CObject
 {
 CONSTRUCTABLE(CSpriteType);
+DESTRUCTABLE(CSpriteType);
 protected:
 	CArrayMovableBlock	macBlockLayers;
 	CCharsImmutable		mszTypeName;

@@ -9,6 +9,7 @@
 class CSprite : public CObject
 {
 CONSTRUCTABLE(CSprite);
+DESTRUCTABLE(CSprite);
 protected:
 	Ptr<CSpriteType>	mpType;
 	SInt2				msPosition;

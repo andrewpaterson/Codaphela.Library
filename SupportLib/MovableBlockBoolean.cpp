@@ -28,11 +28,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockBoolean::Init(bool bValue, Ptr<CMovableBlockType> pType, const char* szName)
+void CMovableBlockBoolean::Init(bool bValue)
 {
 	PreInit();
 
-	CMovableBlock::Init(pType, szName);
+	CMovableBlock::Init();
 	mbValue = bValue;
 
 	PostInit();

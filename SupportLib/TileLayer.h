@@ -33,6 +33,7 @@ class CMovableBlockType;
 class CTileLayer : public CObject
 {
 CONSTRUCTABLE(CTileLayer);
+DESTRUCTABLE(CTileLayer);
 protected:
 	CArrayMovableBlock		maTiles;
 	CCharsImmutable			mszName;

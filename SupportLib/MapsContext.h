@@ -38,6 +38,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMapsContext : public CObject
 {
 CONSTRUCTABLE(CMapsContext);
+DESTRUCTABLE(CMapsContext);
 protected:
 	CArrayMovableBlockType	maBlockTypes;  
 	CArraySpriteType		maSpriteTypes;

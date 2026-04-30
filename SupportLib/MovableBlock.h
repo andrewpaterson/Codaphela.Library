@@ -29,25 +29,20 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/Object.h"
 
 
-class CMovableBlockType;
 class CMovableBlock : public CObject
 {
 CONSTRUCTABLE(CMovableBlock);
+DESTRUCTABLE(CMovableBlock);
 protected:
-	Ptr<CMovableBlockType>	mpType;
-	CCharsImmutable			mszName;
-
 public:
-			void					Init(Ptr<CMovableBlockType> pType, const char* szName);
-			void 					Free(void);
-			void					Class(void);
+			void	Init(void);
+			void 	Free(void);
+			void	Class(void);
 
-			bool					Save(CObjectWriter* pcFile);
-			bool					Load(CObjectReader* pcFile);
+			bool	Save(CObjectWriter* pcFile);
+			bool	Load(CObjectReader* pcFile);
 
-			char*					GetName(void);
-			Ptr<CMovableBlockType>	GetType(void);
-	virtual	void					MovableBlockAbstract(void) =0;
+	virtual	void	MovableBlockAbstract(void) =0;
 };
 
 

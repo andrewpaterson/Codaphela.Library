@@ -47,11 +47,11 @@ void CMapsContext::Init(void)
 	maGroups.Init();
 
 	pcImageType = AddBlockType("Image");
-	pcNullImageTile = OMalloc<CMovableBlockImageCel>(CPointer(), pcImageType, "NULL");
+	pcNullImageTile = OMalloc<CMovableBlockImageCel>(CPointer());
 	pcImageType->AddBlock(pcNullImageTile);
 
 	pcBooleanType = AddBlockType("Boolean");
-	pcNullBooleanTile = OMalloc<CMovableBlockBoolean>(false, pcBooleanType, "NULL");
+	pcNullBooleanTile = OMalloc<CMovableBlockBoolean>(false);
 	pcBooleanType->AddBlock(pcNullBooleanTile);
 
 	PostInit();
