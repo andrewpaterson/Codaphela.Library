@@ -39,7 +39,8 @@
         if (a >= (BASE << 2)) a -= (BASE << 2); \
         if (a >= (BASE << 1)) a -= (BASE << 1); \
         if (a >= BASE) a -= BASE; \
-    } while (0)
+    } 
+    while (0)
 #  define MOD4(a) \
     do { \
         if (a >= (BASE << 4)) a -= (BASE << 4); \
@@ -47,7 +48,8 @@
         if (a >= (BASE << 2)) a -= (BASE << 2); \
         if (a >= (BASE << 1)) a -= (BASE << 1); \
         if (a >= BASE) a -= BASE; \
-    } while (0)
+    } 
+    while (0)
 #else
 #  define MOD(a) a %= BASE
 #  define MOD4(a) a %= BASE
@@ -100,7 +102,9 @@ uint32 ZEXPORT adler32(adler, buf, len)
         do {
             DO16(buf);          /* 16 sums unrolled */
             buf += 16;
-        } while (--n);
+        } 
+        while (--n);
+
         MOD(adler);
         MOD(sum2);
     }

@@ -64,6 +64,8 @@ public:
 
 	bool				IsNotNull(void);
 	bool				IsNull(void);
+	bool				IsNotEqual(CPointer& pcPointer);
+	bool				IsEqual(CPointer& pcPointer);
 
 	CPointer*			This(void);
 	CObject*			Embedding(void);

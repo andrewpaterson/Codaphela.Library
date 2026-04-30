@@ -505,7 +505,8 @@ size CCharsImmutable::FindFromEnd(size iIndex, const char* szString)
 		{
 			return i;
 		}
-	} while (i != 0);
+	} 
+	while (i != 0);
 	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
@@ -544,7 +545,8 @@ size CCharsImmutable::FindFromEnd(size iIndex, char c)
 		{
 			return i;
 		}
-	} while (i != 0);
+	} 
+	while (i != 0);
 	return ARRAY_ELEMENT_NOT_FOUND;
 }
 

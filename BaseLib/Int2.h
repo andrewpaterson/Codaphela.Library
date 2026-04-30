@@ -19,13 +19,13 @@ public:
 	void	Init(const SInt2& v);
 	void	Zero(void);
 
-	bool operator == (const SInt2&) const;
+	bool	operator == (const SInt2&) const;
 
-	SInt2 operator + (const SInt2&) const;
-	SInt2 operator - (const SInt2&) const;
+	SInt2	operator + (const SInt2&) const;
+	SInt2	operator - (const SInt2&) const;
 
-	SInt2& operator += (const SInt2&);
-	SInt2& operator -= (const SInt2&);
+	SInt2&	operator += (const SInt2&);
+	SInt2&	operator -= (const SInt2&);
 
 	bool	Save(CFileWriter* pcFileWriter);
 	bool	Load(CFileReader* pcFileReader);

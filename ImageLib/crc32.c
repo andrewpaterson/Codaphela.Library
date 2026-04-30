@@ -246,7 +246,9 @@ uint32 ZEXPORT crc32(crc, buf, len)
     }
     if (len) do {
         DO1;
-    } while (--len);
+    } 
+    while (--len);
+
     return crc ^ 0xffffffffUL;
 }
 
@@ -287,7 +289,9 @@ local uint32 crc32_little(crc, buf, len)
 
     if (len) do {
         c = crc_table[0][(c ^ *buf++) & 0xff] ^ (c >> 8);
-    } while (--len);
+    } 
+    while (--len);
+
     c = ~c;
     return (uint32)c;
 }
@@ -329,7 +333,9 @@ local uint32 crc32_big(crc, buf, len)
 
     if (len) do {
         c = crc_table[4][(c >> 24) ^ *buf++] ^ (c << 8);
-    } while (--len);
+    } 
+    while (--len);
+
     c = ~c;
     return (uint32)(REV(c));
 }
@@ -415,7 +421,8 @@ uint32 ZEXPORT crc32_combine(crc1, crc2, len2)
         len2 >>= 1;
 
         /* if no more bits set, then done */
-    } while (len2 != 0);
+    } 
+    while (len2 != 0);
 
     /* return combined crc */
     crc1 ^= crc2;

@@ -696,7 +696,9 @@ int ZEXPORT deflate (strm, flush)
                 }
                 val = s->gzhead->name[s->gzindex++];
                 put_byte(s, val);
-            } while (val != 0);
+            } 
+            while (val != 0);
+
             if (s->gzhead->hcrc && s->pending > beg)
                 strm->adler = crc32(strm->adler, s->pending_buf + beg,
                                     s->pending - beg);
@@ -1101,12 +1103,14 @@ local uint32 longest_match(s, cur_match)
          */
         Assert(scan[2] == match[2], "scan[2]?");
         scan++, match++;
-        do {
-        } while (*(ushf*)(scan+=2) == *(ushf*)(match+=2) &&
-                 *(ushf*)(scan+=2) == *(ushf*)(match+=2) &&
-                 *(ushf*)(scan+=2) == *(ushf*)(match+=2) &&
-                 *(ushf*)(scan+=2) == *(ushf*)(match+=2) &&
-                 scan < strend);
+        do 
+        {
+        } 
+        while (*(ushf*)(scan+=2) == *(ushf*)(match+=2) &&
+               *(ushf*)(scan+=2) == *(ushf*)(match+=2) &&
+               *(ushf*)(scan+=2) == *(ushf*)(match+=2) &&
+               *(ushf*)(scan+=2) == *(ushf*)(match+=2) &&
+                        scan < strend);
         /* The funny "do {}" generates better code on most compilers */
 
         /* Here, scan <= window+strstart+257 */
@@ -1135,12 +1139,14 @@ local uint32 longest_match(s, cur_match)
         /* We check for insufficient lookahead only every 8th comparison;
          * the 256th check will be made at strstart+258.
          */
-        do {
-        } while (*++scan == *++match && *++scan == *++match &&
-                 *++scan == *++match && *++scan == *++match &&
-                 *++scan == *++match && *++scan == *++match &&
-                 *++scan == *++match && *++scan == *++match &&
-                 scan < strend);
+        do
+        {
+        } 
+        while (*++scan == *++match && *++scan == *++match &&
+               *++scan == *++match && *++scan == *++match &&
+               *++scan == *++match && *++scan == *++match &&
+               *++scan == *++match && *++scan == *++match &&
+                  scan < strend);
 
         Assert(scan <= s->window+(unsigned)(s->window_size-1), "wild scan");
 
@@ -1160,8 +1166,8 @@ local uint32 longest_match(s, cur_match)
             scan_end   = scan[best_len];
 #endif
         }
-    } while ((cur_match = prev[cur_match & wmask]) > limit
-             && --chain_length != 0);
+    } 
+    while ((cur_match = prev[cur_match & wmask]) > limit && --chain_length != 0);
 
     if ((uint32)best_len <= s->lookahead) return (uint32)best_len;
     return s->lookahead;
@@ -1208,12 +1214,14 @@ local uint32 longest_match_fast(s, cur_match)
     /* We check for insufficient lookahead only every 8th comparison;
      * the 256th check will be made at strstart+258.
      */
-    do {
-    } while (*++scan == *++match && *++scan == *++match &&
-             *++scan == *++match && *++scan == *++match &&
-             *++scan == *++match && *++scan == *++match &&
-             *++scan == *++match && *++scan == *++match &&
-             scan < strend);
+    do 
+    {
+    } 
+    while (*++scan == *++match && *++scan == *++match &&
+           *++scan == *++match && *++scan == *++match &&
+           *++scan == *++match && *++scan == *++match &&
+           *++scan == *++match && *++scan == *++match &&
+              scan < strend);
 
     Assert(scan <= s->window+(unsigned)(s->window_size-1), "wild scan");
 
@@ -1241,7 +1249,8 @@ local void check_match(s, start, match, length)
                 start, match, length);
         do {
             fprintf(stderr, "%c%c", s->window[match++], s->window[start++]);
-        } while (--length != 0);
+        } 
+        while (--length != 0);
         z_error("invalid match");
     }
     if (z_verbose > 1) {
@@ -1309,7 +1318,8 @@ local void fill_window(s)
             do {
                 m = *--p;
                 *p = (Pos)(m >= wsize ? m-wsize : NIL);
-            } while (--n);
+            } 
+            while (--n);
 
             n = wsize;
 #ifndef FASTEST
@@ -1320,7 +1330,8 @@ local void fill_window(s)
                 /* If n is not on any hash chain, prev[n] is garbage but
                  * its value will never be used.
                  */
-            } while (--n);
+            } 
+            while (--n);
 #endif
             more += wsize;
         }
@@ -1354,7 +1365,8 @@ local void fill_window(s)
          * but this is not important since only literal bytes will be emitted.
          */
 
-    } while (s->lookahead < MIN_LOOKAHEAD && s->strm->avail_in != 0);
+    } 
+    while (s->lookahead < MIN_LOOKAHEAD && s->strm->avail_in != 0);
 }
 
 /* ===========================================================================
@@ -1508,7 +1520,8 @@ local block_state deflate_fast(s, flush)
              */
 #ifndef FASTEST
             if (s->match_length <= s->max_insert_length &&
-                s->lookahead >= MIN_MATCH) {
+                s->lookahead >= MIN_MATCH) 
+            {
                 s->match_length--; /* string at strstart already in table */
                 do {
                     s->strstart++;
@@ -1516,9 +1529,12 @@ local block_state deflate_fast(s, flush)
                     /* strstart never exceeds WSIZE-MAX_MATCH, so there are
                      * always MIN_MATCH bytes ahead.
                      */
-                } while (--s->match_length != 0);
+                } 
+                while (--s->match_length != 0);
+
                 s->strstart++;
-            } else
+            } 
+            else
 #endif
             {
                 s->strstart += s->match_length;
@@ -1630,11 +1646,15 @@ local block_state deflate_slow(s, flush)
              */
             s->lookahead -= s->prev_length-1;
             s->prev_length -= 2;
-            do {
-                if (++s->strstart <= max_insert) {
+            do 
+            {
+                if (++s->strstart <= max_insert) 
+                {
                     INSERT_STRING(s, s->strstart, hash_head);
                 }
-            } while (--s->prev_length != 0);
+            } 
+            while (--s->prev_length != 0);
+
             s->match_available = 0;
             s->match_length = MIN_MATCH-1;
             s->strstart++;
@@ -1709,10 +1729,12 @@ local block_state deflate_rle(s, flush)
             max = s->lookahead < MAX_MATCH ? s->lookahead : MAX_MATCH;
             scan = s->window + s->strstart - 1;
             prev = *scan++;
-            do {
+            do 
+            {
                 if (*scan++ != prev)
                     break;
-            } while (++run < max);
+            } 
+            while (++run < max);
         }
 
         /* Emit match if have run of MIN_MATCH or longer, else emit literal */

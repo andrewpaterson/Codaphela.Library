@@ -18,13 +18,13 @@ public:
 	void	Init(int x, int y, int z);
 	void	Zero(void);
 
-	bool operator == (const SInt3&) const;
+	bool	operator == (const SInt3&) const;
 
-	SInt3 operator + (const SInt3&) const;
-	SInt3 operator - (const SInt3&) const;
+	SInt3	operator + (const SInt3&) const;
+	SInt3	operator - (const SInt3&) const;
 
-	SInt3& operator += (const SInt3&);
-	SInt3& operator -= (const SInt3&);
+	SInt3&	operator += (const SInt3&);
+	SInt3&	operator -= (const SInt3&);
 
 	bool	Save(CFileWriter* pcFileWriter);
 	bool	Load(CFileReader* pcFileReader);

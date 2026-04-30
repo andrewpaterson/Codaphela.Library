@@ -80,7 +80,8 @@ static int NAME(timsort) (void* a, size nel, size width, CMPPARAMS(c, carg))
 		// Advance to find next run
 		a = ELEM(a, runLen);
 		nel -= runLen;
-	} while (nel != 0);
+	} 
+	while (nel != 0);
 
 	// Merge all remaining runs to complete sort
 	if ((err = CALL(mergeForceCollapse) (&ts, width)))
@@ -594,7 +595,8 @@ static int NAME(mergeLo) (struct timsort* ts, void* base1, size len1,
 				if (count1 >= minGallop)
 					break;
 			}
-		} while (1);	// (count1 | count2) < minGallop);
+		} 
+		while (true);	// (count1 | count2) < minGallop);
 
 		/*
 		 * One run is winning so consistently that galloping may be a
@@ -637,7 +639,9 @@ static int NAME(mergeLo) (struct timsort* ts, void* base1, size len1,
 				goto outer;
 			if (minGallop > 0)
 				minGallop--;
-		} while (count1 >= MIN_GALLOP || count2 >= MIN_GALLOP);
+		} 
+		while (count1 >= MIN_GALLOP || count2 >= MIN_GALLOP);
+		
 		minGallop += 2;	// Penalize for leaving gallop mode
 	}			// End of "outer" loop
 outer:
@@ -743,7 +747,8 @@ static int NAME(mergeHi) (struct timsort* ts, void* base1, size len1,
 				if (--len2 == 1)
 					goto outer;
 			}
-		} while ((count1 | count2) < minGallop);
+		} 
+		while ((count1 | count2) < minGallop);
 
 		/*
 		 * One run is winning so consistently that galloping may be a
@@ -790,7 +795,9 @@ static int NAME(mergeHi) (struct timsort* ts, void* base1, size len1,
 				goto outer;
 			if (minGallop > 0)
 				minGallop--;
-		} while (count1 >= MIN_GALLOP || count2 >= MIN_GALLOP);
+		} 
+		while (count1 >= MIN_GALLOP || count2 >= MIN_GALLOP);
+		
 		minGallop += 2;	// Penalize for leaving gallop mode
 	}			// End of "outer" loop
 outer:
