@@ -30,7 +30,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMovableBlockImageCel : public CMovableBlock
 {
 CONSTRUCTABLE(CMovableBlockImageCel);
-protected:	
+DESTRUCTABLE(CMovableBlockImageCel);
+protected:
 	Ptr<CImageCel>	mpImageCel;
 
 public:

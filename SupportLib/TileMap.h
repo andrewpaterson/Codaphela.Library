@@ -41,7 +41,7 @@ protected:
 
 public:
 	void				Init(void);
-	void 				Init(char* szName, int iCelSizeX, int iCelSizeY);
+	void 				Init(int iCelSizeX, int iCelSizeY);
 	void 				Free(void);
 	void				Class(void);
 
