@@ -32,22 +32,6 @@ void CMovableBlockMap::Init(void)
 {
 	PreInit();
 
-	mszName.Init();
-
-	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMovableBlockMap::Init(char* szName)
-{
-	PreInit();
-
-	mszName.Init(szName);
-
 	PostInit();
 }
 
@@ -58,7 +42,6 @@ void CMovableBlockMap::Init(char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CMovableBlockMap::Free(void)
 {
-	mszName.Kill();
 }
 
 
@@ -68,7 +51,6 @@ void CMovableBlockMap::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CMovableBlockMap::Class(void)
 {
-	U_Data(CCharsImmutable, mszName);
 }
 
 
@@ -89,15 +71,5 @@ bool CMovableBlockMap::Load(CObjectReader* pcFile)
 bool CMovableBlockMap::Save(CObjectWriter* pcFile)
 {
 	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CMovableBlockMap::GetName(void)
-{
-	return mszName.Text();
 }
 

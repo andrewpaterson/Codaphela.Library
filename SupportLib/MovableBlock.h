@@ -33,7 +33,6 @@ class CMovableBlock : public CObject
 {
 CONSTRUCTABLE(CMovableBlock);
 DESTRUCTABLE(CMovableBlock);
-protected:
 public:
 			void	Init(void);
 			void 	Free(void);

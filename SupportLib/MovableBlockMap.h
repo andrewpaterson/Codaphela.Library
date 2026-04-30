@@ -32,19 +32,13 @@ class CMovableBlockMap : public CObject
 {
 CONSTRUCTABLE(CMovableBlockMap);
 DESTRUCTABLE(CMovableBlockMap);
-protected:
-	CCharsImmutable		mszName;
-
 public:
 			void	Init(void);
-			void 	Init(char* szName);
 			void 	Free(void);
 			void	Class(void);
 
 			bool	Save(CObjectWriter* pcFile);
 			bool	Load(CObjectReader* pcFile);
-
-			char*	GetName(void);
 
 	virtual	void	MovableBlockMapAbstract(void) =0;
 };

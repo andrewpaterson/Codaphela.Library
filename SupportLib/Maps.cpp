@@ -83,7 +83,14 @@ Ptr<CTileMap> CMaps::AddTileMap(char* szName, int iCelWidth, int iCelHeight)
 {
 	Ptr<CTileMap>	pMap;
 
-	pMap = OMalloc<CTileMap>(szName, iCelWidth, iCelHeight);
+	if (StrEmpty(szName))
+	{
+		pMap = OMalloc<CTileMap>(iCelWidth, iCelHeight);
+	}
+	else
+	{
+		pMap = ONMalloc<CTileMap>(szName, iCelWidth, iCelHeight);
+	}
 	maMaps.Add(pMap);
 
 	return pMap;
@@ -98,7 +105,14 @@ Ptr<CSpriteMap> CMaps::AddSpriteMap(char* szName)
 {
 	Ptr<CSpriteMap>		pMap;
 
-	pMap = OMalloc<CSpriteMap>(szName);
+	if (StrEmpty(szName))
+	{
+		pMap = OMalloc<CSpriteMap>();
+	}
+	else
+	{
+		pMap = ONMalloc<CSpriteMap>(szName);
+	}
 	maMaps.Add(pMap);
 
 	return pMap;

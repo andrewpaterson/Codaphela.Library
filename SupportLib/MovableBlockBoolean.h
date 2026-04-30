@@ -29,6 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMovableBlockBoolean : public CMovableBlock
 {
 CONSTRUCTABLE(CMovableBlockBoolean);
+DESTRUCTABLE(CMovableBlockBoolean);
 protected:
 	bool	mbValue;
 

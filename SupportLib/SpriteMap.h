@@ -37,7 +37,6 @@ protected:
 
 public:
 	void			Init(void);
-	void 			Init(char* szName);
 	void 			Free(void);
 	void			Class(void);
 

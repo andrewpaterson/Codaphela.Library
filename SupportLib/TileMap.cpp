@@ -45,11 +45,11 @@ void CTileMap::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileMap::Init(char* szName, int iCelSizeX, int iCelSizeY)
+void CTileMap::Init(int iCelSizeX, int iCelSizeY)
 {
 	PreInit();
 
-	CMovableBlockMap::Init(szName);
+	CMovableBlockMap::Init();
 	msMapSize.Init(0, 0);
 	msCelSize.Init(iCelSizeX, iCelSizeY);
 	maTileLayers.Init();
