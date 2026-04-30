@@ -5,12 +5,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockType::Init(char* szTypeName)
+void CMovableBlockType::Init(void)
 {
 	PreInit();
 
 	maBlocksOfType.Init();
-	mszTypeName.Init(szTypeName);
 
 	PostInit();
 }
@@ -22,7 +21,6 @@ void CMovableBlockType::Init(char* szTypeName)
 //////////////////////////////////////////////////////////////////////////
 void CMovableBlockType::Free(void)
 {
-	mszTypeName.Kill();
 }
 
 
@@ -33,7 +31,6 @@ void CMovableBlockType::Free(void)
 void CMovableBlockType::Class(void)
 {
 	M_Embedded(maBlocksOfType);
-	U_Data(CCharsImmutable, mszTypeName);
 }
 
 
@@ -54,16 +51,6 @@ bool CMovableBlockType::Load(CObjectReader* pcFile)
 bool CMovableBlockType::Save(CObjectWriter* pcFile)
 {
 	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CMovableBlockType::Is(char* szTypeName)
-{
-	return mszTypeName.Equals(szTypeName);
 }
 
 
@@ -105,15 +92,5 @@ void CMovableBlockType::AddBlock(Ptr<CMovableBlock> pcTile)
 Ptr<CMovableBlock> CMovableBlockType::GetBlock(size uiIndex)
 {
 	return maBlocksOfType.Get(uiIndex);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CMovableBlockType::GetName(void)
-{
-	return mszTypeName.Text();
 }
 

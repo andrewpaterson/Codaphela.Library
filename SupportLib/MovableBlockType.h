@@ -37,18 +37,14 @@ CONSTRUCTABLE(CMovableBlockType);
 DESTRUCTABLE(CMovableBlockType);
 protected:
 	CArrayMovableBlock	maBlocksOfType;  //These are ALL the blocks of this type, e.g. all the image cel blocks 
-	CCharsImmutable		mszTypeName;
 
 public:
-	void 				Init(char* szTypeName);
+	void 				Init(void);
 	void 				Free(void);
 	void				Class(void);
 
 	bool				Load(CObjectReader* pcFile);
 	bool				Save(CObjectWriter* pcFile);
-
-	bool 				Is(char* szTypeName);
-	char*				GetName(void);
 
 	size				NumBlocks(void);
 	void				AddBlock(Ptr<CMovableBlock> pcTile);
