@@ -1,3 +1,5 @@
+#ifndef __MOVABLE_BLOCK_TYPE_H__
+#define __MOVABLE_BLOCK_TYPE_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -21,36 +23,41 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MOVABLE_BLOCK_TYPE_H__
-#define __MOVABLE_BLOCK_TYPE_H__
-#include "StandardLib/Unknown.h"
-#include "StandardLib/ArrayUnknownTemplate.h"
+#include "StandardLib/Object.h"
+#include "StandardLib/Array.h"
+#include "StandardLib/ObjectWriter.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ClassDefines.h"
 #include "MovableBlock.h"
 
 
-class CMovableBlockType : public CUnknown
+class CMovableBlockType : public CObject
 {
 CONSTRUCTABLE(CMovableBlockType);
 protected:
-	CArrayUnknown		macBlocksOfType;  //These are ALL the blocks of this type, e.g. all the image cel blocks 
-	CCharsImmutable		mszTypeName;
+	CArrayMovableBlock		maBlocksOfType;  //These are ALL the blocks of this type, e.g. all the image cel blocks 
+	CCharsImmutable			mszTypeName;
 
 public:
-	void 			Init(char* szTypeName);
-	void 			Kill(void);
+	void 				Init(char* szTypeName);
+	void 				Free(void);
+	void				Class(void);
 
-	bool 			Is(char* szTypeName);
-	char*			GetName(void);
+	bool				Load(CObjectReader* pcFile);
+	bool				Save(CObjectWriter* pcFile);
 
-	size			NumBlocks(void);
-	void			AddBlock(CMovableBlock* pcTile);
+	bool 				Is(char* szTypeName);
+	char*				GetName(void);
 
-	CMovableBlock*	GetBlock(size iIndex);
-	CMovableBlock*	GetNullBlock(void);
+	size				NumBlocks(void);
+	void				AddBlock(Ptr<CMovableBlock> pcTile);
+
+	Ptr<CMovableBlock>	GetBlock(size iIndex);
+	Ptr<CMovableBlock>	GetNullBlock(void);
 };
 
 
-typedef CArrayUnknownTemplate<CMovableBlockType>	CArrayMovableBlockType;
+typedef CArray<CMovableBlockType>	CArrayMovableBlockType;
 
 
 #endif // __MOVABLE_BLOCK_TYPE_H__

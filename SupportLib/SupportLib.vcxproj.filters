@@ -756,6 +756,9 @@
     <ClInclude Include="TextElement.h">
       <Filter>Source\Text\Element</Filter>
     </ClInclude>
+    <ClInclude Include="TextLayoutBuilder.h">
+      <Filter>Source\Text\Layout</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1270,6 +1273,9 @@
     </ClCompile>
     <ClCompile Include="TextNewLine.cpp">
       <Filter>Source\Text\Element</Filter>
+    </ClCompile>
+    <ClCompile Include="TextLayoutBuilder.cpp">
+      <Filter>Source\Text\Layout</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

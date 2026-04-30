@@ -52,5 +52,8 @@ public:
 };
 
 
+typedef CArray<CImageCelGroup>	CArrayImageCelGroup;
+
+
 #endif // __IMAGE_CEL_GROUP_H__
 

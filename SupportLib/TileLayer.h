@@ -23,34 +23,38 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __TILE_LAYER_H__
 #define __TILE_LAYER_H__
-#include "StandardLib/Unknown.h"
-#include "StandardLib/ArrayUnknownTemplate.h"
+#include "StandardLib/Object.h"
+#include "StandardLib/Array.h"
 #include "MovableBlock.h"
 
 
 class CTileMap;
 class CMovableBlockType;
-class CTileLayer : public CUnknown
+class CTileLayer : public CObject
 {
 CONSTRUCTABLE(CTileLayer);
 protected:
-	CArrayUnknown		macTiles;
-	CCharsImmutable		mszname;
-	CTileMap*			mpcTileMap;
-	bool				mbVisible;
-	CMovableBlockType*		mpcTileType;
+	CArrayMovableBlock		maTiles;
+	CCharsImmutable			mszName;
+	Ptr<CTileMap>			mpTileMap;
+	bool					mbVisible;
+	Ptr<CMovableBlockType>	mpTileType;
 
 public:
-	void			Init(char* szName, CTileMap* pcTileMap, CMovableBlockType*	pcTileType);
-	void			Kill(void);
+	void				Init(char* szName, Ptr<CTileMap> pTileMap, Ptr<CMovableBlockType> pTileType);
+	void 				Free(void);
+	void				Class(void);
 
-	void			SetTile(int x, int y, CMovableBlock* pcTile);
-	CMovableBlock*	GetTile(size uiIndex);
-	CMovableBlock*	GetTile(int x, int y);
+	bool				Save(CObjectWriter* pcFile);
+	bool				Load(CObjectReader* pcFile);
+
+	void				SetTile(int x, int y, Ptr<CMovableBlock> pTile);
+	Ptr<CMovableBlock>	GetTile(size uiIndex);
+	Ptr<CMovableBlock>	GetTile(int x, int y);
 };
 
 
-typedef CArrayUnknownTemplate<CTileLayer>	CArrayTileLayer;
+typedef CArray<CTileLayer>	CArrayTileLayer;
 
 
 #endif // __TILE_LAYER_H__

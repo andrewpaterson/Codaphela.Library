@@ -35,21 +35,25 @@ class CTileMap : public CMovableBlockMap
 {
 CONSTRUCTABLE(CTileMap);
 protected:
-	CArrayTileLayer		macTileLayers;	//Layers are not multiple graphics layers.  All the layers together make up the complete information about a single tile.  E.g. an ImageCelTile and a BooleanTile.
+	CArrayTileLayer		maTileLayers;	//Layers are not multiple graphics layers.  All the layers together make up the complete information about a single tile.  E.g. an ImageCelTile and a BooleanTile.
 	SInt2				msMapSize;		//The tile is indexed by x + y * msMapSize.x
 	SInt2				msCelSize;
 
 public:
-	void			Init(void);
-	void 			Init(char* szName, int iCelSizeX, int iCelSizeY);
-	void 			Kill(void);
+	void				Init(void);
+	void 				Init(char* szName, int iCelSizeX, int iCelSizeY);
+	void 				Free(void);
+	void				Class(void);
 
-	void			SetMapSize(int iMapSizeX, int iMapSizeY);
-	CTileLayer*		AddLayer(char* szName, CMovableBlockType* pcTileType);
-	int				GetMapSizeX(void);
-	int				GetMapSizeY(void);
+	bool				Save(CObjectWriter* pcFile);
+	bool				Load(CObjectReader* pcFile);
 
-	void			Abstract(void) override;
+	void				SetMapSize(int iMapSizeX, int iMapSizeY);
+	Ptr<CTileLayer>		AddLayer(char* szName, Ptr<CMovableBlockType> pTileType);
+	int					GetMapSizeX(void);
+	int					GetMapSizeY(void);
+
+	void				MovableBlockMapAbstract(void) override;
 };
 
 

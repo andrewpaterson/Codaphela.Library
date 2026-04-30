@@ -359,7 +359,6 @@ Ptr<CImage> CImageCelsSource::Combine(size iFirstCelIndex)
 	}
 	else
 	{
-		//Should this be ONull?
 		return NULL;
 	}
 }

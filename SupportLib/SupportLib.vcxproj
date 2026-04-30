@@ -187,6 +187,7 @@
     <ClInclude Include="TextBuilderUTF16Short.h" />
     <ClInclude Include="TextBuilderUTFCommon.h" />
     <ClInclude Include="TextElement.h" />
+    <ClInclude Include="TextLayoutBuilder.h" />
     <ClInclude Include="TextNewLine.h" />
     <ClInclude Include="TextUTF16Long.h" />
     <ClInclude Include="TextUTF16Multi.h" />
@@ -403,6 +404,7 @@
     <ClCompile Include="TextBuilderUTF16Long.cpp" />
     <ClCompile Include="TextBuilderUTF16Short.cpp" />
     <ClCompile Include="TextBuilderUTFCommon.cpp" />
+    <ClCompile Include="TextLayoutBuilder.cpp" />
     <ClCompile Include="TextRun.cpp" />
     <ClCompile Include="TextDrawable.cpp" />
     <ClCompile Include="TextElement.cpp" />

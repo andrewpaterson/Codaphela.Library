@@ -1,3 +1,5 @@
+#ifndef __MAPS_CONTEXT_H__
+#define __MAPS_CONTEXT_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -21,10 +23,11 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MAPS_CONTEXT_H__
-#define __MAPS_CONTEXT_H__
-#include "StandardLib/Unknown.h"
+#include "StandardLib/Object.h"
 #include "StandardLib/Pointer.h"
+#include "StandardLib/ObjectWriter.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ClassDefines.h"
 #include "Image.h"
 #include "ImageCelGroup.h"
 #include "TileMap.h"
@@ -32,29 +35,33 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "MovableBlockType.h"
 
 
-class CMapsContext : public CUnknown
+class CMapsContext : public CObject
 {
 CONSTRUCTABLE(CMapsContext);
 protected:
-	CArrayMovableBlockType	macBlockTypes;  
-	CArraySpriteType		macSpriteTypes;
-	CArrayImage				macImages;
-	CArray<CImageCelGroup>	macGroups;
+	CArrayMovableBlockType	maBlockTypes;  
+	CArraySpriteType		maSpriteTypes;
+	CArrayImage				maImages;
+	CArrayImageCelGroup		maGroups;
 	
 public:
-	void 						Init(void);
-	void 						Kill(void);
+	void 							Init(void);
+	void 							Free(void);
+	void							Class(void);
 
-	CMovableBlockType*			AddBlockType(char* szTypeName);
-	CMovableBlockType*			GetBlockType(char* szTypeName);
-	CArrayMovableBlockType*		GetBlockTypes(void);
+	bool							Save(CObjectWriter* pcFile);
+	bool							Load(CObjectReader* pcFile);
 
-	CSpriteType*				AddSpriteType(char* szTypeName);
-	CSpriteType*				GetSpriteType(char* szTypeName);
+	Ptr<CMovableBlockType>			AddBlockType(char* szTypeName);
+	Ptr<CMovableBlockType>			GetBlockType(char* szTypeName);
+	Ptr<CArrayMovableBlockType>		GetBlockTypes(void);
 
-	void						AddImages(Ptr<CArrayImage> pacImages);
-	void						AddGroup(Ptr<CImageCelGroup> pcGroup);
-	Ptr<CImageCelGroup>			GetGroup(char* szName);
+	Ptr<CSpriteType>				AddSpriteType(char* szTypeName);
+	Ptr<CSpriteType>				GetSpriteType(char* szTypeName);
+
+	void							AddImages(Ptr<CArrayImage> paImages);
+	void							AddGroup(Ptr<CImageCelGroup> pGroup);
+	Ptr<CImageCelGroup>				GetGroup(char* szName);
 };
 
 

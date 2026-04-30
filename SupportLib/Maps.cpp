@@ -31,10 +31,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMaps::Init(CMapsContext* pcContext)
+void CMaps::Init(Ptr<CMapsContext> pContext)
 {
-	mpcContext = pcContext;
-	macMaps.Init();
+	mpContext = pContext;
+	maMaps.Init();
 }
 
 
@@ -42,10 +42,36 @@ void CMaps::Init(CMapsContext* pcContext)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMaps::Kill(void)
+void CMaps::Free(void)
 {
-	macMaps.Kill();
-	mpcContext = NULL;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMaps::Class(void)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CMaps::Load(CObjectReader* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CMaps::Save(CObjectWriter* pcFile)
+{
+	return false;
 }
 
 
@@ -53,13 +79,14 @@ void CMaps::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTileMap* CMaps::AddTileMap(char* szName, int iCelWidth, int iCelHeight)
+Ptr<CTileMap> CMaps::AddTileMap(char* szName, int iCelWidth, int iCelHeight)
 {
-	CTileMap* pcMap;
+	Ptr<CTileMap>	pMap;
 
-	pcMap = macMaps.Add<CTileMap>();
-	pcMap->Init(szName, iCelWidth, iCelHeight);
-	return pcMap;
+	pMap = OMalloc<CTileMap>(szName, iCelWidth, iCelHeight);
+	maMaps.Add(pMap);
+
+	return pMap;
 }
 
 
@@ -67,13 +94,14 @@ CTileMap* CMaps::AddTileMap(char* szName, int iCelWidth, int iCelHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSpriteMap* CMaps::AddSpriteMap(char* szName)
+Ptr<CSpriteMap> CMaps::AddSpriteMap(char* szName)
 {
-	CSpriteMap* pcMap;
+	Ptr<CSpriteMap>		pMap;
 
-	pcMap = macMaps.Add<CSpriteMap>();
-	pcMap->Init(szName);
-	return pcMap;
+	pMap = OMalloc<CSpriteMap>(szName);
+	maMaps.Add(pMap);
+
+	return pMap;
 }
 
 
@@ -81,5 +109,5 @@ CSpriteMap* CMaps::AddSpriteMap(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMapsContext* CMaps::GetContext(void) {	return mpcContext; }
+Ptr<CMapsContext> CMaps::GetContext(void) {	return mpContext; }
 

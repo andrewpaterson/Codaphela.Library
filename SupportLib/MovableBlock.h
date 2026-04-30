@@ -24,29 +24,34 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/CharsImmutable.h"
-#include "StandardLib/Unknown.h"
-#include "StandardLib/ArrayUnknownTemplate.h"
+#include "StandardLib/Array.h"
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/Object.h"
 
 
 class CMovableBlockType;
-class CMovableBlock : public CUnknown
+class CMovableBlock : public CObject
 {
 CONSTRUCTABLE(CMovableBlock);
 protected:
-	CMovableBlockType*	mpcType;
-	CCharsImmutable		mszName;
+	Ptr<CMovableBlockType>	mpType;
+	CCharsImmutable			mszName;
 
 public:
-			void				Init(CMovableBlockType* pcType, char* szName);
-			void				Kill(void);
+			void					Init(Ptr<CMovableBlockType> pType, const char* szName);
+			void 					Free(void);
+			void					Class(void);
 
-			char*				GetName(void);
-			CMovableBlockType*	GetType(void);
-	virtual	void				Abstract(void) =0;
+			bool					Save(CObjectWriter* pcFile);
+			bool					Load(CObjectReader* pcFile);
+
+			char*					GetName(void);
+			Ptr<CMovableBlockType>	GetType(void);
+	virtual	void					MovableBlockAbstract(void) =0;
 };
 
 
-typedef CArrayUnknownTemplate<CMovableBlock>	CArrayMovableBlock;
+typedef CArray<CMovableBlock>	CArrayMovableBlock;
 
 
 #endif // __MOVABLE_BLOCK_H__

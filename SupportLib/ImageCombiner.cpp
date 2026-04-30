@@ -215,7 +215,6 @@ Ptr<CImage> CImageCombiner::InitiailiseDestImage(SInt2 sSize)
 	}
 	else
 	{
-		//Should this be ONull?
 		return NULL;
 	}
 }

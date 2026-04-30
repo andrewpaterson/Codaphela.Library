@@ -33,12 +33,16 @@ protected:
 	bool	mbValue;
 
 public:
-	void	Init(bool bValue, CMovableBlockType* pcType, char* szName);
-	void	Kill(void);
+	void	Init(bool bValue, Ptr<CMovableBlockType> pType, const char* szName);
+	void	Class(void);
+	void 	Free(void);
+
+	bool	Save(CObjectWriter* pcFile);
+	bool	Load(CObjectReader* pcFile);
 
 	bool	GetValue(void);
 
-	void	Abstract(void) override;
+	void	MovableBlockAbstract(void) override;
 };
 
 
