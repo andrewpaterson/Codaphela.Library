@@ -47,11 +47,11 @@ void CMapsContext::Init(void)
 	maGroups.Init();
 
 	pcImageType = AddBlockType("MovableBlockType.Image");
-	pcNullImageTile = OMalloc<CMovableBlockImageCel>(CPointer());
+	pcNullImageTile = OMalloc<CMovableBlockImageCel>(pcImageType, CPointer());
 	pcImageType->AddBlock(pcNullImageTile);
 
 	pcBooleanType = AddBlockType("MovableBlockType.Boolean");
-	pcNullBooleanTile = OMalloc<CMovableBlockBoolean>(false);
+	pcNullBooleanTile = OMalloc<CMovableBlockBoolean>(pcBooleanType, false);
 	pcBooleanType->AddBlock(pcNullBooleanTile);
 
 	PostInit();
@@ -125,17 +125,17 @@ Ptr<CMovableBlockType> CMapsContext::AddBlockType(char* szTypeName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CSpriteType> CMapsContext::AddSpriteType(char* szTypeName)
+Ptr<CCompoundSpriteType> CMapsContext::AddSpriteType(char* szTypeName)
 {
-	Ptr<CSpriteType>	pcType;
+	Ptr<CCompoundSpriteType>	pcType;
 
 	if (StrEmpty(szTypeName))
 	{
-		pcType = OMalloc<CSpriteType>();
+		pcType = OMalloc<CCompoundSpriteType>();
 	}
 	else
 	{
-		pcType = ONMalloc<CSpriteType>(szTypeName);
+		pcType = ONMalloc<CCompoundSpriteType>(szTypeName);
 
 	}
 	maSpriteTypes.Add(pcType);

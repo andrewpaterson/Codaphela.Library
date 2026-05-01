@@ -85,11 +85,25 @@ bool CSpriteMap::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CSprite> CSpriteMap::AddSprite(Ptr<CSpriteType> pSpriteType, int32 x, int32 y)
+Ptr<CCompoundSprite> CSpriteMap::AddSprite(Ptr<CCompoundSpriteType> pSpriteType, int32 x, int32 y)
+{
+	Ptr<CCompoundSprite>	pSprite;
+
+	pSprite = OMalloc<CCompoundSprite>(pSpriteType, x, y);
+	maSprites.Add(pSprite);
+	return pSprite;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CSprite> CSpriteMap::AddSprite(Ptr<CImageCel> pCel, int32 x, int32 y)
 {
 	Ptr<CSprite>	pSprite;
 
-	pSprite = OMalloc<CSprite>(pSpriteType, x, y);
+	pSprite = OMalloc<CSprite>(pCel, x, y);
 	maSprites.Add(pSprite);
 	return pSprite;
 }

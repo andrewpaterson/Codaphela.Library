@@ -5,12 +5,12 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CSprite::Init(Ptr<CSpriteType> pType, int32 x, int32 y)
+void CSprite::Init(Ptr<CImageCel> pCel, int32 x, int32 y)
 {
 	PreInit();
 
-	msPosition.Init(x, y);
-	mpType = pType;
+	CBaseSprite::Init(x, y);
+	mpCel = pCel;
 
 	PostInit();
 }
@@ -31,8 +31,8 @@ void CSprite::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CSprite::Class(void)
 {
-	M_Pointer(mpType);
-	U_2Int32(msPosition);
+	CBaseSprite::Class();
+	M_Pointer(mpCel);
 }
 
 
@@ -60,6 +60,6 @@ bool CSprite::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-Ptr<CSpriteType> CSprite::GetType(void) { return mpType; }
-SInt2* CSprite::GetPosition(void) { return &msPosition; }
+Ptr<CImageCel> CSprite::GetCel(void) { return mpCel; }
+void CSprite::BaseSpriteAbstract(void) {}
 

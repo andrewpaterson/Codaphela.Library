@@ -35,7 +35,7 @@ protected:
 	Ptr<CImageCel>	mpImageCel;
 
 public:
-	void			Init(Ptr<CImageCel> pImageCel);
+	void			Init(Ptr<CMovableBlockType> pType, Ptr<CImageCel> pImageCel);
 	void 			Free(void);
 	void			Class(void);
 

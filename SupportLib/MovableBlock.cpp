@@ -28,9 +28,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlock::Init(void)
+void CMovableBlock::Init(Ptr<CMovableBlockType>	pType)
 {
 	PreInit();
+
+	mpType = pType;
 
 	PostInit();
 }
@@ -51,6 +53,7 @@ void CMovableBlock::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CMovableBlock::Class(void)
 {
+	M_Pointer(mpType);
 }
 
 

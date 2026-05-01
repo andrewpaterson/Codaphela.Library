@@ -21,17 +21,17 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __SPRITE_TYPE_H__
-#define __SPRITE_TYPE_H__
+#ifndef __COMPOUND_SPRITE_TYPE_H__
+#define __COMPOUND_SPRITE_TYPE_H__
 #include "StandardLib/Object.h"
 #include "StandardLib/Array.h"
 #include "MovableBlock.h"
 
 
-class CSpriteType : public CObject
+class CCompoundSpriteType : public CObject
 {
-CONSTRUCTABLE(CSpriteType);
-DESTRUCTABLE(CSpriteType);
+CONSTRUCTABLE(CCompoundSpriteType);
+DESTRUCTABLE(CCompoundSpriteType);
 protected:
 	CArrayMovableBlock	macBlockLayers;
 
@@ -48,8 +48,8 @@ public:
 };
 
 
-typedef CArray<CSpriteType>	CArraySpriteType;
+typedef CArray<CCompoundSpriteType>	CArrayCompoundSpriteType;
 
 
-#endif // __SPRITE_TYPE_H__
+#endif // __COMPOUND_SPRITE_TYPE_H__
 

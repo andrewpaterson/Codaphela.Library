@@ -21,14 +21,14 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "SpriteType.h"
+#include "CompoundSpriteType.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSpriteType::Init(void)
+void CCompoundSpriteType::Init(void)
 {
 	PreInit();
 
@@ -42,7 +42,7 @@ void CSpriteType::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSpriteType::Free(void)
+void CCompoundSpriteType::Free(void)
 {
 }
 
@@ -51,7 +51,7 @@ void CSpriteType::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSpriteType::Class(void)
+void CCompoundSpriteType::Class(void)
 {
 	M_Embedded(macBlockLayers);
 }
@@ -61,7 +61,7 @@ void CSpriteType::Class(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSpriteType::Load(CObjectReader* pcFile)
+bool CCompoundSpriteType::Load(CObjectReader* pcFile)
 {
 	return false;
 }
@@ -71,7 +71,7 @@ bool CSpriteType::Load(CObjectReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSpriteType::Save(CObjectWriter* pcFile)
+bool CCompoundSpriteType::Save(CObjectWriter* pcFile)
 {
 	return false;
 }
@@ -81,7 +81,7 @@ bool CSpriteType::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSpriteType::AddTile(CMovableBlock* pcTile)
+void CCompoundSpriteType::AddTile(CMovableBlock* pcTile)
 {
 	macBlockLayers.Add(pcTile);
 }
@@ -91,7 +91,7 @@ void CSpriteType::AddTile(CMovableBlock* pcTile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CMovableBlock> CSpriteType::Get(size uiIndex)
+Ptr<CMovableBlock> CCompoundSpriteType::Get(size uiIndex)
 {
 	return macBlockLayers.Get(uiIndex);
 }

@@ -41,9 +41,9 @@ void CTileLayer::Init(Ptr<CTileMap> pTileMap, Ptr<CMovableBlockType> pTileType)
 	maTiles.Init();
 	mpTileMap = pTileMap;
 	mbVisible = true;
-	mpTileType = pTileType;
+	mpType = pTileType;
 
-	pNull = mpTileType->GetNullBlock();
+	pNull = mpType->GetNullBlock();
 	iSize = pTileMap->GetMapSizeX() * pTileMap->GetMapSizeY();
 	for (i = 0; i < iSize; i++)
 	{
@@ -72,7 +72,7 @@ void CTileLayer::Class(void)
 	M_Embedded(maTiles);
 	M_Pointer(mpTileMap);
 	U_Bool(mbVisible);
-	M_Pointer(mpTileType);
+	M_Pointer(mpType);
 }
 
 
@@ -115,7 +115,7 @@ void CTileLayer::SetTile(int x, int y, Ptr<CMovableBlock> pTile)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CMovableBlock> CTileLayer::GetTile(size uiIndex)
 {
-	return mpTileType->GetBlock(uiIndex);
+	return mpType->GetBlock(uiIndex);
 }
 
 
@@ -128,6 +128,6 @@ Ptr<CMovableBlock> CTileLayer::GetTile(int x, int y)
 	int		iYOffset;
 
 	iYOffset = y * mpTileMap->GetMapSizeX();
-	return mpTileType->GetBlock(x + iYOffset);
+	return mpType->GetBlock(x + iYOffset);
 }
 

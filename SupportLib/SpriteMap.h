@@ -26,26 +26,29 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/Array.h"
 #include "BaseLib/Int2.h"
 #include "Sprite.h"
+#include "CompoundSprite.h"
 #include "MovableBlockMap.h"
 
 
 class CSpriteMap : public CMovableBlockMap
 {
-CONSTRUCTABLE(CSpriteMap);
+CONSTRUCTABLE(CSpriteMap)
+DESTRUCTABLE(CSpriteMap)
 protected:
 	CArraySprite		maSprites;
 
 public:
-	void			Init(void);
-	void 			Free(void);
-	void			Class(void);
+	void					Init(void);
+	void 					Free(void);
+	void					Class(void);
 
-	bool			Save(CObjectWriter* pcFile);
-	bool			Load(CObjectReader* pcFile);
+	bool					Save(CObjectWriter* pcFile);
+	bool					Load(CObjectReader* pcFile);
 
-	Ptr<CSprite>	AddSprite(Ptr<CSpriteType> pSpriteType, int32 x, int32 y);
+	Ptr<CCompoundSprite>	AddSprite(Ptr<CCompoundSpriteType> pSpriteType, int32 x, int32 y);
+	Ptr<CSprite>			AddSprite(Ptr<CImageCel> pCel, int32 x, int32 y);
 
-	void			MovableBlockMapAbstract(void) override;
+	void					MovableBlockMapAbstract(void) override;
 };
 
 

@@ -216,12 +216,12 @@ bool CObjectSourcesXML::ImportImage(Ptr<CMovableBlockType> pType, CMarkupTag* pc
 	szName.StripWhitespace(true);
 	if (szName.Empty())
 	{
-		pcTile = OMalloc<CMovableBlockImageCel>(pcCel);
+		pcTile = OMalloc<CMovableBlockImageCel>(pType, pcCel);
 	}
 	else
 	{
 		//Need to append MovableBlockImageCel to the name.
-		pcTile = ONMalloc<CMovableBlockImageCel>(szName.Text(), pcCel);
+		pcTile = ONMalloc<CMovableBlockImageCel>(szName.Text(), pType, pcCel);
 	}
 	szName.Kill();
 	
