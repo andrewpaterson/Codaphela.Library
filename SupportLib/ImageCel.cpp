@@ -279,6 +279,9 @@ void CImageCel::Print(CChars* psz)
 		}
 		psz->AppendNewLine();
 	}
+
+	pcAccessorRGB->Kill();
+	pcAccessorOpacity->Kill();
 }
 
 
