@@ -23,8 +23,6 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "StandardLib/Unknown.h"
-#include "StandardLib/ArrayUnknownTemplate.h"
 #include "Image.h"
 #include "SubImage.h"
 #include "ImageCopyDimension.h"

@@ -27,12 +27,14 @@ class CTextNewLine : public CTextElement
 {
 CONSTRUCTABLE(CTextNewLine);
 public:
-	void		Init(void);
+			void		Init(void);
 
-	bool		Load(CObjectReader* pcFile) override;
-	bool		Save(CObjectWriter* pcFile) override;
+			bool		Load(CObjectReader* pcFile) override;
+			bool		Save(CObjectWriter* pcFile) override;
 
-	bool		IsNewLine(void) override;
+			bool		IsNewLine(void) override;
+
+			void		TextElementAbstract(void);
 };
 
 

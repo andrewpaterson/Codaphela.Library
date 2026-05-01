@@ -66,9 +66,6 @@ bool CTextUTF16Multi::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextUTF16Multi::IsUTF16Multi(void)
-{
-	return true;
-}
-
+bool CTextUTF16Multi::IsUTF16Multi(void) { return true; }
+void CTextUTF16Multi::TextElementAbstract(void) {}
 

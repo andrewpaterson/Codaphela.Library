@@ -258,7 +258,7 @@ bool CTextBuilder::PushNewLine(void)
 	}
 
 	mpcRun->Add((CTextElement*)pcNewLine);
-	mpcRun->Done();
+	mpcRun->End();
 	mpcRun = NULL;
 	return true;
 }
@@ -282,7 +282,7 @@ bool CTextBuilder::Done(void)
 
 		if (mpcRun)
 		{
-			mpcRun->Done();
+			mpcRun->End();
 			mpcRun = NULL;
 		}
 	}
@@ -299,8 +299,12 @@ bool CTextBuilder::EnsureRun(void)
 	if (mpcRun == NULL)
 	{
 		mpcRun = mpcText->AllocateRun(mpcFont);
-
-		return mpcRun != NULL;
+		if (mpcRun)
+		{
+			mpcRun->Start();
+			return true;
+		}
+		return false;
 	}
 	return true;
 }

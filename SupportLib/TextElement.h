@@ -41,6 +41,8 @@ public:
 	virtual bool		IsUTF16Short(void);
 	virtual bool		IsUTF16Long(void);
 	virtual bool		IsUTF16Multi(void);
+
+	virtual void		TextElementAbstract(void) =0;
 };
 
 

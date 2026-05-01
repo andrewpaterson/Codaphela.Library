@@ -47,8 +47,10 @@ public:
 	CMallocator*	GetMalloc(void);
 	
 	void			Add(CTextElement* pcElement);
-	void			Done(void);
+	void			Start(void);
+	void			End(void);
 
+	CFont*			GetFont(void);
 	size			NumElements(void);
 	CTextElement*	GetElement(size uiIndex);
 };

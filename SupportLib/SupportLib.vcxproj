@@ -71,7 +71,7 @@
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(COMMONLIBRARIES);$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(COMMONLIBRARIES);$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(COMMONLIBRARIES);$(IncludePath)</IncludePath>
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\CommonLibraries.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -178,9 +178,11 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BaseFontDraw.h" />
     <ClInclude Include="ColourFormat.h" />
     <ClInclude Include="CopyPaste.h" />
     <ClInclude Include="ChannelTypes.h" />
+    <ClInclude Include="FontDraw.h" />
     <ClInclude Include="SimpleTextReader.h" />
     <ClInclude Include="CompoundSprite.h" />
     <ClInclude Include="Sprite.h" />
@@ -190,6 +192,7 @@
     <ClInclude Include="TextBuilderUTF16Short.h" />
     <ClInclude Include="TextBuilderUTFCommon.h" />
     <ClInclude Include="TextElement.h" />
+    <ClInclude Include="TextLayout.h" />
     <ClInclude Include="TextLayoutBuilder.h" />
     <ClInclude Include="TextNewLine.h" />
     <ClInclude Include="TextUTF16Long.h" />
@@ -366,10 +369,12 @@
     <ClInclude Include="Triangle.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BaseFontDraw.cpp" />
     <ClCompile Include="CompoundSprite.cpp" />
     <ClCompile Include="ChannelTypes.cpp" />
     <ClCompile Include="CopyPaste_Windows.cpp" />
     <ClCompile Include="FakeTracker.cpp" />
+    <ClCompile Include="FontDraw.cpp" />
     <ClCompile Include="FontFactory.cpp" />
     <ClCompile Include="FontImportParameters.cpp" />
     <ClCompile Include="GDIPlusWriter.cpp" />
@@ -410,6 +415,7 @@
     <ClCompile Include="TextBuilderUTF16Long.cpp" />
     <ClCompile Include="TextBuilderUTF16Short.cpp" />
     <ClCompile Include="TextBuilderUTFCommon.cpp" />
+    <ClCompile Include="TextLayout.cpp" />
     <ClCompile Include="TextLayoutBuilder.cpp" />
     <ClCompile Include="TextRun.cpp" />
     <ClCompile Include="TextDrawable.cpp" />

@@ -36,6 +36,8 @@ public:
 	bool		Save(CObjectWriter* pcFile) override;
 
 	bool		IsUTF16Long(void) override;
+
+	void		TextElementAbstract(void);
 };
 
 

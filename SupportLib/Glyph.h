@@ -1,3 +1,5 @@
+#ifndef __GLYPH_H__
+#define __GLYPH_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -21,8 +23,6 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __GLYPH_H__
-#define __GLYPH_H__
 #include "ImageCel.h"
 #include "StandardLib/Array.h"
 #include "StandardLib/Index.h"
