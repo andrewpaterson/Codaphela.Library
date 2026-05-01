@@ -768,6 +768,15 @@
     <ClInclude Include="CompoundSpriteTypeStore.h">
       <Filter>Source\Map\Sprite</Filter>
     </ClInclude>
+    <ClInclude Include="FontDraw.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
+    <ClInclude Include="TextLayout.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseFontDraw.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1294,6 +1303,15 @@
     </ClCompile>
     <ClCompile Include="CompoundSpriteTypeStore.cpp">
       <Filter>Source\Map\Sprite</Filter>
+    </ClCompile>
+    <ClCompile Include="FontDraw.cpp">
+      <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="TextLayout.cpp">
+      <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseFontDraw.cpp">
+      <Filter>Source\Image\Font</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

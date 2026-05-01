@@ -1,8 +1,8 @@
-#ifndef __GLYPH_H__
-#define __GLYPH_H__
+#ifndef __FONT_DRAW_H__
+#define __FONT_DRAW_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2026 Andrew Paterson
+Copyright (c) 2009 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela SupportLib
 
@@ -23,41 +23,35 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "ImageCel.h"
-#include "StandardLib/Array.h"
-#include "StandardLib/Index.h"
+#include "SpriteMap.h"
+#include "Text.h"
+#include "TextLayout.h"
+#include "BaseFontDraw.h"
 
 
-class CGlyph : public CObject
+class CFontDraw : public CBaseFontDraw
 {
-CONSTRUCTABLE(CGlyph);
-DESTRUCTABLE(CGlyph);
+CONSTRUCTABLE(CFontDraw);
+DESTRUCTABLE(CFontDraw);
 protected:
-	Ptr<CImageCel>	mpCel;
-	int16			miStep;
+	Ptr<CSpriteMap>		mpMap;
+	Ptr<CText>			mpText;
+	Ptr<CTextLayout>	mpLayout;
+	int32				miWidth;
 
 public:
-	void			Init(Ptr<CImageCel> pCel, int16 iStep);
-	void			Class(void);
-	void 			Free(void);
+	void	Init(void);
+	void	Class(void);
+	void 	Free(void);
 
-	bool			Save(CObjectWriter* pcFile);
-	bool			Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
+	bool	Load(CObjectReader* pcFile);
 
-	int				GetFullWidth(void);
-	int				GetFullHeight(void);
-	int				GetFullDestRight(int x);
-	void			GetFullDestBounds(int x, int y, CRectangle* pcRectangle);
-	void			GetImageDestBounds(int x, int y, CRectangle* pcRectangle);
-	Ptr<CImage>		GetSourceImage(void);
-	CSubImage*		GetSubImage(void);
-	Ptr<CImageCel>	GetCel(void);
-	int16			GetStep(void);
+	void	Begin(void) override;
+	void	Place(Ptr<CGlyph> pGlyph, int32 x, int32 y) override;
+	void	End(void) override;
 };
 
 
-typedef CIndex<CGlyph> CIndexGlyph;
-
-
-#endif // __GLYPH_H__
+#endif // __FONT_DRAW_H__
 

@@ -1,3 +1,5 @@
+#ifndef __TEXT_LAYOUT_H__
+#define __TEXT_LAYOUT_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -21,44 +23,30 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __SPRITE_MAP_H__
-#define __SPRITE_MAP_H__
-#include "StandardLib/Array.h"
-#include "BaseLib/Int2.h"
-#include "Sprite.h"
-#include "CompoundSprite.h"
-#include "MovableBlockMap.h"
+#include "StandardLib/Object.h"
+#include "BaseFontDraw.h"
+#include "Text.h"
 
 
-class CSpriteMap : public CMovableBlockMap
+class CTextLayout : public CObject
 {
-CONSTRUCTABLE(CSpriteMap)
-DESTRUCTABLE(CSpriteMap)
+CONSTRUCTABLE(CTextLayout);
+DESTRUCTABLE(CTextLayout);
 protected:
-	CArraySprite	maSprites;
+	int32	miWidth;		//-1 for no max width;
 
 public:
-	void					Init(void);
-	void 					Free(void);
-	void					Class(void);
+	void			Init(void);
+	void			Init(int32 iWidth);
+	void			Class(void);
+	void 			Free(void);
 
-	bool					Save(CObjectWriter* pcFile);
-	bool					Load(CObjectReader* pcFile);
+	bool			Save(CObjectWriter* pcFile);
+	bool			Load(CObjectReader* pcFile);
 
-	void					Clear(void);
-
-	Ptr<CCompoundSprite>	AddSprite(Ptr<CCompoundSpriteType> pSpriteType, int32 x, int32 y);
-	Ptr<CSprite>			AddSprite(Ptr<CImageCel> pCel, int32 x, int32 y);
-
-	void					BeginChange(void);
-	void					EndChange(void);
-
-	void					MovableBlockMapAbstract(void) override;
+	void			Layout(Ptr<CText> pText, Ptr<CBaseFontDraw> pDraw);
 };
 
 
-typedef CArray<CSpriteMap>	CArraySpriteMap;
-
-
-#endif // __SPRITE_MAP_H__
+#endif // __TEXT_LAYOUT_H__
 

@@ -1,14 +1,16 @@
-#include "BaseLib/PointerRemapper.h"
-#include "TextUTF16Long.h"
+#include "StandardLib/ObjectWriter.h"
+#include "StandardLib/ObjectReader.h"
+#include "BaseFontDraw.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CTextUTF16Long::Init(size uiNumChars)
+void CBaseFontDraw::Init(void)
 {
-	CTextDrawable::Init(uiNumChars);
+	PreInit();
+	PostInit();
 }
 
 
@@ -16,9 +18,8 @@ void CTextUTF16Long::Init(size uiNumChars)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint32* CTextUTF16Long::GetChars(void)
+void CBaseFontDraw::Class(void)
 {
-	return (uint32*)RemapSinglePointer(this, sizeof(CTextUTF16Long));
 }
 
 
@@ -26,9 +27,8 @@ uint32* CTextUTF16Long::GetChars(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CTextUTF16Long::Copy(uint32* puiData)
+void CBaseFontDraw::Free(void)
 {
-	memcpy_fast(GetChars(), puiData, muiNumChars * sizeof(uint32));
 }
 
 
@@ -36,17 +36,7 @@ void CTextUTF16Long::Copy(uint32* puiData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextUTF16Long::Load(CObjectReader* pcFile)
-{
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CTextUTF16Long::Save(CObjectWriter* pcFile)
+bool CBaseFontDraw::Save(CObjectWriter* pcFile)
 {
 	return false;
 }
@@ -56,6 +46,8 @@ bool CTextUTF16Long::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextUTF16Long::IsUTF16Long(void) { return true; }
-void CTextUTF16Long::TextElementAbstract(void) {}
+bool CBaseFontDraw::Load(CObjectReader* pcFile)
+{
+	return false;
+}
 

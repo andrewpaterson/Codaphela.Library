@@ -1,6 +1,8 @@
+#ifndef __BASE_FONT_DRAW_H__
+#define __BASE_FONT_DRAW_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2026 Andrew Paterson
+Copyright (c) 2009 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela SupportLib
 
@@ -21,44 +23,27 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __SPRITE_MAP_H__
-#define __SPRITE_MAP_H__
-#include "StandardLib/Array.h"
-#include "BaseLib/Int2.h"
-#include "Sprite.h"
-#include "CompoundSprite.h"
-#include "MovableBlockMap.h"
+#include "SpriteMap.h"
+#include "Text.h"
 
 
-class CSpriteMap : public CMovableBlockMap
+class CBaseFontDraw : public CObject
 {
-CONSTRUCTABLE(CSpriteMap)
-DESTRUCTABLE(CSpriteMap)
-protected:
-	CArraySprite	maSprites;
-
+CONSTRUCTABLE(CBaseFontDraw);
+DESTRUCTABLE(CBaseFontDraw);
 public:
-	void					Init(void);
-	void 					Free(void);
-	void					Class(void);
+			void	Init(void);
+			void	Class(void);
+			void 	Free(void);
 
-	bool					Save(CObjectWriter* pcFile);
-	bool					Load(CObjectReader* pcFile);
+			bool	Save(CObjectWriter* pcFile);
+			bool	Load(CObjectReader* pcFile);
 
-	void					Clear(void);
-
-	Ptr<CCompoundSprite>	AddSprite(Ptr<CCompoundSpriteType> pSpriteType, int32 x, int32 y);
-	Ptr<CSprite>			AddSprite(Ptr<CImageCel> pCel, int32 x, int32 y);
-
-	void					BeginChange(void);
-	void					EndChange(void);
-
-	void					MovableBlockMapAbstract(void) override;
+	virtual void	Begin(void) =0;
+	virtual void	Place(Ptr<CGlyph> pGlyph, int32 x, int32 y) =0;
+	virtual void	End(void) =0;
 };
 
 
-typedef CArray<CSpriteMap>	CArraySpriteMap;
-
-
-#endif // __SPRITE_MAP_H__
+#endif // __BASE_FONT_DRAW_H__
 

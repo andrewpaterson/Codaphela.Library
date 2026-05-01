@@ -229,4 +229,3 @@ CTextRun* CText::GetRun(size uiIndex)
 	return macText.Get(uiIndex);
 }
 
-

@@ -34,8 +34,6 @@ bool CTextNewLine::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextNewLine::IsNewLine(void)
-{
-	return true;
-}
+bool CTextNewLine::IsNewLine(void) { return true; }
+void CTextNewLine::TextElementAbstract(void) {}
 

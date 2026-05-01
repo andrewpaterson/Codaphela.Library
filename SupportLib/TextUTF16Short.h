@@ -38,6 +38,8 @@ public:
 	bool		IsUTF16Short(void) override;
 
 	void		PrintAsASCII(CChars* psz);
+
+	void		TextElementAbstract(void);
 };
 
 

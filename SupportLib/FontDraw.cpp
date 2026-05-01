@@ -1,14 +1,19 @@
-#include "BaseLib/PointerRemapper.h"
-#include "TextUTF16Long.h"
+#include "StandardLib/ObjectWriter.h"
+#include "StandardLib/ObjectReader.h"
+#include "FontDraw.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CTextUTF16Long::Init(size uiNumChars)
+void CFontDraw::Init(void)
 {
-	CTextDrawable::Init(uiNumChars);
+	PreInit();
+
+	CBaseFontDraw::Init();
+
+	PostInit();
 }
 
 
@@ -16,9 +21,12 @@ void CTextUTF16Long::Init(size uiNumChars)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint32* CTextUTF16Long::GetChars(void)
+void CFontDraw::Class(void)
 {
-	return (uint32*)RemapSinglePointer(this, sizeof(CTextUTF16Long));
+	M_Pointer(mpMap);
+	M_Pointer(mpText);
+	M_Pointer(mpLayout);
+	U_Int32(miWidth);
 }
 
 
@@ -26,9 +34,9 @@ uint32* CTextUTF16Long::GetChars(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CTextUTF16Long::Copy(uint32* puiData)
+void CFontDraw::Free(void)
 {
-	memcpy_fast(GetChars(), puiData, muiNumChars * sizeof(uint32));
+	CBaseFontDraw::Free();
 }
 
 
@@ -36,9 +44,9 @@ void CTextUTF16Long::Copy(uint32* puiData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextUTF16Long::Load(CObjectReader* pcFile)
+bool CFontDraw::Save(CObjectWriter* pcFile)
 {
-	return false;
+	return CBaseFontDraw::Save(pcFile);
 }
 
 
@@ -46,9 +54,9 @@ bool CTextUTF16Long::Load(CObjectReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextUTF16Long::Save(CObjectWriter* pcFile)
+bool CFontDraw::Load(CObjectReader* pcFile)
 {
-	return false;
+	return CBaseFontDraw::Load(pcFile);
 }
 
 
@@ -56,6 +64,33 @@ bool CTextUTF16Long::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextUTF16Long::IsUTF16Long(void) { return true; }
-void CTextUTF16Long::TextElementAbstract(void) {}
+void CFontDraw::Begin(void)
+{
+	mpMap->BeginChange();
+	mpMap->Clear();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CFontDraw::Place(Ptr<CGlyph> pGlyph, int32 x, int32 y)
+{
+	Ptr<CImageCel>	pCel;
+	
+	pCel = pGlyph->GetCel();
+
+	mpMap->AddSprite(pCel, x, y);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CFontDraw::End(void)
+{
+	mpMap->EndChange();
+}
 
