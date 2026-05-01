@@ -29,7 +29,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 
 class CTileMap;
-class CMovableBlockType;
 class CTileLayer : public CObject
 {
 CONSTRUCTABLE(CTileLayer);
@@ -38,7 +37,7 @@ protected:
 	CArrayMovableBlock		maTiles;
 	Ptr<CTileMap>			mpTileMap;
 	bool					mbVisible;
-	Ptr<CMovableBlockType>	mpTileType;
+	Ptr<CMovableBlockType>	mpType;
 
 public:
 	void				Init(Ptr<CTileMap> pTileMap, Ptr<CMovableBlockType> pTileType);

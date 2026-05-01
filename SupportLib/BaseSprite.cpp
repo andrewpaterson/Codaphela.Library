@@ -1,16 +1,15 @@
-#include "Sprite.h"
+#include "BaseSprite.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CSprite::Init(Ptr<CImageCel> pCel, int32 x, int32 y)
+void CBaseSprite::Init(int32 x, int32 y)
 {
 	PreInit();
 
-	CBaseSprite::Init(x, y);
-	mpCel = pCel;
+	msPosition.Init(x, y);
 
 	PostInit();
 }
@@ -20,7 +19,7 @@ void CSprite::Init(Ptr<CImageCel> pCel, int32 x, int32 y)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CSprite::Free(void)
+void CBaseSprite::Free(void)
 {
 }
 
@@ -29,10 +28,9 @@ void CSprite::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSprite::Class(void)
+void CBaseSprite::Class(void)
 {
-	CBaseSprite::Class();
-	M_Pointer(mpCel);
+	U_2Int32(msPosition);
 }
 
 
@@ -40,7 +38,7 @@ void CSprite::Class(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSprite::Load(CObjectReader* pcFile)
+bool CBaseSprite::Load(CObjectReader* pcFile)
 {
 	return false;
 }
@@ -50,7 +48,7 @@ bool CSprite::Load(CObjectReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSprite::Save(CObjectWriter* pcFile)
+bool CBaseSprite::Save(CObjectWriter* pcFile)
 {
 	return false;
 }
@@ -60,6 +58,5 @@ bool CSprite::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CSprite::GetCel(void) { return mpCel; }
-void CSprite::BaseSpriteAbstract(void) {}
+SInt2* CBaseSprite::GetPosition(void) { return &msPosition; }
 

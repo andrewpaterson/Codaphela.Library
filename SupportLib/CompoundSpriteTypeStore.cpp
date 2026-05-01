@@ -1,26 +1,25 @@
-#include "Sprite.h"
+#include "CompoundSpriteTypeStore.h"
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
-void CSprite::Init(Ptr<CImageCel> pCel, int32 x, int32 y)
+void CCompoundSpriteTypeStore::Init(void)
 {
 	PreInit();
 
-	CBaseSprite::Init(x, y);
-	mpCel = pCel;
+	maSpriteTypes.Init();
 
 	PostInit();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
-void CSprite::Free(void)
+void CCompoundSpriteTypeStore::Free(void)
 {
 }
 
@@ -29,10 +28,9 @@ void CSprite::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSprite::Class(void)
+void CCompoundSpriteTypeStore::Class(void)
 {
-	CBaseSprite::Class();
-	M_Pointer(mpCel);
+	M_Embedded(maSpriteTypes);
 }
 
 
@@ -40,7 +38,7 @@ void CSprite::Class(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSprite::Load(CObjectReader* pcFile)
+bool CCompoundSpriteTypeStore::Load(CObjectReader* pcFile)
 {
 	return false;
 }
@@ -50,7 +48,7 @@ bool CSprite::Load(CObjectReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSprite::Save(CObjectWriter* pcFile)
+bool CCompoundSpriteTypeStore::Save(CObjectWriter* pcFile)
 {
 	return false;
 }
@@ -60,6 +58,18 @@ bool CSprite::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CSprite::GetCel(void) { return mpCel; }
-void CSprite::BaseSpriteAbstract(void) {}
+size CCompoundSpriteTypeStore::NumTypes(void)
+{
+	return maSpriteTypes.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CCompoundSpriteType> CCompoundSpriteTypeStore::Get(size uiIndex)
+{
+	return maSpriteTypes.Get(uiIndex);
+}
 

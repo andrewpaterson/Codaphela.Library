@@ -1,16 +1,16 @@
-#include "Sprite.h"
+#include "CompoundSprite.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CSprite::Init(Ptr<CImageCel> pCel, int32 x, int32 y)
+void CCompoundSprite::Init(Ptr<CCompoundSpriteType> pType, int32 x, int32 y)
 {
 	PreInit();
 
 	CBaseSprite::Init(x, y);
-	mpCel = pCel;
+	mpType = pType;
 
 	PostInit();
 }
@@ -20,7 +20,7 @@ void CSprite::Init(Ptr<CImageCel> pCel, int32 x, int32 y)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CSprite::Free(void)
+void CCompoundSprite::Free(void)
 {
 }
 
@@ -29,10 +29,10 @@ void CSprite::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSprite::Class(void)
+void CCompoundSprite::Class(void)
 {
 	CBaseSprite::Class();
-	M_Pointer(mpCel);
+	M_Pointer(mpType);
 }
 
 
@@ -40,7 +40,7 @@ void CSprite::Class(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSprite::Load(CObjectReader* pcFile)
+bool CCompoundSprite::Load(CObjectReader* pcFile)
 {
 	return false;
 }
@@ -50,7 +50,7 @@ bool CSprite::Load(CObjectReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSprite::Save(CObjectWriter* pcFile)
+bool CCompoundSprite::Save(CObjectWriter* pcFile)
 {
 	return false;
 }
@@ -60,6 +60,6 @@ bool CSprite::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CSprite::GetCel(void) { return mpCel; }
-void CSprite::BaseSpriteAbstract(void) {}
+Ptr<CCompoundSpriteType> CCompoundSprite::GetType(void) { return mpType; }
+void CCompoundSprite::BaseSpriteAbstract(void) {}
 

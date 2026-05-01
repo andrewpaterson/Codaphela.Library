@@ -1,3 +1,5 @@
+#ifndef __SPRITE_STORE_H__
+#define __SPRITE_STORE_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -21,39 +23,29 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __SPRITE_MAP_H__
-#define __SPRITE_MAP_H__
-#include "StandardLib/Array.h"
-#include "BaseLib/Int2.h"
-#include "Sprite.h"
-#include "CompoundSprite.h"
-#include "MovableBlockMap.h"
+#include "CompoundSpriteType.h"
 
 
-class CSpriteMap : public CMovableBlockMap
+//Compound sprite types also form the template for stamping tiles into a tile map coordinate.
+class CCompoundSpriteTypeStore : public CObject
 {
-CONSTRUCTABLE(CSpriteMap)
-DESTRUCTABLE(CSpriteMap)
+CONSTRUCTABLE(CCompoundSpriteTypeStore)
+DESTRUCTABLE(CCompoundSpriteTypeStore)
 protected:
-	CArraySprite		maSprites;
+	CArrayCompoundSpriteType	maSpriteTypes;
 
 public:
-	void					Init(void);
-	void 					Free(void);
-	void					Class(void);
+	void						Init(void);
+	void 						Free(void);
+	void						Class(void);
 
-	bool					Save(CObjectWriter* pcFile);
-	bool					Load(CObjectReader* pcFile);
+	bool						Save(CObjectWriter* pcFile);
+	bool						Load(CObjectReader* pcFile);
 
-	Ptr<CCompoundSprite>	AddSprite(Ptr<CCompoundSpriteType> pSpriteType, int32 x, int32 y);
-	Ptr<CSprite>			AddSprite(Ptr<CImageCel> pCel, int32 x, int32 y);
-
-	void					MovableBlockMapAbstract(void) override;
+	size						NumTypes(void);
+	Ptr<CCompoundSpriteType>	Get(size uiIndex);
 };
 
 
-typedef CArray<CSpriteMap>	CArraySpriteMap;
-
-
-#endif // __SPRITE_MAP_H__
+#endif // __SPRITE_STORE_H__
 

@@ -34,6 +34,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CTileMap : public CMovableBlockMap
 {
 CONSTRUCTABLE(CTileMap);
+DESTRUCTABLE(CTileMap);
 protected:
 	CArrayTileLayer		maTileLayers;	//Layers are not multiple graphics layers.  All the layers together make up the complete information about a single tile.  E.g. an ImageCelTile and a BooleanTile.
 	SInt2				msMapSize;		//The tile is indexed by x + y * msMapSize.x

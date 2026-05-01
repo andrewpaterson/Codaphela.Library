@@ -34,7 +34,7 @@ protected:
 	bool	mbValue;
 
 public:
-	void	Init(bool bValue);
+	void	Init(Ptr<CMovableBlockType> pType, bool bValue);
 	void	Class(void);
 	void 	Free(void);
 
