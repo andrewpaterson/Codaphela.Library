@@ -768,13 +768,16 @@
     <ClInclude Include="CompoundSpriteTypeStore.h">
       <Filter>Source\Map\Sprite</Filter>
     </ClInclude>
-    <ClInclude Include="FontDraw.h">
+    <ClInclude Include="MapFontDraw.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
     <ClInclude Include="TextLayout.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
     <ClInclude Include="BaseFontDraw.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
+    <ClInclude Include="GlyphListFontDraw.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1304,13 +1307,16 @@
     <ClCompile Include="CompoundSpriteTypeStore.cpp">
       <Filter>Source\Map\Sprite</Filter>
     </ClCompile>
-    <ClCompile Include="FontDraw.cpp">
+    <ClCompile Include="MapFontDraw.cpp">
       <Filter>Source\Image\Font</Filter>
     </ClCompile>
     <ClCompile Include="TextLayout.cpp">
       <Filter>Source\Image\Font</Filter>
     </ClCompile>
     <ClCompile Include="BaseFontDraw.cpp">
+      <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="GlyphListFontDraw.cpp">
       <Filter>Source\Image\Font</Filter>
     </ClCompile>
   </ItemGroup>

@@ -182,7 +182,8 @@
     <ClInclude Include="ColourFormat.h" />
     <ClInclude Include="CopyPaste.h" />
     <ClInclude Include="ChannelTypes.h" />
-    <ClInclude Include="FontDraw.h" />
+    <ClInclude Include="GlyphListFontDraw.h" />
+    <ClInclude Include="MapFontDraw.h" />
     <ClInclude Include="SimpleTextReader.h" />
     <ClInclude Include="CompoundSprite.h" />
     <ClInclude Include="Sprite.h" />
@@ -374,7 +375,8 @@
     <ClCompile Include="ChannelTypes.cpp" />
     <ClCompile Include="CopyPaste_Windows.cpp" />
     <ClCompile Include="FakeTracker.cpp" />
-    <ClCompile Include="FontDraw.cpp" />
+    <ClCompile Include="GlyphListFontDraw.cpp" />
+    <ClCompile Include="MapFontDraw.cpp" />
     <ClCompile Include="FontFactory.cpp" />
     <ClCompile Include="FontImportParameters.cpp" />
     <ClCompile Include="GDIPlusWriter.cpp" />

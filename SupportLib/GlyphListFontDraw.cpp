@@ -1,14 +1,20 @@
-#include "BaseLib/PointerRemapper.h"
-#include "TextUTF16Short.h"
+#include "StandardLib/ObjectWriter.h"
+#include "StandardLib/ObjectReader.h"
+#include "GlyphListFontDraw.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CTextUTF16Short::Init(size uiNumChars)
+void CGlyphListFontDraw::Init(void)
 {
-	CTextDrawable::Init(uiNumChars);
+	PreInit();
+
+	CBaseFontDraw::Init();
+	masGlyphs.Init();
+
+	PostInit();
 }
 
 
@@ -16,9 +22,9 @@ void CTextUTF16Short::Init(size uiNumChars)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint16* CTextUTF16Short::GetChars(void)
+void CGlyphListFontDraw::Class(void)
 {
-	return (uint16*)RemapSinglePointer(this, sizeof(CTextUTF16Short));
+	U_Data(CArrayGlyphPosition, masGlyphs);
 }
 
 
@@ -26,18 +32,10 @@ uint16* CTextUTF16Short::GetChars(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CTextUTF16Short::NumChars(void)
+void CGlyphListFontDraw::Free(void)
 {
-	return muiNumChars;
-}
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CTextUTF16Short::Copy(uint16* puiData)
-{
-	memcpy_fast(GetChars(), puiData, muiNumChars * sizeof(uint16));
+	masGlyphs.Kill();
+	CBaseFontDraw::Free();
 }
 
 
@@ -45,9 +43,9 @@ void CTextUTF16Short::Copy(uint16* puiData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextUTF16Short::Load(CObjectReader* pcFile)
+bool CGlyphListFontDraw::Save(CObjectWriter* pcFile)
 {
-	return false;
+	return CBaseFontDraw::Save(pcFile);
 }
 
 
@@ -55,9 +53,9 @@ bool CTextUTF16Short::Load(CObjectReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextUTF16Short::Save(CObjectWriter* pcFile)
+bool CGlyphListFontDraw::Load(CObjectReader* pcFile)
 {
-	return false;
+	return CBaseFontDraw::Load(pcFile);
 }
 
 
@@ -65,25 +63,9 @@ bool CTextUTF16Short::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CTextUTF16Short::PrintAsASCII(CChars* psz)
+void CGlyphListFontDraw::Begin(void)
 {
-	uint16*		puiChars;
-	size		ui;
-	uint16		uiChar;
-
-	puiChars = GetChars();
-	for (ui = 0; ui < muiNumChars; ui++)
-	{
-		uiChar = puiChars[ui];
-		if (uiChar <= 0xFF)
-		{
-			psz->Append((char)uiChar);
-		}
-		else
-		{
-			psz->Append(' ');
-		}
-	}
+	masGlyphs.ReInit();
 }
 
 
@@ -91,6 +73,31 @@ void CTextUTF16Short::PrintAsASCII(CChars* psz)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTextUTF16Short::IsUTF16Short(void) { return true; }
-void CTextUTF16Short::TextElementAbstract(void) {}
+void CGlyphListFontDraw::Place(Ptr<CGlyph> pGlyph, int32 x, int32 y)
+{
+	SGlyphPosition*		psGlyphPosition;
+
+	psGlyphPosition = masGlyphs.Add();
+	psGlyphPosition->pcGlyph = &pGlyph;
+	psGlyphPosition->sPosition.Init(x, y);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CGlyphListFontDraw::End(void)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CArrayGlyphPosition* CGlyphListFontDraw::GetGlyphs(void)
+{
+	return &masGlyphs;
+}
 

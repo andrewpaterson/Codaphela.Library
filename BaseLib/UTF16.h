@@ -38,6 +38,9 @@ protected:
 public:
     void    Init(uint16* sz, size uiLength);
     void    Kill(void) override;
+    void    Reset(uint16* sz, size uiLengthShorts);
+    void    Reset(uint32* sz, size uiLengthLongs);
+    void    Reset(uint8* sz, size uiByteLength);
     void    SetBigEndian(void);
 
     bool    GetByteOrderMark(void);

@@ -1,5 +1,5 @@
-#ifndef __FONT_DRAW_H__
-#define __FONT_DRAW_H__
+#ifndef __MAP_FONT_DRAW_H__
+#define __MAP_FONT_DRAW_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -29,18 +29,15 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseFontDraw.h"
 
 
-class CFontDraw : public CBaseFontDraw
+class CMapFontDraw : public CBaseFontDraw
 {
-CONSTRUCTABLE(CFontDraw);
-DESTRUCTABLE(CFontDraw);
+CONSTRUCTABLE(CMapFontDraw);
+DESTRUCTABLE(CMapFontDraw);
 protected:
 	Ptr<CSpriteMap>		mpMap;
-	Ptr<CText>			mpText;
-	Ptr<CTextLayout>	mpLayout;
-	int32				miWidth;
 
 public:
-	void	Init(void);
+	void	Init(Ptr<CSpriteMap> pMap);
 	void	Class(void);
 	void 	Free(void);
 
@@ -53,5 +50,5 @@ public:
 };
 
 
-#endif // __FONT_DRAW_H__
+#endif // __MAP_FONT_DRAW_H__
 

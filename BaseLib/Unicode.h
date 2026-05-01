@@ -63,26 +63,26 @@ protected:
 	uint16	muiZWJ;
 
 public:
-	void				Init(void);
-	void				Kill(void) override;
+	void	Init(void);
+	void	Kill(void) override;
 
-	size				GetUnicodeCodePointLength(uint16 uiChar);
-	size				GetUnicodeCodePointLength(uint32 uiChar);
+	size	GetUnicodeCodePointLength(uint16 uiChar);
+	size	GetUnicodeCodePointLength(uint32 uiChar);
 
-	size				AppendCodePoint(uint16 uiCodePoint, size uiCodePointLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
-	size				AppendCodePoint(uint32 uiCodePoint, size uiCodePointLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
+	size	AppendCodePoint(uint16 uiCodePoint, size uiCodePointLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
+	size	AppendCodePoint(uint32 uiCodePoint, size uiCodePointLength, uint8* puiBuffer, size uiBufferPos, size uiBufferLength);
 
-	size				GetUTF16Length(uint32 uiCodePoint);
-	uint16				GetUTF16ElementUint16(uint32 uiCodePoint);
-	uint32				GetUTF16ElementUint32(uint32 uiCodePoint);
+	size	GetUTF16Length(uint32 uiCodePoint);
+	uint16	GetUTF16ElementUint16(uint32 uiCodePoint);
+	uint32	GetUTF16ElementUint32(uint32 uiCodePoint);
 
-	size				GetUTF8Length(uint32 uiCodePoint);
-	uint16				GetUTF8ElementUint16(uint32 uiCodePoint);
-	uint32				GetUTF8ElementUint32(uint32 uiCodePoint);
+	size	GetUTF8Length(uint32 uiCodePoint);
+	uint16	GetUTF8ElementUint16(uint32 uiCodePoint);
+	uint32	GetUTF8ElementUint32(uint32 uiCodePoint);
 
-	size				GetError(void);
+	size	GetError(void);
 
-	uint16				GetZWJCodePoint(void);
+	uint16	GetZWJCodePoint(void);
 };
 
 

@@ -53,10 +53,21 @@ public:
 	CSubImage*		GetSubImage(void);
 	Ptr<CImageCel>	GetCel(void);
 	int16			GetStep(void);
+
+	void			Print(CChars* psz);
+	void			Dump(void);
+};
+
+
+struct SGlyphPosition
+{
+	CGlyph* pcGlyph;
+	SInt2	sPosition;
 };
 
 
 typedef CIndex<CGlyph> CIndexGlyph;
+typedef CArrayTemplate<SGlyphPosition>	CArrayGlyphPosition;
 
 
 #endif // __GLYPH_H__

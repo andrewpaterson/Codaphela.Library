@@ -114,9 +114,9 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 	CUTF8					cUTF8;
 	size					uiElementLength;
 	size					uiCodePointLength;
-	uint8					auiBuffer[64];
-	uint16					c16;
-	uint32					c32;
+	uint8					auiBuffer[20];
+	uint16					cCodePoint16;
+	uint32					cCodePoint32;
 	size					ui;
 
 	pImage = ReadImage(pcParams->GetImageFileName());
@@ -168,26 +168,26 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 		pCel = cCels.Get(ui);
 		if (uiElementLength <= 2)
 		{
-			c16 = cUTF8.GetCodePointUint16();
-			uiCodePointLength = cUTF8.GetUnicodeCodePointLength(c16);
+			cCodePoint16 = cUTF8.GetCodePointUint16();
+			uiCodePointLength = cUTF8.GetUnicodeCodePointLength(cCodePoint16);
 			if (uiCodePointLength == 1)
 			{
-				pFont->PutGlyph((uint8)c16, pCel, pcParams->msCharSize.x);
+				pFont->PutGlyph((uint8)cCodePoint16, pCel, pcParams->msCharSize.x);
 			}
 			else
 			{
-				pFont->PutGlyph(c16, pCel, pcParams->msCharSize.x);
+				pFont->PutGlyph(cCodePoint16, pCel, pcParams->msCharSize.x);
 			}
 		}
 		else if (uiElementLength <= 4)
 		{
-			c32 = cUTF8.GetCodePointUint32();
-			uiCodePointLength = cUTF8.GetUnicodeCodePointLength(c32);
-			pFont->PutGlyph(c32, uiCodePointLength, pCel, pcParams->msCharSize.x);
+			cCodePoint32 = cUTF8.GetCodePointUint32();
+			uiCodePointLength = cUTF8.GetUnicodeCodePointLength(cCodePoint32);
+			pFont->PutGlyph(cCodePoint32, uiCodePointLength, pCel, pcParams->msCharSize.x);
 		}
 		else
 		{
-			uiCodePointLength = cUTF8.GetCodePointMulti(auiBuffer, 64);
+			uiCodePointLength = cUTF8.GetCodePointMulti(auiBuffer, 20);
 			if ((uiCodePointLength != 0) || (uiCodePointLength != cUTF8.GetError()))
 			{
 				pFont->PutGlyph(auiBuffer, uiCodePointLength, pCel, pcParams->msCharSize.x);
