@@ -55,9 +55,10 @@ public:
 			size	GetBOMLength(EUnicodeEncoding eEncoding);
 			uint8*	GetBOMBytes(EUnicodeEncoding eEncoding);
 
-			bool	IsTooSmallOrError(size ui);
-			bool	IsError(size ui);
-			bool	IsTooSmall(size ui);
+			bool	IsTooSmallOrError(uint16 ui);
+			bool	IsError(uint16 ui);
+			bool	IsError(uint32 ui);
+			bool	IsTooSmall(uint16 ui);
 
 			uint32	MakeCodePointUint32FromBuffer(uint8* puiCodePointBuffer, size uiBufferLength);
 			uint16	MakeCodePointUint16FromBuffer(uint8* puiCodePointBuffer, size uiBufferLength);

@@ -155,36 +155,54 @@ bool CFont::Is(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CGlyph> CFont::GetGlyph(CUTF8* pcUTF8)
+Ptr<CGlyph> CFont::GetGlyph(CUnicodeReader* pcUTFReader)
 {
-	uint16			c16;
-	uint32			c32;
+	uint16			uiCodePoint16;
+	uint32			uiCodePoint32;
 	uint8			auiBuffer[64];
-	size			uiElementLength;
+	size			uiUTFLength;
+	size			uiCodePointLength;
 
-	uiElementLength = pcUTF8->PeekUTFBytes();
-	if (uiElementLength <= 2)
+	uiUTFLength = pcUTFReader->PeekUTFBytes();
+	if (uiUTFLength <= 2)
 	{
-		c16 = pcUTF8->GetCodePointUint16();
-		if ((c16 != 0xFFFD) && (c16 != 0xFFFF))
+		uiCodePoint16 = pcUTFReader->GetCodePointUint16();
+		if (uiCodePoint16 != 0)
 		{
-			return GetGlyph(c16);
+			if (!pcUTFReader->IsTooSmall(uiCodePoint16))
+			{
+				uiCodePointLength = pcUTFReader->GetUnicodeCodePointLength(uiCodePoint16);
+				return GetGlyph(uiCodePoint16, uiCodePointLength);
+			}
+			else
+			{
+				uiCodePoint32 = pcUTFReader->GetCodePointUint32();
+				if (!pcUTFReader->IsError(uiCodePoint32))
+				{
+					uiCodePointLength = pcUTFReader->GetUnicodeCodePointLength(uiCodePoint32);
+					return GetGlyph(uiCodePoint32, uiCodePointLength);
+				}
+			}
 		}
 	}
-	else if (uiElementLength <= 4)
+	else if (uiUTFLength <= 4)
 	{
-		c32 = pcUTF8->GetCodePointUint32();
-		if ((c32 != 0xFFFD) && (c32 != 0xFFFF))
+		uiCodePoint32 = pcUTFReader->GetCodePointUint32();
+		if (!pcUTFReader->IsError(uiCodePoint32))
 		{
-			return GetGlyph(c32, uiElementLength);
+			if ((uiCodePoint32 != 0xFFFD) && (uiCodePoint32 != 0xFFFF))
+			{
+				uiCodePointLength = pcUTFReader->GetUnicodeCodePointLength(uiCodePoint32);
+				return GetGlyph(uiCodePoint32, uiCodePointLength);
+			}
 		}
 	}
 	else
 	{
-		uiElementLength = pcUTF8->GetCodePointMulti(auiBuffer, 64);
-		if ((uiElementLength != 0) || (uiElementLength != pcUTF8->GetError()))
+		uiCodePointLength = pcUTFReader->GetCodePointMulti(auiBuffer, 64);
+		if ((uiCodePointLength != 0) || (pcUTFReader->IsError(uiCodePointLength)))
 		{
-			return GetGlyph(auiBuffer, uiElementLength);
+			return GetGlyph(auiBuffer, uiCodePointLength);
 		}
 	}
 
@@ -242,19 +260,9 @@ bool CFont::IsWhitespace(uint16 c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CGlyph> CFont::GetGlyph(uint16 c)
+Ptr<CGlyph> CFont::GetGlyph(uint16 c, size uiLength)
 {
-	return macGlyphs.Get((uint8*)&c, sizeof(uint16));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CGlyph> CFont::GetGlyph(uint8 c)
-{
-	return macGlyphs.Get((uint8*)&c, sizeof(uint8));
+	return macGlyphs.Get((uint8*)&c, uiLength);
 }
 
 

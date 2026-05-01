@@ -16,9 +16,19 @@ void CTextUTF16Multi::Init(size uiByteSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint16* CTextUTF16Multi::GetChar(void)
+uint8* CTextUTF16Multi::GetChar(void)
 {
-	return (uint16*)RemapSinglePointer(this, sizeof(CTextUTF16Multi));
+	return (uint8*)RemapSinglePointer(this, sizeof(CTextUTF16Multi));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size CTextUTF16Multi::CharByteLength(void)
+{
+	return muiNumChars;
 }
 
 

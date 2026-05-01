@@ -29,18 +29,19 @@ class CTextUTF16Multi : public CTextDrawable
 CONSTRUCTABLE(CTextUTF16Multi);
 protected:
 public:
-	void		Init(size uiByteSize);
-	uint16*		GetChar(void);
-	void		Copy(void* pviData);
+	void	Init(size uiByteSize);
+	uint8*	GetChar(void);
+	size	CharByteLength(void);
+	void	Copy(void* pviData);
 
-	size		ByteSize(void);
+	size	ByteSize(void);
 
-	bool		Load(CObjectReader* pcFile) override;
-	bool		Save(CObjectWriter* pcFile) override;
+	bool	Load(CObjectReader* pcFile) override;
+	bool	Save(CObjectWriter* pcFile) override;
 
-	bool		IsUTF16Multi(void) override;
+	bool	IsUTF16Multi(void) override;
 
-	void		TextElementAbstract(void);
+	void	TextElementAbstract(void);
 };
 
 

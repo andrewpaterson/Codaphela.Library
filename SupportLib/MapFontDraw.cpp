@@ -1,17 +1,18 @@
 #include "StandardLib/ObjectWriter.h"
 #include "StandardLib/ObjectReader.h"
-#include "FontDraw.h"
+#include "MapFontDraw.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFontDraw::Init(void)
+void CMapFontDraw::Init(Ptr<CSpriteMap> pMap)
 {
 	PreInit();
 
 	CBaseFontDraw::Init();
+	mpMap = pMap;
 
 	PostInit();
 }
@@ -21,12 +22,9 @@ void CFontDraw::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFontDraw::Class(void)
+void CMapFontDraw::Class(void)
 {
 	M_Pointer(mpMap);
-	M_Pointer(mpText);
-	M_Pointer(mpLayout);
-	U_Int32(miWidth);
 }
 
 
@@ -34,7 +32,7 @@ void CFontDraw::Class(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFontDraw::Free(void)
+void CMapFontDraw::Free(void)
 {
 	CBaseFontDraw::Free();
 }
@@ -44,7 +42,7 @@ void CFontDraw::Free(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFontDraw::Save(CObjectWriter* pcFile)
+bool CMapFontDraw::Save(CObjectWriter* pcFile)
 {
 	return CBaseFontDraw::Save(pcFile);
 }
@@ -54,7 +52,7 @@ bool CFontDraw::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFontDraw::Load(CObjectReader* pcFile)
+bool CMapFontDraw::Load(CObjectReader* pcFile)
 {
 	return CBaseFontDraw::Load(pcFile);
 }
@@ -64,7 +62,7 @@ bool CFontDraw::Load(CObjectReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFontDraw::Begin(void)
+void CMapFontDraw::Begin(void)
 {
 	mpMap->BeginChange();
 	mpMap->Clear();
@@ -75,7 +73,7 @@ void CFontDraw::Begin(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFontDraw::Place(Ptr<CGlyph> pGlyph, int32 x, int32 y)
+void CMapFontDraw::Place(Ptr<CGlyph> pGlyph, int32 x, int32 y)
 {
 	Ptr<CImageCel>	pCel;
 	
@@ -89,7 +87,7 @@ void CFontDraw::Place(Ptr<CGlyph> pGlyph, int32 x, int32 y)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CFontDraw::End(void)
+void CMapFontDraw::End(void)
 {
 	mpMap->EndChange();
 }

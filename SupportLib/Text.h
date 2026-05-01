@@ -34,31 +34,31 @@ class CText : public CObject
 CONSTRUCTABLE(CText)
 DESTRUCTABLE(CText)
 protected:
-	CArrayTextRun				macText;
-	CMallocator*				mpcMalloc;
+	CArrayTextRun	macText;
+	CMallocator*	mpcMalloc;
 
 public:
-	void					Init(CMallocator* pcMalloc = NULL);
-	void 					Free(void);
-	void					Class(void);
+	void				Init(CMallocator* pcMalloc = NULL);
+	void 				Free(void);
+	void				Class(void);
 
-	bool					Load(CObjectReader* pcFile);
-	bool					Save(CObjectWriter* pcFile);
+	bool				Load(CObjectReader* pcFile);
+	bool				Save(CObjectWriter* pcFile);
 
-	void					AddUTF16(Ptr<CFont> pFont, uint16* szText, size uiLength);
+	void				AddUTF16(Ptr<CFont> pFont, uint16* szText, size uiLength);
 
-	CMallocator*			GetMalloc(void);
+	CMallocator*		GetMalloc(void);
 
-	CTextRun*				AllocateRun(CFont* pcFont);
+	CTextRun*			AllocateRun(CFont* pcFont);
 
-	CTextUTF16Short*		AllocateUTF16Short(size uiNumShorts, uint16* puiData);
-	CTextUTF16Long*			AllocateUTF16Long(size uiNumLongs, uint32* puiData);
-	CTextUTF16Multi*		AllocateUTF16Multi(size uiByteSize, void* pvData);
+	CTextUTF16Short*	AllocateUTF16Short(size uiNumShorts, uint16* puiData);
+	CTextUTF16Long*		AllocateUTF16Long(size uiNumLongs, uint32* puiData);
+	CTextUTF16Multi*	AllocateUTF16Multi(size uiByteSize, void* pvData);
 
-	CTextNewLine*			AllocateNewLine(void);
+	CTextNewLine*		AllocateNewLine(void);
 
-	size					NumRuns(void);
-	CTextRun*				GetRun(size uiIndex);
+	size				NumRuns(void);
+	CTextRun*			GetRun(size uiIndex);
 };
 
 

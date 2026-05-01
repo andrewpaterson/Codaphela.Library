@@ -30,6 +30,7 @@ protected:
 public:
 	void		Init(size uiNumChars);
 	uint16*		GetChars(void);
+	size		NumChars(void);
 	void		Copy(uint16* puiData);
 
 	bool		Load(CObjectReader* pcFile) override;

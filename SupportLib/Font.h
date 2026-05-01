@@ -23,6 +23,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/UnicodeReader.h"
 #include "StandardLib/Object.h"
 #include "StandardLib/ObjectWriter.h"
 #include "StandardLib/ObjectReader.h"
@@ -33,7 +34,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define FIRST_LETTER	32
 
 
-class CUTF8;
 class CFont : public CObject
 {
 CONSTRUCTABLE(CFont);
@@ -63,11 +63,10 @@ public:
 	size 			Width(char* szText);
 	size			Height(void);
 	bool			IsWhitespace(uint16 c);
-	Ptr<CGlyph>		GetGlyph(uint8 c);
-	Ptr<CGlyph>		GetGlyph(uint16 c);
+	Ptr<CGlyph>		GetGlyph(uint16 c, size uiLength);
 	Ptr<CGlyph>		GetGlyph(uint32 c, size uiLength);
 	Ptr<CGlyph>		GetGlyph(uint8* puiBuffer, size uiLength);
-	Ptr<CGlyph>		GetGlyph(CUTF8* pcUTF8);
+	Ptr<CGlyph>		GetGlyph(CUnicodeReader* pcUTFReader);
 	Ptr<CGlyph>		PutGlyph(uint8 c, Ptr<CImageCel> pCel, int16 iStep);
 	Ptr<CGlyph>		PutGlyph(uint16 c, Ptr<CImageCel> pCel, int16 iStep);
 	Ptr<CGlyph>		PutGlyph(uint32 c, size uiLength, Ptr<CImageCel> pCel, int16 iStep);

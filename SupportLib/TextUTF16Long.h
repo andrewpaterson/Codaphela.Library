@@ -30,6 +30,7 @@ protected:
 public:
 	void		Init(size uiNumChars);
 	uint32*		GetChars(void);  //This can include UTF16 encoded two byte characters padded to 4 bytes if that uses less memory.
+	size		NumChars(void);
 	void		Copy(uint32* puiData);
 
 	bool		Load(CObjectReader* pcFile) override;

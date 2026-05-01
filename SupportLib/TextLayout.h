@@ -23,9 +23,18 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/UTF16.h"
 #include "StandardLib/Object.h"
 #include "BaseFontDraw.h"
 #include "Text.h"
+
+
+struct STextLayoutMark
+{
+	CTextRun*	pcRun;
+	size		uiElementIndex;
+	size		uiCharIndex;
+};
 
 
 class CTextLayout : public CObject
@@ -33,7 +42,11 @@ class CTextLayout : public CObject
 CONSTRUCTABLE(CTextLayout);
 DESTRUCTABLE(CTextLayout);
 protected:
-	int32	miWidth;		//-1 for no max width;
+	int32			miWidth;		//-1 for no max width;
+	size			muiRowHeight;
+	SInt2			msPosition;
+	CUTF16			mcUTF16;
+	CBaseFontDraw*	mpcDraw;
 
 public:
 	void			Init(void);
@@ -44,7 +57,15 @@ public:
 	bool			Save(CObjectWriter* pcFile);
 	bool			Load(CObjectReader* pcFile);
 
-	void			Layout(Ptr<CText> pText, Ptr<CBaseFontDraw> pDraw);
+	void			Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText);
+
+protected:
+	void			Glyph(Ptr<CGlyph> pGlyph);
+	void			NewLine(void);
+
+	void			Layout(CFont* pcFont, CTextUTF16Short* pcUTFShort);
+	void			Layout(CFont* pcFont, CTextUTF16Long* pcUTFLong);
+	void			Layout(CFont* pcFont, CTextUTF16Multi* pcUTFMulti);
 };
 
 
