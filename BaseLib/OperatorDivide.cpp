@@ -25,9 +25,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 void DivideInvalid(void* pvDest, void* pvLeft, void* pvRight) { gcUserError.Set("Divide not defined for types"); }
 #include "OperatorDivide_Functions.inl"
-void DivideFloat2Float2Float(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat2*)pvDest = *(SFloat2*)pvLeft / *(float*)pvRight; }
-void DivideFloat3Float3Float(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat3*)pvDest = *(SFloat3*)pvLeft / *(float*)pvRight; }
-void DivideFloat4Float4Float(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat4*)pvDest = *(SFloat4*)pvLeft / *(float*)pvRight; }
+void DivideFloat2Float2Float(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat32Vec2*)pvDest = *((SFloat32Vec2*)pvLeft) / *((float32*)pvRight); }
+void DivideFloat3Float3Float(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat3*)pvDest = *(SFloat3*)pvLeft / *(float32*)pvRight; }
+void DivideFloat4Float4Float(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat4*)pvDest = *(SFloat4*)pvLeft / *(float32*)pvRight; }
 
 
 //////////////////////////////////////////////////////////////////////////

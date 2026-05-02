@@ -234,6 +234,7 @@
     <ClInclude Include="HexString.h" />
     <ClInclude Include="IndexPtr.h" />
     <ClInclude Include="IndexTemplate.h" />
+    <ClInclude Include="Int32Vec2.h" />
     <ClInclude Include="IntAndPointer.h" />
     <ClInclude Include="JSONIdentifier.h" />
     <ClInclude Include="BaseParserString.h" />
@@ -406,7 +407,7 @@
     <ClInclude Include="MarkupSubstitute.h" />
     <ClInclude Include="MarkupTag.h" />
     <ClInclude Include="MarkupText.h" />
-    <ClInclude Include="Float2.h" />
+    <ClInclude Include="Float32Vec2.h" />
     <ClInclude Include="Float3.h" />
     <ClInclude Include="Float4.h" />
     <ClInclude Include="Float4x4.h" />
@@ -483,6 +484,7 @@
     <ClInclude Include="UTF16.h" />
     <ClInclude Include="UTF8.h" />
     <ClInclude Include="Validation.h" />
+    <ClInclude Include="Vec2.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="WindowsError.h" />
     <ClInclude Include="WindowsHeaders.h" />
@@ -665,6 +667,7 @@
     <ClCompile Include="IndexMapIterator.cpp" />
     <ClCompile Include="IndexPtr.cpp" />
     <ClCompile Include="IndexStringBlock.cpp" />
+    <ClCompile Include="Int32Vec2.cpp" />
     <ClCompile Include="JSONIdentifier.cpp" />
     <ClCompile Include="BaseParserString.cpp" />
     <ClCompile Include="JSONParser.cpp" />
@@ -751,6 +754,7 @@
     <ClCompile Include="MemoryQueue.cpp" />
     <ClCompile Include="ModificationDataOrderer.cpp" />
     <ClCompile Include="NullAllocator.cpp" />
+    <ClCompile Include="Numbers.cpp" />
     <ClCompile Include="PackFileIterator.cpp" />
     <ClCompile Include="PackFilePacker.cpp" />
     <ClCompile Include="QuickSort.cpp" />
@@ -790,7 +794,7 @@
     <ClCompile Include="MarkupSubstitute.cpp" />
     <ClCompile Include="MarkupTag.cpp" />
     <ClCompile Include="MarkupText.cpp" />
-    <ClCompile Include="Float2.cpp" />
+    <ClCompile Include="Float32Vec2.cpp" />
     <ClCompile Include="Float3.cpp" />
     <ClCompile Include="Float4.cpp" />
     <ClCompile Include="Float4x4.cpp" />

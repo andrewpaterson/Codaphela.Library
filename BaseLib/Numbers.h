@@ -39,7 +39,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define N_2_SQRTPI 1.1283791670955125f
 #define N_SQRT2    1.4142135623730950f
 
+
 #define Deg2Rad(x)		((N_PI * x) / 180.0f)
+float	Deg2Dot(float fDegrees);
+
 
 #define KB				*(1024LL)
 #define MB				*(1024LL*1024LL)

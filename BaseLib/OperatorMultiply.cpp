@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 void MultiplyInvalid(void* pvDest, void* pvLeft, void* pvRight) { gcUserError.Set("Multiply not defined for types"); }
 #include "OperatorMultiply_Functions.inl"
-void MultiplyFloat2Float2Float(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat2*)pvDest = *(SFloat2*)pvLeft * *(float*)pvRight; }
+void MultiplyFloat2Float2Float(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat32Vec2*)pvDest = *(SFloat32Vec2*)pvLeft * *(float*)pvRight; }
 void MultiplyFloat3Float3Float(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat3*)pvDest = *(SFloat3*)pvLeft * *(float*)pvRight; }
 void MultiplyFloat4Float4Float(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat4*)pvDest = *(SFloat4*)pvLeft * *(float*)pvRight; }
 

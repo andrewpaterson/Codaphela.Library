@@ -137,8 +137,8 @@ bool AddOBJNormals(CMeshNormals* pcNormals, CChars* psz)
 bool AddOBJTextureCoords(CMeshUVCoords* pcUVs, CChars* psz)
 {
 	size			i;
-	SFloat2*		psUV;
-	SFloat2			sUV;
+	SFloat32Vec2*		psUV;
+	SFloat32Vec2			sUV;
 	CMeshUVLayer*	pcUVLayer;
 
 	if (pcUVs->mcLayers.NumElements() > 0)

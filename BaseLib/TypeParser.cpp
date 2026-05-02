@@ -365,7 +365,7 @@ TRISTATE CTypeParser::GetCharAndInt(char c, int32* pi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTypeParser::ParseFloat2(SFloat2* pDest, char cOpen, char cSplit, char cClose)
+TRISTATE CTypeParser::ParseFloat2(SFloat32Vec2* pDest, char cOpen, char cSplit, char cClose)
 {
 	TRISTATE	tResult;
 
@@ -788,7 +788,7 @@ TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, size iDestLength
 		case PT_M2float32:
 			if (iDestLength >= FLOAT2_BYTE_SIZE)
 			{
-				return ParseFloat2((SFloat2*)pvDest);
+				return ParseFloat2((SFloat32Vec2*)pvDest);
 			}
 			break;
 		case PT_M3float32:

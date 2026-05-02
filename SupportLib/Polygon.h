@@ -23,6 +23,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Plane.h"
 #include "BaseLib/ArrayIntMinimal.h"
 
+
 class CTriangle;
 class CPolygon : public CPlane
 {

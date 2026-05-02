@@ -60,7 +60,7 @@ public:
 	TRISTATE	ParseUChar(uint8* pDest);
 	TRISTATE	ParseLong(int64* pDest);
 	TRISTATE	ParseULong(uint64* pDest);
-	TRISTATE	ParseFloat2(SFloat2* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
+	TRISTATE	ParseFloat2(SFloat32Vec2* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
 	TRISTATE	ParseFloat3(SFloat3* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
 	TRISTATE	ParseFloat4(SFloat4* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
 	TRISTATE	ParseInt2(SInt2* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');

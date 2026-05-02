@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 void PlusInvalid(void* pvDest, void* pvLeft, void* pvRight) { gcUserError.Set("Plus not defined for types"); }
 #include "OperatorPlus_Functions.inl"
-void PlusFloat2Float2Float2(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat2*)pvDest = *(SFloat2*)pvLeft + *(SFloat2*)pvRight; }
+void PlusFloat2Float2Float2(void* pvDest, void* pvLeft, void* pvRight) { (*(SFloat32Vec2*)pvDest) = *(SFloat32Vec2*)pvLeft + *(SFloat32Vec2*)pvRight; }
 void PlusFloat3Float3Float3(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat3*)pvDest = *(SFloat3*)pvLeft + *(SFloat3*)pvRight; }
 void PlusFloat4Float4Float4(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat4*)pvDest = *(SFloat4*)pvLeft + *(SFloat4*)pvRight; }
 

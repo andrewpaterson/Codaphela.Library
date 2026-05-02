@@ -33,8 +33,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshRingEditor::Init(SFloat3* psZDirection, SFloat3* psStart, float fTopRadius, float fBottomRadius, float fLength, int iWedgeSegments, int iRingSegments)
 {
-	Float3Assign(&msZDirection, psZDirection);
-	Float3Assign(&msStart, psStart);
+	msZDirection.Init(psZDirection);
+	msStart.Init(psStart);
 	mfTopRadius = fTopRadius;
 	mfBottomRadius = fBottomRadius;
 	mfLength = fLength;
@@ -159,7 +159,7 @@ void CMeshRingEditor::GenerateRing(CMeshEditor* pcMeshEditor)
 		{
 			Float3RotateAboutNormalisedAxis(&sDest, sSource, fWedgeRad * i, msZDirection);
 			sDest.Add(&msStart);
-			Float3Assign(&sRingCenter, &msZDirection);
+			sRingCenter.Init(&msZDirection);
 			sRingCenter *= fZ;
 			sDest.Add(&sRingCenter);
 			pcMeshEditor->AddCorner(&sDest);
