@@ -24,7 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IntegerHelper.h"
 #include "FloatHelper.h"
 #include "DataIO.h"
-#include "Float2.h"
+#include "Float32Vec2.h"
 #include "Float3.h"
 #include "Float4x4.h"
 #include "Float4.h"

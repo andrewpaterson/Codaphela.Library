@@ -37,6 +37,9 @@ bool 	GetBit(size iBit, void* pvBitArray);  //return 1 or 0 in char array of bit
 bool 	GetBitReverseHiLo(size iBit, void* pvBitArray);  //return 1 or 0 in char array of bits indexed in reverse.
 size	CountBits(void* pvBitArray, size iBitLength);
 size	CountBitsSingly(void* pvBitArray, size iBitLength);  //Slow, for testing.
+size	CountDigits(int16 i);
+size	CountDigits(int32 i);
+size	CountDigits(int64 i);
 void 	SetBit(size iBit, void* pvBitArray, bool bBit);
 void 	SetBits(size iStart, void* pvBitArray, bool bBit, size iLength);
 void 	SetFlagByte(uint8* psiDest, uint8 iFlag, bool iFlagValue);
@@ -103,7 +106,11 @@ uint32	GetPowerOf2SizeAuto(uint32 iInt);
 int32	LargestInt(int32* pInts, int32 iCount);
 size	Min(size ui1, size ui2);
 size	Max(size ui1, size ui2);
-
+int8	Absolute(int8 i);
+int16	Absolute(int16 i);
+int32	Absolute(int32 i);
+int64	Absolute(int64 i);
+int32	SquareRoot(int32 i);
 
 #endif // __INTEGER_HELPER_H__
 

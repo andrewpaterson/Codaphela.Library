@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __GEOMETRIC_TYPES_H__
 #define __GEOMETRIC_TYPES_H__
-#include "Float2.h"
+#include "Float32Vec2.h"
 #include "Float3.h"
 #include "Float4.h"
 #include "Float4x4.h"

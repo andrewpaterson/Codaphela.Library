@@ -410,7 +410,7 @@ void CMesh::MovePositions(CArrayInt* paiPositions, SFloat3* psPosition)
 void CMesh::AddUV(float u, float v, size iLayer)
 {
 	CMeshUVLayer*	pcUVLayer;
-	SFloat2*		psUV;
+	SFloat32Vec2*		psUV;
 
 	pcUVLayer = mcUVs.EnsureLayerExists(iLayer, &mcConnectivity);
 	psUV = pcUVLayer->mcUVs.Add();

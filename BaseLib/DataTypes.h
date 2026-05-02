@@ -54,7 +54,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define FLOAT_BYTE_SIZE		sizeof(float32)
 #define DOUBLE_BYTE_SIZE	sizeof(float64)
 #define LONG_BYTE_SIZE		sizeof(int64)
-#define FLOAT2_BYTE_SIZE	sizeof(SFloat2)
+#define FLOAT2_BYTE_SIZE	sizeof(SFloat32Vec2)
 #define FLOAT3_BYTE_SIZE	sizeof(SFloat3)
 #define FLOAT4_BYTE_SIZE	sizeof(SFloat4)
 #define DOUBLE2_BYTE_SIZE	sizeof(SDouble2)

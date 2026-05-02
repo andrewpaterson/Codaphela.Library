@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 class SFloat4;
-class SFloat2;
+class SFloat32Vec2;
 class SFloat4x4;
 class SFloat3
 {
@@ -38,50 +38,55 @@ public:
 	float y;
 	float z;
 
-	SFloat3() {};
-	SFloat3(const float *);
-	SFloat3(const SFloat3& v);
-	SFloat3(float x, float y, float z);
+public:
+						SFloat3() {};
+						SFloat3(const float *);
+						SFloat3(const SFloat3& v);
+						SFloat3(float x, float y, float z);
 
-	SFloat3& operator += (const SFloat3&);
-	SFloat3& operator -= (const SFloat3&);
-	SFloat3& operator *= (float);
-	SFloat3& operator /= (float);
+			SFloat3&	operator += (const SFloat3&);
+			SFloat3&	operator -= (const SFloat3&);
+			SFloat3&	operator *= (float);
+			SFloat3&	operator /= (float);
 
-	SFloat3 operator + () const;
-	SFloat3 operator - () const;
+			SFloat3		operator + () const;
+			SFloat3		operator - () const;
 
-	SFloat3 operator + (const SFloat3&) const;
-	SFloat3 operator - (const SFloat3&) const;
-	SFloat3 operator * (float) const;
-	SFloat3 operator / (float) const;
+			SFloat3		operator + (const SFloat3&) const;
+			SFloat3		operator - (const SFloat3&) const;
+			SFloat3		operator * (float) const;
+			SFloat3		operator / (float) const;
 
-	friend SFloat3 operator * (float, const SFloat3&);
+	friend	SFloat3		operator * (float, const SFloat3&);
 
-	bool operator == (const SFloat3&) const;
-	bool operator != (const SFloat3&) const;
+			bool		operator == (const SFloat3&) const;
+			bool		operator != (const SFloat3&) const;
 
-	void 	Init(float x, float y, float z);
-	void 	Init(const SFloat3& v);
-	void 	Zero(void);
+			void 		Init(float x, float y, float z);
+			void 		Init(const SFloat3& v);
+			void		Init(SFloat3* pv);
+			void 		Zero(void);
 
-	bool 	Save(CFileWriter* pcFileWriter);
-	bool 	Load(CFileReader* pcFileReader);
+			bool 		Save(CFileWriter* pcFileWriter);
+			bool 		Load(CFileReader* pcFileReader);
 
-	void 	Fix(void);
-	void 	Print(CChars* psx, int iWholeNumbers = -1, int iDecimals = 2);
-	int		WholeNumbers(void);
-	void	Dump(void);
+			void 		Fix(void);
+			void 		Print(CChars* psx, int iWholeNumbers = -1, int iDecimals = 2);
+			void		Dump(void);
 
-	void	Add(SFloat3* ps);
-	float 	Magnitude(void);
-	float 	SquareMagnitude(void);
-	void 	Normalize(void);
-	bool 	CloselyEqual(SFloat3* ps);
-	bool 	CloselyEqual(SFloat3* ps, float fTolerance);
-	void 	Copy(const SFloat4* ps);
-	void 	Copy(const SFloat3* ps);
-	void 	Copy(const SFloat2* ps);
+			void		Add(SFloat3* ps);
+			float 		SquareMagnitude(void);
+
+			void 		Copy(const SFloat4* ps);
+			void 		Copy(const SFloat3* ps);
+			void 		Copy(const SFloat32Vec2* ps);
+
+			int			WholeNumbers(void);
+
+			float 		Magnitude(void);
+			void 		Normalize(void);
+			bool 		CloselyEqual(SFloat3* ps);
+			bool 		CloselyEqual(SFloat3* ps, float fTolerance);
 };
 
 
@@ -104,9 +109,6 @@ SFloat3*	Float3TransformNormal(SFloat3* pOut, SFloat3* pV, SFloat4x4* psMat);
 void		Float3TransformNormals(SFloat3* asOut, int iOutStride, SFloat3* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints);
 void		Float3MinMax(SFloat3* psMin, SFloat3* psMax, SFloat3* asIn, int iInStride, int iNumPoints);
 void		Float3Swap(SFloat3* ps1, SFloat3* ps2);
-void 		Float3Assign(SFloat3* psVecDest, float x, float y, float z);
-void 		Float3Assign(SFloat3* psVecDest, SFloat3* psVecSource);
-void 		Float3Zero(SFloat3* psVecDest);
 void 		Float3InterpolatePosition(SFloat3* psVecDest, const SFloat3* psVec1, const SFloat3* psVec2, float fWeight);
 void 		Float3InterpolateNormal(SFloat3* psVecDest, const SFloat3* psVec1, const SFloat3* psVec2, float fWeight);
 void 		Float3RotateAboutNormalisedAxis(SFloat3* psVecDest, SFloat3 p, float fTheta, SFloat3 r);

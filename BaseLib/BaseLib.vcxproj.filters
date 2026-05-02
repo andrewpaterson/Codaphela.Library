@@ -552,7 +552,7 @@
     <ClInclude Include="MarkupText.h">
       <Filter>Source\Data\Markup</Filter>
     </ClInclude>
-    <ClInclude Include="Float2.h">
+    <ClInclude Include="Float32Vec2.h">
       <Filter>Source\Data\Geometric</Filter>
     </ClInclude>
     <ClInclude Include="Float3.h">
@@ -1770,6 +1770,12 @@
     <ClInclude Include="UnicodeWriter.h">
       <Filter>Source\Text\Encoding</Filter>
     </ClInclude>
+    <ClInclude Include="Vec2.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="Int32Vec2.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1826,7 +1832,7 @@
     <ClCompile Include="MarkupText.cpp">
       <Filter>Source\Data\Markup</Filter>
     </ClCompile>
-    <ClCompile Include="Float2.cpp">
+    <ClCompile Include="Float32Vec2.cpp">
       <Filter>Source\Data\Geometric</Filter>
     </ClCompile>
     <ClCompile Include="Float3.cpp">
@@ -2851,6 +2857,12 @@
     </ClCompile>
     <ClCompile Include="UnicodeWriter.cpp">
       <Filter>Source\Text\Encoding</Filter>
+    </ClCompile>
+    <ClCompile Include="Numbers.cpp">
+      <Filter>Source\Math\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="Int32Vec2.cpp">
+      <Filter>Source\Data\Geometric</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

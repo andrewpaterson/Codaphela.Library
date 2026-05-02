@@ -7,7 +7,7 @@
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/Number.h"
 #include "BaseLib/Date.h"
-#include "BaseLib/Float2.h"
+#include "BaseLib/Float32Vec2.h"
 #include "BaseLib/Float3.h"
 #include "BaseLib/Float4.h"
 #include "BaseLib/Float4x4.h"
@@ -148,8 +148,8 @@ public:
 	void				UnmanagedUnknown(CBaseObject* pcThis, void* pv, size uiSizeof, char* szFieldName);
 	void				UnmanagedPointer(CBaseObject* pcThis, void** pv, char* szFieldName);
 
-	void				Unmanaged2Float(CBaseObject* pcThis, SFloat2* pf, char* szFieldName);
-	void				Unmanaged2Float(CBaseObject* pcThis, SFloat2* pf, size uiLength, char* szFieldName);
+	void				Unmanaged2Float(CBaseObject* pcThis, SFloat32Vec2* pf, char* szFieldName);
+	void				Unmanaged2Float(CBaseObject* pcThis, SFloat32Vec2* pf, size uiLength, char* szFieldName);
 	void				Unmanaged3Float(CBaseObject* pcThis, SFloat3* pf, char* szFieldName);
 	void				Unmanaged3Float(CBaseObject* pcThis, SFloat3* pf, size uiLength, char* szFieldName);
 	void				Unmanaged4Float(CBaseObject* pcThis, SFloat4* pf, char* szFieldName);

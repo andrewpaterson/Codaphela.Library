@@ -35,8 +35,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshConeEditor::Init(SFloat3* psZDirection, SFloat3* psStart, float fTopRadius, float fBottomRadius, float fLength, int iWedgeSegments, int iTopCircleSegments, int iBottomCircleSegments, int iRingSegments)
 {
-	Float3Assign(&msZDirection, psZDirection);
-	Float3Assign(&msStart, psStart);
+	msZDirection.Init(psZDirection);
+	msStart.Init(psStart);
 	mfTopRadius = fTopRadius;
 	mfBottomRadius = fBottomRadius;
 	mfLength = fLength;
@@ -111,7 +111,7 @@ void CMeshConeEditor::Apply(CMeshEditor* pcMeshEditor)
 	int					iLastTop;
 	int					iLastBottom;
 
-	Float3Assign(&sTopCenter, &msZDirection);
+	sTopCenter.Init(&msZDirection);
 	sTopCenter *= mfLength;
 	sTopCenter.Add(&msStart);
 

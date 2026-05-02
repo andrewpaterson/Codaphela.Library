@@ -23,8 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Numbers.h"
 #include "IntegerHelper.h"
 #include "FloatHelper.h"
-#include "DataIO.h"
-#include "Float2.h"
+#include "Float32Vec2.h"
 #include "Float4.h"
 #include "Float4x4.h"
 #include "Float3.h"
@@ -234,6 +233,18 @@ void SFloat3::Init(const SFloat3& v)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void SFloat3::Init(SFloat3* pv)
+{
+	x = pv->x;
+	y = pv->y;
+	z = pv->z;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void SFloat3::Zero(void)
 {
 	x = y = z = 0.0f;
@@ -301,7 +312,6 @@ void SFloat3::Normalize(void)
 //////////////////////////////////////////////////////////////////////////
 bool SFloat3::CloselyEqual(SFloat3* ps)
 {
-
 	if ((FloatEqual(x, ps->x)) &&
 		(FloatEqual(y, ps->y)) &&
 		(FloatEqual(z, ps->z)))
@@ -318,7 +328,6 @@ bool SFloat3::CloselyEqual(SFloat3* ps)
 //////////////////////////////////////////////////////////////////////////
 bool SFloat3::CloselyEqual(SFloat3* ps, float fTolerance)
 {
-
 	if ((FloatEqual(x, ps->x, fTolerance)) &&
 		(FloatEqual(y, ps->y, fTolerance)) &&
 		(FloatEqual(z, ps->z, fTolerance)))
@@ -357,7 +366,7 @@ void SFloat3::Copy(const SFloat3* ps)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SFloat3::Copy(const SFloat2* ps)
+void SFloat3::Copy(const SFloat32Vec2* ps)
 {
 	x = ps->x;
 	y = ps->y;
@@ -431,7 +440,7 @@ int SFloat3::WholeNumbers(void)
 //////////////////////////////////////////////////////////////////////////
 void SFloat3::Print(CChars* psx, int iWholeNumbers, int iDecimals)
 {
-	CChars		sz;
+	CChars		szzz;
 	int			iWidth;
 
 	if (iWholeNumbers == -1)
@@ -447,23 +456,23 @@ void SFloat3::Print(CChars* psx, int iWholeNumbers, int iDecimals)
 	iWidth = iWholeNumbers + 1 + iDecimals;
 
 	psx->Append('[');
-	sz.Init();
-	sz.Append(x, iDecimals);
-	sz.RightAlign(' ', iWidth);
-	psx->Append(sz);
-	sz.Kill();
+	szzz.Init();
+	szzz.Append(x, iDecimals);
+	szzz.RightAlign(' ', iWidth);
+	psx->Append(szzz);
+	szzz.Kill();
 	psx->Append(',');
-	sz.Init();
-	sz.Append(y, iDecimals);
-	sz.RightAlign(' ', iWidth);
-	psx->Append(sz);
-	sz.Kill();
+	szzz.Init();
+	szzz.Append(y, iDecimals);
+	szzz.RightAlign(' ', iWidth);
+	psx->Append(szzz);
+	szzz.Kill();
 	psx->Append(',');
-	sz.Init();
-	sz.Append(z, iDecimals);
-	sz.RightAlign(' ', iWidth);
-	psx->Append(sz);
-	sz.Kill();
+	szzz.Init();
+	szzz.Append(z, iDecimals);
+	szzz.RightAlign(' ', iWidth);
+	psx->Append(szzz);
+	szzz.Kill();
 	psx->Append(']');
 }
 
@@ -722,40 +731,6 @@ void Float3MinMax(SFloat3* psMin, SFloat3* psMax, SFloat3* asIn, int iInStride, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3Assign(SFloat3* psVecDest, float x, float y, float z)
-{
-	psVecDest->x = x;
-	psVecDest->y = y;
-	psVecDest->z = z;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void Float3Assign(SFloat3* psVecDest, SFloat3* psVecSource)
-{
-	psVecDest->x = psVecSource->x;
-	psVecDest->y = psVecSource->y;
-	psVecDest->z = psVecSource->z;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void Float3Zero(SFloat3* psVecDest)
-{
-	psVecDest->x = psVecDest->y = psVecDest->z = 0.0f;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void Float3Normalize(SFloat3 *pOut, const SFloat3 *pV)
 {
 	float fInvLen;
@@ -810,7 +785,7 @@ void Float3RotateAboutNormalisedAxis(SFloat3* psVecDest, SFloat3 p, float fTheta
 	float fSinTheta;
 	float fInvCosTheta;
 
-	Float3Zero(psVecDest);
+	psVecDest->Zero();
 	fCosTheta = cosf(fTheta);
 	fSinTheta = sinf(fTheta);
 	fInvCosTheta = 1.0f - fCosTheta;

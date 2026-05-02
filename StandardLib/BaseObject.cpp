@@ -20,7 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
 #include "BaseLib/Logger.h"
-#include "BaseLib/Float2.h"
+#include "BaseLib/Float32Vec2.h"
 #include "BaseLib/Float3.h"
 #include "BaseLib/Float4.h"
 #include "BaseLib/Float4x4.h"
@@ -2599,8 +2599,8 @@ void CBaseObject::UnmanagedData(void* pv, size uiSizeof, char* szFieldName)			{ 
 void CBaseObject::UnmanagedUnknown(void* pv, size uiSizeof, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedUnknown(this, pv, uiSizeof, szFieldName); };
 void CBaseObject::UnmanagedPointer(void** pv, char* szFieldName)					{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedPointer(this, pv, szFieldName); };
 
-void CBaseObject::Unmanaged2Float(SFloat2* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged2Float(this, pf, szFieldName); }
-void CBaseObject::Unmanaged2Float(SFloat2* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged2Float(this, pf, uiLength, szFieldName); }
+void CBaseObject::Unmanaged2Float(SFloat32Vec2* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged2Float(this, pf, szFieldName); }
+void CBaseObject::Unmanaged2Float(SFloat32Vec2* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged2Float(this, pf, uiLength, szFieldName); }
 void CBaseObject::Unmanaged3Float(SFloat3* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged3Float(this, pf, szFieldName); }
 void CBaseObject::Unmanaged3Float(SFloat3* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged3Float(this, pf, uiLength, szFieldName); }
 void CBaseObject::Unmanaged4Float(SFloat4* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4Float(this, pf, szFieldName); }

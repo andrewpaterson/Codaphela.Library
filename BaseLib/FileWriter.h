@@ -59,9 +59,24 @@ public:
 
 						bool	WriteIntArray(int32* pai, size iLength);
 
+						template<class M>
+						bool	WritePrimitive(M c);
+
 protected:
 	virtual				size	Write(const void* pvSource, size iSize, size iCount) =0;
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+bool CFileWriter::WritePrimitive(M c)
+{
+	CheckWrite(&c, sizeof(M));
+	return true;
+}
 
 
 #endif // __FILE_WRITER_H__

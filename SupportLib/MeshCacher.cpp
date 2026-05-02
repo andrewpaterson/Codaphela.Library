@@ -335,7 +335,7 @@ void CMeshCacher::PopulateUVs(CMeshVertexArray* pcVertexArray, CMeshTypeIndices*
 	int							iNumUVs;
 	int							k;
 	CMeshUVLayer*				pcUVLayer;
-	SFloat2*					psUV;
+	SFloat32Vec2*					psUV;
 
 	iNumUVs = pcVertexArray->GetFaceType()->GetUVs();
 	iNumVerts = pcTypeIndices->NumVerts();
