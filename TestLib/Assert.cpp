@@ -724,11 +724,11 @@ bool PrivateAssertDouble(float64 fExpected, float64 fActual, int iDecimals, char
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertLongDouble(float96 fExpected, float96 fActual, int iDecimals, char* szPrefix, size iLine, char* szFile)
+bool PrivateAssertLongDouble(float128 fExpected, float128 fActual, int iDecimals, char* szPrefix, size iLine, char* szFile)
 {
 	char			szExpected[32];
 	char			szActual[32];
-	float96		fTolerance;
+	float128		fTolerance;
 
 	fTolerance = DoubleToleranceForDecimals(iDecimals);
 	if (!LongDoubleEqual(fExpected, fActual, fTolerance))

@@ -37,7 +37,7 @@ typedef char			char8;
 typedef wchar_t			char16;
 typedef float			float32;
 typedef double			float64;
-typedef long double		float96;
+typedef long double		float128;
 typedef size_t			size;
 typedef unsigned int	uint;
 typedef uintptr_t		ptr;

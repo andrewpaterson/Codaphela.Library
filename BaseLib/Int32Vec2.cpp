@@ -66,7 +66,7 @@ void SInt32Vec2::Print(CChars* psx, int iWholeNumbers)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int32 SInt32Vec2::WholeNumbers(void)
+int SInt32Vec2::WholeNumbers(void)
 {
 	int i[2];
 

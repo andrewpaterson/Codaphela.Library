@@ -368,7 +368,7 @@ void ToDoubleString(double f, char* sz, int iDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToLongDoubleString(float96 f, char* sz, int iDecimals)
+void ToLongDoubleString(float128 f, char* sz, int iDecimals)
 {
 	char szFormatter[20];
 

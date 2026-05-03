@@ -28,43 +28,43 @@ Microsoft Windows is Copyright Microsoft Corporation
 class SFloat4;
 class SFloat3;
 class SFloat4x4;
-class SFloat32Vec2 : public SVec2<float32>
+class SFloat32Vec2 : public SVec2<float32, float64>
 {
 CONSTRUCTABLE(SFloat32Vec2);
 public:
-	using SVec2<float32>::operator=;
+	using SVec2<float32, float64>::operator=;
 
 	void	Fix(void);
 
-	int32		WholeNumbers(void);
-	void 		Print(CChars* psx, int iWholeNumbers = -1, int iDecimals = 2);
+	int		WholeNumbers(void);
+	void	Print(CChars* psx, int iWholeNumbers = -1, int iDecimals = 2);
 
-	void 		Normalize(void);
-	bool 		CloselyEqual(SFloat3* ps);
-	bool 		CloselyEqual(SFloat3* ps, float fTolerance);
+	void	Normalize(void);
+	bool	CloselyEqual(SFloat32Vec2* ps);
+	bool	CloselyEqual(SFloat32Vec2* ps, float32 fTolerance);
 };
 
 
-typedef CArrayTemplate<SFloat32Vec2>		CArrayFloat2;
+typedef CArrayTemplate<SFloat32Vec2>		CArrayFloat32Vec2;
 
 
-float 			Float2Dot(const SFloat32Vec2* pV1, const SFloat32Vec2* pV2);
-float			Float2Cross(const SFloat32Vec2* pV1, const SFloat32Vec2* pV2);
+float32 		Float2Dot(const SFloat32Vec2* pV1, const SFloat32Vec2* pV2);
+float32			Float2Cross(const SFloat32Vec2* pV1, const SFloat32Vec2* pV2);
 SFloat32Vec2* 	Float2Add(SFloat32Vec2* pOut, const SFloat32Vec2* pV1, const SFloat32Vec2* pV2);
 SFloat32Vec2* 	Float2Subtract(SFloat32Vec2* pOut, const SFloat32Vec2* pV1, const SFloat32Vec2* pV2);
 SFloat32Vec2* 	Float2Minimize(SFloat32Vec2* pOut, const SFloat32Vec2* pV1, const SFloat32Vec2* pV2);
 SFloat32Vec2* 	Float2Maximize(SFloat32Vec2* pOut, const SFloat32Vec2* pV1, const SFloat32Vec2* pV2);
-SFloat32Vec2* 	Float2Scale(SFloat32Vec2* pOut, const SFloat32Vec2* pV, float s);
-SFloat32Vec2* 	Float2Lerp(SFloat32Vec2* pOut, const SFloat32Vec2* pV1, const SFloat32Vec2* pV2, float s);
+SFloat32Vec2* 	Float2Scale(SFloat32Vec2* pOut, const SFloat32Vec2* pV, float32 s);
+SFloat32Vec2* 	Float2Lerp(SFloat32Vec2* pOut, const SFloat32Vec2* pV1, const SFloat32Vec2* pV2, float32 s);
 SFloat32Vec2*	Float2TransformCoord(SFloat32Vec2* pOut, SFloat32Vec2* pV, SFloat4x4* psMat);
 void			Float2TransformCoords(SFloat32Vec2* asOut, int iOutStride, SFloat32Vec2* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints);
 SFloat32Vec2*	Float2TransformNormal(SFloat32Vec2* pOut, SFloat32Vec2* pV, SFloat4x4* psMat);
 void			Float2TransformNormals(SFloat32Vec2* asOut, int iOutStride, SFloat32Vec2* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints);
 void			Float2MinMax(SFloat32Vec2* psMin, SFloat32Vec2* psMax, SFloat32Vec2* asIn, int iInStride, int iNumPoints);
 void			Float2Swap(SFloat32Vec2* ps1, SFloat32Vec2* ps2);
-void 			Float2InterpolatePosition(SFloat32Vec2* psVecDest, const SFloat32Vec2* psVec1, const SFloat32Vec2* psVec2, float fWeight);
-void 			Float2InterpolateNormal(SFloat32Vec2* psVecDest, const SFloat32Vec2* psVec1, const SFloat32Vec2* psVec2, float fWeight);
-void 			Float2RotateAboutNormalisedAxis(SFloat3* psVecDest, SFloat3 p, float fTheta, SFloat32Vec2 r);
+void 			Float2InterpolatePosition(SFloat32Vec2* psVecDest, const SFloat32Vec2* psVec1, const SFloat32Vec2* psVec2, float32 fWeight);
+void 			Float2InterpolateNormal(SFloat32Vec2* psVecDest, const SFloat32Vec2* psVec1, const SFloat32Vec2* psVec2, float32 fWeight);
+void 			Float2RotateAboutNormalisedAxis(SFloat3* psVecDest, SFloat3 p, float32 fTheta, SFloat32Vec2 r);
 void 			Float2Normalize(SFloat32Vec2* pOut, SFloat32Vec2* pV);
 
 
