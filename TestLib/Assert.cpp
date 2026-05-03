@@ -665,11 +665,11 @@ bool PrivateAssertLongHex(int64 iExpected, int64 iActual, char* szPrefix, size i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertFloat(float fExpected, float fActual, int iDecimals, char* szPrefix, size iLine, char* szFile)
+bool PrivateAssertFloat(float32 fExpected, float32 fActual, int iDecimals, char* szPrefix, size iLine, char* szFile)
 {
 	char	szExpected[32];
 	char	szActual[32];
-	float	fTolerance;
+	float32	fTolerance;
 
 	fTolerance = FloatToleranceForDecimals(iDecimals);
 	if (!FloatEqual(fExpected, fActual, fTolerance))
@@ -689,7 +689,7 @@ bool PrivateAssertFloat(float fExpected, float fActual, int iDecimals, char* szP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertFloat(float fExpected, float fActual, char* szPrefix, size iLine, char* szFile)
+bool PrivateAssertFloat(float32 fExpected, float32 fActual, char* szPrefix, size iLine, char* szFile)
 {
 	return PrivateAssertFloat(fExpected, fActual, 8, szPrefix, iLine, szFile);
 }
@@ -699,11 +699,11 @@ bool PrivateAssertFloat(float fExpected, float fActual, char* szPrefix, size iLi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertDouble(double fExpected, double fActual, int iDecimals, char* szPrefix, size iLine, char* szFile)
+bool PrivateAssertDouble(float64 fExpected, float64 fActual, int iDecimals, char* szPrefix, size iLine, char* szFile)
 {
 	char	szExpected[32];
 	char	szActual[32];
-	double	fTolerance;
+	float64	fTolerance;
 
 	fTolerance = DoubleToleranceForDecimals(iDecimals);
 	if (!DoubleEqual(fExpected, fActual, fTolerance))
@@ -752,7 +752,7 @@ bool PrivateAssertFloat3(SFloat3 fExpected, SFloat3* pfActual, int iDecimals, ch
 {
 	char	szExpected[96];
 	char	szActual[96];
-	float	fTolerance;
+	float32	fTolerance;
 	int		iWholeNumbers;
 	int		iOther;
 

@@ -50,10 +50,10 @@ bool PrivateAssertShortHex(int16 iExpected, uint16 iActual, char* szPrefix, size
 bool PrivateAssertShortHex(uint16 iExpected, uint16 iActual, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertLongLongInt(int64 iExpected, int64 iActual, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertLongLongIntHex(int64 iExpected, int64 iActual, char* szPrefix, size iLine, char* szFile);
-bool PrivateAssertFloat(float fExpected, float fActual, int iDecimals, char* szPrefix, size iLine, char* szFile);
-bool PrivateAssertFloat(float fExpected, float fActual, char* szPrefix, size iLine, char* szFile);
+bool PrivateAssertFloat(float32 fExpected, float32 fActual, int iDecimals, char* szPrefix, size iLine, char* szFile);
+bool PrivateAssertFloat(float32 fExpected, float32 fActual, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertFloat3(SFloat3 fExpected, SFloat3* pfActual, int iDecimals, char* szPrefix, size iLine, char* szFile);
-bool PrivateAssertDouble(double fExpected, double fActual, int iDecimals, char* szPrefix, size iLine, char* szFile);
+bool PrivateAssertDouble(float64 fExpected, float64 fActual, int iDecimals, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertLongDouble(float96 fExpected, float96 fActual, int iDecimals, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertSize(size iExpected, size iActual, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertString(const char* szExpected, const char* szActual, bool bTestCase, char* szPrefix, size iLine, char* szFile);
