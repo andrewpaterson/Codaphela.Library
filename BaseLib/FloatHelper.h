@@ -26,51 +26,53 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PrimitiveTypes.h"
 
 
-float		sqf(float f);
-float		minf(float f1, float f2);
-float		maxf(float f1, float f2);
-bool		FloatEqual(float f1, float f2);
-bool		FloatEqual(float f1, float f2, float fTolerance);
-bool		FloatGreaterThanOrEqual(float f1, float f2);
-bool		FloatLessThanOrEqual(float f1, float f2);
-bool		FloatGreaterThan(float f1, float f2);
-bool		FloatLessThan(float f1, float f2);
-float 		RoundFloat(float fInput, int iBinaryExponent);
-float 		TruncateFloat(float fInput, int iBinaryExponent);
-float 		NormaliseFloat(float fSize, float fPos);  //returns 1 .. -1
-float 		NormaliseFloat(float fMax, float fMin, float fPos);  //returns 1 .. 0
-float		InterpolateFloat(float f1, float f2, float fPos);
-void		InterpolateFloat(float* fDest, float f1, float f2, float fPos);
-float		FloatToleranceForDecimals(int iDecimals);
-size		FloatWholeNumbers(float f);
-double		sq(double f);
-bool		DoubleEqual(double f1, double f2);
-bool		DoubleEqual(double f1, double f2, double fTolerance);
-bool		DoubleGreaterThanOrEqual(double f1, double f2);
-bool		DoubleLessThanOrEqual(double f1, double f2);
-bool		DoubleGreaterThan(double f1, double f2);
-bool		DoubleLessThan(double f1, double f2);
-double 		RoundDouble(double fInput, int64 iBinaryExponent);
-double 		TruncateDouble(double fInput, int64 iBinaryExponent);
-double 		NormaliseDouble(double fSize, double fPos);  //returns 1 .. -1
-double 		NormaliseDouble(double fMax, double fMin, double fPos);  //returns 1 .. 0
-double		InterpolateDouble(double f1, double f2, double fPos);
-void		InterpolateDouble(double* fDest, double f1, double f2, double fPos);
-double		DoubleToleranceForDecimals(int iDecimals);
-size		DoubleWholeNumbers(double f);
+float32		minf(float32 f1, float32 f2);
+float32		maxf(float32 f1, float32 f2);
+bool		FloatEqual(float32 f1, float32 f2);
+bool		FloatEqual(float32 f1, float32 f2, float32 fTolerance);
+bool		FloatGreaterThanOrEqual(float32 f1, float32 f2);
+bool		FloatLessThanOrEqual(float32 f1, float32 f2);
+bool		FloatGreaterThan(float32 f1, float32 f2);
+bool		FloatLessThan(float32 f1, float32 f2);
+float32 	RoundFloat(float32 fInput, int iBinaryExponent);
+float32 	TruncateFloat(float32 fInput, int iBinaryExponent);
+float32 	NormaliseFloat(float32 fSize, float32 fPos);  //returns 1 .. -1
+float32 	NormaliseFloat(float32 fMax, float32 fMin, float32 fPos);  //returns 1 .. 0
+float32		InterpolateFloat(float32 f1, float32 f2, float32 fPos);
+void		InterpolateFloat(float32* fDest, float32 f1, float32 f2, float32 fPos);
+float32		FloatToleranceForDecimals(int iDecimals);
+size		FloatWholeNumbers(float32 f);
+bool		DoubleEqual(float64 f1, float64 f2);
+bool		DoubleEqual(float64 f1, float64 f2, float64 fTolerance);
+bool		DoubleGreaterThanOrEqual(float64 f1, float64 f2);
+bool		DoubleLessThanOrEqual(float64 f1, float64 f2);
+bool		DoubleGreaterThan(float64 f1, float64 f2);
+bool		DoubleLessThan(float64 f1, float64 f2);
+float64 	RoundDouble(float64 fInput, int64 iBinaryExponent);
+float64 	TruncateDouble(float64 fInput, int64 iBinaryExponent);
+float64 	NormaliseDouble(float64 fSize, float64 fPos);  //returns 1 .. -1
+float64 	NormaliseDouble(float64 fMax, float64 fMin, float64 fPos);  //returns 1 .. 0
+float64		InterpolateDouble(float64 f1, float64 f2, float64 fPos);
+void		InterpolateDouble(float64* fDest, float64 f1, float64 f2, float64 fPos);
+float64		DoubleToleranceForDecimals(int iDecimals);
+size		DoubleWholeNumbers(float64 f);
 bool		LongDoubleEqual(float96 f1, float96 f2);
 bool		LongDoubleEqual(float96 f1, float96 f2, float96 fTolerance);
-void		SwapFloat(float* f1, float* f2);
-float		NotANumber(void);
-bool		IsNotANumber(float* pf);
+void		SwapFloat(float32* f1, float32* f2);
+float32		Float32NotANumber(void);
+float64		Float64NotANumber(void);
+bool		IsNotANumber(float32* pf);
 float96		ConvertDecimalFixedPointToLongDouble(uint64 ulliWholeNumber, uint64 ulliDecimalNumber, uint16 iNumDecimalDigits, int64 lliExponentNumber);
-float		det2x2(float a, float b, float c, float d);
-float		det3x3(float a1, float a2, float a3, float b1, float b2, float b3, float c1, float c2, float c3);
-double		det2x2(double a, double b, double c, double d);
-double		det3x3(double a1, double a2, double a3, double b1, double b2, double b3, double c1, double c2, double c3);
+float32		det2x2(float32 a, float32 b, float32 c, float32 d);
+float32		det3x3(float32 a1, float32 a2, float32 a3, float32 b1, float32 b2, float32 b3, float32 c1, float32 c2, float32 c3);
+float64		det2x2(float64 a, float64 b, float64 c, float64 d);
+float64		det3x3(float64 a1, float64 a2, float64 a3, float64 b1, float64 b2, float64 b3, float64 c1, float64 c2, float64 c3);
+float32		SquareRoot(float32 f);
+float64		SquareRoot(float64 f);
 
 
-extern float gfNaN;
+extern float32 gf32Nan;
+extern float64 gf64Nan;
 
 
 #endif // __FLOAT_HELPER_H__

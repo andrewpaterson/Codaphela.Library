@@ -110,7 +110,10 @@ int8	Absolute(int8 i);
 int16	Absolute(int16 i);
 int32	Absolute(int32 i);
 int64	Absolute(int64 i);
+int16	SquareRoot(int16 i);
 int32	SquareRoot(int32 i);
+int64	SquareRoot(int64 i);
+
 
 #endif // __INTEGER_HELPER_H__
 

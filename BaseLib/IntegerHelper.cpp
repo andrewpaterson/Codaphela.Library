@@ -1766,12 +1766,88 @@ int64 Absolute(int64 i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int16 SquareRoot(int16 i)
+{
+	int16 iLeft = 0;
+	int16 iRight = i;
+	int16 iAns = 0;
+	int16 iMid;
+
+	if (i < 0)
+	{
+		return -1;
+	}
+
+	iLeft = 0;
+	iRight = i;
+	iAns = 0;
+
+	while (iLeft <= iRight)
+	{
+		iMid = iLeft + (iRight - iLeft) / 2;
+
+		if (iMid <= i / iMid)
+		{
+			iAns = iMid;
+			iLeft = iMid + 1;
+		}
+		else 
+		{
+			iRight = iMid - 1;
+		}
+	}
+	return iAns;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int32 SquareRoot(int32 i)
 {
 	int32 iLeft = 0;
 	int32 iRight = i;
 	int32 iAns = 0;
 	int32 iMid;
+
+	if (i < 0)
+	{
+		return -1;
+	}
+
+	iLeft = 0;
+	iRight = i;
+	iAns = 0;
+
+	while (iLeft <= iRight)
+	{
+		iMid = iLeft + (iRight - iLeft) / 2;
+
+		if (iMid <= i / iMid)
+		{
+			iAns = iMid;
+			iLeft = iMid + 1;
+		}
+		else 
+		{
+			iRight = iMid - 1;
+		}
+	}
+	return iAns;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int64 SquareRoot(int64 i)
+{
+	int64 iLeft = 0;
+	int64 iRight = i;
+	int64 iAns = 0;
+	int64 iMid;
 
 	if (i < 0)
 	{
