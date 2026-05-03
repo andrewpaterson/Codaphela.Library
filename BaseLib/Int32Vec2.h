@@ -30,31 +30,30 @@ class SFloat3;
 class SFloat4x4;
 class SInt32Vec2  : public SVec2<int32>
 {
-CONSTRUCTABLE(SInt32Vec2 );
+CONSTRUCTABLE(SInt32Vec2);
 public:
 	using SVec2<int32>::operator=;
 
 	void 	Print(CChars* psx, int iWholeNumbers = -1);
 
-	int		Magnitude(void);
 	int32	WholeNumbers(void);
 };
 
 
-typedef CArrayTemplate<SInt32Vec2 >		CArrayInt32Vec2;
+typedef CArrayTemplate<SInt32Vec2>		CArrayInt32Vec2;
 
 
-int32 			Int32Vec2Dot(const SInt32Vec2 * pV1, const SInt32Vec2 * pV2);
-int32			Int32Vec2Cross(const SInt32Vec2 * pV1, const SInt32Vec2 * pV2);
-SInt32Vec2 * 	Int32Vec2Add(SInt32Vec2 * pOut, const SInt32Vec2 * pV1, const SInt32Vec2 * pV2);
-SInt32Vec2 * 	Int32Vec2Subtract(SInt32Vec2 * pOut, const SInt32Vec2 * pV1, const SInt32Vec2 * pV2);
-SInt32Vec2 * 	Int32Vec2Minimize(SInt32Vec2 * pOut, const SInt32Vec2 * pV1, const SInt32Vec2 * pV2);
-SInt32Vec2 * 	Int32Vec2Maximize(SInt32Vec2 * pOut, const SInt32Vec2 * pV1, const SInt32Vec2 * pV2);
-SInt32Vec2 * 	Int32Vec2Scale(SInt32Vec2 * pOut, const SInt32Vec2 * pV, float32 s);
-SInt32Vec2 * 	Int32Vec2Lerp(SInt32Vec2 * pOut, const SInt32Vec2 * pV1, const SInt32Vec2 * pV2, float32 s);
-void			Int32Vec2MinMax(SInt32Vec2 * psMin, SInt32Vec2 * psMax, SInt32Vec2 * asIn, int iInStride, int iNumPoints);
-void			Int32Vec2Swap(SInt32Vec2 * ps1, SInt32Vec2 * ps2);
-void 			Int32Vec2InterpolatePosition(SInt32Vec2 * psVecDest, const SInt32Vec2 * psVec1, const SInt32Vec2 * psVec2, float32 fWeight);
+int32 			Int32Vec2Dot(const SInt32Vec2* pV1, const SInt32Vec2* pV2);
+int32			Int32Vec2Cross(const SInt32Vec2* pV1, const SInt32Vec2* pV2);
+SInt32Vec2* 	Int32Vec2Add(SInt32Vec2* pOut, const SInt32Vec2* pV1, const SInt32Vec2* pV2);
+SInt32Vec2* 	Int32Vec2Subtract(SInt32Vec2* pOut, const SInt32Vec2* pV1, const SInt32Vec2* pV2);
+SInt32Vec2* 	Int32Vec2Minimize(SInt32Vec2* pOut, const SInt32Vec2* pV1, const SInt32Vec2* pV2);
+SInt32Vec2* 	Int32Vec2Maximize(SInt32Vec2* pOut, const SInt32Vec2* pV1, const SInt32Vec2* pV2);
+SInt32Vec2* 	Int32Vec2Scale(SInt32Vec2* pOut, const SInt32Vec2* pV, float32 s);
+SInt32Vec2* 	Int32Vec2Lerp(SInt32Vec2* pOut, const SInt32Vec2* pV1, const SInt32Vec2* pV2, float32 s);
+void			Int32Vec2MinMax(SInt32Vec2* psMin, SInt32Vec2* psMax, SInt32Vec2* asIn, int iInStride, int iNumPoints);
+void			Int32Vec2Swap(SInt32Vec2* ps1, SInt32Vec2* ps2);
+void 			Int32Vec2InterpolatePosition(SInt32Vec2* psVecDest, const SInt32Vec2* psVec1, const SInt32Vec2* psVec2, float32 fWeight);
 
 
 #endif // __INT32_VEC2_H__

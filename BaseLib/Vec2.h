@@ -71,6 +71,7 @@ public:
 
 			void		Add(M* ps);
 			M	 		SquareMagnitude(void);
+			M			Magnitude(void);
 };
 
 
@@ -345,6 +346,17 @@ template<class M>
 M SVec2<M>::SquareMagnitude(void)
 {
 	return x * x + y * y;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M SVec2<M>::Magnitude(void)
+{
+	return SquareRoot(SquareMagnitude());
 }
 
 

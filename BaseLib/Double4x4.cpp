@@ -423,16 +423,10 @@ void Double4x4RotationVector(SDouble4x4* psOut, SDouble3* psV, double fRad)
 	c = cos(fRad);
 	u = 1.0f - c;
 
-	psOut->x.x = sq(psV->x)*u + c;				psOut->x.y = psV->x*psV->y*u - psV->z*s;		psOut->x.z = psV->x*psV->z*u + psV->y*s;	psOut->x.w = 0.0f;
-	psOut->y.x = psV->x*psV->y*u + psV->z*s;	psOut->y.y = sq(psV->y)*u + c;					psOut->y.z = psV->z*psV->y*u - psV->x*s;	psOut->y.w = 0.0f;
-	psOut->z.x = psV->x*psV->z*u - psV->y*s; 	psOut->z.y = psV->y*psV->z*u + psV->x*s;		psOut->z.z = sq(psV->z)*u + c;				psOut->z.w = 0.0f;
-	psOut->pos.x = 0.0f;						psOut->pos.y = 0.0f;							psOut->pos.z = 0.0f;						psOut->pos.w = 1.0f;
-
-	//psOut->x.x = 1 + (1-cos(fRad))*(psV->x*psV->x-1);  				psOut->x.y = -psV->z*sin(fRad)+(1-cos(fRad))*psV->x*psV->y;		psOut->x.z = psV->y*sin(fRad)+(1-cos(fRad))*psV->x*psV->z;
-	//psOut->y.x = psV->z*sin(fRad)+(1-cos(fRad))*psV->x*psV->y; 		psOut->y.y = 1 + (1-cos(fRad))*(psV->y*psV->y-1); 				psOut->y.z = -psV->x*sin(fRad)+(1-cos(fRad))*psV->y*psV->z;
-	//psOut->z.x = -psV->y*sin(fRad)+(1-cos(fRad))*psV->x*psV->z; 	psOut->z.y = psV->x*sin(fRad)+(1-cos(fRad))*psV->y*psV->z;		psOut->z.z = 1 + (1-cos(fRad))*(psV->z*psV->z-1);
-	//psOut->x.w = 0.0f; psOut->y.w = 0.0f; psOut->z.w = 0.0f;	psOut->pos.x = 0.0f;
-	//psOut->pos.y = 0.0f; psOut->pos.z = 0.0f; psOut->pos.w = 1.0f;
+	psOut->x.x = psV->x* psV->x *u + c;			psOut->x.y = psV->x*psV->y*u - psV->z*s;	psOut->x.z = psV->x*psV->z*u + psV->y*s;	psOut->x.w = 0.0f;
+	psOut->y.x = psV->x*psV->y*u + psV->z*s;	psOut->y.y = psV->y*psV->y *u + c;			psOut->y.z = psV->z*psV->y*u - psV->x*s;	psOut->y.w = 0.0f;
+	psOut->z.x = psV->x*psV->z*u - psV->y*s; 	psOut->z.y = psV->y*psV->z*u + psV->x*s;	psOut->z.z = psV->z*psV->z*u + c;			psOut->z.w = 0.0f;
+	psOut->pos.x = 0.0f;						psOut->pos.y = 0.0f;						psOut->pos.z = 0.0f;						psOut->pos.w = 1.0f;
 }
 
 

@@ -39,7 +39,6 @@ public:
 	int32		WholeNumbers(void);
 	void 		Print(CChars* psx, int iWholeNumbers = -1, int iDecimals = 2);
 
-	float32 	Magnitude(void);
 	void 		Normalize(void);
 	bool 		CloselyEqual(SFloat3* ps);
 	bool 		CloselyEqual(SFloat3* ps, float fTolerance);

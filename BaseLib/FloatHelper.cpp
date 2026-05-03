@@ -29,17 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float sqf(float f)
-{
-	return f*f;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-float minf(float f1, float f2)
+float32 minf(float32 f1, float32 f2)
 {
 	if (f1 < f2)
 	{
@@ -53,7 +43,7 @@ float minf(float f1, float f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float maxf(float f1, float f2)
+float32 maxf(float32 f1, float32 f2)
 {
 	if (f1 > f2)
 	{
@@ -67,7 +57,7 @@ float maxf(float f1, float f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool FloatEqual(float f1, float f2, float fTolerance)
+bool FloatEqual(float32 f1, float32 f2, float32 fTolerance)
 {
 	// f1 == f2
 	if ((f2 - fTolerance > f1) || (f2 + fTolerance < f1))
@@ -82,7 +72,7 @@ bool FloatEqual(float f1, float f2, float fTolerance)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool FloatEqual(float f1, float f2)
+bool FloatEqual(float32 f1, float32 f2)
 {
 	return FloatEqual(f1, f2, SMALL_NUMBER);
 }
@@ -92,7 +82,7 @@ bool FloatEqual(float f1, float f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool FloatGreaterThanOrEqual(float f1, float f2)
+bool FloatGreaterThanOrEqual(float32 f1, float32 f2)
 {
 	//f1 >= f2
 	if (f2 - SMALL_NUMBER > f1)
@@ -107,7 +97,7 @@ bool FloatGreaterThanOrEqual(float f1, float f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool FloatLessThanOrEqual(float f1, float f2)
+bool FloatLessThanOrEqual(float32 f1, float32 f2)
 {
 	//f1 <= f2
 	if (f2 + SMALL_NUMBER < f1)
@@ -122,7 +112,7 @@ bool FloatLessThanOrEqual(float f1, float f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool FloatGreaterThan(float f1, float f2)
+bool FloatGreaterThan(float32 f1, float32 f2)
 {
 	//f1 > f2
 	if (f2 + SMALL_NUMBER >= f1)
@@ -137,7 +127,7 @@ bool FloatGreaterThan(float f1, float f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool FloatLessThan(float f1, float f2)
+bool FloatLessThan(float32 f1, float32 f2)
 {
 	//f1 < f2
 	if (f2 - SMALL_NUMBER <= f1)
@@ -152,11 +142,11 @@ bool FloatLessThan(float f1, float f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float TruncateFloat(float fInput, int iBinaryExponent)
+float32 TruncateFloat(float32 fInput, int iBinaryExponent)
 {
 	//Everything below the binary exponent is truncated.
 
-	float	fReturn;
+	float32	fReturn;
 	uint32	iTruncated;
 	int		iFloatExponent;
 	int		iExponentDifference;
@@ -165,28 +155,28 @@ float TruncateFloat(float fInput, int iBinaryExponent)
 
 	//Remember that an exponent of 0x7f is 2**0 = 1.  0x80 is 2**1 = 2.  0x81 is 2**2 = 4 etc..
 
-	iFloatExponent = *((int*)((void*)&fInput));  //Get the bits from the float into and int without doing a (float) cast.
-	iFloatExponent >>= 23;  //Remove the fractions part of the float leaving only the exponent and sign.
+	iFloatExponent = *((int*)((void*)&fInput));  //Get the bits from the float32 into and int without doing a (float32) cast.
+	iFloatExponent >>= 23;  //Remove the fractions part of the float32 leaving only the exponent and sign.
 	iFloatExponent &= 0xff;  //Get rid of the sign
 
 	iBinaryExponent += 0x7f;  //Get the ieee 754 exponent representation to truncate to.
 
 	iExponentDifference = iFloatExponent - iBinaryExponent;  //The difference between the floats exponent and the wanted exponent.
 
-	//If the exponent difference is >= 0 then our float has some digits which are not trunacted.
+	//If the exponent difference is >= 0 then our float32 has some digits which are not trunacted.
 	if (iExponentDifference >= 0)
 	{
 		iMaskedBits = 22 - (iExponentDifference - 1);  //Why -1?.  I can't remember.  Clearly it made sense at the time.
 		if (iMaskedBits > 0)
 		{
-			//Create a mask for the bits of float that are not truncated.
+			//Create a mask for the bits of float32 that are not truncated.
 			uiFractionMask = 0xffffffff;
 			uiFractionMask >>= iMaskedBits;
 			uiFractionMask <<= iMaskedBits;
 
 			iTruncated = *((int*)((void*)&fInput));
 			iTruncated &= uiFractionMask;
-			fReturn = *((float*)((void*)&iTruncated));
+			fReturn = *((float32*)((void*)&iTruncated));
 			return fReturn;
 		}
 		else
@@ -195,7 +185,7 @@ float TruncateFloat(float fInput, int iBinaryExponent)
 		}
 	}
 
-	//Otherwise the float we're tuncating is smaller than the 2**exponent we're truncating it too which gives 0.
+	//Otherwise the float32 we're tuncating is smaller than the 2**exponent we're truncating it too which gives 0.
 	else
 	{
 		return 0;
@@ -207,14 +197,14 @@ float TruncateFloat(float fInput, int iBinaryExponent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float RoundFloat(float fInput, int iBinaryExponent)
+float32 RoundFloat(float32 fInput, int iBinaryExponent)
 {
-	float	fValue;
+	float32	fValue;
 	int		iAdjustedExponent;
 
 	iAdjustedExponent = iBinaryExponent - 1 + 0x7f;
 	iAdjustedExponent <<= 23;
-	fValue = *((float*)((void*)&iAdjustedExponent));
+	fValue = *((float32*)((void*)&iAdjustedExponent));
 
 	if (((fValue < 0.0f) && (fInput > 0.0f)) || ((fValue > 0.0f) && (fInput < 0.0f)))
 	{
@@ -232,7 +222,7 @@ float RoundFloat(float fInput, int iBinaryExponent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float NormaliseFloat(float fSize, float fPos)
+float32 NormaliseFloat(float32 fSize, float32 fPos)
 {
 	return ((fPos*2.0f) / fSize) -1.0f;
 }
@@ -241,7 +231,7 @@ float NormaliseFloat(float fSize, float fPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float NormaliseFloat(float fMax, float fMin, float fPos)
+float32 NormaliseFloat(float32 fMax, float32 fMin, float32 fPos)
 {
 	if (fMax != fMin)
 	{
@@ -264,7 +254,7 @@ float NormaliseFloat(float fMax, float fMin, float fPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float InterpolateFloat(float f1, float f2, float fPos)
+float32 InterpolateFloat(float32 f1, float32 f2, float32 fPos)
 {
 	return (f1 * fPos) + (f2 * (1.0f - fPos));
 }
@@ -274,7 +264,7 @@ float InterpolateFloat(float f1, float f2, float fPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void InterpolateFloat(float* fDest, float f1, float f2, float fPos)
+void InterpolateFloat(float32* fDest, float32 f1, float32 f2, float32 fPos)
 {
 	*fDest = InterpolateFloat(f1, f2, fPos);
 }
@@ -284,13 +274,13 @@ void InterpolateFloat(float* fDest, float f1, float f2, float fPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float FloatToleranceForDecimals(int iDecimals)
+float32 FloatToleranceForDecimals(int iDecimals)
 {
-	double fTolerance;
+	float64 fTolerance;
 
 	fTolerance = pow(10.0, iDecimals);
 	fTolerance = 1.0/fTolerance;
-	return (float)fTolerance;
+	return (float32)fTolerance;
 }
 
 
@@ -298,9 +288,9 @@ float FloatToleranceForDecimals(int iDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size FloatWholeNumbers(float f)
+size FloatWholeNumbers(float32 f)
 {
-	float	fCmp;
+	float32	fCmp;
 	size	iWholes;
 
 	fCmp = 1.0f;
@@ -317,21 +307,11 @@ size FloatWholeNumbers(float f)
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-double sq(double f)
-{
-	return f * f;
-}
-
-
 ///////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool DoubleEqual(double f1, double f2)
+bool DoubleEqual(float64 f1, float64 f2)
 {
 	return DoubleEqual(f1, f2, SMALL_NUMBER);
 }
@@ -341,7 +321,7 @@ bool DoubleEqual(double f1, double f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool DoubleEqual(double f1, double f2, double fTolerance)
+bool DoubleEqual(float64 f1, float64 f2, float64 fTolerance)
 {
 	// f1 == f2
 	if ((f2 - fTolerance > f1) || (f2 + fTolerance < f1))
@@ -381,7 +361,7 @@ bool LongDoubleEqual(float96 f1, float96 f2, float96 fTolerance)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool DoubleGreaterThanOrEqual(double f1, double f2)
+bool DoubleGreaterThanOrEqual(float64 f1, float64 f2)
 {
 	//f1 >= f2
 	if (f2 - SMALL_NUMBER > f1)
@@ -396,7 +376,7 @@ bool DoubleGreaterThanOrEqual(double f1, double f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool DoubleLessThanOrEqual(double f1, double f2)
+bool DoubleLessThanOrEqual(float64 f1, float64 f2)
 {
 	//f1 <= f2
 	if (f2 + SMALL_NUMBER < f1)
@@ -411,7 +391,7 @@ bool DoubleLessThanOrEqual(double f1, double f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool DoubleGreaterThan(double f1, double f2)
+bool DoubleGreaterThan(float64 f1, float64 f2)
 {
 	//f1 > f2
 	if (f2 + SMALL_NUMBER >= f1)
@@ -426,7 +406,7 @@ bool DoubleGreaterThan(double f1, double f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool DoubleLessThan(double f1, double f2)
+bool DoubleLessThan(float64 f1, float64 f2)
 {
 	//f1 < f2
 	if (f2 - SMALL_NUMBER <= f1)
@@ -441,11 +421,11 @@ bool DoubleLessThan(double f1, double f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-double TruncateDouble(double fInput, int64 iBinaryExponent)
+float64 TruncateDouble(float64 fInput, int64 iBinaryExponent)
 {
 	//Everything below the binary exponent is truncated.
 
-	double			fReturn;
+	float64			fReturn;
 	uint64			iTruncated;
 	int64			iDoubleExponent;
 	int64			iExponentDifference;
@@ -454,28 +434,28 @@ double TruncateDouble(double fInput, int64 iBinaryExponent)
 
 	//Remember that an exponent of 0x7f is 2**0 = 1.  0x80 is 2**1 = 2.  0x81 is 2**2 = 4 etc..
 
-	iDoubleExponent = *((int64*)((void*)&fInput));  //Get the bits from the double into and int without doing a (double) cast.
-	iDoubleExponent >>= 52;  //Remove the fractions part of the double leaving only the exponent and sign.
+	iDoubleExponent = *((int64*)((void*)&fInput));  //Get the bits from the float64 into and int without doing a (float64) cast.
+	iDoubleExponent >>= 52;  //Remove the fractions part of the float64 leaving only the exponent and sign.
 	iDoubleExponent &= 0xfffLL;  //Get rid of the sign
 
 	iBinaryExponent += 0x3ffLL;  //Get the ieee 754 exponent representation to truncate to.
 
 	iExponentDifference = iDoubleExponent - iBinaryExponent;  //The difference between the floats exponent and the wanted exponent.
 
-	//If the exponent difference is >= 0 then our double has some digits which are not trunacted.
+	//If the exponent difference is >= 0 then our float64 has some digits which are not trunacted.
 	if (iExponentDifference >= 0)
 	{
 		iMaskedBits = 51 - (iExponentDifference - 1);  //Why -1?.  I can't remember.  Clearly it made sense at the time.
 		if (iMaskedBits > 0)
 		{
-			//Create a mask for the bits of double that are not truncated.
+			//Create a mask for the bits of float64 that are not truncated.
 			uiFractionMask = 0xffffffffffffffffLL;
 			uiFractionMask >>= iMaskedBits;
 			uiFractionMask <<= iMaskedBits;
 
 			iTruncated = *((int64*)((void*)&fInput));
 			iTruncated &= uiFractionMask;
-			fReturn = *((double*)((void*)&iTruncated));
+			fReturn = *((float64*)((void*)&iTruncated));
 			return fReturn;
 		}
 		else
@@ -484,7 +464,7 @@ double TruncateDouble(double fInput, int64 iBinaryExponent)
 		}
 	}
 
-	//Otherwise the double we're tuncating is smaller than the 2**exponent we're truncating it too which gives 0.
+	//Otherwise the float64 we're tuncating is smaller than the 2**exponent we're truncating it too which gives 0.
 	else
 	{
 		return 0;
@@ -496,14 +476,14 @@ double TruncateDouble(double fInput, int64 iBinaryExponent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-double RoundDouble(double fInput, int64 iBinaryExponent)
+float64 RoundDouble(float64 fInput, int64 iBinaryExponent)
 {
-	double	fValue;
+	float64	fValue;
 	int64		iAdjustedExponent;
 
 	iAdjustedExponent = iBinaryExponent - 1 + 0x3ff;
 	iAdjustedExponent <<= 52;
-	fValue = *((double*)((void*)&iAdjustedExponent));
+	fValue = *((float64*)((void*)&iAdjustedExponent));
 
 	if (((fValue < 0.0f) && (fInput > 0.0f)) || ((fValue > 0.0f) && (fInput < 0.0f)))
 	{
@@ -521,7 +501,7 @@ double RoundDouble(double fInput, int64 iBinaryExponent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-double NormaliseDouble(double fSize, double fPos)
+float64 NormaliseDouble(float64 fSize, float64 fPos)
 {
 	return ((fPos * 2.0f) / fSize) - 1.0f;
 }
@@ -531,7 +511,7 @@ double NormaliseDouble(double fSize, double fPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-double NormaliseDouble(double fMax, double fMin, double fPos)
+float64 NormaliseDouble(float64 fMax, float64 fMin, float64 fPos)
 {
 	if (fMax != fMin)
 	{
@@ -554,7 +534,7 @@ double NormaliseDouble(double fMax, double fMin, double fPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-double InterpolateDouble(double f1, double f2, double fPos)
+float64 InterpolateDouble(float64 f1, float64 f2, float64 fPos)
 {
 	return (f1 * fPos) + (f2 * (1.0f - fPos));
 }
@@ -564,7 +544,7 @@ double InterpolateDouble(double f1, double f2, double fPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void InterpolateDouble(double* fDest, double f1, double f2, double fPos)
+void InterpolateDouble(float64* fDest, float64 f1, float64 f2, float64 fPos)
 {
 	*fDest = InterpolateDouble(f1, f2, fPos);
 }
@@ -574,7 +554,7 @@ void InterpolateDouble(double* fDest, double f1, double f2, double fPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-double DoubleToleranceForDecimals(int iDecimals)
+float64 DoubleToleranceForDecimals(int iDecimals)
 {
 	float96 fTolerance;
 
@@ -588,9 +568,9 @@ double DoubleToleranceForDecimals(int iDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size DoubleWholeNumbers(double f)
+size DoubleWholeNumbers(float64 f)
 {
-	double	fCmp;
+	float64	fCmp;
 	size	iWholes;
 
 	fCmp = 1.0f;
@@ -611,9 +591,9 @@ size DoubleWholeNumbers(double f)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SwapFloat(float* f1, float* f2)
+void SwapFloat(float32* f1, float32* f2)
 {
-	float temp;
+	float32 temp;
 
 	temp = *f2;
 	*f2 = *f1;
@@ -625,10 +605,10 @@ void SwapFloat(float* f1, float* f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float NotANumber(void)
+float32 Float32NotANumber(void)
 {
 	uint32	i = 0xffffffff;
-	float f = *((float*)((void*)&i));
+	float32 f = *((float32*)((void*)&i));
 	return f;
 }
 
@@ -637,7 +617,19 @@ float NotANumber(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool IsNotANumber(float* pf)
+float64 Float64NotANumber(void)
+{
+	uint64	i = 0xffffffffffffffffLL;
+	float64 f = *((float64*)((void*)&i));
+	return f;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsNotANumber(float32* pf)
 {
 	return *((uint32*)((void*)pf)) == 0xffffffff;
 }
@@ -674,9 +666,9 @@ float96 ConvertDecimalFixedPointToLongDouble(uint64 ulliWholeNumber, uint64 ulli
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-float det3x3(float a1, float a2, float a3, float b1, float b2, float b3, float c1, float c2, float c3)
+float32 det3x3(float32 a1, float32 a2, float32 a3, float32 b1, float32 b2, float32 b3, float32 c1, float32 c2, float32 c3)
 {
-	float ans;
+	float32 ans;
 
 	ans = a1 * det2x2(b2, b3, c2, c3)
 		- b1 * det2x2(a2, a3, c2, c3)
@@ -689,9 +681,9 @@ float det3x3(float a1, float a2, float a3, float b1, float b2, float b3, float c
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-float det2x2(float a, float b, float c, float d)
+float32 det2x2(float32 a, float32 b, float32 c, float32 d)
 {
-	float ans;
+	float32 ans;
 
 	ans = a * d - b * c;
 	return ans;
@@ -702,9 +694,9 @@ float det2x2(float a, float b, float c, float d)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-double det3x3(double a1, double a2, double a3, double b1, double b2, double b3, double c1, double c2, double c3)
+float64 det3x3(float64 a1, float64 a2, float64 a3, float64 b1, float64 b2, float64 b3, float64 c1, float64 c2, float64 c3)
 {
-	double ans;
+	float64 ans;
 
 	ans = a1 * det2x2(b2, b3, c2, c3)
 		- b1 * det2x2(a2, a3, c2, c3)
@@ -717,13 +709,35 @@ double det3x3(double a1, double a2, double a3, double b1, double b2, double b3, 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-double det2x2(double a, double b, double c, double d)
+float64 det2x2(float64 a, float64 b, float64 c, float64 d)
 {
-	double ans;
+	float64 ans;
 
 	ans = a * d - b * c;
 	return ans;
 }
 
 
-float gfNaN = NotANumber();
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+float32 SquareRoot(float32 f)
+{
+	return sqrtf(f);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+float64 SquareRoot(float64 f)
+{
+	return sqrt(f);
+}
+
+
+float32 gf32Nan = Float32NotANumber();
+float64 gf64Nan = Float64NotANumber();
+
