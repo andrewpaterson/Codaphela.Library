@@ -56,19 +56,20 @@ float64		InterpolateDouble(float64 f1, float64 f2, float64 fPos);
 void		InterpolateDouble(float64* fDest, float64 f1, float64 f2, float64 fPos);
 float64		DoubleToleranceForDecimals(int iDecimals);
 size		DoubleWholeNumbers(float64 f);
-bool		LongDoubleEqual(float96 f1, float96 f2);
-bool		LongDoubleEqual(float96 f1, float96 f2, float96 fTolerance);
+bool		LongDoubleEqual(float128 f1, float128 f2);
+bool		LongDoubleEqual(float128 f1, float128 f2, float128 fTolerance);
 void		SwapFloat(float32* f1, float32* f2);
 float32		Float32NotANumber(void);
 float64		Float64NotANumber(void);
 bool		IsNotANumber(float32* pf);
-float96		ConvertDecimalFixedPointToLongDouble(uint64 ulliWholeNumber, uint64 ulliDecimalNumber, uint16 iNumDecimalDigits, int64 lliExponentNumber);
+float128	ConvertDecimalFixedPointToLongDouble(uint64 ulliWholeNumber, uint64 ulliDecimalNumber, uint16 iNumDecimalDigits, int64 lliExponentNumber);
 float32		det2x2(float32 a, float32 b, float32 c, float32 d);
 float32		det3x3(float32 a1, float32 a2, float32 a3, float32 b1, float32 b2, float32 b3, float32 c1, float32 c2, float32 c3);
 float64		det2x2(float64 a, float64 b, float64 c, float64 d);
 float64		det3x3(float64 a1, float64 a2, float64 a3, float64 b1, float64 b2, float64 b3, float64 c1, float64 c2, float64 c3);
 float32		SquareRoot(float32 f);
 float64		SquareRoot(float64 f);
+float128	SquareRoot(float128 f);
 
 
 extern float32 gf32Nan;

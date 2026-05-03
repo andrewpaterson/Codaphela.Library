@@ -1776,6 +1776,15 @@
     <ClInclude Include="Int32Vec2.h">
       <Filter>Source\Data\Geometric</Filter>
     </ClInclude>
+    <ClInclude Include="Int64Vec2.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="Int16Vec2.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
+    <ClInclude Include="Float64Vec2.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2862,6 +2871,15 @@
       <Filter>Source\Math\Primitive</Filter>
     </ClCompile>
     <ClCompile Include="Int32Vec2.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Int64Vec2.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Int16Vec2.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Float64Vec2.cpp">
       <Filter>Source\Data\Geometric</Filter>
     </ClCompile>
   </ItemGroup>

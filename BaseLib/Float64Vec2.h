@@ -1,0 +1,71 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2026 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela BaseLib
+
+Codaphela BaseLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela BaseLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
+
+Microsoft Windows is Copyright Microsoft Corporation
+
+** ------------------------------------------------------------------------ **/
+#ifndef __FLOAT32_VEC2_H__
+#define __FLOAT32_VEC2_H__
+#include "Vec2.h"
+
+
+class SFloat64Vec3;
+class SFloat64Vec4x4;
+class SFloat64Vec2 : public SVec2<float64, float128>
+{
+CONSTRUCTABLE(SFloat64Vec2);
+public:
+	using SVec2<float64, float128>::operator=;
+
+	void	Fix(void);
+
+	int		WholeNumbers(void);
+	void	Print(CChars* psx, int iWholeNumbers = -1, int iDecimals = 2);
+
+	void	Normalize(void);
+	bool	CloselyEqual(SFloat64Vec2* ps);
+	bool	CloselyEqual(SFloat64Vec2* ps, float64 fTolerance);
+};
+
+
+typedef CArrayTemplate<SFloat64Vec2>		CArrayFloat64Vec2;
+
+
+float64 		Float2Dot(const SFloat64Vec2* pV1, const SFloat64Vec2* pV2);
+float64			Float2Cross(const SFloat64Vec2* pV1, const SFloat64Vec2* pV2);
+SFloat64Vec2* 	Float2Add(SFloat64Vec2* pOut, const SFloat64Vec2* pV1, const SFloat64Vec2* pV2);
+SFloat64Vec2* 	Float2Subtract(SFloat64Vec2* pOut, const SFloat64Vec2* pV1, const SFloat64Vec2* pV2);
+SFloat64Vec2* 	Float2Minimize(SFloat64Vec2* pOut, const SFloat64Vec2* pV1, const SFloat64Vec2* pV2);
+SFloat64Vec2* 	Float2Maximize(SFloat64Vec2* pOut, const SFloat64Vec2* pV1, const SFloat64Vec2* pV2);
+SFloat64Vec2* 	Float2Scale(SFloat64Vec2* pOut, const SFloat64Vec2* pV, float64 s);
+SFloat64Vec2* 	Float2Lerp(SFloat64Vec2* pOut, const SFloat64Vec2* pV1, const SFloat64Vec2* pV2, float64 s);
+//SFloat64Vec2*	Float2TransformCoord(SFloat64Vec2* pOut, SFloat64Vec2* pV, SFloat64Vec4x4* psMat);
+//void			Float2TransformCoords(SFloat64Vec2* asOut, int iOutStride, SFloat64Vec2* asIn, int iInStride, SFloat64Vec4x4* psMat, int iNumPoints);
+//SFloat64Vec2*	Float2TransformNormal(SFloat64Vec2* pOut, SFloat64Vec2* pV, SFloat64Vec4x4* psMat);
+void			Float2TransformNormals(SFloat64Vec2* asOut, int iOutStride, SFloat64Vec2* asIn, int iInStride, SFloat64Vec4x4* psMat, int iNumPoints);
+void			Float2MinMax(SFloat64Vec2* psMin, SFloat64Vec2* psMax, SFloat64Vec2* asIn, int iInStride, int iNumPoints);
+void			Float2Swap(SFloat64Vec2* ps1, SFloat64Vec2* ps2);
+void 			Float2InterpolatePosition(SFloat64Vec2* psVecDest, const SFloat64Vec2* psVec1, const SFloat64Vec2* psVec2, float64 fWeight);
+void 			Float2InterpolateNormal(SFloat64Vec2* psVecDest, const SFloat64Vec2* psVec1, const SFloat64Vec2* psVec2, float64 fWeight);
+//void 			Float2RotateAboutNormalisedAxis(SFloat64Vec3* psVecDest, SFloat64Vec3 p, float64 fTheta, SFloat64Vec2 r);
+void 			Float2Normalize(SFloat64Vec2* pOut, SFloat64Vec2* pV);
+
+
+#endif // __FLOAT32_VEC2_H__
+

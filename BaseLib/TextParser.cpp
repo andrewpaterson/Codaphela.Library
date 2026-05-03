@@ -1284,7 +1284,7 @@ TRISTATE CTextParser::GetIntegerLiteral(uint64* pulli, uint16 iAllowedPrefix, ui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetFloatLiteral(float96* pldf, uint16 iAllowedPrefix, uint16* piBase, uint16 iAllowedSuffix, uint16* piSuffix, uint16 iAllowedExponent, uint16* piExponent, uint16 uiAllowedSeparator, uint16* piNumWholeDigits, uint16* piNumDecinalDigits, uint16* piNumExponentDigits, bool bSkipWhitespace)
+TRISTATE CTextParser::GetFloatLiteral(float128* pldf, uint16 iAllowedPrefix, uint16* piBase, uint16 iAllowedSuffix, uint16* piSuffix, uint16 iAllowedExponent, uint16* piExponent, uint16 uiAllowedSeparator, uint16* piNumWholeDigits, uint16* piNumDecinalDigits, uint16* piNumExponentDigits, bool bSkipWhitespace)
 {
 	char		cCurrent;
 	char		cNext;
@@ -1298,7 +1298,7 @@ TRISTATE CTextParser::GetFloatLiteral(float96* pldf, uint16 iAllowedPrefix, uint
 	uint64		ulliWholeNumber;
 	uint64		ulliDecimalNumber;
 	int64		lliExponentNumber;
-	float96		ldf;
+	float128		ldf;
 	uint16		iNumWholeDigits;
 	uint16		iNumDecimalDigits;
 	uint16		iNumExponentDigits;
@@ -1498,11 +1498,11 @@ TRISTATE CTextParser::GetFloatLiteral(float96* pldf, uint16 iAllowedPrefix, uint
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float96	CTextParser::MakeLongDouble(uint16 uiBase, uint64 ulliWholeNumber, uint64 ulliDecimalNumber, uint16 iNumDecimalDigits, int64 lliExponentNumber)
+float128	CTextParser::MakeLongDouble(uint16 uiBase, uint64 ulliWholeNumber, uint64 ulliDecimalNumber, uint16 iNumDecimalDigits, int64 lliExponentNumber)
 {
-	float96		ldf;
-	float96		ldfPow;
-	float96		ldfExp;
+	float128		ldf;
+	float128		ldfPow;
+	float128		ldfExp;
 
 	if (uiBase == 10)
 	{
@@ -1510,17 +1510,17 @@ float96	CTextParser::MakeLongDouble(uint16 uiBase, uint64 ulliWholeNumber, uint6
 	}
 	else if (uiBase == 16)
 	{
-		ldf = (float96)ulliWholeNumber;
+		ldf = (float128)ulliWholeNumber;
 		ldfPow = 1.l / powl(16, iNumDecimalDigits);
 		ldf += ulliDecimalNumber * ldfPow;
 		if (lliExponentNumber > 0)
 		{
-			ldfExp = powl(16, (float96)lliExponentNumber);
+			ldfExp = powl(16, (float128)lliExponentNumber);
 			ldf *= ldfExp;
 		}
 		else if (lliExponentNumber < 0)
 		{
-			ldfExp = 1.l / powl(16, -((float96)lliExponentNumber));
+			ldfExp = 1.l / powl(16, -((float128)lliExponentNumber));
 			ldf *= ldfExp;
 		}
 		return ldf;

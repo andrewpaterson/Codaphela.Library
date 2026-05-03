@@ -22,14 +22,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "Numbers.h"
 #include "IntegerHelper.h"
-#include "Int32Vec2.h"
+#include "Int16Vec2.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SInt32Vec2::Print(CChars* psx, int iWholeNumbers)
+void SInt16Vec2::Print(CChars* psx, int iWholeNumbers)
 {
 	CChars		szzz;
 	int			iWidth;
@@ -66,7 +66,7 @@ void SInt32Vec2::Print(CChars* psx, int iWholeNumbers)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int SInt32Vec2::WholeNumbers(void)
+int SInt16Vec2::WholeNumbers(void)
 {
 	int i[2];
 
@@ -81,7 +81,7 @@ int SInt32Vec2::WholeNumbers(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int32 Int32Vec2LengthSq (const SInt32Vec2 *pV)
+int16 Int16Vec2LengthSq(const SInt16Vec2 *pV)
 {
 	return pV->x * pV->x + pV->y * pV->y;
 }
@@ -91,7 +91,7 @@ int32 Int32Vec2LengthSq (const SInt32Vec2 *pV)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int32 Int32Vec2Dot(const SInt32Vec2* pV1, const SInt32Vec2* pV2)
+int16 Int16Vec2Dot(const SInt16Vec2* pV1, const SInt16Vec2* pV2)
 {
 	return pV1->x * pV2->x + pV1->y * pV2->y;
 }
@@ -101,7 +101,7 @@ int32 Int32Vec2Dot(const SInt32Vec2* pV1, const SInt32Vec2* pV2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int32 Int32Vec2Cross(const SInt32Vec2* pV1, const SInt32Vec2* pV2)
+int16 Int16Vec2Cross(const SInt16Vec2* pV1, const SInt16Vec2* pV2)
 {
 	return pV1->x * pV2->y - pV1->y * pV2->x;
 }
@@ -111,7 +111,7 @@ int32 Int32Vec2Cross(const SInt32Vec2* pV1, const SInt32Vec2* pV2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2* Int32Vec2Add(SInt32Vec2 *pOut, const SInt32Vec2* pV1, const SInt32Vec2* pV2)
+SInt16Vec2* Int16Vec2Add(SInt16Vec2 *pOut, const SInt16Vec2* pV1, const SInt16Vec2* pV2)
 {
 	pOut->x = pV1->x + pV2->x;
 	pOut->y = pV1->y + pV2->y;
@@ -123,7 +123,7 @@ SInt32Vec2* Int32Vec2Add(SInt32Vec2 *pOut, const SInt32Vec2* pV1, const SInt32Ve
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2* Int32Vec2Subtract(SInt32Vec2 *pOut, const SInt32Vec2* pV1, const SInt32Vec2* pV2)
+SInt16Vec2* Int16Vec2Subtract(SInt16Vec2 *pOut, const SInt16Vec2* pV1, const SInt16Vec2* pV2)
 {
 	pOut->x = pV1->x - pV2->x;
 	pOut->y = pV1->y - pV2->y;
@@ -135,7 +135,7 @@ SInt32Vec2* Int32Vec2Subtract(SInt32Vec2 *pOut, const SInt32Vec2* pV1, const SIn
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2* Int32Vec2Minimize(SInt32Vec2 *pOut, const SInt32Vec2* pV1, const SInt32Vec2* pV2)
+SInt16Vec2* Int16Vec2Minimize(SInt16Vec2 *pOut, const SInt16Vec2* pV1, const SInt16Vec2* pV2)
 {
 	pOut->x = pV1->x < pV2->x ? pV1->x : pV2->x;
 	pOut->y = pV1->y < pV2->y ? pV1->y : pV2->y;
@@ -147,7 +147,7 @@ SInt32Vec2* Int32Vec2Minimize(SInt32Vec2 *pOut, const SInt32Vec2* pV1, const SIn
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2* Int32Vec2Maximize(SInt32Vec2 *pOut, const SInt32Vec2* pV1, const SInt32Vec2* pV2)
+SInt16Vec2* Int16Vec2Maximize(SInt16Vec2 *pOut, const SInt16Vec2* pV1, const SInt16Vec2* pV2)
 {
 	pOut->x = pV1->x > pV2->x ? pV1->x : pV2->x;
 	pOut->y = pV1->y > pV2->y ? pV1->y : pV2->y;
@@ -159,10 +159,10 @@ SInt32Vec2* Int32Vec2Maximize(SInt32Vec2 *pOut, const SInt32Vec2* pV1, const SIn
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2* Int32Vec2Scale(SInt32Vec2 *pOut, const SInt32Vec2 *pV, float32 s)
+SInt16Vec2* Int16Vec2Scale(SInt16Vec2 *pOut, const SInt16Vec2 *pV, float32 s)
 {
-	pOut->x = (int32)(pV->x * s);
-	pOut->y = (int32)(pV->y * s);
+	pOut->x = (int16)(pV->x * s);
+	pOut->y = (int16)(pV->y * s);
 	return pOut;
 }
 
@@ -171,10 +171,10 @@ SInt32Vec2* Int32Vec2Scale(SInt32Vec2 *pOut, const SInt32Vec2 *pV, float32 s)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2* Int32Vec2Lerp(SInt32Vec2 *pOut, const SInt32Vec2* pV1, const SInt32Vec2* pV2, float32 s)
+SInt16Vec2* Int16Vec2Lerp(SInt16Vec2 *pOut, const SInt16Vec2* pV1, const SInt16Vec2* pV2, float32 s)
 {
-	pOut->x = pV1->x + (int32)(s * (pV2->x - pV1->x));
-	pOut->y = pV1->y + (int32)(s * (pV2->y - pV1->y));
+	pOut->x = pV1->x + (int16)(s * (pV2->x - pV1->x));
+	pOut->y = pV1->y + (int16)(s * (pV2->y - pV1->y));
 	return pOut;
 }
 
@@ -183,9 +183,9 @@ SInt32Vec2* Int32Vec2Lerp(SInt32Vec2 *pOut, const SInt32Vec2* pV1, const SInt32V
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Int32Vec2Swap(SInt32Vec2* ps1, SInt32Vec2* ps2)
+void Int16Vec2Swap(SInt16Vec2* ps1, SInt16Vec2* ps2)
 {
-	SInt32Vec2 temp;
+	SInt16Vec2 temp;
 
 	temp = *ps2;
 	*ps2 = *ps1;
@@ -197,10 +197,10 @@ void Int32Vec2Swap(SInt32Vec2* ps1, SInt32Vec2* ps2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Int32Vec2MinMax(SInt32Vec2* psMin, SInt32Vec2* psMax, SInt32Vec2* asIn, int iInStride, int iNumPoints)
+void Int16Vec2MinMax(SInt16Vec2* psMin, SInt16Vec2* psMax, SInt16Vec2* asIn, int iInStride, int iNumPoints)
 {
 	int			i;
-	SInt32Vec2*	psIn;
+	SInt16Vec2*	psIn;
 
 	if (iNumPoints > 0)
 	{
@@ -210,7 +210,7 @@ void Int32Vec2MinMax(SInt32Vec2* psMin, SInt32Vec2* psMax, SInt32Vec2* asIn, int
 
 		for (i = 1; i < iNumPoints; i++)
 		{
-			psIn = (SInt32Vec2*)RemapSinglePointer(asIn, i * iInStride);
+			psIn = (SInt16Vec2*)RemapSinglePointer(asIn, i * iInStride);
 
 			if (psIn->x < psMin->x)
 			{
@@ -238,13 +238,13 @@ void Int32Vec2MinMax(SInt32Vec2* psMin, SInt32Vec2* psMax, SInt32Vec2* asIn, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Int32Vec2InterpolatePosition(SInt32Vec2* psVecDest, const SInt32Vec2* psVec1, const SInt32Vec2* psVec2, float32 fWeight)
+void Int16Vec2InterpolatePosition(SInt16Vec2* psVecDest, const SInt16Vec2* psVec1, const SInt16Vec2* psVec2, float32 fWeight)
 {
-	SInt32Vec2		sVec1;
-	SInt32Vec2		sVec2;
+	SInt16Vec2		sVec1;
+	SInt16Vec2		sVec2;
 
-	Int32Vec2Scale(&sVec1, psVec1, fWeight);
-	Int32Vec2Scale(&sVec2, psVec2, 1.0f - fWeight);
-	Int32Vec2Add(psVecDest, &sVec1, &sVec2);
+	Int16Vec2Scale(&sVec1, psVec1, fWeight);
+	Int16Vec2Scale(&sVec2, psVec2, 1.0f - fWeight);
+	Int16Vec2Add(psVecDest, &sVec1, &sVec2);
 }
 

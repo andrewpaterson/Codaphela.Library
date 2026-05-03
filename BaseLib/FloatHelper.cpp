@@ -336,7 +336,7 @@ bool DoubleEqual(float64 f1, float64 f2, float64 fTolerance)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LongDoubleEqual(float96 f1, float96 f2)
+bool LongDoubleEqual(float128 f1, float128 f2)
 {
 	return LongDoubleEqual(f1, f2, SMALL_NUMBER);
 }
@@ -346,7 +346,7 @@ bool LongDoubleEqual(float96 f1, float96 f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LongDoubleEqual(float96 f1, float96 f2, float96 fTolerance)
+bool LongDoubleEqual(float128 f1, float128 f2, float128 fTolerance)
 {
 	// f1 == f2
 	if ((f2 - fTolerance > f1) || (f2 + fTolerance < f1))
@@ -556,9 +556,9 @@ void InterpolateDouble(float64* fDest, float64 f1, float64 f2, float64 fPos)
 //////////////////////////////////////////////////////////////////////////
 float64 DoubleToleranceForDecimals(int iDecimals)
 {
-	float96 fTolerance;
+	float128 fTolerance;
 
-	fTolerance = powl(10.0, (float96)iDecimals);
+	fTolerance = powl(10.0, (float128)iDecimals);
 	fTolerance = 1.0f/fTolerance;
 	return fTolerance;
 }
@@ -639,23 +639,23 @@ bool IsNotANumber(float32* pf)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-float96 ConvertDecimalFixedPointToLongDouble(uint64 ulliWholeNumber, uint64 ulliDecimalNumber, uint16 iNumDecimalDigits, int64 lliExponentNumber)
+float128 ConvertDecimalFixedPointToLongDouble(uint64 ulliWholeNumber, uint64 ulliDecimalNumber, uint16 iNumDecimalDigits, int64 lliExponentNumber)
 {
-	float96		ldf;
-	float96		ldfPow;
-	float96		ldfExp;
+	float128		ldf;
+	float128		ldfPow;
+	float128		ldfExp;
 
-	ldf = (float96)ulliWholeNumber;
+	ldf = (float128)ulliWholeNumber;
 	ldfPow = 1.l / powl(10, iNumDecimalDigits);
 	ldf += ulliDecimalNumber * ldfPow;
 	if (lliExponentNumber > 0)
 	{
-		ldfExp = powl(10, (float96)lliExponentNumber);
+		ldfExp = powl(10, (float128)lliExponentNumber);
 		ldf *= ldfExp;
 	}
 	else if (lliExponentNumber < 0)
 	{
-		ldfExp = 1.l / powl(10, -((float96)lliExponentNumber));
+		ldfExp = 1.l / powl(10, -((float128)lliExponentNumber));
 		ldf *= ldfExp;
 	}
 	return ldf;
@@ -737,6 +737,15 @@ float64 SquareRoot(float64 f)
 	return sqrt(f);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+float128 SquareRoot(float128 f)
+{
+	return sqrtl(f);
+}
 
 float32 gf32Nan = Float32NotANumber();
 float64 gf64Nan = Float64NotANumber();
