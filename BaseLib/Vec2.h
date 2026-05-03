@@ -26,6 +26,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 #include "Constructable.h"
 #include "ChunkFile.h"
+#include "IntegerHelper.h"
+#include "FloatHelper.h"
 
 
 template<class M>
@@ -356,7 +358,7 @@ M SVec2<M>::SquareMagnitude(void)
 template<class M>
 M SVec2<M>::Magnitude(void)
 {
-	return SquareRoot(SquareMagnitude());
+	return SquareRoot((M)SquareMagnitude());
 }
 
 
