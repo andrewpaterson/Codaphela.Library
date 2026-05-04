@@ -70,6 +70,9 @@ float64		det3x3(float64 a1, float64 a2, float64 a3, float64 b1, float64 b2, floa
 float32		SquareRoot(float32 f);
 float64		SquareRoot(float64 f);
 float128	SquareRoot(float128 f);
+float32		Square(float32 f);
+float64		Square(float64 f);
+float128	Square(float128 f);
 
 
 extern float32 gf32Nan;
