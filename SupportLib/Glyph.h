@@ -62,7 +62,7 @@ public:
 struct SGlyphPosition
 {
 	CGlyph* pcGlyph;
-	SInt2	sPosition;
+	SInt32Vec2	sPosition;
 };
 
 

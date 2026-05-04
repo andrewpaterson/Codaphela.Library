@@ -158,9 +158,9 @@ int CSubImage::GetImageHeight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CSubImage::GetFullSize(void)
+SInt32Vec2 CSubImage::GetFullSize(void)
 {
-	SInt2	sSize;
+	SInt32Vec2	sSize;
 
 	sSize.Init(GetFullWidth(), GetFullHeight());
 	return sSize;
@@ -171,9 +171,9 @@ SInt2 CSubImage::GetFullSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CSubImage::GetImageSize(void)
+SInt32Vec2 CSubImage::GetImageSize(void)
 {
-	SInt2	sSize;
+	SInt32Vec2	sSize;
 
 	sSize.Init(GetImageWidth(), GetImageHeight());
 	return sSize;
@@ -291,9 +291,9 @@ void CSubImage::GetFullDestBounds(int x, int y, CRectangle* pcReturn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CSubImage::GetImageDestPos(int x, int y)
+SInt32Vec2 CSubImage::GetImageDestPos(int x, int y)
 {
-	SInt2	iPos;
+	SInt32Vec2	iPos;
 
 	iPos.Init(x + GetImageLeft(), y + GetImageTop());
 	return iPos;

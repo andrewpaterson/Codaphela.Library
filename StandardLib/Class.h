@@ -11,7 +11,7 @@
 #include "BaseLib/Float3.h"
 #include "BaseLib/Float4.h"
 #include "BaseLib/Float4x4.h"
-#include "BaseLib/Int2.h"
+#include "BaseLib/Int32Vec2.h"
 #include "BaseLib/Int3.h"
 #include "BaseLib/Int4.h"
 #include "Integer.h"
@@ -127,8 +127,8 @@ public:
 	void				UnmanagedFloat(CBaseObject* pcThis, float32* paf, size uiLength, char* szFieldName);
 	void				UnmanagedFloat(CBaseObject* pcThis, float64* pf, char* szFieldName);
 	void				UnmanagedFloat(CBaseObject* pcThis, float64* paf, size uiLength, char* szFieldName);
-	void				UnmanagedFloat(CBaseObject* pcThis, float96* pf, char* szFieldName);
-	void				UnmanagedFloat(CBaseObject* pcThis, float96* paf, size uiLength, char* szFieldName);
+	void				UnmanagedFloat(CBaseObject* pcThis, float128* pf, char* szFieldName);
+	void				UnmanagedFloat(CBaseObject* pcThis, float128* paf, size uiLength, char* szFieldName);
 	void				UnmanagedChar(CBaseObject* pcThis, char8* pc, char* szFieldName);
 	void				UnmanagedChar(CBaseObject* pcThis, char8* pac, size uiLength, char* szFieldName);
 	void				UnmanagedChar(CBaseObject* pcThis, char16* pc, char* szFieldName);
@@ -157,8 +157,8 @@ public:
 	void				Unmanaged4x4Float(CBaseObject* pcThis, SFloat4x4* pf, char* szFieldName);
 	void				Unmanaged4x4Float(CBaseObject* pcThis, SFloat4x4* pf, size uiLength, char* szFieldName);
 
-	void				Unmanaged2Int(CBaseObject* pcThis, SInt2* pf, char* szFieldName);
-	void				Unmanaged2Int(CBaseObject* pcThis, SInt2* pf, size uiLength, char* szFieldName);
+	void				Unmanaged2Int(CBaseObject* pcThis, SInt32Vec2* pf, char* szFieldName);
+	void				Unmanaged2Int(CBaseObject* pcThis, SInt32Vec2* pf, size uiLength, char* szFieldName);
 	void				Unmanaged3Int(CBaseObject* pcThis, SInt3* pf, char* szFieldName);
 	void				Unmanaged3Int(CBaseObject* pcThis, SInt3* pf, size uiLength, char* szFieldName);
 	void				Unmanaged4Int(CBaseObject* pcThis, SInt4* pf, char* szFieldName);

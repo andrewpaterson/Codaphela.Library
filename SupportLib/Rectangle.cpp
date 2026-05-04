@@ -83,7 +83,7 @@ void CRectangle::Init(int64 iLeft, int64 iTop, int64 iRight, int64 iBottom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRectangle::Init(SInt2 sTopLeft, SInt2 sBottomRight)
+void CRectangle::Init(SInt32Vec2 sTopLeft, SInt32Vec2 sBottomRight)
 {
 	miLeft = sTopLeft.x;
 	miTop = sTopLeft.y;
@@ -96,7 +96,7 @@ void CRectangle::Init(SInt2 sTopLeft, SInt2 sBottomRight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRectangle::Init(SInt2 sSize)
+void CRectangle::Init(SInt32Vec2 sSize)
 {
 	miLeft = 0;
 	miTop = 0;

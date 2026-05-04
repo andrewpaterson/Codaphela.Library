@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __PLAIN_TEXT_EDITOR_H__
 #define __PLAIN_TEXT_EDITOR_H__
 #include "Chars.h"
-#include "Int2.h"
+#include "IntVec2.h"
 #include "TextEditor.h"
 
 
@@ -103,8 +103,8 @@ public:
 	void	SetPosition(size iPosition);
 
 	size	GetCharCountAlongLine(size iPos);
-	SInt2	GetEditPosition(void);
-	SInt2	GetPosition(size iPosition);
+	SIntVec2	GetEditPosition(void);
+	SIntVec2	GetPosition(size iPosition);
 
 protected:
 	size	FindUp(size iPos);

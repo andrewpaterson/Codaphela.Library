@@ -362,7 +362,7 @@ void SFloat4::Print(CChars* psz, int iWholeNumbers, int iDecimals)
 //////////////////////////////////////////////////////////////////////////
 float Float4Length(const SFloat4 *pV)
 {
-	return sqrtf(pV->x * pV->x + pV->y * pV->y + pV->z * pV->z + pV->w * pV->w);
+	return SquareRoot(pV->x * pV->x + pV->y * pV->y + pV->z * pV->z + pV->w * pV->w);
 }
 
 float Float4LengthSq(const SFloat4 *pV)

@@ -24,7 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include <math.h>
 #include "BaseLib/DataTypes.h"
 #include "BaseLib/FloatHelper.h"
-#include "BaseLib/Int2.h"
+#include "BaseLib/Int32Vec2.h"
 #include "RectangleBestPacker.h"
 
 
@@ -134,11 +134,11 @@ void CRectangleBestPacker::Pack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CRectangleBestPacker::GetSourcesSizes(void)
+SInt32Vec2 CRectangleBestPacker::GetSourcesSizes(void)
 {
 	size					i;
 	CPackSourceRectangle*	pcRect;
-	SInt2					sSize;
+	SInt32Vec2					sSize;
 
 	sSize.Zero();
 	for (i = 0; i < masSourceRectangles.NumElements(); i++)
@@ -160,7 +160,7 @@ SInt2 CRectangleBestPacker::GetSourcesSizes(void)
 //////////////////////////////////////////////////////////////////////////
 int CRectangleBestPacker::GetSourcesMaxWidth(void)
 {
-	SInt2			sSize;
+	SInt32Vec2			sSize;
 
 	sSize = GetSourcesSizes();
 	return sSize.x;
@@ -187,7 +187,7 @@ int CRectangleBestPacker::GetSourcesMinWidth(void)
 void CRectangleBestPacker::AddAttempt(int iMaxWidth)
 {
 	CPackAttempt*	pcAttempt;
-	SInt2			sSize;
+	SInt32Vec2			sSize;
 
 	sSize = GetSourcesSizes();
 
@@ -223,7 +223,7 @@ void CRectangleBestPacker::AddVerticalAttempt(void)
 void CRectangleBestPacker::AddSquareAttempt(void)
 {
 	CPackAttempt*	pcAttempt;
-	SInt2			sSize;
+	SInt32Vec2			sSize;
 	int				iMaxWidth;
 
 	sSize = GetSourcesSizes();
@@ -329,7 +329,7 @@ void CRectangleBestPacker::GetPackedRectangles(CArrayPackedRectangle* pacPackedR
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CRectangleBestPacker::GetPackedImageSize(void)
+SInt32Vec2 CRectangleBestPacker::GetPackedImageSize(void)
 {
 	CPackAttempt*	pcBest;
 

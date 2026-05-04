@@ -287,8 +287,8 @@ protected:
 			void				UnmanagedFloat(float32* paf, size uiLength, char* szFieldName);
 			void				UnmanagedFloat(float64* pf, char* szFieldName);
 			void				UnmanagedFloat(float64* paf, size uiLength, char* szFieldName);
-			void				UnmanagedFloat(float96* pf, char* szFieldName);
-			void				UnmanagedFloat(float96* paf, size uiLength, char* szFieldName);
+			void				UnmanagedFloat(float128* pf, char* szFieldName);
+			void				UnmanagedFloat(float128* paf, size uiLength, char* szFieldName);
 			void				UnmanagedChar(char8* pc, char* szFieldName);
 			void				UnmanagedChar(char8* pac, size uiLength, char* szFieldName);
 			void				UnmanagedChar(char16* pc, char* szFieldName);
@@ -316,8 +316,8 @@ protected:
 			void				Unmanaged4x4Float(SFloat4x4* pf, char* szFieldName);
 			void				Unmanaged4x4Float(SFloat4x4* pf, size uiLength, char* szFieldName);
 
-			void				Unmanaged2Int(SInt2* pf, char* szFieldName);
-			void				Unmanaged2Int(SInt2* pf, size uiLength, char* szFieldName);
+			void				Unmanaged2Int(SInt32Vec2* pf, char* szFieldName);
+			void				Unmanaged2Int(SInt32Vec2* pf, size uiLength, char* szFieldName);
 			void				Unmanaged3Int(SInt3* pf, char* szFieldName);
 			void				Unmanaged3Int(SInt3* pf, size uiLength, char* szFieldName);
 			void				Unmanaged4Int(SInt4* pf, char* szFieldName);

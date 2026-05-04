@@ -107,7 +107,7 @@ void CImageCopier::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CImageCopier::Copy(int iDestX, int iDestY, CImageCel* pcSourceCel)
 {
-	SInt2		sPos;
+	SInt32Vec2		sPos;
 	SImageCopy	sCopy;
 
 	pcSourceCel->CopyParam(&sCopy, iDestX, iDestY, mpcDest->miWidth, mpcDest->miHeight);

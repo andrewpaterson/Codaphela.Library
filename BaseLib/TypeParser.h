@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __TYPE_PARSER_H__
 #define __TYPE_PARSER_H__
 #include "DataTypes.h"
-#include "Int2.h"
+#include "IntVec2.h"
 #include "Int3.h"
 #include "Int4.h"
 #include "GeometricTypes.h"
@@ -63,7 +63,7 @@ public:
 	TRISTATE	ParseFloat2(SFloat32Vec2* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
 	TRISTATE	ParseFloat3(SFloat3* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
 	TRISTATE	ParseFloat4(SFloat4* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
-	TRISTATE	ParseInt2(SInt2* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
+	TRISTATE	ParseInt2(SIntVec2* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
 	TRISTATE	ParseInt3(SInt3* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
 	TRISTATE	ParseInt4(SInt4* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
 	TRISTATE	ParseBool(bool* pDest);

@@ -51,7 +51,7 @@ public:
 	bool					GetLargestRectangleFittingAndRemoveIt(CRectangle* pcBounds, CPackRectangleAttempt* pcDest);
 	int						GetWastedArea(void);
 	void					GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
-	SInt2					GetPackedImageSize(void);
+	SInt32Vec2					GetPackedImageSize(void);
 	void					Print(CChars* psz);
 	void					Dump(void);
 };

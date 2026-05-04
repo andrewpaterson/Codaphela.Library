@@ -135,7 +135,7 @@ bool CImageCombiner::Load(CObjectReader* pcFile)
 Ptr<CImage> CImageCombiner::Combine(void)
 {
 	CArrayPackedRectangle	acPackedRects;
-	SInt2					sTextureSize;
+	SInt32Vec2					sTextureSize;
 
 	if (mcSourceCels.NumElements() > 0)
 	{
@@ -193,7 +193,7 @@ void CImageCombiner::AddChannel(EChannel eChannel, EPrimitiveType eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageCombiner::InitiailiseDestImage(SInt2 sSize)
+Ptr<CImage> CImageCombiner::InitiailiseDestImage(SInt32Vec2 sSize)
 {
 	bool			bResult; 
 	Ptr<CImage>		pcImage;
@@ -374,12 +374,12 @@ CRectanglePacker* CImageCombiner::GetPacker(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CImageCombiner::Pack(CArrayPackedRectangle* pacPackedRects)
+SInt32Vec2 CImageCombiner::Pack(CArrayPackedRectangle* pacPackedRects)
 {
 	CRectanglePacker*	pcPacker;
 	SSetIterator		sIter;
 	Ptr<CImageCel>		pcCel;
-	SInt2				sTextureSize;
+	SInt32Vec2				sTextureSize;
 	bool				bResult;
 	bool				bNonEmpty;
 	bool				bExists;

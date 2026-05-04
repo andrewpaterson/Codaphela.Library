@@ -21,7 +21,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Constructable.h"
-#include "BaseLib/Int2.h"
+#include "BaseLib/Int32Vec2.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "StandardLib/ObjectReader.h"
 #include "StandardLib/ObjectWriter.h"

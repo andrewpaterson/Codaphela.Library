@@ -93,8 +93,6 @@ public:
 typedef CArrayTemplate<SFloat3>		CArrayFloat3;
 
 
-float 		Float3Length(const SFloat3* pV);
-float 		Float3LengthSq(const SFloat3* pV);
 float 		Float3Dot(const SFloat3* pV1, const SFloat3* pV2);
 SFloat3* 	Float3Cross(SFloat3* pOut, const SFloat3* pV1, const SFloat3* pV2);
 SFloat3* 	Float3Add(SFloat3* pOut, const SFloat3* pV1, const SFloat3* pV2);
@@ -112,7 +110,7 @@ void		Float3Swap(SFloat3* ps1, SFloat3* ps2);
 void 		Float3InterpolatePosition(SFloat3* psVecDest, const SFloat3* psVec1, const SFloat3* psVec2, float fWeight);
 void 		Float3InterpolateNormal(SFloat3* psVecDest, const SFloat3* psVec1, const SFloat3* psVec2, float fWeight);
 void 		Float3RotateAboutNormalisedAxis(SFloat3* psVecDest, SFloat3 p, float fTheta, SFloat3 r);
-void 		Float3Normalize(SFloat3* pOut, const SFloat3* pV);
+void 		Float3Normalize(SFloat3* pOut, SFloat3* pV);
 
 
 #endif // __FLOAT_3_H__

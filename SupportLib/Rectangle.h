@@ -26,7 +26,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/DataTypes.h"
 #include "BaseLib/GeometricTypes.h"
 #include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/Int2.h"
+#include "BaseLib/Int32Vec2.h"
 
 
 
@@ -46,8 +46,8 @@ public:
 	void 		Init(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
 	void		Init(int32 iWidth, int32 iHeight);
 	void 		Init(int64 iLeft, int64 iTop, int64 iRight, int64 iBottom);
-	void 		Init(SInt2 sTopLeft, SInt2 sBottomRight);
-	void 		Init(SInt2 sSize);
+	void 		Init(SInt32Vec2 sTopLeft, SInt32Vec2 sBottomRight);
+	void 		Init(SInt32Vec2 sSize);
 	void 		Init(CRectangle* pcSource);
 	void 		Kill(void);
 	void		Copy(CRectangle* pcSource);

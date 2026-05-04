@@ -24,7 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __SPRITE_MAP_H__
 #define __SPRITE_MAP_H__
 #include "StandardLib/Array.h"
-#include "BaseLib/Int2.h"
+#include "BaseLib/Int32Vec2.h"
 #include "Sprite.h"
 #include "CompoundSprite.h"
 #include "MovableBlockMap.h"

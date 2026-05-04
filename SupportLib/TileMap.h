@@ -24,7 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __TILE_MAP_H__
 #define __TILE_MAP_H__
 #include "StandardLib/ArrayUnknownTemplate.h"
-#include "BaseLib/Int2.h"
+#include "BaseLib/Int32Vec2.h"
 #include "TileLayer.h"
 #include "MovableBlockType.h"
 #include "MovableBlock.h"
@@ -37,8 +37,8 @@ CONSTRUCTABLE(CTileMap);
 DESTRUCTABLE(CTileMap);
 protected:
 	CArrayTileLayer		maTileLayers;	//Layers are not multiple graphics layers.  All the layers together make up the complete information about a single tile.  E.g. an ImageCelTile and a BooleanTile.
-	SInt2				msMapSize;		//The tile is indexed by x + y * msMapSize.x
-	SInt2				msCelSize;
+	SInt32Vec2				msMapSize;		//The tile is indexed by x + y * msMapSize.x
+	SInt32Vec2				msCelSize;
 
 public:
 	void				Init(void);

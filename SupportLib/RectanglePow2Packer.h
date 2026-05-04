@@ -43,7 +43,7 @@ public:
 	bool	AddRectangle(CImageCel* pcImageCel);
 
 	void	GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
-	SInt2	GetPackedImageSize(void);
+	SInt32Vec2	GetPackedImageSize(void);
 
 private:
 	void	AdjustAttemptAreas(void);

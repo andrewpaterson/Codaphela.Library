@@ -41,7 +41,7 @@ typedef CArrayTemplate<SMeshUVFace>	CArrayMeshFaceUV;
 class CMeshUVLayer
 {
 public:
-	CArrayFloat2		mcUVs;
+	CArrayFloat32Vec2	mcUVs;
 	CArrayMeshFaceUV	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements
 	
 	void	Init(void);

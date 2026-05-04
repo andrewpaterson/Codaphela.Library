@@ -201,7 +201,7 @@ float CImageColourRGB::GetValue(EChannel eChannel)
 	{
 		return b;
 	}
-	return gfNaN;
+	return gf32Nan;
 }
 
 
@@ -287,7 +287,7 @@ float CImageColourARGB::GetValue(EChannel eChannel)
 	{
 		return b;
 	}
-	return gfNaN;
+	return gf32Nan;
 }
 
 
@@ -352,7 +352,7 @@ float CImageColourOpacity::GetValue(EChannel eChannel)
 	{
 		return a;
 	}
-	return gfNaN;
+	return gf32Nan;
 }
 
 
@@ -408,7 +408,7 @@ float CImageColourSpecular::GetValue(EChannel eChannel)
 	{
 		return s;
 	}
-	return gfNaN;
+	return gf32Nan;
 }
 
 
@@ -474,7 +474,7 @@ float CImageColourNormal::GetValue(EChannel eChannel)
 	{
 		return z;
 	}
-	return gfNaN;
+	return gf32Nan;
 }
 
 
@@ -545,7 +545,7 @@ float CImageColourCombo2::GetValue(EChannel eChannel)
 	{
 		return f;
 	}
-	return gfNaN;
+	return gf32Nan;
 }
 
 

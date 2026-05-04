@@ -28,7 +28,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 void CLineSegment::Set(void)
 {
 	Float3Subtract(&msDirection, &msEnd, &msStart);
-	mfLength = Float3Length(&msDirection);
+	mfLength = msDirection.Magnitude();
 	msDirection /= mfLength;
 }
 
@@ -42,7 +42,7 @@ void CLineSegment::Set(SFloat3* sStart, SFloat3* sEnd)
 	msStart = (*sStart);
 	msEnd = (*sEnd);
 	Float3Subtract(&msDirection, &msEnd, &msStart);
-	mfLength = Float3Length(&msDirection);
+	mfLength = msDirection.Magnitude();
 	msDirection /= mfLength;
 }
 
@@ -56,7 +56,7 @@ void CLineSegment::Set(float x1, float y1, float z1, float x2, float y2, float z
 	msStart = SFloat3(x1, y1, z1);
 	msEnd = SFloat3(x2, y2, z2);
 	Float3Subtract(&msDirection, &msEnd, &msStart);
-	mfLength = Float3Length(&msDirection);
+	mfLength = msDirection.Magnitude();
 	msDirection /= mfLength;
 }
 

@@ -20,8 +20,8 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __FLOAT32_VEC2_H__
-#define __FLOAT32_VEC2_H__
+#ifndef __FLOAT64_VEC2_H__
+#define __FLOAT64_VEC2_H__
 #include "Vec2.h"
 
 
@@ -67,5 +67,5 @@ void 			Float2InterpolateNormal(SFloat64Vec2* psVecDest, const SFloat64Vec2* psV
 void 			Float2Normalize(SFloat64Vec2* pOut, SFloat64Vec2* pV);
 
 
-#endif // __FLOAT32_VEC2_H__
+#endif // __FLOAT64_VEC2_H__
 
