@@ -151,9 +151,9 @@ void CRectanglePow2Packer::GetPackedRectangles(CArrayPackedRectangle* pacPackedR
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CRectanglePow2Packer::GetPackedImageSize(void)
+SInt32Vec2 CRectanglePow2Packer::GetPackedImageSize(void)
 {
-	SInt2			sSize;
+	SInt32Vec2			sSize;
 	CPackAttempt*	pcBest;
 
 	pcBest = mcPacker.GetBestAttempt();

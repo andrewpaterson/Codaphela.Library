@@ -200,7 +200,7 @@ void CImageCel::CropTransparentBorders(CPixelOpacityBase* pcPixelOpacity)
 //////////////////////////////////////////////////////////////////////////
 void CImageCel::CopyParam(SImageCopy* psCopy, int iDestX, int iDestY, int iDestWith, int iDestHeight)
 {
-	SInt2	sPos;
+	SInt32Vec2	sPos;
 
 	sPos = mcSubImage.GetImageDestPos(iDestX, iDestY);
 	psCopy->Init(sPos.x, sPos.y, mcSubImage.mcImageRect.miLeft, mcSubImage.mcImageRect.miTop, mcSubImage.mcImageRect.miRight, mcSubImage.mcImageRect.miBottom, iDestWith, iDestHeight);

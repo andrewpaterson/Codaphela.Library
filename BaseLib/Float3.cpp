@@ -269,7 +269,7 @@ void SFloat3::Add(SFloat3* ps)
 //////////////////////////////////////////////////////////////////////////
 float SFloat3::Magnitude(void)
 {
-	return sqrtf(SquareMagnitude());
+	return SquareRoot(SquareMagnitude());
 }
 
 
@@ -493,28 +493,6 @@ void SFloat3::Dump(void)
 }
 
 
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-float Float3Length(const SFloat3* pV)
-{
-	return sqrtf(pV->x*  pV->x + pV->y*  pV->y + pV->z*  pV->z);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-float Float3LengthSq(const SFloat3* pV)
-{
-	return pV->x*  pV->x + pV->y*  pV->y + pV->z*  pV->z;
-}
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -731,11 +709,11 @@ void Float3MinMax(SFloat3* psMin, SFloat3* psMax, SFloat3* asIn, int iInStride, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3Normalize(SFloat3 *pOut, const SFloat3 *pV)
+void Float3Normalize(SFloat3 *pOut, SFloat3 *pV)
 {
 	float fInvLen;
 
-	fInvLen = 1.0f / Float3Length(pV);
+	fInvLen = 1.0f / pV->Magnitude();
 	pOut->x = pV->x * fInvLen;
 	pOut->y = pV->y * fInvLen;
 	pOut->z = pV->z * fInvLen;

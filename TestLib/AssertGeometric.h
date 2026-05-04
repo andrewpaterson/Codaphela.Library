@@ -20,11 +20,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/Int2.h"
+#include "BaseLib/IntVec2.h"
 #include "Assert.h"
 
 
-bool PrivateAssertInt2(int iExpectedX, int iExpectedY, SInt2* psActual, int iLine, char* szFile);
+bool PrivateAssertInt2(int iExpectedX, int iExpectedY, SIntVec2* psActual, int iLine, char* szFile);
 
 
 #define AssertInt2(ex, ey, a)			Validate(PrivateAssertInt2(ex, ey, a, __LINE__, __FILE__))

@@ -265,8 +265,8 @@ void SVec2<M, N>::Init(M x, M y)
 template<class M, class N>
 void SVec2<M, N>::Zero(void)
 {
-	x = 0.0f;
-	y = 0.0f;
+	x = 0;
+	y = 0;
 }
 
 
@@ -294,8 +294,8 @@ bool SVec2<M, N>::Load(CFileReader* pcFileReader)
 {
 	bool	bResult;
 
-	bResult = pcFileReader->ReadFloat(&x);
-	bResult &= pcFileReader->ReadFloat(&y);
+	bResult = pcFileReader->ReadPrimitive(&x);
+	bResult &= pcFileReader->ReadPrimitive(&y);
 	return bResult;
 }
 

@@ -24,7 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IntegerHelper.h"
 #include "FloatHelper.h"
 #include "DataIO.h"
-#include "Double2.h"
+#include "Float64Vec2.h"
 #include "Double4.h"
 #include "Double4x4.h"
 #include "Double3.h"
@@ -238,7 +238,7 @@ void SDouble3::Add(SDouble3* ps)
 //////////////////////////////////////////////////////////////////////////
 double SDouble3::Magnitude(void)
 {
-	return sqrt(SquareMagnitude());
+	return SquareRoot(SquareMagnitude());
 }
 
 
@@ -337,7 +337,7 @@ void SDouble3::Copy(const SDouble3* ps)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SDouble3::Copy(const SDouble2* ps)
+void SDouble3::Copy(const SFloat64Vec2* ps)
 {
 	x = ps->x;
 	y = ps->y;
@@ -472,7 +472,7 @@ void SDouble3::Dump(void)
 //////////////////////////////////////////////////////////////////////////
 double Double3Length(const SDouble3* pV)
 {
-	return sqrt(pV->x*  pV->x + pV->y*  pV->y + pV->z*  pV->z);
+	return SquareRoot(pV->x*  pV->x + pV->y*  pV->y + pV->z*  pV->z);
 }
 
 

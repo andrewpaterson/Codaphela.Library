@@ -131,7 +131,7 @@ void CRectangleLinePacker::GetPackedRectangles(CArrayPackedRectangle* pacPackedR
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CRectangleLinePacker::GetPackedImageSize(void)
+SInt32Vec2 CRectangleLinePacker::GetPackedImageSize(void)
 {
 	return miSize;
 }
@@ -239,5 +239,5 @@ CArrayPackedRectangle* CRectangleLinePacker::GetRectangles(void) {return &macRec
 int CRectangleLinePacker::GetOutsideEdgeWidth(void) {return miOutsideEdgeWidth;}
 int CRectangleLinePacker::GetInnerEdgeWidth(void) {return miInnerEdgeWidth;}
 bool CRectangleLinePacker::IsLeftToRight(void) {return mbLeftToRight;}
-SInt2 CRectangleLinePacker::GetSize(void) {return miSize;}
+SInt32Vec2 CRectangleLinePacker::GetSize(void) {return miSize;}
 bool CRectangleLinePacker::IsPow2(void) {return mbPow2;}

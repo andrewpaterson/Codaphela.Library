@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Double4.h"
 
 
-class SDouble2;
+class SFloat64Vec2;
 class SDouble3;
 class SDouble4;
 class SDouble4x4

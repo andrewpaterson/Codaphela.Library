@@ -33,7 +33,7 @@ class CRectangleBestPacker : public CRectanglePacker
 {
 CONSTRUCTABLE(CRectangleBestPacker)
 private:
-	SInt2			GetSourcesSizes(void);
+	SInt32Vec2			GetSourcesSizes(void);
 
 protected:
 	CArrayPackSourceRectangle	masSourceRectangles;
@@ -65,7 +65,7 @@ public:
 	int							GetSourcesMaxWidth(void);
 
 	void						GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
-	SInt2						GetPackedImageSize(void);
+	SInt32Vec2						GetPackedImageSize(void);
 
 	CArrayPackSourceRectangle*	GetSourceRectangles(void);
 	int							GetOutsideEdgeWidth(void);

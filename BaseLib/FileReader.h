@@ -60,9 +60,24 @@ public:
 						bool	ReadBits(void* pvData, size iByteLength);
 						bool	ReadIntArray(int32* pai, size iLength);
 
+						template<class M>
+						bool	ReadPrimitive(M* pc);
+
 protected:
 	virtual				size	Read(void* pvDest, size iSize, size iCount) =0;
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+bool CFileReader::ReadPrimitive(M* pc)
+{
+	CheckRead(pc, sizeof(M));
+	return true;
+}
 
 
 #endif // __FILE_READER_H__

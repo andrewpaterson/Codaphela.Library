@@ -1315,7 +1315,7 @@ size CPlainTextEditor::GetCharCountAlongLine(size iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CPlainTextEditor::GetEditPosition(void)
+SIntVec2 CPlainTextEditor::GetEditPosition(void)
 {
 	return GetPosition(miEditPos);
 }
@@ -1325,10 +1325,10 @@ SInt2 CPlainTextEditor::GetEditPosition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CPlainTextEditor::GetPosition(size iPosition)
+SIntVec2 CPlainTextEditor::GetPosition(size iPosition)
 {
 	char	c;
-	SInt2	sPos;
+	SIntVec2	sPos;
 	size	i;
 
 	sPos.x = 0;

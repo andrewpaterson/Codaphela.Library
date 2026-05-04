@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ChunkFile.h"
 
 
-class SDouble2;
+class SFloat64Vec2;
 class SDouble3;
 class SDouble4x4;
 class SDouble4

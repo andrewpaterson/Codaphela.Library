@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 class SDouble4;
-class SDouble2;
+class SFloat64Vec2;
 class SDouble4x4;
 class SDouble3
 {
@@ -79,7 +79,7 @@ public:
 	bool 	CloselyEqual(SDouble3* ps, double fTolerance);
 	void 	Copy(const SDouble4* ps);
 	void 	Copy(const SDouble3* ps);
-	void 	Copy(const SDouble2* ps);
+	void 	Copy(const SFloat64Vec2* ps);
 };
 
 

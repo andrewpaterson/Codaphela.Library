@@ -24,7 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IntegerHelper.h"
 #include "FloatHelper.h"
 #include "DataIO.h"
-#include "Double2.h"
+#include "Float64Vec2.h"
 #include "Double3.h"
 #include "Double4x4.h"
 #include "Double4.h"
@@ -362,7 +362,7 @@ void SDouble4::Print(CChars* psz, int iWholeNumbers, int iDecimals)
 //////////////////////////////////////////////////////////////////////////
 double Double4Length(const SDouble4 *pV)
 {
-	return sqrt(pV->x * pV->x + pV->y * pV->y + pV->z * pV->z + pV->w * pV->w);
+	return SquareRoot(pV->x * pV->x + pV->y * pV->y + pV->z * pV->z + pV->w * pV->w);
 }
 
 double Double4LengthSq(const SDouble4 *pV)

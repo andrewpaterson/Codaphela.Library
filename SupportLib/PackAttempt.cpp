@@ -280,9 +280,9 @@ void CPackAttempt::GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangle
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CPackAttempt::GetPackedImageSize(void)
+SInt32Vec2 CPackAttempt::GetPackedImageSize(void)
 {
-	SInt2	sSize;
+	SInt32Vec2	sSize;
 
 	sSize.Init(miWidth + mpcRectanglePacker->GetOutsideEdgeWidth()*2, miHeight + mpcRectanglePacker->GetOutsideEdgeWidth()*2);
 	return sSize;

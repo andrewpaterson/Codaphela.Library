@@ -99,14 +99,14 @@ void CSphere::SetFromPointsUsingAveragePosition(SFloat3* psPoints, int iStride, 
 	for (i = 0; i < iNumPoints; i++)
 	{
 		cPoint = cCenter - *psPoints;
-		fLen = Float3LengthSq(&cPoint);
+		fLen = cPoint.SquareMagnitude();
 		if (fLen > fMaxLen)
 		{
 			fMaxLen = fLen;
 		}
 		psPoints = (SFloat3*)RemapSinglePointer(psPoints, iStride);
 	}
-	mfRadius = sqrtf(fMaxLen);
+	mfRadius = SquareRoot(fMaxLen);
 	*mpsPosition = cCenter;
 }
 
@@ -139,7 +139,7 @@ void CSphere::SetFromPointsUsingBestFit(SFloat3* psPoints, int iStride, int iNum
 			if (i != j)
 			{
 				cPoint = *psPoints1 - *psPoints2;
-				fLen = Float3LengthSq(&cPoint);
+				fLen = cPoint.SquareMagnitude();
 				if (fLen > fMaxLen)
 				{
 					psEndPoint1 = psPoints1;
@@ -151,7 +151,7 @@ void CSphere::SetFromPointsUsingBestFit(SFloat3* psPoints, int iStride, int iNum
 		}
 		psPoints1 = (SFloat3*)RemapSinglePointer(psPoints1, iStride);
 	}
-	mfRadius = sqrtf(fMaxLen) / 2.0f;
+	mfRadius = SquareRoot(fMaxLen) / 2.0f;
 	*mpsPosition = (*psEndPoint1 + *psEndPoint2) / 2.0f;
 }
 
@@ -200,7 +200,7 @@ float CSphere::IntersectSphereVolume(CSphere* pcOther)
 		}
 	}
 
-	v = N_PI * sqf(r1+r2-d)*(sqf(d)+(2.0f*d*r2)-(3.0f*sqf(r2))+(2.0f*d*r1)+(6.0f*r2*r1)-(3.0f*(sqf(r1))));
+	v = N_PI * Square(r1+r2-d)*(Square(d)+(2.0f*d*r2)-(3.0f* Square(r2))+(2.0f*d*r1)+(6.0f*r2*r1)-(3.0f*(Square(r1))));
 	return v/(12.0f*d);
 }
 
@@ -215,7 +215,7 @@ bool CSphere::Contains(CTriangle* pcTriangle)
 	int			i;
 	SFloat3		sVec;
 
-	fRadiusSq = sqf(mfRadius);
+	fRadiusSq = SquareRoot(mfRadius);
 
 	for (i = 0; i < 3; i++)
 	{

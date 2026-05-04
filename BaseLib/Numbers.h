@@ -25,6 +25,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 #include <math.h>
 #include "Define.h"
+#include "PrimitiveTypes.h"
+
 
 #define SMALL_NUMBER		(1e-5f)
 #define LARGE_NUMBER		(1e7f)
@@ -41,7 +43,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 #define Deg2Rad(x)		((N_PI * x) / 180.0f)
-float	Deg2Dot(float fDegrees);
+float32	Deg2Dot(float32 fDegrees);
+float64	Deg2Dot(float64 fDegrees);
 
 
 #define KB				*(1024LL)

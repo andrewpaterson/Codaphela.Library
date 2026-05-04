@@ -34,7 +34,7 @@ protected:
 	int						miOutsideEdgeWidth;
 	int						miInnerEdgeWidth;
 	bool					mbLeftToRight;
-	SInt2					miSize;
+	SInt32Vec2					miSize;
 	bool					mbPow2;
 
 public:
@@ -48,7 +48,7 @@ public:
 	bool					AddRectangle(CImageCel* pcImageCel);
 
 	void					GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
-	SInt2					GetPackedImageSize(void);
+	SInt32Vec2					GetPackedImageSize(void);
 
 	int						GetWidestRect(void);
 	int						GetHighestRect(void);
@@ -59,7 +59,7 @@ public:
 	int						GetOutsideEdgeWidth(void);
 	int						GetInnerEdgeWidth(void);
 	bool					IsLeftToRight(void);
-	SInt2					GetSize(void);
+	SInt32Vec2					GetSize(void);
 	bool					IsPow2(void);
 };
 

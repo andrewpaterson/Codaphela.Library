@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __SUB_IMAGE_H__
 #define __SUB_IMAGE_H__
-#include "BaseLib/Int2.h"
+#include "BaseLib/Int32Vec2.h"
 #include "Rectangle.h"
 
 
@@ -84,9 +84,9 @@ class CSubImage
 {
 public:
 	CRectangle	mcImageRect;
-	SInt2		msOffsetTopLeft;		//+ve
-	SInt2		msOffsetBottomRight;	//+ve
-	SInt2		msAlignment;			//-ve
+	SInt32Vec2		msOffsetTopLeft;		//+ve
+	SInt32Vec2		msOffsetBottomRight;	//+ve
+	SInt32Vec2		msAlignment;			//-ve
 
 	void 	Init(void);
 	void 	Init(int iLeft, int iTop, int iRight, int iBottom, int iLeftOffset, int iTopOffset, int iRightOffset, int iBottomOffset, int iAlignment = SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
@@ -102,8 +102,8 @@ public:
 	int		GetFullHeight(void);
 	int		GetImageWidth(void);
 	int		GetImageHeight(void);
-	SInt2	GetFullSize(void);
-	SInt2	GetImageSize(void);
+	SInt32Vec2	GetFullSize(void);
+	SInt32Vec2	GetImageSize(void);
 
 	int		GetImageLeft(void);
 	int		GetImageTop(void);
@@ -116,7 +116,7 @@ public:
 	int		GetFullBottom(void);
 
 	void	GetFullDestBounds(int x, int y, CRectangle* pcDest);
-	SInt2	GetImageDestPos(int x, int y);
+	SInt32Vec2	GetImageDestPos(int x, int y);
 	void	GetFullSourceBounds(CRectangle* pcReturn);
 	void	GetImageSourceBounds(CRectangle* pcReturn);
 	void	GetImageDestBounds(int x, int y, CRectangle* pcReturn);
