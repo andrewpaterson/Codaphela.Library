@@ -28,7 +28,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CPolygon::Init(void)
 {
-	mapsPositions.Init(sizeof(SFloat3*));
+	mapsPositions.Init(sizeof(SFloat32Vec3*));
 	mbConvex = true;
 	mpsNormal = NULL;
 }
@@ -38,7 +38,7 @@ void CPolygon::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPolygon::Init(SFloat3* psNormal)
+void CPolygon::Init(SFloat32Vec3* psNormal)
 {
 	Init();
 	mpsNormal = psNormal;
@@ -61,15 +61,15 @@ void CPolygon::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CPolygon::Set(void)
 {
-	SFloat3*	ps1;
-	SFloat3*	ps2;
-	SFloat3*	ps3;
+	SFloat32Vec3*	ps1;
+	SFloat32Vec3*	ps2;
+	SFloat32Vec3*	ps3;
 
 	if (mapsPositions.NumElements() >= 3)
 	{
-		ps1 = *((SFloat3**)mapsPositions.Get(0));
-		ps2 = *((SFloat3**)mapsPositions.Get(1));
-		ps3 = *((SFloat3**)mapsPositions.Get(2));
+		ps1 = *((SFloat32Vec3**)mapsPositions.Get(0));
+		ps2 = *((SFloat32Vec3**)mapsPositions.Get(1));
+		ps3 = *((SFloat32Vec3**)mapsPositions.Get(2));
 
 		CPlane::Set(ps1, ps2, ps3);
 
@@ -85,7 +85,7 @@ void CPolygon::Set(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPolygon::AddPosition(SFloat3* psPosition)
+bool CPolygon::AddPosition(SFloat32Vec3* psPosition)
 {
 	if (mapsPositions.NumElements() < 3)
 	{
@@ -119,7 +119,7 @@ bool CPolygon::AddPosition(SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPolygon::AddPositions(SFloat3* psPos1, SFloat3* psPos2, SFloat3* psPos3)
+bool CPolygon::AddPositions(SFloat32Vec3* psPos1, SFloat32Vec3* psPos2, SFloat32Vec3* psPos3)
 {
 	ReturnOnFalse(AddPosition(psPos1));
 	ReturnOnFalse(AddPosition(psPos2));
@@ -157,9 +157,9 @@ void CPolygon::CalculateConvexity(void)
 //////////////////////////////////////////////////////////////////////////
 bool CPolygon::AddTriangle(CTriangle* pcTriangle)
 {
-	SFloat3**	ppsPositions;
+	SFloat32Vec3**	ppsPositions;
 	int			i;
-	SFloat3*	psPosition;
+	SFloat32Vec3*	psPosition;
 	bool		bResult;
 
 	if (mapsPositions.NumElements() == 0)
@@ -167,7 +167,7 @@ bool CPolygon::AddTriangle(CTriangle* pcTriangle)
 		//This preserves the orientation of the plane
 		mpsNormal = pcTriangle->mpsNormal;
 		mapsPositions.AddNum(3);
-		ppsPositions = (SFloat3**)mapsPositions.GetData();
+		ppsPositions = (SFloat32Vec3**)mapsPositions.GetData();
 		ppsPositions[0] = pcTriangle->mpsPosition;
 		ppsPositions[1] = pcTriangle->mpsPosition1;
 		ppsPositions[2] = pcTriangle->mpsPosition2;
@@ -195,14 +195,14 @@ bool CPolygon::AddTriangle(CTriangle* pcTriangle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPolygon::HasPositionPtr(SFloat3* psPosition)
+bool CPolygon::HasPositionPtr(SFloat32Vec3* psPosition)
 {
 	size		i;
-	SFloat3*	psOther;
+	SFloat32Vec3*	psOther;
 	
 	for (i = 0; i < mapsPositions.NumElements(); i++)
 	{
-		psOther = *((SFloat3**)mapsPositions.Get(i));
+		psOther = *((SFloat32Vec3**)mapsPositions.Get(i));
 		if (psOther == psPosition)
 		{
 			return true;
@@ -216,7 +216,7 @@ bool CPolygon::HasPositionPtr(SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPolygon::UnionPosition(SFloat3* psPosition)
+bool CPolygon::UnionPosition(SFloat32Vec3* psPosition)
 {
 	CArrayInt	cIndices;
 	int			iInsertionIndex;
@@ -269,29 +269,29 @@ bool CPolygon::UnionPosition(SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPolygon::Contains(SFloat3* psPosition)
+bool CPolygon::Contains(SFloat32Vec3* psPosition)
 {
 	size		i;
-	SFloat3*	psStart;
-	SFloat3*	psEnd;
+	SFloat32Vec3*	psStart;
+	SFloat32Vec3*	psEnd;
 	CHalfSpace	cHalfSpace;
-	SFloat3		sVector;
-	SFloat3		sTempNormal;
+	SFloat32Vec3		sVector;
+	SFloat32Vec3		sTempNormal;
 
 	if (CHalfSpace::Contains(psPosition))
 	{
 		for (i = 0; i < mapsPositions.NumElements(); i++)
 		{
-			psStart = *((SFloat3**)mapsPositions.Get(i));
+			psStart = *((SFloat32Vec3**)mapsPositions.Get(i));
 			if (i != mapsPositions.NumElements()-1)
-				psEnd = *((SFloat3**)mapsPositions.Get(i+1));
+				psEnd = *((SFloat32Vec3**)mapsPositions.Get(i+1));
 			else
-				psEnd = *((SFloat3**)mapsPositions.Get(0));
+				psEnd = *((SFloat32Vec3**)mapsPositions.Get(0));
 
 			//Now we have the start and end of the line.
 			sVector = *psEnd - *psStart;
 			cHalfSpace.Init(&sTempNormal);
-			cHalfSpace.Set2(psStart, (SFloat3*)mpsNormal, (SFloat3*)&sVector);
+			cHalfSpace.Set2(psStart, (SFloat32Vec3*)mpsNormal, (SFloat32Vec3*)&sVector);
 			if (!cHalfSpace.Contains(psPosition))
 			{
 				return false;
@@ -307,16 +307,16 @@ bool CPolygon::Contains(SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPolygon::FindIndicesOfVisibleHalfSpaces(SFloat3* psPosition, CArrayInt* pcVisibleIndices)
+void CPolygon::FindIndicesOfVisibleHalfSpaces(SFloat32Vec3* psPosition, CArrayInt* pcVisibleIndices)
 {
 	size		i;
 	CHalfSpace	cHalfSpace;
 	int			iStart;
 	int			iEnd;
-	SFloat3		sVector;
-	SFloat3		sNormal;
-	SFloat3*	psStart;
-	SFloat3*	psEnd;
+	SFloat32Vec3		sVector;
+	SFloat32Vec3		sNormal;
+	SFloat32Vec3*	psStart;
+	SFloat32Vec3*	psEnd;
 	int*		piLastIndex;
 	int			iElementPos;
 
@@ -326,13 +326,13 @@ void CPolygon::FindIndicesOfVisibleHalfSpaces(SFloat3* psPosition, CArrayInt* pc
 	for (i = 0; i < mapsPositions.NumElements(); i++)
 	{
 		iStart = i;
-		psStart = *((SFloat3**)mapsPositions.Get(iStart));
+		psStart = *((SFloat32Vec3**)mapsPositions.Get(iStart));
 
 		if (iStart != mapsPositions.NumElements()-1)
 			iEnd = iStart+1;
 		else
 			iEnd = 0;
-		psEnd = *((SFloat3**)mapsPositions.Get(iEnd));
+		psEnd = *((SFloat32Vec3**)mapsPositions.Get(iEnd));
 
 		//Now we have the start and end of the line.
 		sVector = *psStart - *psEnd;

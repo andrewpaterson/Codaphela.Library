@@ -36,7 +36,7 @@ enum EKeyframeType
 
 struct SAnimKeyFramePRS
 {
-	SFloat3			msPosition;
+	SFloat32Vec3			msPosition;
 	SQuaternion		msRotation;
 	//Scale
 };
@@ -50,7 +50,7 @@ struct SAnimKeyFrameMatrix
 struct SAnimKeyFrameData
 {
 	//union this please.
-	float f[16];  //This is the sizeof SAnimKeyFramePRS or SAnimKeyFrameMatrix.  Whichever is greater.
+	float32 f[16];  //This is the sizeof SAnimKeyFramePRS or SAnimKeyFrameMatrix.  Whichever is greater.
 };
 
 
@@ -58,7 +58,7 @@ struct CAnimKeyFrame
 {
 	int					miType;  //Which parts of the key frame are actually used...
 	SAnimKeyFrameData	msf;
-	float				mfTime;  //Time until the next frame.
+	float32				mfTime;  //Time until the next frame.
 };
 
 
@@ -82,10 +82,10 @@ public:
 	void			Copy(CConnectionAnimation* pcConnection);
 
 	void			Dump(void);
-	CAnimKeyFrame*	Add(SFloat4x4* psMatrix, float fTime);
-	CAnimKeyFrame*	Add(SFloat3* psPosition, SQuaternion* psRotation, float fTime);
-	CAnimKeyFrame*	Add(SFloat3* psPosition, float fTime);
-	CAnimKeyFrame*	Add(SQuaternion* psRotation, float fTime);
+	CAnimKeyFrame*	Add(SFloat4x4* psMatrix, float32 fTime);
+	CAnimKeyFrame*	Add(SFloat32Vec3* psPosition, SQuaternion* psRotation, float32 fTime);
+	CAnimKeyFrame*	Add(SFloat32Vec3* psPosition, float32 fTime);
+	CAnimKeyFrame*	Add(SQuaternion* psRotation, float32 fTime);
 	void			SetConnectionID(int iConnectionID);
 };
 

@@ -38,42 +38,45 @@ public:
 	M y;
 
 public:
-						SVec2() {};
-						SVec2(const M*);
-						SVec2(const SVec2<M, N>& v);
-						SVec2(M x, M y);
+							SVec2() {};
+							SVec2<M, N>(const M*);
+							SVec2<M, N>(const SVec2<M, N>& v);
+							SVec2<M, N>(M x, M y);
 
 			SVec2<M, N>&	operator += (const SVec2<M, N>&);
 			SVec2<M, N>&	operator -= (const SVec2<M, N>&);
 			SVec2<M, N>&	operator *= (M);
 			SVec2<M, N>&	operator /= (M);
 
-			SVec2<M, N>	operator + () const;
-			SVec2<M, N>	operator - () const;
+			SVec2<M, N>		operator + () const;
+			SVec2<M, N>		operator - () const;
 
-			SVec2<M, N>	operator + (const SVec2<M, N>&) const;
-			SVec2<M, N>	operator - (const SVec2<M, N>&) const;
-			SVec2<M, N>	operator * (M) const;
-			SVec2<M, N>	operator / (M) const;
+			SVec2<M, N>		operator + (const SVec2<M, N>&) const;
+			SVec2<M, N>		operator - (const SVec2<M, N>&) const;
+			SVec2<M, N>		operator * (M) const;
+			SVec2<M, N>		operator / (M) const;
 
-	friend	SVec2<M, N>	operator * (M, const SVec2<M, N>&);
+	friend	SVec2<M, N>		operator * (M, const SVec2<M, N>&);
 
-			bool		operator == (const SVec2<M, N>&) const;
-			bool		operator != (const SVec2<M, N>&) const;
+			bool			operator == (const SVec2<M, N>&) const;
+			bool			operator != (const SVec2<M, N>&) const;
 
-			void		Init(M x, M y);
-			void		Zero(void);
+			void			Init(M x, M y);
+			void			Init(const SVec2<M, N>& v);
+			void			Init(SVec2* pv);
+			void			Zero(void);
 
-			bool		Save(CFileWriter* pcFileWriter);
-			bool		Load(CFileReader* pcFileReader);
+			bool			Save(CFileWriter* pcFileWriter);
+			bool			Load(CFileReader* pcFileReader);
 
-			void 		Copy(const M* ps);
+			void			Dump(void);
 
-			void		Dump(void);
-
-			void		Add(M* ps);
-			N	 		SquareMagnitude(void);
-			M			Magnitude(void);
+			void			Add(const SVec2<M, N>& v);
+			void			Add(SVec2<M, N>* pv);
+			void			Subtract(const SVec2<M, N>& v);
+			void			Subtract(SVec2<M, N>* pv);
+			N	 			SquareMagnitude(void);
+			M				Magnitude(void);
 };
 
 
@@ -258,6 +261,22 @@ void SVec2<M, N>::Init(M x, M y)
 }
 
 
+template<class M, class N>
+void SVec2<M, N>::Init(const SVec2<M, N>& v)
+{
+	x = v.x;
+	y = v.y;
+}
+
+
+template<class M, class N>
+void SVec2<M, N>::Init(SVec2* pv)
+{
+	x = pv->x;
+	y = pv->y;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -304,17 +323,6 @@ bool SVec2<M, N>::Load(CFileReader* pcFileReader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, class N>void SVec2<M, N>::Copy(const M* ps)
-{
-	x = ps->x;
-	y = ps->y;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 template<class M, class N>
 void SVec2<M, N>::Dump(void)
 {
@@ -333,10 +341,46 @@ void SVec2<M, N>::Dump(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class N>
-void SVec2<M, N>::Add(M* ps)
+void SVec2<M, N>::Add(const SVec2<M, N>& v)
 {
-	x += ps->x;
-	y += ps->y;
+	x += v.x;
+	y += v.y;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N>
+void SVec2<M, N>::Add(SVec2<M, N>* pv)
+{
+	x += pv->x;
+	y += pv->y;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N>
+void SVec2<M, N>::Subtract(const SVec2<M, N>& v)
+{
+	x -= v.x;
+	y -= v.y;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N>
+void SVec2<M, N>::Subtract(SVec2<M, N>* pv)
+{
+	x -= pv->x;
+	y -= pv->y;
 }
 
 

@@ -29,7 +29,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExtremeTriangle::Init(SFloat3* psPoint1, SFloat3* psPoint2, SFloat3* psPoint3, SFloat3* psNormal)
+void CExtremeTriangle::Init(SFloat32Vec3* psPoint1, SFloat32Vec3* psPoint2, SFloat32Vec3* psPoint3, SFloat32Vec3* psNormal)
 {
 	CTriangle::Init(psPoint1, psPoint2, psPoint3, psNormal);
 	maiVisible.Init();
@@ -54,13 +54,13 @@ void CExtremeTriangle::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CExtremeTriangle::FindFurthestPoint(SFloat3* psPoints, int iStride)
+int CExtremeTriangle::FindFurthestPoint(SFloat32Vec3* psPoints, int iStride)
 {
 	int			iFarIndex;
 	size		i;
-	SFloat3*	psOther;
-	float		fDist;
-	float		fMaxDist;
+	SFloat32Vec3*	psOther;
+	float32		fDist;
+	float32		fMaxDist;
 	int			iIndex;
 
 	fMaxDist = 0.0f;
@@ -85,7 +85,7 @@ int CExtremeTriangle::FindFurthestPoint(SFloat3* psPoints, int iStride)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CExtremeTriangle::NotContains(SFloat3* psPosition)
+bool CExtremeTriangle::NotContains(SFloat32Vec3* psPosition)
 {
 	return Float3Dot(mpsNormal, psPosition) > d;
 }
@@ -96,9 +96,9 @@ bool CExtremeTriangle::NotContains(SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CConvexHullGenerator::Init(SFloat3* psPoints, int iStride, size iNumPoints, char* szHullName)
+void CConvexHullGenerator::Init(SFloat32Vec3* psPoints, int iStride, size iNumPoints, char* szHullName)
 {
-	mcNormals.Init(512, sizeof(SFloat3));
+	mcNormals.Init(512, sizeof(SFloat32Vec3));
 	mcTriangles.Init(512, sizeof(CExtremeTriangle));
 	mpsPoints = psPoints;
 	this->iStride = iStride;
@@ -138,7 +138,7 @@ bool CConvexHullGenerator::FindFirstPairTriangles(CArrayExtremeTrianglePtr* papc
 	size						i;
 	CExtremeTriangle*			pcTriangleUp;
 	CExtremeTriangle*			pcTriangleDown;
-	SFloat3*					psPosition;
+	SFloat32Vec3*					psPosition;
 
 	pcTriangleUp = AddTriangle(GetPosition(mpsPoints, iStride, iMaxXIndex), 
 		GetPosition(mpsPoints, iStride, iMinXIndex), 
@@ -186,7 +186,7 @@ void CConvexHullGenerator::AddPointsFromTriangles(CExtremeTriangle* pcTriangle, 
 	CExtremeTriangle*	pcOther;
 	size				j;
 	int					iIndex;
-	SFloat3*			psPosition;
+	SFloat32Vec3*			psPosition;
 
 	for (i = 0; i < papcTriangles->NumElements(); i++)
 	{
@@ -217,7 +217,7 @@ bool CConvexHullGenerator::Generate(void)
 	int							iMinXIndex;
 	CHalfSpaceHelper			cHalfSpace;
 	int							iFarIndex;
-	SFloat3*					psPosition;
+	SFloat32Vec3*					psPosition;
 	CArrayExtremeTrianglePtr	apcTriangles;
 	CExtremeTriangle*			pcTriangle;
 	CExtremeTriangle*			pcDeleted;
@@ -232,8 +232,8 @@ bool CConvexHullGenerator::Generate(void)
 	CExtremeTriangle*			pcSelected;
 	CTextFile					cTextFile;
 	size						iTriangle;
-	float						fMinX;
-	float						fMaxX;
+	float32						fMinX;
+	float32						fMaxX;
 
 	iMaxXIndex = FindMaxX(&fMinX);
 	iMinXIndex = FindMinX(&fMaxX);
@@ -377,9 +377,9 @@ void CConvexHullGenerator::RemoveSlivers(void)
 {
 	SFreeListIterator			sIter;
 	CExtremeTriangle*			pcTriangle;
-	SFloat3*					ps0;
-	SFloat3*					ps1;
-	SFloat3*					ps2;
+	SFloat32Vec3*					ps0;
+	SFloat32Vec3*					ps1;
+	SFloat32Vec3*					ps2;
 	int							iNumSlivers;
 	int							iIndex0;
 	int							iIndex1;
@@ -433,7 +433,7 @@ void CConvexHullGenerator::MoveTrianglesPointFrom(int iOldIndex, int iNewIndex)
 {
 	SFreeListIterator			sIter;
 	CExtremeTriangle*			pcTriangle;
-	SFloat3*					psNewPosition;
+	SFloat32Vec3*					psNewPosition;
 
 	psNewPosition = GetPosition(mpsPoints, iStride, iNewIndex);
 	pcTriangle = (CExtremeTriangle*)mcTriangles.StartIteration(&sIter);
@@ -521,7 +521,7 @@ bool CConvexHullGenerator::RemoveDiscontiguousTriangles(CExtremeTriangle* pcSele
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CConvexHullGenerator::Contained(SFloat3* psPosition)
+bool CConvexHullGenerator::Contained(SFloat32Vec3* psPosition)
 {
 	SFreeListIterator	sIter;
 	CTriangle*			pcTriangle;
@@ -542,7 +542,7 @@ bool CConvexHullGenerator::Contained(SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CConvexHullGenerator::NotContained(SFloat3* psPosition)
+bool CConvexHullGenerator::NotContained(SFloat32Vec3* psPosition)
 {
 	SFreeListIterator	sIter;
 	CTriangle*			pcTriangle;
@@ -679,14 +679,14 @@ bool CConvexHullGenerator::TriangleAdjacent(CExtremeTriangle* pcTriangle1, CExtr
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CExtremeTriangle* CConvexHullGenerator::AddTriangle(SFloat3* psPoint1, SFloat3* psPoint2, SFloat3* psPoint3)
+CExtremeTriangle* CConvexHullGenerator::AddTriangle(SFloat32Vec3* psPoint1, SFloat32Vec3* psPoint2, SFloat32Vec3* psPoint3)
 {
 	CExtremeTriangle*	pcTriangle;
-	SFloat3*			psNormal;
-	SFloat3				sSide1;
-	SFloat3				sSide2;
+	SFloat32Vec3*			psNormal;
+	SFloat32Vec3				sSide1;
+	SFloat32Vec3				sSide2;
 
-	psNormal = (SFloat3*)mcNormals.Add();
+	psNormal = (SFloat32Vec3*)mcNormals.Add();
 
 	pcTriangle = (CExtremeTriangle*)mcTriangles.Add();
 	pcTriangle->Init(psPoint1, psPoint2, psPoint3, psNormal);
@@ -713,12 +713,12 @@ int CConvexHullGenerator::FindFurthestPoint(int iMaxXIndex, int iMinXIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CConvexHullGenerator::FindMaxX(float* px)
+int CConvexHullGenerator::FindMaxX(float32* px)
 {
 	size		i;
-	float		x;
+	float32		x;
 	int			iIndex;
-	SFloat3*	psPosition;
+	SFloat32Vec3*	psPosition;
 
 	iIndex = -1;
 	x = 0;
@@ -740,12 +740,12 @@ int CConvexHullGenerator::FindMaxX(float* px)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CConvexHullGenerator::FindMinX(float* px)
+int CConvexHullGenerator::FindMinX(float32* px)
 {
 	size		i;
-	float		x;
+	float32		x;
 	int			iIndex;
-	SFloat3*	psPosition;
+	SFloat32Vec3*	psPosition;
 
 
 	iIndex = -1;
@@ -796,7 +796,7 @@ void CConvexHull::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CConvexHull::BeginSetFromPoints(CConvexHullGenerator* psConvexHullGenerator, SFloat3* psPoints, int iStride, int iNumPoints, char* szHullName)
+void CConvexHull::BeginSetFromPoints(CConvexHullGenerator* psConvexHullGenerator, SFloat32Vec3* psPoints, int iStride, int iNumPoints, char* szHullName)
 {
 	CArrayExtremeTrianglePtr	apcTriangles;
 	SFreeListIterator			sIter;
@@ -827,7 +827,7 @@ void CConvexHull::BeginSetFromPoints(CConvexHullGenerator* psConvexHullGenerator
 void CConvexHullGenerator::DumpTriangleObj(CChars* psz, int iLoop)
 {
 	size				i;
-	SFloat3*			psPosition;
+	SFloat32Vec3*			psPosition;
 	CExtremeTriangle*	pcTriangle;
 	int					iIndex1;
 	int					iIndex2;
@@ -874,22 +874,22 @@ void CConvexHullGenerator::DumpTriangleObj(CChars* psz, int iLoop)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CConvexHull::EndSetFromPoints(SFloat3* psNormals, int iStride, CConvexHullGenerator* psConvexHullGenerator)
+void CConvexHull::EndSetFromPoints(SFloat32Vec3* psNormals, int iStride, CConvexHullGenerator* psConvexHullGenerator)
 {
 	SFreeListIterator		sIter;
 	int						i;
-	SFloat3*				psNormal;
+	SFloat32Vec3*				psNormal;
 
 	if (psNormals)
 	{
 		i = 0;
-		psNormal = (SFloat3*)psConvexHullGenerator->GetNormals()->StartIteration(&sIter);
+		psNormal = (SFloat32Vec3*)psConvexHullGenerator->GetNormals()->StartIteration(&sIter);
 		while (psNormal)
 		{
 			*GetNormal(psNormals, iStride, i) = *psNormal;
 
 			i++;
-			psNormal = (SFloat3*)psConvexHullGenerator->GetNormals()->Iterate(&sIter);
+			psNormal = (SFloat32Vec3*)psConvexHullGenerator->GetNormals()->Iterate(&sIter);
 		}
 	}
 
@@ -943,12 +943,12 @@ void ConvertTrianglesToPolygons(CArrayTrianglePtr* papcTriangles, CArrayPolygons
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CConvexHull::GetIndices(CArrayInt* paiIndices, SFloat3* psPoints, int iStride)
+void CConvexHull::GetIndices(CArrayInt* paiIndices, SFloat32Vec3* psPoints, int iStride)
 {
 	size		i;
 	CPolygon*	pcPolygon;
 	size		j;
-	SFloat3*	psPosition;
+	SFloat32Vec3*	psPosition;
 	int			iIndex;
 
 
@@ -957,7 +957,7 @@ void CConvexHull::GetIndices(CArrayInt* paiIndices, SFloat3* psPoints, int iStri
 		pcPolygon = mcPolygons.Get(i);
 		for (j = 0; j < pcPolygon->mapsPositions.NumElements(); j++)
 		{
-			psPosition = *((SFloat3**)(pcPolygon->mapsPositions.Get(j)));
+			psPosition = *((SFloat32Vec3**)(pcPolygon->mapsPositions.Get(j)));
 			iIndex = GetIndex(psPoints, iStride, psPosition);
 			if (iIndex != -1)
 			{
@@ -972,12 +972,12 @@ void CConvexHull::GetIndices(CArrayInt* paiIndices, SFloat3* psPoints, int iStri
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CConvexHull::GetVertices(CArrayBlock* pasPositions, SFloat3* psPoints, int iStride)
+void CConvexHull::GetVertices(CArrayBlock* pasPositions, SFloat32Vec3* psPoints, int iStride)
 {
 	CArrayInt	aiIndices;
 	size			i;
 	int			iIndex;
-	SFloat3*	psPosition;
+	SFloat32Vec3*	psPosition;
 
 	aiIndices.Init();
 	GetIndices(&aiIndices, psPoints, iStride);

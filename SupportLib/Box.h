@@ -26,22 +26,22 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 class CBox
 {
 public:
-	SFloat3*	mpsCenter;
+	SFloat32Vec3*	mpsCenter;
 
-	SFloat3*	mpsLongAxis;
-	SFloat3*	mpsMiddleAxis; 
-	SFloat3*	mpsShortAxis;
+	SFloat32Vec3*	mpsLongAxis;
+	SFloat32Vec3*	mpsMiddleAxis; 
+	SFloat32Vec3*	mpsShortAxis;
 
-	float		mfLongLength;
-	float		mfMiddleLength;
-	float		mfShortLength;
+	float32		mfLongLength;
+	float32		mfMiddleLength;
+	float32		mfShortLength;
 
-	void	Init(SFloat3* psCenter, SFloat3* psLongAxis, SFloat3* psMiddleAxis, SFloat3* psShortAxis);
-	void 	SetFromPointsAxisAligned(SFloat3* psPoints, int iStride, int iNumPoints);
-	bool	SetFromPointsUsingBestFit(SFloat3* psPoints, int iStride, int iNumPoints, bool bPointsExtreme = false);
-	float	Volume(void);
+	void	Init(SFloat32Vec3* psCenter, SFloat32Vec3* psLongAxis, SFloat32Vec3* psMiddleAxis, SFloat32Vec3* psShortAxis);
+	void 	SetFromPointsAxisAligned(SFloat32Vec3* psPoints, int iStride, int iNumPoints);
+	bool	SetFromPointsUsingBestFit(SFloat32Vec3* psPoints, int iStride, int iNumPoints, bool bPointsExtreme = false);
+	float32	Volume(void);
 	void	Find8Box(int* piLongCount, int* piMiddleCount, int* piShortCount);
-	float	PrivateVolumeOfCubesContaining(float ix, float iy, float iz);
+	float32	PrivateVolumeOfCubesContaining(float32 ix, float32 iy, float32 iz);
 };
 
 

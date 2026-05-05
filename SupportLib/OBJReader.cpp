@@ -186,7 +186,7 @@ bool CObjReader::Read(void)
 //////////////////////////////////////////////////////////////////////////
 bool CObjReader::ReadPosition(CTextParser* pcTextParser)
 {
-	float				x, y, z;
+	float32				x, y, z;
 
 	pcTextParser->GetFloat(&x);
 	pcTextParser->GetFloat(&y);
@@ -203,7 +203,7 @@ bool CObjReader::ReadPosition(CTextParser* pcTextParser)
 //////////////////////////////////////////////////////////////////////////
 bool CObjReader::ReadNormal(CTextParser* pcTextParser)
 {
-	float				x, y, z;
+	float32				x, y, z;
 
 	pcTextParser->GetFloat(&x);
 	pcTextParser->GetFloat(&y);
@@ -221,7 +221,7 @@ bool CObjReader::ReadNormal(CTextParser* pcTextParser)
 //////////////////////////////////////////////////////////////////////////
 bool CObjReader::ReadUVCoord(CTextParser* pcTextParser)
 {
-	float				u, v;
+	float32				u, v;
 
 	pcTextParser->GetFloat(&u);
 	pcTextParser->GetFloat(&v);

@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 void MinusInvalid(void* pvDest, void* pvLeft, void* pvRight) { gcUserError.Set("Minus not defined for types"); }
 #include "OperatorMinus_Functions.inl"
 void MinusFloat2Float2Float2(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat32Vec2*)pvDest = *(SFloat32Vec2*)pvLeft - *(SFloat32Vec2*)pvRight; }
-void MinusFloat3Float3Float3(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat3*)pvDest = *(SFloat3*)pvLeft - *(SFloat3*)pvRight; }
+void MinusFloat3Float3Float3(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat32Vec3*)pvDest = *(SFloat32Vec3*)pvLeft - *(SFloat32Vec3*)pvRight; }
 void MinusFloat4Float4Float4(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat4*)pvDest = *(SFloat4*)pvLeft - *(SFloat4*)pvRight; }
 
 

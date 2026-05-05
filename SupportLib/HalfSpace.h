@@ -26,22 +26,22 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 class CHalfSpace
 {
 public:
-	SFloat3*	mpsNormal;		
-	float		d;				//d of plane.
+	SFloat32Vec3*	mpsNormal;		
+	float32		d;				//d of plane.
 
-	void 	Init(SFloat3* mpsNormal);
-	void 	Set(SFloat3* v1, SFloat3* v2, SFloat3* v3);
-	void 	Set2(SFloat3* psPosition1, SFloat3* psVector1, SFloat3* psVector2);
-	void	Set(SFloat3* psPosition1, SFloat3* psNormal);
-	void 	SetZPlane(SFloat3* v1, SFloat3* v2);  //plane is perpendicular to z-axis.
-	bool 	Contains(SFloat3* psPosition);
-	bool	NotContains(SFloat3* psPosition);
-	bool	On(SFloat3* psPosition);
+	void 	Init(SFloat32Vec3* mpsNormal);
+	void 	Set(SFloat32Vec3* v1, SFloat32Vec3* v2, SFloat32Vec3* v3);
+	void 	Set2(SFloat32Vec3* psPosition1, SFloat32Vec3* psVector1, SFloat32Vec3* psVector2);
+	void	Set(SFloat32Vec3* psPosition1, SFloat32Vec3* psNormal);
+	void 	SetZPlane(SFloat32Vec3* v1, SFloat32Vec3* v2);  //plane is perpendicular to z-axis.
+	bool 	Contains(SFloat32Vec3* psPosition);
+	bool	NotContains(SFloat32Vec3* psPosition);
+	bool	On(SFloat32Vec3* psPosition);
 	bool	Parallel(CHalfSpace* psOther);
-	int		FindFurthestPoint(SFloat3* psPoints, int iStride, int iNumPoints);
-	int		FindUnsignedFurthestPoint(SFloat3* psPoints, int iStride, int iNumPoints);
-	int		FindFurthestPoint(SFloat3* psPoints, int iStride, int* aiIndices, int iNumIndices);
-	void	D(SFloat3* psPosition1, SFloat3* psNormal);
+	int		FindFurthestPoint(SFloat32Vec3* psPoints, int iStride, int iNumPoints);
+	int		FindUnsignedFurthestPoint(SFloat32Vec3* psPoints, int iStride, int iNumPoints);
+	int		FindFurthestPoint(SFloat32Vec3* psPoints, int iStride, int* aiIndices, int iNumIndices);
+	void	D(SFloat32Vec3* psPosition1, SFloat32Vec3* psNormal);
 	void	Copy(CHalfSpace* psSource);
 };
 

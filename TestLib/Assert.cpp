@@ -25,7 +25,7 @@ along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/Define.h"
 #include "BaseLib/FileCompare.h"
-#include "BaseLib/Float3.h"
+#include "BaseLib/Float32Vec3.h"
 #include "Assert.h"
 
 
@@ -671,7 +671,7 @@ bool PrivateAssertFloat(float32 fExpected, float32 fActual, int iDecimals, char*
 	char	szActual[32];
 	float32	fTolerance;
 
-	fTolerance = FloatToleranceForDecimals(iDecimals);
+	fTolerance = Float32ToleranceForDecimals(iDecimals);
 	if (!FloatEqual(fExpected, fActual, fTolerance))
 	{
 		ToFloatString(fExpected, szExpected, iDecimals);
@@ -705,8 +705,8 @@ bool PrivateAssertDouble(float64 fExpected, float64 fActual, int iDecimals, char
 	char	szActual[32];
 	float64	fTolerance;
 
-	fTolerance = DoubleToleranceForDecimals(iDecimals);
-	if (!DoubleEqual(fExpected, fActual, fTolerance))
+	fTolerance = Float64ToleranceForDecimals(iDecimals);
+	if (!FloatEqual(fExpected, fActual, fTolerance))
 	{
 		ToDoubleString(fExpected, szExpected, iDecimals);
 		ToDoubleString(fActual, szActual, iDecimals);
@@ -730,7 +730,7 @@ bool PrivateAssertLongDouble(float128 fExpected, float128 fActual, int iDecimals
 	char			szActual[32];
 	float128		fTolerance;
 
-	fTolerance = DoubleToleranceForDecimals(iDecimals);
+	fTolerance = Float64ToleranceForDecimals(iDecimals);
 	if (!LongDoubleEqual(fExpected, fActual, fTolerance))
 	{
 		ToDoubleString(fExpected, szExpected, iDecimals);
@@ -748,7 +748,7 @@ bool PrivateAssertLongDouble(float128 fExpected, float128 fActual, int iDecimals
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertFloat3(SFloat3 fExpected, SFloat3* pfActual, int iDecimals, char* szPrefix, size iLine, char* szFile)
+bool PrivateAssertFloat3(SFloat32Vec3 fExpected, SFloat32Vec3* pfActual, int iDecimals, char* szPrefix, size iLine, char* szFile)
 {
 	char	szExpected[96];
 	char	szActual[96];
@@ -756,7 +756,7 @@ bool PrivateAssertFloat3(SFloat3 fExpected, SFloat3* pfActual, int iDecimals, ch
 	int		iWholeNumbers;
 	int		iOther;
 
-	fTolerance = FloatToleranceForDecimals(iDecimals);
+	fTolerance = Float32ToleranceForDecimals(iDecimals);
 	if (!fExpected.CloselyEqual(pfActual, fTolerance))
 	{
 		iWholeNumbers = fExpected.WholeNumbers();

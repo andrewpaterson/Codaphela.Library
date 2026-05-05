@@ -121,9 +121,9 @@ ARGB32 Set8BitRedColour(uint8 iRed)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float Convert8BitColourToFloat(ARGB32 uiColour)
+float32 Convert8BitColourToFloat(ARGB32 uiColour)
 {
-	return (float)uiColour / 255.0f;
+	return (float32)uiColour / 255.0f;
 }
 
 
@@ -131,7 +131,7 @@ float Convert8BitColourToFloat(ARGB32 uiColour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 ConvertFloatTo8BitColour(float fColour)
+uint8 ConvertFloatTo8BitColour(float32 fColour)
 {
 	return ((uint8)(fColour * 255.0f));
 }
@@ -180,7 +180,7 @@ void Get32BitColour(uint32* r, uint32* g, uint32* b, uint32* a, ARGB32 uiColour)
 }
 
 
-void Get32BitColour(float* r, float* g, float* b, float* a, ARGB32 uiColour)
+void Get32BitColour(float32* r, float32* g, float32* b, float32* a, ARGB32 uiColour)
 {
 	*r = Convert8BitColourToFloat(Get8BitRedColour(uiColour));
 	*g = Convert8BitColourToFloat(Get8BitGreenColour(uiColour));
@@ -189,7 +189,7 @@ void Get32BitColour(float* r, float* g, float* b, float* a, ARGB32 uiColour)
 }
 
 
-void Get32BitColour(float* r, float* g, float* b, ARGB32 uiColour)
+void Get32BitColour(float32* r, float32* g, float32* b, ARGB32 uiColour)
 {
 	*r = Convert8BitColourToFloat(Get8BitRedColour(uiColour));
 	*g = Convert8BitColourToFloat(Get8BitGreenColour(uiColour));
@@ -278,7 +278,7 @@ ARGB32 Modulate32BitColours(ARGB32 uiColour1, ARGB32 uiColour2)
 }
 
 
-ARGB32 Weight32BitColours(ARGB32 uiColour1, ARGB32 uiColour2, float fWeight1)
+ARGB32 Weight32BitColours(ARGB32 uiColour1, ARGB32 uiColour2, float32 fWeight1)
 {
 	uint32		r1, g1, b1, a1;
 	uint32		r2, g2, b2, a2;
@@ -312,7 +312,7 @@ ARGB32 BlendAlpha32BitColours(ARGB32 uiColour1, ARGB32 uiColour2)
 }
 
 
-ARGB32 Set32BitColour(float r, float g, float b, float a)
+ARGB32 Set32BitColour(float32 r, float32 g, float32 b, float32 a)
 {
 	uint8	ri, gi, bi, ai;
 
@@ -351,7 +351,7 @@ ARGB32 Set32BitColour(uint8 r, uint8 g, uint8 b)
 }
 
 
-ARGB32 Set32BitColour(float r, float g, float b)
+ARGB32 Set32BitColour(float32 r, float32 g, float32 b)
 {
 	uint8	ri, gi, bi;
 

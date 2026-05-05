@@ -183,7 +183,7 @@ CMFRet CMeshEditorWrapper::AddPolygon(CArrayInt* paiCorners, int iName, bool bFl
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditorWrapper::AddCorner(float x, float y, float z)
+void CMeshEditorWrapper::AddCorner(float32 x, float32 y, float32 z)
 {
 	if (mpcEditor.IsNotNull())
 	{
@@ -200,7 +200,7 @@ void CMeshEditorWrapper::AddCorner(float x, float y, float z)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditorWrapper::AddUV(float u, float v)
+void CMeshEditorWrapper::AddUV(float32 u, float32 v)
 {
 	mpcMesh->AddUV(u, v);
 }
@@ -210,7 +210,7 @@ void CMeshEditorWrapper::AddUV(float u, float v)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditorWrapper::AddNormal(float x, float y, float z)
+void CMeshEditorWrapper::AddNormal(float32 x, float32 y, float32 z)
 {
 	mpcMesh->AddNormal(x, y, z);
 }

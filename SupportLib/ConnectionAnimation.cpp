@@ -64,7 +64,7 @@ void CConnectionAnimation::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAnimKeyFrame* CConnectionAnimation::Add(SFloat3* psPosition, SQuaternion* psRotation, float fTime)
+CAnimKeyFrame* CConnectionAnimation::Add(SFloat32Vec3* psPosition, SQuaternion* psRotation, float32 fTime)
 {
 	CAnimKeyFrame*		psKeyFrame;
 	int					iType;
@@ -94,7 +94,7 @@ CAnimKeyFrame* CConnectionAnimation::Add(SFloat3* psPosition, SQuaternion* psRot
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAnimKeyFrame* CConnectionAnimation::Add(SFloat4x4* psMatrix, float fTime)
+CAnimKeyFrame* CConnectionAnimation::Add(SFloat4x4* psMatrix, float32 fTime)
 {
 	CAnimKeyFrame*			psKeyFrame;
 	int						iType;
@@ -115,7 +115,7 @@ CAnimKeyFrame* CConnectionAnimation::Add(SFloat4x4* psMatrix, float fTime)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAnimKeyFrame* CConnectionAnimation::Add(SFloat3* psPosition, float fTime)
+CAnimKeyFrame* CConnectionAnimation::Add(SFloat32Vec3* psPosition, float32 fTime)
 {
 	return Add(psPosition, NULL, fTime);
 }
@@ -125,7 +125,7 @@ CAnimKeyFrame* CConnectionAnimation::Add(SFloat3* psPosition, float fTime)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAnimKeyFrame* CConnectionAnimation::Add(SQuaternion* psRotation, float fTime)
+CAnimKeyFrame* CConnectionAnimation::Add(SQuaternion* psRotation, float32 fTime)
 {
 	return Add(NULL, psRotation, fTime);
 }

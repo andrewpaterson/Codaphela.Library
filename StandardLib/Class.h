@@ -8,7 +8,7 @@
 #include "BaseLib/Number.h"
 #include "BaseLib/Date.h"
 #include "BaseLib/Float32Vec2.h"
-#include "BaseLib/Float3.h"
+#include "BaseLib/Float32Vec3.h"
 #include "BaseLib/Float4.h"
 #include "BaseLib/Float4x4.h"
 #include "BaseLib/Int32Vec2.h"
@@ -150,8 +150,8 @@ public:
 
 	void				Unmanaged2Float(CBaseObject* pcThis, SFloat32Vec2* pf, char* szFieldName);
 	void				Unmanaged2Float(CBaseObject* pcThis, SFloat32Vec2* pf, size uiLength, char* szFieldName);
-	void				Unmanaged3Float(CBaseObject* pcThis, SFloat3* pf, char* szFieldName);
-	void				Unmanaged3Float(CBaseObject* pcThis, SFloat3* pf, size uiLength, char* szFieldName);
+	void				Unmanaged3Float(CBaseObject* pcThis, SFloat32Vec3* pf, char* szFieldName);
+	void				Unmanaged3Float(CBaseObject* pcThis, SFloat32Vec3* pf, size uiLength, char* szFieldName);
 	void				Unmanaged4Float(CBaseObject* pcThis, SFloat4* pf, char* szFieldName);
 	void				Unmanaged4Float(CBaseObject* pcThis, SFloat4* pf, size uiLength, char* szFieldName);
 	void				Unmanaged4x4Float(CBaseObject* pcThis, SFloat4x4* pf, char* szFieldName);
@@ -170,6 +170,7 @@ protected:
 	void				Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, size uiLength, char* szFieldName);
 	size				ComputeSize(void);
 };
+
 
 #endif // __CLASS_H__
 

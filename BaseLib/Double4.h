@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 class SFloat64Vec2;
-class SDouble3;
+class SFloat64Vec3;
 class SDouble4x4;
 class SDouble4
 {
@@ -37,7 +37,7 @@ public:
 
 	SDouble4() {};
 	SDouble4(const double*);
-	SDouble4(const SDouble3& v, double f);
+	SDouble4(const SFloat64Vec3& v, double f);
 	SDouble4(double x, double y, double z, double w);
 
 	SDouble4& operator += (const SDouble4&);

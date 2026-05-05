@@ -155,7 +155,7 @@ bool CImageAccessor::IsValid(int x, int y)
 bool CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 {
 	size					i;
-	float					fValue;
+	float32					fValue;
 	SImageColour			sTemp;
 	bool					bValid;
 	void*					pvData;

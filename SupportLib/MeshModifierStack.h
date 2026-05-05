@@ -55,7 +55,7 @@ public:
 
 	void	ClearConnectivity(void);
 
-	void	AddPosition(SFloat3* psPosition);
+	void	AddPosition(SFloat32Vec3* psPosition);
 
 	void	AddFace(int iCorner1, int iCorner2, int iCorner3);
 
@@ -64,8 +64,8 @@ public:
 
 	void	RemoveCorner(int iCorner);
 
-	void	MovePosition(int iPosition, SFloat3* psDelta);
-	void	MovePositions(CArrayInt* paiPositions, SFloat3* psDelta);
+	void	MovePosition(int iPosition, SFloat32Vec3* psDelta);
+	void	MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psDelta);
 };
 
 

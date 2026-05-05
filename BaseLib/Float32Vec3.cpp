@@ -21,23 +21,18 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "Numbers.h"
-#include "IntegerHelper.h"
-#include "FloatHelper.h"
 #include "Float32Vec2.h"
 #include "Float4.h"
 #include "Float4x4.h"
-#include "Float3.h"
+#include "Float32Vec3.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat3::SFloat3(const float *pf)
+SFloat32Vec3::SFloat32Vec3(float32 x, float32 y, float32 z)
 {
-	x = pf[0];
-	y = pf[1];
-	z = pf[2];
 }
 
 
@@ -45,251 +40,9 @@ SFloat3::SFloat3(const float *pf)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat3::SFloat3(const SFloat3& v)
+void SFloat32Vec3::Normalize(void)
 {
-	x = v.x;
-	y = v.y;
-	z = v.z;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SFloat3::SFloat3(float fx, float fy, float fz)
-{
-	x = fx;
-	y = fy;
-	z = fz;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SFloat3& SFloat3::operator += (const SFloat3& v)
-{
-	x += v.x;
-	y += v.y;
-	z += v.z;
-	return *this;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SFloat3& SFloat3::operator -= (const SFloat3& v)
-{
-	x -= v.x;
-	y -= v.y;
-	z -= v.z;
-	return *this;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SFloat3& SFloat3::operator *= (float f)
-{
-	x *= f;
-	y *= f;
-	z *= f;
-	return *this;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SFloat3& SFloat3::operator /= (float f)
-{
-	float fInv = 1.0f / f;
-	x *= fInv;
-	y *= fInv;
-	z *= fInv;
-	return *this;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SFloat3 SFloat3::operator + () const
-{
-	return *this;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SFloat3 SFloat3::operator - () const
-{
-	return SFloat3(-x, -y, -z);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SFloat3 SFloat3::operator + (const SFloat3& v) const
-{
-	return SFloat3(x + v.x, y + v.y, z + v.z);
-}
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SFloat3 SFloat3::operator - (const SFloat3& v) const
-{
-	return SFloat3(x - v.x, y - v.y, z - v.z);
-}
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SFloat3 SFloat3::operator * (float f) const
-{
-	return SFloat3(x * f, y * f, z * f);
-}
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SFloat3 SFloat3::operator / (float f) const
-{
-	float fInv = 1.0f / f;
-	return SFloat3(x * fInv, y * fInv, z * fInv);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SFloat3 operator * (float f, const SFloat3& v)
-{
-	return SFloat3(f * v.x, f * v.y, f * v.z);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool SFloat3::operator == (const SFloat3& v) const
-{
-	return x == v.x && y == v.y && z == v.z;
-}
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool SFloat3::operator != (const SFloat3& v) const
-{
-	return x != v.x || y != v.y || z != v.z;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void SFloat3::Init(float x, float y, float z)
-{
-	this->x = x;
-	this->y = y;
-	this->z = z;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void SFloat3::Init(const SFloat3& v)
-{
-	x = v.x;
-	y = v.y;
-	z = v.z;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void SFloat3::Init(SFloat3* pv)
-{
-	x = pv->x;
-	y = pv->y;
-	z = pv->z;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void SFloat3::Zero(void)
-{
-	x = y = z = 0.0f;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void SFloat3::Add(SFloat3* ps)
-{
-	x += ps->x;
-	y += ps->y;
-	z += ps->z;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-float SFloat3::Magnitude(void)
-{
-	return SquareRoot(SquareMagnitude());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-float SFloat3::SquareMagnitude(void)
-{
-	return x*x + y*y + z*z;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void SFloat3::Normalize(void)
-{
-	float f;
+	float32 f;
 
 	f = Magnitude();
 	if (f != 0.0f)
@@ -310,7 +63,7 @@ void SFloat3::Normalize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SFloat3::CloselyEqual(SFloat3* ps)
+bool SFloat32Vec3::CloselyEqual(SFloat32Vec3* ps)
 {
 	if ((FloatEqual(x, ps->x)) &&
 		(FloatEqual(y, ps->y)) &&
@@ -326,7 +79,7 @@ bool SFloat3::CloselyEqual(SFloat3* ps)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SFloat3::CloselyEqual(SFloat3* ps, float fTolerance)
+bool SFloat32Vec3::CloselyEqual(SFloat32Vec3* ps, float32 fTolerance)
 {
 	if ((FloatEqual(x, ps->x, fTolerance)) &&
 		(FloatEqual(y, ps->y, fTolerance)) &&
@@ -342,7 +95,7 @@ bool SFloat3::CloselyEqual(SFloat3* ps, float fTolerance)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SFloat3::Copy(const SFloat4* ps)
+void SFloat32Vec3::Copy(const SFloat4* ps)
 {
 	x = ps->x;
 	y = ps->y;
@@ -354,7 +107,7 @@ void SFloat3::Copy(const SFloat4* ps)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SFloat3::Copy(const SFloat3* ps)
+void SFloat32Vec3::Copy(const SFloat32Vec3* ps)
 {
 	x = ps->x;
 	y = ps->y;
@@ -366,7 +119,7 @@ void SFloat3::Copy(const SFloat3* ps)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SFloat3::Copy(const SFloat32Vec2* ps)
+void SFloat32Vec3::Copy(const SFloat32Vec2* ps)
 {
 	x = ps->x;
 	y = ps->y;
@@ -374,43 +127,11 @@ void SFloat3::Copy(const SFloat32Vec2* ps)
 }
 
 
-
-
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SFloat3::Save(CFileWriter* pcFileWriter)
-{
-	bool	bResult;
-
-	bResult = pcFileWriter->WriteFloat(x);
-	bResult &= pcFileWriter->WriteFloat(y);
-	bResult &= pcFileWriter->WriteFloat(z);
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool SFloat3::Load(CFileReader* pcFileReader)
-{
-	bool	bResult;
-
-	bResult = pcFileReader->ReadFloat(&x);
-	bResult &= pcFileReader->ReadFloat(&y);
-	bResult &= pcFileReader->ReadFloat(&z);
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void SFloat3::Fix(void)
+void SFloat32Vec3::Fix(void)
 {
 	x = RoundFloat(x, BINARY_PRECISION);
 	y = RoundFloat(y, BINARY_PRECISION);
@@ -422,7 +143,7 @@ void SFloat3::Fix(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int SFloat3::WholeNumbers(void)
+int SFloat32Vec3::WholeNumbers(void)
 {
 	int i[3];
 
@@ -438,7 +159,7 @@ int SFloat3::WholeNumbers(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SFloat3::Print(CChars* psx, int iWholeNumbers, int iDecimals)
+void SFloat32Vec3::Print(CChars* psx, int iWholeNumbers, int iDecimals)
 {
 	CChars		szzz;
 	int			iWidth;
@@ -478,26 +199,10 @@ void SFloat3::Print(CChars* psx, int iWholeNumbers, int iDecimals)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void SFloat3::Dump(void)
-{
-	CChars	sz;
-
-	sz.Init();
-	Print(&sz, 4);
-	sz.AppendNewLine();
-	sz.Dump();
-	sz.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float Float3Dot(const SFloat3* pV1, const SFloat3* pV2)
+float32 Float3Dot(const SFloat32Vec3* pV1, const SFloat32Vec3* pV2)
 {
 	return pV1->x*  pV2->x + pV1->y*  pV2->y + pV1->z*  pV2->z;
 }
@@ -507,9 +212,9 @@ float Float3Dot(const SFloat3* pV1, const SFloat3* pV2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* Float3Cross(SFloat3* pOut, const SFloat3* pV1, const SFloat3* pV2)
+SFloat32Vec3* Float3Cross(SFloat32Vec3* pOut, const SFloat32Vec3* pV1, const SFloat32Vec3* pV2)
 {
-	SFloat3 v;
+	SFloat32Vec3 v;
 
 	v.x = pV1->y * pV2->z - pV1->z * pV2->y;
 	v.y = pV1->z * pV2->x - pV1->x * pV2->z;
@@ -519,7 +224,12 @@ SFloat3* Float3Cross(SFloat3* pOut, const SFloat3* pV1, const SFloat3* pV2)
 	return pOut;
 }
 
-SFloat3* Float3Add(SFloat3* pOut, const SFloat3* pV1, const SFloat3* pV2)
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SFloat32Vec3* Float3Add(SFloat32Vec3* pOut, const SFloat32Vec3* pV1, const SFloat32Vec3* pV2)
 {
 	pOut->x = pV1->x + pV2->x;
 	pOut->y = pV1->y + pV2->y;
@@ -527,7 +237,12 @@ SFloat3* Float3Add(SFloat3* pOut, const SFloat3* pV1, const SFloat3* pV2)
 	return pOut;
 }
 
-SFloat3* Float3Subtract(SFloat3* pOut, const SFloat3* pV1, const SFloat3* pV2)
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SFloat32Vec3* Float3Subtract(SFloat32Vec3* pOut, const SFloat32Vec3* pV1, const SFloat32Vec3* pV2)
 {
 	pOut->x = pV1->x - pV2->x;
 	pOut->y = pV1->y - pV2->y;
@@ -535,7 +250,12 @@ SFloat3* Float3Subtract(SFloat3* pOut, const SFloat3* pV1, const SFloat3* pV2)
 	return pOut;
 }
 
-SFloat3* Float3Minimize(SFloat3* pOut, const SFloat3* pV1, const SFloat3* pV2)
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SFloat32Vec3* Float3Minimize(SFloat32Vec3* pOut, const SFloat32Vec3* pV1, const SFloat32Vec3* pV2)
 {
 	pOut->x = pV1->x < pV2->x ? pV1->x : pV2->x;
 	pOut->y = pV1->y < pV2->y ? pV1->y : pV2->y;
@@ -543,7 +263,12 @@ SFloat3* Float3Minimize(SFloat3* pOut, const SFloat3* pV1, const SFloat3* pV2)
 	return pOut;
 }
 
-SFloat3* Float3Maximize(SFloat3* pOut, const SFloat3* pV1, const SFloat3* pV2)
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SFloat32Vec3* Float3Maximize(SFloat32Vec3* pOut, const SFloat32Vec3* pV1, const SFloat32Vec3* pV2)
 {
 	pOut->x = pV1->x > pV2->x ? pV1->x : pV2->x;
 	pOut->y = pV1->y > pV2->y ? pV1->y : pV2->y;
@@ -556,7 +281,7 @@ SFloat3* Float3Maximize(SFloat3* pOut, const SFloat3* pV1, const SFloat3* pV2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* Float3Scale(SFloat3 *pOut, const SFloat3 *pV, float s)
+SFloat32Vec3* Float3Scale(SFloat32Vec3 *pOut, const SFloat32Vec3 *pV, float32 s)
 {
 	pOut->x = pV->x * s;
 	pOut->y = pV->y * s;
@@ -569,7 +294,7 @@ SFloat3* Float3Scale(SFloat3 *pOut, const SFloat3 *pV, float s)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* Float3Lerp(SFloat3 *pOut, const SFloat3 *pV1, const SFloat3 *pV2, float s)
+SFloat32Vec3* Float3Lerp(SFloat32Vec3 *pOut, const SFloat32Vec3 *pV1, const SFloat32Vec3 *pV2, float32 s)
 {
 	pOut->x = pV1->x + s * (pV2->x - pV1->x);
 	pOut->y = pV1->y + s * (pV2->y - pV1->y);
@@ -582,7 +307,7 @@ SFloat3* Float3Lerp(SFloat3 *pOut, const SFloat3 *pV1, const SFloat3 *pV2, float
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* Float3TransformCoord(SFloat3 *pOut, SFloat3* pV, SFloat4x4* psMat)
+SFloat32Vec3* Float3TransformCoord(SFloat32Vec3 *pOut, SFloat32Vec3* pV, SFloat4x4* psMat)
 {
 	pOut->x = pV->x * psMat->x.x + pV->y * psMat->y.x + pV->z * psMat->z.x + 1.0f * psMat->pos.x;
 	pOut->y = pV->x * psMat->x.y + pV->y * psMat->y.y + pV->z * psMat->z.y + 1.0f * psMat->pos.y;
@@ -595,7 +320,7 @@ SFloat3* Float3TransformCoord(SFloat3 *pOut, SFloat3* pV, SFloat4x4* psMat)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* Float3TransformNormal(SFloat3 *pOut, SFloat3* pV, SFloat4x4* psMat)
+SFloat32Vec3* Float3TransformNormal(SFloat32Vec3 *pOut, SFloat32Vec3* pV, SFloat4x4* psMat)
 {
 	pOut->x = pV->x * psMat->x.x + pV->y * psMat->y.x + pV->z * psMat->z.x;
 	pOut->y = pV->x * psMat->x.y + pV->y * psMat->y.y + pV->z * psMat->z.y;
@@ -608,16 +333,16 @@ SFloat3* Float3TransformNormal(SFloat3 *pOut, SFloat3* pV, SFloat4x4* psMat)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3TransformCoords(SFloat3* asOut, int iOutStride, SFloat3* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
+void Float3TransformCoords(SFloat32Vec3* asOut, int iOutStride, SFloat32Vec3* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
 {
 	int			i;
-	SFloat3*	psOut;
-	SFloat3*	psIn;
+	SFloat32Vec3*	psOut;
+	SFloat32Vec3*	psIn;
 
 	for (i = 0; i < iNumPoints; i++)
 	{
-		psOut = (SFloat3*)RemapSinglePointer(asOut, i * iOutStride);
-		psIn = (SFloat3*)RemapSinglePointer(asIn, i * iInStride);
+		psOut = (SFloat32Vec3*)RemapSinglePointer(asOut, i * iOutStride);
+		psIn = (SFloat32Vec3*)RemapSinglePointer(asIn, i * iInStride);
 		Float3TransformCoord(psOut, psIn, psMat);
 	}
 }
@@ -627,16 +352,16 @@ void Float3TransformCoords(SFloat3* asOut, int iOutStride, SFloat3* asIn, int iI
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3TransformNormals(SFloat3* asOut, int iOutStride, SFloat3* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
+void Float3TransformNormals(SFloat32Vec3* asOut, int iOutStride, SFloat32Vec3* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
 {
 	int			i;
-	SFloat3*	psOut;
-	SFloat3*	psIn;
+	SFloat32Vec3*	psOut;
+	SFloat32Vec3*	psIn;
 
 	for (i = 0; i < iNumPoints; i++)
 	{
-		psOut = (SFloat3*)RemapSinglePointer(asOut, i * iOutStride);
-		psIn = (SFloat3*)RemapSinglePointer(asIn, i * iInStride);
+		psOut = (SFloat32Vec3*)RemapSinglePointer(asOut, i * iOutStride);
+		psIn = (SFloat32Vec3*)RemapSinglePointer(asIn, i * iInStride);
 		Float3TransformNormal(psOut, psIn, psMat);
 	}
 }
@@ -646,9 +371,9 @@ void Float3TransformNormals(SFloat3* asOut, int iOutStride, SFloat3* asIn, int i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3Swap(SFloat3* ps1, SFloat3* ps2)
+void Float3Swap(SFloat32Vec3* ps1, SFloat32Vec3* ps2)
 {
-	SFloat3 temp;
+	SFloat32Vec3 temp;
 
 	temp = *ps2;
 	*ps2 = *ps1;
@@ -660,10 +385,10 @@ void Float3Swap(SFloat3* ps1, SFloat3* ps2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3MinMax(SFloat3* psMin, SFloat3* psMax, SFloat3* asIn, int iInStride, int iNumPoints)
+void Float3MinMax(SFloat32Vec3* psMin, SFloat32Vec3* psMax, SFloat32Vec3* asIn, int iInStride, int iNumPoints)
 {
 	int			i;
-	SFloat3*	psIn;
+	SFloat32Vec3*	psIn;
 
 	if (iNumPoints > 0)
 	{
@@ -673,7 +398,7 @@ void Float3MinMax(SFloat3* psMin, SFloat3* psMax, SFloat3* asIn, int iInStride, 
 
 		for (i = 1; i < iNumPoints; i++)
 		{
-			psIn = (SFloat3*)RemapSinglePointer(asIn, i * iInStride);
+			psIn = (SFloat32Vec3*)RemapSinglePointer(asIn, i * iInStride);
 
 			if (psIn->x < psMin->x)
 			{
@@ -709,9 +434,9 @@ void Float3MinMax(SFloat3* psMin, SFloat3* psMax, SFloat3* asIn, int iInStride, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3Normalize(SFloat3 *pOut, SFloat3 *pV)
+void Float3Normalize(SFloat32Vec3 *pOut, SFloat32Vec3 *pV)
 {
-	float fInvLen;
+	float32 fInvLen;
 
 	fInvLen = 1.0f / pV->Magnitude();
 	pOut->x = pV->x * fInvLen;
@@ -724,10 +449,10 @@ void Float3Normalize(SFloat3 *pOut, SFloat3 *pV)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3InterpolatePosition(SFloat3* psVecDest, const SFloat3* psVec1, const SFloat3* psVec2, float fWeight)
+void Float3InterpolatePosition(SFloat32Vec3* psVecDest, const SFloat32Vec3* psVec1, const SFloat32Vec3* psVec2, float32 fWeight)
 {
-	SFloat3		sVec1;
-	SFloat3		sVec2;
+	SFloat32Vec3	sVec1;
+	SFloat32Vec3	sVec2;
 
 	Float3Scale(&sVec1, psVec1, fWeight);
 	Float3Scale(&sVec2, psVec2, 1.0f - fWeight);
@@ -739,10 +464,10 @@ void Float3InterpolatePosition(SFloat3* psVecDest, const SFloat3* psVec1, const 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3InterpolateNormal(SFloat3* psVecDest, const SFloat3* psVec1, const SFloat3* psVec2, float fWeight)
+void Float3InterpolateNormal(SFloat32Vec3* psVecDest, const SFloat32Vec3* psVec1, const SFloat32Vec3* psVec2, float32 fWeight)
 {
-	SFloat3		sVec1;
-	SFloat3		sVec2;
+	SFloat32Vec3	sVec1;
+	SFloat32Vec3	sVec2;
 
 	Float3Scale(&sVec1, psVec1, fWeight);
 	Float3Scale(&sVec2, psVec2, 1.0f - fWeight);
@@ -757,11 +482,11 @@ void Float3InterpolateNormal(SFloat3* psVecDest, const SFloat3* psVec1, const SF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3RotateAboutNormalisedAxis(SFloat3* psVecDest, SFloat3 p, float fTheta, SFloat3 r)
+void Float3RotateAboutNormalisedAxis(SFloat32Vec3* psVecDest, SFloat32Vec3 p, float32 fTheta, SFloat32Vec3 r)
 {
-	float fCosTheta;
-	float fSinTheta;
-	float fInvCosTheta;
+	float32		fCosTheta;
+	float32		fSinTheta;
+	float32		fInvCosTheta;
 
 	psVecDest->Zero();
 	fCosTheta = cosf(fTheta);

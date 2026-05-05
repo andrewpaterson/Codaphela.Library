@@ -629,7 +629,7 @@ int CMeshPolygons::NumUniqueNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshPolygons::GetNormals(CArrayFloat3* pasNormals, CMeshNormals* pcNormals)
+void CMeshPolygons::GetNormals(CArrayFloat32Vec3* pasNormals, CMeshNormals* pcNormals)
 {
 	int				i;
 	int				iNumPolygons;
@@ -637,8 +637,8 @@ void CMeshPolygons::GetNormals(CArrayFloat3* pasNormals, CMeshNormals* pcNormals
 	int				iNumFaces;
 	int				j;
 	int				iFace;
-	SFloat3*		psNormal;
-	SFloat3*		pasNormalsData;
+	SFloat32Vec3*	psNormal;
+	SFloat32Vec3*	pasNormalsData;
 
 	iNumPolygons = mcPolygons.NumElements();
 	pasNormals->Resize(iNumPolygons);
@@ -654,7 +654,7 @@ void CMeshPolygons::GetNormals(CArrayFloat3* pasNormals, CMeshNormals* pcNormals
 		{
 			iFace = pcPolygon->maiFaces.GetValue(j);
 			psNormal = pcNormals->GetFaceNormal(iFace);
-			 pasNormalsData[i].Add(psNormal);
+			pasNormalsData[i].Add(psNormal);
 		}
 
 		if (iNumFaces > 1)

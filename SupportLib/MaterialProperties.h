@@ -43,8 +43,8 @@ public:
 	CImageColourARGB	sAmbientColour;
 	CImageColourARGB	sEmissiveColour;
 	CImageColourARGB	sSpecularColour;
-	float				fShininessPower;
-	float				fShininessBase;
+	float32				fShininessPower;
+	float32				fShininessBase;
 	bool				bLit;
 	EMaterialOpacity	meOpacity;
 

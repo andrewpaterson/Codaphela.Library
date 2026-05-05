@@ -50,12 +50,12 @@ public:
 	ELightType			meType;
 	CImageColourARGB	msColour;
 	ELightDecayType		meDecay;
-	float				mfDecayStart;
+	float32				mfDecayStart;
 	bool				mbCastShadows;
-	float				mfIntensity;
+	float32				mfIntensity;
 
 	void 	Init(void);
-	void 	Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eDecay, float fDecayStart, bool bCastShadows, float fIntensity);
+	void 	Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eDecay, float32 fDecayStart, bool bCastShadows, float32 fIntensity);
 	void	Free(void);
 	void	Class(void);
 

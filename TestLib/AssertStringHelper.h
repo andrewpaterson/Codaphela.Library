@@ -47,7 +47,7 @@ void ToLongString(uint64 i, char* szString, size iStringLength);
 void ToLongHexString(int64 i, char* szString, size iStringLength);
 void ToLongHexString(uint64 i, char* szString, size iStringLength);
 void ToFloatString(float f, char* sz, int iDecimals);
-void ToFloat3String(SFloat3* psFloat3, char* sz, int iWholeNumbers, int iDecimals);
+void ToFloat3String(SFloat32Vec3* psFloat3, char* sz, int iWholeNumbers, int iDecimals);
 void ToDoubleString(double f, char* sz, int iDecimals);
 void ToPointerString(void* pv, char* sz, size iStringLength);
 void ToMD5String(uint8* puc, char* sz, size iStringLength);

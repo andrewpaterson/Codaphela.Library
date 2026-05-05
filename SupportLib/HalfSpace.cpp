@@ -27,7 +27,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHalfSpace::Init(SFloat3* psNormal)
+void CHalfSpace::Init(SFloat32Vec3* psNormal)
 {
 	mpsNormal = psNormal;
 	d = 0;
@@ -38,7 +38,7 @@ void CHalfSpace::Init(SFloat3* psNormal)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHalfSpace::Contains(SFloat3* psPosition)
+bool CHalfSpace::Contains(SFloat32Vec3* psPosition)
 {
 	return FloatLessThan(Float3Dot(mpsNormal, psPosition), d);
 }
@@ -48,7 +48,7 @@ bool CHalfSpace::Contains(SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHalfSpace::NotContains(SFloat3* psPosition)
+bool CHalfSpace::NotContains(SFloat32Vec3* psPosition)
 {
 	return FloatGreaterThan(Float3Dot(mpsNormal, psPosition), d);
 }
@@ -58,7 +58,7 @@ bool CHalfSpace::NotContains(SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHalfSpace::On(SFloat3* psPosition)
+bool CHalfSpace::On(SFloat32Vec3* psPosition)
 {
 	return FloatEqual(Float3Dot(mpsNormal, psPosition), d);
 }
@@ -68,10 +68,10 @@ bool CHalfSpace::On(SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHalfSpace::Set(SFloat3* v1, SFloat3* v2, SFloat3* v3)
+void CHalfSpace::Set(SFloat32Vec3* v1, SFloat32Vec3* v2, SFloat32Vec3* v3)
 {
-	SFloat3 side1; 
-	SFloat3 side2;
+	SFloat32Vec3 side1; 
+	SFloat32Vec3 side2;
 
 	side1 = *v2 - *v1;
 	side2 = *v3 - *v1;
@@ -83,7 +83,7 @@ void CHalfSpace::Set(SFloat3* v1, SFloat3* v2, SFloat3* v3)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHalfSpace::Set2(SFloat3* psPosition1, SFloat3* psVector1, SFloat3* psVector2)
+void CHalfSpace::Set2(SFloat32Vec3* psPosition1, SFloat32Vec3* psVector1, SFloat32Vec3* psVector2)
 {
 	Float3Cross(mpsNormal, psVector1, psVector2);
 	Float3Normalize(mpsNormal, mpsNormal);
@@ -95,7 +95,7 @@ void CHalfSpace::Set2(SFloat3* psPosition1, SFloat3* psVector1, SFloat3* psVecto
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHalfSpace::Set(SFloat3* psPosition1, SFloat3* psNormal)
+void CHalfSpace::Set(SFloat32Vec3* psPosition1, SFloat32Vec3* psNormal)
 {
 	*mpsNormal = *psNormal;
 	D(psPosition1, mpsNormal);
@@ -106,10 +106,10 @@ void CHalfSpace::Set(SFloat3* psPosition1, SFloat3* psNormal)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHalfSpace::SetZPlane(SFloat3* v1, SFloat3* v2)
+void CHalfSpace::SetZPlane(SFloat32Vec3* v1, SFloat32Vec3* v2)
 {
-	SFloat3	side1;
-	SFloat3	z;
+	SFloat32Vec3	side1;
+	SFloat32Vec3	z;
 
 	z.Init(0,0,1);
 
@@ -124,13 +124,13 @@ void CHalfSpace::SetZPlane(SFloat3* v1, SFloat3* v2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHalfSpace::FindFurthestPoint(SFloat3* psPoints, int iStride, int iNumPoints)
+int CHalfSpace::FindFurthestPoint(SFloat32Vec3* psPoints, int iStride, int iNumPoints)
 {
 	int					iFarIndex;
 	int					i;
-	SFloat3*			psOther;
-	float				fDist;
-	float				fMaxDist;
+	SFloat32Vec3*			psOther;
+	float32				fDist;
+	float32				fMaxDist;
 
 	fMaxDist = SMALL_NUMBER;
 	iFarIndex = -1;
@@ -153,13 +153,13 @@ int CHalfSpace::FindFurthestPoint(SFloat3* psPoints, int iStride, int iNumPoints
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHalfSpace::FindUnsignedFurthestPoint(SFloat3* psPoints, int iStride, int iNumPoints)
+int CHalfSpace::FindUnsignedFurthestPoint(SFloat32Vec3* psPoints, int iStride, int iNumPoints)
 {
 	int					iFarIndex;
 	int					i;
-	SFloat3*			psOther;
-	float				fDist;
-	float				fMaxDist;
+	SFloat32Vec3*			psOther;
+	float32				fDist;
+	float32				fMaxDist;
 
 	fMaxDist = SMALL_NUMBER;
 	iFarIndex = -1;
@@ -182,13 +182,13 @@ int CHalfSpace::FindUnsignedFurthestPoint(SFloat3* psPoints, int iStride, int iN
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHalfSpace::FindFurthestPoint(SFloat3* psPoints, int iStride, int* aiIndices, int iNumIndices)
+int CHalfSpace::FindFurthestPoint(SFloat32Vec3* psPoints, int iStride, int* aiIndices, int iNumIndices)
 {
 	int					iFarIndex;
 	int					i;
-	SFloat3*			psOther;
-	float				fDist;
-	float				fMaxDist;
+	SFloat32Vec3*			psOther;
+	float32				fDist;
+	float32				fMaxDist;
 	int					iIndex;
 
 	fMaxDist = SMALL_NUMBER;
@@ -223,7 +223,7 @@ bool CHalfSpace::Parallel(CHalfSpace* psOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHalfSpace::D(SFloat3* psPosition1, SFloat3* psNormal)
+void CHalfSpace::D(SFloat32Vec3* psPosition1, SFloat32Vec3* psNormal)
 {
 	d = Float3Dot(psNormal, psPosition1);
 }

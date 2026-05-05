@@ -45,7 +45,7 @@ Ptr<CCamera> CCamera::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CCamera> CCamera::Init(ECameraType eCameraType, float fFOV)
+Ptr<CCamera> CCamera::Init(ECameraType eCameraType, float32 fFOV)
 {
 	PreInit();
 

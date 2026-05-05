@@ -32,7 +32,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 class CSphereHelper : public CSphere
 {
 public:
-	SFloat3		msPosition;
+	SFloat32Vec3		msPosition;
 
 	void Init(void);
 	void Kill(void);
@@ -46,8 +46,8 @@ public:
 class CTriangleHelper : public CTriangle
 {
 public:
-	SFloat3		masPosition[3];
-	SFloat3		msNormal;
+	SFloat32Vec3		masPosition[3];
+	SFloat32Vec3		msNormal;
 
 	void Init(void);
 	void Kill(void);
@@ -61,8 +61,8 @@ public:
 class CPlaneHelper : public CPlane
 {
 public:
-	SFloat3		msPosition;
-	SFloat3		msNormal;
+	SFloat32Vec3		msPosition;
+	SFloat32Vec3		msNormal;
 
 	void Init(void);
 	void Kill(void);
@@ -76,7 +76,7 @@ public:
 class CHalfSpaceHelper : public CHalfSpace
 {
 public:
-	SFloat3		msNormal;
+	SFloat32Vec3		msNormal;
 
 	void Init(void);
 	void Kill(void);

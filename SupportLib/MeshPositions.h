@@ -35,7 +35,7 @@ class CMeshPositions : public CMeshDetail
 CONSTRUCTABLE(CMeshPositions);
 DESTRUCTABLE(CMeshPositions);
 public:
-	CArrayFloat3	mcPositions;
+	CArrayFloat32Vec3	mcPositions;
 
 	void 	Init(void);
 	void 	Free(void);
@@ -46,8 +46,8 @@ public:
 	bool	Save(CObjectWriter* pcFile) override;
 	bool	Load(CObjectReader* pcFile) override;
 
-	void	AddPosition(float x, float y, float z);
-	void	AddPosition(SFloat3* psPosition);
+	void	AddPosition(float32 x, float32 y, float32 z);
+	void	AddPosition(SFloat32Vec3* psPosition);
 };
 
 

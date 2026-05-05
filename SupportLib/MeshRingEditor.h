@@ -31,11 +31,11 @@ class CMeshRingEditor : public CMeshSourceModifier
 {
 CONSTRUCTABLE(CMeshRingEditor);
 public:
-	SFloat3 	msZDirection;
-	SFloat3 	msStart;
-	float		mfTopRadius;
-	float		mfBottomRadius;
-	float		mfLength;
+	SFloat32Vec3 	msZDirection;
+	SFloat32Vec3 	msStart;
+	float32		mfTopRadius;
+	float32		mfBottomRadius;
+	float32		mfLength;
 	int			miWedgeSegments;
 	int			miRingSegments;
 	bool		mbFlipFaces;
@@ -43,7 +43,7 @@ public:
 	int			miZI;
 	int			miZE;
 
-	void	Init(SFloat3* psZDirection, SFloat3* psStart, float fTopRadius, float fBottomRadius, float fLength, int iWedgeSegments, int iRingSegments);
+	void	Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, float32 fTopRadius, float32 fBottomRadius, float32 fLength, int iWedgeSegments, int iRingSegments);
 	void	SetFlipFaces(bool bFlipFaces);
 	void	SetFaceName(int iFaceName);
 	void	SetZOffsets(int iZStartOffset, int iZEndOffset);

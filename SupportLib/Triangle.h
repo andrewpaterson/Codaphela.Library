@@ -27,20 +27,20 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 class CTriangle : public CPlane
 {
 public:
-	SFloat3*	mpsPosition1;
-	SFloat3*	mpsPosition2;
+	SFloat32Vec3*	mpsPosition1;
+	SFloat32Vec3*	mpsPosition2;
 
-	void 		Init(SFloat3* psPoint1, SFloat3* psPoint2, SFloat3* psPoint3, SFloat3* psNormal);
+	void 		Init(SFloat32Vec3* psPoint1, SFloat32Vec3* psPoint2, SFloat32Vec3* psPoint3, SFloat32Vec3* psNormal);
 	void 		Set(void);
-	void 		Set(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3);
-	void 		Set(SFloat3* psPoint1, SFloat3* psPoint2, SFloat3* psPoint3);
-	SFloat3*	GetPoint(size iPoint);
-	bool		HasPositionPtr(SFloat3* psPosition);
+	void 		Set(float32 x1, float32 y1, float32 z1, float32 x2, float32 y2, float32 z2, float32 x3, float32 y3, float32 z3);
+	void 		Set(SFloat32Vec3* psPoint1, SFloat32Vec3* psPoint2, SFloat32Vec3* psPoint3);
+	SFloat32Vec3*	GetPoint(size iPoint);
+	bool		HasPositionPtr(SFloat32Vec3* psPosition);
 	bool		IsDegenerate(void);
-	size		IsSliver(float fAngleSliver, SFloat3** pps0, SFloat3** pps1, SFloat3** pps2);
-	void		GetEdgeDirections(SFloat3* psEdge1, SFloat3* psEdge2, SFloat3* psEdge3);
-	void		GetAngles(float* psAngle1, float* psAngle2, float* psAngle3);
-	void		Center(SFloat3* psCenter);
+	size		IsSliver(float32 fAngleSliver, SFloat32Vec3** pps0, SFloat32Vec3** pps1, SFloat32Vec3** pps2);
+	void		GetEdgeDirections(SFloat32Vec3* psEdge1, SFloat32Vec3* psEdge2, SFloat32Vec3* psEdge3);
+	void		GetAngles(float32* psAngle1, float32* psAngle2, float32* psAngle3);
+	void		Center(SFloat32Vec3* psCenter);
 	void		Dump(void);
 };
 

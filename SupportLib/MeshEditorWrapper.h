@@ -57,9 +57,9 @@ public:
 	CMFRet				AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iName = 0, bool bFlipFaces = false);  //Corners clock-wise.
 	CMFRet				AddPolygon(CArrayInt* paiCorners, int iName = 0, bool bFlipFaces = false);  //Corners clock-wise.
 
-	void				AddCorner(float x, float y, float z);
-	void				AddUV(float u, float v);
-	void				AddNormal(float x, float y, float z);
+	void				AddCorner(float32 x, float32 y, float32 z);
+	void				AddUV(float32 u, float32 v);
+	void				AddNormal(float32 x, float32 y, float32 z);
 
 	int					NumFaces(void);
 	int					NumCorners(void);

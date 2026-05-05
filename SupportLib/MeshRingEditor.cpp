@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshRingEditor::Init(SFloat3* psZDirection, SFloat3* psStart, float fTopRadius, float fBottomRadius, float fLength, int iWedgeSegments, int iRingSegments)
+void CMeshRingEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, float32 fTopRadius, float32 fBottomRadius, float32 fLength, int iWedgeSegments, int iRingSegments)
 {
 	msZDirection.Init(psZDirection);
 	msStart.Init(psStart);
@@ -133,13 +133,13 @@ void CMeshRingEditor::GenerateRing(CMeshEditor* pcMeshEditor)
 {
 	int			i;
 	int			z;
-	SFloat3		sDest;
-	SFloat3		sSource;
-	float		fWedgeRad;
-	float		fRadius;
-	float		f;
-	float		fZ;
-	SFloat3		sRingCenter;
+	SFloat32Vec3		sDest;
+	SFloat32Vec3		sSource;
+	float32		fWedgeRad;
+	float32		fRadius;
+	float32		f;
+	float32		fZ;
+	SFloat32Vec3		sRingCenter;
 	int			iStartPosition;
 	int			iZOffset0;
 	int			iZOffset1;
@@ -150,7 +150,7 @@ void CMeshRingEditor::GenerateRing(CMeshEditor* pcMeshEditor)
 
 	for (z = miZI; z < miRingSegments-miZE; z++)
 	{
-		f = (float)z/(float)(miRingSegments-1);
+		f = (float32)z/(float32)(miRingSegments-1);
 		fRadius = InterpolateFloat(mfBottomRadius, mfTopRadius, f);
 		fZ = mfLength * f;
 

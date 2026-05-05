@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 struct SSkinWeight
 {
-	float	fWeight;
+	float32	fWeight;
 	int		iMatrix;  //0 ... miNumMatricies-1.  This is NOT a lookup into the ConnectionTracker.
 };
 

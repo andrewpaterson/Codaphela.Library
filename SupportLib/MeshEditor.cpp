@@ -197,9 +197,9 @@ void CMeshEditor::ClearConnectivity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditor::AddCorner(float x, float y, float z)
+void CMeshEditor::AddCorner(float32 x, float32 y, float32 z)
 {
-	SFloat3		s;
+	SFloat32Vec3		s;
 
 	s.Init(x, y, z);
 
@@ -213,7 +213,7 @@ void CMeshEditor::AddCorner(float x, float y, float z)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditor::AddCorner(SFloat3* psPosition)
+void CMeshEditor::AddCorner(SFloat32Vec3* psPosition)
 {
 	mpcMesh->AddCorner(psPosition);
 	mcModifiers.AddPosition(psPosition);
@@ -359,7 +359,7 @@ void CMeshEditor::RemoveCorner(int iCorner)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditor::MovePosition(int iPosition, SFloat3* psPosition)
+void CMeshEditor::MovePosition(int iPosition, SFloat32Vec3* psPosition)
 {
 	mpcMesh->MovePosition(iPosition, psPosition);
 	mcModifiers.MovePosition(iPosition, psPosition);
@@ -370,7 +370,7 @@ void CMeshEditor::MovePosition(int iPosition, SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditor::MovePositions(CArrayInt* paiPositions, SFloat3* psPosition)
+void CMeshEditor::MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosition)
 {
 	mpcMesh->MovePositions(paiPositions, psPosition);
 	mcModifiers.MovePositions(paiPositions, psPosition);

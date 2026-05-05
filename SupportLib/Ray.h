@@ -26,13 +26,13 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 class CRay
 {
 public:
-	SFloat3		msStart;		//Starting point of line
-	SFloat3		msDirection;	//unit direction from start
+	SFloat32Vec3		msStart;		//Starting point of line
+	SFloat32Vec3		msDirection;	//unit direction from start
 
-	void	Init(SFloat3* psStart, SFloat3* psDirection);
-	void	SetFromPositions(SFloat3* s, SFloat3* e);
-	void	SetFromDirection(SFloat3* sStartOfRay, SFloat3* sDirection);
-	void	SetFromDirection(float xs, float ys, float zs, float xd, float yd, float zd);
+	void	Init(SFloat32Vec3* psStart, SFloat32Vec3* psDirection);
+	void	SetFromPositions(SFloat32Vec3* s, SFloat32Vec3* e);
+	void	SetFromDirection(SFloat32Vec3* sStartOfRay, SFloat32Vec3* sDirection);
+	void	SetFromDirection(float32 xs, float32 ys, float32 zs, float32 xd, float32 yd, float32 zd);
 	void	Copy(CRay* pcSource);
 };
 

@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FloatHelper.h"
 #include "Float4.h"
 #include "Float4x4.h"
-#include "Float3.h"
+#include "Float32Vec3.h"
 #include "Float64Vec2.h"
 
 
@@ -35,8 +35,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void SFloat64Vec2::Fix(void)
 {
-	x = RoundDouble(x, BINARY_PRECISION);
-	y = RoundDouble(y, BINARY_PRECISION);
+	x = RoundFloat(x, (int64)BINARY_PRECISION);
+	y = RoundFloat(y, (int64)BINARY_PRECISION);
 }
 
 
@@ -48,8 +48,8 @@ int SFloat64Vec2::WholeNumbers(void)
 {
 	int i[2];
 
-	i[0] = DoubleWholeNumbers(x);
-	i[1] = DoubleWholeNumbers(y);
+	i[0] = FloatWholeNumbers(x);
+	i[1] = FloatWholeNumbers(y);
 
 	return LargestInt(i, 3);
 }
@@ -120,8 +120,8 @@ void SFloat64Vec2::Normalize(void)
 //////////////////////////////////////////////////////////////////////////
 bool SFloat64Vec2::CloselyEqual(SFloat64Vec2* ps)
 {
-	if ((DoubleEqual(x, ps->x)) &&
-		(DoubleEqual(y, ps->y)))
+	if ((FloatEqual(x, ps->x)) &&
+		(FloatEqual(y, ps->y)))
 	{
 		return true;
 	}
@@ -135,8 +135,8 @@ bool SFloat64Vec2::CloselyEqual(SFloat64Vec2* ps)
 //////////////////////////////////////////////////////////////////////////
 bool SFloat64Vec2::CloselyEqual(SFloat64Vec2* ps, float64 fTolerance)
 {
-	if ((DoubleEqual(x, ps->x, fTolerance)) &&
-		(DoubleEqual(y, ps->y, fTolerance)))
+	if ((FloatEqual(x, ps->x, fTolerance)) &&
+		(FloatEqual(y, ps->y, fTolerance)))
 	{
 		return true;
 	}

@@ -158,7 +158,7 @@ void CMeshModifierStack::ClearConnectivity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::AddPosition(SFloat3* psPosition)
+void CMeshModifierStack::AddPosition(SFloat32Vec3* psPosition)
 {
 	size			i;
 	CMeshModifier*	pcEditor;
@@ -259,7 +259,7 @@ void CMeshModifierStack::RemoveCorner(int iCorner)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::MovePosition(int iPosition, SFloat3* psDelta)
+void CMeshModifierStack::MovePosition(int iPosition, SFloat32Vec3* psDelta)
 {
 	size			i;
 	CMeshModifier*	pcEditor;
@@ -279,7 +279,7 @@ void CMeshModifierStack::MovePosition(int iPosition, SFloat3* psDelta)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::MovePositions(CArrayInt* paiPositions, SFloat3* psDelta)
+void CMeshModifierStack::MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psDelta)
 {
 	size			i;
 	CMeshModifier*	pcEditor;

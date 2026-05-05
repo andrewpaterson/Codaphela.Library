@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayTemplatePrimitive.h"
 
 
-class CArrayFloat32 : public CArrayTemplatePrimitive<float32>
+class CArrayFloat32Vec3 : public CArrayTemplatePrimitive<float32>
 {
 public:
 	void	Dump(void);

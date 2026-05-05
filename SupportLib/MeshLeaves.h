@@ -45,11 +45,11 @@ enum ERelativeSphereVolume
 class CRelativeSphereVolume
 {
 public:
-	float					fVolume;
+	float32					fVolume;
 	ERelativeSphereVolume	eRelative[3];  // This ERelativeSphereVolume other.
 	int						iNewIndex;
 
-	void					Init(float fVolume);
+	void					Init(float32 fVolume);
 	bool					IsAllGreaterThan(void);
 	bool					IsAllEqual(void);
 	bool					IsGreaterThanOrEqual(int iNumGreaterThan);
@@ -77,7 +77,7 @@ struct STriangleSphere
 {
 	CRelativeSphereVolume	cRelativeVolume;
 	CSphere					cSphere;
-	SFloat3					sCenter;
+	SFloat32Vec3					sCenter;
 };
 
 

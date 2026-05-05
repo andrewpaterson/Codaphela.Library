@@ -31,9 +31,9 @@ class CMeshPlaneEditor : public CMeshSourceModifier
 {
 CONSTRUCTABLE(CMeshPlaneEditor);
 public:
-	SFloat3 	msXDirection;
-	SFloat3 	msYDirection; 
-	SFloat3 	msStart;
+	SFloat32Vec3 	msXDirection;
+	SFloat32Vec3 	msYDirection; 
+	SFloat32Vec3 	msStart;
 	int			miXSegments;
 	int			miYSegments;
 	int			miXI;
@@ -43,7 +43,7 @@ public:
 	bool		mbFlipFaces;
 	int			miFaceName;
 
-	void	Init(SFloat3* psXDirection, SFloat3* psYDirection, SFloat3* psStart, int iXSegments, int iYSegments);
+	void	Init(SFloat32Vec3* psXDirection, SFloat32Vec3* psYDirection, SFloat32Vec3* psStart, int iXSegments, int iYSegments);
 	void	SetXOffsets(int iXStartOffset, int iXEndOffset);
 	void	SetYOffsets(int iYStartOffset, int iYEndOffset);
 	void	SetFlipFaces(bool bFlipFaces);

@@ -66,8 +66,8 @@ void AddOBJName(CMesh* pcMesh, CChars* psz)
 void AddOBJVertices(CMesh* pcMesh, CChars* psz)
 {
 	int			i;
-	SFloat3*	psPosition;
-	SFloat3		sPosition;
+	SFloat32Vec3*	psPosition;
+	SFloat32Vec3		sPosition;
 	int			iNumPositions;
 
 	iNumPositions = pcMesh->NumCorners();
@@ -100,8 +100,8 @@ void AddOBJVertices(CMesh* pcMesh, CChars* psz)
 bool AddOBJNormals(CMeshNormals* pcNormals, CChars* psz)
 {
 	size		i;
-	SFloat3*	psNormal;
-	SFloat3		sNormal;
+	SFloat32Vec3*	psNormal;
+	SFloat32Vec3		sNormal;
 
 	if (pcNormals->mcNormals.NumElements() > 0)
 	{

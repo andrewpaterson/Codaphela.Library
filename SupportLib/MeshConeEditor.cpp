@@ -33,7 +33,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshConeEditor::Init(SFloat3* psZDirection, SFloat3* psStart, float fTopRadius, float fBottomRadius, float fLength, int iWedgeSegments, int iTopCircleSegments, int iBottomCircleSegments, int iRingSegments)
+void CMeshConeEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, float32 fTopRadius, float32 fBottomRadius, float32 fLength, int iWedgeSegments, int iTopCircleSegments, int iBottomCircleSegments, int iRingSegments)
 {
 	msZDirection.Init(psZDirection);
 	msStart.Init(psStart);
@@ -103,7 +103,7 @@ int CMeshConeEditor::ExpectedCornerChunkSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshConeEditor::Apply(CMeshEditor* pcMeshEditor)
 {
-	SFloat3				sTopCenter;
+	SFloat32Vec3				sTopCenter;
 	int					iFirstTop;
 	int					iFirstRing;
 	int					iFirstBottom;

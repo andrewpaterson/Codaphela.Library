@@ -72,7 +72,7 @@ bool CSphereIndexed::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSphereIndexed::Shape(CSphere* pcShape, SFloat3* psVertexArray)
+bool CSphereIndexed::Shape(CSphere* pcShape, SFloat32Vec3* psVertexArray)
 {
 	if (miPosition != -1)
 	{
@@ -152,9 +152,9 @@ bool CTriangleIndexed::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTriangleIndexed::Shape(CTriangle* pcShape, SFloat3* psVertexArray, SFloat3* psNormalArray)
+bool CTriangleIndexed::Shape(CTriangle* pcShape, SFloat32Vec3* psVertexArray, SFloat32Vec3* psNormalArray)
 {
-	SFloat3*	psNormal;
+	SFloat32Vec3*	psNormal;
 
 	if ((maiPositions[0] != -1) && (maiPositions[1] != -1) && (maiPositions[2] != -1) && (miNormalIndex != -1))
 	{
@@ -195,7 +195,7 @@ void CBoxIndexed::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBoxIndexed::Init(int iCenterIndex, int iLongAxisIndex, float fLongAxisLength, int iMiddleAxisIndex, float fMiddleAxisLength, int iShortAxisIndex, float fShortAxisLength)
+void CBoxIndexed::Init(int iCenterIndex, int iLongAxisIndex, float32 fLongAxisLength, int iMiddleAxisIndex, float32 fMiddleAxisLength, int iShortAxisIndex, float32 fShortAxisLength)
 {
 	miCenterIndex = iCenterIndex;
 	miLongAxisIndex = iLongAxisIndex;

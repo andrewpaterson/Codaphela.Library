@@ -26,7 +26,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRay::Init(SFloat3* psStart, SFloat3* psDirection)
+void CRay::Init(SFloat32Vec3* psStart, SFloat32Vec3* psDirection)
 {
 	msStart.Copy(psStart);
 	msDirection.Copy(psDirection);
@@ -36,11 +36,11 @@ void CRay::Init(SFloat3* psStart, SFloat3* psDirection)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRay::SetFromPositions(SFloat3* s, SFloat3* e)
+void CRay::SetFromPositions(SFloat32Vec3* s, SFloat32Vec3* e)
 {
 	msStart = (*s);
-	Float3Subtract((SFloat3*)&msDirection, (SFloat3*)e, (SFloat3*)s);
-	Float3Normalize((SFloat3*)&msDirection, (SFloat3*)&msDirection);
+	Float3Subtract((SFloat32Vec3*)&msDirection, (SFloat32Vec3*)e, (SFloat32Vec3*)s);
+	Float3Normalize((SFloat32Vec3*)&msDirection, (SFloat32Vec3*)&msDirection);
 }
 
 
@@ -48,11 +48,11 @@ void CRay::SetFromPositions(SFloat3* s, SFloat3* e)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRay::SetFromDirection(SFloat3* sStartOfRay, SFloat3* sDirection)
+void CRay::SetFromDirection(SFloat32Vec3* sStartOfRay, SFloat32Vec3* sDirection)
 {
 	msStart = (*sStartOfRay);
 	msDirection = (*sDirection);
-	Float3Normalize((SFloat3*)&msDirection, (SFloat3*)&msDirection);
+	Float3Normalize((SFloat32Vec3*)&msDirection, (SFloat32Vec3*)&msDirection);
 }
 
 
@@ -60,11 +60,11 @@ void CRay::SetFromDirection(SFloat3* sStartOfRay, SFloat3* sDirection)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRay::SetFromDirection(float xs, float ys, float zs, float xd, float yd, float zd)
+void CRay::SetFromDirection(float32 xs, float32 ys, float32 zs, float32 xd, float32 yd, float32 zd)
 {
-	(SFloat3)msStart = SFloat3(xs, ys, zs);
-	(SFloat3)msDirection = SFloat3(xd, yd, zd);
-	Float3Normalize((SFloat3*)&msDirection, (SFloat3*)&msDirection);
+	msStart.Init(xs, ys, zs);
+	msDirection.Init(xd, yd, zd);
+	Float3Normalize(&msDirection, &msDirection);
 }
 
 

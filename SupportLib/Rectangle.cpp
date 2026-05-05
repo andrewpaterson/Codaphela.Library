@@ -353,8 +353,8 @@ SFloat32Vec2	CRectangle::GetUVCoordinatesTopLeft(int32 iTextureXSize, int32 iTex
 {
 	SFloat32Vec2	sTopLeft;
 
-	sTopLeft.x = ((float)miLeft + HALF_TEXEL) / (float)iTextureXSize;
-	sTopLeft.y = ((float)miTop + HALF_TEXEL) / (float)iTextureYSize;
+	sTopLeft.x = ((float32)miLeft + HALF_TEXEL) / (float32)iTextureXSize;
+	sTopLeft.y = ((float32)miTop + HALF_TEXEL) / (float32)iTextureYSize;
 	return sTopLeft;
 }
 
@@ -367,8 +367,8 @@ SFloat32Vec2	CRectangle::GetUVCoordinatesBottomRight(int32 iTextureXSize, int32 
 {
 	SFloat32Vec2 sBottomRight;
 
-	sBottomRight.x = ((float)miRight + HALF_TEXEL) / (float)iTextureXSize;
-	sBottomRight.y = ((float)miBottom + HALF_TEXEL) / (float)iTextureYSize;
+	sBottomRight.x = ((float32)miRight + HALF_TEXEL) / (float32)iTextureXSize;
+	sBottomRight.y = ((float32)miBottom + HALF_TEXEL) / (float32)iTextureYSize;
 	return sBottomRight;
 }
 

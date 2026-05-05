@@ -37,7 +37,7 @@ void CLineSegment::Set(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLineSegment::Set(SFloat3* sStart, SFloat3* sEnd)
+void CLineSegment::Set(SFloat32Vec3* sStart, SFloat32Vec3* sEnd)
 {
 	msStart = (*sStart);
 	msEnd = (*sEnd);
@@ -51,10 +51,10 @@ void CLineSegment::Set(SFloat3* sStart, SFloat3* sEnd)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLineSegment::Set(float x1, float y1, float z1, float x2, float y2, float z2)
+void CLineSegment::Set(float32 x1, float32 y1, float32 z1, float32 x2, float32 y2, float32 z2)
 {
-	msStart = SFloat3(x1, y1, z1);
-	msEnd = SFloat3(x2, y2, z2);
+	msStart.Init(x1, y1, z1);
+	msEnd.Init(x2, y2, z2);
 	Float3Subtract(&msDirection, &msEnd, &msStart);
 	mfLength = msDirection.Magnitude();
 	msDirection /= mfLength;

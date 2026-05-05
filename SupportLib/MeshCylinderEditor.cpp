@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshCylinderEditor::Init(SFloat3* psZDirection, SFloat3* psStart, float fRadius, float fLength, int iWedgeSegments, int iCircleSegments, int iRingSegments)
+void CMeshCylinderEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, float32 fRadius, float32 fLength, int iWedgeSegments, int iCircleSegments, int iRingSegments)
 {
 	mcConeEditor.Init(psZDirection, psStart, fRadius, fRadius, fLength, iWedgeSegments, iCircleSegments, iCircleSegments, iRingSegments);
 }

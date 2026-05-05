@@ -38,8 +38,8 @@ public:
 
 	virtual void	ClearConnectivity(void);
 
-	virtual void 	AddPosition(float x, float y, float z);
-	virtual void	AddPosition(SFloat3* psPosition);
+	virtual void 	AddPosition(float32 x, float32 y, float32 z);
+	virtual void	AddPosition(SFloat32Vec3* psPosition);
 
 	virtual void	AddFace(int iCorner1, int iCorner2, int iCorner3);
 	virtual void	AddFaces(CArrayInt* paiCorners);  //paiCorners size is a multiple of 3.
@@ -50,8 +50,8 @@ public:
 	virtual void	RemoveCorner(int iCorner);
 	virtual void	RemoveCorners(CArrayInt* paiCorners);
 
-	virtual void	MovePosition(int iPosition, SFloat3* psPosition);
-	virtual void	MovePositions(CArrayInt* paiPositions, SFloat3* psPosition);
+	virtual void	MovePosition(int iPosition, SFloat32Vec3* psPosition);
+	virtual void	MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosition);
 };
 
 

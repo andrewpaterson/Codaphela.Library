@@ -43,7 +43,7 @@ public:
 	CArraySize				mcSmoothingGroups;  //mcSmoothingGroups.NumElements == mpcMesh->mcFaces.NumElements
 	int						miAddGroup;
 	ESmoothGenerationStyle	meGenerationStyle;
-	float					mfSharpAngle;
+	float32					mfSharpAngle;
 
 	void 	Init(int iAddGroup = 1);
 	void 	Kill(void);

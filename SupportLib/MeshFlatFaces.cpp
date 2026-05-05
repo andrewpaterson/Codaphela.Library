@@ -83,7 +83,7 @@ void CMeshFlatFaces::Apply(CMeshEditor* pcMeshEditor)
 void CMeshFlatFaces::GenerateNormals(CMesh* pcMesh)
 {
 	int					i;
-	SFloat3				cNormal;  
+	SFloat32Vec3				cNormal;  
 	CMeshCorner*		psCorners;
 	CMeshFace*			psFaces;
 	CMeshFace*			psFace;

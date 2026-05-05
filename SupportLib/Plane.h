@@ -28,14 +28,14 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 class CPlane : public CHalfSpace
 {
 public:
-	SFloat3*	mpsPosition;	//For a triangle this is the first of three points.
+	SFloat32Vec3*	mpsPosition;	//For a triangle this is the first of three points.
 
-	void Init(SFloat3* psPosition, SFloat3* mpsNormal);
+	void Init(SFloat32Vec3* psPosition, SFloat32Vec3* mpsNormal);
 
 	//Set from three points
-	void Set(SFloat3* v1, SFloat3* v2, SFloat3* v3);
-	void Set(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3);
-	void Set(SFloat3* psPoint, SFloat3* psNormal);
+	void Set(SFloat32Vec3* v1, SFloat32Vec3* v2, SFloat32Vec3* v3);
+	void Set(float32 x1, float32 y1, float32 z1, float32 x2, float32 y2, float32 z2, float32 x3, float32 y3, float32 z3);
+	void Set(SFloat32Vec3* psPoint, SFloat32Vec3* psNormal);
 	void Set(void);
 	void Copy(CPlane* psSource);
 	bool Coplanar(CPlane* psOther);

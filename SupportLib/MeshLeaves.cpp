@@ -35,7 +35,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRelativeSphereVolume::Init(float fVolume)
+void CRelativeSphereVolume::Init(float32 fVolume)
 {
 	this->fVolume = fVolume;
 	eRelative[0] = RSV_Unknown;
@@ -298,14 +298,14 @@ void CMeshLeaves::PrivateAddLeafSphere(int iFaceNum, CMeshConnectivity* pcConn, 
 {
 	CTriangleIndexed*		pcTriangle;
 	size					j;
-	float					fRelativeVolume;
+	float32					fRelativeVolume;
 	CMeshLeaf*				pcNewMeshLeaf;
-	float					fLargerVolume;
-	float					fSmallerVolume;
-	float					fIntersectionVolume;
+	float32					fLargerVolume;
+	float32					fSmallerVolume;
+	float32					fIntersectionVolume;
 	CSphere					cNewSphere;
 	CArrayBlock				asTempVerts;
-	SFloat3*				psCenter;
+	SFloat32Vec3*				psCenter;
 	CTriangleIndexed*		pcTriangleOther;
 	STriangleSphere*		psSphere;
 	STriangleSphere*		psSphereOther;
@@ -320,7 +320,7 @@ void CMeshLeaves::PrivateAddLeafSphere(int iFaceNum, CMeshConnectivity* pcConn, 
 	psSphere = &pasSpheres[iFaceNum];
 	fLargerVolume = pasSpheres[iFaceNum].cRelativeVolume.fVolume;
 
-	asTempVerts.Init(sizeof(SFloat3));
+	asTempVerts.Init(sizeof(SFloat32Vec3));
 	for (j = 0; j < NUM_FACE_EDGES; j++)
 	{
 		if (sAdjFaces.aiFace[j] != -1)
@@ -357,7 +357,7 @@ void CMeshLeaves::PrivateAddLeafSphere(int iFaceNum, CMeshConnectivity* pcConn, 
 
 	psCenter = pcPositions->mcPositions.Add();
 	cNewSphere.Init(psCenter);
-	cNewSphere.SetFromPointsUsingBestFit((SFloat3*)asTempVerts.GetData(), sizeof(SFloat3), asTempVerts.NumElements());
+	cNewSphere.SetFromPointsUsingBestFit((SFloat32Vec3*)asTempVerts.GetData(), sizeof(SFloat32Vec3), asTempVerts.NumElements());
 	pcNewMeshLeaf = mcLeaves.Add();
 	pcNewMeshLeaf->Init();
 	pcNewMeshLeaf->mcSphere.mfRadius = cNewSphere.mfRadius;
@@ -418,11 +418,11 @@ void CMeshLeaves::GenerateLeafSpheres(CMeshConnectivity* pcConn, CMeshPositions*
 	int							i;
 	CTriangleIndexed*			pcTriangle;
 	int							iNumFaces;
-	SFloat3						cCenter;
+	SFloat32Vec3						cCenter;
 	CRelativeSphereVolume*		psVolume;
 	SAdjFaces					sAdjFaces;
 	int							j;
-	float						fRelativeVolume;
+	float32						fRelativeVolume;
 	STriangleSphere*			asSpheres;
 
 	iNumFaces = pcTriangles->mcTriangles.NumElements();
@@ -567,13 +567,13 @@ void CMeshLeaves::MakeLeavesIntoPolygons(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshLeaves::SetSphereFromTriangle(STriangleSphere* psSphere, CTriangleIndexed* pcTriangleIndexed, CMeshPositions* pcPositions)
 {
-	SFloat3		asCorners[3];
+	SFloat32Vec3		asCorners[3];
 
 	asCorners[0] = *pcPositions->mcPositions.Get(pcTriangleIndexed->maiPositions[0]);
 	asCorners[1] = *pcPositions->mcPositions.Get(pcTriangleIndexed->maiPositions[1]);
 	asCorners[2] = *pcPositions->mcPositions.Get(pcTriangleIndexed->maiPositions[2]);
 	psSphere->cSphere.mpsPosition = &psSphere->sCenter;
-	psSphere->cSphere.SetFromPointsUsingAveragePosition(asCorners, sizeof(SFloat3), 3);
+	psSphere->cSphere.SetFromPointsUsingAveragePosition(asCorners, sizeof(SFloat32Vec3), 3);
 	psSphere->cRelativeVolume.Init(psSphere->cSphere.Volume());
 }
 

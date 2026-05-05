@@ -68,8 +68,8 @@ public:
 	void	ClearConnectivity(void);
 
 	//These are the only methods that editors/modifers may use to alter mesh connectivity or positions.
-	void 	AddCorner(float x, float y, float z);
-	void	AddCorner(SFloat3* psPosition);
+	void 	AddCorner(float32 x, float32 y, float32 z);
+	void	AddCorner(SFloat32Vec3* psPosition);
 
 	CMFRet	AddFace(int iCorner1, int iCorner2, int iCorner3, int iName = 0, bool bEdge12 = true, bool bEdge23 = true, bool bEdge31 = true);
 	CMFRet	AddFace(int iCorner1, int iCorner2, int iCorner3, int iName, bool bEdge12, bool bEdge23, bool bEdge31, bool bFlipFaces);
@@ -81,8 +81,8 @@ public:
 
 	void	RemoveCorner(int iCorner);
 
-	void	MovePosition(int iPosition, SFloat3* psPosition);
-	void	MovePositions(CArrayInt* paiPositions, SFloat3* psPosition);
+	void	MovePosition(int iPosition, SFloat32Vec3* psPosition);
+	void	MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosition);
 };
 
 

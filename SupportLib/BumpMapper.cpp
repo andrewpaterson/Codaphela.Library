@@ -34,13 +34,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void GenerateNormalMapFromMono(CImage* pcImage, SFloat3* pasNormals, EChannel eHeightChannel)
+void GenerateNormalMapFromMono(CImage* pcImage, SFloat32Vec3* pasNormals, EChannel eHeightChannel)
 {
 	int				x, y;
-	SFloat3			sNormal;
-	float			f1, f2, f3, f4;
-	float			fdx1, fdx2;
-	float			fdy1, fdy2;
+	SFloat32Vec3			sNormal;
+	float32			f1, f2, f3, f4;
+	float32			fdx1, fdx2;
+	float32			fdy1, fdy2;
 	CImageAccessor*	pcAccessor;
 	int				c;
 
@@ -90,15 +90,15 @@ void GenerateNormalMapFromMono(CImage* pcImage, SFloat3* pasNormals, EChannel eH
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void AssignNormalMapFromNormals(Ptr<CImage> pcImage, SFloat3* pasNormals)
+void AssignNormalMapFromNormals(Ptr<CImage> pcImage, SFloat32Vec3* pasNormals)
 {
 	int					x, y;
 	int					iColour;
-	SFloat3				sNormal;
-	SFloat3*			pn1; 
-	SFloat3*			pn2; 
-	SFloat3*			pn3; 
-	SFloat3*			pn4; 
+	SFloat32Vec3				sNormal;
+	SFloat32Vec3*			pn1; 
+	SFloat32Vec3*			pn2; 
+	SFloat32Vec3*			pn3; 
+	SFloat32Vec3*			pn4; 
 	CImageAccessor*		pcAccessor;
 	int					iWidth;
 
@@ -131,15 +131,15 @@ void AssignNormalMapFromNormals(Ptr<CImage> pcImage, SFloat3* pasNormals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void AssignBumpMapFromNormals(Ptr<CImage> pcImage, SFloat3* pasNormals)
+void AssignBumpMapFromNormals(Ptr<CImage> pcImage, SFloat32Vec3* pasNormals)
 {
 	int					x, y;
 	int					iColour;
-	SFloat3				sNormal;
-	SFloat3*			pn1; 
-	SFloat3*			pn2; 
-	SFloat3*			pn3; 
-	SFloat3*			pn4; 
+	SFloat32Vec3				sNormal;
+	SFloat32Vec3*			pn1; 
+	SFloat32Vec3*			pn2; 
+	SFloat32Vec3*			pn3; 
+	SFloat32Vec3*			pn4; 
 	CImageAccessor*		pcAccessor;
 	int					iWidth;
 
@@ -175,8 +175,8 @@ void AssignBumpMapFromNormals(Ptr<CImage> pcImage, SFloat3* pasNormals)
 Ptr<CImage> ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, Ptr<CImage> pcImageSource, EChannel eHeightChannel)
 {
 	int				iNumNormals;
-	SFloat3*		pasNormals;
-	SFloat3			sNormal;
+	SFloat32Vec3*		pasNormals;
+	SFloat32Vec3			sNormal;
 	Ptr<CImage>		pcImageDest;
 
 	pcImageDest = OMalloc<CImage>();
@@ -207,7 +207,7 @@ Ptr<CImage> ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, Ptr<CImage> pcIm
 	}
 
 	iNumNormals = (pcImageDest->miWidth + 1) * (pcImageDest->miHeight + 1);
-	pasNormals = (SFloat3*)malloc(sizeof(SFloat3) * iNumNormals);
+	pasNormals = (SFloat32Vec3*)malloc(sizeof(SFloat32Vec3) * iNumNormals);
 
 	GenerateNormalMapFromMono(&pcImageSource, pasNormals, eHeightChannel);
 	if (bNormalMap)

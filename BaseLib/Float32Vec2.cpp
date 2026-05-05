@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FloatHelper.h"
 #include "Float4.h"
 #include "Float4x4.h"
-#include "Float3.h"
+#include "Float32Vec3.h"
 #include "Float32Vec2.h"
 
 
@@ -404,7 +404,7 @@ void Float2InterpolateNormal(SFloat32Vec2* psVecDest, const SFloat32Vec2* psVec1
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float2RotateAboutNormalisedAxis(SFloat3* psVecDest, SFloat3 p, float32 fTheta, SFloat32Vec2 r)
+void Float2RotateAboutNormalisedAxis(SFloat32Vec3* psVecDest, SFloat32Vec3 p, float32 fTheta, SFloat32Vec2 r)
 {
 	float32 fCosTheta;
 	float32 fSinTheta;

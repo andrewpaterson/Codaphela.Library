@@ -29,22 +29,22 @@ class CPolygon : public CPlane
 {
 public:
 	bool			mbConvex;
-	CArrayBlock		mapsPositions;  //Array of SFloat3* (not an array of SFloat3).
+	CArrayBlock		mapsPositions;  //Array of SFloat32Vec3* (not an array of SFloat32Vec3).
 
 	void Init(void);
-	void Init(SFloat3* psNormal);
+	void Init(SFloat32Vec3* psNormal);
 	void Kill(void);
 	void Set(void);
-	bool AddPosition(SFloat3* psPosition);
-	bool AddPositions(SFloat3* psPos1, SFloat3* psPos2, SFloat3* psPos3);
+	bool AddPosition(SFloat32Vec3* psPosition);
+	bool AddPositions(SFloat32Vec3* psPos1, SFloat32Vec3* psPos2, SFloat32Vec3* psPos3);
 	bool AddTriangle(CTriangle* pcTriangle);
-	bool UnionPosition(SFloat3* psPosition);
-	bool In(SFloat3* psPosition);
+	bool UnionPosition(SFloat32Vec3* psPosition);
+	bool In(SFloat32Vec3* psPosition);
 	void PrivateCalculateConvexity(void);
 	void CalculateConvexity(void);
-	bool Contains(SFloat3* psPosition);
-	void FindIndicesOfVisibleHalfSpaces(SFloat3* psPosition, CArrayInt* pcVisibleIndices);
-	bool HasPositionPtr(SFloat3* psPosition);
+	bool Contains(SFloat32Vec3* psPosition);
+	void FindIndicesOfVisibleHalfSpaces(SFloat32Vec3* psPosition, CArrayInt* pcVisibleIndices);
+	bool HasPositionPtr(SFloat32Vec3* psPosition);
 };
 
 

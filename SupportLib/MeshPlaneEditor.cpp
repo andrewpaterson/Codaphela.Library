@@ -32,7 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshPlaneEditor::Init(SFloat3* psXDirection, SFloat3* psYDirection, SFloat3* psStart, int iXSegments, int iYSegments)
+void CMeshPlaneEditor::Init(SFloat32Vec3* psXDirection, SFloat32Vec3* psYDirection, SFloat32Vec3* psStart, int iXSegments, int iYSegments)
 {
 	msXDirection.Init(psXDirection->x, psXDirection->y, psXDirection->z);
 	msYDirection.Init(psYDirection->x, psYDirection->y, psYDirection->z);
@@ -147,29 +147,29 @@ void CMeshPlaneEditor::GeneratePlane(CMeshEditor* pcMeshEditor)
 	int				y;
 	int				iNumVerticies;
 	int				iNumFaces;
-	SFloat3			sXFraction;
-	SFloat3			sYFraction;
+	SFloat32Vec3			sXFraction;
+	SFloat32Vec3			sYFraction;
 	int				iBottomLeftCorner;
 	int				iBottomRightCorner;
 	int				iTopLeftCorner;
 	int				iTopRightCorner;
-	SFloat3			sPosition;
+	SFloat32Vec3			sPosition;
 	int				iStartPosition;
 
 	iNumVerticies = (miXSegments+1 - (miXI+miXE)) * (miYSegments+1 - (miYI+miYE));
 	iNumFaces = (miXSegments - (miXI+miXE)) * (miYSegments - (miYI+miYE)) * 2;
 
 	sXFraction = msXDirection;
-	sXFraction /= (float)miXSegments;
+	sXFraction /= (float32)miXSegments;
 	sYFraction = msYDirection;
-	sYFraction /= (float)miYSegments;
+	sYFraction /= (float32)miYSegments;
 
 	iStartPosition = pcMeshEditor->NumCorners();
 	for (y = miYI; y < miYSegments-miYE+1; y++)
 	{
 		for (x = miXI; x < miXSegments-miXE+1; x++)
 		{
-			sPosition = msStart + sXFraction * (float)x + sYFraction * (float)y;
+			sPosition = msStart + sXFraction * (float32)x + sYFraction * (float32)y;
 			pcMeshEditor->AddCorner(sPosition.x, sPosition.y, sPosition.z);
 		}
 	}

@@ -52,7 +52,7 @@ public:
 	void			Init(void);
 	void			Kill(void);
 	
-	virtual float	GetValue(EChannel eChannel) =0;
+	virtual float32	GetValue(EChannel eChannel) =0;
 	virtual void	GetChannels(CArrayInt* pai) =0;
 };
 
@@ -62,13 +62,13 @@ class CImageColourRGB : public CImageColour
 {
 CONSTRUCTABLE(CImageColourRGB);
 public:
-	float	r;
-	float	g;
-	float	b;
+	float32	r;
+	float32	g;
+	float32	b;
 
-	void	Init(float r, float g, float b);
+	void	Init(float32 r, float32 g, float32 b);
 
-	float	GetValue(EChannel eChannel);
+	float32	GetValue(EChannel eChannel);
 	void	GetChannels(CArrayInt* pai);
 
 	bool	Load(CFileReader* pcFile);
@@ -80,15 +80,15 @@ class CImageColourARGB : public CImageColour
 {
 CONSTRUCTABLE(CImageColourARGB);
 public:
-	float	a;
-	float	r;
-	float	g;
-	float	b;
+	float32	a;
+	float32	r;
+	float32	g;
+	float32	b;
 
-	void	Init(float a, float r, float g, float b);
+	void	Init(float32 a, float32 r, float32 g, float32 b);
 	void	Zero(void);
 
-	float	GetValue(EChannel eChannel);
+	float32	GetValue(EChannel eChannel);
 	void	GetChannels(CArrayInt* pai);
 	
 	bool	Load(CFileReader* pcFile);
@@ -100,11 +100,11 @@ class CImageColourOpacity : public CImageColour
 {
 CONSTRUCTABLE(CImageColourOpacity);
 public:
-	float	a;
+	float32	a;
 
-	void	Init(float a);
+	void	Init(float32 a);
 
-	float	GetValue(EChannel eChannel);
+	float32	GetValue(EChannel eChannel);
 	void	GetChannels(CArrayInt* pai);
 
 	bool	Load(CFileReader* pcFile);
@@ -116,11 +116,11 @@ class CImageColourSpecular : public CImageColour
 {
 CONSTRUCTABLE(CImageColourSpecular);
 public:
-	float	s;
+	float32	s;
 
-	void	Init(float s);
+	void	Init(float32 s);
 
-	float	GetValue(EChannel eChannel);
+	float32	GetValue(EChannel eChannel);
 	void	GetChannels(CArrayInt* pai);
 
 	bool	Load(CFileReader* pcFile);
@@ -132,13 +132,13 @@ class CImageColourNormal : public CImageColour
 {
 CONSTRUCTABLE(CImageColourNormal);
 public:
-	float	x;
-	float	y;
-	float	z;
+	float32	x;
+	float32	y;
+	float32	z;
 
-	void	Init(float x, float y, float z);
+	void	Init(float32 x, float32 y, float32 z);
 
-	float	GetValue(EChannel eChannel);
+	float32	GetValue(EChannel eChannel);
 	void	GetChannels(CArrayInt* pai);
 
 	bool	Load(CFileReader* pcFile);
@@ -155,7 +155,7 @@ public:
 	//Can't have a '1' combo and more than 3 is getting silly (You can chain them if needed).
 	void	Init(CImageColour* pc1, CImageColour* pc2);
 
-	float	GetValue(EChannel eChannel);
+	float32	GetValue(EChannel eChannel);
 	void	GetChannels(CArrayInt* pai);
 };
 

@@ -52,7 +52,7 @@ bool PrivateAssertLongLongInt(int64 iExpected, int64 iActual, char* szPrefix, si
 bool PrivateAssertLongLongIntHex(int64 iExpected, int64 iActual, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertFloat(float32 fExpected, float32 fActual, int iDecimals, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertFloat(float32 fExpected, float32 fActual, char* szPrefix, size iLine, char* szFile);
-bool PrivateAssertFloat3(SFloat3 fExpected, SFloat3* pfActual, int iDecimals, char* szPrefix, size iLine, char* szFile);
+bool PrivateAssertFloat3(SFloat32Vec3 fExpected, SFloat32Vec3* pfActual, int iDecimals, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertDouble(float64 fExpected, float64 fActual, int iDecimals, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertLongDouble(float128 fExpected, float128 fActual, int iDecimals, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertSize(size iExpected, size iActual, char* szPrefix, size iLine, char* szFile);

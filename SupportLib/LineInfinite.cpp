@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLineInfinite::Init(SFloat3* psStart, SFloat3* psDirection)
+void CLineInfinite::Init(SFloat32Vec3* psStart, SFloat32Vec3* psDirection)
 {
 	CRay::Init(psStart, psDirection);
 }

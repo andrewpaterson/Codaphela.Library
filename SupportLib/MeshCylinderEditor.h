@@ -34,7 +34,7 @@ public:
 	CMeshConeEditor		mcConeEditor;
 
 public:
-	void	Init(SFloat3* psZDirection, SFloat3* psStart, float fRadius, float fLength, int iWedgeSegments, int iCircleSegments, int iRingSegments);
+	void	Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, float32 fRadius, float32 fLength, int iWedgeSegments, int iCircleSegments, int iRingSegments);
 	void	Kill(void);
 
 	int		ExpectedFaceChunkSize(void);

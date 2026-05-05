@@ -69,7 +69,7 @@ void CMeshPositions::Class(void)
 {
 	CMeshDetail::Class();
 
-	U_Unknown(CArrayFloat3, mcPositions);
+	U_Unknown(CArrayFloat32Vec3, mcPositions);
 }
 
 
@@ -100,9 +100,9 @@ bool CMeshPositions::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshPositions::AddPosition(float x, float y, float z)
+void CMeshPositions::AddPosition(float32 x, float32 y, float32 z)
 {
-	SFloat3*	psPosition;
+	SFloat32Vec3*	psPosition;
 
 	psPosition = mcPositions.Add();
 	psPosition->Init(x, y, z);
@@ -113,7 +113,7 @@ void CMeshPositions::AddPosition(float x, float y, float z)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshPositions::AddPosition(SFloat3* psPosition)
+void CMeshPositions::AddPosition(SFloat32Vec3* psPosition)
 {
 	mcPositions.Add(psPosition);
 }

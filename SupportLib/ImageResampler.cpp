@@ -94,21 +94,21 @@ Ptr<CImage> CImageResampler::Modify(Ptr<CImage> pcImage)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CImageResampler::ResampleTo(Ptr<CImage> pcSource)
 {
-	float				fdx;
-	float				fdy;
-	float				fWidth;
-	float				fHeight;
+	float32				fdx;
+	float32				fdy;
+	float32				fWidth;
+	float32				fHeight;
 	CImageAccessor*		pcSourceAccessor;
 	CImageAccessor*		pcDestAccessor;
-	float				fsx;
-	float				fsy;
-	float				fSourceWidth;
-	float				fSourceHeight;
-	float				fScalex;
-	float				fScaley;
-	float				fHScalex;
-	float				fHScaley;
-	float				fTotalArea;
+	float32				fsx;
+	float32				fsy;
+	float32				fSourceWidth;
+	float32				fSourceHeight;
+	float32				fScalex;
+	float32				fScaley;
+	float32				fHScalex;
+	float32				fHScaley;
+	float32				fTotalArea;
 	SImageColour*		psColour;
 	Ptr<CImage>			pcDest;
 
@@ -130,11 +130,11 @@ Ptr<CImage> CImageResampler::ResampleTo(Ptr<CImage> pcSource)
 	{
 		//This assumes the channels in dest and source are the same.
 		//Which is reasonable as dest has just been recreated.
-		fWidth = (float)pcDest->GetWidth();
-		fHeight = (float)pcDest->GetHeight();
+		fWidth = (float32)pcDest->GetWidth();
+		fHeight = (float32)pcDest->GetHeight();
 
-		fSourceWidth = (float)pcSource->GetWidth();
-		fSourceHeight = (float)pcSource->GetHeight();
+		fSourceWidth = (float32)pcSource->GetWidth();
+		fSourceHeight = (float32)pcSource->GetHeight();
 
 		fScalex = fSourceWidth/fWidth;
 		fScaley = fSourceHeight/fHeight;
