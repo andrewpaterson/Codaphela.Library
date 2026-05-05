@@ -31,16 +31,16 @@ class CMeshDiscEditor : public CMeshSourceModifier
 {
 CONSTRUCTABLE(CMeshDiscEditor);
 public:
-	SFloat3 	msZDirection;
-	SFloat3 	msStart;
-	float		mfInnerRadius;
-	float		mfOuterRadius;
+	SFloat32Vec3 	msZDirection;
+	SFloat32Vec3 	msStart;
+	float32		mfInnerRadius;
+	float32		mfOuterRadius;
 	int			miWedgeSegments;
 	int			miCircleSegments;
 	bool		mbFlipFaces;
 	int			miFaceName;
 
-	void	Init(SFloat3* psZDirection, SFloat3* psStart, float fInnerRadius, float fOuterRadius, int iWedgeSegments, int iCircleSegments);
+	void	Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, float32 fInnerRadius, float32 fOuterRadius, int iWedgeSegments, int iCircleSegments);
 	void	SetFlipFaces(bool bFlipFaces);
 	void	SetFaceName(int iFaceName);
 	void	Kill(void);

@@ -31,10 +31,10 @@ class CExtremeTriangle : public CTriangle
 public:
 	CArrayInt	maiVisible;
 
-	void	Init(SFloat3* psPoint1, SFloat3* psPoint2, SFloat3* psPoint3, SFloat3* psNormal);
+	void	Init(SFloat32Vec3* psPoint1, SFloat32Vec3* psPoint2, SFloat32Vec3* psPoint3, SFloat32Vec3* psNormal);
 	void	Kill(void);
-	int		FindFurthestPoint(SFloat3* psPoints, int iStride);
-	bool	NotContains(SFloat3* psPosition);
+	int		FindFurthestPoint(SFloat32Vec3* psPoints, int iStride);
+	bool	NotContains(SFloat32Vec3* psPosition);
 };
 
 
@@ -55,24 +55,24 @@ class CConvexHullGenerator
 public:
 	CFreeList	mcNormals;
 	CFreeList	mcTriangles;
-	SFloat3*	mpsPoints;
+	SFloat32Vec3*	mpsPoints;
 	size		iStride;
 	size		iNumPoints;
 	char*		mszHullName;
 
-	void 					Init(SFloat3* psPoints, int iStride, size iNumPoints, char* szHullName = NULL);
+	void 					Init(SFloat32Vec3* psPoints, int iStride, size iNumPoints, char* szHullName = NULL);
 	void 					Kill(void);
 	bool					Generate(void);
-	int						FindMaxX(float* px);
-	int						FindMinX(float* px);
+	int						FindMaxX(float32* px);
+	int						FindMinX(float32* px);
 	int						FindFurthestPoint(int iMaxXIndex, int iMinXIndex);
-	CExtremeTriangle*		AddTriangle(SFloat3* psPoint1, SFloat3* psPoint2, SFloat3* psPoint3);
+	CExtremeTriangle*		AddTriangle(SFloat32Vec3* psPoint1, SFloat32Vec3* psPoint2, SFloat32Vec3* psPoint3);
 	void					FindEdges(SConvexHullHoleEdge* psEdges, CExtremeTriangle* pcTriangleWithEdges, CArrayExtremeTrianglePtr* papcDeletedTriangles);
 	bool					TrianglesHaveEdge(int iEdge1, int iEdge2, CExtremeTriangle* pcTriangleWithEdges, CArrayExtremeTrianglePtr* papcDeletedTriangles);
 	bool					TriangleHasEdge(int iEdge1, int iEdge2, CExtremeTriangle* pcTriangle);
 	bool					TriangleAdjacent(CExtremeTriangle* pcTriangle1, CExtremeTriangle* pcTriangle2);
-	bool					Contained(SFloat3* psPosition);
-	bool					NotContained(SFloat3* psPosition);
+	bool					Contained(SFloat32Vec3* psPosition);
+	bool					NotContained(SFloat32Vec3* psPosition);
 	bool					RemoveDiscontiguousTriangles(CExtremeTriangle* pcSelected, CArrayExtremeTrianglePtr* papcTriangles, CArrayExtremeTrianglePtr* papcTemp);
 	bool					FindFirstPairTriangles(CArrayExtremeTrianglePtr* apcTriangles, int iMaxXIndex, int iMinXIndex, int iFarIndex);
 	void					AddPointsFromTriangles(CExtremeTriangle* pcTriangle, CArrayExtremeTrianglePtr* papcTriangles, int iDontAdd);
@@ -94,10 +94,10 @@ public:
 
 	void 	Init(void);
 	void 	Kill(void);
-	void	BeginSetFromPoints(CConvexHullGenerator* psConvexHullGenerator, SFloat3* psPoints, int iStride, int iNumPoints, char* szHullName);
-	void	EndSetFromPoints(SFloat3* psNormals, int iStride, CConvexHullGenerator* psConvexHullGenerator);
-	void	GetIndices(CArrayInt* paiIndices, SFloat3* psPoints, int iStride);
-	void	GetVertices(CArrayBlock* pasPositions, SFloat3* psPoints, int iStride);  //The positions are COPIED into this array.  It's not an array of pointers
+	void	BeginSetFromPoints(CConvexHullGenerator* psConvexHullGenerator, SFloat32Vec3* psPoints, int iStride, int iNumPoints, char* szHullName);
+	void	EndSetFromPoints(SFloat32Vec3* psNormals, int iStride, CConvexHullGenerator* psConvexHullGenerator);
+	void	GetIndices(CArrayInt* paiIndices, SFloat32Vec3* psPoints, int iStride);
+	void	GetVertices(CArrayBlock* pasPositions, SFloat32Vec3* psPoints, int iStride);  //The positions are COPIED into this array.  It's not an array of pointers
 };
 
 

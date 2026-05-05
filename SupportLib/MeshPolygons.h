@@ -23,7 +23,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/ArrayIntMinimal.h"
 #include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/Float3.h"
+#include "BaseLib/Float32Vec3.h"
 #include "MeshDetail.h"
 
 
@@ -80,7 +80,7 @@ public:
 	void			AddFace(CMeshFace* pcFace, int iFace, int iName, CMeshConnectivity* pcConn, bool bEdge12, bool bEdge23, bool bEdge31);
 	int				NumUniqueNames(void);
 	void			GetUniqueNames(CArrayInt* paiNames);
-	void			GetNormals(CArrayFloat3* pasNormals, CMeshNormals* pcNormals);
+	void			GetNormals(CArrayFloat32Vec3* pasNormals, CMeshNormals* pcNormals);
 	void			MergePolygon(int iDestPolygon, int iSource1, int iSource2);
 	void			MergePolygon(int iDestPolygon, int iSource);
 	void			GetAdjacentPolygons(CMeshConnectivity* pcConn, int iPolygon, CArrayInt* paiAdj);

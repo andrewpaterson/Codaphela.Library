@@ -175,7 +175,7 @@ void CImageColour::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageColourRGB::Init(float r, float g, float b)
+void CImageColourRGB::Init(float32 r, float32 g, float32 b)
 {
 	this->r = r;
 	this->g = g;
@@ -187,7 +187,7 @@ void CImageColourRGB::Init(float r, float g, float b)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float CImageColourRGB::GetValue(EChannel eChannel)
+float32 CImageColourRGB::GetValue(EChannel eChannel)
 {
 	if (eChannel == IMAGE_DIFFUSE_RED)
 	{
@@ -246,7 +246,7 @@ bool CImageColourRGB::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageColourARGB::Init(float a, float r, float g, float b)
+void CImageColourARGB::Init(float32 a, float32 r, float32 g, float32 b)
 {
 	this->a = a;
 	this->r = r;
@@ -269,7 +269,7 @@ void CImageColourARGB::Zero(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float CImageColourARGB::GetValue(EChannel eChannel)
+float32 CImageColourARGB::GetValue(EChannel eChannel)
 {
 	if (eChannel == IMAGE_OPACITY)
 	{
@@ -336,7 +336,7 @@ bool CImageColourARGB::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageColourOpacity::Init(float a)
+void CImageColourOpacity::Init(float32 a)
 {
 	this->a = a;
 }
@@ -346,7 +346,7 @@ void CImageColourOpacity::Init(float a)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float CImageColourOpacity::GetValue(EChannel eChannel)
+float32 CImageColourOpacity::GetValue(EChannel eChannel)
 {
 	if (eChannel == IMAGE_OPACITY)
 	{
@@ -392,7 +392,7 @@ bool CImageColourOpacity::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageColourSpecular::Init(float s)
+void CImageColourSpecular::Init(float32 s)
 {
 	this->s = s;
 }
@@ -402,7 +402,7 @@ void CImageColourSpecular::Init(float s)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float CImageColourSpecular::GetValue(EChannel eChannel)
+float32 CImageColourSpecular::GetValue(EChannel eChannel)
 {
 	if (eChannel == IMAGE_OPACITY)
 	{
@@ -448,7 +448,7 @@ bool CImageColourSpecular::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageColourNormal::Init(float x, float y, float z)
+void CImageColourNormal::Init(float32 x, float32 y, float32 z)
 {
 	this->x = x;
 	this->y = y;
@@ -460,7 +460,7 @@ void CImageColourNormal::Init(float x, float y, float z)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float CImageColourNormal::GetValue(EChannel eChannel)
+float32 CImageColourNormal::GetValue(EChannel eChannel)
 {
 	if (eChannel == IMAGE_NORMAL_X)
 	{
@@ -531,9 +531,9 @@ void CImageColourCombo2::Init(CImageColour* pc1, CImageColour* pc2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float CImageColourCombo2::GetValue(EChannel eChannel)
+float32 CImageColourCombo2::GetValue(EChannel eChannel)
 {
-	float	f;
+	float32	f;
 
 	f = cImageColours[0]->GetValue(eChannel);
 	if (!IsNotANumber(&f))

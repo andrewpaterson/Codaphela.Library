@@ -31,15 +31,15 @@ class CMeshBoxEditor : public CMeshSourceModifier
 {
 CONSTRUCTABLE(CMeshBoxEditor);
 public:
-	SFloat3 	msXDirection;
-	SFloat3 	msYDirection; 
-	SFloat3 	msZDirection; 
-	SFloat3 	msStart;
+	SFloat32Vec3 	msXDirection;
+	SFloat32Vec3 	msYDirection; 
+	SFloat32Vec3 	msZDirection; 
+	SFloat32Vec3 	msStart;
 	int			miXSegments;
 	int			miYSegments;
 	int			miZSegments;
 
-	void	Init(SFloat3* psXDirection, SFloat3* psYDirection, SFloat3* psZDirection, SFloat3* psStart, int iXSegments, int iYSegments, int iZSegments);
+	void	Init(SFloat32Vec3* psXDirection, SFloat32Vec3* psYDirection, SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, int iXSegments, int iYSegments, int iZSegments);
 	void	Kill(void);
 
 	void	Apply(CMeshEditor* pcMeshEditor);

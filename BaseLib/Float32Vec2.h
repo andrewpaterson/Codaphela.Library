@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 class SFloat4;
-class SFloat3;
+class SFloat32Vec3;
 class SFloat4x4;
 class SFloat32Vec2 : public SVec2<float32, float64>
 {
@@ -64,7 +64,7 @@ void			Float2MinMax(SFloat32Vec2* psMin, SFloat32Vec2* psMax, SFloat32Vec2* asIn
 void			Float2Swap(SFloat32Vec2* ps1, SFloat32Vec2* ps2);
 void 			Float2InterpolatePosition(SFloat32Vec2* psVecDest, const SFloat32Vec2* psVec1, const SFloat32Vec2* psVec2, float32 fWeight);
 void 			Float2InterpolateNormal(SFloat32Vec2* psVecDest, const SFloat32Vec2* psVec1, const SFloat32Vec2* psVec2, float32 fWeight);
-void 			Float2RotateAboutNormalisedAxis(SFloat3* psVecDest, SFloat3 p, float32 fTheta, SFloat32Vec2 r);
+void 			Float2RotateAboutNormalisedAxis(SFloat32Vec3* psVecDest, SFloat32Vec3 p, float32 fTheta, SFloat32Vec2 r);
 void 			Float2Normalize(SFloat32Vec2* pOut, SFloat32Vec2* pV);
 
 

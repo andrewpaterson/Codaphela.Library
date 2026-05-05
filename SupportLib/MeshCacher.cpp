@@ -239,7 +239,7 @@ void CMeshCacher::PopulatePositions(CMeshVertexArray* pcVertexArray, CMeshTypeIn
 	int							j;
 	int							iNumVerts;
 	int							iIndex;
-	SFloat3*					psPosition;
+	SFloat32Vec3*					psPosition;
 	CChannelsAccessorCreator	cCreator;
 	CChannelsAccessor*			pcAccessor;
 
@@ -268,7 +268,7 @@ void CMeshCacher::PopulateNormals(CMeshVertexArray* pcVertexArray, CMeshTypeIndi
 	int							j;
 	int							iNumVerts;
 	int							iIndex;
-	SFloat3*					psNormal;
+	SFloat32Vec3*					psNormal;
 	CChannelsAccessorCreator	cCreator;
 	CChannelsAccessor*			pcAccessor;
 

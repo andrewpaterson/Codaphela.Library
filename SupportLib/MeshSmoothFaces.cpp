@@ -84,7 +84,7 @@ void CMeshSmoothFaces::GenerateNormals(CMesh* pcMesh)
 {
 	size				i, j, l;
 	int*				aiFaceRef;
-	SFloat3				cNormal;  
+	SFloat32Vec3				cNormal;  
 	CMeshCorner*		psCorners;
 	CMeshFace*			psFaces;
 	CMeshFace*			psFace;
@@ -92,7 +92,7 @@ void CMeshSmoothFaces::GenerateNormals(CMesh* pcMesh)
 	int					iNewNormalIndex;
 	size				iNumCorners;
 	SMeshNormalFace*	psFaceNormal;
-	SFloat3*			pcNormal;
+	SFloat32Vec3*			pcNormal;
 	CMeshNormals*		pcNormals;
 
 	if (!pcMesh->mcNormals.InUse())

@@ -47,7 +47,7 @@ void CMeshModifier::ClearConnectivity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshModifier::AddPosition(float x, float y, float z)
+void CMeshModifier::AddPosition(float32 x, float32 y, float32 z)
 {
 }
 
@@ -56,7 +56,7 @@ void CMeshModifier::AddPosition(float x, float y, float z)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshModifier::AddPosition(SFloat3* psPosition)
+void CMeshModifier::AddPosition(SFloat32Vec3* psPosition)
 {
 }
 
@@ -119,7 +119,7 @@ void CMeshModifier::RemoveCorners(CArrayInt* paiCorners)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshModifier::MovePosition(int iPosition, SFloat3* psPosition)
+void CMeshModifier::MovePosition(int iPosition, SFloat32Vec3* psPosition)
 {
 }
 
@@ -128,6 +128,6 @@ void CMeshModifier::MovePosition(int iPosition, SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshModifier::MovePositions(CArrayInt* paiPositions, SFloat3* psPosition)
+void CMeshModifier::MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosition)
 {
 }

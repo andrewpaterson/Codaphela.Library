@@ -242,15 +242,15 @@ void CRectangleBestPacker::AddDefaultAttempts(void)
 {
 	int						i;
 	CPackAttempt*			pcAttempt;
-	float					fStartWidth;
-	float					fEndWidth;
+	float32					fStartWidth;
+	float32					fEndWidth;
 	int						iLastWidth;
 	int						iWidth;
-	float					fDest;
-	float					fPos;
+	float32					fDest;
+	float32					fPos;
 
-	fStartWidth = (float)GetSourcesMinWidth();
-	fEndWidth = (float)GetSourcesMaxWidth();
+	fStartWidth = (float32)GetSourcesMinWidth();
+	fEndWidth = (float32)GetSourcesMaxWidth();
 
 	iLastWidth = -1;
 

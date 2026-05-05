@@ -33,7 +33,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshBoxEditor::Init(SFloat3* psXDirection, SFloat3* psYDirection, SFloat3* psZDirection, SFloat3* psStart, int iXSegments, int iYSegments, int iZSegments)
+void CMeshBoxEditor::Init(SFloat32Vec3* psXDirection, SFloat32Vec3* psYDirection, SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, int iXSegments, int iYSegments, int iZSegments)
 {
 	msXDirection.Init(psXDirection->x, psXDirection->y, psXDirection->z);
 	msYDirection.Init(psYDirection->x, psYDirection->y, psYDirection->z);
@@ -122,9 +122,9 @@ int CMeshBoxEditor::ExpectedCornerChunkSize(void)
 void CMeshBoxEditor::Apply(CMeshEditor* pcMeshEditor)
 {
 	CMeshPlaneEditor	cPlaneEditor;
-	SFloat3				sBottom;
-	SFloat3				sRight;
-	SFloat3				sBack;
+	SFloat32Vec3				sBottom;
+	SFloat32Vec3				sRight;
+	SFloat32Vec3				sBack;
 
 	int					iFirstTop;
 	int					iFirstBottom;

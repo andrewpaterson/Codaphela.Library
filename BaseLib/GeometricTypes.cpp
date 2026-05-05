@@ -31,9 +31,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* GetPosition(SFloat3* psPoints, size iStride, size iPoint)
+SFloat32Vec3* GetPosition(SFloat32Vec3* psPoints, size iStride, size iPoint)
 {
-	return (SFloat3*)RemapSinglePointer(psPoints, iStride * iPoint);
+	return (SFloat32Vec3*)RemapSinglePointer(psPoints, iStride * iPoint);
 }
 
 
@@ -41,9 +41,9 @@ SFloat3* GetPosition(SFloat3* psPoints, size iStride, size iPoint)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* GetNormal(SFloat3* psNormals, size iStride, size iNormal)
+SFloat32Vec3* GetNormal(SFloat32Vec3* psNormals, size iStride, size iNormal)
 {
-	return (SFloat3*)RemapSinglePointer(psNormals, iStride * iNormal);
+	return (SFloat32Vec3*)RemapSinglePointer(psNormals, iStride * iNormal);
 }
 
 
@@ -51,7 +51,7 @@ SFloat3* GetNormal(SFloat3* psNormals, size iStride, size iNormal)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int GetIndex(SFloat3* psPoints, size iStride, SFloat3* psPosition)
+int GetIndex(SFloat32Vec3* psPoints, size iStride, SFloat32Vec3* psPosition)
 {
 	int		iIndex;
 

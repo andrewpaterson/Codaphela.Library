@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FloatHelper.h"
 #include "DataIO.h"
 #include "Float32Vec2.h"
-#include "Float3.h"
+#include "Float32Vec3.h"
 #include "Float4x4.h"
 #include "Float4.h"
 
@@ -46,7 +46,7 @@ SFloat4::SFloat4(const float *pf)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat4::SFloat4(const SFloat3& v, float f)
+SFloat4::SFloat4(const SFloat32Vec3& v, float f)
 {
 	x = v.x;
 	y = v.y;

@@ -46,7 +46,7 @@ void CLight::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLight::Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eDecay, float fDecayStart, bool bCastShadows, float fIntensity)
+void CLight::Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eDecay, float32 fDecayStart, bool bCastShadows, float32 fIntensity)
 {
 	PreInit();
 

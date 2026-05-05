@@ -39,7 +39,7 @@ class CSphereIndexed : public CShapeIndexed
 {
 public:
 	int		miPosition;
-	float	mfRadius;
+	float32	mfRadius;
 
 	void 	Init(void);
 	void 	Kill(void);
@@ -47,7 +47,7 @@ public:
 	bool	Save(CFileWriter* pcFile);
 	bool 	Load(CFileReader* pcFile);
 
-	bool	Shape(CSphere* pcShape, SFloat3* psVertexArray);
+	bool	Shape(CSphere* pcShape, SFloat32Vec3* psVertexArray);
 };
 
 
@@ -64,7 +64,7 @@ public:
 	bool	Save(CFileWriter* pcFile);
 	bool 	Load(CFileReader* pcFile);
 
-	bool	Shape(CTriangle* pcShape, SFloat3* psVertexArray, SFloat3* psNormalArray);
+	bool	Shape(CTriangle* pcShape, SFloat32Vec3* psVertexArray, SFloat32Vec3* psNormalArray);
 };
 
 
@@ -77,12 +77,12 @@ public:
 	int			miMiddleAxisIndex;
 	int			miShortAxisIndex;
 
-	float		mfLongAxisLength;
-	float		mfMiddleAxisLength;
-	float		mfShortAxisLength;
+	float32		mfLongAxisLength;
+	float32		mfMiddleAxisLength;
+	float32		mfShortAxisLength;
 
 	void 	Init(void);
-	void 	Init(int iCenterIndex, int iLongAxisIndex, float fLongAxisLength, int iMiddleAxisIndex, float fMiddleAxisLength, int iShortAxisIndex, float fShortAxisLength);
+	void 	Init(int iCenterIndex, int iLongAxisIndex, float32 fLongAxisLength, int iMiddleAxisIndex, float32 fMiddleAxisLength, int iShortAxisIndex, float32 fShortAxisLength);
 	void 	Kill(void);
 
 	bool	Save(CFileWriter* pcFile);

@@ -30,7 +30,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSphere::Init(SFloat3* psPosition)
+void CSphere::Init(SFloat32Vec3* psPosition)
 {
 	mpsPosition = psPosition;
 }
@@ -40,7 +40,7 @@ void CSphere::Init(SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSphere::Set(SFloat3* pos, float rad)
+void CSphere::Set(SFloat32Vec3* pos, float32 rad)
 {
 	*mpsPosition = *pos;
 	mfRadius = rad;
@@ -51,7 +51,7 @@ void CSphere::Set(SFloat3* pos, float rad)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSphere::Set(float x, float y, float z, float rad)
+void CSphere::Set(float32 x, float32 y, float32 z, float32 rad)
 {
 	mpsPosition->x = x;
 	mpsPosition->y = y;
@@ -75,24 +75,24 @@ void CSphere::Copy(CSphere* source)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSphere::SetFromPointsUsingAveragePosition(SFloat3* psPoints, int iStride, int iNumPoints)
+void CSphere::SetFromPointsUsingAveragePosition(SFloat32Vec3* psPoints, int iStride, int iNumPoints)
 {
 	int			i;
-	SFloat3*	psPBase;
-	SFloat3		cPoint;
-	float		fMaxLen;
-	float		fLen;
-	SFloat3		cCenter;
+	SFloat32Vec3*	psPBase;
+	SFloat32Vec3		cPoint;
+	float32		fMaxLen;
+	float32		fLen;
+	SFloat32Vec3		cCenter;
 
 	psPBase = psPoints;
 	cCenter.Init(0,0,0);
 	for (i = 0; i < iNumPoints; i++)
 	{
 		cCenter += *psPoints;
-		psPoints = (SFloat3*)RemapSinglePointer(psPoints, iStride);
+		psPoints = (SFloat32Vec3*)RemapSinglePointer(psPoints, iStride);
 	}
 
-	cCenter /= (float)iNumPoints;
+	cCenter /= (float32)iNumPoints;
 
 	fMaxLen = 0.0f;
 	psPoints = psPBase;
@@ -104,7 +104,7 @@ void CSphere::SetFromPointsUsingAveragePosition(SFloat3* psPoints, int iStride, 
 		{
 			fMaxLen = fLen;
 		}
-		psPoints = (SFloat3*)RemapSinglePointer(psPoints, iStride);
+		psPoints = (SFloat32Vec3*)RemapSinglePointer(psPoints, iStride);
 	}
 	mfRadius = SquareRoot(fMaxLen);
 	*mpsPosition = cCenter;
@@ -115,16 +115,16 @@ void CSphere::SetFromPointsUsingAveragePosition(SFloat3* psPoints, int iStride, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSphere::SetFromPointsUsingBestFit(SFloat3* psPoints, int iStride, int iNumPoints)
+void CSphere::SetFromPointsUsingBestFit(SFloat32Vec3* psPoints, int iStride, int iNumPoints)
 {
 	int			i, j;
-	SFloat3*	psPoints1;
-	SFloat3*	psPoints2;
-	SFloat3*	psEndPoint1;
-	SFloat3*	psEndPoint2;
-	SFloat3	cPoint;
-	float		fMaxLen;
-	float		fLen;
+	SFloat32Vec3*	psPoints1;
+	SFloat32Vec3*	psPoints2;
+	SFloat32Vec3*	psEndPoint1;
+	SFloat32Vec3*	psEndPoint2;
+	SFloat32Vec3	cPoint;
+	float32		fMaxLen;
+	float32		fLen;
 
 	//This could be optimised quite easily by discarding points which fall inside the sphere.
 	fMaxLen = 0.0f;
@@ -147,9 +147,9 @@ void CSphere::SetFromPointsUsingBestFit(SFloat3* psPoints, int iStride, int iNum
 					fMaxLen = fLen;
 				}
 			}
-			psPoints2 = (SFloat3*)RemapSinglePointer(psPoints2, iStride);
+			psPoints2 = (SFloat32Vec3*)RemapSinglePointer(psPoints2, iStride);
 		}
-		psPoints1 = (SFloat3*)RemapSinglePointer(psPoints1, iStride);
+		psPoints1 = (SFloat32Vec3*)RemapSinglePointer(psPoints1, iStride);
 	}
 	mfRadius = SquareRoot(fMaxLen) / 2.0f;
 	*mpsPosition = (*psEndPoint1 + *psEndPoint2) / 2.0f;
@@ -160,7 +160,7 @@ void CSphere::SetFromPointsUsingBestFit(SFloat3* psPoints, int iStride, int iNum
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float CSphere::Volume(void)
+float32 CSphere::Volume(void)
 {
 	return ((4.0f/3.0f)*N_PI)*mfRadius*mfRadius*mfRadius;
 }
@@ -170,18 +170,18 @@ float CSphere::Volume(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float CSphere::IntersectSphereVolume(CSphere* pcOther)
+float32 CSphere::IntersectSphereVolume(CSphere* pcOther)
 {
-	float 		r1;
-	float 		r2;
-	SFloat3		st;
-	float		d;
-	float		v;
+	float32 		r1;
+	float32 		r2;
+	SFloat32Vec3		st;
+	float32		d;
+	float32		v;
 
 	r1 = this->mfRadius;
 	r2 = pcOther->mfRadius;
-	ga_memcpy_fast[sizeof(SFloat3)](&st, this->mpsPosition);
-	st -= *((SFloat3*)pcOther->mpsPosition);
+	ga_memcpy_fast[sizeof(SFloat32Vec3)](&st, this->mpsPosition);
+	st -= *((SFloat32Vec3*)pcOther->mpsPosition);
 	d = st.Magnitude();
 
 	if (d > r1+r2)
@@ -211,9 +211,9 @@ float CSphere::IntersectSphereVolume(CSphere* pcOther)
 //////////////////////////////////////////////////////////////////////////
 bool CSphere::Contains(CTriangle* pcTriangle)
 {
-	float		fRadiusSq;
+	float32		fRadiusSq;
 	int			i;
-	SFloat3		sVec;
+	SFloat32Vec3		sVec;
 
 	fRadiusSq = SquareRoot(mfRadius);
 

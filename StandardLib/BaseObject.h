@@ -309,8 +309,8 @@ protected:
 
 			void				Unmanaged2Float(SFloat32Vec2* pf, char* szFieldName);
 			void				Unmanaged2Float(SFloat32Vec2* pf, size uiLength, char* szFieldName);
-			void				Unmanaged3Float(SFloat3* pf, char* szFieldName);
-			void				Unmanaged3Float(SFloat3* pf, size uiLength, char* szFieldName);
+			void				Unmanaged3Float(SFloat32Vec3* pf, char* szFieldName);
+			void				Unmanaged3Float(SFloat32Vec3* pf, size uiLength, char* szFieldName);
 			void				Unmanaged4Float(SFloat4* pf, char* szFieldName);
 			void				Unmanaged4Float(SFloat4* pf, size uiLength, char* szFieldName);
 			void				Unmanaged4x4Float(SFloat4x4* pf, char* szFieldName);

@@ -70,15 +70,15 @@ public:
 	int				CornerChunkSize(void);
 	int				TestPositionChunkSize(void);
 
-	SFloat3*		GetPosition(int iIndex);
+	SFloat32Vec3*		GetPosition(int iIndex);
 	CMeshCorner*	GetCorner(int iIndex);
 	CMeshEdge*		GetEdge(int iIndex);
 	CMeshFace*		GetFace(int iIndex);
 
 	void			ClearConnectivity(void);
 
-	void 			AddCorner(float x, float y, float z);
-	void			AddCorner(SFloat3* psPosition);
+	void 			AddCorner(float32 x, float32 y, float32 z);
+	void			AddCorner(SFloat32Vec3* psPosition);
 
 	CMFRet			AddFace(int iCorner1, int iCorner2, int iCorner3);
 	CMFRet			AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorner4);
@@ -89,11 +89,11 @@ public:
 
 	void			RemoveCorner(int iCorner);
 	
-	void			MovePosition(int iPosition, SFloat3* psPosition);
-	void			MovePositions(CArrayInt* paiPositions, SFloat3* psPosition);
+	void			MovePosition(int iPosition, SFloat32Vec3* psPosition);
+	void			MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosition);
 
-	void			AddUV(float u, float v, size iLayer = 0);
-	void			AddNormal(float x, float y, float z);
+	void			AddUV(float32 u, float32 v, size iLayer = 0);
+	void			AddNormal(float32 x, float32 y, float32 z);
 
 	void			Dump(void);
 

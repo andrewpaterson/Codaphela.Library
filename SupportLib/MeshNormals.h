@@ -48,7 +48,7 @@ class CMeshNormals : public CMeshDetail
 CONSTRUCTABLE(CMeshNormals);
 DESTRUCTABLE(CMeshNormals);
 public:
-	CArrayFloat3			mcNormals;  //0 .. Flats, Flats+1 .. End
+	CArrayFloat32Vec3			mcNormals;  //0 .. Flats, Flats+1 .. End
 	CArrayMeshFaceNormal	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements
 
 	void 		Init(void);
@@ -64,8 +64,8 @@ public:
 	void		AddFace(int iFaceNum, CMeshPositions* pcPositions, CMeshConnectivity* pcConn);
 	void		IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSourceFaces);
 
-	SFloat3*	GetFaceNormal(int iFace);
-	SFloat3*	GetCornerNormal(int iCorner);
+	SFloat32Vec3*	GetFaceNormal(int iFace);
+	SFloat32Vec3*	GetCornerNormal(int iCorner);
 };
 
 

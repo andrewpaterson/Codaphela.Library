@@ -23,20 +23,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __GEOMETRIC_TYPES_H__
 #define __GEOMETRIC_TYPES_H__
 #include "Float32Vec2.h"
-#include "Float3.h"
+#include "Float32Vec3.h"
 #include "Float4.h"
 #include "Float4x4.h"
 #include "Float64Vec2.h"
-#include "Double3.h"
+#include "Float64Vec3.h"
 #include "Double4.h"
 #include "Double4x4.h"
 #include "Quaternion.h"
 
 
 //Hack to make this compile.  These used to be part of StandardTypes.
-SFloat3*	GetPosition(SFloat3* psPoints, size iStride, size iPoint);
-SFloat3*	GetNormal(SFloat3* psNormals, size iStride, size iNormal);
-int			GetIndex(SFloat3* psPoints, size iStride, SFloat3* psPosition);
+SFloat32Vec3*	GetPosition(SFloat32Vec3* psPoints, size iStride, size iPoint);
+SFloat32Vec3*	GetNormal(SFloat32Vec3* psNormals, size iStride, size iNormal);
+int			GetIndex(SFloat32Vec3* psPoints, size iStride, SFloat32Vec3* psPosition);
 
 
 #endif // __GEOMETRIC_TYPES_H__

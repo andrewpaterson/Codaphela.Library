@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Int4.h"
 #include "GeometricTypes.h"
 #include "Float64Vec2.h"
-#include "Double3.h"
+#include "Float64Vec3.h"
 #include "Double4.h"
 #include "Double4x4.h"
 #include "DataTypes.h"
@@ -112,10 +112,10 @@ void CTypeNames::Init(void)
 	AddType(PT_float32,			FLOAT_BYTE_SIZE,		"Float",			"float",			"PT_float32");
 	AddType(PT_float64,			DOUBLE_BYTE_SIZE,		"Double",			"double",			"PT_float64");
 	AddType(PT_M2float32,		FLOAT2_BYTE_SIZE,		"Float2",			"SFloat32Vec2",			"PT_M2float32");
-	AddType(PT_M3float32,		FLOAT3_BYTE_SIZE,		"Float3",			"SFloat3",			"PT_M3float32");
+	AddType(PT_M3float32,		FLOAT3_BYTE_SIZE,		"Float3",			"SFloat32Vec3",			"PT_M3float32");
 	AddType(PT_M4float32,		FLOAT4_BYTE_SIZE,		"Float4",			"SFloat4",			"PT_M4float32");
 	AddType(PT_M2float64,		DOUBLE2_BYTE_SIZE,		"Double2",			"SFloat64Vec2",			"PT_M2float64");
-	AddType(PT_M3float64,		DOUBLE3_BYTE_SIZE,		"Double3",			"SDouble3",			"PT_M3float64");
+	AddType(PT_M3float64,		DOUBLE3_BYTE_SIZE,		"Double3",			"SFloat64Vec3",			"PT_M3float64");
 	AddType(PT_M4float64,		DOUBLE4_BYTE_SIZE,		"Double4",			"SDouble4",			"PT_M4float64");
 	AddType(PT_M2int32,			INT2_BYTE_SIZE,			"Int2",				"SIntVec2",			"PT_M2int32");
 	AddType(PT_M3int32,			INT3_BYTE_SIZE,			"Int3",				"SInt3",			"PT_M3int32");

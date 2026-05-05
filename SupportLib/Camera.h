@@ -38,10 +38,10 @@ CONSTRUCTABLE(CCamera);
 DESTRUCTABLE(CCamera);
 public:
 	ECameraType		meCameraType;
-	float			mfFOV;
+	float32			mfFOV;
 
 	Ptr<CCamera>	Init(void);
-	Ptr<CCamera>	Init(ECameraType eCameraType, float fFOV);
+	Ptr<CCamera>	Init(ECameraType eCameraType, float32 fFOV);
 	void 			Free(void);
 	void			Class(void);
 

@@ -4,7 +4,7 @@
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/FileCompare.h"
-#include "BaseLib/Float3.h"
+#include "BaseLib/Float32Vec3.h"
 #include "AssertStringHelper.h"
 #include "AssertStatistics.h"
 
@@ -340,7 +340,7 @@ void ToFloatString(float f, char* sz, int iDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToFloat3String(SFloat3* psFloat3, char* sz, int iWholeNumbers, int iDecimals)
+void ToFloat3String(SFloat32Vec3* psFloat3, char* sz, int iWholeNumbers, int iDecimals)
 {
 	CChars	c;
 

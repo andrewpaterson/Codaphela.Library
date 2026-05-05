@@ -33,7 +33,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshDiscEditor::Init(SFloat3* psZDirection, SFloat3* psStart, float fInnerRadius, float fOuterRadius, int iWedgeSegments, int iCircleSegments)
+void CMeshDiscEditor::Init(SFloat32Vec3* psZDirection, SFloat32Vec3* psStart, float32 fInnerRadius, float32 fOuterRadius, int iWedgeSegments, int iCircleSegments)
 {
 	msZDirection.Init(psZDirection->x, psZDirection->y, psZDirection->z);
 	msZDirection.Normalize();
@@ -127,10 +127,10 @@ void CMeshDiscEditor::GenerateDisc(CMeshEditor* pcMeshEditor)
 {
 	int			i;
 	int			j;
-	SFloat3		sDest;
-	SFloat3		sSource;
-	float		fWedgeRad;
-	float		fRadius;
+	SFloat32Vec3		sDest;
+	SFloat32Vec3		sSource;
+	float32		fWedgeRad;
+	float32		fRadius;
 	int			iStartPosition;
 
 	fWedgeRad = (N_PI*2.0f)/miWedgeSegments;

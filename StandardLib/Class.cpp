@@ -293,8 +293,8 @@ void CClass::UnmanagedDate(CBaseObject* pcThis, CDate* pcDate, char* szFieldName
 
 void CClass::Unmanaged2Float(CBaseObject* pcThis, SFloat32Vec2* pf, char* szFieldName)						{ Unmanaged(pcThis, PT_M2float32, pf, szFieldName); }
 void CClass::Unmanaged2Float(CBaseObject* pcThis, SFloat32Vec2* pf, size uiLength, char* szFieldName)		{ Unmanaged(pcThis, PT_M2float32, pf, uiLength, szFieldName); }
-void CClass::Unmanaged3Float(CBaseObject* pcThis, SFloat3* pf, char* szFieldName)						{ Unmanaged(pcThis, PT_M3float32, pf, szFieldName); }
-void CClass::Unmanaged3Float(CBaseObject* pcThis, SFloat3* pf, size uiLength, char* szFieldName)		{ Unmanaged(pcThis, PT_M3float32, pf, uiLength, szFieldName); }
+void CClass::Unmanaged3Float(CBaseObject* pcThis, SFloat32Vec3* pf, char* szFieldName)						{ Unmanaged(pcThis, PT_M3float32, pf, szFieldName); }
+void CClass::Unmanaged3Float(CBaseObject* pcThis, SFloat32Vec3* pf, size uiLength, char* szFieldName)		{ Unmanaged(pcThis, PT_M3float32, pf, uiLength, szFieldName); }
 void CClass::Unmanaged4Float(CBaseObject* pcThis, SFloat4* pf, char* szFieldName)						{ Unmanaged(pcThis, PT_M4float32, pf, szFieldName); }
 void CClass::Unmanaged4Float(CBaseObject* pcThis, SFloat4* pf, size uiLength, char* szFieldName)		{ Unmanaged(pcThis, PT_M4float32, pf, uiLength, szFieldName); }
 void CClass::Unmanaged4x4Float(CBaseObject* pcThis, SFloat4x4* pf, char* szFieldName)					{ Unmanaged(pcThis, PT_M4x4float32, pf, szFieldName); }

@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FloatHelper.h"
 #include "DataIO.h"
 #include "Float64Vec2.h"
-#include "Double3.h"
+#include "Float64Vec3.h"
 #include "Double4x4.h"
 #include "Double4.h"
 
@@ -46,7 +46,7 @@ SDouble4::SDouble4(const double *pf)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SDouble4::SDouble4(const SDouble3& v, double f)
+SDouble4::SDouble4(const SFloat64Vec3& v, double f)
 {
 	x = v.x;
 	y = v.y;
@@ -269,10 +269,10 @@ bool SDouble4::Load(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 void SDouble4::Fix(void)
 {
-	x = RoundDouble(x, BINARY_PRECISION);
-	y = RoundDouble(y, BINARY_PRECISION);
-	z = RoundDouble(z, BINARY_PRECISION);
-	w = RoundDouble(w, BINARY_PRECISION);
+	x = RoundFloat(x, (int64)BINARY_PRECISION);
+	y = RoundFloat(y, (int64)BINARY_PRECISION);
+	z = RoundFloat(z, (int64)BINARY_PRECISION);
+	w = RoundFloat(w, (int64)BINARY_PRECISION);
 }
 
 
@@ -301,10 +301,10 @@ int SDouble4::WholeNumbers(void)
 {
 	int i[4];
 
-	i[0] = DoubleWholeNumbers(x);
-	i[1] = DoubleWholeNumbers(y);
-	i[2] = DoubleWholeNumbers(z);
-	i[3] = DoubleWholeNumbers(w);
+	i[0] = FloatWholeNumbers(x);
+	i[1] = FloatWholeNumbers(y);
+	i[2] = FloatWholeNumbers(z);
+	i[3] = FloatWholeNumbers(w);
 
 	return LargestInt(i, 4);
 }

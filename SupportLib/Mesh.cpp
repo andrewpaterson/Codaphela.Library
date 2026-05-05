@@ -211,7 +211,7 @@ int CMesh::TestPositionChunkSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* CMesh::GetPosition(int iIndex)
+SFloat32Vec3* CMesh::GetPosition(int iIndex)
 {
 	return mcPositions.mcPositions.Get(iIndex);
 }
@@ -268,7 +268,7 @@ void CMesh::ClearConnectivity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMesh::AddCorner(float x, float y, float z)
+void CMesh::AddCorner(float32 x, float32 y, float32 z)
 {
 	mcPositions.AddPosition(x, y, z);
 	mcConnectivity.AddCorner();
@@ -280,7 +280,7 @@ void CMesh::AddCorner(float x, float y, float z)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMesh::AddCorner(SFloat3* psPosition)
+void CMesh::AddCorner(SFloat32Vec3* psPosition)
 {
 	mcPositions.AddPosition(psPosition);
 	mcConnectivity.AddCorner();
@@ -387,7 +387,7 @@ void CMesh::RemoveCorner(int iCorner)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMesh::MovePosition(int iPosition, SFloat3* psPosition)
+void CMesh::MovePosition(int iPosition, SFloat32Vec3* psPosition)
 {
 
 }
@@ -397,7 +397,7 @@ void CMesh::MovePosition(int iPosition, SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMesh::MovePositions(CArrayInt* paiPositions, SFloat3* psPosition)
+void CMesh::MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosition)
 {
 
 }
@@ -407,7 +407,7 @@ void CMesh::MovePositions(CArrayInt* paiPositions, SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMesh::AddUV(float u, float v, size iLayer)
+void CMesh::AddUV(float32 u, float32 v, size iLayer)
 {
 	CMeshUVLayer*	pcUVLayer;
 	SFloat32Vec2*		psUV;
@@ -422,9 +422,9 @@ void CMesh::AddUV(float u, float v, size iLayer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMesh::AddNormal(float x, float y, float z)
+void CMesh::AddNormal(float32 x, float32 y, float32 z)
 {
-	SFloat3*	psNormal;
+	SFloat32Vec3*	psNormal;
 
 	psNormal = mcNormals.mcNormals.Add();
 	psNormal->Init(x, y, z);

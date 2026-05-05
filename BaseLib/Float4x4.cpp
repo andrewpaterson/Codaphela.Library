@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FloatHelper.h"
 #include "DataIO.h"
 #include "Float32Vec2.h"
-#include "Float3.h"
+#include "Float32Vec3.h"
 #include "Float4.h"
 #include "Float4x4.h"
 
@@ -67,13 +67,13 @@ void SFloat4x4::Identity(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SFloat4x4::Init(SFloat3* psX, SFloat3* psY, SFloat3* psZ, SFloat3* psPos)
+void SFloat4x4::Init(SFloat32Vec3* psX, SFloat32Vec3* psY, SFloat32Vec3* psZ, SFloat32Vec3* psP)
 {
 	//Optimise me later!
-	x = SFloat4((float*)psX, 0.0f);
-	y = SFloat4((float*)psY, 0.0f);
-	z = SFloat4((float*)psZ, 0.0f);
-	pos = SFloat4((float*)psPos, 1.0f);
+	x =		SFloat4(psX->x, psX->y, psX->y, 0.0f);
+	y =		SFloat4(psY->x, psY->y, psY->y, 0.0f);
+	z =		SFloat4(psZ->x, psZ->y, psZ->y, 0.0f);
+	pos =	SFloat4(psP->x, psP->y, psP->y, 0.0f);
 }
 
 
@@ -288,9 +288,9 @@ float SFloat4x4::Determinant(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* SFloat4x4::At(void)
+SFloat32Vec3* SFloat4x4::At(void)
 {
-	return (SFloat3*)&z;
+	return (SFloat32Vec3*)&z;
 }
 
 
@@ -298,9 +298,9 @@ SFloat3* SFloat4x4::At(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* SFloat4x4::Up(void)
+SFloat32Vec3* SFloat4x4::Up(void)
 {
-	return (SFloat3*)&y;
+	return (SFloat32Vec3*)&y;
 }
 
 
@@ -308,9 +308,9 @@ SFloat3* SFloat4x4::Up(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* SFloat4x4::Across(void)
+SFloat32Vec3* SFloat4x4::Across(void)
 {
-	return (SFloat3*)&x;
+	return (SFloat32Vec3*)&x;
 }
 
 
@@ -318,9 +318,9 @@ SFloat3* SFloat4x4::Across(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* SFloat4x4::Pos(void)
+SFloat32Vec3* SFloat4x4::Pos(void)
 {
-	return (SFloat3*)&pos;
+	return (SFloat32Vec3*)&pos;
 }
 
 
@@ -413,7 +413,7 @@ void Float4x4RotationZ(SFloat4x4* psOut, float fRad)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void Float4x4RotationVector(SFloat4x4* psOut, SFloat3* psV, float fRad)
+void Float4x4RotationVector(SFloat4x4* psOut, SFloat32Vec3* psV, float fRad)
 {
 	float	u;
 	float	s;
@@ -449,7 +449,7 @@ bool Float4x4Inverse(SFloat4x4* psOut, float* pfDeterminant, SFloat4x4* psIn)
 }
 
 
-SFloat4x4* Float4x4LookAtRH(SFloat4x4* psOut, const SFloat3* psEye, const SFloat3* psAt, const SFloat3* psUp)
+SFloat4x4* Float4x4LookAtRH(SFloat4x4* psOut, const SFloat32Vec3* psEye, const SFloat32Vec3* psAt, const SFloat32Vec3* psUp)
 {
 	//zaxis = normal(Eye - At)
 	//xaxis = normal(cross(Up, zaxis))
@@ -460,9 +460,9 @@ SFloat4x4* Float4x4LookAtRH(SFloat4x4* psOut, const SFloat3* psEye, const SFloat
 	//xaxis.z           yaxis.z           zaxis.z          0
 	//-dot(xaxis, eye)  -dot(yaxis, eye)  -dot(zaxis, eye)  l
 
-	SFloat3 sZAxis;
-	SFloat3 sXAxis;
-	SFloat3 sYAxis;
+	SFloat32Vec3 sZAxis;
+	SFloat32Vec3 sXAxis;
+	SFloat32Vec3 sYAxis;
 
 	sZAxis.Copy(psEye);
 	sZAxis -= *psAt;

@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 class SFloat64Vec2;
-class SDouble3;
+class SFloat64Vec3;
 class SDouble4;
 class SDouble4x4
 {
@@ -40,7 +40,7 @@ public:
 	SDouble4	pos;
 
 	void 		Init(void);
-	void 		Init(SDouble3* psX, SDouble3* psY, SDouble3* psZ, SDouble3* psPos);
+	void 		Init(SFloat64Vec3* psX, SFloat64Vec3* psY, SFloat64Vec3* psZ, SFloat64Vec3* psPos);
 	void		Zero(void);
 
 	bool 		Save(CFileWriter* pcFileWriter);
@@ -51,10 +51,10 @@ public:
 	bool 		Inverse(SDouble4x4* psOut, double* pfDeterminant);
 	void 		Adjoint(SDouble4x4* psOut);
 	double		Determinant(void);
-	SDouble3*	At(void);
-	SDouble3*	Up(void);
-	SDouble3*	Across(void);
-	SDouble3*	Pos(void);
+	SFloat64Vec3*	At(void);
+	SFloat64Vec3*	Up(void);
+	SFloat64Vec3*	Across(void);
+	SFloat64Vec3*	Pos(void);
 	void		Print(CChars* psz, bool bOneLine, int iWholeNumbers = -1, int iDecimals = 2);
 	void 		Dump(void);
 };
@@ -68,10 +68,10 @@ SDouble4x4*	Double4x4Multiply(SDouble4x4* psOut, SDouble4x4* psLeft, SDouble4x4*
 void		Double4x4RotationX(SDouble4x4* psOut, double fRad);
 void		Double4x4RotationY(SDouble4x4* psOut, double fRad);
 void		Double4x4RotationZ(SDouble4x4* psOut, double fRad);
-void		Double4x4RotationVector(SDouble4x4* psOut, SDouble3* psV, double fRad);
+void		Double4x4RotationVector(SDouble4x4* psOut, SFloat64Vec3* psV, double fRad);
 void		Double4x4Translation(SDouble4x4* psOut, double x, double y, double z);
 bool		Double4x4Inverse(SDouble4x4* psOut, double* pfDeterminant, SDouble4x4* psIn);
-SDouble4x4* Double4x4LookAtRH(SDouble4x4* psOut, const SDouble3* psEye, const SDouble3* psAt, const SDouble3* psUp);
+SDouble4x4* Double4x4LookAtRH(SDouble4x4* psOut, const SFloat64Vec3* psEye, const SFloat64Vec3* psAt, const SFloat64Vec3* psUp);
 SDouble4x4* Double4x4PerspectiveFovRH(SDouble4x4* psOut, double fFovY, double fAspect, double fZNear, double fZFar);
 bool		Double4x4Equals(SDouble4x4* ps1, SDouble4x4* ps2);
 

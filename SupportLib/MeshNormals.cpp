@@ -77,7 +77,7 @@ void CMeshNormals::Class(void)
 {
 	CMeshDetail::Class();
 
-	U_Unknown(CArrayFloat3, mcNormals);
+	U_Unknown(CArrayFloat32Vec3, mcNormals);
 	U_Unknown(CArrayMeshFaceNormal, mcFaces);
 }
 
@@ -117,9 +117,9 @@ bool CMeshNormals::Save(CObjectWriter* pcFile)
 void CMeshNormals::GenerateFlatFaceNormals(CMeshPositions* pcPositions, CMeshConnectivity* pcConn)
 {
 	int					iFaceNum;
-	SFloat3				sVec1;
-	SFloat3				sVec2;
-	SFloat3				sNormal;
+	SFloat32Vec3				sVec1;
+	SFloat32Vec3				sVec2;
+	SFloat32Vec3				sNormal;
 	int					iNumFaces;
 
 	if (mbInUse)
@@ -150,14 +150,14 @@ void CMeshNormals::AddFace(int iFaceNum, CMeshPositions* pcPositions, CMeshConne
 	CMeshCorner*		psCornerA;
 	CMeshCorner*		psCornerB;
 	CMeshCorner*		psCornerC;
-	SFloat3*			psPosA;
-	SFloat3*			psPosB;
-	SFloat3*			psPosC;
-	SFloat3				sVec1;
-	SFloat3				sVec2;
-	SFloat3				sNormal;
+	SFloat32Vec3*			psPosA;
+	SFloat32Vec3*			psPosB;
+	SFloat32Vec3*			psPosC;
+	SFloat32Vec3				sVec1;
+	SFloat32Vec3				sVec2;
+	SFloat32Vec3				sNormal;
 	SMeshNormalFace*	psNormalFace;
-	SFloat3*			psNormal;
+	SFloat32Vec3*			psNormal;
 
 	if (mbInUse)
 	{
@@ -218,7 +218,7 @@ void CMeshNormals::IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSou
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* CMeshNormals::GetFaceNormal(int iFace)
+SFloat32Vec3* CMeshNormals::GetFaceNormal(int iFace)
 {
 	return mcNormals.Get(iFace);
 }
@@ -228,7 +228,7 @@ SFloat3* CMeshNormals::GetFaceNormal(int iFace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* CMeshNormals::GetCornerNormal(int iCorner)
+SFloat32Vec3* CMeshNormals::GetCornerNormal(int iCorner)
 {
 	return mcNormals.Get(iCorner);
 }

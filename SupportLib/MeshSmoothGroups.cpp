@@ -166,14 +166,14 @@ void CMeshSmoothGroups::GenerateSmoothingFromAngles(CMeshEditor* pcMeshEditor)
 	size			i;
 	size			iNumPolygons;
 	CMeshPolygon*	pcPolygon;
-	CArrayFloat3	asNormals;
+	CArrayFloat32Vec3	asNormals;
 	CArrayInt		aiAdjPolys;
-	SFloat3*		psThisNormal;
-	SFloat3*		psOtherNormal;
+	SFloat32Vec3*		psThisNormal;
+	SFloat32Vec3*		psOtherNormal;
 	size			j;
 	int				iOtherGon;
-	float			fDot;
-	float			fResult;
+	float32			fDot;
+	float32			fResult;
 
 	fDot = Deg2Dot(mfSharpAngle);
 
@@ -219,7 +219,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 
 	size				i, j, k, l;
 	int*				aiFaceRef;
-	SFloat3				cNormal;  
+	SFloat32Vec3				cNormal;  
 	uint32				dwSmooth[MAX_UNOVERLAPPING_SMOOTHING_GROUPS];
 	size				iNumNormals;
 	CMeshCorner*		psCorners;
@@ -232,7 +232,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 	int					iNewNormalIndex;
 	size				iNumCorners;
 	SMeshNormalFace*	psFaceNormal;
-	SFloat3*			pcNormal;
+	SFloat32Vec3*			pcNormal;
 	CMeshNormals*		pcNormals;
 
 	if (!pcMesh->mcNormals.InUse())

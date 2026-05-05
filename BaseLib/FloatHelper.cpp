@@ -274,7 +274,7 @@ void InterpolateFloat(float32* fDest, float32 f1, float32 f2, float32 fPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float32 FloatToleranceForDecimals(int iDecimals)
+float32 Float32ToleranceForDecimals(int iDecimals)
 {
 	float64 fTolerance;
 
@@ -311,9 +311,9 @@ size FloatWholeNumbers(float32 f)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool DoubleEqual(float64 f1, float64 f2)
+bool FloatEqual(float64 f1, float64 f2)
 {
-	return DoubleEqual(f1, f2, SMALL_NUMBER);
+	return FloatEqual(f1, f2, (float64)SMALL_NUMBER);
 }
 
 
@@ -321,7 +321,7 @@ bool DoubleEqual(float64 f1, float64 f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool DoubleEqual(float64 f1, float64 f2, float64 fTolerance)
+bool FloatEqual(float64 f1, float64 f2, float64 fTolerance)
 {
 	// f1 == f2
 	if ((f2 - fTolerance > f1) || (f2 + fTolerance < f1))
@@ -421,7 +421,7 @@ bool DoubleLessThan(float64 f1, float64 f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float64 TruncateDouble(float64 fInput, int64 iBinaryExponent)
+float64 TruncateFloat(float64 fInput, int64 iBinaryExponent)
 {
 	//Everything below the binary exponent is truncated.
 
@@ -476,9 +476,9 @@ float64 TruncateDouble(float64 fInput, int64 iBinaryExponent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float64 RoundDouble(float64 fInput, int64 iBinaryExponent)
+float64 RoundFloat(float64 fInput, int64 iBinaryExponent)
 {
-	float64	fValue;
+	float64		fValue;
 	int64		iAdjustedExponent;
 
 	iAdjustedExponent = iBinaryExponent - 1 + 0x3ff;
@@ -493,7 +493,7 @@ float64 RoundDouble(float64 fInput, int64 iBinaryExponent)
 	{
 		fInput += fValue;
 	}
-	return TruncateDouble(fInput, iBinaryExponent);
+	return TruncateFloat(fInput, iBinaryExponent);
 }
 
 
@@ -519,7 +519,7 @@ float64 NormaliseDouble(float64 fMax, float64 fMin, float64 fPos)
 	}
 	else
 	{
-		if (DoubleEqual(fMax, fPos))
+		if (FloatEqual(fMax, fPos))
 		{
 			return fMax;
 		}
@@ -554,7 +554,7 @@ void InterpolateDouble(float64* fDest, float64 f1, float64 f2, float64 fPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float64 DoubleToleranceForDecimals(int iDecimals)
+float64 Float64ToleranceForDecimals(int iDecimals)
 {
 	float128 fTolerance;
 
@@ -568,7 +568,7 @@ float64 DoubleToleranceForDecimals(int iDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size DoubleWholeNumbers(float64 f)
+size FloatWholeNumbers(float64 f)
 {
 	float64	fCmp;
 	size	iWholes;

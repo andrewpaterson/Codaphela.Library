@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FloatHelper.h"
 #include "DataIO.h"
 #include "Float64Vec2.h"
-#include "Double3.h"
+#include "Float64Vec3.h"
 #include "Double4.h"
 #include "Double4x4.h"
 
@@ -67,13 +67,13 @@ void SDouble4x4::Identity(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SDouble4x4::Init(SDouble3* psX, SDouble3* psY, SDouble3* psZ, SDouble3* psPos)
+void SDouble4x4::Init(SFloat64Vec3* psX, SFloat64Vec3* psY, SFloat64Vec3* psZ, SFloat64Vec3* psP)
 {
 	//Optimise me later!
-	x = SDouble4((double*)psX, 0.0f);
-	y = SDouble4((double*)psY, 0.0f);
-	z = SDouble4((double*)psZ, 0.0f);
-	pos = SDouble4((double*)psPos, 1.0f);
+	x =		SDouble4(psX->x, psX->y, psX->y, 0.0f);
+	y =		SDouble4(psY->x, psY->y, psY->y, 0.0f);
+	z =		SDouble4(psZ->x, psZ->y, psZ->y, 0.0f);
+	pos =	SDouble4(psP->x, psP->y, psP->y, 0.0f);
 }
 
 
@@ -288,9 +288,9 @@ double SDouble4x4::Determinant(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SDouble3* SDouble4x4::At(void)
+SFloat64Vec3* SDouble4x4::At(void)
 {
-	return (SDouble3*)&z;
+	return (SFloat64Vec3*)&z;
 }
 
 
@@ -298,9 +298,9 @@ SDouble3* SDouble4x4::At(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SDouble3* SDouble4x4::Up(void)
+SFloat64Vec3* SDouble4x4::Up(void)
 {
-	return (SDouble3*)&y;
+	return (SFloat64Vec3*)&y;
 }
 
 
@@ -308,9 +308,9 @@ SDouble3* SDouble4x4::Up(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SDouble3* SDouble4x4::Across(void)
+SFloat64Vec3* SDouble4x4::Across(void)
 {
-	return (SDouble3*)&x;
+	return (SFloat64Vec3*)&x;
 }
 
 
@@ -318,9 +318,9 @@ SDouble3* SDouble4x4::Across(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SDouble3* SDouble4x4::Pos(void)
+SFloat64Vec3* SDouble4x4::Pos(void)
 {
-	return (SDouble3*)&pos;
+	return (SFloat64Vec3*)&pos;
 }
 
 
@@ -413,7 +413,7 @@ void Double4x4RotationZ(SDouble4x4* psOut, double fRad)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void Double4x4RotationVector(SDouble4x4* psOut, SDouble3* psV, double fRad)
+void Double4x4RotationVector(SDouble4x4* psOut, SFloat64Vec3* psV, double fRad)
 {
 	double	u;
 	double	s;
@@ -449,7 +449,7 @@ bool Double4x4Inverse(SDouble4x4* psOut, double* pfDeterminant, SDouble4x4* psIn
 }
 
 
-SDouble4x4* Double4x4LookAtRH(SDouble4x4* psOut, const SDouble3* psEye, const SDouble3* psAt, const SDouble3* psUp)
+SDouble4x4* Double4x4LookAtRH(SDouble4x4* psOut, const SFloat64Vec3* psEye, const SFloat64Vec3* psAt, const SFloat64Vec3* psUp)
 {
 	//zaxis = normal(Eye - At)
 	//xaxis = normal(cross(Up, zaxis))
@@ -460,18 +460,18 @@ SDouble4x4* Double4x4LookAtRH(SDouble4x4* psOut, const SDouble3* psEye, const SD
 	//xaxis.z           yaxis.z           zaxis.z          0
 	//-dot(xaxis, eye)  -dot(yaxis, eye)  -dot(zaxis, eye)  l
 
-	SDouble3 sZAxis;
-	SDouble3 sXAxis;
-	SDouble3 sYAxis;
+	SFloat64Vec3 sZAxis;
+	SFloat64Vec3 sXAxis;
+	SFloat64Vec3 sYAxis;
 
 	sZAxis.Copy(psEye);
 	sZAxis -= *psAt;
 	sZAxis.Normalize();
 
-	Double3Cross(&sXAxis, psUp, &sZAxis);
+	Float3Cross(&sXAxis, psUp, &sZAxis);
 	sXAxis.Normalize();
 
-	Double3Cross(&sYAxis, &sZAxis, &sXAxis);
+	Float3Cross(&sYAxis, &sZAxis, &sXAxis);
 
 	psOut->x.x = sXAxis.x;	
 	psOut->x.y = sYAxis.x;	
@@ -488,9 +488,9 @@ SDouble4x4* Double4x4LookAtRH(SDouble4x4* psOut, const SDouble3* psEye, const SD
 	psOut->z.z = sZAxis.z;
 	psOut->z.w = 0.0f;
 
-	psOut->pos.x = -Double3Dot(&sXAxis, psEye);
-	psOut->pos.y = -Double3Dot(&sYAxis, psEye);
-	psOut->pos.z = -Double3Dot(&sZAxis, psEye);
+	psOut->pos.x = -Float3Dot(&sXAxis, psEye);
+	psOut->pos.y = -Float3Dot(&sYAxis, psEye);
+	psOut->pos.z = -Float3Dot(&sZAxis, psEye);
 	psOut->pos.w = 1.0f;
 
 	return psOut;

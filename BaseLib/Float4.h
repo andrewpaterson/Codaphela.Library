@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 class SFloat32Vec2;
-class SFloat3;
+class SFloat32Vec3;
 class SFloat4x4;
 class SFloat4
 {
@@ -39,9 +39,10 @@ public:
 	float z;
 	float w;
 
+public:
 	SFloat4() {};
 	SFloat4(const float*);
-	SFloat4(const SFloat3& v, float f);
+	SFloat4(const SFloat32Vec3& v, float f);
 	SFloat4(float x, float y, float z, float w);
 
 	SFloat4& operator += (const SFloat4&);
