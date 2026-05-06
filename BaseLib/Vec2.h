@@ -313,8 +313,8 @@ bool SVec2<M, N>::Load(CFileReader* pcFileReader)
 {
 	bool	bResult;
 
-	bResult = pcFileReader->ReadPrimitive(&x);
-	bResult &= pcFileReader->ReadPrimitive(&y);
+	bResult = pcFileReader->ReadPrimitive<M>(&x);
+	bResult &= pcFileReader->ReadPrimitive<M>(&y);
 	return bResult;
 }
 
@@ -391,7 +391,7 @@ void SVec2<M, N>::Subtract(SVec2<M, N>* pv)
 template<class M, class N>
 N SVec2<M, N>::SquareMagnitude(void)
 {
-	return (N)x * (N)x + (N)y * (N)y;
+	return (N)x*(N)x + (N)y*(N)y;
 }
 
 

@@ -77,12 +77,12 @@ void CSphere::Copy(CSphere* source)
 //////////////////////////////////////////////////////////////////////////
 void CSphere::SetFromPointsUsingAveragePosition(SFloat32Vec3* psPoints, int iStride, int iNumPoints)
 {
-	int			i;
+	int				i;
 	SFloat32Vec3*	psPBase;
-	SFloat32Vec3		cPoint;
-	float32		fMaxLen;
-	float32		fLen;
-	SFloat32Vec3		cCenter;
+	SFloat32Vec3	cPoint;
+	float64			fMaxLen;
+	float64			fLen;
+	SFloat32Vec3	cCenter;
 
 	psPBase = psPoints;
 	cCenter.Init(0,0,0);
@@ -106,7 +106,7 @@ void CSphere::SetFromPointsUsingAveragePosition(SFloat32Vec3* psPoints, int iStr
 		}
 		psPoints = (SFloat32Vec3*)RemapSinglePointer(psPoints, iStride);
 	}
-	mfRadius = SquareRoot(fMaxLen);
+	mfRadius = (float32)SquareRoot(fMaxLen);
 	*mpsPosition = cCenter;
 }
 
@@ -117,14 +117,14 @@ void CSphere::SetFromPointsUsingAveragePosition(SFloat32Vec3* psPoints, int iStr
 //////////////////////////////////////////////////////////////////////////
 void CSphere::SetFromPointsUsingBestFit(SFloat32Vec3* psPoints, int iStride, int iNumPoints)
 {
-	int			i, j;
+	int				i, j;
 	SFloat32Vec3*	psPoints1;
 	SFloat32Vec3*	psPoints2;
 	SFloat32Vec3*	psEndPoint1;
 	SFloat32Vec3*	psEndPoint2;
 	SFloat32Vec3	cPoint;
-	float32		fMaxLen;
-	float32		fLen;
+	float64			fMaxLen;
+	float64			fLen;
 
 	//This could be optimised quite easily by discarding points which fall inside the sphere.
 	fMaxLen = 0.0f;
@@ -151,7 +151,7 @@ void CSphere::SetFromPointsUsingBestFit(SFloat32Vec3* psPoints, int iStride, int
 		}
 		psPoints1 = (SFloat32Vec3*)RemapSinglePointer(psPoints1, iStride);
 	}
-	mfRadius = SquareRoot(fMaxLen) / 2.0f;
+	mfRadius = (float32)SquareRoot(fMaxLen) / 2.0f;
 	*mpsPosition = (*psEndPoint1 + *psEndPoint2) / 2.0f;
 }
 

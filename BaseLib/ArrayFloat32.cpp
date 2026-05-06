@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayFloat32Vec3::Dump(void)
+void CArrayFloat32::Dump(void)
 {
 	size	i;
 	float32	fValue;

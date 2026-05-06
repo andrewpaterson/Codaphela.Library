@@ -12,7 +12,7 @@
 #include "BaseLib/Float4.h"
 #include "BaseLib/Float4x4.h"
 #include "BaseLib/Int32Vec2.h"
-#include "BaseLib/Int3.h"
+#include "BaseLib/Int32Vec3.h"
 #include "BaseLib/Int4.h"
 #include "Integer.h"
 #include "Float.h"
@@ -159,8 +159,8 @@ public:
 
 	void				Unmanaged2Int(CBaseObject* pcThis, SInt32Vec2* pf, char* szFieldName);
 	void				Unmanaged2Int(CBaseObject* pcThis, SInt32Vec2* pf, size uiLength, char* szFieldName);
-	void				Unmanaged3Int(CBaseObject* pcThis, SInt3* pf, char* szFieldName);
-	void				Unmanaged3Int(CBaseObject* pcThis, SInt3* pf, size uiLength, char* szFieldName);
+	void				Unmanaged3Int(CBaseObject* pcThis, SInt32Vec3* pf, char* szFieldName);
+	void				Unmanaged3Int(CBaseObject* pcThis, SInt32Vec3* pf, size uiLength, char* szFieldName);
 	void				Unmanaged4Int(CBaseObject* pcThis, SInt4* pf, char* szFieldName);
 	void				Unmanaged4Int(CBaseObject* pcThis, SInt4* pf, size uiLength, char* szFieldName);
 

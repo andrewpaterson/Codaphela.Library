@@ -28,20 +28,20 @@ class CSphere
 {
 public:
 	SFloat32Vec3*	mpsPosition;
-	float32		mfRadius;
+	float32			mfRadius;
 
 	void	Init(SFloat32Vec3*	psPosition);
 
 	//Set from center of sphere and radius
-	void 	Set(SFloat32Vec3* pos, float32 rad);
-	void 	Set(float32 x, float32 y, float32 z, float32 rad);
-	void 	SetFromPointsUsingAveragePosition(SFloat32Vec3* psPoints, int iStride, int iNumPoints);
-	void 	SetFromPointsUsingBestFit(SFloat32Vec3* psPoints, int iStride, int iNumPoints);
-	void 	BoundingBox(SFloat32Vec3* min, SFloat32Vec3* max);
-	void 	Copy(CSphere* source);
-	float32 	IntersectSphereVolume(CSphere* pcOther);
-	float32 	Volume(void);
-	bool	Contains(CTriangle* pcTriangle);
+	void 		Set(SFloat32Vec3* pos, float32 rad);
+	void 		Set(float32 x, float32 y, float32 z, float32 rad);
+	void 		SetFromPointsUsingAveragePosition(SFloat32Vec3* psPoints, int iStride, int iNumPoints);
+	void 		SetFromPointsUsingBestFit(SFloat32Vec3* psPoints, int iStride, int iNumPoints);
+	void 		BoundingBox(SFloat32Vec3* min, SFloat32Vec3* max);
+	void 		Copy(CSphere* source);
+	float32		IntersectSphereVolume(CSphere* pcOther);
+	float32		Volume(void);
+	bool		Contains(CTriangle* pcTriangle);
 };
 
 

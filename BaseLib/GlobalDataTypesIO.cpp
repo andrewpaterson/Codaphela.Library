@@ -1,7 +1,7 @@
 #include "Logger.h"
 #include "DataTypesIO.h"
 #include "IntVec2.h"
-#include "Int3.h"
+#include "Int32Vec3.h"
 #include "Int4.h"
 #include "GeometricTypes.h"
 #include "TypeNames.h"
@@ -46,7 +46,7 @@ void DataIOInit(void)
 	gcDataTypesIO.Add<SIOFloat64>(gcTypeNames.GetPrettyName(PT_float64));
 
 	gcDataTypesIO.Add<SIntVec2>(gcTypeNames.GetPrettyName(PT_M2int32));
-	gcDataTypesIO.Add<SInt3>(gcTypeNames.GetPrettyName(PT_M3int32));
+	gcDataTypesIO.Add<SInt32Vec3>(gcTypeNames.GetPrettyName(PT_M3int32));
 	gcDataTypesIO.Add<SInt4>(gcTypeNames.GetPrettyName(PT_M4int32));
 
 	gcDataTypesIO.Add<SFloat32Vec2>(gcTypeNames.GetPrettyName(PT_M2float32));

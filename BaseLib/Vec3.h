@@ -74,7 +74,7 @@ public:
 			void			Add(SVec3<M, N>* pv);
 			void			Subtract(const SVec3<M, N>& v);
 			void			Subtract(SVec3<M, N>* pv);
-			M 				SquareMagnitude(void);
+			N 				SquareMagnitude(void);
 			M 				Magnitude(void);
 };
 
@@ -381,7 +381,7 @@ void SVec3<M, N>::Subtract(SVec3<M, N>* pv)
 template<class M, class N>
 M SVec3<M, N>::Magnitude(void)
 {
-	return SquareRoot(SquareMagnitude());
+	return (M)SquareRoot((N)SquareMagnitude());
 }
 
 
@@ -390,9 +390,9 @@ M SVec3<M, N>::Magnitude(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class N>
-M SVec3<M, N>::SquareMagnitude(void)
+N SVec3<M, N>::SquareMagnitude(void)
 {
-	return x*x + y*y + z*z;
+	return (N)x*(N)x + (N)y*(N)y + (N)z*(N)z;
 }
 
 
@@ -407,7 +407,7 @@ bool SVec3<M, N>::Save(CFileWriter* pcFileWriter)
 
 	bResult = pcFileWriter->WritePrimitive<M>(x);
 	bResult &= pcFileWriter->WritePrimitive<M>(y);
-	bResult &= pcFileWriter->WritePrimitive(z);
+	bResult &= pcFileWriter->WritePrimitive<M>(z);
 	return bResult;
 }
 
@@ -421,9 +421,9 @@ bool SVec3<M, N>::Load(CFileReader* pcFileReader)
 {
 	bool	bResult;
 
-	bResult = pcFileReader->ReadPrimitive(&x);
-	bResult &= pcFileReader->ReadPrimitive(&y);
-	bResult &= pcFileReader->ReadPrimitive(&z);
+	bResult = pcFileReader->ReadPrimitive<M>(&x);
+	bResult &= pcFileReader->ReadPrimitive<M>(&y);
+	bResult &= pcFileReader->ReadPrimitive<M>(&z);
 	return bResult;
 }
 
