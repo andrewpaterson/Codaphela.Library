@@ -2610,8 +2610,8 @@ void CBaseObject::Unmanaged4x4Float(SFloat4x4* pf, size uiLength, char* szFieldN
 
 void CBaseObject::Unmanaged2Int(SInt32Vec2* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged2Int(this, pf, szFieldName); }
 void CBaseObject::Unmanaged2Int(SInt32Vec2* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged2Int(this, pf, uiLength, szFieldName); }
-void CBaseObject::Unmanaged3Int(SInt3* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged3Int(this, pf, szFieldName); }
-void CBaseObject::Unmanaged3Int(SInt3* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged3Int(this, pf, uiLength, szFieldName); }
+void CBaseObject::Unmanaged3Int(SInt32Vec3* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged3Int(this, pf, szFieldName); }
+void CBaseObject::Unmanaged3Int(SInt32Vec3* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged3Int(this, pf, uiLength, szFieldName); }
 void CBaseObject::Unmanaged4Int(SInt4* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4Int(this, pf, szFieldName); }
 void CBaseObject::Unmanaged4Int(SInt4* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4Int(this, pf, uiLength, szFieldName); }
 

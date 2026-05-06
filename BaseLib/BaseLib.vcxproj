@@ -235,9 +235,12 @@
     <ClInclude Include="IndexPtr.h" />
     <ClInclude Include="IndexTemplate.h" />
     <ClInclude Include="Int16Vec2.h" />
+    <ClInclude Include="Int16Vec3.h" />
     <ClInclude Include="Int32Vec2.h" />
     <ClInclude Include="Int64Vec2.h" />
+    <ClInclude Include="Int64Vec3.h" />
     <ClInclude Include="IntAndPointer.h" />
+    <ClInclude Include="IntVec3.h" />
     <ClInclude Include="JSONIdentifier.h" />
     <ClInclude Include="BaseParserString.h" />
     <ClInclude Include="JSONParser.h" />
@@ -415,7 +418,7 @@
     <ClInclude Include="Float4x4.h" />
     <ClInclude Include="GeometricTypes.h" />
     <ClInclude Include="IntVec2.h" />
-    <ClInclude Include="Int3.h" />
+    <ClInclude Include="Int32Vec3.h" />
     <ClInclude Include="Int4.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="DebugOutput.h" />
@@ -671,8 +674,11 @@
     <ClCompile Include="IndexPtr.cpp" />
     <ClCompile Include="IndexStringBlock.cpp" />
     <ClCompile Include="Int16Vec2.cpp" />
+    <ClCompile Include="Int16Vec3.cpp" />
     <ClCompile Include="Int32Vec2.cpp" />
     <ClCompile Include="Int64Vec2.cpp" />
+    <ClCompile Include="Int64Vec3.cpp" />
+    <ClCompile Include="IntVec3.cpp" />
     <ClCompile Include="JSONIdentifier.cpp" />
     <ClCompile Include="BaseParserString.cpp" />
     <ClCompile Include="JSONParser.cpp" />
@@ -805,7 +811,7 @@
     <ClCompile Include="Float4x4.cpp" />
     <ClCompile Include="GeometricTypes.cpp" />
     <ClCompile Include="IntVec2.cpp" />
-    <ClCompile Include="Int3.cpp" />
+    <ClCompile Include="Int32Vec3.cpp" />
     <ClCompile Include="Int4.cpp" />
     <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="ErrorHandler.cpp" />

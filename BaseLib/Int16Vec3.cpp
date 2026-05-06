@@ -1,35 +1,13 @@
-/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
-
-Copyright (c) 2026 Andrew Paterson
-
-This file is part of The Codaphela Project: Codaphela BaseLib
-
-Codaphela BaseLib is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Codaphela BaseLib is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License
-along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
-
-Microsoft Windows is Copyright Microsoft Corporation
-
-** ------------------------------------------------------------------------ **/
 #include "Numbers.h"
 #include "IntegerHelper.h"
-#include "Int32Vec2.h"
+#include "Int16Vec3.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SInt32Vec2::Print(CChars* psx, int iWholeNumbers)
+void SInt16Vec3::Print(CChars* psx, int iWholeNumbers)
 {
 	CChars		szzz;
 	int			iWidth;
@@ -58,6 +36,12 @@ void SInt32Vec2::Print(CChars* psx, int iWholeNumbers)
 	szzz.RightAlign(' ', iWidth);
 	psx->Append(szzz);
 	szzz.Kill();
+	psx->Append(',');
+	szzz.Init();
+	szzz.Append(z);
+	szzz.RightAlign(' ', iWidth);
+	psx->Append(szzz);
+	szzz.Kill();
 	psx->Append(']');
 }
 
@@ -66,115 +50,94 @@ void SInt32Vec2::Print(CChars* psx, int iWholeNumbers)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int SInt32Vec2::WholeNumbers(void)
+int SInt16Vec3::WholeNumbers(void)
 {
-	int i[2];
+	int i[3];
 
 	i[0] = CountDigits(x);
 	i[1] = CountDigits(y);
+	i[2] = CountDigits(z);
 
-	return LargestInt(i, 2);
+	return LargestInt(i, 3);
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
-int32 Int32Vec2LengthSq (const SInt32Vec2 *pV)
+int16 Int16Vec3Dot(const SInt16Vec3* pV1, const SInt16Vec3* pV2)
 {
-	return pV->x * pV->x + pV->y * pV->y;
+	return pV1->x * pV2->x + pV1->y * pV2->y + pV1->z * pV2->z;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
-int32 Int32Vec2Dot(const SInt32Vec2* pV1, const SInt32Vec2* pV2)
+SInt16Vec3* Int16Vec3Cross(SInt16Vec3* pOut, const SInt16Vec3* pV1, const SInt16Vec3* pV2)
 {
-	return pV1->x * pV2->x + pV1->y * pV2->y;
+	SInt16Vec3 v;
+
+	v.x = pV1->y * pV2->z - pV1->z * pV2->y;
+	v.y = pV1->z * pV2->x - pV1->x * pV2->z;
+	v.z = pV1->x * pV2->y - pV1->y * pV2->x;
+
+	*pOut = v;
+	return pOut;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
-int32 Int32Vec2Cross(const SInt32Vec2* pV1, const SInt32Vec2* pV2)
-{
-	return pV1->x * pV2->y - pV1->y * pV2->x;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2* Int32Vec2Add(SInt32Vec2 *pOut, const SInt32Vec2* pV1, const SInt32Vec2* pV2)
+SInt16Vec3* Int16Vec3Add(SInt16Vec3* pOut, const SInt16Vec3* pV1, const SInt16Vec3* pV2)
 {
 	pOut->x = pV1->x + pV2->x;
 	pOut->y = pV1->y + pV2->y;
+	pOut->z = pV1->z + pV2->z;
 	return pOut;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2* Int32Vec2Subtract(SInt32Vec2 *pOut, const SInt32Vec2* pV1, const SInt32Vec2* pV2)
+SInt16Vec3* Int16Vec3Subtract(SInt16Vec3* pOut, const SInt16Vec3* pV1, const SInt16Vec3* pV2)
 {
 	pOut->x = pV1->x - pV2->x;
 	pOut->y = pV1->y - pV2->y;
+	pOut->z = pV1->z - pV2->z;
 	return pOut;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2* Int32Vec2Minimize(SInt32Vec2 *pOut, const SInt32Vec2* pV1, const SInt32Vec2* pV2)
+SInt16Vec3* Int16Vec3Minimize(SInt16Vec3* pOut, const SInt16Vec3* pV1, const SInt16Vec3* pV2)
 {
 	pOut->x = pV1->x < pV2->x ? pV1->x : pV2->x;
 	pOut->y = pV1->y < pV2->y ? pV1->y : pV2->y;
+	pOut->z = pV1->z < pV2->z ? pV1->z : pV2->z;
 	return pOut;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+//
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2* Int32Vec2Maximize(SInt32Vec2 *pOut, const SInt32Vec2* pV1, const SInt32Vec2* pV2)
+SInt16Vec3* Int16Vec3Maximize(SInt16Vec3* pOut, const SInt16Vec3* pV1, const SInt16Vec3* pV2)
 {
 	pOut->x = pV1->x > pV2->x ? pV1->x : pV2->x;
 	pOut->y = pV1->y > pV2->y ? pV1->y : pV2->y;
-	return pOut;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2* Int32Vec2Scale(SInt32Vec2 *pOut, const SInt32Vec2 *pV, float32 s)
-{
-	pOut->x = (int32)(pV->x * s);
-	pOut->y = (int32)(pV->y * s);
-	return pOut;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2* Int32Vec2Lerp(SInt32Vec2 *pOut, const SInt32Vec2* pV1, const SInt32Vec2* pV2, float32 s)
-{
-	pOut->x = pV1->x + (int32)(s * (pV2->x - pV1->x));
-	pOut->y = pV1->y + (int32)(s * (pV2->y - pV1->y));
+	pOut->z = pV1->z > pV2->z ? pV1->z : pV2->z;
 	return pOut;
 }
 
@@ -183,9 +146,35 @@ SInt32Vec2* Int32Vec2Lerp(SInt32Vec2 *pOut, const SInt32Vec2* pV1, const SInt32V
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Int32Vec2Swap(SInt32Vec2* ps1, SInt32Vec2* ps2)
+SInt16Vec3* Int16Vec3Scale(SInt16Vec3 *pOut, const SInt16Vec3 *pV, float32 s)
 {
-	SInt32Vec2 temp;
+	pOut->x = (int16)(pV->x * s);
+	pOut->y = (int16)(pV->y * s);
+	pOut->z = (int16)(pV->z * s);
+	return pOut;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SInt16Vec3* Int16Vec3Lerp(SInt16Vec3 *pOut, const SInt16Vec3 *pV1, const SInt16Vec3 *pV2, float32 s)
+{
+	pOut->x = (int16)(pV1->x + s * (pV2->x - pV1->x));
+	pOut->y = (int16)(pV1->y + s * (pV2->y - pV1->y));
+	pOut->z = (int16)(pV1->z + s * (pV2->z - pV1->z));
+	return pOut;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void Int16Vec3Swap(SInt16Vec3* ps1, SInt16Vec3* ps2)
+{
+	SInt16Vec3 temp;
 
 	temp = *ps2;
 	*ps2 = *ps1;
@@ -197,10 +186,10 @@ void Int32Vec2Swap(SInt32Vec2* ps1, SInt32Vec2* ps2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Int32Vec2MinMax(SInt32Vec2* psMin, SInt32Vec2* psMax, SInt32Vec2* asIn, int iInStride, int iNumPoints)
+void Int16Vec3MinMax(SInt16Vec3* psMin, SInt16Vec3* psMax, SInt16Vec3* asIn, int iInStride, int iNumPoints)
 {
 	int			i;
-	SInt32Vec2*	psIn;
+	SInt16Vec3*	psIn;
 
 	if (iNumPoints > 0)
 	{
@@ -210,7 +199,7 @@ void Int32Vec2MinMax(SInt32Vec2* psMin, SInt32Vec2* psMax, SInt32Vec2* asIn, int
 
 		for (i = 1; i < iNumPoints; i++)
 		{
-			psIn = (SInt32Vec2*)RemapSinglePointer(asIn, i * iInStride);
+			psIn = (SInt16Vec3*)RemapSinglePointer(asIn, i * iInStride);
 
 			if (psIn->x < psMin->x)
 			{
@@ -219,6 +208,10 @@ void Int32Vec2MinMax(SInt32Vec2* psMin, SInt32Vec2* psMax, SInt32Vec2* asIn, int
 			if (psIn->y < psMin->y)
 			{
 				psMin->y = psIn->y;
+			}
+			if (psIn->z < psMin->z)
+			{
+				psMin->z = psIn->z;
 			}
 
 			if (psIn->x > psMax->x)
@@ -229,6 +222,10 @@ void Int32Vec2MinMax(SInt32Vec2* psMin, SInt32Vec2* psMax, SInt32Vec2* asIn, int
 			{
 				psMax->y = psIn->y;
 			}
+			if (psIn->z > psMax->z)
+			{
+				psMax->z = psIn->z;
+			}
 		}
 	}
 }
@@ -238,13 +235,13 @@ void Int32Vec2MinMax(SInt32Vec2* psMin, SInt32Vec2* psMax, SInt32Vec2* asIn, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Int32Vec2InterpolatePosition(SInt32Vec2* psVecDest, const SInt32Vec2* psVec1, const SInt32Vec2* psVec2, float32 fWeight)
+void Int16Vec3InterpolatePosition(SInt16Vec3* psVecDest, const SInt16Vec3* psVec1, const SInt16Vec3* psVec2, float32 fWeight)
 {
-	SInt32Vec2		sVec1;
-	SInt32Vec2		sVec2;
+	SInt16Vec3	sVec1;
+	SInt16Vec3	sVec2;
 
-	Int32Vec2Scale(&sVec1, psVec1, fWeight);
-	Int32Vec2Scale(&sVec2, psVec2, 1.0f - fWeight);
-	Int32Vec2Add(psVecDest, &sVec1, &sVec2);
+	Int16Vec3Scale(&sVec1, psVec1, fWeight);
+	Int16Vec3Scale(&sVec2, psVec2, 1.0f - fWeight);
+	Int16Vec3Add(psVecDest, &sVec1, &sVec2);
 }
 

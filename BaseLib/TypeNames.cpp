@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PointerFunctions.h"
 #include "Logger.h"
 #include "IntVec2.h"
-#include "Int3.h"
+#include "Int32Vec3.h"
 #include "Int4.h"
 #include "GeometricTypes.h"
 #include "Float64Vec2.h"
@@ -111,14 +111,14 @@ void CTypeNames::Init(void)
 	AddType(PT_uint64,			LONG_BYTE_SIZE,			"ULong",			"uint64",			"PT_uint64");
 	AddType(PT_float32,			FLOAT_BYTE_SIZE,		"Float",			"float",			"PT_float32");
 	AddType(PT_float64,			DOUBLE_BYTE_SIZE,		"Double",			"double",			"PT_float64");
-	AddType(PT_M2float32,		FLOAT2_BYTE_SIZE,		"Float2",			"SFloat32Vec2",			"PT_M2float32");
-	AddType(PT_M3float32,		FLOAT3_BYTE_SIZE,		"Float3",			"SFloat32Vec3",			"PT_M3float32");
+	AddType(PT_M2float32,		FLOAT2_BYTE_SIZE,		"Float2",			"SFloat32Vec2",		"PT_M2float32");
+	AddType(PT_M3float32,		FLOAT3_BYTE_SIZE,		"Float3",			"SFloat32Vec3",		"PT_M3float32");
 	AddType(PT_M4float32,		FLOAT4_BYTE_SIZE,		"Float4",			"SFloat4",			"PT_M4float32");
-	AddType(PT_M2float64,		DOUBLE2_BYTE_SIZE,		"Double2",			"SFloat64Vec2",			"PT_M2float64");
-	AddType(PT_M3float64,		DOUBLE3_BYTE_SIZE,		"Double3",			"SFloat64Vec3",			"PT_M3float64");
+	AddType(PT_M2float64,		DOUBLE2_BYTE_SIZE,		"Double2",			"SFloat64Vec2",		"PT_M2float64");
+	AddType(PT_M3float64,		DOUBLE3_BYTE_SIZE,		"Double3",			"SFloat64Vec3",		"PT_M3float64");
 	AddType(PT_M4float64,		DOUBLE4_BYTE_SIZE,		"Double4",			"SDouble4",			"PT_M4float64");
 	AddType(PT_M2int32,			INT2_BYTE_SIZE,			"Int2",				"SIntVec2",			"PT_M2int32");
-	AddType(PT_M3int32,			INT3_BYTE_SIZE,			"Int3",				"SInt3",			"PT_M3int32");
+	AddType(PT_M3int32,			INT3_BYTE_SIZE,			"Int3",				"SInt32Vec3",		"PT_M3int32");
 	AddType(PT_M4int32,			INT4_BYTE_SIZE,			"Int4",				"SInt4",			"PT_M4int32");
 	AddType(PT_char8,			CHAR_BYTE_SIZE,			"Char",				"char8",			"PT_char8");
 	AddType(PT_char16,			WIDE_CHAR_BYTE_SIZE,	"Widechar",			"char16",			"PT_char16");

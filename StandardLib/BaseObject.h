@@ -318,8 +318,8 @@ protected:
 
 			void				Unmanaged2Int(SInt32Vec2* pf, char* szFieldName);
 			void				Unmanaged2Int(SInt32Vec2* pf, size uiLength, char* szFieldName);
-			void				Unmanaged3Int(SInt3* pf, char* szFieldName);
-			void				Unmanaged3Int(SInt3* pf, size uiLength, char* szFieldName);
+			void				Unmanaged3Int(SInt32Vec3* pf, char* szFieldName);
+			void				Unmanaged3Int(SInt32Vec3* pf, size uiLength, char* szFieldName);
 			void				Unmanaged4Int(SInt4* pf, char* szFieldName);
 			void				Unmanaged4Int(SInt4* pf, size uiLength, char* szFieldName);
 
