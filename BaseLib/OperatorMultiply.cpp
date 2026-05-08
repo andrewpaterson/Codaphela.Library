@@ -27,7 +27,7 @@ void MultiplyInvalid(void* pvDest, void* pvLeft, void* pvRight) { gcUserError.Se
 #include "OperatorMultiply_Functions.inl"
 void MultiplyFloat2Float2Float(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat32Vec2*)pvDest = *(SFloat32Vec2*)pvLeft * *(float*)pvRight; }
 void MultiplyFloat3Float3Float(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat32Vec3*)pvDest = *(SFloat32Vec3*)pvLeft * *(float*)pvRight; }
-void MultiplyFloat4Float4Float(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat4*)pvDest = *(SFloat4*)pvLeft * *(float*)pvRight; }
+void MultiplyFloat4Float4Float(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat32Vec4*)pvDest = *(SFloat32Vec4*)pvLeft * *(float*)pvRight; }
 
 
 //////////////////////////////////////////////////////////////////////////

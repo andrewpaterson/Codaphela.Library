@@ -24,20 +24,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __FLOAT_4_X_4_H__
 #include "Define.h"
 #include "ChunkFile.h"
-#include "Float4.h"
+#include "Float32Vec4.h"
 
 
 class SFloat32Vec2;
 class SFloat32Vec3;
-class SFloat4;
+class SFloat32Vec4;
 class SFloat4x4
 {
 CONSTRUCTABLE(SFloat4x4);
 public:
-	SFloat4		x;
-	SFloat4		y;
-	SFloat4		z;
-	SFloat4		pos;
+	SFloat32Vec4		x;
+	SFloat32Vec4		y;
+	SFloat32Vec4		z;
+	SFloat32Vec4		pos;
 
 	void 		Init(void);
 	void 		Init(SFloat32Vec3* psX, SFloat32Vec3* psY, SFloat32Vec3* psZ, SFloat32Vec3* psPos);

@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "DataIO.h"
 #include "Float32Vec2.h"
 #include "Float32Vec3.h"
-#include "Float4.h"
+#include "Float32Vec4.h"
 #include "Float4x4.h"
 
 
@@ -70,10 +70,10 @@ void SFloat4x4::Identity(void)
 void SFloat4x4::Init(SFloat32Vec3* psX, SFloat32Vec3* psY, SFloat32Vec3* psZ, SFloat32Vec3* psP)
 {
 	//Optimise me later!
-	x =		SFloat4(psX->x, psX->y, psX->y, 0.0f);
-	y =		SFloat4(psY->x, psY->y, psY->y, 0.0f);
-	z =		SFloat4(psZ->x, psZ->y, psZ->y, 0.0f);
-	pos =	SFloat4(psP->x, psP->y, psP->y, 0.0f);
+	x.Init(psX->x, psX->y, psX->y, 0.0f);
+	y.Init(psY->x, psY->y, psY->y, 0.0f);
+	z.Init(psZ->x, psZ->y, psZ->y, 0.0f);
+	pos.Init(psP->x, psP->y, psP->y, 0.0f);
 }
 
 
@@ -343,10 +343,10 @@ SFloat4x4* Float4x4Multiply(SFloat4x4* psOut, SFloat4x4* psLeft, SFloat4x4* psRi
 {
 	SFloat4x4	s;
 
-	Float4Transform(&s.x, psRight, &psLeft->x);
-	Float4Transform(&s.y, psRight, &psLeft->y);
-	Float4Transform(&s.z, psRight, &psLeft->z);
-	Float4Transform(&s.pos, psRight, &psLeft->pos);
+	Float4TransformCoord(&s.x, psRight, &psLeft->x);
+	Float4TransformCoord(&s.y, psRight, &psLeft->y);
+	Float4TransformCoord(&s.z, psRight, &psLeft->z);
+	Float4TransformCoord(&s.pos, psRight, &psLeft->pos);
 	*psOut = s;
 	return psOut;
 }

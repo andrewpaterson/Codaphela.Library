@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Vec3.h"
 
 
-class SFloat4;
+class SFloat32Vec4;
 class SFloat64Vec2;
 class SFloat4x4;
 class SFloat64Vec3 : public SVec3<float64, float128>
@@ -38,7 +38,7 @@ public:
 	int			WholeNumbers(void);
 	void 		Print(CChars* psx, int iWholeNumbers = -1, int iDecimals = 2);
 
-	void 		Copy(const SFloat4* ps);
+	void 		Copy(const SFloat32Vec4* ps);
 	void 		Copy(const SFloat64Vec3* ps);
 	void 		Copy(const SFloat64Vec2* ps);
 

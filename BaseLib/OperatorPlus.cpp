@@ -27,7 +27,7 @@ void PlusInvalid(void* pvDest, void* pvLeft, void* pvRight) { gcUserError.Set("P
 #include "OperatorPlus_Functions.inl"
 void PlusFloat2Float2Float2(void* pvDest, void* pvLeft, void* pvRight) { (*(SFloat32Vec2*)pvDest) = *(SFloat32Vec2*)pvLeft + *(SFloat32Vec2*)pvRight; }
 void PlusFloat3Float3Float3(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat32Vec3*)pvDest = *(SFloat32Vec3*)pvLeft + *(SFloat32Vec3*)pvRight; }
-void PlusFloat4Float4Float4(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat4*)pvDest = *(SFloat4*)pvLeft + *(SFloat4*)pvRight; }
+void PlusFloat4Float4Float4(void* pvDest, void* pvLeft, void* pvRight) { *(SFloat32Vec4*)pvDest = *(SFloat32Vec4*)pvLeft + *(SFloat32Vec4*)pvRight; }
 
 
 //////////////////////////////////////////////////////////////////////////

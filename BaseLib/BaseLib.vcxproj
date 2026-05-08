@@ -414,7 +414,7 @@
     <ClInclude Include="MarkupText.h" />
     <ClInclude Include="Float32Vec2.h" />
     <ClInclude Include="Float32Vec3.h" />
-    <ClInclude Include="Float4.h" />
+    <ClInclude Include="Float32Vec4.h" />
     <ClInclude Include="Float4x4.h" />
     <ClInclude Include="GeometricTypes.h" />
     <ClInclude Include="IntVec2.h" />
@@ -491,6 +491,7 @@
     <ClInclude Include="Validation.h" />
     <ClInclude Include="Vec2.h" />
     <ClInclude Include="Vec3.h" />
+    <ClInclude Include="Vec4.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="WindowsError.h" />
     <ClInclude Include="WindowsHeaders.h" />
@@ -807,7 +808,7 @@
     <ClCompile Include="MarkupText.cpp" />
     <ClCompile Include="Float32Vec2.cpp" />
     <ClCompile Include="Float32Vec3.cpp" />
-    <ClCompile Include="Float4.cpp" />
+    <ClCompile Include="Float32Vec4.cpp" />
     <ClCompile Include="Float4x4.cpp" />
     <ClCompile Include="GeometricTypes.cpp" />
     <ClCompile Include="IntVec2.cpp" />

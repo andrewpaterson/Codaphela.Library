@@ -441,7 +441,7 @@ TRISTATE CTypeParser::ParseFloat3(SFloat32Vec3* pDest, char cOpen, char cSplit, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTypeParser::ParseFloat4(SFloat4* pDest, char cOpen, char cSplit, char cClose)
+TRISTATE CTypeParser::ParseFloat4(SFloat32Vec4* pDest, char cOpen, char cSplit, char cClose)
 {
 	TRISTATE	tResult;
 
@@ -800,7 +800,7 @@ TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, size iDestLength
 		case PT_M4float32:
 			if (iDestLength >= FLOAT4_BYTE_SIZE)
 			{
-				return ParseFloat4((SFloat4*)pvDest);
+				return ParseFloat4((SFloat32Vec4*)pvDest);
 			}
 			break;
 		case PT_M2int32:
