@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "Numbers.h"
 #include "Float32Vec2.h"
-#include "Float4.h"
+#include "Float32Vec4.h"
 #include "Float4x4.h"
 #include "Float32Vec3.h"
 
@@ -33,6 +33,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 SFloat32Vec3::SFloat32Vec3(float32 x, float32 y, float32 z)
 {
+	this->x = x;
+	this->y = y;
+	this->z = z;
 }
 
 
@@ -95,7 +98,7 @@ bool SFloat32Vec3::CloselyEqual(SFloat32Vec3* ps, float32 fTolerance)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SFloat32Vec3::Copy(const SFloat4* ps)
+void SFloat32Vec3::Copy(const SFloat32Vec4* ps)
 {
 	x = ps->x;
 	y = ps->y;

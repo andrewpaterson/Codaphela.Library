@@ -30,7 +30,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 template<class M, class N>
 class SVec3
 {
-CONSTRUCTABLE(SVec3);
 public:
 	M x;
 	M y;

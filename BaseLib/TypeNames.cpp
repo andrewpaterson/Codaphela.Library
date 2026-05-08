@@ -113,7 +113,7 @@ void CTypeNames::Init(void)
 	AddType(PT_float64,			DOUBLE_BYTE_SIZE,		"Double",			"double",			"PT_float64");
 	AddType(PT_M2float32,		FLOAT2_BYTE_SIZE,		"Float2",			"SFloat32Vec2",		"PT_M2float32");
 	AddType(PT_M3float32,		FLOAT3_BYTE_SIZE,		"Float3",			"SFloat32Vec3",		"PT_M3float32");
-	AddType(PT_M4float32,		FLOAT4_BYTE_SIZE,		"Float4",			"SFloat4",			"PT_M4float32");
+	AddType(PT_M4float32,		FLOAT4_BYTE_SIZE,		"Float4",			"SFloat32Vec4",			"PT_M4float32");
 	AddType(PT_M2float64,		DOUBLE2_BYTE_SIZE,		"Double2",			"SFloat64Vec2",		"PT_M2float64");
 	AddType(PT_M3float64,		DOUBLE3_BYTE_SIZE,		"Double3",			"SFloat64Vec3",		"PT_M3float64");
 	AddType(PT_M4float64,		DOUBLE4_BYTE_SIZE,		"Double4",			"SDouble4",			"PT_M4float64");

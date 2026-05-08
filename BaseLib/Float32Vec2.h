@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Vec2.h"
 
 
-class SFloat4;
+class SFloat32Vec4;
 class SFloat32Vec3;
 class SFloat4x4;
 class SFloat32Vec2 : public SVec2<float32, float64>

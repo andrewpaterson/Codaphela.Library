@@ -51,7 +51,7 @@ void DataIOInit(void)
 
 	gcDataTypesIO.Add<SFloat32Vec2>(gcTypeNames.GetPrettyName(PT_M2float32));
 	gcDataTypesIO.Add<SFloat32Vec3>(gcTypeNames.GetPrettyName(PT_M3float32));
-	gcDataTypesIO.Add<SFloat4>(gcTypeNames.GetPrettyName(PT_M4float32));
+	gcDataTypesIO.Add<SFloat32Vec4>(gcTypeNames.GetPrettyName(PT_M4float32));
 	gcDataTypesIO.Add<SFloat4x4>(gcTypeNames.GetPrettyName(PT_M4x4float32));
 	gcDataTypesIO.Add<SFloat64Vec2>(gcTypeNames.GetPrettyName(PT_M2float64));
 	gcDataTypesIO.Add<SFloat64Vec3>(gcTypeNames.GetPrettyName(PT_M3float64));
