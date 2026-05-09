@@ -237,6 +237,7 @@
     <ClInclude Include="Int16Vec2.h" />
     <ClInclude Include="Int16Vec3.h" />
     <ClInclude Include="Int32Vec2.h" />
+    <ClInclude Include="Int32Vec4.h" />
     <ClInclude Include="Int64Vec2.h" />
     <ClInclude Include="Int64Vec3.h" />
     <ClInclude Include="IntAndPointer.h" />
@@ -677,6 +678,7 @@
     <ClCompile Include="Int16Vec2.cpp" />
     <ClCompile Include="Int16Vec3.cpp" />
     <ClCompile Include="Int32Vec2.cpp" />
+    <ClCompile Include="Int32Vec4.cpp" />
     <ClCompile Include="Int64Vec2.cpp" />
     <ClCompile Include="Int64Vec3.cpp" />
     <ClCompile Include="IntVec3.cpp" />

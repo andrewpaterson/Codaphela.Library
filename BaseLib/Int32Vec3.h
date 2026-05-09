@@ -29,6 +29,9 @@ class SInt32Vec3 : public SVec3<int32, int64>
 {
 CONSTRUCTABLE(SInt32Vec3);
 public:
+	SInt32Vec3() {};
+	SInt32Vec3(int32 x, int32 y, int32 z);
+
 	using SVec3<int32, int64>::operator=;
 
 	void 	Print(CChars* psx, int iWholeNumbers = -1);
