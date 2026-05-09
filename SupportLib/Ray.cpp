@@ -39,8 +39,8 @@ void CRay::Init(SFloat32Vec3* psStart, SFloat32Vec3* psDirection)
 void CRay::SetFromPositions(SFloat32Vec3* s, SFloat32Vec3* e)
 {
 	msStart = (*s);
-	Float3Subtract((SFloat32Vec3*)&msDirection, (SFloat32Vec3*)e, (SFloat32Vec3*)s);
-	Float3Normalize((SFloat32Vec3*)&msDirection, (SFloat32Vec3*)&msDirection);
+	Float32Vec3Subtract((SFloat32Vec3*)&msDirection, (SFloat32Vec3*)e, (SFloat32Vec3*)s);
+	Float32Vec3Normalise((SFloat32Vec3*)&msDirection, (SFloat32Vec3*)&msDirection);
 }
 
 
@@ -52,7 +52,7 @@ void CRay::SetFromDirection(SFloat32Vec3* sStartOfRay, SFloat32Vec3* sDirection)
 {
 	msStart = (*sStartOfRay);
 	msDirection = (*sDirection);
-	Float3Normalize((SFloat32Vec3*)&msDirection, (SFloat32Vec3*)&msDirection);
+	Float32Vec3Normalise((SFloat32Vec3*)&msDirection, (SFloat32Vec3*)&msDirection);
 }
 
 
@@ -64,7 +64,7 @@ void CRay::SetFromDirection(float32 xs, float32 ys, float32 zs, float32 xd, floa
 {
 	msStart.Init(xs, ys, zs);
 	msDirection.Init(xd, yd, zd);
-	Float3Normalize(&msDirection, &msDirection);
+	Float32Vec3Normalise(&msDirection, &msDirection);
 }
 
 

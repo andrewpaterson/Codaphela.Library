@@ -295,8 +295,8 @@ void CClass::Unmanaged2Float(CBaseObject* pcThis, SFloat32Vec2* pf, char* szFiel
 void CClass::Unmanaged2Float(CBaseObject* pcThis, SFloat32Vec2* pf, size uiLength, char* szFieldName)		{ Unmanaged(pcThis, PT_M2float32, pf, uiLength, szFieldName); }
 void CClass::Unmanaged3Float(CBaseObject* pcThis, SFloat32Vec3* pf, char* szFieldName)						{ Unmanaged(pcThis, PT_M3float32, pf, szFieldName); }
 void CClass::Unmanaged3Float(CBaseObject* pcThis, SFloat32Vec3* pf, size uiLength, char* szFieldName)		{ Unmanaged(pcThis, PT_M3float32, pf, uiLength, szFieldName); }
-void CClass::Unmanaged4Float(CBaseObject* pcThis, SFloat4* pf, char* szFieldName)						{ Unmanaged(pcThis, PT_M4float32, pf, szFieldName); }
-void CClass::Unmanaged4Float(CBaseObject* pcThis, SFloat4* pf, size uiLength, char* szFieldName)		{ Unmanaged(pcThis, PT_M4float32, pf, uiLength, szFieldName); }
+void CClass::Unmanaged4Float(CBaseObject* pcThis, SFloat32Vec4* pf, char* szFieldName)						{ Unmanaged(pcThis, PT_M4float32, pf, szFieldName); }
+void CClass::Unmanaged4Float(CBaseObject* pcThis, SFloat32Vec4* pf, size uiLength, char* szFieldName)		{ Unmanaged(pcThis, PT_M4float32, pf, uiLength, szFieldName); }
 void CClass::Unmanaged4x4Float(CBaseObject* pcThis, SFloat4x4* pf, char* szFieldName)					{ Unmanaged(pcThis, PT_M4x4float32, pf, szFieldName); }
 void CClass::Unmanaged4x4Float(CBaseObject* pcThis, SFloat4x4* pf, size uiLength, char* szFieldName)	{ Unmanaged(pcThis, PT_M4x4float32, pf, uiLength, szFieldName); }
 
@@ -304,8 +304,8 @@ void CClass::Unmanaged2Int(CBaseObject* pcThis, SInt32Vec2* pf, char* szFieldNam
 void CClass::Unmanaged2Int(CBaseObject* pcThis, SInt32Vec2* pf, size uiLength, char* szFieldName)		{ Unmanaged(pcThis, PT_M2int32, pf, uiLength, szFieldName); }
 void CClass::Unmanaged3Int(CBaseObject* pcThis, SInt32Vec3* pf, char* szFieldName)						{ Unmanaged(pcThis, PT_M3int32, pf, szFieldName); }
 void CClass::Unmanaged3Int(CBaseObject* pcThis, SInt32Vec3* pf, size uiLength, char* szFieldName)		{ Unmanaged(pcThis, PT_M3int32, pf, uiLength, szFieldName); }
-void CClass::Unmanaged4Int(CBaseObject* pcThis, SInt4* pf, char* szFieldName)						{ Unmanaged(pcThis, PT_M4int32, pf, szFieldName); }
-void CClass::Unmanaged4Int(CBaseObject* pcThis, SInt4* pf, size uiLength, char* szFieldName)		{ Unmanaged(pcThis, PT_M4int32, pf, uiLength, szFieldName); }
+void CClass::Unmanaged4Int(CBaseObject* pcThis, SInt32Vec4* pf, char* szFieldName)						{ Unmanaged(pcThis, PT_M4int32, pf, szFieldName); }
+void CClass::Unmanaged4Int(CBaseObject* pcThis, SInt32Vec4* pf, size uiLength, char* szFieldName)		{ Unmanaged(pcThis, PT_M4int32, pf, uiLength, szFieldName); }
 
 
 //////////////////////////////////////////////////////////////////////////

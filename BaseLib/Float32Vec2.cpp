@@ -148,7 +148,7 @@ bool SFloat32Vec2::CloselyEqual(SFloat32Vec2* ps, float32 fTolerance)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-float32 Float2Dot(const SFloat32Vec2* pV1, const SFloat32Vec2* pV2)
+float32 Float32Vec2Dot(const SFloat32Vec2* pV1, const SFloat32Vec2* pV2)
 {
 	return pV1->x * pV2->x + pV1->y * pV2->y;
 }
@@ -158,7 +158,7 @@ float32 Float2Dot(const SFloat32Vec2* pV1, const SFloat32Vec2* pV2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-float32 Float2Cross(const SFloat32Vec2* pV1, const SFloat32Vec2* pV2)
+float32 Float32Vec2Cross(const SFloat32Vec2* pV1, const SFloat32Vec2* pV2)
 {
 	return pV1->x * pV2->y - pV1->y * pV2->x;
 }
@@ -168,7 +168,7 @@ float32 Float2Cross(const SFloat32Vec2* pV1, const SFloat32Vec2* pV2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec2* Float2Add(SFloat32Vec2 *pOut, const SFloat32Vec2* pV1, const SFloat32Vec2* pV2)
+SFloat32Vec2* Float32Vec2Add(SFloat32Vec2 *pOut, const SFloat32Vec2* pV1, const SFloat32Vec2* pV2)
 {
 	pOut->x = pV1->x + pV2->x;
 	pOut->y = pV1->y + pV2->y;
@@ -180,7 +180,7 @@ SFloat32Vec2* Float2Add(SFloat32Vec2 *pOut, const SFloat32Vec2* pV1, const SFloa
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec2* Float2Subtract(SFloat32Vec2 *pOut, const SFloat32Vec2* pV1, const SFloat32Vec2* pV2)
+SFloat32Vec2* Float32Vec2Subtract(SFloat32Vec2 *pOut, const SFloat32Vec2* pV1, const SFloat32Vec2* pV2)
 {
 	pOut->x = pV1->x - pV2->x;
 	pOut->y = pV1->y - pV2->y;
@@ -192,7 +192,7 @@ SFloat32Vec2* Float2Subtract(SFloat32Vec2 *pOut, const SFloat32Vec2* pV1, const 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec2* Float2Minimize(SFloat32Vec2 *pOut, const SFloat32Vec2* pV1, const SFloat32Vec2* pV2)
+SFloat32Vec2* Float32Vec2Minimize(SFloat32Vec2 *pOut, const SFloat32Vec2* pV1, const SFloat32Vec2* pV2)
 {
 	pOut->x = pV1->x < pV2->x ? pV1->x : pV2->x;
 	pOut->y = pV1->y < pV2->y ? pV1->y : pV2->y;
@@ -204,7 +204,7 @@ SFloat32Vec2* Float2Minimize(SFloat32Vec2 *pOut, const SFloat32Vec2* pV1, const 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec2* Float2Maximize(SFloat32Vec2 *pOut, const SFloat32Vec2* pV1, const SFloat32Vec2* pV2)
+SFloat32Vec2* Float32Vec2Maximize(SFloat32Vec2 *pOut, const SFloat32Vec2* pV1, const SFloat32Vec2* pV2)
 {
 	pOut->x = pV1->x > pV2->x ? pV1->x : pV2->x;
 	pOut->y = pV1->y > pV2->y ? pV1->y : pV2->y;
@@ -216,7 +216,7 @@ SFloat32Vec2* Float2Maximize(SFloat32Vec2 *pOut, const SFloat32Vec2* pV1, const 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec2* Float2Scale(SFloat32Vec2 *pOut, const SFloat32Vec2 *pV, float32 s)
+SFloat32Vec2* Float32Vec2Scale(SFloat32Vec2 *pOut, const SFloat32Vec2 *pV, float32 s)
 {
 	pOut->x = pV->x * s;
 	pOut->y = pV->y * s;
@@ -228,7 +228,7 @@ SFloat32Vec2* Float2Scale(SFloat32Vec2 *pOut, const SFloat32Vec2 *pV, float32 s)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec2* Float2Lerp(SFloat32Vec2 *pOut, const SFloat32Vec2* pV1, const SFloat32Vec2* pV2, float32 s)
+SFloat32Vec2* Float32Vec2Lerp(SFloat32Vec2 *pOut, const SFloat32Vec2* pV1, const SFloat32Vec2* pV2, float32 s)
 {
 	pOut->x = pV1->x + s * (pV2->x - pV1->x);
 	pOut->y = pV1->y + s * (pV2->y - pV1->y);
@@ -240,7 +240,7 @@ SFloat32Vec2* Float2Lerp(SFloat32Vec2 *pOut, const SFloat32Vec2* pV1, const SFlo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec2* Float2TransformCoord(SFloat32Vec2 *pOut, SFloat32Vec2* pV, SFloat4x4* psMat)
+SFloat32Vec2* Float32Vec2TransformCoord(SFloat32Vec2 *pOut, SFloat32Vec2* pV, SFloat4x4* psMat)
 {
 	pOut->x = pV->x * psMat->x.x + pV->y * psMat->y.x + 1.0f * psMat->pos.x;
 	pOut->y = pV->x * psMat->x.y + pV->y * psMat->y.y + 1.0f * psMat->pos.y;
@@ -252,7 +252,7 @@ SFloat32Vec2* Float2TransformCoord(SFloat32Vec2 *pOut, SFloat32Vec2* pV, SFloat4
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec2* Float2TransformNormal(SFloat32Vec2 *pOut, SFloat32Vec2* pV, SFloat4x4* psMat)
+SFloat32Vec2* Float32Vec2TransformNormal(SFloat32Vec2 *pOut, SFloat32Vec2* pV, SFloat4x4* psMat)
 {
 	pOut->x = pV->x * psMat->x.x + pV->y * psMat->y.x;
 	pOut->y = pV->x * psMat->x.y + pV->y * psMat->y.y;
@@ -264,7 +264,7 @@ SFloat32Vec2* Float2TransformNormal(SFloat32Vec2 *pOut, SFloat32Vec2* pV, SFloat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float2TransformCoords(SFloat32Vec2* asOut, int iOutStride, SFloat32Vec2* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
+void Float32Vec2TransformCoords(SFloat32Vec2* asOut, int iOutStride, SFloat32Vec2* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
 {
 	int			i;
 	SFloat32Vec2*	psOut;
@@ -274,7 +274,7 @@ void Float2TransformCoords(SFloat32Vec2* asOut, int iOutStride, SFloat32Vec2* as
 	{
 		psOut = (SFloat32Vec2*)RemapSinglePointer(asOut, i * iOutStride);
 		psIn = (SFloat32Vec2*)RemapSinglePointer(asIn, i * iInStride);
-		Float2TransformCoord(psOut, psIn, psMat);
+		Float32Vec2TransformCoord(psOut, psIn, psMat);
 	}
 }
 
@@ -283,7 +283,7 @@ void Float2TransformCoords(SFloat32Vec2* asOut, int iOutStride, SFloat32Vec2* as
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float2TransformNormals(SFloat32Vec2* asOut, int iOutStride, SFloat32Vec2* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
+void Float32Vec2TransformNormals(SFloat32Vec2* asOut, int iOutStride, SFloat32Vec2* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
 {
 	int			i;
 	SFloat32Vec2*	psOut;
@@ -293,7 +293,7 @@ void Float2TransformNormals(SFloat32Vec2* asOut, int iOutStride, SFloat32Vec2* a
 	{
 		psOut = (SFloat32Vec2*)RemapSinglePointer(asOut, i * iOutStride);
 		psIn = (SFloat32Vec2*)RemapSinglePointer(asIn, i * iInStride);
-		Float2TransformNormal(psOut, psIn, psMat);
+		Float32Vec2TransformNormal(psOut, psIn, psMat);
 	}
 }
 
@@ -302,7 +302,7 @@ void Float2TransformNormals(SFloat32Vec2* asOut, int iOutStride, SFloat32Vec2* a
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float2Swap(SFloat32Vec2* ps1, SFloat32Vec2* ps2)
+void Float32Vec2Swap(SFloat32Vec2* ps1, SFloat32Vec2* ps2)
 {
 	SFloat32Vec2 temp;
 
@@ -316,7 +316,7 @@ void Float2Swap(SFloat32Vec2* ps1, SFloat32Vec2* ps2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float2MinMax(SFloat32Vec2* psMin, SFloat32Vec2* psMax, SFloat32Vec2* asIn, int iInStride, int iNumPoints)
+void Float32Vec2MinMax(SFloat32Vec2* psMin, SFloat32Vec2* psMax, SFloat32Vec2* asIn, int iInStride, int iNumPoints)
 {
 	int			i;
 	SFloat32Vec2*	psIn;
@@ -357,7 +357,7 @@ void Float2MinMax(SFloat32Vec2* psMin, SFloat32Vec2* psMax, SFloat32Vec2* asIn, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float2Normalize(SFloat32Vec2* pOut, SFloat32Vec2* pV)
+void Float32Vec2Normalise(SFloat32Vec2* pOut, SFloat32Vec2* pV)
 {
 	float32 fInvLen;
 
@@ -371,14 +371,14 @@ void Float2Normalize(SFloat32Vec2* pOut, SFloat32Vec2* pV)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float2InterpolatePosition(SFloat32Vec2* psVecDest, const SFloat32Vec2* psVec1, const SFloat32Vec2* psVec2, float32 fWeight)
+void Float32Vec2InterpolatePosition(SFloat32Vec2* psVecDest, const SFloat32Vec2* psVec1, const SFloat32Vec2* psVec2, float32 fWeight)
 {
 	SFloat32Vec2		sVec1;
 	SFloat32Vec2		sVec2;
 
-	Float2Scale(&sVec1, psVec1, fWeight);
-	Float2Scale(&sVec2, psVec2, 1.0f - fWeight);
-	Float2Add(psVecDest, &sVec1, &sVec2);
+	Float32Vec2Scale(&sVec1, psVec1, fWeight);
+	Float32Vec2Scale(&sVec2, psVec2, 1.0f - fWeight);
+	Float32Vec2Add(psVecDest, &sVec1, &sVec2);
 }
 
 
@@ -386,17 +386,17 @@ void Float2InterpolatePosition(SFloat32Vec2* psVecDest, const SFloat32Vec2* psVe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float2InterpolateNormal(SFloat32Vec2* psVecDest, const SFloat32Vec2* psVec1, const SFloat32Vec2* psVec2, float32 fWeight)
+void Float32Vec2InterpolateNormal(SFloat32Vec2* psVecDest, const SFloat32Vec2* psVec1, const SFloat32Vec2* psVec2, float32 fWeight)
 {
 	SFloat32Vec2		sVec1;
 	SFloat32Vec2		sVec2;
 
-	Float2Scale(&sVec1, psVec1, fWeight);
-	Float2Scale(&sVec2, psVec2, 1.0f - fWeight);
-	Float2Add(&sVec1, &sVec1, &sVec2);
+	Float32Vec2Scale(&sVec1, psVec1, fWeight);
+	Float32Vec2Scale(&sVec2, psVec2, 1.0f - fWeight);
+	Float32Vec2Add(&sVec1, &sVec1, &sVec2);
 
 	//Should possibly check for zero length vectors.
-	Float2Normalize(psVecDest, &sVec1);
+	Float32Vec2Normalise(psVecDest, &sVec1);
 }
 
 
@@ -404,7 +404,7 @@ void Float2InterpolateNormal(SFloat32Vec2* psVecDest, const SFloat32Vec2* psVec1
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float2RotateAboutNormalisedAxis(SFloat32Vec3* psVecDest, SFloat32Vec3 p, float32 fTheta, SFloat32Vec2 r)
+void Float32Vec2RotateAboutNormalisedAxis(SFloat32Vec3* psVecDest, SFloat32Vec3 p, float32 fTheta, SFloat32Vec2 r)
 {
 	float32 fCosTheta;
 	float32 fSinTheta;

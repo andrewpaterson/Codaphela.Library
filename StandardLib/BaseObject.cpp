@@ -22,7 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "BaseLib/Float32Vec2.h"
 #include "BaseLib/Float32Vec3.h"
-#include "BaseLib/Float4.h"
+#include "BaseLib/Float32Vec4.h"
 #include "BaseLib/Float4x4.h"
 #include "ObjectWriter.h"
 #include "ObjectReader.h"
@@ -2603,8 +2603,8 @@ void CBaseObject::Unmanaged2Float(SFloat32Vec2* pf, char* szFieldName)						{ Va
 void CBaseObject::Unmanaged2Float(SFloat32Vec2* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged2Float(this, pf, uiLength, szFieldName); }
 void CBaseObject::Unmanaged3Float(SFloat32Vec3* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged3Float(this, pf, szFieldName); }
 void CBaseObject::Unmanaged3Float(SFloat32Vec3* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged3Float(this, pf, uiLength, szFieldName); }
-void CBaseObject::Unmanaged4Float(SFloat4* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4Float(this, pf, szFieldName); }
-void CBaseObject::Unmanaged4Float(SFloat4* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4Float(this, pf, uiLength, szFieldName); }
+void CBaseObject::Unmanaged4Float(SFloat32Vec4* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4Float(this, pf, szFieldName); }
+void CBaseObject::Unmanaged4Float(SFloat32Vec4* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4Float(this, pf, uiLength, szFieldName); }
 void CBaseObject::Unmanaged4x4Float(SFloat4x4* pf, char* szFieldName)					{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4x4Float(this, pf, szFieldName); }
 void CBaseObject::Unmanaged4x4Float(SFloat4x4* pf, size uiLength, char* szFieldName)	{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4x4Float(this, pf, uiLength, szFieldName); }
 
@@ -2612,6 +2612,6 @@ void CBaseObject::Unmanaged2Int(SInt32Vec2* pf, char* szFieldName)						{ Valida
 void CBaseObject::Unmanaged2Int(SInt32Vec2* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged2Int(this, pf, uiLength, szFieldName); }
 void CBaseObject::Unmanaged3Int(SInt32Vec3* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged3Int(this, pf, szFieldName); }
 void CBaseObject::Unmanaged3Int(SInt32Vec3* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged3Int(this, pf, uiLength, szFieldName); }
-void CBaseObject::Unmanaged4Int(SInt4* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4Int(this, pf, szFieldName); }
-void CBaseObject::Unmanaged4Int(SInt4* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4Int(this, pf, uiLength, szFieldName); }
+void CBaseObject::Unmanaged4Int(SInt32Vec4* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4Int(this, pf, szFieldName); }
+void CBaseObject::Unmanaged4Int(SInt32Vec4* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4Int(this, pf, uiLength, szFieldName); }
 

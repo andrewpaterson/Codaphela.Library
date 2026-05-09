@@ -193,7 +193,7 @@ void SFloat64Vec3::Print(CChars* psx, int iWholeNumbers, int iDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float64 Float3Dot(const SFloat64Vec3* pV1, const SFloat64Vec3* pV2)
+float64 Float32Vec3Dot(const SFloat64Vec3* pV1, const SFloat64Vec3* pV2)
 {
 	return pV1->x * pV2->x + pV1->y * pV2->y + pV1->z * pV2->z;
 }
@@ -203,7 +203,7 @@ float64 Float3Dot(const SFloat64Vec3* pV1, const SFloat64Vec3* pV2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat64Vec3* Float3Cross(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2)
+SFloat64Vec3* Float32Vec3Cross(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2)
 {
 	SFloat64Vec3 v;
 
@@ -220,7 +220,7 @@ SFloat64Vec3* Float3Cross(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFl
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat64Vec3* Float3Add(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2)
+SFloat64Vec3* Float32Vec3Add(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2)
 {
 	pOut->x = pV1->x + pV2->x;
 	pOut->y = pV1->y + pV2->y;
@@ -233,7 +233,7 @@ SFloat64Vec3* Float3Add(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat64Vec3* Float3Subtract(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2)
+SFloat64Vec3* Float32Vec3Subtract(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2)
 {
 	pOut->x = pV1->x - pV2->x;
 	pOut->y = pV1->y - pV2->y;
@@ -246,7 +246,7 @@ SFloat64Vec3* Float3Subtract(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat64Vec3* Float3Minimize(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2)
+SFloat64Vec3* Float32Vec3Minimize(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2)
 {
 	pOut->x = pV1->x < pV2->x ? pV1->x : pV2->x;
 	pOut->y = pV1->y < pV2->y ? pV1->y : pV2->y;
@@ -259,7 +259,7 @@ SFloat64Vec3* Float3Minimize(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat64Vec3* Float3Maximize(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2)
+SFloat64Vec3* Float32Vec3Maximize(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2)
 {
 	pOut->x = pV1->x > pV2->x ? pV1->x : pV2->x;
 	pOut->y = pV1->y > pV2->y ? pV1->y : pV2->y;
@@ -272,7 +272,7 @@ SFloat64Vec3* Float3Maximize(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat64Vec3* Float3Scale(SFloat64Vec3* pOut, const SFloat64Vec3* pV, float64 s)
+SFloat64Vec3* Float32Vec3Scale(SFloat64Vec3* pOut, const SFloat64Vec3* pV, float64 s)
 {
 	pOut->x = pV->x * s;
 	pOut->y = pV->y * s;
@@ -285,7 +285,7 @@ SFloat64Vec3* Float3Scale(SFloat64Vec3* pOut, const SFloat64Vec3* pV, float64 s)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat64Vec3* Float3Lerp(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2, float64 s)
+SFloat64Vec3* Float32Vec3Lerp(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2, float64 s)
 {
 	pOut->x = pV1->x + s * (pV2->x - pV1->x);
 	pOut->y = pV1->y + s * (pV2->y - pV1->y);
@@ -298,7 +298,7 @@ SFloat64Vec3* Float3Lerp(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFlo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat64Vec3* Float3TransformCoord(SFloat64Vec3* pOut, SFloat64Vec3* pV, SFloat4x4* psMat)
+SFloat64Vec3* Float32Vec3TransformCoord(SFloat64Vec3* pOut, SFloat64Vec3* pV, SFloat4x4* psMat)
 {
 	pOut->x = pV->x * psMat->x.x + pV->y * psMat->y.x + pV->z * psMat->z.x + 1.0f * psMat->pos.x;
 	pOut->y = pV->x * psMat->x.y + pV->y * psMat->y.y + pV->z * psMat->z.y + 1.0f * psMat->pos.y;
@@ -311,7 +311,7 @@ SFloat64Vec3* Float3TransformCoord(SFloat64Vec3* pOut, SFloat64Vec3* pV, SFloat4
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat64Vec3* Float3TransformNormal(SFloat64Vec3* pOut, SFloat64Vec3* pV, SFloat4x4* psMat)
+SFloat64Vec3* Float32Vec3TransformNormal(SFloat64Vec3* pOut, SFloat64Vec3* pV, SFloat4x4* psMat)
 {
 	pOut->x = pV->x * psMat->x.x + pV->y * psMat->y.x + pV->z * psMat->z.x;
 	pOut->y = pV->x * psMat->x.y + pV->y * psMat->y.y + pV->z * psMat->z.y;
@@ -324,7 +324,7 @@ SFloat64Vec3* Float3TransformNormal(SFloat64Vec3* pOut, SFloat64Vec3* pV, SFloat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3TransformCoords(SFloat64Vec3* asOut, int iOutStride, SFloat64Vec3* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
+void Float32Vec3TransformCoords(SFloat64Vec3* asOut, int iOutStride, SFloat64Vec3* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
 {
 	int			i;
 	SFloat64Vec3* psOut;
@@ -334,7 +334,7 @@ void Float3TransformCoords(SFloat64Vec3* asOut, int iOutStride, SFloat64Vec3* as
 	{
 		psOut = (SFloat64Vec3*)RemapSinglePointer(asOut, i * iOutStride);
 		psIn = (SFloat64Vec3*)RemapSinglePointer(asIn, i * iInStride);
-		Float3TransformCoord(psOut, psIn, psMat);
+		Float32Vec3TransformCoord(psOut, psIn, psMat);
 	}
 }
 
@@ -343,7 +343,7 @@ void Float3TransformCoords(SFloat64Vec3* asOut, int iOutStride, SFloat64Vec3* as
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3TransformNormals(SFloat64Vec3* asOut, int iOutStride, SFloat64Vec3* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
+void Float32Vec3TransformNormals(SFloat64Vec3* asOut, int iOutStride, SFloat64Vec3* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
 {
 	int			i;
 	SFloat64Vec3* psOut;
@@ -353,7 +353,7 @@ void Float3TransformNormals(SFloat64Vec3* asOut, int iOutStride, SFloat64Vec3* a
 	{
 		psOut = (SFloat64Vec3*)RemapSinglePointer(asOut, i * iOutStride);
 		psIn = (SFloat64Vec3*)RemapSinglePointer(asIn, i * iInStride);
-		Float3TransformNormal(psOut, psIn, psMat);
+		Float32Vec3TransformNormal(psOut, psIn, psMat);
 	}
 }
 
@@ -362,7 +362,7 @@ void Float3TransformNormals(SFloat64Vec3* asOut, int iOutStride, SFloat64Vec3* a
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3Swap(SFloat64Vec3* ps1, SFloat64Vec3* ps2)
+void Float32Vec3Swap(SFloat64Vec3* ps1, SFloat64Vec3* ps2)
 {
 	SFloat64Vec3 temp;
 
@@ -376,7 +376,7 @@ void Float3Swap(SFloat64Vec3* ps1, SFloat64Vec3* ps2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3MinMax(SFloat64Vec3* psMin, SFloat64Vec3* psMax, SFloat64Vec3* asIn, int iInStride, int iNumPoints)
+void Float32Vec3MinMax(SFloat64Vec3* psMin, SFloat64Vec3* psMax, SFloat64Vec3* asIn, int iInStride, int iNumPoints)
 {
 	int			i;
 	SFloat64Vec3* psIn;
@@ -425,7 +425,7 @@ void Float3MinMax(SFloat64Vec3* psMin, SFloat64Vec3* psMax, SFloat64Vec3* asIn, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3Normalize(SFloat64Vec3* pOut, SFloat64Vec3* pV)
+void Float32Vec3Normalise(SFloat64Vec3* pOut, SFloat64Vec3* pV)
 {
 	float64 fInvLen;
 
@@ -440,14 +440,14 @@ void Float3Normalize(SFloat64Vec3* pOut, SFloat64Vec3* pV)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3InterpolatePosition(SFloat64Vec3* psVecDest, const SFloat64Vec3* psVec1, const SFloat64Vec3* psVec2, float64 fWeight)
+void Float32Vec3InterpolatePosition(SFloat64Vec3* psVecDest, const SFloat64Vec3* psVec1, const SFloat64Vec3* psVec2, float64 fWeight)
 {
 	SFloat64Vec3	sVec1;
 	SFloat64Vec3	sVec2;
 
-	Float3Scale(&sVec1, psVec1, fWeight);
-	Float3Scale(&sVec2, psVec2, 1.0f - fWeight);
-	Float3Add(psVecDest, &sVec1, &sVec2);
+	Float32Vec3Scale(&sVec1, psVec1, fWeight);
+	Float32Vec3Scale(&sVec2, psVec2, 1.0f - fWeight);
+	Float32Vec3Add(psVecDest, &sVec1, &sVec2);
 }
 
 
@@ -455,17 +455,17 @@ void Float3InterpolatePosition(SFloat64Vec3* psVecDest, const SFloat64Vec3* psVe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3InterpolateNormal(SFloat64Vec3* psVecDest, const SFloat64Vec3* psVec1, const SFloat64Vec3* psVec2, float64 fWeight)
+void Float32Vec3InterpolateNormal(SFloat64Vec3* psVecDest, const SFloat64Vec3* psVec1, const SFloat64Vec3* psVec2, float64 fWeight)
 {
 	SFloat64Vec3	sVec1;
 	SFloat64Vec3	sVec2;
 
-	Float3Scale(&sVec1, psVec1, fWeight);
-	Float3Scale(&sVec2, psVec2, 1.0f - fWeight);
-	Float3Add(&sVec1, &sVec1, &sVec2);
+	Float32Vec3Scale(&sVec1, psVec1, fWeight);
+	Float32Vec3Scale(&sVec2, psVec2, 1.0f - fWeight);
+	Float32Vec3Add(&sVec1, &sVec1, &sVec2);
 
 	//Should possibly check for zero length vectors.
-	Float3Normalize(psVecDest, &sVec1);
+	Float32Vec3Normalise(psVecDest, &sVec1);
 }
 
 
@@ -473,7 +473,7 @@ void Float3InterpolateNormal(SFloat64Vec3* psVecDest, const SFloat64Vec3* psVec1
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float3RotateAboutNormalisedAxis(SFloat64Vec3* psVecDest, SFloat64Vec3 p, float64 fTheta, SFloat64Vec3 r)
+void Float32Vec3RotateAboutNormalisedAxis(SFloat64Vec3* psVecDest, SFloat64Vec3 p, float64 fTheta, SFloat64Vec3 r)
 {
 	float64		fCosTheta;
 	float64		fSinTheta;
