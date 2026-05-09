@@ -70,7 +70,7 @@ int CExtremeTriangle::FindFurthestPoint(SFloat32Vec3* psPoints, int iStride)
 		iIndex = maiVisible.GetValue(i);
 		psOther = GetPosition(psPoints, iStride, iIndex);
 
-		fDist = Float3Dot(mpsNormal, psOther)-d;
+		fDist = Float32Vec3Dot(mpsNormal, psOther)-d;
 		if ((fDist > fMaxDist) || ((iFarIndex == -1) && fDist == 0.0f))
 		{
 			fMaxDist = fDist;
@@ -87,7 +87,7 @@ int CExtremeTriangle::FindFurthestPoint(SFloat32Vec3* psPoints, int iStride)
 //////////////////////////////////////////////////////////////////////////
 bool CExtremeTriangle::NotContains(SFloat32Vec3* psPosition)
 {
-	return Float3Dot(mpsNormal, psPosition) > d;
+	return Float32Vec3Dot(mpsNormal, psPosition) > d;
 }
 
 

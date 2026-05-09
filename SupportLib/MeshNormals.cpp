@@ -175,7 +175,7 @@ void CMeshNormals::AddFace(int iFaceNum, CMeshPositions* pcPositions, CMeshConne
 
 		sVec1 = *psPosA - *psPosB;
 		sVec2 = *psPosC - *psPosB;
-		Float3Cross(psNormal, &sVec2, &sVec1);
+		Float32Vec3Cross(psNormal, &sVec2, &sVec1);
 		psNormal->Normalize();
 
 		psNormalFace->aiCornerNormals[0] = -1;

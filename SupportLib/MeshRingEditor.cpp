@@ -157,7 +157,7 @@ void CMeshRingEditor::GenerateRing(CMeshEditor* pcMeshEditor)
 		sSource.Init(0.0f, fRadius, 0.0f);
 		for (i = 0; i < miWedgeSegments; i++)
 		{
-			Float3RotateAboutNormalisedAxis(&sDest, sSource, fWedgeRad * i, msZDirection);
+			Float32Vec3RotateAboutNormalisedAxis(&sDest, sSource, fWedgeRad * i, msZDirection);
 			sDest.Add(&msStart);
 			sRingCenter.Init(&msZDirection);
 			sRingCenter *= fZ;

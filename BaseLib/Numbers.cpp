@@ -17,7 +17,7 @@ float32 Deg2Dot(float32 fDegrees)
 	fRad = Deg2Rad(fDegrees);
 	s2.Init(cosf(fRad), sinf(fRad));
 
-	return Float2Dot(&s1, &s2);
+	return Float32Vec2Dot(&s1, &s2);
 }
 
 
@@ -35,6 +35,6 @@ float64 Deg2Dot(float64 fDegrees)
 	fRad = Deg2Rad(fDegrees);
 	s2.Init(cos(fRad), sin(fRad));
 
-	return Float2Dot(&s1, &s2);
+	return Float32Vec2Dot(&s1, &s2);
 }
 

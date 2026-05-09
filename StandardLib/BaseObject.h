@@ -311,8 +311,8 @@ protected:
 			void				Unmanaged2Float(SFloat32Vec2* pf, size uiLength, char* szFieldName);
 			void				Unmanaged3Float(SFloat32Vec3* pf, char* szFieldName);
 			void				Unmanaged3Float(SFloat32Vec3* pf, size uiLength, char* szFieldName);
-			void				Unmanaged4Float(SFloat4* pf, char* szFieldName);
-			void				Unmanaged4Float(SFloat4* pf, size uiLength, char* szFieldName);
+			void				Unmanaged4Float(SFloat32Vec4* pf, char* szFieldName);
+			void				Unmanaged4Float(SFloat32Vec4* pf, size uiLength, char* szFieldName);
 			void				Unmanaged4x4Float(SFloat4x4* pf, char* szFieldName);
 			void				Unmanaged4x4Float(SFloat4x4* pf, size uiLength, char* szFieldName);
 
@@ -320,8 +320,8 @@ protected:
 			void				Unmanaged2Int(SInt32Vec2* pf, size uiLength, char* szFieldName);
 			void				Unmanaged3Int(SInt32Vec3* pf, char* szFieldName);
 			void				Unmanaged3Int(SInt32Vec3* pf, size uiLength, char* szFieldName);
-			void				Unmanaged4Int(SInt4* pf, char* szFieldName);
-			void				Unmanaged4Int(SInt4* pf, size uiLength, char* szFieldName);
+			void				Unmanaged4Int(SInt32Vec4* pf, char* szFieldName);
+			void				Unmanaged4Int(SInt32Vec4* pf, size uiLength, char* szFieldName);
 
 private:
 			bool				ClipName(void);

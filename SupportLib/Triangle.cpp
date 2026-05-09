@@ -177,18 +177,18 @@ void CTriangle::GetAngles(float32* psAngle0, float32* psAngle1, float32* psAngle
 
 	GetEdgeDirections(&sSide1, &sSide2, &sSide3);
 
-	Float3Cross(&sCross, &sSide3, &sSide1);
-	fDot = Float3Dot(&sSide3, &sSide1);
+	Float32Vec3Cross(&sCross, &sSide3, &sSide1);
+	fDot = Float32Vec3Dot(&sSide3, &sSide1);
 	*psAngle0 = asinf(sCross.Magnitude());
 	if (fDot > 0.0f)
 		*psAngle0 = N_PI - *psAngle0;
-	Float3Cross(&sCross, &sSide1, &sSide2);
-	fDot = Float3Dot(&sSide1, &sSide2);
+	Float32Vec3Cross(&sCross, &sSide1, &sSide2);
+	fDot = Float32Vec3Dot(&sSide1, &sSide2);
 	*psAngle1 = asinf(sCross.Magnitude());
 	if (fDot > 0.0f)
 		*psAngle1 = N_PI - *psAngle1;
-	Float3Cross(&sCross, &sSide2, &sSide3);
-	fDot = Float3Dot(&sSide2, &sSide3);
+	Float32Vec3Cross(&sCross, &sSide2, &sSide3);
+	fDot = Float32Vec3Dot(&sSide2, &sSide3);
 	*psAngle2 = asinf(sCross.Magnitude());
 	if (fDot > 0.0f)
 		*psAngle2 = N_PI - *psAngle2;

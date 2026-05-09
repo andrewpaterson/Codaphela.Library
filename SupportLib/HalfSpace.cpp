@@ -40,7 +40,7 @@ void CHalfSpace::Init(SFloat32Vec3* psNormal)
 //////////////////////////////////////////////////////////////////////////
 bool CHalfSpace::Contains(SFloat32Vec3* psPosition)
 {
-	return FloatLessThan(Float3Dot(mpsNormal, psPosition), d);
+	return FloatLessThan(Float32Vec3Dot(mpsNormal, psPosition), d);
 }
 
 
@@ -50,7 +50,7 @@ bool CHalfSpace::Contains(SFloat32Vec3* psPosition)
 //////////////////////////////////////////////////////////////////////////
 bool CHalfSpace::NotContains(SFloat32Vec3* psPosition)
 {
-	return FloatGreaterThan(Float3Dot(mpsNormal, psPosition), d);
+	return FloatGreaterThan(Float32Vec3Dot(mpsNormal, psPosition), d);
 }
 
 
@@ -60,7 +60,7 @@ bool CHalfSpace::NotContains(SFloat32Vec3* psPosition)
 //////////////////////////////////////////////////////////////////////////
 bool CHalfSpace::On(SFloat32Vec3* psPosition)
 {
-	return FloatEqual(Float3Dot(mpsNormal, psPosition), d);
+	return FloatEqual(Float32Vec3Dot(mpsNormal, psPosition), d);
 }
 
 
@@ -85,8 +85,8 @@ void CHalfSpace::Set(SFloat32Vec3* v1, SFloat32Vec3* v2, SFloat32Vec3* v3)
 //////////////////////////////////////////////////////////////////////////
 void CHalfSpace::Set2(SFloat32Vec3* psPosition1, SFloat32Vec3* psVector1, SFloat32Vec3* psVector2)
 {
-	Float3Cross(mpsNormal, psVector1, psVector2);
-	Float3Normalize(mpsNormal, mpsNormal);
+	Float32Vec3Cross(mpsNormal, psVector1, psVector2);
+	Float32Vec3Normalise(mpsNormal, mpsNormal);
 	Set(psPosition1, mpsNormal);
 }
 
@@ -114,8 +114,8 @@ void CHalfSpace::SetZPlane(SFloat32Vec3* v1, SFloat32Vec3* v2)
 	z.Init(0,0,1);
 
 	side1 = *v1 - *v2;
-	Float3Cross(mpsNormal, &side1, &z);
-	Float3Normalize(mpsNormal, mpsNormal);
+	Float32Vec3Cross(mpsNormal, &side1, &z);
+	Float32Vec3Normalise(mpsNormal, mpsNormal);
 	D(v1, mpsNormal);
 }
 
@@ -138,7 +138,7 @@ int CHalfSpace::FindFurthestPoint(SFloat32Vec3* psPoints, int iStride, int iNumP
 	{
 		psOther = GetPosition(psPoints, iStride, i);
 
-		fDist = Float3Dot(mpsNormal, psOther);
+		fDist = Float32Vec3Dot(mpsNormal, psOther);
 		if (fDist >= fMaxDist)
 		{
 			fMaxDist = fDist;
@@ -167,7 +167,7 @@ int CHalfSpace::FindUnsignedFurthestPoint(SFloat32Vec3* psPoints, int iStride, i
 	{
 		psOther = GetPosition(psPoints, iStride, i);
 
-		fDist = fabsf(Float3Dot(mpsNormal, psOther));
+		fDist = fabsf(Float32Vec3Dot(mpsNormal, psOther));
 		if (fDist >= fMaxDist)
 		{
 			fMaxDist = fDist;
@@ -198,7 +198,7 @@ int CHalfSpace::FindFurthestPoint(SFloat32Vec3* psPoints, int iStride, int* aiIn
 		iIndex = aiIndices[i];
 		psOther = GetPosition(psPoints, iStride, iIndex);
 
-		fDist = Float3Dot(mpsNormal, psOther)-d;
+		fDist = Float32Vec3Dot(mpsNormal, psOther)-d;
 		if (fDist > fMaxDist)
 		{
 			fMaxDist = fDist;
@@ -215,7 +215,7 @@ int CHalfSpace::FindFurthestPoint(SFloat32Vec3* psPoints, int iStride, int* aiIn
 //////////////////////////////////////////////////////////////////////////
 bool CHalfSpace::Parallel(CHalfSpace* psOther)
 {
-	return FloatGreaterThanOrEqual(Float3Dot(psOther->mpsNormal, mpsNormal), 1.0f);
+	return FloatGreaterThanOrEqual(Float32Vec3Dot(psOther->mpsNormal, mpsNormal), 1.0f);
 }
 
 
@@ -225,7 +225,7 @@ bool CHalfSpace::Parallel(CHalfSpace* psOther)
 //////////////////////////////////////////////////////////////////////////
 void CHalfSpace::D(SFloat32Vec3* psPosition1, SFloat32Vec3* psNormal)
 {
-	d = Float3Dot(psNormal, psPosition1);
+	d = Float32Vec3Dot(psNormal, psPosition1);
 }
 
 

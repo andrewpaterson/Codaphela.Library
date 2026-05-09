@@ -195,7 +195,7 @@ void CMeshSmoothGroups::GenerateSmoothingFromAngles(CMeshEditor* pcMeshEditor)
 			iOtherGon = aiAdjPolys.GetValue(j);
 			psOtherNormal = asNormals.Get(iOtherGon);
 
-			fResult = Float3Dot(psThisNormal, psOtherNormal);
+			fResult = Float32Vec3Dot(psThisNormal, psOtherNormal);
 			if (fResult >= fDot)
 			{
 				//Smooth!

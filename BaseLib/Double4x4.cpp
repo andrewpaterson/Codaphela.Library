@@ -468,10 +468,10 @@ SDouble4x4* Double4x4LookAtRH(SDouble4x4* psOut, const SFloat64Vec3* psEye, cons
 	sZAxis -= *psAt;
 	sZAxis.Normalize();
 
-	Float3Cross(&sXAxis, psUp, &sZAxis);
+	Float32Vec3Cross(&sXAxis, psUp, &sZAxis);
 	sXAxis.Normalize();
 
-	Float3Cross(&sYAxis, &sZAxis, &sXAxis);
+	Float32Vec3Cross(&sYAxis, &sZAxis, &sXAxis);
 
 	psOut->x.x = sXAxis.x;	
 	psOut->x.y = sYAxis.x;	
@@ -488,9 +488,9 @@ SDouble4x4* Double4x4LookAtRH(SDouble4x4* psOut, const SFloat64Vec3* psEye, cons
 	psOut->z.z = sZAxis.z;
 	psOut->z.w = 0.0f;
 
-	psOut->pos.x = -Float3Dot(&sXAxis, psEye);
-	psOut->pos.y = -Float3Dot(&sYAxis, psEye);
-	psOut->pos.z = -Float3Dot(&sZAxis, psEye);
+	psOut->pos.x = -Float32Vec3Dot(&sXAxis, psEye);
+	psOut->pos.y = -Float32Vec3Dot(&sYAxis, psEye);
+	psOut->pos.z = -Float32Vec3Dot(&sZAxis, psEye);
 	psOut->pos.w = 1.0f;
 
 	return psOut;

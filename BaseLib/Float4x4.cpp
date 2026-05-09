@@ -343,10 +343,10 @@ SFloat4x4* Float4x4Multiply(SFloat4x4* psOut, SFloat4x4* psLeft, SFloat4x4* psRi
 {
 	SFloat4x4	s;
 
-	Float4TransformCoord(&s.x, &psLeft->x, psRight);
-	Float4TransformCoord(&s.y, &psLeft->y, psRight);
-	Float4TransformCoord(&s.z, &psLeft->z, psRight);
-	Float4TransformCoord(&s.pos, &psLeft->pos, psRight);
+	Float32Vec4TransformCoord(&s.x, &psLeft->x, psRight);
+	Float32Vec4TransformCoord(&s.y, &psLeft->y, psRight);
+	Float32Vec4TransformCoord(&s.z, &psLeft->z, psRight);
+	Float32Vec4TransformCoord(&s.pos, &psLeft->pos, psRight);
 	*psOut = s;
 	return psOut;
 }
@@ -468,10 +468,10 @@ SFloat4x4* Float4x4LookAtRH(SFloat4x4* psOut, const SFloat32Vec3* psEye, const S
 	sZAxis -= *psAt;
 	sZAxis.Normalize();
 
-	Float3Cross(&sXAxis, psUp, &sZAxis);
+	Float32Vec3Cross(&sXAxis, psUp, &sZAxis);
 	sXAxis.Normalize();
 
-	Float3Cross(&sYAxis, &sZAxis, &sXAxis);
+	Float32Vec3Cross(&sYAxis, &sZAxis, &sXAxis);
 
 	psOut->x.x = sXAxis.x;	
 	psOut->x.y = sYAxis.x;	
@@ -488,9 +488,9 @@ SFloat4x4* Float4x4LookAtRH(SFloat4x4* psOut, const SFloat32Vec3* psEye, const S
 	psOut->z.z = sZAxis.z;
 	psOut->z.w = 0.0f;
 
-	psOut->pos.x = -Float3Dot(&sXAxis, psEye);
-	psOut->pos.y = -Float3Dot(&sYAxis, psEye);
-	psOut->pos.z = -Float3Dot(&sZAxis, psEye);
+	psOut->pos.x = -Float32Vec3Dot(&sXAxis, psEye);
+	psOut->pos.y = -Float32Vec3Dot(&sYAxis, psEye);
+	psOut->pos.z = -Float32Vec3Dot(&sZAxis, psEye);
 	psOut->pos.w = 1.0f;
 
 	return psOut;

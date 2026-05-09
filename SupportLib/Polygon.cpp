@@ -336,8 +336,8 @@ void CPolygon::FindIndicesOfVisibleHalfSpaces(SFloat32Vec3* psPosition, CArrayIn
 
 		//Now we have the start and end of the line.
 		sVector = *psStart - *psEnd;
-		Float3Normalize(&sVector, &sVector);
-		Float3Cross(&sNormal, mpsNormal, &sVector);
+		Float32Vec3Normalise(&sVector, &sVector);
+		Float32Vec3Cross(&sNormal, mpsNormal, &sVector);
 
 		cHalfSpace.Init(&sNormal);
 		cHalfSpace.Set(psStart, &sNormal);
