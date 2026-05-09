@@ -343,10 +343,10 @@ SFloat4x4* Float4x4Multiply(SFloat4x4* psOut, SFloat4x4* psLeft, SFloat4x4* psRi
 {
 	SFloat4x4	s;
 
-	Float4TransformCoord(&s.x, psRight, &psLeft->x);
-	Float4TransformCoord(&s.y, psRight, &psLeft->y);
-	Float4TransformCoord(&s.z, psRight, &psLeft->z);
-	Float4TransformCoord(&s.pos, psRight, &psLeft->pos);
+	Float4TransformCoord(&s.x, &psLeft->x, psRight);
+	Float4TransformCoord(&s.y, &psLeft->y, psRight);
+	Float4TransformCoord(&s.z, &psLeft->z, psRight);
+	Float4TransformCoord(&s.pos, &psLeft->pos, psRight);
 	*psOut = s;
 	return psOut;
 }

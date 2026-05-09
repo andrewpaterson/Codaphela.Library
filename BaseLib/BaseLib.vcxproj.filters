@@ -1797,6 +1797,9 @@
     <ClInclude Include="Vec4.h">
       <Filter>Source\Data\Geometric</Filter>
     </ClInclude>
+    <ClInclude Include="Int32Vec4.h">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2898,6 +2901,9 @@
       <Filter>Source\Data\Geometric</Filter>
     </ClCompile>
     <ClCompile Include="Int16Vec3.cpp">
+      <Filter>Source\Data\Geometric</Filter>
+    </ClCompile>
+    <ClCompile Include="Int32Vec4.cpp">
       <Filter>Source\Data\Geometric</Filter>
     </ClCompile>
   </ItemGroup>

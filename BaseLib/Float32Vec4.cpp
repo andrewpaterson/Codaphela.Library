@@ -313,12 +313,185 @@ SFloat32Vec4* Float4Lerp(SFloat32Vec4 *pOut, const SFloat32Vec4 *pV1, const SFlo
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec4* Float4TransformCoord(SFloat32Vec4* psOut, SFloat4x4* psMat, SFloat32Vec4* psV)
+SFloat32Vec4* Float4TransformCoord(SFloat32Vec4* psOut, SFloat32Vec4* psV, SFloat4x4* psMat)
 {
 	psOut->x = psV->x * psMat->x.x + psV->y * psMat->y.x + psV->z * psMat->z.x + psV->w * psMat->pos.x;
 	psOut->y = psV->x * psMat->x.y + psV->y * psMat->y.y + psV->z * psMat->z.y + psV->w * psMat->pos.y;
 	psOut->z = psV->x * psMat->x.z + psV->y * psMat->y.z + psV->z * psMat->z.z + psV->w * psMat->pos.z;
 	psOut->w = psV->x * psMat->x.w + psV->y * psMat->y.w + psV->z * psMat->z.w + psV->w * psMat->pos.w;
 	return psOut;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+SFloat32Vec4* Float4TransformNormal(SFloat32Vec4* psOut, SFloat32Vec4* psV, SFloat4x4* psMat)
+{
+	psOut->x = psV->x * psMat->x.x + psV->y * psMat->y.x + psV->z * psMat->z.x;
+	psOut->y = psV->x * psMat->x.y + psV->y * psMat->y.y + psV->z * psMat->z.y;
+	psOut->z = psV->x * psMat->x.z + psV->y * psMat->y.z + psV->z * psMat->z.z;
+	psOut->w = 0.0f;
+	return psOut;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void Float4TransformCoords(SFloat32Vec4* asOut, int iOutStride, SFloat32Vec4* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
+{
+	int				i;
+	SFloat32Vec4*	psOut;
+	SFloat32Vec4*	psIn;
+
+	for (i = 0; i < iNumPoints; i++)
+	{
+		psOut = (SFloat32Vec4*)RemapSinglePointer(asOut, i * iOutStride);
+		psIn = (SFloat32Vec4*)RemapSinglePointer(asIn, i * iInStride);
+		Float4TransformCoord(psOut, psIn, psMat);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void Float4TransformNormals(SFloat32Vec4* asOut, int iOutStride, SFloat32Vec4* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
+{
+	int			i;
+	SFloat32Vec4*	psOut;
+	SFloat32Vec4*	psIn;
+
+	for (i = 0; i < iNumPoints; i++)
+	{
+		psOut = (SFloat32Vec4*)RemapSinglePointer(asOut, i * iOutStride);
+		psIn = (SFloat32Vec4*)RemapSinglePointer(asIn, i * iInStride);
+		Float4TransformNormal(psOut, psIn, psMat);
+	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void Float4MinMax(SFloat32Vec4* psMin, SFloat32Vec4* psMax, SFloat32Vec4* asIn, int iInStride, int iNumPoints)
+{
+	int				i;
+	SFloat32Vec4*	psIn;
+
+	if (iNumPoints > 0)
+	{
+		psIn = asIn;
+		*psMin = *psIn;
+		*psMax = *psIn;
+
+		for (i = 1; i < iNumPoints; i++)
+		{
+			psIn = (SFloat32Vec4*)RemapSinglePointer(asIn, i * iInStride);
+
+			if (psIn->x < psMin->x)
+			{
+				psMin->x = psIn->x;
+			}
+			if (psIn->y < psMin->y)
+			{
+				psMin->y = psIn->y;
+			}
+			if (psIn->z < psMin->z)
+			{
+				psMin->z = psIn->z;
+			}
+			if (psIn->w < psMin->w)
+			{
+				psMin->w = psIn->w;
+			}
+
+			if (psIn->x > psMax->x)
+			{
+				psMax->x = psIn->x;
+			}
+			if (psIn->y > psMax->y)
+			{
+				psMax->y = psIn->y;
+			}
+			if (psIn->z > psMax->z)
+			{
+				psMax->z = psIn->z;
+			}
+			if (psIn->w > psMax->w)
+			{
+				psMax->w = psIn->w;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void Float4Normalize(SFloat32Vec4 *pOut, SFloat32Vec4 *pV)
+{
+	float32 fInvLen;
+
+	fInvLen = 1.0f / pV->Magnitude();
+	pOut->x = pV->x * fInvLen;
+	pOut->y = pV->y * fInvLen;
+	pOut->z = pV->z * fInvLen;
+	pOut->w = pV->w * fInvLen;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void Float4InterpolatePosition(SFloat32Vec4* psVecDest, const SFloat32Vec4* psVec1, const SFloat32Vec4* psVec2, float32 fWeight)
+{
+	SFloat32Vec4	sVec1;
+	SFloat32Vec4	sVec2;
+
+	Float4Scale(&sVec1, psVec1, fWeight);
+	Float4Scale(&sVec2, psVec2, 1.0f - fWeight);
+	Float4Add(psVecDest, &sVec1, &sVec2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void Float4InterpolateNormal(SFloat32Vec4* psVecDest, const SFloat32Vec4* psVec1, const SFloat32Vec4* psVec2, float32 fWeight)
+{
+	SFloat32Vec4	sVec1;
+	SFloat32Vec4	sVec2;
+
+	Float4Scale(&sVec1, psVec1, fWeight);
+	Float4Scale(&sVec2, psVec2, 1.0f - fWeight);
+	Float4Add(&sVec1, &sVec1, &sVec2);
+
+	//Should possibly check for zero length vectors.
+	Float4Normalize(psVecDest, &sVec1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void Float4Swap(SFloat32Vec4* ps1, SFloat32Vec4* ps2)
+{
+	SFloat32Vec4 temp;
+
+	temp = *ps2;
+	*ps2 = *ps1;
+	*ps1 = temp;
 }
 
