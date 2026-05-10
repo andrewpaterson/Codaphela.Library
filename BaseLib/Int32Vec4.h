@@ -22,8 +22,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __INT32_VEC4_H__
 #define __INT32_VEC4_H__
-#include "Vec4.h"
 #include "Chars.h"
+#include "Vec4.h"
+
 
 class SInt32Vec4 : public SVec4<int32, int64>
 {
