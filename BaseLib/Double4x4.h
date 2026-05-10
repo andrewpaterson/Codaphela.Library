@@ -34,29 +34,29 @@ class SDouble4x4
 {
 CONSTRUCTABLE(SDouble4x4);
 public:
-	SDouble4	x;
-	SDouble4	y;
-	SDouble4	z;
-	SDouble4	pos;
+	SDouble4		x;
+	SDouble4		y;
+	SDouble4		z;
+	SDouble4		pos;
 
-	void 		Init(void);
-	void 		Init(SFloat64Vec3* psX, SFloat64Vec3* psY, SFloat64Vec3* psZ, SFloat64Vec3* psPos);
-	void		Zero(void);
+	void 			Init(void);
+	void 			Init(SFloat64Vec3* psX, SFloat64Vec3* psY, SFloat64Vec3* psZ, SFloat64Vec3* psPos);
+	void			Zero(void);
 
-	bool 		Save(CFileWriter* pcFileWriter);
-	bool 		Load(CFileReader* pcFileReader);
+	bool 			Save(CFileWriter* pcFileWriter);
+	bool 			Load(CFileReader* pcFileReader);
 
-	void 		Fix(void);
-	void		Identity(void);
-	bool 		Inverse(SDouble4x4* psOut, double* pfDeterminant);
-	void 		Adjoint(SDouble4x4* psOut);
-	double		Determinant(void);
+	void 			Fix(void);
+	void			Identity(void);
+	bool 			Inverse(SDouble4x4* psOut, double* pfDeterminant);
+	void 			Adjoint(SDouble4x4* psOut);
+	double			Determinant(void);
 	SFloat64Vec3*	At(void);
 	SFloat64Vec3*	Up(void);
 	SFloat64Vec3*	Across(void);
 	SFloat64Vec3*	Pos(void);
-	void		Print(CChars* psz, bool bOneLine, int iWholeNumbers = -1, int iDecimals = 2);
-	void 		Dump(void);
+	void			Print(CChars* psz, bool bOneLine, int iWholeNumbers = -1, int iDecimals = 2);
+	void 			Dump(void);
 };
 
 

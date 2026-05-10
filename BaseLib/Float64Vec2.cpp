@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FloatHelper.h"
 #include "Float32Vec4.h"
 #include "Float4x4.h"
-#include "Float32Vec3.h"
+#include "Float64Vec3.h"
 #include "Float64Vec2.h"
 
 
@@ -148,7 +148,7 @@ bool SFloat64Vec2::CloselyEqual(SFloat64Vec2* ps, float64 fTolerance)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-float64 Float32Vec2Dot(const SFloat64Vec2* pV1, const SFloat64Vec2* pV2)
+float64 Float64Vec2Dot(const SFloat64Vec2* pV1, const SFloat64Vec2* pV2)
 {
 	return pV1->x * pV2->x + pV1->y * pV2->y;
 }
@@ -158,7 +158,7 @@ float64 Float32Vec2Dot(const SFloat64Vec2* pV1, const SFloat64Vec2* pV2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-float64 Float32Vec2Cross(const SFloat64Vec2* pV1, const SFloat64Vec2* pV2)
+float64 Float64Vec2Cross(const SFloat64Vec2* pV1, const SFloat64Vec2* pV2)
 {
 	return pV1->x * pV2->y - pV1->y * pV2->x;
 }
@@ -168,7 +168,7 @@ float64 Float32Vec2Cross(const SFloat64Vec2* pV1, const SFloat64Vec2* pV2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat64Vec2* Float32Vec2Add(SFloat64Vec2 *pOut, const SFloat64Vec2* pV1, const SFloat64Vec2* pV2)
+SFloat64Vec2* Float64Vec2Add(SFloat64Vec2 *pOut, const SFloat64Vec2* pV1, const SFloat64Vec2* pV2)
 {
 	pOut->x = pV1->x + pV2->x;
 	pOut->y = pV1->y + pV2->y;
@@ -180,7 +180,7 @@ SFloat64Vec2* Float32Vec2Add(SFloat64Vec2 *pOut, const SFloat64Vec2* pV1, const 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat64Vec2* Float32Vec2Subtract(SFloat64Vec2 *pOut, const SFloat64Vec2* pV1, const SFloat64Vec2* pV2)
+SFloat64Vec2* Float64Vec2Subtract(SFloat64Vec2 *pOut, const SFloat64Vec2* pV1, const SFloat64Vec2* pV2)
 {
 	pOut->x = pV1->x - pV2->x;
 	pOut->y = pV1->y - pV2->y;
@@ -192,7 +192,7 @@ SFloat64Vec2* Float32Vec2Subtract(SFloat64Vec2 *pOut, const SFloat64Vec2* pV1, c
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat64Vec2* Float32Vec2Minimize(SFloat64Vec2 *pOut, const SFloat64Vec2* pV1, const SFloat64Vec2* pV2)
+SFloat64Vec2* Float64Vec2Minimize(SFloat64Vec2 *pOut, const SFloat64Vec2* pV1, const SFloat64Vec2* pV2)
 {
 	pOut->x = pV1->x < pV2->x ? pV1->x : pV2->x;
 	pOut->y = pV1->y < pV2->y ? pV1->y : pV2->y;
@@ -204,7 +204,7 @@ SFloat64Vec2* Float32Vec2Minimize(SFloat64Vec2 *pOut, const SFloat64Vec2* pV1, c
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat64Vec2* Float32Vec2Maximize(SFloat64Vec2 *pOut, const SFloat64Vec2* pV1, const SFloat64Vec2* pV2)
+SFloat64Vec2* Float64Vec2Maximize(SFloat64Vec2 *pOut, const SFloat64Vec2* pV1, const SFloat64Vec2* pV2)
 {
 	pOut->x = pV1->x > pV2->x ? pV1->x : pV2->x;
 	pOut->y = pV1->y > pV2->y ? pV1->y : pV2->y;
@@ -216,7 +216,7 @@ SFloat64Vec2* Float32Vec2Maximize(SFloat64Vec2 *pOut, const SFloat64Vec2* pV1, c
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat64Vec2* Float32Vec2Scale(SFloat64Vec2 *pOut, const SFloat64Vec2 *pV, float64 s)
+SFloat64Vec2* Float64Vec2Scale(SFloat64Vec2 *pOut, const SFloat64Vec2 *pV, float64 s)
 {
 	pOut->x = pV->x * s;
 	pOut->y = pV->y * s;
@@ -228,7 +228,7 @@ SFloat64Vec2* Float32Vec2Scale(SFloat64Vec2 *pOut, const SFloat64Vec2 *pV, float
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat64Vec2* Float32Vec2Lerp(SFloat64Vec2 *pOut, const SFloat64Vec2* pV1, const SFloat64Vec2* pV2, float64 s)
+SFloat64Vec2* Float64Vec2Lerp(SFloat64Vec2 *pOut, const SFloat64Vec2* pV1, const SFloat64Vec2* pV2, float64 s)
 {
 	pOut->x = pV1->x + s * (pV2->x - pV1->x);
 	pOut->y = pV1->y + s * (pV2->y - pV1->y);
@@ -240,69 +240,69 @@ SFloat64Vec2* Float32Vec2Lerp(SFloat64Vec2 *pOut, const SFloat64Vec2* pV1, const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-//SFloat64Vec2* Float32Vec2TransformCoord(SFloat64Vec2 *pOut, SFloat64Vec2* pV, SFloat64Vec4x4* psMat)
-//{
-//	pOut->x = pV->x * psMat->x.x + pV->y * psMat->y.x + 1.0f * psMat->pos.x;
-//	pOut->y = pV->x * psMat->x.y + pV->y * psMat->y.y + 1.0f * psMat->pos.y;
-//	return pOut;
-//}
+SFloat64Vec2* Float64Vec2TransformCoord(SFloat64Vec2 *pOut, SFloat64Vec2* pV, SFloat4x4* psMat)
+{
+	pOut->x = pV->x * psMat->x.x + pV->y * psMat->y.x + 1.0f * psMat->pos.x;
+	pOut->y = pV->x * psMat->x.y + pV->y * psMat->y.y + 1.0f * psMat->pos.y;
+	return pOut;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-//SFloat64Vec2* Float32Vec2TransformNormal(SFloat64Vec2 *pOut, SFloat64Vec2* pV, SFloat64Vec4x4* psMat)
-//{
-//	pOut->x = pV->x * psMat->x.x + pV->y * psMat->y.x;
-//	pOut->y = pV->x * psMat->x.y + pV->y * psMat->y.y;
-//	return pOut;
-//}
+SFloat64Vec2* Float64Vec2TransformNormal(SFloat64Vec2 *pOut, SFloat64Vec2* pV, SFloat4x4* psMat)
+{
+	pOut->x = pV->x * psMat->x.x + pV->y * psMat->y.x;
+	pOut->y = pV->x * psMat->x.y + pV->y * psMat->y.y;
+	return pOut;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-//void Float32Vec2TransformCoords(SFloat64Vec2* asOut, int iOutStride, SFloat64Vec2* asIn, int iInStride, SFloat64Vec4x4* psMat, int iNumPoints)
-//{
-//	int			i;
-//	SFloat64Vec2*	psOut;
-//	SFloat64Vec2*	psIn;
-//
-//	for (i = 0; i < iNumPoints; i++)
-//	{
-//		psOut = (SFloat64Vec2*)RemapSinglePointer(asOut, i * iOutStride);
-//		psIn = (SFloat64Vec2*)RemapSinglePointer(asIn, i * iInStride);
-//		Float32Vec2TransformCoord(psOut, psIn, psMat);
-//	}
-//}
+void Float64Vec2TransformCoords(SFloat64Vec2* asOut, int iOutStride, SFloat64Vec2* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
+{
+	int				i;
+	SFloat64Vec2*	psOut;
+	SFloat64Vec2*	psIn;
+
+	for (i = 0; i < iNumPoints; i++)
+	{
+		psOut = (SFloat64Vec2*)RemapSinglePointer(asOut, i * iOutStride);
+		psIn = (SFloat64Vec2*)RemapSinglePointer(asIn, i * iInStride);
+		Float64Vec2TransformCoord(psOut, psIn, psMat);
+	}
+}
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-//void Float32Vec2TransformNormals(SFloat64Vec2* asOut, int iOutStride, SFloat64Vec2* asIn, int iInStride, SFloat64Vec4x4* psMat, int iNumPoints)
-//{
-//	int			i;
-//	SFloat64Vec2*	psOut;
-//	SFloat64Vec2*	psIn;
-//
-//	for (i = 0; i < iNumPoints; i++)
-//	{
-//		psOut = (SFloat64Vec2*)RemapSinglePointer(asOut, i * iOutStride);
-//		psIn = (SFloat64Vec2*)RemapSinglePointer(asIn, i * iInStride);
-//		Float32Vec2TransformNormal(psOut, psIn, psMat);
-//	}
-//}
+void Float64Vec2TransformNormals(SFloat64Vec2* asOut, int iOutStride, SFloat64Vec2* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
+{
+	int				i;
+	SFloat64Vec2*	psOut;
+	SFloat64Vec2*	psIn;
+
+	for (i = 0; i < iNumPoints; i++)
+	{
+		psOut = (SFloat64Vec2*)RemapSinglePointer(asOut, i * iOutStride);
+		psIn = (SFloat64Vec2*)RemapSinglePointer(asIn, i * iInStride);
+		Float64Vec2TransformNormal(psOut, psIn, psMat);
+	}
+}
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float32Vec2Swap(SFloat64Vec2* ps1, SFloat64Vec2* ps2)
+void Float64Vec2Swap(SFloat64Vec2* ps1, SFloat64Vec2* ps2)
 {
 	SFloat64Vec2 temp;
 
@@ -316,7 +316,7 @@ void Float32Vec2Swap(SFloat64Vec2* ps1, SFloat64Vec2* ps2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float32Vec2MinMax(SFloat64Vec2* psMin, SFloat64Vec2* psMax, SFloat64Vec2* asIn, int iInStride, int iNumPoints)
+void Float64Vec2MinMax(SFloat64Vec2* psMin, SFloat64Vec2* psMax, SFloat64Vec2* asIn, int iInStride, int iNumPoints)
 {
 	int			i;
 	SFloat64Vec2*	psIn;
@@ -357,7 +357,7 @@ void Float32Vec2MinMax(SFloat64Vec2* psMin, SFloat64Vec2* psMax, SFloat64Vec2* a
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float32Vec2Normalise(SFloat64Vec2* pOut, SFloat64Vec2* pV)
+void Float64Vec2Normalise(SFloat64Vec2* pOut, SFloat64Vec2* pV)
 {
 	float64 fInvLen;
 
@@ -371,14 +371,14 @@ void Float32Vec2Normalise(SFloat64Vec2* pOut, SFloat64Vec2* pV)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float32Vec2InterpolatePosition(SFloat64Vec2* psVecDest, const SFloat64Vec2* psVec1, const SFloat64Vec2* psVec2, float64 fWeight)
+void Float64Vec2InterpolatePosition(SFloat64Vec2* psVecDest, const SFloat64Vec2* psVec1, const SFloat64Vec2* psVec2, float64 fWeight)
 {
 	SFloat64Vec2		sVec1;
 	SFloat64Vec2		sVec2;
 
-	Float32Vec2Scale(&sVec1, psVec1, fWeight);
-	Float32Vec2Scale(&sVec2, psVec2, 1.0f - fWeight);
-	Float32Vec2Add(psVecDest, &sVec1, &sVec2);
+	Float64Vec2Scale(&sVec1, psVec1, fWeight);
+	Float64Vec2Scale(&sVec2, psVec2, 1.0f - fWeight);
+	Float64Vec2Add(psVecDest, &sVec1, &sVec2);
 }
 
 
@@ -386,45 +386,45 @@ void Float32Vec2InterpolatePosition(SFloat64Vec2* psVecDest, const SFloat64Vec2*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float32Vec2InterpolateNormal(SFloat64Vec2* psVecDest, const SFloat64Vec2* psVec1, const SFloat64Vec2* psVec2, float64 fWeight)
+void Float64Vec2InterpolateNormal(SFloat64Vec2* psVecDest, const SFloat64Vec2* psVec1, const SFloat64Vec2* psVec2, float64 fWeight)
 {
 	SFloat64Vec2		sVec1;
 	SFloat64Vec2		sVec2;
 
-	Float32Vec2Scale(&sVec1, psVec1, fWeight);
-	Float32Vec2Scale(&sVec2, psVec2, 1.0f - fWeight);
-	Float32Vec2Add(&sVec1, &sVec1, &sVec2);
+	Float64Vec2Scale(&sVec1, psVec1, fWeight);
+	Float64Vec2Scale(&sVec2, psVec2, 1.0f - fWeight);
+	Float64Vec2Add(&sVec1, &sVec1, &sVec2);
 
 	//Should possibly check for zero length vectors.
-	Float32Vec2Normalise(psVecDest, &sVec1);
+	Float64Vec2Normalise(psVecDest, &sVec1);
 }
 
-//Uncomment when SFloat64Vec3 exists
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-//void Float32Vec2RotateAboutNormalisedAxis(SFloat64Vec3* psVecDest, SFloat64Vec3 p, float64 fTheta, SFloat64Vec2 r)
-//{
-//	float64 fCosTheta;
-//	float64 fSinTheta;
-//	float64 fInvCosTheta;
-//
-//	psVecDest->Zero();
-//	fCosTheta = cosl(fTheta);
-//	fSinTheta = sinl(fTheta);
-//	fInvCosTheta = 1.0f - fCosTheta;
-//
-//	psVecDest->x += (fCosTheta + fInvCosTheta * r.x * r.x) * p.x;
-//	psVecDest->x += (fInvCosTheta * r.x * r.y ) * p.y;
-//	psVecDest->x += (r.y * fSinTheta) * p.z;
-//
-//	psVecDest->y += (fInvCosTheta * r.x * r.y ) * p.x;
-//	psVecDest->y += (fCosTheta + fInvCosTheta * r.y * r.y) * p.y;
-//	psVecDest->y += (-r.x * fSinTheta) * p.z;
-//
-//	psVecDest->z += (-r.y * fSinTheta) * p.x;
-//	psVecDest->z += (r.x * fSinTheta) * p.y;
-//	psVecDest->z += (fCosTheta) * p.z;
-//}
+void Float64Vec2RotateAboutNormalisedAxis(SFloat64Vec3* psVecDest, SFloat64Vec3 p, float64 fTheta, SFloat64Vec2 r)
+{
+	float64		fCosTheta;
+	float64		fSinTheta;
+	float64		fInvCosTheta;
+
+	psVecDest->Zero();
+	fCosTheta = cos(fTheta);
+	fSinTheta = sin(fTheta);
+	fInvCosTheta = 1.0f - fCosTheta;
+
+	psVecDest->x += (fCosTheta + fInvCosTheta * r.x * r.x) * p.x;
+	psVecDest->x += (fInvCosTheta * r.x * r.y ) * p.y;
+	psVecDest->x += (r.y * fSinTheta) * p.z;
+
+	psVecDest->y += (fInvCosTheta * r.x * r.y ) * p.x;
+	psVecDest->y += (fCosTheta + fInvCosTheta * r.y * r.y) * p.y;
+	psVecDest->y += (-r.x * fSinTheta) * p.z;
+
+	psVecDest->z += (-r.y * fSinTheta) * p.x;
+	psVecDest->z += (r.x * fSinTheta) * p.y;
+	psVecDest->z += (fCosTheta) * p.z;
+}
 
