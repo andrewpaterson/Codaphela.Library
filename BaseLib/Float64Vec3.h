@@ -51,24 +51,24 @@ public:
 typedef CArrayTemplate<SFloat64Vec3>		CArrayFloat64Vec3;
 
 
-float64 		Float32Vec3Dot(const SFloat64Vec3* pV1, const SFloat64Vec3* pV2);
-SFloat64Vec3*	Float32Vec3Cross(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2);
-SFloat64Vec3*	Float32Vec3Add(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2);
-SFloat64Vec3*	Float32Vec3Subtract(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2);
-SFloat64Vec3*	Float32Vec3Minimize(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2);
-SFloat64Vec3*	Float32Vec3Maximize(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2);
-SFloat64Vec3*	Float32Vec3Scale(SFloat64Vec3* pOut, const SFloat64Vec3* pV, float64 s);
-SFloat64Vec3*	Float32Vec3Lerp(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2, float64 s);
-SFloat64Vec3*	Float32Vec3TransformCoord(SFloat64Vec3* pOut, SFloat64Vec3* pV, SFloat4x4* psMat);
-void			Float32Vec3TransformCoords(SFloat64Vec3* asOut, int iOutStride, SFloat64Vec3* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints);
-SFloat64Vec3*	Float32Vec3TransformNormal(SFloat64Vec3* pOut, SFloat64Vec3* pV, SFloat4x4* psMat);
-void			Float32Vec3TransformNormals(SFloat64Vec3* asOut, int iOutStride, SFloat64Vec3* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints);
-void			Float32Vec3MinMax(SFloat64Vec3* psMin, SFloat64Vec3* psMax, SFloat64Vec3* asIn, int iInStride, int iNumPoints);
-void			Float32Vec3Swap(SFloat64Vec3* ps1, SFloat64Vec3* ps2);
-void 			Float32Vec3InterpolatePosition(SFloat64Vec3* psVecDest, const SFloat64Vec3* psVec1, const SFloat64Vec3* psVec2, float64 fWeight);
-void 			Float32Vec3InterpolateNormal(SFloat64Vec3* psVecDest, const SFloat64Vec3* psVec1, const SFloat64Vec3* psVec2, float64 fWeight);
-void 			Float32Vec3RotateAboutNormalisedAxis(SFloat64Vec3* psVecDest, SFloat64Vec3 p, float64 fTheta, SFloat64Vec3 r);
-void 			Float32Vec3Normalise(SFloat64Vec3* pOut, SFloat64Vec3* pV);
+float64 		Float64Vec3Dot(const SFloat64Vec3* pV1, const SFloat64Vec3* pV2);
+SFloat64Vec3*	Float64Vec3Cross(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2);
+SFloat64Vec3*	Float64Vec3Add(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2);
+SFloat64Vec3*	Float64Vec3Subtract(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2);
+SFloat64Vec3*	Float64Vec3Minimize(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2);
+SFloat64Vec3*	Float64Vec3Maximize(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2);
+SFloat64Vec3*	Float64Vec3Scale(SFloat64Vec3* pOut, const SFloat64Vec3* pV, float64 s);
+SFloat64Vec3*	Float64Vec3Lerp(SFloat64Vec3* pOut, const SFloat64Vec3* pV1, const SFloat64Vec3* pV2, float64 s);
+SFloat64Vec3*	Float64Vec3TransformCoord(SFloat64Vec3* pOut, SFloat64Vec3* pV, SFloat4x4* psMat);
+void			Float64Vec3TransformCoords(SFloat64Vec3* asOut, int iOutStride, SFloat64Vec3* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints);
+SFloat64Vec3*	Float64Vec3TransformNormal(SFloat64Vec3* pOut, SFloat64Vec3* pV, SFloat4x4* psMat);
+void			Float64Vec3TransformNormals(SFloat64Vec3* asOut, int iOutStride, SFloat64Vec3* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints);
+void			Float64Vec3MinMax(SFloat64Vec3* psMin, SFloat64Vec3* psMax, SFloat64Vec3* asIn, int iInStride, int iNumPoints);
+void			Float64Vec3Swap(SFloat64Vec3* ps1, SFloat64Vec3* ps2);
+void 			Float64Vec3InterpolatePosition(SFloat64Vec3* psVecDest, const SFloat64Vec3* psVec1, const SFloat64Vec3* psVec2, float64 fWeight);
+void 			Float64Vec3InterpolateNormal(SFloat64Vec3* psVecDest, const SFloat64Vec3* psVec1, const SFloat64Vec3* psVec2, float64 fWeight);
+void 			Float64Vec3RotateAboutNormalisedAxis(SFloat64Vec3* psVecDest, SFloat64Vec3 p, float64 fTheta, SFloat64Vec3 r);
+void 			Float64Vec3Normalise(SFloat64Vec3* pOut, SFloat64Vec3* pV);
 
 
 #endif // __FLOAT64_VEC3_H__

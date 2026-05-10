@@ -1,5 +1,5 @@
-#ifndef __INT32_VEC3_H__
-#define __INT32_VEC3_H__
+#ifndef __INT_VEC3_H__
+#define __INT_VEC3_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -53,5 +53,5 @@ void		Int32Vec3Swap(SIntVec3* ps1, SIntVec3* ps2);
 void 		Int32Vec3InterpolatePosition(SIntVec3* psVecDest, const SIntVec3* psVec1, const SIntVec3* psVec3, float32 fWeight);
 
 
-#endif // __INT32_VEC3_H__
+#endif // __INT_VEC3_H__
 

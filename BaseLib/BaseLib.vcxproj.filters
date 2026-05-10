@@ -478,6 +478,15 @@
     <Filter Include="Source\Text\Encoding">
       <UniqueIdentifier>{31917a0c-e105-4327-ba3d-75d7b21483b3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Geometric\Vector2">
+      <UniqueIdentifier>{1ba3a78e-5edd-49b4-8c3d-cd1900dff4e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Geometric\Vector3">
+      <UniqueIdentifier>{20c7a17f-732d-4594-9089-a24984f074e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data\Geometric\Vector4">
+      <UniqueIdentifier>{ecf19b4c-86e5-4c4b-b324-08c7024fa58c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -552,28 +561,10 @@
     <ClInclude Include="MarkupText.h">
       <Filter>Source\Data\Markup</Filter>
     </ClInclude>
-    <ClInclude Include="Float32Vec2.h">
-      <Filter>Source\Data\Geometric</Filter>
-    </ClInclude>
-    <ClInclude Include="Float32Vec3.h">
-      <Filter>Source\Data\Geometric</Filter>
-    </ClInclude>
-    <ClInclude Include="Float32Vec4.h">
-      <Filter>Source\Data\Geometric</Filter>
-    </ClInclude>
     <ClInclude Include="Float4x4.h">
       <Filter>Source\Data\Geometric</Filter>
     </ClInclude>
     <ClInclude Include="GeometricTypes.h">
-      <Filter>Source\Data\Geometric</Filter>
-    </ClInclude>
-    <ClInclude Include="IntVec2.h">
-      <Filter>Source\Data\Geometric</Filter>
-    </ClInclude>
-    <ClInclude Include="Int32Vec3.h">
-      <Filter>Source\Data\Geometric</Filter>
-    </ClInclude>
-    <ClInclude Include="Int4.h">
       <Filter>Source\Data\Geometric</Filter>
     </ClInclude>
     <ClInclude Include="Quaternion.h">
@@ -1154,12 +1145,6 @@
     </ClInclude>
     <ClInclude Include="DataTypesIO.h">
       <Filter>Source\Data\Types\File</Filter>
-    </ClInclude>
-    <ClInclude Include="Float64Vec3.h">
-      <Filter>Source\Data\Geometric</Filter>
-    </ClInclude>
-    <ClInclude Include="Double4.h">
-      <Filter>Source\Data\Geometric</Filter>
     </ClInclude>
     <ClInclude Include="Double4x4.h">
       <Filter>Source\Data\Geometric</Filter>
@@ -1767,38 +1752,62 @@
     <ClInclude Include="UnicodeWriter.h">
       <Filter>Source\Text\Encoding</Filter>
     </ClInclude>
-    <ClInclude Include="Vec2.h">
-      <Filter>Source\Data\Geometric</Filter>
+    <ClInclude Include="IntVec2.h">
+      <Filter>Source\Data\Geometric\Vector2</Filter>
     </ClInclude>
     <ClInclude Include="Int32Vec2.h">
-      <Filter>Source\Data\Geometric</Filter>
+      <Filter>Source\Data\Geometric\Vector2</Filter>
     </ClInclude>
     <ClInclude Include="Int64Vec2.h">
-      <Filter>Source\Data\Geometric</Filter>
+      <Filter>Source\Data\Geometric\Vector2</Filter>
     </ClInclude>
-    <ClInclude Include="Int16Vec2.h">
-      <Filter>Source\Data\Geometric</Filter>
+    <ClInclude Include="Vec2.h">
+      <Filter>Source\Data\Geometric\Vector2</Filter>
+    </ClInclude>
+    <ClInclude Include="Float32Vec2.h">
+      <Filter>Source\Data\Geometric\Vector2</Filter>
     </ClInclude>
     <ClInclude Include="Float64Vec2.h">
-      <Filter>Source\Data\Geometric</Filter>
+      <Filter>Source\Data\Geometric\Vector2</Filter>
     </ClInclude>
-    <ClInclude Include="Vec3.h">
-      <Filter>Source\Data\Geometric</Filter>
+    <ClInclude Include="Int16Vec2.h">
+      <Filter>Source\Data\Geometric\Vector2</Filter>
     </ClInclude>
-    <ClInclude Include="Int64Vec3.h">
-      <Filter>Source\Data\Geometric</Filter>
+    <ClInclude Include="Float32Vec3.h">
+      <Filter>Source\Data\Geometric\Vector3</Filter>
     </ClInclude>
-    <ClInclude Include="IntVec3.h">
-      <Filter>Source\Data\Geometric</Filter>
+    <ClInclude Include="Float64Vec3.h">
+      <Filter>Source\Data\Geometric\Vector3</Filter>
+    </ClInclude>
+    <ClInclude Include="Int32Vec3.h">
+      <Filter>Source\Data\Geometric\Vector3</Filter>
     </ClInclude>
     <ClInclude Include="Int16Vec3.h">
-      <Filter>Source\Data\Geometric</Filter>
+      <Filter>Source\Data\Geometric\Vector3</Filter>
     </ClInclude>
-    <ClInclude Include="Vec4.h">
-      <Filter>Source\Data\Geometric</Filter>
+    <ClInclude Include="Int64Vec3.h">
+      <Filter>Source\Data\Geometric\Vector3</Filter>
+    </ClInclude>
+    <ClInclude Include="IntVec3.h">
+      <Filter>Source\Data\Geometric\Vector3</Filter>
+    </ClInclude>
+    <ClInclude Include="Vec3.h">
+      <Filter>Source\Data\Geometric\Vector3</Filter>
+    </ClInclude>
+    <ClInclude Include="Float32Vec4.h">
+      <Filter>Source\Data\Geometric\Vector4</Filter>
+    </ClInclude>
+    <ClInclude Include="Double4.h">
+      <Filter>Source\Data\Geometric\Vector4</Filter>
+    </ClInclude>
+    <ClInclude Include="Int4.h">
+      <Filter>Source\Data\Geometric\Vector4</Filter>
     </ClInclude>
     <ClInclude Include="Int32Vec4.h">
-      <Filter>Source\Data\Geometric</Filter>
+      <Filter>Source\Data\Geometric\Vector4</Filter>
+    </ClInclude>
+    <ClInclude Include="Vec4.h">
+      <Filter>Source\Data\Geometric\Vector4</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1856,28 +1865,10 @@
     <ClCompile Include="MarkupText.cpp">
       <Filter>Source\Data\Markup</Filter>
     </ClCompile>
-    <ClCompile Include="Float32Vec2.cpp">
-      <Filter>Source\Data\Geometric</Filter>
-    </ClCompile>
-    <ClCompile Include="Float32Vec3.cpp">
-      <Filter>Source\Data\Geometric</Filter>
-    </ClCompile>
-    <ClCompile Include="Float32Vec4.cpp">
-      <Filter>Source\Data\Geometric</Filter>
-    </ClCompile>
     <ClCompile Include="Float4x4.cpp">
       <Filter>Source\Data\Geometric</Filter>
     </ClCompile>
     <ClCompile Include="GeometricTypes.cpp">
-      <Filter>Source\Data\Geometric</Filter>
-    </ClCompile>
-    <ClCompile Include="IntVec2.cpp">
-      <Filter>Source\Data\Geometric</Filter>
-    </ClCompile>
-    <ClCompile Include="Int32Vec3.cpp">
-      <Filter>Source\Data\Geometric</Filter>
-    </ClCompile>
-    <ClCompile Include="Int4.cpp">
       <Filter>Source\Data\Geometric</Filter>
     </ClCompile>
     <ClCompile Include="Quaternion.cpp">
@@ -2332,12 +2323,6 @@
     </ClCompile>
     <ClCompile Include="DataTypesIO.cpp">
       <Filter>Source\Data\Types\File</Filter>
-    </ClCompile>
-    <ClCompile Include="Float64Vec3.cpp">
-      <Filter>Source\Data\Geometric</Filter>
-    </ClCompile>
-    <ClCompile Include="Double4.cpp">
-      <Filter>Source\Data\Geometric</Filter>
     </ClCompile>
     <ClCompile Include="Double4x4.cpp">
       <Filter>Source\Data\Geometric</Filter>
@@ -2882,29 +2867,53 @@
     <ClCompile Include="Numbers.cpp">
       <Filter>Source\Math\Primitive</Filter>
     </ClCompile>
+    <ClCompile Include="IntVec2.cpp">
+      <Filter>Source\Data\Geometric\Vector2</Filter>
+    </ClCompile>
     <ClCompile Include="Int32Vec2.cpp">
-      <Filter>Source\Data\Geometric</Filter>
+      <Filter>Source\Data\Geometric\Vector2</Filter>
     </ClCompile>
     <ClCompile Include="Int64Vec2.cpp">
-      <Filter>Source\Data\Geometric</Filter>
+      <Filter>Source\Data\Geometric\Vector2</Filter>
     </ClCompile>
-    <ClCompile Include="Int16Vec2.cpp">
-      <Filter>Source\Data\Geometric</Filter>
+    <ClCompile Include="Float32Vec2.cpp">
+      <Filter>Source\Data\Geometric\Vector2</Filter>
     </ClCompile>
     <ClCompile Include="Float64Vec2.cpp">
-      <Filter>Source\Data\Geometric</Filter>
+      <Filter>Source\Data\Geometric\Vector2</Filter>
     </ClCompile>
-    <ClCompile Include="Int64Vec3.cpp">
-      <Filter>Source\Data\Geometric</Filter>
+    <ClCompile Include="Int16Vec2.cpp">
+      <Filter>Source\Data\Geometric\Vector2</Filter>
     </ClCompile>
-    <ClCompile Include="IntVec3.cpp">
-      <Filter>Source\Data\Geometric</Filter>
+    <ClCompile Include="Float32Vec3.cpp">
+      <Filter>Source\Data\Geometric\Vector3</Filter>
+    </ClCompile>
+    <ClCompile Include="Float64Vec3.cpp">
+      <Filter>Source\Data\Geometric\Vector3</Filter>
+    </ClCompile>
+    <ClCompile Include="Int32Vec3.cpp">
+      <Filter>Source\Data\Geometric\Vector3</Filter>
     </ClCompile>
     <ClCompile Include="Int16Vec3.cpp">
-      <Filter>Source\Data\Geometric</Filter>
+      <Filter>Source\Data\Geometric\Vector3</Filter>
+    </ClCompile>
+    <ClCompile Include="Int64Vec3.cpp">
+      <Filter>Source\Data\Geometric\Vector3</Filter>
+    </ClCompile>
+    <ClCompile Include="IntVec3.cpp">
+      <Filter>Source\Data\Geometric\Vector3</Filter>
+    </ClCompile>
+    <ClCompile Include="Float32Vec4.cpp">
+      <Filter>Source\Data\Geometric\Vector4</Filter>
+    </ClCompile>
+    <ClCompile Include="Double4.cpp">
+      <Filter>Source\Data\Geometric\Vector4</Filter>
+    </ClCompile>
+    <ClCompile Include="Int4.cpp">
+      <Filter>Source\Data\Geometric\Vector4</Filter>
     </ClCompile>
     <ClCompile Include="Int32Vec4.cpp">
-      <Filter>Source\Data\Geometric</Filter>
+      <Filter>Source\Data\Geometric\Vector4</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

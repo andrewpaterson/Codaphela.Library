@@ -29,12 +29,12 @@ float64 Deg2Dot(float64 fDegrees)
 {
 	SFloat64Vec2	s1;
 	SFloat64Vec2	s2;
-	float64	fRad;
+	float64			fRad;
 
 	s1.Init(1.0f, 0.0f);
 	fRad = Deg2Rad(fDegrees);
 	s2.Init(cos(fRad), sin(fRad));
 
-	return Float32Vec2Dot(&s1, &s2);
+	return Float64Vec2Dot(&s1, &s2);
 }
 
