@@ -24,20 +24,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __DOUBLE_4_X_4_H__
 #include "Define.h"
 #include "ChunkFile.h"
-#include "Double4.h"
+#include "Float64Vec4.h"
 
 
 class SFloat64Vec2;
 class SFloat64Vec3;
-class SDouble4;
+class SFloat64Vec4;
 class SDouble4x4
 {
 CONSTRUCTABLE(SDouble4x4);
 public:
-	SDouble4		x;
-	SDouble4		y;
-	SDouble4		z;
-	SDouble4		pos;
+	SFloat64Vec4		x;
+	SFloat64Vec4		y;
+	SFloat64Vec4		z;
+	SFloat64Vec4		pos;
 
 	void 			Init(void);
 	void 			Init(SFloat64Vec3* psX, SFloat64Vec3* psY, SFloat64Vec3* psZ, SFloat64Vec3* psPos);

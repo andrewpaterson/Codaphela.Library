@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <string.h>
 #include <stdio.h>
 #include "DebugOutput.h"
+#include "DataTypes.h"
 #include "PointerRemapper.h"
 #include "IntegerHelper.h"
 #include "ArrayChars.h"

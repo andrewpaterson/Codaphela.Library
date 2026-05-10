@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __TYPE_NAMES_H__
 #define __TYPE_NAMES_H__
+#include "DataTypes.h"
 #include "MapStringInt.h"
 
 

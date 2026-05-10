@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "DataTypes.h"
 #include "MarkupTag.h"
 #include "MarkupText.h"
 #include "MarkupReference.h"

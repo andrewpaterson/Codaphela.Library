@@ -224,7 +224,7 @@
     <ClInclude Include="DataTypesIO.h" />
     <ClInclude Include="DateTime.h" />
     <ClInclude Include="Float64Vec3.h" />
-    <ClInclude Include="Double4.h" />
+    <ClInclude Include="Float64Vec4.h" />
     <ClInclude Include="Double4x4.h" />
     <ClInclude Include="EnumeratorNode.h" />
     <ClInclude Include="ExternalString.h" />
@@ -420,7 +420,7 @@
     <ClInclude Include="GeometricTypes.h" />
     <ClInclude Include="IntVec2.h" />
     <ClInclude Include="Int32Vec3.h" />
-    <ClInclude Include="Int4.h" />
+    <ClInclude Include="IntVec4.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="DebugOutput.h" />
     <ClInclude Include="ErrorHandler.h" />
@@ -663,7 +663,7 @@
     <ClCompile Include="DataTypesIO.cpp" />
     <ClCompile Include="DateTime.cpp" />
     <ClCompile Include="Float64Vec3.cpp" />
-    <ClCompile Include="Double4.cpp" />
+    <ClCompile Include="Float64Vec4.cpp" />
     <ClCompile Include="Double4x4.cpp" />
     <ClCompile Include="ExternalString.cpp" />
     <ClCompile Include="Float64Vec2.cpp" />
@@ -815,7 +815,7 @@
     <ClCompile Include="GeometricTypes.cpp" />
     <ClCompile Include="IntVec2.cpp" />
     <ClCompile Include="Int32Vec3.cpp" />
-    <ClCompile Include="Int4.cpp" />
+    <ClCompile Include="IntVec4.cpp" />
     <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="ErrorHandler.cpp" />
     <ClCompile Include="ErrorTypes.cpp" />

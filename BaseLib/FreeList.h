@@ -25,7 +25,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IntegerHelper.h"
 #include "LinkedListBlock.h"
 #include "LinkedListTemplate.h"
-#include "DataTypes.h"
 #include "IntegerHelper.h"
 
 

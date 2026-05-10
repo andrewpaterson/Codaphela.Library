@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "Number.h"
 #include <stdio.h>
+#include "DataTypes.h"
 #include "FastFunctions.h"
 #include "IntegerHelper.h"
 #include "FloatHelper.h"

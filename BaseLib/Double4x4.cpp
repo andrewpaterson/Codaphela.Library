@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "DataIO.h"
 #include "Float64Vec2.h"
 #include "Float64Vec3.h"
-#include "Double4.h"
+#include "Float64Vec4.h"
 #include "Double4x4.h"
 
 
@@ -70,10 +70,10 @@ void SDouble4x4::Identity(void)
 void SDouble4x4::Init(SFloat64Vec3* psX, SFloat64Vec3* psY, SFloat64Vec3* psZ, SFloat64Vec3* psP)
 {
 	//Optimise me later!
-	x =		SDouble4(psX->x, psX->y, psX->y, 0.0f);
-	y =		SDouble4(psY->x, psY->y, psY->y, 0.0f);
-	z =		SDouble4(psZ->x, psZ->y, psZ->y, 0.0f);
-	pos =	SDouble4(psP->x, psP->y, psP->y, 0.0f);
+	x =		SFloat64Vec4(psX->x, psX->y, psX->y, 0.0f);
+	y =		SFloat64Vec4(psY->x, psY->y, psY->y, 0.0f);
+	z =		SFloat64Vec4(psZ->x, psZ->y, psZ->y, 0.0f);
+	pos =	SFloat64Vec4(psP->x, psP->y, psP->y, 0.0f);
 }
 
 
@@ -343,10 +343,10 @@ SDouble4x4* Double4x4Multiply(SDouble4x4* psOut, SDouble4x4* psLeft, SDouble4x4*
 {
 	SDouble4x4	s;
 
-	Double4Transform(&s.x, psRight, &psLeft->x);
-	Double4Transform(&s.y, psRight, &psLeft->y);
-	Double4Transform(&s.z, psRight, &psLeft->z);
-	Double4Transform(&s.pos, psRight, &psLeft->pos);
+	Float64Vec4TransformCoord(&s.x, &psLeft->x, psRight);
+	Float64Vec4TransformCoord(&s.y, &psLeft->y, psRight);
+	Float64Vec4TransformCoord(&s.z, &psLeft->z, psRight);
+	Float64Vec4TransformCoord(&s.pos, &psLeft->pos, psRight);
 	*psOut = s;
 	return psOut;
 }

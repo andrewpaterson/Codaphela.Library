@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "Logger.h"
 #include "LogString.h"
+#include "DataTypes.h"
 #include "PointerRemapper.h"
 #include "GlobalMemory.h"
 #include "FilePathBuilder.h"

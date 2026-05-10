@@ -1,4 +1,5 @@
 #include "Logger.h"
+#include "DataTypes.h"
 #include "IndexedFile.h"
 #include "IndexTreeFileDebug.h"
 

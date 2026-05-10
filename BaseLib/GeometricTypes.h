@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Float4x4.h"
 #include "Float64Vec2.h"
 #include "Float64Vec3.h"
-#include "Double4.h"
+#include "Float64Vec4.h"
 #include "Double4x4.h"
 #include "Quaternion.h"
 
@@ -36,7 +36,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //Hack to make this compile.  These used to be part of StandardTypes.
 SFloat32Vec3*	GetPosition(SFloat32Vec3* psPoints, size iStride, size iPoint);
 SFloat32Vec3*	GetNormal(SFloat32Vec3* psNormals, size iStride, size iNormal);
-int			GetIndex(SFloat32Vec3* psPoints, size iStride, SFloat32Vec3* psPosition);
+int				GetIndex(SFloat32Vec3* psPoints, size iStride, SFloat32Vec3* psPosition);
 
 
 #endif // __GEOMETRIC_TYPES_H__

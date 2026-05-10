@@ -6,7 +6,6 @@
 #include "Mallocator.h"
 #include "FileIO.h"
 #include "Malloc.h"
-#include "DataTypes.h"
 #include "ArrayElementNotFound.h"
 #include "DataCompare.h"
 

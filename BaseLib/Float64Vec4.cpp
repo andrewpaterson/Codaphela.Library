@@ -22,17 +22,17 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "Numbers.h"
 #include "DataIO.h"
-#include "Float32Vec2.h"
-#include "Float32Vec3.h"
-#include "Float4x4.h"
-#include "Float32Vec4.h"
+#include "Float64Vec2.h"
+#include "Float64Vec3.h"
+#include "Double4x4.h"
+#include "Float64Vec4.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec4::SFloat32Vec4(float32 x, float32 y, float32 z, float32 w)
+SFloat64Vec4::SFloat64Vec4(float64 x, float64 y, float64 z, float64 w)
 {
 	this->x = x;
 	this->y = y;
@@ -45,9 +45,9 @@ SFloat32Vec4::SFloat32Vec4(float32 x, float32 y, float32 z, float32 w)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SFloat32Vec4::Normalize(void)
+void SFloat64Vec4::Normalize(void)
 {
-	float32 f;
+	float64 f;
 
 	f = Magnitude();
 	if (f != 0.0f)
@@ -69,7 +69,7 @@ void SFloat32Vec4::Normalize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SFloat32Vec4::CloselyEqual(SFloat32Vec4* ps)
+bool SFloat64Vec4::CloselyEqual(SFloat64Vec4* ps)
 {
 	if ((FloatEqual(x, ps->x)) &&
 		(FloatEqual(y, ps->y)) &&
@@ -86,7 +86,7 @@ bool SFloat32Vec4::CloselyEqual(SFloat32Vec4* ps)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SFloat32Vec4::CloselyEqual(SFloat32Vec4* ps, float32 fTolerance)
+bool SFloat64Vec4::CloselyEqual(SFloat64Vec4* ps, float64 fTolerance)
 {
 	if ((FloatEqual(x, ps->x, fTolerance)) &&
 		(FloatEqual(y, ps->y, fTolerance)) &&
@@ -103,7 +103,7 @@ bool SFloat32Vec4::CloselyEqual(SFloat32Vec4* ps, float32 fTolerance)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SFloat32Vec4::Copy(const SFloat32Vec4* ps)
+void SFloat64Vec4::Copy(const SFloat64Vec4* ps)
 {
 	x = ps->x;
 	y = ps->y;
@@ -116,7 +116,7 @@ void SFloat32Vec4::Copy(const SFloat32Vec4* ps)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SFloat32Vec4::Copy(const SFloat32Vec3* ps)
+void SFloat64Vec4::Copy(const SFloat64Vec3* ps)
 {
 	x = ps->x;
 	y = ps->y;
@@ -129,7 +129,7 @@ void SFloat32Vec4::Copy(const SFloat32Vec3* ps)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SFloat32Vec4::Copy(const SFloat32Vec2* ps)
+void SFloat64Vec4::Copy(const SFloat64Vec2* ps)
 {
 	x = ps->x;
 	y = ps->y;
@@ -142,12 +142,12 @@ void SFloat32Vec4::Copy(const SFloat32Vec2* ps)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SFloat32Vec4::Fix(void)
+void SFloat64Vec4::Fix(void)
 {
-	x = RoundFloat(x, BINARY_PRECISION);
-	y = RoundFloat(y, BINARY_PRECISION);
-	z = RoundFloat(z, BINARY_PRECISION);
-	w = RoundFloat(w, BINARY_PRECISION);
+	x = RoundFloat(x, (int64)BINARY_PRECISION);
+	y = RoundFloat(y, (int64)BINARY_PRECISION);
+	z = RoundFloat(z, (int64)BINARY_PRECISION);
+	w = RoundFloat(w, (int64)BINARY_PRECISION);
 }
 
 
@@ -155,7 +155,7 @@ void SFloat32Vec4::Fix(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int SFloat32Vec4::WholeNumbers(void)
+int SFloat64Vec4::WholeNumbers(void)
 {
 	int i[4];
 
@@ -172,7 +172,7 @@ int SFloat32Vec4::WholeNumbers(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SFloat32Vec4::Print(CChars* psz, int iWholeNumbers, int iDecimals)
+void SFloat64Vec4::Print(CChars* psz, int iWholeNumbers, int iDecimals)
 {
 	CChars		szzz;
 	int			iWidth;
@@ -218,7 +218,7 @@ void SFloat32Vec4::Print(CChars* psz, int iWholeNumbers, int iDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float32 Float32Vec4Dot(const SFloat32Vec4 *pV1, const SFloat32Vec4 *pV2)
+float64 Float64Vec4Dot(const SFloat64Vec4 *pV1, const SFloat64Vec4 *pV2)
 {
 	return pV1->x * pV2->x + pV1->y * pV2->y + pV1->z * pV2->z + pV1->w * pV2->w;
 }
@@ -228,7 +228,7 @@ float32 Float32Vec4Dot(const SFloat32Vec4 *pV1, const SFloat32Vec4 *pV2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec4* Float32Vec4Add(SFloat32Vec4 *pOut, const SFloat32Vec4 *pV1, const SFloat32Vec4 *pV2)
+SFloat64Vec4* Float64Vec4Add(SFloat64Vec4 *pOut, const SFloat64Vec4 *pV1, const SFloat64Vec4 *pV2)
 {
 	pOut->x = pV1->x + pV2->x;
 	pOut->y = pV1->y + pV2->y;
@@ -242,7 +242,7 @@ SFloat32Vec4* Float32Vec4Add(SFloat32Vec4 *pOut, const SFloat32Vec4 *pV1, const 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec4* Float32Vec4Subtract(SFloat32Vec4 *pOut, const SFloat32Vec4 *pV1, const SFloat32Vec4 *pV2)
+SFloat64Vec4* Float64Vec4Subtract(SFloat64Vec4 *pOut, const SFloat64Vec4 *pV1, const SFloat64Vec4 *pV2)
 {
 	pOut->x = pV1->x - pV2->x;
 	pOut->y = pV1->y - pV2->y;
@@ -256,7 +256,7 @@ SFloat32Vec4* Float32Vec4Subtract(SFloat32Vec4 *pOut, const SFloat32Vec4 *pV1, c
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec4* Float32Vec4Minimize(SFloat32Vec4 *pOut, const SFloat32Vec4 *pV1, const SFloat32Vec4 *pV2)
+SFloat64Vec4* Float64Vec4Minimize(SFloat64Vec4 *pOut, const SFloat64Vec4 *pV1, const SFloat64Vec4 *pV2)
 {
 	pOut->x = pV1->x < pV2->x ? pV1->x : pV2->x;
 	pOut->y = pV1->y < pV2->y ? pV1->y : pV2->y;
@@ -270,7 +270,7 @@ SFloat32Vec4* Float32Vec4Minimize(SFloat32Vec4 *pOut, const SFloat32Vec4 *pV1, c
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec4* Float32Vec4Maximize(SFloat32Vec4 *pOut, const SFloat32Vec4 *pV1, const SFloat32Vec4 *pV2)
+SFloat64Vec4* Float64Vec4Maximize(SFloat64Vec4 *pOut, const SFloat64Vec4 *pV1, const SFloat64Vec4 *pV2)
 {
 	pOut->x = pV1->x > pV2->x ? pV1->x : pV2->x;
 	pOut->y = pV1->y > pV2->y ? pV1->y : pV2->y;
@@ -283,7 +283,7 @@ SFloat32Vec4* Float32Vec4Maximize(SFloat32Vec4 *pOut, const SFloat32Vec4 *pV1, c
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec4* Float32Vec4Scale(SFloat32Vec4 *pOut, const SFloat32Vec4 *pV, float32 s)
+SFloat64Vec4* Float64Vec4Scale(SFloat64Vec4 *pOut, const SFloat64Vec4 *pV, float64 s)
 {
 	pOut->x = pV->x * s;
 	pOut->y = pV->y * s;
@@ -297,7 +297,7 @@ SFloat32Vec4* Float32Vec4Scale(SFloat32Vec4 *pOut, const SFloat32Vec4 *pV, float
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec4* Float32Vec4Lerp(SFloat32Vec4 *pOut, const SFloat32Vec4 *pV1, const SFloat32Vec4 *pV2, float32 s)
+SFloat64Vec4* Float64Vec4Lerp(SFloat64Vec4 *pOut, const SFloat64Vec4 *pV1, const SFloat64Vec4 *pV2, float64 s)
 {
 	pOut->x = pV1->x + s * (pV2->x - pV1->x);
 	pOut->y = pV1->y + s * (pV2->y - pV1->y);
@@ -311,7 +311,7 @@ SFloat32Vec4* Float32Vec4Lerp(SFloat32Vec4 *pOut, const SFloat32Vec4 *pV1, const
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec4* Float32Vec4TransformCoord(SFloat32Vec4* psOut, SFloat32Vec4* psV, SFloat4x4* psMat)
+SFloat64Vec4* Float64Vec4TransformCoord(SFloat64Vec4* psOut, SFloat64Vec4* psV, SDouble4x4* psMat)
 {
 	psOut->x = psV->x * psMat->x.x + psV->y * psMat->y.x + psV->z * psMat->z.x + psV->w * psMat->pos.x;
 	psOut->y = psV->x * psMat->x.y + psV->y * psMat->y.y + psV->z * psMat->z.y + psV->w * psMat->pos.y;
@@ -325,7 +325,7 @@ SFloat32Vec4* Float32Vec4TransformCoord(SFloat32Vec4* psOut, SFloat32Vec4* psV, 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec4* Float32Vec4TransformNormal(SFloat32Vec4* psOut, SFloat32Vec4* psV, SFloat4x4* psMat)
+SFloat64Vec4* Float64Vec4TransformNormal(SFloat64Vec4* psOut, SFloat64Vec4* psV, SDouble4x4* psMat)
 {
 	psOut->x = psV->x * psMat->x.x + psV->y * psMat->y.x + psV->z * psMat->z.x;
 	psOut->y = psV->x * psMat->x.y + psV->y * psMat->y.y + psV->z * psMat->z.y;
@@ -339,17 +339,17 @@ SFloat32Vec4* Float32Vec4TransformNormal(SFloat32Vec4* psOut, SFloat32Vec4* psV,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float32Vec4TransformCoords(SFloat32Vec4* asOut, int iOutStride, SFloat32Vec4* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
+void Float64Vec4TransformCoords(SFloat64Vec4* asOut, int iOutStride, SFloat64Vec4* asIn, int iInStride, SDouble4x4* psMat, int iNumPoints)
 {
 	int				i;
-	SFloat32Vec4*	psOut;
-	SFloat32Vec4*	psIn;
+	SFloat64Vec4*	psOut;
+	SFloat64Vec4*	psIn;
 
 	for (i = 0; i < iNumPoints; i++)
 	{
-		psOut = (SFloat32Vec4*)RemapSinglePointer(asOut, i * iOutStride);
-		psIn = (SFloat32Vec4*)RemapSinglePointer(asIn, i * iInStride);
-		Float32Vec4TransformCoord(psOut, psIn, psMat);
+		psOut = (SFloat64Vec4*)RemapSinglePointer(asOut, i * iOutStride);
+		psIn = (SFloat64Vec4*)RemapSinglePointer(asIn, i * iInStride);
+		Float64Vec4TransformCoord(psOut, psIn, psMat);
 	}
 }
 
@@ -358,17 +358,17 @@ void Float32Vec4TransformCoords(SFloat32Vec4* asOut, int iOutStride, SFloat32Vec
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float32Vec4TransformNormals(SFloat32Vec4* asOut, int iOutStride, SFloat32Vec4* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints)
+void Float64Vec4TransformNormals(SFloat64Vec4* asOut, int iOutStride, SFloat64Vec4* asIn, int iInStride, SDouble4x4* psMat, int iNumPoints)
 {
 	int			i;
-	SFloat32Vec4*	psOut;
-	SFloat32Vec4*	psIn;
+	SFloat64Vec4*	psOut;
+	SFloat64Vec4*	psIn;
 
 	for (i = 0; i < iNumPoints; i++)
 	{
-		psOut = (SFloat32Vec4*)RemapSinglePointer(asOut, i * iOutStride);
-		psIn = (SFloat32Vec4*)RemapSinglePointer(asIn, i * iInStride);
-		Float32Vec4TransformNormal(psOut, psIn, psMat);
+		psOut = (SFloat64Vec4*)RemapSinglePointer(asOut, i * iOutStride);
+		psIn = (SFloat64Vec4*)RemapSinglePointer(asIn, i * iInStride);
+		Float64Vec4TransformNormal(psOut, psIn, psMat);
 	}
 }
 
@@ -378,10 +378,10 @@ void Float32Vec4TransformNormals(SFloat32Vec4* asOut, int iOutStride, SFloat32Ve
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float32Vec4MinMax(SFloat32Vec4* psMin, SFloat32Vec4* psMax, SFloat32Vec4* asIn, int iInStride, int iNumPoints)
+void Float64Vec4MinMax(SFloat64Vec4* psMin, SFloat64Vec4* psMax, SFloat64Vec4* asIn, int iInStride, int iNumPoints)
 {
 	int				i;
-	SFloat32Vec4*	psIn;
+	SFloat64Vec4*	psIn;
 
 	if (iNumPoints > 0)
 	{
@@ -391,7 +391,7 @@ void Float32Vec4MinMax(SFloat32Vec4* psMin, SFloat32Vec4* psMax, SFloat32Vec4* a
 
 		for (i = 1; i < iNumPoints; i++)
 		{
-			psIn = (SFloat32Vec4*)RemapSinglePointer(asIn, i * iInStride);
+			psIn = (SFloat64Vec4*)RemapSinglePointer(asIn, i * iInStride);
 
 			if (psIn->x < psMin->x)
 			{
@@ -435,9 +435,9 @@ void Float32Vec4MinMax(SFloat32Vec4* psMin, SFloat32Vec4* psMax, SFloat32Vec4* a
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float32Vec4Normalise(SFloat32Vec4 *pOut, SFloat32Vec4 *pV)
+void Float64Vec4Normalise(SFloat64Vec4 *pOut, SFloat64Vec4 *pV)
 {
-	float32 fInvLen;
+	float64 fInvLen;
 
 	fInvLen = 1.0f / pV->Magnitude();
 	pOut->x = pV->x * fInvLen;
@@ -451,14 +451,14 @@ void Float32Vec4Normalise(SFloat32Vec4 *pOut, SFloat32Vec4 *pV)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float32Vec4InterpolatePosition(SFloat32Vec4* psVecDest, const SFloat32Vec4* psVec1, const SFloat32Vec4* psVec2, float32 fWeight)
+void Float64Vec4InterpolatePosition(SFloat64Vec4* psVecDest, const SFloat64Vec4* psVec1, const SFloat64Vec4* psVec2, float64 fWeight)
 {
-	SFloat32Vec4	sVec1;
-	SFloat32Vec4	sVec2;
+	SFloat64Vec4	sVec1;
+	SFloat64Vec4	sVec2;
 
-	Float32Vec4Scale(&sVec1, psVec1, fWeight);
-	Float32Vec4Scale(&sVec2, psVec2, 1.0f - fWeight);
-	Float32Vec4Add(psVecDest, &sVec1, &sVec2);
+	Float64Vec4Scale(&sVec1, psVec1, fWeight);
+	Float64Vec4Scale(&sVec2, psVec2, 1.0f - fWeight);
+	Float64Vec4Add(psVecDest, &sVec1, &sVec2);
 }
 
 
@@ -466,17 +466,17 @@ void Float32Vec4InterpolatePosition(SFloat32Vec4* psVecDest, const SFloat32Vec4*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float32Vec4InterpolateNormal(SFloat32Vec4* psVecDest, const SFloat32Vec4* psVec1, const SFloat32Vec4* psVec2, float32 fWeight)
+void Float64Vec4InterpolateNormal(SFloat64Vec4* psVecDest, const SFloat64Vec4* psVec1, const SFloat64Vec4* psVec2, float64 fWeight)
 {
-	SFloat32Vec4	sVec1;
-	SFloat32Vec4	sVec2;
+	SFloat64Vec4	sVec1;
+	SFloat64Vec4	sVec2;
 
-	Float32Vec4Scale(&sVec1, psVec1, fWeight);
-	Float32Vec4Scale(&sVec2, psVec2, 1.0f - fWeight);
-	Float32Vec4Add(&sVec1, &sVec1, &sVec2);
+	Float64Vec4Scale(&sVec1, psVec1, fWeight);
+	Float64Vec4Scale(&sVec2, psVec2, 1.0f - fWeight);
+	Float64Vec4Add(&sVec1, &sVec1, &sVec2);
 
 	//Should possibly check for zero length vectors.
-	Float32Vec4Normalise(psVecDest, &sVec1);
+	Float64Vec4Normalise(psVecDest, &sVec1);
 }
 
 
@@ -484,9 +484,9 @@ void Float32Vec4InterpolateNormal(SFloat32Vec4* psVecDest, const SFloat32Vec4* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Float32Vec4Swap(SFloat32Vec4* ps1, SFloat32Vec4* ps2)
+void Float64Vec4Swap(SFloat64Vec4* ps1, SFloat64Vec4* ps2)
 {
-	SFloat32Vec4 temp;
+	SFloat64Vec4 temp;
 
 	temp = *ps2;
 	*ps2 = *ps1;

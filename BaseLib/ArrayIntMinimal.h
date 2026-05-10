@@ -23,7 +23,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __ARRAY_INT_MINIMAL_H__
 #define __ARRAY_INT_MINIMAL_H__
 #include "ArrayTemplateMinimal.h"
-#include "DataTypes.h"
 
 
 class CArrayIntMinimal : public CArrayTemplateMinimal<uint>

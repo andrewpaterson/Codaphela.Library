@@ -1,12 +1,25 @@
 #include "Numbers.h"
-#include "Int16Vec3.h"
+#include "IntVec4.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SInt16Vec3::Print(CChars* psx, int iWholeNumbers)
+SIntVec4::SIntVec4(int x, int y, int z, int w)
+{
+	this->x = x;
+	this->y = y;
+	this->z = z;
+	this->w = w;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void SIntVec4::Print(CChars* psx, int iWholeNumbers)
 {
 	CChars		szzz;
 	int			iWidth;
@@ -41,6 +54,12 @@ void SInt16Vec3::Print(CChars* psx, int iWholeNumbers)
 	szzz.RightAlign(' ', iWidth);
 	psx->Append(szzz);
 	szzz.Kill();
+	psx->Append(',');
+	szzz.Init();
+	szzz.Append(w);
+	szzz.RightAlign(' ', iWidth);
+	psx->Append(szzz);
+	szzz.Kill();
 	psx->Append(']');
 }
 
@@ -49,26 +68,26 @@ void SInt16Vec3::Print(CChars* psx, int iWholeNumbers)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int SInt16Vec3::WholeNumbers(void)
+int SIntVec4::WholeNumbers(void)
 {
-	int i[3];
+	int i[4];
 
 	i[0] = CountDigits(x);
 	i[1] = CountDigits(y);
 	i[2] = CountDigits(z);
+	i[3] = CountDigits(w);
 
-	return LargestInt(i, 3);
+	return LargestInt(i, 4);
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int16 Int16Vec3Dot(const SInt16Vec3* pV1, const SInt16Vec3* pV2)
+int IntVec4Dot(const SIntVec4* pV1, const SIntVec4* pV2)
 {
-	return pV1->x * pV2->x + pV1->y * pV2->y + pV1->z * pV2->z;
+	return pV1->x * pV2->x + pV1->y * pV2->y + pV1->z * pV2->z + pV1->w * pV2->w;
 }
 
 
@@ -76,28 +95,12 @@ int16 Int16Vec3Dot(const SInt16Vec3* pV1, const SInt16Vec3* pV2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt16Vec3* Int16Vec3Cross(SInt16Vec3* pOut, const SInt16Vec3* pV1, const SInt16Vec3* pV2)
-{
-	SInt16Vec3 v;
-
-	v.x = pV1->y * pV2->z - pV1->z * pV2->y;
-	v.y = pV1->z * pV2->x - pV1->x * pV2->z;
-	v.z = pV1->x * pV2->y - pV1->y * pV2->x;
-
-	*pOut = v;
-	return pOut;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SInt16Vec3* Int16Vec3Add(SInt16Vec3* pOut, const SInt16Vec3* pV1, const SInt16Vec3* pV2)
+SIntVec4* IntVec4Add(SIntVec4* pOut, const SIntVec4* pV1, const SIntVec4* pV2)
 {
 	pOut->x = pV1->x + pV2->x;
 	pOut->y = pV1->y + pV2->y;
 	pOut->z = pV1->z + pV2->z;
+	pOut->w = pV1->w + pV2->w;
 	return pOut;
 }
 
@@ -106,11 +109,12 @@ SInt16Vec3* Int16Vec3Add(SInt16Vec3* pOut, const SInt16Vec3* pV1, const SInt16Ve
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt16Vec3* Int16Vec3Subtract(SInt16Vec3* pOut, const SInt16Vec3* pV1, const SInt16Vec3* pV2)
+SIntVec4* IntVec4Subtract(SIntVec4* pOut, const SIntVec4* pV1, const SIntVec4* pV2)
 {
 	pOut->x = pV1->x - pV2->x;
 	pOut->y = pV1->y - pV2->y;
 	pOut->z = pV1->z - pV2->z;
+	pOut->w = pV1->w - pV2->w;
 	return pOut;
 }
 
@@ -119,11 +123,12 @@ SInt16Vec3* Int16Vec3Subtract(SInt16Vec3* pOut, const SInt16Vec3* pV1, const SIn
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt16Vec3* Int16Vec3Minimize(SInt16Vec3* pOut, const SInt16Vec3* pV1, const SInt16Vec3* pV2)
+SIntVec4* IntVec4Minimize(SIntVec4* pOut, const SIntVec4* pV1, const SIntVec4* pV2)
 {
 	pOut->x = pV1->x < pV2->x ? pV1->x : pV2->x;
 	pOut->y = pV1->y < pV2->y ? pV1->y : pV2->y;
 	pOut->z = pV1->z < pV2->z ? pV1->z : pV2->z;
+	pOut->w = pV1->w < pV2->w ? pV1->w : pV2->w;
 	return pOut;
 }
 
@@ -132,11 +137,12 @@ SInt16Vec3* Int16Vec3Minimize(SInt16Vec3* pOut, const SInt16Vec3* pV1, const SIn
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt16Vec3* Int16Vec3Maximize(SInt16Vec3* pOut, const SInt16Vec3* pV1, const SInt16Vec3* pV2)
+SIntVec4* IntVec4Maximize(SIntVec4* pOut, const SIntVec4* pV1, const SIntVec4* pV2)
 {
 	pOut->x = pV1->x > pV2->x ? pV1->x : pV2->x;
 	pOut->y = pV1->y > pV2->y ? pV1->y : pV2->y;
 	pOut->z = pV1->z > pV2->z ? pV1->z : pV2->z;
+	pOut->w = pV1->w > pV2->w ? pV1->w : pV2->w;
 	return pOut;
 }
 
@@ -145,11 +151,12 @@ SInt16Vec3* Int16Vec3Maximize(SInt16Vec3* pOut, const SInt16Vec3* pV1, const SIn
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt16Vec3* Int16Vec3Scale(SInt16Vec3 *pOut, const SInt16Vec3 *pV, float32 s)
+SIntVec4* IntVec4Scale(SIntVec4 *pOut, const SIntVec4 *pV, float32 s)
 {
-	pOut->x = (int16)(pV->x * s);
-	pOut->y = (int16)(pV->y * s);
-	pOut->z = (int16)(pV->z * s);
+	pOut->x = (int)(pV->x * s);
+	pOut->y = (int)(pV->y * s);
+	pOut->z = (int)(pV->z * s);
+	pOut->w = (int)(pV->w * s);
 	return pOut;
 }
 
@@ -158,11 +165,12 @@ SInt16Vec3* Int16Vec3Scale(SInt16Vec3 *pOut, const SInt16Vec3 *pV, float32 s)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt16Vec3* Int16Vec3Lerp(SInt16Vec3 *pOut, const SInt16Vec3 *pV1, const SInt16Vec3 *pV2, float32 s)
+SIntVec4* IntVec4Lerp(SIntVec4 *pOut, const SIntVec4 *pV1, const SIntVec4 *pV2, float32 s)
 {
-	pOut->x = (int16)(pV1->x + s * (pV2->x - pV1->x));
-	pOut->y = (int16)(pV1->y + s * (pV2->y - pV1->y));
-	pOut->z = (int16)(pV1->z + s * (pV2->z - pV1->z));
+	pOut->x = (int)(pV1->x + s * (pV2->x - pV1->x));
+	pOut->y = (int)(pV1->y + s * (pV2->y - pV1->y));
+	pOut->z = (int)(pV1->z + s * (pV2->z - pV1->z));
+	pOut->w = (int)(pV1->w + s * (pV2->w - pV1->w));
 	return pOut;
 }
 
@@ -171,9 +179,9 @@ SInt16Vec3* Int16Vec3Lerp(SInt16Vec3 *pOut, const SInt16Vec3 *pV1, const SInt16V
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Int16Vec3Swap(SInt16Vec3* ps1, SInt16Vec3* ps2)
+void IntVec4Swap(SIntVec4* ps1, SIntVec4* ps2)
 {
-	SInt16Vec3 temp;
+	SIntVec4 temp;
 
 	temp = *ps2;
 	*ps2 = *ps1;
@@ -185,10 +193,10 @@ void Int16Vec3Swap(SInt16Vec3* ps1, SInt16Vec3* ps2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Int16Vec3MinMax(SInt16Vec3* psMin, SInt16Vec3* psMax, SInt16Vec3* asIn, int iInStride, int iNumPoints)
+void IntVec4MinMax(SIntVec4* psMin, SIntVec4* psMax, SIntVec4* asIn, int iInStride, int iNumPoints)
 {
 	int			i;
-	SInt16Vec3*	psIn;
+	SIntVec4*	psIn;
 
 	if (iNumPoints > 0)
 	{
@@ -198,7 +206,7 @@ void Int16Vec3MinMax(SInt16Vec3* psMin, SInt16Vec3* psMax, SInt16Vec3* asIn, int
 
 		for (i = 1; i < iNumPoints; i++)
 		{
-			psIn = (SInt16Vec3*)RemapSinglePointer(asIn, i * iInStride);
+			psIn = (SIntVec4*)RemapSinglePointer(asIn, i * iInStride);
 
 			if (psIn->x < psMin->x)
 			{
@@ -211,6 +219,10 @@ void Int16Vec3MinMax(SInt16Vec3* psMin, SInt16Vec3* psMax, SInt16Vec3* asIn, int
 			if (psIn->z < psMin->z)
 			{
 				psMin->z = psIn->z;
+			}
+			if (psIn->w < psMin->w)
+			{
+				psMin->w = psIn->w;
 			}
 
 			if (psIn->x > psMax->x)
@@ -225,6 +237,10 @@ void Int16Vec3MinMax(SInt16Vec3* psMin, SInt16Vec3* psMax, SInt16Vec3* asIn, int
 			{
 				psMax->z = psIn->z;
 			}
+			if (psIn->w > psMax->w)
+			{
+				psMax->w = psIn->w;
+			}
 		}
 	}
 }
@@ -234,13 +250,13 @@ void Int16Vec3MinMax(SInt16Vec3* psMin, SInt16Vec3* psMax, SInt16Vec3* asIn, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Int16Vec3InterpolatePosition(SInt16Vec3* psVecDest, const SInt16Vec3* psVec1, const SInt16Vec3* psVec2, float32 fWeight)
+void IntVec4InterpolatePosition(SIntVec4* psVecDest, const SIntVec4* psVec1, const SIntVec4* psVec2, float32 fWeight)
 {
-	SInt16Vec3	sVec1;
-	SInt16Vec3	sVec2;
+	SIntVec4	sVec1;
+	SIntVec4	sVec2;
 
-	Int16Vec3Scale(&sVec1, psVec1, fWeight);
-	Int16Vec3Scale(&sVec2, psVec2, 1.0f - fWeight);
-	Int16Vec3Add(psVecDest, &sVec1, &sVec2);
+	IntVec4Scale(&sVec1, psVec1, fWeight);
+	IntVec4Scale(&sVec2, psVec2, 1.0f - fWeight);
+	IntVec4Add(psVecDest, &sVec1, &sVec2);
 }
 
