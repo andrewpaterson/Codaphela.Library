@@ -20,6 +20,10 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "DataTypes.h"
+#include "Int32Vec2.h"
+#include "Int32Vec3.h"
+#include "Int32Vec4.h"
 #include "TypeParser.h"
 #include "PointerFunctions.h"
 #include "Numbers.h"
@@ -563,7 +567,7 @@ TRISTATE CTypeParser::ParseInt3(SInt32Vec3* pDest, char cOpen, char cSplit, char
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTypeParser::ParseInt4(SInt4* pDest, char cOpen, char cSplit, char cClose)
+TRISTATE CTypeParser::ParseInt4(SIntVec4* pDest, char cOpen, char cSplit, char cClose)
 {
 	TRISTATE	tResult;
 
@@ -818,7 +822,7 @@ TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, size iDestLength
 		case PT_M4int32:
 			if (iDestLength >= INT4_BYTE_SIZE)
 			{
-				return ParseInt4((SInt4*)pvDest);
+				return ParseInt4((SIntVec4*)pvDest);
 			}
 			break;
 		case PT_bool: 

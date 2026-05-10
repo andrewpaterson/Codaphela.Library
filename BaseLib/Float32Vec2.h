@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __FLOAT32_VEC2_H__
 #define __FLOAT32_VEC2_H__
+#include "Chars.h"
 #include "Vec2.h"
 
 

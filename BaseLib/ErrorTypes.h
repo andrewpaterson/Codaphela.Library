@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __ERROR_TYPES_H__
 #include "Define.h"
 
+
 #if (true == -1)
 #error True must have a value of 1
 #endif

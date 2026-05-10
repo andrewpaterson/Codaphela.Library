@@ -2,9 +2,10 @@
 #include "DataTypesIO.h"
 #include "IntVec2.h"
 #include "Int32Vec3.h"
-#include "Int4.h"
+#include "IntVec4.h"
 #include "GeometricTypes.h"
 #include "TypeNames.h"
+#include "DataTypes.h"
 #include "GlobalDataTypesIO.h"
 
 
@@ -47,7 +48,7 @@ void DataIOInit(void)
 
 	gcDataTypesIO.Add<SIntVec2>(gcTypeNames.GetPrettyName(PT_M2int32));
 	gcDataTypesIO.Add<SInt32Vec3>(gcTypeNames.GetPrettyName(PT_M3int32));
-	gcDataTypesIO.Add<SInt4>(gcTypeNames.GetPrettyName(PT_M4int32));
+	gcDataTypesIO.Add<SIntVec4>(gcTypeNames.GetPrettyName(PT_M4int32));
 
 	gcDataTypesIO.Add<SFloat32Vec2>(gcTypeNames.GetPrettyName(PT_M2float32));
 	gcDataTypesIO.Add<SFloat32Vec3>(gcTypeNames.GetPrettyName(PT_M3float32));
@@ -55,7 +56,7 @@ void DataIOInit(void)
 	gcDataTypesIO.Add<SFloat4x4>(gcTypeNames.GetPrettyName(PT_M4x4float32));
 	gcDataTypesIO.Add<SFloat64Vec2>(gcTypeNames.GetPrettyName(PT_M2float64));
 	gcDataTypesIO.Add<SFloat64Vec3>(gcTypeNames.GetPrettyName(PT_M3float64));
-	gcDataTypesIO.Add<SDouble4>(gcTypeNames.GetPrettyName(PT_M4float64));
+	gcDataTypesIO.Add<SFloat64Vec4>(gcTypeNames.GetPrettyName(PT_M4float64));
 	gcDataTypesIO.Add<SDouble4x4>(gcTypeNames.GetPrettyName(PT_M4x4float64));
 
 	gcDataTypesIO.Add<SIOVoid>(gcTypeNames.GetPrettyName(PT_void));

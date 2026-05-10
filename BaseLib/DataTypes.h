@@ -23,6 +23,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __DATA_TYPES_H__
 #define __DATA_TYPES_H__
 #include "PrimitiveTypes.h"
+//#include "Float32Vec2.h"
+//#include "Float32Vec3.h"
+//#include "Float32Vec4.h"
+//#include "Float64Vec2.h"
+//#include "Float64Vec3.h"
+//#include "Float64Vec4.h"
+//#include "Int32Vec2.h"
+//#include "Int32Vec3.h"
+//#include "Int32Vec4.h"
 
 
 #define MAX_CHAR	0x7f
@@ -49,7 +58,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define INT_BYTE_SIZE		sizeof(int32)
 #define SHORT_BYTE_SIZE		sizeof(int16)
 #define CHAR_BYTE_SIZE		sizeof(char8)
-#define BYTE_BYTE_SIZE		1
+#define BYTE_BYTE_SIZE		sizeof(uint8)
 #define WIDE_CHAR_BYTE_SIZE	sizeof(char16)
 #define FLOAT_BYTE_SIZE		sizeof(float32)
 #define DOUBLE_BYTE_SIZE	sizeof(float64)
@@ -59,10 +68,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define FLOAT4_BYTE_SIZE	sizeof(SFloat32Vec4)
 #define DOUBLE2_BYTE_SIZE	sizeof(SFloat64Vec2)
 #define DOUBLE3_BYTE_SIZE	sizeof(SFloat64Vec3)
-#define DOUBLE4_BYTE_SIZE	sizeof(SDouble4)
-#define INT2_BYTE_SIZE		sizeof(SIntVec2)
+#define DOUBLE4_BYTE_SIZE	sizeof(SFloat64Vec4)
+#define INT2_BYTE_SIZE		sizeof(SInt32Vec2)
 #define INT3_BYTE_SIZE		sizeof(SInt32Vec3)
-#define INT4_BYTE_SIZE		sizeof(SInt4)
+#define INT4_BYTE_SIZE		sizeof(SInt32Vec4)
 #define BOOL_BYTE_SIZE		sizeof(bool)
 #define VOID_BYTE_SIZE		0
 #define FLOAT4x4_BYTE_SIZE	sizeof(SFloat4x4)

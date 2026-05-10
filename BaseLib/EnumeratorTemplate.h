@@ -24,7 +24,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __TEMPLATE_ENUMERATOR_H__
 #include "Define.h"
 #include "PointerFunctions.h"
-#include "DataTypes.h"
 #include "ArrayInt.h"
 #include "LinkedListTemplate.h"
 #include "StringHelper.h"

@@ -34,13 +34,13 @@ bool		FloatGreaterThanOrEqual(float32 f1, float32 f2);
 bool		FloatLessThanOrEqual(float32 f1, float32 f2);
 bool		FloatGreaterThan(float32 f1, float32 f2);
 bool		FloatLessThan(float32 f1, float32 f2);
-float32 	RoundFloat(float32 fInput, int iBinaryExponent);
-float32 	TruncateFloat(float32 fInput, int iBinaryExponent);
+float32 	RoundFloat(float32 fInput, int32 iBinaryExponent);
+float32 	TruncateFloat(float32 fInput, int32 iBinaryExponent);
 float32 	NormaliseFloat(float32 fSize, float32 fPos);  //returns 1 .. -1
 float32 	NormaliseFloat(float32 fMax, float32 fMin, float32 fPos);  //returns 1 .. 0
 float32		InterpolateFloat(float32 f1, float32 f2, float32 fPos);
 void		InterpolateFloat(float32* fDest, float32 f1, float32 f2, float32 fPos);
-float32		Float32ToleranceForDecimals(int iDecimals);
+float32		Float32ToleranceForDecimals(int32 iDecimals);
 size		FloatWholeNumbers(float32 f);
 bool		FloatEqual(float64 f1, float64 f2);
 bool		FloatEqual(float64 f1, float64 f2, float64 fTolerance);
@@ -54,7 +54,7 @@ float64 	NormaliseDouble(float64 fSize, float64 fPos);  //returns 1 .. -1
 float64 	NormaliseDouble(float64 fMax, float64 fMin, float64 fPos);  //returns 1 .. 0
 float64		InterpolateDouble(float64 f1, float64 f2, float64 fPos);
 void		InterpolateDouble(float64* fDest, float64 f1, float64 f2, float64 fPos);
-float64		Float64ToleranceForDecimals(int iDecimals);
+float64		Float64ToleranceForDecimals(int32 iDecimals);
 size		FloatWholeNumbers(float64 f);
 bool		LongDoubleEqual(float128 f1, float128 f2);
 bool		LongDoubleEqual(float128 f1, float128 f2, float128 fTolerance);

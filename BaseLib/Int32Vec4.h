@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __INT32_VEC4_H__
 #define __INT32_VEC4_H__
 #include "Vec4.h"
-
+#include "Chars.h"
 
 class SInt32Vec4 : public SVec4<int32, int64>
 {
@@ -39,21 +39,19 @@ public:
 	int		WholeNumbers(void);
 };
 
+typedef CArrayTemplate<SInt32Vec4>		CArrayInt32Vec4;
 
-typedef CArrayTemplate<SInt32Vec4>		CArrayInt4;
 
-
-int32 			Int4Dot(const SInt32Vec4* pV1, const SInt32Vec4* pV2);
-
-SInt32Vec4* 	Int4Add(SInt32Vec4* pOut, const SInt32Vec4* pV1, const SInt32Vec4* pV2);
-SInt32Vec4* 	Int4Subtract(SInt32Vec4* pOut, const SInt32Vec4* pV1, const SInt32Vec4* pV2);
-SInt32Vec4* 	Int4Minimize(SInt32Vec4* pOut, const SInt32Vec4* pV1, const SInt32Vec4* pV2);
-SInt32Vec4* 	Int4Maximize(SInt32Vec4* pOut, const SInt32Vec4* pV1, const SInt32Vec4* pV2);
-SInt32Vec4* 	Int4Scale(SInt32Vec4* pOut, const SInt32Vec4* pV, float32 s);
-SInt32Vec4* 	Int4Lerp(SInt32Vec4* pOut, const SInt32Vec4* pV1, const SInt32Vec4* pV2, float32 s);
-void			Int4MinMax(SInt32Vec4* psMin, SInt32Vec4* psMax, SInt32Vec4* asIn, int iInStride, int iNumPoints);
-void			Int4Swap(SInt32Vec4* ps1, SInt32Vec4* ps2);
-void 			Int4InterpolatePosition(SInt32Vec4* psVecDest, const SInt32Vec4* psVec1, const SInt32Vec4* psVec2, float32 fWeight);
+int32 			Int32Vec4Dot(const SInt32Vec4* pV1, const SInt32Vec4* pV2);
+SInt32Vec4* 	Int32Vec4Add(SInt32Vec4* pOut, const SInt32Vec4* pV1, const SInt32Vec4* pV2);
+SInt32Vec4* 	Int32Vec4Subtract(SInt32Vec4* pOut, const SInt32Vec4* pV1, const SInt32Vec4* pV2);
+SInt32Vec4* 	Int32Vec4Minimize(SInt32Vec4* pOut, const SInt32Vec4* pV1, const SInt32Vec4* pV2);
+SInt32Vec4* 	Int32Vec4Maximize(SInt32Vec4* pOut, const SInt32Vec4* pV1, const SInt32Vec4* pV2);
+SInt32Vec4* 	Int32Vec4Scale(SInt32Vec4* pOut, const SInt32Vec4* pV, float32 s);
+SInt32Vec4* 	Int32Vec4Lerp(SInt32Vec4* pOut, const SInt32Vec4* pV1, const SInt32Vec4* pV2, float32 s);
+void			Int32Vec4MinMax(SInt32Vec4* psMin, SInt32Vec4* psMax, SInt32Vec4* asIn, int iInStride, int iNumPoints);
+void			Int32Vec4Swap(SInt32Vec4* ps1, SInt32Vec4* ps2);
+void 			Int32Vec4InterpolatePosition(SInt32Vec4* psVecDest, const SInt32Vec4* psVec1, const SInt32Vec4* psVec2, float32 fWeight);
 
 
 #endif // __INT32_VEC4_H__

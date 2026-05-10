@@ -142,20 +142,20 @@ bool FloatLessThan(float32 f1, float32 f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float32 TruncateFloat(float32 fInput, int iBinaryExponent)
+float32 TruncateFloat(float32 fInput, int32 iBinaryExponent)
 {
 	//Everything below the binary exponent is truncated.
 
 	float32	fReturn;
 	uint32	iTruncated;
-	int		iFloatExponent;
-	int		iExponentDifference;
+	int32	iFloatExponent;
+	int32	iExponentDifference;
 	uint32	uiFractionMask;
-	int		iMaskedBits;
+	int32	iMaskedBits;
 
 	//Remember that an exponent of 0x7f is 2**0 = 1.  0x80 is 2**1 = 2.  0x81 is 2**2 = 4 etc..
 
-	iFloatExponent = *((int*)((void*)&fInput));  //Get the bits from the float32 into and int without doing a (float32) cast.
+	iFloatExponent = *((int32*)((void*)&fInput));  //Get the bits from the float32 into and int without doing a (float32) cast.
 	iFloatExponent >>= 23;  //Remove the fractions part of the float32 leaving only the exponent and sign.
 	iFloatExponent &= 0xff;  //Get rid of the sign
 
@@ -174,7 +174,7 @@ float32 TruncateFloat(float32 fInput, int iBinaryExponent)
 			uiFractionMask >>= iMaskedBits;
 			uiFractionMask <<= iMaskedBits;
 
-			iTruncated = *((int*)((void*)&fInput));
+			iTruncated = *((int32*)((void*)&fInput));
 			iTruncated &= uiFractionMask;
 			fReturn = *((float32*)((void*)&iTruncated));
 			return fReturn;
@@ -197,10 +197,10 @@ float32 TruncateFloat(float32 fInput, int iBinaryExponent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float32 RoundFloat(float32 fInput, int iBinaryExponent)
+float32 RoundFloat(float32 fInput, int32 iBinaryExponent)
 {
-	float32	fValue;
-	int		iAdjustedExponent;
+	float32		fValue;
+	int32		iAdjustedExponent;
 
 	iAdjustedExponent = iBinaryExponent - 1 + 0x7f;
 	iAdjustedExponent <<= 23;
@@ -274,7 +274,7 @@ void InterpolateFloat(float32* fDest, float32 f1, float32 f2, float32 fPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float32 Float32ToleranceForDecimals(int iDecimals)
+float32 Float32ToleranceForDecimals(int32 iDecimals)
 {
 	float64 fTolerance;
 
@@ -554,7 +554,7 @@ void InterpolateDouble(float64* fDest, float64 f1, float64 f2, float64 fPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float64 Float64ToleranceForDecimals(int iDecimals)
+float64 Float64ToleranceForDecimals(int32 iDecimals)
 {
 	float128 fTolerance;
 

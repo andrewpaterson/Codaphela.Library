@@ -22,6 +22,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "Chars.h"
 #include "Vec3.h"
 
 
@@ -54,3 +55,4 @@ void 			Int16Vec3InterpolatePosition(SInt16Vec3* psVecDest, const SInt16Vec3* ps
 
 
 #endif // __INT16_VEC3_H__
+

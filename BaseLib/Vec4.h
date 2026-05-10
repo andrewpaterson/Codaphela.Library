@@ -23,8 +23,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __VEC4_H__
 #define __VEC4_H__
 #include "Define.h"
+#include "FileWriter.h"
+#include "FileReader.h"
 #include "Constructable.h"
-#include "ChunkFile.h"
+#include "IntegerHelper.h"
+#include "FloatHelper.h"
 #include "Vec3.h"
 
 

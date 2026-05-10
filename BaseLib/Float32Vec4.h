@@ -1,3 +1,5 @@
+#ifndef __FLOAT32_VEC4_H__
+#define __FLOAT32_VEC4_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -20,8 +22,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __FLOAT32_VEC4_H__
-#define __FLOAT32_VEC4_H__
+#include "Chars.h"
 #include "Vec4.h"
 
 
@@ -51,7 +52,7 @@ public:
 };
 
 
-typedef CArrayTemplate<SFloat32Vec4>		CArrayFloat4;
+typedef CArrayTemplate<SFloat32Vec4>		CArrayFloat32Vec4;
 
 
 float32 		Float32Vec4Dot(const SFloat32Vec4* pV1, const SFloat32Vec4* pV2);

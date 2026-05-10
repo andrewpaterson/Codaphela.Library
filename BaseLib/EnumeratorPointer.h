@@ -23,7 +23,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __ENUMERATOR_POINTER_H__
 #define __ENUMERATOR_POINTER_H__
 #include "Define.h"
-#include "DataTypes.h"
 #include "ArrayInt.h"
 #include "EnumeratorTemplate.h"
 

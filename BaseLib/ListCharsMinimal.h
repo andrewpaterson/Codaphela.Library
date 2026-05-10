@@ -23,7 +23,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __LIST_CHARS__H__
 #define __LIST_CHARS__H__
 #include "ListTemplateMinimal.h"
-#include "DataTypes.h"
 
 
 typedef CListTemplateMinimal<char> __CListCharsMinimal;

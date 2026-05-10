@@ -1,3 +1,4 @@
+#include "DataTypes.h"
 #include "Logger.h"
 #include "LogString.h"
 #include "FileIndex.h"
