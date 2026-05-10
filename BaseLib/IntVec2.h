@@ -1,3 +1,5 @@
+#ifndef __INT_VEC2_H__
+#define __INT_VEC2_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -20,8 +22,6 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __INT32_VEC2_H__
-#define __INT32_VEC2_H__
 #include "Vec2.h"
 
 
@@ -53,5 +53,5 @@ void		IntVec2Swap(SIntVec2* ps1, SIntVec2* ps2);
 void 		IntVec2InterpolatePosition(SIntVec2* psVecDest, const SIntVec2* psVec1, const SIntVec2* psVec2, float32 fWeight);
 
 
-#endif // __INT32_VEC2_H__
+#endif // __INT_VEC2_H__
 

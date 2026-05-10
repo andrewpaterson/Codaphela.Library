@@ -1,3 +1,5 @@
+#ifndef __INT64_VEC2_H__
+#define __INT64_VEC2_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -20,8 +22,6 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __INT64_VEC2_H__
-#define __INT64_VEC2_H__
 #include "Vec2.h"
 
 
