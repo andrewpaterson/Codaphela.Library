@@ -26,11 +26,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Vec2.h"
 
 
-class SIntVec2  : public SVec2<int, long long>
+class SIntVec2  : public SVec2<int, longint>
 {
 CONSTRUCTABLE(SIntVec2);
 public:
-	using SVec2<int, long long>::operator=;
+	using SVec2<int, longint>::operator=;
 
 	void 	Print(CChars* psx, int iWholeNumbers = -1);
 

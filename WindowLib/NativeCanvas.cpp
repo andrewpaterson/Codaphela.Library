@@ -29,7 +29,7 @@ void CNativeCanvas::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CNativeCanvas::GetSize(void)
+SInt32Vec2 CNativeCanvas::GetSize(void)
 {
 	return msSize;
 }

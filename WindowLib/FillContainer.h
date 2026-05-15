@@ -39,7 +39,7 @@ public:
 	void 	Free(void);
 
 	void	SetRequiredSize(void) override;
-	void 	Layout(SInt2 sPosition, SInt2 sAreaSize) override;
+	void 	Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 
 	void 	SetFillStyle(EContainerStyleHorizontal eH, EContainerStyleVertical eV);
 	void 	SetInsets(SInsets* psInsets);

@@ -224,7 +224,7 @@ void CIndexTree::HasKeyReorderData(CIndexTreeNode* pcNode)
 //////////////////////////////////////////////////////////////////////////
 size CIndexTree::CalculateRootNodeSize(void)
 {
-	return CalculateNodeSize(MAX_UCHAR + 1, 0);
+	return CalculateNodeSize(MAX_UINT8 + 1, 0);
 }
 
 

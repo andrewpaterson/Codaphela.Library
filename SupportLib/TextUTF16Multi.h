@@ -41,7 +41,7 @@ public:
 
 	bool	IsUTF16Multi(void) override;
 
-	void	TextElementAbstract(void);
+	void	TextElementAbstract(void) override {}
 };
 
 

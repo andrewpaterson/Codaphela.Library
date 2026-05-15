@@ -43,8 +43,9 @@ public:
 	bool			Load(CObjectReader* pcFile);
 
 	Ptr<CImageCel>	GetCel(void);
+	bool			IsCel(void);
 
-	void			MovableBlockAbstract(void) override;
+	void			MovableBlockAbstract(void) override {}
 };
 
 

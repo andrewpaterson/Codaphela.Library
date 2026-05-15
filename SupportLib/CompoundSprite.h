@@ -19,7 +19,9 @@ public:
 	bool						Load(CObjectReader* pcFile);
 
 	Ptr<CCompoundSpriteType>	GetType(void);
-	void						BaseSpriteAbstract(void);
+	bool						IsCompound(void) override;
+
+	void						BaseSpriteAbstract(void) override {}
 };
 
 

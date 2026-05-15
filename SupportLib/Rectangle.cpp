@@ -349,6 +349,19 @@ bool CRectangle::Equals(CRectangle* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CRectangle::Intersect(CRectangle* pcOther)
+{
+	return !(miRight  <= pcOther->miLeft ||
+			 miLeft   >= pcOther->miRight ||
+			 miBottom <= pcOther->miTop ||
+			 miTop    >= pcOther->miBottom);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 SFloat32Vec2	CRectangle::GetUVCoordinatesTopLeft(int32 iTextureXSize, int32 iTextureYSize)
 {
 	SFloat32Vec2	sTopLeft;

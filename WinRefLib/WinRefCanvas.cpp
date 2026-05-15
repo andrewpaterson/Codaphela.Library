@@ -40,7 +40,7 @@ bool CWinRefCanvas::CreateNativeCanvas(void)
     //This is split from .Init() so that it can fail on its own.
 
     CWinRefWindowFactory*   pcFactory; 
-    SInt2                   sSize;
+    SInt32Vec2                   sSize;
 
     pcFactory = (CWinRefWindowFactory*)mpcWindowFactory;
     sSize = mpcCanvas->GetActualSize();

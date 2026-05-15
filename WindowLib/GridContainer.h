@@ -38,7 +38,7 @@ public:
 	void Free(void);
 
 	void SetRequiredSize(void) override;
-	void Layout(SInt2 sPosition, SInt2 sAreaSize) override;
+	void Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 };
 
 

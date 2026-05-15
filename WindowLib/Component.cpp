@@ -239,7 +239,7 @@ void CComponent::FromChildSpace(Ptr<CComponent> pcChildComponent, int x, int y, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponent::Layout(SInt2 sPosition, SInt2 sAreaSize)
+void CComponent::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 
 	SetPosition(sPosition);
@@ -253,7 +253,7 @@ void CComponent::Layout(SInt2 sPosition, SInt2 sAreaSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponent::LayoutChildren(SInt2 sPosition, SInt2 sAreaSize)
+void CComponent::LayoutChildren(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	size					i;
 	Ptr<CComponent>	pComponent;
@@ -307,11 +307,11 @@ bool CComponent::IsFocussed(void)
 //
 //////////////////////////////////////////////////////////////////////////
 void CComponent::SetActualSize(int fWidth, int fHeight) { msActualSize.Init(fWidth, fHeight); }
-void CComponent::SetActualSize(SInt2 sSize) { msActualSize = sSize; }
+void CComponent::SetActualSize(SInt32Vec2 sSize) { msActualSize = sSize; }
 void CComponent::SetPosition(int x, int y) { msPosition.Init(x, y); }
-void CComponent::SetPosition(SInt2 sPosition) { msPosition = sPosition; }
-SInt2 CComponent::GetPosition(void) { return msPosition; }
+void CComponent::SetPosition(SInt32Vec2 sPosition) { msPosition = sPosition; }
+SInt32Vec2 CComponent::GetPosition(void) { return msPosition; }
 void CComponent::SetDesiredSize(int fWidth, int fHeight) { msDesiredSize.Init(fWidth, fHeight); }
-SInt2 CComponent::GetActualSize(void) { return msActualSize; }
-SInt2 CComponent::GetDesiredSize(void) { return msDesiredSize; }
+SInt32Vec2 CComponent::GetActualSize(void) { return msActualSize; }
+SInt32Vec2 CComponent::GetDesiredSize(void) { return msDesiredSize; }
 

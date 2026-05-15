@@ -511,7 +511,7 @@ CFileDataIndex CIndexedFiles::WriteNew(void* pvData, size uiDataSize)
 		}
 
 		iDataIndex = pcIndexedFile->Write(pvData);
-		if ((iDataIndex == INDEXED_FILE_WRITE_ERROR) || (iDataIndex > MAX_UINT))
+		if ((iDataIndex == INDEXED_FILE_WRITE_ERROR) || (iDataIndex > MAX_UINT32))
 		{
 			cDataIndex.Init();
 			return cDataIndex;

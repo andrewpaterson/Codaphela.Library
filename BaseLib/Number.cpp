@@ -240,7 +240,7 @@ CNumber* CNumber::BinaryOne(int16 iBinaryExponent, int16 cMaxWholeNumbers, int16
 //////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals, size iLen)
 {
-	char	cDigits[MAX_SHORT];
+	char	cDigits[MAX_INT16];
 	int16	iSign;
 	int16	iDecimalPoint;
 	size	i;
@@ -255,7 +255,7 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 	{
 		iLen = strlen(szNumber);
 	}
-	if (iLen >= MAX_SHORT)
+	if (iLen >= MAX_INT16)
 	{
 		return NotANumber();
 	}

@@ -11,7 +11,7 @@ void CRandom::Init(void)
 {
 	std::random_device r;
 	std::default_random_engine eng{ r() };
-	std::uniform_int_distribution<int> urd(0, MAX_INT);
+	std::uniform_int_distribution<int> urd(0, MAX_INT32);
 	int iSeed = urd(eng);
 	Init(iSeed);
 }

@@ -23,11 +23,15 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __SPRITE_MAP_H__
 #define __SPRITE_MAP_H__
-#include "StandardLib/Array.h"
 #include "BaseLib/Int32Vec2.h"
+#include "BaseLib/IntVec2.h"
+#include "StandardLib/Array.h"
 #include "Sprite.h"
 #include "CompoundSprite.h"
 #include "MovableBlockMap.h"
+
+
+typedef void (*MapImageCelFunction)(CImageCel* pcImageCel, SIntVec2 sRelativePosition);
 
 
 class CSpriteMap : public CMovableBlockMap
@@ -53,7 +57,10 @@ public:
 	void					BeginChange(void);
 	void					EndChange(void);
 
-	void					MovableBlockMapAbstract(void) override;
+
+	void					FindImageCels(CRectangle* pcRectangle, MapImageCelFunction pSpriteFunction);
+
+	void					MovableBlockMapAbstract(void) override {}
 };
 
 

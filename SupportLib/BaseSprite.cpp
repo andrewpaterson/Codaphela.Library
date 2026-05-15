@@ -58,5 +58,7 @@ bool CBaseSprite::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+bool CBaseSprite::IsCompound(void) { return false; }
+bool CBaseSprite::IsSimple(void) { return false; }
 SInt32Vec2* CBaseSprite::GetPosition(void) { return &msPosition; }
 

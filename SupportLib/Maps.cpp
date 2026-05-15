@@ -52,6 +52,8 @@ void CMaps::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CMaps::Class(void)
 {
+	M_Embedded(maMaps);
+	M_Pointer(mpContext);
 }
 
 

@@ -40,9 +40,9 @@ public:
 			void 	Free(void);
 
 			bool	GetContainerBounds(SContainerBounds* psDest);
-			void	SetBounds(SInt2 sPosition, SInt2 sAreaSize);
+			void	SetBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
 
-			void	Layout(SInt2 sPosition, SInt2 sAreaSize) override;
+			void	Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 };
 
 

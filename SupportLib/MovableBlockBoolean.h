@@ -43,7 +43,7 @@ public:
 
 	bool	GetValue(void);
 
-	void	MovableBlockAbstract(void) override;
+	void	MovableBlockAbstract(void) override {}
 };
 
 

@@ -23,36 +23,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __DATA_TYPES_H__
 #define __DATA_TYPES_H__
 #include "PrimitiveTypes.h"
-//#include "Float32Vec2.h"
-//#include "Float32Vec3.h"
-//#include "Float32Vec4.h"
-//#include "Float64Vec2.h"
-//#include "Float64Vec3.h"
-//#include "Float64Vec4.h"
-//#include "Int32Vec2.h"
-//#include "Int32Vec3.h"
-//#include "Int32Vec4.h"
-
-
-#define MAX_CHAR	0x7f
-#define MIN_CHAR	0x80
-#define MAX_UCHAR	0xff
-#define MIN_UCHAR	0x00
-
-#define MAX_SHORT	0x7fff
-#define MIN_SHORT	0x8000
-#define MAX_USHORT	0xffff
-#define MIN_USHORT	0x0000
-
-#define MAX_INT		0x7fffffff
-#define MIN_INT		0x80000000
-#define MAX_UINT	0xffffffff
-#define MIN_UINT	0x00000000
-
-#define MAX_LONG	0x7fffffffffffffffLL
-#define MIN_LONG	0x8000000000000000LL
-#define MAX_ULONG	0xffffffffffffffffLL
-#define MIN_ULONG	0x0000000000000000LL
 
 
 #define INT_BYTE_SIZE		sizeof(int32)

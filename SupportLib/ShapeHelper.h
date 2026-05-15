@@ -46,8 +46,8 @@ public:
 class CTriangleHelper : public CTriangle
 {
 public:
-	SFloat32Vec3		masPosition[3];
-	SFloat32Vec3		msNormal;
+	SFloat32Vec3	masPosition[3];
+	SFloat32Vec3	msNormal;
 
 	void Init(void);
 	void Kill(void);

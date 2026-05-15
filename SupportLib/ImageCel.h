@@ -69,6 +69,7 @@ public:
 			CSubImage*		GetSubImage(void);
 			void			SetSubImage(CSubImage* pcSubImage);
 			Ptr<CImage>		GetSourceImage(void);
+			void			GetImageDestBounds(int x, int y, CRectangle* pcReturn);
 
 			void			CopyParam(SImageCopy* psCopy, int iDestX, int iDestY, int iDestWith, int iDestHeight);
 };

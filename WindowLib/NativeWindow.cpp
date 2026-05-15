@@ -62,7 +62,7 @@ bool CNativeWindow::Present(void)
     bool            bResult;
     CNativeCanvas*  pcNativeCanvas;
     Ptr<CCanvas>    pCanvas;
-    SInt2           sSize;
+    SInt32Vec2           sSize;
 
     bResult = BeginPresent();
     if (bResult)

@@ -42,35 +42,36 @@ public:
 	int32    miBottom;
 
 public:
-	void		Init(void);
-	void 		Init(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
-	void		Init(int32 iWidth, int32 iHeight);
-	void 		Init(int64 iLeft, int64 iTop, int64 iRight, int64 iBottom);
-	void 		Init(SInt32Vec2 sTopLeft, SInt32Vec2 sBottomRight);
-	void 		Init(SInt32Vec2 sSize);
-	void 		Init(CRectangle* pcSource);
-	void 		Kill(void);
-	void		Copy(CRectangle* pcSource);
-	int32		GetLeft(void);
-	int32		GetTop(void);
-	int32		GetRight(void);
-	int32		GetBottom(void);
-	int32 		GetWidth(void);
-	int32 		GetHeight(void);
-	int32 		GetArea(void);
-	void		SetWidth(int32 iWidth);
-	void		SetHeight(int32 iHeight);
-	void		SetSize(int32 iWidth, int32 iHeight);
-	void		SetPos(int32 x, int32 y);
-	void		GrowToContain(int32 iXPos, int32 iYPos);
-	void		Shrink(int32 iShrinkLeft, int32 iShrinkTop, int32 iShrinkRight, int32 iShrinkBottom);
-	bool		IsValid(void);
-	bool		IsIn(int32 x, int32 y);
-	bool		IsIn(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
-	bool		Equals(CRectangle* pcOther);
+	void			Init(void);
+	void 			Init(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
+	void			Init(int32 iWidth, int32 iHeight);
+	void 			Init(int64 iLeft, int64 iTop, int64 iRight, int64 iBottom);
+	void 			Init(SInt32Vec2 sTopLeft, SInt32Vec2 sBottomRight);
+	void 			Init(SInt32Vec2 sSize);
+	void 			Init(CRectangle* pcSource);
+	void 			Kill(void);
+	void			Copy(CRectangle* pcSource);
+	int32			GetLeft(void);
+	int32			GetTop(void);
+	int32			GetRight(void);
+	int32			GetBottom(void);
+	int32 			GetWidth(void);
+	int32 			GetHeight(void);
+	int32 			GetArea(void);
+	void			SetWidth(int32 iWidth);
+	void			SetHeight(int32 iHeight);
+	void			SetSize(int32 iWidth, int32 iHeight);
+	void			SetPos(int32 x, int32 y);
+	void			GrowToContain(int32 iXPos, int32 iYPos);
+	void			Shrink(int32 iShrinkLeft, int32 iShrinkTop, int32 iShrinkRight, int32 iShrinkBottom);
+	bool			IsValid(void);
+	bool			IsIn(int32 x, int32 y);
+	bool			IsIn(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
+	bool			Equals(CRectangle* pcOther);
+	bool			Intersect(CRectangle* pcOther);
 
-	SFloat32Vec2		GetUVCoordinatesTopLeft(int32 iTextureXSize, int32 iTextureYSize);
-	SFloat32Vec2		GetUVCoordinatesBottomRight(int32 iTextureXSize, int32 iTextureYSize);
+	SFloat32Vec2	GetUVCoordinatesTopLeft(int32 iTextureXSize, int32 iTextureYSize);
+	SFloat32Vec2	GetUVCoordinatesBottomRight(int32 iTextureXSize, int32 iTextureYSize);
 };
 
 

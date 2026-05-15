@@ -14,15 +14,18 @@ protected:
 	SInt32Vec2	msPosition;
 
 public:
-			void	Init(int32 x, int32 y);
-			void 	Free(void);
-			void	Class(void);
+			void		Init(int32 x, int32 y);
+			void 		Free(void);
+			void		Class(void);
 
-			bool	Save(CObjectWriter* pcFile);
-			bool	Load(CObjectReader* pcFile);
+			bool		Save(CObjectWriter* pcFile);
+			bool		Load(CObjectReader* pcFile);
 
 			SInt32Vec2*	GetPosition(void);
-	virtual	void	BaseSpriteAbstract(void) =0;
+	virtual	bool		IsCompound(void);
+	virtual	bool		IsSimple(void);
+
+	virtual	void		BaseSpriteAbstract(void) =0;
 };
 
 

@@ -112,7 +112,7 @@ TRISTATE CTypeParser::GetSmallIntegerValue(int64* plliValue, int64 lliMax, int64
 	tResult = mpcParser->GetInteger(&ulliValue, &iSign);
 	if (tResult == TRITRUE)
 	{
-		if (ulliValue > MAX_LONG)
+		if (ulliValue > MAX_INT64)
 		{
 			return TRIFALSE;
 		}
@@ -144,7 +144,7 @@ TRISTATE CTypeParser::ParseInt(int32* pDest)
 	TRISTATE	tResult;
 	int64		lliValue;
 
-	tResult = GetSmallIntegerValue(&lliValue, MAX_INT, MIN_INT);
+	tResult = GetSmallIntegerValue(&lliValue, MAX_INT32, MIN_INT32);
 	if (tResult == TRITRUE)
 	{
 		*pDest = (int32)lliValue;
@@ -162,7 +162,7 @@ TRISTATE CTypeParser::ParseChar(char* pDest)
 	TRISTATE	tResult;
 	int64		lliValue;
 
-	tResult = GetSmallIntegerValue(&lliValue, MAX_CHAR, MIN_CHAR);
+	tResult = GetSmallIntegerValue(&lliValue, MAX_INT8, MIN_INT8);
 	if (tResult == TRITRUE)
 	{
 		*pDest = (char)lliValue;
@@ -180,7 +180,7 @@ TRISTATE CTypeParser::ParseShort(int16* pDest)
 	TRISTATE	tResult;
 	int64		lliValue;
 
-	tResult = GetSmallIntegerValue(&lliValue, MAX_SHORT, MIN_SHORT);
+	tResult = GetSmallIntegerValue(&lliValue, MAX_INT16, MIN_INT16);
 	if (tResult == TRITRUE)
 	{
 		*pDest = (int16)lliValue;
@@ -234,7 +234,7 @@ TRISTATE CTypeParser::ParseUInt(uint32* pDest)
 	TRISTATE	tResult;
 	int64		lliValue;
 
-	tResult = GetSmallIntegerValue(&lliValue, MAX_UINT, MIN_UINT);
+	tResult = GetSmallIntegerValue(&lliValue, MAX_UINT32, MIN_UINT32);
 	if (tResult == TRITRUE)
 	{
 		*pDest = (uint32)lliValue;
@@ -252,7 +252,7 @@ TRISTATE CTypeParser::ParseUShort(uint16* pDest)
 	TRISTATE	tResult;
 	int64		lliValue;
 
-	tResult = GetSmallIntegerValue(&lliValue, MAX_USHORT, MIN_USHORT);
+	tResult = GetSmallIntegerValue(&lliValue, MAX_UINT16, MIN_UINT16);
 	if (tResult == TRITRUE)
 	{
 		*pDest = (uint16)lliValue;
@@ -270,7 +270,7 @@ TRISTATE CTypeParser::ParseUChar(uint8* pDest)
 	TRISTATE	tResult;
 	int64		lliValue;
 
-	tResult = GetSmallIntegerValue(&lliValue, MAX_UCHAR, MIN_UCHAR);
+	tResult = GetSmallIntegerValue(&lliValue, MAX_UINT8, MIN_UINT8);
 	if (tResult == TRITRUE)
 	{
 		*pDest = (uint8)lliValue;
@@ -285,7 +285,7 @@ TRISTATE CTypeParser::ParseUChar(uint8* pDest)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTypeParser::ParseLong(int64* pDest)
 {
-	return GetSmallIntegerValue(pDest, MAX_LONG, MIN_LONG);
+	return GetSmallIntegerValue(pDest, MAX_INT64, MIN_INT64);
 }
 
 

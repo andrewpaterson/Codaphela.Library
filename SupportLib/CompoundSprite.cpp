@@ -60,6 +60,6 @@ bool CCompoundSprite::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+bool CCompoundSprite::IsCompound(void) { return true; }
 Ptr<CCompoundSpriteType> CCompoundSprite::GetType(void) { return mpType; }
-void CCompoundSprite::BaseSpriteAbstract(void) {}
 

@@ -84,6 +84,5 @@ bool CMovableBlockBoolean::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockBoolean::MovableBlockAbstract(void) {}
 bool CMovableBlockBoolean::GetValue(void) { return mbValue; }
 

@@ -270,7 +270,7 @@ char* ShortToString(char* szDest, size iDestLength, int16 iValue, uint16 iBase)
 	bNegative = iValue < 0;
 	if (bNegative)
 	{
-		if (iValue == MIN_SHORT)
+		if (iValue == MIN_INT16)
 		{
 			strcpy(szDest, "-32768");
 			return szDest;
@@ -365,7 +365,7 @@ char* IntToString(char* szDest, size iDestLength, int32 iValue, uint16 iBase)
 	bNegative = iValue < 0;
 	if (bNegative)
 	{
-		if (iValue == MIN_INT)
+		if (iValue == MIN_INT32)
 		{
 			strcpy(szDest, "-2147483648");
 			return szDest;

@@ -40,7 +40,7 @@ public:
 
 	void		PrintAsASCII(CChars* psz);
 
-	void		TextElementAbstract(void);
+	void		TextElementAbstract(void) override {}
 };
 
 

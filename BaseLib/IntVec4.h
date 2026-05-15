@@ -26,14 +26,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Vec4.h"
 
 
-class SIntVec4 : public SVec4<int, int64>
+class SIntVec4 : public SVec4<int, longint>
 {
 CONSTRUCTABLE(SIntVec4);
 public:
 			SIntVec4() {};
 			SIntVec4(int x, int y, int z, int w);
 
-	using SVec4<int, long long int>::operator=;
+	using SVec4<int, longint>::operator=;
 
 	void	Print(CChars* psz, int iWholeNumbers = -1);
 

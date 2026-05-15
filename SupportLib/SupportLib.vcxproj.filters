@@ -780,6 +780,9 @@
     <ClInclude Include="GlyphListFontDraw.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
+    <ClInclude Include="MapViewport.h">
+      <Filter>Source\Map</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1318,6 +1321,9 @@
     </ClCompile>
     <ClCompile Include="GlyphListFontDraw.cpp">
       <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="MapViewport.cpp">
+      <Filter>Source\Map</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

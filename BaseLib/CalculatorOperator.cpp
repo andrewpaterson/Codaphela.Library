@@ -22,7 +22,7 @@ void CCalculatorOperator::Init(void)
 {
 	mszSymbol.Init();
 	meOperator = CO_Invalid;
-	miPrecedence = MAX_USHORT;
+	miPrecedence = MAX_UINT16;
 }
 
 

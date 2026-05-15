@@ -73,7 +73,7 @@ bool CContainer::GetContainerBounds(SContainerBounds* psDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CContainer::SetBounds(SInt2 sPosition, SInt2 sAreaSize)
+void CContainer::SetBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	SContainerBounds	sParentBounds;
 	int					iThisRight;
@@ -127,7 +127,7 @@ void CContainer::SetBounds(SInt2 sPosition, SInt2 sAreaSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
+void CContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	// This intentionally does not call CComponent::Layout 
 	// because a container must fully implement it's own Layout.

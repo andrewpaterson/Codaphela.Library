@@ -32,7 +32,7 @@ CONSTRUCTABLE(CNativeCanvas);
 friend class CCanvas;
 protected:
 	CCanvas*		mpcCanvas;
-	SInt2			msSize;
+	SInt32Vec2			msSize;
 
 public:
 			void	Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory);
@@ -48,7 +48,7 @@ protected:
 	virtual void	DrawPixel(int iX, int iY, ARGB32 sColour) =0;
 	virtual void	DrawCanvas(int iX, int iY, CNativeCanvas* pcSource) =0;
 
-			SInt2	GetSize(void);
+			SInt32Vec2	GetSize(void);
 			void	SetSize(int x, int y);
 };
 

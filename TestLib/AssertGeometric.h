@@ -21,13 +21,16 @@ along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/IntVec2.h"
+#include "BaseLib/Int32Vec2.h"
 #include "Assert.h"
 
 
-bool PrivateAssertInt2(int iExpectedX, int iExpectedY, SIntVec2* psActual, int iLine, char* szFile);
+bool PrivateAssertIntVec2(int iExpectedX, int iExpectedY, SIntVec2* psActual, int iLine, char* szFile);
+bool PrivateAssertInt32Vec2(int32 iExpectedX, int32 iExpectedY, SInt32Vec2* psActual, int iLine, char* szFile);
 
 
-#define AssertInt2(ex, ey, a)			Validate(PrivateAssertInt2(ex, ey, a, __LINE__, __FILE__))
+#define AssertIntVec2(ex, ey, a)			Validate(PrivateAssertIntVec2(ex, ey, a, __LINE__, __FILE__))
+#define AssertInt32Vec2(ex, ey, a)			Validate(PrivateAssertInt32Vec2(ex, ey, a, __LINE__, __FILE__))
 
 
 #endif // __ASSERT_GEOMETRIC_FUNCTIONS_H__

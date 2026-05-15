@@ -35,21 +35,21 @@ public:
 	void	Free(void);
 
 	void	SetRequiredSize(void) override;
-	void	Layout(SInt2 sPosition, SInt2 sAreaSize) override;
+	void	Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 
 	void	SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleHorizontal eA);
 	void	SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleVertical eA);
 
 protected:
-	void	LayoutRight(SInt2 sPosition, SInt2 sAreaSize);
-	void	LayoutRightWrap(SInt2 sPosition, SInt2 sAreaSize);
-	void	LayoutRight(SInt2 sPosition, SInt2 sAreaSize, size iStart, size iEnd);
-	SInt2	CalculateAreaForHorizontalLayout(int iWidth);
+	void	LayoutRight(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
+	void	LayoutRightWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
+	void	LayoutRight(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize, size iStart, size iEnd);
+	SInt32Vec2	CalculateAreaForHorizontalLayout(int iWidth);
 
-	void	LayoutDown(SInt2 sPosition, SInt2 sAreaSize);
-	void	LayoutDownWrap(SInt2 sPosition, SInt2 sAreaSize);
-	void	LayoutDown(SInt2 sPosition, SInt2 sAreaSize, size iStart, size iEnd);
-	SInt2	CalculateAreaForVerticalLayout(int iHeight);
+	void	LayoutDown(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
+	void	LayoutDownWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
+	void	LayoutDown(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize, size iStart, size iEnd);
+	SInt32Vec2	CalculateAreaForVerticalLayout(int iHeight);
 };
 
 
