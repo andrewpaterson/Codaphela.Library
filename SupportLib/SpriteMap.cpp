@@ -22,6 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Objects.h"
+#include "MovableBlockImageCel.h"
 #include "SpriteMap.h"
 
 
@@ -141,5 +142,49 @@ void CSpriteMap::EndChange(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CSpriteMap::MovableBlockMapAbstract(void) {}
+void CSpriteMap::FindImageCels(CRectangle* pcRectangle, MapImageCelFunction pSpriteFunction)
+{
+	size						uiNumSprites;
+	size						uiSprite;
+	Ptr<CBaseSprite>			pBaseSprite;
+	Ptr<CSprite>				pSprite;
+	Ptr<CCompoundSprite>		pCompoundSprite;
+	Ptr<CCompoundSpriteType>	pType;
+	size						uiNumLayers;
+	size						uiLayer;
+	Ptr<CMovableBlock>			pLayer;
+	Ptr<CMovableBlockImageCel>	pBlockCel;
+	CRectangle*					pcCelRect;
+	SIntVec2					sOffset;
+
+	uiNumSprites = maSprites.NumElements();
+	for (uiSprite = 0; uiSprite < uiNumSprites; uiSprite++)
+	{
+		pBaseSprite = maSprites.Get(uiSprite);
+		if (pBaseSprite->IsSimple())
+		{
+			pSprite = pBaseSprite;
+			pSprite->GetImageDestBounds(pcCelRect);
+			if (pcRectangle->Intersect(pcCelRect))
+			{
+				sOffset.Init()
+				pSpriteFunction(&pSprite->GetCel(), )
+			}
+		}
+		else if (pBaseSprite->IsCompound())
+		{
+			pCompoundSprite = pBaseSprite;
+			pType = pCompoundSprite->GetType();
+			uiLayer = pType->NumLayers();
+			for (uiLayer = 0; uiLayer < uiNumLayers; uiLayer++)
+			{
+				pLayer = pType->GetLayer(uiLayer);
+				if (pLayer->IsCel())
+				{
+					pBlockCel = pLayer;
+				}
+			}
+		}
+	}
+}
 

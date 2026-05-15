@@ -66,8 +66,8 @@ int SIndexTreeDebugNode::InitFromBuffer(void* pvBuffer, size uiBufferSize, uint3
 void SIndexTreeDebugNode::InitBroken(size uiIndexInParent)
 {
 	memset(this, 0, sizeof(SIndexTreeDebugNode));
-	uiFileIndex = MAX_UINT;
-	uiIndexInFile = MAX_UINT;
+	uiFileIndex = MAX_UINT32;
+	uiIndexInFile = MAX_UINT32;
 	this->uiIndexInParent = (uint8)uiIndexInParent;
 }
 

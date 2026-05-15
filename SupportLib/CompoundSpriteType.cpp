@@ -81,18 +81,7 @@ bool CCompoundSpriteType::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCompoundSpriteType::AddTile(CMovableBlock* pcTile)
-{
-	macBlockLayers.Add(pcTile);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CMovableBlock> CCompoundSpriteType::Get(size uiIndex)
-{
-	return macBlockLayers.Get(uiIndex);
-}
+size CCompoundSpriteType::NumLayers(void) { return macBlockLayers.NumElements(); }
+void CCompoundSpriteType::AddLayer(CMovableBlock* pcTile) { macBlockLayers.Add(pcTile); }
+Ptr<CMovableBlock> CCompoundSpriteType::GetLayer(size uiIndex) { return macBlockLayers.Get(uiIndex); }
 

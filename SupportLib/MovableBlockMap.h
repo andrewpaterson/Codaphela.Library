@@ -32,6 +32,9 @@ class CMovableBlockMap : public CObject
 {
 CONSTRUCTABLE(CMovableBlockMap);
 DESTRUCTABLE(CMovableBlockMap);
+protected:
+	bool	mbActive;
+
 public:
 			void	Init(void);
 			void 	Free(void);
@@ -39,6 +42,9 @@ public:
 
 			bool	Save(CObjectWriter* pcFile);
 			bool	Load(CObjectReader* pcFile);
+
+	virtual	void	Activate(void);
+	virtual	void	Deactivate(void);
 
 	virtual	void	MovableBlockMapAbstract(void) =0;
 };

@@ -54,7 +54,7 @@ public:
 	int					GetMapSizeX(void);
 	int					GetMapSizeY(void);
 
-	void				MovableBlockMapAbstract(void) override;
+	void				MovableBlockMapAbstract(void) override {}
 };
 
 

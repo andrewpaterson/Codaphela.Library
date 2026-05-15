@@ -34,7 +34,7 @@ public:
 
 			bool		IsNewLine(void) override;
 
-			void		TextElementAbstract(void);
+			void		TextElementAbstract(void) override {}
 };
 
 

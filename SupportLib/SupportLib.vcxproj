@@ -184,6 +184,7 @@
     <ClInclude Include="ChannelTypes.h" />
     <ClInclude Include="GlyphListFontDraw.h" />
     <ClInclude Include="MapFontDraw.h" />
+    <ClInclude Include="MapViewport.h" />
     <ClInclude Include="SimpleTextReader.h" />
     <ClInclude Include="CompoundSprite.h" />
     <ClInclude Include="Sprite.h" />
@@ -384,6 +385,7 @@
     <ClCompile Include="ImageDraw.cpp" />
     <ClCompile Include="ImageReaderHelper.cpp" />
     <ClCompile Include="ImageToR3G3B2A.cpp" />
+    <ClCompile Include="MapViewport.cpp" />
     <ClCompile Include="MovableBlockMap.cpp" />
     <ClCompile Include="MovableBlockType.cpp" />
     <ClCompile Include="PNGWriter.cpp" />

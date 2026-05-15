@@ -140,7 +140,7 @@ filePos CIndexedFile::Write(void* pvData, size uiCount)
 	miNumDatas += uiCount;
 
 	iDataIndex = iFilePos / muiDataSize;
-	if (iDataIndex < MAX_UINT)
+	if (iDataIndex < MAX_UINT32)
 	{
 		return iDataIndex;
 	}

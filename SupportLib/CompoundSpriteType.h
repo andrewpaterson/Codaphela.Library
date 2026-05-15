@@ -43,8 +43,9 @@ public:
 	bool				Save(CObjectWriter* pcFile);
 	bool				Load(CObjectReader* pcFile);
 
-	void				AddTile(CMovableBlock* pcTile);
-	Ptr<CMovableBlock>	Get(size iIndex);
+	void				AddLayer(CMovableBlock* pcTile);
+	size				NumLayers(void);
+	Ptr<CMovableBlock>	GetLayer(size iIndex);
 };
 
 

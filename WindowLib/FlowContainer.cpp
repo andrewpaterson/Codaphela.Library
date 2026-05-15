@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/Int2.h"
+#include "BaseLib/Int32Vec2.h"
 #include "FlowContainer.h"
 
 
@@ -54,8 +54,8 @@ void CFlowContainer::SetRequiredSize(void)
 	Ptr<CComponent>		pComponent;
 	size				uiSize;
 	size				i;
-	SInt2				sSize;
-	SInt2				sTotalSize;
+	SInt32Vec2				sSize;
+	SInt32Vec2				sTotalSize;
 
 	//This works out how much space the component needs, not where it needs that space.
 
@@ -91,7 +91,7 @@ void CFlowContainer::SetRequiredSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlowContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
+void CFlowContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	SetBounds(sPosition, sAreaSize);
 
@@ -124,7 +124,7 @@ void CFlowContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlowContainer::LayoutRight(SInt2 sPosition, SInt2 sAreaSize)
+void CFlowContainer::LayoutRight(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	size	uiSize;
 
@@ -137,14 +137,14 @@ void CFlowContainer::LayoutRight(SInt2 sPosition, SInt2 sAreaSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlowContainer::LayoutRight(SInt2 sPosition, SInt2 sAreaSize, size iStart, size iEnd)
+void CFlowContainer::LayoutRight(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize, size iStart, size iEnd)
 {
 	Ptr<CComponent>	pComponent;
 	size					i;
-	SInt2					sSize;
+	SInt32Vec2					sSize;
 	int						fXPos;
 	int						fYPos;
-	SInt2					sOffset;
+	SInt32Vec2					sOffset;
 
 	fXPos = 0;
 	for (i = iStart; i < iEnd; i++)
@@ -169,16 +169,16 @@ void CFlowContainer::LayoutRight(SInt2 sPosition, SInt2 sAreaSize, size iStart, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CFlowContainer::CalculateAreaForHorizontalLayout(int iWidth)
+SInt32Vec2 CFlowContainer::CalculateAreaForHorizontalLayout(int iWidth)
 {
 	Ptr<CComponent>	pComponent;
 	size					uiSize;
 	size					i;
-	SInt2					sSize;
+	SInt32Vec2					sSize;
 	int						fYPos;
 	int						iFirst;
-	SInt2					sLocalAreaSize;
-	SInt2					sArea;
+	SInt32Vec2					sLocalAreaSize;
+	SInt32Vec2					sArea;
 
 	fYPos = 0;
 	iFirst = 0;
@@ -224,16 +224,16 @@ SInt2 CFlowContainer::CalculateAreaForHorizontalLayout(int iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlowContainer::LayoutRightWrap(SInt2 sPosition, SInt2 sAreaSize)
+void CFlowContainer::LayoutRightWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	Ptr<CComponent>	pComponent;
 	size					uiSize;
 	size					i;
-	SInt2					sSize;
+	SInt32Vec2					sSize;
 	int						iFirst;
-	SInt2					sLocalAreaSize;
-	SInt2					sLocalPosition;
-	SInt2					sRequiredArea;
+	SInt32Vec2					sLocalAreaSize;
+	SInt32Vec2					sLocalPosition;
+	SInt32Vec2					sRequiredArea;
 
 	sRequiredArea = CalculateAreaForHorizontalLayout(sAreaSize.x);
 
@@ -273,7 +273,7 @@ void CFlowContainer::LayoutRightWrap(SInt2 sPosition, SInt2 sAreaSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlowContainer::LayoutDown(SInt2 sPosition, SInt2 sAreaSize)
+void CFlowContainer::LayoutDown(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	size	uiSize;
 
@@ -286,14 +286,14 @@ void CFlowContainer::LayoutDown(SInt2 sPosition, SInt2 sAreaSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlowContainer::LayoutDown(SInt2 sPosition, SInt2 sAreaSize, size iStart, size iEnd)
+void CFlowContainer::LayoutDown(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize, size iStart, size iEnd)
 {
 	Ptr<CComponent>	pComponent;
 	size					i;
-	SInt2					sSize;
+	SInt32Vec2					sSize;
 	int						fYPos;
 	int						fXPos;
-	SInt2					sOffset;
+	SInt32Vec2					sOffset;
 
 	fYPos = 0;
 	for (i = iStart; i < iEnd; i++)
@@ -318,16 +318,16 @@ void CFlowContainer::LayoutDown(SInt2 sPosition, SInt2 sAreaSize, size iStart, s
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CFlowContainer::CalculateAreaForVerticalLayout(int iHeight)
+SInt32Vec2 CFlowContainer::CalculateAreaForVerticalLayout(int iHeight)
 {
 	Ptr<CComponent>	pComponent;
 	size					uiSize;
 	size					i;
-	SInt2					sSize;
+	SInt32Vec2					sSize;
 	int						fXPos;
 	int						iFirst;
-	SInt2					sLocalAreaSize;
-	SInt2					sArea;
+	SInt32Vec2					sLocalAreaSize;
+	SInt32Vec2					sArea;
 
 	fXPos = 0;
 	iFirst = 0;
@@ -373,16 +373,16 @@ SInt2 CFlowContainer::CalculateAreaForVerticalLayout(int iHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlowContainer::LayoutDownWrap(SInt2 sPosition, SInt2 sAreaSize)
+void CFlowContainer::LayoutDownWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	Ptr<CComponent>	pComponent;
 	size					uiSize;
 	size					i;
-	SInt2					sSize;
+	SInt32Vec2					sSize;
 	int						iFirst;
-	SInt2					sLocalAreaSize;
-	SInt2					sLocalPosition;
-	SInt2					sRequiredArea;
+	SInt32Vec2					sLocalAreaSize;
+	SInt32Vec2					sLocalPosition;
+	SInt32Vec2					sRequiredArea;
 
 	sRequiredArea = CalculateAreaForVerticalLayout(sAreaSize.y);
 

@@ -136,7 +136,6 @@ Ptr<CTileLayer> CTileMap::AddLayer(char* szName, Ptr<CMovableBlockType> pTileTyp
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileMap::MovableBlockMapAbstract(void) {}
 int CTileMap::GetMapSizeX(void) { return msMapSize.x; }
 int CTileMap::GetMapSizeY(void) { return msMapSize.y; }
 

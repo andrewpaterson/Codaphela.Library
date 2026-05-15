@@ -1568,7 +1568,7 @@ TRISTATE CTextParser::GetDigits(uint64* pulli, int16* piSign, uint16* puiNumDigi
 	bool		bFirstDigit;
 	uint16		uiNumDigits;
 
-	//This still needs to be failed on the case where the number is larger than MAX_ULONG.
+	//This still needs to be failed on the case where the number is larger than MAX_UINT64.
 	PushPosition();
 
 	if (bSkipWhitespace)

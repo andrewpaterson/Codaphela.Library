@@ -307,7 +307,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateRoot(void)
 
 	iRootNodeSize = CalculateRootNodeSize();
 	pcNode = (CIndexTreeNodeFile*)Malloc(iRootNodeSize);
-	pcNode->Init(this, NULL, 0, MAX_UCHAR, 0);
+	pcNode->Init(this, NULL, 0, MAX_UINT8, 0);
 	return pcNode;
 }
 
@@ -323,7 +323,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateRoot(CFileDataIndex cFileIndex)
 
 	iAdditionalSize = CalculateRootNodeSize();
 	pcNode = (CIndexTreeNodeFile*)Malloc(SizeofNode() + iAdditionalSize);
-	pcNode->Init(this, NULL, 0, MAX_UCHAR, cFileIndex, 0);
+	pcNode->Init(this, NULL, 0, MAX_UINT8, cFileIndex, 0);
 	return pcNode;
 }
 

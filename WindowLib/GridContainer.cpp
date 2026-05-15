@@ -54,8 +54,8 @@ void CGridContainer::SetRequiredSize(void)
 	Ptr<CComponent>	pComponent;
 	size					uiSize;
 	size					i;
-	SInt2					sSize;
-	SInt2					sTotalSize;
+	SInt32Vec2					sSize;
+	SInt32Vec2					sTotalSize;
 
 	msRequiredSize.Init(0, 0);
 
@@ -72,15 +72,15 @@ void CGridContainer::SetRequiredSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGridContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
+void CGridContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	Ptr<CComponent>	pComponent;
 	size					uiSize;
 	size					i;
-	SInt2					sSize;
+	SInt32Vec2					sSize;
 	int						fXPos;
 	int						fYPos;
-	SInt2					sOffset;
+	SInt32Vec2					sOffset;
 
 	SetBounds(sPosition, sAreaSize);
 

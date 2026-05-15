@@ -1,3 +1,5 @@
+#ifndef __MAP_VIEWPORT_H__
+#define __MAP_VIEWPORT_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -21,51 +23,25 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __SPRITE_MAP_H__
-#define __SPRITE_MAP_H__
-#include "BaseLib/Int32Vec2.h"
-#include "BaseLib/IntVec2.h"
-#include "StandardLib/Array.h"
-#include "Sprite.h"
-#include "CompoundSprite.h"
-#include "MovableBlockMap.h"
+#include "Maps.h"
 
 
-typedef void (*MapImageCelFunction)(CImageCel* pcImageCel, SIntVec2 sRelativePosition);
-
-
-class CSpriteMap : public CMovableBlockMap
+class CMapViewport : public CObject
 {
-CONSTRUCTABLE(CSpriteMap)
-DESTRUCTABLE(CSpriteMap)
+CONSTRUCTABLE(CMapViewport);
+DESTRUCTABLE(CMapViewport);
 protected:
-	CArraySprite	maSprites;
-
+	Ptr<CMaps>	mpMaps;
+	
 public:
-	void					Init(void);
-	void 					Free(void);
-	void					Class(void);
+	void 	Init(Ptr<CMaps> pMaps);
+	void 	Free(void);
+	void	Class(void);
 
-	bool					Save(CObjectWriter* pcFile);
-	bool					Load(CObjectReader* pcFile);
-
-	void					Clear(void);
-
-	Ptr<CCompoundSprite>	AddSprite(Ptr<CCompoundSpriteType> pSpriteType, int32 x, int32 y);
-	Ptr<CSprite>			AddSprite(Ptr<CImageCel> pCel, int32 x, int32 y);
-
-	void					BeginChange(void);
-	void					EndChange(void);
-
-
-	void					FindImageCels(CRectangle* pcRectangle, MapImageCelFunction pSpriteFunction);
-
-	void					MovableBlockMapAbstract(void) override {}
+	bool	Save(CObjectWriter* pcFile);
+	bool	Load(CObjectReader* pcFile);
 };
 
 
-typedef CArray<CSpriteMap>	CArraySpriteMap;
-
-
-#endif // __SPRITE_MAP_H__
+#endif // __MAP_VIEWPORT_H__
 

@@ -45,6 +45,8 @@ public:
 			bool	Save(CObjectWriter* pcFile);
 			bool	Load(CObjectReader* pcFile);
 
+			bool	IsCel(void);
+
 	virtual	void	MovableBlockAbstract(void) =0;
 };
 

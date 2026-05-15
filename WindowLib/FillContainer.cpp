@@ -65,7 +65,7 @@ void CFillContainer::SetRequiredSize(void)
 	size				i;
 	Ptr<CComponent>		pComponent;
 	size				uiSize;
-	SInt2				sSize;
+	SInt32Vec2				sSize;
 
 	//There should only be one componet, but if there are more then the largest size will be used.
 	msRequiredSize.Init(0, 0);
@@ -91,12 +91,12 @@ void CFillContainer::SetRequiredSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFillContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
+void CFillContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
-	SInt2					sSize;
+	SInt32Vec2					sSize;
 	size					i;
-	SInt2					sOrigin;
-	SInt2					sArea;
+	SInt32Vec2					sOrigin;
+	SInt32Vec2					sArea;
 	Ptr<CComponent>	pComponent;
 	size					uiSize;
 

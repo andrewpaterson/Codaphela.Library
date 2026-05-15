@@ -34,8 +34,6 @@ public:
 
 	virtual bool		Load(CObjectReader* pcFile) =0;
 	virtual bool		Save(CObjectWriter* pcFile) =0;
-
-	virtual void		TextElementAbstract(void) = 0;
 };
 
 

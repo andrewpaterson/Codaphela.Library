@@ -67,5 +67,4 @@ bool CTextUTF16Long::Save(CObjectWriter* pcFile)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 bool CTextUTF16Long::IsUTF16Long(void) { return true; }
-void CTextUTF16Long::TextElementAbstract(void) {}
 

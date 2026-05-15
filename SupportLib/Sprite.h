@@ -20,7 +20,10 @@ public:
 	bool			Load(CObjectReader* pcFile);
 
 	Ptr<CImageCel>	GetCel(void);
-	void			BaseSpriteAbstract(void);
+	bool			IsSimple(void) override;
+	void			GetImageDestBounds(CRectangle* pcReturn);
+
+	void			BaseSpriteAbstract(void) override {}
 };
 
 

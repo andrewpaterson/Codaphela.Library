@@ -22,7 +22,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __GRID_CELL_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/DataTypes.h"
-#include "BaseLib/Int2.h"
+#include "BaseLib/Int32Vec2.h"
 
 
 enum EGridUseDesiredSizeAlignment
@@ -62,8 +62,8 @@ struct SGridCellAxisParams
 class CGridCell
 {
 public:
-	SInt2					msTopLeft;  //Position in grid.
-	SInt2					msSize;		//Size in grid.
+	SInt32Vec2					msTopLeft;  //Position in grid.
+	SInt32Vec2					msSize;		//Size in grid.
 	SGridCellAxisParams		sWidthParams;
 	SGridCellAxisParams		sHeightParams;
 

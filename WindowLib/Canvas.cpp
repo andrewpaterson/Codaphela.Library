@@ -130,7 +130,7 @@ bool CCanvas::Draw(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCanvas::HasNativeChanged(void)
 {
-	SInt2	sSize;
+	SInt32Vec2	sSize;
 
 	if (mpcNativeCanvas == NULL)
 	{

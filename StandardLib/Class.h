@@ -14,7 +14,6 @@
 #include "BaseLib/Int32Vec2.h"
 #include "BaseLib/Int32Vec3.h"
 #include "BaseLib/Int32Vec4.h"
-#include "BaseLib/Int4.h"
 #include "Integer.h"
 #include "Float.h"
 #include "Character.h"

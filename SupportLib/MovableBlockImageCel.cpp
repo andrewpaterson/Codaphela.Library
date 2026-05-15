@@ -81,9 +81,9 @@ bool CMovableBlockImageCel::Save(CObjectWriter* pcFile)
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-//
+//																		//
+//																		//
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockImageCel::MovableBlockAbstract(void) {}
+bool CMovableBlockImageCel::IsCel(void) { return true; }
 Ptr<CImageCel> CMovableBlockImageCel::GetCel(void) { return mpImageCel; }
 

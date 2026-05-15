@@ -38,7 +38,7 @@ public:
 
 	bool		IsUTF16Long(void) override;
 
-	void		TextElementAbstract(void);
+	void		TextElementAbstract(void) override {}
 };
 
 

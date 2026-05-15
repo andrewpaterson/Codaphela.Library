@@ -97,8 +97,8 @@ CFileDataIndex CFilePosIndex::ToFileDataIndex(uint32 muiDataSize)
 //////////////////////////////////////////////////////////////////////////
 void CFileDataIndex::Init(void)
 {
-	miFile = MAX_UINT;
-	muiIndex = MAX_UINT;
+	miFile = MAX_UINT32;
+	muiIndex = MAX_UINT32;
 }
 
 

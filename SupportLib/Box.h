@@ -32,16 +32,16 @@ public:
 	SFloat32Vec3*	mpsMiddleAxis; 
 	SFloat32Vec3*	mpsShortAxis;
 
-	float32		mfLongLength;
-	float32		mfMiddleLength;
-	float32		mfShortLength;
+	float32			mfLongLength;
+	float32			mfMiddleLength;
+	float32			mfShortLength;
 
-	void	Init(SFloat32Vec3* psCenter, SFloat32Vec3* psLongAxis, SFloat32Vec3* psMiddleAxis, SFloat32Vec3* psShortAxis);
-	void 	SetFromPointsAxisAligned(SFloat32Vec3* psPoints, int iStride, int iNumPoints);
-	bool	SetFromPointsUsingBestFit(SFloat32Vec3* psPoints, int iStride, int iNumPoints, bool bPointsExtreme = false);
-	float32	Volume(void);
-	void	Find8Box(int* piLongCount, int* piMiddleCount, int* piShortCount);
-	float32	PrivateVolumeOfCubesContaining(float32 ix, float32 iy, float32 iz);
+	void		Init(SFloat32Vec3* psCenter, SFloat32Vec3* psLongAxis, SFloat32Vec3* psMiddleAxis, SFloat32Vec3* psShortAxis);
+	void 		SetFromPointsAxisAligned(SFloat32Vec3* psPoints, int iStride, int iNumPoints);
+	bool		SetFromPointsUsingBestFit(SFloat32Vec3* psPoints, int iStride, int iNumPoints, bool bPointsExtreme = false);
+	float32		Volume(void);
+	void		Find8Box(int* piLongCount, int* piMiddleCount, int* piShortCount);
+	float32		PrivateVolumeOfCubesContaining(float32 ix, float32 iy, float32 iz);
 };
 
 

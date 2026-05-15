@@ -18,11 +18,11 @@ class CComponent : public CObject, public CFocusListener, public CComponentListe
 CONSTRUCTABLE(CComponent);
 DESTRUCTABLE(CComponent);
 protected:
-	SInt2				msActualSize;
-	SInt2	 			msPosition;
-	SInt2				msDesiredSize;
+	SInt32Vec2			msActualSize;
+	SInt32Vec2	 		msPosition;
+	SInt32Vec2			msDesiredSize;
 	bool				mbCanGetFocus;
-	SInt2				msRequiredSize;
+	SInt32Vec2			msRequiredSize;
 	Ptr<CComponent>		mpParent;
 	CArray<CComponent>	maChildren;
 	Ptr<CWindow>		mpWindow;
@@ -50,20 +50,20 @@ public:
 			void					ToChildSpace(Ptr<CComponent> pcChildComponent, int x, int y, int* px, int* py);
 			void					FromChildSpace(Ptr<CComponent> pcChildComponent, int x, int y, int* px, int* py);
 
-	virtual	void					Layout(SInt2 sPosition, SInt2 sAreaSize);
-			void					LayoutChildren(SInt2 sPosition, SInt2 sAreaSize);
+	virtual	void					Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
+			void					LayoutChildren(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
 			size					GetDepth(void);
 
 			bool					IsFocussed(void);
 
 			void					SetActualSize(int fWidth, int fHeight);
-			void					SetActualSize(SInt2 sSize);
+			void					SetActualSize(SInt32Vec2 sSize);
 			void					SetPosition(int x, int y);
-			void					SetPosition(SInt2 sPosition);
-			SInt2					GetPosition(void);
-			SInt2					GetDesiredSize(void);
+			void					SetPosition(SInt32Vec2 sPosition);
+			SInt32Vec2					GetPosition(void);
+			SInt32Vec2					GetDesiredSize(void);
 			void					SetDesiredSize(int fWidth, int fHeight);
-			SInt2					GetActualSize(void);
+			SInt32Vec2					GetActualSize(void);
 
 	virtual void					SetRequiredSize(void) =0;
 };

@@ -194,7 +194,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::AllocateRoot(void)
 	CIndexTreeNodeMemory*	pcNode;
 
 	pcNode = (CIndexTreeNodeMemory*)Malloc(CalculateRootNodeSize());
-	pcNode->Init(this, NULL, 0, MAX_UCHAR, 0);
+	pcNode->Init(this, NULL, 0, MAX_UINT8, 0);
 	return pcNode;
 }
 
