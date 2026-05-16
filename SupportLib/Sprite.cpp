@@ -1,3 +1,4 @@
+#include "StandardLib/ClassDefines.h"
 #include "Sprite.h"
 
 
@@ -9,7 +10,7 @@ void CSprite::Init(Ptr<CImageCel> pCel, int32 x, int32 y)
 {
 	PreInit();
 
-	CBaseSprite::Init(x, y);
+	msPosition.Init(x, y);
 	mpCel = pCel;
 
 	PostInit();
@@ -31,7 +32,6 @@ void CSprite::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CSprite::Class(void)
 {
-	CBaseSprite::Class();
 	M_Pointer(mpCel);
 }
 
@@ -70,6 +70,5 @@ void CSprite::GetImageDestBounds(CRectangle* pcReturn)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSprite::IsSimple(void) { return true; }
 Ptr<CImageCel> CSprite::GetCel(void) { return mpCel; }
 

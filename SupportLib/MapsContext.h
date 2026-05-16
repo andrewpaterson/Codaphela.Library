@@ -31,7 +31,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Image.h"
 #include "ImageCelGroup.h"
 #include "TileMap.h"
-#include "CompoundSpriteType.h"
 #include "MovableBlockType.h"
 
 
@@ -41,7 +40,6 @@ CONSTRUCTABLE(CMapsContext);
 DESTRUCTABLE(CMapsContext);
 protected:
 	CArrayMovableBlockType		maBlockTypes;  
-	CArrayCompoundSpriteType	maSpriteTypes;
 	CArrayImage					maImages;
 	CArrayImageCelGroup			maGroups;
 	
@@ -55,8 +53,6 @@ public:
 
 	Ptr<CMovableBlockType>			AddBlockType(char* szTypeName = NULL);
 	Ptr<CArrayMovableBlockType>		GetBlockTypes(void);
-
-	Ptr<CCompoundSpriteType>		AddSpriteType(char* szTypeName = NULL);
 
 	void							AddImages(Ptr<CArrayImage> paImages);
 	void							AddGroup(Ptr<CImageCelGroup> pGroup);

@@ -27,7 +27,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/IntVec2.h"
 #include "StandardLib/Array.h"
 #include "Sprite.h"
-#include "CompoundSprite.h"
 #include "MovableBlockMap.h"
 
 
@@ -51,7 +50,6 @@ public:
 
 	void					Clear(void);
 
-	Ptr<CCompoundSprite>	AddSprite(Ptr<CCompoundSpriteType> pSpriteType, int32 x, int32 y);
 	Ptr<CSprite>			AddSprite(Ptr<CImageCel> pCel, int32 x, int32 y);
 
 	void					BeginChange(void);

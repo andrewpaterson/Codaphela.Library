@@ -687,12 +687,6 @@
     <ClInclude Include="MapsXML.h">
       <Filter>Source\Map\XML</Filter>
     </ClInclude>
-    <ClInclude Include="BaseSprite.h">
-      <Filter>Source\Map\Sprite</Filter>
-    </ClInclude>
-    <ClInclude Include="CompoundSpriteType.h">
-      <Filter>Source\Map\Sprite</Filter>
-    </ClInclude>
     <ClInclude Include="MovableBlockType.h">
       <Filter>Source\Map\MovableBlock</Filter>
     </ClInclude>
@@ -759,13 +753,7 @@
     <ClInclude Include="TextLayoutBuilder.h">
       <Filter>Source\Text\Layout</Filter>
     </ClInclude>
-    <ClInclude Include="CompoundSprite.h">
-      <Filter>Source\Map\Sprite</Filter>
-    </ClInclude>
     <ClInclude Include="Sprite.h">
-      <Filter>Source\Map\Sprite</Filter>
-    </ClInclude>
-    <ClInclude Include="CompoundSpriteTypeStore.h">
       <Filter>Source\Map\Sprite</Filter>
     </ClInclude>
     <ClInclude Include="MapFontDraw.h">
@@ -1229,12 +1217,6 @@
     <ClCompile Include="MapsXML.cpp">
       <Filter>Source\Map\XML</Filter>
     </ClCompile>
-    <ClCompile Include="BaseSprite.cpp">
-      <Filter>Source\Map\Sprite</Filter>
-    </ClCompile>
-    <ClCompile Include="CompoundSpriteType.cpp">
-      <Filter>Source\Map\Sprite</Filter>
-    </ClCompile>
     <ClCompile Include="MovableBlockType.cpp">
       <Filter>Source\Map\MovableBlock</Filter>
     </ClCompile>
@@ -1301,13 +1283,7 @@
     <ClCompile Include="TextLayoutBuilder.cpp">
       <Filter>Source\Text\Layout</Filter>
     </ClCompile>
-    <ClCompile Include="CompoundSprite.cpp">
-      <Filter>Source\Map\Sprite</Filter>
-    </ClCompile>
     <ClCompile Include="Sprite.cpp">
-      <Filter>Source\Map\Sprite</Filter>
-    </ClCompile>
-    <ClCompile Include="CompoundSpriteTypeStore.cpp">
       <Filter>Source\Map\Sprite</Filter>
     </ClCompile>
     <ClCompile Include="MapFontDraw.cpp">
