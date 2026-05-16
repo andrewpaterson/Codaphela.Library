@@ -37,8 +37,8 @@ CONSTRUCTABLE(CTileMap);
 DESTRUCTABLE(CTileMap);
 protected:
 	CArrayTileLayer		maTileLayers;	//Layers are not multiple graphics layers.  All the layers together make up the complete information about a single tile.  E.g. an ImageCelTile and a BooleanTile.
-	SInt32Vec2				msMapSize;		//The tile is indexed by x + y * msMapSize.x
-	SInt32Vec2				msCelSize;
+	SInt32Vec2			msMapSize;		//The tile is indexed by x + y * msMapSize.x
+	SInt32Vec2			msCelSize;
 
 public:
 	void				Init(void);

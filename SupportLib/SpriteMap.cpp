@@ -154,8 +154,9 @@ void CSpriteMap::FindImageCels(CRectangle* pcRectangle, MapImageCelFunction pSpr
 	size						uiLayer;
 	Ptr<CMovableBlock>			pLayer;
 	Ptr<CMovableBlockImageCel>	pBlockCel;
-	CRectangle*					pcCelRect;
+	CRectangle					cCelRect;
 	SIntVec2					sOffset;
+	SInt32Vec2*					psPosition;
 
 	uiNumSprites = maSprites.NumElements();
 	for (uiSprite = 0; uiSprite < uiNumSprites; uiSprite++)
@@ -164,24 +165,29 @@ void CSpriteMap::FindImageCels(CRectangle* pcRectangle, MapImageCelFunction pSpr
 		if (pBaseSprite->IsSimple())
 		{
 			pSprite = pBaseSprite;
-			pSprite->GetImageDestBounds(pcCelRect);
-			if (pcRectangle->Intersect(pcCelRect))
+			pSprite->GetImageDestBounds(&cCelRect);
+			if (pcRectangle->Intersect(&cCelRect))
 			{
-				sOffset.Init()
-				pSpriteFunction(&pSprite->GetCel(), )
+				pSpriteFunction(pSprite->GetCel(), cCelRect.miLeft - pcRectangle->miLeft, cCelRect.miTop - pcRectangle->miTop);
 			}
 		}
 		else if (pBaseSprite->IsCompound())
 		{
 			pCompoundSprite = pBaseSprite;
+			psPosition = pCompoundSprite->GetPosition();
 			pType = pCompoundSprite->GetType();
-			uiLayer = pType->NumLayers();
+			uiNumLayers = pType->NumLayers();
 			for (uiLayer = 0; uiLayer < uiNumLayers; uiLayer++)
 			{
 				pLayer = pType->GetLayer(uiLayer);
 				if (pLayer->IsCel())
 				{
 					pBlockCel = pLayer;
+					pBlockCel->GetImageDestBounds(psPosition, &cCelRect);
+					if (pcRectangle->Intersect(&cCelRect))
+					{
+						pSpriteFunction(pSprite->GetCel(), cCelRect.miLeft - pcRectangle->miLeft, cCelRect.miTop - pcRectangle->miTop);
+					}
 				}
 			}
 		}

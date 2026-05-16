@@ -53,7 +53,7 @@ void CImageCel::Init(Ptr<CImage> pcSourceImage, CRectangle* pcRect)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight, int iBottom)
+void CImageCel::Init(Ptr<CImage> pcSourceImage, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom)
 {
 	Init(pcSourceImage, iLeft, iTop, iRight, iBottom, 0, 0, 0, 0, SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
 }
@@ -63,7 +63,7 @@ void CImageCel::Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight, int iBottom, int iLeftOffset, int iTopOffset, int iRightOffset, int iBottomOffset, int iAlignment)
+void CImageCel::Init(Ptr<CImage> pcSourceImage, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, int32 iLeftOffset, int32 iTopOffset, int32 iRightOffset, int32 iBottomOffset, int32 iAlignment)
 {
 	PreInit();
 
@@ -145,10 +145,10 @@ void CImageCel::CropTransparentBorders(void)
 //////////////////////////////////////////////////////////////////////////
 void CImageCel::CropTransparentBorders(CPixelOpacityBase* pcPixelOpacity)
 {
-	int 					iTop;
-	int 					iBottom;
-	int 					iLeft;
-	int 					iRight;
+	int32 					iTop;
+	int32 					iBottom;
+	int32 					iLeft;
+	int32 					iRight;
 	CRectangle				mcSource;
 
 	mcSubImage.GetImageSourceBounds(&mcSource);
@@ -198,7 +198,7 @@ void CImageCel::CropTransparentBorders(CPixelOpacityBase* pcPixelOpacity)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::CopyParam(SImageCopy* psCopy, int iDestX, int iDestY, int iDestWith, int iDestHeight)
+void CImageCel::CopyParam(SImageCopy* psCopy, int32 iDestX, int32 iDestY, int32 iDestWith, int32 iDestHeight)
 {
 	SInt32Vec2	sPos;
 
@@ -303,9 +303,9 @@ void CImageCel::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageCel::IsColumnTransparent(CPixelOpacityBase* pcOpacity, int x, int y1, int y2)
+bool CImageCel::IsColumnTransparent(CPixelOpacityBase* pcOpacity, int32 x, int32 y1, int32 y2)
 {
-	int		y;
+	int32		y;
 
 	for (y = y1; y < y2; y++)
 	{
@@ -322,9 +322,9 @@ bool CImageCel::IsColumnTransparent(CPixelOpacityBase* pcOpacity, int x, int y1,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageCel::IsRowTransparent(CPixelOpacityBase* pcOpacity, int y, int x1, int x2)
+bool CImageCel::IsRowTransparent(CPixelOpacityBase* pcOpacity, int32 y, int32 x1, int32 x2)
 {
-	int		x;
+	int32		x;
 
 	for (x = x1; x < x2; x++)
 	{
@@ -366,7 +366,7 @@ bool CImageCel::MustFixDrawOpacity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft)
+void CImageCel::FixDrawOpacity(CImageAccessor* pcDestOpacity, int32 iDestTop, int32 iDestLeft)
 {
 	CPixelOpacityChannel	cOpacity;
 
@@ -380,12 +380,12 @@ void CImageCel::FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDestTop, int 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::FixDrawOpacity(CPixelOpacityBase* pcPixelOpacity, CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft)
+void CImageCel::FixDrawOpacity(CPixelOpacityBase* pcPixelOpacity, CImageAccessor* pcDestOpacity, int32 iDestTop, int32 iDestLeft)
 {
-	int						x;
-	int						y;
-	int						iDestX;
-	int						iDestY;
+	int32						x;
+	int32						y;
+	int32						iDestX;
+	int32						iDestY;
 	SImageColour			sOneAlpha;
 	SImageColour			sZeroAlpha;
 	CImageColourOpacity		cA;
@@ -439,7 +439,7 @@ void CImageCel::SetSubImage(CSubImage* pcSubImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::GetImageDestBounds(int x, int y, CRectangle* pcReturn)
+void CImageCel::GetImageDestBounds(int32 x, int32 y, CRectangle* pcReturn)
 {
 	mcSubImage.GetImageDestBounds(x, y, pcReturn);
 }

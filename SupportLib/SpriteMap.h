@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "MovableBlockMap.h"
 
 
-typedef void (*MapImageCelFunction)(CImageCel* pcImageCel, SIntVec2 sRelativePosition);
+typedef void (*MapImageCelFunction)(Ptr<CImageCel> pcImageCel, int x, int y);
 
 
 class CSpriteMap : public CMovableBlockMap
