@@ -186,9 +186,7 @@
     <ClInclude Include="MapFontDraw.h" />
     <ClInclude Include="MapViewport.h" />
     <ClInclude Include="SimpleTextReader.h" />
-    <ClInclude Include="CompoundSprite.h" />
     <ClInclude Include="Sprite.h" />
-    <ClInclude Include="CompoundSpriteTypeStore.h" />
     <ClInclude Include="TextBuilder.h" />
     <ClInclude Include="TextBuilderUTF16Long.h" />
     <ClInclude Include="TextBuilderUTF16Short.h" />
@@ -215,7 +213,6 @@
     <ClInclude Include="SFTCommon.h" />
     <ClInclude Include="SFTReader.h" />
     <ClInclude Include="SFTWriter.h" />
-    <ClInclude Include="BaseSprite.h" />
     <ClInclude Include="SpriteMap.h" />
     <ClInclude Include="Maps.h" />
     <ClInclude Include="Text.h" />
@@ -357,7 +354,6 @@
     <ClInclude Include="MovableBlock.h" />
     <ClInclude Include="MovableBlockBoolean.h" />
     <ClInclude Include="MovableBlockImageCel.h" />
-    <ClInclude Include="CompoundSpriteType.h" />
     <ClInclude Include="Box.h" />
     <ClInclude Include="ConvexHull.h" />
     <ClInclude Include="HalfSpace.h" />
@@ -372,7 +368,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BaseFontDraw.cpp" />
-    <ClCompile Include="CompoundSprite.cpp" />
     <ClCompile Include="ChannelTypes.cpp" />
     <ClCompile Include="CopyPaste_Windows.cpp" />
     <ClCompile Include="FakeTracker.cpp" />
@@ -400,7 +395,6 @@
     <ClCompile Include="FontList.cpp" />
     <ClCompile Include="Glyph.cpp" />
     <ClCompile Include="SimpleTextReader.cpp" />
-    <ClCompile Include="BaseSprite.cpp" />
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="SpriteMap.cpp" />
     <ClCompile Include="Maps.cpp" />
@@ -413,7 +407,6 @@
     <ClCompile Include="ImageReader.cpp" />
     <ClCompile Include="PNGReader.cpp" />
     <ClCompile Include="RADReader.cpp" />
-    <ClCompile Include="CompoundSpriteTypeStore.cpp" />
     <ClCompile Include="Text.cpp" />
     <ClCompile Include="TextBuilder.cpp" />
     <ClCompile Include="TextBuilderUTF16Long.cpp" />
@@ -539,7 +532,6 @@
     <ClCompile Include="MovableBlock.cpp" />
     <ClCompile Include="MovableBlockBoolean.cpp" />
     <ClCompile Include="MovableBlockImageCel.cpp" />
-    <ClCompile Include="CompoundSpriteType.cpp" />
     <ClCompile Include="Box.cpp" />
     <ClCompile Include="ConvexHull.cpp" />
     <ClCompile Include="HalfSpace.cpp" />

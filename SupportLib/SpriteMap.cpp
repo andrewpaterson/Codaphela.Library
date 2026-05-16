@@ -83,20 +83,6 @@ bool CSpriteMap::Save(CObjectWriter* pcFile)
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CCompoundSprite> CSpriteMap::AddSprite(Ptr<CCompoundSpriteType> pSpriteType, int32 x, int32 y)
-{
-	Ptr<CCompoundSprite>	pSprite;
-
-	pSprite = OMalloc<CCompoundSprite>(pSpriteType, x, y);
-	maSprites.Add(pSprite);
-	return pSprite;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
@@ -146,50 +132,20 @@ void CSpriteMap::FindImageCels(CRectangle* pcRectangle, MapImageCelFunction pSpr
 {
 	size						uiNumSprites;
 	size						uiSprite;
-	Ptr<CBaseSprite>			pBaseSprite;
 	Ptr<CSprite>				pSprite;
-	Ptr<CCompoundSprite>		pCompoundSprite;
-	Ptr<CCompoundSpriteType>	pType;
-	size						uiNumLayers;
-	size						uiLayer;
 	Ptr<CMovableBlock>			pLayer;
 	Ptr<CMovableBlockImageCel>	pBlockCel;
 	CRectangle					cCelRect;
 	SIntVec2					sOffset;
-	SInt32Vec2*					psPosition;
 
 	uiNumSprites = maSprites.NumElements();
 	for (uiSprite = 0; uiSprite < uiNumSprites; uiSprite++)
 	{
-		pBaseSprite = maSprites.Get(uiSprite);
-		if (pBaseSprite->IsSimple())
+		pSprite = maSprites.Get(uiSprite);
+		pSprite->GetImageDestBounds(&cCelRect);
+		if (pcRectangle->Intersect(&cCelRect))
 		{
-			pSprite = pBaseSprite;
-			pSprite->GetImageDestBounds(&cCelRect);
-			if (pcRectangle->Intersect(&cCelRect))
-			{
-				pSpriteFunction(pSprite->GetCel(), cCelRect.miLeft - pcRectangle->miLeft, cCelRect.miTop - pcRectangle->miTop);
-			}
-		}
-		else if (pBaseSprite->IsCompound())
-		{
-			pCompoundSprite = pBaseSprite;
-			psPosition = pCompoundSprite->GetPosition();
-			pType = pCompoundSprite->GetType();
-			uiNumLayers = pType->NumLayers();
-			for (uiLayer = 0; uiLayer < uiNumLayers; uiLayer++)
-			{
-				pLayer = pType->GetLayer(uiLayer);
-				if (pLayer->IsCel())
-				{
-					pBlockCel = pLayer;
-					pBlockCel->GetImageDestBounds(psPosition, &cCelRect);
-					if (pcRectangle->Intersect(&cCelRect))
-					{
-						pSpriteFunction(pSprite->GetCel(), cCelRect.miLeft - pcRectangle->miLeft, cCelRect.miTop - pcRectangle->miTop);
-					}
-				}
-			}
+			pSpriteFunction(pSprite->GetCel(), cCelRect.miLeft - pcRectangle->miLeft, cCelRect.miTop - pcRectangle->miTop);
 		}
 	}
 }

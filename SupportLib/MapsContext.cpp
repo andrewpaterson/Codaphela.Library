@@ -41,7 +41,6 @@ void CMapsContext::Init(void)
 	Ptr<CMovableBlockType>		pcImageType;
 
 	maBlockTypes.Init();
-	maSpriteTypes.Init();
 
 	maImages.Init();
 	maGroups.Init();
@@ -74,7 +73,6 @@ void CMapsContext::Free(void)
 void CMapsContext::Class(void)
 {
 	M_Embedded(maBlockTypes);
-	M_Embedded(maSpriteTypes);
 	M_Embedded(maImages);
 	M_Embedded(maGroups);
 }
@@ -117,28 +115,6 @@ Ptr<CMovableBlockType> CMapsContext::AddBlockType(char* szTypeName)
 		pcType = ONMalloc<CMovableBlockType>(szTypeName);
 	}
 	maBlockTypes.Add(pcType);
-	return pcType;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CCompoundSpriteType> CMapsContext::AddSpriteType(char* szTypeName)
-{
-	Ptr<CCompoundSpriteType>	pcType;
-
-	if (StrEmpty(szTypeName))
-	{
-		pcType = OMalloc<CCompoundSpriteType>();
-	}
-	else
-	{
-		pcType = ONMalloc<CCompoundSpriteType>(szTypeName);
-
-	}
-	maSpriteTypes.Add(pcType);
 	return pcType;
 }
 

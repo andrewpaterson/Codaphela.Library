@@ -1,14 +1,17 @@
 #ifndef __SPRITE_H__
 #define __SPRITE_H__
+#include "BaseLib/Int32Vec2.h"
+#include "StandardLib/Object.h"
+#include "StandardLib/Array.h"
 #include "ImageCel.h"
-#include "BaseSprite.h"
 
 
-class CSprite : public CBaseSprite
+class CSprite : public CObject
 {
 CONSTRUCTABLE(CSprite);
 DESTRUCTABLE(CSprite);
 protected:
+	SInt32Vec2		msPosition;
 	Ptr<CImageCel>	mpCel;
 
 public:
@@ -20,11 +23,11 @@ public:
 	bool			Load(CObjectReader* pcFile);
 
 	Ptr<CImageCel>	GetCel(void);
-	bool			IsSimple(void) override;
 	void			GetImageDestBounds(CRectangle* pcReturn);
-
-	void			BaseSpriteAbstract(void) override {}
 };
+
+
+typedef CArray<CSprite>		CArraySprite;
 
 
 #endif // __SPRITE_H__
