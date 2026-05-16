@@ -40,10 +40,10 @@ class CMapsContext : public CObject
 CONSTRUCTABLE(CMapsContext);
 DESTRUCTABLE(CMapsContext);
 protected:
-	CArrayMovableBlockType	maBlockTypes;  
-	CArrayCompoundSpriteType		maSpriteTypes;
-	CArrayImage				maImages;
-	CArrayImageCelGroup		maGroups;
+	CArrayMovableBlockType		maBlockTypes;  
+	CArrayCompoundSpriteType	maSpriteTypes;
+	CArrayImage					maImages;
+	CArrayImageCelGroup			maGroups;
 	
 public:
 	void 							Init(void);
@@ -56,7 +56,7 @@ public:
 	Ptr<CMovableBlockType>			AddBlockType(char* szTypeName = NULL);
 	Ptr<CArrayMovableBlockType>		GetBlockTypes(void);
 
-	Ptr<CCompoundSpriteType>				AddSpriteType(char* szTypeName = NULL);
+	Ptr<CCompoundSpriteType>		AddSpriteType(char* szTypeName = NULL);
 
 	void							AddImages(Ptr<CArrayImage> paImages);
 	void							AddGroup(Ptr<CImageCelGroup> pGroup);

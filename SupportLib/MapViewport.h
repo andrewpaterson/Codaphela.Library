@@ -31,15 +31,17 @@ class CMapViewport : public CObject
 CONSTRUCTABLE(CMapViewport);
 DESTRUCTABLE(CMapViewport);
 protected:
-	Ptr<CMaps>	mpMaps;
+	Ptr<CMaps>			mpMaps;
 	
 public:
-	void 	Init(Ptr<CMaps> pMaps);
-	void 	Free(void);
-	void	Class(void);
+	void 				Init(Ptr<CMaps> pMaps);
+	void 				Free(void);
+	void				Class(void);
+	Ptr<CMapsContext>	GetContext(void);
+	Ptr<CMaps>			GetMaps(void);
 
-	bool	Save(CObjectWriter* pcFile);
-	bool	Load(CObjectReader* pcFile);
+	bool				Save(CObjectWriter* pcFile);
+	bool				Load(CObjectReader* pcFile);
 };
 
 

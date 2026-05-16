@@ -33,7 +33,7 @@ void CMovableBlockImageCel::Init(Ptr<CMovableBlockType> pType, Ptr<CImageCel> pI
 	PreInit();
 
 	CMovableBlock::Init(pType);
-	mpImageCel = pImageCel;
+	mpCel = pImageCel;
 
 	PostInit();
 }
@@ -56,7 +56,7 @@ void CMovableBlockImageCel::Free(void)
 void CMovableBlockImageCel::Class(void)
 {
 	CMovableBlock::Class();
-	M_Pointer(mpImageCel);
+	M_Pointer(mpCel);
 }
 
 
@@ -81,9 +81,19 @@ bool CMovableBlockImageCel::Save(CObjectWriter* pcFile)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMovableBlockImageCel::GetImageDestBounds(SInt32Vec2* psPosition, CRectangle* pcReturn)
+{
+	mpCel->GetImageDestBounds(psPosition->x, psPosition->y, pcReturn);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
 bool CMovableBlockImageCel::IsCel(void) { return true; }
-Ptr<CImageCel> CMovableBlockImageCel::GetCel(void) { return mpImageCel; }
+Ptr<CImageCel> CMovableBlockImageCel::GetCel(void) { return mpCel; }
 

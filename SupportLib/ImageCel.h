@@ -44,8 +44,8 @@ protected:
 public:
 			void 			Init(Ptr<CImage> pcSourceImage);
 			void			Init(Ptr<CImage> pcSourceImage, CRectangle* pcRect);
-			void 			Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight, int iBottom);
-			void 			Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight, int iBottom, int iLeftOffset, int iTopOffset, int iRightOffset, int iBottomOffset, int iAlignment = SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
+			void 			Init(Ptr<CImage> pcSourceImage, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
+			void 			Init(Ptr<CImage> pcSourceImage, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, int32 iLeftOffset, int32 iTopOffset, int32 iRightOffset, int32 iBottomOffset, int32 iAlignment = SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
 			void			Class(void);
 			void 			Free(void);
 
@@ -59,19 +59,19 @@ public:
 	//Remove these from CImageCel, create a new class CDividerCel and put them there.
 	virtual	void			CropTransparentBorders(void);
 			void			CropTransparentBorders(CPixelOpacityBase* pcPixelOpacity);
-			bool			IsColumnTransparent(CPixelOpacityBase* pcOpacity, int x, int y1, int y2); //X/Y in Source space
-			bool			IsRowTransparent(CPixelOpacityBase* pcOpacity, int y, int x1, int x2);  //X/Y in Source space
+			bool			IsColumnTransparent(CPixelOpacityBase* pcOpacity, int32 x, int32 y1, int32 y2); //X/Y in Source space
+			bool			IsRowTransparent(CPixelOpacityBase* pcOpacity, int32 y, int32 x1, int32 x2);  //X/Y in Source space
 
 	virtual	void			GetAllChannels(CArrayChannel* pasChannels);
 	virtual	bool			MustFixDrawOpacity(void);
-	virtual	void			FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft);
-			void			FixDrawOpacity(CPixelOpacityBase* pcPixelOpacity, CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft);
+	virtual	void			FixDrawOpacity(CImageAccessor* pcDestOpacity, int32 iDestTop, int32 iDestLeft);
+			void			FixDrawOpacity(CPixelOpacityBase* pcPixelOpacity, CImageAccessor* pcDestOpacity, int32 iDestTop, int32 iDestLeft);
 			CSubImage*		GetSubImage(void);
 			void			SetSubImage(CSubImage* pcSubImage);
 			Ptr<CImage>		GetSourceImage(void);
-			void			GetImageDestBounds(int x, int y, CRectangle* pcReturn);
+			void			GetImageDestBounds(int32 x, int32 y, CRectangle* pcReturn);
 
-			void			CopyParam(SImageCopy* psCopy, int iDestX, int iDestY, int iDestWith, int iDestHeight);
+			void			CopyParam(SImageCopy* psCopy, int32 iDestX, int32 iDestY, int32 iDestWith, int32 iDestHeight);
 };
 
 

@@ -89,39 +89,39 @@ public:
 	SInt32Vec2	msAlignment;			//-ve
 
 	void 		Init(void);
-	void 		Init(int iLeft, int iTop, int iRight, int iBottom, int iLeftOffset, int iTopOffset, int iRightOffset, int iBottomOffset, int iAlignment = SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
+	void 		Init(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, int32 iLeftOffset, int32 iTopOffset, int32 iRightOffset, int32 iBottomOffset, int32 iAlignment = SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
 	void 		Kill(void);
 	void 		Copy(CSubImage* pcSubImage);
-	void 		SetAlignment(int iAlignment);
-	void 		SetHorizontalAlignment(int iAlignment);  //Left/Right alignment.
-	void 		SetVerticalAlignment(int iAlignment);  //Top/Bottom alignment.
+	void 		SetAlignment(int32 iAlignment);
+	void 		SetHorizontalAlignment(int32 iAlignment);  //Left/Right alignment.
+	void 		SetVerticalAlignment(int32 iAlignment);  //Top/Bottom alignment.
 	bool		IsImageEmpty(void);
 
 	//All the methods below are relative.  Add X,Y to the return to get a meaningful destination position.
-	int			GetFullWidth(void);
-	int			GetFullHeight(void);
-	int			GetImageWidth(void);
-	int			GetImageHeight(void);
+	int32		GetFullWidth(void);
+	int32		GetFullHeight(void);
+	int32		GetImageWidth(void);
+	int32		GetImageHeight(void);
 	SInt32Vec2	GetFullSize(void);
 	SInt32Vec2	GetImageSize(void);
 
-	int			GetImageLeft(void);
-	int			GetImageTop(void);
-	int			GetImageRight(void);
-	int			GetImageBottom(void);
+	int32		GetImageLeft(void);
+	int32		GetImageTop(void);
+	int32		GetImageRight(void);
+	int32		GetImageBottom(void);
 
-	int			GetFullLeft(void);
-	int			GetFullTop(void);
-	int			GetFullRight(void);
-	int			GetFullBottom(void);
+	int32		GetFullLeft(void);
+	int32		GetFullTop(void);
+	int32		GetFullRight(void);
+	int32		GetFullBottom(void);
 
-	void		GetFullDestBounds(int x, int y, CRectangle* pcDest);
-	SInt32Vec2	GetImageDestPos(int x, int y);
+	void		GetFullDestBounds(int32 x, int32 y, CRectangle* pcDest);
+	SInt32Vec2	GetImageDestPos(int32 x, int32 y);
 	void		GetFullSourceBounds(CRectangle* pcReturn);
 	void		GetImageSourceBounds(CRectangle* pcReturn);
-	void		GetImageDestBounds(int x, int y, CRectangle* pcReturn);
+	void		GetImageDestBounds(int32 x, int32 y, CRectangle* pcReturn);
 	void		AdjustImageRect(CSubImage* pcSubImage);
-	void		AdjustImageRect(int iLeft, int iTop, int iRight, int iBottom);
+	void		AdjustImageRect(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
 	void		AdjustToEmpty(void);
 };
 

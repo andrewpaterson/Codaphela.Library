@@ -32,7 +32,7 @@ class CMovableBlockImageCel : public CMovableBlock
 CONSTRUCTABLE(CMovableBlockImageCel);
 DESTRUCTABLE(CMovableBlockImageCel);
 protected:
-	Ptr<CImageCel>	mpImageCel;
+	Ptr<CImageCel>	mpCel;
 
 public:
 	void			Init(Ptr<CMovableBlockType> pType, Ptr<CImageCel> pImageCel);
@@ -44,6 +44,8 @@ public:
 
 	Ptr<CImageCel>	GetCel(void);
 	bool			IsCel(void);
+
+	void			GetImageDestBounds(SInt32Vec2* psPosition, CRectangle* pcReturn);
 
 	void			MovableBlockAbstract(void) override {}
 };

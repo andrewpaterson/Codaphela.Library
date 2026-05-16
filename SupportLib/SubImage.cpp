@@ -41,7 +41,7 @@ void CSubImage::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSubImage::Init(int iLeft, int iTop, int iRight, int iBottom, int iLeftOffset, int iTopOffset, int iRightOffset, int iBottomOffset, int iAlignment)
+void CSubImage::Init(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, int32 iLeftOffset, int32 iTopOffset, int32 iRightOffset, int32 iBottomOffset, int32 iAlignment)
 {
 	mcImageRect.Init(iLeft, iTop, iRight, iBottom);
 	msOffsetTopLeft.Init(iLeftOffset, iTopOffset);
@@ -65,7 +65,7 @@ void CSubImage::Kill()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSubImage::SetAlignment(int iAlignment)
+void CSubImage::SetAlignment(int32 iAlignment)
 {
 	SetHorizontalAlignment(iAlignment);
 	SetVerticalAlignment(iAlignment);
@@ -76,7 +76,7 @@ void CSubImage::SetAlignment(int iAlignment)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSubImage::SetHorizontalAlignment(int iAlignment)
+void CSubImage::SetHorizontalAlignment(int32 iAlignment)
 {
 	if (iAlignment & SUB_IMAGE_ALIGNMENT_LEFT)
 	{
@@ -97,7 +97,7 @@ void CSubImage::SetHorizontalAlignment(int iAlignment)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSubImage::SetVerticalAlignment(int iAlignment)
+void CSubImage::SetVerticalAlignment(int32 iAlignment)
 {
 	if (iAlignment & SUB_IMAGE_ALIGNMENT_TOP)
 	{
@@ -118,7 +118,7 @@ void CSubImage::SetVerticalAlignment(int iAlignment)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CSubImage::GetFullWidth(void)
+int32 CSubImage::GetFullWidth(void)
 {
 	return msOffsetTopLeft.x + GetImageWidth() + msOffsetBottomRight.x;
 }
@@ -128,7 +128,7 @@ int CSubImage::GetFullWidth(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CSubImage::GetFullHeight(void)
+int32 CSubImage::GetFullHeight(void)
 {
 	return msOffsetTopLeft.y + GetImageHeight() + msOffsetBottomRight.y;
 }
@@ -138,7 +138,7 @@ int CSubImage::GetFullHeight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CSubImage::GetImageWidth(void)
+int32 CSubImage::GetImageWidth(void)
 {
 	return mcImageRect.GetWidth();
 }
@@ -148,7 +148,7 @@ int CSubImage::GetImageWidth(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CSubImage::GetImageHeight(void)
+int32 CSubImage::GetImageHeight(void)
 {
 	return mcImageRect.GetHeight();
 }
@@ -184,7 +184,7 @@ SInt32Vec2 CSubImage::GetImageSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CSubImage::GetImageLeft(void)
+int32 CSubImage::GetImageLeft(void)
 {
 	return msAlignment.x + msOffsetTopLeft.x;
 }
@@ -194,7 +194,7 @@ int CSubImage::GetImageLeft(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CSubImage::GetImageTop(void)
+int32 CSubImage::GetImageTop(void)
 {
 	return msAlignment.y + msOffsetTopLeft.y;
 }
@@ -204,7 +204,7 @@ int CSubImage::GetImageTop(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CSubImage::GetImageRight(void)
+int32 CSubImage::GetImageRight(void)
 {
 	return msAlignment.x + msOffsetTopLeft.x + GetImageWidth();
 }
@@ -214,7 +214,7 @@ int CSubImage::GetImageRight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CSubImage::GetImageBottom(void)
+int32 CSubImage::GetImageBottom(void)
 {
 	return msAlignment.y + msOffsetTopLeft.y + GetImageHeight();
 }
@@ -224,7 +224,7 @@ int CSubImage::GetImageBottom(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CSubImage::GetFullLeft(void)
+int32 CSubImage::GetFullLeft(void)
 {
 	return msAlignment.x;
 }
@@ -234,7 +234,7 @@ int CSubImage::GetFullLeft(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CSubImage::GetFullTop(void)
+int32 CSubImage::GetFullTop(void)
 {
 	return msAlignment.y;
 }
@@ -244,7 +244,7 @@ int CSubImage::GetFullTop(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CSubImage::GetFullRight(void)
+int32 CSubImage::GetFullRight(void)
 {
 	return msAlignment.x + GetFullWidth();
 }
@@ -254,7 +254,7 @@ int CSubImage::GetFullRight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CSubImage::GetFullBottom(void)
+int32 CSubImage::GetFullBottom(void)
 {
 	return msAlignment.y + GetFullHeight();
 }
@@ -278,7 +278,7 @@ bool CSubImage::IsImageEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSubImage::GetFullDestBounds(int x, int y, CRectangle* pcReturn)
+void CSubImage::GetFullDestBounds(int32 x, int32 y, CRectangle* pcReturn)
 {
 	pcReturn->miLeft = x + GetFullLeft();
 	pcReturn->miTop = y + GetFullTop();
@@ -291,7 +291,7 @@ void CSubImage::GetFullDestBounds(int x, int y, CRectangle* pcReturn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CSubImage::GetImageDestPos(int x, int y)
+SInt32Vec2 CSubImage::GetImageDestPos(int32 x, int32 y)
 {
 	SInt32Vec2	iPos;
 
@@ -327,7 +327,7 @@ void CSubImage::GetImageSourceBounds(CRectangle* pcReturn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSubImage::GetImageDestBounds(int x, int y, CRectangle* pcReturn)
+void CSubImage::GetImageDestBounds(int32 x, int32 y, CRectangle* pcReturn)
 {
 	pcReturn->miLeft = x + GetImageLeft();
 	pcReturn->miTop = y + GetImageTop();
@@ -354,11 +354,11 @@ void CSubImage::AdjustImageRect(CSubImage* pcSubImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSubImage::AdjustImageRect(int iLeft, int iTop, int iRight, int iBottom)
+void CSubImage::AdjustImageRect(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom)
 {
 	//This assumes the Subimage is already correctly initialised.
 
-	int iDiff;
+	int32 iDiff;
 
 	iDiff = iLeft - mcImageRect.miLeft;
 	mcImageRect.miLeft = iLeft;
@@ -384,10 +384,10 @@ void CSubImage::AdjustImageRect(int iLeft, int iTop, int iRight, int iBottom)
 //////////////////////////////////////////////////////////////////////////
 void CSubImage::AdjustToEmpty(void)
 {
-	int	iWidth;
-	int iHeight;
-	int	iXAlign;
-	int	iYAlign;
+	int32	iWidth;
+	int32 iHeight;
+	int32	iXAlign;
+	int32	iYAlign;
 
 	iWidth = GetFullWidth();
 	iHeight = GetFullHeight();
