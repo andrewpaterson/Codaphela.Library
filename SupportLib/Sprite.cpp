@@ -1,4 +1,3 @@
-#include "StandardLib/ClassDefines.h"
 #include "Sprite.h"
 
 

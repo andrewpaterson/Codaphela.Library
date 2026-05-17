@@ -27,7 +27,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/Define.h"
 #include "BaseLib/SystemAllocator.h"
 #include "BaseLib/TypeNames.h"
-#include "ClassDefines.h"
 #include "Channels.h"
 
 

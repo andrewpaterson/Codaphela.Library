@@ -23,7 +23,6 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/PointerFunctions.h"
 #include "StandardLib/ObjectReader.h"
 #include "StandardLib/ObjectWriter.h"
-#include "StandardLib/ClassDefines.h"
 #include "Mesh.h"
 
 

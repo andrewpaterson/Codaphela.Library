@@ -37,7 +37,6 @@ public:
 	void 				Init(Ptr<CMaps> pMaps);
 	void 				Free(void);
 	void				Class(void);
-	Ptr<CMapsContext>	GetContext(void);
 	Ptr<CMaps>			GetMaps(void);
 
 	bool				Save(CObjectWriter* pcFile);

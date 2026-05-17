@@ -25,13 +25,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __MOVABLE_BLOCK_MAP_H__
 #include "StandardLib/Object.h"
 #include "StandardLib/Array.h"
-#include "StandardLib/ClassDefines.h"
 
 
-class CMovableBlockMap : public CObject
+class CBlockMap : public CObject
 {
-CONSTRUCTABLE(CMovableBlockMap);
-DESTRUCTABLE(CMovableBlockMap);
+CONSTRUCTABLE(CBlockMap);
+DESTRUCTABLE(CBlockMap);
 protected:
 	bool	mbActive;
 
@@ -46,11 +45,11 @@ public:
 	virtual	void	Activate(void);
 	virtual	void	Deactivate(void);
 
-	virtual	void	MovableBlockMapAbstract(void) =0;
+	virtual	void	TileMapAbstract(void) =0;
 };
 
 
-typedef CArray<CMovableBlockMap>	CArrayMovableBlockMap;
+typedef CArray<CBlockMap>	CArrayTileMap;
 
 
 #endif // __MOVABLE_BLOCK_MAP_H__

@@ -22,7 +22,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/FileUtil.h"
-#include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "ImageSourceDiskFile.h"
 #include "ImageSourceMemory.h"

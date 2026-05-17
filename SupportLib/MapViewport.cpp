@@ -54,19 +54,5 @@ bool CMapViewport::Load(CObjectReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-Ptr<CMapsContext> CMapViewport::GetContext(void)
-{
-	return mpMaps->GetContext();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CMaps> CMapViewport::GetMaps(void)
-{
-	return mpMaps;
-}
-
+Ptr<CMaps> CMapViewport::GetMaps(void) { return mpMaps; }
 

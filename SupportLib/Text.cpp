@@ -20,7 +20,6 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/UTF16.h"
-#include "StandardLib/ClassDefines.h"
 #include "TextUTF16Long.h"
 #include "TextUTF16Short.h"
 #include "TextUTF16Multi.h"

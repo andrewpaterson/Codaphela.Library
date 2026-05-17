@@ -21,21 +21,36 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __IMAGE_CELS_SOURCE_XML_H__
-#define __IMAGE_CELS_SOURCE_XML_H__
-#include "BaseLib/MarkupTag.h"
-#include "MapsContext.h"
+#ifndef __TILE_LAYER_BOOLEAN_H__
+#define __TILE_LAYER_BOOLEAN_H__
+#include "BaseLib/ArrayBit.h"
+#include "TileMap.h"
+#include "TileLayer.h"
 
 
-class CImageCelsSource;
-class CImageCelsSourceXML
+class CTileLayerBoolean : public CTileLayer
 {
+CONSTRUCTABLE(CTileLayerBoolean);
+DESTRUCTABLE(CTileLayerBoolean);
+protected:
+	CArrayBit	macBools;
+
 public:
-	bool Import(Ptr<CMapsContext> pcWorld, CMarkupTag* pcTag, char* szTexturePath);
-	bool ImportCelSource(Ptr<CMapsContext> pcTileWorld, CMarkupTag* pcBrushSourceTag, char* szTexturePath);
-	bool ImportCels(Ptr<CMapsContext> pcTileWorld, CMarkupTag* pcCelsTag, char* szFilename);
+	void	Init(Ptr<CTileMap> pTileMap, char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition);
+	void	Class(void);
+	void 	Free(void);
+
+	bool	Save(CObjectWriter* pcFile);
+	bool	Load(CObjectReader* pcFile);
+
+	void	SetTile(int x, int y, bool bValue);
+	bool	GetTile(size uiIndex);
+	bool	GetTile(int x, int y);
+
+	void	TileLayerAbstract(void) override {}
+
 };
 
 
-#endif // __IMAGE_CELS_SOURCE_XML_H__
+#endif // __TILE_LAYER_BOOLEAN_H__
 

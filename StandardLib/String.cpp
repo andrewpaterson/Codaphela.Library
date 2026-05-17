@@ -1,4 +1,3 @@
-#include "ClassDefines.h"
 #include "ObjectReader.h"
 #include "ObjectWriter.h"
 #include "Objects.h"

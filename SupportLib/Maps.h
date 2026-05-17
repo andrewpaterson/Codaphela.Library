@@ -27,7 +27,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/Array.h"
 #include "TileMap.h"
 #include "SpriteMap.h"
-#include "MapsContext.h"
 
 
 class CMaps : public CObject
@@ -35,21 +34,17 @@ class CMaps : public CObject
 CONSTRUCTABLE(CMaps);
 DESTRUCTABLE(CMaps);
 protected:
-	CArrayMovableBlockMap	maMaps;
-	Ptr<CMapsContext>		mpContext;
+	CArrayTileMap	maMaps;
 
 public:
-	void 				Init(Ptr<CMapsContext> pcContext);
+	void 				Init(void);
 	void 				Free(void);
 	void				Class(void);
 
 	bool				Save(CObjectWriter* pcFile);
 	bool				Load(CObjectReader* pcFile);
 
-	Ptr<CTileMap>		AddTileMap(char* szName, int iCelWidth, int iCelHeight);
-	Ptr<CSpriteMap>		AddSpriteMap(char* szName);
-
-	Ptr<CMapsContext>	GetContext(void);
+	void				AddMap(Ptr<CBlockMap> pMap);
 };
 
 

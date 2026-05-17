@@ -32,7 +32,7 @@ class CMeshCache : public CMeshDetail
 CONSTRUCTABLE(CMeshCache);
 DESTRUCTABLE(CMeshCache);
 public:
-	CMeshVertexArrayArray	mcMeshVerticesArrays;
+	CArrayMeshVertexArray	mcMeshVerticesArrays;
 
 	void 					Init(void);
 	void 					Free(void);

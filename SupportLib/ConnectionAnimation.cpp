@@ -20,7 +20,6 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ObjectWriter.h"
 #include "StandardLib/ObjectReader.h"
-#include "StandardLib/ClassDefines.h"
 #include "ConnectionAnimation.h"
 
 

@@ -24,6 +24,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Float.h"
 #include "Character.h"
 #include "PrimitiveVoid.h"
+#include "ClassDefines.h"
 #include "BaseObject.h"
 
 

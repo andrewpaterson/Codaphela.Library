@@ -23,7 +23,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ObjectReader.h"
 #include "StandardLib/ObjectWriter.h"
-#include "StandardLib/ClassDefines.h"
 #include "Box.h"
 #include "MeshPositions.h"
 #include "MeshNormals.h"

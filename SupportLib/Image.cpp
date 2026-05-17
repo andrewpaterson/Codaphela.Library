@@ -33,7 +33,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/Unknowns.h"
 #include "StandardLib/ObjectWriter.h"
 #include "StandardLib/ObjectReader.h"
-#include "StandardLib/ClassDefines.h"
 #include "ColourARGB32.h"
 #include "SubImage.h"
 #include "ImageAccessorCreator.h"

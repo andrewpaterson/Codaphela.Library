@@ -23,33 +23,34 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __TILE_LAYER_H__
 #define __TILE_LAYER_H__
-#include "StandardLib/Object.h"
 #include "StandardLib/Array.h"
-#include "MovableBlock.h"
+#include "StandardLib/Object.h"
+#include "StandardLib/Pointer.h"
 
 
-class CTileMap;
 class CTileLayer : public CObject
 {
 CONSTRUCTABLE(CTileLayer);
 DESTRUCTABLE(CTileLayer);
 protected:
-	CArrayMovableBlock		maTiles;
-	Ptr<CTileMap>			mpTileMap;
-	bool					mbVisible;
-	Ptr<CMovableBlockType>	mpType;
+	CPointer		mpTileMap;
+	CChars			mszTileType;
+	SInt32Vec2		msMapSize;		//The tile is indexed by x + y * msMapSize.x
+	SInt32Vec2		msCelSize;
+	SInt32Vec2		msPosition;		//Typically zero.
 
 public:
-	void				Init(Ptr<CTileMap> pTileMap, Ptr<CMovableBlockType> pTileType);
-	void 				Free(void);
-	void				Class(void);
+			void		Init(CPointer pTileMap, char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition);
+			void 		Free(void);
+			void		Class(void);
 
-	bool				Save(CObjectWriter* pcFile);
-	bool				Load(CObjectReader* pcFile);
+			bool		Save(CObjectWriter* pcFile);
+			bool		Load(CObjectReader* pcFile);
 
-	void				SetTile(int x, int y, Ptr<CMovableBlock> pTile);
-	Ptr<CMovableBlock>	GetTile(size uiIndex);
-	Ptr<CMovableBlock>	GetTile(int x, int y);
+			int32		GetLayerSizeX(void);
+			int32		GetLayerSizeY(void);
+
+	virtual void		TileLayerAbstract(void) =0;
 };
 
 

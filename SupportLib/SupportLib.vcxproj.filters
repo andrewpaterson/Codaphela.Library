@@ -184,12 +184,6 @@
     <Filter Include="Source\Map\MovableBlock">
       <UniqueIdentifier>{cce3c654-6e62-4c0c-a962-911a64877736}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Map\XML">
-      <UniqueIdentifier>{3ffc1149-9b68-4360-ab1e-bd6017d28d51}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Map\MovableBlock\Specific">
-      <UniqueIdentifier>{c1cebc11-9ee0-4f3e-85f2-4f354c0dabb8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Text">
       <UniqueIdentifier>{555a01b8-e76b-48d0-b2d7-cdc23c2f4cc6}</UniqueIdentifier>
     </Filter>
@@ -207,6 +201,9 @@
     </Filter>
     <Filter Include="Source\Text\Layout">
       <UniqueIdentifier>{abe22dbf-3f8a-4280-9a7a-8f286703421e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Map\Tile\Specific">
+      <UniqueIdentifier>{c1cebc11-9ee0-4f3e-85f2-4f354c0dabb8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -603,15 +600,6 @@
     <ClInclude Include="TileMap.h">
       <Filter>Source\Map\Tile</Filter>
     </ClInclude>
-    <ClInclude Include="ImageCelsSourceXML.h">
-      <Filter>Source\Map\XML</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectSourcesXML.h">
-      <Filter>Source\Map\XML</Filter>
-    </ClInclude>
-    <ClInclude Include="SubImageXML.h">
-      <Filter>Source\Map\XML</Filter>
-    </ClInclude>
     <ClInclude Include="Box.h">
       <Filter>Source\Shape</Filter>
     </ClInclude>
@@ -675,32 +663,20 @@
     <ClInclude Include="ImageDraw.h">
       <Filter>Source\Image\Draw</Filter>
     </ClInclude>
-    <ClInclude Include="MovableBlock.h">
-      <Filter>Source\Map\MovableBlock</Filter>
-    </ClInclude>
     <ClInclude Include="SpriteMap.h">
       <Filter>Source\Map\Sprite</Filter>
     </ClInclude>
     <ClInclude Include="Maps.h">
       <Filter>Source\Map</Filter>
     </ClInclude>
-    <ClInclude Include="MapsXML.h">
-      <Filter>Source\Map\XML</Filter>
-    </ClInclude>
-    <ClInclude Include="MovableBlockType.h">
+    <ClInclude Include="BlockMap.h">
       <Filter>Source\Map\MovableBlock</Filter>
     </ClInclude>
-    <ClInclude Include="MovableBlockMap.h">
-      <Filter>Source\Map\MovableBlock</Filter>
+    <ClInclude Include="TileLayerBoolean.h">
+      <Filter>Source\Map\Tile\Specific</Filter>
     </ClInclude>
-    <ClInclude Include="MovableBlockBoolean.h">
-      <Filter>Source\Map\MovableBlock\Specific</Filter>
-    </ClInclude>
-    <ClInclude Include="MovableBlockImageCel.h">
-      <Filter>Source\Map\MovableBlock\Specific</Filter>
-    </ClInclude>
-    <ClInclude Include="MapsContext.h">
-      <Filter>Source\Map</Filter>
+    <ClInclude Include="TileLayerCel.h">
+      <Filter>Source\Map\Tile\Specific</Filter>
     </ClInclude>
     <ClInclude Include="FontFactory.h">
       <Filter>Source\Image\Font</Filter>
@@ -1133,15 +1109,6 @@
     <ClCompile Include="TileMap.cpp">
       <Filter>Source\Map\Tile</Filter>
     </ClCompile>
-    <ClCompile Include="ImageCelsSourceXML.cpp">
-      <Filter>Source\Map\XML</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectSourcesXML.cpp">
-      <Filter>Source\Map\XML</Filter>
-    </ClCompile>
-    <ClCompile Include="SubImageXML.cpp">
-      <Filter>Source\Map\XML</Filter>
-    </ClCompile>
     <ClCompile Include="Box.cpp">
       <Filter>Source\Shape</Filter>
     </ClCompile>
@@ -1205,32 +1172,20 @@
     <ClCompile Include="ImageDraw.cpp">
       <Filter>Source\Image\Draw</Filter>
     </ClCompile>
-    <ClCompile Include="MovableBlock.cpp">
-      <Filter>Source\Map\MovableBlock</Filter>
-    </ClCompile>
     <ClCompile Include="SpriteMap.cpp">
       <Filter>Source\Map\Sprite</Filter>
     </ClCompile>
     <ClCompile Include="Maps.cpp">
       <Filter>Source\Map</Filter>
     </ClCompile>
-    <ClCompile Include="MapsXML.cpp">
-      <Filter>Source\Map\XML</Filter>
-    </ClCompile>
-    <ClCompile Include="MovableBlockType.cpp">
+    <ClCompile Include="BlockMap.cpp">
       <Filter>Source\Map\MovableBlock</Filter>
     </ClCompile>
-    <ClCompile Include="MovableBlockMap.cpp">
-      <Filter>Source\Map\MovableBlock</Filter>
+    <ClCompile Include="TileLayerBoolean.cpp">
+      <Filter>Source\Map\Tile\Specific</Filter>
     </ClCompile>
-    <ClCompile Include="MovableBlockBoolean.cpp">
-      <Filter>Source\Map\MovableBlock\Specific</Filter>
-    </ClCompile>
-    <ClCompile Include="MovableBlockImageCel.cpp">
-      <Filter>Source\Map\MovableBlock\Specific</Filter>
-    </ClCompile>
-    <ClCompile Include="MapsContext.cpp">
-      <Filter>Source\Map</Filter>
+    <ClCompile Include="TileLayerCel.cpp">
+      <Filter>Source\Map\Tile\Specific</Filter>
     </ClCompile>
     <ClCompile Include="FontFactory.cpp">
       <Filter>Source\Image\Font</Filter>

@@ -21,19 +21,29 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "MovableBlockBoolean.h"
+#include "TileLayerCel.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockBoolean::Init(Ptr<CMovableBlockType> pType, bool bValue)
+void CTileLayerCel::Init(Ptr<CTileMap> pTileMap, char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition)
 {
 	PreInit();
 
-	CMovableBlock::Init(pType);
-	mbValue = bValue;
+	int			i;
+	int			iSize;
+
+	CTileLayer::Init(pTileMap, szTileType, sMapSize, sCelSize, sPosition);
+
+	maTiles.Init();
+
+	iSize = sMapSize.x * sMapSize.y;
+	for (i = 0; i < iSize; i++)
+	{
+		maTiles.Add(NULL);
+	}
 
 	PostInit();
 }
@@ -43,9 +53,9 @@ void CMovableBlockBoolean::Init(Ptr<CMovableBlockType> pType, bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockBoolean::Free(void)
+void CTileLayerCel::Free(void)
 {
-	CMovableBlock::Free();
+	CTileLayer::Free();
 }
 
 
@@ -53,10 +63,10 @@ void CMovableBlockBoolean::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockBoolean::Class(void)
+void CTileLayerCel::Class(void)
 {
-	CMovableBlock::Class();
-	U_Bool(mbValue);
+	CTileLayer::Class();
+	M_Embedded(maTiles);
 }
 
 
@@ -64,9 +74,9 @@ void CMovableBlockBoolean::Class(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMovableBlockBoolean::Load(CObjectReader* pcFile)
+bool CTileLayerCel::Load(CObjectReader* pcFile)
 {
-	return CMovableBlock::Load(pcFile);
+	return CTileLayer::Load(pcFile);
 }
 
 
@@ -74,15 +84,44 @@ bool CMovableBlockBoolean::Load(CObjectReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMovableBlockBoolean::Save(CObjectWriter* pcFile)
+bool CTileLayerCel::Save(CObjectWriter* pcFile)
 {
-	return CMovableBlock::Save(pcFile);
+	return CTileLayer::Save(pcFile);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-//
+//																		//
+//																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMovableBlockBoolean::GetValue(void) { return mbValue; }
+void CTileLayerCel::SetTile(int x, int y, Ptr<CImageCel> pTile)
+{
+	size	iYOffset;
+
+	iYOffset = y * msMapSize.x;
+	maTiles.Set(x + iYOffset, pTile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CTileLayerCel::GetTile(size uiIndex)
+{
+	return maTiles.Get(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CTileLayerCel::GetTile(int x, int y)
+{
+	size	iYOffset;
+
+	iYOffset = y * msMapSize.x;
+	return maTiles.Get(x + iYOffset);
+}
 

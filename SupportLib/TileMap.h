@@ -26,35 +26,27 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/ArrayUnknownTemplate.h"
 #include "BaseLib/Int32Vec2.h"
 #include "TileLayer.h"
-#include "MovableBlockType.h"
-#include "MovableBlock.h"
-#include "MovableBlockMap.h"
+#include "BlockMap.h"
 
 
-class CTileMap : public CMovableBlockMap
+class CTileMap : public CBlockMap
 {
 CONSTRUCTABLE(CTileMap);
 DESTRUCTABLE(CTileMap);
 protected:
-	CArrayTileLayer		maTileLayers;	//Layers are not multiple graphics layers.  All the layers together make up the complete information about a single tile.  E.g. an ImageCelTile and a BooleanTile.
-	SInt32Vec2			msMapSize;		//The tile is indexed by x + y * msMapSize.x
-	SInt32Vec2			msCelSize;
+	CArrayTileLayer		maTileLayers;
 
 public:
 	void				Init(void);
-	void 				Init(int iCelSizeX, int iCelSizeY);
 	void 				Free(void);
 	void				Class(void);
 
 	bool				Save(CObjectWriter* pcFile);
 	bool				Load(CObjectReader* pcFile);
 
-	void				SetMapSize(int iMapSizeX, int iMapSizeY);
-	Ptr<CTileLayer>		AddLayer(char* szName, Ptr<CMovableBlockType> pTileType);
-	int					GetMapSizeX(void);
-	int					GetMapSizeY(void);
+	void				AddLayer(Ptr<CTileLayer> pLayer);
 
-	void				MovableBlockMapAbstract(void) override {}
+	void				TileMapAbstract(void) override {}
 };
 
 
