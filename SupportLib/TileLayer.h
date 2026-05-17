@@ -40,7 +40,7 @@ protected:
 	SInt32Vec2		msPosition;		//Typically zero.
 
 public:
-			void		Init(CPointer pTileMap, char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition);
+			void		Init(CPointer pTileMap, const char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition);
 			void 		Free(void);
 			void		Class(void);
 

@@ -36,16 +36,19 @@ protected:
 	CArrayImageCel	maTiles;
 
 public:
-	void			Init(Ptr<CTileMap> pTileMap, char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition);
+	void			Init(Ptr<CTileMap> pTileMap, const char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition);
 	void 			Free(void);
 	void			Class(void);
 
 	bool			Save(CObjectWriter* pcFile);
 	bool			Load(CObjectReader* pcFile);
 
-	void			SetTile(int x, int y, Ptr<CImageCel> pTile);
+	bool			SetTile(int x, int y, Ptr<CImageCel> pTile);
 	Ptr<CImageCel>	GetTile(size uiIndex);
 	Ptr<CImageCel>	GetTile(int x, int y);
+
+	bool			SetTiles(int x, int y, Ptr<CArrayImageCel> paCels, size uiIndices ...);
+	Ptr<CImage>		WriteToImage(void);
 
 	void			TileLayerAbstract(void) override {}
 };

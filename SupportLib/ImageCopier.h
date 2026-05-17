@@ -51,7 +51,7 @@ public:
 	void Init(CImageAccessor* pcSourceAccessor, CImageAccessor* pcDestAccessor);
 	void Kill(void);
 
-	void Copy(int iDestX, int iDestY, CImageCel* pcSourceCel);
+	void Copy(int iDestX, int iDestY, Ptr<CImageCel> pcSourceCel);
 	void Copy(int iDestX, int iDestY, CRectangle* psSourceRect = NULL);
 	void Copy(int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2);
 	void Copy(SImageCopy* psCopy);
