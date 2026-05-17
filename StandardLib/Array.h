@@ -34,9 +34,9 @@ public:
 
 	void			Add(Ptr<M> pObject);
 	void			AddAll(Ptr<CArrayCommonObject> pcArray);
-	void			Insert(size iIndex, Ptr<M> pObject);
+	bool			Insert(size iIndex, Ptr<M> pObject);
 	Ptr<M>			Get(size iIndex);
-	void			Set(size iIndex, Ptr<M> pObject);
+	bool			Set(size iIndex, Ptr<M> pObject);
 	Ptr<M>			StartIteration(SSetIterator* psIter, bool* pbExists);
 	Ptr<M>			Iterate(SSetIterator* psIter, bool* pbExists);
 
@@ -85,7 +85,7 @@ void CArray<M>::AddAll(Ptr<CArrayCommonObject> pcArray)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArray<M>::Insert(size iIndex, Ptr<M> pObject)
+bool CArray<M>::Insert(size iIndex, Ptr<M> pObject)
 {
 	CArrayObject::Insert(iIndex, pObject);
 }
@@ -96,9 +96,9 @@ void CArray<M>::Insert(size iIndex, Ptr<M> pObject)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArray<M>::Set(size iIndex, Ptr<M> pObject)
+bool CArray<M>::Set(size iIndex, Ptr<M> pObject)
 {
-	CArrayObject::Set(iIndex, pObject);
+	return CArrayObject::Set(iIndex, pObject);
 }
 
 

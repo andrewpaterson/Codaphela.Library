@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "ImageCopier.h"
 #include "TileLayerCel.h"
 
 
@@ -28,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileLayerCel::Init(Ptr<CTileMap> pTileMap, char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition)
+void CTileLayerCel::Init(Ptr<CTileMap> pTileMap, const char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition)
 {
 	PreInit();
 
@@ -94,12 +95,12 @@ bool CTileLayerCel::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CTileLayerCel::SetTile(int x, int y, Ptr<CImageCel> pTile)
+bool CTileLayerCel::SetTile(int x, int y, Ptr<CImageCel> pTile)
 {
 	size	iYOffset;
 
 	iYOffset = y * msMapSize.x;
-	maTiles.Set(x + iYOffset, pTile);
+	return maTiles.Set(x + iYOffset, pTile);
 }
 
 
@@ -123,5 +124,105 @@ Ptr<CImageCel> CTileLayerCel::GetTile(int x, int y)
 
 	iYOffset = y * msMapSize.x;
 	return maTiles.Get(x + iYOffset);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CTileLayerCel::SetTiles(int x, int y, Ptr<CArrayImageCel> paCels, size uiIndices ...)
+{
+	va_list			vaMarker;
+	size			iIndex;
+	size			uiNumCels;
+	int				iMaxX;
+	Ptr<CImageCel>	pCel;
+	bool			bResult;
+
+	uiNumCels = paCels->NumElements();
+	iMaxX = msMapSize.x;
+	bResult = true;
+
+	va_start(vaMarker, uiIndices);
+	iIndex = uiIndices;
+	while ((iIndex < uiNumCels) && (x < iMaxX))
+	{
+		pCel = paCels->Get(iIndex);
+		bResult &= pCel.IsNotNull();
+		bResult &= SetTile(x, y, pCel);
+		x++;
+		iIndex = va_arg(vaMarker, char);
+	}
+	va_end(vaMarker);
+
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImage> CTileLayerCel::WriteToImage(void)
+{
+	size			uiNumTiles;
+	size			uiTile;
+	Ptr<CImageCel>	pCel;
+	Ptr<CImage>		pCelImage;
+	Ptr<CImage>		pSourceImage;
+	Ptr<CImage>		pDestImage;
+	CImageCopier	cCopier;
+	int32			x;
+	int32			y;
+
+	pSourceImage = NULL;
+	uiNumTiles = maTiles.NumElements();
+	for (uiTile = 0; uiTile < uiNumTiles; uiTile++)
+	{
+		pCel = maTiles.Get(uiTile);
+		if (pCel.IsNotNull())
+		{
+			pCelImage = pCel->GetSourceImage();
+			if (pSourceImage.IsNull())
+			{
+				pSourceImage = pCelImage;
+			}
+			else
+			{
+				if (pSourceImage != pCelImage)
+				{
+					return NULL;
+				}
+			}
+		}
+	}
+
+	if (pSourceImage.IsNull())
+	{
+		return NULL;
+	}
+
+	pDestImage = OMalloc<CImage>(msMapSize.x * msCelSize.x, msMapSize.y * msCelSize.y, pSourceImage);
+	if (pDestImage.IsNull())
+	{
+		return NULL;
+	}
+
+	cCopier.Init(pSourceImage, pDestImage);
+	for (y = 0; y < msMapSize.y; y++)
+	{
+		for (x = 0; x < msMapSize.x; x++)
+		{
+			pCel = GetTile(x, y);
+			if (pCel.IsNotNull())
+			{
+				cCopier.Copy(x * msCelSize.x, y * msCelSize.y, pCel);
+			}
+		}
+	}
+	cCopier.Kill();
+
+	return pDestImage;
 }
 

@@ -36,7 +36,7 @@ protected:
 	CArrayBit	macBools;
 
 public:
-	void	Init(Ptr<CTileMap> pTileMap, char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition);
+	void	Init(Ptr<CTileMap> pTileMap, const char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition);
 	void	Class(void);
 	void 	Free(void);
 
