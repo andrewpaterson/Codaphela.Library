@@ -27,13 +27,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/IntVec2.h"
 #include "StandardLib/Array.h"
 #include "Sprite.h"
-#include "MovableBlockMap.h"
+#include "BlockMap.h"
 
 
 typedef void (*MapImageCelFunction)(Ptr<CImageCel> pcImageCel, int x, int y);
 
 
-class CSpriteMap : public CMovableBlockMap
+class CSpriteMap : public CBlockMap
 {
 CONSTRUCTABLE(CSpriteMap)
 DESTRUCTABLE(CSpriteMap)
@@ -55,10 +55,9 @@ public:
 	void					BeginChange(void);
 	void					EndChange(void);
 
-
 	void					FindImageCels(CRectangle* pcRectangle, MapImageCelFunction pSpriteFunction);
 
-	void					MovableBlockMapAbstract(void) override {}
+	void					TileMapAbstract(void) override {}
 };
 
 

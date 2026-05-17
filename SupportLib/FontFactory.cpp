@@ -23,7 +23,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/TextFile.h"
 #include "BaseLib/UTF8.h"
-#include "StandardLib/ClassDefines.h"
 #include "SupportLib/Image.h"
 #include "SupportLib/ImageReader.h"
 #include "SupportLib/ImageDivider.h"

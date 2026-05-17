@@ -21,7 +21,6 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "StandardLib/ClassDefines.h"
 #include "TileMap.h"
 #include "TileLayer.h"
 
@@ -30,25 +29,15 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileLayer::Init(Ptr<CTileMap> pTileMap, Ptr<CMovableBlockType> pTileType)
+void CTileLayer::Init(CPointer pTileMap, char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition)
 {
 	PreInit();
 
-	int					i;
-	Ptr<CMovableBlock>	pNull;
-	int					iSize;
-
-	maTiles.Init();
 	mpTileMap = pTileMap;
-	mbVisible = true;
-	mpType = pTileType;
-
-	pNull = mpType->GetNullBlock();
-	iSize = pTileMap->GetMapSizeX() * pTileMap->GetMapSizeY();
-	for (i = 0; i < iSize; i++)
-	{
-		maTiles.Add(pNull);
-	}
+	mszTileType.Init(szTileType);
+	msMapSize = sMapSize;
+	msCelSize = sCelSize;
+	msPosition = sPosition;
 
 	PostInit();
 }
@@ -60,6 +49,7 @@ void CTileLayer::Init(Ptr<CTileMap> pTileMap, Ptr<CMovableBlockType> pTileType)
 //////////////////////////////////////////////////////////////////////////
 void CTileLayer::Free(void)
 {
+	mszTileType.Kill();
 }
 
 
@@ -69,10 +59,11 @@ void CTileLayer::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CTileLayer::Class(void)
 {
-	M_Embedded(maTiles);
 	M_Pointer(mpTileMap);
-	U_Bool(mbVisible);
-	M_Pointer(mpType);
+	U_String(mszTileType);
+	U_2Int32(msMapSize);
+	U_2Int32(msCelSize);
+	U_2Int32(msPosition);
 }
 
 
@@ -97,37 +88,21 @@ bool CTileLayer::Save(CObjectWriter* pcFile)
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-//
+//																		//
+//																		//
 //////////////////////////////////////////////////////////////////////////
-void CTileLayer::SetTile(int x, int y, Ptr<CMovableBlock> pTile)
+int32 CTileLayer::GetLayerSizeX(void)
 {
-	int		iYOffset;
-
-	iYOffset = y * mpTileMap->GetMapSizeX();
-	maTiles.Set(x + iYOffset, pTile);
+	return msMapSize.x;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-//
+//																		//
+//																		//
 //////////////////////////////////////////////////////////////////////////
-Ptr<CMovableBlock> CTileLayer::GetTile(size uiIndex)
+int32 CTileLayer::GetLayerSizeY(void)
 {
-	return mpType->GetBlock(uiIndex);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CMovableBlock> CTileLayer::GetTile(int x, int y)
-{
-	int		iYOffset;
-
-	iYOffset = y * mpTileMap->GetMapSizeX();
-	return mpType->GetBlock(x + iYOffset);
+	return msMapSize.y;
 }
 

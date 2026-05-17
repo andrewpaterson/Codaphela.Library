@@ -21,14 +21,14 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "MovableBlockMap.h"
+#include "BlockMap.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockMap::Init(void)
+void CBlockMap::Init(void)
 {
 	PreInit();
 
@@ -42,7 +42,7 @@ void CMovableBlockMap::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockMap::Free(void)
+void CBlockMap::Free(void)
 {
 }
 
@@ -51,7 +51,7 @@ void CMovableBlockMap::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockMap::Class(void)
+void CBlockMap::Class(void)
 {
 	U_Bool(mbActive);
 }
@@ -61,7 +61,7 @@ void CMovableBlockMap::Class(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMovableBlockMap::Load(CObjectReader* pcFile)
+bool CBlockMap::Load(CObjectReader* pcFile)
 {
 	return false;
 }
@@ -71,7 +71,7 @@ bool CMovableBlockMap::Load(CObjectReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMovableBlockMap::Save(CObjectWriter* pcFile)
+bool CBlockMap::Save(CObjectWriter* pcFile)
 {
 	return false;
 }
@@ -81,7 +81,7 @@ bool CMovableBlockMap::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockMap::Activate(void)
+void CBlockMap::Activate(void)
 {
 	mbActive = true;
 }
@@ -91,7 +91,7 @@ void CMovableBlockMap::Activate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockMap::Deactivate(void)
+void CBlockMap::Deactivate(void)
 {
 	mbActive = false;
 }

@@ -21,31 +21,38 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MOVABLE_BLOCK_BOOLEAN_H__
-#define __MOVABLE_BLOCK_BOOLEAN_H__
-#include "MovableBlock.h"
+#ifndef __TILE_LAYER_CEL_H__
+#define __TILE_LAYER_CEL_H__
+#include "ImageCel.h"
+#include "TileMap.h"
+#include "TileLayer.h"
 
 
-class CMovableBlockBoolean : public CMovableBlock
+class CTileLayerCel : public CTileLayer
 {
-CONSTRUCTABLE(CMovableBlockBoolean);
-DESTRUCTABLE(CMovableBlockBoolean);
+CONSTRUCTABLE(CTileLayerCel);
+DESTRUCTABLE(CTileLayerCel);
 protected:
-	bool	mbValue;
+	CArrayImageCel	maTiles;
 
 public:
-	void	Init(Ptr<CMovableBlockType> pType, bool bValue);
-	void	Class(void);
-	void 	Free(void);
+	void			Init(Ptr<CTileMap> pTileMap, char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition);
+	void 			Free(void);
+	void			Class(void);
 
-	bool	Save(CObjectWriter* pcFile);
-	bool	Load(CObjectReader* pcFile);
+	bool			Save(CObjectWriter* pcFile);
+	bool			Load(CObjectReader* pcFile);
 
-	bool	GetValue(void);
+	void			SetTile(int x, int y, Ptr<CImageCel> pTile);
+	Ptr<CImageCel>	GetTile(size uiIndex);
+	Ptr<CImageCel>	GetTile(int x, int y);
 
-	void	MovableBlockAbstract(void) override {}
+	void			TileLayerAbstract(void) override {}
 };
 
 
-#endif // __MOVABLE_BLOCK_BOOLEAN_H__
+typedef CArray<CTileLayerCel>	CArrayTileImageCel;
+
+
+#endif // __TILE_LAYER_CEL_H__
 

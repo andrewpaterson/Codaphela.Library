@@ -22,8 +22,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Objects.h"
-#include "MovableBlockBoolean.h"
-#include "MovableBlockImageCel.h"
 #include "Maps.h"
 
 
@@ -31,9 +29,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMaps::Init(Ptr<CMapsContext> pContext)
+void CMaps::Init(void)
 {
-	mpContext = pContext;
 	maMaps.Init();
 }
 
@@ -53,7 +50,6 @@ void CMaps::Free(void)
 void CMaps::Class(void)
 {
 	M_Embedded(maMaps);
-	M_Pointer(mpContext);
 }
 
 
@@ -81,49 +77,8 @@ bool CMaps::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CTileMap> CMaps::AddTileMap(char* szName, int iCelWidth, int iCelHeight)
+void CMaps::AddMap(Ptr<CBlockMap> pMap)
 {
-	Ptr<CTileMap>	pMap;
-
-	if (StrEmpty(szName))
-	{
-		pMap = OMalloc<CTileMap>(iCelWidth, iCelHeight);
-	}
-	else
-	{
-		pMap = ONMalloc<CTileMap>(szName, iCelWidth, iCelHeight);
-	}
 	maMaps.Add(pMap);
-
-	return pMap;
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CSpriteMap> CMaps::AddSpriteMap(char* szName)
-{
-	Ptr<CSpriteMap>		pMap;
-
-	if (StrEmpty(szName))
-	{
-		pMap = OMalloc<CSpriteMap>();
-	}
-	else
-	{
-		pMap = ONMalloc<CSpriteMap>(szName);
-	}
-	maMaps.Add(pMap);
-
-	return pMap;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CMapsContext> CMaps::GetContext(void) {	return mpContext; }
 

@@ -58,7 +58,7 @@ private:
 };
 
 
-typedef CArray<CMeshVertexArray>	CMeshVertexArrayArray;
+typedef CArray<CMeshVertexArray>	CArrayMeshVertexArray;
 
 
 #endif // __MESH_VERTEX_ARRAY_H__

@@ -19,7 +19,6 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/GlobalMemory.h"
-#include "StandardLib/ClassDefines.h"
 #include "StandardLib/ObjectReader.h"
 #include "StandardLib/ObjectWriter.h"
 #include "MeshConnectivity.h"

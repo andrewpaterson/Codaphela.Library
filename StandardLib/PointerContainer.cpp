@@ -1,4 +1,3 @@
-#include "ClassDefines.h"
 #include "ObjectWriter.h"
 #include "ObjectReader.h"
 #include "PointerContainer.h"

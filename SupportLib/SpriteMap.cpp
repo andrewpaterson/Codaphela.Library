@@ -22,7 +22,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Objects.h"
-#include "MovableBlockImageCel.h"
 #include "SpriteMap.h"
 
 
@@ -34,7 +33,7 @@ void CSpriteMap::Init(void)
 {
 	PreInit();
 
-	CMovableBlockMap::Init();
+	CBlockMap::Init();
 	maSprites.Init();
 
 	PostInit();
@@ -47,7 +46,7 @@ void CSpriteMap::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CSpriteMap::Free(void)
 {
-	CMovableBlockMap::Free();
+	CBlockMap::Free();
 }
 
 
@@ -57,7 +56,7 @@ void CSpriteMap::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CSpriteMap::Class(void)
 {
-	CMovableBlockMap::Class();
+	CBlockMap::Class();
 	M_Embedded(maSprites);
 }
 
@@ -133,8 +132,6 @@ void CSpriteMap::FindImageCels(CRectangle* pcRectangle, MapImageCelFunction pSpr
 	size						uiNumSprites;
 	size						uiSprite;
 	Ptr<CSprite>				pSprite;
-	Ptr<CMovableBlock>			pLayer;
-	Ptr<CMovableBlockImageCel>	pBlockCel;
 	CRectangle					cCelRect;
 	SIntVec2					sOffset;
 

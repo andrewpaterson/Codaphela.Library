@@ -32,39 +32,10 @@ void CTileMap::Init(void)
 {
 	PreInit();
 
-	CMovableBlockMap::Init();
-	msMapSize.Init(0, 0);
-	msCelSize.Init(0, 0);
+	CBlockMap::Init();
 	maTileLayers.Init();
 
 	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTileMap::Init(int iCelSizeX, int iCelSizeY)
-{
-	PreInit();
-
-	CMovableBlockMap::Init();
-	msMapSize.Init(0, 0);
-	msCelSize.Init(iCelSizeX, iCelSizeY);
-	maTileLayers.Init();
-
-	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTileMap::SetMapSize(int iMapSizeX, int iMapSizeY)
-{
-	msMapSize.Init(iMapSizeX, iMapSizeY);
 }
 
 
@@ -74,7 +45,7 @@ void CTileMap::SetMapSize(int iMapSizeX, int iMapSizeY)
 //////////////////////////////////////////////////////////////////////////
 void CTileMap::Free(void)
 {
-	CMovableBlockMap::Free();
+	CBlockMap::Free();
 }
 
 
@@ -84,10 +55,8 @@ void CTileMap::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CTileMap::Class(void)
 {
-	CMovableBlockMap::Class();
+	CBlockMap::Class();
 	M_Embedded(maTileLayers);
-	U_2Int32(msMapSize);
-	U_2Int32(msCelSize);
 }	
 
 
@@ -115,28 +84,9 @@ bool CTileMap::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CTileLayer> CTileMap::AddLayer(char* szName, Ptr<CMovableBlockType> pTileType)
+void CTileMap::AddLayer(Ptr<CTileLayer> pLayer)
 {
-	Ptr<CTileLayer> pLayer;
-
-	if (StrEmpty(szName))
-	{
-		pLayer = OMalloc<CTileLayer>(this, pTileType);
-	}
-	else
-	{
-		pLayer = ONMalloc<CTileLayer>(szName, this, pTileType);
-	}
 	maTileLayers.Add(pLayer);
-	return pLayer;
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CTileMap::GetMapSizeX(void) { return msMapSize.x; }
-int CTileMap::GetMapSizeY(void) { return msMapSize.y; }
 
 
