@@ -1051,7 +1051,6 @@ bool PrivateAssertNull(void* pvActual, char* szPrefix, size iLine, char* szFile)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1080,6 +1079,16 @@ bool PrivateAssertFile(const char* szExpectedFilename, char* szActualFilename, c
 		szExpected.Kill();
 		return Pass();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertFile(CChars szExpectedFilename, CChars szActualFilename, char* szPrefix, size iLine, char* szFile)
+{
+	return PrivateAssertFile(szExpectedFilename.Text(), szActualFilename.Text(), szPrefix, iLine, szFile);
 }
 
 
