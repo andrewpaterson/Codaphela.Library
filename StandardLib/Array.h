@@ -87,7 +87,7 @@ void CArray<M>::AddAll(Ptr<CArrayCommonObject> pcArray)
 template<class M>
 bool CArray<M>::Insert(size iIndex, Ptr<M> pObject)
 {
-	CArrayObject::Insert(iIndex, pObject);
+	return CArrayObject::Insert(iIndex, pObject);
 }
 
 
