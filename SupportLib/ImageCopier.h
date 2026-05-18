@@ -1,3 +1,5 @@
+#ifndef __IMAGE_COPIER_H__
+#define __IMAGE_COPIER_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -21,8 +23,6 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __IMAGE_COPIER_H__
-#define __IMAGE_COPIER_H__
 #include "StandardLib/Pointer.h"
 #include "ImageAccessor.h"
 #include "Rectangle.h"
@@ -34,9 +34,9 @@ class CImageCopier : public CUnknown
 {
 CONSTRUCTABLE(CImageCopier);
 public:
-	static void Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int iDestX, int iDestY, CRectangle* psSourceRect = NULL);
-	static void Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2);
-	static void Copy(CImageCel* pcSource, Ptr<CImage> pcDest, int iDestX, int iDestY);
+	static void Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int32 iDestX, int32 iDestY, CRectangle* psSourceRect = NULL);
+	static void Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int32 iDestX, int32 iDestY, int32 iSourceX1, int32 iSourceY1, int32 iSourceX2, int32 iSourceY2);
+	static void Copy(Ptr<CImageCel> pcSource, Ptr<CImage> pcDest, int32 iDestX, int32 iDestY);
 	static void Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest);
 
 protected:
@@ -51,9 +51,9 @@ public:
 	void Init(CImageAccessor* pcSourceAccessor, CImageAccessor* pcDestAccessor);
 	void Kill(void);
 
-	void Copy(int iDestX, int iDestY, Ptr<CImageCel> pcSourceCel);
-	void Copy(int iDestX, int iDestY, CRectangle* psSourceRect = NULL);
-	void Copy(int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2);
+	void Copy(int32 iDestX, int32 iDestY, Ptr<CImageCel> pcSourceCel);
+	void Copy(int32 iDestX, int32 iDestY, CRectangle* psSourceRect = NULL);
+	void Copy(int32 iDestX, int32 iDestY, int32 iSourceX1, int32 iSourceY1, int32 iSourceX2, int32 iSourceY2);
 	void Copy(SImageCopy* psCopy);
 };
 

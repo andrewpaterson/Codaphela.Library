@@ -185,6 +185,7 @@
     <ClInclude Include="GlyphListFontDraw.h" />
     <ClInclude Include="MapFontDraw.h" />
     <ClInclude Include="MapViewport.h" />
+    <ClInclude Include="MultiImageCopier.h" />
     <ClInclude Include="SimpleTextReader.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="TextBuilder.h" />
@@ -375,6 +376,7 @@
     <ClCompile Include="ImageToR3G3B2A.cpp" />
     <ClCompile Include="MapViewport.cpp" />
     <ClCompile Include="BlockMap.cpp" />
+    <ClCompile Include="MultiImageCopier.cpp" />
     <ClCompile Include="PNGWriter.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SFTCommon.cpp" />

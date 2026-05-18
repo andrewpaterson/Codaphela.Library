@@ -205,6 +205,9 @@
     <Filter Include="Source\Map\Tile\Specific">
       <UniqueIdentifier>{c1cebc11-9ee0-4f3e-85f2-4f354c0dabb8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Image\Copier">
+      <UniqueIdentifier>{7ce68e9f-e09f-4c5e-b0ad-3cc926258688}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CopyPaste.h">
@@ -229,9 +232,6 @@
       <Filter>Source\Image</Filter>
     </ClInclude>
     <ClInclude Include="ImageChannel.h">
-      <Filter>Source\Image</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageCopier.h">
       <Filter>Source\Image</Filter>
     </ClInclude>
     <ClInclude Include="Font.h">
@@ -747,6 +747,12 @@
     <ClInclude Include="MapViewport.h">
       <Filter>Source\Map</Filter>
     </ClInclude>
+    <ClInclude Include="ImageCopier.h">
+      <Filter>Source\Image\Copier</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiImageCopier.h">
+      <Filter>Source\Image\Copier</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -759,9 +765,6 @@
       <Filter>Source\Image</Filter>
     </ClCompile>
     <ClCompile Include="ImageChannel.cpp">
-      <Filter>Source\Image</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageCopier.cpp">
       <Filter>Source\Image</Filter>
     </ClCompile>
     <ClCompile Include="Font.cpp">
@@ -1255,6 +1258,12 @@
     </ClCompile>
     <ClCompile Include="MapViewport.cpp">
       <Filter>Source\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageCopier.cpp">
+      <Filter>Source\Image\Copier</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiImageCopier.cpp">
+      <Filter>Source\Image\Copier</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

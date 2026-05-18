@@ -70,19 +70,20 @@ void CFiles::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CFiles::AddPackFile(CFileNodeSystemFile* pcFileNodeSystemFile)
 {
-	CPackFileOffset*			pcPackFiles;
-	char*						szFullName;
-	CChars						szPackFileOffset;
-	CChars*						pszFullDirectory;
-	size						iLength;
-	bool						bResult;
-	uint32						iRank;
+	CPackFileOffset*				pcPackFiles;
+	char*							szFullName;
+	CChars							szPackFileOffset;
+	CChars*							pszFullDirectory;
+	size							iLength;
+	bool							bResult;
+	uint32							iRank;
+	CPostMalloc<CPackFileOffset>	cPostMalloc;
 
 	pszFullDirectory = mcFileSystem.GetFullDirectoryName();
 	iLength = mszPackFilesExtension.Length()+1;
 
 	pcPackFiles = mcPackFilesArray.Add();
-	new(pcPackFiles) CPackFileOffset();
+	cPostMalloc.PostMalloc(pcPackFiles);
 
 	szFullName = pcFileNodeSystemFile->GetFullName();
 
