@@ -36,6 +36,9 @@ public:
 	bool	Put(void* pvKey, void* psData);
 
 	bool	Remove(void* pvKey);
+
+	bool	StartIteration(SMapIterator* psIterator, void** ppcKey, void** ppcValue);
+	bool	Iterate(SMapIterator* psIterator, void** ppcKey, void** ppcValue);
 };
 
 

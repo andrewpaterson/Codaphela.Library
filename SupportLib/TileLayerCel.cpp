@@ -21,7 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "ImageCopier.h"
+#include "MultiImageCopier.h"
 #include "TileLayerCel.h"
 
 
@@ -166,50 +166,33 @@ bool CTileLayerCel::SetTiles(int x, int y, Ptr<CArrayImageCel> paCels, size uiIn
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CTileLayerCel::WriteToImage(void)
 {
-	size			uiNumTiles;
-	size			uiTile;
-	Ptr<CImageCel>	pCel;
-	Ptr<CImage>		pCelImage;
-	Ptr<CImage>		pSourceImage;
-	Ptr<CImage>		pDestImage;
-	CImageCopier	cCopier;
-	int32			x;
-	int32			y;
+	size				uiNumTiles;
+	size				uiTile;
+	Ptr<CImageCel>		pCel;
+	Ptr<CImage>			pCelImage;
+	Ptr<CImage>			pDestImage;
+	CMultiImageCopier	cCopier;
+	int32				x;
+	int32				y;
 
-	pSourceImage = NULL;
+	pDestImage = OMalloc<CImage>(msMapSize.x * msCelSize.x, msMapSize.y * msCelSize.y, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
+	if (pDestImage.IsNull())
+	{
+		return NULL;
+	}
+
+	cCopier.Init(pDestImage);
+
 	uiNumTiles = maTiles.NumElements();
 	for (uiTile = 0; uiTile < uiNumTiles; uiTile++)
 	{
 		pCel = maTiles.Get(uiTile);
 		if (pCel.IsNotNull())
 		{
-			pCelImage = pCel->GetSourceImage();
-			if (pSourceImage.IsNull())
-			{
-				pSourceImage = pCelImage;
-			}
-			else
-			{
-				if (pSourceImage != pCelImage)
-				{
-					return NULL;
-				}
-			}
+			cCopier.AddAccessor(pCel);
 		}
 	}
 
-	if (pSourceImage.IsNull())
-	{
-		return NULL;
-	}
-
-	pDestImage = OMalloc<CImage>(msMapSize.x * msCelSize.x, msMapSize.y * msCelSize.y, pSourceImage);
-	if (pDestImage.IsNull())
-	{
-		return NULL;
-	}
-
-	cCopier.Init(pSourceImage, pDestImage);
 	for (y = 0; y < msMapSize.y; y++)
 	{
 		for (x = 0; x < msMapSize.x; x++)

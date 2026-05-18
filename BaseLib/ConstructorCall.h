@@ -31,6 +31,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PointerRemapper.h"
 
 
+//You probably want to create a CPostMalloc<Type> instance and call PostMalloc on it with your uninitialised variable.
+
 template<class Class>
 Class* NewMalloc(void)
 {

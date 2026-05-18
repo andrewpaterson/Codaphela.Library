@@ -80,3 +80,45 @@ bool CMapPtrPtr::Remove(void* pvKey)
 	return CMapTemplateTemplate<void*, void*>::Remove(&pvKey);
 }
 
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapPtrPtr::StartIteration(SMapIterator* psIterator, void** ppcKey, void** ppcValue)
+{
+	void** ppcK;
+	void** ppcV;
+	bool		bResult;
+
+	bResult = CMapBlock::StartIteration(psIterator, (void**)&ppcK, NULL, (void**)&ppcV, NULL);
+	if (bResult)
+	{
+		*ppcKey = *ppcK;
+		*ppcValue = *ppcV;
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapPtrPtr::Iterate(SMapIterator* psIterator, void** ppcKey, void** ppcValue)
+{
+	void**	ppcK;
+	void**	ppcV;
+	bool		bResult;
+
+	bResult = CMapBlock::Iterate(psIterator, (void**)&ppcK, NULL, (void**)&ppcV, NULL);
+	if (bResult)
+	{
+		*ppcKey = *ppcK;
+		*ppcValue = *ppcV;
+	}
+	return bResult;
+}
+

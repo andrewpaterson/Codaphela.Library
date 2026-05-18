@@ -250,17 +250,7 @@ void CMapUnknownUnknown::SetValue(SMapIterator* psIter, CUnknown* pcNewValue)
 //////////////////////////////////////////////////////////////////////////
 bool CMapUnknownUnknown::StartIteration(SMapIterator* psIterator, CUnknown** ppcKey, CUnknown** ppcValue)
 {
-	CUnknown**	ppcK;
-	CUnknown**	ppcV;
-	bool		bResult;
-
-	bResult = mcMap.StartIteration(psIterator, (void**)&ppcK, NULL, (void**)&ppcV, NULL);
-	if (bResult)
-	{
-		*ppcKey = *ppcK;
-		*ppcValue = *ppcV;
-	}
-	return bResult;
+	return mcMap.StartIteration(psIterator, (void**)ppcKey, (void**)ppcValue);
 }
 
 
@@ -270,17 +260,7 @@ bool CMapUnknownUnknown::StartIteration(SMapIterator* psIterator, CUnknown** ppc
 //////////////////////////////////////////////////////////////////////////
 bool CMapUnknownUnknown::Iterate(SMapIterator* psIterator, CUnknown** ppcKey, CUnknown** ppcValue)
 {
-	CUnknown**	ppcK;
-	CUnknown**	ppcV;
-	bool		bResult;
-
-	bResult = mcMap.Iterate(psIterator, (void**)&ppcK, NULL, (void**)&ppcV, NULL);
-	if (bResult)
-	{
-		*ppcKey = *ppcK;
-		*ppcValue = *ppcV;
-	}
-	return bResult;
+	return mcMap.Iterate(psIterator, (void**)ppcKey, (void**)ppcValue);
 }
 
 
