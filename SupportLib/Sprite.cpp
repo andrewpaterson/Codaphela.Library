@@ -70,4 +70,6 @@ void CSprite::GetImageDestBounds(CRectangle* pcReturn)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImageCel> CSprite::GetCel(void) { return mpCel; }
+int32 CSprite::GetX(void) {	return msPosition.x; }
+int32 CSprite::GetY(void) {	return msPosition.y; }
 

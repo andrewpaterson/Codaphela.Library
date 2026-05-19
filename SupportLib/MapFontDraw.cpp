@@ -76,10 +76,12 @@ void CMapFontDraw::Begin(void)
 void CMapFontDraw::Place(Ptr<CGlyph> pGlyph, int32 x, int32 y)
 {
 	Ptr<CImageCel>	pCel;
+	Ptr<CSprite>	pSprite;
 	
 	pCel = pGlyph->GetCel();
 
-	mpMap->AddSprite(pCel, x, y);
+	pSprite = OMalloc<CSprite>(pCel, x, y);
+	mpMap->AddSprite(pSprite);
 }
 
 

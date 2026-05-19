@@ -989,6 +989,28 @@ bool PrivateAssertPointer(void* pvExpected, void* pvActual, char* szPrefix, size
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool PrivateAssertNotPointer(void* pvExpected, void* pvActual, char* szPrefix, size iLine, char* szFile)
+{
+	char szExpected[32];
+	char szActual[32];
+
+	if (pvExpected == pvActual)
+	{
+		ToPointerString(pvExpected, szExpected, 32);
+		ToPointerString(pvActual, &szActual[1], 32);
+		szActual[0] = '!';
+		return Failed((const char*)szExpected, (const char*)szActual, szPrefix, iLine, szFile, false);
+	}
+	else
+	{
+		return Pass();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool PrivateAssertMD5(uint8* pucExpected, uint8* pucActual, char* szPrefix, size iLine, char* szFile)
 {
 	char szExpected[33];

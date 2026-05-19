@@ -66,6 +66,7 @@ bool PrivateAssertNegative(int i, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertPositive(int i, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertNumber(const char* szExpected, CNumber* pcActual, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertPointer(void* pvExpected, void* pvActual, char* szPrefix, size iLine, char* szFile);
+bool PrivateAssertNotPointer(void* pvExpected, void* pvActual, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertNotNull(void* pvActual, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertNull(void* pvActual, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertMD5(uint8* pucExpected, uint8* pucActual, char* szPrefix, size iLine, char* szFile);
@@ -107,6 +108,7 @@ bool PrivateAssertStringStartsWith(const char* szExpected, const char* szActual,
 #define AssertPositive(a)					Validate(PrivateAssertPositive(a, NULL, __LINE__, __FILE__))
 #define AssertNumber(e, a)					Validate(PrivateAssertNumber(e, a, NULL, __LINE__, __FILE__))
 #define AssertPointer(e, a)					Validate(PrivateAssertPointer(e, a, NULL, __LINE__, __FILE__))
+#define AssertNotPointer(e, a)				Validate(PrivateAssertNotPointer(e, a, NULL, __LINE__, __FILE__))
 #define AssertNotNull(a)					Validate(PrivateAssertNotNull(a, NULL, __LINE__, __FILE__))
 #define AssertNull(a)						Validate(PrivateAssertNull(a, NULL, __LINE__, __FILE__))
 #define AssertMD5(e, a)						Validate(PrivateAssertMD5(e, a, NULL, __LINE__, __FILE__))

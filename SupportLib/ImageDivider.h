@@ -35,14 +35,14 @@ class CImageDivider : public CObject
 CONSTRUCTABLE(CImageDivider);
 DESTRUCTABLE(CImageDivider);
 protected:
-	Ptr<CImage>		mpcImage;
+	Ptr<CImage>				mpImage;
 
-	bool			mbIgnoreEmpty;
-	SImageColour	msTransparentColour;
-	bool			mbUseTransparentColour;
-	bool			mbCropTransparentBorders;
+	bool					mbIgnoreEmpty;
+	SImageColour			msTransparentColour;
+	bool					mbUseTransparentColour;
+	bool					mbCropTransparentBorders;
 
-	CArrayImageCel	mcDestImageCels;
+	Ptr<CArrayImageCel>		mpDestImageCels;
 
 public:
 	void 					Init(Ptr<CImage> pcImage, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);

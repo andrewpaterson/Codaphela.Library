@@ -286,6 +286,20 @@ void CRectangle::GrowToContain(int32 iXPos, int32 iYPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CRectangle::GrowToContain(CRectangle* pcOther)
+{
+	if (pcOther)
+	{
+		GrowToContain(pcOther->miLeft, pcOther->miTop);
+		GrowToContain(pcOther->miRight, pcOther->miBottom);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CRectangle::Shrink(int32 iShrinkLeft, int32 iShrinkTop, int32 iShrinkRight, int32 iShrinkBottom)
 {
 	miLeft += iShrinkLeft;
