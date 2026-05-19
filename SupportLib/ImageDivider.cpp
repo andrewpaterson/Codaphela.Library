@@ -34,19 +34,19 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDivider::Init(Ptr<CImage> pcImage, SImageColour* psTransparentColour, bool bIgnoreEmpty, bool bCropTransparentBorders)
+void CImageDivider::Init(Ptr<CImage> pImage, SImageColour* psTransparentColour, bool bIgnoreEmpty, bool bCropTransparentBorders)
 {
 	PreInit();
 
 	CImageAccessor*		pcAccessor;
 	int					iDataSize;
 
-	mpcImage = pcImage;
+	mpImage = pImage;
 	mbIgnoreEmpty = bIgnoreEmpty;
 	mbCropTransparentBorders = bCropTransparentBorders;
 	if (psTransparentColour)
 	{
-		pcAccessor = CImageAccessorCreator::Create(&pcImage);
+		pcAccessor = CImageAccessorCreator::Create(&pImage);
 		iDataSize = pcAccessor->GetBufferSize();
 		pcAccessor->Kill();
 
@@ -58,9 +58,10 @@ void CImageDivider::Init(Ptr<CImage> pcImage, SImageColour* psTransparentColour,
 	{
 		mbUseTransparentColour = false;
 	}
-	mcDestImageCels.Init();
 
 	PostInit();
+
+	mpDestImageCels = OMalloc<CArrayImageCel>();
 }
 
 
@@ -70,6 +71,10 @@ void CImageDivider::Init(Ptr<CImage> pcImage, SImageColour* psTransparentColour,
 //////////////////////////////////////////////////////////////////////////
 void CImageDivider::Free(void)
 {
+	mbIgnoreEmpty = false;
+	msTransparentColour.Zero();
+	mbUseTransparentColour = false;
+	mbCropTransparentBorders = false;
 }
 
 
@@ -79,12 +84,12 @@ void CImageDivider::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CImageDivider::Class(void)
 {
-	M_Pointer(mpcImage);
+	M_Pointer(mpImage);
 	U_Bool(mbIgnoreEmpty);
 	U_Data(SImageColour, msTransparentColour);
 	U_Bool(mbUseTransparentColour);
 	U_Bool(mbCropTransparentBorders);
-	M_Embedded(mcDestImageCels);
+	M_Pointer(mpDestImageCels);
 }
 
 
@@ -122,7 +127,7 @@ void CImageDivider::GenerateFromBorder(Ptr<CImage> pcFillMask)
 	bool				bResult;
 	short				iMask;
 
-	pcImageAccessor = CImageAccessorCreator::Create(&mpcImage);
+	pcImageAccessor = CImageAccessorCreator::Create(&mpImage);
 
 	//The top left colour is the border colour.
 	pcImageAccessor->Get(0, 0, &cCellColour);
@@ -130,9 +135,9 @@ void CImageDivider::GenerateFromBorder(Ptr<CImage> pcFillMask)
 	cFiller.Init(&cCellColour, pcImageAccessor, &pcFillMask);
 	iMask = 1;
 
-	for (y = 0; y < mpcImage->miHeight; y++)
+	for (y = 0; y < mpImage->miHeight; y++)
 	{
-		for (x = 0; x < mpcImage->miWidth; x++)
+		for (x = 0; x < mpImage->miWidth; x++)
 		{
 			bResult = cFiller.Fill(x, y, &cFillBounds, iMask);
 			if (bResult)
@@ -161,7 +166,7 @@ void CImageDivider::GenerateFromNumbers(CImageDividerNumbers* pcNumbers)
 	int					iLeft;
 	int					iTop;
 
-	pcNumbers->Calculate(mpcImage->miWidth, mpcImage->miHeight);
+	pcNumbers->Calculate(mpImage->miWidth, mpImage->miHeight);
 
 	for (iRow = 0; iRow < pcNumbers->iRowCount; iRow++)
 	{
@@ -211,15 +216,15 @@ void CImageDivider::AddImageCel(CFillRectangle* pcRect, Ptr<CImage> pcFillMask)
 		{
 			Ptr<CImageCelMask>	pcImageCel;
 
-			pcImageCel = OMalloc<CImageCelMask>(mpcImage, pcFillMask, pcRect);
-			mcDestImageCels.Add(pcImageCel);
+			pcImageCel = OMalloc<CImageCelMask>(mpImage, pcFillMask, pcRect);
+			mpDestImageCels->Add(pcImageCel);
 		}
 		else
 		{
 			Ptr<CImageCelMaskTransparent>	pcImageCel;
 
-			pcImageCel = OMalloc<CImageCelMaskTransparent>(mpcImage, &msTransparentColour, pcFillMask, pcRect);
-			mcDestImageCels.Add(pcImageCel);
+			pcImageCel = OMalloc<CImageCelMaskTransparent>(mpImage, &msTransparentColour, pcFillMask, pcRect);
+			mpDestImageCels->Add(pcImageCel);
 		}
 	}
 }
@@ -235,13 +240,13 @@ void CImageDivider::AddImageCel(CRectangle* pcRect)
 	{
 		if (!mbUseTransparentColour)
 		{
-			Ptr<CImageCel>	pcImageCel = OMalloc<CImageCel>(mpcImage, pcRect);
-			mcDestImageCels.Add(pcImageCel);
+			Ptr<CImageCel>	pcImageCel = OMalloc<CImageCel>(mpImage, pcRect);
+			mpDestImageCels->Add(pcImageCel);
 		}
 		else
 		{
-			Ptr<CImageCelTransparent> pcImageCel = OMalloc<CImageCelTransparent>(mpcImage, &msTransparentColour, pcRect);
-			mcDestImageCels.Add(pcImageCel);
+			Ptr<CImageCelTransparent> pcImageCel = OMalloc<CImageCelTransparent>(mpImage, &msTransparentColour, pcRect);
+			mpDestImageCels->Add(pcImageCel);
 		}
 	}
 }
@@ -259,13 +264,13 @@ void CImageDivider::CropTransparentBorders(void)
 
 	if (mbCropTransparentBorders)
 	{
-		pcImageCel = mcDestImageCels.StartIteration(&sIter, &bExists);
+		pcImageCel = mpDestImageCels->StartIteration(&sIter, &bExists);
 		while (bExists)
 		{
 			if (pcImageCel.IsNotNull())
 			{
 				pcImageCel->CropTransparentBorders();
-				pcImageCel = mcDestImageCels.Iterate(&sIter, &bExists);
+				pcImageCel = mpDestImageCels->Iterate(&sIter, &bExists);
 			}
 		}
 	}
@@ -278,7 +283,7 @@ void CImageDivider::CropTransparentBorders(void)
 //////////////////////////////////////////////////////////////////////////
 void CImageDivider::CopyCellsTo(Ptr<CArrayImageCel> pcImageCels)
 {
-	pcImageCels->AddAll(&mcDestImageCels);
+	pcImageCels->AddAll(mpDestImageCels);
 }
 
 
@@ -286,5 +291,5 @@ void CImageDivider::CopyCellsTo(Ptr<CArrayImageCel> pcImageCels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CArrayImageCel> CImageDivider::GetDestImageCels(void) { return &mcDestImageCels; }
+Ptr<CArrayImageCel> CImageDivider::GetDestImageCels(void) { return mpDestImageCels; }
 

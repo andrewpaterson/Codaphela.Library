@@ -50,12 +50,17 @@ public:
 
 	void					Clear(void);
 
-	Ptr<CSprite>			AddSprite(Ptr<CImageCel> pCel, int32 x, int32 y);
+	bool					AddSprite(Ptr<CSprite> pSprite);
+	size					NumSprites(void);
 
 	void					BeginChange(void);
 	void					EndChange(void);
 
 	void					FindImageCels(CRectangle* pcRectangle, MapImageCelFunction pSpriteFunction);
+	
+	bool					GetImageDestBounds(int32 x, int32 y, CRectangle* pcRect);
+	bool					GetFullDestBounds(int32 x, int32 y, CRectangle* pcRect);
+	Ptr<CImage>				WriteToImage(void);
 
 	void					TileMapAbstract(void) override {}
 };

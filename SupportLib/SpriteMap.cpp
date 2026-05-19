@@ -22,6 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Objects.h"
+#include "MultiImageCopier.h"
 #include "SpriteMap.h"
 
 
@@ -85,13 +86,20 @@ bool CSpriteMap::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-Ptr<CSprite> CSpriteMap::AddSprite(Ptr<CImageCel> pCel, int32 x, int32 y)
+bool CSpriteMap::AddSprite(Ptr<CSprite> pSprite)
 {
-	Ptr<CSprite>	pSprite;
-
-	pSprite = OMalloc<CSprite>(pCel, x, y);
 	maSprites.Add(pSprite);
-	return pSprite;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size CSpriteMap::NumSprites(void)
+{
+	return maSprites.NumElements();
 }
 
 
@@ -145,5 +153,171 @@ void CSpriteMap::FindImageCels(CRectangle* pcRectangle, MapImageCelFunction pSpr
 			pSpriteFunction(pSprite->GetCel(), cCelRect.miLeft - pcRectangle->miLeft, cCelRect.miTop - pcRectangle->miTop);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSpriteMap::GetImageDestBounds(int32 x, int32 y, CRectangle* pcRect)
+{
+	size			ui;
+	size			uiNumElements;
+	Ptr<CSprite>	pSprite;
+	Ptr<CImageCel>	pCel;
+	CSubImage*		pcSubImage;
+	CRectangle		cBounding;
+	CRectangle		cCelRect;
+	bool			bFirst;
+
+	if (pcRect)
+	{
+		cBounding.Init();
+		bFirst = true;
+		uiNumElements = maSprites.NumElements();
+		if (uiNumElements > 0)
+		{
+			for (ui = 0; ui < uiNumElements; ui++)
+			{
+				pSprite = maSprites.Get(ui);
+				pCel = pSprite->GetCel();
+				pcSubImage = pCel->GetSubImage();
+				if (bFirst)
+				{
+					pcSubImage->GetImageDestBounds(pSprite->GetX() + x, pSprite->GetY() + y, &cBounding);
+					bFirst = false;
+				}
+				else
+				{
+					pcSubImage->GetImageDestBounds(pSprite->GetX() + x, pSprite->GetY() + y, &cCelRect);
+					cBounding.GrowToContain(&cCelRect);
+				}
+			}
+			pcRect->Init(&cBounding);
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSpriteMap::GetFullDestBounds(int32 x, int32 y, CRectangle* pcRect)
+{
+	size			ui;
+	size			uiNumElements;
+	Ptr<CSprite>	pSprite;
+	Ptr<CImageCel>	pCel;
+	CSubImage*		pcSubImage;
+	CRectangle		cBounding;
+	CRectangle		cCelRect;
+	bool			bFirst;
+
+	if (pcRect)
+	{
+		cBounding.Init();
+		bFirst = true;
+		uiNumElements = maSprites.NumElements();
+		if (uiNumElements > 0)
+		{
+			for (ui = 0; ui < uiNumElements; ui++)
+			{
+				pSprite = maSprites.Get(ui);
+				pCel = pSprite->GetCel();
+				pcSubImage = pCel->GetSubImage();
+				if (bFirst)
+				{
+					pcSubImage->GetFullDestBounds(x, y, &cBounding);
+				}
+				else
+				{
+					pcSubImage->GetFullDestBounds(x, y, &cCelRect);
+					cBounding.GrowToContain(&cCelRect);
+				}
+			}
+			pcRect->Init(&cBounding);
+			return true;
+		}
+
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImage> CSpriteMap::WriteToImage(void)
+{
+	size				ui;
+	size				uiNumElements;
+	Ptr<CSprite>		pSprite;
+	Ptr<CImageCel>		pCel;
+	Ptr<CImage>			pDestImage;
+	CMultiImageCopier	cCopier;
+	CRectangle			cBoundingRect;
+	bool				bExists;
+	size				uiWidth;
+	size				uiHeight;
+	int32				x;
+	int32				y;
+	bool				bResult;
+
+	bExists = GetImageDestBounds(0, 0, &cBoundingRect);
+	if (!bExists)
+	{
+		return NULL;
+	}
+
+	uiWidth = cBoundingRect.GetWidth();
+	uiHeight = cBoundingRect.GetHeight();
+
+	pDestImage = OMalloc<CImage>(uiWidth, uiHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_ZERO);
+	if (pDestImage.IsNull())
+	{
+		return NULL;
+	}
+
+	pDestImage->Clear();
+
+	cCopier.Init(pDestImage);
+
+	uiNumElements = maSprites.NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		pSprite = maSprites.Get(ui);
+		pCel = pSprite->GetCel();
+		if (pCel.IsNotNull())
+		{
+			cCopier.AddAccessor(pCel->GetSourceImage());
+		}
+	}
+
+	uiNumElements = maSprites.NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		pSprite = maSprites.Get(ui);
+		pCel = pSprite->GetCel();
+		if (pCel.IsNotNull())
+		{
+			x = pSprite->GetX() - cBoundingRect.GetLeft();
+			y = pSprite->GetY() - cBoundingRect.GetTop();
+			bResult = cCopier.Copy(x, y, pCel);
+			if (!bResult)
+			{
+				pDestImage = NULL;
+				break;
+			}
+		}
+	}
+
+	cCopier.Kill();
+
+	return pDestImage;
 }
 

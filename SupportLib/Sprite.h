@@ -24,6 +24,9 @@ public:
 
 	Ptr<CImageCel>	GetCel(void);
 	void			GetImageDestBounds(CRectangle* pcReturn);
+
+	int32			GetX(void);
+	int32			GetY(void);
 };
 
 

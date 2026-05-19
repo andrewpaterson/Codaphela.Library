@@ -169,7 +169,6 @@ Ptr<CImage> CTileLayerCel::WriteToImage(void)
 	size				uiNumTiles;
 	size				uiTile;
 	Ptr<CImageCel>		pCel;
-	Ptr<CImage>			pCelImage;
 	Ptr<CImage>			pDestImage;
 	CMultiImageCopier	cCopier;
 	int32				x;
@@ -180,6 +179,8 @@ Ptr<CImage> CTileLayerCel::WriteToImage(void)
 	{
 		return NULL;
 	}
+
+	pDestImage->Clear();
 
 	cCopier.Init(pDestImage);
 
