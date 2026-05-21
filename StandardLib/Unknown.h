@@ -32,7 +32,7 @@ protected:
 	CUnknowns*	mpcUnknownsThisIn;
 
 public:
-						CUnknown(void);
+						CUnknown();
 			void		SetUnknowns(CUnknowns* pcUnknowns);
 			void 		Kill(void) override;
 

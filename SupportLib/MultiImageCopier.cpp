@@ -40,7 +40,6 @@ void CMultiImageCopier::Kill(void)
 	while (bExists)
 	{
 		pcImageCopier->Kill();
-		mcMapImageToCopier.Free(pcImageCopier);
 		bExists = mcMapImageToCopier.Iterate(&sIter, (void**)&pcImage, (void**)&pcImageCopier);
 	}
 
@@ -66,15 +65,13 @@ bool CMultiImageCopier::AddAccessor(Ptr<CImage> pSourceImage)
 {
 	CImageCopier*				pcCopier;
 	bool						bResult;
-	CPostMalloc<CImageCopier>	cMalloc;
 
 	pcCopier = (CImageCopier*)mcMapImageToCopier.Get(&pSourceImage);
 	if (pcCopier == NULL)
 	{
-		pcCopier = (CImageCopier*)mcMapImageToCopier.Malloc(sizeof(CImageCopier));
+		pcCopier = UMalloc(CImageCopier);
 		if (pcCopier)
 		{
-			cMalloc.PostMalloc(pcCopier);
 			bResult = pcCopier->Init(pSourceImage, mpDestImage);
 			if (bResult)
 			{
@@ -84,7 +81,7 @@ bool CMultiImageCopier::AddAccessor(Ptr<CImage> pSourceImage)
 					return true;
 				}
 			}
-			mcMapImageToCopier.Free(pcCopier);
+			UFree(pcCopier);
 		}
 		return false;
 	}

@@ -98,6 +98,8 @@ void CImageCopier::Kill(void)
 
 	mpcSource = NULL;
 	mpcDest = NULL;
+
+	CUnknown::Kill();
 }
 
 

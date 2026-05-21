@@ -277,7 +277,7 @@ Ptr<CImage> CSpriteMap::WriteToImage(void)
 	uiWidth = cBoundingRect.GetWidth();
 	uiHeight = cBoundingRect.GetHeight();
 
-	pDestImage = OMalloc<CImage>(uiWidth, uiHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_ZERO);
+	pDestImage = OMalloc<CImage>(uiWidth, uiHeight, PT_uint8, IMAGE_OPACITY, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
 	if (pDestImage.IsNull())
 	{
 		return NULL;
