@@ -34,7 +34,7 @@ protected:
 	CArrayChannelAccessor	macAccessors;
 	size					miByteSize;
 	size					miBitSize;
-	CStackMemory<8>			msBuffer;
+	CStackMemory<8>			msBuffer;  //Where the gotten data is stored.
 
 public:
 			void					Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize);

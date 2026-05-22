@@ -649,9 +649,9 @@ bool CIndexedFilesEvicting::CompareDiskToMemory(CIndexedDataDescriptor* pcDescri
 {
 	//This function tells the disk whether it must update itself because the cached value has changed.
 	//It also timestamps the descriptor of the changed data.
-	size		uiDataSize;
+	size				uiDataSize;
 	void*				pvTemp;
-	CStackMemory<>		cStack;
+	CStackMemory<2 KB>	cStack;
 	bool				bResult;
 	CFileDataIndex		cDataIndex;
 

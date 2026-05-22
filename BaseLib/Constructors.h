@@ -160,20 +160,23 @@ M* CConstructors::Add(void)
 template<class M>
 M* CConstructors::Get(void)
 {
-	M*				pvM;
+	M*				pvM1;
+	M*				pvM2;
 	CStackMemory<>	cStack;
 	const char*		szClassName;
 
-	pvM = StackConstruct<M>(&cStack);
-	szClassName = pvM->ClassName();
-	pvM = (M*)mcConstructors.Get(szClassName);
-	if (pvM)
+	pvM1 = StackConstruct<M>(&cStack);
+	szClassName = pvM1->ClassName();
+	pvM2 = (M*)mcConstructors.Get(szClassName);
+	if (pvM2)
 	{
-		if (StringCompare(pvM->ClassName(), szClassName) == 0)
+		if (StringCompare(pvM2->ClassName(), szClassName) == 0)
 		{
-			return pvM;
+			cStack.Kill();
+			return pvM2;
 		}
 	}
+	cStack.Kill();
 	return NULL;
 }
 
@@ -185,20 +188,23 @@ M* CConstructors::Get(void)
 template<class M>
 M* CConstructors::Get(size* puiSize)
 {
-	M*				pvM;
+	M*				pvM1;
+	M*				pvM2;
 	CStackMemory<>	cStack;
 	const char*		szClassName;
 
-	pvM = StackConstruct<M>(&cStack);
-	szClassName = pvM->ClassName();
-	pvM = (M*)mcConstructors.Get(szClassName, puiSize);
-	if (pvM)
+	pvM1 = StackConstruct<M>(&cStack);
+	szClassName = pvM1->ClassName();
+	pvM2 = (M*)mcConstructors.Get(szClassName, puiSize);
+	if (pvM2)
 	{
-		if (StringCompare(pvM->ClassName(), szClassName) == 0)
+		if (StringCompare(pvM2->ClassName(), szClassName) == 0)
 		{
-			return pvM;
+			cStack.Kill();
+			return pvM2;
 		}
 	}
+	cStack.Kill();
 	return NULL;
 }
 

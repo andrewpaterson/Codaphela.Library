@@ -99,7 +99,7 @@ bool CNamedIndexedData::Add(OIndex oi, CChars* szName, void* pvData, uint32 uiDa
 //////////////////////////////////////////////////////////////////////////
 bool CNamedIndexedData::Add(OIndex oi, char* szName, int iNameLength, void* pvData, uint32 uiDataSize)
 {
-	CStackMemory<>			cStack;
+	CStackMemory<2 KB>		cStack;
 	CNamedIndexedHeader*	pcHeader;
 	size					sSize;
 	bool					bResult;
@@ -257,12 +257,12 @@ bool CNamedIndexedData::Set(char* szName, void* pvData, uint32 uiDataSize)
 bool CNamedIndexedData::Set(OIndex oi, char* szName, int iNameLength, void* pvData, uint32 uiDataSize)
 {
 	bool					bResult;
-	CStackMemory<>			cStackSet;
-	CStackMemory<>			cStackGet;
+	CStackMemory<2 KB>		cStackSet;
+	CStackMemory<2 KB>		cStackGet;
 	CNamedIndexedHeader*	pcHeaderSet;
 	size					sSize;
 	CNamedIndexedHeader*	pcHeaderGet;
-	uint32			uiOldDataSize;
+	uint32					uiOldDataSize;
 	int						iOldNameLength;
 
 	if (oi != INVALID_O_INDEX)
@@ -510,7 +510,7 @@ bool CNamedIndexedData::Get(CChars* szName, uint32* puiDataSize, void* pvData, u
 //////////////////////////////////////////////////////////////////////////
 bool CNamedIndexedData::Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize)
 {
-	CStackMemory<>			cStack;
+	CStackMemory<2 KB>		cStack;
 	uint32					uiDataSize;
 	bool					bResult;
 	CNamedIndexedHeader*	pcHeader;
@@ -559,8 +559,8 @@ bool CNamedIndexedData::Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32
 //////////////////////////////////////////////////////////////////////////
 bool CNamedIndexedData::GetName(OIndex oi, CChars* szName)
 {
-	CStackMemory<>			cStack;
-	uint32			uiDataSize;
+	CStackMemory<2 KB>		cStack;
+	uint32					uiDataSize;
 	bool					bResult;
 	CNamedIndexedHeader*	pcHeader;
 	
@@ -586,8 +586,8 @@ bool CNamedIndexedData::GetName(OIndex oi, CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CNamedIndexedData::GetName(OIndex oi, char* szName, uint32* puiNameLength, uint32 uiMaxNameLength)
 {
-	CStackMemory<>			cStack;
-	uint32			uiDataSize;
+	CStackMemory<2 KB>		cStack;
+	uint32					uiDataSize;
 	bool					bResult;
 	CNamedIndexedHeader*	pcHeader;
 	int						iNameLength;
@@ -750,8 +750,8 @@ bool CNamedIndexedData::Remove(char* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CNamedIndexedData::Remove(OIndex oi)
 {
-	CStackMemory<>			cStack;
-	uint32			uiDataSize;
+	CStackMemory<2 KB>		cStack;
+	uint32					uiDataSize;
 	bool					bResult;
 	CNamedIndexedHeader*	pcHeader;
 	int						iNameLength;
@@ -927,9 +927,9 @@ bool CNamedIndexedData::ValidateOidToNameToOid(void)
 {
 	SIndexTreeFileIterator	sIter;
 	OIndex					oi;
-	CStackMemory<>			cStackMemory;
-	uint32			uiDataSize;
-	uint32			uiMaxDataSize;
+	CStackMemory<2 KB>		cStackMemory;
+	uint32					uiDataSize;
+	uint32					uiMaxDataSize;
 	void*					pvData;
 	bool					bResult;
 	CNamedIndexedHeader*	pcHeader;
@@ -985,9 +985,9 @@ bool CNamedIndexedData::ValidateNameToOidToName(void)
 	char					szName[MAX_KEY_SIZE + 1];
 	OIndex					oi;
 	bool					bExists;
-	CStackMemory<>			cStackMemory;
-	uint32			uiDataSize;
-	uint32			uiMaxDataSize;
+	CStackMemory<2 KB>		cStackMemory;
+	uint32					uiDataSize;
+	uint32					uiMaxDataSize;
 	void*					pvData;
 	CNamedIndexedHeader*	pcHeader;
 	bool					bResult;

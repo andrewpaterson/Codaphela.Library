@@ -5,12 +5,16 @@
 #include "Numbers.h"
 
 
-template<size I = 4 KB>
+template<size I = 512>
 class CStackMemory
 {
 private:
-	char	macOnStack[I];
-	void*	mpvOffStack;
+	union
+	{
+		uint8	macOnStack[I];
+		uint8*	mpvOffStack;
+	} u;
+	uint16	muiSize;
 
 public:
 	void*	Init(void);
@@ -28,8 +32,9 @@ public:
 template<size I>
 void* CStackMemory<I>::Init(void)
 {
-	mpvOffStack = NULL;
-	return macOnStack;
+	u.mpvOffStack = NULL;
+	muiSize = (uint16)I;
+	return u.macOnStack;
 }
 
 
@@ -42,13 +47,15 @@ void* CStackMemory<I>::Init(size iSize)
 {
 	if (iSize > I)
 	{
-		mpvOffStack = malloc(iSize);
-		return mpvOffStack;
+		muiSize = I + 1;
+		u.mpvOffStack = (uint8*)malloc(iSize);
+		return u.mpvOffStack;
 	}
 	else
 	{
-		mpvOffStack = NULL;
-		return macOnStack;
+		muiSize = (uint16)iSize;
+		u.mpvOffStack = NULL;
+		return u.macOnStack;
 	}
 }
 
@@ -60,7 +67,11 @@ void* CStackMemory<I>::Init(size iSize)
 template<size I>
 void CStackMemory<I>::Kill(void)
 {
-	SafeFree(mpvOffStack);
+	if (muiSize == I + 1)
+	{
+		SafeFree(u.mpvOffStack);
+	}
+	muiSize = 0;
 }
 
 
@@ -82,13 +93,13 @@ size CStackMemory<I>::GetStackSize(void)
 template<size I>
 void* CStackMemory<I>::GetStackData(void)
 {
-	if (mpvOffStack)
+	if (muiSize == I + 1)
 	{
-		return mpvOffStack;
+		return u.mpvOffStack;
 	}
 	else
 	{
-		return macOnStack;
+		return u.macOnStack;
 	}
 }
 

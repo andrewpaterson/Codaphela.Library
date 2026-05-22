@@ -280,7 +280,7 @@ bool CIndexTreeEvicting::Evict(uint8* pvKey, size iKeySize)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeEvicting::EvictNodeWithObject(CIndexTreeNodeFile* pcNode)
 {
-	CStackMemory<>		cStack;
+	CStackMemory<32>	cStack;
 	uint8*				pvMem;
 	size				iKeySize;
 	bool				bResult;

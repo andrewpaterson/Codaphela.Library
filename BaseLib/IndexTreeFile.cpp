@@ -204,7 +204,7 @@ bool CIndexTreeFile::InitRoot(char* szSubDirectory)
 	bool				bRootIndexExists;
 	CFileDataIndex		cRootDataIndex;
 	CIndexedFile*		pcRootIndexFile;
-	CStackMemory<>		cTemp;
+	CStackMemory<4 KB>	cTemp;
 	int					iFileSize;
 	void*				pvBuffer;
 	bool				bResult;
@@ -1078,7 +1078,7 @@ bool CIndexTreeFile::Remove(uint8* pvKey, size iKeySize)
 	size					uiOldDataSize;
 	void*					pvData;
 	void*					pv;
-	CStackMemory<>			cStack;
+	CStackMemory<2 KB>		cStack;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
@@ -2327,7 +2327,7 @@ bool CIndexTreeFile::RecurseValidateKeys(CIndexTreeRecursor* pcCursor, bool bRea
 	size					i;
 	CIndexTreeNodeFile*		pcChild;
 	bool					bResult;
-	CStackMemory<>			cStack;
+	CStackMemory<32>		cStack;
 	uint8*					pcKey;
 	size					iKeySize;
 	size					uiFirstIndex;
@@ -3033,7 +3033,7 @@ uint32 CIndexTreeFile::RecurseCountListSize(CIndexTreeNodeFile* pcNode)
 bool CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 {
 	size					iWrittenPos;
-	CStackMemory<>			cTemp;
+	CStackMemory<2 KB>		cTemp;
 	void*					pvBuffer;
 	size					iFileSize;
 	CIndexedFile*			pcNewIndexFile;
@@ -3420,7 +3420,7 @@ bool CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* 
 {
 	CIndexedFile*			pcFile;
 	int						iMaxBufferSize;
-	CStackMemory<>			cTemp;
+	CStackMemory<2 KB>		cTemp;
 	void*					pvBuffer;
 	bool					bResult;
 	CIndexTreeNodeFile*		pcFileNode;
@@ -3717,7 +3717,7 @@ void CIndexTreeFile::ReadDebugNode(SIndexTreeDebugNode* psDebugNode, uint32 iFil
 {
 	CIndexedFile*			pcFile;
 	int						iDataSize;
-	CStackMemory<>			cTemp;
+	CStackMemory<2 KB>		cTemp;
 	void*					pvBuffer;
 	bool					bResult;
 
@@ -3927,7 +3927,7 @@ void CIndexTreeFile::PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars*
 {
 	CIndexedFile*			pcFile;
 	int						iDataSize;
-	CStackMemory<>			cTemp;
+	CStackMemory<2 KB>		cTemp;
 	char*					pucMemory;
 	bool					bResult;
 	int						iFile;
@@ -4197,12 +4197,12 @@ size CIndexTreeFile::GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, size 
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeFile::DiagnosticFlushCallback(CIndexTreeNodeFile* pcNode)
 {
-	CStackMemory<>	cStackData;
-	CStackMemory<>	cStackKey;
-	void*			pvData;
-	size			uiDataSize;
-	size			iKeySize;
-	char*			pvKey;
+	CStackMemory<2 KB>	cStackData;
+	CStackMemory<32>	cStackKey;
+	void*				pvData;
+	size				uiDataSize;
+	size				iKeySize;
+	char*				pvKey;
 
 	uiDataSize = GetNodeDataSize(pcNode);
 	pvData = cStackData.Init(uiDataSize);
@@ -4225,12 +4225,12 @@ void CIndexTreeFile::DiagnosticFlushCallback(CIndexTreeNodeFile* pcNode)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeFile::DiagnosticEvictCallback(CIndexTreeNodeFile* pcNode)
 {
-	CStackMemory<>	cStackData;
-	CStackMemory<>	cStackKey;
-	void*			pvData;
-	size			uiDataSize;
-	size			iKeySize;
-	uint8*			pvKey;
+	CStackMemory<2 KB>	cStackData;
+	CStackMemory<32>	cStackKey;
+	void*				pvData;
+	size				uiDataSize;
+	size				iKeySize;
+	uint8*				pvKey;
 
 	uiDataSize = GetNodeDataSize(pcNode);
 	pvData = cStackData.Init(uiDataSize);
