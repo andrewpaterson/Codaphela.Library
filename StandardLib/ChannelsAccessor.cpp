@@ -27,15 +27,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessor::Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize, size iBufferSize)
+void CChannelsAccessor::Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize)
 {
 	mpcChannels = pcChannels;
 	memcpy(&macAccessors, pcAccessors, sizeof(CArrayChannelAccessor));
 	memset(pcAccessors, 0, sizeof(CArrayChannelAccessor));
 	miByteSize = iByteSize;
 	miBitSize = iBitSize;
-	mpvGetBuffer = (char*)malloc(iBufferSize);
-	miBufferSize = iBufferSize;
+	msBuffer.Init(GetBufferSize());
 }
 
 
@@ -47,7 +46,7 @@ void CChannelsAccessor::Kill(void)
 {
 	mpcChannels = NULL;
 	macAccessors.Kill();
-	SafeFree(mpvGetBuffer);
+	msBuffer.Kill();
 	CUnknown::Kill();
 }
 
@@ -117,9 +116,15 @@ size CChannelsAccessor::GetByteSize(void)
 //////////////////////////////////////////////////////////////////////////
 size CChannelsAccessor::GetBufferSize(void)
 {
-	return miBufferSize;
+	if (miBitSize % 8 == 0)
+	{
+		return miByteSize;
+	}
+	else
+	{
+		return miBitSize / 8 + 1;
+	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////

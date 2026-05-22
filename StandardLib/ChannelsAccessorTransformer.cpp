@@ -18,31 +18,20 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "ChannelsAccessorTypeConvert.h"
+#include "ChannelsAccessorTransformer.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CChannelsAccessorTypeConvert::Get(size iPos)
+void CChannelsAccessorTransformer::Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize)
 {
-	size				i;
 	CChannelAccessor*	pcAccessor;
-	void*				pvDest;
-	void*				pvSource;
-	size				uiNumAccessors;
 
-	uiNumAccessors = macAccessors.NumElements();
-	pvSource = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride());
-	pvDest = mpvGetBuffer;
-	for (i = 0; i < uiNumAccessors; i++)
-	{
-		pcAccessor = macAccessors.Get(i);
-		pcAccessor->GetAs(pcAccessor->meAccessType, pvSource, pvDest);
-		pvDest = RemapSinglePointer(pvDest, pcAccessor->miAccessByteSize);
-	}
-	return mpvGetBuffer;
+	CChannelsAccessor::Init(pcChannels, pcAccessors, iByteSize, iBitSize);
+
+	pcAccessor = macAccessors.Get(0);
 }
 
 
@@ -50,7 +39,17 @@ void* CChannelsAccessorTypeConvert::Get(size iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorTypeConvert::Set(size iPos, void* pvSource)
+void* CChannelsAccessorTransformer::Get(size iPos)
+{
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CChannelsAccessorTransformer::Set(size iPos, void* pvSource)
 {
 	size				i;
 	CChannelAccessor*	pcAccessor;

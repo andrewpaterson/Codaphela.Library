@@ -1,3 +1,5 @@
+#ifndef __CHANNELS_ACCESSOR_CONTIGUOUS_H__
+#define __CHANNELS_ACCESSOR_CONTIGUOUS_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -18,21 +20,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __CHANNELS_ACCESSOR_CONTIGUOUS_H__
-#define __CHANNELS_ACCESSOR_CONTIGUOUS_H__
 #include "ChannelsAccessor.h"
 
 
-class CChannelsAccessorContiguous  : public CChannelsAccessor  //Non converting contiguous.
+class CChannelsAccessorContiguous : public CChannelsAccessor  //Non converting contiguous.
 {
 CONSTRUCTABLE(CChannelsAccessorContiguous)
 public:
 	size	miByteOffset;
 
-	void	Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize, size iBufferSize);
+	void	Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize);
 
-	void*	Get(size iPos);
-	void	Set(size iPos, void* pvData);
+	void*	Get(size iPos) override;
+	void	Set(size iPos, void* pvData) override;
 
 	bool	IsContiguous(void);
 };

@@ -1,3 +1,5 @@
+#ifndef __CHANNELS_ACCESSOR_TYPE_CONVERTER_H__
+#define __CHANNELS_ACCESSOR_TYPE_CONVERTER_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -18,19 +20,17 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __CHANNELS_ACCESSOR_TYPE_CONVERT_H__
-#define __CHANNELS_ACCESSOR_TYPE_CONVERT_H__
 #include "ChannelsAccessor.h"
 
 
-class CChannelsAccessorTypeConvert : public CChannelsAccessor  //Does type conversions on byte aligned types
+class CChannelsAccessorTypeConverter : public CChannelsAccessor  //Does type conversions on byte aligned types
 {
-CONSTRUCTABLE(CChannelsAccessorTypeConvert)
+CONSTRUCTABLE(CChannelsAccessorTypeConverter)
 public:
-	void*	Get(size iPos);
-	void	Set(size iPos, void* pvData);
+	void*	Get(size iPos) override;
+	void	Set(size iPos, void* pvData) override;
 };
 
 
-#endif // __CHANNELS_ACCESSOR_TYPE_CONVERT_H__
+#endif // __CHANNELS_ACCESSOR_TYPE_CONVERTER_H__
 

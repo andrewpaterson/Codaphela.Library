@@ -18,21 +18,31 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "ChannelsAccessorContiguous.h"
+#include "ChannelsAccessorTypeConverter.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorContiguous::Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize)
+void* CChannelsAccessorTypeConverter::Get(size iPos)
 {
+	size				i;
 	CChannelAccessor*	pcAccessor;
+	void*				pvDest;
+	void*				pvSource;
+	size				uiNumAccessors;
 
-	CChannelsAccessor::Init(pcChannels, pcAccessors, iByteSize, iBitSize);
-
-	pcAccessor = macAccessors.Get(0);
-	miByteOffset = pcAccessor->miChannelByteOffset;
+	uiNumAccessors = macAccessors.NumElements();
+	pvSource = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride());
+	pvDest = msBuffer.GetStackData();
+	for (i = 0; i < uiNumAccessors; i++)
+	{
+		pcAccessor = macAccessors.Get(i);
+		pcAccessor->GetAs(pcAccessor->meAccessType, pvSource, pvDest);
+		pvDest = RemapSinglePointer(pvDest, pcAccessor->miAccessByteSize);
+	}
+	return msBuffer.GetStackData();
 }
 
 
@@ -40,34 +50,20 @@ void CChannelsAccessorContiguous::Init(CChannels* pcChannels, CArrayChannelAcces
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CChannelsAccessorContiguous::Get(size iPos)
+void CChannelsAccessorTypeConverter::Set(size iPos, void* pvSource)
 {
-	void*	pvSource;
+	size				i;
+	CChannelAccessor*	pcAccessor;
+	void*				pvDest;
+	size				uiNumAccessors;
 
-	pvSource = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride() + miByteOffset);
-	return pvSource;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorContiguous::Set(size iPos, void* pvSource)
-{
-	void*	pvDest;
-
-	pvDest = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride() + miByteOffset);
-	memcpy_fast(pvDest, pvSource, miByteSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CChannelsAccessorContiguous::IsContiguous(void)
-{
-	return true;
+	uiNumAccessors = macAccessors.NumElements();
+	pvDest = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride());
+	for (i = 0; i < uiNumAccessors; i++)
+	{
+		pcAccessor = macAccessors.Get(i);
+		pcAccessor->SetFrom(pcAccessor->meAccessType, pvDest, pvSource);
+		pvSource = RemapSinglePointer(pvSource, pcAccessor->miAccessByteSize);
+	}
 }
 

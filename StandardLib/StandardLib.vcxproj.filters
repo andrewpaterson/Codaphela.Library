@@ -130,6 +130,9 @@
     <Filter Include="Source\Object\Unknown\Collection\Index">
       <UniqueIdentifier>{06591157-ef77-4258-8999-45ba4c68eb09}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Channels\Accessor\Types\Cheeky">
+      <UniqueIdentifier>{f2610f12-a287-464b-9c65-6192d694d4cb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Unknown.h">
@@ -246,7 +249,7 @@
     <ClInclude Include="ChannelsAccessorContiguous.h">
       <Filter>Source\Channels\Accessor\Types</Filter>
     </ClInclude>
-    <ClInclude Include="ChannelsAccessorTypeConvert.h">
+    <ClInclude Include="ChannelsAccessorTypeConverter.h">
       <Filter>Source\Channels\Accessor\Types</Filter>
     </ClInclude>
     <ClInclude Include="ChannelsAccessorWorstCase.h">
@@ -501,6 +504,9 @@
     <ClInclude Include="Index.h">
       <Filter>Source\Object\Object\Collection\Index</Filter>
     </ClInclude>
+    <ClInclude Include="ChannelsAccessorTransformer.h">
+      <Filter>Source\Channels\Accessor\Types\Cheeky</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -602,7 +608,7 @@
     <ClCompile Include="ChannelsAccessorContiguous.cpp">
       <Filter>Source\Channels\Accessor\Types</Filter>
     </ClCompile>
-    <ClCompile Include="ChannelsAccessorTypeConvert.cpp">
+    <ClCompile Include="ChannelsAccessorTypeConverter.cpp">
       <Filter>Source\Channels\Accessor\Types</Filter>
     </ClCompile>
     <ClCompile Include="ChannelsAccessorWorstCase.cpp">
@@ -814,6 +820,9 @@
     </ClCompile>
     <ClCompile Include="FatHollowConfiguration.cpp">
       <Filter>Source\Object\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="ChannelsAccessorTransformer.cpp">
+      <Filter>Source\Channels\Accessor\Types\Cheeky</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

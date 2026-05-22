@@ -43,6 +43,7 @@ public:
 	CChannelsAccessorCreator	mcCreator;
 	CImage*						mpcImage;
 
+
 	void				Init(CImage* pcImage);
 	void				Kill(void);
 	CImageAccessor*		Create(void);

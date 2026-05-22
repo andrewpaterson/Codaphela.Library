@@ -37,14 +37,14 @@ void* CChannelsAccessorChannelBitty::Get(size iPos)
 	uiNumAccessors = macAccessors.NumElements();
 	pvSource = mpcChannels->GetData();
 	iSourceBitPos = mpcChannels->GetBitStride() * iPos;
-	pvDest = mpvGetBuffer;
+	pvDest = msBuffer.GetStackData();
 	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcAccessor = macAccessors.Get(i);
 		pcAccessor->GetAsSub(pcAccessor->meAccessType, pvSource, iSourceBitPos, pvDest);
 		pvDest = RemapSinglePointer(pvDest, pcAccessor->miAccessByteSize);
 	}
-	return mpvGetBuffer;
+	return msBuffer.GetStackData();
 }
 
 
