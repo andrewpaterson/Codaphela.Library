@@ -22,7 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Unknowns.h"
 #include "ChannelsAccessorContiguous.h"
 #include "ChannelsAccessorByteAligned.h"
-#include "ChannelsAccessorTypeConvert.h"
+#include "ChannelsAccessorTypeConverter.h"
 #include "ChannelsAccessorAccessBitty.h"
 #include "ChannelsAccessorChannelBitty.h"
 #include "ChannelsAccessorWorstCase.h"
@@ -66,7 +66,6 @@ CChannelsAccessor* CChannelsAccessorCreator::Create(void)
 
 	size				iBitSize;
 	size				iByteSize;
-	size				iBufferSize;
 
 	CChannelsAccessor*	pcAccessor;
 	bool				bResult;
@@ -85,62 +84,59 @@ CChannelsAccessor* CChannelsAccessorCreator::Create(void)
 		if (iBitSize % 8 == 0)
 		{
 			iByteSize = iBitSize / 8;
-			iBufferSize = iByteSize;
 		}
 		else
 		{
 			iByteSize = -1;
-			iBufferSize = iBitSize / 8 + 1;
 		}
-		
 		pcAccessor = NULL;
 
 		if (bContiguous && bSourceTypesSame && bChannelByteAligned && bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorContiguous);
-			((CChannelsAccessorContiguous*)pcAccessor)->Init(mpcChannels, &macAccessors, iByteSize, iBitSize, iBufferSize);
+			((CChannelsAccessorContiguous*)pcAccessor)->Init(mpcChannels, &macAccessors, iByteSize, iBitSize);
 			return pcAccessor;
 		}
 
 		if (!bContiguous && bSourceTypesSame && bChannelByteAligned && bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorByteAligned);
-			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize, iBufferSize);
+			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize);
 			return pcAccessor;
 		}
 
 		if (bContiguous && !bSourceTypesSame && bChannelByteAligned && bAccessByteAligned)
 		{
-			pcAccessor = UMalloc(CChannelsAccessorTypeConvert);
-			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize, iBufferSize);
+			pcAccessor = UMalloc(CChannelsAccessorTypeConverter);
+			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize);
 			return pcAccessor;
 		}
 
 		if (!bContiguous && !bSourceTypesSame && bChannelByteAligned && bAccessByteAligned)
 		{
-			pcAccessor = UMalloc(CChannelsAccessorTypeConvert);
-			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize, iBufferSize);
+			pcAccessor = UMalloc(CChannelsAccessorTypeConverter);
+			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize);
 			return pcAccessor;
 		}
 
 		if (bChannelByteAligned && !bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorAccessBitty);
-			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize, iBufferSize);
+			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize);
 			return pcAccessor;
 		}
 
 		if (!bChannelByteAligned && bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorChannelBitty);
-			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize, iBufferSize);
+			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize);
 			return pcAccessor;
 		}
 
 		if (!bChannelByteAligned && !bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorWorstCase);
-			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize, iBufferSize);
+			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize);
 			return pcAccessor;
 		}
 	}

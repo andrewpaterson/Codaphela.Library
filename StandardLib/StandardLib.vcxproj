@@ -181,6 +181,7 @@
     <ClInclude Include="Array.h" />
     <ClInclude Include="ArrayUnknownPtr.h" />
     <ClInclude Include="ChannelDebugDescriptor.h" />
+    <ClInclude Include="ChannelsAccessorTransformer.h" />
     <ClInclude Include="Character.h" />
     <ClInclude Include="Class.h" />
     <ClInclude Include="ClassDefines.h" />
@@ -293,7 +294,7 @@
     <ClInclude Include="ChannelsAccessorByteAligned.h" />
     <ClInclude Include="ChannelsAccessorChannelBitty.h" />
     <ClInclude Include="ChannelsAccessorContiguous.h" />
-    <ClInclude Include="ChannelsAccessorTypeConvert.h" />
+    <ClInclude Include="ChannelsAccessorTypeConverter.h" />
     <ClInclude Include="ChannelsAccessorWorstCase.h" />
     <ClInclude Include="ChannelsAccessorCreator.h" />
     <ClInclude Include="SingleChannelAccessor.h" />
@@ -304,6 +305,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChannelDebugDescriptor.cpp" />
+    <ClCompile Include="ChannelsAccessorTransformer.cpp" />
     <ClCompile Include="Class.cpp" />
     <ClCompile Include="Classes.cpp" />
     <ClCompile Include="FatHollowConfiguration.cpp" />
@@ -402,7 +404,7 @@
     <ClCompile Include="ChannelsAccessorByteAligned.cpp" />
     <ClCompile Include="ChannelsAccessorChannelBitty.cpp" />
     <ClCompile Include="ChannelsAccessorContiguous.cpp" />
-    <ClCompile Include="ChannelsAccessorTypeConvert.cpp" />
+    <ClCompile Include="ChannelsAccessorTypeConverter.cpp" />
     <ClCompile Include="ChannelsAccessorWorstCase.cpp" />
     <ClCompile Include="ChannelsAccessorCreator.cpp" />
     <ClCompile Include="SingleChannelAccessor.cpp" />

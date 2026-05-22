@@ -25,11 +25,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorContiguous::Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize, size iBufferSize)
+void CChannelsAccessorContiguous::Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize)
 {
 	CChannelAccessor*	pcAccessor;
 
-	CChannelsAccessor::Init(pcChannels, pcAccessors, iByteSize, iBitSize, iBufferSize);
+	CChannelsAccessor::Init(pcChannels, pcAccessors, iByteSize, iBitSize);
 
 	pcAccessor = macAccessors.Get(0);
 	miByteOffset = pcAccessor->miChannelByteOffset;

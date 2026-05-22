@@ -32,22 +32,29 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageCopier::Init(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
+bool CImageCopier::Init(Ptr<CImage> pcSource, Ptr<CImage> pcDest, bool bUseOpacity)
 {
 	CImageAccessorCreator	cCreator;
 
 	//Now we have an accessor that takes what's in the source and converts it to the destinations format.
 	//Although it may have gaps if the destination has channels the source does not.
-	cCreator.Init(&pcSource);
+	cCreator.Init(&pcSource);  
 	cCreator.AddAccess(&pcDest);
 	mpcSourceAccessor = cCreator.CreateAndKill();
 
 	if (mpcSourceAccessor)
 	{
-		//This looks a bit retarded but it creates an accessor capable of reading the source accesses output.
-		cCreator.Init(&pcDest);
-		cCreator.AddAccess(mpcSourceAccessor);
-		mpcDestAccessor = cCreator.CreateAndKill();
+		if (!bUseOpacity)
+		{
+			//This looks a bit retarded but it creates an accessor capable of reading the source accesses output.
+			cCreator.Init(&pcDest);
+			cCreator.AddAccess(mpcSourceAccessor);
+			mpcDestAccessor = cCreator.CreateAndKill();
+		}
+		else
+		{
+
+		}
 	}
 	else
 	{
@@ -240,3 +247,4 @@ void CImageCopier::Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 	cCopier.Copy(0, 0, 0, 0, pcSource->GetWidth(), pcSource->GetHeight());
 	cCopier.Kill();
 }
+

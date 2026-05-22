@@ -35,20 +35,23 @@ void* CChannelsAccessorWorstCase::Get(size iPos)
 	size				iDestBitPos;
 	char				c[16];
 	size				uiNumAccessors;
+	uint8*				pvBuffer;
 
 	uiNumAccessors = macAccessors.NumElements();
 	pvSource = mpcChannels->GetData();
 	iSourceBitPos = mpcChannels->GetBitStride() * iPos;
 	iDestBitPos = 0;
-	mpvGetBuffer[miBufferSize-1] = 0;
+	pvBuffer = (uint8*)msBuffer.GetStackData();
+	pvBuffer[GetBufferSize() - 1] = 0;
+
 	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcAccessor = macAccessors.Get(i);
 		pcAccessor->GetAsSub(pcAccessor->meAccessType, pvSource, iSourceBitPos, c);
-		CopyBits(mpvGetBuffer, iDestBitPos, c, 0, pcAccessor->miAccessBitSize, false);
+		CopyBits(pvBuffer, iDestBitPos, c, 0, pcAccessor->miAccessBitSize, false);
 		iDestBitPos += pcAccessor->miAccessBitSize;
 	}
-	return mpvGetBuffer;
+	return pvBuffer;
 }
 
 
