@@ -229,11 +229,11 @@ bool CIndexedFile::Delete(filePos iIndex)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexedFile::Delete(filePos iIndex, size uiCount)
 {
-	size			uiWritten;
-	filePos			iPosition;
-	void*			pvData;
-	CStackMemory<>	cTemp;
-	size			uiSize;
+	size				uiWritten;
+	filePos				iPosition;
+	void*				pvData;
+	CStackMemory<2 KB>	cTemp;
+	size				uiSize;
 
 	if (uiCount == 0)
 	{
@@ -343,13 +343,13 @@ void CIndexedFile::Dump(void)
 //////////////////////////////////////////////////////////////////////////
 filePos CIndexedFile::GetUsedDataIndices(CArrayBit* pab)
 {
-	CStackMemory<>	cCompare;
-	CStackMemory<>	cData;
-	void*			pvCompare;
-	filePos			i;
-	void*			pv;
-	bool			bUsed;
-	filePos			iUsed;
+	CStackMemory<2 KB>	cCompare;
+	CStackMemory<2 KB>	cData;
+	void*				pvCompare;
+	filePos				i;
+	void*				pv;
+	bool				bUsed;
+	filePos				iUsed;
 
 	pvCompare = cCompare.Init(muiDataSize);
 	memset(pvCompare, INDEX_FILE_EMPTY_CHAR, muiDataSize);

@@ -42,7 +42,7 @@ CBaseObject* CInternalObjectDeserialiser::Read(OIndex oi)
 {
 	CSerialisedObject*		pcSerialised;
 	size					uiDataSize;
-	CStackMemory<>			cTemp;
+	CStackMemory<2 KB>			cTemp;
 	bool					bExists;
 	CBaseObject*			pcBaseObject;
 
@@ -79,7 +79,7 @@ CBaseObject* CInternalObjectDeserialiser::Read(char* szObjectName)
 {
 	CSerialisedObject*	pcSerialised;
 	size				uiDataSize;
-	CStackMemory<>		cTemp;
+	CStackMemory<2 KB>	cTemp;
 	bool				bExists;
 	CBaseObject*		pcBaseObject;
 

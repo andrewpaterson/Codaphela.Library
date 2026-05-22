@@ -69,6 +69,7 @@ bool CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz
 		psz1->Append(szName1);
 		psz1->Append(" does not exist");
 
+		cFile1.Kill();
 		cFile2.Kill();
 		return false;
 	}

@@ -231,15 +231,15 @@ bool CDurableFileController::WriteControlledFileList(CDurableFile* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CDurableFileController::ReadControlledFileList(CDurableFile* pcFile)
 {
-	uint32			uiFileMagic;
-	bool			bRead;
-	uint32			uiFileNumber;
-	uint32			uiFileCount;
-	bool			bResult;
-	CStackMemory<>	cStack;
-	size			iFilenameLength;
-	char*			szFilename;
-	int32			iWriteOrRewrite; 
+	uint32				uiFileMagic;
+	bool				bRead;
+	uint32				uiFileNumber;
+	uint32				uiFileCount;
+	bool				bResult;
+	CStackMemory<2 KB>	cStack;
+	size				iFilenameLength;
+	char*				szFilename;
+	int32				iWriteOrRewrite; 
 	
 	uiFileCount = 0;
 	bRead = pcFile->ReadInt32(&uiFileMagic);

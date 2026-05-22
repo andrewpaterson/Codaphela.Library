@@ -371,9 +371,9 @@ void* CIndexTree::GetDataForNode(CIndexTreeNode* pcNode)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTree::GetNodeKey(CIndexTreeNode* pcNode, CArrayChar* pacKey)
 {
-	size			iNodeSize;
-	CStackMemory<>	cTemp;
-	char*			szKey;
+	size				iNodeSize;
+	CStackMemory<2 KB>	cTemp;
+	char*				szKey;
 
 	if (pcNode != NULL)
 	{
