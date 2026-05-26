@@ -230,8 +230,8 @@ void CImageCel::Print(CChars* psz)
 		return;
 	}
 
-	pcAccessorRGB = CImageAccessorCreator::Create(&mpSourceImage, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
-	pcAccessorOpacity = CImageAccessorCreator::Create(&mpSourceImage, PT_uint8, IMAGE_OPACITY, CHANNEL_ZERO);
+	pcAccessorRGB = CImageAccessorCreator::Create(&mpSourceImage, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+	pcAccessorOpacity = CImageAccessorCreator::Create(&mpSourceImage, PT_uint8, IMAGE_OPACITY, CHANNEL_STOP);
 
 	pcAccessorRGB->SyncDataCache();
 

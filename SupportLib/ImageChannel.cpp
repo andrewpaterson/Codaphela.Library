@@ -68,7 +68,7 @@ SChannel CChannelRGB::GetChannel(size iIndex)
 		sChannel.Init(IMAGE_DIFFUSE_BLUE, PT_uint8, false);
 		break;
 	default:
-		sChannel.Init(CHANNEL_ZERO, PT_Undefined, false);
+		sChannel.Init(CHANNEL_STOP, PT_Undefined, false);
 	}
 	return sChannel;
 }
@@ -119,7 +119,7 @@ SChannel CChannelRGBA::GetChannel(size iIndex)
 		sChannel.Init(IMAGE_OPACITY, PT_uint8, false);
 		break;
 	default:
-		sChannel.Init(CHANNEL_ZERO, PT_Undefined, false);
+		sChannel.Init(CHANNEL_STOP, PT_Undefined, false);
 	}
 	return sChannel;
 }
@@ -171,7 +171,7 @@ SChannel CChannelRGBX::GetChannel(size iIndex)
 		sChannel.Init(IMAGE_IGNORED, PT_uint8, false);
 		break;
 	default:
-		sChannel.Init(CHANNEL_ZERO, PT_Undefined, false);
+		sChannel.Init(CHANNEL_STOP, PT_Undefined, false);
 	}
 	return sChannel;
 }

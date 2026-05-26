@@ -1,3 +1,5 @@
+#ifndef __IMAGE_CHANNEL__H__
+#define __IMAGE_CHANNEL__H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -21,8 +23,6 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __IMAGE_IMAGE__H__
-#define __IMAGE_IMAGE__H__
 #include "BaseLib/MapIntString.h"
 #include "StandardLib/Unknown.h"
 #include "StandardLib/ChannelsHelper.h"
@@ -131,5 +131,5 @@ void ImageChannelDescriptorInit(void);
 void ImageChannelDescriptorKill(void);
 
 
-#endif // __IMAGE_IMAGE__H__
+#endif // __IMAGE_CHANNEL__H__
 
