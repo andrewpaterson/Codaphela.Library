@@ -1,34 +1,103 @@
-#ifndef __COLOUR_FORMATS_H__
-#define __COLOUR_FORMATS_H__
+#ifndef __COLOUR_FORMAT_H__
+#define __COLOUR_FORMAT_H__
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2009 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela SupportLib
+
+Codaphela SupportLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela SupportLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
+
+libpng is Copyright Glenn Randers-Pehrson
+zlib is Copyright Jean-loup Gailly and Mark Adler
+
+** ------------------------------------------------------------------------ **/
+#include "BaseLib/MapIntString.h"
+#include "StandardLib/Unknown.h"
+#include "StandardLib/ChannelsHelper.h"
+#include "ChannelTypes.h"
 
 
-enum EColourFormat
+//Lowest index on the left in memory so RGB would be R[0], G[1], B[2]
+enum EColourOrder
 {
-	CF_Unknown,
-
-	//Palettised colour.
-	CF_Indexed,
-
-	//24bit colour.
-	CF_R8G8B8,  
-	CF_R8G8B8X8,
-	CF_X8R8G8B8,
-
-	//15bit colour.
-	CF_R5G5B5X1,
-	CF_X1R5G5B5,
-
-	//16bit colour.
-	CF_R5G6B5,
-	CF_R5G5B6,
-	CF_R6G5B5,
-
-	//8bit colour.
-	CF_R3G3B2,
-	CF_R3G2B3,
-	CF_R2G3B3,
+	CCO_Unknown,
+	
+	CCO_RGB,
+	CCO_BRG,
+	CCO_GBR,
+	
+	CCO_BGR,
+	CCO_RBG,
+	CCO_GRB,
 };
 
 
-#endif // __COLOUR_FORMATS_H__
+//Lowest index on the left in memory so ARGB would be A[0], R[1], B[2], G[3]
+enum EColourFormat
+{
+	CFT_Unknown,
+
+	CFT_RGB,  //Note, RGB is a stand in for any RGB order.
+	CFT_RGBX,
+	CFT_XRGB,
+	CFT_RGBA,
+	CFT_ARGB,
+};
+
+
+enum ERGBColourBits
+{
+	CRGB_Unknown,
+
+	CRGB_24bit,  //R8 G8 B8
+	CRGB_30bit,
+	CRGB_36bit,
+	CRGB_48bit,
+	CRGB_Float3,
+	CRGB_8bit332, //R3G3B2
+	CRGB_8bit323, //R3G2B3
+	CRGB_8bit233, //R2G3B3
+	CRGB_6bit,
+	CRGB_15bit, 
+	CRGB_16bit, //R5 G6 B5
+};
+
+
+//This also covers Ignored (X) bits.
+enum ERGBAlphaBits
+{
+	ARGB_Unknown,
+
+	ARGB_None,
+	ARGB_8bit,
+	ARGB_10bit,
+	ARGB_12bit,
+	ARGB_16bit,
+	ARGB_2bit,
+};
+
+
+enum EColourOpacity
+{
+	CPO_Unknown,  //Implies there is no opacity channel.
+
+	CPO_Opaque,		  //There is an opacity channel but all pixel are opaque.
+	CPO_Translucent,  //Some pixels are translucent (including transparent).
+	CPO_Transparent,  //Some pixels are transparent
+};
+
+
+#endif // __COLOUR_FORMAT_H__
 
