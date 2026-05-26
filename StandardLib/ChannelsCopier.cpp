@@ -33,13 +33,14 @@ void CChannelsCopier::Init(CChannels* pcSource, CChannels* pcDest)
 
 	//Now we have an accessor that takes what's in the source and converts it to the destinations format.
 	//Although it may have gaps if the destination has channels the source does not.
-	cCreator.Init(pcSource);
-	cCreator.AddAccess(pcDest);
+	
+	cCreator.Init(pcSource);						//First set the available channels from the Source.
+	cCreator.AddAccess(pcDest);						//Then filter those down to only matching channels in Dest converting the the Dest data format.
 	mpcSourceAccessor = cCreator.CreateAndKill();
 
 	//This looks a bit retarded but it creates an accessor capable of reading the source accesses output.
-	cCreator.Init(pcDest);
-	cCreator.AddAccess(mpcSourceAccessor);
+	cCreator.Init(pcDest);							//First set the available channels from the Dest.
+	cCreator.AddAccess(mpcSourceAccessor);			//Then filter them down to the Dest channels that were also available in Source (still in the Dest data format).
 	mpcDestAccessor = cCreator.CreateAndKill();
 }
 

@@ -64,12 +64,12 @@ float CSingleChannelAccessor::GetCastToFloat(int iChannel, int iPos)
 //////////////////////////////////////////////////////////////////////////
 void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, void* pvDest, int iPos)
 {
-	CChannel*			pcChannel;
-	void*				pvData;
-	int					iIndex;
-	int					iByteSize;
-	int					iBitSize;
-	bool				bSub;
+	CChannel*	pcChannel;
+	void*		pvData;
+	int			iIndex;
+	int			iByteSize;
+	int			iBitSize;
+	bool		bSub;
 
 	//Fix the mess that are this function and the one below it.
 	pcChannel = mpcChannels->GetChannel(iChannel);

@@ -97,7 +97,6 @@ void CChannelAccessor::GetAsSub(EPrimitiveType eType, void* pvBase, size iBitOff
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -160,7 +159,7 @@ void CChannelAccessor::SetFrom(EPrimitiveType eType, void* pvBase, void* pvSourc
 //////////////////////////////////////////////////////////////////////////
 void CChannelAccessor::SetFromSub(EPrimitiveType eType, void* pvBase, size iBitOffset, void* pvSource)
 {
-	char	c[16];
+	uint8	c[16];
 
 	gcTypeConverter.Do(meChannelType, &c, eType, pvSource);
 	SetBits(pvBase, iBitOffset, miChannelBitSize, &c);

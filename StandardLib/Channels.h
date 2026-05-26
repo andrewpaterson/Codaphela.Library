@@ -1,3 +1,5 @@
+#ifndef __CHANNELS__H__
+#define __CHANNELS__H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -20,8 +22,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __CHANNELS__H__
-#define __CHANNELS__H__
+#include "BaseLib/ArraySize.h"
 #include "Unknown.h"
 #include "Object.h"
 #include "ObjectReader.h"
@@ -63,6 +64,7 @@ public:
 	bool					Load(CObjectReader* pcFile) override;
 
 	void 					BeginChange(void);
+
 	void 					SetSize(size iSize);
 	void 					PrivateAddChannel(size iChannel, EPrimitiveType eType, bool bReverse);
 	void 					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);
@@ -76,7 +78,9 @@ public:
 	void					SetData(void* pvMem);
 	void					ByteAlign(void);
 	bool					RenameChannel(size iOldName, size iNewName);
+
 	bool 					EndChange(void);
+
 	bool					IsChanging(void);
 	bool					IsSameFormat(CChannels* psOther);
 	bool					IsChannelRemoved(size iChannel);
@@ -112,11 +116,11 @@ public:
 	char*					GetChannelLongName(size iChannel);
 	char*					GetChannelShortName(size iChannel);
 
-	void					GetAllChannels(CArrayInt* paiChannels);
+	void					GetAllChannels(CArraySize* paiChannels);
 	void					GetAllChannels(CArrayChannel* pasChannels);
 	EPrimitiveType			GetPrimitiveType(void);  //Returns PT_Undefined if more than one.
 	void					GetAllPrimitiveTypes(CArrayInt* paiPrimitiveTypes);
-	void					GetChannelsForType(EPrimitiveType eType, CArrayInt* paiChannels);
+	void					GetChannelsForType(EPrimitiveType eType, CArraySize* paiChannels);
 	bool					IsOnlyBasicTypes(void);
 
 	void					SetByteStride(size iByteStride);

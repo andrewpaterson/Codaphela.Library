@@ -503,7 +503,7 @@ bool CChannels::EndChange(void)
 	size			i;
 	SChannel*		psAddedChannel;
 	SChannel*		psRemovedChannel;
-	CChannel*		psChannel;
+	CChannel*		pcChannel;
 	size			iSize;
 	size			iOffset;
 	bool			bAnyAdded;
@@ -545,18 +545,18 @@ bool CChannels::EndChange(void)
 				for (i = 0; i < uiRemoved; i++)
 				{
 					psRemovedChannel = mpsChangingDesc->asRemovedChannels.Get(i);
-					psChannel = GetChannel(psRemovedChannel->iChannel);
-					if (psChannel->Is8BitAligned())
+					pcChannel = GetChannel(psRemovedChannel->iChannel);
+					if (pcChannel->Is8BitAligned())
 					{
-						iOffset = psChannel->miByteOffset;
-						iSize = psChannel->miByteSize;
+						iOffset = pcChannel->miByteOffset;
+						iSize = pcChannel->miByteSize;
 						mabData.RemoveBatch(iOffset, iSize, miSize, miByteStride-iSize);
 					}
 					else
 					{
 						//Deal with bitty removal.
 					}
-					masChannelOffsets.RemoveAt(masChannelOffsets.GetIndex(psChannel), true);
+					masChannelOffsets.RemoveAt(masChannelOffsets.GetIndex(pcChannel), true);
 					Recalculate();
 
 					if (mpmicChannelDebugs)
@@ -572,8 +572,8 @@ bool CChannels::EndChange(void)
 			for (i = 0; i < uiAdded; i++)
 			{
 				psAddedChannel = mpsChangingDesc->asAddedChannels.Get(i);
-				psChannel = GetChannel(psAddedChannel->iChannel);
-				if (psChannel)
+				pcChannel = GetChannel(psAddedChannel->iChannel);
+				if (pcChannel)
 				{
 					gcLogger.Error2(__METHOD__, " Channel [", IntToString(psAddedChannel->iChannel), "] already exists in Channels.", NULL);
 					bResult = false;
@@ -581,8 +581,8 @@ bool CChannels::EndChange(void)
 					break;
 				}
 
-				psChannel = masChannelOffsets.Add();
-				psChannel->Init(psAddedChannel->iChannel, psAddedChannel->eType, psAddedChannel->bReverse);
+				pcChannel = masChannelOffsets.Add();
+				pcChannel->Init(psAddedChannel->iChannel, psAddedChannel->eType, psAddedChannel->bReverse);
 				bAnyAdded = true;
 			}
 
@@ -622,8 +622,8 @@ bool CChannels::EndChange(void)
 			for (i = 0; i < uiRemoved; i++)
 			{
 				psRemovedChannel = mpsChangingDesc->asRemovedChannels.Get(i);
-				psChannel = GetChannel(psRemovedChannel->iChannel);
-				masChannelOffsets.RemoveAt(masChannelOffsets.GetIndex(psChannel), true);
+				pcChannel = GetChannel(psRemovedChannel->iChannel);
+				masChannelOffsets.RemoveAt(masChannelOffsets.GetIndex(pcChannel), true);
 
 				if (mpmicChannelDebugs)
 				{
@@ -636,8 +636,8 @@ bool CChannels::EndChange(void)
 			{
 				psAddedChannel = mpsChangingDesc->asAddedChannels.Get(i);
 
-				psChannel = masChannelOffsets.Add();
-				psChannel->Init(psAddedChannel->iChannel, psAddedChannel->eType, psAddedChannel->bReverse);
+				pcChannel = masChannelOffsets.Add();
+				pcChannel->Init(psAddedChannel->iChannel, psAddedChannel->eType, psAddedChannel->bReverse);
 			}
 			miSize = mpsChangingDesc->iSize;
 			Recalculate();
@@ -1257,7 +1257,7 @@ char* CChannels::GetChannelShortName(size iChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::GetAllChannels(CArrayInt* paiChannels)
+void CChannels::GetAllChannels(CArraySize* paiChannels)
 {
 	size		j;
 	CChannel*	psChannel;
@@ -1353,7 +1353,7 @@ void CChannels::GetAllPrimitiveTypes(CArrayInt* paiPrimitiveTypes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::GetChannelsForType(EPrimitiveType eType, CArrayInt* paiChannels)
+void CChannels::GetChannelsForType(EPrimitiveType eType, CArraySize* paiChannels)
 {
 	size		j;
 	CChannel*	psChannel;

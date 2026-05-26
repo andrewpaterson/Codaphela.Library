@@ -20,29 +20,13 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __CHANNELS_ACCESSOR_CREATOR_H__
 #define __CHANNELS_ACCESSOR_CREATOR_H__
-#include "BaseLib/DataTypes.h"
-#include "Unknown.h"
-#include "ChannelsAccessor.h"
-#include "Channels.h"
-
-
-struct SChannelAccess 
-{
-	size			iChannel;
-	EPrimitiveType	eType;
-};
-
-
-typedef CArrayTemplate<SChannelAccess>	CArrayChannelAccess;
+#include "ChannelsAccessorCreatorParams.h"
 
 
 class CChannelsAccessorCreator
 {
 public:
-	CChannels*				mpcChannels;
-	CArrayChannelAccess		masAccesses;
-
-	CArrayChannelAccessor	macAccessors;
+	CChannelsAccessorCreatorParams	mcParams;
 
 	void				Init(CChannels* pcChannels);
 	void				Kill(void);
@@ -60,16 +44,6 @@ public:
 	void	AddAccess(CChannels* pcChannels);
 	void	AddAccess(CChannelAccessor* pcChannel);
 	void	AddAccess(CChannelsAccessor* pcChannels);
-
-private:
-	bool	CalculateEmpty(void);
-	bool	CalculateContiguous(void);
-	bool	CalculateSourceTypesSame(void);
-	bool	CalculateChannelByteAligned(void);
-	bool	CalculateAccessByteAligned(void);
-	size	CalclulateBitSize(void);
-
-	bool	CreateAccessors(void);
 };
 
 
