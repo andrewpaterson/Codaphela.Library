@@ -27,7 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 
 //The stop 'channel'.
-#define CHANNEL_ZERO  0  
+#define CHANNEL_STOP  ARRAY_ELEMENT_NOT_FOUND  
 
 
 enum EChannelType  //1 byte for type

@@ -62,7 +62,7 @@ public:
 	EImageCombineLayout		meLayout;
 	EImageCombineSize		meSize;
 	EImageCombineChannels	meChannels;
-	SInt32Vec2					msSize;  //Only if ICS_UserSpecified.
+	SInt32Vec2				msSize;  //Only if ICS_UserSpecified.
 	Ptr<CImage>				mpcDestImage;  //Assumed to be uninitialised.
 	CArrayImageCel			mcSourceCels;
 	CArrayImageCel			mcDestCels;  //Theres a one-to-one between dest and source cells.
@@ -91,7 +91,7 @@ private:
 	void				CalculateChannels(void);
 	void				CalculateChannelsFromCels(void);
 	void				UpdateChannels(CArrayChannel* pasSource);
-	SInt32Vec2				Pack(CArrayPackedRectangle* pacPackedRects);
+	SInt32Vec2			Pack(CArrayPackedRectangle* pacPackedRects);
 	void				Draw(CArrayPackedRectangle* pacPackedRects);
 	void				CreateDestCels(CArrayPackedRectangle* pacPackedRects);
 	CPackedRectangle*	GetPackedRectangle(CArrayPackedRectangle* pacPackedRects, Ptr<CImageCel> pcSourceCel);

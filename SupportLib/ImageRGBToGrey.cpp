@@ -58,7 +58,7 @@ Ptr<CImage> CImageRGBToGrey::Modify(Ptr<CImage> pcImage)
 
 	//This will preserve opacity.
 	eStyle = meStyle;
-	if (pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO))
+	if (pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP))
 	{
 		if (eStyle == RGBTGS_OnlyIfChannelsSame)
 		{
@@ -89,7 +89,7 @@ Ptr<CImage> CImageRGBToGrey::Modify(Ptr<CImage> pcImage)
 
 		return NULL;
 	}
-	else if (pcImage->HasChannels(IMAGE_DIFFUSE_GREY, CHANNEL_ZERO))
+	else if (pcImage->HasChannels(IMAGE_DIFFUSE_GREY, CHANNEL_STOP))
 	{
 		return pcImage;
 	}
@@ -118,9 +118,9 @@ bool CImageRGBToGrey::AreChannelsSame(CImage* pcImage, EChannel eChannel1, EChan
 	SImageColour*			psColour2;
 	SImageColour*			psColour3;
 
-	pcAccessor1 = CImageAccessorCreator::Create(pcImage, eChannel1, CHANNEL_ZERO);
-	pcAccessor2 = CImageAccessorCreator::Create(pcImage, eChannel2, CHANNEL_ZERO);
-	pcAccessor3 = CImageAccessorCreator::Create(pcImage, eChannel3, CHANNEL_ZERO);
+	pcAccessor1 = CImageAccessorCreator::Create(pcImage, eChannel1, CHANNEL_STOP);
+	pcAccessor2 = CImageAccessorCreator::Create(pcImage, eChannel2, CHANNEL_STOP);
+	pcAccessor3 = CImageAccessorCreator::Create(pcImage, eChannel3, CHANNEL_STOP);
 	if ((pcAccessor1->GetBitSize() != pcAccessor2->GetBitSize()) && (pcAccessor1->GetBitSize() != pcAccessor3->GetBitSize()))
 	{
 		return false;

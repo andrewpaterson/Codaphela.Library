@@ -52,7 +52,7 @@ void CImageR3G3B2A::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CImageR3G3B2A::Modify(Ptr<CImage> pcImage)
 {
-	if (!pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO))
+	if (!pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP))
 	{
 		return false;
 	}

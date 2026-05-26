@@ -481,8 +481,8 @@ void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 	CImageAccessor*			pcSource;
 	CImageAccessor*			pcDest;
 	Ptr<CImage>				pcLastImage;
-	CArrayInt				aiDestChannels;
-	CArrayInt				aiSourceChannels;
+	CArraySize				aiDestChannels;
+	CArraySize				aiSourceChannels;
 	CArrayInt				aiIntersectChannels;
 	bool					bDestHasOpacity;
 	CChannel*				pcOpacityChannel;
@@ -502,7 +502,7 @@ void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 	if (pcOpacityChannel)
 	{
 		bDestHasOpacity = true;
-		pcDestOpacity = CImageAccessorCreator::Create(&mpcDestImage, pcOpacityChannel->eType, IMAGE_OPACITY, CHANNEL_ZERO);
+		pcDestOpacity = CImageAccessorCreator::Create(&mpcDestImage, pcOpacityChannel->eType, IMAGE_OPACITY, CHANNEL_STOP);
 	}
 	else
 	{

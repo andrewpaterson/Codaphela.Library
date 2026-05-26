@@ -159,7 +159,7 @@ Ptr<CImage> LoadPictureIPicture(char *szFilename, bool bAddDebug)
 		AddDebugChannel(pcImage, PT_uint8, IMAGE_OPACITY, bAddDebug);
 		pcImage->EndChange();
 
-		cImageImport.Init(lWidthPixels, lHeightPixels, pBits, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_ZERO);
+		cImageImport.Init(lWidthPixels, lHeightPixels, pBits, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_STOP);
 		cCopier.Init(&cImageImport, pcImage);
 		for (i = 0; i < lHeightPixels; i++)
 		{
@@ -179,7 +179,7 @@ Ptr<CImage> LoadPictureIPicture(char *szFilename, bool bAddDebug)
 		AddDebugChannel(pcImage, PT_uint8, IMAGE_DIFFUSE_GREEN, bAddDebug);
 		AddDebugChannel(pcImage, PT_uint8, IMAGE_DIFFUSE_BLUE, bAddDebug);
 		pcImage->EndChange();
-		cImageImport.Init(lWidthPixels, lHeightPixels, pBits, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_IGNORED, CHANNEL_ZERO);
+		cImageImport.Init(lWidthPixels, lHeightPixels, pBits, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_IGNORED, CHANNEL_STOP);
 		cCopier.Init(&cImageImport, pcImage);
 		for (i = 0; i < lHeightPixels; i++)
 		{

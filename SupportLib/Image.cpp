@@ -72,7 +72,7 @@ Ptr<CImage> CImage::Init(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CImage::Init(int iWidth, int iHeight)
 {
-	Init(iWidth, iHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
+	Init(iWidth, iHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 	return this;
 }
 
@@ -95,7 +95,7 @@ Ptr<CImage> CImage::Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel
 
 	BeginChange();
 	va_start(vaMarker, eFirst);
-	while (eIC != CHANNEL_ZERO)
+	while (eIC != CHANNEL_STOP)
 	{
 		AddChannel(eIC, eType);
 		iCount++;
@@ -130,7 +130,7 @@ Ptr<CImage> CImage::Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveTy
 
 	BeginChange();
 	va_start(vaMarker, eFirst);
-	while (eIC != CHANNEL_ZERO)
+	while (eIC != CHANNEL_STOP)
 	{
 		AddChannel(eIC, eType);
 		iCount++;
@@ -283,7 +283,7 @@ void CImage::ReInit(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFir
 
 	BeginChange();
 	va_start(vaMarker, eFirst);
-	while (eIC != CHANNEL_ZERO)
+	while (eIC != CHANNEL_STOP)
 	{
 		AddChannel(eIC, eType);
 		iCount++;
@@ -616,7 +616,7 @@ void CImage::CopyIntoInitialised(Ptr<CImage> pcSource)
 //////////////////////////////////////////////////////////////////////////
 void CImage::RemovePurpose(EImagePurpose ePurpose)
 {
-	CArrayInt		mai;
+	CArraySize		mai;
 	EChannel		eChannel;
 	size			i;
 	EImagePurpose	eCurrent;
@@ -725,6 +725,16 @@ CChannels* CImage::GetChannels(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CArrayChannelOffset* CImage::GetChannelOffsets(void)
+{
+	return mcChannels.GetChannelOffsets();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 size CImage::GetChannelsCount(void)
 {
 	return mcChannels.GetNumChannels();
@@ -735,7 +745,7 @@ size CImage::GetChannelsCount(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::GetAllChannels(CArrayInt* paiChannels)
+void CImage::GetAllChannels(CArraySize* paiChannels)
 {
 	mcChannels.GetAllChannels(paiChannels);
 }
@@ -775,7 +785,7 @@ void CImage::GetAllPrimitiveTypes(CArrayInt* paiPrimitiveTypes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::GetChannelsForType(EPrimitiveType eType, CArrayInt* paiChannels)
+void CImage::GetChannelsForType(EPrimitiveType eType, CArraySize* paiChannels)
 {
 	mcChannels.GetChannelsForType(eType, paiChannels);
 }
@@ -839,7 +849,7 @@ bool CImage::HasChannels(size iFirst, ...)
 	bResult = true;
 
 	va_start(vaMarker, iFirst);
-	while (eIC != CHANNEL_ZERO)
+	while (eIC != CHANNEL_STOP)
 	{
 		bResult &= HasChannel(eIC);
 		eIC = va_arg(vaMarker, size);
@@ -872,7 +882,7 @@ void CImage::SetChannelDebugNames(size iChannel)
 void CImage::Print(CChars* psz)
 {
 	CChannels*			pcChannels;
-	CArrayInt			aiChannels;
+	CArraySize			aiChannels;
 	size				i;
 	uint				uiChannel;
 	CChannel*			pcChannel;

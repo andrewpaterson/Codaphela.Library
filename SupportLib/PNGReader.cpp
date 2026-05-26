@@ -157,7 +157,7 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 		CChars::Dump("PNG_COLOR_TYPE_PALETTE\n");
 		//pImage->AddChannel(IC_Index, PT_uint8, 0);
 		//cSourceRow.Add(eSourceType, IC_Index);
-		//pImage->AddPalette(256, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
+		//pImage->AddPalette(256, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 	}
 	else if (info_ptr->color_type == PNG_COLOR_TYPE_RGB)
 	{

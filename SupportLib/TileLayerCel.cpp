@@ -174,7 +174,7 @@ Ptr<CImage> CTileLayerCel::WriteToImage(void)
 	int32				x;
 	int32				y;
 
-	pDestImage = OMalloc<CImage>(msMapSize.x * msCelSize.x, msMapSize.y * msCelSize.y, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
+	pDestImage = OMalloc<CImage>(msMapSize.x * msCelSize.x, msMapSize.y * msCelSize.y, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 	if (pDestImage.IsNull())
 	{
 		return NULL;

@@ -49,7 +49,7 @@ void CPixelOpacityChannel::Init(CImage* pcImage)
 		return;
 	}
 
-	mpcOpacityChannel = CImageAccessorCreator::Create(pcImage, IMAGE_OPACITY, CHANNEL_ZERO);
+	mpcOpacityChannel = CImageAccessorCreator::Create(pcImage, IMAGE_OPACITY, CHANNEL_STOP);
 }
 
 
@@ -135,7 +135,7 @@ bool CPixelOpacityTransparentColour::IsTransparent(int x, int y)
 void CPixelOpacityMask::Init(CImage* pcSourceImage, CImage* pcMaskImage, short iMask)
 {
 	CPixelOpacityChannel::Init(pcSourceImage);
-	mpcMaskChannel = CImageAccessorCreator::Create(pcMaskImage, IMAGE_MASK, CHANNEL_ZERO);
+	mpcMaskChannel = CImageAccessorCreator::Create(pcMaskImage, IMAGE_MASK, CHANNEL_STOP);
 	miMask = iMask;
 }
 

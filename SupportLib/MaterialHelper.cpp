@@ -65,7 +65,7 @@ void CMaterialHelper::Touch(void)
 	//	{
 	//		pcImage->RenameChannel(IMAGE_DIFFUSE_GREY, IMAGE_ILLUMINATION);
 	//	}
-	//	else if (pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO))
+	//	else if (pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP))
 	//	{
 	//		pcImage->RenameChannel(IMAGE_DIFFUSE_RED, IMAGE_ILLUMINATION_RED);
 	//		pcImage->RenameChannel(IMAGE_DIFFUSE_GREEN, IMAGE_ILLUMINATION_GREEN);

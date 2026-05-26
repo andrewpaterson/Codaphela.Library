@@ -151,7 +151,7 @@ Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
 		return NULL;
 	}
 
-	Ptr<CImage> pcImage = OMalloc<CImage>(sStruct.uiImageWidth, sStruct.uiImageHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
+	Ptr<CImage> pcImage = OMalloc<CImage>(sStruct.uiImageWidth, sStruct.uiImageHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 	if (pcImage.IsNull())
 	{
 		return false;
@@ -220,7 +220,7 @@ Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 	}
 
 	uiWidth = sStruct.uiImageWidth;
-	Ptr<CImage> pcImage = OMalloc<CImage>(sStruct.uiImageWidth, sStruct.uiImageHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_ZERO);
+	Ptr<CImage> pcImage = OMalloc<CImage>(sStruct.uiImageWidth, sStruct.uiImageHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
 	if (pcImage.IsNull())
 	{
 		return false;

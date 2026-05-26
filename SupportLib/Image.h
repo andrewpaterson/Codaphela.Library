@@ -1,3 +1,5 @@
+#ifndef __IMAGE_H__
+#define __IMAGE_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -21,8 +23,6 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __IMAGE__H__
-#define __IMAGE__H__
 #include "BaseLib/GeometricTypes.h"
 #include "StandardLib/Channels.h"
 #include "StandardLib/Array.h"
@@ -109,17 +109,19 @@ public:
 	bool					IsValid(int x, int y);
 	CChannel*				GetChannel(size iChannel);
 	size					GetChannelsCount(void);
-	void					GetAllChannels(CArrayInt* paiChannels);
+	void					GetAllChannels(CArraySize* paiChannels);
 	void					GetAllChannels(CArrayChannel* pasChannels);
 	EPrimitiveType			GetPrimitiveType(void);  //Returns PT_Undefined if more than one.
 	void					GetAllPrimitiveTypes(CArrayInt* paiPrimitiveTypes);
-	void					GetChannelsForType(EPrimitiveType eType, CArrayInt* paiChannels);
+	void					GetChannelsForType(EPrimitiveType eType, CArraySize* paiChannels);
 
 	char*					GetChannelLongName(size iChannel);
 	char*					GetChannelShortName(size iChannel);
 	bool					HasChannel(size iChannel);
 	bool					HasChannels(size iFirst, ...);
 
+	CArrayChannelOffset*	GetChannelOffsets(void);
+	
 	void					SetChannelDebugNames(size iChannel);
 
 	void					Print(CChars* psz);
