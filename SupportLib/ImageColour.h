@@ -25,7 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __IMAGE_COLOUR_H__
 #include "BaseLib/Define.h"
 #include "BaseLib/FloatHelper.h"
-#include "BaseLib/ArrayInt.h"
+#include "BaseLib/ArraySize.h"
 #include "StandardLib/Unknown.h"
 #include "ImageChannel.h"
 
@@ -53,7 +53,7 @@ public:
 	void			Kill(void);
 	
 	virtual float32	GetValue(EChannel eChannel) =0;
-	virtual void	GetChannels(CArrayInt* pai) =0;
+	virtual void	GetChannels(CArraySize* pai) =0;
 };
 
 
@@ -69,7 +69,7 @@ public:
 	void	Init(float32 r, float32 g, float32 b);
 
 	float32	GetValue(EChannel eChannel);
-	void	GetChannels(CArrayInt* pai);
+	void	GetChannels(CArraySize* pai);
 
 	bool	Load(CFileReader* pcFile);
 	bool	Save(CFileWriter* pcFile);
@@ -89,7 +89,7 @@ public:
 	void	Zero(void);
 
 	float32	GetValue(EChannel eChannel);
-	void	GetChannels(CArrayInt* pai);
+	void	GetChannels(CArraySize* pai);
 	
 	bool	Load(CFileReader* pcFile);
 	bool	Save(CFileWriter* pcFile);
@@ -105,7 +105,7 @@ public:
 	void	Init(float32 a);
 
 	float32	GetValue(EChannel eChannel);
-	void	GetChannels(CArrayInt* pai);
+	void	GetChannels(CArraySize* pai);
 
 	bool	Load(CFileReader* pcFile);
 	bool	Save(CFileWriter* pcFile);
@@ -121,7 +121,7 @@ public:
 	void	Init(float32 s);
 
 	float32	GetValue(EChannel eChannel);
-	void	GetChannels(CArrayInt* pai);
+	void	GetChannels(CArraySize* pai);
 
 	bool	Load(CFileReader* pcFile);
 	bool	Save(CFileWriter* pcFile);
@@ -139,7 +139,7 @@ public:
 	void	Init(float32 x, float32 y, float32 z);
 
 	float32	GetValue(EChannel eChannel);
-	void	GetChannels(CArrayInt* pai);
+	void	GetChannels(CArraySize* pai);
 
 	bool	Load(CFileReader* pcFile);
 	bool	Save(CFileWriter* pcFile);
@@ -156,7 +156,7 @@ public:
 	void	Init(CImageColour* pc1, CImageColour* pc2);
 
 	float32	GetValue(EChannel eChannel);
-	void	GetChannels(CArrayInt* pai);
+	void	GetChannels(CArraySize* pai);
 };
 
 

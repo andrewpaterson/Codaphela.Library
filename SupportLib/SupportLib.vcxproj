@@ -183,6 +183,13 @@
     <ClInclude Include="CopyPaste.h" />
     <ClInclude Include="ChannelTypes.h" />
     <ClInclude Include="GlyphListFontDraw.h" />
+    <ClInclude Include="ImageBlitter.h" />
+    <ClInclude Include="ImageRowBlitter.h" />
+    <ClInclude Include="ImageRowBlitterCache.h" />
+    <ClInclude Include="ImageRowBlitterContiguous.h" />
+    <ClInclude Include="ImageRowBlitterOpaque.h" />
+    <ClInclude Include="ImageRowBlitterTranslucent.h" />
+    <ClInclude Include="ImageRowBlitters.h" />
     <ClInclude Include="MapFontDraw.h" />
     <ClInclude Include="MapViewport.h" />
     <ClInclude Include="MultiImageCopier.h" />
@@ -363,9 +370,17 @@
   <ItemGroup>
     <ClCompile Include="BaseFontDraw.cpp" />
     <ClCompile Include="ChannelTypes.cpp" />
+    <ClCompile Include="ColourFormat.cpp" />
     <ClCompile Include="CopyPaste_Windows.cpp" />
     <ClCompile Include="FakeTracker.cpp" />
     <ClCompile Include="GlyphListFontDraw.cpp" />
+    <ClCompile Include="ImageBlitter.cpp" />
+    <ClCompile Include="ImageRowBlitter.cpp" />
+    <ClCompile Include="ImageRowBlitterCache.cpp" />
+    <ClCompile Include="ImageRowBlitterContiguous.cpp" />
+    <ClCompile Include="ImageRowBlitterOpaque.cpp" />
+    <ClCompile Include="ImageRowBlitters.cpp" />
+    <ClCompile Include="ImageRowBlitterTranslucent.cpp" />
     <ClCompile Include="MapFontDraw.cpp" />
     <ClCompile Include="FontFactory.cpp" />
     <ClCompile Include="FontImportParameters.cpp" />

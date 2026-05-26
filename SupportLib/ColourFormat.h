@@ -23,9 +23,6 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/MapIntString.h"
-#include "StandardLib/Unknown.h"
-#include "StandardLib/ChannelsHelper.h"
 #include "ChannelTypes.h"
 
 
@@ -85,6 +82,7 @@ enum ERGBAlphaBits
 	ARGB_10bit,
 	ARGB_12bit,
 	ARGB_16bit,
+	ARGB_Float,
 	ARGB_2bit,
 };
 
@@ -96,6 +94,28 @@ enum EColourOpacity
 	CPO_Opaque,		  //There is an opacity channel but all pixel are opaque.
 	CPO_Translucent,  //Some pixels are translucent (including transparent).
 	CPO_Transparent,  //Some pixels are transparent
+};
+
+
+
+class CColourFormatHelper
+{
+public:
+	EColourFormat	meFormat;
+	EColourOrder	meOrder;
+	ERGBColourBits	meColourBits;
+	ERGBAlphaBits	meAlphaBits;
+
+	void			Init(EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
+
+	size			GetNumChannels(void);
+
+	EChannel		GetChannel(size uiIndex);
+	EPrimitiveType	GetType(size uiIndex);
+
+	EChannel		GetColourChannel(size uiIndex);
+	EPrimitiveType	GetColourType(size uiIndex);
+	EPrimitiveType	GetAlphaType(void);
 };
 
 

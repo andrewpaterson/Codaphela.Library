@@ -103,7 +103,7 @@ CImageAccessor* CImageAccessorCreator::CreateAndKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessorCreator::AddAccess(int iChannel, EPrimitiveType eType)
+void CImageAccessorCreator::AddAccess(EChannel iChannel, EPrimitiveType eType)
 {
 	mcCreator.AddAccess(iChannel, eType);
 }
@@ -113,7 +113,7 @@ void CImageAccessorCreator::AddAccess(int iChannel, EPrimitiveType eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessorCreator::AddAccess(int iChannel1, int iChannel2, EPrimitiveType eType)
+void CImageAccessorCreator::AddAccess(EChannel iChannel1, EChannel iChannel2, EPrimitiveType eType)
 {
 	AddAccess(iChannel1, eType);
 	AddAccess(iChannel2, eType);
@@ -124,7 +124,7 @@ void CImageAccessorCreator::AddAccess(int iChannel1, int iChannel2, EPrimitiveTy
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType)
+void CImageAccessorCreator::AddAccess(EChannel iChannel1, EChannel iChannel2, EChannel iChannel3, EPrimitiveType eType)
 {
 	AddAccess(iChannel1, eType);
 	AddAccess(iChannel2, eType);
@@ -136,7 +136,7 @@ void CImageAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChannel
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType)
+void CImageAccessorCreator::AddAccess(EChannel iChannel1, EChannel iChannel2, EChannel iChannel3, EChannel iChannel4, EPrimitiveType eType)
 {
 	AddAccess(iChannel1, eType);
 	AddAccess(iChannel2, eType);
@@ -149,7 +149,7 @@ void CImageAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChannel
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessorCreator::AddAccess(CArrayInt* paiChannels, EPrimitiveType eType)
+void CImageAccessorCreator::AddAccess(CArraySize* paiChannels, EPrimitiveType eType)
 {
 	mcCreator.AddAccess(paiChannels, eType);
 }
@@ -181,7 +181,7 @@ void CImageAccessorCreator::AddAccess(CImageAccessor* pcChannels)
 //////////////////////////////////////////////////////////////////////////
 void CImageAccessorCreator::AddAccess(CImageColour* pcColour)
 {
-	CArrayInt	aiChannels;
+	CArraySize	aiChannels;
 
 	aiChannels.Init();
 	pcColour->GetChannels(&aiChannels);
@@ -194,9 +194,9 @@ void CImageAccessorCreator::AddAccess(CImageColour* pcColour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessorCreator::AddAccessFromIntersectionOf(CArrayInt* paiChannels1, CArrayInt* paiChannels2)  //Hmmm...
+void CImageAccessorCreator::AddAccessFromIntersectionOf(CArraySize* paiChannels1, CArraySize* paiChannels2)  //Hmmm...
 {
-	CArrayInt	aiIntersection;
+	CArraySize	aiIntersection;
 
 	aiIntersection.Init();
 	aiIntersection.Intersect(paiChannels1, paiChannels2);
@@ -277,7 +277,7 @@ CImageAccessor* CImageAccessorCreator::Create(CImage* pcImage, CImage* pcChannel
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImageAccessor* CImageAccessorCreator::Create(CImage* pcImage, CArrayInt* paiChannels)
+CImageAccessor* CImageAccessorCreator::Create(CImage* pcImage, CArraySize* paiChannels)
 {
 	CImageAccessorCreator	cCreator;
 

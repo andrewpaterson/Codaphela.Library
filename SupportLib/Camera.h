@@ -26,9 +26,9 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 enum ECameraType
 {
-	CT_Unknown,
-	CT_Perspective,
-	CT_Orthonormal,
+	CAT_Unknown,
+	CAT_Perspective,
+	CAT_Orthonormal,
 };
 
 

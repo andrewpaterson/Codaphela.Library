@@ -32,6 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 enum EChannelType  //1 byte for type
 {
+	CT_Unknown,
 	CT_Red = 1,
 	CT_Green,
 	CT_Blue,
@@ -51,11 +52,11 @@ enum EChannelType  //1 byte for type
 };
 
 
-typedef int EChannel;
+typedef size EChannel;
 
 
 #define CHANNEL(purpose, type)		((EChannel)((purpose * NUM_CHANNEL_TYPES) + type + 1))
-#define CHANNEL_PURPOSE(channel)	(int)(channel / NUM_CHANNEL_TYPES)
+#define CHANNEL_PURPOSE(channel)	(size)(channel / NUM_CHANNEL_TYPES)
 #define CHANNEL_TYPE(channel)		(EChannelType)((channel % NUM_CHANNEL_TYPES) - 1)
 
 

@@ -208,6 +208,12 @@
     <Filter Include="Source\Image\Copier">
       <UniqueIdentifier>{7ce68e9f-e09f-4c5e-b0ad-3cc926258688}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Image\Blitter">
+      <UniqueIdentifier>{648a3684-9a53-4997-8574-f4b2fef005f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Image\Blitter\Types">
+      <UniqueIdentifier>{31773fe5-d710-4f1b-9aed-0602c02df864}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CopyPaste.h">
@@ -753,6 +759,27 @@
     <ClInclude Include="MultiImageCopier.h">
       <Filter>Source\Image\Copier</Filter>
     </ClInclude>
+    <ClInclude Include="ImageBlitter.h">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageRowBlitter.h">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageRowBlitterContiguous.h">
+      <Filter>Source\Image\Blitter\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageRowBlitters.h">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageRowBlitterCache.h">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageRowBlitterTranslucent.h">
+      <Filter>Source\Image\Blitter\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageRowBlitterOpaque.h">
+      <Filter>Source\Image\Blitter\Types</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1264,6 +1291,30 @@
     </ClCompile>
     <ClCompile Include="MultiImageCopier.cpp">
       <Filter>Source\Image\Copier</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageBlitter.cpp">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRowBlitter.cpp">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRowBlitters.cpp">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRowBlitterCache.cpp">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRowBlitterContiguous.cpp">
+      <Filter>Source\Image\Blitter\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRowBlitterOpaque.cpp">
+      <Filter>Source\Image\Blitter\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRowBlitterTranslucent.cpp">
+      <Filter>Source\Image\Blitter\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="ColourFormat.cpp">
+      <Filter>Source\Image\Colour</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

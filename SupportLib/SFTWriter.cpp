@@ -43,8 +43,8 @@ bool HasTransparency(Ptr<CImage> pImage, size uiImageLeftOffset, size uiImageTop
 	size				y;
 	size				y2;
 	size				x2;
-	CChannelsAccessor* pcOppacityAccessor;
-	CChannel* pcAlpha;
+	CChannelsAccessor*	pcOppacityAccessor;
+	CChannel*			pcAlpha;
 	bool				bOpaque;
 	size				uiImageWidth;
 
@@ -195,23 +195,24 @@ bool SaveSFTOpaque(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeftOffse
 //////////////////////////////////////////////////////////////////////////
 bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeftOffset, size uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight)
 {
-	SSFTImage			sStruct;
-	CChannelsAccessor*	pcOppacityAccessor;
-	CChannelsAccessor*	pcDiffueseAccessor;
-	size				x;
-	size				y;
-	size				uiImageWidth;
-	size				uiImageHeight;
-	bool				bOpaque;
-	uint8				uiColour;
-	SSFTCelRun			sCelRun;
-	bool				bLastOpaque;
-	uint16				uiSkipLength;
-	uint16				uiRunLength;
-	CArrayChar			auiRow;
-	size				iResult;
-	size				y2;
-	size				x2;
+	SSFTImage					sStruct;
+	CChannelsAccessor*			pcOppacityAccessor;
+	CChannelsAccessor*			pcDiffuseAccessor;
+	size						x;
+	size						y;
+	size						uiImageWidth;
+	size						uiImageHeight;
+	bool						bOpaque;
+	uint8						uiColour;
+	SSFTCelRun					sCelRun;
+	bool						bLastOpaque;
+	uint16						uiSkipLength;
+	uint16						uiRunLength;
+	CArrayChar					auiRow;
+	size						iResult;
+	size						y2;
+	size						x2;
+	CChannelsAccessorCreator	cCreator;
 
 	if (pcFile->IsOpen())
 	{
@@ -225,12 +226,11 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeft
 		}
 
 		pcOppacityAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pImage->GetChannels(), IMAGE_OPACITY, PT_bit);
-		CChannelsAccessorCreator cCreator;
 		cCreator.Init(pImage->GetChannels());
 		cCreator.AddAccess(IMAGE_DIFFUSE_RED, PT_tribble);
 		cCreator.AddAccess(IMAGE_DIFFUSE_GREEN, PT_tribble);
 		cCreator.AddAccess(IMAGE_DIFFUSE_BLUE, PT_crumb);
-		pcDiffueseAccessor = cCreator.CreateAndKill();
+		pcDiffuseAccessor = cCreator.CreateAndKill();
 
 		auiRow.Init();
 		sCelRun.Init(false);
@@ -244,7 +244,7 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeft
 			for (x = uiImageLeftOffset; x < x2; x++)
 			{
 				bOpaque = (pcOppacityAccessor == NULL) || (*((bool*)pcOppacityAccessor->Get(x + y * uiImageWidth)));
-				uiColour = *((uint8*)pcDiffueseAccessor->Get(x + y * uiImageWidth));
+				uiColour = *((uint8*)pcDiffuseAccessor->Get(x + y * uiImageWidth));
 
 				if (!bOpaque && bLastOpaque)
 				{
@@ -309,7 +309,7 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeft
 		{
 			pcOppacityAccessor->Kill();
 		}
-		pcDiffueseAccessor->Kill();
+		pcDiffuseAccessor->Kill();
 		auiRow.Kill();
 
 		sCelRun.Init(false);

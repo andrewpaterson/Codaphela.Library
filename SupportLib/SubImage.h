@@ -60,7 +60,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //                       .
 //     0---------------- - 
 
-// The Image Rectangle is a rectangle over the source image or a texture.  It's left, right and top, bottom are only used to find it's height and width.
+// The Image Rectangle is a rectangle over the source image or a texture.
 // The Image Rectangle is where the pixels come from.  
 
 // The best way to visualise this is a large image sized to include the offsets but the outside is transparent.

@@ -211,12 +211,14 @@ bool CUnknowns::LoadUnknown(CFileReader* pcFile, CUnknown** ppcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnknowns::Remove(CUnknown* pcUnknown)
+bool CUnknowns::Remove(CUnknown* pcUnknown)
 {
-	//This function will probably not be used.
-
-	pcUnknown->Kill();
-	//Unknowns kill will cause the list to remove the Unknown
+	if ((pcUnknown->GetUnknownsThisIn() == this) || (pcUnknown->GetUnknownsThisIn() == NULL))
+	{
+		pcUnknown->Kill();  //Unknown.Kill will cause the Unknowns to remove the Unknown from it.
+		return true;
+	}
+	return false;
 }
 
 

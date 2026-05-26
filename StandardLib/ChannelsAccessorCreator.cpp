@@ -209,7 +209,7 @@ void CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, size iC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreator::AddAccess(CArrayInt* paiChannels, EPrimitiveType eType)
+void CChannelsAccessorCreator::AddAccess(CArraySize* paiChannels, EPrimitiveType eType)
 {
 	mcParams.AddAccess(paiChannels, eType);
 }

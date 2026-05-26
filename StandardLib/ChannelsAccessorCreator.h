@@ -39,7 +39,7 @@ public:
 	void 	AddAccess(size iChannel1, size iChannel2, EPrimitiveType eType = PT_Undefined);
 	void	AddAccess(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType = PT_Undefined);
 	void	AddAccess(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType = PT_Undefined);
-	void	AddAccess(CArrayInt* paiChannels, EPrimitiveType eType = PT_Undefined);
+	void	AddAccess(CArraySize* paiChannels, EPrimitiveType eType = PT_Undefined);
 	void	AddAccess(CChannel* pcChannel);
 	void	AddAccess(CChannels* pcChannels);
 	void	AddAccess(CChannelAccessor* pcChannel);

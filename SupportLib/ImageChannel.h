@@ -57,6 +57,7 @@ enum EImagePurpose	//3 bytes for purpose
 #define IMAGE_PURPOSE(iChannel) ((EImagePurpose)((iChannel - 1) / NUM_CHANNEL_TYPES))
 
 
+#define IMAGE_CHANNEL_UNKNOWN		CHANNEL(IP_Unknown, CT_Unknown)
 #define IMAGE_IGNORED				CHANNEL(IP_Unknown, CT_Ignored)
 #define IMAGE_DIFFUSE_GREY			CHANNEL(IP_Diffuse, CT_Intensity)
 #define IMAGE_DIFFUSE_RED			CHANNEL(IP_Diffuse, CT_Red)

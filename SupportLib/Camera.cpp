@@ -31,7 +31,7 @@ Ptr<CCamera> CCamera::Init(void)
 {
 	PreInit();
 
-	meCameraType = CT_Perspective;
+	meCameraType = CAT_Perspective;
 	mfFOV = 0.0f;
 
 	PostInit();
@@ -63,7 +63,7 @@ Ptr<CCamera> CCamera::Init(ECameraType eCameraType, float32 fFOV)
 //////////////////////////////////////////////////////////////////////////
 void CCamera::Free(void)
 {
-	meCameraType = CT_Unknown;
+	meCameraType = CAT_Unknown;
 }
 
 
