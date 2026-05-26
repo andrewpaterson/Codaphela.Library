@@ -32,37 +32,30 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageCopier::Init(Ptr<CImage> pcSource, Ptr<CImage> pcDest, bool bUseOpacity)
+bool CImageCopier::Init(Ptr<CImage> pSource, Ptr<CImage> pDest)
 {
 	CImageAccessorCreator	cCreator;
 
 	//Now we have an accessor that takes what's in the source and converts it to the destinations format.
 	//Although it may have gaps if the destination has channels the source does not.
-	cCreator.Init(&pcSource);  
-	cCreator.AddAccess(&pcDest);
+	cCreator.Init(&pSource);  
+	cCreator.AddAccess(&pDest);
 	mpcSourceAccessor = cCreator.CreateAndKill();
 
 	if (mpcSourceAccessor)
 	{
-		if (!bUseOpacity)
-		{
-			//This looks a bit retarded but it creates an accessor capable of reading the source accesses output.
-			cCreator.Init(&pcDest);
-			cCreator.AddAccess(mpcSourceAccessor);
-			mpcDestAccessor = cCreator.CreateAndKill();
-		}
-		else
-		{
-
-		}
+		//This looks a bit retarded but it creates an accessor capable of reading the source accesses output.
+		cCreator.Init(&pDest);
+		cCreator.AddAccess(mpcSourceAccessor);
+		mpcDestAccessor = cCreator.CreateAndKill();
 	}
 	else
 	{
 		mpcDestAccessor = NULL;
 	}
 
-	mpcSource = pcSource;
-	mpcDest = pcDest;
+	mpcSource = pSource;
+	mpcDest = pDest;
 	mbKillAccessors = true;
 
 	return (mpcSourceAccessor != NULL) && (mpcDestAccessor != NULL);
@@ -116,7 +109,6 @@ void CImageCopier::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CImageCopier::Copy(int32 iDestX, int32 iDestY, Ptr<CImageCel> pcSourceCel)
 {
-	SInt32Vec2	sPos;
 	SImageCopy	sCopy;
 
 	pcSourceCel->CopyParam(&sCopy, iDestX, iDestY, mpcDest->miWidth, mpcDest->miHeight);
@@ -197,11 +189,11 @@ void CImageCopier::Copy(SImageCopy* psCopy)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int32 iDestX, int32 iDestY, CRectangle* psSourceRect)
+void CImageCopier::Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY, CRectangle* psSourceRect)
 {
 	CImageCopier	cCopier;
 
-	cCopier.Init(pcSource, pcDest);
+	cCopier.Init(pSource, pDest);
 	cCopier.Copy(iDestX, iDestY, psSourceRect);
 	cCopier.Kill();
 }
@@ -211,11 +203,11 @@ void CImageCopier::Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int32 iDestX, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int32 iDestX, int32 iDestY, int32 iSourceX1, int32 iSourceY1, int32 iSourceX2, int32 iSourceY2)
+void CImageCopier::Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY, int32 iSourceX1, int32 iSourceY1, int32 iSourceX2, int32 iSourceY2)
 {
 	CImageCopier	cCopier;
 
-	cCopier.Init(pcSource, pcDest);
+	cCopier.Init(pSource, pDest);
 	cCopier.Copy(iDestX, iDestY, iSourceX1, iSourceY1, iSourceX2, iSourceY2);
 	cCopier.Kill();
 }
@@ -225,12 +217,12 @@ void CImageCopier::Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int32 iDestX, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Copy(Ptr<CImageCel> pcSource, Ptr<CImage> pcDest, int32 iDestX, int32 iDestY)
+void CImageCopier::Copy(Ptr<CImageCel> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY)
 {
 	CImageCopier cCopier;
 
-	cCopier.Init(pcSource->GetSourceImage(), pcDest);
-	cCopier.Copy(iDestX, iDestY, pcSource);
+	cCopier.Init(pSource->GetSourceImage(), pDest);
+	cCopier.Copy(iDestX, iDestY, pSource);
 	cCopier.Kill();
 }
 
@@ -239,12 +231,12 @@ void CImageCopier::Copy(Ptr<CImageCel> pcSource, Ptr<CImage> pcDest, int32 iDest
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
+void CImageCopier::Copy(Ptr<CImage> pSource, Ptr<CImage> pDest)
 {
 	CImageCopier cCopier;
 
-	cCopier.Init(pcSource, pcDest);
-	cCopier.Copy(0, 0, 0, 0, pcSource->GetWidth(), pcSource->GetHeight());
+	cCopier.Init(pSource, pDest);
+	cCopier.Copy(0, 0, 0, 0, pSource->GetWidth(), pSource->GetHeight());
 	cCopier.Kill();
 }
 

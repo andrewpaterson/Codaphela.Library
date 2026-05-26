@@ -342,7 +342,7 @@ void CChannelsAccessorCreatorParams::AddAccess(size iChannel1, size iChannel2, s
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreatorParams::AddAccess(CArrayInt* paiChannels, EPrimitiveType eType)
+void CChannelsAccessorCreatorParams::AddAccess(CArraySize* paiChannels, EPrimitiveType eType)
 {
 	size	i;
 	size	iChannel;

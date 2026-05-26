@@ -34,10 +34,10 @@ class CImageCopier : public CUnknown
 {
 CONSTRUCTABLE(CImageCopier);
 public:
-	static void Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int32 iDestX, int32 iDestY, CRectangle* psSourceRect = NULL);
-	static void Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int32 iDestX, int32 iDestY, int32 iSourceX1, int32 iSourceY1, int32 iSourceX2, int32 iSourceY2);
-	static void Copy(Ptr<CImageCel> pcSource, Ptr<CImage> pcDest, int32 iDestX, int32 iDestY);
-	static void Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest);
+	static void Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY, CRectangle* psSourceRect = NULL);
+	static void Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY, int32 iSourceX1, int32 iSourceY1, int32 iSourceX2, int32 iSourceY2);
+	static void Copy(Ptr<CImageCel> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY);
+	static void Copy(Ptr<CImage> pSource, Ptr<CImage> pDest);
 
 protected:
 	Ptr<CImage>			mpcSource;
@@ -47,7 +47,7 @@ protected:
 	bool				mbKillAccessors;
 
 public:
-	bool Init(Ptr<CImage> pcSource, Ptr<CImage> pcDest, bool bUseOpacity = false);
+	bool Init(Ptr<CImage> pSource, Ptr<CImage> pDest);
 	void Init(CImageAccessor* pcSourceAccessor, CImageAccessor* pcDestAccessor);
 	void Kill(void);
 

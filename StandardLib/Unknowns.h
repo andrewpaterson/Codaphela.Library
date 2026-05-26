@@ -47,7 +47,7 @@ public:
 						void			Init(CLifeInit<CMallocator> cMalloc, char* szName, CConstructors* pcConstructors);
 						void			Kill(void);
 
-						void			Remove(CUnknown* pcUnknown);
+						bool			Remove(CUnknown* pcUnknown);
 
 	template<class M>	M*				Add(void);
 	template<class M>	M*				Add(int iAdditionalSize);

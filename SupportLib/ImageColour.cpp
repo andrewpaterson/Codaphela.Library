@@ -209,7 +209,7 @@ float32 CImageColourRGB::GetValue(EChannel eChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageColourRGB::GetChannels(CArrayInt* pai)
+void CImageColourRGB::GetChannels(CArraySize* pai)
 {
 	pai->Add(IMAGE_DIFFUSE_RED);
 	pai->Add(IMAGE_DIFFUSE_GREEN);
@@ -295,7 +295,7 @@ float32 CImageColourARGB::GetValue(EChannel eChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageColourARGB::GetChannels(CArrayInt* pai)
+void CImageColourARGB::GetChannels(CArraySize* pai)
 {
 	pai->Add(IMAGE_OPACITY);
 	pai->Add(IMAGE_DIFFUSE_RED);
@@ -360,7 +360,7 @@ float32 CImageColourOpacity::GetValue(EChannel eChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageColourOpacity::GetChannels(CArrayInt* pai)
+void CImageColourOpacity::GetChannels(CArraySize* pai)
 {
 	pai->Add(IMAGE_OPACITY);
 }
@@ -416,7 +416,7 @@ float32 CImageColourSpecular::GetValue(EChannel eChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageColourSpecular::GetChannels(CArrayInt* pai)
+void CImageColourSpecular::GetChannels(CArraySize* pai)
 {
 	pai->Add(IMAGE_SPECULAR);
 }
@@ -482,7 +482,7 @@ float32 CImageColourNormal::GetValue(EChannel eChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageColourNormal::GetChannels(CArrayInt* pai)
+void CImageColourNormal::GetChannels(CArraySize* pai)
 {
 	pai->Add(IMAGE_NORMAL_X);
 	pai->Add(IMAGE_NORMAL_Y);
@@ -553,7 +553,7 @@ float32 CImageColourCombo2::GetValue(EChannel eChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageColourCombo2::GetChannels(CArrayInt* pai)
+void CImageColourCombo2::GetChannels(CArraySize* pai)
 {
 	cImageColours[0]->GetChannels(pai);
 	cImageColours[1]->GetChannels(pai);

@@ -36,29 +36,29 @@ public:
 	static CImageAccessor* Create(CImage* pcImage, int iFirst, ...);
 	static CImageAccessor* Create(CImage* pcImage);
 	static CImageAccessor* Create(CImage* pcImage, CImage* pcChannels);
-	static CImageAccessor* Create(CImage* pcImage, CArrayInt* paiChannels);
+	static CImageAccessor* Create(CImage* pcImage, CArraySize* paiChannels);
 	static CImageAccessor* Create(CImage* pcImage, CImageColour* pcColour);
 
-public:
+protected:
 	CChannelsAccessorCreator	mcCreator;
 	CImage*						mpcImage;
 
-
+public:
 	void				Init(CImage* pcImage);
 	void				Kill(void);
 	CImageAccessor*		Create(void);
 	CImageAccessor*		CreateAndKill(void);
 
-	void 	AddAccess(int iChannel, EPrimitiveType eType = PT_Undefined);
-	void 	AddAccess(int iChannel1, int iChannel2, EPrimitiveType eType = PT_Undefined);
-	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType = PT_Undefined);
-	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType = PT_Undefined);
-	void	AddAccess(CArrayInt* paiChannels, EPrimitiveType eType = PT_Undefined);
+	void 	AddAccess(EChannel iChannel, EPrimitiveType eType = PT_Undefined);
+	void 	AddAccess(EChannel iChannel1, EChannel iChannel2, EPrimitiveType eType = PT_Undefined);
+	void	AddAccess(EChannel iChannel1, EChannel iChannel2, EChannel iChannel3, EPrimitiveType eType = PT_Undefined);
+	void	AddAccess(EChannel iChannel1, EChannel iChannel2, EChannel iChannel3, EChannel iChannel4, EPrimitiveType eType = PT_Undefined);
+	void	AddAccess(CArraySize* paiChannels, EPrimitiveType eType = PT_Undefined);
 	void	AddAccess(CImage* pcImage);
 	void	AddAccess(CImageAccessor* pcChannels);
 
 	void	AddAccess(CImageColour* pcColour);
-	void	AddAccessFromIntersectionOf(CArrayInt* paiChannels1, CArrayInt* paiChannels2);  //Hmmm...
+	void	AddAccessFromIntersectionOf(CArraySize* paiChannels1, CArraySize* paiChannels2);  //Hmmm...
 };
 
 

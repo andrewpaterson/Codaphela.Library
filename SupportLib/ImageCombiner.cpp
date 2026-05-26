@@ -483,7 +483,7 @@ void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 	Ptr<CImage>				pcLastImage;
 	CArraySize				aiDestChannels;
 	CArraySize				aiSourceChannels;
-	CArrayInt				aiIntersectChannels;
+	CArraySize				aiIntersectChannels;
 	bool					bDestHasOpacity;
 	CChannel*				pcOpacityChannel;
 	CImageAccessor*			pcDestOpacity;
