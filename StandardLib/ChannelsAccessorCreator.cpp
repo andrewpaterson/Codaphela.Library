@@ -35,9 +35,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CChannelsAccessorCreator::Init(CChannels* pcChannels)
 {
-	mpcChannels = pcChannels;
-	masAccesses.Init();
-	macAccessors.Init();
+	mcParams.Init(pcChannels);
 }
 
 
@@ -47,9 +45,7 @@ void CChannelsAccessorCreator::Init(CChannels* pcChannels)
 //////////////////////////////////////////////////////////////////////////
 void CChannelsAccessorCreator::Kill(void)
 {
-	mpcChannels = NULL;
-	macAccessors.Kill();
-	masAccesses.Kill();
+	mcParams.Kill();
 }
 
 
@@ -59,84 +55,79 @@ void CChannelsAccessorCreator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CChannelsAccessor* CChannelsAccessorCreator::Create(void)
 {
-	bool				bContiguous;
-	bool				bSourceTypesSame;
-	bool				bChannelByteAligned;
-	bool				bAccessByteAligned;
-
-	size				iBitSize;
-	size				iByteSize;
+	bool					bContiguous;
+	bool					bSourceTypesSame;
+	bool					bChannelByteAligned;
+	bool					bAccessByteAligned;
+	size					iBitSize;
+	size					iByteSize;
+	CArrayChannelAccessor*  pacAccessors;
+	CChannels*				pcChannels;
 
 	CChannelsAccessor*	pcAccessor;
 	bool				bResult;
 
 	//Must be called before calculations
-	bResult = CreateAccessors();
+	bResult = mcParams.CreateAccessorParams();
 
 	if (bResult)
 	{
-		bContiguous = CalculateContiguous();
-		bSourceTypesSame = CalculateSourceTypesSame();
-		bChannelByteAligned = CalculateChannelByteAligned();
-		bAccessByteAligned = CalculateAccessByteAligned();
-		iBitSize = CalclulateBitSize();
-
-		if (iBitSize % 8 == 0)
-		{
-			iByteSize = iBitSize / 8;
-		}
-		else
-		{
-			iByteSize = -1;
-		}
+		bContiguous = mcParams.IsContiguous();
+		bSourceTypesSame = mcParams.IsSourceTypesSame();
+		bChannelByteAligned = mcParams.IsChannelByteAligned();
+		bAccessByteAligned = mcParams.IsAccessByteAligned();
+		iBitSize = mcParams.GetBitSize();
+		iByteSize = mcParams.GetByteSize();
+		pcChannels = mcParams.GetChannels();
+		pacAccessors = mcParams.GetAccessors();
 		pcAccessor = NULL;
 
 		if (bContiguous && bSourceTypesSame && bChannelByteAligned && bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorContiguous);
-			((CChannelsAccessorContiguous*)pcAccessor)->Init(mpcChannels, &macAccessors, iByteSize, iBitSize);
+			((CChannelsAccessorContiguous*)pcAccessor)->Init(pcChannels, pacAccessors, iByteSize, iBitSize);
 			return pcAccessor;
 		}
 
 		if (!bContiguous && bSourceTypesSame && bChannelByteAligned && bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorByteAligned);
-			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize);
+			pcAccessor->Init(pcChannels, pacAccessors, iByteSize, iBitSize);
 			return pcAccessor;
 		}
 
 		if (bContiguous && !bSourceTypesSame && bChannelByteAligned && bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorTypeConverter);
-			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize);
+			pcAccessor->Init(pcChannels, pacAccessors, iByteSize, iBitSize);
 			return pcAccessor;
 		}
 
 		if (!bContiguous && !bSourceTypesSame && bChannelByteAligned && bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorTypeConverter);
-			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize);
+			pcAccessor->Init(pcChannels, pacAccessors, iByteSize, iBitSize);
 			return pcAccessor;
 		}
 
 		if (bChannelByteAligned && !bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorAccessBitty);
-			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize);
+			pcAccessor->Init(pcChannels, pacAccessors, iByteSize, iBitSize);
 			return pcAccessor;
 		}
 
 		if (!bChannelByteAligned && bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorChannelBitty);
-			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize);
+			pcAccessor->Init(pcChannels, pacAccessors, iByteSize, iBitSize);
 			return pcAccessor;
 		}
 
 		if (!bChannelByteAligned && !bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorWorstCase);
-			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize);
+			pcAccessor->Init(pcChannels, pacAccessors, iByteSize, iBitSize);
 			return pcAccessor;
 		}
 	}
@@ -173,212 +164,6 @@ CChannelsAccessor* CChannelsAccessorCreator::CreateSingleChannelAccessor(CChanne
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CChannelsAccessorCreator::CreateAccessors(void)
-{
-	size				i;
-	SChannelAccess*		psAccess;
-	CChannelAccessor*	pcAccessor;
-	size				iByteSize;
-	size				iBitSize;
-	EPrimitiveType		eAccessType;
-	CChannel*			pcChannel;
-	size				iIndex;
-	size				uiNumAccess;
-
-	if (CalculateEmpty())
-	{
-		return false;
-	}
-
-	uiNumAccess = masAccesses.NumElements();
-	for (i = 0; i < uiNumAccess; i++)
-	{
-		psAccess = masAccesses.Get(i);
-		pcAccessor = macAccessors.Add();
-
-		pcChannel = mpcChannels->GetChannel(psAccess->iChannel);
-		iIndex = mpcChannels->GetIndexOfChannel(pcChannel);
-
-		eAccessType = psAccess->eType;
-		if (eAccessType == PT_Undefined)
-		{
-			eAccessType = pcChannel->eType;
-		}
-
-		iByteSize = gcTypeNames.GetByteSize(eAccessType);
-		iBitSize = gcTypeNames.GetBitSize(eAccessType);
-		if (iByteSize == 0)
-		{
-			iByteSize = -1;
-		}
-
-		pcAccessor->Init(iByteSize, iBitSize, eAccessType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CChannelsAccessorCreator::CalculateEmpty(void)
-{
-	if (masAccesses.NumElements() == 0)
-	{
-		return true;
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CChannelsAccessorCreator::CalculateContiguous(void)
-{
-	size				i;
-	CChannel*			psChannel;
-	SChannelAccess*		psAccess;
-	size				iLastIndex;
-	size				iIndex;
-	size				uiNumAccess;
-
-	psAccess = masAccesses.Get(0);
-	psChannel = mpcChannels->GetChannel(psAccess->iChannel);
-	iLastIndex = mpcChannels->GetIndexOfChannel(psChannel);
-
-	uiNumAccess = masAccesses.NumElements();
-	for (i = 1; i < uiNumAccess; i++)
-	{
-		psAccess = masAccesses.Get(i);
-		psChannel = mpcChannels->GetChannel(psAccess->iChannel);
-		iIndex = mpcChannels->GetIndexOfChannel(psChannel);
-
-		if (iIndex != iLastIndex + 1)
-		{
-			return false;
-		}
-
-		if (psChannel->bReverse)
-		{
-			return false;
-		}
-		iLastIndex = iIndex;
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CChannelsAccessorCreator::CalculateSourceTypesSame(void)
-{
-	size				i;
-	CChannelAccessor*	pcAccessor;;
-	size				uiNumAccessors;
-
-	uiNumAccessors = macAccessors.NumElements();
-	for (i = 0; i < uiNumAccessors; i++)
-	{
-		pcAccessor = macAccessors.Get(i);
-
-		if (pcAccessor->meAccessType != pcAccessor->meChannelType)
-		{
-			return false;
-		}
-		if (pcAccessor->mbChannelReverse)
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CChannelsAccessorCreator::CalculateChannelByteAligned(void)
-{
-	size				i;
-	CChannel*			pcChannel;
-	SChannelAccess*		psAccess;
-	size				uiNumAccess;
-
-	if (mpcChannels->GetByteStride() == CHANNEL_NON_ALIGNED_BYTES)
-	{
-		return false;
-	}
-
-	uiNumAccess = masAccesses.NumElements();
-	for (i = 0; i < uiNumAccess; i++)
-	{
-		psAccess = masAccesses.Get(i);
-		pcChannel = mpcChannels->GetChannel(psAccess->iChannel);
-		
-		if (pcChannel->miByteSize == CHANNEL_NON_ALIGNED_BYTES)
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CChannelsAccessorCreator::CalculateAccessByteAligned(void)
-{
-	size				i;
-	CChannelAccessor*	pcAccessor;
-	size				uiNumAccessors;
-
-	uiNumAccessors = macAccessors.NumElements();
-	for (i = 0; i < uiNumAccessors; i++)
-	{
-		pcAccessor = macAccessors.Get(i);
-		if (pcAccessor->miAccessByteSize == -1)
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CChannelsAccessorCreator::CalclulateBitSize(void)
-{
-	size				i;
-	CChannelAccessor*	pcAccessor;
-	size				iBitSize;
-	size				uiNumAccessors;
-
-	iBitSize = 0;
-	uiNumAccessors = macAccessors.NumElements();
-	for (i = 0; i < uiNumAccessors; i++)
-	{
-		pcAccessor = macAccessors.Get(i);
-		iBitSize += pcAccessor->miAccessBitSize;
-	}
-	return iBitSize;
-}
-
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -386,15 +171,7 @@ size CChannelsAccessorCreator::CalclulateBitSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CChannelsAccessorCreator::AddAccess(size iChannel, EPrimitiveType eType)
 {
-	SChannelAccess*	psAccess;
-
-	//Can't create an accessor to a channel that does not exist in the source.
-	if (mpcChannels->HasChannel(iChannel))
-	{
-		psAccess = masAccesses.Add();
-		psAccess->eType = eType;
-		psAccess->iChannel = iChannel;
-	}
+	mcParams.AddAccess(iChannel, eType);
 }
 
 
@@ -404,8 +181,7 @@ void CChannelsAccessorCreator::AddAccess(size iChannel, EPrimitiveType eType)
 //////////////////////////////////////////////////////////////////////////
 void CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, EPrimitiveType eType)
 {
-	AddAccess(iChannel1, eType);
-	AddAccess(iChannel2, eType);
+	mcParams.AddAccess(iChannel1, iChannel2, eType);
 }
 
 
@@ -415,9 +191,7 @@ void CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, EPrimit
 //////////////////////////////////////////////////////////////////////////
 void CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType)
 {
-	AddAccess(iChannel1, eType);
-	AddAccess(iChannel2, eType);
-	AddAccess(iChannel3, eType);
+	mcParams.AddAccess(iChannel1, iChannel2, iChannel3, eType);
 }
 
 
@@ -427,10 +201,7 @@ void CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, size iC
 //////////////////////////////////////////////////////////////////////////
 void CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType)
 {
-	AddAccess(iChannel1, eType);
-	AddAccess(iChannel2, eType);
-	AddAccess(iChannel3, eType);
-	AddAccess(iChannel4, eType);
+	mcParams.AddAccess(iChannel1, iChannel2, iChannel3, iChannel4, eType);
 }
 
 
@@ -440,16 +211,7 @@ void CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, size iC
 //////////////////////////////////////////////////////////////////////////
 void CChannelsAccessorCreator::AddAccess(CArrayInt* paiChannels, EPrimitiveType eType)
 {
-	size	i;
-	size	iChannel;
-	size	uiNumChannels;
-
-	uiNumChannels = paiChannels->NumElements();
-	for (i = 0; i < uiNumChannels; i++)
-	{
-		iChannel = paiChannels->GetValue(i);
-		AddAccess(iChannel, eType);
-	}
+	mcParams.AddAccess(paiChannels, eType);
 }
 
 
@@ -459,7 +221,7 @@ void CChannelsAccessorCreator::AddAccess(CArrayInt* paiChannels, EPrimitiveType 
 //////////////////////////////////////////////////////////////////////////
 void CChannelsAccessorCreator::AddAccess(CChannel* pcChannel)
 {
-	AddAccess(pcChannel->iChannel, pcChannel->eType);
+	mcParams.AddAccess(pcChannel);
 }
 
 
@@ -469,18 +231,7 @@ void CChannelsAccessorCreator::AddAccess(CChannel* pcChannel)
 //////////////////////////////////////////////////////////////////////////
 void CChannelsAccessorCreator::AddAccess(CChannels* pcChannels)
 {
-	size					i;
-	CChannel*				pcChannel;
-	size					uiChannelOffsets;
-	CArrayChannelOffset*	pcChannelOffsets;
-
-	pcChannelOffsets = pcChannels->GetChannelOffsets();
-	uiChannelOffsets = pcChannelOffsets->NumElements();
-	for (i = 0; i < uiChannelOffsets; i++)
-	{
-		pcChannel = pcChannelOffsets->Get(i);
-		AddAccess(pcChannel);
-	}
+	mcParams.AddAccess(pcChannels);
 }
 
 
@@ -490,7 +241,7 @@ void CChannelsAccessorCreator::AddAccess(CChannels* pcChannels)
 //////////////////////////////////////////////////////////////////////////
 void CChannelsAccessorCreator::AddAccess(CChannelAccessor* pcChannel)
 {
-	AddAccess(pcChannel->miChannel, pcChannel->meAccessType);
+	mcParams.AddAccess(pcChannel);
 }
 
 
@@ -500,17 +251,6 @@ void CChannelsAccessorCreator::AddAccess(CChannelAccessor* pcChannel)
 //////////////////////////////////////////////////////////////////////////
 void CChannelsAccessorCreator::AddAccess(CChannelsAccessor* pcChannels)
 {
-	size					i;
-	CChannelAccessor*		pcChannel;
-	CArrayChannelAccessor*	pacAccessors;
-	size					uiNumAccessors;
-
-	pacAccessors = pcChannels->GetAccessors();
-	uiNumAccessors = pacAccessors->NumElements();
-	for (i = 0; i < uiNumAccessors; i++)
-	{
-		pcChannel = pacAccessors->Get(i);
-		AddAccess(pcChannel);
-	}
+	mcParams.AddAccess(pcChannels);
 }
 
