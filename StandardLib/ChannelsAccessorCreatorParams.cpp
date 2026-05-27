@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ChannelsAccessorAccessBitty.h"
 #include "ChannelsAccessorChannelBitty.h"
 #include "ChannelsAccessorWorstCase.h"
-#include "ChannelsAccessorCreator.h"
+#include "ChannelsAccessorCreatorParams.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -113,9 +113,9 @@ bool CChannelsAccessorCreatorParams::CreateAccessorParams(void)
 	mbAccessByteAligned = CalculateAccessByteAligned();
 	muiBitSize = CalclulateBitSize();
 
-	if (iBitSize % 8 == 0)
+	if (muiBitSize % 8 == 0)
 	{
-		muiByteSize = iBitSize / 8;
+		muiByteSize = muiBitSize / 8;
 	}
 	else
 	{
