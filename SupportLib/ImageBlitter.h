@@ -48,8 +48,9 @@ protected:
 	EColourOpacity			meSourceOpacity;
 
 public:
-	bool			Init(Ptr<CImageCel> pSource, Ptr<CImage> pcDest, CImageRowBlitterCache* pcBlitterCache);
+	bool			Init(Ptr<CImageCel> pSource, Ptr<CImage> pcDest, Ptr<CImageRowBlitterCache> pBlitterCache);
 	bool			InitColourInfo(Ptr<CImage> pSource, Ptr<CImage> pDest);
+	bool			InitOpacityInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest);
 	void			Kill(void);
 
 	EColourOrder	GetColourOrder(Ptr<CImage> pImage);

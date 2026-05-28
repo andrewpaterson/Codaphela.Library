@@ -1,5 +1,5 @@
-#ifndef __IMAGE_ROW_BLITTERS_H__
-#define __IMAGE_ROW_BLITTERS_H__
+#ifndef __IMAGE_ROW_BLITTER_BYTE_ALIGNED_OPAQUE_H__
+#define __IMAGE_ROW_BLITTER_BYTE_ALIGNED_OPAQUE_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -23,37 +23,26 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/Int32Vec2.h"
 #include "StandardLib/Pointer.h"
 #include "ColourFormat.h"
-#include "ImageCel.h"
-#include "Rectangle.h"
-#include "ImageCopyDimension.h"
 #include "ImageRowBlitter.h"
 
 
-struct SImageRowBlitter
+class CImageRowBlitterByteAlignedOpaque : public CImageRowBlitter
 {
-	CImageRowBlitter*	pcBlitter;
-	SInt32Vec2			sOffset;
-	int32				iYRepeat;	//How many times the yOffset increments and is reused.
-};
-
-
-typedef	CArrayTemplate<SImageRowBlitter>	CArrayImageRowBlitter;
-
-
-class CImageRowBlitters : public CUnknown
-{
-CONSTRUCTABLE(CImageRowBlitters);
+CONSTRUCTABLE(CImageRowBlitterByteAlignedOpaque);
 protected:
-	CArrayImageRowBlitter	macRowBlitters;
-
 public:
-	void	Init(void);
-	void	Kill(void) override;
+	size	muiSourceColourOffset;
+	size	muiDestColourOffset;
+	size	muiColourWidth;
+
+	void Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
+	void Kill(void) override;
+
+	void Copy(int32 iDestX, int32 iDestY, int32 iSourceXLeft, int32 iSourceXRight, int32 iSourceY) override;
 };
 
 
-#endif // __IMAGE_ROW_BLITTERS_H__
+#endif // __IMAGE_ROW_BLITTER_BYTE_ALIGNED_OPAQUE_H__
 

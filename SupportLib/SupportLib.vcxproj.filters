@@ -214,6 +214,15 @@
     <Filter Include="Source\Image\Blitter\Types">
       <UniqueIdentifier>{31773fe5-d710-4f1b-9aed-0602c02df864}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Image\Blitter\Types\Translucent">
+      <UniqueIdentifier>{24174080-2d64-4f5d-a79f-e822042f829c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Image\Blitter\Types\ChannelAccessor">
+      <UniqueIdentifier>{8f6dbecd-ec38-4271-a0d2-0c893e1093a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Image\Blitter\Cache">
+      <UniqueIdentifier>{8d62aeb4-f00d-416a-b945-2d7a4eceffe8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CopyPaste.h">
@@ -771,14 +780,20 @@
     <ClInclude Include="ImageRowBlitters.h">
       <Filter>Source\Image\Blitter</Filter>
     </ClInclude>
+    <ClInclude Include="ImageRowBlitterByteAlignedOpaque.h">
+      <Filter>Source\Image\Blitter\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageRowBlitterByteAlignedTranslucent.h">
+      <Filter>Source\Image\Blitter\Types\Translucent</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageRowBlitterRGBByteAlphaByteTranslucent.h">
+      <Filter>Source\Image\Blitter\Types\Translucent</Filter>
+    </ClInclude>
     <ClInclude Include="ImageRowBlitterCache.h">
-      <Filter>Source\Image\Blitter</Filter>
+      <Filter>Source\Image\Blitter\Cache</Filter>
     </ClInclude>
-    <ClInclude Include="ImageRowBlitterTranslucent.h">
-      <Filter>Source\Image\Blitter\Types</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageRowBlitterOpaque.h">
-      <Filter>Source\Image\Blitter\Types</Filter>
+    <ClInclude Include="ImageRowBlitterCacheValue.h">
+      <Filter>Source\Image\Blitter\Cache</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1301,20 +1316,26 @@
     <ClCompile Include="ImageRowBlitters.cpp">
       <Filter>Source\Image\Blitter</Filter>
     </ClCompile>
-    <ClCompile Include="ImageRowBlitterCache.cpp">
-      <Filter>Source\Image\Blitter</Filter>
-    </ClCompile>
     <ClCompile Include="ImageRowBlitterContiguous.cpp">
       <Filter>Source\Image\Blitter\Types</Filter>
     </ClCompile>
-    <ClCompile Include="ImageRowBlitterOpaque.cpp">
-      <Filter>Source\Image\Blitter\Types</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageRowBlitterTranslucent.cpp">
+    <ClCompile Include="ImageRowBlitterByteAlignedOpaque.cpp">
       <Filter>Source\Image\Blitter\Types</Filter>
     </ClCompile>
     <ClCompile Include="ColourFormat.cpp">
       <Filter>Source\Image\Colour</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRowBlitterByteAlignedTranslucent.cpp">
+      <Filter>Source\Image\Blitter\Types\Translucent</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRowBlitterRGBByteAlphaByteTranslucent.cpp">
+      <Filter>Source\Image\Blitter\Types\Translucent</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRowBlitterCache.cpp">
+      <Filter>Source\Image\Blitter\Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRowBlitterCacheValue.cpp">
+      <Filter>Source\Image\Blitter\Cache</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

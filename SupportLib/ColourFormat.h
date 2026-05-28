@@ -58,17 +58,17 @@ enum ERGBColourBits
 {
 	CRGB_Unknown,
 
-	CRGB_24bit,  //R8 G8 B8
+	CRGB_24bit,		//R8 G8 B8
 	CRGB_30bit,
 	CRGB_36bit,
 	CRGB_48bit,
 	CRGB_Float3,
-	CRGB_8bit332, //R3G3B2
-	CRGB_8bit323, //R3G2B3
-	CRGB_8bit233, //R2G3B3
+	CRGB_8bit332,	//R3G3B2
+	CRGB_8bit323,	//R3G2B3
+	CRGB_8bit233,	//R2G3B3
 	CRGB_6bit,
 	CRGB_15bit, 
-	CRGB_16bit, //R5 G6 B5
+	CRGB_16bit,		//R5 G6 B5
 };
 
 
@@ -89,8 +89,9 @@ enum ERGBAlphaBits
 
 enum EColourOpacity
 {
-	CPO_Unknown,  //Implies there is no opacity channel.
+	CPO_Unknown,
 
+	CPO_None,		  //There is no opacity channel.
 	CPO_Opaque,		  //There is an opacity channel but all pixel are opaque.
 	CPO_Translucent,  //Some pixels are translucent (including transparent).
 	CPO_Transparent,  //Some pixels are transparent
@@ -116,6 +117,9 @@ public:
 	EChannel		GetColourChannel(size uiIndex);
 	EPrimitiveType	GetColourType(size uiIndex);
 	EPrimitiveType	GetAlphaType(void);
+
+	size			GetFirstColourIndex(void);
+	size			GetAlphaIndex(void);
 };
 
 

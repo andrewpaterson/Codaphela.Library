@@ -1,5 +1,5 @@
-#ifndef __IMAGE_ROW_BLITTER_TRANSLUCENT_H__
-#define __IMAGE_ROW_BLITTER_TRANSLUCENT_H__
+#ifndef __IMAGE_ROW_BLITTER_RGB_BYTE_ALPHA_BYTE_TRANSLUCENT_H__
+#define __IMAGE_ROW_BLITTER_RGB_BYTE_ALPHA_BYTE_TRANSLUCENT_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -24,20 +24,22 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Pointer.h"
-#include "ImageRowBlitter.h"
+#include "ColourFormat.h"
+#include "ImageRowBlitterByteAlignedTranslucent.h"
 
 
-class CImageRowBlitterTranslucent : public CImageRowBlitter
+class CImageRowBlitterRGBByteAlphaByteTranslucent : public CImageRowBlitterByteAlignedTranslucent
 {
-CONSTRUCTABLE(CImageRowBlitterTranslucent);
+CONSTRUCTABLE(CImageRowBlitterRGBByteAlphaByteTranslucent);
 protected:
 public:
-	void Init(Ptr<CImage> pSource, Ptr<CImage> pDest);
+	void Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
 	void Kill(void) override;
 
 	void Copy(int32 iDestX, int32 iDestY, int32 iSourceXLeft, int32 iSourceXRight, int32 iSourceY) override;
 };
 
 
-#endif // __IMAGE_ROW_BLITTER_TRANSLUCENT_H__
+#endif // __IMAGE_ROW_BLITTER_RGB_BYTE_ALPHA_BYTE_TRANSLUCENT_H__
+
 
