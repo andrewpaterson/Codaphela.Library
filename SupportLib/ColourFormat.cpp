@@ -294,7 +294,6 @@ EPrimitiveType CColourFormatHelper::GetColourType(size uiIndex)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -313,5 +312,48 @@ EPrimitiveType CColourFormatHelper::GetAlphaType(void)
 		return PT_crumb;
 	}
 	return PT_Undefined;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CColourFormatHelper::GetFirstColourIndex(void)
+{
+	switch (meFormat)
+	{
+	case CFT_RGB:
+	case CFT_RGBX:
+	case CFT_RGBA:
+		return 0;
+	case CFT_XRGB:
+	case CFT_ARGB:
+		return 1;
+	}
+
+	return SIZE_MAX;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CColourFormatHelper::GetAlphaIndex(void)
+{
+	switch (meFormat)
+	{
+	case CFT_RGBA:
+		return 3;
+	case CFT_ARGB:
+		return 0;
+	case CFT_RGB:
+	case CFT_RGBX:
+	case CFT_XRGB:
+		break;
+	}
+
+	return SIZE_MAX;
 }
 

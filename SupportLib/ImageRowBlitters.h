@@ -35,7 +35,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 struct SImageRowBlitter
 {
 	CImageRowBlitter*	pcBlitter;
-	SInt32Vec2			sOffset;	//Offset into the cel?  Image?  Don't know.
+	SInt32Vec2			sOffset;
 	int32				iYRepeat;	//How many times the yOffset increments and is reused.
 };
 

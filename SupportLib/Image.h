@@ -104,6 +104,8 @@ public:
 	size					GetByteSize(void);
 	CChannels*				GetChannels(void);
 	size					GetPixelSize(void);
+	size					GetPixelByteStride(void);
+	size					GetPixelBitStride(void);
 	
 	bool					IsSameFormat(Ptr<CImage> psOther);
 	bool					IsValid(int x, int y);

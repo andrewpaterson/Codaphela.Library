@@ -24,18 +24,39 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Pointer.h"
+#include "StandardLib/MapObject.h"
+#include "StandardLib/ArrayObject.h"
 #include "ColourFormat.h"
 #include "ImageCel.h"
 #include "Rectangle.h"
 #include "ImageCopyDimension.h"
-#include "ImageRowBlitter.h"
+#include "ImageRowBlitterCacheValue.h"
+#include "ImageRowBlitterContiguous.h"
+#include "ImageRowBlitterByteAlignedOpaque.h"
+#include "ImageRowBlitterRGBByteAlphaByteTranslucent.h"
 
 
-class CImageRowBlitterCache : public CUnknown
+class CImageRowBlitterCache : public CObject
 {
 CONSTRUCTABLE(CImageRowBlitterCache);
+DESTRUCTABLE(CImageRowBlitterCache);
 protected:
+	CMapObject	mMapBlitters;
+
 public:
+	void				Init(void);
+	void				Class(void);
+	void				Free(void);
+
+	bool				Save(CObjectWriter* pcFile) override;
+	bool				Load(CObjectReader* pcFile) override;
+
+	CImageRowBlitter*	CreateImageRowBlitterContiguous(Ptr<CImage> pSource, Ptr<CImage> pDest);
+	CImageRowBlitter*	CreateImageRowBlitterByteAlignedOpaque(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
+	CImageRowBlitter*	CreateImageRowBlitterRGBByteAlphaByteTranslucent(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
+
+protected:
+	Ptr<CImageRowBlitterCacheValue>		GetImageRowBlitterCacheValue(Ptr<CImage> pSource);
 };
 
 

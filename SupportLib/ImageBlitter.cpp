@@ -31,14 +31,14 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CImageRowBlitterCache* pcBlitterCache)
+bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, Ptr<CImageRowBlitterCache> pBlitterCache)
 {
 	bool			bResult;
 	Ptr<CImage>		pSourceImage;
 
-	mpcBlitterCache = pcBlitterCache;
+	mpcBlitterCache = &pBlitterCache;
+
 	mcBlitters.Init();
-	meSourceOpacity = CPO_Unknown;
 
 	pSourceImage = pSourceCel->GetSourceImage();
 	bResult = InitColourInfo(pSourceImage, pDestImage);
@@ -47,98 +47,68 @@ bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CIma
 		return false;
 	}
 
-	CChannelsAccessor*			pcAccessor;
-	CChannelsAccessorCreator	cCreator;
-	CColourFormatHelper			cFormatHelper;
-	size						uiNumChannels;
-	size						uiChannelIndex;
-	EChannel					eChannel;
-	EPrimitiveType				eType;
-
-	cFormatHelper.Init(meSourceColourFormat, meColourOrder, meColourBits, meSourceAlphaBits);
-	uiNumChannels = cFormatHelper.GetNumChannels();
-
-	cCreator.Init(pSourceImage->GetChannels());
-	for (uiChannelIndex = 0; uiChannelIndex < uiNumChannels; uiChannelIndex++)
+	bResult = InitOpacityInfo(pSourceCel, pDestImage);
+	if (!bResult)
 	{
-		eChannel = cFormatHelper.GetChannel(uiChannelIndex);
-		eType = cFormatHelper.GetType(uiChannelIndex);
-		if ((eChannel == IMAGE_CHANNEL_UNKNOWN) || (eType == PT_Undefined))
-		{
-			return false;
-		}
-
-		cCreator.AddAccess(eChannel, eType);
-	}
-	pcAccessor = cCreator.Create();
-	pcAccessor->IsContiguous();
-	UFree(pcAccessor);
-
-
-	CSubImage*			pcSubImage;
-	CRectangle*			pcSourcePixelRect;
-	int32				x;
-	int32				y;
-	CChannelsAccessor*	pcOpacityAccessor;
-	size				uiImageWidth;
-	CChannels*			pcChannels;
-	float32				fAlpha;
-	bool				bSolid;
-	bool				bTransparent;
-	bool				bTranslucent;
-
-	bSolid = false;
-	bTransparent = false;
-	bTranslucent = false;
-
-	pcChannels = pSourceImage->GetChannels();
-	if (meSourceAlphaBits == ARGB_Unknown)
-	{
-		meSourceOpacity = CPO_Unknown;
-		return true;
+		return false;
 	}
 
-	if (meSourceAlphaBits != ARGB_None)
-	{
-		pcOpacityAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pcChannels, IMAGE_OPACITY, PT_float32);
-		pcSubImage = pSourceCel->GetSubImage();
-		pcSourcePixelRect = &pcSubImage->mcImageRect;
-		uiImageWidth = pSourceImage->GetWidth();
-		for (y = pcSourcePixelRect->miTop; y <= pcSourcePixelRect->miBottom; y++)
-		{
-			for (x = pcSourcePixelRect->miTop; x <= pcSourcePixelRect->miBottom; x++)
-			{
-				fAlpha = *((float32*)pcOpacityAccessor->Get(x + y * uiImageWidth));
-				if (fAlpha == 1.0f)
-				{
-					bSolid = true;
-				}
-				else if (fAlpha == 0.0f)
-				{
-					bTransparent = true;
-				}
-				else
-				{
-					bTranslucent = true;
-				}
-			}
-		}
-	}
+	size										uiSourceByteStride;
+	size										uiDestByteStride;
+	CImageRowBlitter*							pcRowBlitter;
+	CColourFormatHelper							cSourceFormatHelper;
+	CColourFormatHelper							cDestFormatHelper;
 
-	if (bTranslucent)
+	cSourceFormatHelper.Init(meSourceColourFormat, meColourOrder, meColourBits, meSourceAlphaBits);
+	cDestFormatHelper.Init(meDestColourFormat, meColourOrder, meColourBits, meDestAlphaBits);
+	uiSourceByteStride = pSourceImage->GetPixelByteStride();
+	uiDestByteStride = pDestImage->GetPixelByteStride();
+
+	pcRowBlitter = NULL;
+	if (((meSourceOpacity == CPO_None) || (meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride == uiDestByteStride))
 	{
-		meSourceOpacity = CPO_Translucent;
+		pcRowBlitter = mpcBlitterCache->CreateImageRowBlitterContiguous(pSourceImage, pDestImage);
 	}
-	else if (bTransparent)
+	else if (((meSourceOpacity == CPO_None) || (meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride != uiDestByteStride))
 	{
-		meSourceOpacity = CPO_Transparent;
+		pcRowBlitter = mpcBlitterCache->CreateImageRowBlitterByteAlignedOpaque(pSourceImage, pDestImage, &cSourceFormatHelper, &cDestFormatHelper);
+	}
+	else if ((meSourceAlphaBits == ARGB_8bit) && (meColourBits == CRGB_24bit))
+	{
+		pcRowBlitter = mpcBlitterCache->CreateImageRowBlitterRGBByteAlphaByteTranslucent(pSourceImage, pDestImage, &cSourceFormatHelper, &cDestFormatHelper);
 	}
 	else
 	{
-		meSourceOpacity = CPO_Opaque;
+		//Fallback to an accessor based "blitter".
 	}
 
+	//CChannelsAccessor*			pcAccessor;
+	//CChannelsAccessorCreator	cCreator;
+	//size						uiNumChannels;
+	//size						uiChannelIndex;
+	//EChannel					eChannel;
+	//EPrimitiveType				eType;
+	//CColourFormatHelper			cFormatHelper;
+
+	//uiNumChannels = cFormatHelper.GetNumChannels();
+
+	//cCreator.Init(pSourceImage->GetChannels());
+	//for (uiChannelIndex = 0; uiChannelIndex < uiNumChannels; uiChannelIndex++)
+	//{
+	//	eChannel = cFormatHelper.GetChannel(uiChannelIndex);
+	//	eType = cFormatHelper.GetType(uiChannelIndex);
+	//	if ((eChannel == IMAGE_CHANNEL_UNKNOWN) || (eType == PT_Undefined))
+	//	{
+	//		return false;
+	//	}
+
+	//	cCreator.AddAccess(eChannel, eType);
+	//}
+	// 
+	//pcAccessor = cCreator.Create();
+
 	return true;
+
 }
 
 
@@ -219,6 +189,83 @@ bool CImageBlitter::InitColourInfo(Ptr<CImage> pSource, Ptr<CImage> pDest)
 		return false;
 	}
 	meColourBits = eSourceColourBits;
+
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageBlitter::InitOpacityInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest)
+{
+	Ptr<CImage>			pSourceImage;
+	CSubImage*			pcSubImage;
+	CRectangle*			pcSourcePixelRect;
+	int32				x;
+	int32				y;
+	CChannelsAccessor*	pcOpacityAccessor;
+	size				uiImageWidth;
+	CChannels*			pcChannels;
+	float32				fAlpha;
+	bool				bSolid;
+	bool				bTransparent;
+	bool				bTranslucent;
+
+	meSourceOpacity = CPO_Unknown;
+
+	bSolid = false;
+	bTransparent = false;
+	bTranslucent = false;
+
+	pSourceImage = pSourceCel->GetSourceImage();
+	pcChannels = pSourceImage->GetChannels();
+	if (meSourceAlphaBits == ARGB_Unknown)
+	{
+		meSourceOpacity = CPO_None;
+		return true;
+	}
+
+	if (meSourceAlphaBits != ARGB_None)
+	{
+		pcOpacityAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pcChannels, IMAGE_OPACITY, PT_float32);
+		pcSubImage = pSourceCel->GetSubImage();
+		pcSourcePixelRect = &pcSubImage->mcImageRect;
+		uiImageWidth = pSourceImage->GetWidth();
+		for (y = pcSourcePixelRect->miTop; y <= pcSourcePixelRect->miBottom; y++)
+		{
+			for (x = pcSourcePixelRect->miTop; x <= pcSourcePixelRect->miBottom; x++)
+			{
+				fAlpha = *((float32*)pcOpacityAccessor->Get(x + y * uiImageWidth));
+				if (fAlpha == 1.0f)
+				{
+					bSolid = true;
+				}
+				else if (fAlpha == 0.0f)
+				{
+					bTransparent = true;
+				}
+				else
+				{
+					bTranslucent = true;
+				}
+			}
+		}
+	}
+
+	if (bTranslucent)
+	{
+		meSourceOpacity = CPO_Translucent;
+	}
+	else if (bTransparent)
+	{
+		meSourceOpacity = CPO_Transparent;
+	}
+	else
+	{
+		meSourceOpacity = CPO_Opaque;
+	}
 
 	return true;
 }

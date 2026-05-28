@@ -36,6 +36,13 @@ protected:
 	Ptr<CImage>			mpSource;
 	Ptr<CImage>			mpDest;
 
+	size				miSourcePixelStride;
+	size				miDestPixelStride;
+	size				miSourceWidth;
+	size				miDestWidth;
+	size				miSourceRowStride;
+	size				miDestRowStride;
+
 public:
 			void Init(Ptr<CImage> pSource, Ptr<CImage> pDest);
 			void Kill(void) override;
