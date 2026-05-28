@@ -1156,6 +1156,8 @@ size CChannels::GetSize(void)
 //////////////////////////////////////////////////////////////////////////
 size CChannels::GetByteSize(void)
 {
+	size	uiBitSize;
+
 	if (!IsUserAllocated())
 	{
 		return mabData.NumElements();
@@ -1168,13 +1170,14 @@ size CChannels::GetByteSize(void)
 		}
 		else
 		{
-			if (miBitStride % 8 == 0)
+			uiBitSize = miBitStride * miSize;
+			if (uiBitSize % 8 == 0)
 			{
-				return miBitStride / 8;
+				return uiBitSize / 8;
 			}
 			else
 			{
-				return miBitStride / 8 + 1;
+				return uiBitSize / 8 + 1;
 			}
 		}
 	}
