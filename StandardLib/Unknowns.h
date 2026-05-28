@@ -30,7 +30,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #define UMalloc(classtype)	((classtype*)gcUnknowns.Add<classtype>())
-#define UFree(object) (gcUnknowns.Remove(object))
+#define UFree(object) (gcUnknowns.Remove(object)); (object = NULL)
 
 class CUnknowns
 {
