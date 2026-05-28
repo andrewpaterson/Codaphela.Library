@@ -44,6 +44,9 @@ public:
 };
 
 
+#define CLASS_NAME(c) #c
+
+
 #define CONSTRUCTABLE(c) \
 public:\
 const char* ClassName(void)\
