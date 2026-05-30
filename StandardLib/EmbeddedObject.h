@@ -45,7 +45,9 @@ public:
 
 	virtual void				Evict(void);
 
-	virtual void				FreeInternal(bool bAllocatedInObjects) =0;
+	virtual void				FreeInternal(void) =0;
+	virtual void				DoneKill(bool bAllocatedInObjects) =0;
+
 	virtual void				FreePointers(void);
 			void				PostRemapFroms(void);
 	virtual bool				Save(CObjectWriter* pcFile) =0;

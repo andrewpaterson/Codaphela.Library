@@ -392,7 +392,8 @@ bool CNamedIndexedObjects::FreeObjects(void)
 	{
 		pcObject = Get(oi);
 
-		pcObject->FreeInternal(true);
+		pcObject->FreeInternal();
+		pcObject->DoneKill(true);
 		pcObject->FreeIdentifiers();
 		pcObject->FreePointers();
 
