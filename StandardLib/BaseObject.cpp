@@ -293,12 +293,14 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bValidateNotEmbedded)
 	}
 	else
 	{
+		FreeInternal();    //Handles embedded objects (in Object.FreeInternal()).
+
 		RemoveAllPointerTosTryFree();  //Handles embedded objects.
 
 		RemoveAllStackFroms();  //Handles embedded objects (in Object.RemoveAllStackFroms()).
 		RemoveAllHeapFroms();   //Handles embedded objects (in Object.RemoveAllHeapFroms()).
 
-		FreeInternal(false);    //Handles embedded objects (in Object.FreeInternal()).
+		DoneKill(false);    //Handles embedded objects (in Object.DoneKill()).
 	}
 }
 
@@ -369,16 +371,24 @@ bool CBaseObject::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::FreeInternal(bool bAllocatedInObjects)
+void CBaseObject::FreeInternal(void)
+{
+	//Frees user data.
+	Free();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::DoneKill(bool bAllocatedInObjects)
 {
 	LOG_OBJECT_DESTRUCTION(this);
 	if (mpcObjectsThisIn)
 	{
 		mpcObjectsThisIn->mDestructionCallback(this);
 	}
-
-	//Frees user data.
-	Free();
 
 	if (bAllocatedInObjects)
 	{
