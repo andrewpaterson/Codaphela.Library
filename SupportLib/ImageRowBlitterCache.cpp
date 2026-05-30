@@ -58,7 +58,7 @@ bool CImageRowBlitterCache::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageRowBlitterCacheValue> CImageRowBlitterCache::GetImageRowBlitterCacheValue(Ptr<CImage> pSource)
+Ptr<CImageRowBlitterCacheValue> CImageRowBlitterCache::GetOrCreateImageRowBlitterCacheValue(Ptr<CImage> pSource)
 {
 	Ptr<CImageRowBlitterCacheValue>		pValue;
 
@@ -77,12 +77,12 @@ Ptr<CImageRowBlitterCacheValue> CImageRowBlitterCache::GetImageRowBlitterCacheVa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterContiguous(Ptr<CImage> pSource, Ptr<CImage> pDest)
+CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterContiguous(Ptr<CImage> pSource, Ptr<CImage> pDest)
 {
 	CImageRowBlitterContiguous*			pcRowBlitter;
 	Ptr<CImageRowBlitterCacheValue>		pValue;
 
-	pValue = GetImageRowBlitterCacheValue(pSource);
+	pValue = GetOrCreateImageRowBlitterCacheValue(pSource);
 
 	pcRowBlitter = (CImageRowBlitterContiguous*)pValue->Get(pDest, CLASS_NAME(CImageRowBlitterContiguous));
 	if (pcRowBlitter)
@@ -102,12 +102,12 @@ CImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterContiguous(Ptr<CIm
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpaque(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper)
+CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpaque(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper)
 {
 	CImageRowBlitterByteAlignedOpaque*	pcRowBlitter;
 	Ptr<CImageRowBlitterCacheValue>		pValue;
 
-	pValue = GetImageRowBlitterCacheValue(pSource);
+	pValue = GetOrCreateImageRowBlitterCacheValue(pSource);
 
 	pcRowBlitter = (CImageRowBlitterByteAlignedOpaque*)pValue->Get(pDest, CLASS_NAME(CImageRowBlitterByteAlignedOpaque));
 	if (pcRowBlitter)
@@ -127,12 +127,12 @@ CImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpaque(
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterRGBByteAlphaByteTranslucent(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper)
+CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterRGBByteAlphaByteTranslucent(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper)
 {
 	CImageRowBlitterRGBByteAlphaByteTranslucent*	pcRowBlitter;
 	Ptr<CImageRowBlitterCacheValue>					pValue;
 
-	pValue = GetImageRowBlitterCacheValue(pSource);
+	pValue = GetOrCreateImageRowBlitterCacheValue(pSource);
 
 	pcRowBlitter = (CImageRowBlitterRGBByteAlphaByteTranslucent*)pValue->Get(pDest, CLASS_NAME(CImageRowBlitterRGBByteAlphaByteTranslucent));
 	if (pcRowBlitter)
@@ -145,5 +145,22 @@ CImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterRGBByteAlphaByteTr
 	
 	pValue->Add(pDest, pcRowBlitter);
 	return pcRowBlitter;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageRowBlitterCache::FreeImageRowBlitter(CBaseImageRowBlitter* pcRowBlitter)
+{
+	Ptr<CImageRowBlitterCacheValue>		pValue;
+	
+	pValue = mMapBlitters.Get(pcRowBlitter->GetSource());
+	if (pValue)
+	{
+		return pValue->Remove(pcRowBlitter);
+	}
+	return false;
 }
 

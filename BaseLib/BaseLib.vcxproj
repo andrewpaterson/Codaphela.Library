@@ -374,6 +374,7 @@
     <ClInclude Include="QuickSort.h" />
     <ClInclude Include="Refered.h" />
     <ClInclude Include="ScratchPadAllocator.h" />
+    <ClInclude Include="SizeVec2.h" />
     <ClInclude Include="Source\Aarvark\Aardvark.h" />
     <ClInclude Include="StackMemory.h" />
     <ClInclude Include="DebugOutputFile.h" />
@@ -780,6 +781,7 @@
     <ClCompile Include="Refered.cpp" />
     <ClCompile Include="ScratchPadAllocator.cpp" />
     <ClCompile Include="DebugOutputFile.cpp" />
+    <ClCompile Include="SizeVec2.cpp" />
     <ClCompile Include="Source\Aarvark\Aardvark.cpp" />
     <ClCompile Include="StdRandom.cpp" />
     <ClCompile Include="SystemAllocator.cpp" />

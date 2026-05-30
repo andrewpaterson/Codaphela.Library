@@ -38,7 +38,7 @@ bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, Ptr<
 
 	mpcBlitterCache = &pBlitterCache;
 
-	mcBlitters.Init();
+	macRowBlitters.Init();
 
 	pSourceImage = pSourceCel->GetSourceImage();
 	bResult = InitColourInfo(pSourceImage, pDestImage);
@@ -55,7 +55,7 @@ bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, Ptr<
 
 	size										uiSourceByteStride;
 	size										uiDestByteStride;
-	CImageRowBlitter*							pcRowBlitter;
+	CBaseImageRowBlitter*							pcRowBlitter;
 	CColourFormatHelper							cSourceFormatHelper;
 	CColourFormatHelper							cDestFormatHelper;
 
@@ -67,7 +67,17 @@ bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, Ptr<
 	pcRowBlitter = NULL;
 	if (((meSourceOpacity == CPO_None) || (meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride == uiDestByteStride))
 	{
-		pcRowBlitter = mpcBlitterCache->CreateImageRowBlitterContiguous(pSourceImage, pDestImage);
+		CRectangle	cRect;
+		size		uiY;
+		size		uiBottom;
+
+		pSourceCel->GetImageSourceBounds(&cRect);
+		uiBottom = cRect.GetBottom();
+		for (uiY = cRect.GetTop(); uiY < uiBottom; uiY++)
+		{
+			pcRowBlitter = mpcBlitterCache->CreateImageRowBlitterContiguous(pSourceImage, pDestImage);
+			AddBlitter(pcRowBlitter, 0, uiY);
+		}
 	}
 	else if (((meSourceOpacity == CPO_None) || (meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride != uiDestByteStride))
 	{
@@ -108,7 +118,6 @@ bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, Ptr<
 	//pcAccessor = cCreator.Create();
 
 	return true;
-
 }
 
 
@@ -230,27 +239,35 @@ bool CImageBlitter::InitOpacityInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest
 	if (meSourceAlphaBits != ARGB_None)
 	{
 		pcOpacityAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pcChannels, IMAGE_OPACITY, PT_float32);
-		pcSubImage = pSourceCel->GetSubImage();
-		pcSourcePixelRect = &pcSubImage->mcImageRect;
-		uiImageWidth = pSourceImage->GetWidth();
-		for (y = pcSourcePixelRect->miTop; y <= pcSourcePixelRect->miBottom; y++)
+		if (pcOpacityAccessor)
 		{
-			for (x = pcSourcePixelRect->miTop; x <= pcSourcePixelRect->miBottom; x++)
+			pcSubImage = pSourceCel->GetSubImage();
+			pcSourcePixelRect = &pcSubImage->mcImageRect;
+			uiImageWidth = pSourceImage->GetWidth();
+			for (y = pcSourcePixelRect->miTop; y <= pcSourcePixelRect->miBottom; y++)
 			{
-				fAlpha = *((float32*)pcOpacityAccessor->Get(x + y * uiImageWidth));
-				if (fAlpha == 1.0f)
+				for (x = pcSourcePixelRect->miTop; x <= pcSourcePixelRect->miBottom; x++)
 				{
-					bSolid = true;
-				}
-				else if (fAlpha == 0.0f)
-				{
-					bTransparent = true;
-				}
-				else
-				{
-					bTranslucent = true;
+					fAlpha = *((float32*)pcOpacityAccessor->Get(x + y * uiImageWidth));
+					if (fAlpha == 1.0f)
+					{
+						bSolid = true;
+					}
+					else if (fAlpha == 0.0f)
+					{
+						bTransparent = true;
+					}
+					else
+					{
+						bTranslucent = true;
+					}
 				}
 			}
+			UFree(pcOpacityAccessor);
+		}
+		else
+		{
+			return false;
 		}
 	}
 
@@ -277,6 +294,18 @@ bool CImageBlitter::InitOpacityInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest
 //////////////////////////////////////////////////////////////////////////
 void CImageBlitter::Kill(void)
 {
+	size				ui;
+	size				uiNumElements;
+	CImageRowBlitter*	psRowBlitter;
+
+	uiNumElements = macRowBlitters.NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		psRowBlitter = macRowBlitters.Get(ui);
+		mpcBlitterCache->FreeImageRowBlitter(psRowBlitter->mpcBlitter);
+	}
+	macRowBlitters.Kill();
+
 	CUnknown::Kill();
 }
 
@@ -575,6 +604,20 @@ ERGBAlphaBits CImageBlitter::GetAlphaBits(Ptr<CImage> pImage)
 
 	return ARGB_Unknown;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageBlitter::AddBlitter(CBaseImageRowBlitter* pcBlitter, size xOffset, size yOffset)
+{
+	CImageRowBlitter* psBlitter;
+
+	psBlitter = macRowBlitters.Add();
+	psBlitter->Init(pcBlitter, xOffset, yOffset);
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////

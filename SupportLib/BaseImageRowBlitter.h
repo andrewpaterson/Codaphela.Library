@@ -1,5 +1,5 @@
-#ifndef __IMAGE_ROW_BLITTERS_H__
-#define __IMAGE_ROW_BLITTERS_H__
+#ifndef __BASE_IMAGE_ROW_BLITTER_H__
+#define __BASE_IMAGE_ROW_BLITTER_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -23,37 +23,36 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/Int32Vec2.h"
 #include "StandardLib/Pointer.h"
-#include "ColourFormat.h"
 #include "ImageCel.h"
 #include "Rectangle.h"
 #include "ImageCopyDimension.h"
-#include "ImageRowBlitter.h"
 
 
-struct SImageRowBlitter
+class CBaseImageRowBlitter : public CUnknown
 {
-	CImageRowBlitter*	pcBlitter;
-	SInt32Vec2			sOffset;
-	int32				iYRepeat;	//How many times the yOffset increments and is reused.
-};
-
-
-typedef	CArrayTemplate<SImageRowBlitter>	CArrayImageRowBlitter;
-
-
-class CImageRowBlitters : public CUnknown
-{
-CONSTRUCTABLE(CImageRowBlitters);
+CONSTRUCTABLE(CBaseImageRowBlitter);
 protected:
-	CArrayImageRowBlitter	macRowBlitters;
+	Ptr<CImage>			mpSource;
+	Ptr<CImage>			mpDest;
+
+	size				miSourcePixelStride;
+	size				miDestPixelStride;
+	size				miSourceWidth;
+	size				miDestWidth;
+	size				miSourceRowStride;
+	size				miDestRowStride;
 
 public:
-	void	Init(void);
-	void	Kill(void) override;
+			void			Init(Ptr<CImage> pSource, Ptr<CImage> pDest);
+			void			Kill(void) override;
+
+	virtual void			Copy(int32 iDestX, int32 iDestY, int32 iSourceXLeft, int32 iSourceXRight, int32 iSourceY) =0;
+
+			Ptr<CImage>		GetSource(void);
+			Ptr<CImage>		GetDest(void);
 };
 
 
-#endif // __IMAGE_ROW_BLITTERS_H__
+#endif // __BASE_IMAGE_ROW_BLITTER_H__
 

@@ -23,32 +23,28 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/SizeVec2.h"
 #include "StandardLib/Pointer.h"
+#include "ColourFormat.h"
 #include "ImageCel.h"
 #include "Rectangle.h"
 #include "ImageCopyDimension.h"
+#include "BaseImageRowBlitter.h"
 
 
-class CImageRowBlitter : public CUnknown
+class CImageRowBlitter
 {
-CONSTRUCTABLE(CImageRowBlitter);
-protected:
-	Ptr<CImage>			mpSource;
-	Ptr<CImage>			mpDest;
-
-	size				miSourcePixelStride;
-	size				miDestPixelStride;
-	size				miSourceWidth;
-	size				miDestWidth;
-	size				miSourceRowStride;
-	size				miDestRowStride;
-
 public:
-			void Init(Ptr<CImage> pSource, Ptr<CImage> pDest);
-			void Kill(void) override;
+	CBaseImageRowBlitter*	mpcBlitter;
+	SSizeVec2				sOffset;
 
-	virtual void Copy(int32 iDestX, int32 iDestY, int32 iSourceXLeft, int32 iSourceXRight, int32 iSourceY) =0;
+	void	Init(CBaseImageRowBlitter* pcBlitter, size uiX, size uiY);
 };
+
+
+typedef	CArrayTemplate<CImageRowBlitter>	CArrayImageRowBlitter;
+
+
 
 #endif // __IMAGE_ROW_BLITTER_H__
 

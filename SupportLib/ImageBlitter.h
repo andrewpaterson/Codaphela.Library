@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageCel.h"
 #include "Rectangle.h"
 #include "ImageCopyDimension.h"
-#include "ImageRowBlitters.h"
+#include "ImageRowBlitter.h"
 
 
 class CImageRowBlitterCache;
@@ -44,7 +44,7 @@ protected:
 	ERGBAlphaBits			meDestAlphaBits;
 
 	CImageRowBlitterCache*	mpcBlitterCache;
-	CImageRowBlitters		mcBlitters;
+	CArrayImageRowBlitter	macRowBlitters;
 	EColourOpacity			meSourceOpacity;
 
 public:
@@ -60,6 +60,9 @@ public:
 
 	void			Copy(int32 iDestX, int32 iDestY);
 	void			Copy(SImageCopy* psCopy);
+
+protected:
+	void			AddBlitter(CBaseImageRowBlitter* pcBlitter, size xOffset, size yOffset);
 };
 
 

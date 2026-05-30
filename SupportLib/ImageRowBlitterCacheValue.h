@@ -27,7 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/MapObject.h"
 #include "StandardLib/ArrayObject.h"
 #include "Image.h"
-#include "ImageRowBlitter.h"
+#include "BaseImageRowBlitter.h"
 
 
 class CImageRowBlitterCacheDest : public CObject
@@ -36,11 +36,11 @@ CONSTRUCTABLE(CImageRowBlitterCacheDest);
 DESTRUCTABLE(CImageRowBlitterCacheDest);
 protected:
 	Ptr<CImage>			mpDestImage;
-	CImageRowBlitter*	mpcBlitter;
-	size				muiUseCount;
+	CBaseImageRowBlitter*	mpcBlitter;
+	size				muiUsageCount;
 
 public:
-	void				Init(Ptr<CImage> pDestImage, CImageRowBlitter* pcBlitter);
+	void				Init(Ptr<CImage> pDestImage, CBaseImageRowBlitter* pcBlitter);
 	void				Class(void);
 	void				Free(void);
 
@@ -48,7 +48,8 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	bool				Is(Ptr<CImage> pDestImage, const char* szBlitterClass);
-	CImageRowBlitter*	Get(void);
+	bool				Is(CBaseImageRowBlitter* pcBlitter);
+	CBaseImageRowBlitter*	Get(void);
 
 	size				AddUsage(void);
 	size				RemoveUsage(void);
@@ -71,12 +72,13 @@ public:
 	bool							Save(CObjectWriter* pcFile) override;
 	bool							Load(CObjectReader* pcFile) override;
 
-	CImageRowBlitter*				Get(Ptr<CImage> pDest, const char* szBlitterClass);
-	bool							Add(Ptr<CImage> pDest, CImageRowBlitter* pcRowBlitter);
-	bool							Remove(Ptr<CImage> pDest, const char* szBlitterClass);
+	CBaseImageRowBlitter*				Get(Ptr<CImage> pDest, const char* szBlitterClass);
+	bool							Add(Ptr<CImage> pDest, CBaseImageRowBlitter* pcRowBlitter);
+	bool							Remove(CBaseImageRowBlitter* pcBlitter);
 
 protected:
 	Ptr<CImageRowBlitterCacheDest>	GetCacheDest(Ptr<CImage> pDest, const char* szBlitterClass);
+	Ptr<CImageRowBlitterCacheDest>	GetCacheDest(CBaseImageRowBlitter* pcBlitter);
 };
 
 

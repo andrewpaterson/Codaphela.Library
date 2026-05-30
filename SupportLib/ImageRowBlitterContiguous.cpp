@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CImageRowBlitterContiguous::Init(Ptr<CImage> pSource, Ptr<CImage> pDest)
 {
-	CImageRowBlitter::Init(pSource, pDest);
+	CBaseImageRowBlitter::Init(pSource, pDest);
 }
 
 

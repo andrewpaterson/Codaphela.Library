@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CImageRowBlitterRGBByteAlphaByteTranslucent::Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper)
 {
-	CImageRowBlitter::Init(pSource, pDest);
+	CBaseImageRowBlitter::Init(pSource, pDest);
 
 }
 

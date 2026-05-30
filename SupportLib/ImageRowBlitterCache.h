@@ -44,19 +44,21 @@ protected:
 	CMapObject	mMapBlitters;
 
 public:
-	void				Init(void);
-	void				Class(void);
-	void				Free(void);
+	void					Init(void);
+	void					Class(void);
+	void					Free(void);
 
-	bool				Save(CObjectWriter* pcFile) override;
-	bool				Load(CObjectReader* pcFile) override;
+	bool					Save(CObjectWriter* pcFile) override;
+	bool					Load(CObjectReader* pcFile) override;
 
-	CImageRowBlitter*	CreateImageRowBlitterContiguous(Ptr<CImage> pSource, Ptr<CImage> pDest);
-	CImageRowBlitter*	CreateImageRowBlitterByteAlignedOpaque(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
-	CImageRowBlitter*	CreateImageRowBlitterRGBByteAlphaByteTranslucent(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
+	CBaseImageRowBlitter*	CreateImageRowBlitterContiguous(Ptr<CImage> pSource, Ptr<CImage> pDest);
+	CBaseImageRowBlitter*	CreateImageRowBlitterByteAlignedOpaque(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
+	CBaseImageRowBlitter*	CreateImageRowBlitterRGBByteAlphaByteTranslucent(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
+
+	bool					FreeImageRowBlitter(CBaseImageRowBlitter* pcRowBlitter);
 
 protected:
-	Ptr<CImageRowBlitterCacheValue>		GetImageRowBlitterCacheValue(Ptr<CImage> pSource);
+	Ptr<CImageRowBlitterCacheValue>		GetOrCreateImageRowBlitterCacheValue(Ptr<CImage> pSource);
 };
 
 

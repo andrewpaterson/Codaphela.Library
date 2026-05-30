@@ -11,7 +11,7 @@ void CImageRowBlitterByteAlignedOpaque::Init(Ptr<CImage> pSource, Ptr<CImage> pD
 	EPrimitiveType	eType;
 	size			uiTypeSize;
 
-	CImageRowBlitter::Init(pSource, pDest);
+	CBaseImageRowBlitter::Init(pSource, pDest);
 
 	muiSourceColourOffset = pcSourceFormatHelper->GetFirstColourIndex();
 	muiDestColourOffset = pcDestFormatHelper->GetFirstColourIndex();

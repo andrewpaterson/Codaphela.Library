@@ -24,10 +24,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Pointer.h"
-#include "ImageRowBlitter.h"
+#include "BaseImageRowBlitter.h"
 
 
-class CImageRowBlitterContiguous : public CImageRowBlitter
+class CImageRowBlitterContiguous : public CBaseImageRowBlitter
 {
 CONSTRUCTABLE(CImageRowBlitterContiguous);
 protected:
