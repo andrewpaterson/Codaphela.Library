@@ -55,7 +55,7 @@ public:
 	Ptr<CBaseImageRowBlitter>	CreateImageRowBlitterByteAlignedOpaque(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
 	Ptr<CBaseImageRowBlitter>	CreateImageRowBlitterRGBByteAlphaByteTranslucent(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
 
-	bool						FreeImageRowBlitter(CBaseImageRowBlitter* pcRowBlitter);
+	bool						FreeImageRowBlitter(Ptr<CBaseImageRowBlitter> pcRowBlitter);
 
 protected:
 	Ptr<CImageRowBlitterCacheValue>		GetOrCreateImageRowBlitterCacheValue(Ptr<CImage> pSource);

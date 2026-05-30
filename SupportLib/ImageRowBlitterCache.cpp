@@ -149,7 +149,7 @@ Ptr<CBaseImageRowBlitter> CImageRowBlitterCache::CreateImageRowBlitterRGBByteAlp
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageRowBlitterCache::FreeImageRowBlitter(CBaseImageRowBlitter* pcRowBlitter)
+bool CImageRowBlitterCache::FreeImageRowBlitter(Ptr<CBaseImageRowBlitter> pcRowBlitter)
 {
 	Ptr<CImageRowBlitterCacheValue>		pValue;
 	
