@@ -40,7 +40,7 @@ public:
 	bool	Save(CObjectWriter* pcFile) override;
 	bool	Load(CObjectReader* pcFile) override;
 
-	void	Copy(int32 iDestX, int32 iDestY, int32 iSourceXLeft, int32 iSourceXRight, int32 iSourceY) override;
+	void	Copy(size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
 };
 
 

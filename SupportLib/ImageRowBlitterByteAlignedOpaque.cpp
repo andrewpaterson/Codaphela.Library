@@ -78,11 +78,11 @@ bool CImageRowBlitterByteAlignedOpaque::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterByteAlignedOpaque::Copy(int32 iDestX, int32 iDestY, int32 iSourceXLeft, int32 iSourceXRight, int32 iSourceY)
+void CImageRowBlitterByteAlignedOpaque::Copy(size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY)
 {
 	void*	pvSource;
 	void*	pvDest;
-	int32	x;
+	size	x;
 
 	pvSource = mpSource->GetData();
 	pvSource = RemapSinglePointer(pvSource, iSourceY * miSourceRowStride + iSourceXLeft * miSourcePixelStride);

@@ -56,14 +56,13 @@ public:
 	ERGBColourBits	GetColourBits(Ptr<CImage> pImage);
 	ERGBAlphaBits	GetAlphaBits(Ptr<CImage> pImage);
 
-	void			Copy(int32 iDestX, int32 iDestY);
+	void			Copy(size iDestX, size iDestY);
 	void			Copy(SImageCopy* psCopy);
 
 protected:
-	void			AddBlitter(Ptr<CBaseImageRowBlitter> pcBlitter, size xOffset, size yOffset);
+	void			AddBlitter(Ptr<CBaseImageRowBlitter> pcBlitter, size xStart, size xEnd, size yOffset);
 };
 
 
 #endif // __IMAGE_BLITTER_H__
-
 

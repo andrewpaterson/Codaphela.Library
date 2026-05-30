@@ -74,13 +74,15 @@ bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, Ptr<
 		CRectangle	cRect;
 		size		uiY;
 		size		uiBottom;
+		size		uiRight;
 
 		pSourceCel->GetImageSourceBounds(&cRect);
 		uiBottom = cRect.GetBottom();
+		uiRight = cRect.GetRight();
 		for (uiY = cRect.GetTop(); uiY < uiBottom; uiY++)
 		{
 			pcRowBlitter = pBlitterCache->CreateImageRowBlitterContiguous(pSourceImage, pDestImage);
-			AddBlitter(pcRowBlitter, 0, uiY);
+			AddBlitter(pcRowBlitter, 0, uiRight, uiY);
 		}
 	}
 	else if (((cFormat.meSourceOpacity == CPO_None) || (cFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride != uiDestByteStride))
@@ -96,30 +98,7 @@ bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, Ptr<
 		//Fallback to an accessor based "blitter".
 	}
 
-	//CChannelsAccessor*			pcAccessor;
-	//CChannelsAccessorCreator	cCreator;
-	//size						uiNumChannels;
-	//size						uiChannelIndex;
-	//EChannel					eChannel;
-	//EPrimitiveType				eType;
-	//CColourFormatHelper			cFormatHelper;
 
-	//uiNumChannels = cFormatHelper.GetNumChannels();
-
-	//cCreator.Init(pSourceImage->GetChannels());
-	//for (uiChannelIndex = 0; uiChannelIndex < uiNumChannels; uiChannelIndex++)
-	//{
-	//	eChannel = cFormatHelper.GetChannel(uiChannelIndex);
-	//	eType = cFormatHelper.GetType(uiChannelIndex);
-	//	if ((eChannel == IMAGE_CHANNEL_UNKNOWN) || (eType == PT_Undefined))
-	//	{
-	//		return false;
-	//	}
-
-	//	cCreator.AddAccess(eChannel, eType);
-	//}
-	// 
-	//pcAccessor = cCreator.Create();
 
 	PostInit();
 
@@ -636,12 +615,12 @@ ERGBAlphaBits CImageBlitter::GetAlphaBits(Ptr<CImage> pImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageBlitter::AddBlitter(Ptr<CBaseImageRowBlitter> pcBlitter, size xOffset, size yOffset)
+void CImageBlitter::AddBlitter(Ptr<CBaseImageRowBlitter> pcBlitter, size xStart, size xEnd, size yOffset)
 {
 	CImageRowBlitter* psBlitter;
 
 	psBlitter = macRowBlitters.Add();
-	psBlitter->Init(&pcBlitter, xOffset, yOffset);
+	psBlitter->Init(&pcBlitter, xStart, xEnd, yOffset);
 }
 
 
@@ -650,9 +629,24 @@ void CImageBlitter::AddBlitter(Ptr<CBaseImageRowBlitter> pcBlitter, size xOffset
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageBlitter::Copy(int32 iDestX, int32 iDestY)
+void CImageBlitter::Copy(size iDestX, size iDestY)
 {
+	size				uiNumElements;
+	size				ui;
+	CImageRowBlitter*	pcRowBlitter;
+	size				xStart;
+	size				xEnd;
+	size				y;
 
+	uiNumElements = macRowBlitters.NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		pcRowBlitter = macRowBlitters.Get(ui);
+		xStart = pcRowBlitter->sOffset.x;
+		xEnd = pcRowBlitter->uiXEnd;
+		y = pcRowBlitter->sOffset.y;
+		pcRowBlitter->mpcBlitter->Copy(iDestX + xStart, iDestY + y, xStart, xEnd, y);
+	}
 }
 
 

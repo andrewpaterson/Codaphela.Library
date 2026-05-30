@@ -798,6 +798,9 @@
     <ClInclude Include="ImageBlitterFormat.h">
       <Filter>Source\Image\Blitter</Filter>
     </ClInclude>
+    <ClInclude Include="ImageRowBlitterChannelAccessor.h">
+      <Filter>Source\Image\Blitter\Types\ChannelAccessor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1342,6 +1345,9 @@
     </ClCompile>
     <ClCompile Include="ImageBlitterFormat.cpp">
       <Filter>Source\Image\Blitter</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRowBlitterChannelAccessor.cpp">
+      <Filter>Source\Image\Blitter\Types\ChannelAccessor</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

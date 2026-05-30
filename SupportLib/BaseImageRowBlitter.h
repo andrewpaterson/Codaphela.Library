@@ -53,7 +53,7 @@ public:
 			bool			Save(CObjectWriter* pcFile) override;
 			bool			Load(CObjectReader* pcFile) override;
 
-	virtual void			Copy(int32 iDestX, int32 iDestY, int32 iSourceXLeft, int32 iSourceXRight, int32 iSourceY) =0;
+	virtual void			Copy(size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) =0;
 
 			Ptr<CImage>		GetSource(void);
 			Ptr<CImage>		GetDest(void);
