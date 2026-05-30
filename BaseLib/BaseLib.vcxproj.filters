@@ -1815,6 +1815,9 @@
     <ClInclude Include="Int64Vec4.h">
       <Filter>Source\Data\Geometric\Vector4</Filter>
     </ClInclude>
+    <ClInclude Include="SizeVec2.h">
+      <Filter>Source\Data\Geometric\Vector2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2926,6 +2929,9 @@
     </ClCompile>
     <ClCompile Include="Int64Vec4.cpp">
       <Filter>Source\Data\Geometric\Vector4</Filter>
+    </ClCompile>
+    <ClCompile Include="SizeVec2.cpp">
+      <Filter>Source\Data\Geometric\Vector2</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

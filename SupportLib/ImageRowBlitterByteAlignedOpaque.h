@@ -25,10 +25,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Pointer.h"
 #include "ColourFormat.h"
-#include "ImageRowBlitter.h"
+#include "BaseImageRowBlitter.h"
 
 
-class CImageRowBlitterByteAlignedOpaque : public CImageRowBlitter
+class CImageRowBlitterByteAlignedOpaque : public CBaseImageRowBlitter
 {
 CONSTRUCTABLE(CImageRowBlitterByteAlignedOpaque);
 protected:

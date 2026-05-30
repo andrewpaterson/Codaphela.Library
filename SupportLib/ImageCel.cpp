@@ -193,6 +193,7 @@ void CImageCel::CropTransparentBorders(CPixelOpacityBase* pcPixelOpacity)
 	mcSubImage.AdjustImageRect(iLeft, iTop, iRight+1, iBottom+1);
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -203,6 +204,16 @@ void CImageCel::CopyParam(SImageCopy* psCopy, int32 iDestX, int32 iDestY, int32 
 
 	sPos = mcSubImage.GetImageDestPos(iDestX, iDestY);
 	psCopy->Init(sPos.x, sPos.y, mcSubImage.mcImageRect.miLeft, mcSubImage.mcImageRect.miTop, mcSubImage.mcImageRect.miRight, mcSubImage.mcImageRect.miBottom, iDestWith, iDestHeight);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCel::GetImageSourceBounds(CRectangle* pcReturn)
+{
+	mcSubImage.GetImageSourceBounds(pcReturn);
 }
 
 
