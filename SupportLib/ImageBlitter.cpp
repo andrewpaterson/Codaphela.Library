@@ -41,6 +41,7 @@ bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, Ptr<
 
 	cFormat.Init();
 
+	mpBlitterCache = pBlitterCache;
 	macRowBlitters.Init();
 
 	pSourceImage = pSourceCel->GetSourceImage();
@@ -292,13 +293,13 @@ void CImageBlitter::Free(void)
 {
 	size				ui;
 	size				uiNumElements;
-	CImageRowBlitter*	psRowBlitter;
+	CImageRowBlitter*	pcRowBlitter;
 
 	uiNumElements = macRowBlitters.NumElements();
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
-		psRowBlitter = macRowBlitters.Get(ui);
-		psRowBlitter->mpcBlitter->RemoveUsage();
+		pcRowBlitter = macRowBlitters.Get(ui);
+		mpBlitterCache->FreeImageRowBlitter(pcRowBlitter->mpcBlitter);
 	}
 	macRowBlitters.Kill();
 }
@@ -311,6 +312,7 @@ void CImageBlitter::Free(void)
 void CImageBlitter::Class(void)
 {
 	U_Data(CArrayImageRowBlitter, macRowBlitters);
+	M_Pointer(mpBlitterCache);
 }
 
 

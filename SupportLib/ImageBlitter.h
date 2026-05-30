@@ -39,6 +39,7 @@ CONSTRUCTABLE(CImageBlitter);
 DESTRUCTABLE(CImageBlitter);
 protected:
 	CArrayImageRowBlitter		macRowBlitters;
+	Ptr<CImageRowBlitterCache>	mpBlitterCache;
 
 public:
 	bool			Init(Ptr<CImageCel> pSource, Ptr<CImage> pcDest, Ptr<CImageRowBlitterCache> pBlitterCache);
