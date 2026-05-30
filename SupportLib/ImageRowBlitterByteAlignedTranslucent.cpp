@@ -8,6 +8,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CImageRowBlitterByteAlignedTranslucent::Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper)
 {
+	PreInit();
+
 	EPrimitiveType	eType;
 	size			uiTypeSize;
 
@@ -28,6 +30,8 @@ void CImageRowBlitterByteAlignedTranslucent::Init(Ptr<CImage> pSource, Ptr<CImag
 	uiTypeSize = gcTypeNames.GetByteSize(eType);
 
 	muiSourceAlphaOffset *= uiTypeSize;
+
+	PostInit();
 }
 
 
@@ -35,7 +39,42 @@ void CImageRowBlitterByteAlignedTranslucent::Init(Ptr<CImage> pSource, Ptr<CImag
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterByteAlignedTranslucent::Kill(void)
+void CImageRowBlitterByteAlignedTranslucent::Free(void)
 {
+	CBaseImageRowBlitter::Free();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageRowBlitterByteAlignedTranslucent::Class(void)
+{
+	CBaseImageRowBlitter::Class();
+
+	U_Size(muiSourceColourOffset);
+	U_Size(muiDestColourOffset);
+	U_Size(muiSourceAlphaOffset);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageRowBlitterByteAlignedTranslucent::Save(CObjectWriter* pcFile)
+{
+	return CBaseImageRowBlitter::Save(pcFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageRowBlitterByteAlignedTranslucent::Load(CObjectReader* pcFile)
+{
+	return CBaseImageRowBlitter::Load(pcFile);
 }
 

@@ -33,10 +33,14 @@ class CImageRowBlitterRGBByteAlphaByteTranslucent : public CImageRowBlitterByteA
 CONSTRUCTABLE(CImageRowBlitterRGBByteAlphaByteTranslucent);
 protected:
 public:
-	void Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
-	void Kill(void) override;
+	void	Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
+	void	Free(void) override;
 
-	void Copy(int32 iDestX, int32 iDestY, int32 iSourceXLeft, int32 iSourceXRight, int32 iSourceY) override;
+	void	Class(void) override;
+	bool	Save(CObjectWriter* pcFile) override;
+	bool	Load(CObjectReader* pcFile) override;
+
+	void	Copy(int32 iDestX, int32 iDestY, int32 iSourceXLeft, int32 iSourceXRight, int32 iSourceY) override;
 };
 
 

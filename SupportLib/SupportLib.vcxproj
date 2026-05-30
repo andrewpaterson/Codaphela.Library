@@ -185,6 +185,7 @@
     <ClInclude Include="GlyphListFontDraw.h" />
     <ClInclude Include="ImageBlitter.h" />
     <ClInclude Include="BaseImageRowBlitter.h" />
+    <ClInclude Include="ImageBlitterFormat.h" />
     <ClInclude Include="ImageRowBlitterCache.h" />
     <ClInclude Include="ImageRowBlitterCacheValue.h" />
     <ClInclude Include="ImageRowBlitterContiguous.h" />
@@ -378,6 +379,7 @@
     <ClCompile Include="GlyphListFontDraw.cpp" />
     <ClCompile Include="ImageBlitter.cpp" />
     <ClCompile Include="BaseImageRowBlitter.cpp" />
+    <ClCompile Include="ImageBlitterFormat.cpp" />
     <ClCompile Include="ImageRowBlitterCache.cpp" />
     <ClCompile Include="ImageRowBlitterContiguous.cpp" />
     <ClCompile Include="ImageRowBlitterByteAlignedOpaque.cpp" />

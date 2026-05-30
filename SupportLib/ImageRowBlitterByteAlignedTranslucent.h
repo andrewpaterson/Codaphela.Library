@@ -37,8 +37,12 @@ protected:
 	size	muiSourceAlphaOffset;
 
 public:
-	void Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
-	void Kill(void) override;
+	void	Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
+	void	Free(void) override;
+
+	void	Class(void) override;
+	bool	Save(CObjectWriter* pcFile) override;
+	bool	Load(CObjectReader* pcFile) override;
 };
 
 

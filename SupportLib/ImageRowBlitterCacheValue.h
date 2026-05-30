@@ -30,32 +30,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseImageRowBlitter.h"
 
 
-class CImageRowBlitterCacheDest : public CObject
-{
-CONSTRUCTABLE(CImageRowBlitterCacheDest);
-DESTRUCTABLE(CImageRowBlitterCacheDest);
-protected:
-	Ptr<CImage>			mpDestImage;
-	CBaseImageRowBlitter*	mpcBlitter;
-	size				muiUsageCount;
-
-public:
-	void				Init(Ptr<CImage> pDestImage, CBaseImageRowBlitter* pcBlitter);
-	void				Class(void);
-	void				Free(void);
-
-	bool				Save(CObjectWriter* pcFile) override;
-	bool				Load(CObjectReader* pcFile) override;
-
-	bool				Is(Ptr<CImage> pDestImage, const char* szBlitterClass);
-	bool				Is(CBaseImageRowBlitter* pcBlitter);
-	CBaseImageRowBlitter*	Get(void);
-
-	size				AddUsage(void);
-	size				RemoveUsage(void);
-};
-
-
 class CImageRowBlitterCacheValue : public CObject
 {
 CONSTRUCTABLE(CImageRowBlitterCacheValue);
@@ -65,20 +39,20 @@ protected:
 	CArrayObject	maDestBlitters;
 
 public:
-	void							Init(Ptr<CImage> pSourceImage);
-	void							Class(void);
-	void							Free(void);
+	void						Init(Ptr<CImage> pSourceImage);
+	void						Class(void);
+	void						Free(void);
 
-	bool							Save(CObjectWriter* pcFile) override;
-	bool							Load(CObjectReader* pcFile) override;
+	bool						Save(CObjectWriter* pcFile) override;
+	bool						Load(CObjectReader* pcFile) override;
 
-	CBaseImageRowBlitter*				Get(Ptr<CImage> pDest, const char* szBlitterClass);
-	bool							Add(Ptr<CImage> pDest, CBaseImageRowBlitter* pcRowBlitter);
-	bool							Remove(CBaseImageRowBlitter* pcBlitter);
+	Ptr<CBaseImageRowBlitter>	Get(Ptr<CImage> pDest, const char* szBlitterClass);
+	bool						Add(Ptr<CImage> pDest, Ptr<CBaseImageRowBlitter> pcRowBlitter);
+	bool						Remove(Ptr<CBaseImageRowBlitter> pcBlitter);
 
 protected:
-	Ptr<CImageRowBlitterCacheDest>	GetCacheDest(Ptr<CImage> pDest, const char* szBlitterClass);
-	Ptr<CImageRowBlitterCacheDest>	GetCacheDest(CBaseImageRowBlitter* pcBlitter);
+	Ptr<CBaseImageRowBlitter>	GetCacheDest(Ptr<CImage> pDest, const char* szBlitterClass);
+	Ptr<CBaseImageRowBlitter>	GetCacheDest(Ptr<CBaseImageRowBlitter> pcBlitter);
 };
 
 
