@@ -32,10 +32,14 @@ class CImageRowBlitterContiguous : public CBaseImageRowBlitter
 CONSTRUCTABLE(CImageRowBlitterContiguous);
 protected:
 public:
-	void Init(Ptr<CImage> pSource, Ptr<CImage> pDest);
-	void Kill(void) override;
+	void	Init(Ptr<CImage> pSource, Ptr<CImage> pDest);
+	void	Free(void) override;
 
-	void Copy(int32 iDestX, int32 iDestY, int32 iSourceXLeft, int32 iSourceXRight, int32 iSourceY) override;
+	void	Class(void) override;
+	bool	Save(CObjectWriter* pcFile) override;
+	bool	Load(CObjectReader* pcFile) override;
+
+	void	Copy(int32 iDestX, int32 iDestY, int32 iSourceXLeft, int32 iSourceXRight, int32 iSourceY) override;
 };
 
 

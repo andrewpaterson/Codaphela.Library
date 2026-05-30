@@ -26,32 +26,29 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/Pointer.h"
 #include "ColourFormat.h"
 #include "ImageCel.h"
+#include "ImageBlitterFormat.h"
 #include "Rectangle.h"
 #include "ImageCopyDimension.h"
 #include "ImageRowBlitter.h"
 
 
 class CImageRowBlitterCache;
-class CImageBlitter : public CUnknown
+class CImageBlitter : public CObject
 {
 CONSTRUCTABLE(CImageBlitter);
+DESTRUCTABLE(CImageBlitter);
 protected:
-	EColourOrder			meColourOrder;
-	EColourFormat			meSourceColourFormat;
-	EColourFormat			meDestColourFormat;
-	ERGBColourBits			meColourBits;
-	ERGBAlphaBits			meSourceAlphaBits;
-	ERGBAlphaBits			meDestAlphaBits;
-
-	CImageRowBlitterCache*	mpcBlitterCache;
-	CArrayImageRowBlitter	macRowBlitters;
-	EColourOpacity			meSourceOpacity;
+	CArrayImageRowBlitter		macRowBlitters;
 
 public:
 	bool			Init(Ptr<CImageCel> pSource, Ptr<CImage> pcDest, Ptr<CImageRowBlitterCache> pBlitterCache);
-	bool			InitColourInfo(Ptr<CImage> pSource, Ptr<CImage> pDest);
-	bool			InitOpacityInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest);
-	void			Kill(void);
+	bool			InitColourInfo(Ptr<CImage> pSource, Ptr<CImage> pDest, CImageBlitterFormat* pcFormat);
+	bool			InitOpacityInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest, CImageBlitterFormat* pcFormat);
+	void			Free(void);
+
+	void			Class(void);
+	bool			Save(CObjectWriter* pcFile) override;
+	bool			Load(CObjectReader* pcFile) override;
 
 	EColourOrder	GetColourOrder(Ptr<CImage> pImage);
 	EColourFormat	GetColourFormat(Ptr<CImage> pImage);
@@ -62,9 +59,10 @@ public:
 	void			Copy(SImageCopy* psCopy);
 
 protected:
-	void			AddBlitter(CBaseImageRowBlitter* pcBlitter, size xOffset, size yOffset);
+	void			AddBlitter(Ptr<CBaseImageRowBlitter> pcBlitter, size xOffset, size yOffset);
 };
 
 
 #endif // __IMAGE_BLITTER_H__
+
 

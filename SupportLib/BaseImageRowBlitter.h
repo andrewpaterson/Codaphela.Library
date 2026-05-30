@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageCopyDimension.h"
 
 
-class CBaseImageRowBlitter : public CUnknown
+class CBaseImageRowBlitter : public CObject
 {
 CONSTRUCTABLE(CBaseImageRowBlitter);
 protected:
@@ -43,14 +43,26 @@ protected:
 	size				miSourceRowStride;
 	size				miDestRowStride;
 
+	size				muiUsageCount;
+
 public:
 			void			Init(Ptr<CImage> pSource, Ptr<CImage> pDest);
-			void			Kill(void) override;
+			void			Free(void) override;
+
+			void			Class(void) override;
+			bool			Save(CObjectWriter* pcFile) override;
+			bool			Load(CObjectReader* pcFile) override;
 
 	virtual void			Copy(int32 iDestX, int32 iDestY, int32 iSourceXLeft, int32 iSourceXRight, int32 iSourceY) =0;
 
 			Ptr<CImage>		GetSource(void);
 			Ptr<CImage>		GetDest(void);
+
+			bool			Is(Ptr<CImage> pDestImage, const char* szBlitterClass);
+
+			size			AddUsage(void);
+			size			RemoveUsage(void);
+
 };
 
 

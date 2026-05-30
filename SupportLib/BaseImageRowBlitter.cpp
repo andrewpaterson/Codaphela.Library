@@ -9,6 +9,8 @@ void CBaseImageRowBlitter::Init(Ptr<CImage> pSource, Ptr<CImage> pDest)
 	mpSource = pSource;
 	mpDest = pDest;
 
+	muiUsageCount = 0;
+
 	miSourcePixelStride = (size)pSource->GetPixelByteStride();
 	miDestPixelStride = (size)pDest->GetPixelByteStride();
 	miSourceWidth = pSource->GetWidth();
@@ -22,10 +24,48 @@ void CBaseImageRowBlitter::Init(Ptr<CImage> pSource, Ptr<CImage> pDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseImageRowBlitter::Kill(void)
+void CBaseImageRowBlitter::Free(void)
 {
-	mpSource = NULL;
-	mpDest = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseImageRowBlitter::Class(void)
+{
+	M_Pointer(mpSource);
+	M_Pointer(mpDest);
+
+	U_Size(miSourcePixelStride);
+	U_Size(miDestPixelStride);
+	U_Size(miSourceWidth);
+	U_Size(miDestWidth);
+	U_Size(miSourceRowStride);
+	U_Size(miDestRowStride);
+
+	U_Size(muiUsageCount);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBaseImageRowBlitter::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBaseImageRowBlitter::Load(CObjectReader* pcFile)
+{
+	return false;
 }
 
 
@@ -46,5 +86,47 @@ Ptr<CImage> CBaseImageRowBlitter::GetSource(void)
 Ptr<CImage> CBaseImageRowBlitter::GetDest(void)
 {
 	return mpDest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBaseImageRowBlitter::Is(Ptr<CImage> pDestImage, const char* szBlitterClass)
+{
+	if (mpDest.IsEqual(pDestImage))
+	{
+		if (StringCompare(ClassName(), szBlitterClass) == 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CBaseImageRowBlitter::AddUsage(void)
+{
+	muiUsageCount++;
+	return muiUsageCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CBaseImageRowBlitter::RemoveUsage(void)
+{
+	if (muiUsageCount > 0)
+	{
+		muiUsageCount--;
+	}
+	return muiUsageCount;
 }
 

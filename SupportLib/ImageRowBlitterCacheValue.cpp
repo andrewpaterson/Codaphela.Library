@@ -5,126 +5,6 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterCacheDest::Init(Ptr<CImage> pDestImage, CBaseImageRowBlitter* pcBlitter)
-{
-	PreInit();
-
-	mpDestImage = pDestImage;
-	mpcBlitter = pcBlitter;
-	muiUsageCount = 0;
-
-	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterCacheDest::Class(void)
-{
-	M_Pointer(mpDestImage);
-	U_Pointer(mpcBlitter);
-	U_Size(muiUsageCount);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterCacheDest::Free(void)
-{
-	UFree(mpcBlitter);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CImageRowBlitterCacheDest::Save(CObjectWriter* pcFile)
-{
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CImageRowBlitterCacheDest::Load(CObjectReader* pcFile)
-{
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CImageRowBlitterCacheDest::Is(Ptr<CImage> pDestImage, const char* szBlitterClass)
-{
-	if (mpDestImage.IsEqual(pDestImage))
-	{
-		if (StringCompare(mpcBlitter->ClassName(), szBlitterClass) == 0)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CImageRowBlitterCacheDest::Is(CBaseImageRowBlitter* pcBlitter)
-{
-	return mpcBlitter == pcBlitter;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseImageRowBlitter* CImageRowBlitterCacheDest::Get(void)
-{
-	return mpcBlitter;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CImageRowBlitterCacheDest::AddUsage(void)
-{
-	muiUsageCount++;
-	return muiUsageCount;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CImageRowBlitterCacheDest::RemoveUsage(void)
-{
-	if (muiUsageCount > 0)
-	{
-		muiUsageCount--;
-	}
-	return muiUsageCount;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CImageRowBlitterCacheValue::Init(Ptr<CImage> pSourceImage)
 {
 	PreInit();
@@ -180,11 +60,11 @@ bool CImageRowBlitterCacheValue::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageRowBlitterCacheDest> CImageRowBlitterCacheValue::GetCacheDest(Ptr<CImage> pDest, const char* szBlitterClass)
+Ptr<CBaseImageRowBlitter> CImageRowBlitterCacheValue::GetCacheDest(Ptr<CImage> pDest, const char* szBlitterClass)
 {
 	size							ui;
 	size							uiNumElements;
-	Ptr<CImageRowBlitterCacheDest>	pDestValue;
+	Ptr<CBaseImageRowBlitter>	pDestValue;
 
 	uiNumElements = maDestBlitters.NumElements();
 	for (ui = 0; ui < uiNumElements; ui++)
@@ -203,17 +83,17 @@ Ptr<CImageRowBlitterCacheDest> CImageRowBlitterCacheValue::GetCacheDest(Ptr<CIma
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageRowBlitterCacheDest> CImageRowBlitterCacheValue::GetCacheDest(CBaseImageRowBlitter* pcBlitter)
+Ptr<CBaseImageRowBlitter> CImageRowBlitterCacheValue::GetCacheDest(Ptr<CBaseImageRowBlitter> pcBlitter)
 {
-	size							ui;
-	size							uiNumElements;
-	Ptr<CImageRowBlitterCacheDest>	pDestValue;
+	size						ui;
+	size						uiNumElements;
+	Ptr<CBaseImageRowBlitter>	pDestValue;
 
 	uiNumElements = maDestBlitters.NumElements();
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
 		pDestValue = maDestBlitters.Get(ui);
-		if (pDestValue->Is(pcBlitter))
+		if (pDestValue.IsEqual(pcBlitter))
 		{
 			return pDestValue;
 		}
@@ -226,15 +106,15 @@ Ptr<CImageRowBlitterCacheDest> CImageRowBlitterCacheValue::GetCacheDest(CBaseIma
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseImageRowBlitter* CImageRowBlitterCacheValue::Get(Ptr<CImage> pDest, const char* szBlitterClass)
+Ptr<CBaseImageRowBlitter> CImageRowBlitterCacheValue::Get(Ptr<CImage> pDest, const char* szBlitterClass)
 {
-	Ptr<CImageRowBlitterCacheDest>	pDestValue;
+	Ptr<CBaseImageRowBlitter>	pDestValue;
 
 	pDestValue = GetCacheDest(pDest, szBlitterClass);
 	if (pDestValue.IsNotNull())
 	{
 		pDestValue->AddUsage();
-		return pDestValue->Get();
+		return pDestValue;
 
 	}
 	return NULL;
@@ -245,12 +125,12 @@ CBaseImageRowBlitter* CImageRowBlitterCacheValue::Get(Ptr<CImage> pDest, const c
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageRowBlitterCacheValue::Add(Ptr<CImage> pDest, CBaseImageRowBlitter* pcRowBlitter)
+bool CImageRowBlitterCacheValue::Add(Ptr<CImage> pDest, Ptr<CBaseImageRowBlitter> pcRowBlitter)
 {
-	size							ui;
-	size							uiNumElements;
-	Ptr<CImageRowBlitterCacheDest>	pDestValue;
-	const char*						szBlitterClass;
+	size						ui;
+	size						uiNumElements;
+	Ptr<CBaseImageRowBlitter>	pDestValue;
+	const char*					szBlitterClass;
 
 	szBlitterClass = pcRowBlitter->ClassName();
 
@@ -264,14 +144,9 @@ bool CImageRowBlitterCacheValue::Add(Ptr<CImage> pDest, CBaseImageRowBlitter* pc
 		}
 	}
 
-	pDestValue = OMalloc<CImageRowBlitterCacheDest>(pDest, pcRowBlitter);
-	if (pDestValue.IsNotNull())
-	{
-		maDestBlitters.Add(pDestValue);
-		pDestValue->AddUsage();
-		return true;
-	}
-	return false;
+	maDestBlitters.Add(pcRowBlitter);
+	pcRowBlitter->AddUsage();
+	return true;
 }
 
 
@@ -279,10 +154,10 @@ bool CImageRowBlitterCacheValue::Add(Ptr<CImage> pDest, CBaseImageRowBlitter* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageRowBlitterCacheValue::Remove(CBaseImageRowBlitter* pcBlitter)
+bool CImageRowBlitterCacheValue::Remove(Ptr<CBaseImageRowBlitter> pcBlitter)
 {
-	Ptr<CImageRowBlitterCacheDest>	pDestValue;
-	size							uiUsage;
+	Ptr<CBaseImageRowBlitter>	pDestValue;
+	size						uiUsage;
 
 	pDestValue = GetCacheDest(pcBlitter);
 	if (pDestValue)

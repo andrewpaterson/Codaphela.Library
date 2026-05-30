@@ -1,5 +1,5 @@
-#ifndef __IMAGE_ROW_BLITTER_RGB_BYTE_ALPHA_BYTE_TRANSLUCENT_H__
-#define __IMAGE_ROW_BLITTER_RGB_BYTE_ALPHA_BYTE_TRANSLUCENT_H__
+#ifndef __IMAGE_BLITTER_FORMAT_H__
+#define __IMAGE_BLITTER_FORMAT_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -23,27 +23,24 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "StandardLib/Pointer.h"
 #include "ColourFormat.h"
-#include "ImageRowBlitterByteAlignedTranslucent.h"
 
 
-class CImageRowBlitterRGBByteAlphaByteTranslucent : public CImageRowBlitterByteAlignedTranslucent
+class CImageBlitterFormat
 {
-CONSTRUCTABLE(CImageRowBlitterRGBByteAlphaByteTranslucent);
-protected:
 public:
-	void	Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
-	void	Free(void) override;
+	EColourOrder				meColourOrder;
+	EColourFormat				meSourceColourFormat;
+	EColourFormat				meDestColourFormat;
+	ERGBColourBits				meColourBits;
+	ERGBAlphaBits				meSourceAlphaBits;
+	ERGBAlphaBits				meDestAlphaBits;
+	EColourOpacity				meSourceOpacity;
 
-	void	Class(void) override;
-	bool	Save(CObjectWriter* pcFile) override;
-	bool	Load(CObjectReader* pcFile) override;
-
-	void	Copy(int32 iDestX, int32 iDestY, int32 iSourceXLeft, int32 iSourceXRight, int32 iSourceY) override;
+	void Init(void);
 };
 
 
-#endif // __IMAGE_ROW_BLITTER_RGB_BYTE_ALPHA_BYTE_TRANSLUCENT_H__
+#endif // __IMAGE_BLITTER_FORMAT_H__
 
 

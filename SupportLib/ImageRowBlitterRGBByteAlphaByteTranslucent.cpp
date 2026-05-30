@@ -8,8 +8,11 @@
 //////////////////////////////////////////////////////////////////////////
 void CImageRowBlitterRGBByteAlphaByteTranslucent::Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper)
 {
+	PreInit();
+
 	CBaseImageRowBlitter::Init(pSource, pDest);
 
+	PostInit();
 }
 
 
@@ -17,8 +20,39 @@ void CImageRowBlitterRGBByteAlphaByteTranslucent::Init(Ptr<CImage> pSource, Ptr<
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterRGBByteAlphaByteTranslucent::Kill(void)
+void CImageRowBlitterRGBByteAlphaByteTranslucent::Free(void)
 {
+	CImageRowBlitterByteAlignedTranslucent::Free();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageRowBlitterRGBByteAlphaByteTranslucent::Class(void)
+{
+	CImageRowBlitterByteAlignedTranslucent::Class();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageRowBlitterRGBByteAlphaByteTranslucent::Save(CObjectWriter* pcFile)
+{
+	return CImageRowBlitterByteAlignedTranslucent::Save(pcFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageRowBlitterRGBByteAlphaByteTranslucent::Load(CObjectReader* pcFile)
+{
+	return CImageRowBlitterByteAlignedTranslucent::Load(pcFile);
 }
 
 
