@@ -6,9 +6,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitter::Init(CBaseImageRowBlitter* pcBlitter, size uiX, size uiY)
+void CImageRowBlitter::Init(CBaseImageRowBlitter* pcBlitter, size uiXStart, size uiXEnd, size uiY)
 {
-	mpcBlitter = pcBlitter;
-	sOffset.Init(uiX, uiY);
+	this->mpcBlitter = pcBlitter;
+	this->sOffset.Init(uiXStart, uiY);
+	this->uiXEnd = uiXEnd;
 }
 

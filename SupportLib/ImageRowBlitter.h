@@ -37,13 +37,13 @@ class CImageRowBlitter
 public:
 	CBaseImageRowBlitter*	mpcBlitter;
 	SSizeVec2				sOffset;
+	size					uiXEnd;
 
-	void	Init(CBaseImageRowBlitter* pcBlitter, size uiX, size uiY);
+	void	Init(CBaseImageRowBlitter* pcBlitter, size uiXStart, size uiXEnd, size uiY);
 };
 
 
 typedef	CArrayTemplate<CImageRowBlitter>	CArrayImageRowBlitter;
-
 
 
 #endif // __IMAGE_ROW_BLITTER_H__

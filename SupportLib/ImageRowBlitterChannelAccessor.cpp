@@ -1,12 +1,12 @@
 #include "BaseLib/TypeNames.h"
-#include "ImageRowBlitterByteAlignedOpaque.h"
+#include "ImageRowBlitterChannelAccessor.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterByteAlignedOpaque::Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper)
+void CImageRowBlitterChannelAccessor::Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper)
 {
 	PreInit();
 
@@ -26,6 +26,31 @@ void CImageRowBlitterByteAlignedOpaque::Init(Ptr<CImage> pSource, Ptr<CImage> pD
 
 	muiColourWidth = 3 * uiTypeSize;
 
+	//CChannelsAccessor*			pcAccessor;
+	//CChannelsAccessorCreator	cCreator;
+	//size						uiNumChannels;
+	//size						uiChannelIndex;
+	//EChannel					eChannel;
+	//EPrimitiveType				eType;
+	//CColourFormatHelper			cFormatHelper;
+
+	//uiNumChannels = cFormatHelper.GetNumChannels();
+
+	//cCreator.Init(pSourceImage->GetChannels());
+	//for (uiChannelIndex = 0; uiChannelIndex < uiNumChannels; uiChannelIndex++)
+	//{
+	//	eChannel = cFormatHelper.GetChannel(uiChannelIndex);
+	//	eType = cFormatHelper.GetType(uiChannelIndex);
+	//	if ((eChannel == IMAGE_CHANNEL_UNKNOWN) || (eType == PT_Undefined))
+	//	{
+	//		return false;
+	//	}
+
+	//	cCreator.AddAccess(eChannel, eType);
+	//}
+	// 
+	//pcAccessor = cCreator.Create();
+
 	PostInit();
 }
 
@@ -34,7 +59,7 @@ void CImageRowBlitterByteAlignedOpaque::Init(Ptr<CImage> pSource, Ptr<CImage> pD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterByteAlignedOpaque::Free(void)
+void CImageRowBlitterChannelAccessor::Free(void)
 {
 	CBaseImageRowBlitter::Free();
 }
@@ -44,7 +69,7 @@ void CImageRowBlitterByteAlignedOpaque::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterByteAlignedOpaque::Class(void)
+void CImageRowBlitterChannelAccessor::Class(void)
 {
 	CBaseImageRowBlitter::Class();
 
@@ -58,7 +83,7 @@ void CImageRowBlitterByteAlignedOpaque::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageRowBlitterByteAlignedOpaque::Save(CObjectWriter* pcFile)
+bool CImageRowBlitterChannelAccessor::Save(CObjectWriter* pcFile)
 {
 	return CBaseImageRowBlitter::Save(pcFile);
 }
@@ -68,7 +93,7 @@ bool CImageRowBlitterByteAlignedOpaque::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageRowBlitterByteAlignedOpaque::Load(CObjectReader* pcFile)
+bool CImageRowBlitterChannelAccessor::Load(CObjectReader* pcFile)
 {
 	return CBaseImageRowBlitter::Load(pcFile);
 }
@@ -78,7 +103,7 @@ bool CImageRowBlitterByteAlignedOpaque::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterByteAlignedOpaque::Copy(size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY)
+void CImageRowBlitterChannelAccessor::Copy(size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY)
 {
 	void*	pvSource;
 	void*	pvDest;

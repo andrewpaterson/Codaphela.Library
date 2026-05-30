@@ -1,5 +1,5 @@
-#ifndef __BASE_IMAGE_ROW_BLITTER_H__
-#define __BASE_IMAGE_ROW_BLITTER_H__
+#ifndef __IMAGE_ROW_BLITTER_CHANNEL_ACCESSOR_H__
+#define __IMAGE_ROW_BLITTER_CHANNEL_ACCESSOR_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -24,47 +24,30 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Pointer.h"
-#include "ImageCel.h"
-#include "Rectangle.h"
-#include "ImageCopyDimension.h"
+#include "ColourFormat.h"
+#include "BaseImageRowBlitter.h"
 
 
-class CBaseImageRowBlitter : public CObject
+class CImageRowBlitterChannelAccessor : public CBaseImageRowBlitter
 {
-CONSTRUCTABLE(CBaseImageRowBlitter);
+CONSTRUCTABLE(CImageRowBlitterChannelAccessor);
+DESTRUCTABLE(CImageRowBlitterChannelAccessor);
 protected:
-	Ptr<CImage>			mpSource;
-	Ptr<CImage>			mpDest;
-
-	size				miSourcePixelStride;
-	size				miDestPixelStride;
-	size				miSourceWidth;
-	size				miDestWidth;
-	size				miSourceRowStride;
-	size				miDestRowStride;
-
-	size				muiUsageCount;
-
 public:
-			void			Init(Ptr<CImage> pSource, Ptr<CImage> pDest);
-			void			Free(void) override;
+	size	muiSourceColourOffset;
+	size	muiDestColourOffset;
+	size	muiColourWidth;
 
-			void			Class(void) override;
-			bool			Save(CObjectWriter* pcFile) override;
-			bool			Load(CObjectReader* pcFile) override;
+	void	Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
+	void	Free(void) override;
 
-	virtual void			Copy(size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) =0;
+	void	Class(void) override;
+	bool	Save(CObjectWriter* pcFile) override;
+	bool	Load(CObjectReader* pcFile) override;
 
-			Ptr<CImage>		GetSource(void);
-			Ptr<CImage>		GetDest(void);
-
-			bool			Is(Ptr<CImage> pDestImage, const char* szBlitterClass);
-
-			size			AddUsage(void);
-			size			RemoveUsage(void);
-
+	void	Copy(size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
 };
 
 
-#endif // __BASE_IMAGE_ROW_BLITTER_H__
+#endif // __IMAGE_ROW_BLITTER_CHANNEL_ACCESSOR_H__
 

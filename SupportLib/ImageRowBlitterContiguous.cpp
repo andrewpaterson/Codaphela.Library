@@ -58,7 +58,7 @@ bool CImageRowBlitterContiguous::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterContiguous::Copy(int32 iDestX, int32 iDestY, int32 iSourceXLeft, int32 iSourceXRight, int32 iSourceY)
+void CImageRowBlitterContiguous::Copy(size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY)
 {
 	void*	pvSource;
 	void*	pvDest;
