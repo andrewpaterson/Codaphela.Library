@@ -29,17 +29,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageRowBlitterContiguous : public CBaseImageRowBlitter
 {
-CONSTRUCTABLE(CImageRowBlitterContiguous);
-protected:
 public:
-	void	Init(Ptr<CImage> pSource, Ptr<CImage> pDest);
-	void	Free(void) override;
-
-	void	Class(void) override;
-	bool	Save(CObjectWriter* pcFile) override;
-	bool	Load(CObjectReader* pcFile) override;
-
-	void	Copy(size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
+	void	Copy(CImageBlitterContext* pcContext, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
 };
 
 

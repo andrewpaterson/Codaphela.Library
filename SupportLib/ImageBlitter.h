@@ -29,6 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageBlitterFormat.h"
 #include "Rectangle.h"
 #include "ImageCopyDimension.h"
+#include "ImageBlitterContext.h"
 #include "ImageRowBlitter.h"
 
 
@@ -39,33 +40,38 @@ CONSTRUCTABLE(CImageBlitter);
 DESTRUCTABLE(CImageBlitter);
 protected:
 	CArrayImageRowBlitter		macRowBlitters;
-	Ptr<CImageRowBlitterCache>	mpBlitterCache;
+
+	Ptr<CImageCel>				mpSourceCel;
+	Ptr<CImage>					mpDestImage;
+
+	CImageBlitterFormat			mcFormat;
 
 public:
-	bool			Init(Ptr<CImageCel> pSource, Ptr<CImage> pcDest, Ptr<CImageRowBlitterCache> pBlitterCache);
+	bool			Init(Ptr<CImageCel> pSource, Ptr<CImage> pcDest, CImageRowBlitterCache* pcBlitterCache);
 	void			Free(void);
 
 	void			Class(void);
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;
 
+	void			UpdateContext(CImageBlitterContext* pcContext);
+
+	void			Copy(CImageBlitterContext* pcContext, size iDestX, size iDestY);
+
+protected:
 	EColourOrder	GetColourOrder(Ptr<CImage> pImage);
 	EColourFormat	GetColourFormat(Ptr<CImage> pImage);
 	ERGBColourBits	GetColourBits(Ptr<CImage> pImage);
 	ERGBAlphaBits	GetAlphaBits(Ptr<CImage> pImage);
 
-	void			Copy(size iDestX, size iDestY);
-	void			Copy(SImageCopy* psCopy);
+	bool			InitColourInfo(CImageBlitterFormat* pcFormat);
+	bool			InitOpacityInfo(CImageBlitterFormat* pcFormat);
+	bool			InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
+	bool			CreateImageRowBlitterContiguous(CImageRowBlitterCache* pcBlitterCache);
+	bool			CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
+	bool			CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
 
-protected:
-	bool			InitColourInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest, CImageBlitterFormat* pcFormat);
-	bool			InitOpacityInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest, CImageBlitterFormat* pcFormat);
-	bool			InitRowBlitters(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest, CImageBlitterFormat* pcFormat);
-	bool			CreateImageRowBlitterContiguous(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage);
-	bool			CreateImageRowBlitterByteAlignedOpaque(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CImageBlitterFormat* pcFormat);
-	bool			CreateImageRowBlitterRGBByteAlphaByteTranslucent(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CImageBlitterFormat* pcFormat);
-
-	void			AddBlitter(Ptr<CBaseImageRowBlitter> pcBlitter, size xStart, size xEnd, size yOffset);
+	void			AddBlitter(CBaseImageRowBlitter* pcBlitter, size xStart, size xEnd, size yOffset);
 };
 
 

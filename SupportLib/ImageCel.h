@@ -38,7 +38,7 @@ class CImageCel : public CObject
 CONSTRUCTABLE(CImageCel);
 DESTRUCTABLE(CImageCel);
 protected:
-	CSubImage		mcSubImage;  //The full dimension of the cel and where it's pixels are in the source image.
+	CSubImage		mcSubImage;  //Both the full dimension of the cel and also where it's pixels are in the source image.
 	Ptr<CImage>		mpSourceImage;
 
 public:

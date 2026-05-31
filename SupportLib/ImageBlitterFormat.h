@@ -43,4 +43,3 @@ public:
 
 #endif // __IMAGE_BLITTER_FORMAT_H__
 
-

@@ -31,34 +31,34 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, Ptr<CImageRowBlitterCache> pBlitterCache)
+bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CImageRowBlitterCache* pcBlitterCache)
 {
 	PreInit();
 
 	bool					bResult;
 	Ptr<CImage>				pSourceImage;
-	CImageBlitterFormat		cFormat;
 
-	cFormat.Init();
+	mpSourceCel = pSourceCel;
+	mpDestImage = pDestImage;
 
-	mpBlitterCache = pBlitterCache;
+	mcFormat.Init();
+
 	macRowBlitters.Init();
 
-	pSourceImage = pSourceCel->GetSourceImage();
-	bResult = InitColourInfo(pSourceCel, pDestImage, &cFormat);
+	pSourceImage = mpSourceCel->GetSourceImage();
+	bResult = InitColourInfo(&mcFormat);
 	if (!bResult)
 	{
 		return false;
 	}
 
-	bResult = InitOpacityInfo(pSourceCel, pDestImage, &cFormat);
+	bResult = InitOpacityInfo(&mcFormat);
 	if (!bResult)
 	{
 		return false;
 	}
 
-	bResult = InitRowBlitters(pSourceCel, pDestImage, &cFormat);
-
+	bResult = InitRowBlitters(&mcFormat, pcBlitterCache);
 
 	PostInit();
 
@@ -70,7 +70,7 @@ bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, Ptr<
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::InitColourInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CImageBlitterFormat* pcFormat)
+bool CImageBlitter::InitColourInfo(CImageBlitterFormat* pcFormat)
 {
 	EColourOrder	eSourceColourOrder;
 	ERGBColourBits	eSourceColourBits;
@@ -78,7 +78,7 @@ bool CImageBlitter::InitColourInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestI
 	ERGBColourBits	eDestColourBits;
 	Ptr<CImage>		pSourceImage;
 	
-	pSourceImage = pSourceCel->GetSourceImage();
+	pSourceImage = mpSourceCel->GetSourceImage();
 
 	eSourceColourOrder = GetColourOrder(pSourceImage);
 	if (eSourceColourOrder == CCO_Unknown)
@@ -86,8 +86,8 @@ bool CImageBlitter::InitColourInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestI
 		return false;
 	}
 
-	pcFormat->meSourceColourFormat = GetColourFormat(pSourceImage);
-	if (pcFormat->meSourceColourFormat == CFT_Unknown)
+	mcFormat.meSourceColourFormat = GetColourFormat(pSourceImage);
+	if (mcFormat.meSourceColourFormat == CFT_Unknown)
 	{
 		return false;
 	}
@@ -98,32 +98,32 @@ bool CImageBlitter::InitColourInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestI
 		return false;
 	}
 
-	pcFormat->meSourceAlphaBits = GetAlphaBits(pSourceImage);
-	if (pcFormat->meSourceAlphaBits == ARGB_Unknown)
+	mcFormat.meSourceAlphaBits = GetAlphaBits(pSourceImage);
+	if (mcFormat.meSourceAlphaBits == ARGB_Unknown)
 	{
 		return false;
 	}
 
-	eDestColourOrder = GetColourOrder(pDestImage);
+	eDestColourOrder = GetColourOrder(mpDestImage);
 	if (eDestColourOrder == CCO_Unknown)
 	{
 		return false;
 	}
 
-	pcFormat->meDestColourFormat = GetColourFormat(pDestImage);
-	if (pcFormat->meDestColourFormat == CFT_Unknown)
+	mcFormat.meDestColourFormat = GetColourFormat(mpDestImage);
+	if (mcFormat.meDestColourFormat == CFT_Unknown)
 	{
 		return false;
 	}
 
-	eDestColourBits = GetColourBits(pDestImage);
+	eDestColourBits = GetColourBits(mpDestImage);
 	if (eDestColourBits == CRGB_Unknown)
 	{
 		return false;
 	}
 
-	pcFormat->meDestAlphaBits = GetAlphaBits(pDestImage);
-	if (pcFormat->meDestAlphaBits == ARGB_Unknown)
+	mcFormat.meDestAlphaBits = GetAlphaBits(mpDestImage);
+	if (mcFormat.meDestAlphaBits == ARGB_Unknown)
 	{
 		return false;
 	}
@@ -132,13 +132,13 @@ bool CImageBlitter::InitColourInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestI
 	{
 		return false;
 	}
-	pcFormat->meColourOrder = eSourceColourOrder;
+	mcFormat.meColourOrder = eSourceColourOrder;
 
 	if (eSourceColourBits != eDestColourBits)
 	{
 		return false;
 	}
-	pcFormat->meColourBits = eSourceColourBits;
+	mcFormat.meColourBits = eSourceColourBits;
 
 	return true;
 }
@@ -148,7 +148,7 @@ bool CImageBlitter::InitColourInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestI
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::InitOpacityInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CImageBlitterFormat* pcFormat)
+bool CImageBlitter::InitOpacityInfo(CImageBlitterFormat* pcFormat)
 {
 	Ptr<CImage>			pSourceImage;
 	CSubImage*			pcSubImage;
@@ -169,20 +169,20 @@ bool CImageBlitter::InitOpacityInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest
 	bTransparent = false;
 	bTranslucent = false;
 
-	pSourceImage = pSourceCel->GetSourceImage();
+	pSourceImage = mpSourceCel->GetSourceImage();
 	pcChannels = pSourceImage->GetChannels();
-	if (pcFormat->meSourceAlphaBits == ARGB_Unknown)
+	if (mcFormat.meSourceAlphaBits == ARGB_Unknown)
 	{
-		pcFormat->meSourceOpacity = CPO_None;
+		mcFormat.meSourceOpacity = CPO_None;
 		return true;
 	}
 
-	if (pcFormat->meSourceAlphaBits != ARGB_None)
+	if (mcFormat.meSourceAlphaBits != ARGB_None)
 	{
 		pcOpacityAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pcChannels, IMAGE_OPACITY, PT_float32);
 		if (pcOpacityAccessor)
 		{
-			pcSubImage = pSourceCel->GetSubImage();
+			pcSubImage = mpSourceCel->GetSubImage();
 			pcSourcePixelRect = &pcSubImage->mcImageRect;
 			uiImageWidth = pSourceImage->GetWidth();
 			uiBottom = pcSourcePixelRect->GetBottom();
@@ -216,15 +216,15 @@ bool CImageBlitter::InitOpacityInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest
 
 	if (bTranslucent)
 	{
-		pcFormat->meSourceOpacity = CPO_Translucent;
+		mcFormat.meSourceOpacity = CPO_Translucent;
 	}
 	else if (bTransparent)
 	{
-		pcFormat->meSourceOpacity = CPO_Transparent;
+		mcFormat.meSourceOpacity = CPO_Transparent;
 	}
 	else
 	{
-		pcFormat->meSourceOpacity = CPO_Opaque;
+		mcFormat.meSourceOpacity = CPO_Opaque;
 	}
 
 	return true;
@@ -235,7 +235,7 @@ bool CImageBlitter::InitOpacityInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::InitRowBlitters(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CImageBlitterFormat* pcFormat)
+bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache)
 {
 	
 	size						uiSourceByteStride;
@@ -243,22 +243,22 @@ bool CImageBlitter::InitRowBlitters(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest
 	Ptr<CBaseImageRowBlitter>	pcRowBlitter;
 	Ptr<CImage>					pSourceImage;
 
-	pSourceImage = pSourceCel->GetSourceImage();
+	pSourceImage = mpSourceCel->GetSourceImage();
 	uiSourceByteStride = pSourceImage->GetPixelByteStride();
-	uiDestByteStride = pDestImage->GetPixelByteStride();
+	uiDestByteStride = mpDestImage->GetPixelByteStride();
 
 	pcRowBlitter = NULL;
-	if (((pcFormat->meSourceOpacity == CPO_None) || (pcFormat->meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride == uiDestByteStride))
+	if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride == uiDestByteStride))
 	{
-		return CreateImageRowBlitterContiguous(pSourceCel, pDestImage);
+		return CreateImageRowBlitterContiguous(pcBlitterCache);
 	}
-	else if (((pcFormat->meSourceOpacity == CPO_None) || (pcFormat->meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride != uiDestByteStride))
+	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride != uiDestByteStride))
 	{
-		return CreateImageRowBlitterByteAlignedOpaque(pSourceCel, pDestImage, pcFormat);
+		return CreateImageRowBlitterByteAlignedOpaque(pcFormat, pcBlitterCache);
 	}
-	else if ((pcFormat->meSourceAlphaBits == ARGB_8bit) && (pcFormat->meColourBits == CRGB_24bit))
+	else if ((mcFormat.meSourceAlphaBits == ARGB_8bit) && (mcFormat.meColourBits == CRGB_24bit))
 	{
-		return CreateImageRowBlitterRGBByteAlphaByteTranslucent(pSourceCel, pDestImage, pcFormat);
+		return CreateImageRowBlitterRGBByteAlphaByteTranslucent(pcFormat, pcBlitterCache);
 	}
 	else
 	{
@@ -272,22 +272,20 @@ bool CImageBlitter::InitRowBlitters(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterContiguous(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage)
+bool CImageBlitter::CreateImageRowBlitterContiguous(CImageRowBlitterCache* pcBlitterCache)
 {
-	CRectangle					cRect;
-	size						y;
-	size						uiBottom;
-	size						uiRight;
-	Ptr<CBaseImageRowBlitter>	pcRowBlitter;
-	Ptr<CImage>					pSourceImage;
+	CRectangle				cRect;
+	size					y;
+	size					uiBottom;
+	size					uiRight;
+	CBaseImageRowBlitter*	pcRowBlitter;
 
-	pSourceImage = pSourceCel->GetSourceImage();
-	pSourceCel->GetImageSourceBounds(&cRect);
+	mpSourceCel->GetImageSourceBounds(&cRect);
 	uiBottom = cRect.GetBottom();
 	uiRight = cRect.GetRight();
 	for (y = cRect.GetTop(); y < uiBottom; y++)
 	{
-		pcRowBlitter = mpBlitterCache->CreateImageRowBlitterContiguous(pSourceImage, pDestImage);
+		pcRowBlitter = pcBlitterCache->CreateImageRowBlitterContiguous();
 		AddBlitter(pcRowBlitter, 0, uiRight, y);
 	}
 	return true;
@@ -298,26 +296,20 @@ bool CImageBlitter::CreateImageRowBlitterContiguous(Ptr<CImageCel> pSourceCel, P
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaque(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CImageBlitterFormat* pcFormat)
+bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache)
 {
-	CRectangle					cRect;
-	size						y;
-	size						uiBottom;
-	size						uiRight;
-	Ptr<CBaseImageRowBlitter>	pcRowBlitter;
-	Ptr<CImage>					pSourceImage;
-	CColourFormatHelper			cSourceFormatHelper;
-	CColourFormatHelper			cDestFormatHelper;
+	CRectangle				cRect;
+	size					y;
+	size					uiBottom;
+	size					uiRight;
+	CBaseImageRowBlitter*	pcRowBlitter;
 
-	cSourceFormatHelper.Init(pcFormat->meSourceColourFormat, pcFormat->meColourOrder, pcFormat->meColourBits, pcFormat->meSourceAlphaBits);
-	cDestFormatHelper.Init(pcFormat->meDestColourFormat, pcFormat->meColourOrder, pcFormat->meColourBits, pcFormat->meDestAlphaBits);
-	pSourceImage = pSourceCel->GetSourceImage();
-	pSourceCel->GetImageSourceBounds(&cRect);
+	mpSourceCel->GetImageSourceBounds(&cRect);
 	uiBottom = cRect.GetBottom();
 	uiRight = cRect.GetRight();
 	for (y = cRect.GetTop(); y < uiBottom; y++)
 	{
-		pcRowBlitter = mpBlitterCache->CreateImageRowBlitterByteAlignedOpaque(pSourceImage, pDestImage, &cSourceFormatHelper, &cDestFormatHelper);
+		pcRowBlitter = pcBlitterCache->CreateImageRowBlitterByteAlignedOpaque();
 		AddBlitter(pcRowBlitter, 0, uiRight, y);
 	}
 	return true;
@@ -328,28 +320,28 @@ bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaque(Ptr<CImageCel> pSourc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CImageBlitterFormat* pcFormat)
+bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache)
 {
-	CRectangle					cRect;
-	size						x, y;
-	size						uiBottom;
-	size						uiRight;
-	Ptr<CBaseImageRowBlitter>	pcRowBlitter;
-	Ptr<CImage>					pSourceImage;
-	CColourFormatHelper			cSourceFormatHelper;
-	CColourFormatHelper			cDestFormatHelper;
-	size						uiAlpha;
-	CImageAccessor*				pcAccessorOpacity;
-	size						xStart;
-	size						uiLastType;
-	size						uiThisType;
+	CRectangle				cRect;
+	size					x, y;
+	size					uiBottom;
+	size					uiRight;
+	CBaseImageRowBlitter*	pcRowBlitter;
+	Ptr<CImage>				pSourceImage;
+	CColourFormatHelper		cSourceFormatHelper;
+	CColourFormatHelper		cDestFormatHelper;
+	size					uiAlpha;
+	CImageAccessor*			pcAccessorOpacity;
+	size					xStart;
+	size					uiLastType;
+	size					uiThisType;
 
-	pSourceImage = pSourceCel->GetSourceImage();
+	pSourceImage = mpSourceCel->GetSourceImage();
 	pcAccessorOpacity = CImageAccessorCreator::Create(&pSourceImage, PT_uint8, IMAGE_OPACITY, CHANNEL_STOP);
 
-	cSourceFormatHelper.Init(pcFormat->meSourceColourFormat, pcFormat->meColourOrder, pcFormat->meColourBits, pcFormat->meSourceAlphaBits);
-	cDestFormatHelper.Init(pcFormat->meDestColourFormat, pcFormat->meColourOrder, pcFormat->meColourBits, pcFormat->meDestAlphaBits);
-	pSourceCel->GetImageSourceBounds(&cRect);
+	cSourceFormatHelper.Init(mcFormat.meSourceColourFormat, mcFormat.meColourOrder, mcFormat.meColourBits, mcFormat.meSourceAlphaBits);
+	cDestFormatHelper.Init(mcFormat.meDestColourFormat, mcFormat.meColourOrder, mcFormat.meColourBits, mcFormat.meDestAlphaBits);
+	mpSourceCel->GetImageSourceBounds(&cRect);
 	uiBottom = cRect.GetBottom();
 	uiRight = cRect.GetRight();
 	uiLastType = 0;
@@ -376,12 +368,12 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(Ptr<CImageC
 			{
 				if (uiLastType == 1)
 				{
-					pcRowBlitter = mpBlitterCache->CreateImageRowBlitterRGBByteAlphaByteTranslucent(pSourceImage, pDestImage, &cSourceFormatHelper, &cDestFormatHelper);
+					pcRowBlitter = pcBlitterCache->CreateImageRowBlitterRGBByteAlphaByteTranslucent();
 					AddBlitter(pcRowBlitter, xStart, x, y);
 				}
 				else if (uiLastType == 255)
 				{
-					pcRowBlitter = mpBlitterCache->CreateImageRowBlitterByteAlignedOpaque(pSourceImage, pDestImage, &cSourceFormatHelper, &cDestFormatHelper);
+					pcRowBlitter = pcBlitterCache->CreateImageRowBlitterByteAlignedOpaque();
 					AddBlitter(pcRowBlitter, xStart, x, y);
 				}
 				xStart = x;
@@ -393,17 +385,19 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(Ptr<CImageC
 		{
 			if (uiLastType == 1)
 			{
-				pcRowBlitter = mpBlitterCache->CreateImageRowBlitterRGBByteAlphaByteTranslucent(pSourceImage, pDestImage, &cSourceFormatHelper, &cDestFormatHelper);
+				pcRowBlitter = pcBlitterCache->CreateImageRowBlitterRGBByteAlphaByteTranslucent();
 				AddBlitter(pcRowBlitter, xStart, x, y);
 			}
 			else if (uiLastType == 255)
 			{
-				pcRowBlitter = mpBlitterCache->CreateImageRowBlitterByteAlignedOpaque(pSourceImage, pDestImage, &cSourceFormatHelper, &cDestFormatHelper);
+				pcRowBlitter = pcBlitterCache->CreateImageRowBlitterByteAlignedOpaque();
 				AddBlitter(pcRowBlitter, xStart, x, y);
 			}
 			xStart = x;
 		}
 	}
+
+	UFree(pcAccessorOpacity);
 	return true;
 }
 
@@ -414,16 +408,6 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(Ptr<CImageC
 //////////////////////////////////////////////////////////////////////////
 void CImageBlitter::Free(void)
 {
-	size				ui;
-	size				uiNumElements;
-	CImageRowBlitter*	pcRowBlitter;
-
-	uiNumElements = macRowBlitters.NumElements();
-	for (ui = 0; ui < uiNumElements; ui++)
-	{
-		pcRowBlitter = macRowBlitters.Get(ui);
-		mpBlitterCache->FreeImageRowBlitter(pcRowBlitter->mpcBlitter);
-	}
 	macRowBlitters.Kill();
 }
 
@@ -435,7 +419,8 @@ void CImageBlitter::Free(void)
 void CImageBlitter::Class(void)
 {
 	U_Data(CArrayImageRowBlitter, macRowBlitters);
-	M_Pointer(mpBlitterCache);
+	M_Pointer(mpSourceCel);
+	M_Pointer(mpDestImage);
 }
 
 
@@ -759,21 +744,36 @@ ERGBAlphaBits CImageBlitter::GetAlphaBits(Ptr<CImage> pImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageBlitter::AddBlitter(Ptr<CBaseImageRowBlitter> pcBlitter, size xStart, size xEnd, size yOffset)
+void CImageBlitter::AddBlitter(CBaseImageRowBlitter* pcBlitter, size xStart, size xEnd, size yOffset)
 {
 	CImageRowBlitter* psBlitter;
 
 	psBlitter = macRowBlitters.Add();
-	psBlitter->Init(&pcBlitter, xStart, xEnd, yOffset);
+	psBlitter->Init(pcBlitter, xStart, xEnd, yOffset);
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageBlitter::UpdateContext(CImageBlitterContext* pcContext)
+{
+	CColourFormatHelper		cSourceFormatHelper;
+	CColourFormatHelper		cDestFormatHelper;
+
+	cSourceFormatHelper.Init(mcFormat.meSourceColourFormat, mcFormat.meColourOrder, mcFormat.meColourBits, mcFormat.meSourceAlphaBits);
+	cDestFormatHelper.Init(mcFormat.meDestColourFormat, mcFormat.meColourOrder, mcFormat.meColourBits, mcFormat.meDestAlphaBits);
+
+	pcContext->Init(mpSourceCel->GetSourceImage(), mpDestImage, &cSourceFormatHelper, &cDestFormatHelper);
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageBlitter::Copy(size iDestX, size iDestY)
+void CImageBlitter::Copy(CImageBlitterContext* pcContext, size iDestX, size iDestY)
 {
 	size				uiNumElements;
 	size				ui;
@@ -789,17 +789,7 @@ void CImageBlitter::Copy(size iDestX, size iDestY)
 		xStart = pcRowBlitter->sOffset.x;
 		xEnd = pcRowBlitter->uiXEnd;
 		y = pcRowBlitter->sOffset.y;
-		pcRowBlitter->mpcBlitter->Copy(iDestX + xStart, iDestY + y, xStart, xEnd, y);
+		pcRowBlitter->mpcBlitter->Copy(pcContext, iDestX + xStart, iDestY + y, xStart, xEnd, y);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CImageBlitter::Copy(SImageCopy* psCopy)
-{
-
 }
 
