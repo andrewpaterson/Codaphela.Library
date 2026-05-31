@@ -56,7 +56,7 @@ public:
 
 	void			UpdateContext(CImageBlitterContext* pcContext);
 
-	void			Copy(CImageBlitterContext* pcContext, size iDestX, size iDestY);
+	void			Copy(CImageBlitterContext* pcContext, int32 iDestX, int32 iDestY);
 
 protected:
 	EColourOrder	GetColourOrder(Ptr<CImage> pImage);
