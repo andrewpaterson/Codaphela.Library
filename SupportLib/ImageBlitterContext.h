@@ -40,9 +40,6 @@ public:
 	size		miSourceRowStride;
 	size		miDestRowStride;
 
-	void*		mpvSource;
-	void*		mpvDest;
-
 	size		muiSourceColourOffset;
 	size		muiDestColourOffset;
 	size		muiSourceAlphaOffset;

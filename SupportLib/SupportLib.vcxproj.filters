@@ -1307,9 +1307,6 @@
     <ClCompile Include="ImageBlitter.cpp">
       <Filter>Source\Image\Blitter</Filter>
     </ClCompile>
-    <ClCompile Include="BaseImageRowBlitter.cpp">
-      <Filter>Source\Image\Blitter</Filter>
-    </ClCompile>
     <ClCompile Include="ImageRowBlitter.cpp">
       <Filter>Source\Image\Blitter</Filter>
     </ClCompile>
