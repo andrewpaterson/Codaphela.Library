@@ -32,9 +32,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::Init(Ptr<CImage> pcSourceImage)
+void CImageCel::Init(Ptr<CImage> pcSourceImage, bool bCropTransparentBorders)
 {
 	Init(pcSourceImage, 0, 0, pcSourceImage->miWidth, pcSourceImage->miHeight);
+	if (bCropTransparentBorders)
+	{
+		CropTransparentBorders();
+	}
 }
 
 

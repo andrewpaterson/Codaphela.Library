@@ -90,7 +90,7 @@ void CImageRowBlitterByteAlignedOpaque::Copy(size iDestX, size iDestY, size iSou
 	pvDest = mpDest->GetData();
 	pvDest = RemapSinglePointer(pvDest, iDestY * miDestRowStride + iDestX * miDestPixelStride + muiDestColourOffset);
 
-	for (x = iSourceXLeft; x <= iSourceXRight; x++)
+	for (x = iSourceXLeft; x < iSourceXRight; x++)
 	{
 		ga_memcpy_fast[muiColourWidth](pvDest, pvSource);
 
