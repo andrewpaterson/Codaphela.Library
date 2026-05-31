@@ -5,69 +5,13 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterContiguous::Init(Ptr<CImage> pSource, Ptr<CImage> pDest)
-{
-	PreInit();
-
-	CBaseImageRowBlitter::Init(pSource, pDest);
-
-	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterContiguous::Free(void)
-{
-	CBaseImageRowBlitter::Free();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterContiguous::Class(void)
-{
-	CBaseImageRowBlitter::Class();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CImageRowBlitterContiguous::Save(CObjectWriter* pcFile)
-{
-	return CBaseImageRowBlitter::Save(pcFile);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CImageRowBlitterContiguous::Load(CObjectReader* pcFile)
-{
-	return CBaseImageRowBlitter::Load(pcFile);
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterContiguous::Copy(size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY)
+void CImageRowBlitterContiguous::Copy(CImageBlitterContext* pcContext, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY)
 {
 	void*	pvSource;
 	void*	pvDest;
 
-	pvSource = mpSource->GetData();
-	pvSource = RemapSinglePointer(pvSource, iSourceY * miSourceRowStride + iSourceXLeft * miSourcePixelStride);
-
-	pvDest = mpDest->GetData();
-	pvDest = RemapSinglePointer(pvDest, iDestY * miDestRowStride + iDestX * miDestPixelStride);
-	memcpy_fast(pvDest, pvSource, (iSourceXRight - iSourceXLeft) * miSourcePixelStride);
+	pvSource = RemapSinglePointer(pcContext->mpvSource, iSourceY * pcContext->miSourceRowStride + iSourceXLeft * pcContext->miSourcePixelStride);
+	pvDest = RemapSinglePointer(pcContext->mpvDest, iDestY * pcContext->miDestRowStride + iDestX * pcContext->miDestPixelStride);
+	memcpy_fast(pvDest, pvSource, (iSourceXRight - iSourceXLeft) * pcContext->miSourcePixelStride);
 }
 

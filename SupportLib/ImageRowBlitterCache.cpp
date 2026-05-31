@@ -9,8 +9,6 @@ void CImageRowBlitterCache::Init(void)
 {
 	PreInit();
 
-	mMapBlitters.Init();
-
 	PostInit();
 }
 
@@ -21,7 +19,6 @@ void CImageRowBlitterCache::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CImageRowBlitterCache::Class(void)
 {
-	M_Embedded(mMapBlitters);
 }
 
 
@@ -58,18 +55,9 @@ bool CImageRowBlitterCache::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageRowBlitterCacheValue> CImageRowBlitterCache::GetOrCreateImageRowBlitterCacheValue(Ptr<CImage> pSource)
+CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterContiguous(void)
 {
-	Ptr<CImageRowBlitterCacheValue>		pValue;
-
-	pValue = mMapBlitters.Get(pSource);
-	if (pValue.IsNull())
-	{
-		pValue = OMalloc<CImageRowBlitterCacheValue>(pSource);
-		mMapBlitters.Put(pSource, pValue);
-	}
-
-	return pValue;
+	return &mcImageRowBlitterContiguous;
 }
 
 
@@ -77,23 +65,9 @@ Ptr<CImageRowBlitterCacheValue> CImageRowBlitterCache::GetOrCreateImageRowBlitte
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CBaseImageRowBlitter> CImageRowBlitterCache::CreateImageRowBlitterContiguous(Ptr<CImage> pSource, Ptr<CImage> pDest)
+CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpaque(void)
 {
-	Ptr<CImageRowBlitterContiguous>		pcRowBlitter;
-	Ptr<CImageRowBlitterCacheValue>		pValue;
-
-	pValue = GetOrCreateImageRowBlitterCacheValue(pSource);
-
-	pcRowBlitter = pValue->Get(pDest, CLASS_NAME(CImageRowBlitterContiguous));
-	if (pcRowBlitter)
-	{
-		return pcRowBlitter;
-	}
-
-	pcRowBlitter = OMalloc<CImageRowBlitterContiguous>(pSource, pDest);
-	
-	pValue->Add(pDest, pcRowBlitter);
-	return pcRowBlitter;
+	return &mcImageRowBlitterByteAlignedOpaque;
 }
 
 
@@ -101,63 +75,8 @@ Ptr<CBaseImageRowBlitter> CImageRowBlitterCache::CreateImageRowBlitterContiguous
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CBaseImageRowBlitter> CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpaque(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper)
+CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterRGBByteAlphaByteTranslucent(void)
 {
-	Ptr<CImageRowBlitterByteAlignedOpaque>	pcRowBlitter;
-	Ptr<CImageRowBlitterCacheValue>			pValue;
-
-	pValue = GetOrCreateImageRowBlitterCacheValue(pSource);
-
-	pcRowBlitter = pValue->Get(pDest, CLASS_NAME(CImageRowBlitterByteAlignedOpaque));
-	if (pcRowBlitter)
-	{
-		return pcRowBlitter;
-	}
-
-	pcRowBlitter = OMalloc<CImageRowBlitterByteAlignedOpaque>(pSource, pDest, pcSourceFormatHelper, pcDestFormatHelper);
-	
-	pValue->Add(pDest, pcRowBlitter);
-	return pcRowBlitter;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CBaseImageRowBlitter> CImageRowBlitterCache::CreateImageRowBlitterRGBByteAlphaByteTranslucent(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper)
-{
-	Ptr<CImageRowBlitterRGBByteAlphaByteTranslucent>	pcRowBlitter;
-	Ptr<CImageRowBlitterCacheValue>						pValue;
-
-	pValue = GetOrCreateImageRowBlitterCacheValue(pSource);
-
-	pcRowBlitter = pValue->Get(pDest, CLASS_NAME(CImageRowBlitterRGBByteAlphaByteTranslucent));
-	if (pcRowBlitter)
-	{
-		return pcRowBlitter;
-	}
-
-	pcRowBlitter = OMalloc<CImageRowBlitterRGBByteAlphaByteTranslucent>(pSource, pDest, pcSourceFormatHelper, pcDestFormatHelper);
-	
-	pValue->Add(pDest, pcRowBlitter);
-	return pcRowBlitter;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CImageRowBlitterCache::FreeImageRowBlitter(Ptr<CBaseImageRowBlitter> pcRowBlitter)
-{
-	Ptr<CImageRowBlitterCacheValue>		pValue;
-	
-	pValue = mMapBlitters.Get(pcRowBlitter->GetSource());
-	if (pValue)
-	{
-		return pValue->Remove(pcRowBlitter);
-	}
-	return false;
+	return &mcImageRowBlitterRGBByteAlphaByteTranslucent;
 }
 

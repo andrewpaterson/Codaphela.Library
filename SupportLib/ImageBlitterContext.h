@@ -1,5 +1,5 @@
-#ifndef __IMAGE_ROW_BLITTER_CACHE_VALUE_H__
-#define __IMAGE_ROW_BLITTER_CACHE_VALUE_H__
+#ifndef __BASE_IMAGE_BLITTER_CONTEXT_H__
+#define __BASE_IMAGE_BLITTER_CONTEXT_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -24,37 +24,36 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Pointer.h"
-#include "StandardLib/MapObject.h"
-#include "StandardLib/ArrayObject.h"
-#include "Image.h"
-#include "BaseImageRowBlitter.h"
+#include "ImageCel.h"
+#include "Rectangle.h"
+#include "ImageCopyDimension.h"
+#include "ImageBlitterFormat.h"
 
 
-class CImageRowBlitterCacheValue : public CObject
+class CImageBlitterContext
 {
-CONSTRUCTABLE(CImageRowBlitterCacheValue);
-DESTRUCTABLE(CImageRowBlitterCacheValue);
-protected:
-	Ptr<CImage>		mpSourceImage;
-	CArrayObject	maDestBlitters;
+public:
+	size	miSourcePixelStride;
+	size	miDestPixelStride;
+	size	miSourceWidth;
+	size	miDestWidth;
+	size	miSourceRowStride;
+	size	miDestRowStride;
+
+	void*	mpvSource;
+	void*	mpvDest;
+
+	size	muiSourceColourOffset;
+	size	muiDestColourOffset;
+	size	muiSourceAlphaOffset;
+	size	muiColourWidth;
+
 
 public:
-	void						Init(Ptr<CImage> pSourceImage);
-	void						Class(void);
-	void						Free(void);
-
-	bool						Save(CObjectWriter* pcFile) override;
-	bool						Load(CObjectReader* pcFile) override;
-
-	Ptr<CBaseImageRowBlitter>	Get(Ptr<CImage> pDest, const char* szBlitterClass);
-	bool						Add(Ptr<CImage> pDest, Ptr<CBaseImageRowBlitter> pcRowBlitter);
-	bool						Remove(Ptr<CBaseImageRowBlitter> pcBlitter);
-
-protected:
-	Ptr<CBaseImageRowBlitter>	GetCacheDest(Ptr<CImage> pDest, const char* szBlitterClass);
-	Ptr<CBaseImageRowBlitter>	GetCacheDest(Ptr<CBaseImageRowBlitter> pcBlitter);
+	void	Init(Ptr<CImage> pSource, Ptr<CImage> pDest);
+	void	Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
 };
 
 
-#endif // __IMAGE_ROW_BLITTER_CACHE_VALUE_H__
+#endif // __BASE_IMAGE_BLITTER_CONTEXT_H__
 

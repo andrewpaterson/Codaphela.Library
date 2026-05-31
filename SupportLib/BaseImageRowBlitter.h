@@ -27,42 +27,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageCel.h"
 #include "Rectangle.h"
 #include "ImageCopyDimension.h"
+#include "ImageBlitterContext.h"
 
 
-class CBaseImageRowBlitter : public CObject
+class CBaseImageRowBlitter
 {
-CONSTRUCTABLE(CBaseImageRowBlitter);
-protected:
-	Ptr<CImage>			mpSource;
-	Ptr<CImage>			mpDest;
-
-	size				miSourcePixelStride;
-	size				miDestPixelStride;
-	size				miSourceWidth;
-	size				miDestWidth;
-	size				miSourceRowStride;
-	size				miDestRowStride;
-
-	size				muiUsageCount;
-
 public:
-			void			Init(Ptr<CImage> pSource, Ptr<CImage> pDest);
-			void			Free(void) override;
-
-			void			Class(void) override;
-			bool			Save(CObjectWriter* pcFile) override;
-			bool			Load(CObjectReader* pcFile) override;
-
-	virtual void			Copy(size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) =0;
-
-			Ptr<CImage>		GetSource(void);
-			Ptr<CImage>		GetDest(void);
-
-			bool			Is(Ptr<CImage> pDestImage, const char* szBlitterClass);
-
-			size			AddUsage(void);
-			size			RemoveUsage(void);
-
+	virtual void			Copy(CImageBlitterContext* pcContext, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) =0;
 };
 
 

@@ -25,25 +25,15 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Pointer.h"
 #include "ColourFormat.h"
-#include "ImageRowBlitterByteAlignedTranslucent.h"
+#include "BaseImageRowBlitter.h"
 
 
-class CImageRowBlitterRGBByteAlphaByteTranslucent : public CImageRowBlitterByteAlignedTranslucent
+class CImageRowBlitterRGBByteAlphaByteTranslucent : public CBaseImageRowBlitter
 {
-CONSTRUCTABLE(CImageRowBlitterRGBByteAlphaByteTranslucent);
-protected:
 public:
-	void	Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
-	void	Free(void) override;
-
-	void	Class(void) override;
-	bool	Save(CObjectWriter* pcFile) override;
-	bool	Load(CObjectReader* pcFile) override;
-
-	void	Copy(size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
+	void	Copy(CImageBlitterContext* pcContext, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
 };
 
 
 #endif // __IMAGE_ROW_BLITTER_RGB_BYTE_ALPHA_BYTE_TRANSLUCENT_H__
-
 

@@ -6,25 +6,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterChannelAccessor::Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper)
+void CImageRowBlitterChannelAccessor::Init(CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper)
 {
 	PreInit();
-
-	EPrimitiveType	eType;
-	size			uiTypeSize;
-
-	CBaseImageRowBlitter::Init(pSource, pDest);
-
-	muiSourceColourOffset = pcSourceFormatHelper->GetFirstColourIndex();
-	muiDestColourOffset = pcDestFormatHelper->GetFirstColourIndex();
-
-	eType = pcSourceFormatHelper->GetColourType(0);
-	uiTypeSize = gcTypeNames.GetByteSize(eType);
-
-	muiSourceColourOffset *= uiTypeSize;
-	muiDestColourOffset *= uiTypeSize;
-
-	muiColourWidth = 3 * uiTypeSize;
 
 	//CChannelsAccessor*			pcAccessor;
 	//CChannelsAccessorCreator	cCreator;
@@ -72,10 +56,6 @@ void CImageRowBlitterChannelAccessor::Free(void)
 void CImageRowBlitterChannelAccessor::Class(void)
 {
 	CBaseImageRowBlitter::Class();
-
-	U_Size(muiSourceColourOffset);
-	U_Size(muiDestColourOffset);
-	U_Size(muiColourWidth);
 }
 
 
@@ -103,24 +83,22 @@ bool CImageRowBlitterChannelAccessor::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterChannelAccessor::Copy(size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY)
+void CImageRowBlitterChannelAccessor::Copy(CImageBlitterContext* pcContext, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY)
 {
 	void*	pvSource;
 	void*	pvDest;
 	size	x;
 
-	pvSource = mpSource->GetData();
-	pvSource = RemapSinglePointer(pvSource, iSourceY * miSourceRowStride + iSourceXLeft * miSourcePixelStride);
+	pvSource = RemapSinglePointer(pcContext->mpvSource, iSourceY * pcContext->miSourceRowStride + iSourceXLeft * pcContext->miSourcePixelStride);
 
-	pvDest = mpDest->GetData();
-	pvDest = RemapSinglePointer(pvDest, iDestY * miDestRowStride + iDestX * miDestPixelStride);
+	pvDest = RemapSinglePointer(pcContext->mpvDest, iDestY * pcContext->miDestRowStride + iDestX * pcContext->miDestPixelStride);
 
 	for (x = iSourceXLeft; x <= iSourceXRight; x++)
 	{
 		ga_memcpy_fast[muiColourWidth](pvDest, pvSource);
 
-		pvSource = RemapSinglePointer(pvSource, miSourcePixelStride);
-		pvDest = RemapSinglePointer(pvSource, miDestPixelStride);
+		pvSource = RemapSinglePointer(pvSource, pcContext->miSourcePixelStride);
+		pvDest = RemapSinglePointer(pvSource, pcContext->miDestPixelStride);
 	}
 }
 

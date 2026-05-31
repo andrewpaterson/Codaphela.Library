@@ -6,61 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterRGBByteAlphaByteTranslucent::Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper)
-{
-	PreInit();
-
-	CImageRowBlitterByteAlignedTranslucent::Init(pSource, pDest, pcSourceFormatHelper, pcDestFormatHelper);
-
-	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterRGBByteAlphaByteTranslucent::Free(void)
-{
-	CImageRowBlitterByteAlignedTranslucent::Free();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterRGBByteAlphaByteTranslucent::Class(void)
-{
-	CImageRowBlitterByteAlignedTranslucent::Class();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CImageRowBlitterRGBByteAlphaByteTranslucent::Save(CObjectWriter* pcFile)
-{
-	return CImageRowBlitterByteAlignedTranslucent::Save(pcFile);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CImageRowBlitterRGBByteAlphaByteTranslucent::Load(CObjectReader* pcFile)
-{
-	return CImageRowBlitterByteAlignedTranslucent::Load(pcFile);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterRGBByteAlphaByteTranslucent::Copy(size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY)
+void CImageRowBlitterRGBByteAlphaByteTranslucent::Copy(CImageBlitterContext* pcContext, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY)
 {
 	void*	pvSource;
 	void*	pvDest;
@@ -76,15 +22,12 @@ void CImageRowBlitterRGBByteAlphaByteTranslucent::Copy(size iDestX, size iDestY,
 	size	uiColourIndex;
 	size	x;
 
-	pvSource = mpSource->GetData();
-	pvSource = RemapSinglePointer(pvSource, iSourceY * miSourceRowStride + iSourceXLeft * miSourcePixelStride);
-
-	pvDest = mpDest->GetData();
-	pvDest = RemapSinglePointer(pvDest, iDestY * miDestRowStride + iDestX * miDestPixelStride);
+	pvSource = RemapSinglePointer(pcContext->mpvSource, iSourceY * pcContext->miSourceRowStride + iSourceXLeft * pcContext->miSourcePixelStride);
+	pvDest = RemapSinglePointer(pcContext->mpvDest, iDestY * pcContext->miDestRowStride + iDestX * pcContext->miDestPixelStride);
 
 	for (x = iSourceXLeft; x < iSourceXRight; x++)
 	{
-		puiAlpha = (uint8*)RemapSinglePointer(pvSource, muiSourceAlphaOffset);
+		puiAlpha = (uint8*)RemapSinglePointer(pvSource, pcContext->muiSourceAlphaOffset);
 		uiAlpha = (uint16)*puiAlpha;
 		if (uiAlpha > 128)
 		{
@@ -92,8 +35,8 @@ void CImageRowBlitterRGBByteAlphaByteTranslucent::Copy(size iDestX, size iDestY,
 		}
 		uiInverseAlpha = 256 - uiAlpha;
 
-		uiSourceColourOffset = muiSourceColourOffset;
-		uiDestColourOffset = muiDestColourOffset;
+		uiSourceColourOffset = pcContext->muiSourceColourOffset;
+		uiDestColourOffset = pcContext->muiDestColourOffset;
 		for (uiColourIndex = 0; uiColourIndex < 3; uiColourIndex++)
 		{
 			puiSourceColour = (uint8*)RemapSinglePointer(pvSource, uiSourceColourOffset);
@@ -110,8 +53,8 @@ void CImageRowBlitterRGBByteAlphaByteTranslucent::Copy(size iDestX, size iDestY,
 			uiDestColourOffset++;
 		}
 
-		pvSource = RemapSinglePointer(pvSource, miSourcePixelStride);
-		pvDest = RemapSinglePointer(pvDest, miDestPixelStride);
+		pvSource = RemapSinglePointer(pvSource, pcContext->miSourcePixelStride);
+		pvDest = RemapSinglePointer(pvDest, pcContext->miDestPixelStride);
 	}
 }
 

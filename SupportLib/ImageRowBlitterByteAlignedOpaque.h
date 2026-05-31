@@ -30,22 +30,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageRowBlitterByteAlignedOpaque : public CBaseImageRowBlitter
 {
-CONSTRUCTABLE(CImageRowBlitterByteAlignedOpaque);
-DESTRUCTABLE(CImageRowBlitterByteAlignedOpaque);
-protected:
 public:
-	size	muiSourceColourOffset;
-	size	muiDestColourOffset;
-	size	muiColourWidth;
-
-	void	Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
-	void	Free(void) override;
-
-	void	Class(void) override;
-	bool	Save(CObjectWriter* pcFile) override;
-	bool	Load(CObjectReader* pcFile) override;
-
-	void	Copy(size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
+	void	Copy(CImageBlitterContext* pcContext, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
 };
 
 
