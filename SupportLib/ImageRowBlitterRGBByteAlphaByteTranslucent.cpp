@@ -10,7 +10,7 @@ void CImageRowBlitterRGBByteAlphaByteTranslucent::Init(Ptr<CImage> pSource, Ptr<
 {
 	PreInit();
 
-	CBaseImageRowBlitter::Init(pSource, pDest);
+	CImageRowBlitterByteAlignedTranslucent::Init(pSource, pDest, pcSourceFormatHelper, pcDestFormatHelper);
 
 	PostInit();
 }
@@ -73,7 +73,8 @@ void CImageRowBlitterRGBByteAlphaByteTranslucent::Copy(size iDestX, size iDestY,
 	uint16	uiInverseAlpha;
 	uint16	uiSourceColour;
 	uint16	uiDestColour;
-	size	ui;
+	size	uiColourIndex;
+	size	x;
 
 	pvSource = mpSource->GetData();
 	pvSource = RemapSinglePointer(pvSource, iSourceY * miSourceRowStride + iSourceXLeft * miSourcePixelStride);
@@ -81,32 +82,36 @@ void CImageRowBlitterRGBByteAlphaByteTranslucent::Copy(size iDestX, size iDestY,
 	pvDest = mpDest->GetData();
 	pvDest = RemapSinglePointer(pvDest, iDestY * miDestRowStride + iDestX * miDestPixelStride);
 
-	uiSourceColourOffset = muiSourceColourOffset;
-	uiDestColourOffset = muiDestColourOffset;
-
-	puiAlpha = (uint8*)RemapSinglePointer(pvSource, muiSourceAlphaOffset);
-
-	uiAlpha = (uint16)*puiAlpha;
-	if (uiAlpha > 128)
+	for (x = iSourceXLeft; x < iSourceXRight; x++)
 	{
-		uiAlpha++;
-	}
-	uiInverseAlpha = 256 - uiAlpha;
-	
-	for (ui = 0; ui < 3; ui++)
-	{
-		puiSourceColour = (uint8*)RemapSinglePointer(pvSource, uiSourceColourOffset);
-		puiDestColour = (uint8*)RemapSinglePointer(pvSource, uiDestColourOffset);
+		puiAlpha = (uint8*)RemapSinglePointer(pvSource, muiSourceAlphaOffset);
+		uiAlpha = (uint16)*puiAlpha;
+		if (uiAlpha > 128)
+		{
+			uiAlpha++;
+		}
+		uiInverseAlpha = 256 - uiAlpha;
 
-		uiSourceColour = (uint16)*puiSourceColour;
-		uiDestColour = (uint16)*puiDestColour;
+		uiSourceColourOffset = muiSourceColourOffset;
+		uiDestColourOffset = muiDestColourOffset;
+		for (uiColourIndex = 0; uiColourIndex < 3; uiColourIndex++)
+		{
+			puiSourceColour = (uint8*)RemapSinglePointer(pvSource, uiSourceColourOffset);
+			puiDestColour = (uint8*)RemapSinglePointer(pvDest, uiDestColourOffset);
 
-		uiDestColour = (uiSourceColour * uiAlpha) + (uiDestColour * uiInverseAlpha);
-		uiDestColour >>= 8;
-		*puiDestColour = (uint8)uiDestColour;
+			uiSourceColour = (uint16)*puiSourceColour;
+			uiDestColour = (uint16)*puiDestColour;
 
-		uiSourceColourOffset++;
-		uiDestColourOffset++;
+			uiDestColour = (uiSourceColour * uiAlpha) + (uiDestColour * uiInverseAlpha);
+			uiDestColour >>= 8;
+			*puiDestColour = (uint8)uiDestColour;
+
+			uiSourceColourOffset++;
+			uiDestColourOffset++;
+		}
+
+		pvSource = RemapSinglePointer(pvSource, miSourcePixelStride);
+		pvDest = RemapSinglePointer(pvDest, miDestPixelStride);
 	}
 }
 

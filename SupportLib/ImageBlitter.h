@@ -43,8 +43,6 @@ protected:
 
 public:
 	bool			Init(Ptr<CImageCel> pSource, Ptr<CImage> pcDest, Ptr<CImageRowBlitterCache> pBlitterCache);
-	bool			InitColourInfo(Ptr<CImage> pSource, Ptr<CImage> pDest, CImageBlitterFormat* pcFormat);
-	bool			InitOpacityInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest, CImageBlitterFormat* pcFormat);
 	void			Free(void);
 
 	void			Class(void);
@@ -60,6 +58,13 @@ public:
 	void			Copy(SImageCopy* psCopy);
 
 protected:
+	bool			InitColourInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest, CImageBlitterFormat* pcFormat);
+	bool			InitOpacityInfo(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest, CImageBlitterFormat* pcFormat);
+	bool			InitRowBlitters(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDest, CImageBlitterFormat* pcFormat);
+	bool			CreateImageRowBlitterContiguous(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage);
+	bool			CreateImageRowBlitterByteAlignedOpaque(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CImageBlitterFormat* pcFormat);
+	bool			CreateImageRowBlitterRGBByteAlphaByteTranslucent(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CImageBlitterFormat* pcFormat);
+
 	void			AddBlitter(Ptr<CBaseImageRowBlitter> pcBlitter, size xStart, size xEnd, size yOffset);
 };
 
