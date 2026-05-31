@@ -377,7 +377,6 @@
     <ClCompile Include="FakeTracker.cpp" />
     <ClCompile Include="GlyphListFontDraw.cpp" />
     <ClCompile Include="ImageBlitter.cpp" />
-    <ClCompile Include="BaseImageRowBlitter.cpp" />
     <ClCompile Include="ImageBlitterContext.cpp" />
     <ClCompile Include="ImageBlitterFormat.cpp" />
     <ClCompile Include="ImageRowBlitterCache.cpp" />

@@ -6,14 +6,12 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterByteAlignedOpaque::Copy(CImageBlitterContext* pcContext, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY)
+void CImageRowBlitterByteAlignedOpaque::Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY)
 {
-	void*	pvSource;
-	void*	pvDest;
 	size	x;
 
-	pvSource = RemapSinglePointer(pcContext->mpvSource, iSourceY * pcContext->miSourceRowStride + iSourceXLeft * pcContext->miSourcePixelStride + pcContext->muiSourceColourOffset);
-	pvDest = RemapSinglePointer(pcContext->mpvDest, iDestY * pcContext->miDestRowStride + iDestX * pcContext->miDestPixelStride + pcContext->muiDestColourOffset);
+	pvSource = RemapSinglePointer(pvSource, iSourceY * pcContext->miSourceRowStride + iSourceXLeft * pcContext->miSourcePixelStride + pcContext->muiSourceColourOffset);
+	pvDest = RemapSinglePointer(pvDest, iDestY * pcContext->miDestRowStride + iDestX * pcContext->miDestPixelStride + pcContext->muiDestColourOffset);
 
 	for (x = iSourceXLeft; x < iSourceXRight; x++)
 	{

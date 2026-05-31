@@ -60,6 +60,8 @@ bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CIma
 
 	bResult = InitRowBlitters(&mcFormat, pcBlitterCache);
 
+	InitContext(&mcContext);
+
 	PostInit();
 
 	return true;
@@ -421,6 +423,8 @@ void CImageBlitter::Class(void)
 	U_Data(CArrayImageRowBlitter, macRowBlitters);
 	M_Pointer(mpSourceCel);
 	M_Pointer(mpDestImage);
+	U_Data(CImageBlitterFormat, mcFormat);
+	U_Data(CImageBlitterContext, mcContext);
 }
 
 
@@ -757,7 +761,7 @@ void CImageBlitter::AddBlitter(CBaseImageRowBlitter* pcBlitter, size xStart, siz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageBlitter::UpdateContext(CImageBlitterContext* pcContext)
+void CImageBlitter::InitContext(CImageBlitterContext* pcContext)
 {
 	CColourFormatHelper		cSourceFormatHelper;
 	CColourFormatHelper		cDestFormatHelper;
@@ -773,7 +777,7 @@ void CImageBlitter::UpdateContext(CImageBlitterContext* pcContext)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageBlitter::Copy(CImageBlitterContext* pcContext, int32 iDestX, int32 iDestY)
+void CImageBlitter::Copy(int32 iDestX, int32 iDestY)
 {
 	size				uiNumElements;
 	size				ui;
@@ -783,7 +787,15 @@ void CImageBlitter::Copy(CImageBlitterContext* pcContext, int32 iDestX, int32 iD
 	size				y;
 	CRectangle			cDestRect;
 	CRectangle			cSourceRect;
-	
+	int32				yDest;
+	int32				xDestStart;
+	int32				xDestEnd;
+	void*				pvSource;
+	void*				pvDest;
+
+	pvSource = mpSourceCel->GetSourceImage()->GetData();
+	pvDest = mpDestImage->GetData();
+
 	cDestRect.Init(0, 0, mpDestImage->GetWidth(), mpDestImage->GetHeight());
 	mpSourceCel->GetImageDestBounds(iDestX, iDestY, &cSourceRect);
 
@@ -804,17 +816,13 @@ void CImageBlitter::Copy(CImageBlitterContext* pcContext, int32 iDestX, int32 iD
 			xStart = pcRowBlitter->sOffset.x;
 			xEnd = pcRowBlitter->uiXEnd;
 
-			pcRowBlitter->mpcBlitter->Copy(pcContext, iDestX + xStart, iDestY + y, xStart, xEnd, y);
+			pcRowBlitter->mpcBlitter->Copy(&mcContext, pvSource, pvDest, iDestX + xStart, iDestY + y, xStart, xEnd, y);
 		}
 
 		return;
 	}
 	else
 	{
-		int32	yDest;
-		int32	xDestStart;
-		int32	xDestEnd;
-
 		for (ui = 0; ui < uiNumElements; ui++)
 		{
 			pcRowBlitter = macRowBlitters.Get(ui);
@@ -838,7 +846,7 @@ void CImageBlitter::Copy(CImageBlitterContext* pcContext, int32 iDestX, int32 iD
 					xEnd += cDestRect.miRight - xDestEnd;
 				}
 
-				pcRowBlitter->mpcBlitter->Copy(pcContext, xDestStart, (size)yDest, xStart, xEnd, y);
+				pcRowBlitter->mpcBlitter->Copy(&mcContext, pvSource, pvDest, xDestStart, (size)yDest, xStart, xEnd, y);
 			}
 		}
 	}

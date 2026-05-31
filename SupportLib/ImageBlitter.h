@@ -45,6 +45,7 @@ protected:
 	Ptr<CImage>					mpDestImage;
 
 	CImageBlitterFormat			mcFormat;
+	CImageBlitterContext		mcContext;
 
 public:
 	bool			Init(Ptr<CImageCel> pSource, Ptr<CImage> pcDest, CImageRowBlitterCache* pcBlitterCache);
@@ -54,9 +55,7 @@ public:
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;
 
-	void			UpdateContext(CImageBlitterContext* pcContext);
-
-	void			Copy(CImageBlitterContext* pcContext, int32 iDestX, int32 iDestY);
+	void			Copy(int32 iDestX, int32 iDestY);
 
 protected:
 	EColourOrder	GetColourOrder(Ptr<CImage> pImage);
@@ -67,6 +66,7 @@ protected:
 	bool			InitColourInfo(CImageBlitterFormat* pcFormat);
 	bool			InitOpacityInfo(CImageBlitterFormat* pcFormat);
 	bool			InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
+	void			InitContext(CImageBlitterContext* pcContext);
 	bool			CreateImageRowBlitterContiguous(CImageRowBlitterCache* pcBlitterCache);
 	bool			CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
 	bool			CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
