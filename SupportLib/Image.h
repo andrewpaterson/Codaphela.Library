@@ -39,8 +39,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 struct SImageChangingDesc
 {
-	int		iWidth;
-	int		iHeight;
+	int	iWidth;
+	int	iHeight;
 };
 
 

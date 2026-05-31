@@ -773,7 +773,7 @@ void CImageBlitter::UpdateContext(CImageBlitterContext* pcContext)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageBlitter::Copy(CImageBlitterContext* pcContext, size iDestX, size iDestY)
+void CImageBlitter::Copy(CImageBlitterContext* pcContext, int32 iDestX, int32 iDestY)
 {
 	size				uiNumElements;
 	size				ui;
@@ -781,15 +781,66 @@ void CImageBlitter::Copy(CImageBlitterContext* pcContext, size iDestX, size iDes
 	size				xStart;
 	size				xEnd;
 	size				y;
+	CRectangle			cDestRect;
+	CRectangle			cSourceRect;
+	
+	cDestRect.Init(0, 0, mpDestImage->GetWidth(), mpDestImage->GetHeight());
+	mpSourceCel->GetImageDestBounds(iDestX, iDestY, &cSourceRect);
+
+	if (cSourceRect.Outside(&cDestRect))
+	{
+		return;
+	}
 
 	uiNumElements = macRowBlitters.NumElements();
-	for (ui = 0; ui < uiNumElements; ui++)
+	if (cSourceRect.Inside(&cDestRect))
 	{
-		pcRowBlitter = macRowBlitters.Get(ui);
-		xStart = pcRowBlitter->sOffset.x;
-		xEnd = pcRowBlitter->uiXEnd;
-		y = pcRowBlitter->sOffset.y;
-		pcRowBlitter->mpcBlitter->Copy(pcContext, iDestX + xStart, iDestY + y, xStart, xEnd, y);
+		for (ui = 0; ui < uiNumElements; ui++)
+		{
+			pcRowBlitter = macRowBlitters.Get(ui);
+
+			y = pcRowBlitter->sOffset.y;
+
+			xStart = pcRowBlitter->sOffset.x;
+			xEnd = pcRowBlitter->uiXEnd;
+
+			pcRowBlitter->mpcBlitter->Copy(pcContext, iDestX + xStart, iDestY + y, xStart, xEnd, y);
+		}
+
+		return;
+	}
+	else
+	{
+		int32	yDest;
+		int32	xDestStart;
+		int32	xDestEnd;
+
+		for (ui = 0; ui < uiNumElements; ui++)
+		{
+			pcRowBlitter = macRowBlitters.Get(ui);
+
+			y = pcRowBlitter->sOffset.y;
+			yDest = iDestY + y;
+			if ((yDest >= cDestRect.miTop) && (yDest < cDestRect.miBottom))
+			{
+				xStart = pcRowBlitter->sOffset.x;
+				xEnd = pcRowBlitter->uiXEnd;
+
+				xDestStart = iDestX + xStart;
+				xDestEnd = iDestX + xEnd;
+				if (xDestStart < cDestRect.miLeft)
+				{
+					xStart += cDestRect.miLeft - xDestStart;
+					xDestStart = cDestRect.miLeft;
+				}
+				if (xDestEnd > cDestRect.miRight)
+				{
+					xEnd += cDestRect.miRight - xDestEnd;
+				}
+
+				pcRowBlitter->mpcBlitter->Copy(pcContext, xDestStart, (size)yDest, xStart, xEnd, y);
+			}
+		}
 	}
 }
 

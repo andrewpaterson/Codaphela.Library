@@ -365,9 +365,10 @@ bool CRectangle::Equals(CRectangle* pcOther)
 //////////////////////////////////////////////////////////////////////////
 bool CRectangle::Intersect(CRectangle* pcOther)
 {
-	return !(miRight  <= pcOther->miLeft ||
+	// Check if this intersects Other.
+	return !(miRight  <= pcOther->miLeft  ||
 			 miLeft   >= pcOther->miRight ||
-			 miBottom <= pcOther->miTop ||
+			 miBottom <= pcOther->miTop   ||
 			 miTop    >= pcOther->miBottom);
 }
 
@@ -376,7 +377,35 @@ bool CRectangle::Intersect(CRectangle* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec2	CRectangle::GetUVCoordinatesTopLeft(int32 iTextureXSize, int32 iTextureYSize)
+bool CRectangle::Inside(CRectangle* pcOther)
+{
+	// Check if this is completely inside Other.
+	return	(miLeft	  >= pcOther->miLeft  &&
+			 miRight  <= pcOther->miRight &&
+			 miTop	  >= pcOther->miTop   &&
+			 miBottom <= pcOther->miBottom);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CRectangle::Outside(CRectangle* pcOther)
+{
+	// Check if this is completely outside Other.
+	return (miRight  <= pcOther->miLeft  ||
+			miLeft	 >= pcOther->miRight ||
+			miBottom <= pcOther->miTop   ||
+			miTop	 >= pcOther->miBottom);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SFloat32Vec2 CRectangle::GetUVCoordinatesTopLeft(int32 iTextureXSize, int32 iTextureYSize)
 {
 	SFloat32Vec2	sTopLeft;
 
@@ -390,7 +419,7 @@ SFloat32Vec2	CRectangle::GetUVCoordinatesTopLeft(int32 iTextureXSize, int32 iTex
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat32Vec2	CRectangle::GetUVCoordinatesBottomRight(int32 iTextureXSize, int32 iTextureYSize)
+SFloat32Vec2 CRectangle::GetUVCoordinatesBottomRight(int32 iTextureXSize, int32 iTextureYSize)
 {
 	SFloat32Vec2 sBottomRight;
 

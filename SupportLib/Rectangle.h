@@ -70,6 +70,8 @@ public:
 	bool			IsIn(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
 	bool			Equals(CRectangle* pcOther);
 	bool			Intersect(CRectangle* pcOther);
+	bool			Inside(CRectangle* pcOther);
+	bool			Outside(CRectangle* pcOther);
 
 	SFloat32Vec2	GetUVCoordinatesTopLeft(int32 iTextureXSize, int32 iTextureYSize);
 	SFloat32Vec2	GetUVCoordinatesBottomRight(int32 iTextureXSize, int32 iTextureYSize);

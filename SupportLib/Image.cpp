@@ -522,7 +522,7 @@ int CImage::GetWidth(void)
 {
 	if (IsChanging())
 	{
-		return mpsImageChangingDesc->iWidth;	
+		return mpsImageChangingDesc->iWidth;
 	}
 	return miWidth;
 }
