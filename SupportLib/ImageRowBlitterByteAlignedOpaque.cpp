@@ -85,17 +85,17 @@ void CImageRowBlitterByteAlignedOpaque::Copy(size iDestX, size iDestY, size iSou
 	size	x;
 
 	pvSource = mpSource->GetData();
-	pvSource = RemapSinglePointer(pvSource, iSourceY * miSourceRowStride + iSourceXLeft * miSourcePixelStride);
+	pvSource = RemapSinglePointer(pvSource, iSourceY * miSourceRowStride + iSourceXLeft * miSourcePixelStride + muiSourceColourOffset);
 
 	pvDest = mpDest->GetData();
-	pvDest = RemapSinglePointer(pvDest, iDestY * miDestRowStride + iDestX * miDestPixelStride);
+	pvDest = RemapSinglePointer(pvDest, iDestY * miDestRowStride + iDestX * miDestPixelStride + muiDestColourOffset);
 
 	for (x = iSourceXLeft; x <= iSourceXRight; x++)
 	{
 		ga_memcpy_fast[muiColourWidth](pvDest, pvSource);
 
 		pvSource = RemapSinglePointer(pvSource, miSourcePixelStride);
-		pvDest = RemapSinglePointer(pvSource, miDestPixelStride);
+		pvDest = RemapSinglePointer(pvDest, miDestPixelStride);
 	}
 }
 
