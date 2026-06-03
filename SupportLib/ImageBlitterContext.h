@@ -42,6 +42,7 @@ public:
 
 	size		muiSourceColourOffset;
 	size		muiDestColourOffset;
+	size		muiDestAlphaOffset;
 	size		muiSourceAlphaOffset;
 	size		muiColourWidth;
 

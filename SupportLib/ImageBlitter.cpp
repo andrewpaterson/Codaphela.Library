@@ -38,6 +38,9 @@ bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CIma
 	bool					bResult;
 	Ptr<CImage>				pSourceImage;
 
+	ValidatePtr(pSourceCel);
+	ValidatePtr(pDestImage);
+
 	mpSourceCel = pSourceCel;
 	mpDestImage = pDestImage;
 
@@ -279,16 +282,18 @@ bool CImageBlitter::CreateImageRowBlitterContiguous(CImageRowBlitterCache* pcBli
 	CRectangle				cRect;
 	size					y;
 	size					uiBottom;
-	size					uiRight;
+	size					xEnd;
+	size					xStart;
 	CBaseImageRowBlitter*	pcRowBlitter;
 
 	mpSourceCel->GetImageSourceBounds(&cRect);
 	uiBottom = cRect.GetBottom();
-	uiRight = cRect.GetRight();
+	xEnd = cRect.GetRight();
+	xStart = cRect.GetLeft();
 	for (y = cRect.GetTop(); y < uiBottom; y++)
 	{
 		pcRowBlitter = pcBlitterCache->CreateImageRowBlitterContiguous();
-		AddBlitter(pcRowBlitter, 0, uiRight, y);
+		AddBlitter(pcRowBlitter, xStart, xEnd, y);
 	}
 	return true;
 }
@@ -303,16 +308,18 @@ bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* 
 	CRectangle				cRect;
 	size					y;
 	size					uiBottom;
-	size					uiRight;
+	size					xEnd;
+	size					xStart;
 	CBaseImageRowBlitter*	pcRowBlitter;
 
 	mpSourceCel->GetImageSourceBounds(&cRect);
 	uiBottom = cRect.GetBottom();
-	uiRight = cRect.GetRight();
+	xEnd = cRect.GetRight();
+	xStart = cRect.GetLeft();
 	for (y = cRect.GetTop(); y < uiBottom; y++)
 	{
 		pcRowBlitter = pcBlitterCache->CreateImageRowBlitterByteAlignedOpaque();
-		AddBlitter(pcRowBlitter, 0, uiRight, y);
+		AddBlitter(pcRowBlitter, xStart, xEnd, y);
 	}
 	return true;
 }
@@ -327,14 +334,14 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitt
 	CRectangle				cRect;
 	size					x, y;
 	size					uiBottom;
-	size					uiRight;
+	size					xEnd;
+	size					xStart;
 	CBaseImageRowBlitter*	pcRowBlitter;
 	Ptr<CImage>				pSourceImage;
 	CColourFormatHelper		cSourceFormatHelper;
 	CColourFormatHelper		cDestFormatHelper;
 	size					uiAlpha;
 	CImageAccessor*			pcAccessorOpacity;
-	size					xStart;
 	size					uiLastType;
 	size					uiThisType;
 
@@ -345,12 +352,13 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitt
 	cDestFormatHelper.Init(mcFormat.meDestColourFormat, mcFormat.meColourOrder, mcFormat.meColourBits, mcFormat.meDestAlphaBits);
 	mpSourceCel->GetImageSourceBounds(&cRect);
 	uiBottom = cRect.GetBottom();
-	uiRight = cRect.GetRight();
+	xEnd = cRect.GetRight();
+	xStart = cRect.GetLeft();
 	uiLastType = 0;
 	for (y = cRect.GetTop(); y < uiBottom; y++)
 	{
 		xStart = cRect.GetLeft();
-		for (x = xStart; x < uiRight; x++)
+		for (x = xStart; x < xEnd; x++)
 		{
 			uiAlpha = *((uint8*)pcAccessorOpacity->Get(x, y));
 			if (uiAlpha == 0)
@@ -777,7 +785,7 @@ void CImageBlitter::InitContext(CImageBlitterContext* pcContext)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageBlitter::Copy(int32 iDestX, int32 iDestY)
+void CImageBlitter::Blit(int32 iDestX, int32 iDestY)
 {
 	size				uiNumElements;
 	size				ui;
@@ -792,10 +800,14 @@ void CImageBlitter::Copy(int32 iDestX, int32 iDestY)
 	int32				xDestEnd;
 	void*				pvSource;
 	void*				pvDest;
+	size				uiSourceLeft;
+	size				uiSourceTop;
 
 	pvSource = mpSourceCel->GetSourceImage()->GetData();
 	pvDest = mpDestImage->GetData();
 
+	uiSourceLeft = (size)mpSourceCel->GetSourceLeft();
+	uiSourceTop = (size)mpSourceCel->GetSourceTop();
 	cDestRect.Init(0, 0, mpDestImage->GetWidth(), mpDestImage->GetHeight());
 	mpSourceCel->GetImageDestBounds(iDestX, iDestY, &cSourceRect);
 
@@ -816,7 +828,7 @@ void CImageBlitter::Copy(int32 iDestX, int32 iDestY)
 			xStart = pcRowBlitter->sOffset.x;
 			xEnd = pcRowBlitter->uiXEnd;
 
-			pcRowBlitter->mpcBlitter->Copy(&mcContext, pvSource, pvDest, iDestX + xStart, iDestY + y, xStart, xEnd, y);
+			pcRowBlitter->mpcBlitter->Copy(&mcContext, pvSource, pvDest, iDestX + (xStart - uiSourceLeft), iDestY + (y - uiSourceTop), xStart, xEnd, y);
 		}
 
 		return;

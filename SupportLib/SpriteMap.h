@@ -60,6 +60,7 @@ public:
 	
 	bool					GetImageDestBounds(int32 x, int32 y, CRectangle* pcRect);
 	bool					GetFullDestBounds(int32 x, int32 y, CRectangle* pcRect);
+
 	Ptr<CImage>				WriteToImage(void);
 
 	void					TileMapAbstract(void) override {}

@@ -1,3 +1,5 @@
+#ifndef __IMAGE_CEL_BLITTER_CACHE_H__
+#define __IMAGE_CEL_BLITTER_CACHE_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -21,36 +23,34 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __BLOCK_MAP_H__
-#define __BLOCK_MAP_H__
-#include "StandardLib/Object.h"
-#include "StandardLib/Array.h"
+#include "StandardLib/Pointer.h"
+#include "StandardLib/MapObject.h"
+#include "ImageCel.h"
+#include "ImageBlitter.h"
+#include "ImageRowBlitterCache.h"
 
 
-class CBlockMap : public CObject
+class CImageCelBlitterCache : public CObject
 {
-CONSTRUCTABLE(CBlockMap);
-DESTRUCTABLE(CBlockMap);
+CONSTRUCTABLE(CImageCelBlitterCache);
+DESTRUCTABLE(CImageCelBlitterCache);
 protected:
-	bool	mbActive;
+	CMapObject				mmCelToBlitterMap;
+	Ptr<CImage>				mpDestImage;
+	CImageRowBlitterCache	mcRowBlitterCache;
 
 public:
-			void	Init(void);
-			void 	Free(void);
-			void	Class(void);
+	void				Init(Ptr<CImage> pDestImage);
+	void				Class(void);
+	void				Free(void);
 
-			bool	Save(CObjectWriter* pcFile);
-			bool	Load(CObjectReader* pcFile);
+	bool				Save(CObjectWriter* pcFile) override;
+	bool				Load(CObjectReader* pcFile) override;
 
-	virtual	void	Activate(void);
-	virtual	void	Deactivate(void);
-
-	virtual	void	TileMapAbstract(void) =0;
+	Ptr<CImageBlitter>	CreateImageBlitter(Ptr<CImageCel> pCel);
 };
 
 
-typedef CArray<CBlockMap>	CArrayTileMap;
+#endif // __IMAGE_CEL_BLITTER_CACHE_H__
 
-
-#endif // __BLOCK_MAP_H__
 

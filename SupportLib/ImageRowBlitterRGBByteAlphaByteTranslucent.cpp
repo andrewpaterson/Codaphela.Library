@@ -54,5 +54,26 @@ void CImageRowBlitterRGBByteAlphaByteTranslucent::Copy(CImageBlitterContext* pcC
 		pvSource = RemapSinglePointer(pvSource, pcContext->miSourcePixelStride);
 		pvDest = RemapSinglePointer(pvDest, pcContext->miDestPixelStride);
 	}
+
+	if (pcContext->muiDestAlphaOffset != SIZE_MAX)
+	{
+		pvSource = RemapSinglePointer(pvSource, iSourceY * pcContext->miSourceRowStride + iSourceXLeft * pcContext->miSourcePixelStride);
+		pvDest = RemapSinglePointer(pvDest, iDestY * pcContext->miDestRowStride + iDestX * pcContext->miDestPixelStride);
+
+		for (x = iSourceXLeft; x < iSourceXRight; x++)
+		{
+			puiAlpha = (uint8*)RemapSinglePointer(pvSource, pcContext->muiSourceAlphaOffset);
+			uiAlpha = (uint16)*puiAlpha;
+
+			if (uiAlpha > 0)
+			{
+				puiDestColour = (uint8*)RemapSinglePointer(pvDest, pcContext->muiDestAlphaOffset);
+				*puiDestColour = 255;
+			}
+		}
+
+		pvSource = RemapSinglePointer(pvSource, pcContext->miSourcePixelStride);
+		pvDest = RemapSinglePointer(pvDest, pcContext->miDestPixelStride);
+	}
 }
 

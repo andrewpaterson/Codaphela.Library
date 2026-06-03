@@ -24,9 +24,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Pointer.h"
-#include "StandardLib/MapObject.h"
-#include "StandardLib/ArrayObject.h"
-#include "ColourFormat.h"
 #include "ImageCel.h"
 #include "Rectangle.h"
 #include "ImageCopyDimension.h"
@@ -35,10 +32,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageRowBlitterRGBByteAlphaByteTranslucent.h"
 
 
-class CImageRowBlitterCache : public CObject
+class CImageRowBlitterCache
 {
-CONSTRUCTABLE(CImageRowBlitterCache);
-DESTRUCTABLE(CImageRowBlitterCache);
 protected:
 	CImageRowBlitterContiguous						mcImageRowBlitterContiguous;
 	CImageRowBlitterByteAlignedOpaque				mcImageRowBlitterByteAlignedOpaque;
@@ -46,11 +41,7 @@ protected:
 
 public:
 	void					Init(void);
-	void					Class(void);
-	void					Free(void);
-
-	bool					Save(CObjectWriter* pcFile) override;
-	bool					Load(CObjectReader* pcFile) override;
+	void					Kill(void);
 
 	CBaseImageRowBlitter*	CreateImageRowBlitterContiguous(void);
 	CBaseImageRowBlitter*	CreateImageRowBlitterByteAlignedOpaque(void);
