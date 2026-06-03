@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Objects.h"
 #include "MultiImageCopier.h"
+#include "ImageCelBlitterCache.h"
 #include "SpriteMap.h"
 
 
@@ -231,11 +232,12 @@ bool CSpriteMap::GetFullDestBounds(int32 x, int32 y, CRectangle* pcRect)
 				pcSubImage = pCel->GetSubImage();
 				if (bFirst)
 				{
-					pcSubImage->GetFullDestBounds(x, y, &cBounding);
+					pcSubImage->GetFullDestBounds(pSprite->GetX() + x, pSprite->GetY() + y, &cBounding);
+					bFirst = false;
 				}
 				else
 				{
-					pcSubImage->GetFullDestBounds(x, y, &cCelRect);
+					pcSubImage->GetFullDestBounds(pSprite->GetX() + x, pSprite->GetY() + y, &cCelRect);
 					cBounding.GrowToContain(&cCelRect);
 				}
 			}
@@ -254,21 +256,22 @@ bool CSpriteMap::GetFullDestBounds(int32 x, int32 y, CRectangle* pcRect)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CSpriteMap::WriteToImage(void)
 {
-	size				ui;
-	size				uiNumElements;
-	Ptr<CSprite>		pSprite;
-	Ptr<CImageCel>		pCel;
-	Ptr<CImage>			pDestImage;
-	CMultiImageCopier	cCopier;
-	CRectangle			cBoundingRect;
-	bool				bExists;
-	size				uiWidth;
-	size				uiHeight;
-	int32				x;
-	int32				y;
-	bool				bResult;
+	size						ui;
+	size						uiNumElements;
+	Ptr<CSprite>				pSprite;
+	Ptr<CImageCel>				pCel;
+	Ptr<CImage>					pDestImage;
+	CRectangle					cBoundingRect;
+	bool						bExists;
+	size						uiWidth;
+	size						uiHeight;
+	int32						x;
+	int32						y;
+	bool						bResult;
+	Ptr<CImageCelBlitterCache>	pCache;
+	size						uiPadding;
 
-	bExists = GetImageDestBounds(0, 0, &cBoundingRect);
+	bExists = GetFullDestBounds(0, 0, &cBoundingRect);
 	if (!bExists)
 	{
 		return NULL;
@@ -276,6 +279,11 @@ Ptr<CImage> CSpriteMap::WriteToImage(void)
 
 	uiWidth = cBoundingRect.GetWidth();
 	uiHeight = cBoundingRect.GetHeight();
+	if (uiWidth % 8 != 0)
+	{
+		uiPadding = (8 - uiWidth % 8);
+		uiWidth += uiPadding;
+	}
 
 	pDestImage = OMalloc<CImage>(uiWidth, uiHeight, PT_uint8, IMAGE_OPACITY, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 	if (pDestImage.IsNull())
@@ -285,38 +293,44 @@ Ptr<CImage> CSpriteMap::WriteToImage(void)
 
 	pDestImage->Clear();
 
-	cCopier.Init(pDestImage);
+	pCache = OMalloc<CImageCelBlitterCache>(pDestImage);
 
 	uiNumElements = maSprites.NumElements();
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
 		pSprite = maSprites.Get(ui);
-		pCel = pSprite->GetCel();
-		if (pCel.IsNotNull())
+		bResult = pSprite->CreateBlitter(pCache);
+		if (!bResult)
 		{
-			cCopier.AddAccessor(pCel->GetSourceImage());
+			pDestImage = NULL;
+			return NULL;
 		}
 	}
 
-	uiNumElements = maSprites.NumElements();
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
 		pSprite = maSprites.Get(ui);
 		pCel = pSprite->GetCel();
 		if (pCel.IsNotNull())
 		{
-			x = pSprite->GetX() - cBoundingRect.GetLeft();
-			y = pSprite->GetY() - cBoundingRect.GetTop();
-			bResult = cCopier.Copy(x, y, pCel);
+			x = pSprite->GetX();
+			y = pSprite->GetY();
+			bResult = pSprite->Blit(x - cBoundingRect.GetLeft(), y - cBoundingRect.GetTop());
 			if (!bResult)
 			{
 				pDestImage = NULL;
-				break;
+				return NULL;
 			}
 		}
 	}
 
-	cCopier.Kill();
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		pSprite = maSprites.Get(ui);
+		pSprite->ClearBlitter();
+	}
+
+	pCache.Kill();
 
 	return pDestImage;
 }

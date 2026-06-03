@@ -187,6 +187,7 @@
     <ClInclude Include="BaseImageRowBlitter.h" />
     <ClInclude Include="ImageBlitterContext.h" />
     <ClInclude Include="ImageBlitterFormat.h" />
+    <ClInclude Include="ImageCelBlitterCache.h" />
     <ClInclude Include="ImageRowBlitterCache.h" />
     <ClInclude Include="ImageRowBlitterContiguous.h" />
     <ClInclude Include="ImageRowBlitterByteAlignedOpaque.h" />
@@ -379,6 +380,7 @@
     <ClCompile Include="ImageBlitter.cpp" />
     <ClCompile Include="ImageBlitterContext.cpp" />
     <ClCompile Include="ImageBlitterFormat.cpp" />
+    <ClCompile Include="ImageCelBlitterCache.cpp" />
     <ClCompile Include="ImageRowBlitterCache.cpp" />
     <ClCompile Include="ImageRowBlitterContiguous.cpp" />
     <ClCompile Include="ImageRowBlitterByteAlignedOpaque.cpp" />

@@ -21,8 +21,8 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MOVABLE_BLOCK_MAP_H__
-#define __MOVABLE_BLOCK_MAP_H__
+#ifndef __BLOCK_MAP_H__
+#define __BLOCK_MAP_H__
 #include "StandardLib/Object.h"
 #include "StandardLib/Array.h"
 
@@ -52,5 +52,5 @@ public:
 typedef CArray<CBlockMap>	CArrayTileMap;
 
 
-#endif // __MOVABLE_BLOCK_MAP_H__
+#endif // __BLOCK_MAP_H__
 

@@ -47,5 +47,11 @@ void CImageBlitterContext::Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourF
 	uiTypeSize = gcTypeNames.GetByteSize(eType);
 
 	muiSourceAlphaOffset *= uiTypeSize;
+
+	muiDestAlphaOffset = pcDestFormatHelper->GetAlphaIndex();
+	if (muiDestAlphaOffset != SIZE_MAX)
+	{
+		muiDestAlphaOffset *= uiTypeSize;
+	}
 }
 

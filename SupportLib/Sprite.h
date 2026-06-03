@@ -3,6 +3,8 @@
 #include "BaseLib/Int32Vec2.h"
 #include "StandardLib/Object.h"
 #include "StandardLib/Array.h"
+#include "ImageBlitter.h"
+#include "ImageCelBlitterCache.h"
 #include "ImageCel.h"
 
 
@@ -11,8 +13,9 @@ class CSprite : public CObject
 CONSTRUCTABLE(CSprite);
 DESTRUCTABLE(CSprite);
 protected:
-	SInt32Vec2		msPosition;
-	Ptr<CImageCel>	mpCel;
+	SInt32Vec2			msPosition;
+	Ptr<CImageCel>		mpCel;
+	Ptr<CImageBlitter>	mpBlitter;
 
 public:
 	void			Init(Ptr<CImageCel> pCel, int32 x, int32 y);
@@ -27,6 +30,10 @@ public:
 
 	int32			GetX(void);
 	int32			GetY(void);
+
+	bool			CreateBlitter(Ptr<CImageCelBlitterCache> pBlitterCache);
+	void			ClearBlitter(void);
+	bool			Blit(int32 x, int32 y);
 };
 
 

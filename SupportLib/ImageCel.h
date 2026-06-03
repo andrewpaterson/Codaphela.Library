@@ -71,6 +71,8 @@ public:
 			Ptr<CImage>		GetSourceImage(void);
 			void			GetImageDestBounds(int32 x, int32 y, CRectangle* pcReturn);
 			void			GetImageSourceBounds(CRectangle* pcReturn);
+			int32			GetSourceLeft(void);
+			int32			GetSourceTop(void);
 
 			void			CopyParam(SImageCopy* psCopy, int32 iDestX, int32 iDestY, int32 iDestWith, int32 iDestHeight);
 };

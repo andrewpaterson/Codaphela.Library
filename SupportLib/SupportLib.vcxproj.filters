@@ -792,6 +792,9 @@
     <ClInclude Include="ImageBlitterContext.h">
       <Filter>Source\Image\Blitter</Filter>
     </ClInclude>
+    <ClInclude Include="ImageCelBlitterCache.h">
+      <Filter>Source\Image\Blitter\Cache</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1330,6 +1333,9 @@
     </ClCompile>
     <ClCompile Include="ImageBlitterContext.cpp">
       <Filter>Source\Image\Blitter</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageCelBlitterCache.cpp">
+      <Filter>Source\Image\Blitter\Cache</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

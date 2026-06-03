@@ -118,6 +118,8 @@ public:
 	void		GetFullDestBounds(int32 x, int32 y, CRectangle* pcDest);
 	SInt32Vec2	GetImageDestPos(int32 x, int32 y);
 	void		GetFullSourceBounds(CRectangle* pcReturn);
+	int32		GetSourceLeft(void);
+	int32		GetSourceTop(void);
 	void		GetImageSourceBounds(CRectangle* pcReturn);
 	void		GetImageDestBounds(int32 x, int32 y, CRectangle* pcReturn);
 	void		AdjustImageRect(CSubImage* pcSubImage);

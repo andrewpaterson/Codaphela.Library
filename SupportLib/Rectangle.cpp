@@ -291,7 +291,7 @@ void CRectangle::GrowToContain(CRectangle* pcOther)
 	if (pcOther)
 	{
 		GrowToContain(pcOther->miLeft, pcOther->miTop);
-		GrowToContain(pcOther->miRight, pcOther->miBottom);
+		GrowToContain(pcOther->miRight - 1, pcOther->miBottom - 1);
 	}
 }
 
