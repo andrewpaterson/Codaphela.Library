@@ -48,9 +48,9 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	Ptr<CImageBlitter>	CreateImageBlitter(Ptr<CImageCel> pCel);
+	Ptr<CImage>			GetDestImage(void);
 };
 
 
 #endif // __IMAGE_CEL_BLITTER_CACHE_H__
-
 

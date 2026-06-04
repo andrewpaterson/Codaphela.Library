@@ -38,32 +38,44 @@ class CSpriteMap : public CBlockMap
 CONSTRUCTABLE(CSpriteMap)
 DESTRUCTABLE(CSpriteMap)
 protected:
-	CArraySprite	maSprites;
+	CArraySprite				maSprites;
+	Ptr<CImageCelBlitterCache>	mpCache;
+	Ptr<CImage>					mpViewport;
 
 public:
-	void					Init(void);
-	void 					Free(void);
-	void					Class(void);
+	void						Init(void);
+	void 						Free(void);
+	void						Class(void);
 
-	bool					Save(CObjectWriter* pcFile);
-	bool					Load(CObjectReader* pcFile);
+	bool						Save(CObjectWriter* pcFile);
+	bool						Load(CObjectReader* pcFile);
 
-	void					Clear(void);
+	void						SetBlitterCache(Ptr<CImageCelBlitterCache> pCache);
+	void						SetViewport(Ptr<CImage> pViewport);
+	Ptr<CImage>					GetViewport(void);
 
-	bool					AddSprite(Ptr<CSprite> pSprite);
-	size					NumSprites(void);
+	void						Clear(void);
 
-	void					BeginChange(void);
-	void					EndChange(void);
+	bool						AddSprite(Ptr<CSprite> pSprite);
+	size						NumSprites(void);
 
-	void					FindImageCels(CRectangle* pcRectangle, MapImageCelFunction pSpriteFunction);
+	void						BeginChange(void);
+	void						EndChange(void);
+
+	void						FindImageCels(CRectangle* pcRectangle, MapImageCelFunction pSpriteFunction);
 	
-	bool					GetImageDestBounds(int32 x, int32 y, CRectangle* pcRect);
-	bool					GetFullDestBounds(int32 x, int32 y, CRectangle* pcRect);
+	bool						GetImageDestBounds(CRectangle* pcRect);
+	bool						GetFullDestBounds(CRectangle* pcRect);
 
-	Ptr<CImage>				WriteToImage(void);
+	Ptr<CImage>					WriteToImage(void);
+	Ptr<CImage>					CreateViewportImage(void);
+	Ptr<CImage>					CreateViewportImage(CRectangle* pcBoundingRect);
+	Ptr<CImageCelBlitterCache>	CreateBlitterCache(void);
 
-	void					TileMapAbstract(void) override {}
+	bool						CreateCelBlitters(void);
+	void						ClearCelBlitters(void);
+
+	void						TileMapAbstract(void) override {}
 };
 
 

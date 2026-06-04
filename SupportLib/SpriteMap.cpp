@@ -36,6 +36,8 @@ void CSpriteMap::Init(void)
 	PreInit();
 
 	CBlockMap::Init();
+	mpCache = NULL;
+	mpViewport = NULL;
 	maSprites.Init();
 
 	PostInit();
@@ -60,6 +62,8 @@ void CSpriteMap::Class(void)
 {
 	CBlockMap::Class();
 	M_Embedded(maSprites);
+	M_Pointer(mpCache);
+	M_Pointer(mpViewport);
 }
 
 
@@ -161,7 +165,7 @@ void CSpriteMap::FindImageCels(CRectangle* pcRectangle, MapImageCelFunction pSpr
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSpriteMap::GetImageDestBounds(int32 x, int32 y, CRectangle* pcRect)
+bool CSpriteMap::GetImageDestBounds(CRectangle* pcRect)
 {
 	size			ui;
 	size			uiNumElements;
@@ -183,16 +187,19 @@ bool CSpriteMap::GetImageDestBounds(int32 x, int32 y, CRectangle* pcRect)
 			{
 				pSprite = maSprites.Get(ui);
 				pCel = pSprite->GetCel();
-				pcSubImage = pCel->GetSubImage();
-				if (bFirst)
+				if (pCel)
 				{
-					pcSubImage->GetImageDestBounds(pSprite->GetX() + x, pSprite->GetY() + y, &cBounding);
-					bFirst = false;
-				}
-				else
-				{
-					pcSubImage->GetImageDestBounds(pSprite->GetX() + x, pSprite->GetY() + y, &cCelRect);
-					cBounding.GrowToContain(&cCelRect);
+					pcSubImage = pCel->GetSubImage();
+					if (bFirst)
+					{
+						pcSubImage->GetImageDestBounds(pSprite->GetX(), pSprite->GetY(), &cBounding);
+						bFirst = false;
+					}
+					else
+					{
+						pcSubImage->GetImageDestBounds(pSprite->GetX(), pSprite->GetY(), &cCelRect);
+						cBounding.GrowToContain(&cCelRect);
+					}
 				}
 			}
 			pcRect->Init(&cBounding);
@@ -207,7 +214,7 @@ bool CSpriteMap::GetImageDestBounds(int32 x, int32 y, CRectangle* pcRect)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSpriteMap::GetFullDestBounds(int32 x, int32 y, CRectangle* pcRect)
+bool CSpriteMap::GetFullDestBounds(CRectangle* pcRect)
 {
 	size			ui;
 	size			uiNumElements;
@@ -229,16 +236,19 @@ bool CSpriteMap::GetFullDestBounds(int32 x, int32 y, CRectangle* pcRect)
 			{
 				pSprite = maSprites.Get(ui);
 				pCel = pSprite->GetCel();
-				pcSubImage = pCel->GetSubImage();
-				if (bFirst)
+				if (pCel)
 				{
-					pcSubImage->GetFullDestBounds(pSprite->GetX() + x, pSprite->GetY() + y, &cBounding);
-					bFirst = false;
-				}
-				else
-				{
-					pcSubImage->GetFullDestBounds(pSprite->GetX() + x, pSprite->GetY() + y, &cCelRect);
-					cBounding.GrowToContain(&cCelRect);
+					pcSubImage = pCel->GetSubImage();
+					if (bFirst)
+					{
+						pcSubImage->GetFullDestBounds(pSprite->GetX(), pSprite->GetY(), &cBounding);
+						bFirst = false;
+					}
+					else
+					{
+						pcSubImage->GetFullDestBounds(pSprite->GetX(), pSprite->GetY(), &cCelRect);
+						cBounding.GrowToContain(&cCelRect);
+					}
 				}
 			}
 			pcRect->Init(&cBounding);
@@ -260,53 +270,31 @@ Ptr<CImage> CSpriteMap::WriteToImage(void)
 	size						uiNumElements;
 	Ptr<CSprite>				pSprite;
 	Ptr<CImageCel>				pCel;
-	Ptr<CImage>					pDestImage;
-	CRectangle					cBoundingRect;
-	bool						bExists;
-	size						uiWidth;
-	size						uiHeight;
 	int32						x;
 	int32						y;
 	bool						bResult;
-	Ptr<CImageCelBlitterCache>	pCache;
-	size						uiPadding;
+	Ptr<CImageCelBlitterCache>	pOldCache;
+	Ptr<CImage>					pOldViewport;
+	Ptr<CImage>					pImage;
+	bool						bExists;
+	CRectangle					cBoundingRect;
 
-	bExists = GetFullDestBounds(0, 0, &cBoundingRect);
+	pOldViewport = mpViewport;
+	pOldCache = mpCache;
+
+	bExists = GetFullDestBounds(&cBoundingRect);
 	if (!bExists)
 	{
 		return NULL;
 	}
 
-	uiWidth = cBoundingRect.GetWidth();
-	uiHeight = cBoundingRect.GetHeight();
-	if (uiWidth % 8 != 0)
-	{
-		uiPadding = (8 - uiWidth % 8);
-		uiWidth += uiPadding;
-	}
+	pImage = CreateViewportImage(&cBoundingRect);
 
-	pDestImage = OMalloc<CImage>(uiWidth, uiHeight, PT_uint8, IMAGE_OPACITY, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
-	if (pDestImage.IsNull())
-	{
-		return NULL;
-	}
-
-	pDestImage->Clear();
-
-	pCache = OMalloc<CImageCelBlitterCache>(pDestImage);
+	mpViewport = pImage;
+	mpCache = CreateBlitterCache();
+	CreateCelBlitters();
 
 	uiNumElements = maSprites.NumElements();
-	for (ui = 0; ui < uiNumElements; ui++)
-	{
-		pSprite = maSprites.Get(ui);
-		bResult = pSprite->CreateBlitter(pCache);
-		if (!bResult)
-		{
-			pDestImage = NULL;
-			return NULL;
-		}
-	}
-
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
 		pSprite = maSprites.Get(ui);
@@ -315,23 +303,140 @@ Ptr<CImage> CSpriteMap::WriteToImage(void)
 		{
 			x = pSprite->GetX();
 			y = pSprite->GetY();
-			bResult = pSprite->Blit(x - cBoundingRect.GetLeft(), y - cBoundingRect.GetTop());
+			bResult = pSprite->Blit(x - cBoundingRect.miLeft, y - cBoundingRect.miTop);
 			if (!bResult)
 			{
-				pDestImage = NULL;
+				mpViewport = pOldViewport;
+				mpCache = pOldCache;
 				return NULL;
 			}
 		}
 	}
 
+	mpViewport = pOldViewport;
+	mpCache = pOldCache;
+
+	return pImage;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSpriteMap::CreateCelBlitters(void)
+{
+	size			ui;
+	size			uiNumElements;
+	Ptr<CSprite>	pSprite;
+	bool			bResult;
+
+	if (mpCache && mpViewport)
+	{
+		if (mpCache->GetDestImage() == mpViewport)
+		{
+			uiNumElements = maSprites.NumElements();
+			for (ui = 0; ui < uiNumElements; ui++)
+			{
+				pSprite = maSprites.Get(ui);
+				bResult = pSprite->CreateBlitter(mpCache);
+				if (!bResult)
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CSpriteMap::ClearCelBlitters(void)
+{
+	size			ui;
+	size			uiNumElements;
+	Ptr<CSprite>	pSprite;
+
+	uiNumElements = maSprites.NumElements();
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
 		pSprite = maSprites.Get(ui);
 		pSprite->ClearBlitter();
 	}
+}
 
-	pCache.Kill();
 
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImage> CSpriteMap::CreateViewportImage(CRectangle* pcBoundingRect)
+{
+	size			uiWidth;
+	size			uiHeight;
+	size			uiPadding;
+	Ptr<CImage>		pDestImage;
+
+	uiWidth = pcBoundingRect->GetWidth();
+	uiHeight = pcBoundingRect->GetHeight();
+	if (uiWidth % 8 != 0)
+	{
+		uiPadding = (8 - uiWidth % 8);
+		uiWidth += uiPadding;
+	}
+
+	pDestImage = OMalloc<CImage>(uiWidth, uiHeight, PT_uint8, IMAGE_OPACITY, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+	if (pDestImage)
+	{
+		pDestImage->Clear();
+	}
 	return pDestImage;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImage> CSpriteMap::CreateViewportImage(void)
+{
+	bool			bExists;
+	CRectangle		cBoundingRect;
+
+	bExists = GetFullDestBounds(&cBoundingRect);
+	if (!bExists)
+	{
+		return NULL;
+	}
+
+	return CreateViewportImage(&cBoundingRect);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCelBlitterCache> CSpriteMap::CreateBlitterCache(void)
+{
+	if (mpViewport)
+	{
+		return OMalloc<CImageCelBlitterCache>(mpViewport);
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void		CSpriteMap::SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) { mpCache = pCache; }
+void		CSpriteMap::SetViewport(Ptr<CImage> pViewport) { mpViewport = pViewport; }
+Ptr<CImage> CSpriteMap::GetViewport(void) { return mpViewport; }
 
