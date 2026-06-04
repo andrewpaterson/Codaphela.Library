@@ -36,3 +36,30 @@ void CImageRowBlitterByteAlignedOpaque::Copy(CImageBlitterContext* pcContext, vo
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageRowBlitterByteAlignedOpaqueDestAlpha::Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY)
+{
+	size	x;
+	void*	pvAlphaDest;
+
+	pvAlphaDest = pvDest;
+
+	pvSource = RemapSinglePointer(pvSource, iSourceY * pcContext->miSourceRowStride + iSourceXLeft * pcContext->miSourcePixelStride + pcContext->muiSourceColourOffset);
+	pvDest = RemapSinglePointer(pvDest, iDestY * pcContext->miDestRowStride + iDestX * pcContext->miDestPixelStride + pcContext->muiDestColourOffset);
+	pvAlphaDest = RemapSinglePointer(pvAlphaDest, iDestY * pcContext->miDestRowStride + iDestX * pcContext->miDestPixelStride + pcContext->muiDestAlphaOffset);
+
+	for (x = iSourceXLeft; x < iSourceXRight; x++)
+	{
+		ga_memcpy_fast[pcContext->muiColourWidth](pvDest, pvSource);
+		*(uint8*)pvAlphaDest = 255;
+
+		pvSource = RemapSinglePointer(pvSource, pcContext->miSourcePixelStride);
+		pvDest = RemapSinglePointer(pvDest, pcContext->miDestPixelStride);
+		pvAlphaDest = RemapSinglePointer(pvAlphaDest, pcContext->miDestPixelStride);
+	}
+}
+

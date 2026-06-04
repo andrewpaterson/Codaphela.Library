@@ -35,5 +35,12 @@ public:
 };
 
 
+class CImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha : public CBaseImageRowBlitter
+{
+public:
+	void	Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
+};
+
+
 #endif // __IMAGE_ROW_BLITTER_RGB_BYTE_ALPHA_BYTE_TRANSLUCENT_H__
 

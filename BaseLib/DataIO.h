@@ -11,8 +11,8 @@ struct SDataTypeIO
 };
 
 
-typedef bool(SDataTypeIO::* DataIO_FileWriter)(CFileWriter*);
-typedef bool(SDataTypeIO::* DataIO_FileReader)(CFileReader*);
+typedef bool (SDataTypeIO::*DataIO_FileWriter)(CFileWriter*);
+typedef bool (SDataTypeIO::*DataIO_FileReader)(CFileReader*);
 
 
 struct SDataIO

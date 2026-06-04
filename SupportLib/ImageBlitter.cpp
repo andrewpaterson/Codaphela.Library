@@ -253,17 +253,29 @@ bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlit
 	uiDestByteStride = mpDestImage->GetPixelByteStride();
 
 	pcRowBlitter = NULL;
-	if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride == uiDestByteStride))
+	if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride == uiDestByteStride) && (mcFormat.meDestAlphaBits == ARGB_None))
 	{
-		return CreateImageRowBlitterContiguous(pcBlitterCache);
+		return CreateImageRowBlitterContiguous(pcFormat, pcBlitterCache);
 	}
-	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride != uiDestByteStride))
+	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride == uiDestByteStride) && (mcFormat.meDestAlphaBits != ARGB_None))
+	{
+		return CreateImageRowBlitterByteAlignedOpaqueDestAlpha(pcFormat, pcBlitterCache);
+	}
+	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride != uiDestByteStride) && (mcFormat.meDestAlphaBits == ARGB_None))
 	{
 		return CreateImageRowBlitterByteAlignedOpaque(pcFormat, pcBlitterCache);
 	}
-	else if ((mcFormat.meSourceAlphaBits == ARGB_8bit) && (mcFormat.meColourBits == CRGB_24bit))
+	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride != uiDestByteStride) && (mcFormat.meDestAlphaBits != ARGB_None))
+	{
+		return CreateImageRowBlitterByteAlignedOpaqueDestAlpha(pcFormat, pcBlitterCache);
+	}
+	else if ((mcFormat.meSourceAlphaBits == ARGB_8bit) && (mcFormat.meColourBits == CRGB_24bit) && (mcFormat.meDestAlphaBits == ARGB_None))
 	{
 		return CreateImageRowBlitterRGBByteAlphaByteTranslucent(pcFormat, pcBlitterCache);
+	}
+	else if ((mcFormat.meSourceAlphaBits == ARGB_8bit) && (mcFormat.meColourBits == CRGB_24bit) && (mcFormat.meDestAlphaBits != ARGB_None))
+	{
+		return CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(pcFormat, pcBlitterCache);
 	}
 	else
 	{
@@ -277,25 +289,9 @@ bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlit
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterContiguous(CImageRowBlitterCache* pcBlitterCache)
+bool CImageBlitter::CreateImageRowBlitterContiguous(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache)
 {
-	CRectangle				cRect;
-	size					y;
-	size					uiBottom;
-	size					xEnd;
-	size					xStart;
-	CBaseImageRowBlitter*	pcRowBlitter;
-
-	mpSourceCel->GetImageSourceBounds(&cRect);
-	uiBottom = cRect.GetBottom();
-	xEnd = cRect.GetRight();
-	xStart = cRect.GetLeft();
-	for (y = cRect.GetTop(); y < uiBottom; y++)
-	{
-		pcRowBlitter = pcBlitterCache->CreateImageRowBlitterContiguous();
-		AddBlitter(pcRowBlitter, xStart, xEnd, y);
-	}
-	return true;
+	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterCache::CreateImageRowBlitterContiguous);
 }
 
 
@@ -305,6 +301,26 @@ bool CImageBlitter::CreateImageRowBlitterContiguous(CImageRowBlitterCache* pcBli
 //////////////////////////////////////////////////////////////////////////
 bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache)
 {
+	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpaque);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache)
+{
+	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpaqueDestAlpha);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageBlitter::CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache, CreateImageRowBlitterFunc fCreate)
+{
 	CRectangle				cRect;
 	size					y;
 	size					uiBottom;
@@ -318,7 +334,7 @@ bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* 
 	xStart = cRect.GetLeft();
 	for (y = cRect.GetTop(); y < uiBottom; y++)
 	{
-		pcRowBlitter = pcBlitterCache->CreateImageRowBlitterByteAlignedOpaque();
+		pcRowBlitter = (pcBlitterCache->*fCreate)();
 		AddBlitter(pcRowBlitter, xStart, xEnd, y);
 	}
 	return true;
@@ -330,6 +346,27 @@ bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* 
 //
 //////////////////////////////////////////////////////////////////////////
 bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache)
+{
+	return CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterCache::CreateImageRowBlitterRGBByteAlphaByteTranslucent, &CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpaque);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache)
+{
+	return CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterCache::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha, &CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpaqueDestAlpha);
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache, CreateImageRowBlitterFunc fCreateRGBByteAlphaByteTranslucent, CreateImageRowBlitterFunc fCreateByteAlignedOpaque)
 {
 	CRectangle				cRect;
 	size					x, y;
@@ -378,12 +415,12 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitt
 			{
 				if (uiLastType == 1)
 				{
-					pcRowBlitter = pcBlitterCache->CreateImageRowBlitterRGBByteAlphaByteTranslucent();
+					pcRowBlitter = (pcBlitterCache->*fCreateRGBByteAlphaByteTranslucent)();
 					AddBlitter(pcRowBlitter, xStart, x, y);
 				}
 				else if (uiLastType == 255)
 				{
-					pcRowBlitter = pcBlitterCache->CreateImageRowBlitterByteAlignedOpaque();
+					pcRowBlitter = (pcBlitterCache->*fCreateByteAlignedOpaque)();
 					AddBlitter(pcRowBlitter, xStart, x, y);
 				}
 				xStart = x;

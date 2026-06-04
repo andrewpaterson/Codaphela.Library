@@ -31,9 +31,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageCopyDimension.h"
 #include "ImageBlitterContext.h"
 #include "ImageRowBlitter.h"
+#include "ImageRowBlitterCache.h"
 
 
-class CImageRowBlitterCache;
 class CImageBlitter : public CObject
 {
 CONSTRUCTABLE(CImageBlitter);
@@ -67,9 +67,14 @@ protected:
 	bool			InitOpacityInfo(CImageBlitterFormat* pcFormat);
 	bool			InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
 	void			InitContext(CImageBlitterContext* pcContext);
-	bool			CreateImageRowBlitterContiguous(CImageRowBlitterCache* pcBlitterCache);
+	bool			CreateImageRowBlitterContiguous(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
 	bool			CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
+	bool			CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
 	bool			CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
+	bool			CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
+
+	bool			CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache, CreateImageRowBlitterFunc fCreate);
+	bool			CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache, CreateImageRowBlitterFunc fCreateRGBByteAlphaByteTranslucent, CreateImageRowBlitterFunc fCreateByteAlignedOpaque);
 
 	void			AddBlitter(CBaseImageRowBlitter* pcBlitter, size xStart, size xEnd, size yOffset);
 };

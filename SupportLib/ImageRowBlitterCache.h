@@ -35,9 +35,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImageRowBlitterCache
 {
 protected:
-	CImageRowBlitterContiguous						mcImageRowBlitterContiguous;
-	CImageRowBlitterByteAlignedOpaque				mcImageRowBlitterByteAlignedOpaque;
-	CImageRowBlitterRGBByteAlphaByteTranslucent		mcImageRowBlitterRGBByteAlphaByteTranslucent;
+	CImageRowBlitterContiguous								mcImageRowBlitterContiguous;
+	CImageRowBlitterByteAlignedOpaque						mcImageRowBlitterByteAlignedOpaque;
+	CImageRowBlitterByteAlignedOpaqueDestAlpha				mcImageRowBlitterByteAlignedOpaqueDestAlpha;
+	CImageRowBlitterRGBByteAlphaByteTranslucent				mcImageRowBlitterRGBByteAlphaByteTranslucent;
+	CImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha	mcImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha;
 
 public:
 	void					Init(void);
@@ -45,8 +47,13 @@ public:
 
 	CBaseImageRowBlitter*	CreateImageRowBlitterContiguous(void);
 	CBaseImageRowBlitter*	CreateImageRowBlitterByteAlignedOpaque(void);
+	CBaseImageRowBlitter*	CreateImageRowBlitterByteAlignedOpaqueDestAlpha(void);
 	CBaseImageRowBlitter*	CreateImageRowBlitterRGBByteAlphaByteTranslucent(void);
+	CBaseImageRowBlitter*	CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(void);
 };
+
+
+typedef CBaseImageRowBlitter* (CImageRowBlitterCache::*CreateImageRowBlitterFunc)(void);
 
 
 #endif // __IMAGE_ROW_BLITTER_CACHE_H__
