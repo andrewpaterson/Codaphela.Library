@@ -75,5 +75,8 @@ protected:
 };
 
 
+typedef CArray<CImageBlitter> CArrayImageBlitter;
+
+
 #endif // __IMAGE_BLITTER_H__
 

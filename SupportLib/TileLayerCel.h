@@ -24,33 +24,52 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __TILE_LAYER_CEL_H__
 #define __TILE_LAYER_CEL_H__
 #include "ImageCel.h"
+#include "ImageBlitter.h"
 #include "TileMap.h"
 #include "TileLayer.h"
 
 
+class CImageCelBlitterCache;
 class CTileLayerCel : public CTileLayer
 {
 CONSTRUCTABLE(CTileLayerCel);
 DESTRUCTABLE(CTileLayerCel);
 protected:
-	CArrayImageCel	maTiles;
+	CArrayImageCel				maTiles;
+	CArrayImageBlitter			maBlitters;
+	Ptr<CImageCelBlitterCache>	mpCache;
+	Ptr<CImage>					mpViewport;
 
 public:
-	void			Init(Ptr<CTileMap> pTileMap, const char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition);
-	void 			Free(void);
-	void			Class(void);
+	void						Init(Ptr<CTileMap> pTileMap, const char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition);
+	void 						Free(void);
+	void						Class(void);
 
-	bool			Save(CObjectWriter* pcFile);
-	bool			Load(CObjectReader* pcFile);
+	bool						Save(CObjectWriter* pcFile);
+	bool						Load(CObjectReader* pcFile);
 
-	bool			SetTile(int x, int y, Ptr<CImageCel> pTile);
-	Ptr<CImageCel>	GetTile(size uiIndex);
-	Ptr<CImageCel>	GetTile(int x, int y);
+	void						SetBlitterCache(Ptr<CImageCelBlitterCache> pCache);
+	void						SetViewport(Ptr<CImage> pViewport);
 
-	bool			SetTiles(int x, int y, Ptr<CArrayImageCel> paCels, size uiIndices ...);
-	Ptr<CImage>		WriteToImage(void);
+	bool						SetTile(size x, size y, Ptr<CImageCel> pTile);
+	Ptr<CImageCel>				GetTile(size uiIndex);
+	Ptr<CImageCel>				GetTile(size x, size y);
 
-	void			TileLayerAbstract(void) override {}
+	bool						SetTiles(size x, size y, Ptr<CArrayImageCel> paCels, size uiIndices ...);
+
+	bool						GetImageDestBounds(CRectangle* pcRect);
+	bool						GetFullDestBounds(CRectangle* pcRect);
+
+	Ptr<CImage>					WriteToImage(void);
+	Ptr<CImage>					CreateViewportImage(void);
+	Ptr<CImageCelBlitterCache>	CreateBlitterCache(void);
+
+	bool						CreateCelBlitters(void);
+	bool						SetBlitter(size x, size y, Ptr<CImageBlitter> pBlitter);
+	Ptr<CImageBlitter>			GetBlitter(size x, size y);
+	void						ClearCelBlitters(void);
+
+	void						TileLayerAbstract(void) override {}
 };
 
 

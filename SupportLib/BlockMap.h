@@ -32,7 +32,8 @@ class CBlockMap : public CObject
 CONSTRUCTABLE(CBlockMap);
 DESTRUCTABLE(CBlockMap);
 protected:
-	bool	mbActive;
+	bool		mbActive;
+	SInt32Vec2	msViewportPosition;
 
 public:
 			void	Init(void);
@@ -44,6 +45,9 @@ public:
 
 	virtual	void	Activate(void);
 	virtual	void	Deactivate(void);
+
+			void	SetViewportPosition(int32 x, int32 y);
+			void	SetViewportPosition(SInt32Vec2	sViewportPosition);
 
 	virtual	void	TileMapAbstract(void) =0;
 };

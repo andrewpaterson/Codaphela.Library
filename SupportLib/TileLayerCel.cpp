@@ -21,7 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "MultiImageCopier.h"
+#include "ImageCelBlitterCache.h"
 #include "TileLayerCel.h"
 
 
@@ -33,12 +33,16 @@ void CTileLayerCel::Init(Ptr<CTileMap> pTileMap, const char* szTileType, SInt32V
 {
 	PreInit();
 
-	int			i;
-	int			iSize;
+	size	i;
+	size	iSize;
 
 	CTileLayer::Init(pTileMap, szTileType, sMapSize, sCelSize, sPosition);
 
+	mpCache = NULL;
+	mpViewport = NULL;
+
 	maTiles.Init();
+	maBlitters.Init();
 
 	iSize = sMapSize.x * sMapSize.y;
 	for (i = 0; i < iSize; i++)
@@ -68,6 +72,9 @@ void CTileLayerCel::Class(void)
 {
 	CTileLayer::Class();
 	M_Embedded(maTiles);
+	M_Embedded(maBlitters);
+	M_Pointer(mpCache);
+	M_Pointer(mpViewport);
 }
 
 
@@ -95,7 +102,7 @@ bool CTileLayerCel::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTileLayerCel::SetTile(int x, int y, Ptr<CImageCel> pTile)
+bool CTileLayerCel::SetTile(size x, size y, Ptr<CImageCel> pTile)
 {
 	size	iYOffset;
 
@@ -118,7 +125,7 @@ Ptr<CImageCel> CTileLayerCel::GetTile(size uiIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CTileLayerCel::GetTile(int x, int y)
+Ptr<CImageCel> CTileLayerCel::GetTile(size x, size y)
 {
 	size	iYOffset;
 
@@ -131,12 +138,12 @@ Ptr<CImageCel> CTileLayerCel::GetTile(int x, int y)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTileLayerCel::SetTiles(int x, int y, Ptr<CArrayImageCel> paCels, size uiIndices ...)
+bool CTileLayerCel::SetTiles(size x, size y, Ptr<CArrayImageCel> paCels, size uiIndices ...)
 {
 	va_list			vaMarker;
 	size			iIndex;
 	size			uiNumCels;
-	int				iMaxX;
+	size				iMaxX;
 	Ptr<CImageCel>	pCel;
 	bool			bResult;
 
@@ -166,47 +173,245 @@ bool CTileLayerCel::SetTiles(int x, int y, Ptr<CArrayImageCel> paCels, size uiIn
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CTileLayerCel::WriteToImage(void)
 {
-	size				uiNumTiles;
-	size				uiTile;
-	Ptr<CImageCel>		pCel;
-	Ptr<CImage>			pDestImage;
-	CMultiImageCopier	cCopier;
-	int32				x;
-	int32				y;
+	Ptr<CImageCel>				pCel;
+	int32						x;
+	int32						y;
+	Ptr<CImageCelBlitterCache>	pOldCache;
+	Ptr<CImage>					pOldViewport;
+	Ptr<CImage>					pImage;
+	Ptr<CImageBlitter>			pBlitter;
 
-	pDestImage = OMalloc<CImage>(msMapSize.x * msCelSize.x, msMapSize.y * msCelSize.y, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+	pOldViewport = mpViewport;
+	pOldCache = mpCache;
+
+	pImage = CreateViewportImage();
+	mpViewport = pImage;
+	mpCache = CreateBlitterCache();
+	CreateCelBlitters();
+
+	for (y = 0; y < msMapSize.y; y++)
+	{
+		for (x = 0; x < msMapSize.x; x++)
+		{
+			pBlitter = GetBlitter(x, y);
+			if (pBlitter.IsNotNull())
+			{
+				pBlitter->Blit(x * msCelSize.x, y * msCelSize.y);
+			}
+		}
+	}
+
+	mpViewport = pOldViewport;
+	mpCache = pOldCache;
+
+	return pImage;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CTileLayerCel::CreateCelBlitters(void)
+{
+	Ptr<CImageCel>		pCel;
+	int32				x, y;
+	Ptr<CImageBlitter>	pBlitter;
+	size				iSize;
+	size				i;
+
+	if (mpCache && mpViewport)
+	{
+		if (mpCache->GetDestImage() == mpViewport)
+		{
+			maBlitters.Clear();
+
+			iSize = msMapSize.x * msMapSize.y;
+			for (i = 0; i < iSize; i++)
+			{
+				maBlitters.Add(NULL);
+			}
+
+			for (y = 0; y < msMapSize.y; y++)
+			{
+				for (x = 0; x < msMapSize.x; x++)
+				{
+					pCel = GetTile(x, y);
+					if (pCel)
+					{
+
+						pBlitter = mpCache->CreateImageBlitter(pCel);
+						if (pBlitter.IsNull())
+						{
+							return false;
+						}
+						SetBlitter(x, y, pBlitter);
+					}
+				}
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CTileLayerCel::ClearCelBlitters(void)
+{
+	maBlitters.Clear();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CTileLayerCel::SetBlitter(size x, size y, Ptr<CImageBlitter> pBlitter)
+{
+	size	iYOffset;
+
+	iYOffset = y * msMapSize.x;
+	return maBlitters.Set(x + iYOffset, pBlitter);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageBlitter> CTileLayerCel::GetBlitter(size x, size y)
+{
+	size	iYOffset;
+
+	iYOffset = y * msMapSize.x;
+	return maBlitters.Get(x + iYOffset);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CTileLayerCel::GetImageDestBounds(CRectangle* pcRect)
+{
+	Ptr<CImageCel>	pCel;
+	CSubImage*		pcSubImage;
+	CRectangle		cBounding;
+	CRectangle		cCelRect;
+	bool			bFirst;
+	int32			x, y;
+
+	if (pcRect)
+	{
+		cBounding.Init();
+		bFirst = true;
+		for (y = 0; y < msMapSize.y; y++)
+		{
+			for (x = 0; x < msMapSize.x; x++)
+			{
+				pCel = GetTile(x, y);
+				if (pCel)
+				{
+					pcSubImage = pCel->GetSubImage();
+					if (bFirst)
+					{
+						pcSubImage->GetImageDestBounds(x * msCelSize.x, y * msCelSize.y, &cBounding);
+						bFirst = false;
+					}
+					else
+					{
+						pcSubImage->GetImageDestBounds(x * msCelSize.x, y * msCelSize.y, &cCelRect);
+						cBounding.GrowToContain(&cCelRect);
+					}
+				}
+			}
+		}
+		pcRect->Init(&cBounding);
+		return true;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CTileLayerCel::GetFullDestBounds(CRectangle* pcRect)
+{
+	if ((msMapSize.x > 0) && (msCelSize.x > 0) && (msMapSize.y > 0) && (msCelSize.y > 0))
+	{
+		pcRect->Init(msMapSize.x* msCelSize.x, msMapSize.y* msCelSize.y);
+		return true;
+	}
+	else
+	{
+		pcRect->Init();
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImage> CTileLayerCel::CreateViewportImage(void)
+{
+	bool			bExists;
+	size			uiWidth;
+	size			uiHeight;
+	size			uiPadding;
+	CRectangle		cBoundingRect;
+	Ptr<CImage>		pDestImage;
+
+	bExists = GetFullDestBounds(&cBoundingRect);
+	if (!bExists)
+	{
+		return NULL;
+	}
+
+	uiWidth = cBoundingRect.GetWidth();
+	uiHeight = cBoundingRect.GetHeight();
+	if (uiWidth % 8 != 0)
+	{
+		uiPadding = (8 - uiWidth % 8);
+		uiWidth += uiPadding;
+	}
+
+	pDestImage = OMalloc<CImage>(uiWidth, uiHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 	if (pDestImage.IsNull())
 	{
 		return NULL;
 	}
 
 	pDestImage->Clear();
-
-	cCopier.Init(pDestImage);
-
-	uiNumTiles = maTiles.NumElements();
-	for (uiTile = 0; uiTile < uiNumTiles; uiTile++)
-	{
-		pCel = maTiles.Get(uiTile);
-		if (pCel.IsNotNull())
-		{
-			cCopier.AddAccessor(pCel);
-		}
-	}
-
-	for (y = 0; y < msMapSize.y; y++)
-	{
-		for (x = 0; x < msMapSize.x; x++)
-		{
-			pCel = GetTile(x, y);
-			if (pCel.IsNotNull())
-			{
-				cCopier.Copy(x * msCelSize.x, y * msCelSize.y, pCel);
-			}
-		}
-	}
-	cCopier.Kill();
-
 	return pDestImage;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCelBlitterCache> CTileLayerCel::CreateBlitterCache(void)
+{
+	if (mpViewport)
+	{
+		return OMalloc<CImageCelBlitterCache>(mpViewport);
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CTileLayerCel::SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) { mpCache = pCache; }
+void CTileLayerCel::SetViewport(Ptr<CImage> pViewport) { mpViewport = pViewport; }
 
