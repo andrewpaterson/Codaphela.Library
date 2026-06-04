@@ -43,8 +43,29 @@ CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpa
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpaqueDestAlpha(void)
+{
+	return &mcImageRowBlitterByteAlignedOpaqueDestAlpha;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterRGBByteAlphaByteTranslucent(void)
 {
 	return &mcImageRowBlitterRGBByteAlphaByteTranslucent;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(void)
+{
+	return &mcImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha;
 }
 
