@@ -8,17 +8,17 @@
 class CFontImportParams
 {
 public:
-	CChars	mszImageFileName;
-	CChars	mszCharacterFileName;
-	CChars	mszFontName;
+	CChars		mszImageFileName;
+	CChars		mszCharacterFileName;
+	CChars		mszFontName;
 	SInt32Vec2	msCharsGrid;
 	SInt32Vec2	msCharSize;
-	int		miSpaceWidth;
+	int			miSpaceWidth;
 	SInt32Vec2	msTopLeftOffset;
 	SInt32Vec2	msInterspace;
-	int		miAscent;
-	int		miDescent;
-	bool	mbLeftToRightFirst;
+	int			miAscent;
+	int			miDescent;
+	bool		mbLeftToRightFirst;
 
 public:
 	bool	Init(char* szFileName, char* szCharArray, int iCharWidth, int iCharHeight);
