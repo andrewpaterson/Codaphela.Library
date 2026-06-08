@@ -39,7 +39,8 @@ Ptr<CFont> CFont::Init(char* szName, int16 iSpaceWidth, int16 iAscent, int16 iDe
 	mpImage = NULL;
 	miAverageWidth = 0;
 	miTabSpaceCount = 4;
-	miHeight = iAscent + iDescent;
+	miAverageHeight = iAscent + iDescent;
+	miLineHeight = iAscent + iDescent;
 	mbFixedWidh = false;
 	miSpaceWidth = iSpaceWidth;
 	miAscent = iAscent;
@@ -61,7 +62,8 @@ void CFont::Class(void)
 	U_String(mszName);
 	M_Pointer(mpImage);
 	U_Size(miAverageWidth);
-	U_Size(miHeight);
+	U_Size(miAverageHeight);
+	U_Size(miLineHeight);
 	U_Bool(mbFixedWidh);
 	U_Int16(miSpaceWidth);
 	M_Embedded(macGlyphs);
@@ -213,7 +215,7 @@ Ptr<CGlyph> CFont::GetGlyph(CUnicodeReader* pcUTFReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CFont::Width(char* szText)
+size CFont::CalculateWidth(char* szText)
 {
 	CUTF8			cUTF8;
 	size			uiUTFElementLength;
@@ -397,6 +399,8 @@ Ptr<CImage> CFont::GetImage(void) { return mpImage; }
 int16 CFont::GetSpaceWidth(void) { return miSpaceWidth; }
 int16 CFont::GetAscent(void) { return miAscent; }
 int16 CFont::GetDescent(void) { return miDescent; }
+int16 CFont::GetLineHeight(void) { return miAscent + miDescent; }
 int16 CFont::GetTabSpaceCount(void) { return miTabSpaceCount; }
-size CFont::Height(void) { return miHeight; }
+size CFont::GetAverageWidth(void) { return miAverageWidth; }
+size CFont::GetAverageHeight(void) { return miAverageHeight; }
 

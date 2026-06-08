@@ -182,6 +182,7 @@
     <ClInclude Include="ColourFormat.h" />
     <ClInclude Include="CopyPaste.h" />
     <ClInclude Include="ChannelTypes.h" />
+    <ClInclude Include="FontCreationParameters.h" />
     <ClInclude Include="GlyphListFontDraw.h" />
     <ClInclude Include="ImageBlitter.h" />
     <ClInclude Include="BaseImageRowBlitter.h" />
@@ -376,6 +377,7 @@
     <ClCompile Include="ColourFormat.cpp" />
     <ClCompile Include="CopyPaste_Windows.cpp" />
     <ClCompile Include="FakeTracker.cpp" />
+    <ClCompile Include="FontCreationParameters.cpp" />
     <ClCompile Include="GlyphListFontDraw.cpp" />
     <ClCompile Include="ImageBlitter.cpp" />
     <ClCompile Include="ImageBlitterContext.cpp" />

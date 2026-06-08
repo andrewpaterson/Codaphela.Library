@@ -34,7 +34,7 @@ void CTextLayout::Init(int32 iWidth)
 void CTextLayout::Class(void)
 {
 	U_Int32(miWidth);
-	U_Size(muiRowHeight);
+	U_Int16(miRowHeight);
 	U_2Int32(msPosition);
 	U_Data(CUTF16, mcUTF16);
 	U_Pointer(mpcDraw);
@@ -87,7 +87,7 @@ void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 	CFont*				pcFont;
 	Ptr<CGlyph>			pGlyph;
 
-	muiRowHeight = 0;
+	miRowHeight = 0;
 	msPosition.Init(0, 0);
 	mpcDraw = &pDraw;
 	mcUTF16.Init(NULL, 0);
@@ -97,9 +97,9 @@ void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 	{
 		pcRun = pText->GetRun(uiRunIndex);
 		pcFont = pcRun->GetFont();
-		if (pcFont->Height() > muiRowHeight)
+		if (pcFont->GetLineHeight() > miRowHeight)
 		{
-			muiRowHeight = pcFont->Height();
+			miRowHeight = pcFont->GetLineHeight();
 		}
 		uiNumElements = pcRun->NumElements();
 		for (uiElementIndex = 0; uiElementIndex < uiNumElements; uiElementIndex++)
@@ -244,8 +244,8 @@ void CTextLayout::Glyph(Ptr<CGlyph> pGlyph)
 //////////////////////////////////////////////////////////////////////////
 void CTextLayout::NewLine(void)
 {
-	msPosition.y += muiRowHeight;
+	msPosition.y += miRowHeight;
 	msPosition.x = 0;
-	muiRowHeight = 0;
+	miRowHeight = 0;
 }
 

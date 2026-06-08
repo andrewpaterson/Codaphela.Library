@@ -795,6 +795,9 @@
     <ClInclude Include="ImageCelBlitterCache.h">
       <Filter>Source\Image\Blitter\Cache</Filter>
     </ClInclude>
+    <ClInclude Include="FontCreationParameters.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1336,6 +1339,9 @@
     </ClCompile>
     <ClCompile Include="ImageCelBlitterCache.cpp">
       <Filter>Source\Image\Blitter\Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="FontCreationParameters.cpp">
+      <Filter>Source\Image\Font</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

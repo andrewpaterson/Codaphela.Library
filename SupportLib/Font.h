@@ -42,7 +42,8 @@ protected:
 	CCharsImmutable		mszName;
 	Ptr<CImage>			mpImage;
 	size				miAverageWidth;
-	size				miHeight;
+	size				miAverageHeight;
+	size				miLineHeight;
 	bool				mbFixedWidh;
 	int16				miSpaceWidth;
 	CIndexGlyph			macGlyphs;
@@ -60,8 +61,7 @@ public:
 
 	void 			Done(void);
 	bool			Is(char* szName);
-	size 			Width(char* szText);
-	size			Height(void);
+	size 			CalculateWidth(char* szText);
 	bool			IsWhitespace(uint16 c);
 	Ptr<CGlyph>		GetGlyph(uint16 c, size uiLength);
 	Ptr<CGlyph>		GetGlyph(uint32 c, size uiLength);
@@ -75,8 +75,11 @@ public:
 	void			SetImage(Ptr<CImage> pImage);
 	int16			GetAscent(void);
 	int16			GetDescent(void);
+	int16			GetLineHeight(void);
 	int16			GetTabSpaceCount(void);
 	int16			GetSpaceWidth(void);
+	size			GetAverageWidth(void);
+	size			GetAverageHeight(void);
 
 	size			NumGlyphs(void);
 
