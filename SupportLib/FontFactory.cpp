@@ -82,7 +82,7 @@ bool CFontFactory::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFontFactory::Convert(CImageDividerNumbers* pcDest, CFontImportParams* pcSource)
+void CFontFactory::Convert(CImageDividerNumbers* pcDest, CFontImportParameters* pcSource)
 {
 	pcDest->InitGeneral(pcSource->msCharSize.x,
 						pcSource->msCharSize.y,
@@ -99,7 +99,7 @@ void CFontFactory::Convert(CImageDividerNumbers* pcDest, CFontImportParams* pcSo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
+Ptr<CFont> CFontFactory::Generate(CFontImportParameters* pcImportParams, CFontCreationParameters* pcCreationParams)
 {
 	CTextFile				cTextFile;
 	Ptr<CImage>				pImage;
@@ -118,28 +118,28 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 	uint32					cCodePoint32;
 	size					ui;
 
-	pImage = ReadImage(pcParams->GetImageFileName());
+	pImage = ReadImage(pcImportParams->GetImageFileName());
 	
 	if (pImage.IsNull())
 	{
 		return NULL;
 	}
 
-	if ((pcParams->msCharSize.x <= 0) ||
-		(pcParams->msCharSize.y <= 0))
+	if ((pcImportParams->msCharSize.x <= 0) ||
+		(pcImportParams->msCharSize.y <= 0))
 	{
 		return NULL;
 	}
 
-	if ((pcParams->msCharsGrid.x == -1) &&
-		(pcParams->msCharsGrid.y == -1))
+	if ((pcImportParams->msCharsGrid.x == -1) &&
+		(pcImportParams->msCharsGrid.y == -1))
 	{
-		pcParams->msCharsGrid.x = pImage->GetWidth() / pcParams->msCharSize.x;
-		pcParams->msCharsGrid.y = pImage->GetHeight() / pcParams->msCharSize.y;
+		pcImportParams->msCharsGrid.x = pImage->GetWidth() / pcImportParams->msCharSize.x;
+		pcImportParams->msCharsGrid.y = pImage->GetHeight() / pcImportParams->msCharSize.y;
 	}
 
 	cTextFile.Init();
-	bResult = cTextFile.Read(pcParams->GetCharacterFileName());
+	bResult = cTextFile.Read(pcImportParams->GetCharacterFileName());
 	if (!bResult)
 	{
 		pImage = NULL;
@@ -149,7 +149,7 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 	szCharacters.Init(cTextFile.Text());
 	cTextFile.Kill();
 
-	Convert(&cNumbers, pcParams);
+	Convert(&cNumbers, pcImportParams);
 
 	cCels.Init();
 
@@ -157,7 +157,7 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 	cDivider.GenerateFromNumbers(&cNumbers);
 	cDivider.CopyCellsTo(&cCels);
 
-	pFont = OMalloc<CFont>(pcParams->FontName(), pcParams->miSpaceWidth, pcParams->miAscent, pcParams->miDescent);
+	pFont = OMalloc<CFont>(pcImportParams->FontName(), pcCreationParams->miSpaceWidth, pcCreationParams->miAscent, pcCreationParams->miDescent);
 
 	ui = 0;
 	cUTF8.Init(&szCharacters);
@@ -171,25 +171,25 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 			uiCodePointLength = cUTF8.GetUnicodeCodePointLength(cCodePoint16);
 			if (uiCodePointLength == 1)
 			{
-				pFont->PutGlyph((uint8)cCodePoint16, pCel, pcParams->msCharSize.x);
+				pFont->PutGlyph((uint8)cCodePoint16, pCel, pcImportParams->msCharSize.x);
 			}
 			else
 			{
-				pFont->PutGlyph(cCodePoint16, pCel, pcParams->msCharSize.x);
+				pFont->PutGlyph(cCodePoint16, pCel, pcImportParams->msCharSize.x);
 			}
 		}
 		else if (uiElementLength <= 4)
 		{
 			cCodePoint32 = cUTF8.GetCodePointUint32();
 			uiCodePointLength = cUTF8.GetUnicodeCodePointLength(cCodePoint32);
-			pFont->PutGlyph(cCodePoint32, uiCodePointLength, pCel, pcParams->msCharSize.x);
+			pFont->PutGlyph(cCodePoint32, uiCodePointLength, pCel, pcImportParams->msCharSize.x);
 		}
 		else
 		{
 			uiCodePointLength = cUTF8.GetCodePointMulti(auiBuffer, 20);
 			if ((uiCodePointLength != 0) || (uiCodePointLength != cUTF8.GetError()))
 			{
-				pFont->PutGlyph(auiBuffer, uiCodePointLength, pCel, pcParams->msCharSize.x);
+				pFont->PutGlyph(auiBuffer, uiCodePointLength, pCel, pcImportParams->msCharSize.x);
 			}
 		}
 		

@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFontImportParams::Init(char* szImageFileName, char* szCharacterFileName, int iCharWidth, int iCharHeight)
+bool CFontImportParameters::Init(char* szImageFileName, char* szCharacterFileName, int iCharWidth, int iCharHeight)
 {
 	CFileUtil	cFileUtil;
 	bool		bExists1;
@@ -17,12 +17,8 @@ bool CFontImportParams::Init(char* szImageFileName, char* szCharacterFileName, i
 
 	msCharsGrid.Init(-1, -1);
 	msCharSize.Init(iCharWidth, iCharHeight);
-	miSpaceWidth = iCharWidth;
 	msTopLeftOffset.Init(0, 0);
 	msInterspace.Init(0, 0);
-	mbLeftToRightFirst = true;
-	miDescent = 0;
-	miAscent = iCharHeight;
 
 	mszFontName.Init(mszImageFileName);
 	cFileUtil.RemovePath(&mszFontName);
@@ -38,7 +34,7 @@ bool CFontImportParams::Init(char* szImageFileName, char* szCharacterFileName, i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFontImportParams::Kill(void)
+void CFontImportParameters::Kill(void)
 {
 	mszCharacterFileName.Kill();
 	mszImageFileName.Kill();
@@ -50,7 +46,7 @@ void CFontImportParams::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFontImportParams::FontName(void)
+char* CFontImportParameters::FontName(void)
 {
 	return mszFontName.Text();
 }
@@ -60,7 +56,7 @@ char* CFontImportParams::FontName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFontImportParams::GetImageFileName(void)
+char* CFontImportParameters::GetImageFileName(void)
 {
 	return mszImageFileName.Text();
 }
@@ -70,7 +66,7 @@ char* CFontImportParams::GetImageFileName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFontImportParams::GetCharacterFileName(void)
+char* CFontImportParameters::GetCharacterFileName(void)
 {
 	return mszCharacterFileName.Text();
 }

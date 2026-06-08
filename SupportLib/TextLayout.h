@@ -43,8 +43,8 @@ CONSTRUCTABLE(CTextLayout);
 DESTRUCTABLE(CTextLayout);
 protected:
 	int32			miWidth;		//-1 for no max width;
-	size			muiRowHeight;
-	SInt32Vec2			msPosition;
+	int16			miRowHeight;
+	SInt32Vec2		msPosition;
 	CUTF16			mcUTF16;
 	CBaseFontDraw*	mpcDraw;
 

@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __FONT_FACTORY_H__
 #include "FontList.h"
 #include "FontImportParameters.h"
+#include "FontCreationParameters.h"
 
 
 class CImageDividerNumbers;
@@ -42,10 +43,10 @@ public:
 	bool		Save(CObjectWriter* pcFile);
 	bool		Load(CObjectReader* pcFile);
 
-	Ptr<CFont>	Generate(CFontImportParams* pcParams);
+	Ptr<CFont>	Generate(CFontImportParameters* pcImportParams, CFontCreationParameters* pcCreationParams);
 
 protected:
-	void		Convert(CImageDividerNumbers* pcDest, CFontImportParams* pcSource);
+	void		Convert(CImageDividerNumbers* pcDest, CFontImportParameters* pcSource);
 };
 
 
