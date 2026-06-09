@@ -48,8 +48,8 @@ public:
 	bool						Save(CObjectWriter* pcFile);
 	bool						Load(CObjectReader* pcFile);
 
-	void						SetBlitterCache(Ptr<CImageCelBlitterCache> pCache);
-	void						SetViewport(Ptr<CImage> pViewport);
+	void						SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) override;
+	void						SetViewport(Ptr<CImage> pViewport) override;
 
 	bool						SetTile(size x, size y, Ptr<CImageCel> pTile);
 	Ptr<CImageCel>				GetTile(size uiIndex);
