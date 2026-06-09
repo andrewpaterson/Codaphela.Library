@@ -90,3 +90,40 @@ void CTileMap::AddLayer(Ptr<CTileLayer> pLayer)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTileMap::SetBlitterCache(Ptr<CImageCelBlitterCache> pCache)
+{
+	size				uiNumElements;
+	size				ui;
+	Ptr<CTileLayer>		pTileLayer;
+
+	uiNumElements = maTileLayers.NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		pTileLayer = maTileLayers.Get(ui);
+		pTileLayer->SetBlitterCache(pCache);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTileMap::SetViewport(Ptr<CImage> pViewport)
+{
+	size				uiNumElements;
+	size				ui;
+	Ptr<CTileLayer>		pTileLayer;
+
+	uiNumElements = maTileLayers.NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		pTileLayer = maTileLayers.Get(ui);
+		pTileLayer->SetViewport(pViewport);
+	}
+}
+

@@ -34,7 +34,6 @@ void CBlockMap::Init(void)
 	PreInit();
 
 	mbActive = false;
-	msViewportPosition.Zero();
 
 	PostInit();
 }
@@ -56,7 +55,6 @@ void CBlockMap::Free(void)
 void CBlockMap::Class(void)
 {
 	U_Bool(mbActive);
-	U_2Int32(msViewportPosition);
 }
 
 
@@ -97,25 +95,5 @@ void CBlockMap::Activate(void)
 void CBlockMap::Deactivate(void)
 {
 	mbActive = false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBlockMap::SetViewportPosition(int32 x, int32 y) 
-{
-	msViewportPosition.Init(x, y);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBlockMap::SetViewportPosition(SInt32Vec2	sViewportPosition)
-{
-	msViewportPosition.Init(&sViewportPosition);
 }
 

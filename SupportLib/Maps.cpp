@@ -29,9 +29,16 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMaps::Init(void)
+void CMaps::Init(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport)
 {
+	PreInit();
+
 	maMaps.Init();
+	msViewportPosition.Zero();
+	mpCache = pCache;
+	mpViewport = pViewport;
+
+	PostInit();
 }
 
 
@@ -50,6 +57,9 @@ void CMaps::Free(void)
 void CMaps::Class(void)
 {
 	M_Embedded(maMaps);
+	U_2Int32(msViewportPosition);
+	M_Pointer(mpCache);
+	M_Pointer(mpViewport);
 }
 
 
@@ -80,5 +90,50 @@ bool CMaps::Save(CObjectWriter* pcFile)
 void CMaps::AddMap(Ptr<CBlockMap> pMap)
 {
 	maMaps.Add(pMap);
+	pMap->SetViewport(mpViewport);
+	pMap->SetBlitterCache(mpCache);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMaps::SetViewportPosition(int32 x, int32 y)
+{
+	msViewportPosition.Init(x, y);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMaps::SetViewportPosition(SInt32Vec2	sViewportPosition)
+{
+	msViewportPosition.Init(&sViewportPosition);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMaps::Blit(void)
+{
+	size			uiNumElements;
+	size			ui;
+	Ptr<CBlockMap>	pMap;
+	CRectangle		cRect;
+	SInt32Vec2		sBottomRight;
+
+	sBottomRight.Init(mpViewport->GetWidth() + msViewportPosition.x, mpViewport->GetHeight() + msViewportPosition.y);
+	cRect.Init(msViewportPosition, sBottomRight);
+	uiNumElements = maMaps.NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		pMap = maMaps.Get(ui);
+		pMap->Blit(&cRect);
+	}
 }
 

@@ -34,17 +34,25 @@ class CMaps : public CObject
 CONSTRUCTABLE(CMaps);
 DESTRUCTABLE(CMaps);
 protected:
-	CArrayTileMap	maMaps;
+	CArrayTileMap				maMaps;
+	SInt32Vec2					msViewportPosition;
+	Ptr<CImageCelBlitterCache>	mpCache;
+	Ptr<CImage>					mpViewport;
 
 public:
-	void 				Init(void);
-	void 				Free(void);
-	void				Class(void);
+	void 	Init(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport);
+	void 	Free(void);
+	void	Class(void);
 
-	bool				Save(CObjectWriter* pcFile);
-	bool				Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
+	bool	Load(CObjectReader* pcFile);
 
-	void				AddMap(Ptr<CBlockMap> pMap);
+	void	AddMap(Ptr<CBlockMap> pMap);
+
+	void	Blit(void);
+
+	void	SetViewportPosition(int32 x, int32 y);
+	void	SetViewportPosition(SInt32Vec2	sViewportPosition);
 };
 
 

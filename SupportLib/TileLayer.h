@@ -26,6 +26,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/Array.h"
 #include "StandardLib/Object.h"
 #include "StandardLib/Pointer.h"
+#include "ImageCelBlitterCache.h"
 
 
 class CTileLayer : public CObject
@@ -40,17 +41,20 @@ protected:
 	SInt32Vec2		msPosition;		//Typically zero.
 
 public:
-			void		Init(CPointer pTileMap, const char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition);
-			void 		Free(void);
-			void		Class(void);
+			void	Init(CPointer pTileMap, const char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition);
+			void 	Free(void);
+			void	Class(void);
 
-			bool		Save(CObjectWriter* pcFile);
-			bool		Load(CObjectReader* pcFile);
+			bool	Save(CObjectWriter* pcFile);
+			bool	Load(CObjectReader* pcFile);
 
-			int32		GetLayerSizeX(void);
-			int32		GetLayerSizeY(void);
+			int32	GetLayerSizeX(void);
+			int32	GetLayerSizeY(void);
 
-	virtual void		TileLayerAbstract(void) =0;
+	virtual	void	SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) =0;
+	virtual	void	SetViewport(Ptr<CImage> pViewport) =0;
+
+	virtual void	TileLayerAbstract(void) =0;
 };
 
 

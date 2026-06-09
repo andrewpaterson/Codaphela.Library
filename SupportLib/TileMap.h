@@ -37,16 +37,19 @@ protected:
 	CArrayTileLayer		maTileLayers;
 
 public:
-	void				Init(void);
-	void 				Free(void);
-	void				Class(void);
+	void	Init(void);
+	void 	Free(void);
+	void	Class(void);
 
-	bool				Save(CObjectWriter* pcFile);
-	bool				Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
+	bool	Load(CObjectReader* pcFile);
 
-	void				AddLayer(Ptr<CTileLayer> pLayer);
+	void	AddLayer(Ptr<CTileLayer> pLayer);
 
-	void				TileMapAbstract(void) override {}
+	void	SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) override;
+	void	SetViewport(Ptr<CImage> pViewport) override;
+	
+	void	TileMapAbstract(void) override {}
 };
 
 

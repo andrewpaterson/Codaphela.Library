@@ -47,6 +47,9 @@ public:
 	bool	GetTile(size uiIndex);
 	bool	GetTile(int x, int y);
 
+	void	SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) override;
+	void	SetViewport(Ptr<CImage> pViewport) override;
+
 	void	TileLayerAbstract(void) override {}
 
 };

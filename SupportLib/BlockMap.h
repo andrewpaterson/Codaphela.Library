@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __BLOCK_MAP_H__
 #include "StandardLib/Object.h"
 #include "StandardLib/Array.h"
+#include "ImageCelBlitterCache.h"
 
 
 class CBlockMap : public CObject
@@ -33,7 +34,6 @@ CONSTRUCTABLE(CBlockMap);
 DESTRUCTABLE(CBlockMap);
 protected:
 	bool		mbActive;
-	SInt32Vec2	msViewportPosition;
 
 public:
 			void	Init(void);
@@ -46,10 +46,10 @@ public:
 	virtual	void	Activate(void);
 	virtual	void	Deactivate(void);
 
-			void	SetViewportPosition(int32 x, int32 y);
-			void	SetViewportPosition(SInt32Vec2	sViewportPosition);
-
 	virtual	void	TileMapAbstract(void) =0;
+
+	virtual	void	SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) =0;
+	virtual	void	SetViewport(Ptr<CImage> pViewport) =0;
 };
 
 

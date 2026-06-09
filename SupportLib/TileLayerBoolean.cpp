@@ -124,3 +124,11 @@ bool CTileLayerBoolean::GetTile(int x, int y)
 	return false;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CTileLayerBoolean::SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) {}
+void CTileLayerBoolean::SetViewport(Ptr<CImage> pViewport) {}
+
