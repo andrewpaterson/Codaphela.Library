@@ -127,3 +127,53 @@ void CTileMap::SetViewport(Ptr<CImage> pViewport)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTileMap::Blit(CRectangle* pcViewportRect)
+{
+	size				uiNumElements;
+	size				ui;
+	Ptr<CTileLayer>		pTileLayer;
+	bool				bResult;
+
+	uiNumElements = maTileLayers.NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		pTileLayer = maTileLayers.Get(ui);
+		bResult = pTileLayer->Blit(pcViewportRect);
+		if (!bResult)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTileMap::CreateCelBlitters(void)
+{
+	size				uiNumElements;
+	size				ui;
+	Ptr<CTileLayer>		pTileLayer;
+	bool				bResult;
+
+	uiNumElements = maTileLayers.NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		pTileLayer = maTileLayers.Get(ui);
+		bResult = pTileLayer->CreateCelBlitters();
+		if (!bResult)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+

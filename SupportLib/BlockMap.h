@@ -46,6 +46,9 @@ public:
 	virtual	void	Activate(void);
 	virtual	void	Deactivate(void);
 
+	virtual bool	Blit(CRectangle* pcViewportRect) =0;
+	virtual bool	CreateCelBlitters(void) =0;
+
 	virtual	void	TileMapAbstract(void) =0;
 
 	virtual	void	SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) =0;

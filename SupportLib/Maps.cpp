@@ -31,6 +31,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMaps::Init(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport)
 {
+	ValidatePtr(pCache);
+	ValidatePtr(pViewport);
+
 	PreInit();
 
 	maMaps.Init();
@@ -119,13 +122,14 @@ void CMaps::SetViewportPosition(SInt32Vec2	sViewportPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMaps::Blit(void)
+bool CMaps::Blit(void)
 {
 	size			uiNumElements;
 	size			ui;
 	Ptr<CBlockMap>	pMap;
 	CRectangle		cRect;
 	SInt32Vec2		sBottomRight;
+	bool			bResult;
 
 	sBottomRight.Init(mpViewport->GetWidth() + msViewportPosition.x, mpViewport->GetHeight() + msViewportPosition.y);
 	cRect.Init(msViewportPosition, sBottomRight);
@@ -133,7 +137,37 @@ void CMaps::Blit(void)
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
 		pMap = maMaps.Get(ui);
-		pMap->Blit(&cRect);
+		bResult = pMap->Blit(&cRect);
+		if (!bResult)
+		{
+			return false;
+		}
 	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMaps::CreateCelBlitters(void)
+{
+	size			uiNumElements;
+	size			ui;
+	Ptr<CBlockMap>	pMap;
+	bool			bResult;
+
+	uiNumElements = maMaps.NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		pMap = maMaps.Get(ui);
+		bResult = pMap->CreateCelBlitters();
+		if (!bResult)
+		{
+			return false;
+		}
+	}
+	return true;
 }
 

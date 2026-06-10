@@ -54,6 +54,9 @@ public:
 	virtual	void	SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) =0;
 	virtual	void	SetViewport(Ptr<CImage> pViewport) =0;
 
+	virtual bool	Blit(CRectangle* pcViewportRect) =0;
+	virtual bool	CreateCelBlitters(void) =0;
+
 	virtual void	TileLayerAbstract(void) =0;
 };
 

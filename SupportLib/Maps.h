@@ -49,7 +49,8 @@ public:
 
 	void	AddMap(Ptr<CBlockMap> pMap);
 
-	void	Blit(void);
+	bool	Blit(void);
+	bool	CreateCelBlitters(void);
 
 	void	SetViewportPosition(int32 x, int32 y);
 	void	SetViewportPosition(SInt32Vec2	sViewportPosition);

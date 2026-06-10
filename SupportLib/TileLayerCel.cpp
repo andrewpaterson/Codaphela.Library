@@ -180,6 +180,7 @@ Ptr<CImage> CTileLayerCel::WriteToImage(void)
 	Ptr<CImage>					pOldViewport;
 	Ptr<CImage>					pImage;
 	Ptr<CImageBlitter>			pBlitter;
+	bool						bResult;
 
 	pOldViewport = mpViewport;
 	pOldCache = mpCache;
@@ -196,7 +197,13 @@ Ptr<CImage> CTileLayerCel::WriteToImage(void)
 			pBlitter = GetBlitter(x, y);
 			if (pBlitter.IsNotNull())
 			{
-				pBlitter->Blit(x * msCelSize.x, y * msCelSize.y);
+				bResult = pBlitter->Blit(x * msCelSize.x, y * msCelSize.y);
+				if (!bResult)
+				{
+					mpViewport = pOldViewport;
+					mpCache = pOldCache;
+					return NULL;
+				}
 			}
 		}
 	}
@@ -405,6 +412,42 @@ Ptr<CImageCelBlitterCache> CTileLayerCel::CreateBlitterCache(void)
 		return OMalloc<CImageCelBlitterCache>(mpViewport);
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CTileLayerCel::Blit(CRectangle* pcViewportRect)
+{
+	Ptr<CImageCel>				pCel;
+	int32						x;
+	int32						y;
+	Ptr<CImageBlitter>			pBlitter;
+	bool						bResult;
+	int32						xOffset;
+	int32						yOffset;
+
+	for (y = 0; y < msMapSize.y; y++)
+	{
+		for (x = 0; x < msMapSize.x; x++)
+		{
+			pBlitter = GetBlitter(x, y);
+			if (pBlitter.IsNotNull())
+			{
+				xOffset = x * msCelSize.x;
+				yOffset = y * msCelSize.y;
+				bResult = pBlitter->Blit(xOffset - pcViewportRect->miLeft, yOffset - pcViewportRect->miTop);
+				if (!bResult)
+				{
+					return false;
+				}
+			}
+		}
+	}
+
+	return true;
 }
 
 
