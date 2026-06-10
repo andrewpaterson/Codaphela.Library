@@ -50,6 +50,9 @@ public:
 	void	SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) override;
 	void	SetViewport(Ptr<CImage> pViewport) override;
 
+	bool	Blit(CRectangle* pcViewportRect) override;
+	bool	CreateCelBlitters(void) override;
+
 	void	TileLayerAbstract(void) override {}
 
 };

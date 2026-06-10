@@ -436,6 +436,42 @@ Ptr<CImageCelBlitterCache> CSpriteMap::CreateBlitterCache(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+bool CSpriteMap::Blit(CRectangle* pcViewportRect)
+{
+	size			ui;
+	size			uiNumElements;
+	Ptr<CSprite>	pSprite;
+	Ptr<CImageCel>	pCel;
+	int32			x;
+	int32			y;
+	bool			bResult;
+	Ptr<CImage>		pImage;
+
+	uiNumElements = maSprites.NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		pSprite = maSprites.Get(ui);
+		pCel = pSprite->GetCel();
+		if (pCel.IsNotNull())
+		{
+			x = pSprite->GetX();
+			y = pSprite->GetY();
+			bResult = pSprite->Blit(x - pcViewportRect->miLeft, y - pcViewportRect->miTop);
+			if (!bResult)
+			{
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void		CSpriteMap::SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) { mpCache = pCache; }
 void		CSpriteMap::SetViewport(Ptr<CImage> pViewport) { mpViewport = pViewport; }
 Ptr<CImage> CSpriteMap::GetViewport(void) { return mpViewport; }

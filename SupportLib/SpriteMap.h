@@ -67,6 +67,8 @@ public:
 	bool						GetImageDestBounds(CRectangle* pcRect);
 	bool						GetFullDestBounds(CRectangle* pcRect);
 
+	bool						Blit(CRectangle* pcViewportRect) override;
+
 	Ptr<CImage>					WriteToImage(void);
 	Ptr<CImage>					CreateViewportImage(void);
 	Ptr<CImage>					CreateViewportImage(CRectangle* pcBoundingRect);

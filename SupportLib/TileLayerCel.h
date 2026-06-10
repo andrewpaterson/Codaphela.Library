@@ -57,6 +57,8 @@ public:
 
 	bool						SetTiles(size x, size y, Ptr<CArrayImageCel> paCels, size uiIndices ...);
 
+	bool						Blit(CRectangle* pcViewportRect) override;
+
 	bool						GetImageDestBounds(CRectangle* pcRect);
 	bool						GetFullDestBounds(CRectangle* pcRect);
 

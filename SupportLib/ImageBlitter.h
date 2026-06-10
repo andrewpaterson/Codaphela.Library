@@ -55,7 +55,7 @@ public:
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;
 
-	void			Blit(int32 iDestX, int32 iDestY);
+	bool			Blit(int32 iDestX, int32 iDestY);
 
 protected:
 	EColourOrder	GetColourOrder(Ptr<CImage> pImage);

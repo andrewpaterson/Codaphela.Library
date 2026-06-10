@@ -51,8 +51,8 @@ public:
 };
 
 
-bool ValidatePointerClass(char* szMethod, char* szParameter, const char* szInstanceClassName, const char* szExpectedClassName);
-#define ValidatePtr(p) ValidatePointerClass(__METHOD__, #p, p.IsNotNull() ? p->ClassName() : NULL, p.TemplateClassName());
+bool ValidatePointerClassAllowNull(char* szMethod, char* szParameter, const char* szInstanceClassName, const char* szExpectedClassName);
+#define ValidatePtr(p) ValidatePointerClassAllowNull(__METHOD__, #p, p.IsNotNull() ? p->ClassName() : NULL, p.TemplateClassName());
 
 
 //////////////////////////////////////////////////////////////////////////
