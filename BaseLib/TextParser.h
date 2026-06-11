@@ -101,6 +101,8 @@ public:
 	TRISTATE		GetDigits(uint64* pulli, int16* piSign, uint16* puiNumDigits, bool bSkipWhitespace = true, bool bTestSign = true, uint16 uiBase = 10, uint16 uiAllowedSeparator = NUMBER_SEPARATOR_NONE);
 	TRISTATE		GetInteger(uint64* pulli, int16* piSign, uint16* puiNumDigits = NULL, bool bSkipWhitespace = true);
 	TRISTATE		GetInteger(int64* pi, uint16* puiNumDigits = NULL, bool bSkipWhitespace = true);
+	TRISTATE		GetInteger(uint32* pui, int16* piSign, uint16* puiNumDigits = NULL, bool bSkipWhitespace = true);
+	TRISTATE		GetInteger(int32* pi, uint16* puiNumDigits = NULL, bool bSkipWhitespace = true);
 	TRISTATE		GetHexadecimal(uint64* pulli, uint16* puiNumDigits = NULL, bool bSkipWhitespace = true);
 	TRISTATE		GetHexadecimalPart(uint64* pulli, uint16* puiNumDigits, uint16 iMaxDigits = 16);
 	TRISTATE		GetOctal(uint64* pulli, uint16* puiNumDigits = NULL, bool bSkipWhitespace = true);

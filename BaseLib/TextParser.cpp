@@ -1157,6 +1157,38 @@ TRISTATE CTextParser::GetInteger(int64* pi, uint16* puiNumDigits, bool bSkipWhit
 //
 //
 //////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetInteger(uint32* pui, int16* piSign, uint16* puiNumDigits, bool bSkipWhitespace)
+{
+	uint64		ulliTemp;
+	TRISTATE	tReturn;
+	int16		iSign;
+
+	tReturn = GetInteger(&ulliTemp, &iSign, puiNumDigits, bSkipWhitespace);
+	*pui = (uint32)ulliTemp;
+	return tReturn;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetInteger(int32* pi, uint16* puiNumDigits, bool bSkipWhitespace)
+{
+	uint64		ulliTemp;
+	TRISTATE	tReturn;
+	int16		iSign;
+
+	tReturn = GetInteger(&ulliTemp, &iSign, puiNumDigits, bSkipWhitespace);
+	*pi = ((int32)ulliTemp) * iSign;
+	return tReturn;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 TRISTATE CTextParser::GetIntegerLiteral(uint64* pulli, uint16 iAllowedPrefix, uint16* piBase, uint16 iAllowedSuffix, uint16* piSuffix, uint16 uiAllowedSeparator, uint16* puiNumDigits, bool bSkipWhitespace)
 {
 	char		cCurrent;

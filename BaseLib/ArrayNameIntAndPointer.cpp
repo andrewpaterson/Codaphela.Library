@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "PointerFunctions.h"
+#include "StringHelper.h"
 #include "ArrayNameIntAndPointer.h"
 
 
@@ -153,5 +154,45 @@ void CArrayNameIntAndPointer::RemoveWithData(void* pv)
 	{
 		RemoveAt(iIndex);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+SNameIntAndPointer* CArrayNameIntAndPointer::GetWithName(char* szName)
+{
+	size					ui;
+	size					uiNumElements;
+	SNameIntAndPointer*		ps;
+
+	uiNumElements = NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		ps = CArrayTemplate::Get(ui);
+		if (StringCompare(szName, ps->szName) == 0)
+		{
+			return ps;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void* CArrayNameIntAndPointer::GetPtr(char* szName)
+{
+	SNameIntAndPointer* ps;
+
+	ps = GetWithName(szName);
+	if (ps)
+	{
+		return ps->pvData;
+	}
+	return NULL;
 }
 

@@ -41,7 +41,7 @@ bool CWinGDICanvas::CreateNativeCanvas(void)
     //This is split from .Init() so that it can fail on its own.
 
     CWinGDIWindowFactory*   pcFactory; 
-    SInt2                   sSize;
+    SInt32Vec2              sSize;
     BITMAPINFO              sBitmapInfo;
     HWND                    hWnd;
     HDC                     hDC;
@@ -104,7 +104,7 @@ uint8* CWinGDICanvas::GetPixelData(void)
 void CWinGDICanvas::CopyCanvas(CNativeCanvas* pcSourceCanvas)
 {
     CWinGDICanvas*  pcSourceGDICanvas;
-    SInt2           sSize;
+    SInt32Vec2      sSize;
     HDC             hSourceDC;
     HDC             hDestDC;
     HBITMAP         hOldSourceBitmap;

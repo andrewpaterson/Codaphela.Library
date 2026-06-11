@@ -23,7 +23,7 @@ size CColourFormatHelper::GetNumChannels(void)
 {
 	switch (meFormat)
 	{
-	case CFT_RGB:
+	case CF_R8G8B8:
 		return 3;
 	case CFT_RGBX:
 	case CFT_XRGB:
@@ -45,7 +45,7 @@ EChannel CColourFormatHelper::GetChannel(size uiIndex)
 {
 	switch (meFormat)
 	{
-	case CFT_RGB:
+	case CF_R8G8B8:
 		return GetColourChannel(uiIndex);
 
 	case CFT_RGBX:
@@ -99,7 +99,7 @@ EPrimitiveType CColourFormatHelper::GetType(size uiIndex)
 {
 	switch (meFormat)
 	{
-	case CFT_RGB:
+	case CF_R8G8B8:
 		return GetColourType(uiIndex);
 
 	case CFT_RGBX:
@@ -323,7 +323,7 @@ size CColourFormatHelper::GetFirstColourIndex(void)
 {
 	switch (meFormat)
 	{
-	case CFT_RGB:
+	case CF_R8G8B8:
 	case CFT_RGBX:
 	case CFT_RGBA:
 		return 0;
@@ -348,7 +348,7 @@ size CColourFormatHelper::GetAlphaIndex(void)
 		return 3;
 	case CFT_ARGB:
 		return 0;
-	case CFT_RGB:
+	case CF_R8G8B8:
 	case CFT_RGBX:
 	case CFT_XRGB:
 		break;

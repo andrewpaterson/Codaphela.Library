@@ -644,7 +644,7 @@ EColourFormat CImageBlitter::GetColourFormat(Ptr<CImage> pImage)
 		}
 	}
 
-	return CFT_RGB;
+	return CF_R8G8B8;
 }
 
 

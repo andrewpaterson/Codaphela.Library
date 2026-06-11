@@ -171,6 +171,20 @@ void* CMarkupTag::GetAttribute(size uiIndex, uint* puiType, char** szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+// Do not use this method.  I can't remember why.
+char* CMarkupTag::GetAttribute(char* szAttribute)
+{
+	void* pvData;
+
+	pvData = mcAttributes.GetPtr(szAttribute);
+	return (char*)pvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CMarkupTag* CMarkupTag::GetTag(char* szTagName, STagIterator* psIter)
 {
 	STagIterator	sTemp;

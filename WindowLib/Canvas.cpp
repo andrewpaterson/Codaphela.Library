@@ -38,7 +38,7 @@ void CCanvas::Free(void)
 		mpcNativeCanvas = NULL;
 	}
 
-	meFormat = CF_Unknown;
+	meFormat = CFT_Unknown;
 
 	CComponent::Free();
 }
@@ -208,7 +208,7 @@ void CCanvas::DrawPixel(int iX, int iY, ARGB32 sColour)
 //////////////////////////////////////////////////////////////////////////
 bool CCanvas::IsValid(void)
 {
-	if (meFormat == CF_Unknown)
+	if (meFormat == CFT_Unknown)
 	{
 		return false;
 	}
