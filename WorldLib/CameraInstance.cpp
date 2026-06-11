@@ -233,7 +233,7 @@ bool CCameraInstance::IsSphereVisible(CSphere* pcSphere)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCameraInstance::PickRay(CRay* pcRay, SFloat2 sWindowPosition)
+void CCameraInstance::PickRay(CRay* pcRay, SFloat32Vec2 sWindowPosition)
 {
 	SFloat3		sAt;
 	SFloat3		sUp;

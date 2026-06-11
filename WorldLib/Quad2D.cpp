@@ -106,12 +106,12 @@ bool CQuad2D::Draw(CGraphicsObject* pcGraphicsObject)
 	SFloat4*					psBottomLeft1;
 	SFloat4*					psBottomLeft2;
 	SFloat4*					psBottomRight;
-	SFloat2*					psUVTL;
-	SFloat2*					psUVTR1;
-	SFloat2*					psUVBL1;
-	SFloat2*					psUVTR2;
-	SFloat2*					psUVBL2;
-	SFloat2*					psUVBR;
+	SFloat32Vec2*					psUVTL;
+	SFloat32Vec2*					psUVTR1;
+	SFloat32Vec2*					psUVBL1;
+	SFloat32Vec2*					psUVTR2;
+	SFloat32Vec2*					psUVBL2;
+	SFloat32Vec2*					psUVBR;
 	void*						pvFirstVert;
 	int							iOffset;
 	int							iMaterialIndex;
@@ -189,12 +189,12 @@ bool CQuad2D::Draw(CGraphicsObject* pcGraphicsObject)
 	{
 		//Assign the UV coordinates.
 		iOffset = gcD3D.GetVertexFormatUVOffset(iD3DVertexType, i);
-		psUVTL = (SFloat2*)RemapSinglePointer(psTopLeft, iOffset);
-		psUVTR1 = (SFloat2*)RemapSinglePointer(psTopRight1, iOffset);
-		psUVBL1 = (SFloat2*)RemapSinglePointer(psBottomLeft1, iOffset);
-		psUVTR2 = (SFloat2*)RemapSinglePointer(psTopRight2, iOffset);
-		psUVBL2 = (SFloat2*)RemapSinglePointer(psBottomLeft2, iOffset);
-		psUVBR = (SFloat2*)RemapSinglePointer(psBottomRight, iOffset);
+		psUVTL = (SFloat32Vec2*)RemapSinglePointer(psTopLeft, iOffset);
+		psUVTR1 = (SFloat32Vec2*)RemapSinglePointer(psTopRight1, iOffset);
+		psUVBL1 = (SFloat32Vec2*)RemapSinglePointer(psBottomLeft1, iOffset);
+		psUVTR2 = (SFloat32Vec2*)RemapSinglePointer(psTopRight2, iOffset);
+		psUVBL2 = (SFloat32Vec2*)RemapSinglePointer(psBottomLeft2, iOffset);
+		psUVBR = (SFloat32Vec2*)RemapSinglePointer(psBottomRight, iOffset);
 
 		psUVTL->x =					masUVs[i].asUV[0].x;
 		psUVTL->y =					masUVs[i].asUV[0].y;
@@ -253,8 +253,8 @@ void CQuad2D::SetGraphicsState(CGraphicsState* psState)
 //////////////////////////////////////////////////////////////////////////
 void CQuad2D::SetUVCoordsFromRectangle(int iTextureLayer, CRectangle* psRect)
 {
-	SFloat2		s1;
-	SFloat2		s2;
+	SFloat32Vec2		s1;
+	SFloat32Vec2		s2;
 
 	s1 = psRect->GetUVCoordinatesTopLeft(mpcGraphicsMaterial->GetTexture(iTextureLayer)->GetWidth(), mpcGraphicsMaterial->GetTexture(iTextureLayer)->GetHeight());
 	s2 = psRect->GetUVCoordinatesBottomRight(mpcGraphicsMaterial->GetTexture(iTextureLayer)->GetWidth(), mpcGraphicsMaterial->GetTexture(iTextureLayer)->GetHeight());

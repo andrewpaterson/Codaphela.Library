@@ -82,7 +82,7 @@ void CParticleSystem::Init(int iFlags, int iNumUVLayers, int iUserDataSize, CGra
 
 	//Size is always present after position.
 	msParticleType.iSizeOffset = iOffset;
-	iOffset += sizeof(SFloat2);
+	iOffset += sizeof(SFloat32Vec2);
 
 	//Make sure we need memory for at least one UV coord.
 	if (iFlags & (PSF_UVCoords1 | PSF_UVCoords2 | PSF_UVCoords3))
@@ -228,7 +228,7 @@ void CParticleSystem::CalcBounding(void)
 	SFreeListIterator	sIterator;
 	void*				pvParticle;
 	SFloat3*			psPostition;
-	SFloat2*			psSize;
+	SFloat32Vec2*			psSize;
 	float				fMaxSize;
 	float				fSize;
 	SFloat3				cPosition;
@@ -378,7 +378,7 @@ void* CParticleSystem::DrawUnalignedUnboundParticle(SFloat4x4* psCameraMatrix, v
 	SFloat3		sHalfHeight;
 
 	SFloat3*	psPosition;
-	SFloat2*	psSize;
+	SFloat32Vec2*	psSize;
 	SFloat3*	psForwardAxis;
 	float			fForwardRotation;
 
@@ -564,7 +564,7 @@ void CParticleSystem::CornersForUnalignedUnbound(void* pvVertex, int iD3DVertexS
 //////////////////////////////////////////////////////////////////////////
 void CParticleSystem::UVs(void* pvVertex, int iD3DVertexSize, int iVertexUVOffset, void * pvParticle)
 {
-	SFloat2*	psVertUVs;
+	SFloat32Vec2*	psVertUVs;
 	SUVCorners*		psUVs;
 	int				iLayerNum;
 	int				iAssignedNum;
@@ -598,49 +598,49 @@ void CParticleSystem::UVs(void* pvVertex, int iD3DVertexSize, int iVertexUVOffse
 		if (miVerticiesPerParticle == 6)
 		{
 			//0
-			psVertUVs = (SFloat2*)RemapSinglePointer(pvVertex, iVertexUVOffset + iLayerNum * sizeof(SFloat2));
+			psVertUVs = (SFloat32Vec2*)RemapSinglePointer(pvVertex, iVertexUVOffset + iLayerNum * sizeof(SFloat32Vec2));
 			psVertUVs->x = psCurrent->sUVTopLeft.x;
 			psVertUVs->y = psCurrent->sUVTopLeft.y;
 
 			//2
-			psVertUVs = (SFloat2*)RemapSinglePointer(psVertUVs, iD3DVertexSize);
+			psVertUVs = (SFloat32Vec2*)RemapSinglePointer(psVertUVs, iD3DVertexSize);
 			psVertUVs->x = psCurrent->sUVTopLeft.x;
 			psVertUVs->y = psCurrent->sUVBottomRight.y;
 
 			//1
-			psVertUVs = (SFloat2*)RemapSinglePointer(psVertUVs, iD3DVertexSize);
+			psVertUVs = (SFloat32Vec2*)RemapSinglePointer(psVertUVs, iD3DVertexSize);
 			psVertUVs->x = psCurrent->sUVBottomRight.x;
 			psVertUVs->y = psCurrent->sUVTopLeft.y;
 
 			//3
-			psVertUVs = (SFloat2*)RemapSinglePointer(psVertUVs, iD3DVertexSize);
+			psVertUVs = (SFloat32Vec2*)RemapSinglePointer(psVertUVs, iD3DVertexSize);
 			psVertUVs->x = psCurrent->sUVBottomRight.x;
 			psVertUVs->y = psCurrent->sUVTopLeft.y;
 
 			//5
-			psVertUVs = (SFloat2*)RemapSinglePointer(psVertUVs, iD3DVertexSize);
+			psVertUVs = (SFloat32Vec2*)RemapSinglePointer(psVertUVs, iD3DVertexSize);
 			psVertUVs->x = psCurrent->sUVTopLeft.x;
 			psVertUVs->y = psCurrent->sUVBottomRight.y;
 
 			//4
-			psVertUVs = (SFloat2*)RemapSinglePointer(psVertUVs, iD3DVertexSize);
+			psVertUVs = (SFloat32Vec2*)RemapSinglePointer(psVertUVs, iD3DVertexSize);
 			psVertUVs->x = psCurrent->sUVBottomRight.x;
 			psVertUVs->y = psCurrent->sUVBottomRight.y;
 		}
 		else if (miVerticiesPerParticle == 3)
 		{
 			//0
-			psVertUVs = (SFloat2*)RemapSinglePointer(pvVertex, iVertexUVOffset + iLayerNum * sizeof(SFloat2));
+			psVertUVs = (SFloat32Vec2*)RemapSinglePointer(pvVertex, iVertexUVOffset + iLayerNum * sizeof(SFloat32Vec2));
 			psVertUVs->x = psCurrent->sUVTopLeft.x;
 			psVertUVs->y = psCurrent->sUVTopLeft.y;
 
 			//2
-			psVertUVs = (SFloat2*)RemapSinglePointer(psVertUVs, iD3DVertexSize);
+			psVertUVs = (SFloat32Vec2*)RemapSinglePointer(psVertUVs, iD3DVertexSize);
 			psVertUVs->x = (psCurrent->sUVTopLeft.x + psCurrent->sUVBottomRight.x) * 0.5f;
 			psVertUVs->y = psCurrent->sUVBottomRight.y;
 
 			//1
-			psVertUVs = (SFloat2*)RemapSinglePointer(psVertUVs, iD3DVertexSize);
+			psVertUVs = (SFloat32Vec2*)RemapSinglePointer(psVertUVs, iD3DVertexSize);
 			psVertUVs->x = psCurrent->sUVBottomRight.x;
 			psVertUVs->y = psCurrent->sUVTopLeft.y;
 		}
@@ -675,7 +675,7 @@ void CParticleSystem::Colours(void* pvVertex, int iD3DVertexSize, int iVertexCol
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CParticleSystem::AddParticle(SFloat3* psPosition, SFloat2* psSize)
+void* CParticleSystem::AddParticle(SFloat3* psPosition, SFloat32Vec2* psSize)
 {
 	void*	pvParticle;
 
@@ -690,7 +690,7 @@ void* CParticleSystem::AddParticle(SFloat3* psPosition, SFloat2* psSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CParticleSystem::AddParticle(SFloat3* psPosition, SFloat2* psSize, SFloat2* psUVTopLeft, SFloat2* psUVBottomRight)
+void* CParticleSystem::AddParticle(SFloat3* psPosition, SFloat32Vec2* psSize, SFloat32Vec2* psUVTopLeft, SFloat32Vec2* psUVBottomRight)
 {
 	void*	pvParticle;
 
@@ -705,7 +705,7 @@ void* CParticleSystem::AddParticle(SFloat3* psPosition, SFloat2* psSize, SFloat2
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CParticleSystem::AddParticle(SFloat3* psPosition, SFloat2* psSize, SFloat2* psUVTopLeft, SFloat2* psUVBottomRight, float fForwardRotation)
+void* CParticleSystem::AddParticle(SFloat3* psPosition, SFloat32Vec2* psSize, SFloat32Vec2* psUVTopLeft, SFloat32Vec2* psUVBottomRight, float fForwardRotation)
 {
 	void*	pvParticle;
 
@@ -729,9 +729,9 @@ SFloat3* CParticleSystem::GetPosition(void* pvParticle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat2* CParticleSystem::GetSize(void* pvParticle)
+SFloat32Vec2* CParticleSystem::GetSize(void* pvParticle)
 {
-	return (SFloat2*)RemapSinglePointer(pvParticle, msParticleType.iSizeOffset);
+	return (SFloat32Vec2*)RemapSinglePointer(pvParticle, msParticleType.iSizeOffset);
 }
 
 

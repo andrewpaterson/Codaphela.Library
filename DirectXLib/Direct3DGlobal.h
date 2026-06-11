@@ -155,14 +155,14 @@ struct SD3DVertexType
 
 struct SUVCorners
 {
-	SFloat2		sUVTopLeft;
-	SFloat2		sUVBottomRight;
+	SFloat32Vec2		sUVTopLeft;
+	SFloat32Vec2		sUVBottomRight;
 };
 
 
 struct SUVCornersFull
 {
-	SFloat2		asUV[4];  //0 -> top left ... clockwise.
+	SFloat32Vec2		asUV[4];  //0 -> top left ... clockwise.
 
 	void Rotate(int iTimeClockwise);
 	void Set(float u1, float v1, float u2, float v2);

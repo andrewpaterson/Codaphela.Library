@@ -116,7 +116,7 @@ enum EParticleSystemFlags
 struct SParticle
 {
 	SFloat3		sPosition;
-	SFloat2		sSize;
+	SFloat32Vec2		sSize;
 	SUVCorners		sUVs1;
 	SUVCorners		sUVs2;
 	SUVCorners		sUVs3;
@@ -204,12 +204,12 @@ public:
 	void			UVs(void* pvVertex, int iD3DVertexSize, int iVertexUVOffset, void* pvParticle);
 	void			Colours(void* pvVertex, int iD3DVertexSize, int iVertexColourOffset, void* pvParticle, int iColour);
 
-	void*			AddParticle(SFloat3* psPosition, SFloat2* psSize);
-	void*			AddParticle(SFloat3* psPosition, SFloat2* psSize, SFloat2* psUVTopLeft, SFloat2* psUVBottomRight);
-	void*			AddParticle(SFloat3* psPosition, SFloat2* psSize, SFloat2* psUVTopLeft, SFloat2* psUVBottomRight, float fForwardRotation);
+	void*			AddParticle(SFloat3* psPosition, SFloat32Vec2* psSize);
+	void*			AddParticle(SFloat3* psPosition, SFloat32Vec2* psSize, SFloat32Vec2* psUVTopLeft, SFloat32Vec2* psUVBottomRight);
+	void*			AddParticle(SFloat3* psPosition, SFloat32Vec2* psSize, SFloat32Vec2* psUVTopLeft, SFloat32Vec2* psUVBottomRight, float fForwardRotation);
 
 	SFloat3*		GetPosition(void* pvParticle);
-	SFloat2*		GetSize(void* pvParticle);
+	SFloat32Vec2*		GetSize(void* pvParticle);
 	SUVCorners*		GetUVBase(void* pvParticle);
 	SFloat3*		GetForwardAxis(void* pvParticle);
 	float			GetForwardCutoff(void* pvParticle);
