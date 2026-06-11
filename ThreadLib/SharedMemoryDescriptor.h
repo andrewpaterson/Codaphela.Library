@@ -20,5 +20,5 @@ struct SSharedMemoryDescriptor
 
 
 
-#endif // !__SHARED_MEMORY_DESCRIPTOR_H__
+#endif // __SHARED_MEMORY_DESCRIPTOR_H__
 

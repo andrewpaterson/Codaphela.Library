@@ -56,6 +56,7 @@ public:
 	bool				IsEmpty(void);
 	bool				GetAttribute(char* szAttribute, void** ppvData, uint* puiType = NULL);
 	void*				GetAttribute(size uiIndex, uint* puiType, char** szName = NULL);
+	char*				GetAttribute(char* szAttribute);
 	size				GetNumAttributes(void);
 	CMarkupTag*			GetTag(char* szTagName, STagIterator* psIter = NULL);
 	CMarkupTag*			GetTag(char* szTagName, size iTagNumber);

@@ -30,7 +30,7 @@ class CSet final : public CSetObject
 {
 CONSTRUCTABLE(CSet)
 public:
-	Ptr<CSet<M>>	Init(bool bSortPointers);
+	Ptr<CSet<M>>	Init(bool bSortPointers = true);
 
 	bool			Add(Ptr<M> pObject);
 	void			AddAll(Ptr<CArrayCommonObject> pcSet);

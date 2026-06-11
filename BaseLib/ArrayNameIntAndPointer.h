@@ -30,13 +30,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CArrayNameIntAndPointer : public CArrayTemplate<SNameIntAndPointer>
 {
 public:
-	void 	Add(void* pvData, uint uiType, char* szName);
-	bool 	Get(size iElementPos, void** ppvData, uint* uiType, char** pszName);
-	void*	GetPtr(size iElementPos);
-	uint	GetType(size iElementPos);
-	char*	GetName(size uiIndex);
-	void	Set(size iElementPos, void* pvData, uint uiType, char* szName);
-	void	RemoveWithData(void* pv);
+	void 					Add(void* pvData, uint uiType, char* szName);
+	bool 					Get(size iElementPos, void** ppvData, uint* uiType, char** pszName);
+	void*					GetPtr(size iElementPos);
+	uint					GetType(size iElementPos);
+	char*					GetName(size uiIndex);
+	SNameIntAndPointer*		GetWithName(char* szName);
+	void*					GetPtr(char* szName);
+	void					Set(size iElementPos, void* pvData, uint uiType, char* szName);
+	void					RemoveWithData(void* pv);
 };
 
 

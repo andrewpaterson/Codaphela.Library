@@ -47,7 +47,7 @@ enum EColourFormat
 {
 	CFT_Unknown,
 
-	CFT_RGB,  //Note, RGB is a stand in for any RGB order.
+	CF_R8G8B8,  //Note, RGB is a stand in for any RGB order.
 	CFT_RGBX,
 	CFT_XRGB,
 	CFT_RGBA,
