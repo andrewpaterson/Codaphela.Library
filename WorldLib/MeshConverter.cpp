@@ -731,7 +731,7 @@ void CMeshConverter::PopulateUVs(SD3DVertexType* psVertexType, void* pvFirstNewV
 	int							iNumTextures;
 	int							k;
 	CMeshUVLayer*				pcUVLayer;
-	SFloat2*					psUV;
+	SFloat32Vec2*					psUV;
 	CChannelsAccessorCreator	cCreator;
 	CChannelsAccessor*			pcAccessor;
 
@@ -746,12 +746,12 @@ void CMeshConverter::PopulateUVs(SD3DVertexType* psVertexType, void* pvFirstNewV
 			cCreator.AddAccess(CHANNEL(VP_UVCoord_(k), CT_U), CHANNEL(VP_UVCoord_(k), CT_V), PT_float);
 			pcAccessor = cCreator.CreateAndKill();
 
-			pvVert = RemapSinglePointer(pvFirstNewVert, psVertexType->iUVOffest + (k * sizeof(SFloat2)));
+			pvVert = RemapSinglePointer(pvFirstNewVert, psVertexType->iUVOffest + (k * sizeof(SFloat32Vec2)));
 			for (j = 0; j < iNumVerts; j++)
 			{
 				pcUVLayer = mpcMesh->mcUVs.mcLayers.Get(k);
-				psUV = (SFloat2*)pcAccessor->Get(j);
-				((SFloat2*)pvVert)->Init(psUV->x, psUV->y);
+				psUV = (SFloat32Vec2*)pcAccessor->Get(j);
+				((SFloat32Vec2*)pvVert)->Init(psUV->x, psUV->y);
 
 				pvVert = RemapSinglePointer(pvVert, psVertexType->iD3DVertexSize);
 			}
@@ -889,7 +889,7 @@ void CMeshConverter::WeightAdjustIndices(int iNumWeights, SSkinWeight* psWeights
 //	SFloat3*		psPosition;
 //	SFloat3*		psNormal;
 //	unsigned int*	psColour;
-//	SFloat2*		psUV;
+//	SFloat32Vec2*		psUV;
 //	int				iVertexBase;
 //	int				i;
 //	int*			pi;

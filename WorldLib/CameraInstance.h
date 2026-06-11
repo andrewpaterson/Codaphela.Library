@@ -66,7 +66,7 @@ public:
 	void 		CalculateView(void);
 	void 		CalculateProjection(void);
 	bool 		IsSphereVisible(CSphere* pcSphere);
-	void 		PickRay(CRay* pcRay, SFloat2 sCursorPosition);
+	void 		PickRay(CRay* pcRay, SFloat32Vec2 sCursorPosition);
 	void 		CreateAdjustment(void);
 	SMatrix*	GetViewTransform(void);
 	SMatrix*	GetWorldTransform(void);

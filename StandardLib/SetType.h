@@ -29,7 +29,7 @@ class CSetType : public CSetUnknown
 {
 CONSTRUCTABLE(CSetType)
 public:
-	void 	Init(bool bSortPointers);
+	void 	Init(bool bSortPointers = true);
 	void 	Init(CUnknowns* pcUnknownsAllocatingFrom, bool bSortPointers);
 	void 	Kill(void);
 
