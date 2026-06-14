@@ -1,4 +1,5 @@
 #include "SupportLib/ImageAccessorCreator.h"
+#include "SupportLib/ImageCopier.h"
 #include "WindowLib/Canvas.h"
 #include "WinRefWindowFactory.h"
 #include "WinRefCanvas.h"
@@ -142,5 +143,16 @@ void CWinRefCanvas::SetColour(ARGB32 sColour)
         mcDraw.SetColour(&cColour);
         msLastColour = sColour;
     }
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinRefCanvas::DrawImage(int iX, int iY, Ptr<CImageCel> pSource)
+{
+    CImageCopier::Copy(pSource, mpImage, iX, iY);
 }
 

@@ -202,6 +202,7 @@ void CCanvas::DrawPixel(int iX, int iY, ARGB32 sColour)
 	mpcNativeCanvas->DrawPixel(iX, iY, sColour);
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //

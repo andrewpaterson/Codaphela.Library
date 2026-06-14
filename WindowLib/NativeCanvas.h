@@ -23,6 +23,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Chars.h"
 #include "NativeComponent.h"
 #include "SupportLib/ColourARGB32.h"
+#include "SupportLib/ImageCel.h"
 #include "SupportLib/Rectangle.h"
 
 
@@ -32,24 +33,25 @@ CONSTRUCTABLE(CNativeCanvas);
 friend class CCanvas;
 protected:
 	CCanvas*		mpcCanvas;
-	SInt32Vec2			msSize;
+	SInt32Vec2		msSize;
 
 public:
-			void	Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory);
-			void	Kill(void);
+			void		Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory);
+			void		Kill(void);
 
 protected:
-	virtual bool	CreateNativeCanvas(void) =0;
-	virtual uint8*	GetPixelData(void) =0;
+	virtual bool		CreateNativeCanvas(void) =0;
+	virtual uint8*		GetPixelData(void) =0;
 
-	virtual void	CopyCanvas(CNativeCanvas* pcSourceCanvas) =0;
+	virtual void		CopyCanvas(CNativeCanvas* pcSourceCanvas) =0;
 
-	virtual void	DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour) =0;
-	virtual void	DrawPixel(int iX, int iY, ARGB32 sColour) =0;
-	virtual void	DrawCanvas(int iX, int iY, CNativeCanvas* pcSource) =0;
+	virtual void		DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour) =0;
+	virtual void		DrawPixel(int iX, int iY, ARGB32 sColour) =0;
+	virtual void		DrawCanvas(int iX, int iY, CNativeCanvas* pcSource) =0;
+	virtual void		DrawImage(int iX, int iY, Ptr<CImageCel> pSource) =0;
 
 			SInt32Vec2	GetSize(void);
-			void	SetSize(int x, int y);
+			void		SetSize(int x, int y);
 };
 
 
