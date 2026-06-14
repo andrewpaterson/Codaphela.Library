@@ -34,9 +34,9 @@ class CImageCopier : public CUnknown
 {
 CONSTRUCTABLE(CImageCopier);
 public:
-	static void Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY, CRectangle* psSourceRect = NULL);
-	static void Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY, int32 iSourceX1, int32 iSourceY1, int32 iSourceX2, int32 iSourceY2);
-	static void Copy(Ptr<CImageCel> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY);
+	static void Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int iDestX, int iDestY, CRectangle* psSourceRect = NULL);
+	static void Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2);
+	static void Copy(Ptr<CImageCel> pSource, Ptr<CImage> pDest, int iDestX, int iDestY);
 	static void Copy(Ptr<CImage> pSource, Ptr<CImage> pDest);
 
 protected:
@@ -51,9 +51,9 @@ public:
 	void Init(CImageAccessor* pcSourceAccessor, CImageAccessor* pcDestAccessor);
 	void Kill(void);
 
-	void Copy(int32 iDestX, int32 iDestY, Ptr<CImageCel> pcSourceCel);
-	void Copy(int32 iDestX, int32 iDestY, CRectangle* psSourceRect = NULL);
-	void Copy(int32 iDestX, int32 iDestY, int32 iSourceX1, int32 iSourceY1, int32 iSourceX2, int32 iSourceY2);
+	void Copy(int iDestX, int iDestY, Ptr<CImageCel> pcSourceCel);
+	void Copy(int iDestX, int iDestY, CRectangle* psSourceRect = NULL);
+	void Copy(int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2);
 	void Copy(SImageCopy* psCopy);
 };
 

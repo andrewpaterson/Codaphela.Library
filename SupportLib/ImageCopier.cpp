@@ -36,6 +36,9 @@ bool CImageCopier::Init(Ptr<CImage> pSource, Ptr<CImage> pDest)
 {
 	CImageAccessorCreator	cCreator;
 
+	ValidatePtr(pSource);
+	ValidatePtr(pDest);
+
 	//Now we have an accessor that takes what's in the source and converts it to the destinations format.
 	//Although it may have gaps if the destination has channels the source does not.
 	cCreator.Init(&pSource);  
@@ -107,7 +110,7 @@ void CImageCopier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Copy(int32 iDestX, int32 iDestY, Ptr<CImageCel> pcSourceCel)
+void CImageCopier::Copy(int iDestX, int iDestY, Ptr<CImageCel> pcSourceCel)
 {
 	SImageCopy	sCopy;
 
@@ -120,7 +123,7 @@ void CImageCopier::Copy(int32 iDestX, int32 iDestY, Ptr<CImageCel> pcSourceCel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Copy(int32 iDestX, int32 iDestY, CRectangle* psSourceRect)
+void CImageCopier::Copy(int iDestX, int iDestY, CRectangle* psSourceRect)
 {
 	SImageCopy	sCopy;
 
@@ -141,7 +144,7 @@ void CImageCopier::Copy(int32 iDestX, int32 iDestY, CRectangle* psSourceRect)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Copy(int32 iDestX, int32 iDestY, int32 iSourceX1, int32 iSourceY1, int32 iSourceX2, int32 iSourceY2)
+void CImageCopier::Copy(int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2)
 {
 	SImageCopy	sCopy;
 
@@ -189,7 +192,7 @@ void CImageCopier::Copy(SImageCopy* psCopy)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY, CRectangle* psSourceRect)
+void CImageCopier::Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int iDestX, int iDestY, CRectangle* psSourceRect)
 {
 	CImageCopier	cCopier;
 
@@ -203,7 +206,7 @@ void CImageCopier::Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDestX, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY, int32 iSourceX1, int32 iSourceY1, int32 iSourceX2, int32 iSourceY2)
+void CImageCopier::Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2)
 {
 	CImageCopier	cCopier;
 
@@ -217,7 +220,7 @@ void CImageCopier::Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDestX, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Copy(Ptr<CImageCel> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY)
+void CImageCopier::Copy(Ptr<CImageCel> pSource, Ptr<CImage> pDest, int iDestX, int iDestY)
 {
 	CImageCopier cCopier;
 

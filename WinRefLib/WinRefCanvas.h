@@ -47,6 +47,7 @@ public:
 	void			DrawBox(CRectangle* pcRectangle, bool bFilled, ARGB32 sColour) override;
 	void			DrawPixel(int32 iX, int32 iY, ARGB32 sColour) override;
 	void			DrawCanvas(int iX, int iY, CNativeCanvas* pcSource) override;
+	void			DrawImage(int iX, int iY, Ptr<CImageCel> pSource);
 
 protected:
 	void			SetColour(ARGB32 sColour);
