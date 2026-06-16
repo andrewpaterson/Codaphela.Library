@@ -101,9 +101,9 @@ public:
 			CBaseObject*		GetHeapFrom(size iFromIndex);
 			void				UnsafeAddHeapFrom(CBaseObject* pcFromObject);
 
-			void				AddStackFrom(CPointer* pcPointer, bool bValidate);
-			void				AddStackFrom(CCollection* pcCollection, bool bValidate);
-			void				AddStackFroms(CStackPointer* pcStackPointer);
+			bool				AddStackFrom(CPointer* pcPointer, bool bValidate);
+			bool				AddStackFrom(CCollection* pcCollection, bool bValidate);
+			bool				AddStackFroms(CStackPointer* pcStackPointer);
 			bool				HasStackPointers(void);
 			void				PrivateRemoveStackFrom(CPointer* pcPointer);
 			bool				RemoveStackFromTryFree(CPointer* pcPointer, bool bKillIfNoRoot);

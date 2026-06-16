@@ -7,6 +7,7 @@ class CStackPointers
 {
 protected:
 	CStackPointer*	mpcMemory;
+	void*			mpvLastStackByte;
 	size			miAllocatedPointers;
 	
 	size			miLastUsed;
@@ -19,7 +20,7 @@ public:
 	CStackPointer*	Add(CPointer* pcPointer, CStackPointer* pcFirst);
 	CStackPointer*	Add(CCollection* pcCollection);
 	CStackPointer*	Add(CCollection* pcCollection, CStackPointer* pcFirst);
-	void			Add(CStackPointer* pcStackPointer, CStackPointer* pcFirst);
+	bool			Add(CStackPointer* pcStackPointer, CStackPointer* pcFirst);
 
 	void			RemoveAll(CStackPointer* pcFirst);
 	CStackPointer* 	Remove(CStackPointer* pcFirst, CPointer* pcPointer);

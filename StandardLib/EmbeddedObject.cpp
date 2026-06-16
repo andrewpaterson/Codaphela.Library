@@ -641,26 +641,39 @@ bool CEmbeddedObject::ContainsFrom(CEmbeddedObject* pcBaseObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::AddStackFrom(CPointer* pcPointer, bool bValidate)
+bool CEmbeddedObject::AddStackFrom(CPointer* pcPointer, bool bValidate)
 {
 	CStackPointers*		pcStackPointers;
+	CStackPointer*		pcStackPointer;	
 
 	pcStackPointers = GetStackPointers();
 	if (pcStackPointers)
 	{
 		if (mpcStackFroms)
 		{
-			pcStackPointers->Add(pcPointer, mpcStackFroms);
+			pcStackPointer = pcStackPointers->Add(pcPointer, mpcStackFroms);
+			if (!pcStackPointer)
+			{
+				return false;
+			}
 		}
 		else
 		{
-			mpcStackFroms = pcStackPointers->Add(pcPointer);
+			pcStackPointer = pcStackPointers->Add(pcPointer);
+			if (!pcStackPointer)
+			{
+				return false;
+			}
+			mpcStackFroms = pcStackPointer;
 		}
 
 #ifdef _DEBUG
 		ValidateObjectsConsistency(bValidate);
 #endif // _DEBUG
+
+		return true;
 	}
+	return false;
 }
 
 
@@ -668,25 +681,39 @@ void CEmbeddedObject::AddStackFrom(CPointer* pcPointer, bool bValidate)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::AddStackFrom(CCollection* pcCollection, bool bValidate)
+bool CEmbeddedObject::AddStackFrom(CCollection* pcCollection, bool bValidate)
 {
-	CStackPointers* pcStackPointers;
+	CStackPointers*		pcStackPointers;
+	CStackPointer*		pcStackPointer;
 
 	pcStackPointers = GetStackPointers();
 	if (pcStackPointers)
 	{
 		if (mpcStackFroms)
 		{
-			pcStackPointers->Add(pcCollection, mpcStackFroms);
+			pcStackPointer = pcStackPointers->Add(pcCollection, mpcStackFroms);
+			if (!pcStackPointer)
+			{
+				return false;
+			}
 		}
 		else
 		{
-			mpcStackFroms = pcStackPointers->Add(pcCollection);
+			pcStackPointer = pcStackPointers->Add(pcCollection);
+			if (!pcStackPointer)
+			{
+				return false;
+			}
+			mpcStackFroms = pcStackPointer;
 		}
+
 #ifdef _DEBUG
 		ValidateObjectsConsistency(bValidate);
 #endif // _DEBUG
+
+		return true;
 	}
+	return false;
 }
 
 
@@ -694,22 +721,30 @@ void CEmbeddedObject::AddStackFrom(CCollection* pcCollection, bool bValidate)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::AddStackFroms(CStackPointer* pcStackPointer)
+bool CEmbeddedObject::AddStackFroms(CStackPointer* pcStackPointer)
 {
-	CStackPointers*	pcStackPointers;
+	CStackPointers*		pcStackPointers;
+	bool				bAdded;
 
 	pcStackPointers = GetStackPointers();
-	if (pcStackPointers)
+	if (pcStackPointers && pcStackPointer)
 	{
 		if (mpcStackFroms)
 		{
-			pcStackPointers->Add(pcStackPointer, mpcStackFroms);
+			bAdded = pcStackPointers->Add(pcStackPointer, mpcStackFroms);
+			if (!bAdded)
+			{
+				return false;
+			}
 		}
 		else
 		{
 			mpcStackFroms = pcStackPointer;
 		}
+		return true;
 	}
+
+	return false;
 }
 
 
@@ -739,12 +774,13 @@ bool CEmbeddedObject::RemoveStackFromTryFree(CPointer* pcPointer, bool bFreeIfNo
 		{
 			mpcStackFroms = pcStackPointers->Remove(mpcStackFroms, pcPointer);
 			pcContainer = GetEmbeddingContainer();
+
+			//Only CPointer's destructor sets bFreeIfNoRoot to false.
 			pcContainer->TryFree(bFreeIfNoRoot, false);
 			return true;
 		}
 	}
-	gcLogger.Error2(__METHOD__, " Could not remove Pointer Stack-From from Object {", ObjectToString(this), "}.", NULL);
-	return false;
+	return gcLogger.Error2(__METHOD__, " Could not remove Pointer Stack-From from Object {", ObjectToString(this), "}.", NULL);
 }
 
 
@@ -764,7 +800,9 @@ bool CEmbeddedObject::RemoveStackFromTryFree(CCollection* pcPointer, bool bFreeI
 		{
 			mpcStackFroms = pcStackPointers->Remove(mpcStackFroms, pcPointer);
 			pcContainer = GetEmbeddingContainer();
-			pcContainer->TryFree(bFreeIfNoRoot, false);
+
+			//Only CPointer's destructor sets bFreeIfNoRoot to false.
+			pcContainer->TryFree(bFreeIfNoRoot, false);  
 			return true;
 		}
 	}

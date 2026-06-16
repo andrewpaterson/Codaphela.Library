@@ -610,34 +610,41 @@ void CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 
 	if (bKillIfNoRoot)
 	{
-		cDistCalculator.Init();
-		papcKilled = cDistCalculator.Calculate(this, bHeapFromChanged);
-
-		if (!mpcObjectsThisIn)
+		if (miDistToRoot > 0 && !bHeapFromChanged)
 		{
-			if (papcKilled->NumElements() > 0)
-			{
-				bOnlyThisKilled = false;
-				if (papcKilled->NumElements() == 1)
-				{
-					pcKilled = *papcKilled->Get(0);
-					if (pcKilled == this)
-					{
-						bOnlyThisKilled = true;
-					}
-				}
-
-				if (!bOnlyThisKilled)
-				{
-					gcLogger.Error2(__METHOD__, " Uh, probably if not in an objects then the only pointer to this object should be itself.  Maybe some stack kak?", NULL);
-				}
-			}
+			return;
 		}
 		else
 		{
-			mpcObjectsThisIn->Remove(papcKilled);
+			cDistCalculator.Init();
+			papcKilled = cDistCalculator.Calculate(this, bHeapFromChanged);
+
+			if (!mpcObjectsThisIn)
+			{
+				if (papcKilled->NumElements() > 0)
+				{
+					bOnlyThisKilled = false;
+					if (papcKilled->NumElements() == 1)
+					{
+						pcKilled = *papcKilled->Get(0);
+						if (pcKilled == this)
+						{
+							bOnlyThisKilled = true;
+						}
+					}
+
+					if (!bOnlyThisKilled)
+					{
+						gcLogger.Error2(__METHOD__, " Uh, probably if not in an objects then the only pointer to this object should be itself.  Maybe some stack kak?", NULL);
+					}
+				}
+			}
+			else
+			{
+				mpcObjectsThisIn->Remove(papcKilled);
+			}
+			cDistCalculator.Kill();
 		}
-		cDistCalculator.Kill();
 	}
 	else
 	{
@@ -1993,6 +2000,74 @@ void CBaseObject::DumpPointerTos(void)
 	szLine.Kill();
 
 	sz.Dump();
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::Print(CChars* psz)
+{
+	GetIdentifier(psz);
+	psz->Append(" R");
+	if (miDistToRoot >= 0)
+	{
+		psz->Append(miDistToRoot);
+	}
+	else
+	{
+		psz->Append("x");
+	}
+	psz->Append(" (");
+	PrintFlagsShorthand(psz);
+	psz->Append(")");
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::PrintFlagsShorthand(CChars* psz)
+{
+	CChars	sz;
+	size	uiEnd;
+	size	ui;
+	char	c;
+	bool	bPrintNext;
+
+	sz.Init();
+	PrintFlags(&sz);
+
+	bPrintNext = true;
+	uiEnd = sz.Length();
+	for (ui = 0; ui < uiEnd; ui++)
+	{
+		c = sz.GetChar(ui);
+		if (c == ',')
+		{
+			psz->Append(c);
+		}
+		if (c == ' ')
+		{
+			psz->Append(c);
+			bPrintNext = true;
+		}
+		else if (c == '_')
+		{
+			bPrintNext = true;
+		}
+		else
+		{
+			if (bPrintNext)
+			{
+				psz->Append(c);
+				bPrintNext = false;
+			}
+		}
+	}
+
 	sz.Kill();
 }
 
