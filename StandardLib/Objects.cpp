@@ -354,6 +354,62 @@ void CObjects::DumpMemoryNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CObjects::PrintStackPointers(CChars* psz)
+{
+	size			uiNumPointers;
+	size			ui;
+	SStackPointer*	psPointer;
+
+	uiNumPointers = mpcStackPointers->NumElements();
+	for (ui = 0; ui < uiNumPointers; ui++)
+	{
+		psPointer = mpcStackPointers->Get(ui);
+		if (psPointer->meType == SPT_Unknown)
+		{
+			psz->Append(ui);
+			psz->Append(": Unknown");
+			psz->AppendNewLine();
+		}
+		else if (psPointer->meType == SPT_Pointer)
+		{
+			psz->Append(ui);
+			psz->Append(": Pointer [");
+			psPointer->u.pcPointer->BaseObject()->Print(psz);
+			psz->Append("]");
+			psz->AppendNewLine();
+		}
+		else if (psPointer->meType == SPT_Collection)
+		{
+
+		}
+		else
+		{
+			psz->Append(ui);
+			psz->Append(": ERROR");
+			psz->AppendNewLine();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::DumpStackPointers(void)
+{
+	CChars	sz;
+
+	sz.Init();
+	PrintStackPointers(&sz);
+	sz.DumpKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObjects::DumpGraph(void)
 {
 	CChars		sz;
@@ -2209,7 +2265,7 @@ void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSeque
 
 	UnknownsInit();
 	TransientSequenceInit();
-	gcStackPointers.Init(2048);
+	gcStackPointers.Init(MAX_STACK_POINTERS);
 	gcObjects.Init(&gcUnknowns, &gcStackPointers, pcDataConnection, pcSequenceConnection);
 	gbObjects = true;
 }
@@ -2228,7 +2284,7 @@ void ObjectsInit(CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CDataCo
 
 	UnknownsInit();
 	TransientSequenceInit();
-	gcStackPointers.Init(2048);
+	gcStackPointers.Init(MAX_STACK_POINTERS);
 	gcObjects.Init(pcUnknowns, pcStackPointers, pcDataConnection, pcSequenceConnection);
 	gbObjects = true;
 }

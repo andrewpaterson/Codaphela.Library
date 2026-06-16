@@ -37,6 +37,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define ROOT_NAME	"GraphRoot"
 
 #define CLEAR_MEMORY_CHUNK_SIZE		16384
+#define MAX_STACK_POINTERS			4096
 
 Ptr<CRoot> ORoot(void);
 
@@ -139,11 +140,13 @@ public:
 						CPointer				TestGetFromMemory(char* szName);
 
 						void					PrintMemoryNames(CChars* psz);
+						void					PrintStackPointers(CChars* psz);
 						void					DumpMemoryUseIteration(void);
 						void					DumpMemoryUseRecursion(void);
 						void					DumpNames(void);
 						void					DumpGraph(void);
 						void					DumpMemoryNames(void);
+						void					DumpStackPointers(void);
 
 						void					ValidateEmpty(void);
 						void					ValidateObjectsConsistency(void);
@@ -552,6 +555,7 @@ Ptr<SpecificClass> ONMallocNoI(const char* szObjectName, Args ... args)
 {
 	return gcObjects.Malloc<SpecificClass>((char*)szObjectName);
 }
+
 
 #endif // __OBJECTS_H__
 

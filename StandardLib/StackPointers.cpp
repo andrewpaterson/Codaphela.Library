@@ -1,5 +1,6 @@
 #include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/PointerFunctions.h"
+#include "BaseLib/PointerRemapper.h"
 #include "StackPointers.h"
 
 
@@ -18,6 +19,7 @@ void CStackPointers::Init(size iNumPointers)
 	mpcMemory = (CStackPointer*)malloc(sizeof(CStackPointer) * iNumPointers);
 	miAllocatedPointers = iNumPointers;
 
+	mpvLastStackByte = RemapSinglePointer(mpcMemory, sizeof(CStackPointer) * iNumPointers - 1);
 	miLastUsed = 0;
 
 	for (i = 0; i < miAllocatedPointers; i++)
@@ -68,13 +70,21 @@ CStackPointer* CStackPointers::Add(CPointer* pcPointer)
 CStackPointer* CStackPointers::Add(CPointer* pcPointer, CStackPointer* pcFirst)
 {
 	CStackPointer*	pcStackPointer;
+	bool			bAdded;
 
 	pcStackPointer = FindUnused();
 	if (pcStackPointer)
 	{
 		pcStackPointer->Init(pcPointer);
-		Add(pcStackPointer, pcFirst);
-		return pcStackPointer;
+		bAdded = Add(pcStackPointer, pcFirst);
+		if (bAdded)
+		{
+			return pcStackPointer;
+		}
+		else
+		{
+			return NULL;
+		}
 	}
 	else
 	{
@@ -110,14 +120,22 @@ CStackPointer* CStackPointers::Add(CCollection* pcCollection)
 //////////////////////////////////////////////////////////////////////////
 CStackPointer* CStackPointers::Add(CCollection* pcCollection, CStackPointer* pcFirst)
 {
-	CStackPointer* pcStackPointer;
+	CStackPointer*	pcStackPointer;
+	bool			bAdded;
 
 	pcStackPointer = FindUnused();
 	if (pcStackPointer)
 	{
 		pcStackPointer->Init(pcCollection);
-		Add(pcStackPointer, pcFirst);
-		return pcStackPointer;
+		bAdded = Add(pcStackPointer, pcFirst);
+		if (bAdded)
+		{
+			return pcStackPointer;
+		}
+		else
+		{
+			return NULL;
+		}
 	}
 	else
 	{
@@ -130,12 +148,20 @@ CStackPointer* CStackPointers::Add(CCollection* pcCollection, CStackPointer* pcF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CStackPointers::Add(CStackPointer* pcStackPointer, CStackPointer* pcFirst)
+bool CStackPointers::Add(CStackPointer* pcStackPointer, CStackPointer* pcFirst)
 {
 	CStackPointer*	pcLast;
 
 	pcLast = pcFirst->FindLast();
-	pcLast->SetNext(pcStackPointer);
+	if (pcLast <= mpvLastStackByte)
+	{
+		pcLast->SetNext(pcStackPointer);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 

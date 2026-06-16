@@ -199,7 +199,7 @@ bool CCollection::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult, b
 		}
 		else
 		{
-			bResult = pcObject->RemoveStackFromTryFree(this, bValidate);
+			bResult = pcObject->RemoveStackFromTryFree(this, true);
 		}
 	}
 	return bResult;
