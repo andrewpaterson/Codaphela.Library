@@ -66,8 +66,9 @@ char* NormalNumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDeci
 	int			iIndex;
 	int			iLength;
 
-	if (!ValidateNumberInitialised(__METHOD__))
+	if (!gbNumberControl)
 	{
+		FailNumberControlInitialised(__METHOD__);
 		return NULL;
 	}
 
@@ -223,8 +224,9 @@ char* SubnormalNumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxD
 	int			iIndex;
 	int			iLength;
 
-	if (!ValidateNumberInitialised(__METHOD__))
+	if (!gbNumberControl)
 	{
+		FailNumberControlInitialised(__METHOD__);
 		return NULL;
 	}
 
@@ -351,8 +353,9 @@ char* NumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDecimals, 
 	bool		bNegative;
 	int			iExponent;
 
-	if (!ValidateNumberInitialised(__METHOD__))
+	if (!gbNumberControl)
 	{
+		FailNumberControlInitialised(__METHOD__);
 		return NULL;
 	}
 

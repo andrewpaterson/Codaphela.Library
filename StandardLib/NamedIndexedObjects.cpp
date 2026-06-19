@@ -106,6 +106,7 @@ CBaseObject* CNamedIndexedObjects::Get(char* szObjectName, OIndex oi)
 		if (pvObject->GetIndex() != oi)
 		{
 			gcLogger.Error2(__METHOD__, " Cannot get object named [", szObjectName, "].  Mismatch expected index [", IndexToString(oi), "] with object index [", IndexToString(pvObject->GetIndex()), "].", NULL);
+			return NULL;
 		}
 		return pvObject;
 	}
@@ -116,6 +117,7 @@ CBaseObject* CNamedIndexedObjects::Get(char* szObjectName, OIndex oi)
 		if (StringCompare(pvObject->GetName(), szObjectName) != 0)
 		{
 			gcLogger.Error2(__METHOD__, " Cannot get object with index [", IndexToString(oi), "].  Mismatch expected name [", szObjectName, "] with object name [", pvObject->GetName(), "].", NULL);
+			return NULL;
 		}
 		return pvObject;
 	}
@@ -368,7 +370,7 @@ bool CNamedIndexedObjects::ValidateNoDirty(void)
 		if (bDirty && bCanFindRoot)
 		{
 			szIdentifier.Init();
-			pcObject->GetIdentifier(&szIdentifier);
+			pcObject->PrintIdentifier(&szIdentifier);
 			return gcLogger.Error2(__METHOD__, " Object [", szIdentifier.Text(), "] is dirty.", NULL);
 		}
 		oi = mcMemoryIndexedObjects.Iterate(&sIter);

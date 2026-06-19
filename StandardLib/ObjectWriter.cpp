@@ -56,7 +56,7 @@ if (!result) \
 	CChars			sz; \
 \
 	sz.Init(); \
-	object->GetIdentifier(&sz); \
+	object->PrintIdentifier(&sz); \
 	gcLogger.Error2(__VA_ARGS__); \
 	sz.Kill(); \
 	return false; \

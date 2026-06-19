@@ -14,7 +14,7 @@ CStackPointers	gcStackPointers;
 void CStackPointers::Init(size iNumPointers)
 {
 	size				i;
-	CStackPointer*	pcStackPointer;
+	CStackPointer*		pcStackPointer;
 
 	mpcMemory = (CStackPointer*)malloc(sizeof(CStackPointer) * iNumPointers);
 	miAllocatedPointers = iNumPointers;

@@ -31,7 +31,9 @@ void CSprite::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CSprite::Class(void)
 {
+	U_2Int32(msPosition);
 	M_Pointer(mpCel);
+	M_Pointer(mpBlitter);
 }
 
 

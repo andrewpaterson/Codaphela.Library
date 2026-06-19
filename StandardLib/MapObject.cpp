@@ -39,7 +39,7 @@ CMapObject::~CMapObject()
 		{
 			if (!HasClass())
 			{
-				ValidateHasClassFlag(__METHOD__);
+				FailHasClassFlag(__METHOD__);
 			}
 		}
 		FreePointers();

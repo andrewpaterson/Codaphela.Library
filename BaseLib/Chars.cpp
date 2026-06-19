@@ -1418,17 +1418,22 @@ void CChars::Remove(size iStartInclusive, size iEndExclusive)
 void CChars::RemoveEnd(size iIndex)
 {
 	size	iToRemove;
+	size	uiLength;
 
-	iToRemove = Length() - iIndex;
-	if (iToRemove != 0)
+	uiLength = Length();
+	if (uiLength >= iIndex)
 	{
-		if (iIndex != 0)
+		iToRemove = uiLength - iIndex;
+		if (iToRemove != 0)
 		{
-			mcText.RemoveRange(iIndex, Length());
-		}
-		else
-		{
-			SetEmpty();
+			if (iIndex != 0)
+			{
+				mcText.RemoveRange(iIndex, uiLength);
+			}
+			else
+			{
+				SetEmpty();
+			}
 		}
 	}
 }

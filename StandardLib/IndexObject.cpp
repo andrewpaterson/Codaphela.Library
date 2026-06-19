@@ -39,7 +39,8 @@ CIndexObject::~CIndexObject()
 		{
 			if (!HasClass())
 			{
-				ValidateHasClassFlag(__METHOD__);
+				FailHasClassFlag(__METHOD__);
+				return;
 			}
 		}
 		FreePointers();

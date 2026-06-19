@@ -36,7 +36,7 @@ public:
 				SFloat32Vec3() {};
 				SFloat32Vec3(float32 x, float32 y, float32 z);
 
-	using SVec3<float32, float64>::operator=;
+	using SVec3<float32, float64>::operator =;
 
 	void 		Fix(void);
 	int			WholeNumbers(void);

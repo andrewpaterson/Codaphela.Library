@@ -100,8 +100,7 @@ bool CCalculatorSymbols::ValidateSymbols(void)
 			{
 				if (eOp != i)
 				{
-					gcLogger.Error2(__METHOD__, " Operator [", SizeToString(eOp), "] does not match operator expected index [", SizeToString(i), "].", NULL);
-					return false;
+					return gcLogger.Error2(__METHOD__, " Operator [", SizeToString(eOp), "] does not match operator expected index [", SizeToString(i), "].", NULL);
 				}
 			}
 		}

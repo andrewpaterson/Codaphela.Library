@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Class.h"
 
 
-//Tested for root is only valid whilst the scene graph is calling CanFindRoot.  It stops the graph from walking already tested objects.
+// Tested for root is only valid whilst the scene graph is calling CanFindRoot.  It stops the graph from walking already tested objects.
 #define OBJECT_FLAGS_TESTED_FOR_ROOT			  0x02
 
 //Invalidated is set when the object on the file system is changed and must be reloaded.  This objects does not use it.
@@ -43,7 +43,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //This object cannot be reached and is marked for killing.
 #define OBJECT_FLAGS_UNREACHABLE				  0x40
 
-//Tested for sanity is only valid whilst the scene graph is calling ValidateConsistency.  It stops the graph from walking already tested objects.
+// Tested for sanity is only valid whilst the scene graph is calling ValidateConsistency.  It stops the graph from walking already tested objects.
 #define OBJECT_FLAGS_TESTED_FOR_SANITY			  0x80
 
 //Object initialisation life-cycle
@@ -131,7 +131,11 @@ public:
 
 			char*				GetName(void) override;
 			size				SerialisedSize(void);
-	virtual char*				GetIdentifier(CChars* psz);
+	virtual char*				PrintIdentifier(CChars* psz);
+			void				PrintState(CChars* psz);
+			void				PrintFlagsShorthand(CChars* psz);
+			void				PrintFlags(CChars* psz);
+			void				Print(CChars* psz) override;
 
 			size				NumEmbedded(void);
 
@@ -173,9 +177,6 @@ public:
 			void				DumpFroms(void);
 			void				DumpPointerTos(void);
 	virtual void				Dump(void);
-			void				Print(CChars* psz);
-			void				PrintFlagsShorthand(CChars* psz);
-			void				PrintFlags(CChars* psz);
 			void				DumpFlags(void);
 
 			void				ValidateFlagSet(uint16 iFlag, char* szFlag);
@@ -190,8 +191,8 @@ public:
 	virtual void				ValidateObjectIdentifiers(void);
 			void				ValidateBaseObjectDetail(void);
 			void				ValidateAllocation(void);
-			void				ValidateHasClassFlag(char* szMethod);
-			void				ValidateHasClassField(char* szMethod);
+			bool				FailHasClassFlag(char* szMethod);
+			bool				FailHasClassField(char* szMethod);
 			void				ValidateInitCalled(void);
 			void				ValidateKillCalled(void);
 	virtual void				ValidateInternalConsistency(void);

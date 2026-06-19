@@ -92,7 +92,8 @@ void CBaseObject::PreClass(void)
 
 	if (muiFlags & OBJECT_FLAGS_FREED)
 	{
-		LogCantInitFreedObject(__METHOD__);
+		FailCantInitFreedObject(__METHOD__);
+		return;
 	}
 
 	if (!HasClass())
@@ -160,7 +161,11 @@ void CBaseObject::PreInit(void)
 {
 	CBaseObject*	pcContainer;
 
-	ValidateNotInitialised(__METHOD__);
+	if (IsInitialised())
+	{
+		FailExpectedToNotBeInitialised(__METHOD__);
+		return;
+	}
 
 	PreClass();
 
@@ -188,7 +193,11 @@ void CBaseObject::PostInit(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ContainerPreInit(void)
 {
-	ValidateNotEmbedded(__METHOD__);
+	if (IsEmbedded())
+	{
+		FailNotExpectedToBeEmbedded(__METHOD__);
+		return;
+	}
 
 	muiPreInits++;
 }
@@ -202,12 +211,16 @@ void CBaseObject::ContainerPostInit(void)
 {
 	CChars	sz;
 
-	ValidateNotEmbedded(__METHOD__);
+	if (IsEmbedded())
+	{
+		FailNotExpectedToBeEmbedded(__METHOD__);
+		return;
+	}
 
 	if (IsInitialised())
 	{
 		sz.Init();
-		gcLogger.Error2(__METHOD__, " Init has already been called on object[", GetIdentifier(&sz), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Init has already been called on object[", PrintIdentifier(&sz), "].", NULL);
 		sz.Kill();
 		return;
 	}
@@ -270,12 +283,14 @@ void CBaseObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::KillInternal(bool bHeapFromChanged, bool bValidateNotEmbedded)
+void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 {
-	if (bValidateNotEmbedded)
+	if ((bFailNotEmbedded) && IsEmbedded())
 	{
-		ValidateNotEmbedded(__METHOD__);
+		FailNotExpectedToBeEmbedded(__METHOD__);
+		return;
 	}
+	
 
 	CDistCalculator			cDistCalculator;
 	CArrayBlockObjectPtr*	papcKilled;
@@ -345,7 +360,11 @@ bool CBaseObject::Flush(void)
 	bool	bCanFindRoot;
 	bool	bDirty;
 
-	ValidateNotEmbedded(__METHOD__);
+	if (IsEmbedded())
+	{
+		FailNotExpectedToBeEmbedded(__METHOD__);
+		return false;
+	}
 
 	bCanFindRoot = GetDistToRoot() != UNATTACHED_DIST_TO_ROOT;
 	bDirty = IsDirty();
@@ -408,7 +427,11 @@ void CBaseObject::CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject
 	//It is assumed at this point that all the tos and froms have been updated.
 	//This method will only be called on an object that can find Root.
 
-	ValidateNotEmbedded(__METHOD__);
+	if (IsEmbedded())
+	{
+		FailNotExpectedToBeEmbedded(__METHOD__);
+		return;
+	}
 
 	size									i;
 	CArrayTemplateEmbeddedBaseObjectPtr		apcFroms;
@@ -462,7 +485,11 @@ void CBaseObject::CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
 {
-	ValidateNotEmbedded(__METHOD__);
+	if (IsEmbedded())
+	{
+		FailNotExpectedToBeEmbedded(__METHOD__);
+		return;
+	}
 
 	if (IsRoot())
 	{
@@ -489,7 +516,11 @@ void CBaseObject::CollectAndClearInvalidDistToRootObjects(CDistCalculatorParamet
 //////////////////////////////////////////////////////////////////////////
 size CBaseObject::CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters)
 {
-	ValidateNotEmbedded(__METHOD__);
+	if (IsEmbedded())
+	{
+		FailNotExpectedToBeEmbedded(__METHOD__);
+		return ARRAY_ELEMENT_NOT_FOUND;
+	}
 
 	size	iNumWithStackPointers;
 
@@ -593,7 +624,11 @@ bool CBaseObject::IsDistToRootValid(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 {
-	ValidateNotEmbedded(__METHOD__);
+	if (IsEmbedded())
+	{
+		FailNotExpectedToBeEmbedded(__METHOD__);
+		return;
+	}
 
 	bool					bHasStackPointers;
 	bool					bHasHeapPointers;
@@ -636,6 +671,7 @@ void CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 					if (!bOnlyThisKilled)
 					{
 						gcLogger.Error2(__METHOD__, " Uh, probably if not in an objects then the only pointer to this object should be itself.  Maybe some stack kak?", NULL);
+						return;
 					}
 				}
 			}
@@ -690,8 +726,11 @@ uint16 CBaseObject::GetFlags(void)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::CanFindRoot(void)
 {
-	ValidateNotEmbedded(__METHOD__);
-
+	if (IsEmbedded())
+	{
+		FailNotExpectedToBeEmbedded(__METHOD__);
+		return false;
+	}
 	CEmbeddedObject*	pcPointedFrom;
 	bool				bResult;
 
@@ -722,7 +761,11 @@ bool CBaseObject::CanFindRoot(void)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::CanFindRootThroughValidPath(void)
 {
-	ValidateNotEmbedded(__METHOD__);
+	if (IsEmbedded())
+	{
+		FailNotExpectedToBeEmbedded(__METHOD__);
+		return false;
+	}
 
 	CEmbeddedObject*	pcPointedFrom;
 	bool				bResult;
@@ -766,7 +809,11 @@ bool CBaseObject::CanFindRootThroughValidPath(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetExpectedDistToRoot(int iExpectedDistToRoot)
 {
-	ValidateNotEmbedded(__METHOD__);
+	if (IsEmbedded())
+	{
+		FailNotExpectedToBeEmbedded(__METHOD__);
+		return;
+	}
 
 	int		iBestDistToRoot;
 
@@ -784,8 +831,16 @@ void CBaseObject::SetExpectedDistToRoot(int iExpectedDistToRoot)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::SetCalculatedDistToRoot(void)
 {
-	ValidateNotEmbedded(__METHOD__);
-	ValidateInitialised(__METHOD__);
+	if (IsEmbedded())
+	{
+		FailNotExpectedToBeEmbedded(__METHOD__);
+		return;
+	}
+	if (!IsInitialised())
+	{
+		FailExpectedToBeInitialised(__METHOD__);
+		return;
+	}
 
 	int		iBestDistToRoot;
 
@@ -883,7 +938,11 @@ int CBaseObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters)
 {
-	ValidateNotEmbedded(__METHOD__);
+	if (IsEmbedded())
+	{
+		FailNotExpectedToBeEmbedded(__METHOD__);
+		return;
+	}
 
 	CEmbeddedObject*	pcClosestToRoot;
 	int					iClosestToRoot;
@@ -925,7 +984,11 @@ void CBaseObject::AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpec
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ClearDistTouchedFlags(void)
 {
-	ValidateNotEmbedded(__METHOD__);
+	if (IsEmbedded())
+	{
+		FailNotExpectedToBeEmbedded(__METHOD__);
+		return;
+	}
 
 	SetFlag(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT | OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED | OBJECT_FLAGS_DIST_FROM_WALKED, false);
 }
@@ -1015,7 +1078,7 @@ bool CBaseObject::IsNamed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CBaseObject::GetIdentifier(CChars* psz)
+char* CBaseObject::PrintIdentifier(CChars* psz)
 {
 	char*	szName;
 
@@ -2010,7 +2073,17 @@ void CBaseObject::DumpPointerTos(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Print(CChars* psz)
 {
-	GetIdentifier(psz);
+	PrintState(psz);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::PrintState(CChars* psz)
+{
+	PrintIdentifier(psz);
 	psz->Append(" R");
 	if (miDistToRoot >= 0)
 	{
@@ -2024,6 +2097,7 @@ void CBaseObject::Print(CChars* psz)
 	PrintFlagsShorthand(psz);
 	psz->Append(")");
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -2206,7 +2280,11 @@ void CBaseObject::ValidateFlagSet(uint16 iFlag, char* szFlag)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateCanFindRoot(void)
 {
-	ValidateNotEmbedded(__METHOD__);
+	if (IsEmbedded())
+	{
+		FailNotExpectedToBeEmbedded(__METHOD__);
+		return;
+	}
 
 	bool	bCanFindRoot;
 
@@ -2465,12 +2543,9 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::ValidateHasClassFlag(char* szMethod)
+bool CBaseObject::FailHasClassFlag(char* szMethod)
 {
-	if (!HasClass())
-	{
-		gcLogger.Error2(szMethod, " Object {", ObjectToString(this), "} does not have Class initialised.  Call PreInit() first in Init().", NULL);
-	}
+	return gcLogger.Error2(szMethod, " Object {", ObjectToString(this), "} does not have Class initialised.  Call PreInit() first in Init().", NULL);
 }
 
 
@@ -2478,12 +2553,9 @@ void CBaseObject::ValidateHasClassFlag(char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::ValidateHasClassField(char* szMethod)
+bool CBaseObject::FailHasClassField(char* szMethod)
 {
-	if (mpcClass == NULL)
-	{
-		gcLogger.Error2(szMethod, " Object {", ObjectToString(this), "} does not have Class field set.", NULL);
-	}
+	return gcLogger.Error2(szMethod, " Object {", ObjectToString(this), "} does not have Class field set.", NULL);
 }
 
 
@@ -2526,6 +2598,40 @@ void CBaseObject::ValidateKillCalled(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateInternalConsistency(void)
 {
+	size			uiNumStackPointers;
+	size			ui;
+	SStackPointer*	psStackPointer;
+	void*			pvStart;
+	void*			pvEnd;
+	void*			pvPointer;
+
+	if (IsEmbeddingContainerAllocatedInObjects())
+	{
+		pvStart = this;
+		pvEnd = RemapSinglePointer(pvStart, ClassSize());
+
+		uiNumStackPointers = gcStackPointers.NumElements();
+		for (ui = 0; ui < uiNumStackPointers; ui++)
+		{
+			psStackPointer = gcStackPointers.Get(ui);
+			if (psStackPointer->meType == SPT_Pointer)
+			{
+				pvPointer = psStackPointer->u.pcPointer;
+			}
+			else if (psStackPointer->meType == SPT_Collection)
+			{
+				pvPointer = psStackPointer->u.pcCollection;
+			}
+			else
+			{
+				pvPointer = NULL;
+			}
+			if ((pvPointer >= pvStart) && (pvPointer <= pvEnd))
+			{
+				gcLogger.Error2(__METHOD__, " Stack Pointer [", PointerToString(pvPointer), "] appears to belong to Object {", ObjectToString(this), "}.  Esnure it is set up in Class().", NULL);
+			}
+		}
+	}
 }
 
 
@@ -2595,7 +2701,8 @@ void CBaseObject::Pointer(CPointer* pcPointer, char* szFieldName)
 {
 	if (mpcClass == NULL)
 	{
-		ValidateHasClassField(__METHOD__);
+		FailHasClassField(__METHOD__);
+		return;
 	}
 	mpcClass->Pointer(this, pcPointer, szFieldName);
 }
@@ -2609,7 +2716,8 @@ void CBaseObject::Embedded(CBaseObject* pcObject, char* szFieldName)
 {
 	if (mpcClass == NULL)
 	{
-		ValidateHasClassField(__METHOD__);
+		FailHasClassField(__METHOD__);
+		return;
 	}
 	mpcClass->Embedded(this, pcObject, szFieldName);
 }
@@ -2619,84 +2727,84 @@ void CBaseObject::Embedded(CBaseObject* pcObject, char* szFieldName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::Primitive(Int8* pcPrimitive, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(UInt8* pcPrimitive, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(Int16* pcPrimitive, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(UInt16* pcPrimitive, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(Int32* pcPrimitive, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(UInt32* pcPrimitive, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(Int64* pcPrimitive, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(UInt64* pcPrimitive, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(Bool* pcPrimitive, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(Float32* pcPrimitive, char* szFieldName)	{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(Float64* pcPrimitive, char* szFieldName)	{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(Char8* pcPrimitive, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(Char16* pcPrimitive, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(Int8* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(UInt8* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(Int16* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(UInt16* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(Int32* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(UInt32* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(Int64* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(UInt64* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(Bool* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(Float32* pcPrimitive, char* szFieldName)	{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(Float64* pcPrimitive, char* szFieldName)	{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(Char8* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(Char16* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::UnmanagedInt8(int8* pc, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedInt8(this, pc, szFieldName); };
-void CBaseObject::UnmanagedInt8(int8* pac, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedInt8(this, pac, uiLength, szFieldName); };
-void CBaseObject::UnmanagedInt16(int16* pi, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedInt16(this, pi, szFieldName); };
-void CBaseObject::UnmanagedInt16(int16* pai, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedInt16(this, pai, uiLength, szFieldName); };
-void CBaseObject::UnmanagedInt32(int32* pi, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedInt32(this, pi, szFieldName); };
-void CBaseObject::UnmanagedInt32(int32* pai, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedInt32(this, pai, uiLength, szFieldName); };
-void CBaseObject::UnmanagedInt64(int64* pi, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedInt64(this, pi, szFieldName); };
-void CBaseObject::UnmanagedInt64(int64* pai, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedInt64(this, pai, uiLength, szFieldName); };
-void CBaseObject::UnmanagedSInt(int* pi, char* szFieldName)							{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedSInt(this, pi, szFieldName); };
-void CBaseObject::UnmanagedSInt(int* pai, size uiLength, char* szFieldName)			{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedSInt(this, pai, uiLength, szFieldName); };
-void CBaseObject::UnmanagedUInt8(uint8* pc, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedUInt8(this, pc, szFieldName); };
-void CBaseObject::UnmanagedUInt8(uint8* pac, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedUInt8(this, pac, uiLength, szFieldName); };
-void CBaseObject::UnmanagedUInt16(uint16* pi, char* szFieldName)					{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedUInt16(this, pi, szFieldName); };
-void CBaseObject::UnmanagedUInt16(uint16* pai, size uiLength, char* szFieldName)	{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedUInt16(this, pai, uiLength, szFieldName); };
-void CBaseObject::UnmanagedUInt32(uint32* pi, char* szFieldName)					{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedUInt32(this, pi, szFieldName); };
-void CBaseObject::UnmanagedUInt32(uint32* pai, size uiLength, char* szFieldName)	{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedUInt32(this, pai, uiLength, szFieldName); };
-void CBaseObject::UnmanagedUInt64(uint64* pi, char* szFieldName)					{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedUInt64(this, pi, szFieldName); };
-void CBaseObject::UnmanagedUInt64(uint64* pai, size uiLength, char* szFieldName)	{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedUInt64(this, pai, uiLength, szFieldName); };
-void CBaseObject::UnmanagedSUInt(uint* pi, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedSUInt(this, pi, szFieldName); };
-void CBaseObject::UnmanagedSUInt(uint* pai, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedSUInt(this, pai, uiLength, szFieldName); };
-void CBaseObject::UnmanagedSize(size* pi, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedSize(this, pi, szFieldName); };
-void CBaseObject::UnmanagedSize(size* pai, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedSize(this, pai, uiLength, szFieldName); };
-void CBaseObject::UnmanagedFloat(float32* pf, char* szFieldName)					{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedFloat(this, pf, szFieldName); }
-void CBaseObject::UnmanagedFloat(float32* paf, size uiLength, char* szFieldName)	{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedFloat(this, paf, uiLength, szFieldName); }
-void CBaseObject::UnmanagedFloat(float64* pf, char* szFieldName)					{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedFloat(this, pf, szFieldName); }
-void CBaseObject::UnmanagedFloat(float64* paf, size uiLength, char* szFieldName)	{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedFloat(this, paf, uiLength, szFieldName); }
-void CBaseObject::UnmanagedFloat(float128* pf, char* szFieldName)					{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedFloat(this, pf, szFieldName); }
-void CBaseObject::UnmanagedFloat(float128* paf, size uiLength, char* szFieldName)	{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedFloat(this, paf, uiLength, szFieldName); }
-void CBaseObject::UnmanagedChar(char8* pc, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedChar(this, pc, szFieldName); }
-void CBaseObject::UnmanagedChar(char8* pac, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedChar(this, pac, uiLength, szFieldName); }
-void CBaseObject::UnmanagedChar(char16* pc, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedChar(this, pc, szFieldName); }
-void CBaseObject::UnmanagedChar(char16* pac, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedChar(this, pac, uiLength, szFieldName); }
-void CBaseObject::UnmanagedBool(bool* pb, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedBool(this, pb, szFieldName); }
-void CBaseObject::UnmanagedBool(bool* pab, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedBool(this, pab, uiLength, szFieldName); }
+void CBaseObject::UnmanagedInt8(int8* pc, char* szFieldName)						{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedInt8(this, pc, szFieldName); };
+void CBaseObject::UnmanagedInt8(int8* pac, size uiLength, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedInt8(this, pac, uiLength, szFieldName); };
+void CBaseObject::UnmanagedInt16(int16* pi, char* szFieldName)						{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedInt16(this, pi, szFieldName); };
+void CBaseObject::UnmanagedInt16(int16* pai, size uiLength, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedInt16(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedInt32(int32* pi, char* szFieldName)						{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedInt32(this, pi, szFieldName); };
+void CBaseObject::UnmanagedInt32(int32* pai, size uiLength, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedInt32(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedInt64(int64* pi, char* szFieldName)						{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedInt64(this, pi, szFieldName); };
+void CBaseObject::UnmanagedInt64(int64* pai, size uiLength, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedInt64(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedSInt(int* pi, char* szFieldName)							{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedSInt(this, pi, szFieldName); };
+void CBaseObject::UnmanagedSInt(int* pai, size uiLength, char* szFieldName)			{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedSInt(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedUInt8(uint8* pc, char* szFieldName)						{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedUInt8(this, pc, szFieldName); };
+void CBaseObject::UnmanagedUInt8(uint8* pac, size uiLength, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedUInt8(this, pac, uiLength, szFieldName); };
+void CBaseObject::UnmanagedUInt16(uint16* pi, char* szFieldName)					{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedUInt16(this, pi, szFieldName); };
+void CBaseObject::UnmanagedUInt16(uint16* pai, size uiLength, char* szFieldName)	{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedUInt16(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedUInt32(uint32* pi, char* szFieldName)					{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedUInt32(this, pi, szFieldName); };
+void CBaseObject::UnmanagedUInt32(uint32* pai, size uiLength, char* szFieldName)	{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedUInt32(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedUInt64(uint64* pi, char* szFieldName)					{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedUInt64(this, pi, szFieldName); };
+void CBaseObject::UnmanagedUInt64(uint64* pai, size uiLength, char* szFieldName)	{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedUInt64(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedSUInt(uint* pi, char* szFieldName)						{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedSUInt(this, pi, szFieldName); };
+void CBaseObject::UnmanagedSUInt(uint* pai, size uiLength, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedSUInt(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedSize(size* pi, char* szFieldName)						{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedSize(this, pi, szFieldName); };
+void CBaseObject::UnmanagedSize(size* pai, size uiLength, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedSize(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedFloat(float32* pf, char* szFieldName)					{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedFloat(this, pf, szFieldName); }
+void CBaseObject::UnmanagedFloat(float32* paf, size uiLength, char* szFieldName)	{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedFloat(this, paf, uiLength, szFieldName); }
+void CBaseObject::UnmanagedFloat(float64* pf, char* szFieldName)					{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedFloat(this, pf, szFieldName); }
+void CBaseObject::UnmanagedFloat(float64* paf, size uiLength, char* szFieldName)	{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedFloat(this, paf, uiLength, szFieldName); }
+void CBaseObject::UnmanagedFloat(float128* pf, char* szFieldName)					{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedFloat(this, pf, szFieldName); }
+void CBaseObject::UnmanagedFloat(float128* paf, size uiLength, char* szFieldName)	{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedFloat(this, paf, uiLength, szFieldName); }
+void CBaseObject::UnmanagedChar(char8* pc, char* szFieldName)						{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedChar(this, pc, szFieldName); }
+void CBaseObject::UnmanagedChar(char8* pac, size uiLength, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedChar(this, pac, uiLength, szFieldName); }
+void CBaseObject::UnmanagedChar(char16* pc, char* szFieldName)						{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedChar(this, pc, szFieldName); }
+void CBaseObject::UnmanagedChar(char16* pac, size uiLength, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedChar(this, pac, uiLength, szFieldName); }
+void CBaseObject::UnmanagedBool(bool* pb, char* szFieldName)						{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedBool(this, pb, szFieldName); }
+void CBaseObject::UnmanagedBool(bool* pab, size uiLength, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedBool(this, pab, uiLength, szFieldName); }
 
-void CBaseObject::UnmanagedEnum(void* pe, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedEnum(this, pe, szFieldName); }
+void CBaseObject::UnmanagedEnum(void* pe, char* szFieldName)						{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedEnum(this, pe, szFieldName); }
 
-void CBaseObject::UnmanagedString(CChars* pcChars, char* szFieldName)				{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL);  mpcClass->UnmanagedString(this, pcChars, szFieldName); };
-void CBaseObject::UnmanagedString(CCharsImmutable* pcChars, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL);  mpcClass->UnmanagedString(this, pcChars, szFieldName); };
-void CBaseObject::UnmanagedNumber(CNumber* pcNumber, char* szFieldName)				{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL);  mpcClass->UnmanagedNumber(this, pcNumber, szFieldName); };
-void CBaseObject::UnmanagedDate(CDate* pcDate, char* szFieldName)					{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL);  mpcClass->UnmanagedDate(this, pcDate, szFieldName); };
+void CBaseObject::UnmanagedString(CChars* pcChars, char* szFieldName)				{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedString(this, pcChars, szFieldName); };
+void CBaseObject::UnmanagedString(CCharsImmutable* pcChars, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedString(this, pcChars, szFieldName); };
+void CBaseObject::UnmanagedNumber(CNumber* pcNumber, char* szFieldName)				{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedNumber(this, pcNumber, szFieldName); };
+void CBaseObject::UnmanagedDate(CDate* pcDate, char* szFieldName)					{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedDate(this, pcDate, szFieldName); };
 
-void CBaseObject::UnmanagedData(void* pv, size uiSizeof, char* szFieldName)			{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedData(this, pv, uiSizeof, szFieldName); };
-void CBaseObject::UnmanagedUnknown(void* pv, size uiSizeof, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedUnknown(this, pv, uiSizeof, szFieldName); };
-void CBaseObject::UnmanagedPointer(void** pv, char* szFieldName)					{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedPointer(this, pv, szFieldName); };
+void CBaseObject::UnmanagedData(void* pv, size uiSizeof, char* szFieldName)			{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedData(this, pv, uiSizeof, szFieldName); };
+void CBaseObject::UnmanagedUnknown(void* pv, size uiSizeof, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedUnknown(this, pv, uiSizeof, szFieldName); };
+void CBaseObject::UnmanagedPointer(void** pv, char* szFieldName)					{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->UnmanagedPointer(this, pv, szFieldName); };
 
-void CBaseObject::Unmanaged2Float(SFloat32Vec2* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged2Float(this, pf, szFieldName); }
-void CBaseObject::Unmanaged2Float(SFloat32Vec2* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged2Float(this, pf, uiLength, szFieldName); }
-void CBaseObject::Unmanaged3Float(SFloat32Vec3* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged3Float(this, pf, szFieldName); }
-void CBaseObject::Unmanaged3Float(SFloat32Vec3* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged3Float(this, pf, uiLength, szFieldName); }
-void CBaseObject::Unmanaged4Float(SFloat32Vec4* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4Float(this, pf, szFieldName); }
-void CBaseObject::Unmanaged4Float(SFloat32Vec4* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4Float(this, pf, uiLength, szFieldName); }
-void CBaseObject::Unmanaged4x4Float(SFloat4x4* pf, char* szFieldName)					{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4x4Float(this, pf, szFieldName); }
-void CBaseObject::Unmanaged4x4Float(SFloat4x4* pf, size uiLength, char* szFieldName)	{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4x4Float(this, pf, uiLength, szFieldName); }
+void CBaseObject::Unmanaged2Float(SFloat32Vec2* pf, char* szFieldName)						{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Unmanaged2Float(this, pf, szFieldName); }
+void CBaseObject::Unmanaged2Float(SFloat32Vec2* pf, size uiLength, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Unmanaged2Float(this, pf, uiLength, szFieldName); }
+void CBaseObject::Unmanaged3Float(SFloat32Vec3* pf, char* szFieldName)						{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Unmanaged3Float(this, pf, szFieldName); }
+void CBaseObject::Unmanaged3Float(SFloat32Vec3* pf, size uiLength, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Unmanaged3Float(this, pf, uiLength, szFieldName); }
+void CBaseObject::Unmanaged4Float(SFloat32Vec4* pf, char* szFieldName)						{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Unmanaged4Float(this, pf, szFieldName); }
+void CBaseObject::Unmanaged4Float(SFloat32Vec4* pf, size uiLength, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Unmanaged4Float(this, pf, uiLength, szFieldName); }
+void CBaseObject::Unmanaged4x4Float(SFloat4x4* pf, char* szFieldName)						{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Unmanaged4x4Float(this, pf, szFieldName); }
+void CBaseObject::Unmanaged4x4Float(SFloat4x4* pf, size uiLength, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Unmanaged4x4Float(this, pf, uiLength, szFieldName); }
 
-void CBaseObject::Unmanaged2Int(SInt32Vec2* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged2Int(this, pf, szFieldName); }
-void CBaseObject::Unmanaged2Int(SInt32Vec2* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged2Int(this, pf, uiLength, szFieldName); }
-void CBaseObject::Unmanaged3Int(SInt32Vec3* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged3Int(this, pf, szFieldName); }
-void CBaseObject::Unmanaged3Int(SInt32Vec3* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged3Int(this, pf, uiLength, szFieldName); }
-void CBaseObject::Unmanaged4Int(SInt32Vec4* pf, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4Int(this, pf, szFieldName); }
-void CBaseObject::Unmanaged4Int(SInt32Vec4* pf, size uiLength, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->Unmanaged4Int(this, pf, uiLength, szFieldName); }
+void CBaseObject::Unmanaged2Int(SInt32Vec2* pf, char* szFieldName)							{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Unmanaged2Int(this, pf, szFieldName); }
+void CBaseObject::Unmanaged2Int(SInt32Vec2* pf, size uiLength, char* szFieldName)			{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Unmanaged2Int(this, pf, uiLength, szFieldName); }
+void CBaseObject::Unmanaged3Int(SInt32Vec3* pf, char* szFieldName)							{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Unmanaged3Int(this, pf, szFieldName); }
+void CBaseObject::Unmanaged3Int(SInt32Vec3* pf, size uiLength, char* szFieldName)			{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Unmanaged3Int(this, pf, uiLength, szFieldName); }
+void CBaseObject::Unmanaged4Int(SInt32Vec4* pf, char* szFieldName)							{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Unmanaged4Int(this, pf, szFieldName); }
+void CBaseObject::Unmanaged4Int(SInt32Vec4* pf, size uiLength, char* szFieldName)			{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Unmanaged4Int(this, pf, uiLength, szFieldName); }
 

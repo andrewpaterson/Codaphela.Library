@@ -145,7 +145,10 @@ bool CLogFile::Commit(void)
 //////////////////////////////////////////////////////////////////////////
 bool CLogFile::End(void)
 {
-	ReturnOnFalse(ValidateBegun(__METHOD__, "end", mpcBackingFile));
+	if (!mbBegun)
+	{
+		return FailBegun(__METHOD__, "end", mpcBackingFile);
+	}
 
 	miPosition = 0;
 	miLength = 0;
@@ -214,29 +217,22 @@ void CLogFile::GetSafeFilename(CChars* pszDest, CAbstractFile* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLogFile::ValidateBegun(char* szMethod, char* szTask, CAbstractFile* pcFile)
+bool CLogFile::FailBegun(char* szMethod, char* szTask, CAbstractFile* pcFile)
 {
 	CChars	szError;
 
-	if (!mbBegun)
-	{
-		szError.Init(szMethod);
-		szError.Append(" Cannot ");
-		szError.Append(szTask);
-		szError.Append(" if not begun.");
+	szError.Init(szMethod);
+	szError.Append(" Cannot ");
+	szError.Append(szTask);
+	szError.Append(" if not begun.");
 
-		szError.Append("] on file [");
-		GetSafeFilename(&szError, pcFile);
-		szError.Append("].");
+	szError.Append("] on file [");
+	GetSafeFilename(&szError, pcFile);
+	szError.Append("].");
 
-		gcLogger.Error(szError.Text());
-		szError.Kill();
-		return false;
-	}
-	else
-	{
-		return true;
-	}
+	gcLogger.Error(szError.Text());
+	szError.Kill();
+	return false;
 }
 
 
@@ -257,7 +253,10 @@ bool CLogFile::Commit(CAbstractFile* pcFile)
 	CChars						szError;
 	size						iNumCommands;
 
-	ReturnOnFalse(ValidateBegun(__METHOD__, "commit", pcFile));
+	if (!mbBegun)
+	{
+		return FailBegun(__METHOD__, "commit", pcFile);
+	}
 
 	iNumCommands = macCommands.NumElements();
 	for (i = 0; i < iNumCommands; i++)

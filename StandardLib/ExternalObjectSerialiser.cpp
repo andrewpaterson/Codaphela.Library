@@ -112,7 +112,7 @@ bool CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
 	{
 		mcMemory.Kill();
 		szDescription.Init();
-		gcLogger.Error2(__METHOD__, " Could not serialise object [", pcObject->GetIdentifier(&szDescription), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Could not serialise object [", pcObject->PrintIdentifier(&szDescription), "].", NULL);
 		szDescription.Kill();
 		return false;
 	}
@@ -126,7 +126,7 @@ bool CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
 	if (!bResult)
 	{
 		szDescription.Init();
-		gcLogger.Error2(__METHOD__, " Could write object [", pcObject->GetIdentifier(&szDescription), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Could write object [", pcObject->PrintIdentifier(&szDescription), "].", NULL);
 		szDescription.Kill();
 		return false;
 	}

@@ -67,7 +67,7 @@ protected:
 	void					CopyWritesToRead(CArrayIntAndPointer* papvOverlapping, size iByteSize, void* pvDest);
 	size					FindNextWriteCommand(size iIndex);
 
-	bool					ValidateBegun(char* szMethod, char* szTask, CAbstractFile* pcFile);
+	bool					FailBegun(char* szMethod, char* szTask, CAbstractFile* pcFile);
 
 	void					GetSafeFilename(CChars* pszDest, CAbstractFile* pcFile);
 	void					ExecuteCommandErrorString(CChars* pszDest, char* szMethod, CLogFileCommand* psCommand, CAbstractFile* pcFile);

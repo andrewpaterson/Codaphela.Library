@@ -46,7 +46,7 @@ public:
 	void	Allocate(size iNum);
 	void	Allocate(CMallocator* pcMalloc, size iNum);
 
-	size	Resize(size iNumElements);  //Test Virtual and make sure only PostMalloc only called once.
+	size	Resize(size iNumElements);  // Test Virtual and make sure only PostMalloc only called once.
 	size	NumElements(void);
 
 	M*		Add(void);
@@ -67,7 +67,7 @@ public:
 	M*		InsertAt(M* pvData, size iElementPos);
 	M*		InsertNumAt(size iNumElements, size iIndex);
 	size	InsertIntoSorted(DataCompare fCompare, M* pvElement, bool bOverwriteExisting);
-	void	InsertBatch(size iFirstElementPos, size uiNumInBatch, size uiNumBatches, size uiSkip);  //Test Virtual
+	void	InsertBatch(size iFirstElementPos, size uiNumInBatch, size uiNumBatches, size uiSkip);  // Test Virtual
 
 	M*		Push(void);
 	M*		PushCopy(void);

@@ -57,14 +57,9 @@ void NumberKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool ValidateNumberInitialised(char* szMethod)
+bool FailNumberControlInitialised(char* szMethod)
 {
-	if (!gbNumberControl)
-	{
-		gcLogger.Error2(szMethod, " Number Control has not been initialised.", NULL);
-		return false;
-	}
-	return true;
+	return gcLogger.Error2(szMethod, " Number Control has not been initialised.", NULL);
 }
 
 

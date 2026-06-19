@@ -372,15 +372,23 @@ void CObjects::PrintStackPointers(CChars* psz)
 		}
 		else if (psPointer->meType == SPT_Pointer)
 		{
+			psz->AppendPointer(psPointer->u.pcPointer);
+			psz->Append(" ");
 			psz->Append(ui);
 			psz->Append(": Pointer [");
-			psPointer->u.pcPointer->BaseObject()->Print(psz);
+			psPointer->u.pcPointer->BaseObject()->PrintState(psz);
 			psz->Append("]");
 			psz->AppendNewLine();
 		}
 		else if (psPointer->meType == SPT_Collection)
 		{
-
+			psz->AppendPointer(psPointer->u.pcCollection);
+			psz->Append(" ");
+			psz->Append(ui);
+			psz->Append(": Collection [");
+//			psPointer->u.pcCollection->GetBase()->PrintState(psz);  //It's somewhere in the collection.  How do the hell do we know which object?
+			psz->Append("]");
+			psz->AppendNewLine();
 		}
 		else
 		{
@@ -631,7 +639,10 @@ void CObjects::RecurseValidateSceneGraph(CBaseObject* pcBaseObject)
 	CBaseObject*						pcToContainerObject;
 	size								uiNumTos;
 
-	pcBaseObject->ValidateNotEmbedded(__METHOD__);
+	if (pcBaseObject->IsEmbedded())
+	{
+		pcBaseObject->FailNotExpectedToBeEmbedded(__METHOD__);
+	}
 
 	if (!pcBaseObject->TestedForSanity())
 	{
@@ -844,7 +855,7 @@ bool CObjects::ForceSave(CBaseObject* pcObject)
 		CChars	sz;
 
 		sz.Init();
-		pcObject->GetIdentifier(&sz);
+		pcObject->PrintIdentifier(&sz);
 		gcLogger.Error2(__METHOD__, " Cannot save object [", sz.Text(), "], Objects has data connection [NULL].", NULL);
 		sz.Kill();
 		return false;

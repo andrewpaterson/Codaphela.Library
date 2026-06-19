@@ -56,7 +56,8 @@ public:
 	bool	IsWriterVersion(const char* szEngineVersion);
 
 protected:
-	bool	CheckHeaderSize(const char* szMethod);
+	bool	CheckHeaderSize(void);
+	bool	FailHeaderSize(const char* szMethod);
 };
 
 

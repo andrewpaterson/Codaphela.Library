@@ -41,8 +41,7 @@ bool CDataOrderers::Add(CIndexTreeDataOrderer* pcMalloc)
 	sz = (char*)(pcMalloc->ClassName());
 	if (mmszClasses.Get(sz))
 	{
-		gcLogger.Error2(__METHOD__, " A mallocator named [", sz, "] already exists.", NULL);
-		return false;
+		return gcLogger.Error2(__METHOD__, " A mallocator named [", sz, "] already exists.", NULL);
 	}
 
 	mmszClasses.Put(sz, &pcMalloc);
@@ -69,18 +68,19 @@ CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader)
 	if (!pcFileReader->ReadStringLength(&iLength))
 	{
 		gcLogger.Error2(__METHOD__, " Could not read data orderer name length.", NULL);
-		return false;
+		return NULL;
 	}
 
 	if (iLength >= 1024)
 	{
 		gcLogger.Error2(__METHOD__, " Could not read data orderer name, too long [", IntToString(iLength), "].", NULL);
+		return NULL;
 	}
 
 	if (!pcFileReader->ReadStringChars(szName, iLength))
 	{
 		gcLogger.Error2(__METHOD__, " Could not read data orderer name.", NULL);
-		return false;
+		return NULL;
 	}
 
 	if (StrEmpty(szName))
@@ -92,7 +92,7 @@ CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader)
 	if (!ppcDataOrderer)
 	{
 		gcLogger.Error2(__METHOD__, " Could not find data orderer named [", szName, "].", NULL);
-		return false;
+		return NULL;
 	}
 
 	pcDataOrderer = *ppcDataOrderer;
@@ -121,16 +121,14 @@ bool CDataOrderers::Write(CFileWriter* pcFileWriter, CIndexTreeDataOrderer* pcDa
 	{
 		if (!pcFileWriter->WriteString(""))
 		{
-			gcLogger.Error2(__METHOD__, " Could not write NULL data orderer.", NULL);
-			return false;
+			return gcLogger.Error2(__METHOD__, " Could not write NULL data orderer.", NULL);
 		}
 	}
 	else
 	{
 		if (!pcFileWriter->WriteString(pcDataOrderer->ClassName()))
 		{
-			gcLogger.Error2(__METHOD__, " Could not write data orderer name [", pcDataOrderer->ClassName(), "].", NULL);
-			return false;
+			return gcLogger.Error2(__METHOD__, " Could not write data orderer name [", pcDataOrderer->ClassName(), "].", NULL);
 		}
 	}
 
