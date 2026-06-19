@@ -28,38 +28,62 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PointerObject.h"
 
 
+bool gbLogPointer = false;
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 void LogPointerDebug(CPointer* pvThis, char* szMethod)
 {
-#ifdef DEBUG_POINTER
-#ifdef _DEBUG
-	const char*	szEmbeddingClass;
-	char*		szEmbeddingName;
-	char*		szEmbeddingIndex;
-	char*		szEmbeddingAddress;
+	CBaseObject*	pcPointedTo;
+	CObject*		pcEmbedding;
+	CChars			sz;
+	size			uiLength;
+	size			uiOriginalLength;
 
-	CObject*	pcEmbedding;
-
-	pcEmbedding = pvThis->Embedding();
-	if (pcEmbedding != NULL)
+	if (gbLogPointer)
 	{
-		szEmbeddingClass = pcEmbedding->ClassName();
-		szEmbeddingIndex = IndexToString(pcEmbedding->GetIndex());
-		szEmbeddingName = pcEmbedding->GetName();
-		szEmbeddingAddress = PointerToString(pcEmbedding);
-		gcLogger.Debug2(PointerToString(pvThis), "->", szMethod, " [Embedding ", szEmbeddingClass, ": ", szEmbeddingIndex, " ", szEmbeddingName, " (", szEmbeddingAddress, ")]", NULL);
+		pcEmbedding = pvThis->Embedding();
+		sz.Init();
+		sz.Append(szMethod);
+		uiOriginalLength = sz.Length();
+		sz.RemoveEnd(62);
+		uiLength = sz.Length();
+		sz.Append(": ");
+		if (uiLength < 62)
+		{
+			sz.Append(' ', 62 - uiLength);
+		}
+		else if (uiOriginalLength >= 62)
+		{
+			sz.SetChar(59, '.');
+			sz.SetChar(60, '.');
+			sz.SetChar(61, '.');
+		}
+		sz.AppendPointer(pvThis);
+		sz.Append(' ');
+		if (pcEmbedding != NULL)
+		{
+			sz.Append("Embedding {");
+			pcEmbedding->PrintState(&sz);
+			sz.Append("}.");
+		}
+		sz.Append("Object {");
+		pcPointedTo = pvThis->BaseObject();
+		if (pcPointedTo)
+		{
+			pcPointedTo->PrintState(&sz);
+		}
+		else
+		{
+			sz.Append("NULL");
+		}
+		sz.Append("}");
+		gcLogger.Debug(sz.Text());
+		sz.Kill();
 	}
-	else
-	{
-		gcLogger.Debug2(PointerToString(pvThis), "->", szMethod, " [Embedding NULL]", NULL);
-	}
-
-	
-#endif // _DEBUG
-#endif // DEBUG_POINTER
 }
 
 
@@ -86,9 +110,25 @@ CPointer::CPointer(CPointer& cPointer)
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
 
+	PointTo(cPointer.mpcObject, false);
+
 	LOG_POINTER_DEBUG();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointer::CPointer(const CPointer& cPointer)
+{
+	//Constructor only called if a Pointer is declared on the Stack.
+	mpcEmbedding = NULL;
+	mpcObject = NULL;
 
 	PointTo(cPointer.mpcObject, false);
+
+	LOG_POINTER_DEBUG();
 }
 
 
@@ -102,9 +142,9 @@ CPointer::CPointer(CEmbeddedObject* pcObject)
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
 
-	LOG_POINTER_DEBUG();
-
 	PointTo(pcObject, false);
+
+	LOG_POINTER_DEBUG();
 }
 
 
@@ -129,9 +169,9 @@ CPointer::~CPointer()
 //////////////////////////////////////////////////////////////////////////
 void CPointer::operator = (CEmbeddedObject* pcObject)
 {
-	LOG_POINTER_DEBUG();
-
 	PointTo(pcObject, true);
+
+	LOG_POINTER_DEBUG();
 }
 
 
@@ -141,9 +181,21 @@ void CPointer::operator = (CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::operator = (CPointer& pcPointer)
 {
-	LOG_POINTER_DEBUG();
-
 	PointTo(pcPointer.mpcObject, true);
+
+	LOG_POINTER_DEBUG();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPointer::operator = (const CPointer& pcPointer)
+{
+	PointTo(pcPointer.mpcObject, true);
+
+	LOG_POINTER_DEBUG();
 }
 
 

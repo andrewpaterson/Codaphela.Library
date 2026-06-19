@@ -47,7 +47,8 @@ CObject::~CObject()
 		{
 			if (!HasClass())
 			{
-				ValidateHasClassFlag(__METHOD__);
+				FailHasClassFlag(__METHOD__);
+				return;
 			}
 		}
 		FreePointers();
@@ -1490,7 +1491,11 @@ void CObject::ValidateEmbeddedConsistency(void)
 //////////////////////////////////////////////////////////////////////////
 void CObject::ValidateConsistency(void)
 {
-	ValidateNotEmbedded(__METHOD__);
+	if (IsEmbedded())
+	{
+		FailNotExpectedToBeEmbedded(__METHOD__);
+		return;
+	}
 
 	ValidateObjectIdentifiers();
 	ValidateEmbeddedConsistency();

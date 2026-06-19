@@ -213,7 +213,10 @@ size CHollowEmbeddedObject::NumPointerTos(void)
 //////////////////////////////////////////////////////////////////////////
 void CHollowEmbeddedObject::ValidateConsistency(void)
 {
-	ValidateNotEmbedded(__METHOD__);
+	if (!IsEmbedded())
+	{
+		FailNotExpectedToBeEmbedded(__METHOD__);
+	}
 }
 
 

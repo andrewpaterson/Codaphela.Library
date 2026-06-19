@@ -212,8 +212,7 @@ bool CDurableFile::Recommit(void)
 	{
 		if (mcRewriteFile.IsOpen())
 		{
-			gcLogger.Error2(__METHOD__, " Did not expect durable file [", mszRewriteName.Text(), "] to be open already.", NULL);
-			return false;
+			return gcLogger.Error2(__METHOD__, " Did not expect durable file [", mszRewriteName.Text(), "] to be open already.", NULL);
 		}
 
 		if (mcLogFile.GetNumCommands() == 0)
@@ -550,7 +549,7 @@ filePos CDurableFile::Tell(void)
 {
 	if (!IsBegun())
 	{
-		 gcLogger.Error2(__METHOD__, " Cannot tell from CDurableFile [", mszFilename.Text(), "] that is not Begun.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot tell from CDurableFile [", mszFilename.Text(), "] that is not Begun.", NULL);
 		return -1;
 	}
 
@@ -604,8 +603,7 @@ bool CDurableFile::Truncate(size iSize)
 {
 	if (!IsBegun())
 	{
-		gcLogger.Error2(__METHOD__, " Cannot truncate CDurableFile [", mszFilename.Text(), "] that is not Begun.", NULL);
-		return false;
+		return gcLogger.Error2(__METHOD__, " Cannot truncate CDurableFile [", mszFilename.Text(), "] that is not Begun.", NULL);
 	}
 
 	return mcPrimaryFile.Truncate(iSize);

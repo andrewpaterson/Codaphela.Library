@@ -37,7 +37,7 @@ void LogPrimitiveAccessDebug(CPrimitiveObject* pvThis, char* szMethod)
 
 
 #endif // _DEBUG
-#endif // DEBUG_POINTER
+#endif // DEBUG_PRIMITIVE
 }
 
 
@@ -73,10 +73,8 @@ void LogPrimitiveAssignDebug(CPrimitiveObject* pvThis, char* szMethod)
 
 
 #endif // _DEBUG
-#endif // DEBUG_POINTER
+#endif // DEBUG_PRIMITIVE
 }
-
-
 
 
 //////////////////////////////////////////////////////////////////////////

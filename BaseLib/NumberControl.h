@@ -57,9 +57,9 @@ extern bool gbNumberControl;
 
 void NumberInit(int iScratchPadSize = 1 MB);
 void NumberKill(void);
-bool ValidateNumberInitialised(char* szMethod);
+bool IsNumberControlInitialised(void);
+bool FailNumberControlInitialised(char* szMethod);
 
 
 #endif // __NUMBER_CONTROL_H__
-
 

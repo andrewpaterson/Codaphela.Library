@@ -913,7 +913,7 @@ void CImage::Print(CChars* psz)
 	uint				ui;
 
 	psz->Append("Object[");
-	GetIdentifier(psz);
+	PrintIdentifier(psz);
 	psz->Append("]  Channels");
 	pcChannels = GetChannels();
 

@@ -40,7 +40,7 @@ CArrayCommonObject::~CArrayCommonObject()
 		{
 			if (!HasClass())
 			{
-				ValidateHasClassFlag(__METHOD__);
+				FailHasClassFlag(__METHOD__);
 			}
 		}
 		FreePointers();
@@ -506,6 +506,7 @@ size CArrayCommonObject::BaseNumPointerTos(void)
 	if (iCount != NonNullElements())
 	{
 		gcLogger.Error2(__METHOD__, " NumPointerTos [", SizeToString(iCount), "] should equal NonNullElements [", SizeToString(uiNumElements), "].");
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 	return iCount;
 }

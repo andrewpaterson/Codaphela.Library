@@ -170,8 +170,7 @@ bool CDataMemory::RemoveMultiple(CArrayVoidPtr* pav)
 				}
 				else
 				{
-					gcLogger.Error2(__METHOD__, " Could not deallocate memory.", NULL);
-					return false;
+					return gcLogger.Error2(__METHOD__, " Could not deallocate memory.", NULL);
 				}
 			}
 		}
@@ -502,7 +501,9 @@ CFreeList* CDataMemory::GetOrAddFreeList(size iElementSize)
 	if (psParams == NULL)
 	{
 		gcLogger.Error2(__METHOD__, " No free list parameter for element size [", SizeToString(iElementSize), "].  Available parameter options [", IntToString(mpcFreeListParams->NumParams()), "] (should be more than 0, call DataMemoryInit())." , NULL);
+		return NULL;
 	}
+
 	iStride = CalculateStride(psParams->iMaxElementSize, DATA_MEMORY_ALIGNMENT);
 
 	sDesc.Init(iStride);

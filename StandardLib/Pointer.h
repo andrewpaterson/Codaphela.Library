@@ -31,14 +31,15 @@ template<class M = CEmbeddedObject>
 class Ptr : public CPointer
 {
 public:
-			Ptr();
-			Ptr(CEmbeddedObject* pcObject);
-			Ptr(CPointer& cPointer);
-			~Ptr();
+			Ptr() : CPointer() {};
+			Ptr(CEmbeddedObject* pcObject) : CPointer(pcObject) {};
+			Ptr(CPointer& cPointer) : CPointer(cPointer) {};
+			Ptr(const CPointer& cPointer) : CPointer(cPointer) {};
+			Ptr(Ptr& cPointer) : CPointer(cPointer) {};
+			Ptr(const Ptr& cPointer) : CPointer(cPointer) {};
 
-	void	operator = (CEmbeddedObject* pcObject);
-	void	operator = (CPointer& pcPointer);
-	void	operator = (Ptr& pcPointer);
+			using CPointer::operator =;
+	
 	M*		operator -> ();
 	M*		operator & ();
 
@@ -51,98 +52,9 @@ public:
 };
 
 
-bool ValidatePointerClassAllowNull(char* szMethod, char* szParameter, const char* szInstanceClassName, const char* szExpectedClassName);
-#define ValidatePtr(p) ValidatePointerClassAllowNull(__METHOD__, #p, p.IsNotNull() ? p->ClassName() : NULL, p.TemplateClassName());
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-Ptr<M>::Ptr()
-{
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-Ptr<M>::Ptr(CPointer& cPointer)
-{
-	mpcEmbedding = NULL;
-	mpcObject = NULL;
-
-	LOG_POINTER_DEBUG();
-
-	PointTo(cPointer.mpcObject, false);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-Ptr<M>::Ptr(CEmbeddedObject* pcObject)
-{
-	LOG_POINTER_DEBUG();
-
-	mpcEmbedding = NULL;
-	mpcObject = NULL;
-
-	PointTo(pcObject, false);
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-Ptr<M>::~Ptr()
-{
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void Ptr<M>::operator = (CEmbeddedObject* pcObject)
-{
-	LOG_POINTER_DEBUG();
-
-	PointTo(pcObject, true);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void Ptr<M>::operator = (CPointer& pcPointer)
-{
-	LOG_POINTER_DEBUG();
-
-	PointTo(pcPointer.mpcObject, true);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void Ptr<M>::operator = (Ptr& pcPointer)
-{
-	LOG_POINTER_DEBUG();
-
-	PointTo(pcPointer.mpcObject, true);
-}
+bool IsValidPointerClassAllowNull(char* szParameter, const char* szInstanceClassName, const char* szExpectedClassName);
+bool FailValidPointerClassAllowNull(char* szMethod, char* szParameter, const char* szInstanceClassName, const char* szExpectedClassName);
+#define ValidatePtr(p) if (!IsValidPointerClassAllowNull(#p, p.IsNotNull() ? p->ClassName() : NULL, p.TemplateClassName())) FailValidPointerClassAllowNull(__METHOD__, #p, p.IsNotNull() ? p->ClassName() : NULL, p.TemplateClassName());
 
 
 //////////////////////////////////////////////////////////////////////////

@@ -341,32 +341,6 @@ void CEmbeddedObject::UnsafeAddHeapFrom(CBaseObject* pcFromObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::ValidateInitialised(char* szMethod)
-{
-	if (!IsInitialised())
-	{
-		LogExpectedToBeInitialised(szMethod);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::ValidateNotInitialised(char* szMethod)
-{
-	if (IsInitialised())
-	{
-		LogExpectedToNotBeInitialised(szMethod);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject, bool bValidate)
 {
 	CBaseObject*	pcContainer;
@@ -1087,20 +1061,6 @@ void CEmbeddedObject::TestRemoveStackFrom(CPointer* pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::ValidateNotEmbedded(char* szMethod)
-{
-	if (IsEmbedded())
-	{
-		// Ensure that an Object embedded in another Object as a field of that object is not being addressed directly.  (nothing to do with pointers on the stack)
-		LogNotExpectedToBeEmbedded(szMethod);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::IsEmbeddingContainerAllocatedInObjects(void)
 {
 	CEmbeddedObject*	pcEmbedded;
@@ -1121,8 +1081,10 @@ bool CEmbeddedObject::IsEmbeddingContainerAllocatedInObjects(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::LogNotExpectedToBeEmbedded(char* szMethod)
+bool CEmbeddedObject::FailNotExpectedToBeEmbedded(char* szMethod)
 {
+	// Ensure that an Object embedded in another Object as a field of that object is not being addressed directly.  (nothing to do with pointers on the stack)
+
 	CBaseObject*	pcContainer;
 	const char*		szContainerClass;
 
@@ -1130,7 +1092,7 @@ void CEmbeddedObject::LogNotExpectedToBeEmbedded(char* szMethod)
 	szContainerClass = pcContainer->ClassName();
 
 	//If DESTRUCTABLE(x) is not present at the top of the class after CONSTRUCTABLE(x) then wrong destructor on BaseObject will be called.
-	gcLogger.Error2(szMethod, " Cannot be called on embedded object of class [", ClassName(), "] with embedding index [", IndexToString(pcContainer->GetIndex()), "] and embedding class [", szContainerClass, "].  Ensure DESTRUCTABLE(", szContainerClass, "); is present.", NULL);
+	return gcLogger.Error2(szMethod, " Cannot be called on embedded object of class [", ClassName(), "] with embedding index [", IndexToString(pcContainer->GetIndex()), "] and embedding class [", szContainerClass, "].  Ensure DESTRUCTABLE(", szContainerClass, "); is present.", NULL);
 }
 
 
@@ -1138,12 +1100,12 @@ void CEmbeddedObject::LogNotExpectedToBeEmbedded(char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::LogCantInitFreedObject(char* szMethod)
+bool CEmbeddedObject::FailCantInitFreedObject(char* szMethod)
 {
 	CBaseObject* pcContainer;
 
 	pcContainer = GetEmbeddingContainer();
-	gcLogger.Error2(szMethod, " Cannot be called on a freed object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);
+	return gcLogger.Error2(szMethod, " Cannot be called on a freed object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);
 }
 
 
@@ -1151,12 +1113,12 @@ void CEmbeddedObject::LogCantInitFreedObject(char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::LogExpectedToBeInitialised(char* szMethod)
+bool CEmbeddedObject::FailExpectedToBeInitialised(char* szMethod)
 {
 	CBaseObject*					pcContainer;
 
 	pcContainer = GetEmbeddingContainer();
-	gcLogger.Error2(szMethod, " Cannot be called on un-initialised object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);
+	return gcLogger.Error2(szMethod, " Cannot be called on un-initialised object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);
 }
 
 
@@ -1164,12 +1126,12 @@ void CEmbeddedObject::LogExpectedToBeInitialised(char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::LogExpectedToNotBeInitialised(char* szMethod)
+bool CEmbeddedObject::FailExpectedToNotBeInitialised(char* szMethod)
 {
 	CBaseObject* pcContainer;
 
 	pcContainer = GetEmbeddingContainer();
-	gcLogger.Error2(szMethod, " Cannot be called on already initialised object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);
+	return gcLogger.Error2(szMethod, " Cannot be called on already initialised object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);
 }
 
 

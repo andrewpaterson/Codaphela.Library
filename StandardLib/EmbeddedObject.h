@@ -122,13 +122,10 @@ public:
 	virtual CObjects*			GetObjectsThisIn(void) =0;
 			char*				PrintObject(CChars* psz);
 			char*				PrintObject(CChars* psz, bool bEmbedded);
-			void				LogNotExpectedToBeEmbedded(char* szMethod);
-			void				LogExpectedToBeInitialised(char* szMethod);
-			void				LogExpectedToNotBeInitialised(char* szMethod);
-			void				LogCantInitFreedObject(char* szMethod);
-			void				ValidateInitialised(char* szMethod);
-			void				ValidateNotInitialised(char* szMethod);
-			void				ValidateNotEmbedded(char* szMethod);
+			bool				FailExpectedToBeInitialised(char* szMethod);
+			bool				FailExpectedToNotBeInitialised(char* szMethod);
+			bool				FailCantInitFreedObject(char* szMethod);
+			bool				FailNotExpectedToBeEmbedded(char* szMethod);
 			bool				TestRemoveHeapFrom(CBaseObject* pcFromObject);
 			void				TestRemoveStackFrom(CPointer* pcPointer);
 

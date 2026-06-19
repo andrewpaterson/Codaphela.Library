@@ -25,7 +25,15 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "EmbeddedObject.h"
 
 
-#define LOG_POINTER_DEBUG()	LogPointerDebug(this, __ENGINE_PRETTY_FUNCTION__)
+extern bool gbLogPointer;
+
+
+#define LOG_POINTER_DEBUG()	 
+#ifdef DEBUG_POINTER 
+#ifdef _DEBUG 
+LogPointerDebug(this, __ENGINE_PRETTY_FUNCTION__)
+#endif  // _DEBUG 
+#endif // DEBUG_POINTER
 
 
 //This class is roughly a void* (or possibly an Object*).  It should probably have been called CObjectPointer but it's easier to start typing CPo...
@@ -48,10 +56,12 @@ public:
 						CPointer();
 						CPointer(CEmbeddedObject* pcObject);
 						CPointer(CPointer& pcPointer);
+						CPointer(const CPointer& pcPointer);
 						~CPointer();
 
 	void				operator = (CEmbeddedObject* pcObject);
 	void				operator = (CPointer& pcPointer);
+	void				operator = (const CPointer& pcPointer);
 	CEmbeddedObject*	operator -> ();
 	CEmbeddedObject*	operator & ();
 	bool				operator ! ();
