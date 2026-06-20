@@ -487,6 +487,9 @@
     <Filter Include="Source\Data\Geometric\Vector4">
       <UniqueIdentifier>{ecf19b4c-86e5-4c4b-b324-08c7024fa58c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Set">
+      <UniqueIdentifier>{4cb8ee8b-7cc1-4174-b4fb-f6102dc96e4b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -1818,6 +1821,12 @@
     <ClInclude Include="SizeVec2.h">
       <Filter>Source\Data\Geometric\Vector2</Filter>
     </ClInclude>
+    <ClInclude Include="SetBlock.h">
+      <Filter>Source\Data\Set</Filter>
+    </ClInclude>
+    <ClInclude Include="SetNode.h">
+      <Filter>Source\Data\Set</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2932,6 +2941,12 @@
     </ClCompile>
     <ClCompile Include="SizeVec2.cpp">
       <Filter>Source\Data\Geometric\Vector2</Filter>
+    </ClCompile>
+    <ClCompile Include="SetBlock.cpp">
+      <Filter>Source\Data\Set</Filter>
+    </ClCompile>
+    <ClCompile Include="SetNode.cpp">
+      <Filter>Source\Data\Set</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

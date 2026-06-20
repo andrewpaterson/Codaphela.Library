@@ -66,7 +66,7 @@ void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, bool bOverw
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, DataCompare fCompare, bool bOverwrite)
+void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, DataCompare fNodeCompare, bool bOverwrite)
 {
 	size	iHoldingBufferSize;
 	size	iHoldingBuffers;
@@ -77,7 +77,7 @@ void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, DataCompare
 	iHoldingBuffers = 4;
 
 	mfKeyCompare = fKeyCompare;
-	mapArray.Init(pcMalloc, sizeof(void*), iHoldingBufferSize, iHoldingBuffers, fCompare);
+	mapArray.Init(pcMalloc, sizeof(void*), iHoldingBufferSize, iHoldingBuffers, fNodeCompare);
 	miLargestKeySize = 0;
 	mbOverwrite = bOverwrite;
 	mpcDataFree = NULL;
@@ -142,11 +142,8 @@ void CMapBlock::ReInit(void)
 //////////////////////////////////////////////////////////////////////////
 void CMapBlock::FreeNode(SMNode* psNode)
 {
-	void*	pvData;
-
 	if (mpcDataFree)
 	{
-		pvData = GetValue(psNode);
 		mpcDataFree->FreeData(psNode);
 	}
 	mpcMalloc->Free(psNode);
@@ -346,7 +343,7 @@ SMNode* CMapBlock::GetNode(void* pvKey, size iKeySize)
 	if (iKeySize > MAX_KEY_SIZE)
 	{
 		gcLogger.Error2(__METHOD__, " Key too long.  Cannot Get.", NULL);
-		return false;
+		return NULL;
 	}
 
 	psSourceNode = (SMNode*)ac;
