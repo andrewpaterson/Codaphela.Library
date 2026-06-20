@@ -140,7 +140,7 @@ public:
 						CPointer				TestGetFromMemory(char* szName);
 
 						void					PrintMemoryNames(CChars* psz);
-						void					PrintStackPointers(CChars* psz);
+						void					PrintStackPointers(CChars* psz, bool bPointerMemory = true);
 						void					DumpMemoryUseIteration(void);
 						void					DumpMemoryUseRecursion(void);
 						void					DumpNames(void);
