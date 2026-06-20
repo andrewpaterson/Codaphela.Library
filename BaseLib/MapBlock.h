@@ -30,7 +30,7 @@ public:
 	void				Init(CMallocator* pcMalloc, bool bOverwrite = true);
 	void				Init(DataCompare fKeyCompare, bool bOverwrite = true);
 	void				Init(CMallocator* pcMalloc, DataCompare fKeyCompare, bool bOverwrite = true);
-	void				Init(CMallocator* pcMalloc, DataCompare fKeyCompare, DataCompare fCompare, bool bOverwrite);
+	void				Init(CMallocator* pcMalloc, DataCompare fKeyCompare, DataCompare fNodeCompare, bool bOverwrite);
 	void				Kill(void);
 	void				ReInit(void);
 
