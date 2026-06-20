@@ -225,7 +225,7 @@ extern bool		gbObjects;
 void ObjectsInit(void);
 void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
 void ObjectsInit(CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
-void ObjectsKill(void);
+void ObjectsKill(bool bValidate = true);
 bool ObjectsValidate(void);
 bool ObjectsFlush(void);
 void ObjectsDump(void);
