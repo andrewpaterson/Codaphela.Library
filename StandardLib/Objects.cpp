@@ -2296,7 +2296,7 @@ void ObjectsInit(CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CDataCo
 {
 	if (gbObjects)
 	{
-		gcLogger.Error("Objects has already been initialised.");
+		gcLogger.Error2(__METHOD__, " Objects has already been initialised.", NULL);
 	}
 
 	UnknownsInit();
@@ -2311,11 +2311,20 @@ void ObjectsInit(CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CDataCo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ObjectsKill(void)
+void ObjectsKill(bool bValidate)
 {
-	if (!gbObjects)
+	if (bValidate)
 	{
-		gcLogger.Error("Objects has already been Killed.");
+		if (!gbObjects)
+		{
+			gcLogger.Error2(__METHOD__, " Objects has already been Killed.", NULL);
+		}
+
+		if (gcStackPointers.NumElements() > 0)
+		{
+			gcObjects.DumpStackPointers();
+			gcLogger.Error2(__METHOD__, " Found unfreed stack pointers.", NULL);
+		}
 	}
 
 	gcObjects.Kill();
@@ -2335,8 +2344,7 @@ bool ObjectsValidate(void)
 {
 	if (!gbObjects)
 	{
-		gcLogger.Error("Objects have not been initialised.  Call ObjectsInit().");
-		return false;
+		return gcLogger.Error2(__METHOD__, " Objects have not been initialised.  Call ObjectsInit().", NULL);
 	}
 	else
 	{
