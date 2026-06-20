@@ -354,7 +354,7 @@ void CObjects::DumpMemoryNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::PrintStackPointers(CChars* psz)
+void CObjects::PrintStackPointers(CChars* psz, bool bPointerMemory)
 {
 	size			uiNumPointers;
 	size			ui;
@@ -372,8 +372,11 @@ void CObjects::PrintStackPointers(CChars* psz)
 		}
 		else if (psPointer->meType == SPT_Pointer)
 		{
-			psz->AppendPointer(psPointer->u.pcPointer);
-			psz->Append(" ");
+			if (bPointerMemory)
+			{
+				psz->AppendPointer(psPointer->u.pcPointer);
+				psz->Append(" ");
+			}
 			psz->Append(ui);
 			psz->Append(": Pointer [");
 			psPointer->u.pcPointer->BaseObject()->PrintState(psz);
@@ -382,8 +385,11 @@ void CObjects::PrintStackPointers(CChars* psz)
 		}
 		else if (psPointer->meType == SPT_Collection)
 		{
-			psz->AppendPointer(psPointer->u.pcCollection);
-			psz->Append(" ");
+			if (bPointerMemory)
+			{
+				psz->AppendPointer(psPointer->u.pcCollection);
+				psz->Append(" ");
+			}
 			psz->Append(ui);
 			psz->Append(": Collection [");
 //			psPointer->u.pcCollection->GetBase()->PrintState(psz);  //It's somewhere in the collection.  How do the hell do we know which object?
