@@ -2598,22 +2598,22 @@ void CBaseObject::ValidateKillCalled(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateInternalConsistency(void)
 {
-	size			uiNumStackPointers;
-	size			ui;
-	SStackPointer*	psStackPointer;
-	void*			pvStart;
-	void*			pvEnd;
-	void*			pvPointer;
+	CStackPointer*		pcStackPointer;
+	SStackPointer*		psStackPointer;
+	void*				pvStart;
+	void*				pvEnd;
+	void*				pvPointer;
+	SFreeListIterator	sIter;
 
 	if (IsEmbeddingContainerAllocatedInObjects())
 	{
 		pvStart = this;
 		pvEnd = RemapSinglePointer(pvStart, ClassSize());
 
-		uiNumStackPointers = gcStackPointers.NumElements();
-		for (ui = 0; ui < uiNumStackPointers; ui++)
+		pcStackPointer = gcStackPointers.StartIteration(&sIter);
+		while (pcStackPointer)
 		{
-			psStackPointer = gcStackPointers.Get(ui);
+			psStackPointer = pcStackPointer->Get();
 			if (psStackPointer->meType == SPT_Pointer)
 			{
 				pvPointer = psStackPointer->u.pcPointer;
@@ -2630,6 +2630,7 @@ void CBaseObject::ValidateInternalConsistency(void)
 			{
 				gcLogger.Error2(__METHOD__, " Stack Pointer [", PointerToString(pvPointer), "] appears to belong to Object {", ObjectToString(this), "}.  Esnure it is set up in Class().", NULL);
 			}
+			pcStackPointer = gcStackPointers.Iterate(&sIter);
 		}
 	}
 }

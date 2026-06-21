@@ -11,22 +11,9 @@ CStackPointers	gcStackPointers;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CStackPointers::Init(size iNumPointers)
+void CStackPointers::Init(void)
 {
-	size				i;
-	CStackPointer*		pcStackPointer;
-
-	mpcMemory = (CStackPointer*)malloc(sizeof(CStackPointer) * iNumPointers);
-	miAllocatedPointers = iNumPointers;
-
-	mpvLastStackByte = RemapSinglePointer(mpcMemory, sizeof(CStackPointer) * iNumPointers - 1);
-	miLastUsed = 0;
-
-	for (i = 0; i < miAllocatedPointers; i++)
-	{
-		pcStackPointer = &mpcMemory[i];
-		pcStackPointer->Kill();
-	}
+	mcFreeList.Init(sizeof(CStackPointer));
 }
 
 
@@ -37,8 +24,7 @@ void CStackPointers::Init(size iNumPointers)
 void CStackPointers::Kill(void)
 {
 	ClearAllPointers();
-	SafeFree(mpcMemory);
-	mpcMemory = NULL;
+	mcFreeList.Kill();
 }
 
 
@@ -50,7 +36,7 @@ CStackPointer* CStackPointers::Add(CPointer* pcPointer)
 {
 	CStackPointer*	pcStackPointer;
 
-	pcStackPointer = FindUnused();
+	pcStackPointer = (CStackPointer*)mcFreeList.Add();
 	if (pcStackPointer)
 	{
 		pcStackPointer->Init(pcPointer);
@@ -72,11 +58,11 @@ CStackPointer* CStackPointers::Add(CPointer* pcPointer, CStackPointer* pcFirst)
 	CStackPointer*	pcStackPointer;
 	bool			bAdded;
 
-	pcStackPointer = FindUnused();
+	pcStackPointer = (CStackPointer*)mcFreeList.Add();
 	if (pcStackPointer)
 	{
 		pcStackPointer->Init(pcPointer);
-		bAdded = Add(pcStackPointer, pcFirst);
+		bAdded = SetLastNext(pcStackPointer, pcFirst);
 		if (bAdded)
 		{
 			return pcStackPointer;
@@ -101,7 +87,7 @@ CStackPointer* CStackPointers::Add(CCollection* pcCollection)
 {
 	CStackPointer* pcStackPointer;
 
-	pcStackPointer = FindUnused();
+	pcStackPointer = (CStackPointer*)mcFreeList.Add();
 	if (pcStackPointer)
 	{
 		pcStackPointer->Init(pcCollection);
@@ -123,11 +109,11 @@ CStackPointer* CStackPointers::Add(CCollection* pcCollection, CStackPointer* pcF
 	CStackPointer*	pcStackPointer;
 	bool			bAdded;
 
-	pcStackPointer = FindUnused();
+	pcStackPointer = (CStackPointer*)mcFreeList.Add();
 	if (pcStackPointer)
 	{
 		pcStackPointer->Init(pcCollection);
-		bAdded = Add(pcStackPointer, pcFirst);
+		bAdded = SetLastNext(pcStackPointer, pcFirst);
 		if (bAdded)
 		{
 			return pcStackPointer;
@@ -148,53 +134,13 @@ CStackPointer* CStackPointers::Add(CCollection* pcCollection, CStackPointer* pcF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CStackPointers::Add(CStackPointer* pcStackPointer, CStackPointer* pcFirst)
+bool CStackPointers::SetLastNext(CStackPointer* pcStackPointer, CStackPointer* pcFirst)
 {
 	CStackPointer*	pcLast;
 
 	pcLast = pcFirst->FindLast();
-	if (pcLast <= mpvLastStackByte)
-	{
-		pcLast->SetNext(pcStackPointer);
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CStackPointer* CStackPointers::FindUnused(void)
-{
-	size				i;
-	CStackPointer*	pcPointer;
-
-	for (i = miLastUsed; i < miAllocatedPointers; i++)
-	{
-		pcPointer = &mpcMemory[i];
-		if (!pcPointer->IsUsed())
-		{
-			miLastUsed = i;
-			return pcPointer;
-		}
-	}
-
-	for (i = 0; i < miLastUsed; i++)
-	{
-		pcPointer = &mpcMemory[i];
-		if (!pcPointer->IsUsed())
-		{
-			miLastUsed = i;
-			return pcPointer;
-		}
-	}
-
-	return NULL;
+	pcLast->SetNext(pcStackPointer);
+	return true;
 }
 
 
@@ -204,49 +150,7 @@ CStackPointer* CStackPointers::FindUnused(void)
 //////////////////////////////////////////////////////////////////////////
 size CStackPointers::NumElements(void)
 {
-	size			i;
-	CStackPointer*	pcStackPointer;
-	size			uiCount;
-
-	uiCount = 0;
-	for (i = 0; i < miAllocatedPointers; i++)
-	{
-		pcStackPointer = &mpcMemory[i];
-		if (pcStackPointer->IsUsed())
-		{
-			uiCount++;
-		}
-	}	
-
-	return uiCount;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SStackPointer* CStackPointers::Get(size uiIndex)
-{
-	size			i;
-	CStackPointer*	pcStackPointer;
-	size			uiCount;
-
-	uiCount = 0;
-	for (i = 0; i < miAllocatedPointers; i++)
-	{
-		pcStackPointer = &mpcMemory[i];
-		if (pcStackPointer->IsUsed())
-		{
-			if (uiCount == uiIndex)
-			{
-				return pcStackPointer->Get();
-			}
-			uiCount++;
-		}
-	}	
-
-	return NULL;
+	return mcFreeList.NumElements();
 }
 
 
@@ -256,17 +160,15 @@ SStackPointer* CStackPointers::Get(size uiIndex)
 //////////////////////////////////////////////////////////////////////////
 void CStackPointers::ClearAllPointers(void)
 {
-	size				i;
-	CStackPointer*	pcStackPointer;
+	CStackPointer*		pcStackPointer;
+	SFreeListIterator	sIter;
 
-	for (i = 0; i < miAllocatedPointers; i++)
+	pcStackPointer = (CStackPointer*)mcFreeList.StartIteration(&sIter);
+	while (pcStackPointer)
 	{
-		pcStackPointer = &mpcMemory[i];
-		if (pcStackPointer->IsUsed())
-		{
-			pcStackPointer->ClearPointer();
-		}
-	}	
+		pcStackPointer->ClearPointer();
+		pcStackPointer = (CStackPointer*)mcFreeList.Iterate(&sIter);
+	}
 }
 
 
@@ -276,7 +178,7 @@ void CStackPointers::ClearAllPointers(void)
 //////////////////////////////////////////////////////////////////////////
 void CStackPointers::RemoveAll(CStackPointer* pcFirst)
 {
-	pcFirst->RemoveAll();
+	pcFirst->RemoveAll(&mcFreeList);
 }
 
 
@@ -286,7 +188,7 @@ void CStackPointers::RemoveAll(CStackPointer* pcFirst)
 //////////////////////////////////////////////////////////////////////////
 CStackPointer* CStackPointers::Remove(CStackPointer* pcFirst, CPointer* pcPointer)
 {
-	return pcFirst->Remove(pcPointer);
+	return pcFirst->Remove(pcPointer, &mcFreeList);
 }
 
 
@@ -296,7 +198,7 @@ CStackPointer* CStackPointers::Remove(CStackPointer* pcFirst, CPointer* pcPointe
 //////////////////////////////////////////////////////////////////////////
 CStackPointer* CStackPointers::Remove(CStackPointer* pcFirst, CCollection* pcPointer)
 {
-	return pcFirst->Remove(pcPointer);
+	return pcFirst->Remove(pcPointer, &mcFreeList);
 }
 
 
@@ -304,9 +206,9 @@ CStackPointer* CStackPointers::Remove(CStackPointer* pcFirst, CCollection* pcPoi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CStackPointers::TestAdd(size iIndex)
+CStackPointer* CStackPointers::StartIteration(SFreeListIterator* psIter)
 {
-	mpcMemory[iIndex].Init();
+	return (CStackPointer*)mcFreeList.StartIteration(psIter);
 }
 
 
@@ -314,35 +216,8 @@ void CStackPointers::TestAdd(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CStackPointers::TestKill(size iIndex)
+CStackPointer* CStackPointers::Iterate(SFreeListIterator* psIter)
 {
-	mpcMemory[iIndex].Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CStackPointers::TestSetLastUsed(size iLastUsed)
-{
-	miLastUsed = iLastUsed;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CStackPointers::TestFindUnusedIndex(size iLastUsed)
-{
-	CStackPointer*	pcUnused;
-	size			iIndex;
-
-	TestSetLastUsed(iLastUsed);
-	pcUnused = FindUnused();
-	iIndex = ((size)pcUnused - (size)mpcMemory)/sizeof(CStackPointer);
-
-	return iIndex;
+	return (CStackPointer*)mcFreeList.Iterate(psIter);
 }
 

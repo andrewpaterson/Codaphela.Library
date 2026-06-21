@@ -539,7 +539,7 @@ void* CFreeList::GetBitArray(SFNode* psNode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CFreeList::AllocateExisting(SFNode*	psNode, size iPosition)
+void* CFreeList::AllocateExisting(SFNode* psNode, size iPosition)
 {
 	void*	pvBitArray;
 	void*	pvData;

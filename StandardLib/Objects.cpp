@@ -356,14 +356,16 @@ void CObjects::DumpMemoryNames(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::PrintStackPointers(CChars* psz, bool bPointerMemory)
 {
-	size			uiNumPointers;
-	size			ui;
-	SStackPointer*	psPointer;
+	CStackPointer*		pcPointer;
+	SStackPointer*		psPointer;
+	SFreeListIterator	sIter;
+	size				ui;
 
-	uiNumPointers = mpcStackPointers->NumElements();
-	for (ui = 0; ui < uiNumPointers; ui++)
+	ui = 0;
+	pcPointer = mpcStackPointers->StartIteration(&sIter);
+	while (pcPointer)
 	{
-		psPointer = mpcStackPointers->Get(ui);
+		psPointer = pcPointer->Get();
 		if (psPointer->meType == SPT_Unknown)
 		{
 			psz->Append(ui);
@@ -402,6 +404,8 @@ void CObjects::PrintStackPointers(CChars* psz, bool bPointerMemory)
 			psz->Append(": ERROR");
 			psz->AppendNewLine();
 		}
+		ui++;
+		pcPointer = mpcStackPointers->Iterate(&sIter);
 	}
 }
 
@@ -2282,7 +2286,7 @@ void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSeque
 
 	UnknownsInit();
 	TransientSequenceInit();
-	gcStackPointers.Init(MAX_STACK_POINTERS);
+	gcStackPointers.Init();
 	gcObjects.Init(&gcUnknowns, &gcStackPointers, pcDataConnection, pcSequenceConnection);
 	gbObjects = true;
 }
@@ -2301,7 +2305,7 @@ void ObjectsInit(CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CDataCo
 
 	UnknownsInit();
 	TransientSequenceInit();
-	gcStackPointers.Init(MAX_STACK_POINTERS);
+	gcStackPointers.Init();
 	gcObjects.Init(pcUnknowns, pcStackPointers, pcDataConnection, pcSequenceConnection);
 	gbObjects = true;
 }
