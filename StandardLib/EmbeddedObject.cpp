@@ -705,7 +705,7 @@ bool CEmbeddedObject::AddStackFroms(CStackPointer* pcStackPointer)
 	{
 		if (mpcStackFroms)
 		{
-			bAdded = pcStackPointers->Add(pcStackPointer, mpcStackFroms);
+			bAdded = pcStackPointers->SetLastNext(pcStackPointer, mpcStackFroms);
 			if (!bAdded)
 			{
 				return false;

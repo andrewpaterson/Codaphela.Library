@@ -12,7 +12,6 @@ void CStackPointer::Init(void)
 	msPointer.meType = SPT_Unknown;
 	msPointer.u.pcPointer = NULL;
 	mpcNext = NULL;
-	mbUsed = true;
 }
 
 
@@ -25,7 +24,6 @@ void CStackPointer::Init(CPointer* pcPointer)
 	msPointer.meType = SPT_Pointer;
 	msPointer.u.pcPointer = pcPointer;
 	mpcNext = NULL;
-	mbUsed = true;
 }
 
 
@@ -38,7 +36,6 @@ void CStackPointer::Init(CCollection* pcCollection)
 	msPointer.meType = SPT_Collection;
 	msPointer.u.pcCollection = pcCollection;
 	mpcNext = NULL;
-	mbUsed = true;
 }
 
 
@@ -51,17 +48,6 @@ void CStackPointer::Kill(void)
 	msPointer.meType = SPT_Unknown;
 	msPointer.u.pcPointer = NULL;
 	mpcNext = NULL;
-	mbUsed = false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CStackPointer::IsUsed(void)
-{
-	return mbUsed;
 }
 
 
@@ -129,11 +115,11 @@ CStackPointer* CStackPointer::GetNext(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CStackPointer* CStackPointer::Remove(CPointer* pcPointer)
+CStackPointer* CStackPointer::Remove(CPointer* pcPointer, CFreeList* pcFreeList)
 {
-	CStackPointer* pcNext;
-	CStackPointer* pcPrev;
-	CStackPointer* pcThis;
+	CStackPointer*	pcNext;
+	CStackPointer*	pcPrev;
+	CStackPointer*	pcThis;
 
 	pcNext = this;
 	pcPrev = NULL;
@@ -148,12 +134,14 @@ CStackPointer* CStackPointer::Remove(CPointer* pcPointer)
 				{
 					pcPrev->SetNext(pcThis->mpcNext);
 					pcThis->Kill();
+					pcFreeList->Remove(pcThis);
 					return this;
 				}
 				else
 				{
 					pcNext = mpcNext;
 					pcThis->Kill();
+					pcFreeList->Remove(pcThis);
 					return pcNext;
 				}
 			}
@@ -171,7 +159,7 @@ CStackPointer* CStackPointer::Remove(CPointer* pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CStackPointer* CStackPointer::Remove(CCollection* pcPointer)
+CStackPointer* CStackPointer::Remove(CCollection* pcPointer, CFreeList* pcFreeList)
 {
 	CStackPointer* pcNext;
 	CStackPointer* pcPrev;
@@ -190,12 +178,14 @@ CStackPointer* CStackPointer::Remove(CCollection* pcPointer)
 				{
 					pcPrev->SetNext(pcThis->mpcNext);
 					pcThis->Kill();
+					pcFreeList->Remove(pcThis);
 					return this;
 				}
 				else
 				{
 					pcNext = mpcNext;
-					Kill();
+					pcThis->Kill();
+					pcFreeList->Remove(pcThis);
 					return pcNext;
 				}
 			}
@@ -213,7 +203,7 @@ CStackPointer* CStackPointer::Remove(CCollection* pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CStackPointer::RemoveAll(void)
+void CStackPointer::RemoveAll(CFreeList* pcFreeList)
 {
 	CStackPointer* pcNext;
 	CStackPointer* pcThis;
@@ -224,6 +214,7 @@ void CStackPointer::RemoveAll(void)
 		pcThis = pcNext;
 		pcNext = pcNext->mpcNext;
 		pcThis->Kill();
+		pcFreeList->Remove(pcThis);
 	}
 }
 

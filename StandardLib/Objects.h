@@ -35,9 +35,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #define ROOT_NAME	"GraphRoot"
-
 #define CLEAR_MEMORY_CHUNK_SIZE		16384
-#define MAX_STACK_POINTERS			4096
+
 
 Ptr<CRoot> ORoot(void);
 
