@@ -490,6 +490,9 @@
     <Filter Include="Source\Data\Set">
       <UniqueIdentifier>{4cb8ee8b-7cc1-4174-b4fb-f6102dc96e4b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Set\String">
+      <UniqueIdentifier>{19849453-e66d-42ce-ac38-64833cc46ad3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -1827,6 +1830,9 @@
     <ClInclude Include="SetNode.h">
       <Filter>Source\Data\Set</Filter>
     </ClInclude>
+    <ClInclude Include="SetString.h">
+      <Filter>Source\Data\Set\String</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2947,6 +2953,9 @@
     </ClCompile>
     <ClCompile Include="SetNode.cpp">
       <Filter>Source\Data\Set</Filter>
+    </ClCompile>
+    <ClCompile Include="SetString.cpp">
+      <Filter>Source\Data\Set\String</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

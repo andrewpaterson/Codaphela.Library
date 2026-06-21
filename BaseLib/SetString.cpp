@@ -1,0 +1,290 @@
+#ifdef LINUX_GNU_32
+#include <strings.h>
+#endif // LINUX_GNU_32
+#include "SetString.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CSetString::Init(bool bCaseSensitive, bool bOverwrite)
+{
+	Init(&gcSystemAllocator, bCaseSensitive, bOverwrite);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CSetString::Init(CMallocator* pcMalloc, bool bCaseSensitive, bool bOverwrite)
+{
+	DataCompare	fCaseFunc;
+
+	fCaseFunc = CalculateCompareFunc(bCaseSensitive);
+	CSetBlock::Init(pcMalloc, fCaseFunc, bOverwrite);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CSetString::Kill(void)
+{
+	CSetBlock::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+char* CSetString::Get(const char* szKey)
+{
+	size	iStrLen;
+	char*	sz;
+
+	if (!szKey)
+	{
+		return NULL;
+	}
+
+	iStrLen = strlen(szKey) + 1;
+	sz = (char*)CSetBlock::Get((void*)szKey, iStrLen);
+	return sz;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+char* CSetString::Put(char* szKey)
+{
+	char*	sz;
+	size	iStrLen;
+
+	if (StrEmpty(szKey))
+	{
+		return NULL;
+	}
+
+	iStrLen = strlen(szKey) + 1;
+	sz = (char*)CSetBlock::Put(szKey, iStrLen);
+	return sz;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+char* CSetString::Put(const char* szKey)
+{
+	return Put((char*)szKey);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSetString::Remove(char* szKey)
+{
+	size	iStrLen;
+
+	if (StrEmpty(szKey))
+	{
+		return false;
+	}
+
+	iStrLen = strlen(szKey) + 1;
+	return CSetBlock::Remove(szKey, iStrLen);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSetString::Remove(const char* szKey)
+{
+	return Remove((char*)szKey);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSetString::Has(char* szKey)
+{
+	size	iStrLen;
+
+	if (StrEmpty(szKey))
+	{
+		return false;
+	}
+
+	iStrLen = strlen(szKey) + 1;
+	return CSetBlock::Has(szKey, iStrLen);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSetString::Has(const char* szKey)
+{
+	return Has((char*)szKey);
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSetString::WriteCaseSensitivity(CFileWriter* pcFileWriter)
+{
+	bool	bCaseSensitive;
+
+	bCaseSensitive = IsCaseSensitive();
+	return pcFileWriter->WriteBool(bCaseSensitive);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSetString::Write(CFileWriter* pcFileWriter)
+{
+	bool	bResult;
+
+	bResult = WriteCaseSensitivity(pcFileWriter);
+	bResult &= CSetBlock::Write(pcFileWriter);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+DataCompare CSetString::ReadCaseSensitivity(CFileReader* pcFileReader)
+{
+	bool			bCaseSensitive;
+	DataCompare		fCaseFunc;
+
+	if (!pcFileReader->ReadBool(&bCaseSensitive))
+	{
+		return NULL;
+	}
+
+	fCaseFunc = CalculateCompareFunc(bCaseSensitive);
+	return fCaseFunc;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSetString::Read(CFileReader* pcFileReader)
+{
+	return Read(pcFileReader, this, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSetString::Read(CFileReader* pcFileReader, CDataIO* pcDataIO, CDataFree* pcDataFree)
+{
+	//Do not call .Init() before Read().
+
+	DataCompare		fCaseFunc;
+	bool			bResult;
+
+	fCaseFunc = ReadCaseSensitivity(pcFileReader);
+	if (fCaseFunc == NULL)
+	{
+		return false;
+	}
+	bResult = CSetBlock::Read(pcFileReader, fCaseFunc, pcDataIO, pcDataFree);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSetString::IsCaseSensitive(void)
+{
+	return mfCompare == (DataCompare)&StringCompare;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CSetString::SetCaseSensitive(bool bCaseSensitive)
+{
+	mfCompare = CalculateCompareFunc(bCaseSensitive);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+DataCompare CSetString::CalculateCompareFunc(bool bCaseSensitive)
+{
+	if (bCaseSensitive)
+	{
+		return (DataCompare)&StringCompare;
+	}
+	else
+	{
+		return (DataCompare)&StringInsensitiveCompare;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CSetString::GetKeysAsString(CChars* pszDest, char* szSeparator)
+{
+	SSetIterator	sIter;
+	char*			szKey;
+	size			iStrLen;
+	bool			bHasNext;
+	bool			bFirst;
+
+	bFirst = true;
+	bHasNext = StartIteration(&sIter, (void**)&szKey, &iStrLen);
+	while (bHasNext)
+	{
+		if (bFirst)
+		{
+			bFirst = false;
+		}
+		else
+		{
+			pszDest->Append(szSeparator);
+		}
+
+		pszDest->Append(szKey, iStrLen - 1);
+
+		bHasNext = Iterate(&sIter, (void**)&szKey, &iStrLen);
+	}
+}
+
