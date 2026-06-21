@@ -376,6 +376,7 @@
     <ClInclude Include="ScratchPadAllocator.h" />
     <ClInclude Include="SetBlock.h" />
     <ClInclude Include="SetNode.h" />
+    <ClInclude Include="SetString.h" />
     <ClInclude Include="SizeVec2.h" />
     <ClInclude Include="Source\Aarvark\Aardvark.h" />
     <ClInclude Include="StackMemory.h" />
@@ -785,6 +786,7 @@
     <ClCompile Include="DebugOutputFile.cpp" />
     <ClCompile Include="SetBlock.cpp" />
     <ClCompile Include="SetNode.cpp" />
+    <ClCompile Include="SetString.cpp" />
     <ClCompile Include="SizeVec2.cpp" />
     <ClCompile Include="Source\Aarvark\Aardvark.cpp" />
     <ClCompile Include="StdRandom.cpp" />
