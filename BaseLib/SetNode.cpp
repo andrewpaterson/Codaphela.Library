@@ -29,7 +29,6 @@ int CompareSNode(const void* arg1, const void* arg2)
 
 	pNode1 = *((SSNode**)arg1);
 	pNode2 = *((SSNode**)arg2);
-
 	pvData1 = HeaderGetData<SSNode, void>(pNode1);
 	pvData2 = HeaderGetData<SSNode, void>(pNode2);
 
