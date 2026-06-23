@@ -291,7 +291,7 @@ void CEmbeddedObject::RemoveAllHeapFroms(void)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, bool bValidate)
 {
-	CBaseObject* pcEmbedding;
+	CBaseObject*	pcEmbedding;
 	int				iDistToRoot;
 
 	if (pcFromObject != NULL)
