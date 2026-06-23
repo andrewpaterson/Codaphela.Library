@@ -136,7 +136,7 @@ protected:
 			bool				PrivateRemoveHeapFrom(CBaseObject* pcFrom);
 	virtual void				GetStackFroms(CArrayStackPointer* papcFroms);
 	virtual void				GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms);
-	virtual CStackPointers*		GetStackPointers(void);
+			CStackPointers*		GetStackPointers(void);
 	virtual CEmbeddedObject*	GetClosestFromForCanFindRoot(void);
 	virtual void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) =0;
 			void				ValidateObjectsConsistency(bool bValidate);

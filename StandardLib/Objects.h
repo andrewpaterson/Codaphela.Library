@@ -75,8 +75,6 @@ protected:
 	CDataConnection*		mpcDataConnection;
 	CSequenceConnection*	mpcSequenceConnection;
 
-	CStackPointers*			mpcStackPointers;
-
 	CDistCalculator			mcDistCalculator;
 
 	AllocationCallback		mAllocationCallback;
@@ -87,7 +85,7 @@ protected:
 
 public:
 												CObjects();
-						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
+						void					Init(CUnknowns* pcUnknownsAllocatingFrom, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
 						void					Kill(void);
 
 	template<class M>	void					AddConstructor(void);
@@ -223,7 +221,7 @@ extern bool		gbObjects;
 
 void ObjectsInit(void);
 void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
-void ObjectsInit(CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
+void ObjectsInit(CUnknowns* pcUnknowns, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
 void ObjectsKill(bool bValidate = true);
 bool ObjectsValidate(void);
 bool ObjectsFlush(void);

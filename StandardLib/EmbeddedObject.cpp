@@ -419,7 +419,7 @@ void CEmbeddedObject::GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFrom
 //////////////////////////////////////////////////////////////////////////
 CStackPointers* CEmbeddedObject::GetStackPointers(void)
 {
-	return NULL;
+	return &gcStackPointers;
 }
 
 
@@ -695,7 +695,7 @@ bool CEmbeddedObject::AddStackFrom(CCollection* pcCollection, bool bValidate)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::AddStackFroms(CStackPointer* pcStackPointer)
+bool CEmbeddedObject::AddStackPointersForRemap(CStackPointer* pcStackPointer)
 {
 	CStackPointers*		pcStackPointers;
 	bool				bAdded;
