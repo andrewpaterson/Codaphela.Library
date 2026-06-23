@@ -25,6 +25,7 @@ public:
 	void			ClearAllPointers(void);
 
 	size			NumElements(void);
+	CStackPointer*	Get(size uiIndex);
 
 	CStackPointer*	StartIteration(SFreeListIterator* psIter);
 	CStackPointer*	Iterate(SFreeListIterator* psIter);
