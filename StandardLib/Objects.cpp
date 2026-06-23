@@ -130,7 +130,6 @@ CObjects::CObjects()
 {
 	mbInitialised = false;
 	mpcUnknownsAllocatingFrom = NULL;
-	mpcStackPointers = NULL;
 	mpcDataConnection = NULL;
 	mpcSequenceConnection = NULL;
 }
@@ -140,10 +139,9 @@ CObjects::CObjects()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection)
+void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection)
 {
 	mpcUnknownsAllocatingFrom = pcUnknownsAllocatingFrom;
-	mpcStackPointers = pcStackPointers;
 
 	mpcDataConnection = pcDataConnection;
 	mpcSequenceConnection = pcSequenceConnection;
@@ -362,7 +360,7 @@ void CObjects::PrintStackPointers(CChars* psz, bool bPointerMemory)
 	size				ui;
 
 	ui = 0;
-	pcPointer = mpcStackPointers->StartIteration(&sIter);
+	pcPointer = GetStackPointers()->StartIteration(&sIter);
 	while (pcPointer)
 	{
 		psPointer = pcPointer->Get();
@@ -405,7 +403,7 @@ void CObjects::PrintStackPointers(CChars* psz, bool bPointerMemory)
 			psz->AppendNewLine();
 		}
 		ui++;
-		pcPointer = mpcStackPointers->Iterate(&sIter);
+		pcPointer = GetStackPointers()->Iterate(&sIter);
 	}
 }
 
@@ -1776,7 +1774,7 @@ void CObjects::AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmb
 //////////////////////////////////////////////////////////////////////////
 CStackPointers* CObjects::GetStackPointers(void)
 {
-	return mpcStackPointers;
+	return &gcStackPointers;
 }
 
 
@@ -2287,7 +2285,7 @@ void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSeque
 	UnknownsInit();
 	TransientSequenceInit();
 	gcStackPointers.Init();
-	gcObjects.Init(&gcUnknowns, &gcStackPointers, pcDataConnection, pcSequenceConnection);
+	gcObjects.Init(&gcUnknowns, pcDataConnection, pcSequenceConnection);
 	gbObjects = true;
 }
 
@@ -2296,7 +2294,7 @@ void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSeque
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ObjectsInit(CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection)
+void ObjectsInit(CUnknowns* pcUnknowns, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection)
 {
 	if (gbObjects)
 	{
@@ -2306,7 +2304,7 @@ void ObjectsInit(CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CDataCo
 	UnknownsInit();
 	TransientSequenceInit();
 	gcStackPointers.Init();
-	gcObjects.Init(pcUnknowns, pcStackPointers, pcDataConnection, pcSequenceConnection);
+	gcObjects.Init(pcUnknowns, pcDataConnection, pcSequenceConnection);
 	gbObjects = true;
 }
 

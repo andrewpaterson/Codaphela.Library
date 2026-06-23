@@ -25,7 +25,6 @@ public:
 	int					GetEmbeddedIndex(void);
 	CHollowObject*		GetHollowObject(void);
 	CObjects*			GetObjectsThisIn(void);
-	CStackPointers*		GetStackPointers(void);
 	void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 	size				NumPointerTos(void);
 	void				ValidateConsistency(void);

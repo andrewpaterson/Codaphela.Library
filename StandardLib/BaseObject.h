@@ -159,7 +159,6 @@ public:
 			bool				TestedForSanity(void);
 			CObjects*			GetObjectsThisIn(void);
 			CClasses*			GetClasses(void);
-			CStackPointers*		GetStackPointers(void);
 	virtual void				SetDistToStack(int iDistToStack);
 			CClass*				CompleteClass(CClasses* pcClasses);
 			void				CopyFields(CEmbeddedObject* pcOther) override;
