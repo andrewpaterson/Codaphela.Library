@@ -103,7 +103,7 @@ public:
 
 			bool				AddStackFrom(CPointer* pcPointer, bool bValidate);
 			bool				AddStackFrom(CCollection* pcCollection, bool bValidate);
-			bool				AddStackFroms(CStackPointer* pcStackPointer);
+			bool				AddStackPointersForRemap(CStackPointer* pcStackPointer);
 			bool				HasStackPointers(void);
 			void				PrivateRemoveStackFrom(CPointer* pcPointer);
 			bool				RemoveStackFromTryFree(CPointer* pcPointer, bool bKillIfNoRoot);
