@@ -90,7 +90,7 @@ size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pc
 			}
 			pcStackPointer = pcStackPointer->GetNext();
 		}
-		pcNew->AddStackFroms(pcFirstStackPointer);
+		pcNew->AddStackPointersForRemap(pcFirstStackPointer);
 	}
 
 	pcOld->PostRemapFroms();
