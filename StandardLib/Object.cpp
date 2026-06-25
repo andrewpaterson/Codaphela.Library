@@ -389,19 +389,77 @@ bool CObject::SetDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::SetDistToStack(int iDistToStack)
+void CObject::InitDistToStack(void)
 {
 	size			i;
 	size			uiNumEmbedded;
-	CBaseObject*	pcEmbedded;
+	CBaseObject*	pcBaseObject;
 
-	CBaseObject::SetDistToStack(iDistToStack);
+	CBaseObject::InitDistToStack();
 
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
-		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->SetDistToStack(iDistToStack);
+		pcBaseObject = (CBaseObject*)mapEmbedded.GetPtr(i);
+		pcBaseObject->CBaseObject::InitDistToStack();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObject::SetDistToStack(int iDistToStack)
+{
+	size				i;
+	size				uiNumEmbedded;
+	CBaseObject*		pcBaseObject;
+	bool				bStable;
+
+	bStable = CBaseObject::SetDistToStack(iDistToStack);
+
+	uiNumEmbedded = mapEmbedded.NumElements();
+	for (i = 0; i < uiNumEmbedded; i++)
+	{
+		pcBaseObject = (CBaseObject*)mapEmbedded.GetPtr(i);
+		bStable &= pcBaseObject->CBaseObject::SetDistToStack(iDistToStack);
+	}
+
+	//Stack distance rework: No point in sorting because the result isn't used.
+	//if (!bStable)
+	//{
+	//	SortPointedToHeapFroms();
+	//}
+	return bStable;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObject::SortPointedToHeapFroms(void)
+{
+	//Stack distance rework: This is not called because you don't understand when to call it.
+
+	size				i;
+	size				uiNumPointers;
+	CPointer*			pcPointer;
+	CEmbeddedObject*	pcEmbeddedObject;
+	CEmbeddedObject*	pcContainer;
+
+	uiNumPointers = mapPointers.NumElements();
+	for (i = 0; i < uiNumPointers; i++)
+	{
+		pcPointer = (CPointer*)mapPointers.GetPtr(i);
+		pcEmbeddedObject = pcPointer->Object();
+		if (pcEmbeddedObject)
+		{
+			//Is going back to the container correct?
+			pcContainer = pcEmbeddedObject->GetEmbeddingContainer();
+			pcContainer->SortHeapFromsByStackDistance();
+		}
 	}
 }
 
@@ -560,7 +618,7 @@ CBaseObject* CObject::GetClosestFromForCanFindRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObject::GetClosestFromToStack(void)
+CBaseObject* CObject::GetClosestHeapFromToStack(void)
 {
 	size				i;
 	size				uiNumEmbedded;
@@ -568,13 +626,13 @@ CBaseObject* CObject::GetClosestFromToStack(void)
 	CEmbeddedObject*	pcNearesetPointedFrom;
 	CEmbeddedObject*	pcEmbeddedNearesetPointedFrom;
 
-	pcNearesetPointedFrom = CEmbeddedObject::GetClosestFromToStack();
+	pcNearesetPointedFrom = CEmbeddedObject::GetClosestHeapFromToStack();
 
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbeddedNearesetPointedFrom = pcEmbedded->GetClosestFromToStack();
+		pcEmbeddedNearesetPointedFrom = pcEmbedded->GetClosestHeapFromToStack();
 
 		if (pcNearesetPointedFrom == NULL)
 		{

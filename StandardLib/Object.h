@@ -75,7 +75,7 @@ public:
 	void				GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms);
 	void				GetStackFroms(CArrayStackPointer* papcFroms);
 	CBaseObject*		GetClosestFromToRoot(void);
-	CBaseObject*		GetClosestFromToStack(void);
+	CBaseObject*		GetClosestHeapFromToStack(void);
 	size				NumPointerTos(void);
 	size				BaseNumPointerTos(void);
 	void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
@@ -111,7 +111,8 @@ protected:
 	int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
 	void				SetPointedTosDistToRoot(int iDistToRoot);
 	bool				SetDistToRoot(int iDistToRoot) override;
-	void				SetDistToStack(int iDistToStack);
+	bool				SetDistToStack(int iDistToStack) override;
+	void				InitDistToStack(void);
 	bool				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, size* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(size iIndex, size* iCount);
 	bool				RecurseGetFieldPointerToIndex(CPointer* pcTest, size* piIndex);
@@ -122,6 +123,7 @@ protected:
 	void				EmbedPointerFields(void);
 	void				EmbedEmbeddedObjectFields(void);
 	void				ClassNotImplemented(void);
+	void				SortPointedToHeapFroms(void) override;
 };
 
 

@@ -53,7 +53,8 @@ protected:
 	void	BecomeEmbedded(size iUsedElements);
 
 public:
-	//Appease the constructor gods.
+	//Appease the constructor gods.  
+	//Shouldn't you use the using keyword?  What you doing?
 	CArrayTemplateEmbedded() {}
 	CArrayTemplateEmbedded(CArrayTemplateEmbedded &&) {}
 	CArrayTemplateEmbedded(const CArrayTemplateEmbedded&) = default;
@@ -73,7 +74,9 @@ public:
 	M*		Get(size iIndex);
 	M*		GetData(void);
 	size	GetIndex(M* pvElement);
-	void*	GetPtr(size iIndex);
+	M		GetPtr(size iIndex);
+	void	Set(size iIndex, M* pvData);
+	void	SafeSet(size iIndex, M* pvData);
 	size	AddNum(size iNumElements);
 	size	Resize(size iNumElements);
 	M* 		InsertAt(size iIndex);
@@ -92,6 +95,7 @@ public:
 	void 	Zero(void);
 	bool	Write(CFileWriter* pcFileWriter);
 	bool	Read(CFileReader* pcFileReader);
+	void	Swap(size iIndex1, size iIndex2);
 };
 
 
@@ -170,7 +174,7 @@ bool CArrayTemplateEmbedded<M, I>::IsArray(void)
 template<class M, int8 I>
 void CArrayTemplateEmbedded<M, I>::BecomeArray(size iUsedElements)
 {
-	M	am[I];  //Problem.  Why problem?
+	M	am[I];  //Problem because slow and potentially calls constructors.
 
 	memcpy(am, mam, miUsedElements * sizeof(M));
 	mcArray.Init();
@@ -239,11 +243,11 @@ M* CArrayTemplateEmbedded<M, I>::Add(void)
 template<class M, int8 I>
 M* CArrayTemplateEmbedded<M, I>::Add(M* pvData)
 {
-	M*	pAdded;
+	M*	pvAdded;
 
-	pAdded = Add();
-	memcpy(pAdded, pvData, sizeof(M));
-	return pAdded;
+	pvAdded = Add();
+	memcpy(pvAdded, pvData, sizeof(M));
+	return pvAdded;
 }
 
 
@@ -335,9 +339,37 @@ M* CArrayTemplateEmbedded<M, I>::GetData(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-void* CArrayTemplateEmbedded<M, I>::GetPtr(size iIndex)
+M CArrayTemplateEmbedded<M, I>::GetPtr(size iIndex)
 {
 	return *Get(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, int8 I>
+void CArrayTemplateEmbedded<M, I>::Set(size iIndex, M* pvData)
+{
+	M*	pvAdded;
+
+	pvAdded = Get(iIndex);
+	memcpy(pvAdded, pvData, sizeof(M));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, int8 I>
+void CArrayTemplateEmbedded<M, I>::SafeSet(size iIndex, M* pvData)
+{
+	if (iIndex < miUsedElements)
+	{
+		Set(iIndex, pvData);
+	}
 }
 
 
@@ -518,11 +550,11 @@ M* CArrayTemplateEmbedded<M, I>::InsertAt(size iIndex)
 template<class M, int8 I>
 M* CArrayTemplateEmbedded<M, I>::InsertAt(M* pvData, size iIndex)
 {
-	M*	pAdded;
+	M*	pvAdded;
 
-	pAdded = InsertAt(iIndex);
-	memcpy(pAdded, pvData, sizeof(M));
-	return pAdded;
+	pvAdded = InsertAt(iIndex);
+	memcpy(pvAdded, pvData, sizeof(M));
+	return pvAdded;
 }
 
 
@@ -742,6 +774,26 @@ template<class M, int8 I>
 bool CArrayTemplateEmbedded<M, I>::Read(CFileReader* pcFileReader)
 {
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, int8 I>
+void CArrayTemplateEmbedded<M, I>::Swap(size iIndex1, size iIndex2)
+{
+	M*	pv1;
+	M*	pv2;
+	M	v;
+
+	pv1 = Get(iIndex1);
+	pv2 = Get(iIndex2);
+
+	v = *pv1;
+	*pv1 = *pv2;
+	*pv2 = v;
 }
 
 

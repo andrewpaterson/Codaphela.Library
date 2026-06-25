@@ -99,18 +99,19 @@ public:
 			bool				RemoveHeapFromTryFree(CBaseObject* pcFromObject, bool bValidate);
 	virtual size				NumHeapFroms(void);
 			CBaseObject*		GetHeapFrom(size iFromIndex);
-			void				UnsafeAddHeapFrom(CBaseObject* pcFromObject);
+			void				AddHeapPointerForRemap(CBaseObject* pcFromObject);
 
 			bool				AddStackFrom(CPointer* pcPointer, bool bValidate);
 			bool				AddStackFrom(CCollection* pcCollection, bool bValidate);
 			bool				AddStackPointersForRemap(CStackPointer* pcStackPointer);
-			bool				HasStackPointers(void);
+			bool				HasStackFroms(void);
 			void				PrivateRemoveStackFrom(CPointer* pcPointer);
 			bool				RemoveStackFromTryFree(CPointer* pcPointer, bool bKillIfNoRoot);
 			bool				RemoveStackFromTryFree(CCollection* pcPointer, bool bFreeIfNoRoot);
 	virtual size				NumStackFroms(void);
 			CStackPointer*		GetFirstStackFrom(void);
-	virtual CEmbeddedObject*	GetClosestFromToStack(void);
+	virtual CEmbeddedObject*	GetClosestHeapFromToStack(void);
+	virtual void				SortHeapFromsByStackDistance(void);
 
 			size				NumTotalFroms(void);
 			bool				ContainsFrom(CEmbeddedObject* pcBaseObject);
@@ -129,8 +130,11 @@ public:
 			bool				TestRemoveHeapFrom(CBaseObject* pcFromObject);
 			void				TestRemoveStackFrom(CPointer* pcPointer);
 
+			void				DumpHeapFroms(void);
+
 protected:
 	virtual void				Allocate(CObjects* pcObjects);
+			void				AddHeapPointer(CBaseObject* pcFromObject);
 	virtual void				RemoveAllHeapFroms(void);
 	virtual void				RemoveAllStackFroms(void);
 			bool				PrivateRemoveHeapFrom(CBaseObject* pcFrom);

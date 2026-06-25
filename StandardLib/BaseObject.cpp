@@ -78,7 +78,7 @@ void CBaseObject::Allocate(CObjects* pcObjects)
 	mpcObjectsThisIn = pcObjects;
 	SetFlag(OBJECT_FLAGS_CALLED_ALLOCATE, true);
 	PreClass();
-	SetDistToStack(UNKNOWN_DIST_TO_STACK);
+	InitDistToStack();
 }
 
 
@@ -538,7 +538,7 @@ size CBaseObject::CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters
 
 	pcParameters->AddDetachedFromRoot(this);
 
-	if (HasStackPointers())
+	if (HasStackFroms())
 	{
 		if (IsAllocatedInObjects())
 		{
@@ -685,10 +685,10 @@ void CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 	else
 	{
 		bHasHeapPointers = HasHeapFroms();
-		bHasStackPointers = HasStackPointers();
+		bHasStackPointers = HasStackFroms();
 
 		//If we removed a stack pointer and have no more stack pointers and have no heap pointers (regardless of whether or not they can find the root)
-		bMustKill = !bHasHeapPointers && !bHasStackPointers && (miDistToStack != 0);
+		bMustKill = !bHasHeapPointers && !bHasStackPointers && (miDistToStack == UNKNOWN_DIST_TO_STACK);
 		if (bMustKill)
 		{
 			cDistCalculator.Init();
@@ -871,9 +871,24 @@ bool CBaseObject::SetDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::SetDistToStack(int iDistToStack)
+bool CBaseObject::SetDistToStack(int iDistToStack)
 {
-	miDistToStack = iDistToStack;
+	if (miDistToStack != iDistToStack)
+	{
+		miDistToStack = iDistToStack;
+		return false;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::InitDistToStack(void)
+{
+	miDistToStack = UNKNOWN_DIST_TO_STACK;
 }
 
 
@@ -2079,10 +2094,32 @@ void CBaseObject::PrintState(CChars* psz)
 	{
 		psz->Append(miDistToRoot);
 	}
+	else if (miDistToRoot == UNATTACHED_DIST_TO_ROOT)
+	{
+		psz->Append("u");
+	}
+	else if (miDistToRoot == CLEARED_DIST_TO_ROOT)
+	{
+		psz->Append("c");
+	}
 	else
 	{
 		psz->Append("x");
 	}
+	psz->Append(" S");
+	if (miDistToStack>= 0)
+	{
+		psz->Append(miDistToStack);
+	}
+	else if (miDistToStack == UNKNOWN_DIST_TO_STACK)
+	{
+		psz->Append("u");
+	}
+	else
+	{
+		psz->Append("x");
+	}
+
 	psz->Append(" (");
 	PrintFlagsShorthand(psz);
 	psz->Append(")");

@@ -159,7 +159,8 @@ public:
 			bool				TestedForSanity(void);
 			CObjects*			GetObjectsThisIn(void);
 			CClasses*			GetClasses(void);
-	virtual void				SetDistToStack(int iDistToStack);
+	virtual bool				SetDistToStack(int iDistToStack);
+	virtual void				InitDistToStack(void);
 			CClass*				CompleteClass(CClasses* pcClasses);
 			void				CopyFields(CEmbeddedObject* pcOther) override;
 
@@ -233,6 +234,7 @@ protected:
 			void				ReplaceOneWithX(char* szDest, char* szMask);
 			void				ContainerPreInit(void);
 			void				ContainerPostInit(void);
+	virtual void				SortPointedToHeapFroms(void) =0;
 
 			bool				SaveEmbeddedObjectsManaged(CObjectWriter* pcFile);
 			bool				SavePointers(CObjectWriter* pcFile);

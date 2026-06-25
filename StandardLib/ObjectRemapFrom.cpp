@@ -63,7 +63,7 @@ size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pc
 		{
 			//If the object is not initialised it cannot point to any other objects
 			//This means this dist to root calculation for tos can be skipped.
-			pcNew->UnsafeAddHeapFrom(pvFrom);
+			pcNew->AddHeapPointerForRemap(pvFrom);
 			pcNew->SetDistToRoot(pcOld->GetDistToRoot());
 		}
 	}
