@@ -60,7 +60,7 @@ CArrayBlockObjectPtr* CDistCalculator::CalculateHeapFromChanged(CBaseObject* pcF
 //////////////////////////////////////////////////////////////////////////
 CArrayBlockObjectPtr* CDistCalculator::CalculateStackFromChanged(CBaseObject* pcFromChanged)
 {
-	if (pcFromChanged->HasStackPointers())
+	if (pcFromChanged->HasStackFroms())
 	{
 		return mcParameters.GetCompletelyDetachedArray();  //Is empty.
 	}

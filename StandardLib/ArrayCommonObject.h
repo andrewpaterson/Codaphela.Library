@@ -61,6 +61,7 @@ public:
 	void					RemoveAllPointerTosDontFree(void) override;
 	bool					RemoveAllPointerTosTryFree(void) override;
 	void					CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters) override;
+	void					SortPointedToHeapFroms(void) override;
 
 	void					GrowTo(size iNumElements);
 

@@ -56,6 +56,7 @@ public:
 	void				RemoveAllPointerTosDontFree(void) override;
 	bool				RemoveAllPointerTosTryFree(void) override;
 	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters) override;
+	void				SortPointedToHeapFroms(void) override;
 
 	bool				Remove(char* szKey);
 	bool				Remove(uint8* pvKey, size iKeySize);

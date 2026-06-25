@@ -297,7 +297,7 @@ void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, bool bValidate)
 	if (pcFromObject != NULL)
 	{
 		iDistToRoot = pcFromObject->GetDistToRoot();
-		mapHeapFroms.Add(&pcFromObject);
+		AddHeapPointer(pcFromObject);
 		if (iDistToRoot >= ROOT_DIST_TO_ROOT)
 		{
 			pcEmbedding = GetEmbeddingContainer();
@@ -331,9 +331,45 @@ void CEmbeddedObject::ValidateObjectsConsistency(bool bValidate)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::UnsafeAddHeapFrom(CBaseObject* pcFromObject)
+void CEmbeddedObject::AddHeapPointer(CBaseObject* pcFromObject)
 {
-	mapHeapFroms.Add(&pcFromObject);
+	//Stack distance rework: This method used to only mapHeapFroms.Add(&pcFromObject);
+	//  now it tries to maintain sorting.
+
+	size			uiNumElements;
+	CBaseObject*	pcObject;
+	int				iDistToStack;
+	int				iObjectDistToStack;
+
+	iObjectDistToStack = pcFromObject->GetDistToStack();
+	uiNumElements = mapHeapFroms.NumElements();
+	if ((iObjectDistToStack >= 0) || (uiNumElements > 0))
+	{
+		pcObject = (CBaseObject*)mapHeapFroms.GetPtr(0);
+		iDistToStack = pcObject->GetDistToStack();
+		if ((iDistToStack >= 0) && (iObjectDistToStack < iDistToStack))
+		{
+			mapHeapFroms.InsertAt(&pcFromObject, 0);
+		}
+		else
+		{
+			mapHeapFroms.Add(&pcFromObject);
+		}
+	}
+	else
+	{
+		mapHeapFroms.Add(&pcFromObject);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::AddHeapPointerForRemap(CBaseObject* pcFromObject)
+{
+	AddHeapPointer(pcFromObject);
 }
 
 
@@ -427,7 +463,7 @@ CStackPointers* CEmbeddedObject::GetStackPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::HasStackPointers(void)
+bool CEmbeddedObject::HasStackFroms(void)
 {
 	size	iNumStackPointers;
 
@@ -530,7 +566,7 @@ CEmbeddedObject* CEmbeddedObject::GetClosestFromForCanFindRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CEmbeddedObject::GetClosestFromToStack(void)
+CEmbeddedObject* CEmbeddedObject::GetClosestHeapFromToStack(void)
 {
 	int					iNearestStack;
 	CEmbeddedObject*	pcNearestPointedFrom;
@@ -538,13 +574,14 @@ CEmbeddedObject* CEmbeddedObject::GetClosestFromToStack(void)
 	size				uiNumFroms;
 	CEmbeddedObject*	pcFrom;
 	int					iDistToStack;
+	//CEmbeddedObject*	pcExpectedNearest;
 
 	iNearestStack = MAX_DIST_TO_ROOT;
 	pcNearestPointedFrom = NULL;
 	uiNumFroms = mapHeapFroms.NumElements();
 	for (i = 0; i < uiNumFroms; i++)
 	{
-		pcFrom = *mapHeapFroms.Get(i);
+		pcFrom = mapHeapFroms.GetPtr(i);
 		iDistToStack = pcFrom->GetDistToStack();
 		if (iDistToStack >= 0)
 		{
@@ -556,7 +593,74 @@ CEmbeddedObject* CEmbeddedObject::GetClosestFromToStack(void)
 		}
 	}
 
+	//Stack distance rework: the stack froms are  no correctly sorted in - some? - circumstances.
+	//pcExpectedNearest = NULL;
+	//if (uiNumFroms > 0)
+	//{
+	//	pcExpectedNearest = mapHeapFroms.GetPtr(0);
+	//	iDistToStack = pcExpectedNearest->GetDistToStack();
+	//	if (iDistToStack < 0)
+	//	{
+	//		pcExpectedNearest = NULL;
+	//	}
+	//}
+
+	//if (pcExpectedNearest != pcNearestPointedFrom)
+	//{
+	//	gcLogger.Error2(__METHOD__, " Oops.", NULL);
+	//	return NULL;
+	//}
+
 	return pcNearestPointedFrom;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::SortHeapFromsByStackDistance(void)
+{
+	//Stack distance rework: This is not called because you don't understand when to call it.
+
+	size			i;
+	CBaseObject*	pcFromRight;
+	CBaseObject*	pcFromLeft;
+	int				iDistToStackLeft;
+	int				iDistToStackRight;
+
+	//Because you don't know what UNKNOWN_DIST_TO_STACK means you can't meanginfully sort these.
+	i = mapHeapFroms.NumElements();
+	if (i > 1)
+	{
+		pcFromRight = mapHeapFroms.GetPtr(i - 1);
+		do
+		{
+			i--;
+			pcFromLeft = mapHeapFroms.GetPtr(i - 1);
+			iDistToStackRight = pcFromRight->GetDistToStack();
+			iDistToStackLeft = pcFromLeft->GetDistToStack();
+
+			if (iDistToStackLeft == UNKNOWN_DIST_TO_STACK)
+			{
+				iDistToStackLeft = MAX_INT + iDistToStackLeft;
+			}
+			if (iDistToStackRight == UNKNOWN_DIST_TO_STACK)
+			{
+				iDistToStackRight = MAX_INT + iDistToStackRight;
+			}
+
+			if (iDistToStackRight < iDistToStackLeft)
+			{
+				mapHeapFroms.Swap(i - 1, i);
+			}
+			else
+			{
+				pcFromRight = pcFromLeft;
+			}
+		} 
+		while (i > 1);
+	}
 }
 
 
@@ -1134,6 +1238,30 @@ bool CEmbeddedObject::FailExpectedToNotBeInitialised(char* szMethod)
 	return gcLogger.Error2(szMethod, " Cannot be called on already initialised object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::DumpHeapFroms(void)
+{
+	size			uiNumElements;
+	size			i;
+	CBaseObject*	pcFromObject;
+	CChars			sz;
+
+	sz.Init();
+	uiNumElements = mapHeapFroms.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcFromObject = mapHeapFroms.GetPtr(i);
+		sz.Append(i);
+		sz.Append(": ");
+		pcFromObject->PrintState(&sz);
+		sz.AppendNewLine();
+	}
+	sz.DumpKill();
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -1176,6 +1304,7 @@ char* ObjectToString(CEmbeddedObject* pcObject, bool bEmbedded)
 	szChars.Init();
 	if (pcObject)
 	{
+		//This should be PrintState?
 		pcObject->PrintObject(&szChars, bEmbedded);
 	}
 	else

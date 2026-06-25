@@ -60,6 +60,7 @@ public:
 			bool				RemoveAllPointerTosTryFree(void);
 			void				BaseValidatePointerTos(void);
 			void				ValidateConsistency(void);
+			void				SortPointedToHeapFroms(void);
 
 protected:
 			void				EmbedFields(void);

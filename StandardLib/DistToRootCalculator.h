@@ -5,13 +5,15 @@
 
 class CDistToRootCalculator
 {
+friend class CDistCalculator;
 public:
-	void Calculate(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters);
+	void	Calculate(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters);
 
-	void CollectAndClearInvalidRootDistances(CBaseObject* pcFromChanged, CDistCalculatorParameters* pcParameters);
-	void UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
-	void ResetObjectsToUnattachedDistToRoot(CDistCalculatorParameters* pcParameters);
-	void ValidateExpectedDistStartingObjects(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters);
+protected:
+	void	CollectAndClearInvalidRootDistances(CBaseObject* pcFromChanged, CDistCalculatorParameters* pcParameters);
+	void	UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
+	void	ResetObjectsToUnattachedDistToRoot(CDistCalculatorParameters* pcParameters);
+	void	ValidateExpectedDistStartingObjects(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters);
 };
 
 
