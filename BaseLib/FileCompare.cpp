@@ -29,11 +29,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 bool CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2)
 {
-	CNaiveFile		cFile1;
-	CNaiveFile		cFile2;
-	bool			bExists1;
-	bool			bExists2;
-	bool			bResult;
+	CNaiveFile	cFile1;
+	CNaiveFile	cFile2;
+	bool		bExists1;
+	bool		bExists2;
+	bool		bResult;
 
 
 	cFile1.Init();
@@ -80,7 +80,6 @@ bool CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz
 	cFile2.Kill();
 	return bResult;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
