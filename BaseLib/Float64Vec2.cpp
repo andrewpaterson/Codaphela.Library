@@ -51,7 +51,7 @@ int SFloat64Vec2::WholeNumbers(void)
 	i[0] = FloatWholeNumbers(x);
 	i[1] = FloatWholeNumbers(y);
 
-	return LargestInt(i, 3);
+	return LargestInt(i, 2);
 }
 
 

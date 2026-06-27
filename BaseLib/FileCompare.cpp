@@ -38,6 +38,7 @@ bool CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz
 
 	cFile1.Init();
 	bExists1 = cFile1.Read(szName1);
+
 	cFile2.Init();
 	bExists2 = cFile2.Read(szName2);
 

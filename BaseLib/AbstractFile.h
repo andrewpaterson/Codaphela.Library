@@ -32,6 +32,7 @@ class CAbstractFile
 public:
 	bool	mbBasicFileMustFree;  //Set by helpers
 
+public:
 			void		Init(void);
 	virtual void		Kill(void) =0;
 	virtual bool		Open(EFileMode eFileMode) =0;

@@ -90,7 +90,7 @@ void CNaiveFile::KillExceptBuffer(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNaiveFile::Read(const char* szFilename)
 {
-	CFileBasic	mcFile;
+	CFileBasic	cFile;
 	CDiskFile*	pcDiskFile;
 
 	if (szFilename)
@@ -110,14 +110,14 @@ bool CNaiveFile::Read(const char* szFilename)
 //////////////////////////////////////////////////////////////////////////
 bool CNaiveFile::Read(CAbstractFile* pcAbstractFile)
 {
-	CFileBasic	mcFile;
+	CFileBasic	cFile;
 
 	if (pcAbstractFile)
 	{
-		mcFile.Init(pcAbstractFile);
-		if (mcFile.Open(EFM_Read))
+		cFile.Init(pcAbstractFile);
+		if (cFile.Open(EFM_Read))
 		{
-			miSize = mcFile.Size();
+			miSize = cFile.Size();
 			if (miSize)
 			{
 				mpvMem = malloc((size)miSize);
@@ -127,12 +127,12 @@ bool CNaiveFile::Read(CAbstractFile* pcAbstractFile)
 				mpvMem = NULL;
 			}
 
-			mcFile.ReadData(mpvMem, (size)miSize);
-			mcFile.Close();
-			mcFile.Kill();
+			cFile.ReadData(mpvMem, (size)miSize);
+			cFile.Close();
+			cFile.Kill();
 			return true;
 		}
-		mcFile.Kill();
+		cFile.Kill();
 	}
 	return false;
 }
@@ -144,22 +144,22 @@ bool CNaiveFile::Read(CAbstractFile* pcAbstractFile)
 //////////////////////////////////////////////////////////////////////////
 bool CNaiveFile::Write(const char* szFilename)
 {
-	CFileBasic	mcFile;
+	CFileBasic	cFile;
 
-	mcFile.Init(DiskFile(szFilename));
+	cFile.Init(DiskFile(szFilename));
 
 	if (szFilename)
 	{
 		mszFilename.Kill();
 		mszFilename.Init(szFilename);
-		if (mcFile.Open(EFM_Write_Create))
+		if (cFile.Open(EFM_Write_Create))
 		{
-			mcFile.WriteData(mpvMem, (int)miSize);
-			mcFile.Close();
-			mcFile.Kill();
+			cFile.WriteData(mpvMem, (int)miSize);
+			cFile.Close();
+			cFile.Kill();
 			return true;
 		}
-		mcFile.Kill();
+		cFile.Kill();
 	}
 	return false;
 }

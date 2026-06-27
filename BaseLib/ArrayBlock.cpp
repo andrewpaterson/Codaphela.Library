@@ -16,7 +16,7 @@
 void CArrayBlock::_Init(void)
 {
 	miNumElements = 0;
-	mpvArray = 0;
+	mpvArray = NULL;
 	miElementSize = 0;
 	miUsedElements = 0;
 	miChunkSize = 0;
