@@ -261,11 +261,21 @@ size CMemoryFile::Write(const void* pvBuffer, size iSize, size iCount)
 	size	uiAmountToCopy;
 	size	uiAmountToAdd;
 	size	uiEndRemaining;
+	size	uiNumElements;
 
 	if (miFlags & MEMORY_FILE_WRITE_FLAG)
 	{
 		uiAmountToCopy = iSize * iCount;
-		uiEndRemaining = mcArray.NumElements() - miPos;
+		uiNumElements = mcArray.NumElements();
+		if (miPos <= uiNumElements)
+		{
+			uiEndRemaining = uiNumElements - miPos;
+		}
+		else
+		{
+			uiEndRemaining = 0;
+		}
+
 		if (uiAmountToCopy > uiEndRemaining)
 		{
 			uiAmountToAdd = uiAmountToCopy - uiEndRemaining;
