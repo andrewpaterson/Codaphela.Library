@@ -35,7 +35,7 @@ protected:
 	filePos		miSize;
 
 public:
-	CNaiveFile();
+				CNaiveFile();
 
 	CNaiveFile*	Init(void);
 	CNaiveFile* Init(void* pvMem, size iSize);

@@ -73,7 +73,7 @@ size SSizeVec2::WholeNumbers(void)
 	i[0] = CountDigits((int)x);
 	i[1] = CountDigits((int)y);
 
-	return LargestInt((int*)i, 3);
+	return LargestInt((int*)i, 2);
 }
 
 

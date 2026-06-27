@@ -73,7 +73,7 @@ int SInt64Vec2::WholeNumbers(void)
 	i[0] = CountDigits(x);
 	i[1] = CountDigits(y);
 
-	return LargestInt(i, 3);
+	return LargestInt(i, 2);
 }
 
 

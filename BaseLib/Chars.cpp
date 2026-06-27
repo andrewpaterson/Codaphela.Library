@@ -78,7 +78,7 @@ void CChars::_Init(void)
 {
 	//This makes it safe to call kill.
 	//It does not make 'this' usable.  It will - rightly - NULL pointer.
-	memset(this, 0, sizeof(CChars));
+	mcText._Init();
 }
 
 
@@ -2413,7 +2413,7 @@ size CChars::ReplaceWithShorter(const char* szFind, const char* szReplace, size 
 		{
 			iTotalDifference = iDifference * iCount;
 			iEnd = Length() - iTotalDifference;
-			iSize = Length() - iOldIndex - iDifference;
+			iSize = Length() - iOldIndex - iFindLen;
 			if (iEnd != iDestPos)
 			{
 				if (iCount != 0)
@@ -2479,11 +2479,6 @@ void CChars::Overwrite(size iIndex, const char* szReplace)
 	size		i;
 	size		j;
 	size		uiLen;
-
-	if (szReplace == NULL)
-	{
-		return;
-	}
 
 	if (StrEmpty(szReplace))
 	{
