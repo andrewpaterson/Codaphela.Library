@@ -333,33 +333,7 @@ void CEmbeddedObject::ValidateObjectsConsistency(bool bValidate)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::AddHeapPointer(CBaseObject* pcFromObject)
 {
-	//Stack distance rework: This method used to only mapHeapFroms.Add(&pcFromObject);
-	//  now it tries to maintain sorting.
-
-	size			uiNumElements;
-	CBaseObject*	pcObject;
-	int				iDistToStack;
-	int				iObjectDistToStack;
-
-	iObjectDistToStack = pcFromObject->GetDistToStack();
-	uiNumElements = mapHeapFroms.NumElements();
-	if ((iObjectDistToStack >= 0) || (uiNumElements > 0))
-	{
-		pcObject = (CBaseObject*)mapHeapFroms.GetPtr(0);
-		iDistToStack = pcObject->GetDistToStack();
-		if ((iDistToStack >= 0) && (iObjectDistToStack < iDistToStack))
-		{
-			mapHeapFroms.InsertAt(&pcFromObject, 0);
-		}
-		else
-		{
-			mapHeapFroms.Add(&pcFromObject);
-		}
-	}
-	else
-	{
-		mapHeapFroms.Add(&pcFromObject);
-	}
+	mapHeapFroms.Add(&pcFromObject);
 }
 
 
@@ -593,74 +567,7 @@ CEmbeddedObject* CEmbeddedObject::GetClosestHeapFromToStack(void)
 		}
 	}
 
-	//Stack distance rework: the stack froms are  no correctly sorted in - some? - circumstances.
-	//pcExpectedNearest = NULL;
-	//if (uiNumFroms > 0)
-	//{
-	//	pcExpectedNearest = mapHeapFroms.GetPtr(0);
-	//	iDistToStack = pcExpectedNearest->GetDistToStack();
-	//	if (iDistToStack < 0)
-	//	{
-	//		pcExpectedNearest = NULL;
-	//	}
-	//}
-
-	//if (pcExpectedNearest != pcNearestPointedFrom)
-	//{
-	//	gcLogger.Error2(__METHOD__, " Oops.", NULL);
-	//	return NULL;
-	//}
-
 	return pcNearestPointedFrom;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::SortHeapFromsByStackDistance(void)
-{
-	//Stack distance rework: This is not called because you don't understand when to call it.
-
-	size			i;
-	CBaseObject*	pcFromRight;
-	CBaseObject*	pcFromLeft;
-	int				iDistToStackLeft;
-	int				iDistToStackRight;
-
-	//Because you don't know what UNKNOWN_DIST_TO_STACK means you can't meanginfully sort these.
-	i = mapHeapFroms.NumElements();
-	if (i > 1)
-	{
-		pcFromRight = mapHeapFroms.GetPtr(i - 1);
-		do
-		{
-			i--;
-			pcFromLeft = mapHeapFroms.GetPtr(i - 1);
-			iDistToStackRight = pcFromRight->GetDistToStack();
-			iDistToStackLeft = pcFromLeft->GetDistToStack();
-
-			if (iDistToStackLeft == UNKNOWN_DIST_TO_STACK)
-			{
-				iDistToStackLeft = MAX_INT + iDistToStackLeft;
-			}
-			if (iDistToStackRight == UNKNOWN_DIST_TO_STACK)
-			{
-				iDistToStackRight = MAX_INT + iDistToStackRight;
-			}
-
-			if (iDistToStackRight < iDistToStackLeft)
-			{
-				mapHeapFroms.Swap(i - 1, i);
-			}
-			else
-			{
-				pcFromRight = pcFromLeft;
-			}
-		} 
-		while (i > 1);
-	}
 }
 
 

@@ -123,7 +123,6 @@ protected:
 	void				EmbedPointerFields(void);
 	void				EmbedEmbeddedObjectFields(void);
 	void				ClassNotImplemented(void);
-	void				SortPointedToHeapFroms(void) override;
 };
 
 

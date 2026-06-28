@@ -525,36 +525,6 @@ void CMapObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapObject::SortPointedToHeapFroms(void)
-{
-	//Stack distance rework: This is not called because you don't understand when to call it.
-
-	CBaseObject*	pcContainer;
-	CBaseObject*	pcPointedToKey;
-	CBaseObject*	pcPointedToValue;
-	SMapIterator	sIter;
-	bool			bExists;
-
-	//No need to EnsureSorted().
-	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-	while (bExists)
-	{
-		pcContainer = pcPointedToKey->GetEmbeddingContainer();
-		pcContainer->SortHeapFromsByStackDistance();
-		if (pcPointedToValue)
-		{
-			pcContainer = pcPointedToValue->GetEmbeddingContainer();
-			pcContainer->SortHeapFromsByStackDistance();
-		}
-		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CMapObject::Save(CObjectWriter* pcFile)
 {
 	void*						pvKey;

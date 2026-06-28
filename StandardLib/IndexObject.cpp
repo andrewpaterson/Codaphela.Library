@@ -556,32 +556,6 @@ void CIndexObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalcul
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexObject::SortPointedToHeapFroms(void)
-{
-	//Stack distance rework: This is not called because you don't understand when to call it.
-
-	CBaseObject*				pcPointedTo;
-	SIndexTreeMemoryIterator	sIter;
-	bool						bExists;
-	CBaseObject*				pcContainer;
-
-	bExists = mcIndex.StartIteration(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
-	while (bExists)
-	{
-		if (pcPointedTo)
-		{
-			pcContainer = pcPointedTo->GetEmbeddingContainer();
-			pcContainer->SortHeapFromsByStackDistance();
-		}
-		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CIndexObject::Save(CObjectWriter* pcFile)
 {
 	CBaseObject*				pcPointedTo;
