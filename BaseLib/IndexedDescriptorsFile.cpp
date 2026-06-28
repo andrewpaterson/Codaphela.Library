@@ -252,10 +252,17 @@ bool CIndexedDescriptorsFile::IndexTreeNodeEvicted(void* pvKey, size iKeySize, v
 {
 	OIndex	oi;
 
+#ifdef _DEBUG
 	if (iKeySize != sizeof(OIndex))
 	{
 		return gcLogger.Error2(__METHOD__, " Key evicted was not an OIndex.", NULL);
 	}
+
+	if (iDataSize != sizeof(CIndexedDataDescriptor))
+	{
+		return gcLogger.Error2(__METHOD__, " Data evicted was not an CIndexedDataDescriptor.", NULL);
+	}
+#endif // _DEBUG
 
 	oi = *((OIndex*)pvKey);
 	return mpcIndexedData->EvictData(oi, (CIndexedDataDescriptor*)pvData);

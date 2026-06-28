@@ -80,6 +80,7 @@ public:
 	bool			ValidateIndex(void);
 	bool			ValidateConfigInitialised(void);
 	bool			ValidateConfigKilled(void);
+	bool			TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
 	OIndex 			StartIteration(SIndexTreeFileIterator* psIterator, void* ppvData, size* piDataSize, size iMaxDataSize);
 	OIndex			Iterate(SIndexTreeFileIterator* psIterator, void* ppvData, size* piDataSize, size iMaxDataSize);

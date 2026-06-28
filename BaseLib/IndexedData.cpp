@@ -92,6 +92,16 @@ bool CIndexedData::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CIndexedData::TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
+{
+	return GetDescriptor(oi, pcDescriptor, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CIndexedData::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction)
 {
 	return mcIndices.Set(pcDescriptor, oi, bNoEviction);
