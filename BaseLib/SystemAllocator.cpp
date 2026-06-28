@@ -1,4 +1,5 @@
 #include "Logger.h"
+#include "Validation.h"
 #include "SystemAllocator.h"
 
 
@@ -20,6 +21,13 @@ void CSystemAllocator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void* CSystemAllocator::Malloc(size uiSize)
 {
+#ifdef _DEBUG
+	if (uiSize > guiMaxDebugAllocatorSize)
+	{
+		BREAK();
+	}
+#endif // _DEBUG
+
 	return malloc(uiSize);
 }
 
@@ -48,6 +56,13 @@ bool CSystemAllocator::Free(void* pv)
 //////////////////////////////////////////////////////////////////////////
 void* CSystemAllocator::Realloc(void* pv, size uiSize)
 {
+#ifdef _DEBUG
+	if (uiSize > guiMaxDebugAllocatorSize)
+	{
+		BREAK();
+	}
+#endif // _DEBUG
+
 	if (pv == NULL)
 	{
 		pv = malloc(uiSize);

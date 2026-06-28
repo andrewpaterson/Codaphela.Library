@@ -53,6 +53,7 @@ public:
 
 protected:	
 	size			GetNodeSize(void* psData);
+	size			GetDataSize(void* pvData);
 	SLLBlockNode*	AllocateDetached(size uiDataSize);
 	SLLBlockNode*	DataGetNode(void *pvData);
 

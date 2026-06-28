@@ -32,5 +32,12 @@ public:
 };
 
 
+extern size guiMaxDebugAllocatorSize;
+
+
+void InitAllocatorDebug(void);
+void KillAllocatorDebug(void);
+
+
 #endif // __MALLOCATOR_H__
 

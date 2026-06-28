@@ -1,4 +1,5 @@
 #include "Define.h"
+#include "Validation.h"
 #include "NullAllocator.h"
 
 
@@ -21,6 +22,13 @@ void CNullAllocator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void* CNullAllocator::Malloc(size uiSize)
 {
+#ifdef _DEBUG
+	if (uiSize > guiMaxDebugAllocatorSize)
+	{
+		BREAK();
+	}
+#endif // _DEBUG
+	
 	return NULL;
 }
 
@@ -41,6 +49,13 @@ bool CNullAllocator::Free(void* pv)
 //////////////////////////////////////////////////////////////////////////
 void* CNullAllocator::Realloc(void* pv, size uiSize)
 {
+#ifdef _DEBUG
+	if (uiSize > guiMaxDebugAllocatorSize)
+	{
+		BREAK();
+	}
+#endif // _DEBUG
+
 	return NULL;
 }
 

@@ -52,6 +52,19 @@ size CLinkedListBlock::GetNodeSize(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+size CLinkedListBlock::GetDataSize(void* pvData)
+{
+	SLLBlockNode* psNodeHeader;
+
+	psNodeHeader = (SLLBlockNode*)DataGetNode(pvData);
+	return psNodeHeader->uiSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 size CLinkedListBlock::ByteSize(void)
 {
 	size	iSize;
@@ -231,7 +244,7 @@ bool CLinkedListBlock::WriteData(CFileWriter* pcFileWriter)
 	pvData = GetHead();
 	while (pvData)
 	{
-		iSize = GetNodeSize(pvData);
+		iSize = GetDataSize(pvData);
 		if (!pcFileWriter->WriteSize(iSize))
 		{
 			return false;

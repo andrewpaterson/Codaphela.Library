@@ -25,6 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PointerFunctions.h"
 #include "DataTypes.h"
 #include "FreeList.h"
+#include "GlobalMemory.h"
 #include "ConstructorCall.h"
 
 
@@ -42,17 +43,18 @@ struct STNode
 
 
 template<class M>
-class CTreeTemplate : protected CPostMalloc<M>
+class CTreeTemplate : public CMalloc, protected CPostMalloc<M>
 {
 protected:
-	STNode*	mpsRoot;
-	size	miNumElements;
+	STNode*		mpsRoot;
+	size		miNumElements;
 
 public:
 	size		miLevel;  //Level is only valid during traversals.  WTF? A traversal object should hold this.
 
 public:
 	void	Init(void);
+	void	Init(CMallocator* pcMalloc);
 	void	Kill(void);
 	void	Copy(CTreeTemplate* pcTreeSrc);
 	size	NumElements(void);
@@ -131,10 +133,6 @@ public:
 	bool	ReadTreeTemplate(CFileReader* pcFileReader);
 
 protected:
-	void*	Malloc(size uiSize);
-	void*	Realloc(void* pv, size uiSize);
-	void	Free(void* pv);
-
 	void	RecursiveFreeNodes(STNode* pNode);
 	void	RecursiveAddNodeForCreate(CTreeTemplate<M>* pcTreeSource, M* pvData1Source, M* pvData2Dest);
 	STNode*	PrivateFindLeftChild(STNode* psNodeHeader);
@@ -149,42 +147,20 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void* CTreeTemplate<M>::Malloc(size uiSize)
-{
-	return malloc(uiSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CTreeTemplate<M>::Free(void* pv)
-{
-	SafeFree(pv);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void* CTreeTemplate<M>::Realloc(void* pv, size uiSize)
-{
-	pv = realloc(pv, uiSize);
-	return pv;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
 void CTreeTemplate<M>::Init(void)
 {
+	Init(&gcSystemAllocator);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CTreeTemplate<M>::Init(CMallocator* pcMalloc)
+{
+	CMalloc::Init(pcMalloc);
 	mpsRoot = NULL;
 	miNumElements = 0;
 }
@@ -1322,6 +1298,13 @@ bool CTreeTemplate<M>::WriteTreeTemplate(CFileWriter* pcFileWriter)
 	size	iElementSize;
 	size	uiPathSize;
 	size	auiPath[MAX_TREE_DEPTH];
+	bool	bResult;
+
+	bResult = gcMallocators.Write(pcFileWriter, mpcMalloc);
+	if (!bResult)
+	{
+		return false;
+	}
 
 	iElementSize = sizeof(M);
 	if (!pcFileWriter->WriteData(&iElementSize, sizeof(size))) 
@@ -1375,15 +1358,23 @@ bool CTreeTemplate<M>::WriteTreeTemplate(CFileWriter* pcFileWriter)
 template<class M>
 bool CTreeTemplate<M>::ReadTreeTemplate(CFileReader* pcFileReader)
 {
-	M*		pvData[2];
-	size	iElementSize;
-	size	i;
-	size	uiPathSize[2];
-	size	auiPath[2][MAX_TREE_DEPTH];
-	size	uiNumElements;
-	size	iPathNum;
-	size	iOldPath;
+	M*				pvData[2];
+	size			iElementSize;
+	size			i;
+	size			uiPathSize[2];
+	size			auiPath[2][MAX_TREE_DEPTH];
+	size			uiNumElements;
+	size			iPathNum;
+	size			iOldPath;
+	CMallocator*	pcMalloc;
 
+	pcMalloc = gcMallocators.Read(pcFileReader);
+	if (pcMalloc == NULL)
+	{
+		return false;
+	}
+
+	Init(pcMalloc);
 	if (!pcFileReader->ReadData(&iElementSize, sizeof(size))) 
 	{ 
 		return false; 

@@ -1,3 +1,4 @@
+#include "Validation.h"
 #include "FreeListAllocator.h"
 
 
@@ -47,6 +48,13 @@ void CFreeListAllocator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void* CFreeListAllocator::Malloc(size uiSize)
 {
+#ifdef _DEBUG
+	if (uiSize > guiMaxDebugAllocatorSize)
+	{
+		BREAK();
+	}
+#endif // _DEBUG
+
 	if (uiSize > (size)mcFreeList.GetElementSize())
 	{
 		return NULL;
@@ -72,6 +80,13 @@ bool CFreeListAllocator::Free(void* pv)
 //////////////////////////////////////////////////////////////////////////
 void* CFreeListAllocator::Realloc(void* pv, size uiSize)
 {
+#ifdef _DEBUG
+	if (uiSize > guiMaxDebugAllocatorSize)
+	{
+		BREAK();
+	}
+#endif // _DEBUG
+
 	if (uiSize > (size)mcFreeList.GetElementSize())
 	{
 		mcFreeList.Remove(pv);
