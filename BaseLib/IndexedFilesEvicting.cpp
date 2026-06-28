@@ -316,7 +316,7 @@ bool CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 	void*					pvNewCache;
 	CIndexedDataDescriptor	cResultDescriptor;
 	CFilePosIndex			cPosIndex;
-	size			uiFileDataSize;
+	size					uiFileDataSize;
 	
 	if (mbCaching && mcDataCache.CanCache(uiDataSize))
 	{
@@ -523,6 +523,11 @@ bool CIndexedFilesEvicting::Evict(OIndex oi, CIndexedDataDescriptor* pcDescripto
 	if (pvData)
 	{
 		uiDataSize = pcDescriptor->GetDataSize();
+		if (uiDataSize == 0)
+		{
+			return gcLogger.Error2(__METHOD__, " Descriptor cache memory is set but data size is [0].", NULL);
+		}
+
 		bResult = EvictWriteData(pcDescriptor, CC_Yes);
 		if (bResult)
 		{

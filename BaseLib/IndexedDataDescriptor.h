@@ -43,16 +43,16 @@ private:
 	SIndexedFileDataDescriptor	msFileDescriptor;
 
 	void*						mpvCache;  //NULL if object is not cached.
-	uint32				muiCacheDataSize;
+	uint32						muiCacheDataSize;
 
 public:
 	void 			Init(uint32 uiDataSize, CFilePosIndex* pcFilePosIndex);
 	void 			Init(uint32 uiDataSize, void* pvCache);
 	void 			Init(uint32 uiFileDataSize, CFilePosIndex* pcFilePosIndex, uint32 uiCacheDataSize, void* pvCache);
 
-	uint32	GetFileDataSize(void);
-	uint32	GetCacheDataSize(void);
-	uint32	GetDataSize(void);
+	uint32			GetFileDataSize(void);
+	uint32			GetCacheDataSize(void);
+	uint32			GetDataSize(void);
 	void			Cache(void* pvCache, uint32 uiDataSize);
 	void			ClearCache(void);
 	bool			HasFile(void);
