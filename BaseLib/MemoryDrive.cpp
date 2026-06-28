@@ -9,9 +9,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMemoryDrive::Init(size uiSizeInBytes, uint32 uiSectorSize)
+bool CMemoryDrive::Init(uint64 uiSizeInBytes, uint32 uiSectorSize)
 {
-	size	uiSectorCount;
+	uint64	uiSectorCount;
 	uint64	uiSectorRemainder;
 
 	CFileDrive::Init(uiSectorSize);
@@ -25,10 +25,11 @@ bool CMemoryDrive::Init(size uiSizeInBytes, uint32 uiSectorSize)
 		uiSectorCount++;
 	}
 
-	mpvData = malloc(uiSectorCount * muiSectorSize);
+	muiDataSize = uiSectorCount * muiSectorSize;
+	mpvData = malloc((size)muiDataSize);
 	if (mpvData)
 	{
-		memset(mpvData, 0, uiSectorCount * muiSectorSize);
+		memset(mpvData, 0, (size)muiDataSize);
 		muiMaxSector = uiSectorCount;
 		return true;
 	}

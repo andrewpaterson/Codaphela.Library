@@ -1,4 +1,5 @@
 #include "ConstructorCall.h"
+#include "Validation.h"
 #include "MemoryAllocator.h"
 
 
@@ -38,7 +39,14 @@ void CMemoryAllocator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void* CMemoryAllocator::Malloc(size uiSize)
 {
-	return mcMemory.Add((uint32)uiSize);
+#ifdef _DEBUG
+	if (uiSize > guiMaxDebugAllocatorSize)
+	{
+		BREAK();
+	}
+#endif // _DEBUG
+	
+	return mcMemory.Add(uiSize);
 }
 
 
@@ -51,7 +59,7 @@ void* CMemoryAllocator::Malloc(size uiSize, char(**pacDebugName)[4])
 	void*						pv;
 	SGeneralMemoryAllocation*	psGeneralMemoryAllocation;
 
-	pv = mcMemory.Add((uint32)uiSize);
+	pv = Malloc(uiSize);
 	psGeneralMemoryAllocation = GENERAL_MEMORY_GET_ALLOCATION(pv);
 	if (pacDebugName)
 	{
@@ -69,7 +77,14 @@ void* CMemoryAllocator::Realloc(void* pv, size uiSize)
 {
 	void*	pvNew;
 
-	pvNew = mcMemory.Grow(pv, (uint32)uiSize);
+#ifdef _DEBUG
+	if (uiSize > guiMaxDebugAllocatorSize)
+	{
+		BREAK();
+	}
+#endif // _DEBUG
+
+	pvNew = mcMemory.Grow(pv, uiSize);
 	return pvNew;
 }
 

@@ -7,9 +7,10 @@ class CMemoryDrive : public CFileDrive
 {
 protected:
 	void*	mpvData;
+	uint64	muiDataSize;
 
 public:
-	bool	Init(size uiSizeInBytes, uint32 uiSectorSize);
+	bool	Init(uint64 uiSizeInBytes, uint32 uiSectorSize);
 	void	Kill(void);
 
 	bool	Read(uint64 uiSector, void* pvData);

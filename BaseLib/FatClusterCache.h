@@ -51,6 +51,9 @@ protected:
 	bool	FlushAndInvalidate(SClusterCache* psCluster);
 	bool	IsCached(uint32 uiSectorIndex);
 	bool	CacheSector(SClusterCache* psCluster, uint32 uiSectorIndex);
+
+	bool	SetCachedSector(size uiSectorIndex, bool bCached);
+	bool	SetDirtySector(size uiSectorIndex, bool bDirty);
 };
 
 

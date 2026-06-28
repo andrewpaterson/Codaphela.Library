@@ -1,3 +1,4 @@
+#include "Validation.h"
 #include "GlobalMemoryAllocator.h"
 
 
@@ -20,6 +21,13 @@ void CGlobalMemoryAllocator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void* CGlobalMemoryAllocator::Malloc(size uiSize)
 {
+#ifdef _DEBUG
+	if (uiSize > guiMaxDebugAllocatorSize)
+	{
+		BREAK();
+	}
+#endif // _DEBUG
+	
 	return gcMemory.Add(uiSize);
 }
 
@@ -32,7 +40,14 @@ void* CGlobalMemoryAllocator::Realloc(void* pv, size uiSize)
 {
 	void*	pvNew;
 
-	pvNew = gcMemory.Grow(pv, (uint32)uiSize);
+#ifdef _DEBUG
+	if (uiSize > guiMaxDebugAllocatorSize)
+	{
+		BREAK();
+	}
+#endif // _DEBUG
+
+	pvNew = gcMemory.Grow(pv, uiSize);
 	return pvNew;
 }
 

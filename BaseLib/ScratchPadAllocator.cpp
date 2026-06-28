@@ -1,4 +1,5 @@
 #include "DataMacro.h"
+#include "Validation.h"
 #include "ScratchPadAllocator.h"
 
 
@@ -38,6 +39,13 @@ void CScratchPadAllocator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void* CScratchPadAllocator::Malloc(size uiSize)
 {
+#ifdef _DEBUG
+	if (uiSize > guiMaxDebugAllocatorSize)
+	{
+		BREAK();
+	}
+#endif // _DEBUG
+	
 	return mcScratchPad.Add(uiSize);
 }
 
@@ -51,7 +59,14 @@ void* CScratchPadAllocator::Realloc(void* pv, size uiSize)
 	SSPNode*	psNode;
 	void*		pvNew;
 
-	pvNew = mcScratchPad.Add(uiSize); 
+#ifdef _DEBUG
+	if (uiSize > guiMaxDebugAllocatorSize)
+	{
+		BREAK();
+	}
+#endif // _DEBUG
+
+	pvNew = mcScratchPad.Add(uiSize);
 	psNode =  DataGetHeader<SSPNode, void>(pv);
 	psNode->bUsed = false;
 	if (psNode->iSize > uiSize)
