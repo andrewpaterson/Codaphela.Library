@@ -111,7 +111,6 @@ public:
 	virtual size				NumStackFroms(void);
 			CStackPointer*		GetFirstStackFrom(void);
 	virtual CEmbeddedObject*	GetClosestHeapFromToStack(void);
-	virtual void				SortHeapFromsByStackDistance(void);
 
 			size				NumTotalFroms(void);
 			bool				ContainsFrom(CEmbeddedObject* pcBaseObject);

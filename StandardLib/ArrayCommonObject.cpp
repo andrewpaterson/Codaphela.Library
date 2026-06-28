@@ -649,33 +649,6 @@ void CArrayCommonObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDist
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::SortPointedToHeapFroms(void)
-{
-	//Stack distance rework: This is not called because you don't understand when to call it.
-
-	CEmbeddedObject*	pcPointedTo;
-	size 				i;
-	size 				uiNumElements;
-	CBaseObject*		pcContainer;
-
-	uiNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		pcPointedTo = (CEmbeddedObject*)mcArray.UnsafeGet(i);
-		if (pcPointedTo)
-		{
-			//Is going back to the container correct?
-			pcContainer = pcPointedTo->GetEmbeddingContainer();
-			pcContainer->SortHeapFromsByStackDistance();
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 {
 	CEmbeddedObject*	pcPointedTo;

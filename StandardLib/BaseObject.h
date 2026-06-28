@@ -234,7 +234,6 @@ protected:
 			void				ReplaceOneWithX(char* szDest, char* szMask);
 			void				ContainerPreInit(void);
 			void				ContainerPostInit(void);
-	virtual void				SortPointedToHeapFroms(void) =0;
 
 			bool				SaveEmbeddedObjectsManaged(CObjectWriter* pcFile);
 			bool				SavePointers(CObjectWriter* pcFile);

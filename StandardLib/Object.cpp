@@ -425,42 +425,8 @@ bool CObject::SetDistToStack(int iDistToStack)
 		pcBaseObject = (CBaseObject*)mapEmbedded.GetPtr(i);
 		bStable &= pcBaseObject->CBaseObject::SetDistToStack(iDistToStack);
 	}
-
-	//Stack distance rework: No point in sorting because the result isn't used.
-	//if (!bStable)
-	//{
-	//	SortPointedToHeapFroms();
-	//}
+	
 	return bStable;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CObject::SortPointedToHeapFroms(void)
-{
-	//Stack distance rework: This is not called because you don't understand when to call it.
-
-	size				i;
-	size				uiNumPointers;
-	CPointer*			pcPointer;
-	CEmbeddedObject*	pcEmbeddedObject;
-	CEmbeddedObject*	pcContainer;
-
-	uiNumPointers = mapPointers.NumElements();
-	for (i = 0; i < uiNumPointers; i++)
-	{
-		pcPointer = (CPointer*)mapPointers.GetPtr(i);
-		pcEmbeddedObject = pcPointer->Object();
-		if (pcEmbeddedObject)
-		{
-			//Is going back to the container correct?
-			pcContainer = pcEmbeddedObject->GetEmbeddingContainer();
-			pcContainer->SortHeapFromsByStackDistance();
-		}
-	}
 }
 
 
