@@ -1833,6 +1833,9 @@
     <ClInclude Include="SetString.h">
       <Filter>Source\Data\Set\String</Filter>
     </ClInclude>
+    <ClInclude Include="SetTemplate.h">
+      <Filter>Source\Data\Set</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">

@@ -12,6 +12,8 @@ public:
 	virtual bool GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false) =0;
 	virtual bool SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false) =0;
 	virtual bool UpdateDescriptorCache(OIndex oi, void* pvCache, uint32 uiDataSize) =0;
+
+	virtual bool WriteEvictedData3(void) { return false; };
 };
 
 

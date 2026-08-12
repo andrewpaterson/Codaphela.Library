@@ -159,6 +159,25 @@ void CIndexTreeNodeMemory::Contain(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexTreeNode::SetNodesEmpty(bool bEmpty)
+{
+	//If the value is true then OR it with dest.
+	if (bEmpty)
+	{
+		msFlags |= INDEX_TREE_NODE_FLAG_NODES_EMPTY;
+	}
+	//If the value is false then negate and and it with dest.
+	else
+	{
+		msFlags &= ~INDEX_TREE_NODE_FLAG_NODES_EMPTY;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 size CIndexTreeNodeMemory::FindNextFirstIndex(void)
 {
 	size					i;

@@ -121,6 +121,7 @@ bool CIndexedFilesEvicting::Flush(bool bClearCache)
 	EClearCache					eClearCache;
 	void*						pvData;
 	SIndexedCacheDescriptor*	psDescriptor;
+	size						uiCount;
 
 	if (mbCaching)
 	{
@@ -135,6 +136,7 @@ bool CIndexedFilesEvicting::Flush(bool bClearCache)
 
 		bAnyFailed = false;
 		pvData = mcDataCache.StartIteration();
+		uiCount = 0;
 		while (pvData)
 		{
 			psDescriptor = mcDataCache.GetDescriptor(pvData);
@@ -148,6 +150,7 @@ bool CIndexedFilesEvicting::Flush(bool bClearCache)
 				bAnyFailed = true;
 			}
 
+			uiCount++;
 			pvData = mcDataCache.Iterate(pvData);
 		}
 		if (bClearCache && !bAnyFailed)
@@ -595,6 +598,7 @@ bool CIndexedFilesEvicting::WriteEvictedData1b(SIndexedCacheDescriptor* psCached
 		}
 
 		bResult = WriteEvictedData2(&cDescriptor, psCached->oi, pvData, eClearCache, bNoEviction);
+		mpcEvictionCallback->WriteEvictedData3();
 		psCached->iFlags &= ~CACHE_DESCRIPTOR_FLAG_DIRTY;
 		return bResult;
 	}
