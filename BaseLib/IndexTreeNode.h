@@ -17,6 +17,7 @@
 #define	INDEX_TREE_NODE_FLAG_DELETED_PATH	0x10
 #define	INDEX_TREE_NODE_FLAG_DIRTY_PATH		0x20
 #define	INDEX_TREE_NODE_FLAG_DATA			0x40
+//#define	INDEX_TREE_NODE_FLAG_ROOT_NODE		0x80
 
 #define INDEX_TREE_NODE_TRANSIENT_FLAGS			((uint8)(INDEX_TREE_NODE_FLAG_DIRTY_PATH | INDEX_TREE_NODE_FLAG_DELETED_PATH | INDEX_TREE_NODE_FLAG_DELETED_NODE | INDEX_TREE_NODE_FLAG_DIRTY_NODE))
 #define INDEX_TREE_NODE_TRANSIENT_FLAGS_MASK		(~INDEX_TREE_NODE_TRANSIENT_FLAGS)
@@ -25,6 +26,8 @@
 
 
 //sizeof(CIndexTreeNode) is 16 bytes but only 14 bytes are used.
+//You could reduce that size by removing mpcIndexTree (from all nodes except the root node).  Use INDEX_TREE_NODE_FLAG_ROOT_NODE to determine root node.
+//You could reduce that size by removing muiMagic.
 class CIndexTree;
 class CIndexTreeNode
 {

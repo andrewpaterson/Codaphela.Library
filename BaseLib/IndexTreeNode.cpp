@@ -594,25 +594,6 @@ bool CIndexTreeNode::ContainsIndex(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::SetNodesEmpty(bool bEmpty)
-{
-	//If the value is true then OR it with dest.
-	if (bEmpty)
-	{
-		msFlags |= INDEX_TREE_NODE_FLAG_NODES_EMPTY;
-	}
-	//If the value is false then negate and and it with dest.
-	else
-	{
-		msFlags &= ~INDEX_TREE_NODE_FLAG_NODES_EMPTY;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::SetDirtyNode(bool bDirty)
 {
 	SetFlagByte(&msFlags, INDEX_TREE_NODE_FLAG_DIRTY_NODE, bDirty);

@@ -321,6 +321,51 @@ bool CIndexTreeEvicting::EvictNodeWithObject(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CIndexTreeEvicting::WriteEvictedData3(void)
+{
+	SIndexTreeFileIterator	sIter;
+	OIndex					oiKey;
+	size					iKeySize;
+	CIndexedDataDescriptor	sDescriptor;
+	size					iDataSize;
+	bool					bResult;
+	void*					pvCache;
+	uint32					iCacheSize;
+
+	bResult = mcIndexTree.StartIteration(&sIter, (uint8*)&oiKey, &iKeySize, sizeof(OIndex), &sDescriptor, &iDataSize, sizeof(CIndexedDataDescriptor));
+	while (bResult)
+	{
+		if (iKeySize != sizeof(OIndex))
+		{
+			return gcLogger.Error2(__METHOD__, " oops.", NULL);
+		}
+		if (iDataSize != sizeof(CIndexedDataDescriptor))
+		{
+			return gcLogger.Error2(__METHOD__, " oops.", NULL);
+		}
+
+		pvCache = sDescriptor.GetCache();
+		iCacheSize = sDescriptor.GetCacheDataSize();
+
+		if ((pvCache == NULL) && (iCacheSize != 0))
+		{
+			return gcLogger.Error2(__METHOD__, " oops.", NULL);
+		}
+		if ((pvCache != NULL) && (iCacheSize == 0))
+		{
+			return gcLogger.Error2(__METHOD__, " oops.", NULL);
+		}
+
+		bResult = mcIndexTree.Iterate(&sIter, (uint8*)&oiKey, &iKeySize, sizeof(OIndex), &sDescriptor, &iDataSize, sizeof(CIndexedDataDescriptor));
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CIndexTreeEvicting::Flush(uint8* pvKey, size iKeySize)
 {
 	return mcIndexTree.Flush(pvKey, iKeySize);
