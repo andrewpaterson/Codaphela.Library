@@ -68,7 +68,7 @@ void CIndexedDataDescriptor::Init(uint32 uiFileDataSize, CFilePosIndex* pcFilePo
 	}
 	msFileDescriptor.mcFileIndex.Init(pcFilePosIndex->miFile, pcFilePosIndex->mulliFilePos);
 
-	if (mpvCache != NULL)
+	if (pvCache != NULL)
 	{
 		muiCacheDataSize = uiCacheDataSize;
 	}
