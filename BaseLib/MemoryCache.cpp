@@ -36,7 +36,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CMemoryCache::Init(size uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize)
 {
-	CCircularMemoryList::Init(malloc(uiCacheSize + sizeof(SCircularMemoryList)), uiCacheSize + sizeof(SCircularMemoryList), iDescriptorSize);
+	mpvCache2 = malloc(uiCacheSize + sizeof(SCircularMemoryList));
+	mcMemoryList.Init(mpvCache2, uiCacheSize + sizeof(SCircularMemoryList), iDescriptorSize);
 	mpcEvictionCallback = pcEvictionCallback;
 }
 
@@ -47,8 +48,8 @@ void CMemoryCache::Init(size uiCacheSize, CMemoryCacheEvictionCallback* pcEvicti
 //////////////////////////////////////////////////////////////////////////
 void CMemoryCache::Kill(void)
 {
-	SafeFree(mpsDetail);
-	CCircularMemoryList::Kill();
+	SafeFree(mpvCache2);
+	mcMemoryList.Kill();
 }
 
 
@@ -60,16 +61,16 @@ void CMemoryCache::Resize(size uiNewCacheSize)
 {
 	SCircularMemoryList*	pvNewDetail;
 
-	pvNewDetail = (SCircularMemoryList*)realloc(mpsDetail, uiNewCacheSize + sizeof(SCircularMemoryList));
+	mpvCache2 = realloc(mpvCache2, uiNewCacheSize + sizeof(SCircularMemoryList));
+	pvNewDetail = (SCircularMemoryList*)mpvCache2;
 	if (pvNewDetail)
 	{
-		Remap(pvNewDetail, uiNewCacheSize + sizeof(SCircularMemoryList));
+		mcMemoryList.Remap(pvNewDetail, uiNewCacheSize + sizeof(SCircularMemoryList));
 	}
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Could not realloc.");
-		mpvCache = NULL;
-		mpsDetail = NULL;
+		mcMemoryList.Remap((SCircularMemoryList*)NULL, 0);
 	}
 }
 
@@ -84,31 +85,33 @@ bool CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 	size						iCachedSize;
 	size						iRemainingAfterLast;
 	SMemoryCacheDescriptor*		psTail;
+	size						iDescriptorSize;
 
-	iCachedSize = miDescriptorSize + pcPreAllocationResult->muiSize;
-	if (iCachedSize > mpsDetail->muiCacheSize)
+	iDescriptorSize = mcMemoryList.GetDescriptorSize();
+	iCachedSize = iDescriptorSize + pcPreAllocationResult->muiSize;
+	if (iCachedSize > mcMemoryList.GetCacheSize())
 	{
 		return false;
 	}
 
-	iRemainingAfterLast = RemainingAfterTail();
-	if (!IsEmpty())
+	iRemainingAfterLast = mcMemoryList.RemainingAfterTail();
+	if (!mcMemoryList.IsEmpty())
 	{
 		if (iCachedSize <= iRemainingAfterLast)
 		{
-			psTail = CCircularMemoryList::GetLast();
-			psCacheBasedDescriptor = (SMemoryCacheDescriptor*)RemapSinglePointer(psTail, miDescriptorSize + psTail->uiSize);
+			psTail = mcMemoryList.GetLastDescriptor();
+			psCacheBasedDescriptor = (SMemoryCacheDescriptor*)RemapSinglePointer(psTail, iDescriptorSize + psTail->uiSize);
 		}
 		else
 		{
 			//Cycle back to the beginning of the cache.
-			psCacheBasedDescriptor = mpvCache;
+			psCacheBasedDescriptor = mcMemoryList.GetCache();
 		}
-		FindOverlapping(psCacheBasedDescriptor, iCachedSize, &pcPreAllocationResult->mapEvictedCacheDescriptors);
+		mcMemoryList.FindOverlapping(psCacheBasedDescriptor, iCachedSize, &pcPreAllocationResult->mapEvictedCacheDescriptors);
 	}
 	else
 	{
-		psCacheBasedDescriptor = mpvCache;
+		psCacheBasedDescriptor = mcMemoryList.GetCache();
 	}
 	pcPreAllocationResult->miCachedSize = iCachedSize;
 	pcPreAllocationResult->mpsDescriptor = psCacheBasedDescriptor;
@@ -126,9 +129,10 @@ void* CMemoryCache::PostAllocate(CMemoryCacheAllocation* pcPreAllocated)
 	SMemoryCacheDescriptor*		psCacheBasedDescriptor;
 	SMemoryCacheDescriptor*		psLastOverlap;
 	SMemoryCacheDescriptor*		psFirstOverlap;
-	SMemoryCacheDescriptor*		psFirstPrev;
 
-	if (pcPreAllocated->miCachedSize > mpsDetail->muiCacheSize)
+	mcMemoryList.ValidateEnds();
+
+	if (pcPreAllocated->miCachedSize > mcMemoryList.GetCacheSize())
 	{
 		return NULL;
 	}
@@ -137,33 +141,32 @@ void* CMemoryCache::PostAllocate(CMemoryCacheAllocation* pcPreAllocated)
 	{
 		psLastOverlap = (SMemoryCacheDescriptor*)(pcPreAllocated->mapEvictedCacheDescriptors.GetPtr(pcPreAllocated->mapEvictedCacheDescriptors.NumElements() -1));
 		psFirstOverlap = (SMemoryCacheDescriptor*)(pcPreAllocated->mapEvictedCacheDescriptors.GetPtr(0));
-		
-		if (IsLast(psLastOverlap))
+
+		if (((psFirstOverlap == NULL) && (psLastOverlap != NULL)) ||
+			((psFirstOverlap != NULL) && (psLastOverlap == NULL)))
 		{
-			psCacheBasedDescriptor = OneAllocation();  //If the last overlapping cache descriptor points to the last cache descriptor in the cache then everything is being evicted.
+			int xxx = 0;
+		}
+
+		
+		if (mcMemoryList.IsLast(psLastOverlap))
+		{
+			psCacheBasedDescriptor = mcMemoryList.OneAllocation();  //If the last overlapping cache descriptor points to the last cache descriptor in the cache then everything is being evicted.
 		}
 		else
 		{
 			psCacheBasedDescriptor = pcPreAllocated->mpsDescriptor;
 
-			psFirstPrev = CCircularMemoryList::GetPrev(psFirstOverlap);
-			psFirstPrev->psNext = MapFromCacheBasedToZeroBased(psCacheBasedDescriptor);
-
-			mpsDetail->mpsTail = MapFromCacheBasedToZeroBased(psCacheBasedDescriptor);
-			mpsDetail->mpsHead = MapFromCacheBasedToZeroBased(CCircularMemoryList::GetNext(psLastOverlap));
-			CCircularMemoryList::GetFirst()->psPrev = mpsDetail->mpsTail;
-
-			CCircularMemoryList::GetLast()->psNext = mpsDetail->mpsHead;
-			CCircularMemoryList::GetLast()->psPrev = MapFromCacheBasedToZeroBased(psFirstPrev);
+			mcMemoryList.SetEndsForPostAllocate(psCacheBasedDescriptor, psFirstOverlap, psLastOverlap);
 		}
 	}
 	else
 	{
-		psCacheBasedDescriptor = InsertNext(pcPreAllocated->mpsDescriptor);
+		psCacheBasedDescriptor = mcMemoryList.InsertNext(pcPreAllocated->mpsDescriptor);
 	}
 
 	psCacheBasedDescriptor->uiSize = pcPreAllocated->muiSize;
-	return GetData(psCacheBasedDescriptor);
+	return mcMemoryList.GetData(psCacheBasedDescriptor);
 }
 
 
@@ -196,7 +199,7 @@ void* CMemoryCache::Allocate(size uiDataSize)
 		for (i = 0; i < iNumEvictions; i++)
 		{
 			psDescriptor = cPreAllocation.Get(i);
-			pvEvictedData = GetData(psDescriptor);
+			pvEvictedData = mcMemoryList.GetData(psDescriptor);
 			mpcEvictionCallback->CacheDataEvicted(pvEvictedData, psDescriptor);
 		}
 	}
@@ -212,37 +215,9 @@ void* CMemoryCache::Allocate(size uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMemoryCache::CanCache(size uiDataSize)
+size CMemoryCache::GetSize(void* pvData)
 {
-	return (miDescriptorSize + uiDataSize) <= mpsDetail->muiCacheSize;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMemoryCache::FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, size uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors)
-{
-	SMemoryCacheDescriptor*	psCacheBasedNext;
-
-	psCacheBasedNext = CCircularMemoryList::GetFirst();
-	for (;;)
-	{
-		if (Overlaps(psCachedBasedNew, uiNewSize, psCacheBasedNext))
-		{
-			pasOverlappingCacheDescriptors->Add(psCacheBasedNext);
-			psCacheBasedNext = CCircularMemoryList::GetNext(psCacheBasedNext);
-			if (IsFirst(psCacheBasedNext))
-			{
-				return;
-			}
-		}
-		else
-		{
-			return;
-		}
-	}
+	return mcMemoryList.GetSize(pvData);
 }
 
 
@@ -252,12 +227,7 @@ void CMemoryCache::FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, siz
 //////////////////////////////////////////////////////////////////////////
 void* CMemoryCache::StartIteration(void)
 {
-	SMemoryCacheDescriptor* psDesc;
-	void*					pvData;
-
-	psDesc = CCircularMemoryList::StartIteration();
-	pvData = GetData(psDesc);
-	return pvData;
+	return mcMemoryList.StartIteration();
 }
 
 
@@ -267,13 +237,7 @@ void* CMemoryCache::StartIteration(void)
 //////////////////////////////////////////////////////////////////////////
 void* CMemoryCache::Iterate(void* psCurrent)
 {
-	SMemoryCacheDescriptor* psDesc; 
-	void*					pvData;
-
-	psDesc = CCircularMemoryList::GetDescriptorNoRemap(psCurrent);
-	psDesc = CCircularMemoryList::Iterate(psDesc);
-	pvData = GetData(psDesc);
-	return pvData;
+	return mcMemoryList.Iterate(psCurrent);
 }
 
 
@@ -283,12 +247,7 @@ void* CMemoryCache::Iterate(void* psCurrent)
 //////////////////////////////////////////////////////////////////////////
 void* CMemoryCache::GetFirst(void)
 {
-	SMemoryCacheDescriptor* psDesc;
-	void*					pvData;
-
-	psDesc = CCircularMemoryList::GetFirst();
-	pvData = GetData(psDesc);
-	return pvData;
+	return mcMemoryList.GetFirst();
 }
 
 
@@ -298,12 +257,7 @@ void* CMemoryCache::GetFirst(void)
 //////////////////////////////////////////////////////////////////////////
 void* CMemoryCache::GetLast(void)
 {
-	SMemoryCacheDescriptor* psDesc; 
-	void*					pvData;
-
-	psDesc = CCircularMemoryList::GetLast();
-	pvData = GetData(psDesc);
-	return pvData;
+	return mcMemoryList.GetLast();
 }
 
 
@@ -313,13 +267,7 @@ void* CMemoryCache::GetLast(void)
 //////////////////////////////////////////////////////////////////////////
 void* CMemoryCache::GetNext(void* psCurrent)
 {
-	SMemoryCacheDescriptor* psDesc; 
-	void*					pvData;
-
-	psDesc = CCircularMemoryList::GetDescriptorNoRemap(psCurrent);
-	psDesc = CCircularMemoryList::GetNext(psDesc);
-	pvData = GetData(psDesc); 
-	return pvData;
+	return mcMemoryList.GetNext(psCurrent);
 }
 
 
@@ -329,13 +277,106 @@ void* CMemoryCache::GetNext(void* psCurrent)
 //////////////////////////////////////////////////////////////////////////
 void* CMemoryCache::GetPrev(void* psCurrent)
 {
-	SMemoryCacheDescriptor* psDesc;
-	void* pvData;
-
-	psDesc = CCircularMemoryList::GetDescriptorNoRemap(psCurrent);
-	psDesc = CCircularMemoryList::GetPrev(psDesc);
-	pvData = GetData(psDesc);
-	return pvData;
+	return mcMemoryList.GetPrev(psCurrent);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMemoryCache::Clear(void)
+{
+	mcMemoryList.Clear();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMemoryCache::Deallocate(void* pvCache)
+{
+	mcMemoryList.Deallocate(pvCache);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMemoryCache::NumElements(void)
+{
+	return mcMemoryList.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMemoryCache::NumElements(size iSize)
+{
+	return mcMemoryList.NumElements(iSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMemoryCache::GetDescriptorSize(void)
+{
+	return mcMemoryList.GetDescriptorSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMemoryCache::GetCacheSize(void)
+{
+	return mcMemoryList.GetCacheSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMemoryCache::GetAllocatedSize(void)
+{
+	return mcMemoryList.GetAllocatedSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMemoryCache::CanCache(size uiDataSize)
+{
+	return mcMemoryList.CanCache(uiDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMemoryCache::ValidateCache(void)
+{
+	return mcMemoryList.ValidateCache();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMemoryCache::Dump(void)
+{
+	mcMemoryList.Dump();
+}
 

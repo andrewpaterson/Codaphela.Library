@@ -1,6 +1,7 @@
 #ifndef __CIRCULAR_MEMORY_LIST_H__
 #define __CIRCULAR_MEMORY_LIST_H__
 #include "Define.h"
+#include "ArrayVoidPtr.h"
 #include "MemoryCacheDescriptor.h"
 
 
@@ -15,6 +16,7 @@ struct SCircularMemoryList
 
 class CCircularMemoryList
 {
+friend class CMemoryCache;
 protected:
 	SCircularMemoryList*		mpsDetail;
 	SMemoryCacheDescriptor*		mpvCache;
@@ -34,17 +36,26 @@ public:
 
 	size						GetSize(void* pvData);
 	size						NumElements(void);
+	size						NumElements(size iSize);
+	bool						IsEmpty(void);
+
+	void*						StartIteration(void);
+	void*						Iterate(void* psCurrent);
+
+	void*						GetFirst(void);
+	void*						GetLast(void);
+	void*						GetNext(void* psCurrent);
+	void*						GetPrev(void* psCurrent);
 
 	size						GetDescriptorSize(void);
 
 	void						Deallocate(void* pvData);
 
-	bool						IsEmpty(void);
-	size						NumElements(size iSize);
 	size						GetCacheSize(void);
 	size						GetAllocatedSize(void);
 
 	bool						ValidateCache(void);
+	bool						ValidateEnds(void);
 	void						Dump(void);
 
 protected:
@@ -58,16 +69,18 @@ protected:
 	void						RemapDifferentMemory(void* pvNewCache, size uiCacheSize);
 	void						RemapSameMemory(size uiCacheSize);
 
-	SMemoryCacheDescriptor*		StartIteration(void);
-	SMemoryCacheDescriptor*		Iterate(SMemoryCacheDescriptor* psCacheBasedDescriptor);
+	SMemoryCacheDescriptor*		StartDescriptorIteration(void);
+	SMemoryCacheDescriptor*		IterateDescriptor(SMemoryCacheDescriptor* psCacheBasedDescriptor);
 
-	SMemoryCacheDescriptor*		GetFirst(void);
-	SMemoryCacheDescriptor*		GetNext(SMemoryCacheDescriptor* psCacheBasedDescriptor);
-	SMemoryCacheDescriptor*		GetPrev(SMemoryCacheDescriptor* psCacheBasedDescriptor);
-	SMemoryCacheDescriptor*		GetLast(void);
+	SMemoryCacheDescriptor*		GetFirstDescriptor(void);
+	SMemoryCacheDescriptor*		GetNextDescriptor(SMemoryCacheDescriptor* psCacheBasedDescriptor);
+	SMemoryCacheDescriptor*		GetPrevDescriptor(SMemoryCacheDescriptor* psCacheBasedDescriptor);
+	SMemoryCacheDescriptor*		GetLastDescriptor(void);
 
 	void*						GetData(SMemoryCacheDescriptor* psCacheBasedDescriptor);
 	SMemoryCacheDescriptor*		GetDescriptorNoRemap(void* pvData);
+	SMemoryCacheDescriptor*		GetCache(void);
+	bool						CanCache(size uiDataSize);
 
 	void						Deallocate(SMemoryCacheDescriptor* psCacheBasedDescriptor);
 
@@ -76,8 +89,13 @@ protected:
 	SMemoryCacheDescriptor*		MapFromZeroBasedToCacheBased(void* pvCache, SMemoryCacheDescriptor* psZeroBasedDescriptor);
 	SMemoryCacheDescriptor*		MapFromCacheBasedToZeroBased(void* pvCache, SMemoryCacheDescriptor* psCacheBasedDescriptor);
 
+	void						SetEndsForPostAllocate(SMemoryCacheDescriptor* psCacheBasedDescriptor, SMemoryCacheDescriptor* psFirstOverlap, SMemoryCacheDescriptor* psLastOverlap);
+
 	bool						IsFirst(SMemoryCacheDescriptor* psCacheBasedDescriptor);
 	bool						IsLast(SMemoryCacheDescriptor* psCacheBasedDescriptor);
+
+protected:
+	void	FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, size uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
 };
 
 

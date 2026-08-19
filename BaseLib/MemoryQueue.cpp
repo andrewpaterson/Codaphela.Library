@@ -30,7 +30,7 @@ bool CMemoryQueue::FindOverlapping(SMemoryCacheDescriptor* pvCacheBasedNew, size
 {
 	SMemoryCacheDescriptor* psNext;
 
-	psNext = CCircularMemoryList::GetFirst();
+	psNext = GetFirstDescriptor();
 	for (;;)
 	{
 		if (Overlaps(pvCacheBasedNew, uiNewSize, psNext))
@@ -38,7 +38,7 @@ bool CMemoryQueue::FindOverlapping(SMemoryCacheDescriptor* pvCacheBasedNew, size
 			return true;
 		}
 
-		psNext = GetNext(psNext);
+		psNext = GetNextDescriptor(psNext);
 		if (IsFirst(psNext))
 		{
 			return false;
@@ -70,7 +70,7 @@ void* CMemoryQueue::Push(size uiDataSize)
 	{
 		if (uiTotalSize <= uiRemainingAfterLast)
 		{
-			psCacheBasedTail = CCircularMemoryList::GetLast();
+			psCacheBasedTail = GetLastDescriptor();
 			psCacheBasedDescriptor = (SMemoryCacheDescriptor*)RemapSinglePointer(psCacheBasedTail, miDescriptorSize + psCacheBasedTail->uiSize);
 		}
 		else
@@ -106,7 +106,7 @@ void* CMemoryQueue::Peek(size* puiDataSize)
 
 	if (!IsEmpty())
 	{
-		psCacheBasedHead = CCircularMemoryList::GetFirst();
+		psCacheBasedHead = GetFirstDescriptor();
 		pv = GetData(psCacheBasedHead);
 		SafeAssign(puiDataSize, psCacheBasedHead->uiSize);
 		return pv;
@@ -168,7 +168,7 @@ void* CMemoryQueue::GetFirst(void)
 	SMemoryCacheDescriptor* psDesc;
 	void*					pvData;
 
-	psDesc = CCircularMemoryList::GetFirst();
+	psDesc = GetFirstDescriptor();
 	pvData = GetData(psDesc);
 	return pvData;
 }
@@ -183,7 +183,7 @@ void* CMemoryQueue::GetLast(void)
 	SMemoryCacheDescriptor* psDesc;
 	void*					pvData;
 
-	psDesc = CCircularMemoryList::GetLast();
+	psDesc = GetLastDescriptor();
 	pvData = GetData(psDesc);
 	return pvData;
 }
