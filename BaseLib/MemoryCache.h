@@ -28,10 +28,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "MemoryCacheEvictionCallback.h"
 
 
-class CMemoryCache : public CCircularMemoryList
+class CMemoryCache
 {
 protected:
 	CMemoryCacheEvictionCallback*	mpcEvictionCallback;
+	CCircularMemoryList				mcMemoryList;
+	void*							mpvCache2;
 
 public:
 	void	Init(size uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
@@ -40,7 +42,7 @@ public:
 
 	void*	Allocate(size uiDataSize);
 
-	bool	CanCache(size uiDataSize);
+	size	GetSize(void* pvData);
 
 	void*	StartIteration(void);
 	void*	Iterate(void* psCurrent);
@@ -50,8 +52,18 @@ public:
 	void*	GetNext(void* psCurrent);
 	void*	GetPrev(void* psCurrent);
 
+	void	Clear(void);
+	void	Deallocate(void* pvCache);
+	size	NumElements(void);
+	size	NumElements(size iSize);
+	size	GetDescriptorSize(void);
+	size	GetCacheSize(void);
+	size	GetAllocatedSize(void);
+	bool	CanCache(size uiDataSize);
+	bool	ValidateCache(void);
+	void	Dump(void);
+
 protected:
-	void	FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, size uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
 	bool	PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult);
 	void*	PostAllocate(CMemoryCacheAllocation* pcPreAllocated);
 };
