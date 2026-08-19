@@ -95,7 +95,7 @@ protected:
 	bool						IsLast(SMemoryCacheDescriptor* psCacheBasedDescriptor);
 
 protected:
-	void	FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, size uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
+	size						FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, size uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
 };
 
 

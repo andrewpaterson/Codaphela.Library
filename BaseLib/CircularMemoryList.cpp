@@ -566,12 +566,16 @@ void CCircularMemoryList::Dump(void)
 	CChars						sz;
 	char*						pvData;
 	size						iLen;
+	SMemoryCacheDescriptor*		psCurrent;
 
 	sz.Init();
 
-	sz.Append("Data Cache (");
+	sz.Append("Data Cache (Elements: ");
 	sz.Append(NumElements());
-	sz.Append(")\n---------------\n");
+	sz.Append(", Size: ");
+	sz.Append(mpsDetail->muiCacheSize);
+	sz.Append(")\n");
+	sz.Append("---------------\n");
 
 	psDescriptor = StartDescriptorIteration();
 	while (psDescriptor)
@@ -579,12 +583,16 @@ void CCircularMemoryList::Dump(void)
 		pvData = (char*)RemapSinglePointer(psDescriptor, miDescriptorSize);
 		iLen = psDescriptor->uiSize;
 
-		sz.Append("(Ln:");
+		psCurrent = MapFromCacheBasedToZeroBased(psDescriptor);
+		sz.AppendHexHiLo(&psCurrent, 4);
+		sz.Append(": (Ln:");
 		sz.AppendHexHiLo(&iLen, 4);
 		sz.Append(" Da:");
 		sz.AppendHexHiLo(&psDescriptor, 4);
 		sz.Append(" Nx:");
 		sz.AppendHexHiLo(&psDescriptor->psNext, 4);
+		sz.Append(" Pv:");
+		sz.AppendHexHiLo(&psDescriptor->psPrev, 4);
 		sz.Append(") ");
 
 		sz.AppendData(pvData, iLen, 80);
@@ -607,8 +615,8 @@ SMemoryCacheDescriptor* CCircularMemoryList::OneAllocation(void)
 
 	psCacheBasedDescriptor = (SMemoryCacheDescriptor*)mpvCache;
 
-	mpsDetail->mpsTail = CIRCULAR_MEMORY_LIST_ONE;
 	mpsDetail->mpsHead = CIRCULAR_MEMORY_LIST_ONE;
+	mpsDetail->mpsTail = CIRCULAR_MEMORY_LIST_ONE;
 
 	psCacheBasedDescriptor->psNext = mpsDetail->mpsHead;
 	psCacheBasedDescriptor->psPrev = mpsDetail->mpsHead;
@@ -647,53 +655,27 @@ SMemoryCacheDescriptor* CCircularMemoryList::InsertNext(SMemoryCacheDescriptor* 
 }
 
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-//SMemoryCacheDescriptor* CCircularMemoryList::InsertNext(SMemoryCacheDescriptor* psCacheBasedDescriptor)
-//{
-//	if (IsEmpty())
-//	{
-//		psCacheBasedDescriptor = OneAllocation();
-//	}
-//	else
-//	{
-//		MapFromZeroBasedToCacheBased(mpsTail)->psNext = MapFromCacheBasedToZeroBased(psCacheBasedDescriptor);
-//		MapFromZeroBasedToCacheBased(mpsHead)->psPrev = MapFromCacheBasedToZeroBased(psCacheBasedDescriptor);
-//
-//		psCacheBasedDescriptor->psNext = mpsHead;
-//		psCacheBasedDescriptor->psPrev = mpsTail;
-//
-//		mpsTail = MapFromCacheBasedToZeroBased(psCacheBasedDescriptor);
-//	}
-//
-//	return psCacheBasedDescriptor;
-//}
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCircularMemoryList::Overlaps(SMemoryCacheDescriptor* pvCacheBasedNew, size uiNewSize, SMemoryCacheDescriptor* psCacheBasedExisting)
 {
-	size	uiNewStart;
-	size	uiNewEnd;  //Inclusive
+	ptr		uiNewStart;
+	ptr		uiNewEnd;  //Inclusive
 
-	size	uiNextStart;
-	size	uiNextEnd; //Inclusive
+	ptr		uiNextStart;
+	ptr		uiNextEnd; //Inclusive
 
 	if (psCacheBasedExisting == NULL)
 	{
 		return false;
 	}
 
-	uiNewStart = (size)pvCacheBasedNew;
+	uiNewStart = (ptr)pvCacheBasedNew;
 	uiNewEnd = uiNewStart + uiNewSize - 1;
 
-	uiNextStart = (size)psCacheBasedExisting;
+	uiNextStart = (ptr)psCacheBasedExisting;
 	uiNextEnd = uiNextStart + psCacheBasedExisting->uiSize + miDescriptorSize - 1;
 
 	if ((uiNewStart <= uiNextStart) && (uiNewEnd >= uiNextStart))
@@ -916,12 +898,21 @@ SMemoryCacheDescriptor* CCircularMemoryList::MapFromCacheBasedToZeroBased(void* 
 void CCircularMemoryList::SetEndsForPostAllocate(SMemoryCacheDescriptor* psCacheBasedDescriptor, SMemoryCacheDescriptor* psFirstOverlap, SMemoryCacheDescriptor* psLastOverlap)
 {
 	SMemoryCacheDescriptor* psFirstPrev;
+	SMemoryCacheDescriptor* psNextAfterLast;;
 
 	psFirstPrev = GetPrevDescriptor(psFirstOverlap);
 	psFirstPrev->psNext = MapFromCacheBasedToZeroBased(psCacheBasedDescriptor);
 
+	psNextAfterLast = GetNextDescriptor(psLastOverlap);
 	mpsDetail->mpsTail = MapFromCacheBasedToZeroBased(psCacheBasedDescriptor);
-	mpsDetail->mpsHead = MapFromCacheBasedToZeroBased(GetNextDescriptor(psLastOverlap));
+	if (psNextAfterLast)
+	{
+		mpsDetail->mpsHead = MapFromCacheBasedToZeroBased(psNextAfterLast);
+	}
+	else
+	{
+		mpsDetail->mpsHead = mpsDetail->mpsTail;
+	}
 	GetFirstDescriptor()->psPrev = mpsDetail->mpsTail;
 
 	GetLastDescriptor()->psNext = mpsDetail->mpsHead;
@@ -956,10 +947,12 @@ bool CCircularMemoryList::IsLast(SMemoryCacheDescriptor* psCacheBasedDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircularMemoryList::FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, size uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors)
+size CCircularMemoryList::FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, size uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors)
 {
 	SMemoryCacheDescriptor*	psCacheBasedNext;
+	size					iCount;
 
+	iCount = 0;
 	psCacheBasedNext = GetFirstDescriptor();
 	for (;;)
 	{
@@ -967,14 +960,15 @@ void CCircularMemoryList::FindOverlapping(SMemoryCacheDescriptor* psCachedBasedN
 		{
 			pasOverlappingCacheDescriptors->Add(psCacheBasedNext);
 			psCacheBasedNext = GetNextDescriptor(psCacheBasedNext);
+			iCount++;
 			if (IsFirst(psCacheBasedNext))
 			{
-				return;
+				return iCount;
 			}
 		}
 		else
 		{
-			return;
+			return iCount;
 		}
 	}
 }

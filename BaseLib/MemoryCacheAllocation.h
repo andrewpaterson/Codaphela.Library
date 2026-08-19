@@ -13,16 +13,16 @@ protected:
 	uint32						miCachedSize;
 
 public:
-	void						Init(int uiSize);
+	void						Init(uint32 uiSize);
 	void						Kill(void);
 
 	bool						HasOverlaps(void);
-	SMemoryCacheDescriptor*		Get(int iIndex);
+	SMemoryCacheDescriptor*		Get(size iIndex);
 	int							NumElements(void);
 
 	CArrayVoidPtr*				GetEvictedArray(void);
 
-	void						Dump(int iDescriptorSize);
+	void						Dump(size iDescriptorSize);
 };
 
 

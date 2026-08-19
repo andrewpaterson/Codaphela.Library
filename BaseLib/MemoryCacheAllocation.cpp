@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCacheAllocation::Init(int uiSize)
+void CMemoryCacheAllocation::Init(uint32 uiSize)
 {
 	mapEvictedCacheDescriptors.Init();
 	muiSize = uiSize;
@@ -40,7 +40,7 @@ bool CMemoryCacheAllocation::HasOverlaps(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SMemoryCacheDescriptor* CMemoryCacheAllocation::Get(int iIndex)
+SMemoryCacheDescriptor* CMemoryCacheAllocation::Get(size iIndex)
 {
 	return (SMemoryCacheDescriptor*)mapEvictedCacheDescriptors.GetPtr(iIndex);
 }
@@ -70,13 +70,14 @@ CArrayVoidPtr* CMemoryCacheAllocation::GetEvictedArray(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCacheAllocation::Dump(int iDescriptorSize)
+void CMemoryCacheAllocation::Dump(size iDescriptorSize)
 {
 	SMemoryCacheDescriptor*		psCacheDesc;
 	CChars						sz;
 	char*						pvData;
 	size						iLen;
-	int							i;
+	size						i;
+	size						iNumElements;
 
 	sz.Init();
 
@@ -84,7 +85,8 @@ void CMemoryCacheAllocation::Dump(int iDescriptorSize)
 	sz.Append(NumElements());
 	sz.Append(")\n---------------\n");
 
-	for (i = 0; i < NumElements(); i++)
+	iNumElements = NumElements();
+	for (i = 0; i < iNumElements; i++)
 	{
 		psCacheDesc = Get(i);
 		pvData = (char*)RemapSinglePointer(psCacheDesc, iDescriptorSize);
@@ -96,6 +98,8 @@ void CMemoryCacheAllocation::Dump(int iDescriptorSize)
 		sz.AppendHexHiLo(&psCacheDesc, 4);
 		sz.Append(" Nx:");
 		sz.AppendHexHiLo(&psCacheDesc->psNext, 4);
+		sz.Append(" Pv:");
+		sz.AppendHexHiLo(&psCacheDesc->psPrev, 4);
 		sz.Append(") ");
 
 		sz.AppendData(pvData, iLen, 80);
