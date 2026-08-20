@@ -59,10 +59,12 @@ public:
 	size						NumCached(void);
 	size						NumCached(size iSize);
 
-	size							GetIndexCacheDescritorSize(void);
+	size						GetIndexCacheDescritorSize(void);
 	size						GetCacheSize(void);
 	size						GetAllocatedSize(void);
 	bool						CanCache(size uiDataSize);
+
+	bool						ValidateCache(void);
 
 	void*						TestGetDescriptor(OIndex oi);
 	void						Dump(void);

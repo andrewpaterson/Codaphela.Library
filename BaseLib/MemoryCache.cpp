@@ -110,15 +110,6 @@ bool CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 			psCacheBasedDescriptor = mcMemoryList.GetCache();
 		}
 		iOverlapping = mcMemoryList.FindOverlapping(psCacheBasedDescriptor, iCachedSize, &pcPreAllocationResult->mapEvictedCacheDescriptors);
-		if (iOverlapping > 0)
-		{
-			if (iCachedSize <= iRemainingAfterLast)
-			{
-				int xxx = 0;
-				mcMemoryList.Dump();
-				pcPreAllocationResult->Dump(iDescriptorSize);
-			}
-		}
 	}
 	else
 	{
