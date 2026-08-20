@@ -772,6 +772,7 @@
     <ClCompile Include="Mallocators.cpp" />
     <ClCompile Include="MemoryBlock.cpp" />
     <ClCompile Include="MemoryCacheAllocation.cpp" />
+    <ClCompile Include="MemoryCacheDescriptor.cpp" />
     <ClCompile Include="MemoryCacheEvictedData.cpp" />
     <ClCompile Include="MemoryFreeListParams.cpp" />
     <ClCompile Include="MemoryHeader.cpp" />

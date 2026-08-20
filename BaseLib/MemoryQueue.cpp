@@ -71,7 +71,7 @@ void* CMemoryQueue::Push(size uiDataSize)
 		if (uiTotalSize <= uiRemainingAfterLast)
 		{
 			psCacheBasedTail = GetLastDescriptor();
-			psCacheBasedDescriptor = (SMemoryCacheDescriptor*)RemapSinglePointer(psCacheBasedTail, miDescriptorSize + psCacheBasedTail->uiSize);
+			psCacheBasedDescriptor = (SMemoryCacheDescriptor*)RemapSinglePointer(psCacheBasedTail, miDescriptorSize + psCacheBasedTail->GetSize());
 		}
 		else
 		{
@@ -90,7 +90,7 @@ void* CMemoryQueue::Push(size uiDataSize)
 		psCacheBasedDescriptor = OneAllocation();
 	}
 
-	psCacheBasedDescriptor->uiSize = uiDataSize;
+	psCacheBasedDescriptor->SetSize(uiDataSize);
 	return GetData(psCacheBasedDescriptor);
 }
 
@@ -108,7 +108,7 @@ void* CMemoryQueue::Peek(size* puiDataSize)
 	{
 		psCacheBasedHead = GetFirstDescriptor();
 		pv = GetData(psCacheBasedHead);
-		SafeAssign(puiDataSize, psCacheBasedHead->uiSize);
+		SafeAssign(puiDataSize, psCacheBasedHead->GetSize());
 		return pv;
 	}
 	else

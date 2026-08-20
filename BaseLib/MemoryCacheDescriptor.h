@@ -3,11 +3,29 @@
 #include "PrimitiveTypes.h"
 
 
-struct SMemoryCacheDescriptor
+class SMemoryCacheDescriptor
 {
-	SMemoryCacheDescriptor* psNext;
-	SMemoryCacheDescriptor* psPrev;
-	size					uiSize;  //Not including the sizeof this.
+private:
+	SMemoryCacheDescriptor*		mpsNext;
+	SMemoryCacheDescriptor*		mpsPrev;
+	size						miSize;  //Not including the sizeof this.
+
+public:
+	void						SetNext(SMemoryCacheDescriptor* psNext);
+	void						SetPrev(SMemoryCacheDescriptor* psPrev);
+	void						SetSize(size iSize);
+
+	void						Clear(void);
+	void						ClearNext(void);
+	void						ClearPrev(void);
+
+	size						GetSize(void);
+	SMemoryCacheDescriptor*		GetNext(void);
+	SMemoryCacheDescriptor*		GetPrev(void);
+
+	bool						IsSize(size iSize);
+	bool						IsNext(SMemoryCacheDescriptor* psDesc);
+	bool						IsPrev(SMemoryCacheDescriptor* psDesc);
 };
 
 

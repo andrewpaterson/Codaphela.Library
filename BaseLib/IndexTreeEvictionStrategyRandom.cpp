@@ -42,7 +42,7 @@ bool CIndexTreeEvictionStrategyRandom::Run(CIndexTreeNodeFile* pcDontEvict)
 {
 	int i;
 
-	for (i = 0; i < 15; i++)
+	for (i = 0; i < 32; i++)
 	{
 		if (EvictRandomNode(pcDontEvict))
 		{

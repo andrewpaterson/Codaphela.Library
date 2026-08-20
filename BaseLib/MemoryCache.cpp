@@ -36,8 +36,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CMemoryCache::Init(size uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize)
 {
-	mpvCache2 = malloc(uiCacheSize + sizeof(SCircularMemoryList));
-	mcMemoryList.Init(mpvCache2, uiCacheSize + sizeof(SCircularMemoryList), iDescriptorSize);
+	mpvCache = malloc(uiCacheSize + sizeof(SCircularMemoryList));
+	mcMemoryList.Init(mpvCache, uiCacheSize + sizeof(SCircularMemoryList), iDescriptorSize);
 	mpcEvictionCallback = pcEvictionCallback;
 }
 
@@ -48,7 +48,7 @@ void CMemoryCache::Init(size uiCacheSize, CMemoryCacheEvictionCallback* pcEvicti
 //////////////////////////////////////////////////////////////////////////
 void CMemoryCache::Kill(void)
 {
-	SafeFree(mpvCache2);
+	SafeFree(mpvCache);
 	mcMemoryList.Kill();
 }
 
@@ -61,8 +61,8 @@ void CMemoryCache::Resize(size uiNewCacheSize)
 {
 	SCircularMemoryList*	pvNewDetail;
 
-	mpvCache2 = realloc(mpvCache2, uiNewCacheSize + sizeof(SCircularMemoryList));
-	pvNewDetail = (SCircularMemoryList*)mpvCache2;
+	mpvCache = realloc(mpvCache, uiNewCacheSize + sizeof(SCircularMemoryList));
+	pvNewDetail = (SCircularMemoryList*)mpvCache;
 	if (pvNewDetail)
 	{
 		mcMemoryList.Remap(pvNewDetail, uiNewCacheSize + sizeof(SCircularMemoryList));
@@ -102,7 +102,7 @@ bool CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 		if (iCachedSize <= iRemainingAfterLast)
 		{
 			psTail = mcMemoryList.GetLastDescriptor();
-			psCacheBasedDescriptor = (SMemoryCacheDescriptor*)RemapSinglePointer(psTail, iDescriptorSize + psTail->uiSize);
+			psCacheBasedDescriptor = (SMemoryCacheDescriptor*)RemapSinglePointer(psTail, iDescriptorSize + psTail->GetSize());
 		}
 		else
 		{
@@ -115,8 +115,9 @@ bool CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 	{
 		psCacheBasedDescriptor = mcMemoryList.GetCache();
 	}
+
 	pcPreAllocationResult->miCachedSize = iCachedSize;
-	pcPreAllocationResult->mpsDescriptor = psCacheBasedDescriptor;
+	pcPreAllocationResult->mpsDescriptor = psCacheBasedDescriptor;  //psCacheBasedDescriptor will look like garbage until it is initialised in PostAllocate.
 
 	return true;
 }
@@ -160,7 +161,7 @@ void* CMemoryCache::PostAllocate(CMemoryCacheAllocation* pcPreAllocated)
 		psCacheBasedDescriptor = mcMemoryList.InsertNext(pcPreAllocated->mpsDescriptor);
 	}
 
-	psCacheBasedDescriptor->uiSize = pcPreAllocated->muiSize;
+	psCacheBasedDescriptor->SetSize(pcPreAllocated->muiSize);
 	return mcMemoryList.GetData(psCacheBasedDescriptor);
 }
 
