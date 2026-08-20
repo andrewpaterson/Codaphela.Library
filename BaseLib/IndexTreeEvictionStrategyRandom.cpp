@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeEvictionStrategyRandom::Init(void)
 {
-	Init(67);
+	Init(15);
 }
 
 
@@ -16,10 +16,21 @@ void CIndexTreeEvictionStrategyRandom::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeEvictionStrategyRandom::Init(int iSeed)
+void CIndexTreeEvictionStrategyRandom::Init(size iMaxAttempts)
+{
+	Init(iMaxAttempts, 67);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeEvictionStrategyRandom::Init(size iMaxAttempts, int iSeed)
 {
 	CIndexTreeEvictionStrategy::Init();
 	mcRandom.Init(iSeed);
+	miMaxAttempts = iMaxAttempts;
 }
 
 
@@ -40,9 +51,9 @@ void CIndexTreeEvictionStrategyRandom::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeEvictionStrategyRandom::Run(CIndexTreeNodeFile* pcDontEvict)
 {
-	int i;
+	size i;
 
-	for (i = 0; i < 32; i++)
+	for (i = 0; i < miMaxAttempts; i++)
 	{
 		if (EvictRandomNode(pcDontEvict))
 		{
