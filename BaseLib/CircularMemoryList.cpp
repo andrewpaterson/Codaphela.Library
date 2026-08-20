@@ -823,6 +823,11 @@ bool CCircularMemoryList::ValidateCache(void)
 			return gcLogger.Error2(__METHOD__, " Descriptor [", IntToString(iCount), "] Next.Prev is not Descriptor.", NULL);
 		}
 
+		if (psCacheBasedDescriptor->uiSize == 0)
+		{
+			return gcLogger.Error2(__METHOD__, " Descriptor [", IntToString(iCount), "] Next.Size is zero.", NULL);
+		}
+
 		pvEndDesc = RemapSinglePointer(psCacheBasedDescriptor, psCacheBasedDescriptor->uiSize + miDescriptorSize);
 		if (pvEndDesc > pvLastCacheByte)
 		{
@@ -911,7 +916,7 @@ void CCircularMemoryList::SetEndsForPostAllocate(SMemoryCacheDescriptor* psCache
 	}
 	else
 	{
-		mpsDetail->mpsHead = mpsDetail->mpsTail;
+		gcLogger.Error2(__METHOD__, " Next after Last may not be NULL.", NULL);
 	}
 	GetFirstDescriptor()->psPrev = mpsDetail->mpsTail;
 

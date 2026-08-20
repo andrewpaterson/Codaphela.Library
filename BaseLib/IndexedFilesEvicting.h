@@ -50,6 +50,8 @@ public:
 
 	size			GetSystemMemorySize(void);
 
+	bool			ValidateCache(void);
+
 	size			TestGetCachedObjectSize(OIndex oi);
 
 protected:

@@ -97,6 +97,8 @@ public:
 	bool			ValidateConfigInitialised(void);
 	bool			ValidateConfigKilled(void);
 
+	bool			ValidateCache(void);
+
 	size			GetIndiciesSystemMemorySize(void);
 	size			GetDataSystemMemorySize(void);
 	size			GetNamesSystemMemorySize(void);

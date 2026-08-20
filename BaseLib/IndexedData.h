@@ -77,9 +77,13 @@ public:
 	size			GetRootFlags(void);
 
 	void			DumpIndex(void);
+
 	bool			ValidateIndex(void);
+	bool			ValidateCache(void);
+
 	bool			ValidateConfigInitialised(void);
 	bool			ValidateConfigKilled(void);
+
 	bool			TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
 	OIndex 			StartIteration(SIndexTreeFileIterator* psIterator, void* ppvData, size* piDataSize, size iMaxDataSize);
