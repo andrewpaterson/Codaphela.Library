@@ -2960,6 +2960,9 @@
     <ClCompile Include="SetString.cpp">
       <Filter>Source\Data\Set\String</Filter>
     </ClCompile>
+    <ClCompile Include="MemoryCacheDescriptor.cpp">
+      <Filter>Source\Memory\Cache</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="gpl.txt">

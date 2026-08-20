@@ -78,6 +78,8 @@ void CMemoryCacheAllocation::Dump(size iDescriptorSize)
 	size						iLen;
 	size						i;
 	size						iNumElements;
+	SMemoryCacheDescriptor*		psNext;
+	SMemoryCacheDescriptor*		psPrev;
 
 	sz.Init();
 
@@ -90,16 +92,18 @@ void CMemoryCacheAllocation::Dump(size iDescriptorSize)
 	{
 		psCacheDesc = Get(i);
 		pvData = (char*)RemapSinglePointer(psCacheDesc, iDescriptorSize);
-		iLen = psCacheDesc->uiSize;
+		iLen = psCacheDesc->GetSize();
+		psNext = psCacheDesc->GetNext();
+		psPrev = psCacheDesc->GetPrev();
 
 		sz.Append("(Ln:");
 		sz.AppendHexHiLo(&iLen, 4);
 		sz.Append(" Da:");
 		sz.AppendHexHiLo(&psCacheDesc, 4);
 		sz.Append(" Nx:");
-		sz.AppendHexHiLo(&psCacheDesc->psNext, 4);
+		sz.AppendHexHiLo(&psNext, 4);
 		sz.Append(" Pv:");
-		sz.AppendHexHiLo(&psCacheDesc->psPrev, 4);
+		sz.AppendHexHiLo(&psPrev, 4);
 		sz.Append(") ");
 
 		sz.AppendData(pvData, iLen, 80);

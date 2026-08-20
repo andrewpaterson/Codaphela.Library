@@ -33,7 +33,7 @@ class CMemoryCache
 protected:
 	CMemoryCacheEvictionCallback*	mpcEvictionCallback;
 	CCircularMemoryList				mcMemoryList;
-	void*							mpvCache2;
+	void*							mpvCache;
 
 public:
 	void	Init(size uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));

@@ -2,7 +2,7 @@
 #define __MEMORY_CACHE_EVICTION_CALLBACK_H__
 
 
-struct SMemoryCacheDescriptor;
+class SMemoryCacheDescriptor;
 class CMemoryCacheEvictionCallback
 {
 public:

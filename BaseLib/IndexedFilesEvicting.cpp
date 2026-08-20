@@ -143,7 +143,7 @@ bool CIndexedFilesEvicting::Flush(bool bClearCache)
 			bResult = WriteEvictedData1b(psDescriptor, pvData, eClearCache, true);
 			if (bResult)
 			{
-				mpcEvictionCallback->DescriptorEvicted(psDescriptor->oi, pvData, psDescriptor->uiSize);
+				mpcEvictionCallback->DescriptorEvicted(psDescriptor->oi, pvData, psDescriptor->GetSize());
 			}
 			else
 			{
@@ -483,13 +483,13 @@ bool CIndexedFilesEvicting::CacheDataEvicted(void* pvData, SMemoryCacheDescripto
 	SIndexedCacheDescriptor*	psIndexedDescriptor;
 
 	psIndexedDescriptor = (SIndexedCacheDescriptor*)psDescriptor;
-	bResult = WriteEvictedData1b(psIndexedDescriptor, pvData, CC_Yes, false);
+	bResult = WriteEvictedData1b(psIndexedDescriptor, pvData, CC_YesDontInvalidate, false);
 	if (!bResult)
 	{
 		return false;
 	}
 
-	bResult = mpcEvictionCallback->DescriptorEvicted(psIndexedDescriptor->oi, pvData, psIndexedDescriptor->uiSize);
+	bResult = mpcEvictionCallback->DescriptorEvicted(psIndexedDescriptor->oi, pvData, psIndexedDescriptor->GetSize());
 	if (!bResult)
 	{
 		return false;
@@ -705,7 +705,7 @@ size CIndexedFilesEvicting::TestGetCachedObjectSize(OIndex oi)
 	if (pvData)
 	{
 		psDescriptor = mcDataCache.GetDescriptor(pvData);
-		return sizeof(SIndexedCacheDescriptor) + psDescriptor->uiSize;
+		return sizeof(SIndexedCacheDescriptor) + psDescriptor->GetSize();
 	}
 	return 0;
 }

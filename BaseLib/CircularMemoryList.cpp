@@ -138,14 +138,14 @@ void CCircularMemoryList::RemapDifferentMemory(void* pvNewCache, size uiCacheSiz
 		psNew = (SMemoryCacheDescriptor*)pvNewCache;
 		do
 		{
-			uiSize = miDescriptorSize + psCacheBasedDescriptor->uiSize;
+			uiSize = miDescriptorSize + psCacheBasedDescriptor->GetSize();
 			memcpy(psNew, psCacheBasedDescriptor, uiSize);
 
-			psNew->psNext = NULL;
-			psNew->psPrev = MapFromCacheBasedToZeroBased(pvNewCache, psNewPrev);
+			psNew->ClearNext();
+			psNew->SetPrev(MapFromCacheBasedToZeroBased(pvNewCache, psNewPrev));
 			if (psNewPrev != NULL)
 			{
-				psNewPrev->psNext = MapFromCacheBasedToZeroBased(pvNewCache, psNew);
+				psNewPrev->SetNext(MapFromCacheBasedToZeroBased(pvNewCache, psNew));
 			}
 
 			psNewPrev = psNew;
@@ -159,9 +159,9 @@ void CCircularMemoryList::RemapDifferentMemory(void* pvNewCache, size uiCacheSiz
 		mpsDetail->muiCacheSize = uiCacheSize;
 
 		mpsDetail->mpsHead = CIRCULAR_MEMORY_LIST_ONE;
-		GetFirstDescriptor()->psPrev = MapFromCacheBasedToZeroBased(psNewPrev);
+		GetFirstDescriptor()->SetPrev(MapFromCacheBasedToZeroBased(psNewPrev));
 		mpsDetail->mpsTail = MapFromCacheBasedToZeroBased(psNewPrev);
-		GetLastDescriptor()->psNext = mpsDetail->mpsHead;
+		GetLastDescriptor()->SetNext(mpsDetail->mpsHead);
 	}
 	else
 	{
@@ -172,6 +172,10 @@ void CCircularMemoryList::RemapDifferentMemory(void* pvNewCache, size uiCacheSiz
 		mpsDetail->mpsHead = NULL;
 		mpsDetail->mpsTail = NULL;
 	}
+
+#ifdef _DEBUG
+	ValidateCache();
+#endif
 }
 
 
@@ -199,7 +203,7 @@ void CCircularMemoryList::RemapSameMemory(size uiCacheSize)
 	{
 		if (psCacheBasedDescriptor < GetPrevDescriptor(psCacheBasedDescriptor))
 		{
-			if (psCacheBasedDescriptor->psPrev != mpsDetail->mpsTail)
+			if (!psCacheBasedDescriptor->IsPrev(mpsDetail->mpsTail))
 			{
 				psLargest = GetPrevDescriptor(psCacheBasedDescriptor);
 				break;
@@ -218,11 +222,11 @@ void CCircularMemoryList::RemapSameMemory(size uiCacheSize)
 	psCacheBasedDescriptor = GetNextDescriptor(psLargest);
 	do
 	{
-		uiSize = miDescriptorSize + psCacheBasedDescriptor->uiSize;
+		uiSize = miDescriptorSize + psCacheBasedDescriptor->GetSize();
 		uiRemaining = RemainingAfter(psLargest);
 		if (uiRemaining >= uiSize)
 		{
-			psNew = (SMemoryCacheDescriptor*)RemapSinglePointer(psLargest, psLargest->uiSize + miDescriptorSize);
+			psNew = (SMemoryCacheDescriptor*)RemapSinglePointer(psLargest, psLargest->GetSize() + miDescriptorSize);
 		}
 		else
 		{
@@ -230,9 +234,9 @@ void CCircularMemoryList::RemapSameMemory(size uiCacheSize)
 		}
 		memcpy(psNew, psCacheBasedDescriptor, uiSize);
 
-		psLargest->psNext = MapFromCacheBasedToZeroBased(psNew);
-		psNew->psPrev = MapFromCacheBasedToZeroBased(psLargest);
-		GetPrevDescriptor(psNew)->psNext = MapFromCacheBasedToZeroBased(psNew);
+		psLargest->SetNext(MapFromCacheBasedToZeroBased(psNew));
+		psNew->SetPrev(MapFromCacheBasedToZeroBased(psLargest));
+		GetPrevDescriptor(psNew)->SetNext(MapFromCacheBasedToZeroBased(psNew));
 
 		psLargest = psNew;
 		
@@ -241,8 +245,8 @@ void CCircularMemoryList::RemapSameMemory(size uiCacheSize)
 	while (!IsFirst(psCacheBasedDescriptor));
 
 	mpsDetail->mpsTail = MapFromCacheBasedToZeroBased(psLargest);
-	GetFirstDescriptor()->psPrev = mpsDetail->mpsTail;
-	GetLastDescriptor()->psNext = mpsDetail->mpsHead;
+	GetFirstDescriptor()->SetPrev(mpsDetail->mpsTail);
+	GetLastDescriptor()->SetNext(mpsDetail->mpsHead);
 }
 
 
@@ -289,22 +293,22 @@ void CCircularMemoryList::Deallocate(SMemoryCacheDescriptor* psCacheBasedDescrip
 
 	if (!IsFirst(psCacheBasedDescriptor))
 	{
-		GetPrevDescriptor(psCacheBasedDescriptor)->psNext = psCacheBasedDescriptor->psNext;
+		GetPrevDescriptor(psCacheBasedDescriptor)->SetNext(psCacheBasedDescriptor->GetNext());
 	}
 	else
 	{
-		GetPrevDescriptor(psCacheBasedDescriptor)->psNext = psCacheBasedDescriptor->psNext;
-		mpsDetail->mpsHead = psCacheBasedDescriptor->psNext;
+		GetPrevDescriptor(psCacheBasedDescriptor)->SetNext(psCacheBasedDescriptor->GetNext());
+		mpsDetail->mpsHead = psCacheBasedDescriptor->GetNext();
 	}
 
 	if (!IsLast(psCacheBasedDescriptor))
 	{
-		GetNextDescriptor(psCacheBasedDescriptor)->psPrev = psCacheBasedDescriptor->psPrev;
+		GetNextDescriptor(psCacheBasedDescriptor)->SetPrev(psCacheBasedDescriptor->GetPrev());
 	}
 	else
 	{
-		GetNextDescriptor(psCacheBasedDescriptor)->psPrev = psCacheBasedDescriptor->psPrev;
-		mpsDetail->mpsTail = psCacheBasedDescriptor->psPrev;
+		GetNextDescriptor(psCacheBasedDescriptor)->SetPrev(psCacheBasedDescriptor->GetPrev());
+		mpsDetail->mpsTail = psCacheBasedDescriptor->GetPrev();
 	}
 }
 
@@ -332,7 +336,7 @@ size CCircularMemoryList::GetAllocatedSize(void)
 	psIter = StartDescriptorIteration();
 	while (psIter)
 	{
-		uiSize += psIter->uiSize + miDescriptorSize;
+		uiSize += psIter->GetSize() + miDescriptorSize;
 		psIter = IterateDescriptor(psIter);
 	}
 	return uiSize;
@@ -360,7 +364,7 @@ SMemoryCacheDescriptor* CCircularMemoryList::GetNextDescriptor(SMemoryCacheDescr
 		return NULL;
 	}
 
-	return MapFromZeroBasedToCacheBased(psCacheBasedDescriptor->psNext);
+	return MapFromZeroBasedToCacheBased(psCacheBasedDescriptor->GetNext());
 }
 
 
@@ -375,7 +379,7 @@ SMemoryCacheDescriptor* CCircularMemoryList::GetPrevDescriptor(SMemoryCacheDescr
 		return NULL;
 	}
 
-	return MapFromZeroBasedToCacheBased(psCacheBasedDescriptor->psPrev);
+	return MapFromZeroBasedToCacheBased(psCacheBasedDescriptor->GetPrev());
 }
 
 
@@ -398,7 +402,7 @@ size CCircularMemoryList::GetSize(void* pvCacheBasedData)
 	SMemoryCacheDescriptor* psDescriptor;
 
 	psDescriptor = GetDescriptorNoRemap(pvCacheBasedData);
-	return psDescriptor->uiSize;
+	return psDescriptor->GetSize();
 }
 
 
@@ -503,7 +507,7 @@ size CCircularMemoryList::NumElements(size iSize)
 	psDescriptor = StartDescriptorIteration();
 	while (psDescriptor)
 	{
-		if (psDescriptor->uiSize == iSize)
+		if (psDescriptor->IsSize(iSize))
 		{
 			iNum++;
 		}
@@ -547,7 +551,7 @@ SMemoryCacheDescriptor* CCircularMemoryList::IterateDescriptor(SMemoryCacheDescr
 	}
 
 	mpsCacheBasedHead = GetFirstDescriptor();
-	psCacheBasedDescriptor = MapFromZeroBasedToCacheBased(psCacheBasedDescriptor->psNext);
+	psCacheBasedDescriptor = MapFromZeroBasedToCacheBased(psCacheBasedDescriptor->GetNext());
 	if (psCacheBasedDescriptor != mpsCacheBasedHead)
 	{
 		return psCacheBasedDescriptor;
@@ -567,6 +571,8 @@ void CCircularMemoryList::Dump(void)
 	char*						pvData;
 	size						iLen;
 	SMemoryCacheDescriptor*		psCurrent;
+	SMemoryCacheDescriptor*		psNext;
+	SMemoryCacheDescriptor*		psPrev;
 
 	sz.Init();
 
@@ -581,7 +587,9 @@ void CCircularMemoryList::Dump(void)
 	while (psDescriptor)
 	{
 		pvData = (char*)RemapSinglePointer(psDescriptor, miDescriptorSize);
-		iLen = psDescriptor->uiSize;
+		iLen = psDescriptor->GetSize();
+		psNext = psDescriptor->GetNext();
+		psPrev = psDescriptor->GetPrev();
 
 		psCurrent = MapFromCacheBasedToZeroBased(psDescriptor);
 		sz.AppendHexHiLo(&psCurrent, 4);
@@ -590,9 +598,9 @@ void CCircularMemoryList::Dump(void)
 		sz.Append(" Da:");
 		sz.AppendHexHiLo(&psDescriptor, 4);
 		sz.Append(" Nx:");
-		sz.AppendHexHiLo(&psDescriptor->psNext, 4);
+		sz.AppendHexHiLo(&psNext, 4);
 		sz.Append(" Pv:");
-		sz.AppendHexHiLo(&psDescriptor->psPrev, 4);
+		sz.AppendHexHiLo(&psPrev, 4);
 		sz.Append(") ");
 
 		sz.AppendData(pvData, iLen, 80);
@@ -618,8 +626,8 @@ SMemoryCacheDescriptor* CCircularMemoryList::OneAllocation(void)
 	mpsDetail->mpsHead = CIRCULAR_MEMORY_LIST_ONE;
 	mpsDetail->mpsTail = CIRCULAR_MEMORY_LIST_ONE;
 
-	psCacheBasedDescriptor->psNext = mpsDetail->mpsHead;
-	psCacheBasedDescriptor->psPrev = mpsDetail->mpsHead;
+	psCacheBasedDescriptor->SetNext(mpsDetail->mpsHead);
+	psCacheBasedDescriptor->SetPrev(mpsDetail->mpsHead);
 
 	return psCacheBasedDescriptor;
 }
@@ -642,11 +650,11 @@ SMemoryCacheDescriptor* CCircularMemoryList::InsertNext(SMemoryCacheDescriptor* 
 	{
 		psTail = MapFromZeroBasedToCacheBased(mpsDetail->mpsTail);
 		psHead = MapFromZeroBasedToCacheBased(mpsDetail->mpsHead);
-		psTail->psNext = MapFromCacheBasedToZeroBased(psCacheBasedDescriptor);
-		psHead->psPrev = MapFromCacheBasedToZeroBased(psCacheBasedDescriptor);
+		psTail->SetNext(MapFromCacheBasedToZeroBased(psCacheBasedDescriptor));
+		psHead->SetPrev(MapFromCacheBasedToZeroBased(psCacheBasedDescriptor));
 
-		psCacheBasedDescriptor->psNext = mpsDetail->mpsHead;
-		psCacheBasedDescriptor->psPrev = mpsDetail->mpsTail;
+		psCacheBasedDescriptor->SetNext(mpsDetail->mpsHead);
+		psCacheBasedDescriptor->SetPrev(mpsDetail->mpsTail);
 
 		mpsDetail->mpsTail = MapFromCacheBasedToZeroBased(psCacheBasedDescriptor);
 	}
@@ -676,7 +684,7 @@ bool CCircularMemoryList::Overlaps(SMemoryCacheDescriptor* pvCacheBasedNew, size
 	uiNewEnd = uiNewStart + uiNewSize - 1;
 
 	uiNextStart = (ptr)psCacheBasedExisting;
-	uiNextEnd = uiNextStart + psCacheBasedExisting->uiSize + miDescriptorSize - 1;
+	uiNextEnd = uiNextStart + psCacheBasedExisting->GetSize() + miDescriptorSize - 1;
 
 	if ((uiNewStart <= uiNextStart) && (uiNewEnd >= uiNextStart))
 	{
@@ -720,7 +728,7 @@ size CCircularMemoryList::RemainingAfter(SMemoryCacheDescriptor* psCacheBasedDes
 	size		iAllocated;
 
 	iAllocated = (size)((ptr)psCacheBasedDescriptor - (ptr)mpvCache);
-	iAllocated += (psCacheBasedDescriptor->uiSize + miDescriptorSize);
+	iAllocated += (psCacheBasedDescriptor->GetSize() + miDescriptorSize);
 	if (iAllocated < mpsDetail->muiCacheSize)
 	{
 		return mpsDetail->muiCacheSize - iAllocated;
@@ -805,30 +813,30 @@ bool CCircularMemoryList::ValidateCache(void)
 	psCacheBasedDescriptor = GetFirstDescriptor();
 	do
 	{
-		if (psCacheBasedDescriptor->psNext == NULL)
+		if (psCacheBasedDescriptor->GetNext() == NULL)
 		{
 			return gcLogger.Error2(__METHOD__, " Descriptor [", IntToString(iCount), "] Next is NULL.", NULL);
 		}
-		if (psCacheBasedDescriptor->psPrev == NULL)
+		if (psCacheBasedDescriptor->GetPrev() == NULL)
 		{
 			return gcLogger.Error2(__METHOD__, " Descriptor [", IntToString(iCount), "] Prev is NULL.", NULL);
 		}
 
-		if (GetPrevDescriptor(psCacheBasedDescriptor)->psNext != MapFromCacheBasedToZeroBased(psCacheBasedDescriptor))
+		if (GetPrevDescriptor(psCacheBasedDescriptor)->GetNext() != MapFromCacheBasedToZeroBased(psCacheBasedDescriptor))
 		{
 			return gcLogger.Error2(__METHOD__, " Descriptor [", IntToString(iCount), "] Prev.Next is not Descriptor.", NULL);
 		}
-		if (GetNextDescriptor(psCacheBasedDescriptor)->psPrev != MapFromCacheBasedToZeroBased(psCacheBasedDescriptor))
+		if (GetNextDescriptor(psCacheBasedDescriptor)->GetPrev() != MapFromCacheBasedToZeroBased(psCacheBasedDescriptor))
 		{
 			return gcLogger.Error2(__METHOD__, " Descriptor [", IntToString(iCount), "] Next.Prev is not Descriptor.", NULL);
 		}
 
-		if (psCacheBasedDescriptor->uiSize == 0)
+		if (psCacheBasedDescriptor->GetSize() == 0)
 		{
 			return gcLogger.Error2(__METHOD__, " Descriptor [", IntToString(iCount), "] Next.Size is zero.", NULL);
 		}
 
-		pvEndDesc = RemapSinglePointer(psCacheBasedDescriptor, psCacheBasedDescriptor->uiSize + miDescriptorSize);
+		pvEndDesc = RemapSinglePointer(psCacheBasedDescriptor, psCacheBasedDescriptor->GetSize() + miDescriptorSize);
 		if (pvEndDesc > pvLastCacheByte)
 		{
 			return gcLogger.Error2(__METHOD__, " Descriptor [", IntToString(iCount), "]'s bytes extend passed the end of the cache.", NULL);
@@ -906,7 +914,7 @@ void CCircularMemoryList::SetEndsForPostAllocate(SMemoryCacheDescriptor* psCache
 	SMemoryCacheDescriptor* psNextAfterLast;;
 
 	psFirstPrev = GetPrevDescriptor(psFirstOverlap);
-	psFirstPrev->psNext = MapFromCacheBasedToZeroBased(psCacheBasedDescriptor);
+	psFirstPrev->SetNext(MapFromCacheBasedToZeroBased(psCacheBasedDescriptor));
 
 	psNextAfterLast = GetNextDescriptor(psLastOverlap);
 	mpsDetail->mpsTail = MapFromCacheBasedToZeroBased(psCacheBasedDescriptor);
@@ -918,10 +926,10 @@ void CCircularMemoryList::SetEndsForPostAllocate(SMemoryCacheDescriptor* psCache
 	{
 		gcLogger.Error2(__METHOD__, " Next after Last may not be NULL.", NULL);
 	}
-	GetFirstDescriptor()->psPrev = mpsDetail->mpsTail;
+	GetFirstDescriptor()->SetPrev(mpsDetail->mpsTail);
 
-	GetLastDescriptor()->psNext = mpsDetail->mpsHead;
-	GetLastDescriptor()->psPrev = MapFromCacheBasedToZeroBased(psFirstPrev);
+	GetLastDescriptor()->SetNext(mpsDetail->mpsHead);
+	GetLastDescriptor()->SetPrev(MapFromCacheBasedToZeroBased(psFirstPrev));
 }
 
 
