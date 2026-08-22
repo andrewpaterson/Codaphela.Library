@@ -38,7 +38,10 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWi
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Free(void)
 {
-	mpcNativeWindow->GetFactory()->DestroyNativeWindow(mpcNativeWindow);
+	CNativeWindowFactory*	pcNativeFactory;
+
+	pcNativeFactory = mpcNativeWindow->GetFactory();
+	pcNativeFactory->DestroyNativeWindow(mpcNativeWindow);
 	mpcNativeWindow = NULL;
 
 	mszWindowTitle.Kill();

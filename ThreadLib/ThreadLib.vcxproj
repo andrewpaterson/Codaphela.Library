@@ -39,6 +39,7 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
     <PlatformToolset>v142</PlatformToolset>
+    <EnableASAN>true</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -93,9 +94,11 @@
       <BrowseInformation>true</BrowseInformation>
       <OpenMPSupport>true</OpenMPSupport>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>26440;26447;26455</DisableSpecificWarnings>
+      <DisableSpecificWarnings>26440;26447;26455;26476</DisableSpecificWarnings>
       <CallingConvention>VectorCall</CallingConvention>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
     </ClCompile>
     <Lib />
     <Bscmake>
