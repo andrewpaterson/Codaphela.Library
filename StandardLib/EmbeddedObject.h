@@ -21,6 +21,14 @@
 #define UNKNOWN_DIST_TO_STACK		-2
 
 
+enum EFreeResult
+{
+	FR_Error,
+	FR_Freed,
+	FR_NotFreed,
+};
+
+
 class CObject;
 class CObjects;
 class CObjectWriter;
@@ -96,7 +104,7 @@ public:
 
 			bool				HasHeapFroms(void);
 			void				AddHeapFrom(CBaseObject* pcFromObject, bool bValidate);
-			bool				RemoveHeapFromTryFree(CBaseObject* pcFromObject, bool bValidate);
+			EFreeResult			RemoveHeapFromTryFree(CBaseObject* pcFromObject, bool bValidate);
 	virtual size				NumHeapFroms(void);
 			CBaseObject*		GetHeapFrom(size iFromIndex);
 			void				AddHeapPointerForRemap(CBaseObject* pcFromObject);
@@ -106,8 +114,8 @@ public:
 			bool				AddStackPointersForRemap(CStackPointer* pcStackPointer);
 			bool				HasStackFroms(void);
 			void				PrivateRemoveStackFrom(CPointer* pcPointer);
-			bool				RemoveStackFromTryFree(CPointer* pcPointer, bool bKillIfNoRoot);
-			bool				RemoveStackFromTryFree(CCollection* pcPointer, bool bFreeIfNoRoot);
+			EFreeResult			RemoveStackFromTryFree(CPointer* pcPointer, bool bKillIfNoRoot);
+			EFreeResult			RemoveStackFromTryFree(CCollection* pcPointer, bool bFreeIfNoRoot);
 	virtual size				NumStackFroms(void);
 			CStackPointer*		GetFirstStackFrom(void);
 	virtual CEmbeddedObject*	GetClosestHeapFromToStack(void);

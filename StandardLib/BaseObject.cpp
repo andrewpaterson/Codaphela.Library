@@ -622,12 +622,12 @@ bool CBaseObject::IsDistToRootValid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
+EFreeResult CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 {
 	if (IsEmbedded())
 	{
 		FailNotExpectedToBeEmbedded(__METHOD__);
-		return;
+		return FR_Error;
 	}
 
 	bool					bHasStackPointers;
@@ -637,22 +637,32 @@ void CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 	CArrayBlockObjectPtr*	papcKilled;
 	CBaseObject*			pcKilled;
 	bool					bOnlyThisKilled;
+	EFreeResult				eResult;
 	
 	if (IsRoot())
 	{
-		return;
+		return FR_NotFreed;
 	}
 
 	if (bKillIfNoRoot)
 	{
 		if (miDistToRoot > 0 && !bHeapFromChanged)
 		{
-			return;
+			return FR_NotFreed;
 		}
 		else
 		{
 			cDistCalculator.Init();
 			papcKilled = cDistCalculator.Calculate(this, bHeapFromChanged);
+
+			if (papcKilled->NumElements() > 0)
+			{
+				eResult = FR_Freed;
+			}
+			else
+			{
+				eResult = FR_NotFreed;
+			}
 
 			if (!mpcObjectsThisIn)
 			{
@@ -671,7 +681,7 @@ void CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 					if (!bOnlyThisKilled)
 					{
 						gcLogger.Error2(__METHOD__, " Uh, probably if not in an objects then the only pointer to this object should be itself.  Maybe some stack kak?", NULL);
-						return;
+						return FR_Error;
 					}
 				}
 			}
@@ -680,6 +690,8 @@ void CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 				mpcObjectsThisIn->Remove(papcKilled);
 			}
 			cDistCalculator.Kill();
+
+			return eResult;
 		}
 	}
 	else
@@ -693,9 +705,21 @@ void CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 		{
 			cDistCalculator.Init();
 			papcKilled = cDistCalculator.Calculate(this, bHeapFromChanged);
+			if (papcKilled->NumElements() > 0)
+			{
+				eResult = FR_Freed;
+			}
+			else
+			{
+				eResult = FR_NotFreed;
+			}
+
 			mpcObjectsThisIn->Remove(papcKilled);
 			cDistCalculator.Kill();
+
+			return eResult;
 		}
+		return FR_NotFreed;
 	}
 }
 

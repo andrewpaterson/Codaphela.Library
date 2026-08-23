@@ -351,11 +351,12 @@ void CEmbeddedObject::AddHeapPointerForRemap(CBaseObject* pcFromObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject, bool bValidate)
+EFreeResult CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject, bool bValidate)
 {
 	CBaseObject*	pcContainer;
 	CObjects*		pcObjectsThisIn;
 	bool			bRemoved;
+	EFreeResult		eResult;
 
 	pcObjectsThisIn = GetObjectsThisIn();
 
@@ -363,11 +364,12 @@ bool CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject, bool bVal
 	bRemoved = PrivateRemoveHeapFrom(pcFromObject);
 	if (!bRemoved)
 	{
-		return gcLogger.Error2(__METHOD__, " Could not remove Object {", ObjectToString(pcFromObject), "} Heap-From from Object {", ObjectToString(this), "}.", NULL);
+		gcLogger.Error2(__METHOD__, " Could not remove Object {", ObjectToString(pcFromObject), "} Heap-From from Object {", ObjectToString(this), "}.", NULL);
+		return FR_Error;
 	}
 
 	pcContainer = GetEmbeddingContainer();
-	pcContainer->TryFree(true, true);
+	eResult = pcContainer->TryFree(true, true);
 
 #ifdef _DEBUG
 	if (bValidate)
@@ -379,7 +381,7 @@ bool CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject, bool bVal
 	}
 #endif
 
-	return true;
+	return eResult;
 }
 
 
@@ -747,10 +749,11 @@ bool CEmbeddedObject::IsInStack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::RemoveStackFromTryFree(CPointer* pcPointer, bool bFreeIfNoRoot)
+EFreeResult CEmbeddedObject::RemoveStackFromTryFree(CPointer* pcPointer, bool bFreeIfNoRoot)
 {
 	CStackPointers*		pcStackPointers;
 	CBaseObject*		pcContainer;
+	EFreeResult			eResult;
 
 	if (mpcStackFroms)
 	{
@@ -761,11 +764,13 @@ bool CEmbeddedObject::RemoveStackFromTryFree(CPointer* pcPointer, bool bFreeIfNo
 			pcContainer = GetEmbeddingContainer();
 
 			//Only CPointer's destructor sets bFreeIfNoRoot to false.
-			pcContainer->TryFree(bFreeIfNoRoot, false);
-			return true;
+			eResult = pcContainer->TryFree(bFreeIfNoRoot, false);
+			return eResult;
 		}
 	}
-	return gcLogger.Error2(__METHOD__, " Could not remove Pointer Stack-From from Object {", ObjectToString(this), "}.", NULL);
+
+	gcLogger.Error2(__METHOD__, " Could not remove Pointer Stack-From from Object {", ObjectToString(this), "}.", NULL);
+	return FR_Error;
 }
 
 
@@ -773,10 +778,11 @@ bool CEmbeddedObject::RemoveStackFromTryFree(CPointer* pcPointer, bool bFreeIfNo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CEmbeddedObject::RemoveStackFromTryFree(CCollection* pcPointer, bool bFreeIfNoRoot)
+EFreeResult CEmbeddedObject::RemoveStackFromTryFree(CCollection* pcPointer, bool bFreeIfNoRoot)
 {
 	CStackPointers*		pcStackPointers;
 	CBaseObject*		pcContainer;
+	EFreeResult			eResult;
 
 	if (mpcStackFroms)
 	{
@@ -787,11 +793,12 @@ bool CEmbeddedObject::RemoveStackFromTryFree(CCollection* pcPointer, bool bFreeI
 			pcContainer = GetEmbeddingContainer();
 
 			//Only CPointer's destructor sets bFreeIfNoRoot to false.
-			pcContainer->TryFree(bFreeIfNoRoot, false);  
-			return true;
+			eResult = pcContainer->TryFree(bFreeIfNoRoot, false);
+			return eResult;
 		}
 	}
-	return gcLogger.Error2(__METHOD__, " Could not remove Collection Stack-From from Object {", ObjectToString(this), "}.", NULL);
+	gcLogger.Error2(__METHOD__, " Could not remove Collection Stack-From from Object {", ObjectToString(this), "}.", NULL);
+	return FR_Error;
 }
 
 
