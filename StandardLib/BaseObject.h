@@ -62,6 +62,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MAX_NAMED_OBJECT_NAME_LENGTH	4096
 
+
 class CObjectReader;
 class CObjectWriter;
 class CObjects;
@@ -210,7 +211,7 @@ protected:
 			void				FreeInternal(void) override;
 			void				DoneKill(bool bAllocatedInObjects) override;
 			void				KillInternal(bool bHeapFromChanged, bool bValidateNotEmbedded) override;
-			void				TryFree(bool bKillIfNoRoot, bool bHeapFromChanged);
+			EFreeResult			TryFree(bool bKillIfNoRoot, bool bHeapFromChanged);
 
 	virtual void				RemoveAllPointerTosDontFree(void) =0;
 	virtual bool				RemoveAllPointerTosTryFree(void) =0;
