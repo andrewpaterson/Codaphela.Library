@@ -30,7 +30,7 @@ class CSetObject : public CArrayCommonObject
 CONSTRUCTABLE(CSetObject)
 DESTRUCTABLE(CSetObject)
 public:
-						Ptr<CSetObject>		Init(bool bSortPointers = true);
+						void				Init(bool bSortPointers = true);
 
 						CPointer			UnsafeGet(size iIndex);
 

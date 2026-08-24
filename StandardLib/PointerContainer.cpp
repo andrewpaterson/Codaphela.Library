@@ -17,12 +17,11 @@ void CPointerContainer::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CPointerContainer> CPointerContainer::Init(void)
+void CPointerContainer::Init(void)
 {
 	PreInit();
 	mp = NULL;;
 	PostInit();
-	return this;
 }
 
 
@@ -30,12 +29,11 @@ Ptr<CPointerContainer> CPointerContainer::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CPointerContainer> CPointerContainer::Init(CPointer& pPointer)
+void CPointerContainer::Init(CPointer& pPointer)
 {
 	PreInit();
 	mp = pPointer;
 	PostInit();
-	return this;
 }
 
 
@@ -43,12 +41,11 @@ Ptr<CPointerContainer> CPointerContainer::Init(CPointer& pPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CPointerContainer> CPointerContainer::Init(CEmbeddedObject* pcObject)
+void CPointerContainer::Init(CEmbeddedObject* pcObject)
 {
 	PreInit();
 	mp = pcObject;
 	PostInit();
-	return this;
 }
 
 

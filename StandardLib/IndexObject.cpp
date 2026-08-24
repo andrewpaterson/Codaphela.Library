@@ -62,13 +62,12 @@ CIndexObject::~CIndexObject()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CIndexObject> CIndexObject::Init(EIndexKeyReverse eKeyReverse)
+void CIndexObject::Init(EIndexKeyReverse eKeyReverse)
 {
 	PreInit();
 	CCollection::Init();
 	mcIndex.Init(false, true, eKeyReverse);
 	PostInit();
-	return Ptr<CIndexObject>(this);
 }
 
 

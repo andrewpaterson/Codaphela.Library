@@ -30,7 +30,7 @@ class CArray final : public CArrayObject
 {
 CONSTRUCTABLE(CArray)
 public:
-	Ptr<CArray<M>>	Init(void);
+	void			Init(void);
 
 	void			Add(Ptr<M> pObject);
 	void			AddAll(Ptr<CArrayCommonObject> pcArray);
@@ -50,10 +50,9 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<CArray<M>> CArray<M>::Init(void)
+void CArray<M>::Init(void)
 {
 	CArrayObject::Init();
-	return Ptr<CArray<M>>(this);
 }
 
 

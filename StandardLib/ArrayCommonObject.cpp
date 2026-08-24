@@ -62,7 +62,7 @@ CArrayCommonObject::~CArrayCommonObject()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CArrayCommonObject> CArrayCommonObject::Init(bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers)
+void CArrayCommonObject::Init(bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers)
 {
 	PreInit();
 	CCollection::Init();
@@ -70,7 +70,6 @@ Ptr<CArrayCommonObject> CArrayCommonObject::Init(bool bUnique, bool bIgnoreNull,
 	mcArray.Init(false, false, bUnique, bIgnoreNull, bPreserveOrder, CalculateDataCompareForSortPoiners(bSortPointers));
 	mbSorted = true;
 	PostInit();
-	return this;
 }
 
 

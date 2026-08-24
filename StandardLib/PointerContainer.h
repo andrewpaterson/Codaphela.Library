@@ -12,9 +12,9 @@ public:
 	Ptr<>	mp;
 
 	void					Class(void) override;
-	Ptr<CPointerContainer>	Init(void);
-	Ptr<CPointerContainer>	Init(CPointer& pPointer);
-	Ptr<CPointerContainer>	Init(CEmbeddedObject* pcObject);
+	void					Init(void);
+	void					Init(CPointer& pPointer);
+	void					Init(CEmbeddedObject* pcObject);
 	void					Free(void) override;
 
 	void					Clear(void);

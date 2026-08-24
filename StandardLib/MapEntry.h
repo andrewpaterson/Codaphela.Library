@@ -8,19 +8,17 @@
 class CMapEntry : public CObject
 {
 CONSTRUCTABLE(CMapEntry)
+DESTRUCTABLE(CMapEntry)
 protected:
 	Ptr<>	mpKey;
 	Ptr<>	mpValue;
 
 public:
-					CMapEntry();
-					~CMapEntry();
-					CMapEntry(CMapEntry& other);
 	void			operator = (CMapEntry& pcPointer);
 
-	Ptr<CMapEntry>	Init(void);
-	Ptr<CMapEntry>	Init(CPointer& pKey, CPointer& pValue);
-	Ptr<CMapEntry>	Init(CBaseObject* pcKey, CBaseObject* pcValue);
+	void			Init(void);
+	void			Init(CPointer& pKey, CPointer& pValue);
+	void			Init(CBaseObject* pcKey, CBaseObject* pcValue);
 	void			Class(void) override;
 	void			Free(void) override;
 
