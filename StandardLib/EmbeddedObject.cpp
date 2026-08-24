@@ -763,7 +763,7 @@ EFreeResult CEmbeddedObject::RemoveStackFromTryFree(CPointer* pcPointer, bool bF
 			mpcStackFroms = pcStackPointers->Remove(mpcStackFroms, pcPointer);
 			pcContainer = GetEmbeddingContainer();
 
-			//Only CPointer's destructor sets bFreeIfNoRoot to false.
+			//Only CPointer's constructor sets bFreeIfNoRoot to false.
 			eResult = pcContainer->TryFree(bFreeIfNoRoot, false);
 			return eResult;
 		}

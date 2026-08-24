@@ -158,7 +158,7 @@ CPointer::~CPointer()
 
 	if (mpcObject)
 	{
-		mpcObject->RemoveStackFromTryFree(this, false);
+		mpcObject->RemoveStackFromTryFree(this, true);
 	}
 }
 
