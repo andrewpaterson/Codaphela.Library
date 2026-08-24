@@ -61,14 +61,13 @@ CMapObject::~CMapObject()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CMapObject> CMapObject::Init(void)
+void CMapObject::Init(void)
 {
 	PreInit();
 	CCollection::Init();
 	mcMap.Init(false, true);
 	mbSorted = true;
 	PostInit();
-	return Ptr<CMapObject>(this);
 }
 
 

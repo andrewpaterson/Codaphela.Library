@@ -29,14 +29,14 @@ class CArrayObject : public CArrayCommonObject
 {
 CONSTRUCTABLE(CArrayObject)
 public:
-	Ptr<CArrayObject>	Init(void);
+	void		Init(void);
 
-	bool				Add(CPointer& pObject);
-	bool				AddAll(Ptr<CArrayObject> pcArray);
-	CPointer			Get(size  iIndex);
-	bool				Insert(size  iIndex, CPointer& pObject);
-	bool				Remove(size  iIndex);
-	bool				Remove(CPointer& pObject);
+	bool		Add(CPointer& pObject);
+	bool		AddAll(Ptr<CArrayObject> pcArray);
+	CPointer	Get(size  iIndex);
+	bool		Insert(size  iIndex, CPointer& pObject);
+	bool		Remove(size  iIndex);
+	bool		Remove(CPointer& pObject);
 
 	template<class M>
 	Ptr<M>				Get(size  iIndex);

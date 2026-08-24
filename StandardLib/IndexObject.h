@@ -35,7 +35,7 @@ protected:
 
 public:
 						~CIndexObject();
-	Ptr<CIndexObject>	Init(EIndexKeyReverse eKeyReverse = IKR_No);
+	void				Init(EIndexKeyReverse eKeyReverse = IKR_No);
 	void				Class(void) override;
 	void				Free(void) override;
 

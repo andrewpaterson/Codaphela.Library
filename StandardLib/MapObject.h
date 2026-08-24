@@ -36,7 +36,7 @@ protected:
 
 public:
 						~CMapObject();
-	Ptr<CMapObject>		Init(void);
+	void				Init(void);
 	void				Class(void) override;
 	void				Free(void) override;
 

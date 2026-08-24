@@ -30,7 +30,7 @@ class CIndex final : public CIndexObject
 {
 CONSTRUCTABLE(CIndex)
 public:
-	Ptr<CIndex<M>>	Init(EIndexKeyReverse eKeyReverse = IKR_No);
+	void			Init(EIndexKeyReverse eKeyReverse = IKR_No);
 
 	bool			Put(char* szKey, Ptr<M>& pObject);
 	bool			Put(uint8* pvKey, size iKeySize, Ptr<M>& pObject);
@@ -54,10 +54,9 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<CIndex<M>> CIndex<M>::Init(EIndexKeyReverse eKeyReverse)
+void CIndex<M>::Init(EIndexKeyReverse eKeyReverse)
 {
 	CIndexObject::Init(eKeyReverse);
-	return Ptr<CIndex<M>>(this);
 }
 
 
