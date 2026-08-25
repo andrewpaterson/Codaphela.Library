@@ -11,6 +11,21 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::_Init(void)
+{
+	CIndexTree::_Init();
+	mpcRoot = NULL;
+	miSize = 0;
+	mpcDataFree = NULL;
+	mpcDataIO = NULL;
+	mpcDataSize = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CIndexTreeMemory::Init(void)
 {
 	Init(LifeLocal<CMallocator>(&gcSystemAllocator), IKR_No, MAX_DATA_SIZE, MAX_KEY_SIZE);
@@ -1231,6 +1246,11 @@ bool CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, uint
 	size							iDataSize;
 	bool							bResult;
 
+	if (mpcRoot == NULL)
+	{
+		return false;  //Never Init'd, or Killed.  An empty tree has nothing to iterate.
+	}
+
 	memset(psIterator->pvKey, 0, MAX_KEY_SIZE);
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
 	psIterator->iKeyLength = 0;
@@ -1301,6 +1321,11 @@ bool CIndexTreeMemory::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKe
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeMemory::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void** ppvData, size* piDataSize)
 {
+	if (mpcRoot == NULL)
+	{
+		return false;  //Never Init'd, or Killed.  An empty tree has nothing to iterate.
+	}
+
 	psIterator->pcNode = mpcRoot;
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
 

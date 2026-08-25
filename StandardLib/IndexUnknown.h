@@ -36,6 +36,7 @@ private:
 	CIndexTreeMemory		mcIndex;
 
 public:
+	void		_Init(void);
 	void		Init(bool bKillElements = true, bool bOverwriteExisting = true, EIndexKeyReverse eKeyReverse = IKR_No);
 	void		Kill(void);
 	void		ReInit(void);

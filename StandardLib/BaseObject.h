@@ -206,6 +206,7 @@ protected:
 			void				PreInit(void);
 			void				PostInit(void);
 	virtual void				Initialised(void);
+	virtual	void				PreFields(void);
 	virtual	void				EmbedFields(void) =0;
 
 			void				FreeInternal(void) override;

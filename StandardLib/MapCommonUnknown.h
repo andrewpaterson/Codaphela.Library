@@ -34,6 +34,7 @@ protected:
 	uint16						miFlags;
 
 public:
+			void 		_Init(void);  //Valid but empty.  Allocates nothing.  Safe to walk before Init.
 			void 		Init(bool bKillElements = true, bool bOverwriteExisting = true);
 			void 		Kill(void);
 

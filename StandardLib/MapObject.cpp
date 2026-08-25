@@ -450,6 +450,11 @@ void CMapObject::RemoveAllPointerTosDontFree(void)
 	bool			bResult;
 	bool			bExists;
 
+	if (mcMap.NumElements() == 0)
+	{
+		return;
+	}
+
 	//No need to EnsureSorted().
 	bResult = true;
 	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
@@ -476,6 +481,11 @@ bool CMapObject::RemoveAllPointerTosTryFree(void)
 	CBaseObject*	pcPointedToValue;
 	SMapIterator	sIter;
 	bool			bExists;
+
+	if (mcMap.NumElements() == 0)
+	{
+		return true;
+	}
 
 	//No need to EnsureSorted().
 	bResult = true;
@@ -668,6 +678,21 @@ void CMapObject::KillAll(void)
 		pcPointedToKey = pcPointedToKeyNext;
 		pcPointedToValue = pcPointedToValueNext;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapObject::PreFields(void)
+{
+	CCollection::PreFields();
+
+	//mcMap is what every pointer-to walk reads.  Until Init runs it holds whatever was on
+	//the stack, so give it a real empty state here;  Init still does the real configuration.
+	mcMap._Init();
+	mbSorted = true;
 }
 
 

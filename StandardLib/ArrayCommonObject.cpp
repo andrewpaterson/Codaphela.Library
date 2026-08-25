@@ -80,9 +80,20 @@ void CArrayCommonObject::Init(bool bUnique, bool bIgnoreNull, bool bPreserveOrde
 void CArrayCommonObject::Class(void)
 {
 	CCollection::Class();
-
 	U_Unknown(CArrayCommonUnknown, mcArray);
 	U_Bool(mbSorted);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::PreFields(void)
+{
+	CCollection::PreFields();
+	mcArray._Init();
+	mbSorted = true;
 }
 
 

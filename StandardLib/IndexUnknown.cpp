@@ -6,6 +6,17 @@
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
+void CIndexUnknown::_Init(void)
+{
+	muiFlags = 0;
+	mcIndex._Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 void CIndexUnknown::Init(bool bKillElements, bool bOverwriteExisting, EIndexKeyReverse eKeyReverse)
 {
 	muiFlags = 0;
