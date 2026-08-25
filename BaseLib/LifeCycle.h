@@ -19,6 +19,7 @@ protected:
 
 public:
 
+	void	_Init(void);
 	void	Init(M** ppcLifeCycleObject, bool bMustFree, bool bMustKill);
 	void	Kill(void);
 
@@ -47,6 +48,18 @@ public:
 	M*		GetLife(void);
 	bool	MustKill(void);
 	bool	MustFree(void);
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template <class M>
+void CLife<M>::_Init(void)
+{
+	mppcLifeCycleObject = NULL;
+	mcFlags = 0;
 };
 
 

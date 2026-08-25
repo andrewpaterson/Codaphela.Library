@@ -58,6 +58,7 @@ public:
 
 protected:
 			void			Class(void) override;
+			void			PreFields(void) override;
 			void			EmbedFields(void);
 
 			bool			RemovePointerToTryFree(CBaseObject* pcPointedTo);

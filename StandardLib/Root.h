@@ -39,7 +39,7 @@ protected:
 public:
 						CRoot();
 
-						Ptr<CRoot>		Init(void);
+						void			Init(void);
 						void			Class(void) override;
 						void			Free(void) override;
 

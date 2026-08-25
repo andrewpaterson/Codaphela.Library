@@ -942,7 +942,8 @@ Ptr<CRoot> CObjects::Root(void)
 	pRoot = GetRoot();
 	if (pRoot.IsNull())
 	{
-		pRoot = Malloc<CRoot>(ROOT_NAME)->Init();
+		pRoot = Malloc<CRoot>(ROOT_NAME);
+		pRoot->Init();
 	}
 	return pRoot;
 }

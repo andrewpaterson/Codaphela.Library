@@ -35,9 +35,9 @@ void CMapEntry::Class(void)
 void CMapEntry::Init(void)
 {
 	PreInit();
+	PostInit();
 	mpKey = NULL;;
 	mpValue = NULL;;
-	PostInit();
 }
 
 

@@ -1055,12 +1055,10 @@ void CChannels::Copy(CChannels* pcSource)
 {
 	//This assumes Channels is not initialised.
 	PreInit();
-
 	masChannelOffsets.Init();
 	mabData.Init();
 
 	CopyIntoInitialised(pcSource);
-
 	PostInit();
 }
 

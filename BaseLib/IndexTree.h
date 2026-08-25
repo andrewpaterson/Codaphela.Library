@@ -34,6 +34,7 @@ protected:
 	size							miMaxKeySize;
 
 public:
+			void					_Init(void);
 			bool					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size tSizeofNode, size tSizeofDataNode, size tSizeofNodePtr, size iMaxDataSize, size	iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 	virtual void					Kill(void);
 	virtual void					ReInit(void) =0;

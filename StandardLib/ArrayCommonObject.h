@@ -87,6 +87,7 @@ public:
 	bool					IsMustSort(void);
 
 protected:
+	void					PreFields(void) override;
 	void					FreePointers(void) override;
 	void					Free(void) override;
 	void					RemovePointerTo(CEmbeddedObject* pcTo) override;

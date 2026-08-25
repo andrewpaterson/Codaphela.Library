@@ -100,10 +100,21 @@ void CBaseObject::PreClass(void)
 	{
 		SetFlag(OBJECT_FLAGS_CALLED_CLASS, true);
 
+		PreFields();
+
 		pcClasses = GetClasses();
 		CompleteClass(pcClasses);
 		EmbedFields();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::PreFields(void)
+{
 }
 
 

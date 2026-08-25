@@ -30,6 +30,19 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CArrayCommonUnknown::_Init(void)
+{
+	mcArray.Init(&gcSystemAllocator);  //Should probably be gcNullAllocator.
+	muiFlags = 0;
+	miNonNullElements = 0;
+	mfCompare = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, DataCompare fCompare)
 {
 	mcArray.Init(&gcSystemAllocator);

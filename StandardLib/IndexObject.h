@@ -88,6 +88,7 @@ public:
 	CIndexUnknown*		GetIndexForTesting(void);
 
 protected:
+	void				PreFields(void) override;
 	void				FreePointers(void) override;
 	void				RemovePointerTo(CEmbeddedObject* pcTo) override;
 	size 				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;

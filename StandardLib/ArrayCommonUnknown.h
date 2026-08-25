@@ -59,6 +59,7 @@ private:
 	void				PrivateKill(void);
 
 public:
+			void				_Init(void);  //Valid but empty.  Allocates nothing.  Safe to walk before Init.
 			void 				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, DataCompare fCompare);
 			void				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, DataCompare fCompare, size iChunkSize);
 			void 				Kill(void) override;

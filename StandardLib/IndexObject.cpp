@@ -490,6 +490,11 @@ void CIndexObject::RemoveAllPointerTosDontFree(void)
 	bool						bExists;
 	bool						bResult;
 
+	if (mcIndex.NumElements() == 0)
+	{
+		return;
+	}
+
 	bResult = true;
 	bExists = mcIndex.StartIteration(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);
 	while (bExists)
@@ -513,6 +518,11 @@ bool CIndexObject::RemoveAllPointerTosTryFree(void)
 	SIndexTreeMemoryUnsafeIterator	sIter;
 	bool							bExists;
 	bool							bResult;
+
+	if (mcIndex.NumElements() == 0)
+	{
+		return true;  
+	}
 
 	bResult = true;
 	bExists = mcIndex.StartIteration(&sIter, (CUnknown**)&pcPointedTo);
@@ -662,6 +672,17 @@ void CIndexObject::KillAll(void)
 		}
 		pcObject = pcObjectNext;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexObject::PreFields(void)
+{
+	CCollection::PreFields();
+	mcIndex._Init();
 }
 
 

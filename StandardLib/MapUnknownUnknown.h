@@ -12,6 +12,7 @@ private:
 	CMapPtrPtr	mcMap;
 
 public:	
+	void		_Init(void);  //Valid but empty.  Allocates nothing.  Safe to walk before Init.
 	void		Init(bool bKillElements = true, bool bOverwriteExisting = true);
 	void		Kill(void);
 	void		ReInit(void);

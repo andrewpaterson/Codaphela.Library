@@ -46,6 +46,27 @@ bool CIndexTree::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyRever
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIndexTree::_Init(void)
+{
+	mcDataOrdererLife._Init();
+	mcMallocLife._Init();
+
+	mpcMalloc = NULL;
+	mpcDataOrderer = NULL;
+
+	meReverseKey = IKR_Unknown;
+	mtSizeofNode = 0;
+	mtSizeofNodePtr = 0;
+	mtSizeofDataNode = 0;
+	miMaxDataSize = 0;
+	miMaxKeySize = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CIndexTree::Kill(void)
 {
 	mcDataOrdererLife.Kill();

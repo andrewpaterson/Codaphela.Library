@@ -53,6 +53,7 @@ protected:
 	CIndexTreeDataSize*		mpcDataSize;
 
 public:
+	void					_Init(void);
 	void					Init(void);
 	void					Init(EIndexKeyReverse eKeyReverse);
 	void					Init(EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
