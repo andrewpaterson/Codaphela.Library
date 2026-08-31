@@ -1,4 +1,3 @@
-Dehollowfication of an object that is part of a diamond when the final tip is already complete does not work
 ExternalObjectSerialiser should probably just be re-written
 DependentReadObjects.AddReverseDependent doesn't seem to do anything
 

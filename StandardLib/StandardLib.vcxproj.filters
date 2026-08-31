@@ -258,12 +258,6 @@
     <ClInclude Include="SingleChannelAccessor.h">
       <Filter>Source\Channels\Accessor\Single</Filter>
     </ClInclude>
-    <ClInclude Include="TrackerTemplate.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="StandardHeader.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="NamedIndexedObjects.h">
       <Filter>Source\Object\Object\Indexed</Filter>
     </ClInclude>

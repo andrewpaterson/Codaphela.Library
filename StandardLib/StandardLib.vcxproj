@@ -302,8 +302,6 @@
     <ClInclude Include="ChannelsAccessorWorstCase.h" />
     <ClInclude Include="ChannelsAccessorCreator.h" />
     <ClInclude Include="SingleChannelAccessor.h" />
-    <ClInclude Include="StandardHeader.h" />
-    <ClInclude Include="TrackerTemplate.h" />
     <ClInclude Include="UnmanagedField.h" />
     <ClInclude Include="PrimitiveVoid.h" />
   </ItemGroup>
