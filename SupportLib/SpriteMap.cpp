@@ -356,6 +356,30 @@ bool CSpriteMap::CreateCelBlitters(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+bool CSpriteMap::CreateCelBlitter(Ptr<CSprite> pSprite)
+{
+	bool			bResult;
+
+	if (mpCache && mpViewport && pSprite.IsNotNull())
+	{
+		if (mpCache->GetDestImage() == mpViewport)
+		{
+			bResult = pSprite->CreateBlitter(mpCache);
+			if (!bResult)
+			{
+				return false;
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void CSpriteMap::ClearCelBlitters(void)
 {
 	size			ui;
@@ -436,7 +460,7 @@ Ptr<CImageCelBlitterCache> CSpriteMap::CreateBlitterCache(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSpriteMap::Blit(CRectangle* pcViewportRect)
+bool CSpriteMap::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters)
 {
 	size			ui;
 	size			uiNumElements;
@@ -456,6 +480,16 @@ bool CSpriteMap::Blit(CRectangle* pcViewportRect)
 		{
 			x = pSprite->GetX();
 			y = pSprite->GetY();
+
+			if (!pSprite->HasBlitter() && bEnsureBlitters)
+			{
+				bResult = CreateCelBlitter(pSprite);
+				if (!bResult)
+				{
+					return false;
+				}
+			}
+
 			bResult = pSprite->Blit(x - pcViewportRect->miLeft, y - pcViewportRect->miTop);
 			if (!bResult)
 			{

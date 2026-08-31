@@ -132,7 +132,7 @@ void CTileMap::SetViewport(Ptr<CImage> pViewport)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileMap::Blit(CRectangle* pcViewportRect)
+bool CTileMap::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters)
 {
 	size				uiNumElements;
 	size				ui;
@@ -143,7 +143,7 @@ bool CTileMap::Blit(CRectangle* pcViewportRect)
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
 		pTileLayer = maTileLayers.Get(ui);
-		bResult = pTileLayer->Blit(pcViewportRect);
+		bResult = pTileLayer->Blit(pcViewportRect, bEnsureBlitters);
 		if (!bResult)
 		{
 			return false;

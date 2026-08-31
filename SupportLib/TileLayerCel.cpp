@@ -246,7 +246,6 @@ bool CTileLayerCel::CreateCelBlitters(void)
 					pCel = GetTile(x, y);
 					if (pCel)
 					{
-
 						pBlitter = mpCache->CreateImageBlitter(pCel);
 						if (pBlitter.IsNull())
 						{
@@ -419,7 +418,7 @@ Ptr<CImageCelBlitterCache> CTileLayerCel::CreateBlitterCache(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTileLayerCel::Blit(CRectangle* pcViewportRect)
+bool CTileLayerCel::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters)
 {
 	Ptr<CImageCel>				pCel;
 	int32						x;
@@ -428,12 +427,68 @@ bool CTileLayerCel::Blit(CRectangle* pcViewportRect)
 	bool						bResult;
 	int32						xOffset;
 	int32						yOffset;
+	bool						bCreateBlitter;
+
+	if (bEnsureBlitters)
+	{
+		if (maBlitters.IsEmpty() && (msMapSize.x > 0) && (msMapSize.y > 0))
+		{
+			mpCache = CreateBlitterCache();
+			bResult = CreateCelBlitters();
+			if (!bResult)
+			{
+				return false;
+			}
+		}
+	}
 
 	for (y = 0; y < msMapSize.y; y++)
 	{
 		for (x = 0; x < msMapSize.x; x++)
 		{
 			pBlitter = GetBlitter(x, y);
+			if (bEnsureBlitters)
+			{
+				pCel = GetTile(x, y);
+				if (pCel.IsNotNull())
+				{
+					if (pBlitter.IsNotNull() && (pBlitter->GetCel() != pCel))
+					{
+						bCreateBlitter = true;
+					}
+					else
+					{
+						bCreateBlitter = true;
+					}
+
+					if (bCreateBlitter)
+					{
+						pBlitter = mpCache->CreateImageBlitter(pCel);
+						if (pBlitter.IsNull())
+						{
+							return false;
+						}
+						bResult = SetBlitter(x, y, pBlitter);
+						if (!bResult)
+						{
+							return false;
+						}
+					}
+				}
+				else
+				{
+					if (pBlitter.IsNotNull())
+					{
+						pBlitter = NULL;
+						SetBlitter(x, y, pBlitter);
+						bResult = SetBlitter(x, y, pBlitter);
+						if (!bResult)
+						{
+							return false;
+						}
+					}
+				}
+			}
 			if (pBlitter.IsNotNull())
 			{
 				xOffset = x * msCelSize.x;

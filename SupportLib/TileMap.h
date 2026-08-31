@@ -46,7 +46,7 @@ public:
 
 	void	AddLayer(Ptr<CTileLayer> pLayer);
 
-	bool	Blit(CRectangle* pcViewportRect) override;
+	bool	Blit(CRectangle* pcViewportRect, bool bEnsureBlitters) override;
 	bool	CreateCelBlitters(void) override;
 
 	void	SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) override;

@@ -94,8 +94,21 @@ void CSprite::ClearBlitter(void)
 //////////////////////////////////////////////////////////////////////////
 bool CSprite::Blit(int32 iDestX, int32 iDestY)
 {
-	mpBlitter->Blit(iDestX, iDestY);
-	return true;
+	if (mpBlitter.IsNotNull())
+	{
+		return mpBlitter->Blit(iDestX, iDestY);
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSprite::HasBlitter(void)
+{
+	return mpBlitter.IsNotNull();
 }
 
 

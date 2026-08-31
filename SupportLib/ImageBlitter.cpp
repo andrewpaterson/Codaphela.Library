@@ -806,6 +806,16 @@ void CImageBlitter::AddBlitter(CBaseImageRowBlitter* pcBlitter, size xStart, siz
 //
 //
 //////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CImageBlitter::GetCel(void)
+{
+	return mpSourceCel;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CImageBlitter::InitContext(CImageBlitterContext* pcContext)
 {
 	CColourFormatHelper		cSourceFormatHelper;
@@ -862,12 +872,12 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY)
 		{
 			pcRowBlitter = macRowBlitters.Get(ui);
 
-			ySource = pcRowBlitter->sOffset.y;
+			ySource = pcRowBlitter->msOffset.y;
 			yDestOffset = ySource - iSourceTop;
 			yDest = iDestY + yDestOffset;
 
-			xSourceStart = pcRowBlitter->sOffset.x;
-			xSourceEnd = pcRowBlitter->uiXEnd;
+			xSourceStart = pcRowBlitter->msOffset.x;
+			xSourceEnd = pcRowBlitter->muiXEnd;
 
 			xDestOffset = xSourceStart - iSourceLeft;
 			xDestStart = iDestX + xDestOffset;
@@ -883,14 +893,14 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY)
 		{
 			pcRowBlitter = macRowBlitters.Get(ui);
 
-			ySource = pcRowBlitter->sOffset.y;
+			ySource = pcRowBlitter->msOffset.y;
 			yDestOffset = ySource - iSourceTop;
 			yDest = iDestY + yDestOffset;
 
 			if ((yDest >= cDestRect.miTop) && (yDest < cDestRect.miBottom))
 			{
-				xSourceStart = pcRowBlitter->sOffset.x;
-				xSourceEnd = pcRowBlitter->uiXEnd;
+				xSourceStart = pcRowBlitter->msOffset.x;
+				xSourceEnd = pcRowBlitter->muiXEnd;
 
 				xDestOffset = xSourceStart - iSourceLeft;
 				xDestStart = iDestX + xDestOffset;
