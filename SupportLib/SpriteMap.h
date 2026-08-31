@@ -67,7 +67,7 @@ public:
 	bool						GetImageDestBounds(CRectangle* pcRect);
 	bool						GetFullDestBounds(CRectangle* pcRect);
 
-	bool						Blit(CRectangle* pcViewportRect) override;
+	bool						Blit(CRectangle* pcViewportRect, bool bEnsureBlitters) override;
 
 	Ptr<CImage>					WriteToImage(void);
 	Ptr<CImage>					CreateViewportImage(void);
@@ -75,6 +75,7 @@ public:
 	Ptr<CImageCelBlitterCache>	CreateBlitterCache(void);
 
 	bool						CreateCelBlitters(void);
+	bool						CreateCelBlitter(Ptr<CSprite> pSprite);
 	void						ClearCelBlitters(void);
 
 	void						TileMapAbstract(void) override {}

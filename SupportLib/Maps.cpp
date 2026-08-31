@@ -122,7 +122,7 @@ void CMaps::SetViewportPosition(SInt32Vec2	sViewportPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMaps::Blit(void)
+bool CMaps::Blit(bool bEnsureBlitters)
 {
 	size			uiNumElements;
 	size			ui;
@@ -137,7 +137,7 @@ bool CMaps::Blit(void)
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
 		pMap = maMaps.Get(ui);
-		bResult = pMap->Blit(&cRect);
+		bResult = pMap->Blit(&cRect, bEnsureBlitters);
 		if (!bResult)
 		{
 			return false;

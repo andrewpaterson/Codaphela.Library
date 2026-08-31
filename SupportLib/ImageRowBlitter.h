@@ -36,8 +36,8 @@ class CImageRowBlitter
 {
 public:
 	CBaseImageRowBlitter*	mpcBlitter;
-	SSizeVec2				sOffset;
-	size					uiXEnd;
+	SSizeVec2				msOffset;
+	size					muiXEnd;
 
 	void	Init(CBaseImageRowBlitter* pcBlitter, size uiXStart, size uiXEnd, size uiY);
 };

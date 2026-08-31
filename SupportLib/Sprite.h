@@ -34,6 +34,7 @@ public:
 	bool			CreateBlitter(Ptr<CImageCelBlitterCache> pBlitterCache);
 	void			ClearBlitter(void);
 	bool			Blit(int32 x, int32 y);
+	bool			HasBlitter(void);
 };
 
 

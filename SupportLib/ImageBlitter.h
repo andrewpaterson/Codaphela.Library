@@ -56,6 +56,7 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 
 	bool			Blit(int32 iDestX, int32 iDestY);
+	Ptr<CImageCel>	GetCel(void);
 
 protected:
 	EColourOrder	GetColourOrder(Ptr<CImage> pImage);
