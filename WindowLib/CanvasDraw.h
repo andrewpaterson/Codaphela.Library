@@ -28,9 +28,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 Draw()
 
-Everything else just exists as a useful template to copy/paste objects from.
-
-*/
+Everything else just exists as a useful template to copy/paste objects from.  */
 
 
 class CCanvas;

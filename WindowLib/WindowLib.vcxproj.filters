@@ -46,6 +46,12 @@
     <Filter Include="Source\Component\Container">
       <UniqueIdentifier>{88a4135b-d80d-4b41-8542-04c1384b9057}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Image">
+      <UniqueIdentifier>{b1836927-5510-422c-b8bb-c950b0e8256e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Image\Canvas">
+      <UniqueIdentifier>{2190efe2-7dfa-4008-88d5-8be093761a41}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NativeWindow.h">
@@ -114,6 +120,9 @@
     <ClInclude Include="TextArea.h">
       <Filter>Source\Component\Drawing\Text</Filter>
     </ClInclude>
+    <ClInclude Include="MapsCanvasDraw.h">
+      <Filter>Source\Image\Canvas</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeWindow.cpp">
@@ -169,6 +178,9 @@
     </ClCompile>
     <ClCompile Include="NativeCanvas.cpp">
       <Filter>Source\Component\Drawing\Canvas</Filter>
+    </ClCompile>
+    <ClCompile Include="MapsCanvasDraw.cpp">
+      <Filter>Source\Image\Canvas</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
