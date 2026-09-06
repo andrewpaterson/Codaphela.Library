@@ -20,14 +20,14 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_TEMPLATE_PRIMITIVE_H__
-#define __ARRAY_TEMPLATE_PRIMITIVE_H__
+#ifndef __ARRAY_TEMPLATE_EMBEDDED_PRIMITIVE_H__
+#define __ARRAY_TEMPLATE_EMBEDDED_PRIMITIVE_H__
 #include <stdarg.h>
-#include "ArrayTemplate.h"
+#include "ArrayTemplateEmbedded.h"
 
 
-template<class M>
-class CArrayTemplatePrimitive : public CArrayTemplate<M>
+template<class M, int8 I>
+class CArrayTemplateEmbeddedPrimitive : public CArrayTemplateEmbedded<M, I>
 {
 public:
 	M 		GetValue(size iIndex);
@@ -48,7 +48,7 @@ public:
 	bool	RemoveFromSorted(M iElement);
 	bool	RemoveDuplicatesFromSorted(void);
 	void	MakeUnique(void);
-	void	Intersect(CArrayTemplatePrimitive<M>* pcArray1, CArrayTemplatePrimitive<M>* pcArray2);
+	void	Intersect(CArrayTemplateEmbeddedPrimitive<M, I>* pcArray1, CArrayTemplateEmbeddedPrimitive<M, I>* pcArray2);
 	bool	IsSorted(void);
 	size	FindFinalContiguousInSorted(void);
 	M		Pop(void);
@@ -64,7 +64,7 @@ public:
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
+template<class M, int8 I>
 int ComparePrimitive(const void* arg1, const void* arg2)
 {
 	if ((*((M*)arg1)) < (*((M*)arg2)))
@@ -83,10 +83,10 @@ int ComparePrimitive(const void* arg1, const void* arg2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M CArrayTemplatePrimitive<M>::GetValue(size iIndex)
+template<class M, int8 I>
+M CArrayTemplateEmbeddedPrimitive<M, I>::GetValue(size iIndex)
 {
-	return (*(CArrayTemplate<M>::Get(iIndex)));
+	return (*(CArrayTemplateEmbedded<M, I>::Get(iIndex)));
 }
 
 
@@ -94,10 +94,10 @@ M CArrayTemplatePrimitive<M>::GetValue(size iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M CArrayTemplatePrimitive<M>::operator[](size iIndex)
+template<class M, int8 I>
+M CArrayTemplateEmbeddedPrimitive<M, I>::operator[](size iIndex)
 {
-	return (*(CArrayTemplate<M>::Get(iIndex)));
+	return (*(CArrayTemplateEmbedded<M, I>::Get(iIndex)));
 }
 
 
@@ -105,8 +105,8 @@ M CArrayTemplatePrimitive<M>::operator[](size iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M CArrayTemplatePrimitive<M>::SafeGetValue(size iIndex, M iNotFound)
+template<class M, int8 I>
+M CArrayTemplateEmbeddedPrimitive<M, I>::SafeGetValue(size iIndex, M iNotFound)
 {
 	if (iIndex < miUsedElements)
 	{
@@ -120,8 +120,8 @@ M CArrayTemplatePrimitive<M>::SafeGetValue(size iIndex, M iNotFound)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplatePrimitive<M>::SetValue(size iIndex, M iElement)
+template<class M, int8 I>
+void CArrayTemplateEmbeddedPrimitive<M, I>::SetValue(size iIndex, M iElement)
 {
 	((M*)mpvArray)[iIndex] = iElement;
 }
@@ -131,12 +131,12 @@ void CArrayTemplatePrimitive<M>::SetValue(size iIndex, M iElement)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplatePrimitive<M>::Add(M iElement)
+template<class M, int8 I>
+void CArrayTemplateEmbeddedPrimitive<M, I>::Add(M iElement)
 {
 	M*	pvTemp;
 
-	pvTemp = CArrayTemplate<M>::Add();
+	pvTemp = CArrayTemplateEmbedded<M, I>::Add();
 	*pvTemp = iElement;
 }
 
@@ -145,15 +145,15 @@ void CArrayTemplatePrimitive<M>::Add(M iElement)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplatePrimitive<M>::Add(M* paElements, size iNumElements)
+template<class M, int8 I>
+void CArrayTemplateEmbeddedPrimitive<M, I>::Add(M* paElements, size iNumElements)
 {
 	size	i;
 	M*		pvTemp;
 
 	for (i = 0; i < iNumElements; i++)
 	{
-		pvTemp = CArrayTemplate<M>::Add();
+		pvTemp = CArrayTemplateEmbedded<M, I>::Add();
 		*pvTemp = paElements[i];
 	}
 }
@@ -163,12 +163,12 @@ void CArrayTemplatePrimitive<M>::Add(M* paElements, size iNumElements)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplatePrimitive<M>::InsertAt(M iElement, size iIndex)
+template<class M, int8 I>
+void CArrayTemplateEmbeddedPrimitive<M, I>::InsertAt(M iElement, size iIndex)
 {
 	M*	pvTemp;
 
-	pvTemp = CArrayTemplate<M>::InsertAt(iIndex);
+	pvTemp = CArrayTemplateEmbedded<M, I>::InsertAt(iIndex);
 	if (pvTemp)
 	{
 		*pvTemp = iElement;
@@ -180,8 +180,8 @@ void CArrayTemplatePrimitive<M>::InsertAt(M iElement, size iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplatePrimitive<M>::SetArrayValues(M iValue)
+template<class M, int8 I>
+void CArrayTemplateEmbeddedPrimitive<M, I>::SetArrayValues(M iValue)
 {
 	size	i;
 
@@ -196,8 +196,8 @@ void CArrayTemplatePrimitive<M>::SetArrayValues(M iValue)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplatePrimitive<M>::SetArrayValues(M iStartValue, M iIncrement)
+template<class M, int8 I>
+void CArrayTemplateEmbeddedPrimitive<M, I>::SetArrayValues(M iStartValue, M iIncrement)
 {
 	size	i;
 
@@ -213,10 +213,10 @@ void CArrayTemplatePrimitive<M>::SetArrayValues(M iStartValue, M iIncrement)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplatePrimitive<M>::QuickSort(void)
+template<class M, int8 I>
+void CArrayTemplateEmbeddedPrimitive<M, I>::QuickSort(void)
 {
-	CArrayTemplate<M>::QuickSort(&ComparePrimitive<M>);
+	CArrayTemplateEmbedded<M, I>::QuickSort(&ComparePrimitive<M>);
 }
 
 
@@ -224,10 +224,10 @@ void CArrayTemplatePrimitive<M>::QuickSort(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplatePrimitive<M>::BubbleSort(void)
+template<class M, int8 I>
+void CArrayTemplateEmbeddedPrimitive<M, I>::BubbleSort(void)
 {
-	CArrayTemplate<M>::BubbleSort(&ComparePrimitive<M>);
+	CArrayTemplateEmbedded<M, I>::BubbleSort(&ComparePrimitive<M>);
 }
 
 
@@ -235,8 +235,8 @@ void CArrayTemplatePrimitive<M>::BubbleSort(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-size CArrayTemplatePrimitive<M>::Find(M iValue)
+template<class M, int8 I>
+size CArrayTemplateEmbeddedPrimitive<M, I>::Find(M iValue)
 {
 	size	i;
 
@@ -255,8 +255,8 @@ size CArrayTemplatePrimitive<M>::Find(M iValue)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-size CArrayTemplatePrimitive<M>::AddIfUnique(M iValue)
+template<class M, int8 I>
+size CArrayTemplateEmbeddedPrimitive<M, I>::AddIfUnique(M iValue)
 {
 	size iPos;
 
@@ -273,8 +273,8 @@ size CArrayTemplatePrimitive<M>::AddIfUnique(M iValue)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplatePrimitive<M>::Swap(size iIndex1, size iIndex2)
+template<class M, int8 I>
+void CArrayTemplateEmbeddedPrimitive<M, I>::Swap(size iIndex1, size iIndex2)
 {
 	M*		piElement1;
 	M*		piElement2;
@@ -292,8 +292,8 @@ void CArrayTemplatePrimitive<M>::Swap(size iIndex1, size iIndex2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplatePrimitive<M>::InsertIntoSorted(M iElement, bool bOverwriteExisting)
+template<class M, int8 I>
+void CArrayTemplateEmbeddedPrimitive<M, I>::InsertIntoSorted(M iElement, bool bOverwriteExisting)
 {
 	size	iPos;
 	bool	bExists;
@@ -309,7 +309,7 @@ void CArrayTemplatePrimitive<M>::InsertIntoSorted(M iElement, bool bOverwriteExi
 		{
 			if (bOverwriteExisting)
 			{
-				CArrayTemplate<M>::Set(iPos, &iElement);
+				CArrayTemplateEmbedded<M, I>::Set(iPos, &iElement);
 			}
 			else
 			{
@@ -328,8 +328,8 @@ void CArrayTemplatePrimitive<M>::InsertIntoSorted(M iElement, bool bOverwriteExi
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-bool CArrayTemplatePrimitive<M>::RemoveFromSorted(M iElement)
+template<class M, int8 I>
+bool CArrayTemplateEmbeddedPrimitive<M, I>::RemoveFromSorted(M iElement)
 {
 	size	iPos;
 	bool	bExists;
@@ -348,8 +348,8 @@ bool CArrayTemplatePrimitive<M>::RemoveFromSorted(M iElement)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-bool CArrayTemplatePrimitive<M>::RemoveDuplicatesFromSorted(void)
+template<class M, int8 I>
+bool CArrayTemplateEmbeddedPrimitive<M, I>::RemoveDuplicatesFromSorted(void)
 {
 	size	i;
 	M		iValue;
@@ -390,8 +390,8 @@ bool CArrayTemplatePrimitive<M>::RemoveDuplicatesFromSorted(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplatePrimitive<M>::MakeUnique(void)
+template<class M, int8 I>
+void CArrayTemplateEmbeddedPrimitive<M, I>::MakeUnique(void)
 {
 	QuickSort();
 	RemoveDuplicatesFromSorted();
@@ -402,8 +402,8 @@ void CArrayTemplatePrimitive<M>::MakeUnique(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplatePrimitive<M>::Intersect(CArrayTemplatePrimitive<M>* pcArray1, CArrayTemplatePrimitive<M>* pcArray2)
+template<class M, int8 I>
+void CArrayTemplateEmbeddedPrimitive<M, I>::Intersect(CArrayTemplateEmbeddedPrimitive<M, I>* pcArray1, CArrayTemplateEmbeddedPrimitive<M, I>* pcArray2)
 {
 	size	i;
 	size	j;
@@ -433,8 +433,8 @@ void CArrayTemplatePrimitive<M>::Intersect(CArrayTemplatePrimitive<M>* pcArray1,
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-bool CArrayTemplatePrimitive<M>::IsSorted(void)
+template<class M, int8 I>
+bool CArrayTemplateEmbeddedPrimitive<M, I>::IsSorted(void)
 {
 	size	i;
 	M		iValue;
@@ -470,8 +470,8 @@ bool CArrayTemplatePrimitive<M>::IsSorted(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-size CArrayTemplatePrimitive<M>::FindFinalContiguousInSorted(void)
+template<class M, int8 I>
+size CArrayTemplateEmbeddedPrimitive<M, I>::FindFinalContiguousInSorted(void)
 {
 	size	i;
 	M		iValue;
@@ -504,13 +504,13 @@ size CArrayTemplatePrimitive<M>::FindFinalContiguousInSorted(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-M CArrayTemplatePrimitive<M>::Pop(void)
+template<class M, int8 I>
+M CArrayTemplateEmbeddedPrimitive<M, I>::Pop(void)
 {
 	M	i;
 
 	//Returns zero if empty.
-	CArrayTemplate<M>::Pop(&i);
+	CArrayTemplateEmbedded<M, I>::Pop(&i);
 	return i;
 }
 
@@ -519,8 +519,8 @@ M CArrayTemplatePrimitive<M>::Pop(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplatePrimitive<M>::Push(M iElement)
+template<class M, int8 I>
+void CArrayTemplateEmbeddedPrimitive<M, I>::Push(M iElement)
 {
 	Add(iElement);
 }
@@ -530,8 +530,8 @@ void CArrayTemplatePrimitive<M>::Push(M iElement)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplatePrimitive<M>::AddRemap(size iElementPos, M iRemapNum)
+template<class M, int8 I>
+void CArrayTemplateEmbeddedPrimitive<M, I>::AddRemap(size iElementPos, M iRemapNum)
 {
 	M*		pi;
 	size	iIndex;
@@ -540,7 +540,7 @@ void CArrayTemplatePrimitive<M>::AddRemap(size iElementPos, M iRemapNum)
 
 	if (miUsedElements > iElementPos)
 	{
-		pi = CArrayTemplate<M>::Get(iElementPos);
+		pi = CArrayTemplateEmbedded<M, I>::Get(iElementPos);
 		(*pi) = iRemapNum;
 	}
 	else
@@ -561,8 +561,8 @@ void CArrayTemplatePrimitive<M>::AddRemap(size iElementPos, M iRemapNum)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplatePrimitive<M>::RemoveRemap(size iElementPos)
+template<class M, int8 I>
+void CArrayTemplateEmbeddedPrimitive<M, I>::RemoveRemap(size iElementPos)
 {
 	M*		pi;
 	size	iIndex;
@@ -570,7 +570,7 @@ void CArrayTemplatePrimitive<M>::RemoveRemap(size iElementPos)
 
 	if (iElementPos < miUsedElements)
 	{
-		pi = CArrayTemplate<M>::Get(iElementPos);
+		pi = CArrayTemplateEmbedded<M, I>::Get(iElementPos);
 		(*pi) = -1;
 	}
 
@@ -581,7 +581,7 @@ void CArrayTemplatePrimitive<M>::RemoveRemap(size iElementPos)
 		do
 		{
 			iIndex--;
-			pi = CArrayTemplate<M>::Get(iElementPos);
+			pi = CArrayTemplateEmbedded<M, I>::Get(iElementPos);
 			if (*pi == -1)
 			{
 				iCutDown = iIndex;
@@ -608,8 +608,8 @@ void CArrayTemplatePrimitive<M>::RemoveRemap(size iElementPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayTemplatePrimitive<M>::AddList(M iStop, ...)
+template<class M, int8 I>
+void CArrayTemplateEmbeddedPrimitive<M, I>::AddList(M iStop, ...)
 {
 	va_list		vaMarker;
 	M			iValue;
@@ -625,5 +625,5 @@ void CArrayTemplatePrimitive<M>::AddList(M iStop, ...)
 }
 
 
-#endif // __ARRAY_TEMPLATE_PRIMITIVE_H__
+#endif // __ARRAY_TEMPLATE_EMBEDDED_PRIMITIVE_H__
 

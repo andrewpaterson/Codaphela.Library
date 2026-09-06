@@ -156,7 +156,7 @@ char* CEnumeratorEnumerator::Get(int iType, int iID)
 	CEnumeratorVoid*	pcVoidEnumerator;
 	
 	pcVoidEnumerator = GetEnumerator(iType);
-	return pcVoidEnumerator->Get(iID);
+	return pcVoidEnumerator->GetName(iID);
 }
 
 

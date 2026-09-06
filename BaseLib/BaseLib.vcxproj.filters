@@ -1836,6 +1836,12 @@
     <ClInclude Include="SetTemplate.h">
       <Filter>Source\Data\Set</Filter>
     </ClInclude>
+    <ClInclude Include="ArrayTemplateEmbeddedPrimitive.h">
+      <Filter>Source\Data\Array\Embedded</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayEmbeddedInt.h">
+      <Filter>Source\Data\Array\Embedded</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2962,6 +2968,9 @@
     </ClCompile>
     <ClCompile Include="MemoryCacheDescriptor.cpp">
       <Filter>Source\Memory\Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayEmbeddedInt.cpp">
+      <Filter>Source\Data\Array\Embedded</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

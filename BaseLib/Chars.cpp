@@ -1992,7 +1992,7 @@ size CChars::Find(size iIndex, char c)
 {
 	size	i;
 	size	uiLen;
-	char* szText;
+	char*	szText;
 
 	szText = Text();
 	uiLen = Length();

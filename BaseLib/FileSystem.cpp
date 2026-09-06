@@ -114,7 +114,7 @@ CFileNodeSystemFile* CFileSystem::GetFileNode(char* szName, CChars* pszRemaining
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileSystem::GetFiles(CArraySystemFilePtrs* pcSystemFiles)
+void CFileSystem::GetFiles(CArraySystemFilePtr* pcSystemFiles)
 {
 	CFileSystemIterator		cIter;
 	CSystemFileNode*		pcFile;
@@ -134,7 +134,7 @@ void CFileSystem::GetFiles(CArraySystemFilePtrs* pcSystemFiles)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileSystem::GetFiles(CArraySystemFilePtrs* pcSystemFiles, char* szExtension)
+void CFileSystem::GetFiles(CArraySystemFilePtr* pcSystemFiles, char* szExtension)
 {
 	CFileSystemIterator		cIter;
 	CSystemFileNode*		pcNode;
