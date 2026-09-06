@@ -57,7 +57,7 @@
 
 #define U_Enum(name)					UnmanagedEnum(&name, #name)
 
-#define U_String(name)					UnmanagedString(&name, #name)
+#define U_String(name)					UnmanagedString(&name, #name)  /* CChars or CCharsImmutable */
 #define U_Number(name)					UnmanagedNumber(&name, #name)
 #define U_Date(name)					UnmanagedDate(&name, #name)
 				
