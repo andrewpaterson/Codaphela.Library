@@ -54,7 +54,6 @@ public:
 	bool	CreateCelBlitters(void) override;
 
 	void	TileLayerAbstract(void) override {}
-
 };
 
 

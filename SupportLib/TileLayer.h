@@ -38,7 +38,7 @@ protected:
 	CChars		mszTileType;
 	SInt32Vec2	msMapSize;		//The tile is indexed by x + y * msMapSize.x
 	SInt32Vec2	msCelSize;
-	SInt32Vec2	msPosition;		//Typically zero.
+	SInt32Vec2	msPosition;		//Typically zero, zero.
 
 public:
 			void	Init(CPointer pTileMap, const char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition);

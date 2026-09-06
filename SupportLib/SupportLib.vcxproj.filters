@@ -220,6 +220,9 @@
     <Filter Include="Source\Image\Blitter\Cache">
       <UniqueIdentifier>{8d62aeb4-f00d-416a-b945-2d7a4eceffe8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Map\Generator">
+      <UniqueIdentifier>{be27e789-f164-41fb-b790-3584f4ac6c17}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CopyPaste.h">
@@ -798,6 +801,27 @@
     <ClInclude Include="FontCreationParameters.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
+    <ClInclude Include="TileMapGenerator.h">
+      <Filter>Source\Map\Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="TileMapPattern.h">
+      <Filter>Source\Map\Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="TileCelBrush.h">
+      <Filter>Source\Map\Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="TileCelType.h">
+      <Filter>Source\Map\Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="TileColourSource.h">
+      <Filter>Source\Map\Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="TileGridSource.h">
+      <Filter>Source\Map\Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="TileCelGenerator.h">
+      <Filter>Source\Map\Generator</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1342,6 +1366,27 @@
     </ClCompile>
     <ClCompile Include="FontCreationParameters.cpp">
       <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="TileMapGenerator.cpp">
+      <Filter>Source\Map\Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="TileMapPattern.cpp">
+      <Filter>Source\Map\Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="TileCelBrush.cpp">
+      <Filter>Source\Map\Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="TileCelType.cpp">
+      <Filter>Source\Map\Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="TileColourSource.cpp">
+      <Filter>Source\Map\Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="TileGridSource.cpp">
+      <Filter>Source\Map\Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="TileCelGenerator.cpp">
+      <Filter>Source\Map\Generator</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

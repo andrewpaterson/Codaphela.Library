@@ -49,8 +49,8 @@ class CImageColour : public CUnknown
 {
 CONSTRUCTABLE(CImageColour);
 public:
-	void			Init(void);
-	void			Kill(void);
+			void	Init(void);
+			void	Kill(void);
 	
 	virtual float32	GetValue(EChannel eChannel) =0;
 	virtual void	GetChannels(CArraySize* pai) =0;

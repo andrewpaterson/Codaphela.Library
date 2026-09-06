@@ -32,23 +32,22 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TrackerTypes.h"
 
 
-class CInstance : public CObject
+class CInstance : public CObject  //Example to copy / paste from
 {
 CONSTRUCTABLE(CInstance);
 DESTRUCTABLE(CInstance);
-public:
-
+protected:
 	ETrackerType		meType;  //Which Tracker to look this object up in.
 	int					miObjectIndex;
 	CArrayIntMinimal	maiConnections;  //Matricies, just one unless the the object is a skinned mesh.
 	
+public:
 	void 	Init(void);
 	void 	Free(void);
 	void	Class(void);
 
 	bool	Load(CObjectReader* pcFile);
 	bool	Save(CObjectWriter* pcFile);
-	void	Copy(CInstance* pcInstance);
 };
 
 
