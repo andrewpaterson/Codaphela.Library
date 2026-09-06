@@ -40,8 +40,8 @@ public:
 	char*					GetFilename(char* szFilename);
 	CFileNodeSystemFile*	GetFileNode(char* szName, CChars* pszRemainingName);
 	CChars*					GetFullDirectoryName(void);
-	void					GetFiles(CArraySystemFilePtrs* pcSystemFiles);
-	void					GetFiles(CArraySystemFilePtrs* pcSystemFiles, char* szExtension);
+	void					GetFiles(CArraySystemFilePtr* pcSystemFiles);
+	void					GetFiles(CArraySystemFilePtr* pcSystemFiles, char* szExtension);
 
 	CSystemFileNode*		StartIteration(CFileSystemIterator* psIter);
 	CSystemFileNode*		Iterate(CFileSystemIterator* psIter);

@@ -1335,6 +1335,7 @@ void CArrayBlock::RemoveBatch(size uiFirstElementPos, size uiNumInBatch, size ui
 	}
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1342,6 +1343,27 @@ void CArrayBlock::RemoveBatch(size uiFirstElementPos, size uiNumInBatch, size ui
 void CArrayBlock::RemoveAll(void)
 {
 	SetArraySize(0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayBlock::Remove(void* pvData, bool bPreserveOrder)
+{
+	size	iIndex;
+
+	iIndex = GetIndex(pvData);
+	if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
+	{
+		RemoveAt(iIndex, bPreserveOrder);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 

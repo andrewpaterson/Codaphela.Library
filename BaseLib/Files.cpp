@@ -106,7 +106,7 @@ bool CFiles::AddPackFile(CFileNodeSystemFile* pcFileNodeSystemFile)
 //////////////////////////////////////////////////////////////////////////
 bool CFiles::AddPackFiles(void)
 {
-	CArraySystemFilePtrs		aFileNodePtrs;
+	CArraySystemFilePtr		aFileNodePtrs;
 	uint32						i;
 	CFileNodeSystemFile*		pcFileNodeSystemFile;
 	bool						bResult;

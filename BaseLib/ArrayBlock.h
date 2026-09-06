@@ -118,6 +118,7 @@ public:
 	bool	RemoveFirst(void);
 	void	RemoveBatch(size iFirstIndex, size iNumInBatch, size iNumBatches, size iStrideToNextBatch);
 	void	RemoveAll(void);
+	bool	Remove(void* pvData, bool bPreserveOrder = true);
 
 	void	Set(size iIndex, void* pvData);
 	bool	SafeSet(size iIndex, void* pvData);

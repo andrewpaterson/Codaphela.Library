@@ -67,11 +67,40 @@ int CEnumeratorVoid::Get(char* szName, int iNameLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CEnumeratorVoid::Get(int iID)
+char* CEnumeratorVoid::GetName(int iID)
 {
 	char*	szName;
+	bool	bResult;
 
-	__CEnumeratorTemplate<void>::GetWithID(iID, NULL, &szName);
-	return szName;
+	bResult = __CEnumeratorTemplate<void>::GetWithID(iID, NULL, &szName);
+	if (bResult)
+	{
+		return szName;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CEnumeratorVoid::GetName(char* szName)
+{
+	char*	szDestName;
+	int		iResult;
+
+	iResult = __CEnumeratorTemplate<void>::GetWithKey(szName, NULL, 0, NULL, 0, &szDestName);
+	if (iResult != -1)
+	{
+		return szDestName;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 

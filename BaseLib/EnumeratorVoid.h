@@ -32,7 +32,8 @@ public:
 	int		Add(char* szName);
 	int		Get(char* szName);
 	int		Get(char* szName, int iNameLen);
-	char*	Get(int iID);
+	char*	GetName(int iID);
+	char*	GetName(char* szName);
 };
 
 

@@ -5,7 +5,7 @@
 
 struct SENode
 {
-	size	uiNum;
+	int		uiNum;
 	uint8	iFlags;
 	void*	pvData;
 	char*	szName;

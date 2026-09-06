@@ -20,8 +20,8 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_PRIMITIVE_TEMPLATE_H__
-#define __ARRAY_PRIMITIVE_TEMPLATE_H__
+#ifndef __ARRAY_TEMPLATE_PRIMITIVE_H__
+#define __ARRAY_TEMPLATE_PRIMITIVE_H__
 #include <stdarg.h>
 #include "ArrayTemplate.h"
 
@@ -625,5 +625,5 @@ void CArrayTemplatePrimitive<M>::AddList(M iStop, ...)
 }
 
 
-#endif // __ARRAY_PRIMITIVE_TEMPLATE_H__
+#endif // __ARRAY_TEMPLATE_PRIMITIVE_H__
 
