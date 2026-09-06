@@ -75,8 +75,5 @@ public:
 };
 
 
-typedef CArray<CTileLayerCel>	CArrayTileImageCel;
-
-
 #endif // __TILE_LAYER_CEL_H__
 

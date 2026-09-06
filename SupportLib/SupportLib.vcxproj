@@ -188,6 +188,12 @@
     <ClInclude Include="CopyPaste.h" />
     <ClInclude Include="ChannelTypes.h" />
     <ClInclude Include="FontCreationParameters.h" />
+    <ClInclude Include="TileCelBrush.h" />
+    <ClInclude Include="TileCelGenerator.h" />
+    <ClInclude Include="TileCelType.h" />
+    <ClInclude Include="TileColourSource.h" />
+    <ClInclude Include="TileGridSource.h" />
+    <ClInclude Include="TileMapGenerator.h" />
     <ClInclude Include="GlyphListFontDraw.h" />
     <ClInclude Include="ImageBlitter.h" />
     <ClInclude Include="BaseImageRowBlitter.h" />
@@ -234,6 +240,7 @@
     <ClInclude Include="Text.h" />
     <ClInclude Include="TextRun.h" />
     <ClInclude Include="TextDrawable.h" />
+    <ClInclude Include="TileMapPattern.h" />
     <ClInclude Include="TrackerTypes.h" />
     <ClInclude Include="VertexArray.h" />
     <ClInclude Include="VertexChannel.h" />
@@ -383,6 +390,12 @@
     <ClCompile Include="CopyPaste_Windows.cpp" />
     <ClCompile Include="FakeTracker.cpp" />
     <ClCompile Include="FontCreationParameters.cpp" />
+    <ClCompile Include="TileCelBrush.cpp" />
+    <ClCompile Include="TileCelGenerator.cpp" />
+    <ClCompile Include="TileCelType.cpp" />
+    <ClCompile Include="TileColourSource.cpp" />
+    <ClCompile Include="TileGridSource.cpp" />
+    <ClCompile Include="TileMapGenerator.cpp" />
     <ClCompile Include="GlyphListFontDraw.cpp" />
     <ClCompile Include="ImageBlitter.cpp" />
     <ClCompile Include="ImageBlitterContext.cpp" />
@@ -557,6 +570,7 @@
     <ClCompile Include="Ray.cpp" />
     <ClCompile Include="ShapeHelper.cpp" />
     <ClCompile Include="Sphere.cpp" />
+    <ClCompile Include="TileMapPattern.cpp" />
     <ClCompile Include="Triangle.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
