@@ -30,6 +30,7 @@ class SInt16Vec3 : public SVec3<int16, int32>
 {
 CONSTRUCTABLE(SInt16Vec3);
 public:
+	using SVec3<int16, int32>::SVec3;
 	using SVec3<int16, int32>::operator=;
 
 	void 	Print(CChars* psx, int iWholeNumbers = -1);

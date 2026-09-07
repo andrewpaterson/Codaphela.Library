@@ -32,6 +32,7 @@ class SFloat64Vec2 : public SVec2<float64, float128>
 {
 CONSTRUCTABLE(SFloat64Vec2);
 public:
+	using SVec2<float64, float128>::SVec2;
 	using SVec2<float64, float128>::operator=;
 
 	void	Fix(void);

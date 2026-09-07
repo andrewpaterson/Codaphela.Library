@@ -36,6 +36,7 @@ public:
 			SFloat32Vec4() {};
 			SFloat32Vec4(float32 x, float32 y, float32 z, float32 w);
 
+	using SVec4<float32, float64>::SVec4;
 	using SVec4<float32, float64>::operator=;
 
 	void 	Fix(void);

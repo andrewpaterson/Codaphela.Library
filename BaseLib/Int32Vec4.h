@@ -33,6 +33,7 @@ public:
 			SInt32Vec4() {};
 			SInt32Vec4(int32 x, int32 y, int32 z, int32 w);
 
+	using SVec4<int32, int64>::SVec4;
 	using SVec4<int32, int64>::operator=;
 
 	void	Print(CChars* psz, int iWholeNumbers = -1);

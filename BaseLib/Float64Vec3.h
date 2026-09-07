@@ -33,6 +33,7 @@ class SFloat64Vec3 : public SVec3<float64, float128>
 {
 	CONSTRUCTABLE(SFloat64Vec3);
 public:
+	using SVec3<float64, float128>::SVec3;
 	using SVec3<float64, float128>::operator=;
 
 	void 		Fix(void);
