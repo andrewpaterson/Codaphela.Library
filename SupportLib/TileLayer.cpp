@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileLayer::Init(CPointer pTileMap, const char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition)
+void CTileLayer::Init(CPointer pTileMap, const char* szTileType, SSizeVec2 sMapSize, SSizeVec2 sCelSize, int iIdentifier, SInt32Vec2 sPosition)
 {
 	PreInit();
 
@@ -38,6 +38,7 @@ void CTileLayer::Init(CPointer pTileMap, const char* szTileType, SInt32Vec2 sMap
 	msMapSize = sMapSize;
 	msCelSize = sCelSize;
 	msPosition = sPosition;
+	miIdentifier = iIdentifier;
 
 	PostInit();
 }
@@ -61,9 +62,10 @@ void CTileLayer::Class(void)
 {
 	M_Pointer(mpTileMap);
 	U_String(mszTileType);
-	U_2Int32(msMapSize);
-	U_2Int32(msCelSize);
+	U_Data(SSizeVec2, msMapSize);
+	U_Data(SSizeVec2, msCelSize);
 	U_2Int32(msPosition);
+	U_SInt(miIdentifier);
 }
 
 
@@ -104,5 +106,15 @@ int32 CTileLayer::GetLayerSizeX(void)
 int32 CTileLayer::GetLayerSizeY(void)
 {
 	return msMapSize.y;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CTileLayer::IsIdentifier(int iIdentifier)
+{
+	return miIdentifier = iIdentifier;
 }
 

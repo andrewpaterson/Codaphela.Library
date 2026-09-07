@@ -15,7 +15,7 @@ DESTRUCTABLE(CTileCelGenerator);
 protected:
 
 public:
-	void	Init(Ptr<CTileGridSource>, Ptr<CTileLayer>, int iCelType, CTileColourSource* pcSource);
+	void	Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLayer> pTileLayer, int iCelType, CTileColourSource* pcSource);
 	void	Free(void);
 
 	void	Class(void);

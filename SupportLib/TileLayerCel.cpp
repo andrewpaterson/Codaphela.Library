@@ -29,14 +29,14 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileLayerCel::Init(Ptr<CTileMap> pTileMap, const char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition)
+void CTileLayerCel::Init(Ptr<CTileMap> pTileMap, const char* szTileType, SSizeVec2 sMapSize, SSizeVec2 sCelSize, int iIdentifier, SInt32Vec2 sPosition)
 {
 	PreInit();
 
 	size	i;
 	size	iSize;
 
-	CTileLayer::Init(pTileMap, szTileType, sMapSize, sCelSize, sPosition);
+	CTileLayer::Init(pTileMap, szTileType, sMapSize, sCelSize, iIdentifier, sPosition);
 
 	mpCache = NULL;
 	mpViewport = NULL;
@@ -174,8 +174,7 @@ bool CTileLayerCel::SetTiles(size x, size y, Ptr<CArrayImageCel> paCels, size ui
 Ptr<CImage> CTileLayerCel::WriteToImage(void)
 {
 	Ptr<CImageCel>				pCel;
-	int32						x;
-	int32						y;
+	size 						x, y;
 	Ptr<CImageCelBlitterCache>	pOldCache;
 	Ptr<CImage>					pOldViewport;
 	Ptr<CImage>					pImage;
@@ -222,7 +221,7 @@ Ptr<CImage> CTileLayerCel::WriteToImage(void)
 bool CTileLayerCel::CreateCelBlitters(void)
 {
 	Ptr<CImageCel>		pCel;
-	int32				x, y;
+	size				x, y;
 	Ptr<CImageBlitter>	pBlitter;
 	size				iSize;
 	size				i;
@@ -309,7 +308,7 @@ bool CTileLayerCel::GetImageDestBounds(CRectangle* pcRect)
 	CRectangle		cBounding;
 	CRectangle		cCelRect;
 	bool			bFirst;
-	int32			x, y;
+	size 			x, y;
 
 	if (pcRect)
 	{
@@ -421,8 +420,7 @@ Ptr<CImageCelBlitterCache> CTileLayerCel::CreateBlitterCache(void)
 bool CTileLayerCel::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters)
 {
 	Ptr<CImageCel>				pCel;
-	int32						x;
-	int32						y;
+	size 						x, y;
 	Ptr<CImageBlitter>			pBlitter;
 	bool						bResult;
 	int32						xOffset;

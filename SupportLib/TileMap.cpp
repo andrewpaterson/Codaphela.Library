@@ -97,13 +97,13 @@ void CTileMap::AddLayer(Ptr<CTileLayer> pLayer)
 void CTileMap::SetBlitterCache(Ptr<CImageCelBlitterCache> pCache)
 {
 	size				uiNumElements;
-	size				ui;
+	size				i;
 	Ptr<CTileLayer>		pTileLayer;
 
 	uiNumElements = maTileLayers.NumElements();
-	for (ui = 0; ui < uiNumElements; ui++)
+	for (i = 0; i < uiNumElements; i++)
 	{
-		pTileLayer = maTileLayers.Get(ui);
+		pTileLayer = maTileLayers.Get(i);
 		pTileLayer->SetBlitterCache(pCache);
 	}
 }
@@ -116,13 +116,13 @@ void CTileMap::SetBlitterCache(Ptr<CImageCelBlitterCache> pCache)
 void CTileMap::SetViewport(Ptr<CImage> pViewport)
 {
 	size				uiNumElements;
-	size				ui;
+	size				i;
 	Ptr<CTileLayer>		pTileLayer;
 
 	uiNumElements = maTileLayers.NumElements();
-	for (ui = 0; ui < uiNumElements; ui++)
+	for (i = 0; i < uiNumElements; i++)
 	{
-		pTileLayer = maTileLayers.Get(ui);
+		pTileLayer = maTileLayers.Get(i);
 		pTileLayer->SetViewport(pViewport);
 	}
 }
@@ -135,14 +135,14 @@ void CTileMap::SetViewport(Ptr<CImage> pViewport)
 bool CTileMap::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters)
 {
 	size				uiNumElements;
-	size				ui;
+	size				i;
 	Ptr<CTileLayer>		pTileLayer;
 	bool				bResult;
 
 	uiNumElements = maTileLayers.NumElements();
-	for (ui = 0; ui < uiNumElements; ui++)
+	for (i = 0; i < uiNumElements; i++)
 	{
-		pTileLayer = maTileLayers.Get(ui);
+		pTileLayer = maTileLayers.Get(i);
 		bResult = pTileLayer->Blit(pcViewportRect, bEnsureBlitters);
 		if (!bResult)
 		{
@@ -160,14 +160,14 @@ bool CTileMap::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters)
 bool CTileMap::CreateCelBlitters(void)
 {
 	size				uiNumElements;
-	size				ui;
+	size				i;
 	Ptr<CTileLayer>		pTileLayer;
 	bool				bResult;
 
 	uiNumElements = maTileLayers.NumElements();
-	for (ui = 0; ui < uiNumElements; ui++)
+	for (i = 0; i < uiNumElements; i++)
 	{
-		pTileLayer = maTileLayers.Get(ui);
+		pTileLayer = maTileLayers.Get(i);
 		bResult = pTileLayer->CreateCelBlitters();
 		if (!bResult)
 		{
@@ -175,5 +175,28 @@ bool CTileMap::CreateCelBlitters(void)
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CTileLayer> CTileMap::GetTileLayer(int iIdentifier)
+{
+	size				uiNumElements;
+	size				i;
+	Ptr<CTileLayer>		pTileLayer;
+
+	uiNumElements = maTileLayers.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pTileLayer = maTileLayers.Get(i);
+		if (pTileLayer->IsIdentifier(iIdentifier))
+		{
+			return pTileLayer;
+		}
+	}
+	return NULL;
 }
 
