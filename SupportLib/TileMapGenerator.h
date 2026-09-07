@@ -7,6 +7,7 @@
 #include "TileColourSource.h"
 #include "TileGridSource.h"
 #include "TileCelGenerator.h"
+#include "TileMap.h"
 
 
 class CTileMapGenerator : public CObject
@@ -22,6 +23,8 @@ protected:
 	CArray<CTileGridSource>		maTileGridSources;
 	CArrayTileColourSource		macTileColourSources;
 	CArray<CTileCelGenerator>	maTileCelGenerators;
+	Ptr<CTileMap>				mpMap;
+	SSizeVec2					msCelSize;
 
 public:
 	void					Init(void);
@@ -49,12 +52,18 @@ public:
 
 	CTileColourSource*		AddColourSource(uint8 iRed, uint8 iGreen, uint8 iBlue);
 
+	SSizeVec2				GetMapSize(void);
+	SSizeVec2				GetCelSize(void);
+
 protected:
 	char*					AddPatternConstantName(char* szPatternName);
 	CTileMapPattern*		GetPatternConstantName(int iCelType, char* szPatternConstantName);
 
 	char*					AddSourceConstantName(char* szSourceName);
 	Ptr<CTileGridSource>	GetSourceConstantName(char* szSourceConstantName);
+
+	Ptr<CTileLayer>			GetTileLayer(int iIdentifier);
+	Ptr<CTileLayer>			AddTileLayer(CPointer pTileMap, const char* szTileType, int iIdentifier);
 };
 
 
