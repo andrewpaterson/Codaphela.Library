@@ -1,3 +1,4 @@
+#include "TileLayerCel.h"
 #include "TileMapGenerator.h"
 
 
@@ -14,7 +15,9 @@ void CTileMapGenerator::Init(void)
 	meszSourceNames.Init();
 	macTileCelTypes.Init();
 	macTileColourSources.Init();
-	macTileCelGenerators.Init();
+	maTileCelGenerators.Init();
+	mpMap = OMalloc<CTileMap>();
+	msCelSize.Init(0, 0);
 	PostInit();
 }
 
@@ -30,7 +33,6 @@ void CTileMapGenerator::Free(void)
 	CTileMapPattern*	pcPattern;
 	CTileCelType*		pcCelType;
 	CTileColourSource*	pcSource;
-	CTileCelGenerator*	pcGenerator;
 
 	iNumElements = macTileMapPatterns.NumElements();
 	for (i = 0; i < iNumElements; i++)
@@ -56,14 +58,6 @@ void CTileMapGenerator::Free(void)
 	}
 	macTileColourSources.Kill();
 	
-	iNumElements = macTileCelGenerators.NumElements();
-	for (i = 0; i < iNumElements; i++)
-	{
-		pcGenerator = macTileCelGenerators.Get(i);
-		pcGenerator->Kill();
-	}
-	macTileCelGenerators.Kill();
-
 	meszPatternNames.Kill();
 	meszSourceNames.Kill();
 }
@@ -82,6 +76,9 @@ void CTileMapGenerator::Class(void)
 	U_Data(CArrayTileCelType, macTileCelTypes);
 	M_Embedded(maTileGridSources);
 	U_Data(CArrayTileColourSource, macTileColourSources);
+	M_Embedded(maTileCelGenerators);
+	M_Pointer(mpMap);
+	U_Data(SSizeVec2, msCelSize);
 }
 
 
@@ -113,6 +110,7 @@ bool CTileMapGenerator::AddTileGenerator(char* szTileGridSource, int iMapLayer, 
 {
 	Ptr<CTileCelGenerator>	pCelGenerator;
 	Ptr<CTileGridSource>	pTileGridSource;
+	Ptr<CTileLayer>			pTileLayer;
 
 	pTileGridSource = GetSource(szTileGridSource);
 	if (pTileGridSource.IsNull())
@@ -120,8 +118,24 @@ bool CTileMapGenerator::AddTileGenerator(char* szTileGridSource, int iMapLayer, 
 		return false;
 	}
 
+	pTileLayer = GetTileLayer(iMapLayer);
+	if (pTileLayer.IsNull())
+	{
+		pTileLayer = AddTileLayer(mpMap, "Graphics", iMapLayer);
+		if (pTileLayer.IsNull())
+		{
+			return false;
+		}
+	}
 
-	pCelGenerator = OMalloc<CTileCelGenerator>(xxx);
+	pCelGenerator = OMalloc<CTileCelGenerator>(pTileGridSource, pTileLayer, iCelType, pcSource);
+	if (pCelGenerator.IsNull())
+	{
+		return false;
+	}
+
+	maTileCelGenerators.Add(pCelGenerator);
+	return true;
 }
 
 
@@ -248,7 +262,10 @@ bool CTileMapGenerator::AddPattern(char* szTileGridSource, int iCelType, char* s
 //////////////////////////////////////////////////////////////////////////
 bool CTileMapGenerator::AddTileBrush(Ptr<CArrayImageCel> pCels, size iCelIndex, int iCelType, char* szPatternName, size iWeight, int mapOffsetX, int mapOffsetY)
 {
-	CTileMapPattern* pcPattern;
+	CTileMapPattern*	pcPattern;
+	CSubImage*			pcSubImage;
+	size				iWidth;
+	size				iHeight;
 
 	pcPattern = GetPattern(iCelType, szPatternName);
 	if (pcPattern)
@@ -259,6 +276,11 @@ bool CTileMapGenerator::AddTileBrush(Ptr<CArrayImageCel> pCels, size iCelIndex, 
 			Ptr<CTileCelBrush> pBrush = OMalloc<CTileCelBrush>(pCel, iCelType, szPatternName);
 			if (pBrush.IsNotNull())
 			{
+				pcSubImage = pCel->GetSubImage();
+				iWidth = (size)pcSubImage->GetFullWidth();
+				iHeight = (size)pcSubImage->GetFullHeight();
+				msCelSize.Maximise(iWidth, iHeight);
+
 				maTileCelBrushes.Add(pBrush);
 				return true;
 			}
@@ -494,5 +516,80 @@ CTileColourSource* CTileMapGenerator::AddColourSource(uint8 iRed, uint8 iGreen, 
 	}
 
 	return pcSource;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CTileLayer> CTileMapGenerator::GetTileLayer(int iIdentifier)
+{
+	return mpMap->GetTileLayer(iIdentifier);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CTileLayer> CTileMapGenerator::AddTileLayer(CPointer pTileMap, const char* szTileType, int iIdentifier)
+{
+	Ptr<CTileLayer>		pTileLayer;
+	SSizeVec2			sMapSize;
+	SSizeVec2			sCelSize;
+	SInt32Vec2			sOffset(0, 0);
+
+	pTileLayer = mpMap->GetTileLayer(iIdentifier);
+	if (pTileLayer.IsNotNull())
+	{
+		return NULL;
+	}
+
+	sMapSize = GetMapSize();
+	sCelSize = GetCelSize();
+
+
+	pTileLayer = OMalloc<CTileLayerCel>(pTileMap, szTileType, sMapSize, sCelSize, iIdentifier, sOffset);
+	if (pTileLayer.IsNotNull())
+	{
+	}
+		mpMap->AddLayer(pTileLayer);
+
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SSizeVec2 CTileMapGenerator::GetMapSize(void)
+{
+	size					i;
+	size					iNumElements;
+	Ptr<CTileGridSource>	pSource;
+	SSizeVec2				sSize;
+	SSizeVec2				sFullSize(0, 0);
+
+	iNumElements = maTileGridSources.NumElements();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pSource = maTileGridSources.Get(i);
+		sSize = pSource->GetSize();
+		sFullSize.Maximise(sSize);
+	}
+
+	return sFullSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SSizeVec2 CTileMapGenerator::GetCelSize(void)
+{
+	return msCelSize;
 }
 
