@@ -78,6 +78,9 @@ public:
 			void			Subtract(SVec2<M, N>* pv);
 			N	 			SquareMagnitude(void);
 			M				Magnitude(void);
+			void			Maximise(const SVec2<M, N>& v);
+			void			Maximise(SVec2<M, N>* pv);
+			void			Maximise(M x, M y);
 };
 
 
@@ -404,6 +407,46 @@ template<class M, class N>
 M SVec2<M, N>::Magnitude(void)
 {
 	return (M)SquareRoot((N)SquareMagnitude());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N>
+void SVec2<M, N>::Maximise(const SVec2<M, N>& v)
+{
+	Maximise(v.x, v.y);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N>
+void SVec2<M, N>::Maximise(SVec2<M, N>* pv)
+{
+	Maximise(pv->x, pv->y);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N>
+void SVec2<M, N>::Maximise(M x, M y)
+{
+	if (x > this->x)
+	{
+		this->x = x;
+	}
+	if (y > this->y)
+	{
+		this->y = y;
+	}
 }
 
 
