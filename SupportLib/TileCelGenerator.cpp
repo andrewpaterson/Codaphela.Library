@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileCelGenerator::Init(Ptr<CTileGridSource>, int iMapLayer, int iCelType, CTileColourSource* pcSource)
+void CTileCelGenerator::Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLayer> pTileLayer, int iCelType, CTileColourSource* pcSource)
 {
 
 }

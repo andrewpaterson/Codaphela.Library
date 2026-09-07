@@ -24,6 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/GeometricTypes.h"
+#include "BaseLib/SizeVec2.h"
 #include "StandardLib/Channels.h"
 #include "StandardLib/Array.h"
 #include "ImageChannel.h"
@@ -106,6 +107,7 @@ public:
 	size					GetPixelSize(void);
 	size					GetPixelByteStride(void);
 	size					GetPixelBitStride(void);
+	SSizeVec2				GetDimension(void);
 	
 	bool					IsSameFormat(Ptr<CImage> psOther);
 	bool					IsValid(int x, int y);

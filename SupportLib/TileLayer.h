@@ -36,12 +36,13 @@ DESTRUCTABLE(CTileLayer);
 protected:
 	CPointer	mpTileMap;
 	CChars		mszTileType;
-	SInt32Vec2	msMapSize;		//The tile is indexed by x + y * msMapSize.x
-	SInt32Vec2	msCelSize;
+	SSizeVec2	msMapSize;		//The tile is indexed by x + y * msMapSize.x
+	SSizeVec2	msCelSize;
 	SInt32Vec2	msPosition;		//Typically zero, zero.
+	int			miIdentifier;
 
 public:
-			void	Init(CPointer pTileMap, const char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition);
+			void	Init(CPointer pTileMap, const char* szTileType, SSizeVec2 sMapSize, SSizeVec2 sCelSize, int iIdentifier, SInt32Vec2 sPosition);
 			void 	Free(void);
 			void	Class(void);
 
@@ -50,6 +51,8 @@ public:
 
 			int32	GetLayerSizeX(void);
 			int32	GetLayerSizeY(void);
+
+			bool	IsIdentifier(int iIdentifier);
 
 	virtual	void	SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) =0;
 	virtual	void	SetViewport(Ptr<CImage> pViewport) =0;

@@ -28,11 +28,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileLayerBoolean::Init(Ptr<CTileMap> pTileMap, const char* szTileType, SInt32Vec2 sMapSize, SInt32Vec2 sCelSize, SInt32Vec2 sPosition)
+void CTileLayerBoolean::Init(Ptr<CTileMap> pTileMap, const char* szTileType, SSizeVec2 sMapSize, SSizeVec2 sCelSize, int iIdentifier, SInt32Vec2 sPosition)
 {
 	PreInit();
 
-	CTileLayer::Init(pTileMap, szTileType, sMapSize, sCelSize, sPosition);
+	CTileLayer::Init(pTileMap, szTileType, sMapSize, sCelSize, iIdentifier, sPosition);
 	macBools.Init();
 	macBools.GrowTo(sMapSize.x * sMapSize.y);
 
