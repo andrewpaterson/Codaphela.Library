@@ -7,6 +7,9 @@
 PRIMITIVE_TYPE_DEFINITION(Int8, int8, PT_char8, WriteInt8, ReadInt8)
 PRIMITIVE_TYPE_DEFINITION(UInt8, uint8, PT_uint8, WriteInt8, ReadInt8)
 
+PRIMITIVE_TYPE_DEFINITION(SInt, int, PT_int, WriteSInt, ReadSInt)
+PRIMITIVE_TYPE_DEFINITION(SUInt, uint, PT_uint, WriteSInt, ReadSInt)
+
 PRIMITIVE_TYPE_DEFINITION(Int16, int16, PT_int16, WriteInt16, ReadInt16)
 PRIMITIVE_TYPE_DEFINITION(UInt16, uint16, PT_uint16, WriteInt16, ReadInt16)
 
@@ -18,7 +21,7 @@ PRIMITIVE_TYPE_DEFINITION(UInt64, uint64, PT_uint64, WriteInt64, ReadInt64)
 
 PRIMITIVE_TYPE_DEFINITION(Bool, bool, PT_bool, WriteBool, ReadBool)
 
-PRIMITIVE_TYPE_DEFINITION(Size, size, PT_bool, WriteSize, ReadSize)
+PRIMITIVE_TYPE_DEFINITION(SSize, size, PT_size, WriteSize, ReadSize)
 
 
 #endif // __PRIMITIVE_INTEGER_H__

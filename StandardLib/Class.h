@@ -87,6 +87,8 @@ public:
 	CPrimitiveField*	AddPrimitive(char* szFieldName);
 
 public:
+	void				Primitive(CBaseObject* pcThis, SInt* pcPrimitive, char* szFieldName);
+	void				Primitive(CBaseObject* pcThis, SSize* pcPrimitive, char* szFieldName);
 	void				Primitive(CBaseObject* pcThis, Int8* pcPrimitive, char* szFieldName);
 	void				Primitive(CBaseObject* pcThis, UInt8* pcPrimitive, char* szFieldName);
 	void				Primitive(CBaseObject* pcThis, Int16* pcPrimitive, char* szFieldName);

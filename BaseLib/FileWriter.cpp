@@ -99,7 +99,7 @@ bool CFileWriter::WriteSInt(int i)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteSUInt(uint i)
+bool CFileWriter::WriteSInt(uint i)
 {
 	CheckWrite(&i, sizeof(uint));
 	return true;
@@ -179,6 +179,28 @@ bool CFileWriter::WriteInt16(int16 i)
 bool CFileWriter::WriteInt16(uint16 i)
 {
 	CheckWrite(&i, sizeof(uint16));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CFileWriter::WriteInt(int i)
+{
+	CheckWrite(&i, sizeof(int));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CFileWriter::WriteInt(uint i)
+{
+	CheckWrite(&i, sizeof(uint));
 	return true;
 }
 

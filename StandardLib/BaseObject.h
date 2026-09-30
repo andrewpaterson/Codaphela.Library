@@ -253,6 +253,8 @@ protected:
 			void				Pointer(CPointer* pcPointer, char* szFieldName);
 			void				Embedded(CBaseObject* pcObject, char* szFieldName);
 
+			void				Primitive(SInt* pcPrimitive, char* szFieldName);
+			void				Primitive(SSize* pcPrimitive, char* szFieldName);
 			void				Primitive(Int8* pcPrimitive, char* szFieldName);
 			void				Primitive(UInt8* pcPrimitive, char* szFieldName);
 			void				Primitive(Int16* pcPrimitive, char* szFieldName);

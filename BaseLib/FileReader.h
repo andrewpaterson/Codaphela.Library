@@ -50,7 +50,7 @@ public:
 						bool	ReadInt64(int64* plli);
 						bool	ReadInt64(uint64* plli);
 						bool	ReadSInt(int* pi);
-						bool	ReadSUInt(uint* pi);
+						bool	ReadSInt(uint* pi);
 						bool	ReadSize(size* pui);
 						bool	ReadFloat(float32* pf);
 						bool	ReadFloat(float64* pf);
