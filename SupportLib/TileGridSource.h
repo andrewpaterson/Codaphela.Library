@@ -25,6 +25,7 @@ public:
 	char*		GetConstantName(void);
 
 	SSizeVec2	GetSize(void);
+	Ptr<CImage>	GetImage(void);
 };
 
 

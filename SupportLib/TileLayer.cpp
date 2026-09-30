@@ -115,6 +115,6 @@ int32 CTileLayer::GetLayerSizeY(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTileLayer::IsIdentifier(int iIdentifier)
 {
-	return miIdentifier = iIdentifier;
+	return miIdentifier == iIdentifier;
 }
 
