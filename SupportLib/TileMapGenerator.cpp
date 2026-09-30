@@ -110,6 +110,16 @@ bool CTileMapGenerator::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+Ptr<CTileMap> CTileMapGenerator::Generate(void)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CTileMapGenerator::AddTileGenerator(char* szTileGridSource, int iMapLayer, int iCelType, CTileColourSource* pcSource)
 {
 	Ptr<CTileCelGenerator>	pCelGenerator;
@@ -546,7 +556,7 @@ Ptr<CTileLayer> CTileMapGenerator::AddTileLayer(CPointer pTileMap, const char* s
 	Ptr<CTileLayer>		pTileLayer;
 	SSizeVec2			sMapSize;
 	SSizeVec2			sCelSize;
-	SInt32Vec2			sOffset(0, 0);
+	SIntVec2			sOffset(0, 0);
 
 	pTileLayer = mpMap->GetTileLayer(iIdentifier);
 	if (pTileLayer.IsNotNull())

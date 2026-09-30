@@ -36,6 +36,8 @@ public:
 	bool					Load(CObjectReader* pcFile);
 	bool					Save(CObjectWriter* pcFile);
 
+	Ptr<CTileMap>			Generate(void);
+
 	bool					AddTileGenerator(char* szTileGridSource, int iMapLayer, int iCelType, CTileColourSource* pcSource);
 
 	bool					AddPattern(char* szTileGridSource, int iCelType, char* szPatternName, char* szPatternChars);
