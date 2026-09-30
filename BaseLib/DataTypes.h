@@ -122,9 +122,20 @@ enum EPrimitiveType
 	PT_char8Pointer,	//A zero terminated string.
 	PT_char16Pointer,
 
+	//These need to be shuffled back up to the operator block.
+	PT_int,
+	PT_uint,
+	PT_size,
+
 	NUM_PRIMITIVE_TYPES,
 	CLASS_TYPES = 0x80,  //Any type with an ID >= 0x80 is a class type.
 };
+
+
+#if NUM_PRIMITIVE_TYPES > CLASS_TYPES
+#error Too many primitive types
+#endif 
+
 
 
 //This doesn't work for size == 2 bytes.

@@ -5,8 +5,6 @@
 #include "PrimitiveObject.h"
 
 
-class UInt32;
-
 template<class PRIMITIVE_TYPE>
 class CPrimitive : public CPrimitiveObject
 {

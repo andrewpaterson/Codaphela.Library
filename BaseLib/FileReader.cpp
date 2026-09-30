@@ -133,7 +133,7 @@ bool CFileReader::ReadSInt(int* pi)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadSUInt(uint* pi)
+bool CFileReader::ReadSInt(uint* pi)
 {
 	CheckRead(pi, sizeof(uint));
 	return true;

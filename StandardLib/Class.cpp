@@ -230,6 +230,8 @@ void CClass::Embedded(CBaseObject* pcThis, CBaseObject* pcObject, char* szFieldN
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CClass::Primitive(CBaseObject* pcThis, SInt* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+void CClass::Primitive(CBaseObject* pcThis, SSize* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
 void CClass::Primitive(CBaseObject* pcThis, Int8* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
 void CClass::Primitive(CBaseObject* pcThis, UInt8* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
 void CClass::Primitive(CBaseObject* pcThis, Int16* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
