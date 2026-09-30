@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileLayer::Init(CPointer pTileMap, const char* szTileType, SSizeVec2 sMapSize, SSizeVec2 sCelSize, int iIdentifier, SInt32Vec2 sPosition)
+void CTileLayer::Init(CPointer pTileMap, const char* szTileType, SSizeVec2 sMapSize, SSizeVec2 sCelSize, int iIdentifier, SIntVec2 sPosition)
 {
 	PreInit();
 
@@ -37,8 +37,8 @@ void CTileLayer::Init(CPointer pTileMap, const char* szTileType, SSizeVec2 sMapS
 	mszTileType.Init(szTileType);
 	msMapSize = sMapSize;
 	msCelSize = sCelSize;
-	msPosition = sPosition;
 	miIdentifier = iIdentifier;
+	msPosition = sPosition;
 
 	PostInit();
 }
@@ -64,8 +64,8 @@ void CTileLayer::Class(void)
 	U_String(mszTileType);
 	U_Data(SSizeVec2, msMapSize);
 	U_Data(SSizeVec2, msCelSize);
-	U_2Int32(msPosition);
 	U_SInt(miIdentifier);
+	U_Data(SIntVec2, msPosition);
 }
 
 

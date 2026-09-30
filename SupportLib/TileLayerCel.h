@@ -41,7 +41,7 @@ protected:
 	Ptr<CImage>					mpViewport;
 
 public:
-	void						Init(Ptr<CTileMap> pTileMap, const char* szTileType, SSizeVec2 sMapSize, SSizeVec2 sCelSize, int iIdentifier, SInt32Vec2 sPosition);
+	void						Init(Ptr<CTileMap> pTileMap, const char* szTileType, SSizeVec2 sMapSize, SSizeVec2 sCelSize, int iIdentifier, SIntVec2 sPosition);
 	void 						Free(void);
 	void						Class(void);
 
