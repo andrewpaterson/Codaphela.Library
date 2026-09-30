@@ -7,7 +7,12 @@
 //////////////////////////////////////////////////////////////////////////
 void CTileCelGenerator::Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLayer> pTileLayer, int iCelType, CTileColourSource* pcSource)
 {
-
+	PreInit();
+	mpTileGridSource = pTileGridSource;
+	mpTileLayer = pTileLayer;
+	miCelType = iCelType;
+	muiColour = pcSource->GetColour();
+	PostInit();
 }
 
 
@@ -17,7 +22,8 @@ void CTileCelGenerator::Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLaye
 //////////////////////////////////////////////////////////////////////////
 void CTileCelGenerator::Free(void)
 {
-
+	miCelType = 0;
+	muiColour = 0;
 }
 
 
@@ -27,7 +33,10 @@ void CTileCelGenerator::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CTileCelGenerator::Class(void)
 {
-
+	M_Pointer(mpTileGridSource);
+	M_Pointer(mpTileLayer);
+	U_SInt(miCelType);
+	U_UInt32(muiColour);
 }
 
 
@@ -48,5 +57,45 @@ bool CTileCelGenerator::Load(CObjectReader* pcFile)
 bool CTileCelGenerator::Save(CObjectWriter* pcFile)
 {
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CTileGridSource> CTileCelGenerator::GetTileGridSource(void)
+{
+	return mpTileGridSource;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CTileLayer> CTileCelGenerator::GetTileLayer(void)
+{
+	return mpTileLayer;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CTileCelGenerator::GetCelType(void)
+{
+	return miCelType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTileCelGenerator::IsColour(ARGB32 uiColour)
+{
+	return muiColour == uiColour;
 }
 

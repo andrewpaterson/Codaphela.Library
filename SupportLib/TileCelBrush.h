@@ -12,14 +12,19 @@ protected:
 	Ptr<CImageCel>	mpCel;
 	size			miCelType;
 	char*			mszPatterName;
+	size			miWeight;
 
 public:
-	void				Init(Ptr<CImageCel> pCel, size iCelType, char* szPatterName);
+	void				Init(Ptr<CImageCel> pCel, size iCelType, char* szPatterName, size iWeight);
 	void				Free(void);
 	void				Class(void);
 
 	bool				Load(CObjectReader* pcFile);
 	bool				Save(CObjectWriter* pcFile);
+
+	bool				IsFor(size iCelType, char* szPatternConstantName);
+	Ptr<CImageCel>		GetCel(void);
+	size				GetWeight(void);
 };
 
 

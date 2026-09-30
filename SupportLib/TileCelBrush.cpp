@@ -6,12 +6,13 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileCelBrush::Init(Ptr<CImageCel> pCel, size iCelType, char* szPatterName)
+void CTileCelBrush::Init(Ptr<CImageCel> pCel, size iCelType, char* szPatterName, size iWeight)
 {
 	PreInit();
 	mpCel = pCel;
 	miCelType = iCelType;
 	mszPatterName = szPatterName;
+	miWeight = iWeight;
 	PostInit();
 }
 
@@ -36,6 +37,7 @@ void CTileCelBrush::Class(void)
 	M_Pointer(mpCel);
 	U_Size(miCelType);
 	U_Pointer(mszPatterName);
+	U_Size(miWeight);
 }
 
 
@@ -56,5 +58,35 @@ bool CTileCelBrush::Load(CObjectReader* pcFile)
 bool CTileCelBrush::Save(CObjectWriter* pcFile)
 {
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTileCelBrush::IsFor(size iCelType, char* szPatternConstantName)
+{
+	return (miCelType == iCelType) && (mszPatterName == szPatternConstantName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CTileCelBrush::GetCel(void)
+{
+	return mpCel;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CTileCelBrush::GetWeight(void)
+{
+	return miWeight;
 }
 

@@ -13,15 +13,24 @@ class CTileCelGenerator : public CObject
 CONSTRUCTABLE(CTileCelGenerator);
 DESTRUCTABLE(CTileCelGenerator);
 protected:
+	Ptr<CTileGridSource>	mpTileGridSource;
+	Ptr<CTileLayer>			mpTileLayer;
+	int						miCelType;
+	ARGB32					muiColour;
 
 public:
-	void	Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLayer> pTileLayer, int iCelType, CTileColourSource* pcSource);
-	void	Free(void);
+	void					Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLayer> pTileLayer, int iCelType, CTileColourSource* pcSource);
+	void					Free(void);
 
-	void	Class(void);
+	void					Class(void);
 
-	bool	Load(CObjectReader* pcFile);
-	bool	Save(CObjectWriter* pcFile);
+	bool					Load(CObjectReader* pcFile);
+	bool					Save(CObjectWriter* pcFile);
+
+	Ptr<CTileGridSource>	GetTileGridSource(void);
+	Ptr<CTileLayer>			GetTileLayer(void);
+	int						GetCelType(void);
+	bool					IsColour(ARGB32 uiColour);
 };
 
 

@@ -21,6 +21,8 @@ public:
 
 	bool	IsPattern(char cPattern);
 	bool	IsNegative(void);
+	size	NumCelTypes(void);
+	int		GetCelType(size iIndex);
 };
 
 

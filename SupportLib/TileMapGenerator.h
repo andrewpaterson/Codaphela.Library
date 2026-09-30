@@ -10,6 +10,8 @@
 #include "TileMap.h"
 
 
+class CRandom;
+class CImageAccessor;
 class CTileMapGenerator : public CObject
 {
 CONSTRUCTABLE(CTileMapGenerator);
@@ -55,6 +57,10 @@ public:
 	SSizeVec2				GetMapSize(void);
 	SSizeVec2				GetCelSize(void);
 
+	bool					Generate(void);
+	bool					Generate(int iSeed);
+	Ptr<CTileMap>			GetMap(void);
+
 protected:
 	char*					AddPatternConstantName(char* szPatternName);
 	CTileMapPattern*		GetPatternConstantName(int iCelType, char* szPatternConstantName);
@@ -64,6 +70,16 @@ protected:
 
 	Ptr<CTileLayer>			GetTileLayer(int iIdentifier);
 	Ptr<CTileLayer>			AddTileLayer(CPointer pTileMap, const char* szTileType, int iIdentifier);
+
+	bool					Generate(CRandom* pcRandom);
+	bool					ValidatePatterns(void);
+	bool					GenerateCels(CTileCelGenerator* pcGenerator, CRandom* pcRandom);
+	Ptr<CTileCelBrush>		ChooseBrush(CTileCelGenerator* pcGenerator, CImageAccessor* pcAccessor, int x, int y, CRandom* pcRandom);
+	Ptr<CTileCelBrush>		ChooseBrush(int iCelType, char* szPatternConstantName, CRandom* pcRandom);
+	bool					MatchPattern(CTileMapPattern* pcPattern, CTileCelGenerator* pcGenerator, CImageAccessor* pcAccessor, int x, int y);
+	bool					MatchCelType(CTileCelType* pcCelType, char* szSourceConstantName, CImageAccessor* pcAccessor, int x, int y);
+	bool					HasCelType(char* szSourceConstantName, CImageAccessor* pcAccessor, int x, int y, int iCelType);
+	ARGB32					GetColour(CImageAccessor* pcAccessor, int x, int y);
 };
 
 
