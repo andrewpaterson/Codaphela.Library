@@ -26,7 +26,7 @@ protected:
 	CEnumeratorVoid				meszSourceNames;
 	CArrayTileCelType			macTileCelTypes;
 	CArray<CTileGridSource>		maTileGridSources;
-	CArrayTileColourSource		macTileColourSources;
+	CLinkedListTileColourSource	mllcTileColourSources;	//Linked list so the CTileColourSource pointers held by generators are not moved.
 	CArray<CTileCelGenerator>	maTileCelGenerators;
 	Ptr<CTileMap>				mpMap;
 	SSizeVec2					msCelSize;

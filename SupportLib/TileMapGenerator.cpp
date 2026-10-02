@@ -16,7 +16,7 @@ void CTileMapGenerator::Init(void)
 	meszSourceNames.Init();
 	macTileCelTypes.Init();
 	maTileGridSources.Init();
-	macTileColourSources.Init();
+	mllcTileColourSources.Init();
 	maTileCelGenerators.Init();
 	mpMap = OMalloc<CTileMap>();
 	msCelSize.Init(0, 0);
@@ -53,13 +53,13 @@ void CTileMapGenerator::Free(void)
 	}
 	macTileCelTypes.Kill();
 
-	iNumElements = macTileColourSources.NumElements();
-	for (i = 0; i < iNumElements; i++)
+	pcSource = mllcTileColourSources.GetHead();
+	while (pcSource)
 	{
-		pcSource = macTileColourSources.Get(i);
 		pcSource->Kill();
+		pcSource = mllcTileColourSources.GetNext(pcSource);
 	}
-	macTileColourSources.Kill();
+	mllcTileColourSources.Kill();
 	
 	meszPatternNames.Kill();
 	meszSourceNames.Kill();
@@ -78,7 +78,7 @@ void CTileMapGenerator::Class(void)
 	U_Data(CEnumeratorVoid, meszSourceNames);
 	U_Data(CArrayTileCelType, macTileCelTypes);
 	M_Embedded(maTileGridSources);
-	U_Data(CArrayTileColourSource, macTileColourSources);
+	U_Data(CLinkedListTileColourSource, mllcTileColourSources);
 	M_Embedded(maTileCelGenerators);
 	M_Pointer(mpMap);
 	U_Data(SSizeVec2, msCelSize);
@@ -550,7 +550,7 @@ CTileColourSource* CTileMapGenerator::AddColourSource(uint8 iRed, uint8 iGreen, 
 {
 	CTileColourSource*	pcSource;
 
-	pcSource = macTileColourSources.Add();
+	pcSource = mllcTileColourSources.InsertAfterTail();
 	if (pcSource)
 	{
 		pcSource->Init(iRed, iGreen, iBlue);
