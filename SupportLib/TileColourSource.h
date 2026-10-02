@@ -2,6 +2,7 @@
 #define __TILE_COLOUR_SOURCE_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/LinkedListTemplate.h"
 #include "ColourARGB32.h"
 
 
@@ -20,7 +21,8 @@ public:
 };
 
 
-typedef CArrayTemplate<CTileColourSource>	CArrayTileColourSource;
+typedef CArrayTemplate<CTileColourSource>		CArrayTileColourSource;
+typedef CLinkedListTemplate<CTileColourSource>	CLinkedListTileColourSource;
 
 
 #endif // __TILE_COLOUR_SOURCE_H__
