@@ -885,6 +885,54 @@ bool CArrayChars::Split(char* szString, char cSplitter)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size CArrayChars::GetLongestChars(void)
+{
+	size		i;
+	CChars*		psz;
+	size		uiElements;
+	size		uiLength;
+	size		uiLongest;
+
+	uiLongest = 0;
+	uiElements = mcArray.NumElements();
+	for (i = 0; i < uiElements; i++)
+	{
+		psz = mcArray.Get(i);
+		uiLength = psz->Length();
+		if (uiLongest < uiLength)
+		{
+			uiLongest = uiLength;
+		}
+	}
+
+	return uiLongest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+char CArrayChars::GetCharAt(size x, size y)
+{
+	CChars* psz;
+	char	c;
+
+	psz = mcArray.SafeGet(y);
+	if (psz)
+	{
+		c = psz->GetChar(x);
+		return c;
+	}
+	return '\0';
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//

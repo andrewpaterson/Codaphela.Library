@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CTileColourSource::Init(uint8 iRed, uint8 iGreen, uint8 iBlue)
 {
-	mARGB = Set32BitColour(iRed, iGreen, iBlue);
+	muiARGB = Set32BitColour(iRed, iGreen, iBlue);
 }
 
 
@@ -26,6 +26,19 @@ void CTileColourSource::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 ARGB32 CTileColourSource::GetColour(void)
 {
-	return mARGB;
+	return muiARGB;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTileColourSource::Matches(void* pvData)
+{
+	ARGB32		uiColour;
+
+	uiColour = *((ARGB32*)pvData);
+	return muiARGB == uiColour;
 }
 

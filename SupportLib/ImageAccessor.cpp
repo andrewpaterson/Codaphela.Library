@@ -140,7 +140,7 @@ void CImageAccessor::Get(int x, int y, void* pvDest)
 //////////////////////////////////////////////////////////////////////////
 bool CImageAccessor::IsValid(int x, int y)
 {
-	if (x >= 0 && y >= 0 && x < miWidth && y < mpcImage->miHeight)
+	if ((x >= 0) && (y >= 0) && (x < miWidth) && (y < mpcImage->miHeight))
 	{
 		return true;
 	}

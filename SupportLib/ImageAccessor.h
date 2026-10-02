@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 //CImageAccessor is a way to access, say the RGB, channels in a consistent manner.
 //It only deals with channels that it knows about, it must not interrogate the image about it's channels contents.
-//eg:  The CImageAccessor cannot answer a question such as: GetOpacity, this is done elsewhere.
+//eg:  The CImageAccessor cannot answer a question such as: GetOpacity, that is done elsewhere.
 class CImage;
 class CImageAccessor : public CUnknown
 {

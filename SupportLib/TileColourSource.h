@@ -8,13 +8,15 @@
 class CTileColourSource
 {
 protected:
-	ARGB32	mARGB;
+	ARGB32	muiARGB;
 
 public:
 	void	Init(uint8 iRed, uint8 iGreen, uint8 iBlue);
 	void	Kill(void);
 
 	ARGB32	GetColour(void);
+
+	bool	Matches(void* pvData);
 };
 
 

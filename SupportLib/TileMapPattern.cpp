@@ -26,6 +26,10 @@ void CTileMapPattern::Init(char* szConstantSource, size iType, char* szConstantN
 	mszConstantName = szConstantName;
 	mszPattern.Init();
 	mszConstantSource = szConstantSource;
+	miBX = ARRAY_ELEMENT_NOT_FOUND;
+	miBY = ARRAY_ELEMENT_NOT_FOUND;
+	miWidth = ARRAY_ELEMENT_NOT_FOUND;
+	miHeight = ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -62,6 +66,7 @@ bool CTileMapPattern::Done(void)
 	size	iIndex;
 	size	iExpected;
 	size	iLastIndex;
+	bool	bFound;
 
 	mszPattern.Replace(" ", "");
 
@@ -87,12 +92,22 @@ bool CTileMapPattern::Done(void)
 		{
 			return gcLogger.Error2(__METHOD__, " Expected every a final new line.", NULL);
 		}
-		return true;
 	}
 	else
 	{
 		return gcLogger.Error2(__METHOD__, " Expected at least one non-zero length line.", NULL);
 	}
+
+	miWidth = mszPattern.Find('\n');
+	miHeight = mszPattern.Length() / (GetWidth() + 1);
+
+	bFound = FindB(&miBX, &miBY);
+	if (!bFound)
+	{
+		return gcLogger.Error2(__METHOD__, " Expected exactly one 'B' character.", NULL);
+	}
+
+	return true;
 }
 
 
@@ -142,7 +157,7 @@ char* CTileMapPattern::GetConstantName(void)
 //////////////////////////////////////////////////////////////////////////
 size CTileMapPattern::GetWidth(void)
 {
-	return mszPattern.Find('\n');
+	return miWidth;
 }
 
 
@@ -152,7 +167,7 @@ size CTileMapPattern::GetWidth(void)
 //////////////////////////////////////////////////////////////////////////
 size CTileMapPattern::GetHeight(void)
 {
-	return mszPattern.Length() / (GetWidth() + 1);
+	return miHeight;
 }
 
 
@@ -170,7 +185,7 @@ char CTileMapPattern::GetChar(size x, size y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileMapPattern::FindBlock(size* px, size* py)
+bool CTileMapPattern::FindB(size* px, size* py)
 {
 	size	iIndex;
 	size	iWidth;
@@ -178,12 +193,42 @@ bool CTileMapPattern::FindBlock(size* px, size* py)
 	iIndex = mszPattern.Find('B');
 	if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
 	{
+		*px = ARRAY_ELEMENT_NOT_FOUND;
+		*py = ARRAY_ELEMENT_NOT_FOUND;
 		return false;
 	}
+
 
 	iWidth = GetWidth();
 	*px = iIndex % (iWidth + 1);
 	*py = iIndex / (iWidth + 1);
+
+	iIndex = mszPattern.Find(iIndex + 1, 'B');
+	if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return false;
+	}
+
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CTileMapPattern::GetBX(void)
+{
+	return miBX;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CTileMapPattern::GetBY(void)
+{
+	return miBY;
 }
 

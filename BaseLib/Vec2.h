@@ -81,6 +81,7 @@ public:
 			void			Maximise(const SVec2<M, N>& v);
 			void			Maximise(SVec2<M, N>* pv);
 			void			Maximise(M x, M y);
+			bool			Contains(M x, M y);
 };
 
 
@@ -447,6 +448,21 @@ void SVec2<M, N>::Maximise(M x, M y)
 	{
 		this->y = y;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N>
+bool SVec2<M, N>::Contains(M x, M y)
+{
+	if ((x >= 0) && (y >= 0) && (x < this->x) && (y < this->y))
+	{
+		return true;
+	}
+	return false;
 }
 
 

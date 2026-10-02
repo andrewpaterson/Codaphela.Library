@@ -78,6 +78,8 @@ public:
 	void		BubbleSort(bool bCaseSensitive = true);
 	void		Shuffle(CRandom* pcRandom = NULL);
 	bool		Split(char* szString, char cSplitter);
+	size		GetLongestChars(void);
+	char		GetCharAt(size x, size y);
 	void		Finalise(void);
 	void		Print(CChars* psz);
 	void		Dump(void);

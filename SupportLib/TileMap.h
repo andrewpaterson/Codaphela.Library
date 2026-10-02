@@ -54,7 +54,7 @@ public:
 
 	Ptr<CTileLayer>		GetTileLayer(int iIdentifier);
 	
-	void	TileMapAbstract(void) override {}
+	void				TileMapAbstract(void) override {}
 };
 
 

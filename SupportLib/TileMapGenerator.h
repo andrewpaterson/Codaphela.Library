@@ -1,11 +1,14 @@
 #ifndef __TILE_MAP_GENERATOR_H__
 #define __TILE_MAP_GENERATOR_H__
+#include "BaseLib/StdRandom.h"
 #include "BaseLib/EnumeratorVoid.h"
 #include "TileCelBrush.h"
 #include "TileMapPattern.h"
 #include "TileCelType.h"
 #include "TileColourSource.h"
 #include "TileGridSource.h"
+#include "TileGridImageSource.h"
+#include "TileGridStringSource.h"
 #include "TileCelGenerator.h"
 #include "TileMap.h"
 
@@ -27,6 +30,7 @@ protected:
 	CArray<CTileCelGenerator>	maTileCelGenerators;
 	Ptr<CTileMap>				mpMap;
 	SSizeVec2					msCelSize;
+	CRandom						mcRandom;
 
 public:
 	void					Init(void);
@@ -36,14 +40,13 @@ public:
 	bool					Load(CObjectReader* pcFile);
 	bool					Save(CObjectWriter* pcFile);
 
-	Ptr<CTileMap>			Generate(void);
-
 	bool					AddTileGenerator(char* szTileGridSource, int iMapLayer, int iCelType, CTileColourSource* pcSource);
 
 	bool					AddPattern(char* szTileGridSource, int iCelType, char* szPatternName, char* szPatternChars);
 	CTileMapPattern*		GetPattern(int iCelType, char* szPatternName);
 
 	bool					AddTileGridSource(char* szSourceName, Ptr<CImage> pSourceImage);
+	bool					AddTileGridSource(char* szSourceName, CArrayChars pszSourceString);
 	Ptr<CTileGridSource>	GetSource(char* szSourceName);
 
 	bool					AddTileBrush(Ptr<CArrayImageCel> pCels, size iCelIndex, int iCelType, char* szPatternName, size iWeight = 1, int mapOffsetX = 0, int mapOffsetY = 0);
@@ -52,15 +55,15 @@ public:
 	bool					AddCelType(char szPatternChar, int iCelType1, int iCelType2);
 	bool					AddNegativeCelType(char szPatternChar, int iCelType);
 	bool					AddNegativeCelType(char szPatternChar, int iCelType1, int iCelType2);
-	CTileCelType*			GetCelType(char szPatternChar);
+
+	CTileCelType*			GetPatternCelType(char szPatternChar);
 
 	CTileColourSource*		AddColourSource(uint8 iRed, uint8 iGreen, uint8 iBlue);
 
 	SSizeVec2				GetMapSize(void);
 	SSizeVec2				GetCelSize(void);
 
-	bool					Generate(void);
-	bool					Generate(int iSeed);
+	Ptr<CTileMap>			Generate(void);
 	Ptr<CTileMap>			GetMap(void);
 
 protected:
@@ -73,15 +76,12 @@ protected:
 	Ptr<CTileLayer>			GetTileLayer(int iIdentifier);
 	Ptr<CTileLayer>			AddTileLayer(CPointer pTileMap, const char* szTileType, int iIdentifier);
 
-	bool					Generate(CRandom* pcRandom);
 	bool					ValidatePatterns(void);
-	bool					GenerateCels(CTileCelGenerator* pcGenerator, CRandom* pcRandom);
-	Ptr<CTileCelBrush>		ChooseBrush(CTileCelGenerator* pcGenerator, CImageAccessor* pcAccessor, int x, int y, CRandom* pcRandom);
-	Ptr<CTileCelBrush>		ChooseBrush(int iCelType, char* szPatternConstantName, CRandom* pcRandom);
-	bool					MatchPattern(CTileMapPattern* pcPattern, CTileCelGenerator* pcGenerator, CImageAccessor* pcAccessor, int x, int y);
-	bool					MatchCelType(CTileCelType* pcCelType, char* szSourceConstantName, CImageAccessor* pcAccessor, int x, int y);
-	bool					HasCelType(char* szSourceConstantName, CImageAccessor* pcAccessor, int x, int y, int iCelType);
-	ARGB32					GetColour(CImageAccessor* pcAccessor, int x, int y);
+	bool					GenerateCels(Ptr<CTileGridSource> pSource);
+	Ptr<CTileCelBrush>		CalculateBrush(Ptr<CTileCelGenerator> pGenerator, int x, int y);
+	Ptr<CTileCelBrush>		ChooseBrush(int iCelType, char* szPatternConstantName);
+	bool					MatchPattern(CTileMapPattern* pcPattern, Ptr<CTileCelGenerator> pGenerator, int x, int y);
+	bool					MatchCelType(CTileCelType* pcCelType, char* szSourceConstantName);
 };
 
 

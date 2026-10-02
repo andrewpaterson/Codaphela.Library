@@ -16,10 +16,10 @@ protected:
 	Ptr<CTileGridSource>	mpTileGridSource;
 	Ptr<CTileLayer>			mpTileLayer;
 	int						miCelType;
-	ARGB32					muiColour;
+	CTileColourSource*		mpcTilePointSource;
 
 public:
-	void					Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLayer> pTileLayer, int iCelType, CTileColourSource* pcSource);
+	void					Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLayer> pTileLayer, int iCelType, CTileColourSource* pcTilePointSource);
 	void					Free(void);
 
 	void					Class(void);
@@ -30,7 +30,9 @@ public:
 	Ptr<CTileGridSource>	GetTileGridSource(void);
 	Ptr<CTileLayer>			GetTileLayer(void);
 	int						GetCelType(void);
-	bool					IsColour(ARGB32 uiColour);
+	CTileColourSource*		GeTileColourSource(void);
+
+	bool					Matches(int x, int y);
 };
 
 

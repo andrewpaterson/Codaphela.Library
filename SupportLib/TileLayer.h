@@ -54,6 +54,7 @@ public:
 			int32	GetLayerSizeY(void);
 
 			bool	IsIdentifier(int iIdentifier);
+			int		GetIdentifier(void);
 
 	virtual	void	SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) =0;
 	virtual	void	SetViewport(Ptr<CImage> pViewport) =0;

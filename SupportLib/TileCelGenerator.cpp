@@ -5,13 +5,13 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileCelGenerator::Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLayer> pTileLayer, int iCelType, CTileColourSource* pcSource)
+void CTileCelGenerator::Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLayer> pTileLayer, int iCelType, CTileColourSource* pcTilePointSource)
 {
 	PreInit();
 	mpTileGridSource = pTileGridSource;
 	mpTileLayer = pTileLayer;
 	miCelType = iCelType;
-	muiColour = pcSource->GetColour();
+	mpcTilePointSource = pcTilePointSource;
 	PostInit();
 }
 
@@ -23,7 +23,6 @@ void CTileCelGenerator::Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLaye
 void CTileCelGenerator::Free(void)
 {
 	miCelType = 0;
-	muiColour = 0;
 }
 
 
@@ -36,7 +35,7 @@ void CTileCelGenerator::Class(void)
 	M_Pointer(mpTileGridSource);
 	M_Pointer(mpTileLayer);
 	U_SInt(miCelType);
-	U_UInt32(muiColour);
+	U_Pointer(mpcTilePointSource);
 }
 
 
@@ -94,8 +93,18 @@ int CTileCelGenerator::GetCelType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileCelGenerator::IsColour(ARGB32 uiColour)
+bool CTileCelGenerator::Matches(int x, int y)
 {
-	return muiColour == uiColour;
+	return mpTileGridSource->Matches(mpcTilePointSource, x, y);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CTileColourSource* CTileCelGenerator::GeTileColourSource(void)
+{
+	return mpcTilePointSource;
 }
 
