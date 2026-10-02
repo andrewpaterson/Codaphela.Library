@@ -769,6 +769,7 @@ bool CTileMapGenerator::GenerateCels(Ptr<CTileGridSource> pSource)
 				{
 					break;
 				}
+				pGenerator = NULL;
 			}
 
 			if (pGenerator.IsNotNull())
@@ -919,26 +920,25 @@ bool CTileMapGenerator::MatchPattern(CTileMapPattern* pcPattern, Ptr<CTileCelGen
 			{
 				continue;
 			}
+			else if (cPatternCharacter == 'P')
+			{
+				if (!HasCelType(szSourceConstantName, iGeneratorCelType, iX, iY))
+				{
+					return false;
+				}
+			}
+			else if (cPatternCharacter == '!')
+			{
+				if (HasCelType(szSourceConstantName, iGeneratorCelType, iX, iY))
+				{
+					return false;
+				}
+			}
 			else
 			{
-				if (cPatternCharacter == 'P')
+				pcCelType = GetPatternCelType(cPatternCharacter);
+				if (!MatchCelType(pcCelType, szSourceConstantName, iX, iY))
 				{
-					int xxx = 0;
-				}
-				else if (cPatternCharacter == '!')
-				{
-					int xxx = 0;
-				}
-				else
-				{
-					pcCelType = GetPatternCelType(cPatternCharacter);
-					if (pcCelType)
-					{
-						if (!MatchCelType(pcCelType, szSourceConstantName))
-						{
-							return false;
-						}
-					}
 					return false;
 				}
 			}
@@ -952,12 +952,11 @@ bool CTileMapGenerator::MatchPattern(CTileMapPattern* pcPattern, Ptr<CTileCelGen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileMapGenerator::MatchCelType(CTileCelType* pcCelType, char* szSourceConstantName)
+bool CTileMapGenerator::MatchCelType(CTileCelType* pcCelType, char* szSourceConstantName, int x, int y)
 {
 	size	i;
 	size	iNumElements;
 	bool	bHasCelType;
-	int		iCelType;
 
 	if (pcCelType == NULL)
 	{
@@ -968,14 +967,39 @@ bool CTileMapGenerator::MatchCelType(CTileCelType* pcCelType, char* szSourceCons
 	iNumElements = pcCelType->NumCelTypes();
 	for (i = 0; i < iNumElements; i++)
 	{
-		bHasCelType = true;
-		iCelType = pcCelType->GetCelType(i);
-		//bHasCelType = HasCelType(szSourceConstantName, pGenerator, x, y, pcCelType->GetCelType(i));
+		bHasCelType = HasCelType(szSourceConstantName, pcCelType->GetCelType(i), x, y);
 		if (bHasCelType)
 		{
 			return !pcCelType->IsNegative();
 		}
 	}
 	return pcCelType->IsNegative();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTileMapGenerator::HasCelType(char* szSourceConstantName, int iCelType, int x, int y)
+{
+	size					i;
+	size					iNumElements;
+	Ptr<CTileCelGenerator>	pGenerator;
+
+	//A cel has a cel type if any generator of that cel type for the same source matches it.  Cels outside the source have no cel type.
+	iNumElements = maTileCelGenerators.NumElements();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pGenerator = maTileCelGenerators.Get(i);
+		if ((pGenerator->GetCelType() == iCelType) && pGenerator->GetTileGridSource()->IsNamed(szSourceConstantName))
+		{
+			if (pGenerator->Matches(x, y))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
