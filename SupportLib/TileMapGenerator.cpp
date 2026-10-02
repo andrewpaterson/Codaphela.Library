@@ -737,52 +737,50 @@ bool CTileMapGenerator::ValidatePatterns(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTileMapGenerator::GenerateCels(Ptr<CTileGridSource> pSource)
 {
-	Ptr<CTileLayerCel>	pCelLayer;
-	Ptr<CTileCelBrush>	pBrush;
-	int					x;
-	int					y;
-	int					iWidth;
-	int					iHeight;
-	bool				bResult;
-	SSizeVec2			sSize;
+	Ptr<CTileLayerCel>		pCelLayer;
+	Ptr<CTileCelBrush>		pBrush;
+	Ptr<CTileCelGenerator>	pGenerator;
+	int						x;
+	int						y;
+	int						iWidth;
+	int						iHeight;
+	size					iNumGenerators;
+	size					i;
+	bool					bMatches;
+	bool					bResult;
+	SSizeVec2				sSize;
 
 	sSize = pSource->GetSize();
 	iWidth = sSize.x;
 	iHeight = sSize.y;
 
+	//Every generator for this source that matches a cel writes a tile to its own layer.
+	iNumGenerators = maTileCelGenerators.NumElements();
 	for (y = 0; y < iHeight; y++)
 	{
 		for (x = 0; x < iWidth; x++)
 		{
-			Ptr<CTileCelGenerator>	pGenerator;
-			size					iNumGenerators;
-			size					i;
-			bool					bMatches;
-
-			pGenerator = NULL;
-			iNumGenerators = maTileCelGenerators.NumElements();
 			for (i = 0; i < iNumGenerators; i++)
 			{
 				pGenerator = maTileCelGenerators.Get(i);
+				if (!pGenerator->GetTileGridSource()->IsNamed(pSource->GetConstantName()))
+				{
+					continue;
+				}
+
 				bMatches = pGenerator->Matches(x, y);
 				if (bMatches)
 				{
-					break;
-				}
-				pGenerator = NULL;
-			}
-
-			if (pGenerator.IsNotNull())
-			{
-				pBrush = CalculateBrush(pGenerator, x, y);
-				if (pBrush.IsNotNull())
-				{
-					pCelLayer = pGenerator->GetTileLayer();
-
-					bResult = pCelLayer->SetTile(x, y, pBrush->GetCel());
-					if (!bResult)
+					pBrush = CalculateBrush(pGenerator, x, y);
+					if (pBrush.IsNotNull())
 					{
-						return false;
+						pCelLayer = pGenerator->GetTileLayer();
+
+						bResult = pCelLayer->SetTile(x, y, pBrush->GetCel());
+						if (!bResult)
+						{
+							return false;
+						}
 					}
 				}
 			}
