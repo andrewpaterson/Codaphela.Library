@@ -1,17 +1,23 @@
-#include "TileCelGenerator.h"
+#include "TileColourSource.h"
+#include "TileGridStringSource.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileCelGenerator::Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLayer> pTileLayer, int iCelType, CTileColourSource* pcTilePointSource)
+void CTileGridStringSource::Init(char* szConstantName, CArrayChars aszStrings)
 {
+	size		iWidth;
+
 	PreInit();
-	mpTileGridSource = pTileGridSource;
-	mpTileLayer = pTileLayer;
-	miCelType = iCelType;
-	mpcTilePointSource = pcTilePointSource;
+
+	CTileGridSource::Init(szConstantName);
+	maszStrings.Init(&aszStrings);
+
+	iWidth = maszStrings.GetLongestChars();
+	msSize.Init(iWidth, maszStrings.NumElements());
+
 	PostInit();
 }
 
@@ -20,9 +26,11 @@ void CTileCelGenerator::Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLaye
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileCelGenerator::Free(void)
+void CTileGridStringSource::Free(void)
 {
-	miCelType = 0;
+	msSize.Init(0, 0);
+	maszStrings.Kill();
+	CTileGridSource::Free();
 }
 
 
@@ -30,12 +38,11 @@ void CTileCelGenerator::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileCelGenerator::Class(void)
+void CTileGridStringSource::Class(void)
 {
-	M_Pointer(mpTileGridSource);
-	M_Pointer(mpTileLayer);
-	U_SInt(miCelType);
-	U_Pointer(mpcTilePointSource);
+	CTileGridSource::Class();
+	U_Data(CArrayChars, maszStrings);
+	U_Data(SSizeVec2, msSize);
 }
 
 
@@ -43,7 +50,7 @@ void CTileCelGenerator::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileCelGenerator::Load(CObjectReader* pcFile)
+bool CTileGridStringSource::Load(CObjectReader* pcFile)
 {
 	return false;
 }
@@ -53,7 +60,7 @@ bool CTileCelGenerator::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileCelGenerator::Save(CObjectWriter* pcFile)
+bool CTileGridStringSource::Save(CObjectWriter* pcFile)
 {
 	return false;
 }
@@ -63,9 +70,9 @@ bool CTileCelGenerator::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CTileGridSource> CTileCelGenerator::GetTileGridSource(void)
+CArrayChars* CTileGridStringSource::GetStrings(void)
 {
-	return mpTileGridSource;
+	return &maszStrings;
 }
 
 
@@ -73,9 +80,9 @@ Ptr<CTileGridSource> CTileCelGenerator::GetTileGridSource(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CTileLayer> CTileCelGenerator::GetTileLayer(void)
+SSizeVec2 CTileGridStringSource::GetSize(void)
 {
-	return mpTileLayer;
+	return msSize;
 }
 
 
@@ -83,9 +90,9 @@ Ptr<CTileLayer> CTileCelGenerator::GetTileLayer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CTileCelGenerator::GetCelType(void)
+bool CTileGridStringSource::StartGeneration(void)
 {
-	return miCelType;
+	return true;
 }
 
 
@@ -93,9 +100,8 @@ int CTileCelGenerator::GetCelType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileCelGenerator::Matches(int x, int y)
+void CTileGridStringSource::StopGeneration(void)
 {
-	return mpTileGridSource->Matches(mpcTilePointSource, x, y);
 }
 
 
@@ -103,8 +109,17 @@ bool CTileCelGenerator::Matches(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTileColourSource* CTileCelGenerator::GeTileColourSource(void)
+bool CTileGridStringSource::Matches(CTileColourSource* pcTilePointSource, int x, int y)
 {
-	return mpcTilePointSource;
+	char c;
+
+	if (!msSize.Contains(x, y))
+	{
+		return false;
+	}
+
+	c = maszStrings.GetCharAt(x, y);
+	
+	return pcTilePointSource->Matches(&c);
 }
 

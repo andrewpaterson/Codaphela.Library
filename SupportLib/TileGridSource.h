@@ -2,30 +2,33 @@
 #define __TILE_GRID_SOURCE_H__
 #include "BaseLib/SizeVec2.h"
 #include "BaseLib/Chars.h"
-#include "Image.h"
+#include "StandardLib/Object.h"
 
 
+class CTileColourSource;
 class CTileGridSource : public CObject
 {
 CONSTRUCTABLE(CTileGridSource);
 DESTRUCTABLE(CTileGridSource);
 protected:
 	char*			mszConstantName;
-	Ptr<CImage>		mpImage;
 
 public:
-	void		Init(char* szConstantName, Ptr<CImage> pImage);
-	void		Free(void);
-	void		Class(void);
+			void		Init(char* szConstantName);
+			void		Free(void);
+			void		Class(void);
 
-	bool		Load(CObjectReader* pcFile);
-	bool		Save(CObjectWriter* pcFile);
+			bool		Load(CObjectReader* pcFile);
+			bool		Save(CObjectWriter* pcFile);
 
-	bool		IsNamed(char* szConstantName);
-	char*		GetConstantName(void);
+	virtual	bool		StartGeneration(void) =0;
+	virtual	void		StopGeneration(void) =0;
 
-	SSizeVec2	GetSize(void);
-	Ptr<CImage>	GetImage(void);
+			bool		IsNamed(char* szConstantName);
+			char*		GetConstantName(void);
+
+	virtual	SSizeVec2	GetSize(void) =0;
+	virtual	bool		Matches(CTileColourSource* pcTilePointSource, int x, int y) =0;
 };
 
 

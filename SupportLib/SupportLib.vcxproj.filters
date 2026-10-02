@@ -822,6 +822,12 @@
     <ClInclude Include="TileCelGenerator.h">
       <Filter>Source\Map\Generator</Filter>
     </ClInclude>
+    <ClInclude Include="TileGridImageSource.h">
+      <Filter>Source\Map\Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="TileGridStringSource.h">
+      <Filter>Source\Map\Generator</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1386,6 +1392,12 @@
       <Filter>Source\Map\Generator</Filter>
     </ClCompile>
     <ClCompile Include="TileCelGenerator.cpp">
+      <Filter>Source\Map\Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="TileGridStringSource.cpp">
+      <Filter>Source\Map\Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="TileGridImageSource.cpp">
       <Filter>Source\Map\Generator</Filter>
     </ClCompile>
   </ItemGroup>

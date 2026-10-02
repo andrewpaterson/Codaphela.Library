@@ -10,6 +10,10 @@ protected:
 	char*	mszConstantName;
 	char*	mszConstantSource;
 	CChars	mszPattern;
+	size	miBX;
+	size	miBY;
+	size	miWidth;
+	size	miHeight;
 
 public:
 	bool	Init(char* szConstantSource, size iType, char* szConstantName, char* szPattern);
@@ -26,8 +30,12 @@ public:
 	char*	GetConstantName(void);
 	size	GetWidth(void);
 	size	GetHeight(void);
+	size	GetBX(void);
+	size	GetBY(void);
 	char	GetChar(size x, size y);
-	bool	FindBlock(size* px, size* py);
+
+protected:
+	bool	FindB(size* px, size* py);
 };
 
 

@@ -40,6 +40,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 struct SImageChangingDesc
 {
+	//These should be size
 	int	iWidth;
 	int	iHeight;
 };
@@ -54,6 +55,7 @@ CONSTRUCTABLE(CImage);
 DESTRUCTABLE(CImage);
 public:
 	CChannels				mcChannels;
+	//These should be size
 	int						miWidth;
 	int						miHeight;
 	SImageChangingDesc*		mpsImageChangingDesc;

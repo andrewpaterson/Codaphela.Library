@@ -1,3 +1,4 @@
+#include "TileColourSource.h"
 #include "TileGridSource.h"
 
 
@@ -5,11 +6,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileGridSource::Init(char* szConstantName, Ptr<CImage> pImage)
+void CTileGridSource::Init(char* szConstantName)
 {
 	PreInit();
 	mszConstantName = szConstantName;
-	mpImage = pImage;
 	PostInit();
 }
 
@@ -31,7 +31,6 @@ void CTileGridSource::Free(void)
 void CTileGridSource::Class(void)
 {
 	U_Pointer(mszConstantName);
-	M_Pointer(mpImage);
 }
 
 
@@ -72,25 +71,5 @@ bool CTileGridSource::IsNamed(char* szConstantName)
 char* CTileGridSource::GetConstantName(void)
 {
 	return mszConstantName;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SSizeVec2 CTileGridSource::GetSize(void)
-{
-	return mpImage->GetDimension();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CTileGridSource::GetImage(void)
-{
-	return mpImage;
 }
 

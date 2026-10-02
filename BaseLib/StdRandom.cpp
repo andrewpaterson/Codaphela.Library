@@ -21,7 +21,7 @@ void CRandom::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRandom::Init(int iSeed)
+void CRandom::Init(uint iSeed)
 {
 	mcRNG.seed(iSeed);
 }

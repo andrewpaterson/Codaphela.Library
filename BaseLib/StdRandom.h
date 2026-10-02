@@ -1,6 +1,7 @@
 #ifndef __STD_RANDOM_H__
 #define __STD_RANDOM_H__
 #include <random>
+#include "PrimitiveTypes.h"
 
 
 class CRandom
@@ -10,7 +11,7 @@ private:
 
 public:
 	void	Init(void);
-	void	Init(int iSeed);
+	void	Init(uint iSeed);
 	void	Kill(void);
 		
 	int		Next(int iMin, int iMaxInclusive);
