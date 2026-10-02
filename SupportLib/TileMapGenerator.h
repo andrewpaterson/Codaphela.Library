@@ -81,7 +81,8 @@ protected:
 	Ptr<CTileCelBrush>		CalculateBrush(Ptr<CTileCelGenerator> pGenerator, int x, int y);
 	Ptr<CTileCelBrush>		ChooseBrush(int iCelType, char* szPatternConstantName);
 	bool					MatchPattern(CTileMapPattern* pcPattern, Ptr<CTileCelGenerator> pGenerator, int x, int y);
-	bool					MatchCelType(CTileCelType* pcCelType, char* szSourceConstantName);
+	bool					MatchCelType(CTileCelType* pcCelType, char* szSourceConstantName, int x, int y);
+	bool					HasCelType(char* szSourceConstantName, int iCelType, int x, int y);
 };
 
 
