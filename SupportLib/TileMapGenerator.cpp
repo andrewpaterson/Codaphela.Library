@@ -769,6 +769,7 @@ bool CTileMapGenerator::GenerateCels(Ptr<CTileGridSource> pSource)
 				}
 
 				bMatches = pGenerator->Matches(x, y);
+				gcLogger.Info2("TILEMAP DEBUG: [", IntToString(x), ",", IntToString(y), "] generator cel type [", IntToString(pGenerator->GetCelType()), "] layer [", IntToString(pGenerator->GetTileLayer()->GetIdentifier()), "] matches [", bMatches ? "true" : "false", "]\n", NULL);  //TILEMAP DEBUG
 				if (bMatches)
 				{
 					pBrush = CalculateBrush(pGenerator, x, y);
@@ -816,6 +817,7 @@ Ptr<CTileCelBrush> CTileMapGenerator::CalculateBrush(Ptr<CTileCelGenerator> pGen
 			if (MatchPattern(pcPattern, pGenerator, x, y))
 			{
 				pBrush = ChooseBrush(iCelType, pcPattern->GetConstantName());
+				gcLogger.Info2("TILEMAP DEBUG:     pattern [", pcPattern->GetConstantName(), "] matched, brush [", pBrush.IsNotNull() ? "found" : "missing", "]\n", NULL);  //TILEMAP DEBUG
 				if (pBrush.IsNotNull())
 				{
 					return pBrush;
@@ -823,6 +825,7 @@ Ptr<CTileCelBrush> CTileMapGenerator::CalculateBrush(Ptr<CTileCelGenerator> pGen
 			}
 		}
 	}
+	gcLogger.Info2("TILEMAP DEBUG:     no pattern matched\n", NULL);  //TILEMAP DEBUG
 	return NULL;
 }
 
@@ -893,6 +896,7 @@ bool CTileMapGenerator::MatchPattern(CTileMapPattern* pcPattern, Ptr<CTileCelGen
 	int						iMapLayer;
 	char*					szSourceConstantName;
 	CTileCelType*			pcCelType;
+	SSizeVec2				sSourceSize;
 
 	iBlockX = pcPattern->GetBX();
 	iBlockY = pcPattern->GetBY();
@@ -902,6 +906,7 @@ bool CTileMapGenerator::MatchPattern(CTileMapPattern* pcPattern, Ptr<CTileCelGen
 	pTileLayer = pGenerator->GetTileLayer();
 	szSourceConstantName = pTileGridSource->GetConstantName();
 	iMapLayer = pTileLayer->GetIdentifier();
+	sSourceSize = pTileGridSource->GetSize();
 
 	iWidth = pcPattern->GetWidth();
 	iHeight = pcPattern->GetHeight();
@@ -913,6 +918,11 @@ bool CTileMapGenerator::MatchPattern(CTileMapPattern* pcPattern, Ptr<CTileCelGen
 			iX = x + (int)px - (int)iBlockX;
 			iY = y + (int)py - (int)iBlockY;
 
+			//Cels outside the source match any pattern character.
+			if ((iX < 0) || (iY < 0) || (iX >= (int)sSourceSize.x) || (iY >= (int)sSourceSize.y))
+			{
+				continue;
+			}
 
 			if ((cPatternCharacter == 'B') || (cPatternCharacter == '.'))
 			{
@@ -985,7 +995,7 @@ bool CTileMapGenerator::HasCelType(char* szSourceConstantName, int iCelType, int
 	size					iNumElements;
 	Ptr<CTileCelGenerator>	pGenerator;
 
-	//A cel has a cel type if any generator of that cel type for the same source matches it.  Cels outside the source have no cel type.
+	//A cel has a cel type if any generator of that cel type for the same source matches it.
 	iNumElements = maTileCelGenerators.NumElements();
 	for (i = 0; i < iNumElements; i++)
 	{
