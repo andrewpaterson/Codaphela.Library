@@ -17,6 +17,7 @@ class CWindow;
 class CWindowTick : public CObject
 {
 CONSTRUCTABLE(CWindowTick);
+DESTRUCTABLE(CWindowTick);
 protected:
 public:
 			void	Init(void);

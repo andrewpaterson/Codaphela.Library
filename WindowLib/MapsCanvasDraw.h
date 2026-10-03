@@ -19,7 +19,7 @@ public:
 			bool	Save(CObjectWriter* pcFile) override;
 			bool	Load(CObjectReader* pcFile) override;
 
-	virtual bool	Draw(Ptr<CCanvas> pCanvas) =0;
+			bool	Draw(Ptr<CCanvas> pCanvas) override;
 };
 
 
