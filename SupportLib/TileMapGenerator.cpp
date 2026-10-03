@@ -9,6 +9,16 @@
 //////////////////////////////////////////////////////////////////////////
 void CTileMapGenerator::Init(void)
 {
+	Init(NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTileMapGenerator::Init(CRandom* pcRandom)
+{
 	PreInit();
 	macTileMapPatterns.Init();
 	maTileCelBrushes.Init();
@@ -20,7 +30,15 @@ void CTileMapGenerator::Init(void)
 	maTileCelGenerators.Init();
 	mpMap = OMalloc<CTileMap>();
 	msCelSize.Init(0, 0);
-	mcRandom.Init();
+	if (pcRandom)
+	{
+		mpcRandom = pcRandom;
+	}
+	else
+	{
+		mcRandom.Init();
+		mpcRandom = NULL;
+	}
 	PostInit();
 }
 
@@ -36,6 +54,15 @@ void CTileMapGenerator::Free(void)
 	CTileMapPattern*	pcPattern;
 	CTileCelType*		pcCelType;
 	CTileColourSource*	pcSource;
+
+	if (mpcRandom)
+	{
+		mpcRandom = NULL;
+	}
+	else
+	{
+		mcRandom.Kill();
+	}
 
 	iNumElements = macTileMapPatterns.NumElements();
 	for (i = 0; i < iNumElements; i++)
@@ -82,6 +109,8 @@ void CTileMapGenerator::Class(void)
 	M_Embedded(maTileCelGenerators);
 	M_Pointer(mpMap);
 	U_Data(SSizeVec2, msCelSize);
+	U_Data(CRandom, mcRandom);
+	U_Pointer(mpcRandom);
 }
 
 
@@ -737,52 +766,75 @@ bool CTileMapGenerator::ValidatePatterns(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTileMapGenerator::GenerateCels(Ptr<CTileGridSource> pSource)
 {
-	Ptr<CTileLayerCel>		pCelLayer;
-	Ptr<CTileCelBrush>		pBrush;
-	Ptr<CTileCelGenerator>	pGenerator;
 	int						x;
 	int						y;
 	int						iWidth;
 	int						iHeight;
+	bool					bResult;
+	SSizeVec2				sSize;
+	char*					szSourceConstantName;
+
+	sSize = pSource->GetSize();
+	iWidth = sSize.x;
+	iHeight = sSize.y;
+	szSourceConstantName = pSource->GetConstantName();
+
+	//Every generator for this source that matches a cel writes a tile to its own layer.
+
+	for (y = 0; y < iHeight; y++)
+	{
+		for (x = 0; x < iWidth; x++)
+		{
+			bResult = GenerateCels(szSourceConstantName, x, y);
+			if (!bResult)
+			{
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTileMapGenerator::GenerateCels(char* szConstantSouceName, size x, size y)
+{
+	Ptr<CTileLayerCel>		pCelLayer;
+	Ptr<CTileCelBrush>		pBrush;
+	Ptr<CTileCelGenerator>	pGenerator;
 	size					iNumGenerators;
 	size					i;
 	bool					bMatches;
 	bool					bResult;
 	SSizeVec2				sSize;
 
-	sSize = pSource->GetSize();
-	iWidth = sSize.x;
-	iHeight = sSize.y;
-
 	//Every generator for this source that matches a cel writes a tile to its own layer.
 	iNumGenerators = maTileCelGenerators.NumElements();
-	for (y = 0; y < iHeight; y++)
+
+	for (i = 0; i < iNumGenerators; i++)
 	{
-		for (x = 0; x < iWidth; x++)
+		pGenerator = maTileCelGenerators.Get(i);
+		if (!pGenerator->GetTileGridSource()->IsNamed(szConstantSouceName))
 		{
-			for (i = 0; i < iNumGenerators; i++)
+			continue;
+		}
+
+		bMatches = pGenerator->Matches(x, y);
+		if (bMatches)
+		{
+			pBrush = CalculateBrush(pGenerator, x, y);
+			if (pBrush.IsNotNull())
 			{
-				pGenerator = maTileCelGenerators.Get(i);
-				if (!pGenerator->GetTileGridSource()->IsNamed(pSource->GetConstantName()))
-				{
-					continue;
-				}
+				pCelLayer = pGenerator->GetTileLayer();
 
-				bMatches = pGenerator->Matches(x, y);
-				gcLogger.Info2("TILEMAP DEBUG: [", IntToString(x), ",", IntToString(y), "] generator cel type [", IntToString(pGenerator->GetCelType()), "] layer [", IntToString(pGenerator->GetTileLayer()->GetIdentifier()), "] matches [", bMatches ? "true" : "false", "]\n", NULL);  //TILEMAP DEBUG
-				if (bMatches)
+				bResult = pCelLayer->SetTile(x, y, pBrush->GetCel());
+				if (!bResult)
 				{
-					pBrush = CalculateBrush(pGenerator, x, y);
-					if (pBrush.IsNotNull())
-					{
-						pCelLayer = pGenerator->GetTileLayer();
-
-						bResult = pCelLayer->SetTile(x, y, pBrush->GetCel());
-						if (!bResult)
-						{
-							return false;
-						}
-					}
+					return false;
 				}
 			}
 		}
@@ -817,7 +869,6 @@ Ptr<CTileCelBrush> CTileMapGenerator::CalculateBrush(Ptr<CTileCelGenerator> pGen
 			if (MatchPattern(pcPattern, pGenerator, x, y))
 			{
 				pBrush = ChooseBrush(iCelType, pcPattern->GetConstantName());
-				gcLogger.Info2("TILEMAP DEBUG:     pattern [", pcPattern->GetConstantName(), "] matched, brush [", pBrush.IsNotNull() ? "found" : "missing", "]\n", NULL);  //TILEMAP DEBUG
 				if (pBrush.IsNotNull())
 				{
 					return pBrush;
@@ -825,7 +876,6 @@ Ptr<CTileCelBrush> CTileMapGenerator::CalculateBrush(Ptr<CTileCelGenerator> pGen
 			}
 		}
 	}
-	gcLogger.Info2("TILEMAP DEBUG:     no pattern matched\n", NULL);  //TILEMAP DEBUG
 	return NULL;
 }
 
@@ -858,7 +908,7 @@ Ptr<CTileCelBrush> CTileMapGenerator::ChooseBrush(int iCelType, char* szPatternC
 		return NULL;
 	}
 
-	iChoice = (size)mcRandom.Next(0, iTotalWeight - 1);
+	iChoice = (size)GetRandom()->Next(0, iTotalWeight - 1);
 	for (i = 0; i < iNumElements; i++)
 	{
 		pBrush = maTileCelBrushes.Get(i);
@@ -1009,5 +1059,22 @@ bool CTileMapGenerator::HasCelType(char* szSourceConstantName, int iCelType, int
 		}
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CRandom* CTileMapGenerator::GetRandom(void)
+{
+	if (mpcRandom)
+	{
+		return mpcRandom;
+	}
+	else
+	{
+		return &mcRandom;
+	}
 }
 

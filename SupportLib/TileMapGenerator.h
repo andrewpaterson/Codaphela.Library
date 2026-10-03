@@ -30,10 +30,13 @@ protected:
 	CArray<CTileCelGenerator>	maTileCelGenerators;
 	Ptr<CTileMap>				mpMap;
 	SSizeVec2					msCelSize;
+
 	CRandom						mcRandom;
+	CRandom*					mpcRandom;
 
 public:
 	void					Init(void);
+	void					Init(CRandom* pcRandom);
 	void					Free(void);
 	void					Class(void);
 
@@ -67,6 +70,9 @@ public:
 	Ptr<CTileMap>			GetMap(void);
 
 protected:
+	bool					GenerateCels(Ptr<CTileGridSource> pSource);
+	bool					GenerateCels(char* szConstantSouceName, size x, size y);
+
 	char*					AddPatternConstantName(char* szPatternName);
 	CTileMapPattern*		GetPatternConstantName(int iCelType, char* szPatternConstantName);
 
@@ -76,8 +82,9 @@ protected:
 	Ptr<CTileLayer>			GetTileLayer(int iIdentifier);
 	Ptr<CTileLayer>			AddTileLayer(CPointer pTileMap, const char* szTileType, int iIdentifier);
 
+	CRandom*				GetRandom(void);
+
 	bool					ValidatePatterns(void);
-	bool					GenerateCels(Ptr<CTileGridSource> pSource);
 	Ptr<CTileCelBrush>		CalculateBrush(Ptr<CTileCelGenerator> pGenerator, int x, int y);
 	Ptr<CTileCelBrush>		ChooseBrush(int iCelType, char* szPatternConstantName);
 	bool					MatchPattern(CTileMapPattern* pcPattern, Ptr<CTileCelGenerator> pGenerator, int x, int y);
