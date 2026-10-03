@@ -36,9 +36,12 @@ ARGB32 CTileColourSource::GetColour(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTileColourSource::Matches(void* pvData)
 {
-	ARGB32		uiColour;
+	uint8*		puiPixel;
 
-	uiColour = *((ARGB32*)pvData);
-	return muiARGB == uiColour;
+	//pvData points to 3 bytes of RGB.  Reading 4 bytes would read past the end of the image for the last pixel.
+	puiPixel = (uint8*)pvData;
+	return (puiPixel[0] == Get8BitRedColour(muiARGB)) &&
+		   (puiPixel[1] == Get8BitGreenColour(muiARGB)) &&
+		   (puiPixel[2] == Get8BitBlueColour(muiARGB));
 }
 
