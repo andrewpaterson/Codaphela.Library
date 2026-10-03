@@ -101,6 +101,7 @@ public:
 	void					Copy(Ptr<CImage> pcSource);
 	void					CopyIntoInitialised(Ptr<CImage> pcSource);
 	void					Clear(void);
+	void					White(void);
 
 	void					SetData(void* pvData);
 	void*					GetData(void);

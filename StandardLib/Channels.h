@@ -96,6 +96,7 @@ public:
 	void					Copy(CChannels* pcData);
 	void					CopyIntoInitialised(CChannels* pcSource);
 	void					Clear(void);
+	void					White(void);
 	void					Dump(size iLineLength);
 
 	char*					GetData(void);

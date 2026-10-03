@@ -743,11 +743,8 @@ bool CTileMapGenerator::ValidatePatterns(void)
 			for (x = 0; x < iWidth; x++)
 			{
 				c = pcPattern->GetChar(x, y);
-				if ((c != 'B') && 
-					(c != '.') && 
-					(c != 'P') && 
-					(c != '!') && 
-					(GetPatternCelType(c) == NULL))
+
+				if ((c != '.') && (GetPatternCelType(c) == NULL))
 				{
 					szChar[0] = c;
 					szChar[1] = '\0';
@@ -969,12 +966,13 @@ bool CTileMapGenerator::MatchPattern(CTileMapPattern* pcPattern, Ptr<CTileCelGen
 			iY = y + (int)py - (int)iBlockY;
 
 			//Cels outside the source match any pattern character.
-			if ((iX < 0) || (iY < 0) || (iX >= (int)sSourceSize.x) || (iY >= (int)sSourceSize.y))
+			if ((iX < 0) || (iY < 0) || 
+				(iX >= (int)sSourceSize.x) || (iY >= (int)sSourceSize.y))
 			{
 				continue;
 			}
 
-			if ((cPatternCharacter == 'B') || (cPatternCharacter == '.'))
+			if (cPatternCharacter == '.')
 			{
 				continue;
 			}

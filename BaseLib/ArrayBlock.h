@@ -124,6 +124,7 @@ public:
 	bool	SafeSet(size iIndex, void* pvData);
 	void	Swap(size iIndex1, size iIndex2);
 	void 	Zero(void);
+	void 	One(void);
 
 	size 	ByteSize(void);
 	size	ChunkSize(void);
