@@ -33,9 +33,6 @@ public:
 	size	GetBX(void);
 	size	GetBY(void);
 	char	GetChar(size x, size y);
-
-protected:
-	bool	FindB(size* px, size* py);
 };
 
 
