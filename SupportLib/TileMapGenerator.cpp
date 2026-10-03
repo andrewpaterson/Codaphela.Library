@@ -978,20 +978,6 @@ bool CTileMapGenerator::MatchPattern(CTileMapPattern* pcPattern, Ptr<CTileCelGen
 			{
 				continue;
 			}
-			else if (cPatternCharacter == 'P')
-			{
-				if (!HasCelType(szSourceConstantName, iGeneratorCelType, iX, iY))
-				{
-					return false;
-				}
-			}
-			else if (cPatternCharacter == '!')
-			{
-				if (HasCelType(szSourceConstantName, iGeneratorCelType, iX, iY))
-				{
-					return false;
-				}
-			}
 			else
 			{
 				pcCelType = GetPatternCelType(cPatternCharacter);
