@@ -2331,7 +2331,7 @@ void CBaseObject::ValidateFlagSet(uint16 iFlag, char* szFlag)
 {
 	if (!(muiFlags & iFlag))
 	{
-		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should have flag [", szFlag,"] set.", NULL);
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should have flag [", szFlag,"] set (but it is not).", NULL);
 	}
 }
 
@@ -2570,6 +2570,7 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 	CBaseObject*	pcContainer;
 	char*			szName;
 	CBaseObject*	pcThis;
+	OIndex			oi;
 
 	if (IsNamed())
 	{
@@ -2577,25 +2578,51 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 		{
 			pcContainer = GetEmbeddingContainer();
 
-			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have a name as it's embedded in object {", ObjectToString(pcContainer,  false), "}.", NULL);
+			gcLogger.Error2(__METHOD__, " Named Object {", ObjectToString(this), "} should not have a name as it's embedded in object {", ObjectToString(pcContainer,  false), "}.", NULL);
+			return;
 		}
 		else
 		{
 			szName = GetName();
+			if (IsInStack())
+			{
+				gcLogger.Error2(__METHOD__, " Named Object {", ObjectToString(this), "} should not have a name [", szName, "] as it's on the stack.", NULL);
+				return;
+			}
+
 			pcThis = mpcObjectsThisIn->GetFromMemory(szName);
 			if (pcThis != this)
 			{
 				gcLogger.Error2(__METHOD__, " 'this' Object {", ObjectToString(this), "} does not match the Named Object {", ObjectToString(pcThis), "} in Objects.", NULL);
+				return;
 			}
 		}
 	}
 
 	if (!IsEmbedded())
 	{
-		pcThis = mpcObjectsThisIn->GetFromMemory(GetIndex());
-		if (pcThis != this)
+		oi = GetIndex();
+		if (!IsInStack())
 		{
-			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} does not match the Object in Objects.", NULL);
+			if (!IsValidIndex(oi))
+			{
+				gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} must have a valid identifier [", IndexToString(oi), "].", NULL);
+				return;
+			}
+			else
+			{
+				pcThis = mpcObjectsThisIn->GetFromMemory(oi);
+				if (pcThis != this)
+				{
+					gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} does not match the Object in Objects.", NULL);
+					return;
+				}
+			}
+		}
+		else
+		{
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not be on the stack.", NULL);
+			return;
 		}
 	}
 }
