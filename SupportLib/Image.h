@@ -61,14 +61,14 @@ public:
 	SImageChangingDesc*		mpsImageChangingDesc;
 
 public:
-	Ptr<CImage>				Init(void);
-	Ptr<CImage>				Init(int iWidth, int iHeight);
-	Ptr<CImage>				Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...);
-	Ptr<CImage>				Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...);
-	Ptr<CImage>				Init(int iWidth, int iHeight, CImageChannelsSource* pcSource);
-	Ptr<CImage>				Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSource* pcSource);
-	Ptr<CImage>				Init(int iWidth, int iHeight, Ptr<CImage> pcChannelsSource);
-	Ptr<CImage>				Init(Ptr<CImage> pcChannelsSource);  //This only sets up channels and dimensions.  
+	void					Init(void);
+	void					Init(int iWidth, int iHeight);
+	void					Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...);
+	void					Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...);
+	void					Init(int iWidth, int iHeight, CImageChannelsSource* pcSource);
+	void					Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSource* pcSource);
+	void					Init(int iWidth, int iHeight, Ptr<CImage> pcChannelsSource);
+	void					Init(Ptr<CImage> pcChannelsSource);  //This only sets up channels and dimensions.  
 	void					Class(void);
 	void					Free(void);
 
