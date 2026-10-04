@@ -394,7 +394,7 @@ Ptr<CImage> CTileLayerCel::CreateViewportImage(void)
 		return NULL;
 	}
 
-	pDestImage->Clear();
+	pDestImage->Black();
 	return pDestImage;
 }
 

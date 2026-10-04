@@ -495,7 +495,7 @@ void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 	int						iSourceRight;
 	CImageCopier			cCopier;
 
-	mpcDestImage->Clear();
+	mpcDestImage->Black();
 
 	bDestHasOpacity = false;
 	pcOpacityChannel = mpcDestImage->GetChannel(IMAGE_OPACITY);

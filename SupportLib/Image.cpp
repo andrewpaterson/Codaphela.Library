@@ -665,9 +665,9 @@ void CImage::ByteAlignChannels(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Clear(void)
+void CImage::Black(void)
 {
-	mcChannels.Clear();
+	mcChannels.Black();
 }
 
 

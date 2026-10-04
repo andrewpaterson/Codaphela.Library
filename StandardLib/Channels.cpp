@@ -1038,7 +1038,7 @@ bool CChannels::IsIgnored(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::Clear(void)
+void CChannels::Black(void)
 {
 	if (!IsChanging())
 	{

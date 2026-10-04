@@ -44,7 +44,7 @@ void CImageFiller::Init(void* pvBorderColour, CImageAccessor* pcSource, CImage* 
 							IMAGE_MASK, 
 							CHANNEL_STOP);
 
-	mpcDestImage->Clear();
+	mpcDestImage->Black();
 	mpcDestMaskAccessor = CImageAccessorCreator::Create(mpcDestImage, IMAGE_MASK, CHANNEL_STOP);
 }
 
