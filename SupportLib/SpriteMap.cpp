@@ -417,7 +417,7 @@ Ptr<CImage> CSpriteMap::CreateViewportImage(CRectangle* pcBoundingRect)
 	pDestImage = OMalloc<CImage>(uiWidth, uiHeight, PT_uint8, IMAGE_OPACITY, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 	if (pDestImage)
 	{
-		pDestImage->Clear();
+		pDestImage->Black();
 	}
 	return pDestImage;
 }
