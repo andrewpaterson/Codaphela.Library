@@ -37,13 +37,13 @@ struct STypeName
 };
 
 
-typedef CArrayTemplate<STypeName> CArrayTypeNames;
+typedef CArrayTemplate<STypeName> CArrayTypeName;
 
 
 class CTypeNames
 {
 private:
-	CArrayTypeNames		masTypeNames;
+	CArrayTypeName		masTypeNames;
 	CMapStringInt		mmsziPrettyNames;
 	CMapStringInt		mmsziCppNames;
 

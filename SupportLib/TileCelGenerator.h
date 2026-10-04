@@ -30,9 +30,10 @@ public:
 	Ptr<CTileGridSource>	GetTileGridSource(void);
 	Ptr<CTileLayer>			GetTileLayer(void);
 	int						GetCelType(void);
-	CTileCelSource*			GeTileColourSource(void);
+	CTileCelSource*			GetTileColourSource(void);
 
 	bool					Matches(int x, int y);
+	bool					Matches(CTileCelSource* pcSource);
 };
 
 

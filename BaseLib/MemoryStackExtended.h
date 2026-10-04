@@ -27,13 +27,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "StackMark.h"
 
 
-typedef CArrayTemplate<CMemoryStack> CArrayMemoryStacks;
+typedef CArrayTemplate<CMemoryStack> CArrayMemoryStack;
 
 
 class CMemoryStackExtended
 {
 protected:
-	CArrayMemoryStacks	mcStacks;
+	CArrayMemoryStack	mcStacks;
 	size				muiChunkSize;
 	size				muiElements;
 
