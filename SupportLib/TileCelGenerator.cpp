@@ -103,7 +103,17 @@ bool CTileCelGenerator::Matches(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTileCelSource* CTileCelGenerator::GeTileColourSource(void)
+bool CTileCelGenerator::Matches(CTileCelSource* pcSource)
+{
+	return mpcTileCelSource == pcSource;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CTileCelSource* CTileCelGenerator::GetTileColourSource(void)
 {
 	return mpcTileCelSource;
 }

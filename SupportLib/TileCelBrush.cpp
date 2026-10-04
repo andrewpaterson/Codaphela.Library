@@ -8,11 +8,23 @@
 //////////////////////////////////////////////////////////////////////////
 void CTileCelBrush::Init(Ptr<CImageCel> pCel, size iCelType, char* szPatterName, size iWeight)
 {
+	Init(pCel, iCelType, szPatterName, iWeight, NULL, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTileCelBrush::Init(Ptr<CImageCel> pCel, size iCelType, char* szPatterName, size iWeight, CelBrushSelectionCallback fCallback, void* pvCallbackData)
+{
 	PreInit();
 	mpCel = pCel;
 	miCelType = iCelType;
-	mszPatterName = szPatterName;
+	mszPatternName = szPatterName;
 	miWeight = iWeight;
+	mfCallback = fCallback;
+	mpvCallbackData = pvCallbackData;
 	PostInit();
 }
 
@@ -24,7 +36,7 @@ void CTileCelBrush::Init(Ptr<CImageCel> pCel, size iCelType, char* szPatterName,
 void CTileCelBrush::Free(void)
 {
 	miCelType = 0;
-	mszPatterName = NULL;
+	mszPatternName = NULL;
 }
 
 
@@ -36,8 +48,10 @@ void CTileCelBrush::Class(void)
 {
 	M_Pointer(mpCel);
 	U_Size(miCelType);
-	U_Pointer(mszPatterName);
+	U_Pointer(mszPatternName);
 	U_Size(miWeight);
+	U_Pointer(mfCallback);
+	U_Pointer(mpvCallbackData);
 }
 
 
@@ -61,13 +75,48 @@ bool CTileCelBrush::Save(CObjectWriter* pcFile)
 }
 
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTileCelBrush::SetCallback(CelBrushSelectionCallback fCallback, void* pvCallbackData)
+{
+	mfCallback = fCallback;
+	mpvCallbackData = pvCallbackData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTileCelBrush::Callback(size x, size y)
+{
+	if (mfCallback)
+	{
+		mfCallback(this, x, y, mpvCallbackData);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CTileCelBrush::GetPatternName(void)
+{
+	return mszPatternName;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 bool CTileCelBrush::IsFor(size iCelType, char* szPatternConstantName)
 {
-	return (miCelType == iCelType) && (mszPatterName == szPatternConstantName);
+	return (miCelType == iCelType) && (mszPatternName == szPatternConstantName);
 }
 
 

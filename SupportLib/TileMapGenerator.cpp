@@ -109,6 +109,7 @@ void CTileMapGenerator::Class(void)
 	M_Embedded(maTileCelGenerators);
 	M_Pointer(mpMap);
 	U_Data(SSizeVec2, msCelSize);
+	U_Pointer(mpcEdgeSource);
 	U_Data(CRandom, mcRandom);
 	U_Pointer(mpcRandom);
 }
@@ -448,6 +449,16 @@ Ptr<CTileGridSource> CTileMapGenerator::GetSource(char* szTileGridSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CTileMapGenerator::SetEdgeSource(CTileCelSource* pcSource)
+{
+	mpcEdgeSource = pcSource;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CTileMapGenerator::AddCelType(char szPatternChar, int iCelType)
 {
 	CTileCelType*	pcTileCelType;
@@ -698,6 +709,32 @@ Ptr<CTileMap> CTileMapGenerator::GetMap(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+Ptr<CTileCelBrush> CTileMapGenerator::GetTileBrush(int iCelType, char* szPatternName)
+{
+	size				iNumElements;
+	size				i;
+	Ptr<CTileCelBrush>	pBrush;
+	char*				szConstantPatternName;
+
+	szConstantPatternName = meszPatternNames.GetName(szPatternName);
+
+	iNumElements = maTileCelBrushes.NumElements();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pBrush = maTileCelBrushes.Get(i);
+		if (pBrush->IsFor(iCelType, szConstantPatternName))
+		{
+			return pBrush;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 Ptr<CTileMap> CTileMapGenerator::Generate(void)
 {
 	size					i;
@@ -853,6 +890,8 @@ bool CTileMapGenerator::GenerateCels(char* szConstantSouceName, size x, size y)
 				{
 					return false;
 				}
+
+				pBrush->Callback(x, y);
 			}
 		}
 	}
@@ -964,6 +1003,7 @@ bool CTileMapGenerator::MatchPattern(CTileMapPattern* pcPattern, Ptr<CTileCelGen
 	char*					szSourceConstantName;
 	CTileCelType*			pcCelType;
 	SSizeVec2				sSourceSize;
+	bool					bEdge;
 
 	iBlockX = pcPattern->GetBX();
 	iBlockY = pcPattern->GetBY();
@@ -985,21 +1025,17 @@ bool CTileMapGenerator::MatchPattern(CTileMapPattern* pcPattern, Ptr<CTileCelGen
 			iX = x + (int)px - (int)iBlockX;
 			iY = y + (int)py - (int)iBlockY;
 
-			//Cels outside the source match any pattern character.
-			if ((iX < 0) || (iY < 0) || 
-				(iX >= (int)sSourceSize.x) || (iY >= (int)sSourceSize.y))
-			{
-				continue;
-			}
-
 			if (cPatternCharacter == '.')
 			{
 				continue;
 			}
 			else
 			{
+				bEdge = ((iX < 0) || (iY < 0) ||
+					(iX >= (int)sSourceSize.x) || (iY >= (int)sSourceSize.y));
+
 				pcCelType = GetPatternCelType(cPatternCharacter);
-				if (!MatchCelType(pcCelType, szSourceConstantName, iX, iY))
+				if (!MatchCelType(pcCelType, szSourceConstantName, iX, iY, bEdge))
 				{
 					return false;
 				}
@@ -1014,7 +1050,7 @@ bool CTileMapGenerator::MatchPattern(CTileMapPattern* pcPattern, Ptr<CTileCelGen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileMapGenerator::MatchCelType(CTileCelType* pcCelType, char* szSourceConstantName, int x, int y)
+bool CTileMapGenerator::MatchCelType(CTileCelType* pcCelType, char* szSourceConstantName, int x, int y, bool bEdge)
 {
 	size	i;
 	size	iNumElements;
@@ -1029,7 +1065,7 @@ bool CTileMapGenerator::MatchCelType(CTileCelType* pcCelType, char* szSourceCons
 	iNumElements = pcCelType->NumCelTypes();
 	for (i = 0; i < iNumElements; i++)
 	{
-		bHasCelType = HasCelType(szSourceConstantName, pcCelType->GetCelType(i), x, y);
+		bHasCelType = MatchCelType(szSourceConstantName, pcCelType->GetCelType(i), x, y, bEdge);
 		if (bHasCelType)
 		{
 			return !pcCelType->IsNegative();
@@ -1043,7 +1079,7 @@ bool CTileMapGenerator::MatchCelType(CTileCelType* pcCelType, char* szSourceCons
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileMapGenerator::HasCelType(char* szSourceConstantName, int iCelType, int x, int y)
+bool CTileMapGenerator::MatchCelType(char* szSourceConstantName, int iCelType, int x, int y, bool bEdge)
 {
 	size					i;
 	size					iNumElements;
@@ -1056,9 +1092,19 @@ bool CTileMapGenerator::HasCelType(char* szSourceConstantName, int iCelType, int
 		pGenerator = maTileCelGenerators.Get(i);
 		if ((pGenerator->GetCelType() == iCelType) && pGenerator->GetTileGridSource()->IsNamed(szSourceConstantName))
 		{
-			if (pGenerator->Matches(x, y))
+			if (!bEdge)
 			{
-				return true;
+				if (pGenerator->Matches(x, y))
+				{
+					return true;
+				}
+			}
+			else
+			{
+				if (pGenerator->Matches(mpcEdgeSource))
+				{
+					return true;
+				}
 			}
 		}
 	}

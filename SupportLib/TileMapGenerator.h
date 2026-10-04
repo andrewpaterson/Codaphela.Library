@@ -31,6 +31,7 @@ protected:
 	CArray<CTileCelGenerator>	maTileCelGenerators;
 	Ptr<CTileMap>				mpMap;
 	SSizeVec2					msCelSize;
+	CTileCelSource*				mpcEdgeSource;
 
 	CRandom						mcRandom;
 	CRandom*					mpcRandom;
@@ -52,6 +53,7 @@ public:
 	bool					AddTileGridSource(char* szSourceName, Ptr<CImage> pSourceImage);
 	bool					AddTileGridSource(char* szSourceName, CArrayChars* pszSourceString);
 	Ptr<CTileGridSource>	GetSource(char* szSourceName);
+	void					SetEdgeSource(CTileCelSource* pcSource);
 
 	bool					AddTileBrush(Ptr<CArrayImageCel> pCels, size iCelIndex, int iCelType, char* szPatternName, size iWeight = 1, int mapOffsetX = 0, int mapOffsetY = 0);
 
@@ -70,6 +72,7 @@ public:
 
 	Ptr<CTileMap>			Generate(void);
 	Ptr<CTileMap>			GetMap(void);
+	Ptr<CTileCelBrush>		GetTileBrush(int iCelType, char* szPatternName);
 
 protected:
 	bool					GenerateCels(Ptr<CTileGridSource> pSource);
@@ -90,8 +93,8 @@ protected:
 	Ptr<CTileCelBrush>		CalculateBrush(Ptr<CTileCelGenerator> pGenerator, int x, int y);
 	Ptr<CTileCelBrush>		ChooseBrush(int iCelType, char* szPatternConstantName);
 	bool					MatchPattern(CTileMapPattern* pcPattern, Ptr<CTileCelGenerator> pGenerator, int x, int y);
-	bool					MatchCelType(CTileCelType* pcCelType, char* szSourceConstantName, int x, int y);
-	bool					HasCelType(char* szSourceConstantName, int iCelType, int x, int y);
+	bool					MatchCelType(CTileCelType* pcCelType, char* szSourceConstantName, int x, int y, bool bEdge);
+	bool					MatchCelType(char* szSourceConstantName, int iCelType, int x, int y, bool bEdge);
 };
 
 

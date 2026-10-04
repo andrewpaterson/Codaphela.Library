@@ -4,18 +4,25 @@
 #include "ImageCel.h"
 
 
+class CTileCelBrush;
+typedef void (*CelBrushSelectionCallback)(Ptr<CTileCelBrush>, size, size, void*);
+
+
 class CTileCelBrush : public CObject
 {
 CONSTRUCTABLE(CTileCelBrush);
 DESTRUCTABLE(CTileCelBrush);
 protected:
-	Ptr<CImageCel>	mpCel;
-	size			miCelType;
-	char*			mszPatterName;
-	size			miWeight;
+	Ptr<CImageCel>				mpCel;
+	size						miCelType;
+	char*						mszPatternName;
+	size						miWeight;
+	CelBrushSelectionCallback	mfCallback;
+	void*						mpvCallbackData;
 
 public:
 	void				Init(Ptr<CImageCel> pCel, size iCelType, char* szPatterName, size iWeight);
+	void				Init(Ptr<CImageCel> pCel, size iCelType, char* szPatterName, size iWeight, CelBrushSelectionCallback fCallback, void* pvCallbackData);
 	void				Free(void);
 	void				Class(void);
 
@@ -25,6 +32,10 @@ public:
 	bool				IsFor(size iCelType, char* szPatternConstantName);
 	Ptr<CImageCel>		GetCel(void);
 	size				GetWeight(void);
+
+	void				SetCallback(CelBrushSelectionCallback fCallback, void* pvCallbackData);
+	void				Callback(size x, size y);
+	char*				GetPatternName(void);
 };
 
 
