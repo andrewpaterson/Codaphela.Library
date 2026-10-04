@@ -5,7 +5,8 @@
 #include "TileCelBrush.h"
 #include "TileMapPattern.h"
 #include "TileCelType.h"
-#include "TileColourSource.h"
+#include "TileCelColourSource.h"
+#include "TileCelCharSource.h"
 #include "TileGridSource.h"
 #include "TileGridImageSource.h"
 #include "TileGridStringSource.h"
@@ -26,7 +27,7 @@ protected:
 	CEnumeratorVoid				meszSourceNames;
 	CArrayTileCelType			macTileCelTypes;
 	CArray<CTileGridSource>		maTileGridSources;
-	CLinkedListTileColourSource	mllcTileColourSources;	//Linked list so the CTileColourSource pointers held by generators are not moved.
+	CLinkedListBlock			mllcTileSources;
 	CArray<CTileCelGenerator>	maTileCelGenerators;
 	Ptr<CTileMap>				mpMap;
 	SSizeVec2					msCelSize;
@@ -43,13 +44,13 @@ public:
 	bool					Load(CObjectReader* pcFile);
 	bool					Save(CObjectWriter* pcFile);
 
-	bool					AddTileGenerator(char* szTileGridSource, int iMapLayer, int iCelType, CTileColourSource* pcSource);
+	bool					AddTileGenerator(char* szTileGridSource, int iMapLayer, int iCelType, CTileCelSource* pcSource);
 
 	bool					AddPattern(char* szTileGridSource, int iCelType, char* szPatternName, char* szPatternChars);
 	CTileMapPattern*		GetPattern(int iCelType, char* szPatternName);
 
 	bool					AddTileGridSource(char* szSourceName, Ptr<CImage> pSourceImage);
-	bool					AddTileGridSource(char* szSourceName, CArrayChars pszSourceString);
+	bool					AddTileGridSource(char* szSourceName, CArrayChars* pszSourceString);
 	Ptr<CTileGridSource>	GetSource(char* szSourceName);
 
 	bool					AddTileBrush(Ptr<CArrayImageCel> pCels, size iCelIndex, int iCelType, char* szPatternName, size iWeight = 1, int mapOffsetX = 0, int mapOffsetY = 0);
@@ -61,7 +62,8 @@ public:
 
 	CTileCelType*			GetPatternCelType(char szPatternChar);
 
-	CTileColourSource*		AddColourSource(uint8 iRed, uint8 iGreen, uint8 iBlue);
+	CTileCelColourSource*	AddColourSource(uint8 iRed, uint8 iGreen, uint8 iBlue);
+	CTileCelCharSource*		AddCharSource(char c);
 
 	SSizeVec2				GetMapSize(void);
 	SSizeVec2				GetCelSize(void);

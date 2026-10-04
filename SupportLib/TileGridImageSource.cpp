@@ -1,4 +1,4 @@
-#include "TileColourSource.h"
+#include "TileCelColourSource.h"
 #include "ImageAccessorCreator.h"
 #include "TileGridImageSource.h"
 
@@ -128,7 +128,7 @@ ARGB32 CTileGridImageSource::GetColour(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileGridImageSource::Matches(CTileColourSource* pcTilePointSource, int x, int y)
+bool CTileGridImageSource::Matches(CTileCelSource* pcTileCelSource, int x, int y)
 {
 	void*	pvData;
 
@@ -139,6 +139,6 @@ bool CTileGridImageSource::Matches(CTileColourSource* pcTilePointSource, int x, 
 
 	pvData = mpcAccessor->Get(x, y);
 	
-	return pcTilePointSource->Matches(pvData);
+	return pcTileCelSource->Matches(pvData);
 }
 

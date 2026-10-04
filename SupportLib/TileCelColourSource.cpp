@@ -1,11 +1,11 @@
-#include "TileColourSource.h"
+#include "TileCelColourSource.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileColourSource::Init(uint8 iRed, uint8 iGreen, uint8 iBlue)
+void CTileCelColourSource::Init(uint8 iRed, uint8 iGreen, uint8 iBlue)
 {
 	muiARGB = Set32BitColour(iRed, iGreen, iBlue);
 }
@@ -15,7 +15,7 @@ void CTileColourSource::Init(uint8 iRed, uint8 iGreen, uint8 iBlue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileColourSource::Kill(void)
+void CTileCelColourSource::Kill(void)
 {
 }
 
@@ -24,7 +24,23 @@ void CTileColourSource::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ARGB32 CTileColourSource::GetColour(void)
+void CTileCelColourSource::Print(CChars* psz)
+{
+	psz->Append("(");
+	psz->Append(Get8BitRedColour(muiARGB));
+	psz->Append(", ");
+	psz->Append(Get8BitGreenColour(muiARGB));
+	psz->Append(", ");
+	psz->Append(Get8BitBlueColour(muiARGB));
+	psz->Append(")");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+ARGB32 CTileCelColourSource::GetColour(void)
 {
 	return muiARGB;
 }
@@ -34,12 +50,12 @@ ARGB32 CTileColourSource::GetColour(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileColourSource::Matches(void* pvData)
+bool CTileCelColourSource::Matches(void* pvData)
 {
 	uint8*		puiPixel;
 
-	//pvData points to 3 bytes of RGB.  Reading 4 bytes would read past the end of the image for the last pixel.
 	puiPixel = (uint8*)pvData;
+
 	return (puiPixel[0] == Get8BitRedColour(muiARGB)) &&
 		   (puiPixel[1] == Get8BitGreenColour(muiARGB)) &&
 		   (puiPixel[2] == Get8BitBlueColour(muiARGB));

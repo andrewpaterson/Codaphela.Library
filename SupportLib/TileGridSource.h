@@ -5,7 +5,7 @@
 #include "StandardLib/Object.h"
 
 
-class CTileColourSource;
+class CTileCelSource;
 class CTileGridSource : public CObject
 {
 CONSTRUCTABLE(CTileGridSource);
@@ -28,7 +28,7 @@ public:
 			char*		GetConstantName(void);
 
 	virtual	SSizeVec2	GetSize(void) =0;
-	virtual	bool		Matches(CTileColourSource* pcTilePointSource, int x, int y) =0;
+	virtual	bool		Matches(CTileCelSource* pcTileCelSource, int x, int y) =0;
 };
 
 
