@@ -219,6 +219,44 @@ void CImage::Init(int iWidth, int iHeight, Ptr<CImage> pcChannelsSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CImage::Init(int iWidth, int iHeight, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits)
+{
+	PreInit();
+
+	CColourFormatHelper		cHelper;
+	size					iNumChannels;
+	size					i;
+	EChannel				eChannel;
+	EPrimitiveType			eType;
+
+	cHelper.Init(eFormat, eOrder, eColourBits, eAlphaBits);
+
+	PrivateInit();
+
+	iNumChannels = cHelper.GetNumChannels();
+	if (iNumChannels > 0)
+	{
+		BeginChange();
+
+		for (i = 0; i < iNumChannels; i++)
+		{
+			eChannel = cHelper.GetChannel(i);
+			eType = cHelper.GetType(i);
+			AddChannel((size)eChannel, eType);
+		}
+
+		SetSize(iWidth, iHeight);
+		EndChange();
+	}
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CImage::Class(void)
 {
 	M_Embedded(mcChannels);

@@ -30,6 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageChannel.h"
 #include "Rectangle.h"
 #include "ImageColour.h"
+#include "ColourFormat.h"
 
 
 #define IMAGE_DATA_FLAGS_DONT_FREE	1
@@ -68,6 +69,7 @@ public:
 	void					Init(int iWidth, int iHeight, CImageChannelsSource* pcSource);
 	void					Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSource* pcSource);
 	void					Init(int iWidth, int iHeight, Ptr<CImage> pcChannelsSource);
+	void					Init(int iWidth, int iHeight, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
 	void					Init(Ptr<CImage> pcChannelsSource);  //This only sets up channels and dimensions.  
 	void					Class(void);
 	void					Free(void);
