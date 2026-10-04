@@ -188,12 +188,14 @@
     <ClInclude Include="CopyPaste.h" />
     <ClInclude Include="ChannelTypes.h" />
     <ClInclude Include="FontCreationParameters.h" />
+    <ClInclude Include="TileCelSource.h" />
+    <ClInclude Include="TileCelCharSource.h" />
     <ClInclude Include="TileGridImageSource.h" />
     <ClInclude Include="TileGridStringSource.h" />
     <ClInclude Include="TileCelBrush.h" />
     <ClInclude Include="TileCelGenerator.h" />
     <ClInclude Include="TileCelType.h" />
-    <ClInclude Include="TileColourSource.h" />
+    <ClInclude Include="TileCelColourSource.h" />
     <ClInclude Include="TileGridSource.h" />
     <ClInclude Include="TileMapGenerator.h" />
     <ClInclude Include="GlyphListFontDraw.h" />
@@ -395,7 +397,8 @@
     <ClCompile Include="TileCelBrush.cpp" />
     <ClCompile Include="TileCelGenerator.cpp" />
     <ClCompile Include="TileCelType.cpp" />
-    <ClCompile Include="TileColourSource.cpp" />
+    <ClCompile Include="TileCelCharSource.cpp" />
+    <ClCompile Include="TileCelColourSource.cpp" />
     <ClCompile Include="TileGridImageSource.cpp" />
     <ClCompile Include="TileGridSource.cpp" />
     <ClCompile Include="TileGridStringSource.cpp" />

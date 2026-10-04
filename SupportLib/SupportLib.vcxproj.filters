@@ -813,7 +813,7 @@
     <ClInclude Include="TileCelType.h">
       <Filter>Source\Map\Generator</Filter>
     </ClInclude>
-    <ClInclude Include="TileColourSource.h">
+    <ClInclude Include="TileCelColourSource.h">
       <Filter>Source\Map\Generator</Filter>
     </ClInclude>
     <ClInclude Include="TileGridSource.h">
@@ -826,6 +826,12 @@
       <Filter>Source\Map\Generator</Filter>
     </ClInclude>
     <ClInclude Include="TileGridStringSource.h">
+      <Filter>Source\Map\Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="TileCelCharSource.h">
+      <Filter>Source\Map\Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="TileCelSource.h">
       <Filter>Source\Map\Generator</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1385,7 +1391,7 @@
     <ClCompile Include="TileCelType.cpp">
       <Filter>Source\Map\Generator</Filter>
     </ClCompile>
-    <ClCompile Include="TileColourSource.cpp">
+    <ClCompile Include="TileCelColourSource.cpp">
       <Filter>Source\Map\Generator</Filter>
     </ClCompile>
     <ClCompile Include="TileGridSource.cpp">
@@ -1398,6 +1404,9 @@
       <Filter>Source\Map\Generator</Filter>
     </ClCompile>
     <ClCompile Include="TileGridImageSource.cpp">
+      <Filter>Source\Map\Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="TileCelCharSource.cpp">
       <Filter>Source\Map\Generator</Filter>
     </ClCompile>
   </ItemGroup>

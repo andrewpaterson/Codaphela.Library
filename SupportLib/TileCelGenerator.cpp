@@ -5,13 +5,13 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileCelGenerator::Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLayer> pTileLayer, int iCelType, CTileColourSource* pcTilePointSource)
+void CTileCelGenerator::Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLayer> pTileLayer, int iCelType, CTileCelSource* pcTileCelSource)
 {
 	PreInit();
 	mpTileGridSource = pTileGridSource;
 	mpTileLayer = pTileLayer;
 	miCelType = iCelType;
-	mpcTilePointSource = pcTilePointSource;
+	mpcTileCelSource = pcTileCelSource;
 	PostInit();
 }
 
@@ -35,7 +35,7 @@ void CTileCelGenerator::Class(void)
 	M_Pointer(mpTileGridSource);
 	M_Pointer(mpTileLayer);
 	U_SInt(miCelType);
-	U_Pointer(mpcTilePointSource);
+	U_Pointer(mpcTileCelSource);
 }
 
 
@@ -95,7 +95,7 @@ int CTileCelGenerator::GetCelType(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTileCelGenerator::Matches(int x, int y)
 {
-	return mpTileGridSource->Matches(mpcTilePointSource, x, y);
+	return mpTileGridSource->Matches(mpcTileCelSource, x, y);
 }
 
 
@@ -103,8 +103,8 @@ bool CTileCelGenerator::Matches(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTileColourSource* CTileCelGenerator::GeTileColourSource(void)
+CTileCelSource* CTileCelGenerator::GeTileColourSource(void)
 {
-	return mpcTilePointSource;
+	return mpcTileCelSource;
 }
 

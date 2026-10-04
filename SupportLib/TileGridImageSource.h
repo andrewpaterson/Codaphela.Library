@@ -2,8 +2,8 @@
 #define __TILE_GRID_IMAGE_SOURCE_H__
 #include "BaseLib/SizeVec2.h"
 #include "BaseLib/Chars.h"
-#include "ColourARGB32.h"
 #include "TileGridSource.h"
+#include "TileCelSource.h"
 #include "Image.h"
 
 
@@ -29,7 +29,7 @@ public:
 	Ptr<CImage>		GetImage(void);
 	ARGB32			GetColour(int x, int y);
 
-	bool			Matches(CTileColourSource* pcTilePointSource, int x, int y);
+	bool			Matches(CTileCelSource* pcTileCelSource, int x, int y);
 	SSizeVec2		GetSize(void);
 };
 

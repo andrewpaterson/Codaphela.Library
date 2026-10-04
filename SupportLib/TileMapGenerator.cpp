@@ -26,7 +26,7 @@ void CTileMapGenerator::Init(CRandom* pcRandom)
 	meszSourceNames.Init();
 	macTileCelTypes.Init();
 	maTileGridSources.Init();
-	mllcTileColourSources.Init();
+	mllcTileSources.Init();
 	maTileCelGenerators.Init();
 	mpMap = OMalloc<CTileMap>();
 	msCelSize.Init(0, 0);
@@ -53,7 +53,7 @@ void CTileMapGenerator::Free(void)
 	size				iNumElements;
 	CTileMapPattern*	pcPattern;
 	CTileCelType*		pcCelType;
-	CTileColourSource*	pcSource;
+	CTileCelSource*		pcSource;
 
 	if (mpcRandom)
 	{
@@ -80,13 +80,13 @@ void CTileMapGenerator::Free(void)
 	}
 	macTileCelTypes.Kill();
 
-	pcSource = mllcTileColourSources.GetHead();
+	pcSource = (CTileCelSource*)mllcTileSources.GetHead();
 	while (pcSource)
 	{
 		pcSource->Kill();
-		pcSource = mllcTileColourSources.GetNext(pcSource);
+		pcSource = (CTileCelSource*)mllcTileSources.GetNext(pcSource);
 	}
-	mllcTileColourSources.Kill();
+	mllcTileSources.Kill();
 	
 	meszPatternNames.Kill();
 	meszSourceNames.Kill();
@@ -105,7 +105,7 @@ void CTileMapGenerator::Class(void)
 	U_Data(CEnumeratorVoid, meszSourceNames);
 	U_Data(CArrayTileCelType, macTileCelTypes);
 	M_Embedded(maTileGridSources);
-	U_Data(CLinkedListTileColourSource, mllcTileColourSources);
+	U_Data(CLinkedListBlock, mllcTileSources);
 	M_Embedded(maTileCelGenerators);
 	M_Pointer(mpMap);
 	U_Data(SSizeVec2, msCelSize);
@@ -138,7 +138,7 @@ bool CTileMapGenerator::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileMapGenerator::AddTileGenerator(char* szTileGridSource, int iMapLayer, int iCelType, CTileColourSource* pcSource)
+bool CTileMapGenerator::AddTileGenerator(char* szTileGridSource, int iMapLayer, int iCelType, CTileCelSource* pcSource)
 {
 	Ptr<CTileCelGenerator>	pCelGenerator;
 	Ptr<CTileGridSource>	pTileGridSource;
@@ -214,7 +214,7 @@ bool CTileMapGenerator::AddTileGridSource(char* szSourceName, Ptr<CImage> pSourc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileMapGenerator::AddTileGridSource(char* szSourceName, CArrayChars pszSourceString)
+bool CTileMapGenerator::AddTileGridSource(char* szSourceName, CArrayChars* pszSourceString)
 {
 	Ptr<CTileGridStringSource>	pSource;
 	char*						szSourceConstantName;
@@ -575,14 +575,34 @@ CTileCelType* CTileMapGenerator::GetPatternCelType(char szPatternChar)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTileColourSource* CTileMapGenerator::AddColourSource(uint8 iRed, uint8 iGreen, uint8 iBlue)
+CTileCelColourSource* CTileMapGenerator::AddColourSource(uint8 iRed, uint8 iGreen, uint8 iBlue)
 {
-	CTileColourSource*	pcSource;
+	CTileCelColourSource*	pcSource;
 
-	pcSource = mllcTileColourSources.InsertAfterTail();
+	pcSource = (CTileCelColourSource*)mllcTileSources.InsertAfterTail(sizeof(CTileCelColourSource));
+	New(pcSource);
 	if (pcSource)
 	{
 		pcSource->Init(iRed, iGreen, iBlue);
+	}
+
+	return pcSource;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CTileCelCharSource* CTileMapGenerator::AddCharSource(char c)
+{
+	CTileCelCharSource*		pcSource;
+
+	pcSource = (CTileCelCharSource*)mllcTileSources.InsertAfterTail(sizeof(CTileCelCharSource));
+	New(pcSource);
+	if (pcSource)
+	{
+		pcSource->Init(c);
 	}
 
 	return pcSource;

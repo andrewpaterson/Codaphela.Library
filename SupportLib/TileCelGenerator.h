@@ -5,7 +5,7 @@
 #include "Image.h"
 #include "TileLayer.h"
 #include "TileGridSource.h"
-#include "TileColourSource.h"
+#include "TileCelColourSource.h"
 
 
 class CTileCelGenerator : public CObject
@@ -16,10 +16,10 @@ protected:
 	Ptr<CTileGridSource>	mpTileGridSource;
 	Ptr<CTileLayer>			mpTileLayer;
 	int						miCelType;
-	CTileColourSource*		mpcTilePointSource;
+	CTileCelSource*			mpcTileCelSource;
 
 public:
-	void					Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLayer> pTileLayer, int iCelType, CTileColourSource* pcTilePointSource);
+	void					Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLayer> pTileLayer, int iCelType, CTileCelSource* pcTileCelSource);
 	void					Free(void);
 
 	void					Class(void);
@@ -30,7 +30,7 @@ public:
 	Ptr<CTileGridSource>	GetTileGridSource(void);
 	Ptr<CTileLayer>			GetTileLayer(void);
 	int						GetCelType(void);
-	CTileColourSource*		GeTileColourSource(void);
+	CTileCelSource*			GeTileColourSource(void);
 
 	bool					Matches(int x, int y);
 };

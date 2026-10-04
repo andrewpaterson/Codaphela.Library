@@ -15,7 +15,7 @@ protected:
 	SSizeVec2		msSize;
 
 public:
-	void			Init(char* szConstantName, CArrayChars aszStrings);
+	void			Init(char* szConstantName, CArrayChars* paszStrings);
 	void			Free(void);
 	void			Class(void);
 
@@ -27,7 +27,7 @@ public:
 
 	CArrayChars*	GetStrings(void);
 
-	bool			Matches(CTileColourSource* pcTilePointSource, int x, int y);
+	bool			Matches(CTileCelSource* pcTileCelSource, int x, int y);
 	SSizeVec2		GetSize(void);
 };
 

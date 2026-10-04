@@ -1,4 +1,4 @@
-#include "TileColourSource.h"
+#include "TileCelColourSource.h"
 #include "TileGridStringSource.h"
 
 
@@ -6,14 +6,14 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileGridStringSource::Init(char* szConstantName, CArrayChars aszStrings)
+void CTileGridStringSource::Init(char* szConstantName, CArrayChars* paszStrings)
 {
 	size		iWidth;
 
 	PreInit();
 
 	CTileGridSource::Init(szConstantName);
-	maszStrings.Init(&aszStrings);
+	maszStrings.Init(paszStrings);
 
 	iWidth = maszStrings.GetLongestChars();
 	msSize.Init(iWidth, maszStrings.NumElements());
@@ -109,7 +109,7 @@ void CTileGridStringSource::StopGeneration(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileGridStringSource::Matches(CTileColourSource* pcTilePointSource, int x, int y)
+bool CTileGridStringSource::Matches(CTileCelSource* pcTileCelSource, int x, int y)
 {
 	char c;
 
@@ -120,6 +120,6 @@ bool CTileGridStringSource::Matches(CTileColourSource* pcTilePointSource, int x,
 
 	c = maszStrings.GetCharAt(x, y);
 	
-	return pcTilePointSource->Matches(&c);
+	return pcTileCelSource->Matches(&c);
 }
 
