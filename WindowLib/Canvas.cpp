@@ -274,7 +274,7 @@ void CCanvas::SetRequiredSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EColourFormat CCanvas::GetFormat(void) { return meFormat; }
+EColourFormat CCanvas::GetColourFormat(void) { return meFormat; }
 CNativeCanvas* CCanvas::GetNativeCanvas(void) { return mpcNativeCanvas; }
 Ptr<CCanvasDraw> CCanvas::GetCanvasDraw(void) { return mpCanvasDraw; }
 Ptr<CContainer> CCanvas::GetContainer(void) { return mpContainer; }

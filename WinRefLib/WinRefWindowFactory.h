@@ -22,6 +22,9 @@ public:
 	CNativeWindow*	CreateNativeWindow(CWindow* pcWindow) override;
 	CNativeCanvas*	CreateNativeCanvas(CCanvas* pcCanvas) override;
 
+	int32			GetWidth(void);
+	int32			GetHeight(void);
+
 protected:
 
 };

@@ -12,14 +12,14 @@ protected:
 	Ptr<CMaps>	mpMaps;
 
 public:
-			void	Init(Ptr<CMaps> pMaps);
-			void	Class(void) override;
-			void 	Free(void) override;
+	void	Init(Ptr<CMaps> pMaps);
+	void	Class(void) override;
+	void 	Free(void) override;
 
-			bool	Save(CObjectWriter* pcFile) override;
-			bool	Load(CObjectReader* pcFile) override;
+	bool	Save(CObjectWriter* pcFile) override;
+	bool	Load(CObjectReader* pcFile) override;
 
-			bool	Draw(Ptr<CCanvas> pCanvas) override;
+	bool	Draw(Ptr<CCanvas> pCanvas) override;
 };
 
 

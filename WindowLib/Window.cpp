@@ -22,7 +22,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWi
 	CComponent::Init(this);
 
 	mpWindowTick = pTick;
-	mpCanvas = OMalloc<CCanvas>(this, CF_R8G8B8, pDraw);
+	mpCanvas = OMalloc<CCanvas>(this, CFT_RGB, pDraw);
 	AddComponent(mpCanvas);
 	mbTicking = false;
 
