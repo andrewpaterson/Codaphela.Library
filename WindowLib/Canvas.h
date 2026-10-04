@@ -48,7 +48,7 @@ public:
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
-	EColourFormat		GetFormat(void);
+	EColourFormat		GetColourFormat(void);
 	bool				IsValid(void);
 
 	uint8*				GetPixelData(void);

@@ -54,7 +54,7 @@ bool CWinRefCanvas::CreateNativeCanvas(void)
         return false;
     }
 
-    mpImage->Clear();
+    mpImage->Black();
 
     SetSize(sSize.x, sSize.y);
     mcDraw.Init(&mpImage);

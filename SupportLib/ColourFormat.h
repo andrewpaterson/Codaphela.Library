@@ -47,7 +47,8 @@ enum EColourFormat
 {
 	CFT_Unknown,
 
-	CF_R8G8B8,  //Note, RGB is a stand in for any RGB order.
+	//Note, 'RGB' is a stand in for any RGB order.  Below just specifies the position of an alpha- or ignored channel around the RGB channels.
+	CFT_RGB,  
 	CFT_RGBX,
 	CFT_XRGB,
 	CFT_RGBA,
