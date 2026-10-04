@@ -57,12 +57,11 @@ void CImage::PrivateInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImage::Init(void)
+void CImage::Init(void)
 {
 	PreInit();
 	PrivateInit();
 	PostInit();
-	return this;
 }
 
 
@@ -70,10 +69,9 @@ Ptr<CImage> CImage::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImage::Init(int iWidth, int iHeight)
+void CImage::Init(int iWidth, int iHeight)
 {
 	Init(iWidth, iHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
-	return this;
 }
 
 
@@ -81,7 +79,7 @@ Ptr<CImage> CImage::Init(int iWidth, int iHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImage::Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...)
+void CImage::Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...)
 {
 	va_list		vaMarker;
 	size		iCount;
@@ -107,8 +105,6 @@ Ptr<CImage> CImage::Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel
 	EndChange();
 
 	PostInit();
-	
-	return this;
 }
 
 
@@ -116,7 +112,7 @@ Ptr<CImage> CImage::Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImage::Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...)
+void CImage::Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...)
 {
 	va_list		vaMarker;
 	size		iCount;
@@ -143,8 +139,6 @@ Ptr<CImage> CImage::Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveTy
 	EndChange();
 
 	PostInit();
-
-	return this;
 }
 
 
@@ -152,7 +146,7 @@ Ptr<CImage> CImage::Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveTy
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImage::Init(Ptr<CImage> pcSource)
+void CImage::Init(Ptr<CImage> pcSource)
 {
 	PreInit();
 
@@ -163,8 +157,6 @@ Ptr<CImage> CImage::Init(Ptr<CImage> pcSource)
 	EndChange();
 
 	PostInit();
-
-	return this;
 }
 
 
@@ -172,7 +164,7 @@ Ptr<CImage> CImage::Init(Ptr<CImage> pcSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImage::Init(int iWidth, int iHeight, CImageChannelsSource* pcSource)
+void CImage::Init(int iWidth, int iHeight, CImageChannelsSource* pcSource)
 {
 	PreInit();
 
@@ -183,8 +175,6 @@ Ptr<CImage> CImage::Init(int iWidth, int iHeight, CImageChannelsSource* pcSource
 	EndChange();
 
 	PostInit();
-
-	return this;
 }
 
 
@@ -192,7 +182,7 @@ Ptr<CImage> CImage::Init(int iWidth, int iHeight, CImageChannelsSource* pcSource
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImage::Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSource* pcSource)
+void CImage::Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSource* pcSource)
 {
 	PreInit();
 
@@ -204,8 +194,6 @@ Ptr<CImage> CImage::Init(int iWidth, int iHeight, void* pvUserData, CImageChanne
 	EndChange();
 
 	PostInit();
-
-	return this;
 }
 
 
@@ -213,7 +201,7 @@ Ptr<CImage> CImage::Init(int iWidth, int iHeight, void* pvUserData, CImageChanne
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImage::Init(int iWidth, int iHeight, Ptr<CImage> pcChannelsSource)
+void CImage::Init(int iWidth, int iHeight, Ptr<CImage> pcChannelsSource)
 {
 	PreInit();
 
@@ -224,8 +212,6 @@ Ptr<CImage> CImage::Init(int iWidth, int iHeight, Ptr<CImage> pcChannelsSource)
 	EndChange();
 
 	PostInit();
-
-	return this;
 }
 
 
