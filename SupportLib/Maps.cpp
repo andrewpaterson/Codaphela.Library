@@ -29,6 +29,23 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CMaps::Init(void)
+{
+	PreInit();
+
+	maMaps.Init();
+	msViewportPosition.Zero();
+	mpCache = NULL;
+	mpViewport = NULL;
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CMaps::Init(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport)
 {
 	ValidatePtr(pCache);
@@ -52,6 +69,7 @@ void CMaps::Init(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport)
 void CMaps::Free(void)
 {
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -83,6 +101,32 @@ bool CMaps::Load(CObjectReader* pcFile)
 bool CMaps::Save(CObjectWriter* pcFile)
 {
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMaps::SetCacheAndViewport(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport)
+{
+	ValidatePtr(pCache);
+	ValidatePtr(pViewport);
+
+	size			uiNumElements;
+	size			ui;
+	Ptr<CBlockMap>	pMap;
+
+	mpCache = pCache;
+	mpViewport = pViewport;
+
+	uiNumElements = maMaps.NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		pMap = maMaps.Get(ui);
+		pMap->SetViewport(mpViewport);
+		pMap->SetBlitterCache(mpCache);
+	}
 }
 
 

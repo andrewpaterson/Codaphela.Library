@@ -11,6 +11,7 @@ void CMapsCanvasDraw::Init(Ptr<CMaps> pMaps)
 {
     PreInit();
     CCanvasDraw::Init();
+    mpMaps = pMaps;
     PostInit();
 }
 
@@ -64,6 +65,24 @@ bool CMapsCanvasDraw::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMapsCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 {
-    return mpMaps->Blit(true);
+    Ptr<CImageCelBlitterCache>	pCache;
+    SInt32Vec2                  sSize;
+    Ptr<CImage>                 pDestImage;
+    bool                        bResult;
+    
+    if (pCanvas->IsValid())
+    {
+        sSize = pCanvas->GetActualSize();
+        pDestImage = OMalloc<CImage>(sSize.x, sSize.y, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+        xxx;  //We just set the dest image here but never seem to tie it to the Image in the CWinRefCanvas.
+        pCache = OMalloc<CImageCelBlitterCache>(pDestImage);
+        mpMaps->SetCacheAndViewport(pCache, pDestImage);
+        bResult = mpMaps->CreateCelBlitters();
+        if (bResult)
+        {
+            bResult = mpMaps->Blit(false);
+        }
+    }
+    return true;
 }
 

@@ -40,12 +40,15 @@ protected:
 	Ptr<CImage>					mpViewport;
 
 public:
+	void 	Init(void);
 	void 	Init(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport);
 	void 	Free(void);
 	void	Class(void);
 
 	bool	Save(CObjectWriter* pcFile);
 	bool	Load(CObjectReader* pcFile);
+
+	void	SetCacheAndViewport(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport);
 
 	void	AddMap(Ptr<CBlockMap> pMap);
 
