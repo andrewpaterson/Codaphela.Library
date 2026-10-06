@@ -13,6 +13,7 @@ void CMapsCanvasDraw::Init(Ptr<CMaps> pMaps)
     CCanvasDraw::Init();
     mpMaps = pMaps;
     mpBlitterCache = NULL;
+    mpDestImage = NULL;
     PostInit();
 }
 
@@ -26,6 +27,7 @@ void CMapsCanvasDraw::Class(void)
     CCanvasDraw::Class();
     M_Pointer(mpMaps);
     M_Pointer(mpBlitterCache);
+    M_Pointer(mpDestImage);
 }
 
 
@@ -67,45 +69,49 @@ bool CMapsCanvasDraw::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMapsCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 {
-  
-    SInt32Vec2                  sSize;
-    Ptr<CImage>                 pDestImage;
-    bool                        bResult;
-    bool                        bExternalImage;
+    SInt32Vec2      sSize;
+    bool            bResult;
+    Ptr<CImage>     pImage;
     
     if (pCanvas->IsValid())
     {
         sSize = pCanvas->GetActualSize();
-        pDestImage = pCanvas->GetImageOrNull();
-        if (pDestImage.IsNull())
+        pImage = pCanvas->GetImageOrNull();
+        if (pImage.IsNull())
         {
-            bExternalImage = true;
-            pDestImage = OMalloc<CImage>(sSize.x, sSize.y, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+            if (mpDestImage.IsNull())
+            {
+                mpDestImage = OMalloc<CImage>(sSize.x, sSize.y, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+                pImage = mpDestImage;
+            }
         }
         else
         {
-            bExternalImage = false;
+            if (mpDestImage.IsNotNull())
+            {
+                mpDestImage = NULL;
+            }
         }
 
         if (mpBlitterCache.IsNull())
         {
-            mpBlitterCache = OMalloc<CImageCelBlitterCache>(pDestImage);
+            mpBlitterCache = OMalloc<CImageCelBlitterCache>(pImage);
         }
-        else if (!mpBlitterCache->Matches(pDestImage))
+        else if (!mpBlitterCache->Matches(pImage))
         {
-            mpBlitterCache->Clear(pDestImage);
+            mpBlitterCache->Clear(pImage);
         }
         
-        mpMaps->SetCacheAndViewport(mpBlitterCache, pDestImage);
+        mpMaps->SetCacheAndViewport(mpBlitterCache, pImage);
         bResult = mpMaps->CreateCelBlitters();
         if (bResult)
         {
             bResult = mpMaps->Blit(false);
         }
 
-        if (bExternalImage)
+        if (mpDestImage.IsNotNull())
         {
-            pCanvas->DrawCanvas(0, 0, pDestImage);
+            pCanvas->DrawCanvas(0, 0, mpDestImage);
         }
     }
     return true;

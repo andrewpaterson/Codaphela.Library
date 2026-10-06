@@ -40,23 +40,24 @@ protected:
 	Ptr<CImage>					mpViewport;
 
 public:
-	void 	Init(void);
-	void 	Init(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport);
-	void 	Free(void);
-	void	Class(void);
+	void 		Init(void);
+	void 		Init(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport);
+	void 		Free(void);
+	void		Class(void);
 
-	bool	Save(CObjectWriter* pcFile);
-	bool	Load(CObjectReader* pcFile);
+	bool		Save(CObjectWriter* pcFile);
+	bool		Load(CObjectReader* pcFile);
 
-	void	SetCacheAndViewport(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport);
+	void		SetCacheAndViewport(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport);
+	SInt32Vec2	GetViewportPosition(void);
 
-	void	AddMap(Ptr<CBlockMap> pMap);
+	void		AddMap(Ptr<CBlockMap> pMap);
 
-	bool	Blit(bool bEnsureBlitters);
-	bool	CreateCelBlitters(void);
+	bool		Blit(bool bEnsureBlitters);
+	bool		CreateCelBlitters(void);
 
-	void	SetViewportPosition(int32 x, int32 y);
-	void	SetViewportPosition(SInt32Vec2	sViewportPosition);
+	void		SetViewportPosition(int32 x, int32 y);
+	void		SetViewportPosition(SInt32Vec2	sViewportPosition);
 };
 
 
