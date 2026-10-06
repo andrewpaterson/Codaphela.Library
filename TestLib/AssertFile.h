@@ -23,7 +23,19 @@ along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Assert.h"
 
 
+bool PrivateAssertFile(const char* szExpectedFilename, char* szActualFilename, char* szPrefix, size iLine, char* szFile);
+bool PrivateAssertFile(CChars szExpectedFilename, CChars szActualFilename, char* szPrefix, size iLine, char* szFile);
+bool PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, size iLength, char* szPrefix, size iLine, char* szFile);
+bool PrivateAssertFileString(const char* szExpectedFilename, const char* szString, char* szPrefix, size iLine, char* szFile);
+
+bool PrivateAssertDirectory(char* szExpectedDirectoryName, char* szActualDirectoryName, char* szPrefix, size iLine, char* szFile);
+
 bool PrivateAssertFilePath(char* szExpected, char* szActual, int iLine, char* szFile);
+
+#define AssertFile(e, a)				Validate(PrivateAssertFile(e, a, NULL, __LINE__, __FILE__))
+#define AssertFileMemory(e, a, l)		Validate(PrivateAssertFileMemory(e, a, l, NULL, __LINE__, __FILE__))
+#define AssertFileString(e, a)			Validate(PrivateAssertFileString(e, a, NULL, __LINE__, __FILE__))
+#define AssertDirectory(e, a)			Validate(PrivateAssertDirectory(e, a, NULL, __LINE__, __FILE__))
 
 #define AssertFilePath(e, a)			Validate(PrivateAssertFilePath(e, a, __LINE__, __FILE__))
 

@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/TypeNames.h"
 #include "StandardLib/ChannelsAccessorCreator.h"
-#include "ImageRowBlitterCache.h"
+#include "ImageRowBlitterFactory.h"
 #include "ImageBlitter.h"
 
 
@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CImageRowBlitterCache* pcBlitterCache)
+bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CImageRowBlitterFactory* pcBlitterCache)
 {
 	PreInit();
 
@@ -240,7 +240,7 @@ bool CImageBlitter::InitOpacityInfo(CImageBlitterFormat* pcFormat)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache)
+bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache)
 {
 	
 	size						uiSourceByteStride;
@@ -289,9 +289,9 @@ bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlit
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterContiguous(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache)
+bool CImageBlitter::CreateImageRowBlitterContiguous(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache)
 {
-	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterCache::CreateImageRowBlitterContiguous);
+	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterFactory::CreateImageRowBlitterContiguous);
 }
 
 
@@ -299,9 +299,9 @@ bool CImageBlitter::CreateImageRowBlitterContiguous(CImageBlitterFormat* pcForma
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache)
+bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache)
 {
-	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpaque);
+	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaque);
 }
 
 
@@ -309,9 +309,9 @@ bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache)
+bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache)
 {
-	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpaqueDestAlpha);
+	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaqueDestAlpha);
 }
 
 
@@ -319,7 +319,7 @@ bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitte
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache, CreateImageRowBlitterFunc fCreate)
+bool CImageBlitter::CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, CreateImageRowBlitterFunc fCreate)
 {
 	CRectangle				cRect;
 	size					y;
@@ -345,9 +345,9 @@ bool CImageBlitter::CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache)
+bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache)
 {
-	return CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterCache::CreateImageRowBlitterRGBByteAlphaByteTranslucent, &CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpaque);
+	return CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterFactory::CreateImageRowBlitterRGBByteAlphaByteTranslucent, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaque);
 }
 
 
@@ -355,9 +355,9 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitt
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache)
+bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache)
 {
-	return CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterCache::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha, &CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpaqueDestAlpha);
+	return CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterFactory::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaqueDestAlpha);
 }
 
 
@@ -366,7 +366,7 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(CI
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache, CreateImageRowBlitterFunc fCreateRGBByteAlphaByteTranslucent, CreateImageRowBlitterFunc fCreateByteAlignedOpaque)
+bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, CreateImageRowBlitterFunc fCreateRGBByteAlphaByteTranslucent, CreateImageRowBlitterFunc fCreateByteAlignedOpaque)
 {
 	CRectangle				cRect;
 	size					x, y;

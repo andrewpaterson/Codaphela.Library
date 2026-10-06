@@ -27,7 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/MapObject.h"
 #include "ImageCel.h"
 #include "ImageBlitter.h"
-#include "ImageRowBlitterCache.h"
+#include "ImageRowBlitterFactory.h"
 
 
 class CImageCelBlitterCache : public CObject
@@ -35,20 +35,24 @@ class CImageCelBlitterCache : public CObject
 CONSTRUCTABLE(CImageCelBlitterCache);
 DESTRUCTABLE(CImageCelBlitterCache);
 protected:
-	CMapObject				mmCelToBlitterMap;
-	Ptr<CImage>				mpDestImage;
-	CImageRowBlitterCache	mcRowBlitterCache;
+	CMapObject					mmCelToBlitterMap;
+	Ptr<CImage>					mpDestImage;
+	CImageRowBlitterFactory		mcRowBlitterFactory;
 
 public:
 	void				Init(Ptr<CImage> pDestImage);
 	void				Class(void);
 	void				Free(void);
 
+	void				Clear(Ptr<CImage> pDestImage);
+
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
 	Ptr<CImageBlitter>	CreateImageBlitter(Ptr<CImageCel> pCel);
 	Ptr<CImage>			GetDestImage(void);
+
+	bool				Matches(Ptr<CImage> pImage);
 };
 
 

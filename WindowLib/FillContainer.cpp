@@ -32,6 +32,7 @@ void CFillContainer::Init(Ptr<CWindow> pWindow)
 	meHorizontal = CSH_Stretch;
 	meVertical = CSV_Stretch;
 	msInsets.Init();
+	msRequiredSize.Init(-1, -1);
 }
 
 
@@ -42,6 +43,20 @@ void CFillContainer::Init(Ptr<CWindow> pWindow)
 void CFillContainer::Free(void)
 {
 	CContainer::Free();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFillContainer::Class(void)
+{
+	CContainer::Class();
+	U_Enum(meHorizontal);
+	U_Enum(meVertical);
+	U_Data(SInsets, msInsets);
+	U_2Int32(msRequiredSize);
 }
 
 
@@ -65,7 +80,7 @@ void CFillContainer::SetRequiredSize(void)
 	size				i;
 	Ptr<CComponent>		pComponent;
 	size				uiSize;
-	SInt32Vec2				sSize;
+	SInt32Vec2			sSize;
 
 	//There should only be one componet, but if there are more then the largest size will be used.
 	msRequiredSize.Init(0, 0);

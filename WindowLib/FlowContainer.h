@@ -30,9 +30,11 @@ public:
 	EContainerStyleWrap			meWrap;
 	EContainerStyleDirection	meDirection;
 	UContainerAlignment			muAlignment;
+	SInt32Vec2					msRequiredSize;
 
 	void	Init(Ptr<CWindow> pWindow);
 	void	Free(void);
+	void	Class(void);
 
 	void	SetRequiredSize(void) override;
 	void	Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;

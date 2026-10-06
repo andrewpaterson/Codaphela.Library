@@ -1,5 +1,5 @@
-#ifndef __IMAGE_ROW_BLITTER_CACHE_H__
-#define __IMAGE_ROW_BLITTER_CACHE_H__
+#ifndef __IMAGE_ROW_BLITTER_FACTORY_H__
+#define __IMAGE_ROW_BLITTER_FACTORY_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -32,7 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageRowBlitterRGBByteAlphaByteTranslucent.h"
 
 
-class CImageRowBlitterCache
+class CImageRowBlitterFactory
 {
 protected:
 	CImageRowBlitterContiguous								mcImageRowBlitterContiguous;
@@ -53,8 +53,8 @@ public:
 };
 
 
-typedef CBaseImageRowBlitter* (CImageRowBlitterCache::*CreateImageRowBlitterFunc)(void);
+typedef CBaseImageRowBlitter* (CImageRowBlitterFactory::*CreateImageRowBlitterFunc)(void);
 
 
-#endif // __IMAGE_ROW_BLITTER_CACHE_H__
+#endif // __IMAGE_ROW_BLITTER_FACTORY_H__
 

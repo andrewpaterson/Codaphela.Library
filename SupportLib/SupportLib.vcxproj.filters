@@ -786,7 +786,7 @@
     <ClInclude Include="ImageRowBlitterRGBByteAlphaByteTranslucent.h">
       <Filter>Source\Image\Blitter\Types\Translucent</Filter>
     </ClInclude>
-    <ClInclude Include="ImageRowBlitterCache.h">
+    <ClInclude Include="ImageRowBlitterFactory.h">
       <Filter>Source\Image\Blitter\Cache</Filter>
     </ClInclude>
     <ClInclude Include="ImageBlitterFormat.h">
@@ -1364,7 +1364,7 @@
     <ClCompile Include="ImageRowBlitterRGBByteAlphaByteTranslucent.cpp">
       <Filter>Source\Image\Blitter\Types\Translucent</Filter>
     </ClCompile>
-    <ClCompile Include="ImageRowBlitterCache.cpp">
+    <ClCompile Include="ImageRowBlitterFactory.cpp">
       <Filter>Source\Image\Blitter\Cache</Filter>
     </ClCompile>
     <ClCompile Include="ImageBlitterFormat.cpp">

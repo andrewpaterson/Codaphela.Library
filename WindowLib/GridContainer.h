@@ -31,14 +31,16 @@ CONSTRUCTABLE(CGridContainer);
 DESTRUCTABLE(CGridContainer);
 protected:
 	CArrayGridCells		macCells;
-	CArrayInt2D			maiCellIndices;	
+	CArrayInt2D			maiCellIndices;
+	SInt32Vec2			msRequiredSize;
 
 public:
-	void Init(Ptr<CWindow> pWindow);
-	void Free(void);
+	void	Init(Ptr<CWindow> pWindow);
+	void	Free(void);
+	void	Class(void);
 
-	void SetRequiredSize(void) override;
-	void Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
+	void	SetRequiredSize(void) override;
+	void	Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 };
 
 

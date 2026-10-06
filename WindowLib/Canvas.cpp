@@ -174,6 +174,16 @@ void CCanvas::CopyCanvas(Ptr<CCanvas> pSourceCanvas)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+Ptr<CImage> CCanvas::GetImageOrNull(void)
+{
+	return mpcNativeCanvas->GetImageOrNull();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CCanvas::DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas)
 {
 	CNativeCanvas*	pcSourceNativeCanvas;
@@ -200,6 +210,16 @@ void CCanvas::DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour)
 void CCanvas::DrawPixel(int iX, int iY, ARGB32 sColour)
 {
 	mpcNativeCanvas->DrawPixel(iX, iY, sColour);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::DrawImage(int iX, int iY, Ptr<CImage> pImage)
+{
+	mpcNativeCanvas->DrawImage(iX, iY, pImage);
 }
 
 

@@ -11,9 +11,20 @@ void CImageCelBlitterCache::Init(Ptr<CImage> pDestImage)
 
 	mmCelToBlitterMap.Init();
 	mpDestImage = pDestImage;
-	mcRowBlitterCache.Init();
+	mcRowBlitterFactory.Init();
 
 	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCelBlitterCache::Clear(Ptr<CImage> pDestImage)
+{
+	mmCelToBlitterMap.Clear();
+	mpDestImage = pDestImage;
 }
 
 
@@ -25,7 +36,7 @@ void CImageCelBlitterCache::Class(void)
 {
 	M_Embedded(mmCelToBlitterMap);
 	M_Pointer(mpDestImage);
-	U_Data(CImageRowBlitterCache, mcRowBlitterCache);
+	U_Data(CImageRowBlitterFactory, mcRowBlitterFactory);
 }
 
 
@@ -74,7 +85,7 @@ Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel
 		return pImageBlitter;
 	}
 
-	pImageBlitter = OMalloc<CImageBlitter>(pCel, mpDestImage, &mcRowBlitterCache);
+	pImageBlitter = OMalloc<CImageBlitter>(pCel, mpDestImage, &mcRowBlitterFactory);
 	if (!pImageBlitter)
 	{
 		return NULL;
@@ -83,6 +94,23 @@ Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel
 	mmCelToBlitterMap.Put(pCel, pImageBlitter);
 
 	return pImageBlitter;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageCelBlitterCache::Matches(Ptr<CImage> pImage)
+{
+	if (mpDestImage == pImage)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 

@@ -70,10 +70,6 @@ bool PrivateAssertNotPointer(void* pvExpected, void* pvActual, char* szPrefix, s
 bool PrivateAssertNotNull(void* pvActual, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertNull(void* pvActual, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertMD5(uint8* pucExpected, uint8* pucActual, char* szPrefix, size iLine, char* szFile);
-bool PrivateAssertFile(const char* szExpectedFilename, char* szActualFilename, char* szPrefix, size iLine, char* szFile);
-bool PrivateAssertFile(CChars szExpectedFilename, CChars szActualFilename, char* szPrefix, size iLine, char* szFile);
-bool PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, size iLength, char* szPrefix, size iLine, char* szFile);
-bool PrivateAssertFileString(const char* szExpectedFilename, const char* szString, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertStringStartsWith(const char* szExpected, const char* szActual, bool bTestCase, char* szPrefix, size iLine, char* szFile);
 
 
@@ -112,9 +108,6 @@ bool PrivateAssertStringStartsWith(const char* szExpected, const char* szActual,
 #define AssertNotNull(a)					Validate(PrivateAssertNotNull(a, NULL, __LINE__, __FILE__))
 #define AssertNull(a)						Validate(PrivateAssertNull(a, NULL, __LINE__, __FILE__))
 #define AssertMD5(e, a)						Validate(PrivateAssertMD5(e, a, NULL, __LINE__, __FILE__))
-#define AssertFile(e, a)					Validate(PrivateAssertFile(e, a, NULL, __LINE__, __FILE__))
-#define AssertFileMemory(e, a, l)			Validate(PrivateAssertFileMemory(e, a, l, NULL, __LINE__, __FILE__))
-#define AssertFileString(e, a)				Validate(PrivateAssertFileString(e, a, NULL, __LINE__, __FILE__))
 
 
 #endif // __ASSERT_FUNCTIONS_H__

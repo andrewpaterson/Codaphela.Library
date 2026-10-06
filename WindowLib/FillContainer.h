@@ -33,9 +33,11 @@ protected:
 	EContainerStyleHorizontal	meHorizontal;
 	EContainerStyleVertical		meVertical;
 	SInsets						msInsets;
+	SInt32Vec2					msRequiredSize;
 
 public:
 	void 	Init(Ptr<CWindow> pWindow);
+	void	Class(void);
 	void 	Free(void);
 
 	void	SetRequiredSize(void) override;

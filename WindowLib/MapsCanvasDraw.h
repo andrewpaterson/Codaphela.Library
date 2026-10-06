@@ -9,7 +9,8 @@ class CMapsCanvasDraw : public CCanvasDraw
 CONSTRUCTABLE(CMapsCanvasDraw);
 DESTRUCTABLE(CMapsCanvasDraw);
 protected:
-	Ptr<CMaps>	mpMaps;
+	Ptr<CMaps>					mpMaps;
+	Ptr<CImageCelBlitterCache>	mpBlitterCache;
 
 public:
 	void	Init(Ptr<CMaps> pMaps);

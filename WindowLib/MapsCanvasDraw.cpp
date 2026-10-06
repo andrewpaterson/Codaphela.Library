@@ -12,6 +12,7 @@ void CMapsCanvasDraw::Init(Ptr<CMaps> pMaps)
     PreInit();
     CCanvasDraw::Init();
     mpMaps = pMaps;
+    mpBlitterCache = NULL;
     PostInit();
 }
 
@@ -24,6 +25,7 @@ void CMapsCanvasDraw::Class(void)
 {
     CCanvasDraw::Class();
     M_Pointer(mpMaps);
+    M_Pointer(mpBlitterCache);
 }
 
 
@@ -65,22 +67,45 @@ bool CMapsCanvasDraw::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMapsCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 {
-    Ptr<CImageCelBlitterCache>	pCache;
+  
     SInt32Vec2                  sSize;
     Ptr<CImage>                 pDestImage;
     bool                        bResult;
+    bool                        bExternalImage;
     
     if (pCanvas->IsValid())
     {
         sSize = pCanvas->GetActualSize();
-        pDestImage = OMalloc<CImage>(sSize.x, sSize.y, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
-        xxx;  //We just set the dest image here but never seem to tie it to the Image in the CWinRefCanvas.
-        pCache = OMalloc<CImageCelBlitterCache>(pDestImage);
-        mpMaps->SetCacheAndViewport(pCache, pDestImage);
+        pDestImage = pCanvas->GetImageOrNull();
+        if (pDestImage.IsNull())
+        {
+            bExternalImage = true;
+            pDestImage = OMalloc<CImage>(sSize.x, sSize.y, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+        }
+        else
+        {
+            bExternalImage = false;
+        }
+
+        if (mpBlitterCache.IsNull())
+        {
+            mpBlitterCache = OMalloc<CImageCelBlitterCache>(pDestImage);
+        }
+        else if (!mpBlitterCache->Matches(pDestImage))
+        {
+            mpBlitterCache->Clear(pDestImage);
+        }
+        
+        mpMaps->SetCacheAndViewport(mpBlitterCache, pDestImage);
         bResult = mpMaps->CreateCelBlitters();
         if (bResult)
         {
             bResult = mpMaps->Blit(false);
+        }
+
+        if (bExternalImage)
+        {
+            pCanvas->DrawCanvas(0, 0, pDestImage);
         }
     }
     return true;

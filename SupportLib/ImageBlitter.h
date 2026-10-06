@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageCopyDimension.h"
 #include "ImageBlitterContext.h"
 #include "ImageRowBlitter.h"
-#include "ImageRowBlitterCache.h"
+#include "ImageRowBlitterFactory.h"
 
 
 class CImageBlitter : public CObject
@@ -48,7 +48,7 @@ protected:
 	CImageBlitterContext		mcContext;
 
 public:
-	bool			Init(Ptr<CImageCel> pSource, Ptr<CImage> pcDest, CImageRowBlitterCache* pcBlitterCache);
+	bool			Init(Ptr<CImageCel> pSource, Ptr<CImage> pcDest, CImageRowBlitterFactory* pcBlitterCache);
 	void			Free(void);
 
 	void			Class(void);
@@ -66,16 +66,16 @@ protected:
 
 	bool			InitColourInfo(CImageBlitterFormat* pcFormat);
 	bool			InitOpacityInfo(CImageBlitterFormat* pcFormat);
-	bool			InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
+	bool			InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
 	void			InitContext(CImageBlitterContext* pcContext);
-	bool			CreateImageRowBlitterContiguous(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
-	bool			CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
-	bool			CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
-	bool			CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
-	bool			CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache);
+	bool			CreateImageRowBlitterContiguous(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
+	bool			CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
+	bool			CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
+	bool			CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
+	bool			CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
 
-	bool			CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache, CreateImageRowBlitterFunc fCreate);
-	bool			CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterCache* pcBlitterCache, CreateImageRowBlitterFunc fCreateRGBByteAlphaByteTranslucent, CreateImageRowBlitterFunc fCreateByteAlignedOpaque);
+	bool			CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, CreateImageRowBlitterFunc fCreate);
+	bool			CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, CreateImageRowBlitterFunc fCreateRGBByteAlphaByteTranslucent, CreateImageRowBlitterFunc fCreateByteAlignedOpaque);
 
 	void			AddBlitter(CBaseImageRowBlitter* pcBlitter, size xStart, size xEnd, size yOffset);
 };
