@@ -141,9 +141,10 @@ bool CCanvas::HasNativeChanged(void)
 	if ((msActualSize.x != sSize.x) ||
 		(msActualSize.y != sSize.y))
 	{
-		return false;
+		return true;
 	}
-	return true;
+
+	return false;
 }
 
 

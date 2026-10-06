@@ -11,6 +11,7 @@ DESTRUCTABLE(CMapsCanvasDraw);
 protected:
 	Ptr<CMaps>					mpMaps;
 	Ptr<CImageCelBlitterCache>	mpBlitterCache;
+	Ptr<CImage>                 mpDestImage;
 
 public:
 	void	Init(Ptr<CMaps> pMaps);
