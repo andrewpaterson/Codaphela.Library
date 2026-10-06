@@ -455,6 +455,33 @@ void CFileUtil::SplitPath(const char* szPathName, CArrayChars* paszComponents)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CFileUtil::GetFileName(CChars* szDest, char* szPathName)
+{
+	size	iIndex;
+	size	iLength;
+
+	if (StrEmpty(szPathName))
+	{
+		return;
+	}
+
+	iLength = StrLen(szPathName);
+	iIndex = FindLastSeparator(szPathName);
+	if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
+	{
+		szDest->AppendSubString(&szPathName[iIndex + 1], &szPathName[iLength]);
+	}
+	else
+	{
+		szDest->Append(szPathName);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CFileUtil::CollapsePath(CChars* szPathName)
 {
 	CChars			szTemp;

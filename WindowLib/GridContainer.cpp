@@ -30,6 +30,7 @@ void CGridContainer::Init(Ptr<CWindow> pWindow)
 	CContainer::Init(pWindow);
 	macCells.Init();
 	maiCellIndices.Init();
+	msRequiredSize.Init(-1, -1);
 }
 
 
@@ -49,13 +50,26 @@ void CGridContainer::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CGridContainer::Class(void)
+{
+	CContainer::Class();
+	U_Data(CArrayGridCells, macCells);
+	U_Data(CArrayInt2D, maiCellIndices);
+	U_2Int32(msRequiredSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CGridContainer::SetRequiredSize(void)
 {
 	Ptr<CComponent>	pComponent;
-	size					uiSize;
-	size					i;
-	SInt32Vec2					sSize;
-	SInt32Vec2					sTotalSize;
+	size			uiSize;
+	size			i;
+	SInt32Vec2		sSize;
+	SInt32Vec2		sTotalSize;
 
 	msRequiredSize.Init(0, 0);
 

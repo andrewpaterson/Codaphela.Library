@@ -1,11 +1,11 @@
-#include "ImageRowBlitterCache.h"
+#include "ImageRowBlitterFactory.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterCache::Init(void)
+void CImageRowBlitterFactory::Init(void)
 {
 }
 
@@ -14,7 +14,7 @@ void CImageRowBlitterCache::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitterCache::Kill(void)
+void CImageRowBlitterFactory::Kill(void)
 {
 }
 
@@ -23,7 +23,7 @@ void CImageRowBlitterCache::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterContiguous(void)
+CBaseImageRowBlitter* CImageRowBlitterFactory::CreateImageRowBlitterContiguous(void)
 {
 	return &mcImageRowBlitterContiguous;
 }
@@ -33,7 +33,7 @@ CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterContiguous(voi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpaque(void)
+CBaseImageRowBlitter* CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaque(void)
 {
 	return &mcImageRowBlitterByteAlignedOpaque;
 }
@@ -43,7 +43,7 @@ CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpaqueDestAlpha(void)
+CBaseImageRowBlitter* CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaqueDestAlpha(void)
 {
 	return &mcImageRowBlitterByteAlignedOpaqueDestAlpha;
 }
@@ -53,7 +53,7 @@ CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterByteAlignedOpa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterRGBByteAlphaByteTranslucent(void)
+CBaseImageRowBlitter* CImageRowBlitterFactory::CreateImageRowBlitterRGBByteAlphaByteTranslucent(void)
 {
 	return &mcImageRowBlitterRGBByteAlphaByteTranslucent;
 }
@@ -64,7 +64,7 @@ CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterRGBByteAlphaBy
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseImageRowBlitter* CImageRowBlitterCache::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(void)
+CBaseImageRowBlitter* CImageRowBlitterFactory::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(void)
 {
 	return &mcImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha;
 }

@@ -32,6 +32,7 @@ void CFlowContainer::Init(Ptr<CWindow> pWindow)
 	meWrap = CSW_Wrap;
 	meDirection = CSD_Right;
 	muAlignment.eVertical = CSV_Top;
+	msRequiredSize.Init(-1, -1);
 }
 
 
@@ -42,6 +43,20 @@ void CFlowContainer::Init(Ptr<CWindow> pWindow)
 void CFlowContainer::Free(void)
 {
 	CContainer::Free();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFlowContainer::Class(void)
+{
+	CContainer::Class();
+	U_Enum(meWrap);
+	U_Enum(meDirection);
+	U_Data(UContainerAlignment, muAlignment);
+	U_2Int32(msRequiredSize);
 }
 
 

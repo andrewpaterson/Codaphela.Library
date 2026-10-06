@@ -24,7 +24,6 @@ along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/Define.h"
-#include "BaseLib/FileCompare.h"
 #include "BaseLib/Float32Vec3.h"
 #include "Assert.h"
 
@@ -1070,90 +1069,5 @@ bool PrivateAssertNull(void* pvActual, char* szPrefix, size iLine, char* szFile)
 	{
 		return Pass();
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool PrivateAssertFile(const char* szExpectedFilename, char* szActualFilename, char* szPrefix, size iLine, char* szFile)
-{
-	CFileCompare	cCompare;
-	bool			bResult;
-	CChars			szExpected;
-	CChars			szActual;
-
-	szExpected.Init();
-	szActual.Init();
-	bResult = cCompare.Compare(szExpectedFilename, szActualFilename, &szExpected, &szActual);
-
-	if (!bResult)
-	{
-		bResult = Failed((const char*)szExpected.Text(), (const char*)szActual.Text(), szPrefix, iLine, szFile, false);
-		szActual.Kill();
-		szExpected.Kill();
-		return bResult;
-	}
-	else
-	{
-		szActual.Kill();
-		szExpected.Kill();
-		return Pass();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool PrivateAssertFile(CChars szExpectedFilename, CChars szActualFilename, char* szPrefix, size iLine, char* szFile)
-{
-	return PrivateAssertFile(szExpectedFilename.Text(), szActualFilename.Text(), szPrefix, iLine, szFile);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, size iLength, char* szPrefix, size iLine, char* szFile)
-{
-	CFileCompare	cCompare;
-	bool			bResult;
-	CChars			szExpected;
-	CChars			szActual;
-
-	szExpected.Init();
-	szActual.Init();
-	bResult = cCompare.Compare(szExpectedFilename, pcMemory, iLength, &szExpected, &szActual);
-
-	if (!bResult)
-	{
-		Failed((const char*)szExpected.Text(), (const char*)szActual.Text(), szPrefix, iLine, szFile, false);
-		szActual.Kill();
-		szExpected.Kill();
-		return false;
-	}
-	else
-	{
-		szActual.Kill();
-		szExpected.Kill();
-		return Pass();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool PrivateAssertFileString(const char* szExpectedFilename, const char* szString, char* szPrefix, size iLine, char* szFile)
-{
-	size iLength;
-
-	iLength = strlen(szString);
-	return PrivateAssertFileMemory(szExpectedFilename, (void*)szString, iLength, szPrefix, iLine, szFile);
 }
 

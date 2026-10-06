@@ -22,7 +22,6 @@ protected:
 	SInt32Vec2	 		msPosition;
 	SInt32Vec2			msDesiredSize;
 	bool				mbCanGetFocus;
-	SInt32Vec2			msRequiredSize;
 	Ptr<CComponent>		mpParent;
 	CArray<CComponent>	maChildren;
 	Ptr<CWindow>		mpWindow;

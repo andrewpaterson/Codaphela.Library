@@ -37,16 +37,18 @@ public:
 	void	Kill(void) override;
 
 	bool	CreateNativeCanvas(void) override;
-	bool	DestroyNativeCanvas(void);
 
 	uint8*	GetPixelData(void);
 
 	HDC		GetMemDC(void);
 
 	void	CopyCanvas(CNativeCanvas* pcSourceCanvas);
+
 	void	DrawBox(CRectangle* pcRectangle, bool bFilled, ARGB32 sColour);
 	void	DrawPixel(int32 iX, int32 iY, ARGB32 sColour);
 	void	DrawCanvas(int iX, int iY, CNativeCanvas* pcSource);
+	void	DrawCel(int iX, int iY, Ptr<CImageCel> pSource);
+	void	DrawImage(int iX, int iY, Ptr<CImage> pSource);
 };
 
 

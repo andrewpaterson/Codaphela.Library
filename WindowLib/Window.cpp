@@ -206,7 +206,6 @@ bool CWindow::ClearContainer(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::SetRequiredSize(void)
 {
-	msRequiredSize.Init(msDesiredSize);
 }
 
 
