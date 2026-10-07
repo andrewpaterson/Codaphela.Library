@@ -11,7 +11,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick> pTick, Ptr<CCanvasDraw> pDraw)
+void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick> pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits)
 {
 	PreInit();
 
@@ -22,7 +22,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWi
 	CComponent::Init(this);
 
 	mpWindowTick = pTick;
-	mpCanvas = OMalloc<CCanvas>(this, CFT_RGB, pDraw);
+	mpCanvas = OMalloc<CCanvas>(this, pDraw, eFormat, eOrder, eColourBits, eAlphaBits);
 	AddComponent(mpCanvas);
 	mbTicking = false;
 
@@ -217,4 +217,8 @@ Ptr<CCanvas>			CWindow::GetCanvas(void) { return mpCanvas; }
 Ptr<CFocus>				CWindow::GetFocus(void) { return &mFocus; }
 Ptr<CContainer>			CWindow::GetContainer(void) { return mpCanvas->GetContainer(); }
 CNativeWindowFactory*	CWindow::GetFactory(void) { return mpcFactory; }
+EColourFormat			CWindow::GetColourFormat(void) { return mpCanvas->GetColourFormat(); }
+EColourOrder			CWindow::GetColourOrder(void) { return mpCanvas->GetColourOrder(); }
+ERGBColourBits			CWindow::GetColourBits(void) { return mpCanvas->GetColourBits(); }
+ERGBAlphaBits			CWindow::GetAlphaBits(void) { return mpCanvas->GetAlphaBits(); }
 

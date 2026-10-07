@@ -42,7 +42,7 @@ protected:
 	CNativeWindowFactory*	mpcFactory;
 
 public:
-	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw);
+	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
 	void					Class(void);
 	void 					Free(void);
 	
@@ -64,6 +64,11 @@ public:
 	bool					ClearContainer(void);
 
 	CNativeWindowFactory*	GetFactory(void);
+
+	EColourFormat			GetColourFormat(void);
+	EColourOrder			GetColourOrder(void);
+	ERGBColourBits			GetColourBits(void);
+	ERGBAlphaBits			GetAlphaBits(void);
 
 	void					SetRequiredSize(void) override;
 };

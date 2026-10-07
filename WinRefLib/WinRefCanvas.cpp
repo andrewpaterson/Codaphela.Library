@@ -41,12 +41,21 @@ bool CWinRefCanvas::CreateNativeCanvas(void)
     //This is split from .Init() so that it can fail on its own.
 
     CWinRefWindowFactory*   pcFactory; 
-    SInt32Vec2                   sSize;
+    SInt32Vec2              sSize;
+    EColourFormat           eColourFormat;
+    EColourOrder            eColourOrder;
+    ERGBColourBits          eColourBits;
+    ERGBAlphaBits           eAlphaBits;
 
     pcFactory = (CWinRefWindowFactory*)mpcWindowFactory;
     sSize = mpcCanvas->GetActualSize();
 
-    mpImage = OMalloc<CImage>(sSize.x, sSize.y);
+    eColourFormat = mpcCanvas->GetColourFormat();
+    eColourOrder = mpcCanvas->GetColourOrder();
+    eColourBits = mpcCanvas->GetColourBits();
+    eAlphaBits = mpcCanvas->GetAlphaBits();
+
+    mpImage = OMalloc<CImage>(sSize.x, sSize.y, eColourFormat, eColourOrder, eColourBits, eAlphaBits);
 
     if (mpImage.IsNull())
     {

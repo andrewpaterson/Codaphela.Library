@@ -78,7 +78,7 @@ bool CWinGDICanvas::CreateNativeCanvas(void)
             SelectObject(mhMemDC, mhMemBitmap);
             ReleaseDC(hWnd, hDC);
 
-            //A 32 bit BI_RGB DIB section is laid out in memory as B, G, R, unused.
+            //A 32 bit BI_RGB DIB section is laid out in memory as B, G, R, X.
             mpImage = OMalloc<CImage>(sSize.x, sSize.y, (void*)mpuiPixelData, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_IGNORED, CHANNEL_STOP);
             SetSize(sSize.x, sSize.y);
             return true;
