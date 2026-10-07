@@ -37,12 +37,16 @@ CONSTRUCTABLE(CCanvas);
 DESTRUCTABLE(CCanvas);
 protected:
 	CNativeCanvas*		mpcNativeCanvas;
-	EColourFormat		meFormat;
+	EColourFormat		meColourFormat;
+	EColourOrder        meColourOrder;
+	ERGBColourBits      meColourBits;
+	ERGBAlphaBits       meAlphaBits;
 	Ptr<CCanvasDraw>	mpCanvasDraw;
 	Ptr<CContainer>		mpContainer;
 
 public:
-	Ptr<CCanvas>		Init(Ptr<CWindow> pWindow, EColourFormat eFormat, Ptr<CCanvasDraw> pDraw);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw);
 	void				Class(void) override;
 	void 				Free(void) override;
 
@@ -50,6 +54,9 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	EColourFormat		GetColourFormat(void);
+	EColourOrder		GetColourOrder(void);
+	ERGBColourBits		GetColourBits(void);
+	ERGBAlphaBits		GetAlphaBits(void);
 	bool				IsValid(void);
 
 	uint8*				GetPixelData(void);

@@ -9,11 +9,14 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CCanvas> CCanvas::Init(Ptr<CWindow> pWindow, EColourFormat eFormat, Ptr<CCanvasDraw> pDraw)
+void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits)
 {
 	PreInit();
 
-	meFormat = eFormat;
+	meColourFormat = eFormat;
+	meColourOrder = eOrder;
+	meColourBits = eColourBits;
+	meAlphaBits = eAlphaBits;
 
 	mpcNativeCanvas = NULL;
 	CComponent::Init(pWindow);
@@ -21,8 +24,28 @@ Ptr<CCanvas> CCanvas::Init(Ptr<CWindow> pWindow, EColourFormat eFormat, Ptr<CCan
 	mpCanvasDraw = pDraw;
 
 	PostInit();
-	
-	return this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw)
+{
+	PreInit();
+
+	meColourFormat = pWindow->GetColourFormat();
+	meColourOrder = pWindow->GetColourOrder();
+	meColourBits = pWindow->GetColourBits();
+	meAlphaBits = pWindow->GetAlphaBits();
+
+	mpcNativeCanvas = NULL;
+	CComponent::Init(pWindow);
+
+	mpCanvasDraw = pDraw;
+
+	PostInit();
 }
 
 
@@ -38,7 +61,10 @@ void CCanvas::Free(void)
 		mpcNativeCanvas = NULL;
 	}
 
-	meFormat = CFT_Unknown;
+	meColourFormat = CFT_Unknown;
+	meColourOrder = CCO_Unknown;
+	meColourBits = CRGB_Unknown;
+	meAlphaBits = ARGB_Unknown;
 
 	CComponent::Free();
 }
@@ -53,7 +79,10 @@ void CCanvas::Class(void)
 	CComponent::Class();
 
 	U_Pointer(mpcNativeCanvas);
-	U_Enum(meFormat);
+	U_Enum(meColourFormat);
+	U_Enum(meColourOrder);
+	U_Enum(meColourBits);
+	U_Enum(meAlphaBits);
 	M_Pointer(mpCanvasDraw);
 	M_Pointer(mpContainer);
 }
@@ -230,7 +259,7 @@ void CCanvas::DrawImage(int iX, int iY, Ptr<CImage> pImage)
 //////////////////////////////////////////////////////////////////////////
 bool CCanvas::IsValid(void)
 {
-	if (meFormat == CFT_Unknown)
+	if (meColourFormat == CFT_Unknown)
 	{
 		return false;
 	}
@@ -295,7 +324,10 @@ void CCanvas::SetRequiredSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EColourFormat CCanvas::GetColourFormat(void) { return meFormat; }
+EColourFormat CCanvas::GetColourFormat(void) { return meColourFormat; }
+EColourOrder CCanvas::GetColourOrder(void) { return meColourOrder; }
+ERGBColourBits CCanvas::GetColourBits(void) { return meColourBits; }
+ERGBAlphaBits CCanvas::GetAlphaBits(void) { return meAlphaBits;  }
 CNativeCanvas* CCanvas::GetNativeCanvas(void) { return mpcNativeCanvas; }
 Ptr<CCanvasDraw> CCanvas::GetCanvasDraw(void) { return mpCanvasDraw; }
 Ptr<CContainer> CCanvas::GetContainer(void) { return mpContainer; }
