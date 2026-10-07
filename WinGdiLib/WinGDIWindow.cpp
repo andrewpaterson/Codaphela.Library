@@ -76,15 +76,6 @@ void CWinGDIWindow::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDIWindow::Stop(void)
-{
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CChars ErrorToString(void)
 {
     DWORD       uiError;
@@ -157,12 +148,13 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lPa
         }
         case WM_DESTROY:
         {
+            pcWindow->Stop();
             PostQuitMessage(0);
             return ERROR_SUCCESS;
         }
         case WM_PAINT:
         {
-            pcWindow->CNativeWindow::Present();
+            pcWindow->Present();
             return ERROR_SUCCESS;
         }
         case WM_ERASEBKGND:
