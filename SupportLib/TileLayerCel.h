@@ -66,6 +66,7 @@ public:
 	Ptr<CImage>					CreateViewportImage(void);
 	Ptr<CImageCelBlitterCache>	CreateBlitterCache(void);
 
+	bool						EnsureBlitters(int32 x, int32 y, int32 xStop, int32 yStop);
 	bool						CreateCelBlitters(void);
 	bool						SetBlitter(size x, size y, Ptr<CImageBlitter> pBlitter);
 	Ptr<CImageBlitter>			GetBlitter(size x, size y);
