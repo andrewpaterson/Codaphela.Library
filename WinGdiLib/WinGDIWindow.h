@@ -40,8 +40,8 @@ protected:
 public:
 	void	Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass);
 	void	Kill(void);
-	void	Stop(void);
 
+	using	CNativeWindow::Present;
 	void	Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHeight) override;
 
 	bool	CreateNativeWindow(void) override;

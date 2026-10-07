@@ -21,6 +21,7 @@ public:
 			void	Kill(void);
 
 			bool	Present(void);
+			void	Stop(void);
 
 protected:
 			bool	BeginPresent(void);

@@ -33,22 +33,23 @@ protected:
 	uint8*			mpuiPixelData;
 
 public:
-	void	Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory);
-	void	Kill(void) override;
+	void			Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory);
+	void			Kill(void) override;
 
-	bool	CreateNativeCanvas(void) override;
+	bool			CreateNativeCanvas(void) override;
 
-	uint8*	GetPixelData(void);
+	uint8*			GetPixelData(void);
 
-	HDC		GetMemDC(void);
+	HDC				GetMemDC(void);
 
-	void	CopyCanvas(CNativeCanvas* pcSourceCanvas);
+	void			CopyCanvas(CNativeCanvas* pcSourceCanvas);
+	Ptr<CImage>		GetImageOrNull(void);
 
-	void	DrawBox(CRectangle* pcRectangle, bool bFilled, ARGB32 sColour);
-	void	DrawPixel(int32 iX, int32 iY, ARGB32 sColour);
-	void	DrawCanvas(int iX, int iY, CNativeCanvas* pcSource);
-	void	DrawCel(int iX, int iY, Ptr<CImageCel> pSource);
-	void	DrawImage(int iX, int iY, Ptr<CImage> pSource);
+	void			DrawBox(CRectangle* pcRectangle, bool bFilled, ARGB32 sColour);
+	void			DrawPixel(int32 iX, int32 iY, ARGB32 sColour);
+	void			DrawCanvas(int iX, int iY, CNativeCanvas* pcSource);
+	void			DrawCel(int iX, int iY, Ptr<CImageCel> pSource);
+	void			DrawImage(int iX, int iY, Ptr<CImage> pSource);
 };
 
 
