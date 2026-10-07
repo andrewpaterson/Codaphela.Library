@@ -1,3 +1,4 @@
+#include "SupportLib/ImageCopier.h"
 #include "WindowLib/Canvas.h"
 #include "WinGDIWindowFactory.h"
 #include "WinGDIHelper.h"
@@ -13,6 +14,8 @@ void CWinGDICanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactor
 	CNativeCanvas::Init(pcCanvas, pcWindowFactory);
     mhMemDC = NULL;
     mhMemBitmap = NULL;
+    mpuiPixelData = NULL;
+    mpImage = NULL;
 }
 
 
@@ -24,11 +27,17 @@ void CWinGDICanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactor
 //////////////////////////////////////////////////////////////////////////
 void CWinGDICanvas::Kill(void)
 {
+    //The image references the DIB section memory so it must be released before the bitmap is deleted.
+    mpImage = NULL;
     if (mhMemDC)
     {
         DeleteObject(mhMemBitmap);
         DeleteDC(mhMemDC);
+        mhMemDC = NULL;
+        mhMemBitmap = NULL;
+        mpuiPixelData = NULL;
     }
+    CNativeCanvas::Kill();
 }
 
 
@@ -68,11 +77,19 @@ bool CWinGDICanvas::CreateNativeCanvas(void)
         {
             SelectObject(mhMemDC, mhMemBitmap);
             ReleaseDC(hWnd, hDC);
+
+            //A 32 bit BI_RGB DIB section is laid out in memory as B, G, R, unused.
+            mpImage = OMalloc<CImage>(sSize.x, sSize.y, (void*)mpuiPixelData, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_IGNORED, CHANNEL_STOP);
+            SetSize(sSize.x, sSize.y);
             return true;
         }
+        DeleteDC(mhMemDC);
     }
+    ReleaseDC(hWnd, hDC);
     mhMemDC = NULL;
     mhMemBitmap = NULL;
+    mpuiPixelData = NULL;
+    SetSize(-1, -1);
     return false;
 }
 
@@ -116,6 +133,8 @@ void CWinGDICanvas::CopyCanvas(CNativeCanvas* pcSourceCanvas)
     }
 
     pcSourceGDICanvas = (CWinGDICanvas*)pcSourceCanvas;
+    sSize.x = (msSize.x < pcSourceGDICanvas->msSize.x) ? msSize.x : pcSourceGDICanvas->msSize.x;
+    sSize.y = (msSize.y < pcSourceGDICanvas->msSize.y) ? msSize.y : pcSourceGDICanvas->msSize.y;
     hSourceDC = pcSourceGDICanvas->mhMemDC;
     hDestDC = mhMemDC;
 
@@ -135,7 +154,9 @@ void CWinGDICanvas::CopyCanvas(CNativeCanvas* pcSourceCanvas)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CWinGDICanvas::GetImageOrNull(void)
 {
-    return NULL;
+    //Any pending GDI drawing must be written to the DIB section before the pixels are accessed directly.
+    GdiFlush();
+    return mpImage;
 }
 
 
@@ -184,6 +205,20 @@ void CWinGDICanvas::DrawPixel(int32 iX, int32 iY, ARGB32 sColour)
 //////////////////////////////////////////////////////////////////////////
 void CWinGDICanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource)
 {
+    CWinGDICanvas*  pcGDISource;
+
+    if (!pcSource)
+    {
+        return;
+    }
+
+    pcGDISource = (CWinGDICanvas*)pcSource;
+    if (!pcGDISource->mhMemDC)
+    {
+        return;
+    }
+
+    BitBlt(mhMemDC, iX, iY, pcGDISource->msSize.x, pcGDISource->msSize.y, pcGDISource->mhMemDC, 0, 0, SRCCOPY);
 }
 
 
@@ -193,6 +228,14 @@ void CWinGDICanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource)
 //////////////////////////////////////////////////////////////////////////
 void CWinGDICanvas::DrawCel(int iX, int iY, Ptr<CImageCel> pSource)
 {
+    if (pSource.IsNull() || mpImage.IsNull())
+    {
+        return;
+    }
+
+    //Writing directly to the DIB section so any batched GDI drawing must complete first.
+    GdiFlush();
+    CImageCopier::Copy(pSource, mpImage, iX, iY);
 }
 
 
@@ -202,5 +245,13 @@ void CWinGDICanvas::DrawCel(int iX, int iY, Ptr<CImageCel> pSource)
 //////////////////////////////////////////////////////////////////////////
 void CWinGDICanvas::DrawImage(int iX, int iY, Ptr<CImage> pSource)
 {
+    if (pSource.IsNull() || mpImage.IsNull())
+    {
+        return;
+    }
+
+    //Writing directly to the DIB section so any batched GDI drawing must complete first.
+    GdiFlush();
+    CImageCopier::Copy(pSource, mpImage, iX, iY);
 }
 

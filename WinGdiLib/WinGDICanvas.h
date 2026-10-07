@@ -21,6 +21,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <windows.h>
+#include "StandardLib/Pointer.h"
+#include "SupportLib/Image.h"
 #include "WindowLib/NativeCanvas.h"
 
 
@@ -31,6 +33,7 @@ protected:
 	HDC				mhMemDC;
 	HBITMAP			mhMemBitmap;
 	uint8*			mpuiPixelData;
+	Ptr<CImage>		mpImage;  //Wraps mpuiPixelData (B8G8R8X8), it does not own the memory.
 
 public:
 	void			Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory);
