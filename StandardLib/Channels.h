@@ -117,6 +117,7 @@ public:
 	char*					GetChannelLongName(size iChannel);
 	char*					GetChannelShortName(size iChannel);
 
+	size					NumChannels(void);
 	void					GetAllChannels(CArraySize* paiChannels);
 	void					GetAllChannels(CArrayChannel* pasChannels);
 	EPrimitiveType			GetPrimitiveType(void);  //Returns PT_Undefined if more than one.

@@ -81,7 +81,7 @@ bool CMapsCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
         {
             if (mpDestImage.IsNull())
             {
-                mpDestImage = OMalloc<CImage>(sSize.x, sSize.y, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+                mpDestImage = OMalloc<CImage>(sSize.x, sSize.y, pCanvas->GetColourFormat(), pCanvas->GetColourOrder(), pCanvas->GetColourBits(), pCanvas->GetAlphaBits());
                 pImage = mpDestImage;
             }
         }
@@ -103,7 +103,15 @@ bool CMapsCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
         }
         
         mpMaps->SetCacheAndViewport(mpBlitterCache, pImage);
-        bResult = mpMaps->CreateCelBlitters();
+
+        if (!mpMaps->HasCelBlitters())
+        {
+            bResult = mpMaps->CreateCelBlitters();
+        }
+        else
+        {
+            bResult = true;
+        }
         if (bResult)
         {
             bResult = mpMaps->Blit(false);

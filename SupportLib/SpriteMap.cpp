@@ -356,6 +356,48 @@ bool CSpriteMap::CreateCelBlitters(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+bool CSpriteMap::HasCelBlitters(void)
+{
+	size			ui;
+	size			uiNumElements;
+	Ptr<CSprite>	pSprite;
+	bool			bResult;
+
+	if (mpCache && mpViewport)
+	{
+		if (mpCache->GetDestImage() == mpViewport)
+		{
+			uiNumElements = maSprites.NumElements();
+			for (ui = 0; ui < uiNumElements; ui++)
+			{
+				pSprite = maSprites.Get(ui);
+				bResult = pSprite->HasBlitter();
+				if (!bResult)
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSpriteMap::UsesCelBlitters(void)
+{
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 bool CSpriteMap::CreateCelBlitter(Ptr<CSprite> pSprite)
 {
 	bool			bResult;

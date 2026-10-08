@@ -211,6 +211,28 @@ CPointer CMapObject::Get(CPointer& pKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CMapObject::Contains(CPointer& pKey)
+{
+	CBaseObject* pcValue;
+	CPointer		pValue;
+	CBaseObject* pcKey;
+
+	EnsureSorted();
+
+	pcKey = (CBaseObject*)pKey.Object();
+	pcValue = (CBaseObject*)mcMap.Get(pcKey);
+	if (pcValue)
+	{
+		return true;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CMapEntry CMapObject::StartIteration(SMapIterator* psIterator)
 {
 	CMapEntry		cEntry;

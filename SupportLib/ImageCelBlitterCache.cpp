@@ -76,6 +76,7 @@ bool CImageCelBlitterCache::Load(CObjectReader* pcFile)
 Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel)
 {
 	Ptr<CImageBlitter>	pImageBlitter;
+	bool				bValid;
 
 	ValidatePtr(pCel);
 
@@ -85,8 +86,14 @@ Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel
 		return pImageBlitter;
 	}
 
-	pImageBlitter = OMalloc<CImageBlitter>(pCel, mpDestImage, &mcRowBlitterFactory);
+	pImageBlitter = OMalloc<CImageBlitter>(pCel, mpDestImage);
 	if (!pImageBlitter)
+	{
+		return NULL;
+	}
+
+	bValid = pImageBlitter->Configure(&mcRowBlitterFactory);
+	if (!bValid)
 	{
 		return NULL;
 	}
@@ -94,6 +101,26 @@ Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel
 	mmCelToBlitterMap.Put(pCel, pImageBlitter);
 
 	return pImageBlitter;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageBlitter> CImageCelBlitterCache::GetImageBlitter(Ptr<CImageCel> pCel)
+{
+	return mmCelToBlitterMap.Get(pCel);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageCelBlitterCache::HasImageBlitter(Ptr<CImageCel> pCel)
+{
+	return mmCelToBlitterMap.Contains(pCel);
 }
 
 

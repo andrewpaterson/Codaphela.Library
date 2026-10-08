@@ -31,12 +31,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CImageRowBlitterFactory* pcBlitterCache)
+void CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage)
 {
 	PreInit();
-
-	bool					bResult;
-	Ptr<CImage>				pSourceImage;
 
 	ValidatePtr(pSourceCel);
 	ValidatePtr(pDestImage);
@@ -47,6 +44,20 @@ bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CIma
 	mcFormat.Init();
 
 	macRowBlitters.Init();
+	mcContext.Init();
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageBlitter::Configure(CImageRowBlitterFactory* pcBlitterCache)
+{
+	bool					bResult;
+	Ptr<CImage>				pSourceImage;
 
 	pSourceImage = mpSourceCel->GetSourceImage();
 	bResult = InitColourInfo(&mcFormat);
@@ -62,10 +73,12 @@ bool CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage, CIma
 	}
 
 	bResult = InitRowBlitters(&mcFormat, pcBlitterCache);
+	if (!bResult)
+	{
+		return false;
+	}
 
 	InitContext(&mcContext);
-
-	PostInit();
 
 	return true;
 }
@@ -215,7 +228,11 @@ bool CImageBlitter::InitOpacityInfo(CImageBlitterFormat* pcFormat)
 		}
 		else
 		{
-			return false;
+			pcOpacityAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pcChannels, IMAGE_IGNORED, PT_float32);
+			if (!pcOpacityAccessor)
+			{
+				return false;
+			}
 		}
 	}
 
@@ -559,7 +576,7 @@ EColourOrder CImageBlitter::GetColourOrder(Ptr<CImage> pImage)
 	{
 		return CCO_GBR;
 	}
-	else if ((iBlueRed == -1) && (iGreenBlue == -1) && (iRedGreen == 2))
+	else if ((iBlueRed == -2) && (iGreenBlue == 1) && (iRedGreen == 1))
 	{
 		return CCO_BGR;
 	}
@@ -740,7 +757,6 @@ ERGBAlphaBits CImageBlitter::GetAlphaBits(Ptr<CImage> pImage)
 	CArrayChannelOffset*	pcChannels;
 	EPrimitiveType			eOpacityType;
 	EPrimitiveType			eIgnoredType;
-	EPrimitiveType			eType;
 
 	eIgnoredType = PT_Undefined;
 	eOpacityType = PT_Undefined;
@@ -770,21 +786,36 @@ ERGBAlphaBits CImageBlitter::GetAlphaBits(Ptr<CImage> pImage)
 	{
 		return ARGB_None;
 	}
-	eType = eOpacityType;
-
-	if (eType == PT_uint8)
+	if (eOpacityType != PT_Undefined)
 	{
-		return ARGB_8bit;
+		if (eOpacityType == PT_uint8)
+		{
+			return ARGB_8bit;
+		}
+		else if (eOpacityType == PT_uint16)
+		{
+			return ARGB_16bit;
+		}
+		else if (eOpacityType == PT_crumb)
+		{
+			return 	ARGB_2bit;
+		}
 	}
-	else if (eType == PT_uint16)
+	if (eIgnoredType != PT_Undefined)
 	{
-		return ARGB_16bit;
+		if (eIgnoredType == PT_uint8)
+		{
+			return ARGB_8bit;
+		}
+		else if (eIgnoredType == PT_uint16)
+		{
+			return ARGB_16bit;
+		}
+		else if (eIgnoredType == PT_crumb)
+		{
+			return 	ARGB_2bit;
+		}
 	}
-	else if (eType == PT_crumb)
-	{
-		return 	ARGB_2bit;
-	}
-
 	return ARGB_Unknown;
 }
 

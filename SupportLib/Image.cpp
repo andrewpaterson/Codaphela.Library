@@ -221,27 +221,38 @@ void CImage::Init(int iWidth, int iHeight, Ptr<CImage> pcChannelsSource)
 //////////////////////////////////////////////////////////////////////////
 void CImage::Init(int iWidth, int iHeight, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits)
 {
+	CColourFormatHelper		cHelper;
+
+	cHelper.Init(eFormat, eOrder, eColourBits, eAlphaBits);
+
+	Init(iWidth, iHeight, &cHelper);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImage::Init(int iWidth, int iHeight, CColourFormatHelper* pcHelper)
+{
 	PreInit();
 
-	CColourFormatHelper		cHelper;
 	size					iNumChannels;
 	size					i;
 	EChannel				eChannel;
 	EPrimitiveType			eType;
-
-	cHelper.Init(eFormat, eOrder, eColourBits, eAlphaBits);
-
+	
 	PrivateInit();
 
-	iNumChannels = cHelper.GetNumChannels();
+	iNumChannels = pcHelper->GetNumChannels();
 	if (iNumChannels > 0)
 	{
 		BeginChange();
 
 		for (i = 0; i < iNumChannels; i++)
 		{
-			eChannel = cHelper.GetChannel(i);
-			eType = cHelper.GetType(i);
+			eChannel = pcHelper->GetChannel(i);
+			eType = pcHelper->GetType(i);
 			AddChannel((size)eChannel, eType);
 		}
 
@@ -871,6 +882,16 @@ CChannel* CImage::GetChannel(size iChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CChannel* CImage::GetChannelAtIndex(size iIndex)
+{
+	return mcChannels.GetChannelAtIndex(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CImage::IsValid(int x, int y)
 {
 	if ((x < 0) || (x >= miWidth) || (y < 0) || (y >= miHeight))
@@ -923,6 +944,54 @@ bool CImage::HasChannels(size iFirst, ...)
 	va_end(vaMarker);
 
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CImage::NumChannels(void)
+{
+	return mcChannels.NumChannels();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImage::Matches(CColourFormatHelper* pcHelper)
+{
+	size			iNumChannels;
+	size			eHelperChannel;
+	size			iIndex;
+	CChannel*		pcChannel;
+	EPrimitiveType	eHelperType;
+
+	iNumChannels = NumChannels();
+	if (iNumChannels != pcHelper->GetNumChannels())
+	{
+		return false;
+	}
+
+	for (iIndex = 0; iIndex < iNumChannels; iIndex++)
+	{
+		pcChannel = GetChannelAtIndex(iIndex);
+
+		eHelperChannel = (size)pcHelper->GetChannel(iIndex);
+		if (pcChannel->iChannel != eHelperChannel)
+		{
+			return false;
+		}
+
+		eHelperType = pcHelper->GetType(iIndex);
+		if (pcChannel->eType!= eHelperType)
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 

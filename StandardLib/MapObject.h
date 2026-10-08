@@ -63,6 +63,10 @@ public:
 	template<class M, class N>
 	Ptr<N>				Get(Ptr<M>& pKey);
 
+	bool				Contains(CPointer& pKey);
+	template<class M, class N>
+	bool				Contains(Ptr<M>& pKey);
+
 	CMapEntry			StartIteration(SMapIterator* psIter);
 	CMapEntry			Iterate(SMapIterator* psIter);
 
@@ -102,6 +106,17 @@ template<class M, class N>
 Ptr<N> CMapObject::Get(Ptr<M>& pKey)
 {
 	return (N*)Get(pKey);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N>
+bool CMapObject::Contains(Ptr<M>& pKey)
+{
+	return Contains((CPointer)pKey);
 }
 
 

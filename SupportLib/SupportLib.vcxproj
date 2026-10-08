@@ -187,6 +187,7 @@
     <ClInclude Include="CopyPaste.h" />
     <ClInclude Include="ChannelTypes.h" />
     <ClInclude Include="FontCreationParameters.h" />
+    <ClInclude Include="ImageColourFormatConverter.h" />
     <ClInclude Include="TileCelSource.h" />
     <ClInclude Include="TileCelCharSource.h" />
     <ClInclude Include="TileGridImageSource.h" />
@@ -393,6 +394,7 @@
     <ClCompile Include="CopyPaste_Windows.cpp" />
     <ClCompile Include="FakeTracker.cpp" />
     <ClCompile Include="FontCreationParameters.cpp" />
+    <ClCompile Include="ImageColourFormatConverter.cpp" />
     <ClCompile Include="TileCelBrush.cpp" />
     <ClCompile Include="TileCelGenerator.cpp" />
     <ClCompile Include="TileCelType.cpp" />

@@ -205,6 +205,31 @@ bool CMaps::Blit(bool bEnsureBlitters)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CMaps::HasCelBlitters(void)
+{
+	size			uiNumElements;
+	size			ui;
+	Ptr<CBlockMap>	pMap;
+	bool			bResult;
+
+	uiNumElements = maMaps.NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
+	{
+		pMap = maMaps.Get(ui);
+		bResult = pMap->HasCelBlitters();
+		if (!bResult)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CMaps::CreateCelBlitters(void)
 {
 	size			uiNumElements;
@@ -216,10 +241,13 @@ bool CMaps::CreateCelBlitters(void)
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
 		pMap = maMaps.Get(ui);
-		bResult = pMap->CreateCelBlitters();
-		if (!bResult)
+		if (pMap->UsesCelBlitters())
 		{
-			return false;
+			bResult = pMap->CreateCelBlitters();
+			if (!bResult)
+			{
+				return false;
+			}
 		}
 	}
 	return true;

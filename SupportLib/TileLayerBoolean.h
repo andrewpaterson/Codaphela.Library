@@ -52,6 +52,8 @@ public:
 
 	bool	Blit(CRectangle* pcViewportRect, bool bEnsureBlitters) override;
 	bool	CreateCelBlitters(void) override;
+	bool	HasCelBlitters(void) override;
+	bool	UsesCelBlitters(void) override;
 
 	void	TileLayerAbstract(void) override {}
 };
