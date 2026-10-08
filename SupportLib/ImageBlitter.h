@@ -48,7 +48,8 @@ protected:
 	CImageBlitterContext		mcContext;
 
 public:
-	bool			Init(Ptr<CImageCel> pSource, Ptr<CImage> pcDest, CImageRowBlitterFactory* pcBlitterCache);
+	void			Init(Ptr<CImageCel> pSource, Ptr<CImage> pcDest);
+	bool			Configure(CImageRowBlitterFactory* pcBlitterCache);
 	void			Free(void);
 
 	void			Class(void);

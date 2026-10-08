@@ -63,8 +63,8 @@ bool CMultiImageCopier::AddAccessor(Ptr<CImageCel> pCel)
 //////////////////////////////////////////////////////////////////////////
 bool CMultiImageCopier::AddAccessor(Ptr<CImage> pSourceImage)
 {
-	CImageCopier*				pcCopier;
-	bool						bResult;
+	CImageCopier*	pcCopier;
+	bool			bResult;
 
 	pcCopier = (CImageCopier*)mcMapImageToCopier.Get(&pSourceImage);
 	if (pcCopier == NULL)

@@ -132,5 +132,8 @@ bool CTileLayerBoolean::GetTile(int x, int y)
 void CTileLayerBoolean::SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) {}
 void CTileLayerBoolean::SetViewport(Ptr<CImage> pViewport) {}
 bool CTileLayerBoolean::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters) { return true; };
-bool CTileLayerBoolean::CreateCelBlitters(void) { return true; }
+bool CTileLayerBoolean::CreateCelBlitters(void) { return false; }
+bool CTileLayerBoolean::HasCelBlitters(void) { return false; }
+bool CTileLayerBoolean::UsesCelBlitters(void) { return false; }
+
 

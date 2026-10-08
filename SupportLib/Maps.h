@@ -55,6 +55,7 @@ public:
 
 	bool		Blit(bool bEnsureBlitters);
 	bool		CreateCelBlitters(void);
+	bool		HasCelBlitters(void);
 
 	void		SetViewportPosition(int32 x, int32 y);
 	void		SetViewportPosition(SInt32Vec2	sViewportPosition);

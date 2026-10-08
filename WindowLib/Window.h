@@ -69,6 +69,7 @@ public:
 	EColourOrder			GetColourOrder(void);
 	ERGBColourBits			GetColourBits(void);
 	ERGBAlphaBits			GetAlphaBits(void);
+	void					GetColourFormat(CColourFormatHelper* pcHelper);
 
 	void					SetRequiredSize(void) override;
 };

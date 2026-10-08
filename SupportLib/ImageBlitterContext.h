@@ -48,6 +48,7 @@ public:
 
 
 public:
+	void	Init(void);
 	void	Init(Ptr<CImage> pSource, Ptr<CImage> pDest);
 	void	Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourFormatHelper* pcSourceFormatHelper, CColourFormatHelper* pcDestFormatHelper);
 };

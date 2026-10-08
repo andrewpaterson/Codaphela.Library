@@ -74,9 +74,11 @@ public:
 	Ptr<CImage>					CreateViewportImage(CRectangle* pcBoundingRect);
 	Ptr<CImageCelBlitterCache>	CreateBlitterCache(void);
 
-	bool						CreateCelBlitters(void);
+	bool						CreateCelBlitters(void) override;
 	bool						CreateCelBlitter(Ptr<CSprite> pSprite);
 	void						ClearCelBlitters(void);
+	bool						HasCelBlitters(void) override;
+	bool						UsesCelBlitters(void);
 
 	void						TileMapAbstract(void) override {}
 };

@@ -265,6 +265,58 @@ bool CTileLayerCel::CreateCelBlitters(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+bool CTileLayerCel::HasCelBlitters(void)
+{
+	Ptr<CImageCel>		pCel;
+	size				x, y;
+	Ptr<CImageBlitter>	pBlitter;
+	size				iSize;
+	size				i;
+
+	if (mpCache && mpViewport)
+	{
+		if (mpCache->GetDestImage() == mpViewport)
+		{
+			maBlitters.Clear();
+
+			iSize = msMapSize.x * msMapSize.y;
+			for (i = 0; i < iSize; i++)
+			{
+				maBlitters.Add(NULL);
+			}
+
+			for (y = 0; y < msMapSize.y; y++)
+			{
+				for (x = 0; x < msMapSize.x; x++)
+				{
+					pBlitter = GetBlitter(x, y);
+					if (pBlitter.IsNull())
+					{
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CTileLayerCel::UsesCelBlitters(void)
+{
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void CTileLayerCel::ClearCelBlitters(void)
 {
 	maBlitters.Clear();

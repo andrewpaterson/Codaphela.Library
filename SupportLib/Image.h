@@ -70,6 +70,7 @@ public:
 	void					Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSource* pcSource);
 	void					Init(int iWidth, int iHeight, Ptr<CImage> pcChannelsSource);
 	void					Init(int iWidth, int iHeight, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
+	void					Init(int iWidth, int iHeight, CColourFormatHelper* pcHelper);
 	void					Init(Ptr<CImage> pcChannelsSource);  //This only sets up channels and dimensions.  
 	void					Class(void);
 	void					Free(void);
@@ -118,12 +119,14 @@ public:
 	bool					IsValid(int x, int y);
 	CChannel*				GetChannel(size iChannel);
 	size					GetChannelsCount(void);
+	CChannel*				GetChannelAtIndex(size iIndex);
 	void					GetAllChannels(CArraySize* paiChannels);
 	void					GetAllChannels(CArrayChannel* pasChannels);
 	EPrimitiveType			GetPrimitiveType(void);  //Returns PT_Undefined if more than one.
 	void					GetAllPrimitiveTypes(CArrayInt* paiPrimitiveTypes);
 	void					GetChannelsForType(EPrimitiveType eType, CArraySize* paiChannels);
 
+	size					NumChannels(void);
 	char*					GetChannelLongName(size iChannel);
 	char*					GetChannelShortName(size iChannel);
 	bool					HasChannel(size iChannel);
@@ -132,6 +135,8 @@ public:
 	CArrayChannelOffset*	GetChannelOffsets(void);
 	
 	void					SetChannelDebugNames(size iChannel);
+
+	bool					Matches(CColourFormatHelper* pcHelper);
 
 	void					Print(CChars* psz);
 	void					Dump(void);

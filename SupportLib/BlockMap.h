@@ -48,6 +48,8 @@ public:
 
 	virtual bool	Blit(CRectangle* pcViewportRect, bool bEnsureBlitters) =0;
 	virtual bool	CreateCelBlitters(void) =0;
+	virtual bool	HasCelBlitters(void) =0;
+	virtual bool	UsesCelBlitters(void) =0;
 
 	virtual	void	TileMapAbstract(void) =0;
 

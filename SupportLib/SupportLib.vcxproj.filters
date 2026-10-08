@@ -834,6 +834,9 @@
     <ClInclude Include="TileCelSource.h">
       <Filter>Source\Map\Generator</Filter>
     </ClInclude>
+    <ClInclude Include="ImageColourFormatConverter.h">
+      <Filter>Source\Image\Copier</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1408,6 +1411,9 @@
     </ClCompile>
     <ClCompile Include="TileCelCharSource.cpp">
       <Filter>Source\Map\Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageColourFormatConverter.cpp">
+      <Filter>Source\Image\Copier</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

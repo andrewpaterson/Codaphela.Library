@@ -213,6 +213,16 @@ void CWindow::SetRequiredSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CWindow::GetColourFormat(CColourFormatHelper* pcHelper)
+{
+	pcHelper->Init(GetColourFormat(), GetColourOrder(), GetColourBits(), GetAlphaBits());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 Ptr<CCanvas>			CWindow::GetCanvas(void) { return mpCanvas; }
 Ptr<CFocus>				CWindow::GetFocus(void) { return &mFocus; }
 Ptr<CContainer>			CWindow::GetContainer(void) { return mpCanvas->GetContainer(); }

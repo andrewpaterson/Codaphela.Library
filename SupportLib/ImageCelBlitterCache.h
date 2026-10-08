@@ -52,6 +52,9 @@ public:
 	Ptr<CImageBlitter>	CreateImageBlitter(Ptr<CImageCel> pCel);
 	Ptr<CImage>			GetDestImage(void);
 
+	Ptr<CImageBlitter>	GetImageBlitter(Ptr<CImageCel> pCel);
+	bool				HasImageBlitter(Ptr<CImageCel> pCel);
+
 	bool				Matches(Ptr<CImage> pImage);
 };
 

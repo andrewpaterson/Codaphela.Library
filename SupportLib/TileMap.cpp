@@ -168,7 +168,60 @@ bool CTileMap::CreateCelBlitters(void)
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pTileLayer = maTileLayers.Get(i);
-		bResult = pTileLayer->CreateCelBlitters();
+		if (pTileLayer->UsesCelBlitters())
+		{
+			bResult = pTileLayer->CreateCelBlitters();
+			if (!bResult)
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTileMap::HasCelBlitters(void)
+{
+	size				uiNumElements;
+	size				i;
+	Ptr<CTileLayer>		pTileLayer;
+	bool				bResult;
+
+	uiNumElements = maTileLayers.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pTileLayer = maTileLayers.Get(i);
+		bResult = pTileLayer->HasCelBlitters();
+		if (!bResult)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTileMap::UsesCelBlitters(void)
+{
+	size				uiNumElements;
+	size				i;
+	Ptr<CTileLayer>		pTileLayer;
+	bool				bResult;
+
+	uiNumElements = maTileLayers.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pTileLayer = maTileLayers.Get(i);
+		bResult = pTileLayer->UsesCelBlitters();
 		if (!bResult)
 		{
 			return false;

@@ -243,3 +243,4 @@ void CImageCopier::Copy(Ptr<CImage> pSource, Ptr<CImage> pDest)
 	cCopier.Kill();
 }
 
+

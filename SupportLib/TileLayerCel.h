@@ -67,7 +67,10 @@ public:
 	Ptr<CImageCelBlitterCache>	CreateBlitterCache(void);
 
 	bool						EnsureBlitters(int32 x, int32 y, int32 xStop, int32 yStop);
-	bool						CreateCelBlitters(void);
+	bool						CreateCelBlitters(void) override;
+	bool						HasCelBlitters(void) override;
+	bool						UsesCelBlitters(void) override;
+
 	bool						SetBlitter(size x, size y, Ptr<CImageBlitter> pBlitter);
 	Ptr<CImageBlitter>			GetBlitter(size x, size y);
 	void						ClearCelBlitters(void);
