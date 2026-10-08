@@ -834,7 +834,7 @@
     <ClInclude Include="TileCelSource.h">
       <Filter>Source\Map\Generator</Filter>
     </ClInclude>
-    <ClInclude Include="ImageColourFormatConverter.h">
+    <ClInclude Include="ImageColourConverter.h">
       <Filter>Source\Image\Copier</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1412,7 +1412,7 @@
     <ClCompile Include="TileCelCharSource.cpp">
       <Filter>Source\Map\Generator</Filter>
     </ClCompile>
-    <ClCompile Include="ImageColourFormatConverter.cpp">
+    <ClCompile Include="ImageColourConverter.cpp">
       <Filter>Source\Image\Copier</Filter>
     </ClCompile>
   </ItemGroup>

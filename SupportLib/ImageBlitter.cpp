@@ -98,49 +98,49 @@ bool CImageBlitter::InitColourInfo(CImageBlitterFormat* pcFormat)
 	
 	pSourceImage = mpSourceCel->GetSourceImage();
 
-	eSourceColourOrder = GetColourOrder(pSourceImage);
+	eSourceColourOrder = pSourceImage->GetColourOrder();
 	if (eSourceColourOrder == CCO_Unknown)
 	{
 		return false;
 	}
 
-	mcFormat.meSourceColourFormat = GetColourFormat(pSourceImage);
+	mcFormat.meSourceColourFormat = pSourceImage->GetColourFormat();
 	if (mcFormat.meSourceColourFormat == CFT_Unknown)
 	{
 		return false;
 	}
 
-	eSourceColourBits = GetColourBits(pSourceImage);
+	eSourceColourBits = pSourceImage->GetColourBits();
 	if (eSourceColourBits == CRGB_Unknown)
 	{
 		return false;
 	}
 
-	mcFormat.meSourceAlphaBits = GetAlphaBits(pSourceImage);
+	mcFormat.meSourceAlphaBits = pSourceImage->GetAlphaBits();
 	if (mcFormat.meSourceAlphaBits == ARGB_Unknown)
 	{
 		return false;
 	}
 
-	eDestColourOrder = GetColourOrder(mpDestImage);
+	eDestColourOrder = mpDestImage->GetColourOrder();
 	if (eDestColourOrder == CCO_Unknown)
 	{
 		return false;
 	}
 
-	mcFormat.meDestColourFormat = GetColourFormat(mpDestImage);
+	mcFormat.meDestColourFormat = mpDestImage->GetColourFormat();
 	if (mcFormat.meDestColourFormat == CFT_Unknown)
 	{
 		return false;
 	}
 
-	eDestColourBits = GetColourBits(mpDestImage);
+	eDestColourBits = mpDestImage->GetColourBits();
 	if (eDestColourBits == CRGB_Unknown)
 	{
 		return false;
 	}
 
-	mcFormat.meDestAlphaBits = GetAlphaBits(mpDestImage);
+	mcFormat.meDestAlphaBits = mpDestImage->GetAlphaBits();
 	if (mcFormat.meDestAlphaBits == ARGB_Unknown)
 	{
 		return false;
@@ -228,11 +228,7 @@ bool CImageBlitter::InitOpacityInfo(CImageBlitterFormat* pcFormat)
 		}
 		else
 		{
-			pcOpacityAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pcChannels, IMAGE_IGNORED, PT_float32);
-			if (!pcOpacityAccessor)
-			{
-				return false;
-			}
+			return false;
 		}
 	}
 
@@ -507,316 +503,6 @@ bool CImageBlitter::Save(CObjectWriter* pcFile)
 bool CImageBlitter::Load(CObjectReader* pcFile)
 {
 	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-EColourOrder CImageBlitter::GetColourOrder(Ptr<CImage> pImage)
-{
-	size					uiNumChannels;
-	size					uiChannelIndex;
-	CChannel*				pcChannel;
-	CArrayChannelOffset*	pcChannels;
-	int						iOpacity;
-	int						iIgnored;
-	int						iRed;
-	int						iGreen;
-	int						iBlue;
-	int						iRedGreen;
-	int						iGreenBlue;
-	int						iBlueRed;
-
-	iOpacity = -1;
-	iIgnored = -1;
-	iRed = -1;
-	iGreen = -1;
-	iBlue = -1;
-
-	pcChannels = pImage->GetChannelOffsets();
-	uiNumChannels = pcChannels->NumElements();
-	for (uiChannelIndex = 0; uiChannelIndex < uiNumChannels; uiChannelIndex++)
-	{
-		pcChannel = pcChannels->Get(uiChannelIndex);
-
-		if (pcChannel->iChannel == IMAGE_DIFFUSE_RED)
-		{
-			iRed = (int)uiChannelIndex;
-		}
-		else if (pcChannel->iChannel == IMAGE_DIFFUSE_GREEN)
-		{
-			iGreen = (int)uiChannelIndex;
-		}
-		else if (pcChannel->iChannel == IMAGE_DIFFUSE_BLUE)
-		{
-			iBlue = (int)uiChannelIndex;
-		}
-	}
-
-	if ((iRed == -1) || (iGreen == -1) || (iBlue == -1))
-	{
-		return CCO_Unknown;
-	}
-
-	iRedGreen = (int)iRed - (int)iGreen;
-	iGreenBlue = (int)iGreen - (int)iBlue;
-	iBlueRed = (int)iBlue - (int)iRed;
-
-	if ((iRedGreen == -1) && (iGreenBlue == -1) && (iBlueRed == 2))
-	{
-		return CCO_RGB;
-	}
-	else if ((iBlueRed == -1) && (iRedGreen == -1) && (iGreenBlue == 2))
-	{
-		return CCO_BRG;
-	}
-	else if ((iGreenBlue == -1) && (iBlueRed == -1) && (iRedGreen == 2))
-	{
-		return CCO_GBR;
-	}
-	else if ((iBlueRed == -2) && (iGreenBlue == 1) && (iRedGreen == 1))
-	{
-		return CCO_BGR;
-	}
-	else if ((iBlueRed == -1) && (iGreenBlue == -1) && (iRedGreen == 2))
-	{
-		return CCO_RBG;
-	}
-	else if ((iBlueRed == -1) && (iGreenBlue == -1) && (iRedGreen == 2))
-	{
-		return CCO_GRB;
-	}
-
-	return CCO_Unknown;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-EColourFormat CImageBlitter::GetColourFormat(Ptr<CImage> pImage)
-{
-	size					uiNumChannels;
-	size					uiChannelIndex;
-	CChannel*				pcChannel;
-	CArrayChannelOffset*	pcChannels;
-	int						iOpacity;
-	int						iIgnored;
-	int						iRed;
-
-	//We already know the colour order at this point.
-	iOpacity = -1;
-	iIgnored = -1;
-	iRed = -1;
-
-	pcChannels = pImage->GetChannelOffsets();
-	uiNumChannels = pcChannels->NumElements();
-	for (uiChannelIndex = 0; uiChannelIndex < uiNumChannels; uiChannelIndex++)
-	{
-		pcChannel = pcChannels->Get(uiChannelIndex);
-
-		if (pcChannel->iChannel == IMAGE_OPACITY)
-		{
-			iOpacity = uiChannelIndex;
-		}
-		else if (pcChannel->iChannel == IMAGE_IGNORED)
-		{
-			iIgnored = uiChannelIndex;
-		}
-		else if (pcChannel->iChannel == IMAGE_DIFFUSE_RED)
-		{
-			iRed = uiChannelIndex;
-		}
-	}
-
-	if ((iOpacity != -1) && (iIgnored != -1))
-	{
-		return CFT_Unknown;
-	}
-
-	if (iOpacity != -1)
-	{
-		if (iRed > iOpacity)
-		{
-			return CFT_ARGB;
-		}
-		else
-		{
-			return CFT_RGBA;
-		}
-	}
-
-	if (iIgnored != -1)
-	{
-		if (iRed > iIgnored)
-		{
-			return CFT_XRGB;
-		}
-		else
-		{
-			return CFT_RGBX;
-		}
-	}
-
-	return CFT_RGB;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-ERGBColourBits CImageBlitter::GetColourBits(Ptr<CImage> pImage)
-{
-	size					uiNumChannels;
-	size					uiChannelIndex;
-	CChannel*				pcChannel;
-	CArrayChannelOffset*	pcChannels;
-	EPrimitiveType			eRedType;
-	EPrimitiveType			eGreenType;
-	EPrimitiveType			eBlueType;
-
-	eRedType = PT_Undefined;
-	eGreenType = PT_Undefined;
-	eBlueType = PT_Undefined;
-
-	//We already know the colour exists at this point.
-	pcChannels = pImage->GetChannelOffsets();
-	uiNumChannels = pcChannels->NumElements();
-	for (uiChannelIndex = 0; uiChannelIndex < uiNumChannels; uiChannelIndex++)
-	{
-		pcChannel = pcChannels->Get(uiChannelIndex);
-
-		if (pcChannel->iChannel == IMAGE_DIFFUSE_RED)
-		{
-			eRedType = pcChannel->eType;
-		}
-		else if (pcChannel->iChannel == IMAGE_DIFFUSE_GREEN)
-		{
-			eGreenType = pcChannel->eType;
-		}
-		else if (pcChannel->iChannel == IMAGE_DIFFUSE_BLUE)
-		{
-			eBlueType = pcChannel->eType;
-		}
-	}
-
-	if ((eRedType == PT_uint8) && (eGreenType == PT_uint8) && (eBlueType == PT_uint8))
-	{
-		return CRGB_24bit;
-	}
-	else if ((eRedType == PT_uint16) && (eGreenType == PT_uint16) && (eBlueType == PT_uint16))
-	{
-		return CRGB_48bit;
-	}
-	else if ((eRedType == PT_float32) && (eGreenType == PT_float32) && (eBlueType == PT_float32))
-	{
-		return CRGB_Float3;
-	}
-	else if ((eRedType == PT_nickle) && (eGreenType == PT_nickle) && (eBlueType == PT_nickle))
-	{
-		return CRGB_15bit;
-	}
-	else if ((eRedType == PT_nickle) && (eGreenType == PT_sixbits) && (eBlueType == PT_nickle))
-	{
-		return CRGB_16bit;
-	}
-	else if ((eRedType == PT_crumb) && (eGreenType == PT_crumb) && (eBlueType == PT_crumb))
-	{
-		return CRGB_6bit;
-	}
-	else if ((eRedType == PT_tribble) && (eGreenType == PT_tribble) && (eBlueType == PT_crumb))
-	{
-		return CRGB_8bit332;
-	}
-	else if ((eRedType == PT_tribble) && (eGreenType == PT_crumb) && (eBlueType == PT_tribble))
-	{
-		return CRGB_8bit323;
-	}
-	else if ((eRedType == PT_crumb) && (eGreenType == PT_tribble) && (eBlueType == PT_tribble))
-	{
-		return CRGB_8bit323;
-	}
-
-	return CRGB_Unknown;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-ERGBAlphaBits CImageBlitter::GetAlphaBits(Ptr<CImage> pImage)
-{
-	size					uiNumChannels;
-	size					uiChannelIndex;
-	CChannel*				pcChannel;
-	CArrayChannelOffset*	pcChannels;
-	EPrimitiveType			eOpacityType;
-	EPrimitiveType			eIgnoredType;
-
-	eIgnoredType = PT_Undefined;
-	eOpacityType = PT_Undefined;
-
-	//We already know the colour exists at this point.
-	pcChannels = pImage->GetChannelOffsets();
-	uiNumChannels = pcChannels->NumElements();
-	for (uiChannelIndex = 0; uiChannelIndex < uiNumChannels; uiChannelIndex++)
-	{
-		pcChannel = pcChannels->Get(uiChannelIndex);
-
-		if (pcChannel->iChannel == IMAGE_OPACITY)
-		{
-			eOpacityType = pcChannel->eType;
-		}
-		else if (pcChannel->iChannel == IMAGE_IGNORED)
-		{
-			eIgnoredType = pcChannel->eType;
-		}
-	}
-
-	if ((eIgnoredType != PT_Undefined) && (eOpacityType != PT_Undefined))
-	{
-		return ARGB_Unknown;
-	}
-	else if ((eIgnoredType == PT_Undefined) && (eOpacityType == PT_Undefined))
-	{
-		return ARGB_None;
-	}
-	if (eOpacityType != PT_Undefined)
-	{
-		if (eOpacityType == PT_uint8)
-		{
-			return ARGB_8bit;
-		}
-		else if (eOpacityType == PT_uint16)
-		{
-			return ARGB_16bit;
-		}
-		else if (eOpacityType == PT_crumb)
-		{
-			return 	ARGB_2bit;
-		}
-	}
-	if (eIgnoredType != PT_Undefined)
-	{
-		if (eIgnoredType == PT_uint8)
-		{
-			return ARGB_8bit;
-		}
-		else if (eIgnoredType == PT_uint16)
-		{
-			return ARGB_16bit;
-		}
-		else if (eIgnoredType == PT_crumb)
-		{
-			return 	ARGB_2bit;
-		}
-	}
-	return ARGB_Unknown;
 }
 
 

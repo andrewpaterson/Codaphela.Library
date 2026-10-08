@@ -60,11 +60,6 @@ public:
 	Ptr<CImageCel>	GetCel(void);
 
 protected:
-	EColourOrder	GetColourOrder(Ptr<CImage> pImage);
-	EColourFormat	GetColourFormat(Ptr<CImage> pImage);
-	ERGBColourBits	GetColourBits(Ptr<CImage> pImage);
-	ERGBAlphaBits	GetAlphaBits(Ptr<CImage> pImage);
-
 	bool			InitColourInfo(CImageBlitterFormat* pcFormat);
 	bool			InitOpacityInfo(CImageBlitterFormat* pcFormat);
 	bool			InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
