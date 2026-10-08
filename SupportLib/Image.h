@@ -71,6 +71,7 @@ public:
 	void					Init(int iWidth, int iHeight, Ptr<CImage> pcChannelsSource);
 	void					Init(int iWidth, int iHeight, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
 	void					Init(int iWidth, int iHeight, CColourFormatHelper* pcHelper);
+	void					Init(int iWidth, int iHeight, CArrayChannel* pasNewChannels);
 	void					Init(Ptr<CImage> pcChannelsSource);  //This only sets up channels and dimensions.  
 	void					Class(void);
 	void					Free(void);
@@ -82,6 +83,7 @@ public:
 	bool					Load(CObjectReader* pcFile) override;
 
 	void					BeginChange(void);
+	void					AddChannel(SChannel* psChannel);
 	void 					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);
 	void 					AddChannel(size iChannel, EPrimitiveType eType, char* szShortName, char* szLongName = NULL, bool bReverse = false);
 	bool					AddChannel(Ptr<CImage> pcSourceImage, size iChannel, EPrimitiveType eType);
@@ -118,7 +120,6 @@ public:
 	bool					IsSameFormat(Ptr<CImage> psOther);
 	bool					IsValid(int x, int y);
 	CChannel*				GetChannel(size iChannel);
-	size					GetChannelsCount(void);
 	CChannel*				GetChannelAtIndex(size iIndex);
 	void					GetAllChannels(CArraySize* paiChannels);
 	void					GetAllChannels(CArrayChannel* pasChannels);
@@ -134,9 +135,15 @@ public:
 
 	CArrayChannelOffset*	GetChannelOffsets(void);
 	
+	EColourOrder			GetColourOrder(void);
+	EColourFormat			GetColourFormat(void);
+	ERGBColourBits			GetColourBits(void);
+	ERGBAlphaBits			GetAlphaBits(void);
+
 	void					SetChannelDebugNames(size iChannel);
 
-	bool					Matches(CColourFormatHelper* pcHelper);
+	bool					Matches(CColourFormatHelper* pcHelper, bool bReverse = false);
+	bool					Matches(CArrayChannel* pasChannels);
 
 	void					Print(CChars* psz);
 	void					Dump(void);

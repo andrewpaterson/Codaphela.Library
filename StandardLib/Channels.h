@@ -67,6 +67,7 @@ public:
 
 	void 					SetSize(size iSize);
 	void 					PrivateAddChannel(size iChannel, EPrimitiveType eType, bool bReverse);
+	void 					AddChannel(SChannel* psChannel);
 	void 					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);
 	void 					AddChannel(size iChannel, EPrimitiveType eType, char* szShortName, char* szLongName = NULL, bool bReverse = false);
 	void 					AddChannel(size iChannel1, size iChannel2, EPrimitiveType eType, bool bReverse = false);
@@ -105,6 +106,7 @@ public:
 	size					GetNumChannels(void);
 	CChannel*				GetChannelAtIndex(size iIndex);
 	size					GetIndexOfChannel(CChannel* pcChannel);
+	size					GetIndexOfChannel(size iChannel);
 	bool					HasChannel(size iChannel);
 	bool					HasChannel(size iChannel1, size iChannel2);
 	bool					HasChannel(size iChannel1, size iChannel2, size iChannel3);

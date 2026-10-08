@@ -270,6 +270,16 @@ void CChannels::SetSize(size iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CChannels::AddChannel(SChannel* psChannel)
+{
+	AddChannel(psChannel->iChannel, psChannel->eType, psChannel->bReverse);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CChannels::AddChannel(size iChannel, EPrimitiveType eType, bool bReverse)
 {
 	if (IsChanging())
@@ -898,6 +908,16 @@ CChannel* CChannels::GetChannelAtIndex(size iIndex)
 size CChannels::GetIndexOfChannel(CChannel* pcChannel)
 {
 	return masChannelOffsets.GetIndex(pcChannel);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CChannels::GetIndexOfChannel(size iChannel)
+{
+	return masChannelOffsets.FindWithIntKey(iChannel, 0);
 }
 
 
