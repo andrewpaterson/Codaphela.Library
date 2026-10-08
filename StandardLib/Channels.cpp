@@ -316,7 +316,7 @@ void CChannels::SetChannelDebugNames(size iChannel, char* szShortName, char* szL
 	{
 		if (mpmicChannelDebugs == NULL)
 		{
-			mpmicChannelDebugs = (CMapIntChannelDescriptor*)malloc(sizeof(CMapIntChannelDescriptor));
+			mpmicChannelDebugs = NewMalloc<CMapIntChannelDescriptor>();
 			mpmicChannelDebugs->Init();
 		}
 
