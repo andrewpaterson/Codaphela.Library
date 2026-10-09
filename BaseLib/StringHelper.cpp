@@ -651,6 +651,11 @@ const char* FindChar(const char* szString, char c, bool bReverse)
 
 		if (bReverse)
 		{
+			if (iLen == 0)
+			{
+				return NULL;
+			}
+
 			i = iLen;
 			do
 			{
@@ -687,17 +692,16 @@ size FindCharIndex(char chr, char* str, size index)
 
 	i = 0;
 	str = str + index;
-	do
+	while (str[i])
 	{
 		if (str[i] == chr)
 		{
 			return i;
 		}
 		i++;
-	} 
-	while (str[i]);
+	}
 
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 

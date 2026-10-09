@@ -121,18 +121,15 @@ EFatCode GetFatShortNameForEntry(char* szDest, char* szSource, bool bLFNDisabled
 			bLFN = true;
 		}
 
-		if (uiDotIndex >= 0)
+		if (uiDotIndex != ARRAY_ELEMENT_NOT_FOUND)
 		{
-			if (uiDotIndex > 7 || (uiLength - uiDotIndex) > 4)
+			if (uiDotIndex == 0 || uiDotIndex > 8 || (uiLength - uiDotIndex) > 4)
 			{
 				bLFN = true;
 			}
-			if (uiDotIndex >= 0)
+			if (FindCharIndex('.', szSource, uiDotIndex + 1) != ARRAY_ELEMENT_NOT_FOUND)
 			{
-				if (FindCharIndex('.', (char*)szSource, 1) >= 0)
-				{
-					bLFN = true;
-				}
+				bLFN = true;
 			}
 		}
 		else
@@ -235,71 +232,48 @@ EFatCode GetFatShortNameForEntry(char* szDest, char* szSource, bool bLFNDisabled
 
 	if (uiDotIndex == ARRAY_ELEMENT_NOT_FOUND)
 	{
-		uiDotIndex = 0;
+		if (uiLength > 8)
+		{
+			return FAT_INVALID_FILENAME;
+		}
 	}
-
-	if ((uiLength > 9 &&
-		(uiDotIndex == 0 || (uiDotIndex) > 9)) ||
-		(uiDotIndex > 0 && (uiLength - uiDotIndex) > 5))
+	else if (uiDotIndex == 0 || uiDotIndex > 8 || (uiLength - uiDotIndex - 1) > 3 ||
+		FindCharIndex('.', szName, uiDotIndex + 1) != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		return FAT_INVALID_FILENAME;
 	}
 
 	for (i = 0; i < 8; i++)
 	{
-		if (uiDotIndex == 0)
+		if (i < uiLength && i < uiDotIndex)
 		{
-			if (i < uiLength)
+			if (bLFNDisabled && (szName[i] != toupper(szName[i])))
 			{
-				if (bLFNDisabled && (szName[i] != toupper(szName[i])))
-					bUppercase = true;
+				bUppercase = true;
+			}
 
-				*szDest++ = toupper(szName[i]);
-			}
-			else
-			{
-				*szDest++ = ' ';
-			}
+			*szDest++ = toupper(szName[i]);
 		}
 		else
-		{
-			if (i < uiDotIndex - 1)
-			{
-				if (bLFNDisabled && (szName[i] != toupper(szName[i])))
-				{
-					bUppercase = true;
-				}
-
-				*szDest++ = toupper(szName[i]);
-			}
-			else
-			{
-				*szDest++ = ' ';
-			}
-		}
-	}
-
-	if (uiDotIndex == 0)
-	{
-		for (i = 0; i < 3; i++)
 		{
 			*szDest++ = ' ';
 		}
 	}
-	else
+
+	for (i = 0; i < 3; i++)
 	{
-		for (i = uiDotIndex; i < uiDotIndex + 3; i++)
+		if (uiDotIndex != ARRAY_ELEMENT_NOT_FOUND && uiDotIndex + 1 + i < uiLength)
 		{
-			if (i < uiLength)
+			if (bLFNDisabled && (szName[uiDotIndex + 1 + i] != toupper(szName[uiDotIndex + 1 + i])))
 			{
-				if (bLFNDisabled && (szName[i] != toupper(szName[i])))
-					bUppercase = true;
-				*szDest++ = toupper(szName[i]);
+				bUppercase = true;
 			}
-			else
-			{
-				*szDest++ = ' ';
-			}
+
+			*szDest++ = toupper(szName[uiDotIndex + 1 + i]);
+		}
+		else
+		{
+			*szDest++ = ' ';
 		}
 	}
 
