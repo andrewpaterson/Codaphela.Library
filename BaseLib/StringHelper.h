@@ -38,6 +38,7 @@ char*		StrRev(char* szString, size iLength);
 const char*	FindChar(const char* szString, char c, bool bReverse = false);
 size		FindCharIndex(char chr, char* str, size index);
 char*		StrCpySafe(char* szDest, const char* szSource, size iDestLength, size* piSourceLength = NULL);
+char*		StrCatSafe(char* szDest, const char* szSource, size iDestLength, size* piSourceLength = NULL);
 char*		StrCpy(char* szDest, const char* szString, const char* szLastCharInclusive);
 void		StrCpySafeStripSurroundingSpaces(char* szDest, char* szSource, size uiMaxLength);
 char*		ToLower(char* szString);
