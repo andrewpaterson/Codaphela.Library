@@ -57,7 +57,7 @@ bool CUserError::Set(const char* szError)
 	gcLogger.Add("\n");
 	if (!mbUserError)
 	{
-		strcpy(mszUserError, szError);
+		StrCpySafe(mszUserError, szError, MAX_USER_ERROR_CHARS);
 		mbUserError = true;
 		gcLogger.Break();
 	}

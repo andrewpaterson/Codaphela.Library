@@ -164,7 +164,7 @@ char* FatEntryToString(SFatDirectoryEntry* psFatEntry, bool bFat32Volume)
 
 	
 	memset(gaszLogToStringScratchPad[iCount], 0, LOG_TO_STRING_MAX_LENGTH);
-	strcpy(gaszLogToStringScratchPad[iCount], "cluster: ");
+	StrCpySafe(gaszLogToStringScratchPad[iCount], "cluster: ", LOG_TO_STRING_MAX_LENGTH);
 	IntToString(szTemp, LOG_TO_STRING_MAX_LENGTH, uiCluster);
 	strcat(gaszLogToStringScratchPad[iCount], szTemp);
 	strcat(gaszLogToStringScratchPad[iCount], ", sector: ");

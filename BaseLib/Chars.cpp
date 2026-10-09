@@ -3035,7 +3035,7 @@ char* CChars::CopyIntoBuffer(char* szDest, size iDestLength)
 
 	if (iDestLength == ARRAY_ELEMENT_NOT_FOUND)
 	{
-		strcpy(szDest, Text());
+		StrCpySafe(szDest, Text(), iDestLength);
 		return szDest;
 	}
 	else if (iDestLength == 0)
