@@ -272,7 +272,7 @@ char* ShortToString(char* szDest, size iDestLength, int16 iValue, uint16 iBase)
 	{
 		if (iValue == MIN_INT16)
 		{
-			strcpy(szDest, "-32768");
+			StrCpySafe(szDest, "-32768", iDestLength);
 			return szDest;
 		}
 		iValue *= -1;
@@ -367,7 +367,7 @@ char* IntToString(char* szDest, size iDestLength, int32 iValue, uint16 iBase)
 	{
 		if (iValue == MIN_INT32)
 		{
-			strcpy(szDest, "-2147483648");
+			StrCpySafe(szDest, "-2147483648", iDestLength);
 			return szDest;
 		}
 		iValue *= -1;
@@ -770,6 +770,45 @@ char* StrCpySafe(char* szDest, const char* szSource, size iDestLength, size* piS
 	}
 	memcpy(szDest, szSource, iLen);
 	szDest[iLen] = 0;
+
+	return szDest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* StrCatSafe(char* szDest, const char* szSource, size iDestLength, size* piSourceLength)
+{
+	size	iLen;
+	char*	pcEnd;
+	size	iDestLen;
+	size	iRemaining;
+
+	iLen = strlen(szSource);
+	SafeAssign(piSourceLength, iLen);
+
+	if (iDestLength == 0)
+	{
+		return szDest;
+	}
+
+	pcEnd = (char*)memchr(szDest, 0, iDestLength);
+	if (pcEnd == NULL)
+	{
+		szDest[iDestLength - 1] = 0;
+		return szDest;
+	}
+
+	iDestLen = pcEnd - szDest;
+	iRemaining = iDestLength - iDestLen;
+	if (iLen >= iRemaining)
+	{
+		iLen = iRemaining - 1;
+	}
+	memcpy(pcEnd, szSource, iLen);
+	pcEnd[iLen] = 0;
 
 	return szDest;
 }
