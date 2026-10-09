@@ -166,13 +166,13 @@ char* FatEntryToString(SFatDirectoryEntry* psFatEntry, bool bFat32Volume)
 	memset(gaszLogToStringScratchPad[iCount], 0, LOG_TO_STRING_MAX_LENGTH);
 	StrCpySafe(gaszLogToStringScratchPad[iCount], "cluster: ", LOG_TO_STRING_MAX_LENGTH);
 	IntToString(szTemp, LOG_TO_STRING_MAX_LENGTH, uiCluster);
-	strcat(gaszLogToStringScratchPad[iCount], szTemp);
-	strcat(gaszLogToStringScratchPad[iCount], ", sector: ");
+	StrCatSafe(gaszLogToStringScratchPad[iCount], szTemp, LOG_TO_STRING_MAX_LENGTH);
+	StrCatSafe(gaszLogToStringScratchPad[iCount], ", sector: ", LOG_TO_STRING_MAX_LENGTH);
 	IntToString(szTemp, LOG_TO_STRING_MAX_LENGTH, psFatEntry->uiSectorAddress);
-	strcat(gaszLogToStringScratchPad[iCount], szTemp);
-	strcat(gaszLogToStringScratchPad[iCount], ":");
+	StrCatSafe(gaszLogToStringScratchPad[iCount], szTemp, LOG_TO_STRING_MAX_LENGTH);
+	StrCatSafe(gaszLogToStringScratchPad[iCount], ":", LOG_TO_STRING_MAX_LENGTH);
 	IntToString(szTemp, LOG_TO_STRING_MAX_LENGTH, psFatEntry->uiSectorOffset);
-	strcat(gaszLogToStringScratchPad[iCount], szTemp);
+	StrCatSafe(gaszLogToStringScratchPad[iCount], szTemp, LOG_TO_STRING_MAX_LENGTH);
 	return gaszLogToStringScratchPad[iCount];
 }
 
