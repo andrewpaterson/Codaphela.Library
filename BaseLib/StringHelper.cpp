@@ -689,8 +689,8 @@ size FindCharIndex(char chr, char* str, size index)
 	size i;
 
 	i = 0;
-	str = str + index;
-	while (str[i])
+	str = &str[index];
+	while (str[i] != '\0')
 	{
 		if (str[i] == chr)
 		{
