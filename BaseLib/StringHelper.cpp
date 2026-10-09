@@ -115,9 +115,8 @@ int StringInsensitiveCompare(const char* ps1, const char* ps2)
 int MemICmp(const void* pv1, const void* pv2, size iLength)
 {
 	size	i;
-    char	c1;
-	char	c2;
-	char	iDiff;
+	uint8	c1;
+	uint8	c2;
 
     if ((pv1 == NULL) && (pv2 == NULL))
     {
@@ -141,13 +140,12 @@ int MemICmp(const void* pv1, const void* pv2, size iLength)
 
     for (i = 0; i < iLength; i++)
     {
-        c1 = tolower(((char*)pv1)[i]);
-        c2 = tolower(((char*)pv2)[i]);
+        c1 = (uint8)ToLower(((char*)pv1)[i]);
+        c2 = (uint8)ToLower(((char*)pv2)[i]);
 
-        iDiff = c1 - c2;
-        if (iDiff != 0)
+        if (c1 != c2)
         {
-            return iDiff;
+            return (c1 < c2) ? -1 : 1;
         }
     }
 
