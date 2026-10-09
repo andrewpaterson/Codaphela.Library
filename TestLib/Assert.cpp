@@ -329,7 +329,7 @@ bool PrivateAssertInt(int32 iExpected, int32 iActual, char* szPrefix, size iLine
 	if (iExpected != iActual)
 	{
 		ToIntString(iExpected, szExpected, 32);
-		ToIntString(iActual, szActual, 323);
+		ToIntString(iActual, szActual, 32);
 		return Failed((const char*)szExpected, (const char*)szActual, szPrefix, iLine, szFile, false);
 	}
 	else
@@ -353,19 +353,19 @@ bool PrivateAssertSize(size iExpected, size iActual, char* szPrefix, size iLine,
 		if (sizeof(size) == 2)
 		{
 			ToShortString((uint16)iExpected, szExpected, 32);
-			ToShortString((uint16)iActual, szActual, 323);
+			ToShortString((uint16)iActual, szActual, 32);
 			return Failed((const char*)szExpected, (const char*)szActual, szPrefix, iLine, szFile, false);
 		}
 		else if (sizeof(size) == 4)
 		{
 			ToIntString((uint32)iExpected, szExpected, 32);
-			ToIntString((uint32)iActual, szActual, 323);
+			ToIntString((uint32)iActual, szActual, 32);
 			return Failed((const char*)szExpected, (const char*)szActual, szPrefix, iLine, szFile, false);
 		}
 		else if (sizeof(size) == 8)
 		{
 			ToLongString((uint64)iExpected, szExpected, 32);
-			ToLongString((uint64)iActual, szActual, 323);
+			ToLongString((uint64)iActual, szActual, 32);
 			return Failed((const char*)szExpected, (const char*)szActual, szPrefix, iLine, szFile, false);
 		}
 		else
