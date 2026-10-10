@@ -61,6 +61,10 @@ public:
 			void				BaseValidatePointerTos(void);
 			void				ValidateConsistency(void);
 
+			bool				HasNes(void) override;
+			bool				HasNesPointerTo(CEmbeddedObject* pcBaseObject) override;
+
+
 protected:
 			void				EmbedFields(void);
 			void				Class(void) override;

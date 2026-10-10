@@ -20,7 +20,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWi
 	mpcFactory = pcFactory;
 	mpcNativeWindow = pcFactory->CreateNativeWindow(this);
 	CComponent::Init(this);
-
+	
 	mpWindowTick = pTick;
 	mpCanvas = OMalloc<CCanvas>(this, pDraw, eFormat, eOrder, eColourBits, eAlphaBits);
 	AddComponent(mpCanvas);

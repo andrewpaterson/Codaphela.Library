@@ -23,19 +23,52 @@ void CDistCalculator::Kill(void)
 
 
 //////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+int CompareBaseObjectPtr(const CBaseObject* pvArg1, const CBaseObject* pvArg2)
+{
+	CBaseObject* pcObject1;
+	CBaseObject* pcObject2;
+
+	pcObject1 = (CBaseObject*)pvArg1;
+	pcObject2 = (CBaseObject*)pvArg2;
+
+	
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+int CompareBaseObjectPtrPtr(const void* ppvArg1, const void* ppvArg2)
+{
+	return CompareBaseObjectPtr((CBaseObject*)*((void**)ppvArg1), (CBaseObject*)*((void**)ppvArg2));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 CArrayBlockObjectPtr* CDistCalculator::Calculate(CBaseObject* pcFromChanged, bool bHeapFromChanged)
 {
+	CArrayBlockObjectPtr*	papcObjects;
+
 	if (bHeapFromChanged)
 	{
-		return CalculateHeapFromChanged(pcFromChanged);
+		papcObjects = CalculateHeapFromChanged(pcFromChanged);
 	}
 	else
 	{
-		return CalculateStackFromChanged(pcFromChanged);
+		papcObjects = CalculateStackFromChanged(pcFromChanged);
 	}
+
+	papcObjects->Sort();
+
+	return papcObjects;
 }
 
 
@@ -76,3 +109,29 @@ CArrayBlockObjectPtr* CDistCalculator::CalculateStackFromChanged(CBaseObject* pc
 		return mcParameters.GetCompletelyDetachedArray();
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculator::Print(CChars* psz)
+{
+	mcParameters.Print(psz);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDistCalculator::Dump(void)
+{
+	CChars	sz;
+
+	sz.Init();
+	mcParameters.Print(&sz, false);
+	sz.DumpKill();
+}
+
+

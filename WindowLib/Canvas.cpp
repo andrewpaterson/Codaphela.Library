@@ -55,11 +55,7 @@ void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw)
 //////////////////////////////////////////////////////////////////////////
 void CCanvas::Free(void)
 {
-	if (mpcNativeCanvas)
-	{
-		mpcNativeCanvas->mpcWindowFactory->DestroyNativeCanvas(mpcNativeCanvas);
-		mpcNativeCanvas = NULL;
-	}
+	DestroyNativeCanvas();
 
 	meColourFormat = CFT_Unknown;
 	meColourOrder = CCO_Unknown;
@@ -124,18 +120,13 @@ uint8* CCanvas::GetPixelData(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCanvas::Draw(void)
 {
-	CNativeWindowFactory*	pcFactory;
+	
 	Ptr<CCanvas>			pWindowCanvas;
 
 	if (HasNativeChanged())
 	{
-		pcFactory = mpWindow->GetFactory();
-		if (mpcNativeCanvas)
-		{
-			pcFactory->DestroyNativeCanvas(mpcNativeCanvas);
-			mpcNativeCanvas = NULL;
-		}
-		mpcNativeCanvas = pcFactory->CreateNativeCanvas(this);
+		DestroyNativeCanvas();
+		CreateNativeCanvas();
 	}
 
 	CComponent::Draw();
@@ -150,6 +141,36 @@ bool CCanvas::Draw(void)
 		pWindowCanvas->DrawCanvas(msPosition.x, msPosition.y, this);
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::CreateNativeCanvas(void)
+{
+	CNativeWindowFactory* pcFactory;
+
+	pcFactory = mpWindow->GetFactory();
+	mpcNativeCanvas = pcFactory->CreateNativeCanvas(this);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::DestroyNativeCanvas(void)
+{
+	CNativeWindowFactory* pcFactory;
+
+	if (mpcNativeCanvas)
+	{
+		pcFactory = mpWindow->GetFactory();
+		pcFactory->DestroyNativeCanvas(mpcNativeCanvas);
+		mpcNativeCanvas = NULL;
+	}
 }
 
 

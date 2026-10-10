@@ -668,38 +668,40 @@ EFreeResult CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 
 			if (papcKilled->NumElements() > 0)
 			{
+				cDistCalculator.Dump();
 				eResult = FR_Freed;
+
+				if (!mpcObjectsThisIn)
+				{
+					if (papcKilled->NumElements() > 0)
+					{
+						bOnlyThisKilled = false;
+						if (papcKilled->NumElements() == 1)
+						{
+							pcKilled = *papcKilled->Get(0);
+							if (pcKilled == this)
+							{
+								bOnlyThisKilled = true;
+							}
+						}
+
+						if (!bOnlyThisKilled)
+						{
+							gcLogger.Error2(__METHOD__, " Uh, probably if not in an objects then the only pointer to this object should be itself.  Maybe some stack kak?", NULL);
+							return FR_Error;
+						}
+					}
+				}
+				else
+				{
+					mpcObjectsThisIn->Remove(papcKilled);
+				}
 			}
 			else
 			{
 				eResult = FR_NotFreed;
 			}
 
-			if (!mpcObjectsThisIn)
-			{
-				if (papcKilled->NumElements() > 0)
-				{
-					bOnlyThisKilled = false;
-					if (papcKilled->NumElements() == 1)
-					{
-						pcKilled = *papcKilled->Get(0);
-						if (pcKilled == this)
-						{
-							bOnlyThisKilled = true;
-						}
-					}
-
-					if (!bOnlyThisKilled)
-					{
-						gcLogger.Error2(__METHOD__, " Uh, probably if not in an objects then the only pointer to this object should be itself.  Maybe some stack kak?", NULL);
-						return FR_Error;
-					}
-				}
-			}
-			else
-			{
-				mpcObjectsThisIn->Remove(papcKilled);
-			}
 			cDistCalculator.Kill();
 
 			return eResult;
@@ -2787,14 +2789,9 @@ bool CBaseObject::ClipName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::Pointer(CPointer* pcPointer, char* szFieldName)
+bool CBaseObject::HasNes(void)
 {
-	if (mpcClass == NULL)
-	{
-		FailHasClassField(__METHOD__);
-		return;
-	}
-	mpcClass->Pointer(this, pcPointer, szFieldName);
+	return mpcClass->HasNes();
 }
 
 
@@ -2802,14 +2799,18 @@ void CBaseObject::Pointer(CPointer* pcPointer, char* szFieldName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::Embedded(CBaseObject* pcObject, char* szFieldName)
+void CBaseObject::GetNesPointerFroms(void)
 {
-	if (mpcClass == NULL)
+	size				i;
+	size				iNumEmbedded;
+	CEmbeddedObject*	pcEmbedded;
+
+	iNumEmbedded = NumEmbedded();
+	for (i = 0; i < iNumEmbedded; i++)
 	{
-		FailHasClassField(__METHOD__);
-		return;
+		pcEmbedded = GetEmbeddedObject(i);
+		pcEmbedded->GetNesPointerFroms();
 	}
-	mpcClass->Embedded(this, pcObject, szFieldName);
 }
 
 
@@ -2817,21 +2818,93 @@ void CBaseObject::Embedded(CBaseObject* pcObject, char* szFieldName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::Primitive(SInt* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(SSize* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(Int8* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(UInt8* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(Int16* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(UInt16* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(Int32* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(UInt32* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(Int64* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(UInt64* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(Bool* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(Float32* pcPrimitive, char* szFieldName)	{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(Float64* pcPrimitive, char* szFieldName)	{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(Char8* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CBaseObject::Primitive(Char16* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) FailHasClassField(__METHOD__); else mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+bool CBaseObject::HasNesPointerTo(CEmbeddedObject* pcBaseObject)
+{
+	CArrayVoidPtr*	papPointerFields;
+	CPointerField*	pcPointerField;
+	size			iNumFields;
+	size			i;
+	CPointer*		pcPointer;
+
+	papPointerFields = mpcClass->GetPointerFields();
+	iNumFields = papPointerFields->NumElements();
+	for (i = 0; i < iNumFields; i++)
+	{
+		pcPointerField = (CPointerField*)papPointerFields->GetPtr(i);
+		if (pcPointerField->IsDoNotFreePointedTo())
+		{
+			pcPointer = pcPointerField->GetPointer(this);
+			if (pcPointer->IsEqual(pcBaseObject))
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::Nes(CPointerField* pcField)
+{
+	pcField->DoNotFreePointedTo(true);
+	mpcClass->Nes();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointerField* CBaseObject::Pointer(CPointer* pcPointer, char* szFieldName)
+{
+	if (mpcClass == NULL)
+	{
+		FailHasClassField(__METHOD__);
+		return NULL;
+	}
+	return mpcClass->Pointer(this, pcPointer, szFieldName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CEmbeddedObjectField* CBaseObject::Embedded(CBaseObject* pcObject, char* szFieldName)
+{
+	if (mpcClass == NULL)
+	{
+		FailHasClassField(__METHOD__);
+		return NULL;
+	}
+	return mpcClass->Embedded(this, pcObject, szFieldName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPrimitiveField* CBaseObject::Primitive(SInt* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+CPrimitiveField* CBaseObject::Primitive(SSize* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+CPrimitiveField* CBaseObject::Primitive(Int8* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+CPrimitiveField* CBaseObject::Primitive(UInt8* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+CPrimitiveField* CBaseObject::Primitive(Int16* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+CPrimitiveField* CBaseObject::Primitive(UInt16* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+CPrimitiveField* CBaseObject::Primitive(Int32* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+CPrimitiveField* CBaseObject::Primitive(UInt32* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+CPrimitiveField* CBaseObject::Primitive(Int64* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+CPrimitiveField* CBaseObject::Primitive(UInt64* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+CPrimitiveField* CBaseObject::Primitive(Bool* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+CPrimitiveField* CBaseObject::Primitive(Float32* pcPrimitive, char* szFieldName)	{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+CPrimitiveField* CBaseObject::Primitive(Float64* pcPrimitive, char* szFieldName)	{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+CPrimitiveField* CBaseObject::Primitive(Char8* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+CPrimitiveField* CBaseObject::Primitive(Char16* pcPrimitive, char* szFieldName)		{ if (mpcClass == NULL) { FailHasClassField(__METHOD__); return NULL; } else return mpcClass->Primitive(this, pcPrimitive, szFieldName); }
 
 
 //////////////////////////////////////////////////////////////////////////

@@ -125,6 +125,9 @@ public:
 	virtual CEmbeddedObject*	GetClosestFromToRoot(void);
 	virtual CClass*				GetClass(void) =0;
 	virtual	void				CopyFields(CEmbeddedObject* pcOther);
+	virtual bool				HasNes(void) =0;
+	virtual bool				HasNesPointerTo(CEmbeddedObject* pcBaseObject) =0;
+			void				GetNesPointerFroms(void);
 
 			CObjects*			GetObjects(void);
 	virtual CObjects*			GetObjectsThisIn(void) =0;

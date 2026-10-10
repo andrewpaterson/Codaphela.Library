@@ -76,6 +76,7 @@ public:
 	bool				IsNull(void);
 	bool				IsNotEqual(CPointer& pcPointer);
 	bool				IsEqual(CPointer& pcPointer);
+	bool				IsEqual(CEmbeddedObject* pcObject);
 
 	CPointer*			This(void);
 	CObject*			Embedding(void);
@@ -111,6 +112,7 @@ public:
 	size				NumStackFroms(void);
 	size				NumHeapFroms(void);
 	size				NumEmbedded(void);
+	size				NumPointerTos(void);
 
 	void				DumpFroms(void);
 	void				DumpPointerTos(void);

@@ -8,6 +8,9 @@ class CBaseObject;
 class CPointerField : public CField
 {
 CONSTRUCTABLE(CPointerField)
+protected:
+	bool		mbDoNoFreePointedTo;
+
 public:
 	void		Init(ptrdiff_t iOffset, CClass* pcContainingClass, char* szName);
 	void		Kill(void);
@@ -16,6 +19,8 @@ public:
 	uint32		GetSizeOf(void);
 	size		GetNameOffset(void);
 	CPointer*	GetPointer(CBaseObject* pcFieldContainer);
+	void		DoNotFreePointedTo(bool bValue);
+	bool		IsDoNotFreePointedTo(void);
 };
 
 
