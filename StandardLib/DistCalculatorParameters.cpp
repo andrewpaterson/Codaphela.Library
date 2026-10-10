@@ -290,7 +290,7 @@ CBaseObject* CDistCalculatorParameters::GetTouched(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayTemplateEmbeddedBaseObjectPtr* pcArray)
+void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayTemplateEmbeddedBaseObjectPtr* pcArray, bool bCommaSeparate)
 {
 	int				i;
 	int				iNum;
@@ -299,12 +299,24 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayTemplateEmbeddedBa
 	iNum = pcArray->NumElements();
 	for (i = 0; i < iNum; i++)
 	{
+		if (!bCommaSeparate)
+		{
+			psz->Append("  ");
+		}
+
 		pcBaseObject = *pcArray->Get(i);
 		pcBaseObject->PrintObject(psz, false);
 		
-		if (i != iNum -1)
+		if (bCommaSeparate)
 		{
-			psz->Append(", ");
+			if (i != iNum - 1)
+			{
+				psz->Append(", ");
+			}
+		}
+		else
+		{
+			psz->AppendNewLine();
 		}
 	}
 }
@@ -314,7 +326,7 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayTemplateEmbeddedBa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayBlockObjectPtr* pcArray)
+void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayBlockObjectPtr* pcArray, bool bCommaSeparate)
 {
 	int				i;
 	int				iNum;
@@ -323,12 +335,24 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayBlockObjectPtr* pc
 	iNum = pcArray->NumElements();
 	for (i = 0; i < iNum; i++)
 	{
+		if (!bCommaSeparate)
+		{
+			psz->Append("  ");
+		}
+
 		pcBaseObject = *pcArray->Get(i);
 		pcBaseObject->PrintObject(psz, false);
 
-		if (i != iNum -1)
+		if (bCommaSeparate)
 		{
-			psz->Append(", ");
+			if (i != iNum - 1)
+			{
+				psz->Append(", ");
+			}
+		}
+		else
+		{
+			psz->AppendNewLine();
 		}
 	}
 }
@@ -338,7 +362,7 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayBlockObjectPtr* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayDistToRoot* pcArray)
+void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayDistToRoot* pcArray, bool bCommaSeparate)
 {
 	int				i;
 	int				iNum;
@@ -347,12 +371,24 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayDistToRoot* pcArra
 	iNum = pcArray->NumElements();
 	for (i = 0; i < iNum; i++)
 	{
+		if (!bCommaSeparate)
+		{
+			psz->Append("  ");
+		}
+
 		psDistToRoot = pcArray->Get(i);
 		psDistToRoot->pcObject->PrintObject(psz, false);
 
-		if (i != iNum -1)
+		if (bCommaSeparate)
 		{
-			psz->Append(", ");
+			if (i != iNum - 1)
+			{
+				psz->Append(", ");
+			}
+		}
+		else
+		{
+			psz->AppendNewLine();
 		}
 	}
 }
@@ -382,43 +418,78 @@ void CDistCalculatorParameters::ClearTouchedFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CDistCalculatorParameters::Print(CChars* psz, bool bCommaSeparate)
+{
+	psz->Append("--------- DistCalculatorParameters ---------");
+	psz->AppendNewLine();
+
+	if (bCommaSeparate)
+	{
+		psz->Append("      ");
+	}
+	psz->Append("Touched [");
+	psz->Append(mapcTouched.NumElements());
+	psz->Append("]:  ");
+	if (!bCommaSeparate)
+	{
+		psz->AppendNewLine();
+	}
+	PrintArray(psz, &mapcTouched, bCommaSeparate);
+
+	psz->AppendNewLine();
+
+	psz->Append("ExpectedDists [");
+	psz->Append(macExpectedDists.NumElements());
+	psz->Append("]:  ");
+	if (!bCommaSeparate)
+	{
+		psz->AppendNewLine();
+	}
+	PrintArray(psz, &macExpectedDists, bCommaSeparate);
+	psz->AppendNewLine();
+
+	if (bCommaSeparate)
+	{
+		psz->Append("     ");
+	}
+	psz->Append("Detached [");
+	psz->Append(mapcDetachedFromRoot.NumElements());
+	psz->Append("]:  ");
+	if (!bCommaSeparate)
+	{
+		psz->AppendNewLine();
+	}
+	PrintArray(psz, &mapcDetachedFromRoot, bCommaSeparate);
+	psz->AppendNewLine();
+
+	if (bCommaSeparate)
+	{
+		psz->Append("  ");
+	}
+	psz->Append("C. Detached [");
+	psz->Append(mapcCompletelyDetached.NumElements());
+	psz->Append("]:  ");
+	if (!bCommaSeparate)
+	{
+		psz->AppendNewLine();
+	}
+	PrintArray(psz, &mapcCompletelyDetached, bCommaSeparate);
+	psz->AppendNewLine();
+
+	psz->Append("--------------------------------------------");
+	psz->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::Dump(void)
 {
 	CChars sz;
 
-	sz.Init("--------- DistCalculatorParameters ---------");
-	sz.AppendNewLine();
-
-	sz.Append("      Touched [");
-	sz.Append(mapcTouched.NumElements());
-	sz.Append("]:  ");
-	PrintArray(&sz, &mapcTouched);
-
-	sz.AppendNewLine();
-
-	sz.Append("ExpectedDists [");
-	sz.Append(macExpectedDists.NumElements());
-	sz.Append("]:  ");
-	PrintArray(&sz, &macExpectedDists);
-	sz.AppendNewLine();
-
-	sz.Append("     Detached [");
-	sz.Append(mapcDetachedFromRoot.NumElements());
-	sz.Append("]:  ");
-	PrintArray(&sz, &mapcDetachedFromRoot);
-	sz.AppendNewLine();
-	sz.AppendNewLine();
-
-	sz.Append("  C. Detached [");
-	sz.Append(mapcCompletelyDetached.NumElements());
-	sz.Append("]:  ");
-	PrintArray(&sz, &mapcCompletelyDetached);
-	sz.AppendNewLine();
-
-	sz.Append("--------------------------------------------");
-	sz.AppendNewLine();
-
-	sz.Dump();
-	sz.Kill();
+	sz.Init();
+	Print(&sz, false);
+	sz.DumpKill();
 }
-

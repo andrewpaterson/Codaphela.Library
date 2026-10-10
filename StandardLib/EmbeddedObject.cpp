@@ -895,6 +895,51 @@ void CEmbeddedObject::CopyFields(CEmbeddedObject* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CEmbeddedObject::HasNes(void)
+{
+	CClass*		pcClass;
+
+	pcClass = GetClass();
+	if (pcClass)
+	{
+		return pcClass->HasNes();
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::GetNesPointerFroms(void)
+{
+	size				j;
+	size				iNumHeapFroms;
+	CEmbeddedObject*	pcFromObject;
+	bool				bHasNesToThis;
+
+
+	iNumHeapFroms = CEmbeddedObject::NumHeapFroms();
+	for (j = 0; j < iNumHeapFroms; j++)
+	{
+		pcFromObject = CEmbeddedObject::GetHeapFrom(j);
+		if (pcFromObject->HasNes())
+		{
+			bHasNesToThis = pcFromObject->HasNesPointerTo(this);
+			if (bHasNesToThis)
+			{
+				int xxx = 0;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 char* CEmbeddedObject::PrintObject(CChars* psz)
 {
 	return PrintObject(psz, IsEmbedded());

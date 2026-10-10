@@ -38,13 +38,13 @@ void CComponent::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CComponent::Class(void)
 {
-	U_2Int32(msActualSize);
-	U_2Int32(msPosition);
-	U_2Int32(msDesiredSize);
-	U_Bool(mbCanGetFocus);
-	M_Pointer(mpParent);
-	M_Embedded(maChildren);
-	M_Pointer(mpWindow);
+		U_2Int32(msActualSize);
+		U_2Int32(msPosition);
+		U_2Int32(msDesiredSize);
+		U_Bool(mbCanGetFocus);
+		M_Pointer(mpParent);
+		M_Embedded(maChildren);
+	Nes(M_Pointer(mpWindow));
 }
 
 

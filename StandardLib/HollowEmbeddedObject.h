@@ -34,6 +34,8 @@ public:
 	bool				IsRoot(void);
 	bool				TestedForRoot(void);
 	CClass*				GetClass(void);
+	bool				HasNes(void) override;
+	bool				HasNesPointerTo(CEmbeddedObject* pcBaseObject) override;
 
 protected:
 	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);

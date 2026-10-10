@@ -80,6 +80,9 @@ public:
 	void				DrawImage(int iX, int iY, Ptr<CImage> pImage);
 
 	void				SetRequiredSize(void) override;
+
+	void				CreateNativeCanvas(void);
+	void				DestroyNativeCanvas(void);
 };
 
 

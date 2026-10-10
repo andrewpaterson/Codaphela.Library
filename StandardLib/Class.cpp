@@ -94,6 +94,16 @@ void CClass::Unmanaged(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CClass::Nes(void)
+{
+	muiFlags |= CLASS_FLAGS_HAS_NES;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CClass::System(void)
 {
 	muiFlags |= CLASS_FLAGS_SYSTEM;
@@ -144,6 +154,16 @@ bool CClass::IsSystem(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CClass::HasNes(void)
+{
+	return muiFlags & CLASS_FLAGS_HAS_NES;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CField* CClass::GetField(char* szFieldName)
 {
 	CField*		pcField;
@@ -171,7 +191,7 @@ CField* CClass::GetField(char* szFieldName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CClass::Pointer(CBaseObject* pcThis, CPointer* pcPointer, char* szFieldName)
+CPointerField* CClass::Pointer(CBaseObject* pcThis, CPointer* pcPointer, char* szFieldName)
 {
 	CPointerField*	pcPointerField;
 	ptrdiff_t		iOffset;
@@ -181,6 +201,7 @@ void CClass::Pointer(CBaseObject* pcThis, CPointer* pcPointer, char* szFieldName
 	PostMalloc<CPointerField>(pcPointerField);
 	mapcPointers.Add(pcPointerField);
 	pcPointerField->Init(iOffset, this, szFieldName);
+	return pcPointerField;
 }
 
 
@@ -188,7 +209,7 @@ void CClass::Pointer(CBaseObject* pcThis, CPointer* pcPointer, char* szFieldName
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CClass::Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive, void* pvPrimitive, char* szFieldName)
+CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive, void* pvPrimitive, char* szFieldName)
 {
 	CPrimitiveField*	pcDataField;
 	ptrdiff_t			iObjectOffset;
@@ -206,6 +227,7 @@ void CClass::Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive, void*
 	pcClass = GetClass(pcPrimitive->GetClassType());
 	psIO = gcDataTypesIO.GetIO(pcClass->GetName());
 	pcDataField->Init(pcClass, iObjectOffset, iValueOffset, this, psIO, szFieldName);
+	return pcDataField;
 }
 
 
@@ -213,7 +235,7 @@ void CClass::Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive, void*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CClass::Embedded(CBaseObject* pcThis, CBaseObject* pcObject, char* szFieldName)
+CEmbeddedObjectField* CClass::Embedded(CBaseObject* pcThis, CBaseObject* pcObject, char* szFieldName)
 {
 	CEmbeddedObjectField*	pcEmbeddedObjectField;
 	ptrdiff_t				iOffset;
@@ -223,6 +245,7 @@ void CClass::Embedded(CBaseObject* pcThis, CBaseObject* pcObject, char* szFieldN
 	PostMalloc<CEmbeddedObjectField>(pcEmbeddedObjectField);
 	mapcEmbeddedObjects.Add(pcEmbeddedObjectField);
 	pcEmbeddedObjectField->Init(pcObject->GetClass(), iOffset, this, szFieldName);
+	return pcEmbeddedObjectField;
 }
 
 
@@ -230,21 +253,21 @@ void CClass::Embedded(CBaseObject* pcThis, CBaseObject* pcObject, char* szFieldN
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CClass::Primitive(CBaseObject* pcThis, SInt* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
-void CClass::Primitive(CBaseObject* pcThis, SSize* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
-void CClass::Primitive(CBaseObject* pcThis, Int8* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
-void CClass::Primitive(CBaseObject* pcThis, UInt8* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
-void CClass::Primitive(CBaseObject* pcThis, Int16* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
-void CClass::Primitive(CBaseObject* pcThis, UInt16* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
-void CClass::Primitive(CBaseObject* pcThis, Int32* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
-void CClass::Primitive(CBaseObject* pcThis, UInt32* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
-void CClass::Primitive(CBaseObject* pcThis, Int64* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
-void CClass::Primitive(CBaseObject* pcThis, UInt64* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
-void CClass::Primitive(CBaseObject* pcThis, Bool* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
-void CClass::Primitive(CBaseObject* pcThis, Float32* pcPrimitive, char* szFieldName)	{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
-void CClass::Primitive(CBaseObject* pcThis, Float64* pcPrimitive, char* szFieldName)	{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
-void CClass::Primitive(CBaseObject* pcThis, Char8* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
-void CClass::Primitive(CBaseObject* pcThis, Char16* pcPrimitive, char* szFieldName)		{ Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, SInt* pcPrimitive, char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, SSize* pcPrimitive, char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, Int8* pcPrimitive, char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, UInt8* pcPrimitive, char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, Int16* pcPrimitive, char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, UInt16* pcPrimitive, char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, Int32* pcPrimitive, char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, UInt32* pcPrimitive, char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, Int64* pcPrimitive, char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, UInt64* pcPrimitive, char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, Bool* pcPrimitive, char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, Float32* pcPrimitive, char* szFieldName)	{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, Float64* pcPrimitive, char* szFieldName)	{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, Char8* pcPrimitive, char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
+CPrimitiveField* CClass::Primitive(CBaseObject* pcThis, Char16* pcPrimitive, char* szFieldName)		{ return Primitive(pcThis, pcPrimitive, pcPrimitive->GetPrimitivePointer(), szFieldName); }
 
 
 //////////////////////////////////////////////////////////////////////////

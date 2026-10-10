@@ -21,6 +21,8 @@ void CPointerField::Init(ptrdiff_t iOffset, CClass* pcContainingClass, char* szN
 	{
 		CField::Init(NULL, 0, pcContainingClass, szName);
 	}
+
+	mbDoNoFreePointedTo = false;
 }
 
 
@@ -67,8 +69,6 @@ CPointer* CPointerField::GetPointer(CBaseObject* pcFieldContainer)
 }
 
 
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -77,3 +77,24 @@ size CPointerField::GetNameOffset(void)
 {
 	return sizeof(CPointerField);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPointerField::DoNotFreePointedTo(bool bValue)
+{
+	mbDoNoFreePointedTo = bValue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPointerField::IsDoNotFreePointedTo(void)
+{
+	return mbDoNoFreePointedTo;
+}
+

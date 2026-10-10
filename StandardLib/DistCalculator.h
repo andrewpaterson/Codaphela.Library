@@ -19,6 +19,9 @@ public:
 	CArrayBlockObjectPtr*	Calculate(CBaseObject* pcFromChanged, bool bHeapFromChanged);
 	CArrayBlockObjectPtr*	CalculateHeapFromChanged(CBaseObject* pcFromChanged);
 	CArrayBlockObjectPtr*	CalculateStackFromChanged(CBaseObject* pcFromChanged);
+
+	void					Print(CChars* psz);
+	void					Dump(void);
 };
 
 

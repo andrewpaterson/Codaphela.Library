@@ -29,7 +29,6 @@ private:
 public:
 	void					Init(void);
 	void					Kill(void);
-	void					Dump(void);
 
 	void					AddExpectedDist(CBaseObject* pcObject, int iExpectedDist);
 	SDistToRoot*			GetLowestExpectedDist(void);
@@ -57,9 +56,12 @@ public:
 
 	void					ClearTouchedFlags(void);
 
-	void					PrintArray(CChars* psz, CArrayTemplateEmbeddedBaseObjectPtr* pcArray);
-	void					PrintArray(CChars* psz, CArrayBlockObjectPtr* pcArray);
-	void					PrintArray(CChars* psz, CArrayDistToRoot* pcArray);
+	void					Print(CChars* psz, bool bCommaSeparate = true);
+	void					Dump(void);
+
+	void					PrintArray(CChars* psz, CArrayTemplateEmbeddedBaseObjectPtr* pcArray, bool bCommaSeparate);
+	void					PrintArray(CChars* psz, CArrayBlockObjectPtr* pcArray, bool bCommaSeparate);
+	void					PrintArray(CChars* psz, CArrayDistToRoot* pcArray, bool bCommaSeparate);
 };
 
 
