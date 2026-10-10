@@ -27,13 +27,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int ComparePtr(const void* arg1, const void* arg2)
+int ComparePtr(const void* pvArg1, const void* pvArg2)
 {
-	if (arg1 < arg2)
+	if (pvArg1 < pvArg2)
 	{
 		return -1;
 	}
-	if (arg1 > arg2)
+	if (pvArg1 > pvArg2)
 	{
 		return 1;
 	}
@@ -45,16 +45,8 @@ int ComparePtr(const void* arg1, const void* arg2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int ComparePtrPtr(const void* arg1, const void* arg2)
+int ComparePtrPtr(const void* ppvArg1, const void* ppvArg2)
 {
-	if ((*((void**)arg1)) < (*((void**)arg2)))
-	{
-		return -1;
-	}
-	if ((*((void**)arg1)) > (*((void**)arg2)))
-	{
-		return 1;
-	}
-	return 0;
+	return ComparePtr(*((void**)ppvArg1), *((void**)ppvArg2));
 }
 

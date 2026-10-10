@@ -20,9 +20,15 @@ public:
 
 	void	SetPtr(size iIndex, M* pv);
 
+	void	Sort(void);
 	void	QuickSort(void);
 	void	TimSort(void);
 	void	BubbleSort(void);
+
+	void	Sort(DataCompare fCompare);
+	void	BubbleSort(DataCompare fCompare);
+	void	QuickSort(DataCompare fCompare);
+	void	TimSort(DataCompare fCompare);
 
 	int32	Find(M* pv);
 	void 	Push(M* pv);
@@ -149,9 +155,20 @@ void CArrayTemplatePtr<M>::SetPtr(size iIndex, M* pv)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
+void CArrayTemplatePtr<M>::Sort(void)
+{
+	TimSort();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
 void CArrayTemplatePtr<M>::QuickSort(void)
 {
-	CArrayTemplate<M*>::QuickSort(&ComparePtrPtr);
+	CArrayBlock::QuickSort(&ComparePtrPtr);
 }
 
 
@@ -162,7 +179,7 @@ void CArrayTemplatePtr<M>::QuickSort(void)
 template<class M>
 void CArrayTemplatePtr<M>::TimSort(void)
 {
-	CArrayTemplate<M*>::TimSort(&ComparePtrPtr);
+	CArrayBlock::TimSort(&ComparePtrPtr);
 }
 
 
@@ -173,7 +190,51 @@ void CArrayTemplatePtr<M>::TimSort(void)
 template<class M>
 void CArrayTemplatePtr<M>::BubbleSort(void)
 {
-	CArrayTemplate<M*>::BubbleSort(&ComparePtrPtr);
+	CArrayBlock::BubbleSort(&ComparePtrPtr);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplatePtr<M>::Sort(DataCompare fCompare)
+{
+	TimSort(fCompare);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplatePtr<M>::BubbleSort(DataCompare fCompare)
+{
+	CArrayBlock::BubbleSort(fCompare);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplatePtr<M>::QuickSort(DataCompare fCompare)
+{
+	CArrayBlock::QuickSort(fCompare);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplatePtr<M>::TimSort(DataCompare fCompare)
+{
+	CArrayBlock::TimSort(fCompare);
 }
 
 

@@ -11,11 +11,15 @@ class CArrayTemplateEmbeddedPtr : public CArrayTemplateEmbedded<M*, I>
 public:
 	void	Init(void);
 	void	Kill(void);
+
 	void	Add(M* pv);
+
 	M*		GetPtr(size iIndex);
 	bool	Get(size iIndex, M** pv);
 	M**		Get(size iIndex);
+
 	void	QuickSort(void);
+
 	size	Find(M* pv);
 	void 	Push(M* pv);
 	M*		Pop(void);

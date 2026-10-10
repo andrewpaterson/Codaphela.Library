@@ -1692,6 +1692,7 @@ bool CArrayBlock::PopFirst(void) { return RemoveFirst(); }
 size CArrayBlock::ByteSize() { return miUsedElements * miElementSize; }
 bool CArrayBlock::Pop(void) { return RemoveTail(); }
 bool CArrayBlock::Contains(void* pvData) { return Find(pvData) != ARRAY_ELEMENT_NOT_FOUND; }
+void CArrayBlock::Sort(DataCompare fCompare) { TimSort(fCompare); }
 void CArrayBlock::BubbleSort(DataCompare fCompare) { ::BubbleSort(fCompare, mpvArray, miElementSize, miUsedElements); }
 void CArrayBlock::QuickSort(DataCompare fCompare) { ::QuickSort(fCompare, mpvArray, miElementSize, miUsedElements); }
 void CArrayBlock::TimSort(DataCompare fCompare) { ::TimSort(fCompare, mpvArray, miElementSize, miUsedElements); }
