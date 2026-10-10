@@ -95,6 +95,7 @@ public:
 	void*	GrowToAtLeastNumElements(size iNumElements, bool bClear = false, uint8  iClear = 0);
 	size	Resize(size iNumElements);
 
+	void	Sort(DataCompare fCompare);
 	void	BubbleSort(DataCompare fCompare);
 	void	QuickSort(DataCompare fCompare);
 	void	TimSort(DataCompare fCompare);

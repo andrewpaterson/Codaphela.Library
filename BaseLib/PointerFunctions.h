@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __POINTER_FUNCTIONS_H__
 #define __POINTER_FUNCTIONS_H__
 #include "Define.h"
+#include "DataCompare.h"
 
 
 #define SafeFree(p) if (p) { free(p); p = NULL; }
