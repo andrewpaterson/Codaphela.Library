@@ -672,7 +672,6 @@ EFreeResult CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 
 			if (papcKilled->NumElements() > 0)
 			{
-
 				eResult = FR_Freed;
 
 				if (!mpcObjectsThisIn)
