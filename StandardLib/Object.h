@@ -72,14 +72,14 @@ public:
 	size				NumHeapFroms(void);
 	size				NumStackFroms(void);
 	void				SetFlag(uint16 iFlag, uint16 iFlagValue);
-	void				GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms);
-	void				GetStackFroms(CArrayStackPointer* papcFroms);
+	void				GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms);
+	void				GetStackFroms(CArrayStackPointerE32* papcFroms);
 	CBaseObject*		GetClosestFromToRoot(void);
 	CBaseObject*		GetClosestHeapFromToStack(void);
 	size				NumPointerTos(void);
 	size				BaseNumPointerTos(void);
-	void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
-	void				BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
+	void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
+	void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	bool				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 	void				BaseCollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);

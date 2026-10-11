@@ -47,7 +47,7 @@ public:
 			bool				IsObject(void) override;
 
 			void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
-			void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
+			void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 			size				NumPointerTos(void);
 
 			CEmbeddedObject*	GetEmbeddedObject(size iIndex);
@@ -62,7 +62,7 @@ public:
 			void				ValidateConsistency(void);
 
 			bool				HasNes(void) override;
-			bool				HasNesPointerTo(CEmbeddedObject* pcBaseObject) override;
+			bool				HasNesPointerToThis(CEmbeddedObject* pcBaseObject) override;
 
 
 protected:

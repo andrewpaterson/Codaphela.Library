@@ -214,7 +214,7 @@ size CEmbeddedObject::BaseNumPointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
+void CEmbeddedObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 }
 
@@ -419,7 +419,7 @@ CBaseObject* CEmbeddedObject::GetHeapFrom(size iFrom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms)
+void CEmbeddedObject::GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms)
 {
 	papcFroms->Copy(&mapHeapFroms);
 }
@@ -912,27 +912,28 @@ bool CEmbeddedObject::HasNes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::GetNesPointerFroms(void)
+CEmbeddedObject* CEmbeddedObject::GetNesPointerFrom(size* piStart)
 {
 	size				j;
 	size				iNumHeapFroms;
 	CEmbeddedObject*	pcFromObject;
 	bool				bHasNesToThis;
 
-
 	iNumHeapFroms = CEmbeddedObject::NumHeapFroms();
-	for (j = 0; j < iNumHeapFroms; j++)
+	for (j = *piStart; j < iNumHeapFroms; j++)
 	{
 		pcFromObject = CEmbeddedObject::GetHeapFrom(j);
 		if (pcFromObject->HasNes())
 		{
-			bHasNesToThis = pcFromObject->HasNesPointerTo(this);
+			bHasNesToThis = pcFromObject->HasNesPointerToThis(this);
 			if (bHasNesToThis)
 			{
-				int xxx = 0;
+				*piStart = j+1;
+				return pcFromObject;
 			}
 		}
 	}
+	return NULL;
 }
 
 
@@ -1084,7 +1085,7 @@ CStackPointer* CEmbeddedObject::GetFirstStackFrom(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::GetStackFroms(CArrayStackPointer* papcFroms)
+void CEmbeddedObject::GetStackFroms(CArrayStackPointerE32* papcFroms)
 {
 	CStackPointer*	pcStackPointer;
 	SStackPointer*	psPointer;

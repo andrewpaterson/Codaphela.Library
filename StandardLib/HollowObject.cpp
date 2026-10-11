@@ -225,7 +225,7 @@ void CHollowObject::SetPointerTosExpectedDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
+void CHollowObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 }
 
@@ -458,7 +458,7 @@ bool CHollowObject::HasNes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHollowObject::HasNesPointerTo(CEmbeddedObject* pcBaseObject)
+bool CHollowObject::HasNesPointerToThis(CEmbeddedObject* pcBaseObject)
 {
 	return false;
 }

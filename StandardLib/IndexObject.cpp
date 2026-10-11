@@ -428,7 +428,7 @@ size CIndexObject::BaseNumPointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
+void CIndexObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	CBaseObject*				pcPointedTo;
 	SIndexTreeMemoryIterator	sIter;
@@ -450,7 +450,7 @@ void CIndexObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexObject::BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
+void CIndexObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	GetPointerTos(papcTos);
 }

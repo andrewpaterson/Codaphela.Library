@@ -25,7 +25,7 @@ public:
 	int					GetEmbeddedIndex(void);
 	CHollowObject*		GetHollowObject(void);
 	CObjects*			GetObjectsThisIn(void);
-	void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
+	void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	size				NumPointerTos(void);
 	void				ValidateConsistency(void);
 	bool				IsInitialised(void);
@@ -35,7 +35,7 @@ public:
 	bool				TestedForRoot(void);
 	CClass*				GetClass(void);
 	bool				HasNes(void) override;
-	bool				HasNesPointerTo(CEmbeddedObject* pcBaseObject) override;
+	bool				HasNesPointerToThis(CEmbeddedObject* pcBaseObject) override;
 
 protected:
 	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);

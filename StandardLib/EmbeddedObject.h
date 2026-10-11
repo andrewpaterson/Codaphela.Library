@@ -97,8 +97,8 @@ public:
 
 	virtual size				NumPointerTos(void) =0;
 	virtual size				BaseNumPointerTos(void);
-	virtual void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos) =0;
-	virtual void				BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
+	virtual void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos) =0;
+	virtual void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos);
 	virtual void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 	virtual size				CollectDetachedFroms(CDistCalculatorParameters* pcParameters) =0;
 
@@ -126,8 +126,8 @@ public:
 	virtual CClass*				GetClass(void) =0;
 	virtual	void				CopyFields(CEmbeddedObject* pcOther);
 	virtual bool				HasNes(void) =0;
-	virtual bool				HasNesPointerTo(CEmbeddedObject* pcBaseObject) =0;
-			void				GetNesPointerFroms(void);
+	virtual bool				HasNesPointerToThis(CEmbeddedObject* pcBaseObject) =0;
+			CEmbeddedObject*	GetNesPointerFrom(size* piStart);
 
 			CObjects*			GetObjects(void);
 	virtual CObjects*			GetObjectsThisIn(void) =0;
@@ -148,8 +148,8 @@ protected:
 	virtual void				RemoveAllHeapFroms(void);
 	virtual void				RemoveAllStackFroms(void);
 			bool				PrivateRemoveHeapFrom(CBaseObject* pcFrom);
-	virtual void				GetStackFroms(CArrayStackPointer* papcFroms);
-	virtual void				GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms);
+	virtual void				GetStackFroms(CArrayStackPointerE32* papcFroms);
+	virtual void				GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms);
 			CStackPointers*		GetStackPointers(void);
 	virtual CEmbeddedObject*	GetClosestFromForCanFindRoot(void);
 	virtual void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) =0;

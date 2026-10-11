@@ -304,7 +304,7 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 	
 
 	CDistCalculator			cDistCalculator;
-	CArrayBlockObjectPtr*	papcKilled;
+	CArrayBaseObjectPtr*	papcKilled;
 
 	if (IsAllocatedInObjects())
 	{
@@ -445,7 +445,7 @@ void CBaseObject::CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject
 	}
 
 	size									i;
-	CArrayTemplateEmbeddedBaseObjectPtr		apcFroms;
+	CArrayBaseObjectPtrE32		apcFroms;
 	CBaseObject*							pcFrom;
 	CBaseObject*							pcContainer;
 	size									uiNumFroms;
@@ -645,7 +645,7 @@ EFreeResult CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 	bool					bHasHeapPointers;
 	bool					bMustKill;
 	CDistCalculator			cDistCalculator;
-	CArrayBlockObjectPtr*	papcKilled;
+	CArrayBaseObjectPtr*	papcKilled;
 	CBaseObject*			pcKilled;
 	bool					bOnlyThisKilled;
 	EFreeResult				eResult;
@@ -1270,7 +1270,7 @@ CEmbeddedObject* CBaseObject::TestGetPointerTo(size iToIndex)
 {
 	CEmbeddedObject**					ppTo;
 	CEmbeddedObject*					pTo;
-	CArrayTemplateEmbeddedObjectPtr		apcTos;
+	CArrayEmbeddedObjectPtr		apcTos;
 
 	apcTos.Init();
 	GetPointerTos(&apcTos);
@@ -2042,7 +2042,7 @@ void CBaseObject::DumpPointerTos(void)
 	CEmbeddedObject**					ppcToObject;
 	size								iLength;
 	CChars								szLine;
-	CArrayTemplateEmbeddedObjectPtr		acTos;
+	CArrayEmbeddedObjectPtr		acTos;
 	CBaseObject*						pcToObject;
 	size								iTotalTos;
 
@@ -2799,17 +2799,29 @@ bool CBaseObject::HasNes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::GetNesPointerFroms(void)
+void CBaseObject::GetNesPointerToThis(CArrayEmbeddedObjectPtrE8* papNesObjectsPointingToThis)
 {
 	size				i;
 	size				iNumEmbedded;
 	CEmbeddedObject*	pcEmbedded;
+	CEmbeddedObject*	pcNesObject;
+	size				iStart;
 
 	iNumEmbedded = NumEmbedded();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = GetEmbeddedObject(i);
-		pcEmbedded->GetNesPointerFroms();
+		iStart = 0;
+		for (;;)
+		{
+			pcNesObject = pcEmbedded->GetNesPointerFrom(&iStart);
+			if (pcNesObject)
+			{
+				papNesObjectsPointingToThis->Add(pcNesObject);
+				continue;
+			}
+			break;
+		} 
 	}
 }
 
@@ -2818,7 +2830,7 @@ void CBaseObject::GetNesPointerFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::HasNesPointerTo(CEmbeddedObject* pcBaseObject)
+bool CBaseObject::HasNesPointerToThis(CEmbeddedObject* pcBaseObject)
 {
 	CArrayVoidPtr*	papPointerFields;
 	CPointerField*	pcPointerField;
