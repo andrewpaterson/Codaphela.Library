@@ -179,7 +179,8 @@ void CMeshFaceTypes::Class(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshFaceTypes::Load(CObjectReader* pcFile)
 {
-	ReturnOnFalse(LoadMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Load(pcFile));
+
 	ReturnOnFalse(mcFaces.Read(pcFile));
 	ReturnOnFalse(mcUniqueTypes.Read(pcFile));
 	return true;
@@ -192,7 +193,8 @@ bool CMeshFaceTypes::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshFaceTypes::Save(CObjectWriter* pcFile)
 {
-	ReturnOnFalse(SaveMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Save(pcFile));
+
 	ReturnOnFalse(mcFaces.Write(pcFile));
 	ReturnOnFalse(mcUniqueTypes.Write(pcFile));
 	return true;

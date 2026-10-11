@@ -199,7 +199,8 @@ bool CMeshSkin::Load(CObjectReader* pcFile)
 
 	Init();
 
-	ReturnOnFalse(LoadMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Load(pcFile));
+
 	ReturnOnFalse(mcSkinVerts.ReadAllocatorAndHeader(pcFile));
 
 	for (i = 0; i < mcSkinVerts.NumElements(); i++)
@@ -222,7 +223,8 @@ bool CMeshSkin::Save(CObjectWriter* pcFile)
 	CMeshSkinVert*	psSkinVert;
 	size			i;
 
-	ReturnOnFalse(SaveMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Save(pcFile));
+
 	ReturnOnFalse(mcSkinVerts.WriteAllocatorAndHeader(pcFile));
 
 	for (i = 0; i < mcSkinVerts.NumElements(); i++)

@@ -38,11 +38,11 @@ protected:
 
 public:
 	void			Init(Ptr<CImageCel> pCel, int16 iStep);
-	void			Class(void);
-	void 			Free(void);
+	void			Class(void) override;
+	void 			Free(void) override;
 
-	bool			Save(CObjectWriter* pcFile);
-	bool			Load(CObjectReader* pcFile);
+	bool			Save(CObjectWriter* pcFile) override;
+	bool			Load(CObjectReader* pcFile) override;
 
 	int				GetFullWidth(void);
 	int				GetFullHeight(void);

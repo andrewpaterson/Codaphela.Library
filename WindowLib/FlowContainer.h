@@ -32,25 +32,25 @@ public:
 	UContainerAlignment			muAlignment;
 	SInt32Vec2					msRequiredSize;
 
-	void	Init(Ptr<CWindow> pWindow);
-	void	Free(void);
-	void	Class(void);
+	void		Init(Ptr<CWindow> pWindow);
+	void		Free(void) override;
+	void		Class(void) override;
 
-	void	SetRequiredSize(void) override;
-	void	Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
+	void		SetRequiredSize(void) override;
+	void		Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 
-	void	SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleHorizontal eA);
-	void	SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleVertical eA);
+	void		SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleHorizontal eA);
+	void		SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleVertical eA);
 
 protected:
-	void	LayoutRight(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
-	void	LayoutRightWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
-	void	LayoutRight(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize, size iStart, size iEnd);
+	void		LayoutRight(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
+	void		LayoutRightWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
+	void		LayoutRight(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize, size iStart, size iEnd);
 	SInt32Vec2	CalculateAreaForHorizontalLayout(int iWidth);
 
-	void	LayoutDown(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
-	void	LayoutDownWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
-	void	LayoutDown(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize, size iStart, size iEnd);
+	void		LayoutDown(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
+	void		LayoutDownWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
+	void		LayoutDown(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize, size iStart, size iEnd);
 	SInt32Vec2	CalculateAreaForVerticalLayout(int iHeight);
 };
 

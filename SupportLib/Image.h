@@ -73,8 +73,8 @@ public:
 	void					Init(int iWidth, int iHeight, CColourFormatHelper* pcHelper);
 	void					Init(int iWidth, int iHeight, CArrayChannel* pasNewChannels);
 	void					Init(Ptr<CImage> pcChannelsSource);  //This only sets up channels and dimensions.  
-	void					Class(void);
-	void					Free(void);
+	void					Class(void) override;
+	void					Free(void) override;
 
 	void					ReInit(void);
 	void					ReInit(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...);

@@ -42,11 +42,11 @@ protected:
 public:
 	void 		Init(void);
 	void 		Init(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport);
-	void 		Free(void);
-	void		Class(void);
+	void 		Free(void) override;
+	void		Class(void) override;
 
-	bool		Save(CObjectWriter* pcFile);
-	bool		Load(CObjectReader* pcFile);
+	bool		Save(CObjectWriter* pcFile) override;
+	bool		Load(CObjectReader* pcFile) override;
 
 	void		SetCacheAndViewport(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport);
 	SInt32Vec2	GetViewportPosition(void);

@@ -73,7 +73,8 @@ void CMeshConvexHull::Class(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshConvexHull::Load(CObjectReader* pcFile)
 {
-	ReturnOnFalse(LoadMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Load(pcFile));
+
 	return mcHull.Load(pcFile);
 }
 
@@ -84,7 +85,8 @@ bool CMeshConvexHull::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshConvexHull::Save(CObjectWriter* pcFile)
 {
-	ReturnOnFalse(SaveMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Save(pcFile));
+
 	return mcHull.Save(pcFile);
 }
 

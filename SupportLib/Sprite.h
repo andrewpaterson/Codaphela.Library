@@ -19,11 +19,11 @@ protected:
 
 public:
 	void			Init(Ptr<CImageCel> pCel, int32 x, int32 y);
-	void 			Free(void);
-	void			Class(void);
+	void 			Free(void) override;
+	void			Class(void) override;
 
-	bool			Save(CObjectWriter* pcFile);
-	bool			Load(CObjectReader* pcFile);
+	bool			Save(CObjectWriter* pcFile) override;
+	bool			Load(CObjectReader* pcFile) override;
 
 	Ptr<CImageCel>	GetCel(void);
 	void			GetImageDestBounds(CRectangle* pcReturn);

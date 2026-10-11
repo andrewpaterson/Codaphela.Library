@@ -56,11 +56,12 @@ public:
 
 	void 	Init(void);
 	void 	Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eDecay, float32 fDecayStart, bool bCastShadows, float32 fIntensity);
-	void	Free(void);
-	void	Class(void);
+	void	Free(void) override;
+	void	Class(void) override;
 
-	bool	Load(CObjectReader* pcFile);
-	bool	Save(CObjectWriter* pcFile);
+	bool	Load(CObjectReader* pcFile) override;
+	bool	Save(CObjectWriter* pcFile) override;
+
 	void	Copy(CLight* pcLight);
 };
 

@@ -296,7 +296,7 @@ bool CMeshConnectivity::Load(CObjectReader* pcFile)
 	size			i;
 	CMeshCorner*	pcCorner;
 
-	ReturnOnFalse(LoadMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Load(pcFile));
 
 	if (mcCorners.ReadAllocatorAndHeader(pcFile))
 	{
@@ -343,7 +343,7 @@ bool CMeshConnectivity::Save(CObjectWriter* pcFile)
 	size			i;
 	CMeshCorner*	pcCorner;
 
-	ReturnOnFalse(SaveMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Save(pcFile));
 
 	ReturnOnFalse(mcCorners.WriteAllocatorAndHeader(pcFile));
 

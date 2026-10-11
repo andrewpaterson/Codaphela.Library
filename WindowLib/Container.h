@@ -36,8 +36,8 @@ protected:
 
 public:
 			void	Init(Ptr<CWindow> pWindow);
-			void	Class(void);
-			void 	Free(void);
+			void	Class(void) override;
+			void 	Free(void) override;
 
 			bool	GetContainerBounds(SContainerBounds* psDest);
 			void	SetBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);

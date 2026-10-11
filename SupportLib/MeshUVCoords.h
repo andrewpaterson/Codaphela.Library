@@ -64,14 +64,14 @@ public:
 	CArrayMeshUVLayer	mcLayers;
 
 	void			Init(void);
-	void			Free(void);
-	void			Class(void);
+	void			Free(void) override;
+	void			Class(void) override;
 	void			KillUVLayers(void);
 
 	void			Clear(void);
 
-	bool			Load(CObjectReader* pcFile);
-	bool			Save(CObjectWriter* pcFile);
+	bool			Load(CObjectReader* pcFile) override;
+	bool			Save(CObjectWriter* pcFile) override;
 
 	void			AddFace(void);
 	int				AddLayer(CMeshConnectivity* pcConn);

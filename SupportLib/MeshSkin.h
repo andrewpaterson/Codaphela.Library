@@ -74,13 +74,13 @@ public:
 
 	void 	Init(void);
 	void	Clear(void);
-	void 	Free(void);
-	void	Class(void);
+	void 	Free(void) override;
+	void	Class(void) override;
 
 	void	KillSkinVerts(void);
 	
-	bool	Load(CObjectReader* pcFile);
-	bool	Save(CObjectWriter* pcFile);
+	bool	Load(CObjectReader* pcFile) override;
+	bool	Save(CObjectWriter* pcFile) override;
 
 	void	Touch(void);
 	void	AddCorner(void);

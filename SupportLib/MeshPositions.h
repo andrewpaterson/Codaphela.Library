@@ -38,8 +38,8 @@ public:
 	CArrayFloat32Vec3	mcPositions;
 
 	void 	Init(void);
-	void 	Free(void);
-	void	Class(void);
+	void 	Free(void) override;
+	void	Class(void) override;
 
 	void 	Clear(void);
 

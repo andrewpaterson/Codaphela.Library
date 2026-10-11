@@ -17,14 +17,14 @@ protected:
 
 public:
 	void			Init(char* szConstantName, Ptr<CImage> pImage);
-	void			Free(void);
-	void			Class(void);
+	void			Free(void) override;
+	void			Class(void) override;
 
 	bool			StartGeneration(void);
 	void			StopGeneration(void);
 
-	bool			Load(CObjectReader* pcFile);
-	bool			Save(CObjectWriter* pcFile);
+	bool			Load(CObjectReader* pcFile) override;
+	bool			Save(CObjectWriter* pcFile) override;
 
 	Ptr<CImage>		GetImage(void);
 	ARGB32			GetColour(int x, int y);

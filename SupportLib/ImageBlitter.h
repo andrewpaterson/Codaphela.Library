@@ -51,8 +51,8 @@ public:
 	void			Init(Ptr<CImageCel> pSource, Ptr<CImage> pcDest);
 	bool			Configure(CImageRowBlitterFactory* pcBlitterCache);
 	void			Free(void);
+	void			Class(void) override;
 
-	void			Class(void);
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;
 

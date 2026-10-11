@@ -84,7 +84,7 @@ void CMeshColours::Class(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshColours::Load(CObjectReader* pcFile)
 {
-	ReturnOnFalse(LoadMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Load(pcFile));
 
 	ReturnOnFalse(mcFaces.Read(pcFile));
 	ReturnOnFalse(mcColours.Read(pcFile));
@@ -98,7 +98,8 @@ bool CMeshColours::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshColours::Save(CObjectWriter* pcFile)
 {
-	ReturnOnFalse(SaveMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Save(pcFile));
+
 	ReturnOnFalse(mcFaces.Write(pcFile));
 	ReturnOnFalse(mcColours.Write(pcFile));
 	return true;

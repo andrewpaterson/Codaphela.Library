@@ -46,11 +46,11 @@ protected:
 
 public:
 	void 					Init(Ptr<CImage> pcImage, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
-	void					Class(void);
-	void 					Free(void);
+	void					Class(void) override;
+	void 					Free(void) override;
 
-	bool					Save(CObjectWriter* pcFile);
-	bool					Load(CObjectReader* pcFile);
+	bool					Save(CObjectWriter* pcFile) override;
+	bool					Load(CObjectReader* pcFile) override;
 
 	void		 			GenerateFromBorder(Ptr<CImage> pcFillMask);  //Use the pixel colour RGB (+A if available) in the top left corner to mask out rectangles.
 	void 					GenerateFromNumbers(CImageDividerNumbers* pcNumbers);

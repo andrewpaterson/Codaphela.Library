@@ -84,7 +84,8 @@ void CMeshMaterials::Class(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshMaterials::Load(CObjectReader* pcFile)
 {
-	ReturnOnFalse(LoadMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Load(pcFile));
+
 	ReturnOnFalse(mcMaterials.Read(pcFile));
 	ReturnOnFalse(mcFaces.Read(pcFile));
 	return true;
@@ -97,7 +98,8 @@ bool CMeshMaterials::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshMaterials::Save(CObjectWriter* pcFile)
 {
-	ReturnOnFalse(SaveMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Save(pcFile));
+
 	ReturnOnFalse(mcMaterials.Write(pcFile));
 	ReturnOnFalse(mcFaces.Write(pcFile));
 	return true;

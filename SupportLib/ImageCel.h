@@ -46,11 +46,11 @@ public:
 			void			Init(Ptr<CImage> pcSourceImage, CRectangle* pcRect);
 			void 			Init(Ptr<CImage> pcSourceImage, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
 			void 			Init(Ptr<CImage> pcSourceImage, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, int32 iLeftOffset, int32 iTopOffset, int32 iRightOffset, int32 iBottomOffset, int32 iAlignment = SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
-			void			Class(void);
-			void 			Free(void);
+			void			Class(void) override;
+			void 			Free(void) override;
 
-			bool			Save(CObjectWriter* pcFile);
-			bool			Load(CObjectReader* pcFile);
+			bool			Save(CObjectWriter* pcFile) override;
+			bool			Load(CObjectReader* pcFile) override;
 
 			void			Copy(CImageCel* pcSource);
 			void			Print(CChars* psz);

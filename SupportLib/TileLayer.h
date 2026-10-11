@@ -44,11 +44,11 @@ protected:
 
 public:
 			void	Init(CPointer pTileMap, const char* szTileType, SSizeVec2 sMapSize, SSizeVec2 sCelSize, int iIdentifier, SIntVec2 sPosition);
-			void 	Free(void);
-			void	Class(void);
+			void 	Free(void) override;
+			void	Class(void) override;
 
-			bool	Save(CObjectWriter* pcFile);
-			bool	Load(CObjectReader* pcFile);
+			bool	Save(CObjectWriter* pcFile) override;
+			bool	Load(CObjectReader* pcFile) override;
 
 			int32	GetLayerSizeX(void);
 			int32	GetLayerSizeY(void);

@@ -20,12 +20,11 @@ protected:
 
 public:
 	void					Init(Ptr<CTileGridSource> pTileGridSource, Ptr<CTileLayer> pTileLayer, int iCelType, CTileCelSource* pcTileCelSource);
-	void					Free(void);
+	void					Free(void) override;
+	void					Class(void) override;
 
-	void					Class(void);
-
-	bool					Load(CObjectReader* pcFile);
-	bool					Save(CObjectWriter* pcFile);
+	bool					Load(CObjectReader* pcFile) override;
+	bool					Save(CObjectWriter* pcFile) override;
 
 	Ptr<CTileGridSource>	GetTileGridSource(void);
 	Ptr<CTileLayer>			GetTileLayer(void);
