@@ -78,7 +78,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;DEBUG;BREAK_ON_WARNING;BREAK_ON_ERROR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;DEBUG_POINTER;_LIB;_CRT_SECURE_NO_DEPRECATE;DEBUG;BREAK_ON_WARNING;BREAK_ON_ERROR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
@@ -194,6 +194,7 @@
     <ClInclude Include="Index.h" />
     <ClInclude Include="IndexObject.h" />
     <ClInclude Include="IndexUnknown.h" />
+    <ClInclude Include="KillOrderCalculator.h" />
     <ClInclude Include="MapEntry.h" />
     <ClInclude Include="MapObject.h" />
     <ClInclude Include="MapUnknownUnknown.h" />
@@ -313,6 +314,7 @@
     <ClCompile Include="FatHollowConfiguration.cpp" />
     <ClCompile Include="IndexObject.cpp" />
     <ClCompile Include="IndexUnknown.cpp" />
+    <ClCompile Include="KillOrderCalculator.cpp" />
     <ClCompile Include="MapEntry.cpp" />
     <ClCompile Include="MapObject.cpp" />
     <ClCompile Include="MapUnknownUnknown.cpp" />

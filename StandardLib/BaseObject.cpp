@@ -30,6 +30,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DistCalculator.h"
 #include "Classes.h"
 #include "Primitive.h"
+#include "KillOrderCalculator.h"
 #include "BaseObject.h"
 
 
@@ -646,9 +647,12 @@ EFreeResult CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 	bool					bMustKill;
 	CDistCalculator			cDistCalculator;
 	CArrayBaseObjectPtr*	papcKilled;
+	CArrayBaseObjectPtr*	papcKilledNesObjects;
 	CBaseObject*			pcKilled;
 	bool					bOnlyThisKilled;
 	EFreeResult				eResult;
+	CKillOrderCalculator	cKillOrder;
+	CObjects*				pcObjectsThisIn;
 	
 	if (IsRoot())
 	{
@@ -668,7 +672,7 @@ EFreeResult CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 
 			if (papcKilled->NumElements() > 0)
 			{
-				cDistCalculator.Dump();
+
 				eResult = FR_Freed;
 
 				if (!mpcObjectsThisIn)
@@ -694,7 +698,14 @@ EFreeResult CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 				}
 				else
 				{
-					mpcObjectsThisIn->Remove(papcKilled);
+					cKillOrder.Init(papcKilled);
+					papcKilledNesObjects = cKillOrder.Calculate();
+
+					pcObjectsThisIn = mpcObjectsThisIn;
+					pcObjectsThisIn->Remove(papcKilled);
+					pcObjectsThisIn->Remove(papcKilledNesObjects);
+
+					cKillOrder.Kill();
 				}
 			}
 			else

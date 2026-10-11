@@ -28,12 +28,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 extern bool gbLogPointer;
 
 
-#define LOG_POINTER_DEBUG()	 
-#ifdef DEBUG_POINTER 
-#ifdef _DEBUG 
-LogPointerDebug(this, __ENGINE_PRETTY_FUNCTION__)
-#endif  // _DEBUG 
-#endif // DEBUG_POINTER
+#if defined(DEBUG_POINTER) && defined(_DEBUG)
+#define LOG_POINTER_DEBUG()  LogPointerDebug(this, __ENGINE_PRETTY_FUNCTION__)
+#else
+#define LOG_POINTER_DEBUG()
+#endif
 
 
 //This class is roughly a void* (or possibly an Object*).  It should probably have been called CObjectPointer but it's easier to start typing CPo...
