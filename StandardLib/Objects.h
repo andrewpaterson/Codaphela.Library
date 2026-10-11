@@ -182,8 +182,11 @@ protected:
 						CBaseObject*			GetFromSources(char* szObjectName);
 						OIndex					GetNextIndex(void);
 						
-						void					KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts);
+						void					FreeInternal(CArrayBaseObjectPtr* papcObjectPts);
+						void					RemoveAllPointerTos(CArrayBaseObjectPtr* papcObjectPts);
+						void					DoneKill(CArrayBaseObjectPtr* papcObjectPts);
 						void					KillObjects(CArrayBaseObjectPtr* papcObjectPts);
+						bool					ValidateNoEmbedded(CArrayBaseObjectPtr* papcObjectPts);
 
 						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, bool bEmbedded);
 						void					ValidateSceneGraph(void);

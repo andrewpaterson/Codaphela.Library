@@ -776,7 +776,8 @@ bool CObjects::EvictInMemory(void)
 
 		if (iCount == CLEAR_MEMORY_CHUNK_SIZE)
 		{
-			KillDontFreeObjects(&apcBaseObjects);
+			FreeInternal(&apcBaseObjects);
+			DoneKill(&apcBaseObjects);
 			KillObjects(&apcBaseObjects);
 
 			iCount = 0;
@@ -786,7 +787,8 @@ bool CObjects::EvictInMemory(void)
 		oi = IterateMemory(&sIter);
 	}
 
-	KillDontFreeObjects(&apcBaseObjects);
+	FreeInternal(&apcBaseObjects);
+	DoneKill(&apcBaseObjects);
 	KillObjects(&apcBaseObjects);
 
 	apcBaseObjects.Kill();
@@ -800,18 +802,92 @@ bool CObjects::EvictInMemory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts)
+bool CObjects::ValidateNoEmbedded(CArrayBaseObjectPtr* papcObjectPts)
+{
+	size			i;
+	CBaseObject*	pcKilled;
+	size			iNumElements;
+	CBaseObject*	pcContainer;
+
+	iNumElements = papcObjectPts->NumElements();
+	if (iNumElements == 0)
+	{
+		return true;
+	}
+
+	for (i = 0; i < iNumElements; i++)
+	{
+		pcKilled = *papcObjectPts->Get(i);
+		if (pcKilled->IsEmbedded())
+		{
+			pcContainer = pcKilled->GetEmbeddingContainer();
+			gcLogger.Error2(__METHOD__, " Object of class [", pcKilled->ClassName(), "] is marked for killing but is embedded in object with index [", IndexToString(pcContainer->GetIndex()),"] of class [", pcContainer->ClassName(), "].", NULL);
+			return false;
+		}
+		else if (!pcKilled->IsAllocatedInObjects())
+		{
+			gcLogger.Error2(__METHOD__, " Object of class [", pcKilled->ClassName(), "] is marked for killing but is not allocated in Objects [0x", PointerToString(this),"].", NULL);
+			return false;
+		}
+	}
+
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::DoneKill(CArrayBaseObjectPtr* papcObjectPts)
 {
 	size			i;
 	CBaseObject*	pcBaseObject;
-	size			uiNumElements;
+	size			iNumElements;
 
-	uiNumElements = papcObjectPts->NumElements();
-	for (i = 0; i < uiNumElements; i++)
+	iNumElements = papcObjectPts->NumElements();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pcBaseObject = (CBaseObject*)(*papcObjectPts->Get(i));
+		pcBaseObject->DoneKill(true);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::FreeInternal(CArrayBaseObjectPtr* papcObjectPts)
+{
+	size			i;
+	CBaseObject*	pcBaseObject;
+	size			iNumElements;
+
+	iNumElements = papcObjectPts->NumElements();
+	for (i = 0; i < iNumElements; i++)
 	{
 		pcBaseObject = (CBaseObject*)(*papcObjectPts->Get(i));
 		pcBaseObject->FreeInternal();
-		pcBaseObject->DoneKill(true);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::RemoveAllPointerTos(CArrayBaseObjectPtr* papcObjectPts)
+{
+	size			i;
+	size			iNumElements;
+	CBaseObject*	pcKilled;
+
+	iNumElements = papcObjectPts->NumElements();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pcKilled = *papcObjectPts->Get(i);
+		pcKilled->RemoveAllPointerTosDontFree();
 	}
 }
 
@@ -824,21 +900,21 @@ void CObjects::KillObjects(CArrayBaseObjectPtr* papcObjectPts)
 {
 	size				i;
 	CBaseObject*		pcBaseObject;
-	size				uiNumElements;
+	size				iNumElements;
 	CArrayUnknownPtr	cArray;
 	CUnknown**			pvData;
 
 	if (papcObjectPts->IsNotEmpty())
 	{
-		uiNumElements = papcObjectPts->NumElements();
-		for (i = 0; i < uiNumElements; i++)
+		iNumElements = papcObjectPts->NumElements();
+		for (i = 0; i < iNumElements; i++)
 		{
 			pcBaseObject = (*papcObjectPts->Get(i));
 			mcMemory.FreeObject(pcBaseObject);
 		}
 
 		pvData = (CUnknown**)papcObjectPts->GetData();
-		cArray.Fake(pvData, uiNumElements);
+		cArray.Fake(pvData, iNumElements);
 		mpcUnknownsAllocatingFrom->RemoveInKill(&cArray);
 	}
 }
@@ -1308,42 +1384,23 @@ bool CObjects::Contains(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 {
-	size							i;
-	size							uiNumElements;
-	CBaseObject*					pcKilled;
-	CBaseObject*					pcContainer;
+	size	iNumElements;
+	bool	bResult;
 
-	//No embedded objects should be in the list papcKilled.
-
-	uiNumElements = papcKilled->NumElements();
-	if (uiNumElements == 0)
+	iNumElements = papcKilled->NumElements();
+	if (iNumElements == 0)
 	{
 		return true;
 	}
 
-	for (i = 0; i < uiNumElements; i++)
+	bResult = ValidateNoEmbedded(papcKilled);
+	if (!bResult)
 	{
-		pcKilled = *papcKilled->Get(i);
-		if (pcKilled->IsEmbedded())
-		{
-			pcContainer = pcKilled->GetEmbeddingContainer();
-			gcLogger.Error2(__METHOD__, " Object of class [", pcKilled->ClassName(), "] is marked for killing but is embedded in object with index [", IndexToString(pcContainer->GetIndex()),"] of class [", pcContainer->ClassName(), "].", NULL);
-			return false;
-		}
-		else if (!pcKilled->IsAllocatedInObjects())
-		{
-			gcLogger.Error2(__METHOD__, " Object of class [", pcKilled->ClassName(), "] is marked for killing but is not allocated in Objects [0x", PointerToString(this),"].", NULL);
-			return false;
-		}
+		return false;
 	}
 
-	for (i = 0; i < uiNumElements; i++)
-	{
-		pcKilled = *papcKilled->Get(i);
-		pcKilled->RemoveAllPointerTosDontFree();
-	}
-
-	KillDontFreeObjects(papcKilled);
+	DoneKill(papcKilled);
+	RemoveAllPointerTos(papcKilled);
 	KillObjects(papcKilled);
 
 	return true;

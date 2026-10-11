@@ -130,6 +130,9 @@
     <Filter Include="Source\Object\Unknown\Collection\Index">
       <UniqueIdentifier>{06591157-ef77-4258-8999-45ba4c68eb09}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Object\Object\Distance\Order">
+      <UniqueIdentifier>{c5a5c769-cd1f-4f73-bba1-ee88798c5e53}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Unknown.h">
@@ -498,6 +501,9 @@
     <ClInclude Include="ChannelsAccessorCreatorParams.h">
       <Filter>Source\Channels\Accessor\Creator</Filter>
     </ClInclude>
+    <ClInclude Include="KillOrderCalculator.h">
+      <Filter>Source\Object\Object\Distance\Order</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -814,6 +820,9 @@
     </ClCompile>
     <ClCompile Include="ChannelsAccessorCreatorParams.cpp">
       <Filter>Source\Channels\Accessor\Creator</Filter>
+    </ClCompile>
+    <ClCompile Include="KillOrderCalculator.cpp">
+      <Filter>Source\Object\Object\Distance\Order</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
