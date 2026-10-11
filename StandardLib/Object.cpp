@@ -624,7 +624,7 @@ CBaseObject* CObject::GetClosestHeapFromToStack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
+void CObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	size			i;
 	size			uiNumEmbedded;
@@ -745,7 +745,7 @@ size CObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
+void CObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	size					uiNumPointers;
 	size					i;
@@ -929,7 +929,7 @@ size CObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void  CObject::GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms)
+void  CObject::GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms)
 {
 	size			i;
 	size			uiNumEmbedded;
@@ -1384,7 +1384,7 @@ void CObject::SetFlag(uint16 iFlag, uint16 iFlagValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::GetStackFroms(CArrayStackPointer* papcFroms)
+void CObject::GetStackFroms(CArrayStackPointerE32* papcFroms)
 {
 	size			i;
 	size			uiNumEmbedded;

@@ -182,7 +182,7 @@ CObjects* CHollowEmbeddedObject::GetObjectsThisIn(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
+void CHollowEmbeddedObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 }
 
@@ -302,7 +302,7 @@ bool CHollowEmbeddedObject::HasNes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CHollowEmbeddedObject::HasNesPointerTo(CEmbeddedObject* pcBaseObject)
+bool CHollowEmbeddedObject::HasNesPointerToThis(CEmbeddedObject* pcBaseObject)
 {
 	return false;
 }

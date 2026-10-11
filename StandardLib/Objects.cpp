@@ -476,7 +476,7 @@ void CObjects::DumpGraph(void)
 void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iLevel, bool bEmbedded)
 {
 	CObject*							pcObject;
-	CArrayTemplateEmbeddedObjectPtr		apcTos;
+	CArrayEmbeddedObjectPtr		apcTos;
 	size								i;
 	CEmbeddedObject*					pcToObject;
 	CBaseObject*						pcEmbeddedObject;
@@ -641,7 +641,7 @@ void CObjects::ValidateSceneGraph(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::RecurseValidateSceneGraph(CBaseObject* pcBaseObject)
 {
-	CArrayTemplateEmbeddedObjectPtr		apcTos;
+	CArrayEmbeddedObjectPtr		apcTos;
 	size								i;
 	CEmbeddedObject*					pcToObject;
 	CBaseObject*						pcToContainerObject;
@@ -761,7 +761,7 @@ bool CObjects::EvictInMemory(void)
 	SIndexesIterator		sIter;
 	OIndex					oi;
 	CBaseObject*			pcBaseObject;
-	CArrayBlockObjectPtr	apcBaseObjects;
+	CArrayBaseObjectPtr	apcBaseObjects;
 	size					iCount;
 
 	apcBaseObjects.Init();
@@ -800,7 +800,7 @@ bool CObjects::EvictInMemory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::KillDontFreeObjects(CArrayBlockObjectPtr* papcObjectPts)
+void CObjects::KillDontFreeObjects(CArrayBaseObjectPtr* papcObjectPts)
 {
 	size			i;
 	CBaseObject*	pcBaseObject;
@@ -820,7 +820,7 @@ void CObjects::KillDontFreeObjects(CArrayBlockObjectPtr* papcObjectPts)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::KillObjects(CArrayBlockObjectPtr* papcObjectPts)
+void CObjects::KillObjects(CArrayBaseObjectPtr* papcObjectPts)
 {
 	size				i;
 	CBaseObject*		pcBaseObject;
@@ -1306,7 +1306,7 @@ bool CObjects::Contains(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjects::Remove(CArrayBlockObjectPtr* papcKilled)
+bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 {
 	size							i;
 	size							uiNumElements;

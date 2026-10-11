@@ -247,7 +247,7 @@ void CDistCalculatorParameters::CopyRootDetachedToCompletelyDetached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayBlockObjectPtr* CDistCalculatorParameters::GetCompletelyDetachedArray(void)
+CArrayBaseObjectPtr* CDistCalculatorParameters::GetCompletelyDetachedArray(void)
 {
 	return &mapcCompletelyDetached;
 }
@@ -290,7 +290,7 @@ CBaseObject* CDistCalculatorParameters::GetTouched(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayTemplateEmbeddedBaseObjectPtr* pcArray, bool bCommaSeparate)
+void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayBaseObjectPtrE32* pcArray, bool bCommaSeparate)
 {
 	int				i;
 	int				iNum;
@@ -326,7 +326,7 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayTemplateEmbeddedBa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayBlockObjectPtr* pcArray, bool bCommaSeparate)
+void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayBaseObjectPtr* pcArray, bool bCommaSeparate)
 {
 	int				i;
 	int				iNum;

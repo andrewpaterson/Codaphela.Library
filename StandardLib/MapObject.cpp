@@ -400,7 +400,7 @@ size CMapObject::BaseNumPointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
+void CMapObject::GetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	CBaseObject*	pcPointedToKey;
 	CBaseObject*	pcPointedToValue;
@@ -425,7 +425,7 @@ void CMapObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapObject::BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
+void CMapObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	GetPointerTos(papcTos);
 }

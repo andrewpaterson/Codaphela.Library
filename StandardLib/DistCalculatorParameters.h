@@ -20,11 +20,11 @@ typedef CArrayTemplate<SDistToRoot>		CArrayDistToRoot;
 class CDistCalculatorParameters
 {
 private:
-	CArrayTemplateEmbeddedBaseObjectPtr		mapcTouched;
+	CArrayBaseObjectPtrE32		mapcTouched;
 	CArrayDistToRoot						macExpectedDists;
-	CArrayTemplateEmbeddedBaseObjectPtr		mapcDetachedFromRoot;
+	CArrayBaseObjectPtrE32		mapcDetachedFromRoot;
 
-	CArrayBlockObjectPtr					mapcCompletelyDetached;
+	CArrayBaseObjectPtr					mapcCompletelyDetached;
 
 public:
 	void					Init(void);
@@ -48,7 +48,7 @@ public:
 	CBaseObject*			GetCompletelyDetached(int iIndex);
 	void					RemoveCompletelyDetached(int iIndex);
 	void					CopyRootDetachedToCompletelyDetached(void);
-	CArrayBlockObjectPtr*	GetCompletelyDetachedArray(void);
+	CArrayBaseObjectPtr*	GetCompletelyDetachedArray(void);
 
 	void					AddTouched(CBaseObject* pcObject);
 	int						NumTouched(void);
@@ -59,8 +59,8 @@ public:
 	void					Print(CChars* psz, bool bCommaSeparate = true);
 	void					Dump(void);
 
-	void					PrintArray(CChars* psz, CArrayTemplateEmbeddedBaseObjectPtr* pcArray, bool bCommaSeparate);
-	void					PrintArray(CChars* psz, CArrayBlockObjectPtr* pcArray, bool bCommaSeparate);
+	void					PrintArray(CChars* psz, CArrayBaseObjectPtrE32* pcArray, bool bCommaSeparate);
+	void					PrintArray(CChars* psz, CArrayBaseObjectPtr* pcArray, bool bCommaSeparate);
 	void					PrintArray(CChars* psz, CArrayDistToRoot* pcArray, bool bCommaSeparate);
 };
 

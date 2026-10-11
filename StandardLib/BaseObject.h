@@ -176,8 +176,8 @@ public:
 			void					StopDestructor(void);
 
 			bool					HasNes(void) override;
-			void					GetNesPointerFroms(void);
-			bool					HasNesPointerTo(CEmbeddedObject* pcBaseObject) override;
+			void					GetNesPointerToThis(CArrayEmbeddedObjectPtrE8* papNesObjectsPointingToThis);
+			bool					HasNesPointerToThis(CEmbeddedObject* pcBaseObject) override;
 
 			void					DumpFroms(void);
 			void					DumpPointerTos(void);

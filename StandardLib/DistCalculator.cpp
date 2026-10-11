@@ -53,9 +53,9 @@ int CompareBaseObjectPtrPtr(const void* ppvArg1, const void* ppvArg2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayBlockObjectPtr* CDistCalculator::Calculate(CBaseObject* pcFromChanged, bool bHeapFromChanged)
+CArrayBaseObjectPtr* CDistCalculator::Calculate(CBaseObject* pcFromChanged, bool bHeapFromChanged)
 {
-	CArrayBlockObjectPtr*	papcObjects;
+	CArrayBaseObjectPtr*	papcObjects;
 
 	if (bHeapFromChanged)
 	{
@@ -76,7 +76,7 @@ CArrayBlockObjectPtr* CDistCalculator::Calculate(CBaseObject* pcFromChanged, boo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayBlockObjectPtr* CDistCalculator::CalculateHeapFromChanged(CBaseObject* pcFromChanged)
+CArrayBaseObjectPtr* CDistCalculator::CalculateHeapFromChanged(CBaseObject* pcFromChanged)
 {
 	mcDistToRootCalculator.Calculate(pcFromChanged, &mcParameters);
 
@@ -91,7 +91,7 @@ CArrayBlockObjectPtr* CDistCalculator::CalculateHeapFromChanged(CBaseObject* pcF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayBlockObjectPtr* CDistCalculator::CalculateStackFromChanged(CBaseObject* pcFromChanged)
+CArrayBaseObjectPtr* CDistCalculator::CalculateStackFromChanged(CBaseObject* pcFromChanged)
 {
 	if (pcFromChanged->HasStackFroms())
 	{
