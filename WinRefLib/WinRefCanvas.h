@@ -30,7 +30,7 @@ class CWinRefCanvas : public CNativeCanvas
 {
 CONSTRUCTABLE(CWinRefCanvas);
 protected:
-	Ptr<CImage>		mpImage;
+	CImage*			mpcImage;
 	CImageDraw		mcDraw;
 	ARGB32			msLastColour;
 
