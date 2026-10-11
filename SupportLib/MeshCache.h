@@ -35,11 +35,11 @@ public:
 	CArrayMeshVertexArray	mcMeshVerticesArrays;
 
 	void 					Init(void);
-	void 					Free(void);
-	void					Class(void);
+	void 					Free(void) override;
+	void					Class(void) override;
 
-	bool					Load(CObjectReader* pcFile);
-	bool					Save(CObjectWriter* pcFile);
+	bool					Load(CObjectReader* pcFile) override;
+	bool					Save(CObjectWriter* pcFile) override;
 
 	bool					Touch(CMesh* pcMesh);
 	Ptr<CMeshVertexArray>	AddVertexArray(SMeshFaceType sMeshFaceType);

@@ -52,13 +52,13 @@ public:
 	CArrayMeshFaceNormal	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements
 
 	void 		Init(void);
-	void 		Free(void);
-	void		Class(void);
+	void 		Free(void) override;
+	void		Class(void) override;
 
 	void 		Clear(void);
 
-	bool		Load(CObjectReader* pcFile);
-	bool		Save(CObjectWriter* pcFile);
+	bool		Load(CObjectReader* pcFile) override;
+	bool		Save(CObjectWriter* pcFile) override;
 
 	void		GenerateFlatFaceNormals(CMeshPositions* pcPositions, CMeshConnectivity* pcConn);
 	void		AddFace(int iFaceNum, CMeshPositions* pcPositions, CMeshConnectivity* pcConn);

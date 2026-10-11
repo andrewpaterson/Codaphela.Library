@@ -23,11 +23,11 @@ protected:
 public:
 	void				Init(Ptr<CImageCel> pCel, size iCelType, char* szPatterName, size iWeight);
 	void				Init(Ptr<CImageCel> pCel, size iCelType, char* szPatterName, size iWeight, CelBrushSelectionCallback fCallback, void* pvCallbackData);
-	void				Free(void);
-	void				Class(void);
+	void				Free(void) override;
+	void				Class(void) override;
 
-	bool				Load(CObjectReader* pcFile);
-	bool				Save(CObjectWriter* pcFile);
+	bool				Load(CObjectReader* pcFile) override;
+	bool				Save(CObjectWriter* pcFile) override;
 
 	bool				IsFor(size iCelType, char* szPatternConstantName);
 	Ptr<CImageCel>		GetCel(void);

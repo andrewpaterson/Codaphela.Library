@@ -71,11 +71,11 @@ protected:
 
 public:
 	void 					Init(bool bPackOnLoad = false);
-	void					Class(void);
-	void 					Free(void);
+	void					Class(void) override;
+	void 					Free(void) override;
 
-	bool					Save(CObjectWriter* pcFile);
-	bool					Load(CObjectReader* pcFile);
+	bool					Save(CObjectWriter* pcFile) override;
+	bool					Load(CObjectReader* pcFile) override;
 
 	void					AddSource(CImageSource* pcImageSource, CImageCelSource* pcCelSource);
 	void					AddDiskFileSources(char* szPathName, char* szFileNameContains, char* szImageName, CImageCelSource* pcCelSource);

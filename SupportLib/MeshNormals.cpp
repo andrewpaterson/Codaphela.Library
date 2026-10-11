@@ -89,7 +89,8 @@ void CMeshNormals::Class(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshNormals::Load(CObjectReader* pcFile)
 {
-	ReturnOnFalse(LoadMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Load(pcFile));
+
 	ReturnOnFalse(mcNormals.Read(pcFile));
 	ReturnOnFalse(mcFaces.Read(pcFile));
 	return true;
@@ -102,7 +103,8 @@ bool CMeshNormals::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshNormals::Save(CObjectWriter* pcFile)
 {
-	ReturnOnFalse(SaveMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Save(pcFile));
+
 	ReturnOnFalse(mcNormals.Write(pcFile));
 	ReturnOnFalse(mcFaces.Write(pcFile));
 	return true;

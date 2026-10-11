@@ -37,11 +37,11 @@ protected:
 
 public:
 	void	Init(Ptr<CTileMap> pTileMap, const char* szTileType, SSizeVec2 sMapSize, SSizeVec2 sCelSize, int iIdentifier, SIntVec2 sPosition);
-	void	Class(void);
-	void 	Free(void);
+	void	Class(void) override;
+	void 	Free(void) override;
 
-	bool	Save(CObjectWriter* pcFile);
-	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile) override;
+	bool	Load(CObjectReader* pcFile) override;
 
 	void	SetTile(int x, int y, bool bValue);
 	bool	GetTile(size uiIndex);

@@ -15,11 +15,11 @@ protected:
 
 public:
 			void		Init(char* szConstantName);
-			void		Free(void);
-			void		Class(void);
+			void		Free(void) override;
+			void		Class(void) override;
 
-			bool		Load(CObjectReader* pcFile);
-			bool		Save(CObjectWriter* pcFile);
+			bool		Load(CObjectReader* pcFile) override;
+			bool		Save(CObjectWriter* pcFile) override;
 
 	virtual	bool		StartGeneration(void) =0;
 	virtual	void		StopGeneration(void) =0;

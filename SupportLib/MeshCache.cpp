@@ -70,7 +70,8 @@ void CMeshCache::Class(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshCache::Load(CObjectReader* pcFile)
 {
-	ReturnOnFalse(LoadMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Load(pcFile));
+
 	return mcMeshVerticesArrays.Load(pcFile);
 }
 
@@ -81,7 +82,8 @@ bool CMeshCache::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshCache::Save(CObjectWriter* pcFile)
 {
-	ReturnOnFalse(SaveMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Save(pcFile));
+
 	return mcMeshVerticesArrays.Save(pcFile);
 }
 

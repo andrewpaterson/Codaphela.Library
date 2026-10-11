@@ -39,11 +39,11 @@ protected:
 
 public:
 	void				Init(CMallocator* pcMalloc = NULL);
-	void 				Free(void);
-	void				Class(void);
+	void 				Free(void) override;
+	void				Class(void) override;
 
-	bool				Load(CObjectReader* pcFile);
-	bool				Save(CObjectWriter* pcFile);
+	bool				Load(CObjectReader* pcFile) override;
+	bool				Save(CObjectWriter* pcFile) override;
 
 	void				AddUTF16(Ptr<CFont> pFont, uint16* szText, size uiLength);
 

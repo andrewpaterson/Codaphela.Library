@@ -258,7 +258,8 @@ bool CMeshLeaves::Save(CObjectWriter* pcFile)
 	size		i;
 	CMeshLeaf*	pcLeaf;
 
-	ReturnOnFalse(SaveMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Save(pcFile));
+
 	ReturnOnFalse(mcLeaves.WriteAllocatorAndHeader(pcFile));
 	for (i = 0; i < mcLeaves.NumElements(); i++)
 	{
@@ -278,7 +279,8 @@ bool CMeshLeaves::Load(CObjectReader* pcFile)
 	size		i;
 	CMeshLeaf*	pcLeaf;
 
-	ReturnOnFalse(LoadMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Load(pcFile));
+
 	ReturnOnFalse(mcLeaves.ReadAllocatorAndHeader(pcFile));
 	for (i = 0; i < mcLeaves.NumElements(); i++)
 	{

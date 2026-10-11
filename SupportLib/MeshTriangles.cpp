@@ -72,7 +72,8 @@ void CMeshTriangles::Class(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshTriangles::Load(CObjectReader* pcFile)
 {
-	ReturnOnFalse(LoadMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Load(pcFile));
+
 	ReturnOnFalse(mcTriangles.Read(pcFile));
 	return true;
 }
@@ -84,7 +85,8 @@ bool CMeshTriangles::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshTriangles::Save(CObjectWriter* pcFile)
 {
-	ReturnOnFalse(SaveMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Save(pcFile));
+
 	ReturnOnFalse(mcTriangles.Write(pcFile));
 	return true;
 }

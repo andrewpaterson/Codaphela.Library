@@ -59,14 +59,14 @@ public:
 	CArrayInt			maiFacesToPolygons;
 
 	void 			Init(void);
-	void 			Free(void);
-	void			Class(void);
+	void 			Free(void) override;
+	void			Class(void) override;
 	void			KillPolygons(void);
 
 	void 			Clear(void);
 
-	bool			Load(CObjectReader* pcFile);
-	bool			Save(CObjectWriter* pcFile);
+	bool			Load(CObjectReader* pcFile) override;
+	bool			Save(CObjectWriter* pcFile) override;
 
 	CMeshPolygon*	Get(int iPolygonNum);
 	CMeshPolygon*	Add(int iName);

@@ -37,8 +37,8 @@ protected:
 
 public:
 	void 	Init(Ptr<CWindow> pWindow);
-	void	Class(void);
-	void 	Free(void);
+	void	Class(void) override;
+	void 	Free(void) override;
 
 	void	SetRequiredSize(void) override;
 	void 	Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;

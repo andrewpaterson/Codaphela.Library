@@ -72,7 +72,8 @@ void CMeshBoundingBox::Class(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshBoundingBox::Load(CObjectReader* pcFile)
 {
-	ReturnOnFalse(LoadMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Load(pcFile));
+
 	return mcBox.Load(pcFile);
 }
 
@@ -83,7 +84,8 @@ bool CMeshBoundingBox::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshBoundingBox::Save(CObjectWriter* pcFile)
 {
-	ReturnOnFalse(SaveMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Save(pcFile));
+
 	return mcBox.Save(pcFile);
 }
 

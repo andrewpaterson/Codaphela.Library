@@ -44,12 +44,14 @@ DESTRUCTABLE(CMeshDetail);
 public:
 	bool	mbInUse;
 
+public:
 	void	Init(bool bInUse = false);
 	bool	InUse(void);
-	void	Class(void);
+	void	Class(void) override;
+	void	Free(void) override;
 
-	bool	LoadMeshDetail(CObjectReader* pcFile);
-	bool	SaveMeshDetail(CObjectWriter* pcFile);
+	bool	Load(CObjectReader* pcFile) override;
+	bool	Save(CObjectWriter* pcFile) override;
 };
 
 

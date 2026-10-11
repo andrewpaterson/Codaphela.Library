@@ -54,6 +54,15 @@ void CMeshDetail::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CMeshDetail::Free(void)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CMeshDetail::InUse(void)
 {
 	return mbInUse;
@@ -64,7 +73,7 @@ bool CMeshDetail::InUse(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshDetail::LoadMeshDetail(CObjectReader* pcFile)
+bool CMeshDetail::Load(CObjectReader* pcFile)
 {
 	return pcFile->ReadBool(&mbInUse) == TRITRUE;
 }
@@ -74,7 +83,7 @@ bool CMeshDetail::LoadMeshDetail(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshDetail::SaveMeshDetail(CObjectWriter* pcFile)
+bool CMeshDetail::Save(CObjectWriter* pcFile)
 {
 	return pcFile->WriteBool(mbInUse);
 }

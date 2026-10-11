@@ -78,7 +78,8 @@ void CMeshPositions::Class(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshPositions::Load(CObjectReader* pcFile)
 {
-	ReturnOnFalse(LoadMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Load(pcFile));
+
 	ReturnOnFalse(mcPositions.Read(pcFile));
 	return true;
 }
@@ -90,7 +91,8 @@ bool CMeshPositions::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshPositions::Save(CObjectWriter* pcFile)
 {
-	ReturnOnFalse(SaveMeshDetail(pcFile));
+	ReturnOnFalse(CMeshDetail::Save(pcFile));
+
 	return mcPositions.Write(pcFile);
 }
 

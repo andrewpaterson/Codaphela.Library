@@ -35,12 +35,13 @@ protected:
 	
 public:
 	void 				Init(Ptr<CMaps> pMaps);
-	void 				Free(void);
-	void				Class(void);
+	void 				Free(void) override;
+	void				Class(void) override;
+
 	Ptr<CMaps>			GetMaps(void);
 
-	bool				Save(CObjectWriter* pcFile);
-	bool				Load(CObjectReader* pcFile);
+	bool				Save(CObjectWriter* pcFile) override;
+	bool				Load(CObjectReader* pcFile) override;
 };
 
 

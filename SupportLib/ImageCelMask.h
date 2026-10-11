@@ -39,11 +39,11 @@ protected:
 public:
 	void 	Init(Ptr<CImage> pcSourceImage, Ptr<CImage> pcMaskImage, CFillRectangle* pcRect);
 	void 	Init(Ptr<CImage> pcSourceImage, Ptr<CImage> pcMaskImage, uint16 iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom);
-	void	Class(void);
-	void 	Free(void);
+	void	Class(void) override;
+	void 	Free(void) override;
 
-	bool	Save(CObjectWriter* pcFile);
-	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile) override;
+	bool	Load(CObjectReader* pcFile) override;
 
 	void	CropTransparentBorders(void);
 

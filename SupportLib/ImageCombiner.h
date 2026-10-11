@@ -73,11 +73,11 @@ public:
 	void					Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth);
 	void 					Init(EImageCombineLayout eLayout, EImageCombineSize eSize, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0);  //Don't pass ICS_UserSpecified in here, use the one below.
 	void 					Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0);
-	void					Class(void);
-	void 					Free(void);
+	void					Class(void) override;
+	void 					Free(void) override;
 
-	bool					Save(CObjectWriter* pcFile);
-	bool					Load(CObjectReader* pcFile);
+	bool					Save(CObjectWriter* pcFile) override;
+	bool					Load(CObjectReader* pcFile) override;
 
 	void 					AddCel(Ptr<CImageCel> pcCel);
 	void 					AddCels(Ptr<CArrayImageCel>);

@@ -41,8 +41,8 @@ protected:
 
 public:
 	void				Init(Ptr<CImage> pDestImage);
-	void				Class(void);
-	void				Free(void);
+	void				Class(void) override;
+	void				Free(void) override;
 
 	void				Clear(Ptr<CImage> pDestImage);
 

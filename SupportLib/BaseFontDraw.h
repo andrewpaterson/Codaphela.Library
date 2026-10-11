@@ -33,11 +33,11 @@ CONSTRUCTABLE(CBaseFontDraw);
 DESTRUCTABLE(CBaseFontDraw);
 public:
 			void	Init(void);
-			void	Class(void);
-			void 	Free(void);
+			void	Class(void) override;
+			void 	Free(void) override;
 
-			bool	Save(CObjectWriter* pcFile);
-			bool	Load(CObjectReader* pcFile);
+			bool	Save(CObjectWriter* pcFile) override;
+			bool	Load(CObjectReader* pcFile) override;
 
 	virtual void	Begin(void) =0;
 	virtual void	Place(Ptr<CGlyph> pGlyph, int32 x, int32 y) =0;

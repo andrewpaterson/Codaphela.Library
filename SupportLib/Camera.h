@@ -42,11 +42,12 @@ public:
 
 	Ptr<CCamera>	Init(void);
 	Ptr<CCamera>	Init(ECameraType eCameraType, float32 fFOV);
-	void 			Free(void);
-	void			Class(void);
+	void 			Free(void) override;
+	void			Class(void) override;
 
-	bool			Load(CObjectReader* pcFile);
-	bool			Save(CObjectWriter* pcFile);
+	bool			Load(CObjectReader* pcFile) override;
+	bool			Save(CObjectWriter* pcFile) override;
+
 	void			Copy(CCamera* pcCamera);
 };
 
