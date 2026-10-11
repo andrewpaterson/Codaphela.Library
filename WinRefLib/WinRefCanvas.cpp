@@ -1,3 +1,5 @@
+#include "StandardLib/Objects.h"
+#include "StandardLib/FreeObjects.h"
 #include "SupportLib/ImageAccessorCreator.h"
 #include "SupportLib/ImageCopier.h"
 #include "WindowLib/Canvas.h"
@@ -12,7 +14,7 @@
 void CWinRefCanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory)
 {
 	CNativeCanvas::Init(pcCanvas, pcWindowFactory);
-    mpImage = NULL;
+    mpcImage = NULL;
     msLastColour = 0xffffffff;
 }
 
@@ -23,10 +25,11 @@ void CWinRefCanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactor
 //////////////////////////////////////////////////////////////////////////
 void CWinRefCanvas::Kill(void)
 {
-    if (mpImage.IsNotNull())
+    if (mpcImage)
     {
         mcDraw.Kill();
-        mpImage = NULL;
+        gcObjects.RemoveFreeObject(mpcImage);
+        mpcImage = NULL;
     }
     CNativeCanvas::Kill();
 }
@@ -55,18 +58,18 @@ bool CWinRefCanvas::CreateNativeCanvas(void)
     eColourBits = mpcCanvas->GetColourBits();
     eAlphaBits = mpcCanvas->GetAlphaBits();
 
-    mpImage = OMalloc<CImage>(sSize.x, sSize.y, eColourFormat, eColourOrder, eColourBits, eAlphaBits);
+    mpcImage = gcObjects.AddFreeObject<CImage>(OMalloc<CImage>(sSize.x, sSize.y, eColourFormat, eColourOrder, eColourBits, eAlphaBits));
 
-    if (mpImage.IsNull())
+    if (mpcImage == NULL)
     {
         SetSize(-1, -1);
         return false;
     }
 
-    mpImage->Black();
+    mpcImage->Black();
 
     SetSize(sSize.x, sSize.y);
-    mcDraw.Init(&mpImage);
+    mcDraw.Init(mpcImage);
 
     return true;
 }
@@ -78,7 +81,7 @@ bool CWinRefCanvas::CreateNativeCanvas(void)
 //////////////////////////////////////////////////////////////////////////
 uint8* CWinRefCanvas::GetPixelData(void)
 {
-    return (uint8*)mpImage->GetData();
+    return (uint8*)mpcImage->GetData();
 }
 
 
@@ -88,7 +91,7 @@ uint8* CWinRefCanvas::GetPixelData(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CWinRefCanvas::GetImage(void)
 {
-    return mpImage;
+    return mpcImage;
 }
 
 
@@ -108,7 +111,7 @@ void CWinRefCanvas::CopyCanvas(CNativeCanvas* pcSourceCanvas)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CWinRefCanvas::GetImageOrNull(void)
 {
-    return mpImage;
+    return mpcImage;
 }
 
 
@@ -174,7 +177,7 @@ void CWinRefCanvas::SetColour(ARGB32 sColour)
 //////////////////////////////////////////////////////////////////////////
 void CWinRefCanvas::DrawCel(int iX, int iY, Ptr<CImageCel> pSourceCel)
 {
-    CImageCopier::Copy(pSourceCel, mpImage, iX, iY);
+    CImageCopier::Copy(pSourceCel, mpcImage, iX, iY);
 }
 
 
@@ -184,6 +187,6 @@ void CWinRefCanvas::DrawCel(int iX, int iY, Ptr<CImageCel> pSourceCel)
 //////////////////////////////////////////////////////////////////////////
 void CWinRefCanvas::DrawImage(int iX, int iY, Ptr<CImage> pSourceImage)
 {
-    CImageCopier::Copy(pSourceImage, mpImage, iX, iY);
+    CImageCopier::Copy(pSourceImage, mpcImage, iX, iY);
 }
 
