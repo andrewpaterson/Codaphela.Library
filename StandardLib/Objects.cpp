@@ -1400,6 +1400,7 @@ bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 	}
 
 	DoneKill(papcKilled);
+	FreeInternal(papcKilled);
 	RemoveAllPointerTos(papcKilled);
 	KillObjects(papcKilled);
 
