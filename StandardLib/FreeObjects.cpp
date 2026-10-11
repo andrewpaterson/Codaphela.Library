@@ -1,0 +1,112 @@
+#include "Objects.h"
+#include "FreeObjects.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CFreeObjects::Init(void)
+{
+	mpFreeObjects = OMalloc<CSetObject>();
+	mpFreeObjects->MakeSubRoot();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CFreeObjects::Free(void)
+{
+	if (!mpFreeObjects->IsEmpty())
+	{
+		//Dump the list of unfreed objects.
+		gcLogger.Error2(__METHOD__, " Could not free FreeObjects.  Every Object contained must be explicitly freed first.", NULL);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CFreeObjects::Class(void)
+{
+	Nes(M_Pointer(mpFreeObjects));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CFreeObjects::Save(CObjectWriter* pcFile)
+{
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CFreeObjects::Load(CObjectReader* pcFile)
+{
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CFreeObjects::Add(CPointer &p)
+{
+	bool	bResult;
+
+	if (p.IsNull())
+	{
+		gcLogger.Error2(__METHOD__, " Could not add null Object.", NULL);
+		return NULL;
+	}
+
+	if (p->IsEmbedded())
+	{
+		gcLogger.Error2(__METHOD__, " Could not add embedded Object [", ObjectToString(p.Object(), true), "].", NULL);
+		return NULL;
+	}
+
+	bResult = mpFreeObjects->Add(p);
+	if (!bResult)
+	{
+		gcLogger.Error2(__METHOD__, " Could not add Object [", ObjectToString(p.Object()), "].", NULL);
+		return NULL;
+	}
+
+	return (CBaseObject*)p.Object();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CFreeObjects::Remove(CBaseObject* pcObject)
+{
+	bool	bResult; 
+
+	if (pcObject == NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " Could not remove null Object.", NULL);
+	}
+
+	bResult = mpFreeObjects->Remove(pcObject);
+	if (!bResult)
+	{
+		return gcLogger.Error2(__METHOD__, " Could not remove Object [", ObjectToString(pcObject), "].", NULL);
+	}
+
+	return true;
+}
+

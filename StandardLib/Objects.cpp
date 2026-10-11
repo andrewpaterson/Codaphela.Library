@@ -28,10 +28,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "InternalObjectDeserialiser.h"
 #include "ObjectSource.h"
 #include "ObjectRemapFrom.h"
-#include "Objects.h"
 #include "HollowObject.h"
 #include "HollowEmbeddedObject.h"
+#include "FreeObjects.h"
 #include "StackPointers.h"
+#include "Objects.h"
 
 
 CObjects	gcObjects;
@@ -1022,6 +1023,49 @@ Ptr<CRoot> CObjects::Root(void)
 		pRoot->Init();
 	}
 	return pRoot;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CFreeObjects> CObjects::FreeObjects(void)
+{
+	Ptr<CFreeObjects>	pFree;
+	Ptr<CRoot>			pRoot;
+
+	pRoot = Root();
+
+	pFree = Get(FREE_OBJECTS_NAME);
+	if (pFree.IsNull())
+	{
+		pFree = Malloc<CFreeObjects>(FREE_OBJECTS_NAME);
+		pFree->Init();
+
+		pRoot->Add(pFree);
+	}
+	return pFree;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CObjects::AddFreeObject(CPointer& p)
+{
+	return FreeObjects()->Add(p);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::RemoveFreeObject(CBaseObject* pcObject)
+{
+	return FreeObjects()->Remove(pcObject);
 }
 
 

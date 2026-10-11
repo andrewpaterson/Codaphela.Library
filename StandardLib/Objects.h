@@ -34,7 +34,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DistCalculator.h"
 
 
-#define ROOT_NAME	"GraphRoot"
+#define ROOT_NAME					"GraphRoot"
+#define FREE_OBJECTS_NAME			"GraphFreeObjects"
 #define CLEAR_MEMORY_CHUNK_SIZE		16384
 
 
@@ -60,6 +61,7 @@ typedef void (*DestructionCallback)(CBaseObject*);
 
 
 class CHollowObject;
+class CFreeObjects;
 class CObjects
 {
 friend class CBaseObject;
@@ -135,6 +137,11 @@ public:
 						OIndex					IterateMemory(SIndexesIterator* psIter);
 						CPointer				TestGetFromMemory(OIndex oi);
 						CPointer				TestGetFromMemory(char* szName);
+
+						Ptr<CFreeObjects>		FreeObjects(void);
+	template<class M>	M*						AddFreeObject(Ptr<M>& p);
+						CBaseObject*			AddFreeObject(CPointer &p);
+						bool					RemoveFreeObject(CBaseObject* pcObject);
 
 						void					PrintMemoryNames(CChars* psz);
 						void					PrintStackPointers(CChars* psz, bool bPointerMemory = true);
@@ -473,6 +480,17 @@ template<class SpecificClass>
 CObjectSource* CObjects::AddSource(CAbstractFile* pcFile, char* szFilename)
 {
 	return mcSource.AddSource<SpecificClass>(pcFile, szFilename);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CObjects::AddFreeObject(Ptr<M>& p)
+{
+	return FreeObjects()->Add(p);
 }
 
 
