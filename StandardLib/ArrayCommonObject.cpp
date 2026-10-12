@@ -286,7 +286,7 @@ bool CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
 	uiNumElements = pcArray->NumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		pcObject = pcArray->UnsafeGet(i);
+		pcObject = pcArray->UnsafeGetObject(i);
 		bAdded = Add(pcObject);
 		if (!bAdded)
 		{
@@ -419,7 +419,7 @@ bool CArrayCommonObject::RemoveAllPointerTosTryFree(void)
 	uiNumElements = mcArray.UnsafeNumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		pcPointedTo = UnsafeGet(i);
+		pcPointedTo = UnsafeGetObject(i);
 		bResult &= RemovePointerToTryFree(pcPointedTo);
 	}
 	mcArray.ReInit();
@@ -442,7 +442,7 @@ void CArrayCommonObject::RemoveAllPointerTosDontFree(void)
 	uiNumElements = mcArray.UnsafeNumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		pcPointedTo = UnsafeGet(i);
+		pcPointedTo = UnsafeGetObject(i);
 		bResult &= RemovePointerToDontFree(pcPointedTo);
 	}
 	mcArray.ReInit();
@@ -681,7 +681,7 @@ bool CArrayCommonObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CArrayCommonObject::UnsafeGet(size iIndex)
+CBaseObject* CArrayCommonObject::UnsafeGetObject(size iIndex)
 {
 	return (CBaseObject*)mcArray.UnsafeGet(iIndex);
 }
@@ -877,7 +877,7 @@ bool CArrayCommonObject::RemoveAt(size iIndex)
 	{
 		EnsureSorted();
 
-		pcObject = UnsafeGet(iIndex);
+		pcObject = UnsafeGetObject(iIndex);
 		bResult = mcArray.Remove(iIndex);
 		bResult = RemoveObjectTryFree(pcObject, bResult, true);
 		return bResult;
@@ -905,7 +905,7 @@ bool CArrayCommonObject::RemoveEnd(size iIndexInclusive)
 	{
 		for (i = iIndexInclusive; i < uiNumElements; i++)
 		{
-			pcObject = UnsafeGet(i);
+			pcObject = UnsafeGetObject(i);
 			bResult = RemoveObjectTryFree(pcObject, bResult, false);
 			if (!bResult)
 			{
@@ -923,6 +923,48 @@ bool CArrayCommonObject::RemoveEnd(size iIndexInclusive)
 	ValidateObjectsConsistency(true);
 #endif // _DEBUG
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::RemoveAll(CArrayCommonObject* pcArray)
+{
+	CBaseObject*	pcPointedTo;
+	bool			bResult;
+	SSetIterator	sIter;
+	bool			bExists;
+	CPointer		pObject;
+
+	bResult = true;
+	if (!pcArray->IsEmpty())
+	{
+		EnsureSorted();
+
+		pObject = pcArray->StartIterationPointer(&sIter, &bExists);
+		while (bExists)
+		{
+			pcPointedTo = pObject.BaseObject();
+			if (pcPointedTo)
+			{
+				bResult &= RemovePointerToTryFree(pcPointedTo);
+			}
+			pObject = pcArray->IteratePointer(&sIter, &bExists);
+		}
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::RemoveAll(void)
+{
+	return CCollection::RemoveAll();
 }
 
 

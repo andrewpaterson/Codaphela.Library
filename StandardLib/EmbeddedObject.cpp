@@ -951,13 +951,17 @@ char* CEmbeddedObject::PrintObject(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CEmbeddedObject::PrintObject(CChars* psz, bool bEmbedded)
+char* CEmbeddedObject::PrintObject(CChars* psz, bool bEmbedded, bool bPointerMemory)
 {
 	int		iDistToRoot;
 	int		iDistToStack;
 
-	psz->Append(PointerToString(this));
-	psz->Append(" [");
+	if (bPointerMemory)
+	{
+		psz->Append(PointerToString(this));
+		psz->Append(" ");
+	}
+	psz->Append("[");
 	iDistToRoot = GetDistToRoot();
 	if (iDistToRoot >= 0 && iDistToRoot <= 9)
 	{

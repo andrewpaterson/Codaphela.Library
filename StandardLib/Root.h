@@ -58,7 +58,7 @@ public:
 	template<class M>	Ptr<M>			Get(char* szObjectName);
 						Ptr<CSetObject>	GetAll(void);
 	template<class M>	Ptr<M>			GetFirst(void);
-						int				NumObjects(void);
+						size			NumObjects(void);
 
 						void			CreateSet(void);
 						void			NullifySet(void);

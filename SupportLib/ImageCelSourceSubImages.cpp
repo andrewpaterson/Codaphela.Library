@@ -83,7 +83,7 @@ void CImageCelSourceSubImages::Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDes
 	for (i = 0; i < macSubImages.NumElements(); i++)
 	{
 		pcSubImage = macSubImages.Get(i);
-		pcCel = (CImageCel*)pcDestImageCels->UnsafeGet(i);
+		pcCel = (CImageCel*)pcDestImageCels->UnsafeGetObject(i);
 		pcSubImage->AdjustImageRect(pcCel->GetSubImage());
 		pcCel->SetSubImage(pcSubImage);
 	}

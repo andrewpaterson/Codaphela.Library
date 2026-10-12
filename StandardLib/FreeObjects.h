@@ -20,6 +20,10 @@ public:
 	template<class M>	M*				Add(Ptr<M>& p);
 						CBaseObject*	Add(CPointer &p);
 						bool			Remove(CBaseObject* pcObject);
+
+						size			NumObjects(void);
+
+						CBaseObject*	UnsafeGetObject(size iIndex);
 };
 
 
