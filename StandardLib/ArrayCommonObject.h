@@ -39,12 +39,14 @@ public:
 
 	bool					Add(CPointer& pObject);
 	bool					Add(CEmbeddedObject* pcObject);
-	bool					AddAll(CArrayCommonObject* pcArray);
+	bool					AddAll(CArrayCommonObject* pcArray);  //Shouldn't this be Ptr<CArrayCommonObject> ?
 	bool					Set(size iIndex, CPointer& pObject);
 	CEmbeddedObject*		Dereference(CEmbeddedObject** ppcObject);
 
 	bool					Remove(CPointer& pObject);
 	bool					Remove(CEmbeddedObject* pcObject);
+	bool					RemoveAll(CArrayCommonObject* pcArray);  //Shouldn't this be Ptr<CArrayCommonObject> ?
+	bool					RemoveAll(void);
 	bool					RemoveEnd(size iIndexInclusive);
 
 	bool					Contains(CPointer& pObject);
@@ -68,7 +70,7 @@ public:
 	bool					Load(CObjectReader* pcFile) override;
 	void					Sort(void);
 
-	CBaseObject*			UnsafeGet(size  iIndex);
+	CBaseObject*			UnsafeGetObject(size  iIndex);
 	bool					UnsafeRemove(CBaseObject* pcObject);
 
 	CEmbeddedObject*		GetEmbeddedObject(size iIndex) override;

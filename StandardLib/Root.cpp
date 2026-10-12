@@ -265,7 +265,7 @@ bool CRoot::IsSetHollow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRoot::NumObjects(void)
+size CRoot::NumObjects(void)
 {
 	return mpObjects->NumElements();
 }

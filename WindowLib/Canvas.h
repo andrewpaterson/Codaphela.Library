@@ -72,7 +72,7 @@ public:
 	bool				Draw(void) override;
 
 	void				CopyCanvas(Ptr<CCanvas> pSourceCanvas);
-	Ptr<CImage>			GetImageOrNull(void);  //This should be GetBits or something with the goal being to get chunk of memory that an image can be backed with to avoid a double image copy.
+	Ptr<CImage>			GetImageOrNull(void);  //This should be GetPixelData or something with the goal being to get chunk of memory that an image can be backed with to avoid a double image copy.
 
 	void				DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas);
 	void				DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour);

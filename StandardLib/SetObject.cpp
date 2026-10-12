@@ -39,7 +39,7 @@ void CSetObject::Init(bool bSortPointers)
 //////////////////////////////////////////////////////////////////////////
 CPointer CSetObject::UnsafeGet(size iIndex)
 {
-	CBaseObject*	pcObject;
+	CBaseObject* pcObject;
 	CPointer		pObject;
 	size			uiNumElements;
 
@@ -51,6 +51,26 @@ CPointer CSetObject::UnsafeGet(size iIndex)
 		return pObject;
 	}
 	return pObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseObject* CSetObject::UnsafeGetObject(size iIndex)
+{
+	CBaseObject*	pcObject;
+	CPointer		pObject;
+	size			uiNumElements;
+
+	uiNumElements = mcArray.UnsafeNumElements();
+	if (iIndex < uiNumElements)
+	{
+		pcObject = (CBaseObject*)mcArray.UnsafeGet(iIndex);
+		return pcObject;
+	}
+	return NULL;
 }
 
 

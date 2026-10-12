@@ -31,6 +31,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IndexGenerator.h"
 #include "Pointer.h"
 #include "Classes.h"
+#include "FreeObjects.h"
 #include "DistCalculator.h"
 
 
@@ -145,6 +146,7 @@ public:
 
 						void					PrintMemoryNames(CChars* psz);
 						void					PrintStackPointers(CChars* psz, bool bPointerMemory = true);
+						void					PrintGraph(CChars* psz, bool bPointerMemory = true);
 						void					DumpMemoryUseIteration(void);
 						void					DumpMemoryUseRecursion(void);
 						void					DumpNames(void);
@@ -195,7 +197,7 @@ protected:
 						void					KillObjects(CArrayBaseObjectPtr* papcObjectPts);
 						bool					ValidateNoEmbedded(CArrayBaseObjectPtr* papcObjectPts);
 
-						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, bool bEmbedded);
+						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, bool bEmbedded, bool bPointerMemory);
 						void					ValidateSceneGraph(void);
 						void					ValidateIndexedObjects(void);
 						void					ClearValidationFlags(void);

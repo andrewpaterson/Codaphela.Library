@@ -427,20 +427,34 @@ void CObjects::DumpStackPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::DumpGraph(void)
+void CObjects::PrintGraph(CChars* psz, bool bPointerMemory)
 {
-	CChars		sz;
 	Ptr<CRoot>	pRoot;
 
-	sz.Init("-------------------------- Graph --------------------------- \n");
+	psz->Init("-------------------------- Graph --------------------------- \n");
 
 	pRoot = Get(ROOT_NAME);
 	if (pRoot.IsNotNull())
 	{
-		RecurseDumpGraph(&sz, pRoot.Object(), 0, false);
+		RecurseDumpGraph(psz, pRoot.Object(), 0, false, bPointerMemory);
 	}
 
-	sz.Append("------------------------------------------------------------ \n");
+	psz->Append("------------------------------------------------------------ \n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::DumpGraph(void)
+{
+	CChars		sz;
+
+	sz.Init();
+
+	PrintGraph(&sz);
+
 	sz.DumpKill();
 
 	SIndexesIterator	sIter;
@@ -474,16 +488,16 @@ void CObjects::DumpGraph(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iLevel, bool bEmbedded)
+void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iLevel, bool bEmbedded, bool bPointerMemory)
 {
-	CObject*							pcObject;
+	CObject*					pcObject;
 	CArrayEmbeddedObjectPtr		apcTos;
-	size								i;
-	CEmbeddedObject*					pcToObject;
-	CBaseObject*						pcEmbeddedObject;
-	CBaseObject*						pcBaseObject;
-	size								uiNumTos;
-	size								uiNumEmbedded;
+	size						i;
+	CEmbeddedObject*			pcToObject;
+	CBaseObject*				pcEmbeddedObject;
+	CBaseObject*				pcBaseObject;
+	size						uiNumTos;
+	size						uiNumEmbedded;
 
 	if (!pcIncoming->IsBaseObject())
 	{
@@ -496,14 +510,14 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 	if ((pcBaseObject->muiFlags & OBJECT_FLAGS_DUMPED) || (pcBaseObject->miDistToRoot < iLevel))
 	{
 		psz->Append('*');
-		pcBaseObject->PrintObject(psz, bEmbedded);
+		pcBaseObject->PrintObject(psz, bEmbedded, bPointerMemory);
 		psz->AppendNewLine();
 		return;
 	}
 	else
 	{
 		psz->Append(' ');
-		pcBaseObject->PrintObject(psz, bEmbedded);
+		pcBaseObject->PrintObject(psz, bEmbedded, bPointerMemory);
 		psz->AppendNewLine();
 	}
 
@@ -516,7 +530,7 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 	for (i = 0; i < uiNumTos; i++)
 	{
 		pcToObject = *apcTos.Get(i);
-		RecurseDumpGraph(psz, pcToObject, iLevel+1, false);
+		RecurseDumpGraph(psz, pcToObject, iLevel+1, false, bPointerMemory);
 	}
 
 	if (pcBaseObject->IsObject())
@@ -526,7 +540,7 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 		for (i = 0; i < uiNumEmbedded; i++)
 		{
 			pcEmbeddedObject = *pcObject->mapEmbedded.Get(i);
-			RecurseDumpGraph(psz, pcEmbeddedObject, iLevel, true);
+			RecurseDumpGraph(psz, pcEmbeddedObject, iLevel, true, bPointerMemory);
 		}
 	}
 

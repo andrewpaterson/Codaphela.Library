@@ -132,7 +132,7 @@ public:
 			CObjects*			GetObjects(void);
 	virtual CObjects*			GetObjectsThisIn(void) =0;
 			char*				PrintObject(CChars* psz);
-			char*				PrintObject(CChars* psz, bool bEmbedded);
+			char*				PrintObject(CChars* psz, bool bEmbedded, bool bPointerMemory = true);
 			bool				FailExpectedToBeInitialised(char* szMethod);
 			bool				FailExpectedToNotBeInitialised(char* szMethod);
 			bool				FailCantInitFreedObject(char* szMethod);
