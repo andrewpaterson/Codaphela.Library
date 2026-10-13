@@ -1,6 +1,8 @@
 #ifndef __LIFE_CYCLE_H__
 #define __LIFE_CYCLE_H__
 #include "IntegerHelper.h"
+#include "ConstructorCall.h"
+#include "Killable.h"
 
 
 #define LIFE_CYCLE_FLAG_KILL 0x01
