@@ -36,29 +36,11 @@ void CObjectRemovalContext::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CArrayBaseObjectPtr* CObjectRemovalContext::Start(CArrayBaseObjectPtr* papcKilled)
 {
-	if (!IsBusy())
-	{
-		Push(papcKilled);
-		return papcKilled;
-	}
-	else
-	{
-		CArrayBaseObjectPtr* apcTemp;
+	CRemovalPointerContainer* pcContainer;
 
-		apcTemp = maapcRemovedObjects.TailPtr();
-		if (mapcRemainingObjects.NumElements() == 0)
-		{
-			mapcKilledObjects.InsertArrayAt(apcTemp, 0);
-			mapcKilledObjects.Sort();
-
-			mapcRemainingObjects.InsertArrayAt(papcKilled, 0);
-			mapcRemainingObjects.Sort();
-			mapcRemainingObjects.RemoveArrayFromSorted(&mapcKilledObjects);
-		}
-
-		Push(papcKilled);
-		return false;
-	}
+	pcContainer = maapcRemovedObjects.Add();
+	pcContainer->Init(papcKilled, false);
+	return papcKilled;
 }
 
 
@@ -66,18 +48,36 @@ CArrayBaseObjectPtr* CObjectRemovalContext::Start(CArrayBaseObjectPtr* papcKille
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectRemovalContext::Done(void)
+CArrayBaseObjectPtr* CObjectRemovalContext::Done(void)
 {
-	CArrayBaseObjectPtr* papcKilled;
+	CArrayBaseObjectPtr*		apcPreviouslyKilled;
+	CRemovalPointerContainer*	pcContainer;
 
-	papcKilled = Pull();
+	pcContainer = maapcRemovedObjects.Get(0);
+	pcContainer->Kill();
+	maapcRemovedObjects.RemoveAt(0);
 	if (IsBusy())
 	{
-		return true;
+		//First get the previously killed object points
+		//Insert them into the list of all killed pointers
+		//This may leave duplicates but that's probably fine.
+		pcContainer = maapcRemovedObjects.Get(0);
+		apcPreviouslyKilled = pcContainer->GetKilled();
+		mapcKilledObjects.InsertArrayAfterEnd(apcPreviouslyKilled);
+
+		//Copy the incoming list of objects to killed into remaining to be killed.
+		//Remove all already killed object pointers from remaining.
+		mapcRemainingObjects.ReInit();
+		mapcRemainingObjects.InsertArrayAfterEnd(apcPreviouslyKilled);
+		mapcRemainingObjects.Sort();
+		mapcRemainingObjects.RemoveArrayFromSorted(&mapcKilledObjects);
+
+		return &mapcRemainingObjects;
 	}
 	else
 	{
-		return false;
+		Clear();
+		return NULL;
 	}
 }
 
@@ -88,17 +88,10 @@ bool CObjectRemovalContext::Done(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjectRemovalContext::Push(CArrayBaseObjectPtr* papcKilled)
 {
-	maapcRemovedObjects.Push(papcKilled);
-}
+	CRemovalPointerContainer*	pcContainer;
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CArrayBaseObjectPtr* CObjectRemovalContext::Pull(void) 
-{
-	return maapcRemovedObjects.Pop();
+	pcContainer = maapcRemovedObjects.Add();
+	pcContainer->Init(papcKilled, true);
 }
 
 
@@ -109,5 +102,17 @@ CArrayBaseObjectPtr* CObjectRemovalContext::Pull(void)
 bool CObjectRemovalContext::IsBusy(void)
 {
 	return maapcRemovedObjects.NumElements() != 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjectRemovalContext::Clear(void)
+{
+	maapcRemovedObjects.ReInit();
+	mapcRemainingObjects.ReInit();
+	mapcKilledObjects.ReInit();
 }
 

@@ -63,8 +63,8 @@ public:
 	size	InsertIntoSorted(DataCompare fCompare, M* pvData, bool bOverwriteExisting);
 	M*		InsertNumAt(size iNumElements, size iIndex);
 
-	void	RemoveArray(CArrayTemplate<M>* pcOtherArray, bool bPreserveOrder = true);
-	void	RemoveArrayFromSorted(CArrayTemplate<M>* pcOtherArray, DataCompare fCompare);
+	size	RemoveArray(CArrayTemplate<M>* pcOtherArray, bool bPreserveOrder = true);
+	size	RemoveArrayFromSorted(CArrayTemplate<M>* pcOtherArray, DataCompare fCompare);
 
 	bool	Pop(M* pvData);
 	bool	Pop(void);
@@ -394,9 +394,9 @@ M& CArrayTemplate<M>::operator[](size iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplate<M>::RemoveArray(CArrayTemplate<M>* pcOtherArray, bool bPreserveOrder)
+size CArrayTemplate<M>::RemoveArray(CArrayTemplate<M>* pcOtherArray, bool bPreserveOrder)
 {
-	CArrayBlock::RemoveArray(pcOtherArray, bPreserveOrder);
+	return CArrayBlock::RemoveArray(pcOtherArray, bPreserveOrder);
 }
 
 
@@ -405,9 +405,9 @@ void CArrayTemplate<M>::RemoveArray(CArrayTemplate<M>* pcOtherArray, bool bPrese
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplate<M>::RemoveArrayFromSorted(CArrayTemplate<M>* pcOtherArray, DataCompare fCompare)
+size CArrayTemplate<M>::RemoveArrayFromSorted(CArrayTemplate<M>* pcOtherArray, DataCompare fCompare)
 {
-	CArrayBlock::RemoveArrayFromSorted(pcOtherArray, fCompare);
+	return CArrayBlock::RemoveArrayFromSorted(pcOtherArray, fCompare);
 }
 
 

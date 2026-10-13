@@ -20,8 +20,8 @@ public:
 
 	void	SetPtr(size iIndex, M* pv);
 
-	void	RemoveArray(CArrayTemplatePtr<M>* pcOtherArray, bool bPreserveOrder = true);
-	void	RemoveArrayFromSorted(CArrayTemplatePtr<M>* pcOtherArray);
+	size	RemoveArray(CArrayTemplatePtr<M>* pcOtherArray, bool bPreserveOrder = true);
+	size	RemoveArrayFromSorted(CArrayTemplatePtr<M>* pcOtherArray);
 
 	void	Sort(void);
 	void	QuickSort(void);
@@ -317,9 +317,9 @@ bool CArrayTemplatePtr<M>::ContainsVoidPtr(void* pv)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplatePtr<M>::RemoveArray(CArrayTemplatePtr<M>* pcOtherArray, bool bPreserveOrder)
+size CArrayTemplatePtr<M>::RemoveArray(CArrayTemplatePtr<M>* pcOtherArray, bool bPreserveOrder)
 {
-	CArrayTemplate<M*>::RemoveArray(pcOtherArray, bPreserveOrder);
+	return CArrayTemplate<M*>::RemoveArray(pcOtherArray, bPreserveOrder);
 }
 
 
@@ -328,9 +328,9 @@ void CArrayTemplatePtr<M>::RemoveArray(CArrayTemplatePtr<M>* pcOtherArray, bool 
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplatePtr<M>::RemoveArrayFromSorted(CArrayTemplatePtr<M>* pcOtherArray)
+size CArrayTemplatePtr<M>::RemoveArrayFromSorted(CArrayTemplatePtr<M>* pcOtherArray)
 {
-	CArrayTemplate<M*>::RemoveArrayFromSorted(pcOtherArray, ComparePtrPtr);
+	return CArrayTemplate<M*>::RemoveArrayFromSorted(pcOtherArray, ComparePtrPtr);
 }
 
 
