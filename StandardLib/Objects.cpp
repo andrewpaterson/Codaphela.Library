@@ -157,6 +157,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CDataConnection* pcData
 
 	mbInitialised = true;
 	mbValidateConsistency = true;
+	muiRemoveDepth = 0;
 }
 
 
@@ -565,7 +566,9 @@ void CObjects::ValidateObjectsConsistency(void)
 	//If this method is called from an Object - rather than a test case - then it should be wrapped with a #ifdef _DEBUG
 	//This is because it is still useful to have ValidateObjectsConsistency called in RELEASE from tests.
 
-	if (mbValidateConsistency)
+	//Objects being Removed are flagged FREED but are still in memory while their Free() runs.  If Free() 
+	//causes other objects to be killed (e.g. RemoveFreeObject) the graph is not yet consistent.
+	if (mbValidateConsistency && (muiRemoveDepth == 0))
 	{
 		ValidateSceneGraph();
 		ValidateIndexedObjects();
@@ -1465,10 +1468,12 @@ bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 		return false;
 	}
 
+	muiRemoveDepth++;
 	DoneKill(papcKilled);
 	FreeInternal(papcKilled);
 	RemoveAllPointerTos(papcKilled);
 	KillObjects(papcKilled);
+	muiRemoveDepth--;
 
 	return true;
 }
