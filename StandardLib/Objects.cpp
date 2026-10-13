@@ -440,6 +440,8 @@ void CObjects::PrintGraph(CChars* psz, bool bPointerMemory)
 	}
 
 	psz->Append("------------------------------------------------------------ \n");
+
+	UnsetDumpFlags();
 }
 
 
@@ -447,16 +449,8 @@ void CObjects::PrintGraph(CChars* psz, bool bPointerMemory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::DumpGraph(void)
+void CObjects::UnsetDumpFlags(void)
 {
-	CChars		sz;
-
-	sz.Init();
-
-	PrintGraph(&sz);
-
-	sz.DumpKill();
-
 	SIndexesIterator	sIter;
 	CBaseObject*		pcBaseObject;
 	CBaseObject*		pcEmbeddedObject;
@@ -481,6 +475,20 @@ void CObjects::DumpGraph(void)
 		}
 		pcBaseObject = mcMemory.Iterate(&sIter);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::DumpGraph(void)
+{
+	CChars		sz;
+
+	sz.Init();
+	PrintGraph(&sz);
+	sz.DumpKill();
 }
 
 
