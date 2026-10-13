@@ -402,7 +402,7 @@ bool CSetBlock::WriteSetBlockHeader(CFileWriter* pcFileWriter)
 
 	InsertHoldingIntoSorted();
 
-	bResult = gcMallocators.Write(pcFileWriter, mpcMalloc);
+	bResult = WriteMallocator(pcFileWriter, mpcMalloc);
 	if (!bResult)
 	{
 		return false;
@@ -437,7 +437,7 @@ bool CSetBlock::ReadSetBlockHeader(CFileReader* pcFileReader, DataCompare fCompa
 		return false;
 	}
 
-	pcMalloc = gcMallocators.Read(pcFileReader);
+	pcMalloc = ReadMallocator(pcFileReader);
 	if (pcMalloc == NULL)
 	{
 		return false;

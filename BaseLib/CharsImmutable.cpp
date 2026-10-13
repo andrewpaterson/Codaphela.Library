@@ -644,7 +644,7 @@ bool CCharsImmutable::WriteString(CFileWriter* pcWriter)
 
 	if (mbMallocated)
 	{
-		bResult = gcMallocators.Write(pcWriter, muString.sStringAlloc.pcMalloc);
+		bResult = WriteMallocator(pcWriter, muString.sStringAlloc.pcMalloc);
 		ReturnOnFalse(bResult);
 		bResult = pcWriter->WriteData(muString.sStringAlloc.szString, iStrLen);
 		return bResult;
@@ -672,7 +672,7 @@ bool CCharsImmutable::ReadString(CFileReader* pcReader)
 
 	if (uiLength > MAX_EMBEDDED_CHARS)
 	{
-		pcMalloc = gcMallocators.Read(pcReader);
+		pcMalloc = ReadMallocator(pcReader);
 		if (pcMalloc == NULL)
 		{
 			return false;

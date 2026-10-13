@@ -137,7 +137,7 @@ bool CIndexTreeConfig::Write(CFileWriter* pcFileWriter)
 {
 	bool	bResult;
 
-	bResult = gcMallocators.Write(pcFileWriter, mcMalloc.GetLife());
+	bResult = WriteMallocator(pcFileWriter, mcMalloc.GetLife());
 	ReturnOnFalse(bResult);
 	bResult = WriteKeyReverse(pcFileWriter, meKeyReverse);
 	ReturnOnFalse(bResult);
@@ -167,7 +167,7 @@ bool CIndexTreeConfig::Read(CFileReader* pcFileReader)
 	CLifeInit<CMallocator>				cMalloc;
 	CLifeInit<CIndexTreeDataOrderer>	cDataOrderer;
 
-	pcMalloc = gcMallocators.Read(pcFileReader);
+	pcMalloc = ReadMallocator(pcFileReader);
 	if (pcMalloc == NULL)
 	{
 		return false;
