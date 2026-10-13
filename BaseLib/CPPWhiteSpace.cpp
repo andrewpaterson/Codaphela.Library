@@ -1,6 +1,6 @@
 #include "PointerFunctions.h"
 #include "TextParser.h"
-#include "CPPWhitespace.h"
+#include "CPPWhiteSpace.h"
 
 
 bool SkipCStyleComment(CTextParser* pcTextParser, char** pszBegin = NULL, char** pszEnd = NULL);

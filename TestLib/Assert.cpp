@@ -20,7 +20,7 @@ along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include <stdio.h>
-#include "BaseLib/NewLine.h"
+#include "BaseLib/Newline.h"
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/Define.h"

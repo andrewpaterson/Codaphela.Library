@@ -1,6 +1,6 @@
 #include <string.h>
 #include <stdio.h>
-#include "BaseLib/NewLine.h"
+#include "BaseLib/Newline.h"
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/FileCompare.h"

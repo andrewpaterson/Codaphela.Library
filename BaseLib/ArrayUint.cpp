@@ -21,7 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "DebugOutput.h"
-#include "ArrayUInt.h"
+#include "ArrayUint.h"
 #include "StringHelper.h"
 
 
