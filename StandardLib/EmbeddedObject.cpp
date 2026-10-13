@@ -333,7 +333,7 @@ void CEmbeddedObject::ValidateObjectsConsistency(bool bValidate)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::AddHeapPointer(CBaseObject* pcFromObject)
 {
-	mapHeapFroms.Add(&pcFromObject);
+	mapHeapFroms.Add(pcFromObject);
 }
 
 
@@ -401,17 +401,10 @@ bool CEmbeddedObject::PrivateRemoveHeapFrom(CBaseObject* pcFrom)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CEmbeddedObject::GetHeapFrom(size iFrom)
 {
-	CBaseObject**	ppFrom;
+	CBaseObject*	pFrom;
 
-	ppFrom = mapHeapFroms.Get(iFrom);
-	if (ppFrom)
-	{
-		return *ppFrom;
-	}
-	else
-	{
-		return NULL;
-	}
+	pFrom = mapHeapFroms.GetPtr(iFrom);
+	return pFrom;
 }
 
 
@@ -488,7 +481,7 @@ CEmbeddedObject* CEmbeddedObject::GetClosestFromToRoot(void)
 	uiNumFroms = mapHeapFroms.NumElements();
 	for (i = 0; i < uiNumFroms; i++)
 	{
-		pcFrom = *mapHeapFroms.Get(i);
+		pcFrom = mapHeapFroms.GetPtr(i);
 		iDistToRoot = pcFrom->GetDistToRoot();
 		if (iDistToRoot >= ROOT_DIST_TO_ROOT)
 		{

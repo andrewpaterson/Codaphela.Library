@@ -33,6 +33,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Classes.h"
 #include "FreeObjects.h"
 #include "DistCalculator.h"
+#include "ObjectsRemovalContext.h"
 
 
 #define ROOT_NAME					"GraphRoot"
@@ -85,7 +86,7 @@ protected:
 	DestructionCallback		mDestructionCallback;
 	
 	bool					mbValidateConsistency;
-	size					muiRemoveDepth;
+	CObjectRemovalContext	mcRemovalContext;
 
 public:
 												CObjects();

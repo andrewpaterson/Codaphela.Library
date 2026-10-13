@@ -18,6 +18,9 @@ public:
 	bool	Get(size iIndex, M** pv);
 	M**		Get(size iIndex);
 
+	M*		HeadPtr(void);
+	M*		TailPtr(void);
+
 	void	QuickSort(void);
 
 	size	Find(M* pv);
@@ -103,6 +106,45 @@ template<class M, int8 I>
 M* CArrayTemplateEmbeddedPtr<M, I>::GetPtr(size iIndex)
 {
 	return *CArrayTemplateEmbedded<M*, I>::Get(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, int8 I>
+M* CArrayTemplateEmbeddedPtr<M, I>::HeadPtr(void)
+{
+	if (NumElements() > 0)
+	{
+		return GetPtr(0);
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, int8 I>
+M* CArrayTemplateEmbeddedPtr<M, I>::TailPtr(void)
+{
+	size	iNumElements;
+
+	iNumElements = NumElements();
+	if (iNumElements > 0)
+	{
+		return GetPtr(iNumElements - 1);
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 

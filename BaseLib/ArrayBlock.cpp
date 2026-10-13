@@ -592,6 +592,7 @@ bool CArrayBlock::RemoveFirst(void)
 	return false;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -935,11 +936,11 @@ void* CArrayBlock::GrowToAtLeastNumElements(size iNumElements, bool bClear, uint
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CArrayBlock::Equals(CArrayBlock* pcTemplateArray)
+bool CArrayBlock::Equals(CArrayBlock* pcOtherArray)
 {
-	if (pcTemplateArray->miUsedElements == miUsedElements)
+	if (pcOtherArray->miUsedElements == miUsedElements)
 	{
-		if (memcmp(pcTemplateArray->mpvArray, mpvArray, ByteSize()) == 0)
+		if (memcmp(pcOtherArray->mpvArray, mpvArray, ByteSize()) == 0)
 		{
 			return true;
 		}
@@ -1120,7 +1121,7 @@ void CArrayBlock::Shuffle(CRandom* pcRandom)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::CopyArrayInto(CArrayBlock* pcTemplateArray, size iIndex)
+void* CArrayBlock::CopyArrayInto(CArrayBlock* pcOtherArray, size iIndex)
 {
 	void*	pv;
 
@@ -1128,7 +1129,7 @@ void* CArrayBlock::CopyArrayInto(CArrayBlock* pcTemplateArray, size iIndex)
 	//The array is always set large enough.
 
 	pv = Get(iIndex);
-	memcpy(pv, pcTemplateArray->mpvArray, miElementSize * pcTemplateArray->miUsedElements);
+	memcpy(pv, pcOtherArray->mpvArray, miElementSize * pcOtherArray->miUsedElements);
 	return pv;
 }
 
@@ -1151,12 +1152,12 @@ void* CArrayBlock::CopyBlockInto(void* paElements, size iLength, size iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::InsertArrayAfterEnd(CArrayBlock* pcTemplateArray)
+void* CArrayBlock::InsertArrayAfterEnd(CArrayBlock* pcOtherArray)
 {
 	size	iArrayIndex;
 
-	iArrayIndex = AddNum(pcTemplateArray->miUsedElements);
-	return CopyArrayInto(pcTemplateArray, iArrayIndex);
+	iArrayIndex = AddNum(pcOtherArray->miUsedElements);
+	return CopyArrayInto(pcOtherArray, iArrayIndex);
 }
 
 
@@ -1164,10 +1165,10 @@ void* CArrayBlock::InsertArrayAfterEnd(CArrayBlock* pcTemplateArray)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::InsertArrayBeforeStart(CArrayBlock* pcTemplateArray)
+void* CArrayBlock::InsertArrayBeforeStart(CArrayBlock* pcOtherArray)
 {
-	InsertNumAt(pcTemplateArray->miUsedElements, 0);
-	return CopyArrayInto(pcTemplateArray, 0);
+	InsertNumAt(pcOtherArray->miUsedElements, 0);
+	return CopyArrayInto(pcOtherArray, 0);
 }
 
 
@@ -1175,10 +1176,10 @@ void* CArrayBlock::InsertArrayBeforeStart(CArrayBlock* pcTemplateArray)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::InsertArrayAt(CArrayBlock* pcTemplateArray, size iIndex)
+void* CArrayBlock::InsertArrayAt(CArrayBlock* pcOtherArray, size iIndex)
 {
-	InsertNumAt(pcTemplateArray->miUsedElements, iIndex);
-	return CopyArrayInto(pcTemplateArray, iIndex);
+	InsertNumAt(pcOtherArray->miUsedElements, iIndex);
+	return CopyArrayInto(pcOtherArray, iIndex);
 }
 
 
@@ -1376,6 +1377,55 @@ bool CArrayBlock::Remove(void* pvData, bool bPreserveOrder)
 	else
 	{
 		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBlock::RemoveArray(CArrayBlock* pcOtherArray, bool bPreserveOrder)
+{
+	size	i;
+	size	iOtherNumElements;
+	void*	pvOther;
+	size	iThisIndex;
+
+	iOtherNumElements = pcOtherArray->NumElements();
+	for (i = 0; i < iOtherNumElements; i++)
+	{
+		pvOther = pcOtherArray->Get(i);
+		iThisIndex = Find(pvOther);
+		if (iThisIndex != ARRAY_ELEMENT_NOT_FOUND)
+		{
+			RemoveAt(iThisIndex, bPreserveOrder);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBlock::RemoveArrayFromSorted(CArrayBlock* pcOtherArray, DataCompare fCompare)
+{
+	size	i;
+	size	iOtherNumElements;
+	void*	pvOther;
+	size	iThisIndex;
+	bool	bFound;
+
+	iOtherNumElements = pcOtherArray->NumElements();
+	for (i = 0; i < iOtherNumElements; i++)
+	{
+		pvOther = pcOtherArray->Get(i);
+		bFound = FindInSorted(pvOther, fCompare, &iThisIndex);
+		if (bFound)
+		{
+			RemoveAt(iThisIndex, true);
+		}
 	}
 }
 

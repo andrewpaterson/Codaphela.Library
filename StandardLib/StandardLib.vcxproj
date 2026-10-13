@@ -199,6 +199,7 @@
     <ClInclude Include="MapEntry.h" />
     <ClInclude Include="MapObject.h" />
     <ClInclude Include="MapUnknownUnknown.h" />
+    <ClInclude Include="ObjectsRemovalContext.h" />
     <ClInclude Include="PrimitiveClasses.h" />
     <ClInclude Include="SetIterator.h" />
     <ClInclude Include="SortPointersHelper.h" />
@@ -320,6 +321,7 @@
     <ClCompile Include="MapEntry.cpp" />
     <ClCompile Include="MapObject.cpp" />
     <ClCompile Include="MapUnknownUnknown.cpp" />
+    <ClCompile Include="ObjectsRemovalContext.cpp" />
     <ClCompile Include="Pointer.cpp" />
     <ClCompile Include="PrimitiveClasses.cpp" />
     <ClCompile Include="SortPointersHelper.cpp" />

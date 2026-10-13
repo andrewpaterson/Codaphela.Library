@@ -20,6 +20,9 @@ public:
 
 	void	SetPtr(size iIndex, M* pv);
 
+	void	RemoveArray(CArrayTemplatePtr<M>* pcOtherArray, bool bPreserveOrder = true);
+	void	RemoveArrayFromSorted(CArrayTemplatePtr<M>* pcOtherArray);
+
 	void	Sort(void);
 	void	QuickSort(void);
 	void	TimSort(void);
@@ -284,6 +287,7 @@ M* CArrayTemplatePtr<M>::Pop(void)
 	return pv;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -306,6 +310,29 @@ bool CArrayTemplatePtr<M>::ContainsVoidPtr(void* pv)
 	}
 	return false;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplatePtr<M>::RemoveArray(CArrayTemplatePtr<M>* pcOtherArray, bool bPreserveOrder)
+{
+	CArrayTemplate<M*>::RemoveArray(pcOtherArray, bPreserveOrder);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplatePtr<M>::RemoveArrayFromSorted(CArrayTemplatePtr<M>* pcOtherArray)
+{
+	CArrayTemplate<M*>::RemoveArrayFromSorted(pcOtherArray, ComparePtrPtr);
+}
+
 
 #endif // __ARRAY_TEMPLATE_POINTER_H__
 

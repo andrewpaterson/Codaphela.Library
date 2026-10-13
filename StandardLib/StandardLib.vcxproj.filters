@@ -136,6 +136,9 @@
     <Filter Include="Source\Object\Object\Free">
       <UniqueIdentifier>{39800781-086a-44a4-a4f2-71eb3953c278}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Object\Object\Remove">
+      <UniqueIdentifier>{91203c77-92dc-4aaf-b2d9-7eeaff747cb7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Unknown.h">
@@ -510,6 +513,9 @@
     <ClInclude Include="FreeObjects.h">
       <Filter>Source\Object\Object\Free</Filter>
     </ClInclude>
+    <ClInclude Include="ObjectsRemovalContext.h">
+      <Filter>Source\Object\Object\Remove</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -832,6 +838,9 @@
     </ClCompile>
     <ClCompile Include="FreeObjects.cpp">
       <Filter>Source\Object\Object\Free</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectsRemovalContext.cpp">
+      <Filter>Source\Object\Object\Remove</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

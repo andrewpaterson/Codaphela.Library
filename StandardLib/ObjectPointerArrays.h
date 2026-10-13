@@ -3,6 +3,7 @@
 #include "BaseLib/ArrayTemplateEmbedded.h"
 #include "BaseLib/ArrayTemplateEmbeddedPtr.h"
 #include "BaseLib/ArrayTemplatePtr.h"
+#include "StackPointer.h"
 
 
 class CEmbeddedObject;

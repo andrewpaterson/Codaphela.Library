@@ -60,7 +60,7 @@ public:
 	size 	AddIfUnique(void* pvData);
 	size 	AddIfUniqueKey(void* pvData, size iKeyOffset, size iKeySize);
 
-	void 	Copy(CArrayBlock* pcTemplateArray);
+	void 	Copy(CArrayBlock* pcOtherArray);
 
 	void*	Get(size iIndex);
 	void*	SafeGet(size iIndex);
@@ -70,9 +70,9 @@ public:
 	size	GetIndex(void* pvData);
 	void*	Tail(void);
 
-	void*	InsertArrayAfterEnd(CArrayBlock* pcTemplateArray);
-	void*	InsertArrayAt(CArrayBlock* pcTemplateArray, size iIndex);
-	void*	InsertArrayBeforeStart(CArrayBlock* pcTemplateArray);
+	void*	InsertArrayAfterEnd(CArrayBlock* pcOtherArray);
+	void*	InsertArrayAt(CArrayBlock* pcOtherArray, size iIndex);
+	void*	InsertArrayBeforeStart(CArrayBlock* pcOtherArray);
 	void* 	InsertAt(size iIndex);
 	void* 	InsertAt(void* pvData, size iIndex);
 	void*	InsertBlockAfterEnd(void* paElements, size iLength);
@@ -105,7 +105,7 @@ public:
 	void	Shuffle(CRandom* pcRandom = NULL);
 
 	bool	Contains(void* pvData);
-	bool	Equals(CArrayBlock* pcTemplateArray);
+	bool	Equals(CArrayBlock* pcOtherArray);
 	size 	Find(void* pvData);
 	bool	FindInSorted(void* pvData, DataCompare fCompare, size* piIndex);
 	size	FindWithIntKey(size iKey);
@@ -120,6 +120,9 @@ public:
 	void	RemoveBatch(size iFirstIndex, size iNumInBatch, size iNumBatches, size iStrideToNextBatch);
 	void	RemoveAll(void);
 	bool	Remove(void* pvData, bool bPreserveOrder = true);
+	void	RemoveArray(CArrayBlock* pcOtherArray, bool bPreserveOrder = true);
+	void	RemoveArrayFromSorted(CArrayBlock* pcOtherArray, DataCompare fCompare);
+	
 
 	void	Set(size iIndex, void* pvData);
 	bool	SafeSet(size iIndex, void* pvData);
@@ -144,7 +147,7 @@ public:
 
 protected:
 	bool	BinarySearch(void* pvData, size iLeft, size iRight, DataCompare fCompare, size* piIndex);
-	void*	CopyArrayInto(CArrayBlock* pcTemplateArray, size iIndex);
+	void*	CopyArrayInto(CArrayBlock* pcOtherArray, size iIndex);
 	void*	CopyBlockInto(void* paElements, size iLength, size iIndex);
 	void	PrivateRemoveAt(size iIndex, bool bPreserveOrder, size iDataSize);
 	void	PrivateRemoveRange(size iStartIndex, size iEndIndexExclusive, bool bPreserveOrder, size iDataSize);
