@@ -29,6 +29,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 template<class M, int8 I>
 class CArrayTemplateEmbeddedPrimitive : public CArrayTemplateEmbedded<M, I>
 {
+protected:
+	using CArrayTemplateEmbedded<M, I>::miUsedElements;
+
 public:
 	M 		GetValue(size iIndex);
 	M		SafeGetValue(size iIndex, M iNotFound);
@@ -110,7 +113,7 @@ M CArrayTemplateEmbeddedPrimitive<M, I>::SafeGetValue(size iIndex, M iNotFound)
 {
 	if (iIndex < miUsedElements)
 	{
-		return ((M*)mpvArray)[iIndex];
+		return ((M*)this->mpvArray)[iIndex];
 	}
 	return iNotFound;
 }
@@ -123,7 +126,7 @@ M CArrayTemplateEmbeddedPrimitive<M, I>::SafeGetValue(size iIndex, M iNotFound)
 template<class M, int8 I>
 void CArrayTemplateEmbeddedPrimitive<M, I>::SetValue(size iIndex, M iElement)
 {
-	((M*)mpvArray)[iIndex] = iElement;
+	((M*)this->mpvArray)[iIndex] = iElement;
 }
 
 
@@ -187,7 +190,7 @@ void CArrayTemplateEmbeddedPrimitive<M, I>::SetArrayValues(M iValue)
 
 	for (i = 0; i < miUsedElements; i++)
 	{
-		((M*)mpvArray)[i] = iValue;
+		((M*)this->mpvArray)[i] = iValue;
 	}
 }
 
@@ -203,7 +206,7 @@ void CArrayTemplateEmbeddedPrimitive<M, I>::SetArrayValues(M iStartValue, M iInc
 
 	for (i = 0; i < miUsedElements; i++)
 	{
-		((M*)mpvArray)[i] = iStartValue;
+		((M*)this->mpvArray)[i] = iStartValue;
 		iStartValue += iIncrement;
 	}
 }
@@ -242,7 +245,7 @@ size CArrayTemplateEmbeddedPrimitive<M, I>::Find(M iValue)
 
 	for (i = 0; i < miUsedElements; i++)
 	{
-		if (((M*)mpvArray)[i] == iValue)
+		if (((M*)this->mpvArray)[i] == iValue)
 		{
 			return i;
 		}

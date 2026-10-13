@@ -46,6 +46,8 @@ template<class M>
 class CTreeTemplate : public CMalloc, protected CPostMalloc<M>
 {
 protected:
+	using CPostMalloc<M>::PostMalloc;
+
 	STNode*		mpsRoot;
 	size		miNumElements;
 

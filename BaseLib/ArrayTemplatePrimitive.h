@@ -29,7 +29,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 template<class M>
 class CArrayTemplatePrimitive : public CArrayTemplate<M>
 {
+protected:
+	using CArrayTemplate<M>::miUsedElements;
+	using CArrayTemplate<M>::mpvArray;
+
 public:
+	using CArrayTemplate<M>::FindInSorted;
+	using CArrayTemplate<M>::Resize;
+	using CArrayTemplate<M>::SetUsedElements;
+
 	M 		GetValue(size iIndex);
 	M		SafeGetValue(size iIndex, M iNotFound);
 	M 		operator[](size iIndex);

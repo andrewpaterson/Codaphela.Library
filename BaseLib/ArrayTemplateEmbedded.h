@@ -39,6 +39,8 @@ template<class M, int8 I>
 class CArrayTemplateEmbedded : protected CPostMalloc<M>
 {
 protected:
+	using CPostMalloc<M>::PostMalloc;
+
 	uint8		miUsedElements;
 	uint8		muiFlags;
 

@@ -91,6 +91,11 @@ template<class M>
 class CEnumeratorTemplate : public __CEnumeratorTemplate<M>
 {
 public:
+	using __CEnumeratorTemplate<M>::mcIDArray;
+	using __CEnumeratorTemplate<M>::mcList;
+	using __CEnumeratorTemplate<M>::mbCaseSensitive;
+	using __CEnumeratorTemplate<M>::AllocateNodeData;
+
 	int			Add(char* szName, M* pvData, int uiNum);
 	int			Add(char* szName, M* pvData, size uiKeySize, int uiNum, bool bReplace = true);
 	int			Add(char* szName, size iNameLen, M* pvData, size uiKeySize, int uiNum, bool bReplace = true);
