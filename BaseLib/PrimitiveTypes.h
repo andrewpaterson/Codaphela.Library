@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __PRIMITIVE_TYPES_H__
 #define __PRIMITIVE_TYPES_H__
+#include <stddef.h>
 #include <stdint.h>
 #include <limits.h>
 

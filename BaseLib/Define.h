@@ -77,6 +77,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //#define MAX_PATH 260
 #define INT_MAX         0x7fffffff
 #define FILE_SEPARATOR "\\"
+#define _FS_ FILE_SEPARATOR
 #define OTHER_OS_FILE_SEPARATOR "/"
 #define __ENGINE_FUNCTION__ __FUNCTION__
 #define __ENGINE_PRETTY_FUNCTION__ __PRETTY_FUNCTION__
@@ -96,6 +97,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define MAX_PATH 4096
 #define INT_MAX         0x7fffffff
 #define FILE_SEPARATOR "/"
+#define _FS_ FILE_SEPARATOR
 #define OTHER_OS_FILE_SEPARATOR "\\"
 #define __ENGINE_FUNCTION__ __FUNCTION__
 #define __ENGINE_PRETTY_FUNCTION__ __PRETTY_FUNCTION__
