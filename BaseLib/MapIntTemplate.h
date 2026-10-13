@@ -32,6 +32,8 @@ class CMapIntTemplate : public CMapPrimitiveTemplate<int, D>
 public:
 	void	Init(bool bOverwrite = true);
 	void	Init(CMallocator* pcMalloc, bool bOverwrite = true);
+
+	bool	Read(CFileReader* pcFileReader);
 };
 
 
@@ -55,6 +57,17 @@ void CMapIntTemplate<D>::Init(CMallocator* pcMalloc, bool bOverwrite)
 {
 	CMapTemplateTemplate<int, D>::Init(pcMalloc, &CompareInt, bOverwrite);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class D>
+bool CMapIntTemplate<D>::Read(CFileReader* pcFileReader)
+{
+	return CMapTemplateTemplate<int32, D>::Read(pcFileReader, &CompareLong);
+}
 
 
 #endif // __MAP_INT_TEMPLATE_H__
