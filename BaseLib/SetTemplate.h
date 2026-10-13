@@ -42,7 +42,7 @@ public:
 
 	bool	Remove(M* psKey);
 
-	bool	PutInSorted(size iIndex, M* ppsKey);
+	bool	PutInSorted(size iIndex, M** ppsKey);
 };
 
 
@@ -78,7 +78,7 @@ M* CSetTemplate<M>::Put(M* psKey)
 template<class M>
 bool CSetTemplate<M>::HasKey(M* psKey)
 {
-	return CSetBlock::HasKey(psKey, sizeof(M));
+	return CSetBlock::Has(psKey, sizeof(M));
 }
 
 
@@ -98,9 +98,9 @@ bool CSetTemplate<M>::Remove(M* psKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CSetTemplate<M>::PutInSorted(size iIndex, M* ppsKey)
+bool CSetTemplate<M>::PutInSorted(size iIndex, M** ppsKey)
 {
-	return CSetBlock::PutInSorted(iIndex, ppsKey, sizeof(M));
+	return CSetBlock::PutInSorted(iIndex, (void**)ppsKey, sizeof(M));
 }
 
 
