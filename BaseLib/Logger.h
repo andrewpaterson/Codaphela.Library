@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 typedef CArrayTemplate<CAbstractFile*> CArrayFile;
 
 
-#define LOG_ERROR(error)	gcLogger.Error2(__METHOD__, " "##error, NULL)
+#define LOG_ERROR(error)	gcLogger.Error2(__METHOD__, " " error, NULL)
 
 
 class CAbstractFile;
