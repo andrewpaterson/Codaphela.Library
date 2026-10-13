@@ -157,7 +157,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CDataConnection* pcData
 
 	mbInitialised = true;
 	mbValidateConsistency = true;
-	muiRemoveDepth = 0;
+	mcRemovalContext.Init();
 }
 
 
@@ -168,6 +168,8 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CDataConnection* pcData
 void CObjects::Kill(void)
 {
 	mbInitialised = false;
+
+	mcRemovalContext.Kill();
 
 	mcMemory.ValidateNoDirty();
 	mcMemory.FreeObjects();
@@ -568,7 +570,7 @@ void CObjects::ValidateObjectsConsistency(void)
 
 	//Objects being Removed are flagged FREED but are still in memory while their Free() runs.  If Free() 
 	//causes other objects to be killed (e.g. RemoveFreeObject) the graph is not yet consistent.
-	if (mbValidateConsistency && (muiRemoveDepth == 0))
+	if (mbValidateConsistency && !mcRemovalContext.IsBusy())
 	{
 		ValidateSceneGraph();
 		ValidateIndexedObjects();
@@ -1453,8 +1455,9 @@ bool CObjects::Contains(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 {
-	size	iNumElements;
-	bool	bResult;
+	size					iNumElements;
+	bool					bResult;
+	CArrayBaseObjectPtr*	papcContextKill;
 
 	iNumElements = papcKilled->NumElements();
 	if (iNumElements == 0)
@@ -1468,12 +1471,14 @@ bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 		return false;
 	}
 
-	muiRemoveDepth++;
+	papcContextKill = mcRemovalContext.Start(papcKilled);
+
 	DoneKill(papcKilled);
 	FreeInternal(papcKilled);
 	RemoveAllPointerTos(papcKilled);
 	KillObjects(papcKilled);
-	muiRemoveDepth--;
+
+	mcRemovalContext.Pull();
 
 	return true;
 }

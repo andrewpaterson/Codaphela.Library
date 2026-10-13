@@ -43,7 +43,7 @@ public:
 	size 	AddIfUnique(M* pvData);
 	size 	AddIfUniqueKey(M* pvData, size iKeyOffset, size iKeySize);
 
-	void 	Copy(CArrayTemplate<M>* pcTemplateArray);
+	void 	Copy(CArrayTemplate<M>* pcOtherArray);
 
 	M*		Get(size iIndex);
 	M*		SafeGet(size iIndex);
@@ -52,9 +52,9 @@ public:
 	M*		Tail(void);
 	M&		operator[](size iIndex);
 
-	M*		InsertArrayAfterEnd(CArrayTemplate<M>* pcTemplateArray);
-	M*		InsertArrayAt(CArrayTemplate<M>* pcTemplateArray, size iIndex);
-	M*		InsertArrayBeforeStart(CArrayTemplate<M>* pcTemplateArray);
+	M*		InsertArrayAfterEnd(CArrayTemplate<M>* pcOtherArray);
+	M*		InsertArrayAt(CArrayTemplate<M>* pcOtherArray, size iIndex);
+	M*		InsertArrayBeforeStart(CArrayTemplate<M>* pcOtherArray);
 	M* 		InsertAt(size iIndex);
 	M*	 	InsertAt(M* pvData, size iIndex);
 	M*		InsertBlockAfterEnd(M* paElements, size iLength);
@@ -63,6 +63,9 @@ public:
 	size	InsertIntoSorted(DataCompare fCompare, M* pvData, bool bOverwriteExisting);
 	M*		InsertNumAt(size iNumElements, size iIndex);
 
+	void	RemoveArray(CArrayTemplate<M>* pcOtherArray, bool bPreserveOrder = true);
+	void	RemoveArrayFromSorted(CArrayTemplate<M>* pcOtherArray, DataCompare fCompare);
+
 	bool	Pop(M* pvData);
 	bool	Pop(void);
 	void 	Push(M* pvData);
@@ -70,7 +73,7 @@ public:
 	M*		PushCopy(void);
 
 	bool	Contains(M* pvData);
-	bool	Equals(CArrayTemplate<M>* pcTemplateArray);
+	bool	Equals(CArrayTemplate<M>* pcOtherArray);
 	size 	Find(M* pvData);
 	bool	FindInSorted(M* pvData, DataCompare fCompare, size* piIndex);
 	size 	FindWithKey(M* pvData, size iKeyOffset, size iKeySize);
@@ -97,7 +100,7 @@ template<class M> M*	CArrayTemplate<M>::Add(M* pvData) { return (M*)CArrayBlock:
 template<class M> void	CArrayTemplate<M>::Set(size iIndex, M* pvData) { return CArrayBlock::Set(iIndex, pvData); }
 template<class M> M*	CArrayTemplate<M>::InsertAt(size iIndex) { return this->PostMalloc((M*)CArrayBlock::InsertAt(iIndex)); }
 template<class M> M*	CArrayTemplate<M>::InsertAt(M* pvData, size iIndex) { return (M*)CArrayBlock::InsertAt(pvData, iIndex); }
-template<class M> void	CArrayTemplate<M>::Copy(CArrayTemplate* pcTemplateArray) { CArrayBlock::Copy(pcTemplateArray); }
+template<class M> void	CArrayTemplate<M>::Copy(CArrayTemplate* pcOtherArray) { CArrayBlock::Copy(pcOtherArray); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -118,7 +121,7 @@ void CArrayTemplate<M>::Push(M* pvData)
 template<class M>
 M* CArrayTemplate<M>::Push(void)
 {
-	return this->PostMalloc((M*)CArrayBlock::Push());
+	return Add();
 }
 
 
@@ -226,9 +229,9 @@ size CArrayTemplate<M>::FindWithKey(M* pvData, size iKeyOffset, size iKeySize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CArrayTemplate<M>::Equals(CArrayTemplate<M>* pcTemplateArray)
+bool CArrayTemplate<M>::Equals(CArrayTemplate<M>* pcOtherArray)
 {
-	return CArrayBlock::Equals(pcTemplateArray);
+	return CArrayBlock::Equals(pcOtherArray);
 }
 
 
@@ -259,9 +262,9 @@ bool CArrayTemplate<M>::FindInSorted(M* pvData, DataCompare fCompare, size* piIn
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayTemplate<M>::InsertArrayAfterEnd(CArrayTemplate<M>* pcTemplateArray)
+M* CArrayTemplate<M>::InsertArrayAfterEnd(CArrayTemplate<M>* pcOtherArray)
 {
-	return (M*)CArrayBlock::InsertArrayAfterEnd(pcTemplateArray);
+	return (M*)CArrayBlock::InsertArrayAfterEnd(pcOtherArray);
 }
 
 
@@ -270,9 +273,9 @@ M* CArrayTemplate<M>::InsertArrayAfterEnd(CArrayTemplate<M>* pcTemplateArray)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayTemplate<M>::InsertArrayBeforeStart(CArrayTemplate<M>* pcTemplateArray)
+M* CArrayTemplate<M>::InsertArrayBeforeStart(CArrayTemplate<M>* pcOtherArray)
 {
-	return (M*)CArrayBlock::InsertArrayBeforeStart(pcTemplateArray);
+	return (M*)CArrayBlock::InsertArrayBeforeStart(pcOtherArray);
 }
 
 
@@ -281,9 +284,9 @@ M* CArrayTemplate<M>::InsertArrayBeforeStart(CArrayTemplate<M>* pcTemplateArray)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayTemplate<M>::InsertArrayAt(CArrayTemplate<M>* pcTemplateArray, size iIndex)
+M* CArrayTemplate<M>::InsertArrayAt(CArrayTemplate<M>* pcOtherArray, size iIndex)
 {
-	return (M*)CArrayBlock::InsertArrayAt(pcTemplateArray, iIndex);
+	return (M*)CArrayBlock::InsertArrayAt(pcOtherArray, iIndex);
 }
 
 
@@ -383,6 +386,28 @@ template<class M>
 M& CArrayTemplate<M>::operator[](size iIndex)
 {
 	return ((M*)this->mpvArray)[iIndex];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplate<M>::RemoveArray(CArrayTemplate<M>* pcOtherArray, bool bPreserveOrder)
+{
+	CArrayBlock::RemoveArray(pcOtherArray, bPreserveOrder);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplate<M>::RemoveArrayFromSorted(CArrayTemplate<M>* pcOtherArray, DataCompare fCompare)
+{
+	CArrayBlock::RemoveArrayFromSorted(pcOtherArray, fCompare);
 }
 
 

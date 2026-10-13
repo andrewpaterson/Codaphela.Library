@@ -40,7 +40,7 @@ friend class CPointer;
 CONSTRUCTABLE(CEmbeddedObject)
 protected:
 	CBaseObject*								mpcEmbedded;    //Object that 'this' is embedded in.
-	CArrayTemplateEmbedded<CBaseObject*, 6>		mapHeapFroms;   //Objects on the heap that 'this' is pointed to from.  This is a BaseOject not an EmbeddedObject because HollowEmbeddedObjects cannot point to anything.
+	CArrayTemplateEmbeddedPtr<CBaseObject, 6>		mapHeapFroms;   //Objects on the heap that 'this' is pointed to from.  This is a BaseOject not an EmbeddedObject because HollowEmbeddedObjects cannot point to anything.
 																//Heap froms are an in memory only concept with the exception that the closest from to the root is persistent.
 	CStackPointer*								mpcStackFroms;  //Objects on the stack that 'this' is pointed to from.  
 
