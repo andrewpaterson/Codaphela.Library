@@ -29,6 +29,9 @@ template<class D>
 class CMapStringPrimitive : public CMapStringTemplate<D>
 {
 public:
+	using CMapStringTemplate<D>::StartIteration;
+	using CMapStringTemplate<D>::Iterate;
+
 	D		Get(char* szKey, D sNullValue = -1);
 	D		Get(const char* szKey, D sNullValue = -1);
 	bool	Put(char* szKey, D sData);

@@ -7,6 +7,9 @@
 template<class M>
 class CListTemplate : public CListBlock, protected CPostMalloc<M>
 {
+protected:
+	using CPostMalloc<M>::PostMalloc;
+
 public:
 	void	Init(void);
 	void	Init(uint16 iAlignment);

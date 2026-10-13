@@ -27,6 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BubbleSort.h"
 #include "DataCompare.h"
 #include "ArrayElementNotFound.h"
+#include "FastMemcpy.h"
 #include "ArrayBlockMinimal.h"
 
 
@@ -34,6 +35,8 @@ template <class M>
 class CArrayTemplateMinimal : public CArrayBlockMinimal, protected CPostMalloc<M>
 {
 protected:
+	using CPostMalloc<M>::PostMalloc;
+
 	M*				mpvArray;
 
 public:
