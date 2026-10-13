@@ -51,7 +51,7 @@ public:
 public:\
 const char* ClassName(void)\
 {\
-	return #c##;\
+	return #c;\
 }\
 size ClassSize(void)\
 {\
