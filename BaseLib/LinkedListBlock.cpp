@@ -194,7 +194,7 @@ bool CLinkedListBlock::Write(CFileWriter* pcFileWriter)
 {
 	bool	bResult;
 
-	bResult = gcMallocators.Write(pcFileWriter, mpcMalloc);
+	bResult = WriteMallocator(pcFileWriter, mpcMalloc);
 	if (!bResult)
 	{
 		return false;
@@ -272,7 +272,7 @@ bool CLinkedListBlock::Read(CFileReader* pcFileReader)
 	bool			bResult;
 	CMallocator*	pcMalloc;
 
-	pcMalloc = gcMallocators.Read(pcFileReader);
+	pcMalloc = ReadMallocator(pcFileReader);
 	if (pcMalloc == NULL)
 	{
 		return false;

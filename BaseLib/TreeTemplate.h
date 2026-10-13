@@ -1302,7 +1302,7 @@ bool CTreeTemplate<M>::WriteTreeTemplate(CFileWriter* pcFileWriter)
 	size	auiPath[MAX_TREE_DEPTH];
 	bool	bResult;
 
-	bResult = gcMallocators.Write(pcFileWriter, mpcMalloc);
+	bResult = WriteMallocator(pcFileWriter, mpcMalloc);
 	if (!bResult)
 	{
 		return false;
@@ -1370,7 +1370,7 @@ bool CTreeTemplate<M>::ReadTreeTemplate(CFileReader* pcFileReader)
 	size			iOldPath;
 	CMallocator*	pcMalloc;
 
-	pcMalloc = gcMallocators.Read(pcFileReader);
+	pcMalloc = ReadMallocator(pcFileReader);
 	if (pcMalloc == NULL)
 	{
 		return false;

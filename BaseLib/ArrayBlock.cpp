@@ -1599,7 +1599,7 @@ bool CArrayBlock::WriteAllocatorAndHeader(CFileWriter* pcFileWriter)
 {
 	bool	bResult;
 
-	bResult = gcMallocators.Write(pcFileWriter, mpcMalloc);
+	bResult = WriteMallocator(pcFileWriter, mpcMalloc);
 	ReturnOnFalse(bResult);
 
 	bResult = WriteHeader(pcFileWriter);
@@ -1667,7 +1667,7 @@ bool CArrayBlock::ReadAllocatorAndHeader(CFileReader* pcFileReader)
 	bool			bResult;
 	CMallocator*	pcMalloc;
 
-	pcMalloc = gcMallocators.Read(pcFileReader);
+	pcMalloc = ReadMallocator(pcFileReader);
 	if (pcMalloc == NULL)
 	{
 		return false;
