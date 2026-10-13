@@ -1,4 +1,4 @@
-/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+/W/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
 
@@ -839,15 +839,15 @@ M* CArrayTemplateEmbedded<M, I>::Push(void)
 template<class M, int8 I>
 M* CArrayTemplateEmbedded<M, I>::PushCopy(void)
 {
-	void*	pDest;
-	void*	pSource;
+	M*	pvDest;
+	M*	pvSource;
 
 	if (NumElements() > 0)
 	{
-		pDest = Add();
-		pSource = Get(miUsedElements - 2);
-		memcpy(pDest, pSource, miElementSize);
-		return pDest;
+		pvDest = Add();
+		pvSource = Get(miUsedElements - 2);
+		memcpy(pvDest, pvSource, sizeof(M));
+		return pvDest;
 	}
 	else
 	{
