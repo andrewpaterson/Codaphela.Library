@@ -85,6 +85,7 @@ protected:
 	DestructionCallback		mDestructionCallback;
 	
 	bool					mbValidateConsistency;
+	size					muiRemoveDepth;
 
 public:
 												CObjects();
