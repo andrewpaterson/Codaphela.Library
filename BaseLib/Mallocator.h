@@ -38,6 +38,10 @@ extern size guiMaxDebugAllocatorSize;
 void InitAllocatorDebug(void);
 void KillAllocatorDebug(void);
 
+//Read and write a Mallocator through gcMallocators without including GlobalMemory.h (which would be a circular include from the template headers).
+CMallocator*	ReadMallocator(CFileReader* pcFileReader);
+bool			WriteMallocator(CFileWriter* pcFileWriter, CMallocator* pcMalloc);
+
 
 #endif // __MALLOCATOR_H__
 

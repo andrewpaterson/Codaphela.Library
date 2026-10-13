@@ -43,7 +43,7 @@ bool SaveMultiple(M* psThis, CFileWriter* pcFileWriter, size uiCount)
 	bResult = true;
 	for (i = 0; i < uiCount; i++)
 	{
-		bResult |= psThis->Save(pcFile);
+		bResult |= psThis->Save(pcFileWriter);
 		psThis = psThis + sizeof(M);
 	}
 	return bResult;
@@ -63,7 +63,7 @@ bool LoadMultiple(M* psThis, CFileReader* pcFileReader, size uiCount)
 	bResult = true;
 	for (i = 0; i < uiCount; i++)
 	{
-		bResult |= psThis->Load(pcFile);
+		bResult |= psThis->Load(pcFileReader);
 		psThis = psThis + sizeof(M);
 	}
 	return bResult;
