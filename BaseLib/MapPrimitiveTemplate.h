@@ -29,35 +29,11 @@ template<class M, class D>
 class CMapPrimitiveTemplate : public CMapTemplateTemplate<M , D>
 {
 public:
-	void	Init(bool bOverwrite);
-	void	Init(CMallocator* pcMalloc, bool bOverwrite);
 	D*		Get(M iKey);
 	D*		Put(M iKey);
 	bool	Put(M iKey, D* psData);
 	bool	HasKey(M iKey);
 	bool	Remove(M iKey);
-};
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-void CMapPrimitiveTemplate<M, D>::Init(bool bOverwrite)
-{
-	Init(&gcSystemAllocator, bOverwrite);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-void CMapPrimitiveTemplate<M, D>::Init(CMallocator* pcMalloc, bool bOverwrite)
-{
-	CMapTemplateTemplate<M, D>::Init(pcMalloc, &CompareInt, bOverwrite);
 };
 
 
