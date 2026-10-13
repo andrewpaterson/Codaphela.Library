@@ -604,7 +604,7 @@ bool CMapObject::Load(CObjectReader* pcFile)
 	uiNumElements = pcMapPtrPtr->GetSortedSize();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		pcMapPtrPtr->PutInSorted(i, (void**)(&pcPointedToKey), (void**)&pcPointedToValue);
+		pcMapPtrPtr->PutInSorted(i, (void***)(&pcPointedToKey), (void***)&pcPointedToValue);
 		ReturnOnFalse(pcFile->ReadDependent((CEmbeddedObject**)pcPointedToKey, this));
 		ReturnOnFalse(pcFile->ReadDependent((CEmbeddedObject**)pcPointedToValue, this));
 	}

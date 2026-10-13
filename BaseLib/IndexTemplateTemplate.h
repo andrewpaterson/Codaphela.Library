@@ -119,7 +119,7 @@ bool CIndexTemplateTemplate<M, D>::StartIteration(SIndexTreeMemoryUnsafeIterator
 template<class M, class D>
 bool CIndexTemplateTemplate<M, D>::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppvData, M* pvDestKey)
 {
-	return CIndexBlock:Iterate(psIterator, ppvData, pvDestKey);
+	return CIndexBlock::Iterate(psIterator, ppvData, pvDestKey);
 }
 
 

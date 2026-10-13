@@ -284,7 +284,7 @@ M* __CArrayDenseTemplate<M>::Add(M* pvData)
 	M*	psElement;
 
 	psElement = Add();
-	memcpy(psElement, pvData, mcElementNodes.miElementSize);
+	memcpy(psElement, pvData, mcElementNodes.GetElementSize());
 	return psElement;
 }
 
@@ -327,7 +327,7 @@ bool __CArrayDenseTemplate<M>::SafeSet(size iElementPos, M* pvData)
 		M*	psElement;
 
 		psElement = Get(iElementPos);
-		memcpy(psElement, pvData, mcElementNodes.miElementSize);
+		memcpy(psElement, pvData, mcElementNodes.GetElementSize());
 		return true;
 	}
 	return false;
@@ -618,7 +618,8 @@ M* __CArrayDenseTemplate<M>::InsertAt(M* pvData, size iElementPos)
 	M*	psElement;
 
 	psElement = InsertAt(iElementPos);
-	memcpy(psElement, pvData, mcElementNodes.miElementSize);
+	memcpy(psElement, pvData, mcElementNodes.GetElementSize());
+	return psElement;
 }
 
 

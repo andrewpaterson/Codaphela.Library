@@ -43,7 +43,7 @@ public:
 
 	bool	Remove(M* psKey);
 
-	bool	PutInSorted(size iIndex, M* ppsKey, D* ppsData);
+	bool	PutInSorted(size iIndex, M** ppsKey, D** ppsData);
 };
 
 
@@ -110,9 +110,9 @@ bool CMapTemplateTemplate<M, D>::Remove(M* psKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-bool CMapTemplateTemplate<M, D>::PutInSorted(size iIndex, M* ppsKey, D* ppsData)
+bool CMapTemplateTemplate<M, D>::PutInSorted(size iIndex, M** ppsKey, D** ppsData)
 {
-	return CMapBlock::PutInSorted(iIndex, ppsKey, sizeof(M), ppsData, sizeof(D));
+	return CMapBlock::PutInSorted(iIndex, (void**)ppsKey, sizeof(M), (void**)ppsData, sizeof(D));
 }
 
 

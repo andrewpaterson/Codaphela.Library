@@ -68,7 +68,7 @@ bool CIndexStringTemplate<D>::Put(char* szKey, D* psData, char* szLastCharInclus
 template<class D>
 D* CIndexStringTemplate<D>::Put(const char* szKey, const char* szLastCharInclusive)
 {
-	return (D*)CIndexStringBlock::Put(szKey, iKeySize, sizeof(D), szLastCharInclusive);
+	return (D*)CIndexStringBlock::Put(szKey, sizeof(D), szLastCharInclusive);
 }
 
 
