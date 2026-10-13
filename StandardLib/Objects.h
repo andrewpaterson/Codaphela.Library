@@ -210,6 +210,7 @@ protected:
 						void					AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded) ;
 						void					PrintMemoryUseIteration(CChars* psz);
 						void					PrintMemoryUseRecursion(CChars* psz);
+						void					UnsetDumpFlags(void);
 
 public:
 						CBaseObject*			AllocateUninitialisedByClassNameAndAddIntoMemory(char* szClassName);
