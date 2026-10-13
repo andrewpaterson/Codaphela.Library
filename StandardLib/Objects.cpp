@@ -1458,6 +1458,7 @@ bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 	size					iNumElements;
 	bool					bResult;
 	CArrayBaseObjectPtr*	papcContextKill;
+	size					iCount;
 
 	iNumElements = papcKilled->NumElements();
 	if (iNumElements == 0)
@@ -1465,20 +1466,39 @@ bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 		return true;
 	}
 
-	bResult = ValidateNoEmbedded(papcKilled);
-	if (!bResult)
+	iCount = 0;
+	if (!mcRemovalContext.IsBusy())
 	{
-		return false;
+		papcContextKill = mcRemovalContext.Start(papcKilled);
+		while (papcContextKill != NULL)
+		{
+			iNumElements = papcContextKill->NumElements();
+			if (iNumElements == 0)
+			{
+				mcRemovalContext.Done();
+				return true;
+			}
+
+			bResult = ValidateNoEmbedded(papcContextKill);
+			if (!bResult)
+			{
+				mcRemovalContext.Clear();
+				return false;
+			}
+
+			DoneKill(papcContextKill);
+			FreeInternal(papcContextKill);
+			RemoveAllPointerTos(papcContextKill);
+			KillObjects(papcContextKill);
+
+			iCount++;
+			papcContextKill = mcRemovalContext.Done();
+		}
 	}
-
-	papcContextKill = mcRemovalContext.Start(papcKilled);
-
-	DoneKill(papcKilled);
-	FreeInternal(papcKilled);
-	RemoveAllPointerTos(papcKilled);
-	KillObjects(papcKilled);
-
-	mcRemovalContext.Pull();
+	else
+	{
+		mcRemovalContext.Push(papcKilled);
+	}
 
 	return true;
 }

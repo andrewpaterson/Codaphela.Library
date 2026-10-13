@@ -516,6 +516,9 @@
     <ClInclude Include="ObjectsRemovalContext.h">
       <Filter>Source\Object\Object\Remove</Filter>
     </ClInclude>
+    <ClInclude Include="RemovalPointerContainer.h">
+      <Filter>Source\Object\Object\Remove</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -840,6 +843,9 @@
       <Filter>Source\Object\Object\Free</Filter>
     </ClCompile>
     <ClCompile Include="ObjectsRemovalContext.cpp">
+      <Filter>Source\Object\Object\Remove</Filter>
+    </ClCompile>
+    <ClCompile Include="RemovalPointerContainer.cpp">
       <Filter>Source\Object\Object\Remove</Filter>
     </ClCompile>
   </ItemGroup>

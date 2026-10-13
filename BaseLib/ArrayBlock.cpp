@@ -1385,13 +1385,15 @@ bool CArrayBlock::Remove(void* pvData, bool bPreserveOrder)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::RemoveArray(CArrayBlock* pcOtherArray, bool bPreserveOrder)
+size CArrayBlock::RemoveArray(CArrayBlock* pcOtherArray, bool bPreserveOrder)
 {
 	size	i;
 	size	iOtherNumElements;
 	void*	pvOther;
 	size	iThisIndex;
+	size	iRemoved;
 
+	iRemoved = 0;
 	iOtherNumElements = pcOtherArray->NumElements();
 	for (i = 0; i < iOtherNumElements; i++)
 	{
@@ -1400,8 +1402,10 @@ void CArrayBlock::RemoveArray(CArrayBlock* pcOtherArray, bool bPreserveOrder)
 		if (iThisIndex != ARRAY_ELEMENT_NOT_FOUND)
 		{
 			RemoveAt(iThisIndex, bPreserveOrder);
+			iRemoved++;
 		}
 	}
+	return iRemoved;
 }
 
 
@@ -1409,14 +1413,16 @@ void CArrayBlock::RemoveArray(CArrayBlock* pcOtherArray, bool bPreserveOrder)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::RemoveArrayFromSorted(CArrayBlock* pcOtherArray, DataCompare fCompare)
+size CArrayBlock::RemoveArrayFromSorted(CArrayBlock* pcOtherArray, DataCompare fCompare)
 {
 	size	i;
 	size	iOtherNumElements;
 	void*	pvOther;
 	size	iThisIndex;
 	bool	bFound;
+	size	iRemoved;
 
+	iRemoved = 0;
 	iOtherNumElements = pcOtherArray->NumElements();
 	for (i = 0; i < iOtherNumElements; i++)
 	{
@@ -1425,8 +1431,10 @@ void CArrayBlock::RemoveArrayFromSorted(CArrayBlock* pcOtherArray, DataCompare f
 		if (bFound)
 		{
 			RemoveAt(iThisIndex, true);
+			iRemoved++;
 		}
 	}
+	return iRemoved;
 }
 
 

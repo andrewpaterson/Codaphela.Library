@@ -120,8 +120,8 @@ public:
 	void	RemoveBatch(size iFirstIndex, size iNumInBatch, size iNumBatches, size iStrideToNextBatch);
 	void	RemoveAll(void);
 	bool	Remove(void* pvData, bool bPreserveOrder = true);
-	void	RemoveArray(CArrayBlock* pcOtherArray, bool bPreserveOrder = true);
-	void	RemoveArrayFromSorted(CArrayBlock* pcOtherArray, DataCompare fCompare);
+	size	RemoveArray(CArrayBlock* pcOtherArray, bool bPreserveOrder = true);
+	size	RemoveArrayFromSorted(CArrayBlock* pcOtherArray, DataCompare fCompare);
 	
 
 	void	Set(size iIndex, void* pvData);
