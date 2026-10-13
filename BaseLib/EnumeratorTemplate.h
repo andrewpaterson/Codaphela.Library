@@ -69,7 +69,6 @@ public:
 	void		Swap(SENode* psNode1, SENode* psNode2);
 	void		SwapUp(char* szName);
 	void		SwapDown(char* szName);
-	void		QuickSort(void);
 	void		BubbleSort(void);
 	void		RecreateIDArray(void);
 	void		AllocateNodeData(SENode* psNode, size iLen);
@@ -107,8 +106,8 @@ public:
 };
 
 
-size AlphabeticalComparisionCallbackCaseSensitive(const void* pvNode1, const void* pvNode2);
-size AlphabeticalComparisionCallbackCaseInsensitive(const void* pvNode1, const  void* pvNode2);
+int AlphabeticalComparisionCallbackCaseSensitive(const void* pvNode1, const void* pvNode2);
+int AlphabeticalComparisionCallbackCaseInsensitive(const void* pvNode1, const  void* pvNode2);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -841,27 +840,6 @@ void __CEnumeratorTemplate<M>::RecreateIDArray(void)
 		psNode = mcList.GetNext(psNode);
 	}
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void __CEnumeratorTemplate<M>::QuickSort(void)
-{
-
-	if (mbCaseSensitive)
-	{
-		mcList.QuickSort(AlphabeticalComparisionCallbackCaseSensitive);
-	}
-	else
-	{
-		mcList.QuickSort(AlphabeticalComparisionCallbackCaseInsensitive);
-	}
-	RecreateIDArray();
-}
-
 
 
 //////////////////////////////////////////////////////////////////////////
