@@ -571,20 +571,20 @@ void CArrayTemplateEmbeddedPrimitive<M, I>::RemoveRemap(size iElementPos)
 	size	iIndex;
 	size	iCutDown;
 
-	if (iElementPos < miUsedElements)
+	if (iElementPos < this->NumElements())
 	{
 		pi = CArrayTemplateEmbedded<M, I>::Get(iElementPos);
 		(*pi) = -1;
 	}
 
-	iCutDown = miUsedElements;
-	iIndex = miUsedElements;
+	iCutDown = this->NumElements();
+	iIndex = this->NumElements();
 	if (iIndex != 0)
 	{
 		do
 		{
 			iIndex--;
-			pi = CArrayTemplateEmbedded<M, I>::Get(iElementPos);
+			pi = CArrayTemplateEmbedded<M, I>::Get(iIndex);
 			if (*pi == -1)
 			{
 				iCutDown = iIndex;
@@ -600,9 +600,9 @@ void CArrayTemplateEmbeddedPrimitive<M, I>::RemoveRemap(size iElementPos)
 		} 
 		while (iIndex != 0);
 	}
-	if (iCutDown != miUsedElements)
+	if (iCutDown != this->NumElements())
 	{
-		SetUsedElements(iCutDown);
+		this->Resize(iCutDown);
 	}
 }
 

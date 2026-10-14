@@ -724,7 +724,7 @@ void __CEnumeratorTemplate<M>::PrivateRemove(SENode* psNode)
 		{
 			if (psNode->pvData)
 			{
-				Free(psNode->pvData);
+				mcList.Free(psNode->pvData);
 				psNode->pvData = NULL;
 			}
 		}

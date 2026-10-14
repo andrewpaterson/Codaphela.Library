@@ -589,7 +589,7 @@ void CArrayTemplatePrimitive<M>::RemoveRemap(size iElementPos)
 		do
 		{
 			iIndex--;
-			pi = CArrayTemplate<M>::Get(iElementPos);
+			pi = CArrayTemplate<M>::Get(iIndex);
 			if (*pi == -1)
 			{
 				iCutDown = iIndex;
