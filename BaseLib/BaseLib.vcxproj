@@ -858,6 +858,7 @@
     <ClCompile Include="AbstractFile.cpp" />
     <ClCompile Include="BufferedFile.cpp" />
     <ClCompile Include="DiskFile.cpp" />
+    <ClCompile Include="DiskFile_Linux.cpp" />
     <ClCompile Include="MD5HashFile.cpp" />
     <ClCompile Include="MemoryFile.cpp" />
     <ClCompile Include="FileCompare.cpp" />

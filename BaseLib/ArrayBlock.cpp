@@ -525,7 +525,7 @@ void CArrayBlock::RemoveAt(size* paiElementsToDelete, size iNumElementsToDelete,
 				if (iIndex == iNumElementsToDelete)
 				{
 					iMoved = miUsedElements - iFirstElementToMove;
-					memcpy(Get(iDestElement - iDestOffset), Get(iFirstElementToMove), iMoved * miElementSize);
+					memmove(Get(iDestElement - iDestOffset), Get(iFirstElementToMove), iMoved * miElementSize);
 					SetUsedElements(miUsedElements - iNumElementsToDelete);
 					return;
 				}
@@ -539,7 +539,7 @@ void CArrayBlock::RemoveAt(size* paiElementsToDelete, size iNumElementsToDelete,
 			//iFirstElementToMove is the first element to move
 			//iEndElementToMove is the last element to move exclusive.
 			iMoved = iEndElementToMove - iFirstElementToMove;
-			memcpy(Get(iDestElement - iDestOffset), Get(iFirstElementToMove), iMoved * miElementSize);
+			memmove(Get(iDestElement - iDestOffset), Get(iFirstElementToMove), iMoved * miElementSize);
 
 			iDestOffset += iNumDeleted;
 
@@ -1325,7 +1325,7 @@ void CArrayBlock::RemoveBatch(size uiFirstElementPos, size uiNumInBatch, size ui
 			pcDest = Get(uiDest);
 			pcSource = Get(uiSource);
 
-			memcpy(pcDest, pcSource, uiCopyWidth);
+			memmove(pcDest, pcSource, uiCopyWidth);
 		}
 	}
 
@@ -1337,7 +1337,7 @@ void CArrayBlock::RemoveBatch(size uiFirstElementPos, size uiNumInBatch, size ui
 		pcSource = Get(uiSource);
 
 		uiCopyWidth = (miUsedElements - uiSource) * miElementSize;
-		memcpy(pcDest, pcSource, uiCopyWidth);
+		memmove(pcDest, pcSource, uiCopyWidth);
 
 		uiNewNumElements = miUsedElements - (uiNumInBatch * uiNumBatches);
 		SetArraySize(uiNewNumElements);
@@ -1471,7 +1471,7 @@ void CArrayBlock::InsertBatch(size iFirstElementPos, size iNumInBatch, int32 iNu
 		if ((iOldNumElements - iSource) > iFirstElementPos)
 		{
 			iRemaining = (iOldNumElements - iSource) - iFirstElementPos;
-			memcpy(pcDest, pcSource, iRemaining * miElementSize);
+			memmove(pcDest, pcSource, iRemaining * miElementSize);
 		}
 	}
 
@@ -1524,7 +1524,7 @@ void CArrayBlock::InsertBatch(size iFirstElementPos, size iNumInBatch, int32 iNu
 			do
 			{
 				i--;
-				memcpy_fast_8bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+				memcpy_fast_backwards_8bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
 			}
 			while (i != 0);
 		}
@@ -1537,7 +1537,7 @@ void CArrayBlock::InsertBatch(size iFirstElementPos, size iNumInBatch, int32 iNu
 			do
 			{
 				i--;
-				memcpy_fast_12bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+				memcpy_fast_backwards_12bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
 			}
 			while (i != 0);
 		}
@@ -1550,7 +1550,7 @@ void CArrayBlock::InsertBatch(size iFirstElementPos, size iNumInBatch, int32 iNu
 			do
 			{
 				i--;
-				memcpy(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), iStride);
+				memmove(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), iStride);
 			}
 			while (i != 0);
 		}
