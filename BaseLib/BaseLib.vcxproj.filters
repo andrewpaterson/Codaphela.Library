@@ -493,6 +493,9 @@
     <Filter Include="Source\Data\Set\String">
       <UniqueIdentifier>{19849453-e66d-42ce-ac38-64833cc46ad3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Memory\Debug">
+      <UniqueIdentifier>{5d5b8e1d-fd39-4f7d-81c2-bd5ea4c4d465}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -1842,6 +1845,9 @@
     <ClInclude Include="ArrayEmbeddedInt.h">
       <Filter>Source\Data\Array\Embedded</Filter>
     </ClInclude>
+    <ClInclude Include="LeakDetector.h">
+      <Filter>Source\Memory\Debug</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2971,6 +2977,9 @@
     </ClCompile>
     <ClCompile Include="ArrayEmbeddedInt.cpp">
       <Filter>Source\Data\Array\Embedded</Filter>
+    </ClCompile>
+    <ClCompile Include="LeakDetector.cpp">
+      <Filter>Source\Memory\Debug</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

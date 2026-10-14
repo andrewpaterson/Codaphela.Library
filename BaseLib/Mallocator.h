@@ -35,7 +35,7 @@ public:
 extern size guiMaxDebugAllocatorSize;
 
 
-void InitAllocatorDebug(void);
+void InitAllocatorDebug(size uiMaxDebugAllocatorSize);
 void KillAllocatorDebug(void);
 
 //Read and write a Mallocator through gcMallocators without including GlobalMemory.h (which would be a circular include from the template headers).
