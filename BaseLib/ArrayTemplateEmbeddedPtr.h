@@ -116,7 +116,7 @@ M* CArrayTemplateEmbeddedPtr<M, I>::GetPtr(size iIndex)
 template<class M, int8 I>
 M* CArrayTemplateEmbeddedPtr<M, I>::HeadPtr(void)
 {
-	if (NumElements() > 0)
+	if (this->NumElements() > 0)
 	{
 		return GetPtr(0);
 	}
@@ -136,7 +136,7 @@ M* CArrayTemplateEmbeddedPtr<M, I>::TailPtr(void)
 {
 	size	iNumElements;
 
-	iNumElements = NumElements();
+	iNumElements = this->NumElements();
 	if (iNumElements > 0)
 	{
 		return GetPtr(iNumElements - 1);
@@ -170,8 +170,8 @@ size CArrayTemplateEmbeddedPtr<M, I>::Find(M* pv)
 	M**		pvData;
 	size	uiNumElements;
 
-	pvData = GetData();
-	uiNumElements = NumElements();
+	pvData = this->GetData();
+	uiNumElements = this->NumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
 		if (pvData[i] == pv)
