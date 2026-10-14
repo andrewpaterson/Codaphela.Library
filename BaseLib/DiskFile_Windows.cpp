@@ -478,3 +478,4 @@ CDiskFile* DiskFile(const char* szName)
 }
 
 #endif //_WIN32
+
