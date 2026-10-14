@@ -1961,7 +1961,7 @@
     <ClCompile Include="BufferedFile.cpp">
       <Filter>Source\File\Chains</Filter>
     </ClCompile>
-    <ClCompile Include="DiskFile.cpp">
+    <ClCompile Include="DiskFile_Windows.cpp">
       <Filter>Source\File\Chains</Filter>
     </ClCompile>
     <ClCompile Include="DiskFile_Linux.cpp">
