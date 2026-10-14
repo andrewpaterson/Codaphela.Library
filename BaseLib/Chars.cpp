@@ -2394,7 +2394,7 @@ size CChars::ReplaceWithShorter(const char* szFind, const char* szReplace, size 
 		{
 			if (iCount != 0)
 			{
-				memcpy(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize - 1);
+				memmove(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize - 1);
 			}
 			Overwrite(iIndex - (iCount * iDifference), szReplace);
 		}
@@ -2402,7 +2402,7 @@ size CChars::ReplaceWithShorter(const char* szFind, const char* szReplace, size 
 		{
 			if (iCount != 0)
 			{
-				memcpy(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize);
+				memmove(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize);
 			}
 		}
 		iCount++;
@@ -2418,7 +2418,7 @@ size CChars::ReplaceWithShorter(const char* szFind, const char* szReplace, size 
 			{
 				if (iCount != 0)
 				{
-					memcpy(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize);
+					memmove(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize);
 				}
 			}
 			break;
@@ -2460,7 +2460,7 @@ size CChars::ReplaceWithLonger(const char* szFind, const char* szReplace, size i
 		i--;
 		iOldIndex = iIndex;
 		iIndex = FindFromEnd(iIndex, szFind);
-		memcpy(mcText.Get(iIndex + iFindLen + (iDifference * (i + 1))), mcText.Get(iIndex + iFindLen), iOldIndex - iIndex);
+		memmove(mcText.Get(iIndex + iFindLen + (iDifference * (i + 1))), mcText.Get(iIndex + iFindLen), iOldIndex - iIndex);
 		Overwrite(iIndex + (iDifference * i), szReplace);
 		iIndex -= iFindLen;
 	}

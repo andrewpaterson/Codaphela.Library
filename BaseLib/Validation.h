@@ -8,7 +8,7 @@
 
 
 #ifdef LINUX_GNU_32
-#define BREAK()	std::raise(SIGINT);
+#define BREAK()	__asm__ volatile("int3\n\tnop");  //nop keeps the debugger on the breaking line.
 #endif // LINUX_GNU_32
 
 
