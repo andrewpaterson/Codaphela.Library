@@ -3098,7 +3098,9 @@ CNumber* CNumber::Exponential(void)  //e^this
 	CNumber*	pcResult;
 	int32		iDecimals;
 
-	iDecimals = mcMaxDecimals+3;
+	//e^integral can have up to mcMaxWholeNumbers digits before the point so mcMaxDecimals decimal places
+	//are not enough precision for the last decimal place of the result to be correct.
+	iDecimals = mcMaxDecimals + mcMaxWholeNumbers + 3;
 	pcFractional = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
 	pcIntegral = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
 	pcOne = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
