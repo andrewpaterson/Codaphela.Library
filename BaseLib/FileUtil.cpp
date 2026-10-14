@@ -939,6 +939,7 @@ void CFileUtil::MakeNameFromDirectory(CChars* pszName, CChars* pszFilename, CCha
 	CChars	szDirectory;
 
 	pszName->Init(pszFilename->Text());
+	FullPath(pszName);
 
 	szDirectory.Init(pszDirectory->Text());
 	FullPath(&szDirectory);
