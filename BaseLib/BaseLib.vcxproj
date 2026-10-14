@@ -988,9 +988,12 @@
     <ClCompile Include="XMLParser.cpp" />
     <ClCompile Include="PlainTextEditor.cpp" />
     <ClCompile Include="Timer_Windows.cpp" />
-    <ClCompile Include="ConnectSocket.cpp" />
-    <ClCompile Include="ListenSocket.cpp" />
-    <ClCompile Include="Socket.cpp" />
+    <ClCompile Include="ConnectSocket_Windows.cpp" />
+    <ClCompile Include="ConnectSocket_Linux.cpp" />
+    <ClCompile Include="ListenSocket_Windows.cpp" />
+    <ClCompile Include="ListenSocket_Linux.cpp" />
+    <ClCompile Include="Socket_Windows.cpp" />
+    <ClCompile Include="Socket_Linux.cpp" />
     <ClCompile Include="Operators.cpp" />
     <ClCompile Include="OperatorLogicalNot.cpp" />
     <ClCompile Include="OperatorLogicalAnd.cpp" />

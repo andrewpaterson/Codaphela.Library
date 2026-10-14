@@ -20,10 +20,16 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include "Logger.h"
 #include "ListenSocket.h"
+
+
+//Defined in Socket_Windows.cpp.
+void	SetSocketHandle(uint8* paSocket, SOCKET hSocket);
+SOCKET	GetSocketHandle(uint8* paSocket);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -35,11 +41,12 @@ bool CListenSocket::Init(int iPort)
 	int			iResult;
 	addrinfo*	psResult;
 	addrinfo	psHints;
+	SOCKET		hListenSocket;
 
 	CSocket::Init(iPort);
 
-	mListenSocket = INVALID_SOCKET;
-	mSocket = INVALID_SOCKET;
+	SetSocketHandle(maListenSocket, INVALID_SOCKET);
+	SetSocketHandle(maSocket, INVALID_SOCKET);
 	mbListening = false;
 
 	memset(&psHints, 0, sizeof(psHints));
@@ -58,8 +65,8 @@ bool CListenSocket::Init(int iPort)
 	}
 
 	// Create a SOCKET for connecting to server
-	mListenSocket = socket(psResult->ai_family, psResult->ai_socktype, psResult->ai_protocol);
-	if (mListenSocket == INVALID_SOCKET) 
+	hListenSocket = socket(psResult->ai_family, psResult->ai_socktype, psResult->ai_protocol);
+	if (hListenSocket == INVALID_SOCKET) 
 	{
 		gcLogger.Error("socket failed with error");
 		freeaddrinfo(psResult);
@@ -67,16 +74,17 @@ bool CListenSocket::Init(int iPort)
 	}
 
 	// Setup the TCP listening socket
-	iResult = bind(mListenSocket, psResult->ai_addr, (int)psResult->ai_addrlen);
+	iResult = bind(hListenSocket, psResult->ai_addr, (int)psResult->ai_addrlen);
 	if (iResult == SOCKET_ERROR) 
 	{
 		gcLogger.Error("bind failed with error");
 		freeaddrinfo(psResult);
-		closesocket(mListenSocket);
+		closesocket(hListenSocket);
 		return false;
 	}
 
 	freeaddrinfo(psResult);
+	SetSocketHandle(maListenSocket, hListenSocket);
 	return true;
 }
 
@@ -88,22 +96,26 @@ bool CListenSocket::Init(int iPort)
 void CListenSocket::Kill(void)
 {
 	int		iResult;
+	SOCKET	hListenSocket;
+	SOCKET	hSocket;
 
-	if (mListenSocket != INVALID_SOCKET)
+	hListenSocket = GetSocketHandle(maListenSocket);
+	if (hListenSocket != INVALID_SOCKET)
 	{
-		closesocket(mListenSocket);
-		mListenSocket = INVALID_SOCKET;
+		closesocket(hListenSocket);
+		SetSocketHandle(maListenSocket, INVALID_SOCKET);
 	}
 
-	if (mSocket != INVALID_SOCKET)
+	hSocket = GetSocketHandle(maSocket);
+	if (hSocket != INVALID_SOCKET)
 	{
 		if (mbListening)
 		{
-			iResult = shutdown(mSocket, SD_SEND);
+			iResult = shutdown(hSocket, SD_SEND);
 			mbListening = false;
 		}
-		closesocket(mSocket);
-		mSocket = INVALID_SOCKET;
+		closesocket(hSocket);
+		SetSocketHandle(maSocket, INVALID_SOCKET);
 	}
 
 	CSocket::Kill();
@@ -117,29 +129,37 @@ void CListenSocket::Kill(void)
 bool CListenSocket::Listen(void)
 {
 	int		iResult;
+	SOCKET	hListenSocket;
+	SOCKET	hSocket;
 
-	iResult = listen(mListenSocket, SOMAXCONN);
+	hListenSocket = GetSocketHandle(maListenSocket);
+	iResult = listen(hListenSocket, SOMAXCONN);
 	if (iResult == SOCKET_ERROR) 
 	{
 		gcLogger.Error("listen failed with error");
-		closesocket(mListenSocket);
+		closesocket(hListenSocket);
+		SetSocketHandle(maListenSocket, INVALID_SOCKET);
 		return false;
 	}
 
 	// Accept a client socket
-	mSocket = accept(mListenSocket, NULL, NULL);  //This blocks
-	if (mSocket == INVALID_SOCKET) 
+	hSocket = accept(hListenSocket, NULL, NULL);  //This blocks
+	SetSocketHandle(maSocket, hSocket);
+	if (hSocket == INVALID_SOCKET) 
 	{
 		gcLogger.Error("accept failed with error");
-		closesocket(mListenSocket);
+		closesocket(hListenSocket);
+		SetSocketHandle(maListenSocket, INVALID_SOCKET);
 		return false;
 	}
 
 	// No longer need server socket
-	closesocket(mListenSocket);
-	mListenSocket = INVALID_SOCKET;
+	closesocket(hListenSocket);
+	SetSocketHandle(maListenSocket, INVALID_SOCKET);
 	mbListening = true;
 
 	return true;
 }
 
+
+#endif // _WIN32

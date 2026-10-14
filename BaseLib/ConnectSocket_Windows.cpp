@@ -20,10 +20,16 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include "Logger.h"
 #include "ConnectSocket.h"
+
+
+//Defined in Socket_Windows.cpp.
+void	SetSocketHandle(uint8* paSocket, SOCKET hSocket);
+SOCKET	GetSocketHandle(uint8* paSocket);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -43,6 +49,15 @@ void CConnectSocket::Init(char* szServer, int iPort)
 //////////////////////////////////////////////////////////////////////////
 void CConnectSocket::Kill(void)
 {
+	SOCKET	hSocket;
+
+	hSocket = GetSocketHandle(maSocket);
+	if (hSocket != INVALID_SOCKET)
+	{
+		closesocket(hSocket);
+		SetSocketHandle(maSocket, INVALID_SOCKET);
+	}
+
 	mszServer.Kill();
 	CSocket::Kill();
 }
@@ -58,6 +73,7 @@ bool CConnectSocket::Connect(void)
 	addrinfo*	pAddrInfo;
 	addrinfo	hints;
 	int			iResult;
+	SOCKET		hSocket;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
@@ -74,31 +90,34 @@ bool CConnectSocket::Connect(void)
 	}
 
 	// Attempt to connect to an address until one succeeds
+	hSocket = INVALID_SOCKET;
 	for (pAddrInfo = sResult; pAddrInfo != NULL; pAddrInfo = pAddrInfo->ai_next) 
 	{
 		// Create a SOCKET for connecting to server
-		mSocket = socket(pAddrInfo->ai_family, pAddrInfo->ai_socktype, pAddrInfo->ai_protocol);
-		if (mSocket == INVALID_SOCKET) 
+		hSocket = socket(pAddrInfo->ai_family, pAddrInfo->ai_socktype, pAddrInfo->ai_protocol);
+		if (hSocket == INVALID_SOCKET) 
 		{
 			gcLogger.Error("socket failed with error");
+			freeaddrinfo(sResult);
 			return false;
 		}
 
 		// Connect to server.
-		iResult = connect(mSocket, pAddrInfo->ai_addr, (int)pAddrInfo->ai_addrlen);
+		iResult = connect(hSocket, pAddrInfo->ai_addr, (int)pAddrInfo->ai_addrlen);
 
 		if (iResult == SOCKET_ERROR)
 		{
-			closesocket(mSocket);
-			mSocket = INVALID_SOCKET;
+			closesocket(hSocket);
+			hSocket = INVALID_SOCKET;
 			continue;
 		}
 		break;
 	}
 
 	freeaddrinfo(sResult);
+	SetSocketHandle(maSocket, hSocket);
 
-	if (mSocket == INVALID_SOCKET) 
+	if (hSocket == INVALID_SOCKET) 
 	{
 		gcLogger.Error("Unable to connect to server!\n");
 		return false;
@@ -107,3 +126,5 @@ bool CConnectSocket::Connect(void)
 	return true;
 }
 
+
+#endif // _WIN32
