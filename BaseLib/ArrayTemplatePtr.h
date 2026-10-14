@@ -251,8 +251,8 @@ int32 CArrayTemplatePtr<M>::Find(M* pv)
 	size	i;
 	M**		pvData;
 
-	pvData = GetData();
-	for (i = 0; i < NumElements(); i++)
+	pvData = this->GetData();
+	for (i = 0; i < this->NumElements(); i++)
 	{
 		if (pvData[i] == pv)
 		{
@@ -299,7 +299,7 @@ bool CArrayTemplatePtr<M>::ContainsVoidPtr(void* pv)
 	size	ui;
 	M*		pvObject;
 
-	uiNumElements = NumElements();
+	uiNumElements = this->NumElements();
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
 		pvObject = GetPtr(ui);

@@ -288,8 +288,8 @@ void CArrayTemplatePrimitive<M>::Swap(size iIndex1, size iIndex2)
 	M*		piElement2;
 	M		iTemp;
 
-	piElement1 = Get(iIndex1);
-	piElement2 = Get(iIndex2);
+	piElement1 = this->Get(iIndex1);
+	piElement2 = this->Get(iIndex2);
 	iTemp = (*piElement1);
 	(*piElement1) = (*piElement2);
 	(*piElement2) = iTemp;
@@ -345,7 +345,7 @@ bool CArrayTemplatePrimitive<M>::RemoveFromSorted(M iElement)
 	bExists = FindInSorted(&iElement, ComparePrimitive<M>, &iPos);
 	if (bExists)
 	{
-		RemoveAt(iPos, true);
+		this->RemoveAt(iPos, true);
 		return true;
 	}
 	return false;
