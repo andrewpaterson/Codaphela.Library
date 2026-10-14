@@ -581,7 +581,7 @@ void* CIndexAccess::GetStringPtr(char* pszKey)
 
 	if (StrEmpty(pszKey))
 	{
-		return false;
+		return NULL;
 	}
 
 	iKeySize = strlen(pszKey);

@@ -406,7 +406,7 @@ char* CChunkFileFileSystem::IterateName(SChunkFilenameIterator* psIter)
 	szName = mpcChunkFile->GetTailChunkNameForIndex(*piIndex);
 	if (szName == NULL)
 	{
-		return false;
+		return NULL;
 	}
 
 	psIter->szFullName.Append('/');

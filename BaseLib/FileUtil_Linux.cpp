@@ -30,6 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <fcntl.h>
 #include <errno.h>
 #include <dirent.h>
+#include "Logger.h"
 #include "FileUtil.h"
 #include "StringHelper.h"
 
