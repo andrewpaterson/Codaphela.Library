@@ -53,20 +53,28 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define MIN_UINT64	0x0000000000000000LL
 
 
+//MSVC aligns 64 bit types to 8 bytes in structs, g++ -m32 aligns them to 4.
+//Match MSVC so structs read and written as raw bytes have the same layout.
+#ifdef LINUX_GNU_32
+#define ALIGN_64	__attribute__((aligned(8)))
+#else
+#define ALIGN_64
+#endif // LINUX_GNU_32
+
 typedef int8_t			int8;
 typedef int16_t			int16;
 typedef int32_t			int32;
-typedef int64_t			int64;
+typedef int64_t			int64 ALIGN_64;
 typedef uint8_t			uint8;
 typedef uint32_t		uint32;
 typedef uint16_t		uint16;
-typedef uint64_t		uint64;
-typedef int64_t			int128;	// Until I implement struct SInt128 etc...
-typedef uint64_t		uint128;
+typedef uint64_t		uint64 ALIGN_64;
+typedef int64_t			int128 ALIGN_64;	// Until I implement struct SInt128 etc...
+typedef uint64_t		uint128 ALIGN_64;
 typedef char			char8;
 typedef wchar_t			char16;
 typedef float			float32;
-typedef double			float64;
+typedef double			float64 ALIGN_64;
 typedef long double		float128;
 typedef size_t			size;
 typedef unsigned int	uint;
