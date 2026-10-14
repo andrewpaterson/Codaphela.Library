@@ -4,7 +4,7 @@
 #include "BaseLib/Define.h"
 #include "BaseLib/Killable.h"
 #include "BaseLib/Constructable.h"
-#include "BaseLib/ArrayTemplateEmbedded.h"
+#include "BaseLib/ArrayTemplateEmbeddedPtr.h"
 #include "ThreadState.h"
 #include "ThreadStateNotifier.h"
 #include "ThreadStarter.h"
@@ -19,7 +19,7 @@ private:
 	std::thread*			mpstdThread;
 	bool					mbDelete;
 	CThreadStarter*			mpcStarter;
-	CArrayTemplateEmbedded<CThreadStateNotifer*, 2> mapcNotifiers;
+	CArrayTemplateEmbeddedPtr<CThreadStateNotifer, 2> mapcNotifiers;
 
 public:
 					CThread(void);
