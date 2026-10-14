@@ -27,7 +27,7 @@ bool CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTreeMemory, char* szDirect
 	ReturnOnFalse(cController.End());
 	cController.Kill();
 	cIndexTreeFile.Kill();
-	cHelper.Kill(true);
+	cHelper.Kill(false);
 	return true;
 }
 
