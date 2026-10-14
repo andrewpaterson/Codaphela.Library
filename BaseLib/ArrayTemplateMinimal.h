@@ -29,6 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayElementNotFound.h"
 #include "FastMemcpy.h"
 #include "FastMemcpyBackwards.h"
+#include "StringHelper.h"
 #include "ArrayBlockMinimal.h"
 
 

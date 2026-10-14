@@ -70,8 +70,6 @@ public:
 			bool			Save(CFileWriter* pcFileWriter);
 			bool			Load(CFileReader* pcFileReader);
 
-			void			Dump(void);
-
 			void			Add(const SVec2<M, N>& v);
 			void			Add(SVec2<M, N>* pv);
 			void			Subtract(const SVec2<M, N>& v);
@@ -321,23 +319,6 @@ bool SVec2<M, N>::Load(CFileReader* pcFileReader)
 	bResult = pcFileReader->ReadPrimitive<M>(&x);
 	bResult &= pcFileReader->ReadPrimitive<M>(&y);
 	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M, class N>
-void SVec2<M, N>::Dump(void)
-{
-	CChars	sz;
-
-	sz.Init();
-	Print(&sz);
-	sz.AppendNewLine();
-	sz.Dump();
-	sz.Kill();
 }
 
 
