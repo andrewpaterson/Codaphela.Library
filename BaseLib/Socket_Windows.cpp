@@ -20,11 +20,38 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include "Logger.h"
 #include "Chars.h"
 #include "Socket.h"
+
+
+static_assert(sizeof(SOCKET) <= SOCKET_HANDLE_SIZE, "SOCKET_HANDLE_SIZE is too small for a SOCKET.");
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void SetSocketHandle(uint8* paSocket, SOCKET hSocket)
+{
+	memcpy(paSocket, &hSocket, sizeof(SOCKET));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SOCKET GetSocketHandle(uint8* paSocket)
+{
+	SOCKET	hSocket;
+
+	memcpy(&hSocket, paSocket, sizeof(SOCKET));
+	return hSocket;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -35,6 +62,7 @@ void CSocket::Init(int iPort)
 {
 	mszPortNumber.Init();
 	mszPortNumber.Append(iPort);
+	SetSocketHandle(maSocket, INVALID_SOCKET);
 }
 
 
@@ -56,11 +84,11 @@ int CSocket::Receive(void* pvBuffer, int iBufferLength)
 {
 	int		iResult;
 
-	iResult = recv(mSocket, (char*)pvBuffer, iBufferLength, 0);
+	iResult = recv(GetSocketHandle(maSocket), (char*)pvBuffer, iBufferLength, 0);
 	if (iResult < 0)
 	{
 		gcLogger.Error("recv failed with error");
-		return SOCKET_ERROR;
+		return SOCKET_RESULT_ERROR;
 	}
 	else
 	{
@@ -77,11 +105,11 @@ int CSocket::Send(void* pvBuffer, int iBufferLength)
 {
 	int		iSendResult;
 
-	iSendResult = send(mSocket, (char*)pvBuffer, iBufferLength, 0);
+	iSendResult = send(GetSocketHandle(maSocket), (char*)pvBuffer, iBufferLength, 0);
 	if (iSendResult == SOCKET_ERROR) 
 	{
 		gcLogger.Error("send failed with error");
-		return SOCKET_ERROR;
+		return SOCKET_RESULT_ERROR;
 	}
 	else
 	{
@@ -118,3 +146,6 @@ void SocketsKill(void)
 {
 	WSACleanup();
 }
+
+
+#endif // _WIN32

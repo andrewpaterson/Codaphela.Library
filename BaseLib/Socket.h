@@ -22,16 +22,22 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __SOCKET_H__
 #define __SOCKET_H__
-#include <winsock.h>
 #include "Define.h"
 #include "Chars.h"
+
+
+//Large enough to hold a Windows SOCKET or a Linux socket file descriptor.
+#define SOCKET_HANDLE_SIZE		8
+
+//Returned by Receive and Send on failure.
+#define SOCKET_RESULT_ERROR		-1
 
 
 class CSocket
 {
 public:
 	CChars	mszPortNumber;
-	SOCKET	mSocket;
+	uint8	maSocket[SOCKET_HANDLE_SIZE];
 
 	void	Init(int iPort);
 	void	Kill(void);

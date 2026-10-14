@@ -20,14 +20,16 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#ifndef __LISTEN_SOCKET_H__
+#define __LISTEN_SOCKET_H__
 #include "Socket.h"
 
 
 class CListenSocket : public CSocket
 {
 protected:
-	SOCKET		mListenSocket;
-	bool		mbListening;
+	uint8	maListenSocket[SOCKET_HANDLE_SIZE];
+	bool	mbListening;
 
 public:
 	bool Init(int iPort);
@@ -35,4 +37,7 @@ public:
 
 	bool Listen(void);
 };
+
+
+#endif // __LISTEN_SOCKET_H__
 

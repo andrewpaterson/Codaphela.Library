@@ -2477,13 +2477,22 @@
     <ClCompile Include="Timer_Windows.cpp">
       <Filter>Source\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="ConnectSocket.cpp">
+    <ClCompile Include="ConnectSocket_Windows.cpp">
       <Filter>Source\Windows\Socket</Filter>
     </ClCompile>
-    <ClCompile Include="ListenSocket.cpp">
+    <ClCompile Include="ConnectSocket_Linux.cpp">
       <Filter>Source\Windows\Socket</Filter>
     </ClCompile>
-    <ClCompile Include="Socket.cpp">
+    <ClCompile Include="ListenSocket_Windows.cpp">
+      <Filter>Source\Windows\Socket</Filter>
+    </ClCompile>
+    <ClCompile Include="ListenSocket_Linux.cpp">
+      <Filter>Source\Windows\Socket</Filter>
+    </ClCompile>
+    <ClCompile Include="Socket_Windows.cpp">
+      <Filter>Source\Windows\Socket</Filter>
+    </ClCompile>
+    <ClCompile Include="Socket_Linux.cpp">
       <Filter>Source\Windows\Socket</Filter>
     </ClCompile>
     <ClCompile Include="Operators.cpp">

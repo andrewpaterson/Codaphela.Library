@@ -20,6 +20,8 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#ifndef __CONNECT_SOCKET_H__
+#define __CONNECT_SOCKET_H__
 #include "Socket.h"
 
 
@@ -34,4 +36,7 @@ public:
 
 	bool	Connect(void);
 };
+
+
+#endif // __CONNECT_SOCKET_H__
 
