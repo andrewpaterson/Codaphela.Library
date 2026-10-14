@@ -1105,7 +1105,7 @@ void CArrayBlock::Shuffle(CRandom* pcRandom)
 	iNumElements = NumElements();
 	for (i = 0; i < iNumElements; i++)
 	{
-		iIndex = cRandom.Next(i, iNumElements - 1);
+		iIndex = pcRandom->Next(i, iNumElements - 1);
 		Swap(i, iIndex);
 	}
 
