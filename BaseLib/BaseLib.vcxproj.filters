@@ -990,6 +990,9 @@
     <ClInclude Include="CountingAllocator.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
+    <ClInclude Include="MersenneTwister.h">
+      <Filter>Source\Math\Random</Filter>
+    </ClInclude>
     <ClInclude Include="StdRandom.h">
       <Filter>Source\Math\Random</Filter>
     </ClInclude>
@@ -2236,6 +2239,9 @@
     </ClCompile>
     <ClCompile Include="CountingAllocator.cpp">
       <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="MersenneTwister.cpp">
+      <Filter>Source\Math\Random</Filter>
     </ClCompile>
     <ClCompile Include="StdRandom.cpp">
       <Filter>Source\Math\Random</Filter>

@@ -1,13 +1,13 @@
 #ifndef __STD_RANDOM_H__
 #define __STD_RANDOM_H__
-#include <random>
 #include "PrimitiveTypes.h"
+#include "MersenneTwister.h"
 
 
 class CRandom
 {
 private:
-	std::mt19937	mcRNG;
+	CMersenneTwister	mcRNG;
 
 public:
 	void	Init(void);

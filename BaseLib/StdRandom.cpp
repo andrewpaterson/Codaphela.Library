@@ -1,4 +1,3 @@
-#include <chrono>
 #include "DataTypes.h"
 #include "StdRandom.h"
 
@@ -9,11 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CRandom::Init(void)
 {
-	std::random_device r;
-	std::default_random_engine eng{ r() };
-	std::uniform_int_distribution<int> urd(0, MAX_INT32);
-	int iSeed = urd(eng);
-	Init(iSeed);
+	mcRNG.Init();
 }
 
 
@@ -23,7 +18,7 @@ void CRandom::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CRandom::Init(uint iSeed)
 {
-	mcRNG.seed(iSeed);
+	mcRNG.Init(iSeed);
 }
 
 
@@ -33,6 +28,7 @@ void CRandom::Init(uint iSeed)
 //////////////////////////////////////////////////////////////////////////
 void CRandom::Kill(void)
 {
+	mcRNG.Kill();
 }
 
 
@@ -42,8 +38,6 @@ void CRandom::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int CRandom::Next(int iMin, int iMaxInclusive)
 {
-	std::uniform_int_distribution<int> range(iMin, iMaxInclusive);
-	
-	return range(mcRNG);
+	return mcRNG.Next(iMin, iMaxInclusive);
 }
 
