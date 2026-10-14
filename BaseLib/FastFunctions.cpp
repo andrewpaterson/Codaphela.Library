@@ -58,7 +58,15 @@ void memmove_fast(void* pvDest, void* pvSource, int iByteSize)
 {
 	if (pvDest < pvSource)
 	{
-		memcpy_fast(pvDest, pvSource, iByteSize);
+		//memcpy_large is a plain memcpy, which is not safe for overlapping memory.
+		if (iByteSize <= 64)
+		{
+			memcpy_fast(pvDest, pvSource, iByteSize);
+		}
+		else
+		{
+			memmove(pvDest, pvSource, iByteSize);
+		}
 	}
 	else if (pvDest > pvSource)
 	{

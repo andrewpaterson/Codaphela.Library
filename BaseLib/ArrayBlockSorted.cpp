@@ -337,7 +337,7 @@ void CArrayBlockSorted::InsertHoldingIntoSorted(size* paiInsertionIndices, size 
 			length = nextSortedIndex - sortedIndex;
 			startIndex = indexIndex;
 			nextSortedIndex = nextSortedIndex - length;
-			memcpy(RemapSinglePointer(pvSortedArrayElementData, (destIndex + 1) * miElementSize), RemapSinglePointer(pvSortedArrayElementData, sortedIndex * miElementSize), length * miElementSize);
+			memmove(RemapSinglePointer(pvSortedArrayElementData, (destIndex + 1) * miElementSize), RemapSinglePointer(pvSortedArrayElementData, sortedIndex * miElementSize), length * miElementSize);
 		}
 		else
 		{
