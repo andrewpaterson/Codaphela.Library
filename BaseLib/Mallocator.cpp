@@ -55,9 +55,9 @@ size guiMaxDebugAllocatorSize = SIZE_MAX;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void InitAllocatorDebug(void)
+void InitAllocatorDebug(size uiMaxDebugAllocatorSize)
 {
-	guiMaxDebugAllocatorSize = 1 MB;
+	guiMaxDebugAllocatorSize = uiMaxDebugAllocatorSize;
 }
 
 
