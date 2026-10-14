@@ -1,3 +1,4 @@
+#ifdef _WIN32
 #include "WindowsError.h"
 
 
@@ -7,7 +8,6 @@
 //////////////////////////////////////////////////////////////////////////
 char* WindowsErrorCodeToString(DWORD errorMessageID)
 {
-#ifdef _WIN32
     int iCount = IncrementLogToStringCount();
     int iLen;
 
@@ -33,8 +33,8 @@ char* WindowsErrorCodeToString(DWORD errorMessageID)
         LocalFree(messageBuffer);
     }
     return gaszLogToStringScratchPad[iCount];
-#elif
-    return "";
-#endif
 }
+
+
+#endif // _WIN32
 
