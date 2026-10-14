@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 #include "FatTime.h"
 
 // date/time macros
@@ -45,7 +46,7 @@ uint16 GetSystemClockTime(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-time_t FatDecodeDateTime(uint16 date, uint16 time)
+int64 FatDecodeDateTime(uint16 date, uint16 time)
 {
 	//YYYYYYYMMMMDDDDD
 	//0000000000011111
@@ -65,7 +66,7 @@ time_t FatDecodeDateTime(uint16 date, uint16 time)
 	tm.tm_hour = (time) >> 11;
 	tm.tm_min = ((time) & 0x7E0) >> 5;
 	tm.tm_sec = ((time) & 0x1F) << 1;
-	return mktime(&tm);
+	return (int64)mktime(&tm);
 }
 
 

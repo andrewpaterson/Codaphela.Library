@@ -398,15 +398,15 @@ EFatCode PrintRootDirectoryEntries(CChars* psz, CFatVolume* pcVolume, bool bPrin
 					if (bPrintTimes)
 					{
 						psz->Append("Created:    ");
-						psz->Append((int64)FatDecodeDateTime(psEntry->uEntry.sFatRawCommon.uiCreateDate, psEntry->uEntry.sFatRawCommon.uiCreateTime));
+						psz->Append(FatDecodeDateTime(psEntry->uEntry.sFatRawCommon.uiCreateDate, psEntry->uEntry.sFatRawCommon.uiCreateTime));
 						psz->AppendNewLine();
 
 						psz->Append("Accessed:   ");
-						psz->Append((int64)FatDecodeDateTime(psEntry->uEntry.sFatRawCommon.uiAccessDate, 0));
+						psz->Append(FatDecodeDateTime(psEntry->uEntry.sFatRawCommon.uiAccessDate, 0));
 						psz->AppendNewLine();
 
 						psz->Append("Modified:   ");
-						psz->Append((int64)FatDecodeDateTime(psEntry->uEntry.sFatRawCommon.uiModifyDate, psEntry->uEntry.sFatRawCommon.uiModifyTime));
+						psz->Append(FatDecodeDateTime(psEntry->uEntry.sFatRawCommon.uiModifyDate, psEntry->uEntry.sFatRawCommon.uiModifyTime));
 						psz->AppendNewLine();
 					}
 				}
