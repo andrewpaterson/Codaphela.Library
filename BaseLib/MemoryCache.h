@@ -58,6 +58,7 @@ public:
 	size	NumElements(size iSize);
 	size	GetDescriptorSize(void);
 	size	GetCacheSize(void);
+	void*	GetCache(void);
 	size	GetAllocatedSize(void);
 	bool	CanCache(size uiDataSize);
 	bool	ValidateCache(void);
