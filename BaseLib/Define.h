@@ -99,6 +99,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define FILE_SEPARATOR "/"
 #define _FS_ FILE_SEPARATOR
 #define OTHER_OS_FILE_SEPARATOR "\\"
+#define __cdecl
 #define __ENGINE_FUNCTION__ __FUNCTION__
 #define __ENGINE_PRETTY_FUNCTION__ __PRETTY_FUNCTION__
 #endif // LINUX_GNU_32

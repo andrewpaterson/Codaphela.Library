@@ -1146,7 +1146,7 @@ CIndexTreeNodeFile* CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCur
 
 	if (pcCurrent->GetDataSize() == 0)
 	{
-		return false;
+		return NULL;
 	}
 
 	bResult = true;

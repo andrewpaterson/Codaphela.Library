@@ -345,7 +345,7 @@ CLogFileCommandOpen* CLogFile::AddOpenCommand(EFileMode eFileMode)
 		AddCommandErrorString(&szError, __METHOD__, &sCommand, mpcBackingFile);
 		gcLogger.Error(szError.Text());
 		szError.Kill();
-		return false;
+		return NULL;
 	}
 
 

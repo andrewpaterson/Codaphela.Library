@@ -73,7 +73,7 @@ CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 	if (!pcFileReader->ReadStringLength(&iLength))
 	{
 		gcLogger.Error2(__METHOD__, " Could not read mallocator name length.", NULL);
-		return false;
+		return NULL;
 	}
 
 	if (iLength >= 1024)
@@ -84,7 +84,7 @@ CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 	if (!pcFileReader->ReadStringChars(szShortName, iLength))
 	{
 		gcLogger.Error2(__METHOD__, " Could not read mallocator name.", NULL);
-		return false;
+		return NULL;
 	}
 
 	szClassName =  mmShortNames.Get(szShortName);
@@ -92,14 +92,14 @@ CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 	{
 		mmShortNames.Dump();
 		gcLogger.Error2(__METHOD__, " Could not find mallocator for int16 name [", szShortName, "].", NULL);
-		return false;
+		return NULL;
 	}
 
 	ppcMallocator = mmszClasses.Get(szClassName);
 	if (!ppcMallocator)
 	{
 		gcLogger.Error2(__METHOD__, " Could not find mallocator named [", szClassName, "].", NULL);
-		return false;
+		return NULL;
 	}
 
 	if ((*ppcMallocator)->IsLocal())

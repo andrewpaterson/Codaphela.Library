@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "StringHelper.h"
 #include "Logger.h"
 #include "StackMemory.h"
 #include "NamedIndexedHeader.h"
@@ -599,7 +600,7 @@ bool CNamedIndexedData::GetName(OIndex oi, char* szName, uint32* puiNameLength, 
 	{
 		szSourceName = pcHeader->GetName();
 		iNameLength = pcHeader->GetNameLength();
-		strcpy_s(szName, uiMaxNameLength, szSourceName);
+		StrCpySafe(szName, szSourceName, uiMaxNameLength);
 		SafeAssign(puiNameLength, iNameLength);
 		cStack.Kill();
 		return true;
