@@ -28,6 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "DataCompare.h"
 #include "ArrayElementNotFound.h"
 #include "FastMemcpy.h"
+#include "FastMemcpyBackwards.h"
 #include "ArrayBlockMinimal.h"
 
 
@@ -950,7 +951,7 @@ void CArrayTemplateMinimal<M>::RemoveBatch(size uiFirstElementPos, size uiNumInB
 			pcDest = Get(uiDest);
 			pcSource = Get(uiSource);
 
-			memcpy(pcDest, pcSource, uiCopyWidth);
+			memmove(pcDest, pcSource, uiCopyWidth);
 		}
 	}
 
@@ -962,7 +963,7 @@ void CArrayTemplateMinimal<M>::RemoveBatch(size uiFirstElementPos, size uiNumInB
 		pcSource = Get(uiSource);
 
 		uiCopyWidth = (miUsedElements - uiSource) * sizeof(M);
-		memcpy(pcDest, pcSource, uiCopyWidth);
+		memmove(pcDest, pcSource, uiCopyWidth);
 
 		uiNewNumElements = miUsedElements - (uiNumInBatch * uiNumBatches);
 		SetArraySize(uiNewNumElements);
@@ -1009,7 +1010,7 @@ void CArrayTemplateMinimal<M>::InsertBatch(size iFirstElementPos, size uiNumInBa
 		if ((iOldNumElements - iSource) > iFirstElementPos)
 		{
 			iRemaining = (iOldNumElements - iSource) - iFirstElementPos;
-			memcpy(pcDest, pcSource, iRemaining * sizeof(M));
+			memmove(pcDest, pcSource, iRemaining * sizeof(M));
 		}
 	}
 
@@ -1062,7 +1063,7 @@ void CArrayTemplateMinimal<M>::InsertBatch(size iFirstElementPos, size uiNumInBa
 			do
 			{
 				i--;
-				memcpy_fast_8bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+				memcpy_fast_backwards_8bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
 			}
 			while (i != 0);
 		}
@@ -1075,7 +1076,7 @@ void CArrayTemplateMinimal<M>::InsertBatch(size iFirstElementPos, size uiNumInBa
 			do
 			{
 				i--;
-				memcpy_fast_12bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+				memcpy_fast_backwards_12bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
 			}
 			while (i != 0);
 		}
@@ -1088,7 +1089,7 @@ void CArrayTemplateMinimal<M>::InsertBatch(size iFirstElementPos, size uiNumInBa
 			do
 			{
 				i--;
-				memcpy(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), iStride);
+				memmove(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), iStride);
 			}
 			while (i != 0);
 		}

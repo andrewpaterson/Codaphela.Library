@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#ifdef _WIN32
 #include <stdio.h>
 #include <io.h>
 #include "WindowsHeaders.h"
@@ -476,3 +477,4 @@ CDiskFile* DiskFile(const char* szName)
 	return pcDiskFile;
 }
 
+#endif //_WIN32

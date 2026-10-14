@@ -1961,6 +1961,9 @@
     <ClCompile Include="DiskFile.cpp">
       <Filter>Source\File\Chains</Filter>
     </ClCompile>
+    <ClCompile Include="DiskFile_Linux.cpp">
+      <Filter>Source\File\Chains</Filter>
+    </ClCompile>
     <ClCompile Include="MD5HashFile.cpp">
       <Filter>Source\File\Chains</Filter>
     </ClCompile>

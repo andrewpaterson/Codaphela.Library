@@ -177,7 +177,7 @@ bool CFileUtil::Delete(const char*szFilename)
     int     iResult;
 
 	iResult = unlink(szFilename);
-	if (iResult == 0)
+	if ((iResult == 0) || (errno == ENOENT))
 	{
 	    return true;
 	}
