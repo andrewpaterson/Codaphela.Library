@@ -23,6 +23,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifdef LINUX_GNU_32
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
@@ -263,10 +265,52 @@ char CFileUtil::GetDriveLetter(const char*szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void FreeDirEnts(struct dirent** apDirEnts, int iNumDirEnts)
+{
+	int		i;
+
+	for (i = 0; i < iNumDirEnts; i++)
+	{
+		free(apDirEnts[i]);
+	}
+	free(apDirEnts);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CompareDirEntsNTFS(const struct dirent** ppDirEnt1, const struct dirent** ppDirEnt2)
+{
+	//Match the order NTFS returns directory entries in: names compared upper-cased.
+	const unsigned char*	ps1;
+	const unsigned char*	ps2;
+	int						c1;
+	int						c2;
+
+	ps1 = (const unsigned char*)(*ppDirEnt1)->d_name;
+	ps2 = (const unsigned char*)(*ppDirEnt2)->d_name;
+	do
+	{
+		c1 = toupper(*ps1++);
+		c2 = toupper(*ps2++);
+	}
+	while ((c1 == c2) && (c1 != 0));
+	return c1 - c2;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInName, const char*szExtension, CArrayChars* paszFiles, bool bHidden)
 {
-	DIR*                pDIR;
+	struct dirent**     apDirEnts;
 	struct dirent*      pDirEnt;
+	int                 iNumDirEnts;
+	int                 i;
 	CChars				szFindName;
     CChars				szTemp;
 	bool				bValid;
@@ -282,17 +326,16 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
 	szDirectory.Init(szInDirectory);
 	FullPath(&szDirectory);
 
-	pDIR = opendir(szDirectory.Text());
-
-	if (pDIR == NULL)
+	iNumDirEnts = scandir(szDirectory.Text(), &apDirEnts, NULL, CompareDirEntsNTFS);
+	if (iNumDirEnts < 0)
 	{
 	    szDirectory.Kill();
 		return true;
 	}
 
-	pDirEnt = readdir(pDIR);
-	while (pDirEnt != NULL)
+	for (i = 0; i < iNumDirEnts; i++)
 	{
+		pDirEnt = apDirEnts[i];
 		bValid = true;
 
 		szTemp.Init(szDirectory);
@@ -305,6 +348,7 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
 			printf("%s: %s\n", strerror(errno), szTemp.Text());
 			szTemp.Kill();
 			szDirectory.Kill();
+			FreeDirEnts(apDirEnts, iNumDirEnts);
 			return false;
 		}
 
@@ -382,11 +426,9 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
                 szTemp.Kill();
             }
         }
-
-		pDirEnt = readdir(pDIR);
 	}
 
-	closedir(pDIR);
+	FreeDirEnts(apDirEnts, iNumDirEnts);
 	return true;
 }
 
