@@ -113,7 +113,9 @@ bool CFileUtil::RecurseRemoveDir(const char*szPathName)
 
     if (pDIR == NULL)
     {
-        return false;
+        //A directory that does not exist is already removed, matching Windows.
+        szDirectory.Kill();
+        return errno == ENOENT;
     }
 
     pDirEnt = readdir(pDIR);
