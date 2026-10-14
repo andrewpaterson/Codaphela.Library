@@ -54,9 +54,6 @@ public:
 };
 
 
-void DebugTimerTick(void);
-
-
 extern CTimer	gcTimer;
 
 
