@@ -326,7 +326,7 @@ char* CMapAccess::PutKeyString(void* pvKey, size iKeySize, const char* pszData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CMapAccess::GetString(void* pvKey, size iKeySize)
+char* CMapAccess::GetString(const void* pvKey, size iKeySize)
 {
 	return (char*)Get(pvKey, iKeySize, NULL);
 }

@@ -680,7 +680,7 @@ bool CIndexTreeFile::Get(uint8* pvKey, size iKeySize, void* pvData, size* piData
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeFile::Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize)
+bool CIndexTreeFile::Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	bool					bResult;
@@ -764,7 +764,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateKey(uint8* pvKey, size iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::SetNodeData(CIndexTreeNodeFile* pcCurrent, void* pvData, size uiDataSize)
+CIndexTreeNodeFile* CIndexTreeFile::SetNodeData(CIndexTreeNodeFile* pcCurrent, const void* pvData, size uiDataSize)
 {
 	CIndexTreeNodeFile*		pcReallocatedCurrent;
 	size					uiOldDataSize;
@@ -890,7 +890,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForContainIndex(CIndexTreeNode
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForLargerData(CIndexTreeNodeFile* pcNode, void* pvData, size uiDataSize)
+CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForLargerData(CIndexTreeNodeFile* pcNode, const void* pvData, size uiDataSize)
 {
 	size					tNewNodeSize;
 	CIndexTreeNodeFile*		pcOldNode;
@@ -917,7 +917,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForLargerData(CIndexTreeNodeFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForSmallerData(CIndexTreeNodeFile* pcNode, void* pvData, size uiDataSize)
+CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForSmallerData(CIndexTreeNodeFile* pcNode, const void* pvData, size uiDataSize)
 {
 	size					tNewNodeSize;
 	size					uiOriginalSize;

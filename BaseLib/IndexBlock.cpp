@@ -151,7 +151,7 @@ void* CIndexBlock::Put(uint8* pvKey, size iKeySize, size iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CIndexBlock::Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize)
+bool CIndexBlock::Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize)
 {
 	void*	pv;
 

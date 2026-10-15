@@ -94,7 +94,7 @@ bool CIndexedDataCommon::Set(OIndex oi, void* pvData, size uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataCommon::Put(OIndex oi, void* pvData, size uiDataSize)
+bool CIndexedDataCommon::Put(OIndex oi, const void* pvData, size uiDataSize)
 {
 	bool					bExists;
 	CIndexedDataDescriptor	cDescriptor;

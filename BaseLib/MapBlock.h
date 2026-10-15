@@ -34,19 +34,19 @@ public:
 	void				Kill(void);
 	void				ReInit(void);
 
-	bool				Get(void* pvKey, size iKeySize, void** ppvData, size* piDataSize);
-	void*				Get(void* pvKey, size iKeySize);
-	SMNode*				GetNode(void* pvKey, size iKeySize);
+	bool				Get(const void* pvKey, size iKeySize, void** ppvData, size* piDataSize);
+	void*				Get(const void* pvKey, size iKeySize);
+	SMNode*				GetNode(const void* pvKey, size iKeySize);
 	SMNode*				GetNode(SMapIterator* psIterator);
 
-	void*				Put(void* pvKey, size iKeySize, size iDataSize);
-	bool				Put(void* psKey, size iKeySize, void* pvData, size iDataSize);
+	void*				Put(const void* pvKey, size iKeySize, size iDataSize);
+	bool				Put(const void* psKey, size iKeySize, const void* pvData, size iDataSize);
 
-	bool				Remove(void* pvKey, size iKeySize);
+	bool				Remove(const void* pvKey, size iKeySize);
 
 	size				DataSize(void* pvKey, size iKeySize);
 
-	bool				HasKey(void* pvKey, size iKeySize);
+	bool				HasKey(const void* pvKey, size iKeySize);
 
 	size				NumElements(void);
 	size				GetSortedSize(void);

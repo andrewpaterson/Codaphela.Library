@@ -62,8 +62,8 @@ public:
 
 	bool			Read(CFileDataIndex* pcDataIndex, void* pvData);
 	bool			Delete(CFileDataIndex* pcDataIndex);
-	CFileDataIndex	WriteNew(void* pvData, size iDataSize);
-	bool			WriteExisting(CFileDataIndex* pcDataIndex, void* pvData, size iDataSize);
+	CFileDataIndex	WriteNew(const void* pvData, size iDataSize);
+	bool			WriteExisting(CFileDataIndex* pcDataIndex, const void* pvData, size iDataSize);
 
 	bool			IsDurable(void);
 	

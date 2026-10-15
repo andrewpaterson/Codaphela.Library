@@ -72,7 +72,7 @@ void CIndexMapAccess::FreeIterator(CMapIterator* pcIter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CIndexMapAccess::Put(void* pvKey, size iKeySize, void* pvData, size uiDataSize)
+void* CIndexMapAccess::Put(const void* pvKey, size iKeySize, const void* pvData, size uiDataSize)
 {
 	void* pv;
 
@@ -93,7 +93,7 @@ void* CIndexMapAccess::Put(void* pvKey, size iKeySize, void* pvData, size uiData
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CIndexMapAccess::Get(void* pvKey, size iKeySize, size* puiDataSize)
+void* CIndexMapAccess::Get(const void* pvKey, size iKeySize, size* puiDataSize)
 {
 	bool	bResult;
 	void* pvData;
@@ -124,7 +124,7 @@ size CIndexMapAccess::DataSize(void* pvKey, size iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CIndexMapAccess::Remove(void* pvKey, size iKeySize)
+bool CIndexMapAccess::Remove(const void* pvKey, size iKeySize)
 {
 	return mpcIndex->Remove((uint8*)pvKey, iKeySize);
 }
@@ -134,7 +134,7 @@ bool CIndexMapAccess::Remove(void* pvKey, size iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CIndexMapAccess::Has(void* pvKey, size iKeySize)
+bool CIndexMapAccess::Has(const void* pvKey, size iKeySize)
 {
 	return mpcIndex->HasKey((uint8*)pvKey, iKeySize);
 }

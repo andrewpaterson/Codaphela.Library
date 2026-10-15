@@ -68,7 +68,7 @@ void CMapIndexAccess::Dump(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapIndexAccess::Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize)
+bool CMapIndexAccess::Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize)
 {
 	return mpcMap->Put(pvKey, iKeySize, pvData, iDataSize);
 }

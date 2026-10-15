@@ -109,7 +109,7 @@ void* CMapStringBlock::Put(const char* szKey, size uiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapStringBlock::Put(const char* szKey, void* psData, size uiDataSize)
+bool CMapStringBlock::Put(const char* szKey, const void* psData, size uiDataSize)
 {
 	size	iStrLen;
 

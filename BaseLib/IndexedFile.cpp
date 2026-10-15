@@ -94,7 +94,7 @@ bool CIndexedFile::IsFull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
- filePos CIndexedFile::Write(void* pvData)
+ filePos CIndexedFile::Write(const void* pvData)
 {
 	return Write(pvData, 1);
 }
@@ -104,7 +104,7 @@ bool CIndexedFile::IsFull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFile::Write(filePos iIndex, void* pvData)
+bool CIndexedFile::Write(filePos iIndex, const void* pvData)
 {
 	return Write(iIndex, pvData, 1);
 }
@@ -114,7 +114,7 @@ bool CIndexedFile::Write(filePos iIndex, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CIndexedFile::Write(void* pvData, size uiCount)
+filePos CIndexedFile::Write(const void* pvData, size uiCount)
 {
 	filePos		iFilePos;
 	size		uiWritten;
@@ -152,7 +152,7 @@ filePos CIndexedFile::Write(void* pvData, size uiCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFile::Write(filePos iIndex, void* pvData, size uiCount)
+bool CIndexedFile::Write(filePos iIndex, const void* pvData, size uiCount)
 {
 	size		uiWritten;
 	filePos		iFileLengh;

@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteData(void* pvData, size iDataSize)
+bool CFileWriter::WriteData(const void* pvData, size iDataSize)
 {
 	CheckWrite(pvData, iDataSize);
 	return true;

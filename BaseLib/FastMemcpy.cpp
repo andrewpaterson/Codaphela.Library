@@ -110,51 +110,51 @@ void InitMemcpyFast(void)
 }
 
 
-void memcpy_fast_0bytes(void* pvDest, void* pvSource)
+void memcpy_fast_0bytes(void* pvDest, const void* pvSource)
 {
 }
 
 
-void memcpy_fast_1byte(void* pvDest, void* pvSource)
+void memcpy_fast_1byte(void* pvDest, const void* pvSource)
 {
 	((char*)pvDest)[0] = ((char*)pvSource)[0];
 }
 
 
-void memcpy_fast_2bytes(void* pvDest, void* pvSource)
+void memcpy_fast_2bytes(void* pvDest, const void* pvSource)
 {
 	((int16*)pvDest)[0] = ((int16*)pvSource)[0];
 }
 
 
-void memcpy_fast_3bytes(void* pvDest, void* pvSource)
+void memcpy_fast_3bytes(void* pvDest, const void* pvSource)
 {
 	((int16*)pvDest)[0] = ((int16*)pvSource)[0];
 	((char*)pvDest)[2] = ((char*)pvSource)[2];
 }
 
 
-void memcpy_fast_4bytes(void* pvDest, void* pvSource)
+void memcpy_fast_4bytes(void* pvDest, const void* pvSource)
 {
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 }
 
 
-void memcpy_fast_5bytes(void* pvDest, void* pvSource)
+void memcpy_fast_5bytes(void* pvDest, const void* pvSource)
 {
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 	((char*)pvDest)[4] = ((char*)pvSource)[4];
 }
 
 
-void memcpy_fast_6bytes(void* pvDest, void* pvSource)
+void memcpy_fast_6bytes(void* pvDest, const void* pvSource)
 {
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 	((int16*)pvDest)[2] = ((int16*)pvSource)[2];
 }
 
 
-void memcpy_fast_7bytes(void* pvDest, void* pvSource)
+void memcpy_fast_7bytes(void* pvDest, const void* pvSource)
 {
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 	((int16*)pvDest)[2] = ((int16*)pvSource)[2];
@@ -163,14 +163,14 @@ void memcpy_fast_7bytes(void* pvDest, void* pvSource)
 
 
 
-void memcpy_fast_8bytes(void* pvDest, void* pvSource)
+void memcpy_fast_8bytes(void* pvDest, const void* pvSource)
 {
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 	((int*)pvDest)[1] = ((int*)pvSource)[1];
 }
 
 
-void memcpy_fast_9bytes(void* pvDest, void* pvSource)
+void memcpy_fast_9bytes(void* pvDest, const void* pvSource)
 {
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 	((int*)pvDest)[1] = ((int*)pvSource)[1];
@@ -178,7 +178,7 @@ void memcpy_fast_9bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_10bytes(void* pvDest, void* pvSource)
+void memcpy_fast_10bytes(void* pvDest, const void* pvSource)
 {
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 	((int*)pvDest)[1] = ((int*)pvSource)[1];
@@ -186,7 +186,7 @@ void memcpy_fast_10bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_11bytes(void* pvDest, void* pvSource)
+void memcpy_fast_11bytes(void* pvDest, const void* pvSource)
 {
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 	((int*)pvDest)[1] = ((int*)pvSource)[1];
@@ -195,7 +195,7 @@ void memcpy_fast_11bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_12bytes(void* pvDest, void* pvSource)
+void memcpy_fast_12bytes(void* pvDest, const void* pvSource)
 {
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 	((int*)pvDest)[1] = ((int*)pvSource)[1];
@@ -203,7 +203,7 @@ void memcpy_fast_12bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_13bytes(void* pvDest, void* pvSource)
+void memcpy_fast_13bytes(void* pvDest, const void* pvSource)
 {
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 	((int*)pvDest)[1] = ((int*)pvSource)[1];
@@ -212,7 +212,7 @@ void memcpy_fast_13bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_14bytes(void* pvDest, void* pvSource)
+void memcpy_fast_14bytes(void* pvDest, const void* pvSource)
 {
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 	((int*)pvDest)[1] = ((int*)pvSource)[1];
@@ -221,7 +221,7 @@ void memcpy_fast_14bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_15bytes(void* pvDest, void* pvSource)
+void memcpy_fast_15bytes(void* pvDest, const void* pvSource)
 {
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 	((int*)pvDest)[1] = ((int*)pvSource)[1];
@@ -231,7 +231,7 @@ void memcpy_fast_15bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_16bytes(void* pvDest, void* pvSource)
+void memcpy_fast_16bytes(void* pvDest, const void* pvSource)
 {
 	((int*)pvDest)[0] = ((int*)pvSource)[0];
 	((int*)pvDest)[1] = ((int*)pvSource)[1];
@@ -240,7 +240,7 @@ void memcpy_fast_16bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast(void* pvDest, void* pvSource, size uiByteSize)
+void memcpy_fast(void* pvDest, const void* pvSource, size uiByteSize)
 {
 	if (uiByteSize <= 64)
 	{
@@ -253,119 +253,119 @@ void memcpy_fast(void* pvDest, void* pvSource, size uiByteSize)
 }
 
 
-void memcpy_fast_17bytes(void* pvDest, void* pvSource)
+void memcpy_fast_17bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_1byte(&((char*)pvDest)[16], &((char*)pvSource)[16]);
 }
 
 
-void memcpy_fast_18bytes(void* pvDest, void* pvSource)
+void memcpy_fast_18bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_2bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
 }
 
 
-void memcpy_fast_19bytes(void* pvDest, void* pvSource)
+void memcpy_fast_19bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_3bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
 }
 
 
-void memcpy_fast_20bytes(void* pvDest, void* pvSource)
+void memcpy_fast_20bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_4bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
 }
 
 
-void memcpy_fast_21bytes(void* pvDest, void* pvSource)
+void memcpy_fast_21bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_5bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
 }
 
 
-void memcpy_fast_22bytes(void* pvDest, void* pvSource)
+void memcpy_fast_22bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_6bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
 }
 
 
-void memcpy_fast_23bytes(void* pvDest, void* pvSource)
+void memcpy_fast_23bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_7bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
 }
 
 
-void memcpy_fast_24bytes(void* pvDest, void* pvSource)
+void memcpy_fast_24bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_8bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
 }
 
 
-void memcpy_fast_25bytes(void* pvDest, void* pvSource)
+void memcpy_fast_25bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_9bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
 }
 
 
-void memcpy_fast_26bytes(void* pvDest, void* pvSource)
+void memcpy_fast_26bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_10bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
 }
 
 
-void memcpy_fast_27bytes(void* pvDest, void* pvSource)
+void memcpy_fast_27bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_11bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
 }
 
 
-void memcpy_fast_28bytes(void* pvDest, void* pvSource)
+void memcpy_fast_28bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_12bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
 }
 
 
-void memcpy_fast_29bytes(void* pvDest, void* pvSource)
+void memcpy_fast_29bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_13bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
 }
 
 
-void memcpy_fast_30bytes(void* pvDest, void* pvSource)
+void memcpy_fast_30bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_14bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
 }
 
 
-void memcpy_fast_31bytes(void* pvDest, void* pvSource)
+void memcpy_fast_31bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_15bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
 }
 
 
-void memcpy_fast_32bytes(void* pvDest, void* pvSource)
+void memcpy_fast_32bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
 }
 
 
-void memcpy_fast_33bytes(void* pvDest, void* pvSource)
+void memcpy_fast_33bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -373,7 +373,7 @@ void memcpy_fast_33bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_34bytes(void* pvDest, void* pvSource)
+void memcpy_fast_34bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -382,7 +382,7 @@ void memcpy_fast_34bytes(void* pvDest, void* pvSource)
 
 
 
-void memcpy_fast_35bytes(void* pvDest, void* pvSource)
+void memcpy_fast_35bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -391,7 +391,7 @@ void memcpy_fast_35bytes(void* pvDest, void* pvSource)
 
 
 
-void memcpy_fast_36bytes(void* pvDest, void* pvSource)
+void memcpy_fast_36bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -400,7 +400,7 @@ void memcpy_fast_36bytes(void* pvDest, void* pvSource)
 
 
 
-void memcpy_fast_37bytes(void* pvDest, void* pvSource)
+void memcpy_fast_37bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -409,7 +409,7 @@ void memcpy_fast_37bytes(void* pvDest, void* pvSource)
 
 
 
-void memcpy_fast_38bytes(void* pvDest, void* pvSource)
+void memcpy_fast_38bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -418,7 +418,7 @@ void memcpy_fast_38bytes(void* pvDest, void* pvSource)
 
 
 
-void memcpy_fast_39bytes(void* pvDest, void* pvSource)
+void memcpy_fast_39bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -427,7 +427,7 @@ void memcpy_fast_39bytes(void* pvDest, void* pvSource)
 
 
 
-void memcpy_fast_40bytes(void* pvDest, void* pvSource)
+void memcpy_fast_40bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -436,7 +436,7 @@ void memcpy_fast_40bytes(void* pvDest, void* pvSource)
 
 
 
-void memcpy_fast_41bytes(void* pvDest, void* pvSource)
+void memcpy_fast_41bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -445,7 +445,7 @@ void memcpy_fast_41bytes(void* pvDest, void* pvSource)
 
 
 
-void memcpy_fast_42bytes(void* pvDest, void* pvSource)
+void memcpy_fast_42bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -454,7 +454,7 @@ void memcpy_fast_42bytes(void* pvDest, void* pvSource)
 
 
 
-void memcpy_fast_43bytes(void* pvDest, void* pvSource)
+void memcpy_fast_43bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -462,7 +462,7 @@ void memcpy_fast_43bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_44bytes(void* pvDest, void* pvSource)
+void memcpy_fast_44bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -470,7 +470,7 @@ void memcpy_fast_44bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_45bytes(void* pvDest, void* pvSource)
+void memcpy_fast_45bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -478,7 +478,7 @@ void memcpy_fast_45bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_46bytes(void* pvDest, void* pvSource)
+void memcpy_fast_46bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -486,7 +486,7 @@ void memcpy_fast_46bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_47bytes(void* pvDest, void* pvSource)
+void memcpy_fast_47bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -494,7 +494,7 @@ void memcpy_fast_47bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_48bytes(void* pvDest, void* pvSource)
+void memcpy_fast_48bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -502,7 +502,7 @@ void memcpy_fast_48bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_49bytes(void* pvDest, void* pvSource)
+void memcpy_fast_49bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -511,7 +511,7 @@ void memcpy_fast_49bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_50bytes(void* pvDest, void* pvSource)
+void memcpy_fast_50bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -520,7 +520,7 @@ void memcpy_fast_50bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_51bytes(void* pvDest, void* pvSource)
+void memcpy_fast_51bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -529,7 +529,7 @@ void memcpy_fast_51bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_52bytes(void* pvDest, void* pvSource)
+void memcpy_fast_52bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -538,7 +538,7 @@ void memcpy_fast_52bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_53bytes(void* pvDest, void* pvSource)
+void memcpy_fast_53bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -547,7 +547,7 @@ void memcpy_fast_53bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_54bytes(void* pvDest, void* pvSource)
+void memcpy_fast_54bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -556,7 +556,7 @@ void memcpy_fast_54bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_55bytes(void* pvDest, void* pvSource)
+void memcpy_fast_55bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -565,7 +565,7 @@ void memcpy_fast_55bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_56bytes(void* pvDest, void* pvSource)
+void memcpy_fast_56bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -574,7 +574,7 @@ void memcpy_fast_56bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_57bytes(void* pvDest, void* pvSource)
+void memcpy_fast_57bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -583,7 +583,7 @@ void memcpy_fast_57bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_58bytes(void* pvDest, void* pvSource)
+void memcpy_fast_58bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -592,7 +592,7 @@ void memcpy_fast_58bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_59bytes(void* pvDest, void* pvSource)
+void memcpy_fast_59bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -601,7 +601,7 @@ void memcpy_fast_59bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_60bytes(void* pvDest, void* pvSource)
+void memcpy_fast_60bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -610,7 +610,7 @@ void memcpy_fast_60bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_61bytes(void* pvDest, void* pvSource)
+void memcpy_fast_61bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -619,7 +619,7 @@ void memcpy_fast_61bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_62bytes(void* pvDest, void* pvSource)
+void memcpy_fast_62bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -628,7 +628,7 @@ void memcpy_fast_62bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_63bytes(void* pvDest, void* pvSource)
+void memcpy_fast_63bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -637,7 +637,7 @@ void memcpy_fast_63bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_64bytes(void* pvDest, void* pvSource)
+void memcpy_fast_64bytes(void* pvDest, const void* pvSource)
 {
 	memcpy_fast_16bytes(pvDest, pvSource);
 	memcpy_fast_16bytes(&((char*)pvDest)[16], &((char*)pvSource)[16]);
@@ -646,7 +646,7 @@ void memcpy_fast_64bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_large(void* pvDest, void* pvSource, size uiByteSize)
+void memcpy_large(void* pvDest, const void* pvSource, size uiByteSize)
 {
 	memcpy(pvDest, pvSource, uiByteSize);
 }

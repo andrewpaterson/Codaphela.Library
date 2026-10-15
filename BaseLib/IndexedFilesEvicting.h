@@ -32,7 +32,7 @@ public:
 	void			Kill(void);
 
 	bool			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, size uiMaxDataSize);
-	bool			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, size uiDataSize);
+	bool			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, const void* pvData, size uiDataSize);
 
 	bool			Flush(bool bClearCache);
 	bool			IsFlushed(void);
@@ -55,10 +55,10 @@ public:
 	size			TestGetCachedObjectSize(OIndex oi);
 
 protected:
-	void*				SetCacheData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, size uiDataSize);
+	void*				SetCacheData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, const void* pvData, size uiDataSize);
 	CIndexedCacheResult	CacheAllocate(OIndex oi, size uiDataSize);
 
-	CFilePosIndex		WriteThroughData(CIndexedDataDescriptor* pcDescriptor, void* pvData, size uiDataSize);
+	CFilePosIndex		WriteThroughData(CIndexedDataDescriptor* pcDescriptor, const void* pvData, size uiDataSize);
 	bool				WriteEvictedData1b(SIndexedCacheDescriptor* psCached, void* pvData, EClearCache eClearCache, bool bNoEviction);
 	bool				EvictWriteData(CIndexedDataDescriptor* pcDescriptor, EClearCache eClearCache);
 	bool				WriteEvictedData2(CIndexedDataDescriptor* pcDescriptor, OIndex oi, void* pvData, EClearCache eClearCache, bool bNoEviction);

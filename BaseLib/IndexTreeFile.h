@@ -63,7 +63,7 @@ public:
 	void					ReInit(void) override;
 
 	bool					Get(uint8* pvKey, size iKeySize, void* pvObject, size* piDataSize, size uiMaxDataSize);
-	bool					Put(uint8* pvKey, size iKeySize, void* pvObject, size iDataSize);
+	bool					Put(uint8* pvKey, size iKeySize, const void* pvObject, size iDataSize);
 	bool					Remove(uint8* pvKey, size iKeySize);
 	bool					HasKey(uint8* pvKey, size iKeySize);
 	size					GetDataSize(uint8* pvKey, size iKeySize);
@@ -153,12 +153,12 @@ protected:
 	CIndexTreeNodeFile*		AllocateNodeFromBuffer(CIndexTreeNodeFile* pcParent, size uiIndexInParent, void* pvBuffer, int iMaxBufferSize);
 
 	CIndexTreeNodeFile*		ReallocateNodeForContainIndex(CIndexTreeNodeFile* pcNode, size uiIndex);
-	CIndexTreeNodeFile*		ReallocateNodeForLargerData(CIndexTreeNodeFile* pcNode, void* pvData, size uiDataSize);
-	CIndexTreeNodeFile*		ReallocateNodeForSmallerData(CIndexTreeNodeFile* pcNode, void* pvData, size uiOriginalSize);
+	CIndexTreeNodeFile*		ReallocateNodeForLargerData(CIndexTreeNodeFile* pcNode, const void* pvData, size uiDataSize);
+	CIndexTreeNodeFile*		ReallocateNodeForSmallerData(CIndexTreeNodeFile* pcNode, const void* pvData, size uiOriginalSize);
 	CIndexTreeNodeFile*		ReallocateNodeForUncontainIndex(CIndexTreeNodeFile* pcNode, size c);
 
 	CIndexTreeNodeFile*		AllocateChildNode(CIndexTreeNodeFile* pcParent, size uiIndexInParent);
-	CIndexTreeNodeFile*		SetNodeData(CIndexTreeNodeFile* pcCurrent, void* pvObject, size uiDataSize);
+	CIndexTreeNodeFile*		SetNodeData(CIndexTreeNodeFile* pcCurrent, const void* pvObject, size uiDataSize);
 	CIndexTreeNodeFile*		AllocateKey(uint8* pvKey, size iKeySize);
 	bool					HasData(CIndexTreeNodeFile* pcNode);
 	void					RemapNodePointers(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNode);

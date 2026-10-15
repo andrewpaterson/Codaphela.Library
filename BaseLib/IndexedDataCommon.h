@@ -28,7 +28,7 @@ public:
 			bool			Set(OIndex oi, void* pvData);
 			bool			Set(OIndex oi, void* pvData, size uiDataSize);
 
-			bool			Put(OIndex oi, void* pvData, size uiDataSize);
+			bool			Put(OIndex oi, const void* pvData, size uiDataSize);
 
 			bool			Get(OIndex oi, void* pvData, size uiMaxSize = 0);
 			bool			Get(OIndex oi, size* puiDataSize, void* pvData, size uiMaxSize);

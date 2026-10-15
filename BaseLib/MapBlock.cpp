@@ -154,7 +154,7 @@ void CMapBlock::FreeNode(SMNode* psNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapBlock::Get(void* pvKey, size iKeySize)
+void* CMapBlock::Get(const void* pvKey, size iKeySize)
 {
 	void*	pvData;
 	bool	bFound;
@@ -175,7 +175,7 @@ void* CMapBlock::Get(void* pvKey, size iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapBlock::Get(void* pvKey, size iKeySize, void** ppvData, size* piDataSize)
+bool CMapBlock::Get(const void* pvKey, size iKeySize, void** ppvData, size* piDataSize)
 {
 	SMNode*		psNode;
 	void*		pvData;
@@ -199,7 +199,7 @@ bool CMapBlock::Get(void* pvKey, size iKeySize, void** ppvData, size* piDataSize
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapBlock::Put(void* pvKey, size iKeySize, void* pvData, size iDataSize)
+bool CMapBlock::Put(const void* pvKey, size iKeySize, const void* pvData, size iDataSize)
 {
 	void*	pvDestData;
 
@@ -223,7 +223,7 @@ bool CMapBlock::Put(void* pvKey, size iKeySize, void* pvData, size iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapBlock::Put(void* pvKey, size iKeySize, size iDataSize)
+void* CMapBlock::Put(const void* pvKey, size iKeySize, size iDataSize)
 {
 	SMNode*		psNode;
 	void*		pvDestKey;
@@ -278,7 +278,7 @@ void* CMapBlock::Put(void* pvKey, size iKeySize, size iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapBlock::Remove(void* pvKey, size iKeySize)
+bool CMapBlock::Remove(const void* pvKey, size iKeySize)
 {
 	SMNode*		psNode;
 
@@ -320,7 +320,7 @@ size CMapBlock::DataSize(void* pvKey, size iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapBlock::HasKey(void* pvKey, size iKeySize)
+bool CMapBlock::HasKey(const void* pvKey, size iKeySize)
 {
 	SMNode* psNode;
 
@@ -333,7 +333,7 @@ bool CMapBlock::HasKey(void* pvKey, size iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SMNode* CMapBlock::GetNode(void* pvKey, size iKeySize)
+SMNode* CMapBlock::GetNode(const void* pvKey, size iKeySize)
 {
 	SMNode**	ppsNode;
 	SMNode*		psSourceNode;

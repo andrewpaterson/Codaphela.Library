@@ -77,7 +77,7 @@ bool CIndexAccess::PutStringLong(const char* pszKey, int64 lliIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexAccess::PutStringData(const char* pszKey, void* pvData, size iDataSize)
+bool CIndexAccess::PutStringData(const char* pszKey, const void* pvData, size iDataSize)
 {
 	return Put((uint8*)pszKey, StrKeySize(pszKey), pvData, iDataSize);
 }

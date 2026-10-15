@@ -83,7 +83,7 @@ bool CIndexTreeFileAccess::ValidateIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeFileAccess::Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize)
+bool CIndexTreeFileAccess::Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize)
 {
 	return mpcTree->Put(pvKey, iKeySize, pvData, iDataSize);
 }

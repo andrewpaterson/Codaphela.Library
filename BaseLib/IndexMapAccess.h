@@ -20,11 +20,11 @@ public:
 	void			FreeIterator(CMapIterator* pcIter);
 
 protected:
-	 void*			Put(void* pvKey, size iKeySize, void* pvData, size uiDataSize);
-	 void*			Get(void* pvKey, size iKeySize, size* puiDataSize);
+	 void*			Put(const void* pvKey, size iKeySize, const void* pvData, size uiDataSize);
+	 void*			Get(const void* pvKey, size iKeySize, size* puiDataSize);
 	 size			DataSize(void* pvKey, size iKeySize);
-	 bool			Remove(void* pvKey, size iKeySize);
-	 bool			Has(void* pvKey, size iKeySize);
+	 bool			Remove(const void* pvKey, size iKeySize);
+	 bool			Has(const void* pvKey, size iKeySize);
 };
 
 

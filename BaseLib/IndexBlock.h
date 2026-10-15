@@ -31,7 +31,7 @@ public:
 	void*	GetLongestPartial(uint8* pvKey, size iKeySize);
 
 	void*	Put(uint8* pvKey, size iKeySize, size iDataSize);
-	bool	Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize);
+	bool	Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize);
 
 	bool	Remove(uint8* pvKey, size iKeySize);
 
