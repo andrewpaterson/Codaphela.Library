@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMarkupSubstitute::Init(char* szName, EMarkupSubstituteType eType)
+void CMarkupSubstitute::Init(const char* szName, EMarkupSubstituteType eType)
 {
 	mszName.Init(szName);
 	meType = eType;
@@ -96,7 +96,7 @@ void CMarkupSubstitute::RemoveAndKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupSubstitute::Is(char* szName)
+bool CMarkupSubstitute::Is(const char* szName)
 {
 	return mszName.Equals(szName);
 }
@@ -126,7 +126,7 @@ bool CMarkupSubstitute::IsDoc(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMarkupSubText::Init(char* szName, char* szText)
+void CMarkupSubText::Init(const char* szName, const char* szText)
 {
 	CMarkupSubstitute::Init(szName, MST_Text);
 	mszText.Init(szText);
@@ -148,7 +148,7 @@ void CMarkupSubText::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMarkupSubDoc::Init(char* szName, CMarkupDoc* pcDoc)
+void CMarkupSubDoc::Init(const char* szName, CMarkupDoc* pcDoc)
 {
 	CMarkupSubstitute::Init(szName, MST_Doc);
 	mpcDoc = pcDoc;

@@ -30,7 +30,7 @@ void CCalcVariable::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalcVariable::Set(char* szName, CCalculatorVariables* pcVariableDefinitions)
+void CCalcVariable::Set(const char* szName, CCalculatorVariables* pcVariableDefinitions)
 {
 	mszName.Set(szName);
 	mpcVariableDefinitions = pcVariableDefinitions;

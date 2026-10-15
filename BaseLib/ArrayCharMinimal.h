@@ -29,7 +29,7 @@ class CArrayCharMinimal : public CArrayTemplateMinimal<char>
 {
 public:
 	void	Init(void);
-	void	Init(char* sz);
+	void	Init(const char* sz);
 	void	Allocate(char* sz);
 	void	Allocate(size iNumElements);
 	void	Add(char c);

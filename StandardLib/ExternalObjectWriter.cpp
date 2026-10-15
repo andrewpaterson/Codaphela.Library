@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExternalObjectWriter::Init(char* szBaseName)
+void CExternalObjectWriter::Init(const char* szBaseName)
 {
 }
 

@@ -43,10 +43,10 @@ void CFatFile::Init(CFatVolume* pcVolume)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode FindBackslash(char* szFilename, char** ppcFilenameScanner)
+EFatCode FindBackslash(const char* szFilename, const char** ppcFilenameScanner)
 {
-	size	iPathLength;
-	char*	pcFilenameScanner;
+	size		iPathLength;
+	const char*	pcFilenameScanner;
 
 	iPathLength = strlen(szFilename);
 
@@ -80,7 +80,7 @@ EFatCode FindBackslash(char* szFilename, char** ppcFilenameScanner)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::Open(char* szFilename, uint8 uiAccessFlags)
+EFatCode CFatFile::Open(const char* szFilename, uint8 uiAccessFlags)
 {
 	EFatCode			eResult;
 
@@ -100,7 +100,7 @@ EFatCode CFatFile::Open(char* szFilename, uint8 uiAccessFlags)
 		if (uiAccessFlags & FAT_FILE_ACCESS_CREATE)
 		{
 			size				iPathLength;
-			char*				pcFilenameScanner;
+			const char*			pcFilenameScanner;
 			char				szFilePath[FAT_MAX_PATH + 1];
 			SFatDirectoryEntry	sParentEntry;
 
@@ -820,7 +820,7 @@ EFatCode CFatFile::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFatFile::GetShortFileName(void)
+const char* CFatFile::GetShortFileName(void)
 {
 	if (mszName[0] == '\0')
 	{

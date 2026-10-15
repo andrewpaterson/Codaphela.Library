@@ -26,12 +26,12 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CCTString : public CCPPToken
 {
 public:
-	char*	mszStart;  //This is the starting quote (") inclusive.
-	char*	mszEnd;  //This is the ending quote (") inclusive.
+	const char*	mszStart;  //This is the starting quote (") inclusive.
+	const char*	mszEnd;  //This is the ending quote (") inclusive.
 
 	CPP_TOKEN_CONSTRUCT(CCTString);
 	void Init(void);
-	void Init(char* szStart, char* szEnd);
+	void Init(const char* szStart, const char* szEnd);
 	void Kill(void);
 	bool IsString(void);
 	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);

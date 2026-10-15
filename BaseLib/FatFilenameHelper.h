@@ -8,17 +8,17 @@
 EFatCode GetFatLongNameForEntry(uint16* puiDest, char* szSource);
 bool CompareFatShortName(char* szName1, char* szName2);
 int CompareFatLongName(uint16* puiName1, uint16* puiName2);
-EFatCode GetFatShortNameForEntry(char* szDest, char* szSource, bool bLFNDisabled);
+EFatCode GetFatShortNameForEntry(char* szDest, const char* szSource, bool bLFNDisabled);
 void ConvertFATShortInternalNameInto8Dot3Format(uint8* puiDest, const uint8* puiSource);
 EFatCode MatchesFatFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructedShortFileName, uint16* puiTargetFileLongName, char* szCurrentLevelPath, uint16* auiLongFilename, uint8* auiShortName);
 void ConstructFatLongFileNameFromShortName(uint16* auiLongFilename, char* szShortName, bool bLowercaseBase, bool bLowercaseExtension);
-char* StepPathOverSlash(char* szPathName);
-char* StepPathToSlash(char* szPathName);
+const char* StepPathOverSlash(const char* szPathName);
+const char* StepPathToSlash(const char* szPathName);
 void CopyLongFilenameIntoString(char* szDestination, uint16* auiSource);
 bool IsIllegalFilenameCharacter(char c);
-bool IsIllegalFilename(char* szName, uint16 uiLength);
+bool IsIllegalFilename(const char* szName, uint16 uiLength);
 void GenerateShortNameWithSuffix(uint16 uiNameSuffix, uint8* szShortName);
-void ParsePathAndFilename(char* szPath, char* szPathPart, char** pszFilenamePart);
+void ParsePathAndFilename(const char* szPath, char* szPathPart, const char** pszFilenamePart);
 
 
 #endif // __FAT_FILENAME_HELPER_H__

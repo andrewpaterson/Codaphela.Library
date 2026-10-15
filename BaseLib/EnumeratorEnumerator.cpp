@@ -79,7 +79,7 @@ char* CEnumeratorEnumerator::GetTypeName(int iType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CEnumeratorEnumerator::AddType(char* szType)
+int CEnumeratorEnumerator::AddType(const char* szType)
 {
 	CEnumeratorVoid		cVoidEnumerator;
 	int					iID;
@@ -134,7 +134,7 @@ int CEnumeratorEnumerator::Add(int iType, char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEnumeratorEnumerator::Add(char* szType, char* szText)
+void CEnumeratorEnumerator::Add(const char* szType, char* szText)
 {
 	int		iID;
 	CEnumeratorVoid*	pcVoidEnumerator;

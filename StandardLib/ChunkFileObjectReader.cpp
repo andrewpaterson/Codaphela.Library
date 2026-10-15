@@ -70,7 +70,7 @@ CSerialisedObject* CChunkFileObjectReader::Read(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSerialisedObject* CChunkFileObjectReader::Read(char* szChunkName)
+CSerialisedObject* CChunkFileObjectReader::Read(const char* szChunkName)
 {
 	CSerialisedObject*	pcSerialised;
 	CChunkFileFile		cChunkFile;

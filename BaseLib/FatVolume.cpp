@@ -1012,7 +1012,7 @@ EFatCode CFatVolume::EraseClusterContents(uint32 uiCluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::InitialiseDottyDirectoryEntry(SFatRawDirectoryEntry* psEntries, char* sz, uint32 uiCluster)
+void CFatVolume::InitialiseDottyDirectoryEntry(SFatRawDirectoryEntry* psEntries, const char* sz, uint32 uiCluster)
 {
 	psEntries->uEntry.sFatRawCommon.szShortName[0x0] = sz[0];
 	psEntries->uEntry.sFatRawCommon.szShortName[0x1] = sz[1];
@@ -2339,7 +2339,7 @@ EFatCode CFatVolume::CreateFakeRootEntry(SFatDirectoryEntry* psEntry)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* FindNextPathItem(char* szPath, char* szCurrentLevelPath)
+const char* FindNextPathItem(const char* szPath, char* szCurrentLevelPath)
 {
 	char* szPathLevel;
 
@@ -2424,7 +2424,7 @@ uint32 CFatVolume::CalculateQuerySectorOffset(SFatFileSystemQuery* psQuery)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FindFirstFATEntry(char* szParentPath, uint8 uiAttributes, SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* psQuery)
+EFatCode CFatVolume::FindFirstFATEntry(const char* szParentPath, uint8 uiAttributes, SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* psQuery)
 {
 	EFatCode			eResult;
 	SFatDirectoryEntry	sParentEntry;
@@ -2576,7 +2576,7 @@ EFatCode CFatVolume::GenerateUniqueShortNameWithSuffix(SFatRawDirectoryEntry* ps
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::InitialiseNewEntry(SFatDirectoryEntry* psNewEntry, char* szName, uint8 uiAttributes, uint32 uiEntryCluster)
+void CFatVolume::InitialiseNewEntry(SFatDirectoryEntry* psNewEntry, const char* szName, uint8 uiAttributes, uint32 uiEntryCluster)
 {
 	strcpy((char*)psNewEntry->szName, szName);
 	psNewEntry->uiAttributes = uiAttributes;
@@ -2602,7 +2602,7 @@ void CFatVolume::InitialiseNewEntry(SFatDirectoryEntry* psNewEntry, char* szName
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::LongNameCharToWideChar(uint16 uiLFNIndex, uint16 uiNameLength, char* szName, uint16 uiNameIndex)
+uint16 CFatVolume::LongNameCharToWideChar(uint16 uiLFNIndex, uint16 uiNameLength, const char* szName, uint16 uiNameIndex)
 {
 	if (uiLFNIndex + uiNameIndex > uiNameLength)
 	{
@@ -2619,7 +2619,7 @@ uint16 CFatVolume::LongNameCharToWideChar(uint16 uiLFNIndex, uint16 uiNameLength
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::GenerateDirectoryEntryNameParts(uint8* aui, uint16 uiLFNIndex, uint16 uiNameLength, char* szName, uint16 uiNameIndex)
+void CFatVolume::GenerateDirectoryEntryNameParts(uint8* aui, uint16 uiLFNIndex, uint16 uiNameLength, const char* szName, uint16 uiNameIndex)
 {
 	uint16	uiWideChar;
 
@@ -2633,7 +2633,7 @@ void CFatVolume::GenerateDirectoryEntryNameParts(uint8* aui, uint16 uiLFNIndex, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::InitialiseParentEntry(SFatRawDirectoryEntry* psParentEntry, char* szName, char uiChecksum, int iLFNEntriesNeeded, int iLFNEntriesFound)
+void CFatVolume::InitialiseParentEntry(SFatRawDirectoryEntry* psParentEntry, const char* szName, char uiChecksum, int iLFNEntriesNeeded, int iLFNEntriesFound)
 {
 	uint16 uiLFNIndex;
 	uint16 uiNameLength;
@@ -2918,7 +2918,7 @@ EFatCode CFatVolume::RewindFoundEntries(SFatRawDirectoryEntry** ppsParentEntry, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::CheckEntryName(char* szName)
+EFatCode CFatVolume::CheckEntryName(const char* szName)
 {
 	uint16					uiLength;
 
@@ -2988,7 +2988,7 @@ EFatCode CFatVolume::IncrementOrAllocateDirectoryCluster(uint32* puiSector, fatE
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::WriteFATEntry(SFatDirectoryEntry* psNewEntry, char* szName, SFatRawDirectoryEntry* psParentDirectory, int iLFNEntriesNeeded)
+EFatCode CFatVolume::WriteFATEntry(SFatDirectoryEntry* psNewEntry, const char* szName, SFatRawDirectoryEntry* psParentDirectory, int iLFNEntriesNeeded)
 {
 	EFatCode				eResult;
 	uint32					uiSector;
@@ -3074,7 +3074,7 @@ EFatCode CFatVolume::WriteFATEntry(SFatDirectoryEntry* psNewEntry, char* szName,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, char* szName, uint8 uiAttributes, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry)
+EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, const char* szName, uint8 uiAttributes, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry)
 {
 	EFatCode				eResult;
 	int						iLFNEntriesNeeded;
@@ -3118,10 +3118,10 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::CreateDirectory(char* szDirectory, SFatDirectoryEntry* psEntry)
+EFatCode CFatVolume::CreateDirectory(const char* szDirectory, SFatDirectoryEntry* psEntry)
 {
 	size				uiPathLength;
-	char*				szPathScanner;
+	const char*			szPathScanner;
 	char				szFilePath[FAT_MAX_PATH + 1];
 	SFatDirectoryEntry	sParentEntry;
 	EFatCode			eResult;
@@ -3161,7 +3161,7 @@ EFatCode CFatVolume::CreateDirectory(char* szDirectory, SFatDirectoryEntry* psEn
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::CreateDirectory(char* szDirectory)
+EFatCode CFatVolume::CreateDirectory(const char* szDirectory)
 {
 	EFatCode			eResult;
 	SFatDirectoryEntry	sEntry;
@@ -3188,7 +3188,7 @@ EFatCode CFatVolume::CreateDirectory(char* szDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
+EFatCode CFatVolume::GetFileEntry(const char* szPath, SFatDirectoryEntry* psEntry)
 {
 	EFatCode				eResult;
 	bool					bMatch;
@@ -3314,7 +3314,7 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::Delete(SFatDirectoryEntry* psEntry, char* szNamePart, char* szPathPart, uint8 uiChecksum)
+EFatCode CFatVolume::Delete(SFatDirectoryEntry* psEntry, const char* szNamePart, char* szPathPart, uint8 uiChecksum)
 {
 	EFatCode				eResult;
 	SFatFileSystemQuery		sQuery;
@@ -3359,13 +3359,13 @@ EFatCode CFatVolume::Delete(SFatDirectoryEntry* psEntry, char* szNamePart, char*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::Delete(char* szFilename)
+EFatCode CFatVolume::Delete(const char* szFilename)
 {
 	EFatCode			eResult;
 	uint32				uiFirstCluster;
 	SFatDirectoryEntry	sEntry;
 	char				szPathPart[FAT_MAX_PATH];
-	char*				szNamePart;
+	const char*				szNamePart;
 	uint8				uiChecksum;
 	SFatCache			sBuffer;
 
@@ -3432,7 +3432,7 @@ void CFatVolume::CopyRawEntry(SFatDirectoryEntry* psOriginalEntry, SFatDirectory
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::Rename(char* szOriginalParent, uint8 uiChecksum)
+EFatCode CFatVolume::Rename(const char* szOriginalParent, uint8 uiChecksum)
 {
 	SFatFileSystemQuery		sQuery;
 	EFatCode				eResult;
@@ -3477,17 +3477,17 @@ EFatCode CFatVolume::Rename(char* szOriginalParent, uint8 uiChecksum)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::Rename(char* szOriginalFilename, char* szNewFilename)
+EFatCode CFatVolume::Rename(const char* szOriginalFilename, const char* szNewFilename)
 {
 	EFatCode			eResult;
 	uint32				uiEntryCluster;
 	char				szNewParent[256];
-	char*				szOriginalFilenamePart;
+	const char*				szOriginalFilenamePart;
 	SFatDirectoryEntry	sOriginalEntry;
 	SFatDirectoryEntry	sNewEntry;
 	uint8				uiChecksum = 0;
 	char				szOriginalParent[256];
-	char*				szNewFilenamePart;
+	const char*				szNewFilenamePart;
 	SFatCache			sBuffer;
 
 	ParsePathAndFilename(szOriginalFilename, szOriginalParent, &szOriginalFilenamePart);

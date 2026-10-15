@@ -38,7 +38,7 @@ void CMarkupText::Init(CMarkupTag* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMarkupText::Init(char* szText, CMarkupTag* pcParent)
+void CMarkupText::Init(const char* szText, CMarkupTag* pcParent)
 {
 	CMarkupBase::Init(MUT_Text, pcParent);
 	mszText.Init(szText);

@@ -34,14 +34,14 @@ protected:
 	CChars				mszDirectory;
 
 public:
-	void					Init(char* szDirectory);
+	void					Init(const char* szDirectory);
 	void					Kill(void);
 
-	char*					GetFilename(char* szFilename);
-	CFileNodeSystemFile*	GetFileNode(char* szName, CChars* pszRemainingName);
+	char*					GetFilename(const char* szFilename);
+	CFileNodeSystemFile*	GetFileNode(const char* szName, CChars* pszRemainingName);
 	CChars*					GetFullDirectoryName(void);
 	void					GetFiles(CArraySystemFilePtr* pcSystemFiles);
-	void					GetFiles(CArraySystemFilePtr* pcSystemFiles, char* szExtension);
+	void					GetFiles(CArraySystemFilePtr* pcSystemFiles, const char* szExtension);
 
 	CSystemFileNode*		StartIteration(CFileSystemIterator* psIter);
 	CSystemFileNode*		Iterate(CFileSystemIterator* psIter);

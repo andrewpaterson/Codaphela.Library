@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelDebugDescriptor::Init(char* szLongName, char* szShortName)
+void CChannelDebugDescriptor::Init(const char* szLongName, const char* szShortName)
 {
 	mszLongName = szLongName;
 	mszShortName = szShortName;

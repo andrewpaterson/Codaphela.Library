@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCSVHelper::Init(char* szFilename, char cSeparator)
+void CCSVHelper::Init(const char* szFilename, char cSeparator)
 {
 	mcFile.Init(cSeparator);
 	mcFile.Open(DiskFile(szFilename));

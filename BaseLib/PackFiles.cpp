@@ -343,7 +343,7 @@ bool CPackFiles::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPackFile* CPackFiles::WriteOpen(char* szFilename)
+CPackFile* CPackFiles::WriteOpen(const char* szFilename)
 {
 	CFileNodePackFileNode*	pcFileNode;
 	CPackFile*				pcFile;
@@ -386,7 +386,7 @@ CPackFile* CPackFiles::WriteOpen(char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPackFile* CPackFiles::ReadOpen(char* szFilename)
+CPackFile* CPackFiles::ReadOpen(const char* szFilename)
 {
 	CFileNodePackFileNode*	pcFileNode;
 	CPackFile*				pcFile;
@@ -473,7 +473,7 @@ bool CPackFiles::AddFile(CAbstractFile* pcFile, char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPackFiles::AddDirectory(char* szDirectory, char* szPackDirectory)
+bool CPackFiles::AddDirectory(const char* szDirectory, const char* szPackDirectory)
 {
 	CFileUtil		cFileUtil;
 	CArrayChars		aszFilenames;
@@ -528,7 +528,7 @@ bool CPackFiles::AddDirectory(char* szDirectory, char* szPackDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFileNodePackFileNode* CPackFiles::GetNode(char* szFullName)
+CFileNodePackFileNode* CPackFiles::GetNode(const char* szFullName)
 {
 	return mcNames.GetNode(szFullName);
 }
@@ -538,7 +538,7 @@ CFileNodePackFileNode* CPackFiles::GetNode(char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFileNodePackFileNode* CPackFiles::AddFile(char* szFullName)
+CFileNodePackFileNode* CPackFiles::AddFile(const char* szFullName)
 {
 	return mcNames.AddFile(szFullName);
 }
@@ -870,7 +870,7 @@ bool CPackFiles::RecurseWriteUnwrittenNames(CFileNodePackFileNode* pcNode, CChar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPackFiles::Unpack(char* szDestination)
+bool CPackFiles::Unpack(const char* szDestination)
 {
 	FixParents();
 	return RecurseUnpack(mcNames.GetRoot(), szDestination);
@@ -881,7 +881,7 @@ bool CPackFiles::Unpack(char* szDestination)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPackFiles::RecurseUnpack(CFileNodePackFileNode* pcNode, char* szDestination)
+bool CPackFiles::RecurseUnpack(CFileNodePackFileNode* pcNode, const char* szDestination)
 {
 	CChars					szFilename;
 	CFileNodePackFileNode*	pcChild;
@@ -1033,7 +1033,7 @@ void CPackFiles::StopIteration(CPackFileIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPackFiles::GetFilename(void)
+const char* CPackFiles::GetFilename(void)
 {
 	return mcFile.GetFilename();
 }

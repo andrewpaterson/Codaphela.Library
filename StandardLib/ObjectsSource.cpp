@@ -48,7 +48,7 @@ void CObjectsSource::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CObjectSource* CObjectsSource::GetSource(char* szFullName)
+CObjectSource* CObjectsSource::GetSource(const char* szFullName)
 {
 	size			i;
 	CObjectSource*	pcSource;

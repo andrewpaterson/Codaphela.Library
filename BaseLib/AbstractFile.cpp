@@ -37,7 +37,7 @@ void CAbstractFile::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CAbstractFile::GetFilename(void)
+const char* CAbstractFile::GetFilename(void)
 {
 	return NULL;
 }

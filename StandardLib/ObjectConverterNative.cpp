@@ -34,7 +34,7 @@ void CObjectConverterNative::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CObjectConverterNative::GetFileExtension(void)
+const char* CObjectConverterNative::GetFileExtension(void)
 {
 	return "DRG";
 }
@@ -54,7 +54,7 @@ bool CObjectConverterNative::IsFor(CAbstractFile* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char* szFilename)
+CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, const char* szFilename)
 {
 	CObjectSourceChunked*	pcSourceChunked;
 	CObjectSourceSimple*	pcSourceSimple;
@@ -107,7 +107,7 @@ CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectConverterNative::Convert(CObjectSource* pcSource, char* szObjectName)
+CBaseObject* CObjectConverterNative::Convert(CObjectSource* pcSource, const char* szObjectName)
 {
 	CChunkFileFile					cFile;
 	CBaseObject*					pvObject;

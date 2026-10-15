@@ -46,7 +46,7 @@ public:
 	virtual bool		Truncate(filePos iSize) =0;
 	virtual bool		Flush(void) =0;
 	virtual bool		Delete(void) =0;
-	virtual char*		GetFilename(void) =0;
+	virtual const char*		GetFilename(void) =0;
 };
 
 

@@ -37,7 +37,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextParser::Init(char* szText)
+bool CTextParser::Init(const char* szText)
 {
 	return Init(szText, strlen(szText));
 }
@@ -67,7 +67,7 @@ bool CTextParser::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextParser::Init(char* szText, size iTextLen)
+bool CTextParser::Init(const char* szText, size iTextLen)
 {
 	STextParserConfig	sConfig;
 		
@@ -81,7 +81,7 @@ bool CTextParser::Init(char* szText, size iTextLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextParser::Init(char* szText, STextParserConfig* psConfig)
+bool CTextParser::Init(const char* szText, STextParserConfig* psConfig)
 {
 	return Init(szText, strlen(szText), psConfig);
 }
@@ -91,7 +91,7 @@ bool CTextParser::Init(char* szText, STextParserConfig* psConfig)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextParser::Init(char* szText, size iTextLen, STextParserConfig* psConfig)
+bool CTextParser::Init(const char* szText, size iTextLen, STextParserConfig* psConfig)
 {
 	//This assumes that szText has already been passified.
 
@@ -252,7 +252,7 @@ void CTextParser::StepRight(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextParser::StepLeft(void)
 {
-	char* szSearchPos;
+	const char* szSearchPos;
 
 	//Can only move left if we are not sitting to the left of the first character.
 	if (mszParserPos >= mszStartOfText)
@@ -468,7 +468,7 @@ TRISTATE CTextParser::GetCharacter(char* pc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetExactCharacterSequence(char* szSequence, bool bSkipWhitespace)
+TRISTATE CTextParser::GetExactCharacterSequence(const char* szSequence, bool bSkipWhitespace)
 {
 	char	cCurrent;
 	size	iPos;
@@ -615,7 +615,7 @@ TRISTATE CTextParser::SkipUTF8BOM(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetExactIdentifier(char* szIdentifier, bool bSkipWhitespace)
+TRISTATE CTextParser::GetExactIdentifier(const char* szIdentifier, bool bSkipWhitespace)
 {
 	TRISTATE	tResult;
 
@@ -2093,7 +2093,7 @@ TRISTATE CTextParser::GetNumber(CNumber* pcNumber, int16 cMaxWholeNumbers, int16
 {
 	//This should be a part of the STextParserConfig.
 
-	char*		szStart;
+	const char*		szStart;
 	double		fIgnored;
 	TRISTATE	tResult;
 	int16		iLength;
@@ -2155,7 +2155,7 @@ void CTextParser::LoadState(SParseState* psParserState)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTextParser::FindExactIdentifier(char* szIdentifier)
 {
-	char*		szPosition;
+	const char*		szPosition;
 	TRISTATE	result;
 
 	PushPosition();
@@ -2190,9 +2190,9 @@ TRISTATE CTextParser::FindExactIdentifier(char* szIdentifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::FindExactCharacterSequence(char* szSequence)
+TRISTATE CTextParser::FindExactCharacterSequence(const char* szSequence)
 {
-	char*		szPosition;
+	const char*		szPosition;
 	TRISTATE	result;
 
 	PushPosition();
@@ -2476,8 +2476,8 @@ TRISTATE CTextParser::GetHFClosingQuote(char cQuoteType)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTextParser::ReadLine(CTextParser* pcLine)
 {
-	char*	szStart;
-	char*	szEnd;
+	const char*	szStart;
+	const char*	szEnd;
 
 	pcLine->Init();
 	ReturnErrorOnErrorAndFalse(FindStartOfLine());
@@ -2847,7 +2847,7 @@ char CTextParser::Current(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CTextParser::Position(void)
+const char* CTextParser::Position(void)
 {
 	return mszParserPos;
 }
@@ -2857,7 +2857,7 @@ char* CTextParser::Position(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CTextParser::Position(int iIndex)
+const char* CTextParser::Position(int iIndex)
 {
 	return &mszParserPos[iIndex];
 }
@@ -2867,7 +2867,7 @@ char* CTextParser::Position(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CTextParser::Start(void)
+const char* CTextParser::Start(void)
 {
 	return mszStartOfText;
 }
@@ -2877,7 +2877,7 @@ char* CTextParser::Start(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CTextParser::End(void)
+const char* CTextParser::End(void)
 {
 	return mszEndOfText;
 }
@@ -3330,8 +3330,8 @@ void CTextParser::GetLineLocationMarkerString(CChars* pszDest)
 {
 	STextPosition	sState;
 	TRISTATE		tResult;
-	char*			szStartOfLine;
-	char*			szEndOfLine;
+	const char*			szStartOfLine;
+	const char*			szEndOfLine;
 	CChars			szMarker;
 
 	GetPosition(&sState);

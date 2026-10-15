@@ -51,20 +51,20 @@ protected:
 
 public:
 	void				Init(CMarkupTag* pcParent);
-	void				Init(char* szName, CMarkupTag* pcParent);
+	void				Init(const char* szName, CMarkupTag* pcParent);
 	void				Kill(void);
 	bool				IsEmpty(void);
-	bool				GetAttribute(char* szAttribute, void** ppvData, uint* puiType = NULL);
+	bool				GetAttribute(const char* szAttribute, void** ppvData, uint* puiType = NULL);
 	void*				GetAttribute(size uiIndex, uint* puiType, char** szName = NULL);
 	char*				GetAttribute(char* szAttribute);
 	size				GetNumAttributes(void);
-	CMarkupTag*			GetTag(char* szTagName, STagIterator* psIter = NULL);
-	CMarkupTag*			GetTag(char* szTagName, size iTagNumber);
+	CMarkupTag*			GetTag(const char* szTagName, STagIterator* psIter = NULL);
+	CMarkupTag*			GetTag(const char* szTagName, size iTagNumber);
 	CMarkupTag*			GetNextTag(STagIterator* psIter);
-	CMarkupTag*			GetTagFromIndex(char* szTagName, STagIterator* psIter);
+	CMarkupTag*			GetTagFromIndex(const char* szTagName, STagIterator* psIter);
 	CMarkupTag*			GetTagFromIndex(STagIterator* psIter);
 	CMarkupTag*			GetTag(STagIterator* psIter = NULL);
-	bool				Is(char* szName);
+	bool				Is(const char* szName);
 	bool				GetText(CChars* psz, bool bFirstContiguous = true, bool bFirstTag = false);
 	void				SetName(char* szName);
 	char*				GetName(void);

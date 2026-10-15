@@ -34,7 +34,7 @@ public:
 	static bool 		ReadInteger(CMarkupTag* pcIntTag, int64* pcInt, bool bLogErrors = true);
 	static bool 		ReadBool(CMarkupTag* pcIntTag, bool* pcBool, bool bLogErrors = true);
 
-	static void 		LogError(CMarkupTag* pcTag, char* szError);
+	static void 		LogError(CMarkupTag* pcTag, const char* szError);
 	static void 		LogErrorTagNotFound(CMarkupTag* pcParentTag, char* szExpectedTag);
 	static void 		LogErrorTagWasEmpty(CMarkupTag* pcTag);
 

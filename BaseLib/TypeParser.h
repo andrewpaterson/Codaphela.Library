@@ -39,8 +39,8 @@ public:
 	CTextParser*	mpcParser;
 	bool			mbFreeParser;
 
-	bool 		Init(char* szText, size iTextLen);
-	bool 		Init(char* szText);
+	bool 		Init(const char* szText, size iTextLen);
+	bool 		Init(const char* szText);
 	bool 		Init(CChars* szText);
 	void 		AllocateParser(void);
 	void 		Init(CTextParser* pcParser);

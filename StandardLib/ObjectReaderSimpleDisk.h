@@ -11,10 +11,10 @@ protected:
 	CFileBasic	mcFile;
 
 public:
-	void				Init(char* szDirectory);
+	void				Init(const char* szDirectory);
 	void				Kill(void);
 
-	CSerialisedObject*  Read(char* szObjectName);
+	CSerialisedObject*  Read(const char* szObjectName);
 };
 
 

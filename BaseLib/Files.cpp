@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFiles::Init(char* szDirectory, char* szPackFilesExtension)
+bool CFiles::Init(const char* szDirectory, const char* szPackFilesExtension)
 {
 	CChars*						pszFullDirectory;
 
@@ -173,7 +173,7 @@ size CFiles::GetNumPackFiles(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAbstractFile* CFiles::GetFile(char* szFullName)
+CAbstractFile* CFiles::GetFile(const char* szFullName)
 {
 	CDiskFile*	pcDiskFile;
 	CPackFile*	pcPackFile;
@@ -198,7 +198,7 @@ CAbstractFile* CFiles::GetFile(char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDiskFile* CFiles::GetSystemFile(char* szFullName)
+CDiskFile* CFiles::GetSystemFile(const char* szFullName)
 {
 	CChars					szRemain;
 	CFileNodeSystemFile*	pcNode;
@@ -226,7 +226,7 @@ CDiskFile* CFiles::GetSystemFile(char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPackFile* CFiles::GetPackFile(char* szFullName)
+CPackFile* CFiles::GetPackFile(const char* szFullName)
 {
 	CPackFileOffset*	pcPackFiles;
 	size				i;
@@ -257,7 +257,7 @@ CPackFile* CFiles::GetPackFile(char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPackFile* CFiles::GetPackFile(CPackFileOffset*	pcPackFiles, char* szFullName)
+CPackFile* CFiles::GetPackFile(CPackFileOffset*	pcPackFiles, const char* szFullName)
 {
 	CFileNodePackFileNode*	pcNode;
 	CPackFile*				pcPackFile;

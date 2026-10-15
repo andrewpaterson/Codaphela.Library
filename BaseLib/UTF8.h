@@ -36,7 +36,7 @@ protected:
 
 public:
 	void	Init(CChars* sz);
-	void	Init(char* sz);
+	void	Init(const char* sz);
 	void    Init(uint8* sz, size uiLength);
 	void	Kill(void) override;
 

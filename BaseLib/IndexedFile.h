@@ -49,7 +49,7 @@ private:
 	uint32			muiFileNumber;  //There may be more than one file of the same size.
 
 public:
-	bool			Init(CDurableFileController* pcDurableFileControl, size uiFileIndex, char* szFilename, char* szRewriteName, size uiDataSize, uint32 uiFileNum);
+	bool			Init(CDurableFileController* pcDurableFileControl, size uiFileIndex, const char* szFilename, const char* szRewriteName, size uiDataSize, uint32 uiFileNum);
 	void			Kill(void);
 	filePos			CalculateNumDatas(void);
 	bool			IsFull(void);
@@ -68,7 +68,7 @@ public:
 	bool			IsFileIndex(size uiFileIndex);
 
 	CFileBasic*		DumpGetPrimaryFile(void);
-	char*			GetFilename(void);
+	const char*			GetFilename(void);
 	uint32			GetFileNumber(void);
 	char*			GetRewriteName(void);
 	size			GetDataSize(void);

@@ -43,8 +43,8 @@ protected:
 	size					miNumElements;
 
 public:
-						void			Init(char* szName, CConstructors* pcConstructors);
-						void			Init(CLifeInit<CMallocator> cMalloc, char* szName, CConstructors* pcConstructors);
+						void			Init(const char* szName, CConstructors* pcConstructors);
+						void			Init(CLifeInit<CMallocator> cMalloc, const char* szName, CConstructors* pcConstructors);
 						void			Kill(void);
 
 						bool			Remove(CUnknown* pcUnknown);

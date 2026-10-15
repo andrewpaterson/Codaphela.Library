@@ -11,10 +11,10 @@ CONSTRUCTABLE(CObjectConverter)
 public:
 			void			Kill(void);
 
-	virtual char*			GetFileExtension(void) =0;
+	virtual const char*			GetFileExtension(void) =0;
 	virtual bool			IsFor(CAbstractFile* pcFile) =0;
-	virtual CObjectSource*	CreateSource(CAbstractFile* pcFile, char* szFilename) =0;
-	virtual CBaseObject*	Convert(CObjectSource* pcSource, char* szObjectName) =0;
+	virtual CObjectSource*	CreateSource(CAbstractFile* pcFile, const char* szFilename) =0;
+	virtual CBaseObject*	Convert(CObjectSource* pcSource, const char* szObjectName) =0;
 };
 
 

@@ -36,8 +36,8 @@ public:
 	void 	Kill(void);
 	void 	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	bool 	HasSource(void);
-	char*	TextStart(void);
-	char*	TextEndInclusive(void);
+	const char*	TextStart(void);
+	const char*	TextEndInclusive(void);
 };
 
 

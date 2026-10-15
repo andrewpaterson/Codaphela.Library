@@ -37,38 +37,38 @@ public:
 	void 			Kill(void);
 
 	bool			Add(OIndex oi, void* pvData, uint32 uiDataSize);
-	bool			Add(OIndex oi, char* szName, void* pvData, uint32 uiDataSize);
+	bool			Add(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize);
 	bool			Add(OIndex oi, CChars* szName, void* pvData, uint32 uiDataSize);
 
 	bool			Set(OIndex oi, void* pvData);
 	bool			Set(OIndex oi, void* pvData, uint32 uiDataSize);
-	bool			Set(char* szName, void* pvData);
-	bool			Set(char* szName, void* pvData, uint32 uiDataSize);
+	bool			Set(const char* szName, void* pvData);
+	bool			Set(const char* szName, void* pvData, uint32 uiDataSize);
 	bool			Set(CChars* szName, void* pvData);
 	bool			Set(CChars* szName, void* pvData, uint32 uiDataSize);
 
 	bool			Put(OIndex oi, void* pvData, uint32 uiDataSize);
-	bool			Put(OIndex oi, char* szName, void* pvData, uint32 uiDataSize);
+	bool			Put(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize);
 	bool			Put(OIndex oi, CChars* szName, void* pvData, uint32 uiDataSize);
 
 	bool			Get(OIndex oi, void* pvData);
 	bool			Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
-	bool			Get(char* szName, void* pvData);
-	bool			Get(char* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
+	bool			Get(const char* szName, void* pvData);
+	bool			Get(const char* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
 	bool			Get(CChars* szName, void* pvData);
 	bool			Get(CChars* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
 
 	bool			GetName(OIndex oi, CChars* szName);
 	bool			GetName(OIndex oi, char* szName, uint32* puiNameLength, uint32 uiMaxNameLength);
-	OIndex			GetIndex(char* szName);
+	OIndex			GetIndex(const char* szName);
 	OIndex			GetIndex(CChars* szName);
 
 	bool			Contains(OIndex oi);
-	bool			Contains(char* szName);
+	bool			Contains(const char* szName);
 	bool			Contains(CChars* szName);
 
 	bool			Remove(OIndex oi);
-	bool			Remove(char* szName);
+	bool			Remove(const char* szName);
 	bool			Remove(CChars* szName);
 	uint32	Size(OIndex oi);
 
@@ -106,9 +106,9 @@ public:
 	void			Dump(void);
 
 private:
-	bool			Add(OIndex oi, char* szName, int iNameLength, void* pvData, uint32 uiDataSize);
-	bool			Set(OIndex oi, char* szName, int iNameLength, void* pvData, uint32 uiDataSize);
-	bool			Put(OIndex oi, char* szName, int iNameLength, void* pvData, uint32 uiDataSize);
+	bool			Add(OIndex oi, const char* szName, int iNameLength, void* pvData, uint32 uiDataSize);
+	bool			Set(OIndex oi, const char* szName, int iNameLength, void* pvData, uint32 uiDataSize);
+	bool			Put(OIndex oi, const char* szName, int iNameLength, void* pvData, uint32 uiDataSize);
 
 	uint32	MinNameSize(uint32 uiNameSize, uint32 uiMaxNameSize);
 };

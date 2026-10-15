@@ -26,14 +26,14 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CExternalString
 {
 public:
-	char*	msz;
+	const char*	msz;
 	size	miLen;
 
 	void	Init(void);
-	void	Init(char* sz, size iLen);
-	void	Init(char* szStart, char* szLastCharInclusive);
+	void	Init(const char* sz, size iLen);
+	void	Init(const char* szStart, const char* szLastCharInclusive);
 	void	Clear(void);
-	char*	EndInclusive(void);
+	const char*	EndInclusive(void);
 	void	Dump(void);
 	bool	Equals(CExternalString* pcOther);
 	bool	Equals(char* sz);

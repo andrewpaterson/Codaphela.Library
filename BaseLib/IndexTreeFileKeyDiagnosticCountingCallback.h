@@ -11,7 +11,7 @@ protected:
 	size	miKeyLength;
 
 public:
-	void	Init(char* szKey);
+	void	Init(const char* szKey);
 	void	Init(void* pvKey, size iKeySize);
 	void	Kill(void);
 

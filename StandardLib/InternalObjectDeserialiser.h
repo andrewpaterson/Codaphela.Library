@@ -41,7 +41,7 @@ public:
 	void			Kill(void);
 
 	CBaseObject*	Read(OIndex oi);
-	CBaseObject*	Read(char* szObjectName);
+	CBaseObject*	Read(const char* szObjectName);
 
 	CBaseObject*	AllocateForDeserialisation(CObjectHeader* pcHeader) override;
 

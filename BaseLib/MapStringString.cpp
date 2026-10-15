@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapStringString::Put(char* szKey, char* szValue)
+bool CMapStringString::Put(const char* szKey, const char* szValue)
 {
 	size	iStrLen;
 	bool	bResult;
@@ -47,7 +47,7 @@ bool CMapStringString::Put(char* szKey, char* szValue)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapStringString::Put(uint8* szKey, char* szValue)
+bool CMapStringString::Put(uint8* szKey, const char* szValue)
 {
 	return Put((char*)szKey, szValue);
 }
@@ -57,7 +57,7 @@ bool CMapStringString::Put(uint8* szKey, char* szValue)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CMapStringString::Get(char* szKey)
+char* CMapStringString::Get(const char* szKey)
 {
 	return (char*)CMapStringBlock::Get(szKey);
 }

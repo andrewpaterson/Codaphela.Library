@@ -44,7 +44,7 @@ public:
 	M*		operator & ();
 
 	Ptr<M>	operator + (Ptr<M> obj);
-	Ptr<M>	operator + (char* sz);
+	Ptr<M>	operator + (const char* sz);
 
 	explicit operator bool() const;
 
@@ -104,7 +104,7 @@ Ptr<M> Ptr<M>::operator + (Ptr<M> pObject)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M> Ptr<M>::operator + (char* sz)
+Ptr<M> Ptr<M>::operator + (const char* sz)
 {
 	M* p = (M*)DereferenceArrow();
 

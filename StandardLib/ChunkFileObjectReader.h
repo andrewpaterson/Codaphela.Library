@@ -35,7 +35,7 @@ public:
 	void				Kill(void);
 
 	CSerialisedObject*	Read(OIndex oi);
-	CSerialisedObject*  Read(char* szObjectName);
+	CSerialisedObject*  Read(const char* szObjectName);
 };
 
 

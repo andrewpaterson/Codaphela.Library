@@ -8,7 +8,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, char* szName)
+void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, const char* szName)
 {
 	Init(eType, iOffset, pcContainingClass, 1, szName);
 }
@@ -18,7 +18,7 @@ void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcCo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, size uiLength, char* szName)
+void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, size uiLength, const char* szName)
 {
 	CClasses*	pcClasses;
 	CClass*		pcFieldClass;
@@ -40,7 +40,7 @@ void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcCo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, uint32 uiElementSize, size uiLength, char* szName)
+void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, uint32 uiElementSize, size uiLength, const char* szName)
 {
 	CClasses*	pcClasses;
 	CClass*		pcFieldClass;

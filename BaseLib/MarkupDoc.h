@@ -52,7 +52,7 @@ public:
 
 	CMarkupTag*		AppendTag(CMarkupTag* pcCurrent, char* szTagName, size iLine, size iColumn);
 
-	bool			Is(char* szName);
+	bool			Is(const char* szName);
 	void			AddReference(CMarkupReference* pcRef);
 	bool			FixReferences(void);
 

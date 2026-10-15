@@ -15,12 +15,12 @@ protected:
 	CMarkupTag*		mpcCurrent;
 
 public:
-	void		Init(char* szText, size iTextLen, char* szFileName, CLogger* pcLogger, TextParserSkipWhitespace pfSkipWhitespace, TextParserParseString pfParseString, TextParserParseExactIdentifier pfParseExactIdentifier, TextParserParseIdentifier pfParseIdentifier);
-	void		Init(char* szText, char* szFileName, CLogger* pcLogger, TextParserSkipWhitespace pfSkipWhitespace, TextParserParseString pfParseString, TextParserParseExactIdentifier pfParseExactIdentifier, TextParserParseIdentifier pfParseIdentifier);
+	void		Init(const char* szText, size iTextLen, const char* szFileName, CLogger* pcLogger, TextParserSkipWhitespace pfSkipWhitespace, TextParserParseString pfParseString, TextParserParseExactIdentifier pfParseExactIdentifier, TextParserParseIdentifier pfParseIdentifier);
+	void		Init(const char* szText, const char* szFileName, CLogger* pcLogger, TextParserSkipWhitespace pfSkipWhitespace, TextParserParseString pfParseString, TextParserParseExactIdentifier pfParseExactIdentifier, TextParserParseIdentifier pfParseIdentifier);
 	void		Kill(void);
 
 protected:
-	TRISTATE	Error(char* szError);
+	TRISTATE	Error(const char* szError);
 	TRISTATE	GetString(SBaseParserString* psString, bool bSkipWhitespace);
 
 	TRISTATE	AddStringAttribute(char* szElementName, char* szString, bool bAllowDuplicates);

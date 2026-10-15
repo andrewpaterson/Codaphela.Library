@@ -40,14 +40,14 @@ public:
 	EMarkupSubstituteType	meType;
 	size					miReferences;
 
-			void Init(char* szName, EMarkupSubstituteType eType);
+			void Init(const char* szName, EMarkupSubstituteType eType);
 			void Kill(void);
 
 			void AddRef(void);
 			bool RemoveRef(void);
 	virtual void RemoveAndKill(void);  //Remove a reference and kill the MarkupSubText if the reference count goes to zero.
 
-			bool Is(char* szName);
+			bool Is(const char* szName);
 			bool IsText(void);
 			bool IsDoc(void);
 };
@@ -60,7 +60,7 @@ public:
 	CChars		mszText;
 	CMarkup*	mpcMarkup;
 
-	void Init(char* szName, char* szText);
+	void Init(const char* szName, const char* szText);
 	void Kill(void);
 };
 
@@ -71,7 +71,7 @@ public:
 	CMarkupDoc*		mpcDoc;
 	CMarkup*		mpcMarkup;
 
-	void Init(char* szName, CMarkupDoc* pcDoc);
+	void Init(const char* szName, CMarkupDoc* pcDoc);
 	void Kill(void);
 };
 

@@ -28,7 +28,7 @@ protected:
 	CIndexedFilesEvictionCallback*	mpcEvictionCallback;
 
 public:
-	void			Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite, size iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedFilesEvictionCallback* pcEvictionCallback);
+	void			Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, const char* szDataExtension, const char* szDescriptorName, const char* szDescriptorRewrite, size iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedFilesEvictionCallback* pcEvictionCallback);
 	void			Kill(void);
 
 	bool			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, size uiMaxDataSize);

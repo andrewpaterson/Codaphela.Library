@@ -12,7 +12,7 @@ CONSTRUCTABLE(CSequenceConfig)
 public:
 			void		Kill(void);
 
-	virtual	char*		Getdirectory(void) =0;
+	virtual	const char*		Getdirectory(void) =0;
 };
 
 

@@ -336,9 +336,9 @@ void CCPPParser::BuildAST(char* szSourze)
 	else
 	{
 		CChars	sz;
-		char*	szPos;
-		char*	szEnd;
-		char*	szStart;
+		const char*	szPos;
+		const char*	szEnd;
+		const char*	szStart;
 
 		sz.Init("Parsing Broke (");
 		sz.Append(mcParser.Line() + 1);

@@ -342,7 +342,7 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 	Clean();
 	return this;
 }
-CNumber* CNumber::Init(char* szNumber, size iLen)
+CNumber* CNumber::Init(const char* szNumber, size iLen)
 {
 	return Init(szNumber, DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS, iLen);
 }

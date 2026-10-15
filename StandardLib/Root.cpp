@@ -199,7 +199,7 @@ CPointer CRoot::UnsafeGet(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CRoot::Get(char* szObjectName)
+CPointer CRoot::Get(const char* szObjectName)
 {
 	SSetIterator	sIter;
 	char*			szName;

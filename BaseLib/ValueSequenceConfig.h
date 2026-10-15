@@ -6,16 +6,16 @@
 class CValueSequenceConfig : public CSequenceConfig
 {
 protected:
-	char* mszDirectory;
+	const char* mszDirectory;
 
 public:
-	void 								Init(char* szSubDirectory);
+	void 								Init(const char* szSubDirectory);
 	void								Kill(void);
 
-	char*								Getdirectory(void);
+	const char*								Getdirectory(void);
 
 public:
-	static CLifeInit<CSequenceConfig>	Create(char* szSubDirectory);
+	static CLifeInit<CSequenceConfig>	Create(const char* szSubDirectory);
 };
 
 

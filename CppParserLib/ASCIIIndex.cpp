@@ -27,7 +27,7 @@ void CASCIIIndex::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int64 CASCIIIndex::Add(char* sz, char* szLastCharInclusive)
+int64 CASCIIIndex::Add(const char* sz, const char* szLastCharInclusive)
 {
 	int64	lliID;
 	bool	bResult;
@@ -83,7 +83,7 @@ char* CASCIIIndex::Get(int64 lliID, int* piLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int64 CASCIIIndex::Get(char* szText, char* szLastCharInclusive, bool bExact)
+int64 CASCIIIndex::Get(const char* szText, const char* szLastCharInclusive, bool bExact)
 {
 	SASCIINameIndex*	psNameIndex;
 

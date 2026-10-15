@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CValueIndexedDescriptorsFileConfig::Init(char* szSubdirectory, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy)
+void CValueIndexedDescriptorsFileConfig::Init(const char* szSubdirectory, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy)
 {
 	Init(szSubdirectory, uiIndexCacheSize, eWriteThrough, pcEvictionStrategy, NULL, NULL);
 }

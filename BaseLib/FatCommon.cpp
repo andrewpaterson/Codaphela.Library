@@ -85,7 +85,7 @@ uint32 GetFirstClusterFromFatEntry(SFatRawDirectoryEntry* psRawEntry, bool bFat3
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* FatAttributeToString(uint8 uiAttribute)
+const char* FatAttributeToString(uint8 uiAttribute)
 {
 	if (uiAttribute == FAT_ATTR_LONG_NAME)
 	{
@@ -147,7 +147,7 @@ char* FatCodeToString(EFatCode eCode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* FatEntryToString(SFatDirectoryEntry* psFatEntry, bool bFat32Volume)
+const char* FatEntryToString(SFatDirectoryEntry* psFatEntry, bool bFat32Volume)
 {
 	uint32	uiCluster;
 	int		iCount;

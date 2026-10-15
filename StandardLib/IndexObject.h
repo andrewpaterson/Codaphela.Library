@@ -39,7 +39,7 @@ public:
 	void				Class(void) override;
 	void				Free(void) override;
 
-	bool				Put(char* szKey, const CPointer& pObject);
+	bool				Put(const char* szKey, const CPointer& pObject);
 	bool				Put(uint8* pvKey, size iKeySize, const CPointer& pObject);
 
 	size 				NumElements(void) override;
@@ -57,13 +57,13 @@ public:
 	bool				RemoveAllPointerTosTryFree(void) override;
 	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters) override;
 
-	bool				Remove(char* szKey);
+	bool				Remove(const char* szKey);
 	bool				Remove(uint8* pvKey, size iKeySize);
 
-	CPointer			Get(char* szKey);
+	CPointer			Get(const char* szKey);
 	CPointer			Get(uint8* pvKey, size iKeySize);
 	template<class M>
-	Ptr<M>				Get(char* szKey);
+	Ptr<M>				Get(const char* szKey);
 	template<class M>
 	Ptr<M>				Get(uint8* pvKey, size iKeySize);
 
@@ -103,7 +103,7 @@ protected:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M> CIndexObject::Get(char* szKey)
+Ptr<M> CIndexObject::Get(const char* szKey)
 {
 	return (M*)Get(szKey);
 }

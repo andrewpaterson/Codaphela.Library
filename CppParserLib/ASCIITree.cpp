@@ -50,7 +50,7 @@ void CASCIITree::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CASCIITree::Add(char* szText, char* szLastCharInclusive)
+int64 CASCIITree::Add(const char* szText, const char* szLastCharInclusive)
 {
 	bool				bResult;
 	size				iDataSize;
@@ -87,7 +87,7 @@ int64 CASCIITree::Add(char* szText, char* szLastCharInclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SASCIINameIndex* CASCIITree::Get(char* szText, char* szLastCharInclusive, bool bExact)
+SASCIINameIndex* CASCIITree::Get(const char* szText, const char* szLastCharInclusive, bool bExact)
 {
 	if (bExact)
 	{
@@ -104,7 +104,7 @@ SASCIINameIndex* CASCIITree::Get(char* szText, char* szLastCharInclusive, bool b
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CASCIITree::Remove(char* szText, char* szLastCharInclusive)
+bool CASCIITree::Remove(const char* szText, const char* szLastCharInclusive)
 {
 	return mcIndex.Remove(szText, szLastCharInclusive);
 }

@@ -99,7 +99,7 @@ uint32 CMarkupRefDoc::Print(CChars* psz, uint32 iDepth, uint32 iLine)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupRefDoc::Is(char* szName)
+bool CMarkupRefDoc::Is(const char* szName)
 {
 	return mpcRef->mpcDoc->Is(szName);
 }
@@ -119,7 +119,7 @@ CMarkupTag* CMarkupRefDoc::GetRootTag(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMarkupNamedRef::Init(char* szName, CMarkupTag* pcParent)
+void CMarkupNamedRef::Init(const char* szName, CMarkupTag* pcParent)
 {
 	CMarkupBase::Init(MUT_NamedRef, pcParent);
 	mszName.Init(szName);

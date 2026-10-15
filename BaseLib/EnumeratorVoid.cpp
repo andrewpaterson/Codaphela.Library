@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CEnumeratorVoid::Add(char* szName, int iNum)
+int CEnumeratorVoid::Add(const char* szName, int iNum)
 {
 	return PrivateAddGetNode(szName, NULL, 0, 0, iNum, false, NULL);
 }
@@ -47,7 +47,7 @@ int CEnumeratorVoid::Add(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CEnumeratorVoid::Get(char* szName)
+int CEnumeratorVoid::Get(const char* szName)
 {
 	return __CEnumeratorTemplate<void>::Get(szName, NULL);
 }
@@ -57,7 +57,7 @@ int CEnumeratorVoid::Get(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CEnumeratorVoid::Get(char* szName, int iNameLen)
+int CEnumeratorVoid::Get(const char* szName, int iNameLen)
 {
 	return __CEnumeratorTemplate<void>::Get(szName, iNameLen, NULL);
 }

@@ -8,7 +8,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSourceSimple::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFilename)
+void CObjectSourceSimple::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, const char* szFilename)
 {
 	CObjectSingleSource::Init(pcConverter, pcFile, szFilename);
 	mpcReader = NULL;
@@ -49,7 +49,7 @@ bool CObjectSourceSimple::IsNative(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSourceSimple::Contains(char* szFullName)
+bool CObjectSourceSimple::Contains(const char* szFullName)
 {
 	return CObjectSingleSource::Contains(szFullName);
 }
@@ -59,7 +59,7 @@ bool CObjectSourceSimple::Contains(char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectSourceSimple::Convert(char* szFullName)
+CBaseObject* CObjectSourceSimple::Convert(const char* szFullName)
 {
 	CBaseObject*	pvObject;
 

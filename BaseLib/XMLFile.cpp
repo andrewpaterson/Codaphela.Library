@@ -49,7 +49,7 @@ void CXMLFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CXMLFile::Read(char* szFilename, char* szDirectory)
+bool CXMLFile::Read(const char* szFilename, const char* szDirectory)
 {
 	bool			bResult;
 	CMarkupDoc*		pcDoc;
@@ -80,7 +80,7 @@ bool CXMLFile::Read(char* szFilename, char* szDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CXMLFile::Read(char* szFilename, CMarkupDoc* pcDoc, CChars* pszDirectory)
+bool CXMLFile::Read(const char* szFilename, CMarkupDoc* pcDoc, CChars* pszDirectory)
 {
 	CXMLParser	cXMLParser;
 	CTextFile	cTextFile;

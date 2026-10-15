@@ -37,7 +37,7 @@ public:
 	void					Init(CCalculator* pcCalculator);
 	void					Kill(void);
 
-	CCalcObject*			Parse(char* szText);
+	CCalcObject*			Parse(const char* szText);
 	CCalcObject*			Parse(CTextParser* pcParser, bool bErrorOnBadExpression = true);
 
 	CCalcExpression*		Expression(void);

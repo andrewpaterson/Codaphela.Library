@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSingleSource::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szObjectName)
+void CObjectSingleSource::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, const char* szObjectName)
 {
 	CObjectSource::Init(pcConverter, pcFile, NULL);
 	mszObjectName.Init(szObjectName);
@@ -49,7 +49,7 @@ void CObjectSingleSource::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSingleSource::Contains(char* szFullName)
+bool CObjectSingleSource::Contains(const char* szFullName)
 {
 	return mszObjectName.Equals(szFullName);
 }
@@ -59,7 +59,7 @@ bool CObjectSingleSource::Contains(char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectSingleSource::Convert(char* szFullName)
+CBaseObject* CObjectSingleSource::Convert(const char* szFullName)
 {
 	if (mszObjectName.EqualsIgnoreCase(szFullName))
 	{

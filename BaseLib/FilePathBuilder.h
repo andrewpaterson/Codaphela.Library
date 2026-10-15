@@ -9,7 +9,7 @@ private:
 	CChars	szPath;
 
 public:
-	char*	Build(char* szElements, ...);
+	char*	Build(const char* szElements, ...);
 	void	Kill(void);
 };
 

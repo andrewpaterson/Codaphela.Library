@@ -33,11 +33,11 @@ protected:
 	CChars					mszFullDirectory;
 
 public:
-	void				Init(char* szDirectory, char* szChunkFilename);
+	void				Init(const char* szDirectory, const char* szChunkFilename);
 	void				Kill(void);
 
 	bool				Begin(void);
-	CSerialisedObject*  Read(char* szObjectName);
+	CSerialisedObject*  Read(const char* szObjectName);
 	bool				End(void);
 };
 

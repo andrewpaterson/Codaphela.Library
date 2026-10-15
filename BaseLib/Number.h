@@ -74,7 +74,7 @@ public:
 	CNumber*	Init(void);
 	CNumber*	Init(int32 iNumber);
 	CNumber*	Init(float32 ff);
-	CNumber*	Init(char* szNumber, size iLen = 0);
+	CNumber*	Init(const char* szNumber, size iLen = 0);
 	CNumber*	Init(CNumber* pcNumber);
 	CNumber*	Zero(void);
 	CNumber*	One(bool bPositive = true);

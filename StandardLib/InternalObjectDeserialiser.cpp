@@ -75,7 +75,7 @@ CBaseObject* CInternalObjectDeserialiser::Read(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CInternalObjectDeserialiser::Read(char* szObjectName)
+CBaseObject* CInternalObjectDeserialiser::Read(const char* szObjectName)
 {
 	CSerialisedObject*	pcSerialised;
 	size				uiDataSize;
@@ -223,7 +223,7 @@ bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 	CBaseObject*		pcExistingObject;
 	OIndex				oiNew;
 	bool				bIsNamed;
-	char*				szName;
+	const char*				szName;
 	uint16				uiFatSize;
 
 	if (!((pcObjectIdentifier->meType == OBJECT_POINTER_NAMED) || (pcObjectIdentifier->meType == OBJECT_POINTER_ID)))
@@ -291,7 +291,7 @@ bool CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcObjec
 	CBaseObject*	pcHollowObject;
 	OIndex			oiNew;
 	bool			bIsNamed;
-	char*			szName;
+	const char*			szName;
 
 	if (!((pcObjectIdentifier->meType == OBJECT_POINTER_NAMED) || (pcObjectIdentifier->meType == OBJECT_POINTER_ID)))
 	{

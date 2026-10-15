@@ -39,9 +39,9 @@ public:
 	void 			Init(void);
 	void 			Kill(void);
 
-	CFileNode<M>*	Get(char* szName);
+	CFileNode<M>*	Get(const char* szName);
 	CFileNode<M>*	AddFile(char* szName, CFileNode<M>* pcParent);
-	CFileNode<M>*	AddDirectory(char* szName, CFileNode<M>* pcParent);
+	CFileNode<M>*	AddDirectory(const char* szName, CFileNode<M>* pcParent);
 
 	void			FixParents(CFileNode<M>* pcContaintingNode);
 };
@@ -82,7 +82,7 @@ void CFileNodeDirectory<M>::Kill(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-CFileNode<M>* CFileNodeDirectory<M>::Get(char* szName)
+CFileNode<M>* CFileNodeDirectory<M>::Get(const char* szName)
 {
 	size			i;
 	CFileNode<M>*	pcNode;
@@ -104,7 +104,7 @@ CFileNode<M>* CFileNodeDirectory<M>::Get(char* szName)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-CFileNode<M>* CFileNodeDirectory<M>::AddDirectory(char* szName, CFileNode<M>* pcParent)
+CFileNode<M>* CFileNodeDirectory<M>::AddDirectory(const char* szName, CFileNode<M>* pcParent)
 {
 	CFileNode<M>*	pcNode;
 

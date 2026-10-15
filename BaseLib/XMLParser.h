@@ -39,10 +39,10 @@ public:
 	CArrayXMLEntity		macEntities;
 	CMarkupDoc*			mpcDoc;
 
-	void		Init(char* szText, size iTextLen, char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger);
-	void		Init(char* szText, size iTextLen, char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger);
-	void		Init(char* szText, char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger);
-	void		Init(char* szText, char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger);
+	void		Init(char* szText, size iTextLen, const char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger);
+	void		Init(char* szText, size iTextLen, const char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger);
+	void		Init(const char* szText, const char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger);
+	void		Init(const char* szText, const char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger);
 	void		Kill(void);
 
 	TRISTATE	Parse(void);
@@ -70,7 +70,7 @@ public:
 	TRISTATE	ParseInternalEntity(char* szName, char* szContent);
 	bool		IsAllowedTextChar(uint8 cChar);
 	TRISTATE	FailOnErrorReturnOnFalse(TRISTATE tResult, char* szExpected);
-	TRISTATE	FailAlways(TRISTATE tResult, char* szExpected);
+	TRISTATE	FailAlways(TRISTATE tResult, const char* szExpected);
 };
 
 

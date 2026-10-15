@@ -29,7 +29,7 @@ void CObjectConverterText::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CObjectConverterText::GetFileExtension(void)
+const char* CObjectConverterText::GetFileExtension(void)
 {
 	return "TXT";
 }
@@ -49,7 +49,7 @@ bool CObjectConverterText::IsFor(CAbstractFile* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CObjectSource* CObjectConverterText::CreateSource(CAbstractFile* pcFile, char* szFilename)
+CObjectSource* CObjectConverterText::CreateSource(CAbstractFile* pcFile, const char* szFilename)
 {
 	CObjectSourceText*	pcSource;
 
@@ -68,7 +68,7 @@ CObjectSource* CObjectConverterText::CreateSource(CAbstractFile* pcFile, char* s
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectConverterText::Convert(CObjectSource* pcSource, char* szObjectName)
+CBaseObject* CObjectConverterText::Convert(CObjectSource* pcSource, const char* szObjectName)
 {
 	CTextFile			cTextFile;
 	Ptr<CString>		pcString;

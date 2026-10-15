@@ -10,7 +10,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFilename)
+bool CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, const char* szFilename)
 {
 	CObjectSource::Init(pcConverter, pcFile, szFilename);
 
@@ -73,7 +73,7 @@ bool CObjectSourceChunked::ReadNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjectSourceChunked::Convert(char* szFullName)
+CBaseObject* CObjectSourceChunked::Convert(const char* szFullName)
 {
 	CBaseObject*	pvObject;
 
@@ -90,7 +90,7 @@ CBaseObject* CObjectSourceChunked::Convert(char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSourceChunked::Contains(char* szFullName)
+bool CObjectSourceChunked::Contains(const char* szFullName)
 {
 	int		iIndex;
 

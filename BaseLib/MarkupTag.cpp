@@ -46,7 +46,7 @@ void CMarkupTag::Init(CMarkupTag* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMarkupTag::Init(char* szName, CMarkupTag* pcParent)
+void CMarkupTag::Init(const char* szName, CMarkupTag* pcParent)
 {
 	CMarkupBase::Init(MUT_Tag, pcParent);
 	macBases.Init();
@@ -114,7 +114,7 @@ bool CMarkupTag::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupTag::GetAttribute(char* szAttribute, void** ppvData, uint* puiType)
+bool CMarkupTag::GetAttribute(const char* szAttribute, void** ppvData, uint* puiType)
 {
 	size			i;
 	size			uiNumElements;
@@ -185,7 +185,7 @@ char* CMarkupTag::GetAttribute(char* szAttribute)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMarkupTag* CMarkupTag::GetTag(char* szTagName, STagIterator* psIter)
+CMarkupTag* CMarkupTag::GetTag(const char* szTagName, STagIterator* psIter)
 {
 	STagIterator	sTemp;
 
@@ -205,7 +205,7 @@ CMarkupTag* CMarkupTag::GetTag(char* szTagName, STagIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMarkupTag* CMarkupTag::GetTag(char* szTagName, size uiTagNumber)
+CMarkupTag* CMarkupTag::GetTag(const char* szTagName, size uiTagNumber)
 {
 	STagIterator	sIter;
 	CMarkupTag*		pcTag;
@@ -235,7 +235,7 @@ CMarkupTag* CMarkupTag::GetTag(char* szTagName, size uiTagNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMarkupTag* CMarkupTag::GetTagFromIndex(char* szTagName, STagIterator* psIter)
+CMarkupTag* CMarkupTag::GetTagFromIndex(const char* szTagName, STagIterator* psIter)
 {
 	CMarkupBase*	pcBase;
 	CMarkupTag*		pcTag;
@@ -354,7 +354,7 @@ CMarkupTag* CMarkupTag::GetNextTag(STagIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupTag::Is(char* szName)
+bool CMarkupTag::Is(const char* szName)
 {
 	return mszName.Equals(szName);
 }

@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileSystem::Init(char* szDirectory)
+void CFileSystem::Init(const char* szDirectory)
 {
 	CFileUtil	cFileUtil;
 
@@ -84,7 +84,7 @@ void CFileSystem::ReadDirectory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFileSystem::GetFilename(char* szFilename)
+char* CFileSystem::GetFilename(const char* szFilename)
 {
 	CSystemFileNode*	pcNode;
 
@@ -104,7 +104,7 @@ char* CFileSystem::GetFilename(char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFileNodeSystemFile* CFileSystem::GetFileNode(char* szName, CChars* pszRemainingName)
+CFileNodeSystemFile* CFileSystem::GetFileNode(const char* szName, CChars* pszRemainingName)
 {
 	return mcNames.GetNearestFile(szName, pszRemainingName);
 }
@@ -134,7 +134,7 @@ void CFileSystem::GetFiles(CArraySystemFilePtr* pcSystemFiles)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileSystem::GetFiles(CArraySystemFilePtr* pcSystemFiles, char* szExtension)
+void CFileSystem::GetFiles(CArraySystemFilePtr* pcSystemFiles, const char* szExtension)
 {
 	CFileSystemIterator		cIter;
 	CSystemFileNode*		pcNode;

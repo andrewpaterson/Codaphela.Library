@@ -12,7 +12,7 @@ protected:
 	CDurableFileController		mcFileController;
 
 public:
-	void	Init(char* szDirectory, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig);
+	void	Init(const char* szDirectory, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig);
 	void	Kill(void);
 
 	bool	Open(void);
@@ -23,38 +23,38 @@ public:
 	bool	ValidateIdentifiers(void);
 
 	bool	Add(OIndex oi, void* pvData, uint32 uiDataSize);
-	bool	Add(OIndex oi, char* szName, void* pvData, uint32 uiDataSize);
+	bool	Add(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize);
 	bool	Add(OIndex oi, CChars* szName, void* pvData, uint32 uiDataSize);
 
 	bool	Set(OIndex oi, void* pvData);
 	bool	Set(OIndex oi, void* pvData, uint32 uiDataSize);
-	bool	Set(char* szName, void* pvData);
-	bool	Set(char* szName, void* pvData, uint32 uiDataSize);
+	bool	Set(const char* szName, void* pvData);
+	bool	Set(const char* szName, void* pvData, uint32 uiDataSize);
 	bool	Set(CChars* szName, void* pvData);
 	bool	Set(CChars* szName, void* pvData, uint32 uiDataSize);
 
 	bool	Put(OIndex oi, void* pvData, uint32 uiDataSize);
-	bool	Put(OIndex oi, char* szName, void* pvData, uint32 uiDataSize);
+	bool	Put(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize);
 	bool	Put(OIndex oi, CChars* szName, void* pvData, uint32 uiDataSize);
 
 	bool	Get(OIndex oi, void* pvData);
 	bool	Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
-	bool	Get(char* szName, void* pvData);
-	bool	Get(char* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
+	bool	Get(const char* szName, void* pvData);
+	bool	Get(const char* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
 	bool	Get(CChars* szName, void* pvData);
 	bool	Get(CChars* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
 
 	bool	GetName(OIndex oi, CChars* szName);
 	bool	GetName(OIndex oi, char* szName, uint32* puiNameLength, uint32 uiMaxNameLength);
-	OIndex	GetIndex(char* szName);
+	OIndex	GetIndex(const char* szName);
 	OIndex	GetIndex(CChars* szName);
 
 	bool	Contains(OIndex oi);
-	bool	Contains(char* szName);
+	bool	Contains(const char* szName);
 	bool	Contains(CChars* szName);
 
 	bool	Remove(OIndex oi);
-	bool	Remove(char* szName);
+	bool	Remove(const char* szName);
 	bool	Remove(CChars* szName);
 
 	bool	Flush(void);

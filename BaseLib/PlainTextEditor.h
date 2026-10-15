@@ -44,7 +44,7 @@ public:
 	size	miUpDownCharCount;
 
 	void	Init(void);
-	void 	Init(char* szText);
+	void 	Init(const char* szText);
 	void 	Kill(void);
 
 	void 	Up(void) override;

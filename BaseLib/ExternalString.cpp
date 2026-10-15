@@ -37,7 +37,7 @@ void CExternalString::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExternalString::Init(char* sz, size iLen)
+void CExternalString::Init(const char* sz, size iLen)
 {
 	msz = sz;
 	miLen = iLen;
@@ -48,7 +48,7 @@ void CExternalString::Init(char* sz, size iLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExternalString::Init(char* szStart, char* szLastCharInclusive)
+void CExternalString::Init(const char* szStart, const char* szLastCharInclusive)
 {
 	msz = szStart;
 	miLen = StrLen(szStart, szLastCharInclusive);
@@ -70,7 +70,7 @@ void CExternalString::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CExternalString::EndInclusive(void)
+const char* CExternalString::EndInclusive(void)
 {
 	if (miLen != 0)
 	{

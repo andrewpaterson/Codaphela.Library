@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJSONParser::Init(char* szText, char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger)
+void CJSONParser::Init(const char* szText, const char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger)
 {
 	Init(szText, szFileName, pcMarkup->mpcDoc, pcLogger);
 }
@@ -41,7 +41,7 @@ void CJSONParser::Init(char* szText, char* szFileName, CMarkup* pcMarkup, CLogge
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJSONParser::Init(char* szText, char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger)
+void CJSONParser::Init(const char* szText, const char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger)
 {
 	CBaseParser::Init(szText, szFileName, pcLogger, SkipJSONWhitespace, ParseJSONString, ParseJSONExactIdentifier, ParseJSONIdentifier);
 
@@ -55,7 +55,7 @@ void CJSONParser::Init(char* szText, char* szFileName, CMarkupDoc* pcDoc, CLogge
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJSONParser::Init(char* szText, size iTextLen, char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger)
+void CJSONParser::Init(char* szText, size iTextLen, const char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger)
 {
 	Init(szText, iTextLen, szFileName, pcMarkup->mpcDoc, pcLogger);
 }
@@ -65,7 +65,7 @@ void CJSONParser::Init(char* szText, size iTextLen, char* szFileName, CMarkup* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJSONParser::Init(char* szText, size iTextLen, char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger)
+void CJSONParser::Init(char* szText, size iTextLen, const char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger)
 {
 	CBaseParser::Init(szText, iTextLen, szFileName, pcLogger, SkipJSONWhitespace, ParseJSONString, ParseJSONExactIdentifier, ParseJSONIdentifier);
 

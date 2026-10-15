@@ -63,7 +63,7 @@ private:
 	bool						mbAddedToController;
 
 public:
-	bool		Init(CDurableFileController* pcController, char* szFilename, char* szRewriteName);
+	bool		Init(CDurableFileController* pcController, const char* szFilename, const char* szRewriteName);
 	bool		Kill(void);
 	void		InitBasic(void);
 	void		InitError(void);
@@ -100,7 +100,7 @@ public:
 
 	bool		TestGetOpenedSinceBegin(void);
 	bool		IsOpen(void);
-	char*		GetFilename(void);
+	const char*		GetFilename(void);
 	char*		GetRewriteName(void);
 
 	void		Dump(void);

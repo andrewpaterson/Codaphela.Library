@@ -31,12 +31,12 @@ public:
 
 	bool		WriteOpen(void);
 	bool		WriteOpen(uint32 iUserID);
-	bool		WriteChunkBegin(char* szChunkName);
+	bool		WriteChunkBegin(const char* szChunkName);
 	bool		WriteChunkEnd(void);
 	bool		WriteClose(void);
 
 	bool		ReadOpen(void);
-	bool		ReadChunkBegin(char* szChunkName);
+	bool		ReadChunkBegin(const char* szChunkName);
 	bool		ReadChunkEnd(void);
 	bool		ReadClose(void);
 
@@ -48,7 +48,7 @@ public:
 
 protected:
 	bool		WriteChunkBegin(void);
-	bool		WriteChunkEnd(char* szChunkName);
+	bool		WriteChunkEnd(const char* szChunkName);
 
 	uint32		FindChunkNamesMatching(CArrayChars* paszOpenChunkNames, CArrayChars* paszChunkNames);
 	bool		WriteUnmatchedChunkEnds(size iMatchingOpen);

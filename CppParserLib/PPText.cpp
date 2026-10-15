@@ -36,7 +36,7 @@ void CPPText::Init(int iLine, int iColumn, char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPText::Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, char* szStart, int iLength)
+void CPPText::Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, const char* szStart, int iLength)
 {
 	CPPToken::Init(iLine, iColumn, szFileName);
 	mcText.Init(szStart, iLength);
@@ -165,7 +165,7 @@ bool CPPText::Equals(CPPToken* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPPText::TextStart(void)
+const char* CPPText::TextStart(void)
 {
 	return mcText.msz;
 }
@@ -175,7 +175,7 @@ char* CPPText::TextStart(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPPText::TextEndInclusive(void)
+const char* CPPText::TextEndInclusive(void)
 {
 	return mcText.EndInclusive();
 }

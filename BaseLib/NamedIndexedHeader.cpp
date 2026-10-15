@@ -8,7 +8,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexedHeader::Init(char* szName, int iNameLength, void* pvData, uint32 uiDataSize)
+void CNamedIndexedHeader::Init(const char* szName, int iNameLength, void* pvData, uint32 uiDataSize)
 {
 	char* szDestName;
 	void* szDestData;

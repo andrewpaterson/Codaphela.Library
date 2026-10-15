@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCodabase::Init(char* szDirectory, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig)
+void CCodabase::Init(const char* szDirectory, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig)
 {
 	CIndexTreeHelper	cHelper;
 
@@ -107,7 +107,7 @@ bool CCodabase::Add(OIndex oi, void* pvData, uint32 uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Add(OIndex oi, char* szName, void* pvData, uint32 uiDataSize)
+bool CCodabase::Add(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize)
 {
 	return mcNamedIndexedData.Add(oi, szName, pvData, uiDataSize);
 }
@@ -147,7 +147,7 @@ bool CCodabase::Set(OIndex oi, void* pvData, uint32 uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Set(char* szName, void* pvData)
+bool CCodabase::Set(const char* szName, void* pvData)
 {
 	return mcNamedIndexedData.Set(szName, pvData);
 }
@@ -157,7 +157,7 @@ bool CCodabase::Set(char* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Set(char* szName, void* pvData, uint32 uiDataSize)
+bool CCodabase::Set(const char* szName, void* pvData, uint32 uiDataSize)
 {
 	return mcNamedIndexedData.Set(szName, pvData, uiDataSize);
 }
@@ -197,7 +197,7 @@ bool CCodabase::Put(OIndex oi, void* pvData, uint32 uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Put(OIndex oi, char* szName, void* pvData, uint32 uiDataSize)
+bool CCodabase::Put(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize)
 {
 	return mcNamedIndexedData.Put(oi, szName, pvData, uiDataSize);
 }
@@ -237,7 +237,7 @@ bool CCodabase::Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Get(char* szName, void* pvData)
+bool CCodabase::Get(const char* szName, void* pvData)
 {
 	return mcNamedIndexedData.Get(szName, pvData);
 }
@@ -247,7 +247,7 @@ bool CCodabase::Get(char* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Get(char* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize)
+bool CCodabase::Get(const char* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize)
 {
 	return mcNamedIndexedData.Get(szName, puiDataSize, pvData, uiMaxDataSize);
 }
@@ -297,7 +297,7 @@ bool CCodabase::GetName(OIndex oi, char* szName, uint32* puiNameLength, uint32 u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CCodabase::GetIndex(char* szName)
+OIndex CCodabase::GetIndex(const char* szName)
 {
 	return mcNamedIndexedData.GetIndex(szName);
 }
@@ -327,7 +327,7 @@ bool CCodabase::Contains(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Contains(char* szName)
+bool CCodabase::Contains(const char* szName)
 {
 	return mcNamedIndexedData.Contains(szName);
 }
@@ -357,7 +357,7 @@ bool CCodabase::Remove(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::Remove(char* szName)
+bool CCodabase::Remove(const char* szName)
 {
 	return mcNamedIndexedData.Remove(szName);
 }

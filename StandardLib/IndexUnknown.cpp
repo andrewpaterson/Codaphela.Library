@@ -72,7 +72,7 @@ bool CIndexUnknown::Put(uint8* pvKey, size iKeySize, CUnknown* pcValue)
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexUnknown::Put(char* szKey, CUnknown* pcValue)
+bool CIndexUnknown::Put(const char* szKey, CUnknown* pcValue)
 {
 	void*	pvData;
 	size	uiLength;
@@ -119,7 +119,7 @@ CUnknown* CIndexUnknown::Get(uint8* pvKey, size iKeySize)
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-CUnknown* CIndexUnknown::Get(char* szKey)
+CUnknown* CIndexUnknown::Get(const char* szKey)
 {
 	size	uiLength;
 
@@ -132,7 +132,7 @@ CUnknown* CIndexUnknown::Get(char* szKey)
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexUnknown::Remove(char* szKey)
+bool CIndexUnknown::Remove(const char* szKey)
 {
 	size	uiLength;
 

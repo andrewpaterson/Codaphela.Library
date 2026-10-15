@@ -39,10 +39,10 @@ public:
 
 	CFileNode<M>*	GetRoot(void);
 
-	CFileNode<M>*	GetNode(char* szFullName);
-	CFileNode<M>*	AddFile(char* szFullName);
+	CFileNode<M>*	GetNode(const char* szFullName);
+	CFileNode<M>*	AddFile(const char* szFullName);
 
-	M*				GetNearestFile(char* szFullName, CChars* pszRemaining);
+	M*				GetNearestFile(const char* szFullName, CChars* pszRemaining);
 	void			FixParents(void);
 };
 
@@ -86,7 +86,7 @@ CFileNode<M>* CFilenames<M>::GetRoot(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-CFileNode<M>* CFilenames<M>::GetNode(char* szFullName)
+CFileNode<M>* CFilenames<M>::GetNode(const char* szFullName)
 {
 	CChars			szFake;
 	CArrayChars		asNames;
@@ -130,7 +130,7 @@ CFileNode<M>* CFilenames<M>::GetNode(char* szFullName)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-CFileNode<M>* CFilenames<M>::AddFile(char* szFullName)
+CFileNode<M>* CFilenames<M>::AddFile(const char* szFullName)
 {
 	CChars			szFake;
 	CArrayChars		asNames;
@@ -184,7 +184,7 @@ CFileNode<M>* CFilenames<M>::AddFile(char* szFullName)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-M* CFilenames<M>::GetNearestFile(char* szFullName, CChars* pszRemaining)
+M* CFilenames<M>::GetNearestFile(const char* szFullName, CChars* pszRemaining)
 {
 	CChars			szFake;
 	CArrayChars		asNames;

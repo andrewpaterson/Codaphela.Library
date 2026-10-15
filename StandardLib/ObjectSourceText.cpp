@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjectSourceText::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFilename)
+void CObjectSourceText::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, const char* szFilename)
 {
 	CObjectSingleSource::Init(pcConverter, pcFile, szFilename);
 }

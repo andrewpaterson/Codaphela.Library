@@ -12,7 +12,7 @@ protected:
 	bool		mbDoNoFreePointedTo;
 
 public:
-	void		Init(ptrdiff_t iOffset, CClass* pcContainingClass, char* szName);
+	void		Init(ptrdiff_t iOffset, CClass* pcContainingClass, const char* szName);
 	void		Kill(void);
 
 	bool		IsPointer(void);

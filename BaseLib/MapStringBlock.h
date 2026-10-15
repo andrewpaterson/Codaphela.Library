@@ -39,15 +39,11 @@ public:
 	void*			Get(const char* szKey);
 	void*			Get(const char* szKey, size* puiDataSize);
 
-	void*			Put(char* szKey, size uiDataSize);
-	bool			Put(char* szKey, void* psData, size uiDataSize);
 	void*			Put(const char* szKey, size uiDataSize);
 	bool			Put(const char* szKey, void* psData, size uiDataSize);
 
-	bool			Remove(char* szKey);
 	bool			Remove(const char* szKey);
 
-	bool			HasKey(char* szKey);
 	bool			HasKey(const char* szKey);
 
 	bool			WriteCaseSensitivity(CFileWriter* pcFileWriter);

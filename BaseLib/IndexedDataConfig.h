@@ -18,7 +18,7 @@ CONSTRUCTABLE(CIndexedDataConfig)
 public:
 			void									Kill(void);
 
-	virtual char*									GetSubdirectory(void) =0;
+	virtual const char*									GetSubdirectory(void) =0;
 	virtual size									GetDataCacheSize(void) =0;
 	virtual size									GetIndexCacheSize(void) =0;
 	virtual EIndexWriteThrough						GetWriteThrough(void) =0;

@@ -6,7 +6,7 @@
 class CSequenceFactory
 {
 public:
-	static CSequence*	Create(char* szDirectory);
+	static CSequence*	Create(const char* szDirectory);
 };
 
 

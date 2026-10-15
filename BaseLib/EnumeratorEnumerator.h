@@ -30,10 +30,10 @@ typedef CEnumeratorTemplate<CEnumeratorVoid> __CEnumeratorEnumerator;
 class CEnumeratorEnumerator : public __CEnumeratorEnumerator
 {
 public:
-	int					AddType(char* szType);
+	int					AddType(const char* szType);
 	int					AddType(char* szType, int iTypeLen);
 	int					Add(int iType, char* szText);
-	void				Add(char* szType, char* szText);
+	void				Add(const char* szType, char* szText);
 	char*				Get(int iType, int iID);
 	void				Kill(void);
 	CEnumeratorVoid*	GetEnumerator(int iType);

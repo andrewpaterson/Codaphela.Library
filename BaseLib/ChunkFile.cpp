@@ -219,7 +219,7 @@ bool CChunkFile::WriteChunkBegin(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CChunkFile::WriteChunkEnd(char* szChunkName)
+bool CChunkFile::WriteChunkEnd(const char* szChunkName)
 {
 	chunkName*	piName;
 	chunkName	iName;
@@ -411,7 +411,7 @@ size CChunkFile::FindFirstChunkWithID(chunkName iName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CChunkFile::FindFirstChunkWithName(char* szName)
+size CChunkFile::FindFirstChunkWithName(const char* szName)
 {
 	chunkName*	piName;
 
@@ -516,7 +516,7 @@ chunkName CChunkFile::GetTailChunkNameIndex(size iChunkNum)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CChunkFile::ReadChunkBegin(char* szName)
+bool CChunkFile::ReadChunkBegin(const char* szName)
 {
 	chunkName				iChunkNum;
 	CChunkStackElement*		psElement;

@@ -36,11 +36,11 @@ public:
 	void				Init(void);
 	void				Kill(void);
 
-	int64				Add(char* szText, char* szLastCharInclusive = NULL);
+	int64				Add(const char* szText, const char* szLastCharInclusive = NULL);
 
-	SASCIINameIndex*	Get(char* szText, char* szLastCharInclusive, bool bExact);
+	SASCIINameIndex*	Get(const char* szText, const char* szLastCharInclusive, bool bExact);
 
-	bool				Remove(char* szText, char* szLastCharInclusive = NULL);
+	bool				Remove(const char* szText, const char* szLastCharInclusive = NULL);
 
 	int					NumElements(void);
 

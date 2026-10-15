@@ -10,12 +10,9 @@ typedef CMapStringTemplate<SIntAndPointer> __CMapStringIntAndPointer;
 class CMapStringIntAndPointer : public __CMapStringIntAndPointer
 {
 public:
-	SIntAndPointer*		Get(char* szKey);
 	SIntAndPointer*		Get(const char* szKey);
-	void*				Get(char* szKey, uint* puiType);
 	void*				Get(const char* szKey, uint* puiType);
 
-	SIntAndPointer*		Put(char* szKey, uint uiType, void* pvData);
 	SIntAndPointer*		Put(const char* szKey, uint uiType, void* pvData);
 
 	bool				StartIteration(SMapIterator* psIterator, void** ppvKey, size* piKeySize, void** ppvData, uint* puiType = NULL);

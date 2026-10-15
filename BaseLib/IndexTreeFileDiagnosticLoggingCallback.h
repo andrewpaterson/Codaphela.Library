@@ -23,7 +23,7 @@ public:
 	void	Dump(void);
 
 protected:
-	void	Log(char* szOperation, void* pvKey, size iKeySize, void* pvData, size iDataSize);
+	void	Log(const char* szOperation, void* pvKey, size iKeySize, void* pvData, size iDataSize);
 };
 
 #endif // __INDEX_TREE_FILE_KEY_DIAGNOSTIC_LOGGING_CALLBACK_H__

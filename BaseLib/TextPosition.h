@@ -7,13 +7,13 @@
 
 struct STextPosition
 {
-	char*	szPos;
+	const char*	szPos;
 	size	iLine;
 	size	iColumn;
 
 	void	Init(void);
-	void	Init(char* szPos, size iLine, size iColumn);
-	void	Init(char* szStartOfText, size iLength, char* szPosition);
+	void	Init(const char* szPos, size iLine, size iColumn);
+	void	Init(const char* szStartOfText, size iLength, const char* szPosition);
 	void	Clear(void);
 };
 
@@ -24,10 +24,10 @@ class CTextPositionPrinter
 protected:
 	STextPosition		mcTextPosition;
 	CExternalString		mcText;
-	char*				mszFilename;
+	const char*			mszFilename;
 
 public:
-	void	Init(CExternalString* pcText, STextPosition* pcTextPosition, char* szFilename = NULL);
+	void	Init(CExternalString* pcText, STextPosition* pcTextPosition, const char* szFilename = NULL);
 	void	Kill(void);
 
 	void	PrintPosition(CChars* pszDest);

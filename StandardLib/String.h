@@ -20,7 +20,6 @@ protected:
 
 public:
 	Ptr<CString>	Init(void);
-	Ptr<CString>	Init(char* sz);
 	Ptr<CString>	Init(const char* sz);
 	Ptr<CString>	Init(CChars* psz);
 	Ptr<CString>	Init(CChars sz);
@@ -34,7 +33,7 @@ public:
 	void			D(void);  //Set dirty.
 
 	Ptr<CString>	AddOperator(Ptr<CString> pString);
-	Ptr<CString>	AddOperator(char* sz);
+	Ptr<CString>	AddOperator(const char* sz);
 
 	size			Length(void) { return msz.Length(); }
 	Ptr<CString>	Set(const char* sz) { msz.Set(sz); D(); return this; }

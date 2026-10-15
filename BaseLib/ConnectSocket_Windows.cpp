@@ -36,7 +36,7 @@ SOCKET	GetSocketHandle(uint8* paSocket);
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CConnectSocket::Init(char* szServer, int iPort)
+void CConnectSocket::Init(const char* szServer, int iPort)
 {
 	CSocket::Init(iPort);
 	mszServer.Init(szServer);

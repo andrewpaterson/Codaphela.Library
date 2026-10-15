@@ -37,7 +37,7 @@ protected:
 public:
 	void		Init(CCalculatorError* pcError);
 	void		Kill(void);
-	void		Set(char* szName, CCalculatorVariables* pcVariableDefinitions);
+	void		Set(const char* szName, CCalculatorVariables* pcVariableDefinitions);
 	CNumber		Evaluate(void);
 	void		Print(CChars* psz);
 	char*		Get(void);

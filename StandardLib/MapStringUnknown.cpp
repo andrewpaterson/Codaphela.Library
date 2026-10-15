@@ -51,7 +51,7 @@ void CMapStringUnknown::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapStringUnknown::Put(char* szKey, CUnknown* pcValue)
+bool CMapStringUnknown::Put(const char* szKey, CUnknown* pcValue)
 {
 	CUnknown**	ppcNew;
 
@@ -72,7 +72,7 @@ bool CMapStringUnknown::Put(char* szKey, CUnknown* pcValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnknown* CMapStringUnknown::Get(char* szKey)
+CUnknown* CMapStringUnknown::Get(const char* szKey)
 {
 	CUnknown**	ppcValue;
 

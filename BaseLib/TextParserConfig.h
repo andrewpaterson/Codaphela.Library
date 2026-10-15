@@ -9,7 +9,7 @@ class CTextParser;
 
 typedef void(*TextParserSkipWhitespace)(CTextParser*);
 typedef TRISTATE(*TextParserParseString)(CTextParser*, char*, size*);
-typedef TRISTATE (*TextParserParseExactIdentifier)(CTextParser*, char*);
+typedef TRISTATE (*TextParserParseExactIdentifier)(CTextParser*, const char*);
 typedef TRISTATE (*TextParserParseIdentifier)(CTextParser*, char*, size*);
 
 

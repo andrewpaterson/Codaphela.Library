@@ -157,7 +157,7 @@ bool CMarkupTextParser::ReadBool(CMarkupTag* pcIntTag, bool* pcBool, bool bLogEr
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMarkupTextParser::LogError(CMarkupTag* pcTag, char* szError)
+void CMarkupTextParser::LogError(CMarkupTag* pcTag, const char* szError)
 {
 	CChars	szError2;
 

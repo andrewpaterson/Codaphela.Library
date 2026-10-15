@@ -31,7 +31,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChunkFileSystemObjectReader::Init(char* szDirectory, char* szChunkFilename)
+void CChunkFileSystemObjectReader::Init(const char* szDirectory, const char* szChunkFilename)
 {
 	CChunkFileObjectReader::Init(&mcChunkFileFileSystem);
 	mszFilename.Init(szChunkFilename);
@@ -95,7 +95,7 @@ bool CChunkFileSystemObjectReader::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSerialisedObject* CChunkFileSystemObjectReader::Read(char* szChunkName)
+CSerialisedObject* CChunkFileSystemObjectReader::Read(const char* szChunkName)
 {
 	CSerialisedObject*	pcSerialised;
 	CChunkFileFile		cChunkFile;

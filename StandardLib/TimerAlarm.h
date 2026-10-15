@@ -38,7 +38,7 @@ public:
 	CChars		mszName;
 	CAction*	mpcAction;
 
-	void	Init(CAction* pcAction, char* szTimerName, int64 iTime, bool bRepeat);
+	void	Init(CAction* pcAction, const char* szTimerName, int64 iTime, bool bRepeat);
 	void	Kill(void);
 	float	Update(void);
 	void	Reset(void);

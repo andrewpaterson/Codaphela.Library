@@ -199,7 +199,7 @@ void CLogFile::AddCommandErrorString(CChars* pszDest, char* szMethod, CLogFileCo
 //////////////////////////////////////////////////////////////////////////
 void CLogFile::GetSafeFilename(CChars* pszDest, CAbstractFile* pcFile)
 {
-	char*	pszFilename;
+	const char*	pszFilename;
 
 	pszFilename = pcFile->GetFilename();
 	if (pszFilename)
@@ -217,7 +217,7 @@ void CLogFile::GetSafeFilename(CChars* pszDest, CAbstractFile* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLogFile::FailBegun(char* szMethod, char* szTask, CAbstractFile* pcFile)
+bool CLogFile::FailBegun(char* szMethod, const char* szTask, CAbstractFile* pcFile)
 {
 	CChars	szError;
 
@@ -1173,7 +1173,7 @@ bool CLogFile::Delete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CLogFile::GetFilename(void)
+const char* CLogFile::GetFilename(void)
 {
 	return mpcBackingFile->GetFilename();
 }

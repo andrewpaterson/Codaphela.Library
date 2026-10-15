@@ -17,7 +17,7 @@ void STextPosition::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void STextPosition::Init(char* szPos, size iLine, size iColumn)
+void STextPosition::Init(const char* szPos, size iLine, size iColumn)
 {
 	this->szPos = szPos;
 	this->iLine = iLine;
@@ -29,7 +29,7 @@ void STextPosition::Init(char* szPos, size iLine, size iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void STextPosition::Init(char* szStartOfText, size iLength, char* szPosition)
+void STextPosition::Init(const char* szStartOfText, size iLength, const char* szPosition)
 {
 	CChars	sz;
 	char*	szLineStart;
@@ -60,7 +60,7 @@ void STextPosition::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextPositionPrinter::Init(CExternalString* pcText, STextPosition* pcTextPosition, char* szFilename)
+void CTextPositionPrinter::Init(CExternalString* pcText, STextPosition* pcTextPosition, const char* szFilename)
 {
 	mcTextPosition = *pcTextPosition;
 	mcText = *pcText;

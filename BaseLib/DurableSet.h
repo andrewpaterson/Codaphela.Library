@@ -39,7 +39,7 @@ private:
 	bool					mbBegun;
 
 public:
-	void			Init(char* szMarkStartFile, char* szMarkRewriteFile);
+	void			Init(const char* szMarkStartFile, const char* szMarkRewriteFile);
 	void			Kill(void);
 
 	bool			HasBegun(void);

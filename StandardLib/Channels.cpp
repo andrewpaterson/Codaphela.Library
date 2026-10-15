@@ -297,7 +297,7 @@ void CChannels::AddChannel(size iChannel, EPrimitiveType eType, bool bReverse)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::AddChannel(size iChannel, EPrimitiveType eType, char* szShortName, char* szLongName, bool bReverse)
+void CChannels::AddChannel(size iChannel, EPrimitiveType eType, const char* szShortName, const char* szLongName, bool bReverse)
 {
 	AddChannel(iChannel, eType, bReverse);
 	SetChannelDebugNames(iChannel, szShortName, szLongName);
@@ -308,7 +308,7 @@ void CChannels::AddChannel(size iChannel, EPrimitiveType eType, char* szShortNam
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::SetChannelDebugNames(size iChannel, char* szShortName, char* szLongName)
+void CChannels::SetChannelDebugNames(size iChannel, const char* szShortName, const char* szLongName)
 {
 	CChannelDebugDescriptor*	psDesc;
 
@@ -1249,7 +1249,7 @@ size CChannels::GetBitStride(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CChannels::GetChannelLongName(size iChannel)
+const char* CChannels::GetChannelLongName(size iChannel)
 {
 	CChannelDebugDescriptor*	psDesc;
 
@@ -1270,7 +1270,7 @@ char* CChannels::GetChannelLongName(size iChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CChannels::GetChannelShortName(size iChannel)
+const char* CChannels::GetChannelShortName(size iChannel)
 {
 	CChannelDebugDescriptor* psDesc;
 

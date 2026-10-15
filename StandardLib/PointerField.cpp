@@ -8,7 +8,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointerField::Init(ptrdiff_t iOffset, CClass* pcContainingClass, char* szName)
+void CPointerField::Init(ptrdiff_t iOffset, CClass* pcContainingClass, const char* szName)
 {
 	CClasses*	pcClasses;
 

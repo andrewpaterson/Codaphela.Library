@@ -9,7 +9,7 @@ private:
 
 public:
 	void	Init(void* pvData, uint32 uiDataSize);
-	void	Init(char* szName, int iNameLength, void* pvData, uint32 uiDataSize);
+	void	Init(const char* szName, int iNameLength, void* pvData, uint32 uiDataSize);
 	char*	GetName(void);
 	void*	GetData(void);
 	int		GetNameLength(void);

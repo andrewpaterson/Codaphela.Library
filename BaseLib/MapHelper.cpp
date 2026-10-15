@@ -69,7 +69,7 @@ void CopyData(void* pvDest, void* pvSource, size iSourceLength, size iMaxDestLen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size StrDataSize(char* pszData)
+size StrDataSize(const char* pszData)
 {
 	size uiDataSize;
 
@@ -86,7 +86,7 @@ size StrDataSize(char* pszData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size StrKeySize(char* pszKey)
+size StrKeySize(const char* pszKey)
 {
 	size		iKeySize;
 

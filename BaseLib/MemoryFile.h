@@ -58,7 +58,7 @@ public:
 	bool		Truncate(filePos iSize);
 	bool		Flush(void);
 	bool		Delete(void);
-	char*		GetFilename(void);
+	const char*		GetFilename(void);
 };
 
 

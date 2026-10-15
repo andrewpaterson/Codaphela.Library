@@ -11,7 +11,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPackFilePacker::Pack(char* szDestPakFile, char* szSourceDirectory, char* szPackDirectory)
+bool CPackFilePacker::Pack(const char* szDestPakFile, const char* szSourceDirectory, char* szPackDirectory)
 {
 	CPackFiles	cPackFiles;
 	CDiskFile*	pcDiskFile;
@@ -46,7 +46,7 @@ bool CPackFilePacker::Pack(char* szDestPakFile, char* szSourceDirectory, char* s
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPackFilePacker::Unpack(char* szSourcePakFile, char* szDestDirectory, bool bRemoveDestDir)
+bool CPackFilePacker::Unpack(const char* szSourcePakFile, const char* szDestDirectory, bool bRemoveDestDir)
 {
 	CPackFiles	cPackFiles;
 	CDiskFile*	pcDiskFile;

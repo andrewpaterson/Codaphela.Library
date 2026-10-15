@@ -22,7 +22,7 @@ public:
 	void						Add(CCalcVariableDefinition* pcVariableDefinition);
 	void						Add(CCalcExpression* pcExpression);
 
-	CCalcVariableDefinition*	Get(char* szName);
+	CCalcVariableDefinition*	Get(const char* szName);
 	CCalcExpression*			GetExpression(size uiIndex);
 	size						NumExpressions(void);
 

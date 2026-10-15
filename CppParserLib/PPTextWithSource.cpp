@@ -101,7 +101,7 @@ bool CPPTextWithSource::HasSource(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPPTextWithSource::TextStart(void)
+const char* CPPTextWithSource::TextStart(void)
 {
 	return mszText;
 }
@@ -111,7 +111,7 @@ char* CPPTextWithSource::TextStart(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPPTextWithSource::TextEndInclusive(void)
+const char* CPPTextWithSource::TextEndInclusive(void)
 {
 	int	iLen;
 

@@ -104,7 +104,7 @@ bool CObjectIdentifier::IsFat(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CObjectIdentifier::GetName(void)
+const char* CObjectIdentifier::GetName(void)
 {
 	if (meType == OBJECT_POINTER_NAMED)
 	{
@@ -136,7 +136,7 @@ OIndex CObjectIdentifier::GetIndex()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CObjectIdentifier::GetType(void)
+const char* CObjectIdentifier::GetType(void)
 {
 	if (meType == OBJECT_POINTER_ID)
 	{
@@ -204,7 +204,7 @@ char* CObjectHeader::ClassName(void)
 //////////////////////////////////////////////////////////////////////////
 char* CObjectHeader::GetIdentifier(CChars* psz)
 {
-	char* szName;
+	const char* szName;
 
 	psz->Append(ClassName());
 	psz->Append(":");

@@ -6,7 +6,7 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CFilePathBuilder::Build(char* szElements, ...)
+char* CFilePathBuilder::Build(const char* szElements, ...)
 {
 	va_list		vaMarker;
 	char*		szValue;

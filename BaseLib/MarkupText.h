@@ -32,7 +32,7 @@ public:
 	CChars		mszText;
 
 	void 	Init(CMarkupTag* pcParent);
-	void 	Init(char* szText, CMarkupTag* pcParent);
+	void 	Init(const char* szText, CMarkupTag* pcParent);
 	void 	Kill(void);
 
 	char*	Text(void);

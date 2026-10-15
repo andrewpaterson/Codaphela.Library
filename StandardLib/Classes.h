@@ -33,16 +33,13 @@ public:
 	void				Kill(void);
 	void				AddSystemClasses(void);
 
-	CClass*				Get(char* szClassName);
 	CClass*				Get(const char* szClassName);
 	CClass*				Get(EPrimitiveType eType);
 	CClass*				Get(uint32 iType);
 
 	CClass*				GetValid(EPrimitiveType eType);
 
-	CClass*				Add(char* szClassName, uint32 uiSize, EPrimitiveType eType);
 	CClass*				Add(const char* szClassName, uint32 uiSize, EPrimitiveType eType);
-	CClass*				Add(char* szClassName, uint32 uiSize);
 	CClass*				Add(const char* szClassName, uint32 uiSize);
 
 	CClass*				GetPointer(void);

@@ -10,7 +10,7 @@ public:
 	CChars	mszDirectory;
 	CChars	mszRewriteDirectory;
 
-	void	Init(char* szWorkingDirectory, char* szPrimary, char* szBackup, bool bRemoveWorkingDirectory);
+	void	Init(const char* szWorkingDirectory, const char* szPrimary, const char* szBackup, bool bRemoveWorkingDirectory);
 	void	Kill(bool bRemoveWorkingDirectory);
 
 	char*	GetPrimaryDirectory(void);

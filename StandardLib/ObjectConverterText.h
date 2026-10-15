@@ -11,10 +11,10 @@ public:
 	void			Init(void);
 	void			Kill(void);
 
-	char*			GetFileExtension(void);
+	const char*			GetFileExtension(void);
 	bool			IsFor(CAbstractFile* pcFile);
-	CObjectSource*	CreateSource(CAbstractFile* pcFile, char* szFilename);
-	CBaseObject*	Convert(CObjectSource* pcSource, char* szObjectName);
+	CObjectSource*	CreateSource(CAbstractFile* pcFile, const char* szFilename);
+	CBaseObject*	Convert(CObjectSource* pcSource, const char* szObjectName);
 };
 
 

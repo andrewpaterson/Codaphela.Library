@@ -42,7 +42,7 @@ public:
 
 	PP_TOKEN_CONSTRUCT(CPPText);
 	void 			Init(int iLine, int iColumn, char* szFileName);
-	void 			Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, char* szStart, int iLength);
+	void 			Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, const char* szStart, int iLength);
 	void 			Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, char* szStart, char* szEndExclusive);
 	void 			Kill(void);
 	bool 			IsText(void);
@@ -50,8 +50,8 @@ public:
 	void 			Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	virtual bool	HasSource(void);
 	bool			Equals(CPPToken* pcOther);
-	virtual	char*	TextStart(void);
-	virtual	char*	TextEndInclusive(void);
+	virtual	const char*	TextStart(void);
+	virtual	const char*	TextEndInclusive(void);
 	bool			IsEmpty(void);
 	int				Length(void);
 };

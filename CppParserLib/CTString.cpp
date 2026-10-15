@@ -37,7 +37,7 @@ void CCTString::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTString::Init(char* szStart, char* szEnd)
+void CCTString::Init(const char* szStart, const char* szEnd)
 {
 	mszStart = szStart;
 	mszEnd = szEnd;

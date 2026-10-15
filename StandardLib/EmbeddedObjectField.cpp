@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObjectField::Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, char* szName)
+void CEmbeddedObjectField::Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, const char* szName)
 {
 	CField::Init(pcFieldClass, uiOffset, pcContainingClass, szName);
 }

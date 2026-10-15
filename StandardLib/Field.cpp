@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CField::Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, char* szName)
+void CField::Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, const char* szName)
 {
 	mpcFieldClass = pcFieldClass;
 	muiOffset = uiOffset;

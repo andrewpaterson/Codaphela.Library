@@ -10,7 +10,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCodabase* CCodabaseFactory::Create(char* szDirectory, EIndexWriteThrough eWriteThrough)
+CCodabase* CCodabaseFactory::Create(const char* szDirectory, EIndexWriteThrough eWriteThrough)
 {
 	CCodabase*								pcDatabase;
 	CLifeInit<CIndexedDataConfig>			cIndexConfig;

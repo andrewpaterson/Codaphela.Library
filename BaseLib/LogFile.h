@@ -42,7 +42,7 @@ public:
 	bool					IsOpen(void);
 	bool					Flush(void);
 	bool					Delete(void);
-	char*					GetFilename(void);
+	const char*					GetFilename(void);
 
 	bool					Commit(CAbstractFile* pcFile);
 
@@ -67,7 +67,7 @@ protected:
 	void					CopyWritesToRead(CArrayIntAndPointer* papvOverlapping, size iByteSize, void* pvDest);
 	size					FindNextWriteCommand(size iIndex);
 
-	bool					FailBegun(char* szMethod, char* szTask, CAbstractFile* pcFile);
+	bool					FailBegun(char* szMethod, const char* szTask, CAbstractFile* pcFile);
 
 	void					GetSafeFilename(CChars* pszDest, CAbstractFile* pcFile);
 	void					ExecuteCommandErrorString(CChars* pszDest, char* szMethod, CLogFileCommand* psCommand, CAbstractFile* pcFile);

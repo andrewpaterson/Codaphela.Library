@@ -37,7 +37,7 @@ public:
 	void	Kill(void);
 
 	char*	Get(int iKey);
-	bool	Put(int iKey, char* szValue);
+	bool	Put(int iKey, const char* szValue);
 	void	Dump(void);
 };
 

@@ -49,12 +49,12 @@ public:
 	M*			Put(uint8* pvKey, size iKeySize);  //Note this allocates M and returns a pointer to it.  Not a pointer to the pointer in the map.
 	bool		Put(uint8* pvKey, size iKeySize, CUnknown* pcValue);
 	template<class M>
-	M*			Put(char* szKey);
-	bool		Put(char* szKey, CUnknown* pcValue);
+	M*			Put(const char* szKey);
+	bool		Put(const char* szKey, CUnknown* pcValue);
 	CUnknown**	PutNode(uint8* pvKey, size iKeySize);
-	CUnknown*	Get(char* szKey);
+	CUnknown*	Get(const char* szKey);
 	CUnknown*	Get(uint8* pvKey, size iKeySize);
-	bool		Remove(char* szKey);
+	bool		Remove(const char* szKey);
 	bool		Remove(uint8* pvKey, size iKeySize);
 	size		Remove(CUnknown* pvData);
 
@@ -120,7 +120,7 @@ M* CIndexUnknown::Put(uint8* pvKey, size iKeySize)
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CIndexUnknown::Put(char* szKey)
+M* CIndexUnknown::Put(const char* szKey)
 {
 	M*		pv;
 	bool	bResult;

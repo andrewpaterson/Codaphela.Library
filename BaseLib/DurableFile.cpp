@@ -36,7 +36,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDurableFile::Init(CDurableFileController* pcController, char* szFilename, char* szRewriteName)
+bool CDurableFile::Init(CDurableFileController* pcController, const char* szFilename, const char* szRewriteName)
 {
 	CChars		szPath;
 	CFileUtil	cFileUtil;
@@ -800,7 +800,7 @@ CFileBasic*	CDurableFile::DumpGetPrimaryFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CDurableFile::GetFilename(void)
+const char* CDurableFile::GetFilename(void)
 {
 	return mszFilename.Text();
 }

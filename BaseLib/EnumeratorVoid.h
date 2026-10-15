@@ -28,10 +28,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CEnumeratorVoid : public CEnumeratorPointer
 {
 public:
-	int		Add(char* szName, int iNum);
+	int		Add(const char* szName, int iNum);
 	int		Add(char* szName);
-	int		Get(char* szName);
-	int		Get(char* szName, int iNameLen);
+	int		Get(const char* szName);
+	int		Get(const char* szName, int iNameLen);
 	char*	GetName(int iID);
 	char*	GetName(char* szName);
 };

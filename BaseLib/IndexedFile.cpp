@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFile::Init(CDurableFileController* pcDurableFileControl, size uiFileIndex, char* szFilename, char* szRewriteName, size uiDataSize, uint32 uiFileNum)
+bool CIndexedFile::Init(CDurableFileController* pcDurableFileControl, size uiFileIndex, const char* szFilename, const char* szRewriteName, size uiDataSize, uint32 uiFileNum)
 {
 	muiFileIndex = uiFileIndex;
 	muiDataSize = uiDataSize;
@@ -385,7 +385,7 @@ filePos CIndexedFile::GetUsedDataIndices(CArrayBit* pab)
 size CIndexedFile::GetFileIndex(void) { return muiFileIndex; }
 uint32 CIndexedFile::GetFileNumber(void) { return muiFileNumber; }
 bool CIndexedFile::IsFileIndex(size uiFileIndex) { return muiFileIndex == uiFileIndex; }
-char* CIndexedFile::GetFilename(void) { return mcFile.GetFilename(); }
+const char* CIndexedFile::GetFilename(void) { return mcFile.GetFilename(); }
 char* CIndexedFile::GetRewriteName(void) { return mcFile.GetRewriteName(); }
 size CIndexedFile::GetDataSize(void) { return muiDataSize; }
 filePos	CIndexedFile::NumDatas(void) { return miNumDatas; }

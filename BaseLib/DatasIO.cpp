@@ -46,7 +46,7 @@ void CDatasIO::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-DataIO_FileWriter CDatasIO::GetFileWriter(char* szClassName)
+DataIO_FileWriter CDatasIO::GetFileWriter(const char* szClassName)
 {
 	SDataIO* psIO;
 
@@ -66,7 +66,7 @@ DataIO_FileWriter CDatasIO::GetFileWriter(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-DataIO_FileReader CDatasIO::GetFileReader(char* szClassName)
+DataIO_FileReader CDatasIO::GetFileReader(const char* szClassName)
 {
 	SDataIO* psIO;
 
@@ -86,21 +86,10 @@ DataIO_FileReader CDatasIO::GetFileReader(char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SDataIO* CDatasIO::GetIO(char* szClassName)
-{
-	return (SDataIO*)mcDataIOs.Get(szClassName, NULL);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 SDataIO* CDatasIO::GetIO(const char* szClassName)
 {
 	return (SDataIO*)mcDataIOs.Get(szClassName, NULL);
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //

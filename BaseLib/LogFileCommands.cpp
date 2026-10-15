@@ -57,7 +57,7 @@ bool CLogFileCommand::IsDelete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CLogFileCommand::GetType(void)
+const char* CLogFileCommand::GetType(void)
 {
 	switch (eCommand)
 	{
@@ -94,7 +94,7 @@ bool CLogFileCommandOpen::Open(CAbstractFile* pcFile)
 {
 	bool		bResult;
 	CFileUtil	cFileUtil;
-	char*		szFilename;
+	const char*		szFilename;
 
 	if (IsFileModeCreate(eMode))
 	{

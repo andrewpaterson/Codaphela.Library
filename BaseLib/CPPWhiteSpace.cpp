@@ -3,8 +3,8 @@
 #include "CPPWhiteSpace.h"
 
 
-bool SkipCStyleComment(CTextParser* pcTextParser, char** pszBegin = NULL, char** pszEnd = NULL);
-bool SkipCPPStyleComment(CTextParser* pcTextParser, char** pszBegin = NULL, char** pszEnd = NULL);
+bool SkipCStyleComment(CTextParser* pcTextParser, const char** pszBegin = NULL, const char** pszEnd = NULL);
+bool SkipCPPStyleComment(CTextParser* pcTextParser, const char** pszBegin = NULL, const char** pszEnd = NULL);
 bool IsCPPWhitespace(char c);
 
 
@@ -93,7 +93,7 @@ bool IsCPPWhitespace(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SkipCStyleComment(CTextParser* pcTextParser, char** pszBegin, char** pszEnd)
+bool SkipCStyleComment(CTextParser* pcTextParser, const char** pszBegin, const char** pszEnd)
 {
 	char	cCurrent;
 	size	iDepth;
@@ -181,7 +181,7 @@ bool SkipCStyleComment(CTextParser* pcTextParser, char** pszBegin, char** pszEnd
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SkipCPPStyleComment(CTextParser* pcTextParser, char** pszBegin, char** pszEnd)
+bool SkipCPPStyleComment(CTextParser* pcTextParser, const char** pszBegin, const char** pszEnd)
 {
 	char	cCurrent;
 	size	iCount;

@@ -89,7 +89,7 @@ void* CMapStringBlock::Get(const char* szKey, size* puiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMapStringBlock::Put(char* szKey, size uiDataSize)
+void* CMapStringBlock::Put(const char* szKey, size uiDataSize)
 {
 	void*	pvData;
 	size	iStrLen;
@@ -109,7 +109,7 @@ void* CMapStringBlock::Put(char* szKey, size uiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapStringBlock::Put(char* szKey, void* psData, size uiDataSize)
+bool CMapStringBlock::Put(const char* szKey, void* psData, size uiDataSize)
 {
 	size	iStrLen;
 
@@ -121,33 +121,11 @@ bool CMapStringBlock::Put(char* szKey, void* psData, size uiDataSize)
 	iStrLen = strlen(szKey) + 1;
 	return CMapBlock::Put(szKey, iStrLen, psData, uiDataSize);
 }
-
-
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMapStringBlock::Put(const char* szKey, size uiDataSize)
-{
-	return Put((char*)szKey, uiDataSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CMapStringBlock::Put(const char* szKey, void* psData, size uiDataSize)
-{
-	return Put((char*)szKey, psData, uiDataSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CMapStringBlock::Remove(char* szKey)
+bool CMapStringBlock::Remove(const char* szKey)
 {
 	size	iStrLen;
 
@@ -159,22 +137,11 @@ bool CMapStringBlock::Remove(char* szKey)
 	iStrLen = strlen(szKey) + 1;
 	return CMapBlock::Remove(szKey, iStrLen);
 }
-
-
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapStringBlock::Remove(const char* szKey)
-{
-	return Remove((char*)szKey);
-}
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CMapStringBlock::HasKey(char* szKey)
+bool CMapStringBlock::HasKey(const char* szKey)
 {
 	size	iStrLen;
 
@@ -186,17 +153,6 @@ bool CMapStringBlock::HasKey(char* szKey)
 	iStrLen = strlen(szKey) + 1;
 	return CMapBlock::HasKey(szKey, iStrLen);
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CMapStringBlock::HasKey(const char* szKey)
-{
-	return HasKey((char*)szKey);
-}
-
 
 
 //////////////////////////////////////////////////////////////////////////

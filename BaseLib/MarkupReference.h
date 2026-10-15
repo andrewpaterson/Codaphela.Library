@@ -53,7 +53,7 @@ public:
 	void 			Init(CMarkupSubDoc* pcRef, CMarkupTag* pcParent);
 	void 			Kill(void);
 
-	bool			Is(char* szName);
+	bool			Is(const char* szName);
 	CMarkupTag*		GetRootTag(void);
 	uint32			Print(CChars* psz, uint32 iDepth, uint32 iLine);
 };
@@ -64,7 +64,7 @@ class CMarkupNamedRef : public CMarkupReference
 public:
 	CCharsImmutable		mszName;
 
-	void 		Init(char* szName, CMarkupTag* pcParent);
+	void 		Init(const char* szName, CMarkupTag* pcParent);
 	void 		Kill(void);
 
 	uint32		Print(CChars* psz, uint32 iDepth, uint32 iLine);

@@ -428,7 +428,7 @@ bool CPreprocessorTokenParser::GetExactIdentifier(char* szIdentifier, bool bCase
 bool CPreprocessorTokenParser::GetQuotedCharacterSequence(char cOpen, char cClose, CExternalString* pcSequence)
 {
 	bool		bResult;
-	char*		szStart;
+	const char*		szStart;
 	CPPText*	pcText;
 	int			i;
 

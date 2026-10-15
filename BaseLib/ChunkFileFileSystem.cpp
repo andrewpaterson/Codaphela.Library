@@ -137,7 +137,7 @@ bool CChunkFileFileSystem::WriteNewUnmatchedChunks(size iMatchingOpen, CArrayCha
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChunkFileFileSystem::WriteChunkBegin(char* szChunkName)
+bool CChunkFileFileSystem::WriteChunkBegin(const char* szChunkName)
 {
 	CArrayChars		aszChunkNames;
 	size			iMatchingOpen;
@@ -241,7 +241,7 @@ bool CChunkFileFileSystem::WriteChunkBegin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChunkFileFileSystem::WriteChunkEnd(char* szChunkName)
+bool CChunkFileFileSystem::WriteChunkEnd(const char* szChunkName)
 {
 	return mpcChunkFile->WriteChunkEnd(szChunkName);
 }
@@ -251,7 +251,7 @@ bool CChunkFileFileSystem::WriteChunkEnd(char* szChunkName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChunkFileFileSystem::ReadChunkBegin(char* szChunkName)
+bool CChunkFileFileSystem::ReadChunkBegin(const char* szChunkName)
 {
 	CArrayChars	aszChunkNames;
 	size		iDepth;

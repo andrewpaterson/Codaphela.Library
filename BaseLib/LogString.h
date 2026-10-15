@@ -52,8 +52,8 @@ char* PointerToString(void* pv);
 char* MethodToString(const char* szFile, size iLine, const char* szFunction);
 char* IntToFlags(uint32 iInt);
 char* ShortToFlags(uint16 siShort);
-char* StringToString(char* sz);
-char* StringToString(char* szStart, char* szLastCharInclusive);
+char* StringToString(const char* sz);
+const char* StringToString(const char* szStart, const char* szLastCharInclusive);
 char* BoolToString(bool b);
 
 extern char		gaszLogToStringScratchPad[LOG_TO_STRING_SCRATCH_PAD_SIZE][LOG_TO_STRING_MAX_LENGTH];

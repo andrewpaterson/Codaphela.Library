@@ -14,10 +14,10 @@ public:
 	void	Init(void);
 	void	Kill(void);
 
-	int64	Add(char* sz, char* szLastCharInclusive = NULL);
+	int64	Add(const char* sz, const char* szLastCharInclusive = NULL);
 
 	char*	Get(int64 lliID, int* piLength = NULL);
-	int64	Get(char* szText, char* szLastCharInclusive, bool bExact);
+	int64	Get(const char* szText, const char* szLastCharInclusive, bool bExact);
 
 	int		NumElements(void);
 };

@@ -35,13 +35,13 @@ public:
 	CChars		mcText;
 
 	CTextFile*	Init(void);
-	void		Init(char* szText);
+	void		Init(const char* szText);
 	void		Kill(void);
 	void		KillExceptBuffer(void);
 
-	bool		Read(char* szFilename);
+	bool		Read(const char* szFilename);
 	bool		Read(CAbstractFile* pcAbstractFile);
-	bool		Write(char* szFilename);
+	bool		Write(const char* szFilename);
 
 	char*		Text(void);
 	char*		Text(int iOffset);
