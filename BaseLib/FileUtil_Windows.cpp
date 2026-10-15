@@ -227,7 +227,7 @@ filePos CFileUtil::Size(const char*szFilename)
 	{
 		GetFileSizeEx(h, (PLARGE_INTEGER)&iSize);
 		CloseHandle(h);
-		return (int)iSize;
+		return iSize;
 	}
 
 	return -1;
