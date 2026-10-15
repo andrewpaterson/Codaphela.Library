@@ -30,7 +30,6 @@ class CSetType : public CSetUnknown
 CONSTRUCTABLE(CSetType)
 public:
 	void 	Init(bool bSortPointers = true);
-	void 	Init(CUnknowns* pcUnknownsAllocatingFrom, bool bSortPointers);
 	void 	Kill(void);
 
 	void	Add(M* pcUnknown);
@@ -59,18 +58,6 @@ template<class M>
 void CSetType<M>::Init(bool bSortPointers)
 {
 	CSetUnknown::Init(bSortPointers);
-	TypeKnown(true);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CSetType<M>::Init(CUnknowns* pcUnknownsAllocatingFrom, bool bSortPointers)
-{
-	CSetUnknown::Init(pcUnknownsAllocatingFrom, iChunkSize);
 	TypeKnown(true);
 }
 

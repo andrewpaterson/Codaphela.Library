@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __INDEX_UNKNOWN_H__
 #include "BaseLib/IndexTreeMemory.h"
 #include "Unknown.h"
+#include "Unknowns.h"
 
 
 #define INDEX_TREE_KILL_ELEMENT	0x0001
@@ -129,7 +130,7 @@ M* CIndexUnknown::Put(char* szKey)
 	if (iKeySize > 0)
 	{
 		pv = gcUnknowns.Add<M>();
-		bResult = Put(pvKey, iKeySize, pv);
+		bResult = Put((uint8*)szKey, iKeySize, pv);
 		if (bResult)
 		{
 			return pv;

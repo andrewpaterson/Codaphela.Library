@@ -12,6 +12,26 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
+template<class Class>
+CClass* CPrimitiveClasses::AddClassWithConstructorAndIO(EPrimitiveType eFieldType)
+{
+	Class			c;
+	const char*		szClassName;
+	CClass*			pcClass;
+
+	szClassName = c.ClassName();
+	pcClass = AddClass<Class>(eFieldType);
+
+	mpcClasses->AddConstructorAndIO<Class>();
+
+	return pcClass;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CPrimitiveClasses::Init(CClasses* pcClasses)
 {
 	mpcClasses = pcClasses;

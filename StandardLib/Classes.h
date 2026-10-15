@@ -6,6 +6,7 @@
 #include "UnmanagedClasses.h"
 #include "PrimitiveClasses.h"
 #include "Class.h"
+#include "BaseLib/GlobalDataTypesIO.h"
 
 
 typedef CMapStringTemplate<CClass*> CMapClassesByName;

@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __MAP_STRING_UNKNOWN_H__
 #include "BaseLib/MapStringTemplate.h"
 #include "MapCommonUnknown.h"
+#include "Unknowns.h"
 
 
 class CMapStringUnknown : public CMapCommonUnknown

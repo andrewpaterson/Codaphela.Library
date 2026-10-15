@@ -2,6 +2,7 @@
 #define __MAP_UNKNOWN_UNKNOWN_H__
 #include "BaseLib/MapPtrPtr.h"
 #include "MapCommonUnknown.h"
+#include "Unknowns.h"
 
 
 class CMapUnknownUnknown : public CMapCommonUnknown
