@@ -69,7 +69,7 @@ bool CIndexedDataAccess::ValidateIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataAccess::Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize)
+bool CIndexedDataAccess::Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize)
 {
 	OIndex	oi;
 

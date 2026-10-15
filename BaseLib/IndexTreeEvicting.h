@@ -34,7 +34,7 @@ public:
 	void					Kill(void);
 
 	bool					Get(uint8* pvKey, size iKeySize, void* pvData, size* piDataSize, size uiMaxDataSize);
-	bool					Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize);
+	bool					Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize);
 	bool					Remove(uint8* pvKey, size iKeySize);
 	bool					HasKey(uint8* pvKey, size iKeySize);
 	size					GetDataSize(uint8* pvKey, size iKeySize);

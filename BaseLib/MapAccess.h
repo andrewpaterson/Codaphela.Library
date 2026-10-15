@@ -105,14 +105,14 @@ public:
 	virtual void			FreeIterator(CMapIterator* pcIter) =0;
 
 protected:
-			char*	GetString(void* pvKey, size iKeySize);
+			char*	GetString(const void* pvKey, size iKeySize);
 
 protected:
-	virtual void*	Put(void* pvKey, size iKeySize, void* pvData, size iDataSize) =0;
-	virtual void*	Get(void* pvKey, size iKeySize, size* piDataSize) =0;
+	virtual void*	Put(const void* pvKey, size iKeySize, const void* pvData, size iDataSize) =0;
+	virtual void*	Get(const void* pvKey, size iKeySize, size* piDataSize) =0;
 	virtual size	DataSize(void* pvKey, size iKeySize) =0;
-	virtual bool	Remove(void* pvKey, size iKeySize) =0;
-	virtual bool	Has(void* pvKey, size iKeySize) =0;
+	virtual bool	Remove(const void* pvKey, size iKeySize) =0;
+	virtual bool	Has(const void* pvKey, size iKeySize) =0;
 };
 
 

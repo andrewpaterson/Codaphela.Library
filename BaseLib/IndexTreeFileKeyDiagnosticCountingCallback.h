@@ -7,12 +7,12 @@ class CIndexTreeFileKeyDiagnosticCountingCallback : public CIndexTreeFileDiagnos
 {
 protected:
 	size	miCount;
-	void*	mpvKey;
+	const void*	mpvKey;
 	size	miKeyLength;
 
 public:
 	void	Init(const char* szKey);
-	void	Init(void* pvKey, size iKeySize);
+	void	Init(const void* pvKey, size iKeySize);
 	void	Kill(void);
 
 	void	Evict(void* pvKey, size iKeySize, void* pvData, size iDataSize);

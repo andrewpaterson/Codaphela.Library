@@ -54,9 +54,9 @@ public:
 	filePos			CalculateNumDatas(void);
 	bool			IsFull(void);
 
-	filePos			Write(void* pvData);
-	bool			Write(filePos iIndex, void* pvData);
-	bool			Write(filePos iIndex, void* pvData, size iCount);
+	filePos			Write(const void* pvData);
+	bool			Write(filePos iIndex, const void* pvData);
+	bool			Write(filePos iIndex, const void* pvData, size iCount);
 
 	bool			Read(filePos iIndex, void* pvData);
 	bool			Read(filePos iIndex, void* pvData, size iCount);
@@ -79,7 +79,7 @@ public:
 	void			Dump(void);
 
 protected:
-	filePos			Write(void* pvData, size iCount);
+	filePos			Write(const void* pvData, size iCount);
 };
 
 

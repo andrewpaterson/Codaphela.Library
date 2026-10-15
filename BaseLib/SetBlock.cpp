@@ -155,7 +155,7 @@ void CSetBlock::FreeNode(SSNode* psNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CSetBlock::Get(void* pvData, size iDataSize)
+void* CSetBlock::Get(const void* pvData, size iDataSize)
 {
 	SSNode*		psNode;
 
@@ -165,9 +165,7 @@ void* CSetBlock::Get(void* pvData, size iDataSize)
 		return NULL;
 	}
 
-	pvData = GetData(psNode);
-
-	return pvData;
+	return GetData(psNode);
 }
 
 
@@ -175,7 +173,7 @@ void* CSetBlock::Get(void* pvData, size iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CSetBlock::Put(void* pvData, size iDataSize)
+void* CSetBlock::Put(const void* pvData, size iDataSize)
 {
 	SSNode*		psNode;
 	void*		pvDestData;
@@ -229,7 +227,7 @@ void* CSetBlock::Put(void* pvData, size iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSetBlock::Remove(void* pvData, size iDataSize)
+bool CSetBlock::Remove(const void* pvData, size iDataSize)
 {
 	SSNode*		psNode;
 
@@ -251,7 +249,7 @@ bool CSetBlock::Remove(void* pvData, size iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSetBlock::Has(void* pvData, size iDataSize)
+bool CSetBlock::Has(const void* pvData, size iDataSize)
 {
 	SSNode* psNode;
 
@@ -264,7 +262,7 @@ bool CSetBlock::Has(void* pvData, size iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SSNode* CSetBlock::GetNode(void* pvData, size iDataSize)
+SSNode* CSetBlock::GetNode(const void* pvData, size iDataSize)
 {
 	SSNode**	ppsNode;
 	SSNode*		psSourceNode;

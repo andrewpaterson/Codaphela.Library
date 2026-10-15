@@ -10,7 +10,7 @@ public:
 			void	Init(void);
 	virtual void	Kill(void);
 
-	virtual void	Put(void* pvKey, size iKeySize, void* pvData, size iDataSize);
+	virtual void	Put(void* pvKey, size iKeySize, const void* pvData, size iDataSize);
 	virtual void	Get(void* pvKey, size iKeySize, void* pvData, size iDataSize);
 	virtual void	Remove(void* pvKey, size iKeySize, void* pvData, size iDataSize);
 	virtual void	Flush(void* pvKey, size iKeySize, void* pvData, size iDataSize);

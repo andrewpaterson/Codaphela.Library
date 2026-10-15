@@ -495,7 +495,7 @@ size CIndexedFiles::NumFiles(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFileDataIndex CIndexedFiles::WriteNew(void* pvData, size uiDataSize)
+CFileDataIndex CIndexedFiles::WriteNew(const void* pvData, size uiDataSize)
 {
 	CIndexedFile*	pcIndexedFile;
 	int64			iDataIndex;
@@ -532,7 +532,7 @@ CFileDataIndex CIndexedFiles::WriteNew(void* pvData, size uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFiles::WriteExisting(CFileDataIndex* pcDataIndex, void* pvData, size uiDataSize)
+bool CIndexedFiles::WriteExisting(CFileDataIndex* pcDataIndex, const void* pvData, size uiDataSize)
 {
 	CIndexedFile*	pcIndexedFile;
 	bool			bResult;

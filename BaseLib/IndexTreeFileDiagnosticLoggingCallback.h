@@ -13,7 +13,7 @@ public:
 	void	Init(void);
 	void	Kill(void);
 
-	void	Put(void* pvKey, size iKeySize, void* pvData, size iDataSize);
+	void	Put(void* pvKey, size iKeySize, const void* pvData, size iDataSize);
 	void	Get(void* pvKey, size iKeySize, void* pvData, size iDataSize);
 	void	Remove(void* pvKey, size iKeySize, void* pvData, size iDataSize);
 	void	Flush(void* pvKey, size iKeySize, void* pvData, size iDataSize);
@@ -23,7 +23,7 @@ public:
 	void	Dump(void);
 
 protected:
-	void	Log(const char* szOperation, void* pvKey, size iKeySize, void* pvData, size iDataSize);
+	void	Log(const char* szOperation, void* pvKey, size iKeySize, const void* pvData, size iDataSize);
 };
 
 #endif // __INDEX_TREE_FILE_KEY_DIAGNOSTIC_LOGGING_CALLBACK_H__

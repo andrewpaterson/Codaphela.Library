@@ -313,7 +313,7 @@ void CIndexedFilesEvicting::InvalidateData(CIndexedDataDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, size uiDataSize)
+bool CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, const void* pvData, size uiDataSize)
 {
 	bool					bResult;
 	void*					pvNewCache;
@@ -379,7 +379,7 @@ bool CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexedFilesEvicting::SetCacheData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, size uiDataSize)
+void* CIndexedFilesEvicting::SetCacheData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, const void* pvData, size uiDataSize)
 {
 	void*					pvExistingCache;
 	void*					pvNewCache;
@@ -436,7 +436,7 @@ void* CIndexedFilesEvicting::SetCacheData(OIndex oi, CIndexedDataDescriptor* pcD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFilePosIndex CIndexedFilesEvicting::WriteThroughData(CIndexedDataDescriptor* pcDescriptor, void* pvData, size uiDataSize)
+CFilePosIndex CIndexedFilesEvicting::WriteThroughData(CIndexedDataDescriptor* pcDescriptor, const void* pvData, size uiDataSize)
 {
 	CFileDataIndex			cDataIndex;
 	CFileDataIndex			cNewDataIndex;

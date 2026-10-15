@@ -34,15 +34,15 @@ public:
 	void				Kill(void);
 	void				ReInit(void);
 
-	void*				Get(void* pvData, size iDataSize);
-	SSNode*				GetNode(void* pvData, size iDataSize);
+	void*				Get(const void* pvData, size iDataSize);
+	SSNode*				GetNode(const void* pvData, size iDataSize);
 	SSNode*				GetNode(SSetIterator* psIterator);
 
-	void*				Put(void* pvData, size iDataSize);
+	void*				Put(const void* pvData, size iDataSize);
 
-	bool				Remove(void* pvData, size iDataSize);
+	bool				Remove(const void* pvData, size iDataSize);
 
-	bool				Has(void* pvData, size iDataSize);
+	bool				Has(const void* pvData, size iDataSize);
 
 	size				NumElements(void);
 	size				GetSortedSize(void);

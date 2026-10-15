@@ -40,7 +40,7 @@ public:
 	void*			Get(const char* szKey, size* puiDataSize);
 
 	void*			Put(const char* szKey, size uiDataSize);
-	bool			Put(const char* szKey, void* psData, size uiDataSize);
+	bool			Put(const char* szKey, const void* psData, size uiDataSize);
 
 	bool			Remove(const char* szKey);
 

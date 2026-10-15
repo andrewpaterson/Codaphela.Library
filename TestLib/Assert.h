@@ -60,7 +60,7 @@ bool PrivateAssertString(const char* szExpected, const char* szActual, bool bTes
 bool PrivateAssertString(const char* szExpected, const uint8* szActual, bool bTestCase, char* szPrefix, size iLine, const char* szFile);
 bool PrivateAssertString(const uint8* szExpected, const uint8* szActual, bool bTestCase, char* szPrefix, size iLine, const char* szFile);
 bool PrivateAssertStringApproximate(const char* szExpected, const char* szActual, bool bTestCase, char* szPrefix, size iLine, const char* szFile);
-bool PrivateAssertMemory(void* pvExpected, void* pvActual, size iSize, char* szPrefix, size iLine, const char* szFile);
+bool PrivateAssertMemory(const void* pvExpected, void* pvActual, size iSize, char* szPrefix, size iLine, const char* szFile);
 bool PrivateAssertZero(void* pvActual, size iSize, char* szPrefix, size iLine, const char* szFile);
 bool PrivateAssertNegative(int i, char* szPrefix, size iLine, const char* szFile);
 bool PrivateAssertPositive(int i, char* szPrefix, size iLine, const char* szFile);

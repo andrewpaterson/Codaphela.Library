@@ -84,7 +84,7 @@ bool CIndexTreeEvictingAccess::ValidateIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvictingAccess::Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize)
+bool CIndexTreeEvictingAccess::Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize)
 {
 	return mpcTree->Put(pvKey, iKeySize, pvData, iDataSize);
 }

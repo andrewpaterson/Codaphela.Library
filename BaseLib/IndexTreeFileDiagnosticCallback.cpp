@@ -23,7 +23,7 @@ void CIndexTreeFileDiagnosticCallback::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileDiagnosticCallback::Put(void* pvKey, size iKeySize, void* pvData, size iDataSize)
+void CIndexTreeFileDiagnosticCallback::Put(void* pvKey, size iKeySize, const void* pvData, size iDataSize)
 {
 }
 

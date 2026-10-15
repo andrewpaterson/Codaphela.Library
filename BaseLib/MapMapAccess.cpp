@@ -72,7 +72,7 @@ void CMapMapAccess::FreeIterator(CMapIterator* pcIter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMapMapAccess::Put(void* pvKey, uint32 iKeySize, void* pvData, uint32 uiDataSize)
+void* CMapMapAccess::Put(const void* pvKey, uint32 iKeySize, const void* pvData, uint32 uiDataSize)
 {
 	void*	pv;
 
@@ -89,7 +89,7 @@ void* CMapMapAccess::Put(void* pvKey, uint32 iKeySize, void* pvData, uint32 uiDa
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMapMapAccess::Get(void* pvKey, uint32 iKeySize, uint32* puiDataSize)
+void* CMapMapAccess::Get(const void* pvKey, uint32 iKeySize, uint32* puiDataSize)
 {
 	bool	bResult;
 	void*	pvData;
@@ -120,7 +120,7 @@ uint32 CMapMapAccess::DataSize(void* pvKey, uint32 iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapMapAccess::Remove(void* pvKey, uint32 iKeySize)
+bool CMapMapAccess::Remove(const void* pvKey, uint32 iKeySize)
 {
 	return mpcMap->Remove(pvKey, iKeySize);
 }
@@ -130,7 +130,7 @@ bool CMapMapAccess::Remove(void* pvKey, uint32 iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapMapAccess::Has(void* pvKey, uint32 iKeySize)
+bool CMapMapAccess::Has(const void* pvKey, uint32 iKeySize)
 {
 	return mpcMap->HasKey(pvKey, iKeySize);
 }

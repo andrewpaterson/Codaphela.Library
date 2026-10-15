@@ -40,7 +40,7 @@ public:
 			bool	PutIntString(int32 iKey, const char* pszData);
 			bool	PutIntData(int32 iKey, void* pvData, size iDataSize);
 			bool	PutStringPtr(const char* pszKey, void* pvPointer);
-			bool	PutStringData(const char* pszKey, void* pvData, size iDataSize);
+			bool	PutStringData(const char* pszKey, const void* pvData, size iDataSize);
 			bool	PutStringChar(const char* pszKey, char cData);
 			bool	PutStringShort(char* pszKey, int16 iData);
 			bool	PutStringInt(const char* pszKey, int32 iData);
@@ -125,7 +125,7 @@ protected:
 			char*	GetString(uint8* pvKey, size iKeySize, char* pszDest, size uiMaxDataSize);
 
 protected:
-	virtual bool	Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize) =0;
+	virtual bool	Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize) =0;
 	virtual bool	Get(uint8* pvKey, size iKeySize, void* pvData, size* piDataSize, size uiMaxDataSize) =0;
 	virtual size	DataSize(uint8* pvKey, size iKeySize) =0;
 	virtual bool	Remove(uint8* pvKey, size iKeySize) =0;

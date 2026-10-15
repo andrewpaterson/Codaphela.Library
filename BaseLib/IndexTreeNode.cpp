@@ -634,7 +634,7 @@ void CIndexTreeNode::SetDeletedPath(bool bDeleted)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::SetData(void* pvData, size uiDataSize)
+void CIndexTreeNode::SetData(const void* pvData, size uiDataSize)
 {
 	if (GetDataSize() != uiDataSize)
 	{

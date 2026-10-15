@@ -21,7 +21,7 @@ public:
 	void				FreeIterator(CIndexTreeIterator* pcIter);
 
 protected:
-	bool	Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize);
+	bool	Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize);
 	bool	Get(uint8* pvKey, size iKeySize, void* pvData, size* uiDataSize, size uiMaxDataSize);
 	bool	Remove(uint8* pvKey, size iKeySize);
 	size	DataSize(uint8* pvKey, size iKeySize);

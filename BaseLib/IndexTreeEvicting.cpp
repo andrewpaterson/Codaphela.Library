@@ -119,7 +119,7 @@ bool CIndexTreeEvicting::GetWithoutEviction(uint8* pvKey, size iKeySize, void* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize)
+bool CIndexTreeEvicting::Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize)
 {
 	bool	bResult;
 	size	iEvicted;

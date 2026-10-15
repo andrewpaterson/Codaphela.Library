@@ -785,7 +785,7 @@ bool PrivateAssertFloat3(SFloat32Vec3 fExpected, SFloat32Vec3* pfActual, int iDe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertMemory(void* pvExpected, void* pvActual, size iSize, char* szPrefix, size iLine, const char* szFile)
+bool PrivateAssertMemory(const void* pvExpected, void* pvActual, size iSize, char* szPrefix, size iLine, const char* szFile)
 {
 	size	i;
 	char 	szExpected[32];

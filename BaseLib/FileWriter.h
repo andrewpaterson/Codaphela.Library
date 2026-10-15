@@ -33,7 +33,7 @@ class CFileWriter
 {
 public:
 	//General
-						bool	WriteData(void* pvData, size iDataSize);
+						bool	WriteData(const void* pvData, size iDataSize);
 
 	//Strings.
 						bool	WriteString(const char* szString);

@@ -68,7 +68,7 @@ public:
 
 	bool					Get(uint8* pvKey, size iKeySize, void* pvDestData, size* puiDataSize, size uiMaxDataSize);
 	bool					GetLongestPartial(uint8* pvKey, size iKeySize, void* pvDestData, size* puiDataSize, size uiMaxDataSize);
-	void*					Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize);
+	void*					Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize);
 	bool					Remove(uint8* pvKey, size iKeySize);
 	bool					HasKey(uint8* pvKey, size iKeySize);
 	size					GetDataSize(uint8* pvKey, size iKeySize);
@@ -132,12 +132,12 @@ protected:
 	bool					Remove(CIndexTreeNodeMemory* pcCurrent);
 
 	CIndexTreeNodeMemory*	ReallocateNodeForIndex(CIndexTreeNodeMemory* pcNode, size uiIndex);
-	CIndexTreeNodeMemory*	ReallocateNodeForLargerData(CIndexTreeNodeMemory* pcNode, void* pvData, size uiDataSize);
-	CIndexTreeNodeMemory*	ReallocateNodeForSmallerData(CIndexTreeNodeMemory* pcNode, void* pvData, size uiDataSize);
+	CIndexTreeNodeMemory*	ReallocateNodeForLargerData(CIndexTreeNodeMemory* pcNode, const void* pvData, size uiDataSize);
+	CIndexTreeNodeMemory*	ReallocateNodeForSmallerData(CIndexTreeNodeMemory* pcNode, const void* pvData, size uiDataSize);
 	CIndexTreeNodeMemory*	ReallocateNodeForRemove(CIndexTreeNodeMemory* pcNode, size tNewNodeSize);
 
 	CIndexTreeNodeMemory*	GetOrAllocateKey(uint8* pvKey, size iKeySize);
-	CIndexTreeNodeMemory*	SetNodeData(CIndexTreeNodeMemory* pcCurrent, void* pvData, size uiDataSize);
+	CIndexTreeNodeMemory*	SetNodeData(CIndexTreeNodeMemory* pcCurrent, const void* pvData, size uiDataSize);
 
 	void					RemapNodePointers(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNode);
 

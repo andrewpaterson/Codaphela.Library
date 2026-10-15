@@ -69,7 +69,7 @@ bool CIndexTreeMemoryAccess::ValidateIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemoryAccess::Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize)
+bool CIndexTreeMemoryAccess::Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize)
 {
 	void* pvResult;
 
