@@ -40,13 +40,16 @@ bool SaveMultiple(M* psThis, CFileWriter* pcFileWriter, size uiCount)
 	size	i;
 	bool	bResult;
 
-	bResult = true;
 	for (i = 0; i < uiCount; i++)
 	{
-		bResult |= psThis->Save(pcFileWriter);
-		psThis = psThis + sizeof(M);
+		bResult = psThis->Save(pcFileWriter);
+		if (!bResult)
+		{
+			return false;
+		}
+		psThis++;
 	}
-	return bResult;
+	return true;
 }
 
 
@@ -60,13 +63,16 @@ bool LoadMultiple(M* psThis, CFileReader* pcFileReader, size uiCount)
 	size	i;
 	bool	bResult;
 
-	bResult = true;
 	for (i = 0; i < uiCount; i++)
 	{
-		bResult |= psThis->Load(pcFileReader);
-		psThis = psThis + sizeof(M);
+		bResult = psThis->Load(pcFileReader);
+		if (!bResult)
+		{
+			return false;
+		}
+		psThis++;
 	}
-	return bResult;
+	return true;
 }
 
 
