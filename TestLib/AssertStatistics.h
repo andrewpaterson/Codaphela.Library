@@ -20,6 +20,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Timer.h"
 #include "BaseLib/Define.h"
 #include "BaseLib/PrimitiveTypes.h"
 
@@ -39,4 +40,37 @@ bool Failed(void);
 #define Fail()								Validate(Failed(__LINE__, __FILE__))
 
 
+class CChars;
+class CAssertStatistics
+{
+protected:
+
+	size	miTestsRun;
+	size	miTestsPassed;
+	size	miTestsFailed;
+	CTimer	mcTestTimer;
+
+	size	miTotalTestsRun;
+	size	miTotalTestsPassed;
+	size	miTotalTestsFailed;
+	CTimer	mcTotalTimer;
+
+public:
+	void	Init(void);
+	void	Kill(void);
+
+	void	Failed(void);
+	void	Passed(void);
+
+	void	Begin(char* szFile);
+	void	End(void);
+
+	void	PrintTest(CChars* psz);
+	void	PrintTotal(CChars* psz);
+	
+	int		GetTotalTestsFailed(void);
+};
+
+
 #endif // __ASSERT_STATISTICS_H__
+
