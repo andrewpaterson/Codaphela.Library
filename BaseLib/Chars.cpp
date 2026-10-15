@@ -741,7 +741,10 @@ CChars* CChars::Append(float f, size iMaxDecimals, bool bAppendF)
 {
 	char szString[32];
 
-	FloatToString(szString, 32, f, iMaxDecimals, bAppendF);
+	if (!FloatToString(szString, 32, f, iMaxDecimals, bAppendF))
+	{
+		return this;
+	}
 	return  Append(szString);
 }
 
@@ -754,7 +757,10 @@ CChars* CChars::Append(double d, size iMaxDecimals, bool bAppendD)
 {
 	char	szString[128];
 
-	DoubleToString(szString, 128, d, iMaxDecimals, bAppendD);
+	if (!DoubleToString(szString, 128, d, iMaxDecimals, bAppendD))
+	{
+		return this;
+	}
 	return Append(szString);
 }
 
