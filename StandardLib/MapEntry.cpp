@@ -8,7 +8,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapEntry::operator = (CMapEntry& cOther)
+void CMapEntry::operator = (const CMapEntry& cOther)
 {
 	Kill();
 	Init();
@@ -121,7 +121,7 @@ CPointer CMapEntry::Value(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CMapEntry::KeyObject(void)
+CBaseObject* CMapEntry::KeyObject(void) const
 {
 	return (CBaseObject*)mpKey.Object();
 }
@@ -131,7 +131,7 @@ CBaseObject* CMapEntry::KeyObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CMapEntry::ValueObject(void)
+CBaseObject* CMapEntry::ValueObject(void) const
 {
 	return (CBaseObject*)mpValue.Object();
 }

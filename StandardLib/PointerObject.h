@@ -71,15 +71,15 @@ public:
 
 	void 				SetEmbedding(CObject* pcEmbedding);
 
-	bool				IsNotNull(void);
-	bool				IsNull(void);
+	bool				IsNotNull(void) const;
+	bool				IsNull(void) const;
 	bool				IsNotEqual(CPointer& pcPointer);
 	bool				IsEqual(CPointer& pcPointer);
 	bool				IsEqual(CEmbeddedObject* pcObject);
 
 	CPointer*			This(void);
 	CObject*			Embedding(void);
-	CEmbeddedObject*	Object(void);
+	CEmbeddedObject*	Object(void) const;
 	CEmbeddedObject**	ObjectPtr(void);
 	void				UnsafePointTo(CEmbeddedObject* pcNewObject);
 	CBaseObject*		BaseObject(void);

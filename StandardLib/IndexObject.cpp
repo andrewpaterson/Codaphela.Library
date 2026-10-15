@@ -96,7 +96,7 @@ void CIndexObject::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexObject::Put(char* szKey, CPointer& pObject)
+bool CIndexObject::Put(char* szKey, const CPointer& pObject)
 {
 	size	uiLength;
 
@@ -109,7 +109,7 @@ bool CIndexObject::Put(char* szKey, CPointer& pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexObject::Put(uint8* pvKey, size iKeySize, CPointer& pObject)
+bool CIndexObject::Put(uint8* pvKey, size iKeySize, const CPointer& pObject)
 {
 	CBaseObject*		pcPointedTo;
 	bool				bResult;

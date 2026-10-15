@@ -14,7 +14,7 @@ protected:
 	Ptr<>	mpValue;
 
 public:
-	void			operator = (CMapEntry& pcPointer);
+	void			operator = (const CMapEntry& pcPointer);
 
 	void			Init(void);
 	void			Init(CPointer& pKey, CPointer& pValue);
@@ -26,8 +26,8 @@ public:
 	bool			Exists(void);
 	CPointer		Key(void);
 	CPointer		Value(void);
-	CBaseObject*	KeyObject(void);
-	CBaseObject*	ValueObject(void);
+	CBaseObject*	KeyObject(void) const;
+	CBaseObject*	ValueObject(void) const;
 	bool			ValidatePointersEmbedded(void);
 };
 
