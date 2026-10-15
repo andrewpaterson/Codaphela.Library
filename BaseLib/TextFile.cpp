@@ -101,8 +101,8 @@ bool CTextFile::Read(CAbstractFile* pcAbstractFile)
 	{
 		iSize = mcFile.Size();
 
-		mcText.SetLength((int)iSize);
-		mcFile.ReadData(mcText.Text(), (int)iSize);
+		mcText.SetLength((size)iSize);
+		mcFile.ReadData(mcText.Text(), (size)iSize);
 		mcFile.Close();
 		mcFile.Kill();
 		return true;
