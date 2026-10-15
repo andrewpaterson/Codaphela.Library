@@ -98,6 +98,7 @@ protected:
 
 public:
 									CBaseObject();
+									CBaseObject(const CBaseObject&) = delete;  //Copying would duplicate the pointer bookkeeping.  See CMapEntry(const CMapEntry&).
 									~CBaseObject();
 
 protected:
