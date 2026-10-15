@@ -12,9 +12,9 @@ protected:
 	uint32		muiElementSize;
 
 public:
-	void		Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, char* szName);
-	void		Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, size uiLength, char* szName);
-	void		Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, uint32 uiElementSize, size uiLength, char* szName);
+	void		Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, const char* szName);
+	void		Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, size uiLength, const char* szName);
+	void		Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, uint32 uiElementSize, size uiLength, const char* szName);
 	void		Kill(void);
 
 	bool		IsArray(void);

@@ -11,7 +11,7 @@ TRISTATE GetGerberIdentifierCharacter(CTextParser* pcTextParser, char* pc, bool 
 //
 //
 /////////////////////////////////////////////////////////////////////////
-TRISTATE ParseGerberExactIdentifier(CTextParser* pcTextParser, char* szIdentifier)
+TRISTATE ParseGerberExactIdentifier(CTextParser* pcTextParser, const char* szIdentifier)
 {
 	char		cCurrent;
 	size		iPos;
@@ -165,7 +165,7 @@ TRISTATE ParseGerberIdentifier(CTextParser* pcTextParser, char* szIdentifier, si
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE ParseGerberExactIdentifierUnset(CTextParser* pcTextParser, char* szIdentifier)
+TRISTATE ParseGerberExactIdentifierUnset(CTextParser* pcTextParser, const char* szIdentifier)
 {
 	gcLogger.Error2(__METHOD__, " Gerber Identifier Parser not set.", NULL);
 	return TRIERROR;

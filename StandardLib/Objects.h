@@ -47,9 +47,6 @@ template <class SpecificClass, typename ... Args>
 Ptr<SpecificClass> OMalloc(Args ... args);
 
 template <class SpecificClass, typename ... Args>
-Ptr<SpecificClass> ONMalloc(char* szObjectName, Args ... args);
-
-template <class SpecificClass, typename ... Args>
 Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args ... args);
 
 
@@ -94,20 +91,20 @@ public:
 						void					Kill(void);
 
 	template<class M>	void					AddConstructor(void);
-	template<class M>	CObjectSource*			AddSource(CAbstractFile* pcFile, char* szFilename);
+	template<class M>	CObjectSource*			AddSource(CAbstractFile* pcFile, const char* szFilename);
 
 						bool					Flush(void);
 						bool					ForceSave(CBaseObject* pcObject);
 
 						CPointer				Get(OIndex oi);
-						CPointer				Get(char* szObjectName);
+						CPointer				Get(const char* szObjectName);
 	template<class M> 	Ptr<M>					Get(OIndex oi);
-	template<class M>	Ptr<M>					Get(char* szObjectName);
-						bool					Contains(char* szObjectName);
+	template<class M>	Ptr<M>					Get(const char* szObjectName);
+						bool					Contains(const char* szObjectName);
 						bool					Contains(OIndex oi);
 
 	template<class M> 	Ptr<M>					Malloc(void);
-	template<class M>	Ptr<M>					Malloc(char* szObjectName);
+	template<class M>	Ptr<M>					Malloc(const char* szObjectName);
 
 						Ptr<CRoot>				Root(void);
 						void					LogicalDirty(CBaseObject* pcObject);
@@ -139,7 +136,7 @@ public:
 						OIndex					StartMemoryIteration(SIndexesIterator* psIter);
 						OIndex					IterateMemory(SIndexesIterator* psIter);
 						CPointer				TestGetFromMemory(OIndex oi);
-						CPointer				TestGetFromMemory(char* szName);
+						CPointer				TestGetFromMemory(const char* szName);
 
 						Ptr<CFreeObjects>		FreeObjects(void);
 	template<class M>	M*						AddFreeObject(Ptr<M>& p);
@@ -186,11 +183,11 @@ protected:
 						bool					ValidateCanAllocate(void);
 
 						CBaseObject*			GetFromMemory(OIndex oi);
-						CBaseObject*			GetFromMemory(char* szObjectName);
-						CBaseObject*			GetFromMemory(char* szObjectName, OIndex oi);
+						CBaseObject*			GetFromMemory(const char* szObjectName);
+						CBaseObject*			GetFromMemory(const char* szObjectName, OIndex oi);
 						CBaseObject*			GetFromDatabase(OIndex oi);
-						CBaseObject*			GetFromDatabase(char* szObjectName);
-						CBaseObject*			GetFromSources(char* szObjectName);
+						CBaseObject*			GetFromDatabase(const char* szObjectName);
+						CBaseObject*			GetFromSources(const char* szObjectName);
 						OIndex					GetNextIndex(void);
 						
 						void					FreeInternal(CArrayBaseObjectPtr* papcObjectPts);
@@ -215,14 +212,14 @@ protected:
 						void					UnsetDumpFlags(void);
 
 public:
-						CBaseObject*			AllocateUninitialisedByClassNameAndAddIntoMemory(char* szClassName);
-						CBaseObject*			AllocateNamedUninitialisedByClassNameAndAddIntoMemory(char* szClassName, char* szObjectName);
+						CBaseObject*			AllocateUninitialisedByClassNameAndAddIntoMemory(const char* szClassName);
+						CBaseObject*			AllocateNamedUninitialisedByClassNameAndAddIntoMemory(const char* szClassName, const char* szObjectName);
 
 						CBaseObject*			AllocateForInternalDeserialisationWithIndex(char* szClassName, OIndex oi);
 						CHollowObject*			AllocateInternalHollowWithIndex(OIndex oi, size uiNumEmbedded, uint16 uiObjectSize);
-						CHollowObject*			AllocateInternalHollowWithNameAndIndex(char* szObjectName, OIndex oi, size uiNumEmbedded, uint16 uiObjectSize);
+						CHollowObject*			AllocateInternalHollowWithNameAndIndex(const char* szObjectName, OIndex oi, size uiNumEmbedded, uint16 uiObjectSize);
 
-						CBaseObject*			GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName(char* szClassName, char* szObjectName);
+						CBaseObject*			GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName(const char* szClassName, const char* szObjectName);
 						CBaseObject*			GetExternalNamedObjectInMemoryOrAllocateHollow(char* szObjectName, size uiNumEmbedded);
 
 protected:
@@ -407,7 +404,7 @@ Ptr<SpecificClass> CObjects::Malloc(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class SpecificClass>
-Ptr<SpecificClass> CObjects::Malloc(char* szObjectName)
+Ptr<SpecificClass> CObjects::Malloc(const char* szObjectName)
 {
 	bool			bResult;
 	SpecificClass*	pcObject = AllocateUninitialisedByTemplate<SpecificClass>(szObjectName);
@@ -448,7 +445,7 @@ Ptr<SpecificClass> CObjects::Get(OIndex oi)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class SpecificClass>
-Ptr<SpecificClass> CObjects::Get(char* szObjectName)
+Ptr<SpecificClass> CObjects::Get(const char* szObjectName)
 {
 	SpecificClass* pcObject = (SpecificClass*)mcMemory.Get(szObjectName);
 	return PointTo<SpecificClass>(pcObject);
@@ -482,7 +479,7 @@ void CObjects::AddConstructor(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class SpecificClass>
-CObjectSource* CObjects::AddSource(CAbstractFile* pcFile, char* szFilename)
+CObjectSource* CObjects::AddSource(CAbstractFile* pcFile, const char* szFilename)
 {
 	return mcSource.AddSource<SpecificClass>(pcFile, szFilename);
 }
@@ -520,7 +517,7 @@ Ptr<SpecificClass> OMalloc(Args ... args)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class SpecificClass, typename ... Args>
-Ptr<SpecificClass> ONMalloc(char* szObjectName, Args ... args)
+Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args ... args)
 {
 	Ptr<SpecificClass> pObject = gcObjects.Malloc<SpecificClass>(szObjectName);
 	if (pObject.IsNotNull())
@@ -529,23 +526,6 @@ Ptr<SpecificClass> ONMalloc(char* szObjectName, Args ... args)
 	}
 	return pObject;
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template <class SpecificClass, typename ... Args>
-Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args ... args)
-{
-	Ptr<SpecificClass> pObject = gcObjects.Malloc<SpecificClass>((char*)szObjectName);
-	if (pObject.IsNotNull())
-	{
-		pObject->Init(args...);
-	}
-	return pObject;
-}
-
 
 //////////////////////////////////////////////////////////////////////////
 //

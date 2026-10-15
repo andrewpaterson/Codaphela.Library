@@ -77,7 +77,7 @@ void CIndexTreeFileDiagnosticLoggingCallback::Evict(void* pvKey, size iKeySize, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileDiagnosticLoggingCallback::Log(char* szOperation, void* pvKey, size iKeySize, void* pvData, size iDataSize)
+void CIndexTreeFileDiagnosticLoggingCallback::Log(const char* szOperation, void* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	szLog.Append(szOperation);
 	szLog.Append(":");

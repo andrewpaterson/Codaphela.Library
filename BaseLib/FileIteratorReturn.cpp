@@ -43,7 +43,7 @@ void CFileIteratorReturn::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileIteratorReturn::InsertInName(size iIndex, char* szText)
+void CFileIteratorReturn::InsertInName(size iIndex, const char* szText)
 {
 	mszFullName.Insert(iIndex, szText);
 }

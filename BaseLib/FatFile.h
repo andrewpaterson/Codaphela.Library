@@ -28,7 +28,7 @@ protected:
 
 public:
 	void		Init(CFatVolume* pcVolume);
-	EFatCode	Open(char* szFilename, uint8 uiAccessFlags);
+	EFatCode	Open(const char* szFilename, uint8 uiAccessFlags);
 	EFatCode	Open(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags);
 	EFatCode	Close(void);
 	EFatCode	Write(uint8* pvSource, size uiLength);
@@ -55,7 +55,7 @@ protected:
 
 	EFatCode	FlushCacheUpdateAccess(void);
 
-	char*		GetShortFileName(void);
+	const char*		GetShortFileName(void);
 	EFatCode	ValidateCanRead(void);
 	EFatCode	ValidateCanWrite(void);
 

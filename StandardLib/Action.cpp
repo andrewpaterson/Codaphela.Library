@@ -37,7 +37,7 @@ void CAction::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAction::Is(char* szName)
+bool CAction::Is(const char* szName)
 {
 	return mszName.Equals(szName);
 }

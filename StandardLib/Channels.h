@@ -69,7 +69,7 @@ public:
 	void 					PrivateAddChannel(size iChannel, EPrimitiveType eType, bool bReverse);
 	void 					AddChannel(SChannel* psChannel);
 	void 					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);
-	void 					AddChannel(size iChannel, EPrimitiveType eType, char* szShortName, char* szLongName = NULL, bool bReverse = false);
+	void 					AddChannel(size iChannel, EPrimitiveType eType, const char* szShortName, const char* szLongName = NULL, bool bReverse = false);
 	void 					AddChannel(size iChannel1, size iChannel2, EPrimitiveType eType, bool bReverse = false);
 	void 					AddChannel(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType, bool bReverse = false);
 	void 					AddChannel(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType, bool bReverse = false);
@@ -116,8 +116,8 @@ public:
 	CArrayChannelOffset*	GetChannelOffsets(void);
 	size					GetByteStride(void);
 	size					GetBitStride(void);
-	char*					GetChannelLongName(size iChannel);
-	char*					GetChannelShortName(size iChannel);
+	const char*				GetChannelLongName(size iChannel);
+	const char*				GetChannelShortName(size iChannel);
 
 	size					NumChannels(void);
 	void					GetAllChannels(CArraySize* paiChannels);
@@ -131,7 +131,7 @@ public:
 	void					SetBitStrideFromByteStride(void);
 
 	bool					IsValid(size iPos);
-	void					SetChannelDebugNames(size iChannel, char* szShortName, char* szLongName);
+	void					SetChannelDebugNames(size iChannel, const char* szShortName, const char* szLongName);
 
 	EPrimitiveType			GetLargestPrimitiveType(void);
 

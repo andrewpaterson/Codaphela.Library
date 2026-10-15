@@ -36,7 +36,7 @@ protected:
 	CChars					mszObjectBaseName;
 
 public:
-	void	Init(char* szDirectory, char* szBaseName, char* szChunkFilename);
+	void	Init(const char* szDirectory, const char* szBaseName, const char* szChunkFilename);
 	void	Kill(void);
 
 	bool	Begin(void);

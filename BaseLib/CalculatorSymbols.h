@@ -42,7 +42,7 @@ public:
 	bool						ValidateSymbols(void);
 
 	CCalculatorOperator*		GetOperator(ECalcOperator eOp);
-	bool						SetOperator(char* szSymbol, ECalcOperator eOp, uint16 uiPrecedence);
+	bool						SetOperator(const char* szSymbol, ECalcOperator eOp, uint16 uiPrecedence);
 
 	CArrayCalculatorOperators*	GetOperators(void);
 	CCalculatorOperator*		GetAssignment(void);

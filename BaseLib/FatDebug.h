@@ -10,12 +10,12 @@ void		PrintBiosParameterBlock(CChars* psz, CFatVolume* pcVolume);
 
 void		DumpAllFatFilenames(CFatVolume* pcVolume);
 void		PrintAllFatFilenames(CChars* psz, CFatVolume* pcVolume);
-EFatCode	RecurseFindFatFilenames(CFatVolume* pcVolume, char* szPath, CArrayChars* paszFiles);
-EFatCode	RecurseFindFatDirectories(CFatVolume* pcVolume, char* szPath, CArrayChars* paszDirectories);
-void		PrintFatFilenames(CChars* psz, char* szPath, CFatVolume* pcVolume);
+EFatCode	RecurseFindFatFilenames(CFatVolume* pcVolume, const char* szPath, CArrayChars* paszFiles);
+EFatCode	RecurseFindFatDirectories(CFatVolume* pcVolume, const char* szPath, CArrayChars* paszDirectories);
+void		PrintFatFilenames(CChars* psz, const char* szPath, CFatVolume* pcVolume);
 void		DumpRootFatFilenames(CFatVolume* pcVolume);
 void		PrintRootFatFilenames(CChars* psz, CFatVolume* pcVolume);
-void		PrintFatDirectories(CChars* psz, char* szPath, CFatVolume* pcVolume);
+void		PrintFatDirectories(CChars* psz, const char* szPath, CFatVolume* pcVolume);
 
 EFatCode	PrintFATClusters(CChars* psz, CFatVolume* pcVolume, uint32 uiStartClusterIndex, uint32 uiEndClusterIndex);
 EFatCode	PrintInterestingFATClusters(CChars* psz, CFatVolume* pcVolume);

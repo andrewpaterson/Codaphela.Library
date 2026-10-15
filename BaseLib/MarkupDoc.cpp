@@ -146,7 +146,7 @@ size CMarkupDoc::Print(CChars* psz, size iDepth, size iLine)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupDoc::Is(char* szName)
+bool CMarkupDoc::Is(const char* szName)
 {
 	if (mpcRootTag)
 	{

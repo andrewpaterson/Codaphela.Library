@@ -22,7 +22,7 @@ public:
 			bool	PutLongShort(int64 lliKey, int16 iData);
 			bool	PutLongInt(int64 lliKey, int32 iData);
 			bool	PutLongChar(int64 lliKey, char cData);
-			bool	PutLongString(int64 lliKey, char* pszData);
+			bool	PutLongString(int64 lliKey, const char* pszData);
 			bool	PutLongData(int64 lliKey, void* pvData, size iDataSize);
 			bool	PutLongLong(int64 lliKey, int64 lliData);
 			bool	PutShortPtr(int16 iKey, void* pvPointer);
@@ -37,20 +37,20 @@ public:
 			bool	PutIntInt(int32 iKey, int32 iData);
 			bool	PutIntLong(int32 iKey, int64 lliData);
 			bool	PutIntChar(int32 iKey, char cData);
-			bool	PutIntString(int32 iKey, char* pszData);
+			bool	PutIntString(int32 iKey, const char* pszData);
 			bool	PutIntData(int32 iKey, void* pvData, size iDataSize);
-			bool	PutStringPtr(char* pszKey, void* pvPointer);
-			bool	PutStringData(char* pszKey, void* pvData, size iDataSize);
-			bool	PutStringChar(char* pszKey, char cData);
+			bool	PutStringPtr(const char* pszKey, void* pvPointer);
+			bool	PutStringData(const char* pszKey, void* pvData, size iDataSize);
+			bool	PutStringChar(const char* pszKey, char cData);
 			bool	PutStringShort(char* pszKey, int16 iData);
-			bool	PutStringInt(char* pszKey, int32 iData);
-			bool	PutStringLong(char* pszKey, int64 lliData);
-			bool	PutStringString(char* pszKey, char* pszData);
+			bool	PutStringInt(const char* pszKey, int32 iData);
+			bool	PutStringLong(const char* pszKey, int64 lliData);
+			bool	PutStringString(const char* pszKey, const char* pszData);
 			bool	PutKeyData(uint8* pvKey, size iKeySize, void* pvData, size iDataSize);
 			bool	PutKeyShort(uint8* pvKey, size iKeySize, int16 iData);
 			bool	PutKeyInt(uint8* pvKey, size iKeySize, int32 iData);
 			bool	PutKeyLong(uint8* pvKey, size iKeySize, int64 iData);
-			bool	PutKeyString(uint8* pvKey, size iKeySize, char* pszData);
+			bool	PutKeyString(uint8* pvKey, size iKeySize, const char* pszData);
 
 			char*	GetLongString(int64 lliKey, char* pszDest, size uiMaxDataSize = 0);
 			int16	GetLongShort(int64 lliKey, int16 iNullValue = -1);
@@ -73,14 +73,14 @@ public:
 			char	GetIntChar(int32 iKey, char cNullValue = -1);
 			void*	GetIntPtr(int32 iKey);
 			bool	GetIntData(int32 iKey, void* pvData, size* piDataSize = NULL, size uiMaxDataSize = 0);
-			bool	GetStringData(char* pszKey, void* pvData, size* piDataSize = NULL, size uiMaxDataSize = 0);
-			char*	GetStringString(char* pszKey, char* pszDest, size uiMaxDataSize = 0);
-			CChars	GetStringString(char* pszKey, size uiMaxDataSize = 0);
-			char	GetStringChar(char* pszKey, char iNullValue = -1);
+			bool	GetStringData(const char* pszKey, void* pvData, size* piDataSize = NULL, size uiMaxDataSize = 0);
+			char*	GetStringString(const char* pszKey, char* pszDest, size uiMaxDataSize = 0);
+			CChars	GetStringString(const char* pszKey, size uiMaxDataSize = 0);
+			char	GetStringChar(const char* pszKey, char iNullValue = -1);
 			int16	GetStringShort(char* pszKey, int16 iNullValue = -1);
-			int32	GetStringInt(char* pszKey, int32 iNullValue = -1);
-			int64	GetStringLong(char* pszKey, int64 iNullValue = -1LL);
-			void*	GetStringPtr(char* pszKey);
+			int32	GetStringInt(const char* pszKey, int32 iNullValue = -1);
+			int64	GetStringLong(const char* pszKey, int64 iNullValue = -1LL);
+			void*	GetStringPtr(const char* pszKey);
 			char*	GetKeyString(uint8* pvKey, size iKeySize, char* pszDest, size uiMaxDataSize = 0);
 			bool	GetKeyData(uint8* pvKey, size iKeySize, void* pvData, size* piDataSize, size uiMaxDataSize = 0);
 			int16	GetKeyShort(uint8* pvKey, size iKeySize, int16 iNullValue = -1);
@@ -90,13 +90,13 @@ public:
 			bool	HasShort(int16 iKey);
 			bool	HasInt(int32 iKey);
 			bool	HasLong(int64 lliKey);
-			bool	HasString(char* pszKey);
+			bool	HasString(const char* pszKey);
 			bool	HasKey(uint8* pvKey, size iKeySize);
 
 			bool	DeleteShort(int16 lliKey);
 			bool	DeleteInt(int32 lliKey);
 			bool	DeleteLong(int64 lliKey);
-			bool	DeleteString(char* pszKey);
+			bool	DeleteString(const char* pszKey);
 			bool	DeleteKey(uint8* pvKey, size iKeySize);
 
 			size	DataSizeLong(int16 lliKey);
@@ -108,13 +108,13 @@ public:
 			bool	FlushLong(int16 lliKey);
 			bool	FlushLong(int32 lliKey);
 			bool	FlushLong(int64 lliKey);
-			bool	FlushString(char* pszKey);
+			bool	FlushString(const char* pszKey);
 			bool	FlushKey(uint8* pvKey, size iKeySize);
 
 			bool	EvictShort(int16 iKey);
 			bool	EvictInt(int32 iKey);
 			bool	EvictLong(int64 lliKey);
-			bool	EvictString(char* pszKey);
+			bool	EvictString(const char* pszKey);
 			bool	EvictKey(uint8* pvKey, size iKeySize);
 
 public:

@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CXMLEntity::Init(char* szName, char* szValue, EXMLEntityType eType)
+void CXMLEntity::Init(const char* szName, const char* szValue, EXMLEntityType eType)
 {
 	mszName.Init(szName);
 	mszValue.Init(szValue);

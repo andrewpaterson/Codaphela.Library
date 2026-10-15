@@ -32,33 +32,10 @@ public:
 	using CMapStringTemplate<D>::StartIteration;
 	using CMapStringTemplate<D>::Iterate;
 
-	D		Get(char* szKey, D sNullValue = -1);
 	D		Get(const char* szKey, D sNullValue = -1);
-	bool	Put(char* szKey, D sData);
 	bool	Put(const char* szKey, D sData);
 	char*	GetWithValue(D sData);
 };
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-D CMapStringPrimitive<D>::Get(char* szKey, D sNullValue)
-{
-	D* psData;
-
-	psData = (CMapStringTemplate<D>::Get(szKey));
-	if (psData)
-	{
-		return *psData;
-	}
-	else
-	{
-		return sNullValue;
-	}
-}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,18 +58,6 @@ D CMapStringPrimitive<D>::Get(const char* szKey, D sNullValue)
 	}
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class D>
-bool CMapStringPrimitive<D>::Put(char* szKey, D sData)
-{
-	return CMapStringTemplate<D>::Put(szKey, &sData);
-}
-
-
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -102,7 +67,6 @@ bool CMapStringPrimitive<D>::Put(const char* szKey, D sData)
 {
 	return CMapStringTemplate<D>::Put(szKey, &sData);
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //																		//

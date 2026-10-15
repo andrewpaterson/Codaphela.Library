@@ -30,11 +30,11 @@ protected:
 	CChars	mszObjectName;
 
 public:
-	void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szObjectName);
+	void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, const char* szObjectName);
 	void			Kill(void);
 
-	CBaseObject*	Convert(char* szFullName);
-	bool			Contains(char* szFullName);
+	CBaseObject*	Convert(const char* szFullName);
+	bool			Contains(const char* szFullName);
 };
 
 

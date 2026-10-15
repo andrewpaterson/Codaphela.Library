@@ -36,7 +36,7 @@ void		MemSwp(const void* pv1, const void* pv2, size uiLength);
 char*		StrRev(char* szString);
 char*		StrRev(char* szString, size iLength);
 const char*	FindChar(const char* szString, char c, bool bReverse = false);
-size		FindCharIndex(char chr, char* str, size index);
+size		FindCharIndex(char chr, const char* str, size index);
 char*		StrCpySafe(char* szDest, const char* szSource, size iDestLength, size* piSourceLength = NULL);
 char*		StrCatSafe(char* szDest, const char* szSource, size iDestLength, size* piSourceLength = NULL);
 char*		StrCpy(char* szDest, const char* szString, const char* szLastCharInclusive);

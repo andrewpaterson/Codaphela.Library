@@ -10,7 +10,7 @@ TRISTATE GetCPPIdentifierCharacter(CTextParser* pcTextParser, char* pc, bool bFi
 //
 //
 /////////////////////////////////////////////////////////////////////////
-TRISTATE ParseCPPExactIdentifier(CTextParser* pcTextParser, char* szIdentifier)
+TRISTATE ParseCPPExactIdentifier(CTextParser* pcTextParser, const char* szIdentifier)
 {
 	char		cCurrent;
 	size		iPos;

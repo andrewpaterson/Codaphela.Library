@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertFilePath(char* szExpected, char* szActual, int iLine, char* szFile)
+bool PrivateAssertFilePath(const char* szExpected, const char* szActual, int iLine, const char* szFile)
 {
 	CChars			szWorking;
 	CChars			szExpectedWorking;
@@ -32,7 +32,7 @@ bool PrivateAssertFilePath(char* szExpected, char* szActual, int iLine, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertFile(const char* szExpectedFilename, char* szActualFilename, char* szPrefix, size iLine, char* szFile)
+bool PrivateAssertFile(const char* szExpectedFilename, const char* szActualFilename, const char* szPrefix, size iLine, const char* szFile)
 {
 	CFileCompare	cCompare;
 	bool			bResult;
@@ -63,7 +63,7 @@ bool PrivateAssertFile(const char* szExpectedFilename, char* szActualFilename, c
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertFile(CChars szExpectedFilename, CChars szActualFilename, char* szPrefix, size iLine, char* szFile)
+bool PrivateAssertFile(CChars szExpectedFilename, CChars szActualFilename, const char* szPrefix, size iLine, const char* szFile)
 {
 	return PrivateAssertFile(szExpectedFilename.Text(), szActualFilename.Text(), szPrefix, iLine, szFile);
 }
@@ -73,7 +73,7 @@ bool PrivateAssertFile(CChars szExpectedFilename, CChars szActualFilename, char*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, size iLength, char* szPrefix, size iLine, char* szFile)
+bool PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, size iLength, const char* szPrefix, size iLine, const char* szFile)
 {
 	CFileCompare	cCompare;
 	bool			bResult;
@@ -104,7 +104,7 @@ bool PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, siz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertFileString(const char* szExpectedFilename, const char* szString, char* szPrefix, size iLine, char* szFile)
+bool PrivateAssertFileString(const char* szExpectedFilename, const char* szString, const char* szPrefix, size iLine, const char* szFile)
 {
 	size iLength;
 

@@ -1168,7 +1168,7 @@ CPointer CObjects::Get(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CObjects::Get(char* szObjectName)
+CPointer CObjects::Get(const char* szObjectName)
 {
 	CBaseObject*	pcObject;
 	CPointer		pObject;
@@ -1213,7 +1213,7 @@ CBaseObject* CObjects::GetFromMemory(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::GetFromMemory(char* szObjectName)
+CBaseObject* CObjects::GetFromMemory(const char* szObjectName)
 {
 	return mcMemory.Get(szObjectName);
 }
@@ -1223,7 +1223,7 @@ CBaseObject* CObjects::GetFromMemory(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::GetFromMemory(char* szObjectName, OIndex oi)
+CBaseObject* CObjects::GetFromMemory(const char* szObjectName, OIndex oi)
 {
 	return mcMemory.Get(szObjectName, oi);
 }
@@ -1272,7 +1272,7 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::GetFromDatabase(char* szObjectName)
+CBaseObject* CObjects::GetFromDatabase(const char* szObjectName)
 {
 	CInternalObjectDeserialiser		cDeserialiser;
 	CBaseObject*					pcObject;
@@ -1293,7 +1293,7 @@ CBaseObject* CObjects::GetFromDatabase(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::GetFromSources(char* szObjectName)
+CBaseObject* CObjects::GetFromSources(const char* szObjectName)
 {
 	CObjectSource*	pcSource;
 	CBaseObject*	pcObject;
@@ -1332,7 +1332,7 @@ OIndex CObjects::GetNextIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CObjects::TestGetFromMemory(char* szName)
+CPointer CObjects::TestGetFromMemory(const char* szName)
 {
 	CPointer	pObject;
 
@@ -1393,7 +1393,7 @@ CBaseObject* CObjects::Dehollow(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjects::Contains(char* szObjectName)
+bool CObjects::Contains(const char* szObjectName)
 {
 	CBaseObject*	pcObject;
 
@@ -1957,7 +1957,7 @@ CConstructors* CObjects::GetConstructors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateUninitialisedByClassNameAndAddIntoMemory(char* szClassName)
+CBaseObject* CObjects::AllocateUninitialisedByClassNameAndAddIntoMemory(const char* szClassName)
 {
 	CBaseObject*	pcObject;
 	OIndex			oi;
@@ -1985,7 +1985,7 @@ CBaseObject* CObjects::AllocateUninitialisedByClassNameAndAddIntoMemory(char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::AllocateNamedUninitialisedByClassNameAndAddIntoMemory(char* szClassName, char* szObjectName)
+CBaseObject* CObjects::AllocateNamedUninitialisedByClassNameAndAddIntoMemory(const char* szClassName, const char* szObjectName)
 {
 	bool			bResult;
 	CBaseObject*	pcObject;
@@ -2020,7 +2020,7 @@ CBaseObject* CObjects::AllocateNamedUninitialisedByClassNameAndAddIntoMemory(cha
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName(char* szClassName, char* szObjectName)
+CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName(const char* szClassName, const char* szObjectName)
 {
 	CBaseObject*	pvOldObject;
 	CBaseObject*	pcObject;
@@ -2306,7 +2306,7 @@ CHollowObject* CObjects::AllocateInternalHollowWithIndex(OIndex oi, size uiNumEm
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject* CObjects::AllocateInternalHollowWithNameAndIndex(char* szObjectName, OIndex oi, size uiNumEmbedded, uint16 uiObjectSize)
+CHollowObject* CObjects::AllocateInternalHollowWithNameAndIndex(const char* szObjectName, OIndex oi, size uiNumEmbedded, uint16 uiObjectSize)
 {
 	CHollowObject*	pcHollow;
 	bool			bResult;

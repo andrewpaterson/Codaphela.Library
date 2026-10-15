@@ -10,7 +10,7 @@ TRISTATE GetXMLIdentifierCharacter(CTextParser* pcTextParser, char* pc, bool bFi
 //
 //
 /////////////////////////////////////////////////////////////////////////
-TRISTATE ParseXMLExactIdentifier(CTextParser* pcTextParser, char* szIdentifier)
+TRISTATE ParseXMLExactIdentifier(CTextParser* pcTextParser, const char* szIdentifier)
 {
 	char		cCurrent;
 	size		iPos;

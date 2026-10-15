@@ -27,7 +27,7 @@ bool CIndexAccess::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexAccess::PutStringPtr(char* pszKey, void* pvPointer)
+bool CIndexAccess::PutStringPtr(const char* pszKey, void* pvPointer)
 {
 	return Put((uint8*)pszKey, StrKeySize(pszKey), &pvPointer, sizeof(void*));
 }
@@ -47,7 +47,7 @@ bool CIndexAccess::PutStringShort(char* pszKey, int16 iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexAccess::PutStringInt(char* pszKey, int32 iIndex)
+bool CIndexAccess::PutStringInt(const char* pszKey, int32 iIndex)
 {
 	return Put((uint8*)pszKey, StrKeySize(pszKey), &iIndex, sizeof(int32));
 }
@@ -57,7 +57,7 @@ bool CIndexAccess::PutStringInt(char* pszKey, int32 iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexAccess::PutStringChar(char* pszKey, char cData)
+bool CIndexAccess::PutStringChar(const char* pszKey, char cData)
 {
 	return Put((uint8*)pszKey, StrKeySize(pszKey), &cData, sizeof(char));
 }
@@ -67,7 +67,7 @@ bool CIndexAccess::PutStringChar(char* pszKey, char cData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexAccess::PutStringLong(char* pszKey, int64 lliIndex)
+bool CIndexAccess::PutStringLong(const char* pszKey, int64 lliIndex)
 {
 	return Put((uint8*)pszKey, StrKeySize(pszKey), &lliIndex, sizeof(int64));
 }
@@ -77,7 +77,7 @@ bool CIndexAccess::PutStringLong(char* pszKey, int64 lliIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexAccess::PutStringData(char* pszKey, void* pvData, size iDataSize)
+bool CIndexAccess::PutStringData(const char* pszKey, void* pvData, size iDataSize)
 {
 	return Put((uint8*)pszKey, StrKeySize(pszKey), pvData, iDataSize);
 }
@@ -137,7 +137,7 @@ bool CIndexAccess::PutLongChar(int64 lliKey, char cData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexAccess::PutLongString(int64 lliKey, char* pszData)
+bool CIndexAccess::PutLongString(int64 lliKey, const char* pszData)
 {
 	return Put((uint8*)&lliKey, sizeof(int64), pszData, StrDataSize(pszData));
 }
@@ -207,7 +207,7 @@ bool CIndexAccess::PutIntChar(int32 iKey, char cData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexAccess::PutIntString(int32 iKey, char* pszData)
+bool CIndexAccess::PutIntString(int32 iKey, const char* pszData)
 {
 	return Put((uint8*)&iKey, sizeof(int32), pszData, StrDataSize(pszData));
 }
@@ -227,7 +227,7 @@ bool CIndexAccess::PutIntData(int32 iKey, void* pvData, size iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexAccess::PutStringString(char* pszKey, char* pszData)
+bool CIndexAccess::PutStringString(const char* pszKey, const char* pszData)
 {
 	return Put((uint8*)pszKey, StrKeySize(pszKey), pszData, StrDataSize(pszData));
 }
@@ -277,7 +277,7 @@ bool CIndexAccess::PutKeyLong(uint8* pvKey, size iKeySize, int64 iData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexAccess::PutKeyString(uint8* pvKey, size iKeySize, char* pszData)
+bool CIndexAccess::PutKeyString(uint8* pvKey, size iKeySize, const char* pszData)
 {
 	return Put((uint8*)pvKey, iKeySize, pszData, StrDataSize(pszData));
 }
@@ -554,7 +554,7 @@ bool CIndexAccess::GetIntData(int32 iKey, void* pvData, size* piDataSize, size u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexAccess::GetStringData(char* pszKey, void* pvData, size* piDataSize, size uiMaxDataSize)
+bool CIndexAccess::GetStringData(const char* pszKey, void* pvData, size* piDataSize, size uiMaxDataSize)
 {
 	size iKeySize;
 
@@ -573,7 +573,7 @@ bool CIndexAccess::GetStringData(char* pszKey, void* pvData, size* piDataSize, s
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexAccess::GetStringPtr(char* pszKey)
+void* CIndexAccess::GetStringPtr(const char* pszKey)
 {
 	size	iKeySize;
 	void**	pv;
@@ -663,7 +663,7 @@ char* CIndexAccess::GetKeyString(uint8* pvKey, size iKeySize, char* pszDest, siz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CIndexAccess::GetStringString(char* pszKey, char* pszDest, size uiMaxDataSize)
+char* CIndexAccess::GetStringString(const char* pszKey, char* pszDest, size uiMaxDataSize)
 {
 	return GetString((uint8*)pszKey, StrKeySize(pszKey), pszDest, uiMaxDataSize);
 }
@@ -673,7 +673,7 @@ char* CIndexAccess::GetStringString(char* pszKey, char* pszDest, size uiMaxDataS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars CIndexAccess::GetStringString(char* pszKey, size uiMaxDataSize)
+CChars CIndexAccess::GetStringString(const char* pszKey, size uiMaxDataSize)
 {
 	size	iKeySize;
 	bool	bResult;
@@ -707,7 +707,7 @@ CChars CIndexAccess::GetStringString(char* pszKey, size uiMaxDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIndexAccess::GetStringInt(char* pszKey, int32 iNullValue)
+int32 CIndexAccess::GetStringInt(const char* pszKey, int32 iNullValue)
 {
 	bool	bResult;
 	int32		i;
@@ -729,7 +729,7 @@ int32 CIndexAccess::GetStringInt(char* pszKey, int32 iNullValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char CIndexAccess::GetStringChar(char* pszKey, char iNullValue)
+char CIndexAccess::GetStringChar(const char* pszKey, char iNullValue)
 {
 	bool	bResult;
 	char	c;
@@ -751,7 +751,7 @@ char CIndexAccess::GetStringChar(char* pszKey, char iNullValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexAccess::GetStringLong(char* pszKey, int64 iNullValue)
+int64 CIndexAccess::GetStringLong(const char* pszKey, int64 iNullValue)
 {
 	bool	bResult;
 	int64	lli;
@@ -773,7 +773,7 @@ int64 CIndexAccess::GetStringLong(char* pszKey, int64 iNullValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexAccess::HasString(char* pszKey)
+bool CIndexAccess::HasString(const char* pszKey)
 {
 	return Has((uint8*)pszKey, StrKeySize(pszKey));
 }
@@ -823,7 +823,7 @@ bool CIndexAccess::DeleteLong(int64 lliKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexAccess::DeleteString(char* pszKey)
+bool CIndexAccess::DeleteString(const char* pszKey)
 {
 	return Remove((uint8*)pszKey, StrKeySize(pszKey));
 }
@@ -853,7 +853,7 @@ bool CIndexAccess::FlushLong(int64 lliKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexAccess::FlushString(char* pszKey)
+bool CIndexAccess::FlushString(const char* pszKey)
 {
 	return Flush((uint8*)pszKey, StrKeySize(pszKey));
 }
@@ -893,7 +893,7 @@ bool CIndexAccess::EvictInt(int32 iKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexAccess::EvictString(char* pszKey)
+bool CIndexAccess::EvictString(const char* pszKey)
 {
 	return Evict((uint8*)pszKey, StrKeySize(pszKey));
 }

@@ -33,7 +33,7 @@ public:
 	void					Init(CExternalObjectReader* pcReader, bool bNamedHollows, CObjects* pcObjects);
 	void					Kill(void);
 
-	CBaseObject*			Read(char* szObjectName);
+	CBaseObject*			Read(const char* szObjectName);
 			 
 	//Used by CObjectReader
 	CBaseObject*			AllocateForDeserialisation(CObjectHeader* pcHeader) override;

@@ -24,9 +24,9 @@ public:
 	bool	IsIndexed(void);
 	bool	IsFat(void);
 
-	char*	GetName(void);
+	const char*	GetName(void);
 	OIndex	GetIndex();
-	char*	GetType(void);
+	const char*	GetType(void);
 	uint16	GetFatSize(void);
 };
 

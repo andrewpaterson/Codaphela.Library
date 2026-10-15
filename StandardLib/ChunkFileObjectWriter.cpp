@@ -31,7 +31,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChunkFileObjectWriter::Init(char* szDirectory, char* szBaseName, char* szChunkFilename)
+void CChunkFileObjectWriter::Init(const char* szDirectory, const char* szBaseName, const char* szChunkFilename)
 {
 	CExternalObjectWriter::Init(szDirectory);
 	mszDirectory.Init(szDirectory);

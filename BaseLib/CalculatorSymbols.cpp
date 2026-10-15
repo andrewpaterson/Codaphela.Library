@@ -149,7 +149,7 @@ CCalculatorOperator* CCalculatorSymbols::GetOperator(ECalcOperator eOp)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalculatorSymbols::SetOperator(char* szSymbol, ECalcOperator eOp, uint16 uiPrecedence)
+bool CCalculatorSymbols::SetOperator(const char* szSymbol, ECalcOperator eOp, uint16 uiPrecedence)
 {
 	CCalculatorOperator*	pcOperator;
 

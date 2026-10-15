@@ -118,8 +118,8 @@ bool SetFromText(CTextParser* pcTextParser, Ptr<CImage> pcImport, CChars* szRawF
 {
 	int64		iWidth;
 	int64		iHeight;
-	char*		szFileNameStart;
-	char*		szFileNameEnd;
+	const char*		szFileNameStart;
+	const char*		szFileNameEnd;
 	CFileUtil	cFileUtil;
 	CChars		sz;
 

@@ -28,7 +28,7 @@ public:
 	bool	IsClose(void);
 	bool	IsDelete(void);
 
-	char*	GetType(void);
+	const char*	GetType(void);
 };
 
 

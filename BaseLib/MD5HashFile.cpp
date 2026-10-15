@@ -261,7 +261,7 @@ bool CMD5HashFile::Delete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CMD5HashFile::GetFilename(void)
+const char* CMD5HashFile::GetFilename(void)
 {
 	if (mpcFile)
 	{

@@ -12,13 +12,13 @@ protected:
 	CFileObjectReader*	mpcReader;
 
 public:
-	void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFilename);
+	void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, const char* szFilename);
 	void			Kill(void);
 
 	bool			IsSimple(void);
 	bool			IsNative(void);
-	bool			Contains(char* szFullName);
-	CBaseObject*	Convert(char* szFullName);
+	bool			Contains(const char* szFullName);
+	CBaseObject*	Convert(const char* szFullName);
 	CExternalObjectReader*	GetReader(void);
 };
 

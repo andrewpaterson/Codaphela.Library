@@ -33,10 +33,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CTextParser
 {
 public:
-	char*				mszStartOfText;
+	const char*			mszStartOfText;
 	size				miTextLen;
-	char*				mszParserPos;
-	char*				mszEndOfText;  //Is inclusive (ie: mszEndOfText == the last character in the parser).
+	const char*			mszParserPos;
+	const char*			mszEndOfText;  //Is inclusive (ie: mszEndOfText == the last character in the parser).
 	bool				mbCaseSensitive;
 	bool				mbOutsideText;
 	CArrayTextPosition	masPositions;
@@ -46,12 +46,12 @@ public:
 	ETextParseError		meError;
 	STextParserConfig	msConfig;
 
-	bool 			Init(char* szText, size iTextLen);
-	bool 			Init(char* szText);
+	bool 			Init(const char* szText, size iTextLen);
+	bool 			Init(const char* szText);
 	bool 			Init(CChars* szText);
 	bool			Init(void);
-	bool			Init(char* szText, STextParserConfig* psConfig);
-	bool			Init(char* szText, size iTextLen, STextParserConfig* psConfig);
+	bool			Init(const char* szText, STextParserConfig* psConfig);
+	bool			Init(const char* szText, size iTextLen, STextParserConfig* psConfig);
 	void 			Kill(void);
 	bool			IsEmpty(void);
 
@@ -90,10 +90,10 @@ public:
 	TRISTATE		GetCharacter(char* pc);
 	TRISTATE		GetEscapeCode(char* c);
 
-	TRISTATE		GetExactIdentifier(char* szIdentifier, bool bSkipWhitespace = true);
+	TRISTATE		GetExactIdentifier(const char* szIdentifier, bool bSkipWhitespace = true);
 	TRISTATE		GetIdentifier(char* szIdentifier, size* piLength = NULL, bool bSkipWhitespace = true);
 	TRISTATE		GetString(char* szString, size* piLength = NULL, bool bSkipWhitespace = true);
-	TRISTATE		GetExactCharacterSequence(char* szSequence, bool bSkipWhitespace = true);
+	TRISTATE		GetExactCharacterSequence(const char* szSequence, bool bSkipWhitespace = true);
 	TRISTATE		GetExactCaseInsensitiveCharacterSequence(const char* szSequence, bool bSkipWhitespace = true);
 
 	TRISTATE		GetDigit(uint16* pi, uint16 uiBase = 10);
@@ -117,7 +117,7 @@ public:
 
 	//Non linear functions.
 	TRISTATE		FindExactIdentifier(char* szIdentifier);
-	TRISTATE		FindExactCharacterSequence(char* szSequence);
+	TRISTATE		FindExactCharacterSequence(const char* szSequence);
 	TRISTATE		FindStartOfLine(void);
 	TRISTATE		FindEndOfLine(void);
 	TRISTATE		FindWhitespace(void);
@@ -143,10 +143,10 @@ public:
 	bool			IsOutside(void);
 	char			Current(void);
 	char			Current(int iIndex);
-	char*			Start(void);
-	char*			End(void);
-	char*			Position(void);
-	char*			Position(int iIndex);
+	const char*		Start(void);
+	const char*		End(void);
+	const char*		Position(void);
+	const char*		Position(int iIndex);
 
 	void			Dump(void);
 

@@ -10,7 +10,7 @@ TRISTATE GetJSONIdentifierCharacter(CTextParser* pcTextParser, char* pc, bool bF
 //
 //
 /////////////////////////////////////////////////////////////////////////
-TRISTATE ParseJSONExactIdentifier(CTextParser* pcTextParser, char* szIdentifier)
+TRISTATE ParseJSONExactIdentifier(CTextParser* pcTextParser, const char* szIdentifier)
 {
 	char		cCurrent;
 	size		iPos;

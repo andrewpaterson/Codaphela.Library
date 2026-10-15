@@ -34,7 +34,6 @@ public:
 						void	Init(void);
 						void	Kill(void);
 
-	template<class M>	M*		Add(char* szClassName);
 	template<class M>	M*		Add(const char* szClassName);
 	template<class M>	M*		Add(void);
 
@@ -78,29 +77,6 @@ M* StackConstruct(CStackMemory<>* pcStack)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CConstructors::Add(char* szClassName)
-{
-	M*		pvM;
-	int		iSize;
-
-	if (!ValidateNotAdded(szClassName))
-	{
-		return NULL;
-	}
-
-	iSize = sizeof(M);
-	pvM = (M*)mcConstructors.Put(szClassName, iSize);
-	memset(pvM, 0, iSize);
-	new(pvM) M();
-	return pvM;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
 M* CConstructors::Add(const char* szClassName)
 {
 	M*		pvM;
@@ -117,7 +93,6 @@ M* CConstructors::Add(const char* szClassName)
 	new(pvM) M();
 	return pvM;
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //

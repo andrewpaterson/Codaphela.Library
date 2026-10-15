@@ -63,7 +63,7 @@ bool CNamedIndexes::IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvDat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexes::Add(char* szName, OIndex oi)
+bool CNamedIndexes::Add(const char* szName, OIndex oi)
 {
 	size		iKeySize;
 
@@ -100,7 +100,7 @@ bool CNamedIndexes::Add(CChars* szName, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexes::Add(char* szName, size iNameLength, OIndex oi)
+bool CNamedIndexes::Add(const char* szName, size iNameLength, OIndex oi)
 {
 	bool	bExists;
 
@@ -129,7 +129,7 @@ bool CNamedIndexes::Add(char* szName, size iNameLength, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexes::Set(char* szName, OIndex oi)
+bool CNamedIndexes::Set(const char* szName, OIndex oi)
 {
 	size	iKeySize;
 	bool	bExists;
@@ -179,7 +179,7 @@ bool CNamedIndexes::Set(CChars* szName, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexes::Put(char* szName, OIndex oi)
+bool CNamedIndexes::Put(const char* szName, OIndex oi)
 {
 	size		iKeySize;
 
@@ -216,7 +216,7 @@ bool CNamedIndexes::Put(CChars* szName, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CNamedIndexes::Get(char* szName)
+OIndex CNamedIndexes::Get(const char* szName)
 {
 	size	iKeySize;
 	OIndex	iResult;
@@ -261,7 +261,7 @@ OIndex CNamedIndexes::Get(CChars* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexes::Remove(char* szName)
+bool CNamedIndexes::Remove(const char* szName)
 {
 	size iKeySize;
 

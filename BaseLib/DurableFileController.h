@@ -43,8 +43,8 @@ private:
 	CMapStringInt	mcNameMap;  //Should be a Map of String to Size.
 
 public:
-	bool			Init(char* szDirectory);
-	bool			Init(char* szDirectory, char* szRewriteDirectory, char* szFileListWrite = NULL, char* szFileListRewrite = NULL, char* szMarkWrite = NULL, char* szMarkRewrite = NULL);
+	bool			Init(const char* szDirectory);
+	bool			Init(const char* szDirectory, const char* szRewriteDirectory, const char* szFileListWrite = NULL, const char* szFileListRewrite = NULL, const char* szMarkWrite = NULL, const char* szMarkRewrite = NULL);
 	void			Kill(void);
 
 	bool			Begin(void);

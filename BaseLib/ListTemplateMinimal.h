@@ -25,7 +25,7 @@ public:
 
 	M*		Get(size iIndex);
 	M*		Get(size iIndex, size* piSize);
-	M*		Add(M* pv, size iSize);
+	M*		Add(const M* pv, size iSize);
 	int		NumElements(void);
 	int		AllocatedElements(void);
 };
@@ -107,7 +107,7 @@ M* CListTemplateMinimal<M>::Get(size iIndex, size* piSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CListTemplateMinimal<M>::Add(M* pv, size iSize)
+M* CListTemplateMinimal<M>::Add(const M* pv, size iSize)
 {
 	size	iStringStart;
 	M*		pvDest;

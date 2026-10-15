@@ -25,13 +25,13 @@ along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/PrimitiveTypes.h"
 
 
-void PrivateBeginTests(char* szFile);
+void PrivateBeginTests(const char* szFile);
 void PrivateTestStatistics();
 int  TestTotalStatistics(void);
 void InitTotalStatistics(void);
 
 bool Pass(void);
-bool Failed(size iLine, char* szFile);
+bool Failed(size iLine, const char* szFile);
 bool Failed(void);
 
 
@@ -62,7 +62,7 @@ public:
 	void	Failed(void);
 	void	Passed(void);
 
-	void	Begin(char* szFile);
+	void	Begin(const char* szFile);
 	void	End(void);
 
 	void	PrintTest(CChars* psz);

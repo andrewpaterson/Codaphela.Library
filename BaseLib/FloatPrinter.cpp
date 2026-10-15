@@ -45,7 +45,7 @@ int GetPow2DigitsToPow10Digits(int iPow2)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class FLOAT, class INTEGER>
-char* NormalNumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
+char* NormalNumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, const char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
 {
 	uint8*		pui;
 	INTEGER		iMantissa;
@@ -203,7 +203,7 @@ char* NormalNumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDeci
 //
 //////////////////////////////////////////////////////////////////////////
 template<class FLOAT, class INTEGER>
-char* SubnormalNumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
+char* SubnormalNumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, const char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
 {
 	uint8*		pui;
 	INTEGER		iMantissa;
@@ -346,7 +346,7 @@ char* SubnormalNumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxD
 //
 //////////////////////////////////////////////////////////////////////////
 template<class FLOAT, class INTEGER>
-char* NumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
+char* NumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, const char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
 {	
 	uint8*		pui;
 	INTEGER		iMantissa;

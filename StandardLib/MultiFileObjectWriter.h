@@ -33,7 +33,7 @@ protected:
 	CChars	mszDirectory;
 
 public:
-	void	Init(char* szDirectory, char* szBaseName);
+	void	Init(const char* szDirectory, const char* szBaseName);
 	void	Kill(void);
 
 	bool	Begin(void);

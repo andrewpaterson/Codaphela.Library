@@ -376,7 +376,7 @@ char* MethodToString(const char* szFile, size iLine, const char* szFunction)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* StringToString(char* szSource)
+char* StringToString(const char* szSource)
 {
 	size	uiCount;
 	char* sz;
@@ -399,7 +399,7 @@ char* StringToString(char* szSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* StringToString(char* szStart, char* szLastCharInclusive)
+const char* StringToString(const char* szStart, const char* szLastCharInclusive)
 {
 	size	uiCount;
 	char*	sz;

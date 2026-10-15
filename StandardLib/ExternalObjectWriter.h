@@ -29,7 +29,7 @@ class CExternalObjectWriter : public CUnknown
 {
 CONSTRUCTABLE(CExternalObjectWriter)
 public:
-			void Init(char* szBaseName);
+			void Init(const char* szBaseName);
 			void Kill(void);
 
 	virtual bool Begin(void);

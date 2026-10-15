@@ -42,11 +42,11 @@ protected:
 
 public:
 
-	bool					Init(char* szDirectory, char* szPackFilesExtension);
+	bool					Init(const char* szDirectory, const char* szPackFilesExtension);
 	void					Kill(void);
 
 	size					GetNumPackFiles(void);
-	CAbstractFile*			GetFile(char* szFullName);
+	CAbstractFile*			GetFile(const char* szFullName);
 
 	CFileIteratorReturn*	StartIteration(CFileIterator* pcIter);
 	CFileIteratorReturn*	Iterate(CFileIterator* pcIter);
@@ -57,9 +57,9 @@ public:
 	CPackFiles*				GetPackFiles(size iIndex);
 
 protected:
-	CDiskFile*				GetSystemFile(char* szFullName);
-	CPackFile*				GetPackFile(char* szFullName);
-	CPackFile*				GetPackFile(CPackFileOffset* pcPackFiles, char* szFullName);
+	CDiskFile*				GetSystemFile(const char* szFullName);
+	CPackFile*				GetPackFile(const char* szFullName);
+	CPackFile*				GetPackFile(CPackFileOffset* pcPackFiles, const char* szFullName);
 
 	bool					AddPackFile(CFileNodeSystemFile* pcFileNodeSystemFile);
 	bool					AddPackFiles(void);

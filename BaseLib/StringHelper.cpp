@@ -684,7 +684,7 @@ const char* FindChar(const char* szString, char c, bool bReverse)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size FindCharIndex(char chr, char* str, size index)
+size FindCharIndex(char chr, const char* str, size index)
 {
 	size i;
 

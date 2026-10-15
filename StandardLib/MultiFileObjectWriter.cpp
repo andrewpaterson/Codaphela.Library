@@ -29,7 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMultiFileObjectWriter::Init(char* szDirectory, char* szBaseName)
+void CMultiFileObjectWriter::Init(const char* szDirectory, const char* szBaseName)
 {
 	CExternalObjectWriter::Init(szBaseName);
 	mszDirectory.Init(szDirectory);
@@ -85,7 +85,7 @@ bool CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 	CChars			szDirectory;
 	CChars			szFilename;
 	CFileBasic		cFile;
-	char*			szExtension;
+	const char*		szExtension;
 	CChars			szUnnamed;
 	char*			szName;
 

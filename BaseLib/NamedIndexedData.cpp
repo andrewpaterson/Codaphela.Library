@@ -61,7 +61,7 @@ bool CNamedIndexedData::Add(OIndex oi, void* pvData, uint32 uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedData::Add(OIndex oi, char* szName, void* pvData, uint32 uiDataSize)
+bool CNamedIndexedData::Add(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize)
 {
 	int	iNameLength;
 
@@ -98,7 +98,7 @@ bool CNamedIndexedData::Add(OIndex oi, CChars* szName, void* pvData, uint32 uiDa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedData::Add(OIndex oi, char* szName, int iNameLength, void* pvData, uint32 uiDataSize)
+bool CNamedIndexedData::Add(OIndex oi, const char* szName, int iNameLength, void* pvData, uint32 uiDataSize)
 {
 	CStackMemory<2 KB>		cStack;
 	CNamedIndexedHeader*	pcHeader;
@@ -210,7 +210,7 @@ bool CNamedIndexedData::Set(CChars* szName, void* pvData, uint32 uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedData::Set(char* szName, void* pvData)
+bool CNamedIndexedData::Set(const char* szName, void* pvData)
 {
 	int			iNameLength;
 	OIndex		oi;
@@ -232,7 +232,7 @@ bool CNamedIndexedData::Set(char* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedData::Set(char* szName, void* pvData, uint32 uiDataSize)
+bool CNamedIndexedData::Set(const char* szName, void* pvData, uint32 uiDataSize)
 {
 	int			iNameLength;
 	OIndex		oi;
@@ -255,7 +255,7 @@ bool CNamedIndexedData::Set(char* szName, void* pvData, uint32 uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedData::Set(OIndex oi, char* szName, int iNameLength, void* pvData, uint32 uiDataSize)
+bool CNamedIndexedData::Set(OIndex oi, const char* szName, int iNameLength, void* pvData, uint32 uiDataSize)
 {
 	bool					bResult;
 	CStackMemory<2 KB>		cStackSet;
@@ -350,7 +350,7 @@ bool CNamedIndexedData::Put(OIndex oi, CChars* szName, void* pvData, uint32 uiDa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedData::Put(OIndex oi, char* szName, void* pvData, uint32 uiDataSize)
+bool CNamedIndexedData::Put(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize)
 {
 	int		iNameLength;
 
@@ -370,7 +370,7 @@ bool CNamedIndexedData::Put(OIndex oi, char* szName, void* pvData, uint32 uiData
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedData::Put(OIndex oi, char* szName, int iNameLength, void* pvData, uint32 uiDataSize)
+bool CNamedIndexedData::Put(OIndex oi, const char* szName, int iNameLength, void* pvData, uint32 uiDataSize)
 {
 	OIndex	oiExisting;
 	bool	bExists;
@@ -433,7 +433,7 @@ bool CNamedIndexedData::Get(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedData::Get(char* szName, void* pvData)
+bool CNamedIndexedData::Get(const char* szName, void* pvData)
 {
 	OIndex	oi;
 	bool	bResult;
@@ -452,7 +452,7 @@ bool CNamedIndexedData::Get(char* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedData::Get(char* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize)
+bool CNamedIndexedData::Get(const char* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize)
 {
 	OIndex		oi;
 	bool		bResult;
@@ -629,7 +629,7 @@ uint32 CNamedIndexedData::MinNameSize(uint32 uiNameSize, uint32 uiMaxNameSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CNamedIndexedData::GetIndex(char* szName)
+OIndex CNamedIndexedData::GetIndex(const char* szName)
 {
 	OIndex	oi;
 
@@ -665,7 +665,7 @@ bool CNamedIndexedData::Contains(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedData::Contains(char* szName)
+bool CNamedIndexedData::Contains(const char* szName)
 {
 	OIndex	oi;
 
@@ -725,7 +725,7 @@ bool CNamedIndexedData::Remove(CChars* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedData::Remove(char* szName)
+bool CNamedIndexedData::Remove(const char* szName)
 {
 	OIndex oi;
 

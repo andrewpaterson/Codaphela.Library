@@ -55,17 +55,17 @@ public:
 public:
 	void		Init(void);
 	void		Kill(void);
-	int			Get(char* szName, M** pvData);
-	int			Get(char* szName, size iNameLen, M** pvData);
+	int			Get(const char* szName, M** pvData);
+	int			Get(const char* szName, size iNameLen, M** pvData);
 	int			GetNumMatchingWithKey(char* szName, M* pvKey, size uiKeySize);
-	int			GetWithKey(char* szName, M* pvKey, size uiKeySize, M** pvData, int iMatchNum = 0, char** ppszName = NULL);
-	int			GetWithKey(char* szName, size iNameLen, M* pvKey, size uiKeySize, M** pvData, int iMatchNum = 0, char** ppszName = NULL);
+	int			GetWithKey(const char* szName, M* pvKey, size uiKeySize, M** pvData, int iMatchNum = 0, char** ppszName = NULL);
+	int			GetWithKey(const char* szName, size iNameLen, M* pvKey, size uiKeySize, M** pvData, int iMatchNum = 0, char** ppszName = NULL);
 	bool		GetWithID(size iID, M** pvData, char** pcName);
 	size		NumElements(void);
 	void		StartIteration(SEnumeratorIterator* psIterator, char** ppszName, size* piID, M** ppvData);
 	void		Iterate(SEnumeratorIterator* psIterator, char** ppszName, size* piID, M** ppvData);
 	void		Remove(size iID);
-	void		Remove(char* szName);
+	void		Remove(const char* szName);
 	void		Swap(SENode* psNode1, SENode* psNode2);
 	void		SwapUp(char* szName);
 	void		SwapDown(char* szName);
@@ -74,15 +74,15 @@ public:
 	void		AllocateNodeData(SENode* psNode, size iLen);
 
 protected:
-	int			PrivateAddGetNode(char* szName, M* pvData, size uiDataSize, size uiKeySize, int uiNum, bool bReplace, SENode** pcThisNode);
-	SENode*		PrivateGetWithKey(char* szName, M* pvKey, size uiKeySize, SENode* psStartNode);
-	SENode*		PrivateGetWithKey(char* szName, size iNameLen, M* pvKey, size uiKeySize, SENode* psStartNode);
+	int			PrivateAddGetNode(const char* szName, M* pvData, size uiDataSize, size uiKeySize, int uiNum, bool bReplace, SENode** pcThisNode);
+	SENode*		PrivateGetWithKey(const char* szName, M* pvKey, size uiKeySize, SENode* psStartNode);
+	SENode*		PrivateGetWithKey(const char* szName, size iNameLen, M* pvKey, size uiKeySize, SENode* psStartNode);
 	int			PrivateGetNextID(int uiNum);
 	void		PrivateInsertID(SENode* psNode);
 	void		PrivateRemoveID(SENode* psNode);
 	void		PrivateRemove(SENode* psNode);
-	bool		PrivateCompare(char* szName, M* pvKey, size uiKeySize, SENode* psNode);
-	bool		PrivateCompare(char* szName, size iNameLen, M* pvKey, size uiKeySize, SENode* psNode);
+	bool		PrivateCompare(const char* szName, M* pvKey, size uiKeySize, SENode* psNode);
+	bool		PrivateCompare(const char* szName, size iNameLen, M* pvKey, size uiKeySize, SENode* psNode);
 };
 
 
@@ -95,8 +95,8 @@ public:
 	using __CEnumeratorTemplate<M>::mbCaseSensitive;
 	using __CEnumeratorTemplate<M>::AllocateNodeData;
 
-	int			Add(char* szName, M* pvData, int uiNum);
-	int			Add(char* szName, M* pvData, size uiKeySize, int uiNum, bool bReplace = true);
+	int			Add(const char* szName, M* pvData, int uiNum);
+	int			Add(const char* szName, M* pvData, size uiKeySize, int uiNum, bool bReplace = true);
 	int			Add(char* szName, size iNameLen, M* pvData, size uiKeySize, int uiNum, bool bReplace = true);
 
 	bool		WriteEnumeratorBlock(CFileWriter* pcFileWriter);
@@ -179,7 +179,7 @@ void __CEnumeratorTemplate<M>::AllocateNodeData(SENode* psNode, size iLen)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int __CEnumeratorTemplate<M>::PrivateAddGetNode(char* szName, M* pvData, size uiDataSize, size uiKeySize, int uiNum, bool bReplace, SENode** ppsThisNode)
+int __CEnumeratorTemplate<M>::PrivateAddGetNode(const char* szName, M* pvData, size uiDataSize, size uiKeySize, int uiNum, bool bReplace, SENode** ppsThisNode)
 {
 	SENode*		psNode;
 	size		iLen;
@@ -337,7 +337,7 @@ void __CEnumeratorTemplate<M>::PrivateRemoveID(SENode* psNode)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-SENode* __CEnumeratorTemplate<M>::PrivateGetWithKey(char* szName, M* pvKey, size uiKeySize, SENode* psStartNode)
+SENode* __CEnumeratorTemplate<M>::PrivateGetWithKey(const char* szName, M* pvKey, size uiKeySize, SENode* psStartNode)
 {
 	SENode*		psNode;
 
@@ -366,7 +366,7 @@ SENode* __CEnumeratorTemplate<M>::PrivateGetWithKey(char* szName, M* pvKey, size
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-SENode* __CEnumeratorTemplate<M>::PrivateGetWithKey(char* szName, size iNameLen, M* pvKey, size uiKeySize, SENode* psStartNode)
+SENode* __CEnumeratorTemplate<M>::PrivateGetWithKey(const char* szName, size iNameLen, M* pvKey, size uiKeySize, SENode* psStartNode)
 {
 	SENode*		psNode;
 
@@ -410,7 +410,7 @@ int __CEnumeratorTemplate<M>::PrivateGetNextID(int uiNum)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int __CEnumeratorTemplate<M>::Get(char* szName, M** ppvData)
+int __CEnumeratorTemplate<M>::Get(const char* szName, M** ppvData)
 {
 	return GetWithKey(szName, NULL, 0, ppvData);
 }
@@ -421,7 +421,7 @@ int __CEnumeratorTemplate<M>::Get(char* szName, M** ppvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int __CEnumeratorTemplate<M>::Get(char* szName, size iNameLen, M** ppvData)
+int __CEnumeratorTemplate<M>::Get(const char* szName, size iNameLen, M** ppvData)
 {
 	return GetWithKey(szName, iNameLen, NULL, 0, ppvData);
 }
@@ -466,7 +466,7 @@ int __CEnumeratorTemplate<M>::GetNumMatchingWithKey(char* szName, M* pvKey, size
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int __CEnumeratorTemplate<M>::GetWithKey(char* szName, M* pvKey, size uiKeySize, M** ppvData, int iMatchNum, char** ppszName)
+int __CEnumeratorTemplate<M>::GetWithKey(const char* szName, M* pvKey, size uiKeySize, M** ppvData, int iMatchNum, char** ppszName)
 {
 	SENode*		psNode;
 	int		uiNum;
@@ -506,7 +506,7 @@ int __CEnumeratorTemplate<M>::GetWithKey(char* szName, M* pvKey, size uiKeySize,
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int __CEnumeratorTemplate<M>::GetWithKey(char* szName, size iNameLen, M* pvKey, size uiKeySize, M** ppvData, int iMatchNum, char** ppszName)
+int __CEnumeratorTemplate<M>::GetWithKey(const char* szName, size iNameLen, M* pvKey, size uiKeySize, M** ppvData, int iMatchNum, char** ppszName)
 {
 	SENode*		psNode;
 	size		uiNum;
@@ -583,7 +583,7 @@ bool __CEnumeratorTemplate<M>::GetWithID(size iID, M** ppvData, char** ppszName)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool __CEnumeratorTemplate<M>::PrivateCompare(char* szName, M* pvKey, size uiKeySize, SENode* psNode)
+bool __CEnumeratorTemplate<M>::PrivateCompare(const char* szName, M* pvKey, size uiKeySize, SENode* psNode)
 {
 	size		iVal;
 
@@ -616,7 +616,7 @@ bool __CEnumeratorTemplate<M>::PrivateCompare(char* szName, M* pvKey, size uiKey
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool __CEnumeratorTemplate<M>::PrivateCompare(char* szName, size iNameLen, M* pvKey, size uiKeySize, SENode* psNode)
+bool __CEnumeratorTemplate<M>::PrivateCompare(const char* szName, size iNameLen, M* pvKey, size uiKeySize, SENode* psNode)
 {
 	size		iVal;
 
@@ -756,7 +756,7 @@ void __CEnumeratorTemplate<M>::Remove(size iID)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CEnumeratorTemplate<M>::Remove(char* szName)
+void __CEnumeratorTemplate<M>::Remove(const char* szName)
 {
 	SENode*		psNode;
 
@@ -866,7 +866,7 @@ void __CEnumeratorTemplate<M>::BubbleSort(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CEnumeratorTemplate<M>::Add(char* szName, M* pvData, int uiNum)
+int CEnumeratorTemplate<M>::Add(const char* szName, M* pvData, int uiNum)
 {
 	return CEnumeratorTemplate<M>::Add(szName, pvData, 0, uiNum, true);
 }
@@ -877,7 +877,7 @@ int CEnumeratorTemplate<M>::Add(char* szName, M* pvData, int uiNum)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CEnumeratorTemplate<M>::Add(char* szName, M* pvData, size uiKeySize, int uiNum, bool bReplace)
+int CEnumeratorTemplate<M>::Add(const char* szName, M* pvData, size uiKeySize, int uiNum, bool bReplace)
 {
 	return __CEnumeratorTemplate<M>::PrivateAddGetNode(szName, pvData, sizeof(M), uiKeySize, uiNum, bReplace, NULL);
 }

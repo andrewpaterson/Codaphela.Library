@@ -54,7 +54,7 @@ void CCalculatorParser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCalcObject* CCalculatorParser::Parse(char* szText)
+CCalcObject* CCalculatorParser::Parse(const char* szText)
 {
 	CCalcObject*	pcObject;
 	CTextParser		cParser;

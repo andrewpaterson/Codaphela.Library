@@ -18,7 +18,7 @@ protected:
 	CClass*		mpcContainingClass;
 
 public:
-			void		Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, char* szName);
+			void		Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, const char* szName);
 			void		Kill(void);
 
 			CClasses*	GetClasses(void);

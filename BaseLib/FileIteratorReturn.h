@@ -28,7 +28,7 @@ public:
 	void						Init(EFileIteratorReturnType eType, CBaseFileNode* pcNode, uint32 iFileRank);
 	void						Kill(void);
 
-	void						InsertInName(size iIndex, char* szText);
+	void						InsertInName(size iIndex, const char* szText);
 
 	EFileIteratorReturnType		GetType(void);
 	char*						GetFullName(void);

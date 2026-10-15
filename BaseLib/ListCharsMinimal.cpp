@@ -56,7 +56,7 @@ void CListCharsMinimal::Add(char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CListCharsMinimal::Add(char* sz, size iSize)
+void CListCharsMinimal::Add(const char* sz, size iSize)
 {
 	char*	szDest;
 

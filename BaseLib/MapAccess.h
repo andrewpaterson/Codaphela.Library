@@ -21,7 +21,7 @@ public:
 			int32*	PutLongInt(int64 lliKey, int32 iData);
 			int64*	PutLongLong(int64 lliKey, int64 lliData);
 			char*	PutLongChar(int64 lliKey, char cData);
-			char*	PutLongString(int64 lliKey, char* pszData);
+			char*	PutLongString(int64 lliKey, const char* pszData);
 			void*	PutLongData(int64 lliKey, void* pvData, size iDataSize);
 			void**	PutShortPtr(int16 iKey, void* pvPointer);
 			int16*	PutShortShort(int16 iKey, int16 iData);
@@ -35,18 +35,18 @@ public:
 			int32*	PutIntInt(int32 iKey, int32 iData);
 			int64*	PutIntLong(int32 iKey, int64 lliData);
 			char*	PutIntChar(int32 iKey, char cData);
-			char*	PutIntString(int32 iKey, char* pszData);
+			char*	PutIntString(int32 iKey, const char* pszData);
 			void*	PutIntData(int32 iKey, void* pvData, size iDataSize);
-			void**	PutStringPtr(char* pszKey, void* pvPointer);
-			void*	PutStringData(char* pszKey, void* pvData, size iDataSize);
-			char*	PutStringChar(char* pszKey, char cData);
+			void**	PutStringPtr(const char* pszKey, void* pvPointer);
+			void*	PutStringData(const char* pszKey, void* pvData, size iDataSize);
+			char*	PutStringChar(const char* pszKey, char cData);
 			int16*	PutStringShort(char* pszKey, int16 iData);
-			int32*	PutStringInt(char* pszKey, int32 iData);
-			int64*	PutStringLong(char* pszKey, int64 lliData);
-			char*	PutStringString(char* pszKey, char* pszData);
+			int32*	PutStringInt(const char* pszKey, int32 iData);
+			int64*	PutStringLong(const char* pszKey, int64 lliData);
+			char*	PutStringString(const char* pszKey, const char* pszData);
 			void*	PutKeyData(void* pvKey, size iKeySize, void* pvData, size iDataSize);
 			int32*	PutKeyInt(void* pvKey, size iKeySize, int32 iData);
-			char*	PutKeyString(void* pvKey, size iKeySize, char* pszData);
+			char*	PutKeyString(void* pvKey, size iKeySize, const char* pszData);
 
 			char*	GetLongString(int64 lliKey);
 			int16	GetLongShort(int64 lliKey, int16 iNullValue = -1);
@@ -69,13 +69,13 @@ public:
 			char	GetIntChar(int32 iKey, char cNullValue = -1);
 			void*	GetIntData(int32 iKey, size* piDataSize = NULL);
 			void*	GetIntPtr(int32 iKey);
-			void*	GetStringData(char* pszKey, size* piDataSize = NULL);
-			char*	GetStringString(char* pszKey);
-			char	GetStringChar(char* pszKey, char iNullValue = -1);
+			void*	GetStringData(const char* pszKey, size* piDataSize = NULL);
+			char*	GetStringString(const char* pszKey);
+			char	GetStringChar(const char* pszKey, char iNullValue = -1);
 			int16	GetStringShort(char* pszKey, int16 iNullValue = -1);
-			int32	GetStringInt(char* pszKey, int32 iNullValue = -1);
-			int64	GetStringLong(char* pszKey, int64 iNullValue = -1LL);
-			void*	GetStringPtr(char* pszKey);
+			int32	GetStringInt(const char* pszKey, int32 iNullValue = -1);
+			int64	GetStringLong(const char* pszKey, int64 iNullValue = -1LL);
+			void*	GetStringPtr(const char* pszKey);
 			char*	GetKeyString(void* pvKey, size iKeySize);
 			void*	GetKeyData(void* pvKey, size iKeySize, size* piDataSize = NULL);
 			int16	GetKeyShort(void* pvKey, size iKeySize, int16 iNullValue = -1);
@@ -85,13 +85,13 @@ public:
 			bool	HasShort(int16 iKey);
 			bool	HasInt(int32 iKey);
 			bool	HasLong(int64 lliKey);
-			bool	HasString(char* pszKey);
+			bool	HasString(const char* pszKey);
 			bool	HasKey(void* pvKey, size iKeySize);
 
 			bool	DeleteShort(int16 iKey);
 			bool	DeleteInt(int32 iKey);
 			bool	DeleteLong(int64 lliKey);
-			bool	DeleteString(char* pszKey);
+			bool	DeleteString(const char* pszKey);
 			bool	DeleteKey(void* pvKey, size iKeySize);
 
 			size	DataSizeInt(int16 lliKey);

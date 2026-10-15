@@ -32,13 +32,13 @@ CONSTRUCTABLE(CIndex)
 public:
 	void			Init(EIndexKeyReverse eKeyReverse = IKR_No);
 
-	bool			Put(char* szKey, Ptr<M>& pObject);
+	bool			Put(const char* szKey, Ptr<M>& pObject);
 	bool			Put(uint8* pvKey, size iKeySize, Ptr<M>& pObject);
 
-	bool			Remove(char* szKey);
+	bool			Remove(const char* szKey);
 	bool			Remove(uint8* pvKey, size iKeySize);
 
-	Ptr<M>			Get(char* szKey);
+	Ptr<M>			Get(const char* szKey);
 	Ptr<M>			Get(uint8* pvKey, size iKeySize);
 
 	Ptr<M>			StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, bool* bExists = NULL);
@@ -65,7 +65,7 @@ void CIndex<M>::Init(EIndexKeyReverse eKeyReverse)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CIndex<M>::Put(char* szKey, Ptr<M>& pObject)
+bool CIndex<M>::Put(const char* szKey, Ptr<M>& pObject)
 {
 	return CIndexObject::Put(szKey, pObject);
 }
@@ -87,7 +87,7 @@ bool CIndex<M>::Put(uint8* pvKey, size iKeySize, Ptr<M>& pObject)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CIndex<M>::Remove(char* szKey)
+bool CIndex<M>::Remove(const char* szKey)
 {
 	return CIndexObject::Remove(szKey);
 }
@@ -109,7 +109,7 @@ bool CIndex<M>::Remove(uint8* pvKey, size iKeySize)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M> CIndex<M>::Get(char* szKey)
+Ptr<M> CIndex<M>::Get(const char* szKey)
 {
 	return CIndexObject::Get(szKey);
 }

@@ -151,7 +151,7 @@ bool CDebugOutputFile::Delete(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CDebugOutputFile::GetFilename(void)
+const char* CDebugOutputFile::GetFilename(void)
 {
 	return "DebugOutput";
 }

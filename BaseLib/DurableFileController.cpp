@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDurableFileController::Init(char* szDirectory)
+bool CDurableFileController::Init(const char* szDirectory)
 {
 	return Init(szDirectory, NULL);
 }
@@ -41,7 +41,7 @@ bool CDurableFileController::Init(char* szDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDurableFileController::Init(char* szDirectory, char* szRewriteDirectory, char* szFileListWrite, char* szFileListRewrite, char* szMarkWrite, char* szMarkRewrite)
+bool CDurableFileController::Init(const char* szDirectory, const char* szRewriteDirectory, const char* szFileListWrite, const char* szFileListRewrite, const char* szMarkWrite, const char* szMarkRewrite)
 {
 	CChars		szStart;
 	CChars		szRewrite;

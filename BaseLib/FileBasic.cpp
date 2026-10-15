@@ -294,7 +294,7 @@ bool CFileBasic::Delete(void)
 // 
 // 
 //////////////////////////////////////////////////////////////////////////
-char* CFileBasic::GetFilename(void)
+const char* CFileBasic::GetFilename(void)
 {
 	return mpcFile->GetFilename();
 }

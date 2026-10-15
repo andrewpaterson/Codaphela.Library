@@ -128,8 +128,8 @@ public:
 	void					GetChannelsForType(EPrimitiveType eType, CArraySize* paiChannels);
 
 	size					NumChannels(void);
-	char*					GetChannelLongName(size iChannel);
-	char*					GetChannelShortName(size iChannel);
+	const char*					GetChannelLongName(size iChannel);
+	const char*					GetChannelShortName(size iChannel);
 	bool					HasChannel(size iChannel);
 	bool					HasChannels(size iFirst, ...);
 

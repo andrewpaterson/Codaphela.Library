@@ -20,17 +20,6 @@ char* CIndexLongString::Get(int64 lli)
 	return (char*)CIndexPrimitiveBlock<int64>::Get(lli);
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CIndexLongString::Put(int64 lli, char* szData, char* szLastCharInclusive)
-{
-	return CIndexPrimitiveBlock<int64>::Put(lli, szData, StrLen(szLastCharInclusive));
-}
-
-
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//

@@ -52,7 +52,7 @@ void ToDoubleString(double f, char* sz, int iDecimals);
 void ToPointerString(void* pv, char* sz, size iStringLength);
 void ToMD5String(uint8* puc, char* sz, size iStringLength);
 
-bool Failed(const char* szExpected, const char* szActual, char* szPrefix, size iLine, char* szFile, bool bNewLine);
+bool Failed(const char* szExpected, const char* szActual, const char* szPrefix, size iLine, const char* szFile, bool bNewLine);
 
 
 #endif // __ASSERT_STRING_HELPER_H__

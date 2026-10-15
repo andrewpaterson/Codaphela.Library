@@ -143,7 +143,7 @@ uint8 FatCalculateClusterSize(uint8 fs_type, uint32 uiTotalSectors, char forced_
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SetFatVolumeLabel(char* szDestination, char* szVolumeLabel)
+void SetFatVolumeLabel(char* szDestination, const char* szVolumeLabel)
 {
 	size	c;
 	uint8	i;
@@ -210,7 +210,7 @@ void CalcuateFatTableSizeInSectorsAndNumberOfClusters(uint32* puiNoOfClusters, u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 uiSectorsPerCluster, CFileDrive* device)
+EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, uint32 uiSectorsPerCluster, CFileDrive* device)
 {
 	bool						bSuccess;
 	uint32						i;

@@ -19,7 +19,7 @@ private:
 	CIndexTreeEvictionCallback*		mpcIndexTreeEvictionCallback;
 
 public:
-	void							Init(char* szSubdirectory, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy);
+	void							Init(const char* szSubdirectory, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy);
 	void							Init(char* szSubdirectory, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionStrategy* pcEvictionStrategy, CIndexedDataEvictionCallback* pcEvictionUserCallback, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback);
 	void							Kill(void);
 

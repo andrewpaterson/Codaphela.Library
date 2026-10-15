@@ -41,20 +41,20 @@ public:
 	void	Init(CDurableFileController* pcController, CLifeInit<CNamedIndexesConfig> pcConfig);
 	void	Kill(void);
 
-	bool	Add(char* szName, OIndex oi);
+	bool	Add(const char* szName, OIndex oi);
 	bool	Add(CChars* szName, OIndex oi);
-	bool	Add(char* szName, size iNameLength, OIndex oi);
+	bool	Add(const char* szName, size iNameLength, OIndex oi);
 
-	bool	Set(char* szName, OIndex oi);
+	bool	Set(const char* szName, OIndex oi);
 	bool	Set(CChars* szName, OIndex oi);
 
-	bool	Put(char* szName, OIndex oi);
+	bool	Put(const char* szName, OIndex oi);
 	bool	Put(CChars* szName, OIndex oi);
 
-	OIndex	Get(char* szName);
+	OIndex	Get(const char* szName);
 	OIndex	Get(CChars* szName);
 
-	bool	Remove(char* szName);
+	bool	Remove(const char* szName);
 	bool	Remove(CChars* szName);
 
 	int64	NumElements(void);

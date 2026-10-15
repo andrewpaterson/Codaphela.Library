@@ -38,8 +38,8 @@ public:
 	void				Kill(void);
 	void				ReInit(void);
 	CBaseObject*		Get(OIndex oi);
-	CBaseObject*		Get(char* szName);
-	CBaseObject*		Get(char* szObjectName, OIndex oi);
+	CBaseObject*		Get(const char* szName);
+	CBaseObject*		Get(const char* szObjectName, OIndex oi);
 	bool				Has(OIndex oi);
 	bool				Has(char* szName);
 	bool				AddIntoMemoryWithIndex(CBaseObject* pvObject);

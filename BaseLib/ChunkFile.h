@@ -55,20 +55,20 @@ public:
 	bool		WriteOpen(chunkName iUserID);
 	bool		WriteClose(void);
 
-	size		FindFirstChunkWithName(char* szName);
+	size		FindFirstChunkWithName(const char* szName);
 	size		FindNextChunkWithName(void);
 	size		GetNumChunks(void);
 	void*		GetMD5Hash(void);
 	bool		ContainsChunks(void);
 
 	bool		ReadChunkBegin(size iChunkIndex);
-	bool		ReadChunkBegin(char* szName);
+	bool		ReadChunkBegin(const char* szName);
 	bool		ReadChunkEnd(void);
 	bool		ReadChunkEnd(size iNumChunksToEnd);
 	bool		ReadChunkEndAll(void);
 
 	bool		WriteChunkBegin(void);
-	bool		WriteChunkEnd(char* szChunkName);
+	bool		WriteChunkEnd(const char* szChunkName);
 
 	size		StackDepth(void);
 	filePos		ChunkSize(void);

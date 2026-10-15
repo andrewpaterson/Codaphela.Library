@@ -81,7 +81,7 @@ char* CMapIntString::Get(int iKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapIntString::Put(int iKey, char* szValue)
+bool CMapIntString::Put(int iKey, const char* szValue)
 {
 	char*	szData;
 	size	uiLength;

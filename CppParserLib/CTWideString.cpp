@@ -37,7 +37,7 @@ void CCTWideString::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTWideString::Init(char* szStart, char* szEnd)
+void CCTWideString::Init(const char* szStart, const char* szEnd)
 {
 	int		iLen;
 	int		i;

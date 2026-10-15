@@ -62,7 +62,7 @@ public:
 	void						StripParentheses(CCalcExpression** ppcExpression);
 	void						ConvertToUnaryOperators(CCalcObjectArray* papcExpressions);
 	size						GetMinPrecedence(CCalcObjectArray* papcExpressions);
-	bool						SetError(CChars* pszFirst, CCalcObjectArray* papcExpressions, char* szLeft, char* szMiddle, char* szRight);
+	bool						SetError(CChars* pszFirst, CCalcObjectArray* papcExpressions, const char* szLeft, const char* szMiddle, const char* szRight);
 	void						SetError(char* szError);
 	void						Print(CChars* psz, CCalcObjectArray* papcExpressions);
 	void						Print(CChars* psz, CCalcObject* pcExpression);

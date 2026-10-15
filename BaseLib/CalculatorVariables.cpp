@@ -71,7 +71,7 @@ void CCalculatorVariables::Add(CCalcExpression* pcExpression)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCalcVariableDefinition* CCalculatorVariables::Get(char* szName)
+CCalcVariableDefinition* CCalculatorVariables::Get(const char* szName)
 {
 	CCalcVariableDefinition** ppcVariableDefinition;
 

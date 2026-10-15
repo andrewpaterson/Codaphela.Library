@@ -72,7 +72,7 @@ CBaseObject* CNamedIndexedObjects::Get(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CNamedIndexedObjects::Get(char* szName)
+CBaseObject* CNamedIndexedObjects::Get(const char* szName)
 {
 	OIndex					oi;
 	CIndexTreeMemoryAccess	cAccess;
@@ -96,7 +96,7 @@ CBaseObject* CNamedIndexedObjects::Get(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CNamedIndexedObjects::Get(char* szObjectName, OIndex oi)
+CBaseObject* CNamedIndexedObjects::Get(const char* szObjectName, OIndex oi)
 {
 	CBaseObject* pvObject;
 

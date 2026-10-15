@@ -183,7 +183,7 @@ public:
 	//Suspicious... should be in CharsHelper or something.
 	void		PassifyNewlines(void);
 	void		MakeCPlusPlus(void);
-	char*		FindLineContaining(char* szPosition, size* piLineNumber);
+	char*		FindLineContaining(const char* szPosition, size* piLineNumber);
 
 	void		Dump(void);
 	static void Dump(const char* szString);

@@ -15,20 +15,17 @@ public:
 
 	void				Add(const char* szFilename, DataIO_FileWriter fSpecificClassFileSave, DataIO_FileReader fSpecificClassFileLoad);
 	template<class Class>
-	void				Add(char* szClassName);
-	template<class Class>
 	void				Add(const char* szClassName);
 	template<class Class>
 	void				Add(void);
 
-	DataIO_FileWriter	GetFileWriter(char* szClassName);
-	DataIO_FileReader	GetFileReader(char* szClassName);
+	DataIO_FileWriter	GetFileWriter(const char* szClassName);
+	DataIO_FileReader	GetFileReader(const char* szClassName);
 	template<class Class>
 	DataIO_FileWriter	GetFileWriter(void);
 	template<class Class>
 	DataIO_FileReader	GetFileReader(void);
 
-	SDataIO*			GetIO(char* szClassName);
 	SDataIO*			GetIO(const char* szClassName);
 	size				NumDataIOs(void);
 };
@@ -39,7 +36,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class Class>
-void CDatasIO::Add(char* szConstructorName)
+void CDatasIO::Add(const char* szConstructorName)
 {
 	SDataIO*	psIO;
 	bool(Class::*	fSpecificClassFileSave)(CFileWriter*);
@@ -52,18 +49,6 @@ void CDatasIO::Add(char* szConstructorName)
 	psIO->fWriter = (DataIO_FileWriter)fSpecificClassFileSave;
 	psIO->fReader = (DataIO_FileReader)fSpecificClassFileLoad;
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class Class>
-void CDatasIO::Add(const char* szConstructorName)
-{
-	return Add<Class>((char*)szConstructorName);
-}
-
 
 //////////////////////////////////////////////////////////////////////////
 //

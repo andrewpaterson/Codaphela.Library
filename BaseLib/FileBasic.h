@@ -55,7 +55,7 @@ public:
 
 	bool		Truncate(filePos iSize);
 
-	char*		GetFilename(void);
+	const char*		GetFilename(void);
 
 	//Generally you shouldn't use these.  Use WriteData instead.
 	size		Write(const void* pvSource, size iSize, size iCount);

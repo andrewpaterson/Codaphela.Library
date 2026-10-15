@@ -39,9 +39,9 @@ public:
 	bool		Load(CFileReader* pcFile);
 
 	template<class M>
-	M*			Put(char* szKey);  //Note this allocates M and returns a pointer to it.  Not a pointer to the pointer in the map.
-	bool		Put(char* szKey, CUnknown* pcValue);
-	CUnknown*	Get(char* szKey);
+	M*			Put(const char* szKey);  //Note this allocates M and returns a pointer to it.  Not a pointer to the pointer in the map.
+	bool		Put(const char* szKey, CUnknown* pcValue);
+	CUnknown*	Get(const char* szKey);
 
 	size		NumElements(void);
 	size		GetSortedSize(void);
@@ -65,7 +65,7 @@ protected:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CMapStringUnknown::Put(char* szKey)
+M* CMapStringUnknown::Put(const char* szKey)
 {
 	M*		pv;
 	bool	bResult;

@@ -168,7 +168,7 @@ void CAssertStatistics::Passed(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CAssertStatistics::Begin(char* szFile)
+void CAssertStatistics::Begin(const char* szFile)
 {
 	CChars	sz;
 
@@ -225,7 +225,7 @@ bool Pass(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void PrivateBeginTests(char* szFile)
+void PrivateBeginTests(const char* szFile)
 {
 	gcAssertStatistics.Begin(szFile);
 }

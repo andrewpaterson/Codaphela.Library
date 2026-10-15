@@ -8,7 +8,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPrimitiveField::Init(CClass* pcFieldClass, ptrdiff_t iObjectOffset, ptrdiff_t iValueOffset, CClass* pcContainingClass, SDataIO* pcIO, char* szName)
+void CPrimitiveField::Init(CClass* pcFieldClass, ptrdiff_t iObjectOffset, ptrdiff_t iValueOffset, CClass* pcContainingClass, SDataIO* pcIO, const char* szName)
 {
 	if (iObjectOffset >= 0)
 	{

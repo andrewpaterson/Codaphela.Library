@@ -30,7 +30,7 @@ public:
 
 	CPP_TOKEN_CONSTRUCT(CCTWideString);
 	void Init(void);
-	void Init(char* szStart, char* szEnd);
+	void Init(const char* szStart, const char* szEnd);
 	void Kill(void);
 	bool IsString(void);
 	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);

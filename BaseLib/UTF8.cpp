@@ -18,7 +18,7 @@ void CUTF8::Init(CChars* sz)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CUTF8::Init(char* sz)
+void CUTF8::Init(const char* sz)
 {
 	CUnicodeReader::Init();
 	mszText = (uint8*)sz;

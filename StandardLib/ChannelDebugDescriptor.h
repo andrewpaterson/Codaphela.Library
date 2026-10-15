@@ -6,10 +6,10 @@
 class CChannelDebugDescriptor
 {
 public:
-	char*	mszLongName;
-	char*	mszShortName;
+	const char*	mszLongName;
+	const char*	mszShortName;
 
-	void Init(char* szLongName, char* szShortName);
+	void Init(const char* szLongName, const char* szShortName);
 	void Kill(void);
 };
 

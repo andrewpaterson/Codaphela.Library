@@ -12,8 +12,8 @@ size	MinDataSize(size uiDataSize, size uiMaxDataSize);
 bool	CopyString(char* pvDest, char* pvSource, size iSourceLength, size iMaxDestLength);
 void	CopyData(void* pvDest, void* pvSource, size iSourceLength, size iMaxDestLength);
 
-size	StrDataSize(char* pszData);
-size	StrKeySize(char* pszKey);
+size	StrDataSize(const char* pszData);
+size	StrKeySize(const char* pszKey);
 
 
 #endif // __MAP_HELPER_H__

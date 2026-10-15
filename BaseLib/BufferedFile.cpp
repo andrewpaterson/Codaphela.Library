@@ -369,7 +369,7 @@ bool CBufferedFile::Delete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CBufferedFile::GetFilename(void)
+const char* CBufferedFile::GetFilename(void)
 {
 	if (mpcFile)
 	{

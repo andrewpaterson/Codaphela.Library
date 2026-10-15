@@ -52,21 +52,21 @@ protected:
 	CArrayVoidPtr		mapcUnmanaged;
 
 public:
-	void					Init(char* szClassName, size uiSize, EPrimitiveType eType, CClasses* pcClasses);
+	void					Init(const char* szClassName, size uiSize, EPrimitiveType eType, CClasses* pcClasses);
 	void					Kill(void);
 
 	void					Complete(void);
 
-	CPointerField*			Pointer(CBaseObject* pcThis, CPointer* pcPointer, char* szFieldName);
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive, void* pvPrimitive, char* szFieldName);
-	CEmbeddedObjectField*	Embedded(CBaseObject* pcThis, CBaseObject* pcObject, char* szFieldName);
+	CPointerField*			Pointer(CBaseObject* pcThis, CPointer* pcPointer, const char* szFieldName);
+	CPrimitiveField*		Primitive(CBaseObject* pcThis, CPrimitiveObject* pcPrimitive, void* pvPrimitive, const char* szFieldName);
+	CEmbeddedObjectField*	Embedded(CBaseObject* pcThis, CBaseObject* pcObject, const char* szFieldName);
 
 	CClasses*				GetClasses(void);
 	char*					GetName(void);
 	EPrimitiveType			GetType(void);
 	size					GetSizeOf(void);
 
-	CField*					GetField(char* szFieldName);
+	CField*					GetField(const char* szFieldName);
 
 	void					Unmanaged(void);
 	void					System(void);
@@ -86,93 +86,93 @@ public:
 
 	CClass*					GetClass(EPrimitiveType eType);
 
-	CUnmanagedField*		AddUnmanaged(char* szFieldName);
-	CPrimitiveField*		AddPrimitive(char* szFieldName);
+	CUnmanagedField*		AddUnmanaged(const char* szFieldName);
+	CPrimitiveField*		AddPrimitive(const char* szFieldName);
 
 public:
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, SInt* pcPrimitive, char* szFieldName);
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, SSize* pcPrimitive, char* szFieldName);
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, Int8* pcPrimitive, char* szFieldName);
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, UInt8* pcPrimitive, char* szFieldName);
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, Int16* pcPrimitive, char* szFieldName);
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, UInt16* pcPrimitive, char* szFieldName);
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, Int32* pcPrimitive, char* szFieldName);
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, UInt32* pcPrimitive, char* szFieldName);
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, Int64* pcPrimitive, char* szFieldName);
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, UInt64* pcPrimitive, char* szFieldName);
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, Bool* pcPrimitive, char* szFieldName);
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, Float32* pcPrimitive, char* szFieldName);
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, Float64* pcPrimitive, char* szFieldName);
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, Char8* pcPrimitive, char* szFieldName);
-	CPrimitiveField*		Primitive(CBaseObject* pcThis, Char16* pcPrimitive, char* szFieldName);
+	CPrimitiveField*		Primitive(CBaseObject* pcThis, SInt* pcPrimitive, const char* szFieldName);
+	CPrimitiveField*		Primitive(CBaseObject* pcThis, SSize* pcPrimitive, const char* szFieldName);
+	CPrimitiveField*		Primitive(CBaseObject* pcThis, Int8* pcPrimitive, const char* szFieldName);
+	CPrimitiveField*		Primitive(CBaseObject* pcThis, UInt8* pcPrimitive, const char* szFieldName);
+	CPrimitiveField*		Primitive(CBaseObject* pcThis, Int16* pcPrimitive, const char* szFieldName);
+	CPrimitiveField*		Primitive(CBaseObject* pcThis, UInt16* pcPrimitive, const char* szFieldName);
+	CPrimitiveField*		Primitive(CBaseObject* pcThis, Int32* pcPrimitive, const char* szFieldName);
+	CPrimitiveField*		Primitive(CBaseObject* pcThis, UInt32* pcPrimitive, const char* szFieldName);
+	CPrimitiveField*		Primitive(CBaseObject* pcThis, Int64* pcPrimitive, const char* szFieldName);
+	CPrimitiveField*		Primitive(CBaseObject* pcThis, UInt64* pcPrimitive, const char* szFieldName);
+	CPrimitiveField*		Primitive(CBaseObject* pcThis, Bool* pcPrimitive, const char* szFieldName);
+	CPrimitiveField*		Primitive(CBaseObject* pcThis, Float32* pcPrimitive, const char* szFieldName);
+	CPrimitiveField*		Primitive(CBaseObject* pcThis, Float64* pcPrimitive, const char* szFieldName);
+	CPrimitiveField*		Primitive(CBaseObject* pcThis, Char8* pcPrimitive, const char* szFieldName);
+	CPrimitiveField*		Primitive(CBaseObject* pcThis, Char16* pcPrimitive, const char* szFieldName);
 
-	void					UnmanagedInt8(CBaseObject* pcThis, int8* pc, char* szFieldName);
-	void					UnmanagedInt8(CBaseObject* pcThis, int8* pac, size uiLength, char* szFieldName);
-	void					UnmanagedInt16(CBaseObject* pcThis, int16* pi, char* szFieldName);
-	void					UnmanagedInt16(CBaseObject* pcThis, int16* pai, size uiLength, char* szFieldName);
-	void					UnmanagedInt32(CBaseObject* pcThis, int32* pi, char* szFieldName);
-	void					UnmanagedInt32(CBaseObject* pcThis, int32* pai, size uiLength, char* szFieldName);
-	void					UnmanagedInt64(CBaseObject* pcThis, int64* pi, char* szFieldName);
-	void					UnmanagedInt64(CBaseObject* pcThis, int64* pai, size uiLength, char* szFieldName);
-	void					UnmanagedSInt(CBaseObject* pcThis, int* pi, char* szFieldName);
-	void					UnmanagedSInt(CBaseObject* pcThis, int* pai, size uiLength, char* szFieldName);
-	void					UnmanagedUInt8(CBaseObject* pcThis, uint8* pc, char* szFieldName);
-	void					UnmanagedUInt8(CBaseObject* pcThis, uint8* pac, size uiLength, char* szFieldName);
-	void					UnmanagedUInt16(CBaseObject* pcThis, uint16* pi, char* szFieldName);
-	void					UnmanagedUInt16(CBaseObject* pcThis, uint16* pai, size uiLength, char* szFieldName);
-	void					UnmanagedUInt32(CBaseObject* pcThis, uint32* pi, char* szFieldName);
-	void					UnmanagedUInt32(CBaseObject* pcThis, uint32* pai, size uiLength, char* szFieldName);
-	void					UnmanagedUInt64(CBaseObject* pcThis, uint64* pi, char* szFieldName);
-	void					UnmanagedUInt64(CBaseObject* pcThis, uint64* pai, size uiLength, char* szFieldName);
-	void					UnmanagedSUInt(CBaseObject* pcThis, uint* pi, char* szFieldName);
-	void					UnmanagedSUInt(CBaseObject* pcThis, uint* pai, size uiLength, char* szFieldName);
-	void					UnmanagedSize(CBaseObject* pcThis, size* pi, char* szFieldName);
-	void					UnmanagedSize(CBaseObject* pcThis, size* pai, size uiLength, char* szFieldName);
-	void					UnmanagedFloat(CBaseObject* pcThis, float32* pf, char* szFieldName);
-	void					UnmanagedFloat(CBaseObject* pcThis, float32* paf, size uiLength, char* szFieldName);
-	void					UnmanagedFloat(CBaseObject* pcThis, float64* pf, char* szFieldName);
-	void					UnmanagedFloat(CBaseObject* pcThis, float64* paf, size uiLength, char* szFieldName);
-	void					UnmanagedFloat(CBaseObject* pcThis, float128* pf, char* szFieldName);
-	void					UnmanagedFloat(CBaseObject* pcThis, float128* paf, size uiLength, char* szFieldName);
-	void					UnmanagedChar(CBaseObject* pcThis, char8* pc, char* szFieldName);
-	void					UnmanagedChar(CBaseObject* pcThis, char8* pac, size uiLength, char* szFieldName);
-	void					UnmanagedChar(CBaseObject* pcThis, char16* pc, char* szFieldName);
-	void					UnmanagedChar(CBaseObject* pcThis, char16* pac, size uiLength, char* szFieldName);
-	void					UnmanagedBool(CBaseObject* pcThis, bool* pb, char* szFieldName);
-	void					UnmanagedBool(CBaseObject* pcThis, bool* pab, size uiLength, char* szFieldName);
+	void					UnmanagedInt8(CBaseObject* pcThis, int8* pc, const char* szFieldName);
+	void					UnmanagedInt8(CBaseObject* pcThis, int8* pac, size uiLength, const char* szFieldName);
+	void					UnmanagedInt16(CBaseObject* pcThis, int16* pi, const char* szFieldName);
+	void					UnmanagedInt16(CBaseObject* pcThis, int16* pai, size uiLength, const char* szFieldName);
+	void					UnmanagedInt32(CBaseObject* pcThis, int32* pi, const char* szFieldName);
+	void					UnmanagedInt32(CBaseObject* pcThis, int32* pai, size uiLength, const char* szFieldName);
+	void					UnmanagedInt64(CBaseObject* pcThis, int64* pi, const char* szFieldName);
+	void					UnmanagedInt64(CBaseObject* pcThis, int64* pai, size uiLength, const char* szFieldName);
+	void					UnmanagedSInt(CBaseObject* pcThis, int* pi, const char* szFieldName);
+	void					UnmanagedSInt(CBaseObject* pcThis, int* pai, size uiLength, const char* szFieldName);
+	void					UnmanagedUInt8(CBaseObject* pcThis, uint8* pc, const char* szFieldName);
+	void					UnmanagedUInt8(CBaseObject* pcThis, uint8* pac, size uiLength, const char* szFieldName);
+	void					UnmanagedUInt16(CBaseObject* pcThis, uint16* pi, const char* szFieldName);
+	void					UnmanagedUInt16(CBaseObject* pcThis, uint16* pai, size uiLength, const char* szFieldName);
+	void					UnmanagedUInt32(CBaseObject* pcThis, uint32* pi, const char* szFieldName);
+	void					UnmanagedUInt32(CBaseObject* pcThis, uint32* pai, size uiLength, const char* szFieldName);
+	void					UnmanagedUInt64(CBaseObject* pcThis, uint64* pi, const char* szFieldName);
+	void					UnmanagedUInt64(CBaseObject* pcThis, uint64* pai, size uiLength, const char* szFieldName);
+	void					UnmanagedSUInt(CBaseObject* pcThis, uint* pi, const char* szFieldName);
+	void					UnmanagedSUInt(CBaseObject* pcThis, uint* pai, size uiLength, const char* szFieldName);
+	void					UnmanagedSize(CBaseObject* pcThis, size* pi, const char* szFieldName);
+	void					UnmanagedSize(CBaseObject* pcThis, size* pai, size uiLength, const char* szFieldName);
+	void					UnmanagedFloat(CBaseObject* pcThis, float32* pf, const char* szFieldName);
+	void					UnmanagedFloat(CBaseObject* pcThis, float32* paf, size uiLength, const char* szFieldName);
+	void					UnmanagedFloat(CBaseObject* pcThis, float64* pf, const char* szFieldName);
+	void					UnmanagedFloat(CBaseObject* pcThis, float64* paf, size uiLength, const char* szFieldName);
+	void					UnmanagedFloat(CBaseObject* pcThis, float128* pf, const char* szFieldName);
+	void					UnmanagedFloat(CBaseObject* pcThis, float128* paf, size uiLength, const char* szFieldName);
+	void					UnmanagedChar(CBaseObject* pcThis, char8* pc, const char* szFieldName);
+	void					UnmanagedChar(CBaseObject* pcThis, char8* pac, size uiLength, const char* szFieldName);
+	void					UnmanagedChar(CBaseObject* pcThis, char16* pc, const char* szFieldName);
+	void					UnmanagedChar(CBaseObject* pcThis, char16* pac, size uiLength, const char* szFieldName);
+	void					UnmanagedBool(CBaseObject* pcThis, bool* pb, const char* szFieldName);
+	void					UnmanagedBool(CBaseObject* pcThis, bool* pab, size uiLength, const char* szFieldName);
 
-	void					UnmanagedEnum(CBaseObject* pcThis, void* pe, char* szFieldName);
+	void					UnmanagedEnum(CBaseObject* pcThis, void* pe, const char* szFieldName);
 
-	void					UnmanagedString(CBaseObject* pcThis, CChars* pcChars, char* szFieldName);
-	void					UnmanagedString(CBaseObject* pcThis, CCharsImmutable* pcChars, char* szFieldName);
-	void					UnmanagedNumber(CBaseObject* pcThis, CNumber* pcNumber, char* szFieldName);
-	void					UnmanagedDate(CBaseObject* pcThis, CDate* pcDate, char* szFieldName);
+	void					UnmanagedString(CBaseObject* pcThis, CChars* pcChars, const char* szFieldName);
+	void					UnmanagedString(CBaseObject* pcThis, CCharsImmutable* pcChars, const char* szFieldName);
+	void					UnmanagedNumber(CBaseObject* pcThis, CNumber* pcNumber, const char* szFieldName);
+	void					UnmanagedDate(CBaseObject* pcThis, CDate* pcDate, const char* szFieldName);
 
-	void					UnmanagedData(CBaseObject* pcThis, void* pv, size uiSizeof, char* szFieldName);
-	void					UnmanagedVoid(CBaseObject* pcThis, void* pv, char* szFieldName);
-	void					UnmanagedUnknown(CBaseObject* pcThis, void* pv, size uiSizeof, char* szFieldName);
-	void					UnmanagedPointer(CBaseObject* pcThis, void** pv, char* szFieldName);
+	void					UnmanagedData(CBaseObject* pcThis, void* pv, size uiSizeof, const char* szFieldName);
+	void					UnmanagedVoid(CBaseObject* pcThis, void* pv, const char* szFieldName);
+	void					UnmanagedUnknown(CBaseObject* pcThis, void* pv, size uiSizeof, const char* szFieldName);
+	void					UnmanagedPointer(CBaseObject* pcThis, void** pv, const char* szFieldName);
 
-	void					Unmanaged2Float(CBaseObject* pcThis, SFloat32Vec2* pf, char* szFieldName);
-	void					Unmanaged2Float(CBaseObject* pcThis, SFloat32Vec2* pf, size uiLength, char* szFieldName);
-	void					Unmanaged3Float(CBaseObject* pcThis, SFloat32Vec3* pf, char* szFieldName);
-	void					Unmanaged3Float(CBaseObject* pcThis, SFloat32Vec3* pf, size uiLength, char* szFieldName);
-	void					Unmanaged4Float(CBaseObject* pcThis, SFloat32Vec4* pf, char* szFieldName);
-	void					Unmanaged4Float(CBaseObject* pcThis, SFloat32Vec4* pf, size uiLength, char* szFieldName);
-	void					Unmanaged4x4Float(CBaseObject* pcThis, SFloat4x4* pf, char* szFieldName);
-	void					Unmanaged4x4Float(CBaseObject* pcThis, SFloat4x4* pf, size uiLength, char* szFieldName);
+	void					Unmanaged2Float(CBaseObject* pcThis, SFloat32Vec2* pf, const char* szFieldName);
+	void					Unmanaged2Float(CBaseObject* pcThis, SFloat32Vec2* pf, size uiLength, const char* szFieldName);
+	void					Unmanaged3Float(CBaseObject* pcThis, SFloat32Vec3* pf, const char* szFieldName);
+	void					Unmanaged3Float(CBaseObject* pcThis, SFloat32Vec3* pf, size uiLength, const char* szFieldName);
+	void					Unmanaged4Float(CBaseObject* pcThis, SFloat32Vec4* pf, const char* szFieldName);
+	void					Unmanaged4Float(CBaseObject* pcThis, SFloat32Vec4* pf, size uiLength, const char* szFieldName);
+	void					Unmanaged4x4Float(CBaseObject* pcThis, SFloat4x4* pf, const char* szFieldName);
+	void					Unmanaged4x4Float(CBaseObject* pcThis, SFloat4x4* pf, size uiLength, const char* szFieldName);
 
-	void					Unmanaged2Int(CBaseObject* pcThis, SInt32Vec2* pf, char* szFieldName);
-	void					Unmanaged2Int(CBaseObject* pcThis, SInt32Vec2* pf, size uiLength, char* szFieldName);
-	void					Unmanaged3Int(CBaseObject* pcThis, SInt32Vec3* pf, char* szFieldName);
-	void					Unmanaged3Int(CBaseObject* pcThis, SInt32Vec3* pf, size uiLength, char* szFieldName);
-	void					Unmanaged4Int(CBaseObject* pcThis, SInt32Vec4* pf, char* szFieldName);
-	void					Unmanaged4Int(CBaseObject* pcThis, SInt32Vec4* pf, size uiLength, char* szFieldName);
+	void					Unmanaged2Int(CBaseObject* pcThis, SInt32Vec2* pf, const char* szFieldName);
+	void					Unmanaged2Int(CBaseObject* pcThis, SInt32Vec2* pf, size uiLength, const char* szFieldName);
+	void					Unmanaged3Int(CBaseObject* pcThis, SInt32Vec3* pf, const char* szFieldName);
+	void					Unmanaged3Int(CBaseObject* pcThis, SInt32Vec3* pf, size uiLength, const char* szFieldName);
+	void					Unmanaged4Int(CBaseObject* pcThis, SInt32Vec4* pf, const char* szFieldName);
+	void					Unmanaged4Int(CBaseObject* pcThis, SInt32Vec4* pf, size uiLength, const char* szFieldName);
 
 protected:
-	CField*					AddField(size uiFieldSize, char* szName);
-	void					Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, char* szFieldName);
-	void					Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, size uiLength, char* szFieldName);
+	CField*					AddField(size uiFieldSize, const char* szName);
+	void					Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, const char* szFieldName);
+	void					Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, size uiLength, const char* szFieldName);
 	size					ComputeSize(void);
 };
 

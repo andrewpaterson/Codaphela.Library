@@ -13,7 +13,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool Failed(size iLine, char* szFile)
+bool Failed(size iLine, const char* szFile)
 {
 	char    szLine[1024];
 	CChars  szError;
@@ -39,7 +39,7 @@ bool Failed(size iLine, char* szFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool Failed(const char* szExpected, const char* szActual, char* szPrefix, size iLine, char* szFile, bool bNewLine)
+bool Failed(const char* szExpected, const char* szActual, const char* szPrefix, size iLine, const char* szFile, bool bNewLine)
 {
 	char    szLine[1024];
 	CChars  szError;

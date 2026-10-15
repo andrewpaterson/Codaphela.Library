@@ -38,13 +38,10 @@ public:
 
 	char*			Get(const char* szKey);
 
-	char*			Put(char* szKey);
-	char*			Put(const char* szKey);
+	const char*			Put(const char* szKey);
 
-	bool			Remove(char* szKey);
 	bool			Remove(const char* szKey);
 
-	bool			Has(char* szKey);
 	bool			Has(const char* szKey);
 
 	bool			WriteCaseSensitivity(CFileWriter* pcFileWriter);

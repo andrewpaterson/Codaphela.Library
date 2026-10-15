@@ -40,8 +40,8 @@ public:
 								void			Init(void);
 								void			Kill(void);
 	template<class TConverter>	TConverter*		AddConverter(void);
-	template<class TConverter>	CObjectSource*	AddSource(CAbstractFile* pcFile, char* szFilename);
-								CObjectSource*	GetSource(char* szObjectName);
+	template<class TConverter>	CObjectSource*	AddSource(CAbstractFile* pcFile, const char* szFilename);
+								CObjectSource*	GetSource(const char* szObjectName);
 
 };
 
@@ -50,7 +50,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class TConverter>
-CObjectSource* CObjectsSource::AddSource(CAbstractFile* pcFile, char* szFilename)
+CObjectSource* CObjectsSource::AddSource(CAbstractFile* pcFile, const char* szFilename)
 {
 	TConverter*		pcConveter;
 	CObjectSource*	pcSource;

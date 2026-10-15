@@ -25,7 +25,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTimerAlarm::Init(CAction* pcAction, char* szTimerName, int64 iTime, bool bRepeat)
+void CTimerAlarm::Init(CAction* pcAction, const char* szTimerName, int64 iTime, bool bRepeat)
 {
 	mpcAction = pcAction;
 	miTime = iTime;

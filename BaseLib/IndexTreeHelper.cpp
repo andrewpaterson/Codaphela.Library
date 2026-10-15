@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeHelper::Init(char* szWorkingDirectory, char* szPrimary, char* szBackup, bool bRemoveWorkingDirectory)
+void CIndexTreeHelper::Init(const char* szWorkingDirectory, const char* szPrimary, const char* szBackup, bool bRemoveWorkingDirectory)
 {
 	CFileUtil					cFileUtil;
 	bool						bPrimary;

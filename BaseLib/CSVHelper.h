@@ -31,7 +31,7 @@ public:
 	CCSVFileImmutable	mcFile;
 	size				miLine;
 
-	void 	Init(char* szFilename, char cSeparator);
+	void 	Init(const char* szFilename, char cSeparator);
 	void 	Kill(void);
 
 	size	GetColumnIndex(char* szName);

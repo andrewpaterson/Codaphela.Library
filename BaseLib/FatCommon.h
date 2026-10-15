@@ -150,8 +150,8 @@ struct SFatDirectoryEntry
 
 
 uint32	GetFirstClusterFromFatEntry(SFatRawDirectoryEntry* psRawEntry, bool bFat32Volume);
-char*	FatEntryToString(SFatDirectoryEntry* psFatEntry, bool bFat32Volume);
-char*	FatAttributeToString(uint8 uiAttribute);
+const char*	FatEntryToString(SFatDirectoryEntry* psFatEntry, bool bFat32Volume);
+const char*	FatAttributeToString(uint8 uiAttribute);
 
 
 // Defines the maximun sector size (in bytes) that this library should

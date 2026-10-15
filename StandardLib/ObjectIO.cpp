@@ -24,7 +24,7 @@ char* CObjectIO::Unnamed(CSerialisedObject* pcSerialised, CChars* pszDestName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CObjectIO::Filename(char* szSerialisedName, char* szWorkingDirectory, CChars* pszDestDirectory, CChars* pszDestFullFilename)
+char* CObjectIO::Filename(const char* szSerialisedName, char* szWorkingDirectory, CChars* pszDestDirectory, CChars* pszDestFullFilename)
 {
 	CFileUtil	cFileUtil;
 	CChars		szShortFilename;

@@ -254,7 +254,7 @@ void DumpInterestingFATClusters(CFatVolume* pcVolume)
 void PrintAttributes(CChars* psz, uint8 uiAttributes)
 {
 	int		i;
-	char* szAttribute;
+	const char* szAttribute;
 
 	if (uiAttributes == FAT_ATTR_LONG_NAME)
 	{
@@ -480,7 +480,7 @@ void DumpRootDirectoryEntries(CFatVolume* pcVolume, bool bPrintTime)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode RecurseFindFatDirectories(CFatVolume* pcVolume, char* szPath, CArrayChars* paszDirectories)
+EFatCode RecurseFindFatDirectories(CFatVolume* pcVolume, const char* szPath, CArrayChars* paszDirectories)
 {
 	SFatFileSystemQuery		sQuery;
 	SFatDirectoryEntry*		psFatDirectoryEntry;
@@ -536,7 +536,7 @@ EFatCode RecurseFindFatDirectories(CFatVolume* pcVolume, char* szPath, CArrayCha
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode RecurseFindFatFilenames(CFatVolume* pcVolume, char* szPath, CArrayChars* paszFiles, int iDepth, int iMaxDepth)
+EFatCode RecurseFindFatFilenames(CFatVolume* pcVolume, const char* szPath, CArrayChars* paszFiles, int iDepth, int iMaxDepth)
 {
 	SFatFileSystemQuery		sQuery;
 	SFatDirectoryEntry*		psFatDirectoryEntry;
@@ -595,7 +595,7 @@ EFatCode RecurseFindFatFilenames(CFatVolume* pcVolume, char* szPath, CArrayChars
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode RecurseFindFatFilenames(CFatVolume* pcVolume, char* szPath, CArrayChars* paszFiles)
+EFatCode RecurseFindFatFilenames(CFatVolume* pcVolume, const char* szPath, CArrayChars* paszFiles)
 {
 	return RecurseFindFatFilenames(pcVolume, szPath, paszFiles, 0, -1);
 }
@@ -635,7 +635,7 @@ void PrintAllFatFilenames(CChars* psz, CFatVolume* pcVolume)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void PrintFatFilenames(CChars* psz, char* szPath, CFatVolume* pcVolume)
+void PrintFatFilenames(CChars* psz, const char* szPath, CFatVolume* pcVolume)
 {
 	CArrayChars		aszFileNames;
 
@@ -651,7 +651,7 @@ void PrintFatFilenames(CChars* psz, char* szPath, CFatVolume* pcVolume)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void PrintFatDirectories(CChars* psz, char* szPath, CFatVolume* pcVolume)
+void PrintFatDirectories(CChars* psz, const char* szPath, CFatVolume* pcVolume)
 {
 	CArrayChars		aszDirectories;
 

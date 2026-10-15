@@ -13,7 +13,7 @@ protected:
 	uint32		muiValueOffset;
 
 public:
-	void				Init(CClass* pcFieldClass, ptrdiff_t iOffset, ptrdiff_t iValueOffset, CClass* pcContainingClass, SDataIO* pcIO, char* szName);
+	void				Init(CClass* pcFieldClass, ptrdiff_t iOffset, ptrdiff_t iValueOffset, CClass* pcContainingClass, SDataIO* pcIO, const char* szName);
 	void				Kill(void);
 
 	bool				IsPrimitive(void);

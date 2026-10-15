@@ -38,7 +38,7 @@ public:
 	CChars		mszOffset;
 	uint32		miFileRank;
 
-	bool Init(char* szPackFileOffset, char* szPackFileDirectory, uint32 iFileRank);
+	bool Init(const char* szPackFileOffset, const char* szPackFileDirectory, uint32 iFileRank);
 	void Kill(void);
 };
 

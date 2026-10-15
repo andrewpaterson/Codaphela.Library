@@ -49,7 +49,7 @@ public:
 	bool		Truncate(filePos iSize);
 	bool		Flush(void);
 	bool		Delete(void);
-	char*		GetFilename(void);
+	const char*		GetFilename(void);
 
 	void		SetFile(void* pvFile, size uiSize);
 	bool		IsFile(void* pvFile, size uiSize);

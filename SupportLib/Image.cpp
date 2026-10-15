@@ -441,8 +441,8 @@ void CImage::AddChannel(size iChannel, EPrimitiveType eType, char* szShortName, 
 bool CImage::AddChannel(Ptr<CImage> pcSourceImage, size iChannel, EPrimitiveType eType)
 {
 	CChannel*	pcChannel;
-	char*		szShortName;
-	char*		szLongName;
+	const char*		szShortName;
+	const char*		szLongName;
 
 	pcChannel = pcSourceImage->GetChannel(iChannel);
 	if (pcChannel)
@@ -546,7 +546,7 @@ bool CImage::RemoveChannel(size iChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CImage::GetChannelLongName(size iChannel)
+const char* CImage::GetChannelLongName(size iChannel)
 {
 	return mcChannels.GetChannelLongName(iChannel);
 }
@@ -556,7 +556,7 @@ char* CImage::GetChannelLongName(size iChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CImage::GetChannelShortName(size iChannel)
+const char* CImage::GetChannelShortName(size iChannel)
 {
 	return mcChannels.GetChannelShortName(iChannel);
 }
@@ -1407,7 +1407,7 @@ void CImage::Print(CChars* psz)
 	size				i;
 	uint				uiChannel;
 	CChannel*			pcChannel;
-	char*				szChannelName;
+	const char*				szChannelName;
 	int					x;
 	int					y;
 	CChannelsAccessor*	apcAccessors[8];

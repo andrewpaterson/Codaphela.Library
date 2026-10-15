@@ -4,7 +4,7 @@
 #include "TextParserConfig.h"
 
 
-TRISTATE ParseJSONExactIdentifier(CTextParser* pcTextParser, char* szIdentifier);
+TRISTATE ParseJSONExactIdentifier(CTextParser* pcTextParser, const char* szIdentifier);
 TRISTATE ParseJSONIdentifier(CTextParser* pcTextParser, char* szIdentifier, size* piLength);
 
 

@@ -40,7 +40,7 @@ CTextFile* CTextFile::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextFile::Init(char* szText)
+void CTextFile::Init(const char* szText)
 {
 	mcText.Init(szText);
 	mszFilename.Init();
@@ -72,7 +72,7 @@ void CTextFile::KillExceptBuffer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextFile::Read(char* szFilename)
+bool CTextFile::Read(const char* szFilename)
 {
 	CDiskFile*	pcDiskFile;
 	
@@ -116,7 +116,7 @@ bool CTextFile::Read(CAbstractFile* pcAbstractFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextFile::Write(char* szFilename)
+bool CTextFile::Write(const char* szFilename)
 {
 	CFileBasic	mcFile;
 

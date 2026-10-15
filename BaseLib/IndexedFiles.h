@@ -41,7 +41,7 @@ protected:
 	CDurableFile				mcFileDescriptors;
 
 public:
-	void			Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite);
+	void			Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, const char* szDataExtension, const char* szDescriptorName, const char* szDescriptorRewrite);
 	bool			Kill(void);
 
 	bool			ReadIndexedFileDescriptors(void);

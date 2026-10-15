@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CountCarriageReturns(char* szString, size uiLen)
+size CountCarriageReturns(const char* szString, size uiLen)
 {
 	size	i;
 	size	uiNumCarriageReturns;

@@ -39,7 +39,7 @@ void CArrayCharMinimal::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCharMinimal::Init(char* sz)
+void CArrayCharMinimal::Init(const char* sz)
 {
 	size	iNumElements;
 

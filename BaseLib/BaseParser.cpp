@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseParser::Init(char* szText, size iTextLen, char* szFileName, CLogger* pcLogger, TextParserSkipWhitespace pfSkipWhitespace, TextParserParseString pfParseString, TextParserParseExactIdentifier pfParseExactIdentifier, TextParserParseIdentifier pfParseIdentifier)
+void CBaseParser::Init(const char* szText, size iTextLen, const char* szFileName, CLogger* pcLogger, TextParserSkipWhitespace pfSkipWhitespace, TextParserParseString pfParseString, TextParserParseExactIdentifier pfParseExactIdentifier, TextParserParseIdentifier pfParseIdentifier)
 {
 	STextParserConfig	sConfig;
 
@@ -22,7 +22,7 @@ void CBaseParser::Init(char* szText, size iTextLen, char* szFileName, CLogger* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseParser::Init(char* szText, char* szFileName, CLogger* pcLogger, TextParserSkipWhitespace pfSkipWhitespace, TextParserParseString pfParseString, TextParserParseExactIdentifier pfParseExactIdentifier, TextParserParseIdentifier pfParseIdentifier)
+void CBaseParser::Init(const char* szText, const char* szFileName, CLogger* pcLogger, TextParserSkipWhitespace pfSkipWhitespace, TextParserParseString pfParseString, TextParserParseExactIdentifier pfParseExactIdentifier, TextParserParseIdentifier pfParseIdentifier)
 {
 	size	uiLength;
 
@@ -91,7 +91,7 @@ TRISTATE CBaseParser::GetString(SBaseParserString* psString, bool bSkipWhitespac
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CBaseParser::Error(char* szError)
+TRISTATE CBaseParser::Error(const char* szError)
 {
 	CChars			sz;
 	SLogConfig		sLogConfig;

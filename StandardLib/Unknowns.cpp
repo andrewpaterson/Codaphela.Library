@@ -34,7 +34,7 @@ bool		gbUnknowns = false;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnknowns::Init(char* szName, CConstructors* pcConstructors)
+void CUnknowns::Init(const char* szName, CConstructors* pcConstructors)
 {
 	CLifeInit<CMallocator> cLifeMalloc =  LifeAlloc<CMemoryAllocator, CMallocator>();
 	Init(cLifeMalloc, szName, pcConstructors);
@@ -45,7 +45,7 @@ void CUnknowns::Init(char* szName, CConstructors* pcConstructors)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnknowns::Init(CLifeInit<CMallocator> cMalloc, char* szName, CConstructors* pcConstructors)
+void CUnknowns::Init(CLifeInit<CMallocator> cMalloc, const char* szName, CConstructors* pcConstructors)
 {
 	mpcConstructors = pcConstructors;
 	mpcConstructors->ValidateMemoryInitialised();

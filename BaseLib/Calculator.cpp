@@ -430,7 +430,7 @@ CCalcExpression* CCalculator::CleanExpression(CCalcExpression* pcExpression)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalculator::SetError(CChars* pszStart, CCalcObjectArray* papcExpressions, char* szLeft, char* szMiddle, char* szRight)
+bool CCalculator::SetError(CChars* pszStart, CCalcObjectArray* papcExpressions, const char* szLeft, const char* szMiddle, const char* szRight)
 {
 	CChars	szCurrent;
 	CChars	sz;

@@ -14,7 +14,7 @@ public:
 	void				Init(CFileBasic* pcFile);
 	void				Kill(void);
 
-	CSerialisedObject*  Read(char* szObjectName);
+	CSerialisedObject*  Read(const char* szObjectName);
 	CSerialisedObject*	Read(OIndex oi);
 };
 

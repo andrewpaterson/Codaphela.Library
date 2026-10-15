@@ -46,7 +46,7 @@ CSerialisedObject* CFileObjectReader::Read(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSerialisedObject* CFileObjectReader::Read(char* szObjectName)
+CSerialisedObject* CFileObjectReader::Read(const char* szObjectName)
 {
 	CSerialisedObject*	pcSerialised;
 	char				szExtension[4];

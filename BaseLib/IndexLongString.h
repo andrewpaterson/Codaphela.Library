@@ -33,7 +33,6 @@ public:
 	bool	Get(int64 lli, char** pszData, size* piLength);
 	char*	Get(int64 lli);
 
-	bool	Put(int64 lli, char* szData, char* szLastCharInclusive = NULL);
 	bool	Put(int64 lli, const char* szData, const char* szLastCharInclusive = NULL);
 };
 

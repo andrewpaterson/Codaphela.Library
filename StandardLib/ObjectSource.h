@@ -37,11 +37,11 @@ protected:
 	CAbstractFile*		mpcFile;
 
 public:
-			void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFilename);
+			void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, const char* szFilename);
 			void			Kill(void);
 
-	virtual CBaseObject*	Convert(char* szFullName) =0;
-	virtual bool			Contains(char* szFullName) =0;
+	virtual CBaseObject*	Convert(const char* szFullName) =0;
+	virtual bool			Contains(const char* szFullName) =0;
 
 	virtual bool			IsNative(void);
 	virtual bool			IsMultiSource(void);

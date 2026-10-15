@@ -34,10 +34,10 @@ protected:
 	CCharsImmutable		mszName;
 
 public:
-	void 	Init(char* szFilename);
+	void 	Init(const char* szFilename);
 	void 	Kill(void);
-	char*	Get(char* szProperty);
-	void	Set(char* szProperty, char* szValue);
+	char*	Get(const char* szProperty);
+	void	Set(const char* szProperty, const char* szValue);
 	bool	Read(void);
 	bool	Write(void);
 	size	NumProperties(void);

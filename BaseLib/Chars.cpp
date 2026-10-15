@@ -2804,7 +2804,7 @@ void CChars::PassifyNewlines(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CChars::FindLineContaining(char* szPosition, size* piLineNumber)
+char* CChars::FindLineContaining(const char* szPosition, size* piLineNumber)
 {
 	size	i;
 	size	iNumLineFeeds;

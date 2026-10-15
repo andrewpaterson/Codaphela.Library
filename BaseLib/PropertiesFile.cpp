@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPropertiesFile::Init(char* szFilename)
+void CPropertiesFile::Init(const char* szFilename)
 {
 	mszName.Init(szFilename);
 	mcProperties.Init();
@@ -50,7 +50,7 @@ void CPropertiesFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPropertiesFile::Get(char* szProperty)
+char* CPropertiesFile::Get(const char* szProperty)
 {
 	return mcProperties.Get(szProperty);
 }
@@ -60,7 +60,7 @@ char* CPropertiesFile::Get(char* szProperty)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPropertiesFile::Set(char* szProperty, char* szValue)
+void CPropertiesFile::Set(const char* szProperty, const char* szValue)
 {
 	mcProperties.Put(szProperty, szValue);
 }
@@ -79,7 +79,7 @@ bool CPropertiesFile::Read(void)
 	CChars			szValue;
 	CChars			szProperty;
 	TRISTATE		tResult;
-	char*			szStartOfValue;
+	const char*			szStartOfValue;
 
 	cFile.Init();
 	if (!cFile.Read(mszName.Text()))

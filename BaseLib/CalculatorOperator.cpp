@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculatorOperator::Init(char* szSymbol, ECalcOperator eOperator, uint16 iPrecedence)
+void CCalculatorOperator::Init(const char* szSymbol, ECalcOperator eOperator, uint16 iPrecedence)
 {
 	mszSymbol.Init(szSymbol);
 	meOperator = eOperator;
@@ -92,7 +92,7 @@ void CArrayCalculatorOperators::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCalculatorOperator* CArrayCalculatorOperators::Add(char* szSymbol, ECalcOperator eOperator, uint16 iPrecedence)
+CCalculatorOperator* CArrayCalculatorOperators::Add(const char* szSymbol, ECalcOperator eOperator, uint16 iPrecedence)
 {
 	CCalculatorOperator* pcOperator;
 

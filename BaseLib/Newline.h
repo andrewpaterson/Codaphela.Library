@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 size PassifyNewlines(char *szString);
 size CountNewLines(char* szString, size iLen);
-size CountCarriageReturns(char* szString, size iLen);
+size CountCarriageReturns(const char* szString, size iLen);
 size CountLineFeeds(char* szString, size iLen);
 
 

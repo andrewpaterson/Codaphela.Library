@@ -31,7 +31,7 @@ protected:
 	CChars	mszServer;
 
 public:
-	void	Init(char* szServer, int iPort);
+	void	Init(const char* szServer, int iPort);
 	void	Kill(void);
 
 	bool	Connect(void);

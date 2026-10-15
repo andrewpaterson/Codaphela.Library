@@ -36,7 +36,7 @@ protected:
 	uint16			miPrecedence;
 
 public:
-	void Init(char* szSymbol, ECalcOperator eOperator, uint16 iPrecedence);
+	void Init(const char* szSymbol, ECalcOperator eOperator, uint16 iPrecedence);
 	void Init(void);
 	void Kill(void);
 
@@ -54,7 +54,7 @@ class CArrayCalculatorOperators : public __CArrayCalculatorOperators
 public:
 	void					Kill(void);
 
-	CCalculatorOperator*	Add(char* szSymbol, ECalcOperator eOperator, uint16 iPrecedence);
+	CCalculatorOperator*	Add(const char* szSymbol, ECalcOperator eOperator, uint16 iPrecedence);
 	void					Add(void);
 };
 

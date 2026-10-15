@@ -98,7 +98,7 @@ EFatCode MatchesFatFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructed
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode GetFatShortNameForEntry(char* szDest, char* szSource, bool bLFNDisabled)
+EFatCode GetFatShortNameForEntry(char* szDest, const char* szSource, bool bLFNDisabled)
 {
 	char	szName[13];
 	bool	bUppercase;
@@ -426,7 +426,7 @@ void ConstructFatLongFileNameFromShortName(uint16* auiLongFilename, char* szShor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* StepPathOverSlash(char* szPathName)
+const char* StepPathOverSlash(const char* szPathName)
 {
 	if (szPathName)
 	{
@@ -443,7 +443,7 @@ char* StepPathOverSlash(char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* StepPathToSlash(char* szPathName)
+const char* StepPathToSlash(const char* szPathName)
 {
 	while (*(--szPathName) != '\\');
 	return szPathName;
@@ -505,7 +505,7 @@ bool IsIllegalFilenameCharacter(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool IsIllegalFilename(char* szName, uint16 uiLength)
+bool IsIllegalFilename(const char* szName, uint16 uiLength)
 {
 	size		uiCharIndex;
 
@@ -562,7 +562,7 @@ void GenerateShortNameWithSuffix(uint16 uiNameSuffix, uint8* szShortName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ParsePathAndFilename(char* szPath, char* szPathPart, char** pszFilenamePart)
+void ParsePathAndFilename(const char* szPath, char* szPathPart, const char** pszFilenamePart)
 {
 	*pszFilenamePart = szPath + strlen(szPath);
 

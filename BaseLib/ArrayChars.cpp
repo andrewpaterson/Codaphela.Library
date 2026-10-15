@@ -180,17 +180,6 @@ CChars* CArrayChars::Add(CChars* pcChars)
 	return pcChars2;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CChars* CArrayChars::Add(char* szString)
-{
-	return Add((const char*)szString);
-}
-
-
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -237,7 +226,7 @@ CChars* CArrayChars::AddLength(size uiLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CChars* CArrayChars::Add(char* szString, size iStartInclusive, size iEndExclusive)
+CChars* CArrayChars::Add(const char* szString, size iStartInclusive, size iEndExclusive)
 {
 	CChars*		pcChars2;
 
@@ -258,7 +247,7 @@ CChars* CArrayChars::Add(char* szString, size iStartInclusive, size iEndExclusiv
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CChars* CArrayChars::Add(char* szText, char* szLastCharInclusive)
+CChars* CArrayChars::Add(const char* szText, char* szLastCharInclusive)
 {
 	CChars*		pcChars2;
 
@@ -279,7 +268,7 @@ CChars* CArrayChars::Add(char* szText, char* szLastCharInclusive)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayChars::AddList(char* sz, ...)
+void CArrayChars::AddList(const char* sz, ...)
 {
 	va_list		vaMarker;
 	char*		szValue;
@@ -453,7 +442,7 @@ void CArrayChars::Remove(CChars* pcChars)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayChars::Remove(char* szString)
+void CArrayChars::Remove(const char* szString)
 {
 	size		i;
 	CChars*		pcChars2;
@@ -544,7 +533,7 @@ size CArrayChars::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CArrayChars::GetIndex(char* szStart)
+size CArrayChars::GetIndex(const char* szStart)
 {
 	size		i;
 	CChars*		psz;
@@ -590,7 +579,7 @@ size CArrayChars::GetIndex(CChars* psz)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CArrayChars::GetSubStringIndex(char* szStart)
+size CArrayChars::GetSubStringIndex(const char* szStart)
 {
 	size		i;
 	CChars*		psz;
@@ -636,7 +625,7 @@ size CArrayChars::GetIndex(char* szStart, size iLen)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CArrayChars::FindInSorted(char* szString, bool bCaseSensitive)
+size CArrayChars::FindInSorted(const char* szString, bool bCaseSensitive)
 {
 	CChars	szFake;
 
@@ -728,7 +717,7 @@ bool CArrayChars::Equals(CArrayChars* pcOther)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CArrayChars::Contains(char* szText)
+bool CArrayChars::Contains(const char* szText)
 {
 	size	iIndex;
 
@@ -762,7 +751,7 @@ bool CArrayChars::Contains(CChars* psz)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CArrayChars::ContainsSubString(char* szText)
+bool CArrayChars::ContainsSubString(const char* szText)
 {
 	size	iIndex;
 
@@ -868,7 +857,7 @@ void CArrayChars::Dump(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CArrayChars::Split(char* szString, char cSplitter)
+bool CArrayChars::Split(const char* szString, char cSplitter)
 {
 	CChars	szTemp;
 

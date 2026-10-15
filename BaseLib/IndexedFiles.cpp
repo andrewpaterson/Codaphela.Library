@@ -41,7 +41,7 @@ struct SIndexedFileDescriptor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedFiles::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite)
+void CIndexedFiles::Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, const char* szDataExtension, const char* szDescriptorName, const char* szDescriptorRewrite)
 {
 	CFilePathBuilder	cPathName;
 	CFilePathBuilder	cPathRewrite;

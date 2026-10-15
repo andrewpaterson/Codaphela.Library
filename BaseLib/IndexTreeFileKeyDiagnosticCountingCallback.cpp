@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticCountingCallback::Init(char* szKey)
+void CIndexTreeFileKeyDiagnosticCountingCallback::Init(const char* szKey)
 {
 	Init(szKey, strlen(szKey));
 }

@@ -37,7 +37,7 @@ void CPlainTextEditor::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPlainTextEditor::Init(char* szText)
+void CPlainTextEditor::Init(const char* szText)
 {
 	mszText.Init(szText);
 	mszText.PassifyNewlines();

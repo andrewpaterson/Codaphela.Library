@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CXMLParser::Init(char* szText, char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger)
+void CXMLParser::Init(const char* szText, const char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger)
 {
 	Init(szText, szFileName, pcMarkup->mpcDoc, pcLogger);
 }
@@ -41,7 +41,7 @@ void CXMLParser::Init(char* szText, char* szFileName, CMarkup* pcMarkup, CLogger
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CXMLParser::Init(char* szText, char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger)
+void CXMLParser::Init(const char* szText, const char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger)
 {
 	CBaseParser::Init(szText, szFileName, pcLogger, SkipXMLWhitespace, ParseXMLValueString, ParseXMLExactIdentifier, ParseXMLIdentifier);
 
@@ -58,7 +58,7 @@ void CXMLParser::Init(char* szText, char* szFileName, CMarkupDoc* pcDoc, CLogger
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CXMLParser::Init(char* szText, size iTextLen, char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger)
+void CXMLParser::Init(char* szText, size iTextLen, const char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger)
 {
 	Init(szText, iTextLen, szFileName, pcMarkup->mpcDoc, pcLogger);
 }
@@ -68,7 +68,7 @@ void CXMLParser::Init(char* szText, size iTextLen, char* szFileName, CMarkup* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CXMLParser::Init(char* szText, size iTextLen, char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger)
+void CXMLParser::Init(char* szText, size iTextLen, const char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger)
 {
 	CBaseParser::Init(szText, iTextLen, szFileName, pcLogger, SkipXMLWhitespace, ParseXMLValueString, ParseXMLExactIdentifier, ParseXMLIdentifier);
 
@@ -179,7 +179,7 @@ TRISTATE CXMLParser::FailOnErrorReturnOnFalse(TRISTATE tResult, char* szExpected
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CXMLParser::FailAlways(TRISTATE tResult, char* szExpected)
+TRISTATE CXMLParser::FailAlways(TRISTATE tResult, const char* szExpected)
 {
 	CChars	szError;
 
@@ -421,7 +421,7 @@ TRISTATE CXMLParser::ParseIdentifier(CChars* pszIdentifier)
 TRISTATE CXMLParser::ParseValue(CChars* pszValue)
 {
 	TRISTATE	tResult;
-	char*		szStart;
+	const char*		szStart;
 
 	tResult = mcParser.GetExactCharacter('=', false);
 	if (tResult != TRITRUE)

@@ -8,7 +8,7 @@ class CEmbeddedObjectField : public CField
 {
 CONSTRUCTABLE(CEmbeddedObjectField)
 public:
-	void			Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, char* szName);
+	void			Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, const char* szName);
 	void			Kill(void);
 
 	bool			IsEmbeddedObject(void);

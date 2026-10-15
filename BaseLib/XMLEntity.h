@@ -40,7 +40,7 @@ public:
 	CChars				mszValue;
 	EXMLEntityType		meType;
 
-	void	Init(char* szName, char* szValue, EXMLEntityType eType);
+	void	Init(const char* szName, const char* szValue, EXMLEntityType eType);
 	void	Kill(void);
 };
 

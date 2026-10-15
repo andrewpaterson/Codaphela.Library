@@ -55,7 +55,7 @@ void CExternalObjectDeserialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CExternalObjectDeserialiser::Read(char* szObjectName)
+CBaseObject* CExternalObjectDeserialiser::Read(const char* szObjectName)
 {
 	bool				bResult;
 	CBaseObject*		pvObject;

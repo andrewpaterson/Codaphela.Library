@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSequence* CSequenceFactory::Create(char* szDirectory)
+CSequence* CSequenceFactory::Create(const char* szDirectory)
 {
 	CLifeInit<CSequenceConfig>	cConfig;
 	CSequence*					pcSequence;
