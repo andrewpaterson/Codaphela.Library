@@ -154,7 +154,7 @@ Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
 	Ptr<CImage> pcImage = OMalloc<CImage>(sStruct.uiImageWidth, sStruct.uiImageHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 	if (pcImage.IsNull())
 	{
-		return false;
+		return NULL;
 	}
 	puiImage = (uint8*)pcImage->GetData();
 
@@ -170,7 +170,7 @@ Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
 	iResult = pcFile->Read(puiData, 1, uiSize);
 	if (iResult != uiSize)
 	{
-		return false;
+		return NULL;
 	}
 
 	for (i = 0, iPos = 0; i < uiSize; i++)
@@ -223,7 +223,7 @@ Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 	Ptr<CImage> pcImage = OMalloc<CImage>(sStruct.uiImageWidth, sStruct.uiImageHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
 	if (pcImage.IsNull())
 	{
-		return false;
+		return NULL;
 	}
 
 	puiImage = (uint32*)pcImage->GetData();

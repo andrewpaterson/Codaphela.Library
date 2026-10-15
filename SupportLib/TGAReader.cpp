@@ -74,7 +74,7 @@ Ptr<CImage> LoadUncompressedTrueColourTGA(char *szFilename, bool bAddDebug)
 	if (!sFile.Open(EFM_Read))
 	{
 		sFile.Kill();
-		return false;
+		return NULL;
 	}
 
 	//Error check please.
@@ -110,7 +110,7 @@ Ptr<CImage> LoadUncompressedTrueColourTGA(char *szFilename, bool bAddDebug)
 	{
 		sFile.Close();
 		sFile.Kill();
-		return false;
+		return NULL;
 	}
 
 	switch (iBitsPerPixel)
@@ -127,7 +127,7 @@ Ptr<CImage> LoadUncompressedTrueColourTGA(char *szFilename, bool bAddDebug)
 	default:
 		sFile.Close();
 		sFile.Kill();
-		return false;
+		return NULL;
 	}
 
 	iBytesPerPixel = (iBitsPerPixel / 8);				  // Calculate The BYTES Per Pixel
@@ -141,7 +141,7 @@ Ptr<CImage> LoadUncompressedTrueColourTGA(char *szFilename, bool bAddDebug)
 		free(pvMem);
 		sFile.Close();
 		sFile.Kill();
-		return false;	
+		return NULL;	
 	}
 	sFile.Close();
 	sFile.Kill();
@@ -207,7 +207,7 @@ Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug)
 	if (!sFile.Open(EFM_Read))
 	{
 		sFile.Kill();
-		return false;
+		return NULL;
 	}
 
 	//----------------------------------------------------------------------
@@ -217,7 +217,7 @@ Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug)
 	{
 		sFile.Close();
 		sFile.Kill();
-		return false;
+		return NULL;
 	}
 
 	sFile.Close();

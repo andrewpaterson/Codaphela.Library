@@ -159,7 +159,10 @@ bool CTileLayerCel::SetTiles(size x, size y, Ptr<CArrayImageCel> paCels, size ui
 		bResult &= pCel.IsNotNull();
 		bResult &= SetTile(x, y, pCel);
 		x++;
-		iIndex = va_arg(vaMarker, char);
+		if (x < iMaxX)
+		{
+			iIndex = va_arg(vaMarker, int);  //Integer arguments smaller than int are promoted to int when passed through ...
+		}
 	}
 	va_end(vaMarker);
 

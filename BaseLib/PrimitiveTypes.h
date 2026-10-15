@@ -58,10 +58,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 //g++ drops ALIGN_64 when one of these types is used as a template argument so
 //templates that store a template type by value must declare the member with
 //MSVC_ALIGN(T) instead.
-#ifdef LINUX_GNU_32
+#if defined(LINUX_GNU_32) && defined(__cplusplus)
 #include <type_traits>
 #define ALIGN_64		__attribute__((aligned(8)))
 #define MSVC_ALIGN(T)	alignas((std::is_arithmetic<T>::value && (sizeof(T) == 8)) ? 8 : alignof(T))
+#elif defined(LINUX_GNU_32)
+#define ALIGN_64		__attribute__((aligned(8)))
+#define MSVC_ALIGN(T)
 #else
 #define ALIGN_64
 #define MSVC_ALIGN(T)
@@ -78,8 +81,10 @@ typedef uint64_t		uint64 ALIGN_64;
 typedef int64_t			int128 ALIGN_64;	// Until I implement struct SInt128 etc...
 typedef uint64_t		uint128 ALIGN_64;
 typedef char			char8;
-#ifdef LINUX_GNU_32
+#if defined(LINUX_GNU_32) && defined(__cplusplus)
 typedef char16_t		char16;  //wchar_t is 4 bytes on Linux.
+#elif defined(LINUX_GNU_32)
+typedef uint16_t		char16;  //C has no char16_t without <uchar.h>.
 #else
 typedef wchar_t			char16;
 #endif // LINUX_GNU_32

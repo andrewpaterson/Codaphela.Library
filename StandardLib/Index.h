@@ -100,7 +100,7 @@ bool CIndex<M>::Remove(const char* szKey)
 template<class M>
 bool CIndex<M>::Remove(uint8* pvKey, size iKeySize)
 {
-	return CIndexObject::Remove(szKey, iKeySize);
+	return CIndexObject::Remove(pvKey, iKeySize);
 }
 
 
