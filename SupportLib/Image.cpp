@@ -640,6 +640,15 @@ bool CImage::EndChange(void)
 		miHeight = mpsImageChangingDesc->iHeight;
 		bResult = mcChannels.EndChange();
 		SafeFree(mpsImageChangingDesc);
+
+		if ((miWidth > 0) && (miHeight > 0) && (mcChannels.GetChannelOffsets()->NumElements() > 0) && (mcChannels.GetData() == NULL))
+		{
+			//The data could not be allocated (too big to address or out of memory) so the image is empty rather than the wrong size.
+			gcLogger.Error2(__METHOD__, " Could not allocate image [", IntToString(miWidth), " x ", IntToString(miHeight), "].", NULL);
+			miWidth = 0;
+			miHeight = 0;
+			return false;
+		}
 		return bResult;
 	}
 	return false;
