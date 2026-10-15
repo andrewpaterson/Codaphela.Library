@@ -35,7 +35,7 @@ bool gbLogPointer = false;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void LogPointerDebug(CPointer* pvThis, char* szMethod)
+void LogPointerDebug(CPointer* pvThis, const char* szMethod)
 {
 	CBaseObject*	pcPointedTo;
 	CObject*		pcEmbedding;

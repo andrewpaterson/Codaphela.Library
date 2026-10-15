@@ -1948,7 +1948,7 @@ void CBaseObject::ReplaceOneWithX(char* szDest, char* szMask)
 
 	for (i = 0; ; i++)
 	{
-		if ((szMask[i] == '\0') || (szDest == '\0'))
+		if ((szMask[i] == '\0') || (szDest[i] == '\0'))
 		{
 			return;
 		}
