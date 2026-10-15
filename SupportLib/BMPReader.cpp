@@ -37,7 +37,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #define BMP_BITFIELDS				3
 #define BMP_ALPHABITFIELDS			6
 
-//CImage sizes its data in bits in a 32 bit size, so 32 bit pixels must stay well below 2^32 bits.
+//RLE data can claim a huge image in a tiny file, so the size is limited (8192 x 8192).
 #define BMP_MAX_PIXELS				0x4000000
 
 
@@ -434,6 +434,10 @@ bool BMPDecodePixels(uint8* pvFile, size uiFileSize, SBMPInfo* psInfo, uint8* pu
 	if ((psInfo->uiCompression == BMP_RLE8) || (psInfo->uiCompression == BMP_RLE4))
 	{
 		puiIndices = (uint8*)malloc(psInfo->iWidth * psInfo->iHeight);
+		if (puiIndices == NULL)
+		{
+			return false;
+		}
 		memset(puiIndices, 0, psInfo->iWidth * psInfo->iHeight);
 		if (!BMPDecodeRLE(pvData, uiDataSize, psInfo, puiIndices))
 		{
@@ -552,7 +556,7 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 		return NULL;
 	}
 	pvFile = (uint8*)malloc((size)iFileSize);
-	if (cFile.Read(pvFile, (size)iFileSize, 1) != 1)
+	if ((pvFile == NULL) || (cFile.Read(pvFile, (size)iFileSize, 1) != 1))
 	{
 		free(pvFile);
 		cFile.Close();
@@ -572,7 +576,7 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 
 	iNumPixels = sInfo.iWidth * sInfo.iHeight;
 	puiRGBA = (uint8*)malloc(iNumPixels * 4);
-	if (!BMPDecodePixels(pvFile, (size)iFileSize, &sInfo, puiRGBA))
+	if ((puiRGBA == NULL) || !BMPDecodePixels(pvFile, (size)iFileSize, &sInfo, puiRGBA))
 	{
 		free(puiRGBA);
 		free(pvFile);
@@ -614,6 +618,12 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 	}
 
 	puiDest = (uint8*)pcImage->GetData();
+	if (puiDest == NULL)
+	{
+		free(puiRGBA);
+		gcLogger.Error2(__METHOD__, " Could not allocate image for [", szFilename, "].", NULL);
+		return NULL;
+	}
 	for (i = 0; i < iNumPixels; i++)
 	{
 		if (bGrey)
