@@ -117,7 +117,7 @@ void CAssertStatistics::PrintTotal(CChars* psz)
 		psz->Append(miTotalTestsFailed);
 		psz->AppendNewLine();
 		psz->AppendNewLine();
-		psz->Append("Time: ");
+		psz->Append("Total Time:   ");
 		psz->Append(fTotalTime, 2);
 		psz->Append("s");
 		psz->AppendNewLine();
