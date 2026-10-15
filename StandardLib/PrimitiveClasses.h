@@ -73,25 +73,5 @@ CClass* CPrimitiveClasses::AddClass(EPrimitiveType eFieldType)
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class Class>
-CClass* CPrimitiveClasses::AddClassWithConstructorAndIO(EPrimitiveType eFieldType)
-{
-	Class			c;
-	const char*		szClassName;
-	CClass*			pcClass;
-
-	szClassName = c.ClassName();
-	pcClass = AddClass<Class>(eFieldType);
-
-	mpcClasses->AddConstructorAndIO<Class>();
-
-	return pcClass;
-}
-
-
 #endif // __PRIMITIVE_CLASSES_H__
 

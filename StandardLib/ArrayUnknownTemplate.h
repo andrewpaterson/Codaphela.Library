@@ -30,7 +30,6 @@ class CArrayUnknownTemplate : public CArrayUnknown
 CONSTRUCTABLE(CArrayUnknownTemplate)
 public:
 	void 	Init(void);
-	void 	Init(CUnknowns* pcUnknownsAllocatingFrom);
 	void 	Kill(void);
 
 	void	Add(M* pcUnknown);
@@ -63,17 +62,6 @@ void CArrayUnknownTemplate<M>::Init(void)
 {
 	CArrayUnknown::Init();
 	TypeKnown(true);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class M>
-void CArrayUnknownTemplate<M>::Init(CUnknowns* pcUnknownsAllocatingFrom)
-{
-	CArrayUnknown::Init(pcUnknownsAllocatingFrom, iChunkSize);
 }
 
 

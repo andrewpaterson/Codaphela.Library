@@ -24,6 +24,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ArrayUnknown.h"
 #include "MapStringUnknown.h"
 #include "Unknown.h"
+#include "ObjectSource.h"
 
 
 class CObjectSource;

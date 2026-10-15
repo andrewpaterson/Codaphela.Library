@@ -21,6 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __SET_UNKNOWN_H__
 #define __SET_UNKNOWN_H__
 #include "ArrayCommonUnknown.h"
+#include "Unknowns.h"
 
 
 class CSetUnknown : public CArrayCommonUnknown

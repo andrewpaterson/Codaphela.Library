@@ -3,6 +3,7 @@
 #include "BaseLib/Chars.h"
 #include "Object.h"
 #include "Array.h"
+#include "Objects.h"
 
 
 template <class SpecificClass, typename ... Args>
