@@ -388,6 +388,7 @@
     <ClInclude Include="Source\Aarvark\Aardvark.h" />
     <ClInclude Include="StackMemory.h" />
     <ClInclude Include="DebugOutputFile.h" />
+    <ClInclude Include="StdErrFile.h" />
     <ClInclude Include="MersenneTwister.h" />
     <ClInclude Include="StdRandom.h" />
     <ClInclude Include="SystemAllocator.h" />
@@ -795,6 +796,7 @@
     <ClCompile Include="Refered.cpp" />
     <ClCompile Include="ScratchPadAllocator.cpp" />
     <ClCompile Include="DebugOutputFile.cpp" />
+    <ClCompile Include="StdErrFile.cpp" />
     <ClCompile Include="SetBlock.cpp" />
     <ClCompile Include="SetNode.cpp" />
     <ClCompile Include="SetString.cpp" />

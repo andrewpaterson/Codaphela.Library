@@ -31,6 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Validation.h"
 #include "DebugOutput.h"
 #include "DebugOutputFile.h"
+#include "StdErrFile.h"
 
 
 CLogger		gcLogger;
@@ -86,7 +87,7 @@ void CLogger::Init(const char* szName)
 void CLogger::Init(CAbstractFile* pcFile, const char* szName)
 {
 	char				s[512];
-	CDebugOutputFile*	pcDebugFile;
+	CAbstractFile*		pcDebugFile;
 
 	mapcFiles.Init();
 
@@ -95,8 +96,13 @@ void CLogger::Init(CAbstractFile* pcFile, const char* szName)
 		mapcFiles.Add(&pcFile);
 	}
 
+#ifdef LINUX_GNU_32
+	//On Linux the console output goes to stderr: unbuffered and separate from program output on stdout.
+	pcDebugFile = StdErrFile();
+#else
 	pcDebugFile = DebugOutputFile();
-	mapcFiles.Add((CAbstractFile**)&pcDebugFile);
+#endif // LINUX_GNU_32
+	mapcFiles.Add(&pcDebugFile);
 	mpcDebugOutputFile = pcDebugFile;
 
 	msConfig.bEnabled = true;
@@ -510,6 +516,7 @@ void CLogger::GetConfig(SLogConfig* psConfig)
 	psConfig->bEnabled = msConfig.bEnabled;
 	psConfig->bBreakOnError = msConfig.bBreakOnError;
 	psConfig->bBreakOnWarning = msConfig.bBreakOnWarning;
+	psConfig->bDebugOutput = msConfig.bDebugOutput;
 }
 
 
