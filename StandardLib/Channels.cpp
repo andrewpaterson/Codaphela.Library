@@ -27,6 +27,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/Define.h"
 #include "BaseLib/SystemAllocator.h"
 #include "BaseLib/TypeNames.h"
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "Channels.h"
 
 
@@ -749,19 +751,18 @@ size CChannels::CalculateByteStride(size iBitStride)
 //////////////////////////////////////////////////////////////////////////
 size CChannels::CalculateByteSize(size iBitStride, size iSize)
 {
-	size	iByteSize;
-	size	iBitSize;
+	uint64	ulliBitSize;
+	uint64	ulliByteSize;
 
-	iBitSize = iBitStride * iSize;
-	if (iBitSize % 8 != 0)
+	//The size in bits overflows 32 bits at only 512MB of data so it is calculated in 64 bits.
+	ulliBitSize = (uint64)iBitStride * (uint64)iSize;
+	ulliByteSize = (ulliBitSize + 7) / 8;
+	if (ulliByteSize > SIZE_MAX)
 	{
-		iByteSize = iBitSize / 8 + 1;
+		gcLogger.Error2(__METHOD__, " Channels need [", LongToString(ulliByteSize), "] bytes, which is more than can be addressed.", NULL);
+		return 0;
 	}
-	else
-	{
-		iByteSize = iBitSize / 8;
-	}
-	return iByteSize;
+	return (size)ulliByteSize;
 }
 
 
@@ -1187,30 +1188,13 @@ size CChannels::GetSize(void)
 //////////////////////////////////////////////////////////////////////////
 size CChannels::GetByteSize(void)
 {
-	size	uiBitSize;
-
 	if (!IsUserAllocated())
 	{
 		return mabData.NumElements();
 	}
 	else
 	{
-		if (miByteStride != SIZE_MAX)
-		{
-			return miByteStride * miSize;
-		}
-		else
-		{
-			uiBitSize = miBitStride * miSize;
-			if (uiBitSize % 8 == 0)
-			{
-				return uiBitSize / 8;
-			}
-			else
-			{
-				return uiBitSize / 8 + 1;
-			}
-		}
+		return CalculateByteSize(miBitStride, miSize);
 	}
 }
 

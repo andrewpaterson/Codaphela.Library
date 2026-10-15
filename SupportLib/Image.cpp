@@ -30,6 +30,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/NaiveFile.h"
 #include "BaseLib/Operators.h"
 #include "BaseLib/TypeNames.h"
+#include "BaseLib/Logger.h"
+#include "BaseLib/LogString.h"
 #include "StandardLib/Unknowns.h"
 #include "StandardLib/ObjectWriter.h"
 #include "StandardLib/ObjectReader.h"
@@ -568,11 +570,30 @@ const char* CImage::GetChannelShortName(size iChannel)
 //////////////////////////////////////////////////////////////////////////
 void CImage::SetSize(int iWidth, int iHeight)
 {
+	uint64	ulliNumPixels;
+
 	if (IsChanging())
 	{
+		if ((iWidth < 0) || (iHeight < 0))
+		{
+			gcLogger.Error2(__METHOD__, " Cannot set image size to [", IntToString(iWidth), " x ", IntToString(iHeight), "].", NULL);
+			iWidth = 0;
+			iHeight = 0;
+		}
+
+		//The number of pixels is calculated in 64 bits because width * height can overflow 32 bits.
+		ulliNumPixels = (uint64)iWidth * (uint64)iHeight;
+		if (ulliNumPixels > SIZE_MAX)
+		{
+			gcLogger.Error2(__METHOD__, " Image [", IntToString(iWidth), " x ", IntToString(iHeight), "] has more pixels than can be addressed.", NULL);
+			iWidth = 0;
+			iHeight = 0;
+			ulliNumPixels = 0;
+		}
+
 		mpsImageChangingDesc->iWidth = iWidth;
 		mpsImageChangingDesc->iHeight = iHeight;
-		mcChannels.SetSize(mpsImageChangingDesc->iWidth * mpsImageChangingDesc->iHeight);
+		mcChannels.SetSize((size)ulliNumPixels);
 	}
 }
 
