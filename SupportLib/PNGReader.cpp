@@ -49,14 +49,14 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 
 	if ((fp = fopen(szFilename, "rb")) == NULL)
 	{
-		return false;
+		return NULL;
 	}
 
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (!png_ptr)
 	{
 		fclose(fp);
-		return false;
+		return NULL;
 	}
 
 	/* Allocate/initialize the memory for image information.  REQUIRED. */
@@ -65,7 +65,7 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 	{
 		fclose(fp);
 		png_destroy_read_struct(&png_ptr, png_infopp_NULL, png_infopp_NULL);
-		return false;
+		return NULL;
 	}
 
 	/* Set error handling if you are using the setjmp/longjmp method (this is
@@ -79,7 +79,7 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 		png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
 		fclose(fp);
 		/* If we get here, we had a problem reading the file */
-		return false;
+		return NULL;
 	}
 
 	/* Set up the input control if you are using standard C streams */
@@ -110,7 +110,7 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 	if ((iWidth == 0) || (iHeight == 0))
 	{
 		png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
-		return false;
+		return NULL;
 	}
 
 	bReverse = false;

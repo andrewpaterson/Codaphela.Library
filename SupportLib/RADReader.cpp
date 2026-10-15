@@ -178,7 +178,7 @@ Ptr<CImage> LoadRAD(char *szFilename, bool bAddDebug)
 	if (!cTextFile.Read(szFilename))
 	{
 		cTextFile.Kill();
-		return false;
+		return NULL;
 	}
 	cTextFile.PassifyNewlines();
 	cTextParser.Init(cTextFile.Text(), cTextFile.Length());
@@ -188,7 +188,7 @@ Ptr<CImage> LoadRAD(char *szFilename, bool bAddDebug)
 	{
 		cTextFile.Kill();
 		cTextParser.Kill();
-		return false;
+		return NULL;
 	}
 
 	Ptr<CImage> pcImage = OMalloc<CImage>();

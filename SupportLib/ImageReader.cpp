@@ -21,7 +21,9 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#ifdef _WIN32
 #include <olectl.h>
+#endif // _WIN32
 #include <math.h>
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/TextFile.h"
@@ -35,6 +37,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageReader.h"
 
 
+#ifdef _WIN32
 //====================================================================================
 //=
 //= Function Name: LoadPictureIPicture
@@ -70,13 +73,13 @@ Ptr<CImage> LoadPictureIPicture(char *szFilename, bool bAddDebug)
 	
 	if(FAILED(hr))	
 	{
-		return false;													
+		return NULL;													
 	}
 	hdcTemp = CreateCompatibleDC(GetDC(0));								
 	if(!hdcTemp)														
 	{
 		pPicture->Release();											
-		return false;													
+		return NULL;													
 	}
 	
 	//----------------------------------------------------------------------------------------
@@ -107,7 +110,7 @@ Ptr<CImage> LoadPictureIPicture(char *szFilename, bool bAddDebug)
 	{
 		DeleteDC(hdcTemp);												// Delete The Device Context
 		pPicture->Release();											// Decrements IPicture Reference Count
-		return false;													// Return False (Failure)
+		return NULL;													// Return False (Failure)
 	}
 
 	SelectObject(hdcTemp, hbmpTemp);									// Select Handle To Our Temp DC And Our Temp Bitmap Object
@@ -197,6 +200,18 @@ Ptr<CImage> LoadPictureIPicture(char *szFilename, bool bAddDebug)
 	
 	return pcImage;														// Return True (All Good)
 }
+#else
+//////////////////////////////////////////////////////////////////////////
+//
+// OLE IPicture only exists on Windows.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImage> LoadPictureIPicture(char *szFilename, bool bAddDebug)
+{
+	gcLogger.Error2(__METHOD__, " OLE IPicture is not available on this platform.  Cannot read [", szFilename, "].", NULL);
+	return NULL;
+}
+#endif // _WIN32
 
 
 //////////////////////////////////////////////////////////////////////////

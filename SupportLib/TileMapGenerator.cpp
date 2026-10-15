@@ -756,7 +756,7 @@ Ptr<CTileMap> CTileMapGenerator::Generate(void)
 		bResult = pSource->StartGeneration();
 		if (!bResult)
 		{
-			return false;
+			return NULL;
 		}
 
 		bResult = GenerateCels(&pSource);

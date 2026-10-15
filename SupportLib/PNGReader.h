@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __PNG_READER_H__
 #define __PNG_READER_H__
-#include "ImageLib/PNG.h"
+#include "ImageLib/png.h"
 #include "Image.h"
 
 

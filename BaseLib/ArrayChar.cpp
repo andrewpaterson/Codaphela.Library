@@ -11,11 +11,11 @@ void CArrayChar::AddList(char iStop, ...)
 	char		iValue;
 
 	va_start(vaMarker, iStop);
-	iValue = va_arg(vaMarker, char);
+	iValue = (char)va_arg(vaMarker, int);  //char is promoted to int when passed through ...
 	while (iValue != iStop)
 	{
 		Add((char)iValue);
-		iValue = va_arg(vaMarker, char);
+		iValue = (char)va_arg(vaMarker, int);  //char is promoted to int when passed through ...
 	}
 	va_end(vaMarker);
 }

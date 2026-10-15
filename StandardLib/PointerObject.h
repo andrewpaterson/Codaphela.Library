@@ -64,8 +64,8 @@ public:
 	CEmbeddedObject*	operator -> ();
 	CEmbeddedObject*	operator & ();
 	bool				operator ! ();
-	bool				operator == (CPointer& pcPointer);
-	bool				operator != (CPointer& pcPointer);
+	bool				operator == (const CPointer& pcPointer);
+	bool				operator != (const CPointer& pcPointer);
 	bool				operator == (void* pcPointer);
 	bool				operator != (void* pcPointer);
 

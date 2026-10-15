@@ -203,7 +203,7 @@ Ptr<CImage> ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, Ptr<CImage> pcIm
 	pcImageDest->EndChange();
 	if ((!bNormalMap) && (!bUVMapMap))
 	{
-		return false;
+		return NULL;
 	}
 
 	iNumNormals = (pcImageDest->miWidth + 1) * (pcImageDest->miHeight + 1);

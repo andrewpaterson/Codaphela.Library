@@ -1,3 +1,4 @@
+#ifdef _WIN32
 #include <windows.h>
 #include <GdiPlus.h>
 #include <GdiPlusHeaders.h>
@@ -140,3 +141,18 @@ Shutdown:
 	GdiplusShutdown(gdiplusToken);
 }
 
+#else
+#include "BaseLib/Logger.h"
+#include "GDIPlusWriter.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// GDI+ only exists on Windows.
+//
+//////////////////////////////////////////////////////////////////////////
+void WriteGDIPlusImage(Ptr<CImage> pcImage, char* szFilename, EImageType eImageType)
+{
+	gcLogger.Error2(__METHOD__, " GDI+ is not available on this platform.  Cannot write [", szFilename, "].", NULL);
+}
+#endif // _WIN32

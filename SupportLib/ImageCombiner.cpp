@@ -142,7 +142,7 @@ Ptr<CImage> CImageCombiner::Combine(void)
 		mpcDestImage = InitiailiseDestImage(sTextureSize);
 		if (mpcDestImage.IsNull())
 		{
-			return false;
+			return NULL;
 		}
 
 		Draw(&acPackedRects);

@@ -75,7 +75,7 @@ Ptr<CImage> CImageGreyToRGB::Modify(Ptr<CImage> pcImage)
 
 		if (!bSuccess)
 		{
-			return false;
+			return NULL;
 		}
 
 		pcRed = CImageAccessorCreator::Create(&pcImage, eChannelType, IMAGE_DIFFUSE_RED, CHANNEL_STOP);

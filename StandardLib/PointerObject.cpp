@@ -233,7 +233,7 @@ bool CPointer::operator ! ()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPointer::operator == (CPointer& pcPointer)
+bool CPointer::operator == (const CPointer& pcPointer)
 {
 	return mpcObject == pcPointer.Object();
 }
@@ -243,7 +243,7 @@ bool CPointer::operator == (CPointer& pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPointer::operator != (CPointer& pcPointer)
+bool CPointer::operator != (const CPointer& pcPointer)
 {
 	return mpcObject != pcPointer.Object();
 }
