@@ -72,7 +72,11 @@ typedef uint64_t		uint64 ALIGN_64;
 typedef int64_t			int128 ALIGN_64;	// Until I implement struct SInt128 etc...
 typedef uint64_t		uint128 ALIGN_64;
 typedef char			char8;
+#ifdef LINUX_GNU_32
+typedef char16_t		char16;  //wchar_t is 4 bytes on Linux.
+#else
 typedef wchar_t			char16;
+#endif // LINUX_GNU_32
 typedef float			float32;
 typedef double			float64 ALIGN_64;
 typedef long double		float128;

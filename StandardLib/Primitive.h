@@ -10,7 +10,8 @@ class CPrimitive : public CPrimitiveObject
 {
 friend class CPrimitiveClasses;
 protected:
-	PRIMITIVE_TYPE mVal;
+	//Match MSVC, which aligns 8 byte members to 8.  g++ -m32 aligns them to 4 and ignores ALIGN_64 on template arguments.
+	alignas(sizeof(PRIMITIVE_TYPE) == 8 ? 8 : alignof(PRIMITIVE_TYPE)) PRIMITIVE_TYPE mVal;
 
 public:
 	CPrimitive(EPrimitiveType eType) : CPrimitiveObject(eType) {}
