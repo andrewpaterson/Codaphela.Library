@@ -14,6 +14,8 @@ protected:
 	Ptr<>	mpValue;
 
 public:
+					CMapEntry(void);
+					CMapEntry(const CMapEntry& cOther);
 	void			operator = (const CMapEntry& pcPointer);
 
 	void			Init(void);
