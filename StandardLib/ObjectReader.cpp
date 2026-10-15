@@ -130,6 +130,7 @@ CBaseObject* CObjectReader::Read(void)
 		return NULL;
 	}
 
+	pcObject->SetDirty(false);
 	pcObject->Initialised();
 	return pcObject;
 }
