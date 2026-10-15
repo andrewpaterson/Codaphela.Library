@@ -202,8 +202,8 @@ CBaseObject* CInternalObjectDeserialiser::GetFromMemory(CObjectIdentifier* pcIde
 	}
 	else if (pcIdentifier->meType == OBJECT_POINTER_NAMED)
 	{
-		oiNew = pcIdentifier->moi;
-		return mpcMemory->Get(pcIdentifier->GetName(), oiNew);
+		//The name is the identity.  If the named object has been replaced (and so has a new index) resolve to the replacement.
+		return mpcMemory->Get(pcIdentifier->GetName());
 	}
 	else
 	{
