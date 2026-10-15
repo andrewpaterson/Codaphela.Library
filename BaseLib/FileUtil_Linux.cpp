@@ -58,7 +58,8 @@ bool CFileUtil::MakeDir(const char*szPathName)
 {
     int iResult;
 
-	iResult = mkdir(szPathName, S_IRWXU);
+	//The process umask decides the final permissions, as the default security descriptor does on Windows.
+	iResult = mkdir(szPathName, 0777);
 	if (iResult == 0)
 	{
 	    return true;
@@ -104,7 +105,7 @@ bool CFileUtil::RecurseRemoveDir(const char*szPathName)
 	CChars              szDirectory;
     struct stat         sBuffer;
     int                 iStatus;
-    bool                bDir;
+    bool                bDeleted;
 
 	szDirectory.Init(szPathName);
 	RemoveLastSeparator(&szDirectory);
@@ -118,6 +119,8 @@ bool CFileUtil::RecurseRemoveDir(const char*szPathName)
         return errno == ENOENT;
     }
 
+	//Like Windows only the deletion of files decides the result.
+	bDeleted = true;
     pDirEnt = readdir(pDIR);
     while (pDirEnt != NULL)
     {
@@ -127,20 +130,18 @@ bool CFileUtil::RecurseRemoveDir(const char*szPathName)
             szTemp.Append(FILE_SEPARATOR);
             szTemp.Append(pDirEnt->d_name);
 
-            iStatus = stat(szTemp.Text(), &sBuffer);
-            if (iStatus == -1)
-            {
-                printf("%s: %s\n", strerror(errno), szTemp.Text());
-                return false;
-            }
-            bDir = S_ISDIR(sBuffer.st_mode);
-            if (bDir) //Directory
+            //lstat so that a symbolic link to a directory is removed, not followed.
+            iStatus = lstat(szTemp.Text(), &sBuffer);
+            if ((iStatus == 0) && S_ISDIR(sBuffer.st_mode))
             {
 				RemoveDir(szTemp.Text());
 			}
             else
             {
-                unlink(szTemp.Text());
+                if ((unlink(szTemp.Text()) != 0) && (errno != ENOENT))
+                {
+                    bDeleted = false;
+                }
             }
             szTemp.Kill();
 		}
@@ -150,6 +151,63 @@ bool CFileUtil::RecurseRemoveDir(const char*szPathName)
     closedir(pDIR);
 	rmdir(szDirectory.Text());
 	szDirectory.Kill();
+	return bDeleted;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFileUtil::CopyDir(const char* szSource, const char* szDest)
+{
+	DIR*				pDIR;
+	struct dirent*		pDirEnt;
+	CChars				szSourceTemp;
+	CChars				szDestTemp;
+	CChars				szSourceDirectory;
+	CChars				szDestDirectory;
+	struct stat			sBuffer;
+
+	szSourceDirectory.Init(szSource);
+	RemoveLastSeparator(&szSourceDirectory);
+	szDestDirectory.Init(szDest);
+	RemoveLastSeparator(&szDestDirectory);
+
+	pDIR = opendir(szSourceDirectory.Text());
+	if (pDIR != NULL)
+	{
+		pDirEnt = readdir(pDIR);
+		while (pDirEnt != NULL)
+		{
+			if (!((StringCompare(pDirEnt->d_name, ".") == 0) || (StringCompare(pDirEnt->d_name, "..") == 0)))
+			{
+				szSourceTemp.Init(szSourceDirectory);
+				szDestTemp.Init(szDestDirectory);
+
+				AppendToPath(&szSourceTemp, pDirEnt->d_name);
+				AppendToPath(&szDestTemp, pDirEnt->d_name);
+
+				if ((stat(szSourceTemp.Text(), &sBuffer) == 0) && S_ISDIR(sBuffer.st_mode))
+				{
+					MakeDir(szDestTemp.Text());
+					CopyDir(szSourceTemp.Text(), szDestTemp.Text());
+				}
+				else
+				{
+					Copy(szSourceTemp.Text(), szDestTemp.Text());
+				}
+
+				szSourceTemp.Kill();
+				szDestTemp.Kill();
+			}
+			pDirEnt = readdir(pDIR);
+		}
+		closedir(pDIR);
+	}
+
+	szSourceDirectory.Kill();
+	szDestDirectory.Kill();
 	return true;
 }
 
@@ -162,7 +220,8 @@ bool CFileUtil::Touch(const char*szFilename)
 {
     int     iHandle;
 
-    iHandle = open(szFilename, O_WRONLY | O_CREAT | O_EXCL, S_IWUSR | S_IRUSR);
+	//Creates the file, or empties it if it exists, like Windows CREATE_ALWAYS.
+    iHandle = open(szFilename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	if (iHandle != -1)
 	{
 		close(iHandle);
@@ -198,15 +257,10 @@ bool CFileUtil::Delete(const char*szFilename)
 //////////////////////////////////////////////////////////////////////////
 bool CFileUtil::Exists(const char* szFilename)
 {
-    int     iHandle;
+    struct stat     sBuffer;
 
-    iHandle = open(szFilename, O_RDONLY, S_IWUSR | S_IRUSR);
-	if (iHandle != -1)
-	{
-		close(iHandle);
-		return true;
-	}
-	return false;
+	//True for files and directories whether or not they can be read, like Windows PathFileExists.
+	return stat(szFilename, &sBuffer) == 0;
 }
 
 
@@ -224,7 +278,10 @@ filePos CFileUtil::Size(const char*szFilename)
     sz.Init(szFilename);
     FullPath(&sz);
     iStatus = stat(sz.Text(), &sBuffer);
-    if (iStatus == -1)
+    sz.Kill();
+
+    //Windows cannot open a directory as a file so it has no size either.
+    if ((iStatus == -1) || S_ISDIR(sBuffer.st_mode))
     {
         return -1;
     }
@@ -312,16 +369,13 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
 	struct dirent*      pDirEnt;
 	int                 iNumDirEnts;
 	int                 i;
-	CChars				szFindName;
     CChars				szTemp;
 	bool				bValid;
     CChars				szDirectory;
-    CChars				szFile;
     CChars				szFake;
 	int                 iStatus;
 	struct stat         sBuffer;
 	bool                bDirectory;
-	CFileUtil           cFileUtil;
 	int                 iFileExtension;
 
 	szDirectory.Init(szInDirectory);
@@ -331,7 +385,7 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
 	if (iNumDirEnts < 0)
 	{
 	    szDirectory.Kill();
-		return true;
+		return false;
 	}
 
 	for (i = 0; i < iNumDirEnts; i++)
@@ -339,21 +393,20 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
 		pDirEnt = apDirEnts[i];
 		bValid = true;
 
+		//Dot files are hidden on Linux; Windows uses the hidden attribute.  "." and ".." are never returned.
+		if ((pDirEnt->d_name[0] == '.') && !bHidden)
+		{
+			continue;
+		}
+
 		szTemp.Init(szDirectory);
 		szTemp.Append(FILE_SEPARATOR);
         szTemp.Append(pDirEnt->d_name);
-
 		iStatus = stat(szTemp.Text(), &sBuffer);
-		if (iStatus == -1)
-		{
-			printf("%s: %s\n", strerror(errno), szTemp.Text());
-			szTemp.Kill();
-			szDirectory.Kill();
-			FreeDirEnts(apDirEnts, iNumDirEnts);
-			return false;
-		}
+		szTemp.Kill();
 
-        bDirectory = S_ISDIR(sBuffer.st_mode);
+		//An entry that cannot be stat'ed (e.g. a broken symbolic link) is listed as a file, as Windows lists it.
+        bDirectory = (iStatus == 0) && S_ISDIR(sBuffer.st_mode);
 		if (bDirectory)
 		{
             if (bDirs)
@@ -362,7 +415,7 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
                 {
                     szTemp.Init(pDirEnt->d_name);
                     RemoveExtension(&szTemp);
-                    if (!szTemp.Contains(szInName))
+                    if (!szTemp.ContainsIgnoreCase(szInName))
                     {
                         bValid = false;
                     }
@@ -430,6 +483,7 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
 	}
 
 	FreeDirEnts(apDirEnts, iNumDirEnts);
+	szDirectory.Kill();
 	return true;
 }
 
