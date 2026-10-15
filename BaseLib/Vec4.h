@@ -35,10 +35,10 @@ template<class M, class N>
 class SVec4
 {
 public:
-	M x;
-	M y;
-	M z;
-	M w;
+	MSVC_ALIGN(M) M x;
+	MSVC_ALIGN(M) M y;
+	MSVC_ALIGN(M) M z;
+	MSVC_ALIGN(M) M w;
 
 public:
 							SVec4() {};
