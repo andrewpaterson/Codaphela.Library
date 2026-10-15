@@ -30,8 +30,22 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsPNGChannel16Bit(Ptr<CImage> pcImage, size iChannel)
+{
+	CChannel*	pcChannel;
+
+	pcChannel = pcImage->GetChannel(iChannel);
+	return (pcChannel != NULL) && (pcChannel->miByteSize >= 2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // PNGs are written with libpng on all platforms so the files are identical.
-// The image is copied into 8 bit RGBA, RGB or grey.
+// The image is copied into RGBA, RGB, grey with alpha or grey.  Samples are
+// 16 bit if any of those channels is 16 bit or wider, otherwise 8 bit.
 //
 //////////////////////////////////////////////////////////////////////////
 bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
@@ -42,11 +56,16 @@ bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
 	int					iWidth;
 	int					iHeight;
 	int					iColourType;
-	size				uiBytesPerPixel;
+	size				aiChannels[4];
+	size				uiNumChannels;
+	size				uiBytesPerSample;
+	size				uiRowBytes;
+	EPrimitiveType		eSampleType;
 	uint8*				pvPixels;
 	png_bytep*			apvRows;
 	CImage				cImageExport;
 	CImageCopier		cCopier;
+	size				i;
 	int					y;
 
 	if (pcImage.IsNull())
@@ -66,17 +85,32 @@ bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
 	if (pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP))
 	{
 		iColourType = PNG_COLOR_TYPE_RGB_ALPHA;
-		uiBytesPerPixel = 4;
+		aiChannels[0] = IMAGE_DIFFUSE_RED;
+		aiChannels[1] = IMAGE_DIFFUSE_GREEN;
+		aiChannels[2] = IMAGE_DIFFUSE_BLUE;
+		aiChannels[3] = IMAGE_OPACITY;
+		uiNumChannels = 4;
 	}
 	else if (pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP))
 	{
 		iColourType = PNG_COLOR_TYPE_RGB;
-		uiBytesPerPixel = 3;
+		aiChannels[0] = IMAGE_DIFFUSE_RED;
+		aiChannels[1] = IMAGE_DIFFUSE_GREEN;
+		aiChannels[2] = IMAGE_DIFFUSE_BLUE;
+		uiNumChannels = 3;
+	}
+	else if (pcImage->HasChannels(IMAGE_DIFFUSE_GREY, IMAGE_OPACITY, CHANNEL_STOP))
+	{
+		iColourType = PNG_COLOR_TYPE_GRAY_ALPHA;
+		aiChannels[0] = IMAGE_DIFFUSE_GREY;
+		aiChannels[1] = IMAGE_OPACITY;
+		uiNumChannels = 2;
 	}
 	else if (pcImage->HasChannels(IMAGE_DIFFUSE_GREY, CHANNEL_STOP))
 	{
 		iColourType = PNG_COLOR_TYPE_GRAY;
-		uiBytesPerPixel = 1;
+		aiChannels[0] = IMAGE_DIFFUSE_GREY;
+		uiNumChannels = 1;
 	}
 	else
 	{
@@ -84,24 +118,41 @@ bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
 		return false;
 	}
 
-	pvPixels = (uint8*)malloc(iWidth * iHeight * uiBytesPerPixel);
+	eSampleType = PT_uint8;
+	uiBytesPerSample = 1;
+	for (i = 0; i < uiNumChannels; i++)
+	{
+		if (IsPNGChannel16Bit(pcImage, aiChannels[i]))
+		{
+			eSampleType = PT_uint16;
+			uiBytesPerSample = 2;
+			break;
+		}
+	}
+
+	uiRowBytes = iWidth * uiNumChannels * uiBytesPerSample;
+	pvPixels = (uint8*)malloc(uiRowBytes * iHeight);
 	apvRows = (png_bytep*)malloc(iHeight * sizeof(png_bytep));
 	for (y = 0; y < iHeight; y++)
 	{
-		apvRows[y] = &pvPixels[y * iWidth * uiBytesPerPixel];
+		apvRows[y] = &pvPixels[y * uiRowBytes];
 	}
 
-	if (iColourType == PNG_COLOR_TYPE_RGB_ALPHA)
+	if (uiNumChannels == 4)
 	{
-		cImageExport.Init(iWidth, iHeight, pvPixels, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+		cImageExport.Init(iWidth, iHeight, pvPixels, eSampleType, aiChannels[0], aiChannels[1], aiChannels[2], aiChannels[3], CHANNEL_STOP);
 	}
-	else if (iColourType == PNG_COLOR_TYPE_RGB)
+	else if (uiNumChannels == 3)
 	{
-		cImageExport.Init(iWidth, iHeight, pvPixels, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+		cImageExport.Init(iWidth, iHeight, pvPixels, eSampleType, aiChannels[0], aiChannels[1], aiChannels[2], CHANNEL_STOP);
+	}
+	else if (uiNumChannels == 2)
+	{
+		cImageExport.Init(iWidth, iHeight, pvPixels, eSampleType, aiChannels[0], aiChannels[1], CHANNEL_STOP);
 	}
 	else
 	{
-		cImageExport.Init(iWidth, iHeight, pvPixels, PT_uint8, IMAGE_DIFFUSE_GREY, CHANNEL_STOP);
+		cImageExport.Init(iWidth, iHeight, pvPixels, eSampleType, aiChannels[0], CHANNEL_STOP);
 	}
 	cCopier.Init(pcImage, &cImageExport);
 	cCopier.Copy(0, 0);
@@ -141,8 +192,13 @@ bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
 	}
 
 	png_init_io(png_ptr, fp);
-	png_set_IHDR(png_ptr, info_ptr, iWidth, iHeight, 8, iColourType, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+	png_set_IHDR(png_ptr, info_ptr, iWidth, iHeight, (int)uiBytesPerSample * 8, iColourType, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 	png_write_info(png_ptr, info_ptr);
+	if (uiBytesPerSample == 2)
+	{
+		//PNG stores 16 bit samples big endian.
+		png_set_swap(png_ptr);
+	}
 	png_write_image(png_ptr, apvRows);
 	png_write_end(png_ptr, info_ptr);
 
@@ -152,4 +208,3 @@ bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
 	free(pvPixels);
 	return true;
 }
-
