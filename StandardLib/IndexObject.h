@@ -39,8 +39,8 @@ public:
 	void				Class(void) override;
 	void				Free(void) override;
 
-	bool				Put(char* szKey, CPointer& pObject);
-	bool				Put(uint8* pvKey, size iKeySize, CPointer& pObject);
+	bool				Put(char* szKey, const CPointer& pObject);
+	bool				Put(uint8* pvKey, size iKeySize, const CPointer& pObject);
 
 	size 				NumElements(void) override;
 	size 				NonNullElements(void) override;

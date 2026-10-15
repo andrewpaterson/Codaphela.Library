@@ -457,7 +457,7 @@ CEmbeddedObject* CPointer::Return(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPointer::IsNotNull(void)
+bool CPointer::IsNotNull(void) const
 {
 	return mpcObject != NULL;
 }
@@ -467,7 +467,7 @@ bool CPointer::IsNotNull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPointer::IsNull(void)
+bool CPointer::IsNull(void) const
 {
 	return mpcObject == NULL;
 }
@@ -518,7 +518,7 @@ CPointer* CPointer::This(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CPointer::Object(void)
+CEmbeddedObject* CPointer::Object(void) const
 {
 	return mpcObject;
 }

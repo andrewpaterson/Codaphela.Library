@@ -97,7 +97,7 @@ void CMapObject::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapObject::Put(CPointer& pKey, CPointer& pValue)
+bool CMapObject::Put(const CPointer& pKey, const CPointer& pValue)
 {
 	CBaseObject*		pcPointedTo;
 	bool				bResult;
@@ -211,7 +211,7 @@ CPointer CMapObject::Get(CPointer& pKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapObject::Contains(CPointer& pKey)
+bool CMapObject::Contains(const CPointer& pKey)
 {
 	CBaseObject* pcValue;
 	CPointer		pValue;

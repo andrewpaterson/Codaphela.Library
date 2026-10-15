@@ -40,7 +40,7 @@ public:
 	void				Class(void) override;
 	void				Free(void) override;
 
-	bool				Put(CPointer& pKey, CPointer& pValue);
+	bool				Put(const CPointer& pKey, const CPointer& pValue);
 
 	size 				NumElements(void) override;
 	size 				NonNullElements(void) override;
@@ -63,7 +63,7 @@ public:
 	template<class M, class N>
 	Ptr<N>				Get(Ptr<M>& pKey);
 
-	bool				Contains(CPointer& pKey);
+	bool				Contains(const CPointer& pKey);
 	template<class M, class N>
 	bool				Contains(Ptr<M>& pKey);
 
