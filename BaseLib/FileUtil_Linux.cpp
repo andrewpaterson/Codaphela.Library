@@ -206,7 +206,6 @@ bool CFileUtil::Exists(const char* szFilename)
 		close(iHandle);
 		return true;
 	}
-	printf("%s: %s\n", strerror(errno), szFilename);
 	return false;
 }
 

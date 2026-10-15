@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __CONSTRUCTOR_CALL_H__
 #include <new>
 #include <stdlib.h>
+#include <string.h>
 #include <type_traits>
 #include "Define.h"
 #include "PointerRemapper.h"

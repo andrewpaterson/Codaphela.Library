@@ -1095,6 +1095,9 @@
     <ClInclude Include="DebugOutputFile.h">
       <Filter>Source\File\Chains</Filter>
     </ClInclude>
+    <ClInclude Include="StdErrFile.h">
+      <Filter>Source\File\Chains</Filter>
+    </ClInclude>
     <ClInclude Include="LogToMemory.h">
       <Filter>Source\Error</Filter>
     </ClInclude>
@@ -2319,6 +2322,9 @@
       <Filter>Source\Memory\Allocator</Filter>
     </ClCompile>
     <ClCompile Include="DebugOutputFile.cpp">
+      <Filter>Source\File\Chains</Filter>
+    </ClCompile>
+    <ClCompile Include="StdErrFile.cpp">
       <Filter>Source\File\Chains</Filter>
     </ClCompile>
     <ClCompile Include="LogToMemory.cpp">
