@@ -2483,6 +2483,9 @@
     <ClCompile Include="Timer_Windows.cpp">
       <Filter>Source\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="Timer_Linux.cpp">
+      <Filter>Source\Windows</Filter>
+    </ClCompile>
     <ClCompile Include="ConnectSocket_Windows.cpp">
       <Filter>Source\Windows\Socket</Filter>
     </ClCompile>

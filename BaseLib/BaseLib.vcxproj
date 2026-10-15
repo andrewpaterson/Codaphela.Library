@@ -990,6 +990,7 @@
     <ClCompile Include="XMLParser.cpp" />
     <ClCompile Include="PlainTextEditor.cpp" />
     <ClCompile Include="Timer_Windows.cpp" />
+    <ClCompile Include="Timer_Linux.cpp" />
     <ClCompile Include="ConnectSocket_Windows.cpp" />
     <ClCompile Include="ConnectSocket_Linux.cpp" />
     <ClCompile Include="ListenSocket_Windows.cpp" />
