@@ -53,6 +53,11 @@ size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pc
 	for (i = 0; i < iNumHeapFroms; i++)
 	{
 		pvFrom = pcOld->CEmbeddedObject::GetHeapFrom(i);
+		if (pvFrom->GetEmbeddingContainer() == pcOld->GetEmbeddingContainer())
+		{
+			//The old object points to itself.  That pointer is killed with the old object so it must not be moved to the new object.
+			continue;
+		}
 		iCount += pvFrom->RemapPointerTos(pcOld, pcNew);
 
 		if (pcNew->IsInitialised())
