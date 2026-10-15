@@ -253,6 +253,7 @@ void CBaseObject::Initialised(void)
 {
 	SetFlag(OBJECT_FLAGS_CALLED_KILL, false);
 	SetFlag(OBJECT_FLAGS_CALLED_INIT, true);
+	LogicalDirty();
 }
 
 
