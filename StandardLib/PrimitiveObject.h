@@ -27,8 +27,8 @@ public:
 };
 
 
-void LogPrimitiveAccessDebug(CPrimitiveObject* pvThis, char* szMethod);
-void LogPrimitiveAssignDebug(CPrimitiveObject* pvThis, char* szMethod);
+void LogPrimitiveAccessDebug(CPrimitiveObject* pvThis, const char* szMethod);
+void LogPrimitiveAssignDebug(CPrimitiveObject* pvThis, const char* szMethod);
 
 
 #endif // __PRIMITIVE_OBJECT_H__

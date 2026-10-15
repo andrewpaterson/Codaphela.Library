@@ -43,7 +43,7 @@ bool		gbObjects = false;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void LogObjectAllocation(CBaseObject* pcObject, char* szMethod)
+void LogObjectAllocation(CBaseObject* pcObject, const char* szMethod)
 {
 #ifdef DEBUG_OBJECT_ALLOCATION
 #ifdef _DEBUG
@@ -88,7 +88,7 @@ void LogObjectAllocationFailure(const char* szClass, OIndex oi, const char* szNa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void LogObjectDestruction(CBaseObject* pcObject, char* szMethod)
+void LogObjectDestruction(CBaseObject* pcObject, const char* szMethod)
 {
 #ifdef DEBUG_OBJECT_ALLOCATION
 #ifdef _DEBUG

@@ -242,8 +242,8 @@ bool ObjectsValidate(void);
 bool ObjectsFlush(void);
 void ObjectsDump(void);
 
-void LogObjectAllocation(CBaseObject* pcObject, char* szMethod);
-void LogObjectDestruction(CBaseObject* pcObject, char* szMethod);
+void LogObjectAllocation(CBaseObject* pcObject, const char* szMethod);
+void LogObjectDestruction(CBaseObject* pcObject, const char* szMethod);
 
 
 //////////////////////////////////////////////////////////////////////////

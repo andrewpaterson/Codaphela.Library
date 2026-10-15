@@ -9,7 +9,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void LogPrimitiveAccessDebug(CPrimitiveObject* pvThis, char* szMethod)
+void LogPrimitiveAccessDebug(CPrimitiveObject* pvThis, const char* szMethod)
 {
 #ifdef DEBUG_PRIMITIVE
 #ifdef _DEBUG
@@ -45,7 +45,7 @@ void LogPrimitiveAccessDebug(CPrimitiveObject* pvThis, char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void LogPrimitiveAssignDebug(CPrimitiveObject* pvThis, char* szMethod)
+void LogPrimitiveAssignDebug(CPrimitiveObject* pvThis, const char* szMethod)
 {
 #ifdef DEBUG_PRIMITIVE
 #ifdef _DEBUG
