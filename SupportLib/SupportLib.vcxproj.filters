@@ -288,6 +288,12 @@
     <ClInclude Include="TGAReader.h">
       <Filter>Source\Image\IO\Reader</Filter>
     </ClInclude>
+    <ClInclude Include="BMPReader.h">
+      <Filter>Source\Image\IO\Reader</Filter>
+    </ClInclude>
+    <ClInclude Include="BMPWriter.h">
+      <Filter>Source\Image\IO\Writer</Filter>
+    </ClInclude>
     <ClInclude Include="Rectangle.h">
       <Filter>Source\Image\Area</Filter>
     </ClInclude>
@@ -889,6 +895,12 @@
     </ClCompile>
     <ClCompile Include="TGAReader.cpp">
       <Filter>Source\Image\IO\Reader</Filter>
+    </ClCompile>
+    <ClCompile Include="BMPReader.cpp">
+      <Filter>Source\Image\IO\Reader</Filter>
+    </ClCompile>
+    <ClCompile Include="BMPWriter.cpp">
+      <Filter>Source\Image\IO\Writer</Filter>
     </ClCompile>
     <ClCompile Include="Rectangle.cpp">
       <Filter>Source\Image\Area</Filter>

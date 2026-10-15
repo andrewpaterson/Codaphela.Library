@@ -31,6 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ColourARGB32.h"
 #include "PNGReader.h"
 #include "TGAReader.h"
+#include "BMPReader.h"
 #include "RADReader.h"
 #include "ImageCopier.h"
 #include "ImageReaderHelper.h"
@@ -47,7 +48,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //= 
 //= Returns      : true if successful, false otherwise
 //=
-//= Description  : Loads BMP, EMF, JPG, ICO, WMF, GIF files into a texture descriptor
+//= Description  : Loads EMF, JPG, ICO, WMF, GIF files into a texture descriptor
 //=                by leveraging the power of Windows IPicture routines and OLE
 //=
 //====================================================================================
@@ -228,6 +229,7 @@ Ptr<CImage> ReadImage(char* szFilename, EImageType eType, bool bAddDebug)
 	switch (eType)
 	{
 		case IT_BMP:
+			return (LoadBMP(szFilename, bAddDebug));
 		case IT_EMF:
 		case IT_GIF:
 		case IT_ICO:

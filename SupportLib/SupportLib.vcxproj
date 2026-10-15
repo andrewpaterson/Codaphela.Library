@@ -264,6 +264,8 @@
     <ClInclude Include="PNGReader.h" />
     <ClInclude Include="RADReader.h" />
     <ClInclude Include="TGAReader.h" />
+    <ClInclude Include="BMPReader.h" />
+    <ClInclude Include="BMPWriter.h" />
     <ClInclude Include="Rectangle.h" />
     <ClInclude Include="SubImage.h" />
     <ClInclude Include="PackAttempt.h" />
@@ -464,6 +466,8 @@
     <ClCompile Include="TextUTF16Multi.cpp" />
     <ClCompile Include="TextUTF16Short.cpp" />
     <ClCompile Include="TGAReader.cpp" />
+    <ClCompile Include="BMPReader.cpp" />
+    <ClCompile Include="BMPWriter.cpp" />
     <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="SubImage.cpp" />
     <ClCompile Include="PackAttempt.cpp" />
