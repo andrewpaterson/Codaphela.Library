@@ -55,10 +55,16 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 //MSVC aligns 64 bit types to 8 bytes in structs, g++ -m32 aligns them to 4.
 //Match MSVC so structs read and written as raw bytes have the same layout.
+//g++ drops ALIGN_64 when one of these types is used as a template argument so
+//templates that store a template type by value must declare the member with
+//MSVC_ALIGN(T) instead.
 #ifdef LINUX_GNU_32
-#define ALIGN_64	__attribute__((aligned(8)))
+#include <type_traits>
+#define ALIGN_64		__attribute__((aligned(8)))
+#define MSVC_ALIGN(T)	alignas((std::is_arithmetic<T>::value && (sizeof(T) == 8)) ? 8 : alignof(T))
 #else
 #define ALIGN_64
+#define MSVC_ALIGN(T)
 #endif // LINUX_GNU_32
 
 typedef int8_t			int8;
