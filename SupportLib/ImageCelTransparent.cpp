@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "ImageAccessorCreator.h"
 #include "ImageCelTransparent.h"
 
 
@@ -50,8 +51,18 @@ void CImageCelTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psTrans
 //////////////////////////////////////////////////////////////////////////
 void CImageCelTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent, int iLeft, int iTop, int iRight, int iBottom)
 {
+	CImageAccessor*	pcAccessor;
+	int				iDataSize;
+
 	CImageCel::Init(pcSourceImage, iLeft, iTop, iRight, iBottom);
-	memcpy(&msTransparentColour, psTransparent, sizeof(SImageColour));
+
+	//Only copy as many bytes as a pixel has.  Callers pass colours smaller than SImageColour.
+	pcAccessor = CImageAccessorCreator::Create(&pcSourceImage);
+	iDataSize = pcAccessor->GetBufferSize();
+	pcAccessor->Kill();
+
+	msTransparentColour.Zero();
+	memcpy(&msTransparentColour, psTransparent, iDataSize);
 }
 
 
