@@ -510,7 +510,6 @@ Ptr<SpecificClass> OMalloc(Args ... args)
 	if (pObject.IsNotNull())
 	{
 		pObject->Init(args...);
-		pObject.LogicalDirty();
 	}
 	return pObject;
 }
@@ -527,7 +526,6 @@ Ptr<SpecificClass> ONMalloc(char* szObjectName, Args ... args)
 	if (pObject.IsNotNull())
 	{
 		pObject->Init(args...);
-		pObject.LogicalDirty();
 	}
 	return pObject;
 }
@@ -544,7 +542,6 @@ Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args ... args)
 	if (pObject.IsNotNull())
 	{
 		pObject->Init(args...);
-		pObject.LogicalDirty();
 	}
 	return pObject;
 }
