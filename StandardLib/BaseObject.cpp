@@ -721,8 +721,7 @@ EFreeResult CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 					papcKilledNesObjects = cKillOrder.Calculate();  
 		
 					pcObjectsThisIn = mpcObjectsThisIn;
-					pcObjectsThisIn->Remove(papcKilled);
-					pcObjectsThisIn->Remove(papcKilledNesObjects);
+					pcObjectsThisIn->Remove(papcKilled, papcKilledNesObjects);
 
 					cKillOrder.Kill();
 				}
