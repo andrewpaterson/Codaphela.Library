@@ -260,33 +260,37 @@ bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlit
 	size						uiDestByteStride;
 	Ptr<CBaseImageRowBlitter>	pcRowBlitter;
 	Ptr<CImage>					pSourceImage;
+	bool						bDestOpacity;
 
 	pSourceImage = mpSourceCel->GetSourceImage();
 	uiSourceByteStride = pSourceImage->GetPixelByteStride();
 	uiDestByteStride = mpDestImage->GetPixelByteStride();
 
+	//The alpha bits of an image with an ignored channel (e.g. RGBX) are the size of the ignored channel.  Only write alpha if the destination has an opacity channel.
+	bDestOpacity = mpDestImage->HasChannel(IMAGE_OPACITY);
+
 	pcRowBlitter = NULL;
-	if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride == uiDestByteStride) && (mcFormat.meDestAlphaBits == ARGB_None))
+	if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride == uiDestByteStride) && !bDestOpacity)
 	{
 		return CreateImageRowBlitterContiguous(pcFormat, pcBlitterCache);
 	}
-	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride == uiDestByteStride) && (mcFormat.meDestAlphaBits != ARGB_None))
+	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride == uiDestByteStride) && bDestOpacity)
 	{
 		return CreateImageRowBlitterByteAlignedOpaqueDestAlpha(pcFormat, pcBlitterCache);
 	}
-	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride != uiDestByteStride) && (mcFormat.meDestAlphaBits == ARGB_None))
+	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride != uiDestByteStride) && !bDestOpacity)
 	{
 		return CreateImageRowBlitterByteAlignedOpaque(pcFormat, pcBlitterCache);
 	}
-	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride != uiDestByteStride) && (mcFormat.meDestAlphaBits != ARGB_None))
+	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride != uiDestByteStride) && bDestOpacity)
 	{
 		return CreateImageRowBlitterByteAlignedOpaqueDestAlpha(pcFormat, pcBlitterCache);
 	}
-	else if ((mcFormat.meSourceAlphaBits == ARGB_8bit) && (mcFormat.meColourBits == CRGB_24bit) && (mcFormat.meDestAlphaBits == ARGB_None))
+	else if ((mcFormat.meSourceAlphaBits == ARGB_8bit) && (mcFormat.meColourBits == CRGB_24bit) && !bDestOpacity)
 	{
 		return CreateImageRowBlitterRGBByteAlphaByteTranslucent(pcFormat, pcBlitterCache);
 	}
-	else if ((mcFormat.meSourceAlphaBits == ARGB_8bit) && (mcFormat.meColourBits == CRGB_24bit) && (mcFormat.meDestAlphaBits != ARGB_None))
+	else if ((mcFormat.meSourceAlphaBits == ARGB_8bit) && (mcFormat.meColourBits == CRGB_24bit) && bDestOpacity)
 	{
 		return CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(pcFormat, pcBlitterCache);
 	}
