@@ -115,8 +115,10 @@ CStackPointer* CStackPointer::GetNext(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CStackPointer* CStackPointer::Remove(CPointer* pcPointer, CFreeList* pcFreeList)
+CStackPointer* CStackPointer::Remove(CPointer* pcPointer, CFreeList* pcFreeList, bool* pbRemoved)
 {
+	//Returns the new first stack pointer.  If pcPointer is not found the list is unchanged and this is returned.
+
 	CStackPointer*	pcNext;
 	CStackPointer*	pcPrev;
 	CStackPointer*	pcThis;
@@ -135,6 +137,7 @@ CStackPointer* CStackPointer::Remove(CPointer* pcPointer, CFreeList* pcFreeList)
 					pcPrev->SetNext(pcThis->mpcNext);
 					pcThis->Kill();
 					pcFreeList->Remove(pcThis);
+					*pbRemoved = true;
 					return this;
 				}
 				else
@@ -142,6 +145,7 @@ CStackPointer* CStackPointer::Remove(CPointer* pcPointer, CFreeList* pcFreeList)
 					pcNext = mpcNext;
 					pcThis->Kill();
 					pcFreeList->Remove(pcThis);
+					*pbRemoved = true;
 					return pcNext;
 				}
 			}
@@ -151,7 +155,8 @@ CStackPointer* CStackPointer::Remove(CPointer* pcPointer, CFreeList* pcFreeList)
 	}
 
 	gcLogger.Error2(__METHOD__, " Could not remove Stack Pointer (Pointer).", NULL);
-	return NULL;
+	*pbRemoved = false;
+	return this;
 }
 
 
@@ -159,8 +164,10 @@ CStackPointer* CStackPointer::Remove(CPointer* pcPointer, CFreeList* pcFreeList)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CStackPointer* CStackPointer::Remove(CCollection* pcPointer, CFreeList* pcFreeList)
+CStackPointer* CStackPointer::Remove(CCollection* pcPointer, CFreeList* pcFreeList, bool* pbRemoved)
 {
+	//Returns the new first stack pointer.  If pcPointer is not found the list is unchanged and this is returned.
+
 	CStackPointer* pcNext;
 	CStackPointer* pcPrev;
 	CStackPointer* pcThis;
@@ -179,6 +186,7 @@ CStackPointer* CStackPointer::Remove(CCollection* pcPointer, CFreeList* pcFreeLi
 					pcPrev->SetNext(pcThis->mpcNext);
 					pcThis->Kill();
 					pcFreeList->Remove(pcThis);
+					*pbRemoved = true;
 					return this;
 				}
 				else
@@ -186,6 +194,7 @@ CStackPointer* CStackPointer::Remove(CCollection* pcPointer, CFreeList* pcFreeLi
 					pcNext = mpcNext;
 					pcThis->Kill();
 					pcFreeList->Remove(pcThis);
+					*pbRemoved = true;
 					return pcNext;
 				}
 			}
@@ -195,7 +204,8 @@ CStackPointer* CStackPointer::Remove(CCollection* pcPointer, CFreeList* pcFreeLi
 	}
 
 	gcLogger.Error2(__METHOD__, " Could not remove Stack Pointer (Collection).", NULL);
-	return NULL;
+	*pbRemoved = false;
+	return this;
 }
 
 

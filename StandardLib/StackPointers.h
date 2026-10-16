@@ -20,8 +20,8 @@ public:
 	bool			SetLastNext(CStackPointer* pcStackPointer, CStackPointer* pcFirst);
 
 	void			RemoveAll(CStackPointer* pcFirst);
-	CStackPointer* 	Remove(CStackPointer* pcFirst, CPointer* pcPointer);
-	CStackPointer*	Remove(CStackPointer* pcFirst, CCollection* pcPointer);
+	CStackPointer* 	Remove(CStackPointer* pcFirst, CPointer* pcPointer, bool* pbRemoved);
+	CStackPointer*	Remove(CStackPointer* pcFirst, CCollection* pcCollection, bool* pbRemoved);
 	void			ClearAllPointers(void);
 
 	size			NumElements(void);

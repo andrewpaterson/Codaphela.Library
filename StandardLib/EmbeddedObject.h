@@ -113,9 +113,10 @@ public:
 			bool				AddStackFrom(CCollection* pcCollection, bool bValidate);
 			bool				AddStackPointersForRemap(CStackPointer* pcStackPointer);
 			bool				HasStackFroms(void);
-			void				PrivateRemoveStackFrom(CPointer* pcPointer);
-			EFreeResult			RemoveStackFromTryFree(CPointer* pcPointer, bool bKillIfNoRoot);
-			EFreeResult			RemoveStackFromTryFree(CCollection* pcPointer, bool bFreeIfNoRoot);
+			bool				PrivateRemoveStackFrom(CPointer* pcPointer);
+			bool				PrivateRemoveStackFrom(CCollection* pcCollection);
+			EFreeResult			RemoveStackFromTryFree(CPointer* pcPointer, bool bFreeIfNoRoot);
+			EFreeResult			RemoveStackFromTryFree(CCollection* pcCollection, bool bFreeIfNoRoot);
 	virtual size				NumStackFroms(void);
 			CStackPointer*		GetFirstStackFrom(void);
 	virtual CEmbeddedObject*	GetClosestHeapFromToStack(void);
@@ -138,7 +139,7 @@ public:
 			bool				FailCantInitFreedObject(char* szMethod);
 			bool				FailNotExpectedToBeEmbedded(char* szMethod);
 			bool				TestRemoveHeapFrom(CBaseObject* pcFromObject);
-			void				TestRemoveStackFrom(CPointer* pcPointer);
+			bool				TestRemoveStackFrom(CPointer* pcPointer);
 
 			void				DumpHeapFroms(void);
 
