@@ -34,6 +34,21 @@ class CObjects;
 class CObjectWriter;
 class CObjectReader;
 class CClass;
+class CPointer;
+class CEmbeddedObject;
+
+
+struct SHeapFromPointer
+{
+	CBaseObject*		pcFrom;      //The Object containing the pointer.
+	CEmbeddedObject*	pcTo;        //The Object pointed to.
+	CPointer*			pcPointer;
+};
+
+
+typedef CArrayTemplate<SHeapFromPointer>	CArrayHeapFromPointer;
+
+
 class CEmbeddedObject : public CUnknown
 {
 friend class CPointer;
@@ -108,6 +123,8 @@ public:
 	virtual size				NumHeapFroms(void);
 			CBaseObject*		GetHeapFrom(size iFromIndex);
 			void				AddHeapPointerForRemap(CBaseObject* pcFromObject);
+			void				GetHeapFromPointers(CArrayHeapFromPointer* pacPointers);
+	virtual void				GetPointerFieldsTo(CEmbeddedObject* pcTo, CArrayHeapFromPointer* pacPointers);
 
 			bool				AddStackFrom(CPointer* pcPointer, bool bValidate);
 			bool				AddStackFrom(CCollection* pcCollection, bool bValidate);

@@ -901,6 +901,32 @@ void CObject::RemovePointerTo(CEmbeddedObject* pcTo)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CObject::GetPointerFieldsTo(CEmbeddedObject* pcTo, CArrayHeapFromPointer* pacPointers)
+{
+	size				i;
+	size				uiNumPointers;
+	CPointer**			ppPointer;
+	SHeapFromPointer*	psPointer;
+
+	uiNumPointers = mapPointers.NumElements();
+	for (i = 0; i < uiNumPointers; i++)
+	{
+		ppPointer = mapPointers.Get(i);
+		if ((*ppPointer)->Object() == pcTo)
+		{
+			psPointer = pacPointers->Add();
+			psPointer->pcFrom = this;
+			psPointer->pcTo = pcTo;
+			psPointer->pcPointer = *ppPointer;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 size CObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
 	size				uiNumPointers;
