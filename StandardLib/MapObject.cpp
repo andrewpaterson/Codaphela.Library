@@ -679,26 +679,37 @@ void CMapObject::TouchAll(void)
 //////////////////////////////////////////////////////////////////////////
 void CMapObject::KillAll(void)
 {
+	//Killing a key removes its entry (and can free its value) and killing a value clears it so always start again from the first entry.
+
 	CBaseObject*	pcPointedToKey;
 	CBaseObject*	pcPointedToValue;
-	CBaseObject*	pcPointedToKeyNext;
-	CBaseObject*	pcPointedToValueNext;
 	SMapIterator	sIter;
 	bool			bExists;
+	size			uiNumElements;
 
-	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
-	while (bExists)
+	for (;;)
 	{
-		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcPointedToKeyNext, (CUnknown**)&pcPointedToValueNext);
+		bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcPointedToKey, (CUnknown**)&pcPointedToValue);
+		if (!bExists)
+		{
+			return;
+		}
 
-		pcPointedToKey->Kill();
-		if (pcPointedToValue)
+		uiNumElements = mcMap.NumElements();
+		if ((pcPointedToValue) && (pcPointedToValue != pcPointedToKey))
 		{
 			pcPointedToValue->Kill();
 		}
+		if (pcPointedToKey)
+		{
+			pcPointedToKey->Kill();
+		}
 
-		pcPointedToKey = pcPointedToKeyNext;
-		pcPointedToValue = pcPointedToValueNext;
+		if (mcMap.NumElements() >= uiNumElements)
+		{
+			//The entry could not be removed.
+			return;
+		}
 	}
 }
 
@@ -735,7 +746,34 @@ void CMapObject::FreePointers(void)
 //////////////////////////////////////////////////////////////////////////
 void CMapObject::RemovePointerTo(CEmbeddedObject* pcTo)
 {
-	mcMap.Remove(pcTo);
+	//pcTo is being killed.  It may be a key, a value or both.
+
+	CBaseObject*	pcKey;
+	CBaseObject*	pcValue;
+	SMapIterator	sIter;
+	bool			bExists;
+	bool			bRemoved;
+
+	EnsureSorted();
+
+	//Entries where pcTo is the value keep their key but no longer have a value.
+	bExists = mcMap.StartIteration(&sIter, (CUnknown**)&pcKey, (CUnknown**)&pcValue);
+	while (bExists)
+	{
+		if ((pcValue == pcTo) && (pcKey != pcTo))
+		{
+			mcMap.SetValue(&sIter, NULL);
+		}
+		bExists = mcMap.Iterate(&sIter, (CUnknown**)&pcKey, (CUnknown**)&pcValue);
+	}
+
+	//The entry where pcTo is the key is removed and its value is no longer pointed to from this map.
+	pcValue = (CBaseObject*)mcMap.Get((CUnknown*)pcTo);
+	bRemoved = mcMap.Remove((CUnknown*)pcTo);
+	if (bRemoved && (pcValue != pcTo))
+	{
+		RemoveObjectTryFree(pcValue, true, false);
+	}
 }
 
 

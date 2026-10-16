@@ -635,6 +635,7 @@ void CArrayCommonUnknown::CleanNullsIfNecessary(void)
 void CArrayCommonUnknown::CleanNullsBeforeBinarySearch(void)
 {
 	//Removing from an array that ignores NULLs leaves NULLs in place.  A NULL sorts before every other pointer so a sorted array can only be binary searched if it contains no NULLs.
+	//Cleaning the NULLs moves elements so a sorted array must not be searched (or added to or removed from) while it is being iterated.
 	if ((muiFlags & ARRAY_COMMOM_IS_PTR_SORTED) && (muiFlags & ARRAY_COMMOM_IGNORE_NULL))
 	{
 		if (miNonNullElements != mcArray.NumElements())

@@ -819,15 +819,43 @@ void CArrayCommonObject::TouchAll(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::KillAll(void)
 {
+	//Killing an Object removes it from this array (and can kill other Objects in it) so always look for the first Object left.
+
 	CBaseObject*	pcObject;
 	size 			i;
+	size 			uiStart;
 	size 			uiNumElements;
 
-	uiNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < uiNumElements; i++)
+	uiStart = 0;
+	for (;;)
 	{
-		pcObject = (CBaseObject*)mcArray.UnsafeGet(i);
+		pcObject = NULL;
+		uiNumElements = mcArray.UnsafeNumElements();
+		for (i = uiStart; i < uiNumElements; i++)
+		{
+			pcObject = (CBaseObject*)mcArray.UnsafeGet(i);
+			if (pcObject)
+			{
+				break;
+			}
+		}
+
+		if (pcObject == NULL)
+		{
+			return;
+		}
+
 		pcObject->Kill();
+
+		//If the Object was not removed from this array skip over it.
+		if ((i < mcArray.UnsafeNumElements()) && (mcArray.UnsafeGet(i) == pcObject))
+		{
+			uiStart = i + 1;
+		}
+		else
+		{
+			uiStart = i;
+		}
 	}
 }
 
