@@ -1516,8 +1516,8 @@ bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 			iNumElements = papcContextKill->NumElements();
 			if (iNumElements == 0)
 			{
-				mcRemovalContext.Done();
-				return true;
+				papcContextKill = mcRemovalContext.Done();
+				continue;
 			}
 
 			bResult = ValidateNoEmbedded(papcContextKill);

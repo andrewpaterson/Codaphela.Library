@@ -53,22 +53,21 @@ CArrayBaseObjectPtr* CObjectRemovalContext::Done(void)
 	CArrayBaseObjectPtr*		apcPreviouslyKilled;
 	CRemovalPointerContainer*	pcContainer;
 
+	//Insert the objects that have just been killed into the list of all killed pointers.
+	//This may leave duplicates but that's probably fine.
 	pcContainer = maapcRemovedObjects.Get(0);
+	apcPreviouslyKilled = pcContainer->GetKilled();
+	mapcKilledObjects.InsertArrayAfterEnd(apcPreviouslyKilled);
+
 	pcContainer->Kill();
 	maapcRemovedObjects.RemoveAt(0);
 	if (IsBusy())
 	{
-		//First get the previously killed object points
-		//Insert them into the list of all killed pointers
-		//This may leave duplicates but that's probably fine.
-		pcContainer = maapcRemovedObjects.Get(0);
-		apcPreviouslyKilled = pcContainer->GetKilled();
-		mapcKilledObjects.InsertArrayAfterEnd(apcPreviouslyKilled);
-
-		//Copy the incoming list of objects to killed into remaining to be killed.
+		//Copy the next list of objects to kill into remaining to be killed.
 		//Remove all already killed object pointers from remaining.
+		pcContainer = maapcRemovedObjects.Get(0);
 		mapcRemainingObjects.ReInit();
-		mapcRemainingObjects.InsertArrayAfterEnd(apcPreviouslyKilled);
+		mapcRemainingObjects.InsertArrayAfterEnd(pcContainer->GetKilled());
 		mapcRemainingObjects.Sort();
 		mapcRemainingObjects.RemoveArrayFromSorted(&mapcKilledObjects);
 
