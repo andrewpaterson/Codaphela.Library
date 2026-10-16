@@ -192,6 +192,7 @@ protected:
 						
 						void					FreeInternal(CArrayBaseObjectPtr* papcObjectPts);
 						void					RemoveAllPointerTos(CArrayBaseObjectPtr* papcObjectPts);
+						void					RemoveAllHeapFroms(CArrayBaseObjectPtr* papcObjectPts);
 						void					DoneKill(CArrayBaseObjectPtr* papcObjectPts);
 						void					KillObjects(CArrayBaseObjectPtr* papcObjectPts);
 						bool					ValidateNoEmbedded(CArrayBaseObjectPtr* papcObjectPts);

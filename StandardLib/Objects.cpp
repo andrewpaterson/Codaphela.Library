@@ -924,6 +924,27 @@ void CObjects::RemoveAllPointerTos(CArrayBaseObjectPtr* papcObjectPts)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CObjects::RemoveAllHeapFroms(CArrayBaseObjectPtr* papcObjectPts)
+{
+	//Must be called after RemoveAllPointerTos.  Any heap froms left are from objects not being killed with these and their pointers to these must be cleared.
+
+	size			i;
+	size			iNumElements;
+	CBaseObject*	pcKilled;
+
+	iNumElements = papcObjectPts->NumElements();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pcKilled = *papcObjectPts->Get(i);
+		pcKilled->RemoveAllHeapFroms();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObjects::KillObjects(CArrayBaseObjectPtr* papcObjectPts)
 {
 	size				i;
@@ -1489,6 +1510,7 @@ bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 			DoneKill(papcContextKill);
 			FreeInternal(papcContextKill);
 			RemoveAllPointerTos(papcContextKill);
+			RemoveAllHeapFroms(papcContextKill);
 			KillObjects(papcContextKill);
 
 			iCount++;
