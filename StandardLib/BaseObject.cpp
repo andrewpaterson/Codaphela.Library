@@ -321,9 +321,25 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 	}
 	else
 	{
-		FreeInternal();    //Handles embedded objects (in Object.FreeInternal()).
+		CArrayEmbeddedObjectPtrE8	apNesObjectsPointingToThis;
+		bool						bHasNesPointersToThis;
 
-		RemoveAllPointerTosTryFree();  //Handles embedded objects.
+		apNesObjectsPointingToThis.Init();
+		GetNesPointerToThis(&apNesObjectsPointingToThis);
+		bHasNesPointersToThis = apNesObjectsPointingToThis.NumElements() > 0;
+		apNesObjectsPointingToThis.Kill();
+
+		if (bHasNesPointersToThis)
+		{
+			//Objects that depend on this to be freed must be freed before this, as they are when this is allocated in Objects.
+			RemoveAllPointerTosTryFree();  //Handles embedded objects.
+			FreeInternal();    //Handles embedded objects (in Object.FreeInternal()).
+		}
+		else
+		{
+			FreeInternal();    //Handles embedded objects (in Object.FreeInternal()).
+			RemoveAllPointerTosTryFree();  //Handles embedded objects.
+		}
 
 		RemoveAllStackFroms();  //Handles embedded objects (in Object.RemoveAllStackFroms()).
 		RemoveAllHeapFroms();   //Handles embedded objects (in Object.RemoveAllHeapFroms()).
