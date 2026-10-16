@@ -411,6 +411,7 @@ size CArrayCommonUnknown::FindNext(CUnknown* pcUnknown, size uiStartIndex)
 	{
 		if (pcUnknown != NULL)
 		{
+			CleanNullsBeforeBinarySearch();
 			bResult = mcArray.FindInSorted(&pcUnknown, ComparePtrPtr, &iIndex);
 			if (bResult && (iIndex >= uiStartIndex))
 			{
@@ -458,6 +459,7 @@ bool CArrayCommonUnknown::Add(CUnknown* pcUnknown, bool bCleanNullsIfNecessary)
 
 	if (((muiFlags & ARRAY_COMMOM_IS_PTR_SORTED) || mcArray.NumElements() < 2) && (mfCompare != NULL))
 	{
+		CleanNullsBeforeBinarySearch();
 		mcArray.InsertIntoSorted(mfCompare, &pcUnknown, false);
 		SetFlagShort(&muiFlags, ARRAY_COMMOM_IS_PTR_SORTED, true);
 	}
@@ -579,6 +581,7 @@ size CArrayCommonUnknown::InsertIntoSorted(DataCompare fCompare, CUnknown* pcUnk
 		Sort();
 	}
 
+	CleanNullsBeforeBinarySearch();
 	uiIndex = mcArray.InsertIntoSorted(fCompare, &pcUnknown, bOverwriteExisting);
 
 	if (pcUnknown != NULL)
@@ -609,10 +612,6 @@ void CArrayCommonUnknown::CleanNullsIfNecessary(bool bCleanNullsIfNecessary)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::CleanNullsIfNecessary(void)
 {
-	size		iDest;
-	size		iSource;
-	CUnknown*	pcSource;
-	size		uiLastNotNull;
 	size		uiArrayElements;
 
 	if (muiFlags & ARRAY_COMMOM_IGNORE_NULL)
@@ -622,40 +621,77 @@ void CArrayCommonUnknown::CleanNullsIfNecessary(void)
 			uiArrayElements = mcArray.NumElements();
 			if (uiArrayElements - miNonNullElements >= mcArray.ChunkSize() * 3)
 			{
-				if (uiArrayElements != 0)
-				{
-					uiLastNotNull = uiArrayElements;
-					do
-					{
-						uiLastNotNull--;
-						pcSource = *mcArray.Get(uiLastNotNull);
-						if (pcSource)
-						{
-							break;
-						}
-					}
-					while (uiLastNotNull != 0);
-				}
-
-				//If uiLastNotNull+1 == miNonNullElements then all the NULLs are at the end.  No need to touch the array.
-				if (uiLastNotNull + 1 != miNonNullElements)
-				{
-					iSource = 0;
-					for (iDest = 0; iDest < miNonNullElements; iDest++)
-					{
-						do
-						{
-							pcSource = *mcArray.Get(iSource);
-							iSource++;
-						}
-						while (pcSource == NULL);
-						mcArray.Set(iDest, &pcSource);
-					}
-				}
-				mcArray.SetUsedElements(miNonNullElements);
+				CleanNulls();
 			}
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonUnknown::CleanNullsBeforeBinarySearch(void)
+{
+	//Removing from an array that ignores NULLs leaves NULLs in place.  A NULL sorts before every other pointer so a sorted array can only be binary searched if it contains no NULLs.
+	if ((muiFlags & ARRAY_COMMOM_IS_PTR_SORTED) && (muiFlags & ARRAY_COMMOM_IGNORE_NULL))
+	{
+		if (miNonNullElements != mcArray.NumElements())
+		{
+			CleanNulls();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonUnknown::CleanNulls(void)
+{
+	size		iDest;
+	size		iSource;
+	CUnknown*	pcSource;
+	size		uiLastNotNull;
+	size		uiArrayElements;
+
+	if (miNonNullElements == 0)
+	{
+		mcArray.SetUsedElements(0);
+		return;
+	}
+
+	uiArrayElements = mcArray.NumElements();
+	uiLastNotNull = uiArrayElements;
+	do
+	{
+		uiLastNotNull--;
+		pcSource = *mcArray.Get(uiLastNotNull);
+		if (pcSource)
+		{
+			break;
+		}
+	}
+	while (uiLastNotNull != 0);
+
+	//If uiLastNotNull+1 == miNonNullElements then all the NULLs are at the end.  No need to touch the array.
+	if (uiLastNotNull + 1 != miNonNullElements)
+	{
+		iSource = 0;
+		for (iDest = 0; iDest < miNonNullElements; iDest++)
+		{
+			do
+			{
+				pcSource = *mcArray.Get(iSource);
+				iSource++;
+			}
+			while (pcSource == NULL);
+			mcArray.Set(iDest, &pcSource);
+		}
+	}
+	mcArray.SetUsedElements(miNonNullElements);
 }
 
 

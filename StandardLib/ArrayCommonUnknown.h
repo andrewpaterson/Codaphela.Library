@@ -83,6 +83,8 @@ public:
 
 			void				CleanNullsIfNecessary(bool bCleanNullsIfNecessary);
 			void				CleanNullsIfNecessary(void);
+			void				CleanNullsBeforeBinarySearch(void);
+			void				CleanNulls(void);
 
 			bool				Add(CUnknown* pcUnknown, bool bCleanNullsIfNecessary = true);
 			bool				AddAll(CArrayCommonUnknown* pcSource);
