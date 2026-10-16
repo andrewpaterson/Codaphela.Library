@@ -111,26 +111,31 @@ bool CNaiveFile::Read(const char* szFilename)
 bool CNaiveFile::Read(CAbstractFile* pcAbstractFile)
 {
 	CFileBasic	cFile;
+	bool		bResult;
 
 	if (pcAbstractFile)
 	{
 		cFile.Init(pcAbstractFile);
 		if (cFile.Open(EFM_Read))
 		{
+			//The file must fit in memory and be read completely.
 			miSize = cFile.Size();
-			if (miSize)
+			mpvMem = NULL;
+			bResult = (miSize >= 0) && ((filePos)(size)miSize == miSize);
+			if (bResult && (miSize != 0))
 			{
 				mpvMem = malloc((size)miSize);
+				bResult = (mpvMem != NULL) && cFile.ReadData(mpvMem, (size)miSize);
 			}
-			else
-			{
-				mpvMem = NULL;
-			}
-
-			cFile.ReadData(mpvMem, (size)miSize);
 			cFile.Close();
 			cFile.Kill();
-			return true;
+
+			if (!bResult)
+			{
+				SafeFree(mpvMem);
+				miSize = 0;
+			}
+			return bResult;
 		}
 		cFile.Kill();
 	}

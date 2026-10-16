@@ -41,6 +41,18 @@ void SSFTImage::Init(uint16 uiType, uint16 uiImageWidth, uint16 uiImageHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool SSFTImage::Read(CFileReader* pcFile)
+{
+	return	pcFile->ReadLittleEndianInt16(&uiType) &&
+			pcFile->ReadLittleEndianInt16(&uiImageWidth) &&
+			pcFile->ReadLittleEndianInt16(&uiImageHeight);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void SSFTCelRun::Init(bool bStartOfRun)
 {
 	if (bStartOfRun)
@@ -63,6 +75,17 @@ void SSFTCelRun::Set(uint16 uiRunLength, uint16 uiSkipLength)
 {
 	this->uiFlags |= (uiSkipLength & 0x7fff);
 	this->uiRunLength = uiRunLength;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool SSFTCelRun::Read(CFileReader* pcFile)
+{
+	return	pcFile->ReadLittleEndianInt16(&uiFlags) &&
+			pcFile->ReadLittleEndianInt16(&uiRunLength);
 }
 
 
@@ -121,6 +144,17 @@ void SSFTContainer::Init(uint16 uicount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool SSFTContainer::Read(CFileReader* pcFile)
+{
+	return	pcFile->ReadLittleEndianInt16(&uiType) &&
+			pcFile->ReadLittleEndianInt16(&uiCount);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void SSFTContained::Init(void)
 {
 	uiSkipToNext = 0;
@@ -134,5 +168,15 @@ void SSFTContained::Init(void)
 void SSFTContained::Init(uint16 uiSkipToNext)
 {
 	this->uiSkipToNext = uiSkipToNext;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool SSFTContained::Read(CFileReader* pcFile)
+{
+	return	pcFile->ReadLittleEndianInt16(&uiSkipToNext);
 }
 

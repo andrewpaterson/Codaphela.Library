@@ -45,13 +45,13 @@ bool TGAWriteHeader(CFileWriter* pcFile, int iImageType, int iWidth, int iHeight
 	return	pcFile->WriteInt8((uint8)0) &&						//ID length.
 			pcFile->WriteInt8((uint8)0) &&						//No colour map.
 			pcFile->WriteInt8((uint8)iImageType) &&
-			pcFile->WriteInt16((uint16)0) &&					//Colour map first entry.
-			pcFile->WriteInt16((uint16)0) &&					//Colour map length.
+			pcFile->WriteLittleEndianInt16((uint16)0) &&					//Colour map first entry.
+			pcFile->WriteLittleEndianInt16((uint16)0) &&					//Colour map length.
 			pcFile->WriteInt8((uint8)0) &&						//Colour map entry bits.
-			pcFile->WriteInt16((uint16)0) &&					//X origin.
-			pcFile->WriteInt16((uint16)0) &&					//Y origin.
-			pcFile->WriteInt16((uint16)iWidth) &&
-			pcFile->WriteInt16((uint16)iHeight) &&
+			pcFile->WriteLittleEndianInt16((uint16)0) &&					//X origin.
+			pcFile->WriteLittleEndianInt16((uint16)0) &&					//Y origin.
+			pcFile->WriteLittleEndianInt16((uint16)iWidth) &&
+			pcFile->WriteLittleEndianInt16((uint16)iHeight) &&
 			pcFile->WriteInt8((uint8)(iPixelBytes * 8)) &&
 			pcFile->WriteInt8((uint8)(bAlpha ? 8 : 0));		//Alpha bits.
 }
@@ -64,8 +64,8 @@ bool TGAWriteHeader(CFileWriter* pcFile, int iImageType, int iWidth, int iHeight
 //////////////////////////////////////////////////////////////////////////
 bool TGAWriteFooter(CFileWriter* pcFile)
 {
-	return	pcFile->WriteInt32((uint32)0) &&					//Extension area offset.
-			pcFile->WriteInt32((uint32)0) &&					//Developer directory offset.
+	return	pcFile->WriteLittleEndianInt32((uint32)0) &&					//Extension area offset.
+			pcFile->WriteLittleEndianInt32((uint32)0) &&					//Developer directory offset.
 			pcFile->WriteData("TRUEVISION-XFILE.", 18);
 }
 

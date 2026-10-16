@@ -51,7 +51,7 @@ Ptr<CImage> LoadSFT(char* szFilename, bool bAddDebug)
 		return NULL;
 	}
 
-	bResult = cFile.ReadInt16(&uiType);
+	bResult = cFile.ReadLittleEndianInt16(&uiType);
 	if (!bResult)
 	{
 		cFile.Close();
@@ -140,8 +140,7 @@ Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
 	uint8*		puiData;
 	size		iPos;
 
-	iResult = pcFile->Read(&sStruct, sizeof(SSFTImage), 1);
-	if (iResult != 1)
+	if (!sStruct.Read(pcFile))
 	{
 		return NULL;
 	}
@@ -208,8 +207,7 @@ Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 	size				uiWidth;
 	void*				pvResult;
 
-	iResult = pcFile->Read(&sStruct, sizeof(SSFTImage), 1);
-	if (iResult != 1)
+	if (!sStruct.Read(pcFile))
 	{
 		return NULL;
 	}
@@ -242,8 +240,7 @@ Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 	sMemory.Init();
 	for (;;)
 	{
-		iResult = pcFile->Read(&sCelRun, sizeof(SSFTCelRun), 1);
-		if (iResult != 1)
+		if (!sCelRun.Read(pcFile))
 		{
 			return NULL;
 		}
@@ -310,8 +307,7 @@ Ptr<CImage> LoadSFTContainer(CFileBasic* pcFile, bool bAddDebug)
 	cSingle.Init(0, 0, 0, 0, NULL, false, false);
 	cSource.Init();
 
-	iResult = pcFile->Read(&sContainer, sizeof(SSFTContainer), 1);
-	if (iResult != 1)
+	if (!sContainer.Read(pcFile))
 	{
 		return NULL;
 	}
@@ -323,14 +319,13 @@ Ptr<CImage> LoadSFTContainer(CFileBasic* pcFile, bool bAddDebug)
 
 	for (i = 0;; i++)
 	{
-		iResult = pcFile->Read(&sContained, sizeof(SSFTContained), 1);
-		if (iResult != 1)
+		if (!sContained.Read(pcFile))
 		{
 			return NULL;
 		}
 
 		uiFilePos = pcFile->Tell();
-		bResult = pcFile->ReadInt16(&uiType);
+		bResult = pcFile->ReadLittleEndianInt16(&uiType);
 		bResult &= pcFile->Seek(uiFilePos);
 		if (!bResult)
 		{

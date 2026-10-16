@@ -22,6 +22,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/MemoryFile.h"
+#include "BaseLib/NaiveFile.h"
 #include "BaseLib/Logger.h"
 #include "RLEPacketDecoder.h"
 #include "ImageReaderCommon.h"
@@ -92,7 +93,7 @@ bool TGAReadColour(CFileReader* pcFile, int iBits, uint8* puiRGBA)
 
 	if ((iBits == 15) || (iBits == 16))
 	{
-		if (!pcFile->ReadInt16(&uiValue))
+		if (!pcFile->ReadLittleEndianInt16(&uiValue))
 		{
 			return false;
 		}
@@ -135,8 +136,8 @@ bool TGAReadHeader(CFileBasic* pcFile, STGAInfo* psInfo)
 	uint8	uiDescriptor;
 
 	if (!pcFile->ReadInt8(&uiIDLength) || !pcFile->ReadInt8(&uiColourMapType) || !pcFile->ReadInt8(&uiImageType) ||
-		!pcFile->ReadInt16(&uiColourMapFirst) || !pcFile->ReadInt16(&uiColourMapLength) || !pcFile->ReadInt8(&uiColourMapEntryBits) ||
-		!pcFile->Seek(12) || !pcFile->ReadInt16(&uiWidth) || !pcFile->ReadInt16(&uiHeight) || !pcFile->ReadInt8(&uiPixelBits) || !pcFile->ReadInt8(&uiDescriptor))
+		!pcFile->ReadLittleEndianInt16(&uiColourMapFirst) || !pcFile->ReadLittleEndianInt16(&uiColourMapLength) || !pcFile->ReadInt8(&uiColourMapEntryBits) ||
+		!pcFile->Seek(12) || !pcFile->ReadLittleEndianInt16(&uiWidth) || !pcFile->ReadLittleEndianInt16(&uiHeight) || !pcFile->ReadInt8(&uiPixelBits) || !pcFile->ReadInt8(&uiDescriptor))
 	{
 		return false;
 	}
@@ -294,7 +295,7 @@ bool TGAReadPixel(CFileReader* pcFile, STGAInfo* psInfo, uint8* puiRGBA)
 		}
 		else
 		{
-			if (!pcFile->ReadInt16(&uiIndex16))
+			if (!pcFile->ReadLittleEndianInt16(&uiIndex16))
 			{
 				return false;
 			}
@@ -406,6 +407,7 @@ bool TGADecodePixels(CFileBasic* pcFile, STGAInfo* psInfo, uint8* puiRGBA)
 Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug)
 {
 	size			uiFileSize;
+	CNaiveFile		cNaiveFile;
 	uint8*			pvFile;
 	CFileBasic		cFile;
 	STGAInfo		sInfo;
@@ -417,11 +419,15 @@ Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug)
 	int				i;
 	Ptr<CImage>		pcImage;
 
-	pvFile = LoadFileIntoMemory(szFilename, &uiFileSize);
-	if (pvFile == NULL)
+	cNaiveFile.Init();
+	if (!cNaiveFile.Read(szFilename))
 	{
+		cNaiveFile.Kill();
+		gcLogger.Error2(__METHOD__, " Could not read [", szFilename, "].", NULL);
 		return NULL;
 	}
+	pvFile = (uint8*)cNaiveFile.Get();
+	uiFileSize = (size)cNaiveFile.Size();
 
 	sInfo.puiColourMap = NULL;
 	puiRGBA = NULL;
@@ -439,7 +445,7 @@ Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug)
 		cFile.Close();
 	}
 	cFile.Kill();
-	free(pvFile);
+	cNaiveFile.Kill();
 
 	if (!bValid)
 	{

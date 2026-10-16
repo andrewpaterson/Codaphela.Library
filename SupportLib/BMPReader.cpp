@@ -22,6 +22,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/MemoryFile.h"
+#include "BaseLib/NaiveFile.h"
 #include "BaseLib/Logger.h"
 #include "RLEBitmapDecoder.h"
 #include "ImageReaderCommon.h"
@@ -123,7 +124,7 @@ bool BMPReadInfo(CFileBasic* pcFile, size uiFileSize, SBMPInfo* psInfo)
 	}
 
 	//The file size and reserved fields are skipped.
-	if (!pcFile->Seek(10) || !pcFile->ReadInt32(&uiPixelOffset) || !pcFile->ReadInt32(&uiHeaderSize))
+	if (!pcFile->Seek(10) || !pcFile->ReadLittleEndianInt32(&uiPixelOffset) || !pcFile->ReadLittleEndianInt32(&uiHeaderSize))
 	{
 		return false;
 	}
@@ -138,7 +139,7 @@ bool BMPReadInfo(CFileBasic* pcFile, size uiFileSize, SBMPInfo* psInfo)
 	if (uiHeaderSize == BMP_CORE_HEADER_SIZE)
 	{
 		//OS/2 1.x BITMAPCOREHEADER.  The planes are skipped.
-		if (!pcFile->ReadInt16(&uiWidth) || !pcFile->ReadInt16(&uiHeight) || !pcFile->Seek(24) || !pcFile->ReadInt16(&uiBitsPerPixel))
+		if (!pcFile->ReadLittleEndianInt16(&uiWidth) || !pcFile->ReadLittleEndianInt16(&uiHeight) || !pcFile->Seek(24) || !pcFile->ReadLittleEndianInt16(&uiBitsPerPixel))
 		{
 			return false;
 		}
@@ -151,8 +152,8 @@ bool BMPReadInfo(CFileBasic* pcFile, size uiFileSize, SBMPInfo* psInfo)
 	else if (uiHeaderSize >= BMP_INFO_HEADER_SIZE)
 	{
 		//BITMAPINFOHEADER.  The planes, image size and resolution are skipped.
-		if (!pcFile->ReadInt32(&iWidth) || !pcFile->ReadInt32(&iHeight) || !pcFile->Seek(28) || !pcFile->ReadInt16(&uiBitsPerPixel) ||
-			!pcFile->ReadInt32(&psInfo->uiCompression) || !pcFile->Seek(46) || !pcFile->ReadInt32(&uiColoursUsed))
+		if (!pcFile->ReadLittleEndianInt32(&iWidth) || !pcFile->ReadLittleEndianInt32(&iHeight) || !pcFile->Seek(28) || !pcFile->ReadLittleEndianInt16(&uiBitsPerPixel) ||
+			!pcFile->ReadLittleEndianInt32(&psInfo->uiCompression) || !pcFile->Seek(46) || !pcFile->ReadLittleEndianInt32(&uiColoursUsed))
 		{
 			return false;
 		}
@@ -180,7 +181,7 @@ bool BMPReadInfo(CFileBasic* pcFile, size uiFileSize, SBMPInfo* psInfo)
 	if ((psInfo->uiCompression == BMP_BITFIELDS) || (psInfo->uiCompression == BMP_ALPHABITFIELDS))
 	{
 		//The masks follow a BITMAPINFOHEADER or are part of the V2 to V5 headers.  Either way they start straight after the BITMAPINFOHEADER fields.
-		if (!pcFile->Seek(BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE) || !pcFile->ReadInt32(&psInfo->auiMasks[0]) || !pcFile->ReadInt32(&psInfo->auiMasks[1]) || !pcFile->ReadInt32(&psInfo->auiMasks[2]))
+		if (!pcFile->Seek(BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE) || !pcFile->ReadLittleEndianInt32(&psInfo->auiMasks[0]) || !pcFile->ReadLittleEndianInt32(&psInfo->auiMasks[1]) || !pcFile->ReadLittleEndianInt32(&psInfo->auiMasks[2]))
 		{
 			return false;
 		}
@@ -189,7 +190,7 @@ bool BMPReadInfo(CFileBasic* pcFile, size uiFileSize, SBMPInfo* psInfo)
 			uiPaletteOffset += 12;
 			if (psInfo->uiCompression == BMP_ALPHABITFIELDS)
 			{
-				if (!pcFile->ReadInt32(&psInfo->auiMasks[3]))
+				if (!pcFile->ReadLittleEndianInt32(&psInfo->auiMasks[3]))
 				{
 					return false;
 				}
@@ -198,7 +199,7 @@ bool BMPReadInfo(CFileBasic* pcFile, size uiFileSize, SBMPInfo* psInfo)
 		}
 		else if (uiHeaderSize >= BMP_V3_HEADER_SIZE)
 		{
-			if (!pcFile->ReadInt32(&psInfo->auiMasks[3]))
+			if (!pcFile->ReadLittleEndianInt32(&psInfo->auiMasks[3]))
 			{
 				return false;
 			}
@@ -371,7 +372,7 @@ bool BMPReadRow(CFileBasic* pcFile, SBMPInfo* psInfo, uint8* puiRGBA)
 		{
 			if (psInfo->iBitsPerPixel == 16)
 			{
-				if (!pcFile->ReadInt16(&uiPixel16))
+				if (!pcFile->ReadLittleEndianInt16(&uiPixel16))
 				{
 					return false;
 				}
@@ -379,7 +380,7 @@ bool BMPReadRow(CFileBasic* pcFile, SBMPInfo* psInfo, uint8* puiRGBA)
 			}
 			else
 			{
-				if (!pcFile->ReadInt32(&uiPixel))
+				if (!pcFile->ReadLittleEndianInt32(&uiPixel))
 				{
 					return false;
 				}
@@ -477,6 +478,7 @@ bool BMPDecodePixels(CFileBasic* pcFile, size uiFileSize, SBMPInfo* psInfo, uint
 Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 {
 	size			uiFileSize;
+	CNaiveFile		cNaiveFile;
 	uint8*			pvFile;
 	CFileBasic		cFile;
 	SBMPInfo		sInfo;
@@ -488,11 +490,15 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 	int				i;
 	Ptr<CImage>		pcImage;
 
-	pvFile = LoadFileIntoMemory(szFilename, &uiFileSize);
-	if (pvFile == NULL)
+	cNaiveFile.Init();
+	if (!cNaiveFile.Read(szFilename))
 	{
+		cNaiveFile.Kill();
+		gcLogger.Error2(__METHOD__, " Could not read [", szFilename, "].", NULL);
 		return NULL;
 	}
+	pvFile = (uint8*)cNaiveFile.Get();
+	uiFileSize = (size)cNaiveFile.Size();
 
 	puiRGBA = NULL;
 	bDecoded = false;
@@ -509,7 +515,7 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 		cFile.Close();
 	}
 	cFile.Kill();
-	free(pvFile);
+	cNaiveFile.Kill();
 
 	if (!bValid)
 	{

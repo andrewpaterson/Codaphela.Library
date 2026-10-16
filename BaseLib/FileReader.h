@@ -60,6 +60,12 @@ public:
 						bool	ReadBits(void* pvData, size iByteLength);
 						bool	ReadIntArray(int32* pai, size iLength);
 
+	//Least significant byte first, whatever the platform's byte order.
+						bool	ReadLittleEndianInt16(int16* pi);
+						bool	ReadLittleEndianInt16(uint16* pui);
+						bool	ReadLittleEndianInt32(int32* pi);
+						bool	ReadLittleEndianInt32(uint32* pui);
+
 						template<class M>
 						bool	ReadPrimitive(M* pc);
 
