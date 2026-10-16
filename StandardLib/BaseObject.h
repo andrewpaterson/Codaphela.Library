@@ -217,7 +217,8 @@ protected:
 			void					FreeInternal(void) override;
 			void					DoneKill(bool bAllocatedInObjects) override;
 			void					KillInternal(bool bHeapFromChanged, bool bValidateNotEmbedded) override;
-			EFreeResult				TryFree(bool bKillIfNoRoot, bool bHeapFromChanged);
+			EFreeResult				TryFree(bool bHeapFromChanged);
+			void					RemoveInKillOrder(CArrayBaseObjectPtr* papcKilled);
 
 	virtual void					RemoveAllPointerTosDontFree(void) =0;
 	virtual bool					RemoveAllPointerTosTryFree(void) =0;

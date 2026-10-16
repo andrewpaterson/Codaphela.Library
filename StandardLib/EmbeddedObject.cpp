@@ -416,7 +416,7 @@ EFreeResult CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject, bo
 	}
 
 	pcContainer = GetEmbeddingContainer();
-	eResult = pcContainer->TryFree(true, true);
+	eResult = pcContainer->TryFree(true);
 
 #ifdef _DEBUG
 	if (bValidate)
@@ -789,7 +789,7 @@ bool CEmbeddedObject::IsInStack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFreeResult CEmbeddedObject::RemoveStackFromTryFree(CPointer* pcPointer, bool bFreeIfNoRoot)
+EFreeResult CEmbeddedObject::RemoveStackFromTryFree(CPointer* pcPointer)
 {
 	bool	bRemoved;
 
@@ -800,8 +800,7 @@ EFreeResult CEmbeddedObject::RemoveStackFromTryFree(CPointer* pcPointer, bool bF
 		return FR_Error;
 	}
 
-	//Only CPointer's constructors set bFreeIfNoRoot to false.
-	return GetEmbeddingContainer()->TryFree(bFreeIfNoRoot, false);
+	return GetEmbeddingContainer()->TryFree(false);
 }
 
 
@@ -809,7 +808,7 @@ EFreeResult CEmbeddedObject::RemoveStackFromTryFree(CPointer* pcPointer, bool bF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFreeResult CEmbeddedObject::RemoveStackFromTryFree(CCollection* pcCollection, bool bFreeIfNoRoot)
+EFreeResult CEmbeddedObject::RemoveStackFromTryFree(CCollection* pcCollection)
 {
 	bool	bRemoved;
 
@@ -820,7 +819,7 @@ EFreeResult CEmbeddedObject::RemoveStackFromTryFree(CCollection* pcCollection, b
 		return FR_Error;
 	}
 
-	return GetEmbeddingContainer()->TryFree(bFreeIfNoRoot, false);
+	return GetEmbeddingContainer()->TryFree(false);
 }
 
 

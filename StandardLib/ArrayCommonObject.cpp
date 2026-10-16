@@ -393,7 +393,7 @@ bool CArrayCommonObject::Remove(CEmbeddedObject* pcObject)
 			}
 			else
 			{
-				return pcObject->RemoveStackFromTryFree(this, true);
+				return pcObject->RemoveStackFromTryFree(this);
 			}
 		}
 		return gcLogger.Error2(__METHOD__, " Could not remove Object {", ObjectToString(pcObject), "} from Array {", ObjectToString(this), "}.", NULL);

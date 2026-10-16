@@ -110,7 +110,7 @@ CPointer::CPointer(CPointer& cPointer)
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
 
-	PointTo(cPointer.mpcObject, false);
+	PointTo(cPointer.mpcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -126,7 +126,7 @@ CPointer::CPointer(const CPointer& cPointer)
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
 
-	PointTo(cPointer.mpcObject, false);
+	PointTo(cPointer.mpcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -142,7 +142,7 @@ CPointer::CPointer(CEmbeddedObject* pcObject)
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
 
-	PointTo(pcObject, false);
+	PointTo(pcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -158,7 +158,7 @@ CPointer::~CPointer()
 
 	if (mpcObject)
 	{
-		mpcObject->RemoveStackFromTryFree(this, true);
+		mpcObject->RemoveStackFromTryFree(this);
 	}
 }
 
@@ -169,7 +169,7 @@ CPointer::~CPointer()
 //////////////////////////////////////////////////////////////////////////
 void CPointer::operator = (CEmbeddedObject* pcObject)
 {
-	PointTo(pcObject, true);
+	PointTo(pcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -181,7 +181,7 @@ void CPointer::operator = (CEmbeddedObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::operator = (CPointer& pcPointer)
 {
-	PointTo(pcPointer.mpcObject, true);
+	PointTo(pcPointer.mpcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -193,7 +193,7 @@ void CPointer::operator = (CPointer& pcPointer)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::operator = (const CPointer& pcPointer)
 {
-	PointTo(pcPointer.mpcObject, true);
+	PointTo(pcPointer.mpcObject);
 
 	LOG_POINTER_DEBUG();
 }
@@ -370,7 +370,7 @@ void CPointer::UnsafePointTo(CEmbeddedObject* pcNewObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointer::PointTo(CEmbeddedObject* pcNewObject, bool bKillIfNoRoot)
+void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 {
 	CEmbeddedObject*	pcOldObject;
 
@@ -407,7 +407,7 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject, bool bKillIfNoRoot)
 		{
 			if (pcOldObject)
 			{
-				pcOldObject->RemoveStackFromTryFree(this, bKillIfNoRoot);
+				pcOldObject->RemoveStackFromTryFree(this);
 			}
 
 			if (mpcObject)
@@ -430,7 +430,7 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject, bool bKillIfNoRoot)
 //////////////////////////////////////////////////////////////////////////
 void CPointer::PointToNull(void)
 {
-	PointTo(NULL, true);
+	PointTo(NULL);
 }
 
 
