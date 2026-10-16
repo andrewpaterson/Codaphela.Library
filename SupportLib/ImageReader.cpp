@@ -238,7 +238,7 @@ Ptr<CImage> ReadImage(char* szFilename, EImageType eType, bool bAddDebug)
 			// uses OLE and IPicture to load these image formats.
 			return (LoadPictureIPicture(szFilename, bAddDebug));
 		case IT_TGA:
-			return (LoadTGA(szFilename)); // uses NeHe TGA routines.
+			return (LoadTGA(szFilename, bAddDebug));
 		case IT_PNG:
 			return (LoadPNG(szFilename, bAddDebug));
 		case IT_RAD:

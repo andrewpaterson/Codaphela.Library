@@ -24,7 +24,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //Reads 1, 4 and 8 bit palettised (optionally RLE compressed), 16, 24 and 32 bit Windows and OS/2 bitmaps.
-//Palettes that are all grey are read as grey, other palettes as RGB.  32 bit images with an alpha mask are read as RGBA.
+//Palettes that are all grey are read as grey, other palettes as RGB.  Images with an alpha mask are read with opacity as their first channel.
 Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug = false);
 
 

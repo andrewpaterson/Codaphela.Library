@@ -27,6 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "SFTWriter.h"
 #include "PNGWriter.h"
 #include "BMPWriter.h"
+#include "TGAWriter.h"
 #include "GDIPlusWriter.h"
 
 
@@ -46,12 +47,13 @@ bool WriteImage(Ptr<CImage> pcImage, char* szFilename, EImageType eType)
 	{
 	case IT_BMP:
 		return SaveBMP(pcImage, szFilename);
+	case IT_TGA:
+		return SaveTGA(pcImage, szFilename);
 	case IT_EMF:
 	case IT_GIF:
 	case IT_ICO:
 	case IT_JPG:
 	case IT_WMF:
-	case IT_TGA:
 		WriteGDIPlusImage(pcImage, szFilename, eType);
 	case IT_PNG:
 		SavePNG(pcImage, szFilename);
