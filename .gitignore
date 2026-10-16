@@ -55,3 +55,5 @@ us.stackdump
 /WinRefLib/Release/*
 /ElectronicsLib/Debug/*
 /ElectronicsLib/Release/*
+/ImageLib/Debug/*
+/ImageLib/Release/*
