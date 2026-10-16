@@ -118,7 +118,7 @@ public:
 	void				Dump(void);
 
 protected:
-	void				PointTo(CEmbeddedObject* pcObject, bool bKillIfNoRoot);
+	void				PointTo(CEmbeddedObject* pcObject);
 };
 
 

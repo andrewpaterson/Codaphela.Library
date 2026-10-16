@@ -209,7 +209,7 @@ bool CCollection::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult, b
 		}
 		else
 		{
-			bResult = pcObject->RemoveStackFromTryFree(this, true);
+			bResult = pcObject->RemoveStackFromTryFree(this);
 		}
 	}
 	return bResult;
@@ -230,7 +230,7 @@ bool CCollection::RemovePointerToTryFree(CBaseObject* pcPointedTo)
 		}
 		else
 		{
-			return pcPointedTo->RemoveStackFromTryFree(this, true);
+			return pcPointedTo->RemoveStackFromTryFree(this);
 		}
 	}
 	return true;

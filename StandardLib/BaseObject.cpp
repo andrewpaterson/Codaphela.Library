@@ -307,12 +307,9 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 
 	CDistCalculator			cDistCalculator;
 	CArrayBaseObjectPtr*	papcKilled;
-	CArrayBaseObjectPtr*	papcKilledNesObjects;
-	CKillOrderCalculator	cKillOrder;
 	CArrayHeapFromPointer	acHeapFromPointers;
 	SHeapFromPointer*		psHeapFromPointer;
 	CBaseObject*			pcFromContainer;
-	CObjects*				pcObjectsThisIn;
 	size					i;
 	size					uiNumEmbedded;
 	size					uiNumPointers;
@@ -348,14 +345,7 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 		}
 		acHeapFromPointers.Kill();
 
-		//Calculate removes Nes objects from papcKilled and puts them into papcKilledNesObjects.
-		cKillOrder.Init(papcKilled);
-		papcKilledNesObjects = cKillOrder.Calculate();
-
-		pcObjectsThisIn = mpcObjectsThisIn;
-		pcObjectsThisIn->Remove(papcKilled, papcKilledNesObjects);
-
-		cKillOrder.Kill();
+		RemoveInKillOrder(papcKilled);
 		cDistCalculator.Kill();
 	}
 	else
@@ -690,7 +680,7 @@ bool CBaseObject::IsDistToRootValid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFreeResult CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
+EFreeResult CBaseObject::TryFree(bool bHeapFromChanged)
 {
 	if (IsEmbedded())
 	{
@@ -698,110 +688,88 @@ EFreeResult CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 		return FR_Error;
 	}
 
-	bool					bHasStackPointers;
-	bool					bHasHeapPointers;
-	bool					bMustKill;
 	CDistCalculator			cDistCalculator;
 	CArrayBaseObjectPtr*	papcKilled;
-	CArrayBaseObjectPtr*	papcKilledNesObjects;
 	CBaseObject*			pcKilled;
 	bool					bOnlyThisKilled;
 	EFreeResult				eResult;
-	CKillOrderCalculator	cKillOrder;
-	CObjects*				pcObjectsThisIn;
 	
 	if (IsRoot())
 	{
 		return FR_NotFreed;
 	}
 
-	if (bKillIfNoRoot)
+	if (miDistToRoot > 0 && !bHeapFromChanged)
 	{
-		if (miDistToRoot > 0 && !bHeapFromChanged)
+		return FR_NotFreed;
+	}
+
+	cDistCalculator.Init();
+	papcKilled = cDistCalculator.Calculate(this, bHeapFromChanged);
+
+	if (papcKilled->NumElements() > 0)
+	{
+		eResult = FR_Freed;
+
+		if (!mpcObjectsThisIn)
 		{
-			return FR_NotFreed;
+			if (papcKilled->NumElements() > 0)
+			{
+				bOnlyThisKilled = false;
+				if (papcKilled->NumElements() == 1)
+				{
+					pcKilled = *papcKilled->Get(0);
+					if (pcKilled == this)
+					{
+						bOnlyThisKilled = true;
+					}
+				}
+
+				if (!bOnlyThisKilled)
+				{
+					gcLogger.Error2(__METHOD__, " Uh, probably if not in an objects then the only pointer to this object should be itself.  Maybe some stack kak?", NULL);
+					return FR_Error;
+				}
+			}
 		}
 		else
 		{
-			cDistCalculator.Init();
-			papcKilled = cDistCalculator.Calculate(this, bHeapFromChanged);
-
-			if (papcKilled->NumElements() > 0)
-			{
-				eResult = FR_Freed;
-
-				if (!mpcObjectsThisIn)
-				{
-					if (papcKilled->NumElements() > 0)
-					{
-						bOnlyThisKilled = false;
-						if (papcKilled->NumElements() == 1)
-						{
-							pcKilled = *papcKilled->Get(0);
-							if (pcKilled == this)
-							{
-								bOnlyThisKilled = true;
-							}
-						}
-
-						if (!bOnlyThisKilled)
-						{
-							gcLogger.Error2(__METHOD__, " Uh, probably if not in an objects then the only pointer to this object should be itself.  Maybe some stack kak?", NULL);
-							return FR_Error;
-						}
-					}
-				}
-				else
-				{
-					cKillOrder.Init(papcKilled);
-
-					//Calculate removes Nes objects from papcKilled and puts them into papcKilledNesObjects.
-					//This is not a complete solution as the Nes objects should be sorted before they are killed but it's good enough for now.
-					papcKilledNesObjects = cKillOrder.Calculate();  
-		
-					pcObjectsThisIn = mpcObjectsThisIn;
-					pcObjectsThisIn->Remove(papcKilled, papcKilledNesObjects);
-
-					cKillOrder.Kill();
-				}
-			}
-			else
-			{
-				eResult = FR_NotFreed;
-			}
-
-			cDistCalculator.Kill();
-
-			return eResult;
+			RemoveInKillOrder(papcKilled);
 		}
 	}
 	else
 	{
-		bHasHeapPointers = HasHeapFroms();
-		bHasStackPointers = HasStackFroms();
-
-		//If we removed a stack pointer and have no more stack pointers and have no heap pointers (regardless of whether or not they can find the root)
-		bMustKill = !bHasHeapPointers && !bHasStackPointers && (miDistToStack == UNKNOWN_DIST_TO_STACK);
-		if (bMustKill)
-		{
-			cDistCalculator.Init();
-			papcKilled = cDistCalculator.Calculate(this, bHeapFromChanged);
-			if (papcKilled->NumElements() > 0)
-			{
-				eResult = FR_Freed;
-			}
-			else
-			{
-				eResult = FR_NotFreed;
-			}
-
-			mpcObjectsThisIn->Remove(papcKilled);
-			cDistCalculator.Kill();
-
-			return eResult;
-		}
-		return FR_NotFreed;
+		eResult = FR_NotFreed;
 	}
+
+	cDistCalculator.Kill();
+
+	return eResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::RemoveInKillOrder(CArrayBaseObjectPtr* papcKilled)
+{
+	//Objects with Nes pointers to them are removed after the Objects that depend on them.
+	//This is not a complete solution as the Nes objects should be sorted before they are killed but it's good enough for now.
+
+	CKillOrderCalculator	cKillOrder;
+	CArrayBaseObjectPtr*	papcKilledNesObjects;
+	CObjects*				pcObjectsThisIn;
+
+	//Calculate removes Nes objects from papcKilled and puts them into papcKilledNesObjects.
+	cKillOrder.Init(papcKilled);
+	papcKilledNesObjects = cKillOrder.Calculate();
+
+	//This can be freed by Remove.
+	pcObjectsThisIn = mpcObjectsThisIn;
+	pcObjectsThisIn->Remove(papcKilled, papcKilledNesObjects);
+
+	cKillOrder.Kill();
 }
 
 

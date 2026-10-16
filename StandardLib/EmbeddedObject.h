@@ -132,8 +132,8 @@ public:
 			bool				HasStackFroms(void);
 			bool				PrivateRemoveStackFrom(CPointer* pcPointer);
 			bool				PrivateRemoveStackFrom(CCollection* pcCollection);
-			EFreeResult			RemoveStackFromTryFree(CPointer* pcPointer, bool bFreeIfNoRoot);
-			EFreeResult			RemoveStackFromTryFree(CCollection* pcCollection, bool bFreeIfNoRoot);
+			EFreeResult			RemoveStackFromTryFree(CPointer* pcPointer);
+			EFreeResult			RemoveStackFromTryFree(CCollection* pcCollection);
 	virtual size				NumStackFroms(void);
 			CStackPointer*		GetFirstStackFrom(void);
 	virtual CEmbeddedObject*	GetClosestHeapFromToStack(void);
