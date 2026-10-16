@@ -25,15 +25,11 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRLEPacketDecoder::Init(uint8* puiData, size uiDataSize, size uiElementSize)
+void CRLEPacketDecoder::Init(CFileReader* pcFile)
 {
-	mpuiData = puiData;
-	muiDataSize = uiDataSize;
-	muiElementSize = uiElementSize;
-	muiPosition = 0;
+	mpcFile = pcFile;
 	miPacketRemaining = 0;
 	mbRun = false;
-	mpuiRunElement = NULL;
 }
 
 
@@ -43,62 +39,36 @@ void CRLEPacketDecoder::Init(uint8* puiData, size uiDataSize, size uiElementSize
 //////////////////////////////////////////////////////////////////////////
 void CRLEPacketDecoder::Kill(void)
 {
-	mpuiData = NULL;
-	muiDataSize = 0;
-	mpuiRunElement = NULL;
+	mpcFile = NULL;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Returns the next decoded element, or NULL if the data is truncated.
-// Every element of a run returns the same pointer so the caller can
-// avoid converting it more than once.
+// Moves to the next element, reading a packet header if needed.  If
+// *pbRepeat is false the caller must read the element from the file next.
+// If it is true the element is the same as the previous one and nothing
+// is read.  Returns false if the data is truncated.
 //
 //////////////////////////////////////////////////////////////////////////
-uint8* CRLEPacketDecoder::Next(void)
+bool CRLEPacketDecoder::Next(bool* pbRepeat)
 {
-	uint8*	puiElement;
+	uint8	uiHeader;
 
 	if (miPacketRemaining == 0)
 	{
-		if (muiPosition >= muiDataSize)
+		if (!mpcFile->ReadInt8(&uiHeader))
 		{
-			return NULL;
+			return false;
 		}
-		mbRun = (mpuiData[muiPosition] & 0x80) != 0;
-		miPacketRemaining = (mpuiData[muiPosition] & 0x7F) + 1;
-		muiPosition++;
-		mpuiRunElement = NULL;
+		mbRun = (uiHeader & 0x80) != 0;
+		miPacketRemaining = (uiHeader & 0x7F) + 1;
+		*pbRepeat = false;
 	}
-
-	if (mbRun && (mpuiRunElement != NULL))
+	else
 	{
-		miPacketRemaining--;
-		return mpuiRunElement;
+		*pbRepeat = mbRun;
 	}
-
-	if (muiPosition + muiElementSize > muiDataSize)
-	{
-		return NULL;
-	}
-	puiElement = &mpuiData[muiPosition];
-	muiPosition += muiElementSize;
 	miPacketRemaining--;
-	if (mbRun)
-	{
-		mpuiRunElement = puiElement;
-	}
-	return puiElement;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The number of bytes of data consumed so far.
-//
-//////////////////////////////////////////////////////////////////////////
-size CRLEPacketDecoder::GetPosition(void)
-{
-	return muiPosition;
+	return true;
 }

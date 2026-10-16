@@ -20,29 +20,26 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __RLE_PACKET_DECODER_H__
 #define __RLE_PACKET_DECODER_H__
-#include "BaseLib/PrimitiveTypes.h"
+#include "BaseLib/FileReader.h"
 
 
 //Decodes packet RLE (as used by Targa images).  Each packet starts with a header byte.  If the top bit is set the
 //packet is a run and is followed by one element repeated (header & 0x7F) + 1 times.  Otherwise it is followed by
 //(header & 0x7F) + 1 raw elements.  An element is any fixed number of bytes, typically one pixel.
+//
+//The decoder reads the packet headers and the caller reads the elements from the same file.
 class CRLEPacketDecoder
 {
 protected:
-	uint8*	mpuiData;
-	size	muiDataSize;
-	size	muiElementSize;
-	size	muiPosition;
-	int		miPacketRemaining;
-	bool	mbRun;
-	uint8*	mpuiRunElement;
+	CFileReader*	mpcFile;
+	int				miPacketRemaining;
+	bool			mbRun;
 
 public:
-	void	Init(uint8* puiData, size uiDataSize, size uiElementSize);
+	void	Init(CFileReader* pcFile);
 	void	Kill(void);
 
-	uint8*	Next(void);
-	size	GetPosition(void);
+	bool	Next(bool* pbRepeat);
 };
 
 

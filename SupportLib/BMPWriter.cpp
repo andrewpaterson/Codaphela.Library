@@ -38,25 +38,61 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Writes the file header, the bitmap header and the palette (if any).
+// The rows are stored bottom up.
 //
 //////////////////////////////////////////////////////////////////////////
-void BMPWriteUInt16(uint8* pui, uint16 ui)
+bool BMPWriteHeaders(CFileWriter* pcFile, int iWidth, int iHeight, int iBitsPerPixel, size uiHeaderSize, size uiPaletteSize, size uiImageSize)
 {
-	pui[0] = (uint8)ui;
-	pui[1] = (uint8)(ui >> 8);
-}
+	size	uiPixelOffset;
+	bool	bBitFields;
+	uint8	auiZero[BMP_V4_HEADER_SIZE];
+	uint32	uiGrey;
+	bool	bResult;
 
+	uiPixelOffset = BMP_FILE_HEADER_SIZE + uiHeaderSize + uiPaletteSize;
+	bBitFields = uiHeaderSize == BMP_V4_HEADER_SIZE;
+	memset(auiZero, 0, sizeof(auiZero));
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void BMPWriteUInt32(uint8* pui, uint32 ui)
-{
-	pui[0] = (uint8)ui;
-	pui[1] = (uint8)(ui >> 8);
-	pui[2] = (uint8)(ui >> 16);
-	pui[3] = (uint8)(ui >> 24);
+	//BITMAPFILEHEADER.
+	bResult =	pcFile->WriteInt8((uint8)'B') &&
+				pcFile->WriteInt8((uint8)'M') &&
+				pcFile->WriteInt32((uint32)(uiPixelOffset + uiImageSize)) &&
+				pcFile->WriteInt32((uint32)0) &&
+				pcFile->WriteInt32((uint32)uiPixelOffset);
+
+	//BITMAPINFOHEADER.  Positive height means the rows are stored bottom up.
+	bResult =	bResult &&
+				pcFile->WriteInt32((uint32)uiHeaderSize) &&
+				pcFile->WriteInt32((uint32)iWidth) &&
+				pcFile->WriteInt32((uint32)iHeight) &&
+				pcFile->WriteInt16((uint16)1) &&
+				pcFile->WriteInt16((uint16)iBitsPerPixel) &&
+				pcFile->WriteInt32((uint32)(bBitFields ? BMP_BITFIELDS : BMP_RGB)) &&
+				pcFile->WriteInt32((uint32)uiImageSize) &&
+				pcFile->WriteInt32((uint32)BMP_PIXELS_PER_METRE) &&
+				pcFile->WriteInt32((uint32)BMP_PIXELS_PER_METRE) &&
+				pcFile->WriteInt32((uint32)(uiPaletteSize / 4)) &&
+				pcFile->WriteInt32((uint32)0);
+
+	if (bBitFields)
+	{
+		//BITMAPV4HEADER masks and colour space.  The end points and gamma are unused for sRGB.
+		bResult =	bResult &&
+					pcFile->WriteInt32((uint32)0x00FF0000) &&
+					pcFile->WriteInt32((uint32)0x0000FF00) &&
+					pcFile->WriteInt32((uint32)0x000000FF) &&
+					pcFile->WriteInt32((uint32)0xFF000000) &&
+					pcFile->WriteInt32((uint32)BMP_LCS_sRGB) &&
+					pcFile->WriteData(auiZero, BMP_V4_HEADER_SIZE - BMP_INFO_HEADER_SIZE - 20);
+	}
+
+	//Blue, green, red, reserved.
+	for (uiGrey = 0; bResult && (uiGrey < uiPaletteSize / 4); uiGrey++)
+	{
+		bResult = pcFile->WriteInt32(uiGrey | (uiGrey << 8) | (uiGrey << 16));
+	}
+	return bResult;
 }
 
 
@@ -75,10 +111,9 @@ bool SaveBMP(Ptr<CImage> pcImage, char* szPathName)
 	size			uiHeaderSize;
 	size			uiPaletteSize;
 	size			uiStride;
-	size			uiPixelOffset;
-	size			uiFileSize;
+	size			uiImageSize;
 	uint8*			pvPixels;
-	uint8*			pvFile;
+	uint8*			pvRows;
 	uint8*			pvRow;
 	uint8*			puiSource;
 	CImage			cImageExport;
@@ -86,7 +121,6 @@ bool SaveBMP(Ptr<CImage> pcImage, char* szPathName)
 	CFileBasic		cFile;
 	int				x;
 	int				y;
-	int				i;
 	bool			bResult;
 
 	if (pcImage.IsNull())
@@ -163,48 +197,13 @@ bool SaveBMP(Ptr<CImage> pcImage, char* szPathName)
 	}
 
 	uiStride = ((iWidth * iBitsPerPixel + 31) / 32) * 4;
-	uiPixelOffset = BMP_FILE_HEADER_SIZE + uiHeaderSize + uiPaletteSize;
-	uiFileSize = uiPixelOffset + uiStride * iHeight;
-	pvFile = (uint8*)malloc(uiFileSize);
-	memset(pvFile, 0, uiFileSize);
-
-	pvFile[0] = 'B';
-	pvFile[1] = 'M';
-	BMPWriteUInt32(&pvFile[2], (uint32)uiFileSize);
-	BMPWriteUInt32(&pvFile[10], (uint32)uiPixelOffset);
-
-	BMPWriteUInt32(&pvFile[14], (uint32)uiHeaderSize);
-	BMPWriteUInt32(&pvFile[18], (uint32)iWidth);
-	BMPWriteUInt32(&pvFile[22], (uint32)iHeight);  //Positive height means the rows are stored bottom up.
-	BMPWriteUInt16(&pvFile[26], 1);
-	BMPWriteUInt16(&pvFile[28], (uint16)iBitsPerPixel);
-	BMPWriteUInt32(&pvFile[30], bAlpha ? BMP_BITFIELDS : BMP_RGB);
-	BMPWriteUInt32(&pvFile[34], (uint32)(uiStride * iHeight));
-	BMPWriteUInt32(&pvFile[38], BMP_PIXELS_PER_METRE);
-	BMPWriteUInt32(&pvFile[42], BMP_PIXELS_PER_METRE);
-	BMPWriteUInt32(&pvFile[46], bGrey && !bAlpha ? 256 : 0);
-	if (bAlpha)
-	{
-		BMPWriteUInt32(&pvFile[54], 0x00FF0000);
-		BMPWriteUInt32(&pvFile[58], 0x0000FF00);
-		BMPWriteUInt32(&pvFile[62], 0x000000FF);
-		BMPWriteUInt32(&pvFile[66], 0xFF000000);
-		BMPWriteUInt32(&pvFile[70], BMP_LCS_sRGB);
-	}
-
-	if (uiPaletteSize != 0)
-	{
-		for (i = 0; i < 256; i++)
-		{
-			pvFile[BMP_FILE_HEADER_SIZE + uiHeaderSize + i * 4] = (uint8)i;
-			pvFile[BMP_FILE_HEADER_SIZE + uiHeaderSize + i * 4 + 1] = (uint8)i;
-			pvFile[BMP_FILE_HEADER_SIZE + uiHeaderSize + i * 4 + 2] = (uint8)i;
-		}
-	}
+	uiImageSize = uiStride * iHeight;
+	pvRows = (uint8*)malloc(uiImageSize);
+	memset(pvRows, 0, uiImageSize);
 
 	for (y = 0; y < iHeight; y++)
 	{
-		pvRow = &pvFile[uiPixelOffset + (iHeight - 1 - y) * uiStride];
+		pvRow = &pvRows[(iHeight - 1 - y) * uiStride];
 		for (x = 0; x < iWidth; x++)
 		{
 			puiSource = &pvPixels[(y * iWidth + x) * uiNumChannels];
@@ -240,11 +239,11 @@ bool SaveBMP(Ptr<CImage> pcImage, char* szPathName)
 	bResult = cFile.Open(EFM_Write_Create);
 	if (bResult)
 	{
-		bResult = cFile.Write(pvFile, uiFileSize, 1) == 1;
+		bResult = BMPWriteHeaders(&cFile, iWidth, iHeight, iBitsPerPixel, uiHeaderSize, uiPaletteSize, uiImageSize) && cFile.WriteData(pvRows, uiImageSize);
 		cFile.Close();
 	}
 	cFile.Kill();
-	free(pvFile);
+	free(pvRows);
 
 	if (!bResult)
 	{

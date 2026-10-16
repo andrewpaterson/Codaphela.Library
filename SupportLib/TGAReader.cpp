@@ -20,6 +20,8 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
 #include <string.h>
+#include "BaseLib/FileBasic.h"
+#include "BaseLib/MemoryFile.h"
 #include "BaseLib/Logger.h"
 #include "RLEPacketDecoder.h"
 #include "ImageReaderCommon.h"
@@ -78,18 +80,22 @@ uint8 TGAScale5Bits(int iValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Converts one 15, 16, 24 or 32 bit colour (from the colour map or a true
-// colour pixel) to red, green, blue and alpha.  The attribute bit of a 16
+// Reads one 15, 16, 24 or 32 bit colour (from the colour map or a true
+// colour pixel) as red, green, blue and alpha.  The attribute bit of a 16
 // bit colour is ignored.
 //
 //////////////////////////////////////////////////////////////////////////
-void TGADecodeColour(uint8* puiSource, int iBits, uint8* puiRGBA)
+bool TGAReadColour(CFileReader* pcFile, int iBits, uint8* puiRGBA)
 {
 	uint16	uiValue;
+	uint8	auiBGRA[4];
 
 	if ((iBits == 15) || (iBits == 16))
 	{
-		uiValue = ReadLittleEndianUInt16(puiSource);
+		if (!pcFile->ReadInt16(&uiValue))
+		{
+			return false;
+		}
 		puiRGBA[0] = TGAScale5Bits((uiValue >> 10) & 0x1F);
 		puiRGBA[1] = TGAScale5Bits((uiValue >> 5) & 0x1F);
 		puiRGBA[2] = TGAScale5Bits(uiValue & 0x1F);
@@ -97,11 +103,57 @@ void TGADecodeColour(uint8* puiSource, int iBits, uint8* puiRGBA)
 	}
 	else
 	{
-		puiRGBA[0] = puiSource[2];
-		puiRGBA[1] = puiSource[1];
-		puiRGBA[2] = puiSource[0];
-		puiRGBA[3] = (iBits == 32) ? puiSource[3] : 255;
+		if (!pcFile->ReadData(auiBGRA, iBits / 8))
+		{
+			return false;
+		}
+		puiRGBA[0] = auiBGRA[2];
+		puiRGBA[1] = auiBGRA[1];
+		puiRGBA[2] = auiBGRA[0];
+		puiRGBA[3] = (iBits == 32) ? auiBGRA[3] : 255;
 	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Reads the fixed size header.  The image origin is skipped.
+//
+//////////////////////////////////////////////////////////////////////////
+bool TGAReadHeader(CFileBasic* pcFile, STGAInfo* psInfo)
+{
+	uint8	uiIDLength;
+	uint8	uiColourMapType;
+	uint8	uiImageType;
+	uint16	uiColourMapFirst;
+	uint16	uiColourMapLength;
+	uint8	uiColourMapEntryBits;
+	uint16	uiWidth;
+	uint16	uiHeight;
+	uint8	uiPixelBits;
+	uint8	uiDescriptor;
+
+	if (!pcFile->ReadInt8(&uiIDLength) || !pcFile->ReadInt8(&uiColourMapType) || !pcFile->ReadInt8(&uiImageType) ||
+		!pcFile->ReadInt16(&uiColourMapFirst) || !pcFile->ReadInt16(&uiColourMapLength) || !pcFile->ReadInt8(&uiColourMapEntryBits) ||
+		!pcFile->Seek(12) || !pcFile->ReadInt16(&uiWidth) || !pcFile->ReadInt16(&uiHeight) || !pcFile->ReadInt8(&uiPixelBits) || !pcFile->ReadInt8(&uiDescriptor))
+	{
+		return false;
+	}
+
+	psInfo->iIDLength = uiIDLength;
+	psInfo->iColourMapType = uiColourMapType;
+	psInfo->iImageType = uiImageType;
+	psInfo->iColourMapFirst = uiColourMapFirst;
+	psInfo->iColourMapLength = uiColourMapLength;
+	psInfo->iColourMapEntryBits = uiColourMapEntryBits;
+	psInfo->iWidth = uiWidth;
+	psInfo->iHeight = uiHeight;
+	psInfo->iPixelBits = uiPixelBits;
+	psInfo->iAlphaBits = uiDescriptor & TGA_ALPHA_BITS;
+	psInfo->bRightToLeft = (uiDescriptor & TGA_RIGHT_TO_LEFT) != 0;
+	psInfo->bTopToBottom = (uiDescriptor & TGA_TOP_TO_BOTTOM) != 0;
+	return true;
 }
 
 
@@ -109,29 +161,16 @@ void TGADecodeColour(uint8* puiSource, int iBits, uint8* puiRGBA)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool TGAReadInfo(uint8* pvFile, size uiFileSize, STGAInfo* psInfo)
+bool TGAReadInfo(CFileBasic* pcFile, size uiFileSize, STGAInfo* psInfo)
 {
 	int		iEntryBytes;
 	int		i;
 
 	psInfo->puiColourMap = NULL;
-	if (uiFileSize < TGA_HEADER_SIZE)
+	if ((uiFileSize < TGA_HEADER_SIZE) || !TGAReadHeader(pcFile, psInfo))
 	{
 		return false;
 	}
-
-	psInfo->iIDLength = pvFile[0];
-	psInfo->iColourMapType = pvFile[1];
-	psInfo->iImageType = pvFile[2];
-	psInfo->iColourMapFirst = ReadLittleEndianUInt16(&pvFile[3]);
-	psInfo->iColourMapLength = ReadLittleEndianUInt16(&pvFile[5]);
-	psInfo->iColourMapEntryBits = pvFile[7];
-	psInfo->iWidth = ReadLittleEndianUInt16(&pvFile[12]);
-	psInfo->iHeight = ReadLittleEndianUInt16(&pvFile[14]);
-	psInfo->iPixelBits = pvFile[16];
-	psInfo->iAlphaBits = pvFile[17] & TGA_ALPHA_BITS;
-	psInfo->bRightToLeft = (pvFile[17] & TGA_RIGHT_TO_LEFT) != 0;
-	psInfo->bTopToBottom = (pvFile[17] & TGA_TOP_TO_BOTTOM) != 0;
 
 	psInfo->bRLE = (psInfo->iImageType & TGA_RLE) != 0;
 	psInfo->iBaseType = psInfo->iImageType & ~TGA_RLE;
@@ -200,9 +239,16 @@ bool TGAReadInfo(uint8* pvFile, size uiFileSize, STGAInfo* psInfo)
 			{
 				return false;
 			}
+			if (!pcFile->Seek(psInfo->uiColourMapOffset))
+			{
+				return false;
+			}
 			for (i = 0; i < psInfo->iColourMapLength; i++)
 			{
-				TGADecodeColour(&pvFile[psInfo->uiColourMapOffset + i * iEntryBytes], psInfo->iColourMapEntryBits, &psInfo->puiColourMap[i * 4]);
+				if (!TGAReadColour(pcFile, psInfo->iColourMapEntryBits, &psInfo->puiColourMap[i * 4]))
+				{
+					return false;
+				}
 			}
 		}
 	}
@@ -225,15 +271,36 @@ bool TGAReadInfo(uint8* pvFile, size uiFileSize, STGAInfo* psInfo)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Reads one pixel from the current position of pcFile.
 //
 //////////////////////////////////////////////////////////////////////////
-void TGADecodePixel(STGAInfo* psInfo, uint8* puiSource, uint8* puiRGBA)
+bool TGAReadPixel(CFileReader* pcFile, STGAInfo* psInfo, uint8* puiRGBA)
 {
+	uint8	uiIndex8;
+	uint16	uiIndex16;
 	int		iIndex;
+	uint8	uiGrey;
+	uint8	uiAlpha;
 
 	if (psInfo->iBaseType == TGA_COLOUR_MAPPED)
 	{
-		iIndex = (psInfo->iPixelBits == 8) ? puiSource[0] : ReadLittleEndianUInt16(puiSource);
+		if (psInfo->iPixelBits == 8)
+		{
+			if (!pcFile->ReadInt8(&uiIndex8))
+			{
+				return false;
+			}
+			iIndex = uiIndex8;
+		}
+		else
+		{
+			if (!pcFile->ReadInt16(&uiIndex16))
+			{
+				return false;
+			}
+			iIndex = uiIndex16;
+		}
+
 		iIndex -= psInfo->iColourMapFirst;
 		if ((iIndex >= 0) && (iIndex < psInfo->iColourMapLength))
 		{
@@ -246,17 +313,28 @@ void TGADecodePixel(STGAInfo* psInfo, uint8* puiSource, uint8* puiRGBA)
 			puiRGBA[2] = 0;
 			puiRGBA[3] = 255;
 		}
+		return true;
 	}
 	else if (psInfo->iBaseType == TGA_TRUE_COLOUR)
 	{
-		TGADecodeColour(puiSource, psInfo->iPixelBits, puiRGBA);
+		return TGAReadColour(pcFile, psInfo->iPixelBits, puiRGBA);
 	}
 	else
 	{
-		puiRGBA[0] = puiSource[0];
-		puiRGBA[1] = puiSource[0];
-		puiRGBA[2] = puiSource[0];
-		puiRGBA[3] = (psInfo->iPixelBits == 16) ? puiSource[1] : 255;
+		if (!pcFile->ReadInt8(&uiGrey))
+		{
+			return false;
+		}
+		uiAlpha = 255;
+		if ((psInfo->iPixelBits == 16) && !pcFile->ReadInt8(&uiAlpha))
+		{
+			return false;
+		}
+		puiRGBA[0] = uiGrey;
+		puiRGBA[1] = uiGrey;
+		puiRGBA[2] = uiGrey;
+		puiRGBA[3] = uiAlpha;
+		return true;
 	}
 }
 
@@ -267,52 +345,47 @@ void TGADecodePixel(STGAInfo* psInfo, uint8* puiSource, uint8* puiRGBA)
 // to right).
 //
 //////////////////////////////////////////////////////////////////////////
-bool TGADecodePixels(uint8* pvFile, size uiFileSize, STGAInfo* psInfo, uint8* puiRGBA)
+bool TGADecodePixels(CFileBasic* pcFile, STGAInfo* psInfo, uint8* puiRGBA)
 {
-	uint8*				pvData;
-	size				uiDataSize;
 	int					iNumPixels;
 	int					iPixel;
-	uint8*				puiSource;
-	uint8*				puiLastSource;
+	bool				bRepeat;
 	uint8				auiPixel[4];
 	int					iFileRow;
 	int					iFileColumn;
 	int					x;
 	int					y;
 	CRLEPacketDecoder	cDecoder;
+	bool				bResult;
 
-	pvData = &pvFile[psInfo->uiPixelOffset];
-	uiDataSize = uiFileSize - psInfo->uiPixelOffset;
+	if (!pcFile->Seek(psInfo->uiPixelOffset))
+	{
+		return false;
+	}
+
 	iNumPixels = psInfo->iWidth * psInfo->iHeight;
-	cDecoder.Init(pvData, uiDataSize, psInfo->iPixelBytes);
-	puiLastSource = NULL;
+	cDecoder.Init(pcFile);
+	bResult = true;
+	bRepeat = false;
 	for (iPixel = 0; iPixel < iNumPixels; iPixel++)
 	{
 		if (psInfo->bRLE)
 		{
-			puiSource = cDecoder.Next();
-			if (puiSource == NULL)
+			bResult = cDecoder.Next(&bRepeat);
+			if (!bResult)
 			{
-				cDecoder.Kill();
-				return false;
+				break;
 			}
-		}
-		else
-		{
-			if ((size)(iPixel + 1) * psInfo->iPixelBytes > uiDataSize)
-			{
-				cDecoder.Kill();
-				return false;
-			}
-			puiSource = &pvData[iPixel * psInfo->iPixelBytes];
 		}
 
-		//Each pixel of a run has the same source so only needs to be decoded once.
-		if (puiSource != puiLastSource)
+		//Each pixel of a run after the first is the same, so is only read once.
+		if (!bRepeat)
 		{
-			TGADecodePixel(psInfo, puiSource, auiPixel);
-			puiLastSource = puiSource;
+			bResult = TGAReadPixel(pcFile, psInfo, auiPixel);
+			if (!bResult)
+			{
+				break;
+			}
 		}
 
 		iFileRow = iPixel / psInfo->iWidth;
@@ -322,7 +395,7 @@ bool TGADecodePixels(uint8* pvFile, size uiFileSize, STGAInfo* psInfo, uint8* pu
 		memcpy(&puiRGBA[(y * psInfo->iWidth + x) * 4], auiPixel, 4);
 	}
 	cDecoder.Kill();
-	return true;
+	return bResult;
 }
 
 
@@ -334,13 +407,14 @@ Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug)
 {
 	size			uiFileSize;
 	uint8*			pvFile;
+	CFileBasic		cFile;
 	STGAInfo		sInfo;
+	bool			bValid;
+	bool			bDecoded;
 	uint8*			puiRGBA;
 	bool			bGrey;
 	bool			bAlpha;
 	int				i;
-	int				iNumPixels;
-	uint8*			puiDest;
 	Ptr<CImage>		pcImage;
 
 	pvFile = LoadFileIntoMemory(szFilename, &uiFileSize);
@@ -349,25 +423,37 @@ Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug)
 		return NULL;
 	}
 
-	if (!TGAReadInfo(pvFile, uiFileSize, &sInfo))
+	sInfo.puiColourMap = NULL;
+	puiRGBA = NULL;
+	bDecoded = false;
+	cFile.Init(MemoryFile(pvFile, uiFileSize));
+	bValid = cFile.Open(EFM_Read);
+	if (bValid)
+	{
+		bValid = TGAReadInfo(&cFile, uiFileSize, &sInfo);
+		if (bValid)
+		{
+			puiRGBA = (uint8*)malloc(sInfo.iWidth * sInfo.iHeight * 4);
+			bDecoded = (puiRGBA != NULL) && TGADecodePixels(&cFile, &sInfo, puiRGBA);
+		}
+		cFile.Close();
+	}
+	cFile.Kill();
+	free(pvFile);
+
+	if (!bValid)
 	{
 		free(sInfo.puiColourMap);
-		free(pvFile);
 		gcLogger.Error2(__METHOD__, " [", szFilename, "] is not a supported Targa image.", NULL);
 		return NULL;
 	}
-
-	iNumPixels = sInfo.iWidth * sInfo.iHeight;
-	puiRGBA = (uint8*)malloc(iNumPixels * 4);
-	if ((puiRGBA == NULL) || !TGADecodePixels(pvFile, uiFileSize, &sInfo, puiRGBA))
+	if (!bDecoded)
 	{
 		free(puiRGBA);
 		free(sInfo.puiColourMap);
-		free(pvFile);
 		gcLogger.Error2(__METHOD__, " [", szFilename, "] pixel data is truncated or corrupt.", NULL);
 		return NULL;
 	}
-	free(pvFile);
 
 	if (sInfo.iBaseType == TGA_COLOUR_MAPPED)
 	{
@@ -414,33 +500,11 @@ Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug)
 		pcImage = OMalloc<CImage>(sInfo.iWidth, sInfo.iHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 	}
 
-	puiDest = (uint8*)pcImage->GetData();
-	if (puiDest == NULL)
+	if ((pcImage->GetData() == NULL) || !CopyRGBAIntoImage(puiRGBA, bGrey, pcImage))
 	{
 		free(puiRGBA);
-		gcLogger.Error2(__METHOD__, " Could not allocate image for [", szFilename, "].", NULL);
+		gcLogger.Error2(__METHOD__, " Could not create image for [", szFilename, "].", NULL);
 		return NULL;
-	}
-	for (i = 0; i < iNumPixels; i++)
-	{
-		if (bGrey && bAlpha)
-		{
-			puiDest[i * 2] = puiRGBA[i * 4 + 3];
-			puiDest[i * 2 + 1] = puiRGBA[i * 4];
-		}
-		else if (bGrey)
-		{
-			puiDest[i] = puiRGBA[i * 4];
-		}
-		else if (bAlpha)
-		{
-			puiDest[i * 4] = puiRGBA[i * 4 + 3];
-			memcpy(&puiDest[i * 4 + 1], &puiRGBA[i * 4], 3);
-		}
-		else
-		{
-			memcpy(&puiDest[i * 3], &puiRGBA[i * 4], 3);
-		}
 	}
 	free(puiRGBA);
 

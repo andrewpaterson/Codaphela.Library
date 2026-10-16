@@ -60,91 +60,100 @@ void CRLEBitmapDecoder::SetIndex(uint8* puiIndices, int x, int y, uint8 uiIndex)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Decodes into puiIndices (miWidth * miHeight bytes).  The rows are in
-// file order (bottom up).  Pixels that are skipped are left unchanged.
+// Decodes from the current position of pcFile into puiIndices (miWidth *
+// miHeight bytes).  The rows are in file order (bottom up).  Pixels that
+// are skipped are left unchanged.  The end of the file is treated as the
+// end of the bitmap, except part way through a delta or absolute run.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CRLEBitmapDecoder::Decode(uint8* puiData, size uiDataSize, uint8* puiIndices)
+bool CRLEBitmapDecoder::Decode(CFileReader* pcFile, uint8* puiIndices)
 {
-	size	uiPos;
 	int		x;
 	int		y;
-	int		iCount;
-	int		iValue;
+	uint8	uiCount;
+	uint8	uiValue;
+	uint8	uiDeltaX;
+	uint8	uiDeltaY;
+	uint8	uiByte;
 	int		i;
-	size	uiBytes;
 
-	uiPos = 0;
 	x = 0;
 	y = 0;
-	while (uiPos + 1 < uiDataSize)
+	for (;;)
 	{
-		iCount = puiData[uiPos];
-		iValue = puiData[uiPos + 1];
-		uiPos += 2;
-		if (iCount > 0)
+		if (!pcFile->ReadInt8(&uiCount) || !pcFile->ReadInt8(&uiValue))
 		{
-			for (i = 0; (i < iCount) && (x < miWidth); i++)
+			return true;
+		}
+
+		if (uiCount > 0)
+		{
+			for (i = 0; (i < uiCount) && (x < miWidth); i++)
 			{
 				if (mbFourBit)
 				{
-					SetIndex(puiIndices, x, y, (uint8)((i & 1) ? (iValue & 0xF) : (iValue >> 4)));
+					SetIndex(puiIndices, x, y, (uint8)((i & 1) ? (uiValue & 0xF) : (uiValue >> 4)));
 				}
 				else
 				{
-					SetIndex(puiIndices, x, y, (uint8)iValue);
+					SetIndex(puiIndices, x, y, uiValue);
 				}
 				x++;
 			}
 		}
-		else if (iValue == 0)
+		else if (uiValue == 0)
 		{
 			//End of line.
 			x = 0;
 			y++;
 		}
-		else if (iValue == 1)
+		else if (uiValue == 1)
 		{
 			//End of bitmap.
 			return true;
 		}
-		else if (iValue == 2)
+		else if (uiValue == 2)
 		{
 			//Delta.
-			if (uiPos + 1 >= uiDataSize)
+			if (!pcFile->ReadInt8(&uiDeltaX) || !pcFile->ReadInt8(&uiDeltaY))
 			{
 				return false;
 			}
-			x += puiData[uiPos];
-			y += puiData[uiPos + 1];
-			uiPos += 2;
+			x += uiDeltaX;
+			y += uiDeltaY;
 		}
 		else
 		{
-			//Absolute run of iValue pixels, padded to a 16 bit boundary.
-			uiBytes = mbFourBit ? (iValue + 1) / 2 : iValue;
-			if (uiPos + uiBytes > uiDataSize)
+			//Absolute run of uiValue pixels.  RLE4 has two pixels per byte.
+			uiByte = 0;
+			for (i = 0; i < uiValue; i++)
 			{
-				return false;
-			}
-			for (i = 0; i < iValue; i++)
-			{
+				if (!mbFourBit || ((i & 1) == 0))
+				{
+					if (!pcFile->ReadInt8(&uiByte))
+					{
+						return false;
+					}
+				}
 				if (mbFourBit)
 				{
-					SetIndex(puiIndices, x, y, (uint8)((i & 1) ? (puiData[uiPos + i / 2] & 0xF) : (puiData[uiPos + i / 2] >> 4)));
+					SetIndex(puiIndices, x, y, (uint8)((i & 1) ? (uiByte & 0xF) : (uiByte >> 4)));
 				}
 				else
 				{
-					SetIndex(puiIndices, x, y, puiData[uiPos + i]);
+					SetIndex(puiIndices, x, y, uiByte);
 				}
 				x++;
 			}
-			uiPos += uiBytes;
-			if (uiBytes & 1)
+
+			//Padded to a 16 bit boundary.
+			if ((mbFourBit ? (uiValue + 1) / 2 : uiValue) & 1)
 			{
-				uiPos++;
+				if (!pcFile->ReadInt8(&uiByte))
+				{
+					return true;
+				}
 			}
 		}
 	}
-	return true;
 }

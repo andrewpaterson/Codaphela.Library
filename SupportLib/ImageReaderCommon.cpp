@@ -22,27 +22,8 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/Logger.h"
+#include "ImageCopier.h"
 #include "ImageReaderCommon.h"
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-uint16 ReadLittleEndianUInt16(uint8* pui)
-{
-	return (uint16)(pui[0] | (pui[1] << 8));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-uint32 ReadLittleEndianUInt32(uint8* pui)
-{
-	return (uint32)pui[0] | ((uint32)pui[1] << 8) | ((uint32)pui[2] << 16) | ((uint32)pui[3] << 24);
-}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -84,4 +65,34 @@ uint8* LoadFileIntoMemory(char* szFilename, size* puiFileSize)
 
 	*puiFileSize = (size)iFileSize;
 	return pvFile;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CopyRGBAIntoImage(uint8* puiRGBA, bool bGrey, Ptr<CImage> pcImage)
+{
+	CImage			cImageImport;
+	CImageCopier	cCopier;
+	bool			bResult;
+
+	if (bGrey)
+	{
+		cImageImport.Init(pcImage->GetWidth(), pcImage->GetHeight(), puiRGBA, PT_uint8, IMAGE_DIFFUSE_GREY, IMAGE_IGNORED, IMAGE_IGNORED, IMAGE_OPACITY, CHANNEL_STOP);
+	}
+	else
+	{
+		cImageImport.Init(pcImage->GetWidth(), pcImage->GetHeight(), puiRGBA, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	}
+
+	bResult = cCopier.Init(&cImageImport, pcImage);
+	if (bResult)
+	{
+		cCopier.Copy(0, 0);
+	}
+	cCopier.Kill();
+	cImageImport.Kill();
+	return bResult;
 }
