@@ -186,9 +186,6 @@ Tiles
   Layers
   XML
 
--- ImageLib --
-PNG and ZLib sources (Use libraries instead)
-
 -- InputLib --
 
 -- WindowLib -- (Depends on DirectXLib and WorldLib ?!?)

@@ -67,6 +67,12 @@ public:
 						bool	WriteLittleEndianInt32(int32 i);
 						bool	WriteLittleEndianInt32(uint32 ui);
 
+	//Most significant byte first, whatever the platform's byte order.
+						bool	WriteBigEndianInt16(int16 i);
+						bool	WriteBigEndianInt16(uint16 ui);
+						bool	WriteBigEndianInt32(int32 i);
+						bool	WriteBigEndianInt32(uint32 ui);
+
 						template<class M>
 						bool	WritePrimitive(M c);
 

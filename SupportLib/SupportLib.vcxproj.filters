@@ -687,6 +687,9 @@
     <ClInclude Include="SFTCommon.h">
       <Filter>Source\Image\IO\Common</Filter>
     </ClInclude>
+    <ClInclude Include="PNGCommon.h">
+      <Filter>Source\Image\IO\Common</Filter>
+    </ClInclude>
     <ClInclude Include="ImageReaderCommon.h">
       <Filter>Source\Image\IO\Common</Filter>
     </ClInclude>
@@ -1287,6 +1290,9 @@
       <Filter>Source\Image\IO\Reader</Filter>
     </ClCompile>
     <ClCompile Include="SFTCommon.cpp">
+      <Filter>Source\Image\IO\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="PNGCommon.cpp">
       <Filter>Source\Image\IO\Common</Filter>
     </ClCompile>
     <ClCompile Include="ImageReaderCommon.cpp">

@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2009 Andrew Paterson
+Copyright (c) 2026 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela SupportLib
 
@@ -17,18 +17,15 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
-libpng is Copyright Glenn Randers-Pehrson
-zlib is Copyright Jean-loup Gailly and Mark Adler
-
 ** ------------------------------------------------------------------------ **/
 #ifndef __PNG_READER_H__
 #define __PNG_READER_H__
-#include "ImageLib/png.h"
 #include "Image.h"
 
 
+//Reads grey, grey with alpha, RGB and RGBA PNGs of any bit depth, and palette PNGs (alpha from tRNS), interlaced or not.
+//1, 2 and 4 bit grey is read as 8 bit.  Palettes that are all grey are read as grey.  Opacity is the first channel.
 Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug = false);
 
 
-#endif //__PNG_READER_H__
-
+#endif // __PNG_READER_H__

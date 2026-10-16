@@ -17,17 +17,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
-libpng is Copyright Glenn Randers-Pehrson
-zlib is Copyright Jean-loup Gailly and Mark Adler
-
 ** ------------------------------------------------------------------------ **/
 #ifndef __PNG_WRITER_H__
 #define __PNG_WRITER_H__
 #include "Image.h"
 
 
+//Writes RGBA, RGB, grey with alpha and grey PNGs, 16 bit if any written channel is 16 bit or wider, otherwise 8 bit.
 bool SavePNG(Ptr<CImage> pcImage, char* szPathName);
 
 
 #endif // __PNG_WRITER_H__
-
