@@ -7,6 +7,7 @@
 
 class CNativeWindowFactory;
 class CNativeCanvas;
+class CWindow;
 class CNativeWindow : public CNativeComponent
 {
 CONSTRUCTABLE(CNativeWindow);
