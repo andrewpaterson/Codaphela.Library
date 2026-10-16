@@ -18,54 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include <stdlib.h>
-#include "BaseLib/DiskFile.h"
-#include "BaseLib/FileBasic.h"
-#include "BaseLib/Logger.h"
 #include "ImageCopier.h"
 #include "ImageReaderCommon.h"
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-uint8* LoadFileIntoMemory(char* szFilename, size* puiFileSize)
-{
-	CFileBasic	cFile;
-	filePos		iFileSize;
-	uint8*		pvFile;
-
-	cFile.Init(DiskFile(szFilename));
-	if (!cFile.Open(EFM_Read))
-	{
-		cFile.Kill();
-		gcLogger.Error2(__METHOD__, " Could not open [", szFilename, "].", NULL);
-		return NULL;
-	}
-	iFileSize = cFile.GetFileLength();
-	if ((iFileSize <= 0) || (iFileSize > 0x7FFFFFFF))
-	{
-		cFile.Close();
-		cFile.Kill();
-		gcLogger.Error2(__METHOD__, " Could not read [", szFilename, "].", NULL);
-		return NULL;
-	}
-	pvFile = (uint8*)malloc((size)iFileSize);
-	if ((pvFile == NULL) || (cFile.Read(pvFile, (size)iFileSize, 1) != 1))
-	{
-		free(pvFile);
-		cFile.Close();
-		cFile.Kill();
-		gcLogger.Error2(__METHOD__, " Could not read [", szFilename, "].", NULL);
-		return NULL;
-	}
-	cFile.Close();
-	cFile.Kill();
-
-	*puiFileSize = (size)iFileSize;
-	return pvFile;
-}
 
 
 //////////////////////////////////////////////////////////////////////////

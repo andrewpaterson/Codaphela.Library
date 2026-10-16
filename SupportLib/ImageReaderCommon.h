@@ -24,9 +24,6 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Image.h"
 
 
-//Reads the whole file into memory.  The caller frees the result.  Logs an error and returns NULL if it can't be read.
-uint8*	LoadFileIntoMemory(char* szFilename, size* puiFileSize);
-
 //Copies decoded pixels (red, green, blue, alpha; 4 bytes per pixel, top row first) into pcImage, keeping only the channels pcImage has.
 //If bGrey the red byte is the grey value.
 bool	CopyRGBAIntoImage(uint8* puiRGBA, bool bGrey, Ptr<CImage> pcImage);

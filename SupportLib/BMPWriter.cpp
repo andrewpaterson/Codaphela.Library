@@ -57,40 +57,40 @@ bool BMPWriteHeaders(CFileWriter* pcFile, int iWidth, int iHeight, int iBitsPerP
 	//BITMAPFILEHEADER.
 	bResult =	pcFile->WriteInt8((uint8)'B') &&
 				pcFile->WriteInt8((uint8)'M') &&
-				pcFile->WriteInt32((uint32)(uiPixelOffset + uiImageSize)) &&
-				pcFile->WriteInt32((uint32)0) &&
-				pcFile->WriteInt32((uint32)uiPixelOffset);
+				pcFile->WriteLittleEndianInt32((uint32)(uiPixelOffset + uiImageSize)) &&
+				pcFile->WriteLittleEndianInt32((uint32)0) &&
+				pcFile->WriteLittleEndianInt32((uint32)uiPixelOffset);
 
 	//BITMAPINFOHEADER.  Positive height means the rows are stored bottom up.
 	bResult =	bResult &&
-				pcFile->WriteInt32((uint32)uiHeaderSize) &&
-				pcFile->WriteInt32((uint32)iWidth) &&
-				pcFile->WriteInt32((uint32)iHeight) &&
-				pcFile->WriteInt16((uint16)1) &&
-				pcFile->WriteInt16((uint16)iBitsPerPixel) &&
-				pcFile->WriteInt32((uint32)(bBitFields ? BMP_BITFIELDS : BMP_RGB)) &&
-				pcFile->WriteInt32((uint32)uiImageSize) &&
-				pcFile->WriteInt32((uint32)BMP_PIXELS_PER_METRE) &&
-				pcFile->WriteInt32((uint32)BMP_PIXELS_PER_METRE) &&
-				pcFile->WriteInt32((uint32)(uiPaletteSize / 4)) &&
-				pcFile->WriteInt32((uint32)0);
+				pcFile->WriteLittleEndianInt32((uint32)uiHeaderSize) &&
+				pcFile->WriteLittleEndianInt32((uint32)iWidth) &&
+				pcFile->WriteLittleEndianInt32((uint32)iHeight) &&
+				pcFile->WriteLittleEndianInt16((uint16)1) &&
+				pcFile->WriteLittleEndianInt16((uint16)iBitsPerPixel) &&
+				pcFile->WriteLittleEndianInt32((uint32)(bBitFields ? BMP_BITFIELDS : BMP_RGB)) &&
+				pcFile->WriteLittleEndianInt32((uint32)uiImageSize) &&
+				pcFile->WriteLittleEndianInt32((uint32)BMP_PIXELS_PER_METRE) &&
+				pcFile->WriteLittleEndianInt32((uint32)BMP_PIXELS_PER_METRE) &&
+				pcFile->WriteLittleEndianInt32((uint32)(uiPaletteSize / 4)) &&
+				pcFile->WriteLittleEndianInt32((uint32)0);
 
 	if (bBitFields)
 	{
 		//BITMAPV4HEADER masks and colour space.  The end points and gamma are unused for sRGB.
 		bResult =	bResult &&
-					pcFile->WriteInt32((uint32)0x00FF0000) &&
-					pcFile->WriteInt32((uint32)0x0000FF00) &&
-					pcFile->WriteInt32((uint32)0x000000FF) &&
-					pcFile->WriteInt32((uint32)0xFF000000) &&
-					pcFile->WriteInt32((uint32)BMP_LCS_sRGB) &&
+					pcFile->WriteLittleEndianInt32((uint32)0x00FF0000) &&
+					pcFile->WriteLittleEndianInt32((uint32)0x0000FF00) &&
+					pcFile->WriteLittleEndianInt32((uint32)0x000000FF) &&
+					pcFile->WriteLittleEndianInt32((uint32)0xFF000000) &&
+					pcFile->WriteLittleEndianInt32((uint32)BMP_LCS_sRGB) &&
 					pcFile->WriteData(auiZero, BMP_V4_HEADER_SIZE - BMP_INFO_HEADER_SIZE - 20);
 	}
 
 	//Blue, green, red, reserved.
 	for (uiGrey = 0; bResult && (uiGrey < uiPaletteSize / 4); uiGrey++)
 	{
-		bResult = pcFile->WriteInt32(uiGrey | (uiGrey << 8) | (uiGrey << 16));
+		bResult = pcFile->WriteLittleEndianInt32(uiGrey | (uiGrey << 8) | (uiGrey << 16));
 	}
 	return bResult;
 }

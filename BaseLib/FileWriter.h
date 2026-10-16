@@ -61,6 +61,12 @@ public:
 
 						bool	WriteIntArray(int32* pai, size iLength);
 
+	//Least significant byte first, whatever the platform's byte order.
+						bool	WriteLittleEndianInt16(int16 i);
+						bool	WriteLittleEndianInt16(uint16 ui);
+						bool	WriteLittleEndianInt32(int32 i);
+						bool	WriteLittleEndianInt32(uint32 ui);
+
 						template<class M>
 						bool	WritePrimitive(M c);
 
