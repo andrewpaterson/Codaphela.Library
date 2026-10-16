@@ -84,3 +84,4 @@ bool PNGWriteChunk(CFileWriter* pcFile, const char* szType, uint8* puiData, size
 			((uiLength == 0) || pcFile->WriteData(puiData, uiLength)) &&
 			pcFile->WriteBigEndianInt32(PNGChunkCRC((uint8*)szType, puiData, uiLength));
 }
+
