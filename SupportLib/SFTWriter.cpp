@@ -155,8 +155,7 @@ bool SaveSFTOpaque(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeftOffse
 		uiImageHeight = pImage->GetHeight();
 
 		sStruct.Init(SFT_TYPE_OPAQUE, uiCelWidth, uiCelHeight);
-		iResult = pcFile->Write(&sStruct, sizeof(SSFTImage), 1);
-		if (iResult != 1)
+		if (!sStruct.Write(pcFile))
 		{
 			return false;
 		}
@@ -219,8 +218,7 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeft
 		uiImageWidth = pImage->GetWidth();
 		uiImageHeight = pImage->GetHeight();
 		sStruct.Init(SFT_TYPE_TRANSPARENT, uiCelWidth, uiCelHeight);
-		iResult = pcFile->Write(&sStruct, sizeof(SSFTImage), 1);
-		if (iResult != 1)
+		if (!sStruct.Write(pcFile))
 		{
 			return false;
 		}
@@ -249,8 +247,7 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeft
 				if (!bOpaque && bLastOpaque)
 				{
 					sCelRun.Set(uiRunLength, uiSkipLength);
-					iResult = pcFile->Write(&sCelRun, sizeof(SSFTCelRun), 1);
-					if (iResult != 1)
+					if (!sCelRun.Write(pcFile))
 					{
 						auiRow.Kill();
 						return false;
@@ -285,8 +282,7 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeft
 			if (uiRunLength != 0)
 			{
 				sCelRun.Set(uiRunLength, uiSkipLength);
-				iResult = pcFile->Write(&sCelRun, sizeof(SSFTCelRun), 1);
-				if (iResult != 1)
+				if (!sCelRun.Write(pcFile))
 				{
 					auiRow.Kill();
 					return false;
@@ -313,8 +309,7 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeft
 		auiRow.Kill();
 
 		sCelRun.Init(false);
-		iResult = pcFile->Write(&sCelRun, sizeof(SSFTCelRun), 1);
-		return iResult == 1;
+		return sCelRun.Write(pcFile);
 	}
 	else
 	{
@@ -418,8 +413,7 @@ bool SaveSFTContainer(Ptr<CArrayImageCel> pcImageCels, CFileBasic* pcDiskBasic)
 	}
 
 	sContainer.Init((uint16)uiNumCels);
-	iResult = pcDiskBasic->Write(&sContainer, sizeof(SSFTContainer), 1);
-	if (iResult != 1)
+	if (!sContainer.Write(pcDiskBasic))
 	{
 		pcDiskBasic->Close();
 		pcDiskBasic->Kill();
@@ -472,7 +466,7 @@ bool SaveSFTContainer(Ptr<CArrayImageCel> pcImageCels, CFileBasic* pcDiskBasic)
 		uiFilePos = pcDiskBasic->Tell();
 
 		sContained.Init();
-		iResult = pcDiskBasic->Write(&sContained, sizeof(SSFTContained), 1);
+		sContained.Write(pcDiskBasic);
 		iResult = pcDiskBasic->Write(cMemoryFile.GetBufferPointer(), 1, cMemoryFile.GetBufferSize());
 
 		if (i != 0)
@@ -480,7 +474,7 @@ bool SaveSFTContainer(Ptr<CArrayImageCel> pcImageCels, CFileBasic* pcDiskBasic)
 			uiFilePos -= uiPrevContainedPos;
 			sContained.Init((uint16)uiFilePos);
 			pcDiskBasic->Seek(uiPrevContainedPos);
-			pcDiskBasic->Write(&sContained, sizeof(SSFTContained), 1);
+			sContained.Write(pcDiskBasic);
 		}
 			
 		pcDiskBasic->Seek(0, EFSO_END);
