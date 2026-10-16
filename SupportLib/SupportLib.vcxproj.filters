@@ -85,6 +85,9 @@
     <Filter Include="Source\Image\Accessor\Types">
       <UniqueIdentifier>{a1946f34-f84b-43fb-93cf-db5126380b05}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Compression">
+      <UniqueIdentifier>{98493074-bd19-49c5-819c-5f3f9d62f41f}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Image\IO">
       <UniqueIdentifier>{4a7e3889-ac7a-46c7-8967-ec905c9a3919}</UniqueIdentifier>
     </Filter>
@@ -296,6 +299,15 @@
     </ClInclude>
     <ClInclude Include="TGAWriter.h">
       <Filter>Source\Image\IO\Writer</Filter>
+    </ClInclude>
+    <ClInclude Include="RLEPacketDecoder.h">
+      <Filter>Source\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="RLEPacketEncoder.h">
+      <Filter>Source\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="RLEBitmapDecoder.h">
+      <Filter>Source\Compression</Filter>
     </ClInclude>
     <ClInclude Include="Rectangle.h">
       <Filter>Source\Image\Area</Filter>
@@ -904,6 +916,15 @@
     </ClCompile>
     <ClCompile Include="TGAWriter.cpp">
       <Filter>Source\Image\IO\Writer</Filter>
+    </ClCompile>
+    <ClCompile Include="RLEPacketDecoder.cpp">
+      <Filter>Source\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="RLEPacketEncoder.cpp">
+      <Filter>Source\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="RLEBitmapDecoder.cpp">
+      <Filter>Source\Compression</Filter>
     </ClCompile>
     <ClCompile Include="Rectangle.cpp">
       <Filter>Source\Image\Area</Filter>

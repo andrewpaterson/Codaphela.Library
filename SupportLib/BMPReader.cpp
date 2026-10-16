@@ -23,6 +23,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/Logger.h"
+#include "RLEBitmapDecoder.h"
 #include "BMPReader.h"
 
 
@@ -293,122 +294,23 @@ bool BMPReadInfo(uint8* pvFile, size uiFileSize, SBMPInfo* psInfo)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Decodes RLE8 or RLE4 data into one palette index per pixel.  The rows
-// are in file order (bottom up).  Pixels that are skipped stay index 0.
-//
-//////////////////////////////////////////////////////////////////////////
-bool BMPDecodeRLE(uint8* pvData, size uiDataSize, SBMPInfo* psInfo, uint8* puiIndices)
-{
-	size	uiPos;
-	int		x;
-	int		y;
-	int		iCount;
-	int		iValue;
-	int		i;
-	bool	bRLE4;
-	size	uiBytes;
-
-	bRLE4 = psInfo->uiCompression == BMP_RLE4;
-	uiPos = 0;
-	x = 0;
-	y = 0;
-	while (uiPos + 1 < uiDataSize)
-	{
-		iCount = pvData[uiPos];
-		iValue = pvData[uiPos + 1];
-		uiPos += 2;
-		if (iCount > 0)
-		{
-			for (i = 0; (i < iCount) && (x < psInfo->iWidth); i++)
-			{
-				if (y < psInfo->iHeight)
-				{
-					if (bRLE4)
-					{
-						puiIndices[y * psInfo->iWidth + x] = (uint8)((i & 1) ? (iValue & 0xF) : (iValue >> 4));
-					}
-					else
-					{
-						puiIndices[y * psInfo->iWidth + x] = (uint8)iValue;
-					}
-				}
-				x++;
-			}
-		}
-		else if (iValue == 0)
-		{
-			//End of line.
-			x = 0;
-			y++;
-		}
-		else if (iValue == 1)
-		{
-			//End of bitmap.
-			return true;
-		}
-		else if (iValue == 2)
-		{
-			//Delta.
-			if (uiPos + 1 >= uiDataSize)
-			{
-				return false;
-			}
-			x += pvData[uiPos];
-			y += pvData[uiPos + 1];
-			uiPos += 2;
-		}
-		else
-		{
-			//Absolute run of iValue pixels, padded to a 16 bit boundary.
-			uiBytes = bRLE4 ? (iValue + 1) / 2 : iValue;
-			if (uiPos + uiBytes > uiDataSize)
-			{
-				return false;
-			}
-			for (i = 0; i < iValue; i++)
-			{
-				if ((x < psInfo->iWidth) && (y < psInfo->iHeight))
-				{
-					if (bRLE4)
-					{
-						puiIndices[y * psInfo->iWidth + x] = (uint8)((i & 1) ? (pvData[uiPos + i / 2] & 0xF) : (pvData[uiPos + i / 2] >> 4));
-					}
-					else
-					{
-						puiIndices[y * psInfo->iWidth + x] = pvData[uiPos + i];
-					}
-				}
-				x++;
-			}
-			uiPos += uiBytes;
-			if (uiBytes & 1)
-			{
-				uiPos++;
-			}
-		}
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Decodes the pixels into puiRGBA (4 bytes per pixel, top row first).
 //
 //////////////////////////////////////////////////////////////////////////
 bool BMPDecodePixels(uint8* pvFile, size uiFileSize, SBMPInfo* psInfo, uint8* puiRGBA)
 {
-	uint8*	pvData;
-	size	uiDataSize;
-	size	uiStride;
-	int		x;
-	int		y;
-	int		iFileRow;
-	uint8*	pvRow;
-	uint8*	puiPixel;
-	uint8*	puiIndices;
-	int		iIndex;
-	uint32	uiPixel;
+	uint8*				pvData;
+	size				uiDataSize;
+	size				uiStride;
+	int					x;
+	int					y;
+	int					iFileRow;
+	uint8*				pvRow;
+	uint8*				puiPixel;
+	uint8*				puiIndices;
+	int					iIndex;
+	uint32				uiPixel;
+	CRLEBitmapDecoder	cDecoder;
 
 	pvData = &pvFile[psInfo->uiPixelOffset];
 	uiDataSize = uiFileSize - psInfo->uiPixelOffset;
@@ -422,11 +324,14 @@ bool BMPDecodePixels(uint8* pvFile, size uiFileSize, SBMPInfo* psInfo, uint8* pu
 			return false;
 		}
 		memset(puiIndices, 0, psInfo->iWidth * psInfo->iHeight);
-		if (!BMPDecodeRLE(pvData, uiDataSize, psInfo, puiIndices))
+		cDecoder.Init(psInfo->iWidth, psInfo->iHeight, psInfo->uiCompression == BMP_RLE4);
+		if (!cDecoder.Decode(pvData, uiDataSize, puiIndices))
 		{
+			cDecoder.Kill();
 			free(puiIndices);
 			return false;
 		}
+		cDecoder.Kill();
 		uiStride = 0;
 	}
 	else

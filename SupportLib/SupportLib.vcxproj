@@ -266,6 +266,9 @@
     <ClInclude Include="BMPReader.h" />
     <ClInclude Include="BMPWriter.h" />
     <ClInclude Include="TGAWriter.h" />
+    <ClInclude Include="RLEPacketDecoder.h" />
+    <ClInclude Include="RLEPacketEncoder.h" />
+    <ClInclude Include="RLEBitmapDecoder.h" />
     <ClInclude Include="Rectangle.h" />
     <ClInclude Include="SubImage.h" />
     <ClInclude Include="PackAttempt.h" />
@@ -468,6 +471,9 @@
     <ClCompile Include="BMPReader.cpp" />
     <ClCompile Include="BMPWriter.cpp" />
     <ClCompile Include="TGAWriter.cpp" />
+    <ClCompile Include="RLEPacketDecoder.cpp" />
+    <ClCompile Include="RLEPacketEncoder.cpp" />
+    <ClCompile Include="RLEBitmapDecoder.cpp" />
     <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="SubImage.cpp" />
     <ClCompile Include="PackAttempt.cpp" />

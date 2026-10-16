@@ -25,6 +25,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
 #include "ImageCopier.h"
+#include "RLEPacketEncoder.h"
 #include "TGAWriter.h"
 
 
@@ -33,7 +34,6 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #define TGA_TRUE_COLOUR			2
 #define TGA_GREY				3
 #define TGA_RLE					8
-#define TGA_MAX_PACKET			128
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -49,81 +49,30 @@ void TGAWriteUInt16(uint8* pui, uint16 ui)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// RLE compresses one row into puiDest and returns the number of bytes
-// written.  Packets never cross rows.
-//
-//////////////////////////////////////////////////////////////////////////
-size TGACompressRow(uint8* puiRow, int iWidth, int iPixelBytes, uint8* puiDest)
-{
-	size	uiPos;
-	int		x;
-	int		iRun;
-	int		iRaw;
-
-	uiPos = 0;
-	x = 0;
-	while (x < iWidth)
-	{
-		iRun = 1;
-		while ((x + iRun < iWidth) && (iRun < TGA_MAX_PACKET) && (memcmp(&puiRow[x * iPixelBytes], &puiRow[(x + iRun) * iPixelBytes], iPixelBytes) == 0))
-		{
-			iRun++;
-		}
-
-		if (iRun > 1)
-		{
-			puiDest[uiPos] = (uint8)(0x80 | (iRun - 1));
-			memcpy(&puiDest[uiPos + 1], &puiRow[x * iPixelBytes], iPixelBytes);
-			uiPos += 1 + iPixelBytes;
-			x += iRun;
-		}
-		else
-		{
-			//A raw packet ends where a run of two identical pixels starts.
-			iRaw = 1;
-			while ((x + iRaw < iWidth) && (iRaw < TGA_MAX_PACKET))
-			{
-				if ((x + iRaw + 1 < iWidth) && (memcmp(&puiRow[(x + iRaw) * iPixelBytes], &puiRow[(x + iRaw + 1) * iPixelBytes], iPixelBytes) == 0))
-				{
-					break;
-				}
-				iRaw++;
-			}
-			puiDest[uiPos] = (uint8)(iRaw - 1);
-			memcpy(&puiDest[uiPos + 1], &puiRow[x * iPixelBytes], iRaw * iPixelBytes);
-			uiPos += 1 + iRaw * iPixelBytes;
-			x += iRaw;
-		}
-	}
-	return uiPos;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE)
 {
-	int				iWidth;
-	int				iHeight;
-	bool			bGrey;
-	bool			bAlpha;
-	int				iPixelBytes;
-	size			uiRowBytes;
-	size			uiMaxDataSize;
-	size			uiFileSize;
-	uint8*			pvPixels;
-	uint8*			pvFile;
-	uint8*			puiRow;
-	uint8*			puiSource;
-	uint8*			puiDest;
-	CImage			cImageExport;
-	CImageCopier	cCopier;
-	CFileBasic		cFile;
-	int				x;
-	int				y;
-	bool			bResult;
+	int					iWidth;
+	int					iHeight;
+	bool				bGrey;
+	bool				bAlpha;
+	int					iPixelBytes;
+	size				uiRowBytes;
+	size				uiMaxDataSize;
+	size				uiFileSize;
+	uint8*				pvPixels;
+	uint8*				pvFile;
+	uint8*				puiRow;
+	uint8*				puiSource;
+	uint8*				puiDest;
+	CImage				cImageExport;
+	CImageCopier		cCopier;
+	CFileBasic			cFile;
+	CRLEPacketEncoder	cEncoder;
+	int					x;
+	int					y;
+	bool				bResult;
 
 	if (pcImage.IsNull())
 	{
@@ -183,12 +132,13 @@ bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE)
 	cCopier.Kill();
 	cImageExport.Kill();
 
-	//The worst case RLE size is a one byte packet header for every pixel.
+	cEncoder.Init(iPixelBytes);
 	uiRowBytes = (size)iWidth * iPixelBytes;
-	uiMaxDataSize = bRLE ? (uiRowBytes + iWidth) * iHeight : uiRowBytes * iHeight;
+	uiMaxDataSize = bRLE ? cEncoder.GetMaxEncodedSize(iWidth) * iHeight : uiRowBytes * iHeight;
 	pvFile = (uint8*)malloc(TGA_HEADER_SIZE + uiMaxDataSize + TGA_FOOTER_SIZE);
 	if (pvFile == NULL)
 	{
+		cEncoder.Kill();
 		free(pvPixels);
 		gcLogger.Error2(__METHOD__, " Could not allocate memory to write [", szPathName, "].", NULL);
 		return false;
@@ -206,7 +156,8 @@ bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE)
 		puiRow = &pvPixels[y * uiRowBytes];
 		if (bRLE)
 		{
-			puiDest += TGACompressRow(puiRow, iWidth, iPixelBytes, puiDest);
+			//Packets never cross rows.
+			puiDest += cEncoder.Encode(puiRow, iWidth, puiDest);
 		}
 		else
 		{
@@ -218,6 +169,7 @@ bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE)
 			}
 		}
 	}
+	cEncoder.Kill();
 	free(pvPixels);
 
 	//TGA 2.0 footer with no extension or developer areas.

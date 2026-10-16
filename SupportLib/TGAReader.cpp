@@ -23,6 +23,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/Logger.h"
+#include "RLEPacketDecoder.h"
 #include "TGAReader.h"
 
 
@@ -279,59 +280,59 @@ void TGADecodePixel(STGAInfo* psInfo, uint8* puiSource, uint8* puiRGBA)
 //////////////////////////////////////////////////////////////////////////
 bool TGADecodePixels(uint8* pvFile, size uiFileSize, STGAInfo* psInfo, uint8* puiRGBA)
 {
-	size	uiPos;
-	int		iNumPixels;
-	int		iPixel;
-	int		iCount;
-	bool	bRun;
-	int		i;
-	uint8	auiPixel[4];
-	int		iFileRow;
-	int		iFileColumn;
-	int		x;
-	int		y;
+	uint8*				pvData;
+	size				uiDataSize;
+	int					iNumPixels;
+	int					iPixel;
+	uint8*				puiSource;
+	uint8*				puiLastSource;
+	uint8				auiPixel[4];
+	int					iFileRow;
+	int					iFileColumn;
+	int					x;
+	int					y;
+	CRLEPacketDecoder	cDecoder;
 
-	uiPos = psInfo->uiPixelOffset;
+	pvData = &pvFile[psInfo->uiPixelOffset];
+	uiDataSize = uiFileSize - psInfo->uiPixelOffset;
 	iNumPixels = psInfo->iWidth * psInfo->iHeight;
-	iPixel = 0;
-	while (iPixel < iNumPixels)
+	cDecoder.Init(pvData, uiDataSize, psInfo->iPixelBytes);
+	puiLastSource = NULL;
+	for (iPixel = 0; iPixel < iNumPixels; iPixel++)
 	{
 		if (psInfo->bRLE)
 		{
-			if (uiPos >= uiFileSize)
+			puiSource = cDecoder.Next();
+			if (puiSource == NULL)
 			{
+				cDecoder.Kill();
 				return false;
 			}
-			bRun = (pvFile[uiPos] & 0x80) != 0;
-			iCount = (pvFile[uiPos] & 0x7F) + 1;
-			uiPos++;
 		}
 		else
 		{
-			bRun = false;
-			iCount = iNumPixels;
-		}
-
-		for (i = 0; (i < iCount) && (iPixel < iNumPixels); i++)
-		{
-			if ((i == 0) || !bRun)
+			if ((size)(iPixel + 1) * psInfo->iPixelBytes > uiDataSize)
 			{
-				if (uiPos + psInfo->iPixelBytes > uiFileSize)
-				{
-					return false;
-				}
-				TGADecodePixel(psInfo, &pvFile[uiPos], auiPixel);
-				uiPos += psInfo->iPixelBytes;
+				cDecoder.Kill();
+				return false;
 			}
-
-			iFileRow = iPixel / psInfo->iWidth;
-			iFileColumn = iPixel % psInfo->iWidth;
-			y = psInfo->bTopToBottom ? iFileRow : psInfo->iHeight - 1 - iFileRow;
-			x = psInfo->bRightToLeft ? psInfo->iWidth - 1 - iFileColumn : iFileColumn;
-			memcpy(&puiRGBA[(y * psInfo->iWidth + x) * 4], auiPixel, 4);
-			iPixel++;
+			puiSource = &pvData[iPixel * psInfo->iPixelBytes];
 		}
+
+		//Each pixel of a run has the same source so only needs to be decoded once.
+		if (puiSource != puiLastSource)
+		{
+			TGADecodePixel(psInfo, puiSource, auiPixel);
+			puiLastSource = puiSource;
+		}
+
+		iFileRow = iPixel / psInfo->iWidth;
+		iFileColumn = iPixel % psInfo->iWidth;
+		y = psInfo->bTopToBottom ? iFileRow : psInfo->iHeight - 1 - iFileRow;
+		x = psInfo->bRightToLeft ? psInfo->iWidth - 1 - iFileColumn : iFileColumn;
+		memcpy(&puiRGBA[(y * psInfo->iWidth + x) * 4], auiPixel, 4);
 	}
+	cDecoder.Kill();
 	return true;
 }
 
