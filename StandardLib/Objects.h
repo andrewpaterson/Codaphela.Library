@@ -142,6 +142,7 @@ public:
 	template<class M>	M*						AddFreeObject(Ptr<M>& p);
 						CBaseObject*			AddFreeObject(CPointer &p);
 						bool					RemoveFreeObject(CBaseObject* pcObject);
+						size					NumFreeObjects(void);
 
 						void					PrintMemoryNames(CChars* psz);
 						void					PrintStackPointers(CChars* psz, bool bPointerMemory = true);

@@ -1121,6 +1121,26 @@ bool CObjects::RemoveFreeObject(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+size CObjects::NumFreeObjects(void)
+{
+	Ptr<CFreeObjects>	pFree;
+
+	pFree = Get(FREE_OBJECTS_NAME);
+	if (pFree.IsNull())
+	{
+		return 0;
+	}
+	else
+	{
+		return pFree->NumObjects();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObjects::LogicalDirty(CBaseObject* pcObject)
 {
 	if (mpcDataConnection && mpcDataConnection->IsWriteThrough())
