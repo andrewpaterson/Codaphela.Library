@@ -236,9 +236,13 @@ void CStackPointer::ClearPointer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CStackPointer* CStackPointer::ClearPointerGetNext(void)
+CStackPointer* CStackPointer::ClearPointerGetNext(CEmbeddedObject* pcPointedTo)
 {
 	ClearPointer();
+	if (msPointer.meType == SPT_Collection)
+	{
+		msPointer.u.pcCollection->RemovePointerTo(pcPointedTo);
+	}
 	return GetNext();
 }
 
