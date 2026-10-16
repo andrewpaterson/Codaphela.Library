@@ -178,6 +178,7 @@ public:
 
 			bool					HasNes(void) override;
 			void					GetNesPointerToThis(CArrayEmbeddedObjectPtrE8* papNesObjectsPointingToThis);
+			bool					IsNesPointedTo(void);
 			bool					HasNesPointerToThis(CEmbeddedObject* pcBaseObject) override;
 
 			void					DumpFroms(void);

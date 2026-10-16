@@ -222,18 +222,7 @@ bool CCollection::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult, b
 //////////////////////////////////////////////////////////////////////////
 bool CCollection::RemovePointerToTryFree(CBaseObject* pcPointedTo)
 {
-	if (pcPointedTo)
-	{
-		if (IsEmbeddingContainerAllocatedInObjects())
-		{
-			return pcPointedTo->RemoveHeapFromTryFree(this, false);
-		}
-		else
-		{
-			return pcPointedTo->RemoveStackFromTryFree(this);
-		}
-	}
-	return true;
+	return RemoveObjectTryFree(pcPointedTo, true, false);
 }
 
 

@@ -387,14 +387,7 @@ bool CArrayCommonObject::Remove(CEmbeddedObject* pcObject)
 
 		if (mcArray.Remove(pcObject))
 		{
-			if (IsEmbeddingContainerAllocatedInObjects())
-			{
-				return pcObject->RemoveHeapFromTryFree(this, true);
-			}
-			else
-			{
-				return pcObject->RemoveStackFromTryFree(this);
-			}
+			return RemoveObjectTryFree(pcObject, true, true);
 		}
 		return gcLogger.Error2(__METHOD__, " Could not remove Object {", ObjectToString(pcObject), "} from Array {", ObjectToString(this), "}.", NULL);
 	}

@@ -56,26 +56,13 @@ CStackPointer* CStackPointers::Add(CPointer* pcPointer)
 CStackPointer* CStackPointers::Add(CPointer* pcPointer, CStackPointer* pcFirst)
 {
 	CStackPointer*	pcStackPointer;
-	bool			bAdded;
 
-	pcStackPointer = (CStackPointer*)mcFreeList.Add();
+	pcStackPointer = Add(pcPointer);
 	if (pcStackPointer)
 	{
-		pcStackPointer->Init(pcPointer);
-		bAdded = SetLastNext(pcStackPointer, pcFirst);
-		if (bAdded)
-		{
-			return pcStackPointer;
-		}
-		else
-		{
-			return NULL;
-		}
+		SetLastNext(pcStackPointer, pcFirst);
 	}
-	else
-	{
-		return NULL;
-	}
+	return pcStackPointer;
 }
 
 
@@ -107,26 +94,13 @@ CStackPointer* CStackPointers::Add(CCollection* pcCollection)
 CStackPointer* CStackPointers::Add(CCollection* pcCollection, CStackPointer* pcFirst)
 {
 	CStackPointer*	pcStackPointer;
-	bool			bAdded;
 
-	pcStackPointer = (CStackPointer*)mcFreeList.Add();
+	pcStackPointer = Add(pcCollection);
 	if (pcStackPointer)
 	{
-		pcStackPointer->Init(pcCollection);
-		bAdded = SetLastNext(pcStackPointer, pcFirst);
-		if (bAdded)
-		{
-			return pcStackPointer;
-		}
-		else
-		{
-			return NULL;
-		}
+		SetLastNext(pcStackPointer, pcFirst);
 	}
-	else
-	{
-		return NULL;
-	}
+	return pcStackPointer;
 }
 
 
