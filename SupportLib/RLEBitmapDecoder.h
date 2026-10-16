@@ -20,7 +20,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __RLE_BITMAP_DECODER_H__
 #define __RLE_BITMAP_DECODER_H__
-#include "BaseLib/PrimitiveTypes.h"
+#include "BaseLib/FileReader.h"
 
 
 //Decodes Windows bitmap RLE8 and RLE4 data into one palette index per pixel.  Pairs of bytes are either a count
@@ -36,7 +36,7 @@ public:
 	void	Init(int iWidth, int iHeight, bool bFourBit);
 	void	Kill(void);
 
-	bool	Decode(uint8* puiData, size uiDataSize, uint8* puiIndices);
+	bool	Decode(CFileReader* pcFile, uint8* puiIndices);
 
 protected:
 	void	SetIndex(uint8* puiIndices, int x, int y, uint8 uiIndex);

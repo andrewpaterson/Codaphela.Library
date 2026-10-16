@@ -20,6 +20,8 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
 #include <string.h>
+#include "BaseLib/FileBasic.h"
+#include "BaseLib/MemoryFile.h"
 #include "BaseLib/Logger.h"
 #include "RLEBitmapDecoder.h"
 #include "ImageReaderCommon.h"
@@ -95,24 +97,37 @@ uint8 BMPExtractChannel(uint32 uiPixel, uint32 uiMask)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Reads the file header, the bitmap header, the bit field masks and the
+// palette.  Any read past the end of the file fails.
 //
 //////////////////////////////////////////////////////////////////////////
-bool BMPReadInfo(uint8* pvFile, size uiFileSize, SBMPInfo* psInfo)
+bool BMPReadInfo(CFileBasic* pcFile, size uiFileSize, SBMPInfo* psInfo)
 {
+	uint8	auiSignature[2];
+	uint32	uiPixelOffset;
 	uint32	uiHeaderSize;
+	uint16	uiWidth;
+	uint16	uiHeight;
+	uint16	uiBitsPerPixel;
+	int32	iWidth;
+	int32	iHeight;
 	size	uiPaletteOffset;
 	size	uiPaletteEntrySize;
 	uint32	uiColoursUsed;
 	int		i;
-	uint8*	pvEntry;
+	uint8	auiEntry[4];
 
-	if ((uiFileSize < BMP_FILE_HEADER_SIZE + BMP_CORE_HEADER_SIZE) || (pvFile[0] != 'B') || (pvFile[1] != 'M'))
+	if ((uiFileSize < BMP_FILE_HEADER_SIZE + BMP_CORE_HEADER_SIZE) || !pcFile->ReadData(auiSignature, 2) || (auiSignature[0] != 'B') || (auiSignature[1] != 'M'))
 	{
 		return false;
 	}
 
-	psInfo->uiPixelOffset = ReadLittleEndianUInt32(&pvFile[10]);
-	uiHeaderSize = ReadLittleEndianUInt32(&pvFile[14]);
+	//The file size and reserved fields are skipped.
+	if (!pcFile->Seek(10) || !pcFile->ReadInt32(&uiPixelOffset) || !pcFile->ReadInt32(&uiHeaderSize))
+	{
+		return false;
+	}
+	psInfo->uiPixelOffset = uiPixelOffset;
 	if ((uiHeaderSize < BMP_CORE_HEADER_SIZE) || (BMP_FILE_HEADER_SIZE + uiHeaderSize > uiFileSize))
 	{
 		return false;
@@ -122,20 +137,28 @@ bool BMPReadInfo(uint8* pvFile, size uiFileSize, SBMPInfo* psInfo)
 	uiColoursUsed = 0;
 	if (uiHeaderSize == BMP_CORE_HEADER_SIZE)
 	{
-		//OS/2 1.x BITMAPCOREHEADER.
-		psInfo->iWidth = ReadLittleEndianUInt16(&pvFile[18]);
-		psInfo->iHeight = ReadLittleEndianUInt16(&pvFile[20]);
-		psInfo->iBitsPerPixel = ReadLittleEndianUInt16(&pvFile[24]);
+		//OS/2 1.x BITMAPCOREHEADER.  The planes are skipped.
+		if (!pcFile->ReadInt16(&uiWidth) || !pcFile->ReadInt16(&uiHeight) || !pcFile->Seek(24) || !pcFile->ReadInt16(&uiBitsPerPixel))
+		{
+			return false;
+		}
+		psInfo->iWidth = uiWidth;
+		psInfo->iHeight = uiHeight;
+		psInfo->iBitsPerPixel = uiBitsPerPixel;
 		psInfo->uiCompression = BMP_RGB;
 		uiPaletteEntrySize = 3;
 	}
 	else if (uiHeaderSize >= BMP_INFO_HEADER_SIZE)
 	{
-		psInfo->iWidth = (int32)ReadLittleEndianUInt32(&pvFile[18]);
-		psInfo->iHeight = (int32)ReadLittleEndianUInt32(&pvFile[22]);
-		psInfo->iBitsPerPixel = ReadLittleEndianUInt16(&pvFile[28]);
-		psInfo->uiCompression = ReadLittleEndianUInt32(&pvFile[30]);
-		uiColoursUsed = ReadLittleEndianUInt32(&pvFile[46]);
+		//BITMAPINFOHEADER.  The planes, image size and resolution are skipped.
+		if (!pcFile->ReadInt32(&iWidth) || !pcFile->ReadInt32(&iHeight) || !pcFile->Seek(28) || !pcFile->ReadInt16(&uiBitsPerPixel) ||
+			!pcFile->ReadInt32(&psInfo->uiCompression) || !pcFile->Seek(46) || !pcFile->ReadInt32(&uiColoursUsed))
+		{
+			return false;
+		}
+		psInfo->iWidth = iWidth;
+		psInfo->iHeight = iHeight;
+		psInfo->iBitsPerPixel = uiBitsPerPixel;
 		uiPaletteEntrySize = 4;
 	}
 	else
@@ -156,36 +179,28 @@ bool BMPReadInfo(uint8* pvFile, size uiFileSize, SBMPInfo* psInfo)
 	uiPaletteOffset = BMP_FILE_HEADER_SIZE + uiHeaderSize;
 	if ((psInfo->uiCompression == BMP_BITFIELDS) || (psInfo->uiCompression == BMP_ALPHABITFIELDS))
 	{
+		//The masks follow a BITMAPINFOHEADER or are part of the V2 to V5 headers.  Either way they start straight after the BITMAPINFOHEADER fields.
+		if (!pcFile->Seek(BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE) || !pcFile->ReadInt32(&psInfo->auiMasks[0]) || !pcFile->ReadInt32(&psInfo->auiMasks[1]) || !pcFile->ReadInt32(&psInfo->auiMasks[2]))
+		{
+			return false;
+		}
 		if (uiHeaderSize == BMP_INFO_HEADER_SIZE)
 		{
-			//The masks follow a BITMAPINFOHEADER.
-			if (uiPaletteOffset + 12 > uiFileSize)
-			{
-				return false;
-			}
-			psInfo->auiMasks[0] = ReadLittleEndianUInt32(&pvFile[uiPaletteOffset]);
-			psInfo->auiMasks[1] = ReadLittleEndianUInt32(&pvFile[uiPaletteOffset + 4]);
-			psInfo->auiMasks[2] = ReadLittleEndianUInt32(&pvFile[uiPaletteOffset + 8]);
 			uiPaletteOffset += 12;
 			if (psInfo->uiCompression == BMP_ALPHABITFIELDS)
 			{
-				if (uiPaletteOffset + 4 > uiFileSize)
+				if (!pcFile->ReadInt32(&psInfo->auiMasks[3]))
 				{
 					return false;
 				}
-				psInfo->auiMasks[3] = ReadLittleEndianUInt32(&pvFile[uiPaletteOffset]);
 				uiPaletteOffset += 4;
 			}
 		}
-		else
+		else if (uiHeaderSize >= BMP_V3_HEADER_SIZE)
 		{
-			//The masks are part of the V2 to V5 headers.
-			psInfo->auiMasks[0] = ReadLittleEndianUInt32(&pvFile[54]);
-			psInfo->auiMasks[1] = ReadLittleEndianUInt32(&pvFile[58]);
-			psInfo->auiMasks[2] = ReadLittleEndianUInt32(&pvFile[62]);
-			if (uiHeaderSize >= BMP_V3_HEADER_SIZE)
+			if (!pcFile->ReadInt32(&psInfo->auiMasks[3]))
 			{
-				psInfo->auiMasks[3] = ReadLittleEndianUInt32(&pvFile[66]);
+				return false;
 			}
 		}
 	}
@@ -245,12 +260,20 @@ bool BMPReadInfo(uint8* pvFile, size uiFileSize, SBMPInfo* psInfo)
 			return false;
 		}
 		memset(psInfo->aauiPalette, 0, sizeof(psInfo->aauiPalette));
+		if (!pcFile->Seek(uiPaletteOffset))
+		{
+			return false;
+		}
 		for (i = 0; i < psInfo->iNumColours; i++)
 		{
-			pvEntry = &pvFile[uiPaletteOffset + i * uiPaletteEntrySize];
-			psInfo->aauiPalette[i][0] = pvEntry[2];
-			psInfo->aauiPalette[i][1] = pvEntry[1];
-			psInfo->aauiPalette[i][2] = pvEntry[0];
+			//Blue, green, red and (except for OS/2) reserved.
+			if (!pcFile->ReadData(auiEntry, uiPaletteEntrySize))
+			{
+				return false;
+			}
+			psInfo->aauiPalette[i][0] = auiEntry[2];
+			psInfo->aauiPalette[i][1] = auiEntry[1];
+			psInfo->aauiPalette[i][2] = auiEntry[0];
 		}
 	}
 
@@ -273,117 +296,175 @@ bool BMPReadInfo(uint8* pvFile, size uiFileSize, SBMPInfo* psInfo)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Decodes the pixels into puiRGBA (4 bytes per pixel, top row first).
+// Looks up a palette index.  Indices past the end of the palette are
+// treated as index 0.
 //
 //////////////////////////////////////////////////////////////////////////
-bool BMPDecodePixels(uint8* pvFile, size uiFileSize, SBMPInfo* psInfo, uint8* puiRGBA)
+void BMPPaletteColour(SBMPInfo* psInfo, int iIndex, uint8* puiRGBA)
 {
-	uint8*				pvData;
-	size				uiDataSize;
-	size				uiStride;
+	if (iIndex >= psInfo->iNumColours)
+	{
+		iIndex = 0;
+	}
+	puiRGBA[0] = psInfo->aauiPalette[iIndex][0];
+	puiRGBA[1] = psInfo->aauiPalette[iIndex][1];
+	puiRGBA[2] = psInfo->aauiPalette[iIndex][2];
+	puiRGBA[3] = 255;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Reads one uncompressed row from the current position of pcFile into
+// puiRGBA (4 bytes per pixel).  The row padding is not read.
+//
+//////////////////////////////////////////////////////////////////////////
+bool BMPReadRow(CFileBasic* pcFile, SBMPInfo* psInfo, uint8* puiRGBA)
+{
+	int		x;
+	uint8*	puiPixel;
+	uint8	uiByte;
+	uint8	auiBGR[3];
+	uint16	uiPixel16;
+	uint32	uiPixel;
+
+	uiByte = 0;
+	for (x = 0; x < psInfo->iWidth; x++)
+	{
+		puiPixel = &puiRGBA[x * 4];
+		if (psInfo->iBitsPerPixel <= 8)
+		{
+			//Each byte holds one 8 bit, two 4 bit or eight 1 bit indices, most significant first.
+			if ((psInfo->iBitsPerPixel == 8) || ((psInfo->iBitsPerPixel == 4) && ((x & 1) == 0)) || ((psInfo->iBitsPerPixel == 1) && ((x & 7) == 0)))
+			{
+				if (!pcFile->ReadInt8(&uiByte))
+				{
+					return false;
+				}
+			}
+
+			if (psInfo->iBitsPerPixel == 8)
+			{
+				BMPPaletteColour(psInfo, uiByte, puiPixel);
+			}
+			else if (psInfo->iBitsPerPixel == 4)
+			{
+				BMPPaletteColour(psInfo, (x & 1) ? (uiByte & 0xF) : (uiByte >> 4), puiPixel);
+			}
+			else
+			{
+				BMPPaletteColour(psInfo, (uiByte >> (7 - (x & 7))) & 1, puiPixel);
+			}
+		}
+		else if (psInfo->iBitsPerPixel == 24)
+		{
+			if (!pcFile->ReadData(auiBGR, 3))
+			{
+				return false;
+			}
+			puiPixel[0] = auiBGR[2];
+			puiPixel[1] = auiBGR[1];
+			puiPixel[2] = auiBGR[0];
+			puiPixel[3] = 255;
+		}
+		else
+		{
+			if (psInfo->iBitsPerPixel == 16)
+			{
+				if (!pcFile->ReadInt16(&uiPixel16))
+				{
+					return false;
+				}
+				uiPixel = uiPixel16;
+			}
+			else
+			{
+				if (!pcFile->ReadInt32(&uiPixel))
+				{
+					return false;
+				}
+			}
+			puiPixel[0] = BMPExtractChannel(uiPixel, psInfo->auiMasks[0]);
+			puiPixel[1] = BMPExtractChannel(uiPixel, psInfo->auiMasks[1]);
+			puiPixel[2] = BMPExtractChannel(uiPixel, psInfo->auiMasks[2]);
+			puiPixel[3] = psInfo->auiMasks[3] ? BMPExtractChannel(uiPixel, psInfo->auiMasks[3]) : 255;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Decodes RLE8 or RLE4 pixels into puiRGBA (4 bytes per pixel, top row
+// first).  Pixels that are skipped are palette index 0.
+//
+//////////////////////////////////////////////////////////////////////////
+bool BMPDecodeRLEPixels(CFileBasic* pcFile, SBMPInfo* psInfo, uint8* puiRGBA)
+{
+	uint8*				puiIndices;
 	int					x;
 	int					y;
 	int					iFileRow;
-	uint8*				pvRow;
-	uint8*				puiPixel;
-	uint8*				puiIndices;
-	int					iIndex;
-	uint32				uiPixel;
 	CRLEBitmapDecoder	cDecoder;
+	bool				bResult;
 
-	pvData = &pvFile[psInfo->uiPixelOffset];
-	uiDataSize = uiFileSize - psInfo->uiPixelOffset;
+	puiIndices = (uint8*)malloc(psInfo->iWidth * psInfo->iHeight);
+	if (puiIndices == NULL)
+	{
+		return false;
+	}
+	memset(puiIndices, 0, psInfo->iWidth * psInfo->iHeight);
 
-	puiIndices = NULL;
+	cDecoder.Init(psInfo->iWidth, psInfo->iHeight, psInfo->uiCompression == BMP_RLE4);
+	bResult = pcFile->Seek(psInfo->uiPixelOffset) && cDecoder.Decode(pcFile, puiIndices);
+	cDecoder.Kill();
+
+	if (bResult)
+	{
+		for (y = 0; y < psInfo->iHeight; y++)
+		{
+			iFileRow = psInfo->bTopDown ? y : psInfo->iHeight - 1 - y;
+			for (x = 0; x < psInfo->iWidth; x++)
+			{
+				BMPPaletteColour(psInfo, puiIndices[iFileRow * psInfo->iWidth + x], &puiRGBA[(y * psInfo->iWidth + x) * 4]);
+			}
+		}
+	}
+	free(puiIndices);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Decodes the pixels into puiRGBA (4 bytes per pixel, top row first).
+//
+//////////////////////////////////////////////////////////////////////////
+bool BMPDecodePixels(CFileBasic* pcFile, size uiFileSize, SBMPInfo* psInfo, uint8* puiRGBA)
+{
+	size	uiStride;
+	int		y;
+	int		iFileRow;
+
 	if ((psInfo->uiCompression == BMP_RLE8) || (psInfo->uiCompression == BMP_RLE4))
 	{
-		puiIndices = (uint8*)malloc(psInfo->iWidth * psInfo->iHeight);
-		if (puiIndices == NULL)
-		{
-			return false;
-		}
-		memset(puiIndices, 0, psInfo->iWidth * psInfo->iHeight);
-		cDecoder.Init(psInfo->iWidth, psInfo->iHeight, psInfo->uiCompression == BMP_RLE4);
-		if (!cDecoder.Decode(pvData, uiDataSize, puiIndices))
-		{
-			cDecoder.Kill();
-			free(puiIndices);
-			return false;
-		}
-		cDecoder.Kill();
-		uiStride = 0;
+		return BMPDecodeRLEPixels(pcFile, psInfo, puiRGBA);
 	}
-	else
+
+	uiStride = ((psInfo->iWidth * psInfo->iBitsPerPixel + 31) / 32) * 4;
+	if (uiStride * psInfo->iHeight > uiFileSize - psInfo->uiPixelOffset)
 	{
-		uiStride = ((psInfo->iWidth * psInfo->iBitsPerPixel + 31) / 32) * 4;
-		if (uiStride * psInfo->iHeight > uiDataSize)
-		{
-			return false;
-		}
+		return false;
 	}
 
 	for (y = 0; y < psInfo->iHeight; y++)
 	{
 		iFileRow = psInfo->bTopDown ? y : psInfo->iHeight - 1 - y;
-		pvRow = &pvData[iFileRow * uiStride];
-		for (x = 0; x < psInfo->iWidth; x++)
+		if (!pcFile->Seek(psInfo->uiPixelOffset + iFileRow * uiStride) || !BMPReadRow(pcFile, psInfo, &puiRGBA[y * psInfo->iWidth * 4]))
 		{
-			puiPixel = &puiRGBA[(y * psInfo->iWidth + x) * 4];
-			if (psInfo->iBitsPerPixel <= 8)
-			{
-				if (puiIndices)
-				{
-					iIndex = puiIndices[iFileRow * psInfo->iWidth + x];
-				}
-				else if (psInfo->iBitsPerPixel == 8)
-				{
-					iIndex = pvRow[x];
-				}
-				else if (psInfo->iBitsPerPixel == 4)
-				{
-					iIndex = (x & 1) ? (pvRow[x / 2] & 0xF) : (pvRow[x / 2] >> 4);
-				}
-				else
-				{
-					iIndex = (pvRow[x / 8] >> (7 - (x & 7))) & 1;
-				}
-				if (iIndex >= psInfo->iNumColours)
-				{
-					iIndex = 0;
-				}
-				puiPixel[0] = psInfo->aauiPalette[iIndex][0];
-				puiPixel[1] = psInfo->aauiPalette[iIndex][1];
-				puiPixel[2] = psInfo->aauiPalette[iIndex][2];
-				puiPixel[3] = 255;
-			}
-			else if (psInfo->iBitsPerPixel == 24)
-			{
-				puiPixel[0] = pvRow[x * 3 + 2];
-				puiPixel[1] = pvRow[x * 3 + 1];
-				puiPixel[2] = pvRow[x * 3];
-				puiPixel[3] = 255;
-			}
-			else
-			{
-				if (psInfo->iBitsPerPixel == 16)
-				{
-					uiPixel = ReadLittleEndianUInt16(&pvRow[x * 2]);
-				}
-				else
-				{
-					uiPixel = ReadLittleEndianUInt32(&pvRow[x * 4]);
-				}
-				puiPixel[0] = BMPExtractChannel(uiPixel, psInfo->auiMasks[0]);
-				puiPixel[1] = BMPExtractChannel(uiPixel, psInfo->auiMasks[1]);
-				puiPixel[2] = BMPExtractChannel(uiPixel, psInfo->auiMasks[2]);
-				puiPixel[3] = psInfo->auiMasks[3] ? BMPExtractChannel(uiPixel, psInfo->auiMasks[3]) : 255;
-			}
+			return false;
 		}
-	}
-
-	if (puiIndices)
-	{
-		free(puiIndices);
 	}
 	return true;
 }
@@ -397,13 +478,14 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 {
 	size			uiFileSize;
 	uint8*			pvFile;
+	CFileBasic		cFile;
 	SBMPInfo		sInfo;
+	bool			bValid;
+	bool			bDecoded;
 	uint8*			puiRGBA;
 	bool			bGrey;
 	bool			bAlpha;
 	int				i;
-	int				iNumPixels;
-	uint8*			puiDest;
 	Ptr<CImage>		pcImage;
 
 	pvFile = LoadFileIntoMemory(szFilename, &uiFileSize);
@@ -412,23 +494,34 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 		return NULL;
 	}
 
-	if (!BMPReadInfo(pvFile, uiFileSize, &sInfo))
+	puiRGBA = NULL;
+	bDecoded = false;
+	cFile.Init(MemoryFile(pvFile, uiFileSize));
+	bValid = cFile.Open(EFM_Read);
+	if (bValid)
 	{
-		free(pvFile);
+		bValid = BMPReadInfo(&cFile, uiFileSize, &sInfo);
+		if (bValid)
+		{
+			puiRGBA = (uint8*)malloc(sInfo.iWidth * sInfo.iHeight * 4);
+			bDecoded = (puiRGBA != NULL) && BMPDecodePixels(&cFile, uiFileSize, &sInfo, puiRGBA);
+		}
+		cFile.Close();
+	}
+	cFile.Kill();
+	free(pvFile);
+
+	if (!bValid)
+	{
 		gcLogger.Error2(__METHOD__, " [", szFilename, "] is not a supported bitmap.", NULL);
 		return NULL;
 	}
-
-	iNumPixels = sInfo.iWidth * sInfo.iHeight;
-	puiRGBA = (uint8*)malloc(iNumPixels * 4);
-	if ((puiRGBA == NULL) || !BMPDecodePixels(pvFile, uiFileSize, &sInfo, puiRGBA))
+	if (!bDecoded)
 	{
 		free(puiRGBA);
-		free(pvFile);
 		gcLogger.Error2(__METHOD__, " [", szFilename, "] pixel data is truncated or corrupt.", NULL);
 		return NULL;
 	}
-	free(pvFile);
 
 	bGrey = false;
 	bAlpha = false;
@@ -462,28 +555,11 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 		pcImage = OMalloc<CImage>(sInfo.iWidth, sInfo.iHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 	}
 
-	puiDest = (uint8*)pcImage->GetData();
-	if (puiDest == NULL)
+	if ((pcImage->GetData() == NULL) || !CopyRGBAIntoImage(puiRGBA, bGrey, pcImage))
 	{
 		free(puiRGBA);
-		gcLogger.Error2(__METHOD__, " Could not allocate image for [", szFilename, "].", NULL);
+		gcLogger.Error2(__METHOD__, " Could not create image for [", szFilename, "].", NULL);
 		return NULL;
-	}
-	for (i = 0; i < iNumPixels; i++)
-	{
-		if (bGrey)
-		{
-			puiDest[i] = puiRGBA[i * 4];
-		}
-		else if (bAlpha)
-		{
-			puiDest[i * 4] = puiRGBA[i * 4 + 3];
-			memcpy(&puiDest[i * 4 + 1], &puiRGBA[i * 4], 3);
-		}
-		else
-		{
-			memcpy(&puiDest[i * 3], &puiRGBA[i * 4], 3);
-		}
 	}
 	free(puiRGBA);
 

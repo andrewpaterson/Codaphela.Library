@@ -29,8 +29,6 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TGAWriter.h"
 
 
-#define TGA_HEADER_SIZE			18
-#define TGA_FOOTER_SIZE			26
 #define TGA_TRUE_COLOUR			2
 #define TGA_GREY				3
 #define TGA_RLE					8
@@ -38,12 +36,37 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Writes the header with no ID or colour map.  Rows are stored bottom up,
+// left to right.
 //
 //////////////////////////////////////////////////////////////////////////
-void TGAWriteUInt16(uint8* pui, uint16 ui)
+bool TGAWriteHeader(CFileWriter* pcFile, int iImageType, int iWidth, int iHeight, int iPixelBytes, bool bAlpha)
 {
-	pui[0] = (uint8)ui;
-	pui[1] = (uint8)(ui >> 8);
+	return	pcFile->WriteInt8((uint8)0) &&						//ID length.
+			pcFile->WriteInt8((uint8)0) &&						//No colour map.
+			pcFile->WriteInt8((uint8)iImageType) &&
+			pcFile->WriteInt16((uint16)0) &&					//Colour map first entry.
+			pcFile->WriteInt16((uint16)0) &&					//Colour map length.
+			pcFile->WriteInt8((uint8)0) &&						//Colour map entry bits.
+			pcFile->WriteInt16((uint16)0) &&					//X origin.
+			pcFile->WriteInt16((uint16)0) &&					//Y origin.
+			pcFile->WriteInt16((uint16)iWidth) &&
+			pcFile->WriteInt16((uint16)iHeight) &&
+			pcFile->WriteInt8((uint8)(iPixelBytes * 8)) &&
+			pcFile->WriteInt8((uint8)(bAlpha ? 8 : 0));		//Alpha bits.
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// TGA 2.0 footer with no extension or developer areas.
+//
+//////////////////////////////////////////////////////////////////////////
+bool TGAWriteFooter(CFileWriter* pcFile)
+{
+	return	pcFile->WriteInt32((uint32)0) &&					//Extension area offset.
+			pcFile->WriteInt32((uint32)0) &&					//Developer directory offset.
+			pcFile->WriteData("TRUEVISION-XFILE.", 18);
 }
 
 
@@ -60,9 +83,9 @@ bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE)
 	int					iPixelBytes;
 	size				uiRowBytes;
 	size				uiMaxDataSize;
-	size				uiFileSize;
+	size				uiDataSize;
 	uint8*				pvPixels;
-	uint8*				pvFile;
+	uint8*				pvData;
 	uint8*				puiRow;
 	uint8*				puiSource;
 	uint8*				puiDest;
@@ -135,22 +158,15 @@ bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE)
 	cEncoder.Init(iPixelBytes);
 	uiRowBytes = (size)iWidth * iPixelBytes;
 	uiMaxDataSize = bRLE ? cEncoder.GetMaxEncodedSize(iWidth) * iHeight : uiRowBytes * iHeight;
-	pvFile = (uint8*)malloc(TGA_HEADER_SIZE + uiMaxDataSize + TGA_FOOTER_SIZE);
-	if (pvFile == NULL)
+	pvData = (uint8*)malloc(uiMaxDataSize);
+	if (pvData == NULL)
 	{
 		cEncoder.Kill();
 		free(pvPixels);
 		gcLogger.Error2(__METHOD__, " Could not allocate memory to write [", szPathName, "].", NULL);
 		return false;
 	}
-	memset(pvFile, 0, TGA_HEADER_SIZE);
-	pvFile[2] = (uint8)((bGrey ? TGA_GREY : TGA_TRUE_COLOUR) | (bRLE ? TGA_RLE : 0));
-	TGAWriteUInt16(&pvFile[12], (uint16)iWidth);
-	TGAWriteUInt16(&pvFile[14], (uint16)iHeight);
-	pvFile[16] = (uint8)(iPixelBytes * 8);
-	pvFile[17] = bAlpha ? 8 : 0;  //Alpha bits.  Rows are stored bottom up, left to right.
-
-	puiDest = &pvFile[TGA_HEADER_SIZE];
+	puiDest = pvData;
 	for (y = iHeight - 1; y >= 0; y--)
 	{
 		puiRow = &pvPixels[y * uiRowBytes];
@@ -172,21 +188,19 @@ bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE)
 	cEncoder.Kill();
 	free(pvPixels);
 
-	//TGA 2.0 footer with no extension or developer areas.
-	memset(puiDest, 0, 8);
-	memcpy(&puiDest[8], "TRUEVISION-XFILE.", 18);
-	puiDest += TGA_FOOTER_SIZE;
-	uiFileSize = puiDest - pvFile;
+	uiDataSize = puiDest - pvData;
 
 	cFile.Init(DiskFile(szPathName));
 	bResult = cFile.Open(EFM_Write_Create);
 	if (bResult)
 	{
-		bResult = cFile.Write(pvFile, uiFileSize, 1) == 1;
+		bResult =	TGAWriteHeader(&cFile, (bGrey ? TGA_GREY : TGA_TRUE_COLOUR) | (bRLE ? TGA_RLE : 0), iWidth, iHeight, iPixelBytes, bAlpha) &&
+					cFile.WriteData(pvData, uiDataSize) &&
+					TGAWriteFooter(&cFile);
 		cFile.Close();
 	}
 	cFile.Kill();
-	free(pvFile);
+	free(pvData);
 
 	if (!bResult)
 	{
