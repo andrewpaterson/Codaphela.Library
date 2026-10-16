@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __SFT_COMMON_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/FileReader.h"
+#include "BaseLib/FileWriter.h"
 
 
 #define SFT_TYPE_OPAQUE			(uint16)0xe457
@@ -40,6 +41,7 @@ struct SSFTImage
 
 	void	Init(uint16 uiType, uint16 uiImageWidth, uint16 uiImageHeight);
 	bool	Read(CFileReader* pcFile);
+	bool	Write(CFileWriter* pcFile);
 };
 
 
@@ -51,6 +53,7 @@ struct SSFTCelRun
 	void	Init(bool bStartOfRun);
 	void	Set(uint16 uiRunLength, uint16 uiSkipLength);
 	bool	Read(CFileReader* pcFile);
+	bool	Write(CFileWriter* pcFile);
 
 	bool	IsStartOfRun(void);
 	uint16	GetRunLength(void);
@@ -66,6 +69,7 @@ struct SSFTContainer
 
 	void	Init(uint16 uicount);
 	bool	Read(CFileReader* pcFile);
+	bool	Write(CFileWriter* pcFile);
 };
 
 
@@ -76,6 +80,7 @@ struct SSFTContained
 	void	Init(void);
 	void	Init(uint16 uiSkipToNext);
 	bool	Read(CFileReader* pcFile);
+	bool	Write(CFileWriter* pcFile);
 };  //end of struct == start of SSFT image type.
 
 
