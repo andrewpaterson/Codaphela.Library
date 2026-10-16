@@ -28,7 +28,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "PNGWriter.h"
 #include "BMPWriter.h"
 #include "TGAWriter.h"
-#include "GDIPlusWriter.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -49,15 +48,8 @@ bool WriteImage(Ptr<CImage> pcImage, char* szFilename, EImageType eType)
 		return SaveBMP(pcImage, szFilename);
 	case IT_TGA:
 		return SaveTGA(pcImage, szFilename);
-	case IT_EMF:
-	case IT_GIF:
-	case IT_ICO:
-	case IT_JPG:
-	case IT_WMF:
-		WriteGDIPlusImage(pcImage, szFilename, eType);
 	case IT_PNG:
-		SavePNG(pcImage, szFilename);
-		return true;
+		return SavePNG(pcImage, szFilename);
 	case IT_RAD:
 		return (SaveRAD(pcImage, szFilename));
 	case IT_RAW:
@@ -65,6 +57,8 @@ bool WriteImage(Ptr<CImage> pcImage, char* szFilename, EImageType eType)
 	case IT_SFT:
 		return (SaveSFT(pcImage, szFilename));
 	}
+
+	gcLogger.Error2(__METHOD__, " Could not write image of type [", ImageTypeToString(eType), " (", IntToString(eType), ")] to [", szFilename, "].", NULL);
 	return false;
 }
 

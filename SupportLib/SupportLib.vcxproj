@@ -228,7 +228,6 @@
     <ClInclude Include="FakeTracker.h" />
     <ClInclude Include="FontFactory.h" />
     <ClInclude Include="FontImportParameters.h" />
-    <ClInclude Include="GDIPlusWriter.h" />
     <ClInclude Include="ImageCopyDimension.h" />
     <ClInclude Include="ImageDraw.h" />
     <ClInclude Include="ImageReaderHelper.h" />
@@ -420,7 +419,6 @@
     <ClCompile Include="MapFontDraw.cpp" />
     <ClCompile Include="FontFactory.cpp" />
     <ClCompile Include="FontImportParameters.cpp" />
-    <ClCompile Include="GDIPlusWriter.cpp" />
     <ClCompile Include="ImageCopyDimension.cpp" />
     <ClCompile Include="ImageDraw.cpp" />
     <ClCompile Include="ImageReaderHelper.cpp" />

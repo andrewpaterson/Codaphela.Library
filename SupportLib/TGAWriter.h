@@ -1,5 +1,3 @@
-#ifndef __GDI_PLUS_WRITER__
-#define __GDI_PLUS_WRITER__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -19,16 +17,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
-libpng is Copyright Glenn Randers-Pehrson
-zlib is Copyright Jean-loup Gailly and Mark Adler
-
 ** ------------------------------------------------------------------------ **/
-#include "ImageCopier.h"
-#include "ImageWriter.h"
+#ifndef __TGA_WRITER_H__
+#define __TGA_WRITER_H__
+#include "Image.h"
 
 
-void WriteGDIPlusImage(Ptr<CImage> pcImage, char* szFilename, EImageType eImageType);
+//Writes RGB images as 24 bit, RGBA as 32 bit, grey as 8 bit and grey with alpha as 16 bit Targa images, optionally RLE compressed.
+bool SaveTGA(Ptr<CImage> pcImage, char* szPathName, bool bRLE = false);
 
 
-#endif // __GDI_PLUS_WRITER__
-
+#endif // __TGA_WRITER_H__
