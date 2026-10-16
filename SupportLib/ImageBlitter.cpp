@@ -261,6 +261,7 @@ bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlit
 	Ptr<CBaseImageRowBlitter>	pcRowBlitter;
 	Ptr<CImage>					pSourceImage;
 	bool						bDestOpacity;
+	bool						bSameLayout;
 
 	pSourceImage = mpSourceCel->GetSourceImage();
 	uiSourceByteStride = pSourceImage->GetPixelByteStride();
@@ -269,20 +270,23 @@ bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlit
 	//The alpha bits of an image with an ignored channel (e.g. RGBX) are the size of the ignored channel.  Only write alpha if the destination has an opacity channel.
 	bDestOpacity = mpDestImage->HasChannel(IMAGE_OPACITY);
 
+	//Pixels can only be copied whole if the channels are in the same place in both images (e.g. not XRGB into RGBX).
+	bSameLayout = (uiSourceByteStride == uiDestByteStride) && (mcFormat.meSourceColourFormat == mcFormat.meDestColourFormat);
+
 	pcRowBlitter = NULL;
-	if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride == uiDestByteStride) && !bDestOpacity)
+	if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && bSameLayout && !bDestOpacity)
 	{
 		return CreateImageRowBlitterContiguous(pcFormat, pcBlitterCache);
 	}
-	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride == uiDestByteStride) && bDestOpacity)
+	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && bSameLayout && bDestOpacity)
 	{
 		return CreateImageRowBlitterByteAlignedOpaqueDestAlpha(pcFormat, pcBlitterCache);
 	}
-	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride != uiDestByteStride) && !bDestOpacity)
+	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && !bSameLayout && !bDestOpacity)
 	{
 		return CreateImageRowBlitterByteAlignedOpaque(pcFormat, pcBlitterCache);
 	}
-	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && (uiSourceByteStride != uiDestByteStride) && bDestOpacity)
+	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && !bSameLayout && bDestOpacity)
 	{
 		return CreateImageRowBlitterByteAlignedOpaqueDestAlpha(pcFormat, pcBlitterCache);
 	}

@@ -1496,13 +1496,33 @@ bool CObjects::Contains(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 {
+	return Remove(papcKilled, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled, CArrayBaseObjectPtr* papcKilledAfter)
+{
+	//Both batches are registered with the removal context before anything is freed.
+	//Freeing the objects in papcKilled can cause other objects to be removed (e.g. RemoveFreeObject) and the removal context must already know about the objects in papcKilledAfter so they are not killed twice.
+
 	size					iNumElements;
+	size					iNumAfterElements;
 	bool					bResult;
 	CArrayBaseObjectPtr*	papcContextKill;
 	size					iCount;
 
 	iNumElements = papcKilled->NumElements();
-	if (iNumElements == 0)
+	iNumAfterElements = 0;
+	if (papcKilledAfter)
+	{
+		iNumAfterElements = papcKilledAfter->NumElements();
+	}
+
+	if ((iNumElements == 0) && (iNumAfterElements == 0))
 	{
 		return true;
 	}
@@ -1511,6 +1531,11 @@ bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 	if (!mcRemovalContext.IsBusy())
 	{
 		papcContextKill = mcRemovalContext.Start(papcKilled);
+		if (iNumAfterElements != 0)
+		{
+			mcRemovalContext.Push(papcKilledAfter);
+		}
+
 		while (papcContextKill != NULL)
 		{
 			iNumElements = papcContextKill->NumElements();
@@ -1539,7 +1564,14 @@ bool CObjects::Remove(CArrayBaseObjectPtr* papcKilled)
 	}
 	else
 	{
-		mcRemovalContext.Push(papcKilled);
+		if (iNumElements != 0)
+		{
+			mcRemovalContext.Push(papcKilled);
+		}
+		if (iNumAfterElements != 0)
+		{
+			mcRemovalContext.Push(papcKilledAfter);
+		}
 	}
 
 	return true;

@@ -110,6 +110,7 @@ public:
 						void					LogicalDirty(CBaseObject* pcObject);
 
 						bool					Remove(CArrayBaseObjectPtr* papcKilled);
+						bool					Remove(CArrayBaseObjectPtr* papcKilled, CArrayBaseObjectPtr* papcKilledAfter);
 
 						CPointer				Null(void);
 	template<class M>	Ptr<M>					Null(void);
