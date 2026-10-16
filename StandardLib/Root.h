@@ -46,7 +46,7 @@ public:
 						void			Add(CPointer& pObject);
 						bool			Remove(CPointer& pObject);
 						bool			Remove(CBaseObject* pcObject);
-						void			RemoveAll(void);
+						bool			RemoveAll(void);
 						bool			IsRoot(void);
 						bool			IsSubRoot(void);
 

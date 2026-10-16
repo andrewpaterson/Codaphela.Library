@@ -145,9 +145,30 @@ bool CRoot::Remove(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRoot::RemoveAll(void)
+bool CRoot::RemoveAll(void)
 {
+	size	uiNumFreeObjects;
+
+	uiNumFreeObjects = 0;
+	{
+		Ptr<CFreeObjects>	pFree;
+
+		pFree = Get<CFreeObjects>(FREE_OBJECTS_NAME);
+		if (pFree.IsNotNull())
+		{
+			uiNumFreeObjects = pFree->NumObjects();
+		}
+	}
+
+	if (uiNumFreeObjects != 0)
+	{
+		//Removing FreeObjects from the Root would kill the objects in it out from under their owners.
+		gcLogger.Error2(__METHOD__, " Cannot remove all objects from Root while [", FREE_OBJECTS_NAME, "] contains [", SizeToString(uiNumFreeObjects), "] objects.  Every free Object must be removed first.", NULL);
+		return false;
+	}
+
 	mpObjects->RemoveAll();
+	return true;
 }
 
 
