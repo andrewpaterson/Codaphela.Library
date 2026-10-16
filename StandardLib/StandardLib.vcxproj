@@ -307,6 +307,15 @@
     <ClInclude Include="ChannelsAccessorCreator.h" />
     <ClInclude Include="SingleChannelAccessor.h" />
     <ClInclude Include="UnmanagedField.h" />
+    <ClInclude Include="Adler32.h" />
+    <ClInclude Include="CRC32.h" />
+    <ClInclude Include="BitReader.h" />
+    <ClInclude Include="BitWriter.h" />
+    <ClInclude Include="DeflateCommon.h" />
+    <ClInclude Include="HuffmanDecoder.h" />
+    <ClInclude Include="HuffmanEncoder.h" />
+    <ClInclude Include="Inflater.h" />
+    <ClInclude Include="Deflater.h" />
     <ClInclude Include="PrimitiveVoid.h" />
   </ItemGroup>
   <ItemGroup>
@@ -419,6 +428,15 @@
     <ClCompile Include="ChannelsAccessorCreator.cpp" />
     <ClCompile Include="SingleChannelAccessor.cpp" />
     <ClCompile Include="UnmanagedField.cpp" />
+    <ClCompile Include="Adler32.cpp" />
+    <ClCompile Include="CRC32.cpp" />
+    <ClCompile Include="BitReader.cpp" />
+    <ClCompile Include="BitWriter.cpp" />
+    <ClCompile Include="DeflateCommon.cpp" />
+    <ClCompile Include="HuffmanDecoder.cpp" />
+    <ClCompile Include="HuffmanEncoder.cpp" />
+    <ClCompile Include="Inflater.cpp" />
+    <ClCompile Include="Deflater.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ObjectsSources.txt" />

@@ -66,6 +66,12 @@ public:
 						bool	ReadLittleEndianInt32(int32* pi);
 						bool	ReadLittleEndianInt32(uint32* pui);
 
+	//Most significant byte first, whatever the platform's byte order.
+						bool	ReadBigEndianInt16(int16* pi);
+						bool	ReadBigEndianInt16(uint16* pui);
+						bool	ReadBigEndianInt32(int32* pi);
+						bool	ReadBigEndianInt32(uint32* pui);
+
 						template<class M>
 						bool	ReadPrimitive(M* pc);
 

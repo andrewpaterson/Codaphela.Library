@@ -31,6 +31,9 @@
     <Filter Include="Source\Object\Object\Source">
       <UniqueIdentifier>{74e3a89c-5442-47ab-86f5-9165765e41bf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Compression">
+      <UniqueIdentifier>{bf7850db-606d-484c-ab60-69fc59982c41}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Timer">
       <UniqueIdentifier>{b1feb13a-7fbb-45ed-ba2d-7a44007b40ed}</UniqueIdentifier>
     </Filter>
@@ -450,6 +453,33 @@
     <ClInclude Include="UnmanagedField.h">
       <Filter>Source\Object\Class</Filter>
     </ClInclude>
+    <ClInclude Include="Adler32.h">
+      <Filter>Source\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="CRC32.h">
+      <Filter>Source\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="BitReader.h">
+      <Filter>Source\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="BitWriter.h">
+      <Filter>Source\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="DeflateCommon.h">
+      <Filter>Source\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="HuffmanDecoder.h">
+      <Filter>Source\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="HuffmanEncoder.h">
+      <Filter>Source\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="Inflater.h">
+      <Filter>Source\Compression</Filter>
+    </ClInclude>
+    <ClInclude Include="Deflater.h">
+      <Filter>Source\Compression</Filter>
+    </ClInclude>
     <ClInclude Include="PrimitiveClasses.h">
       <Filter>Source\Object\Class</Filter>
     </ClInclude>
@@ -787,6 +817,33 @@
     </ClCompile>
     <ClCompile Include="UnmanagedField.cpp">
       <Filter>Source\Object\Class</Filter>
+    </ClCompile>
+    <ClCompile Include="Adler32.cpp">
+      <Filter>Source\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="CRC32.cpp">
+      <Filter>Source\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="BitReader.cpp">
+      <Filter>Source\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="BitWriter.cpp">
+      <Filter>Source\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="DeflateCommon.cpp">
+      <Filter>Source\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="HuffmanDecoder.cpp">
+      <Filter>Source\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="HuffmanEncoder.cpp">
+      <Filter>Source\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="Inflater.cpp">
+      <Filter>Source\Compression</Filter>
+    </ClCompile>
+    <ClCompile Include="Deflater.cpp">
+      <Filter>Source\Compression</Filter>
     </ClCompile>
     <ClCompile Include="PrimitiveClasses.cpp">
       <Filter>Source\Object\Class</Filter>

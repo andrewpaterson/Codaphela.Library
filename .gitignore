@@ -21,8 +21,6 @@ TestLib/Release
 WindowLib/Release
 WorldLib/Release
 DirectXLib/Debug
-ImageLib/Debug
-ImageLib/Release
 ThreadLib/Debug
 ThreadLib/Release
 LanguageLib/Debug
