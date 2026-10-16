@@ -307,16 +307,55 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 
 	CDistCalculator			cDistCalculator;
 	CArrayBaseObjectPtr*	papcKilled;
+	CArrayBaseObjectPtr*	papcKilledNesObjects;
+	CKillOrderCalculator	cKillOrder;
+	CArrayHeapFromPointer	acHeapFromPointers;
+	SHeapFromPointer*		psHeapFromPointer;
+	CBaseObject*			pcFromContainer;
+	CObjects*				pcObjectsThisIn;
+	size					i;
+	size					uiNumEmbedded;
+	size					uiNumPointers;
 
 	if (IsAllocatedInObjects())
 	{
 		RemoveAllStackFroms();
+
+		//Remember the pointers to this before they are cleared.
+		acHeapFromPointers.Init();
+		uiNumEmbedded = NumEmbedded();
+		for (i = 0; i < uiNumEmbedded; i++)
+		{
+			GetEmbeddedObject(i)->GetHeapFromPointers(&acHeapFromPointers);
+		}
+
 		RemoveAllHeapFroms();
 
 		cDistCalculator.Init();
 		papcKilled = cDistCalculator.Calculate(this, bHeapFromChanged);
 
-		mpcObjectsThisIn->Remove(papcKilled);
+		//Put back the pointers from Objects that are killed with this.  They must still be valid when those Objects are freed, as they are in TryFree.
+		uiNumPointers = acHeapFromPointers.NumElements();
+		for (i = 0; i < uiNumPointers; i++)
+		{
+			psHeapFromPointer = acHeapFromPointers.Get(i);
+			pcFromContainer = psHeapFromPointer->pcFrom->GetEmbeddingContainer();
+			if (papcKilled->ContainsVoidPtr(pcFromContainer))
+			{
+				psHeapFromPointer->pcPointer->UnsafePointTo(psHeapFromPointer->pcTo);
+				psHeapFromPointer->pcTo->AddHeapPointerForRemap(psHeapFromPointer->pcFrom);
+			}
+		}
+		acHeapFromPointers.Kill();
+
+		//Calculate removes Nes objects from papcKilled and puts them into papcKilledNesObjects.
+		cKillOrder.Init(papcKilled);
+		papcKilledNesObjects = cKillOrder.Calculate();
+
+		pcObjectsThisIn = mpcObjectsThisIn;
+		pcObjectsThisIn->Remove(papcKilled, papcKilledNesObjects);
+
+		cKillOrder.Kill();
 		cDistCalculator.Kill();
 	}
 	else

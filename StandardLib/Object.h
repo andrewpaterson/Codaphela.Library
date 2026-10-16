@@ -61,6 +61,7 @@ public:
 	void				Kill(void) final override;
 	bool				IsCollection(void) override;
 	bool				IsObject(void) override;
+	void				GetPointerFieldsTo(CEmbeddedObject* pcTo, CArrayHeapFromPointer* pacPointers) override;
 	void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
 
 	bool				IsDirty(void);

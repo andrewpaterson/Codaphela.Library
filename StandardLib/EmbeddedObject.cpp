@@ -351,6 +351,53 @@ void CEmbeddedObject::AddHeapPointerForRemap(CBaseObject* pcFromObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::GetHeapFromPointers(CArrayHeapFromPointer* pacPointers)
+{
+	//Adds every pointer field, in every Object on the heap, that points to this.
+
+	size			i;
+	size			j;
+	size			uiNumFroms;
+	CBaseObject*	pcFrom;
+	bool			bAlreadyAdded;
+
+	uiNumFroms = mapHeapFroms.NumElements();
+	for (i = 0; i < uiNumFroms; i++)
+	{
+		pcFrom = *mapHeapFroms.Get(i);
+
+		//An Object with more than one pointer to this is in the heap froms more than once.
+		bAlreadyAdded = false;
+		for (j = 0; j < i; j++)
+		{
+			if (*mapHeapFroms.Get(j) == pcFrom)
+			{
+				bAlreadyAdded = true;
+				break;
+			}
+		}
+
+		if (!bAlreadyAdded)
+		{
+			pcFrom->GetPointerFieldsTo(this, pacPointers);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::GetPointerFieldsTo(CEmbeddedObject* pcTo, CArrayHeapFromPointer* pacPointers)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EFreeResult CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject, bool bValidate)
 {
 	CBaseObject*	pcContainer;

@@ -1,0 +1,28 @@
+❯ Tell me more about an array, set, map or index holding the killed object is itself in the kill set, it doesn't get that entry back, so its own Free() won't see it
+
+  Ran 1 shell command
+
+This gap doesn't affect any current code: no Free() in StandardLib, SupportLib, WindowLib or WinRefLib reads an object collection. It only matters if one does in future.
+
+Where the gap comes from. When Kill() runs on a heap object X, RemoveAllHeapFroms() goes through everything that points at X and asks it to drop the pointer (pcFrom->RemovePointerTo(X)). Which kind of holder it is decides what happens:
+- A pointer field in a CObject (for example Ptr<CWindow> mpWindow): the field is set to NULL. This is the case my change records and puts back if the holder is also being killed.
+- An entry in an array, set, map or index: the holder recorded in X's heap-froms is the collection object itself. That might be a separate heap object, or one embedded in another object, like CComponent::maChildren. Its RemovePointerTo(X) takes X out of the collection (mcArray.Remove, mcMap/mcIndex removal). For arrays that ignore NULLs, X's slot becomes a NULL hole. GetPointerFieldsTo does nothing for collections, so nothing is recorded and nothing is restored.
+
+When it matters. Only when all of these are true:
+1. X is killed explicitly with Kill(). The scope-exit TryFree path never removes entries before Free().
+2. The collection, or the object it's embedded in, is in X's kill set, meaning it's only reachable through X. If the collection's owner survives, removing X from it is correct.
+3. Something's Free() looks inside that collection: the collection's own Free() (in the library, CArrayCommonObject, CMapObject and CIndexObject all have empty Free()s), or the Free() of the object the collection is embedded in.
+
+Then that Free() sees one entry fewer than it would on the scope-exit path: X is missing, or there's a NULL hole where it was. X is still freed in the same batch or before, as the kill order decides.
+
+A WindowLib example of the shape: call pCanvas->Kill() on a canvas whose window is reachable only through that canvas. Then pWindow->maChildren loses the canvas before CWindow::Free runs. Today CWindow::Free and CComponent::Free don't touch maChildren, so nothing goes wrong.
+
+This isn't a regression. Before my change, KillInternal cleared every holder up front, including CObject pointer fields. The change restores pointer fields only, so collections behave exactly as they did before.
+
+What supporting it would take. Each collection type would implement GetPointerFieldsTo to record where X was, and the restore step would put it back:
+- Array: the index. Re-insert at that index. For NULL-ignoring arrays, just put X back into the hole.
+- Set: just X, since order doesn't matter.
+- Map: the key and whether X was the key or the value. If X was the key, the whole entry has gone.
+- Index: the key.
+
+SHeapFromPointer would need room for that extra position information, and each collection would need code to restore the entry. It's doable, but it's three classes' worth of new code for a case nothing exercises yet.
