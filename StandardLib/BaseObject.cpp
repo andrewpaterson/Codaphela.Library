@@ -699,9 +699,13 @@ EFreeResult CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 				else
 				{
 					cKillOrder.Init(papcKilled);
-					papcKilledNesObjects = cKillOrder.Calculate();
 
+					//Calculate removes Nes objects from papcKilled and puts them into papcKilledNesObjects.
+					//This is not a complete solution as the Nes objects should be sorted before they are killed but it's good enough for now.
+					papcKilledNesObjects = cKillOrder.Calculate();  
+		
 					pcObjectsThisIn = mpcObjectsThisIn;
+					pcObjectsThisIn->Remove(papcKilled);
 					pcObjectsThisIn->Remove(papcKilledNesObjects);
 
 					cKillOrder.Kill();
