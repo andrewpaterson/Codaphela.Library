@@ -20,10 +20,9 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
 #include <string.h>
-#include "BaseLib/DiskFile.h"
-#include "BaseLib/FileBasic.h"
 #include "BaseLib/Logger.h"
 #include "RLEPacketDecoder.h"
+#include "ImageReaderCommon.h"
 #include "TGAReader.h"
 
 
@@ -67,16 +66,6 @@ struct STGAInfo
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-uint16 TGAReadUInt16(uint8* pui)
-{
-	return (uint16)(pui[0] | (pui[1] << 8));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Scales a 5 bit channel to 8 bits the same way the image type converter
 // does (truncating).
 //
@@ -100,7 +89,7 @@ void TGADecodeColour(uint8* puiSource, int iBits, uint8* puiRGBA)
 
 	if ((iBits == 15) || (iBits == 16))
 	{
-		uiValue = TGAReadUInt16(puiSource);
+		uiValue = ReadLittleEndianUInt16(puiSource);
 		puiRGBA[0] = TGAScale5Bits((uiValue >> 10) & 0x1F);
 		puiRGBA[1] = TGAScale5Bits((uiValue >> 5) & 0x1F);
 		puiRGBA[2] = TGAScale5Bits(uiValue & 0x1F);
@@ -134,11 +123,11 @@ bool TGAReadInfo(uint8* pvFile, size uiFileSize, STGAInfo* psInfo)
 	psInfo->iIDLength = pvFile[0];
 	psInfo->iColourMapType = pvFile[1];
 	psInfo->iImageType = pvFile[2];
-	psInfo->iColourMapFirst = TGAReadUInt16(&pvFile[3]);
-	psInfo->iColourMapLength = TGAReadUInt16(&pvFile[5]);
+	psInfo->iColourMapFirst = ReadLittleEndianUInt16(&pvFile[3]);
+	psInfo->iColourMapLength = ReadLittleEndianUInt16(&pvFile[5]);
 	psInfo->iColourMapEntryBits = pvFile[7];
-	psInfo->iWidth = TGAReadUInt16(&pvFile[12]);
-	psInfo->iHeight = TGAReadUInt16(&pvFile[14]);
+	psInfo->iWidth = ReadLittleEndianUInt16(&pvFile[12]);
+	psInfo->iHeight = ReadLittleEndianUInt16(&pvFile[14]);
 	psInfo->iPixelBits = pvFile[16];
 	psInfo->iAlphaBits = pvFile[17] & TGA_ALPHA_BITS;
 	psInfo->bRightToLeft = (pvFile[17] & TGA_RIGHT_TO_LEFT) != 0;
@@ -244,7 +233,7 @@ void TGADecodePixel(STGAInfo* psInfo, uint8* puiSource, uint8* puiRGBA)
 
 	if (psInfo->iBaseType == TGA_COLOUR_MAPPED)
 	{
-		iIndex = (psInfo->iPixelBits == 8) ? puiSource[0] : TGAReadUInt16(puiSource);
+		iIndex = (psInfo->iPixelBits == 8) ? puiSource[0] : ReadLittleEndianUInt16(puiSource);
 		iIndex -= psInfo->iColourMapFirst;
 		if ((iIndex >= 0) && (iIndex < psInfo->iColourMapLength))
 		{
@@ -343,8 +332,7 @@ bool TGADecodePixels(uint8* pvFile, size uiFileSize, STGAInfo* psInfo, uint8* pu
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug)
 {
-	CFileBasic		cFile;
-	filePos			iFileSize;
+	size			uiFileSize;
 	uint8*			pvFile;
 	STGAInfo		sInfo;
 	uint8*			puiRGBA;
@@ -355,34 +343,13 @@ Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug)
 	uint8*			puiDest;
 	Ptr<CImage>		pcImage;
 
-	cFile.Init(DiskFile(szFilename));
-	if (!cFile.Open(EFM_Read))
+	pvFile = LoadFileIntoMemory(szFilename, &uiFileSize);
+	if (pvFile == NULL)
 	{
-		cFile.Kill();
-		gcLogger.Error2(__METHOD__, " Could not open [", szFilename, "].", NULL);
 		return NULL;
 	}
-	iFileSize = cFile.GetFileLength();
-	if ((iFileSize <= 0) || (iFileSize > 0x7FFFFFFF))
-	{
-		cFile.Close();
-		cFile.Kill();
-		gcLogger.Error2(__METHOD__, " Could not read [", szFilename, "].", NULL);
-		return NULL;
-	}
-	pvFile = (uint8*)malloc((size)iFileSize);
-	if ((pvFile == NULL) || (cFile.Read(pvFile, (size)iFileSize, 1) != 1))
-	{
-		free(pvFile);
-		cFile.Close();
-		cFile.Kill();
-		gcLogger.Error2(__METHOD__, " Could not read [", szFilename, "].", NULL);
-		return NULL;
-	}
-	cFile.Close();
-	cFile.Kill();
 
-	if (!TGAReadInfo(pvFile, (size)iFileSize, &sInfo))
+	if (!TGAReadInfo(pvFile, uiFileSize, &sInfo))
 	{
 		free(sInfo.puiColourMap);
 		free(pvFile);
@@ -392,7 +359,7 @@ Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug)
 
 	iNumPixels = sInfo.iWidth * sInfo.iHeight;
 	puiRGBA = (uint8*)malloc(iNumPixels * 4);
-	if ((puiRGBA == NULL) || !TGADecodePixels(pvFile, (size)iFileSize, &sInfo, puiRGBA))
+	if ((puiRGBA == NULL) || !TGADecodePixels(pvFile, uiFileSize, &sInfo, puiRGBA))
 	{
 		free(puiRGBA);
 		free(sInfo.puiColourMap);

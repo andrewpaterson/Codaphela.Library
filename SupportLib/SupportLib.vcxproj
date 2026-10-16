@@ -236,6 +236,7 @@
     <ClInclude Include="PNGWriter.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SFTCommon.h" />
+    <ClInclude Include="ImageReaderCommon.h" />
     <ClInclude Include="SFTReader.h" />
     <ClInclude Include="SFTWriter.h" />
     <ClInclude Include="SpriteMap.h" />
@@ -432,6 +433,7 @@
     <ClCompile Include="PNGWriter.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SFTCommon.cpp" />
+    <ClCompile Include="ImageReaderCommon.cpp" />
     <ClCompile Include="SFTReader.cpp" />
     <ClCompile Include="SFTWriter.cpp" />
     <ClCompile Include="Image.cpp" />
