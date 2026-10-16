@@ -117,7 +117,27 @@ CStackPointer* CStackPointer::GetNext(void)
 //////////////////////////////////////////////////////////////////////////
 CStackPointer* CStackPointer::Remove(CPointer* pcPointer, CFreeList* pcFreeList, bool* pbRemoved)
 {
-	//Returns the new first stack pointer.  If pcPointer is not found the list is unchanged and this is returned.
+	return Remove(SPT_Pointer, pcPointer, pcFreeList, pbRemoved);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CStackPointer* CStackPointer::Remove(CCollection* pcCollection, CFreeList* pcFreeList, bool* pbRemoved)
+{
+	return Remove(SPT_Collection, pcCollection, pcFreeList, pbRemoved);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CStackPointer* CStackPointer::Remove(EStackPointerType eType, void* pvPointer, CFreeList* pcFreeList, bool* pbRemoved)
+{
+	//Returns the new first stack pointer.  If pvPointer is not found the list is unchanged and this is returned.
 
 	CStackPointer*	pcNext;
 	CStackPointer*	pcPrev;
@@ -128,82 +148,37 @@ CStackPointer* CStackPointer::Remove(CPointer* pcPointer, CFreeList* pcFreeList,
 	while (pcNext != NULL)
 	{
 		pcThis = pcNext;
-		if (pcThis->msPointer.meType == SPT_Pointer)
+		if ((pcThis->msPointer.meType == eType) && (pcThis->msPointer.u.pvPointer == pvPointer))
 		{
-			if (pcThis->msPointer.u.pcPointer == pcPointer)
+			if (pcPrev)
 			{
-				if (pcPrev)
-				{
-					pcPrev->SetNext(pcThis->mpcNext);
-					pcThis->Kill();
-					pcFreeList->Remove(pcThis);
-					*pbRemoved = true;
-					return this;
-				}
-				else
-				{
-					pcNext = mpcNext;
-					pcThis->Kill();
-					pcFreeList->Remove(pcThis);
-					*pbRemoved = true;
-					return pcNext;
-				}
+				pcPrev->SetNext(pcThis->mpcNext);
+				pcThis->Kill();
+				pcFreeList->Remove(pcThis);
+				*pbRemoved = true;
+				return this;
+			}
+			else
+			{
+				pcNext = mpcNext;
+				pcThis->Kill();
+				pcFreeList->Remove(pcThis);
+				*pbRemoved = true;
+				return pcNext;
 			}
 		}
 		pcPrev = pcNext;
 		pcNext = pcNext->mpcNext;
 	}
 
-	gcLogger.Error2(__METHOD__, " Could not remove Stack Pointer (Pointer).", NULL);
-	*pbRemoved = false;
-	return this;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CStackPointer* CStackPointer::Remove(CCollection* pcPointer, CFreeList* pcFreeList, bool* pbRemoved)
-{
-	//Returns the new first stack pointer.  If pcPointer is not found the list is unchanged and this is returned.
-
-	CStackPointer* pcNext;
-	CStackPointer* pcPrev;
-	CStackPointer* pcThis;
-
-	pcNext = this;
-	pcPrev = NULL;
-	while (pcNext != NULL)
+	if (eType == SPT_Pointer)
 	{
-		pcThis = pcNext;
-		if (pcThis->msPointer.meType == SPT_Collection)
-		{
-			if (pcThis->msPointer.u.pcCollection == pcPointer)
-			{
-				if (pcPrev)
-				{
-					pcPrev->SetNext(pcThis->mpcNext);
-					pcThis->Kill();
-					pcFreeList->Remove(pcThis);
-					*pbRemoved = true;
-					return this;
-				}
-				else
-				{
-					pcNext = mpcNext;
-					pcThis->Kill();
-					pcFreeList->Remove(pcThis);
-					*pbRemoved = true;
-					return pcNext;
-				}
-			}
-		}
-		pcPrev = pcNext;
-		pcNext = pcNext->mpcNext;
+		gcLogger.Error2(__METHOD__, " Could not remove Stack Pointer (Pointer).", NULL);
 	}
-
-	gcLogger.Error2(__METHOD__, " Could not remove Stack Pointer (Collection).", NULL);
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Could not remove Stack Pointer (Collection).", NULL);
+	}
 	*pbRemoved = false;
 	return this;
 }

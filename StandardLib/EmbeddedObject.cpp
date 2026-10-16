@@ -670,37 +670,18 @@ bool CEmbeddedObject::ContainsFrom(CEmbeddedObject* pcBaseObject)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::AddStackFrom(CPointer* pcPointer, bool bValidate)
 {
-	CStackPointers*		pcStackPointers;
-	CStackPointer*		pcStackPointer;	
+	bool	bAdded;
 
-	pcStackPointers = GetStackPointers();
-	if (pcStackPointers)
-	{
-		if (mpcStackFroms)
-		{
-			pcStackPointer = pcStackPointers->Add(pcPointer, mpcStackFroms);
-			if (!pcStackPointer)
-			{
-				return false;
-			}
-		}
-		else
-		{
-			pcStackPointer = pcStackPointers->Add(pcPointer);
-			if (!pcStackPointer)
-			{
-				return false;
-			}
-			mpcStackFroms = pcStackPointer;
-		}
+	bAdded = LinkStackFrom(GetStackPointers()->Add(pcPointer));
 
 #ifdef _DEBUG
+	if (bAdded)
+	{
 		ValidateObjectsConsistency(bValidate);
+	}
 #endif // _DEBUG
 
-		return true;
-	}
-	return false;
+	return bAdded;
 }
 
 
@@ -710,37 +691,18 @@ bool CEmbeddedObject::AddStackFrom(CPointer* pcPointer, bool bValidate)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::AddStackFrom(CCollection* pcCollection, bool bValidate)
 {
-	CStackPointers*		pcStackPointers;
-	CStackPointer*		pcStackPointer;
+	bool	bAdded;
 
-	pcStackPointers = GetStackPointers();
-	if (pcStackPointers)
-	{
-		if (mpcStackFroms)
-		{
-			pcStackPointer = pcStackPointers->Add(pcCollection, mpcStackFroms);
-			if (!pcStackPointer)
-			{
-				return false;
-			}
-		}
-		else
-		{
-			pcStackPointer = pcStackPointers->Add(pcCollection);
-			if (!pcStackPointer)
-			{
-				return false;
-			}
-			mpcStackFroms = pcStackPointer;
-		}
+	bAdded = LinkStackFrom(GetStackPointers()->Add(pcCollection));
 
 #ifdef _DEBUG
+	if (bAdded)
+	{
 		ValidateObjectsConsistency(bValidate);
+	}
 #endif // _DEBUG
 
-		return true;
-	}
-	return false;
+	return bAdded;
 }
 
 
@@ -750,28 +712,32 @@ bool CEmbeddedObject::AddStackFrom(CCollection* pcCollection, bool bValidate)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::AddStackPointersForRemap(CStackPointer* pcStackPointer)
 {
-	CStackPointers*		pcStackPointers;
-	bool				bAdded;
+	return LinkStackFrom(pcStackPointer);
+}
 
-	pcStackPointers = GetStackPointers();
-	if (pcStackPointers && pcStackPointer)
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CEmbeddedObject::LinkStackFrom(CStackPointer* pcStackPointer)
+{
+	//Adds pcStackPointer (and any stack pointers linked after it) to the end of this Object's stack froms.
+
+	if (pcStackPointer == NULL)
 	{
-		if (mpcStackFroms)
-		{
-			bAdded = pcStackPointers->SetLastNext(pcStackPointer, mpcStackFroms);
-			if (!bAdded)
-			{
-				return false;
-			}
-		}
-		else
-		{
-			mpcStackFroms = pcStackPointer;
-		}
-		return true;
+		return false;
 	}
 
-	return false;
+	if (mpcStackFroms)
+	{
+		return GetStackPointers()->SetLastNext(pcStackPointer, mpcStackFroms);
+	}
+	else
+	{
+		mpcStackFroms = pcStackPointer;
+		return true;
+	}
 }
 
 

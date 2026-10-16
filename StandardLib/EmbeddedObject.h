@@ -161,6 +161,7 @@ public:
 			void				DumpHeapFroms(void);
 
 protected:
+			bool				LinkStackFrom(CStackPointer* pcStackPointer);
 	virtual void				Allocate(CObjects* pcObjects);
 			void				AddHeapPointer(CBaseObject* pcFromObject);
 	virtual void				RemoveAllHeapFroms(void);

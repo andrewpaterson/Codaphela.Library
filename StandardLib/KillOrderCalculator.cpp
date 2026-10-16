@@ -30,27 +30,21 @@ void CKillOrderCalculator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CArrayBaseObjectPtr* CKillOrderCalculator::Calculate(void)
 {
-	size						i;
-	size						iNumElements;
-	CBaseObject*				pcObject;
-	CArrayEmbeddedObjectPtrE8	apNesObjectsPointingToThis;
-	size						iNesPointersTo;
+	size			i;
+	size			iNumElements;
+	CBaseObject*	pcObject;
 
 	iNumElements = mpapcKilled->NumElements();
 	for (i = 0; i < iNumElements; i++)
 	{
 		pcObject = mpapcKilled->GetPtr(i);
-		apNesObjectsPointingToThis.Init();
-		pcObject->GetNesPointerToThis(&apNesObjectsPointingToThis);
-		iNesPointersTo = apNesObjectsPointingToThis.NumElements();
-		if (iNesPointersTo > 0)
+		if (pcObject->IsNesPointedTo())
 		{
 			mapcKilledNesObjects.Add(pcObject);
 			mpapcKilled->RemoveAt(i, false);
 			i--;
 			iNumElements--;
 		}
-		apNesObjectsPointingToThis.Kill();
 	}
 
 	return &mapcKilledNesObjects;

@@ -22,6 +22,7 @@ struct SStackPointer
 	{
 		CPointer*		pcPointer;  //Pointer on the stack
 		CCollection*	pcCollection;
+		void*			pvPointer;  //Either of the above.  Used to compare them.
 	} u;
 };
 
@@ -44,13 +45,16 @@ public:
 	CStackPointer*		GetNext(void);
 	
 	CStackPointer*		Remove(CPointer* pcPointer, CFreeList* pcFreeList, bool* pbRemoved);
-	CStackPointer*		Remove(CCollection* pcPointer, CFreeList* pcFreeList, bool* pbRemoved);
+	CStackPointer*		Remove(CCollection* pcCollection, CFreeList* pcFreeList, bool* pbRemoved);
 	void				RemoveAll(CFreeList* pcFreeList);
 	void				ClearPointer(void);
 	CStackPointer*		ClearPointerGetNext(CEmbeddedObject* pcPointedTo);
 
 	EStackPointerType	GetType(void);
 	SStackPointer*		Get(void);
+
+protected:
+	CStackPointer*		Remove(EStackPointerType eType, void* pvPointer, CFreeList* pcFreeList, bool* pbRemoved);
 };
 
 

@@ -350,15 +350,7 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 	}
 	else
 	{
-		CArrayEmbeddedObjectPtrE8	apNesObjectsPointingToThis;
-		bool						bHasNesPointersToThis;
-
-		apNesObjectsPointingToThis.Init();
-		GetNesPointerToThis(&apNesObjectsPointingToThis);
-		bHasNesPointersToThis = apNesObjectsPointingToThis.NumElements() > 0;
-		apNesObjectsPointingToThis.Kill();
-
-		if (bHasNesPointersToThis)
+		if (IsNesPointedTo())
 		{
 			//Objects that depend on this to be freed must be freed before this, as they are when this is allocated in Objects.
 			RemoveAllPointerTosTryFree();  //Handles embedded objects.
@@ -713,23 +705,20 @@ EFreeResult CBaseObject::TryFree(bool bHeapFromChanged)
 
 		if (!mpcObjectsThisIn)
 		{
-			if (papcKilled->NumElements() > 0)
+			bOnlyThisKilled = false;
+			if (papcKilled->NumElements() == 1)
 			{
-				bOnlyThisKilled = false;
-				if (papcKilled->NumElements() == 1)
+				pcKilled = *papcKilled->Get(0);
+				if (pcKilled == this)
 				{
-					pcKilled = *papcKilled->Get(0);
-					if (pcKilled == this)
-					{
-						bOnlyThisKilled = true;
-					}
+					bOnlyThisKilled = true;
 				}
+			}
 
-				if (!bOnlyThisKilled)
-				{
-					gcLogger.Error2(__METHOD__, " Uh, probably if not in an objects then the only pointer to this object should be itself.  Maybe some stack kak?", NULL);
-					return FR_Error;
-				}
+			if (!bOnlyThisKilled)
+			{
+				gcLogger.Error2(__METHOD__, " Uh, probably if not in an objects then the only pointer to this object should be itself.  Maybe some stack kak?", NULL);
+				return FR_Error;
 			}
 		}
 		else
@@ -2859,6 +2848,31 @@ void CBaseObject::GetNesPointerToThis(CArrayEmbeddedObjectPtrE8* papNesObjectsPo
 			break;
 		} 
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBaseObject::IsNesPointedTo(void)
+{
+	//Returns true if another Object has a Nes pointer to this or to an Object embedded in this.
+
+	size	i;
+	size	iNumEmbedded;
+	size	iStart;
+
+	iNumEmbedded = NumEmbedded();
+	for (i = 0; i < iNumEmbedded; i++)
+	{
+		iStart = 0;
+		if (GetEmbeddedObject(i)->GetNesPointerFrom(&iStart))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 
