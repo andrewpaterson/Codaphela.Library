@@ -196,9 +196,9 @@ void CStackPointers::RemoveAll(CStackPointer* pcFirst)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CStackPointer* CStackPointers::Remove(CStackPointer* pcFirst, CPointer* pcPointer)
+CStackPointer* CStackPointers::Remove(CStackPointer* pcFirst, CPointer* pcPointer, bool* pbRemoved)
 {
-	return pcFirst->Remove(pcPointer, &mcFreeList);
+	return pcFirst->Remove(pcPointer, &mcFreeList, pbRemoved);
 }
 
 
@@ -206,9 +206,9 @@ CStackPointer* CStackPointers::Remove(CStackPointer* pcFirst, CPointer* pcPointe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CStackPointer* CStackPointers::Remove(CStackPointer* pcFirst, CCollection* pcPointer)
+CStackPointer* CStackPointers::Remove(CStackPointer* pcFirst, CCollection* pcPointer, bool* pbRemoved)
 {
-	return pcFirst->Remove(pcPointer, &mcFreeList);
+	return pcFirst->Remove(pcPointer, &mcFreeList, pbRemoved);
 }
 
 

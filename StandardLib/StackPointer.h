@@ -43,8 +43,8 @@ public:
 	CStackPointer*		FindLast(void);
 	CStackPointer*		GetNext(void);
 	
-	CStackPointer*		Remove(CPointer* pcPointer, CFreeList* pcFreeList);
-	CStackPointer*		Remove(CCollection* pcPointer, CFreeList* pcFreeList);
+	CStackPointer*		Remove(CPointer* pcPointer, CFreeList* pcFreeList, bool* pbRemoved);
+	CStackPointer*		Remove(CCollection* pcPointer, CFreeList* pcFreeList, bool* pbRemoved);
 	void				RemoveAll(CFreeList* pcFreeList);
 	void				ClearPointer(void);
 	CStackPointer*		ClearPointerGetNext(CEmbeddedObject* pcPointedTo);
