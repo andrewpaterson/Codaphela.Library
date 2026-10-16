@@ -52,3 +52,4 @@ uint32	PNGChunkCRC(uint8* puiType, uint8* puiData, size uiLength);
 
 
 #endif // __PNG_COMMON_H__
+

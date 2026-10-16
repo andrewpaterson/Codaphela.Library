@@ -94,9 +94,6 @@
     <Filter Include="Source\Image\IO\Writer">
       <UniqueIdentifier>{7627357c-da8c-4c55-a306-f78ca64fa4f4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Image\IO\Reader">
-      <UniqueIdentifier>{f8ce2223-90d8-48d0-80ac-a0027c9e7f21}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Image\Area">
       <UniqueIdentifier>{4f90c204-eb9c-4530-a638-7389aaf39748}</UniqueIdentifier>
     </Filter>
@@ -226,6 +223,21 @@
     <Filter Include="Source\Map\Generator">
       <UniqueIdentifier>{be27e789-f164-41fb-b790-3584f4ac6c17}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Image\IO\PNG">
+      <UniqueIdentifier>{2d71a333-3bd4-4d07-9e88-bb53868eb87c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Image\IO\TGA">
+      <UniqueIdentifier>{9478a65a-0e8c-4496-aab2-d27be0b06cd1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Image\IO\BMP">
+      <UniqueIdentifier>{94aa4a91-6d8e-4d34-bc91-e07ff9204324}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Image\IO\SFT">
+      <UniqueIdentifier>{3f7b3882-6acf-4913-8227-3352ed024ea4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Image\IO\RAD">
+      <UniqueIdentifier>{666bfa56-d452-4df8-9f8a-c866eb4b7fff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CopyPaste.h">
@@ -272,33 +284,6 @@
     </ClInclude>
     <ClInclude Include="ImageFileType.h">
       <Filter>Source\Image\IO</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageWriter.h">
-      <Filter>Source\Image\IO\Writer</Filter>
-    </ClInclude>
-    <ClInclude Include="RADWriter.h">
-      <Filter>Source\Image\IO\Writer</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageReader.h">
-      <Filter>Source\Image\IO\Reader</Filter>
-    </ClInclude>
-    <ClInclude Include="PNGReader.h">
-      <Filter>Source\Image\IO\Reader</Filter>
-    </ClInclude>
-    <ClInclude Include="RADReader.h">
-      <Filter>Source\Image\IO\Reader</Filter>
-    </ClInclude>
-    <ClInclude Include="TGAReader.h">
-      <Filter>Source\Image\IO\Reader</Filter>
-    </ClInclude>
-    <ClInclude Include="BMPReader.h">
-      <Filter>Source\Image\IO\Reader</Filter>
-    </ClInclude>
-    <ClInclude Include="BMPWriter.h">
-      <Filter>Source\Image\IO\Writer</Filter>
-    </ClInclude>
-    <ClInclude Include="TGAWriter.h">
-      <Filter>Source\Image\IO\Writer</Filter>
     </ClInclude>
     <ClInclude Include="RLEPacketDecoder.h">
       <Filter>Source\Compression</Filter>
@@ -675,29 +660,11 @@
     <ClInclude Include="ImageToR3G3B2A.h">
       <Filter>Source\Image\Modifiers\Colour</Filter>
     </ClInclude>
-    <ClInclude Include="SFTWriter.h">
-      <Filter>Source\Image\IO\Writer</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageReaderHelper.h">
-      <Filter>Source\Image\IO\Reader</Filter>
-    </ClInclude>
-    <ClInclude Include="SFTReader.h">
-      <Filter>Source\Image\IO\Reader</Filter>
-    </ClInclude>
-    <ClInclude Include="SFTCommon.h">
-      <Filter>Source\Image\IO\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="PNGCommon.h">
-      <Filter>Source\Image\IO\Common</Filter>
-    </ClInclude>
     <ClInclude Include="ImageReaderCommon.h">
       <Filter>Source\Image\IO\Common</Filter>
     </ClInclude>
     <ClInclude Include="ColourFormat.h">
       <Filter>Source\Image\Colour</Filter>
-    </ClInclude>
-    <ClInclude Include="PNGWriter.h">
-      <Filter>Source\Image\IO\Writer</Filter>
     </ClInclude>
     <ClInclude Include="ImageDraw.h">
       <Filter>Source\Image\Draw</Filter>
@@ -861,6 +828,51 @@
     <ClInclude Include="ImageColourConverter.h">
       <Filter>Source\Image\Copier</Filter>
     </ClInclude>
+    <ClInclude Include="BMPReader.h">
+      <Filter>Source\Image\IO\BMP</Filter>
+    </ClInclude>
+    <ClInclude Include="PNGReader.h">
+      <Filter>Source\Image\IO\PNG</Filter>
+    </ClInclude>
+    <ClInclude Include="TGAReader.h">
+      <Filter>Source\Image\IO\TGA</Filter>
+    </ClInclude>
+    <ClInclude Include="RADReader.h">
+      <Filter>Source\Image\IO\RAD</Filter>
+    </ClInclude>
+    <ClInclude Include="SFTReader.h">
+      <Filter>Source\Image\IO\SFT</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageReader.h">
+      <Filter>Source\Image\IO\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageReaderHelper.h">
+      <Filter>Source\Image\IO\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="BMPWriter.h">
+      <Filter>Source\Image\IO\BMP</Filter>
+    </ClInclude>
+    <ClInclude Include="PNGWriter.h">
+      <Filter>Source\Image\IO\PNG</Filter>
+    </ClInclude>
+    <ClInclude Include="PNGCommon.h">
+      <Filter>Source\Image\IO\PNG</Filter>
+    </ClInclude>
+    <ClInclude Include="SFTCommon.h">
+      <Filter>Source\Image\IO\SFT</Filter>
+    </ClInclude>
+    <ClInclude Include="RADWriter.h">
+      <Filter>Source\Image\IO\RAD</Filter>
+    </ClInclude>
+    <ClInclude Include="SFTWriter.h">
+      <Filter>Source\Image\IO\SFT</Filter>
+    </ClInclude>
+    <ClInclude Include="TGAWriter.h">
+      <Filter>Source\Image\IO\TGA</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageWriter.h">
+      <Filter>Source\Image\IO\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -895,33 +907,6 @@
     </ClCompile>
     <ClCompile Include="ImageFileType.cpp">
       <Filter>Source\Image\IO</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageWriter.cpp">
-      <Filter>Source\Image\IO\Writer</Filter>
-    </ClCompile>
-    <ClCompile Include="RADWriter.cpp">
-      <Filter>Source\Image\IO\Writer</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageReader.cpp">
-      <Filter>Source\Image\IO\Reader</Filter>
-    </ClCompile>
-    <ClCompile Include="PNGReader.cpp">
-      <Filter>Source\Image\IO\Reader</Filter>
-    </ClCompile>
-    <ClCompile Include="RADReader.cpp">
-      <Filter>Source\Image\IO\Reader</Filter>
-    </ClCompile>
-    <ClCompile Include="TGAReader.cpp">
-      <Filter>Source\Image\IO\Reader</Filter>
-    </ClCompile>
-    <ClCompile Include="BMPReader.cpp">
-      <Filter>Source\Image\IO\Reader</Filter>
-    </ClCompile>
-    <ClCompile Include="BMPWriter.cpp">
-      <Filter>Source\Image\IO\Writer</Filter>
-    </ClCompile>
-    <ClCompile Include="TGAWriter.cpp">
-      <Filter>Source\Image\IO\Writer</Filter>
     </ClCompile>
     <ClCompile Include="RLEPacketDecoder.cpp">
       <Filter>Source\Compression</Filter>
@@ -1280,26 +1265,8 @@
     <ClCompile Include="ImageToR3G3B2A.cpp">
       <Filter>Source\Image\Modifiers\Colour</Filter>
     </ClCompile>
-    <ClCompile Include="SFTWriter.cpp">
-      <Filter>Source\Image\IO\Writer</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageReaderHelper.cpp">
-      <Filter>Source\Image\IO\Reader</Filter>
-    </ClCompile>
-    <ClCompile Include="SFTReader.cpp">
-      <Filter>Source\Image\IO\Reader</Filter>
-    </ClCompile>
-    <ClCompile Include="SFTCommon.cpp">
-      <Filter>Source\Image\IO\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="PNGCommon.cpp">
-      <Filter>Source\Image\IO\Common</Filter>
-    </ClCompile>
     <ClCompile Include="ImageReaderCommon.cpp">
       <Filter>Source\Image\IO\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="PNGWriter.cpp">
-      <Filter>Source\Image\IO\Writer</Filter>
     </ClCompile>
     <ClCompile Include="ImageDraw.cpp">
       <Filter>Source\Image\Draw</Filter>
@@ -1459,6 +1426,51 @@
     </ClCompile>
     <ClCompile Include="ImageColourConverter.cpp">
       <Filter>Source\Image\Copier</Filter>
+    </ClCompile>
+    <ClCompile Include="BMPReader.cpp">
+      <Filter>Source\Image\IO\BMP</Filter>
+    </ClCompile>
+    <ClCompile Include="PNGReader.cpp">
+      <Filter>Source\Image\IO\PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="TGAReader.cpp">
+      <Filter>Source\Image\IO\TGA</Filter>
+    </ClCompile>
+    <ClCompile Include="RADReader.cpp">
+      <Filter>Source\Image\IO\RAD</Filter>
+    </ClCompile>
+    <ClCompile Include="SFTReader.cpp">
+      <Filter>Source\Image\IO\SFT</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageReader.cpp">
+      <Filter>Source\Image\IO\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageReaderHelper.cpp">
+      <Filter>Source\Image\IO\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="BMPWriter.cpp">
+      <Filter>Source\Image\IO\BMP</Filter>
+    </ClCompile>
+    <ClCompile Include="PNGWriter.cpp">
+      <Filter>Source\Image\IO\PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="PNGCommon.cpp">
+      <Filter>Source\Image\IO\PNG</Filter>
+    </ClCompile>
+    <ClCompile Include="SFTCommon.cpp">
+      <Filter>Source\Image\IO\SFT</Filter>
+    </ClCompile>
+    <ClCompile Include="RADWriter.cpp">
+      <Filter>Source\Image\IO\RAD</Filter>
+    </ClCompile>
+    <ClCompile Include="SFTWriter.cpp">
+      <Filter>Source\Image\IO\SFT</Filter>
+    </ClCompile>
+    <ClCompile Include="TGAWriter.cpp">
+      <Filter>Source\Image\IO\TGA</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageWriter.cpp">
+      <Filter>Source\Image\IO\Common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
