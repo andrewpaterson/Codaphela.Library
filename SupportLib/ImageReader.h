@@ -27,10 +27,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Image.h"
 
 
-#define PICTURELOADER_MAX_TEXTURE_DIMENSION				(8192)
-
-
 Ptr<CImage> ReadImage(char* szFilename, EImageType eType = IT_Unknown, bool bAddDebug = false);
+
 bool ReadRawImage(Ptr<CImage> pcImage, char* szFilename);
 
 
