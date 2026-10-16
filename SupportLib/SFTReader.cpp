@@ -292,7 +292,6 @@ Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 Ptr<CImage> LoadSFTContainer(CFileBasic* pcFile, bool bAddDebug)
 {
 	SSFTContainer			sContainer;
-	size					iResult;
 	SSFTContained			sContained;
 	bool					bResult;
 	uint16					uiType;
