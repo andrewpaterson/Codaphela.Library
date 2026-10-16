@@ -831,7 +831,7 @@ void CEmbeddedObject::RemoveAllStackFroms(void)
 			pcStackPointer = mpcStackFroms;
 			while (pcStackPointer)
 			{
-				pcStackPointer = pcStackPointer->ClearPointerGetNext();
+				pcStackPointer = pcStackPointer->ClearPointerGetNext(this);
 			}
 
 			pcStackPointers->RemoveAll(mpcStackFroms);

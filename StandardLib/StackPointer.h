@@ -14,6 +14,7 @@ enum EStackPointerType
 
 class CPointer;
 class CCollection;
+class CEmbeddedObject;
 struct SStackPointer
 {
 	EStackPointerType	meType;
@@ -46,7 +47,7 @@ public:
 	CStackPointer*		Remove(CCollection* pcPointer, CFreeList* pcFreeList);
 	void				RemoveAll(CFreeList* pcFreeList);
 	void				ClearPointer(void);
-	CStackPointer*		ClearPointerGetNext(void);
+	CStackPointer*		ClearPointerGetNext(CEmbeddedObject* pcPointedTo);
 
 	EStackPointerType	GetType(void);
 	SStackPointer*		Get(void);
