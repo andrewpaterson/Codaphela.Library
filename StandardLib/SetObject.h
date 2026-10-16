@@ -35,6 +35,7 @@ public:
 						CPointer		UnsafeGet(size iIndex);
 						CBaseObject*	UnsafeGetObject(size iIndex);
 
+						//Do not Add, Remove or call Contains while iterating over a sorted set.  They can remove the NULLs left by RemoveDuringIteration which moves the Objects not yet iterated.
 						void			RemoveDuringIteration(SSetIterator* psIter);
 
 						CPointer		StartIteration(SSetIterator* psIter);

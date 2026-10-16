@@ -37,6 +37,7 @@ public:
 	Ptr<M>			UnsafeGet(int iIndex);
 	bool			Remove(Ptr<M> pObject);
 
+	//Do not Add, Remove or call Contains while iterating over a sorted set.  They can remove the NULLs left by RemoveDuringIteration which moves the Objects not yet iterated.
 	void			RemoveDuringIteration(SSetIterator* psIter);
 
 	Ptr<M>			StartIteration(SSetIterator* psIter, bool* pbExists);
