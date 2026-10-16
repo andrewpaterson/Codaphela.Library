@@ -681,9 +681,6 @@
     <ClInclude Include="PNGWriter.h">
       <Filter>Source\Image\IO\Writer</Filter>
     </ClInclude>
-    <ClInclude Include="GDIPlusWriter.h">
-      <Filter>Source\Image\IO\Writer</Filter>
-    </ClInclude>
     <ClInclude Include="ImageDraw.h">
       <Filter>Source\Image\Draw</Filter>
     </ClInclude>
@@ -1269,9 +1266,6 @@
       <Filter>Source\Image\IO\Common</Filter>
     </ClCompile>
     <ClCompile Include="PNGWriter.cpp">
-      <Filter>Source\Image\IO\Writer</Filter>
-    </ClCompile>
-    <ClCompile Include="GDIPlusWriter.cpp">
       <Filter>Source\Image\IO\Writer</Filter>
     </ClCompile>
     <ClCompile Include="ImageDraw.cpp">
