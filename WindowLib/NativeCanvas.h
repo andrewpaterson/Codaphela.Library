@@ -27,6 +27,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/Rectangle.h"
 
 
+class CCanvas;
 class CNativeCanvas : public CNativeComponent
 {
 CONSTRUCTABLE(CNativeCanvas);

@@ -49,6 +49,7 @@ bool CWinRefCanvas::CreateNativeCanvas(void)
     EColourOrder            eColourOrder;
     ERGBColourBits          eColourBits;
     ERGBAlphaBits           eAlphaBits;
+    Ptr<CImage>             pImage;
 
     pcFactory = (CWinRefWindowFactory*)mpcWindowFactory;
     sSize = mpcCanvas->GetActualSize();
@@ -58,7 +59,8 @@ bool CWinRefCanvas::CreateNativeCanvas(void)
     eColourBits = mpcCanvas->GetColourBits();
     eAlphaBits = mpcCanvas->GetAlphaBits();
 
-    mpcImage = gcObjects.AddFreeObject<CImage>(OMalloc<CImage>(sSize.x, sSize.y, eColourFormat, eColourOrder, eColourBits, eAlphaBits));
+    pImage = OMalloc<CImage>(sSize.x, sSize.y, eColourFormat, eColourOrder, eColourBits, eAlphaBits);
+    mpcImage = gcObjects.AddFreeObject<CImage>(pImage);
 
     if (mpcImage == NULL)
     {
