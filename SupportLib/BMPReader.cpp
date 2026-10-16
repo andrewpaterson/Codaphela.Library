@@ -78,8 +78,8 @@ uint32 BMPReadUInt32(uint8* pui)
 //////////////////////////////////////////////////////////////////////////
 //
 // Extracts the channel selected by uiMask from uiPixel and scales it to 8
-// bits.  Channels narrower than 8 bits have their bits replicated so that
-// the largest value becomes 255.
+// bits.  Channels narrower than 8 bits are scaled the same way the image
+// type converter does (value * 255 / max, truncating).
 //
 //////////////////////////////////////////////////////////////////////////
 uint8 BMPExtractChannel(uint32 uiPixel, uint32 uiMask)
@@ -87,8 +87,6 @@ uint8 BMPExtractChannel(uint32 uiPixel, uint32 uiMask)
 	int		iShift;
 	int		iBits;
 	uint32	uiValue;
-	uint32	uiResult;
-	int		iFill;
 
 	if (uiMask == 0)
 	{
@@ -111,22 +109,7 @@ uint8 BMPExtractChannel(uint32 uiPixel, uint32 uiMask)
 	{
 		return (uint8)(uiValue >> (iBits - 8));
 	}
-
-	uiResult = 0;
-	iFill = 8;
-	while (iFill > 0)
-	{
-		iFill -= iBits;
-		if (iFill >= 0)
-		{
-			uiResult |= uiValue << iFill;
-		}
-		else
-		{
-			uiResult |= uiValue >> -iFill;
-		}
-	}
-	return (uint8)uiResult;
+	return (uint8)((uiValue * 255) / ((1 << iBits) - 1));
 }
 
 
@@ -610,7 +593,7 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 	}
 	else if (bAlpha)
 	{
-		pcImage = OMalloc<CImage>(sInfo.iWidth, sInfo.iHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+		pcImage = OMalloc<CImage>(sInfo.iWidth, sInfo.iHeight, PT_uint8, IMAGE_OPACITY, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 	}
 	else
 	{
@@ -632,7 +615,8 @@ Ptr<CImage> LoadBMP(char* szFilename, bool bAddDebug)
 		}
 		else if (bAlpha)
 		{
-			memcpy(&puiDest[i * 4], &puiRGBA[i * 4], 4);
+			puiDest[i * 4] = puiRGBA[i * 4 + 3];
+			memcpy(&puiDest[i * 4 + 1], &puiRGBA[i * 4], 3);
 		}
 		else
 		{
