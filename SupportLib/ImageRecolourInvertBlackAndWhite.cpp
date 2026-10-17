@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "ImageRecolourInvertBlackAndWhite.h"
 
 
@@ -30,12 +31,16 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImageRecolourInvertBlackAndWhite::Init(CRectangle* pcRectangle)
 {
+	PreInit();
+
 	cARGB0000.Init(0.0f,0.0f,0.0f,0.0f);
 	cARGB1111.Init(1.0f,1.0f,1.0f,1.0f);
 	cARGB0111.Init(0.0f,1.0f,1.0f,1.0f);
 
 	CImageRecolour::Init(&cARGB0000, &cARGB1111, pcRectangle);
 	AddRecolour(&cARGB0111, &cARGB0000);
+
+	PostInit();
 }
 
 
@@ -43,9 +48,12 @@ void CImageRecolourInvertBlackAndWhite::Init(CRectangle* pcRectangle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRecolourInvertBlackAndWhite::Kill(void)
+void CImageRecolourInvertBlackAndWhite::Class(void)
 {
-	CImageRecolour::Kill();
+	CImageRecolour::Class();
+	U_Data(CImageColourARGB, cARGB0000);
+	U_Data(CImageColourARGB, cARGB1111);
+	U_Data(CImageColourARGB, cARGB0111);
 }
 
 

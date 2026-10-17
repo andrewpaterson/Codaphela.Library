@@ -30,6 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImageModifierDrawBox : public CImageModifier
 {
 CONSTRUCTABLE(CImageModifierDrawBox);
+DESTRUCTABLE(CImageModifierDrawBox);
 public:
 	CRectangle		mcRectangle;
 	bool			mbWholeImage;
@@ -37,7 +38,7 @@ public:
 	bool			mbFilled;
 
 	void			Init(CRectangle* pcRectangle, CImageColour* pcColour, bool bFilled = true);
-	void			Kill(void);
+	void			Class(void) override;
 
 	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
 };

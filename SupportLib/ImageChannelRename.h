@@ -30,12 +30,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImageChannelRename : public CImageModifier
 {
 CONSTRUCTABLE(CImageChannelRename);
+DESTRUCTABLE(CImageChannelRename);
 public:
 	EChannel	meOldName;
 	EChannel	meNewName;
 
 	void			Init(EChannel eOldName, EChannel eNewName);
-	void			Kill(void);
+	void			Class(void) override;
 	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
 };
 

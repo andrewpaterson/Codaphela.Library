@@ -31,6 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImageRecolour : public CImageModifier
 {
 CONSTRUCTABLE(CImageRecolour);
+DESTRUCTABLE(CImageRecolour);
 public:
 	CRectangle		mcRectangle;
 	bool			mbWholeImage;
@@ -38,7 +39,8 @@ public:
 	CArrayUnknown	macNewColour;
 
 	void			Init(CImageColour* pcOldColour, CImageColour* pcNewColour, CRectangle* pcRectangle = NULL);
-	void			Kill(void);
+	void			Class(void) override;
+	void			Free(void) override;
 
 	void			AddRecolour(CImageColour* pcOldColour, CImageColour* pcNewColour);
 	Ptr<CImage>		Modify(Ptr<CImage> pcImage);

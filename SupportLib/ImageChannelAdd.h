@@ -30,13 +30,15 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImageChannelAdd : public CImageModifier
 {
 CONSTRUCTABLE(CImageChannelAdd);
+DESTRUCTABLE(CImageChannelAdd);
 public:
 	EPrimitiveType		meType;
 	CArrayInt			maiChannels;
 	int					miGroup;
 
 	void			 Init(EChannel eChannel, EPrimitiveType eType, int iGroup = 0);
-	void			 Kill(void);
+	void			 Class(void) override;
+	void			 Free(void) override;
 
 	void			AddChannel(EChannel eChannel);
 	Ptr<CImage>		Modify(Ptr<CImage> pcImage);

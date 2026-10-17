@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "ImageChannelRename.h"
 
 
@@ -30,8 +31,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImageChannelRename::Init(EChannel eOldName, EChannel eNewName)
 {
+	PreInit();
+
 	meOldName = eOldName;
 	meNewName = eNewName;
+
+	PostInit();
 }
 
 
@@ -39,9 +44,11 @@ void CImageChannelRename::Init(EChannel eOldName, EChannel eNewName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageChannelRename::Kill(void)
+void CImageChannelRename::Class(void)
 {
-	CImageModifier::Kill();
+	CImageModifier::Class();
+	U_Enum(meOldName);
+	U_Enum(meNewName);
 }
 
 

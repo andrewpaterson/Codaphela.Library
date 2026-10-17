@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "ImageAccessorCreator.h"
 #include "ImageRGBToGrey.h"
 
@@ -31,7 +32,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImageRGBToGrey::Init(ERGBToGreyStyle eStyle)
 {
+	PreInit();
+
 	meStyle = eStyle;
+
+	PostInit();
 }
 
 
@@ -40,9 +45,10 @@ void CImageRGBToGrey::Init(ERGBToGreyStyle eStyle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRGBToGrey::Kill(void)
+void CImageRGBToGrey::Class(void)
 {
-	CImageModifier::Kill();
+	CImageModifier::Class();
+	U_Enum(meStyle);
 }
 
 

@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "ImageChannelAdd.h"
 
 
@@ -30,10 +31,14 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImageChannelAdd::Init(EChannel eChannel, EPrimitiveType eType, int iGroup)
 {
+	PreInit();
+
 	maiChannels.Init();
 	meType = eType;
 	miGroup = iGroup;
 	AddChannel(eChannel);
+
+	PostInit();
 }
 
 
@@ -41,10 +46,22 @@ void CImageChannelAdd::Init(EChannel eChannel, EPrimitiveType eType, int iGroup)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageChannelAdd::Kill(void)
+void CImageChannelAdd::Class(void)
+{
+	CImageModifier::Class();
+	U_Enum(meType);
+	U_Data(CArrayInt, maiChannels);
+	U_Int32(miGroup);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageChannelAdd::Free(void)
 {
 	maiChannels.Kill();
-	CImageModifier::Kill();
+	CImageModifier::Free();
 }
 
 

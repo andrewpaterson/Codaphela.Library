@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "ImageAccessorCreator.h"
 #include "ImageDraw.h"
 #include "ImageModifierDrawBox.h"
@@ -32,6 +33,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImageModifierDrawBox::Init(CRectangle* pcRectangle, CImageColour* pcColour, bool bFilled)
 {
+	PreInit();
+
 	mpcColour = pcColour;
 	mbFilled = bFilled;
 	if (pcRectangle)
@@ -43,6 +46,8 @@ void CImageModifierDrawBox::Init(CRectangle* pcRectangle, CImageColour* pcColour
 	{
 		mbWholeImage = true;
 	}
+
+	PostInit();
 }
 
 
@@ -50,9 +55,13 @@ void CImageModifierDrawBox::Init(CRectangle* pcRectangle, CImageColour* pcColour
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageModifierDrawBox::Kill(void)
+void CImageModifierDrawBox::Class(void)
 {
-	CImageModifier::Kill();
+	CImageModifier::Class();
+	U_Data(CRectangle, mcRectangle);
+	U_Bool(mbWholeImage);
+	U_Pointer(mpcColour);
+	U_Bool(mbFilled);
 }
 
 

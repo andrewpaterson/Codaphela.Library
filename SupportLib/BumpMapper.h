@@ -30,24 +30,26 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImageHeightToNormals : public CImageModifier
 {
 CONSTRUCTABLE(CImageHeightToNormals);
+DESTRUCTABLE(CImageHeightToNormals);
 public:
 	EChannel meHeightChannel;
 
 	void			Init(EChannel eHeightChannel);
 	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
-	void			Kill(void);
+	void			Class(void) override;
 };
 
 
 class CImageHeightToBumpUVs : public CImageModifier
 {
 CONSTRUCTABLE(CImageHeightToBumpUVs);
+DESTRUCTABLE(CImageHeightToBumpUVs);
 public:
 	EChannel meHeightChannel;
 
 	void			Init(EChannel eHeightChannel);
 	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
-	void			Kill(void);
+	void			Class(void) override;
 };
 
 

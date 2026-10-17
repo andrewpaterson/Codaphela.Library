@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "ImageAccessorCreator.h"
 #include "ImageRecolour.h"
 
@@ -31,6 +32,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImageRecolour::Init(CImageColour* pcOldColour, CImageColour* pcNewColour, CRectangle* pcRectangle)
 {
+	PreInit();
+
 	macOldColour.Init();
 	macNewColour.Init();
 
@@ -46,6 +49,8 @@ void CImageRecolour::Init(CImageColour* pcOldColour, CImageColour* pcNewColour, 
 
 
 	AddRecolour(pcOldColour, pcNewColour);
+
+	PostInit();
 }
 
 
@@ -53,12 +58,25 @@ void CImageRecolour::Init(CImageColour* pcOldColour, CImageColour* pcNewColour, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRecolour::Kill(void)
-{	
+void CImageRecolour::Class(void)
+{
+	CImageModifier::Class();
+	U_Data(CRectangle, mcRectangle);
+	U_Bool(mbWholeImage);
+	U_Data(CArrayUnknown, macOldColour);
+	U_Data(CArrayUnknown, macNewColour);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageRecolour::Free(void)
+{
 	macOldColour.Kill();
 	macNewColour.Kill();
 
-	CImageModifier::Kill();
+	CImageModifier::Free();
 }
 
 
