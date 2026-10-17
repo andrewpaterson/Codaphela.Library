@@ -18,8 +18,7 @@ class CComponent : public CObject, public CFocusListener, public CComponentListe
 CONSTRUCTABLE(CComponent);
 DESTRUCTABLE(CComponent);
 protected:
-	SInt32Vec2			msActualSize;
-	SInt32Vec2	 		msPosition;
+	CRectangle			mcActualBounds;
 	SInt32Vec2			msDesiredSize;
 	bool				mbCanGetFocus;
 	Ptr<CComponent>		mpParent;

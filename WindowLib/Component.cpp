@@ -12,8 +12,7 @@ void CComponent::Init(Ptr<CWindow> pWindow)
 	PreInit();
 
 	maChildren.Init();
-	msActualSize.Init(0, 0);
-	msPosition.Init(0, 0);
+	mcActualBounds.Init();
 	msDesiredSize.Init(-1, -1);
 	mbCanGetFocus = false;
 	mpParent = NULL;
@@ -38,8 +37,7 @@ void CComponent::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CComponent::Class(void)
 {
-		U_2Int32(msActualSize);
-		U_2Int32(msPosition);
+		U_Data(CRectangle, mcActualBounds);
 		U_2Int32(msDesiredSize);
 		U_Bool(mbCanGetFocus);
 		M_Pointer(mpParent);
@@ -166,7 +164,7 @@ bool CComponent::GetContainerBounds(CRectangle* pcDest)
 bool CComponent::IsPointIn(int x, int y)
 {
 	//x and y are assumed relative to 'this' component.
-	return (((x >= msPosition.x) && (x <= msPosition.x + msActualSize.x)) && ((y >= msPosition.y) && (y <= msPosition.y + msActualSize.y)));
+	return mcActualBounds.IsIn(x, y);
 }
 
 
@@ -217,8 +215,8 @@ Ptr<CComponent> CComponent::FindComponentAt(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CComponent::ToChildSpace(Ptr<CComponent> pcChildComponent, int x, int y, int* px, int* py)
 {
-	*px = x - pcChildComponent->msPosition.x;
-	*py = y - pcChildComponent->msPosition.y;
+	*px = x - pcChildComponent->mcActualBounds.msTopLeft.x;
+	*py = y - pcChildComponent->mcActualBounds.msTopLeft.y;
 }
 
 
@@ -228,8 +226,8 @@ void CComponent::ToChildSpace(Ptr<CComponent> pcChildComponent, int x, int y, in
 //////////////////////////////////////////////////////////////////////////
 void CComponent::FromChildSpace(Ptr<CComponent> pcChildComponent, int x, int y, int* px, int* py)
 {
-	*px = x + pcChildComponent->msPosition.x;
-	*py = y + pcChildComponent->msPosition.y;
+	*px = x + pcChildComponent->mcActualBounds.msTopLeft.x;
+	*py = y + pcChildComponent->mcActualBounds.msTopLeft.y;
 }
 
 
@@ -304,12 +302,12 @@ bool CComponent::IsFocussed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponent::SetActualSize(int fWidth, int fHeight) { msActualSize.Init(fWidth, fHeight); }
-void CComponent::SetActualSize(SInt32Vec2 sSize) { msActualSize = sSize; }
-void CComponent::SetPosition(int x, int y) { msPosition.Init(x, y); }
-void CComponent::SetPosition(SInt32Vec2 sPosition) { msPosition = sPosition; }
-SInt32Vec2 CComponent::GetPosition(void) { return msPosition; }
+void CComponent::SetActualSize(int fWidth, int fHeight) { mcActualBounds.SetSize(fWidth, fHeight); }
+void CComponent::SetActualSize(SInt32Vec2 sSize) { mcActualBounds.SetSize(sSize.x, sSize.y); }
+void CComponent::SetPosition(int x, int y) { mcActualBounds.SetPos(x, y); }
+void CComponent::SetPosition(SInt32Vec2 sPosition) { mcActualBounds.SetPos(sPosition.x, sPosition.y); }
+SInt32Vec2 CComponent::GetPosition(void) { return mcActualBounds.msTopLeft; }
 void CComponent::SetDesiredSize(int fWidth, int fHeight) { msDesiredSize.Init(fWidth, fHeight); }
-SInt32Vec2 CComponent::GetActualSize(void) { return msActualSize; }
+SInt32Vec2 CComponent::GetActualSize(void) { SInt32Vec2 sSize; sSize.Init(mcActualBounds.GetWidth(), mcActualBounds.GetHeight()); return sSize; }
 SInt32Vec2 CComponent::GetDesiredSize(void) { return msDesiredSize; }
 

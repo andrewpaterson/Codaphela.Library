@@ -138,7 +138,7 @@ bool CCanvas::Draw(void)
 	pWindowCanvas = mpWindow->GetCanvas();
 	if (&pWindowCanvas != this)
 	{
-		pWindowCanvas->DrawCanvas(msPosition.x, msPosition.y, this);
+		pWindowCanvas->DrawCanvas(mcActualBounds.GetLeft(), mcActualBounds.GetTop(), this);
 	}
 	return true;
 }
@@ -188,8 +188,8 @@ bool CCanvas::HasNativeChanged(void)
 	}
 
 	sSize = mpcNativeCanvas->GetSize();
-	if ((msActualSize.x != sSize.x) ||
-		(msActualSize.y != sSize.y))
+	if ((mcActualBounds.GetWidth() != sSize.x) ||
+		(mcActualBounds.GetHeight() != sSize.y))
 	{
 		return true;
 	}
