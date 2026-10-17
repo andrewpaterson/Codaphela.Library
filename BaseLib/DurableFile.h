@@ -96,8 +96,6 @@ public:
 
 	bool		CheckIdentical(bool bThorough, bool bLogError);
 	bool		Delete(void);
-	bool		CopyBackupToPrimary(void);
-	bool		CopyPrimaryToBackup(void);
 
 	bool		TestGetOpenedSinceBegin(void);
 	bool		IsOpen(void);
@@ -113,7 +111,6 @@ protected:
 	bool		OpenPrimaryForWrite(void);
 
 	bool		OpenPrimaryFile(bool bOpenForWrite);
-	bool		SyncCopy(const char* szDest);
 };
 
 

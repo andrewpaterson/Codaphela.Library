@@ -24,13 +24,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __FILE_DISTRIBUTOR_H__
 #include "FileBasic.h"
 #include "FileUtil.h"
-#include "MapStringInt.h"
 #include "DurableFile.h"
 #include "DurableSet.h"
 #include "DurableSync.h"
-
-
-#define DURABLE_FILE_MAGIC	'ELIF'
 
 
 class CDurableFileController
@@ -41,12 +37,10 @@ private:
 	CChars			mszRewriteDirectory;
 	bool			mbDurable;
 	bool			mbSync;
-	CDurableFile	mcFileList;
-	CMapStringInt	mcNameMap;  //Should be a Map of String to Size.
 
 public:
 	bool			Init(const char* szDirectory);
-	bool			Init(const char* szDirectory, const char* szRewriteDirectory, const char* szFileListWrite = NULL, const char* szFileListRewrite = NULL, const char* szMarkWrite = NULL, const char* szMarkRewrite = NULL);
+	bool			Init(const char* szDirectory, const char* szRewriteDirectory, const char* szMarkWrite = NULL, const char* szMarkRewrite = NULL);
 	void			Kill(void);
 
 	bool			Begin(void);
@@ -67,9 +61,6 @@ public:
 	void			SetSync(EDurableSync eSync);
 	bool			IsSync(void);
 	CDurableSet*	GetDurableSet(void);
-
-	bool			ReadControlledFileList(CDurableFile* pcFile);
-	bool			WriteControlledFileList(CDurableFile* pcFile);
 };
 
 

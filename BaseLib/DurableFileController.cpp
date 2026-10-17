@@ -22,7 +22,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "Logger.h"
 #include "LogString.h"
-#include "StackMemory.h"
 #include "DurableFile.h"
 #include "DurableFileController.h"
 
@@ -41,81 +40,55 @@ bool CDurableFileController::Init(const char* szDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDurableFileController::Init(const char* szDirectory, const char* szRewriteDirectory, const char* szFileListWrite, const char* szFileListRewrite, const char* szMarkWrite, const char* szMarkRewrite)
+bool CDurableFileController::Init(const char* szDirectory, const char* szRewriteDirectory, const char* szMarkWrite, const char* szMarkRewrite)
 {
 	CChars		szStart;
 	CChars		szRewrite;
 	CFileUtil	cFileUtil;
-	bool		bResult;
 
-	if (StrEmpty(szDirectory))
-	{
-		return gcLogger.Error2(__METHOD__, " Controller directory must be supplied.", NULL);
-	}
-
-	mbDurable = false;
+	//Init only fails on bad arguments.  Whether a crashed commit needs recovering is found by Check and fixed by Recover.
+	mbDurable = !StrEmpty(szRewriteDirectory);
 	mbSync = true;
-	if (!StrEmpty(szRewriteDirectory))
-	{
-		mbDurable = true;
-	}
-
-	if (mbDurable && (StringInsensitiveCompare(szDirectory, szRewriteDirectory) == 0))
-	{
-		return gcLogger.Error2(__METHOD__, " Controller directory and rewrite directory must be different.", NULL);
-	}
-
 	mszDirectory.Init(szDirectory);
-	szStart.Init(szDirectory);
-	if (!szMarkWrite)
-	{
-		szMarkWrite = "Mark1.Write";
-	}
-	cFileUtil.AppendToPath(&szStart, szMarkWrite);
-
-	if (szRewriteDirectory && mbDurable)
+	if (mbDurable)
 	{
 		mszRewriteDirectory.Init(szRewriteDirectory);
-		szRewrite.Init(szRewriteDirectory);
 	}
 	else
 	{
 		mszRewriteDirectory.Init();
-		szRewrite.Init(szDirectory);
+	}
+
+	if (!szMarkWrite)
+	{
+		szMarkWrite = "Mark1.Write";
 	}
 	if (!szMarkRewrite)
 	{
 		szMarkRewrite = "Mark2.Rewrite";
 	}
+	szStart.Init(szDirectory);
+	cFileUtil.AppendToPath(&szStart, szMarkWrite);
+	if (mbDurable)
+	{
+		szRewrite.Init(szRewriteDirectory);
+	}
+	else
+	{
+		szRewrite.Init(szDirectory);
+	}
 	cFileUtil.AppendToPath(&szRewrite, szMarkRewrite);
-
 	mcDurableSet.Init(szStart.Text(), szRewrite.Text());
-
 	szRewrite.Kill();
 	szStart.Kill();
 
-	if (!szFileListWrite)
+	if (StrEmpty(szDirectory))
 	{
-		szFileListWrite = "Filenames.Write";
+		return gcLogger.Error2(__METHOD__, " Controller directory must be supplied.", NULL);
 	}
-	if (!szFileListRewrite)
+	if (mbDurable && (StringInsensitiveCompare(szDirectory, szRewriteDirectory) == 0))
 	{
-		szFileListRewrite = "Filenames.Rewrite";
-	}
-	mcFileList.Init(this, szFileListWrite, szFileListRewrite);
-	
-	mcNameMap.Init(false, true);
-
-	//bResult = ReadControlledFileList(&mcFileList);
-	//if (!bResult)
-	//{
-	//	return false;
-	//}
-
-	bResult = Check(false, false);
-	if (!bResult)
-	{
-		return false;
+		return gcLogger.Error2(__METHOD__, " Controller directory and rewrite directory must be different.", NULL);
 	}
 	return true;
 }
@@ -127,9 +100,6 @@ bool CDurableFileController::Init(const char* szDirectory, const char* szRewrite
 //////////////////////////////////////////////////////////////////////////
 void CDurableFileController::Kill(void)
 {
-	mcFileList.Kill();
-	mcNameMap.Kill();
-
 	mcDurableSet.Kill();
 
 	mszRewriteDirectory.Kill();
@@ -189,98 +159,6 @@ bool CDurableFileController::End(void)
 	return mcDurableSet.End();
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CDurableFileController::WriteControlledFileList(CDurableFile* pcFile)
-{
-	uint32			uiFileCount;
-	bool			bResult;
-	SMapIterator	sIter;
-	bool			bExists;
-	char*			pcName;
-	int32*			piWriteOrRewrite;
-
-	pcFile->Truncate(0);
-
-	uiFileCount = 0;
-	bExists = mcNameMap.StartIteration(&sIter, (void**)&pcName, NULL, (void**)&piWriteOrRewrite, NULL);
-	while (bExists)
-	{
-		bResult = pcFile->WriteInt32(DURABLE_FILE_MAGIC);
-		bResult &= pcFile->WriteInt32(uiFileCount);
-		bResult &= pcFile->WriteString(pcName);
-		bResult &= pcFile->WriteInt32(*piWriteOrRewrite);
-
-		if (!bResult)
-		{
-			return gcLogger.Error2(__METHOD__, " File list could not be written.", NULL);
-		}
-
-		//Uh... why did this not iterate?
-		bExists = mcNameMap.Iterate(&sIter, (void**)&pcName, NULL, (void**)&piWriteOrRewrite, NULL);
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CDurableFileController::ReadControlledFileList(CDurableFile* pcFile)
-{
-	uint32				uiFileMagic;
-	bool				bRead;
-	uint32				uiFileNumber;
-	uint32				uiFileCount;
-	bool				bResult;
-	CStackMemory<2 KB>	cStack;
-	size				iFilenameLength;
-	char*				szFilename;
-	int32				iWriteOrRewrite; 
-	
-	uiFileCount = 0;
-	bRead = pcFile->ReadInt32(&uiFileMagic);
-	while (bRead)
-	{
-		if (uiFileMagic != DURABLE_FILE_MAGIC)
-		{
-			return gcLogger.Error2(__METHOD__, " File list is corrupt.  Expected to read DURABLE_FILE_MAGIC but read [0x", IntToString(uiFileMagic, 16), "] instead.", NULL);
-		}
-		
-		uiFileNumber = -1;
-		bResult = pcFile->ReadInt32(&uiFileNumber);
-		if (uiFileNumber != uiFileCount)
-		{
-			return gcLogger.Error2(__METHOD__, " File list is corrupt.  Expected to read file number [", IntToString(uiFileCount), "] but read number [", IntToString(uiFileNumber), "].", NULL);
-		}
-
-		iFilenameLength = 0;
-		bResult = pcFile->ReadStringLength(&iFilenameLength);
-		if (bResult)
-		{
-			szFilename = (char*)cStack.Init(iFilenameLength + 1);
-			bResult = pcFile->ReadStringChars(szFilename, iFilenameLength);
-			if (bResult)
-			{
-				bResult = pcFile->ReadInt32(&iWriteOrRewrite);
-				mcNameMap.Put(szFilename, iWriteOrRewrite);
-			}
-			cStack.Kill();
-		}
-		if (!bResult)
-		{
-			return gcLogger.Error2(__METHOD__, " File list is corrupt.  Expected to read file name for file number [", IntToString(uiFileCount), "] but could not.", NULL);
-		}
-
-		//Uh... why did this not loop?
-		bRead = pcFile->ReadInt32(&uiFileMagic);
-	}
-	return true;
-}
 
 
 //////////////////////////////////////////////////////////////////////////

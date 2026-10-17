@@ -13,8 +13,8 @@ void CCodabase::Init(const char* szDirectory, EDurableSync eSync, CLifeInit<CInd
 
 	cHelper.Init(szDirectory, "Primary", "Backup", false);
 
-	//Init fails if a previous session crashed during a commit.  Start recovers from that.
-	mcFileController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory());
+	//A previous session that crashed during a commit is recovered by Start.
+	mbControllerInitialised = mcFileController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory());
 	mcFileController.SetSync(eSync);
 	mcIndexConfig = cIndexConfig;
 	mcNamedConfig = cNamedConfig;
@@ -35,6 +35,10 @@ bool CCodabase::Start(void)
 	if (mbStarted)
 	{
 		return gcLogger.Error2(__METHOD__, " Codabase has already been started.", NULL);
+	}
+	if (!mbControllerInitialised)
+	{
+		return gcLogger.Error2(__METHOD__, " Codabase file controller could not be initialised.", NULL);
 	}
 
 	if (!mcFileController.Recover())

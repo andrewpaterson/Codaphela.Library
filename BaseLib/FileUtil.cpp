@@ -224,8 +224,7 @@ bool CFileUtil::CopyDirEntry(const char* szSource, const char* szDest, bool bDir
 	}
 	else
 	{
-		//Copy treats a source it cannot open as deleted and removes the destination, so check the destination exists.
-		if (!Copy(szSource, szDest) || !Exists(szDest))
+		if (!Copy(szSource, szDest))
 		{
 			return gcLogger.Error2(__METHOD__, " Could not copy file [", szSource, "] to [", szDest, "].", NULL);
 		}
@@ -275,111 +274,53 @@ bool CFileUtil::Compare(const char* szFilename1, const char* szFilename2, bool b
 	CFileBasic	cBackup;
 	bool		bPrimary;
 	bool		bBackup;
-	filePos		iPrimary;
-	filePos		iBackup;
-	size		i;
-	filePos		iNumBlocks;
-	size		iPartialBlock;
+	filePos		iRemaining;
+	size		iChunk;
 	void*		pvPrimary;
 	void*		pvBackup;
 	bool		bResult;
 
 	cPrimary.Init(DiskFile(szFilename1));
 	bPrimary = cPrimary.Open(EFM_Read);
-
 	cBackup.Init(DiskFile(szFilename2));
 	bBackup = cBackup.Open(EFM_Read);
 
-	if (!bBackup && !bPrimary)
+	//Two files that do not exist are the same.  One that exists and one that does not are different.
+	if (!bPrimary || !bBackup)
 	{
-		cBackup.Kill();
-		cPrimary.Kill();
-		return true;
+		bResult = (bPrimary == bBackup);
 	}
-
-	if (bBackup && !bPrimary)
+	else
 	{
-		cBackup.Close();
-		cBackup.Kill();
-		cPrimary.Kill();
-		return false;
-	}
-
-	if (!bBackup && bPrimary)
-	{
-		cBackup.Kill();
-		cPrimary.Close();
-		cPrimary.Kill();
-		return false;
-	}
-
-	iPrimary = cPrimary.GetFileLength();
-	iBackup = cBackup.GetFileLength();
-
-	if (iPrimary != iBackup)
-	{
-		cBackup.Close();
-		cBackup.Kill();
-		cPrimary.Close();
-		cPrimary.Kill();
-		return false;
-	}
-
-	if (bSizeOnly)
-	{
-		cBackup.Close();
-		cBackup.Kill();
-		cPrimary.Close();
-		cPrimary.Kill();
-		return true;
-	}
-
-	iNumBlocks = iPrimary / FILE_BLOCK_SIZE;
-	iPartialBlock = iPrimary % FILE_BLOCK_SIZE;
-
-	pvPrimary = malloc(FILE_BLOCK_SIZE);
-	pvBackup = malloc(FILE_BLOCK_SIZE);
-
-	for (i = 0; i < iNumBlocks; i++)
-	{
-		cPrimary.ReadData(pvPrimary, FILE_BLOCK_SIZE);
-		cBackup.ReadData(pvBackup, FILE_BLOCK_SIZE);
-
-		bResult = memcmp(pvPrimary, pvBackup, FILE_BLOCK_SIZE);
-		if (bResult != 0)
+		iRemaining = cPrimary.GetFileLength();
+		bResult = (iRemaining == cBackup.GetFileLength());
+		if (bResult && !bSizeOnly)
 		{
+			pvPrimary = malloc(FILE_BLOCK_SIZE);
+			pvBackup = malloc(FILE_BLOCK_SIZE);
+			while (bResult && (iRemaining > 0))
+			{
+				iChunk = (iRemaining > FILE_BLOCK_SIZE) ? FILE_BLOCK_SIZE : (size)iRemaining;
+				bResult = cPrimary.ReadData(pvPrimary, iChunk) && cBackup.ReadData(pvBackup, iChunk);
+				bResult = bResult && (memcmp(pvPrimary, pvBackup, iChunk) == 0);
+				iRemaining -= iChunk;
+			}
 			SafeFree(pvPrimary);
 			SafeFree(pvBackup);
-			cBackup.Close();
-			cBackup.Kill();
-			cPrimary.Close();
-			cPrimary.Kill();
-			return false;
 		}
 	}
 
-	cPrimary.ReadData(pvPrimary, iPartialBlock);
-	cBackup.ReadData(pvBackup, iPartialBlock);
-
-	bResult = memcmp(pvPrimary, pvBackup, (size)iPartialBlock);
-	if (bResult != 0)
+	if (bPrimary)
 	{
-		SafeFree(pvPrimary);
-		SafeFree(pvBackup);
-		cBackup.Close();
-		cBackup.Kill();
 		cPrimary.Close();
-		cPrimary.Kill();
-		return false;
 	}
-
-	SafeFree(pvPrimary);
-	SafeFree(pvBackup);
-	cBackup.Close();
-	cBackup.Kill();
-	cPrimary.Close();
+	if (bBackup)
+	{
+		cBackup.Close();
+	}
 	cPrimary.Kill();
-	return true;
+	cBackup.Kill();
+	return bResult;
 }
 
 
@@ -389,76 +330,53 @@ bool CFileUtil::Compare(const char* szFilename1, const char* szFilename2, bool b
 //////////////////////////////////////////////////////////////////////////
 bool CFileUtil::Copy(const char* szSource, const char* szDest)
 {
-	CFileBasic	cPrimary;
-	CFileBasic	cBackup;
-	bool		bPrimary;
-	bool		bBackup;
-	filePos		iPrimary;
-	size		i;
-	filePos		iNumBlocks;
-	size		iPartialBlock;
+	CFileBasic	cSource;
+	CFileBasic	cDest;
+	filePos		iRemaining;
+	size		iChunk;
 	void*		pvData;
+	bool		bResult;
 
-	cPrimary.Init(DiskFile(szSource));
-	bPrimary = cPrimary.Open(EFM_Read);
-
-	if (!bPrimary)
+	cSource.Init(DiskFile(szSource));
+	if (!cSource.Open(EFM_Read))
 	{
-		Delete(szDest);
-		cPrimary.Kill();
-		return true;
+		cSource.Kill();
+		return false;
 	}
 
 	//Opening for write does not truncate so a longer destination would keep its old tail.
 	Delete(szDest);
-	cBackup.Init(DiskFile(szDest));
-	bBackup = cBackup.Open(EFM_Write_Create);
-	if (!bBackup)
+	cDest.Init(DiskFile(szDest));
+	if (!cDest.Open(EFM_Write_Create))
 	{
-		cBackup.Kill();
-		cPrimary.Close();
-		cPrimary.Kill();
+		cDest.Kill();
+		cSource.Close();
+		cSource.Kill();
 		return false;
 	}
 
-	iPrimary = cPrimary.GetFileLength();
-
-	iNumBlocks = iPrimary / FILE_BLOCK_SIZE;
-	iPartialBlock = (size)(iPrimary % FILE_BLOCK_SIZE);
-
+	bResult = true;
 	pvData = malloc(FILE_BLOCK_SIZE);
-
-	for (i = 0; i < iNumBlocks; i++)
+	iRemaining = cSource.GetFileLength();
+	while (bResult && (iRemaining > 0))
 	{
-		cPrimary.ReadData(pvData, FILE_BLOCK_SIZE);
-		if (!cBackup.WriteData(pvData, FILE_BLOCK_SIZE))
-		{
-			SafeFree(pvData);
-			cBackup.Close();
-			cBackup.Kill();
-			cPrimary.Close();
-			cPrimary.Kill();
-			return false;
-		}
+		iChunk = (iRemaining > FILE_BLOCK_SIZE) ? FILE_BLOCK_SIZE : (size)iRemaining;
+		bResult = cSource.ReadData(pvData, iChunk) && cDest.WriteData(pvData, iChunk);
+		iRemaining -= iChunk;
 	}
-
-	cPrimary.ReadData(pvData, iPartialBlock);
-	if (!cBackup.WriteData(pvData, iPartialBlock))
-	{
-		SafeFree(pvData);
-		cBackup.Close();
-		cBackup.Kill();
-		cPrimary.Close();
-		cPrimary.Kill();
-		return false;
-	}
-
 	SafeFree(pvData);
-	cBackup.Close();
-	cBackup.Kill();
-	cPrimary.Close();
-	cPrimary.Kill();
-	return true;
+
+	bResult &= cDest.Close();
+	cDest.Kill();
+	cSource.Close();
+	cSource.Kill();
+
+	if (!bResult)
+	{
+		//Do not leave a partial copy behind.
+		Delete(szDest);
+	}
+	return bResult;
 }
 
 

@@ -26,33 +26,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static int32& MainAxis(SInt32Vec2& sVec, bool bHorizontal)
-{
-	return bHorizontal ? sVec.x : sVec.y;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-static int32& CrossAxis(SInt32Vec2& sVec, bool bHorizontal)
-{
-	return bHorizontal ? sVec.y : sVec.x;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CFlowContainer::Init(Ptr<CWindow> pWindow)
 {
 	CContainer::Init(pWindow);
 	meWrap = CSW_Wrap;
 	meDirection = CSD_Right;
 	muAlignment.eVertical = CSV_Top;
-	msRequiredSize.Init(-1, -1);
 }
 
 
@@ -76,7 +55,6 @@ void CFlowContainer::Class(void)
 	U_Enum(meWrap);
 	U_Enum(meDirection);
 	U_Data(UContainerAlignment, muAlignment);
-	U_2Int32(msRequiredSize);
 }
 
 
@@ -120,16 +98,6 @@ void CFlowContainer::SetRequiredSize(void)
 		}
 	}
 	msRequiredSize = sTotalSize;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CFlowContainer::GetRequiredSize(void)
-{
-	return msRequiredSize;
 }
 
 

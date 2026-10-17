@@ -34,6 +34,7 @@ void CContainer::Init(Ptr<CWindow> pWindow)
 	mcBounds.Init();
 	mcBounds.SetPos(-1, -1);
 	mcBounds.SetSize(-1, -1);
+	msRequiredSize.Init(-1, -1);
 
 	PostInit();
 }
@@ -57,6 +58,7 @@ void CContainer::Class(void)
 {
 	CComponent::Class();
 	U_Data(CRectangle, mcBounds);
+	U_2Int32(msRequiredSize);
 }
 
 
@@ -130,5 +132,15 @@ void CContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	// This intentionally does not call CComponent::Layout 
 	// because a container must fully implement it's own Layout.
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CContainer::GetRequiredSize(void)
+{
+	return msRequiredSize;
 }
 

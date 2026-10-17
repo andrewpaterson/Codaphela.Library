@@ -66,9 +66,8 @@ void CDurableSet::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CDurableSet::Recover(void)
 {
-	CFileUtil	cFileUtil;
-	bool		bMarkStart;
-	bool		bMarkRewrite;
+	bool	bMarkStart;
+	bool	bMarkRewrite;
 
 	//This assumes begin has NOT been called.
 	if (mbBegun)
@@ -76,46 +75,34 @@ bool CDurableSet::Recover(void)
 		return gcLogger.Error2(__METHOD__, " Cannot recover after begun.", NULL);
 	}
 
-	bMarkStart = cFileUtil.Exists(mszMarkStart.Text());
-	bMarkRewrite = cFileUtil.Exists(mszMarkRewrite.Text());
-
-	//If neither then in theory everything is okay.
+	GetMarks(&bMarkStart, &bMarkRewrite);
 	if ((!bMarkStart) && (!bMarkRewrite))
 	{
+		//Nothing was interrupted.
 		return CheckFilesIdentical(true, true);
 	}
-	else 
-
-	//Primary files were written but backup failed.
-	if ((bMarkStart) && (bMarkRewrite))
+	else if (bMarkStart && bMarkRewrite)
 	{
 		gcLogger.Info2(__METHOD__, " Primary files were written but backup failed.", NULL);
-		if (!CopyPrimaryToBackup() || !CopyMarkedFiles(false))
+		if (!CopyRecoveryFiles(false))
 		{
 			return gcLogger.Error2(__METHOD__, " Copying primary files to backup failed.", NULL);
 		}
 		return MarkFinish();
 	}
-	else
-
-	//Primary files were not written.  Use old backup.
-	if (bMarkStart)
+	else if (bMarkStart)
 	{
 		gcLogger.Info2(__METHOD__, " Primary files were not written.  Reverting to backup.", NULL);
-		if (!CopyBackupToPrimary() || !CopyMarkedFiles(true))
+		if (!CopyRecoveryFiles(true))
 		{
 			return gcLogger.Error2(__METHOD__, " Copying backup files to primary failed.", NULL);
 		}
 		return MarkFinish();
 	}
 	else
-
-	//Something bad happened
-	if (bMarkRewrite)
 	{
 		return gcLogger.Error2(__METHOD__, " Rewrite has occurred without write.", NULL);
 	}
-	return false;
 }
 
 
@@ -202,18 +189,14 @@ bool CDurableSet::End(void)
 //////////////////////////////////////////////////////////////////////////
 bool CDurableSet::Check(bool bThorough, bool bLogError)
 {
-	CFileUtil	cFileUtil;
-	bool		bMarkStart;
-	bool		bMarkRewrite;
+	bool	bMarkStart;
+	bool	bMarkRewrite;
 
-	bMarkStart = cFileUtil.Exists(mszMarkStart.Text());
-	bMarkRewrite = cFileUtil.Exists(mszMarkRewrite.Text());
-
+	GetMarks(&bMarkStart, &bMarkRewrite);
 	if ((!bMarkStart) && (!bMarkRewrite))
 	{
 		return CheckFilesIdentical(bThorough, bLogError);
 	}
-
 	return CheckWriteStatus(bMarkStart, bMarkRewrite, bLogError);
 }
 
@@ -224,14 +207,24 @@ bool CDurableSet::Check(bool bThorough, bool bLogError)
 //////////////////////////////////////////////////////////////////////////
 bool CDurableSet::CheckWriteStatus(bool bLogError)
 {
-	CFileUtil	cFileUtil;
-	bool		bMarkStart;
-	bool		bMarkRewrite;
+	bool	bMarkStart;
+	bool	bMarkRewrite;
 
-	bMarkStart = cFileUtil.Exists(mszMarkStart.Text());
-	bMarkRewrite = cFileUtil.Exists(mszMarkRewrite.Text());
-
+	GetMarks(&bMarkStart, &bMarkRewrite);
 	return CheckWriteStatus(bMarkStart, bMarkRewrite, bLogError);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDurableSet::GetMarks(bool* pbMarkStart, bool* pbMarkRewrite)
+{
+	CFileUtil	cFileUtil;
+
+	*pbMarkStart = cFileUtil.Exists(mszMarkStart.Text());
+	*pbMarkRewrite = cFileUtil.Exists(mszMarkRewrite.Text());
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -475,63 +468,11 @@ bool CDurableSet::CheckFilesIdentical(bool bThorough, bool bLogError)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDurableSet::CopyBackupToPrimary(void)
-{
-	size			i;
-	CDurableFile*	pcDurable;
-	bool			bResult;
-	size			uiNumElements;
-
-	uiNumElements = mapcFiles.NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		pcDurable = *mapcFiles.Get(i);
-		bResult = pcDurable->CopyBackupToPrimary();
-		if (!bResult)
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CDurableSet::CopyPrimaryToBackup(void)
-{
-	size			i;
-	CDurableFile*	pcDurable;
-	bool			bResult;
-	size			uiNumElements;
-
-	uiNumElements = mapcFiles.NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		pcDurable = *mapcFiles.Get(i);
-		bResult = pcDurable->CopyPrimaryToBackup();
-		if (!bResult)
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CDurableSet::ReadMarkedFiles(CArrayChars* paszFiles, bool* pbComplete)
 {
 	CTextFile	cFile;
-	CArrayChars	aszLines;
 	size		i;
 	size		uiNumLines;
-	CChars*		pszLine;
 
 	*pbComplete = false;
 	cFile.Init();
@@ -550,25 +491,23 @@ bool CDurableSet::ReadMarkedFiles(CArrayChars* paszFiles, bool* pbComplete)
 	}
 
 	cFile.PassifyNewlines();
-	aszLines.Init();
-	cFile.mcText.SplitLines(&aszLines);
+	cFile.mcText.SplitLines(paszFiles);
 	cFile.Kill();
 
-	uiNumLines = aszLines.NumElements();
+	//Everything from the end line on is dropped.  Without it the mark was cut short by a crash.
+	uiNumLines = paszFiles->NumElements();
 	for (i = 0; i < uiNumLines; i++)
 	{
-		pszLine = aszLines.Get(i);
-		if (pszLine->Equals(DURABLE_MARK_LIST_END))
+		if (paszFiles->Get(i)->Equals(DURABLE_MARK_LIST_END))
 		{
 			*pbComplete = true;
 			break;
 		}
-		if (!pszLine->Empty())
-		{
-			paszFiles->Add(pszLine->Text());
-		}
 	}
-	aszLines.Kill();
+	while (paszFiles->NumElements() > i)
+	{
+		paszFiles->Remove(paszFiles->NumElements() - 1);
+	}
 
 	if (*pbComplete && ((paszFiles->NumElements() % 2) != 0))
 	{
@@ -582,16 +521,16 @@ bool CDurableSet::ReadMarkedFiles(CArrayChars* paszFiles, bool* pbComplete)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDurableSet::CopyMarkedFiles(bool bBackupToPrimary)
+bool CDurableSet::CopyRecoveryFiles(bool bBackupToPrimary)
 {
-	CArrayChars	aszFiles;
-	bool		bComplete;
-	bool		bResult;
-	size		i;
-	size		uiNumFiles;
-	char*		szPrimary;
-	char*		szRewrite;
+	CArrayChars		aszFiles;
+	bool			bComplete;
+	bool			bResult;
+	size			i;
+	size			uiNumElements;
+	CDurableFile*	pcDurable;
 
+	//The files to copy are the ones in the start mark and the ones passed to Recover, each pair once.
 	aszFiles.Init();
 	bResult = ReadMarkedFiles(&aszFiles, &bComplete);
 	if (!bResult)
@@ -602,28 +541,37 @@ bool CDurableSet::CopyMarkedFiles(bool bBackupToPrimary)
 
 	if (!bComplete)
 	{
-		aszFiles.Kill();
-		if (bBackupToPrimary)
+		aszFiles.ReInit();
+		if (!bBackupToPrimary)
 		{
-			//The crash happened while writing the start mark so no primary file was written yet.
-			gcLogger.Info2(__METHOD__, " Mark file [", mszMarkStart.Text(), "] is incomplete.  No files were changed.", NULL);
-			return true;
+			aszFiles.Kill();
+			return gcLogger.Error2(__METHOD__, " Mark file [", mszMarkStart.Text(), "] is incomplete but the rewrite mark exists.", NULL);
 		}
-		return gcLogger.Error2(__METHOD__, " Mark file [", mszMarkStart.Text(), "] is incomplete but the rewrite mark exists.", NULL);
+
+		//The crash happened while writing the start mark so no primary file was written yet.
+		gcLogger.Info2(__METHOD__, " Mark file [", mszMarkStart.Text(), "] is incomplete.  Only the given files are copied.", NULL);
 	}
 
-	uiNumFiles = aszFiles.NumElements();
-	for (i = 0; i < uiNumFiles; i += 2)
+	uiNumElements = mapcFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
-		szPrimary = aszFiles.GetText(i);
-		szRewrite = aszFiles.GetText(i + 1);
+		pcDurable = *mapcFiles.Get(i);
+		if (pcDurable->IsDurable() && !ContainsPair(&aszFiles, pcDurable->GetFilename()))
+		{
+			aszFiles.Add(pcDurable->GetFilename());
+			aszFiles.Add(pcDurable->GetRewriteName());
+		}
+	}
+
+	for (i = 0; i < aszFiles.NumElements(); i += 2)
+	{
 		if (bBackupToPrimary)
 		{
-			bResult = CopyRecoveredFile(szRewrite, szPrimary);
+			bResult = CopyRecoveredFile(aszFiles.GetText(i + 1), aszFiles.GetText(i));
 		}
 		else
 		{
-			bResult = CopyRecoveredFile(szPrimary, szRewrite);
+			bResult = CopyRecoveredFile(aszFiles.GetText(i), aszFiles.GetText(i + 1));
 		}
 		if (!bResult)
 		{
@@ -640,30 +588,58 @@ bool CDurableSet::CopyMarkedFiles(bool bBackupToPrimary)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CDurableSet::ContainsPair(CArrayChars* paszFiles, const char* szPrimary)
+{
+	size	i;
+
+	for (i = 0; i < paszFiles->NumElements(); i += 2)
+	{
+		if (paszFiles->Get(i)->Equals(szPrimary))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CDurableSet::CopyRecoveredFile(const char* szSource, const char* szDest)
 {
 	CFileUtil	cFileUtil;
+	bool		bSourceExists;
 
-	if (!cFileUtil.Copy(szSource, szDest))
+	//A source that does not exist was deleted, or never created, so the destination must not exist either.
+	bSourceExists = cFileUtil.Exists(szSource);
+	if (bSourceExists)
 	{
-		return gcLogger.Error2(__METHOD__, " Could not copy [", szSource, "] to [", szDest, "].", NULL);
+		if (!cFileUtil.Copy(szSource, szDest))
+		{
+			return gcLogger.Error2(__METHOD__, " Could not copy [", szSource, "] to [", szDest, "].", NULL);
+		}
+		if (!cFileUtil.Compare(szSource, szDest))
+		{
+			return gcLogger.Error2(__METHOD__, " Copy of [", szSource, "] to [", szDest, "] is different.", NULL);
+		}
 	}
-	if (!cFileUtil.Compare(szSource, szDest))
+	else
 	{
-		return gcLogger.Error2(__METHOD__, " Copy of [", szSource, "] to [", szDest, "] is different.", NULL);
+		if (!cFileUtil.Delete(szDest))
+		{
+			return gcLogger.Error2(__METHOD__, " Could not delete [", szDest, "] whose source [", szSource, "] does not exist.", NULL);
+		}
 	}
+
 	if (!mbSync)
 	{
 		return true;
 	}
-
-	//Copy deletes the destination when the source does not exist, so only the directory may need syncing.
-	if (cFileUtil.Exists(szDest))
+	if (bSourceExists && !cFileUtil.SyncFile(szDest))
 	{
-		if (!cFileUtil.SyncFile(szDest))
-		{
-			return gcLogger.Error2(__METHOD__, " Could not sync recovered file [", szDest, "].", NULL);
-		}
+		return gcLogger.Error2(__METHOD__, " Could not sync recovered file [", szDest, "].", NULL);
 	}
 	if (!cFileUtil.SyncParentDirectory(szDest))
 	{

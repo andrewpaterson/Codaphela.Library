@@ -15,20 +15,25 @@ bool CSequence::Init(CLifeInit<CSequenceConfig> cConfig)
 	cConfig.ConfigureLife(&mcConfig, &mpcConfig);
 
 	cHelper.Init(mpcConfig->Getdirectory(), "Primary", "Backup", false);
-	mcFileController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory());
+	bResult = mcFileController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory());
 	mcFileController.SetSync(mpcConfig->GetSync());
+	cHelper.Kill(false);
 
 	mcFile.Init(&mcFileController, "Sequence.DAT", "_Sequence.DAT");
 
-	bResult = mcFileController.Begin();
-	moiNext = ReadIndex();
-	bResult &= mcFileController.End();
-
-	cHelper.Kill(false);
-
-	if (moiNext == INVALID_O_INDEX || !bResult)
+	//A crash while the sequence was being written must be recovered, otherwise indices already handed out would be handed out again.
+	bResult = bResult && mcFileController.Recover();
+	if (bResult)
 	{
-		moiNext = FIRST_O_INDEX;
+		bResult = mcFileController.Begin();
+		moiNext = ReadIndex();
+		bResult &= mcFileController.End();
+	}
+
+	if (!bResult || (moiNext == INVALID_O_INDEX))
+	{
+		//Not FIRST_O_INDEX, that could hand out indices that are already used.
+		moiNext = INVALID_O_INDEX;
 		return gcLogger.Error2(__METHOD__, " Could not read Sequence file.", NULL);
 	}
 
@@ -67,7 +72,7 @@ OIndex CSequence::GetNext(void)
 
 	if (!bResult)
 	{
-		moiNext = FIRST_O_INDEX;
+		//Keep counting in memory.  Going back to the first index would hand out indices that are already used.
 		gcLogger.Error2(__METHOD__, " Could not write Sequence file.", NULL);
 	}
 

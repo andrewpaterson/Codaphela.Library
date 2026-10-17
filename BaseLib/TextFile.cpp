@@ -118,21 +118,24 @@ bool CTextFile::Read(CAbstractFile* pcAbstractFile)
 //////////////////////////////////////////////////////////////////////////
 bool CTextFile::Write(const char* szFilename)
 {
-	CFileBasic	mcFile;
+	CFileBasic	cFile;
+	bool		bResult;
 
 	if (szFilename)
 	{
 		mszFilename.Kill();
 		mszFilename.Init(szFilename);
-		mcFile.Init(DiskFile(szFilename));
-		if (mcFile.Open(EFM_Write_Create))
+		cFile.Init(DiskFile(szFilename));
+		if (cFile.Open(EFM_Write_Create))
 		{
-			mcFile.WriteData(mcText.Text(), mcText.Length());
-			mcFile.Close();
-			mcFile.Kill();
-			return true;
+			//Opening does not empty an existing file, so cut off anything longer than the new text.
+			bResult = cFile.WriteData(mcText.Text(), mcText.Length());
+			bResult &= cFile.Truncate(mcText.Length());
+			bResult &= cFile.Close();
+			cFile.Kill();
+			return bResult;
 		}
-		mcFile.Kill();
+		cFile.Kill();
 	}
 	return false;
 }

@@ -22,6 +22,9 @@ struct SInsets
 
 	void Init(void);
 	void Init(int* paiWidths);
+
+	int	GetLeftAndRight(void);
+	int	GetTopAndBottom(void);
 }; 
 
 

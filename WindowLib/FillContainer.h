@@ -45,7 +45,6 @@ protected:
 	EFillContainerSplit			meSplit;
 	int32						miSpacing;
 	SInsets						msInsets;
-	SInt32Vec2					msRequiredSize;
 
 public:
 	void			Init(Ptr<CWindow> pWindow);
@@ -53,7 +52,6 @@ public:
 	void			Free(void) override;
 
 	void			SetRequiredSize(void) override;
-	SInt32Vec2	GetRequiredSize(void);
 	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 
 	void			SetFillStyle(EContainerStyleHorizontal eH, EContainerStyleVertical eV);

@@ -34,7 +34,6 @@ void CFillContainer::Init(Ptr<CWindow> pWindow)
 	meSplit = FCS_Overlay;
 	miSpacing = 0;
 	msInsets.Init();
-	msRequiredSize.Init(-1, -1);
 }
 
 
@@ -60,7 +59,6 @@ void CFillContainer::Class(void)
 	U_Enum(meSplit);
 	U_Int32(miSpacing);
 	U_Data(SInsets, msInsets);
-	U_2Int32(msRequiredSize);
 }
 
 
@@ -108,14 +106,7 @@ void CFillContainer::SetRequiredSize(void)
 	{
 		pComponent = maChildren.Get(i);
 		sSize = pComponent->GetDesiredSize();
-		if (sSize.x > sLargest.x)
-		{
-			sLargest.x = sSize.x;
-		}
-		if (sSize.y > sLargest.y)
-		{
-			sLargest.y = sSize.y;
-		}
+		sLargest.Maximise(sSize);
 	}
 
 	sTotalSize = sLargest;
@@ -132,19 +123,9 @@ void CFillContainer::SetRequiredSize(void)
 		}
 	}
 
-	sTotalSize.x += msInsets.maiWidths[BEI_Left] + msInsets.maiWidths[BEI_Right];
-	sTotalSize.y += msInsets.maiWidths[BEI_Top] + msInsets.maiWidths[BEI_Bottom];
+	sTotalSize.x += msInsets.GetLeftAndRight();
+	sTotalSize.y += msInsets.GetTopAndBottom();
 	msRequiredSize = sTotalSize;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CFillContainer::GetRequiredSize(void)
-{
-	return msRequiredSize;
 }
 
 
@@ -170,8 +151,8 @@ void CFillContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	sArea = sAreaSize;
 	sOrigin.x += msInsets.maiWidths[BEI_Left];
 	sOrigin.y += msInsets.maiWidths[BEI_Top];
-	sArea.x -= (msInsets.maiWidths[BEI_Left] + msInsets.maiWidths[BEI_Right]);
-	sArea.y -= (msInsets.maiWidths[BEI_Bottom] + msInsets.maiWidths[BEI_Top]);
+	sArea.x -= msInsets.GetLeftAndRight();
+	sArea.y -= msInsets.GetTopAndBottom();
 	if (sArea.x < 0)
 	{
 		sArea.x = 0;

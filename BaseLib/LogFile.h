@@ -47,6 +47,7 @@ public:
 
 	bool					Commit(CAbstractFile* pcFile);
 
+	void					Print(CChars* psz);
 	void					Dump(void);
 	size					GetNumWrites(void);
 	size					GetWriteSize(size iIndex);

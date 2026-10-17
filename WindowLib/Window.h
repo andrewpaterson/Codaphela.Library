@@ -71,7 +71,6 @@ public:
 	ERGBAlphaBits			GetAlphaBits(void);
 	void					GetColourFormat(CColourFormatHelper* pcHelper);
 
-	void					SetRequiredSize(void) override;
 };
 
 

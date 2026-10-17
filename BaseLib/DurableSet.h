@@ -63,14 +63,14 @@ public:
 private:
 	bool			Mark(const char* szMarkFile, CChars* pszContents);
 	bool			ReadMarkedFiles(CArrayChars* paszFiles, bool* pbComplete);
-	bool			CopyMarkedFiles(bool bBackupToPrimary);
+	bool			CopyRecoveryFiles(bool bBackupToPrimary);
+	bool			ContainsPair(CArrayChars* paszFiles, const char* szPrimary);
+	void			GetMarks(bool* pbMarkStart, bool* pbMarkRewrite);
 	bool			CopyRecoveredFile(const char* szSource, const char* szDest);
 	bool			Unmark(const char* szMarkFile);
 	bool			CheckFilesIdentical(bool bThorough, bool bLogError);
 	bool			CheckWriteStatus(bool bMarkStart, bool bMarkRewrite, bool bLogError);
 	bool			CheckWriteStatus(bool bLogError);
-	bool			CopyBackupToPrimary(void);
-	bool			CopyPrimaryToBackup(void);
 };
 
 
