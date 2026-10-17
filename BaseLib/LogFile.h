@@ -79,6 +79,7 @@ protected:
 	CLogFileCommandWrite*	AddWriteCommand(filePos iPosition, size iByteLength);
 	CLogFileCommandClose*	AddCloseCommand(void);
 	CLogFileCommandDelete*	AddDeleteCommand(void);
+	CLogFileCommandTruncate*	AddTruncateCommand(filePos iSize);
 };
 
 

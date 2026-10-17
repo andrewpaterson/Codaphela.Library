@@ -268,6 +268,7 @@ bool CLogFile::Commit(CAbstractFile* pcFile)
 	CLogFileCommandOpen*		psOpen;
 	CLogFileCommandClose*		psClose;
 	CLogFileCommandDelete*		psDelete;
+	CLogFileCommandTruncate*	psTruncate;
 	bool						bResult;
 	CChars						szError;
 	size						iNumCommands;
@@ -319,6 +320,12 @@ bool CLogFile::Commit(CAbstractFile* pcFile)
 			psDelete = (CLogFileCommandDelete*)psCommand;
 			bResult = psDelete->Delete(pcFile);
 			bDirectoryChanged = true;
+		}
+		else if (psCommand->IsTruncate())
+		{
+			psTruncate = (CLogFileCommandTruncate*)psCommand;
+			bResult = psTruncate->Truncate(pcFile);
+			bWritten = true;
 		}
 
 		if (!bResult)
@@ -459,6 +466,25 @@ CLogFileCommandDelete* CLogFile::AddDeleteCommand(void)
 	}
 
 	psCommand->Init();
+	return psCommand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLogFileCommandTruncate* CLogFile::AddTruncateCommand(filePos iSize)
+{
+	CLogFileCommandTruncate*	psCommand;
+
+	psCommand = (CLogFileCommandTruncate*)macCommands.Add(sizeof(CLogFileCommandTruncate));
+	if (!psCommand)
+	{
+		return NULL;
+	}
+
+	psCommand->Init(iSize);
 	return psCommand;
 }
 
@@ -671,7 +697,11 @@ size CLogFile::Read(void* pvDest, size iSize, size iCount)
 			uiWriteIndex = FindNextWriteCommand(uiWriteIndex+1);
 		}
 
-		if ((miPosition + uiByteSize) > miLength)
+		if (miPosition >= miLength)
+		{
+			return 0;
+		}
+		else if ((miPosition + uiByteSize) > miLength)
 		{
 			uiBytesRead = (size)(miLength - miPosition) / iSize;
 			miPosition += uiBytesRead * iSize;
@@ -723,6 +753,8 @@ size CLogFile::ReadFirstTouchingWrites(size uiWriteIndex, void* pvDest, size iSi
 		bHoles = FindHoles(&apvOverlapping, miPosition, iByteSize);
 		if (bHoles)
 		{
+			//Holes past the end of the backing file read as zeros, as they do in a disk file.
+			memset(pvDest, 0, iByteSize);
 			iBytesReadFromFile = ReadFromBackingFile(pvDest, iSize, iCount);
 		}
 
@@ -732,22 +764,13 @@ size CLogFile::ReadFirstTouchingWrites(size uiWriteIndex, void* pvDest, size iSi
 	}
 	else
 	{
-		if (miBackingFileLength == 0)
+		//Writes or a truncation elsewhere can make the file longer than the backing file.  The rest reads as zeros and Read limits it to the file length.
+		memset(pvDest, 0, iByteSize);
+		if (miBackingFileLength != 0)
 		{
-			return iCount;
+			ReadWithNoTouchingWrites(pvDest, iSize, iCount);
 		}
-		else
-		{
-			iBytesReadFromFile = ReadWithNoTouchingWrites(pvDest, iSize, iCount);
-			if (iBytesReadFromFile == iByteSize)
-			{
-				return iCount;
-			}
-			else
-			{
-				return iBytesReadFromFile / iSize;
-			}
-		}
+		return iCount;
 	}
 }
 
@@ -855,6 +878,10 @@ size CLogFile::FindNextWriteCommand(size iIndex)
 		else if (psCommand->IsWrite() && bFoundWriteOpen)
 		{
 			return i;
+		}
+		else if (psCommand->IsTruncate())
+		{
+			//A truncation happens while the file is open and does not end the writes.
 		}
 		else if (bFoundWriteOpen)
 		{
@@ -1143,7 +1170,62 @@ filePos CLogFile::Size(void)
 //////////////////////////////////////////////////////////////////////////
 bool CLogFile::Truncate(filePos iSize)
 {
-	//You should probably do something here.
+	size						i;
+	CLogFileCommand*			psCommand;
+	CLogFileCommandWrite*		psWrite;
+	size						uiGrowth;
+
+	if (!IsFileModeWritable(meFileMode) || (iSize < 0))
+	{
+		return false;
+	}
+
+	mbTouched = true;
+	if (iSize > miLength)
+	{
+		//Growing fills with zeros, as a disk file does.
+		uiGrowth = (size)(iSize - miLength);
+		psWrite = AddWriteCommand(miLength, uiGrowth);
+		if (!psWrite)
+		{
+			return false;
+		}
+		memset(RemapSinglePointer(psWrite, sizeof(CLogFileCommandWrite)), 0, uiGrowth);
+		miLength = iSize;
+	}
+	else if (iSize < miLength)
+	{
+		//Writes past the new end are cut back or removed, and the backing file is no longer read past it.
+		i = macCommands.NumElements();
+		while (i > 0)
+		{
+			i--;
+			psCommand = (CLogFileCommand*)macCommands.Get(i);
+			if (psCommand->IsWrite())
+			{
+				psWrite = (CLogFileCommandWrite*)psCommand;
+				if (psWrite->iPosition >= iSize)
+				{
+					macCommands.RemoveAt(i, true);
+				}
+				else if ((psWrite->iPosition + psWrite->iSize) > iSize)
+				{
+					psWrite->iSize = (size)(iSize - psWrite->iPosition);
+				}
+			}
+		}
+
+		if (miBackingFileLength > iSize)
+		{
+			miBackingFileLength = iSize;
+		}
+
+		if (!AddTruncateCommand(iSize))
+		{
+			return false;
+		}
+		miLength = iSize;
+	}
 	return true;
 }
 
