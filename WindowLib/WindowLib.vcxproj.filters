@@ -183,4 +183,9 @@
       <Filter>Source\Image\Canvas</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="Container.txt">
+      <Filter>Source\Component\Container</Filter>
+    </Text>
+  </ItemGroup>
 </Project>

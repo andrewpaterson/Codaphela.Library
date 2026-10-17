@@ -768,3 +768,4 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 	}
 	return pcImage;
 }
+

@@ -1,0 +1,3 @@
+Container Bounds (size and position) is where and what size the container has been laid out by it's parent.  The top level window is sized to whatever the user chose, that size is pushed down as the container bounds to its contained containers and components.
+
+Required Size is the size (irrespective of position) required by the components in a container.

@@ -108,7 +108,7 @@ void CFlowContainer::SetRequiredSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CFlowContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
-	SetBounds(sPosition, sAreaSize);
+	SetContainerBounds(sPosition, sAreaSize);
 
 	if (meDirection == CSD_Right)
 	{
