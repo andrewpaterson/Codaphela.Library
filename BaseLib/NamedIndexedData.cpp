@@ -123,6 +123,10 @@ bool CNamedIndexedData::Add(OIndex oi, const char* szName, int iNameLength, void
 		pcHeader->Init(szName, iNameLength, pvData, uiDataSize);
 		
 		bResult = mcData.Add(oi, pcHeader, sSize);
+		if (!bResult)
+		{
+			mcNames.Remove(szName);
+		}
 
 		cStack.Kill();
 		return bResult;
@@ -392,6 +396,10 @@ bool CNamedIndexedData::Put(OIndex oi, const char* szName, int iNameLength, void
 	else if (oiExisting != INVALID_O_INDEX)
 	{
 		return gcLogger.Error2(__METHOD__, " Index [", IndexToString(oi), "] does not have an existing name [", szName, "].", NULL);
+	}
+	else if (StrEmpty(szName))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot Put existing Index [", IndexToString(oi), "] with an empty name.", NULL);
 	}
 	else
 	{

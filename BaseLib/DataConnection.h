@@ -8,6 +8,8 @@
 class CDataConnection
 {
 public:
+	virtual void	Kill(void) =0;
+
 	virtual bool	Add(OIndex oi, void* pvData, uint32 uiDataSize) =0;
 	virtual bool	Add(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize) =0;
 	virtual bool	Add(OIndex oi, CChars* szName, void* pvData, uint32 uiDataSize) =0;
