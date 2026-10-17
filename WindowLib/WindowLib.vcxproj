@@ -183,6 +183,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="MapsCanvasDraw.h" />
+    <ClInclude Include="ImageCanvasDraw.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="CanvasDraw.h" />
@@ -218,6 +219,7 @@
     <ClCompile Include="GridContainer.cpp" />
     <ClCompile Include="Insets.cpp" />
     <ClCompile Include="MapsCanvasDraw.cpp" />
+    <ClCompile Include="ImageCanvasDraw.cpp" />
     <ClCompile Include="NativeCanvas.cpp" />
     <ClCompile Include="NativeComponent.cpp" />
     <ClCompile Include="NativeWindow.cpp" />

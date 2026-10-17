@@ -59,7 +59,7 @@ public:
 			void				SetPosition(int x, int y);
 			void				SetPosition(SInt32Vec2 sPosition);
 			SInt32Vec2			GetPosition(void);
-			SInt32Vec2			GetDesiredSize(void);
+	virtual	SInt32Vec2			GetDesiredSize(void);
 			void				SetDesiredSize(int fWidth, int fHeight);
 			SInt32Vec2			GetActualSize(void);
 

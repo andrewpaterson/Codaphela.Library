@@ -345,6 +345,21 @@ void CCanvas::SetRequiredSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CCanvas::GetDesiredSize(void)
+{
+	//A desired size of -1, -1 on the canvas means use the size its draw wants.
+	if ((msDesiredSize.x == -1) && (msDesiredSize.y == -1) && mpCanvasDraw.IsNotNull())
+	{
+		return mpCanvasDraw->GetDesiredSize();
+	}
+	return msDesiredSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EColourFormat CCanvas::GetColourFormat(void) { return meColourFormat; }
 EColourOrder CCanvas::GetColourOrder(void) { return meColourOrder; }
 ERGBColourBits CCanvas::GetColourBits(void) { return meColourBits; }

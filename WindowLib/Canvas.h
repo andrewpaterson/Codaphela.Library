@@ -79,6 +79,7 @@ public:
 	void				DrawPixel(int iX, int iY, ARGB32 sColour);
 	void				DrawImage(int iX, int iY, Ptr<CImage> pImage);
 
+	SInt32Vec2			GetDesiredSize(void) override;
 	void				SetRequiredSize(void) override;
 
 	void				CreateNativeCanvas(void);

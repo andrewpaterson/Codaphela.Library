@@ -120,6 +120,9 @@
     <ClInclude Include="MapsCanvasDraw.h">
       <Filter>Source\Image\Canvas</Filter>
     </ClInclude>
+    <ClInclude Include="ImageCanvasDraw.h">
+      <Filter>Source\Image\Canvas</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeWindow.cpp">
@@ -174,6 +177,9 @@
       <Filter>Source\Component\Drawing\Canvas</Filter>
     </ClCompile>
     <ClCompile Include="MapsCanvasDraw.cpp">
+      <Filter>Source\Image\Canvas</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageCanvasDraw.cpp">
       <Filter>Source\Image\Canvas</Filter>
     </ClCompile>
   </ItemGroup>
