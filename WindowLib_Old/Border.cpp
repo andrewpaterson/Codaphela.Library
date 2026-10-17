@@ -293,8 +293,8 @@ void CBorder::CalculateUVCoords(SUVCornersFull* apsUVs)
 		iTextureHeight = GetTexture(0)->GetHeight();
 
 		//Top
-		sSubImage.miTop = 0;
-		sSubImage.miLeft = 0;
+		sSubImage.msTopLeft.y = 0;
+		sSubImage.msTopLeft.x = 0;
 		sSubImage.SetWidth(iTextureWidth);
 		sSubImage.SetHeight(mpcBorderParameters->maiEdgeWidths[0]);
 		sTopLeft	 = sSubImage.GetUVCoordinatesTopLeft(iTextureWidth, iTextureHeight);
@@ -302,7 +302,7 @@ void CBorder::CalculateUVCoords(SUVCornersFull* apsUVs)
 		apsUVs[1].Set(sTopLeft.x, sTopLeft.y, sBottomRight.x, sBottomRight.y);
 
 		//Right
-		sSubImage.miTop += sSubImage.GetHeight() - 1;  //Don't even ask...
+		sSubImage.msTopLeft.y += sSubImage.GetHeight() - 1;  //Don't even ask...
 		sSubImage.SetHeight(mpcBorderParameters->maiEdgeWidths[1]);
 		sTopLeft	 = sSubImage.GetUVCoordinatesTopLeft(iTextureWidth, iTextureHeight);
 		sBottomRight = sSubImage.GetUVCoordinatesBottomRight(iTextureWidth, iTextureHeight);
@@ -310,7 +310,7 @@ void CBorder::CalculateUVCoords(SUVCornersFull* apsUVs)
 		apsUVs[3].Rotate(1);
 
 		//Bottom
-		sSubImage.miTop += sSubImage.GetHeight();
+		sSubImage.msTopLeft.y += sSubImage.GetHeight();
 		sSubImage.SetHeight(mpcBorderParameters->maiEdgeWidths[2]);
 		sTopLeft	 = sSubImage.GetUVCoordinatesTopLeft(iTextureWidth, iTextureHeight);
 		sBottomRight = sSubImage.GetUVCoordinatesBottomRight(iTextureWidth, iTextureHeight);
@@ -318,7 +318,7 @@ void CBorder::CalculateUVCoords(SUVCornersFull* apsUVs)
 		apsUVs[5].Rotate(2);
 
 		//Left
-		sSubImage.miTop += sSubImage.GetHeight() + 1;
+		sSubImage.msTopLeft.y += sSubImage.GetHeight() + 1;
 		sSubImage.SetHeight(mpcBorderParameters->maiEdgeWidths[3]);
 		sTopLeft	 = sSubImage.GetUVCoordinatesTopLeft(iTextureWidth, iTextureHeight);
 		sBottomRight = sSubImage.GetUVCoordinatesBottomRight(iTextureWidth, iTextureHeight);
@@ -326,7 +326,7 @@ void CBorder::CalculateUVCoords(SUVCornersFull* apsUVs)
 		apsUVs[7].Rotate(3);
 
 		//Top Left
-		sSubImage.miTop += sSubImage.GetHeight();
+		sSubImage.msTopLeft.y += sSubImage.GetHeight();
 		sSubImage.SetHeight(mpcBorderParameters->masCornerSizes[0].y);
 		sSubImage.SetWidth(mpcBorderParameters->masCornerSizes[0].x);
 		sTopLeft	 = sSubImage.GetUVCoordinatesTopLeft(iTextureWidth, iTextureHeight);
@@ -334,7 +334,7 @@ void CBorder::CalculateUVCoords(SUVCornersFull* apsUVs)
 		apsUVs[0].Set(sTopLeft.x, sTopLeft.y, sBottomRight.x, sBottomRight.y);
 
 		//Top Right
-		sSubImage.miTop += sSubImage.GetHeight();
+		sSubImage.msTopLeft.y += sSubImage.GetHeight();
 		sSubImage.SetHeight(mpcBorderParameters->masCornerSizes[1].y);
 		sSubImage.SetWidth(mpcBorderParameters->masCornerSizes[1].x);
 		sTopLeft	 = sSubImage.GetUVCoordinatesTopLeft(iTextureWidth, iTextureHeight);
@@ -342,7 +342,7 @@ void CBorder::CalculateUVCoords(SUVCornersFull* apsUVs)
 		apsUVs[2].Set(sTopLeft.x, sTopLeft.y, sBottomRight.x, sBottomRight.y);
 
 		//Bottom Right
-		sSubImage.miTop += sSubImage.GetHeight();
+		sSubImage.msTopLeft.y += sSubImage.GetHeight();
 		sSubImage.SetHeight(mpcBorderParameters->masCornerSizes[2].y);
 		sSubImage.SetWidth(mpcBorderParameters->masCornerSizes[2].x);
 		sTopLeft	 = sSubImage.GetUVCoordinatesTopLeft(iTextureWidth, iTextureHeight);
@@ -350,7 +350,7 @@ void CBorder::CalculateUVCoords(SUVCornersFull* apsUVs)
 		apsUVs[4].Set(sTopLeft.x, sTopLeft.y, sBottomRight.x, sBottomRight.y);
 
 		//Bottom Left
-		sSubImage.miTop += sSubImage.GetHeight();
+		sSubImage.msTopLeft.y += sSubImage.GetHeight();
 		sSubImage.SetHeight(mpcBorderParameters->masCornerSizes[3].y);
 		sSubImage.SetWidth(mpcBorderParameters->masCornerSizes[3].x);
 		sTopLeft	 = sSubImage.GetUVCoordinatesTopLeft(iTextureWidth, iTextureHeight);

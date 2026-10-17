@@ -120,17 +120,17 @@ bool CPackedLine::RecursePack(CRectangle* pcBounds)
 	}
 	
 	pcUsedRect = macRectangles.Add(&cFits);
-	pcUsedRect->Set(this, pcBounds->miLeft, pcBounds->miTop);
+	pcUsedRect->Set(this, pcBounds->msTopLeft.x, pcBounds->msTopLeft.y);
 
-	cBoundsRight.Init(	pcBounds->miLeft + pcUsedRect->mpcPackedRectangle->miWidth + mpcPackAttempt->mpcRectanglePacker->GetInnerEdgeWidth(),
-						pcBounds->miTop, 
-						pcBounds->miRight, 
-						pcBounds->miBottom);
+	cBoundsRight.Init(	pcBounds->msTopLeft.x + pcUsedRect->mpcPackedRectangle->miWidth + mpcPackAttempt->mpcRectanglePacker->GetInnerEdgeWidth(),
+						pcBounds->msTopLeft.y, 
+						pcBounds->msBottomRight.x, 
+						pcBounds->msBottomRight.y);
 
-	cBoundsBelow.Init(	pcBounds->miLeft,
-						pcBounds->miTop + pcUsedRect->mpcPackedRectangle->miHeight + mpcPackAttempt->mpcRectanglePacker->GetInnerEdgeWidth(), 
-						pcBounds->miLeft + pcUsedRect->mpcPackedRectangle->miWidth + mpcPackAttempt->mpcRectanglePacker->GetInnerEdgeWidth(),
-						pcBounds->miBottom);
+	cBoundsBelow.Init(	pcBounds->msTopLeft.x,
+						pcBounds->msTopLeft.y + pcUsedRect->mpcPackedRectangle->miHeight + mpcPackAttempt->mpcRectanglePacker->GetInnerEdgeWidth(), 
+						pcBounds->msTopLeft.x + pcUsedRect->mpcPackedRectangle->miWidth + mpcPackAttempt->mpcRectanglePacker->GetInnerEdgeWidth(),
+						pcBounds->msBottomRight.y);
 
 	RecursePack(&cBoundsBelow);
 	RecursePack(&cBoundsRight);

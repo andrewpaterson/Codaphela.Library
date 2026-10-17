@@ -31,6 +31,8 @@ void CFillContainer::Init(Ptr<CWindow> pWindow)
 	CContainer::Init(pWindow);
 	meHorizontal = CSH_Stretch;
 	meVertical = CSV_Stretch;
+	meSplit = FCS_Overlay;
+	miSpacing = 0;
 	msInsets.Init();
 	msRequiredSize.Init(-1, -1);
 }
@@ -55,6 +57,8 @@ void CFillContainer::Class(void)
 	CContainer::Class();
 	U_Enum(meHorizontal);
 	U_Enum(meVertical);
+	U_Enum(meSplit);
+	U_Int32(miSpacing);
 	U_Data(SInsets, msInsets);
 	U_2Int32(msRequiredSize);
 }
@@ -75,30 +79,72 @@ void CFillContainer::SetFillStyle(EContainerStyleHorizontal eH, EContainerStyleV
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CFillContainer::SetSplit(EFillContainerSplit eSplit, int32 iSpacing)
+{
+	meSplit = eSplit;
+	miSpacing = iSpacing;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CFillContainer::SetRequiredSize(void)
 {
 	size				i;
 	Ptr<CComponent>		pComponent;
 	size				uiSize;
 	SInt32Vec2			sSize;
+	SInt32Vec2			sLargest;
+	SInt32Vec2			sTotalSize;
+	int32				iSpacing;
 
-	//There should only be one componet, but if there are more then the largest size will be used.
-	msRequiredSize.Init(0, 0);
-	
+	//Every slot is the same size so the largest component decides the size of all of them.
+	sLargest.Init(0, 0);
+
 	uiSize = maChildren.Size();
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
 		sSize = pComponent->GetDesiredSize();
-		if (sSize.x > msRequiredSize.x)
+		if (sSize.x > sLargest.x)
 		{
-			msRequiredSize.x = sSize.x;
+			sLargest.x = sSize.x;
 		}
-		if (sSize.y > msRequiredSize.y)
+		if (sSize.y > sLargest.y)
 		{
-			msRequiredSize.y = sSize.y;
+			sLargest.y = sSize.y;
 		}
 	}
+
+	sTotalSize = sLargest;
+	if ((meSplit != FCS_Overlay) && (uiSize > 0))
+	{
+		iSpacing = miSpacing * ((int32)uiSize - 1);
+		if (meSplit == FCS_Horizontal)
+		{
+			sTotalSize.x = sLargest.x * (int32)uiSize + iSpacing;
+		}
+		else if (meSplit == FCS_Vertical)
+		{
+			sTotalSize.y = sLargest.y * (int32)uiSize + iSpacing;
+		}
+	}
+
+	sTotalSize.x += msInsets.maiWidths[BEI_Left] + msInsets.maiWidths[BEI_Right];
+	sTotalSize.y += msInsets.maiWidths[BEI_Top] + msInsets.maiWidths[BEI_Bottom];
+	msRequiredSize = sTotalSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CFillContainer::GetRequiredSize(void)
+{
+	return msRequiredSize;
 }
 
 
@@ -108,12 +154,17 @@ void CFillContainer::SetRequiredSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CFillContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
-	SInt32Vec2					sSize;
-	size					i;
-	SInt32Vec2					sOrigin;
-	SInt32Vec2					sArea;
-	Ptr<CComponent>	pComponent;
-	size					uiSize;
+	size				i;
+	SInt32Vec2			sOrigin;
+	SInt32Vec2			sArea;
+	SInt32Vec2			sSlotPosition;
+	SInt32Vec2			sSlotSize;
+	Ptr<CComponent>		pComponent;
+	size				uiSize;
+	int32				iLength;
+	int32				iCellLength;
+	int32				iExtra;
+	int32				iPos;
 
 	sOrigin = sPosition;
 	sArea = sAreaSize;
@@ -121,64 +172,87 @@ void CFillContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	sOrigin.y += msInsets.maiWidths[BEI_Top];
 	sArea.x -= (msInsets.maiWidths[BEI_Left] + msInsets.maiWidths[BEI_Right]);
 	sArea.y -= (msInsets.maiWidths[BEI_Bottom] + msInsets.maiWidths[BEI_Top]);
+	if (sArea.x < 0)
+	{
+		sArea.x = 0;
+	}
+	if (sArea.y < 0)
+	{
+		sArea.y = 0;
+	}
 
 	SetContainerBounds(sOrigin, sArea);
 
-	//There should only be one componet, any more will be laid out into the same area.
 	uiSize = maChildren.Size();
+	if ((meSplit == FCS_Overlay) || (uiSize == 0))
+	{
+		//Every component is laid out into the same area.
+		for (i = 0; i < uiSize; i++)
+		{
+			pComponent = maChildren.Get(i);
+			LayoutComponent(pComponent, sOrigin, sArea);
+		}
+		return;
+	}
+
+	//Split the area into equal slots.  Pixels that don't divide evenly go to the first slots.
+	iLength = (meSplit == FCS_Horizontal) ? sArea.x : sArea.y;
+	iLength -= miSpacing * ((int32)uiSize - 1);
+	if (iLength < 0)
+	{
+		iLength = 0;
+	}
+	iCellLength = iLength / (int32)uiSize;
+	iExtra = iLength % (int32)uiSize;
+
+	iPos = (meSplit == FCS_Horizontal) ? sOrigin.x : sOrigin.y;
 	for (i = 0; i < uiSize; i++)
 	{
-		sPosition = sOrigin;
-		sAreaSize = sArea;
+		sSlotPosition = sOrigin;
+		sSlotSize = sArea;
+		if (meSplit == FCS_Horizontal)
+		{
+			sSlotPosition.x = iPos;
+			sSlotSize.x = iCellLength + (((int32)i < iExtra) ? 1 : 0);
+			iPos += sSlotSize.x + miSpacing;
+		}
+		else
+		{
+			sSlotPosition.y = iPos;
+			sSlotSize.y = iCellLength + (((int32)i < iExtra) ? 1 : 0);
+			iPos += sSlotSize.y + miSpacing;
+		}
 
 		pComponent = maChildren.Get(i);
-
-		sSize = pComponent->GetDesiredSize();
-		if (sSize.x == -1)
-		{
-			sSize = sAreaSize;
-		}
-
-		//Horizontal.
-		if (meHorizontal == CSH_Stretch)
-		{
-		}
-		else if (meHorizontal == CSH_Left)
-		{
-			sAreaSize.x = sSize.x;
-		}
-		else if (meHorizontal == CSH_Center)
-		{
-			sPosition.x = sPosition.x + (sAreaSize.x - sSize.x) / 2;
-			sAreaSize.x = sSize.x;
-		}
-		else if (meHorizontal == CSH_Right)
-		{
-			sPosition.x = sPosition.x + sAreaSize.x - sSize.x;
-			sAreaSize.x = sSize.x;
-		}
-
-		//Vertical.
-		if (meVertical == CSV_Stretch)
-		{
-		}
-		else if (meVertical == CSV_Top)
-		{
-			sAreaSize.y = sSize.y;
-		}
-		else if (meVertical == CSV_Center)
-		{
-			sPosition.y = sPosition.y + (sAreaSize.y - sSize.y) / 2;
-			sAreaSize.y = sSize.y;
-		}
-		else if (meVertical == CSV_Bottom)
-		{
-			sPosition.y = sPosition.y + sAreaSize.y - sSize.y;
-			sAreaSize.y = sSize.y;
-		}
-
-		pComponent->Layout(sPosition, sAreaSize);
+		LayoutComponent(pComponent, sSlotPosition, sSlotSize);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFillContainer::LayoutComponent(Ptr<CComponent> pComponent, SInt32Vec2 sSlotPosition, SInt32Vec2 sSlotSize)
+{
+	SInt32Vec2	sSize;
+	SInt32Vec2	sPosition;
+
+	//A desired size of -1 on an axis means the component has no preference and takes the whole slot.
+	sSize = pComponent->GetDesiredSize();
+	if ((sSize.x < 0) || (meHorizontal == CSH_Stretch) || (meHorizontal == CSH_Unknown))
+	{
+		sSize.x = sSlotSize.x;
+	}
+	if ((sSize.y < 0) || (meVertical == CSV_Stretch) || (meVertical == CSV_Unknown))
+	{
+		sSize.y = sSlotSize.y;
+	}
+
+	sPosition.x = sSlotPosition.x + AlignComponentHorizontal(meHorizontal, sSize.x, sSlotSize.x);
+	sPosition.y = sSlotPosition.y + AlignComponentVertical(meVertical, sSize.y, sSlotSize.y);
+
+	pComponent->Layout(sPosition, sSize);
 }
 
 

@@ -125,6 +125,6 @@ bool CGraphicsViewport::Contains(int iLeft, int iTop, int iRight, int iBottom)
 //////////////////////////////////////////////////////////////////////////
 bool CGraphicsViewport::Contains(CRectangle* pcRect)
 {
-	return Contains(pcRect->miLeft, pcRect->miTop, pcRect->miRight, pcRect->miBottom);
+	return Contains(pcRect->msTopLeft.x, pcRect->msTopLeft.y, pcRect->msBottomRight.x, pcRect->msBottomRight.y);
 }
 

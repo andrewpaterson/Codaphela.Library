@@ -53,8 +53,8 @@ void CFocus::Update(int x, int y)
 {
 	CComponent*		pcComponent;
 
-	x = x - mpcViewport->mpcClientRect->miLeft;
-	y = y - mpcViewport->mpcClientRect->miTop;
+	x = x - mpcViewport->mpcClientRect->msTopLeft.x;
+	y = y - mpcViewport->mpcClientRect->msTopLeft.y;
 
 	pcComponent = mpcViewport->FindComponentAt(x, y);
 

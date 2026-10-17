@@ -48,7 +48,7 @@ void CImageCel::Init(Ptr<CImage> pcSourceImage, bool bCropTransparentBorders)
 //////////////////////////////////////////////////////////////////////////
 void CImageCel::Init(Ptr<CImage> pcSourceImage, CRectangle* pcRect)
 {
-	Init(pcSourceImage, pcRect->miLeft, pcRect->miTop, pcRect->miRight, pcRect->miBottom);
+	Init(pcSourceImage, pcRect->msTopLeft.x, pcRect->msTopLeft.y, pcRect->msBottomRight.x, pcRect->msBottomRight.y);
 }
 
 
@@ -156,29 +156,29 @@ void CImageCel::CropTransparentBorders(CPixelOpacityBase* pcPixelOpacity)
 
 	mcSubImage.GetImageSourceBounds(&mcSource);
 
-	for (iTop = mcSource.miTop; iTop < mcSource.miBottom; iTop++)
+	for (iTop = mcSource.msTopLeft.y; iTop < mcSource.msBottomRight.y; iTop++)
 	{
-		if (!IsRowTransparent(pcPixelOpacity, iTop, mcSource.miLeft, mcSource.miRight))
+		if (!IsRowTransparent(pcPixelOpacity, iTop, mcSource.msTopLeft.x, mcSource.msBottomRight.x))
 		{
 			break;
 		}
 	}
 
-	if (iTop == mcSource.miBottom)
+	if (iTop == mcSource.msBottomRight.y)
 	{
 		mcSubImage.AdjustToEmpty();
 		return;
 	}
 
-	for (iBottom = mcSource.miBottom - 1; iBottom >= mcSource.miTop; iBottom--)
+	for (iBottom = mcSource.msBottomRight.y - 1; iBottom >= mcSource.msTopLeft.y; iBottom--)
 	{
-		if (!IsRowTransparent(pcPixelOpacity, iBottom, mcSource.miLeft, mcSource.miRight))
+		if (!IsRowTransparent(pcPixelOpacity, iBottom, mcSource.msTopLeft.x, mcSource.msBottomRight.x))
 		{
 			break;
 		}
 	}
 
-	for (iLeft = mcSource.miLeft; iLeft < mcSource.miRight; iLeft++)
+	for (iLeft = mcSource.msTopLeft.x; iLeft < mcSource.msBottomRight.x; iLeft++)
 	{
 		if (!IsColumnTransparent(pcPixelOpacity, iLeft, iTop, iBottom + 1))
 		{
@@ -186,7 +186,7 @@ void CImageCel::CropTransparentBorders(CPixelOpacityBase* pcPixelOpacity)
 		}
 	}
 
-	for (iRight = mcSource.miRight - 1; iRight >= mcSource.miLeft; iRight--)
+	for (iRight = mcSource.msBottomRight.x - 1; iRight >= mcSource.msTopLeft.x; iRight--)
 	{
 		if (!IsColumnTransparent(pcPixelOpacity, iRight, iTop, iBottom + 1))
 		{
@@ -207,7 +207,7 @@ void CImageCel::CopyParam(SImageCopy* psCopy, int32 iDestX, int32 iDestY, int32 
 	SInt32Vec2	sPos;
 
 	sPos = mcSubImage.GetImageDestPos(iDestX, iDestY);
-	psCopy->Init(sPos.x, sPos.y, mcSubImage.mcImageRect.miLeft, mcSubImage.mcImageRect.miTop, mcSubImage.mcImageRect.miRight, mcSubImage.mcImageRect.miBottom, iDestWith, iDestHeight);
+	psCopy->Init(sPos.x, sPos.y, mcSubImage.mcImageRect.msTopLeft.x, mcSubImage.mcImageRect.msTopLeft.y, mcSubImage.mcImageRect.msBottomRight.x, mcSubImage.mcImageRect.msBottomRight.y, iDestWith, iDestHeight);
 }
 
 
@@ -429,10 +429,10 @@ void CImageCel::FixDrawOpacity(CPixelOpacityBase* pcPixelOpacity, CImageAccessor
 	sZeroAlpha.Zero();
 
 	iDestY = iDestTop;
-	for (y = mcSubImage.mcImageRect.miTop; y < mcSubImage.mcImageRect.miBottom; y++)
+	for (y = mcSubImage.mcImageRect.msTopLeft.y; y < mcSubImage.mcImageRect.msBottomRight.y; y++)
 	{
 		iDestX = iDestLeft;
-		for (x = mcSubImage.mcImageRect.miLeft; x < mcSubImage.mcImageRect.miRight; x++)
+		for (x = mcSubImage.mcImageRect.msTopLeft.x; x < mcSubImage.mcImageRect.msBottomRight.x; x++)
 		{
 			if (pcPixelOpacity->IsTransparent(x, y))
 			{

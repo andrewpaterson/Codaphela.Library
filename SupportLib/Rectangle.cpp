@@ -33,10 +33,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CRectangle::Init(void)
 {
-	miLeft = 0;
-	miRight = 0;
-	miTop = 0;
-	miBottom = 0;
+	msTopLeft.x = 0;
+	msBottomRight.x = 0;
+	msTopLeft.y = 0;
+	msBottomRight.y = 0;
 }
 
 
@@ -46,10 +46,10 @@ void CRectangle::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CRectangle::Init(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom)
 {
-	miLeft = iLeft;
-	miTop = iTop;
-	miRight = iRight;
-	miBottom = iBottom;
+	msTopLeft.x = iLeft;
+	msTopLeft.y = iTop;
+	msBottomRight.x = iRight;
+	msBottomRight.y = iBottom;
 }
 
 
@@ -59,10 +59,10 @@ void CRectangle::Init(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom)
 //////////////////////////////////////////////////////////////////////////
 void CRectangle::Init(int32 iWidth, int32 iHeight)
 {
-	miLeft = 0;
-	miTop = 0;
-	miRight = iWidth;
-	miBottom = iHeight;
+	msTopLeft.x = 0;
+	msTopLeft.y = 0;
+	msBottomRight.x = iWidth;
+	msBottomRight.y = iHeight;
 }
 
 
@@ -72,10 +72,10 @@ void CRectangle::Init(int32 iWidth, int32 iHeight)
 //////////////////////////////////////////////////////////////////////////
 void CRectangle::Init(int64 iLeft, int64 iTop, int64 iRight, int64 iBottom)
 {
-	miLeft = (int32)iLeft;
-	miTop = (int32)iTop;
-	miRight = (int32)iRight;
-	miBottom = (int32)iBottom;
+	msTopLeft.x = (int32)iLeft;
+	msTopLeft.y = (int32)iTop;
+	msBottomRight.x = (int32)iRight;
+	msBottomRight.y = (int32)iBottom;
 }
 
 
@@ -85,10 +85,8 @@ void CRectangle::Init(int64 iLeft, int64 iTop, int64 iRight, int64 iBottom)
 //////////////////////////////////////////////////////////////////////////
 void CRectangle::Init(SInt32Vec2 sTopLeft, SInt32Vec2 sBottomRight)
 {
-	miLeft = sTopLeft.x;
-	miTop = sTopLeft.y;
-	miRight = sBottomRight.x;
-	miBottom = sBottomRight.y;
+	msTopLeft = sTopLeft;
+	msBottomRight = sBottomRight;
 }
 
 
@@ -98,10 +96,10 @@ void CRectangle::Init(SInt32Vec2 sTopLeft, SInt32Vec2 sBottomRight)
 //////////////////////////////////////////////////////////////////////////
 void CRectangle::Init(SInt32Vec2 sSize)
 {
-	miLeft = 0;
-	miTop = 0;
-	miRight = sSize.x;
-	miBottom = sSize.y;
+	msTopLeft.x = 0;
+	msTopLeft.y = 0;
+	msBottomRight.x = sSize.x;
+	msBottomRight.y = sSize.y;
 }
 
 
@@ -130,10 +128,8 @@ void CRectangle::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CRectangle::Copy(CRectangle* pcSource)
 {
-	miLeft = pcSource->miLeft;
-	miTop = pcSource->miTop;
-	miRight = pcSource->miRight;
-	miBottom = pcSource->miBottom;
+	msTopLeft = pcSource->msTopLeft;
+	msBottomRight = pcSource->msBottomRight;
 }
 
 
@@ -143,7 +139,7 @@ void CRectangle::Copy(CRectangle* pcSource)
 //////////////////////////////////////////////////////////////////////////
 int32 CRectangle::GetWidth(void)
 {
-	return miRight - miLeft;
+	return msBottomRight.x - msTopLeft.x;
 }
 
 
@@ -153,7 +149,7 @@ int32 CRectangle::GetWidth(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CRectangle::GetHeight(void)
 {
-	return miBottom - miTop;
+	return msBottomRight.y - msTopLeft.y;
 }
 
 
@@ -173,7 +169,7 @@ int32 CRectangle::GetArea(void)
 //////////////////////////////////////////////////////////////////////////
 void CRectangle::SetWidth(int32 iWidth)
 {
-	miRight = miLeft + iWidth;
+	msBottomRight.x = msTopLeft.x + iWidth;
 }
 
 
@@ -183,7 +179,7 @@ void CRectangle::SetWidth(int32 iWidth)
 //////////////////////////////////////////////////////////////////////////
 void CRectangle::SetHeight(int32 iHeight)
 {
-	miBottom = miTop + iHeight;
+	msBottomRight.y = msTopLeft.y + iHeight;
 }
 
 
@@ -209,10 +205,10 @@ void CRectangle::SetPos(int32 x, int32 y)
 	
 	iWidth = GetWidth();
 	iHeight = GetHeight();
-	miLeft = x;
-	miTop = y;
-	miRight = miLeft + iWidth;
-	miBottom = miTop + iHeight;
+	msTopLeft.x = x;
+	msTopLeft.y = y;
+	msBottomRight.x = msTopLeft.x + iWidth;
+	msBottomRight.y = msTopLeft.y + iHeight;
 }
 
 
@@ -222,7 +218,7 @@ void CRectangle::SetPos(int32 x, int32 y)
 //////////////////////////////////////////////////////////////////////////
 int32 CRectangle::GetLeft(void)
 {
-	return miLeft;
+	return msTopLeft.x;
 }
 
 
@@ -232,7 +228,7 @@ int32 CRectangle::GetLeft(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CRectangle::GetTop(void)
 {
-	return miTop;
+	return msTopLeft.y;
 }
 
 
@@ -242,7 +238,7 @@ int32 CRectangle::GetTop(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CRectangle::GetRight(void)
 {
-	return miRight;
+	return msBottomRight.x;
 }
 
 
@@ -252,7 +248,7 @@ int32 CRectangle::GetRight(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CRectangle::GetBottom(void)
 {
-	return miBottom;
+	return msBottomRight.y;
 }
 
 
@@ -262,22 +258,22 @@ int32 CRectangle::GetBottom(void)
 //////////////////////////////////////////////////////////////////////////
 void CRectangle::GrowToContain(int32 iXPos, int32 iYPos)
 {
-	if (iXPos < miLeft)
+	if (iXPos < msTopLeft.x)
 	{
-		miLeft = iXPos;
+		msTopLeft.x = iXPos;
 	}
-	if (iYPos < miTop)
+	if (iYPos < msTopLeft.y)
 	{
-		miTop = iYPos;
+		msTopLeft.y = iYPos;
 	}
 
-	if (iXPos >= miRight)
+	if (iXPos >= msBottomRight.x)
 	{
-		miRight = iXPos+1;
+		msBottomRight.x = iXPos+1;
 	}
-	if (iYPos >= miBottom)
+	if (iYPos >= msBottomRight.y)
 	{
-		miBottom = iYPos+1;
+		msBottomRight.y = iYPos+1;
 	}
 }
 
@@ -290,8 +286,8 @@ void CRectangle::GrowToContain(CRectangle* pcOther)
 {
 	if (pcOther)
 	{
-		GrowToContain(pcOther->miLeft, pcOther->miTop);
-		GrowToContain(pcOther->miRight - 1, pcOther->miBottom - 1);
+		GrowToContain(pcOther->msTopLeft.x, pcOther->msTopLeft.y);
+		GrowToContain(pcOther->msBottomRight.x - 1, pcOther->msBottomRight.y - 1);
 	}
 }
 
@@ -302,10 +298,10 @@ void CRectangle::GrowToContain(CRectangle* pcOther)
 //////////////////////////////////////////////////////////////////////////
 void CRectangle::Shrink(int32 iShrinkLeft, int32 iShrinkTop, int32 iShrinkRight, int32 iShrinkBottom)
 {
-	miLeft += iShrinkLeft;
-	miTop += iShrinkTop;
-	miRight -= iShrinkRight;
-	miBottom -= iShrinkBottom;
+	msTopLeft.x += iShrinkLeft;
+	msTopLeft.y += iShrinkTop;
+	msBottomRight.x -= iShrinkRight;
+	msBottomRight.y -= iShrinkBottom;
 }
 
 
@@ -315,7 +311,7 @@ void CRectangle::Shrink(int32 iShrinkLeft, int32 iShrinkTop, int32 iShrinkRight,
 //////////////////////////////////////////////////////////////////////////
 bool CRectangle::IsValid(void)
 {
-	return (miLeft <= miRight) && (miTop <= miBottom);
+	return (msTopLeft.x <= msBottomRight.x) && (msTopLeft.y <= msBottomRight.y);
 }
 
 
@@ -325,7 +321,7 @@ bool CRectangle::IsValid(void)
 //////////////////////////////////////////////////////////////////////////
 bool CRectangle::IsIn(int32 x, int32 y)
 {
-	return (((x >= miLeft) && (x <= miRight)) && ((y >= miTop) && (y <= miBottom)));
+	return (((x >= msTopLeft.x) && (x <= msBottomRight.x)) && ((y >= msTopLeft.y) && (y <= msBottomRight.y)));
 }
 
 
@@ -347,10 +343,10 @@ bool CRectangle::Equals(CRectangle* pcOther)
 {
 	if (pcOther)
 	{
-		if ((miTop == pcOther->miTop) &&
-			(miBottom == pcOther->miBottom) &&
-			(miLeft == pcOther->miLeft) &&
-			(miRight == pcOther->miRight))
+		if ((msTopLeft.y == pcOther->msTopLeft.y) &&
+			(msBottomRight.y == pcOther->msBottomRight.y) &&
+			(msTopLeft.x == pcOther->msTopLeft.x) &&
+			(msBottomRight.x == pcOther->msBottomRight.x))
 		{
 			return true;
 		}
@@ -366,10 +362,10 @@ bool CRectangle::Equals(CRectangle* pcOther)
 bool CRectangle::Intersect(CRectangle* pcOther)
 {
 	// Check if this intersects Other.
-	return !(miRight  <= pcOther->miLeft  ||
-			 miLeft   >= pcOther->miRight ||
-			 miBottom <= pcOther->miTop   ||
-			 miTop    >= pcOther->miBottom);
+	return !(msBottomRight.x  <= pcOther->msTopLeft.x  ||
+			 msTopLeft.x   >= pcOther->msBottomRight.x ||
+			 msBottomRight.y <= pcOther->msTopLeft.y   ||
+			 msTopLeft.y    >= pcOther->msBottomRight.y);
 }
 
 
@@ -380,10 +376,10 @@ bool CRectangle::Intersect(CRectangle* pcOther)
 bool CRectangle::Inside(CRectangle* pcOther)
 {
 	// Check if this is completely inside Other.
-	return	(miLeft	  >= pcOther->miLeft  &&
-			 miRight  <= pcOther->miRight &&
-			 miTop	  >= pcOther->miTop   &&
-			 miBottom <= pcOther->miBottom);
+	return	(msTopLeft.x	  >= pcOther->msTopLeft.x  &&
+			 msBottomRight.x  <= pcOther->msBottomRight.x &&
+			 msTopLeft.y	  >= pcOther->msTopLeft.y   &&
+			 msBottomRight.y <= pcOther->msBottomRight.y);
 }
 
 
@@ -394,10 +390,10 @@ bool CRectangle::Inside(CRectangle* pcOther)
 bool CRectangle::Outside(CRectangle* pcOther)
 {
 	// Check if this is completely outside Other.
-	return (miRight  <= pcOther->miLeft  ||
-			miLeft	 >= pcOther->miRight ||
-			miBottom <= pcOther->miTop   ||
-			miTop	 >= pcOther->miBottom);
+	return (msBottomRight.x  <= pcOther->msTopLeft.x  ||
+			msTopLeft.x	 >= pcOther->msBottomRight.x ||
+			msBottomRight.y <= pcOther->msTopLeft.y   ||
+			msTopLeft.y	 >= pcOther->msBottomRight.y);
 }
 
 
@@ -409,8 +405,8 @@ SFloat32Vec2 CRectangle::GetUVCoordinatesTopLeft(int32 iTextureXSize, int32 iTex
 {
 	SFloat32Vec2	sTopLeft;
 
-	sTopLeft.x = ((float32)miLeft + HALF_TEXEL) / (float32)iTextureXSize;
-	sTopLeft.y = ((float32)miTop + HALF_TEXEL) / (float32)iTextureYSize;
+	sTopLeft.x = ((float32)msTopLeft.x + HALF_TEXEL) / (float32)iTextureXSize;
+	sTopLeft.y = ((float32)msTopLeft.y + HALF_TEXEL) / (float32)iTextureYSize;
 	return sTopLeft;
 }
 
@@ -423,8 +419,8 @@ SFloat32Vec2 CRectangle::GetUVCoordinatesBottomRight(int32 iTextureXSize, int32 
 {
 	SFloat32Vec2 sBottomRight;
 
-	sBottomRight.x = ((float32)miRight + HALF_TEXEL) / (float32)iTextureXSize;
-	sBottomRight.y = ((float32)miBottom + HALF_TEXEL) / (float32)iTextureYSize;
+	sBottomRight.x = ((float32)msBottomRight.x + HALF_TEXEL) / (float32)iTextureXSize;
+	sBottomRight.y = ((float32)msBottomRight.y + HALF_TEXEL) / (float32)iTextureYSize;
 	return sBottomRight;
 }
 

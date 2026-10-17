@@ -7,9 +7,9 @@
 //////////////////////////////////////////////////////////////////////////
 void CopyRectangleToGDIRect(RECT* psRect, CRectangle* pcRectangle)
 {
-	psRect->left = pcRectangle->miLeft;
-	psRect->top = pcRectangle->miTop;
-	psRect->right = pcRectangle->miRight;
-	psRect->bottom = pcRectangle->miBottom;
+	psRect->left = pcRectangle->msTopLeft.x;
+	psRect->top = pcRectangle->msTopLeft.y;
+	psRect->right = pcRectangle->msBottomRight.x;
+	psRect->bottom = pcRectangle->msBottomRight.y;
 }
 

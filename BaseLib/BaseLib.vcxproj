@@ -510,6 +510,7 @@
     <ClInclude Include="Vec4.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="WindowsError.h" />
+    <ClInclude Include="LinuxError.h" />
     <ClInclude Include="WindowsHeaders.h" />
     <ClInclude Include="ConstructorCall.h" />
     <ClInclude Include="CharEncoding.h" />
@@ -904,6 +905,7 @@
     <ClCompile Include="UTF16.cpp" />
     <ClCompile Include="UTF8.cpp" />
     <ClCompile Include="WindowsError.cpp" />
+    <ClCompile Include="LinuxError.cpp" />
     <ClCompile Include="CalcObject.cpp" />
     <ClCompile Include="CharEncoding.cpp" />
     <ClCompile Include="FatClusterCache.cpp" />

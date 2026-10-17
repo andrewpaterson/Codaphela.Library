@@ -622,7 +622,7 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY)
 			yDestOffset = ySource - iSourceTop;
 			yDest = iDestY + yDestOffset;
 
-			if ((yDest >= cDestRect.miTop) && (yDest < cDestRect.miBottom))
+			if ((yDest >= cDestRect.msTopLeft.y) && (yDest < cDestRect.msBottomRight.y))
 			{
 				xSourceStart = pcRowBlitter->msOffset.x;
 				xSourceEnd = pcRowBlitter->muiXEnd;
@@ -630,15 +630,15 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY)
 				xDestOffset = xSourceStart - iSourceLeft;
 				xDestStart = iDestX + xDestOffset;
 
-				if (xDestStart < cDestRect.miLeft)
+				if (xDestStart < cDestRect.msTopLeft.x)
 				{
-					xSourceStart += cDestRect.miLeft - xDestStart;
-					xDestStart = cDestRect.miLeft;
+					xSourceStart += cDestRect.msTopLeft.x - xDestStart;
+					xDestStart = cDestRect.msTopLeft.x;
 				}
 				xLength = xSourceEnd - xSourceStart;
-				if (xDestStart + xLength > cDestRect.miRight)
+				if (xDestStart + xLength > cDestRect.msBottomRight.x)
 				{
-					xSourceEnd -= xDestStart + xLength - cDestRect.miRight;
+					xSourceEnd -= xDestStart + xLength - cDestRect.msBottomRight.x;
 				}
 
 				pcRowBlitter->mpcBlitter->Copy(&mcContext, pvSource, pvDest, xDestStart, yDest, xSourceStart, xSourceEnd, ySource);

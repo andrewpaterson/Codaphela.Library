@@ -94,10 +94,10 @@ bool CWindow::Create(int nCmdShow, int xp, int yp, int xs, int ys, int iStyle)
 	rect.top = yp;
 	rect.right = xp + xs;
 	rect.bottom = yp + ys;
-	mcClientRect.miLeft = rect.left;
-	mcClientRect.miTop = rect.top;
-	mcClientRect.miRight = rect.right;
-	mcClientRect.miBottom = rect.bottom;
+	mcClientRect.msTopLeft.x = rect.left;
+	mcClientRect.msTopLeft.y = rect.top;
+	mcClientRect.msBottomRight.x = rect.right;
+	mcClientRect.msBottomRight.y = rect.bottom;
 	AdjustWindowRect(&rect, iStyle, false);
 	xs = mcClientRect.GetWidth();
 	ys = mcClientRect.GetHeight();
@@ -385,10 +385,10 @@ void CWindow::UpdateRectangle(void)
 		bResult = GetClientRect(hWnd, &rect);
 		if (bResult)
 		{
-			mcClientRect.miLeft = rect.left + point.x;
-			mcClientRect.miTop = rect.top + point.y;
-			mcClientRect.miRight = rect.right + point.x;
-			mcClientRect.miBottom = rect.bottom + point.y;
+			mcClientRect.msTopLeft.x = rect.left + point.x;
+			mcClientRect.msTopLeft.y = rect.top + point.y;
+			mcClientRect.msBottomRight.x = rect.right + point.x;
+			mcClientRect.msBottomRight.y = rect.bottom + point.y;
 		}
 	}
 }

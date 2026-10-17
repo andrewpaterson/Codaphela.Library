@@ -211,11 +211,14 @@
     <ClCompile Include="InterProcessHold.cpp" />
     <ClCompile Include="MainProcessDirector.cpp" />
     <ClCompile Include="ProcessFork.cpp" />
+    <ClCompile Include="ProcessFork_Windows.cpp" />
+    <ClCompile Include="ProcessFork_Linux.cpp" />
     <ClCompile Include="SafeArrayBlock.cpp" />
     <ClCompile Include="SafeLinkedListBlock.cpp" />
     <ClCompile Include="SharedMemoryResult.cpp" />
     <ClCompile Include="WindowsResizableSharedMemory.cpp" />
-    <ClCompile Include="InterProcessMutex.cpp" />
+    <ClCompile Include="InterProcessMutex_Windows.cpp" />
+    <ClCompile Include="InterProcessMutex_Linux.cpp" />
     <ClCompile Include="WindowsSharedMemory.cpp" />
     <ClCompile Include="WindowsSharedMemoryCoordinator.cpp" />
     <ClCompile Include="WindowsSharedMemoryFile.cpp" />

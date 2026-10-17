@@ -26,6 +26,26 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
+static int32& MainAxis(SInt32Vec2& sVec, bool bHorizontal)
+{
+	return bHorizontal ? sVec.x : sVec.y;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static int32& CrossAxis(SInt32Vec2& sVec, bool bHorizontal)
+{
+	return bHorizontal ? sVec.y : sVec.x;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CFlowContainer::Init(Ptr<CWindow> pWindow)
 {
 	CContainer::Init(pWindow);
@@ -69,11 +89,14 @@ void CFlowContainer::SetRequiredSize(void)
 	Ptr<CComponent>		pComponent;
 	size				uiSize;
 	size				i;
-	SInt32Vec2				sSize;
-	SInt32Vec2				sTotalSize;
+	SInt32Vec2			sSize;
+	SInt32Vec2			sTotalSize;
+	bool				bHorizontal;
 
-	//This works out how much space the component needs, not where it needs that space.
+	//This works out how much space the components need on a single unwrapped line, not where they need that space.
+	//Components without a desired size (-1) don't add to the required size.
 
+	bHorizontal = IsHorizontal();
 	sTotalSize.Init(0, 0);
 
 	uiSize = maChildren.Size();
@@ -81,24 +104,32 @@ void CFlowContainer::SetRequiredSize(void)
 	{
 		pComponent = maChildren.Get(i);
 		sSize = pComponent->GetDesiredSize();
-		if ((meDirection == CSD_Right) || (meDirection == CSD_Left))
+		if (sSize.x < 0)
 		{
-			sTotalSize.x += sSize.x;
-			if (sTotalSize.y < sSize.y)
-			{
-				sTotalSize.y = sSize.y;
-			}
+			sSize.x = 0;
 		}
-		else if ((meDirection == CSD_Down) || (meDirection == CSD_Up))
+		if (sSize.y < 0)
 		{
-			sTotalSize.y += sSize.y;
-			if (sTotalSize.x < sSize.x)
-			{
-				sTotalSize.x = sSize.x;
-			}
+			sSize.y = 0;
+		}
+
+		MainAxis(sTotalSize, bHorizontal) += MainAxis(sSize, bHorizontal);
+		if (CrossAxis(sTotalSize, bHorizontal) < CrossAxis(sSize, bHorizontal))
+		{
+			CrossAxis(sTotalSize, bHorizontal) = CrossAxis(sSize, bHorizontal);
 		}
 	}
 	msRequiredSize = sTotalSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CFlowContainer::GetRequiredSize(void)
+{
+	return msRequiredSize;
 }
 
 
@@ -110,27 +141,18 @@ void CFlowContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	SetContainerBounds(sPosition, sAreaSize);
 
-	if (meDirection == CSD_Right)
+	if (meDirection == CSD_Unknown)
 	{
-		if (meWrap == CSW_Wrap)
-		{
-			LayoutRightWrap(sPosition, sAreaSize);
-		}
-		else
-		{
-			LayoutRight(sPosition, sAreaSize);
-		}
+		return;
 	}
-	else if (meDirection == CSD_Down)
+
+	if (meWrap == CSW_Wrap)
 	{
-		if (meWrap == CSW_Wrap)
-		{
-			LayoutDownWrap(sPosition, sAreaSize);
-		}
-		else
-		{
-			LayoutDown(sPosition, sAreaSize);
-		}
+		LayoutWrap(sPosition, sAreaSize);
+	}
+	else
+	{
+		LayoutLine(sPosition, sAreaSize, 0, maChildren.Size());
 	}
 }
 
@@ -139,12 +161,9 @@ void CFlowContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlowContainer::LayoutRight(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
+bool CFlowContainer::IsHorizontal(void)
 {
-	size	uiSize;
-
-	uiSize = maChildren.Size();
-	LayoutRight(sPosition, sAreaSize, 0, uiSize);
+	return (meDirection == CSD_Right) || (meDirection == CSD_Left);
 }
 
 
@@ -152,28 +171,88 @@ void CFlowContainer::LayoutRight(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlowContainer::LayoutRight(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize, size iStart, size iEnd)
+bool CFlowContainer::IsReversed(void)
 {
-	Ptr<CComponent>	pComponent;
-	size					i;
-	SInt32Vec2					sSize;
-	int						fXPos;
-	int						fYPos;
-	SInt32Vec2					sOffset;
+	return (meDirection == CSD_Left) || (meDirection == CSD_Up);
+}
 
-	fXPos = 0;
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFlowContainer::IsCrossStretch(void)
+{
+	if (IsHorizontal())
+	{
+		return muAlignment.eVertical == CSV_Stretch;
+	}
+	else
+	{
+		return muAlignment.eHorizontal == CSH_Stretch;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CFlowContainer::AlignCross(int iComponentSize, int iAvailableSize)
+{
+	if (IsHorizontal())
+	{
+		return AlignComponentVertical(muAlignment.eVertical, iComponentSize, iAvailableSize);
+	}
+	else
+	{
+		return AlignComponentHorizontal(muAlignment.eHorizontal, iComponentSize, iAvailableSize);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFlowContainer::LayoutLine(SInt32Vec2 sPosition, SInt32Vec2 sLineSize, size iStart, size iEnd)
+{
+	Ptr<CComponent>		pComponent;
+	size				i;
+	SInt32Vec2			sSize;
+	SInt32Vec2			sOffset;
+	int					iMainPos;
+	int					iMainOffset;
+	bool				bHorizontal;
+	bool				bReversed;
+	bool				bStretch;
+
+	bHorizontal = IsHorizontal();
+	bReversed = IsReversed();
+	bStretch = IsCrossStretch();
+
+	iMainPos = 0;
 	for (i = iStart; i < iEnd; i++)
 	{
 		pComponent = maChildren.Get(i);
 		sSize = pComponent->GetDesiredSize();
-		if (muAlignment.eVertical == CSV_Stretch)
+		if (bStretch)
 		{
-			sSize.y = sAreaSize.y;
+			CrossAxis(sSize, bHorizontal) = CrossAxis(sLineSize, bHorizontal);
 		}
 
-		fYPos = AlignComponentVertical(muAlignment.eVertical, sSize.y, sAreaSize.y);
-		sOffset.Init(fXPos + sPosition.x, fYPos + sPosition.y);
-		fXPos += sSize.x;
+		if (bReversed)
+		{
+			iMainOffset = MainAxis(sLineSize, bHorizontal) - iMainPos - MainAxis(sSize, bHorizontal);
+		}
+		else
+		{
+			iMainOffset = iMainPos;
+		}
+
+		MainAxis(sOffset, bHorizontal) = MainAxis(sPosition, bHorizontal) + iMainOffset;
+		CrossAxis(sOffset, bHorizontal) = CrossAxis(sPosition, bHorizontal) + AlignCross(CrossAxis(sSize, bHorizontal), CrossAxis(sLineSize, bHorizontal));
+		iMainPos += MainAxis(sSize, bHorizontal);
 
 		pComponent->Layout(sOffset, sSize);
 	}
@@ -184,53 +263,60 @@ void CFlowContainer::LayoutRight(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize, siz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CFlowContainer::CalculateAreaForHorizontalLayout(int iWidth)
+SInt32Vec2 CFlowContainer::CalculateWrappedArea(int iMainLength)
 {
-	Ptr<CComponent>	pComponent;
-	size					uiSize;
-	size					i;
-	SInt32Vec2					sSize;
-	int						fYPos;
-	int						iFirst;
-	SInt32Vec2					sLocalAreaSize;
-	SInt32Vec2					sArea;
+	Ptr<CComponent>		pComponent;
+	size				uiSize;
+	size				i;
+	size				iFirst;
+	SInt32Vec2			sSize;
+	SInt32Vec2			sArea;
+	int					iLineLength;
+	int					iLineThickness;
+	int					iLongestLine;
+	int					iCrossPos;
+	bool				bHorizontal;
 
-	fYPos = 0;
+	bHorizontal = IsHorizontal();
+
 	iFirst = 0;
-	sLocalAreaSize.Init(0, 0);
-	sArea.Init(0, 0);
+	iLineLength = 0;
+	iLineThickness = 0;
+	iLongestLine = 0;
+	iCrossPos = 0;
 	uiSize = maChildren.Size();
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
 		sSize = pComponent->GetDesiredSize();
-		if ((sLocalAreaSize.x + sSize.x) > iWidth)
+		if (((iLineLength + MainAxis(sSize, bHorizontal)) > iMainLength) && (i > iFirst))
 		{
-			sArea.y = sLocalAreaSize.y + fYPos;
-			if (sLocalAreaSize.x > sArea.x)
+			if (iLineLength > iLongestLine)
 			{
-				sArea.x = sLocalAreaSize.x;
+				iLongestLine = iLineLength;
 			}
 
-			fYPos += sLocalAreaSize.y;
-			sLocalAreaSize.Init(0, 0);
+			iCrossPos += iLineThickness;
+			iLineLength = 0;
+			iLineThickness = 0;
 			iFirst = i;
 		}
 
-		if (sLocalAreaSize.y < sSize.y)
+		if (iLineThickness < CrossAxis(sSize, bHorizontal))
 		{
-			sLocalAreaSize.y = sSize.y;
+			iLineThickness = CrossAxis(sSize, bHorizontal);
 		}
 
-		sLocalAreaSize.x += sSize.x;
+		iLineLength += MainAxis(sSize, bHorizontal);
 	}
 
-	sArea.y = sLocalAreaSize.y + fYPos;
-	if (sLocalAreaSize.x > sArea.x)
+	if (iLineLength > iLongestLine)
 	{
-		sArea.x = sLocalAreaSize.x;
+		iLongestLine = iLineLength;
 	}
 
+	MainAxis(sArea, bHorizontal) = iLongestLine;
+	CrossAxis(sArea, bHorizontal) = iCrossPos + iLineThickness;
 	return sArea;
 }
 
@@ -239,196 +325,59 @@ SInt32Vec2 CFlowContainer::CalculateAreaForHorizontalLayout(int iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlowContainer::LayoutRightWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
+void CFlowContainer::LayoutWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
-	Ptr<CComponent>	pComponent;
-	size					uiSize;
-	size					i;
-	SInt32Vec2					sSize;
-	int						iFirst;
-	SInt32Vec2					sLocalAreaSize;
-	SInt32Vec2					sLocalPosition;
-	SInt32Vec2					sRequiredArea;
+	Ptr<CComponent>		pComponent;
+	size				uiSize;
+	size				i;
+	size				iFirst;
+	SInt32Vec2			sSize;
+	SInt32Vec2			sLinePosition;
+	SInt32Vec2			sLineSize;
+	SInt32Vec2			sRequiredArea;
+	int					iLineLength;
+	int					iLineThickness;
+	bool				bHorizontal;
 
-	sRequiredArea = CalculateAreaForHorizontalLayout(sAreaSize.x);
+	bHorizontal = IsHorizontal();
+	sRequiredArea = CalculateWrappedArea(MainAxis(sAreaSize, bHorizontal));
+
+	sLinePosition = sPosition;
+	CrossAxis(sLinePosition, bHorizontal) += AlignCross(CrossAxis(sRequiredArea, bHorizontal), CrossAxis(sAreaSize, bHorizontal));
+
+	//Each line spans the whole main axis so that reversed directions start from the far edge.
+	MainAxis(sLineSize, bHorizontal) = MainAxis(sAreaSize, bHorizontal);
 
 	iFirst = 0;
-	sLocalAreaSize.Init(0, 0);
-	sLocalPosition.Init(0, 0);
-	sLocalPosition.y = AlignComponentVertical(muAlignment.eVertical, sRequiredArea.y, sAreaSize.y);
-
+	iLineLength = 0;
+	iLineThickness = 0;
 	uiSize = maChildren.Size();
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
 		sSize = pComponent->GetDesiredSize();
-		if ((sLocalAreaSize.x + sSize.x) > sAreaSize.x)
+		if (((iLineLength + MainAxis(sSize, bHorizontal)) > MainAxis(sAreaSize, bHorizontal)) && (i > iFirst))
 		{
-			LayoutRight(sLocalPosition, sLocalAreaSize, iFirst, i);
-			sLocalPosition.y += sLocalAreaSize.y;
-			sLocalAreaSize.Init(0, 0);
+			CrossAxis(sLineSize, bHorizontal) = iLineThickness;
+			LayoutLine(sLinePosition, sLineSize, iFirst, i);
+
+			CrossAxis(sLinePosition, bHorizontal) += iLineThickness;
+			iLineLength = 0;
+			iLineThickness = 0;
 			iFirst = i;
 		}
 
-		if (sLocalAreaSize.y < sSize.y)
+		if (iLineThickness < CrossAxis(sSize, bHorizontal))
 		{
-			sLocalAreaSize.y = sSize.y;
+			iLineThickness = CrossAxis(sSize, bHorizontal);
 		}
 
-		sLocalAreaSize.x += sSize.x;
+		iLineLength += MainAxis(sSize, bHorizontal);
 	}
 
-	LayoutRight(sLocalPosition, sLocalAreaSize, iFirst, i);
-} 
-
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CFlowContainer::LayoutDown(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
-{
-	size	uiSize;
-
-	uiSize = maChildren.Size();
-	LayoutDown(sPosition, sAreaSize, 0, uiSize);
+	CrossAxis(sLineSize, bHorizontal) = iLineThickness;
+	LayoutLine(sLinePosition, sLineSize, iFirst, uiSize);
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CFlowContainer::LayoutDown(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize, size iStart, size iEnd)
-{
-	Ptr<CComponent>	pComponent;
-	size					i;
-	SInt32Vec2					sSize;
-	int						fYPos;
-	int						fXPos;
-	SInt32Vec2					sOffset;
-
-	fYPos = 0;
-	for (i = iStart; i < iEnd; i++)
-	{
-		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetDesiredSize();
-		if (muAlignment.eVertical == CSV_Stretch)
-		{
-			sSize.x = sAreaSize.x;
-		}
-
-		fXPos = AlignComponentHorizontal(muAlignment.eHorizontal, sSize.x, sAreaSize.x);
-		sOffset.Init(fXPos + sPosition.x, fYPos + sPosition.y);
-		fYPos += sSize.y;
-
-		pComponent->Layout(sOffset, sSize);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CFlowContainer::CalculateAreaForVerticalLayout(int iHeight)
-{
-	Ptr<CComponent>	pComponent;
-	size					uiSize;
-	size					i;
-	SInt32Vec2					sSize;
-	int						fXPos;
-	int						iFirst;
-	SInt32Vec2					sLocalAreaSize;
-	SInt32Vec2					sArea;
-
-	fXPos = 0;
-	iFirst = 0;
-	sLocalAreaSize.Init(0, 0);
-	sArea.Init(0, 0);
-	uiSize = maChildren.Size();
-	for (i = 0; i < uiSize; i++)
-	{
-		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetDesiredSize();
-		if ((sLocalAreaSize.y + sSize.y) > iHeight)
-		{
-			sArea.x = sLocalAreaSize.x + fXPos;
-			if (sLocalAreaSize.y > sArea.y)
-			{
-				sArea.y = sLocalAreaSize.y;
-			}
-
-			fXPos += sLocalAreaSize.x;
-			sLocalAreaSize.Init(0, 0);
-			iFirst = i;
-		}
-
-		if (sLocalAreaSize.x < sSize.x)
-		{
-			sLocalAreaSize.x = sSize.x;
-		}
-
-		sLocalAreaSize.y += sSize.y;
-	}
-
-	sArea.x = sLocalAreaSize.x + fXPos;
-	if (sLocalAreaSize.y > sArea.y)
-	{
-		sArea.y = sLocalAreaSize.y;
-	}
-
-	return sArea;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CFlowContainer::LayoutDownWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
-{
-	Ptr<CComponent>	pComponent;
-	size					uiSize;
-	size					i;
-	SInt32Vec2					sSize;
-	int						iFirst;
-	SInt32Vec2					sLocalAreaSize;
-	SInt32Vec2					sLocalPosition;
-	SInt32Vec2					sRequiredArea;
-
-	sRequiredArea = CalculateAreaForVerticalLayout(sAreaSize.y);
-
-	iFirst = 0;
-	sLocalAreaSize.Init(0, 0);
-	sLocalPosition.Init(0, 0);
-	sLocalPosition.x = AlignComponentHorizontal(muAlignment.eHorizontal, sRequiredArea.x, sAreaSize.x);
-
-	uiSize = maChildren.Size();
-	for (i = 0; i < uiSize; i++)
-	{
-		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetDesiredSize();
-		if ((sLocalAreaSize.y + sSize.y) > sAreaSize.y)
-		{
-			LayoutDown(sLocalPosition, sLocalAreaSize, iFirst, i);
-			sLocalPosition.x += sLocalAreaSize.x;
-			sLocalAreaSize.Init(0, 0);
-			iFirst = i;
-		}
-
-		if (sLocalAreaSize.x < sSize.x)
-		{
-			sLocalAreaSize.x = sSize.x;
-		}
-
-		sLocalAreaSize.y += sSize.y;
-	}
-
-	LayoutDown(sLocalPosition, sLocalAreaSize, iFirst, i);
-} 
 
 
 //////////////////////////////////////////////////////////////////////////

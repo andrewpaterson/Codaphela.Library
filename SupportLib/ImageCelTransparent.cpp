@@ -41,7 +41,7 @@ void CImageCelTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psTrans
 //////////////////////////////////////////////////////////////////////////
 void CImageCelTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent, CRectangle* pcRect)
 {
-	Init(pcSourceImage, psTransparent, pcRect->miLeft, pcRect->miTop, pcRect->miRight, pcRect->miBottom);
+	Init(pcSourceImage, psTransparent, pcRect->msTopLeft.x, pcRect->msTopLeft.y, pcRect->msBottomRight.x, pcRect->msBottomRight.y);
 }
 
 

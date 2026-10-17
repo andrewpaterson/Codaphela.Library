@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImageCelMask::Init(Ptr<CImage> pcSourceImage, Ptr<CImage> pcMaskImage, CFillRectangle* pcRect)
 {
-	Init(pcSourceImage, pcMaskImage, pcRect->miMask, pcRect->IsFillRectangular(), pcRect->miLeft, pcRect->miTop, pcRect->miRight, pcRect->miBottom);
+	Init(pcSourceImage, pcMaskImage, pcRect->miMask, pcRect->IsFillRectangular(), pcRect->msTopLeft.x, pcRect->msTopLeft.y, pcRect->msBottomRight.x, pcRect->msBottomRight.y);
 }
 
 

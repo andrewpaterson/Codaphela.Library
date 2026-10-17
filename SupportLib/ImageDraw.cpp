@@ -68,7 +68,7 @@ void CImageDraw::DrawPixel(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CImageDraw::DrawBox(CRectangle* pcRetangle, bool bFilled)
 {
-	DrawBox(pcRetangle->miLeft, pcRetangle->miTop, pcRetangle->miRight, pcRetangle->miBottom, bFilled);
+	DrawBox(pcRetangle->msTopLeft.x, pcRetangle->msTopLeft.y, pcRetangle->msBottomRight.x, pcRetangle->msBottomRight.y, bFilled);
 }
 
 
