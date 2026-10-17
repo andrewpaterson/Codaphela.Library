@@ -33,9 +33,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageSourceWithCelSources::Init(CImageSource* pcImageSource, CImageCelSource* pcCelsSource)
+void CImageSourceWithCelSources::Init(Ptr<CImageSource> pImageSource, CImageCelSource* pcCelsSource)
 {
-	mpcImageSource = pcImageSource;
+	mpImageSource = pImageSource;
 	mpcCelsSource = pcCelsSource;
 }
 
@@ -47,7 +47,7 @@ void CImageSourceWithCelSources::Init(CImageSource* pcImageSource, CImageCelSour
 void CImageSourceWithCelSources::Kill(void)
 {
 	//Don't kill pcCelsSource, it's held by macCelSources.
-	mpcImageSource->Kill();
+	mpImageSource = NULL;
 	CUnknown::Kill();
 }
 
@@ -56,7 +56,7 @@ void CImageSourceWithCelSources::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImageSource* CImageSourceWithCelSources::GetImageSource(void) { return mpcImageSource; }
+Ptr<CImageSource> CImageSourceWithCelSources::GetImageSource(void) { return mpImageSource; }
 CImageCelSource* CImageSourceWithCelSources::GetCelsSource(void) { return mpcCelsSource; }
 
 
@@ -134,12 +134,12 @@ bool CImageCelsSource::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelsSource::AddSource(CImageSource* pcImageSource, CImageCelSource* pcCelSource)
+void CImageCelsSource::AddSource(Ptr<CImageSource> pImageSource, CImageCelSource* pcCelSource)
 {
 	CImageSourceWithCelSources*		pcImageSourceWithCelSource;
 
 	pcImageSourceWithCelSource = macImageSources.Add();
-	pcImageSourceWithCelSource->Init(pcImageSource, pcCelSource);
+	pcImageSourceWithCelSource->Init(pImageSource, pcCelSource);
 }
 
 
@@ -149,7 +149,7 @@ void CImageCelsSource::AddSource(CImageSource* pcImageSource, CImageCelSource* p
 //////////////////////////////////////////////////////////////////////////
 void CImageCelsSource::AddDiskFileSource(char* szFilename, char* szImageName, CImageCelSource* pcCelSource)
 {
-	CImageSourceDiskFile*	pcDiskFile;
+	Ptr<CImageSourceDiskFile>	pDiskFile;
 	size					iLen;
 	CChars					szNewName;
 	CFileUtil				cFileUtil;
@@ -164,20 +164,20 @@ void CImageCelsSource::AddDiskFileSource(char* szFilename, char* szImageName, CI
 		return;
 	}
 
-	pcDiskFile = UMalloc(CImageSourceDiskFile);
+	pDiskFile = OMallocNoI<CImageSourceDiskFile>();
 
 	if (szImageName)
 	{
-		pcDiskFile->Init(szFilename, szImageName);
+		pDiskFile->Init(szFilename, szImageName);
 	}
 	else
 	{
 		szNewName.Init(szFilename);
 		cFileUtil.RemovePath(&szNewName);
-		pcDiskFile->Init(szFilename, szNewName.Text());
+		pDiskFile->Init(szFilename, szNewName.Text());
 		szNewName.Kill();
 	}
-	AddSource(pcDiskFile, pcCelSource);
+	AddSource(pDiskFile, pcCelSource);
 }
 
 
@@ -191,7 +191,7 @@ void CImageCelsSource::AddDiskFileSources(char* szPathName, char* szFileNameCont
 	CArrayChars				cFileNames;
 	size					i;
 	CChars*					pszName;
-	CImageSourceDiskFile*	pcDiskFile;
+	Ptr<CImageSourceDiskFile>	pDiskFile;
 	CChars					szNiceName;
 	size					iIndex;
 	size					iLen;
@@ -212,7 +212,7 @@ void CImageCelsSource::AddDiskFileSources(char* szPathName, char* szFileNameCont
 	for (i = 0; i < cFileNames.NumElements(); i++)
 	{
 		pszName = cFileNames.Get(i);
-		pcDiskFile = UMalloc(CImageSourceDiskFile);
+		pDiskFile = OMallocNoI<CImageSourceDiskFile>();
 
 		if (szImageName)
 		{
@@ -224,14 +224,14 @@ void CImageCelsSource::AddDiskFileSources(char* szPathName, char* szFileNameCont
 			szNiceName.RemoveFromStart(iIndex);
 			szNiceName.Insert(0, szImageName);
 
-			pcDiskFile->Init(pszName->Text(), szNiceName.Text());
+			pDiskFile->Init(pszName->Text(), szNiceName.Text());
 			szNiceName.Kill();
 		}
 		else
 		{
-			pcDiskFile->Init(pszName->Text());
+			pDiskFile->Init(pszName->Text());
 		}
-		AddSource(pcDiskFile, pcCelSource);
+		AddSource(pDiskFile, pcCelSource);
 	}
 
 	cFileNames.Kill();
@@ -244,11 +244,10 @@ void CImageCelsSource::AddDiskFileSources(char* szPathName, char* szFileNameCont
 //////////////////////////////////////////////////////////////////////////
 void CImageCelsSource::AddMemorySource(Ptr<CImage> pcImage, CImageCelSource* pcCelSource)
 {
-	CImageSourceMemory*		pcMemory;
+	Ptr<CImageSourceMemory>	pMemory;
 
-	pcMemory = UMalloc(CImageSourceMemory);
-	pcMemory->Init(pcImage);
-	AddSource(pcMemory, pcCelSource);
+	pMemory = OMalloc<CImageSourceMemory>(pcImage);
+	AddSource(pMemory, pcCelSource);
 }
 
 
@@ -272,7 +271,7 @@ bool CImageCelsSource::Load(void)
 	CImageSourceWithCelSources*		pcImageSourceWithCelSources;
 	bool							bResult;
 	Ptr<CImage>						pcMask;
-	CImageSource*					pcImageSource;
+	Ptr<CImageSource>				pImageSource;
 	CImageCelSource*				pcCelsSource;
 	int								iFirstCelIndex;
 	Ptr<CImage>						pcCombined;
@@ -284,16 +283,16 @@ bool CImageCelsSource::Load(void)
 		if (pcImageSourceWithCelSources)
 		{
 			pcMask = NULL;
-			pcImageSource = pcImageSourceWithCelSources->GetImageSource();
+			pImageSource = pcImageSourceWithCelSources->GetImageSource();
 			pcCelsSource = pcImageSourceWithCelSources->GetCelsSource();
 
-			bResult = pcImageSource->LoadImage();
+			bResult = pImageSource->LoadImage();
 			if (!bResult)
 			{
 				return false;
 			}
 
-			mcModifiers.SetImage(&pcImageSource->GetImage());  //Not sure if this is a hack or not.
+			mcModifiers.SetImage(&pImageSource->GetImage());  //Not sure if this is a hack or not.
 			mcModifiers.ApplyAll();
 
 			if (pcCelsSource->NeedsMask())
@@ -302,13 +301,13 @@ bool CImageCelsSource::Load(void)
 				maFillMasks.Add(pcMask);
 			}
 			iFirstCelIndex = maImageCels.NumElements();
-			pcCelsSource->Divide((CImage*)pcImageSource->GetImage().Object(), &maImageCels, (CImage*)pcMask.Object());
+			pcCelsSource->Divide((CImage*)pImageSource->GetImage().Object(), &maImageCels, (CImage*)pcMask.Object());
 
 			if (mbPackOnLoad)
 			{
 				pcCombined = Combine(iFirstCelIndex);
-				pcImageSource->GetImage()->Kill();
-				pcImageSource->SetImage(pcCombined);
+				pImageSource->GetImage()->Kill();
+				pImageSource->SetImage(pcCombined);
 				if (pcMask.IsNotNull())
 				{
 					maFillMasks.Remove(pcMask);
