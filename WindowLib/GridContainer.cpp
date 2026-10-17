@@ -309,7 +309,6 @@ bool CGridContainer::RemoveComponent(Ptr<CComponent> pComponent)
 	{
 		if (maChildren.Get(i) == pComponent)
 		{
-			macCells.RemoveAt(i);
 			return CComponent::RemoveComponent(pComponent);
 		}
 	}
