@@ -33,22 +33,28 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageCelSource.h"
 
 
-class CImageSourceWithCelSources : public CUnknown
+class CImageSourceWithCelSources : public CObject
 {
 CONSTRUCTABLE(CImageSourceWithCelSources);
+DESTRUCTABLE(CImageSourceWithCelSources);
 protected:
-	Ptr<CImageSource>	mpImageSource;  //Not embedded in an object so it holds the source like a stack pointer until Kill.
-	CImageCelSource*	mpcCelsSource;
+	Ptr<CImageSource>	mpImageSource;
+	CImageCelSource*	mpcCelsSource;  //Not owned, whoever added the source keeps it.
 
 public:
 	void				Init(Ptr<CImageSource> pImageSource, CImageCelSource* pcCelsSource);
-	void				Kill(void);
+	void				Class(void) override;
+	void				Free(void) override;
+
+	bool				Save(CObjectWriter* pcFile) override;
+	bool				Load(CObjectReader* pcFile) override;
+
 	Ptr<CImageSource>	GetImageSource(void);
 	CImageCelSource*	GetCelsSource(void);
 };
 
 
-typedef CArrayUnknownTemplate<CImageSourceWithCelSources> CArrayImageSourceWithCelSources;
+typedef CArray<CImageSourceWithCelSources> CArrayImageSourceWithCelSources;
 
 
 //This class *does not* add the Cels to a Group because they probably need to be hit with the Image Combiner first.
@@ -60,7 +66,7 @@ protected:
 	bool								mbPackOnLoad;	//This will crop transparent edges as the image is loaded to save memory.
 														//Also cropped images don't need the mask image.
 	//Input
-	CArrayImageSourceWithCelSources		macImageSources;
+	CArrayImageSourceWithCelSources		maImageSources;
 	CImageModifierStack					mcModifiers;
 	CArrayUnknown						macCelSources;
 
