@@ -1,6 +1,6 @@
 #ifndef __MUTEX_H__
 #define __MUTEX_H__
-#include "BaseLib/PrimitiveTypes.h"
+#include "PrimitiveTypes.h"
 
 
 //Large enough to hold a Windows SRWLOCK or a Linux pthread_mutex_t.

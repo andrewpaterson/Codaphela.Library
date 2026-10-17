@@ -208,6 +208,9 @@
     <Filter Include="Source\Data\LinkedList">
       <UniqueIdentifier>{fa3dfb29-19bd-41e1-8e9e-400f402430f7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Thread">
+      <UniqueIdentifier>{04fb66bc-0536-4400-83b5-fa9795b5fd75}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Data\Index\DataOrder">
       <UniqueIdentifier>{39b692d9-ae69-4184-8af8-ecac75dfa2c2}</UniqueIdentifier>
     </Filter>
@@ -832,6 +835,15 @@
       <Filter>Source\Data\Array\Basic</Filter>
     </ClInclude>
     <ClInclude Include="LinkedListBlock.h">
+      <Filter>Source\Data\LinkedList</Filter>
+    </ClInclude>
+    <ClInclude Include="Mutex.h">
+      <Filter>Source\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="SafeArrayBlock.h">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="SafeLinkedListBlock.h">
       <Filter>Source\Data\LinkedList</Filter>
     </ClInclude>
     <ClInclude Include="LinkedListTemplate.h">
@@ -2118,6 +2130,18 @@
       <Filter>Source\Data\Array\Basic</Filter>
     </ClCompile>
     <ClCompile Include="LinkedListBlock.cpp">
+      <Filter>Source\Data\LinkedList</Filter>
+    </ClCompile>
+    <ClCompile Include="Mutex_Windows.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="Mutex_Linux.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="SafeArrayBlock.cpp">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="SafeLinkedListBlock.cpp">
       <Filter>Source\Data\LinkedList</Filter>
     </ClCompile>
     <ClCompile Include="LinkedListBlockAligned.cpp">

@@ -2,7 +2,7 @@
 #define __THREAD_POOL_H__
 #include "BaseLib/Define.h"
 #include "BaseLib/Killable.h"
-#include "SafeLinkedListBlock.h"
+#include "BaseLib/SafeLinkedListBlock.h"
 #include "WorkerThreadPool.h"
 #include "ThreadStateNotifier.h"
 #include "ThreadStarter.h"

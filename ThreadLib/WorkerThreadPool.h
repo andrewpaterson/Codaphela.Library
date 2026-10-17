@@ -2,7 +2,7 @@
 #define __WORKER_THREAD_POOL_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/LinkedListTemplate.h"
-#include "Mutex.h"
+#include "BaseLib/Mutex.h"
 #include "ConditionVariable.h"
 #include "NativeThread.h"
 

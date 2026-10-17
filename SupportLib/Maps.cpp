@@ -115,8 +115,11 @@ void CMaps::SetCacheAndViewport(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> p
 
 	size			uiNumElements;
 	size			ui;
+	bool			bChanged;
 	Ptr<CBlockMap>	pMap;
 
+	//Blitters are tied to the cache and viewport they were made for so they must be remade if either changes.
+	bChanged = (mpCache != pCache) || (mpViewport != pViewport);
 	mpCache = pCache;
 	mpViewport = pViewport;
 
@@ -124,6 +127,10 @@ void CMaps::SetCacheAndViewport(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> p
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
 		pMap = maMaps.Get(ui);
+		if (bChanged)
+		{
+			pMap->ClearCelBlitters();
+		}
 		pMap->SetViewport(mpViewport);
 		pMap->SetBlitterCache(mpCache);
 	}
@@ -216,10 +223,13 @@ bool CMaps::HasCelBlitters(void)
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
 		pMap = maMaps.Get(ui);
-		bResult = pMap->HasCelBlitters();
-		if (!bResult)
+		if (pMap->UsesCelBlitters())
 		{
-			return false;
+			bResult = pMap->HasCelBlitters();
+			if (!bResult)
+			{
+				return false;
+			}
 		}
 	}
 	return true;

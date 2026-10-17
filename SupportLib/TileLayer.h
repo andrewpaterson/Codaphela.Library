@@ -63,6 +63,7 @@ public:
 	virtual bool	CreateCelBlitters(void) =0;
 	virtual bool	HasCelBlitters(void) =0;
 	virtual bool	UsesCelBlitters(void) =0;
+	virtual void	ClearCelBlitters(void) =0;
 
 	virtual void	TileLayerAbstract(void) =0;
 };

@@ -76,7 +76,7 @@ public:
 
 	bool						CreateCelBlitters(void) override;
 	bool						CreateCelBlitter(Ptr<CSprite> pSprite);
-	void						ClearCelBlitters(void);
+	void						ClearCelBlitters(void) override;
 	bool						HasCelBlitters(void) override;
 	bool						UsesCelBlitters(void);
 
