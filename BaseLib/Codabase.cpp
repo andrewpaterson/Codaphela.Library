@@ -58,7 +58,7 @@ bool CCodabase::Close(void)
 	{
 		bResult = true;
 	}
-	bResult |= mcFileController.End();
+	bResult &= mcFileController.End();
 	return bResult;
 }
 
