@@ -71,6 +71,9 @@ public:
 bool SocketsInit(void);
 void SocketsKill(void);
 
+//The text of the last socket error on this thread.
+char* LastSocketErrorToString(void);
+
 
 #endif // __SOCKET_H__
 

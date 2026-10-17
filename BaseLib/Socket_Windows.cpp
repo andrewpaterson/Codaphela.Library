@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include "Logger.h"
+#include "WindowsError.h"
 #include "Chars.h"
 #include "Socket.h"
 
@@ -115,7 +116,7 @@ int CSocket::Receive(void* pvBuffer, int iBufferLength)
 	iResult = recv(GetSocketHandle(maSocket), (char*)pvBuffer, iBufferLength, 0);
 	if (iResult < 0)
 	{
-		gcLogger.Error("recv failed with error");
+		gcLogger.Error2(__METHOD__, " recv failed [", LastSocketErrorToString(), "].", NULL);
 		return SOCKET_RESULT_ERROR;
 	}
 	else
@@ -136,7 +137,7 @@ int CSocket::Send(void* pvBuffer, int iBufferLength)
 	iSendResult = send(GetSocketHandle(maSocket), (char*)pvBuffer, iBufferLength, 0);
 	if (iSendResult == SOCKET_ERROR) 
 	{
-		gcLogger.Error("send failed with error");
+		gcLogger.Error2(__METHOD__, " send failed [", LastSocketErrorToString(), "].", NULL);
 		return SOCKET_RESULT_ERROR;
 	}
 	else
@@ -255,6 +256,16 @@ int CSocket::WaitForData(int iTimeoutMilliseconds)
 	{
 		return SOCKET_WAIT_ERROR;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* LastSocketErrorToString(void)
+{
+	return WindowsErrorCodeToString(WSAGetLastError());
 }
 
 

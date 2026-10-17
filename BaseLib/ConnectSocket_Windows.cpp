@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include "Logger.h"
+#include "WindowsError.h"
 #include "ConnectSocket.h"
 
 
@@ -49,15 +50,6 @@ void CConnectSocket::Init(const char* szServer, int iPort)
 //////////////////////////////////////////////////////////////////////////
 void CConnectSocket::Kill(void)
 {
-	SOCKET	hSocket;
-
-	hSocket = GetSocketHandle(maSocket);
-	if (hSocket != INVALID_SOCKET)
-	{
-		closesocket(hSocket);
-		SetSocketHandle(maSocket, INVALID_SOCKET);
-	}
-
 	mszServer.Kill();
 	CSocket::Kill();
 }
@@ -74,6 +66,7 @@ bool CConnectSocket::Connect(void)
 	addrinfo	hints;
 	int			iResult;
 	SOCKET		hSocket;
+	int			iError;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
@@ -85,19 +78,20 @@ bool CConnectSocket::Connect(void)
 	iResult = getaddrinfo(mszServer.Text(), mszPortNumber.Text(), &hints, &sResult);
 	if (iResult != 0) 
 	{
-		gcLogger.Error("getaddrinfo failed with error");
+		gcLogger.Error2(__METHOD__, " getaddrinfo failed for [", mszServer.Text(), ":", mszPortNumber.Text(), "] [", WindowsErrorCodeToString(iResult), "].", NULL);
 		return false;
 	}
 
 	// Attempt to connect to an address until one succeeds
 	hSocket = INVALID_SOCKET;
+	iError = 0;
 	for (pAddrInfo = sResult; pAddrInfo != NULL; pAddrInfo = pAddrInfo->ai_next) 
 	{
 		// Create a SOCKET for connecting to server
 		hSocket = socket(pAddrInfo->ai_family, pAddrInfo->ai_socktype, pAddrInfo->ai_protocol);
 		if (hSocket == INVALID_SOCKET) 
 		{
-			gcLogger.Error("socket failed with error");
+			gcLogger.Error2(__METHOD__, " socket failed [", LastSocketErrorToString(), "].", NULL);
 			freeaddrinfo(sResult);
 			return false;
 		}
@@ -107,6 +101,7 @@ bool CConnectSocket::Connect(void)
 
 		if (iResult == SOCKET_ERROR)
 		{
+			iError = WSAGetLastError();
 			closesocket(hSocket);
 			hSocket = INVALID_SOCKET;
 			continue;
@@ -119,7 +114,7 @@ bool CConnectSocket::Connect(void)
 
 	if (hSocket == INVALID_SOCKET) 
 	{
-		gcLogger.Error("Unable to connect to server!\n");
+		gcLogger.Error2(__METHOD__, " Could not connect to [", mszServer.Text(), ":", mszPortNumber.Text(), "] [", WindowsErrorCodeToString(iError), "].", NULL);
 		return false;
 	}
 

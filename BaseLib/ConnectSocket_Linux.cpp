@@ -27,7 +27,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <netinet/in.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <errno.h>
 #include "Logger.h"
+#include "LinuxError.h"
 #include "ConnectSocket.h"
 
 
@@ -56,15 +58,6 @@ void CConnectSocket::Init(const char* szServer, int iPort)
 //////////////////////////////////////////////////////////////////////////
 void CConnectSocket::Kill(void)
 {
-	int	iSocket;
-
-	iSocket = GetSocketHandle(maSocket);
-	if (iSocket != INVALID_SOCKET_DESCRIPTOR)
-	{
-		close(iSocket);
-		SetSocketHandle(maSocket, INVALID_SOCKET_DESCRIPTOR);
-	}
-
 	mszServer.Kill();
 	CSocket::Kill();
 }
@@ -81,6 +74,7 @@ bool CConnectSocket::Connect(void)
 	addrinfo	hints;
 	int			iResult;
 	int			iSocket;
+	int			iError;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
@@ -92,19 +86,20 @@ bool CConnectSocket::Connect(void)
 	iResult = getaddrinfo(mszServer.Text(), mszPortNumber.Text(), &hints, &sResult);
 	if (iResult != 0) 
 	{
-		gcLogger.Error("getaddrinfo failed with error");
+		gcLogger.Error2(__METHOD__, " getaddrinfo failed for [", mszServer.Text(), ":", mszPortNumber.Text(), "] [", gai_strerror(iResult), "].", NULL);
 		return false;
 	}
 
 	// Attempt to connect to an address until one succeeds
 	iSocket = INVALID_SOCKET_DESCRIPTOR;
+	iError = 0;
 	for (pAddrInfo = sResult; pAddrInfo != NULL; pAddrInfo = pAddrInfo->ai_next) 
 	{
 		// Create a socket for connecting to server
 		iSocket = socket(pAddrInfo->ai_family, pAddrInfo->ai_socktype, pAddrInfo->ai_protocol);
 		if (iSocket == INVALID_SOCKET_DESCRIPTOR) 
 		{
-			gcLogger.Error("socket failed with error");
+			gcLogger.Error2(__METHOD__, " socket failed [", LastSocketErrorToString(), "].", NULL);
 			freeaddrinfo(sResult);
 			return false;
 		}
@@ -114,6 +109,7 @@ bool CConnectSocket::Connect(void)
 
 		if (iResult != 0)
 		{
+			iError = errno;
 			close(iSocket);
 			iSocket = INVALID_SOCKET_DESCRIPTOR;
 			continue;
@@ -126,7 +122,7 @@ bool CConnectSocket::Connect(void)
 
 	if (iSocket == INVALID_SOCKET_DESCRIPTOR) 
 	{
-		gcLogger.Error("Unable to connect to server!\n");
+		gcLogger.Error2(__METHOD__, " Could not connect to [", mszServer.Text(), ":", mszPortNumber.Text(), "] [", LinuxErrorCodeToString(iError), "].", NULL);
 		return false;
 	}
 

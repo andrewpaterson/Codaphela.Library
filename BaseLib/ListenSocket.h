@@ -53,6 +53,7 @@ public:
 protected:
 	bool Bind(const char* szAddress, int iPort);
 	bool StartListening(void);
+	void CloseListenSocket(void);
 };
 
 
