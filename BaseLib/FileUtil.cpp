@@ -167,6 +167,27 @@ bool CFileUtil::CompareSize(const char* szFilename1, const char* szFilename2)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFileUtil::SyncParentDirectory(const char* szFilename)
+{
+	CChars	szDirectory;
+	bool	bResult;
+
+	szDirectory.Init(szFilename);
+	RemoveLastFromPath(&szDirectory);
+	if (szDirectory.Empty())
+	{
+		szDirectory.Append(".");
+	}
+	bResult = SyncDirectory(szDirectory.Text());
+	szDirectory.Kill();
+	return bResult;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -321,6 +342,8 @@ bool CFileUtil::Copy(const char* szSource, const char* szDest)
 		return true;
 	}
 
+	//Opening for write does not truncate so a longer destination would keep its old tail.
+	Delete(szDest);
 	cBackup.Init(DiskFile(szDest));
 	bBackup = cBackup.Open(EFM_Write_Create);
 	if (!bBackup)

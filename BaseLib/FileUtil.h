@@ -41,6 +41,9 @@ public:
 	bool    Touch(const char* szFilename);
 	bool    TouchDir(const char* szFilename, bool bLastIsFilename = false);  //MakeDir -P
 	bool    Delete(const char* szFilename);
+	bool    SyncFile(const char* szFilename);
+	bool    SyncDirectory(const char* szDirectory);
+	bool    SyncParentDirectory(const char* szFilename);
 	bool    Exists(const char* szFilename);
 	bool    Compare(const char* szFilename1, const char* szFilename2);
 	bool	CompareSize(const char* szFilename1, const char* szFilename2);

@@ -53,11 +53,13 @@ public:
 	size			Num(void);
 	CDurableFile*	Get(size iIndex);
 
-	void			MarkStart(void);
-	void			MarkRewrite(void);
-	void			MarkFinish(void);
+	bool			MarkStart(void);
+	bool			MarkRewrite(void);
+	bool			MarkFinish(void);
 
 private:
+	bool			Mark(const char* szMarkFile);
+	bool			Unmark(const char* szMarkFile);
 	bool			CheckFilesIdentical(bool bThorough, bool bLogError);
 	bool			CheckWriteStatus(bool bMarkStart, bool bMarkRewrite, bool bLogError);
 	bool			CheckWriteStatus(bool bLogError);

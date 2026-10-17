@@ -112,6 +112,7 @@ protected:
 	bool		OpenPrimaryForWrite(void);
 
 	bool		OpenPrimaryFile(bool bOpenForWrite);
+	bool		SyncCopy(const char* szDest);
 };
 
 

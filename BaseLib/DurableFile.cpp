@@ -751,7 +751,11 @@ bool CDurableFile::CopyBackupToPrimary(void)
 	{
 		return false;
 	}
-	return cFileUtil.Compare(mszFilename.Text(), mszRewriteName.Text());
+	if (!cFileUtil.Compare(mszFilename.Text(), mszRewriteName.Text()))
+	{
+		return false;
+	}
+	return SyncCopy(mszFilename.Text());
 }
 
 
@@ -772,8 +776,35 @@ bool CDurableFile::CopyPrimaryToBackup(void)
 	{
 		return false;
 	}
+	if (!cFileUtil.Compare(mszFilename.Text(), mszRewriteName.Text()))
+	{
+		return false;
+	}
+	return SyncCopy(mszRewriteName.Text());
+}
 
-	return cFileUtil.Compare(mszFilename.Text(), mszRewriteName.Text());
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDurableFile::SyncCopy(const char* szDest)
+{
+	CFileUtil	cFileUtil;
+
+	//Copy deletes the destination when the source does not exist, so only the directory may need syncing.
+	if (cFileUtil.Exists(szDest))
+	{
+		if (!cFileUtil.SyncFile(szDest))
+		{
+			return gcLogger.Error2(__METHOD__, " Could not sync recovered file [", szDest, "].", NULL);
+		}
+	}
+	if (!cFileUtil.SyncParentDirectory(szDest))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not sync the directory of recovered file [", szDest, "].", NULL);
+	}
+	return true;
 }
 
 

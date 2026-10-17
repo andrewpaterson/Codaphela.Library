@@ -129,11 +129,12 @@ bool CCanvas::Draw(void)
 		CreateNativeCanvas();
 	}
 
-	CComponent::Draw();
+	//The canvas draws first so that its children are drawn over it.
 	if (mpCanvasDraw)
 	{
 		mpCanvasDraw->Draw(this);
 	}
+	CComponent::Draw();
 
 	pWindowCanvas = mpWindow->GetCanvas();
 	if (&pWindowCanvas != this)

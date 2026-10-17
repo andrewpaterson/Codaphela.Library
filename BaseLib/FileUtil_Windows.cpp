@@ -191,6 +191,38 @@ bool CFileUtil::Touch(const char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CFileUtil::SyncFile(const char* szFilename)
+{
+	HANDLE	h;
+	bool	bResult;
+
+	h = CreateFile(szFilename, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (h == INVALID_HANDLE_VALUE)
+	{
+		return false;
+	}
+
+	bResult = FlushFileBuffers(h);
+	CloseHandle(h);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFileUtil::SyncDirectory(const char* szDirectory)
+{
+	//NTFS journals directory changes and Windows has no documented way to flush a directory.
+	return Exists(szDirectory);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CFileUtil::Delete(const char* szFilename)
 {
 	if (Exists(szFilename))
