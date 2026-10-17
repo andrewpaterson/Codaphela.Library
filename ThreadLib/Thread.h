@@ -1,6 +1,5 @@
 #ifndef __THREAD_H__
 #define __THREAD_H__
-#include <thread>
 #include "BaseLib/Define.h"
 #include "BaseLib/Killable.h"
 #include "BaseLib/Constructable.h"
@@ -8,6 +7,7 @@
 #include "ThreadState.h"
 #include "ThreadStateNotifier.h"
 #include "ThreadStarter.h"
+#include "NativeThread.h"
 
 
 class CThread : public CConstructable, public CKillable
@@ -16,7 +16,7 @@ friend class CStandAloneThreadStarter;
 private:
 	EThreadState			meState;
 	int						miThreadId;
-	std::thread*			mpstdThread;
+	CNativeThread			mcNativeThread;
 	bool					mbDelete;
 	CThreadStarter*			mpcStarter;
 	CArrayTemplateEmbeddedPtr<CThreadStateNotifer, 2> mapcNotifiers;
@@ -40,7 +40,6 @@ public:
 			void	Start(int iThreadId, bool bDelete);
 protected:
 	virtual void	Run(void) =0;
-			void	SetThread(std::thread* pstdThread);
 			void	ChangeState(EThreadState eState);
 };
 

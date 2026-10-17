@@ -1,4 +1,4 @@
-#include <thread>
+#include "NativeThread.h"
 #include "StandAloneThreadStarter.h"
 #include "Thread.h"
 
@@ -10,13 +10,9 @@ CStandAloneThreadStarter gcStandAloneThreadStarter;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void RunThread(CThread* pcThread)
+void RunThread(void* pvThread)
 {
-	std::thread::id id = std::this_thread::get_id();
-	std::thread::id* pid = &id;
-	int	iid = *((int*)pid);
-
-	pcThread->Start(iid, true);
+	((CThread*)pvThread)->Start(CurrentThreadId(), true);
 }
 
 
@@ -26,8 +22,6 @@ void RunThread(CThread* pcThread)
 //////////////////////////////////////////////////////////////////////////
 void CStandAloneThreadStarter::StartThread(CThread* pcThread)
 {
-	std::thread* pstdThread = new std::thread(RunThread, pcThread);
-
-	pcThread->SetThread(pstdThread);
+	pcThread->mcNativeThread.Start(RunThread, pcThread);
 }
 

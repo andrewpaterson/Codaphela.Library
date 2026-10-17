@@ -162,6 +162,7 @@ bool CSharedMemoryQueue::InitClient(char* szName)
 void CSharedMemoryQueue::Kill(void)
 {
 	mcQueue.Kill();
+	mcSharedMemory.Close();
 	mcSharedMemory.Kill();
 	mcMutex.Close();
 	mcMutex.Kill();

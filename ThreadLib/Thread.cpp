@@ -13,7 +13,7 @@ CThread::CThread()
 	mpcStarter = &gcStandAloneThreadStarter;
 	meState = TS_Waiting;
 	miThreadId = 0;
-	mpstdThread = NULL;
+	mcNativeThread.Init();
 	mbDelete = false;
 }
 
@@ -29,7 +29,7 @@ CThread::CThread(CThreadStarter* pcStarter, CThreadStateNotifer* pcNotify)
 	mpcStarter = pcStarter;
 	meState = TS_Waiting;
 	miThreadId = 0;
-	mpstdThread = NULL;
+	mcNativeThread.Init();
 	mbDelete = false;
 }
 
@@ -50,14 +50,8 @@ void CThread::Init(void)
 void CThread::Kill(void)
 {
 	meState = TS_Killed;
-	if (mbDelete)
-	{
-		if (mpstdThread->joinable())
-		{
-			mpstdThread->join();
-		}
-		delete mpstdThread;
-	}
+	mcNativeThread.Join();
+	mcNativeThread.Kill();
 	miThreadId = 0;
 	mapcNotifiers.Kill();
 }
@@ -70,16 +64,6 @@ void CThread::Kill(void)
 void CThread::Start(void)
 {
 	mpcStarter->StartThread(this);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CThread::SetThread(std::thread* pstdThread)
-{
-	mpstdThread = pstdThread;
 }
 
 

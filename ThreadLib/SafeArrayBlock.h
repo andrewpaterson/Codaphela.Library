@@ -1,14 +1,14 @@
 #ifndef _SAFE_ARRAY_BLOCK_H__
 #define _SAFE_ARRAY_BLOCK_H__
-#include <mutex>
 #include "BaseLib/ArrayBlock.h"
 #include "BaseLib/StackMemory.h"
+#include "Mutex.h"
 
 
 class CSafeArrayBlock
 {
 private:
-	std::mutex	m;
+	CMutex	m;
 	CArrayBlock	c;
 
 public:

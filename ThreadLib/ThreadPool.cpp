@@ -28,9 +28,9 @@ void CThreadPool::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void RunThread(int iThreadId, CThread* pcThread)
+void RunThread(int iThreadId, void* pvThread)
 {
-	pcThread->Start(iThreadId, false);
+	((CThread*)pvThread)->Start(iThreadId, false);
 }
 
 

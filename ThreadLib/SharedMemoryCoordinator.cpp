@@ -24,7 +24,7 @@ bool CSharedMemoryCoordinator::Init(char* szCoordinatorMemoryName)
 	if (sResult.IsSuccess())
 	{
 		mpsDescriptor = (SResizableSharedMemoryFile*)mcMemory.Map(sResult.GetSize());
-		mpsDescriptor->miClients++;
+		mpsDescriptor->miClients.Increment();
 		return true;
 	}
 	
@@ -32,7 +32,7 @@ bool CSharedMemoryCoordinator::Init(char* szCoordinatorMemoryName)
 	if (sResult.IsSuccess())
 	{
 		mpsDescriptor = (SResizableSharedMemoryFile*)mcMemory.Map(sResult.GetSize());
-		mpsDescriptor->miClients = 1;
+		mpsDescriptor->miClients.Set(1);
 		StrCpySafe(mpsDescriptor->szName, szCoordinatorMemoryName, 64);
 		mpsDescriptor->iNumSharedMemoryFiles = 0;
 		mpsDescriptor->iValidSharedMemoryIndex = -1;
@@ -53,7 +53,7 @@ void CSharedMemoryCoordinator::Kill(void)
 {
 	if (mpsDescriptor)
 	{
-		mpsDescriptor->miClients--;
+		mpsDescriptor->miClients.Decrement();
 		mcMemory.Unmap(mpsDescriptor);
 		mcMemory.Close();
 		mpsDescriptor = NULL;

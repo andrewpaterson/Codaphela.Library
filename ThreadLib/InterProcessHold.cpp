@@ -1,4 +1,4 @@
-#include<thread>
+#include "NativeThread.h"
 #include "InterProcessHold.h"
 
 
@@ -41,7 +41,7 @@ void CInterProcessHold::Kill(void)
 void CInterProcessHold::Start(void)
 {
 	mpsWait = (SInterProcessWait*)mcSharedMemory.Create(sizeof(SInterProcessWait));
-	mpsWait->iWait = true;
+	mpsWait->iWait.Set(true);
 }
 
 
@@ -61,9 +61,9 @@ void CInterProcessHold::Touch(void)
 //////////////////////////////////////////////////////////////////////////
 void CInterProcessHold::Wait(void)
 {
-	while (mpsWait->iWait)
+	while (mpsWait->iWait.Get())
 	{
-		std::this_thread::yield();
+		ThreadYield();
 	}
 }
 
@@ -74,6 +74,6 @@ void CInterProcessHold::Wait(void)
 //////////////////////////////////////////////////////////////////////////
 void CInterProcessHold::Stop(void)
 {
-	mpsWait->iWait = false;
+	mpsWait->iWait.Set(false);
 }
 

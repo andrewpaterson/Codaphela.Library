@@ -1,12 +1,12 @@
 #ifndef __INTER_PROCESS_DONE_H__
 #define __INTER_PROCESS_DONE_H__
-#include <atomic>
+#include "AtomicInt.h"
 #include "InterProcessFlow.h"
 
 
 struct SInterProcessDone
 {
-	std::atomic<int> iDone;
+	CAtomicInt	iDone;
 };
 
 

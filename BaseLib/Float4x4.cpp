@@ -189,7 +189,7 @@ bool SFloat4x4::Inverse(SFloat4x4* psOut, float* pfDeterminant)
 	*/
 	fDet = Determinant();
 
-	if (fabs(fDet) < SMALL_NUMBER)
+	if (fabsf(fDet) < SMALL_NUMBER)
 	{
 		return false;
 	}

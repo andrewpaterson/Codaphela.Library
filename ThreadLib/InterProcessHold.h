@@ -1,12 +1,12 @@
 #ifndef __INTER_PROCESS_HOLD_H__
 #define __INTER_PROCESS_HOLD_H__
-#include <atomic>
+#include "AtomicInt.h"
 #include "InterProcessFlow.h"
 
 
 struct SInterProcessWait
 {
-	std::atomic<int> iWait;
+	CAtomicInt	iWait;
 };
 
 

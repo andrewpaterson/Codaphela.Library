@@ -1,5 +1,4 @@
 #ifdef LINUX_GNU_32
-#include <thread>
 #include <errno.h>
 #include <limits.h>
 #include <spawn.h>
@@ -9,10 +8,21 @@
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/LinuxError.h"
+#include "NativeThread.h"
 #include "ProcessFork.h"
 
 
 extern char** environ;
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void ReapProcess(void* pvProcess)
+{
+    waitpid((pid_t)(size_t)pvProcess, NULL, 0);
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -31,6 +41,7 @@ bool ForkProcess(char* szCommandLineParameters, bool bWaitForProcessToExit)
     char*           szParameter;
     pid_t           iProcess;
     int             iResult;
+    CNativeThread   cReaper;
 
     iLength = readlink("/proc/self/exe", szExecutable, PATH_MAX);
     if (iLength == -1)
@@ -81,7 +92,10 @@ bool ForkProcess(char* szCommandLineParameters, bool bWaitForProcessToExit)
     {
         //Windows forgets the child once its handles are closed.  A Linux child
         //stays a zombie until it is waited for, so wait for it in the background.
-        std::thread([iProcess]() { waitpid(iProcess, NULL, 0); }).detach();
+        cReaper.Init();
+        cReaper.Start(ReapProcess, (void*)(size_t)iProcess);
+        cReaper.Detach();
+        cReaper.Kill();
     }
 
     return true;

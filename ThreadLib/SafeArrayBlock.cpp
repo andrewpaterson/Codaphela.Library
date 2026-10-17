@@ -7,9 +7,10 @@
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::Init(size iElementSize)
 {
-	m.lock();
+	m.Init();
+	m.Lock();
 	c.Init(iElementSize);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -19,9 +20,10 @@ void CSafeArrayBlock::Init(size iElementSize)
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::Init(CMallocator* pcMalloc, size iElementSize)
 {
-	m.lock();
+	m.Init();
+	m.Lock();
 	c.Init(pcMalloc, iElementSize);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -31,9 +33,10 @@ void CSafeArrayBlock::Init(CMallocator* pcMalloc, size iElementSize)
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::Init(CMallocator* pcMalloc, size iElementSize, size iChunkSize)
 {
-	m.lock();
+	m.Init();
+	m.Lock();
 	c.Init(pcMalloc, iElementSize, iChunkSize);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -43,9 +46,9 @@ void CSafeArrayBlock::Init(CMallocator* pcMalloc, size iElementSize, size iChunk
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::ReInit(void)
 {
-	m.lock();
+	m.Lock();
 	c.ReInit();
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -55,9 +58,9 @@ void CSafeArrayBlock::ReInit(void)
 //////////////////////////////////////////////////////////////////////////
 void  CSafeArrayBlock::Finalise(void)
 {
-	m.lock();
+	m.Lock();
 	c.Finalise();
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -67,9 +70,10 @@ void  CSafeArrayBlock::Finalise(void)
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::Kill(void)
 {
-	m.lock();
+	m.Lock();
 	c.Kill();
-	m.unlock();
+	m.Unlock();
+	m.Kill();
 }
 
 
@@ -129,9 +133,9 @@ size CSafeArrayBlock::ElementSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::Add(void* pvData)
 {
-	m.lock();
+	m.Lock();
 	c.Add(pvData);
-	m.unlock();
+	m.Unlock();
 
 }
 
@@ -144,9 +148,9 @@ size CSafeArrayBlock::AddGetIndex(void* pvData)
 {
 	size iIndex;
 
-	m.lock();
+	m.Lock();
 	pvData = c.AddGetIndex(&iIndex);
-	m.unlock();
+	m.Unlock();
 	return iIndex;
 }
 
@@ -159,9 +163,9 @@ size CSafeArrayBlock::AddIfUnique(void* pvData)
 {
 	size iIndex;
 
-	m.lock();
+	m.Lock();
 	iIndex = c.AddIfUnique(pvData);
-	m.unlock();
+	m.Unlock();
 	return iIndex;
 }
 
@@ -174,9 +178,9 @@ size CSafeArrayBlock::AddIfUniqueKey(void* pvData, size iKeyOffset, size iKeySiz
 {
 	size iIndex;
 
-	m.lock();
+	m.Lock();
 	iIndex = c.AddIfUniqueKey(pvData, iKeyOffset, iKeySize);
-	m.unlock();
+	m.Unlock();
 	return iIndex;
 }
 
@@ -187,9 +191,9 @@ size CSafeArrayBlock::AddIfUniqueKey(void* pvData, size iKeyOffset, size iKeySiz
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::Copy(CArrayBlock* pcTemplateArray)
 {
-	m.lock();
+	m.Lock();
 	c.Copy(pcTemplateArray);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -204,11 +208,11 @@ void CSafeArrayBlock::Copy(CSafeArrayBlock* pcTemplateArray)
 
 	iNumElements = pcTemplateArray->Copy(&cTemp);
 
-	m.lock();
+	m.Lock();
 	c.Resize(iNumElements);
 
 	memcpy(c.GetData(), cTemp.GetStackData(), iNumElements * c.ElementSize());
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -222,12 +226,12 @@ size CSafeArrayBlock::Copy(CStackMemory<>* pcTemp)
 	void*	pv;
 	size		iUsedElements;
 
-	m.lock();
+	m.Lock();
 	iByteSize = c.ByteSize();
 	iUsedElements = c.NumElements();
 	pv = pcTemp->Init(iByteSize);
 	memcpy(pv, c.GetData(), iByteSize);
-	m.unlock();
+	m.Unlock();
 	return iUsedElements;
 }
 
@@ -240,7 +244,7 @@ bool CSafeArrayBlock::Get(size iIndex, void* pvDest)
 {
 	void*	pv;
 
-	m.lock();
+	m.Lock();
 	pv = c.SafeGet(iIndex);
 	return MemcpyDestAndUnlock(pv, pvDest);
 }
@@ -254,7 +258,7 @@ bool CSafeArrayBlock::Tail(void* pvDest)
 {
 	void* pv;
 
-	m.lock();
+	m.Lock();
 	pv = c.Tail();
 	return MemcpyDestAndUnlock(pv, pvDest);
 }
@@ -266,9 +270,9 @@ bool CSafeArrayBlock::Tail(void* pvDest)
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::InsertAt(void* pvData, size iIndex)
 {
-	m.lock();
+	m.Lock();
 	c.InsertAt(pvData, iIndex);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -280,9 +284,9 @@ size CSafeArrayBlock::InsertIntoSorted(int(*fCompare)(const void*, const void*),
 {
 	size iIndex;
 
-	m.lock();
+	m.Lock();
 	iIndex = c.InsertIntoSorted(fCompare, pvData, bOverwriteExisting);
-	m.unlock();
+	m.Unlock();
 
 	return iIndex;
 }
@@ -296,9 +300,9 @@ bool CSafeArrayBlock::Pop(void* pvDest)
 {
 	bool	bResult;
 
-	m.lock();
+	m.Lock();
 	bResult = c.Pop(pvDest);
-	m.unlock();
+	m.Unlock();
 
 	return bResult;
 }
@@ -312,9 +316,9 @@ bool CSafeArrayBlock::Pop(void)
 {
 	bool	bResult;
 
-	m.lock();
+	m.Lock();
 	bResult = c.Pop();
-	m.unlock();
+	m.Unlock();
 
 	return bResult;
 }
@@ -326,9 +330,9 @@ bool CSafeArrayBlock::Pop(void)
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::Push(void* pvData)
 {
-	m.lock();
+	m.Lock();
 	c.Push(pvData);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -340,9 +344,9 @@ bool CSafeArrayBlock::PopFirst(void* pvDest)
 {
 	bool	bResult;
 
-	m.lock();
+	m.Lock();
 	bResult = c.PopFirst(pvDest);
-	m.unlock();
+	m.Unlock();
 
 	return bResult;
 }
@@ -356,9 +360,9 @@ bool CSafeArrayBlock::PopFirst(void)
 {
 	bool	bResult;
 
-	m.lock();
+	m.Lock();
 	bResult = c.PopFirst();
-	m.unlock();
+	m.Unlock();
 
 	return bResult;
 }
@@ -372,9 +376,9 @@ size CSafeArrayBlock::Resize(size iNumElements)
 {
 	size	iOldUsedElements;
 
-	m.lock();
+	m.Lock();
 	iOldUsedElements = c.Resize(iNumElements);
-	m.unlock();
+	m.Unlock();
 
 	return iOldUsedElements;
 }
@@ -386,9 +390,9 @@ size CSafeArrayBlock::Resize(size iNumElements)
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::BubbleSort(int(*fCompare)(const void*, const void*))
 {
-	m.lock();
+	m.Lock();
 	c.BubbleSort(fCompare);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -398,9 +402,9 @@ void CSafeArrayBlock::BubbleSort(int(*fCompare)(const void*, const void*))
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::QuickSort(int(*fCompare)(const void*, const void*))
 {
-	m.lock();
+	m.Lock();
 	c.QuickSort(fCompare);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -410,9 +414,9 @@ void CSafeArrayBlock::QuickSort(int(*fCompare)(const void*, const void*))
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::Reverse(void)
 {
-	m.lock();
+	m.Lock();
 	c.Reverse();
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -424,9 +428,9 @@ bool CSafeArrayBlock::Contains(void* pvData)
 {
 	bool	bResult;
 
-	m.lock();
+	m.Lock();
 	bResult = c.Contains(pvData);
-	m.unlock();
+	m.Unlock();
 
 	return bResult;
 }
@@ -440,9 +444,9 @@ size CSafeArrayBlock::Find(void* pvData)
 {
 	size		iIndex;
 
-	m.lock();
+	m.Lock();
 	iIndex = c.Find(pvData);
-	m.unlock();
+	m.Unlock();
 
 	return iIndex;
 }
@@ -456,9 +460,9 @@ bool CSafeArrayBlock::FindInSorted(void* pvData, int(*fCompare)(const void*, con
 {
 	bool bResult;
 
-	m.lock();
+	m.Lock();
 	bResult = c.FindInSorted(pvData, fCompare, piIndex);
-	m.unlock();
+	m.Unlock();
 
 	return bResult;
 }
@@ -470,9 +474,9 @@ bool CSafeArrayBlock::FindInSorted(void* pvData, int(*fCompare)(const void*, con
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::RemoveAt(size iIndex, bool bPreserveOrder)
 {
-	m.lock();
+	m.Lock();
 	c.RemoveAt(iIndex, bPreserveOrder);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -482,9 +486,9 @@ void CSafeArrayBlock::RemoveAt(size iIndex, bool bPreserveOrder)
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::RemoveRange(size iStartIndex, size iEndIndexExclusive, bool bPreserveOrder)
 {
-	m.lock();
+	m.Lock();
 	c.RemoveRange(iStartIndex, iEndIndexExclusive, bPreserveOrder);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -496,9 +500,9 @@ bool CSafeArrayBlock::RemoveTail(void)
 {
 	bool	bResult;
 
-	m.lock();
+	m.Lock();
 	bResult = c.RemoveTail();
-	m.unlock();
+	m.Unlock();
 
 	return bResult;
 }
@@ -510,9 +514,9 @@ bool CSafeArrayBlock::RemoveTail(void)
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::Set(size iIndex, void* pvData)
 {
-	m.lock();
+	m.Lock();
 	c.Set(iIndex, pvData);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -522,9 +526,9 @@ void CSafeArrayBlock::Set(size iIndex, void* pvData)
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::Swap(size iIndex1, size iIndex2)
 {
-	m.lock();
+	m.Lock();
 	c.Swap(iIndex1, iIndex2);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -534,9 +538,9 @@ void CSafeArrayBlock::Swap(size iIndex1, size iIndex2)
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::Zero(void)
 {
-	m.lock();
+	m.Lock();
 	c.Zero();
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -568,9 +572,9 @@ size CSafeArrayBlock::SetUsedElements(size iNumElements)
 {
 	size iOldUsedElements;
 
-	m.lock();
+	m.Lock();
 	iOldUsedElements = c.SetUsedElements(iNumElements);
-	m.unlock();
+	m.Unlock();
 
 	return iOldUsedElements;
 }
@@ -584,9 +588,9 @@ bool CSafeArrayBlock::SetChunkSize(size iChunkSize)
 {
 	bool	bResult;
 
-	m.lock();
+	m.Lock();
 	bResult = c.SetChunkSize(iChunkSize);
-	m.unlock();
+	m.Unlock();
 
 	return bResult;
 }
@@ -600,9 +604,9 @@ bool CSafeArrayBlock::Write(CFileWriter* pcFileWriter)
 {
 	bool	bResult;
 
-	m.lock();
+	m.Lock();
 	bResult = c.Write(pcFileWriter);
-	m.unlock();
+	m.Unlock();
 
 	return bResult;
 }
@@ -616,9 +620,10 @@ bool CSafeArrayBlock::Read(CFileReader* pcFileReader)
 {
 	bool	bResult;
 
-	m.lock();
+	m.Init();
+	m.Lock();
 	bResult = c.Read(pcFileReader);
-	m.unlock();
+	m.Unlock();
 
 	return bResult;
 }
@@ -633,12 +638,12 @@ bool CSafeArrayBlock::MemcpyDestAndUnlock(void* pvSource, void* pvDest)
 	if (pvSource != NULL)
 	{
 		memcpy(pvDest, pvSource, c.ElementSize());
-		m.unlock();
+		m.Unlock();
 		return true;
 	}
 	else
 	{
-		m.unlock();
+		m.Unlock();
 		return false;
 	}
 }

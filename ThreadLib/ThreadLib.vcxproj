@@ -193,6 +193,7 @@
     <ClInclude Include="SharedMemoryResult.h" />
     <ClInclude Include="SharedMemoryCoordinator.h" />
     <ClInclude Include="SharedMemoryFile.h" />
+    <ClInclude Include="NamedSharedObject_Linux.h" />
     <ClInclude Include="SharedMemoryQueue.h" />
     <ClInclude Include="StandAloneThreadStarter.h" />
     <ClInclude Include="Thread.h" />
@@ -201,7 +202,11 @@
     <ClInclude Include="ThreadStarter.h" />
     <ClInclude Include="ThreadState.h" />
     <ClInclude Include="ThreadStateNotifier.h" />
-    <ClInclude Include="VitsenityThreadPool.h" />
+    <ClInclude Include="AtomicInt.h" />
+    <ClInclude Include="Mutex.h" />
+    <ClInclude Include="ConditionVariable.h" />
+    <ClInclude Include="NativeThread.h" />
+    <ClInclude Include="WorkerThreadPool.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="InterProcessDone.cpp" />
@@ -222,9 +227,20 @@
     <ClCompile Include="SharedMemoryFile.cpp" />
     <ClCompile Include="SharedMemoryFile_Windows.cpp" />
     <ClCompile Include="SharedMemoryFile_Linux.cpp" />
+    <ClCompile Include="NamedSharedObject_Linux.cpp" />
     <ClCompile Include="SharedMemoryQueue.cpp" />
     <ClCompile Include="StandAloneThreadStarter.cpp" />
     <ClCompile Include="Thread.cpp" />
+    <ClCompile Include="AtomicInt_Windows.cpp" />
+    <ClCompile Include="AtomicInt_Linux.cpp" />
+    <ClCompile Include="Mutex_Windows.cpp" />
+    <ClCompile Include="Mutex_Linux.cpp" />
+    <ClCompile Include="ConditionVariable_Windows.cpp" />
+    <ClCompile Include="ConditionVariable_Linux.cpp" />
+    <ClCompile Include="NativeThread.cpp" />
+    <ClCompile Include="NativeThread_Windows.cpp" />
+    <ClCompile Include="NativeThread_Linux.cpp" />
+    <ClCompile Include="WorkerThreadPool.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="ThreadsDone.cpp" />
   </ItemGroup>

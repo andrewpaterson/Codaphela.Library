@@ -2005,7 +2005,7 @@ TRISTATE CTextParser::GetFloat(double* pf, bool bSkipWhitespace)
 					}
 
 					fRight = (double)ulliRight;
-					fTemp = pow(10.0L, -iNumDecimals);
+					fTemp = powl(10.0L, (long double)-iNumDecimals);
 					fRight *= fTemp;
 
 					if (fLeft >= 0)

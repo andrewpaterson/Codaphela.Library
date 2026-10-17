@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include <ctype.h>
-#include <cmath>
+#include <math.h>
 #include "PointerFunctions.h"
 #include "DataTypes.h"
 #include "EscapeCodes.h"
@@ -1326,8 +1326,8 @@ size NumberOfDigits(size uiNumber)
 		return 1;
 	}
 
-	f = log10(uiNumber);
-	f = floor(f) + 1;
+	f = log10((double)uiNumber);
+	f = floorl(f) + 1;
 
 	return (size)f;
 }

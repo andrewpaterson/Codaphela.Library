@@ -1,36 +1,19 @@
 #ifdef LINUX_GNU_32
-#include <atomic>
 #include <errno.h>
-#include <fcntl.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include "BaseLib/Logger.h"
 #include "BaseLib/LinuxError.h"
+#include "NamedSharedObject_Linux.h"
 #include "SharedMemoryFile.h"
 
 
-//A Windows file mapping is destroyed when its last handle is closed but a POSIX
-//shared memory name stays until it is unlinked.  The first page of the shared
-//memory counts the open handles so that the last Close can unlink the name.
-//The SSharedMemoryDescriptor and the memory follow that page.
-//
 //Windows file mappings are whole pages.  A view can grow into the rest of the
 //last page but MapViewOfFile fails past it; CResizableSharedMemory relies on
 //both (TestSharedMemory expects resizes within a page to keep the same file).
 //mmap succeeds past the end of the file and accessing it raises SIGBUS, so the
-//file is whole pages and Map checks the size itself.
-#define SHARED_MEMORY_HEADER_SIZE	4096
-#define SHARED_MEMORY_PAGE_SIZE		4096
-
-
-struct SLinuxSharedMemoryHeader
-{
-	std::atomic<int>	iHandles;
-};
-
-
+//file is whole pages (see CreateNamedSharedObject) and Map checks the size.
 struct SLinuxSharedMemoryFile
 {
 	int							iFile;
@@ -49,89 +32,6 @@ static_assert(sizeof(SLinuxSharedMemoryFile) <= SHARED_MEMORY_FILE_HANDLE_SIZE, 
 static SLinuxSharedMemoryFile* LinuxFile(uint8* paMapFile)
 {
 	return (SLinuxSharedMemoryFile*)paMapFile;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-static void LinuxSharedMemoryName(CChars* psz, char* szName)
-{
-	//POSIX shared memory names are a single '/' followed by no other '/'.
-	psz->Init(szName);
-	psz->Replace('/', '_');
-	psz->Insert(0, "/SharedMemory.");
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-static size_t RoundUpToPage(size_t uiSize)
-{
-	return ((uiSize + SHARED_MEMORY_PAGE_SIZE - 1) / SHARED_MEMORY_PAGE_SIZE) * SHARED_MEMORY_PAGE_SIZE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-static SLinuxSharedMemoryHeader* MapHeader(int iFile)
-{
-	void*	pvMemory;
-
-	pvMemory = mmap(NULL, SHARED_MEMORY_HEADER_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, iFile, 0);
-	if (pvMemory == MAP_FAILED)
-	{
-		return NULL;
-	}
-	return (SLinuxSharedMemoryHeader*)pvMemory;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-static void UnmapHeader(SLinuxSharedMemoryHeader* psHeader)
-{
-	munmap(psHeader, SHARED_MEMORY_HEADER_SIZE);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-static bool AddHandleIfOpen(int iFile)
-{
-	SLinuxSharedMemoryHeader*	psHeader;
-	int							iHandles;
-	bool						bAdded;
-
-	psHeader = MapHeader(iFile);
-	if (psHeader == NULL)
-	{
-		return false;
-	}
-
-	//A count of zero means the last handle was closed and the name is being unlinked.
-	bAdded = false;
-	iHandles = psHeader->iHandles.load();
-	while (iHandles > 0)
-	{
-		if (psHeader->iHandles.compare_exchange_weak(iHandles, iHandles + 1))
-		{
-			bAdded = true;
-			break;
-		}
-	}
-
-	UnmapHeader(psHeader);
-	return bAdded;
 }
 
 
@@ -180,7 +80,6 @@ SSharedMemoryResult CSharedMemoryFile::Create(size_t uiSize)
 {
 	size_t						iAdjustedSize;
 	SSharedMemoryDescriptor*	psDescriptor;
-	SLinuxSharedMemoryHeader*	psHeader;
 	SLinuxSharedMemoryFile*		psFile;
 	CChars						szName;
 	int							iFile;
@@ -195,8 +94,8 @@ SSharedMemoryResult CSharedMemoryFile::Create(size_t uiSize)
 		return SSharedMemoryResult(SMR_FileHandleAlreadySet);
 	}
 
-	LinuxSharedMemoryName(&szName, mszName);
-	iFile = shm_open(szName.Text(), O_RDWR | O_CREAT | O_EXCL, 0600);
+	NamedSharedObjectName(&szName, "SharedMemory.", mszName);
+	iFile = CreateNamedSharedObject(szName.Text(), iAdjustedSize);
 	if (iFile == -1)
 	{
 		iErrno = errno;
@@ -210,33 +109,13 @@ SSharedMemoryResult CSharedMemoryFile::Create(size_t uiSize)
 		return SSharedMemoryResult(SMR_CannotCreate);
 	}
 
-	if (ftruncate(iFile, SHARED_MEMORY_HEADER_SIZE + RoundUpToPage(iAdjustedSize)) == -1)
-	{
-		iErrno = errno;
-		close(iFile);
-		shm_unlink(szName.Text());
-		szName.Kill();
-		gcLogger.Warning2(__METHOD__, " Could not create file mapping object [", mszName, "].  Failed with [", LinuxErrorCodeToString(iErrno), "].", NULL);
-		return SSharedMemoryResult(SMR_CannotCreate);
-	}
-
-	psHeader = MapHeader(iFile);
 	psFile->iFile = iFile;
 	psDescriptor = Map(0);
-	if ((psDescriptor == NULL) || (psHeader == NULL))
+	if (psDescriptor == NULL)
 	{
 		iErrno = errno;
-		if (psDescriptor)
-		{
-			Unmap(psDescriptor);
-		}
-		if (psHeader)
-		{
-			UnmapHeader(psHeader);
-		}
-		close(iFile);
+		CloseNamedSharedObject(iFile, szName.Text());
 		psFile->iFile = -1;
-		shm_unlink(szName.Text());
 		szName.Kill();
 		gcLogger.Warning2(__METHOD__, " Could not map view of file  [", mszName, "].  Failed with [", LinuxErrorCodeToString(iErrno), "].", NULL);
 		return SSharedMemoryResult(SMR_CannotMap);
@@ -252,9 +131,7 @@ SSharedMemoryResult CSharedMemoryFile::Create(size_t uiSize)
 
 	Unmap(psDescriptor);
 
-	//Open fails until there is a handle so the descriptor is set before anyone can see it.
-	psHeader->iHandles.store(1);
-	UnmapHeader(psHeader);
+	PublishNamedSharedObject(iFile);
 
 	return SSharedMemoryResult(uiSize);
 }
@@ -271,7 +148,6 @@ SSharedMemoryResult CSharedMemoryFile::Open(void)
 	SLinuxSharedMemoryFile*		psFile;
 	CChars						szName;
 	int							iFile;
-	struct stat					sStat;
 
 	psFile = LinuxFile(maMapFile);
 	if (psFile->iFile != -1)
@@ -280,24 +156,11 @@ SSharedMemoryResult CSharedMemoryFile::Open(void)
 		return SSharedMemoryResult(SMR_FileHandleAlreadySet);
 	}
 
-	LinuxSharedMemoryName(&szName, mszName);
-	iFile = shm_open(szName.Text(), O_RDWR, 0600);
+	NamedSharedObjectName(&szName, "SharedMemory.", mszName);
+	iFile = OpenNamedSharedObject(szName.Text());
 	szName.Kill();
 	if (iFile == -1)
 	{
-		return SSharedMemoryResult(SMR_CannotOpen);
-	}
-
-	//A file that is still being created may not have its size yet.
-	if ((fstat(iFile, &sStat) == -1) || ((size_t)sStat.st_size < SHARED_MEMORY_HEADER_SIZE + sizeof(SSharedMemoryDescriptor)))
-	{
-		close(iFile);
-		return SSharedMemoryResult(SMR_CannotOpen);
-	}
-
-	if (!AddHandleIfOpen(iFile))
-	{
-		close(iFile);
 		return SSharedMemoryResult(SMR_CannotOpen);
 	}
 	psFile->iFile = iFile;
@@ -332,25 +195,14 @@ SSharedMemoryResult CSharedMemoryFile::Open(void)
 void CSharedMemoryFile::Close(void)
 {
 	SLinuxSharedMemoryFile*		psFile;
-	SLinuxSharedMemoryHeader*	psHeader;
 	CChars						szName;
 
 	psFile = LinuxFile(maMapFile);
 	if (psFile->iFile != -1)
 	{
-		psHeader = MapHeader(psFile->iFile);
-		if (psHeader)
-		{
-			if (psHeader->iHandles.fetch_sub(1) == 1)
-			{
-				LinuxSharedMemoryName(&szName, mszName);
-				shm_unlink(szName.Text());
-				szName.Kill();
-			}
-			UnmapHeader(psHeader);
-		}
-
-		close(psFile->iFile);
+		NamedSharedObjectName(&szName, "SharedMemory.", mszName);
+		CloseNamedSharedObject(psFile->iFile, szName.Text());
+		szName.Kill();
 		psFile->iFile = -1;
 	}
 }
@@ -377,13 +229,13 @@ SSharedMemoryDescriptor* CSharedMemoryFile::Map(size_t uiSize)
 		{
 			return NULL;
 		}
-		if (SHARED_MEMORY_HEADER_SIZE + iAdjustedSize > (size_t)sStat.st_size)
+		if (iAdjustedSize > (size_t)sStat.st_size)
 		{
 			errno = ENOMEM;
 			return NULL;
 		}
 
-		pvMemory = mmap(NULL, iAdjustedSize, PROT_READ | PROT_WRITE, MAP_SHARED, psFile->iFile, SHARED_MEMORY_HEADER_SIZE);
+		pvMemory = mmap(NULL, iAdjustedSize, PROT_READ | PROT_WRITE, MAP_SHARED, psFile->iFile, 0);
 		if (pvMemory == MAP_FAILED)
 		{
 			return NULL;
