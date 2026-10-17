@@ -179,6 +179,7 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="InterProcessCounter.h" />
     <ClInclude Include="InterProcessDone.h" />
     <ClInclude Include="InterProcessFlow.h" />
     <ClInclude Include="InterProcessHold.h" />
@@ -212,6 +213,7 @@
     <ClInclude Include="WorkerThreadPool.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="InterProcessCounter.cpp" />
     <ClCompile Include="InterProcessDone.cpp" />
     <ClCompile Include="InterProcessFlow.cpp" />
     <ClCompile Include="InterProcessHold.cpp" />
@@ -237,6 +239,7 @@
     <ClCompile Include="SharedMemoryQueue.cpp" />
     <ClCompile Include="StandAloneThreadStarter.cpp" />
     <ClCompile Include="Thread.cpp" />
+    <ClCompile Include="AtomicInt.cpp" />
     <ClCompile Include="AtomicInt_Windows.cpp" />
     <ClCompile Include="AtomicInt_Linux.cpp" />
     <ClCompile Include="Mutex_Windows.cpp" />

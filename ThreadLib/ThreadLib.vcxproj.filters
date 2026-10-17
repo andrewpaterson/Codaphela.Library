@@ -96,6 +96,9 @@
     <ClCompile Include="Thread.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
+    <ClCompile Include="AtomicInt.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
     <ClCompile Include="AtomicInt_Windows.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
@@ -188,6 +191,9 @@
     </ClCompile>
     <ClCompile Include="SharedMemory.cpp">
       <Filter>Source\SharedMemory</Filter>
+    </ClCompile>
+    <ClCompile Include="InterProcessCounter.cpp">
+      <Filter>Source\Process\Flow</Filter>
     </ClCompile>
     <ClCompile Include="InterProcessDone.cpp">
       <Filter>Source\Process\Flow</Filter>
@@ -283,6 +289,9 @@
     </ClInclude>
     <ClInclude Include="SharedMemoryDescriptor.h">
       <Filter>Source\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="InterProcessCounter.h">
+      <Filter>Source\Process\Flow</Filter>
     </ClInclude>
     <ClInclude Include="InterProcessDone.h">
       <Filter>Source\Process\Flow</Filter>

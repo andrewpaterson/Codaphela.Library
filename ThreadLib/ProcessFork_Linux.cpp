@@ -30,17 +30,14 @@ static void ReapProcess(void* pvProcess)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool ForkProcess(char* szCommandLineParameters, bool bWaitForProcessToExit)
+bool ForkProcess(CArrayChars* paszParameters, bool bWaitForProcessToExit)
 {
     char            szExecutable[PATH_MAX + 1];
     ssize_t         iLength;
-    CArrayChars     aszParameters;
     char**          aszArguments;
     CStackMemory<>  cArguments;
     size            uiNumParameters;
-    size            uiNumArguments;
     size            i;
-    char*           szParameter;
     pid_t           iProcess;
     int             iResult;
     CNativeThread   cReaper;
@@ -53,32 +50,19 @@ bool ForkProcess(char* szCommandLineParameters, bool bWaitForProcessToExit)
     }
     szExecutable[iLength] = '\0';
 
-    aszParameters.Init();
-    if (szCommandLineParameters)
-    {
-        aszParameters.Split(szCommandLineParameters, ' ');
-    }
-    uiNumParameters = aszParameters.NumElements();
-
-    //Like Windows command line parsing; runs of spaces separate parameters.
+    //argv is the program followed by the parameters, and ends with NULL.
+    uiNumParameters = paszParameters->NumElements();
     aszArguments = (char**)cArguments.Init((uiNumParameters + 2) * sizeof(char*));
     aszArguments[0] = szExecutable;
-    uiNumArguments = 1;
     for (i = 0; i < uiNumParameters; i++)
     {
-        szParameter = aszParameters.GetText(i);
-        if (szParameter[0] != '\0')
-        {
-            aszArguments[uiNumArguments] = szParameter;
-            uiNumArguments++;
-        }
+        aszArguments[i + 1] = paszParameters->GetText(i);
     }
-    aszArguments[uiNumArguments] = NULL;
+    aszArguments[uiNumParameters + 1] = NULL;
 
     // Start the child process.
     iResult = posix_spawn(&iProcess, szExecutable, NULL, NULL, aszArguments, environ);
     cArguments.Kill();
-    aszParameters.Kill();
     if (iResult != 0)
     {
         gcLogger.Error2(__METHOD__, "posix_spawn failed [", LinuxErrorCodeToString(iResult), "].", NULL);

@@ -1,31 +1,19 @@
 #ifndef __INTER_PROCESS_HOLD_H__
 #define __INTER_PROCESS_HOLD_H__
-#include "AtomicInt.h"
-#include "InterProcessFlow.h"
+#include "InterProcessCounter.h"
 
 
-struct SInterProcessWait
+//Holds other processes until it is Stopped.  The holding process Starts it,
+//the held processes Touch it and Wait.
+class CInterProcessHold : public CInterProcessCounter
 {
-	CAtomicInt	iWait;
-};
-
-
-class CInterProcessHold : public CInterProcessFlow
-{
-protected:
-	SInterProcessWait*	mpsWait;
-
 public:
-	void Init(char* szSharedMemoryName);
-	void Init(char* szSharedMemoryName, char* szSharedMemoryNamePostfix);
-	void Kill(void);
-
 	void Start(void);
-	void Touch(void);
-	void Wait(void);
+	bool Touch(void);
+	bool Wait(int iTimeoutMilliseconds = ATOMIC_WAIT_FOREVER);
 	void Stop(void);
 };
 
 
-#endif // __INTER_PROCESS_WAIT_H__
+#endif // __INTER_PROCESS_HOLD_H__
 

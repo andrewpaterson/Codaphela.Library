@@ -9,38 +9,92 @@
 
 //////////////////////////////////////////////////////////////////////////
 //
+//	Quotes szArgument the way the C runtime splits a command line back into
+//	argv: backslashes are literal unless they come before a quote.
 //
 //////////////////////////////////////////////////////////////////////////
-bool ForkProcess(char* szCommandLineParameters, bool bWaitForProcessToExit)
+void AppendQuotedArgument(CChars* psz, char* szArgument)
+{
+    size    uiBackslashes;
+    char*   pc;
+
+    if ((szArgument[0] != '\0') && (strpbrk(szArgument, " \t\"") == NULL))
+    {
+        psz->Append(szArgument);
+        return;
+    }
+
+    psz->Append('"');
+    uiBackslashes = 0;
+    for (pc = szArgument; *pc != '\0'; pc++)
+    {
+        if (*pc == '\\')
+        {
+            uiBackslashes++;
+        }
+        else if (*pc == '"')
+        {
+            psz->Append('\\', uiBackslashes * 2 + 1);
+            psz->Append('"');
+            uiBackslashes = 0;
+        }
+        else
+        {
+            psz->Append('\\', uiBackslashes);
+            psz->Append(*pc);
+            uiBackslashes = 0;
+        }
+    }
+    //Backslashes before the closing quote are doubled so it stays a quote.
+    psz->Append('\\', uiBackslashes * 2);
+    psz->Append('"');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool ForkProcess(CArrayChars* paszParameters, bool bWaitForProcessToExit)
 {
     CStackMemory<>          cTemp;
+    unsigned long           uiSize;
     unsigned long           uiLength;
-    unsigned long           uiError;
     CChars                  szCommandLine;
-    char* sz;
+    char*                   sz;
+    size                    uiNumParameters;
+    size                    i;
     STARTUPINFO             sStartUpInfo;
     PROCESS_INFORMATION     sProcessInformation;
 
+    //GetModuleFileName fills the whole buffer when the path does not fit.
+    uiSize = (unsigned long)cTemp.GetStackSize();
     sz = (char*)cTemp.Init();
-    uiLength = GetModuleFileName(NULL, sz, cTemp.GetStackSize());
-    uiError = GetLastError();
-    if (uiError == ERROR_INSUFFICIENT_BUFFER)
+    for (;;)
     {
-        sz = (char*)cTemp.Init(uiLength + 1);
-        uiLength = GetModuleFileName(NULL, sz, uiLength + 1);
+        uiLength = GetModuleFileName(NULL, sz, uiSize);
+        if (uiLength < uiSize)
+        {
+            break;
+        }
+        cTemp.Kill();
+        uiSize *= 2;
+        sz = (char*)cTemp.Init(uiSize);
     }
 
-    szCommandLine.Init(sz);
+    szCommandLine.Init();
+    AppendQuotedArgument(&szCommandLine, sz);
     cTemp.Kill();
 
     ZeroMemory(&sStartUpInfo, sizeof(STARTUPINFO));
     sStartUpInfo.cb = sizeof(STARTUPINFO);
     ZeroMemory(&sProcessInformation, sizeof(PROCESS_INFORMATION));
 
-    if (szCommandLineParameters)
+    uiNumParameters = paszParameters->NumElements();
+    for (i = 0; i < uiNumParameters; i++)
     {
         szCommandLine.Append(" ");
-        szCommandLine.Append(szCommandLineParameters);
+        AppendQuotedArgument(&szCommandLine, paszParameters->GetText(i));
     }
 
     // Start the child process. 
