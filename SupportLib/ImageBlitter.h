@@ -41,7 +41,7 @@ DESTRUCTABLE(CImageBlitter);
 protected:
 	CArrayImageRowBlitter		macRowBlitters;
 
-	Ptr<CImageCel>				mpSourceCel;
+	CImageCel*					mpcSourceCel;  //Not a reference.  Whoever uses this blitter must keep the cel alive.
 	Ptr<CImage>					mpDestImage;
 
 	CImageBlitterFormat			mcFormat;

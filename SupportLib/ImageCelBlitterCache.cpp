@@ -1,3 +1,4 @@
+#include "StandardLib/ClassDefines.h"
 #include "ImageCelBlitterCache.h"
 
 
@@ -9,20 +10,11 @@ void CImageCelBlitterCache::Init(Ptr<CImage> pDestImage)
 {
 	PreInit();
 
-	mmCelToBlitterMap.Init();
+	maBlitters.Init();
+	mapcCels.Init();
 	mpDestImage = pDestImage;
+
 	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CImageCelBlitterCache::Clear(Ptr<CImage> pDestImage)
-{
-	mmCelToBlitterMap.Clear();
-	mpDestImage = pDestImage;
 }
 
 
@@ -32,7 +24,8 @@ void CImageCelBlitterCache::Clear(Ptr<CImage> pDestImage)
 //////////////////////////////////////////////////////////////////////////
 void CImageCelBlitterCache::Class(void)
 {
-	M_Embedded(mmCelToBlitterMap);
+	M_Embedded(maBlitters);
+	U_Data(CArrayImageCelPtr, mapcCels);
 	M_Pointer(mpDestImage);
 }
 
@@ -43,6 +36,20 @@ void CImageCelBlitterCache::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CImageCelBlitterCache::Free(void)
 {
+	size			i;
+	CImageCel*		pcCel;
+
+	//maBlitters has already been freed so only the cels are touched.  A cel still listed has not been freed yet,
+	//because a freed cel sets its entry to NULL.
+	for (i = 0; i < mapcCels.NumElements(); i++)
+	{
+		pcCel = *mapcCels.Get(i);
+		if (pcCel)
+		{
+			pcCel->ForgetBlitterCache(this);
+		}
+	}
+	mapcCels.Kill();
 }
 
 
@@ -72,13 +79,14 @@ bool CImageCelBlitterCache::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel)
 {
-	Ptr<CImageBlitter>			pImageBlitter;
-	bool						bValid;
-	
+	Ptr<CImageBlitter>	pImageBlitter;
+	CImageCel*			pcCel;
+	bool				bValid;
+
 	ValidatePtr(pCel);
 
-	pImageBlitter = mmCelToBlitterMap.Get(pCel);
-	if (pImageBlitter)
+	pImageBlitter = GetImageBlitter(pCel);
+	if (pImageBlitter.IsNotNull())
 	{
 		return pImageBlitter;
 	}
@@ -95,7 +103,10 @@ Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel
 		return NULL;
 	}
 
-	mmCelToBlitterMap.Put(pCel, pImageBlitter);
+	pcCel = (CImageCel*)pCel.Object();
+	maBlitters.Add(pImageBlitter);
+	mapcCels.Add(&pcCel);
+	pcCel->AddBlitterCache(this);
 
 	return pImageBlitter;
 }
@@ -107,7 +118,15 @@ Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImageBlitter> CImageCelBlitterCache::GetImageBlitter(Ptr<CImageCel> pCel)
 {
-	return mmCelToBlitterMap.Get(pCel);
+	size	uiIndex;
+
+	RemoveForgottenBlitters();
+	uiIndex = FindCel((CImageCel*)pCel.Object());
+	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return NULL;
+	}
+	return maBlitters.Get(uiIndex);
 }
 
 
@@ -117,7 +136,18 @@ Ptr<CImageBlitter> CImageCelBlitterCache::GetImageBlitter(Ptr<CImageCel> pCel)
 //////////////////////////////////////////////////////////////////////////
 bool CImageCelBlitterCache::HasImageBlitter(Ptr<CImageCel> pCel)
 {
-	return mmCelToBlitterMap.Contains(pCel);
+	return GetImageBlitter(pCel).IsNotNull();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CImageCelBlitterCache::NumImageBlitters(void)
+{
+	RemoveForgottenBlitters();
+	return mapcCels.NumElements();
 }
 
 
@@ -134,6 +164,61 @@ bool CImageCelBlitterCache::Matches(Ptr<CImage> pImage)
 	else
 	{
 		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCelBlitterCache::ForgetCel(CImageCel* pcCel)
+{
+	size			uiIndex;
+	CImageCel**		ppcCel;
+
+	//The cel is being freed.  Its blitter is not removed here because that would free the blitter while the cel is
+	//still being freed, so it is only marked and removed the next time this cache is used.
+	uiIndex = FindCel(pcCel);
+	if (uiIndex != ARRAY_ELEMENT_NOT_FOUND)
+	{
+		ppcCel = mapcCels.Get(uiIndex);
+		*ppcCel = NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CImageCelBlitterCache::FindCel(CImageCel* pcCel)
+{
+	if (pcCel == NULL)
+	{
+		return ARRAY_ELEMENT_NOT_FOUND;
+	}
+	return mapcCels.Find(&pcCel);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCelBlitterCache::RemoveForgottenBlitters(void)
+{
+	size	i;
+
+	i = mapcCels.NumElements();
+	while (i > 0)
+	{
+		i--;
+		if (*mapcCels.Get(i) == NULL)
+		{
+			mapcCels.RemoveAt(i);
+			maBlitters.RemoveAt(i);
+		}
 	}
 }
 

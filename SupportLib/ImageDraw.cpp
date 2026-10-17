@@ -1,6 +1,7 @@
 #include "BaseLib/Logger.h"
 #include "ImageAccessorCreator.h"
 #include "ImageDraw.h"
+#include "ImageCelBlitterCache.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -207,12 +208,10 @@ void CImageDraw::DrawVerticalLine(int x, int y0, int y1)
 bool CImageDraw::DrawCel(int x, int y, Ptr<CImageCel> pCel, CRectangle* pcClip)
 {
 	Ptr<CImageBlitter>	pBlitter;
-	bool				bResult;
 
-	//The blitter clips to the destination image and to pcClip if it is not NULL.
-	pBlitter = OMalloc<CImageBlitter>(pCel, Ptr<CImage>(mpcImage));
-	bResult = pBlitter->Configure(&gcImageRowBlitterFactory);
-	if (!bResult)
+	//The destination image keeps the blitters that draw onto it.  The blitter clips to the destination image and to pcClip if it is not NULL.
+	pBlitter = mpcImage->GetBlitterCache()->CreateImageBlitter(pCel);
+	if (pBlitter.IsNull())
 	{
 		gcLogger.Error2(__METHOD__, " Cannot draw cel, the source and destination image formats do not match.", NULL);
 		return false;

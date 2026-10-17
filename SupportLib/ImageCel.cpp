@@ -26,6 +26,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageColour.h"
 #include "ColourARGB32.h"
 #include "ImageCel.h"
+#include "ImageCelBlitterCache.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -72,6 +73,7 @@ void CImageCel::Init(Ptr<CImage> pcSourceImage, int32 iLeft, int32 iTop, int32 i
 
 	mcSubImage.Init(iLeft, iTop, iRight, iBottom, iLeftOffset, iTopOffset, iRightOffset, iBottomOffset, iAlignment);
 	mpSourceImage = pcSourceImage;
+	mapcBlitterCaches.Init();
 
 	PostInit();
 }
@@ -83,6 +85,17 @@ void CImageCel::Init(Ptr<CImage> pcSourceImage, int32 iLeft, int32 iTop, int32 i
 //////////////////////////////////////////////////////////////////////////
 void CImageCel::Free(void)
 {
+	size					i;
+	CImageCelBlitterCache*	pcCache;
+
+	//A blitter does not keep its cel alive, so every cache holding a blitter for this cel must forget it now.
+	//A cache that is freed first takes itself off this list, so every cache still listed has not been freed.
+	for (i = 0; i < mapcBlitterCaches.NumElements(); i++)
+	{
+		pcCache = *mapcBlitterCaches.Get(i);
+		pcCache->ForgetCel(this);
+	}
+	mapcBlitterCaches.Kill();
 }
 
 
@@ -94,6 +107,7 @@ void CImageCel::Class(void)
 {
 	U_Data(CSubImage, mcSubImage);
 	M_Pointer(mpSourceImage);
+	U_Data(CArrayImageCelBlitterCachePtr, mapcBlitterCaches);
 }
 
 
@@ -125,6 +139,45 @@ void CImageCel::Copy(CImageCel* pcSource)
 {
 	mcSubImage = *pcSource->GetSubImage();
 	mpSourceImage = pcSource->GetSourceImage();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCel::AddBlitterCache(CImageCelBlitterCache* pcCache)
+{
+	if (mapcBlitterCaches.Find(&pcCache) == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		mapcBlitterCaches.Add(&pcCache);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCel::ForgetBlitterCache(CImageCelBlitterCache* pcCache)
+{
+	size	uiIndex;
+
+	uiIndex = mapcBlitterCaches.Find(&pcCache);
+	if (uiIndex != ARRAY_ELEMENT_NOT_FOUND)
+	{
+		mapcBlitterCaches.RemoveAt(uiIndex);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CImageCel::NumBlitterCaches(void)
+{
+	return mapcBlitterCaches.NumElements();
 }
 
 
