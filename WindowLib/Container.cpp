@@ -31,7 +31,9 @@ void CContainer::Init(Ptr<CWindow> pWindow)
 	PreInit();
 
 	CComponent::Init(pWindow);
-	msBounds.Init();
+	mcBounds.Init();
+	mcBounds.SetPos(-1, -1);
+	mcBounds.SetSize(-1, -1);
 
 	PostInit();
 }
@@ -54,7 +56,7 @@ void CContainer::Free(void)
 void CContainer::Class(void)
 {
 	CComponent::Class();
-	U_Data(SContainerBounds, msBounds);
+	U_Data(CRectangle, mcBounds);
 }
 
 
@@ -62,9 +64,9 @@ void CContainer::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CContainer::GetContainerBounds(SContainerBounds* psDest)
+bool CContainer::GetContainerBounds(CRectangle* pcDest)
 {
-	memcpy(psDest, &msBounds, sizeof(SContainerBounds));
+	pcDest->Init(&mcBounds);
 	return true;
 }
 
@@ -75,7 +77,7 @@ bool CContainer::GetContainerBounds(SContainerBounds* psDest)
 //////////////////////////////////////////////////////////////////////////
 void CContainer::SetContainerBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
-	SContainerBounds	sParentBounds;
+	CRectangle			cParentBounds;
 	int					iThisRight;
 	int					iThisBottom;
 	int					iThisLeft;
@@ -90,11 +92,11 @@ void CContainer::SetContainerBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	iThisTop = sPosition.y;
 	if (mpParent.IsNotNull())
 	{
-		bHasParentContainer = mpParent->GetContainerBounds(&sParentBounds);
+		bHasParentContainer = mpParent->GetContainerBounds(&cParentBounds);
 		if (bHasParentContainer)
 		{
-			iParentRight = sParentBounds.msSize.x + sParentBounds.msTopLeft.x;
-			iParentBottom = sParentBounds.msSize.y + sParentBounds.msTopLeft.y;
+			iParentRight = cParentBounds.GetRight();
+			iParentBottom = cParentBounds.GetBottom();
 
 			if (iThisRight > iParentRight)
 			{
@@ -105,21 +107,18 @@ void CContainer::SetContainerBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 				iThisBottom = iParentBottom;
 			}
 
-			if (iThisLeft < sParentBounds.msTopLeft.x)
+			if (iThisLeft < cParentBounds.GetLeft())
 			{
-				iThisLeft = sParentBounds.msTopLeft.x;
+				iThisLeft = cParentBounds.GetLeft();
 			}
-			if (iThisTop < sParentBounds.msTopLeft.y)
+			if (iThisTop < cParentBounds.GetTop())
 			{
-				iThisTop = sParentBounds.msTopLeft.y;
+				iThisTop = cParentBounds.GetTop();
 			}
 		}
 	}
 
-	msBounds.msSize.x = iThisRight - iThisLeft;
-	msBounds.msSize.y = iThisBottom - iThisTop;
-	msBounds.msTopLeft.x = iThisLeft;
-	msBounds.msTopLeft.y = iThisTop;
+	mcBounds.Init(iThisLeft, iThisTop, iThisRight, iThisBottom);
 }
 
 

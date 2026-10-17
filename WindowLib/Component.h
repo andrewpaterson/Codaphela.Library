@@ -9,7 +9,7 @@
 #include "Focus.h"
 #include "FocusListener.h"
 #include "ComponentListener.h"
-#include "ContainerBounds.h"
+#include "SupportLib/Rectangle.h"
 
 
 class CWindow;
@@ -36,7 +36,7 @@ public:
 
 	virtual	bool				Draw(void);
 			bool				DrawChildren(void);
-	virtual bool				GetContainerBounds(SContainerBounds* psDest);
+	virtual bool				GetContainerBounds(CRectangle* pcDest);
 
 			void				AddComponent(Ptr<CComponent> pComponent);
 			bool				RemoveComponent(Ptr<CComponent> pComponent);

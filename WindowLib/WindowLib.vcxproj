@@ -188,7 +188,6 @@
     <ClInclude Include="CanvasDraw.h" />
     <ClInclude Include="ComponentListener.h" />
     <ClInclude Include="Container.h" />
-    <ClInclude Include="ContainerBounds.h" />
     <ClInclude Include="ContainerStyles.h" />
     <ClInclude Include="FillContainer.h" />
     <ClInclude Include="FlowContainer.h" />
@@ -211,7 +210,6 @@
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="CanvasDraw.cpp" />
     <ClCompile Include="Container.cpp" />
-    <ClCompile Include="ContainerBounds.cpp" />
     <ClCompile Include="ContainerStyles.cpp" />
     <ClCompile Include="FillContainer.cpp" />
     <ClCompile Include="FlowContainer.cpp" />

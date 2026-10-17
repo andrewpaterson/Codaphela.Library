@@ -16,10 +16,13 @@
 //memory counts the open handles so that the last Close can unlink the name.
 //The SSharedMemoryDescriptor and the memory follow that page.
 //
-//A Windows view cannot be larger than the file mapping; MapViewOfFile fails.
-//mmap succeeds and accessing past the end raises SIGBUS so Map checks the size
-//itself.  CResizableSharedMemory relies on that failure to grow.
+//Windows file mappings are whole pages.  A view can grow into the rest of the
+//last page but MapViewOfFile fails past it; CResizableSharedMemory relies on
+//both (TestSharedMemory expects resizes within a page to keep the same file).
+//mmap succeeds past the end of the file and accessing it raises SIGBUS, so the
+//file is whole pages and Map checks the size itself.
 #define SHARED_MEMORY_HEADER_SIZE	4096
+#define SHARED_MEMORY_PAGE_SIZE		4096
 
 
 struct SLinuxSharedMemoryHeader
@@ -59,6 +62,16 @@ static void LinuxSharedMemoryName(CChars* psz, char* szName)
 	psz->Init(szName);
 	psz->Replace('/', '_');
 	psz->Insert(0, "/SharedMemory.");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static size_t RoundUpToPage(size_t uiSize)
+{
+	return ((uiSize + SHARED_MEMORY_PAGE_SIZE - 1) / SHARED_MEMORY_PAGE_SIZE) * SHARED_MEMORY_PAGE_SIZE;
 }
 
 
@@ -197,7 +210,7 @@ SSharedMemoryResult CSharedMemoryFile::Create(size_t uiSize)
 		return SSharedMemoryResult(SMR_CannotCreate);
 	}
 
-	if (ftruncate(iFile, SHARED_MEMORY_HEADER_SIZE + iAdjustedSize) == -1)
+	if (ftruncate(iFile, SHARED_MEMORY_HEADER_SIZE + RoundUpToPage(iAdjustedSize)) == -1)
 	{
 		iErrno = errno;
 		close(iFile);
@@ -207,15 +220,19 @@ SSharedMemoryResult CSharedMemoryFile::Create(size_t uiSize)
 		return SSharedMemoryResult(SMR_CannotCreate);
 	}
 
+	psHeader = MapHeader(iFile);
 	psFile->iFile = iFile;
 	psDescriptor = Map(0);
-	psHeader = MapHeader(iFile);
 	if ((psDescriptor == NULL) || (psHeader == NULL))
 	{
 		iErrno = errno;
 		if (psDescriptor)
 		{
 			Unmap(psDescriptor);
+		}
+		if (psHeader)
+		{
+			UnmapHeader(psHeader);
 		}
 		close(iFile);
 		psFile->iFile = -1;

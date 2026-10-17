@@ -76,7 +76,7 @@ SSharedMemoryFileName* CSharedMemoryCoordinator::Add(char* szName)
 	{
 		if (mpsDescriptor->iValidSharedMemoryIndex != -1)
 		{
-			return false;
+			return NULL;
 		}
 
 		sz.Init(szName);
@@ -85,7 +85,7 @@ SSharedMemoryFileName* CSharedMemoryCoordinator::Add(char* szName)
 		if (sz.Length() >= 64)
 		{
 			sz.Kill();
-			return false;
+			return NULL;
 		}
 
 		pcMemoryFile = &mpsDescriptor->macMemoryFiles[mpsDescriptor->iNumSharedMemoryFiles];
