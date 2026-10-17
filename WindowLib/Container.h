@@ -40,7 +40,7 @@ public:
 	void 	Free(void) override;
 
 	bool	GetContainerBounds(CRectangle* pcDest);
-	void	SetBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
+	void	SetContainerBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
 
 	void	Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 };
