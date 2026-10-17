@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "Logger.h"
 #include "FileUtil.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -167,10 +168,76 @@ bool CFileUtil::CompareSize(const char* szFilename1, const char* szFilename2)
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFileUtil::CopyDir(const char* szSource, const char* szDest)
+{
+	CChars	szFullSource;
+	CChars	szFullDest;
+	bool	bInside;
+
+	if (!IsDirectory(szSource))
+	{
+		return gcLogger.Error2(__METHOD__, " Source [", szSource, "] is not a directory.", NULL);
+	}
+
+	//Copying a directory into itself would never finish.
+	szFullSource.Init(szSource);
+	FullPath(&szFullSource);
+	szFullDest.Init(szDest);
+	FullPath(&szFullDest);
+	bInside = szFullDest.Equals(szFullSource.Text());
+	szFullSource.Append(FILE_SEPARATOR);
+	bInside |= szFullDest.StartsWith(szFullSource.Text());
+	szFullSource.Kill();
+	szFullDest.Kill();
+	if (bInside)
+	{
+		return gcLogger.Error2(__METHOD__, " Destination [", szDest, "] is inside source [", szSource, "].", NULL);
+	}
+
+	TouchDir(szDest, false);
+	if (!IsDirectory(szDest))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not create destination directory [", szDest, "].", NULL);
+	}
+	return RecurseCopyDir(szSource, szDest);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFileUtil::CopyDirEntry(const char* szSource, const char* szDest, bool bDirectory)
+{
+	if (bDirectory)
+	{
+		MakeDir(szDest);
+		if (!IsDirectory(szDest))
+		{
+			return gcLogger.Error2(__METHOD__, " Could not create directory [", szDest, "].", NULL);
+		}
+		return RecurseCopyDir(szSource, szDest);
+	}
+	else
+	{
+		//Copy treats a source it cannot open as deleted and removes the destination, so check the destination exists.
+		if (!Copy(szSource, szDest) || !Exists(szDest))
+		{
+			return gcLogger.Error2(__METHOD__, " Could not copy file [", szSource, "] to [", szDest, "].", NULL);
+		}
+		return true;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CFileUtil::SyncParentDirectory(const char* szFilename)
 {
 	CChars	szDirectory;

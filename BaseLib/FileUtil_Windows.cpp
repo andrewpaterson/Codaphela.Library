@@ -103,7 +103,7 @@ bool CFileUtil::RemoveDir(const char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFileUtil::CopyDir(const char* szSource, const char* szDest)
+bool CFileUtil::RecurseCopyDir(const char* szSource, const char* szDest)
 {
 	WIN32_FIND_DATA		sFindData;
 	CChars				szFindName;
@@ -111,7 +111,8 @@ bool CFileUtil::CopyDir(const char* szSource, const char* szDest)
 	CChars				szDestTemp;
 	HANDLE				hFindHandle;
 	bool				bContinue;
-	bool				bValid;
+	bool				bResult;
+	bool				bDirectory;
 	CChars				szSourceDirectory;
 	CChars				szDestDirectory;
 
@@ -120,32 +121,20 @@ bool CFileUtil::CopyDir(const char* szSource, const char* szDest)
 	szDestDirectory.Init(szDest);
 	RemoveLastSeparator(&szDestDirectory);
 
-	szFindName.Init(szSource);
+	szFindName.Init(szSourceDirectory);
 	AppendToPath(&szFindName, "*.*");
 
+	bResult = true;
 	hFindHandle = FindFirstFile(szFindName.Text(), &sFindData);
-	bContinue = (hFindHandle != INVALID_HANDLE_VALUE);
+	if (hFindHandle == INVALID_HANDLE_VALUE)
+	{
+		bResult = gcLogger.Error2(__METHOD__, " Could not read directory [", szSourceDirectory.Text(), "].", NULL);
+	}
+	bContinue = bResult;
 	while (bContinue)
 	{
-		bValid = true;
-		if (sFindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-		{
-			if (!((StringCompare(sFindData.cFileName, ".") == 0) || (StringCompare(sFindData.cFileName, "..") == 0)))
-			{
-				szSourceTemp.Init(szSourceDirectory);
-				szDestTemp.Init(szDestDirectory);
-
-				AppendToPath(&szSourceTemp, sFindData.cFileName);
-				AppendToPath(&szDestTemp, sFindData.cFileName);
-				
-				MakeDir(szDestTemp.Text());
-				CopyDir(szSourceTemp.Text(), szDestTemp.Text());
-
-				szSourceTemp.Kill();
-				szDestTemp.Kill();
-			}
-		}
-		else
+		bDirectory = (sFindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+		if (!((StringCompare(sFindData.cFileName, ".") == 0) || (StringCompare(sFindData.cFileName, "..") == 0)))
 		{
 			szSourceTemp.Init(szSourceDirectory);
 			szDestTemp.Init(szDestDirectory);
@@ -153,19 +142,35 @@ bool CFileUtil::CopyDir(const char* szSource, const char* szDest)
 			AppendToPath(&szSourceTemp, sFindData.cFileName);
 			AppendToPath(&szDestTemp, sFindData.cFileName);
 
-			Copy(szSourceTemp.Text(), szDestTemp.Text());
-			
+			bResult = CopyDirEntry(szSourceTemp.Text(), szDestTemp.Text(), bDirectory);
+
 			szSourceTemp.Kill();
 			szDestTemp.Kill();
 		}
-		bContinue = FindNextFile(hFindHandle, &sFindData);
+		bContinue = bResult && FindNextFile(hFindHandle, &sFindData);
 	}
-	FindClose(hFindHandle);
+	if (hFindHandle != INVALID_HANDLE_VALUE)
+	{
+		FindClose(hFindHandle);
+	}
 
 	szSourceDirectory.Kill();
 	szDestDirectory.Kill();
 	szFindName.Kill();
-	return true;
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFileUtil::IsDirectory(const char* szPathName)
+{
+	DWORD	dwAttributes;
+
+	dwAttributes = GetFileAttributes(szPathName);
+	return (dwAttributes != INVALID_FILE_ATTRIBUTES) && ((dwAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0);
 }
 
 

@@ -159,7 +159,7 @@ bool CFileUtil::RecurseRemoveDir(const char*szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFileUtil::CopyDir(const char* szSource, const char* szDest)
+bool CFileUtil::RecurseCopyDir(const char* szSource, const char* szDest)
 {
 	DIR*				pDIR;
 	struct dirent*		pDirEnt;
@@ -167,18 +167,19 @@ bool CFileUtil::CopyDir(const char* szSource, const char* szDest)
 	CChars				szDestTemp;
 	CChars				szSourceDirectory;
 	CChars				szDestDirectory;
-	struct stat			sBuffer;
+	bool				bResult;
 
 	szSourceDirectory.Init(szSource);
 	RemoveLastSeparator(&szSourceDirectory);
 	szDestDirectory.Init(szDest);
 	RemoveLastSeparator(&szDestDirectory);
 
+	bResult = true;
 	pDIR = opendir(szSourceDirectory.Text());
 	if (pDIR != NULL)
 	{
 		pDirEnt = readdir(pDIR);
-		while (pDirEnt != NULL)
+		while ((pDirEnt != NULL) && bResult)
 		{
 			if (!((StringCompare(pDirEnt->d_name, ".") == 0) || (StringCompare(pDirEnt->d_name, "..") == 0)))
 			{
@@ -188,15 +189,7 @@ bool CFileUtil::CopyDir(const char* szSource, const char* szDest)
 				AppendToPath(&szSourceTemp, pDirEnt->d_name);
 				AppendToPath(&szDestTemp, pDirEnt->d_name);
 
-				if ((stat(szSourceTemp.Text(), &sBuffer) == 0) && S_ISDIR(sBuffer.st_mode))
-				{
-					MakeDir(szDestTemp.Text());
-					CopyDir(szSourceTemp.Text(), szDestTemp.Text());
-				}
-				else
-				{
-					Copy(szSourceTemp.Text(), szDestTemp.Text());
-				}
+				bResult = CopyDirEntry(szSourceTemp.Text(), szDestTemp.Text(), IsDirectory(szSourceTemp.Text()));
 
 				szSourceTemp.Kill();
 				szDestTemp.Kill();
@@ -205,10 +198,26 @@ bool CFileUtil::CopyDir(const char* szSource, const char* szDest)
 		}
 		closedir(pDIR);
 	}
+	else
+	{
+		bResult = gcLogger.Error2(__METHOD__, " Could not read directory [", szSourceDirectory.Text(), "].", NULL);
+	}
 
 	szSourceDirectory.Kill();
 	szDestDirectory.Kill();
-	return true;
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFileUtil::IsDirectory(const char* szPathName)
+{
+	struct stat		sBuffer;
+
+	return (stat(szPathName, &sBuffer) == 0) && S_ISDIR(sBuffer.st_mode);
 }
 
 

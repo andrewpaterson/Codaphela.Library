@@ -45,6 +45,7 @@ public:
 	bool    SyncDirectory(const char* szDirectory);
 	bool    SyncParentDirectory(const char* szFilename);
 	bool    Exists(const char* szFilename);
+	bool    IsDirectory(const char* szPathName);
 	bool    Compare(const char* szFilename1, const char* szFilename2);
 	bool	CompareSize(const char* szFilename1, const char* szFilename2);
 
@@ -84,6 +85,8 @@ public:
 
 private:
 	bool    RecurseRemoveDir(const char* szPathName);
+	bool    RecurseCopyDir(const char* szSource, const char* szDest);
+	bool    CopyDirEntry(const char* szSource, const char* szDest, bool bDirectory);
 	bool	FindFiles(const char* szPathName, bool bDirectories, const char* szInName, const char* szExtension, CArrayChars* paszFiles, bool bHidden);
 	bool	RecurseFindFiles(const char* szPathName, const char* szInName, const char* szExtension, CArrayChars* paszFiles, bool bHidden);
 	bool	Compare(const char* szFilename1, const char* szFilename2, bool bSizeOnly);
