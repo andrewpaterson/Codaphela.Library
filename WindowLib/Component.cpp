@@ -148,12 +148,12 @@ size CComponent::NumComponents(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CComponent::GetContainerBounds(SContainerBounds* psDest)
+bool CComponent::GetContainerBounds(CRectangle* pcDest)
 {
 	//The only way the function can be called is if the component is not a container.
 	if (mpParent)
 	{
-		return mpParent->GetContainerBounds(psDest);
+		return mpParent->GetContainerBounds(pcDest);
 	}
 	return false;
 }

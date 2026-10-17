@@ -69,9 +69,6 @@
     <ClInclude Include="Component.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
-    <ClInclude Include="ContainerBounds.h">
-      <Filter>Source\Component\Container</Filter>
-    </ClInclude>
     <ClInclude Include="Container.h">
       <Filter>Source\Component\Container</Filter>
     </ClInclude>
@@ -163,9 +160,6 @@
     </ClCompile>
     <ClCompile Include="Insets.cpp">
       <Filter>Source\Component\Inset</Filter>
-    </ClCompile>
-    <ClCompile Include="ContainerBounds.cpp">
-      <Filter>Source\Component\Container</Filter>
     </ClCompile>
     <ClCompile Include="ContainerStyles.cpp">
       <Filter>Source\Component\Container</Filter>
