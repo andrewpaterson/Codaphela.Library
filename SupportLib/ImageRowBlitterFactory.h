@@ -42,15 +42,16 @@ protected:
 	CImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha	mcImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha;
 
 public:
-	void					Init(void);
-	void					Kill(void);
-
 	CBaseImageRowBlitter*	CreateImageRowBlitterContiguous(void);
 	CBaseImageRowBlitter*	CreateImageRowBlitterByteAlignedOpaque(void);
 	CBaseImageRowBlitter*	CreateImageRowBlitterByteAlignedOpaqueDestAlpha(void);
 	CBaseImageRowBlitter*	CreateImageRowBlitterRGBByteAlphaByteTranslucent(void);
 	CBaseImageRowBlitter*	CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(void);
 };
+
+
+//Every CImageBlitter keeps pointers to the row blitters the factory holds so there is one factory that outlives them all.
+extern CImageRowBlitterFactory	gcImageRowBlitterFactory;
 
 
 typedef CBaseImageRowBlitter* (CImageRowBlitterFactory::*CreateImageRowBlitterFunc)(void);

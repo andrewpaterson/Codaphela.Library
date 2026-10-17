@@ -74,7 +74,6 @@ Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel
 {
 	Ptr<CImageBlitter>			pImageBlitter;
 	bool						bValid;
-	CImageRowBlitterFactory		cRowBlitterFactory;
 	
 	ValidatePtr(pCel);
 
@@ -90,9 +89,7 @@ Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel
 		return NULL;
 	}
 
-	cRowBlitterFactory.Init();
-	bValid = pImageBlitter->Configure(&cRowBlitterFactory);
-	cRowBlitterFactory.Kill();
+	bValid = pImageBlitter->Configure(&gcImageRowBlitterFactory);
 	if (!bValid)
 	{
 		return NULL;
