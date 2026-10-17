@@ -7,6 +7,7 @@
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/Logger.h"
+#include "BaseLib/StackMemory.h"
 #include "BaseLib/LinuxError.h"
 #include "NativeThread.h"
 #include "ProcessFork.h"
@@ -35,6 +36,7 @@ bool ForkProcess(char* szCommandLineParameters, bool bWaitForProcessToExit)
     ssize_t         iLength;
     CArrayChars     aszParameters;
     char**          aszArguments;
+    CStackMemory<>  cArguments;
     size            uiNumParameters;
     size            uiNumArguments;
     size            i;
@@ -59,7 +61,7 @@ bool ForkProcess(char* szCommandLineParameters, bool bWaitForProcessToExit)
     uiNumParameters = aszParameters.NumElements();
 
     //Like Windows command line parsing; runs of spaces separate parameters.
-    aszArguments = (char**)malloc((uiNumParameters + 2) * sizeof(char*));
+    aszArguments = (char**)cArguments.Init((uiNumParameters + 2) * sizeof(char*));
     aszArguments[0] = szExecutable;
     uiNumArguments = 1;
     for (i = 0; i < uiNumParameters; i++)
@@ -75,7 +77,7 @@ bool ForkProcess(char* szCommandLineParameters, bool bWaitForProcessToExit)
 
     // Start the child process.
     iResult = posix_spawn(&iProcess, szExecutable, NULL, NULL, aszArguments, environ);
-    free(aszArguments);
+    cArguments.Kill();
     aszParameters.Kill();
     if (iResult != 0)
     {

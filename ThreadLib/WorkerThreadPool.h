@@ -1,5 +1,7 @@
 #ifndef __WORKER_THREAD_POOL_H__
 #define __WORKER_THREAD_POOL_H__
+#include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/LinkedListTemplate.h"
 #include "Mutex.h"
 #include "ConditionVariable.h"
 #include "NativeThread.h"
@@ -13,7 +15,6 @@ struct SWorkerTask
 {
 	WorkerFunction	fFunction;
 	void*			pvData;
-	SWorkerTask*	psNext;
 };
 
 
@@ -30,15 +31,13 @@ struct SWorkerThread
 class CWorkerThreadPool
 {
 protected:
-	CMutex				mcMutex;
-	CConditionVariable	mcWake;
-	SWorkerThread*		masThreads;
-	int					miNumThreads;
-	SWorkerTask*		mpsHead;
-	SWorkerTask*		mpsTail;
-	int					miNumIdle;
-	bool				mbDone;
-	bool				mbStop;
+	CMutex								mcMutex;
+	CConditionVariable					mcWake;
+	CArrayTemplate<SWorkerThread>		macThreads;
+	CLinkedListTemplate<SWorkerTask>	mcTasks;
+	int									miNumIdle;
+	bool								mbDone;
+	bool								mbStop;
 
 public:
 	void	Init(void);
@@ -57,8 +56,8 @@ public:
 	void	Work(int iThreadId);
 
 protected:
-	SWorkerTask*	PopTask(void);
-	void			ClearTasks(void);
+	bool	PopTask(SWorkerTask* psTask);
+	void	ClearTasks(void);
 };
 
 
