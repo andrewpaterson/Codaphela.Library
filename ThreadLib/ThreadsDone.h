@@ -10,7 +10,7 @@ public:
 	CAtomicInt	miThreadsStopped;
 
 	void Init(void);
-	void Wait(int iCount);
+	bool Wait(int iCount, int iTimeoutMilliseconds = ATOMIC_WAIT_FOREVER);
 
 protected:
 	void ThreadStateChanged(CThread* pcThread, EThreadState eState);

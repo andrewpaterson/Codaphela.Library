@@ -1,37 +1,4 @@
-#include "NativeThread.h"
 #include "InterProcessHold.h"
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CInterProcessHold::Init(char* szSharedMemoryName)
-{
-	CInterProcessFlow::Init(szSharedMemoryName);
-	mpsWait = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CInterProcessHold::Init(char* szSharedMemoryName, char* szSharedMemoryNamePostfix)
-{
-	CInterProcessFlow::Init(szSharedMemoryName, szSharedMemoryNamePostfix);
-	mpsWait = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CInterProcessHold::Kill(void)
-{
-	CInterProcessFlow::Kill();
-}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -40,8 +7,7 @@ void CInterProcessHold::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CInterProcessHold::Start(void)
 {
-	mpsWait = (SInterProcessWait*)mcSharedMemory.Create(sizeof(SInterProcessWait));
-	mpsWait->iWait.Set(true);
+	Create();
 }
 
 
@@ -49,9 +15,9 @@ void CInterProcessHold::Start(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInterProcessHold::Touch(void)
+bool CInterProcessHold::Touch(void)
 {
-	mpsWait = (SInterProcessWait*)mcSharedMemory.Open();
+	return Open();
 }
 
 
@@ -59,12 +25,9 @@ void CInterProcessHold::Touch(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInterProcessHold::Wait(void)
+bool CInterProcessHold::Wait(int iTimeoutMilliseconds)
 {
-	while (mpsWait->iWait.Get())
-	{
-		ThreadYield();
-	}
+	return WaitUntilAtLeast(1, iTimeoutMilliseconds);
 }
 
 
@@ -74,6 +37,6 @@ void CInterProcessHold::Wait(void)
 //////////////////////////////////////////////////////////////////////////
 void CInterProcessHold::Stop(void)
 {
-	mpsWait->iWait.Set(false);
+	Increment();
 }
 

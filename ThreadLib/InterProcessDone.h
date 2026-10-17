@@ -1,32 +1,19 @@
 #ifndef __INTER_PROCESS_DONE_H__
 #define __INTER_PROCESS_DONE_H__
-#include "AtomicInt.h"
-#include "InterProcessFlow.h"
+#include "InterProcessCounter.h"
 
 
-struct SInterProcessDone
+//Counts the processes that have finished.  The waiting process Starts it,
+//each other process Opens it and calls Stop when it is done.
+class CInterProcessDone : public CInterProcessCounter
 {
-	CAtomicInt	iDone;
-};
-
-
-class CInterProcessDone : public CInterProcessFlow
-{
-protected:
-	SInterProcessDone*	mpsDone;
-
 public:
-	void Init(char* szSharedMemoryName);
-	void Init(char* szSharedMemoryName, char* szSharedMemoryNamePostfix);
-	void Kill(void);
-
 	void Start(void);
-	void Open(void);
 	bool IsDone(int iCount);
-	void Wait(int iCount);
+	bool Wait(int iCount, int iTimeoutMilliseconds = ATOMIC_WAIT_FOREVER);
 	void Stop(void);
 };
 
 
-#endif // __INTER_PROCESS_WAIT_H__
+#endif // __INTER_PROCESS_DONE_H__
 

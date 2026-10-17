@@ -1,4 +1,4 @@
-#include "NativeThread.h"
+#include <stddef.h>
 #include "ThreadsDone.h"
 
 
@@ -29,11 +29,8 @@ void CThreadsDone::ThreadStateChanged(CThread* pcThread, EThreadState eState)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CThreadsDone::Wait(int iCount)
+bool CThreadsDone::Wait(int iCount, int iTimeoutMilliseconds)
 {
-	while (miThreadsStopped.Get() < iCount)
-	{
-		ThreadYield();
-	}
+	return miThreadsStopped.WaitUntilAtLeast(iCount, iTimeoutMilliseconds);
 }
 
