@@ -32,8 +32,6 @@ void CImageCanvasDraw::Init(Ptr<CImageCel> pCel)
 	PreInit();
 	CCanvasDraw::Init();
 	mpCel = pCel;
-	mpBlitterCache = NULL;
-	mpBlitter = NULL;
 	mpDestImage = NULL;
 	PostInit();
 }
@@ -47,8 +45,6 @@ void CImageCanvasDraw::Class(void)
 {
 	CCanvasDraw::Class();
 	M_Pointer(mpCel);
-	M_Pointer(mpBlitterCache);
-	M_Pointer(mpBlitter);
 	M_Pointer(mpDestImage);
 }
 
@@ -94,6 +90,7 @@ bool CImageCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 	SInt32Vec2		sSize;
 	bool			bResult;
 	Ptr<CImage>		pImage;
+	Ptr<CImageBlitter>	pBlitter;
 
 	if (!pCanvas->IsValid() || mpCel.IsNull())
 	{
@@ -122,28 +119,14 @@ bool CImageCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 		mpDestImage = NULL;
 	}
 
-	//A blitter is tied to its destination image so it must be recreated when the destination changes.
-	if (mpBlitterCache.IsNull())
+	//The image being drawn onto keeps the blitters that draw onto it, so a new image starts with new blitters.
+	pBlitter = pImage->GetBlitterCache()->CreateImageBlitter(mpCel);
+	if (pBlitter.IsNull())
 	{
-		mpBlitterCache = OMalloc<CImageCelBlitterCache>(pImage);
-		mpBlitter = NULL;
-	}
-	else if (!mpBlitterCache->Matches(pImage))
-	{
-		mpBlitterCache->Clear(pImage);
-		mpBlitter = NULL;
+		return false;
 	}
 
-	if (mpBlitter.IsNull())
-	{
-		mpBlitter = mpBlitterCache->CreateImageBlitter(mpCel);
-		if (mpBlitter.IsNull())
-		{
-			return false;
-		}
-	}
-
-	bResult = mpBlitter->Blit(0, 0);
+	bResult = pBlitter->Blit(0, 0);
 
 	if (mpDestImage.IsNotNull())
 	{

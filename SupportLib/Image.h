@@ -47,6 +47,7 @@ struct SImageChangingDesc
 };
 
 
+class CImageCelBlitterCache;
 class CImage : public CObject
 {
 friend class CImageCopier;
@@ -60,6 +61,7 @@ public:
 	int						miWidth;
 	int						miHeight;
 	SImageChangingDesc*		mpsImageChangingDesc;
+	Ptr<CImageCelBlitterCache>	mpBlitterCache;  //The blitters that draw onto this image.  Not a clean place for it; another cache like it would need a better way to attach to images.
 
 public:
 	void					Init(void);
@@ -102,6 +104,8 @@ public:
 	bool					RenameChannel(size iOldName, size iNewName);
 	bool 					EndChange(void);
 	bool					IsChanging(void);
+
+	Ptr<CImageCelBlitterCache>	GetBlitterCache(void);
 
 	void					Copy(Ptr<CImage> pcSource);
 	void					CopyIntoInitialised(Ptr<CImage> pcSource);

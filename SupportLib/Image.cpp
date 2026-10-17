@@ -39,6 +39,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "SubImage.h"
 #include "ImageAccessorCreator.h"
 #include "Image.h"
+#include "ImageCelBlitterCache.h"
 
 
 
@@ -52,6 +53,7 @@ void CImage::PrivateInit(void)
 	miWidth = 0;
 	miHeight = 0;
 	mpsImageChangingDesc = NULL;
+	mpBlitterCache = NULL;
 }
 
 
@@ -309,6 +311,7 @@ void CImage::Class(void)
 	U_SInt(miWidth);
 	U_SInt(miHeight);
 	U_Pointer(mpsImageChangingDesc);
+	M_Pointer(mpBlitterCache);
 }
 
 
@@ -331,6 +334,7 @@ void CImage::Free(void)
 void CImage::ReInit(void)
 {
 	Free();
+	mpBlitterCache = NULL;  //The blitters were made for the image as it was.
 	mcChannels.ReInit();
 }
 
@@ -640,6 +644,7 @@ bool CImage::EndChange(void)
 		miHeight = mpsImageChangingDesc->iHeight;
 		bResult = mcChannels.EndChange();
 		SafeFree(mpsImageChangingDesc);
+		mpBlitterCache = NULL;  //The blitters were made for the image as it was.
 
 		if ((miWidth > 0) && (miHeight > 0) && (mcChannels.GetChannelOffsets()->NumElements() > 0) && (mcChannels.GetData() == NULL))
 		{
@@ -697,6 +702,22 @@ void CImage::Copy(Ptr<CImage> pcSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+Ptr<CImageCelBlitterCache> CImage::GetBlitterCache(void)
+{
+	//The blitters that draw onto this image.  The cache is created when first needed and dropped whenever the image's
+	//size or format changes because a blitter only works for the image it was made for.
+	if (mpBlitterCache.IsNull())
+	{
+		mpBlitterCache = OMalloc<CImageCelBlitterCache>(this);
+	}
+	return mpBlitterCache;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CImage::CopyIntoInitialised(Ptr<CImage> pcSource)
 {
 	//This assumes Image IS initialised.
@@ -715,6 +736,7 @@ void CImage::CopyIntoInitialised(Ptr<CImage> pcSource)
 	}
 
 	mcChannels.CopyIntoInitialised(&pcSource->mcChannels);
+	mpBlitterCache = NULL;  //The blitters were made for the image as it was.
 }
 
 //////////////////////////////////////////////////////////////////////////
