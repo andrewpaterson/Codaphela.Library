@@ -72,7 +72,35 @@ void CSocket::Init(int iPort)
 //////////////////////////////////////////////////////////////////////////
 void CSocket::Kill(void)
 {
+	Close();
 	mszPortNumber.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSocket::Close(void)
+{
+	SOCKET	hSocket;
+
+	hSocket = GetSocketHandle(maSocket);
+	if (hSocket != INVALID_SOCKET)
+	{
+		closesocket(hSocket);
+		SetSocketHandle(maSocket, INVALID_SOCKET);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSocket::IsOpen(void)
+{
+	return GetSocketHandle(maSocket) != INVALID_SOCKET;
 }
 
 
@@ -114,6 +142,118 @@ int CSocket::Send(void* pvBuffer, int iBufferLength)
 	else
 	{
 		return iSendResult;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSocket::ReceiveAll(void* pvBuffer, int iLength)
+{
+	int		iResult;
+	char*	pcBuffer;
+
+	pcBuffer = (char*)pvBuffer;
+	while (iLength > 0)
+	{
+		iResult = recv(GetSocketHandle(maSocket), pcBuffer, iLength, 0);
+		if (iResult > 0)
+		{
+			pcBuffer += iResult;
+			iLength -= iResult;
+		}
+		else
+		{
+			//0 is the other end closing the connection.
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSocket::SendAll(void* pvBuffer, int iLength)
+{
+	int		iResult;
+	char*	pcBuffer;
+
+	pcBuffer = (char*)pvBuffer;
+	while (iLength > 0)
+	{
+		iResult = send(GetSocketHandle(maSocket), pcBuffer, iLength, 0);
+		if (iResult > 0)
+		{
+			pcBuffer += iResult;
+			iLength -= iResult;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSocket::SetNoDelay(bool bNoDelay)
+{
+	BOOL	bValue;
+
+	bValue = bNoDelay ? TRUE : FALSE;
+	return setsockopt(GetSocketHandle(maSocket), IPPROTO_TCP, TCP_NODELAY, (char*)&bValue, sizeof(bValue)) == 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CSocket::WaitForData(int iTimeoutMilliseconds)
+{
+	fd_set		sReadSet;
+	timeval		sTimeout;
+	timeval*	psTimeout;
+	int			iResult;
+
+	FD_ZERO(&sReadSet);
+	FD_SET(GetSocketHandle(maSocket), &sReadSet);
+	if (iTimeoutMilliseconds == SOCKET_WAIT_FOREVER)
+	{
+		psTimeout = NULL;
+	}
+	else
+	{
+		sTimeout.tv_sec = iTimeoutMilliseconds / 1000;
+		sTimeout.tv_usec = (iTimeoutMilliseconds % 1000) * 1000;
+		psTimeout = &sTimeout;
+	}
+
+	iResult = select(0, &sReadSet, NULL, NULL, psTimeout);
+	if (iResult > 0)
+	{
+		return SOCKET_WAIT_READY;
+	}
+	else if (iResult == 0)
+	{
+		return SOCKET_WAIT_TIMEOUT;
+	}
+	else
+	{
+		return SOCKET_WAIT_ERROR;
 	}
 }
 

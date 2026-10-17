@@ -183,6 +183,9 @@
     <ClInclude Include="InterProcessFlow.h" />
     <ClInclude Include="InterProcessHold.h" />
     <ClInclude Include="MainProcessDirector.h" />
+    <ClInclude Include="NetworkConnection.h" />
+    <ClInclude Include="ProcessChannel.h" />
+    <ClInclude Include="SharedMemoryChannel.h" />
     <ClInclude Include="ProcessFork.h" />
     <ClInclude Include="SafeArrayBlock.h" />
     <ClInclude Include="SafeLinkedListBlock.h" />
@@ -213,6 +216,9 @@
     <ClCompile Include="InterProcessFlow.cpp" />
     <ClCompile Include="InterProcessHold.cpp" />
     <ClCompile Include="MainProcessDirector.cpp" />
+    <ClCompile Include="NetworkConnection.cpp" />
+    <ClCompile Include="ProcessChannel.cpp" />
+    <ClCompile Include="SharedMemoryChannel.cpp" />
     <ClCompile Include="ProcessFork.cpp" />
     <ClCompile Include="ProcessFork_Windows.cpp" />
     <ClCompile Include="ProcessFork_Linux.cpp" />

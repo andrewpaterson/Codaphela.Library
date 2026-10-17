@@ -38,6 +38,30 @@ SOCKET	GetSocketHandle(uint8* paSocket);
 //////////////////////////////////////////////////////////////////////////
 bool CListenSocket::Init(int iPort)
 {
+	return Bind(NULL, iPort);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CListenSocket::Init(const char* szAddress, int iPort)
+{
+	if (!Bind(szAddress, iPort))
+	{
+		return false;
+	}
+	return StartListening();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CListenSocket::Bind(const char* szAddress, int iPort)
+{
 	int			iResult;
 	addrinfo*	psResult;
 	addrinfo	psHints;
@@ -48,16 +72,17 @@ bool CListenSocket::Init(int iPort)
 	SetSocketHandle(maListenSocket, INVALID_SOCKET);
 	SetSocketHandle(maSocket, INVALID_SOCKET);
 	mbListening = false;
+	mbAccepting = false;
 
 	memset(&psHints, 0, sizeof(psHints));
 	psHints.ai_family = AF_INET;
 	psHints.ai_socktype = SOCK_STREAM;
 	psHints.ai_protocol = IPPROTO_TCP;
-	psHints.ai_flags = AI_PASSIVE;
+	psHints.ai_flags = (szAddress == NULL) ? AI_PASSIVE : 0;
 
 	// Resolve the server address and port
 	psResult = NULL;
-	iResult = getaddrinfo(NULL, mszPortNumber.Text(), &psHints, &psResult);
+	iResult = getaddrinfo(szAddress, mszPortNumber.Text(), &psHints, &psResult);
 	if (iResult != 0) 
 	{
 		gcLogger.Error("getaddrinfo failed with error");
@@ -158,6 +183,95 @@ bool CListenSocket::Listen(void)
 	SetSocketHandle(maListenSocket, INVALID_SOCKET);
 	mbListening = true;
 
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CListenSocket::Accept(CSocket* pcConnection, int iTimeoutMilliseconds)
+{
+	int		iResult;
+	SOCKET	hListenSocket;
+	SOCKET	hSocket;
+	fd_set	sReadSet;
+	timeval	sTimeout;
+
+	hListenSocket = GetSocketHandle(maListenSocket);
+	if (hListenSocket == INVALID_SOCKET)
+	{
+		gcLogger.Error("accept failed, the socket is not bound");
+		return false;
+	}
+
+	if (!StartListening())
+	{
+		return false;
+	}
+
+	FD_ZERO(&sReadSet);
+	FD_SET(hListenSocket, &sReadSet);
+	sTimeout.tv_sec = iTimeoutMilliseconds / 1000;
+	sTimeout.tv_usec = (iTimeoutMilliseconds % 1000) * 1000;
+	iResult = select(0, &sReadSet, NULL, NULL, &sTimeout);
+	if (iResult <= 0)
+	{
+		//Timed out or failed.
+		return false;
+	}
+
+	hSocket = accept(hListenSocket, NULL, NULL);
+	if (hSocket == INVALID_SOCKET)
+	{
+		gcLogger.Error("accept failed with error");
+		return false;
+	}
+
+	SetSocketHandle(pcConnection->maSocket, hSocket);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CListenSocket::GetPort(void)
+{
+	sockaddr_in		sAddress;
+	int				iLength;
+
+	iLength = sizeof(sAddress);
+	if (getsockname(GetSocketHandle(maListenSocket), (sockaddr*)&sAddress, &iLength) == SOCKET_ERROR)
+	{
+		return 0;
+	}
+	return ntohs(sAddress.sin_port);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CListenSocket::StartListening(void)
+{
+	int		iResult;
+
+	if (mbAccepting)
+	{
+		return true;
+	}
+
+	iResult = listen(GetSocketHandle(maListenSocket), SOMAXCONN);
+	if (iResult == SOCKET_ERROR)
+	{
+		gcLogger.Error("listen failed with error");
+		return false;
+	}
+	mbAccepting = true;
 	return true;
 }
 

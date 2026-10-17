@@ -21,6 +21,8 @@ public:
 	bool	Push(void* pvData, size_t uiDataSize);
 	bool	Pop(void* pvData, size_t* puiDataSize, size_t uiMaxDataSize);
 
+	//The size of the next element, or 0 if the queue is empty.
+	size_t	PeekSize(void);
 	bool	IsEmpty(void);
 	int		NumElements(void);
 	size_t	GetCacheSize(void);

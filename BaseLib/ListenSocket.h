@@ -30,12 +30,29 @@ class CListenSocket : public CSocket
 protected:
 	uint8	maListenSocket[SOCKET_HANDLE_SIZE];
 	bool	mbListening;
+	bool	mbAccepting;
 
 public:
 	bool Init(int iPort);
+	//Listen on one address only, for example "127.0.0.1" for the loopback network.
+	//A port of 0 lets the operating system choose a free port; see GetPort.
+	//It is listening when Init returns so connections made before Accept wait.
+	bool Init(const char* szAddress, int iPort);
 	void Kill(void);
 
+	//Accepts one connection into this socket and stops listening.
 	bool Listen(void);
+
+	//Accepts a connection into pcConnection, which must be initialised and not
+	//open, and keeps listening for more.  Fails if no connection arrives within
+	//iTimeoutMilliseconds.
+	bool Accept(CSocket* pcConnection, int iTimeoutMilliseconds);
+
+	int  GetPort(void);
+
+protected:
+	bool Bind(const char* szAddress, int iPort);
+	bool StartListening(void);
 };
 
 
