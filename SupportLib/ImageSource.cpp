@@ -54,7 +54,7 @@ void CImageSource::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageSource::Allocate(char* szName)
+Ptr<CImage> CImageSource::Allocate2(char* szName)
 {
 	Ptr<CImage>	pcImage;
 
@@ -81,3 +81,4 @@ void CImageSource::SetImage(Ptr<CImage> pcImage)
 {
 	mpcImage = pcImage;
 }
+
