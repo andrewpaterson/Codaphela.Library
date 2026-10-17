@@ -62,8 +62,6 @@ public:
 	virtual	SInt32Vec2			GetDesiredSize(void);
 			void				SetDesiredSize(int fWidth, int fHeight);
 			SInt32Vec2			GetActualSize(void);
-
-	virtual void				SetRequiredSize(void) =0;
 };
 
 

@@ -19,18 +19,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
+#include "BaseLib/ArrayBit.h"
 #include "StandardLib/ClassDefines.h"
+#include "ContainerStyles.h"
 #include "GridContainer.h"
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-static int32 AxisOf(SInt32Vec2 sVec, bool bColumns)
-{
-	return bColumns ? sVec.x : sVec.y;
-}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -48,6 +40,68 @@ static int32 SumTracks(CArrayInt* paiValues, size uiStart, size uiCount)
 		iSum += paiValues->GetValue(i);
 	}
 	return iSum;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 GiveSlivers(CArrayInt* paiSizes, CArrayInt* paiWeights, size uiStart, size uiCount, int32 iPixels, int32 iChange, bool bWeightedOnly)
+{
+	CArrayBit	abHadOne;
+	size		i;
+	size		uiLargest;
+	size		uiNumHadOne;
+	int32		iDone;
+	int32		iSize;
+
+	//Pixels left over from sharing in proportion are handed out (iChange is 1) or taken (iChange is -1) one at a time,
+	//each from the largest track that has not had one yet, ties going to the first.  Once every track has had one they
+	//can all have another.  Only weighted tracks take part if bWeightedOnly, and a track can't be taken below zero.
+	abHadOne.Init();
+	for (i = 0; i < uiCount; i++)
+	{
+		abHadOne.Add(false);
+	}
+
+	iDone = 0;
+	uiNumHadOne = 0;
+	while (iDone < iPixels)
+	{
+		uiLargest = ARRAY_ELEMENT_NOT_FOUND;
+		for (i = 0; i < uiCount; i++)
+		{
+			iSize = paiSizes->GetValue(uiStart + i);
+			if (!abHadOne.Get(i) && (!bWeightedOnly || (paiWeights->GetValue(uiStart + i) > 0)) && ((iChange > 0) || (iSize > 0)))
+			{
+				if ((uiLargest == ARRAY_ELEMENT_NOT_FOUND) || (iSize > paiSizes->GetValue(uiStart + uiLargest)))
+				{
+					uiLargest = i;
+				}
+			}
+		}
+
+		if (uiLargest == ARRAY_ELEMENT_NOT_FOUND)
+		{
+			if (uiNumHadOne == 0)
+			{
+				break;
+			}
+			abHadOne.Zero();
+			uiNumHadOne = 0;
+		}
+		else
+		{
+			paiSizes->SetValue(uiStart + uiLargest, paiSizes->GetValue(uiStart + uiLargest) + iChange);
+			abHadOne.Set(uiLargest, true);
+			uiNumHadOne++;
+			iDone++;
+		}
+	}
+
+	abHadOne.Kill();
+	return iDone;
 }
 
 
@@ -82,10 +136,9 @@ static void ShareOut(CArrayInt* paiValues, size uiStart, size uiCount, int32 iAm
 			iShare = (iAmount * iWeight) / iTotalWeight;
 			paiValues->SetValue(i, paiValues->GetValue(i) + iShare);
 			iGiven += iShare;
-			uiLast = i;
 		}
 	}
-	paiValues->SetValue(uiLast, paiValues->GetValue(uiLast) + (iAmount - iGiven));
+	GiveSlivers(paiValues, paiWeights, uiStart, uiCount, iAmount - iGiven, 1, true);
 }
 
 
@@ -98,11 +151,10 @@ static void GrowTracks(CArrayInt* paiSizes, CArrayInt* paiWeights, int32 iExtra)
 	size	i;
 	size	uiNumTracks;
 	int32	iTotalWeight;
-	int32	iWeight;
 	int32	iGiven;
 	int32	iShare;
 
-	//The weighted tracks share the extra space in proportion to their weights.  Pixels that don't divide evenly go to the first of them.
+	//The weighted tracks share the extra space in proportion to their weights.
 	uiNumTracks = paiSizes->NumElements();
 	iTotalWeight = SumTracks(paiWeights, 0, uiNumTracks);
 	if (iTotalWeight == 0)
@@ -113,19 +165,11 @@ static void GrowTracks(CArrayInt* paiSizes, CArrayInt* paiWeights, int32 iExtra)
 	iGiven = 0;
 	for (i = 0; i < uiNumTracks; i++)
 	{
-		iWeight = paiWeights->GetValue(i);
-		iShare = (iExtra * iWeight) / iTotalWeight;
+		iShare = (iExtra * paiWeights->GetValue(i)) / iTotalWeight;
 		paiSizes->SetValue(i, paiSizes->GetValue(i) + iShare);
 		iGiven += iShare;
 	}
-	for (i = 0; (i < uiNumTracks) && (iGiven < iExtra); i++)
-	{
-		if (paiWeights->GetValue(i) > 0)
-		{
-			paiSizes->SetValue(i, paiSizes->GetValue(i) + 1);
-			iGiven++;
-		}
-	}
+	GiveSlivers(paiSizes, paiWeights, 0, uiNumTracks, iExtra - iGiven, 1, true);
 }
 
 
@@ -143,10 +187,12 @@ static void ShrinkTracks(CArrayInt* paiSizes, CArrayInt* paiWeights, int32 iDefi
 	int32	iTake;
 	int32	iTaken;
 	int32	iRound;
+	bool	bEmptied;
 
 	uiNumTracks = paiSizes->NumElements();
 
-	//First the weighted tracks give up space in proportion to their weights, none going below zero.
+	//First the weighted tracks give up space in proportion to their weights, none going below zero.  If a track runs out
+	//what it couldn't give is shared again between the others, otherwise only rounding is left and is taken as slivers.
 	while (iDeficit > 0)
 	{
 		iTotalWeight = 0;
@@ -164,38 +210,30 @@ static void ShrinkTracks(CArrayInt* paiSizes, CArrayInt* paiWeights, int32 iDefi
 
 		iRound = iDeficit;
 		iTaken = 0;
+		bEmptied = false;
 		for (i = 0; i < uiNumTracks; i++)
 		{
 			iSize = paiSizes->GetValue(i);
 			if ((iSize > 0) && (paiWeights->GetValue(i) > 0))
 			{
 				iTake = (iRound * paiWeights->GetValue(i)) / iTotalWeight;
-				if (iTake > iSize)
+				if (iTake >= iSize)
 				{
 					iTake = iSize;
+					bEmptied = true;
 				}
 				paiSizes->SetValue(i, iSize - iTake);
 				iTaken += iTake;
 			}
 		}
-		if (iTaken == 0)
+		if (!bEmptied)
 		{
-			//Too little was asked of each track to round to a pixel so the first weighted track gives one.
-			for (i = 0; i < uiNumTracks; i++)
-			{
-				iSize = paiSizes->GetValue(i);
-				if ((iSize > 0) && (paiWeights->GetValue(i) > 0))
-				{
-					paiSizes->SetValue(i, iSize - 1);
-					iTaken = 1;
-					break;
-				}
-			}
+			iTaken += GiveSlivers(paiSizes, paiWeights, 0, uiNumTracks, iRound - iTaken, -1, true);
 		}
 		iDeficit -= iTaken;
 	}
 
-	//Then every track shrinks in proportion to its size.  Pixels that don't divide evenly come from the last tracks.
+	//Then every track shrinks in proportion to its size, with the rounding taken as slivers.
 	if (iDeficit > 0)
 	{
 		iTotalSize = SumTracks(paiSizes, 0, uiNumTracks);
@@ -216,21 +254,7 @@ static void ShrinkTracks(CArrayInt* paiSizes, CArrayInt* paiWeights, int32 iDefi
 			paiSizes->SetValue(i, iSize - iTake);
 			iDeficit -= iTake;
 		}
-		i = uiNumTracks;
-		while (iDeficit > 0)
-		{
-			if (i == 0)
-			{
-				i = uiNumTracks;
-			}
-			i--;
-			iSize = paiSizes->GetValue(i);
-			if (iSize > 0)
-			{
-				paiSizes->SetValue(i, iSize - 1);
-				iDeficit--;
-			}
-		}
+		GiveSlivers(paiSizes, paiWeights, 0, uiNumTracks, iDeficit, -1, false);
 	}
 }
 
@@ -243,7 +267,6 @@ void CGridContainer::Init(Ptr<CWindow> pWindow)
 {
 	CContainer::Init(pWindow);
 	macCells.Init();
-	msRequiredSize.Init(-1, -1);
 }
 
 
@@ -266,7 +289,6 @@ void CGridContainer::Class(void)
 {
 	CContainer::Class();
 	U_Data(CArrayGridCells, macCells);
-	U_2Int32(msRequiredSize);
 }
 
 
@@ -354,7 +376,7 @@ size CGridContainer::NumTracks(bool bColumns)
 	for (i = 0; i < maChildren.Size(); i++)
 	{
 		pcCell = GetCell(i);
-		uiEnd = (size)(AxisOf(pcCell->msPosition, bColumns) + AxisOf(pcCell->msSpan, bColumns));
+		uiEnd = (size)(MainAxis(pcCell->msPosition, bColumns) + MainAxis(pcCell->msSpan, bColumns));
 		if (uiEnd > uiNumTracks)
 		{
 			uiNumTracks = uiEnd;
@@ -380,6 +402,7 @@ void CGridContainer::CalculateTracks(bool bColumns, CArrayInt* paiSizes, CArrayI
 	int32			iRequired;
 	int32			iWeight;
 	int32			iHave;
+	SInt32Vec2		sDesired;
 
 	//Works out every column's (or row's) required size and weight.
 	uiNumTracks = NumTracks(bColumns);
@@ -394,7 +417,7 @@ void CGridContainer::CalculateTracks(bool bColumns, CArrayInt* paiSizes, CArrayI
 	for (i = 0; i < maChildren.Size(); i++)
 	{
 		pcCell = GetCell(i);
-		uiSpan = (size)AxisOf(pcCell->msSpan, bColumns);
+		uiSpan = (size)MainAxis(pcCell->msSpan, bColumns);
 		if (uiSpan > uiMaxSpan)
 		{
 			uiMaxSpan = uiSpan;
@@ -402,9 +425,10 @@ void CGridContainer::CalculateTracks(bool bColumns, CArrayInt* paiSizes, CArrayI
 		if (uiSpan == 1)
 		{
 			pComponent = maChildren.Get(i);
-			uiStart = (size)AxisOf(pcCell->msPosition, bColumns);
-			iRequired = AxisOf(pComponent->GetDesiredSize(), bColumns);
-			iWeight = AxisOf(pcCell->msWeight, bColumns);
+			uiStart = (size)MainAxis(pcCell->msPosition, bColumns);
+			sDesired = pComponent->GetDesiredSize();
+			iRequired = MainAxis(sDesired, bColumns);
+			iWeight = MainAxis(pcCell->msWeight, bColumns);
 			if (iRequired > paiSizes->GetValue(uiStart))
 			{
 				paiSizes->SetValue(uiStart, iRequired);
@@ -422,19 +446,20 @@ void CGridContainer::CalculateTracks(bool bColumns, CArrayInt* paiSizes, CArrayI
 		for (i = 0; i < maChildren.Size(); i++)
 		{
 			pcCell = GetCell(i);
-			if ((size)AxisOf(pcCell->msSpan, bColumns) == uiSpan)
+			if ((size)MainAxis(pcCell->msSpan, bColumns) == uiSpan)
 			{
 				pComponent = maChildren.Get(i);
-				uiStart = (size)AxisOf(pcCell->msPosition, bColumns);
+				uiStart = (size)MainAxis(pcCell->msPosition, bColumns);
 
-				iWeight = AxisOf(pcCell->msWeight, bColumns);
+				iWeight = MainAxis(pcCell->msWeight, bColumns);
 				iHave = SumTracks(paiWeights, uiStart, uiSpan);
 				if (iWeight > iHave)
 				{
 					ShareOut(paiWeights, uiStart, uiSpan, iWeight - iHave, paiWeights);
 				}
 
-				iRequired = AxisOf(pComponent->GetDesiredSize(), bColumns);
+				sDesired = pComponent->GetDesiredSize();
+				iRequired = MainAxis(sDesired, bColumns);
 				iHave = SumTracks(paiSizes, uiStart, uiSpan);
 				if (iRequired > iHave)
 				{
@@ -509,16 +534,6 @@ void CGridContainer::SetRequiredSize(void)
 	msRequiredSize.y = SumTracks(&aiSizes, 0, aiSizes.NumElements());
 	aiSizes.Kill();
 	aiWeights.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CGridContainer::GetRequiredSize(void)
-{
-	return msRequiredSize;
 }
 
 

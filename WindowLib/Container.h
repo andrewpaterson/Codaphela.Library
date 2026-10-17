@@ -33,6 +33,7 @@ CONSTRUCTABLE(CContainer);
 DESTRUCTABLE(CContainer);
 protected:
 	CRectangle	mcBounds;
+	SInt32Vec2	msRequiredSize;  //What the container's components need, see SetRequiredSize.
 
 public:
 	void	Init(Ptr<CWindow> pWindow);
@@ -43,6 +44,9 @@ public:
 	void	SetContainerBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
 
 	void	Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
+
+	virtual void		SetRequiredSize(void) =0;  //Works out msRequiredSize from the container's components.
+	SInt32Vec2			GetRequiredSize(void);
 };
 
 

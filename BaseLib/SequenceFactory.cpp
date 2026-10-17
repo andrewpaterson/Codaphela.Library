@@ -13,7 +13,11 @@ CSequence* CSequenceFactory::Create(const char* szDirectory, EDurableSync eSync)
 
 	cConfig = CValueSequenceConfig::Create(szDirectory, eSync);
 	pcSequence = NewMalloc<CSequence>();
-	pcSequence->Init(cConfig);
+	if (!pcSequence->Init(cConfig))
+	{
+		SafeKill(pcSequence);
+		return NULL;
+	}
 
 	return pcSequence;
 }

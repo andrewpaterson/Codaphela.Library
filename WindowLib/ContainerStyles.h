@@ -23,6 +23,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Int32Vec2.h"
 
 
 enum EContainerStyleWrap
@@ -70,8 +71,11 @@ union UContainerAlignment
 };
 
 
-int AlignComponentVertical(EContainerStyleVertical eAlignment, int iComponentHeight, int iAvailableHeight);
-int AlignComponentHorizontal(EContainerStyleHorizontal eAlignment, int iComponentHeight, int iAvailableHeight);
+int		AlignComponentVertical(EContainerStyleVertical eAlignment, int iComponentHeight, int iAvailableHeight);
+int		AlignComponentHorizontal(EContainerStyleHorizontal eAlignment, int iComponentWidth, int iAvailableWidth);
+
+int32&	MainAxis(SInt32Vec2& sVec, bool bHorizontal);  //The x of sVec if bHorizontal, otherwise the y.
+int32&	CrossAxis(SInt32Vec2& sVec, bool bHorizontal);  //The other one.
 
 
 

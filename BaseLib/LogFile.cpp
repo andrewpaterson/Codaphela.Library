@@ -292,20 +292,19 @@ bool CLogFile::Commit(CAbstractFile* pcFile)
 		macCommands.Get(i, &pvData);
 		psCommand = (CLogFileCommand*)pvData;
 
-		if (psCommand->IsWrite())
+		switch (psCommand->eCommand)
 		{
+		case LFC_Write:
 			psWrite = (CLogFileCommandWrite*)psCommand;
 			bResult = psWrite->Write(pcFile);
 			bWritten = true;
-		}
-		else if (psCommand->IsOpen())
-		{
+			break;
+		case LFC_Open:
 			psOpen = (CLogFileCommandOpen*)psCommand;
 			bResult = psOpen->Open(pcFile);
 			bDirectoryChanged |= IsFileModeCreate(psOpen->eMode);
-		}
-		else if (psCommand->IsClose())
-		{
+			break;
+		case LFC_Close:
 			if (bWritten && mbSync)
 			{
 				if (!pcFile->Flush())
@@ -316,18 +315,20 @@ bool CLogFile::Commit(CAbstractFile* pcFile)
 			}
 			psClose = (CLogFileCommandClose*)psCommand;
 			bResult = psClose->Close(pcFile);
-		}
-		else if (psCommand->IsDelete())
-		{
+			break;
+		case LFC_Delete:
 			psDelete = (CLogFileCommandDelete*)psCommand;
 			bResult = psDelete->Delete(pcFile);
 			bDirectoryChanged = true;
-		}
-		else if (psCommand->IsTruncate())
-		{
+			break;
+		case LFC_Truncate:
 			psTruncate = (CLogFileCommandTruncate*)psCommand;
 			bResult = psTruncate->Truncate(pcFile);
 			bWritten = true;
+			break;
+		default:
+			bResult = false;
+			break;
 		}
 
 		if (!bResult)
@@ -1422,39 +1423,70 @@ size CLogFile::GetNumCommands(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogFile::Dump(void)
+void CLogFile::Print(CChars* psz)
 {
-	CChars					sz;
-	size					i;
-	char*					pvData;
-	CLogFileCommandWrite*	psWrite;
-	size					iLen;
-	size					uiNumCommands;
-
-	sz.Init();
-	sz.Append("Log File (?");
-	sz.Append(")\n------------------\n");
-	sz.Append("Commands: ");
-	sz.Append(macCommands.NumElements());
-	sz.AppendNewLine();
+	size						i;
+	CLogFileCommand*			psCommand;
+	CLogFileCommandWrite*		psWrite;
+	CLogFileCommandOpen*		psOpen;
+	CLogFileCommandTruncate*	psTruncate;
+	size						uiNumCommands;
+	size						uiShown;
 
 	uiNumCommands = macCommands.NumElements();
+	psz->Append("Log File [");
+	GetSafeFilename(psz, mpcBackingFile);
+	psz->Append("] Commands: ");
+	psz->Append(uiNumCommands);
+	psz->AppendNewLine();
+
 	for (i = 0; i < uiNumCommands; i++)
 	{
-		macCommands.Get(i, (void**)&pvData);
-		sz.Append("   ");
-		sz.Append("Write: (");
-		psWrite = (CLogFileCommandWrite*)pvData;
-		sz.Append(psWrite->iPosition);
-		sz.Append(", ");
-		sz.Append(psWrite->iSize);
-		sz.Append(") ");
-
-		pvData = (char*)RemapSinglePointer(psWrite, sizeof(CLogFileCommandWrite));
-		iLen = psWrite->iSize;
-		sz.AppendData(pvData, 80);
-		sz.AppendNewLine();
+		psCommand = (CLogFileCommand*)macCommands.Get(i);
+		psz->Append("   ");
+		psz->Append(psCommand->GetType());
+		switch (psCommand->eCommand)
+		{
+		case LFC_Write:
+			psWrite = (CLogFileCommandWrite*)psCommand;
+			psz->Append(" (");
+			psz->Append(psWrite->iPosition);
+			psz->Append(", ");
+			psz->Append(psWrite->iSize);
+			psz->Append(") ");
+			uiShown = (psWrite->iSize > 80) ? 80 : psWrite->iSize;
+			psz->AppendData((char*)psWrite->GetData(), uiShown);
+			break;
+		case LFC_Open:
+			psOpen = (CLogFileCommandOpen*)psCommand;
+			psz->Append(" (");
+			psz->Append((int)psOpen->eMode);
+			psz->Append(")");
+			break;
+		case LFC_Truncate:
+			psTruncate = (CLogFileCommandTruncate*)psCommand;
+			psz->Append(" (");
+			psz->Append(psTruncate->iSize);
+			psz->Append(")");
+			break;
+		default:
+			break;
+		}
+		psz->AppendNewLine();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogFile::Dump(void)
+{
+	CChars	sz;
+
+	sz.Init();
+	Print(&sz);
 	sz.AppendNewLine();
 	sz.Dump();
 	sz.Kill();

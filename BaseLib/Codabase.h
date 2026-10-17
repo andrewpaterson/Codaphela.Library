@@ -13,6 +13,7 @@ protected:
 	CLifeInit<CIndexedDataConfig>	mcIndexConfig;
 	CLifeInit<CNamedIndexesConfig>	mcNamedConfig;
 	bool							mbStarted;
+	bool							mbControllerInitialised;
 
 public:
 	void	Init(const char* szDirectory, EDurableSync eSync, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig);

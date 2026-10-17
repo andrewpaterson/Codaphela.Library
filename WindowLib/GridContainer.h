@@ -40,7 +40,6 @@ CONSTRUCTABLE(CGridContainer);
 DESTRUCTABLE(CGridContainer);
 protected:
 	CArrayGridCells		macCells;  //The cell for the component at the same index in maChildren.
-	SInt32Vec2			msRequiredSize;
 
 public:
 	void		Init(Ptr<CWindow> pWindow);
@@ -53,7 +52,6 @@ public:
 	bool		RemoveAllComponents(void) override;
 
 	void		SetRequiredSize(void) override;
-	SInt32Vec2	GetRequiredSize(void);
 	void		Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 
 protected:
