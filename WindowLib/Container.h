@@ -32,7 +32,7 @@ class CContainer : public CComponent
 CONSTRUCTABLE(CContainer);
 DESTRUCTABLE(CContainer);
 protected:
-	CRectangle			mcBounds;
+	CRectangle	mcBounds;
 
 public:
 	void	Init(Ptr<CWindow> pWindow);
