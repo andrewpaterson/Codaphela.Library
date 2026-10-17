@@ -16,6 +16,7 @@ bool CSequence::Init(CLifeInit<CSequenceConfig> cConfig)
 
 	cHelper.Init(mpcConfig->Getdirectory(), "Primary", "Backup", false);
 	mcFileController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory());
+	mcFileController.SetSync(mpcConfig->GetSync());
 
 	mcFile.Init(&mcFileController, "Sequence.DAT", "_Sequence.DAT");
 

@@ -6,7 +6,7 @@
 class CSequenceFactory
 {
 public:
-	static CSequence*	Create(const char* szDirectory);
+	static CSequence*	Create(const char* szDirectory, EDurableSync eSync);
 };
 
 

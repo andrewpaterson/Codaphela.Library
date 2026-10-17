@@ -4,6 +4,7 @@
 #include "Constructable.h"
 #include "ConstructorCall.h"
 #include "Killable.h"
+#include "DurableSync.h"
 
 
 class CSequenceConfig : public CConstructable, public CKillable
@@ -13,6 +14,7 @@ public:
 			void		Kill(void);
 
 	virtual	const char*		Getdirectory(void) =0;
+	virtual	EDurableSync	GetSync(void) =0;
 };
 
 

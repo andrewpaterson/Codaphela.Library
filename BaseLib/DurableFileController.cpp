@@ -54,6 +54,7 @@ bool CDurableFileController::Init(const char* szDirectory, const char* szRewrite
 	}
 
 	mbDurable = false;
+	mbSync = true;
 	if (!StrEmpty(szRewriteDirectory))
 	{
 		mbDurable = true;
@@ -371,4 +372,25 @@ char* CDurableFileController::GetRewriteDirectory(void) { return mszRewriteDirec
 bool CDurableFileController::IsDurable(void) { return mbDurable; }
 
 CDurableSet* CDurableFileController::GetDurableSet(void) { return &mcDurableSet; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDurableFileController::SetSync(EDurableSync eSync)
+{
+	mbSync = (eSync != DS_No);
+	mcDurableSet.SetSync(mbSync);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDurableFileController::IsSync(void)
+{
+	return mbSync;
+}
 

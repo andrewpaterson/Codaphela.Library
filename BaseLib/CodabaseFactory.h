@@ -6,7 +6,7 @@
 class CCodabaseFactory
 {
 public:
-	static CCodabase*	Create(const char* szDirectory, EIndexWriteThrough eWriteThrough);
+	static CCodabase*	Create(const char* szDirectory, EIndexWriteThrough eWriteThrough, EDurableSync eSync);
 };
 
 

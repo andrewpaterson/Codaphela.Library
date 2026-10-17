@@ -44,6 +44,7 @@ void CDurableSet::Init(const char* szMarkStartFile, const char* szMarkRewriteFil
 	mszMarkStart.Init(szMarkStartFile);
 	mszMarkRewrite.Init(szMarkRewriteFile);
 	mbBegun = false;
+	mbSync = true;
 }
 
 
@@ -404,7 +405,10 @@ bool CDurableSet::Mark(const char* szMarkFile, CChars* pszContents)
 		if (bResult)
 		{
 			bResult = cFile.WriteData(pszContents->Text(), pszContents->Length());
-			bResult &= cFile.Flush();
+			if (mbSync)
+			{
+				bResult &= cFile.Flush();
+			}
 			bResult &= cFile.Close();
 		}
 		cFile.Kill();
@@ -414,7 +418,7 @@ bool CDurableSet::Mark(const char* szMarkFile, CChars* pszContents)
 	{
 		return gcLogger.Error2(__METHOD__, " Could not create mark file [", szMarkFile, "].", NULL);
 	}
-	if (!cFileUtil.SyncParentDirectory(szMarkFile))
+	if (mbSync && !cFileUtil.SyncParentDirectory(szMarkFile))
 	{
 		return gcLogger.Error2(__METHOD__, " Could not sync the directory of mark file [", szMarkFile, "].", NULL);
 	}
@@ -434,7 +438,7 @@ bool CDurableSet::Unmark(const char* szMarkFile)
 	{
 		return gcLogger.Error2(__METHOD__, " Could not delete mark file [", szMarkFile, "].", NULL);
 	}
-	if (!cFileUtil.SyncParentDirectory(szMarkFile))
+	if (mbSync && !cFileUtil.SyncParentDirectory(szMarkFile))
 	{
 		return gcLogger.Error2(__METHOD__, " Could not sync the directory of mark file [", szMarkFile, "].", NULL);
 	}
@@ -648,6 +652,10 @@ bool CDurableSet::CopyRecoveredFile(const char* szSource, const char* szDest)
 	{
 		return gcLogger.Error2(__METHOD__, " Copy of [", szSource, "] to [", szDest, "] is different.", NULL);
 	}
+	if (!mbSync)
+	{
+		return true;
+	}
 
 	//Copy deletes the destination when the source does not exist, so only the directory may need syncing.
 	if (cFileUtil.Exists(szDest))
@@ -662,6 +670,16 @@ bool CDurableSet::CopyRecoveredFile(const char* szSource, const char* szDest)
 		return gcLogger.Error2(__METHOD__, " Could not sync the directory of recovered file [", szDest, "].", NULL);
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDurableSet::SetSync(bool bSync)
+{
+	mbSync = bSync;
 }
 
 

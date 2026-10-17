@@ -21,6 +21,7 @@ protected:
 	bool				mbOpenedBackingFile;
 	bool				mbBegun;
 	bool				mbBackingFileExists;
+	bool				mbSync;
 
 public:
 	void					Init(CAbstractFile* pcBackingFile);
@@ -53,6 +54,7 @@ public:
 	CLogFileCommandWrite*	GetWriteData(size iWrite);
 	bool					TestFindHoles(size iWriteIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, size iLength);
 	bool					IsBegun(void);
+	void					SetSync(bool bSync);
 
 protected:
 	bool					FindTouchingWriteCommands(size iStartIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, size iLength, bool bMustOverlap);

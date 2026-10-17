@@ -10,7 +10,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCodabase* CCodabaseFactory::Create(const char* szDirectory, EIndexWriteThrough eWriteThrough)
+CCodabase* CCodabaseFactory::Create(const char* szDirectory, EIndexWriteThrough eWriteThrough, EDurableSync eSync)
 {
 	CCodabase*								pcDatabase;
 	CLifeInit<CIndexedDataConfig>			cIndexConfig;
@@ -27,7 +27,7 @@ CCodabase* CCodabaseFactory::Create(const char* szDirectory, EIndexWriteThrough 
 	cNamedConfig = CValueNamedIndexesConfig::Create("Names", 1 MB, cNamedEvictionStrategy, eWriteThrough, NULL);
 
 	pcDatabase = NewMalloc<CCodabase>();
-	pcDatabase->Init(szDirectory, cIndexConfig, cNamedConfig);
+	pcDatabase->Init(szDirectory, eSync, cIndexConfig, cNamedConfig);
 	if (!pcDatabase->Start())
 	{
 		SafeKill(pcDatabase);

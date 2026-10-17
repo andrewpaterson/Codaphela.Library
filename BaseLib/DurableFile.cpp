@@ -189,6 +189,7 @@ bool CDurableFile::Commit(void)
 
 	mcPrimaryFile.Close();
 
+	mcLogFile.SetSync(IsSync());
 	bResult = mcLogFile.Commit();
 	if (!bResult)
 	{
@@ -220,6 +221,7 @@ bool CDurableFile::Recommit(void)
 			return true;
 		}
 
+		mcLogFile.SetSync(IsSync());
 		bResult = mcLogFile.Commit(&mcRewriteDiskFile);
 		if (!bResult)
 		{
@@ -618,6 +620,23 @@ bool CDurableFile::Truncate(size iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CDurableFile::IsSync(void)
+{
+	if (mpcController != NULL)
+	{
+		return mpcController->IsSync();
+	}
+	else
+	{
+		return true;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CDurableFile::IsDurable(void)
 {
 	if (mpcController != NULL)
@@ -795,6 +814,11 @@ bool CDurableFile::CopyPrimaryToBackup(void)
 bool CDurableFile::SyncCopy(const char* szDest)
 {
 	CFileUtil	cFileUtil;
+
+	if (!IsSync())
+	{
+		return true;
+	}
 
 	//Copy deletes the destination when the source does not exist, so only the directory may need syncing.
 	if (cFileUtil.Exists(szDest))

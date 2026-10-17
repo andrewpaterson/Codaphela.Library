@@ -5,9 +5,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CValueSequenceConfig::Init(const char* szDirectory)
+void CValueSequenceConfig::Init(const char* szDirectory, EDurableSync eSync)
 {
 	mszDirectory = szDirectory;
+	meSync = eSync;
 }
 
 
@@ -35,9 +36,19 @@ const char* CValueSequenceConfig::Getdirectory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLifeInit<CSequenceConfig> CValueSequenceConfig::Create(const char* szDirectory)
+EDurableSync CValueSequenceConfig::GetSync(void)
 {
-	CLifeInit<CSequenceConfig> cLife = LifeAlloc<CValueSequenceConfig, CSequenceConfig>(szDirectory);
+	return meSync;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLifeInit<CSequenceConfig> CValueSequenceConfig::Create(const char* szDirectory, EDurableSync eSync)
+{
+	CLifeInit<CSequenceConfig> cLife = LifeAlloc<CValueSequenceConfig, CSequenceConfig>(szDirectory, eSync);
 	return cLife;
 }
 

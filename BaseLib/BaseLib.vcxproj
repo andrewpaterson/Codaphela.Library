@@ -587,6 +587,7 @@
     <ClInclude Include="DurableFile.h" />
     <ClInclude Include="DurableFileController.h" />
     <ClInclude Include="DurableSet.h" />
+    <ClInclude Include="DurableSync.h" />
     <ClInclude Include="PropertiesFile.h" />
     <ClInclude Include="Sequence.h" />
     <ClInclude Include="SequenceConfig.h" />

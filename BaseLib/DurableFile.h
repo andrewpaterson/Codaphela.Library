@@ -72,6 +72,7 @@ public:
 	bool		Recommit(void);
 
 	bool		IsDurable(void);
+	bool		IsSync(void);
 	bool		IsBegun(void);
 
 	size		Write(filePos iDistance, const void* pvSource, size iSize, size iCount);
