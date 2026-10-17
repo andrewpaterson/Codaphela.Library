@@ -21,7 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "StandardLib/Unknowns.h"
+#include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "ImageSource.h"
 
@@ -32,8 +32,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImageSource::Init(char* szName)
 {
+	PreInit();
+
 	mszImageName.Init(szName);
-	mpcImage = NULL;
+	mpImage = NULL;
+
+	PostInit();
 }
 
 
@@ -41,11 +45,40 @@ void CImageSource::Init(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageSource::Kill(void)
+void CImageSource::Class(void)
 {
-	mpcImage = NULL;
+	U_String(mszImageName);
+	M_Pointer(mpImage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageSource::Free(void)
+{
 	mszImageName.Kill();
-	CUnknown::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageSource::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageSource::Load(CObjectReader* pcFile)
+{
+	return false;
 }
 
 
@@ -55,7 +88,7 @@ void CImageSource::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CImageSource::GetImage(void)
 {
-	return mpcImage;
+	return mpImage;
 }
 
 
@@ -63,8 +96,7 @@ Ptr<CImage> CImageSource::GetImage(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageSource::SetImage(Ptr<CImage> pcImage)
+void CImageSource::SetImage(Ptr<CImage> pImage)
 {
-	mpcImage = pcImage;
+	mpImage = pImage;
 }
-

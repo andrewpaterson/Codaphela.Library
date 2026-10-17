@@ -37,13 +37,13 @@ class CImageSourceWithCelSources : public CUnknown
 {
 CONSTRUCTABLE(CImageSourceWithCelSources);
 protected:
-	CImageSource*		mpcImageSource;
+	Ptr<CImageSource>	mpImageSource;  //Not embedded in an object so it holds the source like a stack pointer until Kill.
 	CImageCelSource*	mpcCelsSource;
 
 public:
-	void				Init(CImageSource* pcImageSource, CImageCelSource* pcCelsSource);
+	void				Init(Ptr<CImageSource> pImageSource, CImageCelSource* pcCelsSource);
 	void				Kill(void);
-	CImageSource*		GetImageSource(void);
+	Ptr<CImageSource>	GetImageSource(void);
 	CImageCelSource*	GetCelsSource(void);
 };
 
@@ -77,7 +77,7 @@ public:
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
 
-	void					AddSource(CImageSource* pcImageSource, CImageCelSource* pcCelSource);
+	void					AddSource(Ptr<CImageSource> pImageSource, CImageCelSource* pcCelSource);
 	void					AddDiskFileSources(char* szPathName, char* szFileNameContains, char* szImageName, CImageCelSource* pcCelSource);
 	void					AddDiskFileSource(char* szFilename, char* szImageName, CImageCelSource* pcCelSource);
 	void					AddMemorySource(Ptr<CImage> pcImage, CImageCelSource* pcCelSource);

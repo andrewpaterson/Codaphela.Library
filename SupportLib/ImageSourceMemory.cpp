@@ -28,22 +28,14 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageSourceMemory::Init(Ptr<CImage> pcImage)
+void CImageSourceMemory::Init(Ptr<CImage> pImage)
 {
+	PreInit();
+
 	CImageSource::Init();
-	mpcImage = pcImage;
-}
+	mpImage = pImage;
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CImageSourceMemory::Kill(void)
-{
-	//Make sure we don't kill the already in memory image.
-	mpcImage = NULL;
-	CImageSource::Kill();
+	PostInit();
 }
 
 
@@ -55,4 +47,3 @@ bool CImageSourceMemory::LoadImage(void)
 {
 	return true;
 }
-

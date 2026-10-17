@@ -30,13 +30,15 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImageSourceDiskFile : public CImageSource
 {
 CONSTRUCTABLE(CImageSourceDiskFile);
+DESTRUCTABLE(CImageSourceDiskFile);
 public:
 	CChars	mszFileName;
 
-	void Init(char* szFilename, char* szImageName = NULL);
-	void Kill(void);
+	void	Init(char* szFilename, char* szImageName = NULL);
+	void	Class(void) override;
+	void	Free(void) override;
 
-	bool LoadImage(void);
+	bool	LoadImage(void) override;
 };
 
 

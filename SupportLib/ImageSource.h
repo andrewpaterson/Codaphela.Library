@@ -23,25 +23,30 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __IMAGE_SOURCE_H__
 #define __IMAGE_SOURCE_H__
-#include "StandardLib/Unknown.h"
+#include "StandardLib/Object.h"
 #include "StandardLib/Pointer.h"
 #include "Image.h"
 
 
-class CImageSource : public CUnknown
+class CImageSource : public CObject
 {
 CONSTRUCTABLE(CImageSource);
+DESTRUCTABLE(CImageSource);
 protected:
 	CChars			mszImageName;
-	Ptr<CImage>		mpcImage;
+	Ptr<CImage>		mpImage;
 
 public:
 			void			Init(char* szName = NULL);
-			void			Kill(void);
+			void			Class(void) override;
+			void			Free(void) override;
+
+			bool			Save(CObjectWriter* pcFile) override;
+			bool			Load(CObjectReader* pcFile) override;
 
 	virtual	bool			LoadImage(void) =0;
 			Ptr<CImage>		GetImage(void);
-			void			SetImage(Ptr<CImage> pcImage);
+			void			SetImage(Ptr<CImage> pImage);
 };
 
 

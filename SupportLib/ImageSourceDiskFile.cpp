@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "ImageReader.h"
 #include "ImageSourceDiskFile.h"
 
@@ -31,8 +32,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImageSourceDiskFile::Init(char* szFilename, char* szImageName)
 {
+	PreInit();
+
 	CImageSource::Init(szImageName);
 	mszFileName.Init(szFilename);
+
+	PostInit();
 }
 
 
@@ -40,10 +45,21 @@ void CImageSourceDiskFile::Init(char* szFilename, char* szImageName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageSourceDiskFile::Kill(void)
+void CImageSourceDiskFile::Class(void)
+{
+	CImageSource::Class();
+	U_String(mszFileName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageSourceDiskFile::Free(void)
 {
 	mszFileName.Kill();
-	CImageSource::Kill();
+	CImageSource::Free();
 }
 
 
@@ -53,11 +69,10 @@ void CImageSourceDiskFile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CImageSourceDiskFile::LoadImage(void)
 {
-	mpcImage = ReadImage(mszFileName.Text());
-	if (mpcImage.IsNull())
+	mpImage = ReadImage(mszFileName.Text());
+	if (mpImage.IsNull())
 	{
 		return false;
 	}
 	return true;
 }
-
