@@ -54,7 +54,7 @@ void CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::Configure(CImageRowBlitterFactory* pcBlitterCache)
+bool CImageBlitter::Configure(CImageRowBlitterFactory* pcBlitterFactory)
 {
 	bool					bResult;
 	Ptr<CImage>				pSourceImage;
@@ -72,7 +72,7 @@ bool CImageBlitter::Configure(CImageRowBlitterFactory* pcBlitterCache)
 		return false;
 	}
 
-	bResult = InitRowBlitters(&mcFormat, pcBlitterCache);
+	bResult = InitRowBlitters(&mcFormat, pcBlitterFactory);
 	if (!bResult)
 	{
 		return false;
@@ -260,7 +260,7 @@ bool CImageBlitter::InitOpacityInfo(CImageBlitterFormat* pcFormat)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache)
+bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory)
 {
 	
 	size						uiSourceByteStride;
@@ -283,27 +283,27 @@ bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlit
 	pcRowBlitter = NULL;
 	if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && bSameLayout && !bDestOpacity)
 	{
-		return CreateImageRowBlitterContiguous(pcFormat, pcBlitterCache);
+		return CreateImageRowBlitterContiguous(pcFormat, pcBlitterFactory);
 	}
 	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && bSameLayout && bDestOpacity)
 	{
-		return CreateImageRowBlitterByteAlignedOpaqueDestAlpha(pcFormat, pcBlitterCache);
+		return CreateImageRowBlitterByteAlignedOpaqueDestAlpha(pcFormat, pcBlitterFactory);
 	}
 	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && !bSameLayout && !bDestOpacity)
 	{
-		return CreateImageRowBlitterByteAlignedOpaque(pcFormat, pcBlitterCache);
+		return CreateImageRowBlitterByteAlignedOpaque(pcFormat, pcBlitterFactory);
 	}
 	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && !bSameLayout && bDestOpacity)
 	{
-		return CreateImageRowBlitterByteAlignedOpaqueDestAlpha(pcFormat, pcBlitterCache);
+		return CreateImageRowBlitterByteAlignedOpaqueDestAlpha(pcFormat, pcBlitterFactory);
 	}
 	else if ((mcFormat.meSourceAlphaBits == ARGB_8bit) && (mcFormat.meColourBits == CRGB_24bit) && !bDestOpacity)
 	{
-		return CreateImageRowBlitterRGBByteAlphaByteTranslucent(pcFormat, pcBlitterCache);
+		return CreateImageRowBlitterRGBByteAlphaByteTranslucent(pcFormat, pcBlitterFactory);
 	}
 	else if ((mcFormat.meSourceAlphaBits == ARGB_8bit) && (mcFormat.meColourBits == CRGB_24bit) && bDestOpacity)
 	{
-		return CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(pcFormat, pcBlitterCache);
+		return CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(pcFormat, pcBlitterFactory);
 	}
 	else
 	{
@@ -317,9 +317,9 @@ bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlit
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterContiguous(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache)
+bool CImageBlitter::CreateImageRowBlitterContiguous(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory)
 {
-	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterFactory::CreateImageRowBlitterContiguous);
+	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterFactory, &CImageRowBlitterFactory::CreateImageRowBlitterContiguous);
 }
 
 
@@ -327,9 +327,9 @@ bool CImageBlitter::CreateImageRowBlitterContiguous(CImageBlitterFormat* pcForma
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache)
+bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory)
 {
-	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaque);
+	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterFactory, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaque);
 }
 
 
@@ -337,9 +337,9 @@ bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache)
+bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory)
 {
-	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaqueDestAlpha);
+	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterFactory, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaqueDestAlpha);
 }
 
 
@@ -347,7 +347,7 @@ bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitte
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, CreateImageRowBlitterFunc fCreate)
+bool CImageBlitter::CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory, CreateImageRowBlitterFunc fCreate)
 {
 	CRectangle				cRect;
 	size					y;
@@ -362,7 +362,7 @@ bool CImageBlitter::CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFor
 	xStart = cRect.GetLeft();
 	for (y = cRect.GetTop(); y < uiBottom; y++)
 	{
-		pcRowBlitter = (pcBlitterCache->*fCreate)();
+		pcRowBlitter = (pcBlitterFactory->*fCreate)();
 		AddBlitter(pcRowBlitter, xStart, xEnd, y);
 	}
 	return true;
@@ -373,9 +373,9 @@ bool CImageBlitter::CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache)
+bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory)
 {
-	return CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterFactory::CreateImageRowBlitterRGBByteAlphaByteTranslucent, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaque);
+	return CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(pcFormat, pcBlitterFactory, &CImageRowBlitterFactory::CreateImageRowBlitterRGBByteAlphaByteTranslucent, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaque);
 }
 
 
@@ -383,9 +383,9 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitt
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache)
+bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory)
 {
-	return CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(pcFormat, pcBlitterCache, &CImageRowBlitterFactory::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaqueDestAlpha);
+	return CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(pcFormat, pcBlitterFactory, &CImageRowBlitterFactory::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaqueDestAlpha);
 }
 
 
@@ -394,7 +394,7 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(CI
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, CreateImageRowBlitterFunc fCreateRGBByteAlphaByteTranslucent, CreateImageRowBlitterFunc fCreateByteAlignedOpaque)
+bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory, CreateImageRowBlitterFunc fCreateRGBByteAlphaByteTranslucent, CreateImageRowBlitterFunc fCreateByteAlignedOpaque)
 {
 	CRectangle				cRect;
 	size					x, y;
@@ -443,12 +443,12 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlit
 			{
 				if (uiLastType == 1)
 				{
-					pcRowBlitter = (pcBlitterCache->*fCreateRGBByteAlphaByteTranslucent)();
+					pcRowBlitter = (pcBlitterFactory->*fCreateRGBByteAlphaByteTranslucent)();
 					AddBlitter(pcRowBlitter, xStart, x, y);
 				}
 				else if (uiLastType == 255)
 				{
-					pcRowBlitter = (pcBlitterCache->*fCreateByteAlignedOpaque)();
+					pcRowBlitter = (pcBlitterFactory->*fCreateByteAlignedOpaque)();
 					AddBlitter(pcRowBlitter, xStart, x, y);
 				}
 				xStart = x;
@@ -460,12 +460,12 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlit
 		{
 			if (uiLastType == 1)
 			{
-				pcRowBlitter = pcBlitterCache->CreateImageRowBlitterRGBByteAlphaByteTranslucent();
+				pcRowBlitter = pcBlitterFactory->CreateImageRowBlitterRGBByteAlphaByteTranslucent();
 				AddBlitter(pcRowBlitter, xStart, x, y);
 			}
 			else if (uiLastType == 255)
 			{
-				pcRowBlitter = pcBlitterCache->CreateImageRowBlitterByteAlignedOpaque();
+				pcRowBlitter = pcBlitterFactory->CreateImageRowBlitterByteAlignedOpaque();
 				AddBlitter(pcRowBlitter, xStart, x, y);
 			}
 			xStart = x;
