@@ -33,6 +33,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //	     CImageCelTransparent and CImageCelMask allow additional trasparency through masking.
 
 
+class CImageCelBlitterCache;
+typedef CArrayTemplate<CImageCelBlitterCache*>	CArrayImageCelBlitterCachePtr;
+
+
 class CImageCel : public CObject
 {
 CONSTRUCTABLE(CImageCel);
@@ -40,6 +44,7 @@ DESTRUCTABLE(CImageCel);
 protected:
 	CSubImage		mcSubImage;  //Both the full dimension of the cel and also where it's pixels are in the source image.
 	Ptr<CImage>		mpSourceImage;
+	CArrayImageCelBlitterCachePtr	mapcBlitterCaches;  //The caches holding a blitter for this cel.  Not references, see Free.
 
 public:
 			void 			Init(Ptr<CImage> pcSourceImage, bool bCropTransparentBorders = false);
@@ -69,6 +74,10 @@ public:
 			CSubImage*		GetSubImage(void);
 			void			SetSubImage(CSubImage* pcSubImage);
 			Ptr<CImage>		GetSourceImage(void);
+
+			void			AddBlitterCache(CImageCelBlitterCache* pcCache);
+			void			ForgetBlitterCache(CImageCelBlitterCache* pcCache);
+			size			NumBlitterCaches(void);
 			void			GetImageDestBounds(int32 x, int32 y, CRectangle* pcReturn);
 			void			GetImageSourceBounds(CRectangle* pcReturn);
 			int32			GetSourceLeft(void);
