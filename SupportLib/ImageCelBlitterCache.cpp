@@ -11,8 +11,6 @@ void CImageCelBlitterCache::Init(Ptr<CImage> pDestImage)
 
 	mmCelToBlitterMap.Init();
 	mpDestImage = pDestImage;
-	mcRowBlitterFactory.Init();
-
 	PostInit();
 }
 
@@ -36,7 +34,6 @@ void CImageCelBlitterCache::Class(void)
 {
 	M_Embedded(mmCelToBlitterMap);
 	M_Pointer(mpDestImage);
-	U_Data(CImageRowBlitterFactory, mcRowBlitterFactory);
 }
 
 
@@ -75,9 +72,10 @@ bool CImageCelBlitterCache::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel)
 {
-	Ptr<CImageBlitter>	pImageBlitter;
-	bool				bValid;
-
+	Ptr<CImageBlitter>			pImageBlitter;
+	bool						bValid;
+	CImageRowBlitterFactory		cRowBlitterFactory;
+	
 	ValidatePtr(pCel);
 
 	pImageBlitter = mmCelToBlitterMap.Get(pCel);
@@ -92,7 +90,9 @@ Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel
 		return NULL;
 	}
 
-	bValid = pImageBlitter->Configure(&mcRowBlitterFactory);
+	cRowBlitterFactory.Init();
+	bValid = pImageBlitter->Configure(&cRowBlitterFactory);
+	cRowBlitterFactory.Kill();
 	if (!bValid)
 	{
 		return NULL;
