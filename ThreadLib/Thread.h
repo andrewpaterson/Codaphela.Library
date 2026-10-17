@@ -14,12 +14,12 @@ class CThread : public CConstructable, public CKillable
 {
 friend class CStandAloneThreadStarter;
 private:
-	EThreadState			meState;
-	int						miThreadId;
-	CNativeThread			mcNativeThread;
-	bool					mbDelete;
-	CThreadStarter*			mpcStarter;
-	CArrayTemplateEmbeddedPtr<CThreadStateNotifer, 2> mapcNotifiers;
+	EThreadState										meState;
+	int													miThreadId;
+	CNativeThread										mcNativeThread;
+	bool												mbDelete;
+	CThreadStarter*										mpcStarter;
+	CArrayTemplateEmbeddedPtr<CThreadStateNotifer, 2>	mapcNotifiers;
 
 public:
 					CThread(void);
