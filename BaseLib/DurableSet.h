@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __DURABLE_SET_H__
 #include "ArrayTemplate.h"
 #include "Chars.h"
+#include "ArrayChars.h"
 
 
 class CDurableFile;
@@ -58,7 +59,10 @@ public:
 	bool			MarkFinish(void);
 
 private:
-	bool			Mark(const char* szMarkFile);
+	bool			Mark(const char* szMarkFile, CChars* pszContents);
+	bool			ReadMarkedFiles(CArrayChars* paszFiles, bool* pbComplete);
+	bool			CopyMarkedFiles(bool bBackupToPrimary);
+	bool			CopyRecoveredFile(const char* szSource, const char* szDest);
 	bool			Unmark(const char* szMarkFile);
 	bool			CheckFilesIdentical(bool bThorough, bool bLogError);
 	bool			CheckWriteStatus(bool bMarkStart, bool bMarkRewrite, bool bLogError);
