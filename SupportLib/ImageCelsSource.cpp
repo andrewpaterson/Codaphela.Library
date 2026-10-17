@@ -164,17 +164,15 @@ void CImageCelsSource::AddDiskFileSource(char* szFilename, char* szImageName, CI
 		return;
 	}
 
-	pDiskFile = OMallocNoI<CImageSourceDiskFile>();
-
 	if (szImageName)
 	{
-		pDiskFile->Init(szFilename, szImageName);
+		pDiskFile = OMalloc<CImageSourceDiskFile>(szFilename, szImageName);
 	}
 	else
 	{
 		szNewName.Init(szFilename);
 		cFileUtil.RemovePath(&szNewName);
-		pDiskFile->Init(szFilename, szNewName.Text());
+		pDiskFile = OMalloc<CImageSourceDiskFile>(szFilename, szNewName.Text());
 		szNewName.Kill();
 	}
 	AddSource(pDiskFile, pcCelSource);
@@ -212,7 +210,6 @@ void CImageCelsSource::AddDiskFileSources(char* szPathName, char* szFileNameCont
 	for (i = 0; i < cFileNames.NumElements(); i++)
 	{
 		pszName = cFileNames.Get(i);
-		pDiskFile = OMallocNoI<CImageSourceDiskFile>();
 
 		if (szImageName)
 		{
@@ -224,12 +221,12 @@ void CImageCelsSource::AddDiskFileSources(char* szPathName, char* szFileNameCont
 			szNiceName.RemoveFromStart(iIndex);
 			szNiceName.Insert(0, szImageName);
 
-			pDiskFile->Init(pszName->Text(), szNiceName.Text());
+			pDiskFile = OMalloc<CImageSourceDiskFile>(pszName->Text(), szNiceName.Text());
 			szNiceName.Kill();
 		}
 		else
 		{
-			pDiskFile->Init(pszName->Text());
+			pDiskFile = OMalloc<CImageSourceDiskFile>(pszName->Text());
 		}
 		AddSource(pDiskFile, pcCelSource);
 	}
@@ -297,7 +294,7 @@ bool CImageCelsSource::Load(void)
 
 			if (pcCelsSource->NeedsMask())
 			{
-				pcMask = OMallocNoI<CImage>();
+				pcMask = OMalloc<CImage>();
 				maFillMasks.Add(pcMask);
 			}
 			iFirstCelIndex = maImageCels.NumElements();
