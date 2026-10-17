@@ -10,9 +10,8 @@ enum ELogFileCommand
 	LFC_Open,
 	LFC_Write,
 	LFC_Close,
-	LFC_Delete
-
-//	LFC_Truncate
+	LFC_Delete,
+	LFC_Truncate
 };
 
 
@@ -27,6 +26,7 @@ public:
 	bool	IsOpen(void);
 	bool	IsClose(void);
 	bool	IsDelete(void);
+	bool	IsTruncate(void);
 
 	const char*	GetType(void);
 };
@@ -72,6 +72,17 @@ public:
 	void Init(void);
 
 	bool Delete(CAbstractFile* pcFile);
+};
+
+
+class CLogFileCommandTruncate : public CLogFileCommand
+{
+public:
+	filePos		iSize;
+
+	void Init(filePos iSize);
+
+	bool Truncate(CAbstractFile* pcFile);
 };
 
 
