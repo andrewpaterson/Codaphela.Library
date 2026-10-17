@@ -208,15 +208,15 @@ bool CImageDraw::DrawCel(int x, int y, Ptr<CImageCel> pCel, CRectangle* pcClip)
 {
 	Ptr<CImageBlitter>			pBlitter;
 	bool						bResult;
-	CImageRowBlitterFactory		mcRowBlitterFactory;
+	CImageRowBlitterFactory		cRowBlitterFactory;
 
-	mcRowBlitterFactory.Init();
+	cRowBlitterFactory.Init();
 
 	//The blitter clips to the destination image and to pcClip if it is not NULL.
 	pBlitter = OMalloc<CImageBlitter>(pCel, Ptr<CImage>(mpcImage));
-	bResult = pBlitter->Configure(&mcRowBlitterFactory);
+	bResult = pBlitter->Configure(&cRowBlitterFactory);
 
-	mcRowBlitterFactory.Kill();
+	cRowBlitterFactory.Kill();
 	if (!bResult)
 	{
 		gcLogger.Error2(__METHOD__, " Cannot draw cel, the source and destination image formats do not match.", NULL);

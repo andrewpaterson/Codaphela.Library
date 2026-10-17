@@ -37,7 +37,6 @@ DESTRUCTABLE(CImageCelBlitterCache);
 protected:
 	CMapObject					mmCelToBlitterMap;
 	Ptr<CImage>					mpDestImage;
-	CImageRowBlitterFactory		mcRowBlitterFactory;
 
 public:
 	void				Init(Ptr<CImage> pDestImage);
