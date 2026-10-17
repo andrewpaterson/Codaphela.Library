@@ -28,10 +28,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Image.h"
 
 
-//CImageSource destroys the image when it's killed...
-//This assumes that the image will be fed to the CImageCombiner which creates a new image.
-//If ever you just want to load an image this will be a problem.
-//Or you can call TakeControl() which will stop the image from being killed.
 class CImageSource : public CUnknown
 {
 CONSTRUCTABLE(CImageSource);
@@ -43,7 +39,6 @@ public:
 			void			Init(char* szName = NULL);
 			void			Kill(void);
 
-			Ptr<CImage>		Allocate(char* szName);
 	virtual	bool			LoadImage(void) =0;
 			Ptr<CImage>		GetImage(void);
 			void			SetImage(Ptr<CImage> pcImage);
