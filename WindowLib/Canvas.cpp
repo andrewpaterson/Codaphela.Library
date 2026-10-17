@@ -129,18 +129,19 @@ bool CCanvas::Draw(void)
 		CreateNativeCanvas();
 	}
 
-	//The canvas draws first so that its children are drawn over it.
+	//The canvas draws itself and is copied onto the window before its children so that they are drawn over it.
 	if (mpCanvasDraw)
 	{
 		mpCanvasDraw->Draw(this);
 	}
-	CComponent::Draw();
 
 	pWindowCanvas = mpWindow->GetCanvas();
 	if (&pWindowCanvas != this)
 	{
 		pWindowCanvas->DrawCanvas(mcActualBounds.GetLeft(), mcActualBounds.GetTop(), this);
 	}
+
+	CComponent::Draw();
 	return true;
 }
 
