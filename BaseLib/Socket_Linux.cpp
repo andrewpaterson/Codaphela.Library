@@ -23,7 +23,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifdef LINUX_GNU_32
 #include <string.h>
 #include <sys/types.h>
+#include <errno.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <poll.h>
 #include <unistd.h>
 #include "Logger.h"
 #include "Chars.h"
@@ -77,7 +81,35 @@ void CSocket::Init(int iPort)
 //////////////////////////////////////////////////////////////////////////
 void CSocket::Kill(void)
 {
+	Close();
 	mszPortNumber.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSocket::Close(void)
+{
+	int		iSocket;
+
+	iSocket = GetSocketHandle(maSocket);
+	if (iSocket != INVALID_SOCKET_DESCRIPTOR)
+	{
+		close(iSocket);
+		SetSocketHandle(maSocket, INVALID_SOCKET_DESCRIPTOR);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSocket::IsOpen(void)
+{
+	return GetSocketHandle(maSocket) != INVALID_SOCKET_DESCRIPTOR;
 }
 
 
@@ -120,6 +152,119 @@ int CSocket::Send(void* pvBuffer, int iBufferLength)
 	else
 	{
 		return (int)iSendResult;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSocket::ReceiveAll(void* pvBuffer, int iLength)
+{
+	ssize_t		iResult;
+	uint8*		pucBuffer;
+
+	pucBuffer = (uint8*)pvBuffer;
+	while (iLength > 0)
+	{
+		iResult = recv(GetSocketHandle(maSocket), pucBuffer, iLength, 0);
+		if (iResult > 0)
+		{
+			pucBuffer += iResult;
+			iLength -= (int)iResult;
+		}
+		else if ((iResult < 0) && (errno == EINTR))
+		{
+			continue;
+		}
+		else
+		{
+			//0 is the other end closing the connection.
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSocket::SendAll(void* pvBuffer, int iLength)
+{
+	ssize_t		iResult;
+	uint8*		pucBuffer;
+
+	pucBuffer = (uint8*)pvBuffer;
+	while (iLength > 0)
+	{
+		iResult = send(GetSocketHandle(maSocket), pucBuffer, iLength, MSG_NOSIGNAL);
+		if (iResult > 0)
+		{
+			pucBuffer += iResult;
+			iLength -= (int)iResult;
+		}
+		else if ((iResult < 0) && (errno == EINTR))
+		{
+			continue;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSocket::SetNoDelay(bool bNoDelay)
+{
+	int		iNoDelay;
+
+	iNoDelay = bNoDelay ? 1 : 0;
+	return setsockopt(GetSocketHandle(maSocket), IPPROTO_TCP, TCP_NODELAY, &iNoDelay, sizeof(iNoDelay)) == 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CSocket::WaitForData(int iTimeoutMilliseconds)
+{
+	struct pollfd	sPoll;
+	int				iResult;
+
+	sPoll.fd = GetSocketHandle(maSocket);
+	sPoll.events = POLLIN;
+	sPoll.revents = 0;
+	do
+	{
+		iResult = poll(&sPoll, 1, iTimeoutMilliseconds);
+	}
+	while ((iResult < 0) && (errno == EINTR));
+
+	if (iResult > 0)
+	{
+		return SOCKET_WAIT_READY;
+	}
+	else if (iResult == 0)
+	{
+		return SOCKET_WAIT_TIMEOUT;
+	}
+	else
+	{
+		return SOCKET_WAIT_ERROR;
 	}
 }
 

@@ -195,8 +195,21 @@ bool CSharedMemoryQueue::Push(void* pvData, size_t uiDataSize)
 		pvMemory = mcQueue.Push(uiDataSize);
 		if (!pvMemory)
 		{
-			mcMutex.Unlock();
-			return false;
+			//A small element can still not fit because its descriptor was not counted.
+			sResize = mcSharedMemory.IncreaseSize(uiDataSize + mcQueue.GetDescriptorSize());
+			if (!sResize.pvMemory)
+			{
+				mcMutex.Unlock();
+				return false;
+			}
+
+			mcQueue.Remap((SCircularMemoryList*)sResize.pvMemory, sResize.uiSize);
+			pvMemory = mcQueue.Push(uiDataSize);
+			if (!pvMemory)
+			{
+				mcMutex.Unlock();
+				return false;
+			}
 		}
 	}
 
@@ -238,6 +251,26 @@ bool CSharedMemoryQueue::Pop(void* pvData, size_t* puiDataSize, size_t uiMaxData
 		mcMutex.Unlock();
 		return false;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size_t CSharedMemoryQueue::PeekSize(void)
+{
+	void*	pvMemory;
+	size	uiDataSize;
+
+	mcMutex.Lock();
+	SSharedMemoryMap sMap = mcSharedMemory.Touch();
+	mcQueue.Remap((SCircularMemoryList*)sMap.pvMemory, sMap.uiSize);
+
+	pvMemory = mcQueue.Peek(&uiDataSize);
+
+	mcMutex.Unlock();
+	return pvMemory ? uiDataSize : 0;
 }
 
 

@@ -73,6 +73,9 @@
     <Filter Include="Source\Process">
       <UniqueIdentifier>{1e3bc765-90bc-40b3-9065-d343542bb704}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Network">
+      <UniqueIdentifier>{826575a6-3240-402d-a96e-12276fe6c08c}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\SharedMemory">
       <UniqueIdentifier>{a250ae84-95df-4c44-9ed4-957c8e7b7a85}</UniqueIdentifier>
     </Filter>
@@ -134,6 +137,15 @@
     </ClCompile>
     <ClCompile Include="ThreadsDone.cpp">
       <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkConnection.cpp">
+      <Filter>Source\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessChannel.cpp">
+      <Filter>Source\Process</Filter>
+    </ClCompile>
+    <ClCompile Include="SharedMemoryChannel.cpp">
+      <Filter>Source\SharedMemory</Filter>
     </ClCompile>
     <ClCompile Include="ProcessFork.cpp">
       <Filter>Source\Process</Filter>
@@ -232,6 +244,15 @@
     </ClInclude>
     <ClInclude Include="ThreadsDone.h">
       <Filter>Source\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkConnection.h">
+      <Filter>Source\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessChannel.h">
+      <Filter>Source\Process</Filter>
+    </ClInclude>
+    <ClInclude Include="SharedMemoryChannel.h">
+      <Filter>Source\SharedMemory</Filter>
     </ClInclude>
     <ClInclude Include="ProcessFork.h">
       <Filter>Source\Process</Filter>
