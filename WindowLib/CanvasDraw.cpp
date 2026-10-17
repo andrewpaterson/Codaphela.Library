@@ -50,3 +50,16 @@ bool CCanvasDraw::Load(CObjectReader* pcFile)
 	return false;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CCanvasDraw::GetDesiredSize(void)
+{
+	SInt32Vec2	sSize;
+
+	//-1, -1 means this draw has no size of its own.
+	sSize.Init(-1, -1);
+	return sSize;
+}

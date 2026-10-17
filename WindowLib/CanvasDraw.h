@@ -22,6 +22,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Object.h"
 #include "StandardLib/Pointer.h"
+#include "BaseLib/Int32Vec2.h"
 
 
 /* The only import method in this class is
@@ -46,6 +47,7 @@ public:
 			bool	Load(CObjectReader* pcFile) override;
 
 	virtual bool	Draw(Ptr<CCanvas> pCanvas) =0;
+	virtual SInt32Vec2	GetDesiredSize(void);
 };
 
 
