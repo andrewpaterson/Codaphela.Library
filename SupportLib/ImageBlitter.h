@@ -56,7 +56,7 @@ public:
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;
 
-	bool			Blit(int32 iDestX, int32 iDestY);
+	bool			Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip = NULL);
 	Ptr<CImageCel>	GetCel(void);
 
 protected:

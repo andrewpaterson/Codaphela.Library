@@ -4,6 +4,8 @@
 #include "Image.h"
 #include "ImageAccessor.h"
 #include "ImageColour.h"
+#include "ImageBlitter.h"
+#include "ImageRowBlitterFactory.h"
 
 
 class CImageDraw
@@ -12,6 +14,7 @@ protected:
 	CImage*				mpcImage;
 	CImageAccessor*		mpcAccessor;
 	SImageColour		msColour;
+	CImageRowBlitterFactory	mcRowBlitterFactory;
 
 public:
 	void	Init(CImage* ppImage);  //* pointer instead of Ptr pointer because CImageDraw is not an object.
@@ -29,7 +32,7 @@ public:
 	void	DrawHorizontalLine(int x0, int x1, int y);
 	void	DrawVerticalLine(int x, int y0, int y1);
 
-	void	DrawImage(int x, int y, CImage* pcSource);
+	bool	DrawCel(int x, int y, Ptr<CImageCel> pCel, CRectangle* pcClip = NULL);
 };
 
 

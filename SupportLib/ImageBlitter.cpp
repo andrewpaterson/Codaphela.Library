@@ -195,6 +195,13 @@ bool CImageBlitter::InitOpacityInfo(CImageBlitterFormat* pcFormat)
 		return true;
 	}
 
+	//An image with an ignored channel (e.g. RGBX) has alpha bits but no opacity channel.
+	if (!pSourceImage->HasChannel(IMAGE_OPACITY))
+	{
+		mcFormat.meSourceOpacity = CPO_None;
+		return true;
+	}
+
 	if (mcFormat.meSourceAlphaBits != ARGB_None)
 	{
 		pcOpacityAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pcChannels, IMAGE_OPACITY, PT_float32);
@@ -557,7 +564,7 @@ void CImageBlitter::InitContext(CImageBlitterContext* pcContext)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::Blit(int32 iDestX, int32 iDestY)
+bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip)
 {
 	size				uiNumElements;
 	size				ui;
@@ -583,6 +590,30 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY)
 	iSourceLeft = (size)mpSourceCel->GetSourceLeft();
 	iSourceTop = (size)mpSourceCel->GetSourceTop();
 	cDestRect.Init(0, 0, mpDestImage->GetWidth(), mpDestImage->GetHeight());
+	if (pcClip)
+	{
+		//Only draw where the destination image and the clip rectangle overlap.
+		if (pcClip->msTopLeft.x > cDestRect.msTopLeft.x)
+		{
+			cDestRect.msTopLeft.x = pcClip->msTopLeft.x;
+		}
+		if (pcClip->msTopLeft.y > cDestRect.msTopLeft.y)
+		{
+			cDestRect.msTopLeft.y = pcClip->msTopLeft.y;
+		}
+		if (pcClip->msBottomRight.x < cDestRect.msBottomRight.x)
+		{
+			cDestRect.msBottomRight.x = pcClip->msBottomRight.x;
+		}
+		if (pcClip->msBottomRight.y < cDestRect.msBottomRight.y)
+		{
+			cDestRect.msBottomRight.y = pcClip->msBottomRight.y;
+		}
+		if ((cDestRect.msBottomRight.x <= cDestRect.msTopLeft.x) || (cDestRect.msBottomRight.y <= cDestRect.msTopLeft.y))
+		{
+			return true;
+		}
+	}
 	mpSourceCel->GetImageDestBounds(iDestX, iDestY, &cSourceRect);
 
 	if (cSourceRect.Outside(&cDestRect))
@@ -639,6 +670,12 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY)
 				if (xDestStart + xLength > cDestRect.msBottomRight.x)
 				{
 					xSourceEnd -= xDestStart + xLength - cDestRect.msBottomRight.x;
+				}
+
+				//A row segment can lie entirely outside the clip even when the rest of the cel does not.
+				if (xSourceStart >= xSourceEnd)
+				{
+					continue;
 				}
 
 				pcRowBlitter->mpcBlitter->Copy(&mcContext, pvSource, pvDest, xDestStart, yDest, xSourceStart, xSourceEnd, ySource);
