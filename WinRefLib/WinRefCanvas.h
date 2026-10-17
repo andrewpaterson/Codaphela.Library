@@ -31,6 +31,7 @@ class CWinRefCanvas : public CNativeCanvas
 CONSTRUCTABLE(CWinRefCanvas);
 protected:
 	CImage*			mpcImage;
+	CImageCel*		mpcCel;
 	CImageDraw		mcDraw;
 	ARGB32			msLastColour;
 
@@ -42,6 +43,7 @@ public:
 
 	uint8*			GetPixelData(void);
 	Ptr<CImage>		GetImage(void);
+	Ptr<CImageCel>	GetCel(void);
 
 	void			CopyCanvas(CNativeCanvas* pcSourceCanvas) override;
 	Ptr<CImage>		GetImageOrNull(void);

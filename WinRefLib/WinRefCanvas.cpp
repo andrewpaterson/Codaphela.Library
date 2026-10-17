@@ -15,6 +15,7 @@ void CWinRefCanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactor
 {
 	CNativeCanvas::Init(pcCanvas, pcWindowFactory);
     mpcImage = NULL;
+    mpcCel = NULL;
     msLastColour = 0xffffffff;
 }
 
@@ -28,6 +29,11 @@ void CWinRefCanvas::Kill(void)
     if (mpcImage)
     {
         mcDraw.Kill();
+        if (mpcCel)
+        {
+            gcObjects.RemoveFreeObject(mpcCel);
+            mpcCel = NULL;
+        }
         gcObjects.RemoveFreeObject(mpcImage);
         mpcImage = NULL;
     }
@@ -50,6 +56,7 @@ bool CWinRefCanvas::CreateNativeCanvas(void)
     ERGBColourBits          eColourBits;
     ERGBAlphaBits           eAlphaBits;
     Ptr<CImage>             pImage;
+    Ptr<CImageCel>          pCel;
 
     pcFactory = (CWinRefWindowFactory*)mpcWindowFactory;
     sSize = mpcCanvas->GetActualSize();
@@ -69,6 +76,10 @@ bool CWinRefCanvas::CreateNativeCanvas(void)
     }
 
     mpcImage->Black();
+
+    //The cel covers the whole image so that this canvas can be blitted onto another.
+    pCel = OMalloc<CImageCel>(pImage);
+    mpcCel = gcObjects.AddFreeObject<CImageCel>(pCel);
 
     SetSize(sSize.x, sSize.y);
     mcDraw.Init(mpcImage);
@@ -94,6 +105,16 @@ uint8* CWinRefCanvas::GetPixelData(void)
 Ptr<CImage> CWinRefCanvas::GetImage(void)
 {
     return mpcImage;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CWinRefCanvas::GetCel(void)
+{
+    return mpcCel;
 }
 
 
@@ -148,7 +169,7 @@ void CWinRefCanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource)
     CWinRefCanvas*   pcRefSource;
 
     pcRefSource = (CWinRefCanvas*)pcSource;
-    mcDraw.DrawImage(iX, iY, &pcRefSource->GetImage());
+    mcDraw.DrawCel(iX, iY, pcRefSource->GetCel());
 }
 
 

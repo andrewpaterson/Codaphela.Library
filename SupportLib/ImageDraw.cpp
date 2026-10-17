@@ -1,4 +1,4 @@
-#include "StandardLib/ChannelsCopier.h"
+#include "BaseLib/Logger.h"
 #include "ImageAccessorCreator.h"
 #include "ImageDraw.h"
 
@@ -13,6 +13,7 @@ void CImageDraw::Init(CImage* pcImage)
 
 	mpcImage = pcImage;
 	mpcAccessor = NULL;
+	mcRowBlitterFactory.Init();
 	
 	cColour.Init(1.0f, 1.0f, 1.0f);
 	SetColour(&cColour);
@@ -31,6 +32,7 @@ void CImageDraw::Kill(void)
 		mpcAccessor->Kill();
 		mpcAccessor = NULL;
 	}
+	mcRowBlitterFactory.Kill();
 	mpcImage = NULL;
 }
 
@@ -204,25 +206,20 @@ void CImageDraw::DrawVerticalLine(int x, int y0, int y1)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDraw::DrawImage(int x, int y, CImage* pcSource)
+bool CImageDraw::DrawCel(int x, int y, Ptr<CImageCel> pCel, CRectangle* pcClip)
 {
-	int					i;
-	int					iSourceWidth;
-	int					iSourceHeight;
-	int					iDestWidth;
-	int					iDestHeight;
-	CChannelsCopier		cCopy;
+	Ptr<CImageBlitter>	pBlitter;
+	bool				bResult;
 
-	iSourceWidth = pcSource->GetWidth();
-	iSourceHeight = pcSource->GetHeight();
-	iDestWidth = mpcImage->GetWidth();
-	iDestHeight = mpcImage->GetHeight();
-
-	cCopy.Init(pcSource->GetChannels(), mpcImage->GetChannels());
-	for (i = 0; i < iSourceHeight; i++)
+	//The blitter clips to the destination image and to pcClip if it is not NULL.
+	pBlitter = OMalloc<CImageBlitter>(pCel, Ptr<CImage>(mpcImage));
+	bResult = pBlitter->Configure(&mcRowBlitterFactory);
+	if (!bResult)
 	{
-		cCopy.Copy(i * iSourceWidth, (y + i) * iDestWidth + x, iSourceWidth);
+		gcLogger.Error2(__METHOD__, " Cannot draw cel, the source and destination image formats do not match.", NULL);
+		return false;
 	}
-	cCopy.Kill();
+
+	return pBlitter->Blit(x, y, pcClip);
 }
 
