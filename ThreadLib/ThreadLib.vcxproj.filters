@@ -90,9 +90,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SafeArrayBlock.cpp">
-      <Filter>Source\Data\Array\Basic</Filter>
-    </ClCompile>
     <ClCompile Include="Thread.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
@@ -103,12 +100,6 @@
       <Filter>Source\Thread</Filter>
     </ClCompile>
     <ClCompile Include="AtomicInt_Linux.cpp">
-      <Filter>Source\Thread</Filter>
-    </ClCompile>
-    <ClCompile Include="Mutex_Windows.cpp">
-      <Filter>Source\Thread</Filter>
-    </ClCompile>
-    <ClCompile Include="Mutex_Linux.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
     <ClCompile Include="ConditionVariable_Windows.cpp">
@@ -128,9 +119,6 @@
     </ClCompile>
     <ClCompile Include="WorkerThreadPool.cpp">
       <Filter>Source\Thread\Pool</Filter>
-    </ClCompile>
-    <ClCompile Include="SafeLinkedListBlock.cpp">
-      <Filter>Source\Data\List</Filter>
     </ClCompile>
     <ClCompile Include="ThreadPool.cpp">
       <Filter>Source\Thread\Pool</Filter>
@@ -212,9 +200,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SafeArrayBlock.h">
-      <Filter>Source\Data\Array\Basic</Filter>
-    </ClInclude>
     <ClInclude Include="Thread.h">
       <Filter>Source\Thread</Filter>
     </ClInclude>
@@ -224,16 +209,10 @@
     <ClInclude Include="ThreadState.h">
       <Filter>Source\Thread</Filter>
     </ClInclude>
-    <ClInclude Include="SafeLinkedListBlock.h">
-      <Filter>Source\Data\List</Filter>
-    </ClInclude>
     <ClInclude Include="ThreadStarter.h">
       <Filter>Source\Thread</Filter>
     </ClInclude>
     <ClInclude Include="AtomicInt.h">
-      <Filter>Source\Thread</Filter>
-    </ClInclude>
-    <ClInclude Include="Mutex.h">
       <Filter>Source\Thread</Filter>
     </ClInclude>
     <ClInclude Include="ConditionVariable.h">

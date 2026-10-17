@@ -79,11 +79,11 @@ bool CMapsCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
         pImage = pCanvas->GetImageOrNull();
         if (pImage.IsNull())
         {
-            if (mpDestImage.IsNull())
+            if (mpDestImage.IsNull() || (mpDestImage->GetWidth() != sSize.x) || (mpDestImage->GetHeight() != sSize.y))
             {
                 mpDestImage = OMalloc<CImage>(sSize.x, sSize.y, pCanvas->GetColourFormat(), pCanvas->GetColourOrder(), pCanvas->GetColourBits(), pCanvas->GetAlphaBits());
-                pImage = mpDestImage;
             }
+            pImage = mpDestImage;
         }
         else
         {
@@ -119,7 +119,7 @@ bool CMapsCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 
         if (mpDestImage.IsNotNull())
         {
-            pCanvas->DrawCanvas(0, 0, mpDestImage);
+            pCanvas->DrawImage(0, 0, mpDestImage);
         }
     }
     return true;

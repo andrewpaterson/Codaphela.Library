@@ -196,10 +196,13 @@ bool CTileMap::HasCelBlitters(void)
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pTileLayer = maTileLayers.Get(i);
-		bResult = pTileLayer->HasCelBlitters();
-		if (!bResult)
+		if (pTileLayer->UsesCelBlitters())
 		{
-			return false;
+			bResult = pTileLayer->HasCelBlitters();
+			if (!bResult)
+			{
+				return false;
+			}
 		}
 	}
 	return true;
@@ -222,12 +225,31 @@ bool CTileMap::UsesCelBlitters(void)
 	{
 		pTileLayer = maTileLayers.Get(i);
 		bResult = pTileLayer->UsesCelBlitters();
-		if (!bResult)
+		if (bResult)
 		{
-			return false;
+			return true;
 		}
 	}
-	return true;
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTileMap::ClearCelBlitters(void)
+{
+	size				uiNumElements;
+	size				i;
+	Ptr<CTileLayer>		pTileLayer;
+
+	uiNumElements = maTileLayers.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pTileLayer = maTileLayers.Get(i);
+		pTileLayer->ClearCelBlitters();
+	}
 }
 
 

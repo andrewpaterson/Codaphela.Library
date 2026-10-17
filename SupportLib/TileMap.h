@@ -50,6 +50,7 @@ public:
 	bool				CreateCelBlitters(void) override;
 	bool				HasCelBlitters(void) override;
 	bool				UsesCelBlitters(void) override;
+	void				ClearCelBlitters(void) override;
 
 	void				SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) override;
 	void				SetViewport(Ptr<CImage> pViewport) override;

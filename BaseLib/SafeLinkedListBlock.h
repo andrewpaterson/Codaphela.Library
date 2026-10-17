@@ -1,7 +1,7 @@
 #ifndef __SAFE_LINKED_LIST_BLOCK_H__
 #define __SAFE_LINKED_LIST_BLOCK_H__
-#include "BaseLib/LinkedListBlock.h"
-#include "BaseLib/StackMemory.h"
+#include "LinkedListBlock.h"
+#include "StackMemory.h"
 #include "Mutex.h"
 
 

@@ -274,18 +274,15 @@ bool CTileLayerCel::HasCelBlitters(void)
 	size				x, y;
 	Ptr<CImageBlitter>	pBlitter;
 	size				iSize;
-	size				i;
 
 	if (mpCache && mpViewport)
 	{
 		if (mpCache->GetDestImage() == mpViewport)
 		{
-			maBlitters.Clear();
-
 			iSize = msMapSize.x * msMapSize.y;
-			for (i = 0; i < iSize; i++)
+			if (maBlitters.NumElements() != iSize)
 			{
-				maBlitters.Add(NULL);
+				return false;
 			}
 
 			for (y = 0; y < msMapSize.y; y++)
@@ -293,7 +290,8 @@ bool CTileLayerCel::HasCelBlitters(void)
 				for (x = 0; x < msMapSize.x; x++)
 				{
 					pBlitter = GetBlitter(x, y);
-					if (pBlitter.IsNull())
+					pCel = GetTile(x, y);
+					if (pBlitter.IsNull() && pCel.IsNotNull())
 					{
 						return false;
 					}

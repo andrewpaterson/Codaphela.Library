@@ -337,6 +337,9 @@
     <ClInclude Include="IndexTreeNodeMemory.h" />
     <ClInclude Include="IndexTreeRecursor.h" />
     <ClInclude Include="LinkedListBlock.h" />
+    <ClInclude Include="Mutex.h" />
+    <ClInclude Include="SafeArrayBlock.h" />
+    <ClInclude Include="SafeLinkedListBlock.h" />
     <ClInclude Include="LinkedListTemplate.h" />
     <ClInclude Include="ListBlock.h" />
     <ClInclude Include="ListTemplate.h" />
@@ -757,6 +760,10 @@
     <ClCompile Include="IndexTreeRecursor.cpp" />
     <ClCompile Include="LinkedList.cpp" />
     <ClCompile Include="LinkedListBlock.cpp" />
+    <ClCompile Include="Mutex_Windows.cpp" />
+    <ClCompile Include="Mutex_Linux.cpp" />
+    <ClCompile Include="SafeArrayBlock.cpp" />
+    <ClCompile Include="SafeLinkedListBlock.cpp" />
     <ClCompile Include="ListBlock.cpp" />
     <ClCompile Include="ListCharsMinimal.cpp" />
     <ClCompile Include="ListVariable.cpp" />

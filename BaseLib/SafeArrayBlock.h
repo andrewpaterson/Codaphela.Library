@@ -1,7 +1,7 @@
 #ifndef _SAFE_ARRAY_BLOCK_H__
 #define _SAFE_ARRAY_BLOCK_H__
-#include "BaseLib/ArrayBlock.h"
-#include "BaseLib/StackMemory.h"
+#include "ArrayBlock.h"
+#include "StackMemory.h"
 #include "Mutex.h"
 
 

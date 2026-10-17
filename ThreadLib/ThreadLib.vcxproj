@@ -189,8 +189,6 @@
     <ClInclude Include="ProcessChannel.h" />
     <ClInclude Include="SharedMemoryChannel.h" />
     <ClInclude Include="ProcessFork.h" />
-    <ClInclude Include="SafeArrayBlock.h" />
-    <ClInclude Include="SafeLinkedListBlock.h" />
     <ClInclude Include="ResizableSharedMemory.h" />
     <ClInclude Include="InterProcessMutex.h" />
     <ClInclude Include="SharedMemory.h" />
@@ -208,7 +206,6 @@
     <ClInclude Include="ThreadState.h" />
     <ClInclude Include="ThreadStateNotifier.h" />
     <ClInclude Include="AtomicInt.h" />
-    <ClInclude Include="Mutex.h" />
     <ClInclude Include="ConditionVariable.h" />
     <ClInclude Include="NativeThread.h" />
     <ClInclude Include="WorkerThreadPool.h" />
@@ -226,8 +223,6 @@
     <ClCompile Include="ProcessFork.cpp" />
     <ClCompile Include="ProcessFork_Windows.cpp" />
     <ClCompile Include="ProcessFork_Linux.cpp" />
-    <ClCompile Include="SafeArrayBlock.cpp" />
-    <ClCompile Include="SafeLinkedListBlock.cpp" />
     <ClCompile Include="SharedMemoryResult.cpp" />
     <ClCompile Include="ResizableSharedMemory.cpp" />
     <ClCompile Include="InterProcessMutex_Windows.cpp" />
@@ -244,8 +239,6 @@
     <ClCompile Include="AtomicInt.cpp" />
     <ClCompile Include="AtomicInt_Windows.cpp" />
     <ClCompile Include="AtomicInt_Linux.cpp" />
-    <ClCompile Include="Mutex_Windows.cpp" />
-    <ClCompile Include="Mutex_Linux.cpp" />
     <ClCompile Include="ConditionVariable_Windows.cpp" />
     <ClCompile Include="ConditionVariable_Linux.cpp" />
     <ClCompile Include="NativeThread.cpp" />

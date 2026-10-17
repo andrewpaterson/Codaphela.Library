@@ -54,6 +54,7 @@ public:
 	bool	CreateCelBlitters(void) override;
 	bool	HasCelBlitters(void) override;
 	bool	UsesCelBlitters(void) override;
+	void	ClearCelBlitters(void) override;
 
 	void	TileLayerAbstract(void) override {}
 };

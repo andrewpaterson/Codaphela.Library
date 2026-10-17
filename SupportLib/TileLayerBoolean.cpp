@@ -135,5 +135,6 @@ bool CTileLayerBoolean::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters) {
 bool CTileLayerBoolean::CreateCelBlitters(void) { return false; }
 bool CTileLayerBoolean::HasCelBlitters(void) { return false; }
 bool CTileLayerBoolean::UsesCelBlitters(void) { return false; }
+void CTileLayerBoolean::ClearCelBlitters(void) {}
 
 

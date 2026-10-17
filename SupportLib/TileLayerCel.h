@@ -73,7 +73,7 @@ public:
 
 	bool						SetBlitter(size x, size y, Ptr<CImageBlitter> pBlitter);
 	Ptr<CImageBlitter>			GetBlitter(size x, size y);
-	void						ClearCelBlitters(void);
+	void						ClearCelBlitters(void) override;
 
 	void						TileLayerAbstract(void) override {}
 };
