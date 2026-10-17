@@ -17,7 +17,7 @@ protected:
 	CImageRowBlitterFactory	mcRowBlitterFactory;
 
 public:
-	void	Init(CImage* ppImage);  //* pointer instead of Ptr pointer because CImageDraw is not an object.
+	void	Init(CImage* ppImage);  //A (*) pointer instead of Ptr pointer because CImageDraw is not an object.  Note that the Image should be added into FreeObjects to ensure it's not evicted whilst this pointer is in use.
 	void	Kill(void);
 
 	void	SetColour(CImageColour* pcColour);
