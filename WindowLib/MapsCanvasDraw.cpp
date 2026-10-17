@@ -12,7 +12,6 @@ void CMapsCanvasDraw::Init(Ptr<CMaps> pMaps)
     PreInit();
     CCanvasDraw::Init();
     mpMaps = pMaps;
-    mpBlitterCache = NULL;
     mpDestImage = NULL;
     PostInit();
 }
@@ -26,7 +25,6 @@ void CMapsCanvasDraw::Class(void)
 {
     CCanvasDraw::Class();
     M_Pointer(mpMaps);
-    M_Pointer(mpBlitterCache);
     M_Pointer(mpDestImage);
 }
 
@@ -94,16 +92,8 @@ bool CMapsCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
             }
         }
 
-        if (mpBlitterCache.IsNull())
-        {
-            mpBlitterCache = OMalloc<CImageCelBlitterCache>(pImage);
-        }
-        else if (!mpBlitterCache->Matches(pImage))
-        {
-            mpBlitterCache->Clear(pImage);
-        }
-        
-        mpMaps->SetCacheAndViewport(mpBlitterCache, pImage);
+        //The image being drawn onto keeps the blitters that draw onto it, so a new image starts with new blitters.
+        mpMaps->SetCacheAndViewport(pImage->GetBlitterCache(), pImage);
 
         if (!mpMaps->HasCelBlitters())
         {

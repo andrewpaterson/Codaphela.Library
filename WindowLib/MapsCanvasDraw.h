@@ -10,7 +10,6 @@ CONSTRUCTABLE(CMapsCanvasDraw);
 DESTRUCTABLE(CMapsCanvasDraw);
 protected:
 	Ptr<CMaps>					mpMaps;
-	Ptr<CImageCelBlitterCache>	mpBlitterCache;
 	Ptr<CImage>                 mpDestImage;
 
 public:

@@ -30,8 +30,6 @@ CONSTRUCTABLE(CImageCanvasDraw);
 DESTRUCTABLE(CImageCanvasDraw);
 protected:
 	Ptr<CImageCel>				mpCel;
-	Ptr<CImageCelBlitterCache>	mpBlitterCache;
-	Ptr<CImageBlitter>			mpBlitter;
 	Ptr<CImage>					mpDestImage;
 
 public:
