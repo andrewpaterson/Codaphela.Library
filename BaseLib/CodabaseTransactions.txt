@@ -1,0 +1,225 @@
+Codabase Transactions
+=====================
+
+Design for ACID transactions on top of CCodabase.  Decided 2026-10-17.  Nothing is implemented yet.
+
+
+Goal and guarantee
+------------------
+
+Fully ACID transactions in CCodabase.
+
+The version 1 guarantee is strict serialisability for everything read or written by OIndex.  Strict means the serial order agrees with real time: if T1 committed before T2 started then T1 comes first.
+
+Two things are deliberately NOT covered by version 1:
+  - Name lookups by write transactions that find nothing.  A write transaction that calls GetIndex("Alpha"), gets "not found" and acts on it is not protected against another transaction creating "Alpha".
+  - Phantoms when write transactions iterate.  An index or name iteration in a write transaction can miss an object another write transaction inserts.
+
+Read-only transactions are fully covered, including names and iteration, because they read a snapshot.
+
+
+Scope
+-----
+
+In scope:   CCodabase and the classes beneath it (CNamedIndexedData, CDurableFileController).
+Not in scope for version 1:
+  - CObjects.  It keeps using the direct (non-transactional) API.
+  - Nested / sub-transactions.  Not planned.
+  - Name edge cases inside a transaction, e.g. removing a named object and re-adding the same name, or one transaction removing a name while another creates it.
+  - Locking and iteration gaps listed under "Goal and guarantee".
+
+Threads only.  Exactly one process owns a Codabase; other processes reach it by IPC into that process.  All transaction structures live in ordinary memory, not shared memory.
+
+
+Transaction kinds
+-----------------
+
+Read-only transactions
+  - Take a snapshot when they start: the last published commit number.
+  - Read the base Codabase, plus older versions from the version store where an object or name has been committed since the snapshot.
+  - Take no locks, never wait, never abort.
+  - Have no write set.  Ending one just releases its snapshot.
+
+Write transactions
+  - Use pessimistic locking through a per-object lock manager (see "Lock manager").
+  - Read the LATEST committed version, never a snapshot, after taking a lock.  This is required for serialisability; reading a snapshot would allow write skew.
+  - Hold every lock (shared, update and exclusive) until the commit is durable (rigorous two-phase locking).  This makes commit order a valid serial order.
+  - Keep all changes private in a write set until commit.
+
+Why this is strictly serialisable: write transactions are serialised in commit order.  The state at any commit number is therefore a prefix of that serial order, and a read-only transaction reading it fits into the order at exactly that point.  Because write transactions never read snapshots, the snapshot isolation anomalies (write skew and the read-only anomaly) cannot occur.
+
+
+API
+---
+
+  CCodabase::BeginReadTransaction()   returns CReadTransaction*
+  CCodabase::BeginWriteTransaction()  returns CWriteTransaction*
+
+CReadTransaction has a read-only interface: Get, GetName, GetIndex, Contains, StartIndexIteration / IndexIterate, StartNameIteration / NameIterate.
+
+CWriteTransaction implements CDataConnection (Add, Set, Put, Remove, Get, ...) and adds Commit and Abort.  Code written against CDataConnection can therefore run on a write transaction unchanged.
+
+Ownership follows BaseLib conventions: the Codabase allocates transactions and Kill() releases them.  Killing a write transaction that has not committed aborts it.
+
+Direct (non-transactional) API
+  - CObjects and other existing callers keep calling CCodabase's Add / Set / Put / Remove directly.
+  - Direct calls between Open() and Close() form ONE implicit write transaction, committed at Close().  This keeps today's semantics.
+  - That implicit transaction holds its write locks for the whole session, so until the lock manager exists it blocks all other write transactions between Open and Close.  Read-only transactions are unaffected.
+  - Wait-die could kill the implicit transaction, and the direct API has no way to report that or restart it.  This needs a rule before the lock manager is built.  Simplest: give the implicit transaction the oldest start number, so it waits but never dies.
+
+
+Write set
+---------
+
+Each write transaction holds a private map of its changes:
+  - by OIndex:  the new record (CNamedIndexedHeader + data) or "deleted".
+  - by name:    the OIndex the name now refers to, or "deleted".
+
+The name entries are needed so that GetIndex / Contains(name) inside the transaction see the transaction's own uncommitted Adds.
+
+Reads in a write transaction check the write set first, then the base Codabase.
+
+Abort discards the write set.  Nothing has touched disk, so nothing needs undoing.
+
+
+Commit
+------
+
+Commits run one at a time under the commit mutex.
+
+  1. Check every name the transaction creates against the committed names.  This MUST happen before Begin(): CDurableSet has no rollback, so anything written inside a Begin/End bracket is committed by End().  A failure here aborts the transaction cleanly.
+  2. Begin().
+  3. For each object in the write set: push the base store's current version (or "did not exist") into the version store, tagged "valid until C" where C is the new commit number, then write the new value (or Remove) into the base store.  Name changes push onto the name version chain the same way.
+  4. Flush and End().  After a commit the cache holds no unwritten changes, so eviction only ever drops clean data.
+  5. Publish C as the latest commit number.
+  6. Acknowledge the commit to the caller, then release the transaction's locks and name reservations.
+
+Publishing C only after End() returns, and acknowledging only after publishing, gives the real-time part of strict serialisability: any transaction started after the acknowledgement sees the commit.
+
+Each base-store write in step 3 holds the store mutex only for that one object.  A read-only transaction with a snapshot before C finds the pushed old version even while the commit is half applied, so readers never wait out a commit's fsyncs.
+
+Every commit costs fsyncs (milliseconds, more on Windows).  That is correct behaviour.  A write-ahead log could make commits cheaper later if needed.
+
+
+Name reservations
+-----------------
+
+If two transactions create objects with the same name, the one that creates SECOND fails, at create time.
+
+A name reservation table maps a name to the write transaction that owns it.
+  - Add with a name fails immediately if the name is already committed, or reserved by another transaction.  It never waits, so it cannot deadlock and is not part of the lock manager.
+  - On commit the name moves into mcNames and the reservation is removed.
+  - On abort the reservation is removed, freeing the name.
+
+If the first creator later aborts, the second has already failed even though the name turned out to be free.  That is correct under create-time rules; the second can retry.
+
+
+Lock manager
+------------
+
+Locks are keyed by OIndex only.  Names are not locked (see name reservations).
+
+Newly created objects need no lock: their OIndex comes fresh from CSequence and no other transaction knows it.
+
+Modes:
+
+  Requested \ Held   S   U   X
+  S (shared)         y   y   n
+  U (update)         y   n   n
+  X (exclusive)      n   n   n
+
+  S  "I read it."
+  U  "I read it and will probably write it."  Readers may continue, but only one transaction at a time may hold U.  Prevents two shared holders both upgrading and deadlocking.
+  X  "I am writing it."  Required to write, reached from U or directly.
+
+The caller chooses the mode.  Defaults: S on read, X on write, U when the caller knows it will modify.
+
+Deadlock handling: wait-die, using each transaction's start number (lower is older).
+  - A requester older than EVERY conflicting holder waits.  Otherwise it dies: aborts, releases everything and restarts.
+  - A restarted transaction keeps its original start number, so it eventually becomes the oldest and cannot starve.
+  - An upgrade (U or S to X) checks only the OTHER holders, not itself.
+  - Incompatible waiters already queued count as conflicts for a new request, so a waiting X cannot be overtaken forever by new S requests.  A waiting upgrade goes to the front of the queue.
+  - Dying is an ordinary false return ("transaction aborted"), not an exception.  The transaction layer frees the transaction's locks and reservations and wakes their waiters; the caller decides whether to retry.
+
+Structure: a map from OIndex to lock entry (granted mode, holder list, FIFO wait queue), guarded by one CMutex, with a CConditionVariable per waiting transaction.  Entries exist only while held or waited on.  Locks are keyed by transaction, not thread, so a thread pool can serve one IPC session's requests on any thread.
+
+Read-only transactions never enter the lock manager.
+
+
+Version store (snapshots)
+-------------------------
+
+Old versions are kept in two in-memory maps beside the base CNamedIndexedData.  A second IndexedStore / NamedIndexStore is not used: those are durable (Begin/End, primary and backup, recovery) and CIndexedData keys are fixed to OIndex, while old versions are temporary.
+
+  CMapLongTemplate<SVersionChain>   OIndex -> version chain
+  CIndexTreeMemory                  name   -> version chain
+
+A chain is a short array ordered by "valid until":
+
+  struct SVersion
+  {
+      int64   iValidUntil;   // Commit number that replaced this version.
+      size    iDataSize;     // 0 = did not exist before iValidUntil.
+      // Data follows: header + data, exactly as stored in the base store.
+  };
+
+Because write transactions hold X locks, an object has at most one uncommitted version, in its writer's write set.
+
+Reading at snapshot S:
+  - No chain for the key (the usual case): the base store's version is valid for every open snapshot.
+  - Otherwise take the first version whose iValidUntil is greater than S.  If none qualifies, read the base store.
+
+Clean-up: a FIFO list of (commit number, keys changed in that commit).  When the oldest open snapshot moves past a commit number, pop that entry and drop those keys' old versions.  An empty chain is removed.  No scanning of the maps is needed.
+
+The version store is not durable.  After a crash or restart no transactions are open, so it starts empty.
+
+A long-running read-only transaction alongside heavy writing makes the version store grow.  If that becomes a problem, chain storage can move to a CIndexTreeEvicting with composite keys ([oi][~iValidUntil], big-endian) in a temporary directory deleted at startup, outside the durable set.  The read, commit and clean-up rules stay the same.
+
+
+Threading
+---------
+
+Nothing in CCodabase, CNamedIndexedData or CIndexedData is thread-safe, and even Get changes state (it loads into the cache).  Every access to the base store goes through one store mutex, held for one operation at a time, not a whole transaction.  The commit mutex can be the same mutex.
+
+IPC sessions: every transaction is tied to the session that started it.  Closing or losing the session aborts its transactions, so a client that dies cannot hold locks or name reservations forever.  Remote lock requests should have a wait timeout.
+
+Only one process may open a Codabase directory.  It is worth enforcing this with an exclusive lock on the directory at Init (see the flock code in NamedSharedObject_Linux); it is not known whether anything prevents it today.
+
+
+Durability fixes needed first
+-----------------------------
+
+CDurableSet::End is a double-write commit (Mark1.Write, write and fsync primary, Mark2.Rewrite, write backup, delete marks), and Recover uses the marks to copy primary to backup or backup to primary.  Before relying on it per commit:
+  - The mark files are created and deleted without fsync of the file or its directory, so after power loss the marks can disagree with the data.
+  - CLogFile::Commit calls pcFile->Flush() but ignores the result.
+
+
+Write-through (IWT) modes
+-------------------------
+
+Under transactions the IWT modes do not matter to Codabase itself, because commit flushes either way.  CObjects still depends on them: with IWT_Yes, CObjects::LogicalDirty flushes each object as soon as it is dirtied.  IWT is left untouched in version 1.  Whether to remove it is decided when CObjects moves to transactions.
+
+
+Open questions
+--------------
+
+  - How read-only transactions get an object view in CObjects that writers' uncommitted in-memory changes do not affect.  MVCC gives them the right bytes, but they must deserialise from their snapshot into their own read-only view rather than share the live object graph.  Not needed until CObjects is in scope.
+  - The wait-die rule for the implicit direct-API transaction (see "Direct API").  Needed before the lock manager.
+  - Whether to remove the IWT modes.
+  - Name lookup and iteration protection for write transactions (version 2).
+
+
+Build order
+-----------
+
+  1. Durability fixes: fsync the mark files and their directory, check CLogFile::Commit's Flush result.  Crash tests that kill a forked child at each step of End() and check Recover gives either the old state or the new one.
+  2. Thread safety: store mutex in CCodabase.
+  3. Write transactions, one at a time: write set, name reservations, commit with the name check before Begin(), abort.  One global writer, no lock manager yet.  Direct API becomes the implicit session transaction.
+  4. Version store and read-only transactions: the two maps, snapshots, commit numbers published after End(), clean-up.
+  5. Lock manager: S / U / X modes with wait-die, allowing concurrent write transactions.
+
+
+History
+-------
+
+An earlier transaction implementation in CoreLib (Transaction, SubTransaction, TransactionController, TransactionIndexedData, IndexedMemory, TransientIndexedFile, TransientIndexedFileDescriptor) was removed in commits b17537b5 and fa534136 (2016-05-02).  It created a separate database per transaction holding copies of objects other transactions wrote.  That approach made writers copy old values into every concurrent reader's database and could not prevent phantoms.  This design reverses it: one shared store of old versions per key, and private write sets per transaction.
