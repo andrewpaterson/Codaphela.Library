@@ -103,6 +103,11 @@ void CDiskFile::Init(CChars szFilename)
 //////////////////////////////////////////////////////////////////////////
 void CDiskFile::Kill(void)
 {
+	//Release the operating system's file even if it was not closed, as happens when the process ends.
+	if (IsOpen())
+	{
+		Close();
+	}
 	mszFilename.Kill();
 	SetDescriptor(this, INVALID_FILE_DESCRIPTOR);
 }
