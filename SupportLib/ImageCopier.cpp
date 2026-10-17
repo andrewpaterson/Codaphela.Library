@@ -129,7 +129,7 @@ void CImageCopier::Copy(int iDestX, int iDestY, CRectangle* psSourceRect)
 
 	if (psSourceRect)
 	{
-		sCopy.Init(iDestX, iDestY, psSourceRect->miLeft, psSourceRect->miTop, psSourceRect->miRight, psSourceRect->miBottom, mpcDest->miWidth, mpcDest->miHeight);
+		sCopy.Init(iDestX, iDestY, psSourceRect->msTopLeft.x, psSourceRect->msTopLeft.y, psSourceRect->msBottomRight.x, psSourceRect->msBottomRight.y, mpcDest->miWidth, mpcDest->miHeight);
 	}
 	else
 	{

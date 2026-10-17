@@ -35,11 +35,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CRectangle
 {
 public:
-	int32    miLeft;
-	int32    miTop;
-
-	int32    miRight;
-	int32    miBottom;
+	SInt32Vec2	msTopLeft;
+	SInt32Vec2	msBottomRight;
 
 public:
 	void			Init(void);

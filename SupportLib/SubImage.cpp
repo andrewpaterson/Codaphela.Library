@@ -280,10 +280,10 @@ bool CSubImage::IsImageEmpty(void)
 //////////////////////////////////////////////////////////////////////////
 void CSubImage::GetFullDestBounds(int32 x, int32 y, CRectangle* pcReturn)
 {
-	pcReturn->miLeft = x + GetFullLeft();
-	pcReturn->miTop = y + GetFullTop();
-	pcReturn->miRight = x + GetFullRight();
-	pcReturn->miBottom = y + GetFullBottom();
+	pcReturn->msTopLeft.x = x + GetFullLeft();
+	pcReturn->msTopLeft.y = y + GetFullTop();
+	pcReturn->msBottomRight.x = x + GetFullRight();
+	pcReturn->msBottomRight.y = y + GetFullBottom();
 }
 
 
@@ -306,10 +306,10 @@ SInt32Vec2 CSubImage::GetImageDestPos(int32 x, int32 y)
 //////////////////////////////////////////////////////////////////////////
 void CSubImage::GetFullSourceBounds(CRectangle* pcReturn)
 {
-	pcReturn->miLeft = mcImageRect.miLeft - msOffsetTopLeft.x;
-	pcReturn->miTop = mcImageRect.miTop - msOffsetTopLeft.y;
-	pcReturn->miRight = mcImageRect.miRight + msOffsetBottomRight.x;
-	pcReturn->miBottom = mcImageRect.miBottom + msOffsetBottomRight.y;
+	pcReturn->msTopLeft.x = mcImageRect.msTopLeft.x - msOffsetTopLeft.x;
+	pcReturn->msTopLeft.y = mcImageRect.msTopLeft.y - msOffsetTopLeft.y;
+	pcReturn->msBottomRight.x = mcImageRect.msBottomRight.x + msOffsetBottomRight.x;
+	pcReturn->msBottomRight.y = mcImageRect.msBottomRight.y + msOffsetBottomRight.y;
 }
 
 
@@ -319,7 +319,7 @@ void CSubImage::GetFullSourceBounds(CRectangle* pcReturn)
 //////////////////////////////////////////////////////////////////////////
 int32 CSubImage::GetSourceLeft(void)
 {
-	return mcImageRect.miLeft - msOffsetTopLeft.x;
+	return mcImageRect.msTopLeft.x - msOffsetTopLeft.x;
 }
 
 
@@ -329,7 +329,7 @@ int32 CSubImage::GetSourceLeft(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CSubImage::GetSourceTop(void)
 {
-	return mcImageRect.miTop - msOffsetTopLeft.y;
+	return mcImageRect.msTopLeft.y - msOffsetTopLeft.y;
 }
 
 
@@ -349,10 +349,10 @@ void CSubImage::GetImageSourceBounds(CRectangle* pcReturn)
 //////////////////////////////////////////////////////////////////////////
 void CSubImage::GetImageDestBounds(int32 x, int32 y, CRectangle* pcReturn)
 {
-	pcReturn->miLeft = x + GetImageLeft();
-	pcReturn->miTop = y + GetImageTop();
-	pcReturn->miRight = x + GetImageRight();
-	pcReturn->miBottom = y + GetImageBottom();
+	pcReturn->msTopLeft.x = x + GetImageLeft();
+	pcReturn->msTopLeft.y = y + GetImageTop();
+	pcReturn->msBottomRight.x = x + GetImageRight();
+	pcReturn->msBottomRight.y = y + GetImageBottom();
 }
 
 
@@ -380,20 +380,20 @@ void CSubImage::AdjustImageRect(int32 iLeft, int32 iTop, int32 iRight, int32 iBo
 
 	int32 iDiff;
 
-	iDiff = iLeft - mcImageRect.miLeft;
-	mcImageRect.miLeft = iLeft;
+	iDiff = iLeft - mcImageRect.msTopLeft.x;
+	mcImageRect.msTopLeft.x = iLeft;
 	msOffsetTopLeft.x += iDiff;
 
-	iDiff = mcImageRect.miRight - iRight;
-	mcImageRect.miRight = iRight;
+	iDiff = mcImageRect.msBottomRight.x - iRight;
+	mcImageRect.msBottomRight.x = iRight;
 	msOffsetBottomRight.x += iDiff;
 
-	iDiff = iTop - mcImageRect.miTop;
-	mcImageRect.miTop = iTop;
+	iDiff = iTop - mcImageRect.msTopLeft.y;
+	mcImageRect.msTopLeft.y = iTop;
 	msOffsetTopLeft.y += iDiff;
 
-	iDiff = mcImageRect.miBottom - iBottom;
-	mcImageRect.miBottom = iBottom;
+	iDiff = mcImageRect.msBottomRight.y - iBottom;
+	mcImageRect.msBottomRight.y = iBottom;
 	msOffsetBottomRight.y += iDiff;
 }
 

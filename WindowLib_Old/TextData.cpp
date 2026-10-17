@@ -82,7 +82,7 @@ void CTextChar::CreateQuad(char c, CGraphicsObject* pcGraphicsObject, CGraphicsV
 	{
 		iWidth = psSubImage->GetImageWidth();
 		iHeight = psSubImage->GetImageHeight();
-		pcQuad = pcMap2D->CreateQuad(mpcFont->GetGraphicsMaterial(), mpcFont->GetGraphicsState(), pcViewport, iWidth, iHeight, cDestRect.miLeft, cDestRect.miTop);
+		pcQuad = pcMap2D->CreateQuad(mpcFont->GetGraphicsMaterial(), mpcFont->GetGraphicsState(), pcViewport, iWidth, iHeight, cDestRect.msTopLeft.x, cDestRect.msTopLeft.y);
 
 		pcQuad->SetUVCoordsFromRectangle(0, &psSubImage->mcImageRect);
 		
@@ -148,8 +148,8 @@ bool CTextChar::GetBounds(CRectangle* pcDest)
 
 	pcGlyph = mpcFont->GetGlyph(mcChar);
 	pcGlyph->GetFullDestBounds(msTopLeft.x, msTopLeft.y, pcDest);
-	pcDest->miRight--;
-	pcDest->miBottom--;
+	pcDest->msBottomRight.x--;
+	pcDest->msBottomRight.y--;
 
 	return true;
 }
@@ -561,10 +561,10 @@ bool CTextCharLine::GetBounds(int iX, CRectangle* pcDest)
 	}
 	else
 	{
-		pcDest->miLeft = this->msBottomRight.x;
-		pcDest->miTop = this->msTopLeft.y;
-		pcDest->miRight = this->msBottomRight.x+1;
-		pcDest->miBottom = this->msBottomRight.y;
+		pcDest->msTopLeft.x = this->msBottomRight.x;
+		pcDest->msTopLeft.y = this->msTopLeft.y;
+		pcDest->msBottomRight.x = this->msBottomRight.x+1;
+		pcDest->msBottomRight.y = this->msBottomRight.y;
 		return true;
 	}
 }

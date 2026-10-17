@@ -105,13 +105,22 @@
     <ClCompile Include="ProcessFork.cpp">
       <Filter>Source\Process</Filter>
     </ClCompile>
+    <ClCompile Include="ProcessFork_Windows.cpp">
+      <Filter>Source\Process</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessFork_Linux.cpp">
+      <Filter>Source\Process</Filter>
+    </ClCompile>
     <ClCompile Include="MainProcessDirector.cpp">
       <Filter>Source\Process</Filter>
     </ClCompile>
     <ClCompile Include="SharedMemoryQueue.cpp">
       <Filter>Source\SharedMemory</Filter>
     </ClCompile>
-    <ClCompile Include="InterProcessMutex.cpp">
+    <ClCompile Include="InterProcessMutex_Windows.cpp">
+      <Filter>Source\Process</Filter>
+    </ClCompile>
+    <ClCompile Include="InterProcessMutex_Linux.cpp">
       <Filter>Source\Process</Filter>
     </ClCompile>
     <ClCompile Include="WindowsSharedMemoryFile.cpp">

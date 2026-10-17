@@ -559,7 +559,7 @@ bool CTileLayerCel::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters)
 	}
 
 	xSize = pcViewportRect->GetWidth() + 1;
-	xStart = pcViewportRect->miLeft / msCelSize.x;
+	xStart = pcViewportRect->msTopLeft.x / msCelSize.x;
 	xStop = xStart + xSize / msCelSize.x;
 	if (xSize % msCelSize.x != 0)
 	{
@@ -575,7 +575,7 @@ bool CTileLayerCel::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters)
 	}
 
 	ySize = pcViewportRect->GetHeight();
-	yStart = pcViewportRect->miTop / msCelSize.y;
+	yStart = pcViewportRect->msTopLeft.y / msCelSize.y;
 	yStop = yStart + ySize / msCelSize.y;
 	yStop++;
 	if (ySize % msCelSize.y != 0)
@@ -609,7 +609,7 @@ bool CTileLayerCel::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters)
 			{
 				xOffset = x * msCelSize.x;
 				yOffset = y * msCelSize.y;
-				bResult = pBlitter->Blit(xOffset - pcViewportRect->miLeft, yOffset - pcViewportRect->miTop);
+				bResult = pBlitter->Blit(xOffset - pcViewportRect->msTopLeft.x, yOffset - pcViewportRect->msTopLeft.y);
 				if (!bResult)
 				{
 					return false;

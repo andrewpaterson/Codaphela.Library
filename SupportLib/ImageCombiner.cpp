@@ -538,12 +538,12 @@ void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 			pcLastImage = pcCelSource->GetSourceImage();
 		}
 
-		iDestLeft = pcPackedRect->miLeft;
-		iDestTop = pcPackedRect->miTop;
-		iSourceLeft = pcCelSource->GetSubImage()->mcImageRect.miLeft;
-		iSourceTop = pcCelSource->GetSubImage()->mcImageRect.miTop;
-		iSourceRight = pcCelSource->GetSubImage()->mcImageRect.miRight;
-		iSourceBottom = pcCelSource->GetSubImage()->mcImageRect.miBottom;
+		iDestLeft = pcPackedRect->msTopLeft.x;
+		iDestTop = pcPackedRect->msTopLeft.y;
+		iSourceLeft = pcCelSource->GetSubImage()->mcImageRect.msTopLeft.x;
+		iSourceTop = pcCelSource->GetSubImage()->mcImageRect.msTopLeft.y;
+		iSourceRight = pcCelSource->GetSubImage()->mcImageRect.msBottomRight.x;
+		iSourceBottom = pcCelSource->GetSubImage()->mcImageRect.msBottomRight.y;
 
 		cCopier.Init(pcSource, pcDest);
 		cCopier.Copy(iDestLeft, iDestTop, iSourceLeft, iSourceTop, iSourceRight, iSourceBottom);

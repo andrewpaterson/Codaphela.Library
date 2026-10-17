@@ -70,7 +70,7 @@ void CText::Layout(SInt2 sPosition, SInt2 sAreaSize)
 
 	if (bValid)
 	{
-		mpcCaret->SetPosition(cRect.miLeft + sPosition.x, cRect.miTop + sPosition.y);
+		mpcCaret->SetPosition(cRect.msTopLeft.x + sPosition.x, cRect.msTopLeft.y + sPosition.y);
 		mpcCaret->SetActualSize(1, cRect.GetHeight());
 	}
 	else

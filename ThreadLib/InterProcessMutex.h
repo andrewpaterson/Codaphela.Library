@@ -1,14 +1,18 @@
 #ifndef __INTER_PROCESS_MUTEX_H__
 #define __INTER_PROCESS_MUTEX_H__
-#include "BaseLib/WindowsHeaders.h"
 #include "BaseLib/Chars.h"
+
+
+//Large enough to hold a Windows mutex HANDLE or a pointer to a Linux shared mutex.
+#define INTER_PROCESS_MUTEX_HANDLE_SIZE		8
 
 
 class CInterProcessMutex
 {
 protected:
 	CChars	mszName;
-	HANDLE	mhMutex;
+	uint8	maMutex[INTER_PROCESS_MUTEX_HANDLE_SIZE];
+	bool	mbCreated;
 
 public:
 	void Init(char* szName);

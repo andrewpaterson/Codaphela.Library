@@ -155,7 +155,7 @@ void CSpriteMap::FindImageCels(CRectangle* pcRectangle, MapImageCelFunction pSpr
 		pSprite->GetImageDestBounds(&cCelRect);
 		if (pcRectangle->Intersect(&cCelRect))
 		{
-			pSpriteFunction(pSprite->GetCel(), cCelRect.miLeft - pcRectangle->miLeft, cCelRect.miTop - pcRectangle->miTop);
+			pSpriteFunction(pSprite->GetCel(), cCelRect.msTopLeft.x - pcRectangle->msTopLeft.x, cCelRect.msTopLeft.y - pcRectangle->msTopLeft.y);
 		}
 	}
 }
@@ -303,7 +303,7 @@ Ptr<CImage> CSpriteMap::WriteToImage(void)
 		{
 			x = pSprite->GetX();
 			y = pSprite->GetY();
-			bResult = pSprite->Blit(x - cBoundingRect.miLeft, y - cBoundingRect.miTop);
+			bResult = pSprite->Blit(x - cBoundingRect.msTopLeft.x, y - cBoundingRect.msTopLeft.y);
 			if (!bResult)
 			{
 				mpViewport = pOldViewport;
@@ -532,7 +532,7 @@ bool CSpriteMap::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters)
 				}
 			}
 
-			bResult = pSprite->Blit(x - pcViewportRect->miLeft, y - pcViewportRect->miTop);
+			bResult = pSprite->Blit(x - pcViewportRect->msTopLeft.x, y - pcViewportRect->msTopLeft.y);
 			if (!bResult)
 			{
 				return false;

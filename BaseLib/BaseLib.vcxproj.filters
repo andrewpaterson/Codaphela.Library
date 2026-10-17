@@ -226,6 +226,9 @@
     <Filter Include="Source\Error\Windows">
       <UniqueIdentifier>{f1b9e3be-2dd9-4972-87c6-12216bf5249c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Error\Linux">
+      <UniqueIdentifier>{c3f0b0bd-f9a7-4dbc-8b83-3d73b7cfc19d}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Data\Types\File">
       <UniqueIdentifier>{230e995a-3402-46b6-a4ab-e48d06be2818}</UniqueIdentifier>
     </Filter>
@@ -1091,6 +1094,9 @@
     </ClInclude>
     <ClInclude Include="WindowsError.h">
       <Filter>Source\Error\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="LinuxError.h">
+      <Filter>Source\Error\Linux</Filter>
     </ClInclude>
     <ClInclude Include="DebugOutputFile.h">
       <Filter>Source\File\Chains</Filter>
@@ -2317,6 +2323,9 @@
     </ClCompile>
     <ClCompile Include="WindowsError.cpp">
       <Filter>Source\Error\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="LinuxError.cpp">
+      <Filter>Source\Error\Linux</Filter>
     </ClCompile>
     <ClCompile Include="Mallocator.cpp">
       <Filter>Source\Memory\Allocator</Filter>

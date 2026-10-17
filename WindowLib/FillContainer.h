@@ -25,6 +25,16 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Insets.h"
 
 
+//Overlay lays every component into the whole area (like a single GridBagLayout cell).
+//Horizontal and Vertical split the area into equal slots, one per component (like SWT FillLayout).
+enum EFillContainerSplit
+{
+	FCS_Overlay,
+	FCS_Horizontal,
+	FCS_Vertical,
+};
+
+
 class CFillContainer : public CContainer
 {
 CONSTRUCTABLE(CFillContainer);
@@ -32,19 +42,26 @@ DESTRUCTABLE(CFillContainer);
 protected:
 	EContainerStyleHorizontal	meHorizontal;
 	EContainerStyleVertical		meVertical;
+	EFillContainerSplit			meSplit;
+	int32						miSpacing;
 	SInsets						msInsets;
 	SInt32Vec2					msRequiredSize;
 
 public:
-	void 	Init(Ptr<CWindow> pWindow);
-	void	Class(void) override;
-	void 	Free(void) override;
+	void			Init(Ptr<CWindow> pWindow);
+	void			Class(void) override;
+	void			Free(void) override;
 
-	void	SetRequiredSize(void) override;
-	void 	Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
+	void			SetRequiredSize(void) override;
+	SInt32Vec2	GetRequiredSize(void);
+	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 
-	void 	SetFillStyle(EContainerStyleHorizontal eH, EContainerStyleVertical eV);
-	void 	SetInsets(SInsets* psInsets);
+	void			SetFillStyle(EContainerStyleHorizontal eH, EContainerStyleVertical eV);
+	void			SetSplit(EFillContainerSplit eSplit, int32 iSpacing);
+	void			SetInsets(SInsets* psInsets);
+
+protected:
+	void			LayoutComponent(Ptr<CComponent> pComponent, SInt32Vec2 sSlotPosition, SInt32Vec2 sSlotSize);
 };
 
 
