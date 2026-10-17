@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include "Logger.h"
+#include "WindowsError.h"
 #include "ListenSocket.h"
 
 
@@ -85,7 +86,7 @@ bool CListenSocket::Bind(const char* szAddress, int iPort)
 	iResult = getaddrinfo(szAddress, mszPortNumber.Text(), &psHints, &psResult);
 	if (iResult != 0) 
 	{
-		gcLogger.Error("getaddrinfo failed with error");
+		gcLogger.Error2(__METHOD__, " getaddrinfo failed for port [", mszPortNumber.Text(), "] [", WindowsErrorCodeToString(iResult), "].", NULL);
 		return false;
 	}
 
@@ -93,7 +94,7 @@ bool CListenSocket::Bind(const char* szAddress, int iPort)
 	hListenSocket = socket(psResult->ai_family, psResult->ai_socktype, psResult->ai_protocol);
 	if (hListenSocket == INVALID_SOCKET) 
 	{
-		gcLogger.Error("socket failed with error");
+		gcLogger.Error2(__METHOD__, " socket failed [", LastSocketErrorToString(), "].", NULL);
 		freeaddrinfo(psResult);
 		return false;
 	}
@@ -102,7 +103,7 @@ bool CListenSocket::Bind(const char* szAddress, int iPort)
 	iResult = bind(hListenSocket, psResult->ai_addr, (int)psResult->ai_addrlen);
 	if (iResult == SOCKET_ERROR) 
 	{
-		gcLogger.Error("bind failed with error");
+		gcLogger.Error2(__METHOD__, " bind failed [", LastSocketErrorToString(), "].", NULL);
 		freeaddrinfo(psResult);
 		closesocket(hListenSocket);
 		return false;
@@ -120,28 +121,13 @@ bool CListenSocket::Bind(const char* szAddress, int iPort)
 //////////////////////////////////////////////////////////////////////////
 void CListenSocket::Kill(void)
 {
-	int		iResult;
-	SOCKET	hListenSocket;
-	SOCKET	hSocket;
+	CloseListenSocket();
 
-	hListenSocket = GetSocketHandle(maListenSocket);
-	if (hListenSocket != INVALID_SOCKET)
+	if (mbListening && IsOpen())
 	{
-		closesocket(hListenSocket);
-		SetSocketHandle(maListenSocket, INVALID_SOCKET);
+		shutdown(GetSocketHandle(maSocket), SD_SEND);
 	}
-
-	hSocket = GetSocketHandle(maSocket);
-	if (hSocket != INVALID_SOCKET)
-	{
-		if (mbListening)
-		{
-			iResult = shutdown(hSocket, SD_SEND);
-			mbListening = false;
-		}
-		closesocket(hSocket);
-		SetSocketHandle(maSocket, INVALID_SOCKET);
-	}
+	mbListening = false;
 
 	CSocket::Kill();
 }
@@ -161,9 +147,8 @@ bool CListenSocket::Listen(void)
 	iResult = listen(hListenSocket, SOMAXCONN);
 	if (iResult == SOCKET_ERROR) 
 	{
-		gcLogger.Error("listen failed with error");
-		closesocket(hListenSocket);
-		SetSocketHandle(maListenSocket, INVALID_SOCKET);
+		gcLogger.Error2(__METHOD__, " listen failed [", LastSocketErrorToString(), "].", NULL);
+		CloseListenSocket();
 		return false;
 	}
 
@@ -172,15 +157,13 @@ bool CListenSocket::Listen(void)
 	SetSocketHandle(maSocket, hSocket);
 	if (hSocket == INVALID_SOCKET) 
 	{
-		gcLogger.Error("accept failed with error");
-		closesocket(hListenSocket);
-		SetSocketHandle(maListenSocket, INVALID_SOCKET);
+		gcLogger.Error2(__METHOD__, " accept failed [", LastSocketErrorToString(), "].", NULL);
+		CloseListenSocket();
 		return false;
 	}
 
 	// No longer need server socket
-	closesocket(hListenSocket);
-	SetSocketHandle(maListenSocket, INVALID_SOCKET);
+	CloseListenSocket();
 	mbListening = true;
 
 	return true;
@@ -202,7 +185,7 @@ bool CListenSocket::Accept(CSocket* pcConnection, int iTimeoutMilliseconds)
 	hListenSocket = GetSocketHandle(maListenSocket);
 	if (hListenSocket == INVALID_SOCKET)
 	{
-		gcLogger.Error("accept failed, the socket is not bound");
+		gcLogger.Error2(__METHOD__, " Could not accept, the socket is not bound.", NULL);
 		return false;
 	}
 
@@ -225,7 +208,7 @@ bool CListenSocket::Accept(CSocket* pcConnection, int iTimeoutMilliseconds)
 	hSocket = accept(hListenSocket, NULL, NULL);
 	if (hSocket == INVALID_SOCKET)
 	{
-		gcLogger.Error("accept failed with error");
+		gcLogger.Error2(__METHOD__, " accept failed [", LastSocketErrorToString(), "].", NULL);
 		return false;
 	}
 
@@ -268,11 +251,25 @@ bool CListenSocket::StartListening(void)
 	iResult = listen(GetSocketHandle(maListenSocket), SOMAXCONN);
 	if (iResult == SOCKET_ERROR)
 	{
-		gcLogger.Error("listen failed with error");
+		gcLogger.Error2(__METHOD__, " listen failed [", LastSocketErrorToString(), "].", NULL);
 		return false;
 	}
 	mbAccepting = true;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CListenSocket::CloseListenSocket(void)
+{
+	if (GetSocketHandle(maListenSocket) != INVALID_SOCKET)
+	{
+		closesocket(GetSocketHandle(maListenSocket));
+		SetSocketHandle(maListenSocket, INVALID_SOCKET);
+	}
 }
 
 

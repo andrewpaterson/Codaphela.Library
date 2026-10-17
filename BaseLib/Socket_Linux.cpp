@@ -30,6 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <poll.h>
 #include <unistd.h>
 #include "Logger.h"
+#include "LinuxError.h"
 #include "Chars.h"
 #include "Socket.h"
 
@@ -124,7 +125,7 @@ int CSocket::Receive(void* pvBuffer, int iBufferLength)
 	iResult = recv(GetSocketHandle(maSocket), pvBuffer, iBufferLength, 0);
 	if (iResult < 0)
 	{
-		gcLogger.Error("recv failed with error");
+		gcLogger.Error2(__METHOD__, " recv failed [", LastSocketErrorToString(), "].", NULL);
 		return SOCKET_RESULT_ERROR;
 	}
 	else
@@ -146,7 +147,7 @@ int CSocket::Send(void* pvBuffer, int iBufferLength)
 	iSendResult = send(GetSocketHandle(maSocket), pvBuffer, iBufferLength, MSG_NOSIGNAL);
 	if (iSendResult < 0)
 	{
-		gcLogger.Error("send failed with error");
+		gcLogger.Error2(__METHOD__, " send failed [", LastSocketErrorToString(), "].", NULL);
 		return SOCKET_RESULT_ERROR;
 	}
 	else
@@ -266,6 +267,16 @@ int CSocket::WaitForData(int iTimeoutMilliseconds)
 	{
 		return SOCKET_WAIT_ERROR;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* LastSocketErrorToString(void)
+{
+	return LinuxErrorCodeToString(errno);
 }
 
 
