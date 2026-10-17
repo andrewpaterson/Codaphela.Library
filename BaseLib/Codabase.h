@@ -8,11 +8,15 @@
 class CCodabase : public CDataConnection, public CKillable
 {
 protected:
-	CNamedIndexedData			mcNamedIndexedData;
-	CDurableFileController		mcFileController;
+	CNamedIndexedData				mcNamedIndexedData;
+	CDurableFileController			mcFileController;
+	CLifeInit<CIndexedDataConfig>	mcIndexConfig;
+	CLifeInit<CNamedIndexesConfig>	mcNamedConfig;
+	bool							mbStarted;
 
 public:
 	void	Init(const char* szDirectory, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig);
+	bool	Start(void);
 	void	Kill(void);
 
 	bool	Open(void);

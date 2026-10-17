@@ -28,6 +28,11 @@ CCodabase* CCodabaseFactory::Create(const char* szDirectory, EIndexWriteThrough 
 
 	pcDatabase = NewMalloc<CCodabase>();
 	pcDatabase->Init(szDirectory, cIndexConfig, cNamedConfig);
+	if (!pcDatabase->Start())
+	{
+		SafeKill(pcDatabase);
+		return NULL;
+	}
 	return pcDatabase;
 }
 

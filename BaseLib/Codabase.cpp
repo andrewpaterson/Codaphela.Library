@@ -1,3 +1,4 @@
+#include "Logger.h"
 #include "IndexTreeHelper.h"
 #include "Codabase.h"
 
@@ -12,10 +13,11 @@ void CCodabase::Init(const char* szDirectory, CLifeInit<CIndexedDataConfig> cInd
 
 	cHelper.Init(szDirectory, "Primary", "Backup", false);
 
+	//Init fails if a previous session crashed during a commit.  Start recovers from that.
 	mcFileController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory());
-	mcFileController.Begin();
-	mcNamedIndexedData.Init(&mcFileController, cIndexConfig, cNamedConfig);
-	mcFileController.End();
+	mcIndexConfig = cIndexConfig;
+	mcNamedConfig = cNamedConfig;
+	mbStarted = false;
 
 	cHelper.Kill(false);
 }
@@ -25,9 +27,54 @@ void CCodabase::Init(const char* szDirectory, CLifeInit<CIndexedDataConfig> cInd
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CCodabase::Start(void)
+{
+	bool	bResult;
+
+	if (mbStarted)
+	{
+		return gcLogger.Error2(__METHOD__, " Codabase has already been started.", NULL);
+	}
+
+	if (!mcFileController.Recover())
+	{
+		return gcLogger.Error2(__METHOD__, " Codabase could not recover from an incomplete commit.", NULL);
+	}
+
+	bResult = mcFileController.Begin();
+	if (!bResult)
+	{
+		return false;
+	}
+	mcNamedIndexedData.Init(&mcFileController, mcIndexConfig, mcNamedConfig);
+	mbStarted = true;
+	return mcFileController.End();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CCodabase::Kill(void)
 {
-	mcNamedIndexedData.Kill();
+	CLife<CIndexedDataConfig>		cIndexLife;
+	CLife<CNamedIndexesConfig>		cNamedLife;
+	CIndexedDataConfig*				pcIndexConfig;
+	CNamedIndexesConfig*			pcNamedConfig;
+
+	if (mbStarted)
+	{
+		mcNamedIndexedData.Kill();
+	}
+	else
+	{
+		//The configs were never handed to mcNamedIndexedData so they must be released here.
+		mcIndexConfig.ConfigureLife(&cIndexLife, &pcIndexConfig);
+		cIndexLife.Kill();
+		mcNamedConfig.ConfigureLife(&cNamedLife, &pcNamedConfig);
+		cNamedLife.Kill();
+	}
 	mcFileController.Kill();
 }
 
