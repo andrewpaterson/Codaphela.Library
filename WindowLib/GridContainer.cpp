@@ -18,7 +18,221 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
+#include "StandardLib/ClassDefines.h"
 #include "GridContainer.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 AxisOf(SInt32Vec2 sVec, bool bColumns)
+{
+	return bColumns ? sVec.x : sVec.y;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 SumTracks(CArrayInt* paiValues, size uiStart, size uiCount)
+{
+	size	i;
+	int32	iSum;
+
+	iSum = 0;
+	for (i = uiStart; i < uiStart + uiCount; i++)
+	{
+		iSum += paiValues->GetValue(i);
+	}
+	return iSum;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void ShareOut(CArrayInt* paiValues, size uiStart, size uiCount, int32 iAmount, CArrayInt* paiWeights)
+{
+	size	i;
+	size	uiLast;
+	int32	iTotalWeight;
+	int32	iWeight;
+	int32	iGiven;
+	int32	iShare;
+
+	//Adds iAmount to the tracks from uiStart in proportion to their weights.  With no weights it all goes to the last track.
+	iTotalWeight = SumTracks(paiWeights, uiStart, uiCount);
+	uiLast = uiStart + uiCount - 1;
+	if (iTotalWeight == 0)
+	{
+		paiValues->SetValue(uiLast, paiValues->GetValue(uiLast) + iAmount);
+		return;
+	}
+
+	iGiven = 0;
+	for (i = uiStart; i < uiStart + uiCount; i++)
+	{
+		iWeight = paiWeights->GetValue(i);
+		if (iWeight > 0)
+		{
+			iShare = (iAmount * iWeight) / iTotalWeight;
+			paiValues->SetValue(i, paiValues->GetValue(i) + iShare);
+			iGiven += iShare;
+			uiLast = i;
+		}
+	}
+	paiValues->SetValue(uiLast, paiValues->GetValue(uiLast) + (iAmount - iGiven));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void GrowTracks(CArrayInt* paiSizes, CArrayInt* paiWeights, int32 iExtra)
+{
+	size	i;
+	size	uiNumTracks;
+	int32	iTotalWeight;
+	int32	iWeight;
+	int32	iGiven;
+	int32	iShare;
+
+	//The weighted tracks share the extra space in proportion to their weights.  Pixels that don't divide evenly go to the first of them.
+	uiNumTracks = paiSizes->NumElements();
+	iTotalWeight = SumTracks(paiWeights, 0, uiNumTracks);
+	if (iTotalWeight == 0)
+	{
+		return;
+	}
+
+	iGiven = 0;
+	for (i = 0; i < uiNumTracks; i++)
+	{
+		iWeight = paiWeights->GetValue(i);
+		iShare = (iExtra * iWeight) / iTotalWeight;
+		paiSizes->SetValue(i, paiSizes->GetValue(i) + iShare);
+		iGiven += iShare;
+	}
+	for (i = 0; (i < uiNumTracks) && (iGiven < iExtra); i++)
+	{
+		if (paiWeights->GetValue(i) > 0)
+		{
+			paiSizes->SetValue(i, paiSizes->GetValue(i) + 1);
+			iGiven++;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void ShrinkTracks(CArrayInt* paiSizes, CArrayInt* paiWeights, int32 iDeficit)
+{
+	size	i;
+	size	uiNumTracks;
+	int32	iTotalWeight;
+	int32	iTotalSize;
+	int32	iSize;
+	int32	iTake;
+	int32	iTaken;
+	int32	iRound;
+
+	uiNumTracks = paiSizes->NumElements();
+
+	//First the weighted tracks give up space in proportion to their weights, none going below zero.
+	while (iDeficit > 0)
+	{
+		iTotalWeight = 0;
+		for (i = 0; i < uiNumTracks; i++)
+		{
+			if (paiSizes->GetValue(i) > 0)
+			{
+				iTotalWeight += paiWeights->GetValue(i);
+			}
+		}
+		if (iTotalWeight == 0)
+		{
+			break;
+		}
+
+		iRound = iDeficit;
+		iTaken = 0;
+		for (i = 0; i < uiNumTracks; i++)
+		{
+			iSize = paiSizes->GetValue(i);
+			if ((iSize > 0) && (paiWeights->GetValue(i) > 0))
+			{
+				iTake = (iRound * paiWeights->GetValue(i)) / iTotalWeight;
+				if (iTake > iSize)
+				{
+					iTake = iSize;
+				}
+				paiSizes->SetValue(i, iSize - iTake);
+				iTaken += iTake;
+			}
+		}
+		if (iTaken == 0)
+		{
+			//Too little was asked of each track to round to a pixel so the first weighted track gives one.
+			for (i = 0; i < uiNumTracks; i++)
+			{
+				iSize = paiSizes->GetValue(i);
+				if ((iSize > 0) && (paiWeights->GetValue(i) > 0))
+				{
+					paiSizes->SetValue(i, iSize - 1);
+					iTaken = 1;
+					break;
+				}
+			}
+		}
+		iDeficit -= iTaken;
+	}
+
+	//Then every track shrinks in proportion to its size.  Pixels that don't divide evenly come from the last tracks.
+	if (iDeficit > 0)
+	{
+		iTotalSize = SumTracks(paiSizes, 0, uiNumTracks);
+		if (iTotalSize <= iDeficit)
+		{
+			for (i = 0; i < uiNumTracks; i++)
+			{
+				paiSizes->SetValue(i, 0);
+			}
+			return;
+		}
+
+		iRound = iDeficit;
+		for (i = 0; i < uiNumTracks; i++)
+		{
+			iSize = paiSizes->GetValue(i);
+			iTake = (iRound * iSize) / iTotalSize;
+			paiSizes->SetValue(i, iSize - iTake);
+			iDeficit -= iTake;
+		}
+		i = uiNumTracks;
+		while (iDeficit > 0)
+		{
+			if (i == 0)
+			{
+				i = uiNumTracks;
+			}
+			i--;
+			iSize = paiSizes->GetValue(i);
+			if (iSize > 0)
+			{
+				paiSizes->SetValue(i, iSize - 1);
+				iDeficit--;
+			}
+		}
+	}
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -29,7 +243,6 @@ void CGridContainer::Init(Ptr<CWindow> pWindow)
 {
 	CContainer::Init(pWindow);
 	macCells.Init();
-	maiCellIndices.Init();
 	msRequiredSize.Init(-1, -1);
 }
 
@@ -41,7 +254,6 @@ void CGridContainer::Init(Ptr<CWindow> pWindow)
 void CGridContainer::Free(void)
 {
 	macCells.Kill();
-	maiCellIndices.Kill();
 	CContainer::Free();
 }
 
@@ -54,8 +266,223 @@ void CGridContainer::Class(void)
 {
 	CContainer::Class();
 	U_Data(CArrayGridCells, macCells);
-	U_Data(CArrayInt2D, maiCellIndices);
 	U_2Int32(msRequiredSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGridContainer::AddComponent(Ptr<CComponent> pComponent, int iColumn, int iRow, int iColumnSpan, int iRowSpan, int iWidthWeight, int iHeightWeight)
+{
+	CGridCell*	pcCell;
+
+	CComponent::AddComponent(pComponent);
+
+	pcCell = macCells.Add();
+	pcCell->Init(iColumn < 0 ? 0 : iColumn, iRow < 0 ? 0 : iRow, iColumnSpan < 1 ? 1 : iColumnSpan, iRowSpan < 1 ? 1 : iRowSpan, iWidthWeight < 0 ? 0 : iWidthWeight, iHeightWeight < 0 ? 0 : iHeightWeight);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGridContainer::AddComponent(Ptr<CComponent> pComponent)
+{
+	return gcLogger.Error2(__METHOD__, " A component can only be added to a grid with a cell.", NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGridContainer::RemoveComponent(Ptr<CComponent> pComponent)
+{
+	size	i;
+
+	//The cells are kept at the same indices as the components so the component's cell goes with it.
+	for (i = 0; i < maChildren.Size(); i++)
+	{
+		if (maChildren.Get(i) == pComponent)
+		{
+			macCells.RemoveAt(i);
+			return CComponent::RemoveComponent(pComponent);
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGridContainer::RemoveAllComponents(void)
+{
+	macCells.Kill();
+	macCells.Init();
+	return CComponent::RemoveAllComponents();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGridCell* CGridContainer::GetCell(size uiIndex)
+{
+	return macCells.Get(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CGridContainer::NumTracks(bool bColumns)
+{
+	size		i;
+	size		uiNumTracks;
+	size		uiEnd;
+	CGridCell*	pcCell;
+
+	uiNumTracks = 0;
+	for (i = 0; i < maChildren.Size(); i++)
+	{
+		pcCell = GetCell(i);
+		uiEnd = (size)(AxisOf(pcCell->msPosition, bColumns) + AxisOf(pcCell->msSpan, bColumns));
+		if (uiEnd > uiNumTracks)
+		{
+			uiNumTracks = uiEnd;
+		}
+	}
+	return uiNumTracks;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CGridContainer::CalculateTracks(bool bColumns, CArrayInt* paiSizes, CArrayInt* paiWeights)
+{
+	size			i;
+	size			uiNumTracks;
+	size			uiStart;
+	size			uiSpan;
+	size			uiMaxSpan;
+	CGridCell*		pcCell;
+	Ptr<CComponent>	pComponent;
+	int32			iRequired;
+	int32			iWeight;
+	int32			iHave;
+
+	//Works out every column's (or row's) required size and weight.
+	uiNumTracks = NumTracks(bColumns);
+	for (i = 0; i < uiNumTracks; i++)
+	{
+		paiSizes->Add(0);
+		paiWeights->Add(0);
+	}
+
+	//Components sitting in a single track first.
+	uiMaxSpan = 1;
+	for (i = 0; i < maChildren.Size(); i++)
+	{
+		pcCell = GetCell(i);
+		uiSpan = (size)AxisOf(pcCell->msSpan, bColumns);
+		if (uiSpan > uiMaxSpan)
+		{
+			uiMaxSpan = uiSpan;
+		}
+		if (uiSpan == 1)
+		{
+			pComponent = maChildren.Get(i);
+			uiStart = (size)AxisOf(pcCell->msPosition, bColumns);
+			iRequired = AxisOf(pComponent->GetDesiredSize(), bColumns);
+			iWeight = AxisOf(pcCell->msWeight, bColumns);
+			if (iRequired > paiSizes->GetValue(uiStart))
+			{
+				paiSizes->SetValue(uiStart, iRequired);
+			}
+			if (iWeight > paiWeights->GetValue(uiStart))
+			{
+				paiWeights->SetValue(uiStart, iWeight);
+			}
+		}
+	}
+
+	//Then components spanning tracks, narrowest first, add any weight and size their tracks still lack.
+	for (uiSpan = 2; uiSpan <= uiMaxSpan; uiSpan++)
+	{
+		for (i = 0; i < maChildren.Size(); i++)
+		{
+			pcCell = GetCell(i);
+			if ((size)AxisOf(pcCell->msSpan, bColumns) == uiSpan)
+			{
+				pComponent = maChildren.Get(i);
+				uiStart = (size)AxisOf(pcCell->msPosition, bColumns);
+
+				iWeight = AxisOf(pcCell->msWeight, bColumns);
+				iHave = SumTracks(paiWeights, uiStart, uiSpan);
+				if (iWeight > iHave)
+				{
+					ShareOut(paiWeights, uiStart, uiSpan, iWeight - iHave, paiWeights);
+				}
+
+				iRequired = AxisOf(pComponent->GetDesiredSize(), bColumns);
+				iHave = SumTracks(paiSizes, uiStart, uiSpan);
+				if (iRequired > iHave)
+				{
+					ShareOut(paiSizes, uiStart, uiSpan, iRequired - iHave, paiWeights);
+				}
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CGridContainer::LayoutTracks(bool bColumns, int iStart, int iAvailable, CArrayInt* paiStarts, CArrayInt* paiSizes)
+{
+	CArrayInt	aiWeights;
+	size		i;
+	int32		iTotal;
+	int32		iPos;
+
+	aiWeights.Init();
+	CalculateTracks(bColumns, paiSizes, &aiWeights);
+
+	iTotal = SumTracks(paiSizes, 0, paiSizes->NumElements());
+	if (iAvailable > iTotal)
+	{
+		GrowTracks(paiSizes, &aiWeights, iAvailable - iTotal);
+	}
+	else if (iAvailable < iTotal)
+	{
+		ShrinkTracks(paiSizes, &aiWeights, iTotal - iAvailable);
+	}
+	aiWeights.Kill();
+
+	//Without weighted tracks to take the spare space the grid is centred in it.
+	iTotal = SumTracks(paiSizes, 0, paiSizes->NumElements());
+	iPos = iStart;
+	if (iTotal < iAvailable)
+	{
+		iPos += (iAvailable - iTotal) / 2;
+	}
+	for (i = 0; i < paiSizes->NumElements(); i++)
+	{
+		paiStarts->Add(iPos);
+		iPos += paiSizes->GetValue(i);
+	}
 }
 
 
@@ -65,20 +492,33 @@ void CGridContainer::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CGridContainer::SetRequiredSize(void)
 {
-	Ptr<CComponent>	pComponent;
-	size			uiSize;
-	size			i;
-	SInt32Vec2		sSize;
-	SInt32Vec2		sTotalSize;
+	CArrayInt	aiSizes;
+	CArrayInt	aiWeights;
 
-	msRequiredSize.Init(0, 0);
+	//The required size is every column's and row's required size added up.
+	aiSizes.Init();
+	aiWeights.Init();
+	CalculateTracks(true, &aiSizes, &aiWeights);
+	msRequiredSize.x = SumTracks(&aiSizes, 0, aiSizes.NumElements());
+	aiSizes.Kill();
+	aiWeights.Kill();
 
-	uiSize = maChildren.Size();
-	for (i = 0; i < uiSize; i++)
-	{
-		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetDesiredSize();
-	}
+	aiSizes.Init();
+	aiWeights.Init();
+	CalculateTracks(false, &aiSizes, &aiWeights);
+	msRequiredSize.y = SumTracks(&aiSizes, 0, aiSizes.NumElements());
+	aiSizes.Kill();
+	aiWeights.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CGridContainer::GetRequiredSize(void)
+{
+	return msRequiredSize;
 }
 
 
@@ -88,25 +528,48 @@ void CGridContainer::SetRequiredSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CGridContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
+	CArrayInt		aiColumnStarts;
+	CArrayInt		aiColumnSizes;
+	CArrayInt		aiRowStarts;
+	CArrayInt		aiRowSizes;
+	size			i;
+	CGridCell*		pcCell;
 	Ptr<CComponent>	pComponent;
-	size					uiSize;
-	size					i;
-	SInt32Vec2					sSize;
-	int						fXPos;
-	int						fYPos;
-	SInt32Vec2					sOffset;
+	SInt32Vec2		sDesired;
+	SInt32Vec2		sCellPosition;
+	SInt32Vec2		sCellSize;
+	SInt32Vec2		sOffset;
+	SInt32Vec2		sSize;
 
 	SetContainerBounds(sPosition, sAreaSize);
 
-	fXPos = 0;
-	fYPos = 0;
-	uiSize = maChildren.Size();
-	for (i = 0; i < uiSize; i++)
+	aiColumnStarts.Init();
+	aiColumnSizes.Init();
+	aiRowStarts.Init();
+	aiRowSizes.Init();
+	LayoutTracks(true, sPosition.x, sAreaSize.x, &aiColumnStarts, &aiColumnSizes);
+	LayoutTracks(false, sPosition.y, sAreaSize.y, &aiRowStarts, &aiRowSizes);
+
+	for (i = 0; i < maChildren.Size(); i++)
 	{
 		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetDesiredSize();
+		pcCell = GetCell(i);
+
+		sCellPosition.Init(aiColumnStarts.GetValue(pcCell->msPosition.x), aiRowStarts.GetValue(pcCell->msPosition.y));
+		sCellSize.Init(SumTracks(&aiColumnSizes, pcCell->msPosition.x, pcCell->msSpan.x), SumTracks(&aiRowSizes, pcCell->msPosition.y, pcCell->msSpan.y));
+
+		//A desired size of -1 on an axis fills the cell, otherwise the component keeps its size and is centred.
+		sDesired = pComponent->GetDesiredSize();
+		sSize.x = (sDesired.x < 0) ? sCellSize.x : sDesired.x;
+		sSize.y = (sDesired.y < 0) ? sCellSize.y : sDesired.y;
+		sOffset.x = sCellPosition.x + (sCellSize.x - sSize.x) / 2;
+		sOffset.y = sCellPosition.y + (sCellSize.y - sSize.y) / 2;
 
 		pComponent->Layout(sOffset, sSize);
 	}
-}
 
+	aiColumnStarts.Kill();
+	aiColumnSizes.Kill();
+	aiRowStarts.Kill();
+	aiRowSizes.Kill();
+}

@@ -25,52 +25,17 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Int32Vec2.h"
 
 
-enum EGridUseDesiredSizeAlignment
-{
-	GUDSA_LeftAlign = 0,
-	GUDSA_TopAlign = 0,
-	GUDSA_CenterAlign = 1,
-	GUDSA_RightAlign = 2,
-	GUDSA_BottomAlign = 2,
-	GUDSA_Fill = 3,
-};
-
-
-struct SUseDesiredSizeParams
-{
-	EGridUseDesiredSizeAlignment eAlign;
-};
-
-
-struct SFillParams
-{
-	int iWeight;
-};
-
-
-struct SGridCellAxisParams
-{
-	bool	bUseDesiredSize;
-	union
-	{
-		SUseDesiredSizeParams	sDesiredSize;
-		SFillParams				sFill;
-	} u;
-};
-
-
+//Where a component sits in a grid container.  The weights decide how the space left over, once every column and row
+//has its required size, is shared out.  A weight of zero means the cell only wants its required size.  A positive weight
+//shares the left over space in proportion to the other positive weights.
 class CGridCell
 {
 public:
-	SInt32Vec2					msTopLeft;  //Position in grid.
-	SInt32Vec2					msSize;		//Size in grid.
-	SGridCellAxisParams		sWidthParams;
-	SGridCellAxisParams		sHeightParams;
+	SInt32Vec2	msPosition;	//The column and row of the top left of the cell.
+	SInt32Vec2	msSpan;		//The number of columns and rows the cell covers.
+	SInt32Vec2	msWeight;	//The width weight and the height weight.
 
-	void Init(int iTop, int iLeft, int iWidth, int iHeight, int iWidthFill, int iHeightFill);
-	void Init(int iTop, int iLeft, int iWidth, int iHeight, int iWidthFill, EGridUseDesiredSizeAlignment eUseDesiredHeight);
-	void Init(int iTop, int iLeft, int iWidth, int iHeight, EGridUseDesiredSizeAlignment eUseDesiredWidth, int iHeightFill);
-	void Init(int iTop, int iLeft, int iWidth, int iHeight, EGridUseDesiredSizeAlignment eUseDesiredWidth, EGridUseDesiredSizeAlignment eUseDesiredHeight);
+	void	Init(int iColumn, int iRow, int iColumnSpan, int iRowSpan, int iWidthWeight, int iHeightWeight);
 };
 
 

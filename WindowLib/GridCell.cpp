@@ -25,58 +25,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGridCell::Init(int iTop, int iLeft, int iWidth, int iHeight, int iWidthFill, int iHeightFill)
+void CGridCell::Init(int iColumn, int iRow, int iColumnSpan, int iRowSpan, int iWidthWeight, int iHeightWeight)
 {
-	msTopLeft.Init(iTop, iLeft);
-	msSize.Init(iWidth, iHeight);
-	sWidthParams.bUseDesiredSize = false;
-	sWidthParams.u.sFill.iWeight = iWidthFill;
-	sHeightParams.bUseDesiredSize = false;
-	sHeightParams.u.sFill.iWeight = iHeightFill;
+	msPosition.Init(iColumn, iRow);
+	msSpan.Init(iColumnSpan, iRowSpan);
+	msWeight.Init(iWidthWeight, iHeightWeight);
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CGridCell::Init(int iTop, int iLeft, int iWidth, int iHeight, int iWidthFill, EGridUseDesiredSizeAlignment eUseDesiredHeight)
-{
-	msTopLeft.Init(iTop, iLeft);
-	msSize.Init(iWidth, iHeight);
-	sWidthParams.bUseDesiredSize = false;
-	sWidthParams.u.sFill.iWeight = iWidthFill;
-	sHeightParams.bUseDesiredSize = true;
-	sHeightParams.u.sDesiredSize.eAlign = eUseDesiredHeight;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CGridCell::Init(int iTop, int iLeft, int iWidth, int iHeight, EGridUseDesiredSizeAlignment eUseDesiredWidth, int iHeightFill)
-{
-	msTopLeft.Init(iTop, iLeft);
-	msSize.Init(iWidth, iHeight);
-	sWidthParams.bUseDesiredSize = true;
-	sWidthParams.u.sDesiredSize.eAlign = eUseDesiredWidth;
-	sHeightParams.bUseDesiredSize = false;
-	sHeightParams.u.sFill.iWeight = iHeightFill;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CGridCell::Init(int iTop, int iLeft, int iWidth, int iHeight, EGridUseDesiredSizeAlignment eUseDesiredWidth, EGridUseDesiredSizeAlignment eUseDesiredHeight)
-{
-	msTopLeft.Init(iTop, iLeft);
-	msSize.Init(iWidth, iHeight);
-	sWidthParams.bUseDesiredSize = true;
-	sWidthParams.u.sDesiredSize.eAlign = eUseDesiredWidth;
-	sHeightParams.bUseDesiredSize = true;
-	sHeightParams.u.sDesiredSize.eAlign = eUseDesiredHeight;
-}
-

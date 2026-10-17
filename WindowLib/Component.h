@@ -37,9 +37,9 @@ public:
 			bool				DrawChildren(void);
 	virtual bool				GetContainerBounds(CRectangle* pcDest);
 
-			void				AddComponent(Ptr<CComponent> pComponent);
-			bool				RemoveComponent(Ptr<CComponent> pComponent);
-			bool				RemoveAllComponents(void);
+	virtual	bool				AddComponent(Ptr<CComponent> pComponent);
+	virtual	bool				RemoveComponent(Ptr<CComponent> pComponent);
+	virtual	bool				RemoveAllComponents(void);
 			size				NumComponents(void);
 
 			bool				IsPointIn(int x, int y);

@@ -105,10 +105,11 @@ bool CComponent::DrawChildren(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponent::AddComponent(Ptr<CComponent> pComponent)
+bool CComponent::AddComponent(Ptr<CComponent> pComponent)
 {
 	maChildren.Add(pComponent);
 	pComponent->mpParent = this;
+	return true;
 }
 
 
