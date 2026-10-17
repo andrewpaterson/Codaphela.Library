@@ -122,7 +122,7 @@ void CFillContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	sArea.x -= (msInsets.maiWidths[BEI_Left] + msInsets.maiWidths[BEI_Right]);
 	sArea.y -= (msInsets.maiWidths[BEI_Bottom] + msInsets.maiWidths[BEI_Top]);
 
-	SetBounds(sOrigin, sArea);
+	SetContainerBounds(sOrigin, sArea);
 
 	//There should only be one componet, any more will be laid out into the same area.
 	uiSize = maChildren.Size();

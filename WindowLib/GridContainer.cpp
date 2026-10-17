@@ -96,7 +96,7 @@ void CGridContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	int						fYPos;
 	SInt32Vec2					sOffset;
 
-	SetBounds(sPosition, sAreaSize);
+	SetContainerBounds(sPosition, sAreaSize);
 
 	fXPos = 0;
 	fYPos = 0;

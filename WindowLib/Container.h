@@ -35,14 +35,14 @@ protected:
 	SContainerBounds	msBounds;
 
 public:
-			void	Init(Ptr<CWindow> pWindow);
-			void	Class(void) override;
-			void 	Free(void) override;
+	void	Init(Ptr<CWindow> pWindow);
+	void	Class(void) override;
+	void 	Free(void) override;
 
-			bool	GetContainerBounds(SContainerBounds* psDest);
-			void	SetBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
+	bool	GetContainerBounds(SContainerBounds* psDest);
+	void	SetContainerBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
 
-			void	Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
+	void	Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 };
 
 

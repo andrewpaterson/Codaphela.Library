@@ -73,7 +73,7 @@ bool CContainer::GetContainerBounds(SContainerBounds* psDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CContainer::SetBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
+void CContainer::SetContainerBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	SContainerBounds	sParentBounds;
 	int					iThisRight;
