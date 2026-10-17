@@ -21,8 +21,8 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __IMAGE_DRAW_BOX_H__
-#define __IMAGE_DRAW_BOX_H__
+#ifndef __IMAGE_MODIFIER_DRAW_BOX_H__
+#define __IMAGE_MODIFIER_DRAW_BOX_H__
 #include "Image.h"
 #include "ImageModifier.h"
 
@@ -43,5 +43,5 @@ public:
 };
 
 
-#endif // __IMAGE_IMAGE_RENAME_H__
+#endif // __IMAGE_MODIFIER_DRAW_BOX_H__
 

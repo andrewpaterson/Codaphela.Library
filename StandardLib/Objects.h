@@ -506,6 +506,7 @@ M* CObjects::AddFreeObject(Ptr<M>& p)
 template <class SpecificClass, typename ... Args>
 Ptr<SpecificClass> OMalloc(Args ... args)
 {
+	//Calls .Init on the allocated instance to ensure it's properly wound into the Objects machinery.
 	Ptr<SpecificClass> pObject = gcObjects.Malloc<SpecificClass>();
 	if (pObject.IsNotNull())
 	{
@@ -522,6 +523,7 @@ Ptr<SpecificClass> OMalloc(Args ... args)
 template <class SpecificClass, typename ... Args>
 Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args ... args)
 {
+	//Calls .Init on the allocated instance to ensure it's properly wound into the Objects machinery.
 	Ptr<SpecificClass> pObject = gcObjects.Malloc<SpecificClass>(szObjectName);
 	if (pObject.IsNotNull())
 	{
@@ -537,6 +539,7 @@ Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args ... args)
 template <class SpecificClass>
 Ptr<SpecificClass> OMallocNoI()
 {
+	//Does not call .Init on the allocated instance.
 	return gcObjects.Malloc<SpecificClass>();
 }
 
@@ -548,6 +551,7 @@ Ptr<SpecificClass> OMallocNoI()
 template <class SpecificClass>
 Ptr<SpecificClass> ONMallocNoI(char* szObjectName)
 {
+	//Does not call .Init on the allocated instance.
 	return gcObjects.Malloc<SpecificClass>(szObjectName);
 }
 
@@ -559,6 +563,7 @@ Ptr<SpecificClass> ONMallocNoI(char* szObjectName)
 template <class SpecificClass, typename ... Args>
 Ptr<SpecificClass> ONMallocNoI(const char* szObjectName, Args ... args)
 {
+	//Does not call .Init on the allocated instance.
 	return gcObjects.Malloc<SpecificClass>((char*)szObjectName);
 }
 
