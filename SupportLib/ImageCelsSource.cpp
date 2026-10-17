@@ -35,8 +35,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImageSourceWithCelSources::Init(Ptr<CImageSource> pImageSource, CImageCelSource* pcCelsSource)
 {
+	PreInit();
+
 	mpImageSource = pImageSource;
 	mpcCelsSource = pcCelsSource;
+
+	PostInit();
 }
 
 
@@ -44,11 +48,39 @@ void CImageSourceWithCelSources::Init(Ptr<CImageSource> pImageSource, CImageCelS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageSourceWithCelSources::Kill(void)
+void CImageSourceWithCelSources::Class(void)
 {
-	//Don't kill pcCelsSource, it's held by macCelSources.
-	mpImageSource = NULL;
-	CUnknown::Kill();
+	M_Pointer(mpImageSource);
+	U_Pointer(mpcCelsSource);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageSourceWithCelSources::Free(void)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageSourceWithCelSources::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageSourceWithCelSources::Load(CObjectReader* pcFile)
+{
+	return false;
 }
 
 
@@ -71,7 +103,7 @@ void CImageCelsSource::Init(bool bPackOnLoad)
 	mbPackOnLoad = bPackOnLoad;
 
 	macCelSources.Init();
-	macImageSources.Init();
+	maImageSources.Init();
 	mcModifiers.Init();
 
 	maImageCels.Init();
@@ -88,7 +120,6 @@ void CImageCelsSource::Init(bool bPackOnLoad)
 //////////////////////////////////////////////////////////////////////////
 void CImageCelsSource::Free(void)
 {
-	macImageSources.Kill();
 	macCelSources.Kill();
 }
 
@@ -100,7 +131,7 @@ void CImageCelsSource::Free(void)
 void CImageCelsSource::Class(void)
 {
 	U_Bool(mbPackOnLoad);
-	U_Data(CArrayImageSourceWithCelSources, macImageSources);
+	M_Embedded(maImageSources);
 	M_Embedded(mcModifiers);
 	U_Data(CArrayUnknown, macCelSources);
 	M_Embedded(maImageCels);
@@ -135,10 +166,10 @@ bool CImageCelsSource::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CImageCelsSource::AddSource(Ptr<CImageSource> pImageSource, CImageCelSource* pcCelSource)
 {
-	CImageSourceWithCelSources*		pcImageSourceWithCelSource;
+	Ptr<CImageSourceWithCelSources>	pSource;
 
-	pcImageSourceWithCelSource = macImageSources.Add();
-	pcImageSourceWithCelSource->Init(pImageSource, pcCelSource);
+	pSource = OMalloc<CImageSourceWithCelSources>(pImageSource, pcCelSource);
+	maImageSources.Add(pSource);
 }
 
 
@@ -263,24 +294,23 @@ void CImageCelsSource::AddModifier(Ptr<CImageModifier> pModifier)
 //////////////////////////////////////////////////////////////////////////
 bool CImageCelsSource::Load(void)
 {
-	SSetIterator					sIter;
-	CImageSourceWithCelSources*		pcImageSourceWithCelSources;
+	size								i;
+	Ptr<CImageSourceWithCelSources>	pSource;
 	bool							bResult;
 	Ptr<CImage>						pcMask;
 	Ptr<CImageSource>				pImageSource;
 	CImageCelSource*				pcCelsSource;
 	int								iFirstCelIndex;
 	Ptr<CImage>						pcCombined;
-	bool							bExists;
 
-	bExists = macImageSources.StartIteration(&sIter, &pcImageSourceWithCelSources);
-	while (bExists)
+	for (i = 0; i < maImageSources.NumElements(); i++)
 	{
-		if (pcImageSourceWithCelSources)
+		pSource = maImageSources.Get(i);
+		if (pSource.IsNotNull())
 		{
 			pcMask = NULL;
-			pImageSource = pcImageSourceWithCelSources->GetImageSource();
-			pcCelsSource = pcImageSourceWithCelSources->GetCelsSource();
+			pImageSource = pSource->GetImageSource();
+			pcCelsSource = pSource->GetCelsSource();
 
 			bResult = pImageSource->LoadImage();
 			if (!bResult)
@@ -310,8 +340,6 @@ bool CImageCelsSource::Load(void)
 				}
 			}
 		}
-
-		bExists = macImageSources.Iterate(&sIter, &pcImageSourceWithCelSources);
 	}
 
 	mcModifiers.SetImage(NULL);
@@ -365,13 +393,13 @@ Ptr<CImage> CImageCelsSource::Combine(size iFirstCelIndex)
 void CImageCelsSource::PopulateImageArray(void)
 {
 	size							i;
-	CImageSourceWithCelSources*		pcSource;
+	Ptr<CImageSourceWithCelSources>	pSource;
 	Ptr<CImage>						pcImage;
 
-	for (i = 0; i < macImageSources.NumElements(); i++)
+	for (i = 0; i < maImageSources.NumElements(); i++)
 	{
-		pcSource = macImageSources.Get(i);
-		pcImage = pcSource->GetImageSource()->GetImage();
+		pSource = maImageSources.Get(i);
+		pcImage = pSource->GetImageSource()->GetImage();
 		maImages.Add(pcImage);
 	}	
 }
