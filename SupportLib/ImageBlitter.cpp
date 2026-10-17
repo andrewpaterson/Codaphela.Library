@@ -460,12 +460,12 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlit
 		{
 			if (uiLastType == 1)
 			{
-				pcRowBlitter = pcBlitterFactory->CreateImageRowBlitterRGBByteAlphaByteTranslucent();
+				pcRowBlitter = (pcBlitterFactory->*fCreateRGBByteAlphaByteTranslucent)();
 				AddBlitter(pcRowBlitter, xStart, x, y);
 			}
 			else if (uiLastType == 255)
 			{
-				pcRowBlitter = pcBlitterFactory->CreateImageRowBlitterByteAlignedOpaque();
+				pcRowBlitter = (pcBlitterFactory->*fCreateByteAlignedOpaque)();
 				AddBlitter(pcRowBlitter, xStart, x, y);
 			}
 			xStart = x;

@@ -159,7 +159,7 @@ void AssignBumpMapFromNormals(Ptr<CImage> pcImage, SFloat32Vec3* pasNormals)
 			sNormal.z /= 4.0f;
 			sNormal.Normalize();
 
-			iColour = Set32BitColour(0.0f, (1.0f + sNormal.x) / 2.0f, (1.0f + sNormal.y) / 2.0f, 0.0f);
+			iColour = Set32BitColour((1.0f + sNormal.x) / 2.0f, (1.0f + sNormal.y) / 2.0f, 0.0f, 0.0f);  //U then V, the first two bytes.
 
 			pcAccessor->Set(x, y, &iColour);
 		}

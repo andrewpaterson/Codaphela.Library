@@ -3054,6 +3054,9 @@
       <Filter>Source\Data\Types\Converter</Filter>
     </None>
     <None Include="LibraryBreakdown.txt" />
+    <None Include="CodabaseTransactions.txt">
+      <Filter>Source\Database\Codabase</Filter>
+    </None>
     <None Include="TimSort.inl">
       <Filter>Source\Sort</Filter>
     </None>
