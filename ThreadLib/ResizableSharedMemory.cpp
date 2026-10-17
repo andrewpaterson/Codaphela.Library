@@ -2,6 +2,7 @@
 #include "BaseLib/DebugOutput.h"
 #include "BaseLib/PointerRemapper.h"
 #include "BaseLib/StringHelper.h"
+#include "BaseLib/StackMemory.h"
 #include "ResizableSharedMemory.h"
 
 
@@ -369,6 +370,7 @@ SSharedMemoryMap CResizableSharedMemory::Resize(size_t uiSize)
     uint64                      uiOldSize;
     int                         iStillMapped;
     void*                       pvMemory;
+    CStackMemory<>              cTemp;
 
     bResult = Remap(uiSize);
     if (!bResult)
@@ -376,7 +378,7 @@ SSharedMemoryMap CResizableSharedMemory::Resize(size_t uiSize)
         mcCoordinator.Invalidate();
         mpsDescriptor->iInvalid = SHARED_MEMORY_INVALID;
         uiOldSize = mpsDescriptor->uiSize;
-        pvMemory = malloc((size_t)uiOldSize);
+        pvMemory = cTemp.Init((size_t)uiOldSize);
         memcpy(pvMemory, mpvMemory, (size_t)uiOldSize);
 
         iStillMapped = Close();
@@ -384,14 +386,14 @@ SSharedMemoryMap CResizableSharedMemory::Resize(size_t uiSize)
         if (bResult)
         {
             memcpy(mpvMemory, pvMemory, (size_t)uiOldSize);
-            free(pvMemory);
+            cTemp.Kill();
          
             return SSharedMemoryMap(mpvMemory, uiSize);
 
         }
         else
         {
-            free(pvMemory);
+            cTemp.Kill();
 
             gcLogger.Error2(__METHOD__, " Could not resize file.", NULL);
             return SSharedMemoryMap();

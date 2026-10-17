@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include "WorkerThreadPool.h"
 
 
@@ -36,17 +35,17 @@ void CWorkerThreadPool::Init(int iNumThreads)
 
 	mcMutex.Init();
 	mcWake.Init();
-	mpsHead = NULL;
-	mpsTail = NULL;
+	mcTasks.Init();
 	miNumIdle = 0;
 	mbDone = false;
 	mbStop = false;
 
-	masThreads = (SWorkerThread*)malloc(iNumThreads * sizeof(SWorkerThread));
-	miNumThreads = iNumThreads;
+	//The threads keep pointers to their elements so the array must not grow after this.
+	macThreads.Init();
+	macThreads.Resize(iNumThreads);
 	for (i = 0; i < iNumThreads; i++)
 	{
-		psThread = &masThreads[i];
+		psThread = macThreads.Get(i);
 		psThread->cThread.Init();
 		psThread->pcPool = this;
 		psThread->iThreadId = i;
@@ -62,6 +61,8 @@ void CWorkerThreadPool::Init(int iNumThreads)
 void CWorkerThreadPool::Kill(void)
 {
 	Stop(false);
+	macThreads.Kill();
+	mcTasks.Kill();
 	mcWake.Kill();
 	mcMutex.Kill();
 }
@@ -73,7 +74,8 @@ void CWorkerThreadPool::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CWorkerThreadPool::Stop(bool bWaitForTasks)
 {
-	int		i;
+	size			i;
+	SWorkerThread*	psThread;
 
 	mcMutex.Lock();
 	if (bWaitForTasks)
@@ -98,14 +100,13 @@ void CWorkerThreadPool::Stop(bool bWaitForTasks)
 	mcWake.WakeAll();
 	mcMutex.Unlock();
 
-	for (i = 0; i < miNumThreads; i++)
+	for (i = 0; i < macThreads.NumElements(); i++)
 	{
-		masThreads[i].cThread.Join();
-		masThreads[i].cThread.Kill();
+		psThread = macThreads.Get(i);
+		psThread->cThread.Join();
+		psThread->cThread.Kill();
 	}
-	free(masThreads);
-	masThreads = NULL;
-	miNumThreads = 0;
+	macThreads.ReInit();
 
 	//Functions pushed to a pool with no threads are never run.
 	mcMutex.Lock();
@@ -122,28 +123,16 @@ bool CWorkerThreadPool::Push(WorkerFunction fFunction, void* pvData)
 {
 	SWorkerTask*	psTask;
 
-	psTask = (SWorkerTask*)malloc(sizeof(SWorkerTask));
-	psTask->fFunction = fFunction;
-	psTask->pvData = pvData;
-	psTask->psNext = NULL;
-
 	mcMutex.Lock();
 	if (mbDone || mbStop)
 	{
 		mcMutex.Unlock();
-		free(psTask);
 		return false;
 	}
 
-	if (mpsTail)
-	{
-		mpsTail->psNext = psTask;
-	}
-	else
-	{
-		mpsHead = psTask;
-	}
-	mpsTail = psTask;
+	psTask = mcTasks.InsertAfterTail();
+	psTask->fFunction = fFunction;
+	psTask->pvData = pvData;
 
 	mcWake.WakeOne();
 	mcMutex.Unlock();
@@ -157,7 +146,7 @@ bool CWorkerThreadPool::Push(WorkerFunction fFunction, void* pvData)
 //////////////////////////////////////////////////////////////////////////
 int CWorkerThreadPool::Size(void)
 {
-	return miNumThreads;
+	return (int)macThreads.NumElements();
 }
 
 
@@ -182,17 +171,15 @@ int CWorkerThreadPool::NumIdleThreads(void)
 //////////////////////////////////////////////////////////////////////////
 void CWorkerThreadPool::Work(int iThreadId)
 {
-	SWorkerTask*	psTask;
+	SWorkerTask		sTask;
 
 	mcMutex.Lock();
 	for (;;)
 	{
-		psTask = PopTask();
-		if (psTask)
+		if (PopTask(&sTask))
 		{
 			mcMutex.Unlock();
-			psTask->fFunction(iThreadId, psTask->pvData);
-			free(psTask);
+			sTask.fFunction(iThreadId, sTask.pvData);
 			mcMutex.Lock();
 		}
 		else if (mbStop || mbDone)
@@ -214,20 +201,19 @@ void CWorkerThreadPool::Work(int iThreadId)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SWorkerTask* CWorkerThreadPool::PopTask(void)
+bool CWorkerThreadPool::PopTask(SWorkerTask* psTask)
 {
-	SWorkerTask*	psTask;
+	SWorkerTask*	psHead;
 
-	psTask = mpsHead;
-	if (psTask)
+	psHead = mcTasks.GetHead();
+	if (psHead == NULL)
 	{
-		mpsHead = psTask->psNext;
-		if (mpsHead == NULL)
-		{
-			mpsTail = NULL;
-		}
+		return false;
 	}
-	return psTask;
+
+	*psTask = *psHead;
+	mcTasks.Remove(psHead);
+	return true;
 }
 
 
@@ -237,16 +223,16 @@ SWorkerTask* CWorkerThreadPool::PopTask(void)
 //////////////////////////////////////////////////////////////////////////
 void CWorkerThreadPool::ClearTasks(void)
 {
-	SWorkerTask*	psTask;
+	SWorkerTask*	psHead;
 
 	for (;;)
 	{
-		psTask = PopTask();
-		if (psTask == NULL)
+		psHead = mcTasks.GetHead();
+		if (psHead == NULL)
 		{
 			break;
 		}
-		free(psTask);
+		mcTasks.Remove(psHead);
 	}
 }
 
