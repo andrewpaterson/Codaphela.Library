@@ -240,6 +240,25 @@ bool CLogFile::FailBegun(char* szMethod, const char* szTask, CAbstractFile* pcFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CLogFile::FailFlush(char* szMethod, CAbstractFile* pcFile)
+{
+	CChars	szError;
+
+	szError.Init(szMethod);
+	szError.Append(" Could not flush file [");
+	GetSafeFilename(&szError, pcFile);
+	szError.Append("] to disk.");
+
+	gcLogger.Error(szError.Text());
+	szError.Kill();
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CLogFile::Commit(CAbstractFile* pcFile)
 {
 	size						i;
@@ -252,12 +271,18 @@ bool CLogFile::Commit(CAbstractFile* pcFile)
 	bool						bResult;
 	CChars						szError;
 	size						iNumCommands;
+	bool						bWritten;
+	bool						bDirectoryChanged;
+	CFileUtil					cFileUtil;
 
 	if (!mbBegun)
 	{
 		return FailBegun(__METHOD__, "commit", pcFile);
 	}
 
+	//Written data must be on disk before the file is closed, and created or deleted files must have their directory entries on disk.
+	bWritten = false;
+	bDirectoryChanged = false;
 	iNumCommands = macCommands.NumElements();
 	for (i = 0; i < iNumCommands; i++)
 	{
@@ -268,14 +293,24 @@ bool CLogFile::Commit(CAbstractFile* pcFile)
 		{
 			psWrite = (CLogFileCommandWrite*)psCommand;
 			bResult = psWrite->Write(pcFile);
+			bWritten = true;
 		}
 		else if (psCommand->IsOpen())
 		{
 			psOpen = (CLogFileCommandOpen*)psCommand;
 			bResult = psOpen->Open(pcFile);
+			bDirectoryChanged |= IsFileModeCreate(psOpen->eMode);
 		}
 		else if (psCommand->IsClose())
 		{
+			if (bWritten)
+			{
+				if (!pcFile->Flush())
+				{
+					return FailFlush(__METHOD__, pcFile);
+				}
+				bWritten = false;
+			}
 			psClose = (CLogFileCommandClose*)psCommand;
 			bResult = psClose->Close(pcFile);
 		}
@@ -283,6 +318,7 @@ bool CLogFile::Commit(CAbstractFile* pcFile)
 		{
 			psDelete = (CLogFileCommandDelete*)psCommand;
 			bResult = psDelete->Delete(pcFile);
+			bDirectoryChanged = true;
 		}
 
 		if (!bResult)
@@ -294,8 +330,21 @@ bool CLogFile::Commit(CAbstractFile* pcFile)
 		}
 	}
 
-	//Shouldn't we check the file is open before flushing?
-	pcFile->Flush();
+	if (bWritten)
+	{
+		if (!pcFile->Flush())
+		{
+			return FailFlush(__METHOD__, pcFile);
+		}
+	}
+
+	if (bDirectoryChanged && pcFile->GetFilename())
+	{
+		if (!cFileUtil.SyncParentDirectory(pcFile->GetFilename()))
+		{
+			return gcLogger.Error2(__METHOD__, " Could not sync the directory of file [", pcFile->GetFilename(), "].", NULL);
+		}
+	}
 
 	miBackingFileLength = miLength;
 	return true;

@@ -235,6 +235,49 @@ bool CFileUtil::Touch(const char*szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CFileUtil::SyncFile(const char* szFilename)
+{
+    int     iHandle;
+    int     iResult;
+
+    iHandle = open(szFilename, O_RDONLY);
+    if (iHandle == -1)
+    {
+        return false;
+    }
+
+    iResult = fsync(iHandle);
+    close(iHandle);
+    return iResult == 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFileUtil::SyncDirectory(const char* szDirectory)
+{
+    int     iHandle;
+    int     iResult;
+
+	//Makes files created, deleted or renamed in the directory survive a power loss.
+    iHandle = open(szDirectory, O_RDONLY | O_DIRECTORY);
+    if (iHandle == -1)
+    {
+        return false;
+    }
+
+    iResult = fsync(iHandle);
+    close(iHandle);
+    return iResult == 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CFileUtil::Delete(const char*szFilename)
 {
     int     iResult;

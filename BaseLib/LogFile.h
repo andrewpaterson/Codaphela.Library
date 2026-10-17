@@ -68,6 +68,7 @@ protected:
 	size					FindNextWriteCommand(size iIndex);
 
 	bool					FailBegun(char* szMethod, const char* szTask, CAbstractFile* pcFile);
+	bool					FailFlush(char* szMethod, CAbstractFile* pcFile);
 
 	void					GetSafeFilename(CChars* pszDest, CAbstractFile* pcFile);
 	void					ExecuteCommandErrorString(CChars* pszDest, char* szMethod, CLogFileCommand* psCommand, CAbstractFile* pcFile);

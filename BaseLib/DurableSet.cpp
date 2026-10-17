@@ -88,8 +88,7 @@ bool CDurableSet::Recover(void)
 		{
 			return gcLogger.Error2(__METHOD__, " Copying primary files to backup failed.", NULL);
 		}
-		MarkFinish();
-		return true;
+		return MarkFinish();
 	}
 	else
 
@@ -101,8 +100,7 @@ bool CDurableSet::Recover(void)
 		{
 			return gcLogger.Error2(__METHOD__, " Copying backup files to primary failed.", NULL);
 		}
-		MarkFinish();
-		return true;
+		return MarkFinish();
 	}
 	else
 
@@ -154,8 +152,12 @@ bool CDurableSet::End(void)
 		return gcLogger.Error2(__METHOD__, " Cannot end.  Not begun.", NULL);
 	}
 
+	if (!MarkStart())
+	{
+		return false;
+	}
+
 	bResult = true;
-	MarkStart();
 	uiNumElements = mapcFiles.NumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
@@ -164,8 +166,12 @@ bool CDurableSet::End(void)
 	}
 	ReturnOnFalse(bResult);
 
+	if (!MarkRewrite())
+	{
+		return false;
+	}
+
 	bResult = true;
-	MarkRewrite();
 	for (i = 0; i < mapcFiles.NumElements(); i++)
 	{
 		pcDurable = *mapcFiles.Get(i);
@@ -173,7 +179,10 @@ bool CDurableSet::End(void)
 	}
 	ReturnOnFalse(bResult);
 
-	MarkFinish();
+	if (!MarkFinish())
+	{
+		return false;
+	}
 	mbBegun = false;
 
 	mapcFiles.ReInit();
@@ -309,11 +318,9 @@ CDurableFile* CDurableSet::Get(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDurableSet::MarkStart(void)
+bool CDurableSet::MarkStart(void)
 {
-	CFileUtil	cFileUtil;
-
-	cFileUtil.Touch(mszMarkStart.Text());
+	return Mark(mszMarkStart.Text());
 }
 
 
@@ -321,11 +328,9 @@ void CDurableSet::MarkStart(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDurableSet::MarkRewrite(void)
+bool CDurableSet::MarkRewrite(void)
 {
-	CFileUtil	cFileUtil;
-
-	cFileUtil.Touch(mszMarkRewrite.Text());
+	return Mark(mszMarkRewrite.Text());
 }
 
 
@@ -333,12 +338,56 @@ void CDurableSet::MarkRewrite(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDurableSet::MarkFinish(void)
+bool CDurableSet::MarkFinish(void)
+{
+	//The rewrite mark must go first.  A crash between the two deletes then leaves only the start mark, which recovers by copying the (already rewritten) backup over the primary.
+	//Deleting the start mark first would leave only the rewrite mark, which recovery rejects.
+	if (!Unmark(mszMarkRewrite.Text()))
+	{
+		return false;
+	}
+	return Unmark(mszMarkStart.Text());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDurableSet::Mark(const char* szMarkFile)
 {
 	CFileUtil	cFileUtil;
 
-	cFileUtil.Delete(mszMarkStart.Text());
-	cFileUtil.Delete(mszMarkRewrite.Text());
+	cFileUtil.TouchDir(szMarkFile, true);
+	if (!cFileUtil.Touch(szMarkFile))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not create mark file [", szMarkFile, "].", NULL);
+	}
+	if (!cFileUtil.SyncParentDirectory(szMarkFile))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not sync the directory of mark file [", szMarkFile, "].", NULL);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDurableSet::Unmark(const char* szMarkFile)
+{
+	CFileUtil	cFileUtil;
+
+	if (!cFileUtil.Delete(szMarkFile))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not delete mark file [", szMarkFile, "].", NULL);
+	}
+	if (!cFileUtil.SyncParentDirectory(szMarkFile))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not sync the directory of mark file [", szMarkFile, "].", NULL);
+	}
+	return true;
 }
 
 
