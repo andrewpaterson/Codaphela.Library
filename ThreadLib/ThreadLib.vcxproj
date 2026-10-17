@@ -180,6 +180,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="InterProcessCounter.h" />
+    <ClInclude Include="InterProcessName.h" />
     <ClInclude Include="InterProcessDone.h" />
     <ClInclude Include="InterProcessFlow.h" />
     <ClInclude Include="InterProcessHold.h" />
@@ -214,6 +215,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="InterProcessCounter.cpp" />
+    <ClCompile Include="InterProcessName.cpp" />
     <ClCompile Include="InterProcessDone.cpp" />
     <ClCompile Include="InterProcessFlow.cpp" />
     <ClCompile Include="InterProcessHold.cpp" />

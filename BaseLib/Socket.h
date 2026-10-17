@@ -43,7 +43,7 @@ class CSocket
 {
 public:
 	CChars	mszPortNumber;
-	uint8	maSocket[SOCKET_HANDLE_SIZE];
+	alignas(8) uint8	maSocket[SOCKET_HANDLE_SIZE];
 
 	void	Init(int iPort);
 	void	Kill(void);

@@ -6,13 +6,26 @@
 static_assert(sizeof(CONDITION_VARIABLE) <= CONDITION_VARIABLE_HANDLE_SIZE, "CONDITION_VARIABLE_HANDLE_SIZE is too small for a CONDITION_VARIABLE.");
 
 
+SRWLOCK&	NativeMutex(uint8* paMutex);
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static CONDITION_VARIABLE& NativeCondition(uint8* paCondition)
+{
+	return *(CONDITION_VARIABLE*)paCondition;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 void CConditionVariable::Init(void)
 {
-	InitializeConditionVariable((CONDITION_VARIABLE*)maCondition);
+	InitializeConditionVariable(&NativeCondition(maCondition));
 }
 
 
@@ -32,7 +45,7 @@ void CConditionVariable::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CConditionVariable::Wait(CMutex* pcMutex)
 {
-	SleepConditionVariableSRW((CONDITION_VARIABLE*)maCondition, (SRWLOCK*)pcMutex->maMutex, INFINITE, 0);
+	SleepConditionVariableSRW(&NativeCondition(maCondition), &NativeMutex(pcMutex->maMutex), INFINITE, 0);
 }
 
 
@@ -42,7 +55,7 @@ void CConditionVariable::Wait(CMutex* pcMutex)
 //////////////////////////////////////////////////////////////////////////
 void CConditionVariable::WakeOne(void)
 {
-	WakeConditionVariable((CONDITION_VARIABLE*)maCondition);
+	WakeConditionVariable(&NativeCondition(maCondition));
 }
 
 
@@ -52,7 +65,7 @@ void CConditionVariable::WakeOne(void)
 //////////////////////////////////////////////////////////////////////////
 void CConditionVariable::WakeAll(void)
 {
-	WakeAllConditionVariable((CONDITION_VARIABLE*)maCondition);
+	WakeAllConditionVariable(&NativeCondition(maCondition));
 }
 
 

@@ -29,9 +29,9 @@ static_assert(sizeof(SLinuxSharedMemoryFile) <= SHARED_MEMORY_FILE_HANDLE_SIZE, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static SLinuxSharedMemoryFile* LinuxFile(uint8* paMapFile)
+static SLinuxSharedMemoryFile& LinuxFile(uint8* paMapFile)
 {
-	return (SLinuxSharedMemoryFile*)paMapFile;
+	return *(SLinuxSharedMemoryFile*)paMapFile;
 }
 
 
@@ -42,7 +42,7 @@ static SLinuxSharedMemoryFile* LinuxFile(uint8* paMapFile)
 void CSharedMemoryFile::Init(void)
 {
 	memset(this, 0, sizeof(CSharedMemoryFile));
-	LinuxFile(maMapFile)->iFile = -1;
+	LinuxFile(maMapFile).iFile = -1;
 }
 
 
@@ -53,7 +53,7 @@ void CSharedMemoryFile::Init(void)
 void CSharedMemoryFile::Init(char* szName)
 {
 	memset(maMapFile, 0, SHARED_MEMORY_FILE_HANDLE_SIZE);
-	LinuxFile(maMapFile)->iFile = -1;
+	LinuxFile(maMapFile).iFile = -1;
 	StrCpySafe(mszName, szName, 64);
 }
 
@@ -64,7 +64,7 @@ void CSharedMemoryFile::Init(char* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CSharedMemoryFile::Kill(void)
 {
-	if (LinuxFile(maMapFile)->iFile != -1)
+	if (LinuxFile(maMapFile).iFile != -1)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot Kill shared memory file [", mszName, "].  It's handle has not been closed.", NULL);
 	}
@@ -86,7 +86,7 @@ SSharedMemoryResult CSharedMemoryFile::Create(size_t uiSize)
 	int							iErrno;
 
 	iAdjustedSize = uiSize + sizeof(SSharedMemoryDescriptor);
-	psFile = LinuxFile(maMapFile);
+	psFile = &LinuxFile(maMapFile);
 
 	if (psFile->iFile != -1)
 	{
@@ -94,7 +94,7 @@ SSharedMemoryResult CSharedMemoryFile::Create(size_t uiSize)
 		return SSharedMemoryResult(SMR_FileHandleAlreadySet);
 	}
 
-	NamedSharedObjectName(&szName, "SharedMemory.", mszName);
+	NamedSharedObjectName(&szName, NAMED_SHARED_OBJECT_MEMORY, mszName);
 	iFile = CreateNamedSharedObject(szName.Text(), iAdjustedSize);
 	if (iFile == -1)
 	{
@@ -149,14 +149,14 @@ SSharedMemoryResult CSharedMemoryFile::Open(void)
 	CChars						szName;
 	int							iFile;
 
-	psFile = LinuxFile(maMapFile);
+	psFile = &LinuxFile(maMapFile);
 	if (psFile->iFile != -1)
 	{
 		gcLogger.Error2(__METHOD__, " Could not open mapping [", mszName, "].  Map file handle must be NULL.", NULL);
 		return SSharedMemoryResult(SMR_FileHandleAlreadySet);
 	}
 
-	NamedSharedObjectName(&szName, "SharedMemory.", mszName);
+	NamedSharedObjectName(&szName, NAMED_SHARED_OBJECT_MEMORY, mszName);
 	iFile = OpenNamedSharedObject(szName.Text());
 	szName.Kill();
 	if (iFile == -1)
@@ -197,10 +197,10 @@ void CSharedMemoryFile::Close(void)
 	SLinuxSharedMemoryFile*		psFile;
 	CChars						szName;
 
-	psFile = LinuxFile(maMapFile);
+	psFile = &LinuxFile(maMapFile);
 	if (psFile->iFile != -1)
 	{
-		NamedSharedObjectName(&szName, "SharedMemory.", mszName);
+		NamedSharedObjectName(&szName, NAMED_SHARED_OBJECT_MEMORY, mszName);
 		CloseNamedSharedObject(psFile->iFile, szName.Text());
 		szName.Kill();
 		psFile->iFile = -1;
@@ -220,7 +220,7 @@ SSharedMemoryDescriptor* CSharedMemoryFile::Map(size_t uiSize)
 	struct stat					sStat;
 	void*						pvMemory;
 
-	psFile = LinuxFile(maMapFile);
+	psFile = &LinuxFile(maMapFile);
 	if (psFile->iFile != -1)
 	{
 		iAdjustedSize = uiSize + sizeof(SSharedMemoryDescriptor);
@@ -262,7 +262,7 @@ void CSharedMemoryFile::Unmap(SSharedMemoryDescriptor* psDescriptor)
 {
 	SLinuxSharedMemoryFile*		psFile;
 
-	psFile = LinuxFile(maMapFile);
+	psFile = &LinuxFile(maMapFile);
 	if ((psDescriptor == NULL) || (psDescriptor != psFile->psView))
 	{
 		gcLogger.Error2(__METHOD__, " Could not unmap view of file [", mszName, "].  It is not the current view.", NULL);

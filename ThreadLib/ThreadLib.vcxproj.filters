@@ -195,6 +195,9 @@
     <ClCompile Include="InterProcessCounter.cpp">
       <Filter>Source\Process\Flow</Filter>
     </ClCompile>
+    <ClCompile Include="InterProcessName.cpp">
+      <Filter>Source\Process\Flow</Filter>
+    </ClCompile>
     <ClCompile Include="InterProcessDone.cpp">
       <Filter>Source\Process\Flow</Filter>
     </ClCompile>
@@ -291,6 +294,9 @@
       <Filter>Source\SharedMemory</Filter>
     </ClInclude>
     <ClInclude Include="InterProcessCounter.h">
+      <Filter>Source\Process\Flow</Filter>
+    </ClInclude>
+    <ClInclude Include="InterProcessName.h">
       <Filter>Source\Process\Flow</Filter>
     </ClInclude>
     <ClInclude Include="InterProcessDone.h">

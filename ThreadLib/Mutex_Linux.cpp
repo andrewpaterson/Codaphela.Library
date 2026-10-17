@@ -10,9 +10,19 @@ static_assert(sizeof(pthread_mutex_t) <= MUTEX_HANDLE_SIZE, "MUTEX_HANDLE_SIZE i
 //
 //
 //////////////////////////////////////////////////////////////////////////
+pthread_mutex_t& NativeMutex(uint8* paMutex)
+{
+	return *(pthread_mutex_t*)paMutex;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CMutex::Init(void)
 {
-	pthread_mutex_init((pthread_mutex_t*)maMutex, NULL);
+	pthread_mutex_init(&NativeMutex(maMutex), NULL);
 }
 
 
@@ -22,7 +32,7 @@ void CMutex::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMutex::Kill(void)
 {
-	pthread_mutex_destroy((pthread_mutex_t*)maMutex);
+	pthread_mutex_destroy(&NativeMutex(maMutex));
 }
 
 
@@ -32,7 +42,7 @@ void CMutex::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CMutex::Lock(void)
 {
-	pthread_mutex_lock((pthread_mutex_t*)maMutex);
+	pthread_mutex_lock(&NativeMutex(maMutex));
 }
 
 
@@ -42,7 +52,7 @@ void CMutex::Lock(void)
 //////////////////////////////////////////////////////////////////////////
 void CMutex::Unlock(void)
 {
-	pthread_mutex_unlock((pthread_mutex_t*)maMutex);
+	pthread_mutex_unlock(&NativeMutex(maMutex));
 }
 
 

@@ -1,3 +1,4 @@
+#include "InterProcessName.h"
 #include "SharedMemoryQueue.h"
 
 
@@ -34,7 +35,7 @@ bool CSharedMemoryQueue::InitMaster(char* szName, size_t uiByteSize)
 
 	mbMaster = true;
 
-	szMutexName.Init("Local\\ProcessMutex:")->Append(szName);
+	InterProcessName(&szMutexName, INTER_PROCESS_MUTEX_PREFIX, szName);
 	mcMutex.Init(szMutexName.Text());
 	szMutexName.Kill();
 
@@ -53,7 +54,7 @@ bool CSharedMemoryQueue::InitMaster(char* szName, size_t uiByteSize)
 		return false;
 	}
 
-	szMemoryName.Init("Local\\SharedMemory:")->Append(szName);
+	InterProcessName(&szMemoryName, INTER_PROCESS_MEMORY_PREFIX, szName);
 	bResult = mcSharedMemory.Init(szMemoryName.Text());
 	szMemoryName.Kill();
 	if (!bResult)
@@ -101,7 +102,7 @@ bool CSharedMemoryQueue::InitClient(char* szName)
 
 	mbMaster = false;
 
-	szMutexName.Init("Local\\ProcessMutex:")->Append(szName);
+	InterProcessName(&szMutexName, INTER_PROCESS_MUTEX_PREFIX, szName);
 	mcMutex.Init(szMutexName.Text());
 	szMutexName.Kill();
 
@@ -120,7 +121,7 @@ bool CSharedMemoryQueue::InitClient(char* szName)
 		return false;
 	}
 
-	szMemoryName.Init("Local\\SharedMemory:")->Append(szName);
+	InterProcessName(&szMemoryName, INTER_PROCESS_MEMORY_PREFIX, szName);
 	bResult = mcSharedMemory.Init(szMemoryName.Text());
 	szMemoryName.Kill();
 	if (!bResult)

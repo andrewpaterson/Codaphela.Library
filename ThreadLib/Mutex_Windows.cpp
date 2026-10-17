@@ -10,9 +10,19 @@ static_assert(sizeof(SRWLOCK) <= MUTEX_HANDLE_SIZE, "MUTEX_HANDLE_SIZE is too sm
 //
 //
 //////////////////////////////////////////////////////////////////////////
+SRWLOCK& NativeMutex(uint8* paMutex)
+{
+	return *(SRWLOCK*)paMutex;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CMutex::Init(void)
 {
-	InitializeSRWLock((SRWLOCK*)maMutex);
+	InitializeSRWLock(&NativeMutex(maMutex));
 }
 
 
@@ -32,7 +42,7 @@ void CMutex::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CMutex::Lock(void)
 {
-	AcquireSRWLockExclusive((SRWLOCK*)maMutex);
+	AcquireSRWLockExclusive(&NativeMutex(maMutex));
 }
 
 
@@ -42,7 +52,7 @@ void CMutex::Lock(void)
 //////////////////////////////////////////////////////////////////////////
 void CMutex::Unlock(void)
 {
-	ReleaseSRWLockExclusive((SRWLOCK*)maMutex);
+	ReleaseSRWLockExclusive(&NativeMutex(maMutex));
 }
 
 

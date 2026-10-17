@@ -10,15 +10,6 @@
 #define NETWORK_LOOPBACK_ADDRESS	"127.0.0.1"
 
 
-//Sent before every message.  Both ends are on the same computer so it is not
-//converted to network byte order.
-struct SNetworkMessageHeader
-{
-	uint32	uiType;
-	uint32	uiSize;
-};
-
-
 //A process channel over a TCP connection.  One process listens with a
 //CListenSocket and Accepts, the other Connects.
 class CNetworkConnection : public CProcessChannel

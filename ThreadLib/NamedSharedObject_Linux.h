@@ -10,6 +10,10 @@
 //descriptor and the kernel releases it when the process exits, even if it
 //crashed, so a name that nobody holds is stale and is treated as not existing.
 
+//The kinds of named shared object, passed to NamedSharedObjectName as szPrefix.
+#define NAMED_SHARED_OBJECT_MUTEX		"Mutex."
+#define NAMED_SHARED_OBJECT_MEMORY		"SharedMemory."
+
 void	NamedSharedObjectName(CChars* psz, const char* szPrefix, char* szName);
 
 //Returns a file descriptor for a new object of at least uiSize bytes, rounded up

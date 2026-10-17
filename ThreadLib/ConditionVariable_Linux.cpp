@@ -6,13 +6,26 @@
 static_assert(sizeof(pthread_cond_t) <= CONDITION_VARIABLE_HANDLE_SIZE, "CONDITION_VARIABLE_HANDLE_SIZE is too small for a pthread_cond_t.");
 
 
+pthread_mutex_t&	NativeMutex(uint8* paMutex);
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static pthread_cond_t& NativeCondition(uint8* paCondition)
+{
+	return *(pthread_cond_t*)paCondition;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 void CConditionVariable::Init(void)
 {
-	pthread_cond_init((pthread_cond_t*)maCondition, NULL);
+	pthread_cond_init(&NativeCondition(maCondition), NULL);
 }
 
 
@@ -22,7 +35,7 @@ void CConditionVariable::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CConditionVariable::Kill(void)
 {
-	pthread_cond_destroy((pthread_cond_t*)maCondition);
+	pthread_cond_destroy(&NativeCondition(maCondition));
 }
 
 
@@ -32,7 +45,7 @@ void CConditionVariable::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CConditionVariable::Wait(CMutex* pcMutex)
 {
-	pthread_cond_wait((pthread_cond_t*)maCondition, (pthread_mutex_t*)pcMutex->maMutex);
+	pthread_cond_wait(&NativeCondition(maCondition), &NativeMutex(pcMutex->maMutex));
 }
 
 
@@ -42,7 +55,7 @@ void CConditionVariable::Wait(CMutex* pcMutex)
 //////////////////////////////////////////////////////////////////////////
 void CConditionVariable::WakeOne(void)
 {
-	pthread_cond_signal((pthread_cond_t*)maCondition);
+	pthread_cond_signal(&NativeCondition(maCondition));
 }
 
 
@@ -52,7 +65,7 @@ void CConditionVariable::WakeOne(void)
 //////////////////////////////////////////////////////////////////////////
 void CConditionVariable::WakeAll(void)
 {
-	pthread_cond_broadcast((pthread_cond_t*)maCondition);
+	pthread_cond_broadcast(&NativeCondition(maCondition));
 }
 
 

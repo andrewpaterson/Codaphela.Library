@@ -1,6 +1,7 @@
 #ifndef __PROCESS_CHANNEL_H__
 #define __PROCESS_CHANNEL_H__
 #include "BaseLib/PrimitiveTypes.h"
+#include "BaseLib/StackMemory.h"
 
 
 //Receive waits until a message arrives or the channel is closed.
@@ -14,6 +15,15 @@ enum EChannelResult
 	CR_Closed,		//The other process closed the channel and every message it sent has been received.
 	CR_TooLarge,	//The message was larger than the buffer and was dropped.  Its type and size are returned.
 	CR_Error,
+};
+
+
+//Every channel sends this before the data of each message.  Both ends are on
+//the same computer so it is not converted to network byte order.
+struct SProcessChannelHeader
+{
+	uint32	uiType;
+	uint32	uiSize;
 };
 
 
@@ -33,6 +43,11 @@ public:
 	virtual bool			IsOpen(void) =0;
 
 			bool			Send(uint32 uiType);
+
+protected:
+	//The header followed by a copy of the data, in pcTemp.  Its size is
+	//sizeof(SProcessChannelHeader) + uiSize.  NULL if uiSize is too large.
+	SProcessChannelHeader*	BuildMessage(CStackMemory<>* pcTemp, uint32 uiType, void* pvData, size uiSize);
 };
 
 

@@ -45,22 +45,9 @@ static_assert(sizeof(int) <= SOCKET_HANDLE_SIZE, "SOCKET_HANDLE_SIZE is too smal
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SetSocketHandle(uint8* paSocket, int iSocket)
+int& SocketHandle(uint8* paSocket)
 {
-	memcpy(paSocket, &iSocket, sizeof(int));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int GetSocketHandle(uint8* paSocket)
-{
-	int		iSocket;
-
-	memcpy(&iSocket, paSocket, sizeof(int));
-	return iSocket;
+	return *(int*)paSocket;
 }
 
 
@@ -72,7 +59,7 @@ void CSocket::Init(int iPort)
 {
 	mszPortNumber.Init();
 	mszPortNumber.Append(iPort);
-	SetSocketHandle(maSocket, INVALID_SOCKET_DESCRIPTOR);
+	SocketHandle(maSocket) = INVALID_SOCKET_DESCRIPTOR;
 }
 
 
@@ -95,11 +82,11 @@ void CSocket::Close(void)
 {
 	int		iSocket;
 
-	iSocket = GetSocketHandle(maSocket);
+	iSocket = SocketHandle(maSocket);
 	if (iSocket != INVALID_SOCKET_DESCRIPTOR)
 	{
 		close(iSocket);
-		SetSocketHandle(maSocket, INVALID_SOCKET_DESCRIPTOR);
+		SocketHandle(maSocket) = INVALID_SOCKET_DESCRIPTOR;
 	}
 }
 
@@ -110,7 +97,7 @@ void CSocket::Close(void)
 //////////////////////////////////////////////////////////////////////////
 bool CSocket::IsOpen(void)
 {
-	return GetSocketHandle(maSocket) != INVALID_SOCKET_DESCRIPTOR;
+	return SocketHandle(maSocket) != INVALID_SOCKET_DESCRIPTOR;
 }
 
 
@@ -122,7 +109,7 @@ int CSocket::Receive(void* pvBuffer, int iBufferLength)
 {
 	ssize_t		iResult;
 
-	iResult = recv(GetSocketHandle(maSocket), pvBuffer, iBufferLength, 0);
+	iResult = recv(SocketHandle(maSocket), pvBuffer, iBufferLength, 0);
 	if (iResult < 0)
 	{
 		gcLogger.Error2(__METHOD__, " recv failed [", LastSocketErrorToString(), "].", NULL);
@@ -144,7 +131,7 @@ int CSocket::Send(void* pvBuffer, int iBufferLength)
 	ssize_t		iSendResult;
 
 	//MSG_NOSIGNAL stops a closed connection raising SIGPIPE (which kills the process) instead of returning an error like Windows.
-	iSendResult = send(GetSocketHandle(maSocket), pvBuffer, iBufferLength, MSG_NOSIGNAL);
+	iSendResult = send(SocketHandle(maSocket), pvBuffer, iBufferLength, MSG_NOSIGNAL);
 	if (iSendResult < 0)
 	{
 		gcLogger.Error2(__METHOD__, " send failed [", LastSocketErrorToString(), "].", NULL);
@@ -173,7 +160,7 @@ bool CSocket::ReceiveAll(void* pvBuffer, int iLength)
 	pucBuffer = (uint8*)pvBuffer;
 	while (iLength > 0)
 	{
-		iResult = recv(GetSocketHandle(maSocket), pucBuffer, iLength, 0);
+		iResult = recv(SocketHandle(maSocket), pucBuffer, iLength, 0);
 		if (iResult > 0)
 		{
 			pucBuffer += iResult;
@@ -205,7 +192,7 @@ bool CSocket::SendAll(void* pvBuffer, int iLength)
 	pucBuffer = (uint8*)pvBuffer;
 	while (iLength > 0)
 	{
-		iResult = send(GetSocketHandle(maSocket), pucBuffer, iLength, MSG_NOSIGNAL);
+		iResult = send(SocketHandle(maSocket), pucBuffer, iLength, MSG_NOSIGNAL);
 		if (iResult > 0)
 		{
 			pucBuffer += iResult;
@@ -233,7 +220,7 @@ bool CSocket::SetNoDelay(bool bNoDelay)
 	int		iNoDelay;
 
 	iNoDelay = bNoDelay ? 1 : 0;
-	return setsockopt(GetSocketHandle(maSocket), IPPROTO_TCP, TCP_NODELAY, &iNoDelay, sizeof(iNoDelay)) == 0;
+	return setsockopt(SocketHandle(maSocket), IPPROTO_TCP, TCP_NODELAY, &iNoDelay, sizeof(iNoDelay)) == 0;
 }
 
 
@@ -246,7 +233,7 @@ int CSocket::WaitForData(int iTimeoutMilliseconds)
 	struct pollfd	sPoll;
 	int				iResult;
 
-	sPoll.fd = GetSocketHandle(maSocket);
+	sPoll.fd = SocketHandle(maSocket);
 	sPoll.events = POLLIN;
 	sPoll.revents = 0;
 	do

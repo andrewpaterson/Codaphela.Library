@@ -5,12 +5,13 @@
 #include "BaseLib/PointerRemapper.h"
 #include "BaseLib/Timer.h"
 #include "NativeThread.h"
+#include "InterProcessName.h"
 #include "SharedMemoryChannel.h"
 
 
 //The process that Created the channel sends on "name:A" and receives on
 //"name:B".  The process that Connected does the opposite.  Each element in a
-//queue is the uint32 message type followed by the data.
+//queue is an SProcessChannelHeader followed by the data.
 #define SHARED_MEMORY_CHANNEL_CREATOR		0
 #define SHARED_MEMORY_CHANNEL_CONNECTOR		1
 
@@ -58,7 +59,7 @@ bool CSharedMemoryChannel::Create(char* szName)
 	bool	bSend;
 	bool	bReceive;
 
-	sz.Init("Local\\Channel:")->Append(szName);
+	InterProcessName(&sz, INTER_PROCESS_CHANNEL_PREFIX, szName);
 	mcState.Init(sz.Text());
 	sz.Kill();
 	mpsState = (SSharedMemoryChannelState*)mcState.Create(sizeof(SSharedMemoryChannelState));
@@ -98,7 +99,7 @@ bool CSharedMemoryChannel::Connect(char* szName)
 	bool	bSend;
 	bool	bReceive;
 
-	sz.Init("Local\\Channel:")->Append(szName);
+	InterProcessName(&sz, INTER_PROCESS_CHANNEL_PREFIX, szName);
 	mcState.Init(sz.Text());
 	sz.Kill();
 	mpsState = (SSharedMemoryChannelState*)mcState.Open();
@@ -134,23 +135,22 @@ bool CSharedMemoryChannel::Connect(char* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CSharedMemoryChannel::Send(uint32 uiType, void* pvData, size uiSize)
 {
-	CStackMemory<>	cTemp;
-	uint32*			puiElement;
-	bool			bResult;
+	CStackMemory<>			cTemp;
+	SProcessChannelHeader*	psHeader;
+	bool					bResult;
 
 	if (!mbOpen)
 	{
 		return false;
 	}
 
-	puiElement = (uint32*)cTemp.Init(sizeof(uint32) + uiSize);
-	*puiElement = uiType;
-	if (uiSize > 0)
+	psHeader = BuildMessage(&cTemp, uiType, pvData, uiSize);
+	if (psHeader == NULL)
 	{
-		memcpy(RemapSinglePointer(puiElement, sizeof(uint32)), pvData, uiSize);
+		return false;
 	}
 
-	bResult = mcSend.Push(puiElement, sizeof(uint32) + uiSize);
+	bResult = mcSend.Push(psHeader, sizeof(SProcessChannelHeader) + uiSize);
 	cTemp.Kill();
 	return bResult;
 }
@@ -227,40 +227,39 @@ EChannelResult CSharedMemoryChannel::Receive(uint32* puiType, void* pvData, size
 //////////////////////////////////////////////////////////////////////////
 EChannelResult CSharedMemoryChannel::Pop(uint32* puiType, void* pvData, size uiMaxSize, size* puiSize, size uiElementSize)
 {
-	CStackMemory<>	cTemp;
-	uint32*			puiElement;
-	size			uiPoppedSize;
-	size			uiDataSize;
+	CStackMemory<>			cTemp;
+	SProcessChannelHeader*	psHeader;
+	size					uiPoppedSize;
 
-	if (uiElementSize < sizeof(uint32))
+	if (uiElementSize < sizeof(SProcessChannelHeader))
 	{
 		return CR_Error;
 	}
 
 	//Only this process receives from this queue so the element peeked is the one popped.
-	puiElement = (uint32*)cTemp.Init(uiElementSize);
-	if (!mcReceive.Pop(puiElement, &uiPoppedSize, uiElementSize))
+	psHeader = (SProcessChannelHeader*)cTemp.Init(uiElementSize);
+	if (!mcReceive.Pop(psHeader, &uiPoppedSize, uiElementSize) ||
+		(psHeader->uiSize != uiPoppedSize - sizeof(SProcessChannelHeader)))
 	{
 		cTemp.Kill();
 		return CR_Error;
 	}
 
-	uiDataSize = uiPoppedSize - sizeof(uint32);
-	*puiType = *puiElement;
+	*puiType = psHeader->uiType;
 	if (puiSize)
 	{
-		*puiSize = uiDataSize;
+		*puiSize = psHeader->uiSize;
 	}
 
-	if (uiDataSize > uiMaxSize)
+	if (psHeader->uiSize > uiMaxSize)
 	{
 		cTemp.Kill();
 		return CR_TooLarge;
 	}
 
-	if (uiDataSize > 0)
+	if (psHeader->uiSize > 0)
 	{
-		memcpy(pvData, RemapSinglePointer(puiElement, sizeof(uint32)), uiDataSize);
+		memcpy(pvData, RemapSinglePointer(psHeader, sizeof(SProcessChannelHeader)), psHeader->uiSize);
 	}
 	cTemp.Kill();
 	return CR_Message;

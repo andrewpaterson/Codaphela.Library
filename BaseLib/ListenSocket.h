@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CListenSocket : public CSocket
 {
 protected:
-	uint8	maListenSocket[SOCKET_HANDLE_SIZE];
+	alignas(8) uint8	maListenSocket[SOCKET_HANDLE_SIZE];
 	bool	mbListening;
 	bool	mbAccepting;
 

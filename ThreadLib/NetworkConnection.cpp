@@ -93,25 +93,18 @@ bool CNetworkConnection::IsOpen(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNetworkConnection::Send(uint32 uiType, void* pvData, size uiSize)
 {
-	CStackMemory<>				cTemp;
-	SNetworkMessageHeader*		psHeader;
-	bool						bResult;
-
-	if (uiSize > MAX_UINT32 - sizeof(SNetworkMessageHeader))
-	{
-		return gcLogger.Error2(__METHOD__, " Message of [", SizeToString(uiSize), "] bytes is too large to send.", NULL);
-	}
+	CStackMemory<>			cTemp;
+	SProcessChannelHeader*	psHeader;
+	bool					bResult;
 
 	//The header and the data are sent together so they arrive together.
-	psHeader = (SNetworkMessageHeader*)cTemp.Init(sizeof(SNetworkMessageHeader) + uiSize);
-	psHeader->uiType = uiType;
-	psHeader->uiSize = (uint32)uiSize;
-	if (uiSize > 0)
+	psHeader = BuildMessage(&cTemp, uiType, pvData, uiSize);
+	if (psHeader == NULL)
 	{
-		memcpy(RemapSinglePointer(psHeader, sizeof(SNetworkMessageHeader)), pvData, uiSize);
+		return false;
 	}
 
-	bResult = mcSocket.SendAll(psHeader, (int)(sizeof(SNetworkMessageHeader) + uiSize));
+	bResult = mcSocket.SendAll(psHeader, (int)(sizeof(SProcessChannelHeader) + uiSize));
 	cTemp.Kill();
 	return bResult;
 }
@@ -123,7 +116,7 @@ bool CNetworkConnection::Send(uint32 uiType, void* pvData, size uiSize)
 //////////////////////////////////////////////////////////////////////////
 EChannelResult CNetworkConnection::Receive(uint32* puiType, void* pvData, size uiMaxSize, size* puiSize, int iTimeoutMilliseconds)
 {
-	SNetworkMessageHeader	sHeader;
+	SProcessChannelHeader	sHeader;
 	int						iWait;
 
 	if (!mcSocket.IsOpen())
@@ -142,7 +135,7 @@ EChannelResult CNetworkConnection::Receive(uint32* puiType, void* pvData, size u
 	}
 
 	//Fails when the other process has closed the connection.
-	if (!mcSocket.ReceiveAll(&sHeader, sizeof(SNetworkMessageHeader)))
+	if (!mcSocket.ReceiveAll(&sHeader, sizeof(SProcessChannelHeader)))
 	{
 		return CR_Closed;
 	}

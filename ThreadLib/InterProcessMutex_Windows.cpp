@@ -12,22 +12,9 @@ static_assert(sizeof(HANDLE) <= INTER_PROCESS_MUTEX_HANDLE_SIZE, "INTER_PROCESS_
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SetMutexHandle(uint8* paMutex, HANDLE hMutex)
+static HANDLE& MutexHandle(uint8* paMutex)
 {
-    memcpy(paMutex, &hMutex, sizeof(HANDLE));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-HANDLE GetMutexHandle(uint8* paMutex)
-{
-    HANDLE  hMutex;
-
-    memcpy(&hMutex, paMutex, sizeof(HANDLE));
-    return hMutex;
+    return *(HANDLE*)paMutex;
 }
 
 
@@ -38,7 +25,7 @@ HANDLE GetMutexHandle(uint8* paMutex)
 void CInterProcessMutex::Init(char* szName)
 {
     mszName.Init(szName);
-    SetMutexHandle(maMutex, NULL);
+    MutexHandle(maMutex) = NULL;
 }
 
 
@@ -49,7 +36,7 @@ void CInterProcessMutex::Init(char* szName)
 void CInterProcessMutex::Kill(void)
 {
     mszName.Kill();
-    SetMutexHandle(maMutex, NULL);
+    MutexHandle(maMutex) = NULL;
 }
 
 
@@ -66,7 +53,7 @@ bool CInterProcessMutex::Create(void)
                 false,              // mutex not owned
                 mszName.Text());    // object name
 
-    SetMutexHandle(maMutex, hMutex);
+    MutexHandle(maMutex) = hMutex;
     if (hMutex == NULL)
     {
         return gcLogger.Error2(__METHOD__, " Could not create mutex [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
@@ -98,7 +85,7 @@ bool CInterProcessMutex::Connect(void)
                 false,              // handle not inheritable
                 mszName.Text());    // object name
 
-    SetMutexHandle(maMutex, hMutex);
+    MutexHandle(maMutex) = hMutex;
     if (hMutex == NULL)
     {
         return gcLogger.Error2(__METHOD__, " Could not open mutex [", mszName.Text(), "].  Failed with [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
@@ -116,7 +103,7 @@ bool CInterProcessMutex::Connect(void)
 //////////////////////////////////////////////////////////////////////////
 void CInterProcessMutex::Close(void)
 {
-    CloseHandle(GetMutexHandle(maMutex));
+    CloseHandle(MutexHandle(maMutex));
 }
 
 
@@ -129,7 +116,7 @@ bool CInterProcessMutex::Lock(void)
     DWORD dwWaitResult;
 
     dwWaitResult = WaitForSingleObject(
-                        GetMutexHandle(maMutex),    // handle to mutex
+                        MutexHandle(maMutex),    // handle to mutex
                         INFINITE);  // no time-out interval
 
     if (dwWaitResult == WAIT_OBJECT_0)
@@ -154,7 +141,7 @@ bool CInterProcessMutex::Lock(void)
 //////////////////////////////////////////////////////////////////////////
 bool CInterProcessMutex::Unlock(void)
 {
-    if (!ReleaseMutex(GetMutexHandle(maMutex)))
+    if (!ReleaseMutex(MutexHandle(maMutex)))
     {
         return false;
     }
