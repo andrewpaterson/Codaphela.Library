@@ -1,3 +1,5 @@
 Container Bounds (size and position) is where and what size the container has been laid out by it's parent.  The top level window is sized to whatever the user chose, that size is pushed down as the container bounds to its contained containers and components.
 
-Required Size is the size (irrespective of position) required by the components in a container.
+Required Size is the size (irrespective of position) required by the components in a container.  A Container should try and respect the required size by shrinking variable sized components if need be.  If all components are sized below their required size then their acutal sizes should be reduced proportionally to fit.
+
+Desired size is a user set size that overrides the calculated required size.
