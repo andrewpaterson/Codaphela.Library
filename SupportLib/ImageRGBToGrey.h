@@ -38,11 +38,12 @@ enum ERGBToGreyStyle
 class CImageRGBToGrey : public CImageModifier
 {
 CONSTRUCTABLE(CImageRGBToGrey);
+DESTRUCTABLE(CImageRGBToGrey);
 public:
 	ERGBToGreyStyle meStyle;
 
 	void			Init(ERGBToGreyStyle eStyle);
-	void			Kill(void);
+	void			Class(void) override;
 	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
 
 private:

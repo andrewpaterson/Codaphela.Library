@@ -23,32 +23,38 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __IMAGE_MODIFIER_STACK_H__
 #define __IMAGE_MODIFIER_STACK_H__
-#include "StandardLib/ArrayUnknown.h"
-#include "StandardLib/Unknowns.h"
+#include "StandardLib/Object.h"
+#include "StandardLib/Objects.h"
+#include "StandardLib/Array.h"
 #include "Image.h"
 #include "ImageModifier.h"
 
 
-class CImageModifierStack : public CUnknown
+class CImageModifierStack : public CObject
 {
 CONSTRUCTABLE(CImageModifierStack);
+DESTRUCTABLE(CImageModifierStack);
 protected:
-	CArrayUnknown	macModifiers;  //Image | Modifier 0 | Modifier 1 | etc...
-	Ptr<CImage>		mpcImage;
+	CArray<CImageModifier>	maModifiers;  //Image | Modifier 0 | Modifier 1 | etc...
+	Ptr<CImage>				mpImage;
 
 public:
-	void 			Init(Ptr<CImage> pcImage = NULL);
-	void 			Kill(void);
+	void 					Init(Ptr<CImage> pImage = NULL);
+	void					Class(void) override;
+	void 					Free(void) override;
 
-	void 			AddModifier(CImageModifier* pcModifier);
-	template<typename M>
-	M*				AddModifier(void);
+	bool					Save(CObjectWriter* pcFile) override;
+	bool					Load(CObjectReader* pcFile) override;
 
-	void			SetImage(Ptr<CImage> pcImage);  //SetImage and ApplyAll make the stack act on multiple images.  There should be a better way of doing this.
-	void			ApplyAll(void);  //Better way.  CImageModifierStack has a list of images.  But then the cache is broken.  Need a cached image.
+	void 					AddModifier(Ptr<CImageModifier> pModifier);
+	template<class M, typename ... Args>
+	Ptr<M>					AddModifier(Args ... args);
 
-	int				NumModifiers(void);
-	Ptr<CImage>		GetImage(void);
+	void					SetImage(Ptr<CImage> pImage);  //SetImage and ApplyAll make the stack act on multiple images.  There should be a better way of doing this.
+	void					ApplyAll(void);  //Better way.  CImageModifierStack has a list of images.  But then the cache is broken.  Need a cached image.
+
+	int						NumModifiers(void);
+	Ptr<CImage>				GetImage(void);
 };
 
 
@@ -56,23 +62,15 @@ public:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<typename M>
-M* CImageModifierStack::AddModifier(void)
+template<class M, typename ... Args>
+Ptr<M> CImageModifierStack::AddModifier(Args ... args)
 {
-	M*	pv;
+	Ptr<M>	pModifier;
 
-	if (mpcUnknownsThisIn != NULL)
-	{
-		pv = mpcUnknownsThisIn->Add<M>();
-	}
-	else
-	{
-		pv = UMalloc(M);
-	}
-	AddModifier(pv);
-	return pv;
+	pModifier = OMalloc<M>(args ...);
+	AddModifier(pModifier);
+	return pModifier;
 }
-
 
 #endif // __IMAGE_MODIFIER_STACK_H__
 

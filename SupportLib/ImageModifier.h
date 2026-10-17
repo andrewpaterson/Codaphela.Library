@@ -23,16 +23,22 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __IMAGE_MODIFIER_H__
 #define __IMAGE_MODIFIER_H__
-#include "StandardLib/Unknown.h"
+#include "StandardLib/Object.h"
 #include "Image.h"
 
 
 //Image Modifiers are used by the Image Modifier Stack in the CImageCelsSource.
-class CImageModifier : public CUnknown
+class CImageModifier : public CObject
 {
 CONSTRUCTABLE(CImageModifier);
+DESTRUCTABLE(CImageModifier);
 public:
-			void			Kill(void);
+			void			Class(void) override;
+			void			Free(void) override;
+
+			bool			Save(CObjectWriter* pcFile) override;
+			bool			Load(CObjectReader* pcFile) override;
+
 	virtual Ptr<CImage>		Modify(Ptr<CImage> pcImage) =0;
 };
 

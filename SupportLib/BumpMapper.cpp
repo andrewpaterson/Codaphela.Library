@@ -22,6 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include <math.h>
+#include "StandardLib/ClassDefines.h"
 #include "BaseLib/GeometricTypes.h"
 #include "ColourARGB32.h"
 #include "ImageWriter.h"
@@ -234,7 +235,11 @@ Ptr<CImage> ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, Ptr<CImage> pcIm
 //////////////////////////////////////////////////////////////////////////
 void CImageHeightToNormals::Init(EChannel eHeightChannel)
 {
+	PreInit();
+
 	meHeightChannel = eHeightChannel;
+
+	PostInit();
 }
 
 
@@ -252,9 +257,10 @@ Ptr<CImage> CImageHeightToNormals::Modify(Ptr<CImage> pcImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageHeightToNormals::Kill(void)
+void CImageHeightToNormals::Class(void)
 {
-	CImageModifier::Kill();
+	CImageModifier::Class();
+	U_Enum(meHeightChannel);
 }
 
 
@@ -264,7 +270,11 @@ void CImageHeightToNormals::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CImageHeightToBumpUVs::Init(EChannel eHeightChannel)
 {
+	PreInit();
+
 	meHeightChannel = eHeightChannel;
+
+	PostInit();
 }
 
 
@@ -282,7 +292,8 @@ Ptr<CImage> CImageHeightToBumpUVs::Modify(Ptr<CImage> pcImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageHeightToBumpUVs::Kill(void)
+void CImageHeightToBumpUVs::Class(void)
 {
-	CImageModifier::Kill();
+	CImageModifier::Class();
+	U_Enum(meHeightChannel);
 }

@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "BaseLib/IntegerHelper.h"
 #include "BaseLib/FastFunctions.h"
 #include "Image.h"
@@ -34,8 +35,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImageResampler::Init(EImageResample eResample, EPow2Style eStyle)
 {
+	PreInit();
+
 	Init(eResample, -1, -1);
 	meStyle = eStyle;
+
+	PostInit();
 }
 
 
@@ -45,10 +50,14 @@ void CImageResampler::Init(EImageResample eResample, EPow2Style eStyle)
 //////////////////////////////////////////////////////////////////////////
 void CImageResampler::Init(EImageResample eResample, int iWidth, int iHeight)
 {
+	PreInit();
+
 	meResample = eResample;
 	miWidth = iWidth;
 	miHeight = iHeight;
 	meStyle = RS_Unknown;
+
+	PostInit();
 }
 
 
@@ -56,9 +65,13 @@ void CImageResampler::Init(EImageResample eResample, int iWidth, int iHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageResampler::Kill(void)
+void CImageResampler::Class(void)
 {
-	CImageModifier::Kill();
+	CImageModifier::Class();
+	U_Enum(meResample);
+	U_Int32(miWidth);
+	U_Int32(miHeight);
+	U_Enum(meStyle);
 }
 
 

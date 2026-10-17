@@ -89,7 +89,6 @@ void CImageCelsSource::Init(bool bPackOnLoad)
 void CImageCelsSource::Free(void)
 {
 	macImageSources.Kill();
-	mcModifiers.Kill();
 	macCelSources.Kill();
 }
 
@@ -102,7 +101,7 @@ void CImageCelsSource::Class(void)
 {
 	U_Bool(mbPackOnLoad);
 	U_Data(CArrayImageSourceWithCelSources, macImageSources);
-	U_Data(CImageModifierStack, mcModifiers);
+	M_Embedded(mcModifiers);
 	U_Data(CArrayUnknown, macCelSources);
 	M_Embedded(maImageCels);
 	M_Embedded(maFillMasks);
@@ -252,9 +251,9 @@ void CImageCelsSource::AddMemorySource(Ptr<CImage> pcImage, CImageCelSource* pcC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelsSource::AddModifier(CImageModifier* pcModifier)
+void CImageCelsSource::AddModifier(Ptr<CImageModifier> pModifier)
 {
-	mcModifiers.AddModifier(pcModifier);
+	mcModifiers.AddModifier(pModifier);
 }
 
 

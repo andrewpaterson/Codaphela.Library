@@ -82,7 +82,7 @@ public:
 	void					AddDiskFileSource(char* szFilename, char* szImageName, CImageCelSource* pcCelSource);
 	void					AddMemorySource(Ptr<CImage> pcImage, CImageCelSource* pcCelSource);
 
-	void					AddModifier(CImageModifier* pcModifier);
+	void					AddModifier(Ptr<CImageModifier> pModifier);
 
 	bool					Load(void);
 

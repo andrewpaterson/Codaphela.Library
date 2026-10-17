@@ -29,9 +29,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImageR3G3B2A : public CImageModifier
 {
 CONSTRUCTABLE(CImageR3G3B2A);
+DESTRUCTABLE(CImageR3G3B2A);
 public:
 	void			Init(void);
-	void			Kill(void);
 	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
 };
 

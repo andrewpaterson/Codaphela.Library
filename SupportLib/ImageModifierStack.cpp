@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "ImageModifierStack.h"
 
 
@@ -28,44 +29,69 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageModifierStack::Init(Ptr<CImage> pcImage)
+void CImageModifierStack::Init(Ptr<CImage> pImage)
 {
-	mpcImage = pcImage;
-	macModifiers.Init();
+	PreInit();
+
+	mpImage = pImage;
+	maModifiers.Init();
+
+	PostInit();
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageModifierStack::Kill(void)
+void CImageModifierStack::Class(void)
 {
-	macModifiers.Kill();
-	mpcImage = NULL;
-	CUnknown::Kill();
+	M_Embedded(maModifiers);
+	M_Pointer(mpImage);
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageModifierStack::AddModifier(CImageModifier* pcModifier)
+void CImageModifierStack::Free(void)
 {
-	macModifiers.Add(pcModifier);
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageModifierStack::SetImage(Ptr<CImage> pcImage)
+bool CImageModifierStack::Save(CObjectWriter* pcFile)
 {
-	mpcImage = pcImage;
+	return false;
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageModifierStack::Load(CObjectReader* pcFile)
+{
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageModifierStack::AddModifier(Ptr<CImageModifier> pModifier)
+{
+	maModifiers.Add(pModifier);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageModifierStack::SetImage(Ptr<CImage> pImage)
+{
+	mpImage = pImage;
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -73,28 +99,27 @@ void CImageModifierStack::SetImage(Ptr<CImage> pcImage)
 //////////////////////////////////////////////////////////////////////////
 void CImageModifierStack::ApplyAll(void)
 {
-	size				i;
-	CImageModifier*		pcModifier;
-	Ptr<CImage>			pcImage;
+	size					i;
+	Ptr<CImageModifier>		pModifier;
+	Ptr<CImage>				pImage;
 
-	if (mpcImage.IsNotNull())
+	if (mpImage.IsNotNull())
 	{
-		pcImage = mpcImage;
+		pImage = mpImage;
 
-		for (i = 0; i < macModifiers.NumElements(); i++)
+		for (i = 0; i < maModifiers.NumElements(); i++)
 		{
-			pcModifier = (CImageModifier*)macModifiers.Get(i);
-			pcImage = pcModifier->Modify(pcImage);
+			pModifier = maModifiers.Get(i);
+			pImage = pModifier->Modify(pImage);
 		}
 
-		if (pcImage != mpcImage)
+		if (pImage != mpImage)
 		{
-			mpcImage->ReInit();
-			mpcImage->CopyIntoInitialised(pcImage);
+			mpImage->ReInit();
+			mpImage->CopyIntoInitialised(pImage);
 		}
 	}
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -102,12 +127,15 @@ void CImageModifierStack::ApplyAll(void)
 //////////////////////////////////////////////////////////////////////////
 int CImageModifierStack::NumModifiers(void)
 {
-	return macModifiers.NumElements();
+	return (int)maModifiers.NumElements();
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImage> CImageModifierStack::GetImage(void)
+{
+	return mpImage;
+}
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageModifierStack::GetImage(void) {return mpcImage;}
