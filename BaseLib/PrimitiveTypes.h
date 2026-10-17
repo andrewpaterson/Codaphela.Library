@@ -59,9 +59,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 //templates that store a template type by value must declare the member with
 //MSVC_ALIGN(T) instead.
 #if defined(LINUX_GNU_32) && defined(__cplusplus)
-#include <type_traits>
+//The arithmetic types that are 8 bytes in a 32 bit build.
+template<class T>	struct SAlign64					{ static const bool bAlign64 = false; };
+template<class T>	struct SAlign64<const T>		{ static const bool bAlign64 = SAlign64<T>::bAlign64; };
+template<>			struct SAlign64<long long>			{ static const bool bAlign64 = true; };
+template<>			struct SAlign64<unsigned long long>	{ static const bool bAlign64 = true; };
+template<>			struct SAlign64<double>				{ static const bool bAlign64 = true; };
 #define ALIGN_64		__attribute__((aligned(8)))
-#define MSVC_ALIGN(T)	alignas((std::is_arithmetic<T>::value && (sizeof(T) == 8)) ? 8 : alignof(T))
+#define MSVC_ALIGN(T)	alignas(SAlign64<T>::bAlign64 ? 8 : alignof(T))
 #elif defined(LINUX_GNU_32)
 #define ALIGN_64		__attribute__((aligned(8)))
 #define MSVC_ALIGN(T)

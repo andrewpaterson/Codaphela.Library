@@ -1,13 +1,13 @@
 #ifndef __THREADS_DONE_H__
 #define __THREADS_DONE_H__
-#include <atomic>
+#include "AtomicInt.h"
 #include "ThreadStateNotifier.h"
 
 
 class CThreadsDone : public CThreadStateNotifer
 {
 public:
-	std::atomic<int> miThreadsStopped;
+	CAtomicInt	miThreadsStopped;
 
 	void Init(void);
 	void Wait(int iCount);

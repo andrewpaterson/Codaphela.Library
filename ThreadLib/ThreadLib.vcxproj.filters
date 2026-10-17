@@ -93,6 +93,36 @@
     <ClCompile Include="Thread.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
+    <ClCompile Include="AtomicInt_Windows.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="AtomicInt_Linux.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="Mutex_Windows.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="Mutex_Linux.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="ConditionVariable_Windows.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="ConditionVariable_Linux.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="NativeThread.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="NativeThread_Windows.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="NativeThread_Linux.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="WorkerThreadPool.cpp">
+      <Filter>Source\Thread\Pool</Filter>
+    </ClCompile>
     <ClCompile Include="SafeLinkedListBlock.cpp">
       <Filter>Source\Data\List</Filter>
     </ClCompile>
@@ -133,6 +163,9 @@
       <Filter>Source\SharedMemory\Windows</Filter>
     </ClCompile>
     <ClCompile Include="SharedMemoryFile_Linux.cpp">
+      <Filter>Source\SharedMemory\Linux</Filter>
+    </ClCompile>
+    <ClCompile Include="NamedSharedObject_Linux.cpp">
       <Filter>Source\SharedMemory\Linux</Filter>
     </ClCompile>
     <ClCompile Include="SharedMemoryCoordinator.cpp">
@@ -176,7 +209,19 @@
     <ClInclude Include="ThreadStarter.h">
       <Filter>Source\Thread</Filter>
     </ClInclude>
-    <ClInclude Include="VitsenityThreadPool.h">
+    <ClInclude Include="AtomicInt.h">
+      <Filter>Source\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="Mutex.h">
+      <Filter>Source\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="ConditionVariable.h">
+      <Filter>Source\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="NativeThread.h">
+      <Filter>Source\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="WorkerThreadPool.h">
       <Filter>Source\Thread\Pool</Filter>
     </ClInclude>
     <ClInclude Include="ThreadPool.h">
@@ -202,6 +247,9 @@
     </ClInclude>
     <ClInclude Include="SharedMemoryFile.h">
       <Filter>Source\SharedMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="NamedSharedObject_Linux.h">
+      <Filter>Source\SharedMemory\Linux</Filter>
     </ClInclude>
     <ClInclude Include="SharedMemoryCoordinator.h">
       <Filter>Source\SharedMemory</Filter>

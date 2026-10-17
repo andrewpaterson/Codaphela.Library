@@ -39,7 +39,6 @@ void CInterProcessMutex::Init(char* szName)
 {
     mszName.Init(szName);
     SetMutexHandle(maMutex, NULL);
-    mbCreated = false;
 }
 
 
@@ -74,7 +73,6 @@ bool CInterProcessMutex::Create(void)
     }
     else
     {
-        mbCreated = true;
         if (GetLastError() == ERROR_ALREADY_EXISTS)
         {
             return true;

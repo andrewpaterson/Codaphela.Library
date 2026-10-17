@@ -3,7 +3,7 @@
 #include "BaseLib/Chars.h"
 
 
-//Large enough to hold a Windows mutex HANDLE or a pointer to a Linux shared mutex.
+//Large enough to hold a Windows mutex HANDLE or a Linux shared mutex file descriptor and pointer.
 #define INTER_PROCESS_MUTEX_HANDLE_SIZE		8
 
 
@@ -12,7 +12,6 @@ class CInterProcessMutex
 protected:
 	CChars	mszName;
 	uint8	maMutex[INTER_PROCESS_MUTEX_HANDLE_SIZE];
-	bool	mbCreated;
 
 public:
 	void Init(char* szName);

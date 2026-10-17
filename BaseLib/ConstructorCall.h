@@ -25,12 +25,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <new>
 #include <stdlib.h>
 #include <string.h>
-#include <type_traits>
 #include "Define.h"
 #include "PointerRemapper.h"
 
 
 //You probably want to create a CPostMalloc<Type> instance and call PostMalloc on it with your uninitialised variable.
+
+
+//True if Class has no virtual table and no constructor that does anything.
+//__is_trivially_constructible is a compiler intrinsic in MSVC, g++ and clang.
+template<class Class>
+constexpr bool IsTriviallyDefaultConstructible(void)
+{
+	return __is_trivially_constructible(Class);
+}
 
 template<class Class>
 Class* NewMalloc(void)
@@ -78,7 +86,7 @@ public:
 template<class Class>
 Class* CPostMalloc<Class>::PostMalloc(Class* pv)
 {
-	if (!std::is_trivially_default_constructible<Class>())
+	if (!IsTriviallyDefaultConstructible<Class>())
 	{
 		new(pv) Class;
 	}
@@ -113,7 +121,7 @@ Class* CPostMalloc<Class>::PostMalloc(Class* pv, int iNumElements, int iStride)
 template<class Class> template<class Subclass>
 Class* CPostMalloc<Class>::PostMalloc(Subclass* pv)
 {
-	if (!std::is_trivially_default_constructible<Subclass>())
+	if (!IsTriviallyDefaultConstructible<Subclass>())
 	{
 		new(pv) Subclass;
 	}
@@ -149,7 +157,7 @@ Class* CPostMalloc<Class>::PostMalloc(Subclass* pv, int iNumElements, int iStrid
 template<class Class>
 bool CPostMalloc<Class>::RequiresVirtualFunctionTable(void)
 {
-	return !std::is_trivially_default_constructible<Class>();
+	return !IsTriviallyDefaultConstructible<Class>();
 }
 
 

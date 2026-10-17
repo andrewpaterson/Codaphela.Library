@@ -7,9 +7,10 @@
 //////////////////////////////////////////////////////////////////////////
 void CSafeLinkedListBlock::Init(void)
 {
-	m.lock();
+	m.Init();
+	m.Lock();
 	c.Init();
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -19,9 +20,10 @@ void CSafeLinkedListBlock::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CSafeLinkedListBlock::Init(CMallocator* pcMalloc)
 {
-	m.lock();
+	m.Init();
+	m.Lock();
 	c.Init(pcMalloc);
-	m.unlock();
+	m.Unlock();
 
 }
 
@@ -32,9 +34,10 @@ void CSafeLinkedListBlock::Init(CMallocator* pcMalloc)
 //////////////////////////////////////////////////////////////////////////
 void CSafeLinkedListBlock::Kill(void)
 {
-	m.lock();
+	m.Lock();
 	c.Kill();
-	m.unlock();
+	m.Unlock();
+	m.Kill();
 }
 
 
@@ -46,9 +49,9 @@ void* CSafeLinkedListBlock::InsertAfterTail(unsigned int uiDataSize)
 {
 	void* pv;
 
-	m.lock();
+	m.Lock();
 	pv = c.InsertAfterTail(uiDataSize);
-	m.unlock();
+	m.Unlock();
 
 	return pv;
 }
@@ -62,9 +65,9 @@ void* CSafeLinkedListBlock::InsertBeforeHead(unsigned int uiDataSize)
 {
 	void* pv;
 
-	m.lock();
+	m.Lock();
 	pv = c.InsertBeforeHead(uiDataSize);
-	m.unlock();
+	m.Unlock();
 
 	return pv;
 }
@@ -78,9 +81,9 @@ void* CSafeLinkedListBlock::InsertBeforeNode(unsigned int uiDataSize, void* psPo
 {
 	void* pv;
 
-	m.lock();
+	m.Lock();
 	pv = c.InsertBeforeNode(uiDataSize, psPos);
-	m.unlock();
+	m.Unlock();
 
 	return pv;
 }
@@ -94,9 +97,9 @@ void* CSafeLinkedListBlock::InsertAfterNode(unsigned int uiDataSize, void* psPos
 {
 	void* pv;
 
-	m.lock();
+	m.Lock();
 	pv = c.InsertAfterNode(uiDataSize, psPos);
-	m.unlock();
+	m.Unlock();
 
 	return pv;
 }
@@ -110,9 +113,9 @@ void* CSafeLinkedListBlock::Add(unsigned int uiDataSize)
 {
 	void* pv;
 
-	m.lock();
+	m.Lock();
 	pv = c.Add(uiDataSize);
-	m.unlock();
+	m.Unlock();
 
 	return pv;
 }
@@ -126,9 +129,9 @@ int CSafeLinkedListBlock::ByteSize(void)
 {
 	int	iByteSize;
 
-	m.lock();
+	m.Lock();
 	iByteSize = c.ByteSize();
-	m.unlock();
+	m.Unlock();
 
 	return iByteSize;
 }
@@ -142,9 +145,9 @@ bool CSafeLinkedListBlock::Write(CFileWriter* pcFileWriter)
 {
 	bool	bResult;
 
-	m.lock();
+	m.Lock();
 	bResult = c.Write(pcFileWriter);
-	m.unlock();
+	m.Unlock();
 
 	return bResult;
 }
@@ -158,9 +161,10 @@ bool CSafeLinkedListBlock::Read(CFileReader* pcFileReader)
 {
 	bool bResult;
 
-	m.lock();
+	m.Init();
+	m.Lock();
 	bResult = c.Read(pcFileReader);
-	m.unlock();
+	m.Unlock();
 
 	return bResult;
 }
@@ -172,9 +176,9 @@ bool CSafeLinkedListBlock::Read(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 void CSafeLinkedListBlock::InsertDetachedAfterTail(void* pvData)
 {
-	m.lock();
+	m.Lock();
 	c.InsertDetachedAfterTail(pvData);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -184,9 +188,9 @@ void CSafeLinkedListBlock::InsertDetachedAfterTail(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 void CSafeLinkedListBlock::Detach(void* pvData)
 {
-	m.lock();
+	m.Lock();
 	c.Detach(pvData);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -197,10 +201,10 @@ void CSafeLinkedListBlock::Detach(void* pvData)
 void* CSafeLinkedListBlock::DetachHead(void)
 {
 	void*	pv;
-	m.lock();
+	m.Lock();
 	pv = c.GetHead();
 	c.Detach(pv);
-	m.unlock();
+	m.Unlock();
 
 	return pv;
 }
@@ -213,10 +217,10 @@ void* CSafeLinkedListBlock::DetachHead(void)
 void* CSafeLinkedListBlock::DetachTail(void)
 {
 	void* pv;
-	m.lock();
+	m.Lock();
 	pv = c.GetTail();
 	c.Detach(pv);
-	m.unlock();
+	m.Unlock();
 
 	return pv;
 }
@@ -230,9 +234,9 @@ void* CSafeLinkedListBlock::GetHead(void)
 {
 	void* pv;
 
-	m.lock();
+	m.Lock();
 	pv = c.GetHead();
-	m.unlock();
+	m.Unlock();
 
 	return pv;
 }
@@ -246,9 +250,9 @@ void* CSafeLinkedListBlock::GetTail(void)
 {
 	void* pv;
 
-	m.lock();
+	m.Lock();
 	pv = c.GetTail();
-	m.unlock();
+	m.Unlock();
 
 	return pv;
 }
@@ -262,9 +266,9 @@ void* CSafeLinkedListBlock::GetNext(void* pvData)
 {
 	void* pv;
 
-	m.lock();
+	m.Lock();
 	pv = c.GetNext(pvData);
-	m.unlock();
+	m.Unlock();
 
 	return pv;
 }
@@ -278,9 +282,9 @@ void* CSafeLinkedListBlock::GetPrev(void* pvData)
 {
 	void* pv;
 
-	m.lock();
+	m.Lock();
 	pv = c.GetPrev(pvData);
-	m.unlock();
+	m.Unlock();
 
 	return pv;
 }
@@ -292,9 +296,9 @@ void* CSafeLinkedListBlock::GetPrev(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 void CSafeLinkedListBlock::RemoveTail(void)
 {
-	m.lock();
+	m.Lock();
 	c.RemoveTail();
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -304,9 +308,9 @@ void CSafeLinkedListBlock::RemoveTail(void)
 //////////////////////////////////////////////////////////////////////////
 void CSafeLinkedListBlock::Remove(void* pvData)
 {
-	m.lock();
+	m.Lock();
 	c.Remove(pvData);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -316,9 +320,9 @@ void CSafeLinkedListBlock::Remove(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 void CSafeLinkedListBlock::MoveToHead(void* pvData)
 {
-	m.lock();
+	m.Lock();
 	c.MoveToHead(pvData);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -328,9 +332,9 @@ void CSafeLinkedListBlock::MoveToHead(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 void CSafeLinkedListBlock::MoveToTTail(void* pvData)
 {
-	m.lock();
+	m.Lock();
 	c.MoveToTTail(pvData);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -342,9 +346,9 @@ int CSafeLinkedListBlock::NumElements(void)
 {
 	int	iNumElements;
 
-	m.lock();
+	m.Lock();
 	iNumElements = c.NumElements();
-	m.unlock();
+	m.Unlock();
 
 	return iNumElements;
 }
@@ -368,9 +372,9 @@ void* CSafeLinkedListBlock::Get(int iNum)
 {
 	void*	pv;
 
-	m.lock();
+	m.Lock();
 	pv = c.Get(iNum);
-	m.unlock();
+	m.Unlock();
 
 	return pv;
 }
@@ -384,9 +388,9 @@ int CSafeLinkedListBlock::IndexOf(void* pvData)
 {
 	int		iIndex;
 
-	m.lock();
+	m.Lock();
 	iIndex = c.IndexOf(pvData);
-	m.unlock();
+	m.Unlock();
 
 	return iIndex;
 }
@@ -400,9 +404,9 @@ bool CSafeLinkedListBlock::IsInList(void* pvData)
 {
 	bool bResult;
 
-	m.lock();
+	m.Lock();
 	bResult = c.IsInList(pvData);
-	m.unlock();
+	m.Unlock();
 
 	return bResult;
 }
@@ -414,9 +418,9 @@ bool CSafeLinkedListBlock::IsInList(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 void CSafeLinkedListBlock::BubbleSort(int(*fCompare)(const void*, const void*))
 {
-	m.lock();
+	m.Lock();
 	c.BubbleSort(fCompare);
-	m.unlock();
+	m.Unlock();
 }
 
 
@@ -426,8 +430,8 @@ void CSafeLinkedListBlock::BubbleSort(int(*fCompare)(const void*, const void*))
 //////////////////////////////////////////////////////////////////////////
 void CSafeLinkedListBlock::InsertDetachedIntoSorted(int(*fCompare)(const void*, const void*), void* pvData)
 {
-	m.lock();
+	m.Lock();
 	c.InsertDetachedIntoSorted(fCompare, pvData);
-	m.unlock();
+	m.Unlock();
 }
 

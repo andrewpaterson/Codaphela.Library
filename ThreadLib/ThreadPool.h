@@ -3,7 +3,7 @@
 #include "BaseLib/Define.h"
 #include "BaseLib/Killable.h"
 #include "SafeLinkedListBlock.h"
-#include "VitsenityThreadPool.h"
+#include "WorkerThreadPool.h"
 #include "ThreadStateNotifier.h"
 #include "ThreadStarter.h"
 #include "Thread.h"
@@ -12,7 +12,7 @@
 class CThreadPool : public CThreadStarter,  public CThreadStateNotifer
 {
 private:
-	CVitsenityThreadPool	mcPool;
+	CWorkerThreadPool		mcPool;
 	CSafeLinkedListBlock	mcThreads;
 
 public:

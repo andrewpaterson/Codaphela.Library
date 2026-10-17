@@ -1,7 +1,7 @@
 #ifndef __SHARED_MEMORY_COORDINATOR_H__
 #define __SHARED_MEMORY_COORDINATOR_H__
 #include "SharedMemoryFile.h"
-#include <atomic>
+#include "AtomicInt.h"
 
 
 struct SSharedMemoryFileName
@@ -18,7 +18,7 @@ struct SResizableSharedMemoryFile : SSharedMemoryDescriptor
 {
 	int								iNumSharedMemoryFiles;
 	int								iValidSharedMemoryIndex;
-	std::atomic<int>				miClients;
+	CAtomicInt						miClients;
 	SSharedMemoryFileName	macMemoryFiles[1]; //...
 };
 

@@ -1,4 +1,4 @@
-#include<thread>
+#include "NativeThread.h"
 #include "InterProcessDone.h"
 
 
@@ -41,7 +41,7 @@ void CInterProcessDone::Kill(void)
 void CInterProcessDone::Start(void)
 {
 	mpsDone = (SInterProcessDone*)mcSharedMemory.Create(sizeof(SInterProcessDone));
-	mpsDone->iDone = 0;
+	mpsDone->iDone.Set(0);
 }
 
 
@@ -63,7 +63,7 @@ void CInterProcessDone::Wait(int iCount)
 {
 	while (!IsDone(iCount))
 	{
-		std::this_thread::yield();
+		ThreadYield();
 	}
 }
 
@@ -74,7 +74,7 @@ void CInterProcessDone::Wait(int iCount)
 //////////////////////////////////////////////////////////////////////////
 bool CInterProcessDone::IsDone(int iCount)
 {
-	return mpsDone->iDone >= iCount;
+	return mpsDone->iDone.Get() >= iCount;
 }
 
 
@@ -84,6 +84,6 @@ bool CInterProcessDone::IsDone(int iCount)
 //////////////////////////////////////////////////////////////////////////
 void CInterProcessDone::Stop(void)
 {
-	mpsDone->iDone++;
+	mpsDone->iDone.Increment();
 }
 

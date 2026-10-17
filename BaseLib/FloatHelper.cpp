@@ -278,7 +278,7 @@ float32 Float32ToleranceForDecimals(int32 iDecimals)
 {
 	float64 fTolerance;
 
-	fTolerance = pow(10.0, iDecimals);
+	fTolerance = pow(10.0, (double)iDecimals);
 	fTolerance = 1.0/fTolerance;
 	return (float32)fTolerance;
 }

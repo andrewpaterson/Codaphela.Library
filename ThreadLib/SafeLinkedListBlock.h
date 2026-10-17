@@ -1,14 +1,14 @@
 #ifndef __SAFE_LINKED_LIST_BLOCK_H__
 #define __SAFE_LINKED_LIST_BLOCK_H__
-#include <mutex>
 #include "BaseLib/LinkedListBlock.h"
 #include "BaseLib/StackMemory.h"
+#include "Mutex.h"
 
 
 class CSafeLinkedListBlock
 {
 private:
-	std::mutex			m;
+	CMutex			m;
 	CLinkedListBlock	c;
 
 public:

@@ -1,4 +1,4 @@
-#include <thread>
+#include "NativeThread.h"
 #include "ThreadsDone.h"
 
 
@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CThreadsDone::Init(void)
 {
-	miThreadsStopped = 0;
+	miThreadsStopped.Set(0);
 }
 
 
@@ -20,7 +20,7 @@ void CThreadsDone::ThreadStateChanged(CThread* pcThread, EThreadState eState)
 {
 	if (eState == TS_Stopped)
 	{
-		miThreadsStopped++;
+		miThreadsStopped.Increment();
 		pcThread = NULL;  //Appease the compiler.
 	}
 }
@@ -31,9 +31,9 @@ void CThreadsDone::ThreadStateChanged(CThread* pcThread, EThreadState eState)
 //////////////////////////////////////////////////////////////////////////
 void CThreadsDone::Wait(int iCount)
 {
-	while (miThreadsStopped < iCount)
+	while (miThreadsStopped.Get() < iCount)
 	{
-		std::this_thread::yield();
+		ThreadYield();
 	}
 }
 

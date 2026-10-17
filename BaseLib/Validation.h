@@ -1,6 +1,6 @@
 #ifndef __VALIDATION_H__
 #define __VALIDATION_H__
-#include <csignal>
+#include <signal.h>
 
 #ifdef _MSC_VER
 #define BREAK()	__debugbreak();
