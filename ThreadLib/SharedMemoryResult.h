@@ -22,7 +22,7 @@ struct SSharedMemoryResult
 
 	SSharedMemoryResult();
 	SSharedMemoryResult(size_t uiSize);
-	SSharedMemoryResult(ESharedMemoryResult eRsult);
+	SSharedMemoryResult(ESharedMemoryResult eResult);
 
 	size_t	GetSize(void);
 	bool	IsFailed(void);

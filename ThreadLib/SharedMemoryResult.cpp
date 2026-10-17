@@ -27,7 +27,7 @@ SSharedMemoryResult::SSharedMemoryResult(size_t uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SSharedMemoryResult::SSharedMemoryResult(ESharedMemoryResult eRsult)
+SSharedMemoryResult::SSharedMemoryResult(ESharedMemoryResult eResult)
 {
     this->uiSize = 0;
     this->eResult = eResult;
