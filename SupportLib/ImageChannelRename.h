@@ -21,8 +21,8 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __IMAGE_IMAGE_RENAME_H__
-#define __IMAGE_IMAGE_RENAME_H__
+#ifndef __IMAGE_CHANNEL_RENAME_H__
+#define __IMAGE_CHANNEL_RENAME_H__
 #include "Image.h"
 #include "ImageModifier.h"
 
@@ -40,5 +40,5 @@ public:
 };
 
 
-#endif // __IMAGE_IMAGE_RENAME_H__
+#endif // __IMAGE_CHANNEL_RENAME_H__
 
