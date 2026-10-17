@@ -29,8 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 //Defined in Socket_Windows.cpp.
-void	SetSocketHandle(uint8* paSocket, SOCKET hSocket);
-SOCKET	GetSocketHandle(uint8* paSocket);
+SOCKET&	SocketHandle(uint8* paSocket);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -110,7 +109,7 @@ bool CConnectSocket::Connect(void)
 	}
 
 	freeaddrinfo(sResult);
-	SetSocketHandle(maSocket, hSocket);
+	SocketHandle(maSocket) = hSocket;
 
 	if (hSocket == INVALID_SOCKET) 
 	{

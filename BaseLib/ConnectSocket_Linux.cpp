@@ -37,8 +37,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 //Defined in Socket_Linux.cpp.
-void	SetSocketHandle(uint8* paSocket, int iSocket);
-int		GetSocketHandle(uint8* paSocket);
+int&	SocketHandle(uint8* paSocket);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -118,7 +117,7 @@ bool CConnectSocket::Connect(void)
 	}
 
 	freeaddrinfo(sResult);
-	SetSocketHandle(maSocket, iSocket);
+	SocketHandle(maSocket) = iSocket;
 
 	if (iSocket == INVALID_SOCKET_DESCRIPTOR) 
 	{

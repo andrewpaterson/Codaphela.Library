@@ -26,26 +26,9 @@ static_assert(sizeof(SLinuxInterProcessMutex) <= INTER_PROCESS_MUTEX_HANDLE_SIZE
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SetMutexHandle(uint8* paMutex, int iFile, pthread_mutex_t* psMutex)
+static SLinuxInterProcessMutex& LinuxMutex(uint8* paMutex)
 {
-	SLinuxInterProcessMutex	sMutex;
-
-	sMutex.iFile = iFile;
-	sMutex.psMutex = psMutex;
-	memcpy(paMutex, &sMutex, sizeof(SLinuxInterProcessMutex));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SLinuxInterProcessMutex GetMutexHandle(uint8* paMutex)
-{
-	SLinuxInterProcessMutex	sMutex;
-
-	memcpy(&sMutex, paMutex, sizeof(SLinuxInterProcessMutex));
-	return sMutex;
+	return *(SLinuxInterProcessMutex*)paMutex;
 }
 
 
@@ -73,7 +56,8 @@ pthread_mutex_t* MapLinuxMutex(int iFile)
 void CInterProcessMutex::Init(char* szName)
 {
 	mszName.Init(szName);
-	SetMutexHandle(maMutex, -1, NULL);
+	LinuxMutex(maMutex).iFile = -1;
+	LinuxMutex(maMutex).psMutex = NULL;
 }
 
 
@@ -84,7 +68,8 @@ void CInterProcessMutex::Init(char* szName)
 void CInterProcessMutex::Kill(void)
 {
 	mszName.Kill();
-	SetMutexHandle(maMutex, -1, NULL);
+	LinuxMutex(maMutex).iFile = -1;
+	LinuxMutex(maMutex).psMutex = NULL;
 }
 
 
@@ -101,7 +86,7 @@ bool CInterProcessMutex::Create(void)
 	pthread_mutexattr_t		sAttributes;
 	int						iAttempt;
 
-	NamedSharedObjectName(&szName, "Mutex.", mszName.Text());
+	NamedSharedObjectName(&szName, NAMED_SHARED_OBJECT_MUTEX, mszName.Text());
 
 	//Like CreateMutex; an existing mutex is opened instead.  It may be closed
 	//by its last handle between failing to create and opening so try again.
@@ -132,7 +117,8 @@ bool CInterProcessMutex::Create(void)
 				return gcLogger.Error2(__METHOD__, " Could not create mutex [", LinuxErrorCodeToString(iErrno), "].", NULL);
 			}
 			szName.Kill();
-			SetMutexHandle(maMutex, iFile, psMutex);
+			LinuxMutex(maMutex).iFile = iFile;
+			LinuxMutex(maMutex).psMutex = psMutex;
 			return true;
 		}
 	}
@@ -162,7 +148,8 @@ bool CInterProcessMutex::Create(void)
 	PublishNamedSharedObject(iFile);
 	szName.Kill();
 
-	SetMutexHandle(maMutex, iFile, psMutex);
+	LinuxMutex(maMutex).iFile = iFile;
+	LinuxMutex(maMutex).psMutex = psMutex;
 	return true;
 }
 
@@ -178,7 +165,7 @@ bool CInterProcessMutex::Connect(void)
 	int					iErrno;
 	pthread_mutex_t*	psMutex;
 
-	NamedSharedObjectName(&szName, "Mutex.", mszName.Text());
+	NamedSharedObjectName(&szName, NAMED_SHARED_OBJECT_MUTEX, mszName.Text());
 	iFile = OpenNamedSharedObject(szName.Text());
 	if (iFile == -1)
 	{
@@ -196,7 +183,8 @@ bool CInterProcessMutex::Connect(void)
 	}
 	szName.Kill();
 
-	SetMutexHandle(maMutex, iFile, psMutex);
+	LinuxMutex(maMutex).iFile = iFile;
+	LinuxMutex(maMutex).psMutex = psMutex;
 	return true;
 }
 
@@ -208,21 +196,22 @@ bool CInterProcessMutex::Connect(void)
 void CInterProcessMutex::Close(void)
 {
 	CChars					szName;
-	SLinuxInterProcessMutex	sMutex;
+	SLinuxInterProcessMutex*	psHandle;
 
-	sMutex = GetMutexHandle(maMutex);
-	if (sMutex.iFile == -1)
+	psHandle = &LinuxMutex(maMutex);
+	if (psHandle->iFile == -1)
 	{
 		return;
 	}
 
-	munmap(sMutex.psMutex, sizeof(pthread_mutex_t));
+	munmap(psHandle->psMutex, sizeof(pthread_mutex_t));
 
-	NamedSharedObjectName(&szName, "Mutex.", mszName.Text());
-	CloseNamedSharedObject(sMutex.iFile, szName.Text());
+	NamedSharedObjectName(&szName, NAMED_SHARED_OBJECT_MUTEX, mszName.Text());
+	CloseNamedSharedObject(psHandle->iFile, szName.Text());
 	szName.Kill();
 
-	SetMutexHandle(maMutex, -1, NULL);
+	LinuxMutex(maMutex).iFile = -1;
+	LinuxMutex(maMutex).psMutex = NULL;
 }
 
 
@@ -232,16 +221,16 @@ void CInterProcessMutex::Close(void)
 //////////////////////////////////////////////////////////////////////////
 bool CInterProcessMutex::Lock(void)
 {
-	SLinuxInterProcessMutex	sMutex;
+	SLinuxInterProcessMutex*	psHandle;
 	int						iResult;
 
-	sMutex = GetMutexHandle(maMutex);
-	if (sMutex.psMutex == NULL)
+	psHandle = &LinuxMutex(maMutex);
+	if (psHandle->psMutex == NULL)
 	{
 		return gcLogger.Error2(__METHOD__, " Lock failed, mutex [", mszName.Text(), "] is not open.", NULL);
 	}
 
-	iResult = pthread_mutex_lock(sMutex.psMutex);
+	iResult = pthread_mutex_lock(psHandle->psMutex);
 	if (iResult == 0)
 	{
 		return true;
@@ -249,7 +238,7 @@ bool CInterProcessMutex::Lock(void)
 	else if (iResult == EOWNERDEAD)
 	{
 		// The thread got ownership of an abandoned mutex
-		pthread_mutex_consistent(sMutex.psMutex);
+		pthread_mutex_consistent(psHandle->psMutex);
 		return false;
 	}
 	else
@@ -265,15 +254,15 @@ bool CInterProcessMutex::Lock(void)
 //////////////////////////////////////////////////////////////////////////
 bool CInterProcessMutex::Unlock(void)
 {
-	SLinuxInterProcessMutex	sMutex;
+	SLinuxInterProcessMutex*	psHandle;
 
-	sMutex = GetMutexHandle(maMutex);
-	if (sMutex.psMutex == NULL)
+	psHandle = &LinuxMutex(maMutex);
+	if (psHandle->psMutex == NULL)
 	{
 		return false;
 	}
 
-	if (pthread_mutex_unlock(sMutex.psMutex) != 0)
+	if (pthread_mutex_unlock(psHandle->psMutex) != 0)
 	{
 		return false;
 	}

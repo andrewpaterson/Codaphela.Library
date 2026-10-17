@@ -29,8 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 //Defined in Socket_Windows.cpp.
-void	SetSocketHandle(uint8* paSocket, SOCKET hSocket);
-SOCKET	GetSocketHandle(uint8* paSocket);
+SOCKET&	SocketHandle(uint8* paSocket);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -70,8 +69,8 @@ bool CListenSocket::Bind(const char* szAddress, int iPort)
 
 	CSocket::Init(iPort);
 
-	SetSocketHandle(maListenSocket, INVALID_SOCKET);
-	SetSocketHandle(maSocket, INVALID_SOCKET);
+	SocketHandle(maListenSocket) = INVALID_SOCKET;
+	SocketHandle(maSocket) = INVALID_SOCKET;
 	mbListening = false;
 	mbAccepting = false;
 
@@ -110,7 +109,7 @@ bool CListenSocket::Bind(const char* szAddress, int iPort)
 	}
 
 	freeaddrinfo(psResult);
-	SetSocketHandle(maListenSocket, hListenSocket);
+	SocketHandle(maListenSocket) = hListenSocket;
 	return true;
 }
 
@@ -125,7 +124,7 @@ void CListenSocket::Kill(void)
 
 	if (mbListening && IsOpen())
 	{
-		shutdown(GetSocketHandle(maSocket), SD_SEND);
+		shutdown(SocketHandle(maSocket), SD_SEND);
 	}
 	mbListening = false;
 
@@ -143,7 +142,7 @@ bool CListenSocket::Listen(void)
 	SOCKET	hListenSocket;
 	SOCKET	hSocket;
 
-	hListenSocket = GetSocketHandle(maListenSocket);
+	hListenSocket = SocketHandle(maListenSocket);
 	iResult = listen(hListenSocket, SOMAXCONN);
 	if (iResult == SOCKET_ERROR) 
 	{
@@ -154,7 +153,7 @@ bool CListenSocket::Listen(void)
 
 	// Accept a client socket
 	hSocket = accept(hListenSocket, NULL, NULL);  //This blocks
-	SetSocketHandle(maSocket, hSocket);
+	SocketHandle(maSocket) = hSocket;
 	if (hSocket == INVALID_SOCKET) 
 	{
 		gcLogger.Error2(__METHOD__, " accept failed [", LastSocketErrorToString(), "].", NULL);
@@ -182,7 +181,7 @@ bool CListenSocket::Accept(CSocket* pcConnection, int iTimeoutMilliseconds)
 	fd_set	sReadSet;
 	timeval	sTimeout;
 
-	hListenSocket = GetSocketHandle(maListenSocket);
+	hListenSocket = SocketHandle(maListenSocket);
 	if (hListenSocket == INVALID_SOCKET)
 	{
 		gcLogger.Error2(__METHOD__, " Could not accept, the socket is not bound.", NULL);
@@ -212,7 +211,7 @@ bool CListenSocket::Accept(CSocket* pcConnection, int iTimeoutMilliseconds)
 		return false;
 	}
 
-	SetSocketHandle(pcConnection->maSocket, hSocket);
+	SocketHandle(pcConnection->maSocket) = hSocket;
 	return true;
 }
 
@@ -227,7 +226,7 @@ int CListenSocket::GetPort(void)
 	int				iLength;
 
 	iLength = sizeof(sAddress);
-	if (getsockname(GetSocketHandle(maListenSocket), (sockaddr*)&sAddress, &iLength) == SOCKET_ERROR)
+	if (getsockname(SocketHandle(maListenSocket), (sockaddr*)&sAddress, &iLength) == SOCKET_ERROR)
 	{
 		return 0;
 	}
@@ -248,7 +247,7 @@ bool CListenSocket::StartListening(void)
 		return true;
 	}
 
-	iResult = listen(GetSocketHandle(maListenSocket), SOMAXCONN);
+	iResult = listen(SocketHandle(maListenSocket), SOMAXCONN);
 	if (iResult == SOCKET_ERROR)
 	{
 		gcLogger.Error2(__METHOD__, " listen failed [", LastSocketErrorToString(), "].", NULL);
@@ -265,10 +264,10 @@ bool CListenSocket::StartListening(void)
 //////////////////////////////////////////////////////////////////////////
 void CListenSocket::CloseListenSocket(void)
 {
-	if (GetSocketHandle(maListenSocket) != INVALID_SOCKET)
+	if (SocketHandle(maListenSocket) != INVALID_SOCKET)
 	{
-		closesocket(GetSocketHandle(maListenSocket));
-		SetSocketHandle(maListenSocket, INVALID_SOCKET);
+		closesocket(SocketHandle(maListenSocket));
+		SocketHandle(maListenSocket) = INVALID_SOCKET;
 	}
 }
 

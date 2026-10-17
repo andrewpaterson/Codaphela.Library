@@ -11,7 +11,7 @@ class CInterProcessMutex
 {
 protected:
 	CChars	mszName;
-	uint8	maMutex[INTER_PROCESS_MUTEX_HANDLE_SIZE];
+	alignas(8) uint8	maMutex[INTER_PROCESS_MUTEX_HANDLE_SIZE];
 
 public:
 	void Init(char* szName);
