@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCodabase::Init(const char* szDirectory, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig)
+void CCodabase::Init(const char* szDirectory, EDurableSync eSync, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig)
 {
 	CIndexTreeHelper	cHelper;
 
@@ -15,6 +15,7 @@ void CCodabase::Init(const char* szDirectory, CLifeInit<CIndexedDataConfig> cInd
 
 	//Init fails if a previous session crashed during a commit.  Start recovers from that.
 	mcFileController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory());
+	mcFileController.SetSync(eSync);
 	mcIndexConfig = cIndexConfig;
 	mcNamedConfig = cNamedConfig;
 	mbStarted = false;

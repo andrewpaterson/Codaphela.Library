@@ -7,15 +7,17 @@ class CValueSequenceConfig : public CSequenceConfig
 {
 protected:
 	const char* mszDirectory;
+	EDurableSync	meSync;
 
 public:
-	void 								Init(const char* szSubDirectory);
+	void 								Init(const char* szSubDirectory, EDurableSync eSync);
 	void								Kill(void);
 
 	const char*								Getdirectory(void);
+	EDurableSync							GetSync(void);
 
 public:
-	static CLifeInit<CSequenceConfig>	Create(const char* szSubDirectory);
+	static CLifeInit<CSequenceConfig>	Create(const char* szSubDirectory, EDurableSync eSync);
 };
 
 

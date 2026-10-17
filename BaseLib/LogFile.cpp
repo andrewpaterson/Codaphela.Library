@@ -55,6 +55,7 @@ void CLogFile::Init(CAbstractFile* pcBackingFile)
 	meFileMode = EFM_Unknown;
 	mbOpenedBackingFile = false;
 	mbBegun = false;
+	mbSync = true;
 
 	macCommands.Init();
 }
@@ -282,6 +283,7 @@ bool CLogFile::Commit(CAbstractFile* pcFile)
 	}
 
 	//Written data must be on disk before the file is closed, and created or deleted files must have their directory entries on disk.
+	//Unless syncing is turned off, then the operating system writes them when it chooses.
 	bWritten = false;
 	bDirectoryChanged = false;
 	iNumCommands = macCommands.NumElements();
@@ -304,7 +306,7 @@ bool CLogFile::Commit(CAbstractFile* pcFile)
 		}
 		else if (psCommand->IsClose())
 		{
-			if (bWritten)
+			if (bWritten && mbSync)
 			{
 				if (!pcFile->Flush())
 				{
@@ -337,7 +339,7 @@ bool CLogFile::Commit(CAbstractFile* pcFile)
 		}
 	}
 
-	if (bWritten)
+	if (bWritten && mbSync)
 	{
 		if (!pcFile->Flush())
 		{
@@ -345,7 +347,7 @@ bool CLogFile::Commit(CAbstractFile* pcFile)
 		}
 	}
 
-	if (bDirectoryChanged && pcFile->GetFilename())
+	if (bDirectoryChanged && mbSync && pcFile->GetFilename())
 	{
 		if (!cFileUtil.SyncParentDirectory(pcFile->GetFilename()))
 		{
@@ -987,6 +989,16 @@ bool CLogFile::TestFindHoles(size uiWriteIndex, CArrayIntAndPointer* papvOverlap
 bool CLogFile::IsBegun(void)
 {
 	return mbBegun;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogFile::SetSync(bool bSync)
+{
+	mbSync = bSync;
 }
 
 

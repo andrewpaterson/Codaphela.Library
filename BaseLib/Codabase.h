@@ -15,7 +15,7 @@ protected:
 	bool							mbStarted;
 
 public:
-	void	Init(const char* szDirectory, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig);
+	void	Init(const char* szDirectory, EDurableSync eSync, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig);
 	bool	Start(void);
 	void	Kill(void);
 

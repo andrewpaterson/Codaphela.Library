@@ -27,6 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "MapStringInt.h"
 #include "DurableFile.h"
 #include "DurableSet.h"
+#include "DurableSync.h"
 
 
 #define DURABLE_FILE_MAGIC	'ELIF'
@@ -39,6 +40,7 @@ private:
 	CChars			mszDirectory;
 	CChars			mszRewriteDirectory;
 	bool			mbDurable;
+	bool			mbSync;
 	CDurableFile	mcFileList;
 	CMapStringInt	mcNameMap;  //Should be a Map of String to Size.
 
@@ -62,6 +64,8 @@ public:
 	char*			GetDirectory(void);
 	char*			GetRewriteDirectory(void);
 	bool			IsDurable(void);
+	void			SetSync(EDurableSync eSync);
+	bool			IsSync(void);
 	CDurableSet*	GetDurableSet(void);
 
 	bool			ReadControlledFileList(CDurableFile* pcFile);
