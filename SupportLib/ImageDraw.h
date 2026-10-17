@@ -11,10 +11,9 @@
 class CImageDraw
 {
 protected:
-	CImage*				mpcImage;
-	CImageAccessor*		mpcAccessor;
-	SImageColour		msColour;
-	CImageRowBlitterFactory	mcRowBlitterFactory;
+	CImage*					mpcImage;
+	CImageAccessor*			mpcAccessor;
+	SImageColour			msColour;
 
 public:
 	void	Init(CImage* ppImage);  //A (*) pointer instead of Ptr pointer because CImageDraw is not an object.  Note that the Image should be added into FreeObjects to ensure it's not evicted whilst this pointer is in use.

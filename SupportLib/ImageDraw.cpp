@@ -13,7 +13,6 @@ void CImageDraw::Init(CImage* pcImage)
 
 	mpcImage = pcImage;
 	mpcAccessor = NULL;
-	mcRowBlitterFactory.Init();
 	
 	cColour.Init(1.0f, 1.0f, 1.0f);
 	SetColour(&cColour);
@@ -32,7 +31,6 @@ void CImageDraw::Kill(void)
 		mpcAccessor->Kill();
 		mpcAccessor = NULL;
 	}
-	mcRowBlitterFactory.Kill();
 	mpcImage = NULL;
 }
 
@@ -208,12 +206,17 @@ void CImageDraw::DrawVerticalLine(int x, int y0, int y1)
 //////////////////////////////////////////////////////////////////////////
 bool CImageDraw::DrawCel(int x, int y, Ptr<CImageCel> pCel, CRectangle* pcClip)
 {
-	Ptr<CImageBlitter>	pBlitter;
-	bool				bResult;
+	Ptr<CImageBlitter>			pBlitter;
+	bool						bResult;
+	CImageRowBlitterFactory		mcRowBlitterFactory;
+
+	mcRowBlitterFactory.Init();
 
 	//The blitter clips to the destination image and to pcClip if it is not NULL.
 	pBlitter = OMalloc<CImageBlitter>(pCel, Ptr<CImage>(mpcImage));
 	bResult = pBlitter->Configure(&mcRowBlitterFactory);
+
+	mcRowBlitterFactory.Kill();
 	if (!bResult)
 	{
 		gcLogger.Error2(__METHOD__, " Cannot draw cel, the source and destination image formats do not match.", NULL);
