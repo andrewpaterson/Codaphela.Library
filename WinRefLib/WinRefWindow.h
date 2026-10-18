@@ -29,7 +29,7 @@ class CWinRefWindow : public CNativeWindow
 {
 CONSTRUCTABLE(CWinRefWindow);
 protected:
-	CRectangle	mcBounds;
+	CRectangle	mcWindowBounds;
 	bool		mbCreated;
 	char*		mszImagePath;
 	uint64		muiFrame;

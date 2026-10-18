@@ -32,21 +32,21 @@ class CContainer : public CComponent
 CONSTRUCTABLE(CContainer);
 DESTRUCTABLE(CContainer);
 protected:
-	CRectangle	mcBounds;
+	CRectangle	mcContainerBounds;
 	SInt32Vec2	msRequiredSize;  //What the container's components need, see SetRequiredSize.
 
 public:
-	void	Init(Ptr<CWindow> pWindow);
-	void	Class(void) override;
-	void 	Free(void) override;
+			void		Init(Ptr<CWindow> pWindow);
+			void		Class(void) override;
+			void 		Free(void) override;
 
-	bool	GetContainerBounds(CRectangle* pcDest);
-	void	SetContainerBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
+			bool		GetContainerBounds(CRectangle* pcDest);
+			void		SetContainerBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
 
-	void	Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
+			void		Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 
 	virtual void		SetRequiredSize(void) =0;  //Works out msRequiredSize from the container's components.
-	SInt32Vec2			GetRequiredSize(void);
+			SInt32Vec2	GetRequiredSize(void);
 
 protected:
 	void	LayoutComponentInArea(Ptr<CComponent> pComponent, SInt32Vec2 sAreaPosition, SInt32Vec2 sAreaSize);

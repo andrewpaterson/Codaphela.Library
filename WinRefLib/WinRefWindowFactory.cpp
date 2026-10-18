@@ -10,7 +10,7 @@
 void CWinRefWindowFactory::Init(CMallocator* pcMallocator, int32 iWidth, int32 iHeight, char* szImagePath)
 {
     CNativeWindowFactory::Init(pcMallocator);
-    mcBounds.Init(iWidth, iHeight);
+    mcWindowBounds.Init(iWidth, iHeight);
     mszImagePath.Init(szImagePath);
 }
 
@@ -35,7 +35,7 @@ CNativeWindow* CWinRefWindowFactory::CreateNativeWindow(CWindow* pcWindow)
     CWinRefWindow*  pcNativeWindow;
 
     pcNativeWindow = NativeMalloc<CWinRefWindow>();
-    pcNativeWindow->Init(pcWindow, this, &mcBounds, mszImagePath.Text());
+    pcNativeWindow->Init(pcWindow, this, &mcWindowBounds, mszImagePath.Text());
 
     return pcNativeWindow;
 }
@@ -71,7 +71,7 @@ CNativeCanvas* CWinRefWindowFactory::CreateNativeCanvas(CCanvas* pcCanvas)
 //////////////////////////////////////////////////////////////////////////
 int32 CWinRefWindowFactory::GetWidth(void)
 {
-    return mcBounds.GetWidth();
+    return mcWindowBounds.GetWidth();
 }
 
 
@@ -81,6 +81,6 @@ int32 CWinRefWindowFactory::GetWidth(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CWinRefWindowFactory::GetHeight(void)
 {
-    return mcBounds.GetHeight();
+    return mcWindowBounds.GetHeight();
 }
 

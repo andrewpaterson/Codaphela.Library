@@ -38,7 +38,7 @@ void CWinRefWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactor
 {
     CNativeWindow::Init(pcWindow, pcWindowFactory);
     mbCreated = false;
-    mcBounds.Init(pcBounds);
+    mcWindowBounds.Init(pcBounds);
     mszImagePath = szImagePath;
     muiFrame = 0;
 }
@@ -119,6 +119,6 @@ void CWinRefWindow::SignalPresent(void)
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::GetRectangle(CRectangle* pcDest)
 {
-    pcDest->Init(&mcBounds);
+    pcDest->Init(&mcWindowBounds);
 }
 
