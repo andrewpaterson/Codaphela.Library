@@ -47,6 +47,9 @@ public:
 
 	virtual void		SetRequiredSize(void) =0;  //Works out msRequiredSize from the container's components.
 	SInt32Vec2			GetRequiredSize(void);
+
+protected:
+	void	LayoutComponentInArea(Ptr<CComponent> pComponent, SInt32Vec2 sAreaPosition, SInt32Vec2 sAreaSize);
 };
 
 

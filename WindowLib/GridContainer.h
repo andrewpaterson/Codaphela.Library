@@ -32,8 +32,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //weighted columns the grid keeps its required size and is centred.  When there is too little space the weighted columns
 //give it up first, then every column shrinks in proportion to its size.  Rows work the same way.
 //
-//A component with a desired size of -1 on an axis fills its cell on that axis, otherwise it keeps its size and is centred
-//in its cell.  Cells may overlap and are drawn in the order they were added.
+//A component with a desired size of -1 on an axis, or stretched on that axis, fills its cell on that axis, otherwise it
+//keeps its size and is placed in its cell by its own alignment.  Cells may overlap and are drawn in the order they were added.
 class CGridContainer : public CContainer
 {
 CONSTRUCTABLE(CGridContainer);

@@ -14,6 +14,8 @@ void CComponent::Init(Ptr<CWindow> pWindow)
 	maChildren.Init();
 	mcActualBounds.Init();
 	msDesiredSize.Init(-1, -1);
+	meHorizontalAlignment = CSH_Center;
+	meVerticalAlignment = CSV_Center;
 	mbCanGetFocus = false;
 	mpParent = NULL;
 	mpWindow = pWindow;
@@ -39,6 +41,8 @@ void CComponent::Class(void)
 {
 		U_Data(CRectangle, mcActualBounds);
 		U_2Int32(msDesiredSize);
+		U_Enum(meHorizontalAlignment);
+		U_Enum(meVerticalAlignment);
 		U_Bool(mbCanGetFocus);
 		M_Pointer(mpParent);
 		M_Embedded(maChildren);
@@ -311,4 +315,7 @@ SInt32Vec2 CComponent::GetPosition(void) { return mcActualBounds.msTopLeft; }
 void CComponent::SetDesiredSize(int fWidth, int fHeight) { msDesiredSize.Init(fWidth, fHeight); }
 SInt32Vec2 CComponent::GetActualSize(void) { SInt32Vec2 sSize; sSize.Init(mcActualBounds.GetWidth(), mcActualBounds.GetHeight()); return sSize; }
 SInt32Vec2 CComponent::GetDesiredSize(void) { return msDesiredSize; }
+void CComponent::SetAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical) { meHorizontalAlignment = eHorizontal; meVerticalAlignment = eVertical; }
+EContainerStyleHorizontal CComponent::GetHorizontalAlignment(void) { return meHorizontalAlignment; }
+EContainerStyleVertical CComponent::GetVerticalAlignment(void) { return meVerticalAlignment; }
 

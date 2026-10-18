@@ -550,11 +550,8 @@ void CGridContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	size			i;
 	CGridCell*		pcCell;
 	Ptr<CComponent>	pComponent;
-	SInt32Vec2		sDesired;
 	SInt32Vec2		sCellPosition;
 	SInt32Vec2		sCellSize;
-	SInt32Vec2		sOffset;
-	SInt32Vec2		sSize;
 
 	SetContainerBounds(sPosition, sAreaSize);
 
@@ -572,15 +569,7 @@ void CGridContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 		sCellPosition.Init(aiColumnStarts.GetValue(pcCell->msPosition.x), aiRowStarts.GetValue(pcCell->msPosition.y));
 		sCellSize.Init(SumTracks(&aiColumnSizes, pcCell->msPosition.x, pcCell->msSpan.x), SumTracks(&aiRowSizes, pcCell->msPosition.y, pcCell->msSpan.y));
-
-		//A desired size of -1 on an axis fills the cell, otherwise the component keeps its size and is centred.
-		sDesired = pComponent->GetDesiredSize();
-		sSize.x = (sDesired.x < 0) ? sCellSize.x : sDesired.x;
-		sSize.y = (sDesired.y < 0) ? sCellSize.y : sDesired.y;
-		sOffset.x = sCellPosition.x + (sCellSize.x - sSize.x) / 2;
-		sOffset.y = sCellPosition.y + (sCellSize.y - sSize.y) / 2;
-
-		pComponent->Layout(sOffset, sSize);
+		LayoutComponentInArea(pComponent, sCellPosition, sCellSize);
 	}
 
 	aiColumnStarts.Kill();

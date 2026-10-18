@@ -10,6 +10,7 @@
 #include "FocusListener.h"
 #include "ComponentListener.h"
 #include "SupportLib/Rectangle.h"
+#include "ContainerStyles.h"
 
 
 class CWindow;
@@ -20,6 +21,8 @@ DESTRUCTABLE(CComponent);
 protected:
 	CRectangle			mcActualBounds;
 	SInt32Vec2			msDesiredSize;
+	EContainerStyleHorizontal	meHorizontalAlignment;  //Where a fixed size component sits in spare space.  Stretch makes it fill the space.
+	EContainerStyleVertical		meVerticalAlignment;
 	bool				mbCanGetFocus;
 	Ptr<CComponent>		mpParent;
 	CArray<CComponent>	maChildren;
@@ -62,6 +65,10 @@ public:
 	virtual	SInt32Vec2			GetDesiredSize(void);
 			void				SetDesiredSize(int fWidth, int fHeight);
 			SInt32Vec2			GetActualSize(void);
+
+			void				SetAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical);
+			EContainerStyleHorizontal	GetHorizontalAlignment(void);
+			EContainerStyleVertical		GetVerticalAlignment(void);
 };
 
 
