@@ -1,4 +1,4 @@
-#include "ImageRowBlitter.h"
+#include "OffsetImageRowBlitter.h"
 
 
 
@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRowBlitter::Init(CBaseImageRowBlitter* pcBlitter, CBaseImageRowSizingBlitter* pcSizingBlitter, size uiXStart, size uiXEnd, size uiY)
+void COffsetImageRowBlitter::Init(CBaseImageRowBlitter* pcBlitter, CBaseImageRowSizingBlitter* pcSizingBlitter, size uiXStart, size uiXEnd, size uiY)
 {
 	mpcBlitter = pcBlitter;
 	mpcSizingBlitter = pcSizingBlitter;

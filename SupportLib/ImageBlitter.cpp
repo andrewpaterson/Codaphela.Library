@@ -269,12 +269,11 @@ bool CImageBlitter::PopulateOpacityFormat(CImageBlitterFormat* pcFormat)
 //////////////////////////////////////////////////////////////////////////
 bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory)
 {
-	size						uiSourceByteStride;
-	size						uiDestByteStride;
-	Ptr<CBaseImageRowBlitter>	pcRowBlitter;
-	Ptr<CImage>					pSourceImage;
-	bool						bDestOpacity;
-	bool						bSameLayout;
+	size			uiSourceByteStride;
+	size			uiDestByteStride;
+	Ptr<CImage>		pSourceImage;
+	bool			bDestOpacity;
+	bool			bSameLayout;
 
 	pSourceImage = mpcSourceCel->GetSourceImage();
 	uiSourceByteStride = pSourceImage->GetPixelByteStride();
@@ -286,7 +285,6 @@ bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlit
 	//Pixels can only be copied whole if the channels are in the same place in both images (e.g. not XRGB into RGBX).
 	bSameLayout = (uiSourceByteStride == uiDestByteStride) && (mcFormat.meSourceColourFormat == mcFormat.meDestColourFormat);
 
-	pcRowBlitter = NULL;
 	if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && bSameLayout && !bDestOpacity)
 	{
 		return CreateImageRowBlitterContiguous(pcFormat, pcBlitterFactory);
@@ -503,7 +501,7 @@ void CImageBlitter::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CImageBlitter::Class(void)
 {
-	U_Data(CArrayImageRowBlitter, macRowBlitters);
+	U_Data(CArrayOffsetImageRowBlitter, macRowBlitters);
 	U_Pointer(mpcSourceCel);
 	M_Pointer(mpDestImage);
 	U_Data(CImageBlitterFormat, mcFormat);
@@ -542,13 +540,13 @@ bool CImageBlitter::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CImageBlitter::AddBlitter(CBaseImageRowBlitter* pcImageRowBlitter, CImageRowBlitterFactory* pcBlitterFactory, size xStart, size xEnd, size yOffset)
 {
-	CImageRowBlitter*				pcThing;
+	COffsetImageRowBlitter*			pcOffsetImageRowBlitter;
 	CBaseImageRowSizingBlitter*		pcImageRowSizingBlitter;
 
 	pcImageRowSizingBlitter = pcBlitterFactory->CreateImageRowSizingBlitter(pcImageRowBlitter);
 
-	pcThing = macRowBlitters.Add();
-	pcThing->Init(pcImageRowBlitter, pcImageRowSizingBlitter, xStart, xEnd, yOffset);
+	pcOffsetImageRowBlitter = macRowBlitters.Add();
+	pcOffsetImageRowBlitter->Init(pcImageRowBlitter, pcImageRowSizingBlitter, xStart, xEnd, yOffset);
 }
 
 
@@ -584,13 +582,13 @@ void CImageBlitter::InitContext(CImageBlitterContext* pcContext)
 //////////////////////////////////////////////////////////////////////////
 void CImageBlitter::InitRowStarts(void)
 {
-	CRectangle			cRect;
-	int32				iHeight;
-	int32				y;
-	size				ui;
-	size				uiNumElements;
-	int32*				paiRowStarts;
-	CImageRowBlitter*	pcRowBlitter;
+	CRectangle					cRect;
+	int32						iHeight;
+	int32						y;
+	size						ui;
+	size						uiNumElements;
+	int32*						paiRowStarts;
+	COffsetImageRowBlitter*		pcOffsetImageRowBlitter;
 
 	//The segments were added a row at a time from the top so the segments of a row follow on from the row above.
 	mpcSourceCel->GetImageSourceBounds(&cRect);
@@ -604,8 +602,8 @@ void CImageBlitter::InitRowStarts(void)
 	{
 		while (ui < uiNumElements)
 		{
-			pcRowBlitter = macRowBlitters.Get(ui);
-			if ((int32)pcRowBlitter->msOffset.y >= cRect.GetTop() + y)
+			pcOffsetImageRowBlitter = macRowBlitters.Get(ui);
+			if ((int32)pcOffsetImageRowBlitter->msOffset.y >= cRect.GetTop() + y)
 			{
 				break;
 			}
@@ -736,24 +734,24 @@ bool CImageBlitter::ClipDestRect(CRectangle* pcClip, CRectangle* pcDestRect)
 //////////////////////////////////////////////////////////////////////////
 bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip)
 {
-	size				uiNumElements;
-	size				ui;
-	CImageRowBlitter*	pcRowBlitter;
-	int32				xSourceStart;
-	int32				xSourceEnd;
-	int32				ySource;
-	CRectangle			cDestRect;
-	CRectangle			cSourceRect;
-	int32				yDest;
-	int32				xDestStart;
-	void*				pvSource;
-	void*				pvDest;
-	int32				iSourceLeft;
-	int32				iSourceTop;
-	int32				xDestOffset;
-	int32				yDestOffset;
-	int32				xLength;
-	CSubImage*			pcSubImage;
+	size						uiNumElements;
+	size						ui;
+	COffsetImageRowBlitter*		pcOffsetImageRowBlitter;
+	int32						xSourceStart;
+	int32						xSourceEnd;
+	int32						ySource;
+	CRectangle					cDestRect;
+	CRectangle					cSourceRect;
+	int32						yDest;
+	int32						xDestStart;
+	void*						pvSource;
+	void*						pvDest;
+	int32						iSourceLeft;
+	int32						iSourceTop;
+	int32						xDestOffset;
+	int32						yDestOffset;
+	int32						xLength;
+	CSubImage*					pcSubImage;
 
 	pvSource = mpcSourceCel->GetSourceImage()->GetData();
 	pvDest = mpDestImage->GetData();
@@ -778,19 +776,19 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip)
 	{
 		for (ui = 0; ui < uiNumElements; ui++)
 		{
-			pcRowBlitter = macRowBlitters.Get(ui);
+			pcOffsetImageRowBlitter = macRowBlitters.Get(ui);
 
-			ySource = pcRowBlitter->msOffset.y;
+			ySource = pcOffsetImageRowBlitter->msOffset.y;
 			yDestOffset = ySource - iSourceTop;
 			yDest = iDestY + yDestOffset;
 
-			xSourceStart = pcRowBlitter->msOffset.x;
-			xSourceEnd = pcRowBlitter->muiXEnd;
+			xSourceStart = pcOffsetImageRowBlitter->msOffset.x;
+			xSourceEnd = pcOffsetImageRowBlitter->muiXEnd;
 
 			xDestOffset = xSourceStart - iSourceLeft;
 			xDestStart = iDestX + xDestOffset;
 
-			pcRowBlitter->mpcBlitter->Copy(&mcContext, pvSource, pvDest, xDestStart, yDest, xSourceStart, xSourceEnd, ySource);
+			pcOffsetImageRowBlitter->mpcBlitter->Copy(&mcContext, pvSource, pvDest, xDestStart, yDest, xSourceStart, xSourceEnd, ySource);
 		}
 
 		return true;
@@ -799,16 +797,16 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip)
 	{
 		for (ui = 0; ui < uiNumElements; ui++)
 		{
-			pcRowBlitter = macRowBlitters.Get(ui);
+			pcOffsetImageRowBlitter = macRowBlitters.Get(ui);
 
-			ySource = pcRowBlitter->msOffset.y;
+			ySource = pcOffsetImageRowBlitter->msOffset.y;
 			yDestOffset = ySource - iSourceTop;
 			yDest = iDestY + yDestOffset;
 
 			if ((yDest >= cDestRect.msTopLeft.y) && (yDest < cDestRect.msBottomRight.y))
 			{
-				xSourceStart = pcRowBlitter->msOffset.x;
-				xSourceEnd = pcRowBlitter->muiXEnd;
+				xSourceStart = pcOffsetImageRowBlitter->msOffset.x;
+				xSourceEnd = pcOffsetImageRowBlitter->muiXEnd;
 
 				xDestOffset = xSourceStart - iSourceLeft;
 				xDestStart = iDestX + xDestOffset;
@@ -830,7 +828,7 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip)
 					continue;
 				}
 
-				pcRowBlitter->mpcBlitter->Copy(&mcContext, pvSource, pvDest, xDestStart, yDest, xSourceStart, xSourceEnd, ySource);
+				pcOffsetImageRowBlitter->mpcBlitter->Copy(&mcContext, pvSource, pvDest, xDestStart, yDest, xSourceStart, xSourceEnd, ySource);
 			}
 		}
 
@@ -867,7 +865,7 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, int32 iDestWidth, int32 iDe
 	int32*				paiRowStarts;
 	size				ui;
 	size				uiEnd;
-	CImageRowBlitter*	pcRowBlitter;
+	COffsetImageRowBlitter*	pcRowBlitter;
 	void*				pvSource;
 	void*				pvDest;
 

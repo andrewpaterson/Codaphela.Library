@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Rectangle.h"
 #include "ImageCopyDimension.h"
 #include "ImageBlitterContext.h"
-#include "ImageRowBlitter.h"
+#include "OffsetImageRowBlitter.h"
 #include "ImageRowBlitterFactory.h"
 
 
@@ -40,7 +40,7 @@ class CImageBlitter : public CObject
 CONSTRUCTABLE(CImageBlitter);
 DESTRUCTABLE(CImageBlitter);
 protected:
-	CArrayImageRowBlitter	macRowBlitters;
+	CArrayOffsetImageRowBlitter	macRowBlitters;
 
 	CImageCel*				mpcSourceCel;		//Not a reference.  Whoever uses this blitter must keep the cel alive.
 	Ptr<CImage>				mpDestImage;
@@ -72,9 +72,9 @@ public:
 protected:
 	bool			PopulateColourFormat(CImageBlitterFormat* pcFormat);
 	bool			PopulateOpacityFormat(CImageBlitterFormat* pcFormat);
-	bool			InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
-	void			InitContext(CImageBlitterContext* pcContext);
-	void			InitRowStarts(void);
+	bool			CreateImageRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
+	void			PopulateContext(CImageBlitterContext* pcContext);
+	void			PopulateRowStarts(void);
 	bool			InitSizedTables(int32 iDestWidth, int32 iDestHeight);
 	void			InitSizedSamples(CArrayInt32* paiSamples, int32 iDestLength, int32 iFullLength, int32 iOffset);
 	bool			ClipDestRect(CRectangle* pcClip, CRectangle* pcDestRect);
