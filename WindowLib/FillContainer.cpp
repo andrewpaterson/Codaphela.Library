@@ -119,6 +119,8 @@ void CFillContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 		pComponent = maChildren.Get(i);
 		LayoutComponentInArea(pComponent, sOrigin, sArea);
 	}
+
+	SetActualBounds(sPosition, sAreaSize);
 }
 
 

@@ -349,7 +349,10 @@ bool CReadTransaction::NameIterate(SIndexTreeFileIterator* psIterator, char* szK
 		oi = GetIndex(szName);
 		if (oi != INVALID_O_INDEX)
 		{
-			StrCpySafe(szKey, szName, MAX_KEY_SIZE);
+			if (szKey)
+			{
+				StrCpySafe(szKey, szName, MAX_KEY_SIZE);
+			}
 			SafeAssign(poi, oi);
 			return true;
 		}
