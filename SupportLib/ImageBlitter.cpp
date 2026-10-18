@@ -47,10 +47,7 @@ void CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage)
 	mcContext.Init();
 	maiRowStarts.Init();
 
-	msSizedTo.Init(-1, -1);
-	maiSizedSourceX.Init();
-	maiSizedSourceY.Init();
-	maiSizedDestX.Init();
+	mpcSizing = NULL;
 
 	PostInit();
 }
@@ -60,10 +57,16 @@ void CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::Configure(CImageRowBlitterFactory* pcBlitterFactory)
+bool CImageBlitter::Configure(CImageRowBlitterFactory* pcBlitterFactory, bool bAllowSizing)
 {
 	bool			bResult;
 	Ptr<CImage>		pSourceImage;
+
+	if (bAllowSizing)
+	{
+		mpcSizing = (CSizingImageBlitterSize*)malloc(sizeof(CSizingImageBlitterSize));
+		mpcSizing->Init();
+	}
 
 	pSourceImage = mpcSourceCel->GetSourceImage();
 	bResult = PopulateColourFormat(&mcFormat);
@@ -78,16 +81,26 @@ bool CImageBlitter::Configure(CImageRowBlitterFactory* pcBlitterFactory)
 		return false;
 	}
 
-	bResult = InitRowBlitters(&mcFormat, pcBlitterFactory);
+	bResult = CreateImageRowBlitters(&mcFormat, pcBlitterFactory, bAllowSizing);
 	if (!bResult)
 	{
 		return false;
 	}
 
-	InitContext(&mcContext);
-	InitRowStarts();
+	PopulateContext(&mcContext);
+	PopulateRowStarts();
 
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageBlitter::AllowsSizing(void)
+{
+	return mpcSizing != NULL;
 }
 
 
@@ -267,7 +280,7 @@ bool CImageBlitter::PopulateOpacityFormat(CImageBlitterFormat* pcFormat)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory)
+bool CImageBlitter::CreateImageRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory, bool bAllowSizing)
 {
 	size			uiSourceByteStride;
 	size			uiDestByteStride;
@@ -287,27 +300,27 @@ bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlit
 
 	if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && bSameLayout && !bDestOpacity)
 	{
-		return CreateImageRowBlitterContiguous(pcFormat, pcBlitterFactory);
+		return CreateImageRowBlitterContiguous(pcFormat, pcBlitterFactory, bAllowSizing);
 	}
 	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && bSameLayout && bDestOpacity)
 	{
-		return CreateImageRowBlitterByteAlignedOpaqueDestAlpha(pcFormat, pcBlitterFactory);
+		return CreateImageRowBlitterByteAlignedOpaqueDestAlpha(pcFormat, pcBlitterFactory, bAllowSizing);
 	}
 	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && !bSameLayout && !bDestOpacity)
 	{
-		return CreateImageRowBlitterByteAlignedOpaque(pcFormat, pcBlitterFactory);
+		return CreateImageRowBlitterByteAlignedOpaque(pcFormat, pcBlitterFactory, bAllowSizing);
 	}
 	else if (((mcFormat.meSourceOpacity == CPO_None) || (mcFormat.meSourceOpacity == CPO_Opaque)) && !bSameLayout && bDestOpacity)
 	{
-		return CreateImageRowBlitterByteAlignedOpaqueDestAlpha(pcFormat, pcBlitterFactory);
+		return CreateImageRowBlitterByteAlignedOpaqueDestAlpha(pcFormat, pcBlitterFactory, bAllowSizing);
 	}
 	else if ((mcFormat.meSourceAlphaBits == ARGB_8bit) && (mcFormat.meColourBits == CRGB_24bit) && !bDestOpacity)
 	{
-		return CreateImageRowBlitterRGBByteAlphaByteTranslucent(pcFormat, pcBlitterFactory);
+		return CreateImageRowBlitterRGBByteAlphaByteTranslucent(pcFormat, pcBlitterFactory, bAllowSizing);
 	}
 	else if ((mcFormat.meSourceAlphaBits == ARGB_8bit) && (mcFormat.meColourBits == CRGB_24bit) && bDestOpacity)
 	{
-		return CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(pcFormat, pcBlitterFactory);
+		return CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(pcFormat, pcBlitterFactory, bAllowSizing);
 	}
 	else
 	{
@@ -321,9 +334,9 @@ bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlit
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterContiguous(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory)
+bool CImageBlitter::CreateImageRowBlitterContiguous(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory, bool bAllowSizing)
 {
-	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterFactory, &CImageRowBlitterFactory::CreateImageRowBlitterContiguous);
+	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterFactory, &CImageRowBlitterFactory::CreateImageRowBlitterContiguous, bAllowSizing);
 }
 
 
@@ -331,9 +344,9 @@ bool CImageBlitter::CreateImageRowBlitterContiguous(CImageBlitterFormat* pcForma
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory)
+bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory, bool bAllowSizing)
 {
-	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterFactory, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaque);
+	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterFactory, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaque, bAllowSizing);
 }
 
 
@@ -341,9 +354,9 @@ bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory)
+bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory, bool bAllowSizing)
 {
-	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterFactory, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaqueDestAlpha);
+	return CreateImageRowBlitterUseCacheFunc(pcFormat, pcBlitterFactory, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaqueDestAlpha, bAllowSizing);
 }
 
 
@@ -351,7 +364,7 @@ bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitte
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory, CreateImageRowBlitterFunc fCreate)
+bool CImageBlitter::CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory, CreateImageRowBlitterFunc fCreate, bool bAllowSizing)
 {
 	CRectangle				cRect;
 	size					y;
@@ -367,7 +380,7 @@ bool CImageBlitter::CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFor
 	for (y = cRect.GetTop(); y < uiBottom; y++)
 	{
 		pcRowBlitter = (pcBlitterFactory->*fCreate)();
-		AddBlitter(pcRowBlitter, pcBlitterFactory, xStart, xEnd, y);
+		AddBlitter(pcRowBlitter, pcBlitterFactory, xStart, xEnd, y, bAllowSizing);
 	}
 	return true;
 }
@@ -377,9 +390,9 @@ bool CImageBlitter::CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory)
+bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory, bool bAllowSizing)
 {
-	return CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(pcFormat, pcBlitterFactory, &CImageRowBlitterFactory::CreateImageRowBlitterRGBByteAlphaByteTranslucent, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaque);
+	return CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(pcFormat, pcBlitterFactory, &CImageRowBlitterFactory::CreateImageRowBlitterRGBByteAlphaByteTranslucent, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaque, bAllowSizing);
 }
 
 
@@ -387,9 +400,9 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitt
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory)
+bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory, bool bAllowSizing)
 {
-	return CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(pcFormat, pcBlitterFactory, &CImageRowBlitterFactory::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaqueDestAlpha);
+	return CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(pcFormat, pcBlitterFactory, &CImageRowBlitterFactory::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha, &CImageRowBlitterFactory::CreateImageRowBlitterByteAlignedOpaqueDestAlpha, bAllowSizing);
 }
 
 
@@ -398,7 +411,7 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(CI
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory, CreateImageRowBlitterFunc fCreateRGBByteAlphaByteTranslucent, CreateImageRowBlitterFunc fCreateByteAlignedOpaque)
+bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory, CreateImageRowBlitterFunc fCreateRGBByteAlphaByteTranslucent, CreateImageRowBlitterFunc fCreateByteAlignedOpaque, bool bAllowSizing)
 {
 	CRectangle				cRect;
 	size					x, y;
@@ -448,12 +461,12 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlit
 				if (uiLastType == 1)
 				{
 					pcRowBlitter = (pcBlitterFactory->*fCreateRGBByteAlphaByteTranslucent)();
-					AddBlitter(pcRowBlitter, pcBlitterFactory, xStart, x, y);
+					AddBlitter(pcRowBlitter, pcBlitterFactory, xStart, x, y, bAllowSizing);
 				}
 				else if (uiLastType == 255)
 				{
 					pcRowBlitter = (pcBlitterFactory->*fCreateByteAlignedOpaque)();
-					AddBlitter(pcRowBlitter, pcBlitterFactory, xStart, x, y);
+					AddBlitter(pcRowBlitter, pcBlitterFactory, xStart, x, y, bAllowSizing);
 				}
 				xStart = x;
 				uiLastType = uiThisType;
@@ -465,12 +478,12 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlit
 			if (uiLastType == 1)
 			{
 				pcRowBlitter = (pcBlitterFactory->*fCreateRGBByteAlphaByteTranslucent)();
-				AddBlitter(pcRowBlitter, pcBlitterFactory, xStart, x, y);
+				AddBlitter(pcRowBlitter, pcBlitterFactory, xStart, x, y, bAllowSizing);
 			}
 			else if (uiLastType == 255)
 			{
 				pcRowBlitter = (pcBlitterFactory->*fCreateByteAlignedOpaque)();
-				AddBlitter(pcRowBlitter, pcBlitterFactory, xStart, x, y);
+				AddBlitter(pcRowBlitter, pcBlitterFactory, xStart, x, y, bAllowSizing);
 			}
 			xStart = x;
 		}
@@ -487,9 +500,7 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlit
 //////////////////////////////////////////////////////////////////////////
 void CImageBlitter::Free(void)
 {
-	maiSizedDestX.Kill();
-	maiSizedSourceY.Kill();
-	maiSizedSourceX.Kill();
+	SafeKill(mpcSizing);
 	maiRowStarts.Kill();
 	macRowBlitters.Kill();
 }
@@ -507,10 +518,7 @@ void CImageBlitter::Class(void)
 	U_Data(CImageBlitterFormat, mcFormat);
 	U_Data(CImageBlitterContext, mcContext);
 	U_Data(CArrayInt32, maiRowStarts);
-	U_Data(SInt32Vec2, msSizedTo);
-	U_Data(CArrayInt32, maiSizedSourceX);
-	U_Data(CArrayInt32, maiSizedSourceY);
-	U_Data(CArrayInt32, maiSizedDestX);
+	U_Pointer(mpcSizing);
 }
 
 
@@ -538,12 +546,19 @@ bool CImageBlitter::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageBlitter::AddBlitter(CBaseImageRowBlitter* pcImageRowBlitter, CImageRowBlitterFactory* pcBlitterFactory, size xStart, size xEnd, size yOffset)
+void CImageBlitter::AddBlitter(CBaseImageRowBlitter* pcImageRowBlitter, CImageRowBlitterFactory* pcBlitterFactory, size xStart, size xEnd, size yOffset, bool bAllowSizing)
 {
 	COffsetImageRowBlitter*			pcOffsetImageRowBlitter;
 	CBaseImageRowSizingBlitter*		pcImageRowSizingBlitter;
 
-	pcImageRowSizingBlitter = pcBlitterFactory->CreateImageRowSizingBlitter(pcImageRowBlitter);
+	if (bAllowSizing)
+	{
+		pcImageRowSizingBlitter = pcBlitterFactory->CreateImageRowSizingBlitter(pcImageRowBlitter);
+	}
+	else
+	{
+		pcImageRowSizingBlitter = NULL;
+	}
 
 	pcOffsetImageRowBlitter = macRowBlitters.Add();
 	pcOffsetImageRowBlitter->Init(pcImageRowBlitter, pcImageRowSizingBlitter, xStart, xEnd, yOffset);
@@ -564,7 +579,7 @@ Ptr<CImageCel> CImageBlitter::GetCel(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageBlitter::InitContext(CImageBlitterContext* pcContext)
+void CImageBlitter::PopulateContext(CImageBlitterContext* pcContext)
 {
 	CColourFormatHelper		cSourceFormatHelper;
 	CColourFormatHelper		cDestFormatHelper;
@@ -580,7 +595,7 @@ void CImageBlitter::InitContext(CImageBlitterContext* pcContext)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageBlitter::InitRowStarts(void)
+void CImageBlitter::PopulateRowStarts(void)
 {
 	CRectangle					cRect;
 	int32						iHeight;
@@ -618,78 +633,9 @@ void CImageBlitter::InitRowStarts(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageBlitter::InitSizedSamples(CArrayInt32* paiSamples, int32 iDestLength, int32 iFullLength, int32 iOffset)
+bool CImageBlitter::PopulateSizingTables(int32 iDestWidth, int32 iDestHeight)
 {
-	int32*	paiSample;
-	int32	i;
-	int32	iSample;
-	int32	iError;
-
-	//Destination position i is drawn from the cel position under its centre, (2i + 1) * iFullLength / (2 * iDestLength).
-	//Bresenham's error term counts in steps of 1 / (2 * iDestLength) so no division is needed.  Stretching repeats a cel
-	//position, shrinking skips cel positions.
-	paiSamples->Resize(iDestLength);
-	paiSample = paiSamples->GetData();
-
-	iSample = 0;
-	iError = iFullLength;
-	for (i = 0; i < iDestLength; i++)
-	{
-		while (iError >= 2 * iDestLength)
-		{
-			iSample++;
-			iError -= 2 * iDestLength;
-		}
-		paiSample[i] = iSample + iOffset;
-		iError += 2 * iFullLength;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::InitSizedTables(int32 iDestWidth, int32 iDestHeight)
-{
-	CSubImage*	pcSubImage;
-	int32		iFullWidth;
-	int32		iSourceLeft;
-	int32*		paiSourceX;
-	int32*		paiDestX;
-	int32		x;
-	int32		xDest;
-
-	if ((msSizedTo.x == iDestWidth) && (msSizedTo.y == iDestHeight))
-	{
-		return false;
-	}
-
-	pcSubImage = mpcSourceCel->GetSubImage();
-	iFullWidth = pcSubImage->GetFullWidth();
-
-	//Column x of the full cel is column iSourceLeft + x of the source image, outside the image in the transparent borders.
-	iSourceLeft = pcSubImage->mcImageRect.msTopLeft.x - pcSubImage->msOffsetTopLeft.x;
-	InitSizedSamples(&maiSizedSourceX, iDestWidth, iFullWidth, iSourceLeft);
-	InitSizedSamples(&maiSizedSourceY, iDestHeight, pcSubImage->GetFullHeight(), -pcSubImage->msOffsetTopLeft.y);
-
-	//A segment from x to xEnd of the full cel is drawn from maiSizedDestX[x] to maiSizedDestX[xEnd].  When shrinking
-	//both can be the same column and the segment is not drawn at all.
-	maiSizedDestX.Resize(iFullWidth + 1);
-	paiDestX = maiSizedDestX.GetData();
-	paiSourceX = maiSizedSourceX.GetData();
-	xDest = 0;
-	for (x = 0; x <= iFullWidth; x++)
-	{
-		while ((xDest < iDestWidth) && (paiSourceX[xDest] - iSourceLeft < x))
-		{
-			xDest++;
-		}
-		paiDestX[x] = xDest;
-	}
-
-	msSizedTo.Init(iDestWidth, iDestHeight);
-	return true;
+	return mpcSizing->PopulateSizingTables(mpcSourceCel->GetSubImage(), iDestWidth, iDestHeight);
 }
 
 
@@ -843,31 +789,36 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip)
 //////////////////////////////////////////////////////////////////////////
 bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, int32 iDestWidth, int32 iDestHeight, CRectangle* pcClip)
 {
-	CSubImage*			pcSubImage;
-	int32				iFullWidth;
-	int32				iFullHeight;
-	int32				iImageHeight;
-	int32				iSourceLeft;
-	CRectangle			cDestRect;
-	int32				iLeft;
-	int32				iTop;
-	int32				xVisibleStart;
-	int32				xVisibleEnd;
-	int32				yVisibleStart;
-	int32				yVisibleEnd;
-	int32				y;
-	int32				iImageRow;
-	int32				xStart;
-	int32				xEnd;
-	int32*				paiSourceX;
-	int32*				paiSourceY;
-	int32*				paiDestX;
-	int32*				paiRowStarts;
-	size				ui;
-	size				uiEnd;
-	COffsetImageRowBlitter*	pcRowBlitter;
-	void*				pvSource;
-	void*				pvDest;
+	CSubImage*					pcSubImage;
+	int32						iFullWidth;
+	int32						iFullHeight;
+	int32						iImageHeight;
+	int32						iSourceLeft;
+	CRectangle					cDestRect;
+	int32						iLeft;
+	int32						iTop;
+	int32						xVisibleStart;
+	int32						xVisibleEnd;
+	int32						yVisibleStart;
+	int32						yVisibleEnd;
+	int32						y;
+	int32						iImageRow;
+	int32						xStart;
+	int32						xEnd;
+	int32*						paiSourceX;
+	int32*						paiSourceY;
+	int32*						paiDestX;
+	int32*						paiRowStarts;
+	size						ui;
+	size						uiEnd;
+	COffsetImageRowBlitter*		pcRowBlitter;
+	void*						pvSource;
+	void*						pvDest;
+
+	if (!AllowsSizing())
+	{
+		return false;
+	}
 
 	//The whole cel, transparent borders included, is drawn iDestWidth by iDestHeight.  Rows and columns of the cel are
 	//repeated to stretch it and dropped to shrink it.
@@ -919,13 +870,13 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, int32 iDestWidth, int32 iDe
 		return true;
 	}
 
-	InitSizedTables(iDestWidth, iDestHeight);
+	PopulateSizingTables(iDestWidth, iDestHeight);
 
 	pvSource = mpcSourceCel->GetSourceImage()->GetData();
 	pvDest = mpDestImage->GetData();
-	paiSourceX = maiSizedSourceX.GetData();
-	paiSourceY = maiSizedSourceY.GetData();
-	paiDestX = maiSizedDestX.GetData();
+	paiSourceX = mpcSizing->GetSizedSourceX();
+	paiSourceY = mpcSizing->GetSizedSourceY();
+	paiDestX = mpcSizing->GetSizedDestX();
 	paiRowStarts = maiRowStarts.GetData();
 	iSourceLeft = pcSubImage->mcImageRect.msTopLeft.x - pcSubImage->msOffsetTopLeft.x;
 	iImageHeight = pcSubImage->GetImageHeight();

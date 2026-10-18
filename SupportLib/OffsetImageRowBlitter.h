@@ -41,6 +41,7 @@ public:
 	SSizeVec2						msOffset;
 	size							muiXEnd;
 
+	void	Init(CBaseImageRowBlitter* pcBlitter, size uiXStart, size uiXEnd, size uiY);
 	void	Init(CBaseImageRowBlitter* pcBlitter, CBaseImageRowSizingBlitter* pcSizingBlitter, size uiXStart, size uiXEnd, size uiY);
 };
 
