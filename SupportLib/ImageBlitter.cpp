@@ -45,6 +45,12 @@ void CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage)
 
 	macRowBlitters.Init();
 	mcContext.Init();
+	maiRowStarts.Init();
+
+	msSizedTo.Init(-1, -1);
+	maiSizedSourceX.Init();
+	maiSizedSourceY.Init();
+	maiSizedDestX.Init();
 
 	PostInit();
 }
@@ -79,6 +85,7 @@ bool CImageBlitter::Configure(CImageRowBlitterFactory* pcBlitterFactory)
 	}
 
 	InitContext(&mcContext);
+	InitRowStarts();
 
 	return true;
 }
@@ -363,7 +370,7 @@ bool CImageBlitter::CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFor
 	for (y = cRect.GetTop(); y < uiBottom; y++)
 	{
 		pcRowBlitter = (pcBlitterFactory->*fCreate)();
-		AddBlitter(pcRowBlitter, xStart, xEnd, y);
+		AddBlitter(pcRowBlitter, pcBlitterFactory, xStart, xEnd, y);
 	}
 	return true;
 }
@@ -444,12 +451,12 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlit
 				if (uiLastType == 1)
 				{
 					pcRowBlitter = (pcBlitterFactory->*fCreateRGBByteAlphaByteTranslucent)();
-					AddBlitter(pcRowBlitter, xStart, x, y);
+					AddBlitter(pcRowBlitter, pcBlitterFactory, xStart, x, y);
 				}
 				else if (uiLastType == 255)
 				{
 					pcRowBlitter = (pcBlitterFactory->*fCreateByteAlignedOpaque)();
-					AddBlitter(pcRowBlitter, xStart, x, y);
+					AddBlitter(pcRowBlitter, pcBlitterFactory, xStart, x, y);
 				}
 				xStart = x;
 				uiLastType = uiThisType;
@@ -461,12 +468,12 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlit
 			if (uiLastType == 1)
 			{
 				pcRowBlitter = (pcBlitterFactory->*fCreateRGBByteAlphaByteTranslucent)();
-				AddBlitter(pcRowBlitter, xStart, x, y);
+				AddBlitter(pcRowBlitter, pcBlitterFactory, xStart, x, y);
 			}
 			else if (uiLastType == 255)
 			{
 				pcRowBlitter = (pcBlitterFactory->*fCreateByteAlignedOpaque)();
-				AddBlitter(pcRowBlitter, xStart, x, y);
+				AddBlitter(pcRowBlitter, pcBlitterFactory, xStart, x, y);
 			}
 			xStart = x;
 		}
@@ -483,6 +490,10 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlit
 //////////////////////////////////////////////////////////////////////////
 void CImageBlitter::Free(void)
 {
+	maiSizedDestX.Kill();
+	maiSizedSourceY.Kill();
+	maiSizedSourceX.Kill();
+	maiRowStarts.Kill();
 	macRowBlitters.Kill();
 }
 
@@ -498,6 +509,11 @@ void CImageBlitter::Class(void)
 	M_Pointer(mpDestImage);
 	U_Data(CImageBlitterFormat, mcFormat);
 	U_Data(CImageBlitterContext, mcContext);
+	U_Data(CArrayInt32, maiRowStarts);
+	U_Data(SInt32Vec2, msSizedTo);
+	U_Data(CArrayInt32, maiSizedSourceX);
+	U_Data(CArrayInt32, maiSizedSourceY);
+	U_Data(CArrayInt32, maiSizedDestX);
 }
 
 
@@ -525,12 +541,12 @@ bool CImageBlitter::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageBlitter::AddBlitter(CBaseImageRowBlitter* pcBlitter, size xStart, size xEnd, size yOffset)
+void CImageBlitter::AddBlitter(CBaseImageRowBlitter* pcBlitter, CImageRowBlitterFactory* pcBlitterFactory, size xStart, size xEnd, size yOffset)
 {
 	CImageRowBlitter* psBlitter;
 
 	psBlitter = macRowBlitters.Add();
-	psBlitter->Init(pcBlitter, xStart, xEnd, yOffset);
+	psBlitter->Init(pcBlitter, pcBlitter->GetSizingBlitter(pcBlitterFactory), xStart, xEnd, yOffset);
 }
 
 
@@ -564,6 +580,157 @@ void CImageBlitter::InitContext(CImageBlitterContext* pcContext)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CImageBlitter::InitRowStarts(void)
+{
+	CRectangle			cRect;
+	int32				iHeight;
+	int32				y;
+	size				ui;
+	size				uiNumElements;
+	int32*				paiRowStarts;
+	CImageRowBlitter*	pcRowBlitter;
+
+	//The segments were added a row at a time from the top so the segments of a row follow on from the row above.
+	mpcSourceCel->GetImageSourceBounds(&cRect);
+	iHeight = cRect.GetHeight();
+	maiRowStarts.Resize(iHeight + 1);
+	paiRowStarts = maiRowStarts.GetData();
+
+	uiNumElements = macRowBlitters.NumElements();
+	ui = 0;
+	for (y = 0; y <= iHeight; y++)
+	{
+		while (ui < uiNumElements)
+		{
+			pcRowBlitter = macRowBlitters.Get(ui);
+			if ((int32)pcRowBlitter->msOffset.y >= cRect.GetTop() + y)
+			{
+				break;
+			}
+			ui++;
+		}
+		paiRowStarts[y] = (int32)ui;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageBlitter::InitSizedSamples(CArrayInt32* paiSamples, int32 iDestLength, int32 iFullLength, int32 iOffset)
+{
+	int32*	paiSample;
+	int32	i;
+	int32	iSample;
+	int32	iError;
+
+	//Destination position i is drawn from the cel position under its centre, (2i + 1) * iFullLength / (2 * iDestLength).
+	//Bresenham's error term counts in steps of 1 / (2 * iDestLength) so no division is needed.  Stretching repeats a cel
+	//position, shrinking skips cel positions.
+	paiSamples->Resize(iDestLength);
+	paiSample = paiSamples->GetData();
+
+	iSample = 0;
+	iError = iFullLength;
+	for (i = 0; i < iDestLength; i++)
+	{
+		while (iError >= 2 * iDestLength)
+		{
+			iSample++;
+			iError -= 2 * iDestLength;
+		}
+		paiSample[i] = iSample + iOffset;
+		iError += 2 * iFullLength;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageBlitter::InitSizedTables(int32 iDestWidth, int32 iDestHeight)
+{
+	CSubImage*	pcSubImage;
+	int32		iFullWidth;
+	int32		iSourceLeft;
+	int32*		paiSourceX;
+	int32*		paiDestX;
+	int32		x;
+	int32		xDest;
+
+	if ((msSizedTo.x == iDestWidth) && (msSizedTo.y == iDestHeight))
+	{
+		return;
+	}
+
+	pcSubImage = mpcSourceCel->GetSubImage();
+	iFullWidth = pcSubImage->GetFullWidth();
+
+	//Column x of the full cel is column iSourceLeft + x of the source image, outside the image in the transparent borders.
+	iSourceLeft = pcSubImage->mcImageRect.msTopLeft.x - pcSubImage->msOffsetTopLeft.x;
+	InitSizedSamples(&maiSizedSourceX, iDestWidth, iFullWidth, iSourceLeft);
+	InitSizedSamples(&maiSizedSourceY, iDestHeight, pcSubImage->GetFullHeight(), -pcSubImage->msOffsetTopLeft.y);
+
+	//A segment from x to xEnd of the full cel is drawn from maiSizedDestX[x] to maiSizedDestX[xEnd].  When shrinking
+	//both can be the same column and the segment is not drawn at all.
+	maiSizedDestX.Resize(iFullWidth + 1);
+	paiDestX = maiSizedDestX.GetData();
+	paiSourceX = maiSizedSourceX.GetData();
+	xDest = 0;
+	for (x = 0; x <= iFullWidth; x++)
+	{
+		while ((xDest < iDestWidth) && (paiSourceX[xDest] - iSourceLeft < x))
+		{
+			xDest++;
+		}
+		paiDestX[x] = xDest;
+	}
+
+	msSizedTo.Init(iDestWidth, iDestHeight);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageBlitter::ClipDestRect(CRectangle* pcClip, CRectangle* pcDestRect)
+{
+	pcDestRect->Init(0, 0, mpDestImage->GetWidth(), mpDestImage->GetHeight());
+	if (pcClip)
+	{
+		//Only draw where the destination image and the clip rectangle overlap.
+		if (pcClip->msTopLeft.x > pcDestRect->msTopLeft.x)
+		{
+			pcDestRect->msTopLeft.x = pcClip->msTopLeft.x;
+		}
+		if (pcClip->msTopLeft.y > pcDestRect->msTopLeft.y)
+		{
+			pcDestRect->msTopLeft.y = pcClip->msTopLeft.y;
+		}
+		if (pcClip->msBottomRight.x < pcDestRect->msBottomRight.x)
+		{
+			pcDestRect->msBottomRight.x = pcClip->msBottomRight.x;
+		}
+		if (pcClip->msBottomRight.y < pcDestRect->msBottomRight.y)
+		{
+			pcDestRect->msBottomRight.y = pcClip->msBottomRight.y;
+		}
+		if ((pcDestRect->msBottomRight.x <= pcDestRect->msTopLeft.x) || (pcDestRect->msBottomRight.y <= pcDestRect->msTopLeft.y))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip)
 {
 	size				uiNumElements;
@@ -583,36 +750,18 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip)
 	int32				xDestOffset;
 	int32				yDestOffset;
 	int32				xLength;
+	CSubImage*			pcSubImage;
 
 	pvSource = mpcSourceCel->GetSourceImage()->GetData();
 	pvDest = mpDestImage->GetData();
 
-	iSourceLeft = (size)mpcSourceCel->GetSourceLeft();
-	iSourceTop = (size)mpcSourceCel->GetSourceTop();
-	cDestRect.Init(0, 0, mpDestImage->GetWidth(), mpDestImage->GetHeight());
-	if (pcClip)
+	//The cel's alignment moves where it is drawn as well as where it is clipped (see GetImageDestBounds).
+	pcSubImage = mpcSourceCel->GetSubImage();
+	iSourceLeft = mpcSourceCel->GetSourceLeft() - pcSubImage->msAlignment.x;
+	iSourceTop = mpcSourceCel->GetSourceTop() - pcSubImage->msAlignment.y;
+	if (!ClipDestRect(pcClip, &cDestRect))
 	{
-		//Only draw where the destination image and the clip rectangle overlap.
-		if (pcClip->msTopLeft.x > cDestRect.msTopLeft.x)
-		{
-			cDestRect.msTopLeft.x = pcClip->msTopLeft.x;
-		}
-		if (pcClip->msTopLeft.y > cDestRect.msTopLeft.y)
-		{
-			cDestRect.msTopLeft.y = pcClip->msTopLeft.y;
-		}
-		if (pcClip->msBottomRight.x < cDestRect.msBottomRight.x)
-		{
-			cDestRect.msBottomRight.x = pcClip->msBottomRight.x;
-		}
-		if (pcClip->msBottomRight.y < cDestRect.msBottomRight.y)
-		{
-			cDestRect.msBottomRight.y = pcClip->msBottomRight.y;
-		}
-		if ((cDestRect.msBottomRight.x <= cDestRect.msTopLeft.x) || (cDestRect.msBottomRight.y <= cDestRect.msTopLeft.y))
-		{
-			return true;
-		}
+		return true;
 	}
 	mpcSourceCel->GetImageDestBounds(iDestX, iDestY, &cSourceRect);
 
@@ -684,5 +833,145 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip)
 
 		return true;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, int32 iDestWidth, int32 iDestHeight, CRectangle* pcClip)
+{
+	CSubImage*			pcSubImage;
+	int32				iFullWidth;
+	int32				iFullHeight;
+	int32				iImageHeight;
+	int32				iSourceLeft;
+	CRectangle			cDestRect;
+	int32				iLeft;
+	int32				iTop;
+	int32				xVisibleStart;
+	int32				xVisibleEnd;
+	int32				yVisibleStart;
+	int32				yVisibleEnd;
+	int32				y;
+	int32				iImageRow;
+	int32				xStart;
+	int32				xEnd;
+	int32*				paiSourceX;
+	int32*				paiSourceY;
+	int32*				paiDestX;
+	int32*				paiRowStarts;
+	size				ui;
+	size				uiEnd;
+	CImageRowBlitter*	pcRowBlitter;
+	void*				pvSource;
+	void*				pvDest;
+
+	//The whole cel, transparent borders included, is drawn iDestWidth by iDestHeight.  Rows and columns of the cel are
+	//repeated to stretch it and dropped to shrink it.
+	pcSubImage = mpcSourceCel->GetSubImage();
+	iFullWidth = pcSubImage->GetFullWidth();
+	iFullHeight = pcSubImage->GetFullHeight();
+	if ((iDestWidth == iFullWidth) && (iDestHeight == iFullHeight))
+	{
+		return Blit(iDestX, iDestY, pcClip);
+	}
+
+	if ((iDestWidth <= 0) || (iDestHeight <= 0) || (iFullWidth <= 0) || (iFullHeight <= 0))
+	{
+		return true;
+	}
+
+	if (!ClipDestRect(pcClip, &cDestRect))
+	{
+		return true;
+	}
+
+	//The alignment is sized with the cel so a centred cel stays centred on its position.
+	iLeft = iDestX + (int32)(((int64)pcSubImage->msAlignment.x * iDestWidth) / iFullWidth);
+	iTop = iDestY + (int32)(((int64)pcSubImage->msAlignment.y * iDestHeight) / iFullHeight);
+
+	//The visible part of the sized cel relative to its top left.
+	xVisibleStart = cDestRect.msTopLeft.x - iLeft;
+	if (xVisibleStart < 0)
+	{
+		xVisibleStart = 0;
+	}
+	xVisibleEnd = cDestRect.msBottomRight.x - iLeft;
+	if (xVisibleEnd > iDestWidth)
+	{
+		xVisibleEnd = iDestWidth;
+	}
+	yVisibleStart = cDestRect.msTopLeft.y - iTop;
+	if (yVisibleStart < 0)
+	{
+		yVisibleStart = 0;
+	}
+	yVisibleEnd = cDestRect.msBottomRight.y - iTop;
+	if (yVisibleEnd > iDestHeight)
+	{
+		yVisibleEnd = iDestHeight;
+	}
+	if ((xVisibleStart >= xVisibleEnd) || (yVisibleStart >= yVisibleEnd))
+	{
+		return true;
+	}
+
+	InitSizedTables(iDestWidth, iDestHeight);
+
+	pvSource = mpcSourceCel->GetSourceImage()->GetData();
+	pvDest = mpDestImage->GetData();
+	paiSourceX = maiSizedSourceX.GetData();
+	paiSourceY = maiSizedSourceY.GetData();
+	paiDestX = maiSizedDestX.GetData();
+	paiRowStarts = maiRowStarts.GetData();
+	iSourceLeft = pcSubImage->mcImageRect.msTopLeft.x - pcSubImage->msOffsetTopLeft.x;
+	iImageHeight = pcSubImage->GetImageHeight();
+
+	for (y = yVisibleStart; y < yVisibleEnd; y++)
+	{
+		//Rows in the cel's transparent borders have nothing to draw.
+		iImageRow = paiSourceY[y];
+		if ((iImageRow < 0) || (iImageRow >= iImageHeight))
+		{
+			continue;
+		}
+
+		uiEnd = paiRowStarts[iImageRow + 1];
+		for (ui = paiRowStarts[iImageRow]; ui < uiEnd; ui++)
+		{
+			pcRowBlitter = macRowBlitters.Get(ui);
+
+			xStart = paiDestX[(int32)pcRowBlitter->msOffset.x - iSourceLeft];
+			xEnd = paiDestX[(int32)pcRowBlitter->muiXEnd - iSourceLeft];
+			if (xStart < xVisibleStart)
+			{
+				xStart = xVisibleStart;
+			}
+			if (xEnd > xVisibleEnd)
+			{
+				xEnd = xVisibleEnd;
+			}
+
+			//Shrinking can drop every column of a segment and clipping can leave a segment entirely outside.
+			if (xStart >= xEnd)
+			{
+				continue;
+			}
+
+			if (iDestWidth == iFullWidth)
+			{
+				//Only the height changes so the columns are copied one for one by the faster blitters.
+				pcRowBlitter->mpcBlitter->Copy(&mcContext, pvSource, pvDest, iLeft + xStart, iTop + y, paiSourceX[xStart], paiSourceX[xStart] + (xEnd - xStart), pcRowBlitter->msOffset.y);
+			}
+			else
+			{
+				pcRowBlitter->mpcSizingBlitter->Copy(&mcContext, pvSource, pvDest, iLeft + xStart, iLeft + xEnd, iTop + y, &paiSourceX[xStart], pcRowBlitter->msOffset.y);
+			}
+		}
+	}
+
+	return true;
 }
 

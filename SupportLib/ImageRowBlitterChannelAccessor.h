@@ -31,7 +31,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImageRowBlitterChannelAccessor : public CBaseImageRowBlitter
 {
 public:
-	void	Copy(CImageBlitterContext* pcContext, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
+	void						Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
+	CBaseImageRowSizingBlitter*	GetSizingBlitter(CImageRowBlitterFactory* pcFactory) override;
 };
 
 

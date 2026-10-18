@@ -1,4 +1,5 @@
 #include "BaseLib/TypeNames.h"
+#include "ImageRowBlitterFactory.h"
 #include "ImageRowBlitterByteAlignedOpaque.h"
 
 
@@ -63,3 +64,22 @@ void CImageRowBlitterByteAlignedOpaqueDestAlpha::Copy(CImageBlitterContext* pcCo
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseImageRowSizingBlitter* CImageRowBlitterByteAlignedOpaque::GetSizingBlitter(CImageRowBlitterFactory* pcFactory)
+{
+	return pcFactory->CreateImageRowSizingBlitterByteAlignedOpaque();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseImageRowSizingBlitter* CImageRowBlitterByteAlignedOpaqueDestAlpha::GetSizingBlitter(CImageRowBlitterFactory* pcFactory)
+{
+	return pcFactory->CreateImageRowSizingBlitterByteAlignedOpaqueDestAlpha();
+}

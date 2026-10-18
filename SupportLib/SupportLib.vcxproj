@@ -209,6 +209,9 @@
     <ClInclude Include="ImageRowBlitterByteAlignedOpaque.h" />
     <ClInclude Include="ImageRowBlitterRGBByteAlphaByteTranslucent.h" />
     <ClInclude Include="ImageRowBlitter.h" />
+    <ClInclude Include="BaseImageRowSizingBlitter.h" />
+    <ClInclude Include="ImageRowSizingBlitterByteAlignedOpaque.h" />
+    <ClInclude Include="ImageRowSizingBlitterRGBByteAlphaByteTranslucent.h" />
     <ClInclude Include="MapFontDraw.h" />
     <ClInclude Include="MapViewport.h" />
     <ClInclude Include="MultiImageCopier.h" />
@@ -421,6 +424,8 @@
     <ClCompile Include="ImageRowBlitterByteAlignedOpaque.cpp" />
     <ClCompile Include="ImageRowBlitterRGBByteAlphaByteTranslucent.cpp" />
     <ClCompile Include="ImageRowBlitter.cpp" />
+    <ClCompile Include="ImageRowSizingBlitterByteAlignedOpaque.cpp" />
+    <ClCompile Include="ImageRowSizingBlitterRGBByteAlphaByteTranslucent.cpp" />
     <ClCompile Include="MapFontDraw.cpp" />
     <ClCompile Include="FontFactory.cpp" />
     <ClCompile Include="FontImportParameters.cpp" />

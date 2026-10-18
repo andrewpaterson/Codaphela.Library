@@ -54,3 +54,42 @@ CBaseImageRowBlitter* CImageRowBlitterFactory::CreateImageRowBlitterRGBByteAlpha
 	return &mcImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseImageRowSizingBlitter* CImageRowBlitterFactory::CreateImageRowSizingBlitterByteAlignedOpaque(void)
+{
+	return &mcImageRowSizingBlitterByteAlignedOpaque;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseImageRowSizingBlitter* CImageRowBlitterFactory::CreateImageRowSizingBlitterByteAlignedOpaqueDestAlpha(void)
+{
+	return &mcImageRowSizingBlitterByteAlignedOpaqueDestAlpha;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseImageRowSizingBlitter* CImageRowBlitterFactory::CreateImageRowSizingBlitterRGBByteAlphaByteTranslucent(void)
+{
+	return &mcImageRowSizingBlitterRGBByteAlphaByteTranslucent;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBaseImageRowSizingBlitter* CImageRowBlitterFactory::CreateImageRowSizingBlitterRGBByteAlphaByteTranslucentDestAlpha(void)
+{
+	return &mcImageRowSizingBlitterRGBByteAlphaByteTranslucentDestAlpha;
+}

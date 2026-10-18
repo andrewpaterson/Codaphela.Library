@@ -30,6 +30,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageRowBlitterContiguous.h"
 #include "ImageRowBlitterByteAlignedOpaque.h"
 #include "ImageRowBlitterRGBByteAlphaByteTranslucent.h"
+#include "ImageRowSizingBlitterByteAlignedOpaque.h"
+#include "ImageRowSizingBlitterRGBByteAlphaByteTranslucent.h"
 
 
 class CImageRowBlitterFactory
@@ -41,12 +43,22 @@ protected:
 	CImageRowBlitterRGBByteAlphaByteTranslucent				mcImageRowBlitterRGBByteAlphaByteTranslucent;
 	CImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha	mcImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha;
 
+	CImageRowSizingBlitterByteAlignedOpaque						mcImageRowSizingBlitterByteAlignedOpaque;
+	CImageRowSizingBlitterByteAlignedOpaqueDestAlpha			mcImageRowSizingBlitterByteAlignedOpaqueDestAlpha;
+	CImageRowSizingBlitterRGBByteAlphaByteTranslucent			mcImageRowSizingBlitterRGBByteAlphaByteTranslucent;
+	CImageRowSizingBlitterRGBByteAlphaByteTranslucentDestAlpha	mcImageRowSizingBlitterRGBByteAlphaByteTranslucentDestAlpha;
+
 public:
 	CBaseImageRowBlitter*	CreateImageRowBlitterContiguous(void);
 	CBaseImageRowBlitter*	CreateImageRowBlitterByteAlignedOpaque(void);
 	CBaseImageRowBlitter*	CreateImageRowBlitterByteAlignedOpaqueDestAlpha(void);
 	CBaseImageRowBlitter*	CreateImageRowBlitterRGBByteAlphaByteTranslucent(void);
 	CBaseImageRowBlitter*	CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(void);
+
+	CBaseImageRowSizingBlitter*	CreateImageRowSizingBlitterByteAlignedOpaque(void);
+	CBaseImageRowSizingBlitter*	CreateImageRowSizingBlitterByteAlignedOpaqueDestAlpha(void);
+	CBaseImageRowSizingBlitter*	CreateImageRowSizingBlitterRGBByteAlphaByteTranslucent(void);
+	CBaseImageRowSizingBlitter*	CreateImageRowSizingBlitterRGBByteAlphaByteTranslucentDestAlpha(void);
 };
 
 

@@ -28,10 +28,19 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseImageRowBlitter.h"
 
 
+//Blends the colour of one source pixel over one destination pixel by the opacity of the source pixel.  The destination is
+//treated as opaque, which is only exact when it is.
+void	BlendRGBByteAlphaByte(CImageBlitterContext* pcContext, void* pvSourcePixel, void* pvDestPixel);
+
+//Combines the opacity of one source pixel with the opacity of the destination pixel it is drawn over.
+void	BlendAlphaByte(CImageBlitterContext* pcContext, void* pvSourcePixel, void* pvDestPixel);
+
+
 class CImageRowBlitterRGBByteAlphaByteTranslucent : public CBaseImageRowBlitter
 {
 public:
 	void	Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
+	CBaseImageRowSizingBlitter*	GetSizingBlitter(CImageRowBlitterFactory* pcFactory) override;
 };
 
 
@@ -39,6 +48,7 @@ class CImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha : public CBaseImageRo
 {
 public:
 	void	Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
+	CBaseImageRowSizingBlitter*	GetSizingBlitter(CImageRowBlitterFactory* pcFactory) override;
 };
 
 

@@ -771,6 +771,15 @@
     <ClInclude Include="ImageRowBlitter.h">
       <Filter>Source\Image\Blitter</Filter>
     </ClInclude>
+    <ClInclude Include="BaseImageRowSizingBlitter.h">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageRowSizingBlitterByteAlignedOpaque.h">
+      <Filter>Source\Image\Blitter\Types</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageRowSizingBlitterRGBByteAlphaByteTranslucent.h">
+      <Filter>Source\Image\Blitter\Types\Translucent</Filter>
+    </ClInclude>
     <ClInclude Include="ImageRowBlitterByteAlignedOpaque.h">
       <Filter>Source\Image\Blitter\Types</Filter>
     </ClInclude>
@@ -1366,6 +1375,12 @@
     </ClCompile>
     <ClCompile Include="ImageRowBlitter.cpp">
       <Filter>Source\Image\Blitter</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRowSizingBlitterByteAlignedOpaque.cpp">
+      <Filter>Source\Image\Blitter\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRowSizingBlitterRGBByteAlphaByteTranslucent.cpp">
+      <Filter>Source\Image\Blitter\Types\Translucent</Filter>
     </ClCompile>
     <ClCompile Include="ImageRowBlitterContiguous.cpp">
       <Filter>Source\Image\Blitter\Types</Filter>

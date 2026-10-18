@@ -30,16 +30,18 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Rectangle.h"
 #include "ImageCopyDimension.h"
 #include "BaseImageRowBlitter.h"
+#include "BaseImageRowSizingBlitter.h"
 
 
 class CImageRowBlitter
 {
 public:
-	CBaseImageRowBlitter*	mpcBlitter;
-	SSizeVec2				msOffset;
-	size					muiXEnd;
+	CBaseImageRowBlitter*			mpcBlitter;
+	CBaseImageRowSizingBlitter*		mpcSizingBlitter;
+	SSizeVec2						msOffset;
+	size							muiXEnd;
 
-	void	Init(CBaseImageRowBlitter* pcBlitter, size uiXStart, size uiXEnd, size uiY);
+	void	Init(CBaseImageRowBlitter* pcBlitter, CBaseImageRowSizingBlitter* pcSizingBlitter, size uiXStart, size uiXEnd, size uiY);
 };
 
 
