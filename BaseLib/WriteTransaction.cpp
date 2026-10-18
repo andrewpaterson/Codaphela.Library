@@ -3,6 +3,7 @@
 #include "PointerRemapper.h"
 #include "IndexedGeneral.h"
 #include "IntegerHelper.h"
+#include "NativeThread.h"
 #include "Codabase.h"
 #include "WriteTransaction.h"
 
@@ -31,12 +32,16 @@ void* SWriteRecord::GetData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWriteTransaction::Init(CCodabase* pcCodabase)
+void CWriteTransaction::Init(CCodabase* pcCodabase, int64 iStartNumber)
 {
 	mpcCodabase = pcCodabase;
+	miStartNumber = iStartNumber;
+	miThread = CurrentThreadId();
 	mcRecords.Init(true);
 	mcNames.Init(true, true);
+	maszReserved.Init();
 	mbActive = true;
+	mbDied = false;
 	maoiIteration.Init();
 	miIndexPosition = 0;
 	maszIteration.Init();
@@ -52,8 +57,10 @@ void CWriteTransaction::Kill(void)
 {
 	//Killing a transaction that has not committed aborts it.
 	Abort();
+	mpcCodabase->RemoveWriter(this);
 	maszIteration.Kill();
 	maoiIteration.Kill();
+	maszReserved.Kill();
 	mcNames.Kill();
 	mcRecords.Kill();
 	mpcCodabase = NULL;
@@ -67,8 +74,9 @@ void CWriteTransaction::Kill(void)
 bool CWriteTransaction::Commit(void)
 {
 	bool	bResult;
+	size	i;
 
-	if (!CheckActive(__METHOD__))
+	if (!CheckActive())
 	{
 		return false;
 	}
@@ -93,9 +101,15 @@ bool CWriteTransaction::Commit(void)
 			gcLogger.Error2(__METHOD__, " Could not apply the transaction.  The Codabase is read only until it is restarted.", NULL);
 		}
 	}
-	mpcCodabase->ReleaseWriter();
+	for (i = 0; i < maszReserved.NumElements(); i++)
+	{
+		mpcCodabase->ReleaseName(maszReserved.GetText(i), miStartNumber);
+	}
 	mpcCodabase->mcMutex.Unlock();
+	maszReserved.ReInit();
 
+	//The locks are released only once the commit is durable.
+	mpcCodabase->mcLocks.ReleaseAll(miStartNumber);
 	Finish();
 	return bResult;
 }
@@ -109,9 +123,7 @@ void CWriteTransaction::Abort(void)
 {
 	if (mbActive)
 	{
-		mpcCodabase->mcMutex.Lock();
-		mpcCodabase->ReleaseWriter();
-		mpcCodabase->mcMutex.Unlock();
+		ReleaseResources();
 		Finish();
 	}
 }
@@ -131,6 +143,68 @@ bool CWriteTransaction::IsActive(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CWriteTransaction::HasDied(void)
+{
+	return mbDied;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWriteTransaction::Restart(void)
+{
+	if (!mbDied)
+	{
+		return gcLogger.Error2(__METHOD__, " Only a write transaction that died can be restarted.", NULL);
+	}
+
+	//The start number is kept, so the transaction is older than every one begun since it first started.
+	mbDied = false;
+	mbActive = true;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CWriteTransaction::GetStartNumber(void)
+{
+	return miStartNumber;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CWriteTransaction::GetThread(void)
+{
+	return miThread;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWriteTransaction::Lock(OIndex oi, ELockMode eMode)
+{
+	if (!CheckActive())
+	{
+		return false;
+	}
+	return LockOrDie(oi, eMode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::Add(OIndex oi, void* pvData, uint32 uiDataSize)
 {
 	return Add(oi, (const char*)NULL, pvData, uiDataSize);
@@ -143,9 +217,7 @@ bool CWriteTransaction::Add(OIndex oi, void* pvData, uint32 uiDataSize)
 //////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::Add(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize)
 {
-	bool	bReplacesStored;
-
-	if (!CheckActive(__METHOD__))
+	if (!CheckActive())
 	{
 		return false;
 	}
@@ -157,26 +229,11 @@ bool CWriteTransaction::Add(OIndex oi, const char* szName, void* pvData, uint32 
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot Add Index [", IndexToString(oi), "] with empty data.", NULL);
 	}
-	if (Exists(oi))
-	{
-		return gcLogger.Error2(__METHOD__, " Cannot Add Index [", IndexToString(oi), "].  It already exists.", NULL);
-	}
-	if (!StrEmpty(szName) && (FindName(szName) != INVALID_O_INDEX))
-	{
-		return gcLogger.Error2(__METHOD__, " Cannot Add Name [", szName, "] with Index [", IndexToString(oi), "].  The name already exists.", NULL);
-	}
-
-	//A stored object that does not exist any more was removed by this transaction.
-	bReplacesStored = StoredContains(oi);
-	if (!PutRecord(oi, false, bReplacesStored, szName, pvData, uiDataSize))
+	if (!LockOrDie(oi, LM_Exclusive))
 	{
 		return false;
 	}
-	if (!StrEmpty(szName))
-	{
-		mcNames.Put(szName, &oi);
-	}
-	return true;
+	return AddLocked(oi, szName, pvData, uiDataSize);
 }
 
 
@@ -206,28 +263,15 @@ bool CWriteTransaction::Set(OIndex oi, void* pvData)
 //////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::Set(OIndex oi, void* pvData, uint32 uiDataSize)
 {
-	if (!CheckActive(__METHOD__))
+	if (!CheckActive())
 	{
 		return false;
 	}
-	if (!Exists(oi))
+	if (!LockOrDie(oi, LM_Exclusive))
 	{
-		return gcLogger.Error2(__METHOD__, " Cannot Set Index [", IndexToString(oi), "].  It does not exist.", NULL);
+		return false;
 	}
-	if (pvData == NULL)
-	{
-		return gcLogger.Error2(__METHOD__, " Cannot Set Index [", IndexToString(oi), "] with empty data.", NULL);
-	}
-
-	//A size of zero keeps the current size.
-	if (uiDataSize == 0)
-	{
-		if (!GetDataSize(oi, &uiDataSize))
-		{
-			return false;
-		}
-	}
-	return SetData(oi, pvData, uiDataSize);
+	return SetLocked(oi, pvData, uiDataSize);
 }
 
 
@@ -249,12 +293,19 @@ bool CWriteTransaction::Set(const char* szName, void* pvData, uint32 uiDataSize)
 {
 	OIndex	oi;
 
-	oi = FindName(szName);
-	if (oi == INVALID_O_INDEX)
+	if (!CheckActive())
 	{
+		return false;
+	}
+	if (!FindAndLock(szName, LM_Exclusive, &oi))
+	{
+		if (mbDied)
+		{
+			return false;
+		}
 		return gcLogger.Error2(__METHOD__, " Cannot Set Name [", StringToString(szName), "].  It does not exist.", NULL);
 	}
-	return Set(oi, pvData, uiDataSize);
+	return SetLocked(oi, pvData, uiDataSize);
 }
 
 
@@ -284,13 +335,22 @@ bool CWriteTransaction::Set(CChars* szName, void* pvData, uint32 uiDataSize)
 //////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::Put(OIndex oi, void* pvData, uint32 uiDataSize)
 {
+	if (!CheckActive())
+	{
+		return false;
+	}
+	if (!LockOrDie(oi, LM_Exclusive))
+	{
+		return false;
+	}
+
 	if (Exists(oi))
 	{
-		return Set(oi, pvData, uiDataSize);
+		return SetLocked(oi, pvData, uiDataSize);
 	}
 	else
 	{
-		return Add(oi, pvData, uiDataSize);
+		return AddLocked(oi, NULL, pvData, uiDataSize);
 	}
 }
 
@@ -304,6 +364,15 @@ bool CWriteTransaction::Put(OIndex oi, const char* szName, void* pvData, uint32 
 	OIndex	oiExisting;
 	bool	bExists;
 
+	if (!CheckActive())
+	{
+		return false;
+	}
+	if (!LockOrDie(oi, LM_Exclusive))
+	{
+		return false;
+	}
+
 	//The same rules as CNamedIndexedData::Put.
 	oiExisting = FindName(szName);
 	bExists = Exists(oi);
@@ -313,11 +382,15 @@ bool CWriteTransaction::Put(OIndex oi, const char* szName, void* pvData, uint32 
 		{
 			return gcLogger.Error2(__METHOD__, " Put Index [", IndexToString(oi), "] not equal to existing index [", IndexToString(oiExisting), "] for name [", szName, "].", NULL);
 		}
-		return Set(oi, pvData, uiDataSize);
+		return SetLocked(oi, pvData, uiDataSize);
 	}
 	else if (!bExists && (oiExisting == INVALID_O_INDEX))
 	{
-		return Add(oi, szName, pvData, uiDataSize);
+		if ((pvData == NULL) || (uiDataSize == 0))
+		{
+			return gcLogger.Error2(__METHOD__, " Cannot Put Index [", IndexToString(oi), "] with empty data.", NULL);
+		}
+		return AddLocked(oi, szName, pvData, uiDataSize);
 	}
 	else if (oiExisting != INVALID_O_INDEX)
 	{
@@ -352,10 +425,15 @@ bool CWriteTransaction::Get(OIndex oi, void* pvData)
 {
 	SWriteRecord*	psRecord;
 
+	if (!CheckActive() || !LockOrDie(oi, LM_Shared))
+	{
+		return false;
+	}
+
 	psRecord = GetRecord(oi);
 	if (psRecord == NULL)
 	{
-		return mpcCodabase->Get(oi, pvData);
+		return mpcCodabase->StoredGetAll(oi, pvData);
 	}
 	if (psRecord->bRemoved)
 	{
@@ -374,10 +452,15 @@ bool CWriteTransaction::Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32
 {
 	SWriteRecord*	psRecord;
 
+	if (!CheckActive() || !LockOrDie(oi, LM_Shared))
+	{
+		return false;
+	}
+
 	psRecord = GetRecord(oi);
 	if (psRecord == NULL)
 	{
-		return mpcCodabase->Get(oi, puiDataSize, pvData, uiMaxDataSize);
+		return mpcCodabase->StoredGet(oi, puiDataSize, pvData, uiMaxDataSize);
 	}
 	if (psRecord->bRemoved)
 	{
@@ -400,8 +483,7 @@ bool CWriteTransaction::Get(const char* szName, void* pvData)
 {
 	OIndex	oi;
 
-	oi = FindName(szName);
-	if (oi == INVALID_O_INDEX)
+	if (!CheckActive() || !FindAndLock(szName, LM_Shared, &oi))
 	{
 		return false;
 	}
@@ -417,8 +499,7 @@ bool CWriteTransaction::Get(const char* szName, uint32* puiDataSize, void* pvDat
 {
 	OIndex	oi;
 
-	oi = FindName(szName);
-	if (oi == INVALID_O_INDEX)
+	if (!CheckActive() || !FindAndLock(szName, LM_Shared, &oi))
 	{
 		return false;
 	}
@@ -452,6 +533,10 @@ bool CWriteTransaction::Get(CChars* szName, uint32* puiDataSize, void* pvData, u
 //////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::GetName(OIndex oi, CChars* szName)
 {
+	if (!CheckActive() || !LockOrDie(oi, LM_Shared))
+	{
+		return false;
+	}
 	if (!Exists(oi))
 	{
 		return false;
@@ -492,6 +577,10 @@ bool CWriteTransaction::GetName(OIndex oi, char* szName, uint32* puiNameLength, 
 //////////////////////////////////////////////////////////////////////////
 OIndex CWriteTransaction::GetIndex(const char* szName)
 {
+	if (!CheckActive())
+	{
+		return INVALID_O_INDEX;
+	}
 	return FindName(szName);
 }
 
@@ -502,7 +591,7 @@ OIndex CWriteTransaction::GetIndex(const char* szName)
 //////////////////////////////////////////////////////////////////////////
 OIndex CWriteTransaction::GetIndex(CChars* szName)
 {
-	return FindName(szName ? szName->Text() : NULL);
+	return GetIndex(szName ? szName->Text() : NULL);
 }
 
 
@@ -512,6 +601,10 @@ OIndex CWriteTransaction::GetIndex(CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::Contains(OIndex oi)
 {
+	if (!CheckActive() || !LockOrDie(oi, LM_Shared))
+	{
+		return false;
+	}
 	return Exists(oi);
 }
 
@@ -522,7 +615,7 @@ bool CWriteTransaction::Contains(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::Contains(const char* szName)
 {
-	return FindName(szName) != INVALID_O_INDEX;
+	return GetIndex(szName) != INVALID_O_INDEX;
 }
 
 
@@ -532,7 +625,7 @@ bool CWriteTransaction::Contains(const char* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::Contains(CChars* szName)
 {
-	return FindName(szName ? szName->Text() : NULL) != INVALID_O_INDEX;
+	return GetIndex(szName) != INVALID_O_INDEX;
 }
 
 
@@ -542,36 +635,11 @@ bool CWriteTransaction::Contains(CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::Remove(OIndex oi)
 {
-	CChars	szName;
-	OIndex	oiRemoved;
-
-	if (!CheckActive(__METHOD__))
+	if (!CheckActive() || !LockOrDie(oi, LM_Exclusive))
 	{
 		return false;
 	}
-	if (!Exists(oi))
-	{
-		return false;
-	}
-
-	szName.Init();
-	GetCurrentName(oi, &szName);
-	if (!szName.Empty())
-	{
-		oiRemoved = INVALID_O_INDEX;
-		mcNames.Put(szName.Text(), &oiRemoved);
-	}
-	szName.Kill();
-
-	if (StoredContains(oi))
-	{
-		return PutRecord(oi, true, false, NULL, NULL, 0);
-	}
-	else
-	{
-		//The object was only ever added by this transaction.
-		return mcRecords.Remove(&oi, sizeof(OIndex));
-	}
+	return RemoveLocked(oi);
 }
 
 
@@ -583,12 +651,11 @@ bool CWriteTransaction::Remove(const char* szName)
 {
 	OIndex	oi;
 
-	oi = FindName(szName);
-	if (oi == INVALID_O_INDEX)
+	if (!CheckActive() || !FindAndLock(szName, LM_Exclusive, &oi))
 	{
 		return false;
 	}
-	return Remove(oi);
+	return RemoveLocked(oi);
 }
 
 
@@ -673,7 +740,7 @@ OIndex CWriteTransaction::IndexIterate(SIndexTreeFileIterator* psIterator, void*
 	OIndex	oi;
 	uint32	uiDataSize;
 
-	while (miIndexPosition < maoiIteration.NumElements())
+	while (mbActive && (miIndexPosition < maoiIteration.NumElements()))
 	{
 		oi = *maoiIteration.Get(miIndexPosition);
 		miIndexPosition++;
@@ -748,7 +815,7 @@ bool CWriteTransaction::NameIterate(SIndexTreeFileIterator* psIterator, char* sz
 	char*	szName;
 	OIndex	oi;
 
-	while (miNamePosition < maszIteration.NumElements())
+	while (mbActive && (miNamePosition < maszIteration.NumElements()))
 	{
 		szName = maszIteration.GetText(miNamePosition);
 		miNamePosition++;
@@ -769,11 +836,191 @@ bool CWriteTransaction::NameIterate(SIndexTreeFileIterator* psIterator, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::CheckActive(const char* szMethod)
+void CWriteTransaction::GetCountChanges(int64* piIndices, int64* piNames)
 {
-	if (!mbActive)
+	SMapIterator	sIter;
+	void*			pvKey;
+	void*			pvData;
+	size			iKeySize;
+	size			iDataSize;
+	bool			bExists;
+	SWriteRecord*	psRecord;
+	bool			bStored;
+	OIndex			oi;
+	CChars			szName;
+
+	//How the number of objects and names will change when the transaction commits.
+	*piIndices = 0;
+	*piNames = 0;
+	bExists = mcRecords.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
+	while (bExists)
 	{
-		return gcLogger.Error2(szMethod, " The write transaction has already been committed or aborted.", NULL);
+		psRecord = (SWriteRecord*)pvData;
+		bStored = mpcCodabase->StoredContains(*((OIndex*)pvKey));
+		if (!psRecord->bRemoved && !bStored)
+		{
+			(*piIndices)++;
+		}
+		else if (psRecord->bRemoved && bStored)
+		{
+			(*piIndices)--;
+		}
+		bExists = mcRecords.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
+	}
+
+	bExists = mcNames.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
+	while (bExists)
+	{
+		oi = *((OIndex*)pvData);
+		szName.Init((char*)pvKey, 0, strnlen((char*)pvKey, iKeySize));
+		bStored = mpcCodabase->StoredGetIndex(szName.Text()) != INVALID_O_INDEX;
+		szName.Kill();
+		if ((oi != INVALID_O_INDEX) && !bStored)
+		{
+			(*piNames)++;
+		}
+		else if ((oi == INVALID_O_INDEX) && bStored)
+		{
+			(*piNames)--;
+		}
+		bExists = mcNames.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWriteTransaction::CheckActive(void)
+{
+	//__METHOD__ is only used when there is an error.  It is built in a buffer that is not thread safe.
+	if (mbActive)
+	{
+		return true;
+	}
+	if (mbDied)
+	{
+		//Not an error.  The caller sees HasDied and restarts.
+		return false;
+	}
+	return gcLogger.Error2(__METHOD__, " The write transaction has already been committed or aborted.", NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWriteTransaction::LockOrDie(OIndex oi, ELockMode eMode)
+{
+	if (mpcCodabase->mcLocks.Lock(miStartNumber, oi, eMode) == LR_Died)
+	{
+		Die();
+		return false;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWriteTransaction::FindAndLock(const char* szName, ELockMode eMode, OIndex* poi)
+{
+	OIndex	oi;
+
+	//The name may move to another object while the lock is waited for, so it is looked up again once locked.
+	for (;;)
+	{
+		oi = FindName(szName);
+		*poi = oi;
+		if (oi == INVALID_O_INDEX)
+		{
+			return false;
+		}
+		if (!LockOrDie(oi, eMode))
+		{
+			return false;
+		}
+		if (FindName(szName) == oi)
+		{
+			return true;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWriteTransaction::Die(void)
+{
+	//Wait-die: a younger transaction never waits for an older one.  Everything it did is thrown away.
+	ReleaseResources();
+	mcRecords.Kill();
+	mcRecords.Init(true);
+	mcNames.Kill();
+	mcNames.Init(true, true);
+	mbActive = false;
+	mbDied = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWriteTransaction::ReleaseResources(void)
+{
+	size	i;
+
+	mpcCodabase->mcMutex.Lock();
+	for (i = 0; i < maszReserved.NumElements(); i++)
+	{
+		mpcCodabase->ReleaseName(maszReserved.GetText(i), miStartNumber);
+	}
+	mpcCodabase->mcMutex.Unlock();
+	maszReserved.ReInit();
+	mpcCodabase->mcLocks.ReleaseAll(miStartNumber);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWriteTransaction::ReserveNewName(const char* szName)
+{
+	OIndex*	poiChanged;
+	bool	bRemovedHere;
+	bool	bResult;
+	CChars	szReserved;
+
+	//The check of the committed names and the reservation are made together, so no other transaction can add the name
+	//in between.  A name this transaction removed can be added again.
+	poiChanged = mcNames.Get(szName);
+	bRemovedHere = (poiChanged != NULL) && (*poiChanged == INVALID_O_INDEX);
+	mpcCodabase->mcMutex.Lock();
+	if (!bRemovedHere && (mpcCodabase->mcNamedIndexedData.GetIndex(szName) != INVALID_O_INDEX))
+	{
+		mpcCodabase->mcMutex.Unlock();
+		return gcLogger.Error2(__METHOD__, " Cannot Add Name [", szName, "].  It already exists.", NULL);
+	}
+	bResult = mpcCodabase->ReserveName(szName, miStartNumber);
+	mpcCodabase->mcMutex.Unlock();
+	if (!bResult)
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot Add Name [", szName, "].  Another transaction is adding it.", NULL);
+	}
+
+	if (maszReserved.FindInSorted(szName) == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		szReserved.Init(szName);
+		maszReserved.InsertIntoSorted(&szReserved);
+		szReserved.Kill();
 	}
 	return true;
 }
@@ -824,16 +1071,6 @@ bool CWriteTransaction::PutRecord(OIndex oi, bool bRemoved, bool bReplacesStored
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::StoredContains(OIndex oi)
-{
-	return mpcCodabase->Contains(oi);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::Exists(OIndex oi)
 {
 	SWriteRecord*	psRecord;
@@ -843,7 +1080,7 @@ bool CWriteTransaction::Exists(OIndex oi)
 	{
 		return !psRecord->bRemoved;
 	}
-	return StoredContains(oi);
+	return mpcCodabase->StoredContains(oi);
 }
 
 
@@ -866,7 +1103,7 @@ OIndex CWriteTransaction::FindName(const char* szName)
 	{
 		return *poi;
 	}
-	return mpcCodabase->GetIndex(szName);
+	return mpcCodabase->StoredGetIndex(szName);
 }
 
 
@@ -888,7 +1125,7 @@ bool CWriteTransaction::GetCurrentName(OIndex oi, CChars* pszName)
 		pszName->Append(psRecord->GetName(), psRecord->iNameLength);
 		return true;
 	}
-	return mpcCodabase->GetName(oi, pszName);
+	return mpcCodabase->StoredGetName(oi, pszName);
 }
 
 
@@ -906,7 +1143,7 @@ bool CWriteTransaction::GetDataSize(OIndex oi, uint32* puiDataSize)
 		*puiDataSize = psRecord->uiDataSize;
 		return !psRecord->bRemoved;
 	}
-	return mpcCodabase->Get(oi, puiDataSize, NULL, 0);
+	return mpcCodabase->StoredGet(oi, puiDataSize, NULL, 0);
 }
 
 
@@ -929,6 +1166,109 @@ bool CWriteTransaction::SetData(OIndex oi, void* pvData, uint32 uiDataSize)
 	bResult = PutRecord(oi, false, bReplacesStored, szName.Empty() ? NULL : szName.Text(), pvData, uiDataSize);
 	szName.Kill();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWriteTransaction::AddLocked(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize)
+{
+	bool	bReplacesStored;
+
+	//The object is locked exclusively.
+	if (Exists(oi))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot Add Index [", IndexToString(oi), "].  It already exists.", NULL);
+	}
+	if (!StrEmpty(szName))
+	{
+		if (FindName(szName) != INVALID_O_INDEX)
+		{
+			return gcLogger.Error2(__METHOD__, " Cannot Add Name [", szName, "] with Index [", IndexToString(oi), "].  The name already exists.", NULL);
+		}
+		if (!ReserveNewName(szName))
+		{
+			return false;
+		}
+	}
+
+	//A stored object that does not exist any more was removed by this transaction.
+	bReplacesStored = mpcCodabase->StoredContains(oi);
+	if (!PutRecord(oi, false, bReplacesStored, szName, pvData, uiDataSize))
+	{
+		return false;
+	}
+	if (!StrEmpty(szName))
+	{
+		mcNames.Put(szName, &oi);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWriteTransaction::SetLocked(OIndex oi, void* pvData, uint32 uiDataSize)
+{
+	//The object is locked exclusively.
+	if (!Exists(oi))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot Set Index [", IndexToString(oi), "].  It does not exist.", NULL);
+	}
+	if (pvData == NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot Set Index [", IndexToString(oi), "] with empty data.", NULL);
+	}
+
+	//A size of zero keeps the current size.
+	if (uiDataSize == 0)
+	{
+		if (!GetDataSize(oi, &uiDataSize))
+		{
+			return false;
+		}
+	}
+	return SetData(oi, pvData, uiDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWriteTransaction::RemoveLocked(OIndex oi)
+{
+	CChars	szName;
+	OIndex	oiRemoved;
+
+	//The object is locked exclusively.
+	if (!Exists(oi))
+	{
+		return false;
+	}
+
+	szName.Init();
+	GetCurrentName(oi, &szName);
+	if (!szName.Empty())
+	{
+		oiRemoved = INVALID_O_INDEX;
+		mcNames.Put(szName.Text(), &oiRemoved);
+	}
+	szName.Kill();
+
+	if (mpcCodabase->StoredContains(oi))
+	{
+		return PutRecord(oi, true, false, NULL, NULL, 0);
+	}
+	else
+	{
+		//The object was only ever added by this transaction.
+		return mcRecords.Remove(&oi, sizeof(OIndex));
+	}
 }
 
 

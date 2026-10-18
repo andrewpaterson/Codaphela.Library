@@ -6,6 +6,8 @@
 #include "Mutex.h"
 #include "ConditionVariable.h"
 #include "CodabaseVersions.h"
+#include "LockManager.h"
+#include "MapStringTemplate.h"
 
 
 class CWriteTransaction;
@@ -13,8 +15,10 @@ class CReadTransaction;
 
 
 //A durable bracket is always open while the Codabase is started, so the store can be read at any time.  Writes are
-//committed either by a write transaction or by a direct session (Open ... Close).  Only one writer, transaction or
-//session, is active at a time; others wait for it to finish.
+//made by write transactions, which run at the same time and lock the objects they use (wait-die), or by a direct
+//session.  A direct session (Open ... Close) is an implicit write transaction that is always the oldest, so it waits
+//but never dies.  Direct calls between Open and Close go through it, from any thread; Close commits it.  Without a
+//session direct reads see the committed store and direct writes fail.
 class CCodabase : public CDataConnection, public CKillable
 {
 friend class CWriteTransaction;
@@ -27,14 +31,18 @@ protected:
 	bool							mbStarted;
 	bool							mbControllerInitialised;
 	CMutex							mcMutex;  //Held for each operation.  Even reads change the caches.
-	CConditionVariable				mcWriterFinished;
-	bool							mbWriterActive;
-	int								miWriterThread;
-	bool							mbSessionOpen;
 	bool							mbFailed;  //A commit failed part way.  No more writes until restarted.
 	CCodabaseVersions				mcVersions;  //Old versions for read transactions.
 	int64							miCommitNumber;  //The last commit.  The commit in progress is miCommitNumber + 1.
 	CArrayTemplate<int64>			maiSnapshots;  //The snapshot of every open read transaction.
+	CLockManager					mcLocks;
+	CMapStringTemplate<int64>		mcReservedNames;  //Names being added by uncommitted write transactions, and which one.
+	int64							miLastStartNumber;  //Write transactions are numbered from 1.  The session is 0, the oldest.
+	CArrayTemplate<CWriteTransaction*>	mapcWriters;  //Every write transaction that has not been killed.
+	CMutex							mcSessionMutex;  //Held for each direct call while a session is open.
+	CConditionVariable				mcSessionFinished;
+	CWriteTransaction*				mpcSession;
+	int								miSessionThread;
 
 public:
 	void	Init(const char* szDirectory, EDurableSync eSync, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig);
@@ -46,6 +54,7 @@ public:
 
 	CWriteTransaction*	BeginWriteTransaction(void);
 	CReadTransaction*	BeginReadTransaction(void);
+	CLockManager*		GetLockManager(void);
 	bool				IsFailed(void);
 	int64				GetCommitNumber(void);
 	size				NumVersions(void);
@@ -110,11 +119,17 @@ public:
 	bool	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 
 protected:
-	bool	AcquireWriter(void);
-	void	ReleaseWriter(void);
 	bool	CommitLocked(void);
-	bool	CanWriteDirectly(void);
-	void	SaveVersions(OIndex oi, const char* szNewName);
+	bool	NeedsSession(const char* szMethod);
+	bool	HasWriterOnThisThread(void);
+	void	RemoveWriter(CWriteTransaction* pcTransaction);
+	bool	ReserveName(const char* szName, int64 iTransaction);
+	void	ReleaseName(const char* szName, int64 iTransaction);
+	bool	StoredGet(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
+	bool	StoredGetAll(OIndex oi, void* pvData);
+	bool	StoredContains(OIndex oi);
+	bool	StoredGetName(OIndex oi, CChars* pszName);
+	OIndex	StoredGetIndex(const char* szName);
 	void	RemoveOldVersions(void);
 	void	EndRead(int64 iSnapshot);
 	void	GetStoredIndices(CArrayOIndex* paoi);

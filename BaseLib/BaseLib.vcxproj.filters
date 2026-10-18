@@ -1560,6 +1560,9 @@
     <ClInclude Include="WriteTransaction.h">
       <Filter>Source\Database\Codabase</Filter>
     </ClInclude>
+    <ClInclude Include="LockManager.h">
+      <Filter>Source\Database\Codabase</Filter>
+    </ClInclude>
     <ClInclude Include="ReadTransaction.h">
       <Filter>Source\Database\Codabase</Filter>
     </ClInclude>
@@ -2772,6 +2775,9 @@
       <Filter>Source\Database\Codabase</Filter>
     </ClCompile>
     <ClCompile Include="WriteTransaction.cpp">
+      <Filter>Source\Database\Codabase</Filter>
+    </ClCompile>
+    <ClCompile Include="LockManager.cpp">
       <Filter>Source\Database\Codabase</Filter>
     </ClCompile>
     <ClCompile Include="ReadTransaction.cpp">
