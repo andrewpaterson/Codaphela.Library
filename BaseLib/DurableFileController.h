@@ -46,6 +46,7 @@ public:
 	bool			Begin(void);
 	bool			Begin(CDurableFile* pcFirst, ...);
 	bool			End(void);
+	void			Abort(void);
 	bool			Recover(void);
 	bool			Recover(CDurableFile* pcFirst, ...);
 	bool			Check(bool bThorough, bool bLogError);

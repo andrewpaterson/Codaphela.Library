@@ -50,6 +50,7 @@ public:
 	bool			Recover(void);
 	bool			Begin(void);
 	bool			End(void);
+	void			Abort(void);
 	bool			Check(bool bThorough, bool bLogError);
 
 	bool			Add(CDurableFile* pcFile);

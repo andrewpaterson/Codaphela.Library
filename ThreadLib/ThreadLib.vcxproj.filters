@@ -102,21 +102,6 @@
     <ClCompile Include="AtomicInt_Linux.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
-    <ClCompile Include="ConditionVariable_Windows.cpp">
-      <Filter>Source\Thread</Filter>
-    </ClCompile>
-    <ClCompile Include="ConditionVariable_Linux.cpp">
-      <Filter>Source\Thread</Filter>
-    </ClCompile>
-    <ClCompile Include="NativeThread.cpp">
-      <Filter>Source\Thread</Filter>
-    </ClCompile>
-    <ClCompile Include="NativeThread_Windows.cpp">
-      <Filter>Source\Thread</Filter>
-    </ClCompile>
-    <ClCompile Include="NativeThread_Linux.cpp">
-      <Filter>Source\Thread</Filter>
-    </ClCompile>
     <ClCompile Include="WorkerThreadPool.cpp">
       <Filter>Source\Thread\Pool</Filter>
     </ClCompile>
@@ -213,12 +198,6 @@
       <Filter>Source\Thread</Filter>
     </ClInclude>
     <ClInclude Include="AtomicInt.h">
-      <Filter>Source\Thread</Filter>
-    </ClInclude>
-    <ClInclude Include="ConditionVariable.h">
-      <Filter>Source\Thread</Filter>
-    </ClInclude>
-    <ClInclude Include="NativeThread.h">
       <Filter>Source\Thread</Filter>
     </ClInclude>
     <ClInclude Include="WorkerThreadPool.h">

@@ -4,7 +4,7 @@
 #include "BaseLib/StackMemory.h"
 #include "BaseLib/PointerRemapper.h"
 #include "BaseLib/Timer.h"
-#include "NativeThread.h"
+#include "BaseLib/NativeThread.h"
 #include "InterProcessName.h"
 #include "SharedMemoryChannel.h"
 

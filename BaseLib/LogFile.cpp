@@ -168,6 +168,25 @@ bool CLogFile::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CLogFile::Abort(void)
+{
+	//Throws the commands away without writing anything.
+	if (mbOpenedBackingFile)
+	{
+		mpcBackingFile->Close();
+		mbOpenedBackingFile = false;
+	}
+	if (mbBegun)
+	{
+		End();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CLogFile::ExecuteCommandErrorString(CChars* pszDest, char* szMethod, CLogFileCommand* psCommand, CAbstractFile* pcFile)
 {
 	pszDest->Init(szMethod);

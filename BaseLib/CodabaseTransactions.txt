@@ -1,7 +1,7 @@
 Codabase Transactions
 =====================
 
-Design for ACID transactions on top of CCodabase.  Decided 2026-10-17.  Nothing is implemented yet.
+Design for ACID transactions on top of CCodabase.  Decided 2026-10-17 and 2026-10-18.  Steps 1 to 4 of the build order (durability, thread safety, single-writer write transactions, the version store and read-only transactions) are implemented.  Step 5, the lock manager, is not.
 
 
 Goal and guarantee
@@ -45,6 +45,7 @@ Write transactions
   - Read the LATEST committed version, never a snapshot, after taking a lock.  This is required for serialisability; reading a snapshot would allow write skew.
   - Hold every lock (shared, update and exclusive) until the commit is durable (rigorous two-phase locking).  This makes commit order a valid serial order.
   - Keep all changes private in a write set until commit.
+  - Until the lock manager exists only one write transaction can be open at a time.  BeginWriteTransaction waits (on a CConditionVariable) while another write transaction, or a direct-API session between Open and Close, is open.  Read-only transactions never wait.
 
 Why this is strictly serialisable: write transactions are serialised in commit order.  The state at any commit number is therefore a prefix of that serial order, and a read-only transaction reading it fits into the order at exactly that point.  Because write transactions never read snapshots, the snapshot isolation anomalies (write skew and the read-only anomaly) cannot occur.
 
@@ -64,6 +65,8 @@ Ownership follows BaseLib conventions: the Codabase allocates transactions and K
 Direct (non-transactional) API
   - CObjects and other existing callers keep calling CCodabase's Add / Set / Put / Remove directly.
   - Direct calls between Open() and Close() form ONE implicit write transaction, committed at Close().  This keeps today's semantics.
+  - Open takes the writer slot (waiting for any other writer) and Close commits and releases it.  Writing directly without Open fails.  Reading never needs Open.
+  - A durable bracket is always open while the Codabase is started, because reading the store needs one.  Start opens it; every commit is flush, End(), Begin().  Kill aborts the open bracket (CDurableFileController::Abort throws the logged changes away), so nothing uncommitted reaches disk, as in a crash.
   - That implicit transaction holds its write locks for the whole session, so until the lock manager exists it blocks all other write transactions between Open and Close.  Read-only transactions are unaffected.
   - Wait-die could kill the implicit transaction, and the direct API has no way to report that or restart it.  This needs a rule before the lock manager is built.  Simplest: give the implicit transaction the oldest start number, so it waits but never dies.
 
@@ -98,7 +101,9 @@ Publishing C only after End() returns, and acknowledging only after publishing, 
 
 Each base-store write in step 3 holds the store mutex only for that one object.  A read-only transaction with a snapshot before C finds the pushed old version even while the commit is half applied, so readers never wait out a commit's fsyncs.
 
-Every commit costs fsyncs (milliseconds, more on Windows).  That is correct behaviour.  A write-ahead log could make commits cheaper later if needed.
+Every commit costs fsyncs (milliseconds, more on Windows).  That is correct behaviour.  A write-ahead log could make commits cheaper later if needed.  Tests that do not need durability turn the fsyncs off with DS_No (see "Durability").
+
+If a commit fails part way (a full disk, a failed write), the files are left mid-commit with marks on disk and the caches may not match them.  The transaction reports the failure and the Codabase goes read-only: it refuses further writes until it is closed and started again, and Start then recovers from the marks.
 
 
 Name reservations
@@ -169,7 +174,15 @@ Reading at snapshot S:
   - No chain for the key (the usual case): the base store's version is valid for every open snapshot.
   - Otherwise take the first version whose iValidUntil is greater than S.  If none qualifies, read the base store.
 
-Clean-up: a FIFO list of (commit number, keys changed in that commit).  When the oldest open snapshot moves past a commit number, pop that entry and drop those keys' old versions.  An empty chain is removed.  No scanning of the maps is needed.
+Clean-up: when a commit is published or a read transaction ends, versions whose iValidUntil is not after the oldest open snapshot (or the last commit when none is open) are dropped, and empty chains removed.  This scans the two maps rather than keeping a list per commit; the maps only hold objects changed while a reader was open, so the scan is cheap.
+
+When versions are saved:
+  - A write transaction commit saves them only if a read transaction is open.  None can begin while the commit holds the store mutex.
+  - A direct session changes the store before it commits, so it always saves the version before its first change to each object and name (SaveVersions in each direct write).  A reader that begins during the session then still sees the last commit.  The versions go at Close if no reader needs them.
+
+Implemented in CodabaseVersions.h/.cpp (implemented, step 4): CMapLongTemplate<SVersion*> and CMapStringTemplate<SNameVersion*>, chains of malloc'd nodes ordered oldest first.
+
+Iteration (step 4): CReadTransaction and CWriteTransaction build the list of indices (or names) visible to them when iteration starts, sorted by index (or name), and return the data as of their snapshot (or with their changes) one step at a time.  Only one index and one name iteration can be in progress per transaction; the iterator argument is not used.
 
 The version store is not durable.  After a crash or restart no transactions are open, so it starts empty.
 
@@ -179,19 +192,31 @@ A long-running read-only transaction alongside heavy writing makes the version s
 Threading
 ---------
 
-Nothing in CCodabase, CNamedIndexedData or CIndexedData is thread-safe, and even Get changes state (it loads into the cache).  Every access to the base store goes through one store mutex, held for one operation at a time, not a whole transaction.  The commit mutex can be the same mutex.
+Nothing in CNamedIndexedData or CIndexedData is thread-safe, and even Get changes state (it loads into the cache).  CCodabase holds one store mutex (mcMutex) for each public operation, not for a whole transaction (done, step 2).  The commit mutex can be the same mutex.
+
+Iteration (StartIndexIteration / IndexIterate, StartNameIteration / NameIterate) keeps its position between calls.  Each call is locked, but an iteration may miss or see changes other threads make between its calls.  This is documented as unsafe until read-only transactions give snapshot iteration.
+
+CNativeThread and CConditionVariable were moved from ThreadLib into BaseLib (as CMutex was) so the transaction code and its tests can use them.
 
 IPC sessions: every transaction is tied to the session that started it.  Closing or losing the session aborts its transactions, so a client that dies cannot hold locks or name reservations forever.  Remote lock requests should have a wait timeout.
 
 Only one process may open a Codabase directory.  It is worth enforcing this with an exclusive lock on the directory at Init (see the flock code in NamedSharedObject_Linux); it is not known whether anything prevents it today.
 
 
-Durability fixes needed first
------------------------------
+Durability
+----------
 
-CDurableSet::End is a double-write commit (Mark1.Write, write and fsync primary, Mark2.Rewrite, write backup, delete marks), and Recover uses the marks to copy primary to backup or backup to primary.  Before relying on it per commit:
-  - The mark files are created and deleted without fsync of the file or its directory, so after power loss the marks can disagree with the data.
-  - CLogFile::Commit calls pcFile->Flush() but ignores the result.
+CDurableSet::End is a double-write commit: Mark1.Write, write and fsync the primary files, Mark2.Rewrite, write the backup files, delete the marks.  Recover uses the marks to copy primary to backup or backup to primary.  Done (step 1):
+  - Written files, the mark files and their directories are fsynced, and every result is checked.
+  - MarkFinish deletes the rewrite mark first, so a crash between the deletes leaves a state Recover accepts.
+  - The start mark lists the primary and rewrite name of every file in the commit, ending with "#End".  Recover copies those files (plus any passed in, each once), so it needs no other file list.  A start mark without "#End" was cut short by a crash before any primary file was written.
+  - CCodabase::Init does no disk work.  CCodabase::Start recovers an interrupted commit and then loads the store.  CSequence::Init recovers too, so an interrupted sequence write can never hand out indices twice.
+  - CLogFile::Truncate works (it was a no-op) and is committed with the other log commands.
+  - Crash tests stop End() at every step and check Recover gives either the old files or the new ones.
+
+EDurableSync (DS_No / DS_Yes) is passed to CCodabaseFactory::Create and CSequenceFactory::Create.  DS_No skips the fsyncs, but not the marks or recovery; it is only for tests that do not need durability.
+
+Not done: Windows has no documented way to flush a directory, so SyncDirectory does nothing there.  A newly created directory is not synced into its parent.
 
 
 Write-through (IWT) modes
@@ -204,7 +229,7 @@ Open questions
 --------------
 
   - How read-only transactions get an object view in CObjects that writers' uncommitted in-memory changes do not affect.  MVCC gives them the right bytes, but they must deserialise from their snapshot into their own read-only view rather than share the live object graph.  Not needed until CObjects is in scope.
-  - The wait-die rule for the implicit direct-API transaction (see "Direct API").  Needed before the lock manager.
+  - The wait-die rule for the implicit direct-API transaction (see "Direct API").  Needed before the lock manager.  Suggested: it always has the oldest start number.
   - Whether to remove the IWT modes.
   - Name lookup and iteration protection for write transactions (version 2).
 
@@ -212,10 +237,10 @@ Open questions
 Build order
 -----------
 
-  1. Durability fixes: fsync the mark files and their directory, check CLogFile::Commit's Flush result.  Crash tests that kill a forked child at each step of End() and check Recover gives either the old state or the new one.
-  2. Thread safety: store mutex in CCodabase.
-  3. Write transactions, one at a time: write set, name reservations, commit with the name check before Begin(), abort.  One global writer, no lock manager yet.  Direct API becomes the implicit session transaction.
-  4. Version store and read-only transactions: the two maps, snapshots, commit numbers published after End(), clean-up.
+  1. Durability (done): see "Durability".
+  2. Thread safety (done): store mutex in CCodabase, CNativeThread and CConditionVariable moved into BaseLib, multi-threaded Codabase test.
+  3. Write transactions, one at a time (done): CWriteTransaction (WriteTransaction.h/.cpp) with its write set, commit (removals before additions, so a removed name can be reused), abort, and the read-only state after a failed commit.  One writer at a time, waiting on a CConditionVariable.  The name reservation table is deferred to step 5 (with one writer nothing can race), and iterating a write transaction to step 4 (it fails with an error until then).
+  4. Version store and read-only transactions (done): CCodabaseVersions, CReadTransaction (ReadTransaction.h/.cpp) from CCodabase::BeginReadTransaction, commit numbers published after End(), clean-up, snapshot iteration and write-transaction iteration.
   5. Lock manager: S / U / X modes with wait-die, allowing concurrent write transactions.
 
 

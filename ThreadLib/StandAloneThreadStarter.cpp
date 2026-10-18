@@ -1,4 +1,4 @@
-#include "NativeThread.h"
+#include "BaseLib/NativeThread.h"
 #include "StandAloneThreadStarter.h"
 #include "Thread.h"
 

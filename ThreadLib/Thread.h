@@ -7,7 +7,7 @@
 #include "ThreadState.h"
 #include "ThreadStateNotifier.h"
 #include "ThreadStarter.h"
-#include "NativeThread.h"
+#include "BaseLib/NativeThread.h"
 
 
 class CThread : public CConstructable, public CKillable

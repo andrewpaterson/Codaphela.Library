@@ -840,6 +840,12 @@
     <ClInclude Include="Mutex.h">
       <Filter>Source\Thread</Filter>
     </ClInclude>
+    <ClInclude Include="ConditionVariable.h">
+      <Filter>Source\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="NativeThread.h">
+      <Filter>Source\Thread</Filter>
+    </ClInclude>
     <ClInclude Include="SafeArrayBlock.h">
       <Filter>Source\Data\Array\Basic</Filter>
     </ClInclude>
@@ -1551,6 +1557,15 @@
     <ClInclude Include="Codabase.h">
       <Filter>Source\Database\Codabase</Filter>
     </ClInclude>
+    <ClInclude Include="WriteTransaction.h">
+      <Filter>Source\Database\Codabase</Filter>
+    </ClInclude>
+    <ClInclude Include="ReadTransaction.h">
+      <Filter>Source\Database\Codabase</Filter>
+    </ClInclude>
+    <ClInclude Include="CodabaseVersions.h">
+      <Filter>Source\Database\Codabase</Filter>
+    </ClInclude>
     <ClInclude Include="DataConnection.h">
       <Filter>Source\Database</Filter>
     </ClInclude>
@@ -2139,6 +2154,21 @@
       <Filter>Source\Thread</Filter>
     </ClCompile>
     <ClCompile Include="Mutex_Linux.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="ConditionVariable_Windows.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="ConditionVariable_Linux.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="NativeThread.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="NativeThread_Windows.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="NativeThread_Linux.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
     <ClCompile Include="SafeArrayBlock.cpp">
@@ -2739,6 +2769,15 @@
       <Filter>Source\File\Indexed\Index\Diagnostic</Filter>
     </ClCompile>
     <ClCompile Include="Codabase.cpp">
+      <Filter>Source\Database\Codabase</Filter>
+    </ClCompile>
+    <ClCompile Include="WriteTransaction.cpp">
+      <Filter>Source\Database\Codabase</Filter>
+    </ClCompile>
+    <ClCompile Include="ReadTransaction.cpp">
+      <Filter>Source\Database\Codabase</Filter>
+    </ClCompile>
+    <ClCompile Include="CodabaseVersions.cpp">
       <Filter>Source\Database\Codabase</Filter>
     </ClCompile>
     <ClCompile Include="CodabaseFactory.cpp">

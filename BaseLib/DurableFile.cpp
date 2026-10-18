@@ -247,6 +247,19 @@ bool CDurableFile::Recommit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CDurableFile::Abort(void)
+{
+	//Nothing was written to disk before Commit, so throwing the log away undoes everything since Begin.
+	mcLogFile.Abort();
+	InitBasic();
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CDurableFile::Seek(EFileSeekOrigin eOrigin, filePos iDistance, bool bSeekForWrite)
 {
 	bool	bResult;

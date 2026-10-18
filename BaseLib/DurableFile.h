@@ -70,6 +70,7 @@ public:
 
 	bool		Commit(void);
 	bool		Recommit(void);
+	void		Abort(void);
 
 	bool		IsDurable(void);
 	bool		IsSync(void);
