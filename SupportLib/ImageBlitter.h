@@ -23,6 +23,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/ArrayInt32.h"
 #include "StandardLib/Pointer.h"
 #include "ColourFormat.h"
 #include "ImageCel.h"
@@ -47,6 +48,14 @@ protected:
 	CImageBlitterFormat			mcFormat;
 	CImageBlitterContext		mcContext;
 
+	CArrayInt32					maiRowStarts;		//The index in macRowBlitters of the first segment of each row of the cel's image, then one past the last segment.
+
+	//Built for the last size the cel was drawn at that was not its own.
+	SInt32Vec2					msSizedTo;
+	CArrayInt32					maiSizedSourceX;	//For each destination column the source image column drawn into it.
+	CArrayInt32					maiSizedSourceY;	//For each destination row the row of the cel's image drawn into it, outside the image in the cel's transparent borders.
+	CArrayInt32					maiSizedDestX;		//For each column of the full cel the first destination column drawn from it or a column to its right.
+
 public:
 	void			Init(Ptr<CImageCel> pSource, Ptr<CImage> pcDest);
 	bool			Configure(CImageRowBlitterFactory* pcBlitterCache);
@@ -57,6 +66,7 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 
 	bool			Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip = NULL);
+	bool			Blit(int32 iDestX, int32 iDestY, int32 iDestWidth, int32 iDestHeight, CRectangle* pcClip = NULL);
 	Ptr<CImageCel>	GetCel(void);
 
 protected:
@@ -64,6 +74,10 @@ protected:
 	bool			InitOpacityInfo(CImageBlitterFormat* pcFormat);
 	bool			InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
 	void			InitContext(CImageBlitterContext* pcContext);
+	void			InitRowStarts(void);
+	void			InitSizedTables(int32 iDestWidth, int32 iDestHeight);
+	void			InitSizedSamples(CArrayInt32* paiSamples, int32 iDestLength, int32 iFullLength, int32 iOffset);
+	bool			ClipDestRect(CRectangle* pcClip, CRectangle* pcDestRect);
 	bool			CreateImageRowBlitterContiguous(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
 	bool			CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
 	bool			CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
@@ -73,7 +87,7 @@ protected:
 	bool			CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, CreateImageRowBlitterFunc fCreate);
 	bool			CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, CreateImageRowBlitterFunc fCreateRGBByteAlphaByteTranslucent, CreateImageRowBlitterFunc fCreateByteAlignedOpaque);
 
-	void			AddBlitter(CBaseImageRowBlitter* pcBlitter, size xStart, size xEnd, size yOffset);
+	void			AddBlitter(CBaseImageRowBlitter* pcBlitter, CImageRowBlitterFactory* pcBlitterFactory, size xStart, size xEnd, size yOffset);
 };
 
 

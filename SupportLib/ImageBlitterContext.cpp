@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CImageBlitterContext::Init(void)
 {
-	memset(this, 0, sizeof(this));
+	memset(this, 0, sizeof(*this));
 }
 
 
@@ -52,15 +52,19 @@ void CImageBlitterContext::Init(Ptr<CImage> pSource, Ptr<CImage> pDest, CColourF
 	muiColourWidth = 3 * uiTypeSize;
 
 	muiSourceAlphaOffset = pcSourceFormatHelper->GetAlphaIndex();
-
-	eType = pcSourceFormatHelper->GetAlphaType();
-	uiTypeSize = gcTypeNames.GetByteSize(eType);
-
-	muiSourceAlphaOffset *= uiTypeSize;
+	if (muiSourceAlphaOffset != SIZE_MAX)
+	{
+		eType = pcSourceFormatHelper->GetAlphaType();
+		uiTypeSize = gcTypeNames.GetByteSize(eType);
+		muiSourceAlphaOffset *= uiTypeSize;
+	}
 
 	muiDestAlphaOffset = pcDestFormatHelper->GetAlphaIndex();
 	if (muiDestAlphaOffset != SIZE_MAX)
 	{
+		//The source may have no alpha at all so the destination alpha offset must be sized by the destination alpha type.
+		eType = pcDestFormatHelper->GetAlphaType();
+		uiTypeSize = gcTypeNames.GetByteSize(eType);
 		muiDestAlphaOffset *= uiTypeSize;
 	}
 }

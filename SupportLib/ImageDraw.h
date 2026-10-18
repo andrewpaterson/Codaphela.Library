@@ -32,6 +32,7 @@ public:
 	void	DrawVerticalLine(int x, int y0, int y1);
 
 	bool	DrawCel(int x, int y, Ptr<CImageCel> pCel, CRectangle* pcClip = NULL);
+	bool	DrawCel(int x, int y, int iWidth, int iHeight, Ptr<CImageCel> pCel, CRectangle* pcClip = NULL);
 };
 
 

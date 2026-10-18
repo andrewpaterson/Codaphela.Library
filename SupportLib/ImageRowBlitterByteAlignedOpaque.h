@@ -32,6 +32,7 @@ class CImageRowBlitterByteAlignedOpaque : public CBaseImageRowBlitter
 {
 public:
 	void	Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
+	CBaseImageRowSizingBlitter*	GetSizingBlitter(CImageRowBlitterFactory* pcFactory) override;
 };
 
 
@@ -39,6 +40,7 @@ class CImageRowBlitterByteAlignedOpaqueDestAlpha : public CBaseImageRowBlitter
 {
 public:
 	void	Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
+	CBaseImageRowSizingBlitter*	GetSizingBlitter(CImageRowBlitterFactory* pcFactory) override;
 };
 
 
