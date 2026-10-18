@@ -23,14 +23,18 @@ void CCodabase::Init(const char* szDirectory, EDurableSync eSync, CLifeInit<CInd
 	mcNamedConfig = cNamedConfig;
 	mbStarted = false;
 	mcMutex.Init();
-	mcWriterFinished.Init();
-	mbWriterActive = false;
-	miWriterThread = 0;
-	mbSessionOpen = false;
 	mbFailed = false;
 	mcVersions.Init();
 	miCommitNumber = 0;
 	maiSnapshots.Init();
+	mcLocks.Init();
+	mcReservedNames.Init(true, true);
+	miLastStartNumber = 0;
+	mapcWriters.Init();
+	mcSessionMutex.Init();
+	mcSessionFinished.Init();
+	mpcSession = NULL;
+	miSessionThread = 0;
 
 	cHelper.Kill(false);
 }
@@ -86,6 +90,12 @@ void CCodabase::Kill(void)
 	CIndexedDataConfig*				pcIndexConfig;
 	CNamedIndexesConfig*			pcNamedConfig;
 
+	if (mpcSession != NULL)
+	{
+		//A session that was not closed is aborted.
+		SafeKill(mpcSession);
+	}
+
 	if (mbStarted)
 	{
 		//The open bracket is thrown away: whatever was not committed is lost, as in a crash.
@@ -103,7 +113,11 @@ void CCodabase::Kill(void)
 	mcFileController.Kill();
 	mcVersions.Kill();
 	maiSnapshots.Kill();
-	mcWriterFinished.Kill();
+	mcLocks.Kill();
+	mcReservedNames.Kill();
+	mapcWriters.Kill();
+	mcSessionFinished.Kill();
+	mcSessionMutex.Kill();
 	mcMutex.Kill();
 }
 
@@ -114,15 +128,39 @@ void CCodabase::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCodabase::Open(void)
 {
-	//A direct session is a writer.  It waits for any other writer to finish.
-	if (!AcquireWriter())
+	CWriteTransaction*	pcSession;
+
+	if (!mbStarted)
 	{
-		return false;
+		return gcLogger.Error2(__METHOD__, " Cannot open a Codabase that is not started.", NULL);
+	}
+	if (HasWriterOnThisThread())
+	{
+		return gcLogger.Error2(__METHOD__, " This thread already has a write transaction.  The session could wait for it for ever.", NULL);
 	}
 
-	mcMutex.Lock();
-	mbSessionOpen = true;
-	mcMutex.Unlock();
+	//Only one session at a time.  It is an implicit write transaction with start number 0, the oldest.
+	mcSessionMutex.Lock();
+	if ((mpcSession != NULL) && (miSessionThread == CurrentThreadId()))
+	{
+		mcSessionMutex.Unlock();
+		return gcLogger.Error2(__METHOD__, " This thread already has the Codabase open.  Waiting for itself would never end.", NULL);
+	}
+	while (mpcSession != NULL)
+	{
+		mcSessionFinished.Wait(&mcSessionMutex);
+	}
+	if (IsFailed())
+	{
+		mcSessionMutex.Unlock();
+		return gcLogger.Error2(__METHOD__, " A commit failed.  The Codabase is read only until it is restarted.", NULL);
+	}
+
+	pcSession = NewMalloc<CWriteTransaction>();
+	pcSession->Init(this, 0);
+	mpcSession = pcSession;
+	miSessionThread = CurrentThreadId();
+	mcSessionMutex.Unlock();
 	return true;
 }
 
@@ -135,17 +173,18 @@ bool CCodabase::Close(void)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	if (!mbSessionOpen)
+	mcSessionMutex.Lock();
+	if (mpcSession == NULL)
 	{
-		mcMutex.Unlock();
+		mcSessionMutex.Unlock();
 		return gcLogger.Error2(__METHOD__, " Cannot close a Codabase that is not open.", NULL);
 	}
 
-	bResult = CommitLocked();
-	mbSessionOpen = false;
-	ReleaseWriter();
-	mcMutex.Unlock();
+	bResult = mpcSession->Commit();
+	SafeKill(mpcSession);
+	miSessionThread = 0;
+	mcSessionFinished.WakeAll();
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -157,6 +196,8 @@ bool CCodabase::Close(void)
 CWriteTransaction* CCodabase::BeginWriteTransaction(void)
 {
 	CWriteTransaction*	pcTransaction;
+	int64				iStartNumber;
+	bool				bSessionThread;
 
 	if (!mbStarted)
 	{
@@ -164,13 +205,29 @@ CWriteTransaction* CCodabase::BeginWriteTransaction(void)
 		return NULL;
 	}
 
-	if (!AcquireWriter())
+	mcSessionMutex.Lock();
+	bSessionThread = (mpcSession != NULL) && (miSessionThread == CurrentThreadId());
+	mcSessionMutex.Unlock();
+	if (bSessionThread)
 	{
+		gcLogger.Error2(__METHOD__, " This thread has the Codabase open.  The session could wait for the transaction for ever.", NULL);
 		return NULL;
 	}
 
+	//Write transactions do not wait for each other here.  They wait, or die, when they lock objects.
+	mcMutex.Lock();
+	if (mbFailed)
+	{
+		mcMutex.Unlock();
+		gcLogger.Error2(__METHOD__, " A commit failed.  The Codabase is read only until it is restarted.", NULL);
+		return NULL;
+	}
+	miLastStartNumber++;
+	iStartNumber = miLastStartNumber;
 	pcTransaction = NewMalloc<CWriteTransaction>();
-	pcTransaction->Init(this);
+	pcTransaction->Init(this, iStartNumber);
+	mapcWriters.Add(&pcTransaction);
+	mcMutex.Unlock();
 	return pcTransaction;
 }
 
@@ -251,50 +308,6 @@ bool CCodabase::IsFailed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::AcquireWriter(void)
-{
-	mcMutex.Lock();
-	if (mbWriterActive && (miWriterThread == CurrentThreadId()))
-	{
-		mcMutex.Unlock();
-		return gcLogger.Error2(__METHOD__, " This thread is already writing to the Codabase.  Waiting for itself would never end.", NULL);
-	}
-
-	while (mbWriterActive)
-	{
-		mcWriterFinished.Wait(&mcMutex);
-	}
-
-	if (mbFailed)
-	{
-		mcMutex.Unlock();
-		return gcLogger.Error2(__METHOD__, " A commit failed.  The Codabase is read only until it is restarted.", NULL);
-	}
-
-	mbWriterActive = true;
-	miWriterThread = CurrentThreadId();
-	mcMutex.Unlock();
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCodabase::ReleaseWriter(void)
-{
-	//mcMutex must be locked.
-	mbWriterActive = false;
-	miWriterThread = 0;
-	mcWriterFinished.WakeAll();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CCodabase::CommitLocked(void)
 {
 	bool	bResult;
@@ -330,18 +343,192 @@ bool CCodabase::CommitLocked(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCodabase::SaveVersions(OIndex oi, const char* szNewName)
+CLockManager* CCodabase::GetLockManager(void)
 {
-	//mcMutex must be locked.  A direct session changes the store before it commits, so the versions before the change
-	//are kept even when no read transaction is open.  One could start before the session closes.
-	if (IsValidIndex(oi))
+	return &mcLocks;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCodabase::NeedsSession(const char* szMethod)
+{
+	return gcLogger.Error2(szMethod, " Writing directly to a Codabase needs Open first.  Use a write transaction otherwise.", NULL);
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCodabase::HasWriterOnThisThread(void)
+{
+	size	i;
+	int		iThread;
+	bool	bFound;
+
+	iThread = CurrentThreadId();
+	bFound = false;
+	mcMutex.Lock();
+	for (i = 0; i < mapcWriters.NumElements(); i++)
 	{
-		mcVersions.SaveRecord(miCommitNumber + 1, oi, &mcNamedIndexedData);
+		if ((*mapcWriters.Get(i))->GetThread() == iThread)
+		{
+			bFound = true;
+			break;
+		}
 	}
-	if (!StrEmpty(szNewName))
+	mcMutex.Unlock();
+	return bFound;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodabase::RemoveWriter(CWriteTransaction* pcTransaction)
+{
+	size	i;
+
+	mcMutex.Lock();
+	for (i = 0; i < mapcWriters.NumElements(); i++)
 	{
-		mcVersions.SaveName(miCommitNumber + 1, szNewName, &mcNamedIndexedData);
+		if (*mapcWriters.Get(i) == pcTransaction)
+		{
+			mapcWriters.RemoveAt(i);
+			break;
+		}
 	}
+	mcMutex.Unlock();
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCodabase::ReserveName(const char* szName, int64 iTransaction)
+{
+	int64*	piOwner;
+
+	//mcMutex must be locked.  The first transaction to add a name owns it until it commits or aborts.
+	piOwner = mcReservedNames.Get(szName);
+	if (piOwner != NULL)
+	{
+		return *piOwner == iTransaction;
+	}
+	mcReservedNames.Put(szName, &iTransaction);
+	return true;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodabase::ReleaseName(const char* szName, int64 iTransaction)
+{
+	int64*	piOwner;
+
+	//mcMutex must be locked.
+	piOwner = mcReservedNames.Get(szName);
+	if ((piOwner != NULL) && (*piOwner == iTransaction))
+	{
+		mcReservedNames.Remove(szName);
+	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCodabase::StoredGet(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize)
+{
+	bool	bResult;
+
+	//The committed store, whether or not a session is open.
+	mcMutex.Lock();
+	bResult = mcNamedIndexedData.Get(oi, puiDataSize, pvData, uiMaxDataSize);
+	mcMutex.Unlock();
+	return bResult;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCodabase::StoredGetAll(OIndex oi, void* pvData)
+{
+	bool	bResult;
+
+	//The committed store, whether or not a session is open.
+	mcMutex.Lock();
+	bResult = mcNamedIndexedData.Get(oi, pvData);
+	mcMutex.Unlock();
+	return bResult;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCodabase::StoredContains(OIndex oi)
+{
+	bool	bResult;
+
+	//The committed store, whether or not a session is open.
+	mcMutex.Lock();
+	bResult = mcNamedIndexedData.Contains(oi);
+	mcMutex.Unlock();
+	return bResult;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCodabase::StoredGetName(OIndex oi, CChars* pszName)
+{
+	bool	bResult;
+
+	//The committed store, whether or not a session is open.
+	mcMutex.Lock();
+	bResult = mcNamedIndexedData.GetName(oi, pszName);
+	mcMutex.Unlock();
+	return bResult;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CCodabase::StoredGetIndex(const char* szName)
+{
+	OIndex	bResult;
+
+	//The committed store, whether or not a session is open.
+	mcMutex.Lock();
+	bResult = mcNamedIndexedData.GetIndex(szName);
+	mcMutex.Unlock();
+	return bResult;
 }
 
 
@@ -438,25 +625,6 @@ void CCodabase::GetStoredNames(CArrayChars* paszNames)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::CanWriteDirectly(void)
-{
-	//mcMutex must be locked.
-	if (mbFailed)
-	{
-		return gcLogger.Error2(__METHOD__, " A commit failed.  The Codabase is read only until it is restarted.", NULL);
-	}
-	if (!mbSessionOpen)
-	{
-		return gcLogger.Error2(__METHOD__, " Writing directly to a Codabase needs Open first.  Use a write transaction otherwise.", NULL);
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CCodabase::ValidateConfigInitialised(void)
 {
 	bool	bResult;
@@ -506,15 +674,16 @@ bool CCodabase::Add(OIndex oi, void* pvData, uint32 uiDataSize)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	if (!CanWriteDirectly())
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
 	{
-		mcMutex.Unlock();
-		return false;
+		bResult = mpcSession->Add(oi, pvData, uiDataSize);
 	}
-	SaveVersions(oi, NULL);
-	bResult = mcNamedIndexedData.Add(oi, pvData, uiDataSize);
-	mcMutex.Unlock();
+	else
+	{
+		bResult = NeedsSession(__METHOD__);
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -527,15 +696,16 @@ bool CCodabase::Add(OIndex oi, const char* szName, void* pvData, uint32 uiDataSi
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	if (!CanWriteDirectly())
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
 	{
-		mcMutex.Unlock();
-		return false;
+		bResult = mpcSession->Add(oi, szName, pvData, uiDataSize);
 	}
-	SaveVersions(oi, szName);
-	bResult = mcNamedIndexedData.Add(oi, szName, pvData, uiDataSize);
-	mcMutex.Unlock();
+	else
+	{
+		bResult = NeedsSession(__METHOD__);
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -548,15 +718,16 @@ bool CCodabase::Add(OIndex oi, CChars* szName, void* pvData, uint32 uiDataSize)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	if (!CanWriteDirectly())
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
 	{
-		mcMutex.Unlock();
-		return false;
+		bResult = mpcSession->Add(oi, szName, pvData, uiDataSize);
 	}
-	SaveVersions(oi, szName ? szName->Text() : NULL);
-	bResult = mcNamedIndexedData.Add(oi, szName, pvData, uiDataSize);
-	mcMutex.Unlock();
+	else
+	{
+		bResult = NeedsSession(__METHOD__);
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -569,15 +740,16 @@ bool CCodabase::Set(OIndex oi, void* pvData)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	if (!CanWriteDirectly())
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
 	{
-		mcMutex.Unlock();
-		return false;
+		bResult = mpcSession->Set(oi, pvData);
 	}
-	SaveVersions(oi, NULL);
-	bResult = mcNamedIndexedData.Set(oi, pvData);
-	mcMutex.Unlock();
+	else
+	{
+		bResult = NeedsSession(__METHOD__);
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -590,15 +762,16 @@ bool CCodabase::Set(OIndex oi, void* pvData, uint32 uiDataSize)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	if (!CanWriteDirectly())
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
 	{
-		mcMutex.Unlock();
-		return false;
+		bResult = mpcSession->Set(oi, pvData, uiDataSize);
 	}
-	SaveVersions(oi, NULL);
-	bResult = mcNamedIndexedData.Set(oi, pvData, uiDataSize);
-	mcMutex.Unlock();
+	else
+	{
+		bResult = NeedsSession(__METHOD__);
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -611,15 +784,16 @@ bool CCodabase::Set(const char* szName, void* pvData)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	if (!CanWriteDirectly())
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
 	{
-		mcMutex.Unlock();
-		return false;
+		bResult = mpcSession->Set(szName, pvData);
 	}
-	SaveVersions(mcNamedIndexedData.GetIndex(szName), NULL);
-	bResult = mcNamedIndexedData.Set(szName, pvData);
-	mcMutex.Unlock();
+	else
+	{
+		bResult = NeedsSession(__METHOD__);
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -632,15 +806,16 @@ bool CCodabase::Set(const char* szName, void* pvData, uint32 uiDataSize)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	if (!CanWriteDirectly())
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
 	{
-		mcMutex.Unlock();
-		return false;
+		bResult = mpcSession->Set(szName, pvData, uiDataSize);
 	}
-	SaveVersions(mcNamedIndexedData.GetIndex(szName), NULL);
-	bResult = mcNamedIndexedData.Set(szName, pvData, uiDataSize);
-	mcMutex.Unlock();
+	else
+	{
+		bResult = NeedsSession(__METHOD__);
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -653,15 +828,16 @@ bool CCodabase::Set(CChars* szName, void* pvData)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	if (!CanWriteDirectly())
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
 	{
-		mcMutex.Unlock();
-		return false;
+		bResult = mpcSession->Set(szName, pvData);
 	}
-	SaveVersions(mcNamedIndexedData.GetIndex(szName), NULL);
-	bResult = mcNamedIndexedData.Set(szName, pvData);
-	mcMutex.Unlock();
+	else
+	{
+		bResult = NeedsSession(__METHOD__);
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -674,15 +850,16 @@ bool CCodabase::Set(CChars* szName, void* pvData, uint32 uiDataSize)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	if (!CanWriteDirectly())
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
 	{
-		mcMutex.Unlock();
-		return false;
+		bResult = mpcSession->Set(szName, pvData, uiDataSize);
 	}
-	SaveVersions(mcNamedIndexedData.GetIndex(szName), NULL);
-	bResult = mcNamedIndexedData.Set(szName, pvData, uiDataSize);
-	mcMutex.Unlock();
+	else
+	{
+		bResult = NeedsSession(__METHOD__);
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -695,15 +872,16 @@ bool CCodabase::Put(OIndex oi, void* pvData, uint32 uiDataSize)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	if (!CanWriteDirectly())
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
 	{
-		mcMutex.Unlock();
-		return false;
+		bResult = mpcSession->Put(oi, pvData, uiDataSize);
 	}
-	SaveVersions(oi, NULL);
-	bResult = mcNamedIndexedData.Put(oi, pvData, uiDataSize);
-	mcMutex.Unlock();
+	else
+	{
+		bResult = NeedsSession(__METHOD__);
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -716,15 +894,16 @@ bool CCodabase::Put(OIndex oi, const char* szName, void* pvData, uint32 uiDataSi
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	if (!CanWriteDirectly())
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
 	{
-		mcMutex.Unlock();
-		return false;
+		bResult = mpcSession->Put(oi, szName, pvData, uiDataSize);
 	}
-	SaveVersions(oi, szName);
-	bResult = mcNamedIndexedData.Put(oi, szName, pvData, uiDataSize);
-	mcMutex.Unlock();
+	else
+	{
+		bResult = NeedsSession(__METHOD__);
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -737,15 +916,16 @@ bool CCodabase::Put(OIndex oi, CChars* szName, void* pvData, uint32 uiDataSize)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	if (!CanWriteDirectly())
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
 	{
-		mcMutex.Unlock();
-		return false;
+		bResult = mpcSession->Put(oi, szName, pvData, uiDataSize);
 	}
-	SaveVersions(oi, szName ? szName->Text() : NULL);
-	bResult = mcNamedIndexedData.Put(oi, szName, pvData, uiDataSize);
-	mcMutex.Unlock();
+	else
+	{
+		bResult = NeedsSession(__METHOD__);
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -758,9 +938,19 @@ bool CCodabase::Get(OIndex oi, void* pvData)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	bResult = mcNamedIndexedData.Get(oi, pvData);
-	mcMutex.Unlock();
+	//A session sees its own changes.  Without one the committed store is read.
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
+	{
+		bResult = mpcSession->Get(oi, pvData);
+	}
+	else
+	{
+		mcMutex.Lock();
+		bResult = mcNamedIndexedData.Get(oi, pvData);
+		mcMutex.Unlock();
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -773,9 +963,19 @@ bool CCodabase::Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDa
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	bResult = mcNamedIndexedData.Get(oi, puiDataSize, pvData, uiMaxDataSize);
-	mcMutex.Unlock();
+	//A session sees its own changes.  Without one the committed store is read.
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
+	{
+		bResult = mpcSession->Get(oi, puiDataSize, pvData, uiMaxDataSize);
+	}
+	else
+	{
+		mcMutex.Lock();
+		bResult = mcNamedIndexedData.Get(oi, puiDataSize, pvData, uiMaxDataSize);
+		mcMutex.Unlock();
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -788,9 +988,19 @@ bool CCodabase::Get(const char* szName, void* pvData)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	bResult = mcNamedIndexedData.Get(szName, pvData);
-	mcMutex.Unlock();
+	//A session sees its own changes.  Without one the committed store is read.
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
+	{
+		bResult = mpcSession->Get(szName, pvData);
+	}
+	else
+	{
+		mcMutex.Lock();
+		bResult = mcNamedIndexedData.Get(szName, pvData);
+		mcMutex.Unlock();
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -803,9 +1013,19 @@ bool CCodabase::Get(const char* szName, uint32* puiDataSize, void* pvData, uint3
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	bResult = mcNamedIndexedData.Get(szName, puiDataSize, pvData, uiMaxDataSize);
-	mcMutex.Unlock();
+	//A session sees its own changes.  Without one the committed store is read.
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
+	{
+		bResult = mpcSession->Get(szName, puiDataSize, pvData, uiMaxDataSize);
+	}
+	else
+	{
+		mcMutex.Lock();
+		bResult = mcNamedIndexedData.Get(szName, puiDataSize, pvData, uiMaxDataSize);
+		mcMutex.Unlock();
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -818,9 +1038,19 @@ bool CCodabase::Get(CChars* szName, void* pvData)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	bResult = mcNamedIndexedData.Get(szName, pvData);
-	mcMutex.Unlock();
+	//A session sees its own changes.  Without one the committed store is read.
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
+	{
+		bResult = mpcSession->Get(szName, pvData);
+	}
+	else
+	{
+		mcMutex.Lock();
+		bResult = mcNamedIndexedData.Get(szName, pvData);
+		mcMutex.Unlock();
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -833,9 +1063,19 @@ bool CCodabase::Get(CChars* szName, uint32* puiDataSize, void* pvData, uint32 ui
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	bResult = mcNamedIndexedData.Get(szName, puiDataSize, pvData, uiMaxDataSize);
-	mcMutex.Unlock();
+	//A session sees its own changes.  Without one the committed store is read.
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
+	{
+		bResult = mpcSession->Get(szName, puiDataSize, pvData, uiMaxDataSize);
+	}
+	else
+	{
+		mcMutex.Lock();
+		bResult = mcNamedIndexedData.Get(szName, puiDataSize, pvData, uiMaxDataSize);
+		mcMutex.Unlock();
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -848,9 +1088,19 @@ bool CCodabase::GetName(OIndex oi, CChars* szName)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	bResult = mcNamedIndexedData.GetName(oi, szName);
-	mcMutex.Unlock();
+	//A session sees its own changes.  Without one the committed store is read.
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
+	{
+		bResult = mpcSession->GetName(oi, szName);
+	}
+	else
+	{
+		mcMutex.Lock();
+		bResult = mcNamedIndexedData.GetName(oi, szName);
+		mcMutex.Unlock();
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -863,9 +1113,19 @@ bool CCodabase::GetName(OIndex oi, char* szName, uint32* puiNameLength, uint32 u
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	bResult = mcNamedIndexedData.GetName(oi, szName, puiNameLength, uiMaxNameLength);
-	mcMutex.Unlock();
+	//A session sees its own changes.  Without one the committed store is read.
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
+	{
+		bResult = mpcSession->GetName(oi, szName, puiNameLength, uiMaxNameLength);
+	}
+	else
+	{
+		mcMutex.Lock();
+		bResult = mcNamedIndexedData.GetName(oi, szName, puiNameLength, uiMaxNameLength);
+		mcMutex.Unlock();
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -878,9 +1138,19 @@ OIndex CCodabase::GetIndex(const char* szName)
 {
 	OIndex	oiResult;
 
-	mcMutex.Lock();
-	oiResult = mcNamedIndexedData.GetIndex(szName);
-	mcMutex.Unlock();
+	//A session sees its own changes.  Without one the committed store is read.
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
+	{
+		oiResult = mpcSession->GetIndex(szName);
+	}
+	else
+	{
+		mcMutex.Lock();
+		oiResult = mcNamedIndexedData.GetIndex(szName);
+		mcMutex.Unlock();
+	}
+	mcSessionMutex.Unlock();
 	return oiResult;
 }
 
@@ -893,9 +1163,19 @@ OIndex CCodabase::GetIndex(CChars* szName)
 {
 	OIndex	oiResult;
 
-	mcMutex.Lock();
-	oiResult = mcNamedIndexedData.GetIndex(szName);
-	mcMutex.Unlock();
+	//A session sees its own changes.  Without one the committed store is read.
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
+	{
+		oiResult = mpcSession->GetIndex(szName);
+	}
+	else
+	{
+		mcMutex.Lock();
+		oiResult = mcNamedIndexedData.GetIndex(szName);
+		mcMutex.Unlock();
+	}
+	mcSessionMutex.Unlock();
 	return oiResult;
 }
 
@@ -908,9 +1188,19 @@ bool CCodabase::Contains(OIndex oi)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	bResult = mcNamedIndexedData.Contains(oi);
-	mcMutex.Unlock();
+	//A session sees its own changes.  Without one the committed store is read.
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
+	{
+		bResult = mpcSession->Contains(oi);
+	}
+	else
+	{
+		mcMutex.Lock();
+		bResult = mcNamedIndexedData.Contains(oi);
+		mcMutex.Unlock();
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -923,9 +1213,19 @@ bool CCodabase::Contains(const char* szName)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	bResult = mcNamedIndexedData.Contains(szName);
-	mcMutex.Unlock();
+	//A session sees its own changes.  Without one the committed store is read.
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
+	{
+		bResult = mpcSession->Contains(szName);
+	}
+	else
+	{
+		mcMutex.Lock();
+		bResult = mcNamedIndexedData.Contains(szName);
+		mcMutex.Unlock();
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -938,9 +1238,19 @@ bool CCodabase::Contains(CChars* szName)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	bResult = mcNamedIndexedData.Contains(szName);
-	mcMutex.Unlock();
+	//A session sees its own changes.  Without one the committed store is read.
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
+	{
+		bResult = mpcSession->Contains(szName);
+	}
+	else
+	{
+		mcMutex.Lock();
+		bResult = mcNamedIndexedData.Contains(szName);
+		mcMutex.Unlock();
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -953,15 +1263,16 @@ bool CCodabase::Remove(OIndex oi)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	if (!CanWriteDirectly())
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
 	{
-		mcMutex.Unlock();
-		return false;
+		bResult = mpcSession->Remove(oi);
 	}
-	SaveVersions(oi, NULL);
-	bResult = mcNamedIndexedData.Remove(oi);
-	mcMutex.Unlock();
+	else
+	{
+		bResult = NeedsSession(__METHOD__);
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -974,15 +1285,16 @@ bool CCodabase::Remove(const char* szName)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	if (!CanWriteDirectly())
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
 	{
-		mcMutex.Unlock();
-		return false;
+		bResult = mpcSession->Remove(szName);
 	}
-	SaveVersions(mcNamedIndexedData.GetIndex(szName), NULL);
-	bResult = mcNamedIndexedData.Remove(szName);
-	mcMutex.Unlock();
+	else
+	{
+		bResult = NeedsSession(__METHOD__);
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -995,15 +1307,16 @@ bool CCodabase::Remove(CChars* szName)
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	if (!CanWriteDirectly())
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
 	{
-		mcMutex.Unlock();
-		return false;
+		bResult = mpcSession->Remove(szName);
 	}
-	SaveVersions(mcNamedIndexedData.GetIndex(szName), NULL);
-	bResult = mcNamedIndexedData.Remove(szName);
-	mcMutex.Unlock();
+	else
+	{
+		bResult = NeedsSession(__METHOD__);
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -1061,10 +1374,21 @@ bool CCodabase::IsWriteThrough(void)
 int64 CCodabase::NumIndices(void)
 {
 	int64	iResult;
+	int64	iIndicesChange;
+	int64	iNamesChange;
 
+	mcSessionMutex.Lock();
 	mcMutex.Lock();
 	iResult = mcNamedIndexedData.NumIndices();
 	mcMutex.Unlock();
+
+	//A session counts its own changes.
+	if (mpcSession != NULL)
+	{
+		mpcSession->GetCountChanges(&iIndicesChange, &iNamesChange);
+		iResult += iIndicesChange;
+	}
+	mcSessionMutex.Unlock();
 	return iResult;
 }
 
@@ -1136,10 +1460,21 @@ int64 CCodabase::NumDataCached(size iSize)
 int64 CCodabase::NumNames(void)
 {
 	int64	iResult;
+	int64	iIndicesChange;
+	int64	iNamesChange;
 
+	mcSessionMutex.Lock();
 	mcMutex.Lock();
 	iResult = mcNamedIndexedData.NumNames();
 	mcMutex.Unlock();
+
+	//A session counts its own changes.
+	if (mpcSession != NULL)
+	{
+		mpcSession->GetCountChanges(&iIndicesChange, &iNamesChange);
+		iResult += iNamesChange;
+	}
+	mcSessionMutex.Unlock();
 	return iResult;
 }
 
@@ -1179,9 +1514,19 @@ OIndex CCodabase::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* 
 {
 	OIndex	oiResult;
 
-	mcMutex.Lock();
-	oiResult = mcNamedIndexedData.StartIndexIteration(psIterator, pvData, piDataSize, iMaxDataSize);
-	mcMutex.Unlock();
+	//A session sees its own changes.  Without one the committed store is read.
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
+	{
+		oiResult = mpcSession->StartIndexIteration(psIterator, pvData, piDataSize, iMaxDataSize);
+	}
+	else
+	{
+		mcMutex.Lock();
+		oiResult = mcNamedIndexedData.StartIndexIteration(psIterator, pvData, piDataSize, iMaxDataSize);
+		mcMutex.Unlock();
+	}
+	mcSessionMutex.Unlock();
 	return oiResult;
 }
 
@@ -1194,9 +1539,19 @@ OIndex CCodabase::IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData,
 {
 	OIndex	oiResult;
 
-	mcMutex.Lock();
-	oiResult = mcNamedIndexedData.IndexIterate(psIterator, pvData, piDataSize, iMaxDataSize);
-	mcMutex.Unlock();
+	//A session sees its own changes.  Without one the committed store is read.
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
+	{
+		oiResult = mpcSession->IndexIterate(psIterator, pvData, piDataSize, iMaxDataSize);
+	}
+	else
+	{
+		mcMutex.Lock();
+		oiResult = mcNamedIndexedData.IndexIterate(psIterator, pvData, piDataSize, iMaxDataSize);
+		mcMutex.Unlock();
+	}
+	mcSessionMutex.Unlock();
 	return oiResult;
 }
 
@@ -1209,9 +1564,19 @@ bool CCodabase::StartNameIteration(SIndexTreeFileIterator* psIterator, char* szK
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	bResult = mcNamedIndexedData.StartNameIteration(psIterator, szKey, poi);
-	mcMutex.Unlock();
+	//A session sees its own changes.  Without one the committed store is read.
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
+	{
+		bResult = mpcSession->StartNameIteration(psIterator, szKey, poi);
+	}
+	else
+	{
+		mcMutex.Lock();
+		bResult = mcNamedIndexedData.StartNameIteration(psIterator, szKey, poi);
+		mcMutex.Unlock();
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 
@@ -1224,9 +1589,19 @@ bool CCodabase::NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIn
 {
 	bool	bResult;
 
-	mcMutex.Lock();
-	bResult = mcNamedIndexedData.NameIterate(psIterator, szKey, poi);
-	mcMutex.Unlock();
+	//A session sees its own changes.  Without one the committed store is read.
+	mcSessionMutex.Lock();
+	if (mpcSession != NULL)
+	{
+		bResult = mpcSession->NameIterate(psIterator, szKey, poi);
+	}
+	else
+	{
+		mcMutex.Lock();
+		bResult = mcNamedIndexedData.NameIterate(psIterator, szKey, poi);
+		mcMutex.Unlock();
+	}
+	mcSessionMutex.Unlock();
 	return bResult;
 }
 

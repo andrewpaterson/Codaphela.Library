@@ -522,6 +522,7 @@
     <ClInclude Include="FatClusterCache.h" />
     <ClInclude Include="Codabase.h" />
     <ClInclude Include="WriteTransaction.h" />
+    <ClInclude Include="LockManager.h" />
     <ClInclude Include="ReadTransaction.h" />
     <ClInclude Include="CodabaseVersions.h" />
     <ClInclude Include="CodabaseFactory.h" />
@@ -929,6 +930,7 @@
     <ClCompile Include="FatClusterCache.cpp" />
     <ClCompile Include="Codabase.cpp" />
     <ClCompile Include="WriteTransaction.cpp" />
+    <ClCompile Include="LockManager.cpp" />
     <ClCompile Include="ReadTransaction.cpp" />
     <ClCompile Include="CodabaseVersions.cpp" />
     <ClCompile Include="CodabaseFactory.cpp" />
