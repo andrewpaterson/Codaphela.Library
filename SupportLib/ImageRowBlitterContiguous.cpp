@@ -13,13 +13,3 @@ void CImageRowBlitterContiguous::Copy(CImageBlitterContext* pcContext, void* pvS
 	memcpy_fast(pvDest, pvSource, (iSourceXRight - iSourceXLeft) * pcContext->miSourcePixelStride);
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseImageRowSizingBlitter* CImageRowBlitterContiguous::CreateRowSizingBlitter(CImageRowBlitterFactory* pcFactory)
-{
-	return pcFactory->CreateImageRowSizingBlitterByteAlignedOpaque();
-}
-

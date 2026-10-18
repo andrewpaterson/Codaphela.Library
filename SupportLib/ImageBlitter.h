@@ -42,7 +42,7 @@ DESTRUCTABLE(CImageBlitter);
 protected:
 	CArrayImageRowBlitter	macRowBlitters;
 
-	CImageCel*				mpcSourceCel;  //Not a reference.  Whoever uses this blitter must keep the cel alive.
+	CImageCel*				mpcSourceCel;		//Not a reference.  Whoever uses this blitter must keep the cel alive.
 	Ptr<CImage>				mpDestImage;
 
 	CImageBlitterFormat		mcFormat;
@@ -70,12 +70,12 @@ public:
 	Ptr<CImageCel>	GetCel(void);
 
 protected:
-	bool			InitColourInfo(CImageBlitterFormat* pcFormat);
-	bool			InitOpacityInfo(CImageBlitterFormat* pcFormat);
+	bool			PopulateColourFormat(CImageBlitterFormat* pcFormat);
+	bool			PopulateOpacityFormat(CImageBlitterFormat* pcFormat);
 	bool			InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
 	void			InitContext(CImageBlitterContext* pcContext);
 	void			InitRowStarts(void);
-	void			InitSizedTables(int32 iDestWidth, int32 iDestHeight);
+	bool			InitSizedTables(int32 iDestWidth, int32 iDestHeight);
 	void			InitSizedSamples(CArrayInt32* paiSamples, int32 iDestLength, int32 iFullLength, int32 iOffset);
 	bool			ClipDestRect(CRectangle* pcClip, CRectangle* pcDestRect);
 

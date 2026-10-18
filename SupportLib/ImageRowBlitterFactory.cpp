@@ -94,3 +94,28 @@ CBaseImageRowSizingBlitter* CImageRowBlitterFactory::CreateImageRowSizingBlitter
 	return &mcImageRowSizingBlitterRGBByteAlphaByteTranslucentDestAlpha;
 }
 
+
+CBaseImageRowSizingBlitter* CImageRowBlitterFactory::CreateImageRowSizingBlitter(CBaseImageRowBlitter* pcRowBlitter)
+{
+	if ((pcRowBlitter == &mcImageRowBlitterContiguous) || (pcRowBlitter == &mcImageRowBlitterByteAlignedOpaque))
+	{
+		return &mcImageRowSizingBlitterByteAlignedOpaque;
+	}
+	else if (pcRowBlitter == &mcImageRowBlitterByteAlignedOpaqueDestAlpha)
+	{
+		return &mcImageRowSizingBlitterByteAlignedOpaqueDestAlpha;
+	}
+	else if (pcRowBlitter == &mcImageRowBlitterRGBByteAlphaByteTranslucent)
+	{
+		return &mcImageRowSizingBlitterRGBByteAlphaByteTranslucent;
+	}
+	else if (pcRowBlitter == &mcImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha)
+	{
+		return &mcImageRowSizingBlitterRGBByteAlphaByteTranslucentDestAlpha;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+

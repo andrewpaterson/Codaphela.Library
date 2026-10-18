@@ -40,7 +40,6 @@ class CImageRowBlitterRGBByteAlphaByteTranslucent : public CBaseImageRowBlitter
 {
 public:
 	void							Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
-	CBaseImageRowSizingBlitter*		CreateRowSizingBlitter(CImageRowBlitterFactory* pcFactory) override;
 };
 
 
@@ -48,7 +47,6 @@ class CImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha : public CBaseImageRo
 {
 public:
 	void							Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
-	CBaseImageRowSizingBlitter*		CreateRowSizingBlitter(CImageRowBlitterFactory* pcFactory) override;
 };
 
 

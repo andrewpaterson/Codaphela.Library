@@ -96,16 +96,6 @@ void CImageRowBlitterRGBByteAlphaByteTranslucent::Copy(CImageBlitterContext* pcC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseImageRowSizingBlitter* CImageRowBlitterRGBByteAlphaByteTranslucent::CreateRowSizingBlitter(CImageRowBlitterFactory* pcFactory)
-{
-	return pcFactory->CreateImageRowSizingBlitterRGBByteAlphaByteTranslucent();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha::Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY)
 {
 	size	x;
@@ -121,15 +111,5 @@ void CImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha::Copy(CImageBlitterCon
 		pvSource = RemapSinglePointer(pvSource, pcContext->miSourcePixelStride);
 		pvDest = RemapSinglePointer(pvDest, pcContext->miDestPixelStride);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseImageRowSizingBlitter* CImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha::CreateRowSizingBlitter(CImageRowBlitterFactory* pcFactory)
-{
-	return pcFactory->CreateImageRowSizingBlitterRGBByteAlphaByteTranslucentDestAlpha();
 }
 
