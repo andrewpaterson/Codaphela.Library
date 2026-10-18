@@ -55,6 +55,7 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	Ptr<CImageBlitter>	CreateImageBlitter(Ptr<CImageCel> pCel);
+	Ptr<CImageBlitter>	CreateSizingImageBlitter(Ptr<CImageCel> pCel);
 	Ptr<CImage>			GetDestImage(void);
 
 	Ptr<CImageBlitter>	GetImageBlitter(Ptr<CImageCel> pCel);
@@ -68,6 +69,7 @@ public:
 protected:
 	size				FindCel(CImageCel* pcCel);
 	void				RemoveForgottenBlitters(void);
+	Ptr<CImageBlitter>	CreateImageBlitter(Ptr<CImageCel> pCel, bool bAllowSizing);
 };
 
 

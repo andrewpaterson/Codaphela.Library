@@ -79,6 +79,26 @@ bool CImageCelBlitterCache::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel)
 {
+	return CreateImageBlitter(pCel, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageBlitter> CImageCelBlitterCache::CreateSizingImageBlitter(Ptr<CImageCel> pCel)
+{
+	return CreateImageBlitter(pCel, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel, bool bAllowSizing)
+{
 	Ptr<CImageBlitter>	pImageBlitter;
 	CImageCel*			pcCel;
 	bool				bValid;
@@ -97,7 +117,7 @@ Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel
 		return NULL;
 	}
 
-	bValid = pImageBlitter->Configure(&gcImageRowBlitterFactory);
+	bValid = pImageBlitter->Configure(&gcImageRowBlitterFactory, bAllowSizing);
 	if (!bValid)
 	{
 		return NULL;

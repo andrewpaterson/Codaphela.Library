@@ -23,7 +23,6 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/ArrayInt32.h"
 #include "StandardLib/Pointer.h"
 #include "ColourFormat.h"
 #include "ImageCel.h"
@@ -32,6 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageCopyDimension.h"
 #include "ImageBlitterContext.h"
 #include "OffsetImageRowBlitter.h"
+#include "SizingImageBlitterSize.h"
 #include "ImageRowBlitterFactory.h"
 
 
@@ -40,25 +40,21 @@ class CImageBlitter : public CObject
 CONSTRUCTABLE(CImageBlitter);
 DESTRUCTABLE(CImageBlitter);
 protected:
-	CArrayOffsetImageRowBlitter	macRowBlitters;
+	CArrayOffsetImageRowBlitter		macRowBlitters;
 
-	CImageCel*				mpcSourceCel;		//Not a reference.  Whoever uses this blitter must keep the cel alive.
-	Ptr<CImage>				mpDestImage;
+	CImageCel*						mpcSourceCel;		//Not a reference.  Whoever uses this blitter must keep the cel alive.
+	Ptr<CImage>						mpDestImage;
 
-	CImageBlitterFormat		mcFormat;
-	CImageBlitterContext	mcContext;
+	CImageBlitterFormat				mcFormat;
+	CImageBlitterContext			mcContext;
 
-	CArrayInt32				maiRowStarts;		//The index in macRowBlitters of the first segment of each row of the cel's image, then one past the last segment.
+	CArrayInt32						maiRowStarts;		//The index in macRowBlitters of the first segment of each row of the cel's image, then one past the last segment.
 
-	//Built for the last size the cel was drawn at that was not its own.
-	SInt32Vec2				msSizedTo;
-	CArrayInt32				maiSizedSourceX;	//For each destination column the source image column drawn into it.
-	CArrayInt32				maiSizedSourceY;	//For each destination row the row of the cel's image drawn into it, outside the image in the cel's transparent borders.
-	CArrayInt32				maiSizedDestX;		//For each column of the full cel the first destination column drawn from it or a column to its right.
+	CSizingImageBlitterSize*		mpcSizing;
 
 public:
 	void			Init(Ptr<CImageCel> pSource, Ptr<CImage> pcDest);
-	bool			Configure(CImageRowBlitterFactory* pcBlitterCache);
+	bool			Configure(CImageRowBlitterFactory* pcBlitterCache, bool bAllowSizing);
 	void			Free(void);
 	void			Class(void) override;
 
@@ -70,25 +66,26 @@ public:
 	Ptr<CImageCel>	GetCel(void);
 
 protected:
+	bool			AllowsSizing(void);
+
 	bool			PopulateColourFormat(CImageBlitterFormat* pcFormat);
 	bool			PopulateOpacityFormat(CImageBlitterFormat* pcFormat);
-	bool			CreateImageRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
+	bool			CreateImageRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, bool bAllowSizing);
 	void			PopulateContext(CImageBlitterContext* pcContext);
 	void			PopulateRowStarts(void);
-	bool			InitSizedTables(int32 iDestWidth, int32 iDestHeight);
-	void			InitSizedSamples(CArrayInt32* paiSamples, int32 iDestLength, int32 iFullLength, int32 iOffset);
+	bool			PopulateSizingTables(int32 iDestWidth, int32 iDestHeight);
 	bool			ClipDestRect(CRectangle* pcClip, CRectangle* pcDestRect);
 
-	bool			CreateImageRowBlitterContiguous(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
-	bool			CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
-	bool			CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
-	bool			CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
-	bool			CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
+	bool			CreateImageRowBlitterContiguous(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, bool bAllowSizing);
+	bool			CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, bool bAllowSizing);
+	bool			CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, bool bAllowSizing);
+	bool			CreateImageRowBlitterRGBByteAlphaByteTranslucent(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, bool bAllowSizing);
+	bool			CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, bool bAllowSizing);
 
-	bool			CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, CreateImageRowBlitterFunc fCreate);
-	bool			CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, CreateImageRowBlitterFunc fCreateRGBByteAlphaByteTranslucent, CreateImageRowBlitterFunc fCreateByteAlignedOpaque);
+	bool			CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, CreateImageRowBlitterFunc fCreate, bool bAllowSizing);
+	bool			CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, CreateImageRowBlitterFunc fCreateRGBByteAlphaByteTranslucent, CreateImageRowBlitterFunc fCreateByteAlignedOpaque, bool bAllowSizing);
 
-	void			AddBlitter(CBaseImageRowBlitter* pcBlitter, CImageRowBlitterFactory* pcBlitterFactory, size xStart, size xEnd, size yOffset);
+	void			AddBlitter(CBaseImageRowBlitter* pcBlitter, CImageRowBlitterFactory* pcBlitterFactory, size xStart, size xEnd, size yOffset, bool bAllowSizing);
 };
 
 
