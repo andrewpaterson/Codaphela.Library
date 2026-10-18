@@ -113,3 +113,35 @@ SInt32Vec2 CContainer::GetRequiredSize(void)
 	return msRequiredSize;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CContainer::LayoutComponentInArea(Ptr<CComponent> pComponent, SInt32Vec2 sAreaPosition, SInt32Vec2 sAreaSize)
+{
+	SInt32Vec2					sSize;
+	SInt32Vec2					sPosition;
+	EContainerStyleHorizontal	eHorizontal;
+	EContainerStyleVertical		eVertical;
+
+	//A component with a desired size of -1 on an axis is variable sized and takes the whole area on that axis, as does a
+	//component stretched on that axis.  Otherwise it keeps its desired size and is placed by its own alignment.
+	sSize = pComponent->GetDesiredSize();
+	eHorizontal = pComponent->GetHorizontalAlignment();
+	eVertical = pComponent->GetVerticalAlignment();
+	if ((sSize.x < 0) || (eHorizontal == CSH_Stretch))
+	{
+		sSize.x = sAreaSize.x;
+	}
+	if ((sSize.y < 0) || (eVertical == CSV_Stretch))
+	{
+		sSize.y = sAreaSize.y;
+	}
+
+	sPosition.x = sAreaPosition.x + AlignComponentHorizontal(eHorizontal, sSize.x, sAreaSize.x);
+	sPosition.y = sAreaPosition.y + AlignComponentVertical(eVertical, sSize.y, sAreaSize.y);
+
+	pComponent->Layout(sPosition, sSize);
+}
+
