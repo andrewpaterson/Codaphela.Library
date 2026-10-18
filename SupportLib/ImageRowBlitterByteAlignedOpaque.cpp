@@ -64,22 +64,3 @@ void CImageRowBlitterByteAlignedOpaqueDestAlpha::Copy(CImageBlitterContext* pcCo
 	}
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseImageRowSizingBlitter* CImageRowBlitterByteAlignedOpaque::CreateRowSizingBlitter(CImageRowBlitterFactory* pcFactory)
-{
-	return pcFactory->CreateImageRowSizingBlitterByteAlignedOpaque();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CBaseImageRowSizingBlitter* CImageRowBlitterByteAlignedOpaqueDestAlpha::CreateRowSizingBlitter(CImageRowBlitterFactory* pcFactory)
-{
-	return pcFactory->CreateImageRowSizingBlitterByteAlignedOpaqueDestAlpha();
-}

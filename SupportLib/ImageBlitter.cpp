@@ -66,13 +66,13 @@ bool CImageBlitter::Configure(CImageRowBlitterFactory* pcBlitterFactory)
 	Ptr<CImage>		pSourceImage;
 
 	pSourceImage = mpcSourceCel->GetSourceImage();
-	bResult = InitColourInfo(&mcFormat);
+	bResult = PopulateColourFormat(&mcFormat);
 	if (!bResult)
 	{
 		return false;
 	}
 
-	bResult = InitOpacityInfo(&mcFormat);
+	bResult = PopulateOpacityFormat(&mcFormat);
 	if (!bResult)
 	{
 		return false;
@@ -95,7 +95,7 @@ bool CImageBlitter::Configure(CImageRowBlitterFactory* pcBlitterFactory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::InitColourInfo(CImageBlitterFormat* pcFormat)
+bool CImageBlitter::PopulateColourFormat(CImageBlitterFormat* pcFormat)
 {
 	EColourOrder	eSourceColourOrder;
 	ERGBColourBits	eSourceColourBits;
@@ -173,7 +173,7 @@ bool CImageBlitter::InitColourInfo(CImageBlitterFormat* pcFormat)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::InitOpacityInfo(CImageBlitterFormat* pcFormat)
+bool CImageBlitter::PopulateOpacityFormat(CImageBlitterFormat* pcFormat)
 {
 	Ptr<CImage>			pSourceImage;
 	CSubImage*			pcSubImage;
@@ -269,7 +269,6 @@ bool CImageBlitter::InitOpacityInfo(CImageBlitterFormat* pcFormat)
 //////////////////////////////////////////////////////////////////////////
 bool CImageBlitter::InitRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory)
 {
-	
 	size						uiSourceByteStride;
 	size						uiDestByteStride;
 	Ptr<CBaseImageRowBlitter>	pcRowBlitter;
@@ -541,12 +540,15 @@ bool CImageBlitter::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageBlitter::AddBlitter(CBaseImageRowBlitter* pcBlitter, CImageRowBlitterFactory* pcBlitterFactory, size xStart, size xEnd, size yOffset)
+void CImageBlitter::AddBlitter(CBaseImageRowBlitter* pcImageRowBlitter, CImageRowBlitterFactory* pcBlitterFactory, size xStart, size xEnd, size yOffset)
 {
-	CImageRowBlitter* psBlitter;
+	CImageRowBlitter*				pcThing;
+	CBaseImageRowSizingBlitter*		pcImageRowSizingBlitter;
 
-	psBlitter = macRowBlitters.Add();
-	psBlitter->Init(pcBlitter, pcBlitter->CreateRowSizingBlitter(pcBlitterFactory), xStart, xEnd, yOffset);
+	pcImageRowSizingBlitter = pcBlitterFactory->CreateImageRowSizingBlitter(pcImageRowBlitter);
+
+	pcThing = macRowBlitters.Add();
+	pcThing->Init(pcImageRowBlitter, pcImageRowSizingBlitter, xStart, xEnd, yOffset);
 }
 
 
@@ -650,7 +652,7 @@ void CImageBlitter::InitSizedSamples(CArrayInt32* paiSamples, int32 iDestLength,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageBlitter::InitSizedTables(int32 iDestWidth, int32 iDestHeight)
+bool CImageBlitter::InitSizedTables(int32 iDestWidth, int32 iDestHeight)
 {
 	CSubImage*	pcSubImage;
 	int32		iFullWidth;
@@ -662,7 +664,7 @@ void CImageBlitter::InitSizedTables(int32 iDestWidth, int32 iDestHeight)
 
 	if ((msSizedTo.x == iDestWidth) && (msSizedTo.y == iDestHeight))
 	{
-		return;
+		return false;
 	}
 
 	pcSubImage = mpcSourceCel->GetSubImage();
@@ -689,6 +691,7 @@ void CImageBlitter::InitSizedTables(int32 iDestWidth, int32 iDestHeight)
 	}
 
 	msSizedTo.Init(iDestWidth, iDestHeight);
+	return true;
 }
 
 

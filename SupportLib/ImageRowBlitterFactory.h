@@ -37,11 +37,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImageRowBlitterFactory
 {
 protected:
-	CImageRowBlitterContiguous								mcImageRowBlitterContiguous;
-	CImageRowBlitterByteAlignedOpaque						mcImageRowBlitterByteAlignedOpaque;
-	CImageRowBlitterByteAlignedOpaqueDestAlpha				mcImageRowBlitterByteAlignedOpaqueDestAlpha;
-	CImageRowBlitterRGBByteAlphaByteTranslucent				mcImageRowBlitterRGBByteAlphaByteTranslucent;
-	CImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha	mcImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha;
+	CImageRowBlitterContiguous									mcImageRowBlitterContiguous;
+	CImageRowBlitterByteAlignedOpaque							mcImageRowBlitterByteAlignedOpaque;
+	CImageRowBlitterByteAlignedOpaqueDestAlpha					mcImageRowBlitterByteAlignedOpaqueDestAlpha;
+	CImageRowBlitterRGBByteAlphaByteTranslucent					mcImageRowBlitterRGBByteAlphaByteTranslucent;
+	CImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha		mcImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha;
 
 	CImageRowSizingBlitterByteAlignedOpaque						mcImageRowSizingBlitterByteAlignedOpaque;
 	CImageRowSizingBlitterByteAlignedOpaqueDestAlpha			mcImageRowSizingBlitterByteAlignedOpaqueDestAlpha;
@@ -59,6 +59,8 @@ public:
 	CBaseImageRowSizingBlitter*		CreateImageRowSizingBlitterByteAlignedOpaqueDestAlpha(void);
 	CBaseImageRowSizingBlitter*		CreateImageRowSizingBlitterRGBByteAlphaByteTranslucent(void);
 	CBaseImageRowSizingBlitter*		CreateImageRowSizingBlitterRGBByteAlphaByteTranslucentDestAlpha(void);
+
+	CBaseImageRowSizingBlitter*		CreateImageRowSizingBlitter(CBaseImageRowBlitter* pcRowBlitter);
 };
 
 
