@@ -26,3 +26,13 @@ void COffsetImageRowBlitter::Init(CBaseImageRowBlitter* pcBlitter, CBaseImageRow
 	muiXEnd = uiXEnd;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void COffsetImageRowBlitter::SetImageRowSizingBlitter(CBaseImageRowSizingBlitter* pcSizingBlitter)
+{
+	mpcSizingBlitter = pcSizingBlitter;
+}
+

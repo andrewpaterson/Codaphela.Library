@@ -64,10 +64,10 @@ public:
 	bool			Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip = NULL);
 	bool			Blit(int32 iDestX, int32 iDestY, int32 iDestWidth, int32 iDestHeight, CRectangle* pcClip = NULL);
 	Ptr<CImageCel>	GetCel(void);
+	bool			AllowsSizing(void);
+	void			EnableSizing(CImageRowBlitterFactory* pcBlitterCache);
 
 protected:
-	bool			AllowsSizing(void);
-
 	bool			PopulateColourFormat(CImageBlitterFormat* pcFormat);
 	bool			PopulateOpacityFormat(CImageBlitterFormat* pcFormat);
 	bool			CreateImageRowBlitters(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, bool bAllowSizing);
