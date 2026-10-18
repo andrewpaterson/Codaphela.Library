@@ -1,5 +1,5 @@
-#ifndef __IMAGE_ROW_BLITTER_H__
-#define __IMAGE_ROW_BLITTER_H__
+#ifndef __OFFSET_IMAGE_ROW_BLITTER_H__
+#define __OFFSET_IMAGE_ROW_BLITTER_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -33,7 +33,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseImageRowSizingBlitter.h"
 
 
-class CImageRowBlitter
+class COffsetImageRowBlitter
 {
 public:
 	CBaseImageRowBlitter*			mpcBlitter;
@@ -45,8 +45,8 @@ public:
 };
 
 
-typedef	CArrayTemplate<CImageRowBlitter>	CArrayImageRowBlitter;
+typedef	CArrayTemplate<COffsetImageRowBlitter>	CArrayOffsetImageRowBlitter;
 
 
-#endif // __IMAGE_ROW_BLITTER_H__
+#endif // __OFFSET_IMAGE_ROW_BLITTER_H__
 

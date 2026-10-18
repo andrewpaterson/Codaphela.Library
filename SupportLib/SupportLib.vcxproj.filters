@@ -768,7 +768,7 @@
     <ClInclude Include="BaseImageRowBlitter.h">
       <Filter>Source\Image\Blitter</Filter>
     </ClInclude>
-    <ClInclude Include="ImageRowBlitter.h">
+    <ClInclude Include="OffsetImageRowBlitter.h">
       <Filter>Source\Image\Blitter</Filter>
     </ClInclude>
     <ClInclude Include="BaseImageRowSizingBlitter.h">
@@ -1376,7 +1376,7 @@
     <ClCompile Include="ImageBlitter.cpp">
       <Filter>Source\Image\Blitter</Filter>
     </ClCompile>
-    <ClCompile Include="ImageRowBlitter.cpp">
+    <ClCompile Include="OffsetImageRowBlitter.cpp">
       <Filter>Source\Image\Blitter</Filter>
     </ClCompile>
     <ClCompile Include="ImageRowSizingBlitterRGBByteAlphaByteTranslucent.cpp">

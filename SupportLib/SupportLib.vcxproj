@@ -208,7 +208,7 @@
     <ClInclude Include="ImageRowBlitterContiguous.h" />
     <ClInclude Include="ImageRowBlitterByteAlignedOpaque.h" />
     <ClInclude Include="ImageRowBlitterRGBByteAlphaByteTranslucent.h" />
-    <ClInclude Include="ImageRowBlitter.h" />
+    <ClInclude Include="OffsetImageRowBlitter.h" />
     <ClInclude Include="BaseImageRowSizingBlitter.h" />
     <ClInclude Include="ImageRowSizingBlitterByteAlignedOpaque.h" />
     <ClInclude Include="ImageRowSizingBlitterRGBByteAlphaByteTranslucent.h" />
@@ -423,7 +423,7 @@
     <ClCompile Include="ImageRowBlitterContiguous.cpp" />
     <ClCompile Include="ImageRowBlitterByteAlignedOpaque.cpp" />
     <ClCompile Include="ImageRowBlitterRGBByteAlphaByteTranslucent.cpp" />
-    <ClCompile Include="ImageRowBlitter.cpp" />
+    <ClCompile Include="OffsetImageRowBlitter.cpp" />
     <ClCompile Include="ImageRowSizingBlitterByteAlignedOpaque.cpp" />
     <ClCompile Include="ImageRowSizingBlitterRGBByteAlphaByteTranslucent.cpp" />
     <ClCompile Include="MapFontDraw.cpp" />
