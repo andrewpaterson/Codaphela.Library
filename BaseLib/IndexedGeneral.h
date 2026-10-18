@@ -23,9 +23,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __INDEXED_GENERAL_H__
 #define __INDEXED_GENERAL_H__
 #include "PrimitiveTypes.h"
-
+#include "ArrayTemplatePrimitive.h"
 
 typedef int64 OIndex;
+typedef CArrayTemplatePrimitive<OIndex>	CArrayOIndex;
 
 
 #define INVALID_O_INDEX	((OIndex)-1)

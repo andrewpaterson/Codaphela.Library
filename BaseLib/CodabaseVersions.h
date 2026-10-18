@@ -53,7 +53,7 @@ public:
 
 	void			RemoveUpTo(int64 iOldestSnapshot);
 
-	void			GetIndices(CArrayInt64* paoi);
+	void			GetIndices(CArrayOIndex* paoi);
 	void			GetNames(CArrayChars* paszNames);
 	size			NumVersions(void);
 };

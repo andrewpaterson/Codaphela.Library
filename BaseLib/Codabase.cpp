@@ -592,7 +592,7 @@ void CCodabase::GetStoredIndices(CArrayOIndex* paoi)
 	oi = mcNamedIndexedData.StartIndexIteration(&sIter, NULL, &iDataSize, 0);
 	while (oi != INVALID_O_INDEX)
 	{
-		paoi->Add(&oi);
+		paoi->Add(oi);
 		oi = mcNamedIndexedData.IndexIterate(&sIter, NULL, &iDataSize, 0);
 	}
 }

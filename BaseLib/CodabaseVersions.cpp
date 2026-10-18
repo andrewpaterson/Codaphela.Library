@@ -233,7 +233,7 @@ void CCodabaseVersions::RemoveUpTo(int64 iOldestSnapshot)
 	CVersion*		pcNextVersion;
 	SNameVersion*	psName;
 	SNameVersion*	psNextName;
-	CArrayInt64	aoiEmpty;
+	CArrayOIndex	aoiEmpty;
 	CArrayChars		aszEmpty;
 	size			i;
 
@@ -292,7 +292,7 @@ void CCodabaseVersions::RemoveUpTo(int64 iOldestSnapshot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCodabaseVersions::GetIndices(CArrayInt64* paoi)
+void CCodabaseVersions::GetIndices(CArrayOIndex* paoi)
 {
 	SMapIterator	sIter;
 	void*			pvKey;
