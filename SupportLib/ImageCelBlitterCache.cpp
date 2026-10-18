@@ -108,6 +108,10 @@ Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel
 	pImageBlitter = GetImageBlitter(pCel);
 	if (pImageBlitter.IsNotNull())
 	{
+		if (!pImageBlitter->AllowsSizing())
+		{
+			pImageBlitter->EnableSizing(&gcImageRowBlitterFactory);
+		}
 		return pImageBlitter;
 	}
 

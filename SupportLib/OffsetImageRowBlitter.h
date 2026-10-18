@@ -43,6 +43,7 @@ public:
 
 	void	Init(CBaseImageRowBlitter* pcBlitter, size uiXStart, size uiXEnd, size uiY);
 	void	Init(CBaseImageRowBlitter* pcBlitter, CBaseImageRowSizingBlitter* pcSizingBlitter, size uiXStart, size uiXEnd, size uiY);
+	void	SetImageRowSizingBlitter(CBaseImageRowSizingBlitter* pcSizingBlitter);
 };
 
 

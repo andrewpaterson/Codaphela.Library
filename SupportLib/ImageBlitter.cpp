@@ -64,8 +64,7 @@ bool CImageBlitter::Configure(CImageRowBlitterFactory* pcBlitterFactory, bool bA
 
 	if (bAllowSizing)
 	{
-		mpcSizing = (CSizingImageBlitterSize*)malloc(sizeof(CSizingImageBlitterSize));
-		mpcSizing->Init();
+		EnableSizing(pcBlitterFactory);
 	}
 
 	pSourceImage = mpcSourceCel->GetSourceImage();
@@ -101,6 +100,34 @@ bool CImageBlitter::Configure(CImageRowBlitterFactory* pcBlitterFactory, bool bA
 bool CImageBlitter::AllowsSizing(void)
 {
 	return mpcSizing != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageBlitter::EnableSizing(CImageRowBlitterFactory* pcBlitterCache)
+{
+	size							iNumBlitters;
+	size							i;
+	COffsetImageRowBlitter*			pcOffsetImageRowBlitter;
+	CBaseImageRowSizingBlitter*		pcImageRowSizingBlitter;
+
+	if (mpcSizing == NULL)
+	{
+		mpcSizing = (CSizingImageBlitterSize*)malloc(sizeof(CSizingImageBlitterSize));
+		mpcSizing->Init();
+
+		iNumBlitters = macRowBlitters.NumElements();
+		for (i = 0; i < iNumBlitters; i++)
+		{
+			pcOffsetImageRowBlitter = macRowBlitters.Get(i);
+
+			pcImageRowSizingBlitter = pcBlitterCache->CreateImageRowSizingBlitter(pcOffsetImageRowBlitter->mpcBlitter);
+			pcOffsetImageRowBlitter->SetImageRowSizingBlitter(pcImageRowSizingBlitter);
+		}
+	}
 }
 
 
