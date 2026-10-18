@@ -111,19 +111,19 @@ void CFlowContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	SetContainerBounds(sPosition, sAreaSize);
 
-	if (meDirection == CSD_Unknown)
+	if (meDirection != CSD_Unknown)
 	{
-		return;
+		if (meWrap == CSW_Wrap)
+		{
+			LayoutWrap(sPosition, sAreaSize);
+		}
+		else
+		{
+			LayoutLine(sPosition, sAreaSize, 0, maChildren.Size());
+		}
 	}
 
-	if (meWrap == CSW_Wrap)
-	{
-		LayoutWrap(sPosition, sAreaSize);
-	}
-	else
-	{
-		LayoutLine(sPosition, sAreaSize, 0, maChildren.Size());
-	}
+	SetActualBounds(sPosition, sAreaSize);
 }
 
 

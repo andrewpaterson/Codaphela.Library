@@ -106,6 +106,19 @@ void CContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CContainer::SetActualBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
+{
+	//Called once the container has laid out its components.  Like any component its actual bounds are the area it was
+	//given by its parent, insets included and not clipped.  The inset and clipped area is mcContainerBounds.
+	SetPosition(sPosition);
+	SetActualSize(sAreaSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 SInt32Vec2 CContainer::GetRequiredSize(void)
 {
 	return msRequiredSize;

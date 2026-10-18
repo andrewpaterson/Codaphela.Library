@@ -576,4 +576,6 @@ void CGridContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	aiColumnSizes.Kill();
 	aiRowStarts.Kill();
 	aiRowSizes.Kill();
+
+	SetActualBounds(sPosition, sAreaSize);
 }
