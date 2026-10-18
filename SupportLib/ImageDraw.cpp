@@ -230,7 +230,7 @@ bool CImageDraw::DrawCel(int x, int y, int iWidth, int iHeight, Ptr<CImageCel> p
 	Ptr<CImageBlitter>	pBlitter;
 
 	//The whole cel is stretched or shrunk to iWidth by iHeight.
-	pBlitter = mpcImage->GetBlitterCache()->CreateImageBlitter(pCel);
+	pBlitter = mpcImage->GetBlitterCache()->CreateSizingImageBlitter(pCel);
 	if (pBlitter.IsNull())
 	{
 		gcLogger.Error2(__METHOD__, " Cannot draw cel, the source and destination image formats do not match.", NULL);

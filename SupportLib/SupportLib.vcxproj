@@ -186,6 +186,7 @@
     <ClInclude Include="ColourFormat.h" />
     <ClInclude Include="CopyPaste.h" />
     <ClInclude Include="ChannelTypes.h" />
+    <ClInclude Include="SizingImageBlitterSize.h" />
     <ClInclude Include="FontCreationParameters.h" />
     <ClInclude Include="ImageColourConverter.h" />
     <ClInclude Include="TileCelSource.h" />
@@ -402,6 +403,7 @@
     <ClCompile Include="ChannelTypes.cpp" />
     <ClCompile Include="ColourFormat.cpp" />
     <ClCompile Include="CopyPaste_Windows.cpp" />
+    <ClCompile Include="SizingImageBlitterSize.cpp" />
     <ClCompile Include="FakeTracker.cpp" />
     <ClCompile Include="FontCreationParameters.cpp" />
     <ClCompile Include="ImageColourConverter.cpp" />

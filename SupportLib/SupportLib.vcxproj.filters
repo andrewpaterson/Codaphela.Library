@@ -885,6 +885,9 @@
     <ClInclude Include="ImageRowSizingBlitterByteAlignedOpaque.h">
       <Filter>Source\Image\Blitter\Types\Opaque</Filter>
     </ClInclude>
+    <ClInclude Include="SizingImageBlitterSize.h">
+      <Filter>Source\Image\Blitter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1489,6 +1492,9 @@
     </ClCompile>
     <ClCompile Include="ImageRowSizingBlitterByteAlignedOpaque.cpp">
       <Filter>Source\Image\Blitter\Types\Opaque</Filter>
+    </ClCompile>
+    <ClCompile Include="SizingImageBlitterSize.cpp">
+      <Filter>Source\Image\Blitter</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
