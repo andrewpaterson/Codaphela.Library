@@ -3,8 +3,8 @@
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/LinkedListTemplate.h"
 #include "BaseLib/Mutex.h"
-#include "ConditionVariable.h"
-#include "NativeThread.h"
+#include "BaseLib/ConditionVariable.h"
+#include "BaseLib/NativeThread.h"
 
 
 //iThreadId is the index of the pool thread running the function.

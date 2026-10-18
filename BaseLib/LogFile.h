@@ -30,6 +30,7 @@ public:
 	bool					Begin(void);
 	bool					Commit(void);
 	bool					End(void);
+	void					Abort(void);
 
 	bool					Open(EFileMode eFileMode);
 	bool					Close(void);

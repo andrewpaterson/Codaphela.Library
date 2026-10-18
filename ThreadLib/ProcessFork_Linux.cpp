@@ -9,7 +9,7 @@
 #include "BaseLib/Logger.h"
 #include "BaseLib/StackMemory.h"
 #include "BaseLib/LinuxError.h"
-#include "NativeThread.h"
+#include "BaseLib/NativeThread.h"
 #include "ProcessFork.h"
 
 

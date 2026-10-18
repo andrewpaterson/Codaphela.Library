@@ -206,8 +206,6 @@
     <ClInclude Include="ThreadState.h" />
     <ClInclude Include="ThreadStateNotifier.h" />
     <ClInclude Include="AtomicInt.h" />
-    <ClInclude Include="ConditionVariable.h" />
-    <ClInclude Include="NativeThread.h" />
     <ClInclude Include="WorkerThreadPool.h" />
   </ItemGroup>
   <ItemGroup>
@@ -239,11 +237,6 @@
     <ClCompile Include="AtomicInt.cpp" />
     <ClCompile Include="AtomicInt_Windows.cpp" />
     <ClCompile Include="AtomicInt_Linux.cpp" />
-    <ClCompile Include="ConditionVariable_Windows.cpp" />
-    <ClCompile Include="ConditionVariable_Linux.cpp" />
-    <ClCompile Include="NativeThread.cpp" />
-    <ClCompile Include="NativeThread_Windows.cpp" />
-    <ClCompile Include="NativeThread_Linux.cpp" />
     <ClCompile Include="WorkerThreadPool.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="ThreadsDone.cpp" />

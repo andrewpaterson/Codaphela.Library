@@ -187,6 +187,28 @@ bool CDurableSet::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CDurableSet::Abort(void)
+{
+	size			i;
+	size			uiNumElements;
+	CDurableFile*	pcDurable;
+
+	//Ends the bracket without committing.  The files are left as they were at Begin.
+	uiNumElements = mapcFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcDurable = *mapcFiles.Get(i);
+		pcDurable->Abort();
+	}
+	mapcFiles.ReInit();
+	mbBegun = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CDurableSet::Check(bool bThorough, bool bLogError)
 {
 	bool	bMarkStart;

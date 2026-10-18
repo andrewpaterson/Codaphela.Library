@@ -1,26 +1,21 @@
-#ifdef LINUX_GNU_32
-#include <errno.h>
-#include <pthread.h>
-#include <sched.h>
+#ifdef _WIN32
 #include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
-#include <sys/syscall.h>
-#include "BaseLib/LinuxError.h"
-#include "BaseLib/Logger.h"
+#include "WindowsHeaders.h"
+#include "WindowsError.h"
+#include "Logger.h"
 #include "NativeThread.h"
 
 
-static_assert(sizeof(pthread_t) <= NATIVE_THREAD_HANDLE_SIZE, "NATIVE_THREAD_HANDLE_SIZE is too small for a pthread_t.");
+static_assert(sizeof(HANDLE) <= NATIVE_THREAD_HANDLE_SIZE, "NATIVE_THREAD_HANDLE_SIZE is too small for a HANDLE.");
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static pthread_t& ThreadHandle(uint8* paThread)
+static HANDLE& ThreadHandle(uint8* paThread)
 {
-	return *(pthread_t*)paThread;
+	return *(HANDLE*)paThread;
 }
 
 
@@ -28,10 +23,10 @@ static pthread_t& ThreadHandle(uint8* paThread)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void* NativeThreadProc(void* pvStart)
+static DWORD WINAPI NativeThreadProc(LPVOID pvStart)
 {
 	RunNativeThreadStart((SNativeThreadStart*)pvStart);
-	return NULL;
+	return 0;
 }
 
 
@@ -41,7 +36,7 @@ static void* NativeThreadProc(void* pvStart)
 //////////////////////////////////////////////////////////////////////////
 void CNativeThread::Init(void)
 {
-	ThreadHandle(maThread) = 0;
+	ThreadHandle(maThread) = NULL;
 	mbStarted = false;
 }
 
@@ -66,17 +61,18 @@ void CNativeThread::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNativeThread::Start(NativeThreadFunction fFunction, void* pvData)
 {
-	int					iResult;
+	HANDLE				hThread;
 	SNativeThreadStart*	psStart;
 
 	psStart = NewNativeThreadStart(fFunction, pvData);
-	iResult = pthread_create(&ThreadHandle(maThread), NULL, NativeThreadProc, psStart);
-	if (iResult != 0)
+	hThread = CreateThread(NULL, 0, NativeThreadProc, psStart, 0, NULL);
+	if (hThread == NULL)
 	{
 		free(psStart);
-		return gcLogger.Error2(__METHOD__, " pthread_create failed [", LinuxErrorCodeToString(iResult), "].", NULL);
+		return gcLogger.Error2(__METHOD__, " CreateThread failed [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
 	}
 
+	ThreadHandle(maThread) = hThread;
 	mbStarted = true;
 	return true;
 }
@@ -90,8 +86,9 @@ void CNativeThread::Join(void)
 {
 	if (mbStarted)
 	{
-		pthread_join(ThreadHandle(maThread), NULL);
-		ThreadHandle(maThread) = 0;
+		WaitForSingleObject(ThreadHandle(maThread), INFINITE);
+		CloseHandle(ThreadHandle(maThread));
+		ThreadHandle(maThread) = NULL;
 		mbStarted = false;
 	}
 }
@@ -105,8 +102,8 @@ void CNativeThread::Detach(void)
 {
 	if (mbStarted)
 	{
-		pthread_detach(ThreadHandle(maThread));
-		ThreadHandle(maThread) = 0;
+		CloseHandle(ThreadHandle(maThread));
+		ThreadHandle(maThread) = NULL;
 		mbStarted = false;
 	}
 }
@@ -118,7 +115,7 @@ void CNativeThread::Detach(void)
 //////////////////////////////////////////////////////////////////////////
 void ThreadYield(void)
 {
-	sched_yield();
+	SwitchToThread();
 }
 
 
@@ -128,13 +125,7 @@ void ThreadYield(void)
 //////////////////////////////////////////////////////////////////////////
 void ThreadSleep(int iMilliseconds)
 {
-	struct timespec	sRemaining;
-
-	sRemaining.tv_sec = iMilliseconds / 1000;
-	sRemaining.tv_nsec = (long)(iMilliseconds % 1000) * 1000000L;
-	while ((nanosleep(&sRemaining, &sRemaining) == -1) && (errno == EINTR))
-	{
-	}
+	Sleep(iMilliseconds);
 }
 
 
@@ -144,14 +135,10 @@ void ThreadSleep(int iMilliseconds)
 //////////////////////////////////////////////////////////////////////////
 int NumHardwareThreads(void)
 {
-	long	iProcessors;
+	SYSTEM_INFO	sInfo;
 
-	iProcessors = sysconf(_SC_NPROCESSORS_ONLN);
-	if (iProcessors < 1)
-	{
-		return 1;
-	}
-	return (int)iProcessors;
+	GetSystemInfo(&sInfo);
+	return (int)sInfo.dwNumberOfProcessors;
 }
 
 
@@ -161,9 +148,9 @@ int NumHardwareThreads(void)
 //////////////////////////////////////////////////////////////////////////
 int CurrentThreadId(void)
 {
-	return (int)syscall(SYS_gettid);
+	return (int)GetCurrentThreadId();
 }
 
 
-#endif // LINUX_GNU_32
+#endif // _WIN32
 

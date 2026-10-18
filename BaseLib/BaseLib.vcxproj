@@ -338,6 +338,8 @@
     <ClInclude Include="IndexTreeRecursor.h" />
     <ClInclude Include="LinkedListBlock.h" />
     <ClInclude Include="Mutex.h" />
+    <ClInclude Include="ConditionVariable.h" />
+    <ClInclude Include="NativeThread.h" />
     <ClInclude Include="SafeArrayBlock.h" />
     <ClInclude Include="SafeLinkedListBlock.h" />
     <ClInclude Include="LinkedListTemplate.h" />
@@ -519,6 +521,9 @@
     <ClInclude Include="CharEncoding.h" />
     <ClInclude Include="FatClusterCache.h" />
     <ClInclude Include="Codabase.h" />
+    <ClInclude Include="WriteTransaction.h" />
+    <ClInclude Include="ReadTransaction.h" />
+    <ClInclude Include="CodabaseVersions.h" />
     <ClInclude Include="CodabaseFactory.h" />
     <ClInclude Include="DataConnection.h" />
     <ClInclude Include="Fat32.h" />
@@ -763,6 +768,11 @@
     <ClCompile Include="LinkedListBlock.cpp" />
     <ClCompile Include="Mutex_Windows.cpp" />
     <ClCompile Include="Mutex_Linux.cpp" />
+    <ClCompile Include="ConditionVariable_Windows.cpp" />
+    <ClCompile Include="ConditionVariable_Linux.cpp" />
+    <ClCompile Include="NativeThread.cpp" />
+    <ClCompile Include="NativeThread_Windows.cpp" />
+    <ClCompile Include="NativeThread_Linux.cpp" />
     <ClCompile Include="SafeArrayBlock.cpp" />
     <ClCompile Include="SafeLinkedListBlock.cpp" />
     <ClCompile Include="ListBlock.cpp" />
@@ -918,6 +928,9 @@
     <ClCompile Include="CharEncoding.cpp" />
     <ClCompile Include="FatClusterCache.cpp" />
     <ClCompile Include="Codabase.cpp" />
+    <ClCompile Include="WriteTransaction.cpp" />
+    <ClCompile Include="ReadTransaction.cpp" />
+    <ClCompile Include="CodabaseVersions.cpp" />
     <ClCompile Include="CodabaseFactory.cpp" />
     <ClCompile Include="FatCommon.cpp" />
     <ClCompile Include="FatDebug.cpp" />

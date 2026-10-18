@@ -1,6 +1,6 @@
 #ifndef __NATIVE_THREAD_H__
 #define __NATIVE_THREAD_H__
-#include "BaseLib/PrimitiveTypes.h"
+#include "PrimitiveTypes.h"
 
 
 //Large enough to hold a Windows thread HANDLE or a Linux pthread_t.

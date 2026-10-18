@@ -1,7 +1,7 @@
 #ifndef __CONDITION_VARIABLE_H__
 #define __CONDITION_VARIABLE_H__
-#include "BaseLib/PrimitiveTypes.h"
-#include "BaseLib/Mutex.h"
+#include "PrimitiveTypes.h"
+#include "Mutex.h"
 
 
 //Large enough to hold a Windows CONDITION_VARIABLE or a Linux pthread_cond_t.
