@@ -31,16 +31,16 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImageRowBlitterByteAlignedOpaque : public CBaseImageRowBlitter
 {
 public:
-	void	Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
-	CBaseImageRowSizingBlitter*	GetSizingBlitter(CImageRowBlitterFactory* pcFactory) override;
+	void							Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
+	CBaseImageRowSizingBlitter*		CreateRowSizingBlitter(CImageRowBlitterFactory* pcFactory) override;
 };
 
 
 class CImageRowBlitterByteAlignedOpaqueDestAlpha : public CBaseImageRowBlitter
 {
 public:
-	void	Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
-	CBaseImageRowSizingBlitter*	GetSizingBlitter(CImageRowBlitterFactory* pcFactory) override;
+	void							Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
+	CBaseImageRowSizingBlitter*		CreateRowSizingBlitter(CImageRowBlitterFactory* pcFactory) override;
 };
 
 

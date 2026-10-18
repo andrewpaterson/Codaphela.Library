@@ -40,21 +40,21 @@ class CImageBlitter : public CObject
 CONSTRUCTABLE(CImageBlitter);
 DESTRUCTABLE(CImageBlitter);
 protected:
-	CArrayImageRowBlitter		macRowBlitters;
+	CArrayImageRowBlitter	macRowBlitters;
 
-	CImageCel*					mpcSourceCel;  //Not a reference.  Whoever uses this blitter must keep the cel alive.
-	Ptr<CImage>					mpDestImage;
+	CImageCel*				mpcSourceCel;  //Not a reference.  Whoever uses this blitter must keep the cel alive.
+	Ptr<CImage>				mpDestImage;
 
-	CImageBlitterFormat			mcFormat;
-	CImageBlitterContext		mcContext;
+	CImageBlitterFormat		mcFormat;
+	CImageBlitterContext	mcContext;
 
-	CArrayInt32					maiRowStarts;		//The index in macRowBlitters of the first segment of each row of the cel's image, then one past the last segment.
+	CArrayInt32				maiRowStarts;		//The index in macRowBlitters of the first segment of each row of the cel's image, then one past the last segment.
 
 	//Built for the last size the cel was drawn at that was not its own.
-	SInt32Vec2					msSizedTo;
-	CArrayInt32					maiSizedSourceX;	//For each destination column the source image column drawn into it.
-	CArrayInt32					maiSizedSourceY;	//For each destination row the row of the cel's image drawn into it, outside the image in the cel's transparent borders.
-	CArrayInt32					maiSizedDestX;		//For each column of the full cel the first destination column drawn from it or a column to its right.
+	SInt32Vec2				msSizedTo;
+	CArrayInt32				maiSizedSourceX;	//For each destination column the source image column drawn into it.
+	CArrayInt32				maiSizedSourceY;	//For each destination row the row of the cel's image drawn into it, outside the image in the cel's transparent borders.
+	CArrayInt32				maiSizedDestX;		//For each column of the full cel the first destination column drawn from it or a column to its right.
 
 public:
 	void			Init(Ptr<CImageCel> pSource, Ptr<CImage> pcDest);
@@ -78,6 +78,7 @@ protected:
 	void			InitSizedTables(int32 iDestWidth, int32 iDestHeight);
 	void			InitSizedSamples(CArrayInt32* paiSamples, int32 iDestLength, int32 iFullLength, int32 iOffset);
 	bool			ClipDestRect(CRectangle* pcClip, CRectangle* pcDestRect);
+
 	bool			CreateImageRowBlitterContiguous(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
 	bool			CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);
 	bool			CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache);

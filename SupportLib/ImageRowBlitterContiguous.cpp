@@ -18,7 +18,8 @@ void CImageRowBlitterContiguous::Copy(CImageBlitterContext* pcContext, void* pvS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseImageRowSizingBlitter* CImageRowBlitterContiguous::GetSizingBlitter(CImageRowBlitterFactory* pcFactory)
+CBaseImageRowSizingBlitter* CImageRowBlitterContiguous::CreateRowSizingBlitter(CImageRowBlitterFactory* pcFactory)
 {
 	return pcFactory->CreateImageRowSizingBlitterByteAlignedOpaque();
 }
+

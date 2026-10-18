@@ -69,7 +69,7 @@ void CImageRowBlitterByteAlignedOpaqueDestAlpha::Copy(CImageBlitterContext* pcCo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseImageRowSizingBlitter* CImageRowBlitterByteAlignedOpaque::GetSizingBlitter(CImageRowBlitterFactory* pcFactory)
+CBaseImageRowSizingBlitter* CImageRowBlitterByteAlignedOpaque::CreateRowSizingBlitter(CImageRowBlitterFactory* pcFactory)
 {
 	return pcFactory->CreateImageRowSizingBlitterByteAlignedOpaque();
 }
@@ -79,7 +79,7 @@ CBaseImageRowSizingBlitter* CImageRowBlitterByteAlignedOpaque::GetSizingBlitter(
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseImageRowSizingBlitter* CImageRowBlitterByteAlignedOpaqueDestAlpha::GetSizingBlitter(CImageRowBlitterFactory* pcFactory)
+CBaseImageRowSizingBlitter* CImageRowBlitterByteAlignedOpaqueDestAlpha::CreateRowSizingBlitter(CImageRowBlitterFactory* pcFactory)
 {
 	return pcFactory->CreateImageRowSizingBlitterByteAlignedOpaqueDestAlpha();
 }

@@ -49,16 +49,16 @@ protected:
 	CImageRowSizingBlitterRGBByteAlphaByteTranslucentDestAlpha	mcImageRowSizingBlitterRGBByteAlphaByteTranslucentDestAlpha;
 
 public:
-	CBaseImageRowBlitter*	CreateImageRowBlitterContiguous(void);
-	CBaseImageRowBlitter*	CreateImageRowBlitterByteAlignedOpaque(void);
-	CBaseImageRowBlitter*	CreateImageRowBlitterByteAlignedOpaqueDestAlpha(void);
-	CBaseImageRowBlitter*	CreateImageRowBlitterRGBByteAlphaByteTranslucent(void);
-	CBaseImageRowBlitter*	CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(void);
+	CBaseImageRowBlitter*			CreateImageRowBlitterContiguous(void);
+	CBaseImageRowBlitter*			CreateImageRowBlitterByteAlignedOpaque(void);
+	CBaseImageRowBlitter*			CreateImageRowBlitterByteAlignedOpaqueDestAlpha(void);
+	CBaseImageRowBlitter*			CreateImageRowBlitterRGBByteAlphaByteTranslucent(void);
+	CBaseImageRowBlitter*			CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(void);
 
-	CBaseImageRowSizingBlitter*	CreateImageRowSizingBlitterByteAlignedOpaque(void);
-	CBaseImageRowSizingBlitter*	CreateImageRowSizingBlitterByteAlignedOpaqueDestAlpha(void);
-	CBaseImageRowSizingBlitter*	CreateImageRowSizingBlitterRGBByteAlphaByteTranslucent(void);
-	CBaseImageRowSizingBlitter*	CreateImageRowSizingBlitterRGBByteAlphaByteTranslucentDestAlpha(void);
+	CBaseImageRowSizingBlitter*		CreateImageRowSizingBlitterByteAlignedOpaque(void);
+	CBaseImageRowSizingBlitter*		CreateImageRowSizingBlitterByteAlignedOpaqueDestAlpha(void);
+	CBaseImageRowSizingBlitter*		CreateImageRowSizingBlitterRGBByteAlphaByteTranslucent(void);
+	CBaseImageRowSizingBlitter*		CreateImageRowSizingBlitterRGBByteAlphaByteTranslucentDestAlpha(void);
 };
 
 

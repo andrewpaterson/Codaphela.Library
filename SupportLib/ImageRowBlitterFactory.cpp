@@ -93,3 +93,4 @@ CBaseImageRowSizingBlitter* CImageRowBlitterFactory::CreateImageRowSizingBlitter
 {
 	return &mcImageRowSizingBlitterRGBByteAlphaByteTranslucentDestAlpha;
 }
+

@@ -62,8 +62,8 @@ void CImageBlitter::Init(Ptr<CImageCel> pSourceCel, Ptr<CImage> pDestImage)
 //////////////////////////////////////////////////////////////////////////
 bool CImageBlitter::Configure(CImageRowBlitterFactory* pcBlitterFactory)
 {
-	bool					bResult;
-	Ptr<CImage>				pSourceImage;
+	bool			bResult;
+	Ptr<CImage>		pSourceImage;
 
 	pSourceImage = mpcSourceCel->GetSourceImage();
 	bResult = InitColourInfo(&mcFormat);
@@ -546,7 +546,7 @@ void CImageBlitter::AddBlitter(CBaseImageRowBlitter* pcBlitter, CImageRowBlitter
 	CImageRowBlitter* psBlitter;
 
 	psBlitter = macRowBlitters.Add();
-	psBlitter->Init(pcBlitter, pcBlitter->GetSizingBlitter(pcBlitterFactory), xStart, xEnd, yOffset);
+	psBlitter->Init(pcBlitter, pcBlitter->CreateRowSizingBlitter(pcBlitterFactory), xStart, xEnd, yOffset);
 }
 
 

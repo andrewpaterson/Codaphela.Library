@@ -33,18 +33,18 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImageBlitterContext
 {
 public:
-	size		miSourcePixelStride;
-	size		miDestPixelStride;
-	size		miSourceWidth;
-	size		miDestWidth;
-	size		miSourceRowStride;
-	size		miDestRowStride;
+	size	miSourcePixelStride;
+	size	miDestPixelStride;
+	size	miSourceWidth;
+	size	miDestWidth;
+	size	miSourceRowStride;
+	size	miDestRowStride;
 
-	size		muiSourceColourOffset;
-	size		muiDestColourOffset;
-	size		muiDestAlphaOffset;
-	size		muiSourceAlphaOffset;
-	size		muiColourWidth;
+	size	muiSourceColourOffset;
+	size	muiDestColourOffset;
+	size	muiDestAlphaOffset;
+	size	muiSourceAlphaOffset;
+	size	muiColourWidth;
 
 
 public:

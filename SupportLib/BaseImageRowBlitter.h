@@ -37,10 +37,8 @@ class CBaseImageRowSizingBlitter;
 class CBaseImageRowBlitter
 {
 public:
-	virtual void						Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) =0;
-
-	//The blitter that does the same as this one for a cel drawn wider or narrower than it is.
-	virtual CBaseImageRowSizingBlitter*	GetSizingBlitter(CImageRowBlitterFactory* pcFactory) =0;
+	virtual void							Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) =0;
+	virtual CBaseImageRowSizingBlitter*		CreateRowSizingBlitter(CImageRowBlitterFactory* pcFactory) =0;
 };
 
 
