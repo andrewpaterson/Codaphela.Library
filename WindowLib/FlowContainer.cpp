@@ -31,7 +31,8 @@ void CFlowContainer::Init(Ptr<CWindow> pWindow)
 	CContainer::Init(pWindow);
 	meWrap = CSW_Wrap;
 	meDirection = CSD_Right;
-	muAlignment.eVertical = CSV_Top;
+	meHorizontal = CSH_Left;
+	meVertical = CSV_Top;
 }
 
 
@@ -54,7 +55,8 @@ void CFlowContainer::Class(void)
 	CContainer::Class();
 	U_Enum(meWrap);
 	U_Enum(meDirection);
-	U_Data(UContainerAlignment, muAlignment);
+	U_Enum(meHorizontal);
+	U_Enum(meVertical);
 }
 
 
@@ -153,11 +155,11 @@ bool CFlowContainer::IsCrossStretch(void)
 {
 	if (IsHorizontal())
 	{
-		return muAlignment.eVertical == CSV_Stretch;
+		return meVertical == CSV_Stretch;
 	}
 	else
 	{
-		return muAlignment.eHorizontal == CSH_Stretch;
+		return meHorizontal == CSH_Stretch;
 	}
 }
 
@@ -170,11 +172,11 @@ int CFlowContainer::AlignCross(int iComponentSize, int iAvailableSize)
 {
 	if (IsHorizontal())
 	{
-		return AlignComponentVertical(muAlignment.eVertical, iComponentSize, iAvailableSize);
+		return AlignComponentVertical(meVertical, iComponentSize, iAvailableSize);
 	}
 	else
 	{
-		return AlignComponentHorizontal(muAlignment.eHorizontal, iComponentSize, iAvailableSize);
+		return AlignComponentHorizontal(meHorizontal, iComponentSize, iAvailableSize);
 	}
 }
 
@@ -231,60 +233,76 @@ void CFlowContainer::LayoutLine(SInt32Vec2 sPosition, SInt32Vec2 sLineSize, size
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CFlowContainer::CalculateWrappedArea(int iMainLength)
+size CFlowContainer::FindLineEnd(size iFirst, int iMainLength, int* piLineLength, int* piLineThickness)
 {
 	Ptr<CComponent>		pComponent;
 	size				uiSize;
 	size				i;
-	size				iFirst;
 	SInt32Vec2			sSize;
-	SInt32Vec2			sArea;
 	int					iLineLength;
 	int					iLineThickness;
-	int					iLongestLine;
-	int					iCrossPos;
 	bool				bHorizontal;
 
+	//A line takes components until the next would make it longer than iMainLength, but always takes at least one.
+	//Returns the index of the first component on the next line.
 	bHorizontal = IsHorizontal();
-
-	iFirst = 0;
 	iLineLength = 0;
 	iLineThickness = 0;
-	iLongestLine = 0;
-	iCrossPos = 0;
 	uiSize = maChildren.Size();
-	for (i = 0; i < uiSize; i++)
+	for (i = iFirst; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
 		sSize = pComponent->GetDesiredSize();
 		if (((iLineLength + MainAxis(sSize, bHorizontal)) > iMainLength) && (i > iFirst))
 		{
-			if (iLineLength > iLongestLine)
-			{
-				iLongestLine = iLineLength;
-			}
-
-			iCrossPos += iLineThickness;
-			iLineLength = 0;
-			iLineThickness = 0;
-			iFirst = i;
+			break;
 		}
 
 		if (iLineThickness < CrossAxis(sSize, bHorizontal))
 		{
 			iLineThickness = CrossAxis(sSize, bHorizontal);
 		}
-
 		iLineLength += MainAxis(sSize, bHorizontal);
 	}
 
-	if (iLineLength > iLongestLine)
+	*piLineLength = iLineLength;
+	*piLineThickness = iLineThickness;
+	return i;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CFlowContainer::CalculateWrappedArea(int iMainLength)
+{
+	size		uiSize;
+	size		iFirst;
+	SInt32Vec2	sArea;
+	int			iLineLength;
+	int			iLineThickness;
+	int			iLongestLine;
+	int			iCrossPos;
+	bool		bHorizontal;
+
+	bHorizontal = IsHorizontal();
+	iLongestLine = 0;
+	iCrossPos = 0;
+	uiSize = maChildren.Size();
+	iFirst = 0;
+	while (iFirst < uiSize)
 	{
-		iLongestLine = iLineLength;
+		iFirst = FindLineEnd(iFirst, iMainLength, &iLineLength, &iLineThickness);
+		if (iLineLength > iLongestLine)
+		{
+			iLongestLine = iLineLength;
+		}
+		iCrossPos += iLineThickness;
 	}
 
 	MainAxis(sArea, bHorizontal) = iLongestLine;
-	CrossAxis(sArea, bHorizontal) = iCrossPos + iLineThickness;
+	CrossAxis(sArea, bHorizontal) = iCrossPos;
 	return sArea;
 }
 
@@ -295,17 +313,15 @@ SInt32Vec2 CFlowContainer::CalculateWrappedArea(int iMainLength)
 //////////////////////////////////////////////////////////////////////////
 void CFlowContainer::LayoutWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
-	Ptr<CComponent>		pComponent;
-	size				uiSize;
-	size				i;
-	size				iFirst;
-	SInt32Vec2			sSize;
-	SInt32Vec2			sLinePosition;
-	SInt32Vec2			sLineSize;
-	SInt32Vec2			sRequiredArea;
-	int					iLineLength;
-	int					iLineThickness;
-	bool				bHorizontal;
+	size		uiSize;
+	size		iFirst;
+	size		iEnd;
+	SInt32Vec2	sLinePosition;
+	SInt32Vec2	sLineSize;
+	SInt32Vec2	sRequiredArea;
+	int			iLineLength;
+	int			iLineThickness;
+	bool		bHorizontal;
 
 	bHorizontal = IsHorizontal();
 	sRequiredArea = CalculateWrappedArea(MainAxis(sAreaSize, bHorizontal));
@@ -316,35 +332,17 @@ void CFlowContainer::LayoutWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	//Each line spans the whole main axis so that reversed directions start from the far edge.
 	MainAxis(sLineSize, bHorizontal) = MainAxis(sAreaSize, bHorizontal);
 
-	iFirst = 0;
-	iLineLength = 0;
-	iLineThickness = 0;
 	uiSize = maChildren.Size();
-	for (i = 0; i < uiSize; i++)
+	iFirst = 0;
+	while (iFirst < uiSize)
 	{
-		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetDesiredSize();
-		if (((iLineLength + MainAxis(sSize, bHorizontal)) > MainAxis(sAreaSize, bHorizontal)) && (i > iFirst))
-		{
-			CrossAxis(sLineSize, bHorizontal) = iLineThickness;
-			LayoutLine(sLinePosition, sLineSize, iFirst, i);
+		iEnd = FindLineEnd(iFirst, MainAxis(sAreaSize, bHorizontal), &iLineLength, &iLineThickness);
+		CrossAxis(sLineSize, bHorizontal) = iLineThickness;
+		LayoutLine(sLinePosition, sLineSize, iFirst, iEnd);
 
-			CrossAxis(sLinePosition, bHorizontal) += iLineThickness;
-			iLineLength = 0;
-			iLineThickness = 0;
-			iFirst = i;
-		}
-
-		if (iLineThickness < CrossAxis(sSize, bHorizontal))
-		{
-			iLineThickness = CrossAxis(sSize, bHorizontal);
-		}
-
-		iLineLength += MainAxis(sSize, bHorizontal);
+		CrossAxis(sLinePosition, bHorizontal) += iLineThickness;
+		iFirst = iEnd;
 	}
-
-	CrossAxis(sLineSize, bHorizontal) = iLineThickness;
-	LayoutLine(sLinePosition, sLineSize, iFirst, uiSize);
 }
 
 
@@ -356,7 +354,7 @@ void CFlowContainer::SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWr
 {
 	meWrap = eW;
 	meDirection = eD;
-	muAlignment.eHorizontal = eA;
+	meHorizontal = eA;
 }
 
 
@@ -368,6 +366,6 @@ void CFlowContainer::SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWr
 {
 	meWrap = eW;
 	meDirection = eD;
-	muAlignment.eVertical = eA;
+	meVertical = eA;
 }
 

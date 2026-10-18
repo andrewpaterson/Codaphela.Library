@@ -79,48 +79,17 @@ bool CContainer::GetContainerBounds(CRectangle* pcDest)
 //////////////////////////////////////////////////////////////////////////
 void CContainer::SetContainerBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
-	CRectangle			cParentBounds;
-	int					iThisRight;
-	int					iThisBottom;
-	int					iThisLeft;
-	int					iThisTop;
-	int					iParentRight;
-	int					iParentBottom;
-	bool				bHasParentContainer;
+	CRectangle	cParentBounds;
 
-	iThisRight = sPosition.x + sAreaSize.x;
-	iThisBottom = sPosition.y + sAreaSize.y;
-	iThisLeft = sPosition.x;
-	iThisTop = sPosition.y;
+	//The container's bounds are where it was laid out, but never outside its parent container's bounds.
+	mcBounds.Init(sPosition.x, sPosition.y, sPosition.x + sAreaSize.x, sPosition.y + sAreaSize.y);
 	if (mpParent.IsNotNull())
 	{
-		bHasParentContainer = mpParent->GetContainerBounds(&cParentBounds);
-		if (bHasParentContainer)
+		if (mpParent->GetContainerBounds(&cParentBounds))
 		{
-			iParentRight = cParentBounds.GetRight();
-			iParentBottom = cParentBounds.GetBottom();
-
-			if (iThisRight > iParentRight)
-			{
-				iThisRight = iParentRight;
-			}
-			if (iThisBottom > iParentBottom)
-			{
-				iThisBottom = iParentBottom;
-			}
-
-			if (iThisLeft < cParentBounds.GetLeft())
-			{
-				iThisLeft = cParentBounds.GetLeft();
-			}
-			if (iThisTop < cParentBounds.GetTop())
-			{
-				iThisTop = cParentBounds.GetTop();
-			}
+			mcBounds.ClipTo(&cParentBounds);
 		}
 	}
-
-	mcBounds.Init(iThisLeft, iThisTop, iThisRight, iThisBottom);
 }
 
 
