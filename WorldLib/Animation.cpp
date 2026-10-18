@@ -20,8 +20,9 @@ along with Codaphela WorldLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft DirectX is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "Animation.h"
 #include "BaseLib/IntegerHelper.h"
+#include "BaseLib/Timer.h"
+#include "Animation.h"
 
 
 //////////////////////////////////////////////////////////////////////////

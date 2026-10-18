@@ -24,7 +24,6 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #define __MESH_OBJECT_H__
 #include "VectorArray.h"
 #include "BaseLib/LinkedListTemplate.h"
-#include "StandardLib/StandardHeader.h"
 #include "DirectXLib/Direct3DGlobal.h"
 
 
@@ -43,8 +42,8 @@ public:
 	void 			Init(void);
 	void 			Init(int iNumVerticies, int iNumNormals);
 	void 			Kill(void);
-	void 			SetVertex(int iVertex, SFloat3* psVec);
-	void 			SetNormal(int iNormal, SFloat3* psVec);
+	void 			SetVertex(int iVertex, SFloat32Vec3* psVec);
+	void 			SetNormal(int iNormal, SFloat32Vec3* psVec);
 	CArrayVector*	GetVerticies(void);
 	CArrayVector*	GetNormals(void);
 };
@@ -79,8 +78,8 @@ public:
 	void 							Init(void);
 	void 							Init(int iNumVerticies, int iNumNormals);
 	void 							Kill(void);
-	void 							SetVertex(int iVertex, SFloat3* psVec);
-	void 							SetNormal(int iNormal, SFloat3* psVec);
+	void 							SetVertex(int iVertex, SFloat32Vec3* psVec);
+	void 							SetNormal(int iNormal, SFloat32Vec3* psVec);
 	bool 							IsSkinned(void);
 
 	CArrayVector*					GetVerticies(void);

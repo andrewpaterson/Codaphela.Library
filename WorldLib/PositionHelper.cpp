@@ -23,10 +23,10 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #include "PositionHelper.h"
 
 
-void PositionHelperMakeJump(CPosition* pcPosition, SFloat3* psStart, float fHeight)
+void PositionHelperMakeJump(CPosition* pcPosition, SFloat32Vec3* psStart, float fHeight)
 {
 	CDirectedInterpolator*	pcInterpolator;
-	SFloat3				cDir;
+	SFloat32Vec3				cDir;
 
 	pcPosition->Kill();
 	pcPosition->Init();
@@ -37,7 +37,7 @@ void PositionHelperMakeJump(CPosition* pcPosition, SFloat3* psStart, float fHeig
 }
 
 
-void PositionHelperMakeStationary(CPosition* pcPosition, SFloat3* psStart)
+void PositionHelperMakeStationary(CPosition* pcPosition, SFloat32Vec3* psStart)
 {
 	CLinearPositionInterpolator*	pcInterpolator;
 
@@ -48,11 +48,11 @@ void PositionHelperMakeStationary(CPosition* pcPosition, SFloat3* psStart)
 }
 
 
-void PositionHelperMakeQuarterCircle(CPosition* pcPosition, SFloat3* psCenter, float fRadius, int iQuadrant)
+void PositionHelperMakeQuarterCircle(CPosition* pcPosition, SFloat32Vec3* psCenter, float fRadius, int iQuadrant)
 {
 	CDirectedInterpolator*	pcInterpolator;
-	SFloat3				cDir1, cDir2;
-	SFloat3				cPos1, cPos2;
+	SFloat32Vec3				cDir1, cDir2;
+	SFloat32Vec3				cPos1, cPos2;
 
 	pcPosition->Kill();
 	pcPosition->Init();
@@ -60,7 +60,7 @@ void PositionHelperMakeQuarterCircle(CPosition* pcPosition, SFloat3* psCenter, f
 
 	cPos1 = *psCenter;
 	cPos2 = *psCenter;
-	cDir1 = SFloat3(0, 0, 0);
+	cDir1 = SFloat32Vec3(0, 0, 0);
 	cDir2 = cDir1;
 	if (iQuadrant == 0)
 	{
@@ -95,7 +95,7 @@ void PositionHelperMakeQuarterCircle(CPosition* pcPosition, SFloat3* psCenter, f
 }
 
 
-void PositionHelperMakeStraightLine(CPosition* pcPosition, SFloat3* psStart, SFloat3* psEnd)
+void PositionHelperMakeStraightLine(CPosition* pcPosition, SFloat32Vec3* psStart, SFloat32Vec3* psEnd)
 {
 	CLinearPositionInterpolator*	pcInterpolator;
 
@@ -106,9 +106,9 @@ void PositionHelperMakeStraightLine(CPosition* pcPosition, SFloat3* psStart, SFl
 }
 
 
-void PositionHelperMakeBezierSpline(CPosition* pcPosition, SFloat3* psStartPosition, SFloat3* psStartControl, SFloat3* psEndPosition, SFloat3* psEndControl)
+void PositionHelperMakeBezierSpline(CPosition* pcPosition, SFloat32Vec3* psStartPosition, SFloat32Vec3* psStartControl, SFloat32Vec3* psEndPosition, SFloat32Vec3* psEndControl)
 {
-	SFloat3				cDir1, cDir2;
+	SFloat32Vec3				cDir1, cDir2;
 	CDirectedInterpolator*	pcInterpolator;
 
 	pcPosition->Kill();
@@ -123,13 +123,13 @@ void PositionHelperMakeBezierSpline(CPosition* pcPosition, SFloat3* psStartPosit
 }
 
 
-void PositionHelperMakeHalfCos(CPosition* pcPosition, SFloat3* psStart, SFloat3* psEnd, float fAmplitude)
+void PositionHelperMakeHalfCos(CPosition* pcPosition, SFloat32Vec3* psStart, SFloat32Vec3* psEnd, float fAmplitude)
 {
 	CDirectedInterpolator*	pcInterpolator;
-	SFloat3					cDir1;
-	SFloat3					cDir3;
-	SFloat3					cPerp;
-	SFloat3					cNormal;
+	SFloat32Vec3					cDir1;
+	SFloat32Vec3					cDir3;
+	SFloat32Vec3					cPerp;
+	SFloat32Vec3					cNormal;
 
 	pcPosition->Kill();
 	pcPosition->Init();
@@ -137,7 +137,7 @@ void PositionHelperMakeHalfCos(CPosition* pcPosition, SFloat3* psStart, SFloat3*
 	
 	cDir3 = *psEnd - *psStart;
 	Float3Normalize(&cDir3, &cDir3);
-	cPerp = SFloat3(0, 0, 1);
+	cPerp = SFloat32Vec3(0, 0, 1);
 	Float3Cross(&cNormal, &cDir3, &cPerp);
 	cDir1 = cNormal * (fAmplitude * 2.0f);
 

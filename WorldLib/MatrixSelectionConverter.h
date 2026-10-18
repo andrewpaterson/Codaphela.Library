@@ -44,8 +44,8 @@ public:
 	CGraphicsObject*	mpcObject;
 	CMeshInstance*		mpcMeshInstance;
 	SFloat4x4*			mpsCameraView;
-	SFloat3*			mpsCameraPos;
-	SFloat3*			mpsCameraDir;
+	SFloat32Vec3*			mpsCameraPos;
+	SFloat32Vec3*			mpsCameraDir;
 	int					miMaterialIndex;
 
 	void	Init(CScene* pcScene, CWorld* pcWorld);
@@ -54,7 +54,7 @@ public:
 	void	ConvertMatrices(CGraphicsObject* pcGraphicsObject, CMeshInstance* pcMeshInstance, int iMaterialIndex);
 	void	AddMatrices(void);
 	void	FinalisePrimitives(void);
-	void	AssignVertex(D3DCVERTEX* psVertex, SFloat3* psPosition, unsigned int iColour, float fZOffset, SMatrix* psMatrix);
+	void	AssignVertex(D3DCVERTEX* psVertex, SFloat32Vec3* psPosition, unsigned int iColour, float fZOffset, SMatrix* psMatrix);
 };
 
 

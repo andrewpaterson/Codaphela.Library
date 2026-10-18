@@ -27,8 +27,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/GeometricTypes.h"
 #include "BaseLib/ListVariable.h"
-#include "StandardLib/StandardHeader.h"
-#include "DirectXLib/DirectXGlobal.h"
+#include "StandardLib/Unknown.h"
 #include "Interpolator.h"
 
 
@@ -39,11 +38,11 @@ enum EPositionType
 };
 
 
-typedef CInterpolator<SFloat3> __CPositionInterpolator;
+typedef CInterpolator<SFloat32Vec3> __CPositionInterpolator;
 class CPositionInterpolator  : public __CPositionInterpolator
 {
 public:
-	void	Interpolate(float fPos, SFloat3* psPosition1, SFloat3* psPosition2);
+	void	Interpolate(float fPos, SFloat32Vec3* psPosition1, SFloat32Vec3* psPosition2);
 };
 
 
@@ -60,14 +59,14 @@ public:
 class CDirectedInterpolator : public CPositionInterpolator
 {
 public:
-	SFloat3		msDir1;
-	SFloat3		msDir2;
+	SFloat32Vec3		msDir1;
+	SFloat32Vec3		msDir2;
 	float		mfDir1Length;  //Negative to reverse direction...
 	float		mfDir2Length;
 
 	void Init(void);
 	void Update(float fPos);
-	void SetDirections(SFloat3* psStart, SFloat3* psEnd);
+	void SetDirections(SFloat32Vec3* psStart, SFloat32Vec3* psEnd);
 };
 
 
@@ -82,7 +81,7 @@ public:
 	void		Kill(void);
 	void*		Set(EPositionType eType);
 	void		Update(float fFractionalTime);
-	SFloat3*	GetPosition(void);
+	SFloat32Vec3*	GetPosition(void);
 };
 
 

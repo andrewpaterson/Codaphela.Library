@@ -25,7 +25,6 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #include <d3dx9.h>
 #include "DirectXLib/TextureStates.h"
 #include "DirectXLib/Constants.h"
-#include "StandardLib/StandardHeader.h"
 
 
 class CGraphicsState : public CUnknown

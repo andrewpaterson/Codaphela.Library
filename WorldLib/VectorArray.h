@@ -31,19 +31,19 @@ Microsoft DirectX is Copyright Microsoft Corporation
 class SSkinnedVector
 {
 public:
-	SFloat3*	apsSource[4];
+	SFloat32Vec3*	apsSource[4];
 	float		afWeights[4];
-	SFloat3*	psCachedVector;
+	SFloat32Vec3*	psCachedVector;
 
 	void Init(void);
 	void Kill(void);
 	void Cache(void);
-	void SetInput(int i, SFloat3* psSource, float fWeight);
-	void SetOutput(SFloat3* psCached);
+	void SetInput(int i, SFloat32Vec3* psSource, float fWeight);
+	void SetOutput(SFloat32Vec3* psCached);
 };
 
 
-typedef CArrayTemplate<SFloat3>	CArrayVector;
+typedef CArrayTemplate<SFloat32Vec3>	CArrayVector;
 typedef CArrayTemplate<SSkinnedVector>	CArraySkinnedVector;
 
 

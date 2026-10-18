@@ -22,7 +22,6 @@ Microsoft DirectX is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __VIEWPORT_INSTANCE_H__
 #define __VIEWPORT_INSTANCE_H__
-#include "StandardLib/StandardHeader.h"
 #include "DirectXLib/Direct3DGlobal.h"
 #include "SupportLib/Rectangle.h"
 

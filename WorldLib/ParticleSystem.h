@@ -28,7 +28,6 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #include "GraphicsObject.h"
 #include "CameraInstance.h"
 #include "BaseLib/PointerRemapper.h"
-#include "StandardLib/StandardHeader.h"
 #include "SupportLib/ShapeHelper.h"
 
 
@@ -115,15 +114,15 @@ enum EParticleSystemFlags
 //Test particle with everything
 struct SParticle
 {
-	SFloat3		sPosition;
+	SFloat32Vec3		sPosition;
 	SFloat32Vec2		sSize;
 	SUVCorners		sUVs1;
 	SUVCorners		sUVs2;
 	SUVCorners		sUVs3;
 	SUVCorners		sUVs4;
-	SFloat3*	sAcrossAxis;
-	SFloat3*	sUpAxis;
-	SFloat3*	sForwardAxis;
+	SFloat32Vec3*	sAcrossAxis;
+	SFloat32Vec3*	sUpAxis;
+	SFloat32Vec3*	sForwardAxis;
 	float			fAcrossRotation;
 	float			fUpRotation;
 	float			fForwardRotation;
@@ -177,7 +176,7 @@ protected:
 
 	//Not valid until Set() it called.
 	int					miNumParticles;
-	SFloat3				msCenter;
+	SFloat32Vec3				msCenter;
 	float				mfMaxParticleRadius;
 	float				mfParicleSystemRadius;
 	//mcShapeTrans is also not valid until Set() is called.
@@ -198,20 +197,20 @@ public:
 	void			CalcBounding(void);
 	bool			DrawParticles(CCameraInstance* pcCameraInstance);
 	void*			DrawUnalignedUnboundParticle(SFloat4x4* psCameraMatrix, void* pvParticle, void* pvVertex, SD3DVertexType* psVertexType, int iVertexUVOffset, int iVertexColourOffset);
-	float			ScaledForwardDotProduct(SFloat3* pvCameraForward, void* pvParticle);
+	float			ScaledForwardDotProduct(SFloat32Vec3* pvCameraForward, void* pvParticle);
 	int				AdjustedColour(void* pvParticle, float fForwardDot);
-	void			CornersForUnalignedUnbound(void* pvVertex, int iD3DVertexSize, SFloat3* psHalfWidth, SFloat3* psHalfHeight);
+	void			CornersForUnalignedUnbound(void* pvVertex, int iD3DVertexSize, SFloat32Vec3* psHalfWidth, SFloat32Vec3* psHalfHeight);
 	void			UVs(void* pvVertex, int iD3DVertexSize, int iVertexUVOffset, void* pvParticle);
 	void			Colours(void* pvVertex, int iD3DVertexSize, int iVertexColourOffset, void* pvParticle, int iColour);
 
-	void*			AddParticle(SFloat3* psPosition, SFloat32Vec2* psSize);
-	void*			AddParticle(SFloat3* psPosition, SFloat32Vec2* psSize, SFloat32Vec2* psUVTopLeft, SFloat32Vec2* psUVBottomRight);
-	void*			AddParticle(SFloat3* psPosition, SFloat32Vec2* psSize, SFloat32Vec2* psUVTopLeft, SFloat32Vec2* psUVBottomRight, float fForwardRotation);
+	void*			AddParticle(SFloat32Vec3* psPosition, SFloat32Vec2* psSize);
+	void*			AddParticle(SFloat32Vec3* psPosition, SFloat32Vec2* psSize, SFloat32Vec2* psUVTopLeft, SFloat32Vec2* psUVBottomRight);
+	void*			AddParticle(SFloat32Vec3* psPosition, SFloat32Vec2* psSize, SFloat32Vec2* psUVTopLeft, SFloat32Vec2* psUVBottomRight, float fForwardRotation);
 
-	SFloat3*		GetPosition(void* pvParticle);
+	SFloat32Vec3*		GetPosition(void* pvParticle);
 	SFloat32Vec2*		GetSize(void* pvParticle);
 	SUVCorners*		GetUVBase(void* pvParticle);
-	SFloat3*		GetForwardAxis(void* pvParticle);
+	SFloat32Vec3*		GetForwardAxis(void* pvParticle);
 	float			GetForwardCutoff(void* pvParticle);
 	int				GetColour(void* pvParticle);
 	float			GetForwardRotation(void* pvParticle);

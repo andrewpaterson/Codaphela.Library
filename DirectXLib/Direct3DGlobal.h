@@ -133,12 +133,12 @@ struct SMatrix
 	void			Fix(void);
 	bool			Update(void);
 
-	SFloat3*		At(void);
-	SFloat3*		Up(void);
-	SFloat3*		Across(void);
-	SFloat3*		Pos(void);
+	SFloat32Vec3*		At(void);
+	SFloat32Vec3*		Up(void);
+	SFloat32Vec3*		Across(void);
+	SFloat32Vec3*		Pos(void);
 
-	void			SetPos(SFloat3* psVector);
+	void			SetPos(SFloat32Vec3* psVector);
 };
 
 

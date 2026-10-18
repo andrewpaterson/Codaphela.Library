@@ -245,11 +245,11 @@ void CMeshSelectionConverter::AddSelectedEdges(void)
 //	CArrayInt		aiSkinIndices;
 //	D3DCVERTEX*		psVertex;
 //	int				iPosition;
-//	SFloat3*		psPosition;
+//	SFloat32Vec3*		psPosition;
 //	int				iNormal;
-//	SFloat3*		psNormal;
+//	SFloat32Vec3*		psNormal;
 //	CArrayInt		aiNormalIndices;
-//	SFloat3			sTemp;
+//	SFloat32Vec3			sTemp;
 //
 //
 //	iStartVertex = mpcObject->GetNumberOfVerticesOfType(D3DFVF_CVERTEX);
@@ -263,12 +263,12 @@ void CMeshSelectionConverter::AddSelectedEdges(void)
 //		psCorner = mpcMeshEditor->GetCorner(iCornerNum);
 //		psCorner->asType.GetIndicesForTypeInGroup(miSkinVertID, 0, &aiSkinIndices);
 //		iPosition = psCorner->asType.GetIndexForTypeInGroup(miPositionID, 0, 0);
-//		psPosition = (SFloat3*)(mpcMeshEditor->GetDataArray(miPositionID)->mcData.Get(iPosition));
+//		psPosition = (SFloat32Vec3*)(mpcMeshEditor->GetDataArray(miPositionID)->mcData.Get(iPosition));
 //		psCorner->asType.GetIndicesForTypeInGroup(miNormalID, 0, &aiNormalIndices);
 //		for (iIndex = 0; iIndex < aiNormalIndices.NumElements(); iIndex++)
 //		{
 //			iNormal = aiNormalIndices.GetValue(iIndex);
-//			psNormal = (SFloat3*)(mpcMeshEditor->GetDataArray(miNormalID)->mcData.Get(iNormal));
+//			psNormal = (SFloat32Vec3*)(mpcMeshEditor->GetDataArray(miNormalID)->mcData.Get(iNormal));
 //			psVertex = (D3DCVERTEX*)mpcObject->AddDynamicVertex(D3DFVF_CVERTEX);
 //			if (aiSkinIndices.NumElements() == 0)
 //			{
@@ -343,10 +343,10 @@ void CMeshSelectionConverter::AddSelectedVerts(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSelectionConverter::AssignCorner(int iPosition, int iColour, float fZOffset, CArrayInt* paiSkinIndices)
 {
-	SFloat3*		psPosition;
+	SFloat32Vec3*		psPosition;
 	D3DCVERTEX*		psVertex;
-	SFloat3			sPos;
-	SFloat3			sTemp;
+	SFloat32Vec3			sPos;
+	SFloat32Vec3			sTemp;
 	CMeshSkinVert*	pcSkinVert;
 
 	psPosition = mpcMeshEditor->mpcMesh->GetPosition(iPosition);
@@ -374,15 +374,15 @@ void CMeshSelectionConverter::AssignCorner(int iPosition, int iColour, float fZO
 //	int					iVertexBuffer;
 //	int					iMaterialID;
 //	CBoxIndexed*		pcBox;
-//	SFloat3			sCorners[8];
-//	SFloat3*			psCenter;
+//	SFloat32Vec3			sCorners[8];
+//	SFloat32Vec3*			psCenter;
 //
 //	iNumPrimitives = 0;
 //	iMaterialID = 1;
 //	iVertexBuffer = mpcObject->GetVertexBufferIndex(D3DFVF_CVERTEX);
 //
 //	pcBox = (CBoxIndexed*)NULL;
-//	psCenter = (SFloat3*)mpcMeshEditor->GetDataElement(miPositionID, pcBox->miCenterIndex);
+//	psCenter = (SFloat32Vec3*)mpcMeshEditor->GetDataElement(miPositionID, pcBox->miCenterIndex);
 //
 //	//front, top, left
 //	sCorners[0].x = pcBox->msMinimum.x;
@@ -448,12 +448,12 @@ void CMeshSelectionConverter::AssignCorner(int iPosition, int iColour, float fZO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSelectionConverter::AssignVertex(D3DCVERTEX* psVertex, SFloat3* psPosition, unsigned int iColour, float fZOffset, SMatrix* psMatrix)
+void CMeshSelectionConverter::AssignVertex(D3DCVERTEX* psVertex, SFloat32Vec3* psPosition, unsigned int iColour, float fZOffset, SMatrix* psMatrix)
 {
-	SFloat3			sPos;
-	SFloat3			sDir;
+	SFloat32Vec3			sPos;
+	SFloat32Vec3			sDir;
 
-	Float3TransformCoord((SFloat3*)&sPos, psPosition, &psMatrix->sD3DMatrix);
+	Float3TransformCoord((SFloat32Vec3*)&sPos, psPosition, &psMatrix->sD3DMatrix);
 	if (fZOffset != 0.0f)
 	{
 		sDir = -(*mpsCameraDir);
@@ -463,7 +463,7 @@ void CMeshSelectionConverter::AssignVertex(D3DCVERTEX* psVertex, SFloat3* psPosi
 		Float3Scale(&sDir, &sDir, fZOffset);
 		Float3Add(&sPos, &sPos, &sDir);
 	}
-	*((SFloat3*)psVertex) = sPos;
+	*((SFloat32Vec3*)psVertex) = sPos;
 	psVertex->color = iColour;
 }
 
@@ -472,13 +472,13 @@ void CMeshSelectionConverter::AssignVertex(D3DCVERTEX* psVertex, SFloat3* psPosi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSelectionConverter::AssignSkinnedVertex(D3DCVERTEX* psVertex, SFloat3* psPosition, unsigned int iColour, float fZOffset, CMeshSkinVert* pcSkinVert)
+void CMeshSelectionConverter::AssignSkinnedVertex(D3DCVERTEX* psVertex, SFloat32Vec3* psPosition, unsigned int iColour, float fZOffset, CMeshSkinVert* pcSkinVert)
 {
 	SSkinWeight*	psSkinWeight;
 	int				i;
 	SMatrix*		psMatrix;
-	SFloat3		sPos;
-	SFloat3		sTemp;
+	SFloat32Vec3		sPos;
+	SFloat32Vec3		sTemp;
 	SFloat4x4*		psAdjMatrix;
 
 	sPos.Zero();
@@ -506,21 +506,21 @@ void CMeshSelectionConverter::AssignSkinnedVertex(D3DCVERTEX* psVertex, SFloat3*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSelectionConverter::AssignTransformedVertex(D3DCVERTEX* psVertex, SFloat3* psPosition, unsigned int iColour, float fZOffset)
+void CMeshSelectionConverter::AssignTransformedVertex(D3DCVERTEX* psVertex, SFloat32Vec3* psPosition, unsigned int iColour, float fZOffset)
 {
-	SFloat3			sPos;
-	SFloat3			sDir;
+	SFloat32Vec3			sPos;
+	SFloat32Vec3			sDir;
 
 	if (fZOffset != 0.0f)
 	{
-		Float3Subtract(&sDir, mpsCameraPos, (SFloat3*)psPosition);
+		Float3Subtract(&sDir, mpsCameraPos, (SFloat32Vec3*)psPosition);
 		Float3Normalize(&sDir, &sDir);
 		Float3Scale(&sDir, &sDir, fZOffset);
-		*((SFloat3*)psVertex) = *((SFloat3*)psPosition) + sDir;
+		*((SFloat32Vec3*)psVertex) = *((SFloat32Vec3*)psPosition) + sDir;
 	}
 	else
 	{
-		*((SFloat3*)psVertex) = *((SFloat3*)psPosition);
+		*((SFloat32Vec3*)psVertex) = *((SFloat32Vec3*)psPosition);
 	}
 	psVertex->color = iColour;
 }
@@ -547,15 +547,15 @@ void CMeshSelectionConverter::FinalisePrimitives(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshSelectionConverter::IsNormalFacingCamera(SFloat3* psNormal)
+bool CMeshSelectionConverter::IsNormalFacingCamera(SFloat32Vec3* psNormal)
 {
 	return true;
 
-	//SFloat3	cOut;
+	//SFloat32Vec3	cOut;
 
 	//if (psNormal)
 	//{
-	//	Float3TransformNormal(&cOut, (SFloat3*)psNormal, mpsCameraView);
+	//	Float3TransformNormal(&cOut, (SFloat32Vec3*)psNormal, mpsCameraView);
 	//	return cOut.z <= 0;
 	//}
 	//return false;
@@ -566,14 +566,14 @@ bool CMeshSelectionConverter::IsNormalFacingCamera(SFloat3* psNormal)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMeshSelectionConverter::AddBrokenLine(SFloat3* psStart, SFloat3* psEnd, SMatrix* psMatrix)
+int CMeshSelectionConverter::AddBrokenLine(SFloat32Vec3* psStart, SFloat32Vec3* psEnd, SMatrix* psMatrix)
 {
 	D3DCVERTEX*			psVertex;
-	SFloat3			s1;
-	SFloat3			s2;
+	SFloat32Vec3			s1;
+	SFloat32Vec3			s2;
 
-	Float3InterpolatePosition((SFloat3*)&s1, (SFloat3*)psStart, (SFloat3*)psEnd, 0.9f);
-	Float3InterpolatePosition((SFloat3*)&s2, (SFloat3*)psStart, (SFloat3*)psEnd, 0.1f);
+	Float3InterpolatePosition((SFloat32Vec3*)&s1, (SFloat32Vec3*)psStart, (SFloat32Vec3*)psEnd, 0.9f);
+	Float3InterpolatePosition((SFloat32Vec3*)&s2, (SFloat32Vec3*)psStart, (SFloat32Vec3*)psEnd, 0.1f);
 
 	psVertex = (D3DCVERTEX*)mpcObject->AddDynamicVertex(D3DFVF_CVERTEX);
 	AssignVertex(psVertex, psStart, 0xffffffff, 0.0f, psMatrix);

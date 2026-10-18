@@ -64,7 +64,7 @@ void CMeshObjectNode::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshObjectNode::SetVertex(int iVertex, SFloat3* psVec)
+void CMeshObjectNode::SetVertex(int iVertex, SFloat32Vec3* psVec)
 {
 	mcVerticies.Set(iVertex, psVec);
 }
@@ -74,7 +74,7 @@ void CMeshObjectNode::SetVertex(int iVertex, SFloat3* psVec)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshObjectNode::SetNormal(int iNormal, SFloat3* psVec)
+void CMeshObjectNode::SetNormal(int iNormal, SFloat32Vec3* psVec)
 {
 	mcNormals.Set(iNormal, psVec);
 }
@@ -151,7 +151,7 @@ void CMeshObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshObject::SetVertex(int iVertex, SFloat3* psVec)
+void CMeshObject::SetVertex(int iVertex, SFloat32Vec3* psVec)
 {
 	mcVerticies.Set(iVertex, psVec);
 }
@@ -161,7 +161,7 @@ void CMeshObject::SetVertex(int iVertex, SFloat3* psVec)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshObject::SetNormal(int iNormal, SFloat3* psVec)
+void CMeshObject::SetNormal(int iNormal, SFloat32Vec3* psVec)
 {
 	mcNormals.Set(iNormal, psVec);
 }

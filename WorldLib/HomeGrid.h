@@ -21,7 +21,6 @@ along with Codaphela EditorLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __HOME_GRID_H__
 #define __HOME_GRID_H__
 #include "DirectXLib/Direct3DGlobal.h"
-#include "StandardLib/StandardHeader.h"
 #include "WorldLib/GraphicsMaterial.h"
 #include "WorldLib/GraphicsObject.h"
 #include "BaseLib/DataTypes.h"
@@ -57,7 +56,7 @@ public:
 	void		Kill(void);
 
 	bool		Draw(void);
-	D3DCVERTEX*	DrawHalfGrid(D3DCVERTEX* psVertex, SFloat3* psCenter, SFloat3* psPerp, SFloat3* psDir, int iMin, int iMax, float fStep, float fWidth);
+	D3DCVERTEX*	DrawHalfGrid(D3DCVERTEX* psVertex, SFloat32Vec3* psCenter, SFloat32Vec3* psPerp, SFloat32Vec3* psDir, int iMin, int iMax, float fStep, float fWidth);
 	void		CreateObjectAsNecessary(void);
 	void		SetColours(int iCenterColour, int iMajorColour, int iMinorColour);
 	void		SetGrid(float fSizeX, float fSizeY, float fSpaceX, float fSpaceY);

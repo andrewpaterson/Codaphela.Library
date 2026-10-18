@@ -49,9 +49,9 @@ void SSkinnedVector::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void SSkinnedVector::Cache(void)
 {
-	SFloat3*	psVec;
+	SFloat32Vec3*	psVec;
 	int				i;
-	SFloat3		sTemp;
+	SFloat32Vec3		sTemp;
 
 	psCachedVector->x = apsSource[0]->x * afWeights[0];
 	psCachedVector->y = apsSource[0]->y * afWeights[0];
@@ -74,7 +74,7 @@ void SSkinnedVector::Cache(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SSkinnedVector::SetInput(int i, SFloat3* psSource, float fWeight)
+void SSkinnedVector::SetInput(int i, SFloat32Vec3* psSource, float fWeight)
 {
 	apsSource[i] = psSource;
 	afWeights[i] = fWeight;
@@ -85,7 +85,7 @@ void SSkinnedVector::SetInput(int i, SFloat3* psSource, float fWeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SSkinnedVector::SetOutput(SFloat3* psCached)
+void SSkinnedVector::SetOutput(SFloat32Vec3* psCached)
 {
 	psCachedVector = psCached;
 }

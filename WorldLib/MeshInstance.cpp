@@ -295,7 +295,7 @@ void CMeshInstance::UpdateUnskinnedCaches(void)
 			masVertexCache.Init();
 			masVertexCache.Resize(mpcMeshObject->GetVerticies()->NumElements());
 		}
-		Float3TransformCoords(masVertexCache.GetData(), sizeof(SFloat3), mpcMeshObject->GetVerticies()->GetData(), sizeof(SFloat3), &mpsWorldSpaceTransform->sD3DMatrix, mpcMeshObject->GetVerticies()->NumElements());
+		Float3TransformCoords(masVertexCache.GetData(), sizeof(SFloat32Vec3), mpcMeshObject->GetVerticies()->GetData(), sizeof(SFloat32Vec3), &mpsWorldSpaceTransform->sD3DMatrix, mpcMeshObject->GetVerticies()->NumElements());
 	}
 	if (meNormalCaching == LCF_UseCache)
 	{
@@ -305,7 +305,7 @@ void CMeshInstance::UpdateUnskinnedCaches(void)
 			masNormalCache.Init();
 			masNormalCache.Resize(mpcMeshObject->GetNormals()->NumElements());
 		}
-		Float3TransformNormals(masNormalCache.GetData(), sizeof(SFloat3), mpcMeshObject->GetNormals()->GetData(), sizeof(SFloat3), &mpsWorldSpaceTransform->sD3DMatrix, mpcMeshObject->GetNormals()->NumElements());
+		Float3TransformNormals(masNormalCache.GetData(), sizeof(SFloat32Vec3), mpcMeshObject->GetNormals()->GetData(), sizeof(SFloat32Vec3), &mpsWorldSpaceTransform->sD3DMatrix, mpcMeshObject->GetNormals()->NumElements());
 	}
 }
 
@@ -318,20 +318,20 @@ void CMeshInstance::UpdateSkinnedVertexCache(void)
 {
 	size				i;
 	CMeshInstanceNode*	psNode;
-	SFloat3*			pvScratchVectors;
+	SFloat32Vec3*			pvScratchVectors;
 	SSkinnedVector*		psSkinnedVector;
 
 	if (meVertexCaching == LCF_UseCache)
 	{
 		mpcScratchPad->Reset();
-		pvScratchVectors = (SFloat3*)mpcScratchPad->Add(mpcMeshObject->GetVerticies()->NumElements() * sizeof(SFloat3));
-		Float3TransformCoords(pvScratchVectors, sizeof(SFloat3), mpcMeshObject->GetVerticies()->GetData(), sizeof(SFloat3), &mpsWorldSpaceTransform->sD3DMatrix, mpcMeshObject->GetVerticies()->NumElements());
+		pvScratchVectors = (SFloat32Vec3*)mpcScratchPad->Add(mpcMeshObject->GetVerticies()->NumElements() * sizeof(SFloat32Vec3));
+		Float3TransformCoords(pvScratchVectors, sizeof(SFloat32Vec3), mpcMeshObject->GetVerticies()->GetData(), sizeof(SFloat32Vec3), &mpsWorldSpaceTransform->sD3DMatrix, mpcMeshObject->GetVerticies()->NumElements());
 
 		psNode = mcNodes.GetHead();
 		while (psNode)
 		{
-			pvScratchVectors = (SFloat3*)mpcScratchPad->Add(psNode->pcObjectNode->GetVerticies()->NumElements() * sizeof(SFloat3));
-			Float3TransformCoords(pvScratchVectors, sizeof(SFloat3), psNode->pcObjectNode->GetVerticies()->GetData(), sizeof(SFloat3), &psNode->psFinalTransform->sD3DMatrix, psNode->pcObjectNode->GetVerticies()->NumElements());
+			pvScratchVectors = (SFloat32Vec3*)mpcScratchPad->Add(psNode->pcObjectNode->GetVerticies()->NumElements() * sizeof(SFloat32Vec3));
+			Float3TransformCoords(pvScratchVectors, sizeof(SFloat32Vec3), psNode->pcObjectNode->GetVerticies()->GetData(), sizeof(SFloat32Vec3), &psNode->psFinalTransform->sD3DMatrix, psNode->pcObjectNode->GetVerticies()->NumElements());
 
 			psNode = mcNodes.GetNext(psNode);
 		}
@@ -353,20 +353,20 @@ void CMeshInstance::UpdateSkinnedNormalCache(void)
 {
 	size				i;
 	CMeshInstanceNode*	psNode;
-	SFloat3*			pvScratchVectors;
+	SFloat32Vec3*			pvScratchVectors;
 	SSkinnedVector*		psSkinnedVector;
 
 	if (meNormalCaching == LCF_UseCache)
 	{
 		mpcScratchPad->Reset();
-		pvScratchVectors = (SFloat3*)mpcScratchPad->Add(mpcMeshObject->GetNormals()->NumElements() * sizeof(SFloat3));
-		Float3TransformNormals(pvScratchVectors, sizeof(SFloat3), mpcMeshObject->GetNormals()->GetData(), sizeof(SFloat3), &mpsWorldSpaceTransform->sD3DMatrix, mpcMeshObject->GetNormals()->NumElements());
+		pvScratchVectors = (SFloat32Vec3*)mpcScratchPad->Add(mpcMeshObject->GetNormals()->NumElements() * sizeof(SFloat32Vec3));
+		Float3TransformNormals(pvScratchVectors, sizeof(SFloat32Vec3), mpcMeshObject->GetNormals()->GetData(), sizeof(SFloat32Vec3), &mpsWorldSpaceTransform->sD3DMatrix, mpcMeshObject->GetNormals()->NumElements());
 
 		psNode = mcNodes.GetHead();
 		while (psNode)
 		{
-			pvScratchVectors = (SFloat3*)mpcScratchPad->Add(psNode->pcObjectNode->GetNormals()->NumElements() * sizeof(SFloat3));
-			Float3TransformNormals(pvScratchVectors, sizeof(SFloat3), psNode->pcObjectNode->GetNormals()->GetData(), sizeof(SFloat3), &psNode->psFinalTransform->sD3DMatrix, psNode->pcObjectNode->GetNormals()->NumElements());
+			pvScratchVectors = (SFloat32Vec3*)mpcScratchPad->Add(psNode->pcObjectNode->GetNormals()->NumElements() * sizeof(SFloat32Vec3));
+			Float3TransformNormals(pvScratchVectors, sizeof(SFloat32Vec3), psNode->pcObjectNode->GetNormals()->GetData(), sizeof(SFloat32Vec3), &psNode->psFinalTransform->sD3DMatrix, psNode->pcObjectNode->GetNormals()->NumElements());
 
 			psNode = mcNodes.GetNext(psNode);
 		}
@@ -462,18 +462,18 @@ void CMeshInstance::SetSkinnedNormalCachePointers(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshInstance::GenerateVertexScratchPadMap(CMapIntInt* pcMap)
 {
-	SFloat3*				pvScratchVectors;
+	SFloat32Vec3*				pvScratchVectors;
 	CMeshInstanceNode*			psNode;
 
 	mpcScratchPad->Reset();
-	pvScratchVectors = (SFloat3*)mpcScratchPad->Add(mpcMeshObject->GetVerticies()->NumElements() * sizeof(SFloat3));
+	pvScratchVectors = (SFloat32Vec3*)mpcScratchPad->Add(mpcMeshObject->GetVerticies()->NumElements() * sizeof(SFloat32Vec3));
 
 	pcMap->Put((int)((size_t)mpcMeshObject), (int)((size_t)pvScratchVectors));
 
 	psNode = mcNodes.GetHead();
 	while (psNode)
 	{
-		pvScratchVectors = (SFloat3*)mpcScratchPad->Add(psNode->pcObjectNode->GetVerticies()->NumElements() * sizeof(SFloat3));
+		pvScratchVectors = (SFloat32Vec3*)mpcScratchPad->Add(psNode->pcObjectNode->GetVerticies()->NumElements() * sizeof(SFloat32Vec3));
 		pcMap->Put((int)((size_t)psNode), (int)((size_t)pvScratchVectors));
 
 		psNode = mcNodes.GetNext(psNode);
@@ -520,18 +520,18 @@ void CMeshInstance::AssignCachedVertex(SSkinnedVector* psSkinnedVector, SSkinned
 //////////////////////////////////////////////////////////////////////////
 void CMeshInstance::GenerateNormalScratchPadMap(CMapIntInt* pcMap)
 {
-	SFloat3*				pvScratchVectors;
+	SFloat32Vec3*				pvScratchVectors;
 	CMeshInstanceNode*			psNode;
 
 	mpcScratchPad->Reset();
-	pvScratchVectors = (SFloat3*)mpcScratchPad->Add(mpcMeshObject->GetNormals()->NumElements() * sizeof(SFloat3));
+	pvScratchVectors = (SFloat32Vec3*)mpcScratchPad->Add(mpcMeshObject->GetNormals()->NumElements() * sizeof(SFloat32Vec3));
 
 	pcMap->Put((int)((size_t)mpcMeshObject), (int)((size_t)pvScratchVectors));
 
 	psNode = mcNodes.GetHead();
 	while (psNode)
 	{
-		pvScratchVectors = (SFloat3*)mpcScratchPad->Add(psNode->pcObjectNode->GetNormals()->NumElements() * sizeof(SFloat3));
+		pvScratchVectors = (SFloat32Vec3*)mpcScratchPad->Add(psNode->pcObjectNode->GetNormals()->NumElements() * sizeof(SFloat32Vec3));
 		pcMap->Put((int)((size_t)psNode), (int)((size_t)pvScratchVectors));
 
 		psNode = mcNodes.GetNext(psNode);

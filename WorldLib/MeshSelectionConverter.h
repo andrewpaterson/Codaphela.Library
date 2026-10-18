@@ -47,8 +47,8 @@ public:
 	CGraphicsInstance*		mpcInstance;
 	SFloat4x4*				mpsCameraView;
 	int						miMaterialIndex;
-	SFloat3*				mpsCameraPos;
-	SFloat3*				mpsCameraDir;
+	SFloat32Vec3*				mpsCameraPos;
+	SFloat32Vec3*				mpsCameraDir;
 	float					mfZOffset;
 	float					mfNormalLength;
 	bool					mbNormals;
@@ -71,12 +71,12 @@ public:
 //	void	AddBoundingBox(void);
 	void	AddMatrices(void);
 	void	AssignCorner(int iPosition, int iColour, float fZOffset, CArrayInt* pacSkinIndices);
-	void 	AssignVertex(D3DCVERTEX* psVertex, SFloat3* psPosition, unsigned int iColour, float fZOffset, SMatrix* psMatrix);
-	void	AssignSkinnedVertex(D3DCVERTEX* psVertex, SFloat3* psPosition, unsigned int iColour, float fZOffset, CMeshSkinVert* pcSkinVert);
-	void 	AssignTransformedVertex(D3DCVERTEX* psVertex, SFloat3* psPosition, unsigned int iColour, float fZOffset);
+	void 	AssignVertex(D3DCVERTEX* psVertex, SFloat32Vec3* psPosition, unsigned int iColour, float fZOffset, SMatrix* psMatrix);
+	void	AssignSkinnedVertex(D3DCVERTEX* psVertex, SFloat32Vec3* psPosition, unsigned int iColour, float fZOffset, CMeshSkinVert* pcSkinVert);
+	void 	AssignTransformedVertex(D3DCVERTEX* psVertex, SFloat32Vec3* psPosition, unsigned int iColour, float fZOffset);
 	void	FinalisePrimitives(void);
-	bool	IsNormalFacingCamera(SFloat3* psNormal);
-	int		AddBrokenLine(SFloat3* psStart, SFloat3* psEnd, SMatrix* psMatrix);
+	bool	IsNormalFacingCamera(SFloat32Vec3* psNormal);
+	int		AddBrokenLine(SFloat32Vec3* psStart, SFloat32Vec3* psEnd, SMatrix* psMatrix);
 };
 
 

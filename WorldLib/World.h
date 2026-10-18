@@ -166,9 +166,9 @@ public:
 	void				ReleaseMatrix(SMatrix* psMatrix);
 
 	SMatrix*			GetIdentityMatrix(void);
-	SFloat3*			GetXUnitVector(void);
-	SFloat3*			GetYUnitVector(void);
-	SFloat3*			GetZUnitVector(void);
+	SFloat32Vec3*			GetXUnitVector(void);
+	SFloat32Vec3*			GetYUnitVector(void);
+	SFloat32Vec3*			GetZUnitVector(void);
 	void				SetupGreyMaterial(void);
 	void				SetupWhiteMaterial(void);
 	void				SetupViewport(void);
