@@ -64,13 +64,6 @@ enum EContainerStyleVertical
 };
 
 
-union UContainerAlignment
-{
-	EContainerStyleHorizontal	eHorizontal;
-	EContainerStyleVertical		eVertical;
-};
-
-
 int		AlignComponentVertical(EContainerStyleVertical eAlignment, int iComponentHeight, int iAvailableHeight);
 int		AlignComponentHorizontal(EContainerStyleHorizontal eAlignment, int iComponentWidth, int iAvailableWidth);
 

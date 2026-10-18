@@ -29,7 +29,8 @@ class CFlowContainer : public CContainer
 public:
 	EContainerStyleWrap			meWrap;
 	EContainerStyleDirection	meDirection;
-	UContainerAlignment			muAlignment;
+	EContainerStyleHorizontal	meHorizontal;  //Used when the flow goes up or down.
+	EContainerStyleVertical		meVertical;    //Used when the flow goes left or right.
 
 	void		Init(Ptr<CWindow> pWindow);
 	void		Free(void) override;
@@ -50,6 +51,7 @@ protected:
 	void		LayoutLine(SInt32Vec2 sPosition, SInt32Vec2 sLineSize, size iStart, size iEnd);
 	void		LayoutWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
 	SInt32Vec2	CalculateWrappedArea(int iMainLength);
+	size		FindLineEnd(size iFirst, int iMainLength, int* piLineLength, int* piLineThickness);
 };
 
 

@@ -309,6 +309,32 @@ void CRectangle::Shrink(int32 iShrinkLeft, int32 iShrinkTop, int32 iShrinkRight,
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CRectangle::ClipTo(CRectangle* pcBounds)
+{
+	//Keeps only the part of this rectangle inside pcBounds.
+	if (msTopLeft.x < pcBounds->msTopLeft.x)
+	{
+		msTopLeft.x = pcBounds->msTopLeft.x;
+	}
+	if (msTopLeft.y < pcBounds->msTopLeft.y)
+	{
+		msTopLeft.y = pcBounds->msTopLeft.y;
+	}
+	if (msBottomRight.x > pcBounds->msBottomRight.x)
+	{
+		msBottomRight.x = pcBounds->msBottomRight.x;
+	}
+	if (msBottomRight.y > pcBounds->msBottomRight.y)
+	{
+		msBottomRight.y = pcBounds->msBottomRight.y;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CRectangle::IsValid(void)
 {
 	return (msTopLeft.x <= msBottomRight.x) && (msTopLeft.y <= msBottomRight.y);
