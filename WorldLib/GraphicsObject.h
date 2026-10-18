@@ -24,7 +24,6 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #define __GRAPHICS_OBJECT_H__
 #include "BaseLib/ArrayTemplateMinimal.h"
 #include "BaseLib/ArrayIntMinimal.h"
-#include "StandardLib/StandardHeader.h"
 #include "DirectXLib/Direct3DGlobal.h"
 #include "GraphicsPrimitive.h"
 #include "GraphicsMaterial.h"

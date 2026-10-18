@@ -97,11 +97,11 @@ bool CHomeGrid::Draw(void)
 	D3DCVERTEX*				psVertex;
 	int						iZCenterLine;
 	int						iXCenterLine;
-	SFloat3				sMinOffset;
-	SFloat3				sMaxOffset;
-	SFloat3*			psCenter;
-	SFloat3*			psXAxis;
-	SFloat3*			psZAxis;
+	SFloat32Vec3				sMinOffset;
+	SFloat32Vec3				sMaxOffset;
+	SFloat32Vec3*			psCenter;
+	SFloat32Vec3*			psXAxis;
+	SFloat32Vec3*			psZAxis;
 
 	if (!mpcGraphicsObject->BeginDynamic())
 	{
@@ -146,12 +146,12 @@ bool CHomeGrid::Draw(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-D3DCVERTEX*	CHomeGrid::DrawHalfGrid(D3DCVERTEX* psVertex, SFloat3* psCenter, SFloat3* psPerp, SFloat3* psDir, int iMin, int iMax, float fStep, float fWidth)
+D3DCVERTEX*	CHomeGrid::DrawHalfGrid(D3DCVERTEX* psVertex, SFloat32Vec3* psCenter, SFloat32Vec3* psPerp, SFloat32Vec3* psDir, int iMin, int iMax, float fStep, float fWidth)
 {
 	int				i;
-	SFloat3		sPos;
-	SFloat3		sWidth;
-	SFloat3		sVec;
+	SFloat32Vec3		sPos;
+	SFloat32Vec3		sWidth;
+	SFloat32Vec3		sVec;
 	unsigned int				iColour;
 
 	Float3Scale(&sWidth, psPerp, fWidth / 2.0f);
@@ -171,12 +171,12 @@ D3DCVERTEX*	CHomeGrid::DrawHalfGrid(D3DCVERTEX* psVertex, SFloat3* psCenter, SFl
 		Float3Add(&sVec, &sPos, psCenter);
 
 		Float3Subtract(&sPos, &sVec, &sWidth);
-		Float3Assign((SFloat3*)&psVertex->x, &sPos);
+		Float3Assign((SFloat32Vec3*)&psVertex->x, &sPos);
 		psVertex->color = iColour;
 		psVertex = (D3DCVERTEX*)RemapSinglePointer(psVertex, sizeof(D3DCVERTEX));
 
 		Float3Add(&sPos, &sVec, &sWidth);
-		Float3Assign((SFloat3*)&psVertex->x, &sPos);
+		Float3Assign((SFloat32Vec3*)&psVertex->x, &sPos);
 		psVertex->color = iColour;
 		psVertex = (D3DCVERTEX*)RemapSinglePointer(psVertex, sizeof(D3DCVERTEX));
 	}

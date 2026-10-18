@@ -25,7 +25,6 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #include "BaseLib/DataTypes.h"
 #include "BaseLib/GeometricTypes.h"
 #include "BaseLib/Int3.h"
-#include "StandardLib/StandardHeader.h"
 #include "SupportLib/Rectangle.h"
 #include "GraphicsObject.h"
 

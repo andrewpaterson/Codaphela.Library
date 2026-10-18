@@ -141,7 +141,7 @@ bool CCameraInstance::Use(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCameraInstance::LookAt(SFloat3* psFrom, SFloat3* psTo, SFloat3* psUp)
+void CCameraInstance::LookAt(SFloat32Vec3* psFrom, SFloat32Vec3* psTo, SFloat32Vec3* psUp)
 {
 	Float4x4LookAtRH(&mpsView->sD3DMatrix, psFrom, psTo, psUp);
 	Float4x4Inverse(&mpsWorld->sD3DMatrix, NULL, &mpsView->sD3DMatrix);
@@ -235,19 +235,19 @@ bool CCameraInstance::IsSphereVisible(CSphere* pcSphere)
 //////////////////////////////////////////////////////////////////////////
 void CCameraInstance::PickRay(CRay* pcRay, SFloat32Vec2 sWindowPosition)
 {
-	SFloat3		sAt;
-	SFloat3		sUp;
-	SFloat3		sAcross;
+	SFloat32Vec3		sAt;
+	SFloat32Vec3		sUp;
+	SFloat32Vec3		sAcross;
 
 	//You may be using the wrong matrix here... test it.
-	Float3Assign((SFloat3*)&pcRay->msStart, (SFloat3*)mpsWorld->Pos());
+	Float3Assign((SFloat32Vec3*)&pcRay->msStart, (SFloat32Vec3*)mpsWorld->Pos());
 
 	Float3Assign(&sAt, mpsWorld->At());
 	Float3Scale(&sUp, mpsWorld->Up(), sWindowPosition.y);
 	Float3Scale(&sAcross, mpsWorld->Across(), sWindowPosition.x);
 	Float3Add(&sAt, &sAt, &sUp);
 	Float3Add(&sAt, &sAt, &sAcross);
-	Float3Normalize((SFloat3*)&pcRay->msDirection, &sAt);
+	Float3Normalize((SFloat32Vec3*)&pcRay->msDirection, &sAt);
 }
 
 

@@ -26,7 +26,6 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #include "SupportLib/Sphere.h"
 #include "SupportLib/Ray.h"
 #include "BaseLib/GeometricTypes.h"
-#include "StandardLib/StandardHeader.h"
 
 
 class CWorld;
@@ -62,7 +61,7 @@ public:
 	void 		SetNearAndFarPlanes(float fNearPlane, float fFarPlane);
 	bool 		Use(void);
 	void 		Adjust(SFloat4x4* psDest);
-	void 		LookAt(SFloat3* psFrom, SFloat3* psTo, SFloat3* psUp);
+	void 		LookAt(SFloat32Vec3* psFrom, SFloat32Vec3* psTo, SFloat32Vec3* psUp);
 	void 		CalculateView(void);
 	void 		CalculateProjection(void);
 	bool 		IsSphereVisible(CSphere* pcSphere);

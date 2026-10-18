@@ -60,7 +60,7 @@ CD3D	gcD3D;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* SMatrix::At(void)
+SFloat32Vec3* SMatrix::At(void)
 {
 	return sD3DMatrix.At();
 }
@@ -70,7 +70,7 @@ SFloat3* SMatrix::At(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* SMatrix::Up(void)
+SFloat32Vec3* SMatrix::Up(void)
 {
 	return sD3DMatrix.Up();
 }
@@ -80,7 +80,7 @@ SFloat3* SMatrix::Up(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* SMatrix::Across(void)
+SFloat32Vec3* SMatrix::Across(void)
 {
 	return sD3DMatrix.Across();
 }
@@ -90,7 +90,7 @@ SFloat3* SMatrix::Across(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* SMatrix::Pos(void)
+SFloat32Vec3* SMatrix::Pos(void)
 {
 	return sD3DMatrix.Pos();
 }
@@ -4312,7 +4312,7 @@ void SMatrix::Set(SFloat4x4* psMatrix)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SMatrix::SetPos(SFloat3* psVector)
+void SMatrix::SetPos(SFloat32Vec3* psVector)
 {
 	sD3DMatrix.pos.x = psVector->x;
 	sD3DMatrix.pos.y = psVector->y;

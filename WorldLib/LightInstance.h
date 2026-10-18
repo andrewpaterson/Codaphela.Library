@@ -23,7 +23,6 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #ifndef __LIGHT_INSTANCE_H__
 #define __LIGHT_INSTANCE_H__
 #include "DirectXLib/Direct3DGlobal.h"
-#include "StandardLib/StandardHeader.h"
 #include "BaseLib/ArrayTemplateMinimal.h"
 
 

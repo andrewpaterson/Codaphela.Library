@@ -632,7 +632,7 @@ void CMeshConverter::PopulatePositions(SD3DVertexType* psVertexType, void* pvFir
 	int							j;
 	void*						pvVert;
 	int							iNumVerts;
-	SFloat3*					psPosition;
+	SFloat32Vec3*					psPosition;
 	CChannelsAccessorCreator	cCreator;
 	CChannelsAccessor*			pcAccessor;
 
@@ -644,8 +644,8 @@ void CMeshConverter::PopulatePositions(SD3DVertexType* psVertexType, void* pvFir
 	iNumVerts = pcVertexArray->GetSize();
 	for (j = 0; j < iNumVerts; j++)
 	{
-		psPosition = (SFloat3*)pcAccessor->Get(j);
-		((SFloat3*)pvVert)->Copy(psPosition);
+		psPosition = (SFloat32Vec3*)pcAccessor->Get(j);
+		((SFloat32Vec3*)pvVert)->Copy(psPosition);
 		pvVert = RemapSinglePointer(pvVert, psVertexType->iD3DVertexSize);
 	}
 
@@ -662,7 +662,7 @@ void CMeshConverter::PopulateNormals(SD3DVertexType* psVertexType, void* pvFirst
 	int							j;
 	void*						pvVert;
 	int							iNumVerts;
-	SFloat3*					psNormal;
+	SFloat32Vec3*					psNormal;
 	CChannelsAccessorCreator	cCreator;
 	CChannelsAccessor*			pcAccessor;
 
@@ -676,9 +676,9 @@ void CMeshConverter::PopulateNormals(SD3DVertexType* psVertexType, void* pvFirst
 		pvVert = RemapSinglePointer(pvFirstNewVert, psVertexType->iNormalOffest);
 		for (j = 0; j < iNumVerts; j++)
 		{
-			psNormal = (SFloat3*)pcAccessor->Get(j);
-			((SFloat3*)pvVert)->Copy(psNormal);
-			((SFloat3*)pvVert)->Normalize();
+			psNormal = (SFloat32Vec3*)pcAccessor->Get(j);
+			((SFloat32Vec3*)pvVert)->Copy(psNormal);
+			((SFloat32Vec3*)pvVert)->Normalize();
 			pvVert = RemapSinglePointer(pvVert, psVertexType->iD3DVertexSize);
 		}
 
@@ -886,8 +886,8 @@ void CMeshConverter::WeightAdjustIndices(int iNumWeights, SSkinWeight* psWeights
 //	int				iVertexNum;
 //	CChars			sz;
 //	int				iStride;
-//	SFloat3*		psPosition;
-//	SFloat3*		psNormal;
+//	SFloat32Vec3*		psPosition;
+//	SFloat32Vec3*		psNormal;
 //	unsigned int*	psColour;
 //	SFloat32Vec2*		psUV;
 //	int				iVertexBase;
@@ -903,7 +903,7 @@ void CMeshConverter::WeightAdjustIndices(int iNumWeights, SSkinWeight* psWeights
 //	{
 //		sz.Init();
 //		iVertexBase = iVertexNum*iStride;
-//		psPosition = (SFloat3*)RemapSinglePointer(pc, iVertexBase);
+//		psPosition = (SFloat32Vec3*)RemapSinglePointer(pc, iVertexBase);
 //		sz.Append(iVertexNum);
 //		sz.Append(": ");
 //		psPosition->ToString(&sz, 4);

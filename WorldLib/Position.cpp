@@ -30,7 +30,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPositionInterpolator::Interpolate(float fPos, SFloat3* psPosition1, SFloat3* psPosition2)
+void CPositionInterpolator::Interpolate(float fPos, SFloat32Vec3* psPosition1, SFloat32Vec3* psPosition2)
 {
 	float	fInv;
 
@@ -79,7 +79,7 @@ void CLinearPositionInterpolator::Update(float fPos)
 void CDirectedInterpolator::Init(void)
 {
 	PrivateInit();
-	msDir1 = msDir2 = SFloat3(0,0,0);
+	msDir1 = msDir2 = SFloat32Vec3(0,0,0);
 	mfDir1Length = 1.0f;
 	mfDir2Length = -1.0f;
 }
@@ -91,8 +91,8 @@ void CDirectedInterpolator::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDirectedInterpolator::Update(float fPos)
 {
-	SFloat3		sNewPos1;
-	SFloat3		sNewPos2;
+	SFloat32Vec3		sNewPos1;
+	SFloat32Vec3		sNewPos2;
 	float			fInv;
 
 	fPos = GetExponentialAdjustedPos(fPos);
@@ -109,7 +109,7 @@ void CDirectedInterpolator::Update(float fPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDirectedInterpolator::SetDirections(SFloat3* psStart, SFloat3* psEnd)
+void CDirectedInterpolator::SetDirections(SFloat32Vec3* psStart, SFloat32Vec3* psEnd)
 {
 	Float3Normalize(&msDir1, psStart);
 	Float3Normalize(&msDir2, psEnd);
@@ -198,7 +198,7 @@ void CPosition::Update(float fFractionalTime)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* CPosition::GetPosition(void)
+SFloat32Vec3* CPosition::GetPosition(void)
 {
 	switch(msType.uiType)
 	{

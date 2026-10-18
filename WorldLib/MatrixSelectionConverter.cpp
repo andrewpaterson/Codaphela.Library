@@ -77,7 +77,7 @@ void CTransformNodeSelectionConverter::ConvertMatrices(CGraphicsObject* pcGraphi
 //////////////////////////////////////////////////////////////////////////
 void CTransformNodeSelectionConverter::AddMatrices(void)
 {
-	SFloat3			sPos;
+	SFloat32Vec3			sPos;
 	D3DCVERTEX*			psVertex;
 	CMeshInstanceNode*	pcNode;
 	int					iNum;
@@ -121,8 +121,8 @@ void CTransformNodeSelectionConverter::FinalisePrimitives(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTransformNodeSelectionConverter::AssignVertex(D3DCVERTEX* psVertex, SFloat3* psPosition, unsigned int iColour, float fZOffset, SMatrix* psMatrix)
+void CTransformNodeSelectionConverter::AssignVertex(D3DCVERTEX* psVertex, SFloat32Vec3* psPosition, unsigned int iColour, float fZOffset, SMatrix* psMatrix)
 {
-	Float3TransformCoord((SFloat3*)psVertex, psPosition, &psMatrix->sD3DMatrix);
+	Float3TransformCoord((SFloat32Vec3*)psVertex, psPosition, &psMatrix->sD3DMatrix);
 	psVertex->color = iColour;
 }

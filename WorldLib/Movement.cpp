@@ -62,7 +62,7 @@ void CMovement::Update(void)
 {
 	CRotation*			pcRotation;
 	CPosition*			pcPosition;
-	SFloat3*			psPosition;
+	SFloat32Vec3*			psPosition;
 	SQuaternion*		psRotation;
 	CTransformNode*		pcMatrix;
 

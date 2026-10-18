@@ -439,7 +439,7 @@ SMatrix* CWorld::GetIdentityMatrix(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* CWorld::GetXUnitVector(void)
+SFloat32Vec3* CWorld::GetXUnitVector(void)
 {
 	return msIdentity.Across();
 }
@@ -449,7 +449,7 @@ SFloat3* CWorld::GetXUnitVector(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* CWorld::GetYUnitVector(void)
+SFloat32Vec3* CWorld::GetYUnitVector(void)
 {
 	return msIdentity.Up();
 }
@@ -459,7 +459,7 @@ SFloat3* CWorld::GetYUnitVector(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* CWorld::GetZUnitVector(void)
+SFloat32Vec3* CWorld::GetZUnitVector(void)
 {
 	return msIdentity.At();
 }
@@ -568,9 +568,9 @@ CCameraInstance* CWorld::CreateCamera(float width, float height)
 	SMatrix*			psMatrix;
 	CCameraInstance*	pcCameraInstance;
 	float				fAspect;
-	SFloat3				sFrom(0, 1500, 0);
-	SFloat3				sTo(0, 0, 0);
-	SFloat3				sUp(0, 0, -1);
+	SFloat32Vec3				sFrom(0, 1500, 0);
+	SFloat32Vec3				sTo(0, 0, 0);
+	SFloat32Vec3				sUp(0, 0, -1);
 
 	psMatrix = CreateMatrix();
 	pcCameraInstance = CreateCamera();

@@ -23,7 +23,6 @@ along with Codaphela EditorLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "WorldLib/World.h"
 #include "WorldLib/MeshConverter.h"  //For SFaceConversionData... move later.
 #include "WorldLib/SelectionOverrides.h"
-#include "StandardLib/StandardHeader.h"
 
 
 #define	MAD_Edges		0x01

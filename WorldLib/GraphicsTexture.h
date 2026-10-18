@@ -23,7 +23,6 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #ifndef __GRAPHICS_TEXTURE_H__
 #define __GRAPHICS_TEXTURE_H__
 #include "DirectXLib/Direct3DGlobal.h"
-#include "StandardLib/StandardHeader.h"
 
 
 class CGraphicsTexture : public CUnknown

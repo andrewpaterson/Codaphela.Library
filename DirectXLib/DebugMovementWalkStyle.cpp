@@ -54,10 +54,10 @@ void CDebugMovementWalkStyle::Update(float fx, float fy, char iStrafeLeft, char 
 	SFloat4x4	r, s;
 	float		s1;
 	float		s2;
-	SFloat3		at;
-	SFloat3		atNew;
-	SFloat3		left;
-	SFloat3		leftNew;
+	SFloat32Vec3		at;
+	SFloat32Vec3		atNew;
+	SFloat32Vec3		left;
+	SFloat32Vec3		leftNew;
 
 	//Get acceleration.
 	acc = 0.1f;
