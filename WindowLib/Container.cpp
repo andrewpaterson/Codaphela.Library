@@ -31,9 +31,7 @@ void CContainer::Init(Ptr<CWindow> pWindow)
 	PreInit();
 
 	CComponent::Init(pWindow);
-	mcBounds.Init();
-	mcBounds.SetPos(-1, -1);
-	mcBounds.SetSize(-1, -1);
+	mcContainerBounds.Init(-1, -1, -1, -1);
 	msRequiredSize.Init(-1, -1);
 
 	PostInit();
@@ -57,7 +55,7 @@ void CContainer::Free(void)
 void CContainer::Class(void)
 {
 	CComponent::Class();
-	U_Data(CRectangle, mcBounds);
+	U_Data(CRectangle, mcContainerBounds);
 	U_2Int32(msRequiredSize);
 }
 
@@ -68,7 +66,7 @@ void CContainer::Class(void)
 //////////////////////////////////////////////////////////////////////////
 bool CContainer::GetContainerBounds(CRectangle* pcDest)
 {
-	pcDest->Init(&mcBounds);
+	pcDest->Init(&mcContainerBounds);
 	return true;
 }
 
@@ -82,12 +80,12 @@ void CContainer::SetContainerBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	CRectangle	cParentBounds;
 
 	//The container's bounds are where it was laid out, but never outside its parent container's bounds.
-	mcBounds.Init(sPosition.x, sPosition.y, sPosition.x + sAreaSize.x, sPosition.y + sAreaSize.y);
+	mcContainerBounds.Init(sPosition.x, sPosition.y, sPosition.x + sAreaSize.x, sPosition.y + sAreaSize.y);
 	if (mpParent.IsNotNull())
 	{
 		if (mpParent->GetContainerBounds(&cParentBounds))
 		{
-			mcBounds.ClipTo(&cParentBounds);
+			mcContainerBounds.ClipTo(&cParentBounds);
 		}
 	}
 }

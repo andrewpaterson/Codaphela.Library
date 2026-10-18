@@ -12,7 +12,7 @@ class CWinRefWindowFactory : public CNativeWindowFactory
 {
 CONSTRUCTABLE(CWinRefWindowFactory);
 protected:
-	CRectangle	mcBounds;
+	CRectangle	mcWindowBounds;
 	CChars		mszImagePath;
 
 public:
