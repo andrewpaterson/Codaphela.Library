@@ -708,7 +708,7 @@ bool CWriteTransaction::IsWriteThrough(void)
 OIndex CWriteTransaction::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
 {
 	SMapIterator	sIter;
-	void*			pvKey;
+	OIndex			oiKey;
 	void*			pvRecord;
 	size			iKeySize;
 	size			iRecordSize;
@@ -719,14 +719,14 @@ OIndex CWriteTransaction::StartIndexIteration(SIndexTreeFileIterator* psIterator
 	mpcCodabase->mcMutex.Lock();
 	mpcCodabase->GetStoredIndices(&maoiIteration);
 	mpcCodabase->mcMutex.Unlock();
-	bExists = mcRecords.StartIteration(&sIter, &pvKey, &iKeySize, &pvRecord, &iRecordSize);
+	bExists = mcRecords.StartIteration(&sIter, (void**)&oiKey, &iKeySize, &pvRecord, &iRecordSize);
 	while (bExists)
 	{
-		maoiIteration.Add((OIndex*)pvKey);
-		bExists = mcRecords.Iterate(&sIter, &pvKey, &iKeySize, &pvRecord, &iRecordSize);
+		maoiIteration.Add(oiKey);
+		bExists = mcRecords.Iterate(&sIter, (void**)&oiKey, &iKeySize, &pvRecord, &iRecordSize);
 	}
 
-	maoiIteration.QuickSort(CompareLong);
+	maoiIteration.QuickSort();
 	miIndexPosition = 0;
 	return IndexIterate(psIterator, pvData, piDataSize, iMaxDataSize);
 }

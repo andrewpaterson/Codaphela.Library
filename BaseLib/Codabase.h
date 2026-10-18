@@ -14,6 +14,9 @@ class CWriteTransaction;
 class CReadTransaction;
 
 
+typedef CArrayTemplate<CWriteTransaction*> CArrayWriteTransaction;
+
+
 //A durable bracket is always open while the Codabase is started, so the store can be read at any time.  Writes are
 //made by write transactions, which run at the same time and lock the objects they use (wait-die), or by a direct
 //session.  A direct session (Open ... Close) is an implicit write transaction that is always the oldest, so it waits
@@ -30,16 +33,16 @@ protected:
 	CLifeInit<CNamedIndexesConfig>	mcNamedConfig;
 	bool							mbStarted;
 	bool							mbControllerInitialised;
-	CMutex							mcMutex;  //Held for each operation.  Even reads change the caches.
-	bool							mbFailed;  //A commit failed part way.  No more writes until restarted.
-	CCodabaseVersions				mcVersions;  //Old versions for read transactions.
-	int64							miCommitNumber;  //The last commit.  The commit in progress is miCommitNumber + 1.
-	CArrayTemplate<int64>			maiSnapshots;  //The snapshot of every open read transaction.
+	CMutex							mcMutex;			//Held for each operation.  Even reads change the caches.
+	bool							mbFailed;			//A commit failed part way.  No more writes until restarted.
+	CCodabaseVersions				mcVersions;			//Old versions for read transactions.
+	int64							miCommitNumber;		//The last commit.  The commit in progress is miCommitNumber + 1.
+	CArrayTemplate<int64>			maiSnapshots;		//The snapshot of every open read transaction.
 	CLockManager					mcLocks;
-	CMapStringTemplate<int64>		mcReservedNames;  //Names being added by uncommitted write transactions, and which one.
+	CMapStringTemplate<int64>		mcReservedNames;	//Names being added by uncommitted write transactions, and which one.
 	int64							miLastStartNumber;  //Write transactions are numbered from 1.  The session is 0, the oldest.
-	CArrayTemplate<CWriteTransaction*>	mapcWriters;  //Every write transaction that has not been killed.
-	CMutex							mcSessionMutex;  //Held for each direct call while a session is open.
+	CArrayWriteTransaction			mapcWriters;	//Every write transaction that has not been killed.
+	CMutex							mcSessionMutex;		//Held for each direct call while a session is open.
 	CConditionVariable				mcSessionFinished;
 	CWriteTransaction*				mpcSession;
 	int								miSessionThread;

@@ -1,6 +1,7 @@
 #include "StringHelper.h"
 #include "IntegerHelper.h"
 #include "Codabase.h"
+#include "CodabaseVersions.h"
 #include "ReadTransaction.h"
 
 
@@ -252,16 +253,16 @@ OIndex CReadTransaction::StartIndexIteration(SIndexTreeFileIterator* psIterator,
 	mpcCodabase->mcVersions.GetIndices(&aoi);
 	for (i = 0; i < aoi.NumElements(); i++)
 	{
-		oi = *aoi.Get(i);
+		oi = aoi.GetValue(i);
 		if (ContainsLocked(oi))
 		{
-			maoiIteration.Add(&oi);
+			maoiIteration.Add(oi);
 		}
 	}
 	mpcCodabase->mcMutex.Unlock();
 	aoi.Kill();
 
-	maoiIteration.QuickSort(CompareLong);
+	maoiIteration.QuickSort();
 	miIndexPosition = 0;
 	return IndexIterate(psIterator, pvData, piDataSize, iMaxDataSize);
 }
@@ -370,7 +371,7 @@ bool CReadTransaction::NameIterate(SIndexTreeFileIterator* psIterator, char* szK
 //////////////////////////////////////////////////////////////////////////
 bool CReadTransaction::GetLocked(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize, bool bAllData)
 {
-	SVersion*	psVersion;
+	CVersion*	psVersion;
 	uint32		uiCopySize;
 
 	//A version means the object changed after the snapshot.  Without one the store still has it as it was.
@@ -428,7 +429,7 @@ OIndex CReadTransaction::GetIndexLocked(const char* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CReadTransaction::GetNameLocked(OIndex oi, CChars* pszName)
 {
-	SVersion*	psVersion;
+	CVersion*	psVersion;
 
 	psVersion = mpcCodabase->mcVersions.FindRecord(oi, miSnapshot);
 	if (psVersion == NULL)
@@ -450,7 +451,7 @@ bool CReadTransaction::GetNameLocked(OIndex oi, CChars* pszName)
 //////////////////////////////////////////////////////////////////////////
 bool CReadTransaction::ContainsLocked(OIndex oi)
 {
-	SVersion*	psVersion;
+	CVersion*	psVersion;
 
 	psVersion = mpcCodabase->mcVersions.FindRecord(oi, miSnapshot);
 	if (psVersion == NULL)

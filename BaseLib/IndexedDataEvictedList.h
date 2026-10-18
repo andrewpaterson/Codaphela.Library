@@ -8,7 +8,7 @@
 class CIndexedDataEvictedList : public CIndexedDataEvictionCallback
 {
 private:
-	CArrayInt64		mcKeys;
+	CArrayOIndex	mcKeys;
 	CListVariable	mcDatas;
 
 public:
