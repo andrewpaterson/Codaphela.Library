@@ -5,6 +5,7 @@
 #include "IntegerHelper.h"
 #include "NativeThread.h"
 #include "Codabase.h"
+#include "NamedIndexedHeader.h"
 #include "WriteTransaction.h"
 
 
@@ -831,6 +832,9 @@ bool CWriteTransaction::NameIterate(SIndexTreeFileIterator* psIterator, char* sz
 			return true;
 		}
 	}
+
+	//As the store does: the index is set to INVALID_O_INDEX at the end, and some callers only test that.
+	SafeAssign(poi, INVALID_O_INDEX);
 	return false;
 }
 
@@ -888,6 +892,74 @@ void CWriteTransaction::GetCountChanges(int64* piIndices, int64* piNames)
 		}
 		bExists = mcNames.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CWriteTransaction::NumNewRecords(bool bAnySize, size iSize)
+{
+	SMapIterator	sIter;
+	void*			pvKey;
+	void*			pvData;
+	size			iKeySize;
+	size			iDataSize;
+	bool			bExists;
+	SWriteRecord*	psRecord;
+	int64			iCount;
+
+	//Objects added by the transaction, optionally only those whose stored size (with its header) is iSize.
+	iCount = 0;
+	bExists = mcRecords.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
+	while (bExists)
+	{
+		psRecord = (SWriteRecord*)pvData;
+		if (!psRecord->bRemoved && !mpcCodabase->StoredContains(*((OIndex*)pvKey)))
+		{
+			if (bAnySize || (NamedIndexedHeaderSize((int)psRecord->iNameLength, psRecord->uiDataSize) == iSize))
+			{
+				iCount++;
+			}
+		}
+		bExists = mcRecords.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
+	}
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CWriteTransaction::NumNewNames(void)
+{
+	int64			iCount;
+	SMapIterator	sIter;
+	void*			pvKey;
+	void*			pvData;
+	size			iKeySize;
+	size			iDataSize;
+	bool			bExists;
+	CChars			szName;
+
+	iCount = 0;
+	bExists = mcNames.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
+	while (bExists)
+	{
+		if (*((OIndex*)pvData) != INVALID_O_INDEX)
+		{
+			szName.Init((char*)pvKey, 0, strnlen((char*)pvKey, iKeySize));
+			if (mpcCodabase->StoredGetIndex(szName.Text()) == INVALID_O_INDEX)
+			{
+				iCount++;
+			}
+			szName.Kill();
+		}
+		bExists = mcNames.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
+	}
+	return iCount;
 }
 
 

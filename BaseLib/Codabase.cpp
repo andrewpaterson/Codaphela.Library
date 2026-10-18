@@ -1401,9 +1401,17 @@ int64 CCodabase::NumIndicesCached(void)
 {
 	int64	iResult;
 
+	mcSessionMutex.Lock();
 	mcMutex.Lock();
 	iResult = mcNamedIndexedData.NumIndicesCached();
 	mcMutex.Unlock();
+
+	//A session's new objects are counted as cached, though they are in the session until Close.
+	if (mpcSession != NULL)
+	{
+		iResult += mpcSession->NumNewRecords(true, 0);
+	}
+	mcSessionMutex.Unlock();
 	return iResult;
 }
 
@@ -1416,9 +1424,17 @@ int64 CCodabase::NumIndicesCached(size iSize)
 {
 	int64	iResult;
 
+	mcSessionMutex.Lock();
 	mcMutex.Lock();
 	iResult = mcNamedIndexedData.NumIndicesCached(iSize);
 	mcMutex.Unlock();
+
+	//A session's new objects are counted as cached, though they are in the session until Close.
+	if (mpcSession != NULL)
+	{
+		iResult += mpcSession->NumNewRecords(false, iSize);
+	}
+	mcSessionMutex.Unlock();
 	return iResult;
 }
 
@@ -1431,9 +1447,17 @@ int64 CCodabase::NumDataCached(void)
 {
 	int64	iResult;
 
+	mcSessionMutex.Lock();
 	mcMutex.Lock();
 	iResult = mcNamedIndexedData.NumDataCached();
 	mcMutex.Unlock();
+
+	//A session's new objects are counted as cached, though they are in the session until Close.
+	if (mpcSession != NULL)
+	{
+		iResult += mpcSession->NumNewRecords(true, 0);
+	}
+	mcSessionMutex.Unlock();
 	return iResult;
 }
 
@@ -1446,9 +1470,17 @@ int64 CCodabase::NumDataCached(size iSize)
 {
 	int64	iResult;
 
+	mcSessionMutex.Lock();
 	mcMutex.Lock();
 	iResult = mcNamedIndexedData.NumDataCached(iSize);
 	mcMutex.Unlock();
+
+	//A session's new objects are counted as cached, though they are in the session until Close.
+	if (mpcSession != NULL)
+	{
+		iResult += mpcSession->NumNewRecords(false, iSize);
+	}
+	mcSessionMutex.Unlock();
 	return iResult;
 }
 
@@ -1487,9 +1519,17 @@ int64 CCodabase::NumNamesCached(void)
 {
 	int64	iResult;
 
+	mcSessionMutex.Lock();
 	mcMutex.Lock();
 	iResult = mcNamedIndexedData.NumNamesCached();
 	mcMutex.Unlock();
+
+	//A session's new objects are counted as cached, though they are in the session until Close.
+	if (mpcSession != NULL)
+	{
+		iResult += mpcSession->NumNewNames();
+	}
+	mcSessionMutex.Unlock();
 	return iResult;
 }
 

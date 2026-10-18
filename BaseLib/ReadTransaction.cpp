@@ -357,6 +357,9 @@ bool CReadTransaction::NameIterate(SIndexTreeFileIterator* psIterator, char* szK
 			return true;
 		}
 	}
+
+	//As the store does: the index is set to INVALID_O_INDEX at the end, and some callers only test that.
+	SafeAssign(poi, INVALID_O_INDEX);
 	return false;
 }
 
