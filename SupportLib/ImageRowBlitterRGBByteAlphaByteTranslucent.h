@@ -39,16 +39,16 @@ void	BlendAlphaByte(CImageBlitterContext* pcContext, void* pvSourcePixel, void* 
 class CImageRowBlitterRGBByteAlphaByteTranslucent : public CBaseImageRowBlitter
 {
 public:
-	void	Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
-	CBaseImageRowSizingBlitter*	GetSizingBlitter(CImageRowBlitterFactory* pcFactory) override;
+	void							Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
+	CBaseImageRowSizingBlitter*		CreateRowSizingBlitter(CImageRowBlitterFactory* pcFactory) override;
 };
 
 
 class CImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha : public CBaseImageRowBlitter
 {
 public:
-	void	Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
-	CBaseImageRowSizingBlitter*	GetSizingBlitter(CImageRowBlitterFactory* pcFactory) override;
+	void							Copy(CImageBlitterContext* pcContext, void* pvSource, void* pvDest, size iDestX, size iDestY, size iSourceXLeft, size iSourceXRight, size iSourceY) override;
+	CBaseImageRowSizingBlitter*		CreateRowSizingBlitter(CImageRowBlitterFactory* pcFactory) override;
 };
 
 

@@ -238,6 +238,9 @@
     <Filter Include="Source\Image\IO\RAD">
       <UniqueIdentifier>{666bfa56-d452-4df8-9f8a-c866eb4b7fff}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Image\Blitter\Types\Opaque">
+      <UniqueIdentifier>{c2966182-939b-46fb-aec6-d292ca96533d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CopyPaste.h">
@@ -765,23 +768,14 @@
     <ClInclude Include="BaseImageRowBlitter.h">
       <Filter>Source\Image\Blitter</Filter>
     </ClInclude>
-    <ClInclude Include="ImageRowBlitterContiguous.h">
-      <Filter>Source\Image\Blitter\Types</Filter>
-    </ClInclude>
     <ClInclude Include="ImageRowBlitter.h">
       <Filter>Source\Image\Blitter</Filter>
     </ClInclude>
     <ClInclude Include="BaseImageRowSizingBlitter.h">
       <Filter>Source\Image\Blitter</Filter>
     </ClInclude>
-    <ClInclude Include="ImageRowSizingBlitterByteAlignedOpaque.h">
-      <Filter>Source\Image\Blitter\Types</Filter>
-    </ClInclude>
     <ClInclude Include="ImageRowSizingBlitterRGBByteAlphaByteTranslucent.h">
       <Filter>Source\Image\Blitter\Types\Translucent</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageRowBlitterByteAlignedOpaque.h">
-      <Filter>Source\Image\Blitter\Types</Filter>
     </ClInclude>
     <ClInclude Include="ImageRowBlitterRGBByteAlphaByteTranslucent.h">
       <Filter>Source\Image\Blitter\Types\Translucent</Filter>
@@ -881,6 +875,15 @@
     </ClInclude>
     <ClInclude Include="ImageWriter.h">
       <Filter>Source\Image\IO\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageRowBlitterByteAlignedOpaque.h">
+      <Filter>Source\Image\Blitter\Types\Opaque</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageRowBlitterContiguous.h">
+      <Filter>Source\Image\Blitter\Types\Opaque</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageRowSizingBlitterByteAlignedOpaque.h">
+      <Filter>Source\Image\Blitter\Types\Opaque</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1376,17 +1379,8 @@
     <ClCompile Include="ImageRowBlitter.cpp">
       <Filter>Source\Image\Blitter</Filter>
     </ClCompile>
-    <ClCompile Include="ImageRowSizingBlitterByteAlignedOpaque.cpp">
-      <Filter>Source\Image\Blitter\Types</Filter>
-    </ClCompile>
     <ClCompile Include="ImageRowSizingBlitterRGBByteAlphaByteTranslucent.cpp">
       <Filter>Source\Image\Blitter\Types\Translucent</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageRowBlitterContiguous.cpp">
-      <Filter>Source\Image\Blitter\Types</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageRowBlitterByteAlignedOpaque.cpp">
-      <Filter>Source\Image\Blitter\Types</Filter>
     </ClCompile>
     <ClCompile Include="ColourFormat.cpp">
       <Filter>Source\Image\Colour</Filter>
@@ -1486,6 +1480,15 @@
     </ClCompile>
     <ClCompile Include="ImageWriter.cpp">
       <Filter>Source\Image\IO\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRowBlitterByteAlignedOpaque.cpp">
+      <Filter>Source\Image\Blitter\Types\Opaque</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRowBlitterContiguous.cpp">
+      <Filter>Source\Image\Blitter\Types\Opaque</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageRowSizingBlitterByteAlignedOpaque.cpp">
+      <Filter>Source\Image\Blitter\Types\Opaque</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
