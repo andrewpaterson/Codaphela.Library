@@ -112,6 +112,8 @@ public:
 	bool	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 
 	void	GetCountChanges(int64* piIndices, int64* piNames);
+	int64	NumNewRecords(bool bAnySize, size iSize);
+	int64	NumNewNames(void);
 
 protected:
 	bool			CheckActive(void);

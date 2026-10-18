@@ -7,9 +7,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* SVersion::GetName(void)
+char* CVersion::GetName(void)
 {
-	return (char*)RemapSinglePointer(this, sizeof(SVersion));
+	return (char*)RemapSinglePointer(this, sizeof(CVersion));
 }
 
 
@@ -17,9 +17,9 @@ char* SVersion::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* SVersion::GetData(void)
+void* CVersion::GetData(void)
 {
-	return RemapSinglePointer(this, sizeof(SVersion) + iNameLength + 1);
+	return RemapSinglePointer(this, sizeof(CVersion) + iNameLength + 1);
 }
 
 
@@ -52,24 +52,24 @@ void CCodabaseVersions::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCodabaseVersions::SaveRecord(int64 iValidUntil, OIndex oi, CNamedIndexedData* pcStore)
 {
-	SVersion**	ppsHead;
-	SVersion*	psTail;
-	SVersion*	psVersion;
+	CVersion**	ppcHead;
+	CVersion*	pcTail;
+	CVersion*	pcVersion;
 	CChars		szName;
 	uint32		uiDataSize;
 	bool		bExists;
 
 	//Only the version before the first change in a commit is kept.
-	ppsHead = mcRecords.Get(oi);
-	psTail = NULL;
-	if (ppsHead != NULL)
+	ppcHead = mcRecords.Get(oi);
+	pcTail = NULL;
+	if (ppcHead != NULL)
 	{
-		psTail = *ppsHead;
-		while (psTail->psNext != NULL)
+		pcTail = *ppcHead;
+		while (pcTail->pcNext != NULL)
 		{
-			psTail = psTail->psNext;
+			pcTail = pcTail->pcNext;
 		}
-		if (psTail->iValidUntil == iValidUntil)
+		if (pcTail->iValidUntil == iValidUntil)
 		{
 			return true;
 		}
@@ -87,25 +87,25 @@ bool CCodabaseVersions::SaveRecord(int64 iValidUntil, OIndex oi, CNamedIndexedDa
 		uiDataSize = 0;
 	}
 
-	psVersion = (SVersion*)malloc(sizeof(SVersion) + szName.Length() + 1 + uiDataSize);
-	psVersion->iValidUntil = iValidUntil;
-	psVersion->psNext = NULL;
-	psVersion->bExists = bExists;
-	psVersion->iNameLength = (int32)szName.Length();
-	psVersion->uiDataSize = uiDataSize;
-	memcpy(psVersion->GetName(), szName.Text(), szName.Length() + 1);
+	pcVersion = (CVersion*)malloc(sizeof(CVersion) + szName.Length() + 1 + uiDataSize);
+	pcVersion->iValidUntil = iValidUntil;
+	pcVersion->pcNext = NULL;
+	pcVersion->bExists = bExists;
+	pcVersion->iNameLength = (int32)szName.Length();
+	pcVersion->uiDataSize = uiDataSize;
+	memcpy(pcVersion->GetName(), szName.Text(), szName.Length() + 1);
 	if (uiDataSize > 0)
 	{
-		pcStore->Get(oi, &uiDataSize, psVersion->GetData(), uiDataSize);
+		pcStore->Get(oi, &uiDataSize, pcVersion->GetData(), uiDataSize);
 	}
 
-	if (psTail == NULL)
+	if (pcTail == NULL)
 	{
-		mcRecords.Put(oi, &psVersion);
+		mcRecords.Put(oi, &pcVersion);
 	}
 	else
 	{
-		psTail->psNext = psVersion;
+		pcTail->pcNext = pcVersion;
 	}
 
 	//The object's name changes with it.
@@ -164,25 +164,25 @@ bool CCodabaseVersions::SaveName(int64 iValidUntil, const char* szName, CNamedIn
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SVersion* CCodabaseVersions::FindRecord(OIndex oi, int64 iSnapshot)
+CVersion* CCodabaseVersions::FindRecord(OIndex oi, int64 iSnapshot)
 {
-	SVersion**	ppsHead;
-	SVersion*	psVersion;
+	CVersion**	ppcHead;
+	CVersion*	pcVersion;
 
-	ppsHead = mcRecords.Get(oi);
-	if (ppsHead == NULL)
+	ppcHead = mcRecords.Get(oi);
+	if (ppcHead == NULL)
 	{
 		return NULL;
 	}
 
-	psVersion = *ppsHead;
-	while (psVersion != NULL)
+	pcVersion = *ppcHead;
+	while (pcVersion != NULL)
 	{
-		if (psVersion->iValidUntil > iSnapshot)
+		if (pcVersion->iValidUntil > iSnapshot)
 		{
-			return psVersion;
+			return pcVersion;
 		}
-		psVersion = psVersion->psNext;
+		pcVersion = pcVersion->pcNext;
 	}
 	return NULL;
 }
@@ -229,13 +229,12 @@ void CCodabaseVersions::RemoveUpTo(int64 iOldestSnapshot)
 	size			iKeySize;
 	size			iDataSize;
 	bool			bExists;
-	SVersion*		psVersion;
-	SVersion*		psNextVersion;
+	CVersion*		pcVersion;
+	CVersion*		pcNextVersion;
 	SNameVersion*	psName;
 	SNameVersion*	psNextName;
-	CArrayOIndex	aoiEmpty;
+	CArrayInt64	aoiEmpty;
 	CArrayChars		aszEmpty;
-	CChars			szName;
 	size			i;
 
 	//No reader has a snapshot before iOldestSnapshot, so versions that stopped being valid by then are not needed.
@@ -243,23 +242,23 @@ void CCodabaseVersions::RemoveUpTo(int64 iOldestSnapshot)
 	bExists = mcRecords.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	while (bExists)
 	{
-		psVersion = *((SVersion**)pvData);
-		while ((psVersion != NULL) && (psVersion->iValidUntil <= iOldestSnapshot))
+		pcVersion = *((CVersion**)pvData);
+		while ((pcVersion != NULL) && (pcVersion->iValidUntil <= iOldestSnapshot))
 		{
-			psNextVersion = psVersion->psNext;
-			free(psVersion);
-			psVersion = psNextVersion;
+			pcNextVersion = pcVersion->pcNext;
+			free(pcVersion);
+			pcVersion = pcNextVersion;
 		}
-		*((SVersion**)pvData) = psVersion;
-		if (psVersion == NULL)
+		*((CVersion**)pvData) = pcVersion;
+		if (pcVersion == NULL)
 		{
-			aoiEmpty.Add((OIndex*)pvKey);
+			aoiEmpty.Add(*((OIndex*)pvKey));
 		}
 		bExists = mcRecords.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	}
 	for (i = 0; i < aoiEmpty.NumElements(); i++)
 	{
-		mcRecords.Remove(*aoiEmpty.Get(i));
+		mcRecords.Remove(aoiEmpty.GetValue(i));
 	}
 	aoiEmpty.Kill();
 
@@ -277,9 +276,7 @@ void CCodabaseVersions::RemoveUpTo(int64 iOldestSnapshot)
 		*((SNameVersion**)pvData) = psName;
 		if (psName == NULL)
 		{
-			szName.Init((char*)pvKey, 0, strnlen((char*)pvKey, iKeySize));
-			aszEmpty.Add(&szName);
-			szName.Kill();
+			aszEmpty.Add((char*)pvKey);
 		}
 		bExists = mcNames.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	}
@@ -295,7 +292,7 @@ void CCodabaseVersions::RemoveUpTo(int64 iOldestSnapshot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCodabaseVersions::GetIndices(CArrayOIndex* paoi)
+void CCodabaseVersions::GetIndices(CArrayInt64* paoi)
 {
 	SMapIterator	sIter;
 	void*			pvKey;
@@ -307,7 +304,7 @@ void CCodabaseVersions::GetIndices(CArrayOIndex* paoi)
 	bExists = mcRecords.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	while (bExists)
 	{
-		paoi->Add((OIndex*)pvKey);
+		paoi->Add(*((OIndex*)pvKey));
 		bExists = mcRecords.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	}
 }
@@ -325,14 +322,12 @@ void CCodabaseVersions::GetNames(CArrayChars* paszNames)
 	size			iKeySize;
 	size			iDataSize;
 	bool			bExists;
-	CChars			szName;
 
+	//String map keys keep their terminating zero.
 	bExists = mcNames.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	while (bExists)
 	{
-		szName.Init((char*)pvKey, 0, strnlen((char*)pvKey, iKeySize));
-		paszNames->Add(&szName);
-		szName.Kill();
+		paszNames->Add((char*)pvKey);
 		bExists = mcNames.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	}
 }
@@ -351,14 +346,14 @@ size CCodabaseVersions::NumVersions(void)
 	size			iDataSize;
 	bool			bExists;
 	size			uiCount;
-	SVersion*		psVersion;
+	CVersion*		pcVersion;
 	SNameVersion*	psName;
 
 	uiCount = 0;
 	bExists = mcRecords.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	while (bExists)
 	{
-		for (psVersion = *((SVersion**)pvData); psVersion != NULL; psVersion = psVersion->psNext)
+		for (pcVersion = *((CVersion**)pvData); pcVersion != NULL; pcVersion = pcVersion->pcNext)
 		{
 			uiCount++;
 		}

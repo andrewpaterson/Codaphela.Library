@@ -1,7 +1,7 @@
 Codabase Transactions
 =====================
 
-Design for ACID transactions on top of CCodabase.  Decided 2026-10-17 and 2026-10-18.  Steps 1 to 4 of the build order (durability, thread safety, single-writer write transactions, the version store and read-only transactions) are implemented.  Step 5, the lock manager, is not.
+Design for ACID transactions on top of CCodabase.  Decided 2026-10-17 and 2026-10-18.  All five steps of the build order are implemented.
 
 
 Goal and guarantee
@@ -45,7 +45,8 @@ Write transactions
   - Read the LATEST committed version, never a snapshot, after taking a lock.  This is required for serialisability; reading a snapshot would allow write skew.
   - Hold every lock (shared, update and exclusive) until the commit is durable (rigorous two-phase locking).  This makes commit order a valid serial order.
   - Keep all changes private in a write set until commit.
-  - Until the lock manager exists only one write transaction can be open at a time.  BeginWriteTransaction waits (on a CConditionVariable) while another write transaction, or a direct-API session between Open and Close, is open.  Read-only transactions never wait.
+  - Write transactions run at the same time.  BeginWriteTransaction never waits; transactions wait, or die, when they lock objects.  Read-only transactions never wait.
+  - A transaction that dies has its changes discarded and its locks and name reservations released; the call that found the conflict returns false and HasDied() is true.  Restart() begins it again with its original start number.
 
 Why this is strictly serialisable: write transactions are serialised in commit order.  The state at any commit number is therefore a prefix of that serial order, and a read-only transaction reading it fits into the order at exactly that point.  Because write transactions never read snapshots, the snapshot isolation anomalies (write skew and the read-only anomaly) cannot occur.
 
@@ -63,12 +64,12 @@ CWriteTransaction implements CDataConnection (Add, Set, Put, Remove, Get, ...) a
 Ownership follows BaseLib conventions: the Codabase allocates transactions and Kill() releases them.  Killing a write transaction that has not committed aborts it.
 
 Direct (non-transactional) API
-  - CObjects and other existing callers keep calling CCodabase's Add / Set / Put / Remove directly.
-  - Direct calls between Open() and Close() form ONE implicit write transaction, committed at Close().  This keeps today's semantics.
-  - Open takes the writer slot (waiting for any other writer) and Close commits and releases it.  Writing directly without Open fails.  Reading never needs Open.
+  - CObjects and other existing callers keep calling CCodabase's Add / Set / Put / Remove / Get directly.
+  - Open starts an implicit write transaction with start number 0, so it is always the oldest: under wait-die it waits but never dies.  Only one session is open at a time; a second Open waits.  Close commits it.
+  - Direct calls between Open and Close go through the session from any thread (a session mutex serialises them).  Its changes are not in the store until Close.  Direct reads without a session read the committed store; direct writes without one fail.
+  - NumIndices, NumNames and the cache statistics (NumIndicesCached, NumDataCached, NumNamesCached) count the session's own changes while it is open.
+  - A thread with a session cannot begin a write transaction, and a thread with a write transaction cannot Open, because the session could wait for that transaction for ever.
   - A durable bracket is always open while the Codabase is started, because reading the store needs one.  Start opens it; every commit is flush, End(), Begin().  Kill aborts the open bracket (CDurableFileController::Abort throws the logged changes away), so nothing uncommitted reaches disk, as in a crash.
-  - That implicit transaction holds its write locks for the whole session, so until the lock manager exists it blocks all other write transactions between Open and Close.  Read-only transactions are unaffected.
-  - Wait-die could kill the implicit transaction, and the direct API has no way to report that or restart it.  This needs a rule before the lock manager is built.  Simplest: give the implicit transaction the oldest start number, so it waits but never dies.
 
 
 Write set
@@ -178,7 +179,7 @@ Clean-up: when a commit is published or a read transaction ends, versions whose 
 
 When versions are saved:
   - A write transaction commit saves them only if a read transaction is open.  None can begin while the commit holds the store mutex.
-  - A direct session changes the store before it commits, so it always saves the version before its first change to each object and name (SaveVersions in each direct write).  A reader that begins during the session then still sees the last commit.  The versions go at Close if no reader needs them.
+  - A direct session is a write transaction too, so it changes nothing in the store before it commits and saves versions the same way.
 
 Implemented in CodabaseVersions.h/.cpp (implemented, step 4): CMapLongTemplate<SVersion*> and CMapStringTemplate<SNameVersion*>, chains of malloc'd nodes ordered oldest first.
 
@@ -191,6 +192,8 @@ A long-running read-only transaction alongside heavy writing makes the version s
 
 Threading
 ---------
+
+The logger is not thread safe: __METHOD__ builds the method name in a shared buffer, so it must only be evaluated when an error is logged, and errors logged by several threads at once can still collide.
 
 Nothing in CNamedIndexedData or CIndexedData is thread-safe, and even Get changes state (it loads into the cache).  CCodabase holds one store mutex (mcMutex) for each public operation, not for a whole transaction (done, step 2).  The commit mutex can be the same mutex.
 
@@ -229,7 +232,6 @@ Open questions
 --------------
 
   - How read-only transactions get an object view in CObjects that writers' uncommitted in-memory changes do not affect.  MVCC gives them the right bytes, but they must deserialise from their snapshot into their own read-only view rather than share the live object graph.  Not needed until CObjects is in scope.
-  - The wait-die rule for the implicit direct-API transaction (see "Direct API").  Needed before the lock manager.  Suggested: it always has the oldest start number.
   - Whether to remove the IWT modes.
   - Name lookup and iteration protection for write transactions (version 2).
 
@@ -241,7 +243,7 @@ Build order
   2. Thread safety (done): store mutex in CCodabase, CNativeThread and CConditionVariable moved into BaseLib, multi-threaded Codabase test.
   3. Write transactions, one at a time (done): CWriteTransaction (WriteTransaction.h/.cpp) with its write set, commit (removals before additions, so a removed name can be reused), abort, and the read-only state after a failed commit.  One writer at a time, waiting on a CConditionVariable.  The name reservation table is deferred to step 5 (with one writer nothing can race), and iterating a write transaction to step 4 (it fails with an error until then).
   4. Version store and read-only transactions (done): CCodabaseVersions, CReadTransaction (ReadTransaction.h/.cpp) from CCodabase::BeginReadTransaction, commit numbers published after End(), clean-up, snapshot iteration and write-transaction iteration.
-  5. Lock manager: S / U / X modes with wait-die, allowing concurrent write transactions.
+  5. Lock manager (done): CLockManager (LockManager.h/.cpp) with S / U / X modes and wait-die, write transactions locking every object they read or write, name reservations, and the direct session as an implicit oldest transaction.
 
 
 History
