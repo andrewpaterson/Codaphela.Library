@@ -175,23 +175,6 @@ bool CFlowContainer::IsReversed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFlowContainer::IsCrossStretch(void)
-{
-	if (IsHorizontal())
-	{
-		return meVertical == CSV_Stretch;
-	}
-	else
-	{
-		return meHorizontal == CSH_Stretch;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 int CFlowContainer::AlignCross(int iComponentSize, int iAvailableSize)
 {
 	if (IsHorizontal())
@@ -214,65 +197,54 @@ void CFlowContainer::LayoutLine(SInt32Vec2 sPosition, SInt32Vec2 sLineSize, size
 	Ptr<CComponent>		pComponent;
 	size				i;
 	SInt32Vec2			sSize;
-	SInt32Vec2			sOffset;
+	SInt32Vec2			sAreaPosition;
+	SInt32Vec2			sArea;
 	int					iMainPos;
+	int					iMainSize;
 	int					iMainOffset;
 	bool				bHorizontal;
 	bool				bReversed;
-	bool				bStretch;
 
+	//Each component gets an area as long as its desired main axis size and as thick as the line.  Its own alignment
+	//places it across the line, or stretches it to the line's thickness.
 	bHorizontal = IsHorizontal();
 	bReversed = IsReversed();
-	bStretch = IsCrossStretch();
 	iMainPos = 0;
 
 	for (i = iStart; i < iEnd; i++)
 	{
 		pComponent = maChildren.Get(i);
 		sSize = pComponent->GetDesiredSize();
-
-		// Stretch cross-axis if requested
-		if (bStretch)
+		iMainSize = ContainerStyleMainAxis(&sSize, bHorizontal);
+		if (iMainSize < 0)
 		{
-			int32 crossLine = ContainerStyleCrossAxis(&sLineSize, bHorizontal);
-			if (bHorizontal)
-			{
-				sSize.y = crossLine;
-			}
-			else
-			{
-				sSize.x = crossLine;
-			}
+			iMainSize = 0;
 		}
 
 		// Main-axis offset (reversed or normal)
 		if (bReversed)
 		{
-			iMainOffset = ContainerStyleMainAxis(&sLineSize, bHorizontal) - iMainPos - ContainerStyleMainAxis(&sSize, bHorizontal);
+			iMainOffset = ContainerStyleMainAxis(&sLineSize, bHorizontal) - iMainPos - iMainSize;
 		}
 		else
 		{
 			iMainOffset = iMainPos;
 		}
 
-		// Build the final offset
-		int32 mainPos = ContainerStyleMainAxis(&sPosition, bHorizontal) + iMainOffset;
-		int32 iCrossPos = ContainerStyleCrossAxis(&sPosition, bHorizontal) + AlignCross(ContainerStyleCrossAxis(&sSize, bHorizontal), ContainerStyleCrossAxis(&sLineSize, bHorizontal));
-
 		if (bHorizontal)
 		{
-			sOffset.x = mainPos;
-			sOffset.y = iCrossPos;
+			sAreaPosition.Init(sPosition.x + iMainOffset, sPosition.y);
+			sArea.Init(iMainSize, sLineSize.y);
 		}
 		else
 		{
-			sOffset.x = iCrossPos;
-			sOffset.y = mainPos;
+			sAreaPosition.Init(sPosition.x, sPosition.y + iMainOffset);
+			sArea.Init(sLineSize.x, iMainSize);
 		}
 
-		iMainPos += ContainerStyleMainAxis(&sSize, bHorizontal);
+		iMainPos += iMainSize;
 
-		pComponent->Layout(sOffset, sSize);
+		LayoutComponentInArea(pComponent, sAreaPosition, sArea);
 	}
 }
 

@@ -29,8 +29,8 @@ class CFlowContainer : public CContainer
 public:
 	EContainerStyleWrap			meWrap;
 	EContainerStyleDirection	meDirection;
-	EContainerStyleHorizontal	meHorizontal;  //Used when the flow goes up or down.
-	EContainerStyleVertical		meVertical;    //Used when the flow goes left or right.
+	EContainerStyleHorizontal	meHorizontal;  //Where the block of wrapped lines sits when the flow goes up or down.
+	EContainerStyleVertical		meVertical;    //Where the block of wrapped lines sits when the flow goes left or right.  Each component's own alignment places it within its line.
 
 	void		Init(Ptr<CWindow> pWindow);
 	void		Free(void) override;
@@ -45,7 +45,6 @@ public:
 protected:
 	bool		IsHorizontal(void);
 	bool		IsReversed(void);
-	bool		IsCrossStretch(void);
 	int			AlignCross(int iComponentSize, int iAvailableSize);
 
 	void		LayoutLine(SInt32Vec2 sPosition, SInt32Vec2 sLineSize, size iStart, size iEnd);
