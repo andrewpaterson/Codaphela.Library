@@ -27,12 +27,13 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCanvasDraw::Init(Ptr<CImageCel> pCel)
+void CImageCanvasDraw::Init(Ptr<CImageCel> pCel, bool bStretch)
 {
 	PreInit();
 	CCanvasDraw::Init();
 	mpCel = pCel;
 	mpDestImage = NULL;
+	mbStretch = bStretch;
 	PostInit();
 }
 
@@ -46,6 +47,7 @@ void CImageCanvasDraw::Class(void)
 	CCanvasDraw::Class();
 	M_Pointer(mpCel);
 	M_Pointer(mpDestImage);
+	U_Bool(mbStretch);
 }
 
 
@@ -120,13 +122,27 @@ bool CImageCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 	}
 
 	//The image being drawn onto keeps the blitters that draw onto it, so a new image starts with new blitters.
-	pBlitter = pImage->GetBlitterCache()->CreateImageBlitter(mpCel);
+	if (mbStretch)
+	{
+		pBlitter = pImage->GetBlitterCache()->CreateSizingImageBlitter(mpCel);
+	}
+	else
+	{
+		pBlitter = pImage->GetBlitterCache()->CreateImageBlitter(mpCel);
+	}
 	if (pBlitter.IsNull())
 	{
 		return false;
 	}
 
-	bResult = pBlitter->Blit(0, 0);
+	if (mbStretch)
+	{
+		bResult = pBlitter->Blit(0, 0, sSize.x, sSize.y);
+	}
+	else
+	{
+		bResult = pBlitter->Blit(0, 0);
+	}
 
 	if (mpDestImage.IsNotNull())
 	{

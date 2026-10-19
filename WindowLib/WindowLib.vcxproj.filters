@@ -129,6 +129,9 @@
     <ClInclude Include="GridContainer.h">
       <Filter>Source\Component\Container\Grid</Filter>
     </ClInclude>
+    <ClInclude Include="BorderLayoutHelper.h">
+      <Filter>Source\Component\Container\Grid</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeWindow.cpp">
@@ -189,6 +192,9 @@
       <Filter>Source\Component\Container\Grid</Filter>
     </ClCompile>
     <ClCompile Include="GridContainer.cpp">
+      <Filter>Source\Component\Container\Grid</Filter>
+    </ClCompile>
+    <ClCompile Include="BorderLayoutHelper.cpp">
       <Filter>Source\Component\Container\Grid</Filter>
     </ClCompile>
   </ItemGroup>

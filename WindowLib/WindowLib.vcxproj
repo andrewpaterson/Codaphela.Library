@@ -197,6 +197,7 @@
     <ClInclude Include="FocusListener.h" />
     <ClInclude Include="GridCell.h" />
     <ClInclude Include="GridContainer.h" />
+    <ClInclude Include="BorderLayoutHelper.h" />
     <ClInclude Include="Insets.h" />
     <ClInclude Include="NativeCanvas.h" />
     <ClInclude Include="NativeComponent.h" />
@@ -218,6 +219,7 @@
     <ClCompile Include="Focus.cpp" />
     <ClCompile Include="GridCell.cpp" />
     <ClCompile Include="GridContainer.cpp" />
+    <ClCompile Include="BorderLayoutHelper.cpp" />
     <ClCompile Include="Insets.cpp" />
     <ClCompile Include="MapsCanvasDraw.cpp" />
     <ClCompile Include="ImageCanvasDraw.cpp" />
