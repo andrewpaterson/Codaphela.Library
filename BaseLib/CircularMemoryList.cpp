@@ -815,31 +815,31 @@ bool CCircularMemoryList::ValidateCache(void)
 	{
 		if (psCacheBasedDescriptor->GetNext() == NULL)
 		{
-			return gcLogger.Error2(__METHOD__, " Descriptor [", IntToString(iCount), "] Next is NULL.", NULL);
+			return gcLogger.Error2(__METHOD__, " Descriptor [", SizeToString(iCount), "] Next is NULL.", NULL);
 		}
 		if (psCacheBasedDescriptor->GetPrev() == NULL)
 		{
-			return gcLogger.Error2(__METHOD__, " Descriptor [", IntToString(iCount), "] Prev is NULL.", NULL);
+			return gcLogger.Error2(__METHOD__, " Descriptor [", SizeToString(iCount), "] Prev is NULL.", NULL);
 		}
 
 		if (GetPrevDescriptor(psCacheBasedDescriptor)->GetNext() != MapFromCacheBasedToZeroBased(psCacheBasedDescriptor))
 		{
-			return gcLogger.Error2(__METHOD__, " Descriptor [", IntToString(iCount), "] Prev.Next is not Descriptor.", NULL);
+			return gcLogger.Error2(__METHOD__, " Descriptor [", SizeToString(iCount), "] Prev.Next is not Descriptor.", NULL);
 		}
 		if (GetNextDescriptor(psCacheBasedDescriptor)->GetPrev() != MapFromCacheBasedToZeroBased(psCacheBasedDescriptor))
 		{
-			return gcLogger.Error2(__METHOD__, " Descriptor [", IntToString(iCount), "] Next.Prev is not Descriptor.", NULL);
+			return gcLogger.Error2(__METHOD__, " Descriptor [", SizeToString(iCount), "] Next.Prev is not Descriptor.", NULL);
 		}
 
 		if (psCacheBasedDescriptor->GetSize() == 0)
 		{
-			return gcLogger.Error2(__METHOD__, " Descriptor [", IntToString(iCount), "] Next.Size is zero.", NULL);
+			return gcLogger.Error2(__METHOD__, " Descriptor [", SizeToString(iCount), "] Next.Size is zero.", NULL);
 		}
 
 		pvEndDesc = RemapSinglePointer(psCacheBasedDescriptor, psCacheBasedDescriptor->GetSize() + miDescriptorSize);
 		if (pvEndDesc > pvLastCacheByte)
 		{
-			return gcLogger.Error2(__METHOD__, " Descriptor [", IntToString(iCount), "]'s bytes extend passed the end of the cache.", NULL);
+			return gcLogger.Error2(__METHOD__, " Descriptor [", SizeToString(iCount), "]'s bytes extend passed the end of the cache.", NULL);
 		}
 
 		iCount++;

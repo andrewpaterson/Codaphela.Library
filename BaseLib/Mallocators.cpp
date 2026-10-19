@@ -78,7 +78,7 @@ CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 
 	if (iLength >= 1024)
 	{
-		gcLogger.Error2(__METHOD__, " Could not read mallocator name, too long [", IntToString(iLength), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Could not read mallocator name, too long [", SizeToString(iLength), "].", NULL);
 	}
 
 	if (!pcFileReader->ReadStringChars(szShortName, iLength))

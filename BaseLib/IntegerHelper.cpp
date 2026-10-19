@@ -1502,15 +1502,11 @@ void ReverseEndianness(void* pv, size iSize)
 {
 	if (iSize == 4)
 	{
-		*(size*)pv = ReverseIntEndianness(*(size*)pv);
+		*(uint32*)pv = ReverseIntEndianness(*(uint32*)pv);
 	}
 	if (iSize == 2)
 	{
 		*(int16*)pv = ReverseShortEndianness(*(int16*)pv);
-	}
-	if (iSize == 4)
-	{
-		*(size*)pv = ReverseIntEndianness(*(size*)pv);
 	}
 	if (iSize == 8)
 	{
