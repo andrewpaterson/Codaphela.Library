@@ -10,7 +10,7 @@
 #include "FocusListener.h"
 #include "ComponentListener.h"
 #include "SupportLib/Rectangle.h"
-#include "ContainerStyles.h"
+#include "ContainerStyle.h"
 
 
 class CWindow;

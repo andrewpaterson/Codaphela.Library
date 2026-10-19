@@ -673,9 +673,9 @@ bool CImageBlitter::PopulateSizingTables(int32 iDestWidth, int32 iDestHeight)
 bool CImageBlitter::ClipDestRect(CRectangle* pcClip, CRectangle* pcDestRect)
 {
 	pcDestRect->Init(0, 0, mpDestImage->GetWidth(), mpDestImage->GetHeight());
+
 	if (pcClip)
 	{
-		//Only draw where the destination image and the clip rectangle overlap.
 		if (pcClip->msTopLeft.x > pcDestRect->msTopLeft.x)
 		{
 			pcDestRect->msTopLeft.x = pcClip->msTopLeft.x;
@@ -692,7 +692,8 @@ bool CImageBlitter::ClipDestRect(CRectangle* pcClip, CRectangle* pcDestRect)
 		{
 			pcDestRect->msBottomRight.y = pcClip->msBottomRight.y;
 		}
-		if ((pcDestRect->msBottomRight.x <= pcDestRect->msTopLeft.x) || (pcDestRect->msBottomRight.y <= pcDestRect->msTopLeft.y))
+		if ((pcDestRect->msBottomRight.x <= pcDestRect->msTopLeft.x) || 
+			(pcDestRect->msBottomRight.y <= pcDestRect->msTopLeft.y))
 		{
 			return false;
 		}

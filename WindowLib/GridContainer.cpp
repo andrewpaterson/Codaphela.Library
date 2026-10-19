@@ -21,7 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "BaseLib/ArrayBit.h"
 #include "StandardLib/ClassDefines.h"
-#include "ContainerStyles.h"
+#include "ContainerStyle.h"
 #include "GridContainer.h"
 
 
@@ -376,7 +376,7 @@ size CGridContainer::NumTracks(bool bColumns)
 	for (i = 0; i < maChildren.Size(); i++)
 	{
 		pcCell = GetCell(i);
-		uiEnd = (size)(MainAxis(pcCell->msPosition, bColumns) + MainAxis(pcCell->msSpan, bColumns));
+		uiEnd = (size)(ContainerStyleMainAxis(&pcCell->msPosition, bColumns) + ContainerStyleMainAxis(&pcCell->msSpan, bColumns));
 		if (uiEnd > uiNumTracks)
 		{
 			uiNumTracks = uiEnd;
@@ -403,8 +403,9 @@ void CGridContainer::CalculateTracks(bool bColumns, CArrayInt* paiSizes, CArrayI
 	int32			iWeight;
 	int32			iHave;
 	SInt32Vec2		sDesired;
+	size			uiMainAxisSpan;
 
-	//Works out every column's (or row's) required size and weight.
+	// Works out every column's (or row's) required size and weight.
 	uiNumTracks = NumTracks(bColumns);
 	for (i = 0; i < uiNumTracks; i++)
 	{
@@ -412,12 +413,12 @@ void CGridContainer::CalculateTracks(bool bColumns, CArrayInt* paiSizes, CArrayI
 		paiWeights->Add(0);
 	}
 
-	//Components sitting in a single track first.
+	// Components sitting in a single track first.
 	uiMaxSpan = 1;
 	for (i = 0; i < maChildren.Size(); i++)
 	{
 		pcCell = GetCell(i);
-		uiSpan = (size)MainAxis(pcCell->msSpan, bColumns);
+		uiSpan = (size)ContainerStyleMainAxis(&pcCell->msSpan, bColumns);
 		if (uiSpan > uiMaxSpan)
 		{
 			uiMaxSpan = uiSpan;
@@ -425,10 +426,10 @@ void CGridContainer::CalculateTracks(bool bColumns, CArrayInt* paiSizes, CArrayI
 		if (uiSpan == 1)
 		{
 			pComponent = maChildren.Get(i);
-			uiStart = (size)MainAxis(pcCell->msPosition, bColumns);
+			uiStart = (size)ContainerStyleMainAxis(&pcCell->msPosition, bColumns);
 			sDesired = pComponent->GetDesiredSize();
-			iRequired = MainAxis(sDesired, bColumns);
-			iWeight = MainAxis(pcCell->msWeight, bColumns);
+			iRequired = ContainerStyleMainAxis(&sDesired, bColumns);
+			iWeight = ContainerStyleMainAxis(&pcCell->msWeight, bColumns);
 			if (iRequired > paiSizes->GetValue(uiStart))
 			{
 				paiSizes->SetValue(uiStart, iRequired);
@@ -440,26 +441,25 @@ void CGridContainer::CalculateTracks(bool bColumns, CArrayInt* paiSizes, CArrayI
 		}
 	}
 
-	//Then components spanning tracks, narrowest first, add any weight and size their tracks still lack.
+	// Then components spanning tracks, narrowest first, add any weight and size their tracks still lack.
 	for (uiSpan = 2; uiSpan <= uiMaxSpan; uiSpan++)
 	{
 		for (i = 0; i < maChildren.Size(); i++)
 		{
 			pcCell = GetCell(i);
-			if ((size)MainAxis(pcCell->msSpan, bColumns) == uiSpan)
+			uiMainAxisSpan = (size)ContainerStyleMainAxis(&pcCell->msSpan, bColumns);
+			if (uiMainAxisSpan == uiSpan)
 			{
 				pComponent = maChildren.Get(i);
-				uiStart = (size)MainAxis(pcCell->msPosition, bColumns);
-
-				iWeight = MainAxis(pcCell->msWeight, bColumns);
+				uiStart = (size)ContainerStyleMainAxis(&pcCell->msPosition, bColumns);
+				iWeight = ContainerStyleMainAxis(&pcCell->msWeight, bColumns);
 				iHave = SumTracks(paiWeights, uiStart, uiSpan);
 				if (iWeight > iHave)
 				{
 					ShareOut(paiWeights, uiStart, uiSpan, iWeight - iHave, paiWeights);
 				}
-
 				sDesired = pComponent->GetDesiredSize();
-				iRequired = MainAxis(sDesired, bColumns);
+				iRequired = ContainerStyleMainAxis(&sDesired, bColumns);
 				iHave = SumTracks(paiSizes, uiStart, uiSpan);
 				if (iRequired > iHave)
 				{
