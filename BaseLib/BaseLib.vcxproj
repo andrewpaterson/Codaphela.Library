@@ -524,9 +524,11 @@
     <ClInclude Include="WriteTransaction.h" />
     <ClInclude Include="LockManager.h" />
     <ClInclude Include="ReadTransaction.h" />
+    <ClInclude Include="TransactionIteration.h" />
     <ClInclude Include="CodabaseVersions.h" />
     <ClInclude Include="CodabaseFactory.h" />
     <ClInclude Include="DataConnection.h" />
+    <ClInclude Include="DataReader.h" />
     <ClInclude Include="Fat32.h" />
     <ClInclude Include="FatCommon.h" />
     <ClInclude Include="FatDebug.h" />
@@ -932,6 +934,7 @@
     <ClCompile Include="WriteTransaction.cpp" />
     <ClCompile Include="LockManager.cpp" />
     <ClCompile Include="ReadTransaction.cpp" />
+    <ClCompile Include="TransactionIteration.cpp" />
     <ClCompile Include="CodabaseVersions.cpp" />
     <ClCompile Include="CodabaseFactory.cpp" />
     <ClCompile Include="FatCommon.cpp" />

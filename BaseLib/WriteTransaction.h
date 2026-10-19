@@ -4,16 +4,17 @@
 #include "MapBlock.h"
 #include "MapStringTemplate.h"
 #include "ArrayChars.h"
-#include "CodabaseVersions.h"
 #include "LockManager.h"
+#include "TransactionIteration.h"
 
 
 class CCodabase;
 
 
 //The change a write transaction makes to one object.  The name (with its terminating zero) and then the data follow it.
-struct SWriteRecord
+class CWriteRecord
 {
+public:
 	bool	bRemoved;			//The object is removed when the transaction commits.
 	bool	bReplacesStored;	//The stored object was removed and this one added in its place.
 	int32	iNameLength;
@@ -21,6 +22,17 @@ struct SWriteRecord
 
 	char*	GetName(void);
 	void*	GetData(void);
+};
+
+
+//How the numbers of objects and names change when a write transaction commits, and how many it adds.
+struct SWriteCounts
+{
+	int64	iIndices;
+	int64	iNames;
+	int64	iNewIndices;
+	int64	iNewIndicesOfSize;
+	int64	iNewNames;
 };
 
 
@@ -43,15 +55,12 @@ protected:
 	CCodabase*					mpcCodabase;
 	int64						miStartNumber;	//Lower is older.  0 is the direct session.
 	int							miThread;
-	CMapBlock					mcRecords;		//OIndex to SWriteRecord.
+	CMapBlock					mcRecords;		//OIndex to CWriteRecord.
 	CMapStringTemplate<OIndex>	mcNames;		//Names added or removed by the transaction.  INVALID_O_INDEX means removed.
 	CArrayChars					maszReserved;	//Names this transaction has reserved.
 	bool						mbActive;
 	bool						mbDied;
-	CArrayOIndex				maoiIteration;
-	size						miIndexPosition;
-	CArrayChars					maszIteration;
-	size						miNamePosition;
+	CTransactionIteration		mcIteration;
 
 public:
 	void	Init(CCodabase* pcCodabase, int64 iStartNumber);
@@ -111,9 +120,7 @@ public:
 	bool	StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 	bool	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 
-	void	GetCountChanges(int64* piIndices, int64* piNames);
-	int64	NumNewRecords(bool bAnySize, size iSize);
-	int64	NumNewNames(void);
+	void	CountChanges(SWriteCounts* psCounts, size iCachedSize);
 
 protected:
 	bool			CheckActive(void);
@@ -122,7 +129,7 @@ protected:
 	void			Die(void);
 	void			ReleaseResources(void);
 	bool			ReserveNewName(const char* szName);
-	SWriteRecord*	GetRecord(OIndex oi);
+	CWriteRecord*	GetRecord(OIndex oi);
 	bool			PutRecord(OIndex oi, bool bRemoved, bool bReplacesStored, const char* szName, void* pvData, uint32 uiDataSize);
 	bool			Exists(OIndex oi);
 	OIndex			FindName(const char* szName);
@@ -132,7 +139,6 @@ protected:
 	bool			AddLocked(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize);
 	bool			SetLocked(OIndex oi, void* pvData, uint32 uiDataSize);
 	bool			RemoveLocked(OIndex oi);
-	bool			Apply(bool bRemovals);
 	void			Finish(void);
 };
 

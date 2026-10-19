@@ -250,27 +250,12 @@ CReadTransaction* CCodabase::BeginReadTransaction(void)
 	//Reading never waits for a writer.  The snapshot is the last published commit.
 	mcMutex.Lock();
 	iSnapshot = miCommitNumber;
-	maiSnapshots.Add(&iSnapshot);
+	maiSnapshots.Add(iSnapshot);
 	mcMutex.Unlock();
 
 	pcTransaction = NewMalloc<CReadTransaction>();
 	pcTransaction->Init(this, iSnapshot);
 	return pcTransaction;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int64 CCodabase::GetCommitNumber(void)
-{
-	int64	iCommitNumber;
-
-	mcMutex.Lock();
-	iCommitNumber = miCommitNumber;
-	mcMutex.Unlock();
-	return iCommitNumber;
 }
 
 
@@ -414,17 +399,30 @@ void CCodabase::RemoveWriter(CWriteTransaction* pcTransaction)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::ReserveName(const char* szName, int64 iTransaction)
+bool CCodabase::ReserveName(const char* szName, int64 iTransaction, bool bRemovedByTransaction)
 {
 	int64*	piOwner;
 
-	//mcMutex must be locked.  The first transaction to add a name owns it until it commits or aborts.
-	piOwner = mcReservedNames.Get(szName);
-	if (piOwner != NULL)
+	//The check of the committed names and the reservation are made together, so no other transaction can add the name
+	//in between.  The first transaction to add a name owns it until it commits or aborts.  A name the transaction
+	//removed itself can be added again.
+	mcMutex.Lock();
+	if (!bRemovedByTransaction && (mcNamedIndexedData.GetIndex(szName) != INVALID_O_INDEX))
 	{
-		return *piOwner == iTransaction;
+		mcMutex.Unlock();
+		return gcLogger.Error2(__METHOD__, " Cannot Add Name [", szName, "].  It already exists.", NULL);
 	}
-	mcReservedNames.Put(szName, &iTransaction);
+	piOwner = mcReservedNames.Get(szName);
+	if ((piOwner != NULL) && (*piOwner != iTransaction))
+	{
+		mcMutex.Unlock();
+		return gcLogger.Error2(__METHOD__, " Cannot Add Name [", szName, "].  Another transaction is adding it.", NULL);
+	}
+	if (piOwner == NULL)
+	{
+		mcReservedNames.Put(szName, &iTransaction);
+	}
+	mcMutex.Unlock();
 	return true;
 }
 
@@ -434,16 +432,23 @@ bool CCodabase::ReserveName(const char* szName, int64 iTransaction)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCodabase::ReleaseName(const char* szName, int64 iTransaction)
+void CCodabase::ReleaseNames(CArrayChars* paszNames, int64 iTransaction)
 {
+	size	i;
 	int64*	piOwner;
+	char*	szName;
 
-	//mcMutex must be locked.
-	piOwner = mcReservedNames.Get(szName);
-	if ((piOwner != NULL) && (*piOwner == iTransaction))
+	mcMutex.Lock();
+	for (i = 0; i < paszNames->NumElements(); i++)
 	{
-		mcReservedNames.Remove(szName);
+		szName = paszNames->GetText(i);
+		piOwner = mcReservedNames.Get(szName);
+		if ((piOwner != NULL) && (*piOwner == iTransaction))
+		{
+			mcReservedNames.Remove(szName);
+		}
 	}
+	mcMutex.Unlock();
 }
 
 
@@ -469,7 +474,7 @@ bool CCodabase::StoredGet(OIndex oi, uint32* puiDataSize, void* pvData, uint32 u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::StoredGetAll(OIndex oi, void* pvData)
+bool CCodabase::StoredGet(OIndex oi, void* pvData)
 {
 	bool	bResult;
 
@@ -536,6 +541,356 @@ OIndex CCodabase::StoredGetIndex(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CCodabase::SnapshotGet(int64 iSnapshot, OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize, bool bAllData)
+{
+	bool	bResult;
+
+	mcMutex.Lock();
+	bResult = SnapshotGetLocked(iSnapshot, oi, puiDataSize, pvData, uiMaxDataSize, bAllData);
+	mcMutex.Unlock();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCodabase::SnapshotContains(int64 iSnapshot, OIndex oi)
+{
+	bool	bResult;
+
+	mcMutex.Lock();
+	bResult = SnapshotContainsLocked(iSnapshot, oi);
+	mcMutex.Unlock();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCodabase::SnapshotGetName(int64 iSnapshot, OIndex oi, CChars* pszName)
+{
+	CVersion*	pcVersion;
+	bool		bResult;
+
+	mcMutex.Lock();
+	pcVersion = mcVersions.FindRecord(oi, iSnapshot);
+	if (pcVersion == NULL)
+	{
+		bResult = mcNamedIndexedData.GetName(oi, pszName);
+	}
+	else if (pcVersion->bExists)
+	{
+		pszName->Append(pcVersion->GetName(), pcVersion->iNameLength);
+		bResult = true;
+	}
+	else
+	{
+		bResult = false;
+	}
+	mcMutex.Unlock();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CCodabase::SnapshotGetIndex(int64 iSnapshot, const char* szName)
+{
+	OIndex	oi;
+
+	mcMutex.Lock();
+	oi = SnapshotGetIndexLocked(iSnapshot, szName);
+	mcMutex.Unlock();
+	return oi;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodabase::SnapshotIndices(int64 iSnapshot, CArrayOIndex* paoi)
+{
+	SIndexTreeFileIterator	sIter;
+	OIndex					oi;
+	size					iDataSize;
+	CArrayOIndex			aoiVersioned;
+	size					i;
+
+	//The indices that existed at the snapshot: those in the store that have not been added since, and those that have
+	//been removed since.
+	mcMutex.Lock();
+	oi = mcNamedIndexedData.StartIndexIteration(&sIter, NULL, &iDataSize, 0);
+	while (oi != INVALID_O_INDEX)
+	{
+		if (SnapshotContainsLocked(iSnapshot, oi))
+		{
+			paoi->Add(oi);
+		}
+		oi = mcNamedIndexedData.IndexIterate(&sIter, NULL, &iDataSize, 0);
+	}
+
+	aoiVersioned.Init();
+	mcVersions.GetIndices(&aoiVersioned);
+	for (i = 0; i < aoiVersioned.NumElements(); i++)
+	{
+		oi = aoiVersioned.GetValue(i);
+		if (!mcNamedIndexedData.Contains(oi) && SnapshotContainsLocked(iSnapshot, oi))
+		{
+			paoi->Add(oi);
+		}
+	}
+	aoiVersioned.Kill();
+	mcMutex.Unlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodabase::SnapshotNames(int64 iSnapshot, CArrayChars* paszNames)
+{
+	CArrayChars	aszNames;
+	size		i;
+	char*		szName;
+
+	//The stored names and the names changed since the snapshot, if the name existed at the snapshot.
+	aszNames.Init();
+	StoredNames(&aszNames);
+	mcMutex.Lock();
+	mcVersions.GetNames(&aszNames);
+	for (i = 0; i < aszNames.NumElements(); i++)
+	{
+		szName = aszNames.GetText(i);
+		if (SnapshotGetIndexLocked(iSnapshot, szName) != INVALID_O_INDEX)
+		{
+			paszNames->Add(szName);
+		}
+	}
+	mcMutex.Unlock();
+	aszNames.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCodabase::SnapshotGetLocked(int64 iSnapshot, OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize, bool bAllData)
+{
+	CVersion*	pcVersion;
+	uint32		uiCopySize;
+
+	//mcMutex must be locked.  A version means the object changed after the snapshot.  Without one the store still has
+	//it as it was.
+	pcVersion = mcVersions.FindRecord(oi, iSnapshot);
+	if (pcVersion == NULL)
+	{
+		if (bAllData)
+		{
+			return mcNamedIndexedData.Get(oi, pvData);
+		}
+		return mcNamedIndexedData.Get(oi, puiDataSize, pvData, uiMaxDataSize);
+	}
+
+	if (!pcVersion->bExists)
+	{
+		return false;
+	}
+	SafeAssign(puiDataSize, pcVersion->uiDataSize);
+	if (pvData)
+	{
+		uiCopySize = pcVersion->uiDataSize;
+		if (!bAllData && (uiMaxDataSize < uiCopySize))
+		{
+			uiCopySize = uiMaxDataSize;
+		}
+		memcpy(pvData, pcVersion->GetData(), uiCopySize);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCodabase::SnapshotContainsLocked(int64 iSnapshot, OIndex oi)
+{
+	CVersion*	pcVersion;
+
+	//mcMutex must be locked.
+	pcVersion = mcVersions.FindRecord(oi, iSnapshot);
+	if (pcVersion == NULL)
+	{
+		return mcNamedIndexedData.Contains(oi);
+	}
+	return pcVersion->bExists;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+OIndex CCodabase::SnapshotGetIndexLocked(int64 iSnapshot, const char* szName)
+{
+	OIndex	oi;
+
+	//mcMutex must be locked.
+	if (StrEmpty(szName))
+	{
+		return INVALID_O_INDEX;
+	}
+	if (mcVersions.FindName(szName, iSnapshot, &oi))
+	{
+		return oi;
+	}
+	return mcNamedIndexedData.GetIndex(szName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+ELockResult CCodabase::LockObject(int64 iTransaction, OIndex oi, ELockMode eMode)
+{
+	return mcLocks.Lock(iTransaction, oi, eMode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCodabase::ReleaseLocks(int64 iTransaction)
+{
+	mcLocks.ReleaseAll(iTransaction);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCodabase::CommitWriteSet(CMapBlock* pcRecords, CArrayChars* paszReserved, int64 iTransaction)
+{
+	bool	bResult;
+
+	mcMutex.Lock();
+	if (mbFailed)
+	{
+		bResult = gcLogger.Error2(__METHOD__, " A commit failed.  The Codabase is read only until it is restarted.", NULL);
+	}
+	else
+	{
+		//Removals go first so a name removed from one object can be given to another.
+		bResult = ApplyLocked(pcRecords, true) && ApplyLocked(pcRecords, false);
+		if (bResult)
+		{
+			bResult = CommitLocked();
+		}
+		else
+		{
+			//Some of the changes may already be in the caches, so nothing more may be written.
+			mbFailed = true;
+			gcLogger.Error2(__METHOD__, " Could not apply the transaction.  The Codabase is read only until it is restarted.", NULL);
+		}
+	}
+	mcMutex.Unlock();
+
+	//The names are now in the store and the locks are released only once the commit is durable.
+	ReleaseNames(paszReserved, iTransaction);
+	ReleaseLocks(iTransaction);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCodabase::ApplyLocked(CMapBlock* pcRecords, bool bRemovals)
+{
+	SMapIterator		sIter;
+	void*				pvKey;
+	void*				pvData;
+	size				iKeySize;
+	size				iDataSize;
+	bool				bExists;
+	OIndex				oi;
+	CWriteRecord*		pcRecord;
+	bool				bResult;
+	bool				bSaveVersions;
+	int64				iValidUntil;
+
+	//mcMutex must be locked.  Open read transactions need the versions before this commit.  None can begin while the
+	//mutex is held, so without any open the versions are not kept.
+	bSaveVersions = maiSnapshots.NumElements() > 0;
+	iValidUntil = miCommitNumber + 1;
+	bExists = pcRecords->StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
+	while (bExists)
+	{
+		oi = *((OIndex*)pvKey);
+		pcRecord = (CWriteRecord*)pvData;
+		bResult = true;
+		if (bRemovals)
+		{
+			if ((pcRecord->bRemoved || pcRecord->bReplacesStored) && mcNamedIndexedData.Contains(oi))
+			{
+				if (bSaveVersions)
+				{
+					mcVersions.SaveRecord(iValidUntil, oi, &mcNamedIndexedData);
+				}
+				bResult = mcNamedIndexedData.Remove(oi);
+			}
+		}
+		else if (!pcRecord->bRemoved)
+		{
+			if (bSaveVersions)
+			{
+				mcVersions.SaveRecord(iValidUntil, oi, &mcNamedIndexedData);
+				if (pcRecord->iNameLength > 0)
+				{
+					mcVersions.SaveName(iValidUntil, pcRecord->GetName(), &mcNamedIndexedData);
+				}
+			}
+			if (mcNamedIndexedData.Contains(oi))
+			{
+				bResult = mcNamedIndexedData.Set(oi, pcRecord->GetData(), pcRecord->uiDataSize);
+			}
+			else if (pcRecord->iNameLength > 0)
+			{
+				bResult = mcNamedIndexedData.Add(oi, pcRecord->GetName(), pcRecord->GetData(), pcRecord->uiDataSize);
+			}
+			else
+			{
+				bResult = mcNamedIndexedData.Add(oi, pcRecord->GetData(), pcRecord->uiDataSize);
+			}
+		}
+
+		if (!bResult)
+		{
+			return gcLogger.Error2(__METHOD__, " Could not apply the change to Index [", IndexToString(oi), "].", NULL);
+		}
+		bExists = pcRecords->Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CCodabase::RemoveOldVersions(void)
 {
 	size	i;
@@ -546,7 +901,7 @@ void CCodabase::RemoveOldVersions(void)
 	iOldest = miCommitNumber;
 	for (i = 0; i < maiSnapshots.NumElements(); i++)
 	{
-		iSnapshot = *maiSnapshots.Get(i);
+		iSnapshot = maiSnapshots.GetValue(i);
 		if (iSnapshot < iOldest)
 		{
 			iOldest = iSnapshot;
@@ -562,16 +917,13 @@ void CCodabase::RemoveOldVersions(void)
 //////////////////////////////////////////////////////////////////////////
 void CCodabase::EndRead(int64 iSnapshot)
 {
-	size	i;
+	size	iIndex;
 
 	mcMutex.Lock();
-	for (i = 0; i < maiSnapshots.NumElements(); i++)
+	iIndex = maiSnapshots.Find(iSnapshot);
+	if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 	{
-		if (*maiSnapshots.Get(i) == iSnapshot)
-		{
-			maiSnapshots.RemoveAt(i);
-			break;
-		}
+		maiSnapshots.RemoveAt(iIndex);
 	}
 	RemoveOldVersions();
 	mcMutex.Unlock();
@@ -582,19 +934,20 @@ void CCodabase::EndRead(int64 iSnapshot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCodabase::GetStoredIndices(CArrayOIndex* paoi)
+void CCodabase::StoredIndices(CArrayOIndex* paoi)
 {
 	SIndexTreeFileIterator	sIter;
 	OIndex					oi;
 	size					iDataSize;
 
-	//mcMutex must be locked.
+	mcMutex.Lock();
 	oi = mcNamedIndexedData.StartIndexIteration(&sIter, NULL, &iDataSize, 0);
 	while (oi != INVALID_O_INDEX)
 	{
 		paoi->Add(oi);
 		oi = mcNamedIndexedData.IndexIterate(&sIter, NULL, &iDataSize, 0);
 	}
+	mcMutex.Unlock();
 }
 
 
@@ -602,14 +955,14 @@ void CCodabase::GetStoredIndices(CArrayOIndex* paoi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCodabase::GetStoredNames(CArrayChars* paszNames)
+void CCodabase::StoredNames(CArrayChars* paszNames)
 {
 	SIndexTreeFileIterator	sIter;
 	OIndex					oi;
 	char					szKey[MAX_KEY_SIZE + 1];
 	bool					bExists;
 
-	//mcMutex must be locked.
+	mcMutex.Lock();
 	memset(szKey, 0, MAX_KEY_SIZE + 1);
 	bExists = mcNamedIndexedData.StartNameIteration(&sIter, szKey, &oi);
 	while (bExists)
@@ -618,6 +971,7 @@ void CCodabase::GetStoredNames(CArrayChars* paszNames)
 		memset(szKey, 0, MAX_KEY_SIZE + 1);
 		bExists = mcNamedIndexedData.NameIterate(&sIter, szKey, &oi);
 	}
+	mcMutex.Unlock();
 }
 
 
@@ -1373,9 +1727,8 @@ bool CCodabase::IsWriteThrough(void)
 //////////////////////////////////////////////////////////////////////////
 int64 CCodabase::NumIndices(void)
 {
-	int64	iResult;
-	int64	iIndicesChange;
-	int64	iNamesChange;
+	int64			iResult;
+	SWriteCounts	sCounts;
 
 	mcSessionMutex.Lock();
 	mcMutex.Lock();
@@ -1385,8 +1738,8 @@ int64 CCodabase::NumIndices(void)
 	//A session counts its own changes.
 	if (mpcSession != NULL)
 	{
-		mpcSession->GetCountChanges(&iIndicesChange, &iNamesChange);
-		iResult += iIndicesChange;
+		mpcSession->CountChanges(&sCounts, 0);
+		iResult += sCounts.iIndices;
 	}
 	mcSessionMutex.Unlock();
 	return iResult;
@@ -1399,7 +1752,8 @@ int64 CCodabase::NumIndices(void)
 //////////////////////////////////////////////////////////////////////////
 int64 CCodabase::NumIndicesCached(void)
 {
-	int64	iResult;
+	int64			iResult;
+	SWriteCounts	sCounts;
 
 	mcSessionMutex.Lock();
 	mcMutex.Lock();
@@ -1409,7 +1763,8 @@ int64 CCodabase::NumIndicesCached(void)
 	//A session's new objects are counted as cached, though they are in the session until Close.
 	if (mpcSession != NULL)
 	{
-		iResult += mpcSession->NumNewRecords(true, 0);
+		mpcSession->CountChanges(&sCounts, 0);
+		iResult += sCounts.iNewIndices;
 	}
 	mcSessionMutex.Unlock();
 	return iResult;
@@ -1422,7 +1777,8 @@ int64 CCodabase::NumIndicesCached(void)
 //////////////////////////////////////////////////////////////////////////
 int64 CCodabase::NumIndicesCached(size iSize)
 {
-	int64	iResult;
+	int64			iResult;
+	SWriteCounts	sCounts;
 
 	mcSessionMutex.Lock();
 	mcMutex.Lock();
@@ -1432,7 +1788,8 @@ int64 CCodabase::NumIndicesCached(size iSize)
 	//A session's new objects are counted as cached, though they are in the session until Close.
 	if (mpcSession != NULL)
 	{
-		iResult += mpcSession->NumNewRecords(false, iSize);
+		mpcSession->CountChanges(&sCounts, iSize);
+		iResult += sCounts.iNewIndicesOfSize;
 	}
 	mcSessionMutex.Unlock();
 	return iResult;
@@ -1445,7 +1802,8 @@ int64 CCodabase::NumIndicesCached(size iSize)
 //////////////////////////////////////////////////////////////////////////
 int64 CCodabase::NumDataCached(void)
 {
-	int64	iResult;
+	int64			iResult;
+	SWriteCounts	sCounts;
 
 	mcSessionMutex.Lock();
 	mcMutex.Lock();
@@ -1455,7 +1813,8 @@ int64 CCodabase::NumDataCached(void)
 	//A session's new objects are counted as cached, though they are in the session until Close.
 	if (mpcSession != NULL)
 	{
-		iResult += mpcSession->NumNewRecords(true, 0);
+		mpcSession->CountChanges(&sCounts, 0);
+		iResult += sCounts.iNewIndices;
 	}
 	mcSessionMutex.Unlock();
 	return iResult;
@@ -1468,7 +1827,8 @@ int64 CCodabase::NumDataCached(void)
 //////////////////////////////////////////////////////////////////////////
 int64 CCodabase::NumDataCached(size iSize)
 {
-	int64	iResult;
+	int64			iResult;
+	SWriteCounts	sCounts;
 
 	mcSessionMutex.Lock();
 	mcMutex.Lock();
@@ -1478,7 +1838,8 @@ int64 CCodabase::NumDataCached(size iSize)
 	//A session's new objects are counted as cached, though they are in the session until Close.
 	if (mpcSession != NULL)
 	{
-		iResult += mpcSession->NumNewRecords(false, iSize);
+		mpcSession->CountChanges(&sCounts, iSize);
+		iResult += sCounts.iNewIndicesOfSize;
 	}
 	mcSessionMutex.Unlock();
 	return iResult;
@@ -1491,9 +1852,8 @@ int64 CCodabase::NumDataCached(size iSize)
 //////////////////////////////////////////////////////////////////////////
 int64 CCodabase::NumNames(void)
 {
-	int64	iResult;
-	int64	iIndicesChange;
-	int64	iNamesChange;
+	int64			iResult;
+	SWriteCounts	sCounts;
 
 	mcSessionMutex.Lock();
 	mcMutex.Lock();
@@ -1503,8 +1863,8 @@ int64 CCodabase::NumNames(void)
 	//A session counts its own changes.
 	if (mpcSession != NULL)
 	{
-		mpcSession->GetCountChanges(&iIndicesChange, &iNamesChange);
-		iResult += iNamesChange;
+		mpcSession->CountChanges(&sCounts, 0);
+		iResult += sCounts.iNames;
 	}
 	mcSessionMutex.Unlock();
 	return iResult;
@@ -1517,7 +1877,8 @@ int64 CCodabase::NumNames(void)
 //////////////////////////////////////////////////////////////////////////
 int64 CCodabase::NumNamesCached(void)
 {
-	int64	iResult;
+	int64			iResult;
+	SWriteCounts	sCounts;
 
 	mcSessionMutex.Lock();
 	mcMutex.Lock();
@@ -1527,7 +1888,8 @@ int64 CCodabase::NumNamesCached(void)
 	//A session's new objects are counted as cached, though they are in the session until Close.
 	if (mpcSession != NULL)
 	{
-		iResult += mpcSession->NumNewNames();
+		mpcSession->CountChanges(&sCounts, 0);
+		iResult += sCounts.iNewNames;
 	}
 	mcSessionMutex.Unlock();
 	return iResult;

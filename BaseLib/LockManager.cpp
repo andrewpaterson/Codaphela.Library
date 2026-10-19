@@ -5,6 +5,38 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CLockEntry::Init(void)
+{
+	masHolders.Init();
+	masWaiters.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CLockEntry::Kill(void)
+{
+	masHolders.Kill();
+	masWaiters.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CLockEntry::IsUnused(void)
+{
+	return (masHolders.NumElements() == 0) && (masWaiters.NumElements() == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CLockManager::Init(void)
 {
 	mcMutex.Init();
@@ -25,15 +57,14 @@ void CLockManager::Kill(void)
 	size			iKeySize;
 	size			iDataSize;
 	bool			bExists;
-	SLockEntry*		psEntry;
+	CLockEntry*		pcEntry;
 
 	bExists = mcEntries.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	while (bExists)
 	{
-		psEntry = *((SLockEntry**)pvData);
-		psEntry->asHolders.Kill();
-		psEntry->asWaiters.Kill();
-		free(psEntry);
+		pcEntry = *((CLockEntry**)pvData);
+		pcEntry->Kill();
+		free(pcEntry);
 		bExists = mcEntries.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	}
 	mcEntries.Kill();
@@ -48,7 +79,7 @@ void CLockManager::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 ELockResult CLockManager::Lock(int64 iTransaction, OIndex oi, ELockMode eMode)
 {
-	SLockEntry*		psEntry;
+	CLockEntry*		pcEntry;
 	SLockRequest	sRequest;
 	size			iHeld;
 	size			iWaiting;
@@ -56,13 +87,13 @@ ELockResult CLockManager::Lock(int64 iTransaction, OIndex oi, ELockMode eMode)
 	bool			bOlderThanAll;
 
 	mcMutex.Lock();
-	psEntry = GetEntry(oi, true);
+	pcEntry = GetEntry(oi, true);
 
 	//A lock already held at least as strongly is granted straight away.  Otherwise the stronger mode is requested.
-	iHeld = FindRequest(&psEntry->asHolders, iTransaction);
+	iHeld = FindRequest(&pcEntry->masHolders, iTransaction);
 	if (iHeld != ARRAY_ELEMENT_NOT_FOUND)
 	{
-		if (psEntry->asHolders.Get(iHeld)->eMode >= eMode)
+		if (pcEntry->masHolders.Get(iHeld)->eMode >= eMode)
 		{
 			mcMutex.Unlock();
 			return LR_Granted;
@@ -74,21 +105,21 @@ ELockResult CLockManager::Lock(int64 iTransaction, OIndex oi, ELockMode eMode)
 	sRequest.eMode = eMode;
 	if (iHeld != ARRAY_ELEMENT_NOT_FOUND)
 	{
-		psEntry->asWaiters.InsertAt(&sRequest, 0);
+		pcEntry->masWaiters.InsertAt(&sRequest, 0);
 	}
 	else
 	{
-		psEntry->asWaiters.Add(&sRequest);
+		pcEntry->masWaiters.Add(&sRequest);
 	}
 
 	for (;;)
 	{
-		iWaiting = FindRequest(&psEntry->asWaiters, iTransaction);
-		bConflict = FindConflicts(psEntry, iTransaction, eMode, iWaiting, &bOlderThanAll);
+		iWaiting = FindRequest(&pcEntry->masWaiters, iTransaction);
+		bConflict = FindConflicts(pcEntry, iTransaction, eMode, iWaiting, &bOlderThanAll);
 		if (!bConflict)
 		{
-			psEntry->asWaiters.RemoveAt(iWaiting);
-			Grant(psEntry, iTransaction, eMode);
+			pcEntry->masWaiters.RemoveAt(iWaiting);
+			Grant(pcEntry, iTransaction, eMode);
 			mcMutex.Unlock();
 			return LR_Granted;
 		}
@@ -96,15 +127,15 @@ ELockResult CLockManager::Lock(int64 iTransaction, OIndex oi, ELockMode eMode)
 		if (!bOlderThanAll)
 		{
 			//Wait-die: a younger transaction never waits for an older one, so no cycle of waits can form.
-			psEntry->asWaiters.RemoveAt(iWaiting);
-			RemoveEntryIfUnused(oi, psEntry);
+			pcEntry->masWaiters.RemoveAt(iWaiting);
+			RemoveEntryIfUnused(oi, pcEntry);
 			mcReleased.WakeAll();
 			mcMutex.Unlock();
 			return LR_Died;
 		}
 
 		mcReleased.Wait(&mcMutex);
-		psEntry = GetEntry(oi, false);
+		pcEntry = GetEntry(oi, false);
 	}
 }
 
@@ -121,9 +152,9 @@ void CLockManager::ReleaseAll(int64 iTransaction)
 	size			iKeySize;
 	size			iDataSize;
 	bool			bExists;
-	SLockEntry*		psEntry;
+	CLockEntry*		pcEntry;
 	size			iIndex;
-	CArrayTemplate<OIndex>	aoiUnused;
+	CArrayOIndex	aoiUnused;
 	size			i;
 	OIndex			oi;
 
@@ -132,27 +163,27 @@ void CLockManager::ReleaseAll(int64 iTransaction)
 	bExists = mcEntries.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	while (bExists)
 	{
-		psEntry = *((SLockEntry**)pvData);
-		iIndex = FindRequest(&psEntry->asHolders, iTransaction);
+		pcEntry = *((CLockEntry**)pvData);
+		iIndex = FindRequest(&pcEntry->masHolders, iTransaction);
 		if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 		{
-			psEntry->asHolders.RemoveAt(iIndex);
+			pcEntry->masHolders.RemoveAt(iIndex);
 		}
-		iIndex = FindRequest(&psEntry->asWaiters, iTransaction);
+		iIndex = FindRequest(&pcEntry->masWaiters, iTransaction);
 		if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 		{
-			psEntry->asWaiters.RemoveAt(iIndex);
+			pcEntry->masWaiters.RemoveAt(iIndex);
 		}
-		if ((psEntry->asHolders.NumElements() == 0) && (psEntry->asWaiters.NumElements() == 0))
+		if (pcEntry->IsUnused())
 		{
-			aoiUnused.Add((OIndex*)pvKey);
+			aoiUnused.Add(*((OIndex*)pvKey));
 		}
 		bExists = mcEntries.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	}
 
 	for (i = 0; i < aoiUnused.NumElements(); i++)
 	{
-		oi = *aoiUnused.Get(i);
+		oi = aoiUnused.GetValue(i);
 		RemoveEntryIfUnused(oi, GetEntry(oi, false));
 	}
 	aoiUnused.Kill();
@@ -168,19 +199,19 @@ void CLockManager::ReleaseAll(int64 iTransaction)
 //////////////////////////////////////////////////////////////////////////
 ELockMode CLockManager::GetMode(int64 iTransaction, OIndex oi)
 {
-	SLockEntry*	psEntry;
+	CLockEntry*	pcEntry;
 	size		iHeld;
 	ELockMode	eMode;
 
 	mcMutex.Lock();
 	eMode = LM_None;
-	psEntry = GetEntry(oi, false);
-	if (psEntry != NULL)
+	pcEntry = GetEntry(oi, false);
+	if (pcEntry != NULL)
 	{
-		iHeld = FindRequest(&psEntry->asHolders, iTransaction);
+		iHeld = FindRequest(&pcEntry->masHolders, iTransaction);
 		if (iHeld != ARRAY_ELEMENT_NOT_FOUND)
 		{
-			eMode = psEntry->asHolders.Get(iHeld)->eMode;
+			eMode = pcEntry->masHolders.Get(iHeld)->eMode;
 		}
 	}
 	mcMutex.Unlock();
@@ -226,26 +257,25 @@ bool CLockManager::IsCompatible(ELockMode eHeld, ELockMode eRequested)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SLockEntry* CLockManager::GetEntry(OIndex oi, bool bCreate)
+CLockEntry* CLockManager::GetEntry(OIndex oi, bool bCreate)
 {
-	SLockEntry**	ppsEntry;
-	SLockEntry*		psEntry;
+	CLockEntry**	ppcEntry;
+	CLockEntry*		pcEntry;
 
-	ppsEntry = mcEntries.Get(oi);
-	if (ppsEntry != NULL)
+	ppcEntry = mcEntries.Get(oi);
+	if (ppcEntry != NULL)
 	{
-		return *ppsEntry;
+		return *ppcEntry;
 	}
 	if (!bCreate)
 	{
 		return NULL;
 	}
 
-	psEntry = (SLockEntry*)malloc(sizeof(SLockEntry));
-	psEntry->asHolders.Init();
-	psEntry->asWaiters.Init();
-	mcEntries.Put(oi, &psEntry);
-	return psEntry;
+	pcEntry = (CLockEntry*)malloc(sizeof(CLockEntry));
+	pcEntry->Init();
+	mcEntries.Put(oi, &pcEntry);
+	return pcEntry;
 }
 
 
@@ -253,13 +283,12 @@ SLockEntry* CLockManager::GetEntry(OIndex oi, bool bCreate)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLockManager::RemoveEntryIfUnused(OIndex oi, SLockEntry* psEntry)
+void CLockManager::RemoveEntryIfUnused(OIndex oi, CLockEntry* pcEntry)
 {
-	if ((psEntry != NULL) && (psEntry->asHolders.NumElements() == 0) && (psEntry->asWaiters.NumElements() == 0))
+	if ((pcEntry != NULL) && pcEntry->IsUnused())
 	{
-		psEntry->asHolders.Kill();
-		psEntry->asWaiters.Kill();
-		free(psEntry);
+		pcEntry->Kill();
+		free(pcEntry);
 		mcEntries.Remove(oi);
 	}
 }
@@ -288,7 +317,7 @@ size CLockManager::FindRequest(CArrayLockRequest* pasRequests, int64 iTransactio
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLockManager::FindConflicts(SLockEntry* psEntry, int64 iTransaction, ELockMode eMode, size iWaitPosition, bool* pbOlderThanAll)
+bool CLockManager::FindConflicts(CLockEntry* pcEntry, int64 iTransaction, ELockMode eMode, size iWaitPosition, bool* pbOlderThanAll)
 {
 	size			i;
 	SLockRequest*	psRequest;
@@ -297,9 +326,9 @@ bool CLockManager::FindConflicts(SLockEntry* psEntry, int64 iTransaction, ELockM
 	//The conflicts are the other holders and the waiters ahead of this request that cannot share with it.
 	bConflict = false;
 	*pbOlderThanAll = true;
-	for (i = 0; i < psEntry->asHolders.NumElements(); i++)
+	for (i = 0; i < pcEntry->masHolders.NumElements(); i++)
 	{
-		psRequest = psEntry->asHolders.Get(i);
+		psRequest = pcEntry->masHolders.Get(i);
 		if ((psRequest->iTransaction != iTransaction) && !IsCompatible(psRequest->eMode, eMode))
 		{
 			bConflict = true;
@@ -311,7 +340,7 @@ bool CLockManager::FindConflicts(SLockEntry* psEntry, int64 iTransaction, ELockM
 	}
 	for (i = 0; i < iWaitPosition; i++)
 	{
-		psRequest = psEntry->asWaiters.Get(i);
+		psRequest = pcEntry->masWaiters.Get(i);
 		if ((psRequest->iTransaction != iTransaction) && (!IsCompatible(psRequest->eMode, eMode) || !IsCompatible(eMode, psRequest->eMode)))
 		{
 			bConflict = true;
@@ -329,24 +358,24 @@ bool CLockManager::FindConflicts(SLockEntry* psEntry, int64 iTransaction, ELockM
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLockManager::Grant(SLockEntry* psEntry, int64 iTransaction, ELockMode eMode)
+void CLockManager::Grant(CLockEntry* pcEntry, int64 iTransaction, ELockMode eMode)
 {
 	size			iHeld;
 	SLockRequest	sRequest;
 
-	iHeld = FindRequest(&psEntry->asHolders, iTransaction);
+	iHeld = FindRequest(&pcEntry->masHolders, iTransaction);
 	if (iHeld != ARRAY_ELEMENT_NOT_FOUND)
 	{
-		if (psEntry->asHolders.Get(iHeld)->eMode < eMode)
+		if (pcEntry->masHolders.Get(iHeld)->eMode < eMode)
 		{
-			psEntry->asHolders.Get(iHeld)->eMode = eMode;
+			pcEntry->masHolders.Get(iHeld)->eMode = eMode;
 		}
 	}
 	else
 	{
 		sRequest.iTransaction = iTransaction;
 		sRequest.eMode = eMode;
-		psEntry->asHolders.Add(&sRequest);
+		pcEntry->masHolders.Add(&sRequest);
 	}
 }
 

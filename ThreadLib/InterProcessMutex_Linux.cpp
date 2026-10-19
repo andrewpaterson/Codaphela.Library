@@ -1,21 +1,59 @@
 #ifdef LINUX_GNU_32
 #include <errno.h>
-#include <pthread.h>
+#include <signal.h>
 #include <string.h>
+#include <time.h>
+#include <unistd.h>
 #include <sys/mman.h>
+#include <sys/syscall.h>
 #include "BaseLib/Logger.h"
 #include "BaseLib/LinuxError.h"
+#include "BaseLib/NativeThread.h"
 #include "NamedSharedObject_Linux.h"
 #include "InterProcessMutex.h"
 
 
 //A Windows named mutex is shared between processes, recursive, and reports when
-//its owner died holding it (WAIT_ABANDONED).  A robust, process shared,
-//recursive pthread mutex in named shared memory behaves the same way.
+//its owner died holding it (WAIT_ABANDONED).  On Linux the mutex is a lock word
+//in named shared memory that is taken with compare and swap, so that processes
+//that can not call pthreads (a JVM) can share it.
+//
+//The layout is read and written by other languages so it must not change:
+//
+//	offset 0, int64:	The owner, or 0 when unlocked.  The owner is the process
+//						id in the high 32 bits and a thread id, unique within
+//						the process, in the low 32 bits.  Set with compare and
+//						swap to lock and cleared with a release store to unlock.
+//	offset 8, int32:	How many times the owner has locked it.  Only the owner
+//						reads or writes it.
+//	offset 12, int32:	Unused.
+//
+//A waiter that finds the owning process has exited takes the lock, as a robust
+//pthread mutex does when its owner died.  A thread that exits while its
+//process carries on is not noticed.
+struct SInterProcessLock
+{
+	int64	iOwner;
+	int32	iCount;
+	int32	iUnused;
+};
+
+
+static_assert(sizeof(SInterProcessLock) == 16, "SInterProcessLock is shared with other languages and must be 16 bytes.");
+
+
+//Spins this many times, then yields this many times, then sleeps between tries.
+#define INTER_PROCESS_LOCK_SPINS				64
+#define INTER_PROCESS_LOCK_YIELDS				1024
+#define INTER_PROCESS_LOCK_SLEEP_NANOSECONDS	50000
+//While sleeping, checks whether the owner is still running every this many tries.
+#define INTER_PROCESS_LOCK_OWNER_CHECK_TRIES	256
+
+
 struct SLinuxInterProcessMutex
 {
-	int					iFile;
-	pthread_mutex_t*	psMutex;
+	int						iFile;
+	SInterProcessLock*		psLock;
 };
 
 
@@ -36,16 +74,70 @@ static SLinuxInterProcessMutex& LinuxMutex(uint8* paMutex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-pthread_mutex_t* MapLinuxMutex(int iFile)
+static SInterProcessLock* MapLinuxLock(int iFile)
 {
 	void*	pvMemory;
 
-	pvMemory = mmap(NULL, sizeof(pthread_mutex_t), PROT_READ | PROT_WRITE, MAP_SHARED, iFile, 0);
+	pvMemory = mmap(NULL, sizeof(SInterProcessLock), PROT_READ | PROT_WRITE, MAP_SHARED, iFile, 0);
 	if (pvMemory == MAP_FAILED)
 	{
 		return NULL;
 	}
-	return (pthread_mutex_t*)pvMemory;
+	return (SInterProcessLock*)pvMemory;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static int64 CurrentLockOwner(void)
+{
+	return ((int64)getpid() << 32) | (int64)(uint32)syscall(SYS_gettid);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsLockOwnerDead(int64 iOwner)
+{
+	pid_t	iProcess;
+
+	iProcess = (pid_t)(iOwner >> 32);
+	if (iProcess <= 0)
+	{
+		return false;
+	}
+	return (kill(iProcess, 0) == -1) && (errno == ESRCH);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void LockBackOff(int iTry)
+{
+	struct timespec	sSleep;
+
+	if (iTry < INTER_PROCESS_LOCK_SPINS)
+	{
+#if defined(__x86_64__) || defined(__i386__)
+		__builtin_ia32_pause();
+#endif
+	}
+	else if (iTry < INTER_PROCESS_LOCK_SPINS + INTER_PROCESS_LOCK_YIELDS)
+	{
+		ThreadYield();
+	}
+	else
+	{
+		sSleep.tv_sec = 0;
+		sSleep.tv_nsec = INTER_PROCESS_LOCK_SLEEP_NANOSECONDS;
+		nanosleep(&sSleep, NULL);
+	}
 }
 
 
@@ -57,7 +149,7 @@ void CInterProcessMutex::Init(char* szName)
 {
 	mszName.Init(szName);
 	LinuxMutex(maMutex).iFile = -1;
-	LinuxMutex(maMutex).psMutex = NULL;
+	LinuxMutex(maMutex).psLock = NULL;
 }
 
 
@@ -69,7 +161,7 @@ void CInterProcessMutex::Kill(void)
 {
 	mszName.Kill();
 	LinuxMutex(maMutex).iFile = -1;
-	LinuxMutex(maMutex).psMutex = NULL;
+	LinuxMutex(maMutex).psLock = NULL;
 }
 
 
@@ -79,25 +171,27 @@ void CInterProcessMutex::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CInterProcessMutex::Create(void)
 {
-	CChars					szName;
-	int						iFile;
-	int						iErrno;
-	pthread_mutex_t*		psMutex;
-	pthread_mutexattr_t		sAttributes;
-	int						iAttempt;
+	CChars				szName;
+	int					iFile;
+	int					iErrno;
+	SInterProcessLock*	psLock;
+	int					iAttempt;
+	bool				bCreated;
 
 	NamedSharedObjectName(&szName, NAMED_SHARED_OBJECT_MUTEX, mszName.Text());
 
 	//Like CreateMutex; an existing mutex is opened instead.  It may be closed
 	//by its last handle between failing to create and opening so try again.
+	bCreated = false;
+	iFile = -1;
 	for (iAttempt = 0; iAttempt < 100; iAttempt++)
 	{
-		iFile = CreateNamedSharedObject(szName.Text(), sizeof(pthread_mutex_t));
+		iFile = CreateNamedSharedObject(szName.Text(), sizeof(SInterProcessLock));
 		if (iFile != -1)
 		{
+			bCreated = true;
 			break;
 		}
-
 		iErrno = errno;
 		if (iErrno != EEXIST)
 		{
@@ -108,18 +202,7 @@ bool CInterProcessMutex::Create(void)
 		iFile = OpenNamedSharedObject(szName.Text());
 		if (iFile != -1)
 		{
-			psMutex = MapLinuxMutex(iFile);
-			if (psMutex == NULL)
-			{
-				iErrno = errno;
-				CloseNamedSharedObject(iFile, szName.Text());
-				szName.Kill();
-				return gcLogger.Error2(__METHOD__, " Could not create mutex [", LinuxErrorCodeToString(iErrno), "].", NULL);
-			}
-			szName.Kill();
-			LinuxMutex(maMutex).iFile = iFile;
-			LinuxMutex(maMutex).psMutex = psMutex;
-			return true;
+			break;
 		}
 	}
 
@@ -129,8 +212,8 @@ bool CInterProcessMutex::Create(void)
 		return gcLogger.Error2(__METHOD__, " Could not create mutex [", mszName.Text(), "].", NULL);
 	}
 
-	psMutex = MapLinuxMutex(iFile);
-	if (psMutex == NULL)
+	psLock = MapLinuxLock(iFile);
+	if (psLock == NULL)
 	{
 		iErrno = errno;
 		CloseNamedSharedObject(iFile, szName.Text());
@@ -138,18 +221,15 @@ bool CInterProcessMutex::Create(void)
 		return gcLogger.Error2(__METHOD__, " Could not create mutex [", LinuxErrorCodeToString(iErrno), "].", NULL);
 	}
 
-	pthread_mutexattr_init(&sAttributes);
-	pthread_mutexattr_setpshared(&sAttributes, PTHREAD_PROCESS_SHARED);
-	pthread_mutexattr_setrobust(&sAttributes, PTHREAD_MUTEX_ROBUST);
-	pthread_mutexattr_settype(&sAttributes, PTHREAD_MUTEX_RECURSIVE);
-	pthread_mutex_init(psMutex, &sAttributes);
-	pthread_mutexattr_destroy(&sAttributes);
-
-	PublishNamedSharedObject(iFile);
+	//A new object is filled with zeros, which is an unlocked lock.
+	if (bCreated)
+	{
+		PublishNamedSharedObject(iFile);
+	}
 	szName.Kill();
 
 	LinuxMutex(maMutex).iFile = iFile;
-	LinuxMutex(maMutex).psMutex = psMutex;
+	LinuxMutex(maMutex).psLock = psLock;
 	return true;
 }
 
@@ -163,9 +243,10 @@ bool CInterProcessMutex::Connect(void)
 	CChars				szName;
 	int					iFile;
 	int					iErrno;
-	pthread_mutex_t*	psMutex;
+	SInterProcessLock*	psLock;
 
 	NamedSharedObjectName(&szName, NAMED_SHARED_OBJECT_MUTEX, mszName.Text());
+
 	iFile = OpenNamedSharedObject(szName.Text());
 	if (iFile == -1)
 	{
@@ -173,18 +254,18 @@ bool CInterProcessMutex::Connect(void)
 		return gcLogger.Error2(__METHOD__, " Could not open mutex [", mszName.Text(), "].  Failed with [", LinuxErrorCodeToString(errno), "].", NULL);
 	}
 
-	psMutex = MapLinuxMutex(iFile);
-	if (psMutex == NULL)
+	psLock = MapLinuxLock(iFile);
+	if (psLock == NULL)
 	{
 		iErrno = errno;
 		CloseNamedSharedObject(iFile, szName.Text());
 		szName.Kill();
 		return gcLogger.Error2(__METHOD__, " Could not open mutex [", mszName.Text(), "].  Failed with [", LinuxErrorCodeToString(iErrno), "].", NULL);
 	}
-	szName.Kill();
 
+	szName.Kill();
 	LinuxMutex(maMutex).iFile = iFile;
-	LinuxMutex(maMutex).psMutex = psMutex;
+	LinuxMutex(maMutex).psLock = psLock;
 	return true;
 }
 
@@ -195,7 +276,7 @@ bool CInterProcessMutex::Connect(void)
 //////////////////////////////////////////////////////////////////////////
 void CInterProcessMutex::Close(void)
 {
-	CChars					szName;
+	CChars						szName;
 	SLinuxInterProcessMutex*	psHandle;
 
 	psHandle = &LinuxMutex(maMutex);
@@ -204,14 +285,13 @@ void CInterProcessMutex::Close(void)
 		return;
 	}
 
-	munmap(psHandle->psMutex, sizeof(pthread_mutex_t));
-
+	munmap(psHandle->psLock, sizeof(SInterProcessLock));
 	NamedSharedObjectName(&szName, NAMED_SHARED_OBJECT_MUTEX, mszName.Text());
 	CloseNamedSharedObject(psHandle->iFile, szName.Text());
 	szName.Kill();
 
 	LinuxMutex(maMutex).iFile = -1;
-	LinuxMutex(maMutex).psMutex = NULL;
+	LinuxMutex(maMutex).psLock = NULL;
 }
 
 
@@ -221,29 +301,48 @@ void CInterProcessMutex::Close(void)
 //////////////////////////////////////////////////////////////////////////
 bool CInterProcessMutex::Lock(void)
 {
-	SLinuxInterProcessMutex*	psHandle;
-	int						iResult;
+	SInterProcessLock*	psLock;
+	int64				iSelf;
+	int64				iOwner;
+	int					iTry;
 
-	psHandle = &LinuxMutex(maMutex);
-	if (psHandle->psMutex == NULL)
+	psLock = LinuxMutex(maMutex).psLock;
+	if (psLock == NULL)
 	{
 		return gcLogger.Error2(__METHOD__, " Lock failed, mutex [", mszName.Text(), "] is not open.", NULL);
 	}
 
-	iResult = pthread_mutex_lock(psHandle->psMutex);
-	if (iResult == 0)
+	iSelf = CurrentLockOwner();
+	if (__atomic_load_n(&psLock->iOwner, __ATOMIC_ACQUIRE) == iSelf)
 	{
+		psLock->iCount++;
 		return true;
 	}
-	else if (iResult == EOWNERDEAD)
+
+	for (iTry = 0; ; iTry++)
 	{
-		// The thread got ownership of an abandoned mutex
-		pthread_mutex_consistent(psHandle->psMutex);
-		return false;
-	}
-	else
-	{
-		return gcLogger.Error2(__METHOD__, " Lock failed with [", LinuxErrorCodeToString(iResult), "].", NULL);
+		iOwner = 0;
+		if (__atomic_compare_exchange_n(&psLock->iOwner, &iOwner, iSelf, false, __ATOMIC_ACQUIRE, __ATOMIC_RELAXED))
+		{
+			psLock->iCount = 1;
+			return true;
+		}
+
+		if ((iTry >= INTER_PROCESS_LOCK_SPINS + INTER_PROCESS_LOCK_YIELDS) && (iTry % INTER_PROCESS_LOCK_OWNER_CHECK_TRIES == 0))
+		{
+			//iOwner holds the owner the compare and swap found.
+			if (IsLockOwnerDead(iOwner))
+			{
+				if (__atomic_compare_exchange_n(&psLock->iOwner, &iOwner, iSelf, false, __ATOMIC_ACQUIRE, __ATOMIC_RELAXED))
+				{
+					//Like EOWNERDEAD: the lock is held but what it protects may
+					//be inconsistent.
+					psLock->iCount = 1;
+					return false;
+				}
+			}
+		}
+		LockBackOff(iTry);
 	}
 }
 
@@ -254,24 +353,27 @@ bool CInterProcessMutex::Lock(void)
 //////////////////////////////////////////////////////////////////////////
 bool CInterProcessMutex::Unlock(void)
 {
-	SLinuxInterProcessMutex*	psHandle;
+	SInterProcessLock*	psLock;
 
-	psHandle = &LinuxMutex(maMutex);
-	if (psHandle->psMutex == NULL)
+	psLock = LinuxMutex(maMutex).psLock;
+	if (psLock == NULL)
+	{
+		return false;
+	}
+	if (__atomic_load_n(&psLock->iOwner, __ATOMIC_RELAXED) != CurrentLockOwner())
 	{
 		return false;
 	}
 
-	if (pthread_mutex_unlock(psHandle->psMutex) != 0)
+	if (psLock->iCount > 1)
 	{
-		return false;
-	}
-	else
-	{
+		psLock->iCount--;
 		return true;
 	}
+	psLock->iCount = 0;
+	__atomic_store_n(&psLock->iOwner, 0, __ATOMIC_RELEASE);
+	return true;
 }
 
 
 #endif // LINUX_GNU_32
-

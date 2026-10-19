@@ -1,7 +1,6 @@
 #include "StringHelper.h"
-#include "IntegerHelper.h"
+#include "PointerFunctions.h"
 #include "Codabase.h"
-#include "CodabaseVersions.h"
 #include "ReadTransaction.h"
 
 
@@ -14,10 +13,7 @@ void CReadTransaction::Init(CCodabase* pcCodabase, int64 iSnapshot)
 	mpcCodabase = pcCodabase;
 	miSnapshot = iSnapshot;
 	mbActive = true;
-	maoiIteration.Init();
-	miIndexPosition = 0;
-	maszIteration.Init();
-	miNamePosition = 0;
+	mcIteration.Init();
 }
 
 
@@ -33,8 +29,7 @@ void CReadTransaction::Kill(void)
 		mpcCodabase->EndRead(miSnapshot);
 		mbActive = false;
 	}
-	maszIteration.Kill();
-	maoiIteration.Kill();
+	mcIteration.Kill();
 	mpcCodabase = NULL;
 }
 
@@ -55,12 +50,7 @@ int64 CReadTransaction::GetSnapshot(void)
 //////////////////////////////////////////////////////////////////////////
 bool CReadTransaction::Get(OIndex oi, void* pvData)
 {
-	bool	bResult;
-
-	mpcCodabase->mcMutex.Lock();
-	bResult = GetLocked(oi, NULL, pvData, 0, true);
-	mpcCodabase->mcMutex.Unlock();
-	return bResult;
+	return mpcCodabase->SnapshotGet(miSnapshot, oi, NULL, pvData, 0, true);
 }
 
 
@@ -70,12 +60,7 @@ bool CReadTransaction::Get(OIndex oi, void* pvData)
 //////////////////////////////////////////////////////////////////////////
 bool CReadTransaction::Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize)
 {
-	bool	bResult;
-
-	mpcCodabase->mcMutex.Lock();
-	bResult = GetLocked(oi, puiDataSize, pvData, uiMaxDataSize, false);
-	mpcCodabase->mcMutex.Unlock();
-	return bResult;
+	return mpcCodabase->SnapshotGet(miSnapshot, oi, puiDataSize, pvData, uiMaxDataSize, false);
 }
 
 
@@ -85,14 +70,10 @@ bool CReadTransaction::Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32 
 //////////////////////////////////////////////////////////////////////////
 bool CReadTransaction::Get(const char* szName, void* pvData)
 {
-	bool	bResult;
 	OIndex	oi;
 
-	mpcCodabase->mcMutex.Lock();
-	oi = GetIndexLocked(szName);
-	bResult = (oi != INVALID_O_INDEX) && GetLocked(oi, NULL, pvData, 0, true);
-	mpcCodabase->mcMutex.Unlock();
-	return bResult;
+	oi = GetIndex(szName);
+	return (oi != INVALID_O_INDEX) && Get(oi, pvData);
 }
 
 
@@ -102,14 +83,10 @@ bool CReadTransaction::Get(const char* szName, void* pvData)
 //////////////////////////////////////////////////////////////////////////
 bool CReadTransaction::Get(const char* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize)
 {
-	bool	bResult;
 	OIndex	oi;
 
-	mpcCodabase->mcMutex.Lock();
-	oi = GetIndexLocked(szName);
-	bResult = (oi != INVALID_O_INDEX) && GetLocked(oi, puiDataSize, pvData, uiMaxDataSize, false);
-	mpcCodabase->mcMutex.Unlock();
-	return bResult;
+	oi = GetIndex(szName);
+	return (oi != INVALID_O_INDEX) && Get(oi, puiDataSize, pvData, uiMaxDataSize);
 }
 
 
@@ -139,12 +116,7 @@ bool CReadTransaction::Get(CChars* szName, uint32* puiDataSize, void* pvData, ui
 //////////////////////////////////////////////////////////////////////////
 bool CReadTransaction::GetName(OIndex oi, CChars* szName)
 {
-	bool	bResult;
-
-	mpcCodabase->mcMutex.Lock();
-	bResult = GetNameLocked(oi, szName);
-	mpcCodabase->mcMutex.Unlock();
-	return bResult;
+	return mpcCodabase->SnapshotGetName(miSnapshot, oi, szName);
 }
 
 
@@ -158,17 +130,7 @@ bool CReadTransaction::GetName(OIndex oi, char* szName, uint32* puiNameLength, u
 	bool	bResult;
 
 	sz.Init();
-	bResult = GetName(oi, &sz);
-	if (bResult)
-	{
-		StrCpySafe(szName, sz.Text(), uiMaxNameLength);
-		SafeAssign(puiNameLength, (uint32)sz.Length());
-	}
-	else
-	{
-		szName[0] = '\0';
-		SafeAssign(puiNameLength, 0);
-	}
+	bResult = CopyTransactionName(&sz, GetName(oi, &sz), szName, puiNameLength, uiMaxNameLength);
 	sz.Kill();
 	return bResult;
 }
@@ -180,12 +142,7 @@ bool CReadTransaction::GetName(OIndex oi, char* szName, uint32* puiNameLength, u
 //////////////////////////////////////////////////////////////////////////
 OIndex CReadTransaction::GetIndex(const char* szName)
 {
-	OIndex	oi;
-
-	mpcCodabase->mcMutex.Lock();
-	oi = GetIndexLocked(szName);
-	mpcCodabase->mcMutex.Unlock();
-	return oi;
+	return mpcCodabase->SnapshotGetIndex(miSnapshot, szName);
 }
 
 
@@ -205,12 +162,7 @@ OIndex CReadTransaction::GetIndex(CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CReadTransaction::Contains(OIndex oi)
 {
-	bool	bResult;
-
-	mpcCodabase->mcMutex.Lock();
-	bResult = ContainsLocked(oi);
-	mpcCodabase->mcMutex.Unlock();
-	return bResult;
+	return mpcCodabase->SnapshotContains(miSnapshot, oi);
 }
 
 
@@ -240,30 +192,8 @@ bool CReadTransaction::Contains(CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 OIndex CReadTransaction::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
 {
-	CArrayOIndex	aoi;
-	size			i;
-	OIndex			oi;
-
-	//The indices that existed at the snapshot: those in the store that have not been added since, and those that have
-	//been removed since.
-	maoiIteration.ReInit();
-	aoi.Init();
-	mpcCodabase->mcMutex.Lock();
-	mpcCodabase->GetStoredIndices(&aoi);
-	mpcCodabase->mcVersions.GetIndices(&aoi);
-	for (i = 0; i < aoi.NumElements(); i++)
-	{
-		oi = aoi.GetValue(i);
-		if (ContainsLocked(oi))
-		{
-			maoiIteration.Add(oi);
-		}
-	}
-	mpcCodabase->mcMutex.Unlock();
-	aoi.Kill();
-
-	maoiIteration.QuickSort();
-	miIndexPosition = 0;
+	mpcCodabase->SnapshotIndices(miSnapshot, mcIteration.StartIndices());
+	mcIteration.SortIndices();
 	return IndexIterate(psIterator, pvData, piDataSize, iMaxDataSize);
 }
 
@@ -276,23 +206,10 @@ OIndex CReadTransaction::IndexIterate(SIndexTreeFileIterator* psIterator, void* 
 {
 	OIndex	oi;
 	uint32	uiDataSize;
-	bool	bResult;
 
-	while (miIndexPosition < maoiIteration.NumElements())
+	while (mcIteration.NextIndex(&oi))
 	{
-		oi = *maoiIteration.Get(miIndexPosition);
-		miIndexPosition++;
-
-		//An index can be both stored and versioned.  It is only returned once.
-		if ((miIndexPosition > 1) && (*maoiIteration.Get(miIndexPosition - 2) == oi))
-		{
-			continue;
-		}
-
-		mpcCodabase->mcMutex.Lock();
-		bResult = GetLocked(oi, &uiDataSize, pvData, (uint32)iMaxDataSize, false);
-		mpcCodabase->mcMutex.Unlock();
-		if (bResult)
+		if (Get(oi, &uiDataSize, pvData, (uint32)iMaxDataSize))
 		{
 			SafeAssign(piDataSize, (size)uiDataSize);
 			return oi;
@@ -308,27 +225,8 @@ OIndex CReadTransaction::IndexIterate(SIndexTreeFileIterator* psIterator, void* 
 //////////////////////////////////////////////////////////////////////////
 bool CReadTransaction::StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
 {
-	CArrayChars	aszNames;
-	size		i;
-	char*		szName;
-
-	maszIteration.ReInit();
-	aszNames.Init();
-	mpcCodabase->mcMutex.Lock();
-	mpcCodabase->GetStoredNames(&aszNames);
-	mpcCodabase->mcVersions.GetNames(&aszNames);
-	for (i = 0; i < aszNames.NumElements(); i++)
-	{
-		szName = aszNames.GetText(i);
-		if ((GetIndexLocked(szName) != INVALID_O_INDEX) && (maszIteration.FindInSorted(szName) == ARRAY_ELEMENT_NOT_FOUND))
-		{
-			maszIteration.InsertIntoSorted(aszNames.Get(i));
-		}
-	}
-	mpcCodabase->mcMutex.Unlock();
-	aszNames.Kill();
-
-	miNamePosition = 0;
+	mpcCodabase->SnapshotNames(miSnapshot, mcIteration.StartNames());
+	mcIteration.SortNames();
 	return NameIterate(psIterator, szKey, poi);
 }
 
@@ -342,10 +240,13 @@ bool CReadTransaction::NameIterate(SIndexTreeFileIterator* psIterator, char* szK
 	char*	szName;
 	OIndex	oi;
 
-	while (miNamePosition < maszIteration.NumElements())
+	for (;;)
 	{
-		szName = maszIteration.GetText(miNamePosition);
-		miNamePosition++;
+		szName = mcIteration.NextName();
+		if (szName == NULL)
+		{
+			break;
+		}
 
 		oi = GetIndex(szName);
 		if (oi != INVALID_O_INDEX)
@@ -362,102 +263,5 @@ bool CReadTransaction::NameIterate(SIndexTreeFileIterator* psIterator, char* szK
 	//As the store does: the index is set to INVALID_O_INDEX at the end, and some callers only test that.
 	SafeAssign(poi, INVALID_O_INDEX);
 	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CReadTransaction::GetLocked(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize, bool bAllData)
-{
-	CVersion*	psVersion;
-	uint32		uiCopySize;
-
-	//A version means the object changed after the snapshot.  Without one the store still has it as it was.
-	psVersion = mpcCodabase->mcVersions.FindRecord(oi, miSnapshot);
-	if (psVersion == NULL)
-	{
-		if (bAllData)
-		{
-			return mpcCodabase->mcNamedIndexedData.Get(oi, pvData);
-		}
-		return mpcCodabase->mcNamedIndexedData.Get(oi, puiDataSize, pvData, uiMaxDataSize);
-	}
-
-	if (!psVersion->bExists)
-	{
-		return false;
-	}
-	SafeAssign(puiDataSize, psVersion->uiDataSize);
-	if (pvData)
-	{
-		uiCopySize = psVersion->uiDataSize;
-		if (!bAllData && (uiMaxDataSize < uiCopySize))
-		{
-			uiCopySize = uiMaxDataSize;
-		}
-		memcpy(pvData, psVersion->GetData(), uiCopySize);
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-OIndex CReadTransaction::GetIndexLocked(const char* szName)
-{
-	OIndex	oi;
-
-	if (StrEmpty(szName))
-	{
-		return INVALID_O_INDEX;
-	}
-	if (mpcCodabase->mcVersions.FindName(szName, miSnapshot, &oi))
-	{
-		return oi;
-	}
-	return mpcCodabase->mcNamedIndexedData.GetIndex(szName);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CReadTransaction::GetNameLocked(OIndex oi, CChars* pszName)
-{
-	CVersion*	psVersion;
-
-	psVersion = mpcCodabase->mcVersions.FindRecord(oi, miSnapshot);
-	if (psVersion == NULL)
-	{
-		return mpcCodabase->mcNamedIndexedData.GetName(oi, pszName);
-	}
-	if (!psVersion->bExists)
-	{
-		return false;
-	}
-	pszName->Append(psVersion->GetName(), psVersion->iNameLength);
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CReadTransaction::ContainsLocked(OIndex oi)
-{
-	CVersion*	psVersion;
-
-	psVersion = mpcCodabase->mcVersions.FindRecord(oi, miSnapshot);
-	if (psVersion == NULL)
-	{
-		return mpcCodabase->mcNamedIndexedData.Contains(oi);
-	}
-	return psVersion->bExists;
 }
 

@@ -2,10 +2,9 @@
 #include "StringHelper.h"
 #include "PointerRemapper.h"
 #include "IndexedGeneral.h"
-#include "IntegerHelper.h"
 #include "NativeThread.h"
-#include "Codabase.h"
 #include "NamedIndexedHeader.h"
+#include "Codabase.h"
 #include "WriteTransaction.h"
 
 
@@ -13,9 +12,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* SWriteRecord::GetName(void)
+char* CWriteRecord::GetName(void)
 {
-	return (char*)RemapSinglePointer(this, sizeof(SWriteRecord));
+	return (char*)RemapSinglePointer(this, sizeof(CWriteRecord));
 }
 
 
@@ -23,9 +22,9 @@ char* SWriteRecord::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* SWriteRecord::GetData(void)
+void* CWriteRecord::GetData(void)
 {
-	return RemapSinglePointer(this, sizeof(SWriteRecord) + iNameLength + 1);
+	return RemapSinglePointer(this, sizeof(CWriteRecord) + iNameLength + 1);
 }
 
 
@@ -43,10 +42,7 @@ void CWriteTransaction::Init(CCodabase* pcCodabase, int64 iStartNumber)
 	maszReserved.Init();
 	mbActive = true;
 	mbDied = false;
-	maoiIteration.Init();
-	miIndexPosition = 0;
-	maszIteration.Init();
-	miNamePosition = 0;
+	mcIteration.Init();
 }
 
 
@@ -59,8 +55,7 @@ void CWriteTransaction::Kill(void)
 	//Killing a transaction that has not committed aborts it.
 	Abort();
 	mpcCodabase->RemoveWriter(this);
-	maszIteration.Kill();
-	maoiIteration.Kill();
+	mcIteration.Kill();
 	maszReserved.Kill();
 	mcNames.Kill();
 	mcRecords.Kill();
@@ -75,42 +70,15 @@ void CWriteTransaction::Kill(void)
 bool CWriteTransaction::Commit(void)
 {
 	bool	bResult;
-	size	i;
 
 	if (!CheckActive())
 	{
 		return false;
 	}
 
-	mpcCodabase->mcMutex.Lock();
-	if (mpcCodabase->mbFailed)
-	{
-		bResult = gcLogger.Error2(__METHOD__, " A commit failed.  The Codabase is read only until it is restarted.", NULL);
-	}
-	else
-	{
-		//Removals go first so a name removed from one object can be given to another.
-		bResult = Apply(true) && Apply(false);
-		if (bResult)
-		{
-			bResult = mpcCodabase->CommitLocked();
-		}
-		else
-		{
-			//Some of the changes may already be in the caches, so nothing more may be written.
-			mpcCodabase->mbFailed = true;
-			gcLogger.Error2(__METHOD__, " Could not apply the transaction.  The Codabase is read only until it is restarted.", NULL);
-		}
-	}
-	for (i = 0; i < maszReserved.NumElements(); i++)
-	{
-		mpcCodabase->ReleaseName(maszReserved.GetText(i), miStartNumber);
-	}
-	mpcCodabase->mcMutex.Unlock();
+	//The Codabase applies the changes, then releases the names and locks once the commit is durable.
+	bResult = mpcCodabase->CommitWriteSet(&mcRecords, &maszReserved, miStartNumber);
 	maszReserved.ReInit();
-
-	//The locks are released only once the commit is durable.
-	mpcCodabase->mcLocks.ReleaseAll(miStartNumber);
 	Finish();
 	return bResult;
 }
@@ -424,23 +392,23 @@ bool CWriteTransaction::Put(OIndex oi, CChars* szName, void* pvData, uint32 uiDa
 //////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::Get(OIndex oi, void* pvData)
 {
-	SWriteRecord*	psRecord;
+	CWriteRecord*	pcRecord;
 
 	if (!CheckActive() || !LockOrDie(oi, LM_Shared))
 	{
 		return false;
 	}
 
-	psRecord = GetRecord(oi);
-	if (psRecord == NULL)
+	pcRecord = GetRecord(oi);
+	if (pcRecord == NULL)
 	{
-		return mpcCodabase->StoredGetAll(oi, pvData);
+		return mpcCodabase->StoredGet(oi, pvData);
 	}
-	if (psRecord->bRemoved)
+	if (pcRecord->bRemoved)
 	{
 		return false;
 	}
-	memcpy(pvData, psRecord->GetData(), psRecord->uiDataSize);
+	memcpy(pvData, pcRecord->GetData(), pcRecord->uiDataSize);
 	return true;
 }
 
@@ -451,26 +419,26 @@ bool CWriteTransaction::Get(OIndex oi, void* pvData)
 //////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize)
 {
-	SWriteRecord*	psRecord;
+	CWriteRecord*	pcRecord;
 
 	if (!CheckActive() || !LockOrDie(oi, LM_Shared))
 	{
 		return false;
 	}
 
-	psRecord = GetRecord(oi);
-	if (psRecord == NULL)
+	pcRecord = GetRecord(oi);
+	if (pcRecord == NULL)
 	{
 		return mpcCodabase->StoredGet(oi, puiDataSize, pvData, uiMaxDataSize);
 	}
-	if (psRecord->bRemoved)
+	if (pcRecord->bRemoved)
 	{
 		return false;
 	}
-	SafeAssign(puiDataSize, psRecord->uiDataSize);
+	SafeAssign(puiDataSize, pcRecord->uiDataSize);
 	if (pvData)
 	{
-		memcpy(pvData, psRecord->GetData(), (psRecord->uiDataSize < uiMaxDataSize) ? psRecord->uiDataSize : uiMaxDataSize);
+		memcpy(pvData, pcRecord->GetData(), (pcRecord->uiDataSize < uiMaxDataSize) ? pcRecord->uiDataSize : uiMaxDataSize);
 	}
 	return true;
 }
@@ -556,17 +524,7 @@ bool CWriteTransaction::GetName(OIndex oi, char* szName, uint32* puiNameLength, 
 	bool	bResult;
 
 	sz.Init();
-	bResult = GetName(oi, &sz);
-	if (bResult)
-	{
-		StrCpySafe(szName, sz.Text(), uiMaxNameLength);
-		SafeAssign(puiNameLength, (uint32)sz.Length());
-	}
-	else
-	{
-		szName[0] = '\0';
-		SafeAssign(puiNameLength, 0);
-	}
+	bResult = CopyTransactionName(&sz, GetName(oi, &sz), szName, puiNameLength, uiMaxNameLength);
 	sz.Kill();
 	return bResult;
 }
@@ -707,27 +665,24 @@ bool CWriteTransaction::IsWriteThrough(void)
 //////////////////////////////////////////////////////////////////////////
 OIndex CWriteTransaction::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
 {
+	CArrayOIndex*	paoi;
 	SMapIterator	sIter;
-	OIndex			oiKey;
+	void*			pvKey;
 	void*			pvRecord;
 	size			iKeySize;
 	size			iRecordSize;
 	bool			bExists;
 
 	//The stored indices and the ones this transaction changed.  Removed ones are skipped when iterating.
-	maoiIteration.ReInit();
-	mpcCodabase->mcMutex.Lock();
-	mpcCodabase->GetStoredIndices(&maoiIteration);
-	mpcCodabase->mcMutex.Unlock();
-	bExists = mcRecords.StartIteration(&sIter, (void**)&oiKey, &iKeySize, &pvRecord, &iRecordSize);
+	paoi = mcIteration.StartIndices();
+	mpcCodabase->StoredIndices(paoi);
+	bExists = mcRecords.StartIteration(&sIter, &pvKey, &iKeySize, &pvRecord, &iRecordSize);
 	while (bExists)
 	{
-		maoiIteration.Add(oiKey);
-		bExists = mcRecords.Iterate(&sIter, (void**)&oiKey, &iKeySize, &pvRecord, &iRecordSize);
+		paoi->Add(*((OIndex*)pvKey));
+		bExists = mcRecords.Iterate(&sIter, &pvKey, &iKeySize, &pvRecord, &iRecordSize);
 	}
-
-	maoiIteration.QuickSort();
-	miIndexPosition = 0;
+	mcIteration.SortIndices();
 	return IndexIterate(psIterator, pvData, piDataSize, iMaxDataSize);
 }
 
@@ -741,17 +696,8 @@ OIndex CWriteTransaction::IndexIterate(SIndexTreeFileIterator* psIterator, void*
 	OIndex	oi;
 	uint32	uiDataSize;
 
-	while (mbActive && (miIndexPosition < maoiIteration.NumElements()))
+	while (mbActive && mcIteration.NextIndex(&oi))
 	{
-		oi = *maoiIteration.Get(miIndexPosition);
-		miIndexPosition++;
-
-		//An index can be both stored and changed.  It is only returned once.
-		if ((miIndexPosition > 1) && (*maoiIteration.Get(miIndexPosition - 2) == oi))
-		{
-			continue;
-		}
-
 		if (Get(oi, &uiDataSize, pvData, (uint32)iMaxDataSize))
 		{
 			SafeAssign(piDataSize, (size)uiDataSize);
@@ -768,41 +714,25 @@ OIndex CWriteTransaction::IndexIterate(SIndexTreeFileIterator* psIterator, void*
 //////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
 {
-	CArrayChars		aszNames;
+	CArrayChars*	paszNames;
 	SMapIterator	sIter;
 	void*			pvKey;
 	void*			pvIndex;
 	size			iKeySize;
 	size			iIndexSize;
 	bool			bExists;
-	CChars			szName;
-	size			i;
 
-	//The stored names and the ones this transaction added or removed.  Removed ones are skipped when iterating.
-	maszIteration.ReInit();
-	aszNames.Init();
-	mpcCodabase->mcMutex.Lock();
-	mpcCodabase->GetStoredNames(&aszNames);
-	mpcCodabase->mcMutex.Unlock();
+	//The stored names and the ones this transaction added or removed.  Removed ones are skipped when iterating.  String
+	//map keys keep their terminating zero.
+	paszNames = mcIteration.StartNames();
+	mpcCodabase->StoredNames(paszNames);
 	bExists = mcNames.StartIteration(&sIter, &pvKey, &iKeySize, &pvIndex, &iIndexSize);
 	while (bExists)
 	{
-		szName.Init((char*)pvKey, 0, strnlen((char*)pvKey, iKeySize));
-		aszNames.Add(&szName);
-		szName.Kill();
+		paszNames->Add((char*)pvKey);
 		bExists = mcNames.Iterate(&sIter, &pvKey, &iKeySize, &pvIndex, &iIndexSize);
 	}
-
-	for (i = 0; i < aszNames.NumElements(); i++)
-	{
-		if (maszIteration.FindInSorted(aszNames.Get(i)) == ARRAY_ELEMENT_NOT_FOUND)
-		{
-			maszIteration.InsertIntoSorted(aszNames.Get(i));
-		}
-	}
-	aszNames.Kill();
-
-	miNamePosition = 0;
+	mcIteration.SortNames();
 	return NameIterate(psIterator, szKey, poi);
 }
 
@@ -816,10 +746,13 @@ bool CWriteTransaction::NameIterate(SIndexTreeFileIterator* psIterator, char* sz
 	char*	szName;
 	OIndex	oi;
 
-	while (mbActive && (miNamePosition < maszIteration.NumElements()))
+	while (mbActive)
 	{
-		szName = maszIteration.GetText(miNamePosition);
-		miNamePosition++;
+		szName = mcIteration.NextName();
+		if (szName == NULL)
+		{
+			break;
+		}
 
 		oi = FindName(szName);
 		if (oi != INVALID_O_INDEX)
@@ -843,7 +776,7 @@ bool CWriteTransaction::NameIterate(SIndexTreeFileIterator* psIterator, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWriteTransaction::GetCountChanges(int64* piIndices, int64* piNames)
+void CWriteTransaction::CountChanges(SWriteCounts* psCounts, size iCachedSize)
 {
 	SMapIterator	sIter;
 	void*			pvKey;
@@ -851,115 +784,49 @@ void CWriteTransaction::GetCountChanges(int64* piIndices, int64* piNames)
 	size			iKeySize;
 	size			iDataSize;
 	bool			bExists;
-	SWriteRecord*	psRecord;
+	CWriteRecord*	pcRecord;
 	bool			bStored;
 	OIndex			oi;
-	CChars			szName;
 
-	//How the number of objects and names will change when the transaction commits.
-	*piIndices = 0;
-	*piNames = 0;
+	memset(psCounts, 0, sizeof(SWriteCounts));
 	bExists = mcRecords.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	while (bExists)
 	{
-		psRecord = (SWriteRecord*)pvData;
+		pcRecord = (CWriteRecord*)pvData;
 		bStored = mpcCodabase->StoredContains(*((OIndex*)pvKey));
-		if (!psRecord->bRemoved && !bStored)
+		if (!pcRecord->bRemoved && !bStored)
 		{
-			(*piIndices)++;
+			psCounts->iIndices++;
+			psCounts->iNewIndices++;
+			if (NamedIndexedHeaderSize((int)pcRecord->iNameLength, pcRecord->uiDataSize) == iCachedSize)
+			{
+				psCounts->iNewIndicesOfSize++;
+			}
 		}
-		else if (psRecord->bRemoved && bStored)
+		else if (pcRecord->bRemoved && bStored)
 		{
-			(*piIndices)--;
+			psCounts->iIndices--;
 		}
 		bExists = mcRecords.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	}
 
+	//String map keys keep their terminating zero.
 	bExists = mcNames.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	while (bExists)
 	{
 		oi = *((OIndex*)pvData);
-		szName.Init((char*)pvKey, 0, strnlen((char*)pvKey, iKeySize));
-		bStored = mpcCodabase->StoredGetIndex(szName.Text()) != INVALID_O_INDEX;
-		szName.Kill();
+		bStored = mpcCodabase->StoredGetIndex((char*)pvKey) != INVALID_O_INDEX;
 		if ((oi != INVALID_O_INDEX) && !bStored)
 		{
-			(*piNames)++;
+			psCounts->iNames++;
+			psCounts->iNewNames++;
 		}
 		else if ((oi == INVALID_O_INDEX) && bStored)
 		{
-			(*piNames)--;
+			psCounts->iNames--;
 		}
 		bExists = mcNames.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int64 CWriteTransaction::NumNewRecords(bool bAnySize, size iSize)
-{
-	SMapIterator	sIter;
-	void*			pvKey;
-	void*			pvData;
-	size			iKeySize;
-	size			iDataSize;
-	bool			bExists;
-	SWriteRecord*	psRecord;
-	int64			iCount;
-
-	//Objects added by the transaction, optionally only those whose stored size (with its header) is iSize.
-	iCount = 0;
-	bExists = mcRecords.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
-	while (bExists)
-	{
-		psRecord = (SWriteRecord*)pvData;
-		if (!psRecord->bRemoved && !mpcCodabase->StoredContains(*((OIndex*)pvKey)))
-		{
-			if (bAnySize || (NamedIndexedHeaderSize((int)psRecord->iNameLength, psRecord->uiDataSize) == iSize))
-			{
-				iCount++;
-			}
-		}
-		bExists = mcRecords.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
-	}
-	return iCount;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int64 CWriteTransaction::NumNewNames(void)
-{
-	int64			iCount;
-	SMapIterator	sIter;
-	void*			pvKey;
-	void*			pvData;
-	size			iKeySize;
-	size			iDataSize;
-	bool			bExists;
-	CChars			szName;
-
-	iCount = 0;
-	bExists = mcNames.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
-	while (bExists)
-	{
-		if (*((OIndex*)pvData) != INVALID_O_INDEX)
-		{
-			szName.Init((char*)pvKey, 0, strnlen((char*)pvKey, iKeySize));
-			if (mpcCodabase->StoredGetIndex(szName.Text()) == INVALID_O_INDEX)
-			{
-				iCount++;
-			}
-			szName.Kill();
-		}
-		bExists = mcNames.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
-	}
-	return iCount;
 }
 
 
@@ -989,7 +856,7 @@ bool CWriteTransaction::CheckActive(void)
 //////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::LockOrDie(OIndex oi, ELockMode eMode)
 {
-	if (mpcCodabase->mcLocks.Lock(miStartNumber, oi, eMode) == LR_Died)
+	if (mpcCodabase->LockObject(miStartNumber, oi, eMode) == LR_Died)
 	{
 		Die();
 		return false;
@@ -1050,16 +917,9 @@ void CWriteTransaction::Die(void)
 //////////////////////////////////////////////////////////////////////////
 void CWriteTransaction::ReleaseResources(void)
 {
-	size	i;
-
-	mpcCodabase->mcMutex.Lock();
-	for (i = 0; i < maszReserved.NumElements(); i++)
-	{
-		mpcCodabase->ReleaseName(maszReserved.GetText(i), miStartNumber);
-	}
-	mpcCodabase->mcMutex.Unlock();
+	mpcCodabase->ReleaseNames(&maszReserved, miStartNumber);
 	maszReserved.ReInit();
-	mpcCodabase->mcLocks.ReleaseAll(miStartNumber);
+	mpcCodabase->ReleaseLocks(miStartNumber);
 }
 
 
@@ -1071,24 +931,14 @@ bool CWriteTransaction::ReserveNewName(const char* szName)
 {
 	OIndex*	poiChanged;
 	bool	bRemovedHere;
-	bool	bResult;
 	CChars	szReserved;
 
-	//The check of the committed names and the reservation are made together, so no other transaction can add the name
-	//in between.  A name this transaction removed can be added again.
+	//A name this transaction removed can be added again.
 	poiChanged = mcNames.Get(szName);
 	bRemovedHere = (poiChanged != NULL) && (*poiChanged == INVALID_O_INDEX);
-	mpcCodabase->mcMutex.Lock();
-	if (!bRemovedHere && (mpcCodabase->mcNamedIndexedData.GetIndex(szName) != INVALID_O_INDEX))
+	if (!mpcCodabase->ReserveName(szName, miStartNumber, bRemovedHere))
 	{
-		mpcCodabase->mcMutex.Unlock();
-		return gcLogger.Error2(__METHOD__, " Cannot Add Name [", szName, "].  It already exists.", NULL);
-	}
-	bResult = mpcCodabase->ReserveName(szName, miStartNumber);
-	mpcCodabase->mcMutex.Unlock();
-	if (!bResult)
-	{
-		return gcLogger.Error2(__METHOD__, " Cannot Add Name [", szName, "].  Another transaction is adding it.", NULL);
+		return false;
 	}
 
 	if (maszReserved.FindInSorted(szName) == ARRAY_ELEMENT_NOT_FOUND)
@@ -1105,9 +955,9 @@ bool CWriteTransaction::ReserveNewName(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SWriteRecord* CWriteTransaction::GetRecord(OIndex oi)
+CWriteRecord* CWriteTransaction::GetRecord(OIndex oi)
 {
-	return (SWriteRecord*)mcRecords.Get(&oi, sizeof(OIndex));
+	return (CWriteRecord*)mcRecords.Get(&oi, sizeof(OIndex));
 }
 
 
@@ -1117,26 +967,26 @@ SWriteRecord* CWriteTransaction::GetRecord(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::PutRecord(OIndex oi, bool bRemoved, bool bReplacesStored, const char* szName, void* pvData, uint32 uiDataSize)
 {
-	SWriteRecord*	psRecord;
+	CWriteRecord*	pcRecord;
 	int32			iNameLength;
 
 	//szName and pvData must not point into the record being replaced.
 	iNameLength = szName ? (int32)strlen(szName) : 0;
 	mcRecords.Remove(&oi, sizeof(OIndex));
-	psRecord = (SWriteRecord*)mcRecords.Put(&oi, sizeof(OIndex), sizeof(SWriteRecord) + iNameLength + 1 + uiDataSize);
-	if (psRecord == NULL)
+	pcRecord = (CWriteRecord*)mcRecords.Put(&oi, sizeof(OIndex), sizeof(CWriteRecord) + iNameLength + 1 + uiDataSize);
+	if (pcRecord == NULL)
 	{
 		return gcLogger.Error2(__METHOD__, " Could not store the change to Index [", IndexToString(oi), "].", NULL);
 	}
 
-	psRecord->bRemoved = bRemoved;
-	psRecord->bReplacesStored = bReplacesStored;
-	psRecord->iNameLength = iNameLength;
-	psRecord->uiDataSize = uiDataSize;
-	memcpy(psRecord->GetName(), szName ? szName : "", iNameLength + 1);
+	pcRecord->bRemoved = bRemoved;
+	pcRecord->bReplacesStored = bReplacesStored;
+	pcRecord->iNameLength = iNameLength;
+	pcRecord->uiDataSize = uiDataSize;
+	memcpy(pcRecord->GetName(), szName ? szName : "", iNameLength + 1);
 	if (uiDataSize > 0)
 	{
-		memcpy(psRecord->GetData(), pvData, uiDataSize);
+		memcpy(pcRecord->GetData(), pvData, uiDataSize);
 	}
 	return true;
 }
@@ -1148,12 +998,12 @@ bool CWriteTransaction::PutRecord(OIndex oi, bool bRemoved, bool bReplacesStored
 //////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::Exists(OIndex oi)
 {
-	SWriteRecord*	psRecord;
+	CWriteRecord*	pcRecord;
 
-	psRecord = GetRecord(oi);
-	if (psRecord != NULL)
+	pcRecord = GetRecord(oi);
+	if (pcRecord != NULL)
 	{
-		return !psRecord->bRemoved;
+		return !pcRecord->bRemoved;
 	}
 	return mpcCodabase->StoredContains(oi);
 }
@@ -1188,16 +1038,16 @@ OIndex CWriteTransaction::FindName(const char* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::GetCurrentName(OIndex oi, CChars* pszName)
 {
-	SWriteRecord*	psRecord;
+	CWriteRecord*	pcRecord;
 
-	psRecord = GetRecord(oi);
-	if (psRecord != NULL)
+	pcRecord = GetRecord(oi);
+	if (pcRecord != NULL)
 	{
-		if (psRecord->bRemoved)
+		if (pcRecord->bRemoved)
 		{
 			return false;
 		}
-		pszName->Append(psRecord->GetName(), psRecord->iNameLength);
+		pszName->Append(pcRecord->GetName(), pcRecord->iNameLength);
 		return true;
 	}
 	return mpcCodabase->StoredGetName(oi, pszName);
@@ -1210,13 +1060,13 @@ bool CWriteTransaction::GetCurrentName(OIndex oi, CChars* pszName)
 //////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::GetDataSize(OIndex oi, uint32* puiDataSize)
 {
-	SWriteRecord*	psRecord;
+	CWriteRecord*	pcRecord;
 
-	psRecord = GetRecord(oi);
-	if (psRecord != NULL)
+	pcRecord = GetRecord(oi);
+	if (pcRecord != NULL)
 	{
-		*puiDataSize = psRecord->uiDataSize;
-		return !psRecord->bRemoved;
+		*puiDataSize = pcRecord->uiDataSize;
+		return !pcRecord->bRemoved;
 	}
 	return mpcCodabase->StoredGet(oi, puiDataSize, NULL, 0);
 }
@@ -1229,15 +1079,15 @@ bool CWriteTransaction::GetDataSize(OIndex oi, uint32* puiDataSize)
 bool CWriteTransaction::SetData(OIndex oi, void* pvData, uint32 uiDataSize)
 {
 	CChars			szName;
-	SWriteRecord*	psRecord;
+	CWriteRecord*	pcRecord;
 	bool			bReplacesStored;
 	bool			bResult;
 
 	//The name is copied because the record it may come from is replaced.
 	szName.Init();
 	GetCurrentName(oi, &szName);
-	psRecord = GetRecord(oi);
-	bReplacesStored = (psRecord != NULL) ? psRecord->bReplacesStored : false;
+	pcRecord = GetRecord(oi);
+	bReplacesStored = (pcRecord != NULL) ? pcRecord->bReplacesStored : false;
 	bResult = PutRecord(oi, false, bReplacesStored, szName.Empty() ? NULL : szName.Text(), pvData, uiDataSize);
 	szName.Kill();
 	return bResult;
@@ -1344,81 +1194,6 @@ bool CWriteTransaction::RemoveLocked(OIndex oi)
 		//The object was only ever added by this transaction.
 		return mcRecords.Remove(&oi, sizeof(OIndex));
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Apply(bool bRemovals)
-{
-	SMapIterator		sIter;
-	void*				pvKey;
-	void*				pvData;
-	size				iKeySize;
-	size				iDataSize;
-	bool				bExists;
-	OIndex				oi;
-	SWriteRecord*		psRecord;
-	bool				bResult;
-	CNamedIndexedData*	pcStore;
-	CCodabaseVersions*	pcVersions;
-	int64				iValidUntil;
-
-	//mcMutex of the Codabase is locked, so its store is used directly.  Open read transactions need the versions before
-	//this commit.  None can begin while the mutex is held, so without any open the versions are not kept.
-	pcStore = &mpcCodabase->mcNamedIndexedData;
-	pcVersions = (mpcCodabase->maiSnapshots.NumElements() > 0) ? &mpcCodabase->mcVersions : NULL;
-	iValidUntil = mpcCodabase->miCommitNumber + 1;
-	bExists = mcRecords.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
-	while (bExists)
-	{
-		oi = *((OIndex*)pvKey);
-		psRecord = (SWriteRecord*)pvData;
-		bResult = true;
-		if (bRemovals)
-		{
-			if ((psRecord->bRemoved || psRecord->bReplacesStored) && pcStore->Contains(oi))
-			{
-				if (pcVersions)
-				{
-					pcVersions->SaveRecord(iValidUntil, oi, pcStore);
-				}
-				bResult = pcStore->Remove(oi);
-			}
-		}
-		else if (!psRecord->bRemoved)
-		{
-			if (pcVersions)
-			{
-				pcVersions->SaveRecord(iValidUntil, oi, pcStore);
-				if (psRecord->iNameLength > 0)
-				{
-					pcVersions->SaveName(iValidUntil, psRecord->GetName(), pcStore);
-				}
-			}
-			if (pcStore->Contains(oi))
-			{
-				bResult = pcStore->Set(oi, psRecord->GetData(), psRecord->uiDataSize);
-			}
-			else if (psRecord->iNameLength > 0)
-			{
-				bResult = pcStore->Add(oi, psRecord->GetName(), psRecord->GetData(), psRecord->uiDataSize);
-			}
-			else
-			{
-				bResult = pcStore->Add(oi, psRecord->GetData(), psRecord->uiDataSize);
-			}
-		}
-
-		if (!bResult)
-		{
-			return gcLogger.Error2(__METHOD__, " Could not apply the change to Index [", IndexToString(oi), "].", NULL);
-		}
-		bExists = mcRecords.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
-	}
-	return true;
 }
 
 
