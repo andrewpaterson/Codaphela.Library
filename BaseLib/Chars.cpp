@@ -2943,7 +2943,7 @@ bool CChars::ReadString(CFileReader* pcReader)
 //////////////////////////////////////////////////////////////////////////
 bool CChars::ReadChars(CFileReader* pcReader)
 {
-	uint32	iLength;
+	size	iLength;
 
 	if (!pcReader->ReadStringLength(&iLength))
 	{

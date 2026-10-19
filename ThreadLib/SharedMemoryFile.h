@@ -7,7 +7,7 @@
 
 //Large enough to hold a Windows file mapping HANDLE or the Linux shared memory
 //file descriptor and its current view.
-#define SHARED_MEMORY_FILE_HANDLE_SIZE	16
+#define SHARED_MEMORY_FILE_HANDLE_SIZE	24
 
 
 class CSharedMemoryFile
