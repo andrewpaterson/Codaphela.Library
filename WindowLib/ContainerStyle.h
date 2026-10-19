@@ -1,5 +1,5 @@
-#ifndef __CONTAINER_STYLES_H__
-#define __CONTAINER_STYLES_H__
+#ifndef __CONTAINER_STYLE_H__
+#define __CONTAINER_STYLE_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -67,10 +67,9 @@ enum EContainerStyleVertical
 int		AlignComponentVertical(EContainerStyleVertical eAlignment, int iComponentHeight, int iAvailableHeight);
 int		AlignComponentHorizontal(EContainerStyleHorizontal eAlignment, int iComponentWidth, int iAvailableWidth);
 
-int32&	MainAxis(SInt32Vec2& sVec, bool bHorizontal);  //The x of sVec if bHorizontal, otherwise the y.
-int32&	CrossAxis(SInt32Vec2& sVec, bool bHorizontal);  //The other one.
+int32	ContainerStyleMainAxis(SInt32Vec2* psVec, bool bHorizontal);  //The x of sVec if bHorizontal, otherwise the y.
+int32	ContainerStyleCrossAxis(SInt32Vec2* psVec, bool bHorizontal);  //The other one.
 
 
-
-#endif // __CONTAINER_STYLES_H__
+#endif // __CONTAINER_STYLE_H__
 

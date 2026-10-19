@@ -1,4 +1,4 @@
-#include "ContainerStyles.h"
+#include "ContainerStyle.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -55,9 +55,9 @@ int AlignComponentHorizontal(EContainerStyleHorizontal eAlignment, int iComponen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32& MainAxis(SInt32Vec2& sVec, bool bHorizontal)
+int32 ContainerStyleMainAxis(SInt32Vec2* psVec, bool bHorizontal)
 {
-	return bHorizontal ? sVec.x : sVec.y;
+	return bHorizontal ? psVec->x : psVec->y;
 }
 
 
@@ -65,8 +65,8 @@ int32& MainAxis(SInt32Vec2& sVec, bool bHorizontal)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32& CrossAxis(SInt32Vec2& sVec, bool bHorizontal)
+int32 ContainerStyleCrossAxis(SInt32Vec2* psVec, bool bHorizontal)
 {
-	return bHorizontal ? sVec.y : sVec.x;
+	return bHorizontal ? psVec->y : psVec->x;
 }
 

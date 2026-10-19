@@ -72,6 +72,9 @@ void CFlowContainer::SetRequiredSize(void)
 	SInt32Vec2			sSize;
 	SInt32Vec2			sTotalSize;
 	bool				bHorizontal;
+	int32				iMainTotal;
+	int32				iCrossTotal;
+	int32				iCrossSize;
 
 	//This works out how much space the components need on a single unwrapped line, not where they need that space.
 	//Components without a desired size (-1) don't add to the required size.
@@ -93,10 +96,31 @@ void CFlowContainer::SetRequiredSize(void)
 			sSize.y = 0;
 		}
 
-		MainAxis(sTotalSize, bHorizontal) += MainAxis(sSize, bHorizontal);
-		if (CrossAxis(sTotalSize, bHorizontal) < CrossAxis(sSize, bHorizontal))
+		// Main-axis accumulation
+		iMainTotal = ContainerStyleMainAxis(&sTotalSize, bHorizontal);
+		iMainTotal += ContainerStyleMainAxis(&sSize, bHorizontal);
+		if (bHorizontal)
 		{
-			CrossAxis(sTotalSize, bHorizontal) = CrossAxis(sSize, bHorizontal);
+			sTotalSize.x = iMainTotal;
+		}
+		else
+		{
+			sTotalSize.y = iMainTotal;
+		}
+
+		// Cross-axis maximum
+		iCrossTotal = ContainerStyleCrossAxis(&sTotalSize, bHorizontal);
+		iCrossSize = ContainerStyleCrossAxis(&sSize, bHorizontal);
+		if (iCrossTotal < iCrossSize)
+		{
+			if (bHorizontal)
+			{
+				sTotalSize.y = iCrossSize;
+			}
+			else
+			{
+				sTotalSize.x = iCrossSize;
+			}
 		}
 	}
 	msRequiredSize = sTotalSize;
@@ -200,29 +224,53 @@ void CFlowContainer::LayoutLine(SInt32Vec2 sPosition, SInt32Vec2 sLineSize, size
 	bHorizontal = IsHorizontal();
 	bReversed = IsReversed();
 	bStretch = IsCrossStretch();
-
 	iMainPos = 0;
+
 	for (i = iStart; i < iEnd; i++)
 	{
 		pComponent = maChildren.Get(i);
 		sSize = pComponent->GetDesiredSize();
+
+		// Stretch cross-axis if requested
 		if (bStretch)
 		{
-			CrossAxis(sSize, bHorizontal) = CrossAxis(sLineSize, bHorizontal);
+			int32 crossLine = ContainerStyleCrossAxis(&sLineSize, bHorizontal);
+			if (bHorizontal)
+			{
+				sSize.y = crossLine;
+			}
+			else
+			{
+				sSize.x = crossLine;
+			}
 		}
 
+		// Main-axis offset (reversed or normal)
 		if (bReversed)
 		{
-			iMainOffset = MainAxis(sLineSize, bHorizontal) - iMainPos - MainAxis(sSize, bHorizontal);
+			iMainOffset = ContainerStyleMainAxis(&sLineSize, bHorizontal) - iMainPos - ContainerStyleMainAxis(&sSize, bHorizontal);
 		}
 		else
 		{
 			iMainOffset = iMainPos;
 		}
 
-		MainAxis(sOffset, bHorizontal) = MainAxis(sPosition, bHorizontal) + iMainOffset;
-		CrossAxis(sOffset, bHorizontal) = CrossAxis(sPosition, bHorizontal) + AlignCross(CrossAxis(sSize, bHorizontal), CrossAxis(sLineSize, bHorizontal));
-		iMainPos += MainAxis(sSize, bHorizontal);
+		// Build the final offset
+		int32 mainPos = ContainerStyleMainAxis(&sPosition, bHorizontal) + iMainOffset;
+		int32 iCrossPos = ContainerStyleCrossAxis(&sPosition, bHorizontal) + AlignCross(ContainerStyleCrossAxis(&sSize, bHorizontal), ContainerStyleCrossAxis(&sLineSize, bHorizontal));
+
+		if (bHorizontal)
+		{
+			sOffset.x = mainPos;
+			sOffset.y = iCrossPos;
+		}
+		else
+		{
+			sOffset.x = iCrossPos;
+			sOffset.y = mainPos;
+		}
+
+		iMainPos += ContainerStyleMainAxis(&sSize, bHorizontal);
 
 		pComponent->Layout(sOffset, sSize);
 	}
@@ -243,26 +291,30 @@ size CFlowContainer::FindLineEnd(size iFirst, int iMainLength, int* piLineLength
 	int					iLineThickness;
 	bool				bHorizontal;
 
-	//A line takes components until the next would make it longer than iMainLength, but always takes at least one.
-	//Returns the index of the first component on the next line.
+	// A line takes components until the next would make it longer than iMainLength,
+	// but always takes at least one.
+	// Returns the index of the first component on the next line.
 	bHorizontal = IsHorizontal();
 	iLineLength = 0;
 	iLineThickness = 0;
 	uiSize = maChildren.Size();
+
 	for (i = iFirst; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
 		sSize = pComponent->GetDesiredSize();
-		if (((iLineLength + MainAxis(sSize, bHorizontal)) > iMainLength) && (i > iFirst))
+
+		if (((iLineLength + ContainerStyleMainAxis(&sSize, bHorizontal)) > iMainLength) && (i > iFirst))
 		{
 			break;
 		}
 
-		if (iLineThickness < CrossAxis(sSize, bHorizontal))
+		if (iLineThickness < ContainerStyleCrossAxis(&sSize, bHorizontal))
 		{
-			iLineThickness = CrossAxis(sSize, bHorizontal);
+			iLineThickness = ContainerStyleCrossAxis(&sSize, bHorizontal);
 		}
-		iLineLength += MainAxis(sSize, bHorizontal);
+
+		iLineLength += ContainerStyleMainAxis(&sSize, bHorizontal);
 	}
 
 	*piLineLength = iLineLength;
@@ -291,6 +343,7 @@ SInt32Vec2 CFlowContainer::CalculateWrappedArea(int iMainLength)
 	iCrossPos = 0;
 	uiSize = maChildren.Size();
 	iFirst = 0;
+
 	while (iFirst < uiSize)
 	{
 		iFirst = FindLineEnd(iFirst, iMainLength, &iLineLength, &iLineThickness);
@@ -301,8 +354,18 @@ SInt32Vec2 CFlowContainer::CalculateWrappedArea(int iMainLength)
 		iCrossPos += iLineThickness;
 	}
 
-	MainAxis(sArea, bHorizontal) = iLongestLine;
-	CrossAxis(sArea, bHorizontal) = iCrossPos;
+	// Write the final results (helpers are now read-only)
+	if (bHorizontal)
+	{
+		sArea.x = iLongestLine;
+		sArea.y = iCrossPos;
+	}
+	else
+	{
+		sArea.x = iCrossPos;
+		sArea.y = iLongestLine;
+	}
+
 	return sArea;
 }
 
@@ -322,25 +385,67 @@ void CFlowContainer::LayoutWrap(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	int			iLineLength;
 	int			iLineThickness;
 	bool		bHorizontal;
+	int32		iCrossPos;
+	int32		iMainLen;
 
 	bHorizontal = IsHorizontal();
-	sRequiredArea = CalculateWrappedArea(MainAxis(sAreaSize, bHorizontal));
+
+	// CalculateWrappedArea takes the main-axis length
+	sRequiredArea = CalculateWrappedArea(ContainerStyleMainAxis(&sAreaSize, bHorizontal));
 
 	sLinePosition = sPosition;
-	CrossAxis(sLinePosition, bHorizontal) += AlignCross(CrossAxis(sRequiredArea, bHorizontal), CrossAxis(sAreaSize, bHorizontal));
 
-	//Each line spans the whole main axis so that reversed directions start from the far edge.
-	MainAxis(sLineSize, bHorizontal) = MainAxis(sAreaSize, bHorizontal);
+	// Align the starting cross-axis position
+	iCrossPos = ContainerStyleCrossAxis(&sLinePosition, bHorizontal) + AlignCross(ContainerStyleCrossAxis(&sRequiredArea, bHorizontal), ContainerStyleCrossAxis(&sAreaSize, bHorizontal));
+	if (bHorizontal)
+	{
+		sLinePosition.y = iCrossPos;
+	}
+	else
+	{
+		sLinePosition.x = iCrossPos;
+	}
+
+	iMainLen = ContainerStyleMainAxis(&sAreaSize, bHorizontal);
+	if (bHorizontal)
+	{
+		sLineSize.x = iMainLen;
+	}
+	else
+	{
+		sLineSize.y = iMainLen;
+	}
 
 	uiSize = maChildren.Size();
 	iFirst = 0;
+
 	while (iFirst < uiSize)
 	{
-		iEnd = FindLineEnd(iFirst, MainAxis(sAreaSize, bHorizontal), &iLineLength, &iLineThickness);
-		CrossAxis(sLineSize, bHorizontal) = iLineThickness;
+		iEnd = FindLineEnd(iFirst, ContainerStyleMainAxis(&sAreaSize, bHorizontal), &iLineLength, &iLineThickness);
+
+		// Set the line's cross-axis thickness
+		if (bHorizontal)
+		{
+			sLineSize.y = iLineThickness;
+		}
+		else
+		{
+			sLineSize.x = iLineThickness;
+		}
+
 		LayoutLine(sLinePosition, sLineSize, iFirst, iEnd);
 
-		CrossAxis(sLinePosition, bHorizontal) += iLineThickness;
+		// Advance the line position on the cross axis
+		iCrossPos = ContainerStyleCrossAxis(&sLinePosition, bHorizontal) + iLineThickness;
+		if (bHorizontal)
+		{
+			sLinePosition.y = iCrossPos;
+		}
+		else
+		{
+			sLinePosition.x = iCrossPos;
+		}
+
 		iFirst = iEnd;
 	}
 }
