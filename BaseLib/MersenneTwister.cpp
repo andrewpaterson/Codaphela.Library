@@ -29,12 +29,12 @@ void CMersenneTwister::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMersenneTwister::Init(uint iSeed)
+void CMersenneTwister::Init(uint32 iSeed)
 {
 	uint32	i;
 	uint32	uiPrevious;
 
-	mauiState[0] = (uint32)iSeed;
+	mauiState[0] = iSeed;
 	for (i = 1; i < MERSENNE_TWISTER_STATE_SIZE; i++)
 	{
 		uiPrevious = mauiState[i - 1];

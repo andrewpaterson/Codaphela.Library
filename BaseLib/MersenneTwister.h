@@ -19,7 +19,7 @@ private:
 
 public:
 	void	Init(void);
-	void	Init(uint iSeed);
+	void	Init(uint32 iSeed);
 	void	Kill(void);
 
 	uint32	Next(void);
