@@ -40,7 +40,6 @@ bool CLockEntry::IsUnused(void)
 void CLockManager::Init(void)
 {
 	mcMutex.Init();
-	mcReleased.Init();
 	mcEntries.Init(true);
 }
 
@@ -68,7 +67,6 @@ void CLockManager::Kill(void)
 		bExists = mcEntries.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	}
 	mcEntries.Kill();
-	mcReleased.Kill();
 	mcMutex.Kill();
 }
 
@@ -79,12 +77,14 @@ void CLockManager::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 ELockResult CLockManager::Lock(int64 iTransaction, OIndex oi, ELockMode eMode)
 {
-	CLockEntry*		pcEntry;
-	SLockRequest	sRequest;
-	size			iHeld;
-	size			iWaiting;
-	bool			bConflict;
-	bool			bOlderThanAll;
+	CLockEntry*			pcEntry;
+	SLockRequest		sRequest;
+	size				iHeld;
+	size				iWaiting;
+	bool				bConflict;
+	bool				bOlderThanAll;
+	CConditionVariable	cWake;
+	ELockResult			eResult;
 
 	mcMutex.Lock();
 	pcEntry = GetEntry(oi, true);
@@ -101,8 +101,10 @@ ELockResult CLockManager::Lock(int64 iTransaction, OIndex oi, ELockMode eMode)
 	}
 
 	//An upgrade goes to the front of the queue because it already holds the lock.
+	cWake.Init();
 	sRequest.iTransaction = iTransaction;
 	sRequest.eMode = eMode;
+	sRequest.pcWake = &cWake;
 	if (iHeld != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		pcEntry->masWaiters.InsertAt(&sRequest, 0);
@@ -120,23 +122,27 @@ ELockResult CLockManager::Lock(int64 iTransaction, OIndex oi, ELockMode eMode)
 		{
 			pcEntry->masWaiters.RemoveAt(iWaiting);
 			Grant(pcEntry, iTransaction, eMode);
-			mcMutex.Unlock();
-			return LR_Granted;
+			eResult = LR_Granted;
+			break;
 		}
 
 		if (!bOlderThanAll)
 		{
 			//Wait-die: a younger transaction never waits for an older one, so no cycle of waits can form.
 			pcEntry->masWaiters.RemoveAt(iWaiting);
-			RemoveEntryIfUnused(oi, pcEntry);
-			mcReleased.WakeAll();
-			mcMutex.Unlock();
-			return LR_Died;
+			eResult = LR_Died;
+			break;
 		}
 
-		mcReleased.Wait(&mcMutex);
-		pcEntry = GetEntry(oi, false);
+		cWake.Wait(&mcMutex);
 	}
+
+	//The queue changed, so the requests behind this one may be able to go on.
+	WakeWaiters(pcEntry);
+	RemoveEntryIfUnused(oi, pcEntry);
+	mcMutex.Unlock();
+	cWake.Kill();
+	return eResult;
 }
 
 
@@ -152,43 +158,44 @@ void CLockManager::ReleaseAll(int64 iTransaction)
 	size			iKeySize;
 	size			iDataSize;
 	bool			bExists;
-	CLockEntry*		pcEntry;
-	size			iIndex;
-	CArrayOIndex	aoiUnused;
-	size			i;
-	OIndex			oi;
+	CArrayOIndex	aoiLocked;
 
+	//Every entry is looked at.  A transaction that knows what it locked uses Release instead.
+	aoiLocked.Init();
 	mcMutex.Lock();
-	aoiUnused.Init();
 	bExists = mcEntries.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	while (bExists)
 	{
-		pcEntry = *((CLockEntry**)pvData);
-		iIndex = FindRequest(&pcEntry->masHolders, iTransaction);
-		if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
-		{
-			pcEntry->masHolders.RemoveAt(iIndex);
-		}
-		iIndex = FindRequest(&pcEntry->masWaiters, iTransaction);
-		if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
-		{
-			pcEntry->masWaiters.RemoveAt(iIndex);
-		}
-		if (pcEntry->IsUnused())
-		{
-			aoiUnused.Add(*((OIndex*)pvKey));
-		}
+		aoiLocked.Add(*((OIndex*)pvKey));
 		bExists = mcEntries.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	}
+	mcMutex.Unlock();
 
-	for (i = 0; i < aoiUnused.NumElements(); i++)
+	Release(iTransaction, &aoiLocked);
+	aoiLocked.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CLockManager::Release(int64 iTransaction, CArrayOIndex* paoiLocked)
+{
+	size		i;
+	OIndex		oi;
+	CLockEntry*	pcEntry;
+
+	mcMutex.Lock();
+	for (i = 0; i < paoiLocked->NumElements(); i++)
 	{
-		oi = aoiUnused.GetValue(i);
-		RemoveEntryIfUnused(oi, GetEntry(oi, false));
+		oi = paoiLocked->GetValue(i);
+		pcEntry = GetEntry(oi, false);
+		if (pcEntry != NULL)
+		{
+			ReleaseFromEntry(oi, pcEntry, iTransaction);
+		}
 	}
-	aoiUnused.Kill();
-
-	mcReleased.WakeAll();
 	mcMutex.Unlock();
 }
 
@@ -358,6 +365,41 @@ bool CLockManager::FindConflicts(CLockEntry* pcEntry, int64 iTransaction, ELockM
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CLockManager::ReleaseFromEntry(OIndex oi, CLockEntry* pcEntry, int64 iTransaction)
+{
+	size	iIndex;
+
+	//mcMutex must be locked.
+	iIndex = FindRequest(&pcEntry->masHolders, iTransaction);
+	if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
+	{
+		pcEntry->masHolders.RemoveAt(iIndex);
+		WakeWaiters(pcEntry);
+	}
+	RemoveEntryIfUnused(oi, pcEntry);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CLockManager::WakeWaiters(CLockEntry* pcEntry)
+{
+	size	i;
+
+	//mcMutex must be locked.  Each waiter checks again whether it can have the lock.
+	for (i = 0; i < pcEntry->masWaiters.NumElements(); i++)
+	{
+		pcEntry->masWaiters.Get(i)->pcWake->WakeOne();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CLockManager::Grant(CLockEntry* pcEntry, int64 iTransaction, ELockMode eMode)
 {
 	size			iHeld;
@@ -375,6 +417,7 @@ void CLockManager::Grant(CLockEntry* pcEntry, int64 iTransaction, ELockMode eMod
 	{
 		sRequest.iTransaction = iTransaction;
 		sRequest.eMode = eMode;
+		sRequest.pcWake = NULL;
 		pcEntry->masHolders.Add(&sRequest);
 	}
 }

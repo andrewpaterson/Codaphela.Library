@@ -25,8 +25,9 @@ enum ELockResult
 
 struct SLockRequest
 {
-	int64		iTransaction;	//The transaction's start number.  Lower is older.
-	ELockMode	eMode;
+	int64				iTransaction;	//The transaction's start number.  Lower is older.
+	ELockMode			eMode;
+	CConditionVariable*	pcWake;			//A waiting request's own condition, woken when its entry changes.  NULL for holders.
 };
 
 
@@ -48,11 +49,11 @@ public:
 //Locks objects by OIndex for write transactions until they commit or abort.  Deadlocks are prevented with wait-die: a
 //request that conflicts waits only if it is older than every transaction it conflicts with, otherwise it dies.
 //Waiting requests ahead of a new one count as conflicts, so a waiting writer cannot be passed for ever by new readers.
+//A waiting request is only woken when the object it waits for changes.
 class CLockManager
 {
 protected:
 	CMutex							mcMutex;
-	CConditionVariable				mcReleased;
 	CMapLongTemplate<CLockEntry*>	mcEntries;
 
 public:
@@ -60,6 +61,7 @@ public:
 	void			Kill(void);
 
 	ELockResult		Lock(int64 iTransaction, OIndex oi, ELockMode eMode);
+	void			Release(int64 iTransaction, CArrayOIndex* paoiLocked);
 	void			ReleaseAll(int64 iTransaction);
 
 	ELockMode		GetMode(int64 iTransaction, OIndex oi);
@@ -73,6 +75,8 @@ protected:
 	size			FindRequest(CArrayLockRequest* pasRequests, int64 iTransaction);
 	bool			FindConflicts(CLockEntry* pcEntry, int64 iTransaction, ELockMode eMode, size iWaitPosition, bool* pbOlderThanAll);
 	void			Grant(CLockEntry* pcEntry, int64 iTransaction, ELockMode eMode);
+	void			WakeWaiters(CLockEntry* pcEntry);
+	void			ReleaseFromEntry(OIndex oi, CLockEntry* pcEntry, int64 iTransaction);
 };
 
 

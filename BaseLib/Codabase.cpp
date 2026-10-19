@@ -771,9 +771,9 @@ ELockResult CCodabase::LockObject(int64 iTransaction, OIndex oi, ELockMode eMode
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCodabase::ReleaseLocks(int64 iTransaction)
+void CCodabase::ReleaseLocks(int64 iTransaction, CArrayOIndex* paoiLocked)
 {
-	mcLocks.ReleaseAll(iTransaction);
+	mcLocks.Release(iTransaction, paoiLocked);
 }
 
 
@@ -781,7 +781,7 @@ void CCodabase::ReleaseLocks(int64 iTransaction)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCodabase::CommitWriteSet(CMapBlock* pcRecords, CArrayChars* paszReserved, int64 iTransaction)
+bool CCodabase::CommitWriteSet(CMapBlock* pcRecords)
 {
 	bool	bResult;
 
@@ -806,10 +806,6 @@ bool CCodabase::CommitWriteSet(CMapBlock* pcRecords, CArrayChars* paszReserved, 
 		}
 	}
 	mcMutex.Unlock();
-
-	//The names are now in the store and the locks are released only once the commit is durable.
-	ReleaseNames(paszReserved, iTransaction);
-	ReleaseLocks(iTransaction);
 	return bResult;
 }
 

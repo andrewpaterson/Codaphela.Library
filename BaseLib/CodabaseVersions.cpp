@@ -1,5 +1,6 @@
 #include "PointerRemapper.h"
 #include "IndexedGeneral.h"
+#include "StackMemory.h"
 #include "CodabaseVersions.h"
 
 
@@ -52,12 +53,14 @@ void CCodabaseVersions::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCodabaseVersions::SaveRecord(int64 iValidUntil, OIndex oi, CNamedIndexedData* pcStore)
 {
-	CVersion**	ppcHead;
-	CVersion*	pcTail;
-	CVersion*	pcVersion;
-	CChars		szName;
-	uint32		uiDataSize;
-	bool		bExists;
+	CVersion**			ppcHead;
+	CVersion*			pcTail;
+	CVersion*			pcVersion;
+	CChars				szName;
+	uint32				uiDataSize;
+	bool				bExists;
+	CStackMemory<2 KB>	cStack;
+	void*				pvData;
 
 	//Only the version before the first change in a commit is kept.
 	ppcHead = mcRecords.Get(oi);
@@ -75,16 +78,20 @@ bool CCodabaseVersions::SaveRecord(int64 iValidUntil, OIndex oi, CNamedIndexedDa
 		}
 	}
 
+	//One read of the store gets the name and, usually, the data.  Only data bigger than the stack is read again.
 	szName.Init();
 	uiDataSize = 0;
-	bExists = pcStore->Get(oi, &uiDataSize, NULL, 0);
-	if (bExists)
-	{
-		pcStore->GetName(oi, &szName);
-	}
-	else
+	pvData = cStack.Init();
+	bExists = pcStore->GetWithName(oi, &szName, &uiDataSize, pvData, (uint32)cStack.GetStackSize());
+	if (!bExists)
 	{
 		uiDataSize = 0;
+	}
+	else if (uiDataSize > (uint32)cStack.GetStackSize())
+	{
+		cStack.Kill();
+		pvData = cStack.Init(uiDataSize);
+		pcStore->Get(oi, &uiDataSize, pvData, uiDataSize);
 	}
 
 	pcVersion = (CVersion*)malloc(sizeof(CVersion) + szName.Length() + 1 + uiDataSize);
@@ -96,8 +103,9 @@ bool CCodabaseVersions::SaveRecord(int64 iValidUntil, OIndex oi, CNamedIndexedDa
 	memcpy(pcVersion->GetName(), szName.Text(), szName.Length() + 1);
 	if (uiDataSize > 0)
 	{
-		pcStore->Get(oi, &uiDataSize, pcVersion->GetData(), uiDataSize);
+		memcpy(pcVersion->GetData(), pvData, uiDataSize);
 	}
+	cStack.Kill();
 
 	if (pcTail == NULL)
 	{

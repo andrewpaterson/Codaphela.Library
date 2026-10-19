@@ -441,6 +441,42 @@ bool CNamedIndexedData::Get(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CNamedIndexedData::GetWithName(OIndex oi, CChars* pszName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize)
+{
+	CStackMemory<2 KB>		cStack;
+	uint32					uiDataSize;
+	bool					bResult;
+	CNamedIndexedHeader*	pcHeader;
+
+	//The name and the data from one read of the stored record.
+	pcHeader = (CNamedIndexedHeader*)cStack.Init();
+	bResult = mcData.Get(oi, &uiDataSize, pcHeader, cStack.GetStackSize());
+	if (bResult && (uiDataSize > (uint32)cStack.GetStackSize()))
+	{
+		cStack.Kill();
+		pcHeader = (CNamedIndexedHeader*)cStack.Init(uiDataSize);
+		bResult = mcData.Get(oi, &uiDataSize, pcHeader, uiDataSize);
+	}
+
+	if (bResult)
+	{
+		pszName->Append(pcHeader->GetName(), pcHeader->GetNameLength());
+		uiDataSize = uiDataSize - pcHeader->GetHeaderSize();
+		SafeAssign(puiDataSize, uiDataSize);
+		if (pvData)
+		{
+			memcpy(pvData, pcHeader->GetData(), MinDataSize(uiDataSize, uiMaxDataSize));
+		}
+	}
+	cStack.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CNamedIndexedData::Get(const char* szName, void* pvData)
 {
 	OIndex	oi;
