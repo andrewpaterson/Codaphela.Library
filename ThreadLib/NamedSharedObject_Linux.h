@@ -6,7 +6,7 @@
 
 
 //Named POSIX shared memory that is destroyed when its last handle is closed, as
-//Windows named objects are.  Each handle holds a shared flock on its file
+//Windows named objects are.  Each handle holds a shared lock on its file
 //descriptor and the kernel releases it when the process exits, even if it
 //crashed, so a name that nobody holds is stale and is treated as not existing.
 

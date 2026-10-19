@@ -1,7 +1,7 @@
 #ifdef LINUX_GNU_32
 #include <errno.h>
 #include <fcntl.h>
-#include <sys/file.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -10,6 +10,28 @@
 
 #define NAMED_SHARED_OBJECT_PAGE_SIZE		4096
 #define NAMED_SHARED_OBJECT_DIRECTORY		"/dev/shm"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+//Locks the whole file with an open file description lock.  These behave as
+//flock does (they belong to the file descriptor and are released when it is
+//closed, even if the process crashed) but they are fcntl record locks, so they
+//also conflict with the fcntl locks other languages take (Java FileLock).
+//iType is F_RDLCK, F_WRLCK or F_UNLCK.  Returns 0, or -1 with errno set.
+static int LockFile(int iFile, short iType, bool bWait)
+{
+	struct flock	sLock;
+
+	memset(&sLock, 0, sizeof(sLock));
+	sLock.l_type = iType;
+	sLock.l_whence = SEEK_SET;
+	sLock.l_start = 0;
+	sLock.l_len = 0;  //To the end of the file, however large it grows.
+	return fcntl(iFile, bWait ? F_OFD_SETLKW : F_OFD_SETLK, &sLock);
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -69,7 +91,7 @@ static bool RemoveIfStale(int iFile, char* szPosixName)
 	struct stat	sStat;
 	bool		bStale;
 
-	if (flock(iFile, LOCK_EX | LOCK_NB) != 0)
+	if (LockFile(iFile, F_WRLCK, false) != 0)
 	{
 		//Somebody holds it.
 		return false;
@@ -82,7 +104,7 @@ static bool RemoveIfStale(int iFile, char* szPosixName)
 	{
 		UnlinkIfSameObject(iFile, szPosixName);
 	}
-	flock(iFile, LOCK_UN);
+	LockFile(iFile, F_UNLCK, false);
 	return bStale;
 }
 
@@ -125,7 +147,7 @@ int CreateNamedSharedObject(char* szPosixName, size_t uiSize)
 		return -1;
 	}
 
-	if ((flock(iFile, LOCK_EX) != 0) || (ftruncate(iFile, RoundUpToPage(uiSize)) != 0))
+	if ((LockFile(iFile, F_WRLCK, true) != 0) || (ftruncate(iFile, RoundUpToPage(uiSize)) != 0))
 	{
 		iErrno = errno;
 		shm_unlink(szPosixName);
@@ -143,7 +165,7 @@ int CreateNamedSharedObject(char* szPosixName, size_t uiSize)
 //////////////////////////////////////////////////////////////////////////
 void PublishNamedSharedObject(int iFile)
 {
-	flock(iFile, LOCK_SH);
+	LockFile(iFile, F_RDLCK, true);
 }
 
 
@@ -170,7 +192,7 @@ int OpenNamedSharedObject(char* szPosixName)
 	}
 
 	//Waits while the object is being created.
-	if (flock(iFile, LOCK_SH) != 0)
+	if (LockFile(iFile, F_RDLCK, true) != 0)
 	{
 		close(iFile);
 		return -1;
@@ -194,8 +216,11 @@ int OpenNamedSharedObject(char* szPosixName)
 //////////////////////////////////////////////////////////////////////////
 void CloseNamedSharedObject(int iFile, char* szPosixName)
 {
-	//Only the last handle can take the exclusive lock.
-	if (flock(iFile, LOCK_EX | LOCK_NB) == 0)
+	//Only the last handle can take the exclusive lock.  The shared lock is let go
+	//first; otherwise two handles closing together would each be stopped by the
+	//other's shared lock and neither would remove the name.
+	LockFile(iFile, F_UNLCK, false);
+	if (LockFile(iFile, F_WRLCK, false) == 0)
 	{
 		UnlinkIfSameObject(iFile, szPosixName);
 	}

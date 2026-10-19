@@ -8,6 +8,7 @@
 #include "CodabaseVersions.h"
 #include "LockManager.h"
 #include "MapStringTemplate.h"
+#include "ArrayInt64.h"
 
 
 class CWriteTransaction;
@@ -37,7 +38,7 @@ protected:
 	bool							mbFailed;			//A commit failed part way.  No more writes until restarted.
 	CCodabaseVersions				mcVersions;			//Old versions for read transactions.
 	int64							miCommitNumber;		//The last commit.  The commit in progress is miCommitNumber + 1.
-	CArrayTemplate<int64>			maiSnapshots;		//The snapshot of every open read transaction.
+	CArrayInt64						maiSnapshots;		//The snapshot of every open read transaction.
 	CLockManager					mcLocks;
 	CMapStringTemplate<int64>		mcReservedNames;	//Names being added by uncommitted write transactions, and which one.
 	int64							miLastStartNumber;  //Write transactions are numbered from 1.  The session is 0, the oldest.
@@ -59,7 +60,6 @@ public:
 	CReadTransaction*	BeginReadTransaction(void);
 	CLockManager*		GetLockManager(void);
 	bool				IsFailed(void);
-	int64				GetCommitNumber(void);
 	size				NumVersions(void);
 
 	bool	ValidateConfigInitialised(void);
@@ -106,6 +106,7 @@ public:
 	bool	IsWriteThrough(void);
 
 	int64	NumIndices(void);
+	//While a session is open the cached counts include the objects and names it has added (not ones it changed).
 	int64	NumIndicesCached(void);
 	int64	NumIndicesCached(size iSize);
 	int64	NumDataCached(void);
@@ -122,21 +123,38 @@ public:
 	bool	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 
 protected:
-	bool	CommitLocked(void);
-	bool	NeedsSession(const char* szMethod);
-	bool	HasWriterOnThisThread(void);
-	void	RemoveWriter(CWriteTransaction* pcTransaction);
-	bool	ReserveName(const char* szName, int64 iTransaction);
-	void	ReleaseName(const char* szName, int64 iTransaction);
-	bool	StoredGet(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
-	bool	StoredGetAll(OIndex oi, void* pvData);
-	bool	StoredContains(OIndex oi);
-	bool	StoredGetName(OIndex oi, CChars* pszName);
-	OIndex	StoredGetIndex(const char* szName);
-	void	RemoveOldVersions(void);
-	void	EndRead(int64 iSnapshot);
-	void	GetStoredIndices(CArrayOIndex* paoi);
-	void	GetStoredNames(CArrayChars* paszNames);
+	//Used by the transactions.  Each takes the locks it needs.
+	bool		StoredGet(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
+	bool		StoredGet(OIndex oi, void* pvData);
+	bool		StoredContains(OIndex oi);
+	bool		StoredGetName(OIndex oi, CChars* pszName);
+	OIndex		StoredGetIndex(const char* szName);
+	void		StoredIndices(CArrayOIndex* paoi);
+	void		StoredNames(CArrayChars* paszNames);
+
+	bool		SnapshotGet(int64 iSnapshot, OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize, bool bAllData);
+	bool		SnapshotContains(int64 iSnapshot, OIndex oi);
+	bool		SnapshotGetName(int64 iSnapshot, OIndex oi, CChars* pszName);
+	OIndex		SnapshotGetIndex(int64 iSnapshot, const char* szName);
+	void		SnapshotIndices(int64 iSnapshot, CArrayOIndex* paoi);
+	void		SnapshotNames(int64 iSnapshot, CArrayChars* paszNames);
+	void		EndRead(int64 iSnapshot);
+
+	ELockResult	LockObject(int64 iTransaction, OIndex oi, ELockMode eMode);
+	void		ReleaseLocks(int64 iTransaction);
+	bool		ReserveName(const char* szName, int64 iTransaction, bool bRemovedByTransaction);
+	void		ReleaseNames(CArrayChars* paszNames, int64 iTransaction);
+	bool		CommitWriteSet(CMapBlock* pcRecords, CArrayChars* paszReserved, int64 iTransaction);
+	void		RemoveWriter(CWriteTransaction* pcTransaction);
+
+	bool		CommitLocked(void);
+	bool		ApplyLocked(CMapBlock* pcRecords, bool bRemovals);
+	bool		NeedsSession(const char* szMethod);
+	bool		HasWriterOnThisThread(void);
+	void		RemoveOldVersions(void);
+	bool		SnapshotGetLocked(int64 iSnapshot, OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize, bool bAllData);
+	bool		SnapshotContainsLocked(int64 iSnapshot, OIndex oi);
+	OIndex		SnapshotGetIndexLocked(int64 iSnapshot, const char* szName);
 };
 
 

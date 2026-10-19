@@ -1566,10 +1566,16 @@
     <ClInclude Include="ReadTransaction.h">
       <Filter>Source\Database\Codabase</Filter>
     </ClInclude>
+    <ClInclude Include="TransactionIteration.h">
+      <Filter>Source\Database\Codabase</Filter>
+    </ClInclude>
     <ClInclude Include="CodabaseVersions.h">
       <Filter>Source\Database\Codabase</Filter>
     </ClInclude>
     <ClInclude Include="DataConnection.h">
+      <Filter>Source\Database</Filter>
+    </ClInclude>
+    <ClInclude Include="DataReader.h">
       <Filter>Source\Database</Filter>
     </ClInclude>
     <ClInclude Include="IndexTreeEvictionStrategyFactory.h">
@@ -2781,6 +2787,9 @@
       <Filter>Source\Database\Codabase</Filter>
     </ClCompile>
     <ClCompile Include="ReadTransaction.cpp">
+      <Filter>Source\Database\Codabase</Filter>
+    </ClCompile>
+    <ClCompile Include="TransactionIteration.cpp">
       <Filter>Source\Database\Codabase</Filter>
     </ClCompile>
     <ClCompile Include="CodabaseVersions.cpp">

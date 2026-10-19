@@ -33,10 +33,15 @@ struct SLockRequest
 typedef CArrayTemplate<SLockRequest>	CArrayLockRequest;
 
 
-struct SLockEntry
+class CLockEntry
 {
-	CArrayLockRequest	asHolders;
-	CArrayLockRequest	asWaiters;	//In the order they will be granted.
+public:
+	CArrayLockRequest	masHolders;
+	CArrayLockRequest	masWaiters;	//In the order they will be granted.
+
+	void	Init(void);
+	void	Kill(void);
+	bool	IsUnused(void);
 };
 
 
@@ -48,7 +53,7 @@ class CLockManager
 protected:
 	CMutex							mcMutex;
 	CConditionVariable				mcReleased;
-	CMapLongTemplate<SLockEntry*>	mcEntries;
+	CMapLongTemplate<CLockEntry*>	mcEntries;
 
 public:
 	void			Init(void);
@@ -63,11 +68,11 @@ public:
 	static bool		IsCompatible(ELockMode eHeld, ELockMode eRequested);
 
 protected:
-	SLockEntry*		GetEntry(OIndex oi, bool bCreate);
-	void			RemoveEntryIfUnused(OIndex oi, SLockEntry* psEntry);
+	CLockEntry*		GetEntry(OIndex oi, bool bCreate);
+	void			RemoveEntryIfUnused(OIndex oi, CLockEntry* pcEntry);
 	size			FindRequest(CArrayLockRequest* pasRequests, int64 iTransaction);
-	bool			FindConflicts(SLockEntry* psEntry, int64 iTransaction, ELockMode eMode, size iWaitPosition, bool* pbOlderThanAll);
-	void			Grant(SLockEntry* psEntry, int64 iTransaction, ELockMode eMode);
+	bool			FindConflicts(CLockEntry* pcEntry, int64 iTransaction, ELockMode eMode, size iWaitPosition, bool* pbOlderThanAll);
+	void			Grant(CLockEntry* pcEntry, int64 iTransaction, ELockMode eMode);
 };
 
 

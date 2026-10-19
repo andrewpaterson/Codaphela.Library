@@ -57,9 +57,11 @@ API
   CCodabase::BeginReadTransaction()   returns CReadTransaction*
   CCodabase::BeginWriteTransaction()  returns CWriteTransaction*
 
-CReadTransaction has a read-only interface: Get, GetName, GetIndex, Contains, StartIndexIteration / IndexIterate, StartNameIteration / NameIterate.
+CReadTransaction implements CDataReader: Get, GetName, GetIndex, Contains, StartIndexIteration / IndexIterate, StartNameIteration / NameIterate.  CDataConnection is CDataReader plus writing, so CCodabase and CWriteTransaction are CDataReaders too.
 
 CWriteTransaction implements CDataConnection (Add, Set, Put, Remove, Get, ...) and adds Commit and Abort.  Code written against CDataConnection can therefore run on a write transaction unchanged.
+
+The transactions only use CCodabase through its methods (Stored..., Snapshot..., LockObject, ReserveName, CommitWriteSet), never its members.
 
 Ownership follows BaseLib conventions: the Codabase allocates transactions and Kill() releases them.  Killing a write transaction that has not committed aborts it.
 
@@ -89,18 +91,17 @@ Abort discards the write set.  Nothing has touched disk, so nothing needs undoin
 Commit
 ------
 
-Commits run one at a time under the commit mutex.
+CWriteTransaction::Commit hands its write set to CCodabase::CommitWriteSet, which holds the store mutex for the whole commit, so commits run one at a time.
 
-  1. Check every name the transaction creates against the committed names.  This MUST happen before Begin(): CDurableSet has no rollback, so anything written inside a Begin/End bracket is committed by End().  A failure here aborts the transaction cleanly.
-  2. Begin().
-  3. For each object in the write set: push the base store's current version (or "did not exist") into the version store, tagged "valid until C" where C is the new commit number, then write the new value (or Remove) into the base store.  Name changes push onto the name version chain the same way.
-  4. Flush and End().  After a commit the cache holds no unwritten changes, so eviction only ever drops clean data.
-  5. Publish C as the latest commit number.
-  6. Acknowledge the commit to the caller, then release the transaction's locks and name reservations.
+  1. Nothing can fail on a name: names were checked against the committed names and reserved when they were added (see "Name reservations").  This matters because CDurableSet has no rollback; anything written inside a Begin/End bracket is committed by End().
+  2. Removals are applied first, then additions and changes, so a name removed from one object can be given to another.  Before each change, if a read transaction is open, the store's current version (or "did not exist") is pushed into the version store, tagged "valid until C" where C is the new commit number.
+  3. Flush, End(), and Begin() the next bracket.  After a commit the cache holds no unwritten changes, so eviction only ever drops clean data.
+  4. Publish C as the latest commit number.
+  5. Release the transaction's name reservations and locks, and return to the caller.
 
-Publishing C only after End() returns, and acknowledging only after publishing, gives the real-time part of strict serialisability: any transaction started after the acknowledgement sees the commit.
+Publishing C only after End() returns, and returning only after publishing, gives the real-time part of strict serialisability: any transaction started after the commit returns sees it.
 
-Each base-store write in step 3 holds the store mutex only for that one object.  A read-only transaction with a snapshot before C finds the pushed old version even while the commit is half applied, so readers never wait out a commit's fsyncs.
+The store mutex is held for the whole commit, End()'s fsyncs included, so read transactions and stored reads wait while a commit is in progress (never for an uncommitted writer).  Holding it for one object at a time instead would let readers read through a commit, because they would find the pushed versions; that is not done in version 1.
 
 Every commit costs fsyncs (milliseconds, more on Windows).  That is correct behaviour.  A write-ahead log could make commits cheaper later if needed.  Tests that do not need durability turn the fsyncs off with DS_No (see "Durability").
 
@@ -157,17 +158,22 @@ Version store (snapshots)
 
 Old versions are kept in two in-memory maps beside the base CNamedIndexedData.  A second IndexedStore / NamedIndexStore is not used: those are durable (Begin/End, primary and backup, recovery) and CIndexedData keys are fixed to OIndex, while old versions are temporary.
 
-  CMapLongTemplate<SVersionChain>   OIndex -> version chain
-  CIndexTreeMemory                  name   -> version chain
+  CMapLongTemplate<CVersion*>           OIndex -> chain of CVersion
+  CMapStringTemplate<SNameVersion*>     name   -> chain of SNameVersion
 
-A chain is a short array ordered by "valid until":
+Each chain is a linked list of malloc'd nodes, oldest first:
 
-  struct SVersion
+  class CVersion
   {
-      int64   iValidUntil;   // Commit number that replaced this version.
-      size    iDataSize;     // 0 = did not exist before iValidUntil.
-      // Data follows: header + data, exactly as stored in the base store.
+      int64       iValidUntil;    // Commit number that replaced this version.
+      CVersion*   pcNext;
+      bool        bExists;        // False: the object did not exist before iValidUntil.
+      int32       iNameLength;
+      uint32      uiDataSize;
+      // The name with its terminating zero, then the data, follow.
   };
+
+  struct SNameVersion { int64 iValidUntil; SNameVersion* psNext; OIndex oi; };   // oi is INVALID_O_INDEX if the name did not exist.
 
 Because write transactions hold X locks, an object has at most one uncommitted version, in its writer's write set.
 
@@ -181,9 +187,9 @@ When versions are saved:
   - A write transaction commit saves them only if a read transaction is open.  None can begin while the commit holds the store mutex.
   - A direct session is a write transaction too, so it changes nothing in the store before it commits and saves versions the same way.
 
-Implemented in CodabaseVersions.h/.cpp (implemented, step 4): CMapLongTemplate<SVersion*> and CMapStringTemplate<SNameVersion*>, chains of malloc'd nodes ordered oldest first.
+Implemented in CodabaseVersions.h/.cpp (step 4).  CReadTransaction reads through CCodabase's Snapshot methods (SnapshotGet, SnapshotGetIndex, SnapshotIndices, ...).
 
-Iteration (step 4): CReadTransaction and CWriteTransaction build the list of indices (or names) visible to them when iteration starts, sorted by index (or name), and return the data as of their snapshot (or with their changes) one step at a time.  Only one index and one name iteration can be in progress per transaction; the iterator argument is not used.
+Iteration (step 4): CReadTransaction and CWriteTransaction build the list of indices (or names) visible to them when iteration starts, sorted by index (or name) without duplicates in a CTransactionIteration, and return the data as of their snapshot (or with their changes) one step at a time.  Only one index and one name iteration can be in progress per transaction; the iterator argument is not used.
 
 The version store is not durable.  After a crash or restart no transactions are open, so it starts empty.
 
