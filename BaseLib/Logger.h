@@ -27,6 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "LogString.h"
 #include "ArrayTemplate.h"
 #include "AbstractFile.h"
+#include "Mutex.h"
 
 
 typedef CArrayTemplate<CAbstractFile*> CArrayFile;
@@ -42,6 +43,7 @@ protected:
 	CArrayFile		mapcFiles;
 	SLogConfig		msConfig;
 	CAbstractFile*	mpcDebugOutputFile;
+	CMutex			mcMutex;
 
 public:
 	void		Init(void);
@@ -72,6 +74,10 @@ public:
 	void		RemoveOutput(CAbstractFile* pcFile);
 
 	void		Break(void);
+
+protected:
+	void		Lock(void);
+	void		Unlock(void);
 };
 
 

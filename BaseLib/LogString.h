@@ -56,8 +56,9 @@ char* StringToString(const char* sz);
 const char* StringToString(const char* szStart, const char* szLastCharInclusive);
 char* BoolToString(bool b);
 
-extern char		gaszLogToStringScratchPad[LOG_TO_STRING_SCRATCH_PAD_SIZE][LOG_TO_STRING_MAX_LENGTH];
-extern size		giLogToStringCount;
+//Each thread has its own scratch pad so one thread can't overwrite another thread's strings.
+extern thread_local char	gaszLogToStringScratchPad[LOG_TO_STRING_SCRATCH_PAD_SIZE][LOG_TO_STRING_MAX_LENGTH];
+extern thread_local size	giLogToStringCount;
 
 
 #endif // __LOG_TO_STRING_H__
