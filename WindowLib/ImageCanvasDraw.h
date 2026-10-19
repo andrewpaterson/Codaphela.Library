@@ -24,6 +24,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "WindowLib/CanvasDraw.h"
 
 
+//Draws its cel at the top left of the canvas, or stretched (or shrunk) to the whole canvas.
 class CImageCanvasDraw : public CCanvasDraw
 {
 CONSTRUCTABLE(CImageCanvasDraw);
@@ -31,9 +32,10 @@ DESTRUCTABLE(CImageCanvasDraw);
 protected:
 	Ptr<CImageCel>				mpCel;
 	Ptr<CImage>					mpDestImage;
+	bool						mbStretch;
 
 public:
-	void		Init(Ptr<CImageCel> pCel);
+	void		Init(Ptr<CImageCel> pCel, bool bStretch = false);
 	void		Class(void) override;
 	void 		Free(void) override;
 
