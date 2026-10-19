@@ -36,6 +36,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 CLogger		gcLogger;
 
+//How many times this thread has locked gcLogger.  The logger can be re-entered from its own outputs (a CLogFile
+//logs its errors) so the lock must be recursive but CMutex is not.
+thread_local size	giLoggerLockDepth = 0;
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -89,6 +93,7 @@ void CLogger::Init(CAbstractFile* pcFile, const char* szName)
 	char				s[512];
 	CAbstractFile*		pcDebugFile;
 
+	mcMutex.Init();
 	mapcFiles.Init();
 
 	if (pcFile)
@@ -126,6 +131,7 @@ void CLogger::Kill(void)
 	CAbstractFile*	pcFile;
 	bool			bDebugFreed;
 
+	Lock();
 	bDebugFreed = false;
 	for (i = 0; i < mapcFiles.NumElements(); i++)
 	{
@@ -149,6 +155,37 @@ void CLogger::Kill(void)
 		}
 	}
 	mapcFiles.Kill();
+	Unlock();
+
+	mcMutex.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogger::Lock(void)
+{
+	if (giLoggerLockDepth == 0)
+	{
+		mcMutex.Lock();
+	}
+	giLoggerLockDepth++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogger::Unlock(void)
+{
+	giLoggerLockDepth--;
+	if (giLoggerLockDepth == 0)
+	{
+		mcMutex.Unlock();
+	}
 }
 
 
@@ -161,6 +198,7 @@ void CLogger::Add(const char* szText)
 	size			i;
 	CAbstractFile*	pcFile;
 
+	Lock();
 	if (msConfig.bEnabled)
 	{
 		for (i = 0; i < mapcFiles.NumElements(); i++)
@@ -172,6 +210,7 @@ void CLogger::Add(const char* szText)
 			pcFile->Close();
 		}
 	}
+	Unlock();
 }
 
 
@@ -402,6 +441,8 @@ void CLogger::Add(const char* szErrorLevel, const char* szText)
 	if (iLength > (1 KB - 80))
 	{
 		//This is really slow because the file must be opened and closed every add...
+		//Lock so another thread's message can't be interleaved between the parts.
+		Lock();
 		if (szErrorLevel)
 		{
 			Add(szErrorLevel);
@@ -409,6 +450,7 @@ void CLogger::Add(const char* szErrorLevel, const char* szText)
 		}
 		Add(szText);
 		Add("\n");
+		Unlock();
 	}
 	else
 	{
@@ -434,7 +476,9 @@ void CLogger::Add(const char* szErrorLevel, const char* szText)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::Disable(void)
 {
+	Lock();
 	msConfig.bEnabled = false;
+	Unlock();
 }
 
 
@@ -444,7 +488,9 @@ void CLogger::Disable(void)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::Enable(void)
 {
+	Lock();
 	msConfig.bEnabled = true;
+	Unlock();
 }
 
 
@@ -454,7 +500,9 @@ void CLogger::Enable(void)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::SetBreakOnError(bool bBreakOnError)
 {
+	Lock();
 	msConfig.bBreakOnError = bBreakOnError;
+	Unlock();
 }
 
 
@@ -464,7 +512,9 @@ void CLogger::SetBreakOnError(bool bBreakOnError)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::SetBreakOnWarning(bool bBreakOnWarning)
 {
+	Lock();
 	msConfig.bBreakOnWarning = bBreakOnWarning;
+	Unlock();
 }
 
 
@@ -476,6 +526,7 @@ SLogConfig CLogger::SetSilent(bool bBreakOnError)
 {
 	SLogConfig sExisting;
 
+	Lock();
 	GetConfig(&sExisting);
 
 	msConfig.bEnabled = true;
@@ -484,6 +535,7 @@ SLogConfig CLogger::SetSilent(bool bBreakOnError)
 	msConfig.bDebugOutput = false;
 
 	RemoveOutput(mpcDebugOutputFile);
+	Unlock();
 
 	return sExisting;
 }
@@ -495,6 +547,7 @@ SLogConfig CLogger::SetSilent(bool bBreakOnError)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::SetConfig(SLogConfig* psConfig)
 {
+	Lock();
 	msConfig.bEnabled = psConfig->bEnabled;
 	msConfig.bBreakOnError = psConfig->bBreakOnError;
 	msConfig.bBreakOnWarning = psConfig->bBreakOnWarning;
@@ -504,6 +557,7 @@ void CLogger::SetConfig(SLogConfig* psConfig)
 	{
 		AddOutput(mpcDebugOutputFile);
 	}
+	Unlock();
 }
 
 
@@ -513,10 +567,12 @@ void CLogger::SetConfig(SLogConfig* psConfig)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::GetConfig(SLogConfig* psConfig)
 {
+	Lock();
 	psConfig->bEnabled = msConfig.bEnabled;
 	psConfig->bBreakOnError = msConfig.bBreakOnError;
 	psConfig->bBreakOnWarning = msConfig.bBreakOnWarning;
 	psConfig->bDebugOutput = msConfig.bDebugOutput;
+	Unlock();
 }
 
 
@@ -526,7 +582,9 @@ void CLogger::GetConfig(SLogConfig* psConfig)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::AddOutput(CAbstractFile* pcFile)
 {
+	Lock();
 	mapcFiles.Add(&pcFile);
+	Unlock();
 }
 
 
@@ -538,7 +596,9 @@ void CLogger::RemoveOutput(CAbstractFile* pcFile)
 {
 	size	iIndex;
 
+	Lock();
 	iIndex = mapcFiles.FindWithKey(&pcFile, 0, sizeof(CAbstractFile*));
 	mapcFiles.RemoveAt(iIndex);
+	Unlock();
 }
 
