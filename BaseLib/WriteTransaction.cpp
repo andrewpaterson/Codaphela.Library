@@ -40,6 +40,7 @@ void CWriteTransaction::Init(CCodabase* pcCodabase, int64 iStartNumber)
 	mcRecords.Init(true);
 	mcNames.Init(true, true);
 	maszReserved.Init();
+	mcLocked.Init(true);
 	mbActive = true;
 	mbDied = false;
 	mcIteration.Init();
@@ -56,6 +57,7 @@ void CWriteTransaction::Kill(void)
 	Abort();
 	mpcCodabase->RemoveWriter(this);
 	mcIteration.Kill();
+	mcLocked.Kill();
 	maszReserved.Kill();
 	mcNames.Kill();
 	mcRecords.Kill();
@@ -76,9 +78,9 @@ bool CWriteTransaction::Commit(void)
 		return false;
 	}
 
-	//The Codabase applies the changes, then releases the names and locks once the commit is durable.
-	bResult = mpcCodabase->CommitWriteSet(&mcRecords, &maszReserved, miStartNumber);
-	maszReserved.ReInit();
+	//The names and locks are released only once the commit is durable.
+	bResult = mpcCodabase->CommitWriteSet(&mcRecords);
+	ReleaseResources();
 	Finish();
 	return bResult;
 }
@@ -856,10 +858,28 @@ bool CWriteTransaction::CheckActive(void)
 //////////////////////////////////////////////////////////////////////////
 bool CWriteTransaction::LockOrDie(OIndex oi, ELockMode eMode)
 {
+	ELockMode*	peHeld;
+
+	//A lock already held strongly enough needs nothing from the lock manager.
+	peHeld = mcLocked.Get(oi);
+	if ((peHeld != NULL) && (*peHeld >= eMode))
+	{
+		return true;
+	}
+
 	if (mpcCodabase->LockObject(miStartNumber, oi, eMode) == LR_Died)
 	{
 		Die();
 		return false;
+	}
+
+	if (peHeld != NULL)
+	{
+		*peHeld = eMode;
+	}
+	else
+	{
+		mcLocked.Put(oi, &eMode);
 	}
 	return true;
 }
@@ -917,9 +937,28 @@ void CWriteTransaction::Die(void)
 //////////////////////////////////////////////////////////////////////////
 void CWriteTransaction::ReleaseResources(void)
 {
+	CArrayOIndex	aoiLocked;
+	SMapIterator	sIter;
+	void*			pvKey;
+	void*			pvData;
+	size			iKeySize;
+	size			iDataSize;
+	bool			bExists;
+
 	mpcCodabase->ReleaseNames(&maszReserved, miStartNumber);
 	maszReserved.ReInit();
-	mpcCodabase->ReleaseLocks(miStartNumber);
+
+	//Only the objects this transaction locked are released.
+	aoiLocked.Init();
+	bExists = mcLocked.StartIteration(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
+	while (bExists)
+	{
+		aoiLocked.Add(*((OIndex*)pvKey));
+		bExists = mcLocked.Iterate(&sIter, &pvKey, &iKeySize, &pvData, &iDataSize);
+	}
+	mpcCodabase->ReleaseLocks(miStartNumber, &aoiLocked);
+	aoiLocked.Kill();
+	mcLocked.ReInit();
 }
 
 

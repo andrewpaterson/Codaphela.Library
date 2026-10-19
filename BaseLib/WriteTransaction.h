@@ -3,6 +3,7 @@
 #include "DataConnection.h"
 #include "MapBlock.h"
 #include "MapStringTemplate.h"
+#include "MapLongTemplate.h"
 #include "ArrayChars.h"
 #include "LockManager.h"
 #include "TransactionIteration.h"
@@ -58,6 +59,7 @@ protected:
 	CMapBlock					mcRecords;		//OIndex to CWriteRecord.
 	CMapStringTemplate<OIndex>	mcNames;		//Names added or removed by the transaction.  INVALID_O_INDEX means removed.
 	CArrayChars					maszReserved;	//Names this transaction has reserved.
+	CMapLongTemplate<ELockMode>	mcLocked;		//The objects this transaction has locked, and how strongly.
 	bool						mbActive;
 	bool						mbDied;
 	CTransactionIteration		mcIteration;

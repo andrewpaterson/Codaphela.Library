@@ -141,10 +141,10 @@ protected:
 	void		EndRead(int64 iSnapshot);
 
 	ELockResult	LockObject(int64 iTransaction, OIndex oi, ELockMode eMode);
-	void		ReleaseLocks(int64 iTransaction);
+	void		ReleaseLocks(int64 iTransaction, CArrayOIndex* paoiLocked);
 	bool		ReserveName(const char* szName, int64 iTransaction, bool bRemovedByTransaction);
 	void		ReleaseNames(CArrayChars* paszNames, int64 iTransaction);
-	bool		CommitWriteSet(CMapBlock* pcRecords, CArrayChars* paszReserved, int64 iTransaction);
+	bool		CommitWriteSet(CMapBlock* pcRecords);
 	void		RemoveWriter(CWriteTransaction* pcTransaction);
 
 	bool		CommitLocked(void);

@@ -53,6 +53,7 @@ public:
 
 	bool			Get(OIndex oi, void* pvData);
 	bool			Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
+	bool			GetWithName(OIndex oi, CChars* pszName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
 	bool			Get(const char* szName, void* pvData);
 	bool			Get(const char* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
 	bool			Get(CChars* szName, void* pvData);
