@@ -51,15 +51,43 @@ void AppendImageCelsIntegers(CChars* szText, char* szIdentifier, int32* aiValues
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Writes a block with the FileName and Directory of szPathName.
+//
+//////////////////////////////////////////////////////////////////////////
+void AppendImageCelsPath(CChars* szText, char* szIdentifier, char* szPathName)
+{
+	CChars		szFileName;
+	CChars		szDirectory;
+	CFileUtil	cFileUtil;
+
+	szFileName.Init();
+	szDirectory.Init();
+	cFileUtil.SplitPath(szPathName, &szFileName, &szDirectory);
+
+	//Always write '/' so the file is the same on every platform.  The reader fixes the separators.
+	szDirectory.Replace('\\', '/');
+
+	szText->Append("\t");
+	szText->Append(szIdentifier);
+	szText->Append("\n\t{\n\t\tFileName\t\"");
+	szText->Append(szFileName);
+	szText->Append("\";\n\t\tDirectory\t\"");
+	szText->Append(szDirectory);
+	szText->Append("\";\n\t}\n");
+
+	szFileName.Kill();
+	szDirectory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CelsWriter(Ptr<CArrayImageCel> paCels, char* szImagePathName, char* szPathName)
 {
 	CTextFile		cTextFile;
 	CChars*			szText;
-	CChars			szFileName;
-	CChars			szDirectory;
-	CFileUtil		cFileUtil;
 	size			i;
 	size			uiNumCels;
 	Ptr<CImageCel>	pCel;
@@ -82,24 +110,11 @@ bool CelsWriter(Ptr<CArrayImageCel> paCels, char* szImagePathName, char* szPathN
 		}
 	}
 
-	szFileName.Init();
-	szDirectory.Init();
-	cFileUtil.SplitPath(szImagePathName, &szFileName, &szDirectory);
-
-	//Always write '/' so the file is the same on every platform.  The reader fixes the separators.
-	szDirectory.Replace('\\', '/');
-
 	cTextFile.Init();
 	szText = &cTextFile.mcText;
 
-	szText->Append("ImageCels\n{\n\tImage\n\t{\n\t\tFileName\t\"");
-	szText->Append(szFileName);
-	szText->Append("\";\n\t\tDirectory\t\"");
-	szText->Append(szDirectory);
-	szText->Append("\";\n\t}\n");
-
-	szFileName.Kill();
-	szDirectory.Kill();
+	szText->Append("ImageCels\n{\n");
+	AppendImageCelsPath(szText, "Image", szImagePathName);
 
 	for (i = 0; i < uiNumCels; i++)
 	{

@@ -23,11 +23,17 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __IMAGE_CELS_READER_H__
 #define __IMAGE_CELS_READER_H__
+#include "BaseLib/TextParser.h"
 #include "ImageCel.h"
 
 
 //Reads a text descriptor written by CelsWriter and loads the source image it names.
 Ptr<CArrayImageCel> CelsReader(char* szPathName);
+
+//Parsing shared with other text descriptors written in the same style.
+TRISTATE GetImageCelsIdentifierAndString(CTextParser* pcTextParser, char* szIdentifier, CChars* szDest);
+TRISTATE GetImageCelsIdentifierAndIntegers(CTextParser* pcTextParser, char* szIdentifier, int32* aiValues, size uiCount);
+TRISTATE GetImageCelsPath(CTextParser* pcTextParser, char* szIdentifier, CChars* szPathName);
 
 
 #endif // __IMAGE_CELS_READER_H__
