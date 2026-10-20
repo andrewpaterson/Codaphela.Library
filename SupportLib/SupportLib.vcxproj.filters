@@ -696,6 +696,12 @@
     <ClInclude Include="FontFactory.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
+    <ClInclude Include="FontReader.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
+    <ClInclude Include="FontWriter.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
     <ClInclude Include="FontImportParameters.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
@@ -1326,6 +1332,12 @@
       <Filter>Source\Map\Tile\Specific</Filter>
     </ClCompile>
     <ClCompile Include="FontFactory.cpp">
+      <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="FontReader.cpp">
+      <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="FontWriter.cpp">
       <Filter>Source\Image\Font</Filter>
     </ClCompile>
     <ClCompile Include="FontImportParameters.cpp">

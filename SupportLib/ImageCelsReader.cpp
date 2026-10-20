@@ -87,16 +87,17 @@ TRISTATE GetImageCelsIdentifierAndIntegers(CTextParser* pcTextParser, char* szId
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Reads a block with a FileName and a Directory into one path.
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE GetImageCelsImage(CTextParser* pcTextParser, CChars* szImagePathName)
+TRISTATE GetImageCelsPath(CTextParser* pcTextParser, char* szIdentifier, CChars* szPathName)
 {
 	CChars		szFileName;
 	CChars		szDirectory;
 	CFileUtil	cFileUtil;
 	TRISTATE	tResult;
 
-	ReturnOnErrorAndFalse(pcTextParser->GetExactIdentifier("Image"));
+	ReturnOnErrorAndFalse(pcTextParser->GetExactIdentifier(szIdentifier));
 	ReturnOnErrorAndFalse(pcTextParser->GetExactCharacter('{'));
 
 	szFileName.Init();
@@ -113,10 +114,10 @@ TRISTATE GetImageCelsImage(CTextParser* pcTextParser, CChars* szImagePathName)
 
 	if (tResult == TRITRUE)
 	{
-		szImagePathName->Append(szDirectory);
-		cFileUtil.AppendToPath(szImagePathName, szFileName.Text());
-		cFileUtil.FixSeparators(szImagePathName);
-		cFileUtil.CollapsePath(szImagePathName);
+		szPathName->Append(szDirectory);
+		cFileUtil.AppendToPath(szPathName, szFileName.Text());
+		cFileUtil.FixSeparators(szPathName);
+		cFileUtil.CollapsePath(szPathName);
 	}
 	szFileName.Kill();
 	szDirectory.Kill();
@@ -233,7 +234,7 @@ Ptr<CArrayImageCel> CelsReader(char* szPathName)
 	}
 	if (tResult == TRITRUE)
 	{
-		tResult = GetImageCelsImage(&cTextParser, &szImagePathName);
+		tResult = GetImageCelsPath(&cTextParser, "Image", &szImagePathName);
 	}
 	if (tResult != TRITRUE)
 	{

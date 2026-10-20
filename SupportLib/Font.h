@@ -61,6 +61,7 @@ public:
 
 	void 			Done(void);
 	bool			Is(char* szName);
+	char*			GetName(void);
 	size 			CalculateWidth(char* szText);
 	bool			IsWhitespace(uint16 c);
 	Ptr<CGlyph>		GetGlyph(uint16 c, size uiLength);

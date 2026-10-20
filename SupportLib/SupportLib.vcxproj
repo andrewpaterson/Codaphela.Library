@@ -258,6 +258,8 @@
     <ClInclude Include="ImageCopier.h" />
     <ClInclude Include="Font.h" />
     <ClInclude Include="FontList.h" />
+    <ClInclude Include="FontReader.h" />
+    <ClInclude Include="FontWriter.h" />
     <ClInclude Include="Glyph.h" />
     <ClInclude Include="ImageAccessorCreator.h" />
     <ClInclude Include="ImageAccessor.h" />
@@ -456,6 +458,8 @@
     <ClCompile Include="ImageCopier.cpp" />
     <ClCompile Include="Font.cpp" />
     <ClCompile Include="FontList.cpp" />
+    <ClCompile Include="FontReader.cpp" />
+    <ClCompile Include="FontWriter.cpp" />
     <ClCompile Include="Glyph.cpp" />
     <ClCompile Include="SimpleTextReader.cpp" />
     <ClCompile Include="Sprite.cpp" />
