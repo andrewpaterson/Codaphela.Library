@@ -45,6 +45,7 @@ protected:
 	int32			miWidth;		//-1 for no max width;
 	int16			miRowHeight;
 	SInt32Vec2		msPosition;
+	SInt32Vec2		msSize;
 	CUTF16			mcUTF16;
 	CBaseFontDraw*	mpcDraw;
 
@@ -58,6 +59,7 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 
 	void			Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText);
+	SInt32Vec2		GetSize(void);
 
 protected:
 	void			Glyph(Ptr<CGlyph> pGlyph);

@@ -102,6 +102,28 @@ Ptr<CText> CSimpleTextReader::Read(char* szFilename)
 {
 	CUnicodeReader*		pcUnicodeReader;
 	Ptr<CText>			pText;
+
+	pcUnicodeReader = CreateReader(szFilename);
+	if (pcUnicodeReader == NULL)
+	{
+		return NULL;
+	}
+
+	pText = Read(pcUnicodeReader, true);
+	SafeKill(pcUnicodeReader);
+	return pText;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Line feeds become new lines if bNewLines, otherwise they are left out
+// like carriage returns.  The reader is not killed.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CText> CSimpleTextReader::Read(CUnicodeReader* pcUnicodeReader, bool bNewLines)
+{
+	Ptr<CText>			pText;
 	uint32				cCodePoint32;
 	size				uiUTFLength;
 	uint8				auiBuffer[0x13];
@@ -109,12 +131,6 @@ Ptr<CText> CSimpleTextReader::Read(char* szFilename)
 	size				uiNumWritten;
 	CTextBuilder		cTextBuilder;
 	bool				bResult;
-
-	pcUnicodeReader = CreateReader(szFilename);
-	if (pcUnicodeReader == NULL)
-	{
-		return NULL;
-	}
 
 	pText = OMalloc<CText>();
 	cTextBuilder.Init(pcUnicodeReader, &pText, mpcFont);
@@ -129,21 +145,19 @@ Ptr<CText> CSimpleTextReader::Read(char* szFilename)
 			if (pcUnicodeReader->IsError(cCodePoint32))
 			{
 				cTextBuilder.Kill();
-				SafeKill(pcUnicodeReader);
 				return NULL;
 			}
 
-			if (cCodePoint32 == UNICODE_LINE_FEED)
+			if ((cCodePoint32 == UNICODE_LINE_FEED) && bNewLines)
 			{
 				bResult = cTextBuilder.PushNewLine();
 				if (!bResult)
 				{
 					cTextBuilder.Kill();
-					SafeKill(pcUnicodeReader);
 					return NULL;
 				}
 			}
-			else if (cCodePoint32 == UNICODE_CARRIAGE_RETURN)
+			else if ((cCodePoint32 == UNICODE_CARRIAGE_RETURN) || (cCodePoint32 == UNICODE_LINE_FEED))
 			{
 				// Do nothing.
 			}
@@ -153,7 +167,6 @@ Ptr<CText> CSimpleTextReader::Read(char* szFilename)
 				if (!bResult)
 				{
 					cTextBuilder.Kill();
-					SafeKill(pcUnicodeReader);
 					return NULL;
 				}
 			}
@@ -165,7 +178,6 @@ Ptr<CText> CSimpleTextReader::Read(char* szFilename)
 			if (!bResult)
 			{
 				cTextBuilder.Kill();
-				SafeKill(pcUnicodeReader);
 				return NULL;
 			}
 		}
@@ -179,7 +191,6 @@ Ptr<CText> CSimpleTextReader::Read(char* szFilename)
 		return NULL;
 	}
 
-	SafeKill(pcUnicodeReader);
 	cTextBuilder.Kill();
 
 	return pText;
