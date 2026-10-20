@@ -327,6 +327,12 @@
     <ClInclude Include="ImageCel.h">
       <Filter>Source\Image\Cel</Filter>
     </ClInclude>
+    <ClInclude Include="ImageCelsReader.h">
+      <Filter>Source\Image\Cel</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageCelsWriter.h">
+      <Filter>Source\Image\Cel</Filter>
+    </ClInclude>
     <ClInclude Include="ImageCombiner.h">
       <Filter>Source\Image\Cel\Combiner</Filter>
     </ClInclude>
@@ -969,6 +975,12 @@
       <Filter>Source\Image\Area\Packer</Filter>
     </ClCompile>
     <ClCompile Include="ImageCel.cpp">
+      <Filter>Source\Image\Cel</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageCelsReader.cpp">
+      <Filter>Source\Image\Cel</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageCelsWriter.cpp">
       <Filter>Source\Image\Cel</Filter>
     </ClCompile>
     <ClCompile Include="ImageCombiner.cpp">
