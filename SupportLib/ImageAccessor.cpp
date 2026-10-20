@@ -184,7 +184,7 @@ bool CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 		pcAccessor = pacAccessors->Get(i);
 		fValue = pcColour->GetValue(pcAccessor->miChannel);
 		iSize = pcAccessor->miAccessByteSize;
-		if (iSize < 0)
+		if (iSize == SIZE_MAX)
 		{
 			iSize = 1;
 		}

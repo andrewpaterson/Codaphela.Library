@@ -21,7 +21,6 @@ void CThreadsDone::ThreadStateChanged(CThread* pcThread, EThreadState eState)
 	if (eState == TS_Stopped)
 	{
 		miThreadsStopped.Increment();
-		pcThread = NULL;  //Appease the compiler.
 	}
 }
 

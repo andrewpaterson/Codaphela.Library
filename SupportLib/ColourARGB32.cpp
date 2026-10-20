@@ -60,10 +60,6 @@ uint8 Clamp8BitColour(uint32 uiColour)
 	{
 		return 0xff;
 	}
-	else if (uiColour < 0x00)
-	{
-		return 0x00;
-	}
 	return uiColour;
 }
 

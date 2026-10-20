@@ -184,13 +184,13 @@ TRISTATE GetXMLIdentifierCharacter(CTextParser* pcTextParser, char* pc, bool bFi
 
 		if ((cCurrent == ':') || 
 			(cCurrent == '_') || 
-			(cCurrent == 0xf8))
+			((uint8)cCurrent == 0xf8))
 		{
 			bValid = true;
 		}
 
-		if (((cCurrent >= 0xc0) && (cCurrent <= 0xd6)) || 
-			((cCurrent >= 0xd8) && (cCurrent <= 0xf6)))
+		if ((((uint8)cCurrent >= 0xc0) && ((uint8)cCurrent <= 0xd6)) || 
+			(((uint8)cCurrent >= 0xd8) && ((uint8)cCurrent <= 0xf6)))
 		{
 			bValid = true;
 		}
@@ -210,7 +210,7 @@ TRISTATE GetXMLIdentifierCharacter(CTextParser* pcTextParser, char* pc, bool bFi
 			}
 			if ((cCurrent == '-') || 
 				(cCurrent == '.') || 
-				(cCurrent == 0xb7))
+				((uint8)cCurrent == 0xb7))
 			{
 				bValid = true;
 			}

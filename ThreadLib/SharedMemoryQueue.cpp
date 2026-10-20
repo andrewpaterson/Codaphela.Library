@@ -279,6 +279,26 @@ size_t CSharedMemoryQueue::PeekSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CSharedMemoryQueue::MayHaveElements(void)
+{
+	SCircularMemoryList*	psList;
+
+	//Memory that moved to another file, or was never mapped, is only found
+	//with the mutex held.  A push to the new file only happens after the old
+	//one is marked invalid so an empty valid file means an empty queue.
+	psList = (SCircularMemoryList*)mcSharedMemory.GetValidMemory();
+	if (psList == NULL)
+	{
+		return true;
+	}
+	return *(SMemoryCacheDescriptor* volatile*)&psList->mpsTail != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CSharedMemoryQueue::IsEmpty(void)
 {
 	bool	bEmpty;

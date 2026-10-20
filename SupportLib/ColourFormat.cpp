@@ -57,6 +57,7 @@ EChannel CColourFormatHelper::GetChannel(size uiIndex)
 		{
 			return IMAGE_IGNORED;
 		}
+		break;
 	case CFT_RGBA:
 		if (uiIndex <= 2)
 		{
@@ -66,6 +67,7 @@ EChannel CColourFormatHelper::GetChannel(size uiIndex)
 		{
 			return IMAGE_OPACITY;
 		}
+		break;
 
 	case CFT_XRGB:
 		if (uiIndex == 0)
@@ -76,6 +78,7 @@ EChannel CColourFormatHelper::GetChannel(size uiIndex)
 		{
 			return GetColourChannel(uiIndex - 1);
 		}
+		break;
 	case CFT_ARGB:
 		if (uiIndex == 0)
 		{
@@ -113,6 +116,7 @@ EPrimitiveType CColourFormatHelper::GetType(size uiIndex)
 		{
 			return GetAlphaType();
 		}
+		break;
 	case CFT_RGBA:
 		if (uiIndex <= 2)
 		{
@@ -122,6 +126,7 @@ EPrimitiveType CColourFormatHelper::GetType(size uiIndex)
 		{
 			return GetAlphaType();
 		}
+		break;
 
 	case CFT_XRGB:
 		if (uiIndex == 0)
@@ -132,6 +137,7 @@ EPrimitiveType CColourFormatHelper::GetType(size uiIndex)
 		{
 			return GetColourType(uiIndex - 1);
 		}
+		break;
 	case CFT_ARGB:
 		if (uiIndex == 0)
 		{

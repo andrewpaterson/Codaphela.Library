@@ -268,7 +268,7 @@ char* ShortToString(char* szDest, size iDestLength, int16 iValue, uint16 iBase)
 	bNegative = iValue < 0;
 	if (bNegative)
 	{
-		if (iValue == MIN_INT16)
+		if (iValue == (int16)MIN_INT16)
 		{
 			StrCpySafe(szDest, "-32768", iDestLength);
 			return szDest;
@@ -825,7 +825,7 @@ char* ToLower(char* szString)
 	size	iLen;
 	size	i;
 	char	c;
-	
+
 	if (szString)
 	{
 		iLen = strlen(szString);

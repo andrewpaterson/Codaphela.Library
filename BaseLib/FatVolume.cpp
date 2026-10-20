@@ -3392,7 +3392,7 @@ EFatCode CFatVolume::Delete(const char* szFilename)
 	eResult = GetFileEntry(szFilename, &sEntry);
 	RETURN_ON_FAT_FAILURE(eResult);
 
-	if (sEntry.szName[0] != '\\0')
+	if (sEntry.szName[0] != '\0')
 	{
 		uiChecksum = FatLongEntryChecksum((char*)sEntry.sRaw.uEntry.sFatRawCommon.szShortName);
 

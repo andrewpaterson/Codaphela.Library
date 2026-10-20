@@ -38,6 +38,10 @@ public:
 
 	size_t				GetSize(void);
 
+	//The memory mapped now if it has not moved to another file, else NULL.
+	//Does not Touch, so it can be called without the lock that guards the memory.
+	void*				GetValidMemory(void);
+
 protected:
 	bool	InitCoordinator(char* szMemoryName);
 	bool	ReinitCoordinator(void);

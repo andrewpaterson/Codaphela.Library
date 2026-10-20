@@ -302,16 +302,11 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 
 					//Delete the group which overlaps with another
 					iNumNormals--;
-					if (iNumNormals < 0)
-					{
-						iNumNormals = 0;
-					}
 
 					//Move the counter back one so it processes the new normal
-					k--;
-					if (k < 0)
+					if (k > 0)
 					{
-						k = 0;
+						k--;
 					}
 					dwSmooth[k] = dwSmooth[iNumNormals];
 				}
