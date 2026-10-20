@@ -241,3 +241,4 @@ Ptr<CFont> FontReader(char* szPathName)
 	}
 	return pFont;
 }
+
