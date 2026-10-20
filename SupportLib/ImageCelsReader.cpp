@@ -207,7 +207,7 @@ TRISTATE GetImageCelsCel(CTextParser* pcTextParser, Ptr<CImage> pImage, Ptr<CArr
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CArrayImageCel> LoadImageCels(char* szPathName)
+Ptr<CArrayImageCel> CelsReader(char* szPathName)
 {
 	CTextParser 		cTextParser;
 	CTextFile			cTextFile;

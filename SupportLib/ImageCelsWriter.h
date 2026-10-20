@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 //Writes a text descriptor of the cels.  All the cels must share one source image.
 //szImagePathName is where that image is on disk, relative to the working directory.  The image itself is not written.
-bool SaveImageCels(Ptr<CArrayImageCel> paCels, char* szImagePathName, char* szPathName);
+bool CelsWriter(Ptr<CArrayImageCel> paCels, char* szImagePathName, char* szPathName);
 
 
 #endif // __IMAGE_CELS_WRITER_H__
