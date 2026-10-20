@@ -45,6 +45,7 @@ public:
 			bool			Load(CObjectReader* pcFile) override;
 
 	virtual	bool			LoadImage(void) =0;
+	virtual	char*			GetFileName(void);  //NULL if the image does not come from a file.
 			Ptr<CImage>		GetImage(void);
 			void			SetImage(Ptr<CImage> pImage);
 };

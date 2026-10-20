@@ -39,6 +39,7 @@ public:
 	void	Free(void) override;
 
 	bool	LoadImage(void) override;
+	char*	GetFileName(void) override;
 };
 
 
