@@ -285,6 +285,8 @@
     <ClInclude Include="RectanglePacker.h" />
     <ClInclude Include="RectanglePow2Packer.h" />
     <ClInclude Include="ImageCel.h" />
+    <ClInclude Include="ImageCelsReader.h" />
+    <ClInclude Include="ImageCelsWriter.h" />
     <ClInclude Include="ImageCombiner.h" />
     <ClInclude Include="ImageDivider.h" />
     <ClInclude Include="ImageDividerNumbers.h" />
@@ -498,6 +500,8 @@
     <ClCompile Include="RectangleLinePacker.cpp" />
     <ClCompile Include="RectanglePow2Packer.cpp" />
     <ClCompile Include="ImageCel.cpp" />
+    <ClCompile Include="ImageCelsReader.cpp" />
+    <ClCompile Include="ImageCelsWriter.cpp" />
     <ClCompile Include="ImageCombiner.cpp" />
     <ClCompile Include="ImageDivider.cpp" />
     <ClCompile Include="ImageDividerNumbers.cpp" />
