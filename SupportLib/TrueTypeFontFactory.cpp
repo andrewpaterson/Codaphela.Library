@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include <math.h>
 #include "BaseLib/UTF8.h"
+#include "BaseLib/FixedPoint.h"
 #include "ImageCel.h"
 #include "TrueTypeFontFactory.h"
 
@@ -38,8 +38,8 @@ void CTrueTypeFontFactory::Init(CTrueTypeFont* pcFont, float32 fPixelSize)
 	mpcFont = pcFont;
 	mcRasteriser.Init(pcFont, fPixelSize);
 	macCharacters.Init();
-	miAscent = (int)ceilf(mcRasteriser.GetAscent());
-	miDescent = (int)ceilf(mcRasteriser.GetDescent());
+	miAscent = FixedCeiling(mcRasteriser.GetAscentSubpixels(), TRUE_TYPE_SUBPIXEL_BITS);
+	miDescent = FixedCeiling(mcRasteriser.GetDescentSubpixels(), TRUE_TYPE_SUBPIXEL_BITS);
 }
 
 
@@ -111,7 +111,7 @@ Ptr<CFont> CTrueTypeFontFactory::Generate(char* szName, Ptr<CImage> pImage)
 		return NULL;
 	}
 
-	iSpaceWidth = (int)floorf(mcRasteriser.GetAdvance(mpcFont->GetGlyphIndex(' ')) + 0.5f);
+	iSpaceWidth = FixedRound(mcRasteriser.GetAdvanceSubpixels(mpcFont->GetGlyphIndex(' ')), TRUE_TYPE_SUBPIXEL_BITS);
 	iLineHeight = miAscent + miDescent;
 	pFont = OMalloc<CFont>(szName, (int16)iSpaceWidth, (int16)miAscent, (int16)miDescent);
 
@@ -208,10 +208,10 @@ bool CTrueTypeFontFactory::AddCharacters(char* szUTF8Characters)
 		psCharacter->uiCodePoint = uiCodePoint;
 		psCharacter->uiCodePointLength = cUTF8.GetUnicodeCodePointLength(uiCodePoint);
 		psCharacter->iGlyph = mpcFont->GetGlyphIndex(uiCodePoint);
-		psCharacter->iAdvance = (int)floorf(mcRasteriser.GetAdvance(psCharacter->iGlyph) + 0.5f);
+		psCharacter->iAdvance = FixedRound(mcRasteriser.GetAdvanceSubpixels(psCharacter->iGlyph), TRUE_TYPE_SUBPIXEL_BITS);
 		psCharacter->iImageLeft = 0;
 		psCharacter->iImageTop = 0;
-		if (mcRasteriser.GetGlyphBounds(psCharacter->iGlyph, 0.0f, &sBounds))
+		if (mcRasteriser.GetGlyphBounds(psCharacter->iGlyph, 0, &sBounds))
 		{
 			psCharacter->iBearing = sBounds.iLeft;
 			psCharacter->iTop = sBounds.iTop;
@@ -305,6 +305,20 @@ bool CTrueTypeFontFactory::Pack(int iImageWidth, int* piImageHeight)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A colour channel from 0.0 to 1.0 as a byte.
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 CTrueTypeFontFactory::ColourByte(float32 fChannel)
+{
+	int32	iChannel;
+
+	iChannel = FloatToIntScaled(fChannel, 255);
+	return (uint8)((iChannel < 0) ? 0 : ((iChannel > 255) ? 255 : iChannel));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Rasterises a glyph into its place in the image.  The coverage is the
 // opacity and every pixel is the colour.
 //
@@ -328,9 +342,9 @@ void CTrueTypeFontFactory::CopyGlyph(Ptr<CImage> pImage, STrueTypeFontCharacter*
 		return;
 	}
 
-	uiRed = (uint8)(pcColour->r * 255.0f + 0.5f);
-	uiGreen = (uint8)(pcColour->g * 255.0f + 0.5f);
-	uiBlue = (uint8)(pcColour->b * 255.0f + 0.5f);
+	uiRed = ColourByte(pcColour->r);
+	uiGreen = ColourByte(pcColour->g);
+	uiBlue = ColourByte(pcColour->b);
 
 	//Opacity, red, green and blue bytes.
 	puiGlyph = (uint8*)pGlyphImage->GetData();

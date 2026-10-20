@@ -24,11 +24,11 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayInt.h"
 
 
-//A point on a glyph outline in font units, y up.  Points that aren't on the curve are quadratic control points.
+//A point on a glyph outline in font units, y up (scaled components of composite glyphs are rounded to whole units).  Points that aren't on the curve are quadratic control points.
 struct STrueTypePoint
 {
-	float32	x;
-	float32	y;
+	int32	x;
+	int32	y;
 	bool	bOnCurve;
 };
 
