@@ -94,7 +94,7 @@ void CTextPositionPrinter::PrintPosition(CChars* pszDest)
 	szParserText.Fake(mcText.msz, 0, mcText.miLen - 1);
 
 	iUsedLength = UsedLength();
-	if ((iUsedLength <= mcText.miLen) && (iUsedLength >= 0))
+	if (iUsedLength <= mcText.miLen)
 	{
 		iPreviousLineEnd = szParserText.FindFromEnd(iUsedLength - 1, "\n");
 		iLineEnd = szParserText.Find(iUsedLength, "\n");
