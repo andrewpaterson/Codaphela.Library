@@ -39,6 +39,7 @@ public:
 	void				Kill(void);
 
 	Ptr<CText>			Read(char* szFilename);
+	Ptr<CText>			Read(CUnicodeReader* pcUnicodeReader, bool bNewLines);
 
 protected:
 	CUnicodeReader*		CreateReader(char* szFilename);

@@ -184,6 +184,7 @@
   <ItemGroup>
     <ClInclude Include="MapsCanvasDraw.h" />
     <ClInclude Include="ImageCanvasDraw.h" />
+    <ClInclude Include="Label.h" />
     <ClInclude Include="ClearCanvasDraw.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Canvas.h" />
@@ -223,6 +224,7 @@
     <ClCompile Include="Insets.cpp" />
     <ClCompile Include="MapsCanvasDraw.cpp" />
     <ClCompile Include="ImageCanvasDraw.cpp" />
+    <ClCompile Include="Label.cpp" />
     <ClCompile Include="ClearCanvasDraw.cpp" />
     <ClCompile Include="NativeCanvas.cpp" />
     <ClCompile Include="NativeComponent.cpp" />

@@ -108,6 +108,9 @@
     <ClInclude Include="TextArea.h">
       <Filter>Source\Component\Drawing\Text</Filter>
     </ClInclude>
+    <ClInclude Include="Label.h">
+      <Filter>Source\Component\Drawing\Text</Filter>
+    </ClInclude>
     <ClInclude Include="MapsCanvasDraw.h">
       <Filter>Source\Image\Canvas</Filter>
     </ClInclude>
@@ -166,6 +169,9 @@
     </ClCompile>
     <ClCompile Include="Canvas.cpp">
       <Filter>Source\Component\Drawing\Canvas</Filter>
+    </ClCompile>
+    <ClCompile Include="Label.cpp">
+      <Filter>Source\Component\Drawing\Text</Filter>
     </ClCompile>
     <ClCompile Include="CanvasDraw.cpp">
       <Filter>Source\Component\Drawing\Canvas</Filter>

@@ -22,6 +22,7 @@ void CTextLayout::Init(int32 iWidth)
 	PreInit();
 
 	miWidth = iWidth;
+	msSize.Init(0, 0);
 
 	PostInit();
 }
@@ -36,6 +37,7 @@ void CTextLayout::Class(void)
 	U_Int32(miWidth);
 	U_Int16(miRowHeight);
 	U_2Int32(msPosition);
+	U_2Int32(msSize);
 	U_Data(CUTF16, mcUTF16);
 	U_Pointer(mpcDraw);
 
@@ -89,6 +91,7 @@ void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 
 	miRowHeight = 0;
 	msPosition.Init(0, 0);
+	msSize.Init(0, 0);
 	mpcDraw = &pDraw;
 	mcUTF16.Init(NULL, 0);
 	pcFont = NULL;
@@ -124,7 +127,20 @@ void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 			}
 		}
 	}
+	msSize.y = msPosition.y + miRowHeight;
 	mcUTF16.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The width of the widest line and the height of all the lines in the
+// text last laid out.
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CTextLayout::GetSize(void)
+{
+	return msSize;
 }
 
 
@@ -234,6 +250,10 @@ void CTextLayout::Glyph(Ptr<CGlyph> pGlyph)
 	{
 		mpcDraw->Place(pGlyph, msPosition.x, msPosition.y);
 		msPosition.x += pGlyph->GetFullWidth();
+		if (msPosition.x > msSize.x)
+		{
+			msSize.x = msPosition.x;
+		}
 	}
 }
 

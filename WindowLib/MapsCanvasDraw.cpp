@@ -13,7 +13,20 @@ void CMapsCanvasDraw::Init(Ptr<CMaps> pMaps)
     CCanvasDraw::Init();
     mpMaps = pMaps;
     mpDestImage = NULL;
+    mbClear = false;
     PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Translucent cels blend with what is already in the image, so maps that
+// don't cover the whole image need it cleared each time they are drawn.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapsCanvasDraw::SetClear(bool bClear)
+{
+    mbClear = bClear;
 }
 
 
@@ -26,6 +39,7 @@ void CMapsCanvasDraw::Class(void)
     CCanvasDraw::Class();
     M_Pointer(mpMaps);
     M_Pointer(mpDestImage);
+    U_Bool(mbClear);
 }
 
 
@@ -90,6 +104,11 @@ bool CMapsCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
             {
                 mpDestImage = NULL;
             }
+        }
+
+        if (mbClear)
+        {
+            pImage->Black();
         }
 
         //The image being drawn onto keeps the blitters that draw onto it, so a new image starts with new blitters.
