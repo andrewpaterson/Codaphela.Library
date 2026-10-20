@@ -429,13 +429,14 @@ bool CTrueTypeRasteriser::DrawText(Ptr<CImage> pcDest, float32 fX, float32 fY, c
 	{
 		iTop = 0;
 	}
-	if (iRight > pcDest->GetWidth())
+	//The image size is unsigned; compare as int so a glyph wholly left of or above the image (negative right or bottom) is not clamped to the full size.
+	if (iRight > (int)pcDest->GetWidth())
 	{
-		iRight = pcDest->GetWidth();
+		iRight = (int)pcDest->GetWidth();
 	}
-	if (iBottom > pcDest->GetHeight())
+	if (iBottom > (int)pcDest->GetHeight())
 	{
-		iBottom = pcDest->GetHeight();
+		iBottom = (int)pcDest->GetHeight();
 	}
 	if ((iRight <= iLeft) || (iBottom <= iTop))
 	{

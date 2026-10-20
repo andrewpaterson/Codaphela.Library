@@ -390,6 +390,7 @@
     <ClInclude Include="SetString.h" />
     <ClInclude Include="SetTemplate.h" />
     <ClInclude Include="SizeVec2.h" />
+    <ClInclude Include="UInt32Vec2.h" />
     <ClInclude Include="Source\Aarvark\Aardvark.h" />
     <ClInclude Include="StackMemory.h" />
     <ClInclude Include="DebugOutputFile.h" />
@@ -824,6 +825,7 @@
     <ClCompile Include="SetNode.cpp" />
     <ClCompile Include="SetString.cpp" />
     <ClCompile Include="SizeVec2.cpp" />
+    <ClCompile Include="UInt32Vec2.cpp" />
     <ClCompile Include="Source\Aarvark\Aardvark.cpp" />
     <ClCompile Include="MersenneTwister.cpp" />
     <ClCompile Include="StdRandom.cpp" />

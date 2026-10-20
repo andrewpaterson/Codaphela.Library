@@ -26,6 +26,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/GeometricTypes.h"
 #include "BaseLib/SizeVec2.h"
 #include "BaseLib/IntVec2.h"
+#include "BaseLib/UInt32Vec2.h"
 #include "StandardLib/Channels.h"
 #include "StandardLib/Array.h"
 #include "ImageChannel.h"
@@ -42,9 +43,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 struct SImageChangingDesc
 {
-	//These should be size
-	int	iWidth;
-	int	iHeight;
+	uint32	uiWidth;
+	uint32	uiHeight;
 };
 
 
@@ -58,28 +58,27 @@ CONSTRUCTABLE(CImage);
 DESTRUCTABLE(CImage);
 public:
 	CChannels						mcChannels;
-	//These should be size
-	SIntVec2						miSize;
+	SUInt32Vec2						msSize;
 	SImageChangingDesc*				mpsImageChangingDesc;
 	Ptr<CImageCelBlitterCache>		mpBlitterCache;  //The blitters that draw onto this image.  Not a clean place for it; another cache like it would need a better way to attach to images.
 
 public:
 	void					Init(void);
-	void					Init(int iWidth, int iHeight);
-	void					Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...);
-	void					Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...);
-	void					Init(int iWidth, int iHeight, CImageChannelsSource* pcSource);
-	void					Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSource* pcSource);
-	void					Init(int iWidth, int iHeight, Ptr<CImage> pcChannelsSource);
-	void					Init(int iWidth, int iHeight, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
-	void					Init(int iWidth, int iHeight, CColourFormatHelper* pcHelper);
-	void					Init(int iWidth, int iHeight, CArrayChannel* pasNewChannels);
+	void					Init(uint32 uiWidth, uint32 uiHeight);
+	void					Init(uint32 uiWidth, uint32 uiHeight, EPrimitiveType eType, EChannel eFirst, ...);
+	void					Init(uint32 uiWidth, uint32 uiHeight, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...);
+	void					Init(uint32 uiWidth, uint32 uiHeight, CImageChannelsSource* pcSource);
+	void					Init(uint32 uiWidth, uint32 uiHeight, void* pvUserData, CImageChannelsSource* pcSource);
+	void					Init(uint32 uiWidth, uint32 uiHeight, Ptr<CImage> pcChannelsSource);
+	void					Init(uint32 uiWidth, uint32 uiHeight, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
+	void					Init(uint32 uiWidth, uint32 uiHeight, CColourFormatHelper* pcHelper);
+	void					Init(uint32 uiWidth, uint32 uiHeight, CArrayChannel* pasNewChannels);
 	void					Init(Ptr<CImage> pcChannelsSource);  //This only sets up channels and dimensions.  
 	void					Class(void) override;
 	void					Free(void) override;
 
 	void					ReInit(void);
-	void					ReInit(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...);
+	void					ReInit(uint32 uiWidth, uint32 uiHeight, EPrimitiveType eType, EChannel eFirst, ...);
 
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
@@ -98,11 +97,11 @@ public:
 	bool					RemoveChannel(size iChannel);
 	void					RemovePurpose(EImagePurpose ePurpose);
 
-	void					SetSize(int iWidth, int iHeight);
-	int						GetHeight(void);
-	int						GetWidth(void);
-	int						GetImageHeight(void);
-	int						GetImageWidth(void);
+	void					SetSize(uint32 uiWidth, uint32 uiHeight);
+	uint32					GetHeight(void);
+	uint32					GetWidth(void);
+	uint32					GetImageHeight(void);
+	uint32					GetImageWidth(void);
 	void 					ByteAlignChannels(void);
 	bool					RenameChannel(size iOldName, size iNewName);
 	bool 					EndChange(void);
