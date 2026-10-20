@@ -26,8 +26,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageCel.h"
 
 
-//Reads a text descriptor written by SaveImageCels and loads the source image it names.
-Ptr<CArrayImageCel> LoadImageCels(char* szPathName);
+//Reads a text descriptor written by CelsWriter and loads the source image it names.
+Ptr<CArrayImageCel> CelsReader(char* szPathName);
 
 
 #endif // __IMAGE_CELS_READER_H__

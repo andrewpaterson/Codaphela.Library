@@ -243,3 +243,4 @@ int32 FixedSquareRoot(int32 iFixed, int iFractionBits)
 	//sqrt(v * 2^f) * 2^(f/2) = sqrt(v) * 2^f.
 	return (int32)SquareRoot((int64)iFixed * ((int64)1 << iFractionBits));
 }
+

@@ -53,7 +53,7 @@ void AppendImageCelsIntegers(CChars* szText, char* szIdentifier, int32* aiValues
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveImageCels(Ptr<CArrayImageCel> paCels, char* szImagePathName, char* szPathName)
+bool CelsWriter(Ptr<CArrayImageCel> paCels, char* szImagePathName, char* szPathName)
 {
 	CTextFile		cTextFile;
 	CChars*			szText;
