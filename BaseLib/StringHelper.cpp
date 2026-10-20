@@ -970,19 +970,13 @@ size StrLen(const char* szString)
 //////////////////////////////////////////////////////////////////////////
 size StrLen(const char* szString, const char* szLastCharInclusive)
 {
-	ptr i;
-
 	if (szLastCharInclusive)
 	{
-		i = szLastCharInclusive - szString + 1;
-		if (i >= 0)
-		{
-			return i;
-		}
-		else
+		if (szLastCharInclusive < szString)
 		{
 			return 0;
 		}
+		return szLastCharInclusive - szString + 1;
 	}
 	else
 	{
