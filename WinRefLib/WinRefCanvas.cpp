@@ -2,6 +2,7 @@
 #include "StandardLib/FreeObjects.h"
 #include "SupportLib/ImageAccessorCreator.h"
 #include "SupportLib/ImageCopier.h"
+#include "SupportLib/ImagePremultipliedBlend.h"
 #include "WindowLib/Canvas.h"
 #include "WinRefWindowFactory.h"
 #include "WinRefCanvas.h"
@@ -167,7 +168,15 @@ void CWinRefCanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource)
     CWinRefCanvas*   pcRefSource;
 
     pcRefSource = (CWinRefCanvas*)pcSource;
-    mcDraw.DrawCel(iX, iY, pcRefSource->GetCel());
+    if (pcRefSource->mpcCanvas->IsTransparent())
+    {
+        //What the transparent canvas didn't cover must show through so it is blended rather than copied.
+        BlendPremultipliedImage(pcRefSource->mpcImage, mpcImage, iX, iY);
+    }
+    else
+    {
+        mcDraw.DrawCel(iX, iY, pcRefSource->GetCel());
+    }
 }
 
 
@@ -178,15 +187,33 @@ void CWinRefCanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource)
 void CWinRefCanvas::SetColour(ARGB32 sColour)
 {
     CImageColourRGB	    cColour;
+    CImageColourARGB    cAlphaColour;
     float               r;
     float               g;
     float               b;
+    uint32              uiRed;
+    uint32              uiGreen;
+    uint32              uiBlue;
+    uint32              uiAlpha;
 
     if (sColour != msLastColour)
     {
-        Get32BitColour(&r, &g, &b, sColour);
-        cColour.Init(r, g, b);
-        mcDraw.SetColour(&cColour);
+        if (mpcImage->HasChannel(IMAGE_OPACITY))
+        {
+            //A canvas with opacity (a transparent canvas) holds its colours multiplied by their opacity.
+            Get32BitColour(&uiRed, &uiGreen, &uiBlue, &uiAlpha, sColour);
+            uiRed = (uiRed * uiAlpha + 127) / 255;
+            uiGreen = (uiGreen * uiAlpha + 127) / 255;
+            uiBlue = (uiBlue * uiAlpha + 127) / 255;
+            cAlphaColour.Init(uiAlpha / 255.0f, uiRed / 255.0f, uiGreen / 255.0f, uiBlue / 255.0f);
+            mcDraw.SetColour(&cAlphaColour);
+        }
+        else
+        {
+            Get32BitColour(&r, &g, &b, sColour);
+            cColour.Init(r, g, b);
+            mcDraw.SetColour(&cColour);
+        }
         msLastColour = sColour;
     }
 }

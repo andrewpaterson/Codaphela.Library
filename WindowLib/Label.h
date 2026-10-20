@@ -29,8 +29,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Canvas.h"
 
 
-//A single line of text drawn in one font with a CMapsCanvasDraw.  Its required size is the size of the laid out text
-//and the line height of the font.  The text is always drawn at the top left of the label; a label is aligned by the
+//A single line of text drawn in one font with a CMapsCanvasDraw.  The label is a transparent canvas so the text is
+//drawn over whatever is behind it.  Its required size is the size of the laid out text and the line height of the font.  The text is always drawn at the top left of the label; a label is aligned by the
 //container it is in, so put it in a CFillContainer to place it with its alignment.
 class CLabel : public CCanvas
 {

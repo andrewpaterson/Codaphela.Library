@@ -256,6 +256,7 @@
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImageChannel.h" />
     <ClInclude Include="ImageCopier.h" />
+    <ClInclude Include="ImagePremultipliedBlend.h" />
     <ClInclude Include="Font.h" />
     <ClInclude Include="FontList.h" />
     <ClInclude Include="FontReader.h" />
@@ -456,6 +457,7 @@
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="ImageChannel.cpp" />
     <ClCompile Include="ImageCopier.cpp" />
+    <ClCompile Include="ImagePremultipliedBlend.cpp" />
     <ClCompile Include="Font.cpp" />
     <ClCompile Include="FontList.cpp" />
     <ClCompile Include="FontReader.cpp" />

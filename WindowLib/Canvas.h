@@ -43,6 +43,7 @@ protected:
 	ERGBAlphaBits       meAlphaBits;
 	Ptr<CCanvasDraw>	mpCanvasDraw;
 	Ptr<CContainer>		mpContainer;
+	bool				mbTransparent;  //What is behind the canvas shows through wherever it hasn't been drawn opaquely.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
@@ -58,6 +59,9 @@ public:
 	ERGBColourBits		GetColourBits(void);
 	ERGBAlphaBits		GetAlphaBits(void);
 	bool				IsValid(void);
+
+	bool				SetTransparent(bool bTransparent);
+	bool				IsTransparent(void);
 
 	uint8*				GetPixelData(void);
 
@@ -83,6 +87,9 @@ public:
 
 	void				CreateNativeCanvas(void);
 	void				DestroyNativeCanvas(void);
+
+protected:
+	EColourFormat		GetTransparentColourFormat(void);
 };
 
 

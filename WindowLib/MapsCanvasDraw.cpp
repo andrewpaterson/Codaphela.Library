@@ -13,20 +13,7 @@ void CMapsCanvasDraw::Init(Ptr<CMaps> pMaps)
     CCanvasDraw::Init();
     mpMaps = pMaps;
     mpDestImage = NULL;
-    mbClear = false;
     PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Translucent cels blend with what is already in the image, so maps that
-// don't cover the whole image need it cleared each time they are drawn.
-//
-//////////////////////////////////////////////////////////////////////////
-void CMapsCanvasDraw::SetClear(bool bClear)
-{
-    mbClear = bClear;
 }
 
 
@@ -39,7 +26,6 @@ void CMapsCanvasDraw::Class(void)
     CCanvasDraw::Class();
     M_Pointer(mpMaps);
     M_Pointer(mpDestImage);
-    U_Bool(mbClear);
 }
 
 
@@ -91,10 +77,16 @@ bool CMapsCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
         pImage = pCanvas->GetImageOrNull();
         if (pImage.IsNull())
         {
-            if (mpDestImage.IsNull() || (mpDestImage->GetWidth() != (uint32)sSize.x) || (mpDestImage->GetHeight() != (uint32)sSize.y))
+            if (mpDestImage.IsNull() || (mpDestImage->GetWidth() != (uint32)sSize.x) || (mpDestImage->GetHeight() != (uint32)sSize.y) ||
+                (mpDestImage->GetColourFormat() != pCanvas->GetColourFormat()) || (mpDestImage->GetAlphaBits() != pCanvas->GetAlphaBits()))
             {
                 mpDestImage = OMalloc<CImage>(sSize.x, sSize.y, pCanvas->GetColourFormat(), pCanvas->GetColourOrder(), pCanvas->GetColourBits(), pCanvas->GetAlphaBits());
                 mpDestImage->Black();  //A native canvas starts black so this image must too.
+            }
+            else if (pCanvas->IsTransparent())
+            {
+                //Like the transparent canvas this image is copied onto, it must start each draw empty.
+                mpDestImage->Black();
             }
             pImage = mpDestImage;
         }
@@ -104,11 +96,6 @@ bool CMapsCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
             {
                 mpDestImage = NULL;
             }
-        }
-
-        if (mbClear)
-        {
-            pImage->Black();
         }
 
         //The image being drawn onto keeps the blitters that draw onto it, so a new image starts with new blitters.

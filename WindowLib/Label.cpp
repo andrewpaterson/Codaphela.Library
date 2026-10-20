@@ -27,10 +27,10 @@ void CLabel::Init(Ptr<CWindow> pWindow, Ptr<CFont> pFont, const char* szText)
 	mpMaps->SetViewportPosition(0, 0);
 	msRequiredSize.Init(0, 0);
 
-	//The glyphs are translucent so the canvas is cleared before they are drawn or they would blend with the last draw.
+	//The text is drawn over whatever is behind the label.
 	pDraw = OMalloc<CMapsCanvasDraw>(mpMaps);
-	pDraw->SetClear(true);
 	CCanvas::Init(pWindow, pDraw);
+	SetTransparent(true);
 
 	LayoutText();
 
