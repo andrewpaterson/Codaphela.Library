@@ -39,33 +39,33 @@ CONSTRUCTABLE(CImageAccessor);
 protected:
 	CChannelsAccessor*	mpcAccessor;
 	CImage*				mpcImage;
-	int					miWidth;
+	uint32				miWidth;
 	bool				mbKillChannelAccessor;
 
 public:
 	void 				Init(CImage* pcImage, CChannelsAccessor* pcAccessor, bool bKillChannelAccessor);
 	virtual void		Kill(void);
 
-	virtual void*		Get(int x, int y);
-	virtual void		Set(int x, int y, void* pvData);
+	virtual void*		Get(int32 x, int32 y);
+	virtual void		Set(int32 x, int32 y, void* pvData);
 
-	int					GetBufferSize(void);
+	uint32				GetBufferSize(void);
 	virtual void		SyncDataCache(void);
 
-	void				Get(int x, int y, void* pvDest);
-	bool				IsValid(int x, int y);
-	void*				SafeGet(int x, int y);
-	void				SafeSet(int x, int y, void* pvData);
+	void				Get(int32 x, int32 y, void* pvDest);
+	bool				IsValid(int32 x, int32 y);
+	void*				SafeGet(int32 x, int32 y);
+	void				SafeSet(int32 x, int32 y, void* pvData);
 
 	bool				MakeColour(SImageColour* psDest, CImageColour* pcColour);
 	bool				IsEmpty(void);
 	EPrimitiveType		GetType(void);
 
-	int					GetBitSize(void);
-	int					GetByteSize(void);
+	uint32				GetBitSize(void);
+	uint32				GetByteSize(void);
 	CChannelsAccessor*	GetAccessor(void);
 	CImage*				GetImage(void);
-	int					GetWidth(void);
+	uint32				GetWidth(void);
 };
 
 

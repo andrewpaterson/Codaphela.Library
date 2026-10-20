@@ -112,7 +112,7 @@ bool CImageFiller::Push(int x, int y, size iRemove)
 	SImageFill*		psImageFill;
 	short			iTested;
 
-	if ((x < 0) || (x >= mpcSourceAccessor->GetWidth()) || (y < 0) || (y >= mpcSourceAccessor->GetImage()->GetHeight()))
+	if ((x < 0) || (x >= (int32)mpcSourceAccessor->GetWidth()) || (y < 0) || (y >= (int32)mpcSourceAccessor->GetImage()->GetHeight()))
 	{
 		return false;
 	}

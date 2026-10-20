@@ -120,12 +120,14 @@ bool CImageDivider::Load(CObjectReader* pcFile)
 void CImageDivider::GenerateFromBorder(Ptr<CImage> pcFillMask)
 {
 	CImageAccessor*		pcImageAccessor;
-	int					x, y;
+	uint32				x, y;
 	SImageColour		cCellColour;
 	CImageFiller		cFiller;
 	CFillRectangle		cFillBounds;
 	bool				bResult;
 	short				iMask;
+	uint32				iHeight;
+	uint32				iWidth;
 
 	pcImageAccessor = CImageAccessorCreator::Create(&mpImage);
 
@@ -135,9 +137,11 @@ void CImageDivider::GenerateFromBorder(Ptr<CImage> pcFillMask)
 	cFiller.Init(&cCellColour, pcImageAccessor, &pcFillMask);
 	iMask = 1;
 
-	for (y = 0; y < mpImage->GetImageHeight(); y++)
+	iHeight = mpImage->GetImageHeight();
+	iWidth = mpImage->GetImageWidth();
+	for (y = 0; y < iHeight; y++)
 	{
-		for (x = 0; x < mpImage->GetImageWidth(); x++)
+		for (x = 0; x < iWidth; x++)
 		{
 			bResult = cFiller.Fill(x, y, &cFillBounds, iMask);
 			if (bResult)
