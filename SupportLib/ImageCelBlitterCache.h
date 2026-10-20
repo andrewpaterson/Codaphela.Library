@@ -64,7 +64,7 @@ public:
 
 	bool				Matches(Ptr<CImage> pImage);
 
-	void				ForgetCel(CImageCel* pcCel);  //Only called by CImageCel::Free.
+	void				RemoveCelDuringFree(CImageCel* pcCel);  //Only called by CImageCel::Free.
 
 protected:
 	size				FindCel(CImageCel* pcCel);

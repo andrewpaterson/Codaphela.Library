@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/GeometricTypes.h"
 #include "BaseLib/SizeVec2.h"
+#include "BaseLib/IntVec2.h"
 #include "StandardLib/Channels.h"
 #include "StandardLib/Array.h"
 #include "ImageChannel.h"
@@ -56,12 +57,11 @@ friend class CImageDivider;
 CONSTRUCTABLE(CImage);
 DESTRUCTABLE(CImage);
 public:
-	CChannels				mcChannels;
+	CChannels						mcChannels;
 	//These should be size
-	int						miWidth;
-	int						miHeight;
-	SImageChangingDesc*		mpsImageChangingDesc;
-	Ptr<CImageCelBlitterCache>	mpBlitterCache;  //The blitters that draw onto this image.  Not a clean place for it; another cache like it would need a better way to attach to images.
+	SIntVec2						miSize;
+	SImageChangingDesc*				mpsImageChangingDesc;
+	Ptr<CImageCelBlitterCache>		mpBlitterCache;  //The blitters that draw onto this image.  Not a clean place for it; another cache like it would need a better way to attach to images.
 
 public:
 	void					Init(void);
@@ -97,9 +97,12 @@ public:
 	void 					AddChannels(Ptr<CImage> pcSourceChannels);
 	bool					RemoveChannel(size iChannel);
 	void					RemovePurpose(EImagePurpose ePurpose);
+
 	void					SetSize(int iWidth, int iHeight);
 	int						GetHeight(void);
 	int						GetWidth(void);
+	int						GetImageHeight(void);
+	int						GetImageWidth(void);
 	void 					ByteAlignChannels(void);
 	bool					RenameChannel(size iOldName, size iNewName);
 	bool 					EndChange(void);

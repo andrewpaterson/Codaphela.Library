@@ -135,9 +135,9 @@ void CImageDivider::GenerateFromBorder(Ptr<CImage> pcFillMask)
 	cFiller.Init(&cCellColour, pcImageAccessor, &pcFillMask);
 	iMask = 1;
 
-	for (y = 0; y < mpImage->miHeight; y++)
+	for (y = 0; y < mpImage->GetImageHeight(); y++)
 	{
-		for (x = 0; x < mpImage->miWidth; x++)
+		for (x = 0; x < mpImage->GetImageWidth(); x++)
 		{
 			bResult = cFiller.Fill(x, y, &cFillBounds, iMask);
 			if (bResult)
@@ -166,7 +166,7 @@ void CImageDivider::GenerateFromNumbers(CImageDividerNumbers* pcNumbers)
 	int					iLeft;
 	int					iTop;
 
-	pcNumbers->Calculate(mpImage->miWidth, mpImage->miHeight);
+	pcNumbers->Calculate(mpImage->GetImageWidth(), mpImage->GetImageHeight());
 
 	for (iRow = 0; iRow < pcNumbers->iRowCount; iRow++)
 	{

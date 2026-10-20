@@ -196,7 +196,7 @@ bool CImageCelBlitterCache::Matches(Ptr<CImage> pImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelBlitterCache::ForgetCel(CImageCel* pcCel)
+void CImageCelBlitterCache::RemoveCelDuringFree(CImageCel* pcCel)
 {
 	size			uiIndex;
 	CImageCel**		ppcCel;
