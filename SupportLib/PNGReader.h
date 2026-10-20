@@ -29,3 +29,4 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug = false);
 
 
 #endif // __PNG_READER_H__
+
