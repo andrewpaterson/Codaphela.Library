@@ -15,10 +15,12 @@
 #define SHARED_MEMORY_CHANNEL_CREATOR		0
 #define SHARED_MEMORY_CHANNEL_CONNECTOR		1
 
-//While waiting, Receive yields this many times and then sleeps between polls,
+//While waiting, Receive yields for this long and then sleeps between polls,
 //so a reply that comes quickly is seen at once and a long wait does not use a
-//whole processor.
-#define SHARED_MEMORY_CHANNEL_YIELDS			1024
+//whole processor.  The yielding is timed, not counted, because a sleep of 1ms
+//can take a whole scheduler tick (about 15ms on Windows); a reply that took a
+//tick each time would make a conversation of many messages crawl.
+#define SHARED_MEMORY_CHANNEL_YIELD_MS			10
 #define SHARED_MEMORY_CHANNEL_SLEEP_MS			1
 
 
@@ -171,21 +173,20 @@ EChannelResult CSharedMemoryChannel::Receive(uint32* puiType, void* pvData, size
 	size	uiElementSize;
 	int		iOtherState;
 	CTimer	cTimer;
-	bool	bTimed;
-	int		iPolls;
+	bool	bSleep;
 
 	if (!mbOpen)
 	{
 		return CR_Closed;
 	}
 
-	bTimed = iTimeoutMilliseconds > 0;
-	if (bTimed)
+	if (iTimeoutMilliseconds != 0)
 	{
 		cTimer.Init();
 	}
 
-	for (iPolls = 0; ; iPolls++)
+	bSleep = false;
+	for (;;)
 	{
 		//Read the other state before looking in the queue so a message sent
 		//just before it closed is still received.
@@ -198,7 +199,7 @@ EChannelResult CSharedMemoryChannel::Receive(uint32* puiType, void* pvData, size
 			uiElementSize = mcReceive.PeekSize();
 			if (uiElementSize != 0)
 			{
-				if (bTimed)
+				if (iTimeoutMilliseconds != 0)
 				{
 					cTimer.Kill();
 				}
@@ -208,7 +209,7 @@ EChannelResult CSharedMemoryChannel::Receive(uint32* puiType, void* pvData, size
 
 		if (iOtherState == SHARED_MEMORY_CHANNEL_CLOSED)
 		{
-			if (bTimed)
+			if (iTimeoutMilliseconds != 0)
 			{
 				cTimer.Kill();
 			}
@@ -219,23 +220,26 @@ EChannelResult CSharedMemoryChannel::Receive(uint32* puiType, void* pvData, size
 		{
 			return CR_Timeout;
 		}
-		if (bTimed)
+
+		cTimer.Update();
+		if ((iTimeoutMilliseconds > 0) && (cTimer.GetTotalTimeInMillieconds() >= iTimeoutMilliseconds))
 		{
-			cTimer.Update();
-			if (cTimer.GetTotalTimeInMillieconds() >= iTimeoutMilliseconds)
-			{
-				cTimer.Kill();
-				return CR_Timeout;
-			}
+			cTimer.Kill();
+			return CR_Timeout;
 		}
 
-		if (iPolls < SHARED_MEMORY_CHANNEL_YIELDS)
+		if (!bSleep)
 		{
-			ThreadYield();
+			bSleep = cTimer.GetTotalTimeInMillieconds() >= SHARED_MEMORY_CHANNEL_YIELD_MS;
+		}
+
+		if (bSleep)
+		{
+			ThreadSleep(SHARED_MEMORY_CHANNEL_SLEEP_MS);
 		}
 		else
 		{
-			ThreadSleep(SHARED_MEMORY_CHANNEL_SLEEP_MS);
+			ThreadYield();
 		}
 	}
 }
