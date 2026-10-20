@@ -23,6 +23,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __IMAGE_COMBINER_H__
 #define __IMAGE_COMBINER_H__
+#include "BaseLib/ArrayChars.h"
+#include "BaseLib/MapStringInt.h"
 #include "StandardLib/ArrayUnknown.h"
 #include "Image.h"
 #include "ImageCel.h"
@@ -65,22 +67,24 @@ public:
 	SInt32Vec2				msSize;  //Only if ICS_UserSpecified.
 	Ptr<CImage>				mpcDestImage;  //Assumed to be uninitialised.
 	CArrayImageCel			mcSourceCels;
+	CArrayChars				maszSourceFileNames;  //One for each source cel.  Empty if the cel has no file.
 	CArrayImageCel			mcDestCels;  //Theres a one-to-one between dest and source cells.
 	int						miOutsideEdgeWidth;  //Gap around the outside of the destination image and the rectangles.
 	int						miInnerEdgeWidth;  //Gap between rectangles.
 	CArrayChannel			masChannels;
+	bool					mbNameCels;  //Name the dest cels from the source file names.
 
-	void					Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth);
-	void 					Init(EImageCombineLayout eLayout, EImageCombineSize eSize, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0);  //Don't pass ICS_UserSpecified in here, use the one below.
-	void 					Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0);
+	void					Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth, bool bNameCels = false);
+	void 					Init(EImageCombineLayout eLayout, EImageCombineSize eSize, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0, bool bNameCels = false);  //Don't pass ICS_UserSpecified in here, use the one below.
+	void 					Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0, bool bNameCels = false);
 	void					Class(void) override;
 	void 					Free(void) override;
 
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
 
-	void 					AddCel(Ptr<CImageCel> pcCel);
-	void 					AddCels(Ptr<CArrayImageCel>);
+	void 					AddCel(Ptr<CImageCel> pcCel, char* szFileName = NULL);
+	void 					AddCels(Ptr<CArrayImageCel> pcCels, CArrayChars* paszFileNames = NULL);  //paszFileNames has one file name for each cel.
 	void					AddChannel(EChannel eChannel, EPrimitiveType eType);
 	Ptr<CImage>				Combine(void);
 	Ptr<CArrayImageCel>		GetCels(void);  //If something else is taking ownership of the cels (the normal case) then bKillDestCels must be false.
@@ -93,7 +97,9 @@ private:
 	void				UpdateChannels(CArrayChannel* pasSource);
 	SInt32Vec2			Pack(CArrayPackedRectangle* pacPackedRects);
 	void				Draw(CArrayPackedRectangle* pacPackedRects);
-	void				CreateDestCels(CArrayPackedRectangle* pacPackedRects);
+	bool				CreateDestCels(CArrayPackedRectangle* pacPackedRects);
+	void				CountFileNames(CMapStringInt* pmFileNameCounts);
+	void				MakeCelName(CChars* szName, size iSourceIndex, CMapStringInt* pmFileNameCounts, CMapStringInt* pmFileNameIndices);
 	CPackedRectangle*	GetPackedRectangle(CArrayPackedRectangle* pacPackedRects, Ptr<CImageCel> pcSourceCel);
 };
 

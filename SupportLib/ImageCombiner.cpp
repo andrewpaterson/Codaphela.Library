@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
 #include "BaseLib/TypeNames.h"
+#include "BaseLib/FileUtil.h"
 #include "StandardLib/Objects.h"
 #include "ImageCombiner.h"
 #include "ImageReader.h"
@@ -39,7 +40,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth)
+void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth, bool bNameCels)
 {
 	PreInit();
 
@@ -49,10 +50,12 @@ void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, 
 	mpcDestImage = NULL;
 	meChannels = eChannels;
 	mcSourceCels.Init();
+	maszSourceFileNames.Init();
 	mcDestCels.Init();
 	miOutsideEdgeWidth = iOutsideEdgeWidth;
 	miInnerEdgeWidth = iInnerEdgeWidth;
 	masChannels.Init();
+	mbNameCels = bNameCels;
 
 	PostInit();
 }
@@ -62,9 +65,9 @@ void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::Init(EImageCombineLayout eLayout, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth)
+void CImageCombiner::Init(EImageCombineLayout eLayout, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth, bool bNameCels)
 {
-	Init(eLayout, -1, -1, eSize, eChannels, iOutsideEdgeWidth, iInnerEdgeWidth);
+	Init(eLayout, -1, -1, eSize, eChannels, iOutsideEdgeWidth, iInnerEdgeWidth, bNameCels);
 }
 
 
@@ -72,9 +75,9 @@ void CImageCombiner::Init(EImageCombineLayout eLayout, EImageCombineSize eSize, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth)
+void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth, bool bNameCels)
 {
-	Init(eLayout, iWidth, iHeight, ICS_UserSpecified, eChannels, iOutsideEdgeWidth, iInnerEdgeWidth);
+	Init(eLayout, iWidth, iHeight, ICS_UserSpecified, eChannels, iOutsideEdgeWidth, iInnerEdgeWidth, bNameCels);
 }
 
 
@@ -84,6 +87,7 @@ void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, 
 //////////////////////////////////////////////////////////////////////////
 void CImageCombiner::Free(void)
 {
+	maszSourceFileNames.Kill();
 	masChannels.Kill();
 }
 
@@ -100,10 +104,12 @@ void CImageCombiner::Class(void)
 	U_2Int32(msSize);
 	M_Pointer(mpcDestImage);
 	M_Embedded(mcSourceCels);
+	U_Data(CArrayChars, maszSourceFileNames);
 	M_Embedded(mcDestCels);
 	U_SInt(miOutsideEdgeWidth);
 	U_SInt(miInnerEdgeWidth);
 	U_Data(CArrayChannel, masChannels);
+	U_Bool(mbNameCels);
 }
 
 
@@ -146,7 +152,12 @@ Ptr<CImage> CImageCombiner::Combine(void)
 		}
 
 		Draw(&acPackedRects);
-		CreateDestCels(&acPackedRects);
+		if (!CreateDestCels(&acPackedRects))
+		{
+			acPackedRects.Kill();
+			mpcDestImage = NULL;
+			return NULL;
+		}
 		acPackedRects.Kill();
 		return mpcDestImage;
 	}
@@ -158,9 +169,10 @@ Ptr<CImage> CImageCombiner::Combine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::AddCel(Ptr<CImageCel> pcCel)
+void CImageCombiner::AddCel(Ptr<CImageCel> pcCel, char* szFileName)
 {
 	mcSourceCels.Add(pcCel);
+	maszSourceFileNames.Add(szFileName ? szFileName : "");
 }
 
 
@@ -168,9 +180,23 @@ void CImageCombiner::AddCel(Ptr<CImageCel> pcCel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::AddCels(Ptr<CArrayImageCel> pcCels)
+void CImageCombiner::AddCels(Ptr<CArrayImageCel> pcCels, CArrayChars* paszFileNames)
 {
-	mcSourceCels.AddAll(pcCels);
+	size	i;
+	size	uiNumCels;
+
+	uiNumCels = pcCels->NumElements();
+	for (i = 0; i < uiNumCels; i++)
+	{
+		if (paszFileNames && (i < paszFileNames->NumElements()))
+		{
+			AddCel(pcCels->Get(i), paszFileNames->Get(i)->Text());
+		}
+		else
+		{
+			AddCel(pcCels->Get(i));
+		}
+	}
 }
 
 
@@ -416,31 +442,144 @@ SInt32Vec2 CImageCombiner::Pack(CArrayPackedRectangle* pacPackedRects)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::CreateDestCels(CArrayPackedRectangle* pacPackedRects)
+bool CImageCombiner::CreateDestCels(CArrayPackedRectangle* pacPackedRects)
 {
 	Ptr<CImageCel>			pcCelDest;
 	size					i;
 	CPackedRectangle*		pcPackedRect;
 	Ptr<CImageCel>			pcCelSource;
+	CMapStringInt			mFileNameCounts;
+	CMapStringInt			mFileNameIndices;
+	CChars					szName;
+
+	mFileNameCounts.Init();
+	mFileNameIndices.Init();
+	if (mbNameCels)
+	{
+		CountFileNames(&mFileNameCounts);
+	}
 
 	for (i = 0; i < mcSourceCels.NumElements(); i++)
 	{
 		pcCelSource = mcSourceCels.Get(i);
 		pcPackedRect = GetPackedRectangle(pacPackedRects, pcCelSource);
-		
-		if (pcPackedRect)
+
+		szName.Init();
+		if (mbNameCels)
 		{
-			pcCelDest = OMalloc<CImageCel>(mpcDestImage, pcPackedRect);
+			MakeCelName(&szName, i, &mFileNameCounts, &mFileNameIndices);
+		}
+
+		if (szName.Empty())
+		{
+			if (pcPackedRect)
+			{
+				pcCelDest = OMalloc<CImageCel>(mpcDestImage, pcPackedRect);
+			}
+			else
+			{
+				pcCelDest = OMalloc<CImageCel>(mpcDestImage, 0, 0, 0, 0);
+			}
 		}
 		else
 		{
-			pcCelDest = OMalloc<CImageCel>(mpcDestImage, 0, 0, 0, 0);
+			if (pcPackedRect)
+			{
+				pcCelDest = ONMalloc<CImageCel>(szName.Text(), mpcDestImage, pcPackedRect);
+			}
+			else
+			{
+				pcCelDest = ONMalloc<CImageCel>(szName.Text(), mpcDestImage, 0, 0, 0, 0);
+			}
+		}
+		szName.Kill();
+
+		//ONMalloc fails if an object with the same name already exists.
+		if (pcCelDest.IsNull())
+		{
+			mFileNameIndices.Kill();
+			mFileNameCounts.Kill();
+			return false;
 		}
 		mcDestCels.Add(pcCelDest);
 
 		pcCelDest->GetSubImage()->msOffsetTopLeft = pcCelSource->GetSubImage()->msOffsetTopLeft;
 		pcCelDest->GetSubImage()->msOffsetBottomRight = pcCelSource->GetSubImage()->msOffsetBottomRight;
 		pcCelDest->GetSubImage()->msAlignment = pcCelSource->GetSubImage()->msAlignment;
+	}
+
+	mFileNameIndices.Kill();
+	mFileNameCounts.Kill();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCombiner::CountFileNames(CMapStringInt* pmFileNameCounts)
+{
+	size	i;
+	char*	szFileName;
+
+	for (i = 0; i < maszSourceFileNames.NumElements(); i++)
+	{
+		szFileName = maszSourceFileNames.Get(i)->Text();
+		if (!StrEmpty(szFileName))
+		{
+			pmFileNameCounts->Put(szFileName, pmFileNameCounts->Get(szFileName, 0) + 1);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+//The name is the file name relative to the working directory without its extension, eg: "Input/StarControl/Earthling Cruiser/frame0000".
+//If more than one cel came from the same file then each is suffixed with its frame, eg: "Input/Sprites/Walk/Frame0".
+void CImageCombiner::MakeCelName(CChars* szName, size iSourceIndex, CMapStringInt* pmFileNameCounts, CMapStringInt* pmFileNameIndices)
+{
+	char*		szFileName;
+	int32		iFrame;
+	CFileUtil	cFileUtil;
+	CChars		szWorkingDirectory;
+
+	szFileName = maszSourceFileNames.Get(iSourceIndex)->Text();
+	if (StrEmpty(szFileName))
+	{
+		return;
+	}
+
+	szName->Append(szFileName);
+	cFileUtil.FullPath(szName);
+	cFileUtil.RemoveExtension(szName);
+
+	//Files found by searching a directory have full paths.  Files under the working directory are named relative to it.
+	szWorkingDirectory.Init();
+	cFileUtil.CurrentDirectory(&szWorkingDirectory);
+	cFileUtil.FullPath(&szWorkingDirectory);
+	if (!szWorkingDirectory.EndsWith(FILE_SEPARATOR[0]))
+	{
+		szWorkingDirectory.Append(FILE_SEPARATOR[0]);
+	}
+	if (szName->StartsWith(szWorkingDirectory.Text()))
+	{
+		szName->RemoveFromStart(szWorkingDirectory.Length());
+	}
+	szWorkingDirectory.Kill();
+
+	//Always use '/' so cel names are the same on every platform.
+	szName->Replace('\\', '/');
+
+	if (pmFileNameCounts->Get(szFileName, 0) > 1)
+	{
+		iFrame = pmFileNameIndices->Get(szFileName, 0);
+		pmFileNameIndices->Put(szFileName, iFrame + 1);
+		szName->Append("/Frame");
+		szName->Append(iFrame);
 	}
 }
 

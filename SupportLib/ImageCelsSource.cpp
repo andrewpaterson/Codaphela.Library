@@ -107,6 +107,7 @@ void CImageCelsSource::Init(bool bPackOnLoad)
 	mcModifiers.Init();
 
 	maImageCels.Init();
+	maszCelFileNames.Init();
 	maFillMasks.Init();
 	maImages.Init();
 
@@ -120,6 +121,7 @@ void CImageCelsSource::Init(bool bPackOnLoad)
 //////////////////////////////////////////////////////////////////////////
 void CImageCelsSource::Free(void)
 {
+	maszCelFileNames.Kill();
 	macCelSources.Kill();
 }
 
@@ -135,6 +137,7 @@ void CImageCelsSource::Class(void)
 	M_Embedded(mcModifiers);
 	U_Data(CArrayUnknown, macCelSources);
 	M_Embedded(maImageCels);
+	U_Data(CArrayChars, maszCelFileNames);
 	M_Embedded(maFillMasks);
 	M_Embedded(maImages);
 }
@@ -302,6 +305,8 @@ bool CImageCelsSource::Load(void)
 	CImageCelSource*				pcCelsSource;
 	int								iFirstCelIndex;
 	Ptr<CImage>						pcCombined;
+	size							j;
+	char*							szFileName;
 
 	for (i = 0; i < maImageSources.NumElements(); i++)
 	{
@@ -338,6 +343,12 @@ bool CImageCelsSource::Load(void)
 				{
 					maFillMasks.Remove(pcMask);
 				}
+			}
+
+			szFileName = pImageSource->GetFileName();
+			for (j = iFirstCelIndex; j < maImageCels.NumElements(); j++)
+			{
+				maszCelFileNames.Add(szFileName ? szFileName : "");
 			}
 		}
 	}
@@ -412,6 +423,16 @@ void CImageCelsSource::PopulateImageArray(void)
 Ptr<CArrayImageCel> CImageCelsSource::GetImageCels(void)
 {
 	return &maImageCels;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayChars* CImageCelsSource::GetCelFileNames(void)
+{
+	return &maszCelFileNames;
 }
 
 

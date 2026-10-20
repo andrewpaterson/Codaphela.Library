@@ -72,6 +72,7 @@ protected:
 
 	//Output
 	CArrayImageCel						maImageCels;
+	CArrayChars							maszCelFileNames;  //One for each cel in maImageCels.  Empty if the cel's image is not from a file.
 	CArrayImage							maFillMasks;
 	CArrayImage							maImages;
 
@@ -94,6 +95,7 @@ public:
 
 	Ptr<CArrayImage>		GetImages(void);
 	Ptr<CArrayImageCel>		GetImageCels(void);
+	CArrayChars*			GetCelFileNames(void);
 
 private:
 	Ptr<CImage>				Combine(size iFirstCelIndex);
