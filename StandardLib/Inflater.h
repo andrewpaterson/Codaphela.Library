@@ -65,3 +65,4 @@ protected:
 
 
 #endif // __INFLATER_H__
+
