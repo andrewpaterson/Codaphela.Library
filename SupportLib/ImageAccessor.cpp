@@ -69,7 +69,7 @@ void CImageAccessor::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CImageAccessor::Get(int x, int y)
+void* CImageAccessor::Get(int32 x, int32 y)
 {
 	return mpcAccessor->Get(x + y * miWidth);
 }
@@ -79,7 +79,7 @@ void* CImageAccessor::Get(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessor::Set(int x, int y, void* pvSource)
+void CImageAccessor::Set(int32 x, int32 y, void* pvSource)
 {
 	mpcAccessor->Set(x + y * miWidth, pvSource);
 }
@@ -89,7 +89,7 @@ void CImageAccessor::Set(int x, int y, void* pvSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CImageAccessor::GetBufferSize(void)
+uint32 CImageAccessor::GetBufferSize(void)
 {
 	return mpcAccessor->GetBufferSize();
 }
@@ -99,7 +99,7 @@ int CImageAccessor::GetBufferSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CImageAccessor::SafeGet(int x, int y)
+void* CImageAccessor::SafeGet(int32 x, int32 y)
 {
 	if (IsValid(x, y))
 	{
@@ -113,7 +113,7 @@ void* CImageAccessor::SafeGet(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessor::SafeSet(int x, int y, void* pvData)
+void CImageAccessor::SafeSet(int32 x, int32 y, void* pvData)
 {
 	if (IsValid(x, y))
 	{
@@ -126,7 +126,7 @@ void CImageAccessor::SafeSet(int x, int y, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessor::Get(int x, int y, void* pvDest)
+void CImageAccessor::Get(int32 x, int32 y, void* pvDest)
 {
 	void*	pvData;
 	pvData = Get(x, y);
@@ -138,9 +138,9 @@ void CImageAccessor::Get(int x, int y, void* pvDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageAccessor::IsValid(int x, int y)
+bool CImageAccessor::IsValid(int32 x, int32 y)
 {
-	if ((x >= 0) && (y >= 0) && (x < miWidth) && (y < mpcImage->GetImageHeight()))
+	if ((x >= 0) && (y >= 0) && (x < (int32)miWidth) && (y < (int32)mpcImage->GetImageHeight()))
 	{
 		return true;
 	}
@@ -200,7 +200,7 @@ bool CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 			//The destination will not be usable.
 			bValid = false;
 		}
-		pvData = (void*)(size_t)(((int)(size_t)pvData) + iSize);
+		pvData = (void*)(size_t)(((int32)(size_t)pvData) + iSize);
 	}
 	return bValid;
 }
@@ -239,7 +239,7 @@ EPrimitiveType	CImageAccessor::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CImageAccessor::GetBitSize(void)
+uint32 CImageAccessor::GetBitSize(void)
 {
 	return mpcAccessor->GetBitSize();
 }
@@ -249,7 +249,7 @@ int CImageAccessor::GetBitSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CImageAccessor::GetByteSize(void)
+uint32 CImageAccessor::GetByteSize(void)
 {
 	return mpcAccessor->GetByteSize();
 }
@@ -257,5 +257,5 @@ int CImageAccessor::GetByteSize(void)
 
 CChannelsAccessor* CImageAccessor::GetAccessor(void) { return mpcAccessor; }
 CImage* CImageAccessor::GetImage(void) { return mpcImage; }
-int CImageAccessor::GetWidth(void) { return miWidth; }
+uint32 CImageAccessor::GetWidth(void) { return miWidth; }
 

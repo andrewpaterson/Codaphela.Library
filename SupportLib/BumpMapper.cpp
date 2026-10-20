@@ -37,22 +37,26 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void GenerateNormalMapFromMono(CImage* pcImage, SFloat32Vec3* pasNormals, EChannel eHeightChannel)
 {
-	int				x, y;
-	SFloat32Vec3			sNormal;
+	uint32			x, y;
+	SFloat32Vec3	sNormal;
 	float32			f1, f2, f3, f4;
 	float32			fdx1, fdx2;
 	float32			fdy1, fdy2;
 	CImageAccessor*	pcAccessor;
 	int				c;
+	uint32			iHeight;
+	uint32			iWidth;
 
 	pcAccessor = CImageAccessorCreator::Create(pcImage, PT_uint8, eHeightChannel, CHANNEL_STOP);
 	c = 0;
 
-	for (y = 0; y <= pcImage->GetImageHeight(); y++)
+	iHeight = pcImage->GetImageHeight();
+	iWidth = pcImage->GetImageWidth();
+	for (y = 0; y <= iHeight; y++)
 	{
-		for (x = 0; x <= pcImage->GetImageWidth(); x++)
+		for (x = 0; x <= iWidth; x++)
 		{
-			if ((x == 0) || (x == pcImage->GetImageWidth()) || (y == 0) || (y == pcImage->GetImageHeight()))
+			if ((x == 0) || (x == iWidth) || (y == 0) || (y == iHeight))
 			{
 				sNormal.Init(0.0f, 0.0f, 1.0f);
 			}
@@ -79,7 +83,7 @@ void GenerateNormalMapFromMono(CImage* pcImage, SFloat32Vec3* pasNormals, EChann
 				sNormal.Normalize();
 			}
 
-			pasNormals[x + y * (pcImage->GetImageWidth() + 1)] = sNormal;
+			pasNormals[x + y * (iWidth + 1)] = sNormal;
 		}
 	}
 
@@ -93,22 +97,26 @@ void GenerateNormalMapFromMono(CImage* pcImage, SFloat32Vec3* pasNormals, EChann
 //////////////////////////////////////////////////////////////////////////
 void AssignNormalMapFromNormals(Ptr<CImage> pcImage, SFloat32Vec3* pasNormals)
 {
-	int					x, y;
+	uint32				x, y;
 	int					iColour;
-	SFloat32Vec3				sNormal;
-	SFloat32Vec3*			pn1; 
-	SFloat32Vec3*			pn2; 
-	SFloat32Vec3*			pn3; 
-	SFloat32Vec3*			pn4; 
+	SFloat32Vec3		sNormal;
+	SFloat32Vec3*		pn1; 
+	SFloat32Vec3*		pn2; 
+	SFloat32Vec3*		pn3; 
+	SFloat32Vec3*		pn4; 
 	CImageAccessor*		pcAccessor;
-	int					iWidth;
+	uint32				iHeight;
+	uint32				iWidth;
+	uint32				iImageWidth;
 
 	pcAccessor = CImageAccessorCreator::Create(&pcImage, PT_uint8, IMAGE_NORMAL_X, IMAGE_NORMAL_Y, IMAGE_NORMAL_Z, CHANNEL_STOP);
 
 	iWidth = (pcImage->GetImageWidth() + 1);
-	for (y = 0; y < pcImage->GetImageHeight(); y++)
+	iImageWidth = pcImage->GetImageWidth();
+	iHeight = pcImage->GetImageHeight();
+	for (y = 0; y < iHeight; y++)
 	{
-		for (x = 0; x < pcImage->GetImageWidth(); x++)
+		for (x = 0; x < iImageWidth; x++)
 		{
 			pn1 = &pasNormals[ x    +  y    * iWidth];
 			pn2 = &pasNormals[(x+1) +  y    * iWidth];
@@ -134,22 +142,26 @@ void AssignNormalMapFromNormals(Ptr<CImage> pcImage, SFloat32Vec3* pasNormals)
 //////////////////////////////////////////////////////////////////////////
 void AssignBumpMapFromNormals(Ptr<CImage> pcImage, SFloat32Vec3* pasNormals)
 {
-	int					x, y;
-	int					iColour;
-	SFloat32Vec3				sNormal;
-	SFloat32Vec3*			pn1; 
-	SFloat32Vec3*			pn2; 
-	SFloat32Vec3*			pn3; 
-	SFloat32Vec3*			pn4; 
+	uint32				x, y;
+	uint32				iColour;
+	SFloat32Vec3		sNormal;
+	SFloat32Vec3*		pn1; 
+	SFloat32Vec3*		pn2; 
+	SFloat32Vec3*		pn3; 
+	SFloat32Vec3*		pn4; 
 	CImageAccessor*		pcAccessor;
-	int					iWidth;
+	uint32				iWidth;
+	uint32				iHeight;
+	uint32				iImageWidth;
 
 	pcAccessor = CImageAccessorCreator::Create(&pcImage, PT_uint8, IMAGE_BUMP_U, IMAGE_BUMP_V, CHANNEL_STOP);
 
 	iWidth = (pcImage->GetImageWidth() + 1);
-	for (y = 0; y < pcImage->GetImageHeight(); y++)
+	iHeight = pcImage->GetImageHeight();
+	iImageWidth = pcImage->GetImageWidth();
+	for (y = 0; y < iHeight; y++)
 	{
-		for (x = 0; x < pcImage->GetImageWidth(); x++)
+		for (x = 0; x < iImageWidth; x++)
 		{
 			pn1 = &pasNormals[ x    +  y    * iWidth];
 			pn2 = &pasNormals[(x+1) +  y    * iWidth];
