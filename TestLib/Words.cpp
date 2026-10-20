@@ -464,7 +464,7 @@ void GetArchaicWords(CArrayChars* pasz)
 	{
 		pszDefinition = gaszArchaicDefinitions.Get(i);
 		iIndex = pszDefinition->Find(':');
-		if (iIndex != -1)
+		if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 		{
 			sz.Init(pszDefinition->Text(), 0, iIndex);
 			gaszArchaicWords.Add(sz);

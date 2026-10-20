@@ -145,8 +145,6 @@ void CMeshPlaneEditor::GeneratePlane(CMeshEditor* pcMeshEditor)
 {
 	int				x;
 	int				y;
-	int				iNumVerticies;
-	int				iNumFaces;
 	SFloat32Vec3			sXFraction;
 	SFloat32Vec3			sYFraction;
 	int				iBottomLeftCorner;
@@ -156,8 +154,6 @@ void CMeshPlaneEditor::GeneratePlane(CMeshEditor* pcMeshEditor)
 	SFloat32Vec3			sPosition;
 	int				iStartPosition;
 
-	iNumVerticies = (miXSegments+1 - (miXI+miXE)) * (miYSegments+1 - (miYI+miYE));
-	iNumFaces = (miXSegments - (miXI+miXE)) * (miYSegments - (miYI+miYE)) * 2;
 
 	sXFraction = msXDirection;
 	sXFraction /= (float32)miXSegments;

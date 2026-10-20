@@ -123,7 +123,6 @@ void CCircularMemoryList::Remap(SCircularMemoryList* pvNewCache, size uiByteSize
 //////////////////////////////////////////////////////////////////////////
 void CCircularMemoryList::RemapDifferentMemory(void* pvNewCache, size uiCacheSize)
 {
-	ptrdiff_t					iAbsDiff;
 	SMemoryCacheDescriptor*		psCacheBasedDescriptor;
 	size						uiSize;
 	SMemoryCacheDescriptor*		psNewPrev;
@@ -131,7 +130,6 @@ void CCircularMemoryList::RemapDifferentMemory(void* pvNewCache, size uiCacheSiz
 
 	if (!IsEmpty())
 	{
-		iAbsDiff = (size)pvNewCache - (size)mpvCache;
 
 		psCacheBasedDescriptor = GetFirstDescriptor();
 		psNewPrev = NULL;

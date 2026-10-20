@@ -368,7 +368,6 @@ SSharedMemoryMap CResizableSharedMemory::Resize(size_t uiSize)
 {
     bool                        bResult;
     uint64                      uiOldSize;
-    int                         iStillMapped;
     void*                       pvMemory;
     CStackMemory<>              cTemp;
 
@@ -381,7 +380,7 @@ SSharedMemoryMap CResizableSharedMemory::Resize(size_t uiSize)
         pvMemory = cTemp.Init((size_t)uiOldSize);
         memcpy(pvMemory, mpvMemory, (size_t)uiOldSize);
 
-        iStillMapped = Close();
+        Close();
         bResult = Create(uiSize);
         if (bResult)
         {

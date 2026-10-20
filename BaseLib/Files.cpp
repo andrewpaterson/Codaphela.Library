@@ -32,11 +32,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 bool CFiles::Init(const char* szDirectory, const char* szPackFilesExtension)
 {
-	CChars*						pszFullDirectory;
 
 	mszPackFilesExtension.Init(szPackFilesExtension);
 	mcFileSystem.Init(szDirectory);
-	pszFullDirectory = mcFileSystem.GetFullDirectoryName();
 
 	return AddPackFiles();
 }

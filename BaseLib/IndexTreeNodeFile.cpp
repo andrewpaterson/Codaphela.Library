@@ -616,7 +616,7 @@ size CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, size uiMaxBufferSize, CI
 		ulliFilePos = *((uint32*)&pucMemory[uiPos]);  uiPos += sizeof(uint32);
 
 		pcChild = &apcChildren[i];
-		if (iFile != -1)
+		if (iFile != MAX_UINT32)
 		{
 			pcChild->Init(iFile, ulliFilePos);
 		}
@@ -671,14 +671,12 @@ bool CIndexTreeNodeFile::ValidateParent(void)
 	CIndexTreeNodeFile*		pcShouldBeThis;
 	CIndexTreeChildNode*	pcShouldBeChild;
 	uint8					szKey[MAX_KEY_SIZE];
-	size					iFirstIndex;
 
 	if (mpcParent == NULL)
 	{
 		return gcLogger.Error2(__METHOD__, " This node's parent should not be NULL.", NULL);
 	}
 
-	iFirstIndex = mpcParent->GetFirstIndex();
 	pcShouldBeChild = ((CIndexTreeNodeFile*)mpcParent)->GetNode(muiIndexInParent);
 	if (pcShouldBeChild->IsMemory())
 	{

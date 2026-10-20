@@ -77,7 +77,7 @@ bool CMapsCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
         pImage = pCanvas->GetImageOrNull();
         if (pImage.IsNull())
         {
-            if (mpDestImage.IsNull() || (mpDestImage->GetWidth() != sSize.x) || (mpDestImage->GetHeight() != sSize.y))
+            if (mpDestImage.IsNull() || (mpDestImage->GetWidth() != (uint32)sSize.x) || (mpDestImage->GetHeight() != (uint32)sSize.y))
             {
                 mpDestImage = OMalloc<CImage>(sSize.x, sSize.y, pCanvas->GetColourFormat(), pCanvas->GetColourOrder(), pCanvas->GetColourBits(), pCanvas->GetAlphaBits());
                 mpDestImage->Black();  //A native canvas starts black so this image must too.

@@ -199,20 +199,12 @@ bool CMeshCacher::Vertex(void)
 	int						i;
 	CMeshTypeIndices*		pcTypeIndices;
 	int						iUniqueTypes;
-	int						iNumFaces;
-	int						iNumVerts;
-	int						iStartIndex;
-	int						iNumIndices;
 	Ptr<CMeshVertexArray>	pcVertexArray;
 
-	iStartIndex = 0;
 	iUniqueTypes = mcTypeIndices.NumElements();
 	for (i = 0; i < iUniqueTypes; i++)
 	{
 		pcTypeIndices = mcTypeIndices.Get(i);
-		iNumFaces = pcTypeIndices->mpcVertexArray->GetFaceIndicies()->NumElements();
-		iNumVerts = pcTypeIndices->maVerts.NumElements();
-		iNumIndices = iNumFaces * 3;
 
 		pcVertexArray = mpcMesh->mcCache.GetVertexArray(i);
 		pcVertexArray->GetVertexArray()->BeginChange();

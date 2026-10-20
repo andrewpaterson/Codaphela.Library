@@ -118,7 +118,6 @@ bool CImageRGBToGrey::AreChannelsSame(CImage* pcImage, EChannel eChannel1, EChan
 	CImageAccessor*			pcAccessor2;
 	CImageAccessor*			pcAccessor3;
 	int						iWidth;
-	int						iHeight;
 	int						iSize;
 	SImageColour*			psColour1;
 	SImageColour*			psColour2;
@@ -135,7 +134,6 @@ bool CImageRGBToGrey::AreChannelsSame(CImage* pcImage, EChannel eChannel1, EChan
 	iSize = pcAccessor1->GetByteSize();
 
 	iWidth = pcImage->GetWidth();
-	iHeight = pcImage->GetHeight();
 	for (y = 0; y < iWidth; y++)
 	{
 		for (x = 0; x < iWidth; x++)

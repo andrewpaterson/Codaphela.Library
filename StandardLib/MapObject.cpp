@@ -620,9 +620,8 @@ bool CMapObject::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMapObject::Sort(void)
 {
-	size			uiNumInserted;
 
-	uiNumInserted = mcMap.Sort();
+	mcMap.Sort();
 
 	mbSorted = true;
 }

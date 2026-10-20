@@ -49,7 +49,6 @@ bool CWinRefCanvas::CreateNativeCanvas(void)
 {
     //This is split from .Init() so that it can fail on its own.
 
-    CWinRefWindowFactory*   pcFactory; 
     SInt32Vec2              sSize;
     EColourFormat           eColourFormat;
     EColourOrder            eColourOrder;
@@ -58,7 +57,6 @@ bool CWinRefCanvas::CreateNativeCanvas(void)
     Ptr<CImage>             pImage;
     Ptr<CImageCel>          pCel;
 
-    pcFactory = (CWinRefWindowFactory*)mpcWindowFactory;
     sSize = mpcCanvas->GetActualSize();
 
     eColourFormat = mpcCanvas->GetColourFormat();

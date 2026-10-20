@@ -867,6 +867,8 @@ TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, size iDestLength
 			}
 			break;
 
+		default:
+			break;
 	}
 	return TRIERROR;
 }

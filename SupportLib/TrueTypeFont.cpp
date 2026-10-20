@@ -973,7 +973,6 @@ bool CTrueTypeFont::ReadSimpleGlyph(size uiOffset, size uiLength, int iNumContou
 {
 	size			uiEnd;
 	size			uiFirstPoint;
-	size			uiFirstContour;
 	int				i;
 	uint16			uiContourEnd;
 	int				iLastContourEnd;
@@ -1000,7 +999,6 @@ bool CTrueTypeFont::ReadSimpleGlyph(size uiOffset, size uiLength, int iNumContou
 	}
 
 	uiFirstPoint = pcOutline->NumPoints();
-	uiFirstContour = pcOutline->NumContours();
 	iLastContourEnd = -1;
 	for (i = 0; i < iNumContours; i++)
 	{

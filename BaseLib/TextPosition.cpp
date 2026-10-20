@@ -99,7 +99,7 @@ void CTextPositionPrinter::PrintPosition(CChars* pszDest)
 		iPreviousLineEnd = szParserText.FindFromEnd(iUsedLength - 1, "\n");
 		iLineEnd = szParserText.Find(iUsedLength, "\n");
 
-		if (iPreviousLineEnd == -1 && iLineEnd == -1)
+		if (iPreviousLineEnd == ARRAY_ELEMENT_NOT_FOUND && iLineEnd == ARRAY_ELEMENT_NOT_FOUND)
 		{
 			PrintPositionSingleLineParser(pszDest);
 		}
@@ -111,7 +111,7 @@ void CTextPositionPrinter::PrintPosition(CChars* pszDest)
 	else
 	{
 		iLineEnd = szParserText.Find(0, "\n");
-		if (iLineEnd == -1)
+		if (iLineEnd == ARRAY_ELEMENT_NOT_FOUND)
 		{
 			iLineEnd = mcText.miLen;
 		}
@@ -159,11 +159,11 @@ void CTextPositionPrinter::PrintPositionMultilineParser(CChars* pszDest)
 
 	iLineEnd = szParserText.Find(iUsedLength, "\n");
 
-	if (iPreviousLineEnd == -1)
+	if (iPreviousLineEnd == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		iPreviousLineEnd = 0;
 	}
-	if (iLineEnd == -1)
+	if (iLineEnd == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		iLineEnd = mcText.miLen;
 	}

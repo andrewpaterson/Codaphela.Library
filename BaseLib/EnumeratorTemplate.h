@@ -519,7 +519,7 @@ int __CEnumeratorTemplate<M>::GetWithKey(const char* szName, size iNameLen, M* p
 		psNode = PrivateGetWithKey(szName, iNameLen, pvKey, uiKeySize, psStart);
 		if (psNode)
 		{
-			if (uiNum == iMatchNum)
+			if ((int)uiNum == iMatchNum)
 			{
 				SafeAssign(ppvData, (M*)psNode->pvData);
 				SafeAssign(ppszName, psNode->szName);
@@ -550,7 +550,7 @@ bool __CEnumeratorTemplate<M>::GetWithID(size iID, M** ppvData, char** ppszName)
 {
 	SENode*		psNode;
 
-	if (iID == -1)
+	if (iID == SIZE_MAX)
 	{
 		psNode = NULL;
 	}

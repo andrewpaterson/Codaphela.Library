@@ -118,13 +118,11 @@ bool CMarkupTag::GetAttribute(const char* szAttribute, void** ppvData, uint* pui
 {
 	size			i;
 	size			uiNumElements;
-	CMallocator*	pcMalloc;
 	void*			pvData;
 	size			uiType;
 	char*			szName;
 	bool			bExists;
 
-	pcMalloc = GetMalloc();
 
 	uiNumElements = mcAttributes.NumElements();
 	for (i = 0; i < uiNumElements; i++)
@@ -710,7 +708,6 @@ bool CMarkupTag::AddBooleanAttribute(bool bValue)
 //////////////////////////////////////////////////////////////////////////
 bool CMarkupTag::AddNullAttribute(char* szAttribute, bool bAllowDuplicates)
 {
-	CMallocator*	pcMalloc;
 	bool			bExists;
 
 	if (!bAllowDuplicates)
@@ -722,7 +719,6 @@ bool CMarkupTag::AddNullAttribute(char* szAttribute, bool bAllowDuplicates)
 		}
 	}
 
-	pcMalloc = GetMalloc();
 
 	mcAttributes.Add(NULL, PT_void, szAttribute);
 	return true;
@@ -735,10 +731,8 @@ bool CMarkupTag::AddNullAttribute(char* szAttribute, bool bAllowDuplicates)
 //////////////////////////////////////////////////////////////////////////
 bool CMarkupTag::AddNullAttribute(void)
 {
-	CMallocator* pcMalloc;
 
 
-	pcMalloc = GetMalloc();
 
 	mcAttributes.Add(NULL, PT_void, NULL);
 	return true;
@@ -858,7 +852,6 @@ size CMarkupTag::Print(CChars* psz, size iDepth, size iLine)
 	size			i;
 	CMarkupBase*	pcBase;
 	CChars			szText;
-	bool			bPadClosing;
 	char*			szKey;
 	bool			bResult;
 	size			uiNumBases;
@@ -938,7 +931,6 @@ size CMarkupTag::Print(CChars* psz, size iDepth, size iLine)
 
 		if (uiNumBases > 0)
 		{
-			bPadClosing = true;
 			if (ContainsOnlyText())
 			{
 				szText.Init();

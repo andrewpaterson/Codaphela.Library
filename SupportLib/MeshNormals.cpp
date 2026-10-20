@@ -148,9 +148,6 @@ void CMeshNormals::GenerateFlatFaceNormals(CMeshPositions* pcPositions, CMeshCon
 void CMeshNormals::AddFace(int iFaceNum, CMeshPositions* pcPositions, CMeshConnectivity* pcConn)
 {
 	CMeshFace*			psFace;
-	CMeshCorner*		psCornerA;
-	CMeshCorner*		psCornerB;
-	CMeshCorner*		psCornerC;
 	SFloat32Vec3*			psPosA;
 	SFloat32Vec3*			psPosB;
 	SFloat32Vec3*			psPosC;
@@ -166,9 +163,6 @@ void CMeshNormals::AddFace(int iFaceNum, CMeshPositions* pcPositions, CMeshConne
 		psNormalFace = mcFaces.InsertAt(iFaceNum);
 		psNormal = mcNormals.InsertAt(iFaceNum);
 
-		psCornerA = pcConn->GetCorner(psFace->asCorner[0]);
-		psCornerB = pcConn->GetCorner(psFace->asCorner[1]);
-		psCornerC = pcConn->GetCorner(psFace->asCorner[2]);
 
 		psPosA = pcPositions->mcPositions.Get(psFace->asCorner[0]);
 		psPosB = pcPositions->mcPositions.Get(psFace->asCorner[1]);

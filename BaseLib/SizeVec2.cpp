@@ -34,7 +34,7 @@ void SSizeVec2::Print(CChars* psx, size iWholeNumbers)
 	CChars		szzz;
 	size			iWidth;
 
-	if (iWholeNumbers == -1)
+	if (iWholeNumbers == SIZE_MAX)
 	{
 		iWholeNumbers = WholeNumbers();
 		iWholeNumbers++;

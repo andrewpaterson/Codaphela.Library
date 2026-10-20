@@ -140,7 +140,6 @@ bool SaveSFTOpaque(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeftOffse
 	SSFTImage	sStruct;
 	size		iResult;
 	size		uiImageWidth;
-	size		uiImageHeight;
 	uint8*		puiData;
 	size		x;
 	size		y;
@@ -152,7 +151,6 @@ bool SaveSFTOpaque(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeftOffse
 	if (pcFile->IsOpen())
 	{
 		uiImageWidth = pImage->GetWidth();
-		uiImageHeight = pImage->GetHeight();
 
 		sStruct.Init(SFT_TYPE_OPAQUE, uiCelWidth, uiCelHeight);
 		if (!sStruct.Write(pcFile))
@@ -200,7 +198,6 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeft
 	size						x;
 	size						y;
 	size						uiImageWidth;
-	size						uiImageHeight;
 	bool						bOpaque;
 	uint8						uiColour;
 	SSFTCelRun					sCelRun;
@@ -216,7 +213,6 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeft
 	if (pcFile->IsOpen())
 	{
 		uiImageWidth = pImage->GetWidth();
-		uiImageHeight = pImage->GetHeight();
 		sStruct.Init(SFT_TYPE_TRANSPARENT, uiCelWidth, uiCelHeight);
 		if (!sStruct.Write(pcFile))
 		{
@@ -373,7 +369,6 @@ bool SaveSFTContainer(Ptr<CArrayImageCel> pcImageCels, CFileBasic* pcDiskBasic)
 	SSFTContained	sContained;
 	filePos			uiContainedPos;
 	filePos			uiPrevContainedPos;
-	size			iResult;
 	uint64			uiCurr64KCount;
 	uint64			uiNext64KCount;
 	uint64			uiFilePos;
@@ -467,7 +462,7 @@ bool SaveSFTContainer(Ptr<CArrayImageCel> pcImageCels, CFileBasic* pcDiskBasic)
 
 		sContained.Init();
 		sContained.Write(pcDiskBasic);
-		iResult = pcDiskBasic->Write(cMemoryFile.GetBufferPointer(), 1, cMemoryFile.GetBufferSize());
+		pcDiskBasic->Write(cMemoryFile.GetBufferPointer(), 1, cMemoryFile.GetBufferSize());
 
 		if (i != 0)
 		{

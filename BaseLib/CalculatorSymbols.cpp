@@ -82,7 +82,6 @@ void CCalculatorSymbols::Init(bool bEmpty)
 //////////////////////////////////////////////////////////////////////////
 bool CCalculatorSymbols::ValidateSymbols(void)
 {
-	size					uiNumElments;
 	size					i;
 	CCalculatorOperator*	pcOperator;
 	ECalcOperator			eOp;
@@ -91,7 +90,6 @@ bool CCalculatorSymbols::ValidateSymbols(void)
 	uiMaxPrecedence = 0;
 	if (!mbValidated)
 	{
-		uiNumElments = macOperators.NumElements();
 		for (i = CO_Invalid+1; i <= CO_Assignment; i++)
 		{
 			pcOperator = macOperators.SafeGet(i);

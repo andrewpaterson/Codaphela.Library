@@ -483,7 +483,6 @@ bool CArrayCommonUnknown::Add(CUnknown* pcUnknown, bool bCleanNullsIfNecessary)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::Set(size iIndex, CUnknown* pcUnknown, bool bCleanNullsIfNecessary)
 {
-	EArrayUnsetReturn	eUnset;
 
 	if ((pcUnknown == NULL) && (muiFlags & ARRAY_COMMOM_IGNORE_NULL))
 	{
@@ -500,7 +499,7 @@ bool CArrayCommonUnknown::Set(size iIndex, CUnknown* pcUnknown, bool bCleanNulls
 		}
 	}
 
-	eUnset = Unset(iIndex);
+	Unset(iIndex);
 	CleanNullsIfNecessary(bCleanNullsIfNecessary);
 
 	mcArray.Set(iIndex, &pcUnknown);

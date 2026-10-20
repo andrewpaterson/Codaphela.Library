@@ -62,14 +62,12 @@ void CChannelsAccessorAccessBitty::Set(size iPos, void* pvSource)
 	size				i;
 	CChannelAccessor*	pcAccessor;
 	void*				pvDest;
-	size				iDestBitPos;
 	size				iSourceBitPos;
 	char				c[16+1];
 	size				uiNumAccessors;
 
 	uiNumAccessors = macAccessors.NumElements();
 	pvDest = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride());
-	iDestBitPos = mpcChannels->GetBitStride() * iPos;
 	iSourceBitPos = 0;
 	for (i = 0; i < uiNumAccessors; i++)
 	{

@@ -258,6 +258,8 @@ bool CCalcOperator::IsBinary(void)
 	case CO_BitwiseOr:
 	case CO_BitwiseXor:
 		return true;
+	default:
+		break;
 	}
 	return false;
 }
@@ -278,6 +280,8 @@ bool CCalcOperator::IsUnary(void)
 	case CO_UnaryAdd:
 	case CO_UnarySubtract:
 		return true;
+	default:
+		break;
 	}
 	return false;
 }

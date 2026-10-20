@@ -631,15 +631,11 @@ TRISTATE CXMLParser::ParseContent(void)
 TRISTATE CXMLParser::ParseNamedReference(void)
 {
 	TRISTATE			tResult;
-	size				iLine;
-	size				iColumn;
 	CChars				szIdentifier;
 	CMarkupNamedRef*	pcNamedRef;
 
 	mcParser.SkipWhitespace();
 
-	iLine = mcParser.Line();
-	iColumn = mcParser.Column();
 
 	tResult = mcParser.GetExactCharacter('&', false);
 	if (tResult == TRITRUE)
@@ -677,11 +673,7 @@ TRISTATE CXMLParser::ParseText(void)
 	TRISTATE		tResult;
 	CChars			szText;
 	CMarkupText*	pcMarkupText;
-	size			iLine;
-	size			iColumn;
 
-	iLine = mcParser.Line();
-	iColumn = mcParser.Column();
 
 	szText.Init();
 	tResult = ParseText(&szText);

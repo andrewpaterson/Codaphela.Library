@@ -1661,7 +1661,6 @@ bool CNumber::PrivateGreaterThan(CNumber* pcNumber)
 	int32	iOtherLastDigit;
 	int32	iThisFirstDigit;
 	int32	iOtherFirstDigit;
-	int32	iLast;
 	int32	iResult;
 
 	iThisFirstDigit = GetFirstNonZeroDigit();
@@ -1670,10 +1669,8 @@ bool CNumber::PrivateGreaterThan(CNumber* pcNumber)
 	iOtherFirstDigit = pcNumber->GetFirstNonZeroDigit();
 	iOtherLastDigit = pcNumber->GetLastNonZeroDigit();
 
-	iLast = iThisLastDigit;
 	if (iOtherLastDigit > iThisLastDigit)
 	{
-		iLast = iOtherLastDigit;
 	}
 
 	if (iThisFirstDigit > iOtherFirstDigit)
@@ -1715,7 +1712,6 @@ bool CNumber::PrivateGreaterThanOrEquals(CNumber* pcNumber)
 	int32		iOtherLastDigit;
 	int32		iThisFirstDigit;
 	int32		iOtherFirstDigit;
-	int32		iLast;
 	int32		iResult;
 
 	iThisFirstDigit = GetFirstNonZeroDigit();
@@ -1724,10 +1720,8 @@ bool CNumber::PrivateGreaterThanOrEquals(CNumber* pcNumber)
 	iOtherFirstDigit = pcNumber->GetFirstNonZeroDigit();
 	iOtherLastDigit = pcNumber->GetLastNonZeroDigit();
 
-	iLast = iThisLastDigit;
 	if (iOtherLastDigit > iThisLastDigit)
 	{
-		iLast = iOtherLastDigit;
 	}
 
 	if (iThisFirstDigit > iOtherFirstDigit)

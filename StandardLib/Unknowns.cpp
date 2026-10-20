@@ -435,13 +435,13 @@ bool CUnknowns::IsFreed(CUnknown* pcUnknown)
 {
 #ifdef _DEBUG
 	SGeneralMemoryAllocation*	psAlloc;
-	int							i;
-	int*						piMem;
+	size							i;
+	uint32*						piMem;
 
 	psAlloc = GENERAL_MEMORY_GET_ALLOCATION(pcUnknown);
 	for (i = 1; i < sizeof(SGeneralMemoryAllocation)/4; i++)
 	{
-		piMem = &((int*)psAlloc)[i];
+		piMem = &((uint32*)psAlloc)[i];
 		if (*piMem != 0xefefefef)
 		{
 			return false;

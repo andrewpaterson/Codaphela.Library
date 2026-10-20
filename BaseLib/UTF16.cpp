@@ -323,7 +323,6 @@ size CUTF16::GetUTF16ElementLength(void)
 {
     uint16  c;
     uint16  c2;
-    uint32  c32;
 
     if (muiPos >= muiTextLength)
     {
@@ -350,7 +349,6 @@ size CUTF16::GetUTF16ElementLength(void)
         c2 = mszText[muiPos + 1];
         if (c2 >= 0xDC00 && c2 <= 0xDFFF)
         {
-            c32 = 0x10000 + (((c & 0x03FF) << 10) | (c2 & 0x03FF));
             return 2;
         }
         else

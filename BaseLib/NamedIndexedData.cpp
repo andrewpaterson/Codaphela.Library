@@ -559,14 +559,12 @@ bool CNamedIndexedData::Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32
 	uint32					uiDataSize;
 	bool					bResult;
 	CNamedIndexedHeader*	pcHeader;
-	int						iNameLength;
 	void*					pvHeaderData;
 
 	pcHeader = (CNamedIndexedHeader*)cStack.Init();
 	bResult = mcData.Get(oi, &uiDataSize, pcHeader, cStack.GetStackSize());
 	if (bResult)
 	{
-		iNameLength = pcHeader->GetNameLength();
 		if (uiDataSize > (uint32)cStack.GetStackSize())
 		{
 			cStack.Kill();

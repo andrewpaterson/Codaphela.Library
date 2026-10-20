@@ -151,7 +151,7 @@ bool CConvexHullGenerator::FindFirstPairTriangles(CArrayExtremeTrianglePtr* papc
 	for (i = 0; i < iNumPoints; i++)
 	{
 		psPosition = GetPosition(mpsPoints, iStride, i);
-		if ((i != iMaxXIndex) && (i != iMinXIndex) && (i != iFarIndex))
+		if (((int)i != iMaxXIndex) && ((int)i != iMinXIndex) && ((int)i != iFarIndex))
 		{
 			if (!pcTriangleUp->Contains(psPosition))
 			{
@@ -227,7 +227,6 @@ bool CConvexHullGenerator::Generate(void)
 	size						j;
 	SConvexHullHoleEdge			sEdges;
 	size						k;
-	int							aiIndex[3];
 	int							iIndex;
 	CExtremeTriangle*			pcSelected;
 	CTextFile					cTextFile;
@@ -264,10 +263,6 @@ bool CConvexHullGenerator::Generate(void)
 		{
 			continue;
 		}
-
-		aiIndex[0] = GetIndex(mpsPoints, iStride, pcSelected->mpsPosition);
-		aiIndex[1] = GetIndex(mpsPoints, iStride, pcSelected->mpsPosition1);
-		aiIndex[2] = GetIndex(mpsPoints, iStride, pcSelected->mpsPosition2);
 
 		iFarIndex = pcSelected->FindFurthestPoint(mpsPoints, iStride);
 		if (iFarIndex == -1)
@@ -382,7 +377,6 @@ void CConvexHullGenerator::RemoveSlivers(void)
 	SFloat32Vec3*					ps2;
 	int							iNumSlivers;
 	int							iIndex0;
-	int							iIndex1;
 	int							iIndex2;
 	CExtremeTriangle*			pcTriangleToRemove;
 
@@ -393,7 +387,6 @@ void CConvexHullGenerator::RemoveSlivers(void)
 		if (iNumSlivers == 2)
 		{
 			iIndex0 = GetIndex(mpsPoints, iStride, ps0);
-			iIndex1 = GetIndex(mpsPoints, iStride, ps1);
 			iIndex2 = GetIndex(mpsPoints, iStride, ps2);
 			
 			pcTriangleToRemove = FindAdjacentTriangle(pcTriangle, iIndex0, iIndex2);
@@ -637,9 +630,9 @@ bool CConvexHullGenerator::TriangleHasEdge(int iEdge1, int iEdge2, CExtremeTrian
 	iOther[1] = GetIndex(mpsPoints, iStride, pcTriangle->mpsPosition1);
 	iOther[2] = GetIndex(mpsPoints, iStride, pcTriangle->mpsPosition2);
 
-	if (((iEdge1 == iOther[0]) && (iEdge2 == iOther[1]) || ((iEdge1 == iOther[1]) && (iEdge2 == iOther[0]))) ||
-		((iEdge1 == iOther[1]) && (iEdge2 == iOther[2]) || ((iEdge1 == iOther[2]) && (iEdge2 == iOther[1]))) ||
-		((iEdge1 == iOther[0]) && (iEdge2 == iOther[2]) || ((iEdge1 == iOther[2]) && (iEdge2 == iOther[0]))))
+	if ((((iEdge1 == iOther[0]) && (iEdge2 == iOther[1])) || ((iEdge1 == iOther[1]) && (iEdge2 == iOther[0]))) ||
+		(((iEdge1 == iOther[1]) && (iEdge2 == iOther[2])) || ((iEdge1 == iOther[2]) && (iEdge2 == iOther[1]))) ||
+		(((iEdge1 == iOther[0]) && (iEdge2 == iOther[2])) || ((iEdge1 == iOther[2]) && (iEdge2 == iOther[0]))))
 	{
 		return true;
 	}

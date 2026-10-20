@@ -120,13 +120,11 @@ bool CChunkFileFileSystem::WriteUnmatchedChunkEnds(size iMatchingOpen)
 bool CChunkFileFileSystem::WriteNewUnmatchedChunks(size iMatchingOpen, CArrayChars* paszChunkNames)
 {
 	size		i;
-	CChars*		pszOpenName;
 	size		uiChunkNames;
 
 	uiChunkNames = paszChunkNames->NumElements();
 	for (i = iMatchingOpen; i < uiChunkNames; i++)
 	{
-		pszOpenName = paszChunkNames->Get(i);
 		ReturnOnFalse(WriteChunkBegin());
 	}
 	return true;
@@ -259,7 +257,6 @@ bool CChunkFileFileSystem::ReadChunkBegin(const char* szChunkName)
 	size		iIndex;
 	bool*		abFoundFirst;
 	size		iLength;
-	bool		bResult;
 
 	if (!szChunkName)
 	{
@@ -292,12 +289,12 @@ bool CChunkFileFileSystem::ReadChunkBegin(const char* szChunkName)
 			iIndex = mpcChunkFile->FindNextChunkWithName();
 		}
 
-		if (iIndex == -1)
+		if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
 		{
 			abFoundFirst[iDepth] = false;
 			iDepth--;
 
-			if (iDepth == -1)
+			if (iDepth == SIZE_MAX)
 			{
 				ReadChunkEnd();
 				aszChunkNames.Kill();
@@ -308,7 +305,7 @@ bool CChunkFileFileSystem::ReadChunkBegin(const char* szChunkName)
 		}
 		else
 		{
-			bResult = mpcChunkFile->ReadChunkBegin(iIndex);
+			mpcChunkFile->ReadChunkBegin(iIndex);
 			if (iDepth == iLength-1)
 			{
 				aszChunkNames.Kill();

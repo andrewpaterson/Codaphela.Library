@@ -1195,7 +1195,6 @@ TRISTATE CTextParser::GetIntegerLiteral(uint64* pulli, uint16 iAllowedPrefix, ui
 	char		cNext;
 	bool		bFirstZero;
 	uint16		uiBase;
-	bool		bDone;
 	TRISTATE	tResult;
 	uint16		iSuffix;
 	bool		bSeparator;
@@ -1208,7 +1207,6 @@ TRISTATE CTextParser::GetIntegerLiteral(uint64* pulli, uint16 iAllowedPrefix, ui
 	}
 
 	uiBase = 10;
-	bDone = false;
 
 	if (!mbOutsideText)
 	{
@@ -1322,11 +1320,9 @@ TRISTATE CTextParser::GetFloatLiteral(float128* pldf, uint16 iAllowedPrefix, uin
 	char		cNext;
 	bool		bFirstZero;
 	uint16		uiBase;
-	bool		bDone;
 	TRISTATE	tResult;
 	uint16		iSuffix;
 	uint16		iExponent;
-	bool		bSeparator;
 	uint64		ulliWholeNumber;
 	uint64		ulliDecimalNumber;
 	int64		lliExponentNumber;
@@ -1344,7 +1340,6 @@ TRISTATE CTextParser::GetFloatLiteral(float128* pldf, uint16 iAllowedPrefix, uin
 	}
 
 	uiBase = 10;
-	bDone = false;
 
 	if (!mbOutsideText)
 	{
@@ -1372,9 +1367,6 @@ TRISTATE CTextParser::GetFloatLiteral(float128* pldf, uint16 iAllowedPrefix, uin
 					cNext = mszParserPos[0];
 				}
 			}
-
-			bSeparator = (((cNext == '_') && (uiAllowedSeparator & NUMBER_SEPARATOR_UNDERSCORE)) ||
-			 			((cNext == '\'') && (uiAllowedSeparator & NUMBER_SEPARATOR_APOSTROPHE)));
 
 			if (uiBase != 16)
 			{
@@ -2359,7 +2351,7 @@ TRISTATE CTextParser::FindWhitespace(void)
 				return TRITRUE;
 			}
 		}
-		if (cCurrent = '/')
+		if (cCurrent == '/')
 		{
 			bStartOfComment = true;
 		}

@@ -85,6 +85,8 @@ EChannel CColourFormatHelper::GetChannel(size uiIndex)
 		{
 			return GetColourChannel(uiIndex - 1);
 		}
+	default:
+		break;
 	}
 
 	return IMAGE_CHANNEL_UNKNOWN;
@@ -139,6 +141,8 @@ EPrimitiveType CColourFormatHelper::GetType(size uiIndex)
 		{
 			return GetColourType(uiIndex - 1);
 		}
+	default:
+		break;
 	}
 
 	return PT_Undefined;
@@ -219,6 +223,8 @@ EChannel CColourFormatHelper::GetColourChannel(size uiIndex)
 			return IMAGE_DIFFUSE_BLUE;
 		}
 		break;
+	default:
+		break;
 	}
 	return IMAGE_CHANNEL_UNKNOWN;
 }
@@ -288,6 +294,8 @@ EPrimitiveType CColourFormatHelper::GetColourType(size uiIndex)
 				return PT_nickle;
 			}
 			break;
+		default:
+			break;
 		}
 	}
 	return PT_Undefined;
@@ -310,6 +318,8 @@ EPrimitiveType CColourFormatHelper::GetAlphaType(void)
 		return PT_float32;
 	case ARGB_2bit:
 		return PT_crumb;
+	default:
+		break;
 	}
 	return PT_Undefined;
 }
@@ -330,6 +340,8 @@ size CColourFormatHelper::GetFirstColourIndex(void)
 	case CFT_XRGB:
 	case CFT_ARGB:
 		return 1;
+	default:
+		break;
 	}
 
 	return SIZE_MAX;
@@ -351,6 +363,8 @@ size CColourFormatHelper::GetAlphaIndex(void)
 	case CFT_RGB:
 	case CFT_RGBX:
 	case CFT_XRGB:
+		break;
+	default:
 		break;
 	}
 

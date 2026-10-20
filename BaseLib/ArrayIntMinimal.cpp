@@ -46,7 +46,7 @@ size CArrayIntMinimal::AddIfUnique(uint i)
 	uint iElementNum;
 
 	iElementNum = Find(i);
-	if (iElementNum == -1)
+	if (iElementNum == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		Add(i);
 	}

@@ -66,7 +66,7 @@ bool CChannelPadder::OptimalPadding(void)
 	{
 		pcChannel = pacChannelOffsets->Get(i);
 		iClassSize = (int)pcChannel->miByteSize;
-		if (iAvail != iMaxSize)
+		if ((size)iAvail != iMaxSize)
 		{
 			if (iAvail >= iClassSize)
 			{
@@ -92,7 +92,7 @@ bool CChannelPadder::OptimalPadding(void)
 		}
 	}
 
-	if (iAvail != iMaxSize)
+	if ((size)iAvail != iMaxSize)
 	{
 		mpcExternal->SetByteStride(iPos + iAvail);
 	}

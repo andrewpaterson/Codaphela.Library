@@ -91,7 +91,7 @@ size CArrayCharMinimal::AddIfUnique(char c)
 	size	iElementNum;
 
 	iElementNum = Find(c);
-	if (iElementNum == -1)
+	if (iElementNum == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		Add(c);
 	}

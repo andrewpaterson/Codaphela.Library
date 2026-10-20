@@ -238,7 +238,6 @@ size CDataMemory::RemoveNode(CArrayVoidPtr* pav, size i, SDataMemoryAllocation* 
 size CDataMemory::RemoveElements(CArrayVoidPtr* pav, size i, SFNode* psNode, CFreeList* pcList)
 {
 	void*					pv;
-	SDataMemoryAllocation*	psFirst;
 	SDataMemoryAllocation*	psLast;
 	size					uiCount;
 	SDataMemoryAllocation*	psAlloc;
@@ -246,7 +245,6 @@ size CDataMemory::RemoveElements(CArrayVoidPtr* pav, size i, SFNode* psNode, CFr
 
 	uiNumElements = pav->NumElements();
 
-	psFirst = (SDataMemoryAllocation*)pcList->GetFirstNodeElement(psNode);
 	psLast = (SDataMemoryAllocation*)pcList->GetLastNodeElement(psNode);
 
 	uiCount = 0;
@@ -304,7 +302,6 @@ void* CDataMemory::Grow(void* pvInitial, size uiSize)
 	CFreeList*				pcList;
 	SMemoryFreeListParams*	psParams;
 	void*					pvNew;
-	SLLAlignedNode*			psNode;
 
 	psAlloc = DATA_MEMORY_GET_ALLOCATION(pvInitial);
 	if (psAlloc->uiSize <= mpcFreeListParams->GetMaxFreeListElementSize())
@@ -326,7 +323,6 @@ void* CDataMemory::Grow(void* pvInitial, size uiSize)
 	}
 	else
 	{
-		psNode = (SLLAlignedNode*)RemapSinglePointer(psAlloc, -(ptrdiff_t)sizeof(SLLAlignedNode));
 		if (uiSize <= mpcFreeListParams->GetMaxFreeListElementSize())
 		{
 			pvNew = Add(uiSize);
@@ -493,10 +489,8 @@ CFreeList* CDataMemory::GetOrAddFreeList(size iElementSize)
 	SFreeListDesc*			psDesc;
 	CFreeList*				pcList;
 	SMemoryFreeListParams*	psParams;
-	uint8					iFinalOffset;
 	size					iStride;
 
-	iFinalOffset = CalculateOffset((int16)(0 - sizeof(SDataMemoryAllocation)), DATA_MEMORY_ALIGNMENT);
 	psParams = mpcFreeListParams->GetFreeListParamsForSize(iElementSize);
 	if (psParams == NULL)
 	{

@@ -94,7 +94,7 @@ bool CIndexTreeConfig::WriteKeyReverse(CFileWriter* pcFileWriter, EIndexKeyRever
 	{
 		return pcFileWriter->WriteString("IKR_Yes");
 	}
-	else if (eKeyReverse = IKR_No)
+	else if (eKeyReverse == IKR_No)
 	{
 		return pcFileWriter->WriteString("IKR_No");
 	}

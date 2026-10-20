@@ -57,8 +57,6 @@ public:
 			SVec2<M, N>		operator * (M) const;
 			SVec2<M, N>		operator / (M) const;
 
-	friend	SVec2<M, N>		operator * (M, const SVec2<M, N>&);
-
 			bool			operator == (const SVec2<M, N>&) const;
 			bool			operator != (const SVec2<M, N>&) const;
 

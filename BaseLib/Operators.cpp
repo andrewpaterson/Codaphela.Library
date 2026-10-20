@@ -116,7 +116,5 @@ void OperatorsInit(void)
 //////////////////////////////////////////////////////////////////////////
 void OperatorsKill(void)
 {
-	float f = 0;
-	
 	gcOperators.Kill();
 }

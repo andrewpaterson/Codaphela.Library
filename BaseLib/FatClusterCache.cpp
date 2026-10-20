@@ -47,8 +47,8 @@ bool CFatClusterCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClu
 	uint16	uiFirstSectorIndex;
 	uint16	uiLastSectorIndexInclusive;
 	uint16	uiMaximumSector;
-	int		iStart;
-	int		iEnd;
+	size	iStart;
+	size	iEnd;
 	uint16	uiNumSectors;
 
 	if (uiOffset >= muiClusterSize)

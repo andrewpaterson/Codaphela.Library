@@ -94,8 +94,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <stdlib.h>
 #include <memory.h>
 #include <stddef.h>
+#include <limits.h>
 #define MAX_PATH 4096
-#define INT_MAX         0x7fffffff
 #define FILE_SEPARATOR "/"
 #define _FS_ FILE_SEPARATOR
 #define OTHER_OS_FILE_SEPARATOR "\\"

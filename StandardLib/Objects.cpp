@@ -251,13 +251,13 @@ void CObjects::PrintMemoryNames(CChars* psz)
 
 	pcIndex = mcMemory.GetNames();
 
-	bExists = pcIndex->StartIteration(&sIter, NULL, NULL, NULL, NULL, NULL, NULL);
+	bExists = pcIndex->StartIteration(&sIter, NULL, NULL, 0, NULL, NULL, 0);
 	while (bExists)
 	{
 		psz->Append((char*)sIter.pvKey, sIter.iKeyLength);
 		psz->AppendNewLine();
 
-		bExists = pcIndex->Iterate(&sIter, NULL, NULL, NULL, NULL, NULL, NULL);
+		bExists = pcIndex->Iterate(&sIter, NULL, NULL, 0, NULL, NULL, 0);
 	}
 }
 
@@ -336,14 +336,14 @@ void CObjects::DumpMemoryNames(void)
 
 	pcIndex = mcMemory.GetNames();
 
-	bExists = pcIndex->StartIteration(&sIter, NULL, NULL, NULL, NULL, NULL, NULL);
+	bExists = pcIndex->StartIteration(&sIter, NULL, NULL, 0, NULL, NULL, 0);
 	while (bExists)
 	{
 		sz.Init((char*)sIter.pvKey, 0, sIter.iKeyLength);
 		sz.AppendNewLine();
 		sz.DumpKill();
 
-		bExists = pcIndex->Iterate(&sIter, NULL, NULL, NULL, NULL, NULL, NULL);
+		bExists = pcIndex->Iterate(&sIter, NULL, NULL, 0, NULL, NULL, 0);
 	}
 
 	sz.Init();
@@ -1737,7 +1737,6 @@ CBaseObject* CObjects::ConvertFatHollowToUninitialisedByClassName(CHollowObject*
 	size			uiClassSize;
 	size			uiHollowSize;
 	void*			pvConstructor;
-	OIndex			oi;
 	CHollowObject	cHollow;
 
 	bResult = ValidateCanAllocate(szClassName);
@@ -1746,7 +1745,6 @@ CBaseObject* CObjects::ConvertFatHollowToUninitialisedByClassName(CHollowObject*
 		return NULL;
 	}
 
-	oi = pcHollowObject->GetIndex();
 	pvConstructor = mpcUnknownsAllocatingFrom->GetConstructors()->Get(szClassName, &uiClassSize);
 	if (!pvConstructor)
 	{
@@ -2299,7 +2297,6 @@ bool CObjects::AddIntoMemory(CBaseObject* pcObject)
 bool CObjects::ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pcObject)
 {
 	CObjectRemapFrom	cRemapper;
-	size				iCount;
 
 	if (pvExisting && pcObject)
 	{
@@ -2309,7 +2306,7 @@ bool CObjects::ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pcObject)
 		}
 		mcMemory.RemoveIdentifiers(pvExisting);
 
-		iCount = cRemapper.Remap(pvExisting, pcObject);
+		cRemapper.Remap(pvExisting, pcObject);
 
 		return AddIntoMemory(pcObject);
 	}

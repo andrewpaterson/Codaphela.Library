@@ -42,7 +42,7 @@ size CArrayInt::FindUnusedInSorted(void)
 	for (iIndex = 0; iIndex < miUsedElements; iIndex++)
 	{
 		iValue = *Get(iIndex);
-		if (iValue != iIndex)
+		if (iValue != (int)iIndex)
 		{
 			return iIndex;
 		}

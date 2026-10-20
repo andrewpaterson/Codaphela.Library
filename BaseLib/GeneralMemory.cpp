@@ -246,7 +246,6 @@ size CGeneralMemory::RemoveNode(CArrayVoidPtr* pav, size i, SGeneralMemoryAlloca
 size CGeneralMemory::RemoveElements(CArrayVoidPtr* pav, size i, SFNode* psNode, CFreeList* pcList)
 {
 	void*						pv;
-	SGeneralMemoryAllocation*	psFirst;
 	SGeneralMemoryAllocation*	psLast;
 	size						iCount;
 	SGeneralMemoryAllocation*	psAlloc;
@@ -254,7 +253,6 @@ size CGeneralMemory::RemoveElements(CArrayVoidPtr* pav, size i, SFNode* psNode, 
 
 	iNumElements = pav->NumElements();
 
-	psFirst = (SGeneralMemoryAllocation*)pcList->GetFirstNodeElement(psNode);
 	psLast = (SGeneralMemoryAllocation*)pcList->GetLastNodeElement(psNode);
 
 	iCount = 0;
@@ -549,7 +547,6 @@ CFreeList* CGeneralMemory::GetOrAddFreeList(size iElementSize, uint16 iAlignment
 	SAlignedFreeListDesc*	psDesc;
 	CFreeList*				pcList;
 	SMemoryFreeListParams*	psParams;
-	size					iFinalOffset;
 	size					iStride;
 
 	if ((iOffset < -128) || (iOffset > 127))
@@ -561,7 +558,6 @@ CFreeList* CGeneralMemory::GetOrAddFreeList(size iElementSize, uint16 iAlignment
 		return NULL;
 	}
 
-	iFinalOffset = CalculateOffset(iOffset - sizeof(SGeneralMemoryAllocation), iAlignment);
 	psParams = mcFreeListParams.GetFreeListParamsForSize(iElementSize);
 	iStride = CalculateStride(psParams->iMaxElementSize, iAlignment);
 

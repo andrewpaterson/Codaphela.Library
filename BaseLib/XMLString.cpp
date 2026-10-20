@@ -37,7 +37,7 @@ TRISTATE XMLParserParseTextReplacement(CTextParser* pcTextParser, CChars* pszTex
 	}
 	else
 	{
-		tResult = tResult = pcTextParser->GetExactCaseInsensitiveCharacterSequence("gt");
+		tResult = pcTextParser->GetExactCaseInsensitiveCharacterSequence("gt");
 		if (tResult == TRITRUE)
 		{
 			pszText->Append('>');
@@ -70,7 +70,7 @@ TRISTATE XMLParserParseTextReplacement(CTextParser* pcTextParser, CChars* pszTex
 				}
 				else
 				{
-					tResult = tResult = pcTextParser->GetExactCaseInsensitiveCharacterSequence("quot");
+					tResult = pcTextParser->GetExactCaseInsensitiveCharacterSequence("quot");
 					if (tResult == TRITRUE)
 					{
 						pszText->Append('"');
@@ -83,7 +83,7 @@ TRISTATE XMLParserParseTextReplacement(CTextParser* pcTextParser, CChars* pszTex
 			}
 		}
 	}
-	tResult = tResult = pcTextParser->GetExactCharacter(';', false);
+	tResult = pcTextParser->GetExactCharacter(';', false);
 	if (tResult == TRIERROR)
 	{
 		return TRIERROR;

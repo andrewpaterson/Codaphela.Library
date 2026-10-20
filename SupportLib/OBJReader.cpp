@@ -248,7 +248,6 @@ bool CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 	size					i;
 	int						iNumFaces;
 	bool					bNormals;
-	bool					bUVS;
 	SMeshNormalFace*		psFaceNormal;
 	CMFRet					r;
 	int						aiCornerIndices[6];
@@ -289,7 +288,6 @@ bool CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 	}
 
 	bNormals = true;
-	bUVS = true;
 
 	aiCorners.Init();
 	aiCorners.Resize(asCorners.NumElements());
@@ -309,7 +307,6 @@ bool CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 		}
 		if (!psCorner->bUVCoord)
 		{
-			bUVS = false;
 		}
 	}
 

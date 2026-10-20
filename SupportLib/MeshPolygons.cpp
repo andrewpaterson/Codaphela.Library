@@ -672,7 +672,7 @@ void CMeshPolygons::MergePolygon(int iDestPolygon, int iSource1, int iSource2)
 {
 	MergePolygon(iDestPolygon, iSource2);
 
-	if (iSource1 != mcPolygons.NumElements())
+	if (iSource1 != (int)mcPolygons.NumElements())
 	{
 		MergePolygon(iDestPolygon, iSource1);
 	}

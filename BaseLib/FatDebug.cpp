@@ -23,6 +23,8 @@ fatEntry GetDunnoClusterMarker(CFatVolume* pcVolume)
 
 	case FAT_FS_TYPE_FAT32:
 		return 0x0FFFFFF8;
+	default:
+		break;
 	}
 
 	return 0;
@@ -38,7 +40,6 @@ EFatCode AllFATClustersEntriesSame(bool* pbAllEntriesSame, CFatVolume* pcVolume,
 	EFatCode	eResult;
 	uint32		uiOffsetInSector;
 	fatEntry	uiEntry;
-	uint16		uiRow;
 	fatEntry	uiClusterIndex;
 	uint32		uiSector;
 	fatEntry	uiPreviousEntry;
@@ -47,7 +48,6 @@ EFatCode AllFATClustersEntriesSame(bool* pbAllEntriesSame, CFatVolume* pcVolume,
 	*pbAllEntriesSame = true;
 	bFirst = true;
 
-	uiRow = 0;
 	for (uiClusterIndex = uiStartClusterIndex; uiClusterIndex < uiEndClusterIndex; uiClusterIndex++)
 	{
 		pcVolume->CalculateFATIndexAndOffset(&uiOffsetInSector, uiClusterIndex, &uiSector);
@@ -89,7 +89,6 @@ EFatCode PrintFATClusters(CChars* psz, CFatVolume* pcVolume, uint32 uiStartClust
 	CChars		szNumber;
 	fatEntry	uiClusterIndex;
 	uint32		uiPreviousSector;
-	fatEntry	uiPreviousEntry;
 	uint32		uiEOC;
 	uint32		uiDunno;
 	uint32		uiBAD;
@@ -132,7 +131,6 @@ EFatCode PrintFATClusters(CChars* psz, CFatVolume* pcVolume, uint32 uiStartClust
 			uiPreviousSector = uiSector;
 			uiRow = 0;
 
-			uiPreviousEntry = uiEntry;
 		}
 
 		szNumber.Append((int32)uiClusterIndex, (uint16)16);
@@ -182,7 +180,6 @@ EFatCode PrintFATClusters(CChars* psz, CFatVolume* pcVolume, uint32 uiStartClust
 EFatCode PrintInterestingFATClusters(CChars* psz, CFatVolume* pcVolume)
 {
 	EFatCode	eResult;
-	uint16		uiRow;
 	CChars		szNumber;
 	fatEntry	uiClusterIndex;
 	CChars		szSector;
@@ -196,7 +193,6 @@ EFatCode PrintInterestingFATClusters(CChars* psz, CFatVolume* pcVolume)
 	psz->Init();
 	szNumber.Init();
 	szSector.Init();
-	uiRow = 0;
 	uiPreviousSector = 0;
 	uiFirstCluster = 0;
 	bFirst = true;
@@ -340,7 +336,7 @@ EFatCode PrintRootDirectoryEntries(CChars* psz, CFatVolume* pcVolume, bool bPrin
 
 		if (((uintptr_t)psEntry - (uintptr_t)psFirstEntry) == pcVolume->GetSectorSize())
 		{
-			if (uiSectorCount == pcVolume->NumSectorsPerCluster() - 1)
+			if (uiSectorCount == (uint32)pcVolume->NumSectorsPerCluster() - 1)
 			{
 				eResult = pcVolume->GetNextClusterEntry(uiCluster, &uiCluster);
 				RETURN_ON_FAT_FAILURE(eResult);
@@ -468,10 +464,9 @@ void PrintBiosParameterBlock(CChars* psz, CFatVolume* pcVolume)
 void DumpRootDirectoryEntries(CFatVolume* pcVolume, bool bPrintTime)
 {
 	CChars		sz;
-	EFatCode	eResult;
 
 	sz.Init();
-	eResult = PrintRootDirectoryEntries(&sz, pcVolume, bPrintTime);
+	PrintRootDirectoryEntries(&sz, pcVolume, bPrintTime);
 	sz.DumpKill();
 }
 

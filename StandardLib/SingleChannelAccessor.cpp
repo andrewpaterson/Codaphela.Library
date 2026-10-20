@@ -65,8 +65,6 @@ float CSingleChannelAccessor::GetCastToFloat(int iChannel, int iPos)
 void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, void* pvDest, int iPos)
 {
 	CChannel*	pcChannel;
-	void*		pvData;
-	int			iIndex;
 	int			iByteSize;
 	int			iBitSize;
 	bool		bSub;
@@ -76,7 +74,6 @@ void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, vo
 	if (pcChannel)
 	{
 		pcChannel = mpcChannels->GetChannel(iChannel);
-		iIndex = mpcChannels->GetIndexOfChannel(pcChannel);
 
 		if (eType == PT_Undefined)
 		{
@@ -102,7 +99,6 @@ void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, vo
 
 		if (!bSub)
 		{
-			pvData = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride());
 			CChannelAccessor::GetAs(eType, mpcChannels->GetData(), pvDest);
 		}
 		else
@@ -120,8 +116,6 @@ void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, vo
 void CSingleChannelAccessor::GetCastTo(int iChannel, EPrimitiveType eType, void* pvDest, int iPos)
 {
 	CChannel*			pcChannel;
-	void*				pvData;
-	int					iIndex;
 	int					iByteSize;
 	int					iBitSize;
 	bool				bSub;
@@ -130,7 +124,6 @@ void CSingleChannelAccessor::GetCastTo(int iChannel, EPrimitiveType eType, void*
 	if (pcChannel)
 	{
 		pcChannel = mpcChannels->GetChannel(iChannel);
-		iIndex = mpcChannels->GetIndexOfChannel(pcChannel);
 
 		if (eType == PT_Undefined)
 		{
@@ -156,7 +149,6 @@ void CSingleChannelAccessor::GetCastTo(int iChannel, EPrimitiveType eType, void*
 
 		if (!bSub)
 		{
-			pvData = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride());
 			CChannelAccessor::GetCast(eType, mpcChannels->GetData(), pvDest);
 		}
 		else

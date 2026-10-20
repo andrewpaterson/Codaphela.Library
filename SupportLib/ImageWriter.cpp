@@ -56,6 +56,8 @@ bool WriteImage(Ptr<CImage> pcImage, char* szFilename, EImageType eType)
 		return (SaveRAW(pcImage, szFilename));
 	case IT_SFT:
 		return (SaveSFT(pcImage, szFilename));
+	default:
+		break;
 	}
 
 	gcLogger.Error2(__METHOD__, " Could not write image of type [", ImageTypeToString(eType), " (", IntToString(eType), ")] to [", szFilename, "].", NULL);

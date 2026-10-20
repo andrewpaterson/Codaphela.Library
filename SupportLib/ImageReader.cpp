@@ -56,6 +56,8 @@ Ptr<CImage> ReadImage(char* szFilename, EImageType eType, bool bAddDebug)
 			return (LoadPNG(szFilename, bAddDebug));
 		case IT_RAD:
 			return (LoadRAD(szFilename)); // uses a text-format RAW descriptor (RAD) file to load a raw file.
+		default:
+			break;
 	}
 
 	gcLogger.Error2(__METHOD__, " Could not read image of type [", ImageTypeToString(eType), " (", IntToString(eType), ")].", NULL);

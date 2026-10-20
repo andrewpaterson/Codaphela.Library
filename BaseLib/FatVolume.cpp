@@ -43,6 +43,8 @@ bool CFatVolume::CheckFileAllocationTableLargeEnough(EFatFileSystemType eFileSys
 			}
 			break;
 		}
+		default:
+			break;
 	}
 	return true;
 }
@@ -262,8 +264,6 @@ EFatCode CFatVolume::InitialiseVolumeLabel(void)
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::Mount(CFileDrive* pcDevice)
 {
-	uint32		uiHiddenSectors = 0;
-	uint8		uiPartitionsTried = 0;
 	SFatCache	sMBRSector;
 	EFatCode	eResult;
 
@@ -563,7 +563,7 @@ EFatCode CFatVolume::FindNextRawDirectoryEntry(SFatQueryState* psQuery)
 	eResult = ValidateFatCache(psQuery->sBuffer);
 	RETURN_ON_FAT_FAILURE(eResult);
 
-	if (((uintptr_t)psQuery->psCurrentEntryRaw - (uintptr_t)psQuery->psFirstEntryRaw) == GetSectorSize() - 0x20)
+	if (((uintptr_t)psQuery->psCurrentEntryRaw - (uintptr_t)psQuery->psFirstEntryRaw) == (uint32)GetSectorSize() - 0x20)
 	{
 		if ((psQuery->uiCurrentCluster > 0) && (psQuery->uiCurrentSector == NumSectorsPerCluster() - 1))
 		{
@@ -881,6 +881,8 @@ fatEntry CFatVolume::GetEndOfClusterMarker(void)
 
 		case FAT_FS_TYPE_FAT32:
 			return FAT32_EOC;
+		default:
+			break;
 	}
 
 	return 0;
@@ -903,6 +905,8 @@ fatEntry CFatVolume::GetBadClusterMarker(void)
 
 		case FAT_FS_TYPE_FAT32:
 			return FAT32_BAD_CLUSTER;
+		default:
+			break;
 	}
 
 	return 0;
@@ -925,6 +929,8 @@ fatEntry CFatVolume::GetClusterEntryMask(void)
 
 	case FAT_FS_TYPE_FAT32:
 		return FAT32_CLUSTER_MASK;
+	default:
+		break;
 	}
 
 	return 0;
@@ -1180,7 +1186,7 @@ EFatCode CFatVolume::WriteFat12Entry(uint32 uiOffsetInSector, uint32 uiPreviousO
 	}
 	DirtySector(sBuffer);
 
-	if (uiOffsetInSector == GetSectorSize() - 1)
+	if (uiOffsetInSector == (uint32)GetSectorSize() - 1)
 	{
 		READ_SECTOR(sBuffer, uiSector + 1);
 		puiBuffer = sBuffer.Get();
@@ -1221,7 +1227,7 @@ EFatCode CFatVolume::WriteFat12Entry(uint32 uiOffsetInSector, uint32 uiPreviousO
 		DirtySector(sBuffer);
 
 		// if the FAT entry spans a sector boundary flush the currently loaded sector to the drive and load the next one.
-		if (uiPreviousOffset == GetSectorSize() - 1)
+		if (uiPreviousOffset == (uint32)GetSectorSize() - 1)
 		{
 			READ_SECTOR(sBuffer, uiPreviousSector + 1);
 			puiBuffer = sBuffer.Get();
@@ -1295,7 +1301,7 @@ EFatCode CFatVolume::WriteFat32Entry(uint32 uiOffsetInSector, uint32 uiLastEntry
 		puiBuffer = sBuffer.Get();
 
 		// update the last entry to point to this one
-		*((uint32*)&puiBuffer[uiLastEntryOffset]) = (*((uint32*)&puiBuffer[uiLastEntryOffset]) & (~FAT32_CLUSTER_MASK)) | uiClusterIndexInTable & FAT32_CLUSTER_MASK;
+		*((uint32*)&puiBuffer[uiLastEntryOffset]) = (*((uint32*)&puiBuffer[uiLastEntryOffset]) & (~FAT32_CLUSTER_MASK)) | (uiClusterIndexInTable & FAT32_CLUSTER_MASK);
 		DirtySector(sBuffer);
 	}
 
@@ -1328,6 +1334,8 @@ EFatCode CFatVolume::WriteAllocatedFatEntry(uint32 uiClusterIndexInTable, uint32
 		{
 			return WriteFat32Entry(uiOffsetInSector, uiPreviousEntryOffset, uiClusterIndexInTable, uiSector, uiPreviousSector, uiPreviousFatEntry);
 		}
+		default:
+			break;
 	}
 
 	return FAT_UNKNOWN_ERROR;
@@ -1343,7 +1351,6 @@ uint32 CFatVolume::AllocateClusters(SFatRawDirectoryEntry* psParentDirectory, ui
 	uint32		uiCurrentSector;
 	fatEntry	uiCluster;
 	uint32		uiOffsetInSector = 0;
-	bool		bNextSectorLoaded = false;
 	fatEntry	uiLastClusterIndex;
 	fatEntry	uiFatEntry;
 	uint32		uiFirstEmptyCluster;
@@ -1614,6 +1621,8 @@ EFatCode CFatVolume::SetClusterEntry(uint32 uiClusterIndex, fatEntry uiClusterIn
 			eResult = SetFat32ClusterEntry(uiClusterInVolume, uiFirstClusterSector, uiOffsetInSector);
 			return eResult;
 		}
+		default:
+			break;
 	}
 
 	return FAT_UNKNOWN_ERROR;
@@ -1640,7 +1649,7 @@ EFatCode CFatVolume::IncreaseFat12ClusterAddress(uint32* puiClusterIndex, uint32
 		((uint8*)&puiClusterIndex)[0] = puiBuffer[*puiOffsetInSector];
 	}
 
-	if (*puiOffsetInSector == GetSectorSize() - 1)
+	if (*puiOffsetInSector == (uint32)GetSectorSize() - 1)
 	{
 		(*puiSector)++;
 		*puiOffsetInSector = 0;
@@ -1765,6 +1774,8 @@ EFatCode CFatVolume::SeekByClusterCount(uint32 uiClusterIndex, uint16 uiClusterC
 					RETURN_ON_FAT_FAILURE(eResult);
 					break;
 				}
+				default:
+					break;
 			}
 
 			if (FatIsEOFEntry(uiClusterIndex))
@@ -1848,6 +1859,8 @@ uint32 CFatVolume::CalculateFATEntryIndex(uint32 uiClusterIndexInFAT)
 
 		case FAT_FS_TYPE_FAT32:
 			return uiClusterIndexInFAT * 4;
+		default:
+			break;
 	}
 
 	return 0xFFFFFFFF;
@@ -1924,6 +1937,8 @@ bool CFatVolume::FatIsEOFEntry(fatEntry uiFat)
 
 		case FAT_FS_TYPE_FAT32:
 			return uiFat >= 0x0FFFFFF8;
+		default:
+			break;
 	}
 
 	return false;
@@ -1975,7 +1990,7 @@ EFatCode CFatVolume::ReadFat12Entry(uint32 uiOffsetInSector, uint32 uiCluster, u
 	((uint8*)&uiFatEntry)[INT32_BYTE0] = sBuffer.Get()[uiOffsetInSector];
 
 	// load the next sector (if necessary) and set the offset for the next byte in the uiBuffer
-	if (uiOffsetInSector == GetSectorSize() - 1)
+	if (uiOffsetInSector == (uint32)GetSectorSize() - 1)
 	{
 		READ_SECTOR(sBuffer, uiSector + 1);
 		bNextSector = true;
@@ -2059,6 +2074,8 @@ EFatCode CFatVolume::ReadFatEntry(uint32 uiOffsetInSector, uint32 uiClusterIndex
 			eResult = ReadFat32Entry(uiOffsetInSector, uiSector, puiFatEntry);
 			break;
 		}
+		default:
+			break;
 	}
 	return eResult;
 }
@@ -2104,7 +2121,7 @@ EFatCode CFatVolume::FreeFat12Chain(bool* pbFat12MultiStepProgress, uint32* puiF
 		DirtySector(sBuffer);
 	}
 
-	if (*puiOffsetInSector == GetSectorSize() - 1)
+	if (*puiOffsetInSector == (uint32)GetSectorSize() - 1)
 	{
 		// if the entry spans a sector boundary set bFat12MultiStepProgress to 1 so that we don't read the 1st byte again when we come back.
 		// also increase the sector number and set the uiOffsetInSector to 0 since the next byte will be on offset zero when the next sector is loaded.
@@ -2211,7 +2228,6 @@ EFatCode CFatVolume::FreeChain(uint32 uiClusterIndex)
 	uint32		uiFirstClusterSector;					
 	uint32		uiCurrentSector;						
 	bool		bFat12OddClusterBeingProcessed = false;	
-	bool		bFat12MultiStepProgress = false;		
 
 	CalculateFATIndexAndOffset(&uiOffsetInSector, uiClusterIndex, &uiFirstClusterSector);
 
@@ -2253,6 +2269,8 @@ EFatCode CFatVolume::FreeChain(uint32 uiClusterIndex)
 					RETURN_ON_FAT_FAILURE(eResult);
 					break;
 				}
+				default:
+					break;
 			}
 
 			SetTotalFreeClusters(GetTotalFreeClusters() + 1);
@@ -2284,6 +2302,8 @@ bool CFatVolume::IsFreeFat(fatEntry uifat)
 
 		case FAT_FS_TYPE_FAT12:
 			return (uifat & FAT12_CLUSTER_MASK) == 0;
+		default:
+			break;
 	}
 
 	return true;
@@ -2356,7 +2376,7 @@ const char* FindNextPathItem(const char* szPath, char* szCurrentLevelPath)
 		}
 		*szPathLevel++ = *szPath++;
 	}
-	*szPathLevel = NULL;
+	*szPathLevel = 0;
 
 	return szPath;
 }

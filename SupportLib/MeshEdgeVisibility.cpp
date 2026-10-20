@@ -201,7 +201,7 @@ void CMeshEdgeVisibility::GenerateEdgeSelectionFromPolygons(CMeshConnectivity* p
 					pcEdge = mcEdges.Get(iEdgeIndex);
 
 					iAdjPolygon = pcPolygons->maiFacesToPolygons.GetValue(iAdjFaceIndex);
-					if (iAdjPolygon != iPolygon)
+					if (iAdjPolygon != (int)iPolygon)
 					{
 						*pcEdge = 1;
 					}

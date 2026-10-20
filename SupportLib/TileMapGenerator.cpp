@@ -998,8 +998,6 @@ bool CTileMapGenerator::MatchPattern(CTileMapPattern* pcPattern, Ptr<CTileCelGen
 	int						iX;
 	int						iY;
 	char					cPatternCharacter;
-	int						iGeneratorCelType;
-	int						iMapLayer;
 	char*					szSourceConstantName;
 	CTileCelType*			pcCelType;
 	SSizeVec2				sSourceSize;
@@ -1008,11 +1006,9 @@ bool CTileMapGenerator::MatchPattern(CTileMapPattern* pcPattern, Ptr<CTileCelGen
 	iBlockX = pcPattern->GetBX();
 	iBlockY = pcPattern->GetBY();
 
-	iGeneratorCelType = pGenerator->GetCelType();
 	pTileGridSource = pGenerator->GetTileGridSource();
 	pTileLayer = pGenerator->GetTileLayer();
 	szSourceConstantName = pTileGridSource->GetConstantName();
-	iMapLayer = pTileLayer->GetIdentifier();
 	sSourceSize = pTileGridSource->GetSize();
 
 	iWidth = pcPattern->GetWidth();

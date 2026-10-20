@@ -301,7 +301,6 @@ void CMeshLeaves::PrivateAddLeafSphere(int iFaceNum, CMeshConnectivity* pcConn, 
 	size					j;
 	float32					fRelativeVolume;
 	CMeshLeaf*				pcNewMeshLeaf;
-	float32					fLargerVolume;
 	float32					fSmallerVolume;
 	float32					fIntersectionVolume;
 	CSphere					cNewSphere;
@@ -319,7 +318,6 @@ void CMeshLeaves::PrivateAddLeafSphere(int iFaceNum, CMeshConnectivity* pcConn, 
 	pcTriangle = pcTriangles->mcTriangles.Get(iFaceNum);
 
 	psSphere = &pasSpheres[iFaceNum];
-	fLargerVolume = pasSpheres[iFaceNum].cRelativeVolume.fVolume;
 
 	asTempVerts.Init(sizeof(SFloat32Vec3));
 	for (j = 0; j < NUM_FACE_EDGES; j++)

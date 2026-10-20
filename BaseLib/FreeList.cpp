@@ -668,13 +668,12 @@ bool CFreeList::RemoveDuringIteration(SFreeListIterator* psIterator)
 {
 	SFNode*		psNode;
 	size		iPosition;
-	bool		bPrev;
 
 	psNode = psIterator->psCurrent;
 	if (psNode && (psIterator->iPosition != ARRAY_ELEMENT_NOT_FOUND))
 	{
 		iPosition = psIterator->iPosition;
-		bPrev = FindPrevAllocatedElement(psIterator);  //Step the iterator back so iteration can continue.
+		FindPrevAllocatedElement(psIterator);	//Step the iterator back so iteration can continue.
 		return RemoveExisiting(psNode, iPosition);
 	}
 	else
@@ -879,9 +878,7 @@ size CFreeList::NumElements(void)
 bool CFreeList::HasElements(void)
 {
 	SFNode*		psNode;
-	size		iCount;
 
-	iCount = 0;
 	psNode = (SFNode*)mcList.GetHead();
 	while (psNode)
 	{

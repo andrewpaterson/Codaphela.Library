@@ -44,7 +44,7 @@ size CArrayEmbeddedInt::FindUnusedInSorted(void)
 	for (iIndex = 0; iIndex < iNumElements; iIndex++)
 	{
 		iValue = *Get(iIndex);
-		if (iValue != iIndex)
+		if (iValue != (int)iIndex)
 		{
 			return iIndex;
 		}

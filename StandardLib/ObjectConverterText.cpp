@@ -73,9 +73,7 @@ CBaseObject* CObjectConverterText::Convert(CObjectSource* pcSource, const char* 
 	CTextFile			cTextFile;
 	Ptr<CString>		pcString;
 	bool				bResult;
-	CObjectSourceText*	pcSourceText;
 
-	pcSourceText = (CObjectSourceText*)pcSource;
 	cTextFile.Init();
 
 	bResult = cTextFile.Read(pcSource->GetFile());
