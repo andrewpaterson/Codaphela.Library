@@ -116,7 +116,7 @@ bool CFatClusterCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClu
 			iEnd = uiLastSectorIndexInclusive + 1;
 		}
 
-		uiNumSectors = iEnd - iStart;
+		uiNumSectors = (uint16)(iEnd - iStart);
 		mpcDrive->Read(msCluster.uiClusterFirstSector + iStart, uiNumSectors, &msCluster.pvCache[iStart * muiSectorSize]);
 		SetBits(iStart, msCluster.pbCachedSectors, true, uiNumSectors);
 
