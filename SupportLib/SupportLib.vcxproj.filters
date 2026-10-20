@@ -771,6 +771,9 @@
     <ClInclude Include="ImageCopier.h">
       <Filter>Source\Image\Copier</Filter>
     </ClInclude>
+    <ClInclude Include="ImagePremultipliedBlend.h">
+      <Filter>Source\Image\Copier</Filter>
+    </ClInclude>
     <ClInclude Include="MultiImageCopier.h">
       <Filter>Source\Image\Copier</Filter>
     </ClInclude>
@@ -1407,6 +1410,9 @@
       <Filter>Source\Map</Filter>
     </ClCompile>
     <ClCompile Include="ImageCopier.cpp">
+      <Filter>Source\Image\Copier</Filter>
+    </ClCompile>
+    <ClCompile Include="ImagePremultipliedBlend.cpp">
       <Filter>Source\Image\Copier</Filter>
     </ClCompile>
     <ClCompile Include="MultiImageCopier.cpp">

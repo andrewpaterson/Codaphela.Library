@@ -11,11 +11,9 @@ DESTRUCTABLE(CMapsCanvasDraw);
 protected:
 	Ptr<CMaps>					mpMaps;
 	Ptr<CImage>                 mpDestImage;
-	bool						mbClear;  //Make the image black before the maps are blitted onto it.
 
 public:
 	void	Init(Ptr<CMaps> pMaps);
-	void	SetClear(bool bClear);
 	void	Class(void) override;
 	void 	Free(void) override;
 

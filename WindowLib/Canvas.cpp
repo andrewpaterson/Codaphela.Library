@@ -22,6 +22,7 @@ void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw, EColourFormat e
 	CComponent::Init(pWindow);
 
 	mpCanvasDraw = pDraw;
+	mbTransparent = false;
 
 	PostInit();
 }
@@ -44,6 +45,7 @@ void CCanvas::Init(Ptr<CWindow> pWindow, Ptr<CCanvasDraw> pDraw)
 	CComponent::Init(pWindow);
 
 	mpCanvasDraw = pDraw;
+	mbTransparent = false;
 
 	PostInit();
 }
@@ -81,6 +83,7 @@ void CCanvas::Class(void)
 	U_Enum(meAlphaBits);
 	M_Pointer(mpCanvasDraw);
 	M_Pointer(mpContainer);
+	U_Bool(mbTransparent);
 }
 
 
@@ -127,6 +130,12 @@ bool CCanvas::Draw(void)
 	{
 		DestroyNativeCanvas();
 		CreateNativeCanvas();
+	}
+
+	//A transparent canvas starts each draw empty so that only what is drawn this time shows over what is behind it.
+	if (mbTransparent)
+	{
+		mpcNativeCanvas->Clear();
 	}
 
 	//The canvas draws itself and is copied onto the window before its children so that they are drawn over it.
@@ -353,10 +362,80 @@ SInt32Vec2 CCanvas::GetDesiredSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EColourFormat CCanvas::GetColourFormat(void) { return meColourFormat; }
+//////////////////////////////////////////////////////////////////////////
+//
+// A canvas is opaque unless it is made transparent; blending it onto what
+// is behind is slower than copying it.  A transparent canvas has an 8 bit
+// opacity channel and its colours are multiplied by its opacity, so only
+// canvases with 8 bit colour channels can be transparent.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCanvas::SetTransparent(bool bTransparent)
+{
+	if (bTransparent && (meColourBits != CRGB_24bit))
+	{
+		return gcLogger.Error2(__METHOD__, " Only a canvas with 8 bit colour channels can be transparent.", NULL);
+	}
+
+	if (mbTransparent != bTransparent)
+	{
+		//The native canvas has a different format so it is made again when next drawn.
+		mbTransparent = bTransparent;
+		DestroyNativeCanvas();
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The format with an opacity channel where the canvas's format has one or
+// an ignored channel.
+//
+//////////////////////////////////////////////////////////////////////////
+EColourFormat CCanvas::GetTransparentColourFormat(void)
+{
+	if ((meColourFormat == CFT_XRGB) || (meColourFormat == CFT_ARGB))
+	{
+		return CFT_ARGB;
+	}
+	return CFT_RGBA;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The format of the canvas's image, with an opacity channel if the canvas
+// is transparent.
+//
+//////////////////////////////////////////////////////////////////////////
+EColourFormat CCanvas::GetColourFormat(void)
+{
+	if (mbTransparent)
+	{
+		return GetTransparentColourFormat();
+	}
+	return meColourFormat;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+ERGBAlphaBits CCanvas::GetAlphaBits(void)
+{
+	if (mbTransparent)
+	{
+		return ARGB_8bit;
+	}
+	return meAlphaBits;
+}
+
+
 EColourOrder CCanvas::GetColourOrder(void) { return meColourOrder; }
 ERGBColourBits CCanvas::GetColourBits(void) { return meColourBits; }
-ERGBAlphaBits CCanvas::GetAlphaBits(void) { return meAlphaBits;  }
+bool CCanvas::IsTransparent(void) { return mbTransparent; }
 CNativeCanvas* CCanvas::GetNativeCanvas(void) { return mpcNativeCanvas; }
 Ptr<CCanvasDraw> CCanvas::GetCanvasDraw(void) { return mpCanvasDraw; }
 Ptr<CContainer> CCanvas::GetContainer(void) { return mpContainer; }
