@@ -50,7 +50,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 void CImage::PrivateInit(void)
 {
 	mcChannels.Init();
-	miSize.Zero();
+	msSize.Zero();
 	mpsImageChangingDesc = NULL;
 	mpBlitterCache = NULL;
 }
@@ -72,9 +72,9 @@ void CImage::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(int iWidth, int iHeight)
+void CImage::Init(uint32 uiWidth, uint32 uiHeight)
 {
-	Init(iWidth, iHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+	Init(uiWidth, uiHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
 }
 
 
@@ -82,7 +82,7 @@ void CImage::Init(int iWidth, int iHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...)
+void CImage::Init(uint32 uiWidth, uint32 uiHeight, EPrimitiveType eType, EChannel eFirst, ...)
 {
 	va_list		vaMarker;
 	size		iCount;
@@ -104,7 +104,7 @@ void CImage::Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst
 	}
 	va_end(vaMarker);
 
-	SetSize(iWidth, iHeight);
+	SetSize(uiWidth, uiHeight);
 	EndChange();
 
 	PostInit();
@@ -115,7 +115,7 @@ void CImage::Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...)
+void CImage::Init(uint32 uiWidth, uint32 uiHeight, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...)
 {
 	va_list		vaMarker;
 	size		iCount;
@@ -137,7 +137,7 @@ void CImage::Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eTyp
 	}
 	va_end(vaMarker);
 
-	SetSize(iWidth, iHeight);
+	SetSize(uiWidth, uiHeight);
 	SetData(pvUserData);
 	EndChange();
 
@@ -167,14 +167,14 @@ void CImage::Init(Ptr<CImage> pcSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(int iWidth, int iHeight, CImageChannelsSource* pcSource)
+void CImage::Init(uint32 uiWidth, uint32 uiHeight, CImageChannelsSource* pcSource)
 {
 	PreInit();
 
 	PrivateInit();
 	BeginChange();
 	AddChannels(pcSource);
-	SetSize(iWidth, iHeight);
+	SetSize(uiWidth, uiHeight);
 	EndChange();
 
 	PostInit();
@@ -185,14 +185,14 @@ void CImage::Init(int iWidth, int iHeight, CImageChannelsSource* pcSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSource* pcSource)
+void CImage::Init(uint32 uiWidth, uint32 uiHeight, void* pvUserData, CImageChannelsSource* pcSource)
 {
 	PreInit();
 
 	PrivateInit();
 	BeginChange();
 	AddChannels(pcSource);
-	SetSize(iWidth, iHeight);
+	SetSize(uiWidth, uiHeight);
 	SetData(pvUserData);
 	EndChange();
 
@@ -204,14 +204,14 @@ void CImage::Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSourc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(int iWidth, int iHeight, Ptr<CImage> pcChannelsSource)
+void CImage::Init(uint32 uiWidth, uint32 uiHeight, Ptr<CImage> pcChannelsSource)
 {
 	PreInit();
 
 	PrivateInit();
 	BeginChange();
 	AddChannels(pcChannelsSource);
-	SetSize(iWidth, iHeight);
+	SetSize(uiWidth, uiHeight);
 	EndChange();
 
 	PostInit();
@@ -222,13 +222,13 @@ void CImage::Init(int iWidth, int iHeight, Ptr<CImage> pcChannelsSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(int iWidth, int iHeight, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits)
+void CImage::Init(uint32 uiWidth, uint32 uiHeight, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits)
 {
 	CColourFormatHelper		cHelper;
 
 	cHelper.Init(eFormat, eOrder, eColourBits, eAlphaBits);
 
-	Init(iWidth, iHeight, &cHelper);
+	Init(uiWidth, uiHeight, &cHelper);
 }
 
 
@@ -236,7 +236,7 @@ void CImage::Init(int iWidth, int iHeight, EColourFormat eFormat, EColourOrder e
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(int iWidth, int iHeight, CArrayChannel* pasNewChannels)
+void CImage::Init(uint32 uiWidth, uint32 uiHeight, CArrayChannel* pasNewChannels)
 {
 	PreInit();
 
@@ -257,7 +257,7 @@ void CImage::Init(int iWidth, int iHeight, CArrayChannel* pasNewChannels)
 			AddChannel(psChannel);
 		}
 
-		SetSize(iWidth, iHeight);
+		SetSize(uiWidth, uiHeight);
 		EndChange();
 	}
 
@@ -269,7 +269,7 @@ void CImage::Init(int iWidth, int iHeight, CArrayChannel* pasNewChannels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(int iWidth, int iHeight, CColourFormatHelper* pcHelper)
+void CImage::Init(uint32 uiWidth, uint32 uiHeight, CColourFormatHelper* pcHelper)
 {
 	PreInit();
 
@@ -292,7 +292,7 @@ void CImage::Init(int iWidth, int iHeight, CColourFormatHelper* pcHelper)
 			AddChannel((size)eChannel, eType);
 		}
 
-		SetSize(iWidth, iHeight);
+		SetSize(uiWidth, uiHeight);
 		EndChange();
 	}
 
@@ -307,7 +307,7 @@ void CImage::Init(int iWidth, int iHeight, CColourFormatHelper* pcHelper)
 void CImage::Class(void)
 {
 	M_Embedded(mcChannels);
-	U_Data(SInt32Vec2, miSize);
+	U_Data(SUInt32Vec2, msSize);
 	U_Pointer(mpsImageChangingDesc);
 	M_Pointer(mpBlitterCache);
 }
@@ -320,7 +320,7 @@ void CImage::Class(void)
 void CImage::Free(void)
 {
 	SafeFree(mpsImageChangingDesc);
-	miSize.Zero();
+	msSize.Zero();
 }
 
 
@@ -340,7 +340,7 @@ void CImage::ReInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::ReInit(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...)
+void CImage::ReInit(uint32 uiWidth, uint32 uiHeight, EPrimitiveType eType, EChannel eFirst, ...)
 {
 	va_list		vaMarker;
 	size		iCount;
@@ -362,7 +362,7 @@ void CImage::ReInit(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFir
 	}
 	va_end(vaMarker);
 
-	SetSize(iWidth, iHeight);
+	SetSize(uiWidth, uiHeight);
 	EndChange();
 }
 
@@ -375,8 +375,8 @@ bool CImage::Load(CObjectReader* pcFile)
 {
 	mpsImageChangingDesc = NULL;
 
-	ReturnOnFalse(pcFile->ReadSInt(&miSize.x));
-	ReturnOnFalse(pcFile->ReadSInt(&miSize.y));
+	ReturnOnFalse(pcFile->ReadInt32(&msSize.x));
+	ReturnOnFalse(pcFile->ReadInt32(&msSize.y));
 
 	return true;
 }
@@ -388,8 +388,8 @@ bool CImage::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CImage::Save(CObjectWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteSInt(miSize.x));
-	ReturnOnFalse(pcFile->WriteSInt(miSize.y));
+	ReturnOnFalse(pcFile->WriteInt32(msSize.x));
+	ReturnOnFalse(pcFile->WriteInt32(msSize.y));
 
 	return true;
 }
@@ -403,8 +403,8 @@ void CImage::BeginChange(void)
 {
 	mcChannels.BeginChange();
 	mpsImageChangingDesc = (SImageChangingDesc*)malloc(sizeof(SImageChangingDesc));
-	mpsImageChangingDesc->iWidth = miSize.x;
-	mpsImageChangingDesc->iHeight = miSize.y;
+	mpsImageChangingDesc->uiWidth = msSize.x;
+	mpsImageChangingDesc->uiHeight = msSize.y;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -569,31 +569,32 @@ const char* CImage::GetChannelShortName(size iChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::SetSize(int iWidth, int iHeight)
+void CImage::SetSize(uint32 uiWidth, uint32 uiHeight)
 {
 	uint64	ulliNumPixels;
 
 	if (IsChanging())
 	{
-		if ((iWidth < 0) || (iHeight < 0))
+		//A size this large is almost certainly a negative int that was converted.
+		if ((uiWidth > INT32_MAX) || (uiHeight > INT32_MAX))
 		{
-			gcLogger.Error2(__METHOD__, " Cannot set image size to [", IntToString(iWidth), " x ", IntToString(iHeight), "].", NULL);
-			iWidth = 0;
-			iHeight = 0;
+			gcLogger.Error2(__METHOD__, " Cannot set image size to [", IntToString((int32)uiWidth), " x ", IntToString((int32)uiHeight), "].", NULL);
+			uiWidth = 0;
+			uiHeight = 0;
 		}
 
 		//The number of pixels is calculated in 64 bits because width * height can overflow 32 bits.
-		ulliNumPixels = (uint64)iWidth * (uint64)iHeight;
+		ulliNumPixels = (uint64)uiWidth * (uint64)uiHeight;
 		if (ulliNumPixels > SIZE_MAX)
 		{
-			gcLogger.Error2(__METHOD__, " Image [", IntToString(iWidth), " x ", IntToString(iHeight), "] has more pixels than can be addressed.", NULL);
-			iWidth = 0;
-			iHeight = 0;
+			gcLogger.Error2(__METHOD__, " Image [", IntToString(uiWidth), " x ", IntToString(uiHeight), "] has more pixels than can be addressed.", NULL);
+			uiWidth = 0;
+			uiHeight = 0;
 			ulliNumPixels = 0;
 		}
 
-		mpsImageChangingDesc->iWidth = iWidth;
-		mpsImageChangingDesc->iHeight = iHeight;
+		mpsImageChangingDesc->uiWidth = uiWidth;
+		mpsImageChangingDesc->uiHeight = uiHeight;
 		mcChannels.SetSize((size)ulliNumPixels);
 	}
 }
@@ -603,13 +604,13 @@ void CImage::SetSize(int iWidth, int iHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CImage::GetHeight(void)
+uint32 CImage::GetHeight(void)
 {
 	if (IsChanging())
 	{
-		return mpsImageChangingDesc->iHeight;	
+		return mpsImageChangingDesc->uiHeight;	
 	}
-	return miSize.y;
+	return msSize.y;
 }
 
 
@@ -617,13 +618,13 @@ int CImage::GetHeight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CImage::GetWidth(void)
+uint32 CImage::GetWidth(void)
 {
 	if (IsChanging())
 	{
-		return mpsImageChangingDesc->iWidth;
+		return mpsImageChangingDesc->uiWidth;
 	}
-	return miSize.x;
+	return msSize.x;
 }
 
 
@@ -631,9 +632,9 @@ int CImage::GetWidth(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CImage::GetImageHeight(void)
+uint32 CImage::GetImageHeight(void)
 {
-	return miSize.y;
+	return msSize.y;
 }
 
 
@@ -641,9 +642,9 @@ int CImage::GetImageHeight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CImage::GetImageWidth(void)
+uint32 CImage::GetImageWidth(void)
 {
-	return miSize.x;
+	return msSize.x;
 }
 
 
@@ -657,17 +658,17 @@ bool CImage::EndChange(void)
 
 	if (IsChanging())
 	{
-		miSize.Init(mpsImageChangingDesc->iWidth, mpsImageChangingDesc->iHeight);
+		msSize.Init(mpsImageChangingDesc->uiWidth, mpsImageChangingDesc->uiHeight);
 		bResult = mcChannels.EndChange();
 		SafeFree(mpsImageChangingDesc);
 		mpBlitterCache = NULL;  //The blitters were made for the image as it was.
 
-		if ((miSize.x > 0) && (miSize.y > 0) && (mcChannels.GetChannelOffsets()->NumElements() > 0) && (mcChannels.GetData() == NULL))
+		if ((msSize.x > 0) && (msSize.y > 0) && (mcChannels.GetChannelOffsets()->NumElements() > 0) && (mcChannels.GetData() == NULL))
 		{
 			//The data could not be allocated (too big to address or out of memory) so the image is empty rather than the wrong size.
-			gcLogger.Error2(__METHOD__, " Could not allocate image [", IntToString(miSize.x), " x ", IntToString(miSize.y), "].", NULL);
-			miSize.x = 0;
-			miSize.y = 0;
+			gcLogger.Error2(__METHOD__, " Could not allocate image [", IntToString(msSize.x), " x ", IntToString(msSize.y), "].", NULL);
+			msSize.x = 0;
+			msSize.y = 0;
 			return false;
 		}
 		return bResult;
@@ -695,13 +696,13 @@ void CImage::Copy(Ptr<CImage> pcSource)
 	//This assumes Image is not initialised.
 	PreInit();
 
-	miSize.x = pcSource->miSize.x;
-	miSize.y = pcSource->miSize.y;
+	msSize.x = pcSource->msSize.x;
+	msSize.y = pcSource->msSize.y;
 	if (pcSource->mpsImageChangingDesc)
 	{
 		mpsImageChangingDesc = (SImageChangingDesc*)malloc(sizeof(SImageChangingDesc));
-		mpsImageChangingDesc->iWidth = pcSource->mpsImageChangingDesc->iWidth;
-		mpsImageChangingDesc->iHeight = pcSource->mpsImageChangingDesc->iHeight;
+		mpsImageChangingDesc->uiWidth = pcSource->mpsImageChangingDesc->uiWidth;
+		mpsImageChangingDesc->uiHeight = pcSource->mpsImageChangingDesc->uiHeight;
 	}
 	else
 	{
@@ -738,13 +739,13 @@ void CImage::CopyIntoInitialised(Ptr<CImage> pcSource)
 {
 	//This assumes Image IS initialised.
 
-	miSize.x = pcSource->miSize.x;
-	miSize.y = pcSource->miSize.y;
+	msSize.x = pcSource->msSize.x;
+	msSize.y = pcSource->msSize.y;
 	if (pcSource->mpsImageChangingDesc)
 	{
 		mpsImageChangingDesc = (SImageChangingDesc*)malloc(sizeof(SImageChangingDesc));
-		mpsImageChangingDesc->iWidth = pcSource->mpsImageChangingDesc->iWidth;
-		mpsImageChangingDesc->iHeight = pcSource->mpsImageChangingDesc->iHeight;
+		mpsImageChangingDesc->uiWidth = pcSource->mpsImageChangingDesc->uiWidth;
+		mpsImageChangingDesc->uiHeight = pcSource->mpsImageChangingDesc->uiHeight;
 	}
 	else
 	{
@@ -893,7 +894,7 @@ size CImage::GetPixelBitStride(void)
 SSizeVec2 CImage::GetDimension(void)
 {
 	SSizeVec2	s;
-	s.Init(miSize.x, miSize.y);
+	s.Init(msSize.x, msSize.y);
 	return s;
 }
 
@@ -994,7 +995,7 @@ CChannel* CImage::GetChannelAtIndex(size iIndex)
 //////////////////////////////////////////////////////////////////////////
 bool CImage::IsValid(int x, int y)
 {
-	if ((x < 0) || (x >= miSize.x) || (y < 0) || (y >= miSize.y))
+	if ((x < 0) || ((uint32)x >= msSize.x) || (y < 0) || ((uint32)y >= msSize.y))
 	{
 		return false;
 	}
@@ -1476,8 +1477,8 @@ void CImage::Print(CChars* psz)
 	uint				uiChannel;
 	CChannel*			pcChannel;
 	const char*				szChannelName;
-	int					x;
-	int					y;
+	uint32				x;
+	uint32				y;
 	CChannelsAccessor*	apcAccessors[8];
 	uint				ui;
 
@@ -1517,7 +1518,7 @@ void CImage::Print(CChars* psz)
 	psz->AppendNewLine();
 	psz->AppendNewLine();
 
-	for (x = 0; x < miSize.x; x++)
+	for (x = 0; x < msSize.x; x++)
 	{
 		for (i = 0; i < aiChannels.NumElements(); i++)
 		{
@@ -1532,13 +1533,13 @@ void CImage::Print(CChars* psz)
 	}
 	psz->AppendNewLine();
 
-	for (y = 0; y < miSize.y; y++)
+	for (y = 0; y < msSize.y; y++)
 	{
-		for (x = 0; x < miSize.x; x++)
+		for (x = 0; x < msSize.x; x++)
 		{
 			for (i = 0; i < aiChannels.NumElements(); i++)
 			{
-				ui = *((uint*)apcAccessors[i]->Get(x + y * miSize.x));
+				ui = *((uint*)apcAccessors[i]->Get(x + y * msSize.x));
 				psz->Append(" ");
 				psz->AppendHexLoHi(&ui, 1);
 				psz->Append(" ");

@@ -1881,6 +1881,9 @@
     <ClInclude Include="SizeVec2.h">
       <Filter>Source\Data\Geometric\Vector2</Filter>
     </ClInclude>
+    <ClInclude Include="UInt32Vec2.h">
+      <Filter>Source\Data\Geometric\Vector2</Filter>
+    </ClInclude>
     <ClInclude Include="SetBlock.h">
       <Filter>Source\Data\Set</Filter>
     </ClInclude>
@@ -3084,6 +3087,9 @@
       <Filter>Source\Data\Geometric\Vector4</Filter>
     </ClCompile>
     <ClCompile Include="SizeVec2.cpp">
+      <Filter>Source\Data\Geometric\Vector2</Filter>
+    </ClCompile>
+    <ClCompile Include="UInt32Vec2.cpp">
       <Filter>Source\Data\Geometric\Vector2</Filter>
     </ClCompile>
     <ClCompile Include="SetBlock.cpp">
