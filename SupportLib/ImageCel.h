@@ -34,7 +34,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 
 class CImageCelBlitterCache;
-typedef CArrayTemplate<CImageCelBlitterCache*>	CArrayImageCelBlitterCachePtr;
+typedef CArrayTemplateEmbeddedPtr<CImageCelBlitterCache, 4>	CArrayImageCelBlitterCachePtr;
 
 
 class CImageCel : public CObject
@@ -42,8 +42,8 @@ class CImageCel : public CObject
 CONSTRUCTABLE(CImageCel);
 DESTRUCTABLE(CImageCel);
 protected:
-	CSubImage		mcSubImage;  //Both the full dimension of the cel and also where it's pixels are in the source image.
-	Ptr<CImage>		mpSourceImage;
+	CSubImage						mcSubImage;			//Both the full dimension of the cel and also where it's pixels are in the source image.
+	Ptr<CImage>						mpSourceImage;
 	CArrayImageCelBlitterCachePtr	mapcBlitterCaches;  //The caches holding a blitter for this cel.  Not references, see Free.
 
 public:

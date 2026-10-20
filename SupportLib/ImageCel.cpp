@@ -35,7 +35,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImageCel::Init(Ptr<CImage> pcSourceImage, bool bCropTransparentBorders)
 {
-	Init(pcSourceImage, 0, 0, pcSourceImage->miWidth, pcSourceImage->miHeight);
+	Init(pcSourceImage, 0, 0, pcSourceImage->GetImageWidth(), pcSourceImage->GetImageHeight());
 	if (bCropTransparentBorders)
 	{
 		CropTransparentBorders();
@@ -93,7 +93,7 @@ void CImageCel::Free(void)
 	for (i = 0; i < mapcBlitterCaches.NumElements(); i++)
 	{
 		pcCache = *mapcBlitterCaches.Get(i);
-		pcCache->ForgetCel(this);
+		pcCache->RemoveCelDuringFree(this);
 	}
 	mapcBlitterCaches.Kill();
 }
@@ -148,9 +148,9 @@ void CImageCel::Copy(CImageCel* pcSource)
 //////////////////////////////////////////////////////////////////////////
 void CImageCel::AddBlitterCache(CImageCelBlitterCache* pcCache)
 {
-	if (mapcBlitterCaches.Find(&pcCache) == ARRAY_ELEMENT_NOT_FOUND)
+	if (mapcBlitterCaches.Find(pcCache) == ARRAY_ELEMENT_NOT_FOUND)
 	{
-		mapcBlitterCaches.Add(&pcCache);
+		mapcBlitterCaches.Add(pcCache);
 	}
 }
 
@@ -163,7 +163,7 @@ void CImageCel::ForgetBlitterCache(CImageCelBlitterCache* pcCache)
 {
 	size	uiIndex;
 
-	uiIndex = mapcBlitterCaches.Find(&pcCache);
+	uiIndex = mapcBlitterCaches.Find(pcCache);
 	if (uiIndex != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		mapcBlitterCaches.RemoveAt(uiIndex);

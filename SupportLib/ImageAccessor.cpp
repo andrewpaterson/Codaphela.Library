@@ -38,7 +38,7 @@ void CImageAccessor::Init(CImage* pcImage, CChannelsAccessor* pcAccessor, bool b
 	mpcImage = pcImage;
 	if (mpcImage)
 	{
-		miWidth = pcImage->miWidth;
+		miWidth = pcImage->GetImageWidth();
 	}
 	else
 	{
@@ -140,7 +140,7 @@ void CImageAccessor::Get(int x, int y, void* pvDest)
 //////////////////////////////////////////////////////////////////////////
 bool CImageAccessor::IsValid(int x, int y)
 {
-	if ((x >= 0) && (y >= 0) && (x < miWidth) && (y < mpcImage->miHeight))
+	if ((x >= 0) && (y >= 0) && (x < miWidth) && (y < mpcImage->GetImageHeight()))
 	{
 		return true;
 	}
@@ -258,3 +258,4 @@ int CImageAccessor::GetByteSize(void)
 CChannelsAccessor* CImageAccessor::GetAccessor(void) { return mpcAccessor; }
 CImage* CImageAccessor::GetImage(void) { return mpcImage; }
 int CImageAccessor::GetWidth(void) { return miWidth; }
+

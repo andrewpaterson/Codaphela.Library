@@ -97,7 +97,7 @@ public:
 	void 		SetVerticalAlignment(int32 iAlignment);  //Top/Bottom alignment.
 	bool		IsImageEmpty(void);
 
-	//All the methods below are relative.  Add X,Y to the return to get a meaningful destination position.
+	//All the methods below are relative.  Add X and Y to the return to get a meaningful destination position.
 	int32		GetFullWidth(void);
 	int32		GetFullHeight(void);
 	int32		GetImageWidth(void);
