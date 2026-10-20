@@ -30,9 +30,9 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void AppendFontInteger(CChars* szText, char* szIdentifier, int32 iValue)
+void AppendFontInteger(CChars* szText, size uiDepth, char* szIdentifier, int32 iValue)
 {
-	szText->Append("\t");
+	szText->Append('\t', uiDepth);
 	szText->Append(szIdentifier);
 	szText->Append("\t");
 	szText->Append(iValue);
@@ -42,10 +42,10 @@ void AppendFontInteger(CChars* szText, char* szIdentifier, int32 iValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Each glyph is written as {CodePoint, Length, Cel, Step}.  The code point
-// is the glyph's key read as a little endian integer, Length is the number
-// of bytes in the key and Cel is the index of the glyph's cel in the cels
-// file.
+// Each glyph is written as a CodePoint, Length, CelIndex and Step.  The
+// code point is the glyph's key read as a little endian integer, Length is
+// the number of bytes in the key and CelIndex is the index of the glyph's
+// cel in the cels file.
 //
 //////////////////////////////////////////////////////////////////////////
 bool FontWriter(Ptr<CFont> pFont, char* szImagePathName, char* szCelsPathName, char* szPathName)
@@ -61,7 +61,6 @@ bool FontWriter(Ptr<CFont> pFont, char* szImagePathName, char* szCelsPathName, c
 	bool						bExists;
 	uint32						uiCodePoint;
 	size						i;
-	int32						aiValues[4];
 	bool						bResult;
 
 	cTextFile.Init();
@@ -70,9 +69,9 @@ bool FontWriter(Ptr<CFont> pFont, char* szImagePathName, char* szCelsPathName, c
 	szText->Append("Font\n{\n\tName\t\"");
 	szText->Append(pFont->GetName());
 	szText->Append("\";\n");
-	AppendFontInteger(szText, "SpaceWidth", pFont->GetSpaceWidth());
-	AppendFontInteger(szText, "Ascent", pFont->GetAscent());
-	AppendFontInteger(szText, "Descent", pFont->GetDescent());
+	AppendFontInteger(szText, 1, "SpaceWidth", pFont->GetSpaceWidth());
+	AppendFontInteger(szText, 1, "Ascent", pFont->GetAscent());
+	AppendFontInteger(szText, 1, "Descent", pFont->GetDescent());
 	AppendImageCelsPath(szText, "Cels", szCelsPathName);
 	szText->Append("\tGlyphs\n\t{\n");
 
@@ -93,11 +92,12 @@ bool FontWriter(Ptr<CFont> pFont, char* szImagePathName, char* szCelsPathName, c
 		}
 
 		pGlyph = pFont->GetGlyph(auiKey, uiKeyLength);
-		aiValues[0] = (int32)uiCodePoint;
-		aiValues[1] = (int32)uiKeyLength;
-		aiValues[2] = (int32)paCels->NumElements();
-		aiValues[3] = pGlyph->GetStep();
-		AppendImageCelsIntegers(szText, "Glyph", aiValues, 4);
+		szText->Append("\t\tGlyph\n\t\t{\n");
+		AppendFontInteger(szText, 3, "CodePoint", (int32)uiCodePoint);
+		AppendFontInteger(szText, 3, "Length", (int32)uiKeyLength);
+		AppendFontInteger(szText, 3, "CelIndex", (int32)paCels->NumElements());
+		AppendFontInteger(szText, 3, "Step", pGlyph->GetStep());
+		szText->Append("\t\t}\n");
 
 		pCel = pGlyph->GetCel();
 		paCels->Add(pCel);

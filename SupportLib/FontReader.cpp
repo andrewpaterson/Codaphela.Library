@@ -28,12 +28,23 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
+TRISTATE GetFontInteger(CTextParser* pcTextParser, char* szIdentifier, int64* piValue)
+{
+	ReturnOnErrorAndFalse(pcTextParser->GetHFExactIdentifierAndInteger(szIdentifier, piValue));
+	pcTextParser->GetExactCharacter(';');
+	return TRITRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 TRISTATE GetFontInt16(CTextParser* pcTextParser, char* szIdentifier, int16* piValue)
 {
 	int64	iValue;
 
-	ReturnOnErrorAndFalse(pcTextParser->GetHFExactIdentifierAndInteger(szIdentifier, &iValue));
-	pcTextParser->GetExactCharacter(';');
+	ReturnOnErrorAndFalse(GetFontInteger(pcTextParser, szIdentifier, &iValue));
 	if (iValue != (int16)iValue)
 	{
 		return TRIERROR;
@@ -45,39 +56,66 @@ TRISTATE GetFontInt16(CTextParser* pcTextParser, char* szIdentifier, int16* piVa
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Glyph is {CodePoint, Length, Cel, Step}, see FontWriter.
+// See FontWriter for what a glyph's values are.
 //
 //////////////////////////////////////////////////////////////////////////
 TRISTATE GetFontGlyph(CTextParser* pcTextParser, Ptr<CFont> pFont, Ptr<CArrayImageCel> paCels)
 {
-	int32			aiValues[4];
+	int64			iCodePoint;
+	int64			iLength;
+	int64			iCelIndex;
+	int16			iStep;
 	uint32			uiCodePoint;
 	size			uiLength;
 	Ptr<CImageCel>	pCel;
+	TRISTATE		tResult;
 
-	ReturnOnErrorAndFalse(GetImageCelsIdentifierAndIntegers(pcTextParser, "Glyph", aiValues, 4));
+	ReturnOnErrorAndFalse(pcTextParser->GetExactIdentifier("Glyph"));
 
-	uiCodePoint = (uint32)aiValues[0];
-	if ((aiValues[1] < 1) || (aiValues[1] > 4))
+	//Once a glyph has started every value must be there.
+	tResult = pcTextParser->GetExactCharacter('{');
+	if (tResult == TRITRUE)
 	{
-		return TRIERROR;
+		tResult = GetFontInteger(pcTextParser, "CodePoint", &iCodePoint);
 	}
-	uiLength = (size)aiValues[1];
-	if ((uiLength < 4) && ((uiCodePoint >> (uiLength * 8)) != 0))
+	if (tResult == TRITRUE)
 	{
-		return TRIERROR;
+		tResult = GetFontInteger(pcTextParser, "Length", &iLength);
 	}
-	if ((aiValues[2] < 0) || ((size)aiValues[2] >= paCels->NumElements()))
+	if (tResult == TRITRUE)
 	{
-		return TRIERROR;
+		tResult = GetFontInteger(pcTextParser, "CelIndex", &iCelIndex);
 	}
-	if (aiValues[3] != (int16)aiValues[3])
+	if (tResult == TRITRUE)
+	{
+		tResult = GetFontInt16(pcTextParser, "Step", &iStep);
+	}
+	if (tResult == TRITRUE)
+	{
+		tResult = pcTextParser->GetExactCharacter('}');
+	}
+	if (tResult != TRITRUE)
 	{
 		return TRIERROR;
 	}
 
-	pCel = paCels->Get(aiValues[2]);
-	pFont->PutGlyph(uiCodePoint, uiLength, pCel, (int16)aiValues[3]);
+	if ((iLength < 1) || (iLength > 4))
+	{
+		return TRIERROR;
+	}
+	uiLength = (size)iLength;
+	if ((iCodePoint < 0) || ((iCodePoint >> (uiLength * 8)) != 0))
+	{
+		return TRIERROR;
+	}
+	uiCodePoint = (uint32)iCodePoint;
+	if ((iCelIndex < 0) || ((size)iCelIndex >= paCels->NumElements()))
+	{
+		return TRIERROR;
+	}
+
+	pCel = paCels->Get((size)iCelIndex);
+	pFont->PutGlyph(uiCodePoint, uiLength, pCel, iStep);
 	return TRITRUE;
 }
 
