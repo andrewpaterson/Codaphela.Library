@@ -364,6 +364,26 @@ size_t CResizableSharedMemory::GetSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void* CResizableSharedMemory::GetValidMemory(void)
+{
+    if (mpsDescriptor == NULL)
+    {
+        return NULL;
+    }
+
+    //Another process sets iInvalid when it moves the memory to a new file.
+    if (*(volatile int*)&mpsDescriptor->iInvalid != SHARED_MEMORY_VALID)
+    {
+        return NULL;
+    }
+    return mpvMemory;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 SSharedMemoryMap CResizableSharedMemory::Resize(size_t uiSize)
 {
     bool                        bResult;

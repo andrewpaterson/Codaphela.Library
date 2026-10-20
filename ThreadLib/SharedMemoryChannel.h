@@ -21,7 +21,7 @@ struct SSharedMemoryChannelState
 
 //A process channel over two CSharedMemoryQueues, one for each direction.  One
 //process Creates it by name and the other Connects with the same name.
-//Receive has nothing to wake it so it yields while it waits.
+//Receive has nothing to wake it so it yields, then sleeps, while it waits.
 class CSharedMemoryChannel : public CProcessChannel
 {
 protected:

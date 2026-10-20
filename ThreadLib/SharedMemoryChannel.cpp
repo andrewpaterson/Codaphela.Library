@@ -15,6 +15,12 @@
 #define SHARED_MEMORY_CHANNEL_CREATOR		0
 #define SHARED_MEMORY_CHANNEL_CONNECTOR		1
 
+//While waiting, Receive yields this many times and then sleeps between polls,
+//so a reply that comes quickly is seen at once and a long wait does not use a
+//whole processor.
+#define SHARED_MEMORY_CHANNEL_YIELDS			1024
+#define SHARED_MEMORY_CHANNEL_SLEEP_MS			1
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -166,6 +172,7 @@ EChannelResult CSharedMemoryChannel::Receive(uint32* puiType, void* pvData, size
 	int		iOtherState;
 	CTimer	cTimer;
 	bool	bTimed;
+	int		iPolls;
 
 	if (!mbOpen)
 	{
@@ -178,20 +185,25 @@ EChannelResult CSharedMemoryChannel::Receive(uint32* puiType, void* pvData, size
 		cTimer.Init();
 	}
 
-	for (;;)
+	for (iPolls = 0; ; iPolls++)
 	{
 		//Read the other state before looking in the queue so a message sent
 		//just before it closed is still received.
 		iOtherState = mpsState->aiState[1 - miSide].Get();
 
-		uiElementSize = mcReceive.PeekSize();
-		if (uiElementSize != 0)
+		//Only takes the queue's mutex when there may be a message, so an idle
+		//receiver does not hold up the sender.
+		if (mcReceive.MayHaveElements())
 		{
-			if (bTimed)
+			uiElementSize = mcReceive.PeekSize();
+			if (uiElementSize != 0)
 			{
-				cTimer.Kill();
+				if (bTimed)
+				{
+					cTimer.Kill();
+				}
+				return Pop(puiType, pvData, uiMaxSize, puiSize, uiElementSize);
 			}
-			return Pop(puiType, pvData, uiMaxSize, puiSize, uiElementSize);
 		}
 
 		if (iOtherState == SHARED_MEMORY_CHANNEL_CLOSED)
@@ -216,7 +228,15 @@ EChannelResult CSharedMemoryChannel::Receive(uint32* puiType, void* pvData, size
 				return CR_Timeout;
 			}
 		}
-		ThreadYield();
+
+		if (iPolls < SHARED_MEMORY_CHANNEL_YIELDS)
+		{
+			ThreadYield();
+		}
+		else
+		{
+			ThreadSleep(SHARED_MEMORY_CHANNEL_SLEEP_MS);
+		}
 	}
 }
 
@@ -302,7 +322,14 @@ void CSharedMemoryChannel::Fail(bool bSend, bool bReceive)
 	{
 		mcReceive.Kill();
 	}
-	mpsState->aiState[miSide].Set(SHARED_MEMORY_CHANNEL_CLOSED);
+	//A process that failed to Connect never opened its side so it is left
+	//waiting.  Closing it would tell the creator the channel is finished while
+	//the connector may still be retrying (it may have found the state before
+	//the creator made the queues).
+	if (miSide == SHARED_MEMORY_CHANNEL_CREATOR)
+	{
+		mpsState->aiState[miSide].Set(SHARED_MEMORY_CHANNEL_CLOSED);
+	}
 	mcState.Close();
 	mcState.Kill();
 	mpsState = NULL;

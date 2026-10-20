@@ -130,7 +130,7 @@ size CArrayIntAndPointer::GetType(size uiIndex)
 //////////////////////////////////////////////////////////////////////////
 size CArrayIntAndPointer::SafeGetType(size uiIndex)
 {
-	if ((uiIndex < 0) || (uiIndex >= miUsedElements))
+	if (uiIndex >= miUsedElements)
 	{
 		return -1;
 	}

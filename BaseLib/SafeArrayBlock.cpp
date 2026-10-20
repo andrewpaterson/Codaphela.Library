@@ -149,7 +149,7 @@ size CSafeArrayBlock::AddGetIndex(void* pvData)
 	size iIndex;
 
 	m.Lock();
-	pvData = c.AddGetIndex(&iIndex);
+	iIndex = c.AddExistingGetIndex(pvData);
 	m.Unlock();
 	return iIndex;
 }

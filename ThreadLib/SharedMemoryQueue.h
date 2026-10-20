@@ -23,6 +23,10 @@ public:
 
 	//The size of the next element, or 0 if the queue is empty.
 	size_t	PeekSize(void);
+	//Without the mutex: false if the queue was empty a moment ago, true if it
+	//may have elements and must be looked at with the mutex.  Cheap enough to
+	//poll; another process may push just after it returns false.
+	bool	MayHaveElements(void);
 	bool	IsEmpty(void);
 	int		NumElements(void);
 	size_t	GetCacheSize(void);

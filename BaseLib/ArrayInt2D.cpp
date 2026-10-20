@@ -295,7 +295,7 @@ uint CArrayInt2D::SafeGet(size x, size y, uint iNullValue)
 //////////////////////////////////////////////////////////////////////////
 void CArrayInt2D::SafeSet(size x, size y, uint iValue)
 {
-	if (((x >= 0) && (x < miWidth)) && ((y >= 0) && (y < miHeight)))
+	if ((x < miWidth) && (y < miHeight))
 	{
 		return mcArray.SetValue(x + y*miWidth, iValue);
 	}

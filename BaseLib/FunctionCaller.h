@@ -75,8 +75,21 @@ SFunctionPointer GetCCallFunction(CCall_Void_Void function);
 SFunctionPointer GetNULLCallFunction(void);
 
 
-#define GetThisCall(p) GetThisCallFunction((ThisCall_Void_Void)p)
-#define GetThisMultiCall(p) GetThisMultiCallFunction((ThisMultiCall_Void_Void)p)
+//Converts a pointer to member function to another signature.  The bits are copied because
+//casting between member function signatures is reported as an incompatible cast.
+template<class M, class N>
+M FunctionCast(N pfFunction)
+{
+	M	pfResult;
+
+	static_assert(sizeof(M) == sizeof(N), "Member function pointers must be the same size.");
+	memcpy(&pfResult, &pfFunction, sizeof(M));
+	return pfResult;
+}
+
+
+#define GetThisCall(p) GetThisCallFunction(FunctionCast<ThisCall_Void_Void>(p))
+#define GetThisMultiCall(p) GetThisMultiCallFunction(FunctionCast<ThisMultiCall_Void_Void>(p))
 #define GetCCall(p) GetCCallFunction((CCall_Void_Void)p)
 #define GetNULLCall GetNULLCallFunction()
 
