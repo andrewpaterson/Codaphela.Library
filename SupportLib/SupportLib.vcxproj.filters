@@ -837,6 +837,9 @@
     <ClInclude Include="TrueTypeFont.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
+    <ClInclude Include="TrueTypeFontFactory.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
     <ClInclude Include="TrueTypeOutline.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
@@ -1452,6 +1455,9 @@
       <Filter>Source\Image\IO\BMP</Filter>
     </ClCompile>
     <ClCompile Include="TrueTypeFont.cpp">
+      <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="TrueTypeFontFactory.cpp">
       <Filter>Source\Image\Font</Filter>
     </ClCompile>
     <ClCompile Include="TrueTypeOutline.cpp">

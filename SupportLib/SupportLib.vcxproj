@@ -398,6 +398,7 @@
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="Triangle.h" />
     <ClInclude Include="TrueTypeFont.h" />
+    <ClInclude Include="TrueTypeFontFactory.h" />
     <ClInclude Include="TrueTypeOutline.h" />
     <ClInclude Include="TrueTypeRasteriser.h" />
   </ItemGroup>
@@ -605,6 +606,7 @@
     <ClCompile Include="TileMapPattern.cpp" />
     <ClCompile Include="Triangle.cpp" />
     <ClCompile Include="TrueTypeFont.cpp" />
+    <ClCompile Include="TrueTypeFontFactory.cpp" />
     <ClCompile Include="TrueTypeOutline.cpp" />
     <ClCompile Include="TrueTypeRasteriser.cpp" />
   </ItemGroup>
