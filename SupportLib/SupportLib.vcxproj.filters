@@ -834,6 +834,15 @@
     <ClInclude Include="BMPReader.h">
       <Filter>Source\Image\IO\BMP</Filter>
     </ClInclude>
+    <ClInclude Include="TrueTypeFont.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
+    <ClInclude Include="TrueTypeOutline.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
+    <ClInclude Include="TrueTypeRasteriser.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
     <ClInclude Include="PNGReader.h">
       <Filter>Source\Image\IO\PNG</Filter>
     </ClInclude>
@@ -1441,6 +1450,15 @@
     </ClCompile>
     <ClCompile Include="BMPReader.cpp">
       <Filter>Source\Image\IO\BMP</Filter>
+    </ClCompile>
+    <ClCompile Include="TrueTypeFont.cpp">
+      <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="TrueTypeOutline.cpp">
+      <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="TrueTypeRasteriser.cpp">
+      <Filter>Source\Image\Font</Filter>
     </ClCompile>
     <ClCompile Include="PNGReader.cpp">
       <Filter>Source\Image\IO\PNG</Filter>

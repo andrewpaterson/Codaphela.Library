@@ -1,0 +1,116 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2026 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela SupportLib
+
+Codaphela SupportLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela SupportLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#ifndef __TRUE_TYPE_FONT_H__
+#define __TRUE_TYPE_FONT_H__
+#include "BaseLib/Chars.h"
+#include "TrueTypeOutline.h"
+
+
+#define TRUE_TYPE_NAME_FAMILY		1
+#define TRUE_TYPE_NAME_SUBFAMILY	2
+#define TRUE_TYPE_NAME_FULL_NAME	4
+
+
+//The horizontal metrics and bounding box of a glyph in font units, y up.
+struct STrueTypeGlyphMetrics
+{
+	int		iAdvanceWidth;
+	int		iLeftSideBearing;
+	int		iXMin;
+	int		iYMin;
+	int		iXMax;
+	int		iYMax;
+};
+
+
+//Reads glyph outlines and metrics from TrueType (glyf) fonts.  Simple and composite glyphs are read; hinting
+//instructions are ignored.  Characters are mapped to glyphs with cmap format 4 or 12.  Variable fonts give their
+//default instance.  The whole file is held in memory and every read is bounds checked.
+class CTrueTypeFont
+{
+protected:
+	uint8*		mpuiData;
+	size		muiSize;
+
+	size		muiHeadOffset;
+	size		muiLocaOffset;
+	size		muiLocaLength;
+	size		muiGlyfOffset;
+	size		muiGlyfLength;
+	size		muiHmtxOffset;
+	size		muiHmtxLength;
+	size		muiNameOffset;
+	size		muiNameLength;
+	size		muiCmapOffset;  //The chosen subtable, not the table.
+	size		muiCmapLength;
+	int			miCmapFormat;
+
+	int			miUnitsPerEm;
+	int			miXMin;
+	int			miYMin;
+	int			miXMax;
+	int			miYMax;
+	bool		mbLongLoca;
+	int			miNumGlyphs;
+	int			miAscender;
+	int			miDescender;
+	int			miLineGap;
+	int			miNumHMetrics;
+
+public:
+	void		Init(void);
+	void		Kill(void);
+
+	bool		Load(char* szFilename);
+	bool		Load(void* pvData, size uiSize);
+
+	int			NumGlyphs(void);
+	int			GetUnitsPerEm(void);
+	int			GetAscender(void);
+	int			GetDescender(void);
+	int			GetLineGap(void);
+	void		GetBounds(int* piXMin, int* piYMin, int* piXMax, int* piYMax);
+	bool		GetName(int iNameID, CChars* psz);
+
+	int			GetGlyphIndex(uint32 uiCodePoint);
+	bool		GetGlyphMetrics(int iGlyph, STrueTypeGlyphMetrics* psMetrics);
+	bool		GetGlyphOutline(int iGlyph, CTrueTypeOutline* pcOutline);
+
+protected:
+	bool		Parse(void);
+	bool		FindTable(const char* szTag, size* puiOffset, size* puiLength);
+	bool		ChooseCmap(size uiCmapOffset, size uiCmapLength);
+	int			GetGlyphIndexFormat4(uint32 uiCodePoint);
+	int			GetGlyphIndexFormat12(uint32 uiCodePoint);
+	bool		GetGlyphData(int iGlyph, size* puiOffset, size* puiLength);
+	bool		ReadSimpleGlyph(size uiOffset, size uiLength, int iNumContours, CTrueTypeOutline* pcOutline);
+	bool		ReadCompositeGlyph(size uiOffset, size uiLength, CTrueTypeOutline* pcOutline, int iDepth);
+	bool		ReadGlyph(int iGlyph, CTrueTypeOutline* pcOutline, int iDepth);
+
+	bool		ReadUint8(size uiOffset, uint8* pui);
+	bool		ReadUint16(size uiOffset, uint16* pui);
+	bool		ReadInt16(size uiOffset, int16* pi);
+	bool		ReadUint32(size uiOffset, uint32* pui);
+	bool		IsInFile(size uiOffset, size uiLength);
+};
+
+
+#endif // __TRUE_TYPE_FONT_H__

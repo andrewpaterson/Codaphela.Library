@@ -397,6 +397,9 @@
     <ClInclude Include="ShapeHelper.h" />
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="Triangle.h" />
+    <ClInclude Include="TrueTypeFont.h" />
+    <ClInclude Include="TrueTypeOutline.h" />
+    <ClInclude Include="TrueTypeRasteriser.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BaseFontDraw.cpp" />
@@ -601,6 +604,9 @@
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="TileMapPattern.cpp" />
     <ClCompile Include="Triangle.cpp" />
+    <ClCompile Include="TrueTypeFont.cpp" />
+    <ClCompile Include="TrueTypeOutline.cpp" />
+    <ClCompile Include="TrueTypeRasteriser.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
