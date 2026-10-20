@@ -39,6 +39,7 @@ public:
 			Ptr(const Ptr& cPointer) : CPointer(cPointer) {};
 
 			using CPointer::operator =;
+			Ptr&	operator = (const Ptr& cPointer) { CPointer::operator = (cPointer); return *this; };
 	
 	M*		operator -> ();
 	M*		operator & ();

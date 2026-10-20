@@ -44,6 +44,7 @@ public:
 							SVec2<M, N>(const SVec2<M, N>& v);
 							SVec2<M, N>(M x, M y);
 
+			SVec2<M, N>&	operator = (const SVec2<M, N>& v);
 			SVec2<M, N>&	operator += (const SVec2<M, N>&);
 			SVec2<M, N>&	operator -= (const SVec2<M, N>&);
 			SVec2<M, N>&	operator *= (M);
@@ -97,6 +98,14 @@ SVec2<M, N>::SVec2(const SVec2<M, N>& v)
 {
 	x = v.x;
 	y = v.y;
+}
+
+template<class M, class N>
+SVec2<M, N>& SVec2<M, N>::operator = (const SVec2<M, N>& v)
+{
+	x = v.x;
+	y = v.y;
+	return *this;
 }
 
 template<class M, class N>
