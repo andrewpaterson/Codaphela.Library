@@ -44,6 +44,7 @@ public:
 							SVec3<M, N>(const SVec3<M, N>& v);
 							SVec3<M, N>(M x, M y, M z);
 
+			SVec3<M, N>&	operator = (const SVec3<M, N>& v);
 			SVec3<M, N>&	operator += (const SVec3<M, N>&);
 			SVec3<M, N>&	operator -= (const SVec3<M, N>&);
 			SVec3<M, N>&	operator *= (M);
@@ -100,6 +101,20 @@ SVec3<M, N>::SVec3(const SVec3<M, N>& v)
 	x = v.x;
 	y = v.y;
 	z = v.z;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, class N>
+SVec3<M, N>& SVec3<M, N>::operator = (const SVec3<M, N>& v)
+{
+	x = v.x;
+	y = v.y;
+	z = v.z;
+	return *this;
 }
 
 
