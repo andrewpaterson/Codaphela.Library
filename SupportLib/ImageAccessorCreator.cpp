@@ -227,17 +227,17 @@ CImageAccessor* CImageAccessorCreator::Create(CImage* pcImage, int iFirst, ...)
 {
 	CImageAccessorCreator	cCreator;
 	va_list					vaMarker;
-	int						iValue;
+	size					iValue;
 
 	cCreator.Init(pcImage);
 
 	va_start(vaMarker, iFirst);
 	cCreator.AddAccess(iFirst);
-	iValue = va_arg(vaMarker, int);
+	iValue = va_arg(vaMarker, size);
 	while (iValue != CHANNEL_STOP)
 	{
 		cCreator.AddAccess(iValue);
-		iValue = va_arg(vaMarker, int);
+		iValue = va_arg(vaMarker, size);
 	}
 	va_end(vaMarker);
 

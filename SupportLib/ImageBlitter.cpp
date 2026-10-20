@@ -224,13 +224,11 @@ bool CImageBlitter::PopulateOpacityFormat(CImageBlitterFormat* pcFormat)
 	size				uiImageWidth;
 	CChannels*			pcChannels;
 	float32				fAlpha;
-	bool				bSolid;
 	bool				bTransparent;
 	bool				bTranslucent;
 	size				uiBottom;
 	size				uiRight;
 
-	bSolid = false;
 	bTransparent = false;
 	bTranslucent = false;
 
@@ -266,7 +264,6 @@ bool CImageBlitter::PopulateOpacityFormat(CImageBlitterFormat* pcFormat)
 					fAlpha = *((float32*)pcOpacityAccessor->Get(x + y * uiImageWidth));
 					if (fAlpha == 1.0f)
 					{
-						bSolid = true;
 					}
 					else if (fAlpha == 0.0f)
 					{

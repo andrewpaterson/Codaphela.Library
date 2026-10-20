@@ -1507,7 +1507,6 @@ bool CBaseObject::SavePrimitives(CObjectWriter* pcFile)
 	CPrimitiveField**	ppacPrimitiveFields;
 	CArrayVoidPtr*		papv;
 	size				i;
-	CPrimitiveObject*	pcPrimitive;
 	bool				bResult;
 	CPrimitiveField*	pcPrimitiveField;
 	SDataIO*			psIO;
@@ -1520,7 +1519,6 @@ bool CBaseObject::SavePrimitives(CObjectWriter* pcFile)
 	{
 		pcPrimitiveField = ppacPrimitiveFields[i];
 		psIO = pcPrimitiveField->GetDataIO();
-		pcPrimitive = pcPrimitiveField->GetPrimitiveObject(this);
 		pvPrimitive = pcPrimitiveField->GetValue(this);
 		bResult = (((SDataTypeIO*)pvPrimitive)->*(psIO->fWriter))(pcFile);
 		ReturnOnFalse(bResult);
@@ -1682,7 +1680,6 @@ bool CBaseObject::LoadPrimitives(CObjectReader* pcFile)
 	CPrimitiveField**	ppacPrimitiveFields;
 	CArrayVoidPtr*		papv;
 	size				i;
-	CPrimitiveObject*	pcPrimitive;
 	bool				bResult;
 	CPrimitiveField*	pcPrimitiveField;
 	SDataIO*			psIO;
@@ -1695,7 +1692,6 @@ bool CBaseObject::LoadPrimitives(CObjectReader* pcFile)
 	{
 		pcPrimitiveField = ppacPrimitiveFields[i];
 		psIO = pcPrimitiveField->GetDataIO();
-		pcPrimitive = pcPrimitiveField->GetPrimitiveObject(this);
 		pvPrimitive = pcPrimitiveField->GetValue(this);
 		bResult = (((SDataTypeIO*)pvPrimitive)->*(psIO->fReader))(pcFile);
 
@@ -2483,7 +2479,7 @@ void CBaseObject::ValidateAllocation(void)
 	bDistToStackZero = GetDistToStack() == 0;
 	bAllocateCalled = FixBool(muiFlags & OBJECT_FLAGS_CALLED_ALLOCATE);
 	bInObjects = IsAllocatedInObjects();
-	bAllSame = !bDistToStackZero == bAllocateCalled == bInObjects;
+	bAllSame = (!bDistToStackZero == bAllocateCalled) && (bAllocateCalled == bInObjects);
 
 	if (!bAllSame)
 	{

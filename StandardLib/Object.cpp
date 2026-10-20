@@ -1434,9 +1434,7 @@ void CObject::GetStackFroms(CArrayStackPointerE32* papcFroms)
 //////////////////////////////////////////////////////////////////////////
 void CObject::CopyFields(CEmbeddedObject* pcOther)
 {
-	CObject* pcObject;
 
-	pcObject = (CObject*)pcOther;
 	CBaseObject::CopyFields(pcOther);
 }
 

@@ -118,7 +118,7 @@ bool CMarkupTextParser::ReadBool(CMarkupTag* pcIntTag, bool* pcBool, bool bLogEr
 	pcIntTag->GetText(&szBool);
 	cTextParser.Init(&szBool);
 	tResult = cTextParser.GetExactCaseInsensitiveCharacterSequence("true");
-	if (tResult = TRITRUE)
+	if (tResult == TRITRUE)
 	{
 		*pcBool = true;
 	}
@@ -131,20 +131,22 @@ bool CMarkupTextParser::ReadBool(CMarkupTag* pcIntTag, bool* pcBool, bool bLogEr
 		szBool.Kill();
 		return false;
 	}
-
-	tResult = cTextParser.GetExactCaseInsensitiveCharacterSequence("false");
-	if (tResult = TRITRUE)
-	{
-		*pcBool = false;
-	}
 	else
 	{
-		if (bLogErrors)
+		tResult = cTextParser.GetExactCaseInsensitiveCharacterSequence("false");
+		if (tResult == TRITRUE)
 		{
-			LogError(pcIntTag, "Tag body could not be parsed as a boolean.");
+			*pcBool = false;
 		}
-		szBool.Kill();
-		return false;
+		else
+		{
+			if (bLogErrors)
+			{
+				LogError(pcIntTag, "Tag body could not be parsed as a boolean.");
+			}
+			szBool.Kill();
+			return false;
+		}
 	}
 
 	cTextParser.Kill();

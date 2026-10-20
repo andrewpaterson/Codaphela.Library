@@ -511,7 +511,7 @@ bool IsIllegalFilename(const char* szName, uint16 uiLength)
 
 	uiCharIndex = FindCharIndex('.', szName, 0);
 
-	if (uiCharIndex == 0 || uiCharIndex == (uiLength - 1))
+	if (uiCharIndex == 0 || uiCharIndex == ((size)uiLength - 1))
 	{
 		return true;
 	}
@@ -534,7 +534,7 @@ bool IsIllegalFilename(const char* szName, uint16 uiLength)
 //////////////////////////////////////////////////////////////////////////
 void GenerateShortNameWithSuffix(uint16 uiNameSuffix, uint8* szShortName)
 {
-	char	szNameSuffix[6];
+	char	szNameSuffix[7];
 	size	i;
 	size	c;
 	size	uiSuffixLength;

@@ -148,8 +148,8 @@ bool CIndexedData::Flush(bool bClearDataCache)
 
 	if (meWriteThrough == IWT_No)
 	{
-		bRresult &= mcData.Flush(bClearDataCache);
-		bRresult = mcIndices.Flush();
+		bRresult = mcData.Flush(bClearDataCache);
+		bRresult &= mcIndices.Flush();
 		return bRresult;
 	}
 	else if (meWriteThrough == IWT_Yes)

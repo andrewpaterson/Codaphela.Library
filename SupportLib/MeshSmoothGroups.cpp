@@ -165,7 +165,6 @@ void CMeshSmoothGroups::GenerateSmoothingFromAngles(CMeshEditor* pcMeshEditor)
 {
 	size			i;
 	size			iNumPolygons;
-	CMeshPolygon*	pcPolygon;
 	CArrayFloat32Vec3	asNormals;
 	CArrayInt		aiAdjPolys;
 	SFloat32Vec3*		psThisNormal;
@@ -186,7 +185,6 @@ void CMeshSmoothGroups::GenerateSmoothingFromAngles(CMeshEditor* pcMeshEditor)
 	for (i = 0; i < iNumPolygons; i++)
 	{
 		psThisNormal = asNormals.Get(i);
-		pcPolygon = pcMeshEditor->mcPolygons.Get(i);
 		aiAdjPolys.Init();
 		pcMeshEditor->mcPolygons.GetAdjacentPolygons(pcMeshEditor->mpcMesh->GetConnectivity(), i, &aiAdjPolys);
 
@@ -224,7 +222,6 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 	size				iNumNormals;
 	CMeshCorner*		psCorners;
 	CMeshFace*			psFaces;
-	CMeshFace*			psFace;
 	int					iPosition;
 	bool				bSmoothingOverlap;
 	int*				piSmoothing;
@@ -327,14 +324,13 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 			cNormal.Init(0, 0, 0);
 
 			//Step over every face at this vertex
-			for (j = 0; j < (int)psCorners[i].aiFace.NumElements(); j++)
+			for (j = 0; j < psCorners[i].aiFace.NumElements(); j++)
 			{
 				iSmoothing = piSmoothing[aiFaceRef[j]];
 
 				//If smoothing group on this normal overlaps smoothing group on face
 				if (iSmoothing & dwSmooth[k])
 				{
-					psFace = &psFaces[aiFaceRef[j]];
 					psFaceNormal = pcNormals->mcFaces.Get(aiFaceRef[j]);
 
 					pcNormal = pcNormals->mcNormals.Get(psFaceNormal->iFaceNormal);
@@ -363,7 +359,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 					for (l = 0; l < 3; l++)
 					{
 						iPosition = psFaces[aiFaceRef[j]].asCorner[l];
-						if (i == iPosition)
+						if ((int)i == iPosition)
 						{
 							psFaceNormal = pcNormals->mcFaces.Get(aiFaceRef[j]);
 							psFaceNormal->aiCornerNormals[l] = iNewNormalIndex;
@@ -381,7 +377,6 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 
 			if (iSmoothing == 0)
 			{
-				psFace = &psFaces[aiFaceRef[j]];
 				psFaceNormal = pcNormals->mcFaces.Get(aiFaceRef[j]);
 				if (psFaceNormal->iFaceNormal == -1)
 				{

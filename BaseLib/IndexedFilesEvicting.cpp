@@ -175,11 +175,9 @@ bool CIndexedFilesEvicting::IsFlushed(void)
 {
 	void*						pvData;
 	SIndexedCacheDescriptor*	psDescriptor;
-	bool						bAnyFailed;
 
 	if (mbCaching)
 	{
-		bAnyFailed = false;
 		pvData = mcDataCache.StartIteration();
 		while (pvData)
 		{

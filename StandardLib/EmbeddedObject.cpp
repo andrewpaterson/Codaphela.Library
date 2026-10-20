@@ -1174,9 +1174,7 @@ bool CEmbeddedObject::FailNotExpectedToBeEmbedded(char* szMethod)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::FailCantInitFreedObject(char* szMethod)
 {
-	CBaseObject* pcContainer;
 
-	pcContainer = GetEmbeddingContainer();
 	return gcLogger.Error2(szMethod, " Cannot be called on a freed object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);
 }
 
@@ -1187,9 +1185,7 @@ bool CEmbeddedObject::FailCantInitFreedObject(char* szMethod)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::FailExpectedToBeInitialised(char* szMethod)
 {
-	CBaseObject*					pcContainer;
 
-	pcContainer = GetEmbeddingContainer();
 	return gcLogger.Error2(szMethod, " Cannot be called on un-initialised object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);
 }
 
@@ -1200,9 +1196,7 @@ bool CEmbeddedObject::FailExpectedToBeInitialised(char* szMethod)
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::FailExpectedToNotBeInitialised(char* szMethod)
 {
-	CBaseObject* pcContainer;
 
-	pcContainer = GetEmbeddingContainer();
 	return gcLogger.Error2(szMethod, " Cannot be called on already initialised object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);
 }
 

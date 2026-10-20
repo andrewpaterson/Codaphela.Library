@@ -164,7 +164,7 @@ void CArrayIntAndPointer::Remove(void* pv)
 	size	iIndex;
 
 	iIndex = FindWithKey((SIntAndPointer*)pv, 0, sizeof(void*));
-	if (iIndex != -1)
+	if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		RemoveAt(iIndex);
 	}

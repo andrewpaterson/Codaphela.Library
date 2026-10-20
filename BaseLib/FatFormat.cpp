@@ -106,7 +106,7 @@ uint8 FatCalculateClusterSize(uint8 fs_type, uint32 uiTotalSectors, char forced_
 	switch (fs_type)
 	{
 	case FAT_FS_TYPE_FAT12:
-		for (i = 0; i < forced_fs_type ? 7 : 3; i++)
+		for (i = 0; i < (forced_fs_type ? 7 : 3); i++)
 		{
 			if (gasFatDiskSizeTableFat12[i].DiskSize >= uiTotalSectors)
 			{
@@ -116,7 +116,7 @@ uint8 FatCalculateClusterSize(uint8 fs_type, uint32 uiTotalSectors, char forced_
 		break;
 
 	case FAT_FS_TYPE_FAT16:
-		for (i = 0; i < forced_fs_type ? 8 : 5; i++)
+		for (i = 0; i < (forced_fs_type ? 8 : 5); i++)
 		{
 			if (gasFatDiskSizeTableFat16[i].DiskSize >= uiTotalSectors)
 			{
@@ -193,6 +193,8 @@ void CalcuateFatTableSizeInSectorsAndNumberOfClusters(uint32* puiNoOfClusters, u
 				*puiFatTableSizeInSectors = (((*puiNoOfClusters + 2) * 4) + uiBytesPerSector - 1) / uiBytesPerSector;
 				break;
 			}
+			default:
+				break;
 		}
 
 		// if the FAT table fits then we're done
@@ -355,6 +357,8 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 			}
 			break;
 		}
+		default:
+			break;
 	}
 
 	root_cluster = 3;
@@ -374,6 +378,8 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 
 		case FAT_FS_TYPE_FAT32: 
 			root_entry_offset = root_cluster * ((uint32)4); 
+			break;
+		default:
 			break;
 	}
 

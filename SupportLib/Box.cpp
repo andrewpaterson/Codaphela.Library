@@ -464,14 +464,10 @@ void CBox::Find8Box(int* piLongCount, int* piMiddleCount, int* piShortCount)
 //////////////////////////////////////////////////////////////////////////
 float32 CBox::PrivateVolumeOfCubesContaining(float32 ix, float32 iy, float32 iz)
 {
-	float32 fRelativeMiddle;
-	float32 fRelativeLong;
 	float32 fMinY;
 	float32 fMinX;
 	float32 fMinZ;
 
-	fRelativeLong = mfLongLength / mfShortLength;
-	fRelativeMiddle = mfMiddleLength / mfShortLength;
 
 	
 	fMinX = mfLongLength/ix;

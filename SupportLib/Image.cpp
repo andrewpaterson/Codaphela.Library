@@ -1168,8 +1168,6 @@ EColourOrder CImage::GetColourOrder(void)
 	size					uiNumChannels;
 	size					uiChannelIndex;
 	CChannel*				pcChannel;
-	int						iOpacity;
-	int						iIgnored;
 	int						iRed;
 	int						iGreen;
 	int						iBlue;
@@ -1177,8 +1175,6 @@ EColourOrder CImage::GetColourOrder(void)
 	int						iGreenBlue;
 	int						iBlueRed;
 
-	iOpacity = -1;
-	iIgnored = -1;
 	iRed = -1;
 	iGreen = -1;
 	iBlue = -1;

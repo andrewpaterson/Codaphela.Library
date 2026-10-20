@@ -16,10 +16,8 @@ template<class Class>
 CClass* CPrimitiveClasses::AddClassWithConstructorAndIO(EPrimitiveType eFieldType)
 {
 	Class			c;
-	const char*		szClassName;
 	CClass*			pcClass;
 
-	szClassName = c.ClassName();
 	pcClass = AddClass<Class>(eFieldType);
 
 	mpcClasses->AddConstructorAndIO<Class>();

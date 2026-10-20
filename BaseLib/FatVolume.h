@@ -193,5 +193,5 @@ protected:
 };
 
 
-#endif __FAT_VOLUME_H__
+#endif // __FAT_VOLUME_H__
 

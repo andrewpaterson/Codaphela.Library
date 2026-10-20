@@ -363,7 +363,7 @@ char* IntToString(char* szDest, size iDestLength, int32 iValue, uint16 iBase)
 	bNegative = iValue < 0;
 	if (bNegative)
 	{
-		if (iValue == MIN_INT32)
+		if (iValue == (int32)MIN_INT32)
 		{
 			StrCpySafe(szDest, "-2147483648", iDestLength);
 			return szDest;

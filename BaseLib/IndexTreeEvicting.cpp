@@ -91,12 +91,11 @@ void CIndexTreeEvicting::Kill(void)
 bool CIndexTreeEvicting::Get(uint8* pvKey, size iKeySize, void* pvData, size* piDataSize, size uiMaxDataSize)
 {
 	bool	bFound;
-	size	iEvicted;
 
 	bFound = mcIndexTree.Get(pvKey, iKeySize, pvData, piDataSize, uiMaxDataSize);
 	if (bFound)
 	{
-		iEvicted = PotentiallyEvict(pvKey, iKeySize);
+		PotentiallyEvict(pvKey, iKeySize);
 	}
 	return bFound;
 }
@@ -122,10 +121,9 @@ bool CIndexTreeEvicting::GetWithoutEviction(uint8* pvKey, size iKeySize, void* p
 bool CIndexTreeEvicting::Put(uint8* pvKey, size iKeySize, const void* pvData, size iDataSize)
 {
 	bool	bResult;
-	size	iEvicted;
 
 	bResult = mcIndexTree.Put(pvKey, iKeySize, pvData, iDataSize);
-	iEvicted = PotentiallyEvict(pvKey, iKeySize);
+	PotentiallyEvict(pvKey, iKeySize);
 	return bResult;
 }
 
@@ -150,12 +148,11 @@ bool CIndexTreeEvicting::PutWithoutEviction(uint8* pvKey, size iKeySize, void* p
 bool CIndexTreeEvicting::Remove(uint8* pvKey, size iKeySize)
 {
 	bool	bFound;
-	size		iEvicted;
 
 	bFound = mcIndexTree.Remove(pvKey, iKeySize);
 	if (bFound)
 	{
-		iEvicted = PotentiallyEvict(pvKey, iKeySize);
+		PotentiallyEvict(pvKey, iKeySize);
 	}
 	return bFound;
 }
@@ -168,12 +165,11 @@ bool CIndexTreeEvicting::Remove(uint8* pvKey, size iKeySize)
 bool CIndexTreeEvicting::HasKey(uint8* pvKey, size iKeySize)
 {
 	bool	bFound;
-	bool	bAnyEvicted;
 
 	bFound = mcIndexTree.HasKey(pvKey, iKeySize);
 	if (bFound)
 	{
-		bAnyEvicted = PotentiallyEvict(pvKey, iKeySize);
+		PotentiallyEvict(pvKey, iKeySize);
 	}
 	return bFound;
 }
@@ -186,10 +182,9 @@ bool CIndexTreeEvicting::HasKey(uint8* pvKey, size iKeySize)
 size CIndexTreeEvicting::GetDataSize(uint8* pvKey, size iKeySize)
 {
 	size	uiSize;
-	size	iEvicted;
 
 	uiSize = mcIndexTree.GetDataSize(pvKey, iKeySize);
-	iEvicted = PotentiallyEvict(pvKey, iKeySize);
+	PotentiallyEvict(pvKey, iKeySize);
 	return uiSize;
 }
 
@@ -686,16 +681,15 @@ size CIndexTreeEvicting::GetRootFlags(void)
 bool CIndexTreeEvicting::StartIteration(SIndexTreeFileIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* piDataSize, size iMaxDataSize)
 {
 	bool	bResult;
-	size	iEvicted;
 
 	bResult = mcIndexTree.StartIteration(psIterator, pvKey, piKeySize, iMaxKeySize, pvData, piDataSize, iMaxDataSize);
 	if (bResult)
 	{
-		iEvicted = PotentiallyEvict(psIterator->pvKey, psIterator->iKeyLength);
+		PotentiallyEvict(psIterator->pvKey, psIterator->iKeyLength);
 	}
 	else
 	{
-		iEvicted = PotentiallyEvict(NULL, 0);
+		PotentiallyEvict(NULL, 0);
 	}
 	return bResult;
 }
@@ -709,16 +703,15 @@ bool CIndexTreeEvicting::Iterate(SIndexTreeFileIterator* psIterator, uint8* pvKe
 {
 
 	bool	bResult;
-	size		iEvicted;
 
 	bResult = mcIndexTree.Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, pvData, piDataSize, iMaxDataSize);
 	if (bResult)
 	{
-		iEvicted = PotentiallyEvict(psIterator->pvKey, psIterator->iKeyLength);
+		PotentiallyEvict(psIterator->pvKey, psIterator->iKeyLength);
 	}
 	else
 	{
-		iEvicted = PotentiallyEvict(NULL, 0);
+		PotentiallyEvict(NULL, 0);
 	}
 	return bResult;
 }

@@ -173,7 +173,7 @@ bool CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 	bValid = true;
 	pvData = psDest;
 
-	if (mpcAccessor->GetByteSize() == -1)
+	if (mpcAccessor->GetByteSize() == MAX_UINT32)
 	{
 		return false;
 	}

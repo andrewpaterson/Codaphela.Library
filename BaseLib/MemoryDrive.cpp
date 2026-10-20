@@ -152,7 +152,7 @@ bool CMemoryDrive::Write(uint64 uiSector, uint32 uiNumSectors, void* pvData)
 //////////////////////////////////////////////////////////////////////////
 bool CMemoryDrive::Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive)
 {
-	if ((uiStartSector < muiMaxSector) && (uiStopSectorInclusive < muiMaxSector) && (uiStartSector >= uiStartSector))
+	if ((uiStartSector < muiMaxSector) && (uiStopSectorInclusive < muiMaxSector) && (uiStopSectorInclusive >= uiStartSector))
 	{
 		memset(RemapSinglePointer(mpvData, (ptrdiff_t)(uiStartSector * muiSectorSize)), 0, (size)(((uiStopSectorInclusive - uiStartSector) + 1) * muiSectorSize));
 		return true;

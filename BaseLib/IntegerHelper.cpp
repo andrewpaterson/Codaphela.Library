@@ -46,7 +46,7 @@ uint32 TruncateLowBits(uint32 i)
 //////////////////////////////////////////////////////////////////////////
 bool IsPowerOfTwo(uint32 i)
 {
-	int32	iPow2;
+	uint32	iPow2;
 
 	iPow2 = TruncateLowBits(i);
 	if (iPow2 == i)
@@ -65,7 +65,7 @@ bool IsPowerOfTwo(uint32 i)
 //////////////////////////////////////////////////////////////////////////
 uint32 GetBestHighBit(uint32 i)
 {
-	int32 i2;
+	uint32 i2;
 
 	i2 = i;
 	i = TruncateLowBits(i);
@@ -628,7 +628,7 @@ size FindNextSetBit(void* pvArray, size iArraySize, size iStartBit)
 
 	if (iRemainder != 0)
 	{
-		iStop = iArraySize < 8 ? iStop = iArraySize : 8;
+		iStop = iArraySize < 8 ? iArraySize : 8;
 
 		c = ((uint8*)pvArray)[iStart];
 		ij = iStart * 8;
@@ -686,7 +686,7 @@ size FindNextClearBit(void* pvArray, size iArraySize, size iStartBit)
 
 	if (iRemainder != 0)
 	{
-		iStop = iArraySize < 8 ? iStop = iArraySize : 8;
+		iStop = iArraySize < 8 ? iArraySize : 8;
 
 		c = ((uint8*)pvArray)[iStart];
 		ij = iStart * 8;

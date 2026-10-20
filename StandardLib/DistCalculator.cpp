@@ -28,11 +28,7 @@ void CDistCalculator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int CompareBaseObjectPtr(const CBaseObject* pvArg1, const CBaseObject* pvArg2)
 {
-	CBaseObject* pcObject1;
-	CBaseObject* pcObject2;
 
-	pcObject1 = (CBaseObject*)pvArg1;
-	pcObject2 = (CBaseObject*)pvArg2;
 
 	
 	return 0;

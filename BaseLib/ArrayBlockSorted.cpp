@@ -297,7 +297,6 @@ void CArrayBlockSorted::InsertHoldingIntoSorted(size* paiInsertionIndices, size 
 {
 	void*	pvSortedArrayElementData;
 
-	size	offset;
 	size	indexIndex;
 	size	sortedIndex;
 	size	destIndex;
@@ -308,7 +307,6 @@ void CArrayBlockSorted::InsertHoldingIntoSorted(size* paiInsertionIndices, size 
 
 	pvSortedArrayElementData = maSortedArray.GetData();
 
-	offset = 0;
 	indexIndex = ARRAY_ELEMENT_NOT_FOUND;
 	sortedIndex = 0;
 	destIndex = 0;
@@ -353,7 +351,6 @@ void CArrayBlockSorted::InsertHoldingIntoSorted(size* paiInsertionIndices, size 
 //////////////////////////////////////////////////////////////////////////
 size* CArrayBlockSorted::CalculateInsertionIndices(CArrayBlock* paMergedHoldingArrays)
 {
-	bool	bFound;
 	size	iIndex;
 	void*	pv;
 	size	i;
@@ -363,7 +360,7 @@ size* CArrayBlockSorted::CalculateInsertionIndices(CArrayBlock* paMergedHoldingA
 	for (i = 0; i < iNumElements; i++)
 	{
 		pv = paMergedHoldingArrays->Get(i);
-		bFound = maSortedArray.FindInSorted(pv, mfCompare, &iIndex);
+		maSortedArray.FindInSorted(pv, mfCompare, &iIndex);
 		mapiInsertionIndices[i] = iIndex;
 	}
 
@@ -853,11 +850,9 @@ size CArrayBlockSorted::ByteSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlockSorted::Print(CChars* psz)
 {
-	size			uiSize;
 	CArrayBlock*	paHoldingArray;
 	size			i;
 
-	uiSize = 0;
 	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);

@@ -676,7 +676,6 @@ char* CIndexAccess::GetStringString(const char* pszKey, char* pszDest, size uiMa
 CChars CIndexAccess::GetStringString(const char* pszKey, size uiMaxDataSize)
 {
 	size	iKeySize;
-	bool	bResult;
 	CChars	sz;
 	uint32	uiDataSize;
 
@@ -692,7 +691,7 @@ CChars CIndexAccess::GetStringString(const char* pszKey, size uiMaxDataSize)
 	if (uiDataSize != 0)
 	{
 		sz.InitLength(uiDataSize);
-		bResult = Get((uint8*)pszKey, iKeySize, sz.Text(), NULL, uiMaxDataSize);
+		Get((uint8*)pszKey, iKeySize, sz.Text(), NULL, uiMaxDataSize);
 		return sz;
 	}
 	else

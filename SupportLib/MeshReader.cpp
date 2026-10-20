@@ -41,6 +41,8 @@ bool ReadMesh(Ptr<CMesh> pcMesh, char* szFilename, EMeshType eType)
 	{
 	case MT_OBJ:
 		return (LoadOBJ(pcMesh, szFilename));
+	default:
+		break;
 	}
 	return false;
 }

@@ -104,9 +104,7 @@ int CMeshConeEditor::ExpectedCornerChunkSize(void)
 void CMeshConeEditor::Apply(CMeshEditor* pcMeshEditor)
 {
 	SFloat32Vec3				sTopCenter;
-	int					iFirstTop;
 	int					iFirstRing;
-	int					iFirstBottom;
 	int					iLastRing;
 	int					iLastTop;
 	int					iLastBottom;
@@ -128,11 +126,9 @@ void CMeshConeEditor::Apply(CMeshEditor* pcMeshEditor)
 	
 	ClearConnectivity(pcMeshEditor);
 
-	iFirstTop = 0;
 	mcTopDisc.GenerateDisc(pcMeshEditor);
 	iLastTop = pcMeshEditor->NumCorners() - miWedgeSegments;
 
-	iFirstBottom = pcMeshEditor->NumCorners();
 	mcBottomDisc.GenerateDisc(pcMeshEditor);
 	iLastBottom = pcMeshEditor->NumCorners() - miWedgeSegments;
 

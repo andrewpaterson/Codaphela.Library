@@ -367,7 +367,7 @@ static void* ensureCapacity(struct timsort* ts, size minCapacity,
 		newSize |= newSize >> 16;
 #ifdef _WIN64
 			newSize |= newSize >> 32;
-#endif !_WIN64
+#endif // !_WIN64
 
 		newSize++;
 		newSize = MIN(newSize, ts->a_length >> 1);

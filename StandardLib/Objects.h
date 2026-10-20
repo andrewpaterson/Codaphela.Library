@@ -438,7 +438,7 @@ Ptr<SpecificClass> CObjects::Malloc(const char* szObjectName)
 template<class SpecificClass>
 Ptr<SpecificClass> CObjects::Get(OIndex oi)
 {
-	SpecificClass* pcObject = pcObject = (SpecificClass*)mcMemory.Get(oi);
+	SpecificClass* pcObject = (SpecificClass*)mcMemory.Get(oi);
 	return PointTo<SpecificClass>(pcObject);
 }
 

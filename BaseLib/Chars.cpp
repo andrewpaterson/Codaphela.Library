@@ -2817,20 +2817,17 @@ char* CChars::FindLineContaining(const char* szPosition, size* piLineNumber)
 	size	uiLen;
 	char*	szString;
 	char*	szStartOfLine;
-	char*	szPrevStartOfLine;
 	char*	szCurrent;
 
 	uiLen = Length();
 	iNumLineFeeds = 0;
 	szString = Text();
 	szStartOfLine = Text();
-	szPrevStartOfLine = szStartOfLine;
 	for (i = 0; i < uiLen; i++)
 	{
 		szCurrent = &szString[i];
 		if (*szCurrent == '\n')
 		{
-			szPrevStartOfLine = szStartOfLine;
 			szStartOfLine = &szString[i + 1];
 		}
 

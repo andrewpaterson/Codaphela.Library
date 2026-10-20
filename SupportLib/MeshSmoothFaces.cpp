@@ -87,7 +87,6 @@ void CMeshSmoothFaces::GenerateNormals(CMesh* pcMesh)
 	SFloat32Vec3				cNormal;  
 	CMeshCorner*		psCorners;
 	CMeshFace*			psFaces;
-	CMeshFace*			psFace;
 	int					iPosition;
 	int					iNewNormalIndex;
 	size				iNumCorners;
@@ -118,7 +117,6 @@ void CMeshSmoothFaces::GenerateNormals(CMesh* pcMesh)
 		//Step over every face at this vertex
 		for (j = 0; j < psCorners[i].aiFace.NumElements(); j++)
 		{
-			psFace = &psFaces[aiFaceRef[j]];
 			psFaceNormal = pcNormals->mcFaces.Get(aiFaceRef[j]);
 
 			pcNormal = pcNormals->mcNormals.Get(psFaceNormal->iFaceNormal);
@@ -141,7 +139,7 @@ void CMeshSmoothFaces::GenerateNormals(CMesh* pcMesh)
 			for (l = 0; l < 3; l++)
 			{
 				iPosition = psFaces[aiFaceRef[j]].asCorner[l];
-				if (i == iPosition)
+				if ((int)i == iPosition)
 				{
 					psFaceNormal = pcNormals->mcFaces.Get(aiFaceRef[j]);
 					psFaceNormal->aiCornerNormals[l] = iNewNormalIndex;

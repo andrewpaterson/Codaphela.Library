@@ -57,10 +57,8 @@ void* CDataMemoryAllocator::Malloc(size uiSize)
 void* CDataMemoryAllocator::Malloc(size uiSize, char(**pacDebugName)[4])
 {
 	void*					pv;
-	SDataMemoryAllocation*	psDataMemoryAllocation;
 
 	pv = mcMemory.Add(uiSize);
-	psDataMemoryAllocation = DATA_MEMORY_GET_ALLOCATION(pv);
 	return pv;
 }
 

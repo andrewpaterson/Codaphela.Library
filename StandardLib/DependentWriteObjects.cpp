@@ -113,11 +113,10 @@ void CDependentWriteObjects::Mark(CBaseObject* pcObject)
 {
 	CDependentWriteObject	cObject;
 	size					iIndex;
-	bool					bResult;
 	CDependentWriteObject*	pcDependent;
 
 	cObject.Init(pcObject, true);
-	bResult = mcObjects.FindInSorted(&cObject, &CompareDependentWriteObject, &iIndex);
+	mcObjects.FindInSorted(&cObject, &CompareDependentWriteObject, &iIndex);
 	pcDependent = mcObjects.Get(iIndex);
 	pcDependent->mbWritten = true;
 }

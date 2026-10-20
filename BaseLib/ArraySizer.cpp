@@ -120,9 +120,7 @@ size CalculateArraySize(size iNumElements, size iChunkeSize)
 {
 	size	iNumAllocations;
 	size	iNumLeftOvers;
-	size	iOldUsedElements;
 
-	iOldUsedElements = iNumElements;
 
 	iNumAllocations = iNumElements / iChunkeSize;
 	iNumLeftOvers = iNumElements % iChunkeSize;

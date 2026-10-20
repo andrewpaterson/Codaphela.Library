@@ -60,8 +60,6 @@ public:
 			SVec4<M, N>		operator * (M) const;
 			SVec4<M, N>		operator / (M) const;
 
-	friend	SVec4<M, N>		operator * (M, const SVec4<M, N>&);
-
 			bool			operator == (const SVec4<M, N>&) const;
 			bool			operator != (const SVec4<M, N>&) const;	
 

@@ -89,7 +89,7 @@ Ptr<CImage> CImageResampler::Modify(Ptr<CImage> pcImage)
 		GetPowerOf2Size(meStyle, pcImage->GetWidth(), pcImage->GetHeight(), &miWidth, &miHeight);
 	}
 
-	if ((pcImage->GetWidth() == miWidth) && (pcImage->GetHeight() == miHeight))
+	if ((pcImage->GetWidth() == (uint32)miWidth) && (pcImage->GetHeight() == (uint32)miHeight))
 	{
 		return pcImage;
 	}
@@ -119,9 +119,6 @@ Ptr<CImage> CImageResampler::ResampleTo(Ptr<CImage> pcSource)
 	float32				fSourceHeight;
 	float32				fScalex;
 	float32				fScaley;
-	float32				fHScalex;
-	float32				fHScaley;
-	float32				fTotalArea;
 	SImageColour*		psColour;
 	Ptr<CImage>			pcDest;
 
@@ -134,7 +131,7 @@ Ptr<CImage> CImageResampler::ResampleTo(Ptr<CImage> pcSource)
 	pcSourceAccessor = CImageAccessorCreator::Create(&pcSource, &pcSource);
 	pcDestAccessor = CImageAccessorCreator::Create(&pcDest, &pcDest);
 
-	if ((pcSource->GetWidth() == miWidth) && (pcSource->GetHeight() == miHeight))
+	if ((pcSource->GetWidth() == (uint32)miWidth) && (pcSource->GetHeight() == (uint32)miHeight))
 	{
 		gcLogger.Error2(__METHOD__, " Implement this.  Copy does not work.");
 		//pcDest->Copy(pcSource);
@@ -151,9 +148,6 @@ Ptr<CImage> CImageResampler::ResampleTo(Ptr<CImage> pcSource)
 
 		fScalex = fSourceWidth/fWidth;
 		fScaley = fSourceHeight/fHeight;
-		fHScalex = fScalex / 2.0f;
-		fHScaley = fScaley / 2.0f;
-		fTotalArea = fScalex*fScaley;  //In terms of the source.
 
 		if (meResample == IR_NearestNeighbour)
 		{

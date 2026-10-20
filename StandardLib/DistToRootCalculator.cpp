@@ -88,13 +88,11 @@ void CDistToRootCalculator::UpdateAttachedTosDistToRoot(CDistCalculatorParameter
 {
 	SDistToRoot*	psLowestDistToRoot;
 	CBaseObject*	pcObject;
-	int				iExpectedDist;
 
 	psLowestDistToRoot = pcParameters->GetLowestExpectedDist();
 	while (psLowestDistToRoot)
 	{
 		pcObject = psLowestDistToRoot->pcObject;
-		iExpectedDist = psLowestDistToRoot->iExpectedDist;
 
 		pcParameters->RemoveExpectedDist(psLowestDistToRoot);
 		pcObject->UpdateAttachedTosDistToRoot(pcParameters);

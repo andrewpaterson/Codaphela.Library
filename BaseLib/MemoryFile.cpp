@@ -286,7 +286,6 @@ size CMemoryFile::Write(const void* pvBuffer, size iSize, size iCount)
 			}
 		}
 
-		void* pvKak = RemapSinglePointer(mcArray.Get(miPos), uiAmountToCopy);
 		memcpy(mcArray.Get(miPos), pvBuffer, uiAmountToCopy);
 		miPos += uiAmountToCopy;
 

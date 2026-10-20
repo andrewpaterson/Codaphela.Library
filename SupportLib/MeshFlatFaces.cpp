@@ -84,9 +84,6 @@ void CMeshFlatFaces::GenerateNormals(CMesh* pcMesh)
 {
 	int					i;
 	SFloat32Vec3				cNormal;  
-	CMeshCorner*		psCorners;
-	CMeshFace*			psFaces;
-	CMeshFace*			psFace;
 	int					iNumFaces;
 	SMeshNormalFace*	psFaceNormal;
 	CMeshNormals*		pcNormals;
@@ -96,16 +93,12 @@ void CMeshFlatFaces::GenerateNormals(CMesh* pcMesh)
 		return;
 	}
 
-	psCorners = pcMesh->GetCorner(0);
-	psFaces = pcMesh->GetFace(0);
-
 	pcNormals = &pcMesh->mcNormals;
 
 	iNumFaces = pcMesh->NumFaces();
 
 	for (i = 0; i < iNumFaces; i++)
 	{
-		psFace = &psFaces[i];
 		psFaceNormal = pcNormals->mcFaces.Get(i);
 
 		psFaceNormal->aiCornerNormals[0] = psFaceNormal->iFaceNormal;

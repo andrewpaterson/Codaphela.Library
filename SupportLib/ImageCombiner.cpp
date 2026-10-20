@@ -405,13 +405,10 @@ SInt32Vec2 CImageCombiner::Pack(CArrayPackedRectangle* pacPackedRects)
 	SSetIterator		sIter;
 	Ptr<CImageCel>		pcCel;
 	SInt32Vec2				sTextureSize;
-	bool				bResult;
-	bool				bNonEmpty;
 	bool				bExists;
 
 	pcPacker = GetPacker();
 
-	bNonEmpty = false;
 	pcCel = mcSourceCels.StartIteration(&sIter, &bExists);
 	while (bExists)
 	{
@@ -419,8 +416,7 @@ SInt32Vec2 CImageCombiner::Pack(CArrayPackedRectangle* pacPackedRects)
 		{
 			if (!pcCel->GetSubImage()->IsImageEmpty())
 			{
-				bResult = pcPacker->AddRectangle(&pcCel);
-				bNonEmpty = true;
+				pcPacker->AddRectangle(&pcCel);
 			}
 		}
 

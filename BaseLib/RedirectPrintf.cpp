@@ -58,7 +58,6 @@ int FindPrintFParameters(const char* szUnformatted, char** paszParameters)
 	char*	aszParameters;
 	bool	bInUnformatted;
 	int		iLength;
-	char*	szCurrent;
 	bool	bAppendTerminator;
 
 	bInUnformatted = false;
@@ -129,7 +128,6 @@ int FindPrintFParameters(const char* szUnformatted, char** paszParameters)
 
 			aszParameters[iParameterLength] = 0x7c;
 			iParameterLength++;
-			szCurrent = &aszParameters[iParameterLength];
 			bInSpecifier = true;
 
 		}
@@ -145,7 +143,6 @@ int FindPrintFParameters(const char* szUnformatted, char** paszParameters)
 		{
 			aszParameters[iParameterLength] = 0x7d;
 			iParameterLength++;
-			szCurrent = &aszParameters[iParameterLength];
 			bInUnformatted = true;
 		}
 		aszParameters[iParameterLength] = c;

@@ -309,8 +309,6 @@ void CImageCel::Print(CChars* psz)
 	SImageCopy			sCopy;
 	uint				isx;
 	uint				isy;
-	uint				idx;
-	uint				idy;
 
 	CopyParam(&sCopy, 0, 0, mcSubImage.GetFullWidth(), mcSubImage.GetFullHeight());
 	if (!sCopy.bValid)
@@ -325,10 +323,8 @@ void CImageCel::Print(CChars* psz)
 
 	for (isy = sCopy.uiSourceY1; isy < sCopy.uiSourceY2; isy++)
 	{
-		idy = sCopy.uiDestY + isy - sCopy.uiSourceY1;
 		for (isx = sCopy.uiSourceX1; isx < sCopy.uiSourceX2; isx++)
 		{
-			idx = sCopy.uiDestX + isx - sCopy.uiSourceX1;
 
 			sRGB = 0;
 			pcAccessorRGB->Get(isx, isy, &sRGB);

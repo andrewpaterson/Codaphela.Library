@@ -561,9 +561,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForSmallerData(CIndexTreeN
 {
 	size					tNewNodeSize;
 	CIndexTreeNodeMemory*	pcOldNode;
-	size			uiOriginalSize;
 
-	uiOriginalSize = pcNode->GetDataSize();
 	pcNode->SetData(pvData, uiDataSize);
 
 	tNewNodeSize = pcNode->CalculateRequiredNodeSizeForCurrent();
@@ -1555,7 +1553,7 @@ void AppendIndexTreeMemoryNodeDescrition(CChars* psz, CIndexTreeNodeMemory* pcCu
 	bool	bHasChildren;
 	bool	bHasObject;
 
-	if (uIndexFromParent == -1)
+	if (uIndexFromParent == SIZE_MAX)
 	{
 		psz->Append("  root -> ");
 	}

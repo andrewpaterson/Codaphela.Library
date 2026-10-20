@@ -86,7 +86,6 @@ bool CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 	size						iRemainingAfterLast;
 	SMemoryCacheDescriptor*		psTail;
 	size						iDescriptorSize;
-	size						iOverlapping;
 
 	iDescriptorSize = mcMemoryList.GetDescriptorSize();
 	iCachedSize = iDescriptorSize + pcPreAllocationResult->muiSize;
@@ -98,7 +97,6 @@ bool CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 	iRemainingAfterLast = mcMemoryList.RemainingAfterTail();
 	if (!mcMemoryList.IsEmpty())
 	{
-		iOverlapping = 0;
 		if (iCachedSize <= iRemainingAfterLast)
 		{
 			psTail = mcMemoryList.GetLastDescriptor();
@@ -109,7 +107,7 @@ bool CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 			//Cycle back to the beginning of the cache.
 			psCacheBasedDescriptor = mcMemoryList.GetCache();
 		}
-		iOverlapping = mcMemoryList.FindOverlapping(psCacheBasedDescriptor, iCachedSize, &pcPreAllocationResult->mapEvictedCacheDescriptors);
+		mcMemoryList.FindOverlapping(psCacheBasedDescriptor, iCachedSize, &pcPreAllocationResult->mapEvictedCacheDescriptors);
 	}
 	else
 	{

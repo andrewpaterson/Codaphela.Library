@@ -709,7 +709,7 @@ size CLogFile::Read(void* pvDest, size iSize, size iCount)
 		}
 
 		uiWriteIndex = FindNextWriteCommand(uiWriteIndex+1);
-		while (uiWriteIndex != -1)
+		while (uiWriteIndex != ARRAY_ELEMENT_NOT_FOUND)
 		{
 			uiBytesRead = ReadNextTouchingWrites(uiWriteIndex, pvDest, iSize, iCount);
 			if (uiBytesRead != iCount)
@@ -765,7 +765,6 @@ size CLogFile::ReadFirstTouchingWrites(size uiWriteIndex, void* pvDest, size iSi
 	CArrayIntAndPointer	apvOverlapping;
 	bool			bAny;
 	bool			bHoles;
-	size			iBytesReadFromFile;
 	size			iByteSize;
 
 	iByteSize = iSize * iCount;
@@ -777,7 +776,7 @@ size CLogFile::ReadFirstTouchingWrites(size uiWriteIndex, void* pvDest, size iSi
 		{
 			//Holes past the end of the backing file read as zeros, as they do in a disk file.
 			memset(pvDest, 0, iByteSize);
-			iBytesReadFromFile = ReadFromBackingFile(pvDest, iSize, iCount);
+			ReadFromBackingFile(pvDest, iSize, iCount);
 		}
 
 		CopyWritesToRead(&apvOverlapping, iByteSize, pvDest);
@@ -878,12 +877,10 @@ size CLogFile::FindNextWriteCommand(size iIndex)
 {
 	size					i;
 	CLogFileCommand*		psCommand;
-	size					iNumWrites;
 	CLogFileCommandOpen*	psOpen;
 	bool					bFoundWriteOpen;
 	size					uiNumCommands;
 
-	iNumWrites = 0;
 	bFoundWriteOpen = false;
 	uiNumCommands = macCommands.NumElements();
 	for (i = iIndex; i < uiNumCommands; i++)

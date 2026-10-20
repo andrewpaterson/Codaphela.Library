@@ -369,11 +369,9 @@ void CFatInfoSectorCache::Dirty(SFatCache sSectorCache)
 bool CFatInfoSectorCache::Flush(void)
 {
 	CFatSectorCache*	pcCachedSector;
-	uint16				uiCount;
 	bool				bSuccess;
 
 	bSuccess = true;
-	uiCount = 0;
 	pcCachedSector = (CFatSectorCache*)mllcCachedSectors.GetHead();
 	while (pcCachedSector != NULL)
 	{

@@ -319,7 +319,7 @@ void CListBlock::Reverse(void)
 //////////////////////////////////////////////////////////////////////////
 bool CListBlock::Contains(void* pvData)
 {
-	if (GetIndex(pvData) != -1)
+	if (GetIndex(pvData) != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		return true;
 	}

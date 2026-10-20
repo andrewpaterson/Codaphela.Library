@@ -34,7 +34,7 @@ void SUInt32Vec2::Print(CChars* psx, uint32 iWholeNumbers)
 	CChars		szzz;
 	uint32			iWidth;
 
-	if (iWholeNumbers == -1)
+	if (iWholeNumbers == MAX_UINT32)
 	{
 		iWholeNumbers = WholeNumbers();
 		iWholeNumbers++;
