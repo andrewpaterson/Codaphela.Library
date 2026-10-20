@@ -448,6 +448,7 @@
     <ClInclude Include="Logger.h" />
     <ClInclude Include="FloatHelper.h" />
     <ClInclude Include="IntegerHelper.h" />
+    <ClInclude Include="FixedPoint.h" />
     <ClInclude Include="Numbers.h" />
     <ClInclude Include="PackedFloat.h" />
     <ClInclude Include="Number.h" />
@@ -870,6 +871,7 @@
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="FloatHelper.cpp" />
     <ClCompile Include="IntegerHelper.cpp" />
+    <ClCompile Include="FixedPoint.cpp" />
     <ClCompile Include="PackedFloat.cpp" />
     <ClCompile Include="Number.cpp" />
     <ClCompile Include="NumberControl.cpp" />

@@ -22,6 +22,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include "BaseLib/NaiveFile.h"
 #include "BaseLib/Logger.h"
+#include "BaseLib/FixedPoint.h"
 #include "TrueTypeFont.h"
 
 
@@ -48,7 +49,8 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //Composite glyphs that nest deeper than this are taken to be corrupt (or recursive).
 #define TRUE_TYPE_MAX_COMPOSITE_DEPTH	8
 
-#define TRUE_TYPE_F2DOT14				16384.0f
+//Composite glyph scales are 2.14 fixed point; 1.0 is 16384.
+#define TRUE_TYPE_F2DOT14_ONE			16384
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1085,7 +1087,7 @@ bool CTrueTypeFont::ReadSimpleGlyph(size uiOffset, size uiLength, int iNumContou
 			iValue += iDelta16;
 		}
 		psPoint = pcOutline->GetPoint(uiFirstPoint + uiPoint);
-		psPoint->x = (float32)iValue;
+		psPoint->x = iValue;
 		psPoint->bOnCurve = (uiFlag & TRUE_TYPE_ON_CURVE) != 0;
 	}
 
@@ -1114,7 +1116,7 @@ bool CTrueTypeFont::ReadSimpleGlyph(size uiOffset, size uiLength, int iNumContou
 			iValue += iDelta16;
 		}
 		psPoint = pcOutline->GetPoint(uiFirstPoint + uiPoint);
-		psPoint->y = (float32)iValue;
+		psPoint->y = iValue;
 	}
 
 	free(puiFlags);
@@ -1143,14 +1145,14 @@ bool CTrueTypeFont::ReadCompositeGlyph(size uiOffset, size uiLength, CTrueTypeOu
 	uint8				uiByte1;
 	uint8				uiByte2;
 	int16				iScale;
-	float32				fXX;
-	float32				fXY;
-	float32				fYX;
-	float32				fYY;
-	float32				fDX;
-	float32				fDY;
-	float32				x;
-	float32				y;
+	int32				iXX;
+	int32				iXY;
+	int32				iYX;
+	int32				iYY;
+	int32				iDX;
+	int32				iDY;
+	int32				x;
+	int32				y;
 	CTrueTypeOutline	cComponent;
 	size				i;
 	STrueTypePoint*		psSource;
@@ -1211,11 +1213,11 @@ bool CTrueTypeFont::ReadCompositeGlyph(size uiOffset, size uiLength, CTrueTypeOu
 			}
 		}
 
-		//x' = fXX * x + fYX * y,  y' = fXY * x + fYY * y.
-		fXX = 1.0f;
-		fXY = 0.0f;
-		fYX = 0.0f;
-		fYY = 1.0f;
+		//x' = iXX * x + iYX * y,  y' = iXY * x + iYY * y in 2.14 fixed point.
+		iXX = TRUE_TYPE_F2DOT14_ONE;
+		iXY = 0;
+		iYX = 0;
+		iYY = TRUE_TYPE_F2DOT14_ONE;
 		if (uiFlags & TRUE_TYPE_HAVE_A_SCALE)
 		{
 			if ((uiPos + 2 > uiEnd) || !ReadInt16(uiPos, &iScale))
@@ -1224,8 +1226,8 @@ bool CTrueTypeFont::ReadCompositeGlyph(size uiOffset, size uiLength, CTrueTypeOu
 				return false;
 			}
 			uiPos += 2;
-			fXX = iScale / TRUE_TYPE_F2DOT14;
-			fYY = fXX;
+			iXX = iScale;
+			iYY = iScale;
 		}
 		else if (uiFlags & TRUE_TYPE_HAVE_AN_X_AND_Y_SCALE)
 		{
@@ -1235,8 +1237,8 @@ bool CTrueTypeFont::ReadCompositeGlyph(size uiOffset, size uiLength, CTrueTypeOu
 				return false;
 			}
 			uiPos += 4;
-			fXX = iWord1 / TRUE_TYPE_F2DOT14;
-			fYY = iWord2 / TRUE_TYPE_F2DOT14;
+			iXX = iWord1;
+			iYY = iWord2;
 		}
 		else if (uiFlags & TRUE_TYPE_HAVE_A_TWO_BY_TWO)
 		{
@@ -1246,13 +1248,13 @@ bool CTrueTypeFont::ReadCompositeGlyph(size uiOffset, size uiLength, CTrueTypeOu
 				return false;
 			}
 			ReadInt16(uiPos, &iScale);
-			fXX = iScale / TRUE_TYPE_F2DOT14;
+			iXX = iScale;
 			ReadInt16(uiPos + 2, &iScale);
-			fXY = iScale / TRUE_TYPE_F2DOT14;
+			iXY = iScale;
 			ReadInt16(uiPos + 4, &iScale);
-			fYX = iScale / TRUE_TYPE_F2DOT14;
+			iYX = iScale;
 			ReadInt16(uiPos + 6, &iScale);
-			fYY = iScale / TRUE_TYPE_F2DOT14;
+			iYY = iScale;
 			uiPos += 8;
 		}
 
@@ -1270,20 +1272,20 @@ bool CTrueTypeFont::ReadCompositeGlyph(size uiOffset, size uiLength, CTrueTypeOu
 			psSource = cComponent.GetPoint(i);
 			x = psSource->x;
 			y = psSource->y;
-			psSource->x = fXX * x + fYX * y;
-			psSource->y = fXY * x + fYY * y;
+			psSource->x = (int32)DivideRound((int64)iXX * x + (int64)iYX * y, TRUE_TYPE_F2DOT14_ONE);
+			psSource->y = (int32)DivideRound((int64)iXY * x + (int64)iYY * y, TRUE_TYPE_F2DOT14_ONE);
 		}
 
 		if (uiFlags & TRUE_TYPE_ARGS_ARE_XY_VALUES)
 		{
-			fDX = (float32)iArg1;
-			fDY = (float32)iArg2;
+			iDX = iArg1;
+			iDY = iArg2;
 			if ((uiFlags & TRUE_TYPE_SCALED_OFFSET) && !(uiFlags & TRUE_TYPE_UNSCALED_OFFSET))
 			{
-				x = fDX;
-				y = fDY;
-				fDX = fXX * x + fYX * y;
-				fDY = fXY * x + fYY * y;
+				x = iDX;
+				y = iDY;
+				iDX = (int32)DivideRound((int64)iXX * x + (int64)iYX * y, TRUE_TYPE_F2DOT14_ONE);
+				iDY = (int32)DivideRound((int64)iXY * x + (int64)iYY * y, TRUE_TYPE_F2DOT14_ONE);
 			}
 		}
 		else
@@ -1295,8 +1297,8 @@ bool CTrueTypeFont::ReadCompositeGlyph(size uiOffset, size uiLength, CTrueTypeOu
 			}
 			psDest = pcOutline->GetPoint(uiFirstPoint + iArg1);
 			psSource = cComponent.GetPoint(iArg2);
-			fDX = psDest->x - psSource->x;
-			fDY = psDest->y - psSource->y;
+			iDX = psDest->x - psSource->x;
+			iDY = psDest->y - psSource->y;
 		}
 
 		//Append the component's contours after the glyph's.
@@ -1308,8 +1310,8 @@ bool CTrueTypeFont::ReadCompositeGlyph(size uiOffset, size uiLength, CTrueTypeOu
 		{
 			psSource = cComponent.GetPoint(i);
 			psDest = pcOutline->macPoints.Add();
-			psDest->x = psSource->x + fDX;
-			psDest->y = psSource->y + fDY;
+			psDest->x = psSource->x + iDX;
+			psDest->y = psSource->y + iDY;
 			psDest->bOnCurve = psSource->bOnCurve;
 		}
 	}

@@ -993,6 +993,9 @@
     <ClInclude Include="IntegerHelper.h">
       <Filter>Source\Math\Primitive</Filter>
     </ClInclude>
+    <ClInclude Include="FixedPoint.h">
+      <Filter>Source\Math\Primitive</Filter>
+    </ClInclude>
     <ClInclude Include="DataMemory.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
@@ -2298,6 +2301,9 @@
       <Filter>Source\Math\Primitive</Filter>
     </ClCompile>
     <ClCompile Include="IntegerHelper.cpp">
+      <Filter>Source\Math\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="FixedPoint.cpp">
       <Filter>Source\Math\Primitive</Filter>
     </ClCompile>
     <ClCompile Include="DataMemory.cpp">

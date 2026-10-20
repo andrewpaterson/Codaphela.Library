@@ -20,35 +20,39 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 #include "BaseLib/UTF8.h"
 #include "BaseLib/ArraySize.h"
+#include "BaseLib/FixedPoint.h"
+#include "BaseLib/IntegerHelper.h"
 #include "ImageAccessorCreator.h"
 #include "TrueTypeRasteriser.h"
 
 
-//Curves are split into more lines the further their control point is from the chord.
-#define TRUE_TYPE_FLATNESS_TOLERANCE	3.0f
-#define TRUE_TYPE_FLAT_DEVIATION		0.333f
+//A pixel completely covered accumulates cover * 2 * TRUE_TYPE_SUBPIXELS - area of this.
+#define TRUE_TYPE_FULL_COVERAGE			(2 * TRUE_TYPE_SUBPIXELS * TRUE_TYPE_SUBPIXELS)
 
-//The accumulation buffer has two spare columns on the right so lines on the right edge don't touch the next row.
-#define TRUE_TYPE_COVERAGE_PADDING		2
+//Curves whose control point is less than this far (squared, in subpixels) from straight are drawn as one line;
+//one third of a pixel squared.
+#define TRUE_TYPE_FLAT_DEVIATION		(TRUE_TYPE_SUBPIXELS * TRUE_TYPE_SUBPIXELS / 3)
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// fPixelSize is the height of one em in pixels.
+// fPixelSize is the height of one em in pixels.  It is rounded to 1/256
+// of a pixel.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTrueTypeRasteriser::Init(CTrueTypeFont* pcFont, float32 fPixelSize)
 {
 	mpcFont = pcFont;
-	mfScale = fPixelSize / (float32)pcFont->GetUnitsPerEm();
+	miPixelSize = FixedFromFloat(fPixelSize, TRUE_TYPE_SUBPIXEL_BITS);
+	miUnitsPerEm = pcFont->GetUnitsPerEm();
 	mcOutline.Init();
-	mpfCoverage = NULL;
+	mpiCover = NULL;
+	mpiArea = NULL;
+	mpuiCoverage = NULL;
 	miWidth = 0;
 	miHeight = 0;
-	miStride = 0;
 }
 
 
@@ -71,7 +75,18 @@ void CTrueTypeRasteriser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 float32 CTrueTypeRasteriser::GetScale(void)
 {
-	return mfScale;
+	return FixedToFloat(miPixelSize, TRUE_TYPE_SUBPIXEL_BITS) / (float32)miUnitsPerEm;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Font units to subpixels, rounded.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CTrueTypeRasteriser::Scale(int32 iFontUnits)
+{
+	return (int32)DivideRound((int64)iFontUnits * miPixelSize, miUnitsPerEm);
 }
 
 
@@ -82,7 +97,7 @@ float32 CTrueTypeRasteriser::GetScale(void)
 //////////////////////////////////////////////////////////////////////////
 float32 CTrueTypeRasteriser::GetAscent(void)
 {
-	return mpcFont->GetAscender() * mfScale;
+	return FixedToFloat(GetAscentSubpixels(), TRUE_TYPE_SUBPIXEL_BITS);
 }
 
 
@@ -93,7 +108,7 @@ float32 CTrueTypeRasteriser::GetAscent(void)
 //////////////////////////////////////////////////////////////////////////
 float32 CTrueTypeRasteriser::GetDescent(void)
 {
-	return -mpcFont->GetDescender() * mfScale;
+	return FixedToFloat(GetDescentSubpixels(), TRUE_TYPE_SUBPIXEL_BITS);
 }
 
 
@@ -104,7 +119,7 @@ float32 CTrueTypeRasteriser::GetDescent(void)
 //////////////////////////////////////////////////////////////////////////
 float32 CTrueTypeRasteriser::GetLineHeight(void)
 {
-	return (mpcFont->GetAscender() - mpcFont->GetDescender() + mpcFont->GetLineGap()) * mfScale;
+	return FixedToFloat(Scale(mpcFont->GetAscender() - mpcFont->GetDescender() + mpcFont->GetLineGap()), TRUE_TYPE_SUBPIXEL_BITS);
 }
 
 
@@ -114,13 +129,7 @@ float32 CTrueTypeRasteriser::GetLineHeight(void)
 //////////////////////////////////////////////////////////////////////////
 float32 CTrueTypeRasteriser::GetAdvance(int iGlyph)
 {
-	STrueTypeGlyphMetrics	sMetrics;
-
-	if (!mpcFont->GetGlyphMetrics(iGlyph, &sMetrics))
-	{
-		return 0.0f;
-	}
-	return sMetrics.iAdvanceWidth * mfScale;
+	return FixedToFloat(GetAdvanceSubpixels(iGlyph), TRUE_TYPE_SUBPIXEL_BITS);
 }
 
 
@@ -131,11 +140,58 @@ float32 CTrueTypeRasteriser::GetAdvance(int iGlyph)
 //////////////////////////////////////////////////////////////////////////
 float32 CTrueTypeRasteriser::GetTextWidth(char* szUTF8)
 {
+	return FixedToFloat(GetTextWidthSubpixels(szUTF8), TRUE_TYPE_SUBPIXEL_BITS);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CTrueTypeRasteriser::GetAscentSubpixels(void)
+{
+	return Scale(mpcFont->GetAscender());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Positive.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CTrueTypeRasteriser::GetDescentSubpixels(void)
+{
+	return Scale(-mpcFont->GetDescender());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CTrueTypeRasteriser::GetAdvanceSubpixels(int iGlyph)
+{
+	STrueTypeGlyphMetrics	sMetrics;
+
+	if (!mpcFont->GetGlyphMetrics(iGlyph, &sMetrics))
+	{
+		return 0;
+	}
+	return Scale(sMetrics.iAdvanceWidth);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CTrueTypeRasteriser::GetTextWidthSubpixels(char* szUTF8)
+{
 	CUTF8	cUTF8;
 	uint32	uiCodePoint;
-	float32	fWidth;
+	int32	iWidth;
 
-	fWidth = 0.0f;
+	iWidth = 0;
 	cUTF8.Init(szUTF8);
 	for (;;)
 	{
@@ -144,28 +200,29 @@ float32 CTrueTypeRasteriser::GetTextWidth(char* szUTF8)
 		{
 			break;
 		}
-		fWidth += GetAdvance(mpcFont->GetGlyphIndex(uiCodePoint));
+		iWidth += GetAdvanceSubpixels(mpcFont->GetGlyphIndex(uiCodePoint));
 	}
 	cUTF8.Kill();
-	return fWidth;
+	return iWidth;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The pixels a glyph covers with its pen origin at fX on the baseline.
-// Returns false for glyphs without an outline (and corrupt glyphs).
+// The pixels a glyph covers with its pen origin at iPenX (subpixels) on
+// the baseline.  Returns false for glyphs without an outline (and
+// corrupt glyphs).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeRasteriser::GetGlyphBounds(int iGlyph, float32 fX, STrueTypePixelBounds* psBounds)
+bool CTrueTypeRasteriser::GetGlyphBounds(int iGlyph, int32 iPenX, STrueTypePixelBounds* psBounds)
 {
 	size			i;
 	size			uiNumPoints;
 	STrueTypePoint*	psPoint;
-	float32			fXMin;
-	float32			fYMin;
-	float32			fXMax;
-	float32			fYMax;
+	int32			iXMin;
+	int32			iYMin;
+	int32			iXMax;
+	int32			iYMax;
 
 	mcOutline.Clear();
 	if (!mpcFont->GetGlyphOutline(iGlyph, &mcOutline))
@@ -180,35 +237,36 @@ bool CTrueTypeRasteriser::GetGlyphBounds(int iGlyph, float32 fX, STrueTypePixelB
 
 	//Control points bound their curves.
 	psPoint = mcOutline.GetPoint(0);
-	fXMin = psPoint->x;
-	fYMin = psPoint->y;
-	fXMax = psPoint->x;
-	fYMax = psPoint->y;
+	iXMin = psPoint->x;
+	iYMin = psPoint->y;
+	iXMax = psPoint->x;
+	iYMax = psPoint->y;
 	for (i = 1; i < uiNumPoints; i++)
 	{
 		psPoint = mcOutline.GetPoint(i);
-		if (psPoint->x < fXMin)
+		if (psPoint->x < iXMin)
 		{
-			fXMin = psPoint->x;
+			iXMin = psPoint->x;
 		}
-		if (psPoint->x > fXMax)
+		if (psPoint->x > iXMax)
 		{
-			fXMax = psPoint->x;
+			iXMax = psPoint->x;
 		}
-		if (psPoint->y < fYMin)
+		if (psPoint->y < iYMin)
 		{
-			fYMin = psPoint->y;
+			iYMin = psPoint->y;
 		}
-		if (psPoint->y > fYMax)
+		if (psPoint->y > iYMax)
 		{
-			fYMax = psPoint->y;
+			iYMax = psPoint->y;
 		}
 	}
 
-	psBounds->iLeft = (int)floorf(fX + fXMin * mfScale);
-	psBounds->iRight = (int)ceilf(fX + fXMax * mfScale);
-	psBounds->iTop = (int)floorf(-fYMax * mfScale);
-	psBounds->iBottom = (int)ceilf(-fYMin * mfScale);
+	//Scaling keeps the order of points, so the scaled extremes are the extremes.
+	psBounds->iLeft = FixedFloor(iPenX + Scale(iXMin), TRUE_TYPE_SUBPIXEL_BITS);
+	psBounds->iRight = FixedCeiling(iPenX + Scale(iXMax), TRUE_TYPE_SUBPIXEL_BITS);
+	psBounds->iTop = FixedFloor(-Scale(iYMax), TRUE_TYPE_SUBPIXEL_BITS);
+	psBounds->iBottom = FixedCeiling(-Scale(iYMin), TRUE_TYPE_SUBPIXEL_BITS);
 	return (psBounds->iRight > psBounds->iLeft) && (psBounds->iBottom > psBounds->iTop);
 }
 
@@ -224,12 +282,12 @@ bool CTrueTypeRasteriser::GetTextBounds(char* szUTF8, STrueTypePixelBounds* psBo
 	CUTF8					cUTF8;
 	uint32					uiCodePoint;
 	int						iGlyph;
-	float32					fX;
+	int32					iX;
 	STrueTypePixelBounds	sGlyph;
 	bool					bAny;
 
 	bAny = false;
-	fX = 0.0f;
+	iX = 0;
 	cUTF8.Init(szUTF8);
 	for (;;)
 	{
@@ -240,7 +298,7 @@ bool CTrueTypeRasteriser::GetTextBounds(char* szUTF8, STrueTypePixelBounds* psBo
 		}
 
 		iGlyph = mpcFont->GetGlyphIndex(uiCodePoint);
-		if (GetGlyphBounds(iGlyph, fX, &sGlyph))
+		if (GetGlyphBounds(iGlyph, iX, &sGlyph))
 		{
 			if (!bAny)
 			{
@@ -255,7 +313,7 @@ bool CTrueTypeRasteriser::GetTextBounds(char* szUTF8, STrueTypePixelBounds* psBo
 				psBounds->iBottom = (sGlyph.iBottom > psBounds->iBottom) ? sGlyph.iBottom : psBounds->iBottom;
 			}
 		}
-		fX += GetAdvance(iGlyph);
+		iX += GetAdvanceSubpixels(iGlyph);
 	}
 	cUTF8.Kill();
 	return bAny;
@@ -277,7 +335,7 @@ Ptr<CImage> CTrueTypeRasteriser::RasteriseGlyph(int iGlyph, int* piLeft, int* pi
 
 	*piLeft = 0;
 	*piTop = 0;
-	if (!GetGlyphBounds(iGlyph, 0.0f, &sBounds))
+	if (!GetGlyphBounds(iGlyph, 0, &sBounds))
 	{
 		return NULL;
 	}
@@ -286,7 +344,7 @@ Ptr<CImage> CTrueTypeRasteriser::RasteriseGlyph(int iGlyph, int* piLeft, int* pi
 		return NULL;
 	}
 
-	AddGlyph(iGlyph, (float32)-sBounds.iLeft, (float32)-sBounds.iTop);
+	AddGlyph(iGlyph, FixedFromInt(-sBounds.iLeft, TRUE_TYPE_SUBPIXEL_BITS), FixedFromInt(-sBounds.iTop, TRUE_TYPE_SUBPIXEL_BITS));
 	Accumulate();
 	pcImage = CoverageToImage();
 	EndCoverage();
@@ -320,7 +378,7 @@ Ptr<CImage> CTrueTypeRasteriser::RasteriseText(char* szUTF8, int* piOriginX, int
 		return NULL;
 	}
 
-	AddText(szUTF8, (float32)-sBounds.iLeft, (float32)-sBounds.iTop);
+	AddText(szUTF8, FixedFromInt(-sBounds.iLeft, TRUE_TYPE_SUBPIXEL_BITS), FixedFromInt(-sBounds.iTop, TRUE_TYPE_SUBPIXEL_BITS));
 	Accumulate();
 	pcImage = CoverageToImage();
 	EndCoverage();
@@ -334,14 +392,16 @@ Ptr<CImage> CTrueTypeRasteriser::RasteriseText(char* szUTF8, int* piOriginX, int
 //////////////////////////////////////////////////////////////////////////
 //
 // Blends one line of text onto pcDest with the pen starting at fX on the
-// baseline fY.  The colour's channels (red, green and blue for
-// CImageColourRGB) are blended by coverage; pcDest must have them all.
-// Text outside pcDest is clipped.
+// baseline fY (both rounded to 1/256 of a pixel).  The colour's channels
+// (red, green and blue for CImageColourRGB) are blended by coverage;
+// pcDest must have them all.  Text outside pcDest is clipped.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CTrueTypeRasteriser::DrawText(Ptr<CImage> pcDest, float32 fX, float32 fY, char* szUTF8, CImageColour* pcColour)
 {
 	STrueTypePixelBounds	sBounds;
+	int32					iX;
+	int32					iY;
 	int						iLeft;
 	int						iTop;
 	int						iRight;
@@ -354,10 +414,12 @@ bool CTrueTypeRasteriser::DrawText(Ptr<CImage> pcDest, float32 fX, float32 fY, c
 	}
 
 	//The bounds are for a pen at a whole pixel; the fraction can move them one more pixel.
-	iLeft = (int)floorf(fX) + sBounds.iLeft;
-	iRight = (int)ceilf(fX) + sBounds.iRight;
-	iTop = (int)floorf(fY) + sBounds.iTop;
-	iBottom = (int)ceilf(fY) + sBounds.iBottom;
+	iX = FixedFromFloat(fX, TRUE_TYPE_SUBPIXEL_BITS);
+	iY = FixedFromFloat(fY, TRUE_TYPE_SUBPIXEL_BITS);
+	iLeft = FixedFloor(iX, TRUE_TYPE_SUBPIXEL_BITS) + sBounds.iLeft;
+	iRight = FixedCeiling(iX, TRUE_TYPE_SUBPIXEL_BITS) + sBounds.iRight;
+	iTop = FixedFloor(iY, TRUE_TYPE_SUBPIXEL_BITS) + sBounds.iTop;
+	iBottom = FixedCeiling(iY, TRUE_TYPE_SUBPIXEL_BITS) + sBounds.iBottom;
 
 	if (iLeft < 0)
 	{
@@ -384,7 +446,7 @@ bool CTrueTypeRasteriser::DrawText(Ptr<CImage> pcDest, float32 fX, float32 fY, c
 	{
 		return false;
 	}
-	AddText(szUTF8, fX - iLeft, fY - iTop);
+	AddText(szUTF8, iX - FixedFromInt(iLeft, TRUE_TYPE_SUBPIXEL_BITS), iY - FixedFromInt(iTop, TRUE_TYPE_SUBPIXEL_BITS));
 	Accumulate();
 	bResult = BlendCoverage(pcDest, iLeft, iTop, pcColour);
 	EndCoverage();
@@ -402,9 +464,15 @@ bool CTrueTypeRasteriser::BeginCoverage(int iWidth, int iHeight)
 
 	miWidth = iWidth;
 	miHeight = iHeight;
-	miStride = iWidth + TRUE_TYPE_COVERAGE_PADDING;
-	mpfCoverage = (float32*)calloc((size)miStride * miHeight, sizeof(float32));
-	return mpfCoverage != NULL;
+	mpiCover = (int32*)calloc((size)miWidth * miHeight, sizeof(int32));
+	mpiArea = (int32*)calloc((size)miWidth * miHeight, sizeof(int32));
+	mpuiCoverage = (uint8*)malloc((size)miWidth * miHeight);
+	if ((mpiCover == NULL) || (mpiArea == NULL) || (mpuiCoverage == NULL))
+	{
+		EndCoverage();
+		return false;
+	}
+	return true;
 }
 
 
@@ -414,24 +482,24 @@ bool CTrueTypeRasteriser::BeginCoverage(int iWidth, int iHeight)
 //////////////////////////////////////////////////////////////////////////
 void CTrueTypeRasteriser::EndCoverage(void)
 {
-	if (mpfCoverage)
-	{
-		free(mpfCoverage);
-		mpfCoverage = NULL;
-	}
+	free(mpiCover);
+	free(mpiArea);
+	free(mpuiCoverage);
+	mpiCover = NULL;
+	mpiArea = NULL;
+	mpuiCoverage = NULL;
 	miWidth = 0;
 	miHeight = 0;
-	miStride = 0;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Adds one line of text with the pen starting at (fX, fY) in coverage
-// buffer pixels.
+// Adds one line of text with the pen starting at (iX, iY) in coverage
+// buffer subpixels.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeRasteriser::AddText(char* szUTF8, float32 fX, float32 fY)
+bool CTrueTypeRasteriser::AddText(char* szUTF8, int32 iX, int32 iY)
 {
 	CUTF8	cUTF8;
 	uint32	uiCodePoint;
@@ -449,8 +517,8 @@ bool CTrueTypeRasteriser::AddText(char* szUTF8, float32 fX, float32 fY)
 		}
 
 		iGlyph = mpcFont->GetGlyphIndex(uiCodePoint);
-		bResult &= AddGlyph(iGlyph, fX, fY);
-		fX += GetAdvance(iGlyph);
+		bResult &= AddGlyph(iGlyph, iX, iY);
+		iX += GetAdvanceSubpixels(iGlyph);
 	}
 	cUTF8.Kill();
 	return bResult;
@@ -459,31 +527,30 @@ bool CTrueTypeRasteriser::AddText(char* szUTF8, float32 fX, float32 fY)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Adds a glyph's edges with its pen origin at (fX, fY) in coverage buffer
-// pixels.  Points off the curve are quadratic control points; two in a
+// Adds a glyph's edges with its pen origin at (iX, iY) in coverage buffer
+// subpixels.  Points off the curve are quadratic control points; two in a
 // row have an implied on curve point half way between them.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTrueTypeRasteriser::AddGlyph(int iGlyph, float32 fX, float32 fY)
+bool CTrueTypeRasteriser::AddGlyph(int iGlyph, int32 iX, int32 iY)
 {
 	size			uiContour;
 	size			uiStart;
 	size			uiNumPoints;
 	size			uiFirstOn;
 	size			k;
-	size			uiNumSteps;
 	STrueTypePoint*	psPoint;
 	STrueTypePoint*	psLast;
-	float32			fStartX;
-	float32			fStartY;
-	float32			fCurrentX;
-	float32			fCurrentY;
-	float32			fControlX;
-	float32			fControlY;
-	float32			fPointX;
-	float32			fPointY;
-	float32			fMiddleX;
-	float32			fMiddleY;
+	int32			iStartX;
+	int32			iStartY;
+	int32			iCurrentX;
+	int32			iCurrentY;
+	int32			iControlX;
+	int32			iControlY;
+	int32			iPointX;
+	int32			iPointY;
+	int32			iMiddleX;
+	int32			iMiddleY;
 	bool			bControl;
 
 	mcOutline.Clear();
@@ -509,59 +576,55 @@ bool CTrueTypeRasteriser::AddGlyph(int iGlyph, float32 fX, float32 fY)
 		if (uiFirstOn < uiNumPoints)
 		{
 			psPoint = mcOutline.GetPoint(uiStart + uiFirstOn);
-			fStartX = psPoint->x;
-			fStartY = psPoint->y;
-			uiNumSteps = uiNumPoints;
+			iStartX = iX + Scale(psPoint->x);
+			iStartY = iY - Scale(psPoint->y);
 		}
 		else
 		{
 			psPoint = mcOutline.GetPoint(uiStart);
 			psLast = mcOutline.GetPoint(uiStart + uiNumPoints - 1);
-			fStartX = (psPoint->x + psLast->x) * 0.5f;
-			fStartY = (psPoint->y + psLast->y) * 0.5f;
+			iStartX = iX + (int32)DivideRound((int64)Scale(psPoint->x) + Scale(psLast->x), 2);
+			iStartY = iY - (int32)DivideRound((int64)Scale(psPoint->y) + Scale(psLast->y), 2);
 			uiFirstOn = uiNumPoints - 1;
-			uiNumSteps = uiNumPoints;
 		}
-		fStartX = fX + fStartX * mfScale;
-		fStartY = fY - fStartY * mfScale;
 
-		fCurrentX = fStartX;
-		fCurrentY = fStartY;
-		fControlX = 0.0f;
-		fControlY = 0.0f;
+		iCurrentX = iStartX;
+		iCurrentY = iStartY;
+		iControlX = 0;
+		iControlY = 0;
 		bControl = false;
-		for (k = 1; k <= uiNumSteps; k++)
+		for (k = 1; k <= uiNumPoints; k++)
 		{
 			psPoint = mcOutline.GetPoint(uiStart + (uiFirstOn + k) % uiNumPoints);
-			fPointX = fX + psPoint->x * mfScale;
-			fPointY = fY - psPoint->y * mfScale;
+			iPointX = iX + Scale(psPoint->x);
+			iPointY = iY - Scale(psPoint->y);
 
 			if (psPoint->bOnCurve)
 			{
 				if (bControl)
 				{
-					AddQuadratic(fCurrentX, fCurrentY, fControlX, fControlY, fPointX, fPointY);
+					AddQuadratic(iCurrentX, iCurrentY, iControlX, iControlY, iPointX, iPointY);
 				}
 				else
 				{
-					AddLine(fCurrentX, fCurrentY, fPointX, fPointY);
+					AddLine(iCurrentX, iCurrentY, iPointX, iPointY);
 				}
-				fCurrentX = fPointX;
-				fCurrentY = fPointY;
+				iCurrentX = iPointX;
+				iCurrentY = iPointY;
 				bControl = false;
 			}
 			else
 			{
 				if (bControl)
 				{
-					fMiddleX = (fControlX + fPointX) * 0.5f;
-					fMiddleY = (fControlY + fPointY) * 0.5f;
-					AddQuadratic(fCurrentX, fCurrentY, fControlX, fControlY, fMiddleX, fMiddleY);
-					fCurrentX = fMiddleX;
-					fCurrentY = fMiddleY;
+					iMiddleX = (int32)DivideRound((int64)iControlX + iPointX, 2);
+					iMiddleY = (int32)DivideRound((int64)iControlY + iPointY, 2);
+					AddQuadratic(iCurrentX, iCurrentY, iControlX, iControlY, iMiddleX, iMiddleY);
+					iCurrentX = iMiddleX;
+					iCurrentY = iMiddleY;
 				}
-				fControlX = fPointX;
-				fControlY = fPointY;
+				iControlX = iPointX;
+				iControlY = iPointY;
 				bControl = true;
 			}
 		}
@@ -569,11 +632,11 @@ bool CTrueTypeRasteriser::AddGlyph(int iGlyph, float32 fX, float32 fY)
 		//Close the contour.
 		if (bControl)
 		{
-			AddQuadratic(fCurrentX, fCurrentY, fControlX, fControlY, fStartX, fStartY);
+			AddQuadratic(iCurrentX, iCurrentY, iControlX, iControlY, iStartX, iStartY);
 		}
 		else
 		{
-			AddLine(fCurrentX, fCurrentY, fStartX, fStartY);
+			AddLine(iCurrentX, iCurrentY, iStartX, iStartY);
 		}
 	}
 	return true;
@@ -582,196 +645,235 @@ bool CTrueTypeRasteriser::AddGlyph(int iGlyph, float32 fX, float32 fY)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Splits a quadratic Bezier curve into lines.
+// Splits a quadratic Bezier curve into lines; more lines the further the
+// control point is from the chord.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTrueTypeRasteriser::AddQuadratic(float32 x0, float32 y0, float32 x1, float32 y1, float32 x2, float32 y2)
+void CTrueTypeRasteriser::AddQuadratic(int32 x0, int32 y0, int32 x1, int32 y1, int32 x2, int32 y2)
 {
-	float32	fDeviationX;
-	float32	fDeviationY;
-	float32	fDeviation;
-	int		iNumLines;
-	int		i;
-	float32	t;
-	float32	u;
-	float32	fLastX;
-	float32	fLastY;
-	float32	x;
-	float32	y;
+	int64	iDeviationX;
+	int64	iDeviationY;
+	int64	iDeviation;
+	int64	iNumLines;
+	int64	i;
+	int64	iDivisor;
+	int64	iWeight0;
+	int64	iWeight1;
+	int64	iWeight2;
+	int32	iLastX;
+	int32	iLastY;
+	int32	x;
+	int32	y;
 
-	fDeviationX = x0 - 2.0f * x1 + x2;
-	fDeviationY = y0 - 2.0f * y1 + y2;
-	fDeviation = fDeviationX * fDeviationX + fDeviationY * fDeviationY;
-	if (fDeviation < TRUE_TYPE_FLAT_DEVIATION)
+	iDeviationX = (int64)x0 - 2 * (int64)x1 + x2;
+	iDeviationY = (int64)y0 - 2 * (int64)y1 + y2;
+	iDeviation = iDeviationX * iDeviationX + iDeviationY * iDeviationY;
+	if (iDeviation < TRUE_TYPE_FLAT_DEVIATION)
 	{
 		AddLine(x0, y0, x2, y2);
 		return;
 	}
 
-	iNumLines = 1 + (int)floorf(sqrtf(sqrtf(TRUE_TYPE_FLATNESS_TOLERANCE * fDeviation)));
-	fLastX = x0;
-	fLastY = y0;
+	//1 + the fourth root of three times the deviation in pixels squared.  A subpixel is 1/16th of a pixel's fourth root.
+	iNumLines = 1 + SquareRoot(SquareRoot(3 * iDeviation)) / 16;
+
+	//Points at t = i / n are ((n - i)^2 * p0 + 2 * i * (n - i) * p1 + i^2 * p2) / n^2.
+	iDivisor = iNumLines * iNumLines;
+	iLastX = x0;
+	iLastY = y0;
 	for (i = 1; i < iNumLines; i++)
 	{
-		t = (float32)i / (float32)iNumLines;
-		u = 1.0f - t;
-		x = u * u * x0 + 2.0f * u * t * x1 + t * t * x2;
-		y = u * u * y0 + 2.0f * u * t * y1 + t * t * y2;
-		AddLine(fLastX, fLastY, x, y);
-		fLastX = x;
-		fLastY = y;
+		iWeight0 = (iNumLines - i) * (iNumLines - i);
+		iWeight1 = 2 * i * (iNumLines - i);
+		iWeight2 = i * i;
+		x = (int32)DivideRound(iWeight0 * x0 + iWeight1 * x1 + iWeight2 * x2, iDivisor);
+		y = (int32)DivideRound(iWeight0 * y0 + iWeight1 * y1 + iWeight2 * y2, iDivisor);
+		AddLine(iLastX, iLastY, x, y);
+		iLastX = x;
+		iLastY = y;
 	}
-	AddLine(fLastX, fLastY, x2, y2);
+	AddLine(iLastX, iLastY, x2, y2);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Adds the signed area a line covers to the accumulation buffer.  Summing
-// a row from the left then gives the coverage of each pixel.  Lines going
-// down add, lines going up subtract.  Parts of a line left of the buffer
-// count as being on its left edge and parts right of it are dropped.
+// Adds a line (in subpixels) one pixel row at a time.  Lines going down
+// add coverage, lines going up subtract it.  Where a line crosses a row
+// boundary is calculated the same way for both rows, so the pieces join
+// exactly.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTrueTypeRasteriser::AddLine(float32 x0, float32 y0, float32 x1, float32 y1)
+void CTrueTypeRasteriser::AddLine(int32 x1, int32 y1, int32 x2, int32 y2)
 {
-	float32		fDirection;
-	float32		fSwap;
-	float32		fDxDy;
-	float32		x;
-	float32		fXNext;
-	int			y;
-	int			iYStart;
-	int			iYEnd;
-	float32*	pfRow;
-	float32		fDY;
-	float32		fD;
-	float32		fXA;
-	float32		fXB;
-	float32		fXAFloor;
-	int			iXA;
-	int			iXB;
-	float32		fXMiddle;
-	float32		fSlope;
-	float32		fXAFraction;
-	float32		fXBFraction;
-	float32		fAreaA;
-	float32		fAreaB;
-	float32		fAreaMiddle;
-	float32		fAreaEnd;
-	int			i;
-	float32		fWidth;
+	int32	iYMin;
+	int32	iYMax;
+	int		iRow;
+	int		iRowStart;
+	int		iRowEnd;
+	int32	iTop;
+	int32	iBottom;
+	int32	iTopX;
+	int32	iBottomX;
 
-	if (y0 == y1)
+	if (y1 == y2)
 	{
 		return;
 	}
 
-	fDirection = 1.0f;
-	if (y0 > y1)
+	iYMin = (y1 < y2) ? y1 : y2;
+	iYMax = (y1 < y2) ? y2 : y1;
+	iRowStart = FixedFloor(iYMin, TRUE_TYPE_SUBPIXEL_BITS);
+	if (iRowStart < 0)
 	{
-		fDirection = -1.0f;
-		fSwap = x0;  x0 = x1;  x1 = fSwap;
-		fSwap = y0;  y0 = y1;  y1 = fSwap;
+		iRowStart = 0;
+	}
+	iRowEnd = FixedCeiling(iYMax, TRUE_TYPE_SUBPIXEL_BITS);
+	if (iRowEnd > miHeight)
+	{
+		iRowEnd = miHeight;
 	}
 
-	fDxDy = (x1 - x0) / (y1 - y0);
-	x = x0;
-	if (y0 < 0.0f)
+	for (iRow = iRowStart; iRow < iRowEnd; iRow++)
 	{
-		x -= y0 * fDxDy;
-	}
-
-	iYStart = (int)floorf(y0);
-	if (iYStart < 0)
-	{
-		iYStart = 0;
-	}
-	iYEnd = (int)ceilf(y1);
-	if (iYEnd > miHeight)
-	{
-		iYEnd = miHeight;
-	}
-
-	fWidth = (float32)miWidth;
-	for (y = iYStart; y < iYEnd; y++)
-	{
-		pfRow = &mpfCoverage[y * miStride];
-		fDY = (((float32)(y + 1) < y1) ? (float32)(y + 1) : y1) - (((float32)y > y0) ? (float32)y : y0);
-		fXNext = x + fDxDy * fDY;
-		fD = fDY * fDirection;
-
-		fXA = (x < fXNext) ? x : fXNext;
-		fXB = (x < fXNext) ? fXNext : x;
-		fXA = (fXA < 0.0f) ? 0.0f : ((fXA > fWidth) ? fWidth : fXA);
-		fXB = (fXB < 0.0f) ? 0.0f : ((fXB > fWidth) ? fWidth : fXB);
-
-		fXAFloor = floorf(fXA);
-		iXA = (int)fXAFloor;
-		iXB = (int)ceilf(fXB);
-
-		if (iXB <= iXA + 1)
+		iTop = FixedFromInt(iRow, TRUE_TYPE_SUBPIXEL_BITS);
+		iBottom = FixedFromInt(iRow + 1, TRUE_TYPE_SUBPIXEL_BITS);
+		iTop = (iTop > iYMin) ? iTop : iYMin;
+		iBottom = (iBottom < iYMax) ? iBottom : iYMax;
+		if (iTop >= iBottom)
 		{
-			//The line is in one pixel column on this row.
-			fXMiddle = 0.5f * (fXA + fXB) - fXAFloor;
-			pfRow[iXA] += fD - fD * fXMiddle;
-			pfRow[iXA + 1] += fD * fXMiddle;
+			continue;
+		}
+
+		iTopX = x1 + (int32)DivideRound((int64)(x2 - x1) * (iTop - y1), y2 - y1);
+		iBottomX = x1 + (int32)DivideRound((int64)(x2 - x1) * (iBottom - y1), y2 - y1);
+		if (y1 < y2)
+		{
+			AddRowLine(iRow, iTopX, iTop, iBottomX, iBottom);
 		}
 		else
 		{
-			//The line crosses columns; the area right of it in each column grows linearly between the ends.
-			fSlope = 1.0f / (fXB - fXA);
-			fXAFraction = fXA - fXAFloor;
-			fAreaA = 0.5f * fSlope * (1.0f - fXAFraction) * (1.0f - fXAFraction);
-			fXBFraction = fXB - (float32)iXB + 1.0f;
-			fAreaEnd = 0.5f * fSlope * fXBFraction * fXBFraction;
-
-			pfRow[iXA] += fD * fAreaA;
-			if (iXB == iXA + 2)
-			{
-				pfRow[iXA + 1] += fD * (1.0f - fAreaA - fAreaEnd);
-			}
-			else
-			{
-				fAreaB = fSlope * (1.5f - fXAFraction);
-				pfRow[iXA + 1] += fD * (fAreaB - fAreaA);
-				for (i = iXA + 2; i < iXB - 1; i++)
-				{
-					pfRow[i] += fD * fSlope;
-				}
-				fAreaMiddle = fAreaB + (float32)(iXB - iXA - 3) * fSlope;
-				pfRow[iXB - 1] += fD * (1.0f - fAreaMiddle - fAreaEnd);
-			}
-			pfRow[iXB] += fD * fAreaEnd;
+			AddRowLine(iRow, iBottomX, iBottom, iTopX, iTop);
 		}
-		x = fXNext;
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Turns the accumulated signed areas into coverage from 0 to 1.  Any
+// Splits a line inside one pixel row where it crosses pixel columns.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTrueTypeRasteriser::AddRowLine(int iRow, int32 x1, int32 y1, int32 x2, int32 y2)
+{
+	int32	iBoundary;
+	int32	iStartX;
+	int32	iStartY;
+	int32	y;
+
+	iStartX = x1;
+	iStartY = y1;
+	if (x1 < x2)
+	{
+		for (iBoundary = FixedFromInt(FixedFloor(x1, TRUE_TYPE_SUBPIXEL_BITS) + 1, TRUE_TYPE_SUBPIXEL_BITS); iBoundary < x2; iBoundary += TRUE_TYPE_SUBPIXELS)
+		{
+			y = y1 + (int32)DivideRound((int64)(y2 - y1) * (iBoundary - x1), x2 - x1);
+			AddCellLine(iRow, iStartX, iStartY, iBoundary, y);
+			iStartX = iBoundary;
+			iStartY = y;
+		}
+	}
+	else if (x1 > x2)
+	{
+		for (iBoundary = FixedFromInt(FixedCeiling(x1, TRUE_TYPE_SUBPIXEL_BITS) - 1, TRUE_TYPE_SUBPIXEL_BITS); iBoundary > x2; iBoundary -= TRUE_TYPE_SUBPIXELS)
+		{
+			y = y1 + (int32)DivideRound((int64)(y2 - y1) * (iBoundary - x1), x2 - x1);
+			AddCellLine(iRow, iStartX, iStartY, iBoundary, y);
+			iStartX = iBoundary;
+			iStartY = y;
+		}
+	}
+	AddCellLine(iRow, iStartX, iStartY, x2, y2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds a line inside one pixel.  The cover is its height and the area is
+// twice the area between it and the pixel's left edge (times its
+// height's sign).  Lines left of the buffer cover the first column
+// completely; lines right of it are dropped.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTrueTypeRasteriser::AddCellLine(int iRow, int32 x1, int32 y1, int32 x2, int32 y2)
+{
+	int32	iHeight;
+	int		iColumn;
+	int32	iLeft;
+	int32	iX1;
+	int32	iX2;
+	size	uiCell;
+
+	iHeight = y2 - y1;
+	if (iHeight == 0)
+	{
+		return;
+	}
+
+	iColumn = FixedFloor((x1 < x2) ? x1 : x2, TRUE_TYPE_SUBPIXEL_BITS);
+	if (iColumn >= miWidth)
+	{
+		return;
+	}
+	if (iColumn < 0)
+	{
+		iColumn = 0;
+		iX1 = 0;
+		iX2 = 0;
+	}
+	else
+	{
+		iLeft = FixedFromInt(iColumn, TRUE_TYPE_SUBPIXEL_BITS);
+		iX1 = x1 - iLeft;
+		iX2 = x2 - iLeft;
+	}
+
+	uiCell = (size)iRow * miWidth + iColumn;
+	mpiCover[uiCell] += iHeight;
+	mpiArea[uiCell] += (iX1 + iX2) * iHeight;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Sums each row from the left into coverage from 0 to 255.  A pixel's
+// coverage is the cover of the cells left of it (which cross it
+// completely) less the part of its own cell's edges left of it.  Any
 // winding counts as covered.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTrueTypeRasteriser::Accumulate(void)
 {
-	int			x;
-	int			y;
-	float32*	pfRow;
-	float32		fSum;
-	float32		fCoverage;
+	int		x;
+	int		y;
+	size	uiCell;
+	int64	iCover;
+	int64	iCoverage;
 
 	for (y = 0; y < miHeight; y++)
 	{
-		pfRow = &mpfCoverage[y * miStride];
-		fSum = 0.0f;
+		iCover = 0;
 		for (x = 0; x < miWidth; x++)
 		{
-			fSum += pfRow[x];
-			fCoverage = fabsf(fSum);
-			pfRow[x] = (fCoverage > 1.0f) ? 1.0f : fCoverage;
+			uiCell = (size)y * miWidth + x;
+			iCover += mpiCover[uiCell];
+			iCoverage = iCover * 2 * TRUE_TYPE_SUBPIXELS - mpiArea[uiCell];
+			if (iCoverage < 0)
+			{
+				iCoverage = -iCoverage;
+			}
+			iCoverage = DivideRound(iCoverage * 255, TRUE_TYPE_FULL_COVERAGE);
+			mpuiCoverage[uiCell] = (uint8)((iCoverage > 255) ? 255 : iCoverage);
 		}
 	}
 }
@@ -784,21 +886,9 @@ void CTrueTypeRasteriser::Accumulate(void)
 Ptr<CImage> CTrueTypeRasteriser::CoverageToImage(void)
 {
 	Ptr<CImage>		pcImage;
-	uint8*			puiData;
-	int				x;
-	int				y;
-	float32*		pfRow;
 
 	pcImage = OMalloc<CImage>(miWidth, miHeight, PT_uint8, IMAGE_OPACITY, CHANNEL_STOP);
-	puiData = (uint8*)pcImage->GetData();
-	for (y = 0; y < miHeight; y++)
-	{
-		pfRow = &mpfCoverage[y * miStride];
-		for (x = 0; x < miWidth; x++)
-		{
-			puiData[y * miWidth + x] = (uint8)(pfRow[x] * 255.0f + 0.5f);
-		}
-	}
+	memcpy(pcImage->GetData(), mpuiCoverage, (size)miWidth * miHeight);
 	return pcImage;
 }
 
@@ -806,7 +896,8 @@ Ptr<CImage> CTrueTypeRasteriser::CoverageToImage(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Blends the colour onto pcDest by the coverage, which starts at
-// (iDestX, iDestY) and must lie inside pcDest.
+// (iDestX, iDestY) and must lie inside pcDest.  Channels are blended as
+// bytes.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CTrueTypeRasteriser::BlendCoverage(Ptr<CImage> pcDest, int iDestX, int iDestY, CImageColour* pcColour)
@@ -816,12 +907,12 @@ bool CTrueTypeRasteriser::BlendCoverage(Ptr<CImage> pcDest, int iDestX, int iDes
 	CImageAccessor*			pcAccessor;
 	size					uiNumChannels;
 	size					i;
-	float32					afColour[MAX_IMAGE_COLOUR_BYTES];
-	float32					afPixel[MAX_IMAGE_COLOUR_BYTES];
+	int32					aiColour[MAX_IMAGE_COLOUR_BYTES];
+	uint8					auiPixel[MAX_IMAGE_COLOUR_BYTES];
 	int						x;
 	int						y;
-	float32*				pfRow;
-	float32					fCoverage;
+	int32					iCoverage;
+	int32					iColour;
 
 	aiChannels.Init();
 	pcColour->GetChannels(&aiChannels);
@@ -838,11 +929,12 @@ bool CTrueTypeRasteriser::BlendCoverage(Ptr<CImage> pcDest, int iDestX, int iDes
 			aiChannels.Kill();
 			return false;
 		}
-		afColour[i] = pcColour->GetValue((EChannel)aiChannels.GetValue(i));
+		iColour = FloatToIntScaled(pcColour->GetValue((EChannel)aiChannels.GetValue(i)), 255);
+		aiColour[i] = (iColour < 0) ? 0 : ((iColour > 255) ? 255 : iColour);
 	}
 
 	cCreator.Init(&pcDest);
-	cCreator.AddAccess(&aiChannels, PT_float32);
+	cCreator.AddAccess(&aiChannels, PT_uint8);
 	pcAccessor = cCreator.CreateAndKill();
 	aiChannels.Kill();
 	if (pcAccessor == NULL)
@@ -852,20 +944,19 @@ bool CTrueTypeRasteriser::BlendCoverage(Ptr<CImage> pcDest, int iDestX, int iDes
 
 	for (y = 0; y < miHeight; y++)
 	{
-		pfRow = &mpfCoverage[y * miStride];
 		for (x = 0; x < miWidth; x++)
 		{
-			fCoverage = pfRow[x];
-			if (fCoverage <= 0.0f)
+			iCoverage = mpuiCoverage[(size)y * miWidth + x];
+			if (iCoverage == 0)
 			{
 				continue;
 			}
-			pcAccessor->Get(iDestX + x, iDestY + y, afPixel);
+			pcAccessor->Get(iDestX + x, iDestY + y, auiPixel);
 			for (i = 0; i < uiNumChannels; i++)
 			{
-				afPixel[i] += (afColour[i] - afPixel[i]) * fCoverage;
+				auiPixel[i] = (uint8)DivideRound((int64)auiPixel[i] * (255 - iCoverage) + (int64)aiColour[i] * iCoverage, 255);
 			}
-			pcAccessor->Set(iDestX + x, iDestY + y, afPixel);
+			pcAccessor->Set(iDestX + x, iDestY + y, auiPixel);
 		}
 	}
 	pcAccessor->Kill();

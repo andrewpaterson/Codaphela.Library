@@ -47,7 +47,7 @@ typedef CArrayTemplate<STrueTypeFontCharacter>	CArrayTrueTypeFontCharacter;
 
 //Makes a bitmap CFont from a TrueType font.  The characters are rasterised into one image (opacity, red, green and
 //blue, PT_uint8) in a colour, and each becomes a glyph whose full size is its advance by the line height, so text
-//laid out with CTextLayout sits on a common baseline.  Advances are rounded to whole pixels.
+//laid out with CTextLayout sits on a common baseline.  Advances are rounded to whole pixels.  The arithmetic is integer, so every build makes the same font.
 class CTrueTypeFontFactory
 {
 protected:
@@ -73,6 +73,7 @@ protected:
 	bool			HasCharacter(uint32 uiCodePoint);
 	bool			Pack(int iImageWidth, int* piImageHeight);
 	void			CopyGlyph(Ptr<CImage> pImage, STrueTypeFontCharacter* psCharacter, CImageColourRGB* pcColour);
+	uint8			ColourByte(float32 fChannel);
 };
 
 

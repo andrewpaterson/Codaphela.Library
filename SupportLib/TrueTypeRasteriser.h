@@ -25,6 +25,11 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Image.h"
 
 
+//Positions are fixed point with 8 fraction bits: 256 subpixels to a pixel.
+#define TRUE_TYPE_SUBPIXEL_BITS		8
+#define TRUE_TYPE_SUBPIXELS			(1 << TRUE_TYPE_SUBPIXEL_BITS)
+
+
 //Pixel bounds of something rasterised, relative to the pen origin on the baseline, y down.  Right and bottom are exclusive.
 struct STrueTypePixelBounds
 {
@@ -37,19 +42,22 @@ struct STrueTypePixelBounds
 
 //Draws TrueType glyphs anti-aliased (by exact area coverage) at a pixel size of one em.  Glyphs are drawn either
 //as opacity images (one PT_uint8 IMAGE_OPACITY channel) or blended onto an image in a colour.  Text is UTF-8,
-//pens are positioned to fractions of a pixel and there is no kerning or hinting.  Overlapping contours (as in
-//variable fonts) are filled once.
+//pens are positioned to 1/256 of a pixel and there is no kerning or hinting.  Overlapping contours (as in variable
+//fonts) are filled once.  All the arithmetic is integer (fixed point) so every build draws the same pixels.
 class CTrueTypeRasteriser
 {
 protected:
 	CTrueTypeFont*		mpcFont;
-	float32				mfScale;
+	int32				miPixelSize;  //Subpixels per em.
+	int32				miUnitsPerEm;
 	CTrueTypeOutline	mcOutline;
 
-	float32*			mpfCoverage;  //Signed area accumulation, then coverage.
+	//Each pixel cell accumulates the height (cover) and twice the area (area) of the edges crossing it, in subpixels.
+	int32*				mpiCover;
+	int32*				mpiArea;
+	uint8*				mpuiCoverage;
 	int					miWidth;
 	int					miHeight;
-	int					miStride;
 
 public:
 	void			Init(CTrueTypeFont* pcFont, float32 fPixelSize);
@@ -62,7 +70,13 @@ public:
 	float32			GetAdvance(int iGlyph);
 	float32			GetTextWidth(char* szUTF8);
 
-	bool			GetGlyphBounds(int iGlyph, float32 fX, STrueTypePixelBounds* psBounds);
+	int32			Scale(int32 iFontUnits);
+	int32			GetAscentSubpixels(void);
+	int32			GetDescentSubpixels(void);
+	int32			GetAdvanceSubpixels(int iGlyph);
+	int32			GetTextWidthSubpixels(char* szUTF8);
+
+	bool			GetGlyphBounds(int iGlyph, int32 iPenX, STrueTypePixelBounds* psBounds);
 	bool			GetTextBounds(char* szUTF8, STrueTypePixelBounds* psBounds);
 
 	Ptr<CImage>		RasteriseGlyph(int iGlyph, int* piLeft, int* piTop);
@@ -72,10 +86,12 @@ public:
 protected:
 	bool			BeginCoverage(int iWidth, int iHeight);
 	void			EndCoverage(void);
-	bool			AddGlyph(int iGlyph, float32 fX, float32 fY);
-	bool			AddText(char* szUTF8, float32 fX, float32 fY);
-	void			AddQuadratic(float32 x0, float32 y0, float32 x1, float32 y1, float32 x2, float32 y2);
-	void			AddLine(float32 x0, float32 y0, float32 x1, float32 y1);
+	bool			AddGlyph(int iGlyph, int32 iX, int32 iY);
+	bool			AddText(char* szUTF8, int32 iX, int32 iY);
+	void			AddQuadratic(int32 x0, int32 y0, int32 x1, int32 y1, int32 x2, int32 y2);
+	void			AddLine(int32 x1, int32 y1, int32 x2, int32 y2);
+	void			AddRowLine(int iRow, int32 x1, int32 y1, int32 x2, int32 y2);
+	void			AddCellLine(int iRow, int32 x1, int32 y1, int32 x2, int32 y2);
 	void			Accumulate(void);
 	Ptr<CImage>		CoverageToImage(void);
 	bool			BlendCoverage(Ptr<CImage> pcDest, int iDestX, int iDestY, CImageColour* pcColour);

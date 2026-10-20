@@ -1773,6 +1773,10 @@ int16 SquareRoot(int16 i)
 	{
 		return -1;
 	}
+	if (i < 2)
+	{
+		return i;
+	}
 
 	iLeft = 0;
 	iRight = i;
@@ -1811,6 +1815,10 @@ int32 SquareRoot(int32 i)
 	{
 		return -1;
 	}
+	if (i < 2)
+	{
+		return i;
+	}
 
 	iLeft = 0;
 	iRight = i;
@@ -1848,6 +1856,10 @@ int64 SquareRoot(int64 i)
 	if (i < 0)
 	{
 		return -1;
+	}
+	if (i < 2)
+	{
+		return i;
 	}
 
 	iLeft = 0;
