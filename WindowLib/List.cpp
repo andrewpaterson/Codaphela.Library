@@ -489,20 +489,15 @@ void CList::ActivateComponent(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 //
 // The release goes to the list with focus wherever the pointer is.  It
-// only activates if the pointer is over the selected row.
+// only activates if the pointer is still over the selected row.
 //
 //////////////////////////////////////////////////////////////////////////
 void CList::ExecuteComponent(int x, int y)
 {
-	SInt32Vec2	sPosition;
-	int32		iRow;
-
 	if (mbPressed)
 	{
 		mbPressed = false;
-		sPosition = GetPosition();
-		iRow = FindRowAt(x + sPosition.x, y + sPosition.y);
-		if ((iRow >= 0) && (iRow == miSelected))
+		if ((miHover >= 0) && (miHover == miSelected))
 		{
 			Activate();
 		}
