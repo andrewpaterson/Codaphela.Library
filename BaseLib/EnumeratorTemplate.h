@@ -105,8 +105,8 @@ public:
 	bool		ReadEnumeratorTemplate(CFileReader* pcFileReader);
 
 protected:
-	bool		WriteIDArray(CFileWriter* pcFileWriter);
-	bool		ReadIDArray(CFileReader* pcFileReader);
+	bool		WriteNode(CFileWriter* pcFileWriter, SENode* psNode);
+	bool		ReadNode(CFileReader* pcFileReader, SENode* psNode);
 };
 
 
@@ -929,41 +929,29 @@ bool CEnumeratorTemplate<M>::ReadEnumeratorTemplate(CFileReader* pcFileReader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+//Each node is written field by field; its pointers are not written so the file is the same in 32 and 64 bit builds.
+//The ID array is not written, it is rebuilt from the nodes' IDs when the enumerator is read.
 template<class M>	
 bool CEnumeratorTemplate<M>::WriteEnumeratorBlock(CFileWriter* pcFileWriter)
 {
 	SENode*		psNode;
 
-	if (!pcFileWriter->WriteData(&mbCaseSensitive, sizeof(bool))) 
+	if (!pcFileWriter->WriteBool(mbCaseSensitive)) 
 	{ 
 		return false; 
 	}
 
-	if (!WriteIDArray(pcFileWriter))
+	if (!pcFileWriter->WriteSize(mcList.NumElements()))
 	{
-		return false;
-	}
-
-	if (!mcList.Write(pcFileWriter))
-	{
-
 		return false;
 	}
 
 	psNode = mcList.GetHead();
 	while (psNode)
 	{
-		if (!pcFileWriter->WriteString(psNode->szName))
+		if (!WriteNode(pcFileWriter, psNode))
 		{
 			return false;
-		}
-
-		if (psNode->uiDataSize)
-		{
-			if (!pcFileWriter->WriteData(psNode->pvData, psNode->uiDataSize))
-			{
-				return false;
-			}
 		}
 		psNode = mcList.GetNext(psNode);
 	}
@@ -975,50 +963,33 @@ bool CEnumeratorTemplate<M>::WriteEnumeratorBlock(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+//Do not call .Init() before Read().
 template<class M>	
 bool CEnumeratorTemplate<M>::ReadEnumeratorBlock(CFileReader* pcFileReader)
 {
 	SENode*		psNode;
-	size		iReadSize;
+	size		uiNumElements;
+	size		i;
 
-	if (!pcFileReader->ReadData(&mbCaseSensitive, sizeof(bool))) 
+	this->Init();
+
+	if (!pcFileReader->ReadBool(&mbCaseSensitive)) 
 	{ 
 		return false; 
 	}
 
-	if (!ReadIDArray(pcFileReader))
+	if (!pcFileReader->ReadSize(&uiNumElements))
 	{
 		return false;
 	}
 
-	if (!mcList.Read(pcFileReader))
+	for (i = 0; i < uiNumElements; i++)
 	{
-		return false;
-	}
-
-	psNode = mcList.GetHead();
-	while (psNode)
-	{
-		//Actually this is copied from ReadString because I need the string length first.
-		if (!pcFileReader->ReadStringLength(&iReadSize)) 
-		{ 
-			return false; 
-		}
-
-		AllocateNodeData(psNode, iReadSize);
-		if (!pcFileReader->ReadData(psNode->szName, iReadSize)) 
-		{ 
-			return false; 
-		}
-
-		if (psNode->uiDataSize)
+		psNode = mcList.InsertAfterTail();
+		if (!ReadNode(pcFileReader, psNode))
 		{
-			if (!pcFileReader->ReadData(psNode->pvData, psNode->uiDataSize))
-			{ 
-				return false; 
-			}
+			return false;
 		}
-		psNode = mcList.GetNext(psNode);
 	}
 
 	this->RecreateIDArray();
@@ -1030,23 +1001,33 @@ bool CEnumeratorTemplate<M>::ReadEnumeratorBlock(CFileReader* pcFileReader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-//The ID array holds node pointers.  It is written as the array of ints it used to be so the file is the same in 32 and
-//64 bit builds.  The pointers mean nothing once read so ReadEnumeratorBlock rebuilds the array from the nodes.
 template<class M>
-bool CEnumeratorTemplate<M>::WriteIDArray(CFileWriter* pcFileWriter)
+bool CEnumeratorTemplate<M>::WriteNode(CFileWriter* pcFileWriter, SENode* psNode)
 {
-	CArrayInt	aiIDs;
-	size		i;
-	bool		bResult;
-
-	aiIDs.Init();
-	for (i = 0; i < mcIDArray.NumElements(); i++)
+	if (!pcFileWriter->WriteInt32((int32)psNode->uiNum))
 	{
-		aiIDs.Add((int)mcIDArray.GetValue(i));
+		return false;
 	}
-	bResult = aiIDs.Write(pcFileWriter);
-	aiIDs.Kill();
-	return bResult;
+	if (!pcFileWriter->WriteInt8(psNode->iFlags))
+	{
+		return false;
+	}
+	if (!pcFileWriter->WriteSize(psNode->uiDataSize))
+	{
+		return false;
+	}
+	if (!pcFileWriter->WriteString(psNode->szName))
+	{
+		return false;
+	}
+	if (psNode->uiDataSize)
+	{
+		if (!pcFileWriter->WriteData(psNode->pvData, psNode->uiDataSize))
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 
@@ -1055,17 +1036,51 @@ bool CEnumeratorTemplate<M>::WriteIDArray(CFileWriter* pcFileWriter)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CEnumeratorTemplate<M>::ReadIDArray(CFileReader* pcFileReader)
+bool CEnumeratorTemplate<M>::ReadNode(CFileReader* pcFileReader, SENode* psNode)
 {
-	CArrayInt	aiIDs;
+	int32	iNum;
+	size	iNameLength;
 
-	if (!aiIDs.Read(pcFileReader))
+	//Kill frees szName and pvData so they must be valid if a read fails part way.
+	psNode->szName = NULL;
+	psNode->pvData = NULL;
+	psNode->uiDataSize = 0;
+	psNode->iFlags = 0;
+
+	if (!pcFileReader->ReadInt32(&iNum))
 	{
 		return false;
 	}
-	aiIDs.Kill();
+	psNode->uiNum = iNum;
 
-	mcIDArray.Init();
+	if (!pcFileReader->ReadInt8(&psNode->iFlags))
+	{
+		return false;
+	}
+	if (!pcFileReader->ReadSize(&psNode->uiDataSize))
+	{
+		return false;
+	}
+
+	//Actually this is copied from ReadString because I need the string length first.
+	if (!pcFileReader->ReadStringLength(&iNameLength)) 
+	{ 
+		return false; 
+	}
+
+	AllocateNodeData(psNode, iNameLength);
+	if (!pcFileReader->ReadData(psNode->szName, iNameLength)) 
+	{ 
+		return false; 
+	}
+
+	if (psNode->uiDataSize)
+	{
+		if (!pcFileReader->ReadData(psNode->pvData, psNode->uiDataSize))
+		{ 
+			return false; 
+		}
+	}
 	return true;
 }
 
