@@ -222,7 +222,7 @@ size CIndexTreeEvicting::PotentiallyEvict(uint8* pvKey, size iKeySize)
 			{
 				sz.Init();
 				sz.AppendData2((const char*)pvKey, iKeySize);
-				gcLogger.Error2(__METHOD__, " Could not evict anything while touching key [", sz.Text(), "].  Tree size [", IntToString(uiSize), "] could not be reduced below cache size [", IntToString(muiCutoff), "].", NULL);
+				gcLogger.Error2(__METHOD__, " Could not evict anything while touching key [", sz.Text(), "].  Tree size [", SizeToString(uiSize), "] could not be reduced below cache size [", SizeToString(muiCutoff), "].", NULL);
 				sz.Kill();
 				return iEvicted;
 			}
@@ -241,7 +241,7 @@ size CIndexTreeEvicting::PotentiallyEvict(uint8* pvKey, size iKeySize)
 		{
 			sz.Init();
 			sz.AppendData2((const char*)pvKey, iKeySize);
-			gcLogger.Error2(__METHOD__, " Could not anything while touching evict key [", sz.Text(), "].  Tree size [", IntToString(uiSize), "] could not be reduced below cache size [", IntToString(muiCutoff), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Could not anything while touching evict key [", sz.Text(), "].  Tree size [", SizeToString(uiSize), "] could not be reduced below cache size [", SizeToString(muiCutoff), "].", NULL);
 			sz.Kill();
 			return 0;
 		}
@@ -325,7 +325,7 @@ bool CIndexTreeEvicting::WriteEvictedData3(void)
 	size					iDataSize;
 	bool					bResult;
 	void*					pvCache;
-	uint32					iCacheSize;
+	size					iCacheSize;
 
 	bResult = mcIndexTree.StartIteration(&sIter, (uint8*)&oiKey, &iKeySize, sizeof(OIndex), &sDescriptor, &iDataSize, sizeof(CIndexedDataDescriptor));
 	while (bResult)

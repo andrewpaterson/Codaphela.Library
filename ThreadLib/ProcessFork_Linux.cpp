@@ -1,4 +1,4 @@
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #include <errno.h>
 #include <limits.h>
 #include <spawn.h>
@@ -88,5 +88,5 @@ bool ForkProcess(CArrayChars* paszParameters, bool bWaitForProcessToExit)
 }
 
 
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU
 

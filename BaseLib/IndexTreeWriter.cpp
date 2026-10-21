@@ -38,15 +38,15 @@ bool CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTreeMemory, char* szDirect
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeWriter::RecurseAllocate(CIndexTreeNodeMemory* pcMemoryNode, CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode)
 {
-	int						i;
+	size						i;
 	CIndexTreeNodeMemory*	pcMemoryChild;
 	CIndexTreeNodeFile*		pcFileChild;
 	void*					pvObject;
-	int						iChildFirstIndex;
-	int						iChildLastIndex;
-	int						iChildDataSize;
-	int						iFirstIndex;
-	int						iLastIndex;
+	size						iChildFirstIndex;
+	size						iChildLastIndex;
+	size						iChildDataSize;
+	size						iFirstIndex;
+	size						iLastIndex;
 
 	pvObject = pcMemoryNode->GetDataPtr();
 	if (pvObject != NULL)
@@ -92,12 +92,12 @@ void CIndexTreeWriter::RecurseAllocate(CIndexTreeNodeMemory* pcMemoryNode, CInde
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeWriter::RecurseWrite(CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode)
 {
-	int						i;
+	size						i;
 	CIndexTreeChildNode*	pcFileChild;
 	CIndexTreeNodeFile*		pcMemoryChild;
 	bool					bResult;
 	CIndexTreeChildNode*	apcChildren;
-	int						iNumNodes;
+	size						iNumNodes;
 
 	if (pcFileNode->HasNodes())
 	{

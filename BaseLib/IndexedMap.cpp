@@ -107,7 +107,7 @@ void CIndexedMap::NullCachedDescriptors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedMap::DescriptorEvicted(OIndex oi, void* pvCache, uint32 uiDataSize)
+bool CIndexedMap::DescriptorEvicted(OIndex oi, void* pvCache, size uiDataSize)
 {
 	if (mpcIndexedDataEvictionCallback)
 	{
@@ -175,7 +175,7 @@ bool CIndexedMap::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedMap::UpdateDescriptorCache(OIndex oi, void* pvCache, uint32 uiDataSize)
+bool CIndexedMap::UpdateDescriptorCache(OIndex oi, void* pvCache, size uiDataSize)
 {
 	CIndexedDataDescriptor* pcDescriptor;
 

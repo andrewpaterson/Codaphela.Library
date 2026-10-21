@@ -741,7 +741,7 @@ CChars* CChars::Append(float f, size iMaxDecimals, bool bAppendF)
 {
 	char szString[32];
 
-	if (!FloatToString(szString, 32, f, iMaxDecimals, bAppendF))
+	if (!FloatToString(szString, 32, f, (int)iMaxDecimals, bAppendF))
 	{
 		return this;
 	}
@@ -757,7 +757,7 @@ CChars* CChars::Append(double d, size iMaxDecimals, bool bAppendD)
 {
 	char	szString[128];
 
-	if (!DoubleToString(szString, 128, d, iMaxDecimals, bAppendD))
+	if (!DoubleToString(szString, 128, d, (int)iMaxDecimals, bAppendD))
 	{
 		return this;
 	}
@@ -2098,8 +2098,8 @@ void CChars::Difference(CArrayInt* paiNewToOldIndices, CArrayInt* paiOldToNewInd
 			if (cOld == cNew)
 			{
 				cTemp.SetChar(i, 1);
-				paiOldToNewIndices->SetValue(i, j);
-				paiNewToOldIndices->SetValue(j, i);
+				paiOldToNewIndices->SetValue(i, (int)j);
+				paiNewToOldIndices->SetValue(j, (int)i);
 				break;
 			}
 		}

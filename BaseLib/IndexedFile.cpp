@@ -170,7 +170,7 @@ bool CIndexedFile::Write(filePos iIndex, const void* pvData, size uiCount)
 		return false;
 	}
 
-	if (iIndex + uiCount > miNumDatas)
+	if (iIndex + (filePos)uiCount > miNumDatas)
 	{
 		iFileLengh = mcFile.Size();
 		miNumDatas = iFileLengh / muiDataSize;
@@ -202,7 +202,7 @@ bool CIndexedFile::Read(filePos iIndex, void* pvData, size uiCount)
 	{
 		return false;
 	}
-	if (iIndex + uiCount > miNumDatas)
+	if (iIndex + (filePos)uiCount > miNumDatas)
 	{
 		return false;
 	}
@@ -240,7 +240,7 @@ bool CIndexedFile::Delete(filePos iIndex, size uiCount)
 		return false;
 	}
 
-	if (iIndex + uiCount > miNumDatas)
+	if (iIndex + (filePos)uiCount > miNumDatas)
 	{
 		//This is wrong.  You need to loop multiple times if miNumDatas - iIndex is > than SIZE_MAX
 		if (miNumDatas <= iIndex)

@@ -73,7 +73,7 @@ CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader)
 
 	if (iLength >= 1024)
 	{
-		gcLogger.Error2(__METHOD__, " Could not read data orderer name, too long [", IntToString(iLength), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Could not read data orderer name, too long [", SizeToString(iLength), "].", NULL);
 		return NULL;
 	}
 

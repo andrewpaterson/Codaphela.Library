@@ -83,7 +83,7 @@ public:
 
 	size 	Find(M* pvData);
 	size 	FindWithKey(M* pvData, size iKeyOffset, size iKeySize);
-	size	FindWithIntKey(size iKey, size iKeyOffset);
+	size	FindWithIntKey(int iKey, size iKeyOffset);
 	bool	FindInSorted(M* pvData, DataCompare fCompare, size* piIndex);
 
 	bool	RemoveAt(size iElementPos, bool bPreserveOrder = 0);
@@ -504,7 +504,7 @@ void CArrayTemplateMinimal<M>::Swap(size iIndex1, size iIndex2)
 template<class M>
 void CArrayTemplateMinimal<M>::QuickSort(DataCompare fCompare)
 {
-	::QuickSort(fCompare, mpvArray, sizeof(M), miUsedElements);
+	::QuickSort(fCompare, mpvArray, sizeof(M), (int)miUsedElements);
 }
 
 
@@ -708,15 +708,15 @@ size CArrayTemplateMinimal<M>::FindWithKey(M* pvData, size iKeyOffset, size iKey
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-size	CArrayTemplateMinimal<M>::FindWithIntKey(size iKey, size iKeyOffset)
+size	CArrayTemplateMinimal<M>::FindWithIntKey(int iKey, size iKeyOffset)
 {
 	size		i;
 	void*	pPos;
 
-	pPos = (void*)((size) ((size)((size) mpvArray) + iKeyOffset));
+	pPos = RemapSinglePointer(mpvArray, iKeyOffset);
 	for (i = 0; i < miUsedElements; i++)
 	{
-		if (*((size*)pPos) == iKey)
+		if (*((int*)pPos) == iKey)
 		{
 			return i;
 		}

@@ -256,7 +256,7 @@ SLLAlignedNode* CLinkedListBlockAligned::GetNode(void* pvMem)
 {
 	if (pvMem)
 	{
-		return (SLLAlignedNode*)(size)((uint32)(size)pvMem - sizeof(SLLAlignedNode));
+		return (SLLAlignedNode*)((uint8*)pvMem - sizeof(SLLAlignedNode));
 	}
 	else
 	{
@@ -317,7 +317,7 @@ void* CLinkedListBlockAligned::Grow(void* pvData, size uiNewSize)
 	void*				pvAllocatedEnd;
 	void*				pvObjectEnd;
 	void*				pvNew;
-	uint32				uiSize;
+	size				uiSize;
 
 	psNodeHeader = DataGetHeader<SLLAlignedNode, void>(pvData);
 
@@ -381,9 +381,9 @@ bool CLinkedListBlockAligned::WriteHeader(CFileWriter* pcFileWriter)
 	size					iNumElements;
 
 	iNumElements = NumElements();
-	sHeader.Init(iNumElements, muiNodeSize);
+	sHeader.Init(iNumElements, LINKED_LIST_FILE_NODE_SIZE);
 
-	if (!pcFileWriter->WriteData(&sHeader, sizeof(SLinkedListBlockDesc)))
+	if (!sHeader.Write(pcFileWriter))
 	{
 		return false;
 	}
@@ -399,7 +399,7 @@ bool CLinkedListBlockAligned::WriteHeader(CFileWriter* pcFileWriter)
 bool CLinkedListBlockAligned::WriteData(CFileWriter* pcFileWriter)
 {
 	void*				pvData;
-	uint32				uiSize;
+	size				uiSize;
 	SLLAlignedNode*		psNode;
 	SAlignedDataDesc	sDataDesc;
 
@@ -412,7 +412,7 @@ bool CLinkedListBlockAligned::WriteData(CFileWriter* pcFileWriter)
 		uiSize = psNode->sAligned.uiSize;
 		sDataDesc.Init(uiSize, psNode->sAligned.iAlignment, psNode->sAligned.iOffset);
 
-		if (!pcFileWriter->WriteData(&sDataDesc, sizeof(SAlignedDataDesc)))
+		if (!sDataDesc.Write(pcFileWriter))
 		{
 			return false;
 		}
@@ -464,12 +464,12 @@ bool CLinkedListBlockAligned::ReadHeader(CFileReader* pcFileReader, CMallocator*
 {
 	SLinkedListBlockDesc	sDesc;
 
-	if (!pcFileReader->ReadData(&sDesc, sizeof(SLinkedListBlockDesc)))
+	if (!sDesc.Read(pcFileReader))
 	{
 		return false;
 	}
 
-	if (sizeof(SLLNode) != sDesc.uiNodeSize)
+	if (LINKED_LIST_FILE_NODE_SIZE != sDesc.uiNodeSize)
 	{
 		return false;
 	}
@@ -488,12 +488,12 @@ bool CLinkedListBlockAligned::ReadData(CFileReader* pcFileReader, size iNumEleme
 {
 	size				i;
 	void*				pvData;
-	uint32				uiSize;
+	size				uiSize;
 	SAlignedDataDesc	sDataDesc;
 
 	for (i = 0; i < iNumElements; i++)
 	{
-		if (!pcFileReader->ReadData(&sDataDesc, sizeof(SAlignedDataDesc)))
+		if (!sDataDesc.Read(pcFileReader))
 		{
 			return false;
 		}
@@ -518,5 +518,34 @@ void SAlignedDataDesc::Init(size uiSize, uint8 iAlignment, int8 iOffset)
 	this->uiSize = uiSize;
 	this->iAlignment = iAlignment;
 	this->iOffset = iOffset;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool SAlignedDataDesc::Write(CFileWriter* pcFileWriter)
+{
+	//Laid out as the struct is in a 32 bit build, including the two bytes of padding.
+	return pcFileWriter->WriteSize(uiSize) &&
+		   pcFileWriter->WriteInt8(iAlignment) &&
+		   pcFileWriter->WriteInt8(iOffset) &&
+		   pcFileWriter->WriteInt16((uint16)0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool SAlignedDataDesc::Read(CFileReader* pcFileReader)
+{
+	uint16	uiPadding;
+
+	return pcFileReader->ReadSize(&uiSize) &&
+		   pcFileReader->ReadInt8(&iAlignment) &&
+		   pcFileReader->ReadInt8(&iOffset) &&
+		   pcFileReader->ReadInt16(&uiPadding);
 }
 

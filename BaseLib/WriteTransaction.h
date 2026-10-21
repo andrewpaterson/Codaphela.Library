@@ -19,7 +19,7 @@ public:
 	bool	bRemoved;			//The object is removed when the transaction commits.
 	bool	bReplacesStored;	//The stored object was removed and this one added in its place.
 	int32	iNameLength;
-	uint32	uiDataSize;
+	size	uiDataSize;
 
 	char*	GetName(void);
 	void*	GetData(void);
@@ -78,30 +78,30 @@ public:
 
 	bool	Lock(OIndex oi, ELockMode eMode);
 
-	bool	Add(OIndex oi, void* pvData, uint32 uiDataSize);
-	bool	Add(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize);
-	bool	Add(OIndex oi, CChars* szName, void* pvData, uint32 uiDataSize);
+	bool	Add(OIndex oi, void* pvData, size uiDataSize);
+	bool	Add(OIndex oi, const char* szName, void* pvData, size uiDataSize);
+	bool	Add(OIndex oi, CChars* szName, void* pvData, size uiDataSize);
 
 	bool	Set(OIndex oi, void* pvData);
-	bool	Set(OIndex oi, void* pvData, uint32 uiDataSize);
+	bool	Set(OIndex oi, void* pvData, size uiDataSize);
 	bool	Set(const char* szName, void* pvData);
-	bool	Set(const char* szName, void* pvData, uint32 uiDataSize);
+	bool	Set(const char* szName, void* pvData, size uiDataSize);
 	bool	Set(CChars* szName, void* pvData);
-	bool	Set(CChars* szName, void* pvData, uint32 uiDataSize);
+	bool	Set(CChars* szName, void* pvData, size uiDataSize);
 
-	bool	Put(OIndex oi, void* pvData, uint32 uiDataSize);
-	bool	Put(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize);
-	bool	Put(OIndex oi, CChars* szName, void* pvData, uint32 uiDataSize);
+	bool	Put(OIndex oi, void* pvData, size uiDataSize);
+	bool	Put(OIndex oi, const char* szName, void* pvData, size uiDataSize);
+	bool	Put(OIndex oi, CChars* szName, void* pvData, size uiDataSize);
 
 	bool	Get(OIndex oi, void* pvData);
-	bool	Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
+	bool	Get(OIndex oi, size* puiDataSize, void* pvData, size uiMaxDataSize);
 	bool	Get(const char* szName, void* pvData);
-	bool	Get(const char* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
+	bool	Get(const char* szName, size* puiDataSize, void* pvData, size uiMaxDataSize);
 	bool	Get(CChars* szName, void* pvData);
-	bool	Get(CChars* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
+	bool	Get(CChars* szName, size* puiDataSize, void* pvData, size uiMaxDataSize);
 
 	bool	GetName(OIndex oi, CChars* szName);
-	bool	GetName(OIndex oi, char* szName, uint32* puiNameLength, uint32 uiMaxNameLength);
+	bool	GetName(OIndex oi, char* szName, size* puiNameLength, size uiMaxNameLength);
 	OIndex	GetIndex(const char* szName);
 	OIndex	GetIndex(CChars* szName);
 
@@ -132,14 +132,14 @@ protected:
 	void			ReleaseResources(void);
 	bool			ReserveNewName(const char* szName);
 	CWriteRecord*	GetRecord(OIndex oi);
-	bool			PutRecord(OIndex oi, bool bRemoved, bool bReplacesStored, const char* szName, void* pvData, uint32 uiDataSize);
+	bool			PutRecord(OIndex oi, bool bRemoved, bool bReplacesStored, const char* szName, void* pvData, size uiDataSize);
 	bool			Exists(OIndex oi);
 	OIndex			FindName(const char* szName);
 	bool			GetCurrentName(OIndex oi, CChars* pszName);
-	bool			GetDataSize(OIndex oi, uint32* puiDataSize);
-	bool			SetData(OIndex oi, void* pvData, uint32 uiDataSize);
-	bool			AddLocked(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize);
-	bool			SetLocked(OIndex oi, void* pvData, uint32 uiDataSize);
+	bool			GetDataSize(OIndex oi, size* puiDataSize);
+	bool			SetData(OIndex oi, void* pvData, size uiDataSize);
+	bool			AddLocked(OIndex oi, const char* szName, void* pvData, size uiDataSize);
+	bool			SetLocked(OIndex oi, void* pvData, size uiDataSize);
 	bool			RemoveLocked(OIndex oi);
 	void			Finish(void);
 };

@@ -42,6 +42,8 @@ struct SAlignedDataDesc
 	int8	iOffset;
 
 	void	Init(size uiSize, uint8 iAlignment, int8 iOffset);
+	bool	Write(CFileWriter* pcFileWriter);
+	bool	Read(CFileReader* pcFileReader);
 };
 
 

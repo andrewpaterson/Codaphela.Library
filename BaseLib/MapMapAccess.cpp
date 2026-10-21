@@ -72,7 +72,7 @@ void CMapMapAccess::FreeIterator(CMapIterator* pcIter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMapMapAccess::Put(const void* pvKey, uint32 iKeySize, const void* pvData, uint32 uiDataSize)
+void* CMapMapAccess::Put(const void* pvKey, size iKeySize, const void* pvData, size uiDataSize)
 {
 	void*	pv;
 
@@ -89,12 +89,12 @@ void* CMapMapAccess::Put(const void* pvKey, uint32 iKeySize, const void* pvData,
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMapMapAccess::Get(const void* pvKey, uint32 iKeySize, uint32* puiDataSize)
+void* CMapMapAccess::Get(const void* pvKey, size iKeySize, size* puiDataSize)
 {
 	bool	bResult;
 	void*	pvData;
 
-	bResult = mpcMap->Get(pvKey, iKeySize, &pvData, (uint32*)puiDataSize);
+	bResult = mpcMap->Get(pvKey, iKeySize, &pvData, puiDataSize);
 	if (bResult)
 	{
 		return pvData;
@@ -110,7 +110,7 @@ void* CMapMapAccess::Get(const void* pvKey, uint32 iKeySize, uint32* puiDataSize
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint32 CMapMapAccess::DataSize(void* pvKey, uint32 iKeySize)
+size CMapMapAccess::DataSize(void* pvKey, size iKeySize)
 {
 	return mpcMap->DataSize(pvKey, iKeySize);
 }
@@ -120,7 +120,7 @@ uint32 CMapMapAccess::DataSize(void* pvKey, uint32 iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapMapAccess::Remove(const void* pvKey, uint32 iKeySize)
+bool CMapMapAccess::Remove(const void* pvKey, size iKeySize)
 {
 	return mpcMap->Remove(pvKey, iKeySize);
 }
@@ -130,7 +130,7 @@ bool CMapMapAccess::Remove(const void* pvKey, uint32 iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapMapAccess::Has(const void* pvKey, uint32 iKeySize)
+bool CMapMapAccess::Has(const void* pvKey, size iKeySize)
 {
 	return mpcMap->HasKey(pvKey, iKeySize);
 }

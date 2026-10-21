@@ -804,7 +804,7 @@ bool CIndexTreeMemory::WriteConfig(CFileWriter* pcFileWriter)
 
 	cMalloc.Init(mpcMalloc, mcMallocLife.MustFree(), mcMallocLife.MustKill());
 	cDataOrderer.Init(mpcDataOrderer, mcDataOrdererLife.MustFree(), mcDataOrdererLife.MustKill());
-	cConfig.Init(cMalloc, meReverseKey, miMaxDataSize, miMaxKeySize, cDataOrderer);
+	cConfig.Init(cMalloc, meReverseKey, (int)miMaxDataSize, (int)miMaxKeySize, cDataOrderer);
 	bResult = cConfig.Write(pcFileWriter);
 	cConfig.Kill();
 	return bResult;
@@ -1889,13 +1889,13 @@ bool CIndexTreeMemory::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 				if (!pcNode->ContainsIndex(iFirst))
 				{
 					pcCursor->GenerateBad();
-					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] did not contain first index [", IntToString(iFirst), "].", NULL);
+					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] did not contain first index [", SizeToString(iFirst), "].", NULL);
 					return false;
 				}
 				if (!pcNode->ContainsIndex(iLast))
 				{
 					pcCursor->GenerateBad();
-					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] did not contain last index [", IntToString(iLast), "].", NULL);
+					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] did not contain last index [", SizeToString(iLast), "].", NULL);
 					return false;
 				}
 
@@ -1903,7 +1903,7 @@ bool CIndexTreeMemory::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 				if (pcFirst == NULL)
 				{
 					pcCursor->GenerateBad();
-					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] first child [", IntToString(iFirst), "] was NULL.", NULL);
+					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] first child [", SizeToString(iFirst), "] was NULL.", NULL);
 					return false;
 				}
 
@@ -1911,7 +1911,7 @@ bool CIndexTreeMemory::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 				if (pcLast == NULL)
 				{
 					pcCursor->GenerateBad();
-					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] last child [", IntToString(iFirst), "] was NULL.", NULL);
+					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] last child [", SizeToString(iFirst), "] was NULL.", NULL);
 					return false;
 				}
 			}

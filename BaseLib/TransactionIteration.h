@@ -29,7 +29,7 @@ public:
 };
 
 
-bool CopyTransactionName(CChars* pszName, bool bFound, char* szName, uint32* puiNameLength, uint32 uiMaxNameLength);
+bool CopyTransactionName(CChars* pszName, bool bFound, char* szName, size* puiNameLength, size uiMaxNameLength);
 
 
 #endif // __TRANSACTION_ITERATION_H__

@@ -603,7 +603,7 @@ bool CLogFile::AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping,
 	filePos					iEnd;  //Inclusive;
 	size					i;
 	CLogFileCommandWrite*	psWrite;
-	size					iIndex;
+	uint					iIndex;
 	size					iIndeedSize;
 	CLogFileCommandWrite*	psCommand;
 	void*					pvData;
@@ -624,7 +624,7 @@ bool CLogFile::AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping,
 			iStart = psWrite->iPosition;
 		}
 
-		if ((psWrite->iPosition + psWrite->iSize - 1) > iEnd)
+		if ((psWrite->iPosition + (filePos)psWrite->iSize - 1) > iEnd)
 		{
 			iEnd = psWrite->iPosition + psWrite->iSize - 1;
 		}
@@ -723,7 +723,7 @@ size CLogFile::Read(void* pvDest, size iSize, size iCount)
 		{
 			return 0;
 		}
-		else if ((miPosition + uiByteSize) > miLength)
+		else if ((miPosition + (filePos)uiByteSize) > miLength)
 		{
 			uiBytesRead = (size)(miLength - miPosition) / iSize;
 			miPosition += uiBytesRead * iSize;
@@ -826,7 +826,7 @@ void CLogFile::CopyWritesToRead(CArrayIntAndPointer* papvOverlapping, size iByte
 	size					i;
 	size					iNumWrites;
 	CLogFileCommandWrite*	psWrite;
-	size					iIndex;
+	uint					iIndex;
 	void*					pvData;
 	size					iDestOffset;
 	size					iSourceOffset;
@@ -1028,7 +1028,7 @@ bool CLogFile::FindHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition
 	CArrayIntAndPointer		apvOverlappingSorted;  //Should be an CArraySizeAndPointer
 	size					i;
 	CLogFileCommandWrite*	psWrite;
-	size					eCommand;
+	uint					eCommand;
 	bool					bHoles;
 	filePos					iEnd;
 	size					uiNumElements;
@@ -1068,13 +1068,13 @@ bool CLogFile::FindHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition
 			break;
 		}
 		iEnd = psWrite->iPosition + psWrite->iSize - 1;
-		if (iEnd >= (iPosition + iLength - 1))
+		if (iEnd >= (iPosition + (filePos)iLength - 1))
 		{
 			break;
 		}
 	}
 
-	if (iEnd < (iPosition + iLength - 1))
+	if (iEnd < (iPosition + (filePos)iLength - 1))
 	{
 		bHoles = true;
 	}
@@ -1118,7 +1118,7 @@ bool CLogFile::FindTouchingWriteCommands(size iStartIndex, CArrayIntAndPointer* 
 					bInitialised = true;
 				}
 
-				papvOverlapping->Add(psWrite, iIndex);
+				papvOverlapping->Add(psWrite, (uint)iIndex);
 			}
 		}
 	}
@@ -1237,7 +1237,7 @@ bool CLogFile::Truncate(filePos iSize)
 				{
 					macCommands.RemoveAt(i, true);
 				}
-				else if ((psWrite->iPosition + psWrite->iSize) > iSize)
+				else if ((psWrite->iPosition + (filePos)psWrite->iSize) > iSize)
 				{
 					psWrite->iSize = (size)(iSize - psWrite->iPosition);
 				}

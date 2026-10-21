@@ -244,8 +244,8 @@ size CDiskFile::Read(void* pvBuffer, size iSize, size iCount)
 {
 	bool	bResult;
 	size	iByteLength;
-	size	uiTruncatedLength;
-	size	uiReadLength;
+	DWORD	uiTruncatedLength;
+	DWORD	uiReadLength;
 
 	if (iSize == 0)
 	{
@@ -254,17 +254,18 @@ size CDiskFile::Read(void* pvBuffer, size iSize, size iCount)
 
 	if (IsOpen())
 	{
+		//ReadFile reads at most 4GB so a bigger read is cut down to a whole number of elements.
 		iByteLength = iSize * iCount;
-		if (iByteLength <= SIZE_MAX)
+		if (iByteLength <= MAX_UINT32)
 		{
-			uiTruncatedLength = iByteLength;
+			uiTruncatedLength = (DWORD)iByteLength;
 		}
 		else
 		{
-			uiTruncatedLength = 0;
+			uiTruncatedLength = (DWORD)((MAX_UINT32 / iSize) * iSize);
 		}
 
-		bResult = ReadFile(GetHandle(this), pvBuffer, uiTruncatedLength, (LPDWORD)&uiReadLength, NULL);
+		bResult = ReadFile(GetHandle(this), pvBuffer, uiTruncatedLength, &uiReadLength, NULL);
 		if (bResult)
 		{
 			return uiReadLength / iSize;
@@ -318,17 +319,25 @@ bool CDiskFile::Seek(filePos iOffset, EFileSeekOrigin eSeekOrigin)
 //////////////////////////////////////////////////////////////////////////
 size CDiskFile::Write(const void* pvBuffer, size iSize, size iCount)
 {
-	size	uiWritten;
+	DWORD	uiWritten;
 	bool	bResult;
 	size	iByteLength;
-	size	uiTruncatedLength;
+	DWORD	uiTruncatedLength;
 
 	if (IsOpen() && (iSize != 0) && (iCount != 0))
 	{
+		//WriteFile writes at most 4GB so a bigger write is cut down to a whole number of elements.
 		iByteLength = iSize * iCount;
-		uiTruncatedLength = iByteLength;
+		if (iByteLength <= MAX_UINT32)
+		{
+			uiTruncatedLength = (DWORD)iByteLength;
+		}
+		else
+		{
+			uiTruncatedLength = (DWORD)((MAX_UINT32 / iSize) * iSize);
+		}
 
-		bResult = WriteFile(GetHandle(this), pvBuffer, uiTruncatedLength, (LPDWORD)&uiWritten, NULL);
+		bResult = WriteFile(GetHandle(this), pvBuffer, uiTruncatedLength, &uiWritten, NULL);
 
 		if (bResult)
 		{

@@ -30,7 +30,7 @@ void CTrackingAllocator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int CTrackingAllocator::AllocatedCount(void)
 {
-	return mapv.NumElements();
+	return (int)mapv.NumElements();
 }
 
 

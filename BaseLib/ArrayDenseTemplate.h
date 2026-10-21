@@ -120,7 +120,7 @@ public:
 //////////////////////////////////////////////////////////////////////////
 void SDenseNode::Set(size iLeftCount, bool bLeftElement, bool bRightElement)
 {
-	iFlags = iLeftCount;
+	iFlags = (uint32)iLeftCount;
 	if (bLeftElement)
 	{
 		iFlags |= DENSE_NODE_LEFT_ELEMENT;
@@ -149,7 +149,7 @@ size SDenseNode::GetLeftCount(void)
 void SDenseNode::SetLeftCount(size iLeftCount)
 {
 	iFlags &= (DENSE_NODE_LEFT_ELEMENT | DENSE_NODE_RIGHT_ELEMENT);
-	iFlags |= iLeftCount;
+	iFlags |= (uint32)iLeftCount;
 }
 
 

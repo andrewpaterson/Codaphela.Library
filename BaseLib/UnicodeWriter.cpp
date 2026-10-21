@@ -158,7 +158,7 @@ size CUnicodeWriter::WriteUTF16LE(CUnicodeReader* pcUnicodeReader, CArrayUint16*
 					puiUTF16Dest->InsertBlockAfterEnd((uint16*)&cUTF16Element32, uiUTF16Length);
 				}
 			}
-			else if ((uiUTF16Length == 0) || mpcReader->IsError(uiUTF16Length))
+			else if ((uiUTF16Length == 0) || mpcReader->IsError((uint32)uiUTF16Length))
 			{
 				return ARRAY_ELEMENT_NOT_FOUND;
 			}

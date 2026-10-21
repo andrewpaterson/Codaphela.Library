@@ -132,7 +132,7 @@ void CAssertStatistics::PrintTotal(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 int CAssertStatistics::GetTotalTestsFailed(void)
 {
-	return miTotalTestsFailed;
+	return (int)miTotalTestsFailed;
 }
 
 

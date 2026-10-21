@@ -413,7 +413,7 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
 					if (szExtension != NULL)
 					{
 						szFake.Fake(sFindData.cFileName);
-						iFileExtension = FindExtension(szFake.Text());
+						iFileExtension = (int)FindExtension(szFake.Text());
 						if (iFileExtension != -1)
 						{
 							if (!(szFake.SubStringEquals(iFileExtension+1, szExtension)))

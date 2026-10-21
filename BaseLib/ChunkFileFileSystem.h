@@ -50,7 +50,7 @@ protected:
 	bool		WriteChunkBegin(void);
 	bool		WriteChunkEnd(const char* szChunkName);
 
-	uint32		FindChunkNamesMatching(CArrayChars* paszOpenChunkNames, CArrayChars* paszChunkNames);
+	size		FindChunkNamesMatching(CArrayChars* paszOpenChunkNames, CArrayChars* paszChunkNames);
 	bool		WriteUnmatchedChunkEnds(size iMatchingOpen);
 	bool		WriteNewUnmatchedChunks(size iMatchingOpen, CArrayChars* paszChunkNames);
 

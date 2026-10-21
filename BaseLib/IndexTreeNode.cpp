@@ -25,7 +25,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, siz
 		GetNodeData()->Init(uiDataSize);
 	}
 	uiSize = (uiLastIndex - uiFirstIndex + 1) * SizeofNodePtr();
-	memset(GetNodesMemory(), iClearValue, uiSize);
+	memset(GetNodesMemory(), (int)iClearValue, uiSize);
 }
 
 
@@ -301,7 +301,7 @@ void CIndexTreeNode::ClearOnlyNode(size uiIndex, size iClearValue)
 	muiFirstIndex = (uint8)uiIndex;
 	muiLastIndex = (uint8)uiIndex;
 	uiSize = SizeofNodePtr();
-	memset(pvNodes, iClearValue, uiSize);
+	memset(pvNodes, (int)iClearValue, uiSize);
 }
 
 
@@ -343,7 +343,7 @@ void CIndexTreeNode::MoveNodesRight(size uiNewFirstIndex, size iClearValue)
 	uiSize = (muiFirstIndex - uiNewFirstIndex) * SizeofNodePtr();
 	pvDest = (CIndexTreeNode**)RemapSinglePointer(pvNodes, uiSize);
 	memmove(pvDest, pvNodes, uiOldNumIndexes * SizeofNodePtr());
-	memset(pvNodes, iClearValue, uiSize);
+	memset(pvNodes, (int)iClearValue, uiSize);
 	muiFirstIndex = (uint8)uiNewFirstIndex;
 }
 
@@ -364,7 +364,7 @@ void CIndexTreeNode::ClearLastNodes(size uiNewLastIndex, size iClearValue)
 
 	uiSize = (uiNewLastIndex - muiLastIndex) * SizeofNodePtr();
 	pvDest = (CIndexTreeNode**)RemapSinglePointer(pvNodes, uiOldNumIndexes * SizeofNodePtr());
-	memset(pvDest, iClearValue, uiSize);
+	memset(pvDest, (int)iClearValue, uiSize);
 	muiLastIndex = (uint8)uiNewLastIndex;
 }
 
@@ -494,7 +494,7 @@ bool CIndexTreeNode::IsMagic(void)
 bool CIndexTreeNode::HasFlags(size sFlags)
 {
 	//True if any flag matches (including all flags matching).
-	return FixBool(msFlags & sFlags);
+	return (msFlags & sFlags) != 0;
 }
 
 
@@ -678,7 +678,7 @@ void CIndexTreeNode::ChangeDataSize(size uiSize)
 			if (HasNodes())
 			{
 				tIndexSize = (muiLastIndex - muiFirstIndex + 1) * SizeofNodePtr();
-				iDataSizeDiff = (int)uiSize - iOldDataSize;
+				iDataSizeDiff = (int)uiSize - (int)iOldDataSize;
 
 				apcChildren = GetNodesMemory();
 				apcMovedChildren = RemapSinglePointer(apcChildren, iDataSizeDiff);
@@ -692,7 +692,7 @@ void CIndexTreeNode::ChangeDataSize(size uiSize)
 			if (HasNodes())
 			{
 				tIndexSize = (muiLastIndex - muiFirstIndex + 1) * SizeofNodePtr();
-				iDataSizeDiff = (int)uiSize + (mpcIndexTree->SizeofDataNode() - mpcIndexTree->SizeofNode());
+				iDataSizeDiff = (int)uiSize + (int)(mpcIndexTree->SizeofDataNode() - mpcIndexTree->SizeofNode());
 
 				apcChildren = GetNodesMemory();
 				apcMovedChildren = RemapSinglePointer(apcChildren, iDataSizeDiff);

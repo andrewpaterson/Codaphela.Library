@@ -53,7 +53,7 @@ public:
 	CIndexedFile* 	GetFile(uint32 uiFileIndex);
 	uint32			GetUniqueFileNumber(size iDataSize);
 	void			GetFiles(CArrayIndexedFilePtr* pac);
-	uint32			GetFileDataSize(uint32 uiFileIndex);
+	size			GetFileDataSize(uint32 uiFileIndex);
 
 	int64			NumDatas(void);
 	int64			NumDatas(size iDataSize);

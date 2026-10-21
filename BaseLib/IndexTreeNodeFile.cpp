@@ -451,7 +451,7 @@ CIndexTreeNodeFile* CIndexTreeNodeFile::GetValidMemoryNode(size iIndex)
 //////////////////////////////////////////////////////////////////////////
 size CIndexTreeNodeFile::CalculateNodeSize(void)
 {
-	return (sizeof(size) * 2) + sizeof(uint16) + (sizeof(uint8) * 4) + (NumIndexes() * (sizeof(uint32) * 2));
+	return (sizeof(uint32) * 2) + sizeof(uint16) + (sizeof(uint8) * 4) + (NumIndexes() * (sizeof(uint32) * 2));
 }
 
 
@@ -512,8 +512,9 @@ size CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, size uiBufferSize, CIndex
 	uiPos = 0;
 	uiDataSize = GetDataSize();
 
-	*((size*)&pucMemory[uiPos]) = uiFileSize;  uiPos += sizeof(size);
-	*((size*)&pucMemory[uiPos]) = uiFileDataSize;  uiPos += sizeof(size);
+	//The sizes are four bytes so the file is the same in 32 and 64 bit builds.
+	*((uint32*)&pucMemory[uiPos]) = (uint32)uiFileSize;  uiPos += sizeof(uint32);
+	*((uint32*)&pucMemory[uiPos]) = (uint32)uiFileDataSize;  uiPos += sizeof(uint32);
 	*((int16*)&pucMemory[uiPos]) = (uint16)uiDataSize;  uiPos += sizeof(uint16);
 
 	pucMemory[uiPos] = muiFirstIndex;  uiPos += sizeof(uint8);
@@ -580,14 +581,14 @@ size CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, size uiMaxBufferSize, CI
 	pucMemory = (uint8*)pvBuffer;
 	uiPos = 0;
 
-	uiFileSize = *((size*)&pucMemory[uiPos]);  uiPos += sizeof(size);
+	uiFileSize = *((uint32*)&pucMemory[uiPos]);  uiPos += sizeof(uint32);
 	if (uiMaxBufferSize < uiFileSize)
 	{
 		gcLogger.Error2(__METHOD__, " Node buffer size [", SizeToString(uiMaxBufferSize), "] did not match node size in file [", SizeToString(uiFileSize), "].", NULL);
 		return 0;
 	}
 
-	iFileDataSize = *((size*)&pucMemory[uiPos]);  uiPos += sizeof(size);
+	iFileDataSize = *((uint32*)&pucMemory[uiPos]);  uiPos += sizeof(uint32);
 	uiDataSize = *((uint16*)&pucMemory[uiPos]);  uiPos += sizeof(uint16);
 
 	uiFirstIndex = pucMemory[uiPos];  uiPos++;
@@ -652,7 +653,7 @@ bool CIndexTreeNodeFile::ValidateNodesEmpty(void)
 	{
 		if (bNodesEmpty)
 		{
-			return gcLogger.Error2(__METHOD__, " Child nodes marked as empty but ", IntToString(iCount), " are allocated.", NULL);
+			return gcLogger.Error2(__METHOD__, " Child nodes marked as empty but ", SizeToString(iCount), " are allocated.", NULL);
 		}
 		else
 		{

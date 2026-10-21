@@ -20,7 +20,7 @@ bool Failed(size iLine, const char* szFile)
 
 	Failed();
 
-	IntToString(szLine, 1024, iLine, 10);
+	SizeToString(szLine, 1024, iLine, 10);
 	szError.Init("Failed: ");
 	szError.Append(szFile);
 	szError.Append(" line ");
@@ -46,7 +46,7 @@ bool Failed(const char* szExpected, const char* szActual, const char* szPrefix, 
 
 	Failed();
 
-	IntToString(szLine, 1024, iLine, 10);
+	SizeToString(szLine, 1024, iLine, 10);
 	szError.Init("Failed: ");
 	szError.Append(szFile);
 	szError.Append(" line ");
@@ -106,13 +106,13 @@ bool IsMultiLine(const char* szExpected, const char* szActual)
 {
 	int		iCount;
 
-	iCount = CountNewLines((char*)szExpected, StrLen(szExpected));
+	iCount = (int)CountNewLines((char*)szExpected, StrLen(szExpected));
 	if (iCount > 0)
 	{
 		return true;
 	}
 
-	iCount = CountNewLines((char*)szActual, StrLen(szActual));
+	iCount = (int)CountNewLines((char*)szActual, StrLen(szActual));
 	if (iCount > 0)
 	{
 		return true;
@@ -407,10 +407,10 @@ void ToPointerString(void* pv, char* szString, size iStringLength)
 {
 	CChars	c;
 
-	IntToString(szString, iStringLength, (uint32)pv, 16);
+	LongToString(szString, iStringLength, (uint64)(ptr)pv, 16);
 
 	c.Init(szString);
-	c.RightAlign('0', 8);
+	c.RightAlign('0', sizeof(void*) * 2);
 	c.Insert(0, "0x");
 	strcpy(szString, c.Text());
 	c.Kill();

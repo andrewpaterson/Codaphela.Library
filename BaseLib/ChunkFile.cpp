@@ -518,7 +518,7 @@ chunkName CChunkFile::GetTailChunkNameIndex(size iChunkNum)
 //////////////////////////////////////////////////////////////////////////
 bool CChunkFile::ReadChunkBegin(const char* szName)
 {
-	chunkName				iChunkNum;
+	size				iChunkNum;
 	CChunkStackElement*		psElement;
 	SChunkIndex*			psIndex;
 
@@ -584,7 +584,7 @@ bool CChunkFile::ReadChunkEnd(void)
 		if (psElement->bContainsChunks)
 		{
 			iSeekPos = psElement->sHeader.miChunkIndexPos;
-			iSeekPos += psElement->cChunkIndex.mcChunkIndices.ByteSize() + sizeof(size)*2 + sizeof(size)*3 + sizeof(void*);  //Howw is this caclulated?
+			iSeekPos += psElement->cChunkIndex.mcChunkIndices.ByteSize() + sizeof(uint32)*2 + sizeof(uint32)*3 + sizeof(uint32);  //Howw is this caclulated?  Sizes are four bytes in files.
 		}
 		else
 		{
@@ -624,7 +624,7 @@ bool CChunkFile::ReadChunkEnd(size iNumChunksToEnd)
 //////////////////////////////////////////////////////////////////////////
 bool CChunkFile::ReadChunkNames(void)
 {
-	size*			piVal;
+	chunkName*		piVal;
 	chunkName		iMax;
 	bool			bResult;
 	SMapIterator	sIter;
@@ -740,7 +740,7 @@ char* CChunkFile::GetTailChunkNameForIndex(size iIndex)
 	chunkName	iName;
 
 	iName = GetTailChunkNameIndex(iIndex);
-	if (iName == CHUNK_FILE_NOT_FOUND)
+	if (iName == CFN_Error)
 	{
 		return NULL;
 	}

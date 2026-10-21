@@ -318,7 +318,7 @@ bool CTreeBlock::WriteTreeUnknown(CFileWriter* pcFileWriter)
 	size				aiPath[1024];
 	size				iSize;
 
-	if (!pcFileWriter->WriteData(this, sizeof(CTreeBlock))) 
+	if (!WriteTreeObject(pcFileWriter)) 
 	{ 
 		return false; 
 	}
@@ -342,7 +342,7 @@ bool CTreeBlock::WriteTreeUnknown(CFileWriter* pcFileWriter)
 			{ 
 				return false; 
 			}
-			if (!pcFileWriter->WriteData(aiPath, sizeof(size) * iPathSize)) 
+			if (!pcFileWriter->WriteSizes(aiPath, iPathSize)) 
 			{ 
 				return false; 
 			}
@@ -370,12 +370,11 @@ bool CTreeBlock::ReadTreeUnknown(CFileReader* pcFileReader)
 	size				iNumElements;
 	size				iSize;;
 
-	if (!pcFileReader->ReadData(this, sizeof(CTreeBlock))) 
+	if (!ReadTreeObject(pcFileReader, &iNumElements)) 
 	{ 
 		return false; 
 	}
 
-	iNumElements = NumElements();
 	Init();
 
 	for (i = 0; i < iNumElements; i++)
@@ -388,7 +387,7 @@ bool CTreeBlock::ReadTreeUnknown(CFileReader* pcFileReader)
 		{ 
 			return false; 
 		}
-		if (!pcFileReader->ReadData(aiPath, sizeof(size) * iPathSize)) 
+		if (!pcFileReader->ReadSizes(aiPath, iPathSize)) 
 		{ 
 			return false; 
 		}

@@ -198,8 +198,8 @@ bool PrivateAssertStringStartsWith(const char* szExpected, const char* szActual,
 	}
 	else
 	{
-		iStrLenActual = StrLen(szActual);
-		iStrLenExpected = StrLen(szExpected);
+		iStrLenActual = (int)StrLen(szActual);
+		iStrLenExpected = (int)StrLen(szExpected);
 
 		if (iStrLenActual < iStrLenExpected)
 		{
@@ -799,8 +799,8 @@ bool PrivateAssertMemory(const void* pvExpected, void* pvActual, size iSize, cha
 		{
 			uiExpected = ((uint8*)pvExpected)[i];
 			uiActual = ((uint8*)pvActual)[i];
-			sprintf(szExpected, "mem[%i] == %u", i, uiExpected);
-			sprintf(szActual, "mem[%i] == %u", i, uiActual);
+			sprintf(szExpected, "mem[%i] == %u", (int)i, uiExpected);
+			sprintf(szActual, "mem[%i] == %u", (int)i, uiActual);
 			return Failed((const char*)szExpected, (const char*)szActual, szPrefix, iLine, szFile, false);
 		}
 	}
@@ -809,7 +809,7 @@ bool PrivateAssertMemory(const void* pvExpected, void* pvActual, size iSize, cha
 	if (i != 0)
 	{
 		sprintf(szExpected, "memcmp() == 0");
-		sprintf(szActual, "memcmp() == %i", i);
+		sprintf(szActual, "memcmp() == %i", (int)i);
 		return Failed((const char*)szExpected, (const char*)szActual, szPrefix, iLine, szFile, false);
 	}
 	else
@@ -925,7 +925,7 @@ bool PrivateAssertNumber(const char* szExpected, CNumber* pcActual, char* szPref
 	bool		bResult;
 
 	szFake.Fake((char*)szExpected);
-	iIndex = szFake.Find(0, '.');
+	iIndex = (int)szFake.Find(0, '.');
 	if (iIndex != -1)
 	{
 		iDecimals = (int16)(szFake.Length() - iIndex);

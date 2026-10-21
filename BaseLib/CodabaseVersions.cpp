@@ -57,7 +57,7 @@ bool CCodabaseVersions::SaveRecord(int64 iValidUntil, OIndex oi, CNamedIndexedDa
 	CVersion*			pcTail;
 	CVersion*			pcVersion;
 	CChars				szName;
-	uint32				uiDataSize;
+	size				uiDataSize;
 	bool				bExists;
 	CStackMemory<2 KB>	cStack;
 	void*				pvData;
@@ -82,12 +82,12 @@ bool CCodabaseVersions::SaveRecord(int64 iValidUntil, OIndex oi, CNamedIndexedDa
 	szName.Init();
 	uiDataSize = 0;
 	pvData = cStack.Init();
-	bExists = pcStore->GetWithName(oi, &szName, &uiDataSize, pvData, (uint32)cStack.GetStackSize());
+	bExists = pcStore->GetWithName(oi, &szName, &uiDataSize, pvData, (size)cStack.GetStackSize());
 	if (!bExists)
 	{
 		uiDataSize = 0;
 	}
-	else if (uiDataSize > (uint32)cStack.GetStackSize())
+	else if (uiDataSize > (size)cStack.GetStackSize())
 	{
 		cStack.Kill();
 		pvData = cStack.Init(uiDataSize);

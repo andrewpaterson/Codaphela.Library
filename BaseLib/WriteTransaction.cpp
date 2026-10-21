@@ -176,7 +176,7 @@ bool CWriteTransaction::Lock(OIndex oi, ELockMode eMode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Add(OIndex oi, void* pvData, uint32 uiDataSize)
+bool CWriteTransaction::Add(OIndex oi, void* pvData, size uiDataSize)
 {
 	return Add(oi, (const char*)NULL, pvData, uiDataSize);
 }
@@ -186,7 +186,7 @@ bool CWriteTransaction::Add(OIndex oi, void* pvData, uint32 uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Add(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize)
+bool CWriteTransaction::Add(OIndex oi, const char* szName, void* pvData, size uiDataSize)
 {
 	if (!CheckActive())
 	{
@@ -212,7 +212,7 @@ bool CWriteTransaction::Add(OIndex oi, const char* szName, void* pvData, uint32 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Add(OIndex oi, CChars* szName, void* pvData, uint32 uiDataSize)
+bool CWriteTransaction::Add(OIndex oi, CChars* szName, void* pvData, size uiDataSize)
 {
 	return Add(oi, szName ? szName->Text() : NULL, pvData, uiDataSize);
 }
@@ -232,7 +232,7 @@ bool CWriteTransaction::Set(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Set(OIndex oi, void* pvData, uint32 uiDataSize)
+bool CWriteTransaction::Set(OIndex oi, void* pvData, size uiDataSize)
 {
 	if (!CheckActive())
 	{
@@ -260,7 +260,7 @@ bool CWriteTransaction::Set(const char* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Set(const char* szName, void* pvData, uint32 uiDataSize)
+bool CWriteTransaction::Set(const char* szName, void* pvData, size uiDataSize)
 {
 	OIndex	oi;
 
@@ -294,7 +294,7 @@ bool CWriteTransaction::Set(CChars* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Set(CChars* szName, void* pvData, uint32 uiDataSize)
+bool CWriteTransaction::Set(CChars* szName, void* pvData, size uiDataSize)
 {
 	return Set(szName ? szName->Text() : NULL, pvData, uiDataSize);
 }
@@ -304,7 +304,7 @@ bool CWriteTransaction::Set(CChars* szName, void* pvData, uint32 uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Put(OIndex oi, void* pvData, uint32 uiDataSize)
+bool CWriteTransaction::Put(OIndex oi, void* pvData, size uiDataSize)
 {
 	if (!CheckActive())
 	{
@@ -330,7 +330,7 @@ bool CWriteTransaction::Put(OIndex oi, void* pvData, uint32 uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Put(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize)
+bool CWriteTransaction::Put(OIndex oi, const char* szName, void* pvData, size uiDataSize)
 {
 	OIndex	oiExisting;
 	bool	bExists;
@@ -382,7 +382,7 @@ bool CWriteTransaction::Put(OIndex oi, const char* szName, void* pvData, uint32 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Put(OIndex oi, CChars* szName, void* pvData, uint32 uiDataSize)
+bool CWriteTransaction::Put(OIndex oi, CChars* szName, void* pvData, size uiDataSize)
 {
 	return Put(oi, szName ? szName->Text() : NULL, pvData, uiDataSize);
 }
@@ -419,7 +419,7 @@ bool CWriteTransaction::Get(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize)
+bool CWriteTransaction::Get(OIndex oi, size* puiDataSize, void* pvData, size uiMaxDataSize)
 {
 	CWriteRecord*	pcRecord;
 
@@ -466,7 +466,7 @@ bool CWriteTransaction::Get(const char* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Get(const char* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize)
+bool CWriteTransaction::Get(const char* szName, size* puiDataSize, void* pvData, size uiMaxDataSize)
 {
 	OIndex	oi;
 
@@ -492,7 +492,7 @@ bool CWriteTransaction::Get(CChars* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::Get(CChars* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize)
+bool CWriteTransaction::Get(CChars* szName, size* puiDataSize, void* pvData, size uiMaxDataSize)
 {
 	return Get(szName ? szName->Text() : NULL, puiDataSize, pvData, uiMaxDataSize);
 }
@@ -520,7 +520,7 @@ bool CWriteTransaction::GetName(OIndex oi, CChars* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::GetName(OIndex oi, char* szName, uint32* puiNameLength, uint32 uiMaxNameLength)
+bool CWriteTransaction::GetName(OIndex oi, char* szName, size* puiNameLength, size uiMaxNameLength)
 {
 	CChars	sz;
 	bool	bResult;
@@ -696,11 +696,11 @@ OIndex CWriteTransaction::StartIndexIteration(SIndexTreeFileIterator* psIterator
 OIndex CWriteTransaction::IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
 {
 	OIndex	oi;
-	uint32	uiDataSize;
+	size	uiDataSize;
 
 	while (mbActive && mcIteration.NextIndex(&oi))
 	{
-		if (Get(oi, &uiDataSize, pvData, (uint32)iMaxDataSize))
+		if (Get(oi, &uiDataSize, pvData, (size)iMaxDataSize))
 		{
 			SafeAssign(piDataSize, (size)uiDataSize);
 			return oi;
@@ -1004,7 +1004,7 @@ CWriteRecord* CWriteTransaction::GetRecord(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::PutRecord(OIndex oi, bool bRemoved, bool bReplacesStored, const char* szName, void* pvData, uint32 uiDataSize)
+bool CWriteTransaction::PutRecord(OIndex oi, bool bRemoved, bool bReplacesStored, const char* szName, void* pvData, size uiDataSize)
 {
 	CWriteRecord*	pcRecord;
 	int32			iNameLength;
@@ -1097,7 +1097,7 @@ bool CWriteTransaction::GetCurrentName(OIndex oi, CChars* pszName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::GetDataSize(OIndex oi, uint32* puiDataSize)
+bool CWriteTransaction::GetDataSize(OIndex oi, size* puiDataSize)
 {
 	CWriteRecord*	pcRecord;
 
@@ -1115,7 +1115,7 @@ bool CWriteTransaction::GetDataSize(OIndex oi, uint32* puiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::SetData(OIndex oi, void* pvData, uint32 uiDataSize)
+bool CWriteTransaction::SetData(OIndex oi, void* pvData, size uiDataSize)
 {
 	CChars			szName;
 	CWriteRecord*	pcRecord;
@@ -1137,7 +1137,7 @@ bool CWriteTransaction::SetData(OIndex oi, void* pvData, uint32 uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::AddLocked(OIndex oi, const char* szName, void* pvData, uint32 uiDataSize)
+bool CWriteTransaction::AddLocked(OIndex oi, const char* szName, void* pvData, size uiDataSize)
 {
 	bool	bReplacesStored;
 
@@ -1176,7 +1176,7 @@ bool CWriteTransaction::AddLocked(OIndex oi, const char* szName, void* pvData, u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWriteTransaction::SetLocked(OIndex oi, void* pvData, uint32 uiDataSize)
+bool CWriteTransaction::SetLocked(OIndex oi, void* pvData, size uiDataSize)
 {
 	//The object is locked exclusively.
 	if (!Exists(oi))

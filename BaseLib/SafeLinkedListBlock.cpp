@@ -130,7 +130,7 @@ int CSafeLinkedListBlock::ByteSize(void)
 	int	iByteSize;
 
 	m.Lock();
-	iByteSize = c.ByteSize();
+	iByteSize = (int)c.ByteSize();
 	m.Unlock();
 
 	return iByteSize;
@@ -347,7 +347,7 @@ int CSafeLinkedListBlock::NumElements(void)
 	int	iNumElements;
 
 	m.Lock();
-	iNumElements = c.NumElements();
+	iNumElements = (int)c.NumElements();
 	m.Unlock();
 
 	return iNumElements;
@@ -389,7 +389,7 @@ int CSafeLinkedListBlock::IndexOf(void* pvData)
 	int		iIndex;
 
 	m.Lock();
-	iIndex = c.IndexOf(pvData);
+	iIndex = (int)c.IndexOf(pvData);
 	m.Unlock();
 
 	return iIndex;

@@ -8,7 +8,7 @@ class CListTemplateMinimal
 {
 protected:
 	size	miNumElements;
-	int		miRowLength;  //The number of characters in the string including all terminating zeros.
+	size		miRowLength;  //The number of characters in the string including all terminating zeros.
 	size	miTotalSize;
 
 	size	miUsedElements;
@@ -18,16 +18,16 @@ protected:
 							//...
 							//The size of the struct will also include all the zero terminated strings lengths.
 public:
-	size	TotalSize(int iNumElements, int iRowLength);
+	size	TotalSize(size iNumElements, size iRowLength);
 
-	void	Init(int iNumFields, int iRowLength);
+	void	Init(size iNumFields, size iRowLength);
 	void	Kill(void);
 
 	M*		Get(size iIndex);
 	M*		Get(size iIndex, size* piSize);
 	M*		Add(const M* pv, size iSize);
-	int		NumElements(void);
-	int		AllocatedElements(void);
+	size		NumElements(void);
+	size		AllocatedElements(void);
 };
 
 
@@ -36,7 +36,7 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-size CListTemplateMinimal<M>::TotalSize(int iNumElements, int iRowLength)
+size CListTemplateMinimal<M>::TotalSize(size iNumElements, size iRowLength)
 {
 	return sizeof(CListTemplateMinimal<M>) + iNumElements * sizeof(M*) + iRowLength;
 }
@@ -47,7 +47,7 @@ size CListTemplateMinimal<M>::TotalSize(int iNumElements, int iRowLength)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CListTemplateMinimal<M>::Init(int iNumElements, int iRowLength)
+void CListTemplateMinimal<M>::Init(size iNumElements, size iRowLength)
 {
 	miNumElements = iNumElements;
 	miRowLength = iRowLength;
@@ -56,7 +56,7 @@ void CListTemplateMinimal<M>::Init(int iNumElements, int iRowLength)
 	miUsedLength = 0;
 
 	miTotalSize = TotalSize(iNumElements, iRowLength);
-	maiFieldOffsets[0] = sizeof(CListTemplateMinimal<M>) + miNumElements * sizeof(M*);
+	maiFieldOffsets[0] = (int)(sizeof(CListTemplateMinimal<M>) + miNumElements * sizeof(M*));
 }
 
 
@@ -129,7 +129,7 @@ M* CListTemplateMinimal<M>::Add(const M* pv, size iSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CListTemplateMinimal<M>::NumElements(void)
+size CListTemplateMinimal<M>::NumElements(void)
 {
 	return miUsedElements;
 }
@@ -140,7 +140,7 @@ int CListTemplateMinimal<M>::NumElements(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CListTemplateMinimal<M>::AllocatedElements(void)
+size CListTemplateMinimal<M>::AllocatedElements(void)
 {
 	return miNumElements;
 }

@@ -113,7 +113,7 @@ protected:
 
 	CListTemplateMinimal<char>* GetNodesKeys(CArrayVoidPtr* apvNodes);
 	CListCharsMinimal*		GetNodesStringKeys(CArrayVoidPtr* apvNodes);
-	int						GetNodeKeysSize(CArrayVoidPtr* apvNodes);
+	size						GetNodeKeysSize(CArrayVoidPtr* apvNodes);
 
 	bool					ValidateIndexTree(bool bReadNodes);
 	bool					ValidateKey(uint8* pvKey, size iKeySize);
@@ -176,7 +176,7 @@ protected:
 	size					RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode, size iSize);
 	size					CountListSize(void);
 	size					RecurseCountListSize(CIndexTreeNodeFile* pcNode);
-	uint32					RecurseByteSize(CIndexTreeNodeFile* pcNode);
+	size					RecurseByteSize(CIndexTreeNodeFile* pcNode);
 	void					RecurseFindWithFlags(CIndexTreeRecursor* pcCursor, uint8 uiFollowFlags, uint8 uiAddFlags, CArrayVoidPtr* papNodes);
 	uint32					RecurseNumNodes(CIndexTreeRecursor* pcCursor);
 	size					RecurseNumMemoryNodes(CIndexTreeRecursor* pcCursor);
@@ -215,7 +215,7 @@ protected:
 
 	CIndexTreeNodeFile*		DebugNode(CChars* pszDest, CIndexTreeNodeFile* pcParent, size uiIndexInParent, bool bShowFlags, bool bShowSize);
 	void					DebugNode(CChars* pszDest, uint32 iFile, uint32 uiIndex, size uIndexFromParent, bool bShowFlags, bool bShowSize);
-	void					DebugNodeChildren(CChars* pszDest, CIndexTreeNodeFile* pcCurrent, int uIndexFromParent, bool bShowFlags, bool bShowSize);
+	void					DebugNodeChildren(CChars* pszDest, CIndexTreeNodeFile* pcCurrent, size uIndexFromParent, bool bShowFlags, bool bShowSize);
 	void					ReadDebugNode(SIndexTreeDebugNode* psDebugNode, uint32 iFile, uint32 uiIndex);
 	void					PrintChildFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars* psz);
 	void					PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars* psz);

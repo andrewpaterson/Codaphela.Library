@@ -1,4 +1,4 @@
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #include <pthread.h>
 #include "ConditionVariable.h"
 
@@ -69,5 +69,5 @@ void CConditionVariable::WakeAll(void)
 }
 
 
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU
 

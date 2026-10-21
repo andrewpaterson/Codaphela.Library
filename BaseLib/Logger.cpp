@@ -101,12 +101,12 @@ void CLogger::Init(CAbstractFile* pcFile, const char* szName)
 		mapcFiles.Add(&pcFile);
 	}
 
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 	//On Linux the console output goes to stderr: unbuffered and separate from program output on stdout.
 	pcDebugFile = StdErrFile();
 #else
 	pcDebugFile = DebugOutputFile();
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU
 	mapcFiles.Add(&pcDebugFile);
 	mpcDebugOutputFile = pcDebugFile;
 

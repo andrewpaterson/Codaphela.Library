@@ -114,7 +114,7 @@ bool CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex o
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDescriptorsFile::SetCache(void* pvCache, uint32 uiDataSize, OIndex oi)
+bool CIndexedDescriptorsFile::SetCache(void* pvCache, size uiDataSize, OIndex oi)
 {
 	CIndexTreeNode*			pcNode;
 	CIndexedDataDescriptor*	pcDescriptor;

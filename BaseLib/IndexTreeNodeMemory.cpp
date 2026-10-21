@@ -384,7 +384,7 @@ bool CIndexTreeNodeMemory::ValidateNodesEmpty(void)
 	{
 		if (bNodesEmpty)
 		{
-			gcLogger.Error2(__METHOD__, " Child nodes marked as empty but ", IntToString(iCount), " are allocated.", NULL);
+			gcLogger.Error2(__METHOD__, " Child nodes marked as empty but ", SizeToString(iCount), " are allocated.", NULL);
 		}
 		else
 		{

@@ -51,8 +51,10 @@ public:
 	size			ByteSize(void);
 
 	bool			WriteHeader(CFileWriter* pcFileWriter);
+	bool			WriteHeader(CFileWriter* pcFileWriter, size uiFileElementSize);
 	bool			Write(CFileWriter* pcFileWriter);
 	bool			ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, DataCompare fCompare);
+	bool			ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, DataCompare fCompare, size uiFileElementSize, size uiElementSize);
 	bool			Read(CFileReader* pcFileReader, DataCompare fCompare);
 
 	void			SetOverwrite(bool bOverwrite);

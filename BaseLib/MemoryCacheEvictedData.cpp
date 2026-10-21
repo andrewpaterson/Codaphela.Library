@@ -38,7 +38,7 @@ bool CMemoryCacheEvictedData::CacheDataEvicted(void* pvData, SMemoryCacheDescrip
 //////////////////////////////////////////////////////////////////////////
 int CMemoryCacheEvictedData::NumElements(void)
 {
-	return mcEvictedData.NumElements();
+	return (int)mcEvictedData.NumElements();
 }
 
 

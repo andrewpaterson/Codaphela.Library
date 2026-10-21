@@ -406,13 +406,13 @@ bool CSetBlock::WriteSetBlockHeader(CFileWriter* pcFileWriter)
 		return false;
 	}
 
-	bResult = mapArray.WriteHeader(pcFileWriter);
+	bResult = mapArray.WriteHeader(pcFileWriter, ARRAY_FILE_POINTER_SIZE);
 	if (!bResult)
 	{
 		return false;
 	}
 
-	bResult = mapArray.GetSortedArray()->WriteHeader(pcFileWriter);
+	bResult = mapArray.GetSortedArray()->WriteHeader(pcFileWriter, ARRAY_FILE_POINTER_SIZE);
 	if (!bResult)
 	{
 		return false;
@@ -441,13 +441,13 @@ bool CSetBlock::ReadSetBlockHeader(CFileReader* pcFileReader, DataCompare fCompa
 		return false;
 	}
 
-	bResult = mapArray.ReadHeader(pcMalloc, pcFileReader, &CompareSNode);
+	bResult = mapArray.ReadHeader(pcMalloc, pcFileReader, &CompareSNode, ARRAY_FILE_POINTER_SIZE, sizeof(SSNode*));
 	if (!bResult)
 	{
 		return false;
 	}
 
-	bResult = mapArray.GetSortedArray()->ReadHeader(pcFileReader, pcMalloc);
+	bResult = mapArray.GetSortedArray()->ReadHeader(pcFileReader, pcMalloc, ARRAY_FILE_POINTER_SIZE, sizeof(SSNode*));
 	if (!bResult)
 	{
 		return false;

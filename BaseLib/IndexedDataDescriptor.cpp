@@ -28,9 +28,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataDescriptor::Init(uint32 uiDataSize, CFilePosIndex* pcFilePosIndex)
+void CIndexedDataDescriptor::Init(size uiDataSize, CFilePosIndex* pcFilePosIndex)
 {
-	msFileDescriptor.muiDataSize = uiDataSize;
+	msFileDescriptor.muiDataSize = (uint32)uiDataSize;
 	msFileDescriptor.mcFileIndex.Init(pcFilePosIndex->miFile, pcFilePosIndex->mulliFilePos);
 
 	mpvCache = NULL;
@@ -42,7 +42,7 @@ void CIndexedDataDescriptor::Init(uint32 uiDataSize, CFilePosIndex* pcFilePosInd
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataDescriptor::Init(uint32 uiDataSize, void* pvCache)
+void CIndexedDataDescriptor::Init(size uiDataSize, void* pvCache)
 {
 	msFileDescriptor.muiDataSize = 0;
 	msFileDescriptor.mcFileIndex.Init();
@@ -56,11 +56,11 @@ void CIndexedDataDescriptor::Init(uint32 uiDataSize, void* pvCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataDescriptor::Init(uint32 uiFileDataSize, CFilePosIndex* pcFilePosIndex, uint32 uiCacheDataSize, void* pvCache)
+void CIndexedDataDescriptor::Init(size uiFileDataSize, CFilePosIndex* pcFilePosIndex, size uiCacheDataSize, void* pvCache)
 {
 	if (pcFilePosIndex->HasFile())
 	{
-		msFileDescriptor.muiDataSize = uiFileDataSize;
+		msFileDescriptor.muiDataSize = (uint32)uiFileDataSize;
 	}
 	else
 	{
@@ -84,7 +84,7 @@ void CIndexedDataDescriptor::Init(uint32 uiFileDataSize, CFilePosIndex* pcFilePo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CIndexedDataDescriptor::GetFileDataSize(void)
+size CIndexedDataDescriptor::GetFileDataSize(void)
 {
 	return msFileDescriptor.muiDataSize;
 }
@@ -94,7 +94,7 @@ uint32 CIndexedDataDescriptor::GetFileDataSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CIndexedDataDescriptor::GetCacheDataSize(void)
+size CIndexedDataDescriptor::GetCacheDataSize(void)
 {
 	return muiCacheDataSize;
 }
@@ -104,7 +104,7 @@ uint32 CIndexedDataDescriptor::GetCacheDataSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CIndexedDataDescriptor::GetDataSize(void)
+size CIndexedDataDescriptor::GetDataSize(void)
 {
 	if (mpvCache != NULL)
 	{
@@ -125,7 +125,7 @@ uint32 CIndexedDataDescriptor::GetDataSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedDataDescriptor::Cache(void* pvCache, uint32 uiDataSize)
+void CIndexedDataDescriptor::Cache(void* pvCache, size uiDataSize)
 {
 	mpvCache = pvCache;
 	muiCacheDataSize = uiDataSize;

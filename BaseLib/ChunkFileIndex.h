@@ -52,8 +52,8 @@ public:
 	void	ReadInit(void);
 	void	WriteInit(void);
 	void	Kill(void);
-	uint32	FindFirstChunkWithName(chunkName iName);
-	uint32	FindNextChunkWithName(void);
+	size	FindFirstChunkWithName(chunkName iName);
+	size	FindNextChunkWithName(void);
 	size	GetNumChunksWithName(chunkName iName);
 };
 

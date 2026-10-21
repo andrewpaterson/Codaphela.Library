@@ -171,7 +171,7 @@ void* CMemoryManager::AllocateNodeInUnused(SMMNode* psUnusedNode, uint32 uiUnuse
 	void*		pvData;
 
 	pvData = RemapSinglePointer(psUnusedNode, MM_NODE_HEADER_SIZE);
-	uiCompareSize = uiUnusedNodeSize - MM_NODE_HEADER_SIZE - 4;  //Make sure there is at least space for another node of four bytes after this one being allocated.
+	uiCompareSize = uiUnusedNodeSize - (uint32)MM_NODE_HEADER_SIZE - 4;  //Make sure there is at least space for another node of four bytes after this one being allocated.
 	SetUsedMMNodeDataSize(psUnusedNode, uiAllocateSize);
 	if (uiAllocateSize >= uiCompareSize)
 	{
@@ -180,7 +180,7 @@ void* CMemoryManager::AllocateNodeInUnused(SMMNode* psUnusedNode, uint32 uiUnuse
 
 	psNewUnusedNode = (SMMNode*)RemapSinglePointer(psUnusedNode, uiAllocateSize);
 	mcLinkedList.InsertAfterNode(psUnusedNode, (SLLNode*)psNewUnusedNode);
-	uiUnusedNodeSize = (size)psNewUnusedNode->psNext - (size)psNewUnusedNode;
+	uiUnusedNodeSize = (uint32)((size)psNewUnusedNode->psNext - (size)psNewUnusedNode);
 	SetUnusedMMNodeDataSize(psNewUnusedNode, uiUnusedNodeSize);
 	return pvData;
 }
@@ -208,7 +208,7 @@ void* CMemoryManager::AllocateNodeAfterEnd(uint32 uiSize)
 		psNode = (SMMNode*)RemapSinglePointer(psNode, uiNodeSize);
 	}
 
-	uiRemaingSize = (size)mpvHeapEnd - (size)psNode + 1;
+	uiRemaingSize = (uint32)((size)mpvHeapEnd - (size)psNode + 1);
 	if (uiSize <= uiRemaingSize)
 	{
 		SetUsedMMNodeDataSize(psNode, uiSize);
@@ -399,7 +399,7 @@ void CMemoryManager::Deallocate(void* pvData)
 		}
 	}
 
-	uiUnusedNodeSize = (size)psCurrent->psNext - (size)psCurrent;
+	uiUnusedNodeSize = (uint32)((size)psCurrent->psNext - (size)psCurrent);
 	SetUnusedMMNodeDataSize(psCurrent, uiUnusedNodeSize);
 
 	EvictUnsedEmptyCache(psCurrent);
@@ -507,11 +507,11 @@ uint32 CMemoryManager::GetRemaingTailSize(void)
 	psNode = (SMMNode*)mcLinkedList.GetTail();
 	if (psNode)
 	{
-		return (size)mpvHeapEnd - (size)psNode - GetMMNodeDataSize(psNode) + 1;
+		return (uint32)((size)mpvHeapEnd - (size)psNode - GetMMNodeDataSize(psNode) + 1);
 	}
 	else
 	{
-		return (size)mpvHeapEnd - (size)mpvHeapStart + 1;
+		return (uint32)((size)mpvHeapEnd - (size)mpvHeapStart + 1);
 	}
 }
 
@@ -522,6 +522,6 @@ uint32 CMemoryManager::GetRemaingTailSize(void)
 //////////////////////////////////////////////////////////////////////////
 uint32 CMemoryManager::GetTotalSize(void)
 {
-	return (size)mpvHeapEnd - (size)mpvHeapStart + 1;
+	return (uint32)((size)mpvHeapEnd - (size)mpvHeapStart + 1);
 }
 

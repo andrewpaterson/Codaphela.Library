@@ -12,9 +12,9 @@
 #endif // WIN_GNU_32
 
 
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #define BREAK()	__asm__ volatile("int3\n\tnop");  //nop keeps the debugger on the breaking line.
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU
 
 
 #define Validate(test)	if (!test) BREAK();

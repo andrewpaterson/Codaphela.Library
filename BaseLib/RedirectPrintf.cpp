@@ -216,7 +216,7 @@ int eprintf(const char* szUnformatted, ...)
 		}
 
 
-		iLength = strlen(szParameter);
+		iLength = (int)strlen(szParameter);
 		szParameter = szParameter + iLength + 1;
 	}
 	va_end(vaMarker);
@@ -230,7 +230,7 @@ int eprintf(const char* szUnformatted, ...)
 		gPrintFunction(sz.Text());
 	}
 
-	iLength = sz.Length();
+	iLength = (int)sz.Length();
 	sz.Kill();
 
 	SafeFree(aszParameters);

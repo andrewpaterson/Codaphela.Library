@@ -23,6 +23,33 @@ SMemoryFreeListParams* SMemoryFreeListParams::Init(size iFreeListSize, size iPre
 }
 
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool SMemoryFreeListParams::Write(CFileWriter* pcFileWriter)
+{
+	return pcFileWriter->WriteSize(iMaxListSize) &&
+		   pcFileWriter->WriteSize(iMaxElementSize) &&
+		   pcFileWriter->WriteSize(iMinElementSize) &&
+		   pcFileWriter->WriteSize(iChunkSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool SMemoryFreeListParams::Read(CFileReader* pcFileReader)
+{
+	return pcFileReader->ReadSize(&iMaxListSize) &&
+		   pcFileReader->ReadSize(&iMaxElementSize) &&
+		   pcFileReader->ReadSize(&iMinElementSize) &&
+		   pcFileReader->ReadSize(&iChunkSize);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -232,7 +259,7 @@ bool CMemoryFreeListParams::Read(CFileReader* pcFileReader)
 
 	for (i = 0; i < iFreeListParams; i++)
 	{
-		if (!pcFileReader->ReadData(&sBlockParams, sizeof(SMemoryFreeListParams)))
+		if (!sBlockParams.Read(pcFileReader))
 		{
 			return false;
 		}
@@ -271,7 +298,7 @@ bool CMemoryFreeListParams::Write(CFileWriter* pcFileWriter)
 	for (i = 0; i < mcParams.NumElements(); i++)
 	{
 		psBlockParams = GetFreeListParams(i);
-		if (!pcFileWriter->WriteData(psBlockParams, sizeof(SMemoryFreeListParams)))
+		if (!psBlockParams->Write(pcFileWriter))
 		{
 			return false;
 		}

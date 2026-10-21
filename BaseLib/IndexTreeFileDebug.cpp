@@ -42,7 +42,7 @@ int SIndexTreeDebugNode::InitFromBuffer(void* pvBuffer, size uiBufferSize, uint3
 	uiFileSize = *((int*)&pucMemory[iPos]);  iPos += sizeof(uint32);
 	if (uiBufferSize != uiFileSize)
 	{
-		gcLogger.Error2(__METHOD__, " Node buffer size [", IntToString(uiBufferSize), "] did not match node size in file [", IntToString(uiFileSize), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Node buffer size [", SizeToString(uiBufferSize), "] did not match node size in file [", IntToString(uiFileSize), "].", NULL);
 		return -1;
 	}
 

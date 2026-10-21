@@ -600,7 +600,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 	psEntry->uEntry.sFatRawCommon.uiCreateTimeTenths = 0;
 
 	// set the volume label
-	if ((c = strlen(volume_label)))
+	if ((c = (uint32)strlen(volume_label)))
 	{
 		for (i = 0; i < 11; i++)
 		{

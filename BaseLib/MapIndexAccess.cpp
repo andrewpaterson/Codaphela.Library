@@ -84,7 +84,7 @@ bool CMapIndexAccess::Get(uint8* pvKey, size iKeySize, void* pvDestData, size* p
 	bool	bResult;
 	size	uiDataSize;
 
-	bResult = mpcMap->Get(pvKey, iKeySize, &pvData, (size*)&uiDataSize);
+	bResult = mpcMap->Get(pvKey, iKeySize, &pvData, &uiDataSize);
 	if (bResult)
 	{
 		SafeAssign(piDataSize, uiDataSize);

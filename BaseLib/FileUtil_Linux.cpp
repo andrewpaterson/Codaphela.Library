@@ -20,7 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -486,7 +486,7 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
                 if (szExtension != NULL)
                 {
                     szFake.Fake(pDirEnt->d_name);
-                    iFileExtension = FindExtension(szFake.Text());
+                    iFileExtension = (int)FindExtension(szFake.Text());
                     if (iFileExtension != -1)
                     {
                         if (!(szFake.SubStringEquals(iFileExtension+1, szExtension)))
@@ -540,5 +540,5 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
 }
 
 
-#endif //LINUX_GNU_32
+#endif //LINUX_GNU
 

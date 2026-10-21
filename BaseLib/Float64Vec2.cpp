@@ -48,8 +48,8 @@ int SFloat64Vec2::WholeNumbers(void)
 {
 	int i[2];
 
-	i[0] = FloatWholeNumbers(x);
-	i[1] = FloatWholeNumbers(y);
+	i[0] = (int)FloatWholeNumbers(x);
+	i[1] = (int)FloatWholeNumbers(y);
 
 	return LargestInt(i, 2);
 }

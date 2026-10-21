@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CListCharsMinimal::TotalSize(int iNumElements, int iRowLength)
+size CListCharsMinimal::TotalSize(size iNumElements, size iRowLength)
 {
 	return __CListCharsMinimal::TotalSize(iNumElements, iRowLength + iNumElements);
 }
@@ -16,7 +16,7 @@ size CListCharsMinimal::TotalSize(int iNumElements, int iRowLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CListCharsMinimal::Init(int iNumElements, int iRowLength)
+void CListCharsMinimal::Init(size iNumElements, size iRowLength)
 {
 	__CListCharsMinimal::Init(iNumElements, iRowLength);
 	miTotalSize = TotalSize(iNumElements, iRowLength);

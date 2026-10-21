@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #include "Preprocessor.h"
 
 
@@ -30,5 +30,5 @@ void CPreprocessor::InitPlatformSpecific(void)
 {
 }
 
-#endif //LINUX_GNU_32
+#endif //LINUX_GNU
 

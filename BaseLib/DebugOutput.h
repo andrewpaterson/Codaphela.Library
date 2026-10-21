@@ -34,9 +34,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #endif // WIN_GNU_32
 
 
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #define EngineOutput(p)	printf("%s", p)
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU
 
 
 #endif // __DEBUG_OUTPUT_H__

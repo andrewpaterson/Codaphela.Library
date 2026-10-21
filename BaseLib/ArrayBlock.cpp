@@ -850,7 +850,7 @@ size CArrayBlock::FindWithKey(void* pvData, size iKeyOffset, size iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CArrayBlock::FindWithIntKey(size iKey)
+size CArrayBlock::FindWithIntKey(int iKey)
 {
 	size	i;
 	void*	pIndex;
@@ -858,7 +858,7 @@ size CArrayBlock::FindWithIntKey(size iKey)
 	for (i = 0; i < miUsedElements; i++)
 	{
 		pIndex = Get(i);
-		if (*((size*)pIndex) == iKey)
+		if (*((int*)pIndex) == iKey)
 		{
 			return i;
 		}
@@ -871,7 +871,7 @@ size CArrayBlock::FindWithIntKey(size iKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CArrayBlock::FindWithIntKey(size iKey, size iKeyOffset)
+size CArrayBlock::FindWithIntKey(int iKey, size iKeyOffset)
 {
 	size	i;
 	void*	pIndex;
@@ -879,7 +879,7 @@ size CArrayBlock::FindWithIntKey(size iKey, size iKeyOffset)
 	for (i = 0; i < miUsedElements; i++)
 	{
 		pIndex = RemapSinglePointer(mpvArray, i * miElementSize + iKeyOffset);
-		if (*((size*)pIndex) == iKey)
+		if (*((int*)pIndex) == iKey)
 		{
 			return i;
 		}
@@ -1105,7 +1105,7 @@ void CArrayBlock::Shuffle(CRandom* pcRandom)
 	iNumElements = NumElements();
 	for (i = 0; i < iNumElements; i++)
 	{
-		iIndex = pcRandom->Next(i, iNumElements - 1);
+		iIndex = pcRandom->Next((int)i, (int)(iNumElements - 1));
 		Swap(i, iIndex);
 	}
 
@@ -1574,15 +1574,50 @@ void CArrayBlock::GetHeader(SArrayTemplateHeader* psHeader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+bool SArrayTemplateHeader::Write(CFileWriter* pcFileWriter)
+{
+	return pcFileWriter->WriteSize(miElementSize) &&
+		   pcFileWriter->WriteSize(miUsedElements) &&
+		   pcFileWriter->WriteSize(miChunkSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool SArrayTemplateHeader::Read(CFileReader* pcFileReader)
+{
+	return pcFileReader->ReadSize(&miElementSize) &&
+		   pcFileReader->ReadSize(&miUsedElements) &&
+		   pcFileReader->ReadSize(&miChunkSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 bool CArrayBlock::WriteHeader(CFileWriter* pcFileWriter)
+{
+	return WriteHeader(pcFileWriter, miElementSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+//uiFileElementSize is written in place of the element size.
+bool CArrayBlock::WriteHeader(CFileWriter* pcFileWriter, size uiFileElementSize)
 {
 	SArrayTemplateHeader	sHeader;
 
 	sHeader.miChunkSize = miChunkSize;
-	sHeader.miElementSize = miElementSize;
+	sHeader.miElementSize = uiFileElementSize;
 	sHeader.miUsedElements = miUsedElements;
 
-	if (!pcFileWriter->WriteData(&sHeader, sizeof(SArrayTemplateHeader))) 
+	if (!sHeader.Write(pcFileWriter)) 
 	{ 
 		return false; 
 	}
@@ -1635,15 +1670,36 @@ bool CArrayBlock::Write(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc)
 {
+	return ReadHeader(pcFileReader, pcMalloc, SIZE_MAX, SIZE_MAX);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+//The element size in the file must be uiFileElementSize and the elements are uiElementSize in memory.  SIZE_MAX for
+//both uses the element size in the file.
+bool CArrayBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, size uiFileElementSize, size uiElementSize)
+{
 	SArrayTemplateHeader	sHeader;
 
-	if (!pcFileReader->ReadData(&sHeader, sizeof(SArrayTemplateHeader))) 
+	if (!sHeader.Read(pcFileReader)) 
 	{ 
 		return false; 
 	}
 
+	if (uiFileElementSize == SIZE_MAX)
+	{
+		uiElementSize = sHeader.miElementSize;
+	}
+	else if (sHeader.miElementSize != uiFileElementSize)
+	{
+		return false;
+	}
+
 	miChunkSize = sHeader.miChunkSize;
-	miElementSize = sHeader.miElementSize;
+	miElementSize = uiElementSize;
 	miNumElements = 0;
 	miUsedElements = 0;
 	mpvArray = NULL;
@@ -1752,8 +1808,8 @@ bool CArrayBlock::Pop(void) { return RemoveTail(); }
 bool CArrayBlock::Contains(void* pvData) { return Find(pvData) != ARRAY_ELEMENT_NOT_FOUND; }
 void CArrayBlock::Sort(DataCompare fCompare) { TimSort(fCompare); }
 void CArrayBlock::BubbleSort(DataCompare fCompare) { ::BubbleSort(fCompare, mpvArray, miElementSize, miUsedElements); }
-void CArrayBlock::QuickSort(DataCompare fCompare) { ::QuickSort(fCompare, mpvArray, miElementSize, miUsedElements); }
-void CArrayBlock::TimSort(DataCompare fCompare) { ::TimSort(fCompare, mpvArray, miElementSize, miUsedElements); }
+void CArrayBlock::QuickSort(DataCompare fCompare) { ::QuickSort(fCompare, mpvArray, miElementSize, (int)miUsedElements); }
+void CArrayBlock::TimSort(DataCompare fCompare) { ::TimSort(fCompare, mpvArray, miElementSize, (int)miUsedElements); }
 void* CArrayBlock::GetData(void) { return mpvArray; }
 size CArrayBlock::ChunkSize(void) { return miChunkSize; }
 size CArrayBlock::AddNum(size iNumElements) { return SetUsedElements(miUsedElements + iNumElements); }

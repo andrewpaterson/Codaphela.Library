@@ -17,6 +17,8 @@ struct SMemoryFreeListParams
 	size	iChunkSize;
 
 	SMemoryFreeListParams*	Init(size iFreeListSize, size iPrevSize, size iChunkSize, size iHeaderSize);
+	bool					Write(CFileWriter* pcFileWriter);
+	bool					Read(CFileReader* pcFileReader);
 };
 
 

@@ -20,13 +20,13 @@ bool CIndexTree::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyRever
 	bResult = true;
 	if (iMaxKeySize > MAX_KEY_SIZE)
 	{
-		gcLogger.Error2(__METHOD__, " Max Key size [", IntToString(iMaxKeySize), "] must be positive and <= [", IntToString(MAX_KEY_SIZE), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Max Key size [", SizeToString(iMaxKeySize), "] must be positive and <= [", SizeToString(MAX_KEY_SIZE), "].", NULL);
 		iMaxKeySize = MAX_KEY_SIZE;
 		bResult = false;
 	}
 	if (iMaxDataSize > MAX_DATA_SIZE)
 	{
-		gcLogger.Error2(__METHOD__, " Data size [", IntToString(iMaxDataSize), "] must be positive and <= [", IntToString(MAX_DATA_SIZE), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Data size [", SizeToString(iMaxDataSize), "] must be positive and <= [", SizeToString(MAX_DATA_SIZE), "].", NULL);
 		iMaxDataSize = MAX_DATA_SIZE;
 		bResult = false;
 	}

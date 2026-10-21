@@ -1,4 +1,4 @@
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #include <errno.h>
 #include <string.h>
 #include <sys/mman.h>
@@ -290,5 +290,5 @@ char* CSharedMemoryFile::GetLastErrorString(void)
 }
 
 
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU
 

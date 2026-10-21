@@ -159,10 +159,10 @@ int SFloat32Vec4::WholeNumbers(void)
 {
 	int i[4];
 
-	i[0] = FloatWholeNumbers(x);
-	i[1] = FloatWholeNumbers(y);
-	i[2] = FloatWholeNumbers(z);
-	i[3] = FloatWholeNumbers(w);
+	i[0] = (int)FloatWholeNumbers(x);
+	i[1] = (int)FloatWholeNumbers(y);
+	i[2] = (int)FloatWholeNumbers(z);
+	i[3] = (int)FloatWholeNumbers(w);
 
 	return LargestInt(i, 4);
 }

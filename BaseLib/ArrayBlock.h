@@ -10,11 +10,19 @@
 #include "DataCompare.h"
 
 
+//Arrays of pointers write this, the size of a pointer in a 32 bit build, as their element size so the file is the same
+//in 32 and 64 bit builds.
+#define ARRAY_FILE_POINTER_SIZE	4
+
+
 struct SArrayTemplateHeader
 {
 	size	miElementSize;
 	size	miUsedElements;
 	size	miChunkSize;
+
+	bool	Write(CFileWriter* pcFileWriter);
+	bool	Read(CFileReader* pcFileReader);
 };
 
 //Elements in an array are always of the same size.  Array elements are indexed from the start of the array.
@@ -108,8 +116,8 @@ public:
 	bool	Equals(CArrayBlock* pcOtherArray);
 	size 	Find(void* pvData);
 	bool	FindInSorted(void* pvData, DataCompare fCompare, size* piIndex);
-	size	FindWithIntKey(size iKey);
-	size	FindWithIntKey(size iKey, size iKeyOffset);
+	size	FindWithIntKey(int iKey);
+	size	FindWithIntKey(int iKey, size iKeyOffset);
 	size 	FindWithKey(void* pvData, size iKeyOffset, size iKeySize);
 
 	void 	RemoveAt(size iIndex, bool bPreserveOrder = true);
@@ -142,8 +150,10 @@ public:
 
 	bool	WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
 	bool	WriteHeader(CFileWriter* pcFileWriter);
+	bool	WriteHeader(CFileWriter* pcFileWriter, size uiFileElementSize);
 	bool	ReadAllocatorAndHeader(CFileReader* pcFileReader);
 	bool	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc);
+	bool	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, size uiFileElementSize, size uiElementSize);
 
 protected:
 	bool	BinarySearch(void* pvData, size iLeft, size iRight, DataCompare fCompare, size* piIndex);

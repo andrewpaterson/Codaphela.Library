@@ -229,7 +229,7 @@ bool CMemoryFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 		{
 			miPos = 0;
 		}
-		else if (iTemp > uiNumElements)
+		else if (iTemp > (filePos)uiNumElements)
 		{
 			miPos = uiNumElements;
 		}

@@ -70,8 +70,8 @@ uint32 SUInt32Vec2::WholeNumbers(void)
 {
 	uint32 i[2];
 
-	i[0] = CountDigits((int)x);
-	i[1] = CountDigits((int)y);
+	i[0] = (uint32)CountDigits((int)x);
+	i[1] = (uint32)CountDigits((int)y);
 
 	return LargestInt((int*)i, 2);
 }
