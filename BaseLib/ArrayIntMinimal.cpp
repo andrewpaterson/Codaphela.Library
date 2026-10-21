@@ -43,7 +43,7 @@ void CArrayIntMinimal::Add(uint i)
 //////////////////////////////////////////////////////////////////////////
 size CArrayIntMinimal::AddIfUnique(uint i)
 {
-	uint iElementNum;
+	size iElementNum;
 
 	iElementNum = Find(i);
 	if (iElementNum == ARRAY_ELEMENT_NOT_FOUND)

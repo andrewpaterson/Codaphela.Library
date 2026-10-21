@@ -40,7 +40,7 @@ public:
 	void 	Init(CMarkupSubText* pcRef, CMarkupTag* pcParent);
 	void 	Kill(void);
 
-	uint32	Print(CChars* psz, uint32 iDepth, uint32 iLine);
+	size	Print(CChars* psz, size iDepth, size iLine);
 };
 
 
@@ -55,7 +55,7 @@ public:
 
 	bool			Is(const char* szName);
 	CMarkupTag*		GetRootTag(void);
-	uint32			Print(CChars* psz, uint32 iDepth, uint32 iLine);
+	size			Print(CChars* psz, size iDepth, size iLine);
 };
 
 
@@ -67,7 +67,7 @@ public:
 	void 		Init(const char* szName, CMarkupTag* pcParent);
 	void 		Kill(void);
 
-	uint32		Print(CChars* psz, uint32 iDepth, uint32 iLine);
+	size		Print(CChars* psz, size iDepth, size iLine);
 };
 
 

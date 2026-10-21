@@ -96,7 +96,7 @@ bool CIndexedDataAccess::Get(uint8* pvKey, size iKeySize, void* pvData, size* pi
 	if (iKeySize == sizeof(OIndex))
 	{
 		oi = *((OIndex*)pvKey);
-		return mpcIndexData->Get(oi, (uint32*)piDataSize, pvData, uiMaxDataSize);
+		return mpcIndexData->Get(oi, piDataSize, pvData, uiMaxDataSize);
 	}
 	else
 	{
@@ -112,7 +112,7 @@ bool CIndexedDataAccess::Get(uint8* pvKey, size iKeySize, void* pvData, size* pi
 size CIndexedDataAccess::DataSize(uint8* pvKey, size iKeySize)
 {
 	OIndex			oi;
-	uint32	uiDataSize;
+	size	uiDataSize;
 
 	if (iKeySize == sizeof(OIndex))
 	{

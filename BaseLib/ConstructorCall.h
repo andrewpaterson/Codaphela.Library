@@ -68,7 +68,7 @@ class CPostMalloc
 {
 public:
 	Class* 		PostMalloc(Class* pv);
-	Class* 		PostMalloc(Class* pv, int iNumElements, int iStride);
+	Class* 		PostMalloc(Class* pv, size iNumElements, size iStride);
 
 	template<class Subclass>
 	Class* 		PostMalloc(Subclass* pv);
@@ -99,9 +99,9 @@ Class* CPostMalloc<Class>::PostMalloc(Class* pv)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class Class>
-Class* CPostMalloc<Class>::PostMalloc(Class* pv, int iNumElements, int iStride)
+Class* CPostMalloc<Class>::PostMalloc(Class* pv, size iNumElements, size iStride)
 {
-	int		i;
+	size	i;
 
 	if (RequiresVirtualFunctionTable())
 	{

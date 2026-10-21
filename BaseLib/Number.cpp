@@ -1277,7 +1277,7 @@ CNumber* CNumber::Shift(int16 iOffset)
 	pcOld = DigitToArray(iStart);
 	pcNew = DigitToArray(iFirst);
 
-	memmove_fast(pcNew, pcOld, iLength);
+	memmove_fast(pcNew, pcOld, (int)iLength);
 	SetFirstNonZerotDigit(iFirst);
 	SetLastNonZeroDigit(iLast);
 
@@ -2013,11 +2013,11 @@ void CNumber::PrivateSubtract(CNumber* pcNumber)
 		iOtherLastDigit = -mcMaxDecimals;
 	}
 
-	iThisLastIndex = PrivateGetIndex(iThisLastDigit);
-	iOtherLastIndex = pcNumber->PrivateGetIndex(iOtherLastDigit);
+	iThisLastIndex = (int32)PrivateGetIndex(iThisLastDigit);
+	iOtherLastIndex = (int32)pcNumber->PrivateGetIndex(iOtherLastDigit);
 
-	iThisFirstIndex = PrivateGetIndex(iThisFirstDigit);
-	iOtherFirstIndex = pcNumber->PrivateGetIndex(iOtherFirstDigit);
+	iThisFirstIndex = (int32)PrivateGetIndex(iThisFirstDigit);
+	iOtherFirstIndex = (int32)pcNumber->PrivateGetIndex(iOtherFirstDigit);
 
 	// xxxxxxxxxx.xxxxxxxxxxx00
 	// 00yyyyyyyy.yyyyyyyyyyyyy
@@ -2027,7 +2027,7 @@ void CNumber::PrivateSubtract(CNumber* pcNumber)
 		SetLastNonZeroDigit(iOtherLastDigit);
 
 		iDiff = (int16)(GetDigitsBetween(iThisLastDigit, iOtherLastDigit)) - 1;
-		iThisIndex = PrivateGetIndex(iOtherLastDigit);
+		iThisIndex = (int32)PrivateGetIndex(iOtherLastDigit);
 		for (iOtherIndex = iOtherLastIndex; iOtherIndex > iOtherLastIndex - iDiff; iOtherIndex--, iThisIndex--)
 		{
 			cThisDigit = 10;
@@ -2052,7 +2052,7 @@ void CNumber::PrivateSubtract(CNumber* pcNumber)
 	else if (iThisLastDigit < iOtherLastDigit)
 	{
 		iDiff = iOtherLastDigit - iThisLastDigit;
-		iOtherIndex = pcNumber->PrivateGetIndex(iThisLastDigit);
+		iOtherIndex = (int32)pcNumber->PrivateGetIndex(iThisLastDigit);
 		for (iThisIndex = iThisLastIndex; iThisIndex > iThisLastIndex - iDiff; iOtherIndex--, iThisIndex--)
 		{
 			cThisDigit = mcDigits[iThisIndex] + 10;

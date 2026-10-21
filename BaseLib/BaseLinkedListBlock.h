@@ -28,12 +28,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "LinkedList.h"
 
 
+//The node sizes of a 32 bit build.  Files hold these rather than the sizes of the nodes in memory so a file is the
+//same in 32 and 64 bit builds.
+#define LINKED_LIST_FILE_NODE_SIZE			8	//sizeof(SLLNode)
+#define LINKED_LIST_BLOCK_FILE_NODE_SIZE	12	//sizeof(SLLBlockNode)
+
+
 struct SLinkedListBlockDesc
 {
 	size	iNumElements;
 	size	uiNodeSize;
 
 	void Init(size iNumElements, size uiNodeSize);
+	bool Write(CFileWriter* pcFileWriter);
+	bool Read(CFileReader* pcFileReader);
 };
 
 
@@ -44,6 +52,8 @@ struct SLinkedListTemplateDesc
 	size	uiDataSize;
 
 	void Init(size iNumElements, size uiNodeSize, size uiDataSize);
+	bool Write(CFileWriter* pcFileWriter);
+	bool Read(CFileReader* pcFileReader);
 };
 
 

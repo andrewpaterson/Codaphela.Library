@@ -53,12 +53,18 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define MIN_UINT64	0x0000000000000000LL
 
 
+//BUILD_64 is defined when pointers are 8 bytes (MSVC x64 or g++ -m64).
+#if defined(_WIN64) || defined(__LP64__)
+#define BUILD_64
+#endif // _WIN64 || __LP64__
+
+
 //MSVC aligns 64 bit types to 8 bytes in structs, g++ -m32 aligns them to 4.
 //Match MSVC so structs read and written as raw bytes have the same layout.
 //g++ drops ALIGN_64 when one of these types is used as a template argument so
 //templates that store a template type by value must declare the member with
-//MSVC_ALIGN(T) instead.
-#if defined(LINUX_GNU_32) && defined(__cplusplus)
+//MSVC_ALIGN(T) instead.  g++ -m64 already aligns them to 8.
+#if defined(LINUX_GNU) && !defined(BUILD_64) && defined(__cplusplus)
 //The arithmetic types that are 8 bytes in a 32 bit build.
 template<class T>	struct SAlign64					{ static const bool bAlign64 = false; };
 template<class T>	struct SAlign64<const T>		{ static const bool bAlign64 = SAlign64<T>::bAlign64; };
@@ -67,39 +73,53 @@ template<>			struct SAlign64<unsigned long long>	{ static const bool bAlign64 = 
 template<>			struct SAlign64<double>				{ static const bool bAlign64 = true; };
 #define ALIGN_64		__attribute__((aligned(8)))
 #define MSVC_ALIGN(T)	alignas(SAlign64<T>::bAlign64 ? 8 : alignof(T))
-#elif defined(LINUX_GNU_32)
+#elif defined(LINUX_GNU) && !defined(BUILD_64)
 #define ALIGN_64		__attribute__((aligned(8)))
 #define MSVC_ALIGN(T)
 #else
 #define ALIGN_64
 #define MSVC_ALIGN(T)
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU
 
 typedef int8_t			int8;
 typedef int16_t			int16;
 typedef int32_t			int32;
-typedef int64_t			int64 ALIGN_64;
 typedef uint8_t			uint8;
 typedef uint32_t		uint32;
 typedef uint16_t		uint16;
+#if defined(LINUX_GNU) && defined(BUILD_64)
+//g++ -m64 makes int64_t, size_t and uintptr_t 'long'.  Use 'long long' as MSVC
+//does so int64, uint64, size, ptr and ptrdiff are the same types on both and
+//overloads resolve the same way.
+typedef long long			int64;
+typedef unsigned long long	uint64;
+#else
+typedef int64_t			int64 ALIGN_64;
 typedef uint64_t		uint64 ALIGN_64;
-typedef int64_t			int128 ALIGN_64;	// Until I implement struct SInt128 etc...
-typedef uint64_t		uint128 ALIGN_64;
+#endif // LINUX_GNU && BUILD_64
+typedef int64			int128 ALIGN_64;	// Until I implement struct SInt128 etc...
+typedef uint64			uint128 ALIGN_64;
 typedef char			char8;
-#if defined(LINUX_GNU_32) && defined(__cplusplus)
+#if defined(LINUX_GNU) && defined(__cplusplus)
 typedef char16_t		char16;  //wchar_t is 4 bytes on Linux.
-#elif defined(LINUX_GNU_32)
+#elif defined(LINUX_GNU)
 typedef uint16_t		char16;  //C has no char16_t without <uchar.h>.
 #else
 typedef wchar_t			char16;
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU
 typedef float			float32;
 typedef double			float64 ALIGN_64;
 typedef long double		float128;
-typedef size_t			size;
 typedef unsigned int	uint;
+#if defined(LINUX_GNU) && defined(BUILD_64)
+typedef uint64			size;
+typedef uint64			ptr;
+typedef int64			ptrdiff;
+#else
+typedef size_t			size;
 typedef uintptr_t		ptr;
 typedef ptrdiff_t		ptrdiff;
+#endif // LINUX_GNU && BUILD_64
 
 #if INT_MAX == MAX_INT32
 typedef int64			longint;

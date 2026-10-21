@@ -174,10 +174,10 @@ char* NormalNumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDeci
 		{
 			if (iMaxDecimals > 0)
 			{
-				iIndex = sz.Find('.');
+				iIndex = (int)sz.Find('.');
 				if (iIndex >= 0)
 				{
-					iLength = sz.Length();
+					iLength = (int)sz.Length();
 					sz.Append('0', (size)((iMaxDecimals - (iLength - iIndex)) + 1));
 				}
 			}
@@ -317,10 +317,10 @@ char* SubnormalNumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxD
 		{
 			if (iMaxDecimals > 0)
 			{
-				iIndex = sz.Find('.');
+				iIndex = (int)sz.Find('.');
 				if (iIndex >= 0)
 				{
-					iLength = sz.Length();
+					iLength = (int)sz.Length();
 					sz.Append('0', (size)((iMaxDecimals - (iLength - iIndex)) + 1));
 				}
 			}

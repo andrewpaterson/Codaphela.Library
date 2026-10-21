@@ -46,7 +46,7 @@ void CIndexTreeConfig::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 EIndexKeyReverse CIndexTreeConfig::ReadKeyReverse(CFileReader* pcFileReader)
 {
-	uint32				iLength;
+	size				iLength;
 	CStackMemory<32>	cStack;
 	char*				szName;
 	EIndexKeyReverse	eKeyReverse;
@@ -200,7 +200,7 @@ bool CIndexTreeConfig::Read(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 CLifeInit<CMallocator> CIndexTreeConfig::GetMalloc(void) { return mcMalloc; }
 EIndexKeyReverse CIndexTreeConfig::GetKeyReverse(void) { return meKeyReverse; }
-int CIndexTreeConfig::GetMaxDataSize(void) { return miMaxDataSize; }
-int CIndexTreeConfig::GetMaxKeySize(void) { return miMaxKeySize; }
+size CIndexTreeConfig::GetMaxDataSize(void) { return miMaxDataSize; }
+size CIndexTreeConfig::GetMaxKeySize(void) { return miMaxKeySize; }
 CLifeInit<CIndexTreeDataOrderer> CIndexTreeConfig::GetDataOrderer(void) { return mcDataOrderer; }
 

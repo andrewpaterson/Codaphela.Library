@@ -53,9 +53,9 @@ int SInt16Vec3::WholeNumbers(void)
 {
 	int i[3];
 
-	i[0] = CountDigits(x);
-	i[1] = CountDigits(y);
-	i[2] = CountDigits(z);
+	i[0] = (int)CountDigits(x);
+	i[1] = (int)CountDigits(y);
+	i[2] = (int)CountDigits(z);
 
 	return LargestInt(i, 3);
 }

@@ -123,7 +123,7 @@ char* CTransactionIteration::NextName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CopyTransactionName(CChars* pszName, bool bFound, char* szName, uint32* puiNameLength, uint32 uiMaxNameLength)
+bool CopyTransactionName(CChars* pszName, bool bFound, char* szName, size* puiNameLength, size uiMaxNameLength)
 {
 	//The char* form of GetName for the transactions, which find names as CChars.
 	if (bFound)

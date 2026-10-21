@@ -39,7 +39,7 @@ void CIndexTreeNodeDebug::GenerateBadNode(CIndexTreeNode* pcCurrent, bool bHex)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeNodeDebug::GenerateBadKey(CArrayChar* acKey)
 {
-	int		iKeyLength;
+	size	iKeyLength;
 
 	iKeyLength = acKey->NumElements();
 	if (iKeyLength > 0)

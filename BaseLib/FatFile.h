@@ -48,10 +48,10 @@ public:
 protected:
 	EFatCode	OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags);
 	uint32		FatFileGetUniqueId(void);
-	EFatCode	WriteIntoExistingClusters(size uiBytesRemaining, uint8* puiSource);
+	EFatCode	WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* puiSource);
 
 	bool		IsFat32Volume(void);
-	EFatCode	ReadFromClusters(size uiBytesRemaining, size* puiBytesRead, uint8* puiDestination);
+	EFatCode	ReadFromClusters(uint32 uiBytesRemaining, size* puiBytesRead, uint8* puiDestination);
 
 	EFatCode	FlushCacheUpdateAccess(void);
 

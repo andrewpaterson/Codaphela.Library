@@ -1,6 +1,6 @@
 #ifndef __NAMED_SHARED_OBJECT_LINUX_H__
 #define __NAMED_SHARED_OBJECT_LINUX_H__
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #include <stddef.h>
 #include "BaseLib/Chars.h"
 
@@ -28,6 +28,6 @@ int		OpenNamedSharedObject(char* szPosixName);
 void	CloseNamedSharedObject(int iFile, char* szPosixName);
 
 
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU
 #endif // __NAMED_SHARED_OBJECT_LINUX_H__
 

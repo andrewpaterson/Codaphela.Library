@@ -297,7 +297,7 @@ bool CFatClusterCache::Flush(SClusterCache* psCluster)
 			bDone = true;
 		}
 
-		bResult = mpcDrive->Write(psCluster->uiClusterFirstSector + iFirstDirtySector, iLastDirtySector - iFirstDirtySector, &psCluster->pvCache[iFirstDirtySector * muiSectorSize]);
+		bResult = mpcDrive->Write(psCluster->uiClusterFirstSector + (uint32)iFirstDirtySector, (uint32)(iLastDirtySector - iFirstDirtySector), &psCluster->pvCache[iFirstDirtySector * muiSectorSize]);
 		if (!bResult)
 		{
 			return false;

@@ -33,9 +33,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifdef WIN_GNU_32
 #error _WIN32 and WIN_GNU_32 cannot both be defined
 #endif // WIN_GNU_32
-#ifdef LINUX_GNU_32
-#error _WIN32 and LINUX_GNU_32 cannot both be defined
-#endif // LINUX_GNU_32
+#ifdef LINUX_GNU
+#error _WIN32 and LINUX_GNU cannot both be defined
+#endif // LINUX_GNU
 
 #ifndef WINVER
 #define WINVER 0x0501
@@ -88,7 +88,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -102,7 +102,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __cdecl
 #define __ENGINE_FUNCTION__ __FUNCTION__
 #define __ENGINE_PRETTY_FUNCTION__ __PRETTY_FUNCTION__
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU
 
 
 #endif // __DEFINE_H__

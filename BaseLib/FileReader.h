@@ -51,7 +51,8 @@ public:
 						bool	ReadInt64(uint64* plli);
 						bool	ReadSInt(int* pi);
 						bool	ReadSInt(uint* pi);
-						bool	ReadSize(size* pui);
+						bool	ReadSize(size* pui);  //Four bytes in 32 and 64 bit builds, sign extended so 0xffffffff is SIZE_MAX.
+						bool	ReadSizes(size* pai, size iLength);
 						bool	ReadFloat(float32* pf);
 						bool	ReadFloat(float64* pf);
 						bool	ReadChar(char8* pc);

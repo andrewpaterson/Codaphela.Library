@@ -8,8 +8,8 @@
 //////////////////////////////////////////////////////////////////////////
 char* WindowsErrorCodeToString(DWORD errorMessageID)
 {
-    int iCount = IncrementLogToStringCount();
-    int iLen;
+    size iCount = IncrementLogToStringCount();
+    size iLen;
 
     if (errorMessageID == 0)
     {

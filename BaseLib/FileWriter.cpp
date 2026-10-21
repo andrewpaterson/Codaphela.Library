@@ -79,7 +79,36 @@ bool CFileWriter::WriteInt32(uint32 ui)
 //////////////////////////////////////////////////////////////////////////
 bool CFileWriter::WriteSize(size ui)
 {
-	CheckWrite(&ui, sizeof(size));
+	uint32	ui32;
+
+	//Sizes are written as four bytes so files are the same in 32 and 64 bit builds.  ReadSize sign extends them so a
+	//size that has wrapped below zero (such as SIZE_MAX) reads back the same in a 64 bit build.  A 64 bit build cannot
+	//write a size that would not read back.
+	ui32 = (uint32)ui;
+	if ((size)(ptrdiff)(int32)ui32 != ui)
+	{
+		return false;
+	}
+	CheckWrite(&ui32, sizeof(uint32));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CFileWriter::WriteSizes(size* pai, size iLength)
+{
+	size	i;
+
+	for (i = 0; i < iLength; i++)
+	{
+		if (!WriteSize(pai[i]))
+		{
+			return false;
+		}
+	}
 	return true;
 }
 

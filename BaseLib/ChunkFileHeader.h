@@ -14,7 +14,7 @@ struct SChunkFileHeader
 	char		macMD5Hash[16];  //0's if not hashed.
 	uint32		miMagic;
 
-	void		WriteInit(uint32 iUserID);
+	void		WriteInit(chunkName iUserID);
 };
 
 

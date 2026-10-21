@@ -133,6 +133,8 @@ public:
 
 	bool	WriteTreeTemplate(CFileWriter* pcFileWriter);
 	bool	ReadTreeTemplate(CFileReader* pcFileReader);
+	bool	WriteTreeObject(CFileWriter* pcFileWriter);
+	bool	ReadTreeObject(CFileReader* pcFileReader, size* puiNumElements);
 
 protected:
 	void	RecursiveFreeNodes(STNode* pNode);
@@ -1309,12 +1311,12 @@ bool CTreeTemplate<M>::WriteTreeTemplate(CFileWriter* pcFileWriter)
 	}
 
 	iElementSize = sizeof(M);
-	if (!pcFileWriter->WriteData(&iElementSize, sizeof(size))) 
+	if (!pcFileWriter->WriteSize(iElementSize)) 
 	{ 
 		return false; 
 	}
 
-	if (!pcFileWriter->WriteData(this, sizeof(CTreeTemplate<M>))) 
+	if (!WriteTreeObject(pcFileWriter)) 
 	{ 
 		return false; 
 	}
@@ -1329,14 +1331,14 @@ bool CTreeTemplate<M>::WriteTreeTemplate(CFileWriter* pcFileWriter)
 			{
 				return false; 
 			}
-			if (!pcFileWriter->WriteData(&uiPathSize, sizeof(size))) 
+			if (!pcFileWriter->WriteSize(uiPathSize)) 
 			{ 
 				return false; 
 			}
 
 			if (uiPathSize != 0)
 			{
-				if (!pcFileWriter->WriteData(auiPath, sizeof(size) * uiPathSize)) 
+				if (!pcFileWriter->WriteSizes(auiPath, uiPathSize)) 
 				{ 
 					return false; 
 				}
@@ -1377,7 +1379,7 @@ bool CTreeTemplate<M>::ReadTreeTemplate(CFileReader* pcFileReader)
 	}
 
 	Init(pcMalloc);
-	if (!pcFileReader->ReadData(&iElementSize, sizeof(size))) 
+	if (!pcFileReader->ReadSize(&iElementSize)) 
 	{ 
 		return false; 
 	}
@@ -1387,26 +1389,25 @@ bool CTreeTemplate<M>::ReadTreeTemplate(CFileReader* pcFileReader)
 		return false;
 	}
 
-	if (!pcFileReader->ReadData(this, sizeof(CTreeTemplate<M>))) 
+	if (!ReadTreeObject(pcFileReader, &uiNumElements)) 
 	{ 
 		return false; 
 	}
 
-	uiNumElements = NumElements();
 	iPathNum = 0;
 	iOldPath = 0;
 	Init();
 
 	for (i = 0; i < uiNumElements; i++)
 	{
-		if (!pcFileReader->ReadData(&uiPathSize[iPathNum], sizeof(size))) 
+		if (!pcFileReader->ReadSize(&uiPathSize[iPathNum])) 
 		{ 
 			return false; 
 		}
 
 		if (uiPathSize[iPathNum] != 0)
 		{
-			if (!pcFileReader->ReadData(auiPath[iPathNum], sizeof(size) * uiPathSize[iPathNum])) 
+			if (!pcFileReader->ReadSizes(auiPath[iPathNum], uiPathSize[iPathNum])) 
 			{ 
 				return false; 
 			}
@@ -1422,6 +1423,39 @@ bool CTreeTemplate<M>::ReadTreeTemplate(CFileReader* pcFileReader)
 		iPathNum = iPathNum % 2;
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+//The tree is written as a 32 bit build lays out the object (mpcMalloc, mpsRoot, miNumElements and miLevel) so the
+//file is the same in 32 and 64 bit builds.  Only the number of elements is read back so the pointers and the level
+//(which is only valid during a traversal) are written as zero.
+template<class M>
+bool CTreeTemplate<M>::WriteTreeObject(CFileWriter* pcFileWriter)
+{
+	return pcFileWriter->WriteInt32((uint32)0) &&
+		   pcFileWriter->WriteInt32((uint32)0) &&
+		   pcFileWriter->WriteSize(miNumElements) &&
+		   pcFileWriter->WriteInt32((uint32)0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+bool CTreeTemplate<M>::ReadTreeObject(CFileReader* pcFileReader, size* puiNumElements)
+{
+	uint32	uiIgnored;
+
+	return pcFileReader->ReadInt32(&uiIgnored) &&
+		   pcFileReader->ReadInt32(&uiIgnored) &&
+		   pcFileReader->ReadSize(puiNumElements) &&
+		   pcFileReader->ReadInt32(&uiIgnored);
 }
 
 

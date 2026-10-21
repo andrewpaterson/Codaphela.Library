@@ -1,4 +1,4 @@
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #include <errno.h>
 #include <fcntl.h>
 #include <string.h>
@@ -228,5 +228,5 @@ void CloseNamedSharedObject(int iFile, char* szPosixName)
 }
 
 
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU
 

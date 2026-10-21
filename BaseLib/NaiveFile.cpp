@@ -236,11 +236,11 @@ int CNaiveFile::Compare(void* pvOther, size iSize)
 		return -1;
 	}
 
-	if (iSize < miSize)
+	if ((filePos)iSize < miSize)
 	{
 		return -1;
 	}
-	if (iSize > miSize)
+	if ((filePos)iSize > miSize)
 	{
 		return 1;
 	}

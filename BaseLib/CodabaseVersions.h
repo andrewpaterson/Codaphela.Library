@@ -16,7 +16,7 @@ public:
 	CVersion*	pcNext;
 	bool		bExists;
 	int32		iNameLength;
-	uint32		uiDataSize;
+	size		uiDataSize;
 
 	char*	GetName(void);
 	void*	GetData(void);

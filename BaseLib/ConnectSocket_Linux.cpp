@@ -20,7 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -129,4 +129,4 @@ bool CConnectSocket::Connect(void)
 }
 
 
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU

@@ -221,9 +221,9 @@ bool CLinkedListBlock::WriteHeader(CFileWriter* pcFileWriter)
 	size					iNumElements;
 
 	iNumElements = NumElements();
-	sHeader.Init(iNumElements, muiNodeSize);
+	sHeader.Init(iNumElements, LINKED_LIST_BLOCK_FILE_NODE_SIZE);
 
-	if (!pcFileWriter->WriteData(&sHeader, sizeof(SLinkedListBlockDesc)))
+	if (!sHeader.Write(pcFileWriter))
 	{
 		return false;
 	}
@@ -297,12 +297,12 @@ bool CLinkedListBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMall
 {
 	SLinkedListBlockDesc	sDesc;
 
-	if (!pcFileReader->ReadData(&sDesc, sizeof(SLinkedListBlockDesc)))
+	if (!sDesc.Read(pcFileReader))
 	{
 		return false;
 	}
 
-	if (sizeof(SLLBlockNode) != sDesc.uiNodeSize)
+	if (LINKED_LIST_BLOCK_FILE_NODE_SIZE != sDesc.uiNodeSize)
 	{
 		return false;
 	}

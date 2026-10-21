@@ -451,10 +451,56 @@ void SLinkedListBlockDesc::Init(size iNumElements, size uiNodeSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+bool SLinkedListBlockDesc::Write(CFileWriter* pcFileWriter)
+{
+	return pcFileWriter->WriteSize(iNumElements) &&
+		   pcFileWriter->WriteSize(uiNodeSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool SLinkedListBlockDesc::Read(CFileReader* pcFileReader)
+{
+	return pcFileReader->ReadSize(&iNumElements) &&
+		   pcFileReader->ReadSize(&uiNodeSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void SLinkedListTemplateDesc::Init(size iNumElements, size uiNodeSize, size uiDataSize)
 {
 	this->iNumElements = iNumElements;
 	this->uiNodeSize = uiNodeSize;
 	this->uiDataSize = uiDataSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool SLinkedListTemplateDesc::Write(CFileWriter* pcFileWriter)
+{
+	return pcFileWriter->WriteSize(iNumElements) &&
+		   pcFileWriter->WriteSize(uiNodeSize) &&
+		   pcFileWriter->WriteSize(uiDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool SLinkedListTemplateDesc::Read(CFileReader* pcFileReader)
+{
+	return pcFileReader->ReadSize(&iNumElements) &&
+		   pcFileReader->ReadSize(&uiNodeSize) &&
+		   pcFileReader->ReadSize(&uiDataSize);
 }
 

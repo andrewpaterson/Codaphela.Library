@@ -34,12 +34,12 @@ size CEnumeratorBlock::AddGetNode(const char* szName, void* pvData, size uiDataS
 
 	if (pcThisNode)
 	{
-		iID = PrivateAddGetNode(szName, pvData, uiDataSize, uiKeySize, iNum, bReplace, pcThisNode);
+		iID = PrivateAddGetNode(szName, pvData, uiDataSize, uiKeySize, (int)iNum, bReplace, pcThisNode);
 		psNode = (*pcThisNode);
 	}
 	else
 	{
-		iID = PrivateAddGetNode(szName, pvData, uiDataSize, uiKeySize, iNum, bReplace, &psNode);
+		iID = PrivateAddGetNode(szName, pvData, uiDataSize, uiKeySize, (int)iNum, bReplace, &psNode);
 	}
 	//If name with key exists and can't be replaced.
 	if (psNode == NULL)

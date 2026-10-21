@@ -457,7 +457,7 @@ void GetArchaicWords(CArrayChars* pasz)
 {
 	uint32		i;
 	CChars*		pszDefinition;
-	uint32		iIndex;
+	size		iIndex;
 	CChars		sz;
 
 	for (i = 0; i < gaszArchaicDefinitions.NumElements(); i++)
@@ -1502,10 +1502,10 @@ void GetCommonWords(CArrayChars* pasz)
 //////////////////////////////////////////////////////////////////////////
 void PrintRandomWords(CChars* psz, CRandom* pcRandom, bool bIncludeArchaic, uint32 iWordCount)
 {
-	uint32	iMaxWords;
+	size	iMaxWords;
 	uint32	i;
 	uint32	iWordNum;
-	uint32	iCommonWords;
+	size	iCommonWords;
 	bool	bFirst;
 
 	iCommonWords = gaszCommonWords.NumElements();
@@ -1527,7 +1527,7 @@ void PrintRandomWords(CChars* psz, CRandom* pcRandom, bool bIncludeArchaic, uint
 			bFirst = false;
 		}
 
-		iWordNum = pcRandom->Next(0, iMaxWords - 1);
+		iWordNum = pcRandom->Next(0, (int)(iMaxWords - 1));
 		if (iWordNum > gaszCommonWords.NumElements())
 		{
 			psz->Append(gaszArchaicWords.Get(iWordNum - iCommonWords));

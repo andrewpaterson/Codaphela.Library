@@ -511,13 +511,13 @@ bool CMapBlock::WriteMapBlockHeader(CFileWriter* pcFileWriter)
 		return false;
 	}
 
-	bResult = mapArray.WriteHeader(pcFileWriter);
+	bResult = mapArray.WriteHeader(pcFileWriter, ARRAY_FILE_POINTER_SIZE);
 	if (!bResult)
 	{
 		return false;
 	}
 
-	bResult = mapArray.GetSortedArray()->WriteHeader(pcFileWriter);
+	bResult = mapArray.GetSortedArray()->WriteHeader(pcFileWriter, ARRAY_FILE_POINTER_SIZE);
 	if (!bResult)
 	{
 		return false;
@@ -546,13 +546,13 @@ bool CMapBlock::ReadMapBlockHeader(CFileReader* pcFileReader, DataCompare fKeyCo
 		return false;
 	}
 
-	bResult = mapArray.ReadHeader(pcMalloc, pcFileReader, &CompareMNode);
+	bResult = mapArray.ReadHeader(pcMalloc, pcFileReader, &CompareMNode, ARRAY_FILE_POINTER_SIZE, sizeof(SMNode*));
 	if (!bResult)
 	{
 		return false;
 	}
 
-	bResult = mapArray.GetSortedArray()->ReadHeader(pcFileReader, pcMalloc);
+	bResult = mapArray.GetSortedArray()->ReadHeader(pcFileReader, pcMalloc, ARRAY_FILE_POINTER_SIZE, sizeof(SMNode*));
 	if (!bResult)
 	{
 		return false;

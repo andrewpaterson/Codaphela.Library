@@ -115,7 +115,7 @@ void* CArrayIntAndPointer::SafeGetPtr(size uiIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CArrayIntAndPointer::GetType(size uiIndex)
+uint CArrayIntAndPointer::GetType(size uiIndex)
 {
 	SIntAndPointer*	psPtr;
 
@@ -128,7 +128,7 @@ size CArrayIntAndPointer::GetType(size uiIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CArrayIntAndPointer::SafeGetType(size uiIndex)
+uint CArrayIntAndPointer::SafeGetType(size uiIndex)
 {
 	if (uiIndex >= miUsedElements)
 	{

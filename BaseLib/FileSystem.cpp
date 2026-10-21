@@ -198,7 +198,7 @@ CSystemFileNode* CFileSystem::Iterate(CFileSystemIterator* psIter)
 		return NULL;
 	}
 
-	iDirectoryElements = psCurrent->pcNode->Directory()->maNodeFiles.NumElements();
+	iDirectoryElements = (int)psCurrent->pcNode->Directory()->maNodeFiles.NumElements();
 	psCurrent->iIndex++;
 
 	if (psCurrent->iIndex < iDirectoryElements)

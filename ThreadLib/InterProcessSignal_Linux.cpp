@@ -1,4 +1,4 @@
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #include <errno.h>
 #include <limits.h>
 #include <time.h>
@@ -85,4 +85,4 @@ void CInterProcessSignal::Wake(void)
 }
 
 
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU

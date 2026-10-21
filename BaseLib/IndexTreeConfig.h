@@ -23,8 +23,8 @@ public:
 
 			CLifeInit<CMallocator>				GetMalloc(void);
 			EIndexKeyReverse					GetKeyReverse(void);
-			int									GetMaxDataSize(void);
-			int									GetMaxKeySize(void);
+			size								GetMaxDataSize(void);
+			size								GetMaxKeySize(void);
 			CLifeInit<CIndexTreeDataOrderer>	GetDataOrderer(void);
 
 protected:

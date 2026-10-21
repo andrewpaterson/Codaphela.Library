@@ -25,14 +25,14 @@ public:
 	int64	GetSnapshot(void);
 
 	bool	Get(OIndex oi, void* pvData);
-	bool	Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
+	bool	Get(OIndex oi, size* puiDataSize, void* pvData, size uiMaxDataSize);
 	bool	Get(const char* szName, void* pvData);
-	bool	Get(const char* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
+	bool	Get(const char* szName, size* puiDataSize, void* pvData, size uiMaxDataSize);
 	bool	Get(CChars* szName, void* pvData);
-	bool	Get(CChars* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize);
+	bool	Get(CChars* szName, size* puiDataSize, void* pvData, size uiMaxDataSize);
 
 	bool	GetName(OIndex oi, CChars* szName);
-	bool	GetName(OIndex oi, char* szName, uint32* puiNameLength, uint32 uiMaxNameLength);
+	bool	GetName(OIndex oi, char* szName, size* puiNameLength, size uiMaxNameLength);
 	OIndex	GetIndex(const char* szName);
 	OIndex	GetIndex(CChars* szName);
 

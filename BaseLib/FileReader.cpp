@@ -42,8 +42,7 @@ bool CFileReader::ReadData(void* pvData, size iDataSize)
 //////////////////////////////////////////////////////////////////////////
 bool CFileReader::ReadStringLength(size* piLength)
 {
-	CheckRead(piLength, sizeof(size));
-	return true;
+	return ReadSize(piLength);
 }
 
 
@@ -113,7 +112,30 @@ bool CFileReader::ReadInt32(uint32* pui)
 //////////////////////////////////////////////////////////////////////////
 bool CFileReader::ReadSize(size* pui)
 {
-	CheckRead(pui, sizeof(size));
+	int32	i32;
+
+	//See WriteSize.
+	CheckRead(&i32, sizeof(int32));
+	*pui = (size)(ptrdiff)i32;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CFileReader::ReadSizes(size* pai, size iLength)
+{
+	size	i;
+
+	for (i = 0; i < iLength; i++)
+	{
+		if (!ReadSize(&pai[i]))
+		{
+			return false;
+		}
+	}
 	return true;
 }
 

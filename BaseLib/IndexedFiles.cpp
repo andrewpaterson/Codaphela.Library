@@ -130,10 +130,12 @@ bool CIndexedFiles::ReadIndexedFileDescriptors(void)
 		return false;
 	}
 
+#ifndef BUILD_64
 	if ((iFileSize > SIZE_MAX) || (iNumFiles > SIZE_MAX))
 	{
 		return false;
 	}
+#endif // BUILD_64
 	uiFileSize = (size)iFileSize;
 	uiNumFiles = (size)iNumFiles;
 
@@ -183,7 +185,7 @@ bool CIndexedFiles::WriteIndexedFileDescriptors(void)
 		pcIndexedFile = mcFiles.Get(i);
 		psFileDescriptor = (SIndexedFileDescriptor*)RemapSinglePointer(pvFileDescriptors, sizeof(SIndexedFileDescriptor) * i);
 		psFileDescriptor->uiDataSize = pcIndexedFile->GetDataSize();
-		psFileDescriptor->uiFileIndex = pcIndexedFile->GetFileIndex();
+		psFileDescriptor->uiFileIndex = (uint32)pcIndexedFile->GetFileIndex();
 		psFileDescriptor->iFileNum = pcIndexedFile->GetFileNumber();
 	}
 	iResult = mcFileDescriptors.Write(0, pvFileDescriptors, sizeof(SIndexedFileDescriptor), mcFiles.NumElements());
@@ -280,8 +282,8 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(size uiDataSize)
 		return NULL;
 	}
 
-	DataFilename(szFilename, szRewriteName, uiDataSize, iNumFilesWithSize);
-	bResult = pcIndexedFile->Init(mpcDurableFileControl, mcFiles.NumElements() - 1, szFilename, szRewriteName, uiDataSize, iNumFilesWithSize);
+	DataFilename(szFilename, szRewriteName, uiDataSize, (uint32)iNumFilesWithSize);
+	bResult = pcIndexedFile->Init(mpcDurableFileControl, mcFiles.NumElements() - 1, szFilename, szRewriteName, uiDataSize, (uint32)iNumFilesWithSize);
 	if (!bResult)
 	{
 		return NULL;
@@ -399,7 +401,7 @@ void CIndexedFiles::GetFiles(CArrayIndexedFilePtr* papc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CIndexedFiles::GetFileDataSize(uint32 uiFileIndex)
+size CIndexedFiles::GetFileDataSize(uint32 uiFileIndex)
 {
 	CIndexedFile*	pcFile;
 
@@ -517,7 +519,7 @@ CFileDataIndex CIndexedFiles::WriteNew(const void* pvData, size uiDataSize)
 			return cDataIndex;
 		}
 
-		cDataIndex.Init(pcIndexedFile->GetFileIndex(), (uint32)iDataIndex);
+		cDataIndex.Init((uint32)pcIndexedFile->GetFileIndex(), (uint32)iDataIndex);
 		return cDataIndex;
 	}
 	else
@@ -542,7 +544,7 @@ bool CIndexedFiles::WriteExisting(CFileDataIndex* pcDataIndex, const void* pvDat
 	{
 		if (uiDataSize != pcIndexedFile->GetDataSize())
 		{
-			return gcLogger.Error2(__METHOD__, " Cannot write an existing index file data sized [", IntToString(pcIndexedFile->GetDataSize()), "] with a different size [", IntToString(uiDataSize), "].", NULL);
+			return gcLogger.Error2(__METHOD__, " Cannot write an existing index file data sized [", SizeToString(pcIndexedFile->GetDataSize()), "] with a different size [", SizeToString(uiDataSize), "].", NULL);
 		}
 		bResult = pcIndexedFile->Write(pcDataIndex->muiIndex, pvData);
 		return bResult;

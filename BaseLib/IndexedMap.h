@@ -20,7 +20,7 @@ public:
 	void	Kill(void);
 
 	bool	CanKill(void);
-	bool	DescriptorEvicted(OIndex oi, void* pvCache, uint32 uiDataSize);
+	bool	DescriptorEvicted(OIndex oi, void* pvCache, size uiDataSize);
 	bool	Flush(bool bClearCache);
 
 	int64	NumIndices(void);
@@ -37,7 +37,7 @@ protected:
 
 	bool	GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
 	bool	SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
-	bool	UpdateDescriptorCache(OIndex oi, void* pvCache, uint32 uiDataSize);
+	bool	UpdateDescriptorCache(OIndex oi, void* pvCache, size uiDataSize);
 	bool	RemoveDescriptor(OIndex oi);
 };
 

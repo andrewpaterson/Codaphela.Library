@@ -610,8 +610,19 @@ void* CArrayBlockSorted::GetIterated(SArraySortedIterator* psIter)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayBlockSorted::WriteHeader(CFileWriter* pcFileWriter)
 {
+	return WriteHeader(pcFileWriter, miElementSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+//uiFileElementSize is written in place of the element size.
+bool CArrayBlockSorted::WriteHeader(CFileWriter* pcFileWriter, size uiFileElementSize)
+{
 	ReturnOnFalse(pcFileWriter->WriteSize(miHoldingBufferSize));
-	ReturnOnFalse(pcFileWriter->WriteSize(miElementSize));
+	ReturnOnFalse(pcFileWriter->WriteSize(uiFileElementSize));
 	ReturnOnFalse(pcFileWriter->WriteSize(maaHoldingArrays.NumElements()));
 	ReturnOnFalse(pcFileWriter->WriteBool(mbOverwrite));
 	return true;
@@ -649,6 +660,18 @@ bool CArrayBlockSorted::Write(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, DataCompare fCompare)
 {
+	return ReadHeader(pcMalloc, pcFileReader, fCompare, SIZE_MAX, SIZE_MAX);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+//The element size in the file must be uiFileElementSize and the elements are uiElementSize in memory.  SIZE_MAX for
+//both uses the element size in the file.
+bool CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, DataCompare fCompare, size uiFileElementSize, size uiElementSize)
+{
 	CArrayBlock*	paHoldingArray;
 	size			i;
 	size			iHoldingBufferSize;
@@ -661,6 +684,15 @@ bool CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileRea
 	ReturnOnFalse(pcFileReader->ReadSize(&iElementSize));
 	ReturnOnFalse(pcFileReader->ReadSize(&iHoldingBuffers));
 	ReturnOnFalse(pcFileReader->ReadBool(&bOverwrite));
+
+	if (uiFileElementSize != SIZE_MAX)
+	{
+		if (iElementSize != uiFileElementSize)
+		{
+			return false;
+		}
+		iElementSize = uiElementSize;
+	}
 
 	miHoldingBufferSize = iHoldingBufferSize;
 	miElementSize = iElementSize;

@@ -1,6 +1,6 @@
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #include <strings.h>
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU
 #include "MapStringBlock.h"
 
 

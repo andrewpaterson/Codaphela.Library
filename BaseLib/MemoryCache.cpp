@@ -114,7 +114,7 @@ bool CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 		psCacheBasedDescriptor = mcMemoryList.GetCache();
 	}
 
-	pcPreAllocationResult->miCachedSize = iCachedSize;
+	pcPreAllocationResult->miCachedSize = (uint32)iCachedSize;
 	pcPreAllocationResult->mpsDescriptor = psCacheBasedDescriptor;  //psCacheBasedDescriptor will look like garbage until it is initialised in PostAllocate.
 
 	return true;
@@ -178,7 +178,7 @@ void* CMemoryCache::Allocate(size uiDataSize)
 	SMemoryCacheDescriptor* psDescriptor;
 	void*					pvEvictedData;
 
-	cPreAllocation.Init(uiDataSize);
+	cPreAllocation.Init((uint32)uiDataSize);
 
 	bResult = PreAllocate(&cPreAllocation);
 	if (!bResult)

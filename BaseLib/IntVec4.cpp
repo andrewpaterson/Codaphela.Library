@@ -72,10 +72,10 @@ int SIntVec4::WholeNumbers(void)
 {
 	int i[4];
 
-	i[0] = CountDigits(x);
-	i[1] = CountDigits(y);
-	i[2] = CountDigits(z);
-	i[3] = CountDigits(w);
+	i[0] = (int)CountDigits(x);
+	i[1] = (int)CountDigits(y);
+	i[2] = (int)CountDigits(z);
+	i[3] = (int)CountDigits(w);
 
 	return LargestInt(i, 4);
 }

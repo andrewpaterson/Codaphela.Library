@@ -1,4 +1,4 @@
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #include <pthread.h>
 #include "Mutex.h"
 
@@ -56,5 +56,5 @@ void CMutex::Unlock(void)
 }
 
 
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU
 

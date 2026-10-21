@@ -1,4 +1,4 @@
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #include <string.h>
 #include "LinuxError.h"
 
@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 char* LinuxErrorCodeToString(int iErrno)
 {
-    int     iCount = IncrementLogToStringCount();
+    size    iCount = IncrementLogToStringCount();
     char    szBuffer[LOG_TO_STRING_MAX_LENGTH];
     char*   szMessage;
 
@@ -27,5 +27,5 @@ char* LinuxErrorCodeToString(int iErrno)
 }
 
 
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU
 

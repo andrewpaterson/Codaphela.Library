@@ -167,7 +167,7 @@ char* CTextFile::Text(int iOffset)
 //////////////////////////////////////////////////////////////////////////
 int CTextFile::Length(void)
 {
-	return mcText.Length();
+	return (int)mcText.Length();
 }
 
 

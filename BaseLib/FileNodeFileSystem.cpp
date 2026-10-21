@@ -64,7 +64,7 @@ void CFileNodeSystemFile::SetFullName(char* szFullName)
 {
 	CFileUtil	cFileUtil;
 
-	miExtensionIndex = cFileUtil.FindExtension(szFullName);
+	miExtensionIndex = (int)cFileUtil.FindExtension(szFullName);
 	mszFullPath.Init(szFullName);
 }
 

@@ -87,13 +87,13 @@ void* CArrayNameIntAndPointer::GetPtr(size uiIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CArrayNameIntAndPointer::GetType(size uiIndex)
+uint CArrayNameIntAndPointer::GetType(size uiIndex)
 {
 	SNameIntAndPointer*	psPtr;
 
 	if (uiIndex >= miUsedElements)
 	{
-		return ARRAY_ELEMENT_NOT_FOUND;
+		return (uint)ARRAY_ELEMENT_NOT_FOUND;
 	}
 	else
 	{

@@ -12,14 +12,14 @@ public:
 	virtual void	Kill(void) =0;
 
 	virtual bool	Get(OIndex oi, void* pvData) =0;
-	virtual bool	Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize) =0;
+	virtual bool	Get(OIndex oi, size* puiDataSize, void* pvData, size uiMaxDataSize) =0;
 	virtual bool	Get(const char* szName, void* pvData) =0;
-	virtual bool	Get(const char* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize) =0;
+	virtual bool	Get(const char* szName, size* puiDataSize, void* pvData, size uiMaxDataSize) =0;
 	virtual bool	Get(CChars* szName, void* pvData) =0;
-	virtual bool	Get(CChars* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize) =0;
+	virtual bool	Get(CChars* szName, size* puiDataSize, void* pvData, size uiMaxDataSize) =0;
 
 	virtual bool	GetName(OIndex oi, CChars* szName) =0;
-	virtual bool	GetName(OIndex oi, char* szName, uint32* puiNameLength, uint32 uiMaxNameLength) =0;
+	virtual bool	GetName(OIndex oi, char* szName, size* puiNameLength, size uiMaxNameLength) =0;
 	virtual OIndex	GetIndex(const char* szName) =0;
 	virtual OIndex	GetIndex(CChars* szName) =0;
 

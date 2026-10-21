@@ -70,8 +70,8 @@ int SInt16Vec2::WholeNumbers(void)
 {
 	int i[2];
 
-	i[0] = CountDigits(x);
-	i[1] = CountDigits(y);
+	i[0] = (int)CountDigits(x);
+	i[1] = (int)CountDigits(y);
 
 	return LargestInt(i, 2);
 }

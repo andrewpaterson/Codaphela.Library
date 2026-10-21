@@ -477,10 +477,15 @@ EFatCode CFatFile::Write(uint8* pvSource, size uiLength)
 	eResult = ValidateCanWrite();
 	RETURN_ON_FAT_FAILURE(eResult);
 
-	eResult = PotentiallyAllocateClusters(uiLength);
+	if (uiLength > MAX_UINT32)
+	{
+		return FAT_INVALID_PARAMETERS;
+	}
+
+	eResult = PotentiallyAllocateClusters((uint32)uiLength);
 	RETURN_ON_FAT_FAILURE(eResult);
 
-	eResult = WriteIntoExistingClusters(uiLength, pvSource);
+	eResult = WriteIntoExistingClusters((uint32)uiLength, pvSource);
 	return eResult;
 }
 
@@ -489,7 +494,7 @@ EFatCode CFatFile::Write(uint8* pvSource, size uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::WriteIntoExistingClusters(size uiBytesRemaining, uint8* puiSource)
+EFatCode CFatFile::WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* puiSource)
 {
 	EFatCode	uiResult;
 	bool		bSuccess;
@@ -498,7 +503,7 @@ EFatCode CFatFile::WriteIntoExistingClusters(size uiBytesRemaining, uint8* puiSo
 	uint32		uiWriteClusterIndex;
 	uint16		uiWriteOffsetInCluster;
 	uint16		uiPreviousMaximumOffset;
-	size		uiBytesWritten;
+	uint32		uiBytesWritten;
 
 	msFile.bBusy = true;
 
@@ -580,7 +585,12 @@ EFatCode CFatFile::Read(uint8* puiDestination, size uiLength, size* puiBytesRead
 	eResult = ValidateCanRead();
 	RETURN_ON_FAT_FAILURE(eResult);
 
-	return ReadFromClusters(uiLength, puiBytesRead, puiDestination);
+	if (uiLength > MAX_UINT32)
+	{
+		uiLength = MAX_UINT32;  //A FAT file is never longer than 4GB.
+	}
+
+	return ReadFromClusters((uint32)uiLength, puiBytesRead, puiDestination);
 }
 
 
@@ -588,7 +598,7 @@ EFatCode CFatFile::Read(uint8* puiDestination, size uiLength, size* puiBytesRead
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::ReadFromClusters(size uiBytesRemaining, size* puiBytesRead, uint8* puiDestination)
+EFatCode CFatFile::ReadFromClusters(uint32 uiBytesRemaining, size* puiBytesRead, uint8* puiDestination)
 {
 	EFatCode	eResult;
 	bool		bSuccess;
@@ -597,7 +607,7 @@ EFatCode CFatFile::ReadFromClusters(size uiBytesRemaining, size* puiBytesRead, u
 	uint32		uiReadClusterIndex;
 	uint16		uiReadOffsetInCluster;
 	uint16		uiPreviousMaximumOffset;
-	size		uiBytesRead;
+	uint32		uiBytesRead;
 	size		uiTotalBytesRead;
 
 	if (msFile.uiFileSize == 0 || msFile.uiFilePositionCluster == 0)

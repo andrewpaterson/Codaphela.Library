@@ -1,4 +1,4 @@
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #include <errno.h>
 #include <pthread.h>
 #include <signal.h>
@@ -402,4 +402,4 @@ bool CInterProcessMutex::Unlock(void)
 }
 
 
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU

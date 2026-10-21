@@ -2436,7 +2436,7 @@ uint32 CFatVolume::CalculateQuerySector(SFatFileSystemQuery* psQuery)
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatVolume::CalculateQuerySectorOffset(SFatFileSystemQuery* psQuery)
 {
-	return (uint16)((uintptr_t)psQuery->sQuery.psCurrentEntryRaw) - ((uintptr_t)psQuery->sQuery.psFirstEntryRaw);
+	return (uint16)(((uintptr_t)psQuery->sQuery.psCurrentEntryRaw) - ((uintptr_t)psQuery->sQuery.psFirstEntryRaw));
 }
 
 
@@ -3115,7 +3115,7 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, co
 		eResult = GenerateUniqueShortNameWithSuffix(psParentDirectory, psNewEntry->sRaw.uEntry.sFatRawCommon.szShortName);
 		RETURN_ON_FAT_FAILURE(eResult);
 
-		iLFNEntriesNeeded = ((strlen(szName) + 12) / 13) + 1;
+		iLFNEntriesNeeded = (int)((strlen(szName) + 12) / 13) + 1;
 	}
 	else
 	{

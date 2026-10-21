@@ -1,4 +1,4 @@
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #include "AtomicInt.h"
 
 
@@ -65,5 +65,5 @@ bool CAtomicInt::CompareExchange(int iExpected, int iValue)
 }
 
 
-#endif // LINUX_GNU_32
+#endif // LINUX_GNU
 

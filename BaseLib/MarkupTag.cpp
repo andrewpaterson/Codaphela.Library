@@ -68,7 +68,7 @@ void CMarkupTag::Kill(void)
 	size			uiNumElements;
 	CMallocator*	pcMalloc;
 	void*			pvData;
-	size			uiType;
+	uint			uiType;
 	char*			szName;
 
 	mszName.Kill();
@@ -119,7 +119,7 @@ bool CMarkupTag::GetAttribute(const char* szAttribute, void** ppvData, uint* pui
 	size			i;
 	size			uiNumElements;
 	void*			pvData;
-	size			uiType;
+	uint			uiType;
 	char*			szName;
 	bool			bExists;
 

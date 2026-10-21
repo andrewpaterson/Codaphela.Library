@@ -189,6 +189,6 @@ void CNumberControl::Remove(int iNumToRemove)
 //////////////////////////////////////////////////////////////////////////
 int CNumberControl::NumElements(void)
 {
-	return mcScratchPad.NumElements();
+	return (int)mcScratchPad.NumElements();
 }
 

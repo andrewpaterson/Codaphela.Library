@@ -58,7 +58,7 @@ bool CReadTransaction::Get(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CReadTransaction::Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize)
+bool CReadTransaction::Get(OIndex oi, size* puiDataSize, void* pvData, size uiMaxDataSize)
 {
 	return mpcCodabase->SnapshotGet(miSnapshot, oi, puiDataSize, pvData, uiMaxDataSize, false);
 }
@@ -81,7 +81,7 @@ bool CReadTransaction::Get(const char* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CReadTransaction::Get(const char* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize)
+bool CReadTransaction::Get(const char* szName, size* puiDataSize, void* pvData, size uiMaxDataSize)
 {
 	OIndex	oi;
 
@@ -104,7 +104,7 @@ bool CReadTransaction::Get(CChars* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CReadTransaction::Get(CChars* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize)
+bool CReadTransaction::Get(CChars* szName, size* puiDataSize, void* pvData, size uiMaxDataSize)
 {
 	return Get(szName ? szName->Text() : NULL, puiDataSize, pvData, uiMaxDataSize);
 }
@@ -124,7 +124,7 @@ bool CReadTransaction::GetName(OIndex oi, CChars* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CReadTransaction::GetName(OIndex oi, char* szName, uint32* puiNameLength, uint32 uiMaxNameLength)
+bool CReadTransaction::GetName(OIndex oi, char* szName, size* puiNameLength, size uiMaxNameLength)
 {
 	CChars	sz;
 	bool	bResult;
@@ -205,11 +205,11 @@ OIndex CReadTransaction::StartIndexIteration(SIndexTreeFileIterator* psIterator,
 OIndex CReadTransaction::IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
 {
 	OIndex	oi;
-	uint32	uiDataSize;
+	size	uiDataSize;
 
 	while (mcIteration.NextIndex(&oi))
 	{
-		if (Get(oi, &uiDataSize, pvData, (uint32)iMaxDataSize))
+		if (Get(oi, &uiDataSize, pvData, (size)iMaxDataSize))
 		{
 			SafeAssign(piDataSize, (size)uiDataSize);
 			return oi;

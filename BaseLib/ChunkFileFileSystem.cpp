@@ -353,7 +353,7 @@ char* CChunkFileFileSystem::IterateName(SChunkFilenameIterator* psIter)
 {
 	size		iNumChunks;
 	char*		szName;
-	size*		piIndex;
+	uint*		piIndex;
 	size		iLength;
 
 	if (psIter->bDone)

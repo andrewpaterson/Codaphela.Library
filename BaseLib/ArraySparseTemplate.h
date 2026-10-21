@@ -444,7 +444,7 @@ void __CArraySparseTemplate<M>::RecurseRebalance(SSparseNode* psNode)
 		iRightDepth = -1;
 	}
 
-	iDiff = iLeftDepth - iRightDepth;
+	iDiff = (int)iLeftDepth - (int)iRightDepth;
 	if ((iDiff >= -1) && (iDiff <= 1))
 	{
 		return RecurseRebalance(psNode->psParent);

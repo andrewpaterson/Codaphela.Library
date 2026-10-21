@@ -150,7 +150,7 @@ char* FatCodeToString(EFatCode eCode)
 const char* FatEntryToString(SFatDirectoryEntry* psFatEntry, bool bFat32Volume)
 {
 	uint32	uiCluster;
-	int		iCount;
+	size	iCount;
 	char	szTemp[LOG_TO_STRING_MAX_LENGTH];
 
 	if (psFatEntry == NULL)

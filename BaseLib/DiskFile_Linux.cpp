@@ -20,7 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifdef LINUX_GNU_32
+#ifdef LINUX_GNU
 #define _FILE_OFFSET_BITS 64
 #include <stdio.h>
 #include <string.h>
@@ -441,5 +441,5 @@ CDiskFile* DiskFile(const char* szName)
 	return pcDiskFile;
 }
 
-#endif //LINUX_GNU_32
+#endif //LINUX_GNU
 

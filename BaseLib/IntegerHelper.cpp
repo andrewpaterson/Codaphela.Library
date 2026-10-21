@@ -1541,7 +1541,7 @@ size CalculateStride(size iElementSize, uint16 iAlignment)
 	int32		iByteDiff;
 	int32		iStride;
 
-	iByteDiff = iElementSize % iAlignment;
+	iByteDiff = (int)(iElementSize % iAlignment);
 	if (iByteDiff == 0)
 	{
 		return iElementSize;
@@ -1549,7 +1549,7 @@ size CalculateStride(size iElementSize, uint16 iAlignment)
 	else
 	{
 		iByteDiff = iAlignment - iByteDiff;
-		iStride = iByteDiff + iElementSize;
+		iStride = iByteDiff + (int)iElementSize;
 		return iStride;
 	}
 }

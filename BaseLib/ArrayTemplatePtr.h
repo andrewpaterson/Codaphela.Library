@@ -33,7 +33,7 @@ public:
 	void	QuickSort(DataCompare fCompare);
 	void	TimSort(DataCompare fCompare);
 
-	int32	Find(M* pv);
+	size	Find(M* pv);
 	void 	Push(M* pv);
 	M*		Pop(void);
 
@@ -246,7 +246,7 @@ void CArrayTemplatePtr<M>::TimSort(DataCompare fCompare)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int32 CArrayTemplatePtr<M>::Find(M* pv)
+size CArrayTemplatePtr<M>::Find(M* pv)
 {
 	size	i;
 	M**		pvData;

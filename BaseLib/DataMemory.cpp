@@ -494,7 +494,7 @@ CFreeList* CDataMemory::GetOrAddFreeList(size iElementSize)
 	psParams = mpcFreeListParams->GetFreeListParamsForSize(iElementSize);
 	if (psParams == NULL)
 	{
-		gcLogger.Error2(__METHOD__, " No free list parameter for element size [", SizeToString(iElementSize), "].  Available parameter options [", IntToString(mpcFreeListParams->NumParams()), "] (should be more than 0, call DataMemoryInit())." , NULL);
+		gcLogger.Error2(__METHOD__, " No free list parameter for element size [", SizeToString(iElementSize), "].  Available parameter options [", SizeToString(mpcFreeListParams->NumParams()), "] (should be more than 0, call DataMemoryInit())." , NULL);
 		return NULL;
 	}
 

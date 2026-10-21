@@ -138,9 +138,9 @@ int SFloat64Vec3::WholeNumbers(void)
 {
 	int i[3];
 
-	i[0] = FloatWholeNumbers(x);
-	i[1] = FloatWholeNumbers(y);
-	i[2] = FloatWholeNumbers(z);
+	i[0] = (int)FloatWholeNumbers(x);
+	i[1] = (int)FloatWholeNumbers(y);
+	i[2] = (int)FloatWholeNumbers(z);
 
 	return LargestInt(i, 3);
 }

@@ -56,7 +56,7 @@ int GetIndex(SFloat32Vec3* psPoints, size iStride, SFloat32Vec3* psPosition)
 	int		iIndex;
 
 	iIndex = (int)(psPosition - psPoints);
-	iIndex = iIndex / iStride;
+	iIndex = iIndex / (int)iStride;
 
 	return iIndex;
 }
