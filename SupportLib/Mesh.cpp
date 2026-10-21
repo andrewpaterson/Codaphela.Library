@@ -142,7 +142,7 @@ bool CMesh::Touch(void)
 //////////////////////////////////////////////////////////////////////////
 int CMesh::NumCorners(void)
 {
-	return mcConnectivity.mcCorners.NumElements();
+	return (int)mcConnectivity.mcCorners.NumElements();
 }
 
 
@@ -152,7 +152,7 @@ int CMesh::NumCorners(void)
 //////////////////////////////////////////////////////////////////////////
 int CMesh::NumFaces(void)
 {
-	return mcConnectivity.mcFaces.NumElements();
+	return (int)mcConnectivity.mcFaces.NumElements();
 }
 
 
@@ -162,7 +162,7 @@ int CMesh::NumFaces(void)
 //////////////////////////////////////////////////////////////////////////
 int CMesh::NumEdges(void)
 {
-	return mcConnectivity.mcEdges.NumElements();
+	return (int)mcConnectivity.mcEdges.NumElements();
 }
 
 
@@ -172,7 +172,7 @@ int CMesh::NumEdges(void)
 //////////////////////////////////////////////////////////////////////////
 int CMesh::TestNumPositions(void)
 {
-	return mcPositions.mcPositions.NumElements();
+	return (int)mcPositions.mcPositions.NumElements();
 }
 
 
@@ -182,7 +182,7 @@ int CMesh::TestNumPositions(void)
 //////////////////////////////////////////////////////////////////////////
 int CMesh::FaceChunkSize(void)
 {
-	return mcConnectivity.mcFaces.ChunkSize();
+	return (int)mcConnectivity.mcFaces.ChunkSize();
 }
 
 
@@ -192,7 +192,7 @@ int CMesh::FaceChunkSize(void)
 //////////////////////////////////////////////////////////////////////////
 int CMesh::CornerChunkSize(void)
 {
-	return mcConnectivity.mcCorners.ChunkSize();
+	return (int)mcConnectivity.mcCorners.ChunkSize();
 }
 
 
@@ -202,7 +202,7 @@ int CMesh::CornerChunkSize(void)
 //////////////////////////////////////////////////////////////////////////
 int CMesh::TestPositionChunkSize(void)
 {
-	return mcPositions.mcPositions.ChunkSize();
+	return (int)mcPositions.mcPositions.ChunkSize();
 }
 
 

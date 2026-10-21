@@ -466,7 +466,7 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlit
 		xStart = cRect.GetLeft();
 		for (x = xStart; x < xEnd; x++)
 		{
-			uiAlpha = *((uint8*)pcAccessorOpacity->Get(x, y));
+			uiAlpha = *((uint8*)pcAccessorOpacity->Get((int32)x, (int32)y));
 			if (uiAlpha == 0)
 			{
 				uiThisType = 0;
@@ -749,12 +749,12 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip)
 		{
 			pcOffsetImageRowBlitter = macRowBlitters.Get(ui);
 
-			ySource = pcOffsetImageRowBlitter->msOffset.y;
+			ySource = (int32)pcOffsetImageRowBlitter->msOffset.y;
 			yDestOffset = ySource - iSourceTop;
 			yDest = iDestY + yDestOffset;
 
-			xSourceStart = pcOffsetImageRowBlitter->msOffset.x;
-			xSourceEnd = pcOffsetImageRowBlitter->muiXEnd;
+			xSourceStart = (int32)pcOffsetImageRowBlitter->msOffset.x;
+			xSourceEnd = (int32)pcOffsetImageRowBlitter->muiXEnd;
 
 			xDestOffset = xSourceStart - iSourceLeft;
 			xDestStart = iDestX + xDestOffset;
@@ -770,14 +770,14 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip)
 		{
 			pcOffsetImageRowBlitter = macRowBlitters.Get(ui);
 
-			ySource = pcOffsetImageRowBlitter->msOffset.y;
+			ySource = (int32)pcOffsetImageRowBlitter->msOffset.y;
 			yDestOffset = ySource - iSourceTop;
 			yDest = iDestY + yDestOffset;
 
 			if ((yDest >= cDestRect.msTopLeft.y) && (yDest < cDestRect.msBottomRight.y))
 			{
-				xSourceStart = pcOffsetImageRowBlitter->msOffset.x;
-				xSourceEnd = pcOffsetImageRowBlitter->muiXEnd;
+				xSourceStart = (int32)pcOffsetImageRowBlitter->msOffset.x;
+				xSourceEnd = (int32)pcOffsetImageRowBlitter->muiXEnd;
 
 				xDestOffset = xSourceStart - iSourceLeft;
 				xDestStart = iDestX + xDestOffset;

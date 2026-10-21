@@ -58,7 +58,7 @@ void CImageCelTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psTrans
 
 	//Only copy as many bytes as a pixel has.  Callers pass colours smaller than SImageColour.
 	pcAccessor = CImageAccessorCreator::Create(&pcSourceImage);
-	iDataSize = pcAccessor->GetBufferSize();
+	iDataSize = (int)pcAccessor->GetBufferSize();
 	pcAccessor->Kill();
 
 	msTransparentColour.Zero();

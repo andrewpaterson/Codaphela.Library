@@ -94,7 +94,7 @@ CPrimitiveObject::CPrimitiveObject(EPrimitiveType eType)
 //////////////////////////////////////////////////////////////////////////
 void CPrimitiveObject::SetEmbedding(CObject* pcEmbedding)
 {
-	muiNegativeEmbeddingOffset = ((uint8*)this - (uint8*)pcEmbedding);
+	muiNegativeEmbeddingOffset = (uint16)((uint8*)this - (uint8*)pcEmbedding);
 }
 
 

@@ -104,7 +104,7 @@ void CMeshSkinVert::SortSkinWeights(void)
 	int				j;
 	SSkinWeight*	psWeight;
 
-	for (j = mcWeights.NumElements(); j >= 0; j--)
+	for (j = (int)mcWeights.NumElements() - 1; j >= 0; j--)
 	{
 		psWeight = mcWeights.Get(j);
 		if (psWeight->fWeight == 0.0f)
@@ -296,7 +296,7 @@ int CMeshSkin::GetFaceMatrixCount(int iVert1, int iVert2, int iVert3)
 	PrivateAddMatricies(pcVert, &aiMatricies);
 
 	aiMatricies.QuickSort();
-	iNumMatricies = aiMatricies.NumElements();
+	iNumMatricies = (int)aiMatricies.NumElements();
 	aiMatricies.Kill();
 
 	return iNumMatricies;
@@ -344,7 +344,7 @@ int CMeshSkin::GetFaceVertexMaxMatrixCount(int iVert1, int iVert2, int iVert3)
 		iNumMatricies = pcVert->mcWeights.NumElements();
 	}
 
-	return iNumMatricies;
+	return (int)iNumMatricies;
 }
 
 

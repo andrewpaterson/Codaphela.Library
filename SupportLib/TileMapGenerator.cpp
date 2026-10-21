@@ -829,8 +829,8 @@ bool CTileMapGenerator::GenerateCels(Ptr<CTileGridSource> pSource)
 	char*					szSourceConstantName;
 
 	sSize = pSource->GetSize();
-	iWidth = sSize.x;
-	iHeight = sSize.y;
+	iWidth = (int)sSize.x;
+	iHeight = (int)sSize.y;
 	szSourceConstantName = pSource->GetConstantName();
 
 	//Every generator for this source that matches a cel writes a tile to its own layer.
@@ -877,10 +877,10 @@ bool CTileMapGenerator::GenerateCels(char* szConstantSouceName, size x, size y)
 			continue;
 		}
 
-		bMatches = pGenerator->Matches(x, y);
+		bMatches = pGenerator->Matches((int)x, (int)y);
 		if (bMatches)
 		{
-			pBrush = CalculateBrush(pGenerator, x, y);
+			pBrush = CalculateBrush(pGenerator, (int)x, (int)y);
 			if (pBrush.IsNotNull())
 			{
 				pCelLayer = pGenerator->GetTileLayer();
@@ -964,7 +964,7 @@ Ptr<CTileCelBrush> CTileMapGenerator::ChooseBrush(int iCelType, char* szPatternC
 		return NULL;
 	}
 
-	iChoice = (size)GetRandom()->Next(0, iTotalWeight - 1);
+	iChoice = (size)GetRandom()->Next(0, (int)iTotalWeight - 1);
 	for (i = 0; i < iNumElements; i++)
 	{
 		pBrush = maTileCelBrushes.Get(i);

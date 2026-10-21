@@ -37,7 +37,7 @@ EMeshType GuessMeshType(char *szFilename)
 	EMeshType	eType;
 	CFileUtil	cFileUtil;
 
-	iIndex = cFileUtil.FindExtension(szFilename);
+	iIndex = (int)cFileUtil.FindExtension(szFilename);
 	szTest.Init(szFilename, iIndex);
 
 	//----------------------------------------

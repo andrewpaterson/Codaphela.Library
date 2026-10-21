@@ -107,10 +107,10 @@ void CMeshBoundingBox::GenerateBoundingBox(CMeshPositions* pcPositions, CMeshNor
 
 	psPoints = pcPositions->mcPositions.GetData();
 
-	iCenterIndex = pcPositions->mcPositions.NumElements();
+	iCenterIndex = (int)pcPositions->mcPositions.NumElements();
 	psCenter = pcPositions->mcPositions.Add();
 
-	iLongAxisIndex = pcNormals->mcNormals.NumElements();
+	iLongAxisIndex = (int)pcNormals->mcNormals.NumElements();
 	psXAxis = pcNormals->mcNormals.Add();
 	psYAxis = pcNormals->mcNormals.Add();
 	psZAxis = pcNormals->mcNormals.Add();
@@ -118,7 +118,7 @@ void CMeshBoundingBox::GenerateBoundingBox(CMeshPositions* pcPositions, CMeshNor
 	psCenter->Init(0,0,0);
 	cBox.Init(psCenter, psXAxis, psYAxis, psZAxis);
 
-	cBox.SetFromPointsUsingBestFit(psPoints, sizeof(SFloat32Vec3), pcPositions->mcPositions.NumElements(), false);
+	cBox.SetFromPointsUsingBestFit(psPoints, sizeof(SFloat32Vec3), (int)pcPositions->mcPositions.NumElements(), false);
 
 	mcBox.Init(iCenterIndex, iLongAxisIndex, cBox.mfLongLength, iLongAxisIndex+1, cBox.mfMiddleLength, iLongAxisIndex+2, cBox.mfShortLength);
 }

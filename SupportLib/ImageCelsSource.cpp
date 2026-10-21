@@ -331,7 +331,7 @@ bool CImageCelsSource::Load(void)
 				pcMask = OMalloc<CImage>();
 				maFillMasks.Add(pcMask);
 			}
-			iFirstCelIndex = maImageCels.NumElements();
+			iFirstCelIndex = (int)maImageCels.NumElements();
 			pcCelsSource->Divide((CImage*)pImageSource->GetImage().Object(), &maImageCels, (CImage*)pcMask.Object());
 
 			if (mbPackOnLoad)

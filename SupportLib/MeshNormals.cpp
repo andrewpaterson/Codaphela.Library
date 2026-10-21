@@ -125,7 +125,7 @@ void CMeshNormals::GenerateFlatFaceNormals(CMeshPositions* pcPositions, CMeshCon
 
 	if (mbInUse)
 	{
-		iNumFaces = pcConn->mcFaces.NumElements();
+		iNumFaces = (int)pcConn->mcFaces.NumElements();
 
 		mcFaces.Kill();
 		mcFaces.Init();

@@ -45,7 +45,7 @@ bool CTextBuilder::Push(uint32 cCodePoint32)
 	uiUTF16Char = mpcUTF->GetUTF16ElementUint32(cCodePoint32);
 	uiUTF16Length = mpcUTF->GetUTF16Length(uiUTF16Char);
 
-	if (mpcUTF->IsError(uiUTF16Length))
+	if (mpcUTF->IsError((uint32)uiUTF16Length))
 	{
 		return false;
 	}
@@ -182,7 +182,7 @@ bool CTextBuilder::Push(uint8* puiCodePoint, size uiCodePointsLength)
 		uiCodePointLength = StrLen((char*)puiCodePoint);
 		cCodePoint32 = mpcUTF->MakeCodePointUint32FromBuffer(puiCodePoint, uiCodePointLength);
 		uiUTF16Length = mpcUTF->GetUTF16Length(cCodePoint32);
-		if (mpcUTF->IsError(uiUTF16Length))
+		if (mpcUTF->IsError((uint32)uiUTF16Length))
 		{
 			auiUTF16.Kill();
 			return false;

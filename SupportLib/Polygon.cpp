@@ -325,7 +325,7 @@ void CPolygon::FindIndicesOfVisibleHalfSpaces(SFloat32Vec3* psPosition, CArrayIn
 	iElementPos = 0;
 	for (i = 0; i < mapsPositions.NumElements(); i++)
 	{
-		iStart = i;
+		iStart = (int)i;
 		psStart = *((SFloat32Vec3**)mapsPositions.Get(iStart));
 
 		if (iStart != (int)mapsPositions.NumElements()-1)

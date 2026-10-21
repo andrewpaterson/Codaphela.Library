@@ -199,7 +199,7 @@ Ptr<CImage> CTileLayerCel::WriteToImage(void)
 			pBlitter = GetBlitter(x, y);
 			if (pBlitter.IsNotNull())
 			{
-				bResult = pBlitter->Blit(x * msCelSize.x, y * msCelSize.y);
+				bResult = pBlitter->Blit((int32)(x * msCelSize.x), (int32)(y * msCelSize.y));
 				if (!bResult)
 				{
 					mpViewport = pOldViewport;
@@ -377,12 +377,12 @@ bool CTileLayerCel::GetImageDestBounds(CRectangle* pcRect)
 					pcSubImage = pCel->GetSubImage();
 					if (bFirst)
 					{
-						pcSubImage->GetImageDestBounds(x * msCelSize.x, y * msCelSize.y, &cBounding);
+						pcSubImage->GetImageDestBounds((int32)(x * msCelSize.x), (int32)(y * msCelSize.y), &cBounding);
 						bFirst = false;
 					}
 					else
 					{
-						pcSubImage->GetImageDestBounds(x * msCelSize.x, y * msCelSize.y, &cCelRect);
+						pcSubImage->GetImageDestBounds((int32)(x * msCelSize.x), (int32)(y * msCelSize.y), &cCelRect);
 						cBounding.GrowToContain(&cCelRect);
 					}
 				}
@@ -403,7 +403,7 @@ bool CTileLayerCel::GetFullDestBounds(CRectangle* pcRect)
 {
 	if ((msMapSize.x > 0) && (msCelSize.x > 0) && (msMapSize.y > 0) && (msCelSize.y > 0))
 	{
-		pcRect->Init(msMapSize.x* msCelSize.x, msMapSize.y* msCelSize.y);
+		pcRect->Init((int32)(msMapSize.x * msCelSize.x), (int32)(msMapSize.y * msCelSize.y));
 		return true;
 	}
 	else
@@ -557,9 +557,9 @@ bool CTileLayerCel::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters)
 	}
 
 	xSize = pcViewportRect->GetWidth() + 1;
-	xStart = pcViewportRect->msTopLeft.x / msCelSize.x;
-	xStop = xStart + xSize / msCelSize.x;
-	if (xSize % msCelSize.x != 0)
+	xStart = pcViewportRect->msTopLeft.x / (int32)msCelSize.x;
+	xStop = xStart + xSize / (int32)msCelSize.x;
+	if (xSize % (int32)msCelSize.x != 0)
 	{
 		xStop++;
 	}
@@ -569,14 +569,14 @@ bool CTileLayerCel::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters)
 	}
 	if (xStop > (int32)msMapSize.x)
 	{
-		xStop = msMapSize.x;
+		xStop = (int32)msMapSize.x;
 	}
 
 	ySize = pcViewportRect->GetHeight();
-	yStart = pcViewportRect->msTopLeft.y / msCelSize.y;
-	yStop = yStart + ySize / msCelSize.y;
+	yStart = pcViewportRect->msTopLeft.y / (int32)msCelSize.y;
+	yStop = yStart + ySize / (int32)msCelSize.y;
 	yStop++;
-	if (ySize % msCelSize.y != 0)
+	if (ySize % (int32)msCelSize.y != 0)
 	{
 		yStop++;
 	}
@@ -586,7 +586,7 @@ bool CTileLayerCel::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters)
 	}
 	if (yStop > (int32)msMapSize.y)
 	{
-		yStop = msMapSize.y;
+		yStop = (int32)msMapSize.y;
 	}
 
 	if (bEnsureBlitters)
@@ -605,8 +605,8 @@ bool CTileLayerCel::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters)
 			pBlitter = GetBlitter(x, y);
 			if (pBlitter.IsNotNull())
 			{
-				xOffset = x * msCelSize.x;
-				yOffset = y * msCelSize.y;
+				xOffset = x * (int32)msCelSize.x;
+				yOffset = y * (int32)msCelSize.y;
 				bResult = pBlitter->Blit(xOffset - pcViewportRect->msTopLeft.x, yOffset - pcViewportRect->msTopLeft.y);
 				if (!bResult)
 				{

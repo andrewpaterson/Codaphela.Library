@@ -131,7 +131,7 @@ bool CImageRGBToGrey::AreChannelsSame(CImage* pcImage, EChannel eChannel1, EChan
 		return false;
 	}
 
-	iSize = pcAccessor1->GetByteSize();
+	iSize = (int)pcAccessor1->GetByteSize();
 
 	iWidth = pcImage->GetWidth();
 	for (y = 0; y < iWidth; y++)

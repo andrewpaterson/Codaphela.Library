@@ -59,7 +59,7 @@ int CMeshUVLayer::AddFace(int iUV1, int iUV2, int iUV3)
 	SMeshUVFace*	psUVFace;
 	int				iFaceNum;
 
-	iFaceNum = mcFaces.NumElements();
+	iFaceNum = (int)mcFaces.NumElements();
 	psUVFace = mcFaces.Add();
 	psUVFace->aiUVs[0] = iUV1;
 	psUVFace->aiUVs[1] = iUV2;
@@ -199,7 +199,7 @@ bool CMeshUVCoords::Save(CObjectWriter* pcFile)
 
 	ReturnOnFalse(CMeshDetail::Save(pcFile));
 
-	ReturnOnFalse(pcFile->WriteSInt(mcLayers.NumElements()));
+	ReturnOnFalse(pcFile->WriteSInt((int)mcLayers.NumElements()));
 
 	for (i = 0; i < mcLayers.NumElements(); i++)
 	{
@@ -228,7 +228,7 @@ int CMeshUVCoords::AddLayer(CMeshConnectivity* pcConn)
 		{
 			pcUVLayer->AddFace(-1, -1, -1);
 		}
-		return mcLayers.NumElements() - 1;
+		return (int)mcLayers.NumElements() - 1;
 	}
 	else
 	{
@@ -349,7 +349,7 @@ int CMeshUVCoords::NumUVs(void)
 			pcUVLayer = mcLayers.Get(i);
 			iNumUVs += pcUVLayer->mcUVs.NumElements();
 		}
-		return iNumUVs;
+		return (int)iNumUVs;
 	}
 	else
 	{

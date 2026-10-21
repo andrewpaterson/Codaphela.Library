@@ -147,8 +147,8 @@ SInt32Vec2 CRectangleBestPacker::GetSourcesSizes(void)
 		sSize.x += pcRect->miWidth;
 		sSize.y += pcRect->miHeight;
 	}
-	sSize.x += (masSourceRectangles.NumElements() - 1) * miInnerEdgeWidth ;
-	sSize.y += (masSourceRectangles.NumElements() - 1) * miInnerEdgeWidth ;
+	sSize.x += ((int)masSourceRectangles.NumElements() - 1) * miInnerEdgeWidth ;
+	sSize.y += ((int)masSourceRectangles.NumElements() - 1) * miInnerEdgeWidth ;
 
 	return sSize;
 }

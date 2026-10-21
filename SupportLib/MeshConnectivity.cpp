@@ -188,7 +188,7 @@ CMFRet CMeshConnectivity::AddFace(int iCorner1, int iCorner2, int iCorner3)
 	CMFRet			rFace;
 
 	//Calling AddFace/RemoveFace is the only public way to alter the connectivity of the mesh.
-	iFaceNum = mcFaces.NumElements();
+	iFaceNum = (int)mcFaces.NumElements();
 
 	pcFace = AddFace();
 	pcFace->Init(iCorner1, iCorner2, iCorner3);
@@ -420,7 +420,7 @@ int CMeshConnectivity::GenerateEdgeConnectivity(void)
 	KillCornerEdgesMap();
 	mcCornerEdgesMap.Init();
 
-	iNumCorners = mcCorners.NumElements();
+	iNumCorners = (int)mcCorners.NumElements();
 
 	for (iCornerNum = 0; iCornerNum < iNumCorners; iCornerNum++)
 	{
@@ -480,11 +480,11 @@ int CMeshConnectivity::GenerateEdgeConnectivity(CMeshFace* pcFace, int iFaceNum,
 
 	iAddedEdges = 0;
 	pcCornerEdgesMap = mcCornerEdgesMap.Get(iCornerSmall);
-	iIndex = pcCornerEdgesMap->maiLargerCornerIndex.Find(iCornerLarger);
+	iIndex = (int)pcCornerEdgesMap->maiLargerCornerIndex.Find(iCornerLarger);
 	if (iIndex == -1)
 	{
 		pcCornerEdgesMap->maiLargerCornerIndex.Add(iCornerLarger);
-		iEdgeIndex = mcEdges.NumElements();
+		iEdgeIndex = (int)mcEdges.NumElements();
 		pcCornerEdgesMap->maiEdgeIndex.Add(iEdgeIndex);
 		pcEdge = AddEdge();
 		iAddedEdges++;

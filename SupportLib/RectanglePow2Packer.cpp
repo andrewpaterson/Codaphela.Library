@@ -119,7 +119,7 @@ void CRectanglePow2Packer::AdjustAttemptAreas(void)
 	CPackAttempt*	pcAttempt;
 	int				iNumAttempts;
 
-	iNumAttempts = mcPacker.GetPackAttempts()->NumElements();
+	iNumAttempts = (int)mcPacker.GetPackAttempts()->NumElements();
 	for (i = 0; i < iNumAttempts; i++)
 	{
 		pcAttempt = mcPacker.GetPackAttempts()->Get(i);

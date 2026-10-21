@@ -243,7 +243,7 @@ void CTextLayout::Layout(CFont* pcFont, CTextUTF16Multi* pcUTFMulti)
 	uiByteLength = pcUTFMulti->CharByteLength();
 	mcUTF16.Reset(puiInt8, uiByteLength);
 	uiCodePointLength = mcUTF16.GetCodePointMulti(auiBuffer, 20);
-	if (!mcUTF16.IsError(uiCodePointLength))
+	if (!mcUTF16.IsError((uint32)uiCodePointLength))
 	{
 		pGlyph = pcFont->GetGlyph(auiBuffer, uiCodePointLength);
 		Glyph(pGlyph, false);

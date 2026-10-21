@@ -49,7 +49,7 @@ public:
 	virtual void*		Get(int32 x, int32 y);
 	virtual void		Set(int32 x, int32 y, void* pvData);
 
-	uint32				GetBufferSize(void);
+	size				GetBufferSize(void);
 	virtual void		SyncDataCache(void);
 
 	void				Get(int32 x, int32 y, void* pvDest);
@@ -61,8 +61,8 @@ public:
 	bool				IsEmpty(void);
 	EPrimitiveType		GetType(void);
 
-	uint32				GetBitSize(void);
-	uint32				GetByteSize(void);
+	size				GetBitSize(void);
+	size				GetByteSize(void);
 	CChannelsAccessor*	GetAccessor(void);
 	CImage*				GetImage(void);
 	uint32				GetWidth(void);

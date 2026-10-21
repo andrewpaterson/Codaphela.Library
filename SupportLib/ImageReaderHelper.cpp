@@ -12,8 +12,8 @@ void AddDebugChannel(Ptr<CImage> pcImage, EPrimitiveType eType, EChannel eChanne
 
 	if (bAddDebug)
 	{
-		szShortName = gmiszImageChannelShortNames.Get(eChannel);
-		szLongName = gmiszImageChannelLongNames.Get(eChannel);
+		szShortName = gmiszImageChannelShortNames.Get((int)eChannel);
+		szLongName = gmiszImageChannelLongNames.Get((int)eChannel);
 		pcImage->AddChannel(eChannel, eType, szShortName, szLongName);
 	}
 	else

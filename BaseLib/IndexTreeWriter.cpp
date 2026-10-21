@@ -70,13 +70,13 @@ void CIndexTreeWriter::RecurseAllocate(CIndexTreeNodeMemory* pcMemoryNode, CInde
 					iChildFirstIndex = pcMemoryChild->GetFirstIndex();
 					iChildLastIndex = pcMemoryChild->GetLastIndex();
 
-					pcFileChild = pcFileTree->ParentPut(pcFileNode, i, iChildDataSize, iChildFirstIndex, iChildLastIndex);
+					pcFileChild = pcFileTree->ParentPut(pcFileNode, i, (uint8)iChildDataSize, (uint8)iChildFirstIndex, (uint8)iChildLastIndex);
 
 					RecurseAllocate(pcMemoryChild, pcFileTree, pcFileChild);
 				}
 				else
 				{
-					pcFileChild = pcFileTree->ParentPut(pcFileNode, i, iChildDataSize);
+					pcFileChild = pcFileTree->ParentPut(pcFileNode, i, (uint8)iChildDataSize);
 
 					RecurseAllocate(pcMemoryChild, pcFileTree, pcFileChild);
 				}

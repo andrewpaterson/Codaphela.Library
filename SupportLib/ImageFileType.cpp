@@ -38,7 +38,7 @@ EImageType GuessImageType(char *szFilename)
 	EImageType	eType;
 	CFileUtil	cFileUtil;
 	
-	iIndex = cFileUtil.FindExtension(szFilename);
+	iIndex = (int)cFileUtil.FindExtension(szFilename);
 	szTest.Init(szFilename, iIndex);
 	
 	//----------------------------------------

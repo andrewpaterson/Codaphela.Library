@@ -264,7 +264,7 @@ void AddImageChannelDescriptor(EChannel eChannel)
 	uiLength = szLong.Length();
 	PrintChannelType(eType, &szLong);
 
-	gmiszImageChannelLongNames.Put(eChannel, szLong.Text());
+	gmiszImageChannelLongNames.Put((int)eChannel, szLong.Text());
 	if (ePurpose == IP_Unknown)
 	{
 		szShort[0] = 'x';
@@ -285,7 +285,7 @@ void AddImageChannelDescriptor(EChannel eChannel)
 		szShort[2] = szLong.Text()[uiLength];
 	}
 	szShort[3] = '\0';
-	gmiszImageChannelShortNames.Put(eChannel, szShort);
+	gmiszImageChannelShortNames.Put((int)eChannel, szShort);
 
 	szLong.Kill();
 }

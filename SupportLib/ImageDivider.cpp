@@ -47,7 +47,7 @@ void CImageDivider::Init(Ptr<CImage> pImage, SImageColour* psTransparentColour, 
 	if (psTransparentColour)
 	{
 		pcAccessor = CImageAccessorCreator::Create(&pImage);
-		iDataSize = pcAccessor->GetBufferSize();
+		iDataSize = (int)pcAccessor->GetBufferSize();
 		pcAccessor->Kill();
 
 		msTransparentColour.Zero();

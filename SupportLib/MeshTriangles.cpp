@@ -105,7 +105,7 @@ void CMeshTriangles::GenerateTriangles(CMeshConnectivity* pcConn, CMeshNormals* 
 	SMeshNormalFace*	psFaceNormal;
 	int					i;
 
-	iNumFaces = pcConn->mcFaces.NumElements();
+	iNumFaces = (int)pcConn->mcFaces.NumElements();
 
 	mcTriangles.Kill();
 	mcTriangles.Init();

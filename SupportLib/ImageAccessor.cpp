@@ -89,7 +89,7 @@ void CImageAccessor::Set(int32 x, int32 y, void* pvSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CImageAccessor::GetBufferSize(void)
+size CImageAccessor::GetBufferSize(void)
 {
 	return mpcAccessor->GetBufferSize();
 }
@@ -173,7 +173,7 @@ bool CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 	bValid = true;
 	pvData = psDest;
 
-	if (mpcAccessor->GetByteSize() == MAX_UINT32)
+	if (mpcAccessor->GetByteSize() == SIZE_MAX)
 	{
 		return false;
 	}
@@ -200,7 +200,7 @@ bool CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 			//The destination will not be usable.
 			bValid = false;
 		}
-		pvData = (void*)(size_t)(((int32)(size_t)pvData) + iSize);
+		pvData = RemapSinglePointer(pvData, iSize);
 	}
 	return bValid;
 }
@@ -239,7 +239,7 @@ EPrimitiveType	CImageAccessor::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CImageAccessor::GetBitSize(void)
+size CImageAccessor::GetBitSize(void)
 {
 	return mpcAccessor->GetBitSize();
 }
@@ -249,7 +249,7 @@ uint32 CImageAccessor::GetBitSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CImageAccessor::GetByteSize(void)
+size CImageAccessor::GetByteSize(void)
 {
 	return mpcAccessor->GetByteSize();
 }

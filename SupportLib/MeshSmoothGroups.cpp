@@ -119,7 +119,7 @@ void CMeshSmoothGroups::GenerateSmoothingFromNames(CMeshEditor* pcMeshEditor)
 	uint32	uiFaceName;
 	uint32	uiSmoothingGroup;
 
-	iNumPolygons = pcMeshEditor->mcPolygons.mcPolygons.NumElements();
+	iNumPolygons = (int)pcMeshEditor->mcPolygons.mcPolygons.NumElements();
 
 	aiUniqueNames.Init();
 	pcMeshEditor->mcPolygons.GetUniqueNames(&aiUniqueNames);
@@ -134,7 +134,7 @@ void CMeshSmoothGroups::GenerateSmoothingFromNames(CMeshEditor* pcMeshEditor)
 		for (i = 0; i < iNumPolygons; i++)
 		{
 			pcPolygon = pcMeshEditor->mcPolygons.Get(i);
-			iNumFaces = pcPolygon->maiFaces.NumElements();
+			iNumFaces = (int)pcPolygon->maiFaces.NumElements();
 			uiFaceName = pcPolygon->miName;
 			if (uiFaceName != 0)
 			{
@@ -186,7 +186,7 @@ void CMeshSmoothGroups::GenerateSmoothingFromAngles(CMeshEditor* pcMeshEditor)
 	{
 		psThisNormal = asNormals.Get(i);
 		aiAdjPolys.Init();
-		pcMeshEditor->mcPolygons.GetAdjacentPolygons(pcMeshEditor->mpcMesh->GetConnectivity(), i, &aiAdjPolys);
+		pcMeshEditor->mcPolygons.GetAdjacentPolygons(pcMeshEditor->mpcMesh->GetConnectivity(), (int)i, &aiAdjPolys);
 
 		for (j = 0; j < aiAdjPolys.NumElements(); j++)
 		{
@@ -340,7 +340,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 			pcNormals->mcNormals.Add(&cNormal);
 
 			//Get the normal which has just been added.
-			iNewNormalIndex = pcNormals->mcNormals.NumElements()-1;
+			iNewNormalIndex = (int)pcNormals->mcNormals.NumElements()-1;
 
 			//Step over every face at this vertex
 			for (j = 0; j < psCorners[i].aiFace.NumElements(); j++)

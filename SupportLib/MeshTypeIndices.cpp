@@ -103,7 +103,7 @@ bool CMeshTypeIndices::Generate(CArrayInt* paiFaces, void* pavFaceIndices)
 	void*					pvFaceVertIndex3;
 	CArrayMeshFaceIndex*	pcFaceIndicies;
 
-	iNumFaces = paiFaces->NumElements();
+	iNumFaces = (int)paiFaces->NumElements();
 
 	pcFaceIndicies = mpcVertexArray->GetFaceIndicies();
 	pcFaceIndicies->Kill();
@@ -150,7 +150,7 @@ void CMeshTypeIndices::SetVertIndex(int* piVertIndex, void* pvFaceVertIndex)
 		iVertIndex = FindExistingVert((int*)pvFaceVertIndex);
 		if (iVertIndex == -1)
 		{
-			iVertIndex = maVerts.NumElements();
+			iVertIndex = (int)maVerts.NumElements();
 			maVerts.Add(pvFaceVertIndex);
 		}
 		*piVertIndex = iVertIndex;
@@ -243,7 +243,7 @@ int CMeshTypeIndices::FindExistingVert(int* piFaceVertIndex)
 		{
 			if (memcmp(piVert, piFaceVertIndex, miStride) == 0)
 			{
-				return i;
+				return (int)i;
 			}
 		}
 	}
@@ -258,6 +258,6 @@ int CMeshTypeIndices::FindExistingVert(int* piFaceVertIndex)
 //////////////////////////////////////////////////////////////////////////
 int CMeshTypeIndices::NumVerts(void)
 {
-	return maVerts.NumElements();
+	return (int)maVerts.NumElements();
 }
 
