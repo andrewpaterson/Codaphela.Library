@@ -385,7 +385,7 @@ void* CGeneralMemory::Grow(void* pvInitial, size uiSize)
 		}
 		else
 		{
-			psAlloc = (SGeneralMemoryAllocation*)mcLargeList.Grow(psAlloc, uiSize);
+			psAlloc = (SGeneralMemoryAllocation*)mcLargeList.Grow(psAlloc, uiSize + sizeof(SGeneralMemoryAllocation));
 			psAlloc->uiSize = uiSize;
 			pvNew = RemapSinglePointer(psAlloc, sizeof(SGeneralMemoryAllocation));
 			return pvNew;

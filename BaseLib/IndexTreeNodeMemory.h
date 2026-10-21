@@ -3,6 +3,7 @@
 #include "IndexTreeNode.h"
 
 
+class CIndexTreeDataOrderer;
 class CIndexTreeNodeMemory : public CIndexTreeNode
 {
 public:
@@ -21,7 +22,7 @@ public:
 	CIndexTreeNodeMemory*	GetParent(void);
 
 	void					RemapChildNodes(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNewNode);
-	void					RemapvDataLinks(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNewNode);
+	void					RemapvDataLinks(CIndexTreeNodeMemory* pcOldNode, CIndexTreeDataOrderer* pcDataOrderer);
 	void					Contain(size uiIndex);
 
 	size					FindPrevLastIndex(void);

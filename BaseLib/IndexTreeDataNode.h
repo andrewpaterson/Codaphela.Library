@@ -17,7 +17,6 @@ public:
 	size		GetDataSize(void);
 	void		SetDataSize(size uiDataSize);
 	SLLNode*	GetListNode(void);
-	void		RemapListNode(void);
 };
 
 

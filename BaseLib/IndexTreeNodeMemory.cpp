@@ -1,5 +1,6 @@
 #include "Logger.h"
 #include "LogString.h"
+#include "IndexTreeDataOrderer.h"
 #include "IndexTreeNodeMemory.h"
 
 
@@ -133,14 +134,17 @@ void CIndexTreeNodeMemory::RemapChildNodes(CIndexTreeNodeMemory* pcOldNode, CInd
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::RemapvDataLinks(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNewNode)
+void CIndexTreeNodeMemory::RemapvDataLinks(CIndexTreeNodeMemory* pcOldNode, CIndexTreeDataOrderer* pcDataOrderer)
 {
 	CIndexTreeDataNode*		pcDataNode;
+	CIndexTreeDataNode*		pcOldDataNode;
 
+	//This node has been reallocated from pcOldNode.  pcOldNode has been freed so only its address is used.
 	pcDataNode = GetNodeData();
 	if (pcDataNode)
 	{
-		pcDataNode->RemapListNode();
+		pcOldDataNode = (CIndexTreeDataNode*)RemapSinglePointer(pcOldNode, (ptr)pcDataNode - (ptr)this);
+		pcDataOrderer->RemapNode(pcOldDataNode, pcDataNode);
 	}
 }
 

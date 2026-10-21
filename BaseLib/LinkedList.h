@@ -39,6 +39,7 @@ public:
 
 	void		MoveToHead(SLLNode* psNode);
 	void		MoveToTTail(SLLNode* psNode);
+	void		RemapNode(SLLNode* psOldNode, SLLNode* psNewNode);
 
 	size		NumElements(void);
 

@@ -38,6 +38,7 @@ public:
 
 			CIndexTreeNode*		GetFirstTreeNode(void);
 			CIndexTreeNode*		GetLastTreeNode(void);
+			void				RemapNode(CIndexTreeDataNode* psOldNode, CIndexTreeDataNode* psNewNode);
 
 protected:
 			bool				IterateNode(SLLNode* psNode, SDataOrderIterator* psIter, uint8* pvDestKey, size* piKeySize, size iDestKeySize, void* pvDestData, size* piDataSize, size iDestDataSize);

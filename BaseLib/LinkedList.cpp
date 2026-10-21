@@ -267,6 +267,33 @@ void CLinkedList::MoveToTTail(SLLNode* psNode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void CLinkedList::RemapNode(SLLNode* psOldNode, SLLNode* psNewNode)
+{
+	//psNewNode is a copy of psOldNode at a new address (psOldNode may have been freed).  Point the neighbours, head and tail at the copy.
+	if (psNewNode->psNext)
+	{
+		psNewNode->psNext->psPrev = psNewNode;
+	}
+	else if (mpsTail == psOldNode)
+	{
+		mpsTail = psNewNode;
+	}
+
+	if (psNewNode->psPrev)
+	{
+		psNewNode->psPrev->psNext = psNewNode;
+	}
+	else if (mpsHead == psOldNode)
+	{
+		mpsHead = psNewNode;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 size CLinkedList::NumElements(void)
 {
 	size		iCount;

@@ -169,3 +169,13 @@ CIndexTreeNode* CIndexTreeDataOrderer::GetLastTreeNode(void)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeDataOrderer::RemapNode(CIndexTreeDataNode* psOldNode, CIndexTreeDataNode* psNewNode)
+{
+	mcDataOrder.RemapNode(psOldNode->GetListNode(), psNewNode->GetListNode());
+}
+
