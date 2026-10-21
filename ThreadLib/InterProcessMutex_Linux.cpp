@@ -1,5 +1,6 @@
 #ifdef LINUX_GNU_32
 #include <errno.h>
+#include <pthread.h>
 #include <signal.h>
 #include <string.h>
 #include <time.h>
@@ -91,9 +92,23 @@ static SInterProcessLock* MapLinuxLock(int iFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+static thread_local int64	tiLockOwner = 0;
+
+static void ForgetLockOwner(void)
+{
+	tiLockOwner = 0;
+}
+
 static int64 CurrentLockOwner(void)
 {
-	return ((int64)getpid() << 32) | (int64)(uint32)syscall(SYS_gettid);
+	static bool	bAtFork = (pthread_atfork(NULL, NULL, ForgetLockOwner) == 0);
+
+	(void)bAtFork;
+	if (tiLockOwner == 0)
+	{
+		tiLockOwner = ((int64)getpid() << 32) | (int64)(uint32)syscall(SYS_gettid);
+	}
+	return tiLockOwner;
 }
 
 

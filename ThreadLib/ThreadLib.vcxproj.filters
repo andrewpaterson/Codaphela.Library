@@ -144,6 +144,15 @@
     <ClCompile Include="InterProcessMutex_Linux.cpp">
       <Filter>Source\Process</Filter>
     </ClCompile>
+    <ClCompile Include="InterProcessSignal.cpp">
+      <Filter>Source\Process</Filter>
+    </ClCompile>
+    <ClCompile Include="InterProcessSignal_Windows.cpp">
+      <Filter>Source\Process</Filter>
+    </ClCompile>
+    <ClCompile Include="InterProcessSignal_Linux.cpp">
+      <Filter>Source\Process</Filter>
+    </ClCompile>
     <ClCompile Include="SharedMemoryFile.cpp">
       <Filter>Source\SharedMemory</Filter>
     </ClCompile>
@@ -231,6 +240,9 @@
       <Filter>Source\SharedMemory</Filter>
     </ClInclude>
     <ClInclude Include="InterProcessMutex.h">
+      <Filter>Source\Process</Filter>
+    </ClInclude>
+    <ClInclude Include="InterProcessSignal.h">
       <Filter>Source\Process</Filter>
     </ClInclude>
     <ClInclude Include="SharedMemoryFile.h">
