@@ -334,7 +334,7 @@ void* CDataMemory::Grow(void* pvInitial, size uiSize)
 		}
 		else
 		{
-			psAlloc = (SDataMemoryAllocation*)mcLargeList.Grow(psAlloc, uiSize);
+			psAlloc = (SDataMemoryAllocation*)mcLargeList.Grow(psAlloc, uiSize + sizeof(SDataMemoryAllocation));
 			psAlloc->uiSize = uiSize;
 			psAlloc->psFreeListNode = NULL;
 			pvNew = RemapSinglePointer(psAlloc, sizeof(SDataMemoryAllocation));

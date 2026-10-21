@@ -54,20 +54,3 @@ SLLNode* CIndexTreeDataNode::GetListNode(void)
 	return &msListNode;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIndexTreeDataNode::RemapListNode(void)
-{
-	if (msListNode.psNext)
-	{
-		msListNode.psNext->psPrev = &msListNode;
-	}
-	if (msListNode.psPrev)
-	{
-		msListNode.psPrev->psNext = &msListNode;
-	}
-}
-

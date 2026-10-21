@@ -620,7 +620,7 @@ void CIndexTreeMemory::RemapNodePointers(CIndexTreeNodeMemory* pcOldNode, CIndex
 
 		if (mpcDataOrderer)
 		{
-			pcNode->RemapvDataLinks(pcOldNode, pcNode);
+			pcNode->RemapvDataLinks(pcOldNode, mpcDataOrderer);
 		}
 	}
 }
