@@ -23,6 +23,7 @@ void CTextLayout::Init(int32 iWidth)
 
 	miWidth = iWidth;
 	msSize.Init(0, 0);
+	miWordWidth = 0;
 
 	PostInit();
 }
@@ -36,10 +37,13 @@ void CTextLayout::Class(void)
 {
 	U_Int32(miWidth);
 	U_Int16(miRowHeight);
+	U_Int16(miFontLineHeight);
 	U_2Int32(msPosition);
 	U_2Int32(msSize);
 	U_Data(CUTF16, mcUTF16);
 	U_Pointer(mpcDraw);
+	U_Data(CArrayTextLayoutGlyph, masWord);
+	U_Int32(miWordWidth);
 
 }
 
@@ -90,19 +94,23 @@ void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 	Ptr<CGlyph>			pGlyph;
 
 	miRowHeight = 0;
+	miFontLineHeight = 0;
 	msPosition.Init(0, 0);
 	msSize.Init(0, 0);
 	mpcDraw = &pDraw;
 	mcUTF16.Init(NULL, 0);
+	masWord.Init();
+	miWordWidth = 0;
 	pcFont = NULL;
 	uiNumRuns = pText->NumRuns();
 	for (uiRunIndex = 0; uiRunIndex < uiNumRuns; uiRunIndex++)
 	{
 		pcRun = pText->GetRun(uiRunIndex);
 		pcFont = pcRun->GetFont();
-		if (pcFont->GetLineHeight() > miRowHeight)
+		miFontLineHeight = pcFont->GetLineHeight();
+		if (miFontLineHeight > miRowHeight)
 		{
-			miRowHeight = pcFont->GetLineHeight();
+			miRowHeight = miFontLineHeight;
 		}
 		uiNumElements = pcRun->NumElements();
 		for (uiElementIndex = 0; uiElementIndex < uiNumElements; uiElementIndex++)
@@ -123,11 +131,14 @@ void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 			}
 			else if (pcTextElement->IsNewLine())
 			{
+				EndWord();
 				NewLine();
 			}
 		}
 	}
+	EndWord();
 	msSize.y = msPosition.y + miRowHeight;
+	masWord.Kill();
 	mcUTF16.Kill();
 }
 
@@ -170,7 +181,7 @@ void CTextLayout::Layout(CFont* pcFont, CTextUTF16Short* pcUTFShort)
 			{
 				uiCodePointLength = mcUTF16.GetUnicodeCodePointLength(uiCodePoint16);
 				pGlyph = pcFont->GetGlyph(uiCodePoint16, uiCodePointLength);
-				Glyph(pGlyph);
+				Glyph(pGlyph, uiCodePoint16 == UNICODE_SPACE);
 			}
 			else
 			{
@@ -179,7 +190,7 @@ void CTextLayout::Layout(CFont* pcFont, CTextUTF16Short* pcUTFShort)
 				{
 					uiCodePointLength = mcUTF16.GetUnicodeCodePointLength(uiCodePoint32);
 					pGlyph = pcFont->GetGlyph(uiCodePoint32, uiCodePointLength);
-					Glyph(pGlyph);
+					Glyph(pGlyph, uiCodePoint32 == UNICODE_SPACE);
 				}
 			}
 		}
@@ -210,7 +221,7 @@ void CTextLayout::Layout(CFont* pcFont, CTextUTF16Long* pcUTFLong)
 		{
 			uiCodePointLength = mcUTF16.GetUnicodeCodePointLength(uiCodePoint32);
 			pGlyph = pcFont->GetGlyph(uiCodePoint32, uiCodePointLength);
-			Glyph(pGlyph);
+			Glyph(pGlyph, uiCodePoint32 == UNICODE_SPACE);
 		}
 	}
 }
@@ -235,37 +246,131 @@ void CTextLayout::Layout(CFont* pcFont, CTextUTF16Multi* pcUTFMulti)
 	if (!mcUTF16.IsError(uiCodePointLength))
 	{
 		pGlyph = pcFont->GetGlyph(auiBuffer, uiCodePointLength);
-		Glyph(pGlyph);
+		Glyph(pGlyph, false);
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// Without a width a glyph is placed straight away.  With a width the
+// glyphs of a word are held until the word ends so that the whole word
+// can go on the next line if it doesn't fit on this one.  Spaces end words
+// and are never moved to the next line.
+//
 //////////////////////////////////////////////////////////////////////////
-void CTextLayout::Glyph(Ptr<CGlyph> pGlyph)
+void CTextLayout::Glyph(Ptr<CGlyph> pGlyph, bool bSpace)
 {
+	STextLayoutGlyph*	psWordGlyph;
+
 	if (pGlyph.IsNotNull())
 	{
-		mpcDraw->Place(pGlyph, msPosition.x, msPosition.y);
-		msPosition.x += pGlyph->GetFullWidth();
-		if (msPosition.x > msSize.x)
+		if (miWidth < 0)
 		{
-			msSize.x = msPosition.x;
+			PlaceGlyph(pGlyph, miFontLineHeight, true);
+		}
+		else if (bSpace)
+		{
+			EndWord();
+
+			//Spaces at the end of a line don't make the text any wider.
+			PlaceGlyph(pGlyph, miFontLineHeight, false);
+		}
+		else
+		{
+			psWordGlyph = masWord.Add();
+			psWordGlyph->pcGlyph = &pGlyph;
+			psWordGlyph->iLineHeight = miFontLineHeight;
+			miWordWidth += pGlyph->GetFullWidth();
 		}
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// Places the word being held.  A word that doesn't fit after what is
+// already on the line starts the next line.  A word too wide for a line by
+// itself is broken between glyphs.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextLayout::EndWord(void)
+{
+	size				uiNumGlyphs;
+	size				ui;
+	STextLayoutGlyph*	psWordGlyph;
+	Ptr<CGlyph>			pGlyph;
+
+	uiNumGlyphs = masWord.NumElements();
+	if (uiNumGlyphs == 0)
+	{
+		return;
+	}
+
+	if ((msPosition.x > 0) && (msPosition.x + miWordWidth > miWidth))
+	{
+		NewLine();
+	}
+
+	for (ui = 0; ui < uiNumGlyphs; ui++)
+	{
+		psWordGlyph = masWord.Get(ui);
+		pGlyph = psWordGlyph->pcGlyph;
+		if ((msPosition.x > 0) && (msPosition.x + pGlyph->GetFullWidth() > miWidth))
+		{
+			NewLine();
+		}
+		PlaceGlyph(pGlyph, psWordGlyph->iLineHeight, true);
+	}
+
+	masWord.ReInit();
+	miWordWidth = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextLayout::PlaceGlyph(Ptr<CGlyph> pGlyph, int16 iLineHeight, bool bSize)
+{
+	mpcDraw->Place(pGlyph, msPosition.x, msPosition.y);
+	msPosition.x += pGlyph->GetFullWidth();
+	if (bSize && (msPosition.x > msSize.x))
+	{
+		msSize.x = msPosition.x;
+	}
+	if (iLineHeight > miRowHeight)
+	{
+		miRowHeight = iLineHeight;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An empty line is as high as the font of the run it is in.
+//
 //////////////////////////////////////////////////////////////////////////
 void CTextLayout::NewLine(void)
 {
 	msPosition.y += miRowHeight;
 	msPosition.x = 0;
-	miRowHeight = 0;
+	miRowHeight = miFontLineHeight;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The width lines are wrapped to, -1 for lines only to end at line feeds.
+// Text must be laid out again for a new width to change it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextLayout::SetWidth(int32 iWidth)
+{
+	miWidth = iWidth;
+}
+
+
+int32 CTextLayout::GetWidth(void) { return miWidth; }
 

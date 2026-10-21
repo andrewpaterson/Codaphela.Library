@@ -29,6 +29,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWi
 	mbTicking = false;
 	mpcComponentInput = NULL;
 	mpDefaultButton = NULL;
+	mbLayoutAgain = false;
 
 	mFocus.Init(this);
 
@@ -74,6 +75,7 @@ void CWindow::Class(void)
 	U_Pointer(mpcFactory);
 	U_Pointer(mpcComponentInput);
 	M_Pointer(mpDefaultButton);
+	U_Bool(mbLayoutAgain);
 }
 
 
@@ -150,11 +152,25 @@ void CWindow::Paint(void)
 void CWindow::Layout(void)
 {
 	CRectangle	cRect;
+	int			iPass;
 
 	mpcNativeWindow->GetRectangle(&cRect);
 	SetActualSize(cRect.GetWidth(), cRect.GetHeight());
 	SetPosition(0, 0);  //The position of the Window within itself.
-	CComponent::Layout(GetPosition(), GetActualSize());
+
+	//Some components only know their required size once they have been given a width, a word wrapped text area needs
+	//more lines when it is narrower.  They ask for the components to be laid out again with their new size.  The
+	//passes are limited in case components keep changing each other's sizes.
+	for (iPass = 0; iPass < 3; iPass++)
+	{
+		mbLayoutAgain = false;
+		CComponent::Layout(GetPosition(), GetActualSize());
+		if (!mbLayoutAgain)
+		{
+			break;
+		}
+	}
+	mbLayoutAgain = false;
 
 	//Components may have moved under the pointer.
 	mFocus.Refresh();
@@ -165,6 +181,7 @@ void CWindow::Layout(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CWindow::LayoutAgain(void) { mbLayoutAgain = true; }
 void CWindow::PointerMoved(int x, int y) { mFocus.PointerMoved(x, y); }
 void CWindow::PointerLeft(void) { mFocus.PointerLeft(); }
 void CWindow::InputCommand(EComponentInputCommand eCommand, bool bInsert) { mFocus.Command(eCommand, bInsert); }

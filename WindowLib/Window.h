@@ -45,6 +45,7 @@ protected:
 	CNativeWindowFactory*	mpcFactory;
 	CComponentInput*		mpcComponentInput;  //Optional.  Updated every tick when set.
 	Ptr<CButton>			mpDefaultButton;  //Clicked by enter unless the focussed component wants it.
+	bool					mbLayoutAgain;  //A component's required size changed while it was being laid out.
 
 public:
 	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
@@ -59,6 +60,7 @@ public:
 	void					Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds);
 	void					Stop(void);
 	void					Layout(void);
+	void					LayoutAgain(void);
 
 	//Input in window client space.  Native windows, and later CComponentInput, call these.
 	void					PointerMoved(int x, int y);

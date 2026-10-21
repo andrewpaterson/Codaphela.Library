@@ -244,6 +244,7 @@
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="ButtonImages.cpp" />
     <ClCompile Include="Label.cpp" />
+    <ClCompile Include="TextArea.cpp" />
     <ClCompile Include="ClearCanvasDraw.cpp" />
     <ClCompile Include="NativeCanvas.cpp" />
     <ClCompile Include="NativeComponent.cpp" />

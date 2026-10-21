@@ -30,6 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 #define UNICODE_LINE_FEED	((uint16)'\n')
 #define UNICODE_CARRIAGE_RETURN	((uint16)'\r')
+#define UNICODE_SPACE	((uint16)' ')
 
 #define UNICODE_NON_CHARACTER 0xFFFF
 #define UNICODE_REPLACEMENT_CHARACTER 0xFFFD
