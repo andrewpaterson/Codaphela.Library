@@ -2,7 +2,6 @@ BaseLib/Debug
 CoreLib/Debug
 CppParserLib/Debug
 DirectXLib/Debug
-GameLib/Debug
 InputLib/Debug
 StandardLib/Debug
 SupportLib/Debug
@@ -13,7 +12,6 @@ BaseLib/Release
 CoreLib/Release
 CppParserLib/Release
 DirectXLib/Release
-GameLib/Release
 InputLib/Release
 StandardLib/Release
 SupportLib/Release
