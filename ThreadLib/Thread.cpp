@@ -144,7 +144,7 @@ void CThread::ChangeState(EThreadState eState)
 	CThreadStateNotifer*	pcNotifier;
 
 	meState = eState;
-	for (i = mapcNotifiers.NumElements() -1; i >= 0; i--)
+	for (i = (int)mapcNotifiers.NumElements() -1; i >= 0; i--)
 	{
 		pcNotifier = (CThreadStateNotifer*)mapcNotifiers.GetPtr(i);
 		pcNotifier->ThreadStateChanged(this, eState);

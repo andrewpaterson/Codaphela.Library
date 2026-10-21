@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSharedMemoryQueue::Init(char* szName, size_t uiByteSize)
+bool CSharedMemoryQueue::Init(char* szName, size uiByteSize)
 {
 	return InitMaster(szName, uiByteSize);
 }
@@ -26,7 +26,7 @@ bool CSharedMemoryQueue::Init(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSharedMemoryQueue::InitMaster(char* szName, size_t uiByteSize)
+bool CSharedMemoryQueue::InitMaster(char* szName, size uiByteSize)
 {
 	bool				bResult;
 	SSharedMemoryMap	sMap;
@@ -174,7 +174,7 @@ void CSharedMemoryQueue::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSharedMemoryQueue::Push(void* pvData, size_t uiDataSize)
+bool CSharedMemoryQueue::Push(void* pvData, size uiDataSize)
 {
 	void*				pvMemory;
 
@@ -225,7 +225,7 @@ bool CSharedMemoryQueue::Push(void* pvData, size_t uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CSharedMemoryQueue::Pop(void* pvData, size_t* puiDataSize, size_t uiMaxDataSize)
+bool CSharedMemoryQueue::Pop(void* pvData, size* puiDataSize, size uiMaxDataSize)
 {
 	void*	pvMemory;
 
@@ -259,7 +259,7 @@ bool CSharedMemoryQueue::Pop(void* pvData, size_t* puiDataSize, size_t uiMaxData
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CSharedMemoryQueue::PeekSize(void)
+size CSharedMemoryQueue::PeekSize(void)
 {
 	void*	pvMemory;
 	size	uiDataSize;
@@ -326,7 +326,7 @@ int CSharedMemoryQueue::NumElements(void)
 	SSharedMemoryMap sMap = mcSharedMemory.Touch();
 	mcQueue.Remap((SCircularMemoryList*)sMap.pvMemory, sMap.uiSize);
 
-	i = mcQueue.NumElements();
+	i = (int)mcQueue.NumElements();
 
 	mcMutex.Unlock();
 	return i;
@@ -337,9 +337,9 @@ int CSharedMemoryQueue::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CSharedMemoryQueue::GetCacheSize(void)
+size CSharedMemoryQueue::GetCacheSize(void)
 {
-	size_t uiCacheSize;
+	size uiCacheSize;
 
 	mcMutex.Lock();
 	SSharedMemoryMap sMap = mcSharedMemory.Touch();
@@ -356,9 +356,9 @@ size_t CSharedMemoryQueue::GetCacheSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CSharedMemoryQueue::GetAllocatedSize(void)
+size CSharedMemoryQueue::GetAllocatedSize(void)
 {
-	size_t uiAllocatedSize;
+	size uiAllocatedSize;
 
 	mcMutex.Lock();
 	SSharedMemoryMap sMap = mcSharedMemory.Touch();

@@ -91,8 +91,8 @@ SSharedMemoryResult CSharedMemoryFile::Create(size_t uiSize)
         INVALID_HANDLE_VALUE,
         NULL,
         PAGE_READWRITE,
-        0,                       // maximum object size (high-order DWORD)
-        iAdjustedSize,           // maximum object size (low-order DWORD)
+        (DWORD)((uint64)iAdjustedSize >> 32),   // maximum object size (high-order DWORD)
+        (DWORD)iAdjustedSize,                   // maximum object size (low-order DWORD)
         mszName);
 
     if (MapFileHandle(maMapFile) == NULL)

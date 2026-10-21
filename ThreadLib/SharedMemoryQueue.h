@@ -14,28 +14,28 @@ private:
 	bool					mbMaster;
 
 public:
-	bool	Init(char* szName, size_t uiByteSize);
+	bool	Init(char* szName, size uiByteSize);
 	bool	Init(char* szName);
 	void	Kill(void);
 
-	bool	Push(void* pvData, size_t uiDataSize);
-	bool	Pop(void* pvData, size_t* puiDataSize, size_t uiMaxDataSize);
+	bool	Push(void* pvData, size uiDataSize);
+	bool	Pop(void* pvData, size* puiDataSize, size uiMaxDataSize);
 
 	//The size of the next element, or 0 if the queue is empty.
-	size_t	PeekSize(void);
+	size	PeekSize(void);
 	//Without the mutex: false if the queue was empty a moment ago, true if it
 	//may have elements and must be looked at with the mutex.  Cheap enough to
 	//poll; another process may push just after it returns false.
 	bool	MayHaveElements(void);
 	bool	IsEmpty(void);
 	int		NumElements(void);
-	size_t	GetCacheSize(void);
-	size_t	GetAllocatedSize(void);
+	size	GetCacheSize(void);
+	size	GetAllocatedSize(void);
 
 	bool	ValidateQueue(void);
 
 protected:
-	bool	InitMaster(char* szName, size_t uiByteSize);
+	bool	InitMaster(char* szName, size uiByteSize);
 	bool	InitClient(char* szName);
 };
 
