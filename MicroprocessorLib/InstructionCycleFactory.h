@@ -45,7 +45,7 @@
 #include "ReadDataHigh.h"
 #include "ReadDataBank.h"
 #include "ReadDirectOffset.h"
-#include "ReadOpcode.h"
+#include "ReadOpCode.h"
 #include "ReadProcessorStatus.h"
 #include "ReadProgramBank.h"
 #include "ReadProgramCounterHigh.h"

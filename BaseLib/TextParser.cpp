@@ -258,7 +258,7 @@ void CTextParser::StepLeft(void)
 	if (mszParserPos >= mszStartOfText)
 	{
 		mszParserPos = &mszParserPos[-1];
-		if (*mszParserPos == '\n')
+		if ((mszParserPos >= mszStartOfText) && (*mszParserPos == '\n'))
 		{
 			miLine--;
 

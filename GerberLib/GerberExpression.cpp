@@ -1,3 +1,5 @@
+#include <math.h>
+#include "BaseLib/PointerFunctions.h"
 #include "GerberExpression.h"
 
 
@@ -19,7 +21,7 @@ void CGerberExpression::Init(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace
 void CGerberExpression::Kill(void)
 {
 	mcCalculator.Kill();
-	mpcExpression = NULL;
+	SafeKill(mpcExpression);
 }
 
 

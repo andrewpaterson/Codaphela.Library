@@ -1201,8 +1201,7 @@ TRISTATE CGerberParser::ParseCommandTD()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandM02()
 {
-	TRISTATE					tResult;
-	CGerberCommandEndOfFile*	pcEndOfFile;
+	TRISTATE	tResult;
 
 	tResult = mcParser.GetExactCharacterSequence("M02", mbSkipWhitespace);
 	ReturnOnFalseOrSyntaxErrorOnError(tResult);
@@ -1210,7 +1209,7 @@ TRISTATE CGerberParser::ParseCommandM02()
 	tResult = mcParser.GetExactCharacter('*', mbSkipWhitespace);
 	ReturnSyntaxErrorOnErrorOrFalse(tResult);
 
-	pcEndOfFile = mpcCommands->AddEndOfFile();
+	mpcCommands->AddEndOfFile();
 
 	return TRITRUE;
 }

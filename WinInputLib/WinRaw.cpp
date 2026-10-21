@@ -21,7 +21,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Chars.h"
-#include "BaseLib/Logger.h"  //TEMP-INPUT-LOG
 #include "WinInput.h"
 #include "WinRaw.h"
 
@@ -180,8 +179,7 @@ void CWinRawInput::Init(CWinInput* pcWinInput)
 	rid[2].dwFlags = 0;
 	rid[2].hwndTarget = NULL;
 	masRawEvents.Init();
-	if (!RegisterRawInputDevices(rid, 3, sizeof(RAWINPUTDEVICE))) { gcLogger.Info2("RAW: RegisterRawInputDevices failed, error [", IntToString((uint32)GetLastError()), "].", NULL); } else { gcLogger.Info2("RAW: RegisterRawInputDevices succeeded.", NULL); }  //TEMP-INPUT-LOG
-//TEMP-INPUT-LOG		RegisterRawInputDevices(rid, 3, sizeof(RAWINPUTDEVICE));
+	RegisterRawInputDevices(rid, 3, sizeof(RAWINPUTDEVICE));
 
 	masRIDeviceDetail.Init();
 	ResetDeviceDetails();
@@ -511,13 +509,11 @@ void CWinRawInput::AddDevicesTo(CInputDevices* pcDevices)
 					pcDeviceDesc = GetStandardKeyboardDesc(pcDevices);
 				}
 			}
-			gcLogger.Info2("RAW: Detail [", pcDetail->szID.Text(), "] handle [", PointerToString(pcDetail->hDevice), "] desc [", pcDeviceDesc ? pcDeviceDesc->GetFriendlyName() : "NULL", "].", NULL);  //TEMP-INPUT-LOG
 			if (pcDeviceDesc)
 			{
 				pcInputDevice = pcDevices->CreateDevice(pcDeviceDesc);
 				pcInputDevice->GenerateRestState();
 				pcDetail->SetUniqueID(pcInputDevice->GetDeviceID());
-				gcLogger.Info2("RAW:   unique ID [", IntToString(pcDetail->miUniqueID), "].", NULL);  //TEMP-INPUT-LOG
 			}
 			else
 			{
@@ -581,7 +577,6 @@ void CWinRawInput::Update(CInputDevices* pcDevices, size uiSequence)
 	{
 		psEvent = masRawEvents.Get(i);
 		pcRIDeviceDetail = GetDetailForHandle(psEvent->eType, psEvent->hDevice);
-		if ((psEvent->eType != RDT_Mouse) || (psEvent->uEvent.sMouse.usButtonFlags != 0)) { gcLogger.Info2("RAW: Update event type [", IntToString((int32)psEvent->eType), "] handle [", PointerToString(psEvent->hDevice), "] detail [", pcRIDeviceDetail ? "found" : "NULL", "] unique ID [", pcRIDeviceDetail ? IntToString(pcRIDeviceDetail->miUniqueID) : "-", "].", NULL); }  //TEMP-INPUT-LOG
 		if ((pcRIDeviceDetail != NULL) && (pcRIDeviceDetail->miUniqueID != -1))
 		{
 			pcDevice = pcDevices->GetDevice(pcRIDeviceDetail->miUniqueID);
@@ -633,7 +628,6 @@ void WinRawInputEvent(CWinRawInput* pcWinRaw, void* pv)
 	RAWINPUT*			pRawInput;
 
 	pRawInput = (RAWINPUT*)pv;
-	if ((pRawInput->header.dwType != RIM_TYPEMOUSE) || (pRawInput->data.mouse.usButtonFlags != 0)) { gcLogger.Info2("RAW: WM_INPUT type [", IntToString((uint32)pRawInput->header.dwType), "] handle [", PointerToString(pRawInput->header.hDevice), "].", NULL); }  //TEMP-INPUT-LOG
 	if (pRawInput->header.dwType == RIM_TYPEMOUSE)
 	{
 		psMouse = &pRawInput->data.mouse;
