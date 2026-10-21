@@ -50,7 +50,7 @@ protected:
 public:
 	void							Init(CInputDeviceDesc* pcDeviceDesc, EInputSourceType eType, char* szFriendlyName, size iStateIndex);
 	void							Kill(void);
-	void							Process(void* pvData, CInputDeviceState* pcState, CInputDeviceValues* pcEvents, size uiSequence);
+	void							Process(void* pvData, CInputDeviceState* pcState, CInputDeviceValues* pcEvents, uint32 uiSequence);
 	CInputSourceValue*				AddValue(size iValueChannel);
 	CInputSourceValue*				AddValue(float fValueNumber);
 	void							CopyValues(CInputSourceDesc* pcInputSourceDesc);

@@ -83,7 +83,7 @@ void CProgramInput::AddDevicesTo(CInputDevices* pcDevices)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CProgramInput::Update(CInputDevices* pcDevices, size uiSequence)
+void CProgramInput::Update(CInputDevices* pcDevices, uint32 uiSequence)
 {
 	size					i;
 	CProgramDeviceDetail*	pcDetail;

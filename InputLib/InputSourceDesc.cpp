@@ -61,7 +61,7 @@ void CInputSourceDesc::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputSourceDesc::Process(void* pvData, CInputDeviceState* pcState, CInputDeviceValues* pcEvents, size uiSequence)
+void CInputSourceDesc::Process(void* pvData, CInputDeviceState* pcState, CInputDeviceValues* pcEvents, uint32 uiSequence)
 {
 	CInputSourceValue*	pcSourceValue;
 	float				fValue;
@@ -79,7 +79,7 @@ void CInputSourceDesc::Process(void* pvData, CInputDeviceState* pcState, CInputD
 			bNewValue = pcState->SetValue(this, fValue);
 			if (bNewValue)
 			{
-				pcEvents->Add(pcState->mpcDevice, this, fValue, uiSequence, false, pcSourceValue->GetOrder());
+				pcEvents->Add(pcState->mpcDevice, this, fValue, uiSequence, false, (int)pcSourceValue->GetOrder());
 			}
 		}
 		bExists = mlcValues.Iterate(&sIter, &pcSourceValue);
