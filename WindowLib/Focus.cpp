@@ -21,6 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ClassDefines.h"
 #include "Focus.h"
 #include "Window.h"
+#include "Button.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -204,9 +205,10 @@ void CFocus::Request(void)
 //////////////////////////////////////////////////////////////////////////
 void CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
 {
-	int		x;
-	int		y;
-	CChars	szClipboard;
+	int				x;
+	int				y;
+	CChars			szClipboard;
+	Ptr<CButton>	pDefault;
 
 	if (!mbActive)
 	{
@@ -237,6 +239,17 @@ void CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
 			return;
 		}
 		Request();
+	}
+
+	//Enter clicks the window's default button unless the focussed component wants it.
+	if (eCommand == CIC_Enter)
+	{
+		pDefault = mpWindow->GetDefaultButton();
+		if (pDefault && !(mpFocussedComponent && mpFocussedComponent->WantsEnter()))
+		{
+			pDefault->Enter();
+			return;
+		}
 	}
 
 	if (!mpFocussedComponent)

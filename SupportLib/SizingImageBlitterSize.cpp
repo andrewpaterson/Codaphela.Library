@@ -87,16 +87,10 @@ bool CSizingImageBlitterSize::PopulateSizingTables(CSubImage* pcSubImage, int32 
 	int32		x;
 	int32		xDest;
 
-	if (Matches(iDestHeight, iDestHeight))
+	if (Matches(iDestWidth, iDestHeight))
 	{
 		return false;
 	}
-
-	iFullWidth = pcSubImage->GetFullWidth();
-	iFullHeight = pcSubImage->GetFullHeight();
-
-	//Column x of the full cel is column iSourceLeft + x of the source image, outside the image in the transparent borders.
-	iSourceLeft = pcSubImage->mcImageRect.msTopLeft.x - pcSubImage->msOffsetTopLeft.x;
 
 	iFullWidth = pcSubImage->GetFullWidth();
 	iFullHeight = pcSubImage->GetFullHeight();

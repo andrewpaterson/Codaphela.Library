@@ -90,8 +90,9 @@ void CTypeParser::AllocateParser(void)
 //////////////////////////////////////////////////////////////////////////
 void CTypeParser::Kill(void)
 {
-	if (mbFreeParser)
+	if (mbFreeParser && mpcParser)
 	{
+		mpcParser->Kill();
 		SafeFree(mpcParser);
 	}
 	mpcParser = NULL;

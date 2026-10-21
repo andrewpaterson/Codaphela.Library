@@ -342,6 +342,7 @@ void CComponent::SetPosition(SInt32Vec2 sPosition) { mcActualBounds.SetPos(sPosi
 SInt32Vec2 CComponent::GetPosition(void) { return mcActualBounds.msTopLeft; }
 bool CComponent::CanGetFocus(void) { return mbCanGetFocus; }
 void CComponent::SetCanGetFocus(bool bCanGetFocus) { mbCanGetFocus = bCanGetFocus; }
+bool CComponent::WantsEnter(void) { return false; }  //Enter goes to the window's default button unless the focussed component wants it.
 Ptr<CComponent> CComponent::GetParent(void) { return mpParent; }
 void CComponent::SetDesiredSize(int fWidth, int fHeight) { msDesiredSize.Init(fWidth, fHeight); }
 SInt32Vec2 CComponent::GetActualSize(void) { SInt32Vec2 sSize; sSize.Init(mcActualBounds.GetWidth(), mcActualBounds.GetHeight()); return sSize; }

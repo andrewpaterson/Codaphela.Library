@@ -58,17 +58,23 @@ enum EButtonBorderPiece
 //Each state's border comes from a strip of eight square tiles, as wide as a tile, from the top down: the top, right,
 //bottom and left edges then the top left, top right, bottom right and bottom left corners.  Every edge has its outside
 //along its top so the right, bottom and left edges are turned clockwise by one, two and three quarters.
+//
+//The face can be one colour for every state or a colour for each.
+//
+//Every cel is a whole tile in size but its transparent borders are cropped, so a band left empty in some states, such
+//as a focus ring's, reserves its space without being blitted.
 class CButtonImages : public CObject
 {
 CONSTRUCTABLE(CButtonImages);
 DESTRUCTABLE(CButtonImages);
 protected:
 	CArray<CImageCel>	maCels;  //NUM_BUTTON_BORDER_PIECES for each state in turn.
-	ARGB32				msFaceColour;
+	ARGB32				masFaceColours[NUM_BUTTON_STATES];
 	int32				miTileSize;
 
 public:
 	void			Init(Ptr<CImage> pNormal, Ptr<CImage> pMouseOver, Ptr<CImage> pSelected, Ptr<CImage> pPushed, ARGB32 sFaceColour);
+	void			Init(Ptr<CImage> pNormal, Ptr<CImage> pMouseOver, Ptr<CImage> pSelected, Ptr<CImage> pPushed, ARGB32 sNormalFace, ARGB32 sMouseOverFace, ARGB32 sSelectedFace, ARGB32 sPushedFace);
 	void			Class(void) override;
 	void 			Free(void) override;
 
@@ -76,12 +82,13 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 
 	Ptr<CImageCel>	GetCel(EButtonState eState, EButtonBorderPiece ePiece);
-	ARGB32			GetFaceColour(void);
+	ARGB32			GetFaceColour(EButtonState eState);
 	int32			GetTileSize(void);
 
 protected:
 	void			AddStrip(Ptr<CImage> pStrip);
 	Ptr<CImageCel>	CreateCel(Ptr<CImage> pStrip, int iTile, int iQuarterTurns);
+	Ptr<CImageCel>	CropCel(Ptr<CImageCel> pCel);
 };
 
 

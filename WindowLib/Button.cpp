@@ -36,6 +36,17 @@ static EBorderLayoutCell gaeButtonBorderCell[NUM_BUTTON_BORDER_PIECES] = { BLC_T
 //////////////////////////////////////////////////////////////////////////
 void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CFont> pFont, const char* szCaption)
 {
+	Init(pWindow, pImages, NULL, pFont, szCaption);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The default images must have the same tile size as the images.
+//
+//////////////////////////////////////////////////////////////////////////
+void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButtonImages> pDefaultImages, Ptr<CFont> pFont, const char* szCaption)
+{
 	CBorderLayoutHelper		cBorder;
 	Ptr<CImageCanvasDraw>	pDraw;
 	Ptr<CCanvas>			pCanvas;
@@ -48,6 +59,7 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CFont> 
 
 	CGridContainer::Init(pWindow);
 	mpImages = pImages;
+	mpDefaultImages = pDefaultImages;
 	maBorderDraws.Init();
 	msPadding.Init(8, 2);
 	mcListeners.Init();
@@ -56,9 +68,11 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CFont> 
 	mbMouseOver = false;
 	mbFocussed = false;
 	mbPressed = false;
+	mbDefault = false;
 	SetCanGetFocus(true);
 
-	//The corners are their tile's size.  The edges are a tile thick and stretched along the face.
+	//The corners are their tile's size.  The edges are a tile thick and stretched along the face.  Every piece is
+	//transparent: the corners are rounded and any piece can have an empty band, so what is behind shows through.
 	cBorder.Init(Ptr<CGridContainer>(this));
 	iTileSize = mpImages->GetTileSize();
 	for (i = 0; i < NUM_BUTTON_BORDER_PIECES; i++)
@@ -67,6 +81,7 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CFont> 
 		pDraw = OMalloc<CImageCanvasDraw>(mpImages->GetCel(BS_Normal, (EButtonBorderPiece)i), bEdge);
 		maBorderDraws.Add(pDraw);
 		pCanvas = OMalloc<CCanvas>(pWindow, pDraw);
+		pCanvas->SetTransparent(true);
 		if ((i == BBP_Top) || (i == BBP_Bottom))
 		{
 			pCanvas->SetDesiredSize(-1, iTileSize);
@@ -75,16 +90,12 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CFont> 
 		{
 			pCanvas->SetDesiredSize(iTileSize, -1);
 		}
-		else
-		{
-			//The corners are rounded, what is behind them shows outside the curve.
-			pCanvas->SetTransparent(true);
-		}
 		cBorder.AddComponent(pCanvas, gaeButtonBorderCell[i]);
 	}
 
 	mpFace = OMalloc<CFillContainer>(pWindow);
-	pBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(mpImages->GetFaceColour()));
+	mpFaceDraw = OMalloc<CClearCanvasDraw>(mpImages->GetFaceColour(BS_Normal));
+	pBackground = OMalloc<CCanvas>(pWindow, mpFaceDraw);
 	mpFace->AddComponent(pBackground);
 	mpCaption = OMalloc<CLabel>(pWindow, pFont, szCaption);
 	mpFace->AddComponent(mpCaption);
@@ -106,6 +117,8 @@ void CButton::Class(void)
 	CGridContainer::Class();
 
 	M_Pointer(mpImages);
+	M_Pointer(mpDefaultImages);
+	M_Pointer(mpFaceDraw);
 	M_Embedded(maBorderDraws);
 	M_Pointer(mpFace);
 	M_Pointer(mpCaption);
@@ -115,6 +128,7 @@ void CButton::Class(void)
 	U_Bool(mbMouseOver);
 	U_Bool(mbFocussed);
 	U_Bool(mbPressed);
+	U_Bool(mbDefault);
 }
 
 
@@ -262,6 +276,47 @@ Ptr<CComponent> CButton::FindComponentAt(int x, int y)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A focussed button clicks itself on enter, not the default button.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CButton::WantsEnter(void)
+{
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Only the window calls this, see CWindow::SetDefaultButton.
+//
+//////////////////////////////////////////////////////////////////////////
+void CButton::SetDefault(bool bDefault)
+{
+	if (mbDefault != bDefault)
+	{
+		mbDefault = bDefault;
+		UpdateLook();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The images the button is drawn with now.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CButtonImages> CButton::GetImages(void)
+{
+	if (mbDefault && mpDefaultImages)
+	{
+		return mpDefaultImages;
+	}
+	return mpImages;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Losing focus, as when the window is deactivated, ends a press.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -367,7 +422,6 @@ void CButton::Enter(void)
 void CButton::UpdateState(void)
 {
 	EButtonState	eState;
-	int				i;
 
 	if (mbPressed && mbMouseOver)
 	{
@@ -389,11 +443,26 @@ void CButton::UpdateState(void)
 	if (eState != meState)
 	{
 		meState = eState;
-		for (i = 0; i < NUM_BUTTON_BORDER_PIECES; i++)
-		{
-			maBorderDraws.Get(i)->SetCel(mpImages->GetCel(meState, (EButtonBorderPiece)i));
-		}
+		UpdateLook();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CButton::UpdateLook(void)
+{
+	Ptr<CButtonImages>	pImages;
+	int					i;
+
+	pImages = GetImages();
+	for (i = 0; i < NUM_BUTTON_BORDER_PIECES; i++)
+	{
+		maBorderDraws.Get(i)->SetCel(pImages->GetCel(meState, (EButtonBorderPiece)i));
+	}
+	mpFaceDraw->SetColour(pImages->GetFaceColour(meState));
 }
 
 
@@ -404,4 +473,5 @@ void CButton::UpdateState(void)
 char* CButton::GetCaption(void) { return mpCaption->GetText(); }
 EButtonState CButton::GetState(void) { return meState; }
 bool CButton::IsPressed(void) { return mbPressed; }
+bool CButton::IsDefault(void) { return mbDefault; }
 

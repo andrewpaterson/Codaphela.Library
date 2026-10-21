@@ -58,6 +58,7 @@ public:
 			bool				IsFocussed(void);
 			bool				CanGetFocus(void);
 			void				SetCanGetFocus(bool bCanGetFocus);
+	virtual	bool				WantsEnter(void);
 			Ptr<CComponent>		GetParent(void);
 
 			void				SetActualSize(int fWidth, int fHeight);
