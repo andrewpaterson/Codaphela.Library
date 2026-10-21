@@ -39,12 +39,8 @@ private:
 
 	uint8						miDefaultAlignment;
 
-	//The free list last returned by GetOrAddFreeList and the element sizes, alignment and offset it was found for.
-	CFreeList*					mpcLastFreeList;
-	size						muiLastMinElementSize;
-	size						muiLastMaxElementSize;
-	uint16						miLastAlignment;
-	int16						miLastOffset;
+	//The free lists with the default alignment and no offset indexed by their free list params.  NULL where there is no list yet.
+	CArrayFreeListPtrs			mcDefaultFreeLists;
 
 	size						muiAllocCount;
 	size						muiBreakAlloc;
@@ -59,6 +55,7 @@ public:
 	bool					Remove(void* pv);
 	size					RemoveMultiple(CArrayVoidPtr* pav);
 	size					GetSize(void* pv);
+	SFNode*					GetNode(void* pv);
 	CFreeList*				GetFreeList(size iElementSize, uint16 iAlignment, int16 iOffset);
 	CFreeList*				GetFreeList(size iElementSize);
 	void*					Grow(void* pvInitial, size iSize);

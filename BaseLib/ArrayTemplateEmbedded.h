@@ -26,6 +26,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayTemplate.h"
 #include "IntegerHelper.h"
 #include "ConstructorCall.h"
+#include "QuickSort.h"
+#include "BubbleSort.h"
 
 
 #define ARRAY_EMBEDDED_FLAG_EMBEDDED	0x01
@@ -113,6 +115,10 @@ public:
 						bool	Read(CFileReader* pcFileReader);
 
 						void	Swap(size iIndex1, size iIndex2);
+
+						void	QuickSort(DataCompare fCompare);
+						void	BubbleSort(DataCompare fCompare);
+						bool	FindInSorted(M* pvData, DataCompare fCompare, size* piIndex);
 
 						bool	Pop(M* pvDest);
 						bool	Pop(void);
@@ -807,6 +813,86 @@ void CArrayTemplateEmbedded<M, I>::Swap(size iIndex1, size iIndex2)
 	v = *pv1;
 	*pv1 = *pv2;
 	*pv2 = v;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, int8 I>
+void CArrayTemplateEmbedded<M, I>::QuickSort(DataCompare fCompare)
+{
+	::QuickSort(fCompare, GetData(), sizeof(M), (int)NumElements());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, int8 I>
+void CArrayTemplateEmbedded<M, I>::BubbleSort(DataCompare fCompare)
+{
+	::BubbleSort(fCompare, GetData(), sizeof(M), NumElements());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M, int8 I>
+bool CArrayTemplateEmbedded<M, I>::FindInSorted(M* pvData, DataCompare fCompare, size* piIndex)
+{
+	size	iLeft;
+	size	iRight;
+	size	iMiddle;
+	int		iResultMiddle;
+
+	//If not found piIndex is where pvData would be inserted.
+	if (NumElements() == 0)
+	{
+		*piIndex = 0;
+		return false;
+	}
+
+	iLeft = 0;
+	iRight = NumElements() - 1;
+	iResultMiddle = 0;
+	iMiddle = 0;
+	while (iLeft <= iRight)
+	{
+		iMiddle = (iLeft + iRight) >> 1; //Divide by 2
+		iResultMiddle = fCompare(pvData, Get(iMiddle));
+		if (iResultMiddle == 0)
+		{
+			*piIndex = iMiddle;
+			return true;
+		}
+		else if (iResultMiddle < 0)
+		{
+			if (iMiddle == 0)
+			{
+				break;
+			}
+			iRight = iMiddle - 1;
+		}
+		else
+		{
+			iLeft = iMiddle + 1;
+		}
+	}
+
+	if (iResultMiddle > 0)
+	{
+		*piIndex = (iMiddle + 1);
+	}
+	else
+	{
+		*piIndex = iMiddle;
+	}
+	return false;
 }
 
 

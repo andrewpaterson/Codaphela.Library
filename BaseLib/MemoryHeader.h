@@ -14,8 +14,10 @@ struct SDataMemoryAllocation
 };
 
 
-struct SGeneralMemoryAllocation : public SDataMemoryAllocation
+//General memory free lists are made of slabs so the free list node is found from the allocation's address, see CFreeList::GetSlabNode.
+struct SGeneralMemoryAllocation
 {
+	size	uiSize;
 	size	uiAllocCount;
 	char	szDebug[4];
 };
@@ -70,6 +72,7 @@ struct SMemory
 
 typedef CArrayTemplateMinimal<SFreeListDesc>	CArrayFreeListDesc;
 typedef CArrayTemplate<SAlignedFreeListDesc>	CArrayFreeListAlignedDesc;
+typedef CArrayTemplate<CFreeList*>				CArrayFreeListPtrs;
 
 int CompareAlignedFreeListDesc(const void* arg1, const void* arg2);
 int CompareFreeListDesc(const void* arg1, const void* arg2);

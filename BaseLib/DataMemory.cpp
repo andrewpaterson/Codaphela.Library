@@ -47,6 +47,7 @@ void CDataMemory::Init(CMemoryFreeListParams* pcFreeListParams)
 	mcFreeLists.Init();
 	mcLargeList.Init();
 	mcOrder.Init();
+	mcFreeListsByParams.Init();
 
 	mpcFreeListParams = pcFreeListParams;
 }
@@ -69,6 +70,7 @@ void CDataMemory::Kill(void)
 		pcFreeList = mcFreeLists.GetNext(pcFreeList);
 	}
 	mcFreeLists.Kill();
+	mcFreeListsByParams.Kill();
 
 	mcLargeList.Kill();
 
@@ -412,6 +414,14 @@ void CDataMemory::FreeFreeList(CFreeList* pcFreeList)
 	size			iIndex;
 	size			iStride;
 
+	for (iIndex = 0; iIndex < mcFreeListsByParams.NumElements(); iIndex++)
+	{
+		if (*mcFreeListsByParams.Get(iIndex) == pcFreeList)
+		{
+			*mcFreeListsByParams.Get(iIndex) = NULL;
+		}
+	}
+
 	iStride = pcFreeList->GetElementStride() - sizeof(SDataMemoryAllocation);
 	sDesc.Init(iStride);
 	bResult = mcOrder.FindInSorted(&sDesc, CompareFreeListDesc, &iIndex);
@@ -490,12 +500,25 @@ CFreeList* CDataMemory::GetOrAddFreeList(size iElementSize)
 	CFreeList*				pcList;
 	SMemoryFreeListParams*	psParams;
 	size					iStride;
+	size					uiParamsIndex;
+	CFreeList**				ppcList;
 
 	psParams = mpcFreeListParams->GetFreeListParamsForSize(iElementSize);
 	if (psParams == NULL)
 	{
 		gcLogger.Error2(__METHOD__, " No free list parameter for element size [", SizeToString(iElementSize), "].  Available parameter options [", SizeToString(mpcFreeListParams->NumParams()), "] (should be more than 0, call DataMemoryInit())." , NULL);
 		return NULL;
+	}
+
+	uiParamsIndex = mpcFreeListParams->GetFreeListParamsIndexForSize(iElementSize);
+	if (uiParamsIndex >= mcFreeListsByParams.NumElements())
+	{
+		mcFreeListsByParams.GrowToAtLeastNumElements(uiParamsIndex + 1, true, 0);
+	}
+	ppcList = mcFreeListsByParams.Get(uiParamsIndex);
+	if (*ppcList != NULL)
+	{
+		return *ppcList;
 	}
 
 	iStride = CalculateStride(psParams->iMaxElementSize, DATA_MEMORY_ALIGNMENT);
@@ -505,7 +528,7 @@ CFreeList* CDataMemory::GetOrAddFreeList(size iElementSize)
 	if (bResult)
 	{
 		psDesc = mcOrder.Get(iIndex);
-		return psDesc->pcFreeList;
+		pcList = psDesc->pcFreeList;
 	}
 	else
 	{
@@ -513,8 +536,10 @@ CFreeList* CDataMemory::GetOrAddFreeList(size iElementSize)
 		pcList->Init(psParams->iMaxListSize, DATA_MEMORY_ALIGNMENT);
 		sDesc.pcFreeList = pcList;
 		mcOrder.InsertAt(&sDesc, iIndex);
-		return pcList;
 	}
+
+	*ppcList = pcList;
+	return pcList;
 }
 
 

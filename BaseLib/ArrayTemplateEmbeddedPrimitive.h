@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __ARRAY_TEMPLATE_EMBEDDED_PRIMITIVE_H__
 #include <stdarg.h>
 #include "ArrayTemplateEmbedded.h"
+#include "ArrayTemplatePrimitive.h"
 
 
 template<class M, int8 I>
@@ -111,7 +112,7 @@ M CArrayTemplateEmbeddedPrimitive<M, I>::operator[](size iIndex)
 template<class M, int8 I>
 M CArrayTemplateEmbeddedPrimitive<M, I>::SafeGetValue(size iIndex, M iNotFound)
 {
-	if (iIndex < miUsedElements)
+	if (iIndex < this->NumElements())
 	{
 		return ((M*)this->mpvArray)[iIndex];
 	}
@@ -126,7 +127,7 @@ M CArrayTemplateEmbeddedPrimitive<M, I>::SafeGetValue(size iIndex, M iNotFound)
 template<class M, int8 I>
 void CArrayTemplateEmbeddedPrimitive<M, I>::SetValue(size iIndex, M iElement)
 {
-	((M*)this->mpvArray)[iIndex] = iElement;
+	(*(CArrayTemplateEmbedded<M, I>::Get(iIndex))) = iElement;
 }
 
 
@@ -188,7 +189,7 @@ void CArrayTemplateEmbeddedPrimitive<M, I>::SetArrayValues(M iValue)
 {
 	size	i;
 
-	for (i = 0; i < miUsedElements; i++)
+	for (i = 0; i < this->NumElements(); i++)
 	{
 		((M*)this->mpvArray)[i] = iValue;
 	}
@@ -204,7 +205,7 @@ void CArrayTemplateEmbeddedPrimitive<M, I>::SetArrayValues(M iStartValue, M iInc
 {
 	size	i;
 
-	for (i = 0; i < miUsedElements; i++)
+	for (i = 0; i < this->NumElements(); i++)
 	{
 		((M*)this->mpvArray)[i] = iStartValue;
 		iStartValue += iIncrement;
@@ -243,7 +244,7 @@ size CArrayTemplateEmbeddedPrimitive<M, I>::Find(M iValue)
 {
 	size	i;
 
-	for (i = 0; i < miUsedElements; i++)
+	for (i = 0; i < this->NumElements(); i++)
 	{
 		if (((M*)this->mpvArray)[i] == iValue)
 		{
@@ -301,8 +302,8 @@ void CArrayTemplateEmbeddedPrimitive<M, I>::InsertIntoSorted(M iElement, bool bO
 	size	iPos;
 	bool	bExists;
 
-	bExists = FindInSorted(&iElement, ComparePrimitive<M>, &iPos);
-	if (iPos < miUsedElements)
+	bExists = this->FindInSorted(&iElement, ComparePrimitive<M>, &iPos);
+	if (iPos < this->NumElements())
 	{
 		if (!bExists)
 		{
@@ -337,7 +338,7 @@ bool CArrayTemplateEmbeddedPrimitive<M, I>::RemoveFromSorted(M iElement)
 	size	iPos;
 	bool	bExists;
 
-	bExists = FindInSorted(&iElement, ComparePrimitive<M>, &iPos);
+	bExists = this->FindInSorted(&iElement, ComparePrimitive<M>, &iPos);
 	if (bExists)
 	{
 		this->RemoveAt(iPos, true);
@@ -361,11 +362,11 @@ bool CArrayTemplateEmbeddedPrimitive<M, I>::RemoveDuplicatesFromSorted(void)
 	size  iWrite;
 
 	bAnyRemoved = false;
-    if (miUsedElements > 0)
+    if (this->NumElements() > 0)
     {
         iCurrent = GetValue(0);
         iWrite = 1;
-        for (i = 1; i < miUsedElements; i++)
+        for (i = 1; i < this->NumElements(); i++)
         {
             iValue = GetValue(i);
             if (iValue != iCurrent)
@@ -443,11 +444,11 @@ bool CArrayTemplateEmbeddedPrimitive<M, I>::IsSorted(void)
 	M		iValue;
 	M		iLast;
 
-	if (miUsedElements > 1)
+	if (this->NumElements() > 1)
 	{
 		iLast = GetValue(0);
 
-		for (i = 1; i < miUsedElements; i++)
+		for (i = 1; i < this->NumElements(); i++)
 		{
 			iValue = GetValue(i);
 			if (i != 0)
@@ -479,15 +480,15 @@ size CArrayTemplateEmbeddedPrimitive<M, I>::FindFinalContiguousInSorted(void)
 	size	i;
 	M		iValue;
 
-	if (miUsedElements == 0)
+	if (this->NumElements() == 0)
 	{
 		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 
-	for (i = 0; i < miUsedElements; i++)
+	for (i = 0; i < this->NumElements(); i++)
 	{
 		iValue = GetValue(i);
-		if (i != iValue)
+		if ((M)i != iValue)
 		{
 			if (i > 1)
 			{
@@ -499,7 +500,7 @@ size CArrayTemplateEmbeddedPrimitive<M, I>::FindFinalContiguousInSorted(void)
 			}
 		}
 	}
-	return miUsedElements - 1;
+	return this->NumElements() - 1;
 }
 
 
@@ -541,7 +542,7 @@ void CArrayTemplateEmbeddedPrimitive<M, I>::AddRemap(size iElementPos, M iRemapN
 	size	iNumToAdd;
 	size	iMinusOne;
 
-	if (miUsedElements > iElementPos)
+	if (this->NumElements() > iElementPos)
 	{
 		pi = CArrayTemplateEmbedded<M, I>::Get(iElementPos);
 		(*pi) = iRemapNum;
@@ -549,7 +550,7 @@ void CArrayTemplateEmbeddedPrimitive<M, I>::AddRemap(size iElementPos, M iRemapN
 	else
 	{
 		iMinusOne = SIZE_MAX;
-		iNumToAdd = (iElementPos - miUsedElements);
+		iNumToAdd = (iElementPos - this->NumElements());
 
 		for (iIndex = 0; iIndex < iNumToAdd; iIndex++)
 		{

@@ -51,6 +51,7 @@ void 	SetFlagLong(uint64* psiDest, uint64 iFlag, bool iFlagValue);
 void 	SetFlagLong(int64* psiDest, int64 iFlag, bool iFlagValue); 
 void 	SetFlagSize(size* piDest, size iFlag, bool iFlagValue);
 size 	FindFirstClearBit(void* pvArray, size iArraySize);
+size	FindFirstClearBit(uint32 uiBits);  //uiBits must have a clear bit.
 size 	FindFirstSetBit(void* pvArray, size iArraySize);
 size 	FindLastClearBit(void* pvArray, size iArraySize);
 size 	FindLastSetBit(void* pvArray, size iArraySize);

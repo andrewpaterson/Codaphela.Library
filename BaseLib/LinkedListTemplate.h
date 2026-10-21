@@ -184,7 +184,7 @@ size CLinkedListTemplate<M>::ByteSize(void)
 	pvNode = GetHead();
 	while (pvNode)
 	{
-		iSize += GetNodeSize(pvNode);
+		iSize += muiNodeSize + muiDataSize;
 		pvNode = GetNext(pvNode);
 	}
 

@@ -407,6 +407,7 @@
     <ClInclude Include="MersenneTwister.h" />
     <ClInclude Include="StdRandom.h" />
     <ClInclude Include="SystemAllocator.h" />
+    <ClInclude Include="SlabAllocator.h" />
     <ClInclude Include="TemporaryMemory.h" />
     <ClInclude Include="TextParser.h" />
     <ClInclude Include="TextParserConfig.h" />
@@ -839,6 +840,9 @@
     <ClCompile Include="MersenneTwister.cpp" />
     <ClCompile Include="StdRandom.cpp" />
     <ClCompile Include="SystemAllocator.cpp" />
+    <ClCompile Include="SlabAllocator.cpp" />
+    <ClCompile Include="SlabAllocator_Windows.cpp" />
+    <ClCompile Include="SlabAllocator_Linux.cpp" />
     <ClCompile Include="TemporaryMemory.cpp" />
     <ClCompile Include="TextParser.cpp" />
     <ClCompile Include="TextParserConfig.cpp" />

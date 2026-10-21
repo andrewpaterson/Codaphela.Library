@@ -358,7 +358,14 @@ void CUnknowns::DumpAllocationDetail(CUnknown* pcUnknown)
 		sz.Append(psAlloc->uiAllocCount);
 		sz.AppendNewLine();
 		sz.Append("Node: ");
-		sz.AppendPointer(psAlloc->psFreeListNode);
+		if (strcmp(mpcMalloc->ShortName(), "CMemoryAllocator") == 0)
+		{
+			sz.AppendPointer(((CMemoryAllocator*)mpcMalloc)->GetMemory()->GetNode(pcUnknown));
+		}
+		else
+		{
+			sz.Append("Unknown");
+		}
 		sz.AppendNewLine();
 
 		sz.Dump();

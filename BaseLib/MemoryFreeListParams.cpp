@@ -85,6 +85,8 @@ int CompareFreeListParam(const void* arg1, const void* arg2)
 void CMemoryFreeListParams::Init(size iHeaderSize, bool bDefaultFreeListParams)
 {
 	miHeaderSize = iHeaderSize;
+	mcSizeIndices.Init();
+	mbSizeIndicesValid = false;
 	if (bDefaultFreeListParams)
 	{
 		muiFreeListSizeLimit = MEMORY_FREE_LIST_SIZE_LIMIT;
@@ -104,14 +106,8 @@ void CMemoryFreeListParams::Init(size iHeaderSize, bool bDefaultFreeListParams)
 //////////////////////////////////////////////////////////////////////////
 void CMemoryFreeListParams::Kill(void)
 {
-	size					i;
-	size					uiNumElements;
-
-	uiNumElements = mcParams.NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-
-	}
+	mcSizeIndices.Kill();
+	mbSizeIndicesValid = false;
 	mcParams.Kill();
 	miHeaderSize = 0;
 }
@@ -176,6 +172,7 @@ void CMemoryFreeListParams::AddParamBlock(size iFreeListSize, size iPrevSize, si
 	{
 		muiFreeListSizeLimit = iFreeListSize;
 	}
+	mbSizeIndicesValid = false;
 }
 
 
@@ -186,6 +183,7 @@ void CMemoryFreeListParams::AddParamBlock(size iFreeListSize, size iPrevSize, si
 void CMemoryFreeListParams::AddParamBlock(SMemoryFreeListParams* psParam)
 {
 	mcParams.Add(psParam);
+	mbSizeIndicesValid = false;
 }
 
 
@@ -205,16 +203,59 @@ SMemoryFreeListParams* CMemoryFreeListParams::GetFreeListParams(size iIndex)
 //////////////////////////////////////////////////////////////////////////
 SMemoryFreeListParams* CMemoryFreeListParams::GetFreeListParamsForSize(size uiElementSize)
 {
-	size					iIndex;
-	SMemoryFreeListParams*	psParams;
-
 	if ((uiElementSize != 0) && (uiElementSize <= muiFreeListSizeLimit))
 	{
-		mcParams.FindInSorted((SMemoryFreeListParams*)&uiElementSize, CompareFreeListParam, &iIndex);
-		psParams = mcParams.Get(iIndex);
-		return psParams;
+		return mcParams.Get(GetFreeListParamsIndexForSize(uiElementSize));
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMemoryFreeListParams::GetFreeListParamsIndexForSize(size uiElementSize)
+{
+	//uiElementSize must be greater than zero and not more than the free list size limit.
+	if (!mbSizeIndicesValid)
+	{
+		BuildSizeIndices();
+	}
+	return *mcSizeIndices.Get(uiElementSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMemoryFreeListParams::FindFreeListParamsIndex(size uiElementSize)
+{
+	size	iIndex;
+
+	mcParams.FindInSorted((SMemoryFreeListParams*)&uiElementSize, CompareFreeListParam, &iIndex);
+	return iIndex;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMemoryFreeListParams::BuildSizeIndices(void)
+{
+	size	uiElementSize;
+	uint16*	puiIndices;
+
+	mcSizeIndices.ReInit();
+	mcSizeIndices.GrowToAtLeastNumElements(muiFreeListSizeLimit + 1, true, 0);
+	puiIndices = mcSizeIndices.GetData();
+	for (uiElementSize = 1; uiElementSize <= muiFreeListSizeLimit; uiElementSize++)
+	{
+		puiIndices[uiElementSize] = (uint16)FindFreeListParamsIndex(uiElementSize);
+	}
+	mbSizeIndicesValid = true;
 }
 
 
@@ -225,6 +266,7 @@ SMemoryFreeListParams* CMemoryFreeListParams::GetFreeListParamsForSize(size uiEl
 void CMemoryFreeListParams::SetFreeListSizeLimit(size uiFreeListSizeLimit)
 {
 	muiFreeListSizeLimit = uiFreeListSizeLimit;
+	mbSizeIndicesValid = false;
 }
 
 

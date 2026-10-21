@@ -45,6 +45,9 @@ private:
 
 	CMemoryFreeListParams*		mpcFreeListParams;
 
+	//The free lists indexed by their free list params.  NULL where there is no list yet.
+	CArrayFreeListPtrs			mcFreeListsByParams;
+
 public:
 	void					Init(void);
 	void					Init(CMemoryFreeListParams*	pcFreeListParams);
