@@ -52,7 +52,7 @@ void CInputDeviceState::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CInputDeviceState::Rest(CInputDevice* pcDevice)
 {
-	int					i;
+	size					i;
 	CInputSourceDesc*	pcSourceDesc;
 	SInputSourceState*	psSourceState;
 	SSetIterator		sIter;
@@ -99,7 +99,7 @@ bool CInputDeviceState::GetValue(CInputSourceDesc* pcSourceDesc, float* pfValue)
 {
 	SInputSourceState*	psSourceState;
 
-	if (pcSourceDesc->GetStateIndex() >= 0)
+	if (pcSourceDesc->GetStateIndex() < macSourceStates.NumElements())
 	{
 		psSourceState = macSourceStates.Get(pcSourceDesc->GetStateIndex());
 		if (psSourceState->pcDesc == pcSourceDesc)
@@ -123,7 +123,7 @@ bool CInputDeviceState::SetValue(CInputSourceDesc* pcSourceDesc, float fValue)
 {
 	SInputSourceState*	psSourceState;
 
-	if (pcSourceDesc->GetStateIndex() >= 0)
+	if (pcSourceDesc->GetStateIndex() < macSourceStates.NumElements())
 	{
 		psSourceState = macSourceStates.Get(pcSourceDesc->GetStateIndex());
 		if (psSourceState->pcDesc == pcSourceDesc)

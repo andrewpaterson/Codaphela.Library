@@ -9,6 +9,10 @@
 #include "WindowLib/NativeWindowFactory.h"
 
 
+//Called with each WM_INPUT's RAWINPUT.  WinRawInputCallback in WinInputLib is one.
+typedef void (*WinGDIRawInputFunc)(void* pvContext, void* pvRawInput);
+
+
 class CWinGDIWindowFactory : public CNativeWindowFactory
 {
 CONSTRUCTABLE(CWinGDIWindowFactory);
@@ -18,6 +22,8 @@ protected:
 	HINSTANCE 				mhPrevInstance;
 	HWND					mhWnd;
 	int						miCmdShow;
+	WinGDIRawInputFunc		mfRawInput;
+	void*					mpvRawInputContext;
 
 public:
 	void			Init(CMallocator* pcMallocator, HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass);
@@ -28,6 +34,9 @@ public:
 
 	void			SetHWnd(HWND hWnd);
 	HWND			GetHWnd(void);
+
+	void			SetRawInput(WinGDIRawInputFunc fRawInput, void* pvContext);
+	void			RawInput(void* pvRawInput);
 
 protected:
 

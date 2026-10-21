@@ -172,7 +172,7 @@ void CInputSourceValue::CopyChannels(CInputSourceValue* pcInputSourceValue)
 	bool					bExists;
 
 	bExists = pcInputSourceValue->StartChannelsIteration(&sIter, &pcInputSourceChannel);
-	while (pcInputSourceChannel)
+	while (bExists)
 	{
 		pcInputDestChannel = mlcChannels.Add();
 		pcInputDestChannel->Init(this, pcInputSourceChannel->GetChannel(), pcInputSourceChannel->GetCompare(), pcInputSourceChannel->GetTest());

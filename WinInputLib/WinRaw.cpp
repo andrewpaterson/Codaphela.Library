@@ -524,7 +524,7 @@ CInputDeviceDesc* CWinRawInput::GetStandardMouseDesc(CInputDevices* pcDevices, s
 	}
 	else if (iNumButtons == 3)
 	{
-		return pcDevices->GetDescription("WinRAW Mouse: Standard 3 Button Mouse");
+		return pcDevices->GetDescription("WinRAW Mouse: Standard 3 Button Wheel Mouse");
 	}
 	else
 	{
@@ -617,12 +617,14 @@ void WinRawInputEvent(CWinRawInput* pcWinRaw, void* pv)
 		psRawEvent = pcWinRaw->masRawEvents.Add();
 		psRawEvent->eType = RDT_Mouse;
 		psRawEvent->hDevice = pRawInput->header.hDevice;
+		psRawEvent->uEvent.sMouse.usFlags = psMouse->usFlags;
+		psRawEvent->uEvent.sMouse.usPadding = 0;
+		psRawEvent->uEvent.sMouse.usButtonFlags = psMouse->usButtonFlags;
+		psRawEvent->uEvent.sMouse.sButtonData = (int16)psMouse->usButtonData;
+		psRawEvent->uEvent.sMouse.ulRawButtons = psMouse->ulRawButtons;
 		psRawEvent->uEvent.sMouse.lLastX = psMouse->lLastX;
 		psRawEvent->uEvent.sMouse.lLastY = psMouse->lLastY;
-		psRawEvent->uEvent.sMouse.ulButtons = (uint16)psMouse->ulButtons;
 		psRawEvent->uEvent.sMouse.ulExtraInformation = psMouse->ulExtraInformation;
-		psRawEvent->uEvent.sMouse.ulRawButtons= (uint16)psMouse->ulRawButtons;
-		psRawEvent->uEvent.sMouse.usFlags = psMouse->usFlags;
 	}
 	else if (pRawInput->header.dwType == RIM_TYPEKEYBOARD)
 	{
@@ -656,5 +658,16 @@ void WinRawInputEvent(CWinRawInput* pcWinRaw, void* pv)
 		//sz.Dump();
 		//sz.Kill();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For windows that pass raw input on without knowing about CWinRawInput.
+//
+//////////////////////////////////////////////////////////////////////////
+void WinRawInputCallback(void* pvWinRaw, void* pvRawInput)
+{
+	WinRawInputEvent((CWinRawInput*)pvWinRaw, pvRawInput);
 }
 

@@ -105,11 +105,9 @@ void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
 	SMatchingAction			sMatch;
 	size					iLowestIndex;
 	SChordInputEvent		sChordInputEvent;
-	CInputVirtualDevice*	pcVirtual;
 	bool					bExists;
 
 	psEvent = (CInputDeviceValue*)pvContext;
-	pcVirtual = (CInputVirtualDevice*)pcSource;
 
 	if (macHistory.NumElements() == MAX_INPUT_HISTORY_EVENTS)
 	{
@@ -133,7 +131,7 @@ void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
 		//You need to look at this logic.  It's out of date.
 		sResult = pcChord->Match(&macHistory);
 		pcChord->SetMatchedCriteria(sResult.iLength);
-		if (sResult.iIndex >= 0)
+		if (sResult.iIndex != MAX_UINT)
 		{
 			if (sResult.iIndex < iLowestIndex)
 			{

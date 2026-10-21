@@ -4,6 +4,7 @@
 #include "StandardLib/Objects.h"
 #include "NativeWindowFactory.h"
 #include "WindowTick.h"
+#include "ComponentInput.h"
 #include "Window.h"
 
 
@@ -25,6 +26,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWi
 	mpCanvas = OMalloc<CCanvas>(this, pDraw, eFormat, eOrder, eColourBits, eAlphaBits);
 	AddComponent(mpCanvas);
 	mbTicking = false;
+	mpcComponentInput = NULL;
 
 	mFocus.Init(this);
 
@@ -68,6 +70,7 @@ void CWindow::Class(void)
 	U_Bool(mbTicking);
 	M_Embedded(mFocus);
 	U_Pointer(mpcFactory);
+	U_Pointer(mpcComponentInput);
 }
 
 
@@ -113,6 +116,10 @@ bool CWindow::Show(void)
 	while (mbTicking)
 	{
 		cTimer.Update();
+		if (mpcComponentInput)
+		{
+			mpcComponentInput->GetInput()->Update();
+		}
 		Tick(cTimer.GetUpdateTimeInMillieconds(), cTimer.GetTotalTimeInMillieconds());
 		bResult = mpcNativeWindow->ExecuteNativeWindow();
 		mbTicking &= bResult;
@@ -160,7 +167,33 @@ void CWindow::PointerLeft(void) { mFocus.PointerLeft(); }
 void CWindow::InputCommand(EComponentInputCommand eCommand, bool bInsert) { mFocus.Command(eCommand, bInsert); }
 void CWindow::InputPrintable(char c, bool bInsert) { mFocus.Printable(c, bInsert); }
 void CWindow::Activate(void) { mFocus.Activate(); }
-void CWindow::Deactivate(void) { mFocus.Deactivate(); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Keys released while another window has focus are never seen.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::Deactivate(void)
+{
+	mFocus.Deactivate();
+	if (mpcComponentInput)
+	{
+		mpcComponentInput->ReleaseAll();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window doesn't own the component input.  Kill it after the window
+// stops showing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::SetComponentInput(CComponentInput* pcComponentInput)
+{
+	mpcComponentInput = pcComponentInput;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -229,6 +262,7 @@ void CWindow::GetColourFormat(CColourFormatHelper* pcHelper)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CCanvas>			CWindow::GetCanvas(void) { return mpCanvas; }
 Ptr<CFocus>				CWindow::GetFocus(void) { return &mFocus; }
+CComponentInput*		CWindow::GetComponentInput(void) { return mpcComponentInput; }
 Ptr<CContainer>			CWindow::GetContainer(void) { return mpCanvas->GetContainer(); }
 CNativeWindowFactory*	CWindow::GetFactory(void) { return mpcFactory; }
 EColourFormat			CWindow::GetColourFormat(void) { return mpCanvas->GetColourFormat(); }

@@ -2,6 +2,7 @@
 #include "BaseLib/Logger.h"
 #include "BaseLib/WindowsHeaders.h"
 #include "BaseLib/WindowsError.h"
+#include "InterProcessName.h"
 #include "SharedMemoryFile.h"
 
 
@@ -34,8 +35,12 @@ void CSharedMemoryFile::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CSharedMemoryFile::Init(char* szName)
 {
+	CChars	sz;
+
 	MapFileHandle(maMapFile) = NULL;
-    StrCpySafe(mszName, szName, 64);
+	ShortenInterProcessName(&sz, szName, SHARED_MEMORY_NAME_LENGTH);
+	StrCpySafe(mszName, sz.Text(), SHARED_MEMORY_NAME_SIZE);
+	sz.Kill();
 }
 
 

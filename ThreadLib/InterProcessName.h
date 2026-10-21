@@ -13,6 +13,12 @@
 //Initialises psz to the prefix followed by szName.
 void InterProcessName(CChars* psz, const char* szPrefix, char* szName);
 
+//Initialises psz to szName if it is at most iMaxLength characters.  A longer
+//name is shortened to its start, a '#' and the 16 hex digit FNV-1a hash of the
+//whole name, iMaxLength characters in all, so that long names that differ only
+//at the end stay different.  Other languages shorten names the same way.
+void ShortenInterProcessName(CChars* psz, char* szName, int iMaxLength);
+
 
 #endif // __INTER_PROCESS_NAME_H__
 

@@ -9,12 +9,19 @@
 //file descriptor and its current view.
 #define SHARED_MEMORY_FILE_HANDLE_SIZE	24
 
+//The longest name a shared memory file has, and the size of the buffers that
+//hold one with its terminator (some are in shared memory).  A longer name is
+//shortened with ShortenInterProcessName.
+#define SHARED_MEMORY_NAME_LENGTH		63
+#define SHARED_MEMORY_NAME_SIZE			(SHARED_MEMORY_NAME_LENGTH + 1)
+static_assert(sizeof(((SSharedMemoryDescriptor*)0)->szName) == SHARED_MEMORY_NAME_SIZE, "SSharedMemoryDescriptor::szName must hold a shared memory name.");
+
 
 class CSharedMemoryFile
 {
 protected:
 	alignas(8) uint8	maMapFile[SHARED_MEMORY_FILE_HANDLE_SIZE];
-	char	mszName[64];
+	char	mszName[SHARED_MEMORY_NAME_SIZE];
 
 public:
 	void						Init(void);

@@ -184,11 +184,20 @@
   <ItemGroup>
     <ClInclude Include="MapsCanvasDraw.h" />
     <ClInclude Include="ImageCanvasDraw.h" />
+    <ClInclude Include="Button.h" />
+    <ClInclude Include="ButtonImages.h" />
+    <ClInclude Include="ButtonListener.h" />
     <ClInclude Include="Label.h" />
     <ClInclude Include="ClearCanvasDraw.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="CanvasDraw.h" />
+    <ClInclude Include="ComponentInput.h" />
+    <ClInclude Include="ComponentInputDevice.h" />
+    <ClInclude Include="ComponentInputKey.h" />
+    <ClInclude Include="ComponentInputListener.h" />
+    <ClInclude Include="ComponentInputNumKey.h" />
+    <ClInclude Include="ComponentInputPrintable.h" />
     <ClInclude Include="ComponentInputCommand.h" />
     <ClInclude Include="ComponentListener.h" />
     <ClInclude Include="Container.h" />
@@ -211,6 +220,13 @@
     <ClInclude Include="WindowTick.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ComponentInput.cpp" />
+    <ClCompile Include="ComponentInputCommand.cpp" />
+    <ClCompile Include="ComponentInputDevice.cpp" />
+    <ClCompile Include="ComponentInputKey.cpp" />
+    <ClCompile Include="ComponentInputListener.cpp" />
+    <ClCompile Include="ComponentInputNumKey.cpp" />
+    <ClCompile Include="ComponentInputPrintable.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="CanvasDraw.cpp" />
@@ -225,6 +241,8 @@
     <ClCompile Include="Insets.cpp" />
     <ClCompile Include="MapsCanvasDraw.cpp" />
     <ClCompile Include="ImageCanvasDraw.cpp" />
+    <ClCompile Include="Button.cpp" />
+    <ClCompile Include="ButtonImages.cpp" />
     <ClCompile Include="Label.cpp" />
     <ClCompile Include="ClearCanvasDraw.cpp" />
     <ClCompile Include="NativeCanvas.cpp" />

@@ -7,7 +7,7 @@
 struct SSharedMemoryFileName
 {
 public:
-	char	mszName[64];
+	char	mszName[SHARED_MEMORY_NAME_SIZE];
 	int		miIndex;
 
 	void	Init(int iIndex, char* szName);

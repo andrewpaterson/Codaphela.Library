@@ -231,6 +231,11 @@ void CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
 
 	if ((eCommand == CIC_ActivateComponent) || (eCommand == CIC_ContextMenu) || (eCommand == CIC_StartDragSelect) || (eCommand == CIC_StartDragScroll))
 	{
+		//A press outside the window, on its title bar say, isn't for any component.
+		if (!mbPointerIn || !mpWindow->IsPointIn(msPointer.x, msPointer.y))
+		{
+			return;
+		}
 		Request();
 	}
 

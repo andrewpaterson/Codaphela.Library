@@ -47,7 +47,7 @@ public:
 
 			bool				IsPointIn(int x, int y);
 			bool				HasFocus(void);
-			Ptr<CComponent>		FindComponentAt(int x, int y);
+	virtual	Ptr<CComponent>		FindComponentAt(int x, int y);
 			void				ToChildSpace(Ptr<CComponent> pcChildComponent, int x, int y, int* px, int* py);
 			void				FromChildSpace(Ptr<CComponent> pcChildComponent, int x, int y, int* px, int* py);
 

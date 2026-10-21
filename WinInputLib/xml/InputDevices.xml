@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <!DOCTYPE InputDevices [
-  <!ENTITY Categories SYSTEM "file:Categories.xml">
+  <!ENTITY Categories SYSTEM "file:../../InputLib/xml/Categories.xml">
   <!ENTITY WindowsFormats SYSTEM "file:WindowsFormats.xml">
   <!ENTITY LinuxFormats SYSTEM "file:LinuxFormats.xml">
 

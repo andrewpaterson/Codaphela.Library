@@ -47,6 +47,7 @@ public:
 	void 				Kill(void);
 	bool 				Read(char* szDirectory = NULL);
 	void 				AddProgramInput(void);
+	bool				AddNativeInput(CNativeInput* pcNativeInput);
 
 	void 				Update(void);
 	void 				Step(void);

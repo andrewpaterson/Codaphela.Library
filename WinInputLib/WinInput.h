@@ -30,7 +30,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "InputLib/InputDeviceValue.h"
 #include "InputLib/NativeInput.h"
 
-class CWinInput
+//Init(NULL, false) is enough for the keyboards and mice, the window is only
+//needed by the joysticks.  Give it to CInput::AddNativeInput after CInput::Read.
+class CWinInput : public CNativeInput
 {
 public:
 	CDirectInput	mcJoystick;
@@ -43,9 +45,9 @@ public:
 
 	void Init(void);
 	void Init(HWND hWnd, bool bExclusive);
-	void Kill(void);
-	void AddDevicesTo(CInputDevices* pcDevices);
-	void Update(CInputDevices* pcDevices, uint32 uiSequence);
+	void Kill(void) override;
+	void AddDevicesTo(CInputDevices* pcDevices) override;
+	void Update(CInputDevices* pcDevices, uint32 uiSequence) override;
 
 	CDirectInput*	GetJoystick(void);
 	CWinRawInput*	GetRaw(void);

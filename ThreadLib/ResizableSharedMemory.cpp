@@ -3,7 +3,13 @@
 #include "BaseLib/PointerRemapper.h"
 #include "BaseLib/StringHelper.h"
 #include "BaseLib/StackMemory.h"
+#include "InterProcessName.h"
 #include "ResizableSharedMemory.h"
+
+
+//The longest name the files are named after.  Each file is that name, a ':' and
+//an index of up to three digits (the coordinator holds about a hundred).
+#define RESIZABLE_SHARED_MEMORY_NAME_LENGTH	(SHARED_MEMORY_NAME_LENGTH - 4)
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -18,11 +24,7 @@ bool CResizableSharedMemory::Init(char* szMemoryName, char* szDebugIdentifier)
     mcHoldingMappedFile.Init();
     mpsHoldingDescriptor = NULL;
 
-    mszSharedName.Init(szMemoryName);
-    if (mszSharedName.Length() > 60)
-    {
-        mszSharedName.Remove(61, mszSharedName.Length());
-    }
+    ShortenInterProcessName(&mszSharedName, szMemoryName, RESIZABLE_SHARED_MEMORY_NAME_LENGTH);
 
     if (szDebugIdentifier)
     {
@@ -132,7 +134,7 @@ bool CResizableSharedMemory::Create(size_t uiSize)
 
     if (Map(uiSize))
     {
-        StrCpySafe(mpsDescriptor->szName, mszSharedName.Text(), 64);
+        StrCpySafe(mpsDescriptor->szName, mszSharedName.Text(), SHARED_MEMORY_NAME_SIZE);
         return true;
     }
     else

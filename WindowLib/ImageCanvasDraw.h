@@ -43,6 +43,8 @@ public:
 	bool		Load(CObjectReader* pcFile) override;
 
 	bool		Draw(Ptr<CCanvas> pCanvas) override;
+	void		SetCel(Ptr<CImageCel> pCel);
+	Ptr<CImageCel>	GetCel(void);
 	SInt32Vec2	GetDesiredSize(void) override;
 };
 

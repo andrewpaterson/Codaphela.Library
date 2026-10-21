@@ -50,6 +50,7 @@ protected:
 
 public:
 	void					Init(Ptr<CWindow> pWindow);
+	void					Init(Ptr<CGridContainer> pGrid);
 	void					Kill(void);
 
 	bool					AddComponent(Ptr<CComponent> pComponent, EBorderLayoutCell eCell);

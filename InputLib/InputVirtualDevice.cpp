@@ -350,6 +350,10 @@ CInputDevices* CInputVirtualDevice::GetInputDevices(void)
 	bool						bExists;
 
 	bExists = mlcHistorySources.StartIteration(&sIter, &pcSource);
+	if (!bExists)
+	{
+		return NULL;
+	}
 	return pcSource->GetSourceDevice()->GetInputDevices();
 }
 
