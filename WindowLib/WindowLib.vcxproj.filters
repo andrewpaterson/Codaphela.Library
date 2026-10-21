@@ -55,6 +55,9 @@
     <Filter Include="Source\Component\Container\Grid">
       <UniqueIdentifier>{c544ca7b-1068-448b-859c-caf91421c407}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Component\Images">
+      <UniqueIdentifier>{8e5a8ca4-b11c-4912-89f6-59fba527dd92}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NativeWindow.h">
@@ -133,10 +136,10 @@
       <Filter>Source\Component</Filter>
     </ClInclude>
     <ClInclude Include="JewelButtonImages.h">
-      <Filter>Source\Component</Filter>
+      <Filter>Source\Component\Images</Filter>
     </ClInclude>
     <ClInclude Include="ScrollBarImages.h">
-      <Filter>Source\Component</Filter>
+      <Filter>Source\Component\Images</Filter>
     </ClInclude>
     <ClInclude Include="ScrollBar.h">
       <Filter>Source\Component</Filter>
@@ -145,7 +148,7 @@
       <Filter>Source\Component</Filter>
     </ClInclude>
     <ClInclude Include="ButtonImages.h">
-      <Filter>Source\Component</Filter>
+      <Filter>Source\Component\Images</Filter>
     </ClInclude>
     <ClInclude Include="ButtonListener.h">
       <Filter>Source\Component</Filter>
@@ -237,10 +240,10 @@
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="JewelButtonImages.cpp">
-      <Filter>Source\Component</Filter>
+      <Filter>Source\Component\Images</Filter>
     </ClCompile>
     <ClCompile Include="ScrollBarImages.cpp">
-      <Filter>Source\Component</Filter>
+      <Filter>Source\Component\Images</Filter>
     </ClCompile>
     <ClCompile Include="ScrollBar.cpp">
       <Filter>Source\Component</Filter>
@@ -249,7 +252,7 @@
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="ButtonImages.cpp">
-      <Filter>Source\Component</Filter>
+      <Filter>Source\Component\Images</Filter>
     </ClCompile>
     <ClCompile Include="Label.cpp">
       <Filter>Source\Component\Drawing\Text</Filter>
