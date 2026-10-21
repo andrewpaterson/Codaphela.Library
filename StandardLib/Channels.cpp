@@ -1063,7 +1063,15 @@ void CChannels::Black(void)
 {
 	if (!IsChanging())
 	{
-		mabData.Zero();
+		if (IsUserAllocated())
+		{
+			//mabData is empty when the data belongs to the user.
+			memset(mpvUserData, 0, GetByteSize());
+		}
+		else
+		{
+			mabData.Zero();
+		}
 	}
 }
 
@@ -1076,7 +1084,15 @@ void CChannels::White(void)
 {
 	if (!IsChanging())
 	{
-		mabData.One();
+		if (IsUserAllocated())
+		{
+			//mabData is empty when the data belongs to the user.
+			memset(mpvUserData, 0xff, GetByteSize());
+		}
+		else
+		{
+			mabData.One();
+		}
 	}
 }
 
