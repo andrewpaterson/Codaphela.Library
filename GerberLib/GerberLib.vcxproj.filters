@@ -16,6 +16,9 @@
     <Filter Include="Source\Writer">
       <UniqueIdentifier>{325d6f66-bb03-4b92-ab2c-6e9859f9f473}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Vector">
+      <UniqueIdentifier>{d073f79a-591e-4a3c-b5cd-68dce54eb13c}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Parser">
       <UniqueIdentifier>{704c5f55-f0b6-4db7-b8b4-5aef73119587}</UniqueIdentifier>
     </Filter>
@@ -76,6 +79,24 @@
       <Filter>Source\Writer</Filter>
     </ClCompile>
     <ClCompile Include="GerberWriter.cpp">
+      <Filter>Source\Writer</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcellonVectoriser.cpp">
+      <Filter>Source\Vector</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberVectorImage.cpp">
+      <Filter>Source\Vector</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberVectorObject.cpp">
+      <Filter>Source\Vector</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberVectorShapes.cpp">
+      <Filter>Source\Vector</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberVectoriser.cpp">
+      <Filter>Source\Vector</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberSvgWriter.cpp">
       <Filter>Source\Writer</Filter>
     </ClCompile>
     <ClCompile Include="GerberParser.cpp">
@@ -270,6 +291,24 @@
       <Filter>Source\Writer</Filter>
     </ClInclude>
     <ClInclude Include="GerberWriter.h">
+      <Filter>Source\Writer</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcellonVectoriser.h">
+      <Filter>Source\Vector</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberVectorImage.h">
+      <Filter>Source\Vector</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberVectorObject.h">
+      <Filter>Source\Vector</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberVectorShapes.h">
+      <Filter>Source\Vector</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberVectoriser.h">
+      <Filter>Source\Vector</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberSvgWriter.h">
       <Filter>Source\Writer</Filter>
     </ClInclude>
     <ClInclude Include="GerberParser.h">

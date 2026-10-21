@@ -72,6 +72,12 @@
     <ClCompile Include="ExcellonParser.cpp" />
     <ClCompile Include="ExcellonWriter.cpp" />
     <ClCompile Include="GerberWriter.cpp" />
+    <ClCompile Include="ExcellonVectoriser.cpp" />
+    <ClCompile Include="GerberVectorImage.cpp" />
+    <ClCompile Include="GerberVectorObject.cpp" />
+    <ClCompile Include="GerberVectorShapes.cpp" />
+    <ClCompile Include="GerberVectoriser.cpp" />
+    <ClCompile Include="GerberSvgWriter.cpp" />
     <ClCompile Include="GerberParser.cpp" />
     <ClCompile Include="GerberMacroVariables.cpp" />
     <ClCompile Include="GerberEvaluatedPrimitive.cpp" />
@@ -141,6 +147,12 @@
     <ClInclude Include="ExcellonParser.h" />
     <ClInclude Include="ExcellonWriter.h" />
     <ClInclude Include="GerberWriter.h" />
+    <ClInclude Include="ExcellonVectoriser.h" />
+    <ClInclude Include="GerberVectorImage.h" />
+    <ClInclude Include="GerberVectorObject.h" />
+    <ClInclude Include="GerberVectorShapes.h" />
+    <ClInclude Include="GerberVectoriser.h" />
+    <ClInclude Include="GerberSvgWriter.h" />
     <ClInclude Include="GerberParser.h" />
     <ClInclude Include="GerberMacroVariables.h" />
     <ClInclude Include="GerberEvaluatedPrimitive.h" />
