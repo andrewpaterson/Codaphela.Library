@@ -230,6 +230,9 @@
     <ClCompile Include="Label.cpp">
       <Filter>Source\Component\Drawing\Text</Filter>
     </ClCompile>
+    <ClCompile Include="TextArea.cpp">
+      <Filter>Source\Component\Drawing\Text</Filter>
+    </ClCompile>
     <ClCompile Include="CanvasDraw.cpp">
       <Filter>Source\Component\Drawing\Canvas</Filter>
     </ClCompile>
