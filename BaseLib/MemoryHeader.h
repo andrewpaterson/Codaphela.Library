@@ -5,6 +5,7 @@
 #include "ArrayVoidPtr.h"
 #include "ArrayTemplateMinimal.h"
 #include "LinkedListBlockAligned.h"
+#include "ArrayTemplatePtr.h"
 
 
 struct SDataMemoryAllocation
@@ -20,6 +21,9 @@ struct SGeneralMemoryAllocation
 	size	uiSize;
 	size	uiAllocCount;
 	char	szDebug[4];
+#ifndef BUILD_64
+	uint32	uiUnused;	//Keeps the header a multiple of 8 bytes so 8 byte aligned elements have 8 byte aligned data.
+#endif // BUILD_64
 };
 
 
@@ -72,7 +76,7 @@ struct SMemory
 
 typedef CArrayTemplateMinimal<SFreeListDesc>	CArrayFreeListDesc;
 typedef CArrayTemplate<SAlignedFreeListDesc>	CArrayFreeListAlignedDesc;
-typedef CArrayTemplate<CFreeList*>				CArrayFreeListPtrs;
+typedef CArrayTemplatePtr<CFreeList>				CArrayFreeListPtrs;
 
 int CompareAlignedFreeListDesc(const void* arg1, const void* arg2);
 int CompareFreeListDesc(const void* arg1, const void* arg2);

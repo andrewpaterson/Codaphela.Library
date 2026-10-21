@@ -226,7 +226,7 @@ CWriteTransaction* CCodabase::BeginWriteTransaction(void)
 	iStartNumber = miLastStartNumber;
 	pcTransaction = NewMalloc<CWriteTransaction>();
 	pcTransaction->Init(this, iStartNumber);
-	mapcWriters.Add(&pcTransaction);
+	mapcWriters.Add(pcTransaction);
 	mcMutex.Unlock();
 	return pcTransaction;
 }

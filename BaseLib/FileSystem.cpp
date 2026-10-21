@@ -122,7 +122,7 @@ void CFileSystem::GetFiles(CArraySystemFilePtr* pcSystemFiles)
 	pcFile = StartIteration(&cIter);
 	while (pcFile)
 	{
-		pcSystemFiles->Add(&pcFile);
+		pcSystemFiles->Add(pcFile);
 		pcFile = Iterate(&cIter);
 	}
 	StopIteration(&cIter);
@@ -148,7 +148,7 @@ void CFileSystem::GetFiles(CArraySystemFilePtr* pcSystemFiles, const char* szExt
 		szFake.Fake(pcFile->GetExtension());
 		if (szFake.Equals(szExtension))
 		{
-			pcSystemFiles->Add(&pcNode);
+			pcSystemFiles->Add(pcNode);
 		}
 
 		pcNode = Iterate(&cIter);

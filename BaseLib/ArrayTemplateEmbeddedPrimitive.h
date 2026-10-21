@@ -490,7 +490,7 @@ size CArrayTemplateEmbeddedPrimitive<M, I>::FindFinalContiguousInSorted(void)
 		iValue = GetValue(i);
 		if ((M)i != iValue)
 		{
-			if (i > 1)
+			if (i > 0)
 			{
 				return i - 1;
 			}

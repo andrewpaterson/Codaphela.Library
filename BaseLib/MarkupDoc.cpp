@@ -165,7 +165,7 @@ bool CMarkupDoc::Is(const char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CMarkupDoc::AddSubstitute(CMarkupSubstitute* pcSubstitute)
 {
-	macSubstitutes.Add(&pcSubstitute);
+	macSubstitutes.Add(pcSubstitute);
 	pcSubstitute->AddRef();
 }
 
@@ -228,7 +228,7 @@ bool CMarkupDoc::FixReferences(void)
 //////////////////////////////////////////////////////////////////////////
 void CMarkupDoc::AddReference(CMarkupReference* pcRef)
 {
-	macRefs.Add(&pcRef);
+	macRefs.Add(pcRef);
 }
 
 

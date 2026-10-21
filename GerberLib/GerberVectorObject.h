@@ -86,5 +86,10 @@ public:
 };
 
 
+//The counterclockwise or clockwise angle (radians) from the start to the end around the center, in (0, 2 pi].  Equal
+//points are a full circle.
+float64 GetGerberArcSweep(SFloat64Vec2* psStart, SFloat64Vec2* psEnd, SFloat64Vec2* psCenter, bool bClockwise);
+
+
 #endif // __GERBER_VECTOR_OBJECT_H__
 

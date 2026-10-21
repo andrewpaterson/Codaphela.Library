@@ -83,6 +83,29 @@ void CGeneralMemory::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CGeneralMemory::Compact(void)
+{
+	CFreeList*	pcFreeList;
+	CFreeList*	pcNext;
+
+	//Free the free lists that have no elements, and their unused nodes.
+	pcFreeList = mcFreeLists.GetHead();
+	while (pcFreeList)
+	{
+		pcNext = mcFreeLists.GetNext(pcFreeList);
+		if (!pcFreeList->HasElements())
+		{
+			FreeFreeList(pcFreeList);
+		}
+		pcFreeList = pcNext;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void* CGeneralMemory::Add(size iSize)
 {
 	return Add(iSize, miDefaultAlignment);
@@ -448,11 +471,8 @@ bool CGeneralMemory::DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryA
 	memset(pvMem, 0xef, iSize);
 #endif
 
+	//Empty free lists are kept so allocating and freeing one element doesn't create and destroy a free list each time.  See Compact.
 	bFreed = pcFreeList->Remove(psFreeListNode, psAlloc);
-	if (!pcFreeList->HasElements())
-	{
-		FreeFreeList(pcFreeList);
-	}
 	return bFreed;
 }
 
@@ -463,10 +483,7 @@ bool CGeneralMemory::DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryA
 //////////////////////////////////////////////////////////////////////////
 void CGeneralMemory::FreeFreeList(CFreeList* pcFreeList)
 {
-	bool					bResult;
-	SAlignedFreeListDesc	sDesc;
-	size					iIndex;
-	size					iStride;
+	size	iIndex;
 
 	for (iIndex = 0; iIndex < mcDefaultFreeLists.NumElements(); iIndex++)
 	{
@@ -476,12 +493,14 @@ void CGeneralMemory::FreeFreeList(CFreeList* pcFreeList)
 		}
 	}
 
-	iStride = pcFreeList->GetElementStride() - sizeof(SGeneralMemoryAllocation);
-	sDesc.Init(iStride, pcFreeList->GetAlignment(), pcFreeList->GetOffset());
-	bResult = mcOrder.FindInSorted(&sDesc, CompareAlignedFreeListDesc, &iIndex);
-	if (bResult)
+	//Found by pointer because the order key can't be rebuilt from the free list when the header size is not a multiple of the alignment.
+	for (iIndex = 0; iIndex < mcOrder.NumElements(); iIndex++)
 	{
-		mcOrder.RemoveAt(iIndex);
+		if (mcOrder.Get(iIndex)->pcFreeList == pcFreeList)
+		{
+			mcOrder.RemoveAt(iIndex);
+			break;
+		}
 	}
 	pcFreeList->Kill();
 	mcFreeLists.Remove(pcFreeList);

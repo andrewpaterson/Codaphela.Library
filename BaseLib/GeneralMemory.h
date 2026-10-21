@@ -50,6 +50,7 @@ public:
 	void					Init(void);
 	void					Init(uint16 iDefaultAlignment, bool bDefaultFreeListParams = true);
 	void					Kill(void);
+	void					Compact(void);
 	void*					Add(size iSize);
 	void*					Add(size iSize, uint16 iAlignment, int16 iOffset = 0);
 	bool					Remove(void* pv);

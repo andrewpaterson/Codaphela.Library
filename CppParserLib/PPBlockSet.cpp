@@ -67,7 +67,7 @@ void CPPBlockSet::Kill(void)
 void CPPBlockSet::AddBlock(CPPBlock* pcBlock)
 {
 	pcBlock->Use();
-	mapcBlocks.Add(&pcBlock);
+	mapcBlocks.Add(pcBlock);
 }
 
 

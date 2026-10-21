@@ -170,8 +170,8 @@ bool CConvexHullGenerator::FindFirstPairTriangles(CArrayExtremeTrianglePtr* papc
 	}
 
 	//These triangles ARE sorted at this point.
-	papcTriangles->Add(&pcTriangleUp);
-	papcTriangles->Add(&pcTriangleDown);
+	papcTriangles->Add(pcTriangleUp);
+	papcTriangles->Add(pcTriangleDown);
 	return true;
 }
 
@@ -281,7 +281,7 @@ bool CConvexHullGenerator::Generate(void)
 			{
 				if (pcTriangle->NotContains(psPosition))
 				{
-					cDeleted.Add(&pcTriangle);
+					cDeleted.Add(pcTriangle);
 				}
 			}
 			pcTriangle = (CExtremeTriangle*)mcTriangles.Iterate(&sIter);
@@ -300,7 +300,7 @@ bool CConvexHullGenerator::Generate(void)
 					GetPosition(mpsPoints, iStride, sEdges.aaiEdgeIndices[k][1]),
 					GetPosition(mpsPoints, iStride, iFarIndex));
 
-				apcTriangles.Add(&pcTriangle);
+				apcTriangles.Add(pcTriangle);
 				AddPointsFromTriangles(pcTriangle, &cDeleted, iFarIndex);
 			}
 		}
@@ -311,7 +311,7 @@ bool CConvexHullGenerator::Generate(void)
 			pcDeleted->Kill();
 			mcTriangles.Remove(pcDeleted);
 
-			iIndex = (int)apcTriangles.Find(&pcDeleted);
+			iIndex = (int)apcTriangles.Find(pcDeleted);
 			*(apcTriangles.Get(iIndex)) = NULL;
 		}
 	}
@@ -476,9 +476,9 @@ bool CConvexHullGenerator::RemoveDiscontiguousTriangles(CExtremeTriangle* pcSele
 	CArrayExtremeTrianglePtr	cTemp;
 
 	papcTemp->FakeSetUsedElements(0);
-	papcTemp->Add(&pcSelected);
+	papcTemp->Add(pcSelected);
 
-	iIndex = (int)papcTriangles->Find(&pcSelected);
+	iIndex = (int)papcTriangles->Find(pcSelected);
 	papcTriangles->RemoveAtNoDeallocate(iIndex);
 
 	for (i = 0; i < papcTemp->NumElements(); i++)
@@ -492,7 +492,7 @@ bool CConvexHullGenerator::RemoveDiscontiguousTriangles(CExtremeTriangle* pcSele
 				papcTriangles->RemoveAtNoDeallocate(j);
 				j--;
 
-				papcTemp->Add(&pcTriangle2);
+				papcTemp->Add(pcTriangle2);
 			}
 		}
 	}
@@ -803,7 +803,7 @@ void CConvexHull::BeginSetFromPoints(CConvexHullGenerator* psConvexHullGenerator
 	pcTriangle = (CExtremeTriangle*)psConvexHullGenerator->mcTriangles.StartIteration(&sIter);
 	while (pcTriangle)
 	{
-		apcTriangles.Add(&pcTriangle);
+		apcTriangles.Add(pcTriangle);
 		pcTriangle = (CExtremeTriangle*)psConvexHullGenerator->mcTriangles.Iterate(&sIter);
 	}
 

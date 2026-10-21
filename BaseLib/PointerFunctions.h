@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __POINTER_FUNCTIONS_H__
 #define __POINTER_FUNCTIONS_H__
+#include <stdlib.h>
 #include "Define.h"
 #include "DataCompare.h"
 

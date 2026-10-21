@@ -925,7 +925,7 @@ bool CInputDevicesReader::ReadSource(CMarkupTag* pcParentTag, CInputDeviceDesc* 
 			return false;
 		}
 		pcGeneric = pcDeviceDesc->GetCategory()->GetGeneric(szGeneric.Text());
-		pcSourceDesc->GetGenerics()->Add(&pcGeneric);
+		pcSourceDesc->GetGenerics()->Add(pcGeneric);
 		szGeneric.Kill();
 
 		pcGenericTag = pcParentTag->GetNextTag(&sIter);

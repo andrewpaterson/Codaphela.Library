@@ -415,6 +415,7 @@
     <ClInclude Include="TrueTypeFont.h" />
     <ClInclude Include="TrueTypeFontFactory.h" />
     <ClInclude Include="TrueTypeOutline.h" />
+    <ClInclude Include="CoverageRasteriser.h" />
     <ClInclude Include="TrueTypeRasteriser.h" />
   </ItemGroup>
   <ItemGroup>
@@ -628,6 +629,7 @@
     <ClCompile Include="TrueTypeFont.cpp" />
     <ClCompile Include="TrueTypeFontFactory.cpp" />
     <ClCompile Include="TrueTypeOutline.cpp" />
+    <ClCompile Include="CoverageRasteriser.cpp" />
     <ClCompile Include="TrueTypeRasteriser.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

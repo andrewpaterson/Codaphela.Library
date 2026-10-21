@@ -392,7 +392,7 @@ void CIndexedFiles::GetFiles(CArrayIndexedFilePtr* papc)
 	for (i = 0; i < mcFiles.NumElements(); i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
-		papc->Add(&pcIndexedFile);
+		papc->Add(pcIndexedFile);
 	}
 }
 

@@ -554,10 +554,7 @@ CPPLine* CPreprocessorTokeniser::Line(CPPTokenMemory* pcTokens)
 //////////////////////////////////////////////////////////////////////////
 CPPToken* CPreprocessorTokeniser::AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokens)
 {
-	CPPToken**	ppcToken;
-
-	ppcToken = pcTokens->Add();
-	*ppcToken = pcToken;
+	pcTokens->Add(pcToken);
 	return pcToken;
 }
 

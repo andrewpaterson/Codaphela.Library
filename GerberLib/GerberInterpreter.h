@@ -1,13 +1,13 @@
 #ifndef __GERBER_INTERPRETER_H__
 #define __GERBER_INTERPRETER_H__
-#include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 #include "GerberCommands.h"
 #include "GerberApertures.h"
 #include "GerberGraphicsState.h"
 #include "GerberInterpreterListener.h"
 
 
-typedef CArrayTemplate<CGerberCommandApertureMacro*>	CArrayGerberApertureMacroPtr;
+typedef CArrayTemplatePtr<CGerberCommandApertureMacro>	CArrayGerberApertureMacroPtr;
 
 
 //Executes parsed commands: keeps the graphics state and the aperture dictionary, evaluates aperture

@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __INPUT_CATEGORY_GENERIC_H__
 #include "StandardLib/Unknown.h"
 #include "StandardLib/SetType.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 
 
 class CInputCategoryGeneric : public CUnknown
@@ -41,7 +42,7 @@ public:
 
 
 typedef CSetType<CInputCategoryGeneric>		CSetInputCategoryGeneric;
-typedef CArrayTemplate<CInputCategoryGeneric*>		CArrayInputCategoryGenericPtr;
+typedef CArrayTemplatePtr<CInputCategoryGeneric>		CArrayInputCategoryGenericPtr;
 
 
 #endif // __INPUT_CATEGORY_GENERIC_H__

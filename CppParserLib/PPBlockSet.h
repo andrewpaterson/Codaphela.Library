@@ -23,9 +23,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PPBlock.h"
 #include "DefineMap.h"
 #include "PPTokenMemory.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 
 
-typedef CArrayTemplate<CPPBlock*>	CArrayPPBlocks;
+typedef CArrayTemplatePtr<CPPBlock>	CArrayPPBlocks;
 
 
 class CPPBlockSet

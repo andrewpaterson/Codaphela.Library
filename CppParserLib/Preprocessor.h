@@ -37,9 +37,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PreprocessorPosition.h"
 #include "HeaderNameMapStack.h"
 #include "PreprocessedTokens.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 
 
-typedef CArrayTemplate<CHeaderFiles*> CArrayHeaderFiles;
+typedef CArrayTemplatePtr<CHeaderFiles> CArrayHeaderFiles;
 typedef CArrayTemplate<CHeaderFiles> CArrayHeaderNameMap;
 typedef CArrayTemplate<CArrayPreprocessedTokens> CArrayPreprocessedTokenArrays;
 typedef CArrayTemplate<int64> CArrayDefineIDs;

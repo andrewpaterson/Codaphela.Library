@@ -129,7 +129,7 @@ Ptr<CImageBlitter> CImageCelBlitterCache::CreateImageBlitter(Ptr<CImageCel> pCel
 
 	pcCel = (CImageCel*)pCel.Object();
 	maBlitters.Add(pImageBlitter);
-	mapcCels.Add(&pcCel);
+	mapcCels.Add(pcCel);
 	pcCel->AddBlitterCache(this);
 
 	return pImageBlitter;
@@ -222,7 +222,7 @@ size CImageCelBlitterCache::FindCel(CImageCel* pcCel)
 	{
 		return ARRAY_ELEMENT_NOT_FOUND;
 	}
-	return mapcCels.Find(&pcCel);
+	return mapcCels.Find(pcCel);
 }
 
 

@@ -459,7 +459,7 @@ CMarkupTag* CMarkupTag::AppendTag(void)
 
 	pcTag = mpcDoc->mpcMarkup->AllocateTag(mpcDoc);
 	pcTag->Init(this);
-	macBases.Add((CMarkupBase**)&pcTag);
+	macBases.Add(pcTag);
 	return pcTag;
 }
 
@@ -474,7 +474,7 @@ CMarkupTag* CMarkupTag::AppendTag(char* szName)
 
 	pcTag = mpcDoc->mpcMarkup->AllocateTag(mpcDoc);
 	pcTag->Init(szName, this);
-	macBases.Add((CMarkupBase**)&pcTag);
+	macBases.Add(pcTag);
 	return pcTag;
 }
 
@@ -489,7 +489,7 @@ CMarkupText* CMarkupTag::AppendText(void)
 
 	pcText = mpcDoc->mpcMarkup->AllocateText(mpcDoc);
 	pcText->Init(this);
-	macBases.Add((CMarkupBase**)&pcText);
+	macBases.Add(pcText);
 	return pcText;
 }
 
@@ -504,7 +504,7 @@ CMarkupText* CMarkupTag::AppendText(char* szText)
 
 	pcText = mpcDoc->mpcMarkup->AllocateText(mpcDoc);
 	pcText->Init(szText, this);
-	macBases.Add((CMarkupBase**)&pcText);
+	macBases.Add(pcText);
 	return pcText;
 }
 
@@ -519,7 +519,7 @@ CMarkupNamedRef* CMarkupTag::AppendNamedReference(char* szIdentifier)
 
 	pcNamedRef = mpcDoc->mpcMarkup->AllocateNamedRef(mpcDoc);
 	pcNamedRef->Init(szIdentifier, this);
-	macBases.Add((CMarkupBase**)&pcNamedRef);
+	macBases.Add(pcNamedRef);
 	mpcDoc->AddReference((CMarkupReference*)pcNamedRef);
 	return pcNamedRef;
 }

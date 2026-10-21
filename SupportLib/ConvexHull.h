@@ -24,6 +24,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FreeList.h"
 #include "Triangle.h"
 #include "Polygon.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 
 
 class CExtremeTriangle : public CTriangle
@@ -39,8 +40,8 @@ public:
 
 
 
-typedef CArrayTemplate<CExtremeTriangle*>	CArrayExtremeTrianglePtr;
-typedef CArrayTemplate<CTriangle*>			CArrayTrianglePtr;
+typedef CArrayTemplatePtr<CExtremeTriangle>	CArrayExtremeTrianglePtr;
+typedef CArrayTemplatePtr<CTriangle>			CArrayTrianglePtr;
 
 
 struct SConvexHullHoleEdge

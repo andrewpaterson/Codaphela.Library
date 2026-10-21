@@ -19,6 +19,9 @@
     <Filter Include="Source\Vector">
       <UniqueIdentifier>{d073f79a-591e-4a3c-b5cd-68dce54eb13c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Raster">
+      <UniqueIdentifier>{9a9abd5a-2940-400b-9705-cd9a6a756798}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Parser">
       <UniqueIdentifier>{704c5f55-f0b6-4db7-b8b4-5aef73119587}</UniqueIdentifier>
     </Filter>
@@ -98,6 +101,9 @@
     </ClCompile>
     <ClCompile Include="GerberSvgWriter.cpp">
       <Filter>Source\Writer</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberRasteriser.cpp">
+      <Filter>Source\Raster</Filter>
     </ClCompile>
     <ClCompile Include="GerberParser.cpp">
       <Filter>Source\Parser</Filter>
@@ -310,6 +316,9 @@
     </ClInclude>
     <ClInclude Include="GerberSvgWriter.h">
       <Filter>Source\Writer</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberRasteriser.h">
+      <Filter>Source\Raster</Filter>
     </ClInclude>
     <ClInclude Include="GerberParser.h">
       <Filter>Source\Parser</Filter>

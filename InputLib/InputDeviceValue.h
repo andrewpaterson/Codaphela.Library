@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __INPUT_DEVICE_VALUE_H__
 #define __INPUT_DEVICE_VALUE_H__
-#include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/LinkedListTemplateFreeList.h"
 #include "BaseLib/Chars.h"
 
@@ -59,7 +59,7 @@ public:
 
 
 typedef CLinkedListTemplateFreeList<CInputDeviceValue>	CListInputDeviceValue;
-typedef CArrayTemplate<CInputDeviceValue*>	CArrayInputDeviceValuePtr;
+typedef CArrayTemplatePtr<CInputDeviceValue>	CArrayInputDeviceValuePtr;
 
 
 int SortInputEventFunc(const void* pv1, const void* pv2);

@@ -78,6 +78,7 @@
     <ClCompile Include="GerberVectorShapes.cpp" />
     <ClCompile Include="GerberVectoriser.cpp" />
     <ClCompile Include="GerberSvgWriter.cpp" />
+    <ClCompile Include="GerberRasteriser.cpp" />
     <ClCompile Include="GerberParser.cpp" />
     <ClCompile Include="GerberMacroVariables.cpp" />
     <ClCompile Include="GerberEvaluatedPrimitive.cpp" />
@@ -153,6 +154,7 @@
     <ClInclude Include="GerberVectorShapes.h" />
     <ClInclude Include="GerberVectoriser.h" />
     <ClInclude Include="GerberSvgWriter.h" />
+    <ClInclude Include="GerberRasteriser.h" />
     <ClInclude Include="GerberParser.h" />
     <ClInclude Include="GerberMacroVariables.h" />
     <ClInclude Include="GerberEvaluatedPrimitive.h" />

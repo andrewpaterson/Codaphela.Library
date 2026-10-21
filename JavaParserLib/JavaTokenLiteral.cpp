@@ -1,4 +1,4 @@
-#include "BaseLib/NewLine.h"
+#include "BaseLib/Newline.h"
 #include "JavaTokenLiteral.h"
 
 

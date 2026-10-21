@@ -98,7 +98,7 @@ void CLogger::Init(CAbstractFile* pcFile, const char* szName)
 
 	if (pcFile)
 	{
-		mapcFiles.Add(&pcFile);
+		mapcFiles.Add(pcFile);
 	}
 
 #ifdef LINUX_GNU
@@ -107,7 +107,7 @@ void CLogger::Init(CAbstractFile* pcFile, const char* szName)
 #else
 	pcDebugFile = DebugOutputFile();
 #endif // LINUX_GNU
-	mapcFiles.Add(&pcDebugFile);
+	mapcFiles.Add(pcDebugFile);
 	mpcDebugOutputFile = pcDebugFile;
 
 	msConfig.bEnabled = true;
@@ -583,7 +583,7 @@ void CLogger::GetConfig(SLogConfig* psConfig)
 void CLogger::AddOutput(CAbstractFile* pcFile)
 {
 	Lock();
-	mapcFiles.Add(&pcFile);
+	mapcFiles.Add(pcFile);
 	Unlock();
 }
 

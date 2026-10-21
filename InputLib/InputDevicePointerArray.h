@@ -22,10 +22,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __INPUT_DEVICE_POINTER_ARRAY_H__
 #define __INPUT_DEVICE_POINTER_ARRAY_H__
+#include "BaseLib/ArrayTemplatePtr.h"
 
 
 class CInputDevice;
-typedef CArrayTemplate<CInputDevice*> CArrayInputDevicePtr;
+typedef CArrayTemplatePtr<CInputDevice> CArrayInputDevicePtr;
 
 
 #endif // __INPUT_DEVICE_POINTER_ARRAY_H__

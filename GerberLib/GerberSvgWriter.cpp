@@ -431,8 +431,6 @@ void CGerberSvgWriter::WritePath(CGerberVectorObject* pcObject, size uiStart, si
 	SFloat64Vec2			sCurrent;
 	SFloat64Vec2			sOpposite;
 	float64					fRadius;
-	float64					fStart;
-	float64					fEnd;
 	float64					fSweep;
 	bool					bContour;
 	bool					bEmpty;
@@ -500,13 +498,7 @@ void CGerberSvgWriter::WritePath(CGerberVectorObject* pcObject, size uiStart, si
 				}
 				else
 				{
-					fStart = atan2(sCurrent.y - psSegment->sCenter.y, sCurrent.x - psSegment->sCenter.x);
-					fEnd = atan2(psSegment->sPoint.y - psSegment->sCenter.y, psSegment->sPoint.x - psSegment->sCenter.x);
-					fSweep = psSegment->bClockwise ? fStart - fEnd : fEnd - fStart;
-					while (fSweep <= 0)
-					{
-						fSweep += 2 * GERBER_PI;
-					}
+					fSweep = GetGerberArcSweep(&sCurrent, &psSegment->sPoint, &psSegment->sCenter, psSegment->bClockwise);
 					mpsz->Append('A');
 					WriteNumber(fRadius);
 					mpsz->Append(' ');

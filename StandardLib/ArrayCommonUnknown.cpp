@@ -465,7 +465,7 @@ bool CArrayCommonUnknown::Add(CUnknown* pcUnknown, bool bCleanNullsIfNecessary)
 	}
 	else
 	{
-		mcArray.Add(&pcUnknown);
+		mcArray.Add(pcUnknown);
 		SetFlagShort(&muiFlags, ARRAY_COMMOM_IS_PTR_SORTED, false);
 	}
 

@@ -9,13 +9,14 @@
 #include "LockManager.h"
 #include "MapStringTemplate.h"
 #include "ArrayInt64.h"
+#include "ArrayTemplatePtr.h"
 
 
 class CWriteTransaction;
 class CReadTransaction;
 
 
-typedef CArrayTemplate<CWriteTransaction*> CArrayWriteTransaction;
+typedef CArrayTemplatePtr<CWriteTransaction> CArrayWriteTransaction;
 
 
 //A durable bracket is always open while the Codabase is started, so the store can be read at any time.  Writes are

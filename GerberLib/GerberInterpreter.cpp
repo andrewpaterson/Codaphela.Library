@@ -260,7 +260,7 @@ bool CGerberInterpreter::InterpretApertureMacro(CGerberCommandApertureMacro* pcM
 		return false;
 	}
 
-	mapcMacros.Add(&pcMacro);
+	mapcMacros.Add(pcMacro);
 	return true;
 }
 

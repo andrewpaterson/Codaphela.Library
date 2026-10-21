@@ -833,7 +833,7 @@ void CPreprocessor::AddIncludeDirectories(CArrayHeaderNameMap* pcHeaderNames)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessor::AddIncludeDirectory(CHeaderFiles* pcHeaderMapName)
 {
-	mcHeaderNames.Add(&pcHeaderMapName);
+	mcHeaderNames.Add(pcHeaderMapName);
 }
 
 

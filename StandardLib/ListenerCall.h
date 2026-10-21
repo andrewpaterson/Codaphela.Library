@@ -22,6 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __LISTENER_CALL_H__
 #include "Unknown.h"
 #include "Listener.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 
 //I'm not sure where the following defines belong.  I suspect they are what CListenerCall should have been had C++ not been retarded.
 //Rewrite this to use variable args templates.
@@ -30,7 +31,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define CALL_LISTENERS_2(listeners, func, param1, param2) for (size iListenerNumber = 0; iListenerNumber < listeners.NumElements(); iListenerNumber++) { (*listeners.Get(iListenerNumber))->func(param1, param2); }
 
 
-typedef CArrayTemplate<CListener*>	CArrayListenerPtr;
+typedef CArrayTemplatePtr<CListener>	CArrayListenerPtr;
 typedef void (CListener::*ListenerFunc)(CUnknown*, void*);
 
 
@@ -87,7 +88,7 @@ bool CListenerCall::AddListener(M* pcListener)
 	pcArray = mcListeners.Get(szName);
 	if (pcArray)
 	{
-		pcArray->Add(&pcCast);
+		pcArray->Add(pcCast);
 		return true;
 	}
 	else

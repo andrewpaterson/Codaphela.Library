@@ -180,7 +180,7 @@ bool CExcellonInterpreter::InterpretToolDefine(CExcellonCommandToolDefine* pcToo
 	{
 		return ToolError("Excellon tool T", pcToolDefine->GetTool(), " is already defined.");
 	}
-	mapcTools.Add(&pcToolDefine);
+	mapcTools.Add(pcToolDefine);
 	return true;
 }
 

@@ -121,7 +121,7 @@ void CInputVirtualDevice::UpdateEvents(CInputDeviceValues* pcValues)
 	{
 		if (ContainsHistorySource(pcValue))
 		{
-			mapcInputValues.Add(&pcValue);
+			mapcInputValues.Add(pcValue);
 		}
 		pcValue = pcValues->Iterate(pcValue);
 	}

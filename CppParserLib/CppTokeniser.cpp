@@ -923,7 +923,7 @@ bool CCPPTokeniser::String(SPreprocessedToken* psToken, int iSource)
 void CCPPTokeniser::AddToken(CCPPToken* pcToken, int iSource)
 {
 	pcToken->SetSource(iSource);
-	mcTokens.Add(&pcToken);
+	mcTokens.Add(pcToken);
 }
 
 

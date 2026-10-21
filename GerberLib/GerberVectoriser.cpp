@@ -139,7 +139,7 @@ float64 CGerberVectoriser::GetStrokeRadius(CGerberGraphicsState* pcState)
 //////////////////////////////////////////////////////////////////////////
 void CGerberVectoriser::PushTarget(CGerberVectorObjects* pcTarget)
 {
-	mapcTargets.Add(&mpcTarget);
+	mapcTargets.Add(mpcTarget);
 	mpcTarget = pcTarget;
 }
 

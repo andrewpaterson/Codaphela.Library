@@ -9,6 +9,8 @@ class CArrayTemplatePtr : public CArrayTemplate<M*>
 {
 public:
 	void	Init(void);
+	void	Init(CMallocator* pcMalloc);
+	void	Init(CMallocator* pcMalloc, size iChunkSize);
 	void	Kill(void);
 	
 	void	Add(M* pv);
@@ -49,6 +51,28 @@ template<class M>
 void CArrayTemplatePtr<M>::Init(void)
 {
 	CArrayTemplate<M*>::Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplatePtr<M>::Init(CMallocator* pcMalloc)
+{
+	CArrayTemplate<M*>::Init(pcMalloc);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplatePtr<M>::Init(CMallocator* pcMalloc, size iChunkSize)
+{
+	CArrayTemplate<M*>::Init(pcMalloc, iChunkSize);
 }
 
 

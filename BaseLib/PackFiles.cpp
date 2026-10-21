@@ -956,7 +956,7 @@ void CPackFiles::GetFiles(CArrayPackFileNodePtrs* pcPackFiles)
 	pcFile = StartIteration(&cIter);
 	while (pcFile)
 	{
-		pcPackFiles->Add(&pcFile);
+		pcPackFiles->Add(pcFile);
 		pcFile = Iterate(&cIter);
 	}
 	StopIteration(&cIter);

@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "Define.h"
 #include "PointerFunctions.h"
 #include "TemporaryMemory.h"
