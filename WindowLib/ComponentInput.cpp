@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"  //TEMP-INPUT-LOG
 #include "InputLib/InputChords.h"
 #include "InputLib/InputCategory.h"
 #include "Window.h"
@@ -250,6 +251,7 @@ void CComponentInput::Pressed(CInputSourceDesc* pcSource)
 	bool						bAlt;
 	bool						bShift;
 
+	gcLogger.Info2("RAW: Pressed [", pcSource->GetFriendlyName(), "].", NULL);  //TEMP-INPUT-LOG
 	psKey = GetKey(pcSource);
 	if (psKey)
 	{
@@ -441,6 +443,7 @@ void CComponentInput::Command(EComponentInputCommand eCommand)
 {
 	if (eCommand != CIC_Ignored)
 	{
+		gcLogger.Info2("RAW: Command [", IntToString((int32)eCommand), "].", NULL);  //TEMP-INPUT-LOG
 		mpcWindow->InputCommand(eCommand, mbInsert);
 	}
 }
