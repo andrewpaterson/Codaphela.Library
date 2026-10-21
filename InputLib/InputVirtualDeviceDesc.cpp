@@ -221,12 +221,10 @@ bool CInputVirtualDeviceDesc::AddOrderedAction(char* szActionName, int iDescID, 
 	CInputChordDesc*			pcChord;
 	CInputVirtualSourceDesc*	pcSource;
 	CInputChordCollectiveDesc*	pcOrdered;
-	bool						bResult;
 
 	pcChord = mcChordDescs.AddChordDesc(szActionName);
 	pcOrdered = pcChord->AsOrdered();
 
-	bResult = true;
 	iCount = 0;
 	pc = szFriendlyName;
 	va_start(vaMarker, szFriendlyName);

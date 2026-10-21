@@ -36,6 +36,7 @@ protected:
 	int				miCmdShow;
 	HWND			mhWnd;
 	HDC				mhLastDC;
+	bool			mbTrackingLeave;  //TrackMouseEvent has been asked for WM_MOUSELEAVE.
 
 public:
 	void	Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass);
@@ -49,6 +50,13 @@ public:
 
 	void	GetRectangle(CRectangle* pcDest) override;
 	void	SignalPresent(void) override;
+
+	void	RawInput(HRAWINPUT hRawInput);
+	void	MouseMoved(int x, int y);
+	void	MouseLeft(void);
+	void	MouseButton(HWND hWnd, WPARAM wParam, bool bPressed);
+	void	Activated(void);
+	void	Deactivated(void);
 };
 
 

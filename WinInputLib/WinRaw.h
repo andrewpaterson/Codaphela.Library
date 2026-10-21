@@ -100,11 +100,14 @@ public:
 };
 
 
+//Laid out as the 'WinRAW Mouse' format in WindowsFormats.xml, which follows RAWMOUSE.
 struct SRawMouseEvent
 {
 	uint16		usFlags;
-	uint16		ulButtons;
-	uint16		ulRawButtons;
+	uint16		usPadding;
+	uint16		usButtonFlags;
+	int16		sButtonData;  //The wheel's movement when usButtonFlags has RI_MOUSE_WHEEL.
+	uint32		ulRawButtons;
 	int32		lLastX;
 	int32		lLastY;
 	uint32		ulExtraInformation;
@@ -163,6 +166,7 @@ public:
 
 
 void WinRawInputEvent(CWinRawInput* pcWinRaw, void* pRawInput);
+void WinRawInputCallback(void* pvWinRaw, void* pvRawInput);
 
 
 #endif // __WIN_RAW_H__

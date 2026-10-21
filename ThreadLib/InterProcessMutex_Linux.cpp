@@ -44,6 +44,9 @@ static_assert(sizeof(SInterProcessLock) == 16, "SInterProcessLock is shared with
 
 
 //Spins this many times, then yields this many times, then sleeps between tries.
+//It only sleeps while one owner keeps the lock.  While the lock changes hands it
+//keeps yielding: a waiter that slept would only try once per sleep and lose the
+//lock every time to threads that take it again as soon as they let it go.
 #define INTER_PROCESS_LOCK_SPINS				64
 #define INTER_PROCESS_LOCK_YIELDS				1024
 #define INTER_PROCESS_LOCK_SLEEP_NANOSECONDS	50000
@@ -319,6 +322,7 @@ bool CInterProcessMutex::Lock(void)
 	SInterProcessLock*	psLock;
 	int64				iSelf;
 	int64				iOwner;
+	int64				iLastOwner;
 	int					iTry;
 
 	psLock = LinuxMutex(maMutex).psLock;
@@ -334,6 +338,7 @@ bool CInterProcessMutex::Lock(void)
 		return true;
 	}
 
+	iLastOwner = 0;
 	for (iTry = 0; ; iTry++)
 	{
 		iOwner = 0;
@@ -342,6 +347,12 @@ bool CInterProcessMutex::Lock(void)
 			psLock->iCount = 1;
 			return true;
 		}
+
+		if ((iOwner != iLastOwner) && (iTry > INTER_PROCESS_LOCK_SPINS))
+		{
+			iTry = INTER_PROCESS_LOCK_SPINS;
+		}
+		iLastOwner = iOwner;
 
 		if ((iTry >= INTER_PROCESS_LOCK_SPINS + INTER_PROCESS_LOCK_YIELDS) && (iTry % INTER_PROCESS_LOCK_OWNER_CHECK_TRIES == 0))
 		{

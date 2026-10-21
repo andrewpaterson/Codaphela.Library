@@ -26,6 +26,7 @@
     <ID>WinRAW Mouse: Standard 4 Button Mouse</ID>
     <Friendly>3 Button Mouse</Friendly>
     <Sources Type="Named">WinRAW Mouse: Standard 4 Button Mouse Buttons</Sources>
+    <Sources Type="Named">WinRAW Mouse: Standard Mouse Wheel</Sources>
     <Sources Type="Named">WinRAW Mouse: Standard Mouse Axes</Sources>
   </Device>
   <Device Type="WinRaw">
@@ -33,6 +34,7 @@
     <ID>WinRAW Mouse: Standard 5 Button Mouse</ID>
     <Friendly>3 Button Mouse</Friendly>
     <Sources Type="Named">WinRAW Mouse: Standard 5 Button Mouse Buttons</Sources>
+    <Sources Type="Named">WinRAW Mouse: Standard Mouse Wheel</Sources>
     <Sources Type="Named">WinRAW Mouse: Standard Mouse Axes</Sources>
   </Device>
 </Device>

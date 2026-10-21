@@ -28,6 +28,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CWindowTick;
+class CComponentInput;
 class CWindow : public CComponent
 {
 CONSTRUCTABLE(CWindow); 
@@ -41,6 +42,7 @@ protected:
 	bool					mbTicking;
 	CFocus					mFocus;
 	CNativeWindowFactory*	mpcFactory;
+	CComponentInput*		mpcComponentInput;  //Optional.  Updated every tick when set.
 
 public:
 	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
@@ -63,6 +65,9 @@ public:
 	void					InputPrintable(char c, bool bInsert);
 	void					Activate(void);
 	void					Deactivate(void);
+
+	void					SetComponentInput(CComponentInput* pcComponentInput);
+	CComponentInput*		GetComponentInput(void);
 
 	const char*				GetWindowTitle(void);
 	Ptr<CCanvas>			GetCanvas(void);

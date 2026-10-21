@@ -6,6 +6,7 @@
 #include "BaseLib/Logger.h"
 #include "BaseLib/LinuxError.h"
 #include "NamedSharedObject_Linux.h"
+#include "InterProcessName.h"
 #include "SharedMemoryFile.h"
 
 
@@ -52,9 +53,13 @@ void CSharedMemoryFile::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CSharedMemoryFile::Init(char* szName)
 {
+	CChars	sz;
+
 	memset(maMapFile, 0, SHARED_MEMORY_FILE_HANDLE_SIZE);
 	LinuxFile(maMapFile).iFile = -1;
-	StrCpySafe(mszName, szName, 64);
+	ShortenInterProcessName(&sz, szName, SHARED_MEMORY_NAME_LENGTH);
+	StrCpySafe(mszName, sz.Text(), SHARED_MEMORY_NAME_SIZE);
+	sz.Kill();
 }
 
 

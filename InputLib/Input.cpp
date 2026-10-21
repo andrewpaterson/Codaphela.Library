@@ -20,6 +20,7 @@ along with Codaphela InputLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
 #include "Input.h"
 
 
@@ -83,6 +84,25 @@ void CInput::AddProgramInput(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// For native input whose devices are described in the XML given to Read.
+// Init(pcNativeInput) adds the devices before Read can be called.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInput::AddNativeInput(CNativeInput* pcNativeInput)
+{
+	if (mpcNativeInput)
+	{
+		return gcLogger.Error2(__METHOD__, " Native input is already set.", NULL);
+	}
+
+	mpcNativeInput = pcNativeInput;
+	mpcNativeInput->AddDevicesTo(&mcDevices);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CInput::Step(void)
@@ -125,7 +145,7 @@ void CInput::ClearEvents(void)
 	bool			bExists;
 
 	bExists = mcDevices.mlcDevices.StartIteration(&sIter, &pcInputDevice);
-	while (pcInputDevice)
+	while (bExists)
 	{
 		pcInputDevice->ClearEvents();
 		bExists = mcDevices.mlcDevices.Iterate(&sIter, &pcInputDevice);
@@ -144,7 +164,7 @@ void CInput::SortEvents(void)
 	bool			bExists;
 
 	bExists = mcDevices.mlcDevices.StartIteration(&sIter, &pcInputDevice);
-	while (pcInputDevice)
+	while (bExists)
 	{
 		pcInputDevice->SortEvents();
 		bExists = mcDevices.mlcDevices.Iterate(&sIter, &pcInputDevice);
@@ -163,7 +183,7 @@ void CInput::DumpEvents()
 	bool			bExists;
 
 	bExists = mcDevices.mlcDevices.StartIteration(&sIter, &pcInputDevice);
-	while (pcInputDevice)
+	while (bExists)
 	{
 		pcInputDevice->DumpEvents();
 		bExists = mcDevices.mlcDevices.Iterate(&sIter, &pcInputDevice);
@@ -182,7 +202,7 @@ void CInput::ClearStateFlags(void)
 	bool			bExists;
 
 	bExists = mcDevices.mlcDevices.StartIteration(&sIter, &pcInputDevice);
-	while (pcInputDevice)
+	while (bExists)
 	{
 		pcInputDevice->ClearStateFlags();
 		bExists = mcDevices.mlcDevices.Iterate(&sIter, &pcInputDevice);
@@ -201,7 +221,7 @@ void CInput::UpdateRestEvents(void)
 	bool			bExists;
 
 	bExists = mcDevices.mlcDevices.StartIteration(&sIter, &pcInputDevice);
-	while (pcInputDevice)
+	while (bExists)
 	{
 		pcInputDevice->UpdateRestEvents(muiSequence);
 		bExists = mcDevices.mlcDevices.Iterate(&sIter, &pcInputDevice);
@@ -220,7 +240,7 @@ void CInput::CallListeners(void)
 	bool					bExists;
 
 	bExists = mcDevices.mlcVirtuals.StartIteration(&sIter, &pcVirtual);
-	while (pcVirtual)
+	while (bExists)
 	{
 		pcVirtual->CallListeners();
 		bExists = mcDevices.mlcVirtuals.Iterate(&sIter, &pcVirtual);

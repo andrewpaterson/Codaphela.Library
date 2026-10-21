@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void SSharedMemoryFileName::Init(int iIndex, char* szName)
 {
-	StrCpySafe(mszName, szName, 64);
+	StrCpySafe(mszName, szName, SHARED_MEMORY_NAME_SIZE);
 	miIndex = iIndex;
 }
 
@@ -33,7 +33,7 @@ bool CSharedMemoryCoordinator::Init(char* szCoordinatorMemoryName)
 	{
 		mpsDescriptor = (SResizableSharedMemoryFile*)mcMemory.Map(sResult.GetSize());
 		mpsDescriptor->miClients.Set(1);
-		StrCpySafe(mpsDescriptor->szName, szCoordinatorMemoryName, 64);
+		StrCpySafe(mpsDescriptor->szName, szCoordinatorMemoryName, SHARED_MEMORY_NAME_SIZE);
 		mpsDescriptor->iNumSharedMemoryFiles = 0;
 		mpsDescriptor->iValidSharedMemoryIndex = -1;
 		memset(&mpsDescriptor->macMemoryFiles[0], 0, sizeof(SSharedMemoryFileName));
@@ -82,7 +82,7 @@ SSharedMemoryFileName* CSharedMemoryCoordinator::Add(char* szName)
 		sz.Init(szName);
 		sz.Append(":");
 		sz.Append(mpsDescriptor->iNumSharedMemoryFiles);
-		if (sz.Length() >= 64)
+		if (sz.Length() > SHARED_MEMORY_NAME_LENGTH)
 		{
 			sz.Kill();
 			return NULL;

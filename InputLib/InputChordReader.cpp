@@ -143,11 +143,9 @@ bool CInputChordReader::ReadActive(CMarkupTag* pcTag, CInputChordDesc* pcChordDe
 	char* 						szFriendly;
 	CInputSourceDesc*			pcSource;
 	CInputCategoryGeneric*		pcGeneric;
-	bool						bGeneric;
-	bool						bFriendly;
 
-	bGeneric = pcTag->GetAttribute("Generic", (void**)&szGeneric);
-	bFriendly = pcTag->GetAttribute("Friendly", (void**)&szFriendly);
+	szGeneric = pcTag->GetAttribute("Generic");
+	szFriendly = pcTag->GetAttribute("Friendly");
 
 	if (!szGeneric && !szFriendly)
 	{

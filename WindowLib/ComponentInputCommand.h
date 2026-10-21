@@ -20,6 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __COMPONENT_INPUT_COMMAND_H__
 #define __COMPONENT_INPUT_COMMAND_H__
+#include "BaseLib/ArrayTemplate.h"
 
 
 //What a key or pointer button means to a component.  CFocus::Command sends each one to the matching CComponentListener call.
@@ -90,6 +91,26 @@ enum EComponentInputCommand
 	CIC_StopDragSelect,
 	CIC_Hover,
 };
+
+
+//The command a source gives when it is pressed (or released) with exactly these modifiers held.
+class CInputSourceDesc;
+class CComponentInputCommand
+{
+public:
+	EComponentInputCommand		eCommand;
+	CInputSourceDesc*			pcSource;
+	bool						bPressed;
+	bool						bControl;
+	bool						bAlt;
+	bool						bShift;
+
+	void Init(EComponentInputCommand eCommand, CInputSourceDesc* pcSource, bool bControl, bool bAlt, bool bShift, bool bPressed);
+	void Kill(void);
+};
+
+
+typedef CArrayTemplate<CComponentInputCommand>	CArrayComponentInputCommand;
 
 
 #endif // __COMPONENT_INPUT_COMMAND_H__

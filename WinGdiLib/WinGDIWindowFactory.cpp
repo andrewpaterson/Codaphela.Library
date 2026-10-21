@@ -16,6 +16,8 @@ void CWinGDIWindowFactory::Init(CMallocator* pcMallocator, HINSTANCE hInstance, 
     mhPrevInstance = NULL;
     miCmdShow = nCmdShow;
     memset(&mhWnd, 0, sizeof(HWND));
+    mfRawInput = NULL;
+    mpvRawInputContext = NULL;
 }
 
 
@@ -80,4 +82,29 @@ CNativeCanvas* CWinGDIWindowFactory::CreateNativeCanvas(CCanvas* pcCanvas)
 //////////////////////////////////////////////////////////////////////////
 void CWinGDIWindowFactory::SetHWnd(HWND hWnd) { mhWnd = hWnd; }
 HWND CWinGDIWindowFactory::GetHWnd(void) { return mhWnd; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Without it WM_INPUT is ignored.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindowFactory::SetRawInput(WinGDIRawInputFunc fRawInput, void* pvContext)
+{
+    mfRawInput = fRawInput;
+    mpvRawInputContext = pvContext;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindowFactory::RawInput(void* pvRawInput)
+{
+    if (mfRawInput)
+    {
+        mfRawInput(mpvRawInputContext, pvRawInput);
+    }
+}
 

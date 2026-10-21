@@ -90,6 +90,8 @@ bool CInputSouceChannel::Compare(void* pvData)
 			return bResult;
 		case ISCC_AlwaysValid:
 			return true;
+		case ISCC_Unknown:
+			break;
 		}
 		return false;
 	}
@@ -145,6 +147,9 @@ void CInputSouceChannel::ToString(CChars* psz)
 		break;
 	case ISCC_AlwaysValid:
 		psz->Append("ISCC_AlwaysValid: ");
+		break;
+	case ISCC_Unknown:
+		psz->Append("ISCC_Unknown: ");
 		break;
 	}
 	psz->AppendNewLine();

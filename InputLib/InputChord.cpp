@@ -306,6 +306,8 @@ UInputChordCriteria* FindFirstActionCriteria(UInputChordCriteria* puCriteria)
 
 	switch (puCriteria->eType.eAction)
 	{
+	case BAA_Unknown:
+		break;
 	case BAA_Active:
 		return puCriteria;
 	case BAA_Inactive:
@@ -373,6 +375,8 @@ size FindLongestAction(UInputChordCriteria* puCriteria)
 	iLongest = MAX_UINT;
 	switch (puCriteria->eType.eAction)
 	{
+	case BAA_Unknown:
+		break;
 	case BAA_Active:
 		return puCriteria->cActive.Size();
 	case BAA_Inactive:
@@ -424,19 +428,13 @@ void CInputChord::CalculateTotalCriteria(void)
 //////////////////////////////////////////////////////////////////////////
 SMatchResult CInputChord::Match(CArrayInputDeviceTimeValue* pcHistory)
 {
-	size			iLess;
 	size			iCount;
-	size			iLongestCount;
 	size			iStartIndex;
-	size			iLongestIndex;
 	SMatchResult	sResult;
 	size			uiNumElements;
 
 	miUpdateCriteria = 0;
 
-	iLess = masStartDeviceValue.NumElements();
-	iLongestCount = 0;
-	iLongestIndex = MAX_UINT;
 
 	iStartIndex = FindMatchingStart(pcHistory, 0);
 	if (iStartIndex == MAX_UINT)
@@ -499,6 +497,8 @@ size MatchActionEvent(UInputChordCriteria* puCriteria, CArrayInputDeviceTimeValu
 
 	switch (puCriteria->eType.eAction)
 	{
+	case BAA_Unknown:
+		break;
 	case BAA_Active:
 		puCriteria->cActive.ToArray(pasScratchPadEvent);
 		return MatchesGroupEvent(pasScratchPadEvent, pcHistory, iStartPos);

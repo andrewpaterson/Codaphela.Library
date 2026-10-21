@@ -551,7 +551,7 @@ CInputDeviceDesc* CInputDevices::GetDescriptionForVirtualDesc(CInputVirtualDevic
 	{
 		pcDeviceDesc = NULL;
 		bExists = pcVirtualDesc->StartInputSourceDescsIteration(&sIter, &pcVirtualSourceDesc);
-		while (pcVirtualSourceDesc)
+		while (bExists)
 		{
 			if (pcDeviceDesc == NULL)
 			{

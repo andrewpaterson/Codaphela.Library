@@ -84,6 +84,24 @@
     <ClInclude Include="FocusListener.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentInput.h">
+      <Filter>Source\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentInputDevice.h">
+      <Filter>Source\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentInputKey.h">
+      <Filter>Source\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentInputListener.h">
+      <Filter>Source\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentInputNumKey.h">
+      <Filter>Source\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentInputPrintable.h">
+      <Filter>Source\Event</Filter>
+    </ClInclude>
     <ClInclude Include="ComponentInputCommand.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
@@ -110,6 +128,15 @@
     </ClInclude>
     <ClInclude Include="TextArea.h">
       <Filter>Source\Component\Drawing\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="Button.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="ButtonImages.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="ButtonListener.h">
+      <Filter>Source\Component</Filter>
     </ClInclude>
     <ClInclude Include="Label.h">
       <Filter>Source\Component\Drawing\Text</Filter>
@@ -152,6 +179,27 @@
     <ClCompile Include="NativeComponent.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
+    <ClCompile Include="ComponentInput.cpp">
+      <Filter>Source\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentInputCommand.cpp">
+      <Filter>Source\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentInputDevice.cpp">
+      <Filter>Source\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentInputKey.cpp">
+      <Filter>Source\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentInputListener.cpp">
+      <Filter>Source\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentInputNumKey.cpp">
+      <Filter>Source\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentInputPrintable.cpp">
+      <Filter>Source\Event</Filter>
+    </ClCompile>
     <ClCompile Include="Component.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
@@ -172,6 +220,12 @@
     </ClCompile>
     <ClCompile Include="Canvas.cpp">
       <Filter>Source\Component\Drawing\Canvas</Filter>
+    </ClCompile>
+    <ClCompile Include="Button.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="ButtonImages.cpp">
+      <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="Label.cpp">
       <Filter>Source\Component\Drawing\Text</Filter>

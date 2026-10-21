@@ -267,6 +267,25 @@
         </Channel>
         <Value Type="Numeric">0.0</Value>
       </State>
+      <!-- With num lock on. -->
+      <State>
+        <Channel Name="VKey">
+          <Equals>96</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>96</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
     </Source>
     <Source Type="State">
       <Friendly>Numpad .</Friendly>
@@ -283,6 +302,25 @@
       <State>
         <Channel Name="VKey">
           <Equals>46</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <!-- With num lock on. -->
+      <State>
+        <Channel Name="VKey">
+          <Equals>110</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>110</Equals>
         </Channel>
         <Channel Name="Flags">
           <Equals>1</Equals>
@@ -1500,6 +1538,25 @@
         </Channel>
         <Value Type="Numeric">0.0</Value>
       </State>
+      <!-- With num lock on. -->
+      <State>
+        <Channel Name="VKey">
+          <Equals>103</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>103</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
     </Source>
     <Source Type="State">
       <Friendly>Numpad 8</Friendly>
@@ -1522,6 +1579,25 @@
         </Channel>
         <Value Type="Numeric">0.0</Value>
       </State>
+      <!-- With num lock on. -->
+      <State>
+        <Channel Name="VKey">
+          <Equals>104</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>104</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
     </Source>
     <Source Type="State">
       <Friendly>Numpad 9</Friendly>
@@ -1538,6 +1614,25 @@
       <State>
         <Channel Name="VKey">
           <Equals>33</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <!-- With num lock on. -->
+      <State>
+        <Channel Name="VKey">
+          <Equals>105</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>105</Equals>
         </Channel>
         <Channel Name="Flags">
           <Equals>1</Equals>
@@ -1875,6 +1970,25 @@
         </Channel>
         <Value Type="Numeric">0.0</Value>
       </State>
+      <!-- With num lock on. -->
+      <State>
+        <Channel Name="VKey">
+          <Equals>100</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>100</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
     </Source>
     <Source Type="State">
       <Friendly>Numpad 5</Friendly>
@@ -1897,6 +2011,25 @@
         </Channel>
         <Value Type="Numeric">0.0</Value>
       </State>
+      <!-- With num lock on. -->
+      <State>
+        <Channel Name="VKey">
+          <Equals>101</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>101</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
     </Source>
     <Source Type="State">
       <Friendly>Numpad 6</Friendly>
@@ -1913,6 +2046,25 @@
       <State>
         <Channel Name="VKey">
           <Equals>39</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <!-- With num lock on. -->
+      <State>
+        <Channel Name="VKey">
+          <Equals>102</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>102</Equals>
         </Channel>
         <Channel Name="Flags">
           <Equals>1</Equals>
@@ -2239,6 +2391,25 @@
         </Channel>
         <Value Type="Numeric">0.0</Value>
       </State>
+      <!-- With num lock on. -->
+      <State>
+        <Channel Name="VKey">
+          <Equals>97</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>97</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
     </Source>
     <Source Type="State">
       <Friendly>Numpad 2</Friendly>
@@ -2261,6 +2432,25 @@
         </Channel>
         <Value Type="Numeric">0.0</Value>
       </State>
+      <!-- With num lock on. -->
+      <State>
+        <Channel Name="VKey">
+          <Equals>98</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>98</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
     </Source>
     <Source Type="State">
       <Friendly>Numpad 3</Friendly>
@@ -2277,6 +2467,25 @@
       <State>
         <Channel Name="VKey">
           <Equals>34</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>1</Equals>
+        </Channel>
+        <Value Type="Numeric">0.0</Value>
+      </State>
+      <!-- With num lock on. -->
+      <State>
+        <Channel Name="VKey">
+          <Equals>99</Equals>
+        </Channel>
+        <Channel Name="Flags">
+          <Equals>0</Equals>
+        </Channel>
+        <Value Type="Numeric">1.0</Value>
+      </State>
+      <State>
+        <Channel Name="VKey">
+          <Equals>99</Equals>
         </Channel>
         <Channel Name="Flags">
           <Equals>1</Equals>
