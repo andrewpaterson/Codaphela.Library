@@ -165,6 +165,75 @@ TRISTATE ParseGerberIdentifier(CTextParser* pcTextParser, char* szIdentifier, si
 //
 //
 //////////////////////////////////////////////////////////////////////////
+TRISTATE ParseGerberMacroVariable(CTextParser* pcTextParser, char* szIdentifier, size* piLength)
+{
+	char		cCurrent;
+	size		iPos;
+
+	//A macro variable is a $ followed by digits, eg: $1.  The x following a variable is the multiply operator.
+	pcTextParser->PushPosition();
+
+	if (pcTextParser->IsOutside())
+	{
+		pcTextParser->PopPosition();
+		pcTextParser->SetErrorEndOfFile();
+		return TRIERROR;
+	}
+
+	if (pcTextParser->Current() != '$')
+	{
+		pcTextParser->PopPosition();
+		return TRIFALSE;
+	}
+
+	if (szIdentifier)
+	{
+		szIdentifier[0] = '$';
+	}
+	pcTextParser->StepRight();
+	iPos = 1;
+
+	for (;;)
+	{
+		if (pcTextParser->IsOutside())
+		{
+			break;
+		}
+
+		cCurrent = pcTextParser->Current();
+		if ((cCurrent < '0') || (cCurrent > '9'))
+		{
+			break;
+		}
+
+		if (szIdentifier)
+		{
+			szIdentifier[iPos] = cCurrent;
+		}
+		pcTextParser->StepRight();
+		iPos++;
+	}
+
+	if (iPos == 1)
+	{
+		pcTextParser->PopPosition();
+		return TRIFALSE;
+	}
+
+	if (szIdentifier)
+	{
+		szIdentifier[iPos] = 0;
+	}
+	pcTextParser->PassPosition();
+	SafeAssign(piLength, iPos);
+	return TRITRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 TRISTATE ParseGerberExactIdentifierUnset(CTextParser* pcTextParser, const char* szIdentifier)
 {
 	gcLogger.Error2(__METHOD__, " Gerber Identifier Parser not set.", NULL);
@@ -199,7 +268,8 @@ TRISTATE GetGerberIdentifierCharacter(CTextParser* pcTextParser, char* pc, bool 
 		if (((cCurrent >= 'a') && (cCurrent <= 'z')) || 
 			((cCurrent >= 'A') && (cCurrent <= 'Z')) || 
 			(cCurrent == '_') || 
-			(cCurrent == '.') || 
+			(cCurrent == '.') ||
+			(cCurrent == '$') ||
 			(cCurrent == '&'))
 		{
 			pcTextParser->StepRight();

@@ -1,3 +1,6 @@
+#include "BaseLib/Logger.h"
+#include "GerberMacroVariables.h"
+#include "GerberEvaluatedPrimitive.h"
 #include "GerberApertureMacroThermal.h"
 
 
@@ -97,5 +100,23 @@ CGerberExpression* CGerberApertureMacroThermal::GetRotation(void)
 bool CGerberApertureMacroThermal::IsThermal(void)
 {
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberApertureMacroThermal::Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives)
+{
+	CGerberEvaluatedPrimitive*	pcPrimitive;
+
+	pcPrimitive = pcPrimitives->Add(GAMP_Thermal_Center);
+	return EvaluateExpression(mcCenter.GetX(), pcVariables, pcPrimitive) &&
+		   EvaluateExpression(mcCenter.GetY(), pcVariables, pcPrimitive) &&
+		   EvaluateExpression(&mcOuterDiameter, pcVariables, pcPrimitive) &&
+		   EvaluateExpression(&mcInnerDiameter, pcVariables, pcPrimitive) &&
+		   EvaluateExpression(&mcGapThickness, pcVariables, pcPrimitive) &&
+		   EvaluateExpression(&mcRotation, pcVariables, pcPrimitive);
 }
 

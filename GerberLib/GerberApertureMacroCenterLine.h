@@ -21,6 +21,8 @@ public:
 
 	bool				IsCenterLine(void);
 
+	bool				Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives);
+
 	CGerberExpression*	GetExposure(void);
 	CGerberExpression*	GetWidth(void);
 	CGerberExpression*	GetHeight(void);

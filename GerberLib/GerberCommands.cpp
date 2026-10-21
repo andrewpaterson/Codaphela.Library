@@ -102,6 +102,61 @@ CGerberCommandObjectAttribute* CGerberCommands::AddObjectAttribute(size iNameLen
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CGerberCommandDeleteAttribute* CGerberCommands::AddDeleteAttribute(size iNameLength)
+{
+	ADD_COMMAND(CGerberCommandDeleteAttribute);
+	pcCommand->Init(iNameLength);
+	return pcCommand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberCommandApertureDefine* CGerberCommands::AddApertureDefine(uint32 uiDCode, size iTemplateLength)
+{
+	ADD_COMMAND(CGerberCommandApertureDefine);
+	pcCommand->Init(uiDCode, iTemplateLength);
+	return pcCommand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberCommandSetAperture* CGerberCommands::AddSetAperture(uint32 uiDCode)
+{
+	ADD_COMMAND(CGerberCommandSetAperture);
+	pcCommand->Init(uiDCode);
+	return pcCommand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberCommandOperation* CGerberCommands::AddOperation(EGerberCommandEnum eType)
+{
+	if ((eType == GC_D01) || (eType == GC_D02) || (eType == GC_D03))
+	{
+		ADD_COMMAND(CGerberCommandOperation);
+		pcCommand->Init(eType);
+		return pcCommand;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CGerberCommandFormatSpecifier* CGerberCommands::AddFormatSpecifier(uint16 uiXWholes, uint16 uiXDecimals, uint16 uiYWholes, uint16 uiYDecimals)
 {
 	ADD_COMMAND(CGerberCommandFormatSpecifier);
@@ -185,6 +240,68 @@ CGerberCommandPlotMode* CGerberCommands::AddPlotMode(EGerberPlotMode eMode)
 	{
 		return NULL;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberCommandQuadrantMode* CGerberCommands::AddQuadrantMode(EGerberQuadrantMode eMode)
+{
+	if ((eMode == GQM_Single) || (eMode == GQM_Multi))
+	{
+		ADD_COMMAND(CGerberCommandQuadrantMode);
+		if (eMode == GQM_Single)
+		{
+			pcCommand->Init(GC_G74, GQM_Single);
+		}
+		else
+		{
+			pcCommand->Init(GC_G75, GQM_Multi);
+		}
+		return pcCommand;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberCommandRegion* CGerberCommands::AddRegion(void)
+{
+	ADD_COMMAND(CGerberCommandRegion);
+	pcCommand->Init();
+	return pcCommand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberCommandApertureBlock* CGerberCommands::AddApertureBlock(uint32 uiDCode)
+{
+	ADD_COMMAND(CGerberCommandApertureBlock);
+	pcCommand->Init(uiDCode);
+	return pcCommand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberCommandStepAndRepeat* CGerberCommands::AddStepAndRepeat(uint32 uiXRepeats, uint32 uiYRepeats, CNumber* pcXStep, CNumber* pcYStep)
+{
+	ADD_COMMAND(CGerberCommandStepAndRepeat);
+	pcCommand->Init(uiXRepeats, uiYRepeats, pcXStep, pcYStep);
+	return pcCommand;
 }
 
 

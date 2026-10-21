@@ -34,8 +34,16 @@ protected:
 	bool				mbSkipWhitespace;
 	CCalculatorSymbols	mcSymbols;
 
+	bool				mbFormatSpecified;
+	uint16				muiXWholes;
+	uint16				muiXDecimals;
+	uint16				muiYWholes;
+	uint16				muiYDecimals;
+
+	bool				mbInRegion;
+
 public:
-	void		Init(char* szText, size iTextLen, char* szFileName, CGerberCommands* pcCommands);
+	bool		Init(char* szText, size iTextLen, char* szFileName, CGerberCommands* pcCommands);
 	void		Kill(void);
 
 	TRISTATE	Parse(void);
@@ -47,13 +55,12 @@ protected:
 	TRISTATE	ParseCommandAD(void);
 	TRISTATE	ParseCommandAM(void);
 	TRISTATE	ParseCommandDnn(void);
+	TRISTATE	ParseCommandG74(void);
 	TRISTATE	ParseCommandG75(void);
 	TRISTATE	ParseCommandG01(void);
 	TRISTATE	ParseCommandG02(void);
 	TRISTATE	ParseCommandG03(void);
-	TRISTATE	ParseCommandD01(void);
-	TRISTATE	ParseCommandD02(void);
-	TRISTATE	ParseCommandD03(void);
+	TRISTATE	ParseCommandOperation(void);
 	TRISTATE	ParseCommandLP(void);
 	TRISTATE	ParseCommandLM(void);
 	TRISTATE	ParseCommandLR(void);
@@ -61,6 +68,9 @@ protected:
 	TRISTATE	ParseRegionStatement(void);
 	TRISTATE	ParseABStatement(void);
 	TRISTATE	ParseSRStatement(void);
+	TRISTATE	ParseBlockStatement(void);
+	TRISTATE	ParseBlockBody(const char* szClose, char* szNotClosedError);
+	TRISTATE	ParseRegionContours(void);
 	TRISTATE	ParseCommandTF(void);
 	TRISTATE	ParseCommandTA(void);
 	TRISTATE	ParseCommandTO(void);
@@ -69,6 +79,7 @@ protected:
 
 	TRISTATE	ParseExpression(CGerberExpression* pcGerberExpression);
 	TRISTATE	ParseAttributeArguments(CGerberCommandAttribute* pcCommandAttribute);
+	TRISTATE	ParseCoordinate(char cAxis, uint16 uiWholes, uint16 uiDecimals, CNumber* pcCoordinate);
 
 	TRISTATE	ParseApertureMacroPrimitive(CGerberCommandApertureMacro* pcApertureMacro);
 	TRISTATE	ParseApertureMacroVariableDefinition(CGerberCommandApertureMacro* pcApertureMacro);

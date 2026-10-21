@@ -8,6 +8,7 @@ TRISTATE ParseGerberExactIdentifier(CTextParser* pcTextParser, const char* szIde
 TRISTATE ParseGerberExactIdentifierUnset(CTextParser* pcTextParser, const char* szIdentifier);
 
 TRISTATE ParseGerberIdentifier(CTextParser* pcTextParser, char* szIdentifier, size* piLength);
+TRISTATE ParseGerberMacroVariable(CTextParser* pcTextParser, char* szIdentifier, size* piLength);
 TRISTATE ParseGerberdentifierUnset(CTextParser* pcTextParser, char* szIdentifier, size* piLength);
 
 

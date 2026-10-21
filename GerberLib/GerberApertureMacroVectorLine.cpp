@@ -1,3 +1,6 @@
+#include "BaseLib/Logger.h"
+#include "GerberMacroVariables.h"
+#include "GerberEvaluatedPrimitive.h"
 #include "GerberApertureMacroVectorLine.h"
 
 
@@ -107,5 +110,24 @@ CGerberExpression* CGerberApertureMacroVectorLine::GetRotation(void)
 bool CGerberApertureMacroVectorLine::IsVectorLine(void)
 {
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberApertureMacroVectorLine::Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives)
+{
+	CGerberEvaluatedPrimitive*	pcPrimitive;
+
+	pcPrimitive = pcPrimitives->Add(GAMP_Vector_Line);
+	return EvaluateExposure(&mcExposure, pcVariables, pcPrimitive) &&
+		   EvaluateExpression(&mcWidth, pcVariables, pcPrimitive) &&
+		   EvaluateExpression(mcStart.GetX(), pcVariables, pcPrimitive) &&
+		   EvaluateExpression(mcStart.GetY(), pcVariables, pcPrimitive) &&
+		   EvaluateExpression(mcEnd.GetX(), pcVariables, pcPrimitive) &&
+		   EvaluateExpression(mcEnd.GetY(), pcVariables, pcPrimitive) &&
+		   EvaluateExpression(&mcRotation, pcVariables, pcPrimitive);
 }
 

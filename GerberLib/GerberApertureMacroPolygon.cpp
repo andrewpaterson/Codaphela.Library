@@ -1,3 +1,6 @@
+#include "BaseLib/Logger.h"
+#include "GerberMacroVariables.h"
+#include "GerberEvaluatedPrimitive.h"
 #include "GerberApertureMacroPolygon.h"
 
 
@@ -97,5 +100,40 @@ CGerberExpression* CGerberApertureMacroPolygon::GetRotation(void)
 bool CGerberApertureMacroPolygon::IsPolygon(void)
 {
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberApertureMacroPolygon::Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives)
+{
+	CGerberEvaluatedPrimitive*	pcPrimitive;
+	CNumber*					pcVertices;
+	CNumber						cLimit;
+
+	pcPrimitive = pcPrimitives->Add(GAMP_Polygon);
+	if (!EvaluateExposure(&mcExposure, pcVariables, pcPrimitive))
+	{
+		return false;
+	}
+
+	//3 to 12 vertices.  4.5.1.7
+	pcVertices = pcPrimitive->AddValue();
+	if (!mcNumberOfVertices.Evaluate(pcVariables, pcVertices))
+	{
+		return false;
+	}
+	if (!pcVertices->IsInteger() || pcVertices->LessThan(cLimit.Init(3)) || pcVertices->GreaterThan(cLimit.Init(12)))
+	{
+		gcLogger.Error2(__METHOD__, " Aperture macro polygon must have 3 to 12 vertices.", NULL);
+		return false;
+	}
+
+	return EvaluateExpression(mcCenter.GetX(), pcVariables, pcPrimitive) &&
+		   EvaluateExpression(mcCenter.GetY(), pcVariables, pcPrimitive) &&
+		   EvaluateExpression(&mcDiameter, pcVariables, pcPrimitive) &&
+		   EvaluateExpression(&mcRotation, pcVariables, pcPrimitive);
 }
 

@@ -18,6 +18,10 @@ public:
 	virtual bool	IsFileAttribute(void);
 	virtual bool	IsApertureAttribute(void);
 	virtual bool	IsObjectAttribute(void);
+	virtual bool	IsDeleteAttribute(void);
+	virtual bool	IsApertureDefine(void);
+	virtual bool	IsSetAperture(void);
+	virtual bool	IsOperation(void);
 	virtual bool	IsFormatSpecifier(void);
 	virtual bool	IsLoadPolarity(void);
 	virtual bool	IsLoadMirroring(void);
@@ -25,6 +29,11 @@ public:
 	virtual bool	IsLoadScaling(void);
 	virtual bool	IsMeasurementMode(void);
 	virtual bool	IsPlotMode(void);
+	virtual bool	IsQuadrantMode(void);
+	virtual bool	IsCompound(void);
+	virtual bool	IsRegion(void);
+	virtual bool	IsApertureBlock(void);
+	virtual bool	IsStepAndRepeat(void);
 	virtual bool	IsEndOfFile(void);
 };
 

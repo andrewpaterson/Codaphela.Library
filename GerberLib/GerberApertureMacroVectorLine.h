@@ -21,6 +21,8 @@ public:
 
 	bool				IsVectorLine(void);
 
+	bool				Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives);
+
 	CGerberExpression*	GetExposure(void);
 	CGerberExpression*	GetWidth(void);
 	CGerberExpression*	GetStartX(void);

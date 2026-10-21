@@ -138,6 +138,18 @@ CGerberApertureMacroThermal* CGerberCommandApertureMacro::AddThermal(CCalculator
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CGerberApertureMacroVariableDefinition* CGerberCommandApertureMacro::AddVariableDefinition(uint32 uiVariable, CCalculatorSymbols* pcSymbols, bool bSkipWhitespace)
+{
+	ADD_PRIMITIVE(CGerberApertureMacroVariableDefinition);
+	pcPrimitive->Init(uiVariable, pcSymbols, bSkipWhitespace, false);
+	return pcPrimitive;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CGerberCommandApertureMacro::IsApertureMacro(void)
 {
 	return true;

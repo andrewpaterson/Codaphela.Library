@@ -11,6 +11,7 @@
 #include "GerberApertureMacroPolygon.h"
 #include "GerberApertureMacroVectorLine.h"
 #include "GerberApertureMacroThermal.h"
+#include "GerberApertureMacroVariableDefinition.h"
 
 
 class CGerberCommandApertureMacro : public CGerberCommand
@@ -33,6 +34,7 @@ public:
 	CGerberApertureMacroPolygon*		AddPolygon(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace);
 	CGerberApertureMacroVectorLine*		AddVectorLine(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace);
 	CGerberApertureMacroThermal*		AddThermal(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace);
+	CGerberApertureMacroVariableDefinition*	AddVariableDefinition(uint32 uiVariable, CCalculatorSymbols* pcSymbols, bool bSkipWhitespace);
 
 	size								NumPrimitives(void);
 	CGerberApertureMacro*				GetPrimitive(size uiIndex);

@@ -1,3 +1,6 @@
+#include "BaseLib/Logger.h"
+#include "GerberMacroVariables.h"
+#include "GerberEvaluatedPrimitive.h"
 #include "GerberApertureMacroCircle.h"
 
 
@@ -85,5 +88,22 @@ CGerberExpression* CGerberApertureMacroCircle::GetRotation(void)
 bool CGerberApertureMacroCircle::IsCircle(void)
 {
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberApertureMacroCircle::Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives)
+{
+	CGerberEvaluatedPrimitive*	pcPrimitive;
+
+	pcPrimitive = pcPrimitives->Add(GAMP_Circle);
+	return EvaluateExposure(&mcExposure, pcVariables, pcPrimitive) &&
+		   EvaluateExpression(&mcDiameter, pcVariables, pcPrimitive) &&
+		   EvaluateExpression(mcCenter.GetX(), pcVariables, pcPrimitive) &&
+		   EvaluateExpression(mcCenter.GetY(), pcVariables, pcPrimitive) &&
+		   EvaluateExpression(&mcRotation, pcVariables, pcPrimitive);
 }
 

@@ -31,17 +31,27 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberParser::Init(char* szText, size iTextLen, char* szFileName, CGerberCommands* pcCommands)
+bool CGerberParser::Init(char* szText, size iTextLen, char* szFileName, CGerberCommands* pcCommands)
 {
 	STextParserConfig	sConfig;
+	bool				bResult;
 
-	sConfig.Init(SkipGerberWhitespace, ParseGerberStringUnset, ParseGerberExactIdentifierUnset, ParseGerberIdentifier);
+	sConfig.Init(SkipGerberWhitespace, ParseGerberStringUnset, ParseGerberExactIdentifierUnset, ParseGerberMacroVariable);
 
-	mcParser.Init(szText, iTextLen, &sConfig);
+	//The text must not contain carriage returns (see PassifyNewlines).
+	bResult = mcParser.Init(szText, iTextLen, &sConfig);
 	mszFilename.Init(szFileName);
 
 	mpcCommands = pcCommands;
 	mbSkipWhitespace = true;
+
+	mbFormatSpecified = false;
+	muiXWholes = 0;
+	muiXDecimals = 0;
+	muiYWholes = 0;
+	muiYDecimals = 0;
+
+	mbInRegion = false;
 
 	mcSymbols.Init(true);
 	mcSymbols.SetOperator("+", CO_Add, 4);
@@ -49,6 +59,10 @@ void CGerberParser::Init(char* szText, size iTextLen, char* szFileName, CGerberC
 	mcSymbols.SetOperator("x", CO_Multiply, 3);
 	mcSymbols.SetOperator("/", CO_Divide, 2);
 	mcSymbols.SetOperator("=", CO_Assignment, 5);
+	mcSymbols.SetOperator("+", CO_UnaryAdd, 1);
+	mcSymbols.SetOperator("-", CO_UnarySubtract, 1);
+
+	return bResult;
 }
 
 
@@ -135,7 +149,7 @@ TRISTATE CGerberParser::GetNameString(char* szString, size* piLength)
 
 	mcParser.SetIdentifierParser(ParseGerberIdentifier);
 	tResult = mcParser.GetIdentifier(szString, piLength, mbSkipWhitespace);
-	mcParser.SetIdentifierParser(ParseGerberIdentifier);
+	mcParser.SetIdentifierParser(ParseGerberMacroVariable);
 	return tResult;
 }
 
@@ -150,7 +164,7 @@ TRISTATE CGerberParser::GetStandardNameString(char* szString, size* piLength)
 
 	mcParser.SetIdentifierParser(ParseGerberIdentifier);
 	tResult = mcParser.GetIdentifier(szString, piLength, mbSkipWhitespace);
-	mcParser.SetIdentifierParser(ParseGerberIdentifier);
+	mcParser.SetIdentifierParser(ParseGerberMacroVariable);
 	return tResult;
 }
 
@@ -165,7 +179,7 @@ TRISTATE CGerberParser::GetUserNameString(char* szString, size* piLength)
 
 	mcParser.SetIdentifierParser(ParseGerberIdentifier);
 	tResult = mcParser.GetIdentifier(szString, piLength, mbSkipWhitespace);
-	mcParser.SetIdentifierParser(ParseGerberIdentifier);
+	mcParser.SetIdentifierParser(ParseGerberMacroVariable);
 	return tResult;
 }
 
@@ -302,6 +316,12 @@ TRISTATE CGerberParser::ParseCommandFS()
 
 	mpcCommands->AddFormatSpecifier(uiXWholes, uiXDecimals, uiYWholes, uiYDecimals);
 
+	mbFormatSpecified = true;
+	muiXWholes = uiXWholes;
+	muiXDecimals = uiXDecimals;
+	muiYWholes = uiYWholes;
+	muiYDecimals = uiYDecimals;
+
 	return TRITRUE;
 }
 
@@ -312,7 +332,57 @@ TRISTATE CGerberParser::ParseCommandFS()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandAD()
 {
-	return TRIFALSE;
+	TRISTATE						tResult;
+	uint64							ulliDCode;
+	size							uiLength;
+	CNumber							cNumber;
+	CGerberCommandApertureDefine*	pcApertureDefine;
+
+	tResult = mcParser.GetExactCharacterSequence("%AD", mbSkipWhitespace);
+	ReturnOnFalseOrSyntaxErrorOnError(tResult);
+
+	tResult = mcParser.GetExactCharacter('D', mbSkipWhitespace);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	tResult = mcParser.GetDigits(&ulliDCode, NULL, NULL, false, false, 10, NUMBER_SEPARATOR_NONE);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+	if ((ulliDCode < 10) || (ulliDCode > MAX_UINT32))
+	{
+		return Error("Aperture D code must be 10 or greater, could not parse Command:");
+	}
+
+	//The template is C, R, O, P or the name of an aperture macro.
+	mcParser.PushPosition();
+	tResult = GetNameString(NULL, &uiLength);
+	mcParser.PopPosition();
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	pcApertureDefine = mpcCommands->AddApertureDefine((uint32)ulliDCode, uiLength);
+	GetNameString(pcApertureDefine->TemplateText(), &uiLength);
+
+	tResult = mcParser.GetExactCharacter(',', mbSkipWhitespace);
+	ReturnSyntaxErrorOnError(tResult);
+	if (tResult == TRITRUE)
+	{
+		for (;;)
+		{
+			tResult = mcParser.GetNumber(&cNumber);
+			ReturnSyntaxErrorOnErrorOrFalse(tResult);
+			pcApertureDefine->AddParameter(&cNumber);
+
+			tResult = mcParser.GetExactCharacter('X', mbSkipWhitespace);
+			ReturnSyntaxErrorOnError(tResult);
+			if (tResult == TRIFALSE)
+			{
+				break;
+			}
+		}
+	}
+
+	tResult = mcParser.GetExactCharacterSequence("*%", mbSkipWhitespace);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	return TRITRUE;
 }
 
 
@@ -641,7 +711,8 @@ TRISTATE CGerberParser::ParseApertureMacroOutline(CGerberCommandApertureMacro* p
 	tResult = mcParser.GetExactCharacter(',', mbSkipWhitespace);
 	ReturnSyntaxErrorOnErrorOrFalse(tResult);
 
-	uiSize = (size)ulliVerticies;
+	//The start point is followed by one point per vertex, the last of which closes the outline.
+	uiSize = (size)ulliVerticies + 1;
 	for (i = 0; i < uiSize; i++)
 	{
 		pcVertex = pcOutline->Add(&mcSymbols, mbSkipWhitespace, false);
@@ -763,7 +834,31 @@ TRISTATE CGerberParser::ParseApertureMacroThermal(CGerberCommandApertureMacro* p
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseApertureMacroVariableDefinition(CGerberCommandApertureMacro* pcApertureMacro)
 {
-	return TRIFALSE;
+	TRISTATE									tResult;
+	uint64										ulliVariable;
+	CGerberApertureMacroVariableDefinition*		pcVariableDefinition;
+
+	tResult = mcParser.GetExactCharacter('$', mbSkipWhitespace);
+	ReturnOnFalseOrSyntaxErrorOnError(tResult);
+
+	tResult = mcParser.GetDigits(&ulliVariable, NULL, NULL, false, false, 10, NUMBER_SEPARATOR_NONE);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+	if ((ulliVariable == 0) || (ulliVariable > MAX_UINT32))
+	{
+		return Error("Macro variable must be $1 or greater, could not parse Command:");
+	}
+
+	tResult = mcParser.GetExactCharacter('=', mbSkipWhitespace);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	pcVariableDefinition = pcApertureMacro->AddVariableDefinition((uint32)ulliVariable, &mcSymbols, mbSkipWhitespace);
+	tResult = ParseExpression(pcVariableDefinition->GetExpression());
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	tResult = mcParser.GetExactCharacter('*', mbSkipWhitespace);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	return TRITRUE;
 }
 
 
@@ -773,7 +868,44 @@ TRISTATE CGerberParser::ParseApertureMacroVariableDefinition(CGerberCommandApert
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandDnn()
 {
-	return TRIFALSE;
+	TRISTATE	tResult;
+	uint64		ulliDCode;
+
+	mcParser.PushPosition();
+	tResult = mcParser.GetExactCharacter('D', mbSkipWhitespace);
+	if (tResult != TRITRUE)
+	{
+		mcParser.PopPosition();
+		ReturnSyntaxErrorOnError(tResult);
+		return TRIFALSE;
+	}
+
+	tResult = mcParser.GetDigits(&ulliDCode, NULL, NULL, false, false, 10, NUMBER_SEPARATOR_NONE);
+	if (tResult != TRITRUE)
+	{
+		mcParser.PassPosition();
+		ReturnSyntanxError();
+	}
+
+	//D01, D02 and D03 are operations, not apertures.
+	if (ulliDCode < 10)
+	{
+		mcParser.PopPosition();
+		return TRIFALSE;
+	}
+	mcParser.PassPosition();
+
+	if (ulliDCode > MAX_UINT32)
+	{
+		ReturnSyntanxError();
+	}
+
+	tResult = mcParser.GetExactCharacter('*', mbSkipWhitespace);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	mpcCommands->AddSetAperture((uint32)ulliDCode);
+
+	return TRITRUE;
 }
 
 
@@ -781,9 +913,32 @@ TRISTATE CGerberParser::ParseCommandDnn()
 //
 //
 //////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::ParseCommandG74()
+{
+	TRISTATE	tResult;
+
+	tResult = mcParser.GetExactCharacterSequence("G74*", mbSkipWhitespace);
+	ReturnOnFalseOrSyntaxErrorOnError(tResult);
+
+	mpcCommands->AddQuadrantMode(GQM_Single);
+
+	return TRITRUE;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandG75()
 {
-	return TRIFALSE;
+	TRISTATE	tResult;
+
+	tResult = mcParser.GetExactCharacterSequence("G75*", mbSkipWhitespace);
+	ReturnOnFalseOrSyntaxErrorOnError(tResult);
+
+	mpcCommands->AddQuadrantMode(GQM_Multi);
+
+	return TRITRUE;
 }
 
 
@@ -842,9 +997,58 @@ TRISTATE CGerberParser::ParseCommandG03()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CGerberParser::ParseCommandD01()
+TRISTATE CGerberParser::ParseCoordinate(char cAxis, uint16 uiWholes, uint16 uiDecimals, CNumber* pcCoordinate)
 {
-	return TRIFALSE;
+	TRISTATE	tResult;
+	uint64		ulliValue;
+	int16		iSign;
+	uint16		uiNumDigits;
+	uint64		ulliDivisor;
+	uint16		i;
+	CChars		sz;
+	CChars		szDecimals;
+
+	tResult = mcParser.GetExactCharacter(cAxis, mbSkipWhitespace);
+	ReturnOnFalseOrSyntaxErrorOnError(tResult);
+
+	if (!mbFormatSpecified)
+	{
+		return Error("Coordinate before Format Specification (FS), could not parse Command:");
+	}
+
+	tResult = mcParser.GetDigits(&ulliValue, &iSign, &uiNumDigits, false, true, 10, NUMBER_SEPARATOR_NONE);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+	if (uiNumDigits > uiWholes + uiDecimals)
+	{
+		return Error("Coordinate has more digits than the Format Specification (FS) allows, could not parse Command:");
+	}
+
+	//Leading zeros are omitted so the last uiDecimals digits are the decimal part.
+	ulliDivisor = 1;
+	for (i = 0; i < uiDecimals; i++)
+	{
+		ulliDivisor *= 10;
+	}
+
+	sz.Init();
+	if (iSign < 0)
+	{
+		sz.Append('-');
+	}
+	sz.Append(ulliValue / ulliDivisor);
+	if (uiDecimals > 0)
+	{
+		szDecimals.Init();
+		szDecimals.Append(ulliValue % ulliDivisor);
+		sz.Append('.');
+		sz.Append('0', uiDecimals - szDecimals.Length());
+		sz.Append(szDecimals);
+		szDecimals.Kill();
+	}
+	pcCoordinate->Init(sz.Text(), sz.Length());
+	sz.Kill();
+
+	return TRITRUE;
 }
 
 
@@ -852,19 +1056,101 @@ TRISTATE CGerberParser::ParseCommandD01()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CGerberParser::ParseCommandD02()
+TRISTATE CGerberParser::ParseCommandOperation()
 {
-	return TRIFALSE;
-}
+	TRISTATE					tResult;
+	CNumber						cX;
+	CNumber						cY;
+	CNumber						cI;
+	CNumber						cJ;
+	bool						bX;
+	bool						bY;
+	bool						bI;
+	bool						bJ;
+	uint64						ulliCode;
+	EGerberCommandEnum			eType;
+	CGerberCommandOperation*	pcOperation;
 
+	//I and J use the X and Y formats.
+	tResult = ParseCoordinate('X', muiXWholes, muiXDecimals, &cX);
+	ReturnOnError(tResult);
+	bX = (tResult == TRITRUE);
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-TRISTATE CGerberParser::ParseCommandD03()
-{
-	return TRIFALSE;
+	tResult = ParseCoordinate('Y', muiYWholes, muiYDecimals, &cY);
+	ReturnOnError(tResult);
+	bY = (tResult == TRITRUE);
+
+	tResult = ParseCoordinate('I', muiXWholes, muiXDecimals, &cI);
+	ReturnOnError(tResult);
+	bI = (tResult == TRITRUE);
+
+	tResult = ParseCoordinate('J', muiYWholes, muiYDecimals, &cJ);
+	ReturnOnError(tResult);
+	bJ = (tResult == TRITRUE);
+
+	tResult = mcParser.GetExactCharacter('D', mbSkipWhitespace);
+	ReturnSyntaxErrorOnError(tResult);
+	if (tResult == TRIFALSE)
+	{
+		if (bX || bY || bI || bJ)
+		{
+			//Coordinates without an operation code (deprecated) are not supported.
+			ReturnSyntanxError();
+		}
+		return TRIFALSE;
+	}
+
+	tResult = mcParser.GetDigits(&ulliCode, NULL, NULL, false, false, 10, NUMBER_SEPARATOR_NONE);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+	if (ulliCode == 1)
+	{
+		eType = GC_D01;
+	}
+	else if (ulliCode == 2)
+	{
+		eType = GC_D02;
+	}
+	else if (ulliCode == 3)
+	{
+		eType = GC_D03;
+	}
+	else
+	{
+		ReturnSyntanxError();
+	}
+
+	if (mbInRegion && (eType == GC_D03))
+	{
+		return Error("D03 is not allowed in a region statement, could not parse Command:");
+	}
+
+	if ((eType != GC_D01) && (bI || bJ))
+	{
+		return Error("I and J offsets are only allowed on D01, could not parse Command:");
+	}
+
+	tResult = mcParser.GetExactCharacter('*', mbSkipWhitespace);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	pcOperation = mpcCommands->AddOperation(eType);
+	if (bX)
+	{
+		pcOperation->SetX(&cX);
+	}
+	if (bY)
+	{
+		pcOperation->SetY(&cY);
+	}
+	if (bI)
+	{
+		pcOperation->SetI(&cI);
+	}
+	if (bJ)
+	{
+		pcOperation->SetJ(&cJ);
+	}
+
+	return TRITRUE;
 }
 
 
@@ -1043,7 +1329,86 @@ TRISTATE CGerberParser::ParseCommandLS()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseRegionStatement()
 {
-	return TRIFALSE;
+	TRISTATE				tResult;
+	CGerberCommandRegion*	pcRegion;
+	CGerberCommands*		pcParentCommands;
+
+	tResult = mcParser.GetExactCharacterSequence("G36*", mbSkipWhitespace);
+	ReturnOnFalseOrSyntaxErrorOnError(tResult);
+
+	pcRegion = mpcCommands->AddRegion();
+
+	pcParentCommands = mpcCommands;
+	mpcCommands = pcRegion->GetCommands();
+	mbInRegion = true;
+
+	tResult = ParseRegionContours();
+
+	mbInRegion = false;
+	mpcCommands = pcParentCommands;
+
+	return tResult;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::ParseRegionContours(void)
+{
+	TRISTATE			tResult;
+	size				i;
+	size				uiNumCommands;
+	CGerberCommand*		pcCommand;
+
+	for (;;)
+	{
+		mcParser.SkipWhitespace();
+		if (mcParser.IsOutside())
+		{
+			return Error("Region statement (G36) not closed with G37, could not parse Command:");
+		}
+
+		tResult = mcParser.GetExactCharacterSequence("G37*", mbSkipWhitespace);
+		ReturnSyntaxErrorOnError(tResult);
+		if (tResult == TRITRUE)
+		{
+			break;
+		}
+
+		tResult = ParseCommandG04();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandG01();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandG02();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandG03();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandOperation();
+		ContinueOnTrueReturnOnError(tResult);
+
+		ReturnSyntanxError();
+	}
+
+	//Each contour starts with a D02 so the first operation must be a D02.
+	uiNumCommands = mpcCommands->NumCommands();
+	for (i = 0; i < uiNumCommands; i++)
+	{
+		pcCommand = mpcCommands->GetCommand(i);
+		if (pcCommand->IsOperation())
+		{
+			if (!pcCommand->IsType(GC_D02))
+			{
+				return Error("Region contour must start with a D02, could not parse Command:");
+			}
+			return TRITRUE;
+		}
+	}
+	return Error("Region statement (G36) must contain a contour, could not parse Command:");
 }
 
 
@@ -1053,7 +1418,34 @@ TRISTATE CGerberParser::ParseRegionStatement()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseABStatement()
 {
-	return TRIFALSE;
+	TRISTATE						tResult;
+	uint64							ulliDCode;
+	CGerberCommandApertureBlock*	pcBlock;
+	CGerberCommands*				pcParentCommands;
+
+	tResult = mcParser.GetExactCharacterSequence("%ABD", mbSkipWhitespace);
+	ReturnOnFalseOrSyntaxErrorOnError(tResult);
+
+	tResult = mcParser.GetDigits(&ulliDCode, NULL, NULL, false, false, 10, NUMBER_SEPARATOR_NONE);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+	if ((ulliDCode < 10) || (ulliDCode > MAX_UINT32))
+	{
+		return Error("Aperture D code must be 10 or greater, could not parse Command:");
+	}
+
+	tResult = mcParser.GetExactCharacterSequence("*%", mbSkipWhitespace);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	pcBlock = mpcCommands->AddApertureBlock((uint32)ulliDCode);
+
+	pcParentCommands = mpcCommands;
+	mpcCommands = pcBlock->GetCommands();
+
+	tResult = ParseBlockBody("%AB*%", "Block aperture statement (AB) not closed, could not parse Command:");
+
+	mpcCommands = pcParentCommands;
+
+	return tResult;
 }
 
 
@@ -1063,7 +1455,156 @@ TRISTATE CGerberParser::ParseABStatement()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseSRStatement()
 {
-	return TRIFALSE;
+	TRISTATE						tResult;
+	uint64							ulliXRepeats;
+	uint64							ulliYRepeats;
+	CNumber							cXStep;
+	CNumber							cYStep;
+	CGerberCommandStepAndRepeat*	pcStepAndRepeat;
+	CGerberCommands*				pcParentCommands;
+
+	tResult = mcParser.GetExactCharacterSequence("%SR", mbSkipWhitespace);
+	ReturnOnFalseOrSyntaxErrorOnError(tResult);
+
+	tResult = mcParser.GetExactCharacter('X', mbSkipWhitespace);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+	tResult = mcParser.GetDigits(&ulliXRepeats, NULL, NULL, false, false, 10, NUMBER_SEPARATOR_NONE);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	tResult = mcParser.GetExactCharacter('Y', mbSkipWhitespace);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+	tResult = mcParser.GetDigits(&ulliYRepeats, NULL, NULL, false, false, 10, NUMBER_SEPARATOR_NONE);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	if ((ulliXRepeats < 1) || (ulliXRepeats > MAX_UINT32) || (ulliYRepeats < 1) || (ulliYRepeats > MAX_UINT32))
+	{
+		return Error("Step and repeat (SR) X and Y must be 1 or greater, could not parse Command:");
+	}
+
+	tResult = mcParser.GetExactCharacter('I', mbSkipWhitespace);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+	tResult = mcParser.GetNumber(&cXStep);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	tResult = mcParser.GetExactCharacter('J', mbSkipWhitespace);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+	tResult = mcParser.GetNumber(&cYStep);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	tResult = mcParser.GetExactCharacterSequence("*%", mbSkipWhitespace);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	pcStepAndRepeat = mpcCommands->AddStepAndRepeat((uint32)ulliXRepeats, (uint32)ulliYRepeats, &cXStep, &cYStep);
+
+	pcParentCommands = mpcCommands;
+	mpcCommands = pcStepAndRepeat->GetCommands();
+
+	//SR statements cannot be nested so the body is parsed as a block.
+	tResult = ParseBlockBody("%SR*%", "Step and repeat statement (SR) not closed, could not parse Command:");
+
+	mpcCommands = pcParentCommands;
+
+	return tResult;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::ParseBlockBody(const char* szClose, char* szNotClosedError)
+{
+	TRISTATE	tResult;
+
+	for (;;)
+	{
+		mcParser.SkipWhitespace();
+		if (mcParser.IsOutside())
+		{
+			return Error(szNotClosedError);
+		}
+
+		tResult = mcParser.GetExactCharacterSequence(szClose, mbSkipWhitespace);
+		ReturnSyntaxErrorOnError(tResult);
+		if (tResult == TRITRUE)
+		{
+			return TRITRUE;
+		}
+
+		tResult = ParseBlockStatement();
+		ContinueOnTrueReturnOnError(tResult);
+
+		ReturnSyntanxError();
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::ParseBlockStatement(void)
+{
+	TRISTATE	tResult;
+
+	//Everything allowed inside an AB or SR statement.  MO, FS, SR and M02 are not.
+	tResult = ParseCommandG04();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseCommandAD();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseCommandAM();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseCommandDnn();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseCommandG74();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseCommandG75();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseCommandG01();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseCommandG02();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseCommandG03();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseCommandOperation();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseCommandLP();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseCommandLM();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseCommandLR();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseCommandLS();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseRegionStatement();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseABStatement();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseCommandTF();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseCommandTA();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseCommandTO();
+	if (tResult != TRIFALSE) return tResult;
+
+	tResult = ParseCommandTD();
+	return tResult;
 }
 
 
@@ -1191,7 +1732,33 @@ TRISTATE CGerberParser::ParseCommandTO()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandTD()
 {
-	return TRIFALSE;
+	TRISTATE						tResult;
+	size							iLength;
+	CGerberCommandDeleteAttribute*	pcDeleteAttribute;
+
+	tResult = mcParser.GetExactCharacterSequence("%TD", mbSkipWhitespace);
+	ReturnOnFalseOrSyntaxErrorOnError(tResult);
+
+	//No name deletes all attributes.
+	mcParser.PushPosition();
+	tResult = GetNameString(NULL, &iLength);
+	mcParser.PopPosition();
+	ReturnSyntaxErrorOnError(tResult);
+	if (tResult == TRIFALSE)
+	{
+		iLength = 0;
+	}
+
+	pcDeleteAttribute = mpcCommands->AddDeleteAttribute(iLength);
+	if (iLength > 0)
+	{
+		GetNameString(pcDeleteAttribute->NameText(), &iLength);
+	}
+
+	tResult = mcParser.GetExactCharacterSequence("*%", mbSkipWhitespace);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	return TRITRUE;
 }
 
 
@@ -1231,76 +1798,16 @@ TRISTATE CGerberParser::Parse(void)
 			return TRITRUE;
 		}
 
-		tResult = ParseCommandG04();
-		ContinueOnTrueReturnOnError(tResult);
-
 		tResult = ParseCommandMO();
 		ContinueOnTrueReturnOnError(tResult);
 
 		tResult = ParseCommandFS();
 		ContinueOnTrueReturnOnError(tResult);
 
-		tResult = ParseCommandAD();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseCommandAM();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseCommandDnn();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseCommandG75();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseCommandG01();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseCommandG02();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseCommandG03();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseCommandD01();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseCommandD02();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseCommandD03();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseCommandLP();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseCommandLM();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseCommandLR();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseCommandLS();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseRegionStatement();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseABStatement();
-		ContinueOnTrueReturnOnError(tResult);
-
 		tResult = ParseSRStatement();
 		ContinueOnTrueReturnOnError(tResult);
 
-		tResult = ParseCommandTF();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseCommandTA();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseCommandTO();
-		ContinueOnTrueReturnOnError(tResult);
-
-		tResult = ParseCommandTD();
+		tResult = ParseBlockStatement();
 		ContinueOnTrueReturnOnError(tResult);
 
 		tResult = ParseCommandM02();
