@@ -104,6 +104,33 @@ void CContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// For a container that keeps the size its components need unless a
+// desired size is set on an axis, like a button.
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CContainer::GetDesiredOrRequiredSize(void)
+{
+	SInt32Vec2	sSize;
+
+	sSize = msDesiredSize;
+	if ((sSize.x < 0) || (sSize.y < 0))
+	{
+		SetRequiredSize();
+		if (sSize.x < 0)
+		{
+			sSize.x = msRequiredSize.x;
+		}
+		if (sSize.y < 0)
+		{
+			sSize.y = msRequiredSize.y;
+		}
+	}
+	return sSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CContainer::SetActualBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)

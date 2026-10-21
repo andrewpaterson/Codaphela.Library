@@ -115,24 +115,7 @@ void CButtonBar::SetInsets(int iTop, int iRight, int iBottom, int iLeft)
 //////////////////////////////////////////////////////////////////////////
 SInt32Vec2 CButtonBar::GetDesiredSize(void)
 {
-	SInt32Vec2	sSize;
-	SInt32Vec2	sRequired;
-
-	sSize = CContainer::GetDesiredSize();
-	if ((sSize.x < 0) || (sSize.y < 0))
-	{
-		SetRequiredSize();
-		sRequired = GetRequiredSize();
-		if (sSize.x < 0)
-		{
-			sSize.x = sRequired.x;
-		}
-		if (sSize.y < 0)
-		{
-			sSize.y = sRequired.y;
-		}
-	}
-	return sSize;
+	return GetDesiredOrRequiredSize();
 }
 
 
@@ -143,26 +126,11 @@ SInt32Vec2 CButtonBar::GetDesiredSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CButtonBar::SetRequiredSize(void)
 {
-	size				i;
-	size				uiSize;
-	Ptr<CComponent>		pComponent;
-	SInt32Vec2			sSize;
-	int32				iHeight;
+	SInt32Vec2	sRow;
 
-	iHeight = 0;
-	uiSize = maChildren.Size();
-	for (i = 0; i < uiSize; i++)
-	{
-		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetDesiredSize();
-		if (sSize.y > iHeight)
-		{
-			iHeight = sSize.y;
-		}
-	}
-
-	msRequiredSize.x = GetRowWidth() + msInsets.GetLeftAndRight();
-	msRequiredSize.y = iHeight + msInsets.GetTopAndBottom();
+	sRow = GetRowSize(NULL);
+	msRequiredSize.x = sRow.x + msInsets.GetLeftAndRight();
+	msRequiredSize.y = sRow.y + msInsets.GetTopAndBottom();
 }
 
 
@@ -178,31 +146,54 @@ void CButtonBar::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	size				uiSize;
 	SInt32Vec2			sOrigin;
 	SInt32Vec2			sArea;
+	SInt32Vec2			sRow;
 	SInt32Vec2			sButtonPosition;
 	SInt32Vec2			sButtonArea;
-	SInt32Vec2			sSize;
+	CArrayInt			aiWidths;
 	Ptr<CComponent>		pComponent;
 
 	sOrigin = sPosition;
 	sArea = sAreaSize;
-	sOrigin.x += msInsets.maiWidths[BEI_Left];
-	sOrigin.y += msInsets.maiWidths[BEI_Top];
-	sArea.x -= msInsets.GetLeftAndRight();
-	sArea.y -= msInsets.GetTopAndBottom();
-	if (sArea.x < 0)
-	{
-		sArea.x = 0;
-	}
-	if (sArea.y < 0)
-	{
-		sArea.y = 0;
-	}
+	msInsets.Inset(&sOrigin, &sArea);
 
 	SetContainerBounds(sOrigin, sArea);
 
-	sButtonPosition.x = sOrigin.x + AlignComponentHorizontal(meButtonAlignment, GetRowWidth(), sArea.x);
+	aiWidths.Init();
+	sRow = GetRowSize(&aiWidths);
+	sButtonPosition.x = sOrigin.x + AlignComponentHorizontal(meButtonAlignment, sRow.x, sArea.x);
 	sButtonPosition.y = sOrigin.y;
 
+	uiSize = maChildren.Size();
+	for (i = 0; i < uiSize; i++)
+	{
+		pComponent = maChildren.Get(i);
+		sButtonArea.Init(aiWidths.GetValue(i), sArea.y);
+		LayoutComponentInArea(pComponent, sButtonPosition, sButtonArea);
+		sButtonPosition.x += sButtonArea.x + miGap;
+	}
+	aiWidths.Kill();
+
+	SetActualBounds(sPosition, sAreaSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The buttons' widths and the gaps between them by the tallest button,
+// measuring each button once.  A button that is variable sized has no
+// size of its own on that axis.  If paiWidths isn't NULL each button's
+// width is added to it.
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CButtonBar::GetRowSize(CArrayInt* paiWidths)
+{
+	size				i;
+	size				uiSize;
+	Ptr<CComponent>		pComponent;
+	SInt32Vec2			sSize;
+	SInt32Vec2			sRow;
+
+	sRow.Init(0, 0);
 	uiSize = maChildren.Size();
 	for (i = 0; i < uiSize; i++)
 	{
@@ -212,45 +203,22 @@ void CButtonBar::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 		{
 			sSize.x = 0;
 		}
-		sButtonArea.Init(sSize.x, sArea.y);
-		LayoutComponentInArea(pComponent, sButtonPosition, sButtonArea);
-		sButtonPosition.x += sSize.x + miGap;
-	}
-
-	SetActualBounds(sPosition, sAreaSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The buttons' widths and the gaps between them.  A button that is
-// variable sized horizontally has no width of its own.
-//
-//////////////////////////////////////////////////////////////////////////
-int32 CButtonBar::GetRowWidth(void)
-{
-	size				i;
-	size				uiSize;
-	Ptr<CComponent>		pComponent;
-	SInt32Vec2			sSize;
-	int32				iWidth;
-
-	iWidth = 0;
-	uiSize = maChildren.Size();
-	for (i = 0; i < uiSize; i++)
-	{
-		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetDesiredSize();
-		if (sSize.x > 0)
+		if (paiWidths)
 		{
-			iWidth += sSize.x;
+			paiWidths->Add(sSize.x);
 		}
+
+		sRow.x += sSize.x;
 		if (i > 0)
 		{
-			iWidth += miGap;
+			sRow.x += miGap;
+		}
+		if (sSize.y > sRow.y)
+		{
+			sRow.y = sSize.y;
 		}
 	}
-	return iWidth;
+	return sRow;
 }
 
 

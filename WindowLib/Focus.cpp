@@ -89,8 +89,9 @@ bool CFocus::Load(CObjectReader* pcFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// x and y are in window client space.  A component that started a drag
-// keeps getting ContDrag* wherever the pointer goes until the drag stops.
+// x and y are in window client space.  The component under the pointer is
+// told where in it the pointer is.  A component that started a drag keeps
+// getting ContDrag* wherever the pointer goes until the drag stops.
 //
 //////////////////////////////////////////////////////////////////////////
 void CFocus::PointerMoved(int x, int y)
@@ -101,6 +102,12 @@ void CFocus::PointerMoved(int x, int y)
 	msPointer.Init(x, y);
 	mbPointerIn = true;
 	Refresh();
+
+	if (mpMouseOverComponent)
+	{
+		ToComponentSpace(mpMouseOverComponent, &lx, &ly);
+		mpMouseOverComponent->MovedOver(lx, ly);
+	}
 
 	if (mpDragComponent)
 	{

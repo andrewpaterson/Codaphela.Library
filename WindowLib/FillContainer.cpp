@@ -97,18 +97,7 @@ void CFillContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 	sOrigin = sPosition;
 	sArea = sAreaSize;
-	sOrigin.x += msInsets.maiWidths[BEI_Left];
-	sOrigin.y += msInsets.maiWidths[BEI_Top];
-	sArea.x -= msInsets.GetLeftAndRight();
-	sArea.y -= msInsets.GetTopAndBottom();
-	if (sArea.x < 0)
-	{
-		sArea.x = 0;
-	}
-	if (sArea.y < 0)
-	{
-		sArea.y = 0;
-	}
+	msInsets.Inset(&sOrigin, &sArea);
 
 	SetContainerBounds(sOrigin, sArea);
 

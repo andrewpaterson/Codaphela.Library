@@ -1,5 +1,6 @@
 #ifndef __INSETS_H__
 #define __INSETS_H__
+#include "BaseLib/Int32Vec2.h"
 
 
 //BORDER_EDGE_INDEX
@@ -25,6 +26,8 @@ struct SInsets
 
 	int	GetLeftAndRight(void);
 	int	GetTopAndBottom(void);
+
+	void Inset(SInt32Vec2* psPosition, SInt32Vec2* psSize);
 }; 
 
 

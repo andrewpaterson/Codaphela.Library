@@ -49,8 +49,9 @@ public:
 			SInt32Vec2	GetRequiredSize(void);
 
 protected:
-	void	LayoutComponentInArea(Ptr<CComponent> pComponent, SInt32Vec2 sAreaPosition, SInt32Vec2 sAreaSize);
-	void	SetActualBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
+	void		LayoutComponentInArea(Ptr<CComponent> pComponent, SInt32Vec2 sAreaPosition, SInt32Vec2 sAreaSize);
+	void		SetActualBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
+	SInt32Vec2	GetDesiredOrRequiredSize(void);
 };
 
 
