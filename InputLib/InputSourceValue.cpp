@@ -155,7 +155,7 @@ CInputSouceChannel* CInputSourceValue::AddChannel(size iChannel, EInputSourceCha
 	CInputSouceChannel*		pcChannel;
 
 	pcChannel = mlcChannels.Add();
-	pcChannel->Init(this, iChannel, eCompare, (char*)pvTest);
+	pcChannel->Init(this, (int)iChannel, eCompare, (char*)pvTest);
 	return pcChannel;
 }
 

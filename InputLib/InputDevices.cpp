@@ -114,8 +114,8 @@ CInputDevice* CInputDevices::CreateDevice(CInputDeviceDesc* pcDesc)
 	int				iDescriptionID;
 
 	pcDevice = mlcDevices.Add();
-	iDescriptionID = pcDesc->GetUnusedID();
-	pcDevice->Init(pcDesc, mlcDevices.NumElements()-1, (EInputDevice)iDescriptionID, mpcInputActions);
+	iDescriptionID = (int)pcDesc->GetUnusedID();
+	pcDevice->Init(pcDesc, (int)mlcDevices.NumElements()-1, (EInputDevice)iDescriptionID, mpcInputActions);
 	pcDesc->AddDevice(pcDevice);
 	
 	return pcDevice;
@@ -148,7 +148,7 @@ bool CInputDevices::AddActiveOrInactiveCriteria(CInputChordActiveDesc* pcChordCr
 	case ICCDAT_SpecificSource:
 		if (!pcDevice)
 		{
-			pcDevice = GetDeviceForSourceDesc(pcChordCriteriaDesc->GetSourceDesc(), pcChordCriteriaDesc->GetDescriptionID());
+			pcDevice = GetDeviceForSourceDesc(pcChordCriteriaDesc->GetSourceDesc(), (int)pcChordCriteriaDesc->GetDescriptionID());
 			if (!pcDevice)
 			{
 				return false;

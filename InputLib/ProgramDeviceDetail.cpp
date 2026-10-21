@@ -90,7 +90,7 @@ void CProgramDeviceDetail::AddSource(char* szName)
 	CProgramDeviceSourceValue*	pcSource;
 
 	pcSource = macSources.Add();
-	pcSource->Init(szName, macSources.NumElements()-1);
+	pcSource->Init(szName, (int)macSources.NumElements()-1);
 }
 
 

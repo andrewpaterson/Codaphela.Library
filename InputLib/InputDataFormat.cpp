@@ -136,7 +136,7 @@ float CInputDataFormat::GetConvertToFloat(size iIndex, void* pvData)
 
 	mcExternalChannels.SetData(pvData);
 	cSingle.Init(&mcExternalChannels);
-	return cSingle.GetConvertToFloat(iIndex);
+	return cSingle.GetConvertToFloat((int)iIndex);
 }
 
 
@@ -150,7 +150,7 @@ float CInputDataFormat::GetCastToFloat(size iIndex, void* pvData)
 
 	mcExternalChannels.SetData(pvData);
 	cSingle.Init(&mcExternalChannels);
-	return cSingle.GetCastToFloat(iIndex);
+	return cSingle.GetCastToFloat((int)iIndex);
 }
 
 
@@ -164,7 +164,7 @@ void CInputDataFormat::GetAsNative(void* pvDest, size iIndex, void* pvData)
 
 	mcExternalChannels.SetData(pvData);
 	cSingle.Init(&mcExternalChannels);
-	cSingle.GetNative(iIndex, pvDest);
+	cSingle.GetNative((int)iIndex, pvDest);
 }
 
 
