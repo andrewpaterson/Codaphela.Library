@@ -53,6 +53,9 @@ public:
 	void			DrawCanvas(int iX, int iY, CNativeCanvas* pcSource, CRectangle* pcClip);
 	void			DrawCel(int iX, int iY, Ptr<CImageCel> pSource);
 	void			DrawImage(int iX, int iY, Ptr<CImage> pSource);
+
+protected:
+	void			FillPremultiplied(int iLeft, int iTop, int iRight, int iBottom, ARGB32 sColour);
 };
 
 

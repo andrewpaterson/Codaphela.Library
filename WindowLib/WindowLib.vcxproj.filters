@@ -135,6 +135,9 @@
     <ClInclude Include="Button.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
+    <ClInclude Include="ButtonBar.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
     <ClInclude Include="JewelButtonImages.h">
       <Filter>Source\Component\Images</Filter>
     </ClInclude>
@@ -237,6 +240,9 @@
       <Filter>Source\Component\Drawing\Canvas</Filter>
     </ClCompile>
     <ClCompile Include="Button.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="ButtonBar.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="JewelButtonImages.cpp">

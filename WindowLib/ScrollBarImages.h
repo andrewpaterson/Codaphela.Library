@@ -24,6 +24,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/Image.h"
 #include "SupportLib/ImageCel.h"
 #include "SupportLib/ColourARGB32.h"
+#include "SupportLib/ColourFormat.h"
 
 
 enum EScrollBarOrientation
@@ -50,7 +51,8 @@ class CImageDraw;
 
 //The pieces of a scroll bar's thumb in both orientations, drawn in one colour with CImageDraw rather than loaded.
 //Scroll bars can share them.  The colour's opacity makes the thumb translucent; the pieces are drawn over what is
-//being scrolled.  The ends are half circles as wide as the thumb is thick so the thumb has round ends.
+//being scrolled.  The ends are half circles as wide as the thumb is thick so the thumb has round ends.  The pieces
+//are made in the colour order of the format given, RGB if there is none, as they are blitted onto the window's canvases.
 class CScrollBarImages : public CObject
 {
 CONSTRUCTABLE(CScrollBarImages);
@@ -59,9 +61,10 @@ protected:
 	CArray<CImageCel>	maCels;  //NUM_SCROLL_BAR_PIECES for each orientation in turn.
 	int32				miThickness;
 	ARGB32				msColour;
+	EColourOrder		meOrder;
 
 public:
-	void			Init(int32 iThickness, ARGB32 sColour);
+	void			Init(int32 iThickness, ARGB32 sColour, CColourFormatHelper* pcFormat = NULL);
 	void			Class(void) override;
 	void 			Free(void) override;
 
@@ -77,6 +80,7 @@ protected:
 	Ptr<CImageCel>	CreateCap(EScrollBarOrientation eOrientation, EScrollBarPiece ePiece);
 	Ptr<CImageCel>	CreateMiddle(EScrollBarOrientation eOrientation);
 	Ptr<CImage>		CreateImage(int32 iWidth, int32 iHeight);
+	Ptr<CImageCel>	CreateCel(Ptr<CImage> pImage);
 	void			SetColour(CImageDraw* pcDraw);
 };
 
