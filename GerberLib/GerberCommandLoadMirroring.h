@@ -29,6 +29,8 @@ public:
 	bool IsX(void);
 	bool IsY(void);
 	bool IsXY(void);
+
+	EGerberMirroring	GetMirroring(void);
 };
 
 

@@ -19,6 +19,8 @@ public:
 
 	bool						IsOutline(void);
 
+	bool						Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives);
+
 	CGerberExpressionPosition*	Add(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError);
 	CGerberExpression*			GetExposure(void);
 	CGerberExpression*			GetRotation(void);

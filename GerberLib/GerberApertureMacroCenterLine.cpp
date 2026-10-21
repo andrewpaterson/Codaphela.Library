@@ -1,3 +1,6 @@
+#include "BaseLib/Logger.h"
+#include "GerberMacroVariables.h"
+#include "GerberEvaluatedPrimitive.h"
 #include "GerberApertureMacroCenterLine.h"
 
 
@@ -98,3 +101,22 @@ bool CGerberApertureMacroCenterLine::IsCenterLine(void)
 {
 	return true;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberApertureMacroCenterLine::Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives)
+{
+	CGerberEvaluatedPrimitive*	pcPrimitive;
+
+	pcPrimitive = pcPrimitives->Add(GAMP_Center_Line);
+	return EvaluateExposure(&mcExposure, pcVariables, pcPrimitive) &&
+		   EvaluateExpression(&mcWidth, pcVariables, pcPrimitive) &&
+		   EvaluateExpression(&mcHeight, pcVariables, pcPrimitive) &&
+		   EvaluateExpression(mcCenter.GetX(), pcVariables, pcPrimitive) &&
+		   EvaluateExpression(mcCenter.GetY(), pcVariables, pcPrimitive) &&
+		   EvaluateExpression(&mcRotation, pcVariables, pcPrimitive);
+}
+

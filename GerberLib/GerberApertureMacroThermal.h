@@ -21,6 +21,8 @@ public:
 
 	bool				IsThermal(void);
 
+	bool				Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives);
+
 	CGerberExpression*	GetCenterX(void);
 	CGerberExpression*	GetCenterY(void);
 	CGerberExpression*  GetOuterDiameter(void);

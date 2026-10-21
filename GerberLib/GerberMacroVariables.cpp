@@ -1,0 +1,85 @@
+#include "GerberMacroVariables.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CGerberMacroVariables::Init(void)
+{
+	masVariables.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CGerberMacroVariables::Kill(void)
+{
+	masVariables.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberMacroVariables::Set(uint32 uiVariable, CNumber* pcValue)
+{
+	SGerberMacroVariable*	psVariable;
+
+	if (uiVariable == 0)
+	{
+		return false;
+	}
+
+	while (masVariables.NumElements() < uiVariable)
+	{
+		psVariable = masVariables.Add();
+		psVariable->bDefined = false;
+		psVariable->cValue.Zero();
+	}
+
+	psVariable = masVariables.Get(uiVariable - 1);
+	if (psVariable->bDefined)
+	{
+		return false;
+	}
+
+	psVariable->bDefined = true;
+	psVariable->cValue.Init(pcValue);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CGerberMacroVariables::Get(uint32 uiVariable, CNumber* pcValue)
+{
+	if (IsDefined(uiVariable))
+	{
+		pcValue->Init(&masVariables.Get(uiVariable - 1)->cValue);
+	}
+	else
+	{
+		pcValue->Zero();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberMacroVariables::IsDefined(uint32 uiVariable)
+{
+	if ((uiVariable == 0) || (uiVariable > masVariables.NumElements()))
+	{
+		return false;
+	}
+	return masVariables.Get(uiVariable - 1)->bDefined;
+}
+

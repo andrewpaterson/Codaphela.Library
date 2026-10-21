@@ -3,6 +3,9 @@
 #include "BaseLib/Calculator.h"
 
 
+class CGerberMacroVariables;
+
+
 class CGerberExpression
 {
 public:
@@ -17,6 +20,8 @@ public:
 	void			SetCalcExpression(CCalcExpression* pcExpression);
 	CNumber*		GetConstNumber(void);
 	float64			DoubleValue(void);
+
+	bool			Evaluate(CGerberMacroVariables* pcVariables, CNumber* pcResult);
 };
 
 

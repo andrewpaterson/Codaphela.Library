@@ -7,6 +7,12 @@
     <Filter Include="Source\Common">
       <UniqueIdentifier>{511445c3-a021-4ea9-aa90-5e1da53712a1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Interpreter">
+      <UniqueIdentifier>{c805555d-77f7-4dd5-af65-131ffb5ed617}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Excellon">
+      <UniqueIdentifier>{ab952081-5a5f-4086-80c8-690cd52c608f}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Parser">
       <UniqueIdentifier>{704c5f55-f0b6-4db7-b8b4-5aef73119587}</UniqueIdentifier>
     </Filter>
@@ -21,8 +27,71 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ExcellonCommand.cpp">
+      <Filter>Source\Excellon</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcellonCommandAttribute.cpp">
+      <Filter>Source\Excellon</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcellonCommandCode.cpp">
+      <Filter>Source\Excellon</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcellonCommandComment.cpp">
+      <Filter>Source\Excellon</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcellonCommandFormat.cpp">
+      <Filter>Source\Excellon</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcellonCommandCoordinate.cpp">
+      <Filter>Source\Excellon</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcellonCommandSlot.cpp">
+      <Filter>Source\Excellon</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcellonCommandToolDefine.cpp">
+      <Filter>Source\Excellon</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcellonCommandToolSelect.cpp">
+      <Filter>Source\Excellon</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcellonCommandUnit.cpp">
+      <Filter>Source\Excellon</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcellonCommands.cpp">
+      <Filter>Source\Excellon</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcellonInterpreter.cpp">
+      <Filter>Source\Excellon</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcellonInterpreterListener.cpp">
+      <Filter>Source\Excellon</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcellonParser.cpp">
+      <Filter>Source\Excellon</Filter>
+    </ClCompile>
     <ClCompile Include="GerberParser.cpp">
       <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberMacroVariables.cpp">
+      <Filter>Source\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberEvaluatedPrimitive.cpp">
+      <Filter>Source\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberAperture.cpp">
+      <Filter>Source\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberApertures.cpp">
+      <Filter>Source\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberGraphicsState.cpp">
+      <Filter>Source\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberInterpreterListener.cpp">
+      <Filter>Source\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberInterpreter.cpp">
+      <Filter>Source\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="GerberString.cpp">
       <Filter>Source\Parser</Filter>
@@ -90,6 +159,9 @@
     <ClCompile Include="GerberApertureMacroThermal.cpp">
       <Filter>Source\Common\ApertureMacro</Filter>
     </ClCompile>
+    <ClCompile Include="GerberApertureMacroVariableDefinition.cpp">
+      <Filter>Source\Common\ApertureMacro</Filter>
+    </ClCompile>
     <ClCompile Include="GerberCommandEndOfFile.cpp">
       <Filter>Source\Common\Command</Filter>
     </ClCompile>
@@ -100,6 +172,33 @@
       <Filter>Source\Common\Command</Filter>
     </ClCompile>
     <ClCompile Include="GerberCommandLoadScaling.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommandDeleteAttribute.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommandApertureDefine.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommandSetAperture.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommandOperation.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommandQuadrantMode.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommandCompound.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommandRegion.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommandApertureBlock.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommandStepAndRepeat.cpp">
       <Filter>Source\Common\Command</Filter>
     </ClCompile>
     <ClCompile Include="GerberCommandApertureAttribute.cpp">
@@ -113,8 +212,77 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ExcellonCommand.h">
+      <Filter>Source\Excellon</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcellonCommandAttribute.h">
+      <Filter>Source\Excellon</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcellonCommandCode.h">
+      <Filter>Source\Excellon</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcellonCommandComment.h">
+      <Filter>Source\Excellon</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcellonCommandEnum.h">
+      <Filter>Source\Excellon</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcellonCommandFormat.h">
+      <Filter>Source\Excellon</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcellonCommandCoordinate.h">
+      <Filter>Source\Excellon</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcellonCommandSlot.h">
+      <Filter>Source\Excellon</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcellonCommandToolDefine.h">
+      <Filter>Source\Excellon</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcellonCommandToolSelect.h">
+      <Filter>Source\Excellon</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcellonCommandUnit.h">
+      <Filter>Source\Excellon</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcellonCommands.h">
+      <Filter>Source\Excellon</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcellonInterpreter.h">
+      <Filter>Source\Excellon</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcellonInterpreterListener.h">
+      <Filter>Source\Excellon</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcellonParser.h">
+      <Filter>Source\Excellon</Filter>
+    </ClInclude>
     <ClInclude Include="GerberParser.h">
       <Filter>Source\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberMacroVariables.h">
+      <Filter>Source\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberEvaluatedPrimitive.h">
+      <Filter>Source\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberAperture.h">
+      <Filter>Source\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberApertures.h">
+      <Filter>Source\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberGraphicsState.h">
+      <Filter>Source\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberInterpreterListener.h">
+      <Filter>Source\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberInterpreter.h">
+      <Filter>Source\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberNumbers.h">
+      <Filter>Source\Interpreter</Filter>
     </ClInclude>
     <ClInclude Include="GerberBoardLayer.h">
       <Filter>Source\Common</Filter>
@@ -191,6 +359,9 @@
     <ClInclude Include="GerberApertureMacroThermal.h">
       <Filter>Source\Common\ApertureMacro</Filter>
     </ClInclude>
+    <ClInclude Include="GerberApertureMacroVariableDefinition.h">
+      <Filter>Source\Common\ApertureMacro</Filter>
+    </ClInclude>
     <ClInclude Include="GerberCommandEndOfFile.h">
       <Filter>Source\Common\Command</Filter>
     </ClInclude>
@@ -201,6 +372,33 @@
       <Filter>Source\Common\Command</Filter>
     </ClInclude>
     <ClInclude Include="GerberCommandLoadScaling.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandDeleteAttribute.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandApertureDefine.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandSetAperture.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandOperation.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandQuadrantMode.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandCompound.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandRegion.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandApertureBlock.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandStepAndRepeat.h">
       <Filter>Source\Common\Command</Filter>
     </ClInclude>
     <ClInclude Include="GerberCommandApertureAttribute.h">

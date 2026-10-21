@@ -20,6 +20,8 @@ public:
 
 	bool				IsCircle(void);
 
+	bool				Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives);
+
 	CGerberExpression*	GetExposure(void);
 	CGerberExpression*	GetDiameter(void);
 	CGerberExpression*	GetCenterX(void);

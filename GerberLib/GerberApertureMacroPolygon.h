@@ -21,6 +21,8 @@ public:
 
 	bool				IsPolygon(void);
 
+	bool				Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives);
+
 	CGerberExpression*	GetExposure(void);
 	CGerberExpression*	GetNumberOfVertices(void);
 	CGerberExpression*	GetCenterX(void);

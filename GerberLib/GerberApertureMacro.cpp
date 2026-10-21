@@ -1,3 +1,7 @@
+#include "BaseLib/Logger.h"
+#include "GerberMacroVariables.h"
+#include "GerberExpression.h"
+#include "GerberEvaluatedPrimitive.h"
 #include "GerberApertureMacro.h"
 
 
@@ -80,4 +84,58 @@ bool CGerberApertureMacro::IsThermal(void)
 	return false;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberApertureMacro::IsVariableDefinition(void)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberApertureMacro::Evaluate(CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitives* pcPrimitives)
+{
+	//Comments do not create a primitive.
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberApertureMacro::EvaluateExpression(CGerberExpression* pcExpression, CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitive* pcPrimitive)
+{
+	return pcExpression->Evaluate(pcVariables, pcPrimitive->AddValue());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberApertureMacro::EvaluateExposure(CGerberExpression* pcExpression, CGerberMacroVariables* pcVariables, CGerberEvaluatedPrimitive* pcPrimitive)
+{
+	CNumber*	pcExposure;
+	CNumber		cOne;
+
+	//Exposure is 0 (off) or 1 (on).  4.5.1
+	pcExposure = pcPrimitive->AddValue();
+	if (!pcExpression->Evaluate(pcVariables, pcExposure))
+	{
+		return false;
+	}
+	if (!pcExposure->IsZero() && !pcExposure->Equals(cOne.Init(1)))
+	{
+		gcLogger.Error2(__METHOD__, " Aperture macro primitive exposure must be 0 or 1.", NULL);
+		return false;
+	}
+	return true;
+}
 
