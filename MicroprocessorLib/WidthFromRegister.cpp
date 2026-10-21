@@ -11,7 +11,7 @@ char* CWidthFromRegister::GetName(EWidthFromRegister e)
 	{
 		return "M";
 	}
-	else if (e = WFR_XY)
+	else if (e == WFR_XY)
 	{
 		return "XY";
 	}

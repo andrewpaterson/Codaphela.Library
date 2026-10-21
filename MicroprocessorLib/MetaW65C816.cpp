@@ -377,14 +377,14 @@ void CMetaW65C816::Print(CChars* psz, bool bMnemonic, bool bCycle, bool bOperati
 		psz->Append(".");
 	}
 
-	for (i = psz->Length() - 1; i >= 0; i--)
+	for (i = (int32)psz->Length() - 1; i >= 0; i--)
 	{
 		if (psz->GetChar(i) != ' ')
 		{
 			break;
 		}
 	}
-	i = psz->Length() - i - 1;
+	i = (int32)psz->Length() - i - 1;
 	psz->RemoveFromEnd(i);
 }
 

@@ -1231,7 +1231,7 @@ bool CW65C816::IsReseting(STraceValue clockValue)
 {
 	return (muiResetCount > 0) &&
 		   ((muiResetCount <= 3) ||
-		    (muiResetCount == 4) && (!clockValue.IsLow()));
+		    ((muiResetCount == 4) && (!clockValue.IsLow())));
 }
 
 
@@ -1650,7 +1650,7 @@ int16 CW65C816::GetCycle(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::SetOpcode(uint16 uiOpcodeIndex)
 {
-	if ((uiOpcodeIndex >= 0) && (uiOpcodeIndex <= 255))
+	if (uiOpcodeIndex <= 255)
 	{
 		muiOpcodeIndex = uiOpcodeIndex;
 	}
