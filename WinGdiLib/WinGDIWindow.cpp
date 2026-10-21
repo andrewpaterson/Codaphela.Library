@@ -352,6 +352,7 @@ void CWinGDIWindow::RawInput(HRAWINPUT hRawInput)
     GetRawInputData(hRawInput, RID_INPUT, NULL, &uiSize, sizeof(RAWINPUTHEADER));
     if ((uiSize == 0) || (uiSize > sizeof(uBuffer)))
     {
+        gcLogger.Info2("RAW: GetRawInputData size [", IntToString((uint32)uiSize), "] too big or zero.", NULL);  //TEMP-INPUT-LOG
         //Only HID devices other than keyboards and mice send more.
         return;
     }
