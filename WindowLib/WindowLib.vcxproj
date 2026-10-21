@@ -189,6 +189,7 @@
     <ClInclude Include="Component.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="CanvasDraw.h" />
+    <ClInclude Include="ComponentInputCommand.h" />
     <ClInclude Include="ComponentListener.h" />
     <ClInclude Include="Container.h" />
     <ClInclude Include="ContainerStyle.h" />

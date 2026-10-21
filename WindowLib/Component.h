@@ -56,6 +56,9 @@ public:
 			size				GetDepth(void);
 
 			bool				IsFocussed(void);
+			bool				CanGetFocus(void);
+			void				SetCanGetFocus(bool bCanGetFocus);
+			Ptr<CComponent>		GetParent(void);
 
 			void				SetActualSize(int fWidth, int fHeight);
 			void				SetActualSize(SInt32Vec2 sSize);
