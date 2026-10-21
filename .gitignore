@@ -30,6 +30,7 @@ us.stackdump
 *.suo
 *.sdf
 */.vs
+*Log.txt
 
 /BaseLib/x64/Debug/*
 /TestLib/x64/Debug/*

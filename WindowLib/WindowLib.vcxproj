@@ -186,6 +186,8 @@
     <ClInclude Include="ImageCanvasDraw.h" />
     <ClInclude Include="Button.h" />
     <ClInclude Include="ButtonBar.h" />
+    <ClInclude Include="List.h" />
+    <ClInclude Include="ListListener.h" />
     <ClInclude Include="ButtonImages.h" />
     <ClInclude Include="ButtonListener.h" />
     <ClInclude Include="JewelButtonImages.h" />
@@ -248,6 +250,7 @@
     <ClCompile Include="ImageCanvasDraw.cpp" />
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="ButtonBar.cpp" />
+    <ClCompile Include="List.cpp" />
     <ClCompile Include="ButtonImages.cpp" />
     <ClCompile Include="JewelButtonImages.cpp" />
     <ClCompile Include="ScrollBarImages.cpp" />
