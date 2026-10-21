@@ -50,7 +50,7 @@ public:
 						bool			Remove(CUnknown* pcUnknown);
 
 	template<class M>	M*				Add(void);
-	template<class M>	M*				Add(int iAdditionalSize);
+	template<class M>	M*				Add(size uiAdditionalSize);
 						CUnknown*		Add(const char* szClassName);
 						CUnknown*		Add(const char* szClassName, size uiAdditionalSize);
 						CUnknown*		AddFromHeader(CFileReader* pcFile);
@@ -75,7 +75,7 @@ public:
 						size			NumElements(void);
 						void			Dump(void);
 
-						int				GetIterableListsHeadNumElements(void);
+						size			GetIterableListsHeadNumElements(void);
 
 						void			RemoveInKill(CUnknown* pcUnknown);
 						void			RemoveInKill(CArrayUnknownPtr* papcObjectPts);
@@ -111,19 +111,19 @@ M* CUnknowns::Add(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CUnknowns::Add(int iAdditionalSize)
+M* CUnknowns::Add(size uiAdditionalSize)
 {
 	M*			pv;
 	char(*		acDebug)[4];
-	int			iSize;
+	size		uiSize;
 
 	//You can only add Unknown classes to Unknowns.
 
-	iSize = sizeof(M);
-	pv = (M*)mpcMalloc->Malloc(iSize + iAdditionalSize, &acDebug);
+	uiSize = sizeof(M);
+	pv = (M*)mpcMalloc->Malloc(uiSize + uiAdditionalSize, &acDebug);
 	if (pv)
 	{
-		memset(pv, 0, iSize + iAdditionalSize);
+		memset(pv, 0, uiSize + uiAdditionalSize);
 		new(pv) M();
 		if (!pv->IsUnknown())
 		{

@@ -90,7 +90,7 @@ void CClasses::AddSystemClasses(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CClasses::Add(const char* szClassName, uint32 uiSize, EPrimitiveType eType)
+CClass* CClasses::Add(const char* szClassName, size uiSize, EPrimitiveType eType)
 {
 	CClass* pcClass;
 
@@ -106,7 +106,7 @@ CClass* CClasses::Add(const char* szClassName, uint32 uiSize, EPrimitiveType eTy
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CClasses::Add(const char* szClassName, uint32 uiSize)
+CClass* CClasses::Add(const char* szClassName, size uiSize)
 {
 	return Add(szClassName, uiSize, (EPrimitiveType)GetNextClassType());
 }

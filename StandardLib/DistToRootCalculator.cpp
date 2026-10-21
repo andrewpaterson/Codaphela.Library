@@ -10,8 +10,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CDistToRootCalculator::Calculate(CBaseObject* pcObject, CDistCalculatorParameters* pcParameters)
 {
-	int					i;
-	int					iNumTouched;
+	size				i;
+	size				iNumTouched;
 	CBaseObject*		pcTouched;
 	CEmbeddedObject*	pcClosestFrom;
 
@@ -50,8 +50,8 @@ void CDistToRootCalculator::CollectAndClearInvalidRootDistances(CBaseObject* pcF
 //////////////////////////////////////////////////////////////////////////
 void CDistToRootCalculator::ResetObjectsToUnattachedDistToRoot(CDistCalculatorParameters* pcParameters)
 {
-	int				i;
-	int				iNumTouched;
+	size			i;
+	size			iNumTouched;
 	CBaseObject*	pcBaseObject;
 
 	iNumTouched = pcParameters->NumTouched();

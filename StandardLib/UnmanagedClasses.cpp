@@ -77,7 +77,7 @@ void CUnmanagedClasses::Kill(void)
 CClass* CUnmanagedClasses::AddClassByPrettyName(EPrimitiveType eType)
 {
 	const char* pszName;
-	int			iSize;
+	size		iSize;
 
 	TypesValidate();
 
@@ -94,7 +94,7 @@ CClass* CUnmanagedClasses::AddClassByPrettyName(EPrimitiveType eType)
 CClass* CUnmanagedClasses::AddClassByCPPName(EPrimitiveType eType)
 {
 	const char*	pszName;
-	int			iSize;
+	size		iSize;
 
 	TypesValidate();
 
@@ -108,7 +108,7 @@ CClass* CUnmanagedClasses::AddClassByCPPName(EPrimitiveType eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CUnmanagedClasses::AddClass(EPrimitiveType eType, const char* szName, int iSize)
+CClass* CUnmanagedClasses::AddClass(EPrimitiveType eType, const char* szName, size iSize)
 {
 	CClass*			pcClass;
 

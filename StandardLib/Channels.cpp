@@ -212,9 +212,9 @@ bool CChannels::Load(CObjectReader* pcFile)
 	mpsChangingDesc = NULL;
 	mpvUserData = NULL;
 	ReturnOnFalse(masChannelOffsets.Read(pcFile));
-	ReturnOnFalse(pcFile->ReadInt32(&miSize));
-	ReturnOnFalse(pcFile->ReadInt32(&miByteStride));
-	ReturnOnFalse(pcFile->ReadInt32(&miBitStride));
+	ReturnOnFalse(pcFile->ReadSize(&miSize));
+	ReturnOnFalse(pcFile->ReadSize(&miByteStride));
+	ReturnOnFalse(pcFile->ReadSize(&miBitStride));
 	ReturnOnFalse(pcFile->ReadBool(&mbOnlyBasicTypes));
 	ReturnOnFalse(mabData.Read(pcFile));
 	mpvDataCache = mabData.GetData();
@@ -322,7 +322,7 @@ void CChannels::SetChannelDebugNames(size iChannel, const char* szShortName, con
 			mpmicChannelDebugs->Init();
 		}
 
-		psDesc = mpmicChannelDebugs->Put(iChannel);
+		psDesc = mpmicChannelDebugs->Put((int)iChannel);
 		if (psDesc)
 		{
 			psDesc->Init(szLongName, szShortName);
@@ -476,7 +476,7 @@ bool CChannels::IsChannelRemoved(size iChannel)
 {
 	if (IsChanging())
 	{
-		return (mpsChangingDesc->asRemovedChannels.FindWithIntKey(iChannel, 0) != ARRAY_ELEMENT_NOT_FOUND);
+		return (mpsChangingDesc->asRemovedChannels.FindWithIntKey((int)iChannel, 0) != ARRAY_ELEMENT_NOT_FOUND);
 	}
 	return false;
 }
@@ -490,7 +490,7 @@ bool CChannels::IsChannelAdded(size iChannel)
 {
 	if (IsChanging())
 	{
-		return (mpsChangingDesc->asAddedChannels.FindWithIntKey(iChannel, 0) != ARRAY_ELEMENT_NOT_FOUND);
+		return (mpsChangingDesc->asAddedChannels.FindWithIntKey((int)iChannel, 0) != ARRAY_ELEMENT_NOT_FOUND);
 	}
 	return false;
 }
@@ -573,7 +573,7 @@ bool CChannels::EndChange(void)
 
 					if (mpmicChannelDebugs)
 					{
-						mpmicChannelDebugs->Remove(psRemovedChannel->iChannel);
+						mpmicChannelDebugs->Remove((int)psRemovedChannel->iChannel);
 					}
 				}
 			}
@@ -587,7 +587,7 @@ bool CChannels::EndChange(void)
 				pcChannel = GetChannel(psAddedChannel->iChannel);
 				if (pcChannel)
 				{
-					gcLogger.Error2(__METHOD__, " Channel [", IntToString(psAddedChannel->iChannel), "] already exists in Channels.", NULL);
+					gcLogger.Error2(__METHOD__, " Channel [", SizeToString(psAddedChannel->iChannel), "] already exists in Channels.", NULL);
 					bResult = false;
 					bAnyAdded = false;
 					break;
@@ -610,7 +610,7 @@ bool CChannels::EndChange(void)
 					{
 						iOffset = iOldByteStride;
 						iSize = iAddedBitStride / 8;
-						mabData.InsertBatch(iOffset, iSize, miSize, iOldByteStride);
+						mabData.InsertBatch(iOffset, iSize, (int32)miSize, iOldByteStride);
 					}
 					else
 					{
@@ -639,7 +639,7 @@ bool CChannels::EndChange(void)
 
 				if (mpmicChannelDebugs)
 				{
-					mpmicChannelDebugs->Remove(psRemovedChannel->iChannel);
+					mpmicChannelDebugs->Remove((int)psRemovedChannel->iChannel);
 				}
 			}
 
@@ -918,7 +918,7 @@ size CChannels::GetIndexOfChannel(CChannel* pcChannel)
 //////////////////////////////////////////////////////////////////////////
 size CChannels::GetIndexOfChannel(size iChannel)
 {
-	return masChannelOffsets.FindWithIntKey(iChannel, 0);
+	return masChannelOffsets.FindWithIntKey((int)iChannel, 0);
 }
 
 
@@ -930,7 +930,7 @@ CChannel* CChannels::GetChannel(size iChannel)
 {
 	size	iIndex;
 
-	iIndex = masChannelOffsets.FindWithIntKey(iChannel, 0);
+	iIndex = masChannelOffsets.FindWithIntKey((int)iChannel, 0);
 	if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		return NULL;
@@ -1239,7 +1239,7 @@ const char* CChannels::GetChannelLongName(size iChannel)
 
 	if (mpmicChannelDebugs)
 	{
-		psDesc = mpmicChannelDebugs->Get(iChannel);
+		psDesc = mpmicChannelDebugs->Get((int)iChannel);
 		if (psDesc)
 		{
 			return psDesc->mszLongName;
@@ -1260,7 +1260,7 @@ const char* CChannels::GetChannelShortName(size iChannel)
 
 	if (mpmicChannelDebugs)
 	{
-		psDesc = mpmicChannelDebugs->Get(iChannel);
+		psDesc = mpmicChannelDebugs->Get((int)iChannel);
 		if (psDesc)
 		{
 			return psDesc->mszShortName;
@@ -1285,7 +1285,7 @@ void CChannels::GetAllChannels(CArraySize* paiChannels)
 	for (j = 0; j < uiOffsets; j++)
 	{
 		psChannel = masChannelOffsets.Get(j);
-		paiChannels->Add(psChannel->iChannel);
+		paiChannels->Add((int)psChannel->iChannel);
 	}
 }
 
@@ -1397,7 +1397,7 @@ void CChannels::GetChannelsForType(EPrimitiveType eType, CArraySize* paiChannels
 		psChannel = masChannelOffsets.Get(j);
 		if (psChannel->eType == eType)
 		{
-			paiChannels->Add(psChannel->iChannel);
+			paiChannels->Add((int)psChannel->iChannel);
 		}
 	}
 }

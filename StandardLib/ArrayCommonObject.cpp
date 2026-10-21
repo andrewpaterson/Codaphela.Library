@@ -412,7 +412,10 @@ bool CArrayCommonObject::RemoveAllPointerTosTryFree(void)
 	uiNumElements = mcArray.UnsafeNumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
+		//The object leaves the array before it is freed, as in Set.  Freeing a later object can walk back through the
+		//array and mustn't find the ones already freed.
 		pcPointedTo = UnsafeGetObject(i);
+		mcArray.UnsafeSet(i, NULL);
 		bResult &= RemovePointerToTryFree(pcPointedTo);
 	}
 	mcArray.ReInit();

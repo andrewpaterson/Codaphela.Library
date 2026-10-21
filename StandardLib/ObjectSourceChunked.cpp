@@ -92,10 +92,10 @@ CBaseObject* CObjectSourceChunked::Convert(const char* szFullName)
 //////////////////////////////////////////////////////////////////////////
 bool CObjectSourceChunked::Contains(const char* szFullName)
 {
-	int		iIndex;
+	size	iIndex;
 
 	iIndex = mcNames.FindInSorted(szFullName, false);
-	return iIndex != -1;
+	return iIndex != ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -103,7 +103,7 @@ bool CObjectSourceChunked::Contains(const char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CObjectSourceChunked::GetName(int iIndex)
+char* CObjectSourceChunked::GetName(size iIndex)
 {
 	return mcNames.Get(iIndex)->Text();
 }
@@ -113,7 +113,7 @@ char* CObjectSourceChunked::GetName(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObjectSourceChunked::NumNames(void)
+size CObjectSourceChunked::NumNames(void)
 {
 	return mcNames.NumElements();
 }

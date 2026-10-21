@@ -16,7 +16,7 @@ public:
 	void		Kill(void);
 
 	bool		IsPointer(void);
-	uint32		GetSizeOf(void);
+	size		GetSizeOf(void);
 	size		GetNameOffset(void);
 	CPointer*	GetPointer(CBaseObject* pcFieldContainer);
 	void		DoNotFreePointedTo(bool bValue);

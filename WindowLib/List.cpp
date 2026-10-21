@@ -308,7 +308,8 @@ int32 CList::FindRowAt(int x, int y)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The colours are in the window's colour order.
+// Like any fill colour they are red, green and blue whatever the
+// window's colour order; the native canvas orders them.
 //
 //////////////////////////////////////////////////////////////////////////
 void CList::SetHighlightColours(ARGB32 sSelected, ARGB32 sHover)

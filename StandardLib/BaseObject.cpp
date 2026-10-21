@@ -1540,7 +1540,7 @@ bool CBaseObject::SaveUnmanaged(CObjectWriter* pcFile)
 	CUnmanagedField*	pcUnmanagedField;
 	bool				bResult;
 	size				uiCount;
-	uint32				uiSize;
+	size				uiSize;
 	void*				pvUnmanaged;
 
 	papv = mpcClass->GetUnmanagedFields();
@@ -1717,7 +1717,7 @@ bool CBaseObject::LoadUnmanaged(CObjectReader* pcFile)
 	CUnmanagedField*		pcUnmanagedField;
 	bool					bResult;
 	size					uiCount;
-	uint32					uiSize;
+	size					uiSize;
 	void*					pvUnmanaged;
 
 	papv = mpcClass->GetUnmanagedFields();

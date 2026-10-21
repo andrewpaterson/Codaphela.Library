@@ -50,7 +50,7 @@ protected:
 	CClass*		AddClass(EPrimitiveType eFieldType);
 	template<class Class>
 	CClass*		AddClassWithConstructorAndIO(EPrimitiveType eFieldType);
-	CClass*		AddClass(const char* szClassName, size uiClassSize, EPrimitiveType eFieldType, uint32 eFieldOffest);
+	CClass*		AddClass(const char* szClassName, size uiClassSize, EPrimitiveType eFieldType, size eFieldOffest);
 	CClass*		AddVoid(void);
 };
 

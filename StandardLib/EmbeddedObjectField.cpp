@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObjectField::Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, const char* szName)
+void CEmbeddedObjectField::Init(CClass* pcFieldClass, size uiOffset, CClass* pcContainingClass, const char* szName)
 {
 	CField::Init(pcFieldClass, uiOffset, pcContainingClass, szName);
 }
@@ -37,7 +37,7 @@ bool CEmbeddedObjectField::IsEmbeddedObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CEmbeddedObjectField::GetSizeOf(void)
+size CEmbeddedObjectField::GetSizeOf(void)
 {
 	return mpcFieldClass->GetSizeOf();
 }

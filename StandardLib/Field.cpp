@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CField::Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, const char* szName)
+void CField::Init(CClass* pcFieldClass, size uiOffset, CClass* pcContainingClass, const char* szName)
 {
 	mpcFieldClass = pcFieldClass;
 	muiOffset = uiOffset;
@@ -72,7 +72,7 @@ bool CField::IsArray(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CField::GetOffset(void)
+size CField::GetOffset(void)
 {
 	return muiOffset;
 }

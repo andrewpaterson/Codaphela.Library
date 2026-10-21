@@ -40,7 +40,7 @@ void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcCo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, uint32 uiElementSize, size uiLength, const char* szName)
+void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, size uiElementSize, size uiLength, const char* szName)
 {
 	CClasses*	pcClasses;
 	CClass*		pcFieldClass;
@@ -87,7 +87,7 @@ size CUnmanagedField::GetLength(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CUnmanagedField::GetSizeOf(void)
+size CUnmanagedField::GetSizeOf(void)
 {
 	return muiElementSize;
 }

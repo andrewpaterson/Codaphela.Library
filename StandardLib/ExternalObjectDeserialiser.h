@@ -57,11 +57,11 @@ protected:
 
 	CDependentReadObject*	GetObject(OIndex oi);
 		
-	int						NumPointers(void);
-	CDependentReadPointer*	GetPointer(int iIndex);
+	size					NumPointers(void);
+	CDependentReadPointer*	GetPointer(size iIndex);
 		
 	void					AddIndexRemap(OIndex oiNew, OIndex oiOld);
-	int						NumObjects(void);
+	size					NumObjects(void);
 };
 
 

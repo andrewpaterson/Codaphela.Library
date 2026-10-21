@@ -26,8 +26,8 @@ public:
 	bool			IsNative(void);
 	bool			IsMultiSource(void);
 
-	char*			GetName(int iIndex);
-	int				NumNames(void);
+	char*			GetName(size iIndex);
+	size			NumNames(void);
 
 	CExternalObjectReader*	GetReader(void);
 };

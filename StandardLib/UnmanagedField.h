@@ -9,19 +9,19 @@ class CUnmanagedField : public CField
 CONSTRUCTABLE(CUnmanagedField)
 protected:
 	size		muiLength;
-	uint32		muiElementSize;
+	size		muiElementSize;
 
 public:
 	void		Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, const char* szName);
 	void		Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, size uiLength, const char* szName);
-	void		Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, uint32 uiElementSize, size uiLength, const char* szName);
+	void		Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, size uiElementSize, size uiLength, const char* szName);
 	void		Kill(void);
 
 	bool		IsArray(void);
 	size		GetLength(void);
 	bool		IsUnmanaged(void);
 	void*		GetData(CBaseObject* pcFieldContainer);
-	uint32		GetSizeOf(void);
+	size		GetSizeOf(void);
 	size		GetNameOffset(void);
 };
 

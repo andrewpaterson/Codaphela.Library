@@ -13,21 +13,21 @@ class CField : public CUnknown
 {
 CONSTRUCTABLE(CField)
 protected:
-	uint32		muiOffset;
+	size		muiOffset;
 	CClass*		mpcFieldClass;
 	CClass*		mpcContainingClass;
 
 public:
-			void		Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, const char* szName);
+			void		Init(CClass* pcFieldClass, size uiOffset, CClass* pcContainingClass, const char* szName);
 			void		Kill(void);
 
 			CClasses*	GetClasses(void);
 			char*		GetName(void);
 			CClass*		GetClass(void);
-	virtual	uint32		GetSizeOf(void) =0;
+	virtual	size		GetSizeOf(void) =0;
 
 	virtual	bool		IsArray(void);
-			uint32		GetOffset(void);
+			size		GetOffset(void);
 	virtual	bool		IsPointer(void);
 	virtual	bool		IsPrimitive(void);
 	virtual	bool		IsUnmanaged(void);

@@ -13,7 +13,7 @@ public:
 	void			ResetObjectsToUnknownDistToStack(CDistCalculatorParameters* pcParameters);
 
 protected:
-	int				CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters);
+	size			CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters);
 	void			InitialiseCompletelyDetached(CDistCalculatorParameters* pcParameters);
 	int				UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcParameters);
 	void			UpdateDistToStackForAllObjects(CDistCalculatorParameters* pcParameters);

@@ -59,7 +59,7 @@ CSerialisedObject* CExternalObjectReader::ReadSerialised(CFileReader* pcReader)
 	}
 
 	pcSerialised->SetLength(iLength);
-	iLength -= sizeof(int);
+	iLength -= (int)sizeof(int);
 
 	pvOffset = RemapSinglePointer(pcSerialised, sizeof(int));
 	bResult = pcReader->ReadData(pvOffset, iLength);

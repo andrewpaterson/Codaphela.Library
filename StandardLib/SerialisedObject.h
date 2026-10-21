@@ -17,10 +17,10 @@ struct SSerialisedName
 class CSerialisedObject
 {
 protected:
-	size				miLength;
+	uint32				miLength;  //Four bytes in 32 and 64 bit builds; this class maps onto the written file data.
 	char				mszMagic[4];
 	char				mszType[4];
-	size				miIgnored;
+	uint32				miIgnored;
 
 	OIndex				moi;
 	uint16				muiSize;

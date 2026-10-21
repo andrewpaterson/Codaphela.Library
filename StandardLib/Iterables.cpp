@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CIterableList::Init(const char* szName)
 {
-	mcFreeListPtrs.Init(128, sizeof(CUnknown*));
+	mcFreeListPtrs.Init(sizeof(CUnknown*), sizeof(CUnknown*));
 	mszName.Init(szName);
 }
 
