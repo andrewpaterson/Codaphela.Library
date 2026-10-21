@@ -5,6 +5,7 @@
 #include "NativeWindowFactory.h"
 #include "WindowTick.h"
 #include "ComponentInput.h"
+#include "Button.h"
 #include "Window.h"
 
 
@@ -27,6 +28,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWi
 	AddComponent(mpCanvas);
 	mbTicking = false;
 	mpcComponentInput = NULL;
+	mpDefaultButton = NULL;
 
 	mFocus.Init(this);
 
@@ -71,6 +73,7 @@ void CWindow::Class(void)
 	M_Embedded(mFocus);
 	U_Pointer(mpcFactory);
 	U_Pointer(mpcComponentInput);
+	M_Pointer(mpDefaultButton);
 }
 
 
@@ -198,6 +201,31 @@ void CWindow::SetComponentInput(CComponentInput* pcComponentInput)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A window has at most one default button.  It takes on its default look
+// and the one it replaces loses it.  NULL clears it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::SetDefaultButton(Ptr<CButton> pButton)
+{
+	if (&mpDefaultButton == &pButton)
+	{
+		return;
+	}
+
+	if (mpDefaultButton)
+	{
+		mpDefaultButton->SetDefault(false);
+	}
+	mpDefaultButton = pButton;
+	if (mpDefaultButton)
+	{
+		mpDefaultButton->SetDefault(true);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CWindow::GetWindowTitle(void)
@@ -262,6 +290,7 @@ void CWindow::GetColourFormat(CColourFormatHelper* pcHelper)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CCanvas>			CWindow::GetCanvas(void) { return mpCanvas; }
 Ptr<CFocus>				CWindow::GetFocus(void) { return &mFocus; }
+Ptr<CButton>			CWindow::GetDefaultButton(void) { return mpDefaultButton; }
 CComponentInput*		CWindow::GetComponentInput(void) { return mpcComponentInput; }
 Ptr<CContainer>			CWindow::GetContainer(void) { return mpCanvas->GetContainer(); }
 CNativeWindowFactory*	CWindow::GetFactory(void) { return mpcFactory; }

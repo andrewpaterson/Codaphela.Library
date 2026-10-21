@@ -68,3 +68,11 @@ bool CClearCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 	return true;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClearCanvasDraw::SetColour(ARGB32 sColour) { msColour = sColour; }
+ARGB32 CClearCanvasDraw::GetColour(void) { return msColour; }
+

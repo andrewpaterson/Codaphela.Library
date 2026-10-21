@@ -769,6 +769,7 @@ bool CInputDevicesReader::ReadSources(CMarkupTag* pcParentTag, CInputDeviceDesc*
 
 			cCopyContext.Init(pcSourceDesc, pcDeviceDesc);
 			pcDeviceDesc->CopySources(&cCopyContext);
+			cCopyContext.Kill();
 			szNamedID.Kill();
 			return true;
 		}
@@ -1280,12 +1281,14 @@ bool CInputDevicesReader::ReadValueChannel(CMarkupTag* pcParentTag, CInputSource
 		tResult = cTypeParser.Parse(pcExternalChannel->eType, vTest, 8);
 		if (tResult != TRITRUE)
 		{
+			cTypeParser.Kill();
 			szTestValue.Kill();
 			return false;
 		}
 	}
 
 	pcSourceValue->AddChannel(iIndex, eComparator, vTest);
+	cTypeParser.Kill();
 	szTestValue.Kill();
 	return true;
 }

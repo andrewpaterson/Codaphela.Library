@@ -35,10 +35,23 @@ static int gaiButtonQuarterTurns[NUM_BUTTON_BORDER_PIECES] = {	0, 0, 0, 3, 1, 0,
 //////////////////////////////////////////////////////////////////////////
 void CButtonImages::Init(Ptr<CImage> pNormal, Ptr<CImage> pMouseOver, Ptr<CImage> pSelected, Ptr<CImage> pPushed, ARGB32 sFaceColour)
 {
+	Init(pNormal, pMouseOver, pSelected, pPushed, sFaceColour, sFaceColour, sFaceColour, sFaceColour);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CButtonImages::Init(Ptr<CImage> pNormal, Ptr<CImage> pMouseOver, Ptr<CImage> pSelected, Ptr<CImage> pPushed, ARGB32 sNormalFace, ARGB32 sMouseOverFace, ARGB32 sSelectedFace, ARGB32 sPushedFace)
+{
 	PreInit();
 
 	maCels.Init();
-	msFaceColour = sFaceColour;
+	masFaceColours[BS_Normal] = sNormalFace;
+	masFaceColours[BS_MouseOver] = sMouseOverFace;
+	masFaceColours[BS_Selected] = sSelectedFace;
+	masFaceColours[BS_Pushed] = sPushedFace;
 	miTileSize = (int32)pNormal->GetWidth();
 
 	AddStrip(pNormal);
@@ -57,7 +70,7 @@ void CButtonImages::Init(Ptr<CImage> pNormal, Ptr<CImage> pMouseOver, Ptr<CImage
 void CButtonImages::Class(void)
 {
 	M_Embedded(maCels);
-	U_UInt32(msFaceColour);
+	U_UInt32Array(masFaceColours, NUM_BUTTON_STATES);
 	U_Int32(miTileSize);
 }
 
@@ -125,7 +138,7 @@ Ptr<CImageCel> CButtonImages::CreateCel(Ptr<CImage> pStrip, int iTile, int iQuar
 	iTop = iTile * miTileSize;
 	if (iQuarterTurns == 0)
 	{
-		return OMalloc<CImageCel>(pStrip, 0, iTop, miTileSize, iTop + miTileSize);
+		return CropCel(OMalloc<CImageCel>(pStrip, 0, iTop, miTileSize, iTop + miTileSize));
 	}
 
 	iLast = miTileSize - 1;
@@ -152,7 +165,21 @@ Ptr<CImageCel> CButtonImages::CreateCel(Ptr<CImage> pStrip, int iTile, int iQuar
 	}
 	pcSource->Kill();
 	pcDest->Kill();
-	return OMalloc<CImageCel>(pTile);
+	return CropCel(OMalloc<CImageCel>(pTile));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The cel keeps the full tile size but only its pixels that are not
+// transparent are blitted, so an empty band, such as where a focus ring
+// would be, costs nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CButtonImages::CropCel(Ptr<CImageCel> pCel)
+{
+	pCel->CropTransparentBorders();
+	return pCel;
 }
 
 
@@ -170,6 +197,6 @@ Ptr<CImageCel> CButtonImages::GetCel(EButtonState eState, EButtonBorderPiece ePi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ARGB32 CButtonImages::GetFaceColour(void) { return msFaceColour; }
+ARGB32 CButtonImages::GetFaceColour(EButtonState eState) { return masFaceColours[eState]; }
 int32 CButtonImages::GetTileSize(void) { return miTileSize; }
 

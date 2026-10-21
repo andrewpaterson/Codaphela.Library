@@ -114,6 +114,11 @@ bool CImageCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 			mpDestImage = OMalloc<CImage>(sSize.x, sSize.y, pCanvas->GetColourFormat(), pCanvas->GetColourOrder(), pCanvas->GetColourBits(), pCanvas->GetAlphaBits());
 			mpDestImage->Black();  //A native canvas starts black so this image must too.
 		}
+		else if (pCanvas->IsTransparent())
+		{
+			//The whole image is copied onto the canvas, so what an earlier cel left outside this one must go.
+			mpDestImage->Black();
+		}
 		pImage = mpDestImage;
 	}
 	else

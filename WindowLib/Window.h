@@ -29,6 +29,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CWindowTick;
 class CComponentInput;
+class CButton;
 class CWindow : public CComponent
 {
 CONSTRUCTABLE(CWindow); 
@@ -43,6 +44,7 @@ protected:
 	CFocus					mFocus;
 	CNativeWindowFactory*	mpcFactory;
 	CComponentInput*		mpcComponentInput;  //Optional.  Updated every tick when set.
+	Ptr<CButton>			mpDefaultButton;  //Clicked by enter unless the focussed component wants it.
 
 public:
 	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
@@ -72,6 +74,9 @@ public:
 	const char*				GetWindowTitle(void);
 	Ptr<CCanvas>			GetCanvas(void);
 	Ptr<CFocus>				GetFocus(void);
+
+	void					SetDefaultButton(Ptr<CButton> pButton);
+	Ptr<CButton>			GetDefaultButton(void);
 
 	bool					SetContainer(Ptr<CContainer> pContainer);
 	Ptr<CContainer>			GetContainer(void);

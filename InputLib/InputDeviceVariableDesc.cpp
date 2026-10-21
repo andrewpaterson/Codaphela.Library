@@ -108,7 +108,6 @@ void CInputDeviceVariableDesc::Copy(CInputDeviceVariableDesc* pcSourceDesc, CInp
 	CInputDeviceVariableDesc*		pcVariableDesc;
 	bool							bExists;
 
-	mszName.Init(pcSourceDesc->mszName.Text());
 	mpcDeviceDesc = pcContext->mpcDestDeviceDesc;
 
 	bExists = pcSourceDesc->mlcValues.StartIteration(&sIter, &pcSourceValue);

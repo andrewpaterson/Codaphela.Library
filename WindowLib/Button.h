@@ -25,6 +25,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "GridContainer.h"
 #include "FillContainer.h"
 #include "ImageCanvasDraw.h"
+#include "ClearCanvasDraw.h"
 #include "Label.h"
 #include "ButtonImages.h"
 #include "ButtonListener.h"
@@ -36,12 +37,17 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //The button is hit as a whole so it, not its parts, has the pointer over it and takes focus.  A click is a press and
 //release with the pointer over the button both times, or space or enter while it has focus.
+//
+//A window's default button is also clicked by enter when the focussed component doesn't want it.  It is drawn with
+//its default images, if it has them, while it is the default.
 class CButton : public CGridContainer
 {
 CONSTRUCTABLE(CButton);
 DESTRUCTABLE(CButton);
 protected:
 	Ptr<CButtonImages>			mpImages;
+	Ptr<CButtonImages>			mpDefaultImages;  //Optional.
+	Ptr<CClearCanvasDraw>		mpFaceDraw;
 	CArray<CImageCanvasDraw>	maBorderDraws;  //One for each EButtonBorderPiece.
 	Ptr<CFillContainer>			mpFace;
 	Ptr<CLabel>					mpCaption;
@@ -51,9 +57,11 @@ protected:
 	bool						mbMouseOver;
 	bool						mbFocussed;
 	bool						mbPressed;  //Pressed on and not yet released.
+	bool						mbDefault;
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CFont> pFont, const char* szCaption);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButtonImages> pDefaultImages, Ptr<CFont> pFont, const char* szCaption);
 	void				Class(void) override;
 	void 				Free(void) override;
 
@@ -71,8 +79,12 @@ public:
 
 	EButtonState		GetState(void);
 	bool				IsPressed(void);
+	void				SetDefault(bool bDefault);
+	bool				IsDefault(void);
+	Ptr<CButtonImages>	GetImages(void);
 
 	Ptr<CComponent>		FindComponentAt(int x, int y) override;
+	bool				WantsEnter(void) override;
 
 	void				FocusGained(void) override;
 	void				FocusLost(void) override;
@@ -85,6 +97,7 @@ public:
 
 protected:
 	void				UpdateState(void);
+	void				UpdateLook(void);
 	void				UpdateFaceSize(void);
 };
 
