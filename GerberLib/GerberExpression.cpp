@@ -5,6 +5,7 @@
 
 
 bool EvaluateGerberCalcExpression(CCalcExpression* pcExpression, CGerberMacroVariables* pcVariables, CNumber* pcResult);
+bool PrintGerberCalcExpression(CCalcExpression* pcExpression, CChars* psz);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -189,5 +190,191 @@ bool EvaluateGerberCalcExpression(CCalcExpression* pcExpression, CGerberMacroVar
 		return false;
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberExpression::IsSet(void)
+{
+	return mpcExpression != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberExpression::Print(CChars* psz)
+{
+	return PrintGerberCalcExpression(mpcExpression, psz);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char GetGerberOperatorSymbol(CCalcOperator* pcOperator)
+{
+	switch (pcOperator->meOp)
+	{
+		case CO_Add:
+		case CO_UnaryAdd:
+			return '+';
+		case CO_Subtract:
+		case CO_UnarySubtract:
+			return '-';
+		case CO_Multiply:
+			return 'x';
+		case CO_Divide:
+			return '/';
+		default:
+			return 0;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int GetGerberOperatorPrecedence(CCalcOperator* pcOperator)
+{
+	//Higher binds tighter.  The Gerber calculator symbols bind / tighter than x (2 and 3) so the same order is used
+	//here to print a tree that parses back to itself.
+	switch (pcOperator->meOp)
+	{
+		case CO_Add:
+		case CO_Subtract:
+			return 1;
+		case CO_Multiply:
+			return 2;
+		case CO_Divide:
+			return 3;
+		default:
+			return 0;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrintGerberCalcOperand(CCalcExpression* pcOperand, int iPrecedence, bool bRight, CChars* psz)
+{
+	CCalcBinaryExpression*	pcBinary;
+	bool					bParentheses;
+	int						iOperandPrecedence;
+
+	//Parentheses are added where the operand would otherwise bind differently.  A unary operand on the right
+	//is also parenthesised; "a+-b" is not in the Gerber expression grammar.
+	bParentheses = false;
+	if (pcOperand->IsBinaryExpression())
+	{
+		pcBinary = (CCalcBinaryExpression*)pcOperand;
+		iOperandPrecedence = GetGerberOperatorPrecedence(pcBinary->mpcOp);
+		bParentheses = bRight ? (iOperandPrecedence <= iPrecedence) : (iOperandPrecedence < iPrecedence);
+	}
+	else if (pcOperand->IsUnaryExpression())
+	{
+		bParentheses = bRight;
+	}
+
+	if (bParentheses)
+	{
+		psz->Append('(');
+	}
+	if (!PrintGerberCalcExpression(pcOperand, psz))
+	{
+		return false;
+	}
+	if (bParentheses)
+	{
+		psz->Append(')');
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrintGerberCalcExpression(CCalcExpression* pcExpression, CChars* psz)
+{
+	CCalcParentheses*		pcParentheses;
+	CCalcUnaryExpression*	pcUnary;
+	CCalcBinaryExpression*	pcBinary;
+	char					cSymbol;
+	int						iPrecedence;
+
+	if (pcExpression == NULL)
+	{
+		return false;
+	}
+
+	if (pcExpression->IsConstExpression())
+	{
+		((CCalcConstExpression*)pcExpression)->mcValue.Print(psz);
+		return true;
+	}
+	else if (pcExpression->IsVariable())
+	{
+		psz->Append(((CCalcVariable*)pcExpression)->Get());
+		return true;
+	}
+	else if (pcExpression->IsParentheses())
+	{
+		pcParentheses = (CCalcParentheses*)pcExpression;
+		psz->Append('(');
+		if (!PrintGerberCalcExpression(pcParentheses->mpcExpression, psz))
+		{
+			return false;
+		}
+		psz->Append(')');
+		return true;
+	}
+	else if (pcExpression->IsUnaryExpression())
+	{
+		pcUnary = (CCalcUnaryExpression*)pcExpression;
+		cSymbol = GetGerberOperatorSymbol(pcUnary->mpcOp);
+		if (cSymbol == 0)
+		{
+			return false;
+		}
+		psz->Append(cSymbol);
+		if (pcUnary->mpcExpression->IsBinaryExpression() || pcUnary->mpcExpression->IsUnaryExpression())
+		{
+			psz->Append('(');
+			if (!PrintGerberCalcExpression(pcUnary->mpcExpression, psz))
+			{
+				return false;
+			}
+			psz->Append(')');
+			return true;
+		}
+		return PrintGerberCalcExpression(pcUnary->mpcExpression, psz);
+	}
+	else if (pcExpression->IsBinaryExpression())
+	{
+		pcBinary = (CCalcBinaryExpression*)pcExpression;
+		cSymbol = GetGerberOperatorSymbol(pcBinary->mpcOp);
+		iPrecedence = GetGerberOperatorPrecedence(pcBinary->mpcOp);
+		if ((cSymbol == 0) || (iPrecedence == 0))
+		{
+			return false;
+		}
+		if (!PrintGerberCalcOperand(pcBinary->mpcLeft, iPrecedence, false, psz))
+		{
+			return false;
+		}
+		psz->Append(cSymbol);
+		return PrintGerberCalcOperand(pcBinary->mpcRight, iPrecedence, true, psz);
+	}
+	return false;
 }
 

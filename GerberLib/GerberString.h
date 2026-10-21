@@ -4,7 +4,7 @@
 #include "BaseLib/TextParserConfig.h"
 
 
-TRISTATE ParseGerberEscapeCharacter(CTextParser* pcTextParser, char* szEscape);
+TRISTATE ParseGerberEscapeCharacter(CTextParser* pcTextParser, char* szUTF8, size* puiLength);
 TRISTATE ParseGerberCommentString(CTextParser* pcTextParser, char* szString, size* piLength);
 TRISTATE ParseGerberFieldString(CTextParser* pcTextParser, char* szString, size* piLength);
 TRISTATE ParseGerberStringUnset(CTextParser* pcTextParser, char* szString, size* piLength);
