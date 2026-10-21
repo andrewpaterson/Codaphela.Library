@@ -89,8 +89,6 @@ public:
 	OIndex 			StartIteration(SIndexTreeFileIterator* psIterator, void* ppvData, size* piDataSize, size iMaxDataSize);
 	OIndex			Iterate(SIndexTreeFileIterator* psIterator, void* ppvData, size* piDataSize, size iMaxDataSize);
 
-	bool			WriteEvictedData3(void);
-
 protected:
 	bool			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
 	bool			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);

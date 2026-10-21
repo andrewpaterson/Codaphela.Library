@@ -63,7 +63,7 @@ public:
 	void						ConvertToUnaryOperators(CCalcObjectArray* papcExpressions);
 	size						GetMinPrecedence(CCalcObjectArray* papcExpressions);
 	bool						SetError(CChars* pszFirst, CCalcObjectArray* papcExpressions, const char* szLeft, const char* szMiddle, const char* szRight);
-	void						SetError(char* szError);
+	void						SetError(const char* szError);
 	void						Print(CChars* psz, CCalcObjectArray* papcExpressions);
 	void						Print(CChars* psz, CCalcObject* pcExpression);
 	void						Print(CChars* psz);

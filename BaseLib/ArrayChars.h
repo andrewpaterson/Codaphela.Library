@@ -62,7 +62,7 @@ public:
 	CChars* 	Get(size iIndex);
 	CChars* 	Tail(void);
 	char*		GetText(size iIndex);
-	size		GetIndex(char* szStart, size iLen);
+	size		GetIndex(const char* szStart, size iLen);
 	size		GetIndex(const char* szStart);
 	size		GetIndex(CChars* psz);
 	size		GetSubStringIndex(const char* szStart);

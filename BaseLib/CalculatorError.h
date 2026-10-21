@@ -13,7 +13,7 @@ public:
 	void	Init(bool bUseUserError);
 	void	Kill(void);
 
-	void	SetError(char* szError);
+	void	SetError(const char* szError);
 	bool	HasError(void);
 	char*	GetError(void);
 

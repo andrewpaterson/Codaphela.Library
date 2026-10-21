@@ -450,7 +450,7 @@ bool CCalculator::SetError(CChars* pszStart, CCalcObjectArray* papcExpressions, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculator::SetError(char* szError)
+void CCalculator::SetError(const char* szError)
 {
 	mcErrors.SetError(szError);
 }

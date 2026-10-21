@@ -1,3 +1,4 @@
+#include "PointerFunctions.h"
 #include "CalcObjectArray.h"
 
 
@@ -14,8 +15,9 @@ void CCalcObjectArray::Kill(void)
 	uiNumElements = NumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
+		//The objects are owned by the array.
 		pcExpression = __CCalcObjectArray::GetPtr(i);
-		pcExpression->Kill();
+		SafeKill(pcExpression);
 	}
 
 	__CCalcObjectArray::Kill();

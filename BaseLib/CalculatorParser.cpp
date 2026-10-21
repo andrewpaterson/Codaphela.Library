@@ -100,6 +100,7 @@ CCalcObject* CCalculatorParser::Parse(CTextParser* pcParser, bool bErrorOnBadExp
 			mpcCalculator->SetError(sz.Text());
 			sz.Kill();
 
+			SafeKill(pcIdentifier);
 			mpcParser->PassPosition();
 			return NULL;
 		}
@@ -130,6 +131,7 @@ CCalcObject* CCalculatorParser::Parse(CTextParser* pcParser, bool bErrorOnBadExp
 			sz.Kill();
 		}
 
+		SafeKill(pcIdentifier);
 		return NULL;
 	}
 
@@ -178,6 +180,8 @@ CCalcExpression* CCalculatorParser::Expression(void)
 		pcOperand = Operand();
 		if (mpcCalculator->HasError())
 		{
+			SafeKill(pcOperand);
+			apcExpressions.Kill();
 			return NULL;
 		}
 
@@ -381,11 +385,10 @@ CCalcParentheses* CCalculatorParser::Parentheses(void)
 		tResult = mpcParser->GetExactCharacter(')', mbSkipWhitespace);
 		if (tResult == TRITRUE)
 		{
+			//Empty parentheses have no value.
+			mpcCalculator->SetError("Empty parentheses [()] in expression.");
 			mpcParser->PassPosition();
-			pcParentheses = NewMalloc<CCalcParentheses>();
-			pcParentheses->Init(mpcCalculator->GetErrors());
-			pcParentheses->SetExpression(NULL);
-			return pcParentheses;
+			return NULL;
 		}
 		else
 		{

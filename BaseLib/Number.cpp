@@ -2051,7 +2051,7 @@ void CNumber::PrivateSubtract(CNumber* pcNumber)
 	// 00yyyyyyyy.yyyyyyyyyyy00
 	else if (iThisLastDigit < iOtherLastDigit)
 	{
-		iDiff = iOtherLastDigit - iThisLastDigit;
+		iDiff = (int16)(GetDigitsBetween(iOtherLastDigit, iThisLastDigit)) - 1;
 		iOtherIndex = (int32)pcNumber->PrivateGetIndex(iThisLastDigit);
 		for (iThisIndex = iThisLastIndex; iThisIndex > iThisLastIndex - iDiff; iOtherIndex--, iThisIndex--)
 		{

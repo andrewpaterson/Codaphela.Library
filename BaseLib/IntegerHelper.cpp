@@ -390,8 +390,18 @@ size CountBits(void* pvBitArray, size iBitLength)
 	}
 	else
 	{
-		//This can be optimised
-		return CountBitsSingly(pvBitArray, iBitLength);
+		size	iCount;
+		size	iWords;
+		size	i;
+
+		//Count whole 32 bit words then the left over bits.
+		iWords = iBitLength / 32;
+		iCount = 0;
+		for (i = 0; i < iWords; i++)
+		{
+			iCount += CountBits_PopCount32(((uint32*)pvBitArray)[i]);
+		}
+		return iCount + CountBitsSingly(&((uint32*)pvBitArray)[iWords], iBitLength % 32);
 	}
 }
 
