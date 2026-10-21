@@ -52,6 +52,7 @@ void CRawInputDeviceDetail::Init(ERawDeviceType eType, CGuidClass* pcGuid, HANDL
 void CRawInputDeviceDetail::Kill(void)
 {
 	szAdditional.Kill();
+	szID.Kill();
 	szFriendlyName.Kill();
 	szRegistryKey.Kill();
 	CNativeDetail::Kill();
@@ -202,6 +203,8 @@ void CWinRawInput::Kill(void)
 		psRIDeviceDetail = masRIDeviceDetail.Get(i);
 		psRIDeviceDetail->Kill();
 	}
+	masRIDeviceDetail.Kill();
+	masRawEvents.Kill();
 }
 
 
@@ -457,9 +460,23 @@ CRawInputDeviceDetail* CWinRawInput::GetDetailForHandle(ERawDeviceType eType, HA
 	for (i = 0; i < masRIDeviceDetail.NumElements(); i++)
 	{
 		psRIDeviceDetail = masRIDeviceDetail.Get(i);
-		if ((psRIDeviceDetail->eType == eType) && (psRIDeviceDetail->hDevice == hDevice))
+		if ((psRIDeviceDetail->eType == eType) && (psRIDeviceDetail->hDevice == hDevice) && (psRIDeviceDetail->miUniqueID != -1))
 		{
 			return psRIDeviceDetail;
+		}
+	}
+
+	//Input that didn't come from a physical device (injected by a virtual machine, remote desktop or KVM software) has
+	//no device handle.  It is given to the first device of its type.
+	if (hDevice == NULL)
+	{
+		for (i = 0; i < masRIDeviceDetail.NumElements(); i++)
+		{
+			psRIDeviceDetail = masRIDeviceDetail.Get(i);
+			if ((psRIDeviceDetail->eType == eType) && (psRIDeviceDetail->miUniqueID != -1))
+			{
+				return psRIDeviceDetail;
+			}
 		}
 	}
 	return NULL;
