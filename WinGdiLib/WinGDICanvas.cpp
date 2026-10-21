@@ -180,7 +180,10 @@ void CWinGDICanvas::DrawBox(CRectangle* pcRectangle, bool bFilled, ARGB32 sColou
     HBRUSH      hBrush;
     COLORREF    sRef;
 
+    //The rectangle includes its right and bottom edges but a GDI RECT does not.
     CopyRectangleToGDIRect(&sRect, pcRectangle);
+    sRect.right++;
+    sRect.bottom++;
 
     if (mpcCanvas->IsTransparent())
     {
