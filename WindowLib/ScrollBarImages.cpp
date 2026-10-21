@@ -125,29 +125,33 @@ void CScrollBarImages::SetColour(CImageDraw* pcDraw)
 //////////////////////////////////////////////////////////////////////////
 //
 // The start of a horizontal thumb is the left half of a circle, its end
-// the right half.  A vertical thumb's are the top and bottom halves.
+// the right half.  A vertical thumb's are the top and bottom halves.  The
+// whole circle is drawn and the cap's image clips it so when the thumb is
+// an odd number of pixels thick the circle's middle row or column is all
+// in the cap and meets the middle without a seam.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImageCel> CScrollBarImages::CreateCap(EScrollBarOrientation eOrientation, EScrollBarPiece ePiece)
 {
 	Ptr<CImage>		pImage;
 	CImageDraw		cDraw;
-	EImageDrawHalf	eHalf;
+	int32			iOffset;
 
+	iOffset = (ePiece == SBP_Start) ? 0 : GetCapLength() - miThickness;
 	if (eOrientation == SBO_Horizontal)
 	{
 		pImage = CreateImage(GetCapLength(), miThickness);
-		eHalf = (ePiece == SBP_Start) ? IDH_Left : IDH_Right;
+		cDraw.Init(&pImage);
+		SetColour(&cDraw);
+		cDraw.DrawSemicircle(iOffset, 0, miThickness, 0, 360, true);
 	}
 	else
 	{
 		pImage = CreateImage(miThickness, GetCapLength());
-		eHalf = (ePiece == SBP_Start) ? IDH_Top : IDH_Bottom;
+		cDraw.Init(&pImage);
+		SetColour(&cDraw);
+		cDraw.DrawSemicircle(0, iOffset, miThickness, 0, 360, true);
 	}
-
-	cDraw.Init(&pImage);
-	SetColour(&cDraw);
-	cDraw.DrawFilledHalfCircle(0, 0, miThickness, eHalf);
 	cDraw.Kill();
 
 	return OMalloc<CImageCel>(pImage);

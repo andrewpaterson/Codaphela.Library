@@ -225,40 +225,74 @@ void CImageDraw::DrawVerticalLine(int x, int y0, int y1)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Draws one half of a filled circle iDiameter across.  The half's box has
-// its top left at x, y and is (iDiameter + 1) / 2 wide and iDiameter high
-// for the left and right halves (the other way round for the top and
-// bottom halves).  The circle's centre is on the box's flat side so a half
-// drawn against a bar iDiameter thick joins it without a gap.
+// The direction of iAngle degrees in 65536ths, rounded so the right
+// angles are exact on every build.  y is up.
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageDraw::AngleDirection(int iAngle, int64* piX, int64* piY)
+{
+	float64	fRadians;
+
+	fRadians = ((float64)iAngle * 3.14159265358979323846) / 180.0;
+	*piX = (int64)floor(cos(fRadians) * 65536.0 + 0.5);
+	*piY = (int64)floor(sin(fRadians) * 65536.0 + 0.5);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Draws the part of a circle iDiameter across between two angles.  The
+// whole circle fits in the square with its top left at x, y and sides
+// iDiameter long, so its centre is on a pixel corner when iDiameter is even
+// and in a pixel's middle when it is odd.  Angles are in degrees, 0 to the
+// right and 90 up, and the part drawn goes anticlockwise from iStartAngle
+// to iEndAngle.  90 to 180 is the top left quarter and 90 to 270 the left
+// half.  An end angle 360 or more past the start draws the whole circle.
+// Only the image's pixels are drawn so a circle can be clipped by the
+// image's edges.  If bFilled is false only the curved edge is drawn, one
+// pixel thick; the straight sides are left open.
 //
 // The edge is anti-aliased: a pixel's opacity is the colour's opacity
-// times the part of the pixel's 16 x 16 samples inside the circle.  Its
-// colour is not multiplied by its opacity.  The image must have opacity,
-// red, green and blue channels.  Pixels are written, not blended, and
-// pixels outside the circle are left alone, so the image should start
-// clear.  The coverage is worked out with integers so every build draws
+// times the part of the pixel's 16 x 16 samples inside the part of the
+// circle (or the one pixel thick ring when not filled).  Its colour is not
+// multiplied by its opacity.  The image must have opacity, red, green and
+// blue channels.  A pixel is blended over the one already there, so
+// pieces drawn one on top of another (a border then the face inside it)
+// mix along their edges.  Pixels outside the circle are left alone.  The
+// coverage and blending are worked out with integers so every build draws
 // the same pixels.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageDraw::DrawFilledHalfCircle(int x, int y, int iDiameter, EImageDrawHalf eHalf)
+bool CImageDraw::DrawSemicircle(int x, int y, int iDiameter, int iStartAngle, int iEndAngle, bool bFilled)
 {
-	CImageColourARGB	cColour;
-	CImageAccessor*		pcAccessor;
-	SImageColour		sColour;
-	int					iHalfWidth;
-	int					iWidth;
-	int					iHeight;
-	int64				iCentreX;  //In 32nds of a pixel from the box's top left, so samples sit in the middle of their 16ths.
-	int64				iCentreY;
-	int64				iRadiusSquared;
-	int64				dx;
-	int64				dy;
-	int					px;
-	int					py;
-	int					sx;
-	int					sy;
-	int					iCoverage;
-	float32				fOpacity;
+	CImageAccessorCreator	cCreator;
+	CImageAccessor*			pcAccessor;
+	uint8					auiSource[4];  //Opacity, red, green then blue.
+	uint8*					puiDest;
+	int64					iCentreX;  //In 32nds of a pixel from the image's top left, so samples sit in the middle of their 16ths.
+	int64					iCentreY;
+	int64					iRadiusSquared;
+	int64					iInnerRadius;
+	int64					iInnerRadiusSquared;  //Samples this close to the centre or closer are not drawn.  -1 draws them all.
+	int64					iDistanceSquared;
+	int64					iStartX;
+	int64					iStartY;
+	int64					iEndX;
+	int64					iEndY;
+	int64					dx;
+	int64					dy;
+	int						iSweep;
+	bool					bWhole;
+	bool					bInside;
+	int						iLeft;
+	int						iTop;
+	int						iRight;
+	int						iBottom;
+	int						px;
+	int						py;
+	int						sx;
+	int						sy;
+	int						iCoverage;
 
 	if (iDiameter <= 0)
 	{
@@ -266,74 +300,139 @@ bool CImageDraw::DrawFilledHalfCircle(int x, int y, int iDiameter, EImageDrawHal
 	}
 	if (!mpcImage->HasChannel(IMAGE_OPACITY))
 	{
-		return gcLogger.Error2(__METHOD__, " Cannot draw an anti-aliased half circle on an image without an opacity channel.", NULL);
+		return gcLogger.Error2(__METHOD__, " Cannot draw an anti-aliased semicircle on an image without an opacity channel.", NULL);
 	}
 
-	iHalfWidth = (iDiameter + 1) / 2;
-	switch (eHalf)
+	bWhole = (iEndAngle - iStartAngle) >= 360;
+	iSweep = ((iEndAngle - iStartAngle) % 360 + 360) % 360;
+	if (!bWhole && (iSweep == 0))
 	{
-	case IDH_Left:
-		iWidth = iHalfWidth;
-		iHeight = iDiameter;
-		iCentreX = iHalfWidth * 32;
-		iCentreY = iDiameter * 16;
-		break;
-	case IDH_Right:
-		iWidth = iHalfWidth;
-		iHeight = iDiameter;
-		iCentreX = 0;
-		iCentreY = iDiameter * 16;
-		break;
-	case IDH_Top:
-		iWidth = iDiameter;
-		iHeight = iHalfWidth;
-		iCentreX = iDiameter * 16;
-		iCentreY = iHalfWidth * 32;
-		break;
-	case IDH_Bottom:
-		iWidth = iDiameter;
-		iHeight = iHalfWidth;
-		iCentreX = iDiameter * 16;
-		iCentreY = 0;
-		break;
-	default:
-		return gcLogger.Error2(__METHOD__, " Unknown half of a circle.", NULL);
+		return true;
 	}
+	AngleDirection(iStartAngle, &iStartX, &iStartY);
+	AngleDirection(iEndAngle, &iEndX, &iEndY);
+
+	iCentreX = (int64)x * 32 + (int64)iDiameter * 16;
+	iCentreY = (int64)y * 32 + (int64)iDiameter * 16;
 	iRadiusSquared = (int64)iDiameter * 16 * iDiameter * 16;
-
-	cColour.Init(mfOpacity, mfRed, mfGreen, mfBlue);
-	pcAccessor = CImageAccessorCreator::Create(mpcImage, &cColour);
-	for (py = 0; py < iHeight; py++)
+	iInnerRadiusSquared = -1;
+	if (!bFilled)
 	{
-		for (px = 0; px < iWidth; px++)
+		iInnerRadius = (int64)iDiameter * 16 - 32;
+		if (iInnerRadius > 0)
+		{
+			iInnerRadiusSquared = iInnerRadius * iInnerRadius;
+		}
+	}
+
+	iLeft = x < 0 ? 0 : x;
+	iTop = y < 0 ? 0 : y;
+	iRight = x + iDiameter;
+	if (iRight > (int)mpcImage->GetWidth())
+	{
+		iRight = (int)mpcImage->GetWidth();
+	}
+	iBottom = y + iDiameter;
+	if (iBottom > (int)mpcImage->GetHeight())
+	{
+		iBottom = (int)mpcImage->GetHeight();
+	}
+
+	auiSource[0] = (uint8)(mfOpacity * 255.0f + 0.5f);
+	auiSource[1] = (uint8)(mfRed * 255.0f + 0.5f);
+	auiSource[2] = (uint8)(mfGreen * 255.0f + 0.5f);
+	auiSource[3] = (uint8)(mfBlue * 255.0f + 0.5f);
+
+	cCreator.Init(mpcImage);
+	cCreator.AddAccess(IMAGE_OPACITY, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, PT_uint8);
+	pcAccessor = cCreator.CreateAndKill();
+	for (py = iTop; py < iBottom; py++)
+	{
+		for (px = iLeft; px < iRight; px++)
 		{
 			iCoverage = 0;
 			for (sy = 0; sy < 16; sy++)
 			{
-				dy = py * 32 + sy * 2 + 1 - iCentreY;
+				dy = (int64)py * 32 + sy * 2 + 1 - iCentreY;
 				for (sx = 0; sx < 16; sx++)
 				{
-					dx = px * 32 + sx * 2 + 1 - iCentreX;
-					if (dx * dx + dy * dy <= iRadiusSquared)
+					dx = (int64)px * 32 + sx * 2 + 1 - iCentreX;
+					iDistanceSquared = dx * dx + dy * dy;
+					if ((iDistanceSquared <= iRadiusSquared) && (iDistanceSquared > iInnerRadiusSquared))
 					{
-						iCoverage++;
+						//A sample is never exactly on a side at a multiple of 90 degrees so quarters and halves drawn side by side
+						//don't share one.  y is up for the angles.
+						if (bWhole)
+						{
+							bInside = true;
+						}
+						else if (iSweep <= 180)
+						{
+							bInside = (iStartX * -dy - iStartY * dx >= 0) && (dx * iEndY - -dy * iEndX >= 0);
+						}
+						else
+						{
+							bInside = !((iEndX * -dy - iEndY * dx > 0) && (dx * iStartY - -dy * iStartX > 0));
+						}
+
+						if (bInside)
+						{
+							iCoverage++;
+						}
 					}
 				}
 			}
 
 			if (iCoverage > 0)
 			{
-				//Dividing by 256 is exact so the opacity only depends on the one multiply.
-				fOpacity = (mfOpacity * (float32)iCoverage) / 256.0f;
-				cColour.Init(fOpacity, mfRed, mfGreen, mfBlue);
-				pcAccessor->MakeColour(&sColour, &cColour);
-				pcAccessor->SafeSet(x + px, y + py, &sColour);
+				puiDest = (uint8*)pcAccessor->Get(px, py);
+				BlendPixel(puiDest, auiSource, iCoverage);
+				pcAccessor->Set(px, py, puiDest);
 			}
 		}
 	}
 	pcAccessor->Kill();
-	cColour.Kill();
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Blends the source colour, iCoverage 256ths of it, over the destination.
+// Both are opacity, red, green then blue and neither is multiplied by its
+// opacity.  The result is rounded to the nearest so drawing a colour over
+// itself doesn't change it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageDraw::BlendPixel(uint8* puiDest, uint8* puiSource, int iCoverage)
+{
+	int64	iSourceOpacity;  //In 65280ths (255 * 256).
+	int64	iDestOpacity;
+	int64	iOpacity;  //In 65280ths of 65280ths.
+	int		i;
+
+	iSourceOpacity = (int64)puiSource[0] * iCoverage;
+	if ((puiDest[0] == 0) || (iSourceOpacity == 65280))
+	{
+		puiDest[0] = (uint8)((iSourceOpacity + 128) / 256);
+		for (i = 1; i < 4; i++)
+		{
+			puiDest[i] = puiSource[i];
+		}
+		return;
+	}
+
+	iDestOpacity = (int64)puiDest[0] * 256;
+	iOpacity = iSourceOpacity * 65280 + iDestOpacity * (65280 - iSourceOpacity);
+	if (iOpacity == 0)
+	{
+		return;
+	}
+	for (i = 1; i < 4; i++)
+	{
+		puiDest[i] = (uint8)(((int64)puiSource[i] * iSourceOpacity * 65280 + (int64)puiDest[i] * iDestOpacity * (65280 - iSourceOpacity) + iOpacity / 2) / iOpacity);
+	}
+	puiDest[0] = (uint8)((iOpacity + 65280 * 128) / (65280 * 256));
 }
 
 
