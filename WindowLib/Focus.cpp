@@ -225,6 +225,12 @@ void CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
 		return;
 	}
 
+	if ((eCommand == CIC_WheelUp) || (eCommand == CIC_WheelDown) || (eCommand == CIC_WheelLeft) || (eCommand == CIC_WheelRight))
+	{
+		Wheel(eCommand);
+		return;
+	}
+
 	if ((eCommand == CIC_StopDragSelect) || (eCommand == CIC_StopDragScroll))
 	{
 		StopDrag(eCommand == CIC_StopDragSelect ? FD_Select : FD_Scroll);
@@ -425,6 +431,10 @@ void CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
 	case CIC_StopDragSelect:
 	case CIC_StopDragScroll:
 	case CIC_Hover:
+	case CIC_WheelUp:
+	case CIC_WheelDown:
+	case CIC_WheelLeft:
+	case CIC_WheelRight:
 	case CIC_Ignored:
 		break;
 	}
@@ -440,6 +450,45 @@ void CFocus::Printable(char c, bool bInsert)
 	if (mbActive && mpFocussedComponent)
 	{
 		mpFocussedComponent->Printable(c, bInsert);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The wheel turns the component under the pointer, or the nearest of its
+// ancestors that uses it, like the scroll pane it is in.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFocus::Wheel(EComponentInputCommand eCommand)
+{
+	Ptr<CComponent>	pComponent;
+	int				iRight;
+	int				iDown;
+
+	iRight = 0;
+	iDown = 0;
+	if (eCommand == CIC_WheelUp)
+	{
+		iDown = -1;
+	}
+	else if (eCommand == CIC_WheelDown)
+	{
+		iDown = 1;
+	}
+	else if (eCommand == CIC_WheelLeft)
+	{
+		iRight = -1;
+	}
+	else if (eCommand == CIC_WheelRight)
+	{
+		iRight = 1;
+	}
+
+	pComponent = mpMouseOverComponent;
+	while (pComponent && !pComponent->Wheel(iRight, iDown))
+	{
+		pComponent = pComponent->GetParent();
 	}
 }
 

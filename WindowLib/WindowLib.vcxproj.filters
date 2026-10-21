@@ -132,6 +132,15 @@
     <ClInclude Include="Button.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
+    <ClInclude Include="ScrollBarImages.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="ScrollBar.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="ScrollPane.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
     <ClInclude Include="ButtonImages.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
@@ -222,6 +231,15 @@
       <Filter>Source\Component\Drawing\Canvas</Filter>
     </ClCompile>
     <ClCompile Include="Button.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="ScrollBarImages.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="ScrollBar.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="ScrollPane.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="ButtonImages.cpp">

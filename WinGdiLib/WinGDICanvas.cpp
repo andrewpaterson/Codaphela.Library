@@ -203,9 +203,12 @@ void CWinGDICanvas::DrawPixel(int32 iX, int32 iY, ARGB32 sColour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDICanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource)
+void CWinGDICanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource, CRectangle* pcClip)
 {
     CWinGDICanvas*  pcGDISource;
+    CRectangle      cDest;
+    int             iSourceX;
+    int             iSourceY;
 
     if (!pcSource)
     {
@@ -218,7 +221,20 @@ void CWinGDICanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource)
         return;
     }
 
-    BitBlt(mhMemDC, iX, iY, pcGDISource->msSize.x, pcGDISource->msSize.y, pcGDISource->mhMemDC, 0, 0, SRCCOPY);
+    //Only the part of the source inside the clip is copied.
+    cDest.Init(iX, iY, iX + pcGDISource->msSize.x, iY + pcGDISource->msSize.y);
+    if (pcClip)
+    {
+        cDest.ClipTo(pcClip);
+    }
+    if ((cDest.GetWidth() <= 0) || (cDest.GetHeight() <= 0))
+    {
+        return;
+    }
+    iSourceX = cDest.GetLeft() - iX;
+    iSourceY = cDest.GetTop() - iY;
+
+    BitBlt(mhMemDC, cDest.GetLeft(), cDest.GetTop(), cDest.GetWidth(), cDest.GetHeight(), pcGDISource->mhMemDC, iSourceX, iSourceY, SRCCOPY);
 }
 
 

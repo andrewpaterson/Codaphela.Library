@@ -187,6 +187,9 @@
     <ClInclude Include="Button.h" />
     <ClInclude Include="ButtonImages.h" />
     <ClInclude Include="ButtonListener.h" />
+    <ClInclude Include="ScrollBarImages.h" />
+    <ClInclude Include="ScrollBar.h" />
+    <ClInclude Include="ScrollPane.h" />
     <ClInclude Include="Label.h" />
     <ClInclude Include="ClearCanvasDraw.h" />
     <ClInclude Include="Component.h" />
@@ -243,6 +246,9 @@
     <ClCompile Include="ImageCanvasDraw.cpp" />
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="ButtonImages.cpp" />
+    <ClCompile Include="ScrollBarImages.cpp" />
+    <ClCompile Include="ScrollBar.cpp" />
+    <ClCompile Include="ScrollPane.cpp" />
     <ClCompile Include="Label.cpp" />
     <ClCompile Include="TextArea.cpp" />
     <ClCompile Include="ClearCanvasDraw.cpp" />

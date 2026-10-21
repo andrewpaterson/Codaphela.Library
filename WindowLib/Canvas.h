@@ -78,7 +78,7 @@ public:
 	void				CopyCanvas(Ptr<CCanvas> pSourceCanvas);
 	Ptr<CImage>			GetImageOrNull(void);  //This should be GetPixelData or something with the goal being to get chunk of memory that an image can be backed with to avoid a double image copy.
 
-	void				DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas);
+	void				DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas, CRectangle* pcClip = NULL);
 	void				DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour);
 	void				DrawPixel(int iX, int iY, ARGB32 sColour);
 	void				DrawImage(int iX, int iY, Ptr<CImage> pImage);

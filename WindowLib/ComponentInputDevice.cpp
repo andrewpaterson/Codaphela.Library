@@ -224,8 +224,10 @@ void CComponentInputDevice::InitMouse(void)
 	AddCommand("Button 2", CIC_ContextMenu, false, false, false, true);
 	AddCommand("Button 3", CIC_StartDragScroll, false, false, false, true);
 	AddCommand("Button 3", CIC_StopDragScroll, false, false, false, false);
-	AddCommand("Wheel Forward", CIC_LineUp, false, false, false, true);
-	AddCommand("Wheel Backward", CIC_LineDown, false, false, false, true);
+	AddCommand("Wheel Forward", CIC_WheelUp, false, false, false, true);
+	AddCommand("Wheel Backward", CIC_WheelDown, false, false, false, true);
+	AddCommand("Wheel Forward", CIC_WheelLeft, false, false, true, true);
+	AddCommand("Wheel Backward", CIC_WheelRight, false, false, true, true);
 }
 
 

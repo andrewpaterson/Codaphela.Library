@@ -72,10 +72,14 @@ public:
 	bool				IsPointerIn(void);
 	bool				IsActive(void);
 
-protected:
-	void				SetMouseOver(Ptr<CComponent> pComponent);
+	//A focussed component can start a drag itself, as a scroll bar does when its thumb is pressed, so it gets the
+	//pointer's moves until it stops the drag.
 	void				StartDrag(EFocusDrag eDrag, int x, int y);
 	void				StopDrag(EFocusDrag eDrag);
+
+protected:
+	void				SetMouseOver(Ptr<CComponent> pComponent);
+	void				Wheel(EComponentInputCommand eCommand);
 	void				ToComponentSpace(Ptr<CComponent> pComponent, int* px, int* py);
 	bool				IsWithin(Ptr<CComponent> pComponent, Ptr<CComponent> pAncestor);
 };

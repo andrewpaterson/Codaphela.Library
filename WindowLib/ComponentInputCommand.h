@@ -90,6 +90,10 @@ enum EComponentInputCommand
 	CIC_StartDragSelect,
 	CIC_StopDragSelect,
 	CIC_Hover,
+	CIC_WheelUp,  //The wheel goes to the component under the pointer, not the focussed one.
+	CIC_WheelDown,
+	CIC_WheelLeft,
+	CIC_WheelRight,
 };
 
 

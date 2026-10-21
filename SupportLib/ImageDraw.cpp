@@ -50,6 +50,28 @@ void CImageDraw::SetColour(CImageColour* pcColour)
 
 	mpcAccessor = CImageAccessorCreator::Create(mpcImage, pcColour);
 	mpcAccessor->MakeColour(&msColour, pcColour);
+
+	//A colour without opacity is opaque and one without red, green or blue has none of them.
+	mfOpacity = pcColour->GetValue(IMAGE_OPACITY);
+	if (IsNotANumber(&mfOpacity))
+	{
+		mfOpacity = 1.0f;
+	}
+	mfRed = pcColour->GetValue(IMAGE_DIFFUSE_RED);
+	if (IsNotANumber(&mfRed))
+	{
+		mfRed = 0.0f;
+	}
+	mfGreen = pcColour->GetValue(IMAGE_DIFFUSE_GREEN);
+	if (IsNotANumber(&mfGreen))
+	{
+		mfGreen = 0.0f;
+	}
+	mfBlue = pcColour->GetValue(IMAGE_DIFFUSE_BLUE);
+	if (IsNotANumber(&mfBlue))
+	{
+		mfBlue = 0.0f;
+	}
 }
 
 
@@ -198,6 +220,120 @@ void CImageDraw::DrawVerticalLine(int x, int y0, int y1)
 	{
 		mpcAccessor->SafeSet(x, y, &msColour);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Draws one half of a filled circle iDiameter across.  The half's box has
+// its top left at x, y and is (iDiameter + 1) / 2 wide and iDiameter high
+// for the left and right halves (the other way round for the top and
+// bottom halves).  The circle's centre is on the box's flat side so a half
+// drawn against a bar iDiameter thick joins it without a gap.
+//
+// The edge is anti-aliased: a pixel's opacity is the colour's opacity
+// times the part of the pixel's 16 x 16 samples inside the circle.  Its
+// colour is not multiplied by its opacity.  The image must have opacity,
+// red, green and blue channels.  Pixels are written, not blended, and
+// pixels outside the circle are left alone, so the image should start
+// clear.  The coverage is worked out with integers so every build draws
+// the same pixels.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageDraw::DrawFilledHalfCircle(int x, int y, int iDiameter, EImageDrawHalf eHalf)
+{
+	CImageColourARGB	cColour;
+	CImageAccessor*		pcAccessor;
+	SImageColour		sColour;
+	int					iHalfWidth;
+	int					iWidth;
+	int					iHeight;
+	int64				iCentreX;  //In 32nds of a pixel from the box's top left, so samples sit in the middle of their 16ths.
+	int64				iCentreY;
+	int64				iRadiusSquared;
+	int64				dx;
+	int64				dy;
+	int					px;
+	int					py;
+	int					sx;
+	int					sy;
+	int					iCoverage;
+	float32				fOpacity;
+
+	if (iDiameter <= 0)
+	{
+		return true;
+	}
+	if (!mpcImage->HasChannel(IMAGE_OPACITY))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot draw an anti-aliased half circle on an image without an opacity channel.", NULL);
+	}
+
+	iHalfWidth = (iDiameter + 1) / 2;
+	switch (eHalf)
+	{
+	case IDH_Left:
+		iWidth = iHalfWidth;
+		iHeight = iDiameter;
+		iCentreX = iHalfWidth * 32;
+		iCentreY = iDiameter * 16;
+		break;
+	case IDH_Right:
+		iWidth = iHalfWidth;
+		iHeight = iDiameter;
+		iCentreX = 0;
+		iCentreY = iDiameter * 16;
+		break;
+	case IDH_Top:
+		iWidth = iDiameter;
+		iHeight = iHalfWidth;
+		iCentreX = iDiameter * 16;
+		iCentreY = iHalfWidth * 32;
+		break;
+	case IDH_Bottom:
+		iWidth = iDiameter;
+		iHeight = iHalfWidth;
+		iCentreX = iDiameter * 16;
+		iCentreY = 0;
+		break;
+	default:
+		return gcLogger.Error2(__METHOD__, " Unknown half of a circle.", NULL);
+	}
+	iRadiusSquared = (int64)iDiameter * 16 * iDiameter * 16;
+
+	cColour.Init(mfOpacity, mfRed, mfGreen, mfBlue);
+	pcAccessor = CImageAccessorCreator::Create(mpcImage, &cColour);
+	for (py = 0; py < iHeight; py++)
+	{
+		for (px = 0; px < iWidth; px++)
+		{
+			iCoverage = 0;
+			for (sy = 0; sy < 16; sy++)
+			{
+				dy = py * 32 + sy * 2 + 1 - iCentreY;
+				for (sx = 0; sx < 16; sx++)
+				{
+					dx = px * 32 + sx * 2 + 1 - iCentreX;
+					if (dx * dx + dy * dy <= iRadiusSquared)
+					{
+						iCoverage++;
+					}
+				}
+			}
+
+			if (iCoverage > 0)
+			{
+				//Dividing by 256 is exact so the opacity only depends on the one multiply.
+				fOpacity = (mfOpacity * (float32)iCoverage) / 256.0f;
+				cColour.Init(fOpacity, mfRed, mfGreen, mfBlue);
+				pcAccessor->MakeColour(&sColour, &cColour);
+				pcAccessor->SafeSet(x + px, y + py, &sColour);
+			}
+		}
+	}
+	pcAccessor->Kill();
+	cColour.Kill();
+	return true;
 }
 
 

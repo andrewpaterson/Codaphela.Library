@@ -92,6 +92,10 @@ public:
 	virtual void ContDragSelect(int x, int y) {};
 	virtual void StopDragSelect(int x, int y) {};
 	virtual void Hover(int x, int y) {};
+
+	//One notch of the wheel, iRight and iDown are -1, 0 or 1.  Returns false if the component didn't use it, then it
+	//goes to the component's parent.
+	virtual bool Wheel(int iRight, int iDown) { return false; };
 };
 
 
