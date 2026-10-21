@@ -20,6 +20,9 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif // _MSC_VER
 #include "ArrayElementNotFound.h"
 #include "IntegerHelper.h"
 
@@ -614,6 +617,23 @@ size FindFirstClearBit(void* pvArray, size iArraySize)
 		}
 		return ARRAY_ELEMENT_NOT_FOUND;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size FindFirstClearBit(uint32 uiBits)
+{
+#ifdef _MSC_VER
+	unsigned long	uiIndex;
+
+	_BitScanForward(&uiIndex, ~uiBits);
+	return uiIndex;
+#else
+	return __builtin_ctz(~uiBits);
+#endif // _MSC_VER
 }
 
 

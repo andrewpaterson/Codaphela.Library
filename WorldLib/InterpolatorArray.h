@@ -111,11 +111,11 @@ void CInertpolatorArrayTemplate<T>::Kill(void)
 	}
 	if (mpaEndArray != NULL)
 	{
-		free(mpaEndArray)
+		free(mpaEndArray);
 	}
 	if (mpaOutputArray != NULL)
 	{
-		free(mpaOutputArray)
+		free(mpaOutputArray);
 	}
 	mpaStartArray = NULL;
 	mpaEndArray = NULL;

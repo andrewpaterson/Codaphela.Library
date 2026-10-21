@@ -49,7 +49,7 @@ size CArrayEmbeddedInt::FindUnusedInSorted(void)
 			return iIndex;
 		}
 	}
-	return miUsedElements;
+	return NumElements();
 }
 
 
@@ -65,7 +65,7 @@ void CArrayEmbeddedInt::Dump(void)
 
 
 	EngineOutput("[");
-	for (iIndex = 0; iIndex < miUsedElements; iIndex++)
+	for (iIndex = 0; iIndex < NumElements(); iIndex++)
 	{
 		iValue = GetValue(iIndex);
 		IntToString(sz, 32, iValue, 10);

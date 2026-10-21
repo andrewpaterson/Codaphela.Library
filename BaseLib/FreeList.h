@@ -26,6 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "LinkedListBlock.h"
 #include "LinkedListTemplate.h"
 #include "IntegerHelper.h"
+#include "SlabAllocator.h"
 
 
 #define FREE_LIST_MAGIC	0x7b
@@ -36,8 +37,13 @@ struct SFNode
 {
 	uint8		bFull;
 	int8		iOffset;
+	uint32		uiUsed;			//Number of allocated elements in this node.
 	size		uiChunkSize;
 	CFreeList*	pcList;
+
+	//Nodes with at least one unallocated element are linked so Add never searches full nodes.
+	SFNode*		psNextNotFull;
+	SFNode*		psPrevNotFull;
 };
 
 
@@ -61,7 +67,8 @@ class CFreeList
 protected:
 	CLinkedListBlock	mcList;
 	SFNode*				mpsUnused;
-	SFNode*				mpsNotFull;
+	SFNode*				mpsNotFullHead;
+	size				muiNumElements;
 
 	uint8				muiOffset;
 	int8				miSuppliedOffset;
@@ -71,10 +78,14 @@ protected:
 	uint16				muiStride;
 	uint16				muiElementSize;
 
+	//Every node is a whole slab so the node holding an element is found by masking the element's address.  See GetSlabNode.
+	bool				mbSlabs;
+
 public:
 	void		Init(size uiElementSize);
 	void		Init(size uiElementSize, size uiAlignment);
 	void		Init(size uiElementSize, size uiAlignment, int16 iOffset);
+	void		Init(size uiElementSize, size uiAlignment, int16 iOffset, bool bSlabs);
 	void		Kill(void);
 
 	void*		Add(SFNode** ppsNode = NULL);
@@ -106,17 +117,23 @@ public:
 	void		RemoveNode(SFNode* psNode);
 	void		GetParams(SFreeListParams* psParams);
 
+	static SFNode*	GetSlabNode(void* pvData);
+
 protected:
 	SFNode*		AllocateNew(void);
 	void		Deallocate(SFNode* psNode);
 	void*		AllocateExisting(SFNode* psNode, size iPosition);
-	void*		AllocateNewSetFirst(void);
+	void		LinkNotFull(SFNode* psNode);
+	void		UnlinkNotFull(SFNode* psNode);
+	size		FindFirstFreePosition(SFNode* psNode);
 	bool		FindNextAllocatedElement(SFreeListIterator* psIterator);
 	bool		FindPrevAllocatedElement(SFreeListIterator* psIterator);
 	bool		RemoveExisiting(SFNode* psNode, size iPosition);
 	size		CalculateStride(void);
 	uint8		CalculateOffset(int16 iOffset);
 	size		CalculateBitArraySize(size uiChunkSize);
+	size		CalculateNodeSize(size uiChunkSize);
+	size		CalculateSlabChunkSize(void);
 	uint8		CalculateOffset(SFNode* psNode);
 	void*		GetElementInNode(SFNode* psNode, size iPosition);
 	bool		IsElementInNodeAllocated(SFNode* psNode, size iPosition);

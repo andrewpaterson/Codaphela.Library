@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{4D010C1E-4DCE-4271-9B1C-87BBF0BC761C}</ProjectGuid>
+    <ProjectGuid>{FB452970-4CB4-4B45-B8F0-BE391E157ADB}</ProjectGuid>
     <RootNamespace>JavaParserLib</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>

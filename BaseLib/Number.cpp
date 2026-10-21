@@ -3607,12 +3607,17 @@ float32 CNumber::FloatValue(void)
 	uint64		uiDecimalNumbers;
 	uint16		uiNumDecimals;
 
+	//ULongValue includes the sign; the conversion needs the magnitude.
 	uiWholeNumbers = ULongValue();
+	if (IsNegative())
+	{
+		uiWholeNumbers = (uint64)0 - uiWholeNumbers;
+	}
 	uiDecimalNumbers = DecimalValue(&uiNumDecimals);
 
 	fValue = (float32)ConvertDecimalFixedPointToLongDouble(uiWholeNumbers, uiDecimalNumbers, uiNumDecimals, 0);
 
-	return fValue;
+	return IsNegative() ? -fValue : fValue;
 }
 
 
@@ -3627,12 +3632,17 @@ float64 CNumber::DoubleValue(void)
 	uint64		uiDecimalNumbers;
 	uint16		uiNumDecimals;
 
+	//ULongValue includes the sign; the conversion needs the magnitude.
 	uiWholeNumbers = ULongValue();
+	if (IsNegative())
+	{
+		uiWholeNumbers = (uint64)0 - uiWholeNumbers;
+	}
 	uiDecimalNumbers = DecimalValue(&uiNumDecimals);
 
 	fValue = (float64)ConvertDecimalFixedPointToLongDouble(uiWholeNumbers, uiDecimalNumbers, uiNumDecimals, 0);
 
-	return fValue;
+	return IsNegative() ? -fValue : fValue;
 }
 
 

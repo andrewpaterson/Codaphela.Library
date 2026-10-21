@@ -23,6 +23,7 @@ struct SMemoryFreeListParams
 
 
 typedef CArrayTemplate<SMemoryFreeListParams>		CArrayFreeListParams;
+typedef CArrayTemplate<uint16>						CArrayFreeListParamIndices;
 int CompareFreeListParam(const void* arg1, const void* arg2);
 
 
@@ -32,6 +33,10 @@ private:
 	CArrayFreeListParams	mcParams;
 	size					miHeaderSize;
 	size					muiFreeListSizeLimit;
+
+	//The index of the params for every element size up to GetMaxFreeListElementSize.  Built when first needed.
+	CArrayFreeListParamIndices	mcSizeIndices;
+	bool						mbSizeIndicesValid;
 
 public:
 	void Init(size iHeaderSize, bool bDefaultFreeListParams = true);
@@ -45,12 +50,15 @@ public:
 	bool					Write(CFileWriter* pcFileWriter);
 	void					SetFreeListSizeLimit(size uiFreeListSizeLimit);
 	SMemoryFreeListParams*	GetFreeListParamsForSize(size iElementSize);
+	size					GetFreeListParamsIndexForSize(size iElementSize);
 	size					GetFreeListSizeLimit(void);
 	size					GetMaxFreeListElementSize(void);
 	size					NumParams(void);
 
 private:
 	void					InitFreeListParams(void);
+	size					FindFreeListParamsIndex(size uiElementSize);
+	void					BuildSizeIndices(void);
 };
 
 

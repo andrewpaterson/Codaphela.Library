@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "PointerFunctions.h"
 #include "ArrayElementNotFound.h"
 #include "IntegerHelper.h"

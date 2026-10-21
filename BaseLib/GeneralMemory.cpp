@@ -46,7 +46,7 @@ void CGeneralMemory::Init(uint16 iDefaultAlignment, bool bDefaultFreeListParams)
 	mcLargeList.Init();
 	miDefaultAlignment = (uint8)iDefaultAlignment;
  	mcOrder.Init();
-	mpcLastFreeList = NULL;
+	mcDefaultFreeLists.Init();
 	muiAllocCount = 0;
 	muiBreakAlloc = 0;
 	mbBreakOnAlloc = false;
@@ -71,7 +71,7 @@ void CGeneralMemory::Kill(void)
 	}
 	mcOrder.Kill();
 	mcFreeLists.Kill();
-	mpcLastFreeList = NULL;
+	mcDefaultFreeLists.Kill();
 
 	mcLargeList.Kill();
 	 
@@ -101,7 +101,7 @@ bool CGeneralMemory::Remove(void* pv)
 	psAlloc = GENERAL_MEMORY_GET_ALLOCATION(pv);
 	if (psAlloc->uiSize <= mcFreeListParams.GetMaxFreeListElementSize())
 	{
-		pcList = psAlloc->psFreeListNode->pcList;
+		pcList = CFreeList::GetSlabNode(psAlloc)->pcList;
 
 		return DeallocateInFreeList(pcList, psAlloc);
 	}
@@ -122,6 +122,26 @@ size CGeneralMemory::GetSize(void* pv)
 
 	psAlloc = GENERAL_MEMORY_GET_ALLOCATION(pv);
 	return psAlloc->uiSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SFNode* CGeneralMemory::GetNode(void* pv)
+{
+	SGeneralMemoryAllocation*	psAlloc;
+
+	psAlloc = GENERAL_MEMORY_GET_ALLOCATION(pv);
+	if (psAlloc->uiSize <= mcFreeListParams.GetMaxFreeListElementSize())
+	{
+		return CFreeList::GetSlabNode(psAlloc);
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -156,8 +176,8 @@ size CGeneralMemory::RemoveMultiple(CArrayVoidPtr* pav)
 
 		if (psAlloc->uiSize <= mcFreeListParams.GetMaxFreeListElementSize())
 		{
-			psNode = psAlloc->psFreeListNode;
-			pcList = psAlloc->psFreeListNode->pcList;
+			psNode = CFreeList::GetSlabNode(psAlloc);
+			pcList = psNode->pcList;
 
 			iRemoved = RemoveNode(pav, i, psAlloc, psNode, pcList);
 			if (iRemoved != 0)
@@ -346,7 +366,7 @@ void* CGeneralMemory::Grow(void* pvInitial, size uiSize)
 		}
 		else
 		{
-			pcList = psAlloc->psFreeListNode->pcList;
+			pcList = CFreeList::GetSlabNode(psAlloc)->pcList;
 			pvNew = Add(uiSize, pcList->GetAlignment(), pcList->GetOffset());
 			CopyAllocation(pvNew, pvInitial, uiSize, psAlloc->uiSize);
 			DeallocateInFreeList(pcList, psAlloc);
@@ -367,7 +387,6 @@ void* CGeneralMemory::Grow(void* pvInitial, size uiSize)
 		{
 			psAlloc = (SGeneralMemoryAllocation*)mcLargeList.Grow(psAlloc, uiSize);
 			psAlloc->uiSize = uiSize;
-			psAlloc->psFreeListNode = NULL;
 			pvNew = RemapSinglePointer(psAlloc, sizeof(SGeneralMemoryAllocation));
 			return pvNew;
 		}
@@ -395,12 +414,9 @@ void CGeneralMemory::CopyAllocation(void* pvDest, void* pvSource, size uiDestSiz
 void* CGeneralMemory::AllocateInFreeList(CFreeList* pcFreeList, size uiElementSize)
 {
 	SGeneralMemoryAllocation*	psMemoryAllocation;
-	SFNode*						psNode;
 
-	psNode = NULL;
-	psMemoryAllocation = (SGeneralMemoryAllocation*)pcFreeList->Add(&psNode);
+	psMemoryAllocation = (SGeneralMemoryAllocation*)pcFreeList->Add();
 	psMemoryAllocation->uiSize = uiElementSize;
-	psMemoryAllocation->psFreeListNode = psNode;
 	psMemoryAllocation->uiAllocCount = muiAllocCount;
 	psMemoryAllocation->szDebug[0] = psMemoryAllocation->szDebug[1] = psMemoryAllocation->szDebug[2]= psMemoryAllocation->szDebug[3] = -1;
 	return RemapSinglePointer(psMemoryAllocation, sizeof(SGeneralMemoryAllocation));
@@ -421,7 +437,7 @@ bool CGeneralMemory::DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryA
 		return false;
 	}
 
-	psFreeListNode = psAlloc->psFreeListNode;
+	psFreeListNode = CFreeList::GetSlabNode(psAlloc);
 
 #ifdef _DEBUG
 	size		iSize;
@@ -452,9 +468,12 @@ void CGeneralMemory::FreeFreeList(CFreeList* pcFreeList)
 	size					iIndex;
 	size					iStride;
 
-	if (pcFreeList == mpcLastFreeList)
+	for (iIndex = 0; iIndex < mcDefaultFreeLists.NumElements(); iIndex++)
 	{
-		mpcLastFreeList = NULL;
+		if (*mcDefaultFreeLists.Get(iIndex) == pcFreeList)
+		{
+			*mcDefaultFreeLists.Get(iIndex) = NULL;
+		}
 	}
 
 	iStride = pcFreeList->GetElementStride() - sizeof(SGeneralMemoryAllocation);
@@ -479,7 +498,6 @@ void* CGeneralMemory::AllocateInLargeList(size uiSize, uint16 iAlignment, int16 
 
 	psMemoryAllocation = (SGeneralMemoryAllocation*)mcLargeList.InsertAfterTail(uiSize + sizeof(SGeneralMemoryAllocation), iAlignment, iOffset);
 	psMemoryAllocation->uiSize = uiSize;
-	psMemoryAllocation->psFreeListNode = NULL;
 	psMemoryAllocation->uiAllocCount = muiAllocCount;
 	psMemoryAllocation->szDebug[0] = psMemoryAllocation->szDebug[1] = psMemoryAllocation->szDebug[2]= psMemoryAllocation->szDebug[3] = -1;
 	return RemapSinglePointer(psMemoryAllocation, sizeof(SGeneralMemoryAllocation));
@@ -555,12 +573,22 @@ CFreeList* CGeneralMemory::GetOrAddFreeList(size iElementSize, uint16 iAlignment
 	CFreeList*				pcList;
 	SMemoryFreeListParams*	psParams;
 	size					iStride;
+	size					uiParamsIndex;
+	CFreeList**				ppcDefault;
 
-	if ((mpcLastFreeList != NULL) &&
-		(iElementSize >= muiLastMinElementSize) && (iElementSize <= muiLastMaxElementSize) &&
-		(iAlignment == miLastAlignment) && (iOffset == miLastOffset))
+	ppcDefault = NULL;
+	if ((iAlignment == miDefaultAlignment) && (iOffset == 0))
 	{
-		return mpcLastFreeList;
+		uiParamsIndex = mcFreeListParams.GetFreeListParamsIndexForSize(iElementSize);
+		if (uiParamsIndex >= mcDefaultFreeLists.NumElements())
+		{
+			mcDefaultFreeLists.GrowToAtLeastNumElements(uiParamsIndex + 1, true, 0);
+		}
+		ppcDefault = mcDefaultFreeLists.Get(uiParamsIndex);
+		if (*ppcDefault != NULL)
+		{
+			return *ppcDefault;
+		}
 	}
 
 	if ((iOffset < -128) || (iOffset > 127))
@@ -585,16 +613,15 @@ CFreeList* CGeneralMemory::GetOrAddFreeList(size iElementSize, uint16 iAlignment
 	else
 	{
 		pcList = mcFreeLists.InsertAfterTail();
-		pcList->Init(psParams->iMaxListSize, (uint8)iAlignment);
+		pcList->Init(psParams->iMaxListSize, (uint8)iAlignment, 0, true);
 		sDesc.pcFreeList = pcList;
 		mcOrder.InsertAt(&sDesc, iIndex);
 	}
 
-	mpcLastFreeList = pcList;
-	muiLastMinElementSize = psParams->iMinElementSize;
-	muiLastMaxElementSize = psParams->iMaxElementSize;
-	miLastAlignment = iAlignment;
-	miLastOffset = iOffset;
+	if (ppcDefault != NULL)
+	{
+		*ppcDefault = pcList;
+	}
 	return pcList;
 }
 
