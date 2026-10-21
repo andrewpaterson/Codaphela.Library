@@ -33,7 +33,7 @@ class CImageAccessorCreator
 {
 public:
 	static CImageAccessor* CreateEmpty(void);
-	static CImageAccessor* Create(CImage* pcImage, int iFirst, ...);
+	static CImageAccessor* Create(CImage* pcImage, size iFirst, ...);
 	static CImageAccessor* Create(CImage* pcImage);
 	static CImageAccessor* Create(CImage* pcImage, CImage* pcChannels);
 	static CImageAccessor* Create(CImage* pcImage, CArraySize* paiChannels);

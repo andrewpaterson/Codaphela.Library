@@ -130,7 +130,7 @@ void CMeshSmoothFaces::GenerateNormals(CMesh* pcMesh)
 		pcNormals->mcNormals.Add(&cNormal);
 
 		//Get the normal which has just been added.
-		iNewNormalIndex = pcNormals->mcNormals.NumElements()-1;
+		iNewNormalIndex = (int)pcNormals->mcNormals.NumElements()-1;
 
 		//Step over every face at this vertex
 		for (j = 0; j < psCorners[i].aiFace.NumElements(); j++)

@@ -155,11 +155,11 @@ bool CConvexHullGenerator::FindFirstPairTriangles(CArrayExtremeTrianglePtr* papc
 		{
 			if (!pcTriangleUp->Contains(psPosition))
 			{
-				pcTriangleUp->maiVisible.Add(i);
+				pcTriangleUp->maiVisible.Add((int)i);
 			}
 			else if (!pcTriangleDown->Contains(psPosition))
 			{
-				pcTriangleDown->maiVisible.Add(i);
+				pcTriangleDown->maiVisible.Add((int)i);
 			}
 			else
 			{
@@ -264,7 +264,7 @@ bool CConvexHullGenerator::Generate(void)
 			continue;
 		}
 
-		iFarIndex = pcSelected->FindFurthestPoint(mpsPoints, iStride);
+		iFarIndex = pcSelected->FindFurthestPoint(mpsPoints, (int)iStride);
 		if (iFarIndex == -1)
 		{
 			gcUserError.Set("Could not find furthest point!");
@@ -311,7 +311,7 @@ bool CConvexHullGenerator::Generate(void)
 			pcDeleted->Kill();
 			mcTriangles.Remove(pcDeleted);
 
-			iIndex = apcTriangles.FindWithIntKey((int)(size_t)pcDeleted, 0);
+			iIndex = (int)apcTriangles.Find(&pcDeleted);
 			*(apcTriangles.Get(iIndex)) = NULL;
 		}
 	}
@@ -330,7 +330,7 @@ bool CConvexHullGenerator::Generate(void)
 		szTemp.Append("]\n");
 		szTemp.Kill();
 		cTextFile.Init();
-		DumpTriangleObj(&cTextFile.mcText, iTriangle);
+		DumpTriangleObj(&cTextFile.mcText, (int)iTriangle);
 		cTextFile.Write(mszHullName);
 		cTextFile.Kill();
 	}
@@ -383,7 +383,7 @@ void CConvexHullGenerator::RemoveSlivers(void)
 	pcTriangle = (CExtremeTriangle*)mcTriangles.StartIteration(&sIter);
 	while (pcTriangle)
 	{
-		iNumSlivers = pcTriangle->IsSliver(Deg2Rad(1.0f), &ps0, &ps1, &ps2);
+		iNumSlivers = (int)pcTriangle->IsSliver(Deg2Rad(1.0f), &ps0, &ps1, &ps2);
 		if (iNumSlivers == 2)
 		{
 			iIndex0 = GetIndex(mpsPoints, iStride, ps0);
@@ -478,7 +478,7 @@ bool CConvexHullGenerator::RemoveDiscontiguousTriangles(CExtremeTriangle* pcSele
 	papcTemp->FakeSetUsedElements(0);
 	papcTemp->Add(&pcSelected);
 
-	iIndex = papcTriangles->FindWithIntKey((int)(size_t)pcSelected, 0);
+	iIndex = (int)papcTriangles->Find(&pcSelected);
 	papcTriangles->RemoveAtNoDeallocate(iIndex);
 
 	for (i = 0; i < papcTemp->NumElements(); i++)
@@ -698,7 +698,7 @@ int CConvexHullGenerator::FindFurthestPoint(int iMaxXIndex, int iMinXIndex)
 
 	cHalfSpace.Init();
 	cHalfSpace.SetZPlane(GetPosition(mpsPoints, iStride, iMaxXIndex), GetPosition(mpsPoints, iStride, iMinXIndex));
-	return cHalfSpace.FindUnsignedFurthestPoint(mpsPoints, iStride, iNumPoints);
+	return cHalfSpace.FindUnsignedFurthestPoint(mpsPoints, (int)iStride, (int)iNumPoints);
 }
 
 
@@ -721,7 +721,7 @@ int CConvexHullGenerator::FindMaxX(float32* px)
 		if ((i == 0) || (psPosition->x > x))
 		{
 			x = psPosition->x;
-			iIndex = i;
+			iIndex = (int)i;
 		}
 	}
 	SafeAssign(px, x);
@@ -749,7 +749,7 @@ int CConvexHullGenerator::FindMinX(float32* px)
 		if ((i == 0) || (psPosition->x < x))
 		{
 			x = psPosition->x;
-			iIndex = i;
+			iIndex = (int)i;
 		}
 	}
 	SafeAssign(px, x);

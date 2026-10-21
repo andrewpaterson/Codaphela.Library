@@ -113,7 +113,7 @@ void CMeshModifierStack::ApplyAll(CMeshEditor* pcMeshEditor)
 	CMeshModifier*	pcEditor;
 	int				iNumElements;
 
-	iNumElements = macEditors.NumElements();
+	iNumElements = (int)macEditors.NumElements();
 	for (miCurrent = 0; miCurrent < iNumElements; miCurrent++)
 	{
 		pcEditor = (CMeshModifier*)macEditors.Get(miCurrent);
@@ -129,7 +129,7 @@ void CMeshModifierStack::ApplyAll(CMeshEditor* pcMeshEditor)
 //////////////////////////////////////////////////////////////////////////
 int CMeshModifierStack::NumEditors(void)
 {
-	return macEditors.NumElements();
+	return (int)macEditors.NumElements();
 }
 
 

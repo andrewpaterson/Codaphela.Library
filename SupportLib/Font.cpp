@@ -211,7 +211,7 @@ Ptr<CGlyph> CFont::GetGlyph(CUnicodeReader* pcUTFReader)
 	else
 	{
 		uiCodePointLength = pcUTFReader->GetCodePointMulti(auiBuffer, 64);
-		if ((uiCodePointLength != 0) || (pcUTFReader->IsError(uiCodePointLength)))
+		if ((uiCodePointLength != 0) || (pcUTFReader->IsError((uint32)uiCodePointLength)))
 		{
 			return GetGlyph(auiBuffer, uiCodePointLength);
 		}

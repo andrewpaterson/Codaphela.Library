@@ -95,7 +95,7 @@ bool CTileLayer::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 int32 CTileLayer::GetLayerSizeX(void)
 {
-	return msMapSize.x;
+	return (int32)msMapSize.x;
 }
 
 
@@ -105,7 +105,7 @@ int32 CTileLayer::GetLayerSizeX(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CTileLayer::GetLayerSizeY(void)
 {
-	return msMapSize.y;
+	return (int32)msMapSize.y;
 }
 
 

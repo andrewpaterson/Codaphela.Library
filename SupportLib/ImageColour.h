@@ -39,9 +39,9 @@ struct SImageColour
 
 	void Zero(void);
 	void Full(void);
-	bool IsZero(int iDataSize);
-	bool Equals(SImageColour* psColour, int iDataSize);
-	bool Equals(void* pvColour, int iDataSize);
+	bool IsZero(size iDataSize);
+	bool Equals(SImageColour* psColour, size iDataSize);
+	bool Equals(void* pvColour, size iDataSize);
 };
 
 

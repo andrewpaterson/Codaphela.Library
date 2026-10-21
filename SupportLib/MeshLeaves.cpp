@@ -341,7 +341,7 @@ void CMeshLeaves::PrivateAddLeafSphere(int iFaceNum, CMeshConnectivity* pcConn, 
 					asTempVerts.Add(pcPositions->mcPositions.Get(pcTriangleOther->maiPositions[1]));
 					asTempVerts.Add(pcPositions->mcPositions.Get(pcTriangleOther->maiPositions[2]));
 
-					psSphereOther->cRelativeVolume.iNewIndex = iNewIndex;
+					psSphereOther->cRelativeVolume.iNewIndex = (int)iNewIndex;
 				}
 			}
 		}
@@ -352,21 +352,21 @@ void CMeshLeaves::PrivateAddLeafSphere(int iFaceNum, CMeshConnectivity* pcConn, 
 	asTempVerts.Add(pcPositions->mcPositions.Get(pcTriangle->maiPositions[1]));
 	asTempVerts.Add(pcPositions->mcPositions.Get(pcTriangle->maiPositions[2]));
 
-	pasSpheres[iFaceNum].cRelativeVolume.iNewIndex = iNewIndex;
+	pasSpheres[iFaceNum].cRelativeVolume.iNewIndex = (int)iNewIndex;
 
 	psCenter = pcPositions->mcPositions.Add();
 	cNewSphere.Init(psCenter);
-	cNewSphere.SetFromPointsUsingBestFit((SFloat32Vec3*)asTempVerts.GetData(), sizeof(SFloat32Vec3), asTempVerts.NumElements());
+	cNewSphere.SetFromPointsUsingBestFit((SFloat32Vec3*)asTempVerts.GetData(), sizeof(SFloat32Vec3), (int)asTempVerts.NumElements());
 	pcNewMeshLeaf = mcLeaves.Add();
 	pcNewMeshLeaf->Init();
 	pcNewMeshLeaf->mcSphere.mfRadius = cNewSphere.mfRadius;
-	pcNewMeshLeaf->mcSphere.miPosition = pcPositions->mcPositions.NumElements()-1;
+	pcNewMeshLeaf->mcSphere.miPosition = (int)pcPositions->mcPositions.NumElements()-1;
 
 	for (j = 0; j < NUM_FACE_EDGES; j++)
 	{
 		if (sAdjFaces.aiFace[j] != -1)
 		{
-			PrivateAddContainedLeafSpheres(iFaceNum, sAdjFaces.aiFace[j], iNewIndex, pcConn, pcTriangles, pcPositions, pasSpheres);
+			PrivateAddContainedLeafSpheres((int)iFaceNum, sAdjFaces.aiFace[j], (int)iNewIndex, pcConn, pcTriangles, pcPositions, pasSpheres);
 		}
 	}
 
@@ -424,7 +424,7 @@ void CMeshLeaves::GenerateLeafSpheres(CMeshConnectivity* pcConn, CMeshPositions*
 	float32						fRelativeVolume;
 	STriangleSphere*			asSpheres;
 
-	iNumFaces = pcTriangles->mcTriangles.NumElements();
+	iNumFaces = (int)pcTriangles->mcTriangles.NumElements();
 
 	asSpheres = (STriangleSphere*)malloc(sizeof(STriangleSphere) * iNumFaces);
 

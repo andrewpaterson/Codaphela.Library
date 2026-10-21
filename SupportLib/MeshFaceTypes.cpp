@@ -234,7 +234,7 @@ void CMeshFaceTypes::GenerateFromNormals(CMeshNormals* pcNormals)
 
 	if (pcNormals->InUse())
 	{
-		iNumFaces = mcFaces.NumElements();
+		iNumFaces = (int)mcFaces.NumElements();
 		for (i = 0; i < iNumFaces; i++)
 		{
 			psFaceNormals = pcNormals->mcFaces.Get(i);
@@ -266,7 +266,7 @@ void CMeshFaceTypes::GenerateFromSkin(CMesh* pcMesh)
 
 	pcSkin = &pcMesh->mcSkin;
 
-	iNumFaces = mcFaces.NumElements();
+	iNumFaces = (int)mcFaces.NumElements();
 	if (pcSkin->InUse())
 	{
 		for (i = 0; i < iNumFaces; i++)
@@ -364,7 +364,7 @@ void CMeshFaceTypes::GenerateFromMaterals(CMeshMaterials* pcMaterials)
 
 	if (pcMaterials->InUse())
 	{
-		iNumFaces = mcFaces.NumElements();
+		iNumFaces = (int)mcFaces.NumElements();
 		for (i = 0; i < iNumFaces; i++)
 		{
 			iMaterial = pcMaterials->mcFaces.GetValue(i);
@@ -470,7 +470,7 @@ void CMeshFaceTypes::GetFacesForType(SMeshFaceType* psFaceType, CArrayInt* paiFa
 
 		if (psThisFaceType->Equals(psFaceType))
 		{
-			paiFaceIndices->Add(iFaceNum);
+			paiFaceIndices->Add((int)iFaceNum);
 		}
 	}
 

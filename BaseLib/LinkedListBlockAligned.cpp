@@ -155,7 +155,7 @@ SLLAlignedNode* CLinkedListBlockAligned::AllocateDetached(size uiSize, uint16 iA
 		return NULL;
 	}
 
-	iCaclulatedOffset = ::CalculateOffset(iOffset - sizeof(SLLAlignedNode), iAlignment);
+	iCaclulatedOffset = ::CalculateOffset((int16)(iOffset - (int16)sizeof(SLLAlignedNode)), iAlignment);
 	iTotalSize = uiSize + sizeof(SLLAlignedNode) + iAlignment - 1;
 
 	pvMem = Malloc(iTotalSize);

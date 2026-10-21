@@ -242,7 +242,7 @@ int CMeshEditorWrapper::NumCorners(void)
 //////////////////////////////////////////////////////////////////////////
 int CMeshEditorWrapper::NumNormals(void)
 {
-	return mpcMesh->mcNormals.mcNormals.NumElements();
+	return (int)mpcMesh->mcNormals.mcNormals.NumElements();
 }
 
 

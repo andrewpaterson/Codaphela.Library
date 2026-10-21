@@ -99,7 +99,7 @@ void CImageCelGroup::AddCels(Ptr<CArrayImageCel> paCels)
 //////////////////////////////////////////////////////////////////////////
 int CImageCelGroup::NumCels(void)
 {
-	return maImageCels.NumElements();
+	return (int)maImageCels.NumElements();
 }
 
 

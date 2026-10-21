@@ -1151,8 +1151,8 @@ void CImage::SetChannelDebugNames(size iChannel)
 	char* szShortName;
 	char* szLongName;
 
-	szLongName = gmiszImageChannelLongNames.Get(iChannel);
-	szShortName = gmiszImageChannelShortNames.Get(iChannel);
+	szLongName = gmiszImageChannelLongNames.Get((int)iChannel);
+	szShortName = gmiszImageChannelShortNames.Get((int)iChannel);
 	mcChannels.SetChannelDebugNames(iChannel, szShortName, szLongName);
 }
 
@@ -1263,15 +1263,15 @@ EColourFormat CImage::GetColourFormat(void)
 
 		if (pcChannel->iChannel == IMAGE_OPACITY)
 		{
-			iOpacity = uiChannelIndex;
+			iOpacity = (int)uiChannelIndex;
 		}
 		else if (pcChannel->iChannel == IMAGE_IGNORED)
 		{
-			iIgnored = uiChannelIndex;
+			iIgnored = (int)uiChannelIndex;
 		}
 		else if (pcChannel->iChannel == IMAGE_DIFFUSE_RED)
 		{
-			iRed = uiChannelIndex;
+			iRed = (int)uiChannelIndex;
 		}
 	}
 

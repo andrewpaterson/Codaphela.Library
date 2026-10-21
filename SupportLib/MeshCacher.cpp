@@ -120,7 +120,7 @@ bool CMeshCacher::Index(void)
 	Kill();
 	Init(mpcMesh);
 
-	iUniqueFaceTypes = mpcMesh->mcFaceTypes.mcUniqueTypes.NumElements();
+	iUniqueFaceTypes = (int)mpcMesh->mcFaceTypes.mcUniqueTypes.NumElements();
 
 	for (i = 0; i < iUniqueFaceTypes; i++)
 	{
@@ -128,7 +128,7 @@ bool CMeshCacher::Index(void)
 		psFaceType = mpcMesh->mcFaceTypes.mcUniqueTypes.Get(i);
 		mpcMesh->mcFaceTypes.GetFacesForType(psFaceType, &aiFaces);
 
-		iStride = GetIndexSize(psFaceType);
+		iStride = (int)GetIndexSize(psFaceType);
 		pvIndices = malloc(iStride * 3 * aiFaces.NumElements());
 		if (!pvIndices)
 		{
@@ -158,21 +158,21 @@ bool CMeshCacher::Index(void)
 		}
 
 		iUVOffset = -1;
-		iUVLayers = psFaceType->GetUVs();
+		iUVLayers = (int)psFaceType->GetUVs();
 		if (iUVLayers > 0)
 		{
 			iUVOffset = iOffset;
 			mpcMesh->mcUVs.IndexFaceCorners((int*)RemapSinglePointer(pvIndices, iOffset), iStride, &aiFaces, iUVLayers);
-			iOffset += sizeof(int) * iUVLayers;
+			iOffset += (int)sizeof(int) * iUVLayers;
 		}
 
 		iMatrixOffset = -1;
-		iMatricies = psFaceType->GetMatricies();
+		iMatricies = (int)psFaceType->GetMatricies();
 		if (iMatricies > 0)
 		{
 			iMatrixOffset = iOffset;
 			mpcMesh->mcSkin.IndexFaceCorners((int*)RemapSinglePointer(pvIndices, iOffset), iStride, &aiFaces, mpcMesh->GetConnectivity());
-			iOffset += sizeof(int) * iMatricies;
+			iOffset += (int)sizeof(int) * iMatricies;
 		}
 
 		pcMeshTypeIndices = mcTypeIndices.Add();
@@ -201,7 +201,7 @@ bool CMeshCacher::Vertex(void)
 	int						iUniqueTypes;
 	Ptr<CMeshVertexArray>	pcVertexArray;
 
-	iUniqueTypes = mcTypeIndices.NumElements();
+	iUniqueTypes = (int)mcTypeIndices.NumElements();
 	for (i = 0; i < iUniqueTypes; i++)
 	{
 		pcTypeIndices = mcTypeIndices.Get(i);
@@ -303,7 +303,7 @@ void CMeshCacher::PopulateColours(CMeshVertexArray* pcVertexArray, CMeshTypeIndi
 		iNumVerts = pcTypeIndices->NumVerts();
 		for (j = 0; j < iNumVerts; j++)
 		{
-			iIndex = pcTypeIndices->GetColourIndex(j);
+			iIndex = pcTypeIndices->GetColourIndex((int)j);
 			piColour = mpcMesh->mcColours.mcColours.Get(iIndex);
 			pcAccessor->Set(j, piColour);
 		}
@@ -329,7 +329,7 @@ void CMeshCacher::PopulateUVs(CMeshVertexArray* pcVertexArray, CMeshTypeIndices*
 	CMeshUVLayer*				pcUVLayer;
 	SFloat32Vec2*					psUV;
 
-	iNumUVs = pcVertexArray->GetFaceType()->GetUVs();
+	iNumUVs = (int)pcVertexArray->GetFaceType()->GetUVs();
 	iNumVerts = pcTypeIndices->NumVerts();
 
 	for (k = 0; k < iNumUVs; k++)
@@ -370,7 +370,7 @@ void CMeshCacher::PopulateSkin(CMeshVertexArray* pcVertexArray, CMeshTypeIndices
 	CMeshSkinVert*				pcSkinVert;
 	SSkinWeight*				psSkinWeight;
 
-	iNumMatricies = pcVertexArray->GetFaceType()->GetMatricies();
+	iNumMatricies = (int)pcVertexArray->GetFaceType()->GetMatricies();
 	iNumVerts = pcTypeIndices->NumVerts();
 
 	for (k = 0; k < iNumMatricies; k++)

@@ -56,7 +56,7 @@ void SImageColour::Zero(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SImageColour::IsZero(int iDataSize)
+bool SImageColour::IsZero(size iDataSize)
 {
 	if (iDataSize == 1)
 	{
@@ -76,7 +76,7 @@ bool SImageColour::IsZero(int iDataSize)
 	}
 	if (iDataSize > 8)
 	{
-		int	i;
+		size	i;
 
 		for (i = 0; i < iDataSize; i++)
 		{
@@ -135,7 +135,7 @@ bool SImageColour::IsZero(int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SImageColour::Equals(SImageColour* psColour, int iDataSize)
+bool SImageColour::Equals(SImageColour* psColour, size iDataSize)
 {
 	return ga_memcmp_fast[iDataSize](this, psColour) == 0;
 }
@@ -146,7 +146,7 @@ bool SImageColour::Equals(SImageColour* psColour, int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SImageColour::Equals(void* pvColour, int iDataSize)
+bool SImageColour::Equals(void* pvColour, size iDataSize)
 {
 	return ga_memcmp_fast[iDataSize](this, pvColour) == 0;
 }

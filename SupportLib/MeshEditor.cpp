@@ -152,7 +152,7 @@ int CMeshEditor::NumFaces(void)
 //////////////////////////////////////////////////////////////////////////
 int CMeshEditor::NumPolygons(void)
 {
-	return mcPolygons.mcPolygons.NumElements();
+	return (int)mcPolygons.mcPolygons.NumElements();
 }
 
 
@@ -172,7 +172,7 @@ int CMeshEditor::NumEdges(void)
 //////////////////////////////////////////////////////////////////////////
 int CMeshEditor::NumVisibleEdges(char cEdge)
 {
-	return mcEdgeVisibility.NumVisibleEdges(cEdge);
+	return (int)mcEdgeVisibility.NumVisibleEdges(cEdge);
 }
 
 

@@ -106,8 +106,8 @@ void CMeshVertexArray::Change(void)
 
 	bNormal = msFaceType.IsNormal();
 	bColour = msFaceType.IsColour();
-	iNumberOfTextures = msFaceType.GetUVs();
-	iNumberOfMatrices = msFaceType.GetMatricies();
+	iNumberOfTextures = (int)msFaceType.GetUVs();
+	iNumberOfMatrices = (int)msFaceType.GetMatricies();
 
 	mcVertexArray.BeginChange();
 	mcVertexArray.AddChannel(VERTEX_POSITION_X, VERTEX_POSITION_Y, VERTEX_POSITION_Z, PT_float32);

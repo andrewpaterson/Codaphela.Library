@@ -235,7 +235,7 @@ Ptr<CImage> LoadRAD(char *szFilename, bool bAddDebug)
 		return NULL;
 	}
 
-	if (sFile.Size() != iImageSize)
+	if ((size)sFile.Size() != iImageSize)
 	{
 		pcImage->Kill();
 		sFile.Close();
@@ -280,7 +280,7 @@ bool LoadRAW(char *szFilename, Ptr<CImage> pcImage)
 
 	iImageSize = pcImage->GetByteSize();
 
-	if (sFile.Size() != iImageSize)
+	if ((size)sFile.Size() != iImageSize)
 	{
 		sFile.Close();
 		sFile.Kill();

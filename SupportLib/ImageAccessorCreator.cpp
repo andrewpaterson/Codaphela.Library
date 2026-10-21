@@ -223,7 +223,7 @@ CImageAccessor* CImageAccessorCreator::CreateEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImageAccessor* CImageAccessorCreator::Create(CImage* pcImage, int iFirst, ...)
+CImageAccessor* CImageAccessorCreator::Create(CImage* pcImage, size iFirst, ...)
 {
 	CImageAccessorCreator	cCreator;
 	va_list					vaMarker;

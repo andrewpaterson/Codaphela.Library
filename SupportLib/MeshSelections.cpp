@@ -124,7 +124,7 @@ int CMeshSelections::GetNumberOfSelectedFaces(bool bSelected)
 			iCount++;
 		}
 	}
-	return iCount;
+	return (int)iCount;
 }
 
 
@@ -172,7 +172,7 @@ int CMeshSelections::GetNumberOfSelectedCorners(bool bSelected)
 			iCount++;
 		}
 	}
-	return iCount;
+	return (int)iCount;
 }
 
 
@@ -220,7 +220,7 @@ int CMeshSelections::GetNumberOfSelectedEdges(bool bSelected)
 			iCount++;
 		}
 	}
-	return iCount;
+	return (int)iCount;
 }
 
 
