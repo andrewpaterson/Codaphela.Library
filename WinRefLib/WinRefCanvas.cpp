@@ -163,7 +163,7 @@ void CWinRefCanvas::DrawPixel(int32 iX, int32 iY, ARGB32 sColour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefCanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource)
+void CWinRefCanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource, CRectangle* pcClip)
 {
     CWinRefCanvas*   pcRefSource;
 
@@ -171,11 +171,11 @@ void CWinRefCanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource)
     if (pcRefSource->mpcCanvas->IsTransparent())
     {
         //What the transparent canvas didn't cover must show through so it is blended rather than copied.
-        BlendPremultipliedImage(pcRefSource->mpcImage, mpcImage, iX, iY);
+        BlendPremultipliedImage(pcRefSource->mpcImage, mpcImage, iX, iY, pcClip);
     }
     else
     {
-        mcDraw.DrawCel(iX, iY, pcRefSource->GetCel());
+        mcDraw.DrawCel(iX, iY, pcRefSource->GetCel(), pcClip);
     }
 }
 

@@ -190,6 +190,55 @@ bool CComponent::GetContainerBounds(CRectangle* pcDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A component that clips its children, like a scroll pane, only lets them
+// draw inside its container bounds.  Most components draw their children
+// wherever they are laid out.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponent::ClipsChildren(void)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The area, in window client space, this component can be drawn in: the
+// overlap of the container bounds of every ancestor that clips its
+// children.  Returns false if no ancestor clips, so the component can be
+// drawn anywhere.  The area can be empty.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponent::GetClip(CRectangle* pcClip)
+{
+	Ptr<CComponent>	pAncestor;
+	CRectangle		cBounds;
+	bool			bClipped;
+
+	bClipped = false;
+	pAncestor = mpParent;
+	while (pAncestor.IsNotNull())
+	{
+		if (pAncestor->ClipsChildren() && pAncestor->GetContainerBounds(&cBounds))
+		{
+			if (bClipped)
+			{
+				pcClip->ClipTo(&cBounds);
+			}
+			else
+			{
+				pcClip->Init(&cBounds);
+				bClipped = true;
+			}
+		}
+		pAncestor = pAncestor->GetParent();
+	}
+	return bClipped;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CComponent::IsPointIn(int x, int y)

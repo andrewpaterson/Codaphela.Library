@@ -50,7 +50,7 @@ protected:
 
 	virtual void		DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour) =0;
 	virtual void		DrawPixel(int iX, int iY, ARGB32 sColour) =0;
-	virtual void		DrawCanvas(int iX, int iY, CNativeCanvas* pcSource) =0;
+	virtual void		DrawCanvas(int iX, int iY, CNativeCanvas* pcSource, CRectangle* pcClip) =0;  //pcClip may be NULL.
 	virtual void		DrawCel(int iX, int iY, Ptr<CImageCel> pSource) =0;
 	virtual void		DrawImage(int iX, int iY, Ptr<CImage> pSource) =0;
 

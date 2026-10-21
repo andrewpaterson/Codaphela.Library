@@ -39,6 +39,8 @@ public:
 	virtual	bool				Draw(void);
 			bool				DrawChildren(void);
 	virtual bool				GetContainerBounds(CRectangle* pcDest);
+	virtual	bool				ClipsChildren(void);
+			bool				GetClip(CRectangle* pcClip);
 
 	virtual	bool				AddComponent(Ptr<CComponent> pComponent);
 	virtual	bool				RemoveComponent(Ptr<CComponent> pComponent);

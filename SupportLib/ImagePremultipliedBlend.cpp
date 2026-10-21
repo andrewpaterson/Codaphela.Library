@@ -45,7 +45,7 @@ uint8 BlendPremultipliedByte(uint32 uiSource, uint32 uiDest, uint32 uiInverseAlp
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool BlendPremultipliedImage(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY)
+bool BlendPremultipliedImage(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY, CRectangle* pcClip)
 {
 	CColourFormatHelper		cSourceFormatHelper;
 	CColourFormatHelper		cDestFormatHelper;
@@ -94,6 +94,25 @@ bool BlendPremultipliedImage(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDest
 	if (iDestY + iBottom > (int32)pDest->GetHeight())
 	{
 		iBottom = (int32)pDest->GetHeight() - iDestY;
+	}
+	if (pcClip)
+	{
+		if (pcClip->GetLeft() - iDestX > iLeft)
+		{
+			iLeft = pcClip->GetLeft() - iDestX;
+		}
+		if (pcClip->GetTop() - iDestY > iTop)
+		{
+			iTop = pcClip->GetTop() - iDestY;
+		}
+		if (pcClip->GetRight() - iDestX < iRight)
+		{
+			iRight = pcClip->GetRight() - iDestX;
+		}
+		if (pcClip->GetBottom() - iDestY < iBottom)
+		{
+			iBottom = pcClip->GetBottom() - iDestY;
+		}
 	}
 
 	puiSourceData = (uint8*)pSource->GetData();

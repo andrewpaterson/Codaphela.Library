@@ -123,8 +123,9 @@ uint8* CCanvas::GetPixelData(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCanvas::Draw(void)
 {
-	
 	Ptr<CCanvas>			pWindowCanvas;
+	CRectangle				cClip;
+	bool					bClipped;
 
 	if (HasNativeChanged())
 	{
@@ -144,10 +145,19 @@ bool CCanvas::Draw(void)
 		mpCanvasDraw->Draw(this);
 	}
 
+	//A canvas inside a component that clips its children, like a scroll pane, is only copied where it shows.
 	pWindowCanvas = mpWindow->GetCanvas();
 	if (&pWindowCanvas != this)
 	{
-		pWindowCanvas->DrawCanvas(mcActualBounds.GetLeft(), mcActualBounds.GetTop(), this);
+		bClipped = GetClip(&cClip);
+		if (!bClipped)
+		{
+			pWindowCanvas->DrawCanvas(mcActualBounds.GetLeft(), mcActualBounds.GetTop(), this);
+		}
+		else if ((cClip.GetWidth() > 0) && (cClip.GetHeight() > 0))
+		{
+			pWindowCanvas->DrawCanvas(mcActualBounds.GetLeft(), mcActualBounds.GetTop(), this, &cClip);
+		}
 	}
 
 	CComponent::Draw();
@@ -246,12 +256,12 @@ Ptr<CImage> CCanvas::GetImageOrNull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas)
+void CCanvas::DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas, CRectangle* pcClip)
 {
 	CNativeCanvas*	pcSourceNativeCanvas;
 
 	pcSourceNativeCanvas = pSourceCanvas->GetNativeCanvas();
-	mpcNativeCanvas->DrawCanvas(iX, iY, pcSourceNativeCanvas);
+	mpcNativeCanvas->DrawCanvas(iX, iY, pcSourceNativeCanvas, pcClip);
 }
 
 
