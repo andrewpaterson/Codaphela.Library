@@ -208,24 +208,7 @@ void CButton::UpdateFaceSize(void)
 //////////////////////////////////////////////////////////////////////////
 SInt32Vec2 CButton::GetDesiredSize(void)
 {
-	SInt32Vec2	sSize;
-	SInt32Vec2	sRequired;
-
-	sSize = CGridContainer::GetDesiredSize();
-	if ((sSize.x < 0) || (sSize.y < 0))
-	{
-		SetRequiredSize();
-		sRequired = GetRequiredSize();
-		if (sSize.x < 0)
-		{
-			sSize.x = sRequired.x;
-		}
-		if (sSize.y < 0)
-		{
-			sSize.y = sRequired.y;
-		}
-	}
-	return sSize;
+	return GetDesiredOrRequiredSize();
 }
 
 

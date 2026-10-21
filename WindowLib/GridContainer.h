@@ -40,6 +40,10 @@ CONSTRUCTABLE(CGridContainer);
 DESTRUCTABLE(CGridContainer);
 protected:
 	CArrayGridCells		macCells;  //The cell for the component at the same index in maChildren.
+	CArrayInt			maiColumnStarts;  //Where each column and row went the last time the grid was laid out, in window client space.
+	CArrayInt			maiColumnSizes;
+	CArrayInt			maiRowStarts;
+	CArrayInt			maiRowSizes;
 
 public:
 	void		Init(Ptr<CWindow> pWindow);
@@ -53,6 +57,7 @@ public:
 
 	void		SetRequiredSize(void) override;
 	void		Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
+	bool		GetTrackBounds(bool bColumns, size uiTrack, int32* piStart, int32* piSize);
 
 protected:
 	CGridCell*	GetCell(size uiIndex);

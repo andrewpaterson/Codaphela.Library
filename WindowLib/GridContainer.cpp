@@ -267,6 +267,10 @@ void CGridContainer::Init(Ptr<CWindow> pWindow)
 {
 	CContainer::Init(pWindow);
 	macCells.Init();
+	maiColumnStarts.Init();
+	maiColumnSizes.Init();
+	maiRowStarts.Init();
+	maiRowSizes.Init();
 }
 
 
@@ -276,6 +280,10 @@ void CGridContainer::Init(Ptr<CWindow> pWindow)
 //////////////////////////////////////////////////////////////////////////
 void CGridContainer::Free(void)
 {
+	maiRowSizes.Kill();
+	maiRowStarts.Kill();
+	maiColumnSizes.Kill();
+	maiColumnStarts.Kill();
 	macCells.Kill();
 	CContainer::Free();
 }
@@ -289,6 +297,10 @@ void CGridContainer::Class(void)
 {
 	CContainer::Class();
 	U_Data(CArrayGridCells, macCells);
+	U_Data(CArrayInt, maiColumnStarts);
+	U_Data(CArrayInt, maiColumnSizes);
+	U_Data(CArrayInt, maiRowStarts);
+	U_Data(CArrayInt, maiRowSizes);
 }
 
 
@@ -543,10 +555,6 @@ void CGridContainer::SetRequiredSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CGridContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
-	CArrayInt		aiColumnStarts;
-	CArrayInt		aiColumnSizes;
-	CArrayInt		aiRowStarts;
-	CArrayInt		aiRowSizes;
 	size			i;
 	CGridCell*		pcCell;
 	Ptr<CComponent>	pComponent;
@@ -555,27 +563,47 @@ void CGridContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 	SetContainerBounds(sPosition, sAreaSize);
 
-	aiColumnStarts.Init();
-	aiColumnSizes.Init();
-	aiRowStarts.Init();
-	aiRowSizes.Init();
-	LayoutTracks(true, sPosition.x, sAreaSize.x, &aiColumnStarts, &aiColumnSizes);
-	LayoutTracks(false, sPosition.y, sAreaSize.y, &aiRowStarts, &aiRowSizes);
+	//The tracks are kept so that what is in a column or row can be found later.
+	maiColumnStarts.ReInit();
+	maiColumnSizes.ReInit();
+	maiRowStarts.ReInit();
+	maiRowSizes.ReInit();
+	LayoutTracks(true, sPosition.x, sAreaSize.x, &maiColumnStarts, &maiColumnSizes);
+	LayoutTracks(false, sPosition.y, sAreaSize.y, &maiRowStarts, &maiRowSizes);
 
 	for (i = 0; i < maChildren.Size(); i++)
 	{
 		pComponent = maChildren.Get(i);
 		pcCell = GetCell(i);
 
-		sCellPosition.Init(aiColumnStarts.GetValue(pcCell->msPosition.x), aiRowStarts.GetValue(pcCell->msPosition.y));
-		sCellSize.Init(SumTracks(&aiColumnSizes, pcCell->msPosition.x, pcCell->msSpan.x), SumTracks(&aiRowSizes, pcCell->msPosition.y, pcCell->msSpan.y));
+		sCellPosition.Init(maiColumnStarts.GetValue(pcCell->msPosition.x), maiRowStarts.GetValue(pcCell->msPosition.y));
+		sCellSize.Init(SumTracks(&maiColumnSizes, pcCell->msPosition.x, pcCell->msSpan.x), SumTracks(&maiRowSizes, pcCell->msPosition.y, pcCell->msSpan.y));
 		LayoutComponentInArea(pComponent, sCellPosition, sCellSize);
 	}
 
-	aiColumnStarts.Kill();
-	aiColumnSizes.Kill();
-	aiRowStarts.Kill();
-	aiRowSizes.Kill();
-
 	SetActualBounds(sPosition, sAreaSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where a column (or row) started and how wide (or tall) it was the last
+// time the grid was laid out, in window client space.  Returns false if
+// the grid had no such column or row then.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGridContainer::GetTrackBounds(bool bColumns, size uiTrack, int32* piStart, int32* piSize)
+{
+	CArrayInt*	paiStarts;
+	CArrayInt*	paiSizes;
+
+	paiStarts = bColumns ? &maiColumnStarts : &maiRowStarts;
+	paiSizes = bColumns ? &maiColumnSizes : &maiRowSizes;
+	if (uiTrack >= paiStarts->NumElements())
+	{
+		return false;
+	}
+	*piStart = paiStarts->GetValue(uiTrack);
+	*piSize = paiSizes->GetValue(uiTrack);
+	return true;
 }

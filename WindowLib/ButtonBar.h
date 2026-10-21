@@ -20,7 +20,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "ContainerStyle.h"
+#include "BaseLib/ArrayInt.h"
 #include "Insets.h"
 #include "Container.h"
 
@@ -60,7 +60,7 @@ public:
 	void						Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 
 protected:
-	int32						GetRowWidth(void);
+	SInt32Vec2					GetRowSize(CArrayInt* paiWidths);
 };
 
 

@@ -66,3 +66,25 @@ int SInsets::GetTopAndBottom(void)
 	return maiWidths[BEI_Top] + maiWidths[BEI_Bottom];
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Moves an area in by the insets.  Its size never goes below zero.
+//
+//////////////////////////////////////////////////////////////////////////
+void SInsets::Inset(SInt32Vec2* psPosition, SInt32Vec2* psSize)
+{
+	psPosition->x += maiWidths[BEI_Left];
+	psPosition->y += maiWidths[BEI_Top];
+	psSize->x -= GetLeftAndRight();
+	psSize->y -= GetTopAndBottom();
+	if (psSize->x < 0)
+	{
+		psSize->x = 0;
+	}
+	if (psSize->y < 0)
+	{
+		psSize->y = 0;
+	}
+}
+
