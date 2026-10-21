@@ -285,7 +285,7 @@ CDependentReadObject* CExternalObjectDeserialiser::GetObject(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CExternalObjectDeserialiser::NumPointers(void)
+size CExternalObjectDeserialiser::NumPointers(void)
 {
 	return mcPointers.NumElements();
 }
@@ -295,7 +295,7 @@ int CExternalObjectDeserialiser::NumPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDependentReadPointer* CExternalObjectDeserialiser::GetPointer(int iIndex)
+CDependentReadPointer* CExternalObjectDeserialiser::GetPointer(size iIndex)
 {
 	return mcPointers.Get(iIndex);
 }
@@ -305,7 +305,7 @@ CDependentReadPointer* CExternalObjectDeserialiser::GetPointer(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CExternalObjectDeserialiser::NumObjects(void)
+size CExternalObjectDeserialiser::NumObjects(void)
 {
 	return mcReadObjects.NumElements();
 }
@@ -365,8 +365,8 @@ CArrayIndexNewOld* CExternalObjectDeserialiser::GetArrayIndexNewOld(void)
 bool CExternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObjects(void)
 {
 	CDependentReadPointer*	pcDependentReadPointer;
-	int						i;
-	int						iNum;
+	size					i;
+	size					iNum;
 
 	iNum = NumPointers();
 	for (i = 0; i < iNum; i++)

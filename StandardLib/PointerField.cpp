@@ -50,7 +50,7 @@ bool CPointerField::IsPointer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CPointerField::GetSizeOf(void)
+size CPointerField::GetSizeOf(void)
 {
 	return mpcFieldClass->GetSizeOf();
 }

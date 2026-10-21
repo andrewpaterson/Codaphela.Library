@@ -470,7 +470,7 @@ size CUnknowns::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CUnknowns::GetIterableListsHeadNumElements(void)
+size CUnknowns::GetIterableListsHeadNumElements(void)
 {
 	return mcIterables.mcIterableLists.GetHead()->mcFreeListPtrs.NumElements();
 }

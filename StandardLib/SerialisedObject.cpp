@@ -95,6 +95,6 @@ size CSerialisedObject::GetLength(void)
 //////////////////////////////////////////////////////////////////////////
 void CSerialisedObject::SetLength(size iLength)
 {
-	miLength = iLength;
+	miLength = (uint32)iLength;
 }
 

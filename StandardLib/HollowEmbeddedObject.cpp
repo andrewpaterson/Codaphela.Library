@@ -95,7 +95,7 @@ bool CHollowEmbeddedObject::IsHollow(void)
 CBaseObject* CHollowEmbeddedObject::Dehollow(void)
 {
 	CBaseObject*	pcEmbedding;
-	int				iEmbeddedIndex;
+	size			iEmbeddedIndex;
 	CBaseObject*	pcThisDehollowed;
 
 	iEmbeddedIndex = GetEmbeddedIndex();
@@ -110,7 +110,7 @@ CBaseObject* CHollowEmbeddedObject::Dehollow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHollowEmbeddedObject::GetEmbeddedIndex(void)
+size CHollowEmbeddedObject::GetEmbeddedIndex(void)
 {
 	return mpcEmbedded->GetEmbeddedIndex(this);
 }

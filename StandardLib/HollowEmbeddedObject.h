@@ -22,7 +22,7 @@ public:
 	CEmbeddedObject*	GetEmbeddedObject(size iIndex);
 	bool				IsHollow(void);
 	CBaseObject*		Dehollow(void);
-	int					GetEmbeddedIndex(void);
+	size				GetEmbeddedIndex(void);
 	CHollowObject*		GetHollowObject(void);
 	CObjects*			GetObjectsThisIn(void);
 	void				GetPointerTos(CArrayEmbeddedObjectPtr* papcTos);

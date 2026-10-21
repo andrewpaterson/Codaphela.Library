@@ -39,8 +39,8 @@ public:
 
 	CClass*				GetValid(EPrimitiveType eType);
 
-	CClass*				Add(const char* szClassName, uint32 uiSize, EPrimitiveType eType);
-	CClass*				Add(const char* szClassName, uint32 uiSize);
+	CClass*				Add(const char* szClassName, size uiSize, EPrimitiveType eType);
+	CClass*				Add(const char* szClassName, size uiSize);
 
 	CClass*				GetPointer(void);
 

@@ -65,8 +65,8 @@ float CSingleChannelAccessor::GetCastToFloat(int iChannel, int iPos)
 void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, void* pvDest, int iPos)
 {
 	CChannel*	pcChannel;
-	int			iByteSize;
-	int			iBitSize;
+	size		iByteSize;
+	size		iBitSize;
 	bool		bSub;
 
 	//Fix the mess that are this function and the one below it.
@@ -84,7 +84,7 @@ void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, vo
 		iBitSize = gcTypeNames.GetBitSize(eType);
 		if (iByteSize == 0)
 		{
-			iByteSize = -1;
+			iByteSize = SIZE_MAX;
 			bSub = true;
 		}
 		else
@@ -116,8 +116,8 @@ void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, vo
 void CSingleChannelAccessor::GetCastTo(int iChannel, EPrimitiveType eType, void* pvDest, int iPos)
 {
 	CChannel*			pcChannel;
-	int					iByteSize;
-	int					iBitSize;
+	size				iByteSize;
+	size				iBitSize;
 	bool				bSub;
 
 	pcChannel = mpcChannels->GetChannel(iChannel);
@@ -134,7 +134,7 @@ void CSingleChannelAccessor::GetCastTo(int iChannel, EPrimitiveType eType, void*
 		iBitSize = gcTypeNames.GetBitSize(eType);
 		if (iByteSize ==0)
 		{
-			iByteSize = -1;
+			iByteSize = SIZE_MAX;
 			bSub = true;
 		}
 		else

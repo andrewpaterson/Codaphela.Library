@@ -32,7 +32,7 @@ public:
 
 	void					AddExpectedDist(CBaseObject* pcObject, int iExpectedDist);
 	SDistToRoot*			GetLowestExpectedDist(void);
-	int						NumExpectedDists(void);
+	size					NumExpectedDists(void);
 	SDistToRoot*			GetExpectedDist(int iIndex);
 	SDistToRoot*			GetExpectedDist(CBaseObject* pcObject);
 	void					RemoveExpectedDist(int iIndex);
@@ -40,19 +40,19 @@ public:
 
 
 	void					AddDetachedFromRoot(CBaseObject* pcObject);
-	int						NumDetachedFromRoot(void);
-	CBaseObject*			GetDetachedFromRoot(int iIndex);
+	size					NumDetachedFromRoot(void);
+	CBaseObject*			GetDetachedFromRoot(size iIndex);
 
 	void					AddCompletelyDetached(CBaseObject* pcObject);
-	int						NumCompletelyDetached(void);
-	CBaseObject*			GetCompletelyDetached(int iIndex);
-	void					RemoveCompletelyDetached(int iIndex);
+	size					NumCompletelyDetached(void);
+	CBaseObject*			GetCompletelyDetached(size iIndex);
+	void					RemoveCompletelyDetached(size iIndex);
 	void					CopyRootDetachedToCompletelyDetached(void);
 	CArrayBaseObjectPtr*	GetCompletelyDetachedArray(void);
 
 	void					AddTouched(CBaseObject* pcObject);
-	int						NumTouched(void);
-	CBaseObject*			GetTouched(int iIndex);
+	size					NumTouched(void);
+	CBaseObject*			GetTouched(size iIndex);
 
 	void					ClearTouchedFlags(void);
 

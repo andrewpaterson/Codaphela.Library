@@ -59,7 +59,7 @@ bool CChannelPadder::OptimalPadding(void)
 	eType = mpcExternal->GetLargestPrimitiveType();
 	iMaxSize = gcTypeNames.GetByteSize(eType);
 	iPos = 0;
-	iAvail = iMaxSize;
+	iAvail = (int)iMaxSize;
 	pacChannelOffsets = mpcExternal->GetChannelOffsets();
 	uiChannelOffsets = pacChannelOffsets->NumElements();
 	for (i = 0; i < uiChannelOffsets; i++)
@@ -77,7 +77,7 @@ bool CChannelPadder::OptimalPadding(void)
 			else
 			{
 				iPos += iAvail;
-				iAvail = iMaxSize;
+				iAvail = (int)iMaxSize;
 			}
 		}
 
@@ -88,7 +88,7 @@ bool CChannelPadder::OptimalPadding(void)
 		iAvail -= iClassSize;
 		if (iAvail == 0)
 		{
-			iAvail = iMaxSize;
+			iAvail = (int)iMaxSize;
 		}
 	}
 

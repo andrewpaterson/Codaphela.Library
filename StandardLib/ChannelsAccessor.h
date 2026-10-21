@@ -32,23 +32,23 @@ CONSTRUCTABLE(CChannelsAccessor)
 protected:
 	CChannels*				mpcChannels;
 	CArrayChannelAccessor	macAccessors;
-	uint32					miByteSize;
-	uint32					miBitSize;
+	size					miByteSize;
+	size					miBitSize;
 	CStackMemory<8>			msBuffer;  //Where the gotten data is stored.
 
 public:
-			void					Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, uint32 iByteSize, uint32 iBitSize);
+			void					Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize);
 	virtual void					Kill(void);
 
-	virtual void*					Get(uint32 iPos) =0;
-	virtual void					Set(uint32 iPos, void* pvData) =0;
+	virtual void*					Get(size iPos) =0;
+	virtual void					Set(size iPos, void* pvData) =0;
 
 	virtual bool					IsContiguous(void);
 
 			EPrimitiveType			GetType(void);
-			uint32					GetBitSize(void);
-			uint32					GetByteSize(void);
-			uint32					GetBufferSize(void);
+			size					GetBitSize(void);
+			size					GetByteSize(void);
+			size					GetBufferSize(void);
 			CArrayChannelAccessor*	GetAccessors(void);
 			CChannels*				GetChannels(void);
 };

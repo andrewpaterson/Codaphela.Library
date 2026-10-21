@@ -605,7 +605,7 @@ CEmbeddedObject* CPointer::DereferenceArrow(void)
 size CPointer::MorphInto(CEmbeddedObject* pcNew)
 {
 	CObjectRemapFrom	cRemapper;
-	int					iCount;
+	size				iCount;
 
 	iCount = cRemapper.Remap(mpcObject, pcNew);
 

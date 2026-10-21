@@ -114,7 +114,7 @@ SDistToRoot* CDistCalculatorParameters::GetLowestExpectedDist(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDistCalculatorParameters::NumExpectedDists(void)
+size CDistCalculatorParameters::NumExpectedDists(void)
 {
 	return macExpectedDists.NumElements();
 }
@@ -146,7 +146,7 @@ void CDistCalculatorParameters::RemoveExpectedDist(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::RemoveExpectedDist(SDistToRoot* psDistToRoot)
 {
-	int	iIndex;
+	size	iIndex;
 	
 	iIndex = macExpectedDists.GetIndex(psDistToRoot);
 	macExpectedDists.RemoveAt(iIndex, true);  //Preserving order is (unfortunately) important.
@@ -167,7 +167,7 @@ void CDistCalculatorParameters::AddDetachedFromRoot(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDistCalculatorParameters::NumDetachedFromRoot(void)
+size CDistCalculatorParameters::NumDetachedFromRoot(void)
 {
 	return mapcDetachedFromRoot.NumElements();
 }
@@ -177,7 +177,7 @@ int CDistCalculatorParameters::NumDetachedFromRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CDistCalculatorParameters::GetDetachedFromRoot(int iIndex)
+CBaseObject* CDistCalculatorParameters::GetDetachedFromRoot(size iIndex)
 {
 	return mapcDetachedFromRoot.GetPtr(iIndex);
 }
@@ -197,7 +197,7 @@ void CDistCalculatorParameters::AddCompletelyDetached(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDistCalculatorParameters::NumCompletelyDetached(void)
+size CDistCalculatorParameters::NumCompletelyDetached(void)
 {
 	return mapcCompletelyDetached.NumElements();
 }
@@ -207,7 +207,7 @@ int CDistCalculatorParameters::NumCompletelyDetached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CDistCalculatorParameters::GetCompletelyDetached(int iIndex)
+CBaseObject* CDistCalculatorParameters::GetCompletelyDetached(size iIndex)
 {
 	return mapcCompletelyDetached.GetPtr(iIndex);
 }
@@ -217,7 +217,7 @@ CBaseObject* CDistCalculatorParameters::GetCompletelyDetached(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDistCalculatorParameters::RemoveCompletelyDetached(int iIndex)
+void CDistCalculatorParameters::RemoveCompletelyDetached(size iIndex)
 {
 	mapcCompletelyDetached.RemoveAt(iIndex, false);
 }
@@ -230,8 +230,8 @@ void CDistCalculatorParameters::RemoveCompletelyDetached(int iIndex)
 void CDistCalculatorParameters::CopyRootDetachedToCompletelyDetached(void)
 {
 	//Poor mans copy for now.  Should resize and memcpy rather.
-	int				i;
-	int				iNum;
+	size			i;
+	size			iNum;
 	CBaseObject*	pcBaseObject;
 
 	iNum = mapcDetachedFromRoot.NumElements();
@@ -270,7 +270,7 @@ void CDistCalculatorParameters::AddTouched(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDistCalculatorParameters::NumTouched(void)
+size CDistCalculatorParameters::NumTouched(void)
 {
 	return mapcTouched.NumElements();
 }
@@ -280,7 +280,7 @@ int CDistCalculatorParameters::NumTouched(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CDistCalculatorParameters::GetTouched(int iIndex)
+CBaseObject* CDistCalculatorParameters::GetTouched(size iIndex)
 {
 	return mapcTouched.GetPtr(iIndex);
 }
@@ -292,8 +292,8 @@ CBaseObject* CDistCalculatorParameters::GetTouched(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayBaseObjectPtrE32* pcArray, bool bCommaSeparate)
 {
-	int				i;
-	int				iNum;
+	size			i;
+	size			iNum;
 	CBaseObject*	pcBaseObject;
 
 	iNum = pcArray->NumElements();
@@ -328,8 +328,8 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayBaseObjectPtrE32* 
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayBaseObjectPtr* pcArray, bool bCommaSeparate)
 {
-	int				i;
-	int				iNum;
+	size			i;
+	size			iNum;
 	CBaseObject*	pcBaseObject;
 
 	iNum = pcArray->NumElements();
@@ -364,8 +364,8 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayBaseObjectPtr* pcA
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayDistToRoot* pcArray, bool bCommaSeparate)
 {
-	int				i;
-	int				iNum;
+	size			i;
+	size			iNum;
 	SDistToRoot*	psDistToRoot;
 
 	iNum = pcArray->NumElements();
@@ -400,8 +400,8 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayDistToRoot* pcArra
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::ClearTouchedFlags(void)
 {
-	int				i;
-	int				iNumTouched;
+	size			i;
+	size			iNumTouched;
 	CBaseObject*	pcBaseObject;
 
 	iNumTouched = NumTouched();

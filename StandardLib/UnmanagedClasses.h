@@ -97,7 +97,7 @@ public:
 protected:
 	CClass*		AddClassByPrettyName(EPrimitiveType eType);
 	CClass*		AddClassByCPPName(EPrimitiveType eType);
-	CClass*		AddClass(EPrimitiveType eType, const char* szName, int iSize);
+	CClass*		AddClass(EPrimitiveType eType, const char* szName, size iSize);
 };
 
 

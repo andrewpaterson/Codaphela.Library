@@ -47,7 +47,7 @@ bool CPrimitiveField::IsPrimitive(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CPrimitiveField::GetSizeOf(void)
+size CPrimitiveField::GetSizeOf(void)
 {
 	//This is the size of the whole primitive object; not just the primitive part.
 	return mpcFieldClass->GetSizeOf();
