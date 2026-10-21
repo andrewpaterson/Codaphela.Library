@@ -138,6 +138,12 @@
     <ClInclude Include="ButtonBar.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
+    <ClInclude Include="List.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="ListListener.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
     <ClInclude Include="JewelButtonImages.h">
       <Filter>Source\Component\Images</Filter>
     </ClInclude>
@@ -243,6 +249,9 @@
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="ButtonBar.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="List.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="JewelButtonImages.cpp">
