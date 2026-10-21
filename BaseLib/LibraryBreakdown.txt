@@ -191,5 +191,3 @@ Tiles
 -- WindowLib -- (Depends on DirectXLib and WorldLib ?!?)
 
 -- WorldLib -- (DirectX specific stuff mushed in with things like Particle System)
-
--- GameLib -- (Nothing much here yet)

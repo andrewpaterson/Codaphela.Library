@@ -64,7 +64,7 @@ void CPPTokenList::Kill(void)
 void CPPTokenList::Add(CPPToken* pcToken)
 {
 	pcToken->Use();
-	mcArray.Add(&pcToken);
+	mcArray.Add(pcToken);
 }
 
 

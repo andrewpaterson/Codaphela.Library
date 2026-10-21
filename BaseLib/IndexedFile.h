@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FileBasic.h"
 #include "ChunkFile.h"
 #include "Chars.h"
-#include "ArrayTemplate.h"
+#include "ArrayTemplatePtr.h"
 #include "ArrayBit.h"
 #include "ListTemplate.h"
 #include "DurableFile.h"
@@ -84,7 +84,7 @@ protected:
 
 
 typedef CListTemplate<CIndexedFile> CListIndexedFile;
-typedef CArrayTemplate<CIndexedFile*> CArrayIndexedFilePtr;
+typedef CArrayTemplatePtr<CIndexedFile> CArrayIndexedFilePtr;
 
 
 #endif // __INDEXED_FILE_H__

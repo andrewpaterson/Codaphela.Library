@@ -151,7 +151,7 @@ void CInputCategory::GetDevices(CArrayInputDevicePtr* pcDevices, bool bPhysical)
 		{
 			if (((pcDevice->GetDesc()->IsPhysical()) && (bPhysical == true)) || bPhysical == false)
 			{
-				pcDevices->Add(&pcDevice);
+				pcDevices->Add(pcDevice);
 			}
 		}
 		bExists = mpcInputDevices->mlcDevices.Iterate(&sIter, &pcDevice);

@@ -28,9 +28,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageCel.h"
 #include "ImageBlitter.h"
 #include "ImageRowBlitterFactory.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 
 
-typedef CArrayTemplate<CImageCel*>	CArrayImageCelPtr;
+typedef CArrayTemplatePtr<CImageCel>	CArrayImageCelPtr;
 
 
 //The blitters that draw onto one destination image.  A blitter does not keep its cel alive and neither does the cache.

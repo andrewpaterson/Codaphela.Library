@@ -25,9 +25,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ComponentInputPrintable.h"
 #include "ComponentInputNumKey.h"
 #include "ComponentInputKey.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 
 
-typedef CArrayTemplate<CInputVirtualDeviceSource*>	CArrayInputVirtualDeviceSourcePtr;
+typedef CArrayTemplatePtr<CInputVirtualDeviceSource>	CArrayInputVirtualDeviceSourcePtr;
 
 
 //What the sources of one input device mean to components.  The device gets its own

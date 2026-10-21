@@ -1,11 +1,11 @@
 #ifndef __EXCELLON_INTERPRETER_H__
 #define __EXCELLON_INTERPRETER_H__
-#include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 #include "ExcellonCommands.h"
 #include "ExcellonInterpreterListener.h"
 
 
-typedef CArrayTemplate<CExcellonCommandToolDefine*>	CArrayExcellonToolDefinePtr;
+typedef CArrayTemplatePtr<CExcellonCommandToolDefine>	CArrayExcellonToolDefinePtr;
 
 
 //Executes parsed Excellon commands; keeps the tool table, the current tool and the previous hit and reports holes to a listener.

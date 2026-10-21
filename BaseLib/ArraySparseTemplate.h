@@ -84,7 +84,7 @@ public:
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SSparseNode** SSparseNode::GetParentPointer(void)
+inline SSparseNode** SSparseNode::GetParentPointer(void)
 {
 	if (psParent)
 	{
@@ -134,15 +134,9 @@ M* __CArraySparseTemplate<M>::Set(size iElementPos, M* pvData)
 {
 	M*	psElement;
 
-	psElement = Get(iElementPos);
-	if (psElement)
-	{
-		memcpy(psElement, pvData, miElementSize);
-	}
-	else
-	{
-		InsertAt(pvData, iElementPos);
-	}
+	psElement = Set(iElementPos);
+	memcpy(psElement, pvData, miElementSize);
+	return psElement;
 }
 
 
@@ -316,7 +310,7 @@ M* __CArraySparseTemplate<M>::Get(size iElementPos)
 	SSparseNode*	psNode;
 
 	psNode = Search(iElementPos);
-	if (psNode->iIndex == iElementPos)
+	if (psNode && (psNode->iIndex == iElementPos))
 	{
 		return HeaderGetData<SSparseNode, M>(psNode);
 	}

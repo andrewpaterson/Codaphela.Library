@@ -492,9 +492,9 @@ size CArrayTemplatePrimitive<M>::FindFinalContiguousInSorted(void)
 	for (i = 0; i < miUsedElements; i++)
 	{
 		iValue = GetValue(i);
-		if (i != iValue)
+		if ((M)i != iValue)
 		{
-			if (i > 1)
+			if (i > 0)
 			{
 				return i - 1;
 			}

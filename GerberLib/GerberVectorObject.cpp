@@ -317,7 +317,6 @@ float64 GetGerberArcSweep(SFloat64Vec2* psStart, SFloat64Vec2* psEnd, SFloat64Ve
 	float64	fEnd;
 	float64	fSweep;
 
-	//The counterclockwise or clockwise angle from the start to the end, in (0, 2 pi].  Equal points are a full circle.
 	fStart = atan2(psStart->y - psCenter->y, psStart->x - psCenter->x);
 	fEnd = atan2(psEnd->y - psCenter->y, psEnd->x - psCenter->x);
 	fSweep = bClockwise ? fStart - fEnd : fEnd - fStart;

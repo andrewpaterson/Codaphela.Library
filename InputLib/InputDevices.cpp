@@ -484,7 +484,7 @@ void CInputDevices::GetDevicesForCategory(CArrayInputDevicePtr* pcDevices, char*
 	{
 		if (pcDevice->GetDesc()->GetCategory()->Is(szCategory))
 		{
-			pcDevices->Add(&pcDevice);
+			pcDevices->Add(pcDevice);
 		}
 		bExists = mlcDevices.Iterate(&sIter, &pcDevice);
 	}
@@ -504,7 +504,7 @@ void CInputDevices::GetDevices(CArrayInputDevicePtr* pcDevices)
 	bExists = mlcDevices.StartIteration(&sIter, &pcDevice);
 	while (bExists)
 	{
-		pcDevices->Add(&pcDevice);
+		pcDevices->Add(pcDevice);
 		bExists = mlcDevices.Iterate(&sIter, &pcDevice);
 	}
 }
@@ -525,7 +525,7 @@ void CInputDevices::GetDevicesForDeviceDesc(CArrayInputDevicePtr* pcDevices, CIn
 	{
 		if (pcDevice->GetDesc() == pcDesc)
 		{
-			pcDevices->Add(&pcDevice);
+			pcDevices->Add(pcDevice);
 		}
 		bExists = mlcDevices.Iterate(&sIter, &pcDevice);
 	}

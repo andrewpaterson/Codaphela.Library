@@ -1,6 +1,6 @@
 #ifndef __GERBER_VECTORISER_H__
 #define __GERBER_VECTORISER_H__
-#include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/ListVariable.h"
 #include "BaseLib/Chars.h"
 #include "GerberInterpreterListener.h"
@@ -21,7 +21,7 @@ struct SGerberVectorApertureShape
 };
 
 
-typedef CArrayTemplate<CGerberVectorObjects*>			CArrayGerberVectorObjectsPtr;
+typedef CArrayTemplatePtr<CGerberVectorObjects>			CArrayGerberVectorObjectsPtr;
 typedef CArrayTemplate<SGerberVectorApertureShape>		CArrayGerberVectorApertureShape;
 
 

@@ -22,14 +22,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __MARKUP_TAG_H__
 #define __MARKUP_TAG_H__
-#include "ArrayTemplate.h"
+#include "ArrayTemplatePtr.h"
 #include "Number.h"
 #include "MarkupBase.h"
 #include "MapStringIntAndPointer.h"
 #include "ArrayNameIntAndPointer.h"
 
 
-typedef CArrayTemplate<CMarkupBase*>	CArrayMarkupBase;
+typedef CArrayTemplatePtr<CMarkupBase>	CArrayMarkupBase;
 
 
 struct STagIterator

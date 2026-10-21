@@ -858,6 +858,9 @@
     <ClInclude Include="TrueTypeOutline.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
+    <ClInclude Include="CoverageRasteriser.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
     <ClInclude Include="TrueTypeRasteriser.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
@@ -1491,6 +1494,9 @@
       <Filter>Source\Image\Font</Filter>
     </ClCompile>
     <ClCompile Include="TrueTypeOutline.cpp">
+      <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="CoverageRasteriser.cpp">
       <Filter>Source\Image\Font</Filter>
     </ClCompile>
     <ClCompile Include="TrueTypeRasteriser.cpp">

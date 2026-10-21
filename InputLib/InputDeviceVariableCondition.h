@@ -23,12 +23,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __INPUT_DEVICE_VARIABLE_CONDITION_H__
 #define __INPUT_DEVICE_VARIABLE_CONDITION_H__
 #include "BaseLib/Define.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 
 
 class CInputChord;
 class CInputDeviceVariableValue;
 class CInputDeviceCopyContext;
-typedef CArrayTemplate<CInputDeviceVariableValue*>	CArrayInputDeviceVariableValuePtr;
+typedef CArrayTemplatePtr<CInputDeviceVariableValue>	CArrayInputDeviceVariableValuePtr;
 class CInputDeviceVariableCondition
 {
 public:

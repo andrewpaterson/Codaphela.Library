@@ -52,7 +52,7 @@ protected:
 	DataCompare			mfCompare;  //If the array is sorted.
 
 private:
-	CArrayUnknownPtr	mcArray;  //CArrayTemplate<CUnknown*>
+	CArrayUnknownPtr	mcArray;  //CArrayTemplatePtr<CUnknown>
 	size				miNonNullElements;
 
 	bool				PrivateIterate(SSetIterator* psIter, CUnknown** ppcUnknown);

@@ -24,15 +24,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __MARKUP_DOC_H__
 #include "FreeList.h"
 #include "MarkupTag.h"
-#include "ArrayTemplate.h"
+#include "ArrayTemplatePtr.h"
 
 
 class CMarkupReference;
-typedef CArrayTemplate<CMarkupReference*>	CArrayMarkupReference;
+typedef CArrayTemplatePtr<CMarkupReference>	CArrayMarkupReference;
 
 
 class CMarkupSubstitute;
-typedef CArrayTemplate<CMarkupSubstitute*>	CArrayMarkupSubstitute;
+typedef CArrayTemplatePtr<CMarkupSubstitute>	CArrayMarkupSubstitute;
 
 
 class CMarkup;

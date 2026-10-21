@@ -3,6 +3,7 @@
 #include "FileNames.h"
 #include "PackFileReadArrary.h"
 #include "PackFileNode.h"
+#include "ArrayTemplatePtr.h"
 
 
 enum EPackFileMode
@@ -14,7 +15,7 @@ enum EPackFileMode
 
 typedef CFileNode<CPackFileNode>				CFileNodePackFileNode;
 typedef CFilenames<CPackFileNode>				CFilenamesPackFileNode;
-typedef CArrayTemplate<CFileNodePackFileNode*>	CArrayPackFileNodePtrs;
+typedef CArrayTemplatePtr<CFileNodePackFileNode>	CArrayPackFileNodePtrs;
 
 
 #endif // __PACK_FILES_GENERAL_H__

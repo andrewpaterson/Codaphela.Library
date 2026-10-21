@@ -133,7 +133,7 @@ void CInputDevice::GetSources(CArrayInputSourceDescPtr* pcSources, CInputCategor
 	{
 		if (pcSource->GetGenerics()->Contains(&pcGeneric))
 		{
-			pcSources->Add(&pcSource);
+			pcSources->Add(pcSource);
 		}
 		bExists = mpcDesc->IterateInputs(&sIter, &pcSource);
 	}

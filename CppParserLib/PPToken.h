@@ -21,7 +21,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __P_P_TOKEN_H__
 #define __P_P_TOKEN_H__
 #include "BaseLib/Chars.h"
-#include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/Define.h"
 #include "BaseLib/MemoryStackExtended.h"
 #include "BaseLib/Constructable.h"
@@ -75,7 +75,7 @@ public:
 };
 
 
-typedef CArrayTemplate<CPPToken*> CArrayPPTokenPtrs;
+typedef CArrayTemplatePtr<CPPToken> CArrayPPTokenPtrs;
 
 
 void PPSetBreakOnTokenInit(int64 iTokenNum);

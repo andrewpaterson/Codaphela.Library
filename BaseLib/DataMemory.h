@@ -53,6 +53,7 @@ public:
 	void					Init(CMemoryFreeListParams*	pcFreeListParams);
 	void					Kill(void);
 	void					ReInit(void);
+	void					Compact(void);
 
 	void*					Add(size iSize);
 	bool					Remove(void* pv);

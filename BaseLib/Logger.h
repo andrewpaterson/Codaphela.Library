@@ -25,12 +25,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 #include "LogConfig.h"
 #include "LogString.h"
-#include "ArrayTemplate.h"
+#include "ArrayTemplatePtr.h"
 #include "AbstractFile.h"
 #include "Mutex.h"
 
 
-typedef CArrayTemplate<CAbstractFile*> CArrayFile;
+typedef CArrayTemplatePtr<CAbstractFile> CArrayFile;
 
 
 #define LOG_ERROR(error)	gcLogger.Error2(__METHOD__, " " error, NULL)

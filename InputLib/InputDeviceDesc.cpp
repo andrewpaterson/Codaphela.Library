@@ -383,7 +383,7 @@ void CInputDeviceDesc::CopyVariables(CInputDeviceCopyContext* pcContext)
 //////////////////////////////////////////////////////////////////////////
 void CInputDeviceDesc::AddDevice(CInputDevice* pcDevice)
 {
-	mapcDevices.Add(&pcDevice);
+	mapcDevices.Add(pcDevice);
 }
 
 
@@ -395,7 +395,7 @@ void CInputDeviceDesc::RemoveDevice(CInputDevice* pcDevice)
 {
 	size		iIndex;
 
-	iIndex = mapcDevices.Find(&pcDevice);
+	iIndex = mapcDevices.Find(pcDevice);
 	mapcDevices.RemoveAt(iIndex, false);
 }
 

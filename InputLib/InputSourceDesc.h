@@ -28,6 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "StandardLib/SetType.h"
 #include "InputSourceValue.h"
 #include "InputCategoryGeneric.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 
 
 class CInputDeviceDesc;
@@ -73,7 +74,7 @@ public:
 
 
 typedef CSetType<CInputSourceDesc> CSetInputSourceDesc;
-typedef CArrayTemplate<CInputSourceDesc*> CArrayInputSourceDescPtr;
+typedef CArrayTemplatePtr<CInputSourceDesc> CArrayInputSourceDescPtr;
 
 
 #endif // __INPUT_SOURCE_DESC_H__

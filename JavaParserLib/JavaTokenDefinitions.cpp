@@ -20,7 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/TextParser.h"
 #include "BaseLib/Numbers.h"
-#include "BaseLib/NewLine.h"
+#include "BaseLib/Newline.h"
 #include "JavaTokenParser.h"
 
 

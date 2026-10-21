@@ -20,14 +20,15 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __TRUE_TYPE_RASTERISER_H__
 #define __TRUE_TYPE_RASTERISER_H__
+#include "CoverageRasteriser.h"
 #include "TrueTypeFont.h"
 #include "ImageColour.h"
 #include "Image.h"
 
 
 //Positions are fixed point with 8 fraction bits: 256 subpixels to a pixel.
-#define TRUE_TYPE_SUBPIXEL_BITS		8
-#define TRUE_TYPE_SUBPIXELS			(1 << TRUE_TYPE_SUBPIXEL_BITS)
+#define TRUE_TYPE_SUBPIXEL_BITS		COVERAGE_SUBPIXEL_BITS
+#define TRUE_TYPE_SUBPIXELS			COVERAGE_SUBPIXELS
 
 
 //Pixel bounds of something rasterised, relative to the pen origin on the baseline, y down.  Right and bottom are exclusive.
@@ -52,12 +53,7 @@ protected:
 	int32				miUnitsPerEm;
 	CTrueTypeOutline	mcOutline;
 
-	//Each pixel cell accumulates the height (cover) and twice the area (area) of the edges crossing it, in subpixels.
-	int32*				mpiCover;
-	int32*				mpiArea;
-	uint8*				mpuiCoverage;
-	int					miWidth;
-	int					miHeight;
+	CCoverageRasteriser	mcCoverage;
 
 public:
 	void			Init(CTrueTypeFont* pcFont, float32 fPixelSize);
@@ -88,11 +84,6 @@ protected:
 	void			EndCoverage(void);
 	bool			AddGlyph(int iGlyph, int32 iX, int32 iY);
 	bool			AddText(char* szUTF8, int32 iX, int32 iY);
-	void			AddQuadratic(int32 x0, int32 y0, int32 x1, int32 y1, int32 x2, int32 y2);
-	void			AddLine(int32 x1, int32 y1, int32 x2, int32 y2);
-	void			AddRowLine(int iRow, int32 x1, int32 y1, int32 x2, int32 y2);
-	void			AddCellLine(int iRow, int32 x1, int32 y1, int32 x2, int32 y2);
-	void			Accumulate(void);
 	Ptr<CImage>		CoverageToImage(void);
 	bool			BlendCoverage(Ptr<CImage> pcDest, int iDestX, int iDestY, CImageColour* pcColour);
 };

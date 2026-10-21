@@ -82,6 +82,29 @@ void CDataMemory::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CDataMemory::Compact(void)
+{
+	CFreeList*	pcFreeList;
+	CFreeList*	pcNext;
+
+	//Free the free lists that have no elements, and their unused nodes.
+	pcFreeList = mcFreeLists.GetHead();
+	while (pcFreeList)
+	{
+		pcNext = mcFreeLists.GetNext(pcFreeList);
+		if (!pcFreeList->HasElements())
+		{
+			FreeFreeList(pcFreeList);
+		}
+		pcFreeList = pcNext;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CDataMemory::ReInit(void)
 {
 	CMemoryFreeListParams* pcFreeListParams;
@@ -393,12 +416,8 @@ bool CDataMemory::DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocat
 	memset(pvMem, 0xef, iSize);
 #endif
 
+	//Empty free lists are kept so allocating and freeing one element doesn't create and destroy a free list each time.  See Compact.
 	bRemoved = pcFreeList->Remove(psFreeListNode, psAlloc);
-
-	if (!pcFreeList->HasElements())
-	{
-		FreeFreeList(pcFreeList);
-	}
 	return bRemoved;
 }
 

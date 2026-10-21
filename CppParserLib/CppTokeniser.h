@@ -20,7 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __C_P_P_TOKENISER_H__
 #define __C_P_P_TOKENISER_H__
-#include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/MemoryStackExtended.h"
 #include "ASCIIIndex.h"
 #include "CppTokens.h"
@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PreprocessedTokens.h"
 
 
-typedef CArrayTemplate<CCPPToken*>	CCTArrayTokens;
+typedef CArrayTemplatePtr<CCPPToken>	CCTArrayTokens;
 
 
 //Turns preprocessed tokens into C++ tokens: keywords and punctuators, identifiers (each name is given an ID) and

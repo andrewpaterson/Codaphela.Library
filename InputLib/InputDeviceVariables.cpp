@@ -272,7 +272,7 @@ void CInputDeviceVariables::VariableAction(CInputDeviceVariable* pcVariable, CIn
 		bResult = pcValue->MatchCondition(pcChord);
 		if (bResult)
 		{
-			papcVariableValues->Add(&pcValue);
+			papcVariableValues->Add(pcValue);
 		}
 		bExists = pcVariable->IterateValues(&sIter, &pcValue);
 	}

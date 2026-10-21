@@ -283,7 +283,7 @@ CInputSourceDesc* CComponentInputDevice::Hook(char* szFriendlyName)
 
 	mpcVirtual->AddActiveAction(mpcComponentInput->GetButtonPressedAction(), pcSource);
 	mpcVirtual->AddInactiveAction(mpcComponentInput->GetButtonReleasedAction(), pcSource);
-	mapcHooked.Add(&pcSource);
+	mapcHooked.Add(pcSource);
 	return pcSource->GetSourceDesc();
 }
 
