@@ -7,6 +7,7 @@
 #define INTER_PROCESS_MEMORY_PREFIX		"Local\\SharedMemory:"
 #define INTER_PROCESS_MUTEX_PREFIX		"Local\\ProcessMutex:"
 #define INTER_PROCESS_CHANNEL_PREFIX	"Local\\Channel:"
+#define INTER_PROCESS_SIGNAL_PREFIX		"Local\\Signal:"
 
 
 //Initialises psz to the prefix followed by szName.

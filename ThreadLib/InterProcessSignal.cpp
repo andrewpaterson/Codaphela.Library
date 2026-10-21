@@ -1,0 +1,54 @@
+#include <string.h>
+#include "InterProcessSignal.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInterProcessSignal::Init(char* szName, SInterProcessSignal* psShared)
+{
+	mszName.Init(szName);
+	mpsShared = psShared;
+	memset(maHandle, 0, INTER_PROCESS_SIGNAL_HANDLE_SIZE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInterProcessSignal::Kill(void)
+{
+	Close();
+	mpsShared = NULL;
+	mszName.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CInterProcessSignal::BeginWait(void)
+{
+	int		iSequence;
+
+	//The sequence is read before the waiter is counted.  A Wake that sees the
+	//waiter changes the sequence after this read so Wait does not sleep, and a
+	//Wake that does not see it came before the increment, whose fence makes
+	//what the waker did visible to the waiter's last look.
+	iSequence = mpsShared->iSequence.Get();
+	mpsShared->iWaiters.Increment();
+	return iSequence;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInterProcessSignal::CancelWait(void)
+{
+	mpsShared->iWaiters.Decrement();
+}
