@@ -50,7 +50,7 @@ uint16 CGerberCommandFormatSpecifier::GetXWholeNumbers(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CGerberCommandFormatSpecifier::GetXDecimals(void)
 {
-	return muiYDecimals;
+	return muiXDecimals;
 }
 
 

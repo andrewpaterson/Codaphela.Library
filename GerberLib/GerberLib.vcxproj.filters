@@ -13,6 +13,9 @@
     <Filter Include="Source\Excellon">
       <UniqueIdentifier>{ab952081-5a5f-4086-80c8-690cd52c608f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Writer">
+      <UniqueIdentifier>{325d6f66-bb03-4b92-ab2c-6e9859f9f473}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Parser">
       <UniqueIdentifier>{704c5f55-f0b6-4db7-b8b4-5aef73119587}</UniqueIdentifier>
     </Filter>
@@ -68,6 +71,12 @@
     </ClCompile>
     <ClCompile Include="ExcellonParser.cpp">
       <Filter>Source\Excellon</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcellonWriter.cpp">
+      <Filter>Source\Writer</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberWriter.cpp">
+      <Filter>Source\Writer</Filter>
     </ClCompile>
     <ClCompile Include="GerberParser.cpp">
       <Filter>Source\Parser</Filter>
@@ -256,6 +265,12 @@
     </ClInclude>
     <ClInclude Include="ExcellonParser.h">
       <Filter>Source\Excellon</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcellonWriter.h">
+      <Filter>Source\Writer</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberWriter.h">
+      <Filter>Source\Writer</Filter>
     </ClInclude>
     <ClInclude Include="GerberParser.h">
       <Filter>Source\Parser</Filter>

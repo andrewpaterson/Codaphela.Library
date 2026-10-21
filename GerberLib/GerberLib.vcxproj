@@ -70,6 +70,8 @@
     <ClCompile Include="ExcellonInterpreter.cpp" />
     <ClCompile Include="ExcellonInterpreterListener.cpp" />
     <ClCompile Include="ExcellonParser.cpp" />
+    <ClCompile Include="ExcellonWriter.cpp" />
+    <ClCompile Include="GerberWriter.cpp" />
     <ClCompile Include="GerberParser.cpp" />
     <ClCompile Include="GerberMacroVariables.cpp" />
     <ClCompile Include="GerberEvaluatedPrimitive.cpp" />
@@ -137,6 +139,8 @@
     <ClInclude Include="ExcellonInterpreter.h" />
     <ClInclude Include="ExcellonInterpreterListener.h" />
     <ClInclude Include="ExcellonParser.h" />
+    <ClInclude Include="ExcellonWriter.h" />
+    <ClInclude Include="GerberWriter.h" />
     <ClInclude Include="GerberParser.h" />
     <ClInclude Include="GerberMacroVariables.h" />
     <ClInclude Include="GerberEvaluatedPrimitive.h" />

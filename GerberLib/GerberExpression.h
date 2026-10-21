@@ -22,6 +22,8 @@ public:
 	float64			DoubleValue(void);
 
 	bool			Evaluate(CGerberMacroVariables* pcVariables, CNumber* pcResult);
+	bool			IsSet(void);
+	bool			Print(CChars* psz);
 };
 
 

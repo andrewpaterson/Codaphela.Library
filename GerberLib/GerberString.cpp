@@ -47,7 +47,8 @@ TRISTATE ParseGerberString(CTextParser* pcTextParser, char* szString, size* piLe
 	size		iPos;
 	char		cCurrent;
 	TRISTATE	tResult;
-	char		cEscape;
+	char		szEscape[4];
+	size		uiEscapeLength;
 	size		i;
 	size		uiNumEndCharacters;
 
@@ -82,14 +83,14 @@ TRISTATE ParseGerberString(CTextParser* pcTextParser, char* szString, size* piLe
 					}
 				}
 
-				tResult = ParseGerberEscapeCharacter(pcTextParser, &cEscape);
+				tResult = ParseGerberEscapeCharacter(pcTextParser, szEscape, &uiEscapeLength);
 				if (tResult == TRITRUE)
 				{
 					if (szString)
 					{
-						szString[iPos] = cEscape;
+						memcpy(&szString[iPos], szEscape, uiEscapeLength);
 					}
-					iPos++;
+					iPos += uiEscapeLength;
 
 					pcTextParser->PassPosition();
 				}
@@ -137,23 +138,24 @@ TRISTATE ParseGerberString(CTextParser* pcTextParser, char* szString, size* piLe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE ParseGerberEscapeCharacter(CTextParser* pcTextParser, char* szEscape)
+TRISTATE ParseGerberEscapeCharacter(CTextParser* pcTextParser, char* szUTF8, size* puiLength)
 {
 	TRISTATE	tResult;
 	uint64		ulli;
 	uint16		uiNumDigits;
 	uint16		uiMaxDigits;
 
-	tResult = pcTextParser->GetExactCaseInsensitiveCharacterSequence("\\u", false);
+	//\\uXXXX is a 16 bit and \\UXXXXXXXX a 32 bit Unicode code point.  Strings are UTF-8.  3.4.3
+	tResult = pcTextParser->GetExactCharacterSequence("\\u", false);
 	ReturnOnError(tResult);
 	
 	if (tResult == TRITRUE)
 	{
 		uiMaxDigits = 4;
 	}
-	else if (tResult == TRIFALSE)
+	else
 	{
-		tResult = pcTextParser->GetExactCaseInsensitiveCharacterSequence("\\U", false);
+		tResult = pcTextParser->GetExactCharacterSequence("\\U", false);
 		ReturnOnErrorAndFalse(tResult);
 
 		uiMaxDigits = 8;
@@ -163,8 +165,41 @@ TRISTATE ParseGerberEscapeCharacter(CTextParser* pcTextParser, char* szEscape)
 	ReturnOnError(tResult);
 	ReturnErrorOnFalse(tResult);
 
-	*szEscape = (char)ulli;
-	
+	if (ulli < 0x80)
+	{
+		szUTF8[0] = (char)ulli;
+		*puiLength = 1;
+	}
+	else if (ulli < 0x800)
+	{
+		szUTF8[0] = (char)(0xC0 | (ulli >> 6));
+		szUTF8[1] = (char)(0x80 | (ulli & 0x3F));
+		*puiLength = 2;
+	}
+	else if (ulli < 0x10000)
+	{
+		if ((ulli >= 0xD800) && (ulli <= 0xDFFF))
+		{
+			//Surrogates are not characters.
+			return TRIERROR;
+		}
+		szUTF8[0] = (char)(0xE0 | (ulli >> 12));
+		szUTF8[1] = (char)(0x80 | ((ulli >> 6) & 0x3F));
+		szUTF8[2] = (char)(0x80 | (ulli & 0x3F));
+		*puiLength = 3;
+	}
+	else if (ulli <= 0x10FFFF)
+	{
+		szUTF8[0] = (char)(0xF0 | (ulli >> 18));
+		szUTF8[1] = (char)(0x80 | ((ulli >> 12) & 0x3F));
+		szUTF8[2] = (char)(0x80 | ((ulli >> 6) & 0x3F));
+		szUTF8[3] = (char)(0x80 | (ulli & 0x3F));
+		*puiLength = 4;
+	}
+	else
+	{
+		return TRIERROR;
+	}
 	return TRITRUE;
 }
 
