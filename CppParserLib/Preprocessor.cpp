@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2025 Andrew Paterson
+Copyright (c) 2022 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela CppParserLib
 
@@ -18,12 +18,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/Calculator.h"
-#include "BaseLib/CalculatorParser.h"
+#include <time.h>
 #include "BaseLib/TextFile.h"
-#include "BaseLib/FastFunctions.h"
 #include "BaseLib/Logger.h"
+#include "BaseLib/FastFunctions.h"
 #include "BaseLib/Numbers.h"
+#include "PreprocessorExpression.h"
+#include "Punctuators.h"
 #include "Project.h"
 #include "Preprocessor.h"
 #include "PPText.h"
@@ -33,6 +34,723 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "GeneralToken.h"
 #include "PreprocessorPosition.h"
 #include "PPTokenMemory.h"
+
+
+#define MAX_INCLUDE_DEPTH	200
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void SPPSource::Init(EPPSourceType eType)
+{
+	this->eType = eType;
+	acTokens.Init();
+	iToken = 0;
+	pcFile = NULL;
+	pcIncludingFile = NULL;
+	iBlockSet = 0;
+	iLine = 0;
+	iConditionalDepth = 0;
+	bHeaderDirectory = false;
+	iCurrentLine = 0;
+	lliDefineID = -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void SPPSource::Kill(void)
+{
+	acTokens.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::Preprocess(char* szSource, CChars* pszDest)
+{
+	CPreprocessor		cPreprocessor;
+	CTranslationUnit	cFile;
+	bool				bResult;
+
+	cFile.Init("", NULL, false);
+	cFile.SetContents(szSource);
+
+	cPreprocessor.Init(NULL);
+	bResult = cPreprocessor.PreprocessTranslationUnit(&cFile);
+
+	if (pszDest)
+	{
+		cFile.Print(pszDest);
+	}
+
+	cPreprocessor.Kill();
+	cFile.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::Kill(void)
+{
+	size	i;
+
+	for (i = 0; i < macSources.NumElements(); i++)
+	{
+		macSources.Get(i)->Kill();
+	}
+	macSources.Kill();
+	macPushedBack.Kill();
+	maiDisabledDefines.Kill();
+	mpcOutput = NULL;
+
+	mszVaArgs.Kill();
+	mpcCurrentFile = NULL;
+	mcHeadersStack.Kill();
+	mcConditionalStack.Kill();
+	mcHeaderNames.Kill();
+	mcSpecialOperators.Kill();
+
+	mcDefines.Kill();
+	mcDefineReplacementMemory.Kill();
+	mcDefineStrings.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::PreprocessTranslationUnit(CTranslationUnit* pcFile)
+{
+	bool				bResult;
+	SPreprocessedToken	sToken;
+
+	TranslationUnitLogging(pcFile);
+
+	mpcOutput = pcFile->GetTokens();
+	mpcOutput->Clear();
+	mbError = false;
+	muiPendingFlags = 0;
+
+	bResult = PushFile(pcFile, NULL);
+	if (bResult)
+	{
+		LogInclude(pcFile);
+		while (Next(&sToken))
+		{
+			EmitToken(&sToken);
+		}
+		bResult = !mbError;
+	}
+
+	while (macSources.NumElements() > 0)
+	{
+		bResult &= PopSource();
+	}
+	macPushedBack.Kill();
+	macPushedBack.Init();
+
+	mpcOutput = NULL;
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::TokeniseFile(CSourceFile* pcFile)
+{
+	CPreprocessorTokeniser	cTokeniser;
+	bool					bResult;
+	CPPBlockSetArray*		pacBlockSets;
+
+	//A file is tokenised once and the tokens are read every time it is included.
+	pcFile->Load();
+	pacBlockSets = pcFile->GetBlockSets();
+
+	if (!pacBlockSets->IsRawProcessed())
+	{
+		cTokeniser.Init(pcFile->ShortName());
+		cTokeniser.SetComments(pcFile->GetComments());
+		bResult = cTokeniser.TokeniseIntoBlockSets(pacBlockSets, pcFile->GetTokenMemory(), pcFile->GetContents(), (int)pcFile->GetContentsLength());
+		cTokeniser.Kill();
+		return bResult;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::PushFile(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap)
+{
+	SPPSource*					psSource;
+	CHeaderNameMapDirectory*	pcNewDirectory;
+	CChars						szPath;
+	CChars						szError;
+
+	if (miIncludeDepth >= MAX_INCLUDE_DEPTH)
+	{
+		szError.Init("#include nested too deeply including ");
+		szError.Append(pcFile->ShortName());
+		gcUserError.Set(&szError);
+		szError.Kill();
+		mbError = true;
+		return false;
+	}
+
+	if (!TokeniseFile(pcFile))
+	{
+		mbError = true;
+		return false;
+	}
+
+	psSource = macSources.Push();
+	psSource->Init(PPST_File);
+	psSource->pcFile = pcFile;
+	psSource->pcIncludingFile = mpcCurrentFile;
+	psSource->iConditionalDepth = mcConditionalStack.mcStack.NumElements();
+
+	if (pcHeaderNameMap)
+	{
+		//Quoted includes in this file are also searched for relative to its directory.
+		pcNewDirectory = mcHeadersStack.Add();
+		pcFile->Path(&szPath);
+		pcNewDirectory->Init(pcHeaderNameMap, szPath.Text());
+		szPath.Kill();
+		psSource->bHeaderDirectory = true;
+	}
+
+	mpcCurrentFile = pcFile;
+	miIncludeDepth++;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::PushTokens(EPPSourceType eType, CArrayPreprocessedTokens* pacTokens, int64 lliDefineID)
+{
+	SPPSource*	psSource;
+
+	//The source takes the tokens.  pacTokens is left empty.
+	psSource = macSources.Push();
+	psSource->Init(eType);
+	psSource->acTokens.Kill();
+	memcpy(&psSource->acTokens, pacTokens, sizeof(CArrayPreprocessedTokens));
+	pacTokens->Init();
+
+	if (eType == PPST_Macro)
+	{
+		psSource->lliDefineID = lliDefineID;
+		maiDisabledDefines.Add(&lliDefineID);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::PopSource(void)
+{
+	SPPSource*					psSource;
+	CHeaderNameMapDirectory*	pcDirectory;
+	bool						bResult;
+	CChars						szError;
+
+	psSource = macSources.Tail();
+	if (!psSource)
+	{
+		return false;
+	}
+
+	bResult = true;
+	if (psSource->eType == PPST_File)
+	{
+		if (mcConditionalStack.mcStack.NumElements() > psSource->iConditionalDepth)
+		{
+			if (!mbError)
+			{
+				szError.Init("Unterminated conditional directive in ");
+				szError.Append(psSource->pcFile->ShortName());
+				gcUserError.Set(&szError);
+				szError.Kill();
+			}
+			while (mcConditionalStack.mcStack.NumElements() > psSource->iConditionalDepth)
+			{
+				mcConditionalStack.PopEndIf();
+			}
+			bResult = false;
+		}
+
+		if (psSource->bHeaderDirectory)
+		{
+			pcDirectory = mcHeadersStack.Tail();
+			pcDirectory->Kill();
+			mcHeadersStack.Pop();
+		}
+
+		mpcCurrentFile = psSource->pcIncludingFile;
+		miIncludeDepth--;
+	}
+	else if (psSource->eType == PPST_Macro)
+	{
+		maiDisabledDefines.Pop();
+	}
+
+	psSource->Kill();
+	macSources.Pop();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::PushBack(SPreprocessedToken* psToken)
+{
+	macPushedBack.Push(psToken);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::NextRaw(SPreprocessedToken* psToken)
+{
+	SPPSource*	psSource;
+	bool		bChanged;
+	bool		bResult;
+
+	//Reads the next token without expanding macros.  Returns false at the end of the translation unit, at the end of a
+	//macro argument being expanded, or on an error.
+	if (macPushedBack.NumElements() > 0)
+	{
+		macPushedBack.Pop(psToken);
+		return true;
+	}
+
+	for (;;)
+	{
+		if (mbError)
+		{
+			return false;
+		}
+
+		psSource = macSources.Tail();
+		if (!psSource)
+		{
+			return false;
+		}
+
+		if (psSource->iToken < psSource->acTokens.NumElements())
+		{
+			*psToken = *psSource->acTokens.Get(psSource->iToken);
+			psSource->iToken++;
+			return true;
+		}
+
+		if (psSource->eType == PPST_Argument)
+		{
+			return false;
+		}
+		else if (psSource->eType == PPST_Macro)
+		{
+			PopSource();
+		}
+		else
+		{
+			bResult = NextFileToken(psSource, psToken, &bChanged);
+			if (!bResult)
+			{
+				if (mbError)
+				{
+					return false;
+				}
+				if (!PopSource())
+				{
+					mbError = true;
+					return false;
+				}
+			}
+			else if (!bChanged)
+			{
+				return true;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::NextFileToken(SPPSource* psSource, SPreprocessedToken* psToken, bool* pbChanged)
+{
+	CPPBlockSetArray*	pacBlockSets;
+	CPPBlockSet*		pcBlockSet;
+	CPPTokenList*		pcLines;
+	CPPToken*			pcToken;
+	CSourceFile*		pcFile;
+	bool				bResult;
+	size				iNumSources;
+
+	//Moves the file on to its next line with tokens.  Directives are processed on the way.  Returns false at the end of
+	//the file.  *pbChanged is true if a directive changed the sources (an #include).  psSource must be the top source
+	//and is not valid after the call.
+	*pbChanged = false;
+	pcFile = psSource->pcFile;
+	pacBlockSets = pcFile->GetBlockSets();
+	for (;;)
+	{
+		pcBlockSet = pacBlockSets->SafeGet(psSource->iBlockSet);
+		if (!pcBlockSet)
+		{
+			return false;
+		}
+
+		pcLines = pcBlockSet->GetUnprocssedTokens();
+		if (psSource->iLine >= pcLines->NumTokens())
+		{
+			psSource->iBlockSet++;
+			psSource->iLine = 0;
+			continue;
+		}
+
+		pcToken = pcLines->Get(psSource->iLine);
+		psSource->iLine++;
+
+		if (pcToken->IsDirective())
+		{
+			iNumSources = macSources.NumElements();
+			bResult = ProcessDirective((CPPDirective*)pcToken);
+			if (!bResult)
+			{
+				mbError = true;
+				return false;
+			}
+			if (macSources.NumElements() != iNumSources)
+			{
+				*pbChanged = true;
+				return true;
+			}
+
+			//Evaluating a #if can grow the source stack and move it.
+			psSource = macSources.Tail();
+		}
+		else if (pcToken->IsLine())
+		{
+			if (!mcConditionalStack.IsParsing())
+			{
+				mpcOutput->AddInactiveLine(pcFile, pcToken->Line());
+				continue;
+			}
+
+			psSource->acTokens.Kill();
+			psSource->acTokens.Init();
+			psSource->iToken = 0;
+			psSource->iCurrentLine = pcToken->Line();
+			ConvertTokens(((CPPLine*)pcToken)->GetTokenList(), pcFile, NULL, true, &psSource->acTokens);
+			if (psSource->acTokens.NumElements() > 0)
+			{
+				*psToken = *psSource->acTokens.Get(0);
+				psSource->iToken = 1;
+				return true;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+SPPSource* CPreprocessor::GetCurrentFileSource(void)
+{
+	size		i;
+	SPPSource*	psSource;
+
+	for (i = macSources.NumElements(); i > 0; i--)
+	{
+		psSource = macSources.Get(i - 1);
+		if (psSource->eType == PPST_File)
+		{
+			return psSource;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+static bool IsStringPrefix(const char* sz, size uiLength)
+{
+	if (uiLength == 1)
+	{
+		return (sz[0] == 'L') || (sz[0] == 'u') || (sz[0] == 'U') || (sz[0] == 'R');
+	}
+	if (uiLength == 2)
+	{
+		return ((sz[0] == 'u') && (sz[1] == '8')) || (((sz[0] == 'L') || (sz[0] == 'u') || (sz[0] == 'U')) && (sz[1] == 'R'));
+	}
+	if (uiLength == 3)
+	{
+		return (sz[0] == 'u') && (sz[1] == '8') && (sz[2] == 'R');
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::ConvertTokens(CPPTokenList* pcTokens, CSourceFile* pcFile, CDefine* pcDefine, bool bStartOfLine, CArrayPreprocessedTokens* pacDest)
+{
+	size				i;
+	size				iNumTokens;
+	CPPToken*			pcToken;
+	CPPToken*			pcNext;
+	CPPText*			pcText;
+	CPPText*			pcNextText;
+	CPPHashes*			pcHashes;
+	CPPReplacement*		pcReplacement;
+	SPreprocessedToken	sToken;
+	uint8				uiFlags;
+	size				iCount;
+	int					iColumn;
+	CChars*				pszName;
+	CChars				szMerged;
+	EPreprocessedTokenKind	eKind;
+
+	//Turns the tokeniser's tokens into preprocessed tokens: whitespace becomes a flag, single character decorators become
+	//punctuators, string prefixes join their strings and, in a macro body, parameters and # and ## are marked.
+	uiFlags = bStartOfLine ? PTF_START_OF_LINE : 0;
+	iNumTokens = pcTokens->NumTokens();
+	for (i = 0; i < iNumTokens;)
+	{
+		pcToken = pcTokens->Get(i);
+		if (pcToken->IsWhitespace())
+		{
+			uiFlags |= PTF_LEADING_SPACE;
+			i++;
+		}
+		else if (pcToken->IsHash())
+		{
+			pcHashes = (CPPHashes*)pcToken;
+			iCount = pcHashes->miCount;
+			iColumn = pcToken->Column();
+			while (iCount > 0)
+			{
+				if (iCount >= 2)
+				{
+					sToken.Init(PTK_Punctuator, "##", 2, pcFile, pcToken->Line(), iColumn);
+					sToken.uiFlags = uiFlags | (pcDefine ? PTF_PASTE : 0);
+					iCount -= 2;
+					iColumn += 2;
+				}
+				else
+				{
+					sToken.Init(PTK_Punctuator, "#", 1, pcFile, pcToken->Line(), iColumn);
+					sToken.uiFlags = uiFlags | (pcDefine ? PTF_STRINGIFY : 0);
+					iCount--;
+					iColumn++;
+				}
+				pacDest->Add(&sToken);
+				uiFlags = 0;
+			}
+			i++;
+		}
+		else if (pcToken->IsReplacement() && pcDefine)
+		{
+			pcReplacement = (CPPReplacement*)pcToken;
+			pszName = pcDefine->GetArguments()->Get(pcReplacement->miArgIndex);
+			sToken.Init(PTK_Identifier, pszName->Text(), pszName->Length(), pcFile, pcToken->Line(), pcToken->Column());
+			sToken.iParameter = (int16)pcReplacement->miArgIndex;
+			sToken.uiFlags = uiFlags;
+			pacDest->Add(&sToken);
+			uiFlags = 0;
+			i++;
+		}
+		else if (pcToken->IsText())
+		{
+			pcText = (CPPText*)pcToken;
+			if (pcText->meType == PPT_Decorator)
+			{
+				ConvertDecorators(pcTokens, &i, pcFile, uiFlags, pacDest);
+				uiFlags = 0;
+				continue;
+			}
+
+			pcNext = (i + 1 < iNumTokens) ? pcTokens->Get(i + 1) : NULL;
+			if ((pcText->meType == PPT_Identifier) && pcNext && pcNext->IsText() && IsStringPrefix(pcText->TextStart(), pcText->Length()))
+			{
+				pcNextText = (CPPText*)pcNext;
+				if ((pcNextText->meType == PPT_DoubleQuoted) || (pcNextText->meType == PPT_SingleQuoted))
+				{
+					//The prefix of L"x" or u8"x" is part of the string.
+					eKind = (pcNextText->meType == PPT_DoubleQuoted) ? PTK_String : PTK_Character;
+					if (pcText->TextStart() + pcText->Length() == pcNextText->TextStart())
+					{
+						sToken.Init(eKind, pcText->TextStart(), pcText->Length() + pcNextText->Length(), pcFile, pcToken->Line(), pcToken->Column());
+					}
+					else
+					{
+						szMerged.Init();
+						szMerged.Append(pcText->TextStart(), pcText->Length());
+						szMerged.Append(pcNextText->TextStart(), pcNextText->Length());
+						sToken.Init(eKind, AddString(szMerged.Text(), szMerged.Length()), szMerged.Length(), pcFile, pcToken->Line(), pcToken->Column());
+						szMerged.Kill();
+					}
+					sToken.uiFlags = uiFlags;
+					pacDest->Add(&sToken);
+					uiFlags = 0;
+					i += 2;
+					continue;
+				}
+			}
+
+			switch (pcText->meType)
+			{
+			case PPT_Identifier:
+				eKind = PTK_Identifier;
+				break;
+			case PPT_Number:
+				eKind = PTK_Number;
+				break;
+			case PPT_DoubleQuoted:
+				eKind = PTK_String;
+				break;
+			case PPT_SingleQuoted:
+				eKind = PTK_Character;
+				break;
+			default:
+				eKind = PTK_Other;
+				break;
+			}
+			sToken.Init(eKind, pcText->TextStart(), pcText->Length(), pcFile, pcToken->Line(), pcToken->Column());
+			sToken.uiFlags = uiFlags;
+			pacDest->Add(&sToken);
+			uiFlags = 0;
+			i++;
+		}
+		else
+		{
+			i++;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CPPToken* CPreprocessor::ConvertDecorators(CPPTokenList* pcTokens, size* piIndex, CSourceFile* pcFile, uint8 uiFlags, CArrayPreprocessedTokens* pacDest)
+{
+	char				szChars[4];
+	CPPText*			apcTexts[4];
+	size				iNumChars;
+	size				i;
+	size				iLength;
+	CPPToken*			pcToken;
+	CPPText*			pcText;
+	SPreprocessedToken	sToken;
+	const char*			szText;
+	bool				bContiguous;
+	EPreprocessedTokenKind	eKind;
+
+	//Decorators are single characters.  The longest punctuator they spell is taken, as in <<= or ->*.
+	for (;;)
+	{
+		iNumChars = 0;
+		for (i = *piIndex; (i < pcTokens->NumTokens()) && (iNumChars < 4); i++)
+		{
+			pcToken = pcTokens->Get(i);
+			if (!pcToken->IsText())
+			{
+				break;
+			}
+			pcText = (CPPText*)pcToken;
+			if ((pcText->meType != PPT_Decorator) || (pcText->Length() != 1))
+			{
+				break;
+			}
+			szChars[iNumChars] = pcText->TextStart()[0];
+			apcTexts[iNumChars] = pcText;
+			iNumChars++;
+		}
+
+		if (iNumChars == 0)
+		{
+			//Not a single character decorator.
+			pcText = (CPPText*)pcTokens->Get(*piIndex);
+			sToken.Init(PTK_Other, pcText->TextStart(), pcText->Length(), pcFile, pcText->Line(), pcText->Column());
+			sToken.uiFlags = uiFlags;
+			pacDest->Add(&sToken);
+			(*piIndex)++;
+			return NULL;
+		}
+
+		iLength = PunctuatorLength(szChars, iNumChars);
+		eKind = PTK_Punctuator;
+		if (iLength == 0)
+		{
+			iLength = 1;
+			eKind = PTK_Other;
+		}
+
+		bContiguous = true;
+		for (i = 1; i < iLength; i++)
+		{
+			if (apcTexts[i]->TextStart() != apcTexts[0]->TextStart() + i)
+			{
+				bContiguous = false;
+			}
+		}
+		szText = bContiguous ? apcTexts[0]->TextStart() : AddString(szChars, iLength);
+
+		sToken.Init(eKind, szText, iLength, pcFile, apcTexts[0]->Line(), apcTexts[0]->Column());
+		sToken.uiFlags = uiFlags;
+		pacDest->Add(&sToken);
+		uiFlags = 0;
+		*piIndex += iLength;
+
+		//Whitespace or another kind of token ends the run of decorators.
+		if (*piIndex >= pcTokens->NumTokens())
+		{
+			return NULL;
+		}
+		pcToken = pcTokens->Get(*piIndex);
+		if (!pcToken->IsText() || (((CPPText*)pcToken)->meType != PPT_Decorator))
+		{
+			return pcToken;
+		}
+	}
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -47,19 +765,23 @@ void CPreprocessor::Init(CConfig* pcConfig)
 
 	mcSpecialOperators.Init();
 	miIncludeDepth = 0;
-	miBlockReuse = 0;
-	mbLogBlocks = false;
 	mbLogInlucdes = false;
 	mbDumpLogs = false;
-	miDefineReuse = 0;
-	mpszBlocksLog = NULL;
 	mpszIncludesLog = NULL;
 
 	mcConditionalStack.Init();
 	mpcCurrentFile = NULL;
 	mcHeadersStack.Init();  //Current file should be included in the stack.
 
-	mcStack.Init();
+	macSources.Init();
+	macPushedBack.Init();
+	maiDisabledDefines.Init();
+	mpcOutput = NULL;
+	muiPendingFlags = 0;
+	mbInCondition = false;
+	mbDefinedOperand = false;
+	mbError = false;
+	miCounter = 0;
 	mcHeaderNames.Init();
 
 	AddSpecialDefine("__DATE__");
@@ -67,47 +789,24 @@ void CPreprocessor::Init(CConfig* pcConfig)
 	AddSpecialDefine("__FILE__");
 	AddSpecialDefine("__LINE__");
 	AddSpecialDefine("__TIMESTAMP__");
-	AddSpecialDefine("__FUNCTION__");
-	AddSpecialDefine("__func__");
-	AddSpecialDefine("__STDC__");
-	AddSpecialDefine("__STDC_VERSION__");
-	AddSpecialDefine("__STDC_HOSTED__");
-	AddSpecialDefine("__cplusplus");
-	AddSpecialDefine("__OBJC__");
-	AddSpecialDefine("__ASSEMBLER__");
+	AddSpecialDefine("__COUNTER__");
+
+	//C++14.  __func__ and __FUNCTION__ are identifiers, not macros.  __STDC__ is left to the configuration.
+	AddDefine("__cplusplus", "201402L", &mcDefineReplacementMemory);
+	AddDefine("__STDC_HOSTED__", "1", &mcDefineReplacementMemory);
 
 	AddSpecialOperator("defined", PPSO_Defined);
 	AddSpecialOperator("__has_attribute", PPSO_HasAttribute);
 	AddSpecialOperator("__has_cpp_attribute", PPSO_HasCppAttribute);
 	AddSpecialOperator("__has_builtin", PPSO_HasBuiltIn);
 	AddSpecialOperator("__has_include", PPSO_HasInclude);
+	AddSpecialOperator("__has_include_next", PPSO_HasIncludeNext);
+	AddSpecialOperator("__has_feature", PPSO_HasFeature);
+	AddSpecialOperator("__has_extension", PPSO_HasFeature);
 
 	InitPlatformSpecific();
 	AddConfigDefines(pcConfig);
 	mszVaArgs.Init("__VA_ARGS__");
-
-	mcArguments.Init();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CPreprocessor::Kill(void)
-{
-	mcArguments.Kill();
-	mszVaArgs.Kill();
-	mpcCurrentFile = NULL;
-	mcStack.Kill();
-	mcHeadersStack.Kill();
-	mcConditionalStack.Kill();
-	mcHeaderNames.Kill();
-	mcSpecialOperators.Kill();
-
-	mcDefines.Kill();
-	mcDefineReplacementMemory.Kill();
-	mcDefineStrings.Kill();
 }
 
 
@@ -289,7 +988,8 @@ bool CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 			}
 		}
 		
-		pcTokenMemory = mcStack.GetTokenMemory();
+		pcTokenMemory = GetTokenMemory();
+		pcDefine->SetFile(mpcCurrentFile);
 
 		iNumArguments = pcDefine->GetArguments()->NumElements();
 		iReplacementNum = 0;
@@ -305,10 +1005,10 @@ bool CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 				if (pcText->meType == PPT_Identifier)
 				{
 					iReplaceArg = pcDefine->GetArguments()->GetIndex(pcText->mcText.msz, pcText->mcText.miLen);
-					if (iReplaceArg != -1)
+					if (iReplaceArg != ARRAY_ELEMENT_NOT_FOUND)
 					{
 						pcReplacement = pcTokenMemory->AddReplacement();
-						pcReplacement->Init(pcDefine->GetID(), iReplaceArg, -1, -1, gszEmptyString, bVariadic && (iReplacementNum == iNumArguments - 1));
+						pcReplacement->Init(pcDefine->GetID(), (int)iReplaceArg, -1, -1, gszEmptyString, bVariadic && (iReplacementNum == iNumArguments - 1));
 
 						pcToken = pcReplacement;
 						bAllocated = true;
@@ -336,78 +1036,6 @@ bool CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 		sPos.Message(&szError);
 		szError.Append("Expected identifier");
 		return gcUserError.Set(&szError);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessUnknownDirective(CPreprocessorTokenParser* pcParser, CPPTokenList* pcDest)
-{
-	CExternalString			cIdentifier;
-	bool					bResult;
-	SPreprocessorPosition	sPos;
-	size					iBracketCount;
-	bool					bHasToken;
-	CPPToken*				pcToken;
-	CPPText*				pcText;
-	char					c;
-	CChars					szError;
-
-	MarkPositionForError(pcParser, &sPos);
-
-	bResult = pcParser->GetIdentifier(&cIdentifier);
-	if (bResult)
-	{
-		iBracketCount = 0;
-		bResult = pcParser->GetExactDecorator('(', false);
-		if (bResult)
-		{
-			iBracketCount++;
-			bHasToken = pcParser->NextToken();
-			while (bHasToken)
-			{
-				pcToken = pcParser->GetToken();
-				if (pcToken->IsText())
-				{
-					pcText = (CPPText*)pcToken;
-					if (pcText->meType == PPT_Decorator)
-					{
-						c = pcText->mcText.msz[0];
-						if (c == '(')
-						{
-							iBracketCount++;
-						}
-						else if (c == ')')
-						{
-							iBracketCount--;
-							if (iBracketCount == 0)
-							{
-								pcParser->NextToken();
-								AddZero(pcDest);
-								return true;
-							}
-						}
-					}
-				}
-				bHasToken = pcParser->NextToken();
-			}
-
-			sPos.Message(&szError);
-			szError.Append("Expected ')'.");
-			return gcUserError.Set(&szError);
-		}
-		else
-		{
-			AddZero(pcDest);
-			return true;
-		}
-	}
-	else
-	{
-		return false;
 	}
 }
 
@@ -504,129 +1132,37 @@ bool CPreprocessor::ProcessHashUndef(CPreprocessorTokenParser* pcParser)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPreprocessor::ProcessHashEndif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine)
+static bool IsPathPrefix(char* szPath, char* szBase, size iBaseLength)
 {
-	mcConditionalStack.PopEndIf();
+	size	i;
+	char	c1;
+	char	c2;
 
-	return Condition(pcCond, iLine);  //This must always return iLine.  It's impossible that it should stop parsing after an #end.
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessHashInclude(CPreprocessorTokenParser* pcParser)
-{
-	bool						bResult;
-	CHeaderFile*				pcIncludeFile;
-	CHeaderFiles*				pcHeaderNameMap;
-	CExternalString				cExternalString;
-	CChars						sz;
-	CHeaderNameMapDirectory*	pcNewDirectory;
-	CHeaderNameMapDirectory*	pcCurrentDirectory;
-	CChars						szPath;
-	SPreprocessorPosition		sPos;
-	CPPTokenMemory*				pcTokenMemory;
-	CPPTokenList*				pcTokenList;
-	CPPBlock*					pcBlock;
-
-	pcParser->SkipWhitespace();
-
-	MarkPositionForError(pcParser, &sPos);
-
-	bResult = ProcessIncludeFile(pcParser, &pcIncludeFile, &pcHeaderNameMap);
-	if (bResult)
+	//Windows paths: case is ignored and either separator matches.
+	for (i = 0; i < iBaseLength; i++)
 	{
-		if (pcIncludeFile)
+		c1 = szPath[i];
+		c2 = szBase[i];
+		if (c1 == '\\')
 		{
-			pcNewDirectory = mcHeadersStack.Add();
-			pcCurrentDirectory = mcHeadersStack.Get(mcHeadersStack.NumElements() - 2);
-
-			pcIncludeFile->Path(&szPath);
-			pcNewDirectory->Init(pcHeaderNameMap, szPath.Text());
-			szPath.Kill();
-
-			pcTokenMemory = mcStack.GetTokenMemory();
-			pcTokenList = mcStack.GetTokenList();
-
-			pcBlock = pcTokenMemory->AddBlock();
-			pcBlock->Init(-1, -1, GetFileName());
-			pcTokenList->Add(pcBlock);
-
-			StackPush(pcBlock->GetTokenList(), pcIncludeFile->GetTokenMemory());
-
-			bResult = PreprocessFile(pcIncludeFile, mpcCurrentFile);
-
-			StackPop();
-
-			pcNewDirectory = mcHeadersStack.Tail();
-			pcNewDirectory->Kill();
-			mcHeadersStack.Pop();
-			return bResult;
+			c1 = '/';
 		}
-		else
+		if (c2 == '\\')
 		{
-			sPos.Message(&sz);
-			sz.Append("Could not include file ");
-			sz.AppendSubString(cExternalString.msz, cExternalString.EndInclusive() + 1);
-			return gcUserError.Set(&sz);
+			c2 = '/';
 		}
-	}
-	else
-	{
-		return false;
-	}
-
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessIncludeFile(CPreprocessorTokenParser* pcParser, CHeaderFile** ppcCFile, CHeaderFiles** ppcHeaderNameMap)
-{
-	bool						bResult;
-	CExternalString				cExternalString;
-	SPreprocessorPosition		sPos;
-	CChars						sz;
-	char						cOpen;
-	char						cClose;
-
-	MarkPositionForError(pcParser, &sPos);
-
-	cOpen = ' ';
-	cClose = ' ';
-	bResult = pcParser->GetStringDoubleQuoted(&cExternalString);
-	if (!bResult)
-	{
-		bResult = pcParser->GetQuotedCharacterSequence('<', '>', &cExternalString);
-		if (bResult)
+		if ((c1 >= 'A') && (c1 <= 'Z'))
 		{
-			cOpen = '<';
-			cClose = '>';
+			c1 += 'a' - 'A';
 		}
-	}
-	else
-	{
-		cOpen = '"';
-		cClose = '"';
-	}
-
-	if (bResult)
-	{
-		FindBestInclude(&cExternalString, false, ppcCFile, ppcHeaderNameMap);
-	}
-
-	if ((!bResult) || (*ppcCFile == NULL))
-	{
-		sPos.Message(&sz);
-		sz.Append("Could not include file ");
-		sz.Append(cOpen);
-		sz.AppendSubString(cExternalString.msz, cExternalString.EndInclusive() + 1);
-		sz.Append(cClose);
-		return gcUserError.Set(&sz);
+		if ((c2 >= 'A') && (c2 <= 'Z'))
+		{
+			c2 += 'a' - 'A';
+		}
+		if (c1 != c2)
+		{
+			return false;
+		}
 	}
 	return true;
 }
@@ -636,92 +1172,101 @@ bool CPreprocessor::ProcessIncludeFile(CPreprocessorTokenParser* pcParser, CHead
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::FindBestInclude(CExternalString* pcInclude, bool bSystemFile, CHeaderFile** ppcCFile, CHeaderFiles** ppcHeaderNameMap)
+void CPreprocessor::FindBestInclude(CExternalString* pcInclude, bool bSystemFile, CHeaderFile** ppcCFile, CHeaderFiles** ppcHeaderNameMap, bool bNext)
 {
 	CChars						szInclude;
-	CHeaderFile*				pcBestFile;
-	CHeaderFiles*				pcBestHeaderNameMap;
-	int32						iMatch;
-	int32						iBestMatch;
+	CChars						szPath;
+	CChars						szRelative;
 	size						i;
+	size						j;
+	size						iFirst;
+	size						iBaseLength;
 	CHeaderFiles*				pcHeaderNameMap;
 	CHeaderFile*				pcHeaderFile;
 	CHeaderNameMapDirectory*	pcCurrentDirectory;
-	CChars						szPath;
+	SPPSource*					psSource;
+	char*						szBase;
+
+	*ppcCFile = NULL;
+	*ppcHeaderNameMap = NULL;
 
 	szInclude.Init(pcInclude->msz, 0, pcInclude->miLen);
 	szInclude.Replace('\\', '/');
 
-	iBestMatch = 0;
-	pcBestFile = NULL;
-	pcBestHeaderNameMap = NULL;
-
-	for (i = 0; i < mcHeaderNames.NumElements(); i++)
+	//A quoted include is looked for in the directory of the file that includes it, then in the directories of the files
+	//that included that (as MSVC does), then in the include directories.  [cpp.include] 3
+	if (!bSystemFile && !bNext)
 	{
-		pcHeaderNameMap = *mcHeaderNames.Get(i);
-
-		pcHeaderFile = pcHeaderNameMap->GetFile(szInclude.Text());
-		if (pcHeaderFile)
+		for (i = macSources.NumElements(); i > 0; i--)
 		{
-			iMatch = 2;
-
-			if (pcHeaderFile->IsSystemFile() && bSystemFile)
+			psSource = macSources.Get(i - 1);
+			if (psSource->eType != PPST_File)
 			{
-				iMatch += 2;
+				continue;
 			}
 
-			if (iMatch > iBestMatch)
+			psSource->pcFile->Path(&szPath);
+			szPath.Replace('\\', '/');
+			for (j = 0; j < mcHeaderNames.NumElements(); j++)
 			{
-				iBestMatch = iMatch;
-				pcBestFile = pcHeaderFile;
-				pcBestHeaderNameMap = pcHeaderNameMap;
+				pcHeaderNameMap = *mcHeaderNames.Get(j);
+				szBase = pcHeaderNameMap->GetBaseDirectory();
+				iBaseLength = pcHeaderNameMap->GetBaseDirectoryLength();
+				if ((szPath.Length() >= iBaseLength) && IsPathPrefix(szPath.Text(), szBase, iBaseLength) && ((szPath.Length() == iBaseLength) || (szPath.GetChar(iBaseLength) == '/') || (szPath.GetChar(iBaseLength) == '\\')))
+				{
+					szRelative.Init();
+					if (szPath.Length() > iBaseLength)
+					{
+						szRelative.Append(szPath.Text(iBaseLength + 1));
+						szRelative.Append('/');
+					}
+					szRelative.Append(szInclude);
+					pcHeaderFile = pcHeaderNameMap->GetFile(szRelative.Text());
+					szRelative.Kill();
+					if (pcHeaderFile)
+					{
+						*ppcCFile = pcHeaderFile;
+						*ppcHeaderNameMap = pcHeaderNameMap;
+						szPath.Kill();
+						szInclude.Kill();
+						return;
+					}
+				}
 			}
+			szPath.Kill();
 		}
 	}
 
-	pcCurrentDirectory = mcHeadersStack.Tail();
-	if (pcCurrentDirectory)
+	//#include_next only searches the include directories after the one the current file was found in.
+	iFirst = 0;
+	if (bNext)
 	{
-		for (i = 0; i < mcHeaderNames.NumElements(); i++)
+		pcCurrentDirectory = mcHeadersStack.Tail();
+		if (pcCurrentDirectory)
 		{
-			pcHeaderNameMap = *mcHeaderNames.Get(i);
-
-			if (pcHeaderNameMap == pcCurrentDirectory->mpcHeaderNameMap)
+			for (i = 0; i < mcHeaderNames.NumElements(); i++)
 			{
-				if (pcCurrentDirectory->mszBaseDirectoryName.Length() > pcHeaderNameMap->GetBaseDirectoryLength())
+				if (*mcHeaderNames.Get(i) == pcCurrentDirectory->mpcHeaderNameMap)
 				{
-					szPath.Init(pcCurrentDirectory->mszBaseDirectoryName);
-					szPath.RemoveFromStart(pcHeaderNameMap->GetBaseDirectoryLength()+1);
-					szPath.Append('/');
-					szPath.Append(szInclude);
-					pcHeaderFile = pcHeaderNameMap->GetFile(szPath.Text());
-					if (pcHeaderFile)
-					{
-						iMatch = 2;
-
-						if (pcHeaderFile->IsSystemFile() && bSystemFile)
-						{
-							iMatch += 2;
-						}
-
-						if (iMatch > iBestMatch)
-						{
-							iBestMatch = iMatch;
-							pcBestFile = pcHeaderFile;
-							pcBestHeaderNameMap = pcHeaderNameMap;
-						}
-					}
-
-					szPath.Kill();
+					iFirst = i + 1;
+					break;
 				}
 			}
 		}
 	}
 
+	for (i = iFirst; i < mcHeaderNames.NumElements(); i++)
+	{
+		pcHeaderNameMap = *mcHeaderNames.Get(i);
+		pcHeaderFile = pcHeaderNameMap->GetFile(szInclude.Text());
+		if (pcHeaderFile)
+		{
+			*ppcCFile = pcHeaderFile;
+			*ppcHeaderNameMap = pcHeaderNameMap;
+			break;
+		}
+	}
 	szInclude.Kill();
-
-	*ppcCFile = pcBestFile;
-	*ppcHeaderNameMap = pcBestHeaderNameMap;
 }
 
 
@@ -777,60 +1322,6 @@ char* CPreprocessor::GetFileName(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::LogBlocks(CPPBlockSetArray* pacSourceBlockSets, SPPTokenBlockIndex sResult)
-{
-	CChars			szLine;
-	CPPBlockSet*	pcBlocksSet;
-
-	if (mbLogBlocks)
-	{
-		szLine.Init();
-		szLine.Append(' ', miIncludeDepth * 4);
-		szLine.Append(' ');
-		szLine.Append(GetFileName());
-
-		if (mcConditionalStack.IsParsing())
-		{
-			szLine.Append(" (Parsing): ");
-		}
-		else
-		{
-			szLine.Append("          : ");
-		}
-
-		sResult.Print(&szLine);
-
-		pcBlocksSet = pacSourceBlockSets->SafeGet(sResult.iBlockIndex);
-		if (!pcBlocksSet)
-		{
-			szLine.AppendNewLine();
-		}
-		else
-		{
-			szLine.Append(" (");
-			szLine.Append(pcBlocksSet->Line() + 1);
-			szLine.Append(")\n");
-		}
-
-		if (mbDumpLogs)
-		{
-			szLine.Dump();
-		}
-
-		if (mpszBlocksLog)
-		{
-			mpszBlocksLog->Append(szLine);
-		}
-
-		szLine.Kill();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void CPreprocessor::LogIncludes(CChars* pszIncludesLog)
 {
 	if (pszIncludesLog)
@@ -850,459 +1341,9 @@ void CPreprocessor::LogIncludes(CChars* pszIncludesLog)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::LogBlocks(CChars* pszBlocksLog)
-{
-	if (pszBlocksLog)
-	{
-		mbLogBlocks = true;
-		mpszBlocksLog = pszBlocksLog;
-	}
-	else
-	{
-		mbLogInlucdes = false;
-		mbLogBlocks = NULL;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CPreprocessor::LogBlocks(bool bLogBlocks)
-{
-	mpszBlocksLog = NULL;
-	mbLogBlocks = bLogBlocks;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void CPreprocessor::LogDumping(bool bDumpLogs)
 {
 	mbDumpLogs = bDumpLogs;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::PreprocessBlockSets(CPPBlockSetArray* pacSourceBlockSets)
-{
-	CPPBlockSet*		pcBlocksSet;
-	SPPTokenBlockIndex	sResult;
-
-	sResult.Init(0, 0);
-	pcBlocksSet = pacSourceBlockSets->SafeGet(sResult.iBlockIndex);
-	if (pcBlocksSet == NULL)
-	{
-		gcUserError.Set("No Blocks in source block set.");
-		return false;
-	}
-
-	for (;;)
-	{
-		LogBlocks(pacSourceBlockSets, sResult);
-
-		if (pcBlocksSet->IsDirective())
-		{
-			//The conditional directives need to be expanded so &pcFile->mcStack is needed.  A #define directive will be expanded too.  Write a test for it.
-			sResult = PreprocessDirectiveTokens(pcBlocksSet->GetUnprocssedTokens(), sResult.iBlockIndex, sResult.iTokenIndex);
-			if (sResult.iTokenIndex == -1)
-			{
-				return false;
-			}
-		}
-		else
-		{
-			CStackMarkExtended	cMark;
-			CPPBlock*			pcBlockProcessed;
-			CPPBlock*			pcBlockMatching;
-			CPPTokenMemory*		pcTokenMemory;
-			CPPTokenList*		pcTokenList;
-
-			pcTokenMemory = mcStack.GetTokenMemory();
-			pcTokenList = mcStack.GetTokenList();
-			pcTokenMemory->Mark(&cMark);
-
-			pcBlockProcessed = pcTokenMemory->AddBlock();
-			pcBlockProcessed->Init(pcBlocksSet->Line(), pcBlocksSet->Column(), GetFileName());
-
-			StackPush(pcBlockProcessed->GetTokenList(), pcTokenMemory);
-			sResult = PreprocessNormalLineTokens(pcBlocksSet->GetUnprocssedTokens(), sResult.iBlockIndex, sResult.iTokenIndex);
-			StackPop();
-
-			if (sResult.iTokenIndex == -1)
-			{
-				return false;
-			}
-
-			pcBlockMatching = pcBlocksSet->GetMatchingBlock(pcBlockProcessed);
-			if (pcBlockMatching == NULL)
-			{
-				pcBlocksSet->AddBlock(pcBlockProcessed);
-				pcBlockProcessed->SetNext(sResult.iTokenIndex, sResult.iBlockIndex);
-				pcBlockMatching = pcBlockProcessed;
-			}
-			else
-			{
-				pcBlockProcessed->Kill();
-				pcTokenMemory->Rollback(&cMark);
-				miBlockReuse++;
-				sResult = pcBlockMatching->GetNextTokenBlock();
-			}
-			cMark.Kill();
-
-			if (sResult.iTokenIndex == -1)
-			{
-				return false;
-			}
-
-			pcTokenList->Add(pcBlockMatching);
-		}
-
-		pcBlocksSet = pacSourceBlockSets->SafeGet(sResult.iBlockIndex);
-		if (pcBlocksSet)
-		{
-			if (pcBlocksSet->GetUnprocssedTokens()->NumTokens() == sResult.iTokenIndex)
-			{
-				sResult.iBlockIndex++;
-				sResult.iTokenIndex = 0;
-				pcBlocksSet = pacSourceBlockSets->SafeGet(sResult.iBlockIndex);
-			}
-		}
-
-		if (pcBlocksSet == NULL)
-		{
-			return true;
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::PreprocessFile(CSourceFile* pcFile, CSourceFile* pcFromFile)
-{
-	bool				bResult;
-	CPPBlockSetArray*	pacSourceBlockSets;
-
-	miIncludeDepth++;
-	LogInclude(pcFile);
-	mpcCurrentFile = pcFile;
-
-	bResult = TokeniseFile(pcFile);
-
-	if (!bResult)
-	{
-		return false;
-	}
-
-	bResult = true;
-	if (!mpcCurrentFile->IsPragmaOnced())
-	{
-		pacSourceBlockSets = pcFile->GetBlockSets();
-		bResult = PreprocessBlockSets(pacSourceBlockSets);
-	}
-
-	mpcCurrentFile = pcFromFile;
-	miIncludeDepth--;
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CPreprocessor::TranslationUnitLogging(CTranslationUnit* pcFile)
-{
-	if (pcFile->LogInlucdes())
-	{
-		LogIncludes(&pcFile->GetLogs()->szIncludesLog);
-	}
-	if (pcFile->LogBlocks())
-	{
-		LogBlocks(&pcFile->GetLogs()->szBlocksLog);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::PreprocessTranslationUnit(CTranslationUnit* pcFile)
-{
-	bool				bResult;
-
-	TranslationUnitLogging(pcFile);
-
-	pcFile->AddProcessedBlock();
-
-	StackPush(pcFile->GetProcessedTokenList(), pcFile->GetTokenMemory());
-
-	bResult = PreprocessFile(pcFile, NULL);
-
-	StackPop();
-
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::TokeniseFile(CSourceFile* pcFile)
-{
-	CPreprocessorTokeniser	cTokeniser;
-	bool					bResult;
-	CPPBlockSetArray*		pacBlockSets;
-	char*					szFileContents;
-	size					iFileLength;
-	CPPTokenMemory*			pcTokenMemory;
-
-	pcFile->Load();
-	pacBlockSets = pcFile->GetBlockSets();
-
-	if (!pacBlockSets->IsRawProcessed())
-	{
-		cTokeniser.Init(GetFileName());
-
-		szFileContents = pcFile->GetContents();
-		iFileLength = pcFile->GetContentsLength();
-		pcTokenMemory = mcStack.GetTokenMemory();
-
-		bResult = cTokeniser.TokeniseIntoBlockSets(pacBlockSets, pcTokenMemory,  szFileContents, iFileLength);
-		cTokeniser.Kill();
-
-		return bResult;
-	}
-	else
-	{
-		return true;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPreprocessor::ProcessHashIfndef(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine)
-{
-	CExternalString		cIdentifier;
-	CDefine*			pcDefine;
-	bool				bResult;
-	bool				bEvaluated;
-
-	pcParser->SkipWhitespace();
-	bResult = pcParser->GetIdentifier(&cIdentifier);
-	if (bResult)
-	{
-		pcDefine = mcDefines.GetDefine(&cIdentifier, true);
-		bEvaluated = (pcDefine == NULL);
-		mcConditionalStack.PushIfNotDefined(bEvaluated);
-	}	
-	else
-	{
-		mcConditionalStack.PushIfNotDefined(true);	
-	}
-
-	return Condition(pcCond, iLine);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPreprocessor::ProcessHashIfdef(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine)
-{
-	CExternalString		cIdentifier;
-	CDefine*			pcDefine;
-	bool				bResult;
-	bool				bEvaluated;
-
-	pcParser->SkipWhitespace();
-	bResult = pcParser->GetIdentifier(&cIdentifier);
-	if (bResult)
-	{
-		pcDefine = mcDefines.GetDefine(&cIdentifier, true);
-		bEvaluated = (pcDefine != NULL);
-		mcConditionalStack.PushIfDefined(bEvaluated);
-	}	
-	else
-	{
-		mcConditionalStack.PushIfDefined(false);	
-	}
-
-	return Condition(pcCond, iLine);
-}
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPreprocessor::Condition(CPPConditional* pcCond, SPPTokenBlockIndex iLine)
-{
-	CPPConditional*		pcNext;
-	SPPTokenBlockIndex	sIndex;
-
-	if (mcConditionalStack.IsParsing())
-	{
-		iLine.iTokenIndex++;
-		return iLine;
-	}
-	else
-	{
-		pcNext = pcCond->GetNext();
-		if (pcNext)
-		{
-			sIndex = pcNext->GetTokenBlock();
-			return sIndex;
-		}
-		else if (pcCond->Is(PPD_endif))
-		{
-			sIndex.iBlockIndex = pcCond->GetTokenBlock().iBlockIndex;
-			sIndex.iTokenIndex = -1;
-			return sIndex;
-		}
-		else
-		{
-			gcUserError.Set("Missing #endif");
-			sIndex.iBlockIndex = -1;
-			sIndex.iTokenIndex = -1;
-			return sIndex;
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPreprocessor::ProcessHashElse(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine)
-{
-	mcConditionalStack.SwapForElse();
-
-	return Condition(pcCond, iLine);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPreprocessor::ProcessHashIf(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine)
-{
-	TRISTATE				sEvaluated;
-	CPPTokenList			cTokenHolder;
-	CChars					sz;
-	SPPTokenBlockIndex			sIndex;
-	CChars					szCaclulatorError;
-	SPreprocessorPosition	sPos;
-	CChars					szError;
-	bool					bResult;
-
-	MarkPositionForError(pcParser, &sPos);
-
-	cTokenHolder.Init();
-	bResult = ProcessDirectiveLine(&cTokenHolder, pcParser, 0);
-	if (!bResult)
-	{
-		cTokenHolder.Kill();
-
-		sIndex.Init(-1, -1);  //-1, -1 doesn't seem to strictly mean an error but it does mean stop.
-		return sIndex;
-	}
-
-	sz.Init();
-	cTokenHolder.Print(&sz);
-	szCaclulatorError.Init();
-	sEvaluated = EvaluateEquation(sz.Text(), &szCaclulatorError);
-	if (sEvaluated != TRIERROR)
-	{
-		szCaclulatorError.Kill();
-		mcConditionalStack.PushIf(sEvaluated == TRITRUE);
-		sz.Kill();
-		cTokenHolder.Kill();
-
-		return Condition(pcCond, iLine);
-	}
-	else
-	{
-		cTokenHolder.Kill();
-
-		sPos.Message(&szError);
-		szError.Append("Calculator error parsing \"");
-		szError.Append(sz);
-		szError.Append("\".  ");
-		sz.Kill();
-		szError.Append(szCaclulatorError);
-		szCaclulatorError.Kill();
-		gcUserError.Set(szError.Text());
-		szError.Kill();
-
-		sIndex.Init(-1, -1);  //-1, -1 doesn't seem to strictly mean an error but it does mean stop.
-		return sIndex;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPreprocessor::ProcessHashElif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine)
-{
-	TRISTATE				sEvaluated;
-	CPPTokenList			cTokenHolder;
-	CChars					sz;
-	SPPTokenBlockIndex			sIndex;
-	SPreprocessorPosition	sPos;
-	CChars					szCaclulatorError;
-	CChars					szError;
-
-	MarkPositionForError(pcParser, &sPos);
-
-	cTokenHolder.Init();
-	szCaclulatorError.Init();
-	ProcessDirectiveLine(&cTokenHolder, pcParser, 0);
-	sz.Init();
-	cTokenHolder.Print(&sz);
-	sEvaluated = EvaluateEquation(sz.Text(), &szCaclulatorError);;
-	if (sEvaluated != TRIERROR)
-	{
-		szCaclulatorError.Kill();
-		mcConditionalStack.SwapForElseIf(sEvaluated == TRITRUE);
-		sz.Kill();
-		cTokenHolder.Kill();
-
-		return Condition(pcCond, iLine);
-	}
-	else
-	{
-		sz.Kill();
-		cTokenHolder.Kill();
-
-		sPos.Message(&szError);
-		szError.Append(szCaclulatorError);
-		gcUserError.Set(szError.Text());
-		szCaclulatorError.Kill();
-		szError.Kill();
-
-		sIndex.Init(-1, -1);  //-1, -1 doesn't seem to strictly mean an error but it does mean stop.
-		return sIndex;
-
-	}
 }
 
 
@@ -1364,1201 +1405,18 @@ bool CPreprocessor::ProcessHashPragma(CPreprocessorTokenParser* pcParser)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessNormalLine(CPreprocessorTokenParser* pcParser)
+bool CPreprocessor::ProcessHashUnknown(CPPDirective* pcDirective)
 {
-	CPPLine*			pcLine;
-	bool				bResult;
-	CPPTokenMemory*		pcTokenMemory;
-	CPPTokenList*		pcTokenList;
-
-	if (pcParser->HasTokens())
-	{
-		pcTokenMemory = mcStack.GetTokenMemory();
-		pcLine = pcTokenMemory->AddLine();
-		pcLine->Init(pcParser->Line(), pcParser->Column(), GetFileName());
-
-		bResult = ProcessNormalLine(pcLine->GetTokenList(), pcParser, 0);
-		if (bResult)
-		{
-			if (pcLine->TokenLength() > 0)
-			{
-				pcTokenList = mcStack.GetTokenList();
-				pcTokenList->Add(pcLine);
-			}
-			return true;
-		}
-		return false;
-	}
-	else
-	{
-		return true;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessSingleHash(CPPTokenList* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser)
-{
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessDoubleHash(CPPTokenList* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser)
-{
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessIdentifierDirective(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, size iDepth)
-{
-	CDefine*					pcDefine;
-	bool						bResult;
-	CSpecialOperator*			pcSpecialOperator;
-	CPPTokenListHolder*			pcHolder;
-	SDefineArgument*			psArguments;
-	int							iArgIndex;
-	int							iReplacementTokens;
-	CPreprocessorTokenParser	cParser;
-	CPPTokenMemory*				pcTokenMemory;
-
-	pcSpecialOperator = ProcessSpecialOperator(pcParser);
-	if (pcSpecialOperator)
-	{
-		if (pcSpecialOperator->GetType() == PPSO_Defined)
-		{
-			bResult = ProcessDefinedIdentifier(pcDest, pcText, pcParser);
-			return bResult;
-		}
-		else if (pcSpecialOperator->GetType() == PPSO_HasAttribute)
-		{
-			bResult = ProcessHasAttributeIdentifier(pcDest, pcText, pcParser);
-			return bResult;
-		}
-		else if (pcSpecialOperator->GetType() == PPSO_HasCppAttribute)
-		{
-			bResult = ProcessHasCPPAttributeIdentifier(pcDest, pcText, pcParser);
-			return bResult;
-		}
-		else if (pcSpecialOperator->GetType() == PPSO_HasBuiltIn)
-		{
-			bResult = ProcessHasBuiltInIdentifier(pcDest, pcText, pcParser);
-			return bResult;
-		}
-		else if (pcSpecialOperator->GetType() == PPSO_HasInclude)
-		{
-			bResult = ProcessHasIncludeIdentifier(pcDest, pcText, pcParser);
-			return bResult;
-		}
-	}
-
-	pcDefine = mcDefines.GetDefine(&pcText->mcText, true);
-	if (pcDefine)
-	{
-		iArgIndex = -1;
-		if (pcDefine->IsBacketed())
-		{
-			pcParser->NextToken();
-			psArguments = mcArguments.Add(pcDefine->GetID());
-			iArgIndex = (int)mcArguments.GetDefineArgumentsIndex(psArguments);
-			bResult = FindArguments(pcParser, &psArguments->macTokenArguments);
-			if (!bResult)
-			{
-				KillArguments(psArguments);
-				mcArguments.Remove(pcDefine->GetID());
-
-				return false;
-			}
-			else if (!pcDefine->CanProcessArguments(psArguments->macTokenArguments.NumElements()))
-			{
-				KillArguments(psArguments);
-				mcArguments.Remove(pcDefine->GetID());
-				return false;
-			}
-		}
-		else
-		{
-			pcParser->NextToken();
-		}
-
-		iReplacementTokens = pcDefine->GetReplacement()->GetTokenList()->NumTokens();
-		if (iReplacementTokens > 0)
-		{
-			pcTokenMemory = mcStack.GetTokenMemory();
-			pcHolder = pcTokenMemory->AddTokenReplacementsHolder();
-			pcHolder->Init(-1, -1, GetFileName());
-
-			pcDest->Add(pcHolder);
-
-			cParser.Init(pcDefine->GetReplacement());
-			ProcessDirectiveLine(pcHolder->GetTokenList(), &cParser, iDepth);
-			cParser.Kill();
-		}
-		else if (iReplacementTokens == 0)
-		{
-			AddZero(pcDest);
-		}
-
-		//I'm not sure if it's safe to do this anymore... another define might refer to it.
-		if (iArgIndex != -1)
-		{
-			psArguments = mcArguments.Get(pcDefine->GetID());
-			KillArguments(psArguments);
-			mcArguments.Remove(pcDefine->GetID());
-		}
-		return true;
-	}
-
-	bResult = ProcessUnknownDirective(pcParser, pcDest);
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessIdentifierNormalLine(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, size iDepth)
-{
-	CPPToken*					pcToken;
-	CDefine*					pcDefine;
-	bool						bResult;
-	CPPTokenListHolder*			pcHolder;
-	SDefineArgument*			psArguments;
-	int							iArgIndex;
-	int							iReplacementTokens;
-	CPreprocessorTokenParser	cParser;
-	CPPTokenMemory*				pcTokenMemory;
-
-	pcDefine = mcDefines.GetDefine(&pcText->mcText, true);
-	if (pcDefine)
-	{
-		iArgIndex = -1;
-		if (pcDefine->IsBacketed())
-		{
-			pcParser->NextToken();
-			psArguments = mcArguments.Add(pcDefine->GetID());
-			iArgIndex = (int)mcArguments.GetDefineArgumentsIndex(psArguments);
-			bResult = FindArguments(pcParser, &psArguments->macTokenArguments);
-			if (!bResult)
-			{
-				KillArguments(psArguments);
-				mcArguments.Remove(pcDefine->GetID());
-
-				return false;
-			}
-			else if (!pcDefine->CanProcessArguments(psArguments->macTokenArguments.NumElements()))
-			{
-				KillArguments(psArguments);
-				mcArguments.Remove(pcDefine->GetID());
-				return false;
-			}
-		}
-		else
-		{
-			pcParser->NextToken();
-		}
-
-		iReplacementTokens = pcDefine->GetReplacement()->GetTokenList()->NumTokens();
-		if (iReplacementTokens > 0)
-		{
-			pcTokenMemory = mcStack.GetTokenMemory();
-			pcHolder = pcTokenMemory->AddTokenReplacementsHolder();
-			pcHolder->Init(-1, -1, GetFileName());
-
-			pcDest->Add(pcHolder);
-			
-			cParser.Init(pcDefine->GetReplacement());
-			ProcessNormalLine(pcHolder->GetTokenList(), &cParser, iDepth);
-			cParser.Kill();
-		}
-
-		//I'm not sure if it's safe to do this anymore... another define might refer to it.
-		if (iArgIndex != -1)
-		{
-			psArguments = mcArguments.Get(pcDefine->GetID());
-			KillArguments(psArguments);
-			mcArguments.Remove(pcDefine->GetID());
-		}
-		return true;
-	}
-	else
-	{
-		pcToken = DuplicatePPToken(pcText);
-		pcDest->Add(pcToken);
-		pcParser->NextToken();
-		return true;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CPreprocessor::KillArguments(SDefineArgument* psArguments)
-{
-	size				i;
-	CPPTokenList*		pcTokenHolder;
-
-	for (i = 0; i < psArguments->macTokenArguments.NumElements(); i++)
-	{
-		pcTokenHolder = psArguments->macTokenArguments.Get(i);
-		pcTokenHolder->Kill();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessDefinedIdentifier(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser)
-{
-	CPPToken*				pcToken;
-	CDefine*				pcDefine;
-	CPPText*				pcDecorator;
-	char*					pcValue;
-	bool					bOpenBracket;
-	CSpecialOperator*		pcSpecial;
-	bool					bResult;
-	SPreprocessorPosition	sPos;
 	CChars					szError;
-	CPPTokenMemory*			pcTokenMemory;
-
-	MarkPositionForError(pcParser, &sPos);
-
-	bOpenBracket = pcParser->GetExactDecorator('(');
-	pcParser->SkipWhitespace();
-	pcToken = pcParser->GetToken();
-	pcTokenMemory = mcStack.GetTokenMemory();
-
-	if (pcToken)
-	{
-		pcValue = (char*)mcDefineStrings.Add(1);
-		*pcValue = '0';
-
-		pcDecorator = pcTokenMemory->AddText();
-		pcDecorator->Init(PPT_Number, -1, -1, GetFileName(), pcValue, pcValue + 1);
-
-		if (pcToken->IsText())
-		{
-			pcText = (CPPText*)pcToken;
-			if (pcText->meType == PPT_Identifier)
-			{
-				pcSpecial = mcSpecialOperators.GetSpecialOperator(&pcText->mcText, false);
-				if (pcSpecial)
-				{
-					*pcValue = '1';
-				}
-				else
-				{
-					pcDefine = mcDefines.GetDefine(&pcText->mcText, true);
-					if (pcDefine)
-					{
-						*pcValue = '1';
-					}
-				}
-				pcParser->NextToken();
-			}
-		}
-
-		pcDest->Add(pcDecorator);
-		if (bOpenBracket)
-		{
-			bResult = pcParser->GetExactDecorator(')');
-			if (bResult)
-			{
-				return true;
-			}
-			else
-			{
-				sPos.Message(&szError);
-				szError.Append("Expected ')' following \"defined (\".");
-				return  gcUserError.Set(&szError);
-			}
-		}
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessHasIncludeIdentifier(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser)
-{
-	CHeaderFile*			pcIncludeFile;
-	CHeaderFiles*			pcHeaderNameMap;
-	bool					bResult;
-	CPPText*				pcDecorator;
-	char*					pcValue;
-	SPreprocessorPosition	sPos;
-	CChars					szError;
-	CPPTokenMemory*			pcTokenMemory;
-
-	MarkPositionForError(pcParser, &sPos);
-
-	bResult = pcParser->GetExactDecorator('(', true);
-	if (bResult)
-	{
-		bResult = ProcessIncludeFile(pcParser, &pcIncludeFile, &pcHeaderNameMap);
-		if (bResult)
-		{
-			pcTokenMemory = mcStack.GetTokenMemory();
-			pcDecorator = pcTokenMemory->AddText();
-			pcValue = (char*)mcDefineStrings.Add(1);
-			*pcValue = '0';
-			pcDecorator->Init(PPT_Number, -1, -1, GetFileName(), pcValue, pcValue + 1);
-			if (pcIncludeFile)
-			{
-				*pcValue = '1';
-			}
-
-			bResult = pcParser->GetExactDecorator(')', true);
-			if (bResult)
-			{
-				pcDest->Add(pcDecorator);
-				return true;
-			}
-			else
-			{
-				sPos.Message(&szError);
-				szError.Append("Expected ')' following \"__has_include\".");
-				return  gcUserError.Set(&szError);
-			}
-		}
-		else
-		{
-			return false;
-		}
-	}
-	else
-	{
-		sPos.Message(&szError);
-		szError.Append("Expected '(' following \"__has_include\".");
-		return  gcUserError.Set(&szError);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessHasAttributeIdentifier(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser)
-{
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessHasCPPAttributeIdentifier(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser)
-{
-	bool					bResult;
-	SPreprocessorPosition	sPos;
-	CChars					szError;
-	CChars					szAttribute;
-	bool					bClosingBracket;
-	CExternalString			pcIdentifier;
-
-	MarkPositionForError(pcParser, &sPos);
-
-	bResult = pcParser->GetExactDecorator('(');
-	if (!bResult)
-	{
-		sPos.Message(&szError);
-		szError.Append("Expected '(' after __has_cpp_attribute.");
-		return gcUserError.Set(&szError);
-	}
-
-	szAttribute.Init();
-	bClosingBracket = pcParser->GetExactDecorator(')');
-	while (!bClosingBracket)
-	{
-		bResult = pcParser->GetIdentifier(&pcIdentifier);
-		if (!bResult)
-		{
-			szAttribute.Kill();
-			sPos.Message(&szError);
-			szError.Append("Expected '(' after __has_cpp_attribute.");
-			return gcUserError.Set(&szError);
-		}
-
-		szAttribute.Append(pcIdentifier.msz, pcIdentifier.miLen);
-
-		bResult = pcParser->GetExactDecorator("::", false);
-		if (bResult)
-		{
-			szAttribute.Append("::");
-		}
-		else 
-		{
-			bClosingBracket = pcParser->GetExactDecorator(')');
-			if (!bClosingBracket)
-			{
-				szAttribute.Kill();
-				sPos.Message(&szError);
-				szError.Append("Expected ')'.");
-				return gcUserError.Set(&szError);
-			}
-		}
-	}
-
-	//We have no attributes at all so always subsitute zero.
-	AddZero(pcDest);
-
-	szAttribute.Kill();
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessHasBuiltInIdentifier(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser)
-{
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ExpandDirectiveTokenIfNecessary(CPPToken* pcToken, CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, size iDepth)
-{		
-	CPPToken*				pcNewToken;
-	CPPText*				pcText;
-	bool					bResult;
-	CPPReplacement*			pcReplacement;
-
-	if (pcToken->IsText())
-	{
-		pcText = (CPPText*)pcToken;
-		if (pcText->meType == PPT_Identifier)
-		{
-			bResult = ProcessIdentifierDirective(pcDest, pcText, pcParser, iDepth);
-			return bResult;
-		}
-		else
-		{
-			pcNewToken = DuplicatePPToken(pcToken);
-			pcDest->Add(pcNewToken);
-			pcParser->NextToken();
-			return true;
-		}
-	}
-	else if (pcToken->IsReplacement())
-	{
-		pcReplacement = (CPPReplacement*)pcToken;
-		ExpandDirectiveReplacement(pcReplacement, pcDest, iDepth);
-		pcParser->NextToken();
-		return true;
-	}
-	else
-	{
-		pcNewToken = DuplicatePPToken(pcToken);
-		pcDest->Add(pcNewToken);
-		pcParser->NextToken();
-		return true;
-	}
-};
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CPPToken* CPreprocessor::DuplicatePPToken(CPPToken* pcSource)
-{
-	CPPTokenMemory*		pcTokenMemory;
-
-	pcTokenMemory = mcStack.GetTokenMemory();
-	return ::DuplicatePPToken(pcSource, pcTokenMemory);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ExpandNormalLineTokenIfNecessary(CPPToken* pcToken, CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, size iDepth)
-{
-	CPPToken*			pcNewToken;
-	CPPText*			pcText;
-	bool				bResult;
-	CPPReplacement*		pcReplacement;
-
-	if (pcToken->IsText())
-	{
-		pcText = (CPPText*)pcToken;
-		if (pcText->meType == PPT_Identifier)
-		{
-			bResult = ProcessIdentifierNormalLine(pcDest, pcText, pcParser, iDepth);
-			return bResult;
-		}
-		else
-		{
-			pcNewToken = DuplicatePPToken(pcToken);
-			pcDest->Add(pcNewToken);
-			pcParser->NextToken();
-			return true;
-		}
-	}
-	else if (pcToken->IsReplacement())
-	{
-		pcReplacement = (CPPReplacement*)pcToken;
-		ExpandReplacementNormalLine(pcReplacement, pcDest, iDepth);
-		pcParser->NextToken();
-		return true;
-	}
-	else
-	{
-		pcNewToken = DuplicatePPToken(pcToken);
-		pcDest->Add(pcNewToken);
-		pcParser->NextToken();
-		return true;
-	}
-};
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CPreprocessor::ExpandDirectiveReplacement(CPPReplacement* pcReplacement, CPPTokenList* pcDest, size iDepth)
-{
-	CArrayPPTokenLists*			pcArguments;
-	CPPTokenList*				pcArgument;
-	CPreprocessorTokenParser	cParser;
-	CPPLine						cLine;
-	SDefineArgument*			psDefineArgument;
-	int							i;
-	bool						bFirst;
-	int							iNumElements;
-
-	psDefineArgument = mcArguments.Get(pcReplacement->mlliDefineID);
-	pcArguments = &psDefineArgument->macTokenArguments;
-	if (pcArguments)
-	{
-		if (!pcReplacement->IsVariadic())
-		{
-			pcArgument = pcArguments->Get(pcReplacement->miArgIndex);
-			if (pcArgument)
-			{
-				cLine.Fake(pcArgument);
-				cParser.Init(&cLine);
-				ProcessDirectiveLine(pcDest, &cParser, iDepth);
-				cParser.Kill();
-			}
-		}
-		else
-		{
-			bFirst = true;
-			iNumElements = (int)pcArguments->NumElements();
-			for (i = pcReplacement->miArgIndex; i < iNumElements; i++)
-			{
-				pcArgument = pcArguments->Get(i);
-				if (pcArgument)
-				{
-					if (bFirst)
-					{
-						bFirst = false;
-					}
-					else
-					{
-						AddComma(pcDest);
-					}
-					cLine.Fake(pcArgument);
-					cParser.Init(&cLine);
-					ProcessDirectiveLine(pcDest, &cParser, iDepth);
-					cParser.Kill();
-				}
-			}
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CPreprocessor::ExpandReplacementNormalLine(CPPReplacement* pcReplacement, CPPTokenList* pcDest, size iDepth)
-{
-	CArrayPPTokenLists*			pcArguments;
-	CPPTokenList*				pcArgument;
-	CPreprocessorTokenParser	cParser;
-	CPPLine						cLine;
-	SDefineArgument*			psDefineArgument;
-	int							i;
-	bool						bFirst;
-	int							iNumElements;
-
-	psDefineArgument = mcArguments.Get(pcReplacement->mlliDefineID);
-	pcArguments = &psDefineArgument->macTokenArguments;
-	if (pcArguments)
-	{
-		if (!pcReplacement->IsVariadic())
-		{
-			pcArgument = pcArguments->Get(pcReplacement->miArgIndex);
-			if (pcArgument)
-			{
-				cLine.Fake(pcArgument);
-				cParser.Init(&cLine);
-				ProcessNormalLine(pcDest, &cParser, iDepth);
-				cParser.Kill();
-			}
-		}
-		else
-		{
-			bFirst = true;
-			iNumElements = (int)pcArguments->NumElements();
-			for (i = pcReplacement->miArgIndex; i < iNumElements; i++)
-			{
-				pcArgument = pcArguments->Get(i);
-				if (pcArgument)
-				{
-					if (bFirst)
-					{
-						bFirst = false;
-					}
-					else
-					{
-						AddComma(pcDest);
-					}
-					cLine.Fake(pcArgument);
-					cParser.Init(&cLine);
-					ProcessNormalLine(pcDest, &cParser, iDepth);
-					cParser.Kill();
-				}
-			}
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessDirectiveLine(CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, size iDepth)
-{
-	CPPToken*				pcToken;
-	SPreprocessorPosition	sPos;
-	CChars					szError;
-
-	MarkPositionForError(pcParser, &sPos);
-
-	while (pcParser->HasToken())
-	{
-		pcToken = pcParser->GetToken();
-		if (pcToken->IsHash())
-		{
-			sPos.Message(&szError);
-			szError.Append("Unexpected '#'.");
-			return gcUserError.Set(&szError);
-		}
-
-		ExpandDirectiveTokenIfNecessary(pcToken, pcDest, pcParser, iDepth);
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessNormalLine(CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, size iDepth)
-{
-	CPPHashes*					pcHash;
-	CPPTokenReplacementsHolder	cHolder;
-	size						iHashCount;
-	CPPToken*					pcTemp;
-	CPPToken*					pcPrev;
-	CPPToken*					pcToken;
-
-	iHashCount = 0;
-	pcTemp = NULL;
-	pcPrev = NULL;
-	while (pcParser->HasToken())
-	{
-		pcToken = pcParser->GetToken();
-		if (pcToken->IsHash())
-		{
-			pcHash = (CPPHashes*)pcToken;
-			iHashCount = pcHash->miCount;
-			pcParser->NextToken();
-			continue;
-		}
-
-		if (iHashCount == 0)
-		{
-			pcTemp = pcToken;
-			ExpandNormalLineTokenIfNecessary(pcToken, pcDest, pcParser, iDepth);
-		}
-		else if (iHashCount == 1)  //# Quote following.
-		{
-			cHolder.Init(-1, -1, GetFileName());
-			ExpandNormalLineTokenIfNecessary(pcToken, cHolder.GetTokenList(), pcParser, iDepth);
-			pcTemp = QuoteTokens(pcDest, &cHolder);
-			cHolder.Kill();
-		}
-		else if (iHashCount == 2)  //## Concaternate.
-		{
-			pcTemp = ConcaternateTokens(pcDest, pcPrev, pcToken);
-		}
-
-		pcPrev = pcTemp;
-		iHashCount = 0;
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CPPToken* CPreprocessor::ConcaternateTokens(CPPTokenList* pcDest, CPPToken* pcLeft, CPPToken* pcRight)
-{
-	CPPText*	pcLeftText;
-	CPPText*	pcRightText;
-	CChars		szConcaternated;
-	char*		szInStrings;
-
-	if (pcLeft->IsText() && pcRight->IsText())
-	{
-		pcLeftText = (CPPText*)pcLeft;
-		pcRightText = (CPPText*)pcRight;
-
-		if (((pcLeftText->meType == PPT_Identifier) && (pcRightText->meType == PPT_Identifier))  ||
-			((pcLeftText->meType == PPT_Number) && (pcRightText->meType == PPT_Number)))
-		{
-			szConcaternated.Init();
-			pcLeftText->Print(&szConcaternated);
-			pcRightText->Print(&szConcaternated);
-
-			szInStrings = (char*)mcDefineStrings.Add(szConcaternated.Length()+1);
-			memcpy(szInStrings, szConcaternated.Text(), szConcaternated.Length()+1);
-
-			pcLeftText->mcText.msz = szInStrings;
-			pcLeftText->mcText.miLen = szConcaternated.Length();
-
-			szConcaternated.Kill();
-			return pcLeft;
-		}
-		else
-		{
-			pcDest->Add(pcRight);
-			return pcRight;
-		}
-	}
-	return pcLeft;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CPPToken* CPreprocessor::QuoteTokens(CPPTokenList* pcDest, CPPTokenListHolder* pcHolder)
-{
-	int				j;
-	bool			bQuoteNextReplacement;
-	CChars			szQuoted;
-	char*			szInStrings;
-	CPPText*		pcQuoted;
-	CPPToken*		pcToken;
-	int				iNumTokens;
-	CPPTokenMemory* pcTokenMemory;
-
-	iNumTokens = pcHolder->GetTokenList()->NumTokens();
-	szQuoted.Init();
-	szQuoted.Append('"');
-	for (j = 0; j < iNumTokens; j++)
-	{
-		pcToken = pcHolder->GetTokenList()->Get(j);
-		pcToken->Print(&szQuoted);
-	}
-	szQuoted.Append('"');
-	bQuoteNextReplacement = false;
-
-	szInStrings = (char*)mcDefineStrings.Add(szQuoted.Length()+1);
-	memcpy(szInStrings, szQuoted.Text(), szQuoted.Length()+1);
-
-	pcTokenMemory = mcStack.GetTokenMemory();
-
-	pcQuoted = pcTokenMemory->AddText();
-	pcQuoted->Init(PPT_DoubleQuoted, -1, -1, GetFileName(), szInStrings, szInStrings + szQuoted.Length());
-
-	pcDest->Add(pcQuoted);
-	szQuoted.Kill();
-	return pcQuoted;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CPPToken* CPreprocessor::AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pacTokenPts)
-{
-	CPPToken**	ppcToken;
-
-	ppcToken = pacTokenPts->Add();
-	*ppcToken = pcToken;
-	return pcToken;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::FindArguments(CPreprocessorTokenParser* pcParser, CArrayPPTokenLists* pacArguments)
-{
-	CPPTokenList*			pcArgument;
-	bool					bResult;
-	int						iBracketDepth;
-	CPPToken*				pcSomeToken;
-	bool					bReturn;
 	SPreprocessorPosition	sPos;
 
-	MarkPositionForError(pcParser, &sPos);
-
-	bResult = pcParser->GetExactDecorator('(');
-	if (!bResult)
-	{
-		return false;
-	}
-
-	iBracketDepth = 1;
-	pcArgument = pacArguments->Add();
-	pcArgument->Init();
-	bReturn = false;
-	for (;;)
-	{
-		pcSomeToken = pcParser->GetToken();
-		if (pcSomeToken == NULL)
-		{
-			//Out of file...
-			if (iBracketDepth == 1)
-			{
-				bReturn = true;
-			}
-			break;
-		}
-		bResult = pcParser->GetExactDecorator(')', false);
-		if (bResult)
-		{
-			if (iBracketDepth == 1)
-			{
-				bReturn = true;
-				break;
-			}
-			else 
-			{
-				AddTokenToArgument(pcArgument, pcSomeToken);
-				iBracketDepth--;
-				continue;
-			}
-
-		}
-
-		bResult = pcParser->GetExactDecorator('(', false);
-		if (bResult)
-		{
-			AddTokenToArgument(pcArgument, pcSomeToken);
-			iBracketDepth++;
-			continue;
-		}
-
-		bResult = pcParser->GetExactDecorator(',', false);
-		if (bResult)
-		{
-			if (iBracketDepth > 1)
-			{
-				AddTokenToArgument(pcArgument, pcSomeToken);
-				continue;
-			}
-			else
-			{
-				pcParser->SkipWhitespace();
-				pcArgument = pacArguments->Add();
-				pcArgument->Init();
-				continue;
-			}
-		}
-
-		AddTokenToArgument(pcArgument, pcSomeToken);
-		pcParser->NextToken();
-	}
-
-	if (pcArgument->NumTokens() == 0)
-	{
-		pcArgument->Kill();
-		pacArguments->RemoveTail();
-	}
-
-	return bReturn;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CPreprocessor::AddTokenToArgument(CPPTokenList* pcArgument, CPPToken* pcToken)
-{
-	pcToken = DuplicatePPToken(pcToken);
-	pcArgument->Add(pcToken);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenList* pcSourceTokens, size iBlock, size iToken)
-{
-	SPPTokenBlockIndex			sLine;
-	size						iNumLines;
-	CPPToken*					pcToken;
-	CPPDirective*				pcDirective;
-	CPreprocessorTokenParser	cParser;
-	bool						bResult;
-	size							iOldLine;
-	CChars						szError;
-	SPreprocessorPosition		sPos;
-
-	bResult = true;
-	iNumLines = pcSourceTokens->NumTokens();
-	sLine.iBlockIndex = iBlock;
-	for (sLine.iTokenIndex = iToken; sLine.iTokenIndex < iNumLines; )
-	{
-		iOldLine = sLine.iTokenIndex;
-		pcToken = pcSourceTokens->Get(sLine.iTokenIndex);
-		if (pcToken->IsDirective())
-		{
-			pcDirective = (CPPDirective*)pcToken;
-			cParser.Init(pcDirective);
-			if (pcDirective->IsConditional())
-			{
-				if (pcDirective->Is(PPD_ifdef))
-				{
-					sLine = ProcessHashIfdef(&cParser, (CPPConditional*)pcDirective, sLine);
-				}
-				else if (pcDirective->Is(PPD_ifndef))
-				{
-					sLine = ProcessHashIfndef(&cParser, (CPPConditional*)pcDirective, sLine);
-				}
-				else if (pcDirective->Is(PPD_endif))
-				{
-					sLine = ProcessHashEndif(&cParser, (CPPConditional*)pcDirective, sLine);
-				}
-				else if (pcDirective->Is(PPD_else))
-				{
-					sLine = ProcessHashElse(&cParser, (CPPConditional*)pcDirective, sLine);
-				}
-				else if (pcDirective->Is(PPD_if))
-				{
-					sLine = ProcessHashIf(&cParser, (CPPConditional*)pcDirective, sLine);
-				}
-				else if (pcDirective->Is(PPD_elif))
-				{
-					sLine = ProcessHashElif(&cParser, (CPPConditional*)pcDirective, sLine);
-				}
-			}
-			else
-			{
-				if (mcConditionalStack.IsParsing())
-				{
-					if (pcDirective->Is(PPD_define))
-					{
-						bResult = ProcessHashDefine(&cParser);
-					}
-					else if (pcDirective->Is(PPD_include))
-					{
-						bResult = ProcessHashInclude(&cParser);
-					}
-					else if (pcDirective->Is(PPD_undef))
-					{
-						bResult = ProcessHashUndef(&cParser);
-					}
-					else if (pcDirective->Is(PPD_error))
-					{
-						bResult = ProcessHashError(&cParser);
-					}
-					else if (pcDirective->Is(PPD_pragma))
-					{
-						bResult = ProcessHashPragma(&cParser);
-					}
-				}
-				sLine.iTokenIndex++;
-			}
-
-			if (((sLine.iTokenIndex >= 0) && (sLine.iTokenIndex < iOldLine)) && (sLine.iBlockIndex == iBlock))
-			{
-				gcUserError.Set("Parsing went backwards.  WTF!");
-				bResult = false;
-			}
-
-			if (((sLine.iTokenIndex == -1) && (sLine.iBlockIndex == -1)) || (!bResult))
-			{
-				cParser.Kill();
-				sLine.Init(-1, -1);
-				break;
-			}
-			cParser.Kill();
-
-			if (sLine.iTokenIndex == -1)
-			{
-				//This can only happen on an #endif
-				sLine.iTokenIndex = iNumLines;
-				sLine.iBlockIndex = iBlock;
-				break;
-			}
-			else if (sLine.iBlockIndex != iBlock)
-			{
-				break;
-			}
-		}
-		else
-		{
-			bResult = false;
-
-			MarkPositionForError(pcToken->Line(), pcToken->Column(), &sPos);
-			sPos.Message(&szError);
-			szError.Append("Expected a Directive got [");
-			szError.Append(pcToken->ClassName());
-			szError.Append("].");
-			gcUserError.Set(&szError);
-			sLine.Init(-1, -1);
-			break;
-		}
-	}
-
-	return sLine;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenList* pcSourceTokens, size iBlock, size iToken)
-{
-	SPPTokenBlockIndex			sLine;
-	size						iNumLines;
-	CPPToken*					pcToken;
-	CPPLine*					pcLine;
-	CPreprocessorTokenParser	cParser;
-	bool						bResult;
-	size						iOldLine;
-	CChars						szError;
-	SPreprocessorPosition		sPos;
-
-	bResult = true;
-	iNumLines = pcSourceTokens->NumTokens();
-	sLine.iBlockIndex = iBlock;
-	for (sLine.iTokenIndex = iToken; sLine.iTokenIndex < iNumLines; )
-	{
-		iOldLine = sLine.iTokenIndex;
-		pcToken = pcSourceTokens->Get(sLine.iTokenIndex);
-		if (pcToken->IsLine())
-		{
-			if (mcConditionalStack.IsParsing())
-			{
-				pcLine = (CPPLine*)pcToken;
-				cParser.Init(pcLine);
-				ProcessNormalLine(&cParser);
-				cParser.Kill();
-			}
-			sLine.iTokenIndex++;
-		}
-		else
-		{
-			bResult = false;
-
-			MarkPositionForError(pcToken->Line(), pcToken->Column(), &sPos);
-			sPos.Message(&szError);
-			szError.Append("Expected a Normal Line got [");
-			szError.Append(pcToken->ClassName());
-			szError.Append("].");
-			gcUserError.Set(&szError);
-			sLine.Init(-1, -1);
-			break;
-		}
-	}
-
-	return sLine;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::Preprocess(char* szSource, CChars* pszDest, bool bShowFileAndLine)
-{
-	CPreprocessor			cPreprocessor;
-	CPreprocessorTokeniser	cTokeniser;
-	int						iLen;
-	CPPTokenMemory			cTokenMemory;
-	CPPTokenList			cOutput;
-	CPPBlockSetArray		acBlockSets;
-	bool					bResult;
-
-	cTokeniser.Init("");
-	cTokenMemory.Init();
-
-	iLen = (int)strlen(szSource);
-	acBlockSets.Init();
-	bResult = cTokeniser.TokeniseIntoBlockSets(&acBlockSets, &cTokenMemory, szSource, iLen);
-	cTokeniser.Kill();
-
-	if (!bResult)
-	{
-		return false;
-	}
-
-	cOutput.Init();
-	cPreprocessor.Init(NULL);
-	cPreprocessor.StackPush(&cOutput, &cTokenMemory);
-	bResult = cPreprocessor.PreprocessBlockSets(&acBlockSets);
-	cPreprocessor.StackPop();
-
-	if (pszDest)
-	{
-		cOutput.Print(pszDest, bShowFileAndLine);
-	}
-
-	cPreprocessor.Kill();
-
-	acBlockSets.Kill();
-
-	cOutput.Kill();
-	cTokenMemory.Kill();
-
-	return bResult;
+	//Unknown directives are only an error when they are not skipped by a conditional.
+	MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
+	sPos.Message(&szError);
+	szError.Append("Unknown directive #");
+	pcDirective->GetTokenList()->Print(&szError);
+	szError.StripWhitespace(true);
+	return gcUserError.Set(&szError);
 }
 
 
@@ -2568,43 +1426,7 @@ bool CPreprocessor::Preprocess(char* szSource, CChars* pszDest, bool bShowFileAn
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CPreprocessor::EvaluateEquation(char* szText, CChars* szCalculatorError)
 {
-	CCalculator			cCalculator;
-	CCalculatorSymbols	cSymbols;
-	CCalculatorParser	cParser;
-	CNumber				cAnswer;
-	CCalcExpression*	pcExpression;
-
-	cSymbols.Init(false);
-	cCalculator.Init(&cSymbols, false);
-
-	cParser.Init(&cCalculator);
-	pcExpression = (CCalcExpression*)cParser.Parse(szText);
-	cParser.Kill();
-	
-	if (cCalculator.HasError())
-	{
-		szCalculatorError->Append(cCalculator.GetError());
-		SafeKill(pcExpression);
-		cCalculator.Kill();
-		cSymbols.Kill();
-		return TRIERROR;
-	}
-	else
-	{
-		cAnswer = cCalculator.Eval(pcExpression);
-
-		SafeKill(pcExpression);
-		cCalculator.Kill();
-		cSymbols.Kill();
-		if (cAnswer.IsZero())
-		{
-			return TRIFALSE;
-		}
-		else
-		{
-			return TRITRUE;
-		}
-	}
+	return CPreprocessorExpression::Evaluate(szText, szCalculatorError);
 }
 
 
@@ -2616,81 +1438,38 @@ void CPreprocessor::AddConfigDefines(CConfig* pcConfig)
 {
 	size		i;
 	CChars*		pszText;
+	size		iEquals;
+	CChars		szName;
 
 	if (pcConfig)
 	{
 		for (i = 0; i < pcConfig->maszDefines.NumElements(); i++)
 		{
+			//A define can have a value, as in "NAME=VALUE".
 			pszText = pcConfig->maszDefines.Get(i);
-			mcDefines.AddDefine(pszText->Text());
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CPreprocessor::DeltaDefines(CArrayNamedDefines* pcDelta)
-{
-	size				i;
-	CNamedDefine*		pcNamedDefine;
-	CDefine*			pcExisting;
-	CDefine*			pcDefine;
-	CExternalString		cIdentifier;
-	CPPTokenMemory*		pcTokenMemory;
-
-	pcTokenMemory = mcStack.GetTokenMemory();
-	for (i = 0; i < pcDelta->NumElements(); i++)
-	{
-		pcNamedDefine = pcDelta->Get(i);
-		cIdentifier.Init(pcNamedDefine->GetName(), pcNamedDefine->GetNameLength());
-		if (pcNamedDefine->IsUndeffed())
-		{
-			mcDefines.RemoveDefine(&cIdentifier);
-		}
-		else
-		{
-			pcExisting = mcDefines.GetDefine(&cIdentifier, true);
-			if (pcExisting)
+			iEquals = pszText->Find('=');
+			if (iEquals == ARRAY_ELEMENT_NOT_FOUND)
 			{
-				mcDefines.RemoveDefine(&cIdentifier);
+				szName.Init(pszText->Text());
 			}
-			pcDefine = mcDefines.AddDefine(&cIdentifier);
+			else
+			{
+				szName.Init(pszText->Text(), 0, iEquals);
+			}
 
-			pcDefine->GetArguments()->Copy(pcNamedDefine->GetArguments());
-			pcDefine->GetReplacement()->Copy(pcNamedDefine->GetReplacement(), pcTokenMemory);
-			pcDefine->SetBracketed(pcNamedDefine->IsBacketed());
+			//The configuration replaces predefined macros.
+			mcDefines.RemoveDefine(szName.Text());
+			if (iEquals == ARRAY_ELEMENT_NOT_FOUND)
+			{
+				mcDefines.AddDefine(szName.Text());
+			}
+			else
+			{
+				AddDefine(szName.Text(), pszText->Text(iEquals + 1), &mcDefineReplacementMemory);
+			}
+			szName.Kill();
 		}
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CSpecialOperator* CPreprocessor::ProcessSpecialOperator(CPreprocessorTokenParser* pcParser)
-{
-	CSpecialOperatorsIndex*			pcIndex;
-	SIndexTreeMemoryUnsafeIterator	sIter;
-	CSpecialOperator*				pcSpecial;
-	bool							bHasNext;
-	bool							bMatch;
-
-	pcIndex = mcSpecialOperators.GetIDToSpecialOperatorIndex();
-	bHasNext = pcIndex->StartIteration(&sIter, &pcSpecial, NULL);
-	while (bHasNext)
-	{
-		bMatch = pcParser->GetExactIdentifier(pcSpecial->GetName(), true, true);
-		if (bMatch)
-		{
-			return pcSpecial;
-		}
-		bHasNext = pcIndex->Iterate(&sIter, &pcSpecial, NULL);
-	}
-	return NULL;
 }
 
 
@@ -2724,9 +1503,12 @@ void CPreprocessor::MarkPositionForError(size iLine, size iColumn, SPreprocessor
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::StackPush(CPPTokenList* pcTokenList, CPPTokenMemory* pcTokenMemory)
+void CPreprocessor::TranslationUnitLogging(CTranslationUnit* pcFile)
 {
-	mcStack.Push(pcTokenList, pcTokenMemory);
+	if (pcFile->LogInlucdes())
+	{
+		LogIncludes(&pcFile->GetLogs()->szIncludesLog);
+	}
 }
 
 
@@ -2734,40 +1516,12 @@ void CPreprocessor::StackPush(CPPTokenList* pcTokenList, CPPTokenMemory* pcToken
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::StackPop(void)
+CPPToken* CPreprocessor::DuplicatePPToken(CPPToken* pcSource)
 {
-	mcStack.Pop();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-size CPreprocessor::GetBlockReuse(void)
-{
-	return miBlockReuse;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CPreprocessor::AddComma(CPPTokenList* pcDest)
-{
-	CPPTextWithSource*	pcPPComma;
-	CPPTextWithSource*	pcPPSpace;
 	CPPTokenMemory*		pcTokenMemory;
 
-	pcTokenMemory = mcStack.GetTokenMemory();
-	pcPPComma = pcTokenMemory->AddTextWithSource();
-	pcPPComma->Init(PPT_Decorator, -1, -1, GetFileName(), ",", 1);
-	pcDest->Add(pcPPComma);
-
-	pcPPSpace = pcTokenMemory->AddTextWithSource();
-	pcPPSpace->Init(PPT_Decorator, -1, -1, GetFileName(), " ", 1);
-	pcDest->Add(pcPPSpace);
+	pcTokenMemory = GetTokenMemory();
+	return ::DuplicatePPToken(pcSource, pcTokenMemory);
 }
 
 
@@ -2775,15 +1529,1561 @@ void CPreprocessor::AddComma(CPPTokenList* pcDest)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::AddZero(CPPTokenList* pcDest)
+bool CPreprocessor::Next(SPreprocessedToken* psToken)
 {
-	CPPTextWithSource* pcPPZero;
-	CPPTokenMemory*		pcTokenMemory;
+	CDefine*						pcDefine;
+	CArrayPreprocessedTokenArrays	acArguments;
+	bool							bResult;
+	size							i;
+	uint8							uiSpacing;
 
-	pcTokenMemory = mcStack.GetTokenMemory();
+	//Returns the next token after macro replacement.  [cpp.replace]
+	for (;;)
+	{
+		if (!NextRaw(psToken))
+		{
+			return false;
+		}
 
-	pcPPZero = pcTokenMemory->AddTextWithSource();
-	pcPPZero->Init(PPT_Decorator, -1, -1, GetFileName(), "0", 1);
-	pcDest->Add(pcPPZero);
+		if (muiPendingFlags)
+		{
+			psToken->uiFlags |= muiPendingFlags;
+			muiPendingFlags = 0;
+		}
+
+		if (mbInCondition)
+		{
+			//A defined made by a macro: its operand is not replaced, as g++ and MSVC do.  (Strictly this is undefined.)
+			if (mbDefinedOperand)
+			{
+				if (psToken->IsPunctuator("("))
+				{
+					return true;
+				}
+				mbDefinedOperand = false;
+				if (psToken->uiKind == PTK_Identifier)
+				{
+					psToken->uiFlags |= PTF_NO_EXPAND;
+					return true;
+				}
+			}
+			else if (psToken->Is("defined"))
+			{
+				mbDefinedOperand = true;
+				return true;
+			}
+		}
+
+		if ((psToken->uiKind != PTK_Identifier) || (psToken->uiFlags & PTF_NO_EXPAND))
+		{
+			return true;
+		}
+
+		pcDefine = GetDefine(psToken);
+		if (!pcDefine)
+		{
+			if (!mbInCondition && psToken->Is("_Pragma"))
+			{
+				uiSpacing = psToken->uiFlags & (PTF_LEADING_SPACE | PTF_START_OF_LINE);
+				if (SkipPragmaOperator())
+				{
+					muiPendingFlags |= uiSpacing;
+					continue;
+				}
+			}
+			return true;
+		}
+
+		if (IsDisabled(pcDefine->GetID()))
+		{
+			//A macro is not replaced inside its own replacement, now or ever.  [cpp.rescan]
+			psToken->uiFlags |= PTF_NO_EXPAND;
+			return true;
+		}
+
+		if (pcDefine->IsSpecial())
+		{
+			ExpandSpecial(pcDefine, psToken);
+			return true;
+		}
+
+		acArguments.Init();
+		if (pcDefine->IsBacketed())
+		{
+			//A function-like macro name not followed by ( is not an invocation.
+			if (!PeekOpenParenthesis())
+			{
+				acArguments.Kill();
+				return true;
+			}
+
+			bResult = CollectArguments(pcDefine, psToken, &acArguments);
+		}
+		else
+		{
+			bResult = true;
+		}
+
+		if (bResult)
+		{
+			bResult = ExpandMacro(pcDefine, psToken, &acArguments);
+		}
+
+		for (i = 0; i < acArguments.NumElements(); i++)
+		{
+			acArguments.Get(i)->Kill();
+		}
+		acArguments.Kill();
+
+		if (!bResult)
+		{
+			mbError = true;
+			return false;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::PeekOpenParenthesis(void)
+{
+	SPreprocessedToken	sToken;
+
+	if (!NextRaw(&sToken))
+	{
+		return false;
+	}
+
+	if (sToken.IsPunctuator("("))
+	{
+		return true;
+	}
+
+	PushBack(&sToken);
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::CollectArguments(CDefine* pcDefine, SPreprocessedToken* psName, CArrayPreprocessedTokenArrays* pacArguments)
+{
+	SPreprocessedToken			sToken;
+	CArrayPreprocessedTokens*	pacArgument;
+	size						iNumParameters;
+	size						iNumArguments;
+	bool						bVariadic;
+	int							iDepth;
+	CChars						szError;
+
+	//The opening ( has been read.  Arguments are read without expanding them and can cover many lines.
+	iNumParameters = pcDefine->GetArguments()->NumElements();
+	bVariadic = pcDefine->IsVariadic();
+
+	pacArgument = pacArguments->Add();
+	pacArgument->Init();
+	iDepth = 1;
+	for (;;)
+	{
+		if (!NextRaw(&sToken))
+		{
+			if (!mbError)
+			{
+				szError.Init("Unterminated argument list invoking macro ");
+				szError.Append(pcDefine->GetName());
+				Error(psName, szError.Text());
+				szError.Kill();
+			}
+			return false;
+		}
+
+		if (sToken.uiFlags & PTF_START_OF_LINE)
+		{
+			//A new line in an argument is whitespace.
+			sToken.uiFlags = (sToken.uiFlags & ~PTF_START_OF_LINE) | PTF_LEADING_SPACE;
+		}
+
+		if (sToken.uiKind == PTK_Punctuator)
+		{
+			if (sToken.IsPunctuator("("))
+			{
+				iDepth++;
+			}
+			else if (sToken.IsPunctuator(")"))
+			{
+				iDepth--;
+				if (iDepth == 0)
+				{
+					break;
+				}
+			}
+			else if ((iDepth == 1) && sToken.IsPunctuator(",") && !(bVariadic && (pacArguments->NumElements() >= iNumParameters)))
+			{
+				//The variadic argument includes its commas.
+				pacArgument = pacArguments->Add();
+				pacArgument->Init();
+				continue;
+			}
+		}
+
+		pacArgument = pacArguments->Tail();
+		pacArgument->Add(&sToken);
+	}
+
+	iNumArguments = pacArguments->NumElements();
+	if ((iNumParameters == 0) && (iNumArguments == 1) && (pacArguments->Get(0)->NumElements() == 0))
+	{
+		//F() calls a macro with no parameters.
+		pacArguments->Get(0)->Kill();
+		pacArguments->Pop();
+		iNumArguments = 0;
+	}
+
+	if (bVariadic && (iNumArguments + 1 == iNumParameters))
+	{
+		//The variadic argument may be left out.
+		pacArgument = pacArguments->Add();
+		pacArgument->Init();
+		iNumArguments++;
+	}
+
+	if (iNumArguments != iNumParameters)
+	{
+		szError.Init("Macro ");
+		szError.Append(pcDefine->GetName());
+		szError.Append(" takes ");
+		szError.Append((int)iNumParameters);
+		szError.Append(" arguments but ");
+		szError.Append((int)iNumArguments);
+		szError.Append(" were given.");
+		Error(psName, szError.Text());
+		szError.Kill();
+		return false;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::ExpandMacro(CDefine* pcDefine, SPreprocessedToken* psName, CArrayPreprocessedTokenArrays* pacArguments)
+{
+	CArrayPreprocessedTokens*		pacBody;
+	CArrayPreprocessedTokens		acResult;
+	CArrayPreprocessedTokens		acPasted;
+	CArrayPreprocessedTokens		acFinal;
+	CArrayPreprocessedTokenArrays	acExpanded;
+	CArrayPreprocessedTokens*		pacArgument;
+	SPreprocessedToken*				psBody;
+	SPreprocessedToken*				psToken;
+	SPreprocessedToken*				psLeft;
+	SPreprocessedToken				sToken;
+	size							i;
+	size							j;
+	size							iNumBody;
+	size							iNumParameters;
+	int								iExpansion;
+	int								iParameter;
+	bool							bFunctionLike;
+	bool							bRaw;
+
+	pacBody = GetBody(pcDefine);
+	iNumBody = pacBody->NumElements();
+	iNumParameters = pacArguments->NumElements();
+	bFunctionLike = pcDefine->IsBacketed();
+	iExpansion = mpcOutput->AddExpansion(psName->szText, psName->uiLength, psName->pcFile, psName->iLine, psName->iColumn, psName->iExpansion);
+
+	//Arguments are macro replaced once, when first needed.
+	acExpanded.Init();
+	for (i = 0; i < iNumParameters; i++)
+	{
+		acExpanded.Add()->Init();
+	}
+
+	//Substitute the parameters.  [cpp.subst]
+	acResult.Init();
+	for (i = 0; i < iNumBody; i++)
+	{
+		psBody = pacBody->Get(i);
+		if (bFunctionLike && (psBody->uiFlags & PTF_STRINGIFY) && (i + 1 < iNumBody) && (pacBody->Get(i + 1)->iParameter >= 0))
+		{
+			//#parameter.  [cpp.stringize]
+			Stringify(pacArguments->Get(pacBody->Get(i + 1)->iParameter), &sToken);
+			sToken.uiFlags = psBody->uiFlags & PTF_LEADING_SPACE;
+			sToken.iExpansion = iExpansion;
+			acResult.Add(&sToken);
+			i++;
+			continue;
+		}
+
+		if ((psBody->uiFlags & PTF_PASTE) && pcDefine->IsVariadic() && (i > 0) && (i + 1 < iNumBody) && pacBody->Get(i - 1)->IsPunctuator(",") && (pacBody->Get(i - 1)->iParameter < 0) && (pacBody->Get(i + 1)->iParameter == (int)iNumParameters - 1))
+		{
+			//GNU and Microsoft: in ", ## __VA_ARGS__" the comma is removed when there are no variadic arguments.
+			pacArgument = pacArguments->Get(iNumParameters - 1);
+			if (pacArgument->NumElements() == 0)
+			{
+				acResult.Pop();
+			}
+			else
+			{
+				for (j = 0; j < pacArgument->NumElements(); j++)
+				{
+					sToken = *pacArgument->Get(j);
+					if (j == 0)
+					{
+						sToken.uiFlags = (sToken.uiFlags & ~(PTF_LEADING_SPACE | PTF_START_OF_LINE)) | (pacBody->Get(i + 1)->uiFlags & PTF_LEADING_SPACE);
+					}
+					acResult.Add(&sToken);
+				}
+			}
+			i++;
+			continue;
+		}
+
+		if (psBody->iParameter >= 0)
+		{
+			iParameter = psBody->iParameter;
+
+			//An argument next to ## is not macro replaced.  [cpp.concat]
+			bRaw = ((i + 1 < iNumBody) && (pacBody->Get(i + 1)->uiFlags & PTF_PASTE)) || ((i > 0) && (pacBody->Get(i - 1)->uiFlags & PTF_PASTE));
+			if (bRaw)
+			{
+				pacArgument = pacArguments->Get(iParameter);
+			}
+			else
+			{
+				pacArgument = acExpanded.Get(iParameter);
+				if ((pacArgument->NumElements() == 0) && (pacArguments->Get(iParameter)->NumElements() > 0))
+				{
+					ExpandArgument(pacArguments->Get(iParameter), pacArgument);
+					if (mbError)
+					{
+						break;
+					}
+				}
+			}
+
+			if (pacArgument->NumElements() == 0)
+			{
+				sToken.Init(PTK_Placemarker, "", 0, NULL, -1, -1);
+				sToken.uiFlags = psBody->uiFlags & PTF_LEADING_SPACE;
+				sToken.iExpansion = iExpansion;
+				acResult.Add(&sToken);
+			}
+			else
+			{
+				for (j = 0; j < pacArgument->NumElements(); j++)
+				{
+					sToken = *pacArgument->Get(j);
+					if (j == 0)
+					{
+						sToken.uiFlags = (sToken.uiFlags & ~(PTF_LEADING_SPACE | PTF_START_OF_LINE)) | (psBody->uiFlags & PTF_LEADING_SPACE);
+					}
+					acResult.Add(&sToken);
+				}
+			}
+			continue;
+		}
+
+		sToken = *psBody;
+		sToken.iExpansion = iExpansion;
+		sToken.iParameter = -1;
+		acResult.Add(&sToken);
+	}
+
+	for (i = 0; i < acExpanded.NumElements(); i++)
+	{
+		acExpanded.Get(i)->Kill();
+	}
+	acExpanded.Kill();
+
+	if (mbError)
+	{
+		acResult.Kill();
+		return false;
+	}
+
+	//Paste.  ## is only an operator if it came from the body.  [cpp.concat]
+	acPasted.Init();
+	for (i = 0; i < acResult.NumElements(); i++)
+	{
+		psToken = acResult.Get(i);
+		if (psToken->uiFlags & PTF_PASTE)
+		{
+			if ((acPasted.NumElements() > 0) && (i + 1 < acResult.NumElements()))
+			{
+				psLeft = acPasted.Tail();
+				if (Paste(psLeft, acResult.Get(i + 1), &sToken))
+				{
+					*psLeft = sToken;
+				}
+				else
+				{
+					//Not a valid token.  The compilers that allow it keep the two tokens.
+					acPasted.Add(acResult.Get(i + 1));
+				}
+				i++;
+			}
+			continue;
+		}
+		acPasted.Add(psToken);
+	}
+	acResult.Kill();
+
+	acFinal.Init();
+	for (i = 0; i < acPasted.NumElements(); i++)
+	{
+		psToken = acPasted.Get(i);
+		if (psToken->uiKind != PTK_Placemarker)
+		{
+			sToken = *psToken;
+			sToken.uiFlags &= ~(PTF_PASTE | PTF_STRINGIFY | PTF_START_OF_LINE);
+			acFinal.Add(&sToken);
+		}
+	}
+	acPasted.Kill();
+
+	if (mbInCondition && (acFinal.NumElements() == 0) && !bFunctionLike)
+	{
+		//An object-like macro with no replacement is 0 in #if.  (Strictly this is an error.)
+		AddNumber(0, psName, &acFinal);
+		acFinal.Tail()->iExpansion = iExpansion;
+	}
+
+	//The expansion is spaced like the macro name was.
+	if (acFinal.NumElements() > 0)
+	{
+		psToken = acFinal.Get(0);
+		psToken->uiFlags = (psToken->uiFlags & ~PTF_LEADING_SPACE) | (psName->uiFlags & (PTF_LEADING_SPACE | PTF_START_OF_LINE));
+	}
+	else
+	{
+		muiPendingFlags |= psName->uiFlags & (PTF_LEADING_SPACE | PTF_START_OF_LINE);
+	}
+
+	//Rescan.  [cpp.rescan]
+	PushTokens(PPST_Macro, &acFinal, pcDefine->GetID());
+	acFinal.Kill();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::ExpandArgument(CArrayPreprocessedTokens* pacRaw, CArrayPreprocessedTokens* pacExpanded)
+{
+	CArrayPreprocessedTokens	acCopy;
+
+	acCopy.Init();
+	acCopy.Copy(pacRaw);
+	ExpandTokens(&acCopy, pacExpanded);
+	acCopy.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::ExpandTokens(CArrayPreprocessedTokens* pacSource, CArrayPreprocessedTokens* pacDest)
+{
+	CArrayPreprocessedTokens	acPushedBack;
+	SPreprocessedToken			sToken;
+	size						iNumSources;
+	uint8						uiPendingFlags;
+	bool						bDefinedOperand;
+
+	//Macro replaces the tokens on their own, "as if they formed the rest of the preprocessing file".  [cpp.subst]
+	//pacSource is taken (left empty).
+	memcpy(&acPushedBack, &macPushedBack, sizeof(CArrayPreprocessedTokens));
+	macPushedBack.Init();
+	uiPendingFlags = muiPendingFlags;
+	muiPendingFlags = 0;
+	bDefinedOperand = mbDefinedOperand;
+	mbDefinedOperand = false;
+
+	iNumSources = macSources.NumElements();
+	PushTokens(PPST_Argument, pacSource, -1);
+	while (Next(&sToken))
+	{
+		pacDest->Add(&sToken);
+	}
+
+	while (macSources.NumElements() > iNumSources)
+	{
+		PopSource();
+	}
+
+	macPushedBack.Kill();
+	memcpy(&macPushedBack, &acPushedBack, sizeof(CArrayPreprocessedTokens));
+	muiPendingFlags = uiPendingFlags;
+	mbDefinedOperand = bDefinedOperand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::Stringify(CArrayPreprocessedTokens* pacArgument, SPreprocessedToken* psResult)
+{
+	CChars				sz;
+	size				i;
+	size				j;
+	SPreprocessedToken*	psToken;
+	char				c;
+
+	//Whitespace between tokens becomes one space.  " and \ in string and character literals are escaped.  [cpp.stringize]
+	sz.Init("\"");
+	for (i = 0; i < pacArgument->NumElements(); i++)
+	{
+		psToken = pacArgument->Get(i);
+		if ((i > 0) && (psToken->uiFlags & (PTF_LEADING_SPACE | PTF_START_OF_LINE)))
+		{
+			sz.Append(' ');
+		}
+
+		if ((psToken->uiKind == PTK_String) || (psToken->uiKind == PTK_Character))
+		{
+			for (j = 0; j < psToken->uiLength; j++)
+			{
+				c = psToken->szText[j];
+				if ((c == '"') || (c == '\\'))
+				{
+					sz.Append('\\');
+				}
+				sz.Append(c);
+			}
+		}
+		else
+		{
+			psToken->Append(&sz);
+		}
+	}
+	sz.Append('"');
+
+	psResult->Init(PTK_String, mpcOutput->AddString(sz.Text(), sz.Length()), sz.Length(), NULL, -1, -1);
+	psResult->uiFlags = PTF_OUTPUT_TEXT;
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+static bool IsIdentifierStart(char c)
+{
+	return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || (c == '_') || (c == '$');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+static bool IsIdentifierCharacter(char c)
+{
+	return IsIdentifierStart(c) || ((c >= '0') && (c <= '9'));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+static size QuotedLength(const char* sz, size uiLength)
+{
+	size	i;
+	char	cQuote;
+
+	//The length of the literal starting at sz[0], 0 if it is not terminated.
+	cQuote = sz[0];
+	for (i = 1; i < uiLength; i++)
+	{
+		if (sz[i] == '\\')
+		{
+			i++;
+		}
+		else if (sz[i] == cQuote)
+		{
+			return i + 1;
+		}
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+static int LexSingleToken(const char* sz, size uiLength)
+{
+	size	i;
+	char	c;
+
+	//The kind of the one preprocessing token sz spells, -1 if it is not exactly one token.
+	if (uiLength == 0)
+	{
+		return -1;
+	}
+
+	c = sz[0];
+	if (IsIdentifierStart(c))
+	{
+		for (i = 1; (i < uiLength) && IsIdentifierCharacter(sz[i]); i++)
+		{
+		}
+		if (i == uiLength)
+		{
+			return PTK_Identifier;
+		}
+		if (IsStringPrefix(sz, i) && ((sz[i] == '"') || (sz[i] == '\'')))
+		{
+			if (i + QuotedLength(&sz[i], uiLength - i) == uiLength)
+			{
+				return (sz[i] == '"') ? PTK_String : PTK_Character;
+			}
+		}
+		return -1;
+	}
+
+	if (((c >= '0') && (c <= '9')) || ((c == '.') && (uiLength > 1) && (sz[1] >= '0') && (sz[1] <= '9')))
+	{
+		for (i = 1; i < uiLength; i++)
+		{
+			c = sz[i];
+			if (IsIdentifierCharacter(c) || (c == '.') || (c == '\''))
+			{
+				continue;
+			}
+			if (((c == '+') || (c == '-')) && ((sz[i - 1] == 'e') || (sz[i - 1] == 'E') || (sz[i - 1] == 'p') || (sz[i - 1] == 'P')))
+			{
+				continue;
+			}
+			return -1;
+		}
+		return PTK_Number;
+	}
+
+	if ((c == '"') || (c == '\''))
+	{
+		if (QuotedLength(sz, uiLength) == uiLength)
+		{
+			return (c == '"') ? PTK_String : PTK_Character;
+		}
+		return -1;
+	}
+
+	if (PunctuatorLength(sz, uiLength) == uiLength)
+	{
+		return PTK_Punctuator;
+	}
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::Paste(SPreprocessedToken* psLeft, SPreprocessedToken* psRight, SPreprocessedToken* psResult)
+{
+	CChars	sz;
+	int		iKind;
+
+	if (psLeft->uiKind == PTK_Placemarker)
+	{
+		*psResult = *psRight;
+		psResult->uiFlags = (psRight->uiFlags & ~PTF_LEADING_SPACE) | (psLeft->uiFlags & PTF_LEADING_SPACE);
+		return true;
+	}
+
+	if (psRight->uiKind == PTK_Placemarker)
+	{
+		*psResult = *psLeft;
+		return true;
+	}
+
+	sz.Init();
+	psLeft->Append(&sz);
+	psRight->Append(&sz);
+	iKind = LexSingleToken(sz.Text(), sz.Length());
+	if (iKind < 0)
+	{
+		sz.Kill();
+		return false;
+	}
+
+	//A pasted token is a new token; it may be a macro name.
+	*psResult = *psLeft;
+	psResult->szText = mpcOutput->AddString(sz.Text(), sz.Length());
+	psResult->uiLength = (uint32)sz.Length();
+	psResult->uiKind = (uint8)iKind;
+	psResult->uiFlags = (psLeft->uiFlags & PTF_LEADING_SPACE) | PTF_OUTPUT_TEXT;
+	sz.Kill();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::ExpandSpecial(CDefine* pcDefine, SPreprocessedToken* psToken)
+{
+	SPPSource*		psSource;
+	CChars			sz;
+	char*			szName;
+	char*			szFileName;
+	time_t			tNow;
+	struct tm*		psTime;
+	char			szTime[64];
+	size			i;
+	static char*	aszMonths[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+	static char*	aszDays[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	EPreprocessedTokenKind	eKind;
+	SMacroExpansion*		psExpansion;
+	int						iLine;
+
+	//[cpp.predefined]  Macros the compiler would make, like __FUNCSIG__, are left as identifiers.
+	szName = pcDefine->GetName();
+	sz.Init();
+	eKind = PTK_Number;
+	if (strcmp(szName, "__LINE__") == 0)
+	{
+		//The line of the outermost macro name written in the source, or of __LINE__ itself, as g++ does.
+		iLine = psToken->iLine;
+		psExpansion = mpcOutput->GetExpansion(psToken->iExpansion);
+		while (psExpansion)
+		{
+			iLine = psExpansion->iLine;
+			psExpansion = mpcOutput->GetExpansion(psExpansion->iParent);
+		}
+		if (iLine < 0)
+		{
+			psSource = GetCurrentFileSource();
+			iLine = psSource ? psSource->iCurrentLine : 0;
+		}
+		sz.Append(iLine + 1);
+	}
+	else if (strcmp(szName, "__COUNTER__") == 0)
+	{
+		sz.Append(miCounter);
+		miCounter++;
+	}
+	else if (strcmp(szName, "__FILE__") == 0)
+	{
+		eKind = PTK_String;
+		szFileName = mpcCurrentFile ? mpcCurrentFile->FullName() : gszEmptyString;
+		sz.Append('"');
+		for (i = 0; szFileName[i] != '\0'; i++)
+		{
+			if ((szFileName[i] == '\\') || (szFileName[i] == '"'))
+			{
+				sz.Append('\\');
+			}
+			sz.Append(szFileName[i]);
+		}
+		sz.Append('"');
+	}
+	else if ((strcmp(szName, "__DATE__") == 0) || (strcmp(szName, "__TIME__") == 0) || (strcmp(szName, "__TIMESTAMP__") == 0))
+	{
+		eKind = PTK_String;
+		tNow = time(NULL);
+		psTime = localtime(&tNow);
+		if (strcmp(szName, "__DATE__") == 0)
+		{
+			snprintf(szTime, 64, "\"%s %2d %d\"", aszMonths[psTime->tm_mon], psTime->tm_mday, psTime->tm_year + 1900);
+		}
+		else if (strcmp(szName, "__TIME__") == 0)
+		{
+			snprintf(szTime, 64, "\"%02d:%02d:%02d\"", psTime->tm_hour, psTime->tm_min, psTime->tm_sec);
+		}
+		else
+		{
+			snprintf(szTime, 64, "\"%s %s %2d %02d:%02d:%02d %d\"", aszDays[psTime->tm_wday], aszMonths[psTime->tm_mon], psTime->tm_mday, psTime->tm_hour, psTime->tm_min, psTime->tm_sec, psTime->tm_year + 1900);
+		}
+		sz.Append(szTime);
+	}
+	else
+	{
+		sz.Kill();
+		psToken->uiFlags |= PTF_NO_EXPAND;
+		return;
+	}
+
+	psToken->szText = mpcOutput->AddString(sz.Text(), sz.Length());
+	psToken->uiLength = (uint32)sz.Length();
+	psToken->uiKind = (uint8)eKind;
+	psToken->uiFlags |= PTF_OUTPUT_TEXT;
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::SkipPragmaOperator(void)
+{
+	SPreprocessedToken	sToken;
+	int					iDepth;
+
+	//_Pragma("...") is the operator form of #pragma.  [cpp.pragma.op]  The pragma is ignored.
+	if (!PeekOpenParenthesis())
+	{
+		return false;
+	}
+
+	iDepth = 1;
+	while (NextRaw(&sToken))
+	{
+		if (sToken.IsPunctuator("("))
+		{
+			iDepth++;
+		}
+		else if (sToken.IsPunctuator(")"))
+		{
+			iDepth--;
+			if (iDepth == 0)
+			{
+				return true;
+			}
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CArrayPreprocessedTokens* CPreprocessor::GetBody(CDefine* pcDefine)
+{
+	if (!pcDefine->IsBodyConverted())
+	{
+		ConvertTokens(pcDefine->GetReplacement()->GetTokenList(), pcDefine->GetFile(), pcDefine, false, pcDefine->GetBody());
+		pcDefine->SetBodyConverted();
+	}
+	return pcDefine->GetBody();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CDefine* CPreprocessor::GetDefine(SPreprocessedToken* psToken)
+{
+	CExternalString		cName;
+
+	cName.Init((char*)psToken->szText, (int)psToken->uiLength);
+	return mcDefines.GetDefine(&cName, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::IsDisabled(int64 lliDefineID)
+{
+	size	i;
+
+	for (i = maiDisabledDefines.NumElements(); i > 0; i--)
+	{
+		if (*maiDisabledDefines.Get(i - 1) == lliDefineID)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::IsDefined(SPreprocessedToken* psToken)
+{
+	CExternalString		cName;
+
+	//The special operators, like __has_include, count as defined so that headers can test for them.
+	cName.Init((char*)psToken->szText, (int)psToken->uiLength);
+	if (mcDefines.GetDefine(&cName, true))
+	{
+		return true;
+	}
+	return mcSpecialOperators.GetSpecialOperator(&cName, true) != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::AddNumber(int64 lliValue, SPreprocessedToken* psPosition, CArrayPreprocessedTokens* pacDest)
+{
+	SPreprocessedToken	sToken;
+	CChars				sz;
+
+	sz.Init();
+	sz.Append(lliValue);
+	sToken = *psPosition;
+	sToken.uiKind = PTK_Number;
+	sToken.szText = mpcOutput->AddString(sz.Text(), sz.Length());
+	sToken.uiLength = (uint32)sz.Length();
+	sToken.uiFlags |= PTF_OUTPUT_TEXT;
+	sToken.iParameter = -1;
+	pacDest->Add(&sToken);
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::Error(SPreprocessedToken* psToken, char* szMessage)
+{
+	CChars	sz;
+
+	sz.Init();
+	if (psToken && psToken->pcFile)
+	{
+		sz.Append(psToken->pcFile->ShortName());
+		sz.Append(" (");
+		sz.Append(psToken->iLine + 1);
+		sz.Append(", ");
+		sz.Append(psToken->iColumn + 1);
+		sz.Append("): ");
+	}
+	else
+	{
+		sz.Append(GetFileName());
+		sz.Append(": ");
+	}
+	sz.Append(szMessage);
+	gcUserError.Set(&sz);
+	sz.Kill();
+
+	mbError = true;
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::EmitToken(SPreprocessedToken* psToken)
+{
+	char*	szContents;
+	size	iLength;
+
+	//The output can outlive the preprocessor and #undef'd macros, so its tokens' text must be in a source file or in
+	//the output.
+	if (!(psToken->uiFlags & PTF_OUTPUT_TEXT))
+	{
+		szContents = psToken->pcFile ? psToken->pcFile->GetContents() : NULL;
+		iLength = psToken->pcFile ? psToken->pcFile->GetContentsLength() : 0;
+		if (!szContents || (psToken->szText < szContents) || (psToken->szText + psToken->uiLength > szContents + iLength))
+		{
+			psToken->szText = mpcOutput->AddString(psToken->szText, psToken->uiLength);
+			psToken->uiFlags |= PTF_OUTPUT_TEXT;
+		}
+	}
+	mpcOutput->Add(psToken);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+char* CPreprocessor::AddString(const char* szText, size uiLength)
+{
+	char*	sz;
+
+	//Text that lasts as long as the preprocessor.
+	sz = (char*)mcDefineStrings.Add(uiLength + 1);
+	memcpy(sz, szText, uiLength);
+	sz[uiLength] = '\0';
+	return sz;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CPPTokenMemory* CPreprocessor::GetTokenMemory(void)
+{
+	if (mpcCurrentFile)
+	{
+		return mpcCurrentFile->GetTokenMemory();
+	}
+	return &mcDefineReplacementMemory;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::ProcessDirective(CPPDirective* pcDirective)
+{
+	CPreprocessorTokenParser	cParser;
+	bool						bResult;
+
+	if (pcDirective->IsConditional())
+	{
+		mpcOutput->AddDirectiveLine(mpcCurrentFile, pcDirective->Line(), true);
+		return ProcessConditional(pcDirective);
+	}
+
+	if (!mcConditionalStack.IsParsing())
+	{
+		mpcOutput->AddDirectiveLine(mpcCurrentFile, pcDirective->Line(), false);
+		mpcOutput->AddInactiveLine(mpcCurrentFile, pcDirective->Line());
+		return true;
+	}
+	mpcOutput->AddDirectiveLine(mpcCurrentFile, pcDirective->Line(), true);
+
+	bResult = true;
+	cParser.Init(pcDirective);
+	if (pcDirective->Is(PPD_define))
+	{
+		bResult = ProcessHashDefine(&cParser);
+	}
+	else if (pcDirective->Is(PPD_undef))
+	{
+		bResult = ProcessHashUndef(&cParser);
+	}
+	else if (pcDirective->Is(PPD_include))
+	{
+		bResult = ProcessHashInclude(pcDirective, false);
+	}
+	else if (pcDirective->Is(PPD_include_next))
+	{
+		bResult = ProcessHashInclude(pcDirective, true);
+	}
+	else if (pcDirective->Is(PPD_error))
+	{
+		bResult = ProcessHashError(&cParser);
+	}
+	else if (pcDirective->Is(PPD_pragma))
+	{
+		bResult = ProcessHashPragma(&cParser);
+	}
+	else if (pcDirective->Is(PPD_unknown))
+	{
+		bResult = ProcessHashUnknown(pcDirective);
+	}
+	cParser.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::ProcessConditional(CPPDirective* pcDirective)
+{
+	CPreprocessorTokenParser	cParser;
+	CExternalString				cIdentifier;
+	SPreprocessedToken			sToken;
+	TRISTATE					tResult;
+	bool						bDefined;
+	SPPSource*					psSource;
+	size						iFileDepth;
+	SPreprocessorPosition		sPos;
+	CChars						szError;
+
+	//A conditional is inactive if the group it is in is skipped.  #elif, #else and #endif are in their #if's group.
+	if (pcDirective->Is(PPD_if) || pcDirective->Is(PPD_ifdef) || pcDirective->Is(PPD_ifndef))
+	{
+		if (!mcConditionalStack.IsParsing())
+		{
+			mpcOutput->AddInactiveLine(mpcCurrentFile, pcDirective->Line());
+		}
+	}
+	else if (!mcConditionalStack.IsParentParsing())
+	{
+		mpcOutput->AddInactiveLine(mpcCurrentFile, pcDirective->Line());
+	}
+
+	psSource = GetCurrentFileSource();
+	iFileDepth = psSource ? psSource->iConditionalDepth : 0;
+
+	if (pcDirective->Is(PPD_ifdef) || pcDirective->Is(PPD_ifndef))
+	{
+		if (!mcConditionalStack.IsParsing())
+		{
+			mcConditionalStack.PushIf(false);
+			return true;
+		}
+
+		cParser.Init(pcDirective);
+		cParser.SkipWhitespace();
+		if (!cParser.GetIdentifier(&cIdentifier))
+		{
+			cParser.Kill();
+			MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
+			sPos.Message(&szError);
+			szError.Append("Expected an identifier.");
+			gcUserError.Set(&szError);
+			szError.Kill();
+			return false;
+		}
+		cParser.Kill();
+
+		sToken.Init(PTK_Identifier, cIdentifier.msz, cIdentifier.miLen, NULL, -1, -1);
+		bDefined = IsDefined(&sToken);
+		if (pcDirective->Is(PPD_ifdef))
+		{
+			mcConditionalStack.PushIfDefined(bDefined);
+		}
+		else
+		{
+			mcConditionalStack.PushIfNotDefined(!bDefined);
+		}
+		return true;
+	}
+
+	if (pcDirective->Is(PPD_if))
+	{
+		if (!mcConditionalStack.IsParsing())
+		{
+			//The expressions of conditionals in skipped groups are not evaluated.
+			mcConditionalStack.PushIf(false);
+			return true;
+		}
+
+		tResult = EvaluateCondition(pcDirective);
+		if (tResult == TRIERROR)
+		{
+			return false;
+		}
+		mcConditionalStack.PushIf(tResult == TRITRUE);
+		return true;
+	}
+
+	if (mcConditionalStack.mcStack.NumElements() <= iFileDepth)
+	{
+		MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
+		sPos.Message(&szError);
+		szError.Append("#elif, #else or #endif without #if.");
+		gcUserError.Set(&szError);
+		szError.Kill();
+		return false;
+	}
+
+	if (pcDirective->Is(PPD_elif))
+	{
+		if (!mcConditionalStack.IsElseIfEvaluated())
+		{
+			mcConditionalStack.SwapForElseIf(false);
+			return true;
+		}
+
+		tResult = EvaluateCondition(pcDirective);
+		if (tResult == TRIERROR)
+		{
+			return false;
+		}
+		mcConditionalStack.SwapForElseIf(tResult == TRITRUE);
+		return true;
+	}
+
+	if (pcDirective->Is(PPD_else))
+	{
+		mcConditionalStack.SwapForElse();
+		return true;
+	}
+
+	if (pcDirective->Is(PPD_endif))
+	{
+		mcConditionalStack.PopEndIf();
+		return true;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CPreprocessor::EvaluateCondition(CPPDirective* pcDirective)
+{
+	CArrayPreprocessedTokens	acRaw;
+	CArrayPreprocessedTokens	acReplaced;
+	CArrayPreprocessedTokens	acExpanded;
+	CArrayPreprocessedTokens	acFinal;
+	CChars						sz;
+	CChars						szCalculatorError;
+	CChars						szError;
+	TRISTATE					tResult;
+	size						i;
+	SPreprocessorPosition		sPos;
+	bool						bResult;
+
+	//[cpp.cond]  defined and the __has_ operators are evaluated before macro replacement and again after it, for
+	//macros that make them.  Identifiers left over are 0, except true and false.
+	acRaw.Init();
+	acReplaced.Init();
+	acExpanded.Init();
+	acFinal.Init();
+	ConvertTokens(pcDirective->GetTokenList(), mpcCurrentFile, NULL, false, &acRaw);
+
+	bResult = ReplaceConditionOperators(&acRaw, &acReplaced);
+	if (bResult)
+	{
+		mbInCondition = true;
+		ExpandTokens(&acReplaced, &acExpanded);
+		mbInCondition = false;
+		bResult = !mbError;
+	}
+	if (bResult)
+	{
+		bResult = ReplaceConditionOperators(&acExpanded, &acFinal);
+	}
+
+	if (!bResult)
+	{
+		acRaw.Kill();
+		acReplaced.Kill();
+		acExpanded.Kill();
+		acFinal.Kill();
+		return TRIERROR;
+	}
+
+	sz.Init();
+	for (i = 0; i < acFinal.NumElements(); i++)
+	{
+		if (i > 0)
+		{
+			sz.Append(' ');
+		}
+		acFinal.Get(i)->Append(&sz);
+	}
+
+	szCalculatorError.Init();
+	tResult = EvaluateEquation(sz.Text(), &szCalculatorError);
+	if (tResult == TRIERROR)
+	{
+		MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
+		sPos.Message(&szError);
+		szError.Append("Cannot evaluate \"");
+		szError.Append(sz);
+		szError.Append("\".  ");
+		szError.Append(szCalculatorError);
+		gcUserError.Set(szError.Text());
+		szError.Kill();
+	}
+
+	szCalculatorError.Kill();
+	sz.Kill();
+	acRaw.Kill();
+	acReplaced.Kill();
+	acExpanded.Kill();
+	acFinal.Kill();
+	return tResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+static bool SkipParenthesised(CArrayPreprocessedTokens* pacTokens, size* piIndex)
+{
+	size	i;
+	int		iDepth;
+
+	//pacTokens[*piIndex] is '('.  Moves *piIndex past the matching ')'.
+	iDepth = 0;
+	for (i = *piIndex; i < pacTokens->NumElements(); i++)
+	{
+		if (pacTokens->Get(i)->IsPunctuator("("))
+		{
+			iDepth++;
+		}
+		else if (pacTokens->Get(i)->IsPunctuator(")"))
+		{
+			iDepth--;
+			if (iDepth == 0)
+			{
+				*piIndex = i + 1;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::ReplaceConditionOperators(CArrayPreprocessedTokens* pacSource, CArrayPreprocessedTokens* pacDest)
+{
+	size					i;
+	size					iNumTokens;
+	SPreprocessedToken*		psToken;
+	SPreprocessedToken*		psNext;
+	CSpecialOperator*		pcSpecial;
+	CExternalString			cName;
+	bool					bParenthesis;
+	CChars					szName;
+	bool					bSystem;
+	CHeaderFile*			pcIncludeFile;
+	CHeaderFiles*			pcHeaderNameMap;
+	EPreprocessorSpecialOperator	eType;
+
+	iNumTokens = pacSource->NumElements();
+	for (i = 0; i < iNumTokens;)
+	{
+		psToken = pacSource->Get(i);
+		if (psToken->uiKind != PTK_Identifier)
+		{
+			pacDest->Add(psToken);
+			i++;
+			continue;
+		}
+
+		cName.Init((char*)psToken->szText, (int)psToken->uiLength);
+		pcSpecial = mcSpecialOperators.GetSpecialOperator(&cName, true);
+		psNext = pacSource->SafeGet(i + 1);
+		if (pcSpecial)
+		{
+			eType = pcSpecial->GetType();
+			if (eType == PPSO_Defined)
+			{
+				//defined X or defined ( X )
+				i++;
+				bParenthesis = psNext && psNext->IsPunctuator("(");
+				if (bParenthesis)
+				{
+					i++;
+				}
+				psNext = pacSource->SafeGet(i);
+				if (!psNext || (psNext->uiKind != PTK_Identifier))
+				{
+					return Error(psToken, "Expected an identifier after defined.");
+				}
+				AddNumber(IsDefined(psNext) ? 1 : 0, psToken, pacDest);
+				i++;
+				if (bParenthesis)
+				{
+					psNext = pacSource->SafeGet(i);
+					if (!psNext || !psNext->IsPunctuator(")"))
+					{
+						return Error(psToken, "Expected ')' after defined.");
+					}
+					i++;
+				}
+				continue;
+			}
+
+			if (!psNext || !psNext->IsPunctuator("("))
+			{
+				return Error(psToken, "Expected '(' after __has_ operator.");
+			}
+
+			if ((eType == PPSO_HasInclude) || (eType == PPSO_HasIncludeNext))
+			{
+				i += 2;
+				szName.Init();
+				if (!GetIncludeName(pacSource, &i, &szName, &bSystem))
+				{
+					szName.Kill();
+					return Error(psToken, "Expected a header name after __has_include.");
+				}
+				cName.Init(szName.Text(), (int)szName.Length());
+				FindBestInclude(&cName, bSystem, &pcIncludeFile, &pcHeaderNameMap, eType == PPSO_HasIncludeNext);
+				szName.Kill();
+				AddNumber(pcIncludeFile ? 1 : 0, psToken, pacDest);
+
+				psNext = pacSource->SafeGet(i);
+				if (!psNext || !psNext->IsPunctuator(")"))
+				{
+					return Error(psToken, "Expected ')' after __has_include.");
+				}
+				i++;
+				continue;
+			}
+
+			//Attributes, builtins and features are not known.
+			i++;
+			if (!SkipParenthesised(pacSource, &i))
+			{
+				return Error(psToken, "Expected ')'.");
+			}
+			AddNumber(0, psToken, pacDest);
+			continue;
+		}
+
+		if (psNext && psNext->IsPunctuator("(") && !GetDefine(psToken))
+		{
+			//An unknown function-like name, as in __has_feature(x) without a definition, is 0.
+			i++;
+			if (!SkipParenthesised(pacSource, &i))
+			{
+				return Error(psToken, "Expected ')'.");
+			}
+			AddNumber(0, psToken, pacDest);
+			continue;
+		}
+
+		pacDest->Add(psToken);
+		i++;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::GetIncludeName(CArrayPreprocessedTokens* pacTokens, size* piIndex, CChars* pszName, bool* pbSystem)
+{
+	SPreprocessedToken*		psToken;
+	size					i;
+
+	//"name" or <name>.  A <name> made of several tokens is spelled as they were, with their spacing.
+	psToken = pacTokens->SafeGet(*piIndex);
+	if (!psToken)
+	{
+		return false;
+	}
+
+	if ((psToken->uiKind == PTK_String) && (psToken->szText[0] == '"') && (psToken->uiLength >= 2))
+	{
+		pszName->Append(psToken->szText + 1, psToken->uiLength - 2);
+		*pbSystem = false;
+		(*piIndex)++;
+		return true;
+	}
+
+	if (psToken->IsPunctuator("<"))
+	{
+		for (i = *piIndex + 1; i < pacTokens->NumElements(); i++)
+		{
+			psToken = pacTokens->Get(i);
+			if (psToken->IsPunctuator(">"))
+			{
+				*pbSystem = true;
+				*piIndex = i + 1;
+				return true;
+			}
+			if ((i > *piIndex + 1) && psToken->HasLeadingSpace())
+			{
+				pszName->Append(' ');
+			}
+			psToken->Append(pszName);
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::ProcessHashInclude(CPPDirective* pcDirective, bool bNext)
+{
+	CArrayPreprocessedTokens	acRaw;
+	CArrayPreprocessedTokens	acExpanded;
+	CArrayPreprocessedTokens*	pacName;
+	SPreprocessedToken*			psFirst;
+	CHeaderFile*				pcIncludeFile;
+	CHeaderFiles*				pcHeaderNameMap;
+	CExternalString				cName;
+	CChars						szName;
+	bool						bSystem;
+	bool						bResult;
+	size						i;
+	SPreprocessorPosition		sPos;
+	CChars						szError;
+
+	acRaw.Init();
+	acExpanded.Init();
+	ConvertTokens(pcDirective->GetTokenList(), mpcCurrentFile, NULL, false, &acRaw);
+
+	//#include MACRO is macro replaced first.  [cpp.include]
+	pacName = &acRaw;
+	psFirst = acRaw.SafeGet(0);
+	if (psFirst && !psFirst->IsPunctuator("<") && (psFirst->uiKind != PTK_String))
+	{
+		ExpandTokens(&acRaw, &acExpanded);
+		pacName = &acExpanded;
+	}
+
+	i = 0;
+	szName.Init();
+	bResult = GetIncludeName(pacName, &i, &szName, &bSystem);
+	acRaw.Kill();
+	acExpanded.Kill();
+
+	MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
+	if (!bResult)
+	{
+		szName.Kill();
+		sPos.Message(&szError);
+		szError.Append("Expected \"file\" or <file> after #include.");
+		gcUserError.Set(&szError);
+		szError.Kill();
+		return false;
+	}
+
+	cName.Init(szName.Text(), (int)szName.Length());
+	FindBestInclude(&cName, bSystem, &pcIncludeFile, &pcHeaderNameMap, bNext);
+	if (!pcIncludeFile)
+	{
+		sPos.Message(&szError);
+		szError.Append("Could not include file ");
+		szError.Append(bSystem ? '<' : '"');
+		szError.Append(szName);
+		szError.Append(bSystem ? '>' : '"');
+		gcUserError.Set(&szError);
+		szError.Kill();
+		szName.Kill();
+		return false;
+	}
+	szName.Kill();
+
+	if (pcIncludeFile->IsPragmaOnced())
+	{
+		miIncludeDepth++;
+		LogInclude(pcIncludeFile);
+		miIncludeDepth--;
+		return true;
+	}
+
+	bResult = PushFile(pcIncludeFile, pcHeaderNameMap);
+	if (bResult)
+	{
+		LogInclude(pcIncludeFile);
+	}
+	return bResult;
 }
 

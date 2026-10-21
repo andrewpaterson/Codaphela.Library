@@ -31,6 +31,7 @@ void CCTInt::Init(void)
 	meType = CTNT_Int;
 	mcValue = 0;
 	mbSigned = false;
+	mbLong = false;
 }
 
 
@@ -43,6 +44,7 @@ void CCTInt::Init(unsigned int i)
 	meType = CTNT_Int;
 	mcValue = i;
 	mbSigned = false;
+	mbLong = false;
 }
 
 
@@ -63,24 +65,3 @@ bool CCTInt::IsSigned(void)
 {
 	return mbSigned;
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCTInt::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
-{
-	psz->Append("(");
-	if (mbSigned)
-	{
-		psz->Append("signed");
-	}
-	else
-	{
-		psz->Append("unsigned");
-	}
-	psz->Append(" int)");
-	psz->Append(mcValue);
-}
-

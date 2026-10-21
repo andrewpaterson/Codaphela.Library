@@ -79,93 +79,315 @@
     <Filter Include="Source\Preprocessor\Tokeniser">
       <UniqueIdentifier>{7dd06059-176f-42b0-a4e6-e6e55bb46568}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Syntax">
+      <UniqueIdentifier>{7763df2e-a6bf-4711-9f05-fc4576bf0da1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Symbols">
+      <UniqueIdentifier>{188d7620-714d-4507-8a27-74aafdef8b0a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Highlighter">
+      <UniqueIdentifier>{cb906e79-a865-4dbc-9756-6d39643d26bf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AbstractSyntaxTree.cpp">
-      <Filter>Source\Abstract</Filter>
+    <ClCompile Include="CPPHighlighter.cpp">
+      <Filter>Source\Highlighter</Filter>
     </ClCompile>
-    <ClCompile Include="ASTAggregate.cpp">
-      <Filter>Source\Abstract</Filter>
+    <ClCompile Include="CPPSyntaxExtensionDeclaration.cpp">
+      <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="ASTArray.cpp">
-      <Filter>Source\Abstract</Filter>
+    <ClCompile Include="CppParserStatements.cpp">
+      <Filter>Source\Parser</Filter>
     </ClCompile>
-    <ClCompile Include="ASTBinaryExpr.cpp">
-      <Filter>Source\Abstract\Expression</Filter>
+    <ClCompile Include="CppParserNames.cpp">
+      <Filter>Source\Parser</Filter>
     </ClCompile>
-    <ClCompile Include="ASTCastExpr.cpp">
-      <Filter>Source\Abstract\Expression</Filter>
+    <ClCompile Include="CppParserExpressions.cpp">
+      <Filter>Source\Parser</Filter>
     </ClCompile>
-    <ClCompile Include="ASTConstExpr.cpp">
-      <Filter>Source\Abstract\Expression</Filter>
+    <ClCompile Include="CppParserDeclarators.cpp">
+      <Filter>Source\Parser</Filter>
     </ClCompile>
-    <ClCompile Include="ASTExpression.cpp">
-      <Filter>Source\Abstract\Expression</Filter>
+    <ClCompile Include="CppParserDeclarations.cpp">
+      <Filter>Source\Parser</Filter>
     </ClCompile>
-    <ClCompile Include="ASTUnaryExpr.cpp">
-      <Filter>Source\Abstract\Expression</Filter>
+    <ClCompile Include="CppParserClasses.cpp">
+      <Filter>Source\Parser</Filter>
     </ClCompile>
-    <ClCompile Include="ASTTernaryExpr.cpp">
-      <Filter>Source\Abstract\Expression</Filter>
+    <ClCompile Include="CppParser.cpp">
+      <Filter>Source\Parser</Filter>
     </ClCompile>
-    <ClCompile Include="ASTAccessSpec.cpp">
-      <Filter>Source\Abstract\Specifier</Filter>
+    <ClCompile Include="CPPScope.cpp">
+      <Filter>Source\Symbols</Filter>
     </ClCompile>
-    <ClCompile Include="ASTClassSpec.cpp">
-      <Filter>Source\Abstract\Specifier</Filter>
+    <ClCompile Include="CPPSymbolTable.cpp">
+      <Filter>Source\Symbols</Filter>
     </ClCompile>
-    <ClCompile Include="ASTSimpleSpec.cpp">
-      <Filter>Source\Abstract\Specifier</Filter>
+    <ClCompile Include="CPPSymbol.cpp">
+      <Filter>Source\Symbols</Filter>
     </ClCompile>
-    <ClCompile Include="ASTSpecifier.cpp">
-      <Filter>Source\Abstract\Specifier</Filter>
+    <ClCompile Include="CPPSyntaxTypeSpecifier.cpp">
+      <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="ASTDeclarator.cpp">
-      <Filter>Source\Abstract\Declarator</Filter>
+    <ClCompile Include="CPPSyntaxTree.cpp">
+      <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="ASTInitDecl.cpp">
-      <Filter>Source\Abstract\Declarator</Filter>
+    <ClCompile Include="CPPSyntaxStatement.cpp">
+      <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="ASTListDecl.cpp">
-      <Filter>Source\Abstract\Declarator</Filter>
+    <ClCompile Include="CPPSyntaxMemory.cpp">
+      <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="ASTVarDecl.cpp">
-      <Filter>Source\Abstract\Declarator</Filter>
+    <ClCompile Include="CPPSyntaxExpression.cpp">
+      <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="ASTName.cpp">
-      <Filter>Source\Abstract\Name</Filter>
+    <ClCompile Include="CPPSyntaxDeclaration.cpp">
+      <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="ASTBlockStmt.cpp">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClCompile Include="CPPSyntax.cpp">
+      <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="ASTBreakStmt.cpp">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClCompile Include="CPPSyntaxWhileStatement.cpp">
+      <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="ASTContinueStmt.cpp">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClCompile Include="CPPSyntaxUsingDirective.cpp">
+      <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="ASTDoStmt.cpp">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClCompile Include="CPPSyntaxUsingDeclaration.cpp">
+      <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="ASTExpressionStmt.cpp">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClCompile Include="CPPSyntaxUnaryExpression.cpp">
+      <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="ASTForStmt.cpp">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClCompile Include="CPPSyntaxTypeidExpression.cpp">
+      <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="ASTIfStmt.cpp">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClCompile Include="CPPSyntaxTypeTraitExpression.cpp">
+      <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="ASTReturnStmt.cpp">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClCompile Include="CPPSyntaxTypeParameter.cpp">
+      <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="ASTStatement.cpp">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClCompile Include="CPPSyntaxTypeId.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxTryStatement.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxTranslationUnit.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxThrowExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxThisExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxTemplateDeclaration.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxSwitchStatement.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxSubscriptExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxStringExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxStaticAssert.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxSkippedStatement.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxSkippedDeclaration.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxSizeofExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxSimpleDeclaration.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxReturnStatement.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxRangeForStatement.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxPointerOperator.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxParenthesisedInitializer.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxParenthesisedExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxParameter.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxPackExpansionExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxNoexceptExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxNewExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxNamespace.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxNamedTypeSpecifier.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxNamedCastExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxNameComponent.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxName.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxMemberInitializer.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxMemberExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxLiteralExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxLinkageSpecification.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxLabelStatement.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxKeywordSpecifier.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxInitializerList.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxInitDeclarator.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxIfStatement.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxIdExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxGotoStatement.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxFunctionSuffix.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxFunctionDefinition.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxForStatement.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxExpressionStatement.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxExceptionSpecification.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxEnumerator.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxEnumSpecifier.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxEmptyDeclaration.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxElaboratedTypeSpecifier.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxDoStatement.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxDeleteExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxDecltypeSpecifier.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxDeclarator.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxDeclarationStatement.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxDeclSpecifiers.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxContinueStatement.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxConstructExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxConditionalExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxCompoundStatement.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxClassSpecifier.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxCatchHandler.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxCastExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxCaseStatement.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxCallExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxBreakStatement.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxBinaryExpression.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxBaseSpecifier.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxAttribute.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxArraySuffix.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxAlignasSpecifier.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxAliasDeclaration.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPSyntaxAccessSpecifier.cpp">
+      <Filter>Source\Syntax</Filter>
     </ClCompile>
     <ClCompile Include="ConditionalStack.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
     <ClCompile Include="Preprocessor.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="Preprocessor_Linux.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
     <ClCompile Include="Preprocessor_Windows.cpp">
@@ -255,12 +477,6 @@
     <ClCompile Include="TranslationUnits.cpp">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClCompile>
-    <ClCompile Include="CppParser.cpp">
-      <Filter>Source\Parser</Filter>
-    </ClCompile>
-    <ClCompile Include="CPPReturn.cpp">
-      <Filter>Source\Parser</Filter>
-    </ClCompile>
     <ClCompile Include="Config.cpp">
       <Filter>Source\Library</Filter>
     </ClCompile>
@@ -291,9 +507,6 @@
     <ClCompile Include="CTString.cpp">
       <Filter>Source\Tokeniser\Tokens</Filter>
     </ClCompile>
-    <ClCompile Include="CTWideString.cpp">
-      <Filter>Source\Tokeniser\Tokens</Filter>
-    </ClCompile>
     <ClCompile Include="CTDouble.cpp">
       <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
     </ClCompile>
@@ -314,9 +527,6 @@
     </ClCompile>
     <ClCompile Include="CTShort.cpp">
       <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
-    </ClCompile>
-    <ClCompile Include="CTNewLine.cpp">
-      <Filter>Source\Tokeniser\Tokens\Helpers</Filter>
     </ClCompile>
     <ClCompile Include="ASCIITree.cpp">
       <Filter>Source\Preprocessor\ASCII</Filter>
@@ -345,6 +555,15 @@
     <ClCompile Include="PreprocessorDirective.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
+    <ClCompile Include="PreprocessorExpression.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="PreprocessedTokens.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="Punctuators.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
     <ClCompile Include="DirectiveMap.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
@@ -371,103 +590,292 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AbstractSyntaxTree.h">
-      <Filter>Source\Abstract</Filter>
+    <ClInclude Include="CPPHighlighter.h">
+      <Filter>Source\Highlighter</Filter>
     </ClInclude>
-    <ClInclude Include="AbstractSyntaxTypes.h">
-      <Filter>Source\Abstract</Filter>
+    <ClInclude Include="CPPSyntaxExtensionDeclaration.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTAggregate.h">
-      <Filter>Source\Abstract</Filter>
+    <ClInclude Include="CppParser.h">
+      <Filter>Source\Parser</Filter>
     </ClInclude>
-    <ClInclude Include="ASTArray.h">
-      <Filter>Source\Abstract</Filter>
+    <ClInclude Include="CPPScope.h">
+      <Filter>Source\Symbols</Filter>
     </ClInclude>
-    <ClInclude Include="ASTCommon.h">
-      <Filter>Source\Abstract</Filter>
+    <ClInclude Include="CPPSymbolTable.h">
+      <Filter>Source\Symbols</Filter>
     </ClInclude>
-    <ClInclude Include="ASTBinaryExpr.h">
-      <Filter>Source\Abstract\Expression</Filter>
+    <ClInclude Include="CPPSymbol.h">
+      <Filter>Source\Symbols</Filter>
     </ClInclude>
-    <ClInclude Include="ASTCastExpr.h">
-      <Filter>Source\Abstract\Expression</Filter>
+    <ClInclude Include="CPPSyntaxTypeSpecifier.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTConstExpr.h">
-      <Filter>Source\Abstract\Expression</Filter>
+    <ClInclude Include="CPPSyntaxTree.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTExpression.h">
-      <Filter>Source\Abstract\Expression</Filter>
+    <ClInclude Include="CPPSyntaxStatement.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTUnaryExpr.h">
-      <Filter>Source\Abstract\Expression</Filter>
+    <ClInclude Include="CPPSyntaxMemory.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTTernaryExpr.h">
-      <Filter>Source\Abstract\Expression</Filter>
+    <ClInclude Include="CPPSyntaxExpression.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="SimpleOperator.h">
-      <Filter>Source\Parser\Operator</Filter>
+    <ClInclude Include="CPPSyntaxEnums.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTAccessSpec.h">
-      <Filter>Source\Abstract\Specifier</Filter>
+    <ClInclude Include="CPPSyntaxDeclaration.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTClassSpec.h">
-      <Filter>Source\Abstract\Specifier</Filter>
+    <ClInclude Include="CPPSyntax.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTSimpleSpec.h">
-      <Filter>Source\Abstract\Specifier</Filter>
+    <ClInclude Include="CPPSyntaxes.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTSpecifier.h">
-      <Filter>Source\Abstract\Specifier</Filter>
+    <ClInclude Include="CPPSyntaxWhileStatement.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTDeclarator.h">
-      <Filter>Source\Abstract\Declarator</Filter>
+    <ClInclude Include="CPPSyntaxUsingDirective.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTInitDecl.h">
-      <Filter>Source\Abstract\Declarator</Filter>
+    <ClInclude Include="CPPSyntaxUsingDeclaration.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTListDecl.h">
-      <Filter>Source\Abstract\Declarator</Filter>
+    <ClInclude Include="CPPSyntaxUnaryExpression.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTVarDecl.h">
-      <Filter>Source\Abstract\Declarator</Filter>
+    <ClInclude Include="CPPSyntaxTypeidExpression.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTName.h">
-      <Filter>Source\Abstract\Name</Filter>
+    <ClInclude Include="CPPSyntaxTypeTraitExpression.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTBlockStmt.h">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClInclude Include="CPPSyntaxTypeParameter.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTBreakStmt.h">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClInclude Include="CPPSyntaxTypeId.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTContinueStmt.h">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClInclude Include="CPPSyntaxTryStatement.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTDoStmt.h">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClInclude Include="CPPSyntaxTranslationUnit.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTExpressionStmt.h">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClInclude Include="CPPSyntaxThrowExpression.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTForStmt.h">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClInclude Include="CPPSyntaxThisExpression.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTIfStmt.h">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClInclude Include="CPPSyntaxTemplateDeclaration.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTReturnStmt.h">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClInclude Include="CPPSyntaxSwitchStatement.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="ASTStatement.h">
-      <Filter>Source\Abstract\Statement</Filter>
+    <ClInclude Include="CPPSyntaxSubscriptExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxStringExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxStaticAssert.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxSkippedStatement.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxSkippedDeclaration.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxSizeofExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxSimpleDeclaration.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxReturnStatement.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxRangeForStatement.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxPointerOperator.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxParenthesisedInitializer.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxParenthesisedExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxParameter.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxPackExpansionExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxNoexceptExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxNewExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxNamespace.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxNamedTypeSpecifier.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxNamedCastExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxNameComponent.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxName.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxMemberInitializer.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxMemberExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxLiteralExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxLinkageSpecification.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxLabelStatement.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxKind.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxKeywordSpecifier.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxInitializerList.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxInitDeclarator.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxIfStatement.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxIdExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxGotoStatement.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxFunctionSuffix.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxFunctionDefinition.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxForStatement.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxExpressionStatement.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxExceptionSpecification.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxEnumerator.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxEnumSpecifier.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxEmptyDeclaration.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxElaboratedTypeSpecifier.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxDoStatement.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxDeleteExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxDecltypeSpecifier.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxDeclarator.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxDeclarationStatement.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxDeclSpecifiers.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxContinueStatement.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxConstructExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxConditionalExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxCompoundStatement.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxClassSpecifier.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxCatchHandler.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxCastExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxCaseStatement.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxCallExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxBreakStatement.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxBinaryExpression.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxBaseSpecifier.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxAttribute.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxArraySuffix.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxAlignasSpecifier.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxAliasDeclaration.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPSyntaxAccessSpecifier.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
     <ClInclude Include="ConditionalStack.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
     <ClInclude Include="Preprocessor.h">
-      <Filter>Source\Preprocessor</Filter>
-    </ClInclude>
-    <ClInclude Include="Preprocessor_Linux.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
     <ClInclude Include="PreprocessorParser.h">
@@ -554,12 +962,6 @@
     <ClInclude Include="TranslationUnits.h">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClInclude>
-    <ClInclude Include="CPPParser.h">
-      <Filter>Source\Parser</Filter>
-    </ClInclude>
-    <ClInclude Include="CPPReturn.h">
-      <Filter>Source\Parser</Filter>
-    </ClInclude>
     <ClInclude Include="Config.h">
       <Filter>Source\Library</Filter>
     </ClInclude>
@@ -590,9 +992,6 @@
     <ClInclude Include="CTString.h">
       <Filter>Source\Tokeniser\Tokens</Filter>
     </ClInclude>
-    <ClInclude Include="CTWideString.h">
-      <Filter>Source\Tokeniser\Tokens</Filter>
-    </ClInclude>
     <ClInclude Include="CTDouble.h">
       <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
     </ClInclude>
@@ -614,17 +1013,11 @@
     <ClInclude Include="CTShort.h">
       <Filter>Source\Tokeniser\Tokens\Numbers</Filter>
     </ClInclude>
-    <ClInclude Include="CTNewLine.h">
-      <Filter>Source\Tokeniser\Tokens\Helpers</Filter>
-    </ClInclude>
     <ClInclude Include="GeneralToken.h">
       <Filter>Source\General</Filter>
     </ClInclude>
     <ClInclude Include="ASCIITree.h">
       <Filter>Source\Preprocessor\ASCII</Filter>
-    </ClInclude>
-    <ClInclude Include="ClassType.h">
-      <Filter>Source\Parser\Types</Filter>
     </ClInclude>
     <ClInclude Include="NamedDefine.h">
       <Filter>Source\Preprocessor\Define</Filter>
@@ -651,6 +1044,15 @@
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
     <ClInclude Include="PreprocessorDirective.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="PreprocessorExpression.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="PreprocessedTokens.h">
+      <Filter>Source\Preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="Punctuators.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
     <ClInclude Include="SpecialOperatorMap.h">

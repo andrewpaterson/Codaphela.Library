@@ -21,7 +21,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TokenHelper.h"
 #include "PPDirective.h"
 #include "PPLine.h"
-#include "PPWhitespace.h"
+#include "PPWhiteSpace.h"
 #include "PPReplacement.h"
 #include "PPText.h"
 #include "PPTextWithSource.h"

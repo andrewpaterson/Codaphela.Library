@@ -34,7 +34,6 @@ public:
 	void Init(uint64 ulli);
 	void Kill(void);
 	bool IsSigned(void);
-	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 
 

@@ -25,12 +25,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void STULog::Init(bool bLogInlucdes, bool bLogBlocks)
+void STULog::Init(bool bLogInlucdes)
 {
 	szIncludesLog.Init();
-	szBlocksLog.Init();
 	this->bLogInlucdes = bLogInlucdes;
-	this->bLogBlocks = bLogBlocks;
 }
 
 
@@ -40,7 +38,6 @@ void STULog::Init(bool bLogInlucdes, bool bLogBlocks)
 //////////////////////////////////////////////////////////////////////////
 void STULog::Kill(void)
 {
-	szBlocksLog.Kill();
 	szIncludesLog.Kill();
 }
 
@@ -49,16 +46,16 @@ void STULog::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTranslationUnit::Init(char* szFullName, CLibrary* pcLibrary, bool bLogIncludes, bool bLogBlocks)
+void CTranslationUnit::Init(char* szFullName, CLibrary* pcLibrary, bool bLogIncludes)
 {
 	CSourceFile::Init(szFullName);
 	mpcLibrary = pcLibrary;
-	mpcProcessed = NULL;
+	mcTokens.Init();
 
-	if (bLogBlocks || bLogIncludes)
+	if (bLogIncludes)
 	{
 		mpcLogs = (STULog*)malloc(sizeof(STULog));
-		mpcLogs->Init(bLogIncludes, bLogBlocks);
+		mpcLogs->Init(bLogIncludes);
 	}
 	else
 	{
@@ -73,11 +70,7 @@ void CTranslationUnit::Init(char* szFullName, CLibrary* pcLibrary, bool bLogIncl
 //////////////////////////////////////////////////////////////////////////
 void CTranslationUnit::Kill(void)
 {
-	if (mpcProcessed)
-	{
-		mpcProcessed->Kill();
-		mpcProcessed = NULL;
-	}
+	mcTokens.Kill();
 
 	if (mpcLogs)
 	{
@@ -105,23 +98,6 @@ bool CTranslationUnit::IsTranslationUnit(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTranslationUnit::IsHeader(void)
 {
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTranslationUnit::LogBlocks(void)
-{
-	if (mpcLogs)
-	{
-		if (mpcLogs->bLogBlocks)
-		{
-			return true;
-		}
-	}
 	return false;
 }
 
@@ -187,21 +163,9 @@ CLibrary* CTranslationUnit::GetLibrary(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPTokenList* CTranslationUnit::GetProcessedTokenList(void)
+CPreprocessedTokens* CTranslationUnit::GetTokens(void)
 {
-	return mpcProcessed->GetTokenList();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPBlock* CTranslationUnit::AddProcessedBlock(void)
-{
-	mpcProcessed = mcTokenMemory.AddBlock();
-	mpcProcessed->Init(-1, -1, ShortName());
-	return mpcProcessed;
+	return &mcTokens;
 }
 
 
@@ -211,7 +175,7 @@ CPPBlock* CTranslationUnit::AddProcessedBlock(void)
 //////////////////////////////////////////////////////////////////////////
 char* CTranslationUnit::Print(CChars* psz)
 {
-	return mpcProcessed->Print(psz);
+	return mcTokens.Print(psz);
 }
 
 

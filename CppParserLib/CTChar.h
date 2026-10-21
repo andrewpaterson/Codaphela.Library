@@ -33,7 +33,6 @@ public:
 	void Init(char c);
 	void Kill(void);
 	bool IsChar(void);
-	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 
 

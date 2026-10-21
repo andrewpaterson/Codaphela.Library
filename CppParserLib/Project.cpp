@@ -18,7 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include <crtdbg.h>
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/DiskFile.h"
@@ -29,14 +28,12 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CProject::Init(bool bDumpLogs, bool bLogBlocks)
+void CProject::Init(bool bDumpLogs)
 {
 	mcLibraries.Init();
 
 	miNumSystemLibraries = 0;
-	miBlockReuse = 0;
 	mbDumpLogs = bDumpLogs;
-	mbLogBlocks = bLogBlocks;
 	mcIncludeFiles.Init();
 	mcHeaderNames.Init();
 }
@@ -237,13 +234,11 @@ bool CProject::Process(char* szConfiguration)
 		cPreprocessor.AddIncludeDirectories(&mcHeaderNames);
 		cPreprocessor.AddIncludeDirectory(pcFile->GetLibrary()->GetHeaderFiles());
 		cPreprocessor.LogDumping(mbDumpLogs);
-		cPreprocessor.LogBlocks(mbLogBlocks);
 
 		ClearPragmaOnceFromAllFiles();
 
 		bResult = cPreprocessor.PreprocessTranslationUnit(pcFile);
 		bTotalResult &= bResult;
-		miBlockReuse += cPreprocessor.GetBlockReuse();
 
 		WritePost(pcFile);
 
@@ -347,16 +342,6 @@ void CProject::DumpPost(CTranslationUnit* pcTU)
 	pcTU->Print(&sz);
 	sz.Dump();
 	sz.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-int CProject::GetBlockReuse(void)
-{
-	return miBlockReuse;
 }
 
 

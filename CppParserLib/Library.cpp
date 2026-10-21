@@ -70,9 +70,9 @@ void CLibrary::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTranslationUnit* CLibrary::AddTranslationUnit(char* szRelativeNameFile, bool bLogIncludes, bool bLogBlocks)
+CTranslationUnit* CLibrary::AddTranslationUnit(char* szRelativeNameFile, bool bLogIncludes)
 {
-	return mcTranslationUnits.AddFile(szRelativeNameFile, bLogIncludes, bLogBlocks);
+	return mcTranslationUnits.AddFile(szRelativeNameFile, bLogIncludes);
 }
 
 
@@ -90,9 +90,9 @@ CHeaderFile* CLibrary::AddHeaderFile(char* szRelativeNameFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLibrary::AddAllTranslationUnitsInBaseDir(bool bLogInlucdes, bool bLogBlocks)
+void CLibrary::AddAllTranslationUnitsInBaseDir(bool bLogInlucdes)
 {
-	mcTranslationUnits.AddAllFiles(&mszBaseDirectory, bLogInlucdes, bLogBlocks);
+	mcTranslationUnits.AddAllFiles(&mszBaseDirectory, bLogInlucdes);
 }
 
 

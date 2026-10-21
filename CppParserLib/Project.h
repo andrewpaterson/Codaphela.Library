@@ -24,7 +24,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Chars.h"
 #include "Library.h"
 #include "Preprocessor.h"
-#include "CppParser.h"
 #include "CppTokeniser.h"
 #include "SourceFile.h"
 #include "TranslationUnit.h"
@@ -44,14 +43,12 @@ class CProject
 protected:
 	CListLibraries			mcLibraries;
 	int						miNumSystemLibraries;
-	int						miBlockReuse;
 	bool					mbDumpLogs;
-	bool					mbLogBlocks;
 	CArrayHeaderNameMap		mcHeaderNames;
 	CHeaderFileMap			mcIncludeFiles;
 
 public:
-	void				Init(bool bDumpLogs = false, bool bLogBlocks = false);
+	void				Init(bool bDumpLogs = false);
 	void				Kill(void);
 	CLibrary*			AddLibrary(char* szName, char* szBaseDir, bool bIncludeSubDirectories);
 	void				AddIncludeDirectory(char* szBaseDir, bool bIncludeSubDirectories, bool bSystem);
@@ -64,7 +61,6 @@ public:
 	CTranslationUnit*	Start(SProcessIter* psIter, char* szConfiguration);
 	CTranslationUnit*	Iterate(SProcessIter* psIter);
 	void				DumpProcessedCPPFileName(CSourceFile* pcFile);
-	int					GetBlockReuse(void);
 
 	void				AddHeaderFiles(char* szDirectoryName, bool bIncludeSubDirectories, bool bSystem);
 };

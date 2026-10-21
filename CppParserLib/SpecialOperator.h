@@ -11,7 +11,9 @@ enum EPreprocessorSpecialOperator
 	PPSO_HasAttribute,
 	PPSO_HasCppAttribute,
 	PPSO_HasBuiltIn,
-	PPSO_HasInclude
+	PPSO_HasInclude,
+	PPSO_HasIncludeNext,
+	PPSO_HasFeature
 };
 
 

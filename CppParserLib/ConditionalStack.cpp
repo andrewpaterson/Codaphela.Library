@@ -56,6 +56,59 @@ bool CConditionalStack::IsParsing(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+bool CConditionalStack::IsParentParsing(void)
+{
+	size					i;
+	size					iNumElements;
+
+	//True if every group enclosing the innermost one is being parsed.
+	iNumElements = mcStack.NumElements();
+	for (i = 0; i + 1 < iNumElements; i++)
+	{
+		if (!mcStack.Get(i)->bEvaluated)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CConditionalStack::IsElseIfEvaluated(void)
+{
+	size					i;
+	SDefineConditional*		psConditional;
+	size					iNumElements;
+
+	//An #elif's expression is only evaluated if every enclosing group is being parsed and no earlier branch was taken.
+	iNumElements = mcStack.NumElements();
+	if (iNumElements == 0)
+	{
+		return true;
+	}
+
+	for (i = 0; i < iNumElements - 1; i++)
+	{
+		psConditional = mcStack.Get(i);
+		if (!psConditional->bEvaluated)
+		{
+			return false;
+		}
+	}
+
+	psConditional = mcStack.Tail();
+	return !psConditional->bElseIfPassed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void CConditionalStack::CalculateIsParsing(void)
 {
 	size					i;

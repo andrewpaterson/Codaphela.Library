@@ -68,7 +68,7 @@ void CPPLine::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 		pcCast = (CPPLine*)pcSource;
 		Init(pcCast->miLine, pcCast->miColumn, pcCast->ShortFileName());
 
-		iNumTokens = pcCast->mcTokens.NumTokens();
+		iNumTokens = (int)pcCast->mcTokens.NumTokens();
 		for (i = 0; i < iNumTokens; i++)
 		{
 			pcToken = DuplicatePPToken(pcCast->mcTokens.Get(i), pcTokens);

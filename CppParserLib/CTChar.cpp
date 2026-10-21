@@ -60,27 +60,3 @@ bool CCTChar::IsChar(void)
 {
 	return true;
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCTChar::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
-{
-	char	szDest[4];
-	bool	bResult;
-
-	bResult = GetEscapeString(mcChar, szDest);
-	if (bResult)
-	{
-		psz->Append("'");
-		psz->Append(szDest);
-		psz->Append("'");
-	}
-	else
-	{
-		psz->Append("(char)");
-		psz->Append((int)mcChar);
-	}
-}

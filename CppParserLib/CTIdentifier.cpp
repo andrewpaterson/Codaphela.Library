@@ -59,18 +59,3 @@ bool CCTIdentifier::IsIdentifier(void)
 {
 	return true;
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCTIdentifier::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
-{
-	char*	sz;
-
-	psz->Append("@");
-	sz = pcTokeniser->mcIdentifiers.Get(mlliIdentifier);
-	psz->Append(sz);
-}
-

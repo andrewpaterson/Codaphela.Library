@@ -23,18 +23,29 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CppToken.h"
 
 
+enum ECTEncoding
+{
+	CTE_Narrow,		//"x"
+	CTE_UTF8,		//u8"x"
+	CTE_Wide,		//L"x"
+	CTE_UTF16,		//u"x"
+	CTE_UTF32,		//U"x"
+};
+
+
 class CCTString : public CCPPToken
 {
 public:
-	const char*	mszStart;  //This is the starting quote (") inclusive.
-	const char*	mszEnd;  //This is the ending quote (") inclusive.
+	const char*		mszStart;		//The first character of the literal, including any prefix.
+	const char*		mszEnd;			//The closing quote (") inclusive.
+	ECTEncoding		meEncoding;
 
 	CPP_TOKEN_CONSTRUCT(CCTString);
-	void Init(void);
-	void Init(const char* szStart, const char* szEnd);
-	void Kill(void);
-	bool IsString(void);
-	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
+	void	Init(void);
+	void	Init(const char* szStart, const char* szEnd, ECTEncoding eEncoding);
+	void	Kill(void);
+	bool	IsString(void);
+	bool	IsWide(void);
 };
 
 

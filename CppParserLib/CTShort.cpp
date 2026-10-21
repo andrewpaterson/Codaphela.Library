@@ -63,24 +63,3 @@ bool CCTShort::IsSigned(void)
 {
 	return mbSigned;
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCTShort::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
-{
-	psz->Append("(");
-	if (mbSigned)
-	{
-		psz->Append("signed");
-	}
-	else
-	{
-		psz->Append("unsigned");
-	}
-	psz->Append(" short)");
-	psz->Append(mcValue);
-}
-

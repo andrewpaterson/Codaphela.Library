@@ -123,7 +123,7 @@ void CPPText::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsText())
 	{
 		pcCast = (CPPText*)pcSource;
-		Init(pcCast->meType, pcCast->miLine, pcCast->miColumn, pcCast->ShortFileName(), pcCast->mcText.msz, pcCast->mcText.miLen);
+		Init(pcCast->meType, pcCast->miLine, pcCast->miColumn, pcCast->ShortFileName(), pcCast->mcText.msz, (int)pcCast->mcText.miLen);
 	}
 }
 
@@ -197,6 +197,6 @@ bool CPPText::IsEmpty(void)
 //////////////////////////////////////////////////////////////////////////
 int CPPText::Length(void)
 {
-	return mcText.miLen;
+	return (int)mcText.miLen;
 }
 

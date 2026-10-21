@@ -21,64 +21,96 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __PREPROCESSOR_H__
 #define __PREPROCESSOR_H__
 #include "BaseLib/Chars.h"
-#include "BaseLib/MapStringString.h"
-#include "BaseLib/MapStringString.h"
-#include "BaseLib/TextParser.h"
 #include "DefineMap.h"
 #include "SpecialOperatorMap.h"
 #include "ConditionalStack.h"
-#include "ASCIITree.h"
 #include "PreprocessorTokeniser.h"
 #include "PPDirective.h"
-#include "PPTokenReplacementsHolder.h"
 #include "PPText.h"
 #include "PPTextWithSource.h"
 #include "PPHashes.h"
 #include "PPReplacement.h"
 #include "PreprocessorTokenParser.h"
-#include "DefineArguments.h"
 #include "Library.h"
 #include "TranslationUnit.h"
-#include "PPTokenBlockIndex.h"
 #include "HeaderFiles.h"
 #include "PreprocessorPosition.h"
 #include "HeaderNameMapStack.h"
-#include "PreprocessorStack.h"
+#include "PreprocessedTokens.h"
 
 
 typedef CArrayTemplate<CHeaderFiles*> CArrayHeaderFiles;
 typedef CArrayTemplate<CHeaderFiles> CArrayHeaderNameMap;
+typedef CArrayTemplate<CArrayPreprocessedTokens> CArrayPreprocessedTokenArrays;
+typedef CArrayTemplate<int64> CArrayDefineIDs;
+
+
+enum EPPSourceType
+{
+	PPST_File,
+	PPST_Macro,
+	PPST_Argument,
+};
+
+
+//Somewhere the preprocessor reads tokens from.  Sources are stacked: a file includes a file, a macro expansion is read
+//before the rest of the line that invoked it.  [cpp.rescan]
+struct SPPSource
+{
+	EPPSourceType				eType;
+	CArrayPreprocessedTokens	acTokens;				//The current line of a file, or the tokens of a macro or argument.
+	size						iToken;
+
+	//PPST_File.
+	CSourceFile*				pcFile;
+	CSourceFile*				pcIncludingFile;
+	size						iBlockSet;
+	size						iLine;					//Index of the next line or directive in the block set.
+	size						iConditionalDepth;		//Conditionals open when the file was entered.
+	bool						bHeaderDirectory;		//A directory was pushed onto the header stack for it.
+	int							iCurrentLine;			//Source line of the tokens in acTokens.
+
+	//PPST_Macro.
+	int64						lliDefineID;			//The macro is not expanded again while this source is read.
+
+	void	Init(EPPSourceType eType);
+	void	Kill(void);
+};
+
+
+typedef CArrayTemplate<SPPSource> CArrayPPSources;
 
 
 class CPreprocessor
 {
 protected:
-	CConditionalStack		mcConditionalStack;
-	CSourceFile*			mpcCurrentFile;
-	CASCIITree				mcDirectives;
-	CDefineMap				mcDefines;
-	CPPTokenMemory			mcDefineReplacementMemory;
-	CMemoryStackExtended	mcDefineStrings;
-	CSpecialOperatorMap		mcSpecialOperators;
-	CDefineArguments		mcArguments;
-	CArrayHeaderFiles		mcHeaderNames;
-	CHeaderNameMapStack		mcHeadersStack;
+	CConditionalStack				mcConditionalStack;
+	CSourceFile*					mpcCurrentFile;
+	CDefineMap						mcDefines;
+	CPPTokenMemory					mcDefineReplacementMemory;
+	CMemoryStackExtended			mcDefineStrings;
+	CSpecialOperatorMap				mcSpecialOperators;
+	CArrayHeaderFiles				mcHeaderNames;
+	CHeaderNameMapStack				mcHeadersStack;
 
-	CChars*					mpszBlocksLog;
-	CChars*					mpszIncludesLog;
-	size						miDefineReuse;
-	size						miIncludeDepth;
-	size						miBlockReuse;
+	CChars*							mpszIncludesLog;
+	size							miIncludeDepth;
+	bool							mbLogInlucdes;
+	bool							mbDumpLogs;
+	CChars							mszVaArgs;
 
-	CPreprocessorStack		mcStack;
-
-	bool					mbLogBlocks;
-	bool					mbLogInlucdes;
-	bool					mbDumpLogs;
-	CChars					mszVaArgs;
+	CArrayPPSources					macSources;
+	CArrayPreprocessedTokens		macPushedBack;			//Tokens read ahead while looking for a '('.
+	CArrayDefineIDs					maiDisabledDefines;		//Macros being expanded.
+	CPreprocessedTokens*			mpcOutput;
+	uint8							muiPendingFlags;		//Spacing of a macro that expanded to nothing, given to the next token.
+	bool							mbInCondition;			//Expanding the expression of a #if.
+	bool							mbDefinedOperand;		//The next identifier is the operand of defined.
+	bool							mbError;
+	int								miCounter;
 
 public:
-	static bool			Preprocess(char* szSource, CChars* szDest, bool bShowFileAndLine = false);
+	static bool			Preprocess(char* szSource, CChars* pszDest);
 
 public:
 	void 				Init(CConfig* pcConfig);
@@ -86,12 +118,9 @@ public:
 	void				InitPlatformSpecific(void);
 	void				AddConfigDefines(CConfig* pcConfig);	
 	void				LogIncludes(CChars* pszIncludesLog);
-	void				LogBlocks(CChars* pszBlocksLog);
-	void				LogBlocks(bool bLogBlocks);
 	void				LogDumping(bool bDumpLogs);
 	void				AddIncludeDirectories(CArrayHeaderNameMap* pcHeaderNames);
 	void				AddIncludeDirectory(CHeaderFiles* pcHeaderNames);
-	size					GetBlockReuse(void);
 
 	CDefine*			GetDefine(CExternalString* pcString, bool bExact);
 	CDefine*			GetDefine(char* szName, bool bExact);
@@ -103,71 +132,67 @@ public:
 	CSpecialOperator*	GetSpecialOperator(char* szName, bool bExact);
 	CSpecialOperator*	AddSpecialOperator(char* szSpecialOperator, EPreprocessorSpecialOperator eType);
 
-	bool				PreprocessFile(CSourceFile* pcFile, CSourceFile* pcFromFile);
-	bool				PreprocessBlockSets(CPPBlockSetArray* pacBlockSets);
-	SPPTokenBlockIndex	PreprocessDirectiveTokens(CPPTokenList* pcSourceTokens, size iBlock, size iToken);
-	SPPTokenBlockIndex	PreprocessNormalLineTokens(CPPTokenList* pcSourceTokens, size iBlock, size iToken);
 	bool				PreprocessTranslationUnit(CTranslationUnit* pcFile);
 
+protected:
+	//Sources.
+	bool				PushFile(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap);
+	void				PushTokens(EPPSourceType eType, CArrayPreprocessedTokens* pacTokens, int64 lliDefineID);
+	bool				PopSource(void);
+	bool				NextRaw(SPreprocessedToken* psToken);
+	bool				NextFileToken(SPPSource* psSource, SPreprocessedToken* psToken, bool* pbChanged);
+	void				PushBack(SPreprocessedToken* psToken);
+	bool				TokeniseFile(CSourceFile* pcFile);
+
+	//Macro expansion.
+	bool				Next(SPreprocessedToken* psToken);
+	bool				PeekOpenParenthesis(void);
+	bool				CollectArguments(CDefine* pcDefine, SPreprocessedToken* psName, CArrayPreprocessedTokenArrays* pacArguments);
+	bool				ExpandMacro(CDefine* pcDefine, SPreprocessedToken* psName, CArrayPreprocessedTokenArrays* pacArguments);
+	void				ExpandArgument(CArrayPreprocessedTokens* pacRaw, CArrayPreprocessedTokens* pacExpanded);
+	void				ExpandTokens(CArrayPreprocessedTokens* pacSource, CArrayPreprocessedTokens* pacDest);
+	void				Stringify(CArrayPreprocessedTokens* pacArgument, SPreprocessedToken* psResult);
+	bool				Paste(SPreprocessedToken* psLeft, SPreprocessedToken* psRight, SPreprocessedToken* psResult);
+	void				ExpandSpecial(CDefine* pcDefine, SPreprocessedToken* psToken);
+	bool				SkipPragmaOperator(void);
+	CArrayPreprocessedTokens*	GetBody(CDefine* pcDefine);
+	CDefine*			GetDefine(SPreprocessedToken* psToken);
+	bool				IsDisabled(int64 lliDefineID);
+	bool				IsDefined(SPreprocessedToken* psToken);
+	SPPSource*			GetCurrentFileSource(void);
+
+	//Converting tokenised lines.
+	void				ConvertTokens(CPPTokenList* pcTokens, CSourceFile* pcFile, CDefine* pcDefine, bool bStartOfLine, CArrayPreprocessedTokens* pacDest);
+	CPPToken*			ConvertDecorators(CPPTokenList* pcTokens, size* piIndex, CSourceFile* pcFile, uint8 uiFlags, CArrayPreprocessedTokens* pacDest);
+
+	//Directives.
+	bool				ProcessDirective(CPPDirective* pcDirective);
+	bool				ProcessConditional(CPPDirective* pcDirective);
 	bool 				ProcessHashDefine(CPreprocessorTokenParser* pcParser);
+	bool				ProcessHashDefineBracketted(CPreprocessorTokenParser* pcParser, CDefine* pcDefine);
 	bool 				ProcessHashUndef(CPreprocessorTokenParser* pcParser);
-	bool 				ProcessHashInclude(CPreprocessorTokenParser* pcParser);
-	SPPTokenBlockIndex	ProcessHashEndif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
-	SPPTokenBlockIndex 	ProcessHashIfndef(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
-	SPPTokenBlockIndex 	ProcessHashIfdef(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
-	SPPTokenBlockIndex 	ProcessHashElse(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
-	SPPTokenBlockIndex 	ProcessHashIf(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
-	SPPTokenBlockIndex 	ProcessHashElif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
+	bool 				ProcessHashInclude(CPPDirective* pcDirective, bool bNext);
 	bool 				ProcessHashError(CPreprocessorTokenParser* pcParser);
 	bool 				ProcessHashPragma(CPreprocessorTokenParser* pcParser);
-	bool				ProcessNormalLine(CPreprocessorTokenParser* pcParser);
-
+	bool 				ProcessHashUnknown(CPPDirective* pcDirective);
+	TRISTATE			EvaluateCondition(CPPDirective* pcDirective);
+	bool				ReplaceConditionOperators(CArrayPreprocessedTokens* pacSource, CArrayPreprocessedTokens* pacDest);
+	bool				GetIncludeName(CArrayPreprocessedTokens* pacTokens, size* piIndex, CChars* pszName, bool* pbSystem);
+	void				FindBestInclude(CExternalString* pcInclude, bool bSystemFile, CHeaderFile** ppcCFile, CHeaderFiles** ppcHeaderNameMap, bool bNext);
 	TRISTATE			EvaluateEquation(char* szText, CChars* szCalculatorError);
 
-	bool				ProcessIdentifierDirective(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, size iDepth);
-	bool				ProcessIdentifierNormalLine(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, size iDepth);
-	bool				ProcessDefinedIdentifier(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
-	bool				ProcessHasIncludeIdentifier(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
-	bool				ProcessHasAttributeIdentifier(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
-	bool				ProcessHasCPPAttributeIdentifier(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
-	bool				ProcessHasBuiltInIdentifier(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
-	bool				ProcessHashDefineBracketted(CPreprocessorTokenParser* pcParser, CDefine* pcDefine);
-	bool				ProcessUnknownDirective(CPreprocessorTokenParser* pcParser, CPPTokenList* pcDest);
-	bool				ProcessIncludeFile(CPreprocessorTokenParser* pcParser, CHeaderFile** ppcCFile, CHeaderFiles** ppcHeaderNameMap);
-	bool				ProcessDirectiveLine(CPPTokenList* pcTokenHolder, CPreprocessorTokenParser* pcParser, size iDepth);
-	bool				ProcessNormalLine(CPPTokenList* pcTokenHolder, CPreprocessorTokenParser* pcParser, size iDepth);
-	bool				ProcessSingleHash(CPPTokenList* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser);
-	bool				ProcessDoubleHash(CPPTokenList* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser);
-	void				FindBestInclude(CExternalString* pcInclude, bool bSystemFile, CHeaderFile** ppcCFile, CHeaderFiles** ppcHeaderNameMap);
-	bool				FindArguments(CPreprocessorTokenParser* pcParser, CArrayPPTokenLists* pacArguments);
-	SPPTokenBlockIndex	Condition(CPPConditional* pcCond, SPPTokenBlockIndex iLine);
-	void				AddTokenToArgument(CPPTokenList* pcArgument, CPPToken* pcToken);
-	CPPToken*			AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pacTokenPts);
-	bool				ExpandDirectiveTokenIfNecessary(CPPToken* pcToken, CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, size iDepth);
-	bool				ExpandNormalLineTokenIfNecessary(CPPToken* pcToken, CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, size iDepth);
-	void				ExpandDirectiveReplacement(CPPReplacement* pcReplacement, CPPTokenList* pcDest, size iDepth);
-	void				ExpandReplacementNormalLine(CPPReplacement* pcReplacement, CPPTokenList* pcDest, size iDepth);
-	CPPToken*			QuoteTokens(CPPTokenList* pcDest, CPPTokenListHolder* pcHolder);
-	CPPToken*			ConcaternateTokens(CPPTokenList* pcDest, CPPToken* pcLeft, CPPToken* pcRight);
-	bool				TokeniseFile(CSourceFile* pcFile);
-	void				DeltaDefines(CArrayNamedDefines* pcDelta);
-	void				LogBlocks(CPPBlockSetArray* pacBlockSets, SPPTokenBlockIndex sResult);
 	void				LogInclude(CSourceFile* pcFile);
 	void				TranslationUnitLogging(CTranslationUnit* pcFile);
-	CSpecialOperator*	ProcessSpecialOperator(CPreprocessorTokenParser* pcParser);
-
-	void				KillArguments(SDefineArgument* psArguments);
 	char*				GetFileName(void);
 	CPPToken*			DuplicatePPToken(CPPToken* pcSource);
+	CPPTokenMemory*		GetTokenMemory(void);
+	void				EmitToken(SPreprocessedToken* psToken);
+	char*				AddString(const char* szText, size uiLength);
+	void				AddNumber(int64 lliValue, SPreprocessedToken* psPosition, CArrayPreprocessedTokens* pacDest);
+	bool				Error(SPreprocessedToken* psToken, char* szMessage);
 
 	void				MarkPositionForError(CPreprocessorTokenParser* pcParser, SPreprocessorPosition* psPos);
 	void				MarkPositionForError(size iLine, size iColumn, SPreprocessorPosition* psPos);
-
-	void				StackPush(CPPTokenList* pcTokenList, CPPTokenMemory* pcTokenMemory);
-	void				StackPop(void);
-
-	void				AddComma(CPPTokenList* pcDest);
-	void				AddZero(CPPTokenList* pcDest);
 };
 
 

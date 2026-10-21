@@ -80,7 +80,7 @@ void CPPTokenListHolder::Copy(CPPTokenListHolder* pcCast, CPPTokenMemory* pcToke
 
 	Init(pcCast->miLine, pcCast->miColumn, pcCast->ShortFileName());
 
-	iNumTokens = pcCast->mcTokens.NumTokens();
+	iNumTokens = (int)pcCast->mcTokens.NumTokens();
 	for (i = 0; i < iNumTokens; i++)
 	{
 		pcToken = DuplicatePPToken(pcCast->Get(i), pcTokens);
@@ -95,7 +95,7 @@ void CPPTokenListHolder::Copy(CPPTokenListHolder* pcCast, CPPTokenMemory* pcToke
 //////////////////////////////////////////////////////////////////////////
 int CPPTokenListHolder::TokenLength(void)
 {
-	return mcTokens.NumTokens();
+	return (int)mcTokens.NumTokens();
 }
 
 
@@ -151,7 +151,7 @@ bool CPPTokenListHolder::IsEmpty(void)
 	CPPToken*	pcToken;
 	int			iNumTokens;
 
-	iNumTokens = mcTokens.NumTokens();
+	iNumTokens = (int)mcTokens.NumTokens();
 	if (iNumTokens == 0)
 	{
 		return true;

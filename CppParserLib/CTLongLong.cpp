@@ -63,24 +63,3 @@ bool CCTLongLong::IsSigned(void)
 {
 	return mbSigned;
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCTLongLong::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
-{
-	psz->Append("(");
-	if (mbSigned)
-	{
-		psz->Append("signed");
-	}
-	else
-	{
-		psz->Append("unsigned");
-	}
-	psz->Append("long long int)");
-	psz->Append((unsigned int)mcValue);
-}
-

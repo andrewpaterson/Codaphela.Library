@@ -120,6 +120,8 @@
       <BrowseInformation>true</BrowseInformation>
       <OpenMPSupport>true</OpenMPSupport>
       <SDLCheck>true</SDLCheck>
+      <CallingConvention>VectorCall</CallingConvention>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
     </ClCompile>
     <Lib />
     <Bscmake>
@@ -164,7 +166,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
@@ -174,40 +176,113 @@
       <OpenMPSupport>true</OpenMPSupport>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <SDLCheck>false</SDLCheck>
+      <CallingConvention>VectorCall</CallingConvention>
+      <DisableSpecificWarnings>26440;26447;26455</DisableSpecificWarnings>
+      <ExceptionHandling>false</ExceptionHandling>
     </ClCompile>
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AbstractSyntaxTree.cpp" />
+    <ClCompile Include="CPPHighlighter.cpp" />
+    <ClCompile Include="CPPSyntaxExtensionDeclaration.cpp" />
+    <ClCompile Include="CppParserStatements.cpp" />
+    <ClCompile Include="CppParserNames.cpp" />
+    <ClCompile Include="CppParserExpressions.cpp" />
+    <ClCompile Include="CppParserDeclarators.cpp" />
+    <ClCompile Include="CppParserDeclarations.cpp" />
+    <ClCompile Include="CppParserClasses.cpp" />
+    <ClCompile Include="CppParser.cpp" />
+    <ClCompile Include="CPPScope.cpp" />
+    <ClCompile Include="CPPSymbolTable.cpp" />
+    <ClCompile Include="CPPSymbol.cpp" />
+    <ClCompile Include="CPPSyntaxTypeSpecifier.cpp" />
+    <ClCompile Include="CPPSyntaxTree.cpp" />
+    <ClCompile Include="CPPSyntaxStatement.cpp" />
+    <ClCompile Include="CPPSyntaxMemory.cpp" />
+    <ClCompile Include="CPPSyntaxExpression.cpp" />
+    <ClCompile Include="CPPSyntaxDeclaration.cpp" />
+    <ClCompile Include="CPPSyntax.cpp" />
+    <ClCompile Include="CPPSyntaxWhileStatement.cpp" />
+    <ClCompile Include="CPPSyntaxUsingDirective.cpp" />
+    <ClCompile Include="CPPSyntaxUsingDeclaration.cpp" />
+    <ClCompile Include="CPPSyntaxUnaryExpression.cpp" />
+    <ClCompile Include="CPPSyntaxTypeidExpression.cpp" />
+    <ClCompile Include="CPPSyntaxTypeTraitExpression.cpp" />
+    <ClCompile Include="CPPSyntaxTypeParameter.cpp" />
+    <ClCompile Include="CPPSyntaxTypeId.cpp" />
+    <ClCompile Include="CPPSyntaxTryStatement.cpp" />
+    <ClCompile Include="CPPSyntaxTranslationUnit.cpp" />
+    <ClCompile Include="CPPSyntaxThrowExpression.cpp" />
+    <ClCompile Include="CPPSyntaxThisExpression.cpp" />
+    <ClCompile Include="CPPSyntaxTemplateDeclaration.cpp" />
+    <ClCompile Include="CPPSyntaxSwitchStatement.cpp" />
+    <ClCompile Include="CPPSyntaxSubscriptExpression.cpp" />
+    <ClCompile Include="CPPSyntaxStringExpression.cpp" />
+    <ClCompile Include="CPPSyntaxStaticAssert.cpp" />
+    <ClCompile Include="CPPSyntaxSkippedStatement.cpp" />
+    <ClCompile Include="CPPSyntaxSkippedDeclaration.cpp" />
+    <ClCompile Include="CPPSyntaxSizeofExpression.cpp" />
+    <ClCompile Include="CPPSyntaxSimpleDeclaration.cpp" />
+    <ClCompile Include="CPPSyntaxReturnStatement.cpp" />
+    <ClCompile Include="CPPSyntaxRangeForStatement.cpp" />
+    <ClCompile Include="CPPSyntaxPointerOperator.cpp" />
+    <ClCompile Include="CPPSyntaxParenthesisedInitializer.cpp" />
+    <ClCompile Include="CPPSyntaxParenthesisedExpression.cpp" />
+    <ClCompile Include="CPPSyntaxParameter.cpp" />
+    <ClCompile Include="CPPSyntaxPackExpansionExpression.cpp" />
+    <ClCompile Include="CPPSyntaxNoexceptExpression.cpp" />
+    <ClCompile Include="CPPSyntaxNewExpression.cpp" />
+    <ClCompile Include="CPPSyntaxNamespace.cpp" />
+    <ClCompile Include="CPPSyntaxNamedTypeSpecifier.cpp" />
+    <ClCompile Include="CPPSyntaxNamedCastExpression.cpp" />
+    <ClCompile Include="CPPSyntaxNameComponent.cpp" />
+    <ClCompile Include="CPPSyntaxName.cpp" />
+    <ClCompile Include="CPPSyntaxMemberInitializer.cpp" />
+    <ClCompile Include="CPPSyntaxMemberExpression.cpp" />
+    <ClCompile Include="CPPSyntaxLiteralExpression.cpp" />
+    <ClCompile Include="CPPSyntaxLinkageSpecification.cpp" />
+    <ClCompile Include="CPPSyntaxLabelStatement.cpp" />
+    <ClCompile Include="CPPSyntaxKeywordSpecifier.cpp" />
+    <ClCompile Include="CPPSyntaxInitializerList.cpp" />
+    <ClCompile Include="CPPSyntaxInitDeclarator.cpp" />
+    <ClCompile Include="CPPSyntaxIfStatement.cpp" />
+    <ClCompile Include="CPPSyntaxIdExpression.cpp" />
+    <ClCompile Include="CPPSyntaxGotoStatement.cpp" />
+    <ClCompile Include="CPPSyntaxFunctionSuffix.cpp" />
+    <ClCompile Include="CPPSyntaxFunctionDefinition.cpp" />
+    <ClCompile Include="CPPSyntaxForStatement.cpp" />
+    <ClCompile Include="CPPSyntaxExpressionStatement.cpp" />
+    <ClCompile Include="CPPSyntaxExceptionSpecification.cpp" />
+    <ClCompile Include="CPPSyntaxEnumerator.cpp" />
+    <ClCompile Include="CPPSyntaxEnumSpecifier.cpp" />
+    <ClCompile Include="CPPSyntaxEmptyDeclaration.cpp" />
+    <ClCompile Include="CPPSyntaxElaboratedTypeSpecifier.cpp" />
+    <ClCompile Include="CPPSyntaxDoStatement.cpp" />
+    <ClCompile Include="CPPSyntaxDeleteExpression.cpp" />
+    <ClCompile Include="CPPSyntaxDecltypeSpecifier.cpp" />
+    <ClCompile Include="CPPSyntaxDeclarator.cpp" />
+    <ClCompile Include="CPPSyntaxDeclarationStatement.cpp" />
+    <ClCompile Include="CPPSyntaxDeclSpecifiers.cpp" />
+    <ClCompile Include="CPPSyntaxContinueStatement.cpp" />
+    <ClCompile Include="CPPSyntaxConstructExpression.cpp" />
+    <ClCompile Include="CPPSyntaxConditionalExpression.cpp" />
+    <ClCompile Include="CPPSyntaxCompoundStatement.cpp" />
+    <ClCompile Include="CPPSyntaxClassSpecifier.cpp" />
+    <ClCompile Include="CPPSyntaxCatchHandler.cpp" />
+    <ClCompile Include="CPPSyntaxCastExpression.cpp" />
+    <ClCompile Include="CPPSyntaxCaseStatement.cpp" />
+    <ClCompile Include="CPPSyntaxCallExpression.cpp" />
+    <ClCompile Include="CPPSyntaxBreakStatement.cpp" />
+    <ClCompile Include="CPPSyntaxBinaryExpression.cpp" />
+    <ClCompile Include="CPPSyntaxBaseSpecifier.cpp" />
+    <ClCompile Include="CPPSyntaxAttribute.cpp" />
+    <ClCompile Include="CPPSyntaxArraySuffix.cpp" />
+    <ClCompile Include="CPPSyntaxAlignasSpecifier.cpp" />
+    <ClCompile Include="CPPSyntaxAliasDeclaration.cpp" />
+    <ClCompile Include="CPPSyntaxAccessSpecifier.cpp" />
     <ClCompile Include="ASCIIIndex.cpp" />
     <ClCompile Include="ASCIINameIndex.cpp" />
     <ClCompile Include="ASCIITree.cpp" />
-    <ClCompile Include="ASTAggregate.cpp" />
-    <ClCompile Include="ASTArray.cpp" />
-    <ClCompile Include="ASTBinaryExpr.cpp" />
-    <ClCompile Include="ASTCastExpr.cpp" />
-    <ClCompile Include="ASTConstExpr.cpp" />
-    <ClCompile Include="ASTExpression.cpp" />
-    <ClCompile Include="ASTUnaryExpr.cpp" />
-    <ClCompile Include="ASTTernaryExpr.cpp" />
-    <ClCompile Include="ASTAccessSpec.cpp" />
-    <ClCompile Include="ASTClassSpec.cpp" />
-    <ClCompile Include="ASTSimpleSpec.cpp" />
-    <ClCompile Include="ASTSpecifier.cpp" />
-    <ClCompile Include="ASTDeclarator.cpp" />
-    <ClCompile Include="ASTInitDecl.cpp" />
-    <ClCompile Include="ASTListDecl.cpp" />
-    <ClCompile Include="ASTVarDecl.cpp" />
-    <ClCompile Include="ASTName.cpp" />
-    <ClCompile Include="ASTBlockStmt.cpp" />
-    <ClCompile Include="ASTBreakStmt.cpp" />
-    <ClCompile Include="ASTContinueStmt.cpp" />
-    <ClCompile Include="ASTDoStmt.cpp" />
-    <ClCompile Include="ASTExpressionStmt.cpp" />
-    <ClCompile Include="ASTForStmt.cpp" />
-    <ClCompile Include="ASTIfStmt.cpp" />
-    <ClCompile Include="ASTReturnStmt.cpp" />
-    <ClCompile Include="ASTStatement.cpp" />
     <ClCompile Include="ConditionalStack.cpp" />
     <ClCompile Include="PPTokenMemory.cpp" />
     <ClCompile Include="Define.cpp" />
@@ -219,8 +294,12 @@
     <ClCompile Include="NamedDefine.cpp" />
     <ClCompile Include="Preprocessor.cpp" />
     <ClCompile Include="PreprocessorDirective.cpp" />
+    <ClCompile Include="PreprocessorExpression.cpp" />
+    <ClCompile Include="PreprocessedTokens.cpp" />
+    <ClCompile Include="Punctuators.cpp" />
     <ClCompile Include="PreprocessorPosition.cpp" />
     <ClCompile Include="PreprocessorStack.cpp" />
+    <ClCompile Include="Preprocessor_Linux.cpp" />
     <ClCompile Include="Preprocessor_Windows.cpp" />
     <ClCompile Include="PreprocessorParser.cpp" />
     <ClCompile Include="PreprocessorTokeniser.cpp" />
@@ -253,8 +332,6 @@
     <ClCompile Include="HeaderNameMapStack.cpp" />
     <ClCompile Include="TranslationUnit.cpp" />
     <ClCompile Include="TranslationUnits.cpp" />
-    <ClCompile Include="CppParser.cpp" />
-    <ClCompile Include="CPPReturn.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Library.cpp" />
     <ClCompile Include="Project.cpp" />
@@ -265,7 +342,6 @@
     <ClCompile Include="CTIdentifier.cpp" />
     <ClCompile Include="CTReservedWord.cpp" />
     <ClCompile Include="CTString.cpp" />
-    <ClCompile Include="CTWideString.cpp" />
     <ClCompile Include="CTDouble.cpp" />
     <ClCompile Include="CTFloat.cpp" />
     <ClCompile Include="CTInt.cpp" />
@@ -273,49 +349,114 @@
     <ClCompile Include="CTLongLong.cpp" />
     <ClCompile Include="CTNumber.cpp" />
     <ClCompile Include="CTShort.cpp" />
-    <ClCompile Include="CTNewLine.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AbstractSyntaxTree.h" />
-    <ClInclude Include="AbstractSyntaxTypes.h" />
+    <ClInclude Include="CPPHighlighter.h" />
+    <ClInclude Include="CPPSyntaxExtensionDeclaration.h" />
+    <ClInclude Include="CppParser.h" />
+    <ClInclude Include="CPPScope.h" />
+    <ClInclude Include="CPPSymbolTable.h" />
+    <ClInclude Include="CPPSymbol.h" />
+    <ClInclude Include="CPPSyntaxTypeSpecifier.h" />
+    <ClInclude Include="CPPSyntaxTree.h" />
+    <ClInclude Include="CPPSyntaxStatement.h" />
+    <ClInclude Include="CPPSyntaxMemory.h" />
+    <ClInclude Include="CPPSyntaxExpression.h" />
+    <ClInclude Include="CPPSyntaxEnums.h" />
+    <ClInclude Include="CPPSyntaxDeclaration.h" />
+    <ClInclude Include="CPPSyntax.h" />
+    <ClInclude Include="CPPSyntaxes.h" />
+    <ClInclude Include="CPPSyntaxWhileStatement.h" />
+    <ClInclude Include="CPPSyntaxUsingDirective.h" />
+    <ClInclude Include="CPPSyntaxUsingDeclaration.h" />
+    <ClInclude Include="CPPSyntaxUnaryExpression.h" />
+    <ClInclude Include="CPPSyntaxTypeidExpression.h" />
+    <ClInclude Include="CPPSyntaxTypeTraitExpression.h" />
+    <ClInclude Include="CPPSyntaxTypeParameter.h" />
+    <ClInclude Include="CPPSyntaxTypeId.h" />
+    <ClInclude Include="CPPSyntaxTryStatement.h" />
+    <ClInclude Include="CPPSyntaxTranslationUnit.h" />
+    <ClInclude Include="CPPSyntaxThrowExpression.h" />
+    <ClInclude Include="CPPSyntaxThisExpression.h" />
+    <ClInclude Include="CPPSyntaxTemplateDeclaration.h" />
+    <ClInclude Include="CPPSyntaxSwitchStatement.h" />
+    <ClInclude Include="CPPSyntaxSubscriptExpression.h" />
+    <ClInclude Include="CPPSyntaxStringExpression.h" />
+    <ClInclude Include="CPPSyntaxStaticAssert.h" />
+    <ClInclude Include="CPPSyntaxSkippedStatement.h" />
+    <ClInclude Include="CPPSyntaxSkippedDeclaration.h" />
+    <ClInclude Include="CPPSyntaxSizeofExpression.h" />
+    <ClInclude Include="CPPSyntaxSimpleDeclaration.h" />
+    <ClInclude Include="CPPSyntaxReturnStatement.h" />
+    <ClInclude Include="CPPSyntaxRangeForStatement.h" />
+    <ClInclude Include="CPPSyntaxPointerOperator.h" />
+    <ClInclude Include="CPPSyntaxParenthesisedInitializer.h" />
+    <ClInclude Include="CPPSyntaxParenthesisedExpression.h" />
+    <ClInclude Include="CPPSyntaxParameter.h" />
+    <ClInclude Include="CPPSyntaxPackExpansionExpression.h" />
+    <ClInclude Include="CPPSyntaxNoexceptExpression.h" />
+    <ClInclude Include="CPPSyntaxNewExpression.h" />
+    <ClInclude Include="CPPSyntaxNamespace.h" />
+    <ClInclude Include="CPPSyntaxNamedTypeSpecifier.h" />
+    <ClInclude Include="CPPSyntaxNamedCastExpression.h" />
+    <ClInclude Include="CPPSyntaxNameComponent.h" />
+    <ClInclude Include="CPPSyntaxName.h" />
+    <ClInclude Include="CPPSyntaxMemberInitializer.h" />
+    <ClInclude Include="CPPSyntaxMemberExpression.h" />
+    <ClInclude Include="CPPSyntaxLiteralExpression.h" />
+    <ClInclude Include="CPPSyntaxLinkageSpecification.h" />
+    <ClInclude Include="CPPSyntaxLabelStatement.h" />
+    <ClInclude Include="CPPSyntaxKind.h" />
+    <ClInclude Include="CPPSyntaxKeywordSpecifier.h" />
+    <ClInclude Include="CPPSyntaxInitializerList.h" />
+    <ClInclude Include="CPPSyntaxInitDeclarator.h" />
+    <ClInclude Include="CPPSyntaxIfStatement.h" />
+    <ClInclude Include="CPPSyntaxIdExpression.h" />
+    <ClInclude Include="CPPSyntaxGotoStatement.h" />
+    <ClInclude Include="CPPSyntaxFunctionSuffix.h" />
+    <ClInclude Include="CPPSyntaxFunctionDefinition.h" />
+    <ClInclude Include="CPPSyntaxForStatement.h" />
+    <ClInclude Include="CPPSyntaxExpressionStatement.h" />
+    <ClInclude Include="CPPSyntaxExceptionSpecification.h" />
+    <ClInclude Include="CPPSyntaxEnumerator.h" />
+    <ClInclude Include="CPPSyntaxEnumSpecifier.h" />
+    <ClInclude Include="CPPSyntaxEmptyDeclaration.h" />
+    <ClInclude Include="CPPSyntaxElaboratedTypeSpecifier.h" />
+    <ClInclude Include="CPPSyntaxDoStatement.h" />
+    <ClInclude Include="CPPSyntaxDeleteExpression.h" />
+    <ClInclude Include="CPPSyntaxDecltypeSpecifier.h" />
+    <ClInclude Include="CPPSyntaxDeclarator.h" />
+    <ClInclude Include="CPPSyntaxDeclarationStatement.h" />
+    <ClInclude Include="CPPSyntaxDeclSpecifiers.h" />
+    <ClInclude Include="CPPSyntaxContinueStatement.h" />
+    <ClInclude Include="CPPSyntaxConstructExpression.h" />
+    <ClInclude Include="CPPSyntaxConditionalExpression.h" />
+    <ClInclude Include="CPPSyntaxCompoundStatement.h" />
+    <ClInclude Include="CPPSyntaxClassSpecifier.h" />
+    <ClInclude Include="CPPSyntaxCatchHandler.h" />
+    <ClInclude Include="CPPSyntaxCastExpression.h" />
+    <ClInclude Include="CPPSyntaxCaseStatement.h" />
+    <ClInclude Include="CPPSyntaxCallExpression.h" />
+    <ClInclude Include="CPPSyntaxBreakStatement.h" />
+    <ClInclude Include="CPPSyntaxBinaryExpression.h" />
+    <ClInclude Include="CPPSyntaxBaseSpecifier.h" />
+    <ClInclude Include="CPPSyntaxAttribute.h" />
+    <ClInclude Include="CPPSyntaxArraySuffix.h" />
+    <ClInclude Include="CPPSyntaxAlignasSpecifier.h" />
+    <ClInclude Include="CPPSyntaxAliasDeclaration.h" />
+    <ClInclude Include="CPPSyntaxAccessSpecifier.h" />
     <ClInclude Include="ASCIIIndex.h" />
     <ClInclude Include="ASCIINameIndex.h" />
     <ClInclude Include="ASCIITree.h" />
-    <ClInclude Include="ASTAggregate.h" />
-    <ClInclude Include="ASTArray.h" />
-    <ClInclude Include="ASTCommon.h" />
-    <ClInclude Include="ASTBinaryExpr.h" />
-    <ClInclude Include="ASTCastExpr.h" />
-    <ClInclude Include="ASTConstExpr.h" />
-    <ClInclude Include="ASTExpression.h" />
-    <ClInclude Include="ASTUnaryExpr.h" />
-    <ClInclude Include="ASTTernaryExpr.h" />
     <ClInclude Include="Define.h" />
     <ClInclude Include="PPTokenMemory.h" />
     <ClInclude Include="PreprocessorDirective.h" />
+    <ClInclude Include="PreprocessorExpression.h" />
+    <ClInclude Include="PreprocessedTokens.h" />
+    <ClInclude Include="Punctuators.h" />
     <ClInclude Include="DirectiveMap.h" />
     <ClInclude Include="PreprocessorPosition.h" />
     <ClInclude Include="PreprocessorStack.h" />
-    <ClInclude Include="SimpleOperator.h" />
-    <ClInclude Include="ASTAccessSpec.h" />
-    <ClInclude Include="ASTClassSpec.h" />
-    <ClInclude Include="ASTSimpleSpec.h" />
-    <ClInclude Include="ASTSpecifier.h" />
-    <ClInclude Include="ClassType.h" />
-    <ClInclude Include="ASTDeclarator.h" />
-    <ClInclude Include="ASTInitDecl.h" />
-    <ClInclude Include="ASTListDecl.h" />
-    <ClInclude Include="ASTVarDecl.h" />
-    <ClInclude Include="ASTName.h" />
-    <ClInclude Include="ASTBlockStmt.h" />
-    <ClInclude Include="ASTBreakStmt.h" />
-    <ClInclude Include="ASTContinueStmt.h" />
-    <ClInclude Include="ASTDoStmt.h" />
-    <ClInclude Include="ASTExpressionStmt.h" />
-    <ClInclude Include="ASTForStmt.h" />
-    <ClInclude Include="ASTIfStmt.h" />
-    <ClInclude Include="ASTReturnStmt.h" />
-    <ClInclude Include="ASTStatement.h" />
     <ClInclude Include="ConditionalStack.h" />
     <ClInclude Include="DefineArguments.h" />
     <ClInclude Include="DefineMap.h" />
@@ -323,7 +464,6 @@
     <ClInclude Include="PreprocessorLineTokeniser.h" />
     <ClInclude Include="NamedDefine.h" />
     <ClInclude Include="Preprocessor.h" />
-    <ClInclude Include="Preprocessor_Linux.h" />
     <ClInclude Include="PreprocessorParser.h" />
     <ClInclude Include="PreprocessorTokeniser.h" />
     <ClInclude Include="PreprocessorTokenParser.h" />
@@ -355,8 +495,6 @@
     <ClInclude Include="HeaderNameMapStack.h" />
     <ClInclude Include="TranslationUnit.h" />
     <ClInclude Include="TranslationUnits.h" />
-    <ClInclude Include="CPPParser.h" />
-    <ClInclude Include="CPPReturn.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Library.h" />
     <ClInclude Include="Project.h" />
@@ -368,7 +506,6 @@
     <ClInclude Include="CTIdentifier.h" />
     <ClInclude Include="CTReservedWord.h" />
     <ClInclude Include="CTString.h" />
-    <ClInclude Include="CTWideString.h" />
     <ClInclude Include="CTDouble.h" />
     <ClInclude Include="CTFloat.h" />
     <ClInclude Include="CTInt.h" />
@@ -376,7 +513,6 @@
     <ClInclude Include="CTLongLong.h" />
     <ClInclude Include="CTNumber.h" />
     <ClInclude Include="CTShort.h" />
-    <ClInclude Include="CTNewLine.h" />
     <ClInclude Include="GeneralToken.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

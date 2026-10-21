@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2025 Andrew Paterson
+Copyright (c) 2022 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela CppParserLib
 
@@ -30,6 +30,7 @@ void CCTString::Init(void)
 {
 	mszStart = NULL;
 	mszEnd = NULL;
+	meEncoding = CTE_Narrow;
 }
 
 
@@ -37,10 +38,11 @@ void CCTString::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTString::Init(const char* szStart, const char* szEnd)
+void CCTString::Init(const char* szStart, const char* szEnd, ECTEncoding eEncoding)
 {
 	mszStart = szStart;
 	mszEnd = szEnd;
+	meEncoding = eEncoding;
 }
 
 
@@ -67,9 +69,8 @@ bool CCTString::IsString(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTString::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
+bool CCTString::IsWide(void)
 {
-	psz->Append("\"");
-	psz->Append(mszStart, (int)(mszEnd-mszStart)+1);
-	psz->Append("\"");
+	return (meEncoding == CTE_Wide) || (meEncoding == CTE_UTF16) || (meEncoding == CTE_UTF32);
 }
+

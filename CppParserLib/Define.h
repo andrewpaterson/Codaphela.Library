@@ -4,6 +4,7 @@
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/ExternalString.h"
 #include "PPLine.h"
+#include "PreprocessedTokens.h"
 
 
 #define DEFINE_FLAGS_BRACKETED	0x01
@@ -23,6 +24,9 @@ protected:
 	CDefineMap*		mpcDefineMap;
 	uint32			miFlags;
 	CChars			mszName;
+	CSourceFile*	mpcFile;		//Where it was #defined, NULL for predefined and configuration macros.
+	CArrayPreprocessedTokens	macBody;		//The replacement as preprocessed tokens, made when first expanded.
+	bool			mbBodyConverted;
 
 public:
 	void 			Init(CExternalString* pcName, int64 uiID, CDefineMap* pcDefineMap);
@@ -43,6 +47,11 @@ public:
 	void			SetDefineMap(CDefineMap* pcDefineMap);
 	CArrayChars*	GetArguments(void);
 	CPPLine*		GetReplacement(void);
+	void			SetFile(CSourceFile* pcFile);
+	CSourceFile*	GetFile(void);
+	bool			IsBodyConverted(void);
+	CArrayPreprocessedTokens*	GetBody(void);
+	void			SetBodyConverted(void);
 	void			Dump(void);
 };
 

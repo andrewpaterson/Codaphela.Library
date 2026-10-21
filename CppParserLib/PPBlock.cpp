@@ -29,7 +29,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CPPBlock::Init(size iLine, size iColumn, char* szFileName)
 {
-	CPPTokenListHolder::Init(iLine, iColumn, szFileName);
+	CPPTokenListHolder::Init((int)iLine, (int)iColumn, szFileName);
 	msNext.Init(-1, -1);
 }
 

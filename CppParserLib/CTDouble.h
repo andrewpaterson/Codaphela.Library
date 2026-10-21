@@ -32,7 +32,6 @@ public:
 	void Init(void);
 	void Init(double d);
 	void Kill(void);
-	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 
 

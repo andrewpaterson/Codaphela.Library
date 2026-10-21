@@ -21,47 +21,56 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __C_P_P_TOKENISER_H__
 #define __C_P_P_TOKENISER_H__
 #include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/TextParser.h"
+#include "BaseLib/MemoryStackExtended.h"
 #include "ASCIIIndex.h"
 #include "CppTokens.h"
 #include "CppToken.h"
-#include "PreprocessorTokenParser.h"
+#include "PreprocessedTokens.h"
 
 
 typedef CArrayTemplate<CCPPToken*>	CCTArrayTokens;
 
 
+//Turns preprocessed tokens into C++ tokens: keywords and punctuators, identifiers (each name is given an ID) and
+//literals with their values.  [lex.phases] 7
 class CCPPTokeniser
 {
 public:
-	CASCIIIndex					mcReservedWords;
-	CASCIIIndex					mcIdentifiers;
-	CCTArrayTokens				mcTokens;
-	CMemoryStackExtended		mcStack;
-	
-	CPreprocessorTokenParser	mcParser;
+	CASCIIIndex				mcReservedWords;
+	CASCIIIndex				mcIdentifiers;
+	CCTArrayTokens			mcTokens;
+	CMemoryStackExtended	mcStack;
+	CPreprocessedTokens*	mpcSource;
+	bool					mbError;
 
-	void 	Init(void);
-	void 	Kill(void);
-	bool 	Tokenise(CPPTokenList* pcSource);
-	bool	Line(void);
-	bool	Literal(void);
-	bool	ReservedWord(void);
-	bool	Identifier(void);
-	bool	DoubleLiteral(void);
-	bool	BooleanLiteral(void);
-	bool	SingleQuotedLiteral(bool bShort);
-	bool	StringLiteral(void);
-	bool	WideStringLiteral(void);
-	bool	IntegerLiteral(void);
-	bool	ShortLiteral(void);
-	void	IntegerType(uint64 ulliValue);
-	void	DoubleType(long double ldValue);
-	bool	DecimalInteger(void);
-	void	AddToken(CCPPToken* pcToken);
-	void	Error(char* szError);
-	void	PrintError(CPPLine* pcLine);
-	void	PrintTokens(void);
+	int64					mlliOverride;
+	int64					mlliFinal;
+
+	void 				Init(void);
+	void 				Kill(void);
+	bool 				Tokenise(CPreprocessedTokens* pcSource);
+
+	size				NumTokens(void);
+	CCPPToken*			Get(size iIndex);
+	SPreprocessedToken*	GetSource(CCPPToken* pcToken);
+	int64				GetIdentifierID(char* szName);
+	char*				GetIdentifier(int64 lliID, int* piLength = NULL);
+	char*				GetReservedWord(ECppTokens eToken);
+	void				Print(CChars* psz);
+
+protected:
+	void				Clear(void);
+	bool				Token(SPreprocessedToken* psToken, int iSource);
+	bool				Identifier(SPreprocessedToken* psToken, int iSource);
+	bool				Punctuator(SPreprocessedToken* psToken, int iSource);
+	bool				Number(SPreprocessedToken* psToken, int iSource);
+	bool				Integer(SPreprocessedToken* psToken, int iSource, char* szDigits, int iBase, char* szSuffix);
+	bool				Floating(SPreprocessedToken* psToken, int iSource, char* szNumber);
+	bool				Character(SPreprocessedToken* psToken, int iSource);
+	bool				String(SPreprocessedToken* psToken, int iSource);
+	bool				Escape(const char** psz, const char* szEnd, uint32* puiValue);
+	void				AddToken(CCPPToken* pcToken, int iSource);
+	bool				Error(SPreprocessedToken* psToken, char* szError);
 };
 
 

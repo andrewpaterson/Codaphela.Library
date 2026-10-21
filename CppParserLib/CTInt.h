@@ -28,13 +28,13 @@ class CCTInt : public CCTNumber
 public:
 	unsigned int	mcValue;
 	bool			mbSigned;
+	bool			mbLong;		//long or unsigned long (32 bits on Windows) rather than int.
 
 	CPP_TOKEN_CONSTRUCT(CCTInt);
 	void Init(void);
 	void Init(unsigned int i);
 	void Kill(void);
 	bool IsSigned(void);
-	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 
 

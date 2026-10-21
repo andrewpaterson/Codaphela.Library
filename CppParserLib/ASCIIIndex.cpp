@@ -33,7 +33,7 @@ int64 CASCIIIndex::Add(const char* sz, const char* szLastCharInclusive)
 	bool	bResult;
 
 	lliID = mcNameToIDIndex.Add(sz, szLastCharInclusive);
-	if (lliID == -1)
+	if (lliID != -1)
 	{
 		bResult = mcIDToNameIndex.Put(lliID, sz, szLastCharInclusive);
 		if (!bResult)
@@ -69,7 +69,7 @@ char* CASCIIIndex::Get(int64 lliID, int* piLength)
 	bResult = mcIDToNameIndex.Get(lliID, &psz, &iLength);
 	if (bResult)
 	{
-		SafeAssign(piLength, iLength);
+		SafeAssign(piLength, (int)iLength);
 		return psz;
 	}
 	else

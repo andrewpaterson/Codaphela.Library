@@ -221,7 +221,7 @@ char* CNamedDefine::GetName(void)
 //////////////////////////////////////////////////////////////////////////
 int CNamedDefine::GetNameLength(void)
 {
-	return mszName.Length();
+	return (int)mszName.Length();
 }
 
 

@@ -41,7 +41,7 @@ char* CPreprocessorDirective::GetName(void)
 //////////////////////////////////////////////////////////////////////////
 int CPreprocessorDirective::GetNameLength(void)
 {
-	return mszName.Length();
+	return (int)mszName.Length();
 }
 
 

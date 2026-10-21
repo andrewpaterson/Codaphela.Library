@@ -22,18 +22,15 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __TRANSLATION_UNIT_H__
 #include "BaseLib/MapStringTemplate.h"
 #include "SourceFile.h"
-#include "PPBlock.h"
-#include "PPTokenReplacementsHolder.h"
+#include "PreprocessedTokens.h"
 
 
 struct STULog
 {
-	CChars	szBlocksLog;
 	CChars	szIncludesLog;
-	bool	bLogBlocks;
 	bool	bLogInlucdes;
 
-	void Init(bool bLogInlucdes, bool bLogBlocks);
+	void Init(bool bLogInlucdes);
 	void Kill(void);
 };
 
@@ -41,25 +38,23 @@ struct STULog
 class CTranslationUnit : public CSourceFile
 {
 protected:
-	STULog*		mpcLogs;
-	CLibrary*	mpcLibrary;
-	CPPBlock*	mpcProcessed;
+	STULog*					mpcLogs;
+	CLibrary*				mpcLibrary;
+	CPreprocessedTokens		mcTokens;
 
 public:
-	void			Init(char* szFullName, CLibrary* pcLibrary, bool bLogIncludes, bool bLogBlocks);
-	void			Kill(void);
-	bool			IsTranslationUnit(void);
-	bool			IsHeader(void);
-	bool			LogBlocks(void);
-	bool			LogInlucdes(void);
-	bool			IsPragmaOnced(void);
-	bool			IsSystemFile(void);
-	STULog*			GetLogs(void);
-	CLibrary*		GetLibrary(void);
-	CPPTokenList*	GetProcessedTokenList(void);
-	CPPBlock*		AddProcessedBlock(void);
-	char*			Print(CChars* psz);
-	void			Dump(void);
+	void					Init(char* szFullName, CLibrary* pcLibrary, bool bLogIncludes);
+	void					Kill(void);
+	bool					IsTranslationUnit(void);
+	bool					IsHeader(void);
+	bool					LogInlucdes(void);
+	bool					IsPragmaOnced(void);
+	bool					IsSystemFile(void);
+	STULog*					GetLogs(void);
+	CLibrary*				GetLibrary(void);
+	CPreprocessedTokens*	GetTokens(void);
+	char*					Print(CChars* psz);
+	void					Dump(void);
 };
 
 

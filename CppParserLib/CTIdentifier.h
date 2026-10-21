@@ -33,7 +33,6 @@ public:
 	void Init(int64 lliIdentifier);
 	void Kill(void);
 	bool IsIdentifier(void);
-	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 
 

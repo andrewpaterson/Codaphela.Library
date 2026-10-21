@@ -183,8 +183,8 @@ void CDefineMap::RemoveDefine(CExternalString* pcName)
 		if (pcDefine)
 		{
 			pcDefine->Kill();
-			mcNameToIDIndex.Remove(pcName->msz, pcName->EndInclusive());
 			mcIDToDefineIndex.Remove(psNameIndex->mlliID);
+			mcNameToIDIndex.Remove(pcName->msz, pcName->EndInclusive());
 		}
 	}
 }

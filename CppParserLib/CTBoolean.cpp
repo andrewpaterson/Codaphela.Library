@@ -59,21 +59,3 @@ bool CCTBoolean::IsBool(void)
 {
 	return true;
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCTBoolean::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
-{
-	psz->Append("(bool)");
-	if (mcBool)
-	{
-		psz->Append("true");
-	}
-	else
-	{
-		psz->Append("false");
-	}
-}
