@@ -48,6 +48,17 @@ void CPreprocessorParser::Init(char* szStart, char* szEnd, char* szFileName)
 	miLine = 0;
 	miColumn = 0;
 	mszFileName = szFileName;
+	mpacComments = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorParser::SetComments(CArrayPPComments* pacComments)
+{
+	mpacComments = pacComments;
 }
 
 
@@ -169,65 +180,51 @@ void CPreprocessorParser::SkipWhitespace(void)
 void CPreprocessorParser::SkipCStyleComment(void)
 {
 	char	cCurrent;		
-	int		iDepth;
+	char*	szStart;
 
-	//It's assumed that the initial /* has already been consumed.
-	iDepth = 1;
-
+	//It's assumed that the initial /* has already been consumed.  Comments do not nest.
+	szStart = mszParserPos - 2;
 	for (;;)
 	{
 		if (mbEndOfFile)
 		{
-			return;
+			break;
 		}
 
 		cCurrent = mszParserPos[0];
-		if (cCurrent == '/')
+		if (cCurrent == '*')
 		{
 			StepRight();
 			TestEnd();
-			if (!mbEndOfFile)
+			if ((!mbEndOfFile) && (mszParserPos[0] == '/'))
 			{
-				cCurrent = mszParserPos[0];
-				if (cCurrent == '*')
-				{
-					iDepth++;
-				}
-			}
-			else
-			{
-				return;
-			}
-		}
-		else if (cCurrent == '*')
-		{
-			StepRight();
-			TestEnd();
-			if (!mbEndOfFile)
-			{
-				cCurrent = mszParserPos[0];
-				if (cCurrent == '/')
-				{
-					StepRight();
-					iDepth--;
-				}
-			}
-			else
-			{
-				return;
+				StepRight();
+				break;
 			}
 		}
 		else
 		{
 			StepRight();
 		}
-
-		if (iDepth == 0)
-		{
-			return;
-		}
 	}
-	return;
+	AddComment(szStart);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorParser::AddComment(char* szStart)
+{
+	SPPComment*		psComment;
+
+	if (mpacComments)
+	{
+		psComment = mpacComments->Add();
+		psComment->iStart = (int32)(szStart - mszStartOfText);
+		psComment->iLength = (int32)(mszParserPos - szStart);
+	}
 }
 
 
@@ -240,8 +237,13 @@ void CPreprocessorParser::SkipCPPStyleComment(void)
 	char	cCurrent;
 	int		iCharNum;
 
+	char*	szStart;
+
+	//It's assumed that the initial // has already been consumed.
+	szStart = mszParserPos - 2;
 	if (mbEndOfFile)
 	{
+		AddComment(szStart);
 		return;
 	}
 
@@ -253,13 +255,22 @@ void CPreprocessorParser::SkipCPPStyleComment(void)
 
 		if ((cCurrent == '\n') || (cCurrent == '\r'))
 		{
+			if ((iCharNum > 0) && (mszParserPos[-1] == '\\'))
+			{
+				//A line splice continues the comment onto the next line.
+				SkipNewLine();
+				TestEnd();
+				continue;
+			}
+
 			//Don't consume the newline.
-			return;
+			break;
 		}
 
 		StepRight();
 		iCharNum++;
 	}
+	AddComment(szStart);
 }
 
 
@@ -288,7 +299,7 @@ bool CPreprocessorParser::IsWhitespace(void)
 {
 	char c;
 	c = *mszParserPos;
-	return (c == ' ') || (c >= 128) || (c >= 1 && c <= 9) || (c == 11) || (c == 12);
+	return (c == ' ') || ((unsigned char)c >= 128) || (c >= 1 && c <= 9) || (c == 11) || (c == 12);
 }
 
 
@@ -471,7 +482,7 @@ void CPreprocessorParser::Dump(void)
 	pac.Init(mszStartOfText, mszEndOfText);
 	sz.Init(&pac);
 
-	iBefore = mszParserPos - mszStartOfText;
+	iBefore = (int)(mszParserPos - mszStartOfText);
 	sz.AppendNewLine();
 	sz.Append(' ', iBefore);
 	sz.Append('^');

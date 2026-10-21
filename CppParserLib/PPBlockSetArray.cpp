@@ -42,7 +42,7 @@ void CPPBlockSetArray::Kill(void)
 	int				iNumElements;
 	CPPBlockSet*	pcBlockSet;
 
-	iNumElements = NumElements();
+	iNumElements = (int)NumElements();
 	for (i = 0; i < iNumElements; i++)
 	{
 		pcBlockSet = Get(i);
@@ -82,7 +82,7 @@ CPPBlockSet* CPPBlockSetArray::Add(int iLine, bool bTextBlocks)
 	CPPBlockSet* pcBlockSet;
 
 	pcBlockSet = __CArrayPPBlockSet::Add();
-	pcBlockSet->Init(iLine, miUsedElements-1, bTextBlocks);
+	pcBlockSet->Init(iLine, (int)miUsedElements-1, bTextBlocks);
 	return pcBlockSet;
 }
 

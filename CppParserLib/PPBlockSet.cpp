@@ -48,7 +48,7 @@ void CPPBlockSet::Kill(void)
 	CPPBlock*	pcBlock;
 	int			iNumElements;
 
-	iNumElements = mapcBlocks.NumElements();
+	iNumElements = (int)mapcBlocks.NumElements();
 	for (i = 0; i < iNumElements; i++)
 	{
 		pcBlock = *mapcBlocks.Get(i);
@@ -82,7 +82,7 @@ CPPBlock* CPPBlockSet::GetMatchingBlock(CPPBlock* pcOtherBlock)
 	bool		bResult;
 	int			iNumElements;
 
-	iNumElements = mapcBlocks.NumElements();
+	iNumElements = (int)mapcBlocks.NumElements();
 	for (i = iNumElements - 1; i >= 0; i--)
 	{
 		pcBlock = *mapcBlocks.Get(i);
@@ -106,7 +106,7 @@ bool CPPBlockSet::IsLastToken(int iToken)
 	int			i;
 	int			iNumTokens;
 
-	iNumTokens = mcUnprocessedTokens.NumTokens();
+	iNumTokens = (int)mcUnprocessedTokens.NumTokens();
 	if (iNumTokens == iToken)
 	{
 		return true;
@@ -136,7 +136,7 @@ void CPPBlockSet::Print(CChars* psz)
 
 	if (mbTextBlocks)
 	{
-		iNumElements = mapcBlocks.NumElements();
+		iNumElements = (int)mapcBlocks.NumElements();
 		for (i = 0; i < iNumElements; i++)
 		{
 			pcBlock = *mapcBlocks.Get(i);
@@ -167,9 +167,7 @@ void CPPBlockSet::Dump(void)
 void CPPBlockSet::DumpBlockSet(void)
 {
 	CChars			sz;
-	int				iLast;
 
-	iLast = 0;
 	sz.Init();
 	if (mbTextBlocks)
 	{

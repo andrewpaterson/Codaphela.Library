@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2025 Andrew Paterson
+Copyright (c) 2022 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela CppParserLib
 
@@ -18,171 +18,288 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/Numbers.h"
+#include <stdlib.h>
+#include "BaseLib/ErrorHandler.h"
 #include "CppTokeniser.h"
+#include "SourceFile.h"
 #include "CTBoolean.h"
 #include "CTChar.h"
 #include "CTIdentifier.h"
 #include "CTReservedWord.h"
 #include "CTString.h"
-#include "CTWideString.h"
 #include "CTDouble.h"
 #include "CTFloat.h"
 #include "CTLongDouble.h"
 #include "CTInt.h"
 #include "CTLongLong.h"
 #include "CTShort.h"
-#include "PPText.h"
-#include "CTNewLine.h"
+
+
+struct SCPPReservedWord
+{
+	const char*	szSpelling;
+	ECppTokens	eToken;
+};
+
+
+//The first spelling of each token is in ECppTokens order and is how the token prints.  The alternative spellings follow.
+static SCPPReservedWord gasCPPReservedWords[] =
+{
+	{ "(", CT_OpenRoundBracket },
+	{ ")", CT_CloseRoundBracket },
+	{ "{", CT_OpenCurlyBracket },
+	{ "}", CT_CloseCurlyBracket },
+	{ "[", CT_OpenSquareBracket },
+	{ "]", CT_CloseSquareBracket },
+	{ "<<=", CT_AssignmentLeftShift },
+	{ ">>=", CT_AssignmentRightShift },
+	{ "++", CT_Increment },
+	{ "--", CT_Decrement },
+	{ "==", CT_EqualTo },
+	{ "!=", CT_NotEqualTo },
+	{ ">=", CT_GreaterThanEqualTo },
+	{ "<=", CT_LessThanEqualTo },
+	{ "||", CT_LogicalOr },
+	{ "&&", CT_LogicalAnd },
+	{ "+=", CT_AssignmentAdd },
+	{ "-=", CT_AssignmentSubtract },
+	{ "*=", CT_AssignmentMultiply },
+	{ "/=", CT_AssignmentDivide },
+	{ "%=", CT_AssignmentModulus },
+	{ "&=", CT_AssignmentBitwiseAnd },
+	{ "|=", CT_AssignmentBitwiseOr },
+	{ "^=", CT_AssignmentBitwiseXor },
+	{ "<<", CT_LeftShift },
+	{ ">>", CT_RightShift },
+	{ "+", CT_Add },
+	{ "-", CT_Subtract },
+	{ "*", CT_Multiply },
+	{ "/", CT_Divide },
+	{ "%", CT_Modulus },
+	{ "=", CT_Assignment },
+	{ "!", CT_LogicalNot },
+	{ "&", CT_BitwiseAnd },
+	{ "|", CT_BitwiseOr },
+	{ "^", CT_BitwiseXor },
+	{ "<", CT_LessThan },
+	{ ">", CT_GreaterThan },
+	{ "~", CT_BitwiseNot },
+	{ "::", CT_ScopeResolution },
+	{ "?", CT_QuestionMark },
+	{ ":", CT_Colon },
+	{ ";", CT_SemiColon },
+	{ "->", CT_MemberByPointer },
+	{ ".", CT_Member },
+	{ "->*", CT_MemberByPointerFunctionPointerIndirection },
+	{ ".*", CT_MemberFunctionPointerIndirection },
+	{ "...", CT_Elipsis },
+	{ ",", CT_Comma },
+	{ "#", CT_Hash },
+	{ "##", CT_HashHash },
+
+	{ "alignas", CT_alignas },
+	{ "alignof", CT_alignof },
+	{ "asm", CT_asm },
+	{ "auto", CT_auto },
+	{ "bool", CT_bool },
+	{ "break", CT_break },
+	{ "case", CT_case },
+	{ "catch", CT_catch },
+	{ "char", CT_char },
+	{ "char16_t", CT_char16_t },
+	{ "char32_t", CT_char32_t },
+	{ "class", CT_class },
+	{ "const", CT_const },
+	{ "constexpr", CT_constexpr },
+	{ "const_cast", CT_const_cast },
+	{ "continue", CT_continue },
+	{ "decltype", CT_decltype },
+	{ "default", CT_default },
+	{ "delete", CT_delete },
+	{ "do", CT_do },
+	{ "double", CT_double },
+	{ "dynamic_cast", CT_dynamic_cast },
+	{ "else", CT_else },
+	{ "enum", CT_enum },
+	{ "explicit", CT_explicit },
+	{ "export", CT_export },
+	{ "extern", CT_extern },
+	{ "false", CT_false },
+	{ "float", CT_float },
+	{ "for", CT_for },
+	{ "friend", CT_friend },
+	{ "goto", CT_goto },
+	{ "if", CT_if },
+	{ "inline", CT_inline },
+	{ "int", CT_int },
+	{ "long", CT_long },
+	{ "mutable", CT_mutable },
+	{ "namespace", CT_namespace },
+	{ "new", CT_new },
+	{ "noexcept", CT_noexcept },
+	{ "nullptr", CT_nullptr },
+	{ "operator", CT_operator },
+	{ "private", CT_private },
+	{ "protected", CT_protected },
+	{ "public", CT_public },
+	{ "register", CT_register },
+	{ "reinterpret_cast", CT_reinterpret_cast },
+	{ "return", CT_return },
+	{ "short", CT_short },
+	{ "signed", CT_signed },
+	{ "sizeof", CT_sizeof },
+	{ "static", CT_static },
+	{ "static_assert", CT_static_assert },
+	{ "static_cast", CT_static_cast },
+	{ "struct", CT_struct },
+	{ "switch", CT_switch },
+	{ "template", CT_template },
+	{ "this", CT_this },
+	{ "thread_local", CT_thread_local },
+	{ "throw", CT_throw },
+	{ "true", CT_true },
+	{ "try", CT_try },
+	{ "typedef", CT_typedef },
+	{ "typeid", CT_typeid },
+	{ "typename", CT_typename },
+	{ "union", CT_union },
+	{ "unsigned", CT_unsigned },
+	{ "using", CT_using },
+	{ "virtual", CT_virtual },
+	{ "void", CT_void },
+	{ "volatile", CT_volatile },
+	{ "wchar_t", CT_wchar_t },
+	{ "while", CT_while },
+
+	{ "__declspec", CT___declspec },
+	{ "__cdecl", CT___cdecl },
+	{ "__stdcall", CT___stdcall },
+	{ "__fastcall", CT___fastcall },
+	{ "__thiscall", CT___thiscall },
+	{ "__vectorcall", CT___vectorcall },
+	{ "__int8", CT___int8 },
+	{ "__int16", CT___int16 },
+	{ "__int32", CT___int32 },
+	{ "__int64", CT___int64 },
+	{ "__w64", CT___w64 },
+	{ "__ptr32", CT___ptr32 },
+	{ "__ptr64", CT___ptr64 },
+	{ "__unaligned", CT___unaligned },
+	{ "__restrict", CT___restrict },
+	{ "__forceinline", CT___forceinline },
+	{ "__inline", CT___inline },
+	{ "__pragma", CT___pragma },
+	{ "__uuidof", CT___uuidof },
+
+	{ "__attribute__", CT___attribute__ },
+	{ "__extension__", CT___extension__ },
+	{ "__restrict__", CT___restrict__ },
+	{ "__inline__", CT___inline__ },
+	{ "__asm__", CT___asm__ },
+	{ "__volatile__", CT___volatile__ },
+	{ "__const__", CT___const__ },
+	{ "__signed__", CT___signed__ },
+	{ "__typeof__", CT___typeof__ },
+	{ "__alignof__", CT___alignof__ },
+	{ "__thread", CT___thread },
+
+	//Alternative tokens [lex.digraph].
+	{ "<:", CT_OpenSquareBracket },
+	{ ":>", CT_CloseSquareBracket },
+	{ "<%", CT_OpenCurlyBracket },
+	{ "%>", CT_CloseCurlyBracket },
+	{ "%:", CT_Hash },
+	{ "%:%:", CT_HashHash },
+	{ "and", CT_LogicalAnd },
+	{ "and_eq", CT_AssignmentBitwiseAnd },
+	{ "bitand", CT_BitwiseAnd },
+	{ "bitor", CT_BitwiseOr },
+	{ "compl", CT_BitwiseNot },
+	{ "not", CT_LogicalNot },
+	{ "not_eq", CT_NotEqualTo },
+	{ "or", CT_LogicalOr },
+	{ "or_eq", CT_AssignmentBitwiseOr },
+	{ "xor", CT_BitwiseXor },
+	{ "xor_eq", CT_AssignmentBitwiseXor },
+
+	//Microsoft and GNU spellings of the same keywords.
+	{ "_cdecl", CT___cdecl },
+	{ "_stdcall", CT___stdcall },
+	{ "_fastcall", CT___fastcall },
+	{ "_inline", CT___inline },
+	{ "_asm", CT_asm },
+	{ "__asm", CT_asm },
+	{ "__volatile", CT_volatile },
+	{ "__const", CT_const },
+	{ "__signed", CT_signed },
+	{ "__typeof", CT___typeof__ },
+	{ "__alignof", CT___alignof__ },
+	{ "__wchar_t", CT_wchar_t },
+	{ "__nullptr", CT_nullptr },
+
+	{ NULL, NUM_CPP_TOKENS }
+};
+
+
+#define NUM_CPP_RESERVED_SPELLINGS	(sizeof(gasCPPReservedWords) / sizeof(SCPPReservedWord) - 1)
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-//
+//																		//
+//																		//
 //////////////////////////////////////////////////////////////////////////
 void CCPPTokeniser::Init(void)
 {
-	mcStack.Init(16 KB);
+	size	i;
+	int64	lliID;
 
+	mcStack.Init(16 KB);
 	mcIdentifiers.Init();
 	mcTokens.Init();
+	mpcSource = NULL;
+	mbError = false;
 
+	//IDs are the index of the spelling in gasCPPReservedWords.
 	mcReservedWords.Init();
-	mcReservedWords.Add("(");
-	mcReservedWords.Add(")");
-	mcReservedWords.Add("{");
-	mcReservedWords.Add("}");
-	mcReservedWords.Add("[");
-	mcReservedWords.Add("]");
-	mcReservedWords.Add("<<=");
-	mcReservedWords.Add(">>=");
-	mcReservedWords.Add("++");
-	mcReservedWords.Add("--");
-	mcReservedWords.Add("==");
-	mcReservedWords.Add("!=");
-	mcReservedWords.Add(">=");
-	mcReservedWords.Add("<=");
-	mcReservedWords.Add("||");
-	mcReservedWords.Add("&&");
-	mcReservedWords.Add("+=");
-	mcReservedWords.Add("-=");
-	mcReservedWords.Add("*=");
-	mcReservedWords.Add("/=");
-	mcReservedWords.Add("%=");
-	mcReservedWords.Add("&=");
-	mcReservedWords.Add("|=");
-	mcReservedWords.Add("^=");
-	mcReservedWords.Add("<<");
-	mcReservedWords.Add(">>");
-	mcReservedWords.Add("+");
-	mcReservedWords.Add("-");
-	mcReservedWords.Add("*");
-	mcReservedWords.Add("/");
-	mcReservedWords.Add("%");
-	mcReservedWords.Add("=");
-	mcReservedWords.Add("!");
-	mcReservedWords.Add("&");
-	mcReservedWords.Add("|");
-	mcReservedWords.Add("^");
-	mcReservedWords.Add(">");
-	mcReservedWords.Add("<");
-	mcReservedWords.Add("~");
-	mcReservedWords.Add("::*");
-	mcReservedWords.Add("::");
-	mcReservedWords.Add("?");
-	mcReservedWords.Add(":");
-	mcReservedWords.Add(";");
-	mcReservedWords.Add("->");
-	mcReservedWords.Add(".");
-	mcReservedWords.Add("->*");
-	mcReservedWords.Add(".*");
-	mcReservedWords.Add("...");
-	mcReservedWords.Add(",");
-	mcReservedWords.Add("constauto");
-	mcReservedWords.Add("double");
-	mcReservedWords.Add("float");
-	mcReservedWords.Add("int");
-	mcReservedWords.Add("short");
-	mcReservedWords.Add("struct");
-	mcReservedWords.Add("unsigned");
-	mcReservedWords.Add("break");
-	mcReservedWords.Add("continue");
-	mcReservedWords.Add("else");
-	mcReservedWords.Add("for");
-	mcReservedWords.Add("long");
-	mcReservedWords.Add("signed");
-	mcReservedWords.Add("switch");
-	mcReservedWords.Add("void");
-	mcReservedWords.Add("case");
-	mcReservedWords.Add("default");
-	mcReservedWords.Add("enum");
-	mcReservedWords.Add("goto");
-	mcReservedWords.Add("register");
-	mcReservedWords.Add("sizeof");
-	mcReservedWords.Add("typedef");
-	mcReservedWords.Add("volatile");
-	mcReservedWords.Add("char");
-	mcReservedWords.Add("do");
-	mcReservedWords.Add("extern");
-	mcReservedWords.Add("if");
-	mcReservedWords.Add("return");
-	mcReservedWords.Add("static");
-	mcReservedWords.Add("union");
-	mcReservedWords.Add("while");
-	mcReservedWords.Add("asm");
-	mcReservedWords.Add("dynamic_cast");
-	mcReservedWords.Add("namespace");
-	mcReservedWords.Add("reinterpret_cast");
-	mcReservedWords.Add("try");
-	mcReservedWords.Add("bool");
-	mcReservedWords.Add("explicit");
-	mcReservedWords.Add("new");
-	mcReservedWords.Add("static_cast");
-	mcReservedWords.Add("typeid");
-	mcReservedWords.Add("catch");
-	mcReservedWords.Add("false");
-	mcReservedWords.Add("operator");
-	mcReservedWords.Add("template");
-	mcReservedWords.Add("typename");
-	mcReservedWords.Add("class");
-	mcReservedWords.Add("friend");
-	mcReservedWords.Add("private");
-	mcReservedWords.Add("this");
-	mcReservedWords.Add("using");
-	mcReservedWords.Add("const_cast");
-	mcReservedWords.Add("inline");
-	mcReservedWords.Add("public");
-	mcReservedWords.Add("throw");
-	mcReservedWords.Add("virtual");
-	mcReservedWords.Add("delete");
-	mcReservedWords.Add("mutable");
-	mcReservedWords.Add("protected");
-	mcReservedWords.Add("true");
-	mcReservedWords.Add("wchar_t");
-	mcReservedWords.Add("and");
-	mcReservedWords.Add("bitand");
-	mcReservedWords.Add("compl");
-	mcReservedWords.Add("not_eq");
-	mcReservedWords.Add("or_eq");
-	mcReservedWords.Add("xor_eq");
-	mcReservedWords.Add("and_eq");
-	mcReservedWords.Add("bitor");
-	mcReservedWords.Add("not");
-	mcReservedWords.Add("or");
-	mcReservedWords.Add("xor");
-
-	if (mcReservedWords.NumElements() != NUM_CPP_TOKENS)
+	for (i = 0; i < NUM_CPP_RESERVED_SPELLINGS; i++)
 	{
-		gcUserError.Set("Reserved words is out of synch!");
+		lliID = mcReservedWords.Get(gasCPPReservedWords[i].szSpelling, NULL, true);
+		if (lliID == -1)
+		{
+			lliID = mcReservedWords.Add(gasCPPReservedWords[i].szSpelling);
+		}
+		if ((lliID != (int64)i) || ((i < NUM_CPP_TOKENS) && (gasCPPReservedWords[i].eToken != (ECppTokens)i)))
+		{
+			gcUserError.Set("C++ reserved words are out of order.");
+		}
 	}
+
+	//Identifiers with special meaning in some places.  [lex.name] 2
+	mlliOverride = GetIdentifierID("override");
+	mlliFinal = GetIdentifierID("final");
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-//
+//																		//
+//																		//
 //////////////////////////////////////////////////////////////////////////
 void CCPPTokeniser::Kill(void)
+{
+	Clear();
+	mcTokens.Kill();
+	mcStack.Kill();
+	mcIdentifiers.Kill();
+	mcReservedWords.Kill();
+	mpcSource = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTokeniser::Clear(void)
 {
 	size			i;
 	CCPPToken*		pcToken;
@@ -193,782 +310,765 @@ void CCPPTokeniser::Kill(void)
 		pcToken->Kill();
 	}
 	mcTokens.Kill();
+	mcTokens.Init();
 	mcStack.Kill();
-
-	mcIdentifiers.Kill();
-	mcReservedWords.Kill();
+	mcStack.Init(16 KB);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-//
+//																		//
+//																		//
 //////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::Line(void)
+bool CCPPTokeniser::Tokenise(CPreprocessedTokens* pcSource)
 {
-	bool		bResult;
-	size		iTokenNum;
+	size					i;
+	SPreprocessedToken*		psToken;
 
-	iTokenNum = -1;
-	while (mcParser.HasToken())
+	Clear();
+	mpcSource = pcSource;
+	mbError = false;
+	for (i = 0; i < pcSource->NumTokens(); i++)
 	{
-		iTokenNum++;
-		bResult = Literal();
-		if (bResult)
+		psToken = pcSource->Get(i);
+		Token(psToken, (int)i);
+	}
+	return !mbError;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTokeniser::Token(SPreprocessedToken* psToken, int iSource)
+{
+	switch (psToken->uiKind)
+	{
+	case PTK_Identifier:
+		return Identifier(psToken, iSource);
+	case PTK_Punctuator:
+		return Punctuator(psToken, iSource);
+	case PTK_Number:
+		return Number(psToken, iSource);
+	case PTK_Character:
+		return Character(psToken, iSource);
+	case PTK_String:
+		return String(psToken, iSource);
+	}
+
+	//A stray character.  System headers are only skimmed so it is dropped there.
+	if (psToken->pcFile && psToken->pcFile->IsSystemFile())
+	{
+		return true;
+	}
+	return Error(psToken, "Unexpected character.");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTokeniser::Identifier(SPreprocessedToken* psToken, int iSource)
+{
+	int64				lliID;
+	ECppTokens			eToken;
+	CCTReservedWord*	pcReservedWord;
+	CCTBoolean*			pcBoolean;
+	CCTIdentifier*		pcIdentifier;
+
+	lliID = mcReservedWords.Get(psToken->szText, psToken->szText + psToken->uiLength - 1, true);
+	if (lliID != -1)
+	{
+		eToken = gasCPPReservedWords[lliID].eToken;
+		if ((eToken == CT_true) || (eToken == CT_false))
 		{
-			continue;
+			pcBoolean = CCTBoolean::Construct(mcStack.Add(sizeof(CCTBoolean)));
+			pcBoolean->Init(eToken == CT_true);
+			AddToken(pcBoolean, iSource);
+		}
+		else
+		{
+			pcReservedWord = CCTReservedWord::Construct(mcStack.Add(sizeof(CCTReservedWord)));
+			pcReservedWord->Init(eToken);
+			AddToken(pcReservedWord, iSource);
+		}
+		return true;
+	}
+
+	lliID = mcIdentifiers.Get(psToken->szText, psToken->szText + psToken->uiLength - 1, true);
+	if (lliID == -1)
+	{
+		lliID = mcIdentifiers.Add(psToken->szText, psToken->szText + psToken->uiLength - 1);
+	}
+	pcIdentifier = CCTIdentifier::Construct(mcStack.Add(sizeof(CCTIdentifier)));
+	pcIdentifier->Init(lliID);
+	AddToken(pcIdentifier, iSource);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTokeniser::Punctuator(SPreprocessedToken* psToken, int iSource)
+{
+	int64				lliID;
+	CCTReservedWord*	pcReservedWord;
+
+	lliID = mcReservedWords.Get(psToken->szText, psToken->szText + psToken->uiLength - 1, true);
+	if (lliID == -1)
+	{
+		return Error(psToken, "Unknown punctuator.");
+	}
+
+	pcReservedWord = CCTReservedWord::Construct(mcStack.Add(sizeof(CCTReservedWord)));
+	pcReservedWord->Init(gasCPPReservedWords[lliID].eToken);
+	AddToken(pcReservedWord, iSource);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTokeniser::Number(SPreprocessedToken* psToken, int iSource)
+{
+	char		szNumber[256];
+	char*		szDigits;
+	char*		szEnd;
+	size		i;
+	size		iLength;
+	int			iBase;
+	char		c;
+	bool		bFloating;
+
+	//Digit separators are left out.  [lex.icon]
+	iLength = 0;
+	for (i = 0; (i < psToken->uiLength) && (iLength < 255); i++)
+	{
+		if (psToken->szText[i] != '\'')
+		{
+			szNumber[iLength] = psToken->szText[i];
+			iLength++;
+		}
+	}
+	szNumber[iLength] = '\0';
+
+	iBase = 10;
+	szDigits = szNumber;
+	if ((szNumber[0] == '0') && ((szNumber[1] == 'x') || (szNumber[1] == 'X')))
+	{
+		iBase = 16;
+		szDigits = &szNumber[2];
+	}
+	else if ((szNumber[0] == '0') && ((szNumber[1] == 'b') || (szNumber[1] == 'B')))
+	{
+		iBase = 2;
+		szDigits = &szNumber[2];
+	}
+
+	//Find where the digits end and the suffix starts.
+	bFloating = false;
+	szEnd = szDigits;
+	for (;;)
+	{
+		c = *szEnd;
+		if ((c >= '0') && (c <= '9'))
+		{
+		}
+		else if ((iBase == 16) && (((c >= 'a') && (c <= 'f')) || ((c >= 'A') && (c <= 'F'))))
+		{
+		}
+		else if (c == '.')
+		{
+			bFloating = true;
+		}
+		else if ((iBase == 10) && ((c == 'e') || (c == 'E')))
+		{
+			bFloating = true;
+			if ((szEnd[1] == '+') || (szEnd[1] == '-'))
+			{
+				szEnd++;
+			}
+		}
+		else if ((iBase == 16) && ((c == 'p') || (c == 'P')))
+		{
+			bFloating = true;
+			if ((szEnd[1] == '+') || (szEnd[1] == '-'))
+			{
+				szEnd++;
+			}
+		}
+		else
+		{
+			break;
+		}
+		szEnd++;
+	}
+
+	if (bFloating)
+	{
+		return Floating(psToken, iSource, szNumber);
+	}
+
+	if ((iBase == 10) && (szDigits[0] == '0') && (szEnd > szDigits + 1))
+	{
+		iBase = 8;
+		szDigits++;
+	}
+	return Integer(psToken, iSource, szDigits, iBase, szEnd);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTokeniser::Integer(SPreprocessedToken* psToken, int iSource, char* szDigits, int iBase, char* szSuffix)
+{
+	uint64			ulliValue;
+	uint64			ulliDigit;
+	char*			sz;
+	char			c;
+	bool			bUnsigned;
+	int				iLongs;
+	bool			bInt64;
+	bool			bDecimal;
+	CCTInt*			pcInt;
+	CCTLongLong*	pcLongLong;
+
+	ulliValue = 0;
+	for (sz = szDigits; sz < szSuffix; sz++)
+	{
+		c = *sz;
+		if ((c >= '0') && (c <= '9'))
+		{
+			ulliDigit = c - '0';
+		}
+		else if ((c >= 'a') && (c <= 'f'))
+		{
+			ulliDigit = c - 'a' + 10;
+		}
+		else
+		{
+			ulliDigit = c - 'A' + 10;
 		}
 
-		bResult = ReservedWord();
-		if (bResult)
+		if (ulliDigit >= (uint64)iBase)
 		{
-			continue;
+			return Error(psToken, "Invalid digit in integer literal.");
 		}
+		if (ulliValue > (0xFFFFFFFFFFFFFFFFULL - ulliDigit) / iBase)
+		{
+			return Error(psToken, "Integer literal is too large.");
+		}
+		ulliValue = ulliValue * iBase + ulliDigit;
+	}
 
-		bResult = Identifier();
-		if (bResult)
+	//Suffixes: u, l, ll in any order, and Microsoft's i8, i16, i32, i64 and ui64.
+	bUnsigned = false;
+	iLongs = 0;
+	bInt64 = false;
+	for (sz = szSuffix; *sz != '\0';)
+	{
+		if ((*sz == 'u') || (*sz == 'U'))
 		{
-			continue;
+			bUnsigned = true;
+			sz++;
 		}
-		
-		if (!mcParser.HasToken())
+		else if ((*sz == 'l') || (*sz == 'L'))
 		{
-			//The last token must have been white space.
-			continue;
+			iLongs++;
+			sz++;
 		}
+		else if (((*sz == 'i') || (*sz == 'I')) && (sz[1] == '6') && (sz[2] == '4'))
+		{
+			bInt64 = true;
+			sz += 3;
+		}
+		else if (((*sz == 'i') || (*sz == 'I')) && (((sz[1] == '3') && (sz[2] == '2')) || ((sz[1] == '1') && (sz[2] == '6'))))
+		{
+			sz += 3;
+		}
+		else if (((*sz == 'i') || (*sz == 'I')) && (sz[1] == '8'))
+		{
+			sz += 2;
+		}
+		else
+		{
+			return Error(psToken, "Invalid integer literal suffix.");
+		}
+	}
+	if (iLongs > 2)
+	{
+		return Error(psToken, "Invalid integer literal suffix.");
+	}
 
-		//If there are still tokens left then we could not parse this line.
-		return false;
+	//[lex.icon] Table 6 with 32 bit int and long and 64 bit long long, as on Windows.  The first type the value fits.
+	bDecimal = (iBase == 10);
+	if ((iLongs < 2) && !bInt64)
+	{
+		if (!bUnsigned && (ulliValue <= 0x7FFFFFFFULL))
+		{
+			pcInt = CCTInt::Construct(mcStack.Add(sizeof(CCTInt)));
+			pcInt->Init((unsigned int)ulliValue);
+			pcInt->mbSigned = true;
+			pcInt->mbLong = (iLongs == 1);
+			AddToken(pcInt, iSource);
+			return true;
+		}
+		if ((bUnsigned || !bDecimal) && (ulliValue <= 0xFFFFFFFFULL))
+		{
+			pcInt = CCTInt::Construct(mcStack.Add(sizeof(CCTInt)));
+			pcInt->Init((unsigned int)ulliValue);
+			pcInt->mbSigned = false;
+			pcInt->mbLong = (iLongs == 1);
+			AddToken(pcInt, iSource);
+			return true;
+		}
+	}
+
+	pcLongLong = CCTLongLong::Construct(mcStack.Add(sizeof(CCTLongLong)));
+	pcLongLong->Init(ulliValue);
+	pcLongLong->mbSigned = !bUnsigned && ((ulliValue <= 0x7FFFFFFFFFFFFFFFULL) || bDecimal);
+	if (ulliValue > 0x7FFFFFFFFFFFFFFFULL)
+	{
+		//Too large for long long.  Microsoft makes it unsigned long long.
+		pcLongLong->mbSigned = false;
+	}
+	AddToken(pcLongLong, iSource);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTokeniser::Floating(SPreprocessedToken* psToken, int iSource, char* szNumber)
+{
+	char*			szEnd;
+	long double		ldValue;
+	CCTFloat*		pcFloat;
+	CCTDouble*		pcDouble;
+	CCTLongDouble*	pcLongDouble;
+
+	ldValue = strtold(szNumber, &szEnd);
+	if ((*szEnd == 'f') || (*szEnd == 'F'))
+	{
+		if (szEnd[1] != '\0')
+		{
+			return Error(psToken, "Invalid floating literal suffix.");
+		}
+		pcFloat = CCTFloat::Construct(mcStack.Add(sizeof(CCTFloat)));
+		pcFloat->Init((float)ldValue);
+		AddToken(pcFloat, iSource);
+	}
+	else if ((*szEnd == 'l') || (*szEnd == 'L'))
+	{
+		if (szEnd[1] != '\0')
+		{
+			return Error(psToken, "Invalid floating literal suffix.");
+		}
+		pcLongDouble = CCTLongDouble::Construct(mcStack.Add(sizeof(CCTLongDouble)));
+		pcLongDouble->Init(ldValue);
+		AddToken(pcLongDouble, iSource);
+	}
+	else if (*szEnd == '\0')
+	{
+		pcDouble = CCTDouble::Construct(mcStack.Add(sizeof(CCTDouble)));
+		pcDouble->Init((double)ldValue);
+		AddToken(pcDouble, iSource);
+	}
+	else
+	{
+		return Error(psToken, "Invalid floating literal.");
 	}
 	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-//
+//																		//
+//																		//
 //////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::Tokenise(CPPTokenList* pcSource)
+bool CCPPTokeniser::Escape(const char** psz, const char* szEnd, uint32* puiValue)
 {
-	int				i;
-	bool			bResult;
-	CPPToken*		pcToken;
-	CPPLine*		pcLine;
-	CCTNewLine*		pcNewLine;
-	int				iNumTokens;
+	const char*	sz;
+	uint32		uiValue;
+	int			iDigits;
+	int			iMaxDigits;
+	char		c;
 
-	mcTokens.Kill();
-	mcTokens.Init();
-
-	bResult = true;
-	pcLine = NULL;
-	mcParser.Init();
-	iNumTokens = pcSource->NumTokens();
-	for (i = 0; i < iNumTokens; i++)
+	//*psz is the character after the backslash.  [lex.ccon] Table 7
+	sz = *psz;
+	c = *sz;
+	sz++;
+	switch (c)
 	{
-		pcToken = pcSource->Get(i);
-		if (pcToken->IsLine())
+	case 'n':	uiValue = '\n';	break;
+	case 't':	uiValue = '\t';	break;
+	case 'v':	uiValue = '\v';	break;
+	case 'b':	uiValue = '\b';	break;
+	case 'r':	uiValue = '\r';	break;
+	case 'f':	uiValue = '\f';	break;
+	case 'a':	uiValue = '\a';	break;
+	case '\\':	uiValue = '\\';	break;
+	case '?':	uiValue = '?';	break;
+	case '\'':	uiValue = '\'';	break;
+	case '"':	uiValue = '"';	break;
+	case 'x':
+	case 'u':
+	case 'U':
+		uiValue = 0;
+		iMaxDigits = (c == 'x') ? 8 : ((c == 'u') ? 4 : 8);
+		for (iDigits = 0; (sz < szEnd) && (iDigits < iMaxDigits); iDigits++)
 		{
-			pcLine = (CPPLine*)pcToken;
-			mcParser.Kill();
-			mcParser.Init(pcLine);
-			bResult = Line();
-			if (!bResult)
+			c = *sz;
+			if ((c >= '0') && (c <= '9'))
+			{
+				uiValue = uiValue * 16 + (c - '0');
+			}
+			else if ((c >= 'a') && (c <= 'f'))
+			{
+				uiValue = uiValue * 16 + (c - 'a' + 10);
+			}
+			else if ((c >= 'A') && (c <= 'F'))
+			{
+				uiValue = uiValue * 16 + (c - 'A' + 10);
+			}
+			else
 			{
 				break;
 			}
-			pcNewLine = CCTNewLine::Construct(mcStack.Add(sizeof(CCTNewLine)));
-			AddToken(pcNewLine);
+			sz++;
 		}
-	}
-
-	if (bResult)
-	{
-		mcParser.Kill();
-		return true;
-	}
-	else
-	{
-		PrintError(pcLine);
-		mcParser.Kill();
-		return false;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPTokeniser::PrintError(CPPLine* pcLine)
-{
-	CChars		sz;
-
-	sz.Init("Tokenising Broke (");
-	sz.Append(mcParser.Line() + 1);
-	sz.Append(", ");
-	sz.Append(mcParser.Column()+1);
-	sz.Append("): ");
-
-	sz.Append("\n");
-	sz.Append("Line[");
-	pcLine->Print(&sz);
-	sz.Append("]\nRemain[");
-	mcParser.AppendRemaining(&sz);
-	sz.Append("]\n");
-	sz.Dump();
-	sz.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPTokeniser::PrintTokens(void)
-{
-	size		j;
-	CCPPToken*	pcToken;
-	CChars		sz;
-	bool		bPrevNewLine;
-
-	bPrevNewLine = false;
-	sz.Init();
-	for (j = 0; j < mcTokens.NumElements(); j++)
-	{
-		pcToken = *mcTokens.Get(j);
-		if (!pcToken->IsHelper())
+		if (iDigits == 0)
 		{
-			pcToken->Append(&sz, this);
-			sz.Append(" ");
-			bPrevNewLine = false;
+			return false;
 		}
-		else
+		break;
+	default:
+		if ((c >= '0') && (c <= '7'))
 		{
-			if (!bPrevNewLine)
+			uiValue = c - '0';
+			for (iDigits = 1; (sz < szEnd) && (iDigits < 3) && (*sz >= '0') && (*sz <= '7'); iDigits++)
 			{
-				pcToken->Append(&sz, this);
+				uiValue = uiValue * 8 + (*sz - '0');
+				sz++;
 			}
-			bPrevNewLine = true;
-		}
-		if (sz.Length() > 9950)
-		{
-			sz.Dump();
-			sz.Kill();
-			sz.Init();
-		}
-	}
-	sz.Dump();
-	sz.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::Literal(void)
-{
-	bool		bReturn;
-
-	bReturn = BooleanLiteral();
-	if (bReturn)
-	{
-		return bReturn;
-	}
-
-	bReturn = SingleQuotedLiteral(false);
-	if (bReturn)
-	{
-		return bReturn;
-	}
-
-	bReturn = ShortLiteral();
-	if (bReturn)
-	{
-		return bReturn;
-	}
-
-	bReturn = StringLiteral();
-	if (bReturn)
-	{
-		return bReturn;
-	}
-
-	bReturn = IntegerLiteral();
-	if (bReturn)
-	{
-		return bReturn;
-	}
-
-	//Float and Double.  *Must* come after Integer
-	bReturn = DoubleLiteral();
-	if (bReturn)
-	{
-		return true;
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::ReservedWord(void)
-{
-	int64				lliID;
-	CCTReservedWord*	pcReservedWord;
-	char*				szWord;
-	CPPText*			pcText;
-	char				szTemp[1024];
-	int					iLen;
-	CPPToken*			pcToken;
-
-	mcParser.SkipWhitespace();
-
-	if (!mcParser.HasToken())
-	{
-		return false;
-	}
-
-	pcToken = mcParser.GetToken();
-	if (pcToken->IsText())
-	{
-		pcText = (CPPText*)pcToken;
-		if (pcText->meType != PPT_Decorator)
-		{
-			lliID = mcReservedWords.Get(pcText->mcText.msz, pcText->mcText.EndInclusive(), false);
-		}
-		else
-		{
-			mcParser.ToDecortatorString(szTemp, 1024, &iLen);
-			lliID = mcReservedWords.Get(szTemp, szTemp + (iLen - 1), false);
-		}
-
-		if (lliID != -1)
-		{
-			szWord = mcReservedWords.Get(lliID, &iLen);
-
-			//Move the parser on.
-			if (pcText->meType != PPT_Decorator)
-			{
-				//Just skip one token.
-				mcParser.NextToken();
-			}
-			else
-			{
-				//Each letter was a single decorator.  Skip them all.
-				mcParser.NextToken(iLen);
-			}
-
-			pcReservedWord = CCTReservedWord::Construct(mcStack.Add(sizeof(CCTReservedWord)));
-			pcReservedWord->Init(lliID);
-			AddToken(pcReservedWord);
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::Identifier(void)
-{
-	int64				lliID;
-	CCTIdentifier*		pcIdentifier;
-	CExternalString		cIdentifier;
-	bool				bResult;
-
-	bResult = mcParser.GetIdentifier(&cIdentifier);
-	if (bResult)
-	{
-		lliID = mcIdentifiers.Get(cIdentifier.msz, cIdentifier.EndInclusive(), true);
-		if (lliID != -1)
-		{
-			lliID = mcIdentifiers.Add(cIdentifier.msz, cIdentifier.EndInclusive());
-			pcIdentifier = CCTIdentifier::Construct(mcStack.Add(sizeof(CCTIdentifier)));
-			pcIdentifier->Init(lliID);
-			AddToken(pcIdentifier);
-			return true;
-		}
-		return false;
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::DoubleLiteral(void)
-{
-	long double		f;
-	uint64			ulliExponent;
-	long double		fTen;
-	bool			bResult;
-
-	mcParser.PushPosition();
-
-	bResult = mcParser.GetFloat(&f);
-	if (bResult)
-	{
-		bResult = mcParser.GetExactIdentifier("e", false, false);
-		if (bResult)
-		{
-			bResult = mcParser.GetInteger(&ulliExponent, false, true);
-			if (bResult)
-			{
-				fTen = 10.0;
-				f = pow(fTen, (int)ulliExponent) * f;
-				DoubleType(f);
-				mcParser.PassPosition();
-				return true;
-			}
-			else
-			{
-				mcParser.PopPosition();
-				return false;
-			}
-		}
-		else
-		{
-			DoubleType(f);
-			mcParser.PassPosition();
-			return true;
-		}
-	}
-	else
-	{
-		mcParser.PopPosition();
-		return false;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::BooleanLiteral(void)
-{
-	bool			bResult;
-	CCTBoolean* 	pcBoolean;
-
-	bResult = mcParser.GetExactIdentifier("true", true, true);
-	if (bResult)
-	{
-		pcBoolean = CCTBoolean::Construct(mcStack.Add(sizeof(CCTBoolean)));
-		pcBoolean->Init(true);
-		AddToken(pcBoolean);
-		return true;
-	}
-	else
-	{
-		bResult = mcParser.GetExactIdentifier("false", true, true);
-		if (bResult)
-		{
-			pcBoolean = CCTBoolean::Construct(mcStack.Add(sizeof(CCTBoolean)));
-			pcBoolean->Init(false);
-			AddToken(pcBoolean);
-			return true;
 		}
 		else
 		{
 			return false;
 		}
+		break;
 	}
+
+	*psz = sz;
+	*puiValue = uiValue;
+	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-//
+//																		//
+//																		//
 //////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::SingleQuotedLiteral(bool bShort)
+bool CCPPTokeniser::Character(SPreprocessedToken* psToken, int iSource)
 {
-	bool			bResult;
+	const char*		sz;
+	const char*		szEnd;
+	uint32			uiValue;
+	uint32			uiCharacter;
+	int				iCount;
+	ECTEncoding		eEncoding;
 	CCTChar*		pcChar;
-	CCTInt*			pcInt;
 	CCTShort*		pcShort;
-	CExternalString	cText;
+	CCTInt*			pcInt;
 
-	mcParser.PushPosition();
-	bResult = mcParser.GetStringSingleQuoted(&cText, !bShort);
-	if (bResult)
+	sz = psToken->szText;
+	szEnd = psToken->szText + psToken->uiLength - 1;  //The closing quote.
+	eEncoding = CTE_Narrow;
+	if ((sz[0] == 'u') && (sz[1] == '8'))
 	{
-		if ((cText.miLen >= 5) || (bShort && (cText.miLen >= 3)))
-		{
-			Error("Too many character in character literal");
-			mcParser.PopPosition();
-			return false;
-		}
-		
-		if (cText.miLen == 0)
-		{
-			Error("Empty character literal");
-			mcParser.PopPosition();
-			return false;
-		}
+		eEncoding = CTE_UTF8;
+		sz += 2;
+	}
+	else if (sz[0] == 'L')
+	{
+		eEncoding = CTE_Wide;
+		sz++;
+	}
+	else if (sz[0] == 'u')
+	{
+		eEncoding = CTE_UTF16;
+		sz++;
+	}
+	else if (sz[0] == 'U')
+	{
+		eEncoding = CTE_UTF32;
+		sz++;
+	}
+	sz++;  //The opening quote.
 
-		if (cText.miLen == 1)
+	uiValue = 0;
+	iCount = 0;
+	while (sz < szEnd)
+	{
+		if (*sz == '\\')
 		{
-			if (!bShort)
+			sz++;
+			if (!Escape(&sz, szEnd, &uiCharacter))
 			{
-				pcChar = CCTChar::Construct(mcStack.Add(sizeof(CCTChar)));
-				pcChar->Init(cText.msz[0]);
-				AddToken(pcChar);
-				mcParser.PassPosition();
-				return true;
+				return Error(psToken, "Invalid escape sequence.");
 			}
-			else
-			{
-				pcShort = CCTShort::Construct(mcStack.Add(sizeof(CCTShort)));
-				pcShort->Init(cText.msz[0]);
-				AddToken(pcShort);
-				mcParser.PassPosition();
-				return true;
-			}
-		}
-
-		if (cText.miLen == 2)
-		{
-			if (!bShort)
-			{
-				pcInt = CCTInt::Construct(mcStack.Add(sizeof(CCTInt)));
-				pcInt->Init(cText.msz[1] + (cText.msz[0]<<8));
-				AddToken(pcInt);
-				mcParser.PassPosition();
-				return true;
-			}
-			else
-			{
-				pcShort = CCTShort::Construct(mcStack.Add(sizeof(CCTShort)));
-				pcShort->Init(cText.msz[1] + (cText.msz[0]<<8));
-				AddToken(pcShort);
-				mcParser.PassPosition();
-				return true;
-			}
-		}
-
-		if (cText.miLen == 3)
-		{
-			pcInt = CCTInt::Construct(mcStack.Add(sizeof(CCTInt)));
-			pcInt->Init(cText.msz[2] + (cText.msz[1]<<8) + (cText.msz[0]<<16));
-			AddToken(pcInt);
-			mcParser.PassPosition();
-			return true;
-		}
-
-		if (cText.miLen == 4)
-		{
-			pcInt = CCTInt::Construct(mcStack.Add(sizeof(CCTInt)));
-			pcInt->Init(cText.msz[3] + (cText.msz[2]<<8) + (cText.msz[1]<<16) + (cText.msz[0]<<24));
-			AddToken(pcInt);
-			mcParser.PassPosition();
-			return true;
-		}
-
-		gcUserError.Set("Should never fall through to this statement.");
-		mcParser.PopPosition();
-		return false;
-	}
-	else
-	{
-		mcParser.PopPosition();
-		return false;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::StringLiteral(void)
-{
-	bool				bResult;
-	CCTString*			pcString;
-	CExternalString		cString;
-
-	bResult = mcParser.GetStringDoubleQuoted(&cString);
-	if (bResult)
-	{
-		pcString = CCTString::Construct(mcStack.Add(sizeof(CCTString)));
-		pcString->Init(cString.msz, cString.EndInclusive());
-		AddToken(pcString);
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::WideStringLiteral(void)
-{
-	bool				bResult;
-	CCTWideString*		pcString;
-	CExternalString		cString;
-
-	bResult = mcParser.GetStringDoubleQuoted(&cString);
-	if (bResult)
-	{
-		pcString = CCTWideString::Construct(mcStack.Add(sizeof(CCTWideString)));
-		pcString->Init(cString.msz, cString.EndInclusive());
-		AddToken(pcString);
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::DecimalInteger(void)
-{
-	bool	bResult;
-	uint64  ulli;
-
-	mcParser.PushPosition();
-
-	bResult  = mcParser.GetInteger(&ulli, true, false);
-	if (bResult)
-	{
-		IntegerType(ulli);
-
-		mcParser.PassPosition();
-		return true;
-	}
-	mcParser.PopPosition();
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::IntegerLiteral(void)
-{
-	uint64	ulliNumber;
-	int		iNumDigits;
-	bool	bReturn;
-
-	bReturn = DecimalInteger();
-	if (bReturn)
-	{
-		return true;
-	}
-	else
-	{
-		bReturn = mcParser.GetHexadecimal(&ulliNumber, &iNumDigits);
-		if (bReturn)
-		{
-			IntegerType(ulliNumber);
-			return true;
 		}
 		else
 		{
-			bReturn = mcParser.GetOctal(&ulliNumber, &iNumDigits);
-			if (bReturn)
-			{
-				IntegerType(ulliNumber);
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+			uiCharacter = (unsigned char)*sz;
+			sz++;
 		}
-	}
-}
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPTokeniser::ShortLiteral(void)
-{
-	bool			bResult;
-
-	mcParser.PushPosition();
-
-	bResult = mcParser.GetExactIdentifier("L", true, true);
-	if (bResult)
-	{
-		bResult = SingleQuotedLiteral(true);
-		if (bResult)
-		{
-			mcParser.PassPosition();
-			return true;
-		}
-		bResult = WideStringLiteral();
-		if (bResult)
-		{
-			mcParser.PassPosition();
-			return true;
-		}
-		mcParser.PopPosition();
-		return false;
-	}
-	else
-	{
-		mcParser.PopPosition();
-		return false;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPTokeniser::IntegerType(uint64 ulliValue)
-{
-	bool			bResult;
-	bool			bUnsigned;
-	bool			bLong;
-	bool			bLongLong;
-	CCTInt*			pcInt;
-	CCTLongLong*	pcLongLong;
-
-	/*
-	U
-	L
-	UL
-	LL
-	ULL
-	*/
-
-	bUnsigned = false;
-	bLongLong = false;
-	bLong = false;
-
-	bResult = mcParser.GetExactIdentifier("ULL", false, false);
-	if (bResult)
-	{
-		bLongLong = true;
-		bUnsigned = true;
+		//Multi-character literals are int with the characters packed in, as MSVC does.
+		uiValue = (iCount == 0) ? uiCharacter : ((uiValue << 8) | (uiCharacter & 0xFF));
+		iCount++;
 	}
 
-	bResult = mcParser.GetExactIdentifier("UL", false, false);
-	if (bResult)
+	if (iCount == 0)
 	{
-		bLong = true;
-		bUnsigned = true;
+		return Error(psToken, "Empty character literal.");
 	}
 
-
-	bResult = mcParser.GetExactIdentifier("LL", false, false);
-	if (bResult)
+	if (((eEncoding == CTE_Narrow) || (eEncoding == CTE_UTF8)) && (iCount == 1))
 	{
-		bLongLong = true;
+		pcChar = CCTChar::Construct(mcStack.Add(sizeof(CCTChar)));
+		pcChar->Init((char)uiValue);
+		AddToken(pcChar, iSource);
 	}
-
-
-	bResult = mcParser.GetExactIdentifier("L", false, false);
-	if (bResult)
+	else if (((eEncoding == CTE_Wide) || (eEncoding == CTE_UTF16)) && (iCount == 1))
 	{
-		bLong = true;
-	}
-
-	bResult = mcParser.GetExactIdentifier("U", false, false);
-	if (bResult)
-	{
-		bUnsigned = true;
-	}
-
-
-	if (bLongLong)
-	{
-		pcLongLong = CCTLongLong::Construct(mcStack.Add(sizeof(CCTLongLong)));
-		pcLongLong->Init(ulliValue);
-		pcLongLong->mbSigned = !bUnsigned;
-		AddToken(pcLongLong);
+		//wchar_t is 16 bits on Windows.
+		pcShort = CCTShort::Construct(mcStack.Add(sizeof(CCTShort)));
+		pcShort->Init((unsigned short)uiValue);
+		pcShort->mbSigned = false;
+		AddToken(pcShort, iSource);
 	}
 	else
 	{
 		pcInt = CCTInt::Construct(mcStack.Add(sizeof(CCTInt)));
-		pcInt->Init((unsigned int)ulliValue);
-		pcInt->mbSigned = !bUnsigned;
-		AddToken(pcInt);
+		pcInt->Init(uiValue);
+		pcInt->mbSigned = (eEncoding != CTE_UTF32);
+		AddToken(pcInt, iSource);
 	}
+	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-//
+//																		//
+//																		//
 //////////////////////////////////////////////////////////////////////////
-void CCPPTokeniser::DoubleType(long double ldValue)
+bool CCPPTokeniser::String(SPreprocessedToken* psToken, int iSource)
 {
-	bool			bResult;
-	CCTFloat*		pcFloat;
-	CCTDouble*		pcDouble;
-	CCTLongDouble*	pcLongDouble;
+	const char*		sz;
+	ECTEncoding		eEncoding;
+	CCTString*		pcString;
+	size			i;
 
-	bResult = mcParser.GetExactIdentifier("L", false, false);
-	if (bResult)
+	//The literal keeps its spelling.  Adjacent literals are joined by the parser.  [lex.string] 13
+	sz = psToken->szText;
+	eEncoding = CTE_Narrow;
+	if ((sz[0] == 'u') && (sz[1] == '8'))
 	{
-		pcLongDouble = CCTLongDouble::Construct(mcStack.Add(sizeof(CCTLongDouble)));
-		pcLongDouble->Init(ldValue);
-		AddToken(pcLongDouble);
+		eEncoding = CTE_UTF8;
 	}
-	else
+	else if (sz[0] == 'L')
 	{
-		bResult = mcParser.GetExactIdentifier("F", false, false);
-		if (bResult)
+		eEncoding = CTE_Wide;
+	}
+	else if (sz[0] == 'u')
+	{
+		eEncoding = CTE_UTF16;
+	}
+	else if (sz[0] == 'U')
+	{
+		eEncoding = CTE_UTF32;
+	}
+
+	//The prefix is everything before the opening quote; R in it makes a raw string.
+	for (i = 0; sz[i] != '"'; i++)
+	{
+		if (sz[i] == 'R')
 		{
-			pcFloat = CCTFloat::Construct(mcStack.Add(sizeof(CCTFloat)));
-			pcFloat->Init((float)ldValue);
-			AddToken(pcFloat);
-		}
-		else
-		{
-			pcDouble = CCTDouble::Construct(mcStack.Add(sizeof(CCTDouble)));
-			pcDouble->Init((double)ldValue);
-			AddToken(pcDouble);
+			return Error(psToken, "Raw string literals are not supported.");
 		}
 	}
+
+	pcString = CCTString::Construct(mcStack.Add(sizeof(CCTString)));
+	pcString->Init(psToken->szText, psToken->szText + psToken->uiLength - 1, eEncoding);
+	AddToken(pcString, iSource);
+	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-//
+//																		//
+//																		//
 //////////////////////////////////////////////////////////////////////////
-void CCPPTokeniser::AddToken(CCPPToken* pcToken)
+void CCPPTokeniser::AddToken(CCPPToken* pcToken, int iSource)
+{
+	pcToken->SetSource(iSource);
+	mcTokens.Add(&pcToken);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTokeniser::Error(SPreprocessedToken* psToken, char* szError)
+{
+	CChars	sz;
+
+	sz.Init();
+	if (psToken->pcFile)
+	{
+		sz.Append(psToken->pcFile->ShortName());
+		sz.Append(" (");
+		sz.Append(psToken->iLine + 1);
+		sz.Append(", ");
+		sz.Append(psToken->iColumn + 1);
+		sz.Append("): ");
+	}
+	sz.Append(szError);
+	sz.Append(" [");
+	psToken->Append(&sz);
+	sz.Append("]");
+	gcUserError.Set(&sz);
+	sz.Kill();
+
+	mbError = true;
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size CCPPTokeniser::NumTokens(void)
+{
+	return mcTokens.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CCPPToken* CCPPTokeniser::Get(size iIndex)
 {
 	CCPPToken**	ppcToken;
 
-	ppcToken = mcTokens.Add();
-	*ppcToken = pcToken;
+	ppcToken = mcTokens.SafeGet(iIndex);
+	if (ppcToken)
+	{
+		return *ppcToken;
+	}
+	return NULL;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-//
+//																		//
+//																		//
 //////////////////////////////////////////////////////////////////////////
-void CCPPTokeniser::Error(char* szError)
+SPreprocessedToken* CCPPTokeniser::GetSource(CCPPToken* pcToken)
 {
-	CChars::Dump(szError);
-	CChars::Dump("\n");
+	if (!mpcSource)
+	{
+		return NULL;
+	}
+	return mpcSource->Get(pcToken->GetSource());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+int64 CCPPTokeniser::GetIdentifierID(char* szName)
+{
+	int64	lliID;
+
+	lliID = mcIdentifiers.Get(szName, NULL, true);
+	if (lliID == -1)
+	{
+		lliID = mcIdentifiers.Add(szName);
+	}
+	return lliID;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+char* CCPPTokeniser::GetIdentifier(int64 lliID, int* piLength)
+{
+	return mcIdentifiers.Get(lliID, piLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+char* CCPPTokeniser::GetReservedWord(ECppTokens eToken)
+{
+	if ((eToken < 0) || (eToken >= NUM_CPP_TOKENS))
+	{
+		return NULL;
+	}
+	return (char*)gasCPPReservedWords[eToken].szSpelling;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CCPPTokeniser::Print(CChars* psz)
+{
+	size				i;
+	CCPPToken*			pcToken;
+	SPreprocessedToken*	psSource;
+
+	for (i = 0; i < mcTokens.NumElements(); i++)
+	{
+		pcToken = *mcTokens.Get(i);
+		psSource = GetSource(pcToken);
+		if (i > 0)
+		{
+			if (psSource && psSource->IsStartOfLine())
+			{
+				psz->AppendNewLine();
+			}
+			else
+			{
+				psz->Append(' ');
+			}
+		}
+		pcToken->Append(psz, this);
+	}
+	if (mcTokens.NumElements() > 0)
+	{
+		psz->AppendNewLine();
+	}
 }
 

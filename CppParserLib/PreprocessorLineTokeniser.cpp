@@ -18,12 +18,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/EscapeCodes.h"
 #include "PreprocessorLineTokeniser.h"
 #include "GeneralToken.h"
 #include "PPText.h"
 #include "PPTextWithSource.h"
-#include "PPWhitespace.h"
+#include "PPWhiteSpace.h"
 #include "PPHashes.h"
 
 
@@ -31,11 +30,11 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorLineTokensier::Preprocess(CPPTokenList* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens, bool bAllowEscapes)
+void CPreprocessorLineTokensier::Preprocess(CPPTokenList* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens)
 {
 	CPreprocessorLineTokensier	cLinePreprocessor;
 
-	cLinePreprocessor.Init(pcLinesTokens, pcParser, pcTokens, bAllowEscapes);
+	cLinePreprocessor.Init(pcLinesTokens, pcParser, pcTokens);
 	cLinePreprocessor.Preprocess();
 	cLinePreprocessor.Kill();
 }
@@ -44,13 +43,14 @@ void CPreprocessorLineTokensier::Preprocess(CPPTokenList* pcLinesTokens, CPrepro
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorLineTokensier::Init(CPPTokenList* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens, bool bAllowEscapes)
+void CPreprocessorLineTokensier::Init(CPPTokenList* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens)
 {
 	mpcParser = pcParser;
 	mpcTokenHolder = pcLinesTokens;
 	mpcTokens = pcTokens;
 	mbOnlyWhitespace = true;
-	mbAllowEscapes = bAllowEscapes;
+	miStartLine = pcParser->miLine;
+	miStartColumn = pcParser->miColumn;
 	NullAll();
 }
 
@@ -105,14 +105,19 @@ void CPreprocessorLineTokensier::Preprocess(void)
 				mpcParser->SkipNewLine();
 				mbContainsLineContinuers = true;
 			}
+			else if (!(mszSingleQuoteStart || mszDoubleQuoteStart))
+			{
+				//A backslash outside a literal is a token of its own, as in the stringified str(: @\n).
+				mpcParser->StepLeft();
+				AddRelevantToken();
+				NullAll();
+				mszDecorationStart = mpcParser->GetPos();
+				MarkStart();
+				mpcParser->StepRight();
+			}
 			else
 			{
-				//Was an escape code or something that looked like one.
-				if (!(mszSingleQuoteStart || mszDoubleQuoteStart))
-				{
-					AddRelevantToken();  //It's illegal to have it outside of a string but add the previous token anyway.
-					NullAll();
-				}
+				//An escape sequence.  The escaped character can't end the literal.
 				mpcParser->StepRight();
 			}
 		}
@@ -125,6 +130,7 @@ void CPreprocessorLineTokensier::Preprocess(void)
 					AddRelevantToken();
 					NullAll();
 					mszDoubleQuoteStart = mpcParser->GetPos();
+					MarkStart();
 					mpcParser->StepRight();
 				}
 				else
@@ -139,6 +145,11 @@ void CPreprocessorLineTokensier::Preprocess(void)
 				mpcParser->StepRight();
 			}
 		}
+		else if (((*mpcParser->GetPos()) == '\'') && IsDigitSeparator())
+		{
+			//C++14 digit separator as in 0x10'0000.
+			mpcParser->StepRight();
+		}
 		else if ((*mpcParser->GetPos()) == '\'')
 		{
 			if (!mszDoubleQuoteStart)
@@ -148,6 +159,7 @@ void CPreprocessorLineTokensier::Preprocess(void)
 					AddRelevantToken();
 					NullAll();
 					mszSingleQuoteStart = mpcParser->GetPos();
+					MarkStart();
 					mpcParser->StepRight();
 				}
 				else
@@ -172,6 +184,7 @@ void CPreprocessorLineTokensier::Preprocess(void)
 					AddRelevantToken();
 					NullAll();
 					mszWhitespaceStart = mpcParser->GetPos();
+					MarkStart();
 				}
 			}
 			mpcParser->StepRight();
@@ -192,6 +205,7 @@ void CPreprocessorLineTokensier::Preprocess(void)
 					AddRelevantToken();
 					NullAll();
 					mszHashStart = mpcParser->GetPos();
+					MarkStart();
 				}
 			}
 			mpcParser->StepRight();
@@ -200,11 +214,13 @@ void CPreprocessorLineTokensier::Preprocess(void)
 		{
 			if (!(mszSingleQuoteStart || mszDoubleQuoteStart))
 			{
-				if (!mszIdentifierStart)
+				//Letters after a digit are part of the pp-number, as in 0x7FFF or 201402L.
+				if ((!mszIdentifierStart) && (!mszNumberStart))
 				{
 					AddRelevantToken();
 					NullAll();
 					mszIdentifierStart = mpcParser->GetPos();
+					MarkStart();
 				}
 			}
 			mpcParser->StepRight();
@@ -218,8 +234,21 @@ void CPreprocessorLineTokensier::Preprocess(void)
 					AddRelevantToken();
 					NullAll();
 					mszNumberStart = mpcParser->GetPos();
+					MarkStart();
 				}
 			}
+			mpcParser->StepRight();
+		}
+		else if (IsPPNumberContinuation())
+		{
+			mpcParser->StepRight();
+		}
+		else if (IsPPNumberStart())
+		{
+			AddRelevantToken();
+			NullAll();
+			mszNumberStart = mpcParser->GetPos();
+			MarkStart();
 			mpcParser->StepRight();
 		}
 		else
@@ -229,6 +258,7 @@ void CPreprocessorLineTokensier::Preprocess(void)
 				AddRelevantToken();
 				NullAll();
 				mszDecorationStart = mpcParser->GetPos();
+				MarkStart();
 			}
 			mpcParser->StepRight();
 		}
@@ -242,6 +272,88 @@ void CPreprocessorLineTokensier::Preprocess(void)
 //////////////////////////////////////////////////////////////////////////
 //
 //
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessorLineTokensier::IsDigitSeparator(void)
+{
+	char	c;
+
+	if ((!mszNumberStart) || mszSingleQuoteStart || mszDoubleQuoteStart)
+	{
+		return false;
+	}
+
+	if (mpcParser->GetPos() >= mpcParser->GetEnd())
+	{
+		return false;
+	}
+
+	c = mpcParser->GetPos()[1];
+	return ((c >= '0') && (c <= '9')) || ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || (c == '_');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessorLineTokensier::IsPPNumberContinuation(void)
+{
+	char	c;
+	char	cPrev;
+
+	if ((!mszNumberStart) || mszSingleQuoteStart || mszDoubleQuoteStart)
+	{
+		return false;
+	}
+
+	//A pp-number continues with '.' and with a sign after an exponent, as in 1.5e+10 or 0x1p-3.
+	c = *mpcParser->GetPos();
+	if (c == '.')
+	{
+		return true;
+	}
+
+	if ((c == '+') || (c == '-'))
+	{
+		cPrev = mpcParser->GetPos()[-1];
+		return (cPrev == 'e') || (cPrev == 'E') || (cPrev == 'p') || (cPrev == 'P');
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessorLineTokensier::IsPPNumberStart(void)
+{
+	char	c;
+
+	if (mszSingleQuoteStart || mszDoubleQuoteStart || mszIdentifierStart)
+	{
+		return false;
+	}
+
+	//A pp-number can start with a '.', as in .5f.
+	if ((*mpcParser->GetPos()) != '.')
+	{
+		return false;
+	}
+
+	if (mpcParser->GetPos() >= mpcParser->GetEnd())
+	{
+		return false;
+	}
+
+	c = mpcParser->GetPos()[1];
+	return (c >= '0') && (c <= '9');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
 //////////////////////////////////////////////////////////////////////////
 bool CPreprocessorLineTokensier::PossibleComment(void)
 {
@@ -258,6 +370,7 @@ bool CPreprocessorLineTokensier::PossibleComment(void)
 				AddRelevantToken();
 				NullAll();
 				mszWhitespaceStart = mpcParser->GetPos();
+				MarkStart();
 				mpcParser->StepRight(2);
 
 				mpcParser->SkipCPPStyleComment();
@@ -270,6 +383,7 @@ bool CPreprocessorLineTokensier::PossibleComment(void)
 				AddRelevantToken();
 				NullAll();
 				mszWhitespaceStart = mpcParser->GetPos();
+				MarkStart();
 				mpcParser->StepRight(2);
 				mpcParser->SkipCStyleComment();
 				return false;
@@ -280,6 +394,7 @@ bool CPreprocessorLineTokensier::PossibleComment(void)
 				AddRelevantToken();
 				NullAll();
 				mszDecorationStart = mpcParser->GetPos();
+				MarkStart();
 				mpcParser->StepRight();
 				return false;
 			}
@@ -307,6 +422,7 @@ bool CPreprocessorLineTokensier::PossibleComment(void)
 				AddRelevantToken();
 				NullAll();
 				mszDecorationStart = mpcParser->GetPos();
+				MarkStart();
 				mpcParser->StepRight();
 				return false;
 			}
@@ -328,7 +444,6 @@ void CPreprocessorLineTokensier::AddRelevantToken(void)
 {
 	CPPWhitespace*	pcWhitespace;
 	CPPHashes*		pcHashes;
-	CPPText*		pcText;
 
 	if ((mszDecorationStart) && (mszDecorationStart <= mpcParser->GetEnd()))
 	{
@@ -337,7 +452,7 @@ void CPreprocessorLineTokensier::AddRelevantToken(void)
 	}
 	else if ((mszIdentifierStart) && (mszIdentifierStart <= mpcParser->GetEnd()))
 	{
-		pcText = AddText(PPT_Identifier, mszIdentifierStart, mpcParser->GetPos());
+		AddText(PPT_Identifier, mszIdentifierStart, mpcParser->GetPos());
 	}
 	else if ((mszNumberStart) && (mszNumberStart <= mpcParser->GetEnd()))
 	{
@@ -348,7 +463,7 @@ void CPreprocessorLineTokensier::AddRelevantToken(void)
 		if (!mbOnlyWhitespace)
 		{
 			pcWhitespace = mpcTokens->AddWhitespace();
-			pcWhitespace->Init(mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName);
+			pcWhitespace->Init(miStartLine, miStartColumn, mpcParser->mszFileName);
 
 			mpcTokenHolder->Add(pcWhitespace);
 		}
@@ -356,7 +471,7 @@ void CPreprocessorLineTokensier::AddRelevantToken(void)
 	else if ((mszHashStart) && (mszHashStart <= mpcParser->GetEnd()))
 	{
 		pcHashes = mpcTokens->AddHashes();
-		pcHashes->Init((int)(mpcParser->GetPos() - mszHashStart), mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName);
+		pcHashes->Init((int)(mpcParser->GetPos() - mszHashStart), miStartLine, miStartColumn, mpcParser->mszFileName);
 
 		mpcTokenHolder->Add(pcHashes);
 		mbOnlyWhitespace = false;
@@ -378,7 +493,7 @@ CPPText* CPreprocessorLineTokensier::AddText(EPreprocessorText eType, char* szSt
 	if (!mbContainsLineContinuers)
 	{
 		pcText = mpcTokens->AddText();
-		pcText->Init(eType, mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName, szStart, szEndExclusive);
+		pcText->Init(eType, miStartLine, miStartColumn, mpcParser->mszFileName, szStart, szEndExclusive);
 
 		mpcTokenHolder->Add(pcText);
 		return pcText;
@@ -389,7 +504,7 @@ CPPText* CPreprocessorLineTokensier::AddText(EPreprocessorText eType, char* szSt
 		ReplaceLineContinuers(&sz, szStart, szEndExclusive);
 
 		pcTextWithSource = mpcTokens->AddTextWithSource();
-		pcTextWithSource->Init(eType, mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName, sz.Text(), sz.Length());
+		pcTextWithSource->Init(eType, miStartLine, miStartColumn, mpcParser->mszFileName, sz.Text(), (int)sz.Length());
 
 		mpcTokenHolder->Add(pcTextWithSource);
 		sz.Kill();
@@ -408,21 +523,22 @@ void CPreprocessorLineTokensier::AddDoubleQuotedToken(void)
 	CPPTextWithSource*	pcTextWithSource;
 	CChars				sz;
 
+	//String literals keep their spelling.  Escape sequences are the compiler's business.
 	if (mszDoubleQuoteStart)
 	{
-		if (!mbAllowEscapes)
+		if (!mbContainsLineContinuers)
 		{
 			pcText = mpcTokens->AddText();
-			pcText->Init(PPT_DoubleQuoted, mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName, mszDoubleQuoteStart, mpcParser->GetPos());
+			pcText->Init(PPT_DoubleQuoted, miStartLine, miStartColumn, mpcParser->mszFileName, mszDoubleQuoteStart, mpcParser->GetPos());
 
 			mpcTokenHolder->Add(pcText);
 		}
 		else
 		{
 			sz.Init();
-			ReplaceEscapeCodes(&sz, mszDoubleQuoteStart+1, mpcParser->GetPos()-1, '"');
+			ReplaceLineContinuers(&sz, mszDoubleQuoteStart, mpcParser->GetPos());
 			pcTextWithSource = mpcTokens->AddTextWithSource();
-			pcTextWithSource->Init(PPT_DoubleQuoted, mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName, sz.Text(), sz.Length());
+			pcTextWithSource->Init(PPT_DoubleQuoted, miStartLine, miStartColumn, mpcParser->mszFileName, sz.Text(), (int)sz.Length());
 
 			mpcTokenHolder->Add(pcTextWithSource);
 			sz.Kill();
@@ -444,19 +560,19 @@ void CPreprocessorLineTokensier::AddSingleQuotedToken(void)
 
 	if (mszSingleQuoteStart)
 	{
-		if (!mbAllowEscapes)
+		if (!mbContainsLineContinuers)
 		{
 			pcText = mpcTokens->AddText();
-			pcText->Init(PPT_SingleQuoted, mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName, mszSingleQuoteStart, mpcParser->GetPos());
+			pcText->Init(PPT_SingleQuoted, miStartLine, miStartColumn, mpcParser->mszFileName, mszSingleQuoteStart, mpcParser->GetPos());
 
 			mpcTokenHolder->Add(pcText);
 		}
 		else
 		{
 			sz.Init();
-			ReplaceEscapeCodes(&sz, mszSingleQuoteStart+1, mpcParser->GetPos()-1, '\'');
+			ReplaceLineContinuers(&sz, mszSingleQuoteStart, mpcParser->GetPos());
 			pcTextWithSource = mpcTokens->AddTextWithSource();
-			pcTextWithSource->Init(PPT_SingleQuoted, mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName, sz.Text(), sz.Length());
+			pcTextWithSource->Init(PPT_SingleQuoted, miStartLine, miStartColumn, mpcParser->mszFileName, sz.Text(), (int)sz.Length());
 
 			mpcTokenHolder->Add(pcTextWithSource);
 			sz.Kill();
@@ -470,6 +586,16 @@ void CPreprocessorLineTokensier::AddSingleQuotedToken(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void CPreprocessorLineTokensier::MarkStart(void)
+{
+	//Tokens are positioned by where they start.
+	miStartLine = mpcParser->miLine;
+	miStartColumn = mpcParser->miColumn;
+}
+
+
+//																		//
+//																		//
 void CPreprocessorLineTokensier::NullAll(void)
 {
 	mszWhitespaceStart = NULL;
@@ -487,102 +613,25 @@ void CPreprocessorLineTokensier::NullAll(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorLineTokensier::ReplaceEscapeCodes(CChars* psz, char* szStart, char* szEnd, char cQuotes)
-{
-	char*	pc;
-	char	cReturn;
-	bool	bEscape;
-
-	psz->Append(cQuotes);
-	bEscape = false;
-	for (pc = szStart; pc < szEnd; pc++)
-	{
-		if ((*pc == '\\') && (!bEscape))
-		{
-			bEscape = true;
-		}
-		else
-		{
-			if (!bEscape)
-			{
-				psz->Append(*pc);
-			}
-			else
-			{
-				cReturn = GetEscapeCode(*pc);
-				if (cReturn != '@')
-				{
-					psz->Append(cReturn);
-				}
-				else
-				{
-					psz->Append("Bad escape code [\\");
-					psz->Append(*pc);
-					psz->Append("]");
-				}
-			}
-		}
-	}
-	psz->Append(cQuotes);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void CPreprocessorLineTokensier::ReplaceLineContinuers(CChars* psz, char* szStart, char* szEnd)
 {
 	char*	pc;
-	bool	bEscape;
-	char	cLast;
-	bool	bSkipped;
 
-	bEscape = false;
-	bSkipped = false;
-	cLast = '\0';
 	for (pc = szStart; pc < szEnd; pc++)
 	{
-		if (*pc == '\\')
+		if ((*pc == '\\') && (pc + 1 < szEnd) && ((pc[1] == '\n') || (pc[1] == '\r')))
 		{
-			bEscape = true;
-			bSkipped = false;
+			//A line splice: the backslash and the new line are removed.  [lex.phases] 2
+			pc++;
+			if ((pc + 1 < szEnd) && ((pc[1] == '\n') || (pc[1] == '\r')) && (pc[1] != pc[0]))
+			{
+				pc++;
+			}
 		}
 		else
 		{
-			if (bEscape)
-			{
-				if ((*pc == '\n') || (*pc == '\r'))
-				{
-					if (*pc == cLast)
-					{
-						bEscape = false;
-						bSkipped = false;
-						psz->Append(*pc);
-					}
-					else
-					{
-						bSkipped = true;
-					}
-				}
-				else
-				{
-					bEscape = false;
-					if (!bSkipped)
-					{
-						psz->Append('\\');
-					}
-					psz->Append(*pc);
-					bSkipped = false;
-				}
-			}
-			else
-			{
-				psz->Append(*pc);
-			}
+			psz->Append(*pc);
 		}
-
-		cLast = *pc;
 	}
 }
 

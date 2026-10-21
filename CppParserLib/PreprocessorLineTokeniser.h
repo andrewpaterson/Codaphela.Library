@@ -44,22 +44,26 @@ protected:
 	CPreprocessorParser*	mpcParser;
 	CPPTokenMemory*			mpcTokens;
 	bool					mbContainsLineContinuers;
-	bool					mbAllowEscapes;
+	int						miStartLine;
+	int						miStartColumn;
 
 public:
-	static void		Preprocess(CPPTokenList* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens, bool bAllowEscapes);
+	static void		Preprocess(CPPTokenList* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens);
 
 public:
-	void		Init(CPPTokenList* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens, bool bAllowEscapes);
+	void		Init(CPPTokenList* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens);
 	void		Kill(void);
 	void		Preprocess(void);
 	bool		PossibleComment(void);
+	bool		IsDigitSeparator(void);
+	bool		IsPPNumberContinuation(void);
+	bool		IsPPNumberStart(void);
 	void		AddRelevantToken(void);
 	CPPText* 	AddText(EPreprocessorText eType, char* szStart, char* szEndExclusive);
 	void		AddDoubleQuotedToken(void);
 	void		AddSingleQuotedToken(void);
 	void		NullAll(void);
-	void		ReplaceEscapeCodes(CChars* psz, char* szStart, char* szEnd, char cQuotes);
+	void		MarkStart(void);
 	void		ReplaceLineContinuers(CChars* psz, char* szStart, char* szEnd);
 };
 

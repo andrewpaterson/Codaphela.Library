@@ -23,7 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/MemoryStackExtended.h"
 #include "PPBlock.h"
 #include "PPReplacement.h"
-#include "PPWhitespace.h"
+#include "PPWhiteSpace.h"
 #include "PPHashes.h"
 #include "PPText.h"
 #include "PPTextWithSource.h"

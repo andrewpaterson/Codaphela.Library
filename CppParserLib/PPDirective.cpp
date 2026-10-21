@@ -106,6 +106,14 @@ char* CPPDirective::Print(CChars* psz)
 	case PPD_pragma:
 		psz->Append("pragma");
 		break;
+	case PPD_include_next:
+		psz->Append("include_next");
+		break;
+	case PPD_warning:
+		psz->Append("warning");
+		break;
+	default:
+		break;
 	}
 
 	if (mcTokens.NumTokens() > 0)

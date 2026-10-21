@@ -38,6 +38,9 @@ enum EPreprocessorDirective
 	PPD_undef,
 	PPD_error,
 	PPD_pragma,
+	PPD_include_next,
+	PPD_warning,
+	PPD_null,
 	PPD_unknown,
 	PPD_nomore,
 };

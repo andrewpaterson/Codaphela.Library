@@ -21,20 +21,35 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __PREPROCESSOR_PARSER_H__
 #define __PREPROCESSOR_PARSER_H__
 #include "BaseLib/Define.h"
+#include "BaseLib/ArrayTemplate.h"
+
+
+//A comment, as byte offsets into the text.
+struct SPPComment
+{
+	int32	iStart;
+	int32	iLength;
+};
+
+
+typedef CArrayTemplate<SPPComment>	CArrayPPComments;
 
 
 class CPreprocessorParser
 {
 public:
-	char*	mszStartOfText;
-	char*	mszParserPos;
-	char*	mszEndOfText;
-	bool	mbEndOfFile;
-	int		miLine;
-	int		miColumn;
-	char*	mszFileName;
+	char*				mszStartOfText;
+	char*				mszParserPos;
+	char*				mszEndOfText;
+	bool				mbEndOfFile;
+	int					miLine;
+	int					miColumn;
+	char*				mszFileName;
+	CArrayPPComments*	mpacComments;
 
 	void	Init(char* szStart, char* szEnd, char* szFileName);
+	void	SetComments(CArrayPPComments* pacComments);
+	void	AddComment(char* szStart);
 
 	void	StepRight(void);
 	void	StepRight(int iDist);

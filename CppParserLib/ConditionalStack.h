@@ -54,6 +54,8 @@ public:
 	void Kill(void);
 
 	bool IsParsing(void);
+	bool IsElseIfEvaluated(void);
+	bool IsParentParsing(void);
 	void CalculateIsParsing(void);
 	void PushIfNotDefined(bool bEvaluated);  //bEvaluated is the the value that the macro conditional evaluated too.
 	void PushIfDefined(bool bEvaluated);

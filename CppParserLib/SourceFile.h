@@ -21,8 +21,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __SOURCE_FILE_H__
 #define __SOURCE_FILE_H__
 #include "BaseLib/Chars.h"
+#include "BaseLib/ArrayInt.h"
 #include "PPBlockSetArray.h"
 #include "PPTokenMemory.h"
+#include "PreprocessorParser.h"
 
 
 class CLibrary;
@@ -35,6 +37,8 @@ protected:
 	CPPTokenMemory		mcTokenMemory;
 	CPPBlockSetArray	macBlockSets;
 	bool				mbBlockSetsKilled;
+	CArrayPPComments	macComments;		//Filled when the file is tokenised.
+	CArrayInt			maiLineStarts;		//Offset of the start of each line, made when first needed.
 
 public:
 			void				Init(char* pszFullName);
@@ -57,7 +61,14 @@ public:
 			size_t				GetTokenMemoryUsed(void);
 			CPPBlockSetArray*	GetBlockSets(void);
 			CPPTokenMemory*		GetTokenMemory(void);
+			CArrayPPComments*	GetComments(void);
+			size				NumLines(void);
+			bool				GetLineAndColumn(size iOffset, int* piLine, int* piColumn);
+			size				GetOffset(int iLine, int iColumn);
 			void				DumpBlockSets(void);
+
+protected:
+			void				CalculateLineStarts(void);
 };
 
 

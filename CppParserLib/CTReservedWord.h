@@ -33,7 +33,8 @@ public:
 	void Init(int64 iReservedWord);
 	void Kill(void);
 	bool IsReservedWord(void);
-	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
+	bool Is(ECppTokens eToken);
+	ECppTokens GetToken(void);
 };
 
 

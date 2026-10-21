@@ -217,7 +217,7 @@ CPPToken* CPPTokenMemory::StartIteration(SPPTokenIterator* psIter)
 	CMemoryStack*	pcStack;
 	int				iNumElements;
 
-	iNumStacks = mcStack.NumStacks();
+	iNumStacks = (int)mcStack.NumStacks();
 	psIter->iStack = 0;
 	psIter->iElement = 0;
 
@@ -225,7 +225,7 @@ CPPToken* CPPTokenMemory::StartIteration(SPPTokenIterator* psIter)
 	{
 		pcStack = mcStack.GetStack(psIter->iStack);
 		psIter->pvStackData = pcStack->GetData();
-		iNumElements = pcStack->NumElements();
+		iNumElements = (int)pcStack->NumElements();
 		if (psIter->iElement < iNumElements)
 		{
 			pcPPToken = (CPPToken*)psIter->pvStackData;
@@ -253,7 +253,7 @@ CPPToken* CPPTokenMemory::Iterate(SPPTokenIterator* psIter)
 	for (;;)
 	{
 		pcStack = mcStack.GetStack(psIter->iStack);
-		iNumElements = pcStack->NumElements();
+		iNumElements = (int)pcStack->NumElements();
 		for (; psIter->iElement < iNumElements; )
 		{
 			pcPPToken = (CPPToken*)psIter->pvStackData;

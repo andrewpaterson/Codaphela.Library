@@ -305,7 +305,7 @@ bool CPreprocessorTokenParser::GetExactDecorator(char* sz, bool bSkipWhitespace)
 	}
 
 	iDone = 0;
-	iExpectedLength = strlen(sz);
+	iExpectedLength = (int)strlen(sz);
 	while (iDone < iExpectedLength)
 	{
 		if (mpsCurrent->pcCurrentToken->IsText())
@@ -350,8 +350,8 @@ bool CPreprocessorTokenParser::GetExactDecorator(char* sz, bool bSkipWhitespace)
 bool CPreprocessorTokenParser::GetExactIdentifier(char* szIdentifier, bool bCaseSensitive, bool bSkipWhitespace)
 {
 	CPPText*	pcText;
-	int			i;
-	int			iLength;
+	size		i;
+	size		iLength;
 	char		c1;
 	char		c2;
 	char		c;
@@ -375,7 +375,7 @@ bool CPreprocessorTokenParser::GetExactIdentifier(char* szIdentifier, bool bCase
 
 	if (mpsCurrent->pcCurrentToken->IsText())
 	{
-		iLength = (int)strlen(szIdentifier);
+		iLength = strlen(szIdentifier);
 		pcText = (CPPText*)mpsCurrent->pcCurrentToken;
 		if (pcText->meType == PPT_Identifier)
 		{
@@ -728,6 +728,10 @@ bool CPreprocessorTokenParser::GetInteger(uint64* pulli, bool bSkipWhitespace, b
 			bResult = GetExactDecorator('.', false);
 			if (!bResult)
 			{
+				if (iSign == -1)
+				{
+					ulli = (uint64)(-(int64)ulli);
+				}
 				*pulli = ulli;
 				PassPosition();
 				return true;
@@ -778,7 +782,7 @@ bool CPreprocessorTokenParser::GetDigits(uint64* pulli, int* piNumDecimals)
 			}
 
 			*pulli = ulli;
-			*piNumDecimals = pcText->mcText.miLen;
+			*piNumDecimals = (int)pcText->mcText.miLen;
 			NextToken();
 			return true;
 		}

@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 int SASCIINameIndex::Size(const char* szText, const char* szLastCharInclusive)
 {
-	return StrLen(szText, szLastCharInclusive) + 1 + sizeof(int64);
+	return (int)(StrLen(szText, szLastCharInclusive) + 1 + sizeof(int64));
 }
 
 

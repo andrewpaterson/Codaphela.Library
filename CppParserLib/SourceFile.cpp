@@ -38,6 +38,8 @@ void CSourceFile::Init(char* szName)
 	mcTokenMemory.Init();
 	macBlockSets.Init();
 	mbBlockSetsKilled = false;
+	macComments.Init();
+	maiLineStarts.Init();
 }
 
 
@@ -62,6 +64,8 @@ void CSourceFile::Kill(void)
 	{
 		macBlockSets.Kill();
 	}
+	maiLineStarts.Kill();
+	macComments.Kill();
 	mcTokenMemory.Kill();
 	mszFullName.Kill();
 	mszContents.Kill();
@@ -120,6 +124,8 @@ void CSourceFile::SetContents(const char* sz)
 {
 	mszContents.Set(sz);
 	mbLoaded = true;
+	maiLineStarts.Kill();
+	maiLineStarts.Init();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -131,7 +137,7 @@ char* CSourceFile::ShortName(void)
 	size		iIndex;
 
 	iIndex = mszFullName.FindFromEnd(FILE_SEPARATOR);
-	if (iIndex == -1)
+	if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		return mszFullName.Text();
 	}
@@ -222,5 +228,123 @@ CPPTokenMemory* CSourceFile::GetTokenMemory(void)
 CPPBlockSetArray* CSourceFile::GetBlockSets(void)
 {
 	return &macBlockSets;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CArrayPPComments* CSourceFile::GetComments(void)
+{
+	return &macComments;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CSourceFile::CalculateLineStarts(void)
+{
+	char*	sz;
+	size	i;
+	size	iLength;
+	char	c;
+
+	//Line breaks are counted as the preprocessor parser counts them: \n, \r, \r\n and \n\r.
+	maiLineStarts.Kill();
+	maiLineStarts.Init();
+	maiLineStarts.Add(0);
+
+	sz = mszContents.Text();
+	iLength = mszContents.Length();
+	for (i = 0; i < iLength; i++)
+	{
+		c = sz[i];
+		if ((c == '\n') || (c == '\r'))
+		{
+			if ((i + 1 < iLength) && ((sz[i + 1] == '\n') || (sz[i + 1] == '\r')) && (sz[i + 1] != c))
+			{
+				i++;
+			}
+			maiLineStarts.Add((int)(i + 1));
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size CSourceFile::NumLines(void)
+{
+	if (maiLineStarts.NumElements() == 0)
+	{
+		CalculateLineStarts();
+	}
+	return maiLineStarts.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSourceFile::GetLineAndColumn(size iOffset, int* piLine, int* piColumn)
+{
+	size	iLow;
+	size	iHigh;
+	size	iMiddle;
+
+	if (maiLineStarts.NumElements() == 0)
+	{
+		CalculateLineStarts();
+	}
+
+	if (iOffset > mszContents.Length())
+	{
+		return false;
+	}
+
+	//The last line that starts at or before iOffset.
+	iLow = 0;
+	iHigh = maiLineStarts.NumElements();
+	while (iHigh - iLow > 1)
+	{
+		iMiddle = (iLow + iHigh) / 2;
+		if ((size)maiLineStarts.GetValue(iMiddle) <= iOffset)
+		{
+			iLow = iMiddle;
+		}
+		else
+		{
+			iHigh = iMiddle;
+		}
+	}
+
+	*piLine = (int)iLow;
+	*piColumn = (int)(iOffset - maiLineStarts.GetValue(iLow));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size CSourceFile::GetOffset(int iLine, int iColumn)
+{
+	if (maiLineStarts.NumElements() == 0)
+	{
+		CalculateLineStarts();
+	}
+
+	if ((iLine < 0) || ((size)iLine >= maiLineStarts.NumElements()))
+	{
+		return ARRAY_ELEMENT_NOT_FOUND;
+	}
+	return maiLineStarts.GetValue(iLine) + iColumn;
 }
 

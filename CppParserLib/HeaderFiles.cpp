@@ -45,7 +45,8 @@ bool CHeaderFiles::Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, bool b
 	}
 
 	mszBaseDirectory.Init(szBaseDirectory);
-	mcFileNames.Init(true, false);
+	//Include names are not case sensitive on Windows.
+	mcFileNames.Init(false, false);
 	mpcFileMap = pcFileMap;
 	mbSystem = bSystem;
 
@@ -175,6 +176,16 @@ CHeaderFile* CHeaderFiles::GetFile(char* szRelativeFileName)
 size CHeaderFiles::GetBaseDirectoryLength(void)
 {
 	return mszBaseDirectory.Length();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CHeaderFiles::GetBaseDirectory(void)
+{
+	return mszBaseDirectory.Text();
 }
 
 

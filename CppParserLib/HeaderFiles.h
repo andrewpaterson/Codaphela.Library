@@ -46,6 +46,7 @@ public:
 
 	CHeaderFile*	GetFile(char* szRelativeFileName);
 	
+	char*			GetBaseDirectory(void);
 	size			GetBaseDirectoryLength(void);
 
 	void			Dump(void);

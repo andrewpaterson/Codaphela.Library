@@ -43,6 +43,7 @@ void CPPToken::Init(int iLine, int iColumn, char* szFileName)
 {
 	Set(iLine, iColumn);
 	miUsage = 0;
+	mszFileName = szFileName;
 
 #ifdef DEBUG
 	miTokenNum = giTokenNum;
@@ -53,8 +54,6 @@ void CPPToken::Init(int iLine, int iColumn, char* szFileName)
 	}
 
 	giTokenNum++;
-
-	mszFileName = szFileName;
 #endif // DEBUG
 }
 
@@ -108,11 +107,11 @@ void CPPToken::Set(int iLine, int iColumn)
 //////////////////////////////////////////////////////////////////////////
 char* CPPToken::ShortFileName(void)
 {
-#ifdef DEBUG
-	return mszFileName;
-#else
+	if (mszFileName)
+	{
+		return mszFileName;
+	}
 	return gszEmptyString;
-#endif // DEBUG
 }
 
 

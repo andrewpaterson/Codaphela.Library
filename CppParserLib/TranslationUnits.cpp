@@ -58,7 +58,7 @@ void CTranslationUnits::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTranslationUnits::AddAllFiles(CChars* pszBaseDir, bool bLogInlucdes, bool bLogBlocks)
+void CTranslationUnits::AddAllFiles(CChars* pszBaseDir, bool bLogInlucdes)
 {
 	CChars			szTemp;
 	CArrayChars		aszTemp;
@@ -92,7 +92,7 @@ void CTranslationUnits::AddAllFiles(CChars* pszBaseDir, bool bLogInlucdes, bool 
 		for (j = 0; j < aszFileNames.NumElements(); j++)
 		{
 			szFile = aszFileNames.Get(j);
-			AddFile(szFile->Text(iBaseDirLen+1), bLogInlucdes, bLogBlocks);
+			AddFile(szFile->Text(iBaseDirLen+1), bLogInlucdes);
 		}
 
 		aszFileNames.Kill();
@@ -107,7 +107,7 @@ void CTranslationUnits::AddAllFiles(CChars* pszBaseDir, bool bLogInlucdes, bool 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTranslationUnit* CTranslationUnits::AddFile(char* szRelativeFileName, bool bLogIncludes, bool bLogBlocks)
+CTranslationUnit* CTranslationUnits::AddFile(char* szRelativeFileName, bool bLogIncludes)
 {
 	CChars				szTemp;
 	CTranslationUnit*	pcTranslationUnit;
@@ -118,7 +118,7 @@ CTranslationUnit* CTranslationUnits::AddFile(char* szRelativeFileName, bool bLog
 	szTemp.Init(mpcLibrary->GetBaseDir());
 	szTemp.Append(FILE_SEPARATOR);
 	szTemp.Append(szRelativeFileName);
-	pcTranslationUnit->Init(szTemp.Text(), mpcLibrary, bLogIncludes, bLogBlocks);
+	pcTranslationUnit->Init(szTemp.Text(), mpcLibrary, bLogIncludes);
 	szTemp.Kill();
 
 	return pcTranslationUnit;

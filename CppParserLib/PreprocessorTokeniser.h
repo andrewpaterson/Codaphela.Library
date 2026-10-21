@@ -37,9 +37,11 @@ protected:
 	CPreprocessorParser		mcParser;
 	CPPConditional*			mpcPrev;
 	char*					mszFileName;
+	CArrayPPComments*		mpacComments;
 
 public:
 	void 					Init(char* szFileName);
+	void					SetComments(CArrayPPComments* pacComments);
 	void 					Kill(void);
 
 	bool					TokeniseIntoBlockSets(CPPBlockSetArray* pacBlockSets, CPPTokenMemory* pcTokenMemory, char* szPos, int iLength);
@@ -60,6 +62,7 @@ public:
 	CPPDirective*			TokeniseHashElif(CPPTokenMemory* pcTokens, int iBlock, int iIndex);
 	CPPDirective*			TokeniseHashError(CPPTokenMemory* pcTokens);
 	CPPDirective*			TokeniseHashPragma(CPPTokenMemory* pcTokens);
+	CPPDirective*			TokeniseHashOther(CPPTokenMemory* pcTokens, EPreprocessorDirective eDirective);
 
 	CPPToken*				AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokens);
 	void					NextConditional(CPPConditional* pcCurrent);

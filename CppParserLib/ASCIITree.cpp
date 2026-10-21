@@ -72,13 +72,13 @@ int64 CASCIITree::Add(const char* szText, const char* szLastCharInclusive)
 		else
 		{
 			gcLogger.Error2(__METHOD__, " Cannot add key [", StringToString(szText, szLastCharInclusive), "] with ID [", LongToString(mlliID), "].", NULL);
-			return false;
+			return -1;
 		}
 	}
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Cannot add key [", StringToString(szText, szLastCharInclusive), "] with ID [", LongToString(mlliID), "].  Key already exists.", NULL);
-		return false;
+		return -1;
 	}
 }
 
@@ -116,7 +116,7 @@ bool CASCIITree::Remove(const char* szText, const char* szLastCharInclusive)
 //////////////////////////////////////////////////////////////////////////
 int CASCIITree::NumElements(void)
 {
-	return mcIndex.NumElements();
+	return (int)mcIndex.NumElements();
 }
 
 

@@ -23,22 +23,28 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Define.h"
 #include "BaseLib/Chars.h"
 #include "GeneralToken.h"
+#include "CppTokens.h"
 
 
 class CCPPTokeniser;
 class CCPPToken
 {
+protected:
+	int32	miSource;		//Index of the preprocessed token this was made from.
+
 public:
-	virtual void Init(void) =0;
-	virtual void Kill(void) =0;
-	virtual bool IsReservedWord(void);
-	virtual bool IsIdentifier(void);
-	virtual bool IsNumber(void);
-	virtual bool IsString(void);
-	virtual bool IsChar(void);
-	virtual bool IsBool(void);
-	virtual bool IsHelper(void);
-	virtual void Append(CChars* psz, CCPPTokeniser* pcTokeniser) =0;
+	virtual void	Init(void) =0;
+	virtual void	Kill(void) =0;
+	virtual bool	IsReservedWord(void);
+	virtual bool	IsIdentifier(void);
+	virtual bool	IsNumber(void);
+	virtual bool	IsString(void);
+	virtual bool	IsChar(void);
+	virtual bool	IsBool(void);
+	virtual bool	Is(ECppTokens eToken);
+	virtual void	Append(CChars* psz, CCPPTokeniser* pcTokeniser);
+			void	SetSource(int iSource);
+			int		GetSource(void);
 };
 
 

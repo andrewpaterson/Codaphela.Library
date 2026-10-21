@@ -35,10 +35,10 @@ protected:
 	int32		miLine;
 	int16		miColumn;
 	int16		miUsage;
+	char*		mszFileName;	//Points to the name owned by the CSourceFile; tokens never own it.
 
 #ifdef DEBUG
 	int64		miTokenNum;
-	char*		mszFileName;
 #endif // DEBUG
 
 public:
@@ -46,7 +46,7 @@ public:
 	virtual void			Kill(void) =0;
 
 	virtual const char*		ClassName(void) =0;
-	virtual unsigned int	ClassSize(void) =0;
+	virtual size			ClassSize(void) =0;
 			char*			ShortFileName(void);
 
 	virtual bool			IsDirective(void);
