@@ -21,16 +21,17 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "SupportLib/ImageDraw.h"
+#include "SupportLib/ImageColourConverter.h"
 #include "ScrollBarImages.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // iThickness is across the thumb.  sColour's alpha is the thumb's
-// opacity.
+// opacity.  pcFormat may be NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-void CScrollBarImages::Init(int32 iThickness, ARGB32 sColour)
+void CScrollBarImages::Init(int32 iThickness, ARGB32 sColour, CColourFormatHelper* pcFormat)
 {
 	int		iOrientation;
 
@@ -39,6 +40,7 @@ void CScrollBarImages::Init(int32 iThickness, ARGB32 sColour)
 	maCels.Init();
 	miThickness = iThickness;
 	msColour = sColour;
+	meOrder = pcFormat ? pcFormat->meOrder : CCO_RGB;
 
 	for (iOrientation = 0; iOrientation < NUM_SCROLL_BAR_ORIENTATIONS; iOrientation++)
 	{
@@ -60,6 +62,7 @@ void CScrollBarImages::Class(void)
 	M_Embedded(maCels);
 	U_Int32(miThickness);
 	U_UInt32(msColour);
+	U_Enum(meOrder);
 }
 
 
@@ -154,7 +157,7 @@ Ptr<CImageCel> CScrollBarImages::CreateCap(EScrollBarOrientation eOrientation, E
 	}
 	cDraw.Kill();
 
-	return OMalloc<CImageCel>(pImage);
+	return CreateCel(pImage);
 }
 
 
@@ -183,6 +186,21 @@ Ptr<CImageCel> CScrollBarImages::CreateMiddle(EScrollBarOrientation eOrientation
 	cDraw.DrawBox(0, 0, pImage->GetWidth() - 1, pImage->GetHeight() - 1, true);
 	cDraw.Kill();
 
+	return CreateCel(pImage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pieces are drawn in RGB order and converted to the format's order.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CScrollBarImages::CreateCel(Ptr<CImage> pImage)
+{
+	if (meOrder != CCO_RGB)
+	{
+		pImage = CImageColourConverter::ConvertColour(pImage, meOrder);
+	}
 	return OMalloc<CImageCel>(pImage);
 }
 
