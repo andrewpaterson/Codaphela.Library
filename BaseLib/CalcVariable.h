@@ -39,6 +39,7 @@ public:
 	void		Kill(void);
 	void		Set(const char* szName, CCalculatorVariables* pcVariableDefinitions);
 	CNumber		Evaluate(void);
+	bool		IsVariable(void);
 	void		Print(CChars* psz);
 	char*		Get(void);
 };

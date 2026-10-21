@@ -7,7 +7,16 @@
 //////////////////////////////////////////////////////////////////////////
 bool CIndexLongString::Get(int64 lli, char** pszData, size* piLength)
 {
-	return CIndexPrimitiveBlock<int64>::Get(lli, (void**)pszData, piLength);
+	bool	bResult;
+	size	iLength;
+
+	//The strings are stored with their terminator; the length doesn't count it.
+	bResult = CIndexPrimitiveBlock<int64>::Get(lli, (void**)pszData, &iLength);
+	if (bResult && piLength)
+	{
+		*piLength = (iLength > 0) ? iLength - 1 : 0;
+	}
+	return bResult;
 }
 
 
@@ -26,6 +35,16 @@ char* CIndexLongString::Get(int64 lli)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexLongString::Put(int64 lli, const char* szData, const char* szLastCharInclusive)
 {
-	return CIndexPrimitiveBlock<int64>::Put(lli, (void*)szData, StrLen(szLastCharInclusive));
+	size	iLength;
+	char*	sz;
+	bool	bResult;
+
+	iLength = StrLen(szData, szLastCharInclusive);
+	sz = (char*)malloc(iLength + 1);
+	memcpy(sz, szData, iLength);
+	sz[iLength] = '\0';
+	bResult = CIndexPrimitiveBlock<int64>::Put(lli, sz, iLength + 1);
+	free(sz);
+	return bResult;
 }
 

@@ -47,7 +47,7 @@ D* CIndexPrimitiveTemplate<M, D>::Get(M sData)
 template<class M, class D>
 D* CIndexPrimitiveTemplate<M, D>::Put(M sData)
 {
-	return CIndexPrimitiveBlock<M>::Put(sData, sizof(D));
+	return (D*)CIndexPrimitiveBlock<M>::Put(sData, sizeof(D));
 }
 
 

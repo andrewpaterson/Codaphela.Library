@@ -596,7 +596,6 @@ bool CIndexedFilesEvicting::WriteEvictedData1b(SIndexedCacheDescriptor* psCached
 		}
 
 		bResult = WriteEvictedData2(&cDescriptor, psCached->oi, pvData, eClearCache, bNoEviction);
-		mpcEvictionCallback->WriteEvictedData3();
 		psCached->iFlags &= ~CACHE_DESCRIPTOR_FLAG_DIRTY;
 		return bResult;
 	}

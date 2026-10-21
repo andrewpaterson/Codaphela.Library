@@ -39,6 +39,13 @@ private:
 
 	uint8						miDefaultAlignment;
 
+	//The free list last returned by GetOrAddFreeList and the element sizes, alignment and offset it was found for.
+	CFreeList*					mpcLastFreeList;
+	size						muiLastMinElementSize;
+	size						muiLastMaxElementSize;
+	uint16						miLastAlignment;
+	int16						miLastOffset;
+
 	size						muiAllocCount;
 	size						muiBreakAlloc;
 	bool						mbBreakOnAlloc;

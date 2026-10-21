@@ -58,8 +58,6 @@ public:
 	bool					StartIteration(SIndexTreeFileIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* piDataSize, size iMaxDataSize);
 	bool					Iterate(SIndexTreeFileIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* piDataSize, size iMaxDataSize);
 
-	bool					WriteEvictedData3(void);
-
 	void					Print(CChars* pszDest, bool bShowFlags, bool bShowSize);
 	void					Dump(void);
 

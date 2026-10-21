@@ -58,7 +58,6 @@ public:
 
 	void			Dump(void);
 	bool			ValidateIndex(void);
-	bool			WriteEvictedData3(void);
 };
 
 

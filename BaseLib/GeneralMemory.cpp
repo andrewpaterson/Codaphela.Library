@@ -46,6 +46,7 @@ void CGeneralMemory::Init(uint16 iDefaultAlignment, bool bDefaultFreeListParams)
 	mcLargeList.Init();
 	miDefaultAlignment = (uint8)iDefaultAlignment;
  	mcOrder.Init();
+	mpcLastFreeList = NULL;
 	muiAllocCount = 0;
 	muiBreakAlloc = 0;
 	mbBreakOnAlloc = false;
@@ -70,6 +71,7 @@ void CGeneralMemory::Kill(void)
 	}
 	mcOrder.Kill();
 	mcFreeLists.Kill();
+	mpcLastFreeList = NULL;
 
 	mcLargeList.Kill();
 	 
@@ -450,6 +452,11 @@ void CGeneralMemory::FreeFreeList(CFreeList* pcFreeList)
 	size					iIndex;
 	size					iStride;
 
+	if (pcFreeList == mpcLastFreeList)
+	{
+		mpcLastFreeList = NULL;
+	}
+
 	iStride = pcFreeList->GetElementStride() - sizeof(SGeneralMemoryAllocation);
 	sDesc.Init(iStride, pcFreeList->GetAlignment(), pcFreeList->GetOffset());
 	bResult = mcOrder.FindInSorted(&sDesc, CompareAlignedFreeListDesc, &iIndex);
@@ -549,6 +556,13 @@ CFreeList* CGeneralMemory::GetOrAddFreeList(size iElementSize, uint16 iAlignment
 	SMemoryFreeListParams*	psParams;
 	size					iStride;
 
+	if ((mpcLastFreeList != NULL) &&
+		(iElementSize >= muiLastMinElementSize) && (iElementSize <= muiLastMaxElementSize) &&
+		(iAlignment == miLastAlignment) && (iOffset == miLastOffset))
+	{
+		return mpcLastFreeList;
+	}
+
 	if ((iOffset < -128) || (iOffset > 127))
 	{
 		return NULL;
@@ -566,7 +580,7 @@ CFreeList* CGeneralMemory::GetOrAddFreeList(size iElementSize, uint16 iAlignment
 	if (bResult)
 	{
 		psDesc = mcOrder.Get(iIndex);
-		return psDesc->pcFreeList;
+		pcList = psDesc->pcFreeList;
 	}
 	else
 	{
@@ -574,8 +588,14 @@ CFreeList* CGeneralMemory::GetOrAddFreeList(size iElementSize, uint16 iAlignment
 		pcList->Init(psParams->iMaxListSize, (uint8)iAlignment);
 		sDesc.pcFreeList = pcList;
 		mcOrder.InsertAt(&sDesc, iIndex);
-		return pcList;
 	}
+
+	mpcLastFreeList = pcList;
+	muiLastMinElementSize = psParams->iMinElementSize;
+	muiLastMaxElementSize = psParams->iMaxElementSize;
+	miLastAlignment = iAlignment;
+	miLastOffset = iOffset;
+	return pcList;
 }
 
 

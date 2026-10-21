@@ -38,6 +38,7 @@ public:
 	virtual bool		IsBinaryExpression(void);
 	virtual bool		IsUnaryExpression(void);
 	virtual bool		IsConstExpression(void);
+	virtual bool		IsVariable(void);
 };
 
 

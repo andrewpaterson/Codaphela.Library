@@ -27,7 +27,7 @@ void CCalculatorError::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculatorError::SetError(char* szError)
+void CCalculatorError::SetError(const char* szError)
 {
 	mszError.Append(szError);
 	if (mbUseUserError)

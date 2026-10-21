@@ -602,7 +602,7 @@ size CArrayChars::GetSubStringIndex(const char* szStart)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CArrayChars::GetIndex(char* szStart, size iLen)
+size CArrayChars::GetIndex(const char* szStart, size iLen)
 {
 	size		i;
 	CChars*		psz;

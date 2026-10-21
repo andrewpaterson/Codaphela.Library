@@ -136,6 +136,7 @@ void* CFreeList::Add(SFNode** ppsNode)
 	void*		pvBitArray;
 	size		iPosition;
 	void*		pvTemp;
+	bool		bFromHead;
 
 	if (mcList.GetHead() == NULL)
 	{
@@ -148,17 +149,20 @@ void* CFreeList::Add(SFNode** ppsNode)
 	}
 
 	//Find the first node which is empty.
+	bFromHead = false;
 	if (mpsNotFull)
 	{
 		psNode = mpsNotFull;
 		if (mpsNotFull->bFull)
 		{
 			psNode = (SFNode*)mcList.GetHead();
+			bFromHead = true;
 		}
 	}
 	else
 	{
 		psNode = (SFNode*)mcList.GetHead();
+		bFromHead = true;
 	}
 
 	for (;;)
@@ -195,6 +199,11 @@ void* CFreeList::Add(SFNode** ppsNode)
 		}
 		else
 		{
+			//Searching from the head means every node before psNode is full so start the next search at psNode.
+			if (bFromHead)
+			{
+				mpsNotFull = psNode;
+			}
 			pvTemp = AllocateExisting(psNode, iPosition);
 			if (ppsNode)
 			{
@@ -567,8 +576,8 @@ bool CFreeList::RemoveExisiting(SFNode* psNode, size iPosition)
 	psNode->bFull = false;
 	mpsNotFull = psNode;
 
-	//Check if any elements are still allocated in this chunk.
-	if (FindFirstSetBit(pvBitArray, psNode->uiChunkSize) == ARRAY_ELEMENT_NOT_FOUND)
+	//Check if any elements are still allocated in this chunk.  The byte holding the removed bit is checked first to avoid searching the whole bit array.
+	if ((((uint8*)pvBitArray)[iPosition / 8] == 0) && (FindFirstSetBit(pvBitArray, psNode->uiChunkSize) == ARRAY_ELEMENT_NOT_FOUND))
 	{
 		//If not deallocate the element.
 		Deallocate(psNode);
@@ -882,7 +891,7 @@ bool CFreeList::HasElements(void)
 	psNode = (SFNode*)mcList.GetHead();
 	while (psNode)
 	{
-		if (NumNodeElements(psNode) > 0)
+		if ((psNode->bFull) || (FindFirstSetBit(GetBitArray(psNode), psNode->uiChunkSize) != ARRAY_ELEMENT_NOT_FOUND))
 		{
 			return true;
 		}
