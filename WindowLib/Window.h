@@ -24,6 +24,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Canvas.h"
 #include "NativeWindow.h"
 #include "CanvasDraw.h"
+#include "ComponentInputCommand.h"
 
 
 class CWindowTick;
@@ -54,6 +55,14 @@ public:
 	void					Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds);
 	void					Stop(void);
 	void					Layout(void);
+
+	//Input in window client space.  Native windows, and later CComponentInput, call these.
+	void					PointerMoved(int x, int y);
+	void					PointerLeft(void);
+	void					InputCommand(EComponentInputCommand eCommand, bool bInsert);
+	void					InputPrintable(char c, bool bInsert);
+	void					Activate(void);
+	void					Deactivate(void);
 
 	const char*				GetWindowTitle(void);
 	Ptr<CCanvas>			GetCanvas(void);

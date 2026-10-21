@@ -146,8 +146,21 @@ void CWindow::Layout(void)
 	SetPosition(0, 0);  //The position of the Window within itself.
 	CComponent::Layout(GetPosition(), GetActualSize());
 
-	//mFocus.Update(mcInput.GetPointer()->GetX(), mcInput.GetPointer()->GetY());
+	//Components may have moved under the pointer.
+	mFocus.Refresh();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::PointerMoved(int x, int y) { mFocus.PointerMoved(x, y); }
+void CWindow::PointerLeft(void) { mFocus.PointerLeft(); }
+void CWindow::InputCommand(EComponentInputCommand eCommand, bool bInsert) { mFocus.Command(eCommand, bInsert); }
+void CWindow::InputPrintable(char c, bool bInsert) { mFocus.Printable(c, bInsert); }
+void CWindow::Activate(void) { mFocus.Activate(); }
+void CWindow::Deactivate(void) { mFocus.Deactivate(); }
 
 
 //////////////////////////////////////////////////////////////////////////

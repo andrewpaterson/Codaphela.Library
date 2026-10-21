@@ -21,7 +21,16 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "SupportLib/Rectangle.h"
+#include "ComponentInputCommand.h"
 #include "Component.h"
+
+
+enum EFocusDrag
+{
+	FD_None,
+	FD_Select,
+	FD_Scroll,
+};
 
 
 class CWindow;
@@ -30,24 +39,45 @@ class CFocus : public CObject
 {
 CONSTRUCTABLE(CFocus);
 protected:
-	Ptr<CComponent>	mpMouseOverComponent;
-	Ptr<CComponent>	mpFocussedComponent;
-	Ptr<CWindow>			mpWindow;
+	Ptr<CComponent>		mpMouseOverComponent;
+	Ptr<CComponent>		mpFocussedComponent;
+	Ptr<CComponent>		mpDragComponent;  //Gets ContDrag* until the drag stops, even once the pointer has left it.
+	Ptr<CWindow>		mpWindow;
+	SInt32Vec2			msPointer;  //In window client space.
+	bool				mbPointerIn;
+	bool				mbActive;  //An inactive window remembers its focussed component but sends it no commands.
+	EFocusDrag			meDrag;
 
 public:
-	void 					Init(Ptr<CWindow> pcViewport);
-	void					Class(void) override;
-	void 					Free(void) override;
+	void 				Init(Ptr<CWindow> pWindow);
+	void				Class(void) override;
+	void 				Free(void) override;
 
-	bool					Save(CObjectWriter* pcFile) override;
-	bool					Load(CObjectReader* pcFile) override;
+	bool				Save(CObjectWriter* pcFile) override;
+	bool				Load(CObjectReader* pcFile) override;
 
-	void 					Update(int x, int y);
-	void 					Request(void);
-	void 					Activate(int x, int y);
-	void 					Deactivate(void);
-	Ptr<CComponent>	GetFocussedComponent(void);
-	Ptr<CComponent>	GetMouseOverComponent(void);
+	void				PointerMoved(int x, int y);
+	void				PointerLeft(void);
+	void				Refresh(void);
+	void 				Request(void);
+	void				Command(EComponentInputCommand eCommand, bool bInsert);
+	void				Printable(char c, bool bInsert);
+	void 				Activate(void);
+	void 				Deactivate(void);
+	void				Forget(Ptr<CComponent> pComponent);
+
+	Ptr<CComponent>		GetFocussedComponent(void);
+	Ptr<CComponent>		GetMouseOverComponent(void);
+	SInt32Vec2			GetPointer(void);
+	bool				IsPointerIn(void);
+	bool				IsActive(void);
+
+protected:
+	void				SetMouseOver(Ptr<CComponent> pComponent);
+	void				StartDrag(EFocusDrag eDrag, int x, int y);
+	void				StopDrag(EFocusDrag eDrag);
+	void				ToComponentSpace(Ptr<CComponent> pComponent, int* px, int* py);
+	bool				IsWithin(Ptr<CComponent> pComponent, Ptr<CComponent> pAncestor);
 };
 
 

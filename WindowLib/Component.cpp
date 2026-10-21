@@ -123,7 +123,19 @@ bool CComponent::AddComponent(Ptr<CComponent> pComponent)
 //////////////////////////////////////////////////////////////////////////
 bool CComponent::RemoveComponent(Ptr<CComponent> pComponent)
 {
-	return maChildren.Remove(pComponent);
+	bool	bResult;
+
+	if (mpWindow)
+	{
+		mpWindow->GetFocus()->Forget(pComponent);
+	}
+
+	bResult = maChildren.Remove(pComponent);
+	if (bResult)
+	{
+		pComponent->mpParent = NULL;
+	}
+	return bResult;
 }
 
 
@@ -133,6 +145,20 @@ bool CComponent::RemoveComponent(Ptr<CComponent> pComponent)
 //////////////////////////////////////////////////////////////////////////
 bool CComponent::RemoveAllComponents(void)
 {
+	size				i;
+	Ptr<CComponent>		pComponent;
+	size				uiSize;
+
+	uiSize = maChildren.Size();
+	for (i = 0; i < uiSize; i++)
+	{
+		pComponent = maChildren.Get(i);
+		if (mpWindow)
+		{
+			mpWindow->GetFocus()->Forget(pComponent);
+		}
+		pComponent->mpParent = NULL;
+	}
 	return maChildren.RemoveAll();
 }
 
@@ -168,8 +194,9 @@ bool CComponent::GetContainerBounds(CRectangle* pcDest)
 //////////////////////////////////////////////////////////////////////////
 bool CComponent::IsPointIn(int x, int y)
 {
-	//x and y are assumed relative to 'this' component.
-	return mcActualBounds.IsIn(x, y);
+	//x and y are in window client space.  The right and bottom edges belong to the next component over.
+	return (x >= mcActualBounds.msTopLeft.x) && (x < mcActualBounds.msBottomRight.x) &&
+		   (y >= mcActualBounds.msTopLeft.y) && (y < mcActualBounds.msBottomRight.y);
 }
 
 
@@ -193,16 +220,17 @@ Ptr<CComponent> CComponent::FindComponentAt(int x, int y)
 	Ptr<CComponent>	pcComponent;
 	size					uiSize;
 
-	//x and y are assumed relative to 'this' component.
+	//x and y are in window client space.
 	if (!IsPointIn(x, y))
 	{
 		return NULL;
 	}
 
+	//Children drawn later are drawn over earlier ones so they are searched first.
 	uiSize = maChildren.Size();
-	for (i = 0; i < uiSize; i++)
+	for (i = uiSize; i > 0; i--)
 	{
-		pcComponent = maChildren.Get(i);
+		pcComponent = maChildren.Get(i - 1);
 		pcComponent = pcComponent->FindComponentAt(x, y);
 		if (pcComponent)
 		{
@@ -312,6 +340,9 @@ void CComponent::SetActualSize(SInt32Vec2 sSize) { mcActualBounds.SetSize(sSize.
 void CComponent::SetPosition(int x, int y) { mcActualBounds.SetPos(x, y); }
 void CComponent::SetPosition(SInt32Vec2 sPosition) { mcActualBounds.SetPos(sPosition.x, sPosition.y); }
 SInt32Vec2 CComponent::GetPosition(void) { return mcActualBounds.msTopLeft; }
+bool CComponent::CanGetFocus(void) { return mbCanGetFocus; }
+void CComponent::SetCanGetFocus(bool bCanGetFocus) { mbCanGetFocus = bCanGetFocus; }
+Ptr<CComponent> CComponent::GetParent(void) { return mpParent; }
 void CComponent::SetDesiredSize(int fWidth, int fHeight) { msDesiredSize.Init(fWidth, fHeight); }
 SInt32Vec2 CComponent::GetActualSize(void) { SInt32Vec2 sSize; sSize.Init(mcActualBounds.GetWidth(), mcActualBounds.GetHeight()); return sSize; }
 SInt32Vec2 CComponent::GetDesiredSize(void) { return msDesiredSize; }

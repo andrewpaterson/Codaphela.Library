@@ -84,6 +84,9 @@
     <ClInclude Include="FocusListener.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentInputCommand.h">
+      <Filter>Source\Event</Filter>
+    </ClInclude>
     <ClInclude Include="ComponentListener.h">
       <Filter>Source\Event</Filter>
     </ClInclude>

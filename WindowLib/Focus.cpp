@@ -27,11 +27,16 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFocus::Init(Ptr<CWindow> pcViewport)
+void CFocus::Init(Ptr<CWindow> pWindow)
 {
-	mpWindow = pcViewport;
+	mpWindow = pWindow;
 	mpMouseOverComponent = NULL;
 	mpFocussedComponent = NULL;
+	mpDragComponent = NULL;
+	msPointer.Init(0, 0);
+	mbPointerIn = false;
+	mbActive = true;
+	meDrag = FD_None;
 }
 
 
@@ -52,7 +57,12 @@ void CFocus::Class(void)
 {
 	M_Pointer(mpMouseOverComponent);
 	M_Pointer(mpFocussedComponent);
+	M_Pointer(mpDragComponent);
 	M_Pointer(mpWindow);
+	U_2Int32(msPointer);
+	U_Bool(mbPointerIn);
+	U_Bool(mbActive);
+	U_Enum(meDrag);
 }
 
 
@@ -78,27 +88,29 @@ bool CFocus::Load(CObjectReader* pcFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// x and y are in window client space.  A component that started a drag
+// keeps getting ContDrag* wherever the pointer goes until the drag stops.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFocus::Update(int x, int y)
+void CFocus::PointerMoved(int x, int y)
 {
-	Ptr<CComponent> pcComponent;
+	int		lx;
+	int		ly;
 
-	//x = x - mpWindow->GetClientRect()->msTopLeft.x;
-	//y = y - mpWindow->GetClientRect()->msTopLeft.y;
+	msPointer.Init(x, y);
+	mbPointerIn = true;
+	Refresh();
 
-	pcComponent = mpWindow->FindComponentAt(x, y);
-
-	if (mpMouseOverComponent != pcComponent)
+	if (mpDragComponent)
 	{
-		if (mpMouseOverComponent)
+		ToComponentSpace(mpDragComponent, &lx, &ly);
+		if (meDrag == FD_Select)
 		{
-			mpMouseOverComponent->MovedOutof();
+			mpDragComponent->ContDragSelect(lx, ly);
 		}
-		mpMouseOverComponent = pcComponent;
-		if (pcComponent)
+		else if (meDrag == FD_Scroll)
 		{
-			mpMouseOverComponent->MovedInto();
+			mpDragComponent->ContDragScroll(lx, ly);
 		}
 	}
 }
@@ -108,15 +120,75 @@ void CFocus::Update(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CFocus::PointerLeft(void)
+{
+	mbPointerIn = false;
+	Refresh();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Hit tests the last pointer position again.  Called after a layout in
+// case components moved under a pointer that didn't.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFocus::Refresh(void)
+{
+	Ptr<CComponent>	pComponent;
+
+	if (mbPointerIn)
+	{
+		pComponent = mpWindow->FindComponentAt(msPointer.x, msPointer.y);
+	}
+	SetMouseOver(pComponent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFocus::SetMouseOver(Ptr<CComponent> pComponent)
+{
+	if (mpMouseOverComponent != pComponent)
+	{
+		if (mpMouseOverComponent)
+		{
+			mpMouseOverComponent->MovedOutof();
+		}
+		mpMouseOverComponent = pComponent;
+		if (mpMouseOverComponent)
+		{
+			mpMouseOverComponent->MovedInto();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Focus goes to the nearest component under the pointer that can take it.
+// If there is none, as over the background, nothing has focus.
+//
+//////////////////////////////////////////////////////////////////////////
 void CFocus::Request(void)
 {
-	if (mpMouseOverComponent != mpFocussedComponent)
+	Ptr<CComponent>	pComponent;
+
+	pComponent = mpMouseOverComponent;
+	while (pComponent && !pComponent->CanGetFocus())
+	{
+		pComponent = pComponent->GetParent();
+	}
+
+	if (pComponent != mpFocussedComponent)
 	{
 		if (mpFocussedComponent)
 		{
 			mpFocussedComponent->FocusLost();
 		}
-		mpFocussedComponent = mpMouseOverComponent;
+		mpFocussedComponent = pComponent;
 		if (mpFocussedComponent)
 		{
 			mpFocussedComponent->FocusGained();
@@ -127,11 +199,304 @@ void CFocus::Request(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Pointer commands are given x and y relative to the component's top left.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFocus::Activate(int x, int y)
+void CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
 {
-	Update(x, y);
+	int		x;
+	int		y;
+	CChars	szClipboard;
+
+	if (!mbActive)
+	{
+		return;
+	}
+
+	if (eCommand == CIC_Hover)
+	{
+		if (mpMouseOverComponent)
+		{
+			ToComponentSpace(mpMouseOverComponent, &x, &y);
+			mpMouseOverComponent->Hover(x, y);
+		}
+		return;
+	}
+
+	if ((eCommand == CIC_StopDragSelect) || (eCommand == CIC_StopDragScroll))
+	{
+		StopDrag(eCommand == CIC_StopDragSelect ? FD_Select : FD_Scroll);
+		return;
+	}
+
+	if ((eCommand == CIC_ActivateComponent) || (eCommand == CIC_ContextMenu) || (eCommand == CIC_StartDragSelect) || (eCommand == CIC_StartDragScroll))
+	{
+		Request();
+	}
+
+	if (!mpFocussedComponent)
+	{
+		return;
+	}
+	ToComponentSpace(mpFocussedComponent, &x, &y);
+
+	switch (eCommand)
+	{
+	case CIC_Up:
+		mpFocussedComponent->Up();
+		break;
+	case CIC_Down:
+		mpFocussedComponent->Down();
+		break;
+	case CIC_Left:
+		mpFocussedComponent->Left();
+		break;
+	case CIC_Right:
+		mpFocussedComponent->Right();
+		break;
+	case CIC_WordLeft:
+		mpFocussedComponent->WordLeft();
+		break;
+	case CIC_WordRight:
+		mpFocussedComponent->WordRight();
+		break;
+	case CIC_Home:
+		mpFocussedComponent->Home();
+		break;
+	case CIC_End:
+		mpFocussedComponent->End();
+		break;
+	case CIC_DocumentHome:
+		mpFocussedComponent->DocumentHome();
+		break;
+	case CIC_DocumentEnd:
+		mpFocussedComponent->DocumentEnd();
+		break;
+	case CIC_PageUp:
+		mpFocussedComponent->PageUp();
+		break;
+	case CIC_PageDown:
+		mpFocussedComponent->PageDown();
+		break;
+	case CIC_LineUp:
+		mpFocussedComponent->LineUp();
+		break;
+	case CIC_LineDown:
+		mpFocussedComponent->LineDown();
+		break;
+	case CIC_SelectUp:
+		mpFocussedComponent->SelectUp();
+		break;
+	case CIC_SelectDown:
+		mpFocussedComponent->SelectDown();
+		break;
+	case CIC_SelectLeft:
+		mpFocussedComponent->SelectLeft();
+		break;
+	case CIC_SelectRight:
+		mpFocussedComponent->SelectRight();
+		break;
+	case CIC_SelectWordLeft:
+		mpFocussedComponent->SelectWordLeft();
+		break;
+	case CIC_SelectWordRight:
+		mpFocussedComponent->SelectWordRight();
+		break;
+	case CIC_SelectHome:
+		mpFocussedComponent->SelectHome();
+		break;
+	case CIC_SelectEnd:
+		mpFocussedComponent->SelectEnd();
+		break;
+	case CIC_SelectDocumentHome:
+		mpFocussedComponent->SelectDocumentHome();
+		break;
+	case CIC_SelectDocumentEnd:
+		mpFocussedComponent->SelectDocumentEnd();
+		break;
+	case CIC_SelectPageUp:
+		mpFocussedComponent->SelectPageUp();
+		break;
+	case CIC_SelectPageDown:
+		mpFocussedComponent->SelectPageDown();
+		break;
+	case CIC_SelectWholeWord:
+		mpFocussedComponent->SelectWholeWord();
+		break;
+	case CIC_SelectAll:
+		mpFocussedComponent->SelectAll();
+		break;
+	case CIC_ClearSelection:
+		mpFocussedComponent->ClearSelection();
+		break;
+	case CIC_Space:
+		mpFocussedComponent->Space(bInsert);
+		break;
+	case CIC_Tab:
+		mpFocussedComponent->Tab(bInsert);
+		break;
+	case CIC_BackTab:
+		mpFocussedComponent->BackTab();
+		break;
+	case CIC_Enter:
+		mpFocussedComponent->Enter();
+		break;
+	case CIC_HomeEnter:
+		mpFocussedComponent->HomeEnter();
+		break;
+	case CIC_EndEnter:
+		mpFocussedComponent->EndEnter();
+		break;
+	case CIC_Delete:
+		mpFocussedComponent->Delete();
+		break;
+	case CIC_Backspace:
+		mpFocussedComponent->Backspace();
+		break;
+	case CIC_Cut:
+	case CIC_Copy:
+	case CIC_Paste:
+	case CIC_CutLine:
+		//There is no clipboard yet.  Cut and copy go nowhere and paste pastes nothing.
+		szClipboard.Init();
+		if (eCommand == CIC_Cut)
+		{
+			mpFocussedComponent->Cut(&szClipboard);
+		}
+		else if (eCommand == CIC_Copy)
+		{
+			mpFocussedComponent->Copy(&szClipboard);
+		}
+		else if (eCommand == CIC_Paste)
+		{
+			mpFocussedComponent->Paste(szClipboard.Text());
+		}
+		else
+		{
+			mpFocussedComponent->CutLine(&szClipboard);
+		}
+		szClipboard.Kill();
+		break;
+	case CIC_Duplicate:
+		mpFocussedComponent->Duplicate();
+		break;
+	case CIC_DeleteWordRemainingLeft:
+		mpFocussedComponent->DeleteWordRemainingLeft();
+		break;
+	case CIC_DeleteWordRemainingRight:
+		mpFocussedComponent->DeleteWordRemainingRight();
+		break;
+	case CIC_DeleteLine:
+		mpFocussedComponent->DeleteLine();
+		break;
+	case CIC_ActivateComponent:
+		mpFocussedComponent->ActivateComponent(x, y);
+		break;
+	case CIC_ExecuteComponent:
+		mpFocussedComponent->ExecuteComponent(x, y);
+		break;
+	case CIC_ContextMenu:
+		mpFocussedComponent->ContextMenu(x, y);
+		break;
+	case CIC_StartDragSelect:
+		StartDrag(FD_Select, x, y);
+		break;
+	case CIC_StartDragScroll:
+		StartDrag(FD_Scroll, x, y);
+		break;
+	case CIC_StopDragSelect:
+	case CIC_StopDragScroll:
+	case CIC_Hover:
+	case CIC_Ignored:
+		break;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFocus::Printable(char c, bool bInsert)
+{
+	if (mbActive && mpFocussedComponent)
+	{
+		mpFocussedComponent->Printable(c, bInsert);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Starting a drag while one is going stops the first one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFocus::StartDrag(EFocusDrag eDrag, int x, int y)
+{
+	StopDrag(meDrag);
+
+	meDrag = eDrag;
+	mpDragComponent = mpFocussedComponent;
+	if (eDrag == FD_Select)
+	{
+		mpDragComponent->StartDragSelect(x, y);
+	}
+	else if (eDrag == FD_Scroll)
+	{
+		mpDragComponent->StartDragScroll(x, y);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Only stops a drag of the given kind.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFocus::StopDrag(EFocusDrag eDrag)
+{
+	Ptr<CComponent>	pComponent;
+	int				x;
+	int				y;
+
+	if ((meDrag == FD_None) || (meDrag != eDrag))
+	{
+		return;
+	}
+
+	pComponent = mpDragComponent;
+	mpDragComponent = NULL;
+	meDrag = FD_None;
+
+	ToComponentSpace(pComponent, &x, &y);
+	if (eDrag == FD_Select)
+	{
+		pComponent->StopDragSelect(x, y);
+	}
+	else if (eDrag == FD_Scroll)
+	{
+		pComponent->StopDragScroll(x, y);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window has become the active one again.  The component that had
+// focus when it was deactivated gets it back.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFocus::Activate(void)
+{
+	if (!mbActive)
+	{
+		mbActive = true;
+		if (mpFocussedComponent)
+		{
+			mpFocussedComponent->FocusGained();
+		}
+	}
+	Refresh();
 }
 
 
@@ -141,13 +506,45 @@ void CFocus::Activate(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CFocus::Deactivate(void)
 {
-	if (mpMouseOverComponent)
+	if (mbActive)
 	{
-		mpMouseOverComponent->MovedOutof();
+		StopDrag(meDrag);
+		mbActive = false;
+		mbPointerIn = false;
+		SetMouseOver(NULL);
+		if (mpFocussedComponent)
+		{
+			mpFocussedComponent->FocusLost();
+		}
 	}
-	if (mpFocussedComponent)
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Called before pComponent is removed from its parent.  Nothing in or
+// under pComponent may stay hovered, focussed or dragging.  A drag is
+// dropped without telling the component.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFocus::Forget(Ptr<CComponent> pComponent)
+{
+	if (IsWithin(mpDragComponent, pComponent))
 	{
-		mpFocussedComponent->FocusLost();
+		mpDragComponent = NULL;
+		meDrag = FD_None;
+	}
+	if (IsWithin(mpMouseOverComponent, pComponent))
+	{
+		SetMouseOver(NULL);
+	}
+	if (IsWithin(mpFocussedComponent, pComponent))
+	{
+		if (mbActive)
+		{
+			mpFocussedComponent->FocusLost();
+		}
+		mpFocussedComponent = NULL;
 	}
 }
 
@@ -156,9 +553,17 @@ void CFocus::Deactivate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CComponent> CFocus::GetFocussedComponent(void)
+bool CFocus::IsWithin(Ptr<CComponent> pComponent, Ptr<CComponent> pAncestor)
 {
-	return mpFocussedComponent;
+	while (pComponent)
+	{
+		if (pComponent == pAncestor)
+		{
+			return true;
+		}
+		pComponent = pComponent->GetParent();
+	}
+	return false;
 }
 
 
@@ -166,8 +571,23 @@ Ptr<CComponent> CFocus::GetFocussedComponent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CComponent> CFocus::GetMouseOverComponent(void)
+void CFocus::ToComponentSpace(Ptr<CComponent> pComponent, int* px, int* py)
 {
-	return mpFocussedComponent;
+	SInt32Vec2	sPosition;
+
+	sPosition = pComponent->GetPosition();
+	*px = msPointer.x - sPosition.x;
+	*py = msPointer.y - sPosition.y;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CComponent>	CFocus::GetFocussedComponent(void) { return mpFocussedComponent; }
+Ptr<CComponent>	CFocus::GetMouseOverComponent(void) { return mpMouseOverComponent; }
+SInt32Vec2		CFocus::GetPointer(void) { return msPointer; }
+bool			CFocus::IsPointerIn(void) { return mbPointerIn; }
+bool			CFocus::IsActive(void) { return mbActive; }
 
