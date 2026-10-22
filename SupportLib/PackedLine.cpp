@@ -213,7 +213,8 @@ void CPackedLine::GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles
 							iTop, 
 							iLeft + pcRect->mcSourceRectangle.miWidth, 
 							iTop + pcRect->mcSourceRectangle.miHeight, 
-							pcRect->mcSourceRectangle.mpvUserData);
+							pcRect->mcSourceRectangle.mpvUserData,
+							pcRect->mbRotated);
 	}
 }
 
@@ -239,6 +240,10 @@ void CPackedLine::Print(CChars* psz)
 		psz->Append(pcRect->mcSourceRectangle.miWidth);
 		psz->Append(":");
 		psz->Append(pcRect->mcSourceRectangle.miHeight);
+		if (pcRect->mbRotated)
+		{
+			psz->Append(" R");
+		}
 		psz->Append("]");
 		if (i != macRectangles.NumElements()-1)
 		{

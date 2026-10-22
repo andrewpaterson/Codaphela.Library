@@ -81,7 +81,7 @@ int ComparePackAttempt(const void* pv1, const void* pv2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPackAttempt::Init(CRectangleBestPacker* pcRectanglePacker, int iMaxWidth)
+void CPackAttempt::Init(CRectangleBestPacker* pcRectanglePacker, int iMaxWidth, EPackRotation eRotation, bool bRotateToFit)
 {
 	macLines.Init();
 	mpcRectanglePacker = pcRectanglePacker;
@@ -90,6 +90,8 @@ void CPackAttempt::Init(CRectangleBestPacker* pcRectanglePacker, int iMaxWidth)
 	miArea = 0;
 	mbValid = false;
 	miMaxWidth = iMaxWidth;
+	meRotation = eRotation;
+	mbRotateToFit = bRotateToFit;
 	macRectangles.Init();
 }
 
@@ -130,7 +132,7 @@ void CPackAttempt::AddRectanglesFromPacker(void)
 	{
 		pcPackedRect = mpcRectanglePacker->GetSourceRectangles()->Get(i);
 		pcRectAttempt = macRectangles.Add();
-		pcRectAttempt->Init(pcPackedRect);
+		pcRectAttempt->Init(pcPackedRect, pcPackedRect->IsRotatedBy(meRotation));
 	}
 
 	//Sort from smallest to largest.  This is so that large rectangles can be removed from the end.
@@ -265,6 +267,15 @@ bool CPackAttempt::GetLargestRectangleFittingAndRemoveIt(CRectangle* pcBounds, C
 				(pcBounds->GetHeight() >= pcRect->mcSourceRectangle.miHeight))
 			{
 				*pcDest = *pcRect;
+				macRectangles.RemoveAt(i, true);
+				return true;
+			}
+			if (mbRotateToFit &&
+				(pcBounds->GetWidth() >= pcRect->mcSourceRectangle.miHeight) &&
+				(pcBounds->GetHeight() >= pcRect->mcSourceRectangle.miWidth))
+			{
+				*pcDest = *pcRect;
+				pcDest->Rotate();
 				macRectangles.RemoveAt(i, true);
 				return true;
 			}

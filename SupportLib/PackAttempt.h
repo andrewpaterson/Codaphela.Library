@@ -39,8 +39,10 @@ public:
 	CArrayPackRectangleAttempt	macRectangles;
 	CRectangleBestPacker*		mpcRectanglePacker;
 	bool						mbValid;
+	EPackRotation				meRotation;  //How every rectangle is turned before packing.
+	bool						mbRotateToFit;  //Turn a rectangle that doesn't fit a space the way it is.
 
-	void 					Init(CRectangleBestPacker* pcRectanglePacker, int MaxWidth);
+	void 					Init(CRectangleBestPacker* pcRectanglePacker, int MaxWidth, EPackRotation eRotation = PR_AsGiven, bool bRotateToFit = false);
 	void 					Kill(void);
 
 	void 					AddRectanglesFromPacker(void);

@@ -32,9 +32,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CRectangleBestPacker : public CRectanglePacker
 {
 CONSTRUCTABLE(CRectangleBestPacker)
-private:
-	SInt32Vec2			GetSourcesSizes(void);
-
 protected:
 	CArrayPackSourceRectangle	masSourceRectangles;
 	int							miOutsideEdgeWidth;  //Gap around the outside of the destination image and the rectangles.
@@ -53,16 +50,19 @@ public:
 	bool						AddRectangle(CSubImage* pcSubImage);
 	bool						AddRectangle(CImageCel* pcImageCel);
 
-	void						AddAttempt(int iMaxWidth);
+	void						AddAttempt(int iMaxWidth, EPackRotation eRotation = PR_AsGiven, bool bRotateToFit = false);
 	void						AddHorizontalAttempt(void);
 	void						AddSquareAttempt(void);
 	void						AddVerticalAttempt(void);
-	void						AddDefaultAttempts(void);
+	virtual void				AddDefaultAttempts(void);
+	void						AddWidthAttempts(EPackRotation eRotation, bool bRotateToFit);
 
 	CPackAttempt*				GetBestAttempt(void);
 	CPackAttempt*				GetWorstAttempt(void);
 	int							GetSourcesMinWidth(void);
+	int							GetSourcesMinWidth(EPackRotation eRotation, bool bRotateToFit);
 	int							GetSourcesMaxWidth(void);
+	int							GetSourcesMaxWidth(EPackRotation eRotation);
 
 	void						GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
 	SInt32Vec2						GetPackedImageSize(void);
