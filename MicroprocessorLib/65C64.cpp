@@ -2080,12 +2080,14 @@ void C65C64::STAT(void)
 void C65C64::BlockSetup(void)
 {
 	bool	bRead;
+	bool	bWrite;
 
-	//Copy only writes; the others read [V] first.
+	//Copy only writes, test and compare only read; the others read [V] then write it.
 	bRead = msDecoded.eAccess != MA65_Write;
+	bWrite = msDecoded.eAccess != MA65_Read;
 	muiOperationBytes = GetRegisterBytes(msDecoded.eSource);
 	muiEffectiveAddress = muiV;
-	AddTransfer(muiEffectiveAddress, muiOperationBytes, 0, bRead, true);
+	AddTransfer(muiEffectiveAddress, muiOperationBytes, 0, bRead, bWrite);
 }
 
 
@@ -2172,19 +2174,45 @@ void C65C64::BlockStep(uint64 uiData, size uiTransfer, bool bWrite, bool bSetNeg
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Block and: [V] and R -> [V].
+// Block and, test, or, xor, add, subtract and compare: D = [V] op R, n and z are set from
+// D.  Test and compare do not write D back to [V].
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64::BAND(void)
+void C65C64::BLOCK(void)
 {
-	BlockStep(masTransfers[0].uiValue & GetRegister(msDecoded.eSource), 0, true, true);
+	uint64	uiMemory;
+	uint64	uiRegister;
+	uint64	uiData;
+
+	uiMemory = masTransfers[0].uiValue;
+	uiRegister = GetRegister(msDecoded.eSource);
+	switch (msDecoded.eInstruction)
+	{
+	case I65_Band:
+	case I65_Btst:
+		uiData = uiMemory & uiRegister;
+		break;
+	case I65_Bor:
+		uiData = uiMemory | uiRegister;
+		break;
+	case I65_Bxor:
+		uiData = uiMemory ^ uiRegister;
+		break;
+	case I65_Badd:
+		uiData = uiMemory + uiRegister;
+		break;
+	default:
+		uiData = uiMemory - uiRegister;
+		break;
+	}
+	BlockStep(uiData, 0, msDecoded.eAccess == MA65_ReadWrite, true);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Block copy: R -> [V].  Nothing is read, only v is set (n and z are not changed, so a
-// stop condition tests them as they were).
+// Block copy: R -> [V].  Nothing is read, only v is set.  It runs until A is negative: the
+// stop bits are ignored.
 //
 //////////////////////////////////////////////////////////////////////////
 void C65C64::BCPY(void)

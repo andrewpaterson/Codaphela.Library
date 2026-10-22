@@ -93,6 +93,12 @@ static S65C64InstructionName gasInstructionNames[NUM_65_INSTRUCTIONS] =
 	{ I65_PshOperand,		"psh",	"Push operand" },
 	{ I65_PulOperand,		"pul",	"Pull into address" },
 	{ I65_Band,				"band",	"Block and" },
+	{ I65_Btst,				"btst",	"Block test" },
+	{ I65_Bor,				"bor",	"Block or" },
+	{ I65_Bxor,				"bxor",	"Block xor" },
+	{ I65_Badd,				"badd",	"Block add" },
+	{ I65_Bsub,				"bsub",	"Block subtract" },
+	{ I65_Bcmp,				"bcmp",	"Block compare" },
 	{ I65_Bcpy,				"bcpy",	"Block copy" },
 	{ I65_Bpcpy,			"bpcpy","Block precopy" },
 	{ I65_Bpand,			"bpand","Block preand" },
@@ -394,8 +400,14 @@ void C65C64InstructionFactory::GetForm(S65C64Decoded* psDecoded, S65C64Form* psF
 		break;
 
 	case I65_Band:
+	case I65_Btst:
+	case I65_Bor:
+	case I65_Bxor:
+	case I65_Badd:
+	case I65_Bsub:
+	case I65_Bcmp:
 		psForm->fOperand = &C65C64::BlockSetup;
-		psForm->fExecute = &C65C64::BAND;
+		psForm->fExecute = &C65C64::BLOCK;
 		psForm->uiMaxTransferWords = 5;
 		break;
 
