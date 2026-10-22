@@ -1,5 +1,6 @@
 #include "Chars.h"
 #include "LogString.h"
+#include "SystemAllocator.h"
 #include "IndexTreeRecursor.h"
 
 
@@ -10,7 +11,7 @@
 void CIndexTreeRecursor::Init(CIndexTreeNode* pcRoot)
 {
 	CIndexTreeNodeDebug::Init();
-	macKey.Init();
+	macKey.Init(&gcSystemAllocator, INDEX_TREE_RECURSOR_KEY_CHUNK_SIZE);
 	mpcCurrent = pcRoot;
 }
 
@@ -43,7 +44,14 @@ void CIndexTreeRecursor::Push(CIndexTreeNode *pcChild, uint8 c)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeRecursor::Pop(void)
 {
-	macKey.Pop();
+	size	uiKeySize;
+
+	//Popping only shortens the key.  It never shrinks the buffer, a later Push would just reallocate it again.
+	uiKeySize = macKey.NumElements();
+	if (uiKeySize > 0)
+	{
+		macKey.FakeSetUsedElements(uiKeySize - 1);
+	}
 }
 
 
