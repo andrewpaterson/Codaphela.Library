@@ -61,7 +61,6 @@ public:
 protected:
 	float64					GetUnit(CGerberGraphicsState* pcState);
 	void					ToMillimetres(CGerberGraphicsState* pcState, SGerberPoint* psPoint, SFloat64Vec2* psMillimetres);
-	void					GetTransform(CGerberGraphicsState* pcState, SFloat64Vec2* psFlash, SGerberVectorTransform* psTransform);
 	float64					GetStrokeRadius(CGerberGraphicsState* pcState);
 	CGerberVectorObject*	GetApertureShape(CGerberGraphicsState* pcState, CGerberAperture* pcAperture);
 	SGerberVectorBlock*		GetBlock(uint32 uiDCode);

@@ -111,21 +111,6 @@ void CGerberVectoriser::ToMillimetres(CGerberGraphicsState* pcState, SGerberPoin
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberVectoriser::GetTransform(CGerberGraphicsState* pcState, SFloat64Vec2* psFlash, SGerberVectorTransform* psTransform)
-{
-	psTransform->Init();
-	psTransform->bMirrorX = (pcState->meMirroring == GLM_X) || (pcState->meMirroring == GLM_XY);
-	psTransform->bMirrorY = (pcState->meMirroring == GLM_Y) || (pcState->meMirroring == GLM_XY);
-	psTransform->fRotation = pcState->mcRotation.DoubleValue();
-	psTransform->fScale = pcState->mcScaling.DoubleValue();
-	psTransform->sTranslation = *psFlash;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 float64 CGerberVectoriser::GetStrokeRadius(CGerberGraphicsState* pcState)
 {
 	//Draws and arcs are stroked with a solid circle; LS scales it.  4.9.1
@@ -195,7 +180,7 @@ void CGerberVectoriser::Draw(CGerberGraphicsState* pcState, SGerberPoint* psStar
 
 	pcObject = mpcTarget->Add(pcState->mePolarity);
 	pcObject->BeginPart(true);
-	AddGerberStroke(pcObject, &sStart, &sEnd, GetStrokeRadius(pcState));
+	AddVectorStroke(pcObject, &sStart, &sEnd, GetStrokeRadius(pcState));
 	pcObject->CalculateBounds();
 }
 
@@ -225,7 +210,7 @@ void CGerberVectoriser::Arc(CGerberGraphicsState* pcState, SGerberPoint* psStart
 
 	pcObject = mpcTarget->Add(pcState->mePolarity);
 	pcObject->BeginPart(true);
-	AddGerberArcStroke(pcObject, &sStart, &sEnd, &sCenter, bClockwise, GetStrokeRadius(pcState));
+	AddVectorArcStroke(pcObject, &sStart, &sEnd, &sCenter, bClockwise, GetStrokeRadius(pcState));
 	pcObject->CalculateBounds();
 }
 
@@ -287,14 +272,20 @@ SGerberVectorBlock* CGerberVectoriser::GetBlock(uint32 uiDCode)
 void CGerberVectoriser::Flash(CGerberGraphicsState* pcState, SGerberPoint* psPoint)
 {
 	SFloat64Vec2			sFlash;
-	SGerberVectorTransform	sTransform;
+	bool					bMirrorX;
+	bool					bMirrorY;
+	float64					fRotation;
+	float64					fScale;
 	CGerberVectorObject*	pcObject;
 	SGerberVectorBlock*		psBlock;
 	size					i;
 	EGerberPolarity			ePolarity;
 
 	ToMillimetres(pcState, psPoint, &sFlash);
-	GetTransform(pcState, &sFlash, &sTransform);
+	bMirrorX = (pcState->meMirroring == GLM_X) || (pcState->meMirroring == GLM_XY);
+	bMirrorY = (pcState->meMirroring == GLM_Y) || (pcState->meMirroring == GLM_XY);
+	fRotation = pcState->mcRotation.DoubleValue();
+	fScale = pcState->mcScaling.DoubleValue();
 
 	if (pcState->mpcCurrentAperture->IsType(GAT_Block))
 	{
@@ -314,14 +305,14 @@ void CGerberVectoriser::Flash(CGerberGraphicsState* pcState, SGerberPoint* psPoi
 				ePolarity = (ePolarity == GP_Clear) ? GP_Dark : GP_Clear;
 			}
 			pcObject->SetPolarity(ePolarity);
-			pcObject->Transform(&sTransform);
+			pcObject->Transform(bMirrorX, bMirrorY, fRotation, fScale, &sFlash);
 		}
 		return;
 	}
 
 	pcObject = mpcTarget->Add(GetApertureShape(pcState, pcState->mpcCurrentAperture));
 	pcObject->SetPolarity(pcState->mePolarity);
-	pcObject->Transform(&sTransform);
+	pcObject->Transform(bMirrorX, bMirrorY, fRotation, fScale, &sFlash);
 }
 
 
@@ -398,7 +389,7 @@ void CGerberVectoriser::EndStepAndRepeat(CGerberGraphicsState* pcState)
 	uint32					y;
 	size					i;
 	float64					fUnit;
-	SGerberVectorTransform	sTransform;
+	SFloat64Vec2			sTranslation;
 	CGerberVectorObject*	pcObject;
 
 	PopTarget();
@@ -409,12 +400,11 @@ void CGerberVectoriser::EndStepAndRepeat(CGerberGraphicsState* pcState)
 	{
 		for (y = 0; y < mpcStepAndRepeat->GetYRepeats(); y++)
 		{
-			sTransform.Init();
-			sTransform.sTranslation.Init(x * mpcStepAndRepeat->GetXStep()->DoubleValue() * fUnit, y * mpcStepAndRepeat->GetYStep()->DoubleValue() * fUnit);
+			sTranslation.Init(x * mpcStepAndRepeat->GetXStep()->DoubleValue() * fUnit, y * mpcStepAndRepeat->GetYStep()->DoubleValue() * fUnit);
 			for (i = 0; i < mcStepAndRepeat.NumObjects(); i++)
 			{
 				pcObject = mpcTarget->Add(mcStepAndRepeat.GetObject(i));
-				pcObject->Transform(&sTransform);
+				pcObject->Transform(false, false, 0, 1, &sTranslation);
 			}
 		}
 	}
