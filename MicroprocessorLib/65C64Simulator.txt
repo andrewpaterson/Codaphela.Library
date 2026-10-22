@@ -1,0 +1,277 @@
+65C64 simulator
+===============
+
+Source: 658-Computer/W65C64/65C64 Instruction Architecture.xlsx (V0.1 Prelim).
+The pinout, user bank remapping, the internal "cache" SRAM and the programmable
+CPLD are ignored.
+
+The 65C64 classes start with C65 and share no code with the CW65 classes.  The
+structure follows the W65C816S simulator: instructions are lists of bus cycles,
+a bus cycle is a list of address offsets and operations, operations run on the
+initial side (after PHI2 falls, before the address is written) or the trailing
+side (when PHI2 falls at the end of the cycle).
+
+
+Bus
+---
+
+The address bus is 32 bits and the data bus is 16 bits.  Every bus cycle moves one
+aligned 16 bit word.  The address bus carries the word address (A0 is always 0).
+LowerByte and UpperByte say which bytes of the word are transferred: D0-D7 is
+the byte at the even address, D8-D15 the byte at the odd address.  Memory is
+little endian.  Opcodes and operand words are always aligned.  Data can be at any
+address; a value takes one cycle per word it touches.
+
+Signals the simulator drives: RWB, OPV (opcode fetch), VPA (program address),
+VDA (data address), VPB (low while a vector is read), LowerByte and UpperByte.
+Inputs: PHI2, RESB, EIRQB0-3 and LIRQB.
+
+
+Timing
+------
+
+An instruction executes in the cycle its last opcode or operand word is read
+(the user's assumption).  A register-only instruction takes one cycle.  Address
+calculation takes no cycles.  An instruction has
+    1 opcode cycle
+  + 1 cycle per operand word
+  + 2 or 3 cycles to read a 32 bit pointer (indirect modes)
+  + 1 cycle per word read
+  + 1 cycle per word written.
+An instruction is done when none of its remaining bus cycles must execute.
+
+
+Registers
+---------
+
+Register codes (3 bits): 0 = zero, 1 = A, 2 = B, 3 = S, 4 = V, 5 = W, 6 = X, 7 = Y.
+The 2 bit and 1 bit register fields use the lists in the encoding sheet in order.
+A, B, X and Y are 64 bits with widths 8, 16, 32 or 64 (P width code 0, 1, 2, 3).
+Writing a register only changes the bits in its width.  S, V, W and C are 32 bits.
+A register used as an address is its value in its width, zero extended.
+
+P: bits 15-14 a, 13-12 b, 11-10 x, 9-8 y, 7 e, 6 l, 5 f, 4 g, 3 n, 2 v, 1 z, 0 c.
+
+
+Operands
+--------
+
+The first operand is the destination.  The swap bit (or the embedded form, which
+implies swap) makes the memory operand the first operand.
+The operation width is the width of the register operand.  When there is none
+(a memory operand with an embedded value or the zero register) it is 32 bits.
+Embedded values are signed.  Embedded fields decode as: sign clear -> field + 1,
+sign set -> field - 2^bits (e.g. 3 bit field: 1..8 and -8..-1).
+Immediate values are little endian in ceil(bytes / 2) operand words.
+Zero extend / sign extend applies to the second operand when it is narrower
+than the operation.
+Offset modes (6-9) use a 16 bit offset as address 0000:offset.
+Mode 3 and 7 ([Address], [Offset]) ignore their addressing register.
+
+add, sub and cmp do not use the carry as an input (the user: unnecessary on a 64 bit
+ALU; add with carry can be synthesised from 3 instructions).  Signed and unsigned only
+change how the second operand is extended.  c is the carry out (add) or not
+borrow (sub, cmp); v is the signed overflow.
+
+
+Stack
+-----
+
+The default S is 0001:FFFF.  Pushing n bytes stores them at S-n+1 ... S (little
+endian) and subtracts n from S.  Pulling n bytes adds n to S and reads S-n+1 ... S.
+The stack is post-decrement: every register pushed decrements S by its width after
+it is written (confirmed by the user, 2026-10-22).  Values of different widths never
+overlap.
+jsr pushes C then P (if asked); ret and rti pull P (if asked) then C.
+brk pushes C then P on S, reads vector n and adds 1 to the interrupt depth.
+rti subtracts 1 from it.
+psh pushes registers A, B, S, V, W, X, Y in that order; pul pulls them in reverse.
+
+
+Reset
+-----
+
+Two internal cycles then the reset vector at FFFF:FFFC is read.  A, B, X, Y, V and
+W are 0, S is 0001:FFFF, all widths are 8 bits, e and l are set (interrupts
+disabled), f, g, n, v, z and c are clear.  The interrupt depth is 1 (kernel mode).
+
+
+Vectors
+-------
+
+Vectors are 4 byte aligned.  Vector n (the brk operand, 0 to 1023) is at
+FFFF:F000 + 4n.  (The memory map said FFFF:FC00 for Soft Interrupt1014; fixed to F000.)
+
+
+Kernel mode
+-----------
+
+The processor is always in kernel mode (the user, 2026-10-22).  Kernel only
+instructions (stp) always run.  The interrupt depth is still counted.
+
+
+Interrupts
+----------
+
+EIRQB0-3 are edge interrupts: a falling edge is latched as pending.  LIRQB is the level
+interrupt: it is taken while it is low.  e disables all edge interrupts (they stay
+pending), l disables the level interrupt.  Interrupts are taken at instruction
+boundaries, edge interrupt 0 first, then 1, 2, 3, then the level interrupt.
+Taking one replaces the opcode fetch: C (the next instruction) and P are pushed on S,
+the vector is read (VPB low) and the interrupt depth goes up by 1, 5 cycles when S is
+aligned.  An edge interrupt then sets e and l, a level interrupt sets l (the user's
+choice, 2026-10-22).  brk sets neither.  rti restores both from the pulled P.
+stp with wake bits waits (WAI) until an interrupt it allows arrives, even a disabled
+one.  If that interrupt is disabled execution carries on after stp (the user's
+choice), otherwise it is taken with C pointing after stp.  stp without wake bits
+stops until reset.  Interrupts that do not wake stp stay pending.
+
+
+Subcopy
+-------
+
+scp and scb copy a count of bytes (bits) from an index in the source register to an
+index in the destination register, indices incrementing, ignoring the registers'
+widths (the spreadsheet).  Two cycles: the opcode and the index word.  The count and
+indices are embedded or registers; an embedded bit count is 1 to 64 with its top two
+bits in the index word (w8 adds 16, w0 adds 32).  Count and index registers are read
+at their set width.  S, V and W only hold 32 bits.
+Choices (not in the spreadsheet): source bits past bit 63 read as 0, destination bits
+past bit 63 are dropped; the source is read before the destination is written (so a
+copy within one register works); n and z are set from the destination at its set
+width, like cpy.
+
+
+Negate and absolute
+-------------------
+
+The first register gets 0 - (abs of) the second, at the first register's width, the
+second sign extended (which field is which is not stated; it follows cpy; confirmed by
+the user 2026-10-22).
+abs sets n when the source was negative (the spreadsheet).  One cycle.
+
+
+Find
+----
+
+fsbi, fcbi, fscr, fccr, fsny, fcny, fsby, fcby (crumbs are in the encoding sheet only):
+scan the first register (within its width) from the unit at the index register, up or
+down, for a unit with any bit set (find set) or any bit clear (find clear).  If c is
+set the index moves on first.  c is always set afterwards, v is set when no unit was
+found.  One cycle.  When nothing is found the index is left one past the end
+(the width in units going up, all ones going down; confirmed by the user).
+
+
+Bit to status, status to bit, status to status
+----------------------------------------------
+
+The status flag fields use the branch numbering (0, 1, c, z, n, v, f, g) for
+all three; the spreadsheet lists "c, z, n, v, f or g" for bist and stat without
+numbers (confirmed by the user).  0 and 1 cannot be a destination.
+Index style 7 is a register (operand word bits 15-13), 6 is immediate (operand word bits
+15-10), 0 to 5 is the bit index (no operand word).
+stab writes a run of bits when it has an operand word: bits 9-8 are the repeat style
+(0 register up, 1 immediate up, 2 register down, 3 immediate down), bits 7-5 the
+register or 7-2 the immediate count.  32 or more repeated bits take a cycle more (the
+Arithmetic Shift sheet).  Bits outside 0 to 63 are dropped; the register's width is
+ignored, like subcopy.  The index register is not changed (confirmed by the user).
+
+
+Push and pull of an operand
+---------------------------
+
+psh pushes an immediate at its own width, or the 32 bit value at an address (read
+first, like pei; 32 bits because there is no register).  pul pulls 32 bits and writes
+them to an address.  The stack register is any of A, B, S, V, W, X, Y.
+
+
+Block operations
+----------------
+
+D is the data: the value loaded from [V], or the operation's result (the Notes column,
+pointed out by the user).  z and n are set from D, v when A is negative after its
+decrement.  A step works on one element at V, then moves V up or down by the element
+width and decrements A.  C stays on the opcode (the instruction repeats and can be
+interrupted between steps) until v is set, or stopping is allowed and the stop style
+holds: 0 z set, 1 z clear, 2 n set, 3 n clear.  A step is the opcode cycle plus a cycle
+per word read and written.
+The element width is r, R's width (the user; the formulas' "V+a" means r).  R is
+B, S, V, W, X or Y: A is the count (the user; the encoding sheet listed A too).
+Encoding (moved by the user to instruction code 8, 2026-10-22): b15 V direction, b14
+allow stop, b13-12 stop style, b11-9 R, b8-5 sub instruction, b4 0 = block (1 = vector).
+Done: bcpy (sub instruction 0), band (2), bpcpy (12), bpand (13), bpor (14) and bpxor
+(15).  bcpy only writes: R -> [V], no read, only v is set (n and z are unchanged, so an
+allowed stop condition tests them as they were).  The "pre" operations ("Read" in the
+encoding sheet) read [V] and set n and z from the value read, so a stop condition can end
+them early, then write R (bpcpy) or [V] and/or/xor R.
+Why (the user, 2026-10-22): the stop condition must see the original element, which the
+operation may change.  For example bpand $7F with stop on negative strips the bit 7 end
+marker from a high bit terminated string and stops at its last character; bpand $DF
+with stop on zero upper cases a zero terminated string and stops at the terminator even
+if an element ANDs to zero.
+
+
+Vector operations
+-----------------
+
+Instruction code 8 with b4 = 1: b15 V direction, b14 allow stop, b13-12 stop style,
+b11 W direction, b10-9 element width (8, 16, 32, 64 bits), b8-5 sub instruction (the
+same numbering as the block operations: 0 copy, 1 invert, 2 and, 3 test, 4 or, 5 xor,
+6 add, 8 subtract, 10 compare, 12-15 pre copy/and/or/xor).  The signed add, subtract
+and compare (7, 9, 11) were dropped by the user (2026-10-22); add, subtract and compare
+are the former unsigned ones.
+A step reads [W], then [V] (not for copy and invert), computes D = [V] op [W] (the user)
+or [W] / ![W], and writes D to [V] (not for test and compare).  n and z come from D, for
+the pre operations from the original [V] (like the block pre operations).  V and W move
+by the element width, A counts and v is set when it is negative; C stays on the opcode
+until then or until an allowed stop condition holds.
+A step is the opcode cycle plus a cycle per word of [W] and [V] read and [V] written.
+
+
+Multiply and divide
+-------------------
+
+Both are unsigned, take one cycle a step (the opcode fetch) and leave C on their
+opcode until the last step, so they repeat and can be interrupted between steps.
+v (done) and z (Y is 0) are set every step (the user, 2026-10-22).
+
+mul: A x B -> Y, a byte of B a step.  W counts B's nybbles, 2 a step, and the
+operation is done when W = 2 x (B's width in bytes).  The first step (W = 0) clears Y
+(the Multiplication sheet's "initialisation").  The product is truncated to Y's width.
+
+div: base 16 long division, a nybble a step (the user: "not well thought through",
+details agreed 2026-10-22).  Y's top nybble moves into the remainder B, the largest
+multiple of A that fits (at most 15) is subtracted, and the quotient nybble moves into
+Y's bottom: Y goes from the dividend to the quotient.  W counts the steps, done at
+2 x (Y's width in bytes).  B and W must be 0 at the start.  The remainder is truncated
+to B's width every step (the user).  c is set when B is not 0.  Dividing by 0 gives
+quotient nybbles of 15.  (The Instructions sheet calls B the quotient and W the remainder.)
+
+Both run every step in full: nothing is cut short because a value is zero (the user).
+
+
+Decisions on inconsistent or missing parts of the spreadsheet
+---------------------------------------------------------------
+
+Branch sub codes: 0 = first clear, 1 = first set (the opcode encoding sheet is correct;
+the Instructions sheet was changed to match).
+Branch offsets are in bytes (block move example).  The branch always offset
+(-64 to 63) is also in bytes.
+nop with wait n takes 1 + n cycles.
+gwth returns the width in bits (the ror example).  wth, wtth and wthx take widths
+in bytes (1 to 8: 1 = 8 bits, 2 = 16, 3-4 = 32, 5-8 = 64).  A register operand
+for wth is a byte count too.
+Undefined encodings execute as a one cycle "ill" that does nothing.
+shl: c is the last bit shifted out, v the one before it.  shr: the same, and n is the
+sign before the shift.  A shift of 0 clears c and v.
+The block move example's "cpy B, X+W" and "cpy Y+W, B" cannot be encoded: the first
+register of the register + register modes must be A, B, S or V (Test65C64BlockCopy
+uses V+W and A+W).
+
+
+Not implemented yet
+-------------------
+
+Hardware interrupts 0-2 (they need the hardware registers), the interrupt vector
+offset register, hardware register instructions (ignored by request), block operations
+other than bcpy, band and the pre operations.

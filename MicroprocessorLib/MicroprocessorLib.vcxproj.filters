@@ -46,6 +46,24 @@
     <Filter Include="Source\WDC\W65C816\Meta">
       <UniqueIdentifier>{ec5393fa-0d73-4725-b944-252c3341b250}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Codaphela">
+      <UniqueIdentifier>{22a2d622-caba-4c5b-8513-2bdad7391b6a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Codaphela\65C64">
+      <UniqueIdentifier>{d9eb2912-a272-4f5b-976a-64861653558f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Codaphela\65C64\Meta">
+      <UniqueIdentifier>{fe1d7438-ebbb-4e2a-9f94-1dec7f202b7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Codaphela\65C64\Instruction">
+      <UniqueIdentifier>{a797f6d9-9f73-4062-8b6e-ef84b573aee1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Codaphela\65C64\Instruction\Address">
+      <UniqueIdentifier>{f9717be9-5310-49b0-b9de-3d2656819f8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Codaphela\65C64\Instruction\Operation">
+      <UniqueIdentifier>{0d0e5ff7-c520-4811-bb83-e0be944c9270}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="W65CCore.cpp">
@@ -368,6 +386,123 @@
     </ClCompile>
     <ClCompile Include="W65MetaSignal.cpp">
       <Filter>Source\Meta</Filter>
+    </ClCompile>
+    <ClCompile Include="65AddressOffset.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="65AddressOffsetArray.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClCompile>
+    <ClCompile Include="65BusCycle.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClCompile>
+    <ClCompile Include="65BusCycleArray.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClCompile>
+    <ClCompile Include="65C64.cpp">
+      <Filter>Source\Codaphela\65C64</Filter>
+    </ClCompile>
+    <ClCompile Include="65C64Decoded.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClCompile>
+    <ClCompile Include="65C64InstructionCycleFactory.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClCompile>
+    <ClCompile Include="65C64InstructionFactory.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClCompile>
+    <ClCompile Include="65C64Meta.cpp">
+      <Filter>Source\Codaphela\65C64\Meta</Filter>
+    </ClCompile>
+    <ClCompile Include="65C64Pins.cpp">
+      <Filter>Source\Codaphela\65C64\Meta</Filter>
+    </ClCompile>
+    <ClCompile Include="65ConstantOffset.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="65DataOperation.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="65DoneInstruction.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="65Execute.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="65ExecuteIfLastPointerWord.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="65ExecuteIfLastTransferWord.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="65IncrementProgramCounter.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="65Instruction.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClCompile>
+    <ClCompile Include="65InstructionCycles.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClCompile>
+    <ClCompile Include="65InternalOperation.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="65MetaBus16.cpp">
+      <Filter>Source\Codaphela\65C64\Meta</Filter>
+    </ClCompile>
+    <ClCompile Include="65MetaBus32.cpp">
+      <Filter>Source\Codaphela\65C64\Meta</Filter>
+    </ClCompile>
+    <ClCompile Include="65MetaSignal.cpp">
+      <Filter>Source\Codaphela\65C64\Meta</Filter>
+    </ClCompile>
+    <ClCompile Include="65MetaTrace.cpp">
+      <Filter>Source\Codaphela\65C64\Meta</Filter>
+    </ClCompile>
+    <ClCompile Include="65OpcodeCycle.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="65Operation.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="65OperationArray.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClCompile>
+    <ClCompile Include="65PointerAddressOffset.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="65ProgramCounterOffset.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="65ReadOpcode.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="65ReadOperandWord.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="65ReadPointerWord.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="65ReadTransferWord.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="65ReadVectorWord.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="65TraceValue.cpp">
+      <Filter>Source\Codaphela\65C64\Meta</Filter>
+    </ClCompile>
+    <ClCompile Include="65TransferWordOffset.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="65VectorAddressOffset.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="65WaitOperation.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="65WriteTransferWord.cpp">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -719,5 +854,136 @@
     <ClInclude Include="W65MetaSignal.h">
       <Filter>Source\Meta</Filter>
     </ClInclude>
+    <ClInclude Include="65AddressOffset.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="65AddressOffsetArray.h">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="65BusCycle.h">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="65BusCycleArray.h">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="65BusCycleParameter.h">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="65C64.h">
+      <Filter>Source\Codaphela\65C64</Filter>
+    </ClInclude>
+    <ClInclude Include="65C64Decoded.h">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="65C64Func.h">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="65C64InstructionCycleFactory.h">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="65C64InstructionFactory.h">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="65C64Meta.h">
+      <Filter>Source\Codaphela\65C64\Meta</Filter>
+    </ClInclude>
+    <ClInclude Include="65C64Pins.h">
+      <Filter>Source\Codaphela\65C64\Meta</Filter>
+    </ClInclude>
+    <ClInclude Include="65ConstantOffset.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="65DataOperation.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="65DoneInstruction.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="65Execute.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="65ExecuteIfLastPointerWord.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="65ExecuteIfLastTransferWord.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="65IncrementProgramCounter.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="65Instruction.h">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="65InstructionCycles.h">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="65InternalOperation.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="65MetaBus16.h">
+      <Filter>Source\Codaphela\65C64\Meta</Filter>
+    </ClInclude>
+    <ClInclude Include="65MetaBus32.h">
+      <Filter>Source\Codaphela\65C64\Meta</Filter>
+    </ClInclude>
+    <ClInclude Include="65MetaSignal.h">
+      <Filter>Source\Codaphela\65C64\Meta</Filter>
+    </ClInclude>
+    <ClInclude Include="65MetaTrace.h">
+      <Filter>Source\Codaphela\65C64\Meta</Filter>
+    </ClInclude>
+    <ClInclude Include="65OpcodeCycle.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="65Operation.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="65OperationArray.h">
+      <Filter>Source\Codaphela\65C64\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="65PointerAddressOffset.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="65ProgramCounterOffset.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="65ReadOpcode.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="65ReadOperandWord.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="65ReadPointerWord.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="65ReadTransferWord.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="65ReadVectorWord.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="65Timeline.h">
+      <Filter>Source\Codaphela\65C64\Meta</Filter>
+    </ClInclude>
+    <ClInclude Include="65TraceValue.h">
+      <Filter>Source\Codaphela\65C64\Meta</Filter>
+    </ClInclude>
+    <ClInclude Include="65TransferWordOffset.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="65VectorAddressOffset.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="65WaitOperation.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="65WriteTransferWord.h">
+      <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="65C64Simulator.txt">
+      <Filter>Source\Codaphela\65C64</Filter>
+    </None>
   </ItemGroup>
 </Project>

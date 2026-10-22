@@ -1,0 +1,60 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2026 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela MicroprocessorLib
+
+Codaphela StandardLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela StandardLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#include "65C64.h"
+#include "65TransferWordOffset.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void C65TransferWordOffset::Init(uint8 uiWord, bool bWrite)
+{
+	C65AddressOffset::Init();
+	muiWord = uiWord;
+	mbWrite = bWrite;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 C65TransferWordOffset::GetOffset(C65C64* pcCPU)
+{
+	if (mbWrite)
+	{
+		return pcCPU->GetWriteWordAddress(muiWord);
+	}
+	return pcCPU->GetReadWordAddress(muiWord);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void C65TransferWordOffset::Print(CChars* psz)
+{
+	psz->Append(mbWrite ? "W" : "R");
+	psz->Append((uint32)muiWord);
+}
+
