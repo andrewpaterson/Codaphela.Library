@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{b239338f-2086-423a-8abf-7f37cd258189}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="X11Canvas.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="X11Input.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="X11Window.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="X11WindowFactory.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="X11Canvas.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="X11Input.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="X11Window.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="X11WindowFactory.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
