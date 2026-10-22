@@ -333,6 +333,7 @@
     <ClInclude Include="ImageSourceDiskFile.h" />
     <ClInclude Include="ImageSourceMemory.h" />
     <ClInclude Include="ColourARGB32.h" />
+    <ClInclude Include="ColourBlend.h" />
     <ClInclude Include="ImageColour.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MaterialHelper.h" />
@@ -416,6 +417,9 @@
     <ClInclude Include="TrueTypeFontFactory.h" />
     <ClInclude Include="TrueTypeOutline.h" />
     <ClInclude Include="CoverageRasteriser.h" />
+    <ClInclude Include="VectorPath.h" />
+    <ClInclude Include="VectorRasteriser.h" />
+    <ClInclude Include="VectorShapes.h" />
     <ClInclude Include="TrueTypeRasteriser.h" />
   </ItemGroup>
   <ItemGroup>
@@ -551,6 +555,7 @@
     <ClCompile Include="ImageSourceDiskFile.cpp" />
     <ClCompile Include="ImageSourceMemory.cpp" />
     <ClCompile Include="ColourARGB32.cpp" />
+    <ClCompile Include="ColourBlend.cpp" />
     <ClCompile Include="ImageColour.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MaterialHelper.cpp" />
@@ -630,6 +635,9 @@
     <ClCompile Include="TrueTypeFontFactory.cpp" />
     <ClCompile Include="TrueTypeOutline.cpp" />
     <ClCompile Include="CoverageRasteriser.cpp" />
+    <ClCompile Include="VectorPath.cpp" />
+    <ClCompile Include="VectorRasteriser.cpp" />
+    <ClCompile Include="VectorShapes.cpp" />
     <ClCompile Include="TrueTypeRasteriser.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

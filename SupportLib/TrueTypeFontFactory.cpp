@@ -93,13 +93,14 @@ Ptr<CImage> CTrueTypeFontFactory::Rasterise(char* szUTF8Characters, CImageColour
 //
 // Makes a font from the characters last rasterised into pImage.  Each
 // glyph's full size is its advance by the ascent plus descent, with the
-// top of the line at the top.
+// top of the line at the top.  The font only keeps where each glyph is in
+// the image, the glyphs are generated as they are asked for.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CFont> CTrueTypeFontFactory::Generate(char* szName, Ptr<CImage> pImage)
 {
 	Ptr<CFont>				pFont;
-	Ptr<CImageCel>			pCel;
+	CSubImage				cSubImage;
 	size					i;
 	STrueTypeFontCharacter*	psCharacter;
 	int						iSpaceWidth;
@@ -122,21 +123,20 @@ Ptr<CFont> CTrueTypeFontFactory::Generate(char* szName, Ptr<CImage> pImage)
 		{
 			//Offsets are negative where a glyph overhangs its advance or the line.
 			iTopOffset = miAscent + psCharacter->iTop;
-			pCel = OMalloc<CImageCel>(pImage,
-									  psCharacter->iImageLeft,
-									  psCharacter->iImageTop,
-									  psCharacter->iImageLeft + psCharacter->iImageWidth,
-									  psCharacter->iImageTop + psCharacter->iImageHeight,
-									  psCharacter->iBearing,
-									  iTopOffset,
-									  psCharacter->iAdvance - psCharacter->iBearing - psCharacter->iImageWidth,
-									  iLineHeight - iTopOffset - psCharacter->iImageHeight);
+			cSubImage.Init(psCharacter->iImageLeft,
+						   psCharacter->iImageTop,
+						   psCharacter->iImageLeft + psCharacter->iImageWidth,
+						   psCharacter->iImageTop + psCharacter->iImageHeight,
+						   psCharacter->iBearing,
+						   iTopOffset,
+						   psCharacter->iAdvance - psCharacter->iBearing - psCharacter->iImageWidth,
+						   iLineHeight - iTopOffset - psCharacter->iImageHeight);
 		}
 		else
 		{
-			pCel = OMalloc<CImageCel>(pImage, 0, 0, 0, 0, psCharacter->iAdvance, 0, 0, iLineHeight);
+			cSubImage.Init(0, 0, 0, 0, psCharacter->iAdvance, 0, 0, iLineHeight);
 		}
-		pFont->PutGlyph(psCharacter->uiCodePoint, psCharacter->uiCodePointLength, pCel, (int16)psCharacter->iAdvance);
+		pFont->PutGlyph(psCharacter->uiCodePoint, psCharacter->uiCodePointLength, &cSubImage, (int16)psCharacter->iAdvance);
 	}
 	pFont->SetImage(pImage);
 	return pFont;

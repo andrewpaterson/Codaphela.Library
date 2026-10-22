@@ -24,6 +24,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArraySize.h"
 #include "BaseLib/FixedPoint.h"
 #include "BaseLib/IntegerHelper.h"
+#include "ColourBlend.h"
 #include "ImageAccessorCreator.h"
 #include "TrueTypeRasteriser.h"
 
@@ -694,7 +695,7 @@ bool CTrueTypeRasteriser::BlendCoverage(Ptr<CImage> pcDest, int iDestX, int iDes
 			pcAccessor->Get(iDestX + x, iDestY + y, auiPixel);
 			for (i = 0; i < uiNumChannels; i++)
 			{
-				auiPixel[i] = (uint8)DivideRound((int64)auiPixel[i] * (255 - iCoverage) + (int64)aiColour[i] * iCoverage, 255);
+				auiPixel[i] = BlendLerpByte(auiPixel[i], aiColour[i], iCoverage);
 			}
 			pcAccessor->Set(iDestX + x, iDestY + y, auiPixel);
 		}
