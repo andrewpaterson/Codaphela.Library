@@ -1,0 +1,58 @@
+C++ Parser To Do
+================
+
+What is left after the preprocessor, tokeniser, parser and highlighter were written (2026-10-21).  In order of priority.  Goal: highlighting first, then refactoring, then compiling to a VM that is not written yet.
+
+
+1. Verify on Windows and commit
+-------------------------------
+
+Nothing from this work has been tested on Windows yet.  All of it is uncommitted.
+  - The CppParserLib rewrite, including the vcxproj and filter changes for about 90 new files and 60 deleted ones.
+  - The BaseLib fixes the parser found (LinkedListTemplate, ArrayTemplateEmbedded, ArrayTemplateEmbeddedPrimitive, ArraySparseTemplate, missing includes).
+  - The JavaParserLib float96 -> float128 fix.
+  - The GameLib deletion.
+
+Run TestCppParserLib, TestBaseLib, TestStandardLib and TestSupportLib, then commit.
+
+
+2. Expression types and member resolution
+-----------------------------------------
+
+The first part of the semantic pass, and the next thing to do.
+
+Today the highlighter cannot tell what p->x refers to.  It marks x as "member", which is hundreds of identifiers per file.  Knowing the type of each expression fixes that, and refactoring and compiling need it anyway.
+
+Steps:
+  - Build a table of types: built-ins, pointers, references, classes, typedefs, enums.
+  - Give every expression a type.
+  - Look up names after ".", "->" and "::" in that type, including base classes.
+  - Add a sweep check that counts the "member" highlight spans that remain.
+
+Overload resolution and template instantiation come after this.
+
+
+3. Name-lookup gaps in the parser
+---------------------------------
+
+Small.  Some could be done along with item 2.
+  - "using Base<M>::x;" declarations that name members of a template base class.
+  - Field names inside offsetof(...).
+  - goto labels.  The highlighter guesses them now instead of looking them up.
+  - Qualified member calls inside templates, such as pvM->CBaseObject::CompleteClass(this) in StandardLib/Classes.h.
+
+
+4. Show the highlighting somewhere
+----------------------------------
+
+Right now the highlighting is only spans checked by tests.
+  - A small HTML export would be the quickest way to see it on real files.
+  - Colouring code in the WindowLib text components is the real use, but needs coloured text spans first, which CTextArea does not support.
+
+
+5. Smaller items
+----------------
+
+  - Decide what happens to WorldLib: port it, or leave it as dead code.  It refers to things that no longer exist (CUnknown, Float3Normalize, Float3Cross, Float3Length, CMeshVertexArrayArray, CStandardTrackerObject) and needs DirectX.  It is not in any .sln.
+  - Add a Linux CMake build for TestJavaParserLib, so its tests run after the float128 fix.
+  - Instantiate every BaseLib template class in a test, to catch bugs the parser cannot see yet.  That is how the CArrayTemplateEmbeddedPrimitive bugs were found.
