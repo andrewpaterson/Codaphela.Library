@@ -24,6 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "SpriteMap.h"
+#include "GeometryMap.h"
 #include "Text.h"
 #include "TextLayout.h"
 #include "BaseFontDraw.h"
@@ -35,9 +36,11 @@ CONSTRUCTABLE(CMapFontDraw);
 DESTRUCTABLE(CMapFontDraw);
 protected:
 	Ptr<CSpriteMap>		mpMap;
+	Ptr<CGeometryMap>	mpGeometryMap;  //For the lines drawn with the text.  NULL if they aren't drawn.
 
 public:
 	void	Init(Ptr<CSpriteMap> pMap);
+	void	Init(Ptr<CSpriteMap> pMap, Ptr<CGeometryMap> pGeometryMap);
 	void	Class(void) override;
 	void 	Free(void) override;
 
@@ -46,6 +49,7 @@ public:
 
 	void	Begin(void) override;
 	void	Place(Ptr<CGlyph> pGlyph, int32 x, int32 y) override;
+	void	Rectangle(int32 x, int32 y, int32 iWidth, int32 iHeight, ARGB32 sColour) override;
 	void	End(void) override;
 };
 

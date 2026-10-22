@@ -9,10 +9,23 @@
 //////////////////////////////////////////////////////////////////////////
 void CMapFontDraw::Init(Ptr<CSpriteMap> pMap)
 {
+	Init(pMap, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Glyphs are placed as sprites in pMap and lines drawn with the text are
+// put in pGeometryMap.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapFontDraw::Init(Ptr<CSpriteMap> pMap, Ptr<CGeometryMap> pGeometryMap)
+{
 	PreInit();
 
 	CBaseFontDraw::Init();
 	mpMap = pMap;
+	mpGeometryMap = pGeometryMap;
 
 	PostInit();
 }
@@ -25,6 +38,7 @@ void CMapFontDraw::Init(Ptr<CSpriteMap> pMap)
 void CMapFontDraw::Class(void)
 {
 	M_Pointer(mpMap);
+	M_Pointer(mpGeometryMap);
 }
 
 
@@ -66,6 +80,23 @@ void CMapFontDraw::Begin(void)
 {
 	mpMap->BeginChange();
 	mpMap->Clear();
+	if (mpGeometryMap.IsNotNull())
+	{
+		mpGeometryMap->Clear();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapFontDraw::Rectangle(int32 x, int32 y, int32 iWidth, int32 iHeight, ARGB32 sColour)
+{
+	if (mpGeometryMap.IsNotNull())
+	{
+		mpGeometryMap->AddRectangle(x, y, iWidth, iHeight, sColour);
+	}
 }
 
 

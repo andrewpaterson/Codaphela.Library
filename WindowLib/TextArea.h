@@ -28,6 +28,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/TextLayout.h"
 #include "SupportLib/SimpleTextReader.h"
 #include "SupportLib/SpriteMap.h"
+#include "SupportLib/GeometryMap.h"
 #include "SupportLib/MapFontDraw.h"
 #include "SupportLib/Maps.h"
 #include "Canvas.h"
@@ -53,7 +54,8 @@ typedef CArrayTemplate<STextAreaSpan>	CArrayTextAreaSpan;
 //narrower so its required width is the width of the laid out text.  Its required height is the height of the laid
 //out lines, wrapped or not.
 //
-//The text is drawn in the faces, sizes and colours of a font family (see CFontFamily).  Text is in the text area's
+//The text is drawn in the faces, sizes and colours of a font family (see CFontFamily), and can be underlined, overlined
+//and struck through in its colour.  Text is in the text area's
 //style (regular, the family's default size, opaque white unless set) except where spans override parts of it; where
 //spans overlap each property takes the value of the last span added that sets it.  Spans are applied when the text
 //area is next laid out, drawn or asked its size.
@@ -71,6 +73,7 @@ protected:
 	Ptr<CText>			mpText;
 	Ptr<CTextLayout>	mpLayout;
 	Ptr<CSpriteMap>		mpSpriteMap;
+	Ptr<CGeometryMap>	mpGeometryMap;  //The lines drawn along the text, over it.
 	Ptr<CMapFontDraw>	mpFontDraw;
 	Ptr<CMaps>			mpMaps;
 	bool				mbWordWrap;

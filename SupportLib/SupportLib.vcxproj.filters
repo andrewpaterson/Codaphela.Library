@@ -708,6 +708,12 @@
     <ClInclude Include="Maps.h">
       <Filter>Source\Map</Filter>
     </ClInclude>
+    <ClInclude Include="BaseMap.h">
+      <Filter>Source\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryMap.h">
+      <Filter>Source\Map</Filter>
+    </ClInclude>
     <ClInclude Include="BlockMap.h">
       <Filter>Source\Map\MovableBlock</Filter>
     </ClInclude>
@@ -1377,6 +1383,12 @@
       <Filter>Source\Map\Sprite</Filter>
     </ClCompile>
     <ClCompile Include="Maps.cpp">
+      <Filter>Source\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseMap.cpp">
+      <Filter>Source\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryMap.cpp">
       <Filter>Source\Map</Filter>
     </ClCompile>
     <ClCompile Include="BlockMap.cpp">

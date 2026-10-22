@@ -32,6 +32,8 @@ void CTextRun::Init(CFont* pcFont, CText* pcText)
 	mpcText = pcText;
 	mapcText.Init();
 	miBaselineShift = 0;
+	muiDecorations = 0;
+	msDecorationColour = 0;
 }
 
 
@@ -53,6 +55,22 @@ int16 CTextRun::GetBaselineShift(void)
 {
 	return miBaselineShift;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// uiDecorations are TD_ flags.  The lines are drawn in sColour.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextRun::SetDecorations(uint8 uiDecorations, ARGB32 sColour)
+{
+	muiDecorations = uiDecorations;
+	msDecorationColour = sColour;
+}
+
+
+uint8 CTextRun::GetDecorations(void) { return muiDecorations; }
+ARGB32 CTextRun::GetDecorationColour(void) { return msDecorationColour; }
 
 
 //////////////////////////////////////////////////////////////////////////

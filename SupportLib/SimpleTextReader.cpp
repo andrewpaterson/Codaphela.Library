@@ -131,11 +131,13 @@ Ptr<CText> CSimpleTextReader::Read(CUnicodeReader* pcUnicodeReader, bool bNewLin
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void STextFontChange::Init(size uiPosition, CFont* pcFont, int16 iBaselineShift)
+void STextFontChange::Init(size uiPosition, CFont* pcFont, int16 iBaselineShift, uint8 uiDecorations, ARGB32 sDecorationColour)
 {
 	this->uiPosition = uiPosition;
 	this->pcFont = pcFont;
 	this->iBaselineShift = iBaselineShift;
+	this->uiDecorations = uiDecorations;
+	this->sDecorationColour = sDecorationColour;
 }
 
 
@@ -177,7 +179,7 @@ Ptr<CText> CSimpleTextReader::Read(CUnicodeReader* pcUnicodeReader, bool bNewLin
 			{
 				break;
 			}
-			bResult = cTextBuilder.SetFont(psChange->pcFont, psChange->iBaselineShift);
+			bResult = cTextBuilder.SetFont(psChange->pcFont, psChange->iBaselineShift, psChange->uiDecorations, psChange->sDecorationColour);
 			if (!bResult)
 			{
 				cTextBuilder.Kill();

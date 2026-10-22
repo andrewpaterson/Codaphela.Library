@@ -41,20 +41,33 @@ struct STextLayoutMark
 
 //A glyph of the word being laid out, held until the end of the word is found so the whole word can be moved to the
 //next line if it doesn't fit.
+//The font, baseline shift and decorations of the run a glyph is from.
+struct STextLayoutRunStyle
+{
+	CFont*		pcFont;
+	int16		iBaselineShift;
+	uint8		uiDecorations;		//TD_ flags.
+	ARGB32		sDecorationColour;
+};
+
+
 struct STextLayoutGlyph
 {
-	CGlyph*		pcGlyph;
-	int16		iAscent;   //Of the font the glyph is from.
-	int16		iDescent;
+	CGlyph*					pcGlyph;
+	int16					iAscent;   //Of the font the glyph is from, moved by its baseline shift.
+	int16					iDescent;
+	STextLayoutRunStyle		sStyle;
 };
 
 
 //A glyph placed on the line being laid out, held until the end of the line when the line's baseline is known.
 struct STextLayoutLineGlyph
 {
-	CGlyph*		pcGlyph;
-	int32		x;
-	int16		iAscent;  //Of the font the glyph is from.
+	CGlyph*					pcGlyph;
+	int32					x;
+	int16					iAscent;  //Of the font the glyph is from, moved by its baseline shift.
+	bool					bSpace;
+	STextLayoutRunStyle		sStyle;
 };
 
 
@@ -79,6 +92,7 @@ protected:
 	CArrayTextLayoutGlyph	masWord;
 	CArrayTextLayoutLineGlyph	masLine;
 	int32			miWordWidth;
+	STextLayoutRunStyle	msRunStyle;  //Of the run being laid out.
 
 public:
 	void			Init(void);
@@ -96,8 +110,10 @@ public:
 
 protected:
 	void			Glyph(Ptr<CGlyph> pGlyph, bool bSpace);
-	void			PlaceGlyph(Ptr<CGlyph> pGlyph, int16 iAscent, int16 iDescent, bool bSize);
+	void			PlaceGlyph(Ptr<CGlyph> pGlyph, int16 iAscent, int16 iDescent, bool bSize, bool bSpace, STextLayoutRunStyle* psStyle);
 	void			EndLine(void);
+	void			DecorateLine(int32 iBaseline);
+	void			DecorateStretch(uint8 uiDecoration, int32 iBaseline, size uiFirst, size uiEnd);
 	void			EndWord(void);
 	void			NewLine(void);
 

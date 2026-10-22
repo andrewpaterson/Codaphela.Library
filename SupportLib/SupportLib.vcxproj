@@ -247,6 +247,8 @@
     <ClInclude Include="ImageDraw.h" />
     <ClInclude Include="ImageReaderHelper.h" />
     <ClInclude Include="ImageToR3G3B2A.h" />
+    <ClInclude Include="BaseMap.h" />
+    <ClInclude Include="GeometryMap.h" />
     <ClInclude Include="BlockMap.h" />
     <ClInclude Include="PNGWriter.h" />
     <ClInclude Include="Scene.h" />
@@ -467,6 +469,8 @@
     <ClCompile Include="ImageReaderHelper.cpp" />
     <ClCompile Include="ImageToR3G3B2A.cpp" />
     <ClCompile Include="MapViewport.cpp" />
+    <ClCompile Include="BaseMap.cpp" />
+    <ClCompile Include="GeometryMap.cpp" />
     <ClCompile Include="BlockMap.cpp" />
     <ClCompile Include="MultiImageCopier.cpp" />
     <ClCompile Include="PNGWriter.cpp" />

@@ -32,9 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 void CBlockMap::Init(void)
 {
 	PreInit();
-
-	mbActive = false;
-
+	CBaseMap::Init();
 	PostInit();
 }
 
@@ -45,6 +43,7 @@ void CBlockMap::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CBlockMap::Free(void)
 {
+	CBaseMap::Free();
 }
 
 
@@ -54,7 +53,7 @@ void CBlockMap::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CBlockMap::Class(void)
 {
-	U_Bool(mbActive);
+	CBaseMap::Class();
 }
 
 
@@ -82,18 +81,9 @@ bool CBlockMap::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBlockMap::Activate(void)
+CBlockMap* CBlockMap::GetBlockMap(void)
 {
-	mbActive = true;
+	return this;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBlockMap::Deactivate(void)
-{
-	mbActive = false;
-}
 
