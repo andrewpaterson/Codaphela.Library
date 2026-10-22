@@ -64,6 +64,7 @@
     <ClCompile Include="GerberPanelTabs.cpp" />
     <ClCompile Include="GerberPanelEdgeCuts.cpp" />
     <ClCompile Include="GerberPanelFiles.cpp" />
+    <ClCompile Include="GerberBoardRenderer.cpp" />
     <ClCompile Include="GerberCommandFileAttribute.cpp" />
     <ClCompile Include="GerberExpression.cpp" />
     <ClCompile Include="GerberExpressionPosition.cpp" />
@@ -127,6 +128,7 @@
     <ClInclude Include="GerberPanelTabs.h" />
     <ClInclude Include="GerberPanelEdgeCuts.h" />
     <ClInclude Include="GerberPanelFiles.h" />
+    <ClInclude Include="GerberBoardRenderer.h" />
     <ClInclude Include="GerberCommand.h" />
     <ClInclude Include="GerberCommandApertureAttribute.h" />
     <ClInclude Include="GerberCommandApertureMacro.h" />

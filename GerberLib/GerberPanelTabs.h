@@ -26,12 +26,12 @@ typedef CArrayTemplate<SGerberPanelTab>	CArrayGerberPanelTab;
 
 //Joins neighbouring boards with tabs, and makes mouse bites: a row of holes along each board's edge where its tab
 //snaps off.  The holes sit in the tab with their edges on the board outline (a hole offset of minus the radius); a
-//positive offset would put them into the board.  Snapping leaves small stubs on the edge to file off.  Boards are neighbours where the gap between their outlines is about the panel's router gap.  Tabs only
-//go where both edges are straight, so not on rounded corners or notches.  Each straight stretch both boards share
-//gets one tab per 30mm (rounded up), spread evenly.  Every board has to be joined to the others; with no frame a
-//loose board would fall out.
-//Mouse bites must not cut copper: every board's copper is drawn on a panel raster and a tab whose holes come within
-//the clearance of copper slides along its straight edge to the nearest clear place, or is dropped if there is none.
+//positive offset would put them into the board.  Snapping leaves small stubs on the edge to file off.
+//Boards are neighbours where the gap between their outlines is about the panel's router gap.  The edges facing each
+//other get one tab per 30mm of their length (rounded up), spread evenly, so a notch doesn't make an edge count
+//twice.  Each tab then moves to the nearest place that is straight on both edges (not a rounded corner or a notch)
+//and where its holes keep the clearance from every board's copper, which is drawn on a panel raster.  A tab with
+//nowhere to go is dropped.  Every board has to be joined to the others; with no frame a loose board would fall out.
 class CGerberPanelTabs
 {
 protected:
@@ -59,13 +59,14 @@ public:
 	void				GetMouseBites(CArrayFloat64Vec2* pasHoles);
 	void				GetTabHoles(SGerberPanelTab* psTab, CArrayFloat64Vec2* pasHoles);
 	float64				GetHoleDiameter(void);
-	size				NumMoved(void);  //Tabs moved off copper.
-	size				NumDropped(void);  //Tabs with nowhere clear of copper.
+	size				NumMoved(void);  //Tabs moved from their even spacing, off a notch, a corner or copper.
+	size				NumDropped(void);  //Tabs with nowhere straight and clear of copper.
 
 protected:
 	void				FindTabs(CGerberPanelOutlines* pcOutlines, size uiBoardA, size uiBoardB, bool bAcrossX, float64 fGap);
 	void				GetStraightEdges(CGerberPanelLoop* pcLoop, bool bAcrossX, float64 fEdge, CArrayFloat64Vec2* pasRanges);
-	void				AddTabs(size uiBoardA, size uiBoardB, bool bAcrossX, float64 fEdgeA, float64 fEdgeB, float64 fStart, float64 fEnd);
+	void				AddTabs(size uiBoardA, size uiBoardB, bool bAcrossX, float64 fEdgeA, float64 fEdgeB, float64 fStart, float64 fEnd, CArrayFloat64Vec2* pasStraights);
+	bool				IsOnStraight(SGerberPanelTab* psTab, CArrayFloat64Vec2* pasStraights);
 	bool				IsClearOfCopper(SGerberPanelTab* psTab);
 	bool				DrawCopper(CGerberPanel* pcPanel);
 	bool				CheckJoined(CGerberPanel* pcPanel);
