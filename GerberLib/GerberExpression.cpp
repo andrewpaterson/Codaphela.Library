@@ -1,5 +1,6 @@
 #include <math.h>
 #include "BaseLib/PointerFunctions.h"
+#include "BaseLib/CalculatorParser.h"
 #include "GerberMacroVariables.h"
 #include "GerberExpression.h"
 
@@ -199,6 +200,33 @@ bool EvaluateGerberCalcExpression(CCalcExpression* pcExpression, CGerberMacroVar
 //////////////////////////////////////////////////////////////////////////
 bool CGerberExpression::IsSet(void)
 {
+	return mpcExpression != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberExpression::Parse(const char* szText, CCalculatorSymbols* pcSymbols)
+{
+	CCalculatorParser	cParser;
+	CCalcExpression*	pcExpression;
+
+	SafeKill(mpcExpression);
+	mcCalculator.ClearError();
+	mcCalculator.mpcSymbols = pcSymbols;
+
+	cParser.Init(&mcCalculator);
+	pcExpression = (CCalcExpression*)cParser.Parse(szText);
+	cParser.Kill();
+
+	if (mcCalculator.HasError())
+	{
+		SafeKill(pcExpression);
+		return false;
+	}
+	mpcExpression = pcExpression;
 	return mpcExpression != NULL;
 }
 

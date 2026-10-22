@@ -21,7 +21,9 @@ public:
 	bool		IsApertureDefine(void);
 
 	uint32		GetDCode(void);
+	void		SetDCode(uint32 uiDCode);
 	char*		TemplateText(void);
+	void		SetTemplate(const char* szTemplate);
 
 	CNumber*	AddParameter(CNumber* pcParameter);
 	size		NumParameters(void);

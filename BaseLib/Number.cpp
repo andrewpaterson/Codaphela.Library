@@ -1664,6 +1664,16 @@ bool CNumber::PrivateGreaterThan(CNumber* pcNumber)
 	int32	iOtherFirstDigit;
 	int32	iResult;
 
+	//Zero's first digit is the units digit so it would look bigger than any number below one.
+	if (IsZero())
+	{
+		return false;
+	}
+	if (pcNumber->IsZero())
+	{
+		return true;
+	}
+
 	iThisFirstDigit = GetFirstNonZeroDigit();
 	iThisLastDigit = GetLastNonZeroDigit();
 
@@ -1714,6 +1724,16 @@ bool CNumber::PrivateGreaterThanOrEquals(CNumber* pcNumber)
 	int32		iThisFirstDigit;
 	int32		iOtherFirstDigit;
 	int32		iResult;
+
+	//Zero's first digit is the units digit so it would look bigger than any number below one.
+	if (pcNumber->IsZero())
+	{
+		return true;
+	}
+	if (IsZero())
+	{
+		return false;
+	}
 
 	iThisFirstDigit = GetFirstNonZeroDigit();
 	iThisLastDigit = GetLastNonZeroDigit();

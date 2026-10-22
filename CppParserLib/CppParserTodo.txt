@@ -4,18 +4,6 @@ C++ Parser To Do
 What is left after the preprocessor, tokeniser, parser and highlighter were written (2026-10-21).  In order of priority.  Goal: highlighting first, then refactoring, then compiling to a VM that is not written yet.
 
 
-1. Verify on Windows and commit
--------------------------------
-
-Nothing from this work has been tested on Windows yet.  All of it is uncommitted.
-  - The CppParserLib rewrite, including the vcxproj and filter changes for about 90 new files and 60 deleted ones.
-  - The BaseLib fixes the parser found (LinkedListTemplate, ArrayTemplateEmbedded, ArrayTemplateEmbeddedPrimitive, ArraySparseTemplate, missing includes).
-  - The JavaParserLib float96 -> float128 fix.
-  - The GameLib deletion.
-
-Run TestCppParserLib, TestBaseLib, TestStandardLib and TestSupportLib, then commit.
-
-
 2. Expression types and member resolution
 -----------------------------------------
 

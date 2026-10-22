@@ -27,6 +27,7 @@ public:
 	bool								IsApertureMacro(void);
 
 	char*								NameText(void);
+	void								SetName(const char* szNewName);
 	CGerberApertureMacroComment*		AddComment(size uiLength);
 	CGerberApertureMacroCircle*			AddCircle(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace);
 	CGerberApertureMacroCenterLine*		AddCenterLine(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace);

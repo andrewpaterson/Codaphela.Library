@@ -15,6 +15,7 @@ public:
 	bool	IsSetAperture(void);
 
 	uint32	GetDCode(void);
+	void	SetDCode(uint32 uiDCode);
 };
 
 
