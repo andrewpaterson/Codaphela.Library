@@ -18,7 +18,7 @@ protected:
 							//...
 							//The size of the struct will also include all the zero terminated strings lengths.
 public:
-	size	TotalSize(size iNumElements, size iRowLength);
+	static size	TotalSize(size iNumElements, size iRowLength);
 
 	void	Init(size iNumFields, size iRowLength);
 	void	Kill(void);

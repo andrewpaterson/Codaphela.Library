@@ -268,14 +268,18 @@ void CBaseObject::Kill(void)
 	//It is the equivalent of setting the last pointer to the object to NULL.
 
 	bool		bHeapFromChanged;
+#ifdef _DEBUG
 	CObjects*	pcObjectsThisIn;
+#endif // _DEBUG
 
 	if (IsKilled())
 	{
 		return;
 	}
 
+#ifdef _DEBUG
 	pcObjectsThisIn = GetObjectsThisIn();
+#endif // _DEBUG
 
 	SetFlag(OBJECT_FLAGS_CALLED_KILL, true);
 	SetFlag(OBJECT_FLAGS_CALLED_INIT, false);

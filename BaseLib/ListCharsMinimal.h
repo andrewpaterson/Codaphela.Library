@@ -30,7 +30,7 @@ template class CListTemplateMinimal<char>;
 class CListCharsMinimal : public __CListCharsMinimal
 {
 public:
-	size		TotalSize(size iNumElements, size iRowLength);
+	static size	TotalSize(size iNumElements, size iRowLength);
 
 	void		Init(size iNumElements, size iRowLength);
 	

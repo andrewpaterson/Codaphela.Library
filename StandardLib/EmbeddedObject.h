@@ -52,6 +52,7 @@ typedef CArrayTemplate<SHeapFromPointer>	CArrayHeapFromPointer;
 class CEmbeddedObject : public CUnknown
 {
 friend class CPointer;
+friend class CCollection;
 CONSTRUCTABLE(CEmbeddedObject)
 protected:
 	CBaseObject*								mpcEmbedded;    //Object that 'this' is embedded in.

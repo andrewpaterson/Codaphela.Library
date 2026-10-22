@@ -54,8 +54,8 @@ public:
 	Ptr<CImageCel>	GetCel(void);
 	int16			GetStep(void);
 
-	void			Print(CChars* psz);
-	void			Dump(void);
+	void			Print(CChars* psz) override;
+	void			Dump(void) override;
 };
 
 

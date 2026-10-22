@@ -40,6 +40,7 @@ void CFontDescription::Init(char* szName, int16 iSpaceWidth, int16 iAscent, int1
 	miAverageWidth = 0;
 	miAverageHeight = iAscent + iDescent;
 	mbFixedWidth = false;
+	mbWidthsCalculated = false;
 	miSpaceWidth = iSpaceWidth;
 	miAscent = iAscent;
 	miDescent = iDescent;
@@ -62,6 +63,7 @@ void CFontDescription::Class(void)
 	U_Size(miAverageWidth);
 	U_Size(miAverageHeight);
 	U_Bool(mbFixedWidth);
+	U_Bool(mbWidthsCalculated);
 	U_Int16(miSpaceWidth);
 	U_Int16(miAscent);
 	U_Int16(miDescent);
@@ -102,44 +104,39 @@ bool CFontDescription::Load(CObjectReader* pcFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Works out the average width and whether the font is fixed width, and
-// aligns every glyph to the top of the line.  Fonts copy a description's
-// sub image when they generate its glyph so call this before any font made
-// from this description is used.
+// Works out the average full width of the glyphs and whether they are all
+// the same width.  Done when they are first asked for after glyphs are put.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFontDescription::Done(void)
+void CFontDescription::CalculateWidths(void)
 {
-	size							i;
 	SGlyphDescription*				psDescription;
 	size							iTotalWidth;
-	size							iLastWidth;
-	size							iWidth;
+	int32							iWidth;
+	int32							iFirstWidth;
 	SIndexTreeMemoryUnsafeIterator	sIter;
 	uint8							auiKey[FONT_MAX_KEY_LENGTH];
 	size							uiKeyLength;
 	bool							bExists;
 
 	iTotalWidth = 0;
-	iWidth = 0;
-	mbFixedWidth = true;
+	iFirstWidth = -1;
+	mbFixedWidth = macGlyphs.NumElements() > 0;
 
 	//The unsafe iterator gives the description itself; the safe one doesn't work for data that isn't a pointer.
-	i = 0;
 	bExists = macGlyphs.StartIteration(&sIter, auiKey, &uiKeyLength, FONT_MAX_KEY_LENGTH, &psDescription);
 	while (bExists)
 	{
-		iLastWidth = iWidth;
 		iWidth = psDescription->cSubImage.GetFullWidth();
 		iTotalWidth += iWidth;
-		if ((iLastWidth != iWidth) && (i > 1))
+		if (iFirstWidth == -1)
+		{
+			iFirstWidth = iWidth;
+		}
+		else if (iWidth != iFirstWidth)
 		{
 			mbFixedWidth = false;
 		}
-		psDescription->cSubImage.SetHorizontalAlignment(SUB_IMAGE_ALIGNMENT_LEFT);
-		psDescription->cSubImage.msAlignment.y = -miAscent;
-
-		i++;
 		bExists = macGlyphs.Iterate(&sIter, auiKey, &uiKeyLength, FONT_MAX_KEY_LENGTH, &psDescription);
 	}
 
@@ -147,6 +144,11 @@ void CFontDescription::Done(void)
 	{
 		miAverageWidth = iTotalWidth / macGlyphs.NumElements();
 	}
+	else
+	{
+		miAverageWidth = 0;
+	}
+	mbWidthsCalculated = true;
 }
 
 
@@ -177,6 +179,7 @@ void CFontDescription::PutGlyph(uint8* puiBuffer, size uiLength, CSubImage* pcSu
 	}
 	psDescription->cSubImage.Copy(pcSubImage);
 	psDescription->iStep = iStep;
+	mbWidthsCalculated = false;
 }
 
 
@@ -361,7 +364,34 @@ int16 CFontDescription::GetAscent(void) { return miAscent; }
 int16 CFontDescription::GetDescent(void) { return miDescent; }
 int16 CFontDescription::GetLineHeight(void) { return miAscent + miDescent; }
 int16 CFontDescription::GetTabSpaceCount(void) { return miTabSpaceCount; }
-size CFontDescription::GetAverageWidth(void) { return miAverageWidth; }
 size CFontDescription::GetAverageHeight(void) { return miAverageHeight; }
-bool CFontDescription::IsFixedWidth(void) { return mbFixedWidth; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CFontDescription::GetAverageWidth(void)
+{
+	if (!mbWidthsCalculated)
+	{
+		CalculateWidths();
+	}
+	return miAverageWidth;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if every glyph's full width (its advance) is the same.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFontDescription::IsFixedWidth(void)
+{
+	if (!mbWidthsCalculated)
+	{
+		CalculateWidths();
+	}
+	return mbFixedWidth;
+}
 

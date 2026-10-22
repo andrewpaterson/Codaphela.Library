@@ -1128,7 +1128,8 @@ void CNumber::PrivateZeroEnds(void)
 	iFirst = OffsetDigit(GetFirstNonZeroDigit(), 1);
 	if (iFirst <= mcMaxWholeNumbers)
 	{
-		PrivateZeroDigits(mcMaxWholeNumbers, iFirst);
+		//The highest whole number digit is the start of mcDigits.
+		memset_fast(mcDigits, (uint8)0, GetDigitsBetween(mcMaxWholeNumbers, iFirst));
 	}
 
 	iLast = GetLastNonZeroDigit();

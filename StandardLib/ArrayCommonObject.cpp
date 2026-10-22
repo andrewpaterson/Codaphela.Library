@@ -381,13 +381,17 @@ bool CArrayCommonObject::Remove(CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::Remove(CEmbeddedObject* pcObject)
 {
+	size	uiRemoved;
+
 	if (pcObject)
 	{
 		EnsureSorted();
 
-		if (mcArray.Remove(pcObject))
+		//Removes every copy of the Object in the array.
+		uiRemoved = mcArray.Remove(pcObject);
+		if ((uiRemoved != 0) && (uiRemoved != ARRAY_ELEMENT_NOT_FOUND))
 		{
-			return RemoveObjectTryFree(pcObject, true, true);
+			return RemoveObjectCopiesTryFree(pcObject, uiRemoved, true);
 		}
 		return gcLogger.Error2(__METHOD__, " Could not remove Object {", ObjectToString(pcObject), "} from Array {", ObjectToString(this), "}.", NULL);
 	}
