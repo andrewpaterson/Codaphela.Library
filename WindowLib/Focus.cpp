@@ -189,7 +189,18 @@ void CFocus::Request(void)
 	{
 		pComponent = pComponent->GetParent();
 	}
+	SetFocus(pComponent);
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Gives pComponent focus, or takes focus from everything if it is NULL,
+// as a menu does to take the keys once it opens.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFocus::SetFocus(Ptr<CComponent> pComponent)
+{
 	if (pComponent != mpFocussedComponent)
 	{
 		if (mpFocussedComponent)
@@ -251,6 +262,7 @@ void CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
 		{
 			return;
 		}
+		mpWindow->ClosePopupsOutside(mpMouseOverComponent);
 		Request();
 	}
 

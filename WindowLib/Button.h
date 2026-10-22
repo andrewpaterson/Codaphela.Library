@@ -27,6 +27,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ImageCanvasDraw.h"
 #include "ClearCanvasDraw.h"
 #include "Label.h"
+#include "IconComponent.h"
 #include "ButtonImages.h"
 #include "ButtonListener.h"
 
@@ -50,18 +51,26 @@ protected:
 	Ptr<CClearCanvasDraw>		mpFaceDraw;
 	CArray<CImageCanvasDraw>	maBorderDraws;  //One for each EButtonBorderPiece.
 	Ptr<CFillContainer>			mpFace;
+	Ptr<CFillContainer>			mpPadded;  //The face less its padding.
+	Ptr<CGridContainer>			mpContent;  //The icon and the caption, side by side, on the face.
+	Ptr<CIconComponent>			mpIcon;  //Shows nothing without a cel.
 	Ptr<CLabel>					mpCaption;
 	SInt32Vec2					msPadding;
+	int32						miIconGap;  //Between the icon and the caption.
 	CListenerCall				mcListeners;
 	EButtonState				meState;
 	bool						mbMouseOver;
 	bool						mbFocussed;
 	bool						mbPressed;  //Pressed on and not yet released.
 	bool						mbDefault;
+	bool						mbShowsPushed;  //False keeps the mouse over look while pressed.
+	bool						mbHighlighted;  //Has the mouse over look wherever the pointer is.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CFont> pFont, const char* szCaption);
 	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButtonImages> pDefaultImages, Ptr<CFont> pFont, const char* szCaption);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CImageCel> pIcon, Ptr<CFont> pFont, const char* szCaption);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButtonImages> pDefaultImages, Ptr<CImageCel> pIcon, Ptr<CFont> pFont, const char* szCaption);
 	void				Class(void) override;
 	void 				Free(void) override;
 
@@ -70,6 +79,11 @@ public:
 
 	void				SetCaption(const char* szCaption);
 	char*				GetCaption(void);
+	void				SetIcon(Ptr<CImageCel> pIcon);
+	Ptr<CImageCel>		GetIcon(void);
+	void				SetIconGap(int32 iIconGap);
+	Ptr<CIconComponent>	GetIconComponent(void);
+	Ptr<CLabel>			GetCaptionLabel(void);
 	void				SetPadding(int32 iHorizontal, int32 iVertical);
 	SInt32Vec2			GetDesiredSize(void) override;
 
@@ -81,6 +95,10 @@ public:
 	bool				IsPressed(void);
 	void				SetDefault(bool bDefault);
 	bool				IsDefault(void);
+	void				SetShowsPushed(bool bShowsPushed);
+	bool				IsShowsPushed(void);
+	void				SetHighlighted(bool bHighlighted);
+	bool				IsHighlighted(void);
 	Ptr<CButtonImages>	GetImages(void);
 
 	Ptr<CComponent>		FindComponentAt(int x, int y) override;
@@ -99,6 +117,8 @@ protected:
 	void				UpdateState(void);
 	void				UpdateLook(void);
 	void				UpdateFaceSize(void);
+	void				UpdateContent(void);
+	bool				HasCaption(void);
 };
 
 

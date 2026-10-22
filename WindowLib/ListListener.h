@@ -24,7 +24,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Unknown.h"
 
 
-//pcSource is the CList, its selected row is CList::GetSelected.  SelectionChanged is also called when the selection
+//pcSource is the CListContainer, its selected row is CListContainer::GetSelected.  SelectionChanged is also called when the selection
 //is cleared, the selected row is then -1.
 class CListListener : public CListener
 {

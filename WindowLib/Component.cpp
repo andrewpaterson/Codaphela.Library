@@ -190,6 +190,33 @@ bool CComponent::GetContainerBounds(CInt32Rect* pcDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if the component is pAncestor or is somewhere inside it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponent::IsWithin(Ptr<CComponent> pAncestor)
+{
+	Ptr<CComponent>	pComponent;
+
+	if (pAncestor.IsNull())
+	{
+		return false;
+	}
+
+	pComponent = this;
+	while (pComponent.IsNotNull())
+	{
+		if (pComponent == pAncestor)
+		{
+			return true;
+		}
+		pComponent = pComponent->GetParent();
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A component that clips its children, like a scroll pane, only lets them
 // draw inside its container bounds.  Most components draw their children
 // wherever they are laid out.
@@ -403,6 +430,7 @@ SInt32Vec2 CComponent::GetPosition(void) { return mcActualBounds.msTopLeft; }
 bool CComponent::CanGetFocus(void) { return mbCanGetFocus; }
 void CComponent::SetCanGetFocus(bool bCanGetFocus) { mbCanGetFocus = bCanGetFocus; }
 bool CComponent::WantsEnter(void) { return false; }  //Enter goes to the window's default button unless the focussed component wants it.
+void CComponent::PopupClosed(Ptr<CComponent> pContent) {}  //A popup this component opened, see CWindow::OpenPopup, has closed.
 Ptr<CComponent> CComponent::GetParent(void) { return mpParent; }
 void CComponent::SetDesiredSize(int fWidth, int fHeight) { msDesiredSize.Init(fWidth, fHeight); }
 SInt32Vec2 CComponent::GetActualSize(void) { SInt32Vec2 sSize; sSize.Init(mcActualBounds.GetWidth(), mcActualBounds.GetHeight()); return sSize; }

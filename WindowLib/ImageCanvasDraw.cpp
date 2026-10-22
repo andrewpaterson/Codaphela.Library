@@ -34,6 +34,8 @@ void CImageCanvasDraw::Init(Ptr<CImageCel> pCel, bool bStretch)
 	mpCel = pCel;
 	mpDestImage = NULL;
 	mbStretch = bStretch;
+	meHorizontal = CSH_Left;
+	meVertical = CSV_Top;
 	PostInit();
 }
 
@@ -48,6 +50,8 @@ void CImageCanvasDraw::Class(void)
 	M_Pointer(mpCel);
 	M_Pointer(mpDestImage);
 	U_Bool(mbStretch);
+	U_Enum(meHorizontal);
+	U_Enum(meVertical);
 }
 
 
@@ -90,6 +94,7 @@ bool CImageCanvasDraw::Load(CObjectReader* pcFile)
 bool CImageCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 {
 	SInt32Vec2		sSize;
+	SInt32Vec2		sCelSize;
 	bool			bResult;
 	Ptr<CImage>		pImage;
 	Ptr<CImageBlitter>	pBlitter;
@@ -146,7 +151,8 @@ bool CImageCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 	}
 	else
 	{
-		bResult = pBlitter->Blit(0, 0);
+		sCelSize = GetDesiredSize();
+		bResult = pBlitter->Blit(AlignComponentHorizontal(meHorizontal, sCelSize.x, sSize.x), AlignComponentVertical(meVertical, sCelSize.y, sSize.y));
 	}
 
 	if (mpDestImage.IsNotNull())
@@ -164,6 +170,18 @@ bool CImageCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 void CImageCanvasDraw::SetCel(Ptr<CImageCel> pCel)
 {
 	mpCel = pCel;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Left and top, the default, draw the cel at the canvas's top left.
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCanvasDraw::SetCelAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical)
+{
+	meHorizontal = eHorizontal;
+	meVertical = eVertical;
 }
 
 

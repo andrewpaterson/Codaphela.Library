@@ -60,6 +60,7 @@ public:
 	void				PointerLeft(void);
 	void				Refresh(void);
 	void 				Request(void);
+	void				SetFocus(Ptr<CComponent> pComponent);
 	void				Command(EComponentInputCommand eCommand, bool bInsert);
 	void				Printable(char c, bool bInsert);
 	void 				Activate(void);

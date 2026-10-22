@@ -25,6 +25,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "NativeWindow.h"
 #include "CanvasDraw.h"
 #include "ComponentInputCommand.h"
+#include "Popup.h"
 
 
 class CWindowTick;
@@ -46,6 +47,7 @@ protected:
 	CComponentInput*		mpcComponentInput;  //Optional.  Updated every tick when set.
 	Ptr<CButton>			mpDefaultButton;  //Clicked by enter unless the focussed component wants it.
 	bool					mbLayoutAgain;  //A component's required size changed while it was being laid out.
+	CArray<CPopup>			maPopups;  //Open popups, the last opened last.  Each opened by one before it is closed with it.
 
 public:
 	void					Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
@@ -79,6 +81,14 @@ public:
 
 	void					SetDefaultButton(Ptr<CButton> pButton);
 	Ptr<CButton>			GetDefaultButton(void);
+
+	Ptr<CPopup>				OpenPopup(Ptr<CComponent> pContent, SInt32Vec2 sPosition, Ptr<CComponent> pOwner);
+	bool					ClosePopup(Ptr<CComponent> pContent);
+	void					CloseAllPopups(void);
+	void					ClosePopupsOutside(Ptr<CComponent> pComponent);
+	Ptr<CPopup>				GetPopup(Ptr<CComponent> pContent);
+	bool					IsPopupOpen(Ptr<CComponent> pContent);
+	size					NumPopups(void);
 
 	bool					SetContainer(Ptr<CContainer> pContainer);
 	Ptr<CContainer>			GetContainer(void);

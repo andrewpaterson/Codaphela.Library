@@ -20,6 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
+#include "SupportLib/SubImage.h"
 #include "ClearCanvasDraw.h"
 #include "BorderLayoutHelper.h"
 #include "Window.h"
@@ -36,7 +37,7 @@ static EBorderLayoutCell gaeButtonBorderCell[NUM_BUTTON_BORDER_PIECES] = { BLC_T
 //////////////////////////////////////////////////////////////////////////
 void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CFont> pFont, const char* szCaption)
 {
-	Init(pWindow, pImages, NULL, pFont, szCaption);
+	Init(pWindow, pImages, NULL, NULL, pFont, szCaption);
 }
 
 
@@ -46,6 +47,29 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CFont> 
 //
 //////////////////////////////////////////////////////////////////////////
 void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButtonImages> pDefaultImages, Ptr<CFont> pFont, const char* szCaption)
+{
+	Init(pWindow, pImages, pDefaultImages, NULL, pFont, szCaption);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CImageCel> pIcon, Ptr<CFont> pFont, const char* szCaption)
+{
+	Init(pWindow, pImages, NULL, pIcon, pFont, szCaption);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The default images must have the same tile size as the images.  pIcon
+// can be NULL for a button with only a caption, and szCaption NULL or
+// empty for a button with only an icon.
+//
+//////////////////////////////////////////////////////////////////////////
+void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButtonImages> pDefaultImages, Ptr<CImageCel> pIcon, Ptr<CFont> pFont, const char* szCaption)
 {
 	CBorderLayoutHelper		cBorder;
 	Ptr<CImageCanvasDraw>	pDraw;
@@ -62,6 +86,7 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButton
 	mpDefaultImages = pDefaultImages;
 	maBorderDraws.Init();
 	msPadding.Init(8, 2);
+	miIconGap = 4;
 	mcListeners.Init();
 	mcListeners.AddAllowedClass<CButtonListener>();
 	meState = BS_Normal;
@@ -69,6 +94,8 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButton
 	mbFocussed = false;
 	mbPressed = false;
 	mbDefault = false;
+	mbShowsPushed = true;
+	mbHighlighted = false;
 	SetCanGetFocus(true);
 
 	//The corners are their tile's size.  The edges are a tile thick and stretched along the face.  Every piece is
@@ -97,12 +124,18 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButton
 	mpFaceDraw = OMalloc<CClearCanvasDraw>(mpImages->GetFaceColour(BS_Normal));
 	pBackground = OMalloc<CCanvas>(pWindow, mpFaceDraw);
 	mpFace->AddComponent(pBackground);
-	mpCaption = OMalloc<CLabel>(pWindow, pFont, szCaption);
-	mpFace->AddComponent(mpCaption);
+	mpPadded = OMalloc<CFillContainer>(pWindow);
+	mpPadded->SetAlignment(CSH_Stretch, CSV_Stretch);
+	mpFace->AddComponent(mpPadded);
+	mpContent = OMalloc<CGridContainer>(pWindow);
+	mpContent->SetAlignment(CSH_Stretch, CSV_Stretch);
+	mpPadded->AddComponent(mpContent);
+	mpIcon = OMalloc<CIconComponent>(pWindow, pIcon);
+	mpCaption = OMalloc<CLabel>(pWindow, pFont, szCaption == NULL ? "" : szCaption);
 	mpFace->SetAlignment(CSH_Stretch, CSV_Stretch);
 	cBorder.AddComponent(mpFace, BLC_Center);
 	cBorder.Kill();
-	UpdateFaceSize();
+	UpdateContent();
 
 	PostInit();
 }
@@ -121,14 +154,20 @@ void CButton::Class(void)
 	M_Pointer(mpFaceDraw);
 	M_Embedded(maBorderDraws);
 	M_Pointer(mpFace);
+	M_Pointer(mpPadded);
+	M_Pointer(mpContent);
+	M_Pointer(mpIcon);
 	M_Pointer(mpCaption);
 	U_2Int32(msPadding);
+	U_Int32(miIconGap);
 	U_Data(CListenerCall, mcListeners);
 	U_Enum(meState);
 	U_Bool(mbMouseOver);
 	U_Bool(mbFocussed);
 	U_Bool(mbPressed);
 	U_Bool(mbDefault);
+	U_Bool(mbShowsPushed);
+	U_Bool(mbHighlighted);
 }
 
 
@@ -169,8 +208,89 @@ bool CButton::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CButton::SetCaption(const char* szCaption)
 {
-	mpCaption->SetText(szCaption);
+	mpCaption->SetText(szCaption == NULL ? "" : szCaption);
+	UpdateContent();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL takes the icon away.
+//
+//////////////////////////////////////////////////////////////////////////
+void CButton::SetIcon(Ptr<CImageCel> pIcon)
+{
+	mpIcon->SetCel(pIcon);
+	UpdateContent();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CButton::SetIconGap(int32 iIconGap)
+{
+	miIconGap = iIconGap;
+	UpdateContent();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An icon with a caption sits on the left with the caption aligned left
+// beside it.  An icon or a caption on its own is centred.
+//
+//////////////////////////////////////////////////////////////////////////
+void CButton::UpdateContent(void)
+{
+	bool			bIcon;
+	bool			bCaption;
+	Ptr<CImageCel>	pIcon;
+
+	pIcon = mpIcon->GetCel();
+	bIcon = pIcon.IsNotNull();
+	bCaption = HasCaption();
+
+	mpContent->RemoveAllComponents();
+	if (bIcon && bCaption)
+	{
+		//The gap is part of the icon's width with the icon drawn at its left.
+		mpIcon->SetDesiredSize(pIcon->GetSubImage()->GetFullWidth() + miIconGap, -1);
+		mpIcon->SetCelAlignment(CSH_Left, CSV_Center);
+		mpIcon->SetAlignment(CSH_Left, CSV_Center);
+		mpCaption->SetAlignment(CSH_Left, CSV_Center);
+		mpContent->AddComponent(mpIcon, 0, 0);
+		mpContent->AddComponent(mpCaption, 1, 0, 1, 1, 1, 0);
+	}
+	else if (bIcon)
+	{
+		mpIcon->SetDesiredSize(-1, -1);
+		mpIcon->SetCelAlignment(CSH_Center, CSV_Center);
+		mpIcon->SetAlignment(CSH_Center, CSV_Center);
+		mpContent->AddComponent(mpIcon, 0, 0);
+	}
+	else
+	{
+		mpCaption->SetAlignment(CSH_Center, CSV_Center);
+		mpContent->AddComponent(mpCaption, 0, 0);
+	}
 	UpdateFaceSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A button with neither an icon nor a caption is as big as an empty
+// caption, a line high.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CButton::HasCaption(void)
+{
+	char*	szCaption;
+
+	szCaption = mpCaption->GetText();
+	return (szCaption != NULL) && (szCaption[0] != '\0');
 }
 
 
@@ -188,15 +308,27 @@ void CButton::SetPadding(int32 iHorizontal, int32 iVertical)
 //////////////////////////////////////////////////////////////////////////
 //
 // The face's desired size is what the grid makes room for.  Being
-// stretched it still fills its cell.
+// stretched it still fills its cell.  The content is inset by the padding
+// so an icon on the left starts the padding in from the face's edge; the
+// face's background still covers the padding.
 //
 //////////////////////////////////////////////////////////////////////////
 void CButton::UpdateFaceSize(void)
 {
-	SInt32Vec2	sCaption;
+	SInt32Vec2	sContent;
+	SInsets		sInsets;
+	int			aiInsets[4];
 
-	sCaption = mpCaption->GetDesiredSize();
-	mpFace->SetDesiredSize(sCaption.x + msPadding.x * 2, sCaption.y + msPadding.y * 2);
+	aiInsets[0] = msPadding.y;
+	aiInsets[1] = msPadding.x;
+	aiInsets[2] = msPadding.y;
+	aiInsets[3] = msPadding.x;
+	sInsets.Init(aiInsets);
+	mpPadded->SetInsets(&sInsets);
+
+	mpContent->SetRequiredSize();
+	sContent = mpContent->GetRequiredSize();
+	mpFace->SetDesiredSize(sContent.x + msPadding.x * 2, sContent.y + msPadding.y * 2);
 }
 
 
@@ -398,19 +530,19 @@ void CButton::Enter(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Pushed while pressed with the pointer over it, then mouse over, then
-// selected while it has focus.
+// Pushed while pressed with the pointer over it, if it shows being pushed,
+// then mouse over, or highlighted, then selected while it has focus.
 //
 //////////////////////////////////////////////////////////////////////////
 void CButton::UpdateState(void)
 {
 	EButtonState	eState;
 
-	if (mbPressed && mbMouseOver)
+	if (mbPressed && mbMouseOver && mbShowsPushed)
 	{
 		eState = BS_Pushed;
 	}
-	else if (mbMouseOver)
+	else if (mbMouseOver || mbHighlighted)
 	{
 		eState = BS_MouseOver;
 	}
@@ -454,6 +586,13 @@ void CButton::UpdateLook(void)
 //
 //////////////////////////////////////////////////////////////////////////
 char* CButton::GetCaption(void) { return mpCaption->GetText(); }
+Ptr<CImageCel> CButton::GetIcon(void) { return mpIcon->GetCel(); }
+Ptr<CIconComponent> CButton::GetIconComponent(void) { return mpIcon; }
+Ptr<CLabel> CButton::GetCaptionLabel(void) { return mpCaption; }
+void CButton::SetShowsPushed(bool bShowsPushed) { mbShowsPushed = bShowsPushed; UpdateState(); }
+bool CButton::IsShowsPushed(void) { return mbShowsPushed; }
+void CButton::SetHighlighted(bool bHighlighted) { mbHighlighted = bHighlighted; UpdateState(); }
+bool CButton::IsHighlighted(void) { return mbHighlighted; }
 EButtonState CButton::GetState(void) { return meState; }
 bool CButton::IsPressed(void) { return mbPressed; }
 bool CButton::IsDefault(void) { return mbDefault; }

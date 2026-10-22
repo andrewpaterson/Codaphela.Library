@@ -448,5 +448,6 @@ ERGBColourBits CCanvas::GetColourBits(void) { return meColourBits; }
 bool CCanvas::IsTransparent(void) { return mbTransparent; }
 CNativeCanvas* CCanvas::GetNativeCanvas(void) { return mpcNativeCanvas; }
 Ptr<CCanvasDraw> CCanvas::GetCanvasDraw(void) { return mpCanvasDraw; }
+void CCanvas::SetCanvasDraw(Ptr<CCanvasDraw> pDraw) { mpCanvasDraw = pDraw; }
 Ptr<CContainer> CCanvas::GetContainer(void) { return mpContainer; }
 
