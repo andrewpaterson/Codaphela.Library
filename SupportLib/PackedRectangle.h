@@ -41,17 +41,15 @@ public:
 typedef CArrayTemplate<CPackSourceRectangle> CArrayPackSourceRectangle;
 
 
-class CPackedLine;
 class CPackRectangleAttempt
 {
 public:
-	CPackSourceRectangle*	mpcPackedRectangle;
-	CPackedLine*			mpcLine;
+	CPackSourceRectangle	mcSourceRectangle;  //A copy so that adding source rectangles to the packer can't leave it dangling.
 	int						mix;	//Relative to the CPackedLine.
 	int						miy;
 
-	void Init(CPackSourceRectangle* pcPackedRectangle);
-	void Set(CPackedLine* pcLine, int x, int y);
+	void Init(CPackSourceRectangle* pcSourceRectangle);
+	void SetPos(int x, int y);
 };
 
 

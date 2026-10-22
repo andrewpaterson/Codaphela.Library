@@ -35,6 +35,10 @@ int ComparePackAttempt(const void* pv1, const void* pv2)
 	CPackAttempt*	pcPack1 = (CPackAttempt*)pv1;
 	CPackAttempt*	pcPack2 = (CPackAttempt*)pv2;
 
+	if (!pcPack1->mbValid && !pcPack2->mbValid)
+	{
+		return 0;
+	}
 	if (!pcPack1->mbValid)
 	{
 		return 1;
@@ -87,7 +91,6 @@ void CPackAttempt::Init(CRectangleBestPacker* pcRectanglePacker, int iMaxWidth)
 	mbValid = false;
 	miMaxWidth = iMaxWidth;
 	macRectangles.Init();
-	AddRectanglesFromPacker();
 }
 
 
@@ -141,13 +144,30 @@ void CPackAttempt::AddRectanglesFromPacker(void)
 //////////////////////////////////////////////////////////////////////////
 void CPackAttempt::Pack(void)
 {
+	size			i;
 	CPackedLine*	pcLine;
+
+	//The rectangles are taken from the packer here rather than in Init so that an attempt can be added before its rectangles.
+	for (i = 0; i < macLines.NumElements(); i++)
+	{
+		pcLine = macLines.Get(i);
+		pcLine->Kill();
+	}
+	macLines.Kill();
+	macLines.Init();
+	macRectangles.Kill();
+	macRectangles.Init();
+	miWidth = 0;
+	miHeight = 0;
+	miArea = 0;
+	mbValid = false;
+	AddRectanglesFromPacker();
 
 	while (macRectangles.NumElements() > 0)
 	{
 		pcLine = macLines.Add();
-		pcLine->Init(this);
-		if (!pcLine->Pack())
+		pcLine->Init();
+		if (!pcLine->Pack(this))
 		{
 			mbValid = false;
 			break;
@@ -169,6 +189,12 @@ void CPackAttempt::Done(void)
 	if (macRectangles.NumElements() > 0)
 	{
 		//Not actually done.  Bugger off.
+		return;
+	}
+
+	if (macLines.NumElements() == 0)
+	{
+		//Nothing was packed.
 		return;
 	}
 
@@ -235,10 +261,10 @@ bool CPackAttempt::GetLargestRectangleFittingAndRemoveIt(CRectangle* pcBounds, C
 		{
 			i--;
 			pcRect = macRectangles.Get(i);
-			if ((pcBounds->GetWidth() >= pcRect->mpcPackedRectangle->miWidth) &&
-				(pcBounds->GetHeight() >= pcRect->mpcPackedRectangle->miHeight))
+			if ((pcBounds->GetWidth() >= pcRect->mcSourceRectangle.miWidth) &&
+				(pcBounds->GetHeight() >= pcRect->mcSourceRectangle.miHeight))
 			{
-				pcDest->Init(pcRect->mpcPackedRectangle);
+				*pcDest = *pcRect;
 				macRectangles.RemoveAt(i, true);
 				return true;
 			}
@@ -271,7 +297,7 @@ void CPackAttempt::GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangle
 	for (i = 0; i < macLines.NumElements(); i++)
 	{
 		pcLine = macLines.Get(i);
-		pcLine->GetPackedRectangles(pacPackedRectangles);
+		pcLine->GetPackedRectangles(pacPackedRectangles, mpcRectanglePacker->GetOutsideEdgeWidth());
 	}
 }
 

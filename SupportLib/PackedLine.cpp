@@ -60,9 +60,8 @@ int ComparePackedLine(const void* pv1, const void* pv2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPackedLine::Init(CPackAttempt* pcPackAttempt)
+void CPackedLine::Init(void)
 {
-	mpcPackAttempt = pcPackAttempt;
 	macRectangles.Init();
 	miHeight = 0;
 	miWidth = 0;
@@ -84,15 +83,15 @@ void CPackedLine::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPackedLine::Pack(void)
+bool CPackedLine::Pack(CPackAttempt* pcPackAttempt)
 {
 	CPackRectangleAttempt*	pcUnusedRect;
 	CRectangle				cBounds;
 
-	pcUnusedRect = mpcPackAttempt->GetLastRectangle();
-	cBounds.Init(0, 0, mpcPackAttempt->miMaxWidth, pcUnusedRect->mpcPackedRectangle->miHeight + mpcPackAttempt->mpcRectanglePacker->GetInnerEdgeWidth());
+	pcUnusedRect = pcPackAttempt->GetLastRectangle();
+	cBounds.Init(0, 0, pcPackAttempt->miMaxWidth, pcUnusedRect->mcSourceRectangle.miHeight + pcPackAttempt->mpcRectanglePacker->GetInnerEdgeWidth());
 
-	return RecursePack(&cBounds);
+	return RecursePack(pcPackAttempt, &cBounds);
 }
 
 
@@ -100,7 +99,7 @@ bool CPackedLine::Pack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPackedLine::RecursePack(CRectangle* pcBounds)
+bool CPackedLine::RecursePack(CPackAttempt* pcPackAttempt, CRectangle* pcBounds)
 {
 	CRectangle				cBoundsRight;
 	CRectangle				cBoundsBelow;
@@ -113,27 +112,28 @@ bool CPackedLine::RecursePack(CRectangle* pcBounds)
 		return false;
 	}
 
-	bAnyFit = mpcPackAttempt->GetLargestRectangleFittingAndRemoveIt(pcBounds, &cFits);
+	bAnyFit = pcPackAttempt->GetLargestRectangleFittingAndRemoveIt(pcBounds, &cFits);
 	if (!bAnyFit)
 	{
 		return false;
 	}
 	
 	pcUsedRect = macRectangles.Add(&cFits);
-	pcUsedRect->Set(this, pcBounds->msTopLeft.x, pcBounds->msTopLeft.y);
+	pcUsedRect->SetPos(pcBounds->msTopLeft.x, pcBounds->msTopLeft.y);
 
-	cBoundsRight.Init(	pcBounds->msTopLeft.x + pcUsedRect->mpcPackedRectangle->miWidth + mpcPackAttempt->mpcRectanglePacker->GetInnerEdgeWidth(),
+	cBoundsRight.Init(	pcBounds->msTopLeft.x + pcUsedRect->mcSourceRectangle.miWidth + pcPackAttempt->mpcRectanglePacker->GetInnerEdgeWidth(),
 						pcBounds->msTopLeft.y, 
 						pcBounds->msBottomRight.x, 
 						pcBounds->msBottomRight.y);
 
+	//The gap to the right of the used rectangle belongs to cBoundsRight, so cBoundsBelow is only as wide as the used rectangle.
 	cBoundsBelow.Init(	pcBounds->msTopLeft.x,
-						pcBounds->msTopLeft.y + pcUsedRect->mpcPackedRectangle->miHeight + mpcPackAttempt->mpcRectanglePacker->GetInnerEdgeWidth(), 
-						pcBounds->msTopLeft.x + pcUsedRect->mpcPackedRectangle->miWidth + mpcPackAttempt->mpcRectanglePacker->GetInnerEdgeWidth(),
+						pcBounds->msTopLeft.y + pcUsedRect->mcSourceRectangle.miHeight + pcPackAttempt->mpcRectanglePacker->GetInnerEdgeWidth(), 
+						pcBounds->msTopLeft.x + pcUsedRect->mcSourceRectangle.miWidth,
 						pcBounds->msBottomRight.y);
 
-	RecursePack(&cBoundsBelow);
-	RecursePack(&cBoundsRight);
+	RecursePack(pcPackAttempt, &cBoundsBelow);
+	RecursePack(pcPackAttempt, &cBoundsRight);
 	return true;
 }
 
@@ -154,13 +154,13 @@ void CPackedLine::Done(void)
 	{
 		pcRect = macRectangles.Get(i);
 
-		iTemp = pcRect->mix + pcRect->mpcPackedRectangle->miWidth;
+		iTemp = pcRect->mix + pcRect->mcSourceRectangle.miWidth;
 		if (iTemp > miWidth)
 		{
 			miWidth = iTemp;
 		}
 
-		iTemp = pcRect->miy + pcRect->mpcPackedRectangle->miHeight;
+		iTemp = pcRect->miy + pcRect->mcSourceRectangle.miHeight;
 		if (iTemp > miHeight)
 		{
 			miHeight = iTemp;
@@ -182,7 +182,7 @@ CPackRectangleAttempt* CPackedLine::Get(void* pvUserData)
 	{
 		pcRect = macRectangles.Get(i);
 
-		if (pcRect->mpcPackedRectangle->mpvUserData == pvUserData)
+		if (pcRect->mcSourceRectangle.mpvUserData == pvUserData)
 		{
 			return pcRect;
 		}
@@ -195,7 +195,7 @@ CPackRectangleAttempt* CPackedLine::Get(void* pvUserData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPackedLine::GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles)
+void CPackedLine::GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles, int iOutsideEdgeWidth)
 {
 	size					i;
 	CPackRectangleAttempt*	pcRect;
@@ -207,13 +207,13 @@ void CPackedLine::GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles
 	{
 		pcRect = macRectangles.Get(i);
 		pcPackedRect = pacPackedRectangles->Add();
-		iLeft = pcRect->mix + mpcPackAttempt->mpcRectanglePacker->GetOutsideEdgeWidth();
-		iTop = pcRect->miy + miy + mpcPackAttempt->mpcRectanglePacker->GetOutsideEdgeWidth();
+		iLeft = pcRect->mix + iOutsideEdgeWidth;
+		iTop = pcRect->miy + miy + iOutsideEdgeWidth;
 		pcPackedRect->Init(	iLeft, 
 							iTop, 
-							iLeft + pcRect->mpcPackedRectangle->miWidth, 
-							iTop + pcRect->mpcPackedRectangle->miHeight, 
-							pcRect->mpcPackedRectangle->mpvUserData);
+							iLeft + pcRect->mcSourceRectangle.miWidth, 
+							iTop + pcRect->mcSourceRectangle.miHeight, 
+							pcRect->mcSourceRectangle.mpvUserData);
 	}
 }
 
@@ -236,9 +236,9 @@ void CPackedLine::Print(CChars* psz)
 		psz->Append(", ");
 		psz->Append(pcRect->miy);
 		psz->Append(") ");
-		psz->Append(pcRect->mpcPackedRectangle->miWidth);
+		psz->Append(pcRect->mcSourceRectangle.miWidth);
 		psz->Append(":");
-		psz->Append(pcRect->mpcPackedRectangle->miHeight);
+		psz->Append(pcRect->mcSourceRectangle.miHeight);
 		psz->Append("]");
 		if (i != macRectangles.NumElements()-1)
 		{

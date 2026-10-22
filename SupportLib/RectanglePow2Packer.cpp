@@ -85,8 +85,12 @@ void CRectanglePow2Packer::Pack(void)
 	int		iEndWidth;
 	int		iWidth;
 
+	if (mcPacker.GetSourceRectangles()->NumElements() == 0)
+	{
+		return;
+	}
 
-	iStartWidth = mcPacker.GetSourcesMinWidth();;
+	iStartWidth = mcPacker.GetSourcesMinWidth();
 	iEndWidth = mcPacker.GetSourcesMaxWidth();
 
 	if (iEndWidth > 0)
@@ -118,15 +122,33 @@ void CRectanglePow2Packer::AdjustAttemptAreas(void)
 	int				i;
 	CPackAttempt*	pcAttempt;
 	int				iNumAttempts;
+	SInt32Vec2		sSize;
 
+	//Only the area changes so that the attempts can be compared by the size of their power of 2 images.  The width and height stay the packed size.
 	iNumAttempts = (int)mcPacker.GetPackAttempts()->NumElements();
 	for (i = 0; i < iNumAttempts; i++)
 	{
 		pcAttempt = mcPacker.GetPackAttempts()->Get(i);
-		pcAttempt->miWidth = GetPowerOf2SizeUp(pcAttempt->miWidth + mcPacker.GetOutsideEdgeWidth()*2);
-		pcAttempt->miHeight = GetPowerOf2SizeUp(pcAttempt->miHeight + mcPacker.GetOutsideEdgeWidth()*2);
-		pcAttempt->miArea = pcAttempt->miWidth * pcAttempt->miHeight;
+		if (pcAttempt->mbValid)
+		{
+			sSize = GetPowerOf2Size(pcAttempt);
+			pcAttempt->miArea = sSize.x * sSize.y;
+		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CRectanglePow2Packer::GetPowerOf2Size(CPackAttempt* pcAttempt)
+{
+	SInt32Vec2	sSize;
+
+	sSize = pcAttempt->GetPackedImageSize();
+	sSize.Init(GetPowerOf2SizeUp(sSize.x), GetPowerOf2SizeUp(sSize.y));
+	return sSize;
 }
 
 
@@ -159,7 +181,7 @@ SInt32Vec2 CRectanglePow2Packer::GetPackedImageSize(void)
 	pcBest = mcPacker.GetBestAttempt();
 	if (pcBest)
 	{
-		sSize.Init(pcBest->miWidth, pcBest->miHeight);
+		sSize = GetPowerOf2Size(pcBest);
 	}
 	else
 	{

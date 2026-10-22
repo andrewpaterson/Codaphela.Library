@@ -145,9 +145,17 @@ Ptr<CImage> CImageCombiner::Combine(void)
 	if (mcSourceCels.NumElements() > 0)
 	{
 		sTextureSize = Pack(&acPackedRects);
+		if (acPackedRects.NumElements() == 0)
+		{
+			//Every cel was empty or the cels did not fit.
+			acPackedRects.Kill();
+			return NULL;
+		}
+
 		mpcDestImage = InitiailiseDestImage(sTextureSize);
 		if (mpcDestImage.IsNull())
 		{
+			acPackedRects.Kill();
 			return NULL;
 		}
 
@@ -378,7 +386,7 @@ CRectanglePacker* CImageCombiner::GetPacker(void)
 
 			pcPacker = UMalloc(CRectangleBestPacker);
 			pcPacker->Init(miOutsideEdgeWidth, miInnerEdgeWidth);
-			pcPacker->AddAttempt(msSize.x);
+			pcPacker->AddAttempt(msSize.x - miOutsideEdgeWidth * 2);
 
 			return pcPacker;
 		}
@@ -429,6 +437,17 @@ SInt32Vec2 CImageCombiner::Pack(CArrayPackedRectangle* pacPackedRects)
 	pcPacker->GetPackedRectangles(pacPackedRects);
 	sTextureSize = pcPacker->GetPackedImageSize();
 	pcPacker->Kill();
+
+	if (meSize == ICS_UserSpecified)
+	{
+		if ((sTextureSize.x > msSize.x) || (sTextureSize.y > msSize.y))
+		{
+			//The cels don't fit in the user specified size.
+			pacPackedRects->Kill();
+			pacPackedRects->Init();
+		}
+		sTextureSize = msSize;
+	}
 
 	return sTextureSize;
 }

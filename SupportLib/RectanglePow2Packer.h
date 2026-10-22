@@ -46,7 +46,8 @@ public:
 	SInt32Vec2	GetPackedImageSize(void);
 
 private:
-	void	AdjustAttemptAreas(void);
+	void		AdjustAttemptAreas(void);
+	SInt32Vec2	GetPowerOf2Size(CPackAttempt* pcAttempt);
 };
 
 
