@@ -8,11 +8,22 @@
 //////////////////////////////////////////////////////////////////////////
 void CConstantOffset::Init(int32 iOffset)
 {
-    if (iOffset < 0 || iOffset > 3)
+    Init(iOffset, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CConstantOffset::Init(int32 iOffset, bool bOnlyIfMemory16Bit)
+{
+    if (iOffset < -1 || iOffset > 3)
     {
-        LOG_ERROR("Numeric Offset must be in the range 0...3.");
+        LOG_ERROR("Numeric Offset must be in the range -1...3.");
     }
     miOffset = iOffset;
+    mbOnlyIfMemory16Bit = bOnlyIfMemory16Bit;
 }
 
 
@@ -31,6 +42,10 @@ void CConstantOffset::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CConstantOffset::GetOffset(CW65C816* pcCPU)
 {
+    if (mbOnlyIfMemory16Bit && pcCPU->IsMemory8Bit())
+    {
+        return 0;
+    }
     return miOffset;
 }
 

@@ -61,6 +61,7 @@ public:
 	CMetaTrace* 	GetRWB(void);
 
 	bool			TickInstruction(void);
+	bool			TestTickCycle(void);
 	bool			IsResetInstruction(void);
 	bool			IsStopInstruction(void);
 	bool			IsInstruction(CInstruction* pcExpectedInstruction);

@@ -66,7 +66,7 @@ bool CAddressOffset::IsPageWrapped(CW65C816* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAddressOffset::IsProgramBank(void)
+bool CAddressOffset::IsProgramCounter(void)
 {
     return false;
 }

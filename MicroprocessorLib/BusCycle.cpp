@@ -269,7 +269,7 @@ bool CBusCycle::IsProgramAddress(void)
     for (i = 0; i < uiNumOffsets; i++)
     {
         pcOffset = mapcAddressOffsets.GetPtr(i);
-        if (pcOffset->IsProgramBank())
+        if (pcOffset->IsProgramCounter())
         {
             return true;
         }

@@ -19,6 +19,7 @@ void CWaitOperation::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CWaitOperation::Execute(CW65C816* pcCPU)
 {
+	pcCPU->Wait();
 }
 
 
