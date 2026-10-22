@@ -199,9 +199,11 @@ The element width is r, R's width (the user; the formulas' "V+a" means r).  R is
 B, S, V, W, X or Y: A is the count (the user; the encoding sheet listed A too).
 Encoding (moved by the user to instruction code 8, 2026-10-22): b15 V direction, b14
 allow stop, b13-12 stop style, b11-9 R, b8-5 sub instruction, b4 0 = block (1 = vector).
-Done: bcpy (sub instruction 0), band (2), bpcpy (12), bpand (13), bpor (14) and bpxor
-(15).  bcpy only writes: R -> [V], no read, only v is set (n and z are unchanged, so an
-allowed stop condition tests them as they were).  The "pre" operations ("Read" in the
+All are done: bcpy (0), band (2), btst (3), bor (4), bxor (5), badd (6), bsub (8),
+bcmp (10), bpcpy (12), bpand (13), bpor (14), bpxor (15).  7, 9 and 11 are unused.
+D = [V] op R; test and compare do not write.  bcpy only writes: R -> [V], no read, only v
+is set.  It does not test n or z and
+never stops early: its stop bits are ignored (the user).  The "pre" operations ("Read" in the
 encoding sheet) read [V] and set n and z from the value read, so a stop condition can end
 them early, then write R (bpcpy) or [V] and/or/xor R.
 Why (the user, 2026-10-22): the stop condition must see the original element, which the
@@ -222,8 +224,10 @@ and compare (7, 9, 11) were dropped by the user (2026-10-22); add, subtract and 
 are the former unsigned ones.
 A step reads [W], then [V] (not for copy and invert), computes D = [V] op [W] (the user)
 or [W] / ![W], and writes D to [V] (not for test and compare).  n and z come from D, for
-the pre operations from the original [V] (like the block pre operations).  V and W move
-by the element width, A counts and v is set when it is negative; C stays on the opcode
+the pre operations from the original [V] (like the block pre operations; confirmed by
+the user for vpcpy, whose spreadsheet note was a copy of vcpy's).  V and W move
+by o, the element width (the user: the formulas are V+o -> V; W+o -> W), A counts and v
+is set when it is negative; C stays on the opcode
 until then or until an allowed stop condition holds.
 A step is the opcode cycle plus a cycle per word of [W] and [V] read and [V] written.
 
@@ -264,14 +268,14 @@ for wth is a byte count too.
 Undefined encodings execute as a one cycle "ill" that does nothing.
 shl: c is the last bit shifted out, v the one before it.  shr: the same, and n is the
 sign before the shift.  A shift of 0 clears c and v.
-The block move example's "cpy B, X+W" and "cpy Y+W, B" cannot be encoded: the first
-register of the register + register modes must be A, B, S or V (Test65C64BlockCopy
-uses V+W and A+W).
+The block move example's "cpy B, X+W" and "cpy Y+W, B" could not be encoded (the first
+register of the register + register modes must be A, B, S or V).  The sheet was rewritten
+from the simulator (the user: "take the simulator as truth"): V source, A destination,
+W count; both examples run in Test65C64BlockMoveSheet with the sheet's cycle counts.
 
 
 Not implemented yet
 -------------------
 
 Hardware interrupts 0-2 (they need the hardware registers), the interrupt vector
-offset register, hardware register instructions (ignored by request), block operations
-other than bcpy, band and the pre operations.
+offset register, hardware register instructions (ignored by request).

@@ -762,12 +762,38 @@ static void DecodeBlockVector(uint16 uiOpcode, S65C64Decoded* psDecoded)
 	switch (Field(uiOpcode, 5, 4))
 	{
 	case 0:
+		//Block copy does not test n or z, so it never stops early (the stop bits are ignored).
 		psDecoded->eInstruction = I65_Bcpy;
 		psDecoded->eAccess = MA65_Write;
+		psDecoded->bAllowStop = false;
 		break;
 	case 2:
 		psDecoded->eInstruction = I65_Band;
 		psDecoded->eAccess = MA65_ReadWrite;
+		break;
+	case 3:
+		psDecoded->eInstruction = I65_Btst;
+		psDecoded->eAccess = MA65_Read;
+		break;
+	case 4:
+		psDecoded->eInstruction = I65_Bor;
+		psDecoded->eAccess = MA65_ReadWrite;
+		break;
+	case 5:
+		psDecoded->eInstruction = I65_Bxor;
+		psDecoded->eAccess = MA65_ReadWrite;
+		break;
+	case 6:
+		psDecoded->eInstruction = I65_Badd;
+		psDecoded->eAccess = MA65_ReadWrite;
+		break;
+	case 8:
+		psDecoded->eInstruction = I65_Bsub;
+		psDecoded->eAccess = MA65_ReadWrite;
+		break;
+	case 10:
+		psDecoded->eInstruction = I65_Bcmp;
+		psDecoded->eAccess = MA65_Read;
 		break;
 	case 12:
 		psDecoded->eInstruction = I65_Bpcpy;

@@ -223,7 +223,7 @@ public:
 	void				STAB(void);
 	void				STAT(void);
 	void				BlockSetup(void);
-	void				BAND(void);
+	void				BLOCK(void);
 	void				BCPY(void);
 	void				BPRE(void);
 	void				VectorSetup(void);
