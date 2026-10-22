@@ -21,6 +21,7 @@
 #include "JavaSyntaxMethodCall.h"
 #include "JavaSyntaxParentheses.h"
 #include "JavaSyntaxOperator.h"
+#include "JavaSyntaxNew.h"
 #include "JavaSyntaxMemory.h"
 
 
@@ -56,6 +57,7 @@ public:
 	CJavaSyntaxMethodCall*				CreateMethodCall(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	CJavaSyntaxParentheses*				CreateParentheses(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	CJavaSyntaxOperator*				CreateOperator(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	CJavaSyntaxNew*						CreateNew(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 
 protected:
 	template<class M>	M*	Create(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);

@@ -43,6 +43,7 @@ public:
 	virtual bool		IsMethodCall(void);
 	virtual bool		IsParentheses(void);
 	virtual bool		IsOperator(void);
+	virtual bool		IsNew(void);
 
 	virtual bool		IsStatement(void);
 	virtual bool		IsClassCommon(void);

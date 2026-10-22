@@ -19,6 +19,8 @@
 #define EXPECTED_CLOSE_CURLY_BRACKET			"'}' expected."
 #define EXPECTED_CLOSE_SQUARE_BRACKET			"']' expected."
 #define EXPECTED_EXPRESSION						"Expression expected."
+#define EXPECTED_OPEN_ROUND_BRACKET				"'(' expected."
+#define EXPECTED_CLOSE_ROUND_BRACKET_OR_COMMA	"')' or ',' expected."
 
 #define EXPECTED_SOMETHING_ELSE					"Parsing broke."
 

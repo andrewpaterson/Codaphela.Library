@@ -183,6 +183,7 @@
     <ClCompile Include="JavaSyntaxArrayValueExpression.cpp" />
     <ClCompile Include="JavaSyntaxLiteral.cpp" />
     <ClCompile Include="JavaSyntaxMethodCall.cpp" />
+    <ClCompile Include="JavaSyntaxNew.cpp" />
     <ClCompile Include="JavaSyntaxOperator.cpp" />
     <ClCompile Include="JavaSyntaxParentheses.cpp" />
     <ClCompile Include="JavaSyntaxVariableInitialiser.cpp" />
@@ -236,6 +237,7 @@
     <ClInclude Include="JavaModifiers.h" />
     <ClInclude Include="JavaSyntaxArrayValueExpression.h" />
     <ClInclude Include="JavaSyntaxMethodCall.h" />
+    <ClInclude Include="JavaSyntaxNew.h" />
     <ClInclude Include="JavaSyntaxOperator.h" />
     <ClInclude Include="JavaSyntaxParentheses.h" />
     <ClInclude Include="JavaSyntaxVariableInitialiser.h" />

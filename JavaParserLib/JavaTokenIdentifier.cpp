@@ -41,7 +41,7 @@ void CJavaTokenIdentifier::Print(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 bool CJavaTokenIdentifier::Is(char* szIdentifier)
 {
-	int	iLength = StrLen(szIdentifier);
+	int	iLength = (int)StrLen(szIdentifier);
 
 	if (miLength != iLength)
 	{ 

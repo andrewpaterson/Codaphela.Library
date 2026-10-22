@@ -42,7 +42,7 @@ void CJavaTokenAnnotation::Print(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 bool CJavaTokenAnnotation::Is(char* szAnnotation)
 {
-	int	iLength = StrLen(szAnnotation);
+	int	iLength = (int)StrLen(szAnnotation);
 
 	if (miLength != iLength)
 	{
