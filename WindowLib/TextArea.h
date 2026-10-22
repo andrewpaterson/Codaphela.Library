@@ -21,28 +21,49 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "SupportLib/Font.h"
+#include "SupportLib/FontColours.h"
 #include "SupportLib/Text.h"
 #include "SupportLib/TextLayout.h"
+#include "SupportLib/SimpleTextReader.h"
 #include "SupportLib/SpriteMap.h"
 #include "SupportLib/MapFontDraw.h"
 #include "SupportLib/Maps.h"
 #include "Canvas.h"
 
 
-//Lines of text drawn in one font with a CMapsCanvasDraw, for display only (there is no caret or editing yet).  Line
-//feeds start new lines and, with word wrap on (it is off by default), lines are also broken at spaces to fit the width
-//the text area is laid out to.  A word too wide for a line by itself is broken between glyphs.  Like a label the text
-//area is a transparent canvas with its text at the top left; text that doesn't fit is clipped.  A word wrapped text
-//area is variable sized horizontally: it takes the width its container gives it.  Without word wrap its lines can't be
-//made narrower so its required width is the width of the laid out text.  Its required height is the height of the
-//laid out lines, wrapped or not.
+//A range of the text in a colour.  uiStart and uiLength are in bytes of the UTF8 text.
+struct STextAreaSpan
+{
+	size	uiStart;
+	size	uiLength;
+	ARGB32	sColour;
+};
+
+
+typedef CArrayTemplate<STextAreaSpan>	CArrayTextAreaSpan;
+
+
+//Lines of text drawn with a CMapsCanvasDraw, for display only (there is no caret or editing yet).  Line feeds start
+//new lines and, with word wrap on (it is off by default), lines are also broken at spaces to fit the width the text
+//area is laid out to.  A word too wide for a line by itself is broken between glyphs.  Like a label the text area is
+//a transparent canvas with its text at the top left; text that doesn't fit is clipped.  A word wrapped text area is
+//variable sized horizontally: it takes the width its container gives it.  Without word wrap its lines can't be made
+//narrower so its required width is the width of the laid out text.  Its required height is the height of the laid
+//out lines, wrapped or not.
+//
+//The text is drawn in colours of one white font (see CFontColours).  Text is in the text area's colour (opaque white
+//unless set) except where spans colour it; where spans overlap the span added last wins.  Colours don't change the
+//size of the text so spans and the colour are only applied when the text area is next laid out or drawn.
 class CTextArea : public CCanvas
 {
 CONSTRUCTABLE(CTextArea);
 DESTRUCTABLE(CTextArea);
 protected:
 	CChars				mszText;
-	Ptr<CFont>			mpFont;
+	Ptr<CFontColours>	mpColours;
+	ARGB32				msColour;
+	CArrayTextAreaSpan	masSpans;
+	bool				mbTextDirty;  //The spans or colour changed since the text was last read.
 	Ptr<CText>			mpText;
 	Ptr<CTextLayout>	mpLayout;
 	Ptr<CSpriteMap>		mpSpriteMap;
@@ -52,30 +73,44 @@ protected:
 	SInt32Vec2			msTextSize;
 
 public:
-	void			Init(Ptr<CWindow> pWindow, Ptr<CFont> pFont, const char* szText);
-	void			Class(void) override;
-	void 			Free(void) override;
+	void				Init(Ptr<CWindow> pWindow, Ptr<CFont> pWhiteFont, const char* szText);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CFontColours> pColours, const char* szText);
+	void				Class(void) override;
+	void 				Free(void) override;
 
-	bool			Save(CObjectWriter* pcFile) override;
-	bool			Load(CObjectReader* pcFile) override;
+	bool				Save(CObjectWriter* pcFile) override;
+	bool				Load(CObjectReader* pcFile) override;
 
-	void			SetText(const char* szText);
-	char*			GetText(void);
-	void			SetFont(Ptr<CFont> pFont);
-	Ptr<CFont>		GetFont(void);
-	void			SetWordWrap(bool bWordWrap);
-	bool			IsWordWrap(void);
+	void				SetText(const char* szText);
+	void				AppendText(const char* szText, ARGB32 sColour);
+	char*				GetText(void);
+	void				SetFont(Ptr<CFont> pWhiteFont);
+	Ptr<CFont>			GetFont(void);
+	void				SetFontColours(Ptr<CFontColours> pColours);
+	Ptr<CFontColours>	GetFontColours(void);
+	void				SetWordWrap(bool bWordWrap);
+	bool				IsWordWrap(void);
 
-	SInt32Vec2		GetTextSize(void);
-	SInt32Vec2		GetRequiredSize(void);
-	SInt32Vec2		GetDesiredSize(void) override;
+	void				SetColour(ARGB32 sColour);
+	ARGB32				GetColour(void);
+	bool				AddSpan(size uiStart, size uiLength, ARGB32 sColour);
+	void				ClearSpans(void);
+	size				NumSpans(void);
+	ARGB32				GetColourAt(size uiPosition);
 
-	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
+	SInt32Vec2			GetTextSize(void);
+	SInt32Vec2			GetRequiredSize(void);
+	SInt32Vec2			GetDesiredSize(void) override;
+
+	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
+	bool				Draw(void) override;
 
 protected:
-	void			ReadText(void);
-	void			LayoutText(void);
-	int32			GetWrapWidth(void);
+	void				ReadText(void);
+	void				MakeFontChanges(CArrayTextFontChange* pasChanges);
+	void				LayoutText(void);
+	void				UpdateText(void);
+	int32				GetWrapWidth(void);
 };
 
 

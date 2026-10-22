@@ -24,8 +24,20 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/NaiveFile.h"
+#include "BaseLib/ArrayTemplate.h"
 #include "Font.h"
 #include "Text.h"
+
+
+//From uiPosition (in the reader's units, bytes for UTF8) the text is in pcFont.
+struct STextFontChange
+{
+	size	uiPosition;
+	CFont*	pcFont;
+};
+
+
+typedef CArrayTemplate<STextFontChange>	CArrayTextFontChange;
 
 
 class CSimpleTextReader
@@ -40,6 +52,7 @@ public:
 
 	Ptr<CText>			Read(char* szFilename);
 	Ptr<CText>			Read(CUnicodeReader* pcUnicodeReader, bool bNewLines);
+	Ptr<CText>			Read(CUnicodeReader* pcUnicodeReader, bool bNewLines, CArrayTextFontChange* pasChanges);
 
 protected:
 	CUnicodeReader*		CreateReader(char* szFilename);

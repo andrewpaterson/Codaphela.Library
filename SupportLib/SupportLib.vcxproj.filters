@@ -273,6 +273,9 @@
     <ClInclude Include="Font.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
+    <ClInclude Include="FontColours.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
     <ClInclude Include="FontDescription.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
@@ -951,6 +954,9 @@
       <Filter>Source\Image</Filter>
     </ClCompile>
     <ClCompile Include="Font.cpp">
+      <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="FontColours.cpp">
       <Filter>Source\Image\Font</Filter>
     </ClCompile>
     <ClCompile Include="FontDescription.cpp">
