@@ -129,6 +129,45 @@
     <ClCompile Include="W65WriteProgramCounterLow.cpp" />
     <ClCompile Include="W65XIndex.cpp" />
     <ClCompile Include="W65YIndex.cpp" />
+    <ClCompile Include="65AddressOffset.cpp" />
+    <ClCompile Include="65AddressOffsetArray.cpp" />
+    <ClCompile Include="65BusCycle.cpp" />
+    <ClCompile Include="65BusCycleArray.cpp" />
+    <ClCompile Include="65C64.cpp" />
+    <ClCompile Include="65C64Decoded.cpp" />
+    <ClCompile Include="65C64InstructionCycleFactory.cpp" />
+    <ClCompile Include="65C64InstructionFactory.cpp" />
+    <ClCompile Include="65C64Meta.cpp" />
+    <ClCompile Include="65C64Pins.cpp" />
+    <ClCompile Include="65ConstantOffset.cpp" />
+    <ClCompile Include="65DataOperation.cpp" />
+    <ClCompile Include="65DoneInstruction.cpp" />
+    <ClCompile Include="65Execute.cpp" />
+    <ClCompile Include="65ExecuteIfLastPointerWord.cpp" />
+    <ClCompile Include="65ExecuteIfLastTransferWord.cpp" />
+    <ClCompile Include="65IncrementProgramCounter.cpp" />
+    <ClCompile Include="65Instruction.cpp" />
+    <ClCompile Include="65InstructionCycles.cpp" />
+    <ClCompile Include="65InternalOperation.cpp" />
+    <ClCompile Include="65MetaBus16.cpp" />
+    <ClCompile Include="65MetaBus32.cpp" />
+    <ClCompile Include="65MetaSignal.cpp" />
+    <ClCompile Include="65MetaTrace.cpp" />
+    <ClCompile Include="65OpcodeCycle.cpp" />
+    <ClCompile Include="65Operation.cpp" />
+    <ClCompile Include="65OperationArray.cpp" />
+    <ClCompile Include="65PointerAddressOffset.cpp" />
+    <ClCompile Include="65ProgramCounterOffset.cpp" />
+    <ClCompile Include="65ReadOpcode.cpp" />
+    <ClCompile Include="65ReadOperandWord.cpp" />
+    <ClCompile Include="65ReadPointerWord.cpp" />
+    <ClCompile Include="65ReadTransferWord.cpp" />
+    <ClCompile Include="65ReadVectorWord.cpp" />
+    <ClCompile Include="65TraceValue.cpp" />
+    <ClCompile Include="65TransferWordOffset.cpp" />
+    <ClCompile Include="65VectorAddressOffset.cpp" />
+    <ClCompile Include="65WaitOperation.cpp" />
+    <ClCompile Include="65WriteTransferWord.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="W65AbortVector.h" />
@@ -247,6 +286,48 @@
     <ClInclude Include="W65WriteProgramCounterLow.h" />
     <ClInclude Include="W65XIndex.h" />
     <ClInclude Include="W65YIndex.h" />
+    <ClInclude Include="65AddressOffset.h" />
+    <ClInclude Include="65AddressOffsetArray.h" />
+    <ClInclude Include="65BusCycle.h" />
+    <ClInclude Include="65BusCycleArray.h" />
+    <ClInclude Include="65BusCycleParameter.h" />
+    <ClInclude Include="65C64.h" />
+    <ClInclude Include="65C64Decoded.h" />
+    <ClInclude Include="65C64Func.h" />
+    <ClInclude Include="65C64InstructionCycleFactory.h" />
+    <ClInclude Include="65C64InstructionFactory.h" />
+    <ClInclude Include="65C64Meta.h" />
+    <ClInclude Include="65C64Pins.h" />
+    <ClInclude Include="65ConstantOffset.h" />
+    <ClInclude Include="65DataOperation.h" />
+    <ClInclude Include="65DoneInstruction.h" />
+    <ClInclude Include="65Execute.h" />
+    <ClInclude Include="65ExecuteIfLastPointerWord.h" />
+    <ClInclude Include="65ExecuteIfLastTransferWord.h" />
+    <ClInclude Include="65IncrementProgramCounter.h" />
+    <ClInclude Include="65Instruction.h" />
+    <ClInclude Include="65InstructionCycles.h" />
+    <ClInclude Include="65InternalOperation.h" />
+    <ClInclude Include="65MetaBus16.h" />
+    <ClInclude Include="65MetaBus32.h" />
+    <ClInclude Include="65MetaSignal.h" />
+    <ClInclude Include="65MetaTrace.h" />
+    <ClInclude Include="65OpcodeCycle.h" />
+    <ClInclude Include="65Operation.h" />
+    <ClInclude Include="65OperationArray.h" />
+    <ClInclude Include="65PointerAddressOffset.h" />
+    <ClInclude Include="65ProgramCounterOffset.h" />
+    <ClInclude Include="65ReadOpcode.h" />
+    <ClInclude Include="65ReadOperandWord.h" />
+    <ClInclude Include="65ReadPointerWord.h" />
+    <ClInclude Include="65ReadTransferWord.h" />
+    <ClInclude Include="65ReadVectorWord.h" />
+    <ClInclude Include="65Timeline.h" />
+    <ClInclude Include="65TraceValue.h" />
+    <ClInclude Include="65TransferWordOffset.h" />
+    <ClInclude Include="65VectorAddressOffset.h" />
+    <ClInclude Include="65WaitOperation.h" />
+    <ClInclude Include="65WriteTransferWord.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -416,6 +497,9 @@
     </ClCompile>
     <Lib />
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="65C64Simulator.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
