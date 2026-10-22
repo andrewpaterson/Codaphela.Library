@@ -180,6 +180,9 @@
     <ClCompile Include="GerberPanelFiles.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
+    <ClCompile Include="GerberBoardRenderer.cpp">
+      <Filter>Source\Raster</Filter>
+    </ClCompile>
     <ClCompile Include="GerberCommandFileAttribute.cpp">
       <Filter>Source\Common\Command</Filter>
     </ClCompile>
@@ -421,6 +424,9 @@
     </ClInclude>
     <ClInclude Include="GerberPanelFiles.h">
       <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberBoardRenderer.h">
+      <Filter>Source\Raster</Filter>
     </ClInclude>
     <ClInclude Include="GerberBoardSide.h">
       <Filter>Source\Common</Filter>

@@ -220,6 +220,7 @@ void CGerberPanelOutlines::Init(float64 fTolerance)
 	maiFirstLoops.Init();
 	maiNumLoops.Init();
 	mpcPlacement = NULL;
+	mpcSet = NULL;
 	mfTolerance = fTolerance;
 }
 
@@ -252,34 +253,57 @@ void CGerberPanelOutlines::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CGerberPanelOutlines::Read(CGerberPanel* pcPanel)
 {
-	size					i;
-	CGerberLayerFile*		pcOutline;
-	CGerberInterpreter		cInterpreter;
-	bool					bResult;
+	size	i;
 
 	for (i = 0; i < pcPanel->NumPlacements(); i++)
 	{
 		mpcPlacement = pcPanel->GetPlacement(i);
-		pcOutline = mpcPlacement->mpcSet->GetLayer(GBL_Outline, GBS_Both);
-		if (pcOutline == NULL)
-		{
-			return Error("The board has no edge cuts layer.");
-		}
-
-		masPieces.ReInit();
-		cInterpreter.Init(pcOutline->GetCommands(), this);
-		bResult = cInterpreter.Interpret();
-		cInterpreter.Kill();
-		if (!bResult)
-		{
-			return Error("The edge cuts layer could not be interpreted.");
-		}
-		if (!JoinPieces())
+		if (!ReadBoard(mpcPlacement->mpcSet))
 		{
 			return false;
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberPanelOutlines::Read(CGerberFileSet* pcSet)
+{
+	mpcPlacement = NULL;
+	return ReadBoard(pcSet);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberPanelOutlines::ReadBoard(CGerberFileSet* pcSet)
+{
+	CGerberLayerFile*		pcOutline;
+	CGerberInterpreter		cInterpreter;
+	bool					bResult;
+
+	mpcSet = pcSet;
+	pcOutline = pcSet->GetLayer(GBL_Outline, GBS_Both);
+	if (pcOutline == NULL)
+	{
+		return Error("The board has no edge cuts layer.");
+	}
+
+	masPieces.ReInit();
+	cInterpreter.Init(pcOutline->GetCommands(), this);
+	bResult = cInterpreter.Interpret();
+	cInterpreter.Kill();
+	if (!bResult)
+	{
+		return Error("The edge cuts layer could not be interpreted.");
+	}
+	return JoinPieces();
 }
 
 
@@ -294,7 +318,14 @@ void CGerberPanelOutlines::ToPanel(CGerberGraphicsState* pcState, SGerberPoint* 
 
 	fUnit = (pcState->meUnit == GMM_Inches) ? 25.4 : 1.0;
 	sBoard.Init(psPoint->cX.DoubleValue() * fUnit, psPoint->cY.DoubleValue() * fUnit);
-	mpcPlacement->Place(&sBoard, psPanel);
+	if (mpcPlacement)
+	{
+		mpcPlacement->Place(&sBoard, psPanel);
+	}
+	else
+	{
+		*psPanel = sBoard;
+	}
 }
 
 
@@ -429,7 +460,8 @@ bool CGerberPanelOutlines::JoinPieces(void)
 		return Error("The edge cuts layer draws nothing.");
 	}
 
-	//The biggest loop is the outside; it turns counterclockwise and the cut outs clockwise.
+	//The biggest loop is the outside; it turns counterclockwise and the cut outs clockwise.  For a panel's edge cuts
+	//the cut outs are the router channel pieces.
 	iOuter = (int)uiFirstLoop;
 	fLargest = -1;
 	for (i = uiFirstLoop; i < mapcLoops.NumElements(); i++)
@@ -503,9 +535,9 @@ CGerberPanelLoop* CGerberPanelOutlines::GetBoardLoop(size uiBoard, size uiIndex)
 //////////////////////////////////////////////////////////////////////////
 bool CGerberPanelOutlines::Error(const char* szError)
 {
-	if (mpcPlacement)
+	if (mpcSet)
 	{
-		gcLogger.Error2(__METHOD__, " Board [", mpcPlacement->mpcSet->GetName(), "]: ", szError, NULL);
+		gcLogger.Error2(__METHOD__, " Board [", mpcSet->GetName(), "]: ", szError, NULL);
 	}
 	else
 	{

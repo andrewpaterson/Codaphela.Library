@@ -88,6 +88,7 @@ void CGerberPanelTabs::FindTabs(CGerberPanelOutlines* pcOutlines, size uiBoardA,
 	float64				fOverlapEnd;
 	CArrayFloat64Vec2	asRangesA;
 	CArrayFloat64Vec2	asRangesB;
+	CArrayFloat64Vec2	asStraights;
 	size				i;
 	size				j;
 	float64				fStart;
@@ -117,9 +118,10 @@ void CGerberPanelTabs::FindTabs(CGerberPanelOutlines* pcOutlines, size uiBoardA,
 		return;
 	}
 
-	//Only where both edges are straight.
+	//Where both edges are straight.
 	asRangesA.Init();
 	asRangesB.Init();
+	asStraights.Init();
 	GetStraightEdges(pcOutlines->GetOuterLoop(uiBoardA), bAcrossX, fEdgeA, &asRangesA);
 	GetStraightEdges(pcOutlines->GetOuterLoop(uiBoardB), bAcrossX, fEdgeB, &asRangesB);
 	for (i = 0; i < asRangesA.NumElements(); i++)
@@ -134,10 +136,15 @@ void CGerberPanelTabs::FindTabs(CGerberPanelOutlines* pcOutlines, size uiBoardA,
 			if (fOverlapEnd < fEnd) fEnd = fOverlapEnd;
 			if (fEnd - fStart >= mfTabWidth)
 			{
-				AddTabs(uiBoardA, uiBoardB, bAcrossX, fEdgeA, fEdgeB, fStart, fEnd);
+				asStraights.Add()->Init(fStart, fEnd);
 			}
 		}
 	}
+	if (asStraights.NumElements() > 0)
+	{
+		AddTabs(uiBoardA, uiBoardB, bAcrossX, fEdgeA, fEdgeB, fOverlapStart, fOverlapEnd, &asStraights);
+	}
+	asStraights.Kill();
 	asRangesB.Kill();
 	asRangesA.Kill();
 }
@@ -191,31 +198,34 @@ void CGerberPanelTabs::GetStraightEdges(CGerberPanelLoop* pcLoop, bool bAcrossX,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberPanelTabs::AddTabs(size uiBoardA, size uiBoardB, bool bAcrossX, float64 fEdgeA, float64 fEdgeB, float64 fStart, float64 fEnd)
+void CGerberPanelTabs::AddTabs(size uiBoardA, size uiBoardB, bool bAcrossX, float64 fEdgeA, float64 fEdgeB, float64 fStart, float64 fEnd, CArrayFloat64Vec2* pasStraights)
 {
 	float64				fLength;
 	int					iNumTabs;
 	int					iMaxTabs;
 	int					i;
+	size				j;
 	float64				fCentre;
 	SGerberPanelTab*	psTab;
-
 	SGerberPanelTab		sTab;
 	float64				fLow;
-	float64				fHigh;
 	float64				fShift;
 	float64				fStep;
 	bool				bFound;
 	int					iStep;
 
-	//One per 30mm, spread evenly, as many as fit.
+	//One per 30mm of the facing edges, spread evenly, as many as the straight stretches can hold.
 	fLength = fEnd - fStart;
 	iNumTabs = (int)ceil(fLength / mfTabSpacing);
 	if (iNumTabs < 1)
 	{
 		iNumTabs = 1;
 	}
-	iMaxTabs = (int)floor(fLength / mfTabWidth);
+	iMaxTabs = 0;
+	for (j = 0; j < pasStraights->NumElements(); j++)
+	{
+		iMaxTabs += (int)floor((pasStraights->Get(j)->y - pasStraights->Get(j)->x) / mfTabWidth);
+	}
 	if (iNumTabs > iMaxTabs)
 	{
 		iNumTabs = iMaxTabs;
@@ -230,24 +240,19 @@ void CGerberPanelTabs::AddTabs(size uiBoardA, size uiBoardB, bool bAcrossX, floa
 	fStep = 0.1;
 	for (i = 0; i < iNumTabs; i++)
 	{
-		//The nearest place to the even spacing that is clear of copper, after the previous tab and leaving room for the rest.
+		//The nearest place to the even spacing that is straight on both edges, after the previous tab and clear of copper.
 		fCentre = fStart + (i + 0.5) * fLength / iNumTabs;
-		fHigh = fEnd - (iNumTabs - 1 - i) * mfTabWidth;
 		bFound = false;
-		for (iStep = 0; ; iStep++)
+		for (iStep = 0; ((iStep + 1) / 2) * fStep <= fLength; iStep++)
 		{
 			fShift = ((iStep + 1) / 2) * fStep * ((iStep % 2 == 1) ? 1 : -1);
-			if ((fCentre + fShift - mfTabWidth / 2 < fLow - 0.000001) && (fCentre - fShift + mfTabWidth / 2 > fHigh + 0.000001) && (iStep > 1))
-			{
-				break;
-			}
 			sTab.fStart = fCentre + fShift - mfTabWidth / 2;
 			sTab.fEnd = fCentre + fShift + mfTabWidth / 2;
-			if ((sTab.fStart < fLow - 0.000001) || (sTab.fEnd > fHigh + 0.000001))
+			if (sTab.fStart < fLow - 0.000001)
 			{
 				continue;
 			}
-			if (IsClearOfCopper(&sTab))
+			if (IsOnStraight(&sTab, pasStraights) && IsClearOfCopper(&sTab))
 			{
 				bFound = true;
 				break;
@@ -268,6 +273,27 @@ void CGerberPanelTabs::AddTabs(size uiBoardA, size uiBoardB, bool bAcrossX, floa
 			muiDropped++;
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberPanelTabs::IsOnStraight(SGerberPanelTab* psTab, CArrayFloat64Vec2* pasStraights)
+{
+	size			i;
+	SFloat64Vec2*	psStraight;
+
+	for (i = 0; i < pasStraights->NumElements(); i++)
+	{
+		psStraight = pasStraights->Get(i);
+		if ((psTab->fStart >= psStraight->x - 0.000001) && (psTab->fEnd <= psStraight->y + 0.000001))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 

@@ -53,7 +53,8 @@ protected:
 	CArrayInt					maiOuterLoops;  //Each board's outside loop.
 	CArrayInt					maiFirstLoops;  //Each board's first loop.
 	CArrayInt					maiNumLoops;
-	CGerberPanelPlacement*		mpcPlacement;
+	CGerberPanelPlacement*		mpcPlacement;  //NULL if the boards aren't placed.
+	CGerberFileSet*				mpcSet;
 	float64						mfTolerance;
 
 public:
@@ -61,6 +62,7 @@ public:
 	void				Kill(void);
 
 	bool				Read(CGerberPanel* pcPanel);
+	bool				Read(CGerberFileSet* pcSet);  //One board, or a panel's files, where they are.
 
 	size				NumBoards(void);
 	CGerberPanelLoop*	GetOuterLoop(size uiBoard);
@@ -71,6 +73,7 @@ public:
 	void				Arc(CGerberGraphicsState* pcState, SGerberPoint* psStart, SGerberPoint* psEnd, SGerberPoint* psCenter, bool bClockwise);
 
 protected:
+	bool				ReadBoard(CGerberFileSet* pcSet);
 	void				ToPanel(CGerberGraphicsState* pcState, SGerberPoint* psPoint, SFloat64Vec2* psPanel);
 	bool				JoinPieces(void);
 	bool				Error(const char* szError);
