@@ -36,7 +36,7 @@ bool CAddressOffset::IsAddress(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CAddressOffset::GetBank(CW65C816* pcCPU)
+uint8 CAddressOffset::GetBank(CW65CCore* pcCPU)
 {
     return 0;
 }
@@ -56,7 +56,7 @@ bool CAddressOffset::IsConstantOffset(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAddressOffset::IsPageWrapped(CW65C816* pcCPU)
+bool CAddressOffset::IsPageWrapped(CW65CCore* pcCPU)
 {
     return false;
 }

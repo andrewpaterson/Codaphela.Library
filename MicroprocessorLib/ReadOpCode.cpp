@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "ReadOpCode.h"
 
 
@@ -16,7 +16,7 @@ void CReadOpcode::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CReadOpcode::Execute(CW65C816* pcCPU)
+void CReadOpcode::Execute(CW65CCore* pcCPU)
 {
 	pcCPU->ReadOpcode();
 }

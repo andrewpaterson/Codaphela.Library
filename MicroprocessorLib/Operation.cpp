@@ -25,7 +25,7 @@ bool COperation::IsOperation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool COperation::MustExecute(CW65C816* pcCPU)
+bool COperation::MustExecute(CW65CCore* pcCPU)
 {
     return true;
 }

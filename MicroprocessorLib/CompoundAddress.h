@@ -14,8 +14,8 @@ public:
 
     CAddressOffsetArray*    GetAddressOffsets(void);
 
-    int32                   GetOffset(CW65C816* pcCPU) override;
-    uint8                   GetBank(CW65C816* pcCPU);
+    int32                   GetOffset(CW65CCore* pcCPU) override;
+    uint8                   GetBank(CW65CCore* pcCPU);
     void                    Print(CChars* psz) override;
 };
 

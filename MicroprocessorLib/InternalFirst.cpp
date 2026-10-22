@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "InternalFirst.h"
 
 
@@ -16,7 +16,7 @@ void CInternalFirst::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInternalFirst::Execute(CW65C816* pcCPU)
+void CInternalFirst::Execute(CW65CCore* pcCPU)
 {
 }
 

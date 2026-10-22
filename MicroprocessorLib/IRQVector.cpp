@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "IRQVector.h"
 
 
@@ -16,7 +16,7 @@ void CIRQVector::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CIRQVector::GetAddress(CW65C816* pcCPU)
+uint16 CIRQVector::GetAddress(CW65CCore* pcCPU)
 {
     if (pcCPU->IsEmulation())
     {

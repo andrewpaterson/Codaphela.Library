@@ -2,16 +2,16 @@
 #define __OPERATION_H__
 #include "BusCycleParameter.h"
 
-class CW65C816;
+class CW65CCore;
 class COperation : public CBusCycleParameter
 {
 public:
             void    Init(void);
 
-    virtual void    Execute(CW65C816* pcCPU) =0;
+    virtual void    Execute(CW65CCore* pcCPU) =0;
 
             bool    IsOperation(void) override;
-    virtual bool    MustExecute(CW65C816* pcCPU);
+    virtual bool    MustExecute(CW65CCore* pcCPU);
     virtual bool    IsAddress(void) override;
     virtual bool    IsData(void);
     virtual size    GetDone8(void);

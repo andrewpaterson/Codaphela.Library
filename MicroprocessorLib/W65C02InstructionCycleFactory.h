@@ -1,0 +1,51 @@
+#ifndef __W65C02_INSTRUCTION_CYCLE_FACTORY_H__
+#define __W65C02_INSTRUCTION_CYCLE_FACTORY_H__
+#include "W65C02Func.h"
+#include "InstructionCycleBuilder.h"
+
+
+CInstructionCycles* CreateW65C02ImpliedCycles(CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02ImmediateCycles(CW65C02Func fOperation, bool bDecimal, uint16 uiDecimalAddress = 0);
+CInstructionCycles* CreateW65C02ZeroPageCycles(CW65C02Func fOperation, bool bDecimal);
+CInstructionCycles* CreateW65C02ZeroPageWriteCycles(CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02ZeroPageRMWCycles(CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02ZeroPageIndexedCycles(bool bIndexY, CW65C02Func fOperation, bool bDecimal);
+CInstructionCycles* CreateW65C02ZeroPageIndexedWriteCycles(bool bIndexY, CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02ZeroPageIndexedWithXRMWCycles(CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02AbsoluteCycles(CW65C02Func fOperation, bool bDecimal);
+CInstructionCycles* CreateW65C02AbsoluteWriteCycles(CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02AbsoluteRMWCycles(CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02AbsoluteIndexedCycles(EAddressingMode eMode, bool bIndexY, CW65C02Func fOperation, bool bDecimal);
+CInstructionCycles* CreateW65C02AbsoluteIndexedWithXCycles(CW65C02Func fOperation, bool bDecimal);
+CInstructionCycles* CreateW65C02AbsoluteIndexedWithYCycles(CW65C02Func fOperation, bool bDecimal);
+CInstructionCycles* CreateW65C02AbsoluteIndexedWriteCycles(EAddressingMode eMode, bool bIndexY, CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02AbsoluteIndexedWithXWriteCycles(CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02AbsoluteIndexedWithYWriteCycles(CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02AbsoluteIndexedWithXRMWCycles(CW65C02Func fOperation, bool bAlwaysIndexCycle);
+CInstructionCycles* CreateW65C02ZeroPageIndexedIndirectWithXCycles(CW65C02Func fOperation, bool bDecimal);
+CInstructionCycles* CreateW65C02ZeroPageIndexedIndirectWithXWriteCycles(CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02ZeroPageIndirectIndexedWithYCycles(CW65C02Func fOperation, bool bDecimal);
+CInstructionCycles* CreateW65C02ZeroPageIndirectIndexedWithYWriteCycles(CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02ZeroPageIndirectCycles(CW65C02Func fOperation, bool bDecimal);
+CInstructionCycles* CreateW65C02ZeroPageIndirectWriteCycles(CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02RelativeCycles(CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02ZeroPageRelativeCycles(void);
+CInstructionCycles* CreateW65C02AbsoluteJMPCycles(void);
+CInstructionCycles* CreateW65C02AbsoluteIndirectJMPCycles(void);
+CInstructionCycles* CreateW65C02AbsoluteIndexedIndirectWithXJMPCycles(void);
+CInstructionCycles* CreateW65C02AbsoluteJSRCycles(void);
+CInstructionCycles* CreateW65C02StackRTSCycles(void);
+CInstructionCycles* CreateW65C02StackRTICycles(void);
+CInstructionCycles* CreateW65C02StackSoftwareInterruptCycles(CInterruptVector* pcInterruptVector, CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02StackPushCycles(CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02StackPullCycles(CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02WaitForInterruptCycles(void);
+CInstructionCycles* CreateW65C02StopTheClockCycles(CW65C02Func fOperation);
+CInstructionCycles* CreateW65C02NOPCycles(int iBytes);
+CInstructionCycles* CreateW65C02NOPZeroPageCycles(void);
+CInstructionCycles* CreateW65C02NOPZeroPageIndexedCycles(void);
+CInstructionCycles* CreateW65C02NOPAbsoluteCycles(void);
+
+
+#endif // __W65C02_INSTRUCTION_CYCLE_FACTORY_H__
+

@@ -57,7 +57,7 @@ void CAddressOffsetArray::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CalculateAddressWrappingFromAddressOffsets(CAddress* pcDest, CW65C816* pcCPU, CAddressOffsetArray* pacAddressOffsets)
+void CalculateAddressWrappingFromAddressOffsets(CAddress* pcDest, CW65CCore* pcCPU, CAddressOffsetArray* pacAddressOffsets)
 {
 	CAddressOffset*		pcOffset;
 	uint8				uiBank;
@@ -103,7 +103,7 @@ void CalculateAddressWrappingFromAddressOffsets(CAddress* pcDest, CW65C816* pcCP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CalculateAddressSpanningFromAddressOffsets(CAddress* pcDest, CW65C816* pcCPU, CAddressOffsetArray* pacAddressOffsets)
+void CalculateAddressSpanningFromAddressOffsets(CAddress* pcDest, CW65CCore* pcCPU, CAddressOffsetArray* pacAddressOffsets)
 {
 	CAddressOffset* pcOffset;
 	uint8				uiBank;

@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "Address.h"
 #include "SetProgramCounter.h"
 
@@ -30,7 +30,7 @@ void CSetProgramCounter::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSetProgramCounter::Execute(CW65C816* pcCPU)
+void CSetProgramCounter::Execute(CW65CCore* pcCPU)
 {
     CAddress  cAddress;
 

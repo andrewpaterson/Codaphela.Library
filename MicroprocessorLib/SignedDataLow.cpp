@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "SignedDataLow.h"
 
 
@@ -24,7 +24,7 @@ void CSignedDataLow::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CSignedDataLow::GetOffset(CW65C816* pcCPU)
+int32 CSignedDataLow::GetOffset(CW65CCore* pcCPU)
 {
     return pcCPU->GetData8BitOffset();
 }

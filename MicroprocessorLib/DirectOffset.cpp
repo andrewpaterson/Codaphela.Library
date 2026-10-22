@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "DirectOffset.h"
 
 
@@ -24,7 +24,7 @@ void CDirectOffset::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CDirectOffset::GetOffset(CW65C816* pcCPU)
+int32 CDirectOffset::GetOffset(CW65CCore* pcCPU)
 {
     return pcCPU->GetDirectOffset();
 }

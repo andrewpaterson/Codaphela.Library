@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "ReadAbsoluteAddressHigh.h"
 
 
@@ -16,7 +16,7 @@ void CReadAbsoluteAddressHigh::Init(NotMemoryLock bNotMemoryLock, bool bNotVecto
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CReadAbsoluteAddressHigh::Execute(CW65C816* pcCPU)
+void CReadAbsoluteAddressHigh::Execute(CW65CCore* pcCPU)
 {
 	pcCPU->SetAddressHigh(pcCPU->GetIOData());
 }

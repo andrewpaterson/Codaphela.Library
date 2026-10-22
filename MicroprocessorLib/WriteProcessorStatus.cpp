@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "WriteProcessorStatus.h"
 
 
@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CWriteProcessorStatus::Init(void)
 {
-	CDataOperation::Init(false, true, true, false, true);
+	Init(false);
 }
 
 
@@ -16,9 +16,20 @@ void CWriteProcessorStatus::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWriteProcessorStatus::Execute(CW65C816* pcCPU)
+void CWriteProcessorStatus::Init(bool bBreak)
 {
-    pcCPU->WriteProcessorStatus();
+	CDataOperation::Init(false, true, true, false, true);
+	mbBreak = bBreak;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWriteProcessorStatus::Execute(CW65CCore* pcCPU)
+{
+    pcCPU->WriteProcessorStatus(mbBreak);
 }
 
 

@@ -37,7 +37,7 @@ CAddressOffsetArray* CCompoundAddress::GetAddressOffsets(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CCompoundAddress::GetOffset(CW65C816* pcCPU)
+int32 CCompoundAddress::GetOffset(CW65CCore* pcCPU)
 {
 	CAddress	cAddress;
 
@@ -52,7 +52,7 @@ int32 CCompoundAddress::GetOffset(CW65C816* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CCompoundAddress::GetBank(CW65C816* pcCPU)
+uint8 CCompoundAddress::GetBank(CW65CCore* pcCPU)
 {
 	CAddress	cAddress;
 

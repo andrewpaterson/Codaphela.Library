@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "DoneInstruction.h"
 
 
@@ -16,7 +16,7 @@ void CDoneInstruction::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDoneInstruction::Execute(CW65C816* pcCPU)
+void CDoneInstruction::Execute(CW65CCore* pcCPU)
 {
 	pcCPU->DoneInstruction();
 }

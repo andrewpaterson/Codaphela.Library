@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "DoneInstructionIf8Bit.h"
 
 
@@ -18,7 +18,7 @@ void CDoneInstructionIf8Bit::Init(EWidthFromRegister eWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDoneInstructionIf8Bit::Execute(CW65C816* pcCPU)
+void CDoneInstructionIf8Bit::Execute(CW65CCore* pcCPU)
 {
     if (meWidth == WFR_M)
     {

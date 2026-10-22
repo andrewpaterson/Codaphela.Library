@@ -13,6 +13,15 @@
     <Filter Include="Source\Meta">
       <UniqueIdentifier>{1434093c-1795-4898-88ac-ab597c79f3db}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\WDC\W65C02">
+      <UniqueIdentifier>{ab18b0a7-80ed-47d5-bae4-77edfc06b9d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\WDC\W65C02\Instruction">
+      <UniqueIdentifier>{1a63d115-5fcf-4020-9c69-b151acb9cb30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\WDC\W65C02\Meta">
+      <UniqueIdentifier>{8dbfe5d2-7b46-4631-9eeb-354726a934dc}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\WDC">
       <UniqueIdentifier>{a642cece-12a3-4639-9354-9c51693588ae}</UniqueIdentifier>
     </Filter>
@@ -39,6 +48,45 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="W65CCore.cpp">
+      <Filter>Source\WDC</Filter>
+    </ClCompile>
+    <ClCompile Include="W65CPins.cpp">
+      <Filter>Source\WDC</Filter>
+    </ClCompile>
+    <ClCompile Include="InstructionCycleBuilder.cpp">
+      <Filter>Source\WDC</Filter>
+    </ClCompile>
+    <ClCompile Include="MetaW65C.cpp">
+      <Filter>Source\Meta</Filter>
+    </ClCompile>
+    <ClCompile Include="NoteDecimal.cpp">
+      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
+    </ClCompile>
+    <ClCompile Include="DoneInstructionIfBinary.cpp">
+      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="DoneInstructionIfSamePage.cpp">
+      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="BranchAddress.cpp">
+      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="W65C02.cpp">
+      <Filter>Source\WDC\W65C02</Filter>
+    </ClCompile>
+    <ClCompile Include="W65C02Pins.cpp">
+      <Filter>Source\WDC\W65C02</Filter>
+    </ClCompile>
+    <ClCompile Include="W65C02InstructionFactory.cpp">
+      <Filter>Source\WDC\W65C02\Instruction</Filter>
+    </ClCompile>
+    <ClCompile Include="W65C02InstructionCycleFactory.cpp">
+      <Filter>Source\WDC\W65C02\Instruction</Filter>
+    </ClCompile>
+    <ClCompile Include="MetaW65C02.cpp">
+      <Filter>Source\WDC\W65C02\Meta</Filter>
+    </ClCompile>
     <ClCompile Include="W65C816.cpp">
       <Filter>Source\WDC\W65C816</Filter>
     </ClCompile>
@@ -323,6 +371,54 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="W65CCore.h">
+      <Filter>Source\WDC</Filter>
+    </ClInclude>
+    <ClInclude Include="W65CPins.h">
+      <Filter>Source\WDC</Filter>
+    </ClInclude>
+    <ClInclude Include="W65CFunc.h">
+      <Filter>Source\WDC</Filter>
+    </ClInclude>
+    <ClInclude Include="InstructionCycleBuilder.h">
+      <Filter>Source\WDC</Filter>
+    </ClInclude>
+    <ClInclude Include="MetaW65C.h">
+      <Filter>Source\Meta</Filter>
+    </ClInclude>
+    <ClInclude Include="NoteDecimal.h">
+      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
+    </ClInclude>
+    <ClInclude Include="DoneInstructionIfBinary.h">
+      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="DoneInstructionIfSamePage.h">
+      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="BranchAddress.h">
+      <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="W65C02.h">
+      <Filter>Source\WDC\W65C02</Filter>
+    </ClInclude>
+    <ClInclude Include="W65C02Pins.h">
+      <Filter>Source\WDC\W65C02</Filter>
+    </ClInclude>
+    <ClInclude Include="W65C02Func.h">
+      <Filter>Source\WDC\W65C02</Filter>
+    </ClInclude>
+    <ClInclude Include="W65C02InstructionCodes.h">
+      <Filter>Source\WDC\W65C02\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="W65C02InstructionFactory.h">
+      <Filter>Source\WDC\W65C02\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="W65C02InstructionCycleFactory.h">
+      <Filter>Source\WDC\W65C02\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="MetaW65C02.h">
+      <Filter>Source\WDC\W65C02\Meta</Filter>
+    </ClInclude>
     <ClInclude Include="W65C816.h">
       <Filter>Source\WDC\W65C816</Filter>
     </ClInclude>

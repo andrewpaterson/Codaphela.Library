@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "BRKVector.h"
 
 
@@ -16,7 +16,7 @@ void CBRKVector::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CBRKVector::GetAddress(CW65C816* pcCPU)
+uint16 CBRKVector::GetAddress(CW65CCore* pcCPU)
 {
     if (pcCPU->IsEmulation())
     {

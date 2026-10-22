@@ -1,82 +1,9 @@
 #ifndef __INSTRUCTION_CYCLE_FACTORY_H__
 #define __INSTRUCTION_CYCLE_FACTORY_H__
-#include "AddressingMode.h"
-#include "WidthFromRegister.h"
 #include "W65C816Func.h"
-
-//Addressing
-#include "AbsoluteAddress.h"
-#include "AbsoluteAddressHigh.h"
-#include "AbsoluteAddressLowPlusXLow.h"
-#include "AbsoluteAddressLowPlusYLow.h"
-#include "AddressBank.h"
-#include "AddressOffset.h"
-#include "ConstantOffset.h"
-#include "DataBank.h"
-#include "DirectOffset.h"
-#include "DirectPage.h"
-#include "InterruptAddress.h"
-#include "NewProgramBank.h"
-#include "NewProgramCounter.h"
-#include "ProgramBank.h"
-#include "ProgramCounter.h"
-#include "SignedData.h"
-#include "SignedDataLow.h"
-#include "StackPointer.h"
-#include "XIndex.h"
-#include "YIndex.h"
-
-//Operations
-#include "DecrementStackPointer.h"
-#include "DoneInstruction.h"
-#include "DoneInstructionIf8Bit.h"
-#include "DoneInstructionIfEmulation.h"
-#include "DoneInstructionIf16Bit.h"
-#include "Execute.h"
-#include "ExecuteIf8Bit.h"
-#include "ExecuteIf16Bit.h"
-#include "IncrementProgramCounter.h"
-#include "IncrementStackPointer.h"
-#include "InternalFirst.h"
-#include "InternalOperation.h"
-#include "ReadAbsoluteAddressLow.h"
-#include "ReadAbsoluteAddressHigh.h"
-#include "ReadAbsoluteAddressBank.h"
-#include "ReadDataLow.h"
-#include "ReadDataHigh.h"
-#include "ReadDataBank.h"
-#include "ReadDirectOffset.h"
-#include "ReadOpCode.h"
-#include "ReadProcessorStatus.h"
-#include "ReadProgramBank.h"
-#include "ReadProgramCounterHigh.h"
-#include "ReadProgramCounterLow.h"
-#include "RestoreAbortValues.h"
-#include "SetProgramBank.h"
-#include "SetProgramCounter.h"
-#include "WaitOperation.h"
-#include "WriteAbsoluteAddressHigh.h"
-#include "WriteAbsoluteAddressLow.h"
-#include "WriteDataHigh.h"
-#include "WriteDataLow.h"
-#include "WriteProcessorStatus.h"
-#include "WriteProgramBank.h"
-#include "WriteProgramCounterHigh.h"
-#include "WriteProgramCounterLow.h"
-
-//Notes
-#include "NoteOne.h"
-#include "NoteTwo.h"
-#include "NoteThree.h"
-#include "NoteFourX.h"
-#include "NoteFourY.h"
-#include "NoteSix.h"
-#include "NoteSeven.h"
-
-#include "InstructionCycles.h"
+#include "InstructionCycleBuilder.h"
 
 
-CInstructionCycles* CreateFetchOpcodeCycles(void);
 CInstructionCycles* CreateAbsoluteCycles(CW65C816Func fOperation, EWidthFromRegister eWidth, bool bInitialSide);
 CInstructionCycles* CreateAbsoluteWriteCycles(CW65C816Func fOperation, EWidthFromRegister eWidth, bool bInitialSide);
 CInstructionCycles* CreateAbsoluteJMPCycles(void);
@@ -126,9 +53,7 @@ CInstructionCycles* CreateStopTheClockCycles(CW65C816Func fOperation, bool bInit
 CInstructionCycles* CreateWaitForInterruptCycles(void);
 CInstructionCycles* CreateRelativeShortCycles(CW65C816Func fOperation, bool bInitialSide);
 CInstructionCycles* CreateRelativeLongCycles(CW65C816Func fOperation, bool bInitialSide);
-CInstructionCycles* CreateStackHardwareInterruptCycles(CInterruptVector* pcInterruptVector, CW65C816Func fOperation, bool bInitialSide);
 CInstructionCycles* CreateStackAbortInterruptCycles(CInterruptVector* pcInterruptVector, CW65C816Func fOperation, bool bInitialSide);
-CInstructionCycles* CreateStackResetCycles(CInterruptVector* pcInterruptVector, CW65C816Func fOperation, bool bInitialSide);
 CInstructionCycles* CreateStackPullCycles(CW65C816Func fOperation, EWidthFromRegister eWidth, bool bInitialSide);
 CInstructionCycles* CreateStackPLBCycles(CW65C816Func fOperation, bool bInitialSide);
 CInstructionCycles* CreateStackPLDCycles(CW65C816Func fOperation, bool bInitialSide);

@@ -16,8 +16,8 @@ public:
 };
 
 
-void					CalculateAddressWrappingFromAddressOffsets(CAddress* pcDest, CW65C816* pcCPU, CAddressOffsetArray* pacAddressOffsets);
-void					CalculateAddressSpanningFromAddressOffsets(CAddress* pcDest, CW65C816* pcCPU, CAddressOffsetArray* pacAddressOffsets);
+void					CalculateAddressWrappingFromAddressOffsets(CAddress* pcDest, CW65CCore* pcCPU, CAddressOffsetArray* pacAddressOffsets);
+void					CalculateAddressSpanningFromAddressOffsets(CAddress* pcDest, CW65CCore* pcCPU, CAddressOffsetArray* pacAddressOffsets);
 CAddressOffsetArray*	Address(CAddressOffset* pcOffset, ...);
 
 

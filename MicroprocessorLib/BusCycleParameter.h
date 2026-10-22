@@ -6,7 +6,7 @@
 #include "StandardLib/Unknown.h"
 
 
-class CW65C816;
+class CW65CCore;
 class CBusCycleParameter : public CUnknown,  public CRefered
 {
 public:

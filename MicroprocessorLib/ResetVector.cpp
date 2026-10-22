@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "ResetVector.h"
 
 
@@ -16,7 +16,7 @@ void CResetVector::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CResetVector::GetAddress(CW65C816* pcCPU)
+uint16 CResetVector::GetAddress(CW65CCore* pcCPU)
 {
 	return 0xfffc;
 }

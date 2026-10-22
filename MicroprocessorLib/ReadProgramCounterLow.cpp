@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "ReadProgramCounterLow.h"
 
 
@@ -16,7 +16,7 @@ void CReadProgramCounterLow::Init(NotMemoryLock bNotMemoryLock)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CReadProgramCounterLow::Execute(CW65C816* pcCPU)
+void CReadProgramCounterLow::Execute(CW65CCore* pcCPU)
 {
 	pcCPU->SetNewProgramCounterLow(pcCPU->GetIOData());
 }

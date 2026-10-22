@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "WriteAbsoluteAddressHigh.h"
 
 
@@ -16,7 +16,7 @@ void CWriteAbsoluteAddressHigh::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWriteAbsoluteAddressHigh::Execute(CW65C816* pcCPU)
+void CWriteAbsoluteAddressHigh::Execute(CW65CCore* pcCPU)
 {
 	pcCPU->SetIOData(pcCPU->GetAddress()->GetOffsetHigh());
 }

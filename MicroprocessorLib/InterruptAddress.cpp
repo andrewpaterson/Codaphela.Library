@@ -1,5 +1,5 @@
 #include "BaseLib/Refered.h"
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "InterruptAddress.h"
 
 
@@ -29,7 +29,7 @@ void CInterruptAddress::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CInterruptAddress::GetOffset(CW65C816* pcCPU)
+int32 CInterruptAddress::GetOffset(CW65CCore* pcCPU)
 {
     return mpcInterruptVector->GetAddress(pcCPU);
 }

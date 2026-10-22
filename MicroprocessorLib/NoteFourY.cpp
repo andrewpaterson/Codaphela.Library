@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "NoteFourY.h"
 
 
@@ -18,7 +18,7 @@ void CNoteFourY::Init(bool bNextWillRead)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNoteFourY::Execute(CW65C816* pcCPU)
+void CNoteFourY::Execute(CW65CCore* pcCPU)
 {
 }
 
@@ -37,7 +37,7 @@ bool CNoteFourY::IsInitialSide(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNoteFourY::MustExecute(CW65C816* pcCPU)
+bool CNoteFourY::MustExecute(CW65CCore* pcCPU)
 {
 	return pcCPU->NoteFourY(mbNextWillRead);
 }

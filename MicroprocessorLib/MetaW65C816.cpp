@@ -9,22 +9,12 @@
 //////////////////////////////////////////////////////////////////////////
 void CMetaW65C816::Init(MetaW65C816TickHigh fTickHigh, MetaW65C816TickLow fTickLow, void* pvContext)
 {
-	mcAddress.Init();
-	mcData.Init();
-	mcPHI2.Init(false);
-	mcRESB.Init(false);
-	mcRWB.Init();
+	InitTraces(pvContext);
 	mcVPA.Init();
 	mcVDA.Init();
-	mcVPB.Init();
 	mcABORTB.Init(true);
-	mcIRQB.Init(true);
-	mcNMIB.Init(true);
-	mcMLB.Init();
 	mcMX.Init();
-	mcBE.Init(true);
 	mcE.Init();
-	mcRDY.Init(true);
 
 	mcPins.Init(&mcAddress, &mcData, &mcPHI2, &mcRESB, &mcRWB);
 	mcPins.SetImportantTraces(&mcVPA, &mcVDA, &mcVPB);
@@ -35,7 +25,6 @@ void CMetaW65C816::Init(MetaW65C816TickHigh fTickHigh, MetaW65C816TickLow fTickL
 
 	mfTickHigh = fTickHigh;
 	mfTickLow = fTickLow;
-	mpvContext = pvContext;
 }
 
 
@@ -48,113 +37,12 @@ void CMetaW65C816::Kill(void)
 	mcMPU.Kill();
 	mcPins.Kill();
 
-	mcPHI2.Init(true);
-	mcRESB.Init(false);
-	mcRWB.Kill();
 	mcVPA.Kill();
 	mcVDA.Kill();
-	mcVPB.Kill();
 	mcABORTB.Kill();
-	mcIRQB.Kill();
-	mcNMIB.Kill();
-	mcMLB.Kill();
 	mcMX.Kill();
-	mcBE.Kill();
 	mcE.Kill();
-	mcRDY.Kill();
-	mcData.Kill();
-	mcAddress.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CMetaW65C816::TickInstruction(void)
-{
-	int		i;
-	bool	bRunning;
-	
-	if (mcRESB.IsLow())
-	{
-		for (i = 0; i < 4; i++)
-		{
-			mcPHI2.Invert();
-			mcMPU.InputTransition(&mcTimeline);
-		}
-		mcRESB.Set(true);
-
-		mcPHI2.Invert();
-		mcMPU.InputTransition(&mcTimeline);
-		SetBank(mcPins.ReadData(&mcTimeline));
-		SetX(mcPins.ReadMX(&mcTimeline));
-		mfTickLow(this, mpvContext);
-
-		mcPHI2.Invert();
-		mcMPU.InputTransition(&mcTimeline);
-	}
-
-	for (;;)
-	{
-		mcPHI2.Invert();
-		mcMPU.InputTransition(&mcTimeline);
-
-		if (mcPHI2.IsHigh())
-		{
-			mfTickHigh(this, mpvContext);
-		}
-
-		if (mcPHI2.IsLow())
-		{
-			SetBank(mcPins.ReadData(&mcTimeline));
-			SetX(mcPins.ReadMX(&mcTimeline));
-			mfTickLow(this, mpvContext);
-
-			if (mcMPU.IsStopped())
-			{
-				bRunning = false;
-				break;
-			}
-			if (mcVDA.IsHigh() && mcVPA.IsHigh())
-			{
-				bRunning = true;
-				break;
-			}
-		}
-
-	}
-	return bRunning;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CMetaW65C816::TestTickCycle(void)
-{
-	//Only for tests.  Runs one PHI2 cycle, high then low, without handling reset.
-	//Returns true if the next cycle is an opcode fetch.
-	int		i;
-
-	for (i = 0; i < 2; i++)
-	{
-		mcPHI2.Invert();
-		mcMPU.InputTransition(&mcTimeline);
-
-		if (mcPHI2.IsHigh())
-		{
-			mfTickHigh(this, mpvContext);
-		}
-		else
-		{
-			SetBank(mcPins.ReadData(&mcTimeline));
-			SetX(mcPins.ReadMX(&mcTimeline));
-			mfTickLow(this, mpvContext);
-		}
-	}
-	return mcVDA.IsHigh() && mcVPA.IsHigh();
+	KillTraces();
 }
 
 
@@ -175,39 +63,6 @@ bool CMetaW65C816::IsResetInstruction(void)
 bool CMetaW65C816::IsStopInstruction(void)
 {
 	return IsInstruction(CInstructionFactory::GetInstance()->GetInstruction(STP_Implied));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CMetaW65C816::IsInstruction(CInstruction* pcExpectedInstruction)
-{
-	CInstruction* pcInstruction;
-
-	pcInstruction = mcMPU.GetInstruction();
-	return pcInstruction == pcExpectedInstruction;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CMetaW65C816::IsFetchOpcodeCycle(void)
-{
-	CDataOperation*		pcOperation;
-
-	pcOperation = mcMPU.GetDataOperation();
-	if (pcOperation != NULL)
-	{
-		if (pcOperation->IsFetchOpcode())
-		{
-			return true;
-		}
-	}
-	return false;
 }
 
 
@@ -438,26 +293,6 @@ void CMetaW65C816::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMetaW65C816::SetBank(uint8 uiBank)
-{
-	muiBank = uiBank;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-uint8 CMetaW65C816::GetBank(void)
-{
-	return muiBank;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CMetaW65C816::SetX(STraceValue sX)
 {
 	msX = sX;
@@ -478,21 +313,52 @@ STraceValue CMetaW65C816::GetX(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CMetaW65C816::IsOpcodeFetchSignalled(void)
+{
+	return mcVDA.IsHigh() && mcVPA.IsHigh();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMetaW65C816::LatchPhi2Low(void)
+{
+	SetBank(mcPins.ReadData(&mcTimeline));
+	SetX(mcPins.ReadMX(&mcTimeline));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMetaW65C816::CallTickHigh(void)
+{
+	mfTickHigh(this, mpvContext);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMetaW65C816::CallTickLow(void)
+{
+	mfTickLow(this, mpvContext);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CW65C816*   CMetaW65C816::GetMPU(void)     { return &mcMPU; }
-CMetaBus16* CMetaW65C816::GetAddress(void) { return &mcAddress; }
-CMetaBus8*  CMetaW65C816::GetData(void)    { return &mcData; }
-CMetaTrace* CMetaW65C816::GetVPB(void)     { return &mcVPB; }
-CMetaTrace* CMetaW65C816::GetRDY(void)     { return &mcRDY; }
+CW65CCore*  CMetaW65C816::GetCore(void)    { return &mcMPU; }
 CMetaTrace* CMetaW65C816::GetABORTB(void)  { return &mcABORTB; }
-CMetaTrace* CMetaW65C816::GetIRQB(void)	   { return &mcIRQB; }
-CMetaTrace* CMetaW65C816::GetNMIB(void)	   { return &mcNMIB; }
-CMetaTrace* CMetaW65C816::GetMLB(void)	   { return &mcMLB; }
 CMetaTrace* CMetaW65C816::GetVPA(void)	   { return &mcVPA; }
 CMetaTrace* CMetaW65C816::GetVDA(void)	   { return &mcVDA; }
-CMetaTrace* CMetaW65C816::GetRESB(void)	   { return &mcRESB; }
 CMetaTrace* CMetaW65C816::GetMX(void)	   { return &mcMX; }
-CMetaTrace* CMetaW65C816::GetPHI2(void)	   { return &mcPHI2; }
-CMetaTrace* CMetaW65C816::GetBE(void)	   { return &mcBE; }
 CMetaTrace* CMetaW65C816::GetE(void)	   { return &mcE; }
-CMetaTrace* CMetaW65C816::GetRWB(void)	   { return &mcRWB; }
 
