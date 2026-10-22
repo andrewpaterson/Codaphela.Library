@@ -36,13 +36,16 @@ void CTextLayout::Init(int32 iWidth)
 void CTextLayout::Class(void)
 {
 	U_Int32(miWidth);
-	U_Int16(miRowHeight);
-	U_Int16(miFontLineHeight);
+	U_Int16(miRowAscent);
+	U_Int16(miRowDescent);
+	U_Int16(miFontAscent);
+	U_Int16(miFontDescent);
 	U_2Int32(msPosition);
 	U_2Int32(msSize);
 	U_Data(CUTF16, mcUTF16);
 	U_Pointer(mpcDraw);
 	U_Data(CArrayTextLayoutGlyph, masWord);
+	U_Data(CArrayTextLayoutLineGlyph, masLine);
 	U_Int32(miWordWidth);
 
 }
@@ -78,8 +81,10 @@ bool CTextLayout::Load(CObjectReader* pcFile)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// Runs in different fonts share a baseline on each line.  Each line's
+// glyphs are drawn when the line ends, once its ascent is known.
+//
 //////////////////////////////////////////////////////////////////////////
 void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 {
@@ -93,13 +98,16 @@ void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 	CFont*				pcFont;
 	Ptr<CGlyph>			pGlyph;
 
-	miRowHeight = 0;
-	miFontLineHeight = 0;
+	miRowAscent = 0;
+	miRowDescent = 0;
+	miFontAscent = 0;
+	miFontDescent = 0;
 	msPosition.Init(0, 0);
 	msSize.Init(0, 0);
 	mpcDraw = &pDraw;
 	mcUTF16.Init(NULL, 0);
 	masWord.Init();
+	masLine.Init();
 	miWordWidth = 0;
 	pcFont = NULL;
 	uiNumRuns = pText->NumRuns();
@@ -107,11 +115,9 @@ void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 	{
 		pcRun = pText->GetRun(uiRunIndex);
 		pcFont = pcRun->GetFont();
-		miFontLineHeight = pcFont->GetLineHeight();
-		if (miFontLineHeight > miRowHeight)
-		{
-			miRowHeight = miFontLineHeight;
-		}
+		//A run moved up reaches higher above the baseline and less far below it.
+		miFontAscent = pcFont->GetAscent() + pcRun->GetBaselineShift();
+		miFontDescent = pcFont->GetDescent() - pcRun->GetBaselineShift();
 		uiNumElements = pcRun->NumElements();
 		for (uiElementIndex = 0; uiElementIndex < uiNumElements; uiElementIndex++)
 		{
@@ -137,7 +143,9 @@ void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 		}
 	}
 	EndWord();
-	msSize.y = msPosition.y + miRowHeight;
+	EndLine();
+	msSize.y = msPosition.y + miRowAscent + miRowDescent;
+	masLine.Kill();
 	masWord.Kill();
 	mcUTF16.Kill();
 }
@@ -267,20 +275,21 @@ void CTextLayout::Glyph(Ptr<CGlyph> pGlyph, bool bSpace)
 	{
 		if (miWidth < 0)
 		{
-			PlaceGlyph(pGlyph, miFontLineHeight, true);
+			PlaceGlyph(pGlyph, miFontAscent, miFontDescent, true);
 		}
 		else if (bSpace)
 		{
 			EndWord();
 
 			//Spaces at the end of a line don't make the text any wider.
-			PlaceGlyph(pGlyph, miFontLineHeight, false);
+			PlaceGlyph(pGlyph, miFontAscent, miFontDescent, false);
 		}
 		else
 		{
 			psWordGlyph = masWord.Add();
 			psWordGlyph->pcGlyph = &pGlyph;
-			psWordGlyph->iLineHeight = miFontLineHeight;
+			psWordGlyph->iAscent = miFontAscent;
+			psWordGlyph->iDescent = miFontDescent;
 			miWordWidth += pGlyph->GetFullWidth();
 		}
 	}
@@ -320,7 +329,7 @@ void CTextLayout::EndWord(void)
 		{
 			NewLine();
 		}
-		PlaceGlyph(pGlyph, psWordGlyph->iLineHeight, true);
+		PlaceGlyph(pGlyph, psWordGlyph->iAscent, psWordGlyph->iDescent, true);
 	}
 
 	masWord.ReInit();
@@ -332,31 +341,75 @@ void CTextLayout::EndWord(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextLayout::PlaceGlyph(Ptr<CGlyph> pGlyph, int16 iLineHeight, bool bSize)
+void CTextLayout::PlaceGlyph(Ptr<CGlyph> pGlyph, int16 iAscent, int16 iDescent, bool bSize)
 {
-	mpcDraw->Place(pGlyph, msPosition.x, msPosition.y);
+	STextLayoutLineGlyph*	psLineGlyph;
+
+	psLineGlyph = masLine.Add();
+	psLineGlyph->pcGlyph = &pGlyph;
+	psLineGlyph->x = msPosition.x;
+	psLineGlyph->iAscent = iAscent;
+
 	msPosition.x += pGlyph->GetFullWidth();
 	if (bSize && (msPosition.x > msSize.x))
 	{
 		msSize.x = msPosition.x;
 	}
-	if (iLineHeight > miRowHeight)
+	if (iAscent > miRowAscent)
 	{
-		miRowHeight = iLineHeight;
+		miRowAscent = iAscent;
+	}
+	if (iDescent > miRowDescent)
+	{
+		miRowDescent = iDescent;
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An empty line is as high as the font of the run it is in.
+// Draws the glyphs on the line with their baselines on the line's
+// baseline: the line's ascent below its top.  A line with no glyphs is
+// the height of the font it ended in.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextLayout::EndLine(void)
+{
+	size					ui;
+	STextLayoutLineGlyph*	psLineGlyph;
+	int32					iBaseline;
+	Ptr<CGlyph>				pGlyph;
+
+	if (masLine.NumElements() == 0)
+	{
+		miRowAscent = miFontAscent;
+		miRowDescent = miFontDescent;
+	}
+
+	iBaseline = msPosition.y + miRowAscent;
+	for (ui = 0; ui < masLine.NumElements(); ui++)
+	{
+		psLineGlyph = masLine.Get(ui);
+		pGlyph = psLineGlyph->pcGlyph;
+		mpcDraw->Place(pGlyph, psLineGlyph->x, iBaseline - psLineGlyph->iAscent);
+	}
+	masLine.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line is as high as the largest ascent plus the largest descent of the
+// glyphs on it.  An empty line is as high as the font of the run it is in.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextLayout::NewLine(void)
 {
-	msPosition.y += miRowHeight;
+	EndLine();
+	msPosition.y += miRowAscent + miRowDescent;
 	msPosition.x = 0;
-	miRowHeight = miFontLineHeight;
+	miRowAscent = 0;
+	miRowDescent = 0;
 }
 
 

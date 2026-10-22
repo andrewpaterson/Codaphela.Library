@@ -58,6 +58,7 @@ protected:
 	CArrayTrueTypeFontCharacter		macCharacters;
 	int								miAscent;
 	int								miDescent;
+	int32							miPixelSize64;	//The size in 1/64 pixels.
 
 public:
 	void			Init(CTrueTypeFont* pcFont, float32 fPixelSize);
@@ -76,6 +77,8 @@ protected:
 	bool			Pack(int iImageWidth, int* piImageHeight);
 	void			CopyGlyph(Ptr<CImage> pImage, int iGlyph, CSubImage* pcSubImage, CImageColourRGB* pcColour);
 	uint8			ColourByte(float32 fChannel);
+	int16			ScaleFontUnits(int iUnits);
+	void			DescribeScriptAndLines(Ptr<CFontDescription> pDescription);
 };
 
 

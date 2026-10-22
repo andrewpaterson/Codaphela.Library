@@ -129,6 +129,18 @@ Ptr<CText> CSimpleTextReader::Read(CUnicodeReader* pcUnicodeReader, bool bNewLin
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+void STextFontChange::Init(size uiPosition, CFont* pcFont, int16 iBaselineShift)
+{
+	this->uiPosition = uiPosition;
+	this->pcFont = pcFont;
+	this->iBaselineShift = iBaselineShift;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // pasChanges are in order of position.  A change takes effect at the
 // first character that starts at or after its position, so a position in
 // the middle of a character doesn't split it.  Text before the first
@@ -165,7 +177,7 @@ Ptr<CText> CSimpleTextReader::Read(CUnicodeReader* pcUnicodeReader, bool bNewLin
 			{
 				break;
 			}
-			bResult = cTextBuilder.SetFont(psChange->pcFont);
+			bResult = cTextBuilder.SetFont(psChange->pcFont, psChange->iBaselineShift);
 			if (!bResult)
 			{
 				cTextBuilder.Kill();

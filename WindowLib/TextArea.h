@@ -22,6 +22,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "SupportLib/Font.h"
 #include "SupportLib/FontColours.h"
+#include "SupportLib/FontFamily.h"
+#include "SupportLib/TextStyle.h"
 #include "SupportLib/Text.h"
 #include "SupportLib/TextLayout.h"
 #include "SupportLib/SimpleTextReader.h"
@@ -31,12 +33,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Canvas.h"
 
 
-//A range of the text in a colour.  uiStart and uiLength are in bytes of the UTF8 text.
+//A range of the text in a style.  uiStart and uiLength are in bytes of the UTF8 text.
 struct STextAreaSpan
 {
-	size	uiStart;
-	size	uiLength;
-	ARGB32	sColour;
+	size				uiStart;
+	size				uiLength;
+	STextStyleOverride	sOverride;
 };
 
 
@@ -51,19 +53,21 @@ typedef CArrayTemplate<STextAreaSpan>	CArrayTextAreaSpan;
 //narrower so its required width is the width of the laid out text.  Its required height is the height of the laid
 //out lines, wrapped or not.
 //
-//The text is drawn in colours of one white font (see CFontColours).  Text is in the text area's colour (opaque white
-//unless set) except where spans colour it; where spans overlap the span added last wins.  Colours don't change the
-//size of the text so spans and the colour are only applied when the text area is next laid out or drawn.
+//The text is drawn in the faces, sizes and colours of a font family (see CFontFamily).  Text is in the text area's
+//style (regular, the family's default size, opaque white unless set) except where spans override parts of it; where
+//spans overlap each property takes the value of the last span added that sets it.  Spans are applied when the text
+//area is next laid out, drawn or asked its size.
 class CTextArea : public CCanvas
 {
 CONSTRUCTABLE(CTextArea);
 DESTRUCTABLE(CTextArea);
 protected:
 	CChars				mszText;
-	Ptr<CFontColours>	mpColours;
-	ARGB32				msColour;
+	Ptr<CFontFamily>	mpFamily;
+	STextStyle			msStyle;
 	CArrayTextAreaSpan	masSpans;
-	bool				mbTextDirty;  //The spans or colour changed since the text was last read.
+	bool				mbTextDirty;  //The spans or style changed since the text was last read.
+	bool				mbSizeDirty;  //Reading the text again can change its size.
 	Ptr<CText>			mpText;
 	Ptr<CTextLayout>	mpLayout;
 	Ptr<CSpriteMap>		mpSpriteMap;
@@ -75,6 +79,7 @@ protected:
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CFont> pWhiteFont, const char* szText);
 	void				Init(Ptr<CWindow> pWindow, Ptr<CFontColours> pColours, const char* szText);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char* szText);
 	void				Class(void) override;
 	void 				Free(void) override;
 
@@ -88,14 +93,20 @@ public:
 	Ptr<CFont>			GetFont(void);
 	void				SetFontColours(Ptr<CFontColours> pColours);
 	Ptr<CFontColours>	GetFontColours(void);
+	void				SetFontFamily(Ptr<CFontFamily> pFamily);
+	Ptr<CFontFamily>	GetFontFamily(void);
 	void				SetWordWrap(bool bWordWrap);
 	bool				IsWordWrap(void);
 
+	void				SetStyle(STextStyle* psStyle);
+	void				GetStyle(STextStyle* psStyle);
 	void				SetColour(ARGB32 sColour);
 	ARGB32				GetColour(void);
 	bool				AddSpan(size uiStart, size uiLength, ARGB32 sColour);
+	bool				AddSpan(size uiStart, size uiLength, STextStyleOverride* psOverride);
 	void				ClearSpans(void);
 	size				NumSpans(void);
+	void				GetStyleAt(size uiPosition, STextStyle* psStyle);
 	ARGB32				GetColourAt(size uiPosition);
 
 	SInt32Vec2			GetTextSize(void);
@@ -107,9 +118,10 @@ public:
 
 protected:
 	void				ReadText(void);
-	void				MakeFontChanges(CArrayTextFontChange* pasChanges);
+	void				MakeFontChanges(CArrayTextFontChange* pasChanges, Ptr<CFont> pDefaultFont, int16 iDefaultBaselineShift);
 	void				LayoutText(void);
 	void				UpdateText(void);
+	void				UpdateSize(void);
 	int32				GetWrapWidth(void);
 };
 

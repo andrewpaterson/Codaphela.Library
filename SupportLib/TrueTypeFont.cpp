@@ -84,6 +84,16 @@ void CTrueTypeFont::Init(void)
 	miDescender = 0;
 	miLineGap = 0;
 	miNumHMetrics = 0;
+	mbHasPost = false;
+	miUnderlinePosition = 0;
+	miUnderlineThickness = 0;
+	mbHasOS2 = false;
+	miStrikeoutPosition = 0;
+	miStrikeoutSize = 0;
+	miSubscriptYSize = 0;
+	miSubscriptYOffset = 0;
+	miSuperscriptYSize = 0;
+	miSuperscriptYOffset = 0;
 }
 
 
@@ -364,6 +374,9 @@ bool CTrueTypeFont::Parse(void)
 		return false;
 	}
 
+	ParsePost();
+	ParseOS2();
+
 	if (!FindTable("name", &muiNameOffset, &muiNameLength))
 	{
 		muiNameOffset = 0;
@@ -506,6 +519,78 @@ int CTrueTypeFont::GetLineGap(void)
 {
 	return miLineGap;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The underline from the post table.  It is optional.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTrueTypeFont::ParsePost(void)
+{
+	size	uiOffset;
+	size	uiLength;
+	int16	iPosition;
+	int16	iThickness;
+
+	mbHasPost = false;
+	if (FindTable("post", &uiOffset, &uiLength) && (uiLength >= 12))
+	{
+		if (ReadInt16(uiOffset + 8, &iPosition) && ReadInt16(uiOffset + 10, &iThickness))
+		{
+			miUnderlinePosition = iPosition;
+			miUnderlineThickness = iThickness;
+			mbHasPost = true;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The strikeout, subscript and superscript from the OS/2 table.  It is
+// optional.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTrueTypeFont::ParseOS2(void)
+{
+	size	uiOffset;
+	size	uiLength;
+	int16	aiValues[10];
+	size	i;
+
+	mbHasOS2 = false;
+	if (FindTable("OS/2", &uiOffset, &uiLength) && (uiLength >= 30))
+	{
+		//ySubscriptXSize to yStrikeoutPosition.
+		for (i = 0; i < 10; i++)
+		{
+			if (!ReadInt16(uiOffset + 10 + i * 2, &aiValues[i]))
+			{
+				return;
+			}
+		}
+		miSubscriptYSize = aiValues[1];
+		miSubscriptYOffset = aiValues[3];
+		miSuperscriptYSize = aiValues[5];
+		miSuperscriptYOffset = aiValues[7];
+		miStrikeoutSize = aiValues[8];
+		miStrikeoutPosition = aiValues[9];
+		mbHasOS2 = true;
+	}
+}
+
+
+bool CTrueTypeFont::HasPost(void) { return mbHasPost; }
+int CTrueTypeFont::GetUnderlinePosition(void) { return miUnderlinePosition; }
+int CTrueTypeFont::GetUnderlineThickness(void) { return miUnderlineThickness; }
+bool CTrueTypeFont::HasOS2(void) { return mbHasOS2; }
+int CTrueTypeFont::GetStrikeoutPosition(void) { return miStrikeoutPosition; }
+int CTrueTypeFont::GetStrikeoutSize(void) { return miStrikeoutSize; }
+int CTrueTypeFont::GetSubscriptYSize(void) { return miSubscriptYSize; }
+int CTrueTypeFont::GetSubscriptYOffset(void) { return miSubscriptYOffset; }
+int CTrueTypeFont::GetSuperscriptYSize(void) { return miSuperscriptYSize; }
+int CTrueTypeFont::GetSuperscriptYOffset(void) { return miSuperscriptYOffset; }
 
 
 //////////////////////////////////////////////////////////////////////////

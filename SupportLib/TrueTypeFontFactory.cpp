@@ -37,6 +37,7 @@ void CTrueTypeFontFactory::Init(CTrueTypeFont* pcFont, float32 fPixelSize)
 {
 	mpcFont = pcFont;
 	mcRasteriser.Init(pcFont, fPixelSize);
+	miPixelSize64 = (int32)(fPixelSize * 64.0f + 0.5f);
 	macCharacters.Init();
 	miAscent = FixedCeiling(mcRasteriser.GetAscentSubpixels(), TRUE_TYPE_SUBPIXEL_BITS);
 	miDescent = FixedCeiling(mcRasteriser.GetDescentSubpixels(), TRUE_TYPE_SUBPIXEL_BITS);
@@ -107,7 +108,64 @@ Ptr<CFontDescription> CTrueTypeFontFactory::Describe(char* szName, char* szUTF8C
 		}
 		pDescription->PutGlyph(psCharacter->uiCodePoint, psCharacter->uiCodePointLength, &cSubImage, (int16)psCharacter->iAdvance);
 	}
+	DescribeScriptAndLines(pDescription);
 	return pDescription;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The underline from the font's post table and the strikeout, superscript
+// and subscript from its OS/2 table.  Without a table the description's
+// own estimates are kept.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTrueTypeFontFactory::DescribeScriptAndLines(Ptr<CFontDescription> pDescription)
+{
+	int16	iThickness;
+	int		iUnitsPerEm;
+
+	if (mpcFont->HasPost())
+	{
+		iThickness = ScaleFontUnits(mpcFont->GetUnderlineThickness());
+		pDescription->SetUnderline(ScaleFontUnits(-mpcFont->GetUnderlinePosition()), (iThickness < 1) ? 1 : iThickness);
+	}
+	if (mpcFont->HasOS2())
+	{
+		iThickness = ScaleFontUnits(mpcFont->GetStrikeoutSize());
+		pDescription->SetStrikeout(ScaleFontUnits(-mpcFont->GetStrikeoutPosition()), (iThickness < 1) ? 1 : iThickness);
+
+		iUnitsPerEm = mpcFont->GetUnitsPerEm();
+		if (mpcFont->GetSuperscriptYSize() > 0)
+		{
+			pDescription->SetSuperscript((float32)mpcFont->GetSuperscriptYSize() / (float32)iUnitsPerEm, ScaleFontUnits(mpcFont->GetSuperscriptYOffset()));
+		}
+		if (mpcFont->GetSubscriptYSize() > 0)
+		{
+			pDescription->SetSubscript((float32)mpcFont->GetSubscriptYSize() / (float32)iUnitsPerEm, ScaleFontUnits(mpcFont->GetSubscriptYOffset()));
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Font units as whole pixels at the factory's size, rounded half away from
+// zero.  The arithmetic is integer so every build gets the same pixels.
+//
+//////////////////////////////////////////////////////////////////////////
+int16 CTrueTypeFontFactory::ScaleFontUnits(int iUnits)
+{
+	int64	iScaled;
+	int64	iDivisor;
+
+	iScaled = (int64)iUnits * miPixelSize64;
+	iDivisor = (int64)mpcFont->GetUnitsPerEm() * 64;
+	if (iScaled >= 0)
+	{
+		return (int16)((iScaled + iDivisor / 2) / iDivisor);
+	}
+	return (int16)(-((-iScaled + iDivisor / 2) / iDivisor));
 }
 
 

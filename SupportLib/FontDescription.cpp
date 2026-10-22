@@ -45,6 +45,7 @@ void CFontDescription::Init(char* szName, int16 iSpaceWidth, int16 iAscent, int1
 	miAscent = iAscent;
 	miDescent = iDescent;
 	miTabSpaceCount = 4;
+	SetDefaultScriptAndLines();
 
 	PostInit();
 }
@@ -68,6 +69,14 @@ void CFontDescription::Class(void)
 	U_Int16(miAscent);
 	U_Int16(miDescent);
 	U_Int16(miTabSpaceCount);
+	U_Int16(miUnderlineTop);
+	U_Int16(miUnderlineThickness);
+	U_Int16(miStrikeoutTop);
+	U_Int16(miStrikeoutThickness);
+	U_Float32(mfSuperscriptScale);
+	U_Int16(miSuperscriptShift);
+	U_Float32(mfSubscriptScale);
+	U_Int16(miSubscriptShift);
 }
 
 
@@ -394,4 +403,99 @@ bool CFontDescription::IsFixedWidth(void)
 	}
 	return mbFixedWidth;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For fonts without these metrics, worked out from the ascent and descent
+// (about an em between them): lines a 24th of an em thick, the underline a
+// third of the descent below the baseline, the strikeout three tenths of
+// the ascent above it, and superscript and subscript at 0.65 of the size
+// moved 0.35 em up and 0.15 em down.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFontDescription::SetDefaultScriptAndLines(void)
+{
+	int16	iEm;
+	int16	iThickness;
+
+	iEm = miAscent + miDescent;
+	iThickness = (int16)((iEm + 12) / 24);
+	if (iThickness < 1)
+	{
+		iThickness = 1;
+	}
+
+	miUnderlineTop = (int16)(miDescent / 3);
+	if (miUnderlineTop < 1)
+	{
+		miUnderlineTop = 1;
+	}
+	miUnderlineThickness = iThickness;
+	miStrikeoutTop = (int16)(-((miAscent * 3 + 5) / 10));
+	miStrikeoutThickness = iThickness;
+	mfSuperscriptScale = 0.65f;
+	miSuperscriptShift = (int16)((iEm * 35 + 50) / 100);
+	mfSubscriptScale = 0.65f;
+	miSubscriptShift = (int16)((iEm * 15 + 50) / 100);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// iTop is pixels below the baseline to the top of the underline.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFontDescription::SetUnderline(int16 iTop, int16 iThickness)
+{
+	miUnderlineTop = iTop;
+	miUnderlineThickness = iThickness;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// iTop is pixels below the baseline to the top of the strikeout, negative
+// as it is above the baseline.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFontDescription::SetStrikeout(int16 iTop, int16 iThickness)
+{
+	miStrikeoutTop = iTop;
+	miStrikeoutThickness = iThickness;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// iShift is pixels up.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFontDescription::SetSuperscript(float32 fScale, int16 iShift)
+{
+	mfSuperscriptScale = fScale;
+	miSuperscriptShift = iShift;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// iShift is pixels down.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFontDescription::SetSubscript(float32 fScale, int16 iShift)
+{
+	mfSubscriptScale = fScale;
+	miSubscriptShift = iShift;
+}
+
+
+int16 CFontDescription::GetUnderlineTop(void) { return miUnderlineTop; }
+int16 CFontDescription::GetUnderlineThickness(void) { return miUnderlineThickness; }
+int16 CFontDescription::GetStrikeoutTop(void) { return miStrikeoutTop; }
+int16 CFontDescription::GetStrikeoutThickness(void) { return miStrikeoutThickness; }
+float32 CFontDescription::GetSuperscriptScale(void) { return mfSuperscriptScale; }
+int16 CFontDescription::GetSuperscriptShift(void) { return miSuperscriptShift; }
+float32 CFontDescription::GetSubscriptScale(void) { return mfSubscriptScale; }
+int16 CFontDescription::GetSubscriptShift(void) { return miSubscriptShift; }
 

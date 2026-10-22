@@ -44,11 +44,22 @@ struct STextLayoutMark
 struct STextLayoutGlyph
 {
 	CGlyph*		pcGlyph;
-	int16		iLineHeight;  //Of the font the glyph is from.
+	int16		iAscent;   //Of the font the glyph is from.
+	int16		iDescent;
 };
 
 
-typedef CArrayTemplate<STextLayoutGlyph>	CArrayTextLayoutGlyph;
+//A glyph placed on the line being laid out, held until the end of the line when the line's baseline is known.
+struct STextLayoutLineGlyph
+{
+	CGlyph*		pcGlyph;
+	int32		x;
+	int16		iAscent;  //Of the font the glyph is from.
+};
+
+
+typedef CArrayTemplate<STextLayoutGlyph>		CArrayTextLayoutGlyph;
+typedef CArrayTemplate<STextLayoutLineGlyph>	CArrayTextLayoutLineGlyph;
 
 
 class CTextLayout : public CObject
@@ -57,13 +68,16 @@ CONSTRUCTABLE(CTextLayout);
 DESTRUCTABLE(CTextLayout);
 protected:
 	int32			miWidth;		//-1 for no max width, otherwise lines are wrapped at spaces to fit in it.
-	int16			miRowHeight;
-	int16			miFontLineHeight;  //Of the font of the run being laid out.
+	int16			miRowAscent;	//Of the glyphs on the line being laid out.
+	int16			miRowDescent;
+	int16			miFontAscent;	//Of the font of the run being laid out, moved by the run's baseline shift.
+	int16			miFontDescent;
 	SInt32Vec2		msPosition;
 	SInt32Vec2		msSize;
 	CUTF16			mcUTF16;
 	CBaseFontDraw*	mpcDraw;
 	CArrayTextLayoutGlyph	masWord;
+	CArrayTextLayoutLineGlyph	masLine;
 	int32			miWordWidth;
 
 public:
@@ -82,7 +96,8 @@ public:
 
 protected:
 	void			Glyph(Ptr<CGlyph> pGlyph, bool bSpace);
-	void			PlaceGlyph(Ptr<CGlyph> pGlyph, int16 iLineHeight, bool bSize);
+	void			PlaceGlyph(Ptr<CGlyph> pGlyph, int16 iAscent, int16 iDescent, bool bSize);
+	void			EndLine(void);
 	void			EndWord(void);
 	void			NewLine(void);
 

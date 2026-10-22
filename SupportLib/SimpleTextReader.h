@@ -29,11 +29,15 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Text.h"
 
 
-//From uiPosition (in the reader's units, bytes for UTF8) the text is in pcFont.
+//From uiPosition (in the reader's units, bytes for UTF8) the text is in pcFont with its baseline iBaselineShift
+//pixels up (down if negative), as superscript and subscript are.
 struct STextFontChange
 {
 	size	uiPosition;
 	CFont*	pcFont;
+	int16	iBaselineShift;
+
+	void	Init(size uiPosition, CFont* pcFont, int16 iBaselineShift = 0);
 };
 
 
