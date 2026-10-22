@@ -76,6 +76,9 @@
     <Filter Include="Source\Image">
       <UniqueIdentifier>{9297a610-6b47-4547-a568-01d22f7ea92b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Image\Vector">
+      <UniqueIdentifier>{04fb7f50-209d-429e-868d-077658454ea6}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Image\Font">
       <UniqueIdentifier>{97a9425c-1413-48bb-b14e-c38463edfc92}</UniqueIdentifier>
     </Filter>
@@ -430,6 +433,9 @@
       <Filter>Source\Image\Source</Filter>
     </ClInclude>
     <ClInclude Include="ColourARGB32.h">
+      <Filter>Source\Image\Colour</Filter>
+    </ClInclude>
+    <ClInclude Include="ColourBlend.h">
       <Filter>Source\Image\Colour</Filter>
     </ClInclude>
     <ClInclude Include="ImageColour.h">
@@ -861,6 +867,15 @@
     <ClInclude Include="CoverageRasteriser.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
+    <ClInclude Include="VectorPath.h">
+      <Filter>Source\Image\Vector</Filter>
+    </ClInclude>
+    <ClInclude Include="VectorRasteriser.h">
+      <Filter>Source\Image\Vector</Filter>
+    </ClInclude>
+    <ClInclude Include="VectorShapes.h">
+      <Filter>Source\Image\Vector</Filter>
+    </ClInclude>
     <ClInclude Include="TrueTypeRasteriser.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
@@ -1089,6 +1104,9 @@
       <Filter>Source\Image\Source</Filter>
     </ClCompile>
     <ClCompile Include="ColourARGB32.cpp">
+      <Filter>Source\Image\Colour</Filter>
+    </ClCompile>
+    <ClCompile Include="ColourBlend.cpp">
       <Filter>Source\Image\Colour</Filter>
     </ClCompile>
     <ClCompile Include="ImageColour.cpp">
@@ -1498,6 +1516,15 @@
     </ClCompile>
     <ClCompile Include="CoverageRasteriser.cpp">
       <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="VectorPath.cpp">
+      <Filter>Source\Image\Vector</Filter>
+    </ClCompile>
+    <ClCompile Include="VectorRasteriser.cpp">
+      <Filter>Source\Image\Vector</Filter>
+    </ClCompile>
+    <ClCompile Include="VectorShapes.cpp">
+      <Filter>Source\Image\Vector</Filter>
     </ClCompile>
     <ClCompile Include="TrueTypeRasteriser.cpp">
       <Filter>Source\Image\Font</Filter>
