@@ -779,3 +779,42 @@ float128 Square(float128 f)
 float32 gf32Nan = Float32NotANumber();
 float64 gf64Nan = Float64NotANumber();
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CosSinDegrees(float64 fDegrees, float64* pfCos, float64* pfSin)
+{
+	float64	fQuarters;
+	float64	fRadians;
+
+	//Multiples of 90 degrees are exact.
+	fQuarters = fDegrees / 90.0;
+	if (fQuarters == floor(fQuarters))
+	{
+		switch (((int64)fQuarters % 4 + 4) % 4)
+		{
+			case 0:
+				*pfCos = 1;
+				*pfSin = 0;
+				return;
+			case 1:
+				*pfCos = 0;
+				*pfSin = 1;
+				return;
+			case 2:
+				*pfCos = -1;
+				*pfSin = 0;
+				return;
+			default:
+				*pfCos = 0;
+				*pfSin = -1;
+				return;
+		}
+	}
+	fRadians = fDegrees * N_PI_64 / 180.0;
+	*pfCos = cos(fRadians);
+	*pfSin = sin(fRadians);
+}
+

@@ -19,26 +19,8 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "ImageBlitterContext.h"
+#include "ColourBlend.h"
 #include "ImagePremultipliedBlend.h"
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// uiSource + uiDest * (255 - uiAlpha) / 255, rounded and never more than
-// 255.
-//
-//////////////////////////////////////////////////////////////////////////
-uint8 BlendPremultipliedByte(uint32 uiSource, uint32 uiDest, uint32 uiInverseAlpha)
-{
-	uint32	uiResult;
-
-	uiResult = uiSource + (uiDest * uiInverseAlpha + 127) / 255;
-	if (uiResult > 255)
-	{
-		uiResult = 255;
-	}
-	return (uint8)uiResult;
-}
 
 
 //////////////////////////////////////////////////////////////////////////
