@@ -10,7 +10,8 @@
 //////////////////////////////////////////////////////////////////////////
 CEmbeddedObject::CEmbeddedObject()
 {
-	mapHeapFroms.Init();
+	mapHeapFromObjects.Init();
+	mapHeapFromCollections.Init();
 	mpcStackFroms = NULL;
 	mpcEmbedded = NULL;
 }
@@ -62,7 +63,8 @@ void CEmbeddedObject::Evict(void)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::Allocate(CObjects* pcObjects)
 {
-	mapHeapFroms.Init();
+	mapHeapFromObjects.Init();
+	mapHeapFromCollections.Init();
 }
 
 
@@ -244,7 +246,8 @@ void CEmbeddedObject::SetEmbedding(CBaseObject* pcEmbedded)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::FreePointers(void)
 {
-	mapHeapFroms.Kill();
+	mapHeapFromObjects.Kill();
+	mapHeapFromCollections.Kill();
 }
 
 
@@ -254,7 +257,8 @@ void CEmbeddedObject::FreePointers(void)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::PostRemapFroms(void)
 {
-	mapHeapFroms.ReInit();
+	mapHeapFromObjects.ReInit();
+	mapHeapFromCollections.ReInit();
 	mpcStackFroms = NULL;
 }
 
@@ -270,17 +274,30 @@ void CEmbeddedObject::RemoveAllHeapFroms(void)
 	size			i;
 	CBaseObject*	pcPointedFrom;
 
-	uiNumFroms = mapHeapFroms.NumElements();
+	uiNumFroms = mapHeapFromObjects.NumElements();
 	if (uiNumFroms > 0)
 	{
-		ppcPointedFrom = mapHeapFroms.GetData();
+		ppcPointedFrom = mapHeapFromObjects.GetData();
 		for (i = 0; i < uiNumFroms; i++)
 		{
 			pcPointedFrom = ppcPointedFrom[i];
 			pcPointedFrom->RemovePointerTo(this);
 		}
 
-		mapHeapFroms.ReInit();
+		mapHeapFromObjects.ReInit();
+	}
+
+	uiNumFroms = mapHeapFromCollections.NumElements();
+	if (uiNumFroms > 0)
+	{
+		ppcPointedFrom = mapHeapFromCollections.GetData();
+		for (i = 0; i < uiNumFroms; i++)
+		{
+			pcPointedFrom = ppcPointedFrom[i];
+			pcPointedFrom->RemovePointerTo(this);
+		}
+
+		mapHeapFromCollections.ReInit();
 	}
 }
 
@@ -333,7 +350,26 @@ void CEmbeddedObject::ValidateObjectsConsistency(bool bValidate)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::AddHeapPointer(CBaseObject* pcFromObject)
 {
-	mapHeapFroms.Add(pcFromObject);
+	GetHeapFromsArray(pcFromObject)->Add(pcFromObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A from goes in the Collection or the Object array depending on what it is.
+// Froms are only added for real Objects; HollowObjects cannot point to anything.
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayTemplateEmbeddedPtr<CBaseObject, 6>* CEmbeddedObject::GetHeapFromsArray(CBaseObject* pcFrom)
+{
+	if (pcFrom->IsCollection())
+	{
+		return &mapHeapFromCollections;
+	}
+	else
+	{
+		return &mapHeapFromObjects;
+	}
 }
 
 
@@ -361,16 +397,16 @@ void CEmbeddedObject::GetHeapFromPointers(CArrayHeapFromPointer* pacPointers)
 	CBaseObject*	pcFrom;
 	bool			bAlreadyAdded;
 
-	uiNumFroms = mapHeapFroms.NumElements();
+	uiNumFroms = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < uiNumFroms; i++)
 	{
-		pcFrom = *mapHeapFroms.Get(i);
+		pcFrom = CEmbeddedObject::GetHeapFrom(i);
 
 		//An Object with more than one pointer to this is in the heap froms more than once.
 		bAlreadyAdded = false;
 		for (j = 0; j < i; j++)
 		{
-			if (*mapHeapFroms.Get(j) == pcFrom)
+			if (CEmbeddedObject::GetHeapFrom(j) == pcFrom)
 			{
 				bAlreadyAdded = true;
 				break;
@@ -438,7 +474,7 @@ EFreeResult CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject, bo
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::PrivateRemoveHeapFrom(CBaseObject* pcFrom)
 {
-	return mapHeapFroms.Remove(&pcFrom, false);
+	return GetHeapFromsArray(pcFrom)->Remove(&pcFrom, false);
 }
 
 
@@ -449,8 +485,17 @@ bool CEmbeddedObject::PrivateRemoveHeapFrom(CBaseObject* pcFrom)
 CBaseObject* CEmbeddedObject::GetHeapFrom(size iFrom)
 {
 	CBaseObject*	pFrom;
+	size			uiNumObjects;
 
-	pFrom = mapHeapFroms.GetPtr(iFrom);
+	uiNumObjects = mapHeapFromObjects.NumElements();
+	if (iFrom < uiNumObjects)
+	{
+		pFrom = mapHeapFromObjects.GetPtr(iFrom);
+	}
+	else
+	{
+		pFrom = mapHeapFromCollections.GetPtr(iFrom - uiNumObjects);
+	}
 	return pFrom;
 }
 
@@ -461,7 +506,15 @@ CBaseObject* CEmbeddedObject::GetHeapFrom(size iFrom)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms)
 {
-	papcFroms->Copy(&mapHeapFroms);
+	size	i;
+	size	uiNumCollections;
+
+	papcFroms->Copy(&mapHeapFromObjects);
+	uiNumCollections = mapHeapFromCollections.NumElements();
+	for (i = 0; i < uiNumCollections; i++)
+	{
+		papcFroms->Add(mapHeapFromCollections.GetPtr(i));
+	}
 }
 
 
@@ -506,7 +559,7 @@ bool CEmbeddedObject::HasHeapFroms(void)
 //////////////////////////////////////////////////////////////////////////
 size CEmbeddedObject::NumHeapFroms(void)
 {
-	return mapHeapFroms.NumElements();
+	return mapHeapFromObjects.NumElements() + mapHeapFromCollections.NumElements();
 }
 
 
@@ -525,10 +578,10 @@ CEmbeddedObject* CEmbeddedObject::GetClosestFromToRoot(void)
 
 	iNearestRoot = MAX_DIST_TO_ROOT;
 	pcNearestPointedFrom = NULL;
-	uiNumFroms = mapHeapFroms.NumElements();
+	uiNumFroms = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < uiNumFroms; i++)
 	{
-		pcFrom = mapHeapFroms.GetPtr(i);
+		pcFrom = CEmbeddedObject::GetHeapFrom(i);
 		iDistToRoot = pcFrom->GetDistToRoot();
 		if (iDistToRoot >= ROOT_DIST_TO_ROOT)
 		{
@@ -559,10 +612,10 @@ CEmbeddedObject* CEmbeddedObject::GetClosestFromForCanFindRoot(void)
 
 	iNearestRoot = MAX_DIST_TO_ROOT;
 	pcNearestPointedFrom = NULL;
-	uiNumFroms = mapHeapFroms.NumElements();
+	uiNumFroms = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < uiNumFroms; i++)
 	{
-		pcFrom = *mapHeapFroms.Get(i);
+		pcFrom = CEmbeddedObject::GetHeapFrom(i);
 		iDistToRoot = pcFrom->GetDistToRoot();
 		if ((iDistToRoot >= ROOT_DIST_TO_ROOT) && (!pcFrom->TestedForRoot()))
 		{
@@ -594,10 +647,10 @@ CEmbeddedObject* CEmbeddedObject::GetClosestHeapFromToStack(void)
 
 	iNearestStack = MAX_DIST_TO_ROOT;
 	pcNearestPointedFrom = NULL;
-	uiNumFroms = mapHeapFroms.NumElements();
+	uiNumFroms = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < uiNumFroms; i++)
 	{
-		pcFrom = mapHeapFroms.GetPtr(i);
+		pcFrom = CEmbeddedObject::GetHeapFrom(i);
 		iDistToStack = pcFrom->GetDistToStack();
 		if (iDistToStack >= 0)
 		{
@@ -650,10 +703,10 @@ bool CEmbeddedObject::ContainsFrom(CEmbeddedObject* pcBaseObject)
 	size				uiNumFroms;
 	CEmbeddedObject*	pcFrom;
 
-	uiNumFroms = mapHeapFroms.NumElements();
+	uiNumFroms = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < uiNumFroms; i++)
 	{
-		pcFrom = *mapHeapFroms.Get(i);
+		pcFrom = CEmbeddedObject::GetHeapFrom(i);
 		if (pcFrom == pcBaseObject)
 		{
 			return true;
@@ -890,7 +943,8 @@ CObjects* CEmbeddedObject::GetObjects(void)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::CopyFields(CEmbeddedObject* pcOther)
 {
-	mapHeapFroms = pcOther->mapHeapFroms;
+	mapHeapFromObjects = pcOther->mapHeapFromObjects;
+	mapHeapFromCollections = pcOther->mapHeapFromCollections;
 	mpcStackFroms = pcOther->mpcStackFroms;
 }
 
@@ -1057,10 +1111,10 @@ void CEmbeddedObject::ValidateFroms(void)
 	CEmbeddedObject*	pcBaseObject;
 	size				uiHeapFroms;
 
-	uiHeapFroms = mapHeapFroms.NumElements();
+	uiHeapFroms = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < uiHeapFroms; i++)
 	{
-		pcBaseObject = *mapHeapFroms.Get(i);
+		pcBaseObject = CEmbeddedObject::GetHeapFrom(i);
 
 		if (pcBaseObject->IsBaseObject())
 		{
@@ -1212,10 +1266,10 @@ void CEmbeddedObject::DumpHeapFroms(void)
 	CChars			sz;
 
 	sz.Init();
-	uiNumElements = mapHeapFroms.NumElements();
+	uiNumElements = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		pcFromObject = mapHeapFroms.GetPtr(i);
+		pcFromObject = CEmbeddedObject::GetHeapFrom(i);
 		sz.Append(i);
 		sz.Append(": ");
 		pcFromObject->PrintState(&sz);

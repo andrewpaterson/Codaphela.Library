@@ -624,10 +624,10 @@ size CBaseObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 	size				iNumWithStackPointers;
 
 	iNumWithStackPointers = 0;
-	uiNumFroms = mapHeapFroms.NumElements();
+	uiNumFroms = CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < uiNumFroms; i++)
 	{
-		pcEmbedded = *mapHeapFroms.Get(i);
+		pcEmbedded = CEmbeddedObject::GetHeapFrom(i);
 		pcBaseObject = pcEmbedded->GetEmbeddingContainer();
 
 		iNumWithStackPointers += pcBaseObject->CollectDetachedAndSetDistToStackZero(pcParameters);
@@ -654,11 +654,11 @@ bool CBaseObject::IsDistToRootValid(void)
 		return false;
 	}
 
-	uiNumFroms = mapHeapFroms.NumElements();
+	uiNumFroms = CEmbeddedObject::NumHeapFroms();
 	iExpectedDistToRoot = miDistToRoot - 1;
 	for (i = 0; i < uiNumFroms; i++)
 	{
-		pcBaseObject = *mapHeapFroms.Get(i);
+		pcBaseObject = CEmbeddedObject::GetHeapFrom(i);
 		if (pcBaseObject->GetDistToRoot() == iExpectedDistToRoot)
 		{
 			return true;
@@ -1389,14 +1389,14 @@ bool CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 	bResult = SaveEmbeddedObjectsHeapFroms(pcFile);
 	ReturnOnFalse(bResult);
 
-	uiNumElements = mapHeapFroms.NumElements();
+	uiNumElements = CEmbeddedObject::NumHeapFroms();
 	bResult = pcFile->WriteSize(uiNumElements);
 
 	ReturnOnFalse(bResult);
 
 	for (i = 0; i < uiNumElements; i++)
 	{
-		pcHeapFrom = (CBaseObject*)mapHeapFroms.GetPtr(i);
+		pcHeapFrom = CEmbeddedObject::GetHeapFrom(i);
 		bResult = pcFile->WriteDependent(pcHeapFrom, false);
 		iDistToRoot = pcHeapFrom->GetDistToRoot();
 		bResult &= pcFile->WriteSInt(iDistToRoot);
