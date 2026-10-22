@@ -38,6 +38,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define N_LN2      0.6931471805599453f
 #define N_LN10     2.3025850929940456f
 #define N_PI       3.1415926535897932f
+#define N_PI_64    3.14159265358979323846
 #define N_2_SQRTPI 1.1283791670955125f
 #define N_SQRT2    1.4142135623730950f
 

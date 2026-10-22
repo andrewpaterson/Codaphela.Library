@@ -62,6 +62,7 @@ protected:
 	bool					FindTouchingWriteCommands(size iStartIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, size iLength, bool bMustOverlap);
 	bool					Overlaps(filePos iPosition, size iLength, CLogFileCommandWrite* psWrite);
 	bool					AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, size iLength);
+	bool					ExtendLastWrite(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, size iLength);
 	bool					FindHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition, size iLength);
 	void					UpdateLength(void);
 	size					ReadFromBackingFile(void* pvDest, size iSize, size iCount);

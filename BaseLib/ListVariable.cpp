@@ -232,6 +232,39 @@ void* CListVariable::Resize(size iIndex, size iElementSize)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Like Resize but keeps the element's contents, up to the smaller size.
+//
+//////////////////////////////////////////////////////////////////////////
+void* CListVariable::Grow(size iIndex, size iElementSize)
+{
+	SPointerAndSize*	psType;
+	void*				pvData;
+
+	if (iElementSize == 0)
+	{
+		return NULL;
+	}
+
+	psType = mcArray.SafeGet(iIndex);
+	if (!psType)
+	{
+		return NULL;
+	}
+
+	pvData = mcFreeLists.Grow(psType->pvData, iElementSize);
+	if (!pvData)
+	{
+		return NULL;
+	}
+
+	psType->pvData = pvData;
+	psType->iSize = iElementSize;
+	return pvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CListVariable::RemoveAt(size iIndex, bool bPreserveOrder)

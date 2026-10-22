@@ -977,10 +977,25 @@ bool CFileUtil::TouchDir(const char* szDirectory, bool bLastIsFilename)
 	bool			bResult;
 
 	szPath.Init(szDirectory);
+
+	//Most calls are for a directory that already exists.  One stat is much cheaper than collapsing, splitting and making every part of the path.
+	if (bLastIsFilename)
+	{
+		RemoveLastFromPath(&szPath);
+	}
+	if (!szPath.Empty() && IsDirectory(szPath.Text()))
+	{
+		//Nothing was made, the same result as MakeDir on the existing last directory.
+		szPath.Kill();
+		return false;
+	}
+	szPath.Set(szDirectory);
+
 	CollapsePath(&szPath);
 	
 	if (szPath.Empty())
 	{
+		szPath.Kill();
 		return false;
 	}
 
