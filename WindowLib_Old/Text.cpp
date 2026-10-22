@@ -60,7 +60,7 @@ void CText::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CText::Layout(SInt2 sPosition, SInt2 sAreaSize)
 {
-	CRectangle	cRect;
+	CInt32Rect	cRect;
 	bool		bValid;
 
 	mcTextData.Layout();

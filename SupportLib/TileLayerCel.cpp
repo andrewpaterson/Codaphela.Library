@@ -354,12 +354,12 @@ Ptr<CImageBlitter> CTileLayerCel::GetBlitter(size x, size y)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTileLayerCel::GetImageDestBounds(CRectangle* pcRect)
+bool CTileLayerCel::GetImageDestBounds(CInt32Rect* pcRect)
 {
 	Ptr<CImageCel>	pCel;
 	CSubImage*		pcSubImage;
-	CRectangle		cBounding;
-	CRectangle		cCelRect;
+	CInt32Rect		cBounding;
+	CInt32Rect		cCelRect;
 	bool			bFirst;
 	size 			x, y;
 
@@ -399,7 +399,7 @@ bool CTileLayerCel::GetImageDestBounds(CRectangle* pcRect)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTileLayerCel::GetFullDestBounds(CRectangle* pcRect)
+bool CTileLayerCel::GetFullDestBounds(CInt32Rect* pcRect)
 {
 	if ((msMapSize.x > 0) && (msCelSize.x > 0) && (msMapSize.y > 0) && (msCelSize.y > 0))
 	{
@@ -424,7 +424,7 @@ Ptr<CImage> CTileLayerCel::CreateViewportImage(void)
 	size			uiWidth;
 	size			uiHeight;
 	size			uiPadding;
-	CRectangle		cBoundingRect;
+	CInt32Rect		cBoundingRect;
 	Ptr<CImage>		pDestImage;
 
 	bExists = GetFullDestBounds(&cBoundingRect);
@@ -532,7 +532,7 @@ bool CTileLayerCel::EnsureBlitters(int32 xStart, int32 yStart, int32 xStop, int3
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CTileLayerCel::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters)
+bool CTileLayerCel::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 {
 	int32 				x, y;
 	int32 				xStop, yStop;

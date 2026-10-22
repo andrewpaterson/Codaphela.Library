@@ -25,7 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Pointer.h"
 #include "ImageCel.h"
-#include "Rectangle.h"
+#include "Int32Rect.h"
 #include "ImageCopyDimension.h"
 #include "ImageBlitterFormat.h"
 

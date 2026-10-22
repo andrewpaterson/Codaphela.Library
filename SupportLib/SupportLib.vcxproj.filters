@@ -312,6 +312,12 @@
     <ClInclude Include="Rectangle.h">
       <Filter>Source\Image\Area</Filter>
     </ClInclude>
+    <ClInclude Include="Int32Rect.h">
+      <Filter>Source\Image\Area</Filter>
+    </ClInclude>
+    <ClInclude Include="Float64Rect.h">
+      <Filter>Source\Image\Area</Filter>
+    </ClInclude>
     <ClInclude Include="SubImage.h">
       <Filter>Source\Image\Area</Filter>
     </ClInclude>
@@ -1001,7 +1007,7 @@
     <ClCompile Include="RLEBitmapDecoder.cpp">
       <Filter>Source\Compression</Filter>
     </ClCompile>
-    <ClCompile Include="Rectangle.cpp">
+    <ClCompile Include="Int32Rect.cpp">
       <Filter>Source\Image\Area</Filter>
     </ClCompile>
     <ClCompile Include="SubImage.cpp">

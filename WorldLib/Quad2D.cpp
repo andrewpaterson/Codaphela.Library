@@ -251,7 +251,7 @@ void CQuad2D::SetGraphicsState(CGraphicsState* psState)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CQuad2D::SetUVCoordsFromRectangle(int iTextureLayer, CRectangle* psRect)
+void CQuad2D::SetUVCoordsFromRectangle(int iTextureLayer, CInt32Rect* psRect)
 {
 	SFloat32Vec2		s1;
 	SFloat32Vec2		s2;

@@ -109,7 +109,7 @@ int CGlyph::GetFullDestRight(int x)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGlyph::GetFullDestBounds(int x, int y, CRectangle* pcRectangle)
+void CGlyph::GetFullDestBounds(int x, int y, CInt32Rect* pcRectangle)
 {
 	mpCel->GetSubImage()->GetFullDestBounds(x, y, pcRectangle);
 }
@@ -119,7 +119,7 @@ void CGlyph::GetFullDestBounds(int x, int y, CRectangle* pcRectangle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGlyph::GetImageDestBounds(int x, int y, CRectangle* pcRectangle)
+void CGlyph::GetImageDestBounds(int x, int y, CInt32Rect* pcRectangle)
 {
 	mpCel->GetSubImage()->GetImageDestBounds(x, y, pcRectangle);
 }

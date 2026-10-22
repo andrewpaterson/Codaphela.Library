@@ -21,7 +21,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __IMAGE_PREMULTIPLIED_BLEND_H__
 #define __IMAGE_PREMULTIPLIED_BLEND_H__
 #include "Image.h"
-#include "Rectangle.h"
+#include "Int32Rect.h"
 
 
 //Blends pSource over pDest with its top left at iDestX, iDestY, clipped to pDest.  The source's colours must already be
@@ -29,7 +29,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //channel it is blended the same way.  Both images must have 8 bit colour channels in the same order and the source an
 //8 bit opacity channel.  Every pixel is blended; nothing about the source is assumed from what it held before.  If
 //pcClip is not NULL only the destination pixels inside it are blended.
-bool BlendPremultipliedImage(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY, CRectangle* pcClip = NULL);
+bool BlendPremultipliedImage(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY, CInt32Rect* pcClip = NULL);
 
 
 #endif // __IMAGE_PREMULTIPLIED_BLEND_H__

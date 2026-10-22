@@ -188,7 +188,7 @@ bool CMaps::Blit(bool bEnsureBlitters)
 	size			uiNumElements;
 	size			ui;
 	Ptr<CBlockMap>	pMap;
-	CRectangle		cRect;
+	CInt32Rect		cRect;
 	SInt32Vec2		sBottomRight;
 	bool			bResult;
 

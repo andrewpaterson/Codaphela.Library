@@ -48,9 +48,9 @@ public:
 	void			CopyCanvas(CNativeCanvas* pcSourceCanvas);
 	Ptr<CImage>		GetImageOrNull(void);
 
-	void			DrawBox(CRectangle* pcRectangle, bool bFilled, ARGB32 sColour);
+	void			DrawBox(CInt32Rect* pcRectangle, bool bFilled, ARGB32 sColour);
 	void			DrawPixel(int32 iX, int32 iY, ARGB32 sColour);
-	void			DrawCanvas(int iX, int iY, CNativeCanvas* pcSource, CRectangle* pcClip);
+	void			DrawCanvas(int iX, int iY, CNativeCanvas* pcSource, CInt32Rect* pcClip);
 	void			DrawCel(int iX, int iY, Ptr<CImageCel> pSource);
 	void			DrawImage(int iX, int iY, Ptr<CImage> pSource);
 

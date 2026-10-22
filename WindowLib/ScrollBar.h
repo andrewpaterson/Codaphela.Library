@@ -64,7 +64,7 @@ public:
 
 	void			SetRange(int32 iContentLength, int32 iViewLength, int32 iPosition);
 	bool			IsShown(void);
-	void			GetThumbBounds(CRectangle* pcDest);
+	void			GetThumbBounds(CInt32Rect* pcDest);
 	EScrollBarOrientation	GetOrientation(void);
 	bool			IsDragging(void);
 

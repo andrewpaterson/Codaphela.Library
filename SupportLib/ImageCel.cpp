@@ -47,7 +47,7 @@ void CImageCel::Init(Ptr<CImage> pcSourceImage, bool bCropTransparentBorders)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::Init(Ptr<CImage> pcSourceImage, CRectangle* pcRect)
+void CImageCel::Init(Ptr<CImage> pcSourceImage, CInt32Rect* pcRect)
 {
 	Init(pcSourceImage, pcRect->msTopLeft.x, pcRect->msTopLeft.y, pcRect->msBottomRight.x, pcRect->msBottomRight.y);
 }
@@ -205,7 +205,7 @@ void CImageCel::CropTransparentBorders(CPixelOpacityBase* pcPixelOpacity)
 	int32 					iBottom;
 	int32 					iLeft;
 	int32 					iRight;
-	CRectangle				mcSource;
+	CInt32Rect				mcSource;
 
 	mcSubImage.GetImageSourceBounds(&mcSource);
 
@@ -268,7 +268,7 @@ void CImageCel::CopyParam(SImageCopy* psCopy, int32 iDestX, int32 iDestY, int32 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::GetImageSourceBounds(CRectangle* pcReturn)
+void CImageCel::GetImageSourceBounds(CInt32Rect* pcReturn)
 {
 	mcSubImage.GetImageSourceBounds(pcReturn);
 }
@@ -522,7 +522,7 @@ void CImageCel::SetSubImage(CSubImage* pcSubImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::GetImageDestBounds(int32 x, int32 y, CRectangle* pcReturn)
+void CImageCel::GetImageDestBounds(int32 x, int32 y, CInt32Rect* pcReturn)
 {
 	mcSubImage.GetImageDestBounds(x, y, pcReturn);
 }

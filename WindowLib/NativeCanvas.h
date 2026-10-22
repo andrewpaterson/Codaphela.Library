@@ -24,7 +24,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "NativeComponent.h"
 #include "SupportLib/ColourARGB32.h"
 #include "SupportLib/ImageCel.h"
-#include "SupportLib/Rectangle.h"
+#include "SupportLib/Int32Rect.h"
 
 
 class CCanvas;
@@ -48,9 +48,9 @@ protected:
 	virtual Ptr<CImage>	GetImageOrNull(void) =0;
 	virtual void		Clear(void);
 
-	virtual void		DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour) =0;
+	virtual void		DrawBox(CInt32Rect* pcRect, bool bFilled, ARGB32 sColour) =0;
 	virtual void		DrawPixel(int iX, int iY, ARGB32 sColour) =0;
-	virtual void		DrawCanvas(int iX, int iY, CNativeCanvas* pcSource, CRectangle* pcClip) =0;  //pcClip may be NULL.
+	virtual void		DrawCanvas(int iX, int iY, CNativeCanvas* pcSource, CInt32Rect* pcClip) =0;  //pcClip may be NULL.
 	virtual void		DrawCel(int iX, int iY, Ptr<CImageCel> pSource) =0;
 	virtual void		DrawImage(int iX, int iY, Ptr<CImage> pSource) =0;
 

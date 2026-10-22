@@ -281,7 +281,7 @@ CToolbar* CComponentFactory::CreateToolbar(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CViewport* CComponentFactory::CreateViewport(CInput* pcInput, CRectangle* pcClientRect)
+CViewport* CComponentFactory::CreateViewport(CInput* pcInput, CInt32Rect* pcClientRect)
 {
 	CViewport*			pcViewport;
 

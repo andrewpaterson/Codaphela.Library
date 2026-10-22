@@ -278,7 +278,7 @@ bool CSubImage::IsImageEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSubImage::GetFullDestBounds(int32 x, int32 y, CRectangle* pcReturn)
+void CSubImage::GetFullDestBounds(int32 x, int32 y, CInt32Rect* pcReturn)
 {
 	pcReturn->msTopLeft.x = x + GetFullLeft();
 	pcReturn->msTopLeft.y = y + GetFullTop();
@@ -304,7 +304,7 @@ SInt32Vec2 CSubImage::GetImageDestPos(int32 x, int32 y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSubImage::GetFullSourceBounds(CRectangle* pcReturn)
+void CSubImage::GetFullSourceBounds(CInt32Rect* pcReturn)
 {
 	pcReturn->msTopLeft.x = mcImageRect.msTopLeft.x - msOffsetTopLeft.x;
 	pcReturn->msTopLeft.y = mcImageRect.msTopLeft.y - msOffsetTopLeft.y;
@@ -337,7 +337,7 @@ int32 CSubImage::GetSourceTop(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSubImage::GetImageSourceBounds(CRectangle* pcReturn)
+void CSubImage::GetImageSourceBounds(CInt32Rect* pcReturn)
 {
 	pcReturn->Copy(&mcImageRect);
 }
@@ -347,7 +347,7 @@ void CSubImage::GetImageSourceBounds(CRectangle* pcReturn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSubImage::GetImageDestBounds(int32 x, int32 y, CRectangle* pcReturn)
+void CSubImage::GetImageDestBounds(int32 x, int32 y, CInt32Rect* pcReturn)
 {
 	pcReturn->msTopLeft.x = x + GetImageLeft();
 	pcReturn->msTopLeft.y = y + GetImageTop();

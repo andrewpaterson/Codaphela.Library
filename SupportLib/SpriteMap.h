@@ -62,16 +62,16 @@ public:
 	void						BeginChange(void);
 	void						EndChange(void);
 
-	void						FindImageCels(CRectangle* pcRectangle, MapImageCelFunction pSpriteFunction);
+	void						FindImageCels(CInt32Rect* pcRectangle, MapImageCelFunction pSpriteFunction);
 	
-	bool						GetImageDestBounds(CRectangle* pcRect);
-	bool						GetFullDestBounds(CRectangle* pcRect);
+	bool						GetImageDestBounds(CInt32Rect* pcRect);
+	bool						GetFullDestBounds(CInt32Rect* pcRect);
 
-	bool						Blit(CRectangle* pcViewportRect, bool bEnsureBlitters) override;
+	bool						Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters) override;
 
 	Ptr<CImage>					WriteToImage(void);
 	Ptr<CImage>					CreateViewportImage(void);
-	Ptr<CImage>					CreateViewportImage(CRectangle* pcBoundingRect);
+	Ptr<CImage>					CreateViewportImage(CInt32Rect* pcBoundingRect);
 	Ptr<CImageCelBlitterCache>	CreateBlitterCache(void);
 
 	bool						CreateCelBlitters(void) override;

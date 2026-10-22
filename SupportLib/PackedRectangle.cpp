@@ -57,7 +57,7 @@ int ComparePackRectangleAttempt(const void* pv1, const void* pv2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPackSourceRectangle::Init(CRectangle* pcRect, void* pvUserData)
+void CPackSourceRectangle::Init(CInt32Rect* pcRect, void* pvUserData)
 {
 	miWidth = pcRect->GetWidth();
 	miHeight = pcRect->GetHeight();
@@ -150,7 +150,7 @@ void CPackRectangleAttempt::SetPos(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CPackedRectangle::Init(int iLeft, int iTop, int iRight, int iBottom, void* pvUserData, bool bRotated)
 {
-	CRectangle::Init(iLeft, iTop, iRight, iBottom);
+	CInt32Rect::Init(iLeft, iTop, iRight, iBottom);
 	mpvUserData = pvUserData;
 	mbRotated = bRotated;
 }
@@ -160,9 +160,9 @@ void CPackedRectangle::Init(int iLeft, int iTop, int iRight, int iBottom, void* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPackedRectangle::Init(CRectangle* pcRect, void* pvUserData)
+void CPackedRectangle::Init(CInt32Rect* pcRect, void* pvUserData)
 {
-	CRectangle::Init(pcRect);
+	CInt32Rect::Init(pcRect);
 	mpvUserData = pvUserData;
 	mbRotated = false;
 }

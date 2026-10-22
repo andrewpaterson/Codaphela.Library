@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelSourceRectangles::Init(CArrayRectangle* pcRectangles, SImageColour* psTransparentColour, bool bIgnoreEmpty, bool bCropTransparentBorders)
+void CImageCelSourceRectangles::Init(CArrayInt32Rect* pcRectangles, SImageColour* psTransparentColour, bool bIgnoreEmpty, bool bCropTransparentBorders)
 {
 	CImageCelSource::Init(psTransparentColour, bIgnoreEmpty, bCropTransparentBorders);
 	if (pcRectangles)
@@ -48,7 +48,7 @@ void CImageCelSourceRectangles::Init(CArrayRectangle* pcRectangles, SImageColour
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelSourceRectangles::AddRectangle(CRectangle* pcRect)
+void CImageCelSourceRectangles::AddRectangle(CInt32Rect* pcRect)
 {
 	mcRectangles.Add(pcRect);
 }

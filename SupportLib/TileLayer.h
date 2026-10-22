@@ -59,7 +59,7 @@ public:
 	virtual	void	SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) =0;
 	virtual	void	SetViewport(Ptr<CImage> pViewport) =0;
 
-	virtual bool	Blit(CRectangle* pcViewportRect, bool bEnsureBlitters) =0;
+	virtual bool	Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters) =0;
 	virtual bool	CreateCelBlitters(void) =0;
 	virtual bool	HasCelBlitters(void) =0;
 	virtual bool	UsesCelBlitters(void) =0;

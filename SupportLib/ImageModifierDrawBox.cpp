@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageModifierDrawBox::Init(CRectangle* pcRectangle, CImageColour* pcColour, bool bFilled)
+void CImageModifierDrawBox::Init(CInt32Rect* pcRectangle, CImageColour* pcColour, bool bFilled)
 {
 	PreInit();
 
@@ -58,7 +58,7 @@ void CImageModifierDrawBox::Init(CRectangle* pcRectangle, CImageColour* pcColour
 void CImageModifierDrawBox::Class(void)
 {
 	CImageModifier::Class();
-	U_Data(CRectangle, mcRectangle);
+	U_Data(CInt32Rect, mcRectangle);
 	U_Bool(mbWholeImage);
 	U_Pointer(mpcColour);
 	U_Bool(mbFilled);

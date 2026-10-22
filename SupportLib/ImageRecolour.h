@@ -33,12 +33,12 @@ class CImageRecolour : public CImageModifier
 CONSTRUCTABLE(CImageRecolour);
 DESTRUCTABLE(CImageRecolour);
 public:
-	CRectangle		mcRectangle;
+	CInt32Rect		mcRectangle;
 	bool			mbWholeImage;
 	CArrayUnknown	macOldColour;
 	CArrayUnknown	macNewColour;
 
-	void			Init(CImageColour* pcOldColour, CImageColour* pcNewColour, CRectangle* pcRectangle = NULL);
+	void			Init(CImageColour* pcOldColour, CImageColour* pcNewColour, CInt32Rect* pcRectangle = NULL);
 	void			Class(void) override;
 	void			Free(void) override;
 

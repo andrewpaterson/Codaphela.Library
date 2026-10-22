@@ -9,7 +9,7 @@
 #include "Focus.h"
 #include "FocusListener.h"
 #include "ComponentListener.h"
-#include "SupportLib/Rectangle.h"
+#include "SupportLib/Int32Rect.h"
 #include "ContainerStyle.h"
 
 
@@ -19,7 +19,7 @@ class CComponent : public CObject, public CFocusListener, public CComponentListe
 CONSTRUCTABLE(CComponent);
 DESTRUCTABLE(CComponent);
 protected:
-	CRectangle			mcActualBounds;
+	CInt32Rect			mcActualBounds;
 	SInt32Vec2			msDesiredSize;
 	EContainerStyleHorizontal	meHorizontalAlignment;  //Where a fixed size component sits in spare space.  Stretch makes it fill the space.
 	EContainerStyleVertical		meVerticalAlignment;
@@ -38,9 +38,9 @@ public:
 
 	virtual	bool				Draw(void);
 			bool				DrawChildren(void);
-	virtual bool				GetContainerBounds(CRectangle* pcDest);
+	virtual bool				GetContainerBounds(CInt32Rect* pcDest);
 	virtual	bool				ClipsChildren(void);
-			bool				GetClip(CRectangle* pcClip);
+			bool				GetClip(CInt32Rect* pcClip);
 
 	virtual	bool				AddComponent(Ptr<CComponent> pComponent);
 	virtual	bool				RemoveComponent(Ptr<CComponent> pComponent);

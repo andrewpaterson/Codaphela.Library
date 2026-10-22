@@ -151,7 +151,7 @@ void CWindow::Paint(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Layout(void)
 {
-	CRectangle	cRect;
+	CInt32Rect	cRect;
 	int			iPass;
 
 	mpcNativeWindow->GetRectangle(&cRect);

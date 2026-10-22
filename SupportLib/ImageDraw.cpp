@@ -94,7 +94,7 @@ void CImageDraw::DrawPixel(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDraw::DrawBox(CRectangle* pcRetangle, bool bFilled)
+void CImageDraw::DrawBox(CInt32Rect* pcRetangle, bool bFilled)
 {
 	DrawBox(pcRetangle->msTopLeft.x, pcRetangle->msTopLeft.y, pcRetangle->msBottomRight.x, pcRetangle->msBottomRight.y, bFilled);
 }
@@ -536,7 +536,7 @@ bool CImageDraw::BlendCoverage(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageDraw::DrawCel(int x, int y, Ptr<CImageCel> pCel, CRectangle* pcClip)
+bool CImageDraw::DrawCel(int x, int y, Ptr<CImageCel> pCel, CInt32Rect* pcClip)
 {
 	Ptr<CImageBlitter>	pBlitter;
 
@@ -556,7 +556,7 @@ bool CImageDraw::DrawCel(int x, int y, Ptr<CImageCel> pCel, CRectangle* pcClip)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageDraw::DrawCel(int x, int y, int iWidth, int iHeight, Ptr<CImageCel> pCel, CRectangle* pcClip)
+bool CImageDraw::DrawCel(int x, int y, int iWidth, int iHeight, Ptr<CImageCel> pCel, CInt32Rect* pcClip)
 {
 	Ptr<CImageBlitter>	pBlitter;
 

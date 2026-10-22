@@ -49,7 +49,7 @@ void CRectanglePow2Packer::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CRectanglePow2Packer::AddRectangle(CRectangle* pcRect, void* pvUserData)
+bool CRectanglePow2Packer::AddRectangle(CInt32Rect* pcRect, void* pvUserData)
 {
 	return mcPacker.AddRectangle(pcRect, pvUserData);
 }

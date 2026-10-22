@@ -86,7 +86,7 @@ void CRectangleLinePacker::Pack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CRectangleLinePacker::AddRectangle(CRectangle* pcRect, void* pvUserData)
+bool CRectangleLinePacker::AddRectangle(CInt32Rect* pcRect, void* pvUserData)
 {
 	CPackedRectangle*	psPacked;
 
@@ -152,7 +152,7 @@ int CRectangleLinePacker::GetWidestRect(void)
 {
 	size			i;
 	int				iMaxWidth;
-	CRectangle*		pcRect;
+	CInt32Rect*		pcRect;
 	int				iWidth;
 
 	iMaxWidth = 0;
@@ -178,7 +178,7 @@ int CRectangleLinePacker::GetHighestRect(void)
 {
 	size			i;
 	int				iMaxHeight;
-	CRectangle*		pcRect;
+	CInt32Rect*		pcRect;
 	int				iHeight;
 
 	iMaxHeight = 0;
@@ -203,7 +203,7 @@ int CRectangleLinePacker::GetHighestRect(void)
 int CRectangleLinePacker::PackLeftToRight(void)
 {
 	size			i;
-	CRectangle*		pcRect;
+	CInt32Rect*		pcRect;
 	int				iLeft;
 
 	iLeft = miOutsideEdgeWidth;
@@ -228,7 +228,7 @@ int CRectangleLinePacker::PackLeftToRight(void)
 int CRectangleLinePacker::PackTopToBottom(void)
 {
 	size			i;
-	CRectangle*		pcRect;
+	CInt32Rect*		pcRect;
 	int				iTop;
 
 	iTop = miOutsideEdgeWidth;

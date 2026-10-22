@@ -53,7 +53,7 @@ void CClearCanvasDraw::Class(void)
 //////////////////////////////////////////////////////////////////////////
 bool CClearCanvasDraw::Draw(Ptr<CCanvas> pCanvas)
 {
-	CRectangle	cRect;
+	CInt32Rect	cRect;
 	SInt32Vec2	sSize;
 
 	if (pCanvas->IsValid())

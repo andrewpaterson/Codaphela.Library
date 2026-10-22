@@ -24,7 +24,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Chars.h"
 #include "BaseLib/DebugOutput.h"
 #include "SupportLib/PNGWriter.h"
-#include "SupportLib/Rectangle.h"
+#include "SupportLib/Int32Rect.h"
 #include "WindowLib/Window.h"
 #include "WinRefWindowFactory.h"
 #include "WinRefWindow.h"
@@ -34,7 +34,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, CRectangle* pcBounds, char* szImagePath)
+void CWinRefWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, CInt32Rect* pcBounds, char* szImagePath)
 {
     CNativeWindow::Init(pcWindow, pcWindowFactory);
     mbCreated = false;
@@ -117,7 +117,7 @@ void CWinRefWindow::SignalPresent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefWindow::GetRectangle(CRectangle* pcDest)
+void CWinRefWindow::GetRectangle(CInt32Rect* pcDest)
 {
     pcDest->Init(&mcWindowBounds);
 }

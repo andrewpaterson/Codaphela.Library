@@ -141,7 +141,7 @@ Ptr<CImage> CWinRefCanvas::GetImageOrNull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefCanvas::DrawBox(CRectangle* pcRectangle, bool bFilled, ARGB32 sColour)
+void CWinRefCanvas::DrawBox(CInt32Rect* pcRectangle, bool bFilled, ARGB32 sColour)
 {
     SetColour(sColour);
     mcDraw.DrawBox(pcRectangle, bFilled);
@@ -163,7 +163,7 @@ void CWinRefCanvas::DrawPixel(int32 iX, int32 iY, ARGB32 sColour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefCanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource, CRectangle* pcClip)
+void CWinRefCanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource, CInt32Rect* pcClip)
 {
     CWinRefCanvas*   pcRefSource;
 

@@ -25,7 +25,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #include "BaseLib/DataTypes.h"
 #include "BaseLib/GeometricTypes.h"
 #include "BaseLib/Int3.h"
-#include "SupportLib/Rectangle.h"
+#include "SupportLib/Int32Rect.h"
 #include "GraphicsObject.h"
 
 
@@ -58,7 +58,7 @@ public:
 	void 				SetGraphicsMaterial(CGraphicsMaterial* psMaterial);
 	void 				SetGraphicsViewport(CGraphicsViewport* psViewport);
 	void 				SetDimensions(int iWidth, int iHeight);
-	void				SetUVCoordsFromRectangle(int iTextureLayer, CRectangle* psRect);
+	void				SetUVCoordsFromRectangle(int iTextureLayer, CInt32Rect* psRect);
 	void 				SetUVCoords(int iTextureLayer, float u1, float v1, float u2, float v2);
 	void				SetUVCoords(int iTextureLayer, SUVCornersFull* psUVs);
 	void				SetColour(unsigned int dwColour);

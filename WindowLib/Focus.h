@@ -20,7 +20,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "SupportLib/Rectangle.h"
+#include "SupportLib/Int32Rect.h"
 #include "ComponentInputCommand.h"
 #include "Component.h"
 

@@ -1,7 +1,7 @@
 #ifndef __NATIVE_WINDOW_H__
 #define __NATIVE_WINDOW_H__
 #include "BaseLib/Chars.h"
-#include "SupportLib/Rectangle.h"
+#include "SupportLib/Int32Rect.h"
 #include "NativeComponent.h"
 
 
@@ -14,7 +14,7 @@ CONSTRUCTABLE(CNativeWindow);
 friend class CWindow;
 protected:
 	CWindow*	mpcWindow;
-	CRectangle	mcLastRectangle;
+	CInt32Rect	mcLastRectangle;
 	bool		mbPainting;
 
 public:
@@ -33,7 +33,7 @@ protected:
 	virtual bool	CreateNativeWindow(void) =0;
 	virtual bool	ExecuteNativeWindow(void) =0;
 	virtual void	SignalPresent(void) =0;
-	virtual void	GetRectangle(CRectangle* pcDest) =0;
+	virtual void	GetRectangle(CInt32Rect* pcDest) =0;
 };
 
 

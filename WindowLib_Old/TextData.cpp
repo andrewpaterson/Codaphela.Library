@@ -69,7 +69,7 @@ void CTextChar::CreateQuad(char c, CGraphicsObject* pcGraphicsObject, CGraphicsV
 	int			iWidth;
 	int			iHeight;
 	CSubImage*	psSubImage;
-	CRectangle	cDestRect;
+	CInt32Rect	cDestRect;
 
 	x = (int)psPosition->x + msTopLeft.x;
 	y = (int)psPosition->y + msTopLeft.y;
@@ -142,7 +142,7 @@ bool CTextChar::IsWhiteSpace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextChar::GetBounds(CRectangle* pcDest)
+bool CTextChar::GetBounds(CInt32Rect* pcDest)
 {
 	CGlyph*		pcGlyph;
 
@@ -550,7 +550,7 @@ bool CTextCharLine::IsOutOfBounds(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextCharLine::GetBounds(int iX, CRectangle* pcDest)
+bool CTextCharLine::GetBounds(int iX, CInt32Rect* pcDest)
 {
 	CTextChar*	pcChar;
 
@@ -998,7 +998,7 @@ CTextChar* CTextData::GetChar(int iX, int iLine)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextData::GetBounds(int iX, int iLine, CRectangle* pcDest)
+bool CTextData::GetBounds(int iX, int iLine, CInt32Rect* pcDest)
 {
 	CTextCharLine*	pcLine;
 

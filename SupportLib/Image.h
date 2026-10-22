@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/Channels.h"
 #include "StandardLib/Array.h"
 #include "ImageChannel.h"
-#include "Rectangle.h"
+#include "Int32Rect.h"
 #include "ImageColour.h"
 #include "ColourFormat.h"
 

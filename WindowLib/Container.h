@@ -24,7 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "Component.h"
-#include "SupportLib/Rectangle.h"
+#include "SupportLib/Int32Rect.h"
 
 
 class CContainer : public CComponent
@@ -32,7 +32,7 @@ class CContainer : public CComponent
 CONSTRUCTABLE(CContainer);
 DESTRUCTABLE(CContainer);
 protected:
-	CRectangle	mcContainerBounds;
+	CInt32Rect	mcContainerBounds;
 	SInt32Vec2	msRequiredSize;  //What the container's components need, see SetRequiredSize.
 
 public:
@@ -40,7 +40,7 @@ public:
 			void		Class(void) override;
 			void 		Free(void) override;
 
-			bool		GetContainerBounds(CRectangle* pcDest);
+			bool		GetContainerBounds(CInt32Rect* pcDest);
 			void		SetContainerBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
 
 			void		Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;

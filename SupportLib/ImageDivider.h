@@ -54,7 +54,7 @@ public:
 
 	void		 			GenerateFromBorder(Ptr<CImage> pcFillMask);  //Use the pixel colour RGB (+A if available) in the top left corner to mask out rectangles.
 	void 					GenerateFromNumbers(CImageDividerNumbers* pcNumbers);
-	void 					GenerateFromRectangles(CArrayRectangle* pacRectangles);
+	void 					GenerateFromRectangles(CArrayInt32Rect* pacRectangles);
 
 	void 					CopyCellsTo(Ptr<CArrayImageCel> pcImageCels);
 
@@ -63,7 +63,7 @@ public:
 private:
 	void	CropTransparentBorders(void);
 	void	AddImageCel(CFillRectangle* pcRect, Ptr<CImage> pcFillMask);
-	void	AddImageCel(CRectangle* pcRect);
+	void	AddImageCel(CInt32Rect* pcRect);
 };
 
 

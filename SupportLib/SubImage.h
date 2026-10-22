@@ -24,7 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __SUB_IMAGE_H__
 #define __SUB_IMAGE_H__
 #include "BaseLib/Int32Vec2.h"
-#include "Rectangle.h"
+#include "Int32Rect.h"
 
 
 // This class is used for drawing a source image onto a destination image.
@@ -83,7 +83,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CSubImage
 {
 public:
-	CRectangle	mcImageRect;
+	CInt32Rect	mcImageRect;
 	SInt32Vec2	msOffsetTopLeft;		//+ve
 	SInt32Vec2	msOffsetBottomRight;	//+ve
 	SInt32Vec2	msAlignment;			//-ve
@@ -115,13 +115,13 @@ public:
 	int32		GetFullRight(void);
 	int32		GetFullBottom(void);
 
-	void		GetFullDestBounds(int32 x, int32 y, CRectangle* pcDest);
+	void		GetFullDestBounds(int32 x, int32 y, CInt32Rect* pcDest);
 	SInt32Vec2	GetImageDestPos(int32 x, int32 y);
-	void		GetFullSourceBounds(CRectangle* pcReturn);
+	void		GetFullSourceBounds(CInt32Rect* pcReturn);
 	int32		GetSourceLeft(void);
 	int32		GetSourceTop(void);
-	void		GetImageSourceBounds(CRectangle* pcReturn);
-	void		GetImageDestBounds(int32 x, int32 y, CRectangle* pcReturn);
+	void		GetImageSourceBounds(CInt32Rect* pcReturn);
+	void		GetImageDestBounds(int32 x, int32 y, CInt32Rect* pcReturn);
 	void		AdjustImageRect(CSubImage* pcSubImage);
 	void		AdjustImageRect(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
 	void		AdjustToEmpty(void);

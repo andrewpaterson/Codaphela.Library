@@ -23,7 +23,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #ifndef __VIEWPORT_INSTANCE_H__
 #define __VIEWPORT_INSTANCE_H__
 #include "DirectXLib/Direct3DGlobal.h"
-#include "SupportLib/Rectangle.h"
+#include "SupportLib/Int32Rect.h"
 
 
 class CWorld;
@@ -42,7 +42,7 @@ public:
 	void		Invalidate(void);
 	void		Set(int iX, int iY, int iWidth, int iHeight);
 	bool		Contains(int iLeft, int iTop, int iRight, int iBottom);
-	bool		Contains(CRectangle* pcRect);
+	bool		Contains(CInt32Rect* pcRect);
 };
 
 

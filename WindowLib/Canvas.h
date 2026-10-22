@@ -23,7 +23,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Unknown.h"
 #include "StandardLib/Pointer.h"
 #include "SupportLib/ColourARGB32.h"
-#include "SupportLib/Rectangle.h"
+#include "SupportLib/Int32Rect.h"
 #include "SupportLib/Image.h"
 #include "Component.h"
 #include "CanvasDraw.h"
@@ -78,8 +78,8 @@ public:
 	void				CopyCanvas(Ptr<CCanvas> pSourceCanvas);
 	Ptr<CImage>			GetImageOrNull(void);  //This should be GetPixelData or something with the goal being to get chunk of memory that an image can be backed with to avoid a double image copy.
 
-	void				DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas, CRectangle* pcClip = NULL);
-	void				DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour);
+	void				DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas, CInt32Rect* pcClip = NULL);
+	void				DrawBox(CInt32Rect* pcRect, bool bFilled, ARGB32 sColour);
 	void				DrawPixel(int iX, int iY, ARGB32 sColour);
 	void				DrawImage(int iX, int iY, Ptr<CImage> pImage);
 

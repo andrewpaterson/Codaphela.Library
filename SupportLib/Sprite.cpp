@@ -61,7 +61,7 @@ bool CSprite::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSprite::GetImageDestBounds(CRectangle* pcReturn)
+void CSprite::GetImageDestBounds(CInt32Rect* pcReturn)
 {
 	mpCel->GetImageDestBounds(msPosition.x, msPosition.y, pcReturn);
 }

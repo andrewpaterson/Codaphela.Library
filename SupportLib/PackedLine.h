@@ -40,7 +40,7 @@ public:
 	void					Kill(void);
 
 	bool					Pack(CPackAttempt* pcPackAttempt);
-	bool					RecursePack(CPackAttempt* pcPackAttempt, CRectangle* pcBounds);
+	bool					RecursePack(CPackAttempt* pcPackAttempt, CInt32Rect* pcBounds);
 	void					Done(void);
 	CPackRectangleAttempt*	Get(void* pvUserData);
 	void					GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles, int iOutsideEdgeWidth);

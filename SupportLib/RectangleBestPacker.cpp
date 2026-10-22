@@ -66,7 +66,7 @@ void CRectangleBestPacker::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CRectangleBestPacker::AddRectangle(CRectangle* pcRect, void* pvUserData)
+bool CRectangleBestPacker::AddRectangle(CInt32Rect* pcRect, void* pvUserData)
 {
 	CPackSourceRectangle*	psPacked;
 
