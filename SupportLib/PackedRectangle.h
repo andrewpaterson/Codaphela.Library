@@ -27,6 +27,14 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Rectangle.h"
 
 
+enum EPackRotation
+{
+	PR_AsGiven,  //Keep each rectangle the way it was added.
+	PR_Wide,  //Turn rectangles that are taller than they are wide.
+	PR_Tall,  //Turn rectangles that are wider than they are tall.
+};
+
+
 class CPackSourceRectangle
 {
 public:
@@ -35,6 +43,8 @@ public:
 	void*		mpvUserData;
 
 	void Init(CRectangle* pcRect, void* pvUserData);
+	bool IsRotatedBy(EPackRotation eRotation);
+	void GetSize(EPackRotation eRotation, int* piWidth, int* piHeight);
 };
 
 
@@ -44,12 +54,14 @@ typedef CArrayTemplate<CPackSourceRectangle> CArrayPackSourceRectangle;
 class CPackRectangleAttempt
 {
 public:
-	CPackSourceRectangle	mcSourceRectangle;  //A copy so that adding source rectangles to the packer can't leave it dangling.
+	CPackSourceRectangle	mcSourceRectangle;  //A copy so that adding source rectangles to the packer can't leave it dangling.  Its size is the size as packed, so it is swapped if rotated.
 	int						mix;	//Relative to the CPackedLine.
 	int						miy;
+	bool					mbRotated;
 
-	void Init(CPackSourceRectangle* pcSourceRectangle);
+	void Init(CPackSourceRectangle* pcSourceRectangle, bool bRotated = false);
 	void SetPos(int x, int y);
+	void Rotate(void);
 };
 
 
@@ -61,11 +73,13 @@ class CPackedRectangle : public CRectangle
 {
 public:
 	void*		mpvUserData;
+	bool		mbRotated;  //Turned 90 degrees clockwise from the rectangle that was added.  The packed width is the added height.
 
-	void	Init(int iLeft, int iTop, int iRight, int iBottom, void* pvUserData);
+	void	Init(int iLeft, int iTop, int iRight, int iBottom, void* pvUserData, bool bRotated = false);
 	void	Init(CRectangle* pcRect, void* pvUserData);
 
 	void*	GetUserData(void);
+	bool	IsRotated(void);
 };
 
 

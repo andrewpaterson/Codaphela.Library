@@ -296,6 +296,7 @@
     <ClInclude Include="PackedLine.h" />
     <ClInclude Include="PackedRectangle.h" />
     <ClInclude Include="RectangleBestPacker.h" />
+    <ClInclude Include="RectangleBestPackerWithRotation.h" />
     <ClInclude Include="RectangleLinePacker.h" />
     <ClInclude Include="RectanglePacker.h" />
     <ClInclude Include="RectanglePow2Packer.h" />
@@ -522,6 +523,7 @@
     <ClCompile Include="PackedLine.cpp" />
     <ClCompile Include="PackedRectangle.cpp" />
     <ClCompile Include="RectangleBestPacker.cpp" />
+    <ClCompile Include="RectangleBestPackerWithRotation.cpp" />
     <ClCompile Include="RectangleLinePacker.cpp" />
     <ClCompile Include="RectanglePow2Packer.cpp" />
     <ClCompile Include="ImageCel.cpp" />

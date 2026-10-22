@@ -69,11 +69,68 @@ void CPackSourceRectangle::Init(CRectangle* pcRect, void* pvUserData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPackRectangleAttempt::Init(CPackSourceRectangle* pcSourceRectangle)
+bool CPackSourceRectangle::IsRotatedBy(EPackRotation eRotation)
+{
+	if (eRotation == PR_Wide)
+	{
+		return miHeight > miWidth;
+	}
+	else if (eRotation == PR_Tall)
+	{
+		return miWidth > miHeight;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPackSourceRectangle::GetSize(EPackRotation eRotation, int* piWidth, int* piHeight)
+{
+	if (IsRotatedBy(eRotation))
+	{
+		*piWidth = miHeight;
+		*piHeight = miWidth;
+	}
+	else
+	{
+		*piWidth = miWidth;
+		*piHeight = miHeight;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPackRectangleAttempt::Init(CPackSourceRectangle* pcSourceRectangle, bool bRotated)
 {
 	mcSourceRectangle = *pcSourceRectangle;
 	mix = -1;
 	miy = -1;
+	mbRotated = false;
+	if (bRotated)
+	{
+		Rotate();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPackRectangleAttempt::Rotate(void)
+{
+	int		iTemp;
+
+	iTemp = mcSourceRectangle.miWidth;
+	mcSourceRectangle.miWidth = mcSourceRectangle.miHeight;
+	mcSourceRectangle.miHeight = iTemp;
+	mbRotated = !mbRotated;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -91,10 +148,11 @@ void CPackRectangleAttempt::SetPos(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPackedRectangle::Init(int iLeft, int iTop, int iRight, int iBottom, void* pvUserData)
+void CPackedRectangle::Init(int iLeft, int iTop, int iRight, int iBottom, void* pvUserData, bool bRotated)
 {
 	CRectangle::Init(iLeft, iTop, iRight, iBottom);
 	mpvUserData = pvUserData;
+	mbRotated = bRotated;
 }
 
 
@@ -106,6 +164,7 @@ void CPackedRectangle::Init(CRectangle* pcRect, void* pvUserData)
 {
 	CRectangle::Init(pcRect);
 	mpvUserData = pvUserData;
+	mbRotated = false;
 }
 
 
@@ -116,5 +175,15 @@ void CPackedRectangle::Init(CRectangle* pcRect, void* pvUserData)
 void* CPackedRectangle::GetUserData(void)
 {
 	return mpvUserData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPackedRectangle::IsRotated(void)
+{
+	return mbRotated;
 }
 

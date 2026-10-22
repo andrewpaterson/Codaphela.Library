@@ -324,6 +324,9 @@
     <ClInclude Include="RectangleBestPacker.h">
       <Filter>Source\Image\Area\Packer</Filter>
     </ClInclude>
+    <ClInclude Include="RectangleBestPackerWithRotation.h">
+      <Filter>Source\Image\Area\Packer</Filter>
+    </ClInclude>
     <ClInclude Include="RectangleLinePacker.h">
       <Filter>Source\Image\Area\Packer</Filter>
     </ClInclude>
@@ -1005,6 +1008,9 @@
       <Filter>Source\Image\Area\Packer</Filter>
     </ClCompile>
     <ClCompile Include="RectangleBestPacker.cpp">
+      <Filter>Source\Image\Area\Packer</Filter>
+    </ClCompile>
+    <ClCompile Include="RectangleBestPackerWithRotation.cpp">
       <Filter>Source\Image\Area\Packer</Filter>
     </ClCompile>
     <ClCompile Include="RectangleLinePacker.cpp">
