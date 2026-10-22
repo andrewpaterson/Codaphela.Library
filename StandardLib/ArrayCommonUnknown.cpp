@@ -845,8 +845,11 @@ EArrayUnsetReturn CArrayCommonUnknown::Unset(size iIndex)
 	}
 	else
 	{
-		//Element would be unset here.
-		miNonNullElements--;
+		//Element would be unset here.  NULLs aren't counted.
+		if (pcUnknown != NULL)
+		{
+			miNonNullElements--;
+		}
 		eReturn = AUR_MustRemove;
 	}
 
