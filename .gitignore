@@ -56,3 +56,4 @@ us.stackdump
 /ElectronicsLib/Release/*
 /ImageLib/Debug/*
 /ImageLib/Release/*
+/GerberLib/Release/*
