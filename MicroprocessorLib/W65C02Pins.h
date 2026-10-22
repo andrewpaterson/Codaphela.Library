@@ -6,17 +6,17 @@
 class CW65C02Pins : public CW65CPins
 {
 protected:
-	CMetaTrace*		mpcSYNC;
-	CMetaTrace*		mpcSOB;
+	CW65MetaTrace*		mpcSYNC;
+	CW65MetaTrace*		mpcSOB;
 
 public:
-	void			Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB);
-	void			SetW65C02Traces(CMetaTrace* pcSYNC, CMetaTrace* pcSOB);
+	void			Init(CW65MetaBus16* pcAddress, CW65MetaBus8* pcData, CW65MetaTrace* pcPHI2, CW65MetaTrace* pcRESB, CW65MetaTrace* pcRWB);
+	void			SetW65C02Traces(CW65MetaTrace* pcSYNC, CW65MetaTrace* pcSOB);
 	void			Kill(void);
 
 	//Microprocessor side methods.
-	void			WriteSYNC(CTimeline* pcTimeline, bool bValue);
-	STraceValue		ReadSOB(CTimeline* pcTimeline);
+	void			WriteSYNC(CW65Timeline* pcTimeline, bool bValue);
+	SW65TraceValue		ReadSOB(CW65Timeline* pcTimeline);
 };
 
 

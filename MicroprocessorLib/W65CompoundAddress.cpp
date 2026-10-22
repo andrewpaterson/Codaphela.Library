@@ -1,0 +1,114 @@
+#include "W65Address.h"
+#include "W65AddressOffsetArray.h"
+#include "W65CompoundAddress.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65CompoundAddress::Init(void)
+{
+	mapcAddressOffsets.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65CompoundAddress::Kill(void)
+{
+	mapcAddressOffsets.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CW65AddressOffsetArray* CW65CompoundAddress::GetAddressOffsets(void)
+{
+	return &mapcAddressOffsets;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CW65CompoundAddress::GetOffset(CW65CCore* pcCPU)
+{
+	CW65Address	cAddress;
+
+	cAddress.Init();
+
+	CalculateAddressSpanningFromAddressOffsets(&cAddress, pcCPU, &mapcAddressOffsets);
+	return cAddress.GetOffset();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 CW65CompoundAddress::GetBank(CW65CCore* pcCPU)
+{
+	CW65Address	cAddress;
+
+	cAddress.Init();
+
+	CalculateAddressSpanningFromAddressOffsets(&cAddress, pcCPU, &mapcAddressOffsets);
+	return cAddress.GetBank();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65CompoundAddress::Print(CChars* psz)
+{
+	mapcAddressOffsets.Print(psz);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CW65CompoundAddress* Span(CW65AddressOffset* pcOffset, ...)
+{
+	va_list		            vaMarker;
+	size		            iCount;
+	CW65CompoundAddress*		pcSpan;
+	CW65AddressOffsetArray*	papcOffsets;
+
+	pcSpan = NewMalloc<CW65CompoundAddress>();
+	pcSpan->Init();
+	papcOffsets = pcSpan->GetAddressOffsets();
+
+	if (pcOffset)
+	{
+		iCount = 0;
+
+		va_start(vaMarker, pcOffset);
+		while (pcOffset)
+		{
+			if (iCount > 10)
+			{
+				LOG_ERROR("Address Offsets have no terminal NULL.");
+				return NULL;
+			}
+
+			papcOffsets->Add(pcOffset);
+
+			iCount++;
+			pcOffset = va_arg(vaMarker, CW65AddressOffset*);
+		}
+		va_end(vaMarker);
+	}
+
+	return pcSpan;
+}
+

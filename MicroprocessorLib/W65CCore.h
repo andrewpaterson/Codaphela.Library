@@ -21,11 +21,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __W65C_CORE_H__
 #define __W65C_CORE_H__
 #include "BaseLib/PrimitiveTypes.h"
-#include "Address.h"
-#include "TraceValue.h"
-#include "BCDResult.h"
+#include "W65Address.h"
+#include "W65TraceValue.h"
+#include "W65BCDResult.h"
 #include "CPUFlags.h"
-#include "Timeline.h"
+#include "W65Timeline.h"
 #include "W65CPins.h"
 
 
@@ -33,9 +33,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //W65C816S that is always in emulation mode: 8 bit registers, the stack in page 1, the
 //direct (zero) page, data bank and program bank all zero.  Each processor provides its
 //instruction set, its own instructions and its own pins.
-class CInstruction;
-class CDataOperation;
-class CBusCycle;
+class CW65Instruction;
+class CW65DataOperation;
+class CW65BusCycle;
 class CW65CCore
 {
 protected:
@@ -58,7 +58,7 @@ protected:
 	uint16		    muiYIndex;
 	uint8		    muiDataBank;
 	uint16		    muiDirectPage;
-	CAddress	    mcProgramCounter;
+	CW65Address	    mcProgramCounter;
 	uint16		    muiStackPointer;
 
 	int16		    miCycle;
@@ -74,15 +74,15 @@ protected:
 	uint16		    muiAbortYIndex;
 	uint8		    muiAbortDataBank;
 	uint16		    muiAbortDirectPage;
-	CAddress	    mcAbortProgramCounter;
+	CW65Address	    mcAbortProgramCounter;
 	uint16		    muiAbortStackPointer;
 
 	//These are not the values on the pins, they are internal data.
-	CAddress	    mcAddress;
+	CW65Address	    mcAddress;
 	uint16		    muiData;
 	uint8		    muiIOData;
 	uint16		    muiDirectOffset;
-	CAddress	    mcNewProgramCounter;
+	CW65Address	    mcNewProgramCounter;
 	bool		    mbBusEnable;
 	bool		    mbIrq;
 	bool		    mbAbort;
@@ -173,7 +173,7 @@ public:
     void            NMI(void);
     void            RES(void);
 
-    void            InputTransition(CTimeline* pcTimeline);// override;
+    void            InputTransition(CW65Timeline* pcTimeline);// override;
 
     void            GetAddressValueHex(CChars* psz, bool bAppend0x = true);
     void            GetAccumulatorValueHex(CChars* psz, bool bAppend0x = true);
@@ -184,7 +184,7 @@ public:
     void            GetDirectPageValueHex(CChars* psz, bool bAppend0x = true);
     void            GetProgramCounterValueHex(CChars* psz, bool bAppend0x = true);
     void            GetDataValueHex(CChars* psz, bool bAppend0x = true);
-    void            GetOpcodeValueHex(CChars* psz, int cycle, CInstruction* pcInstruction, bool bAppend0x = true);
+    void            GetOpcodeValueHex(CChars* psz, int cycle, CW65Instruction* pcInstruction, bool bAppend0x = true);
     void            GetOpcodeValueHex(CChars* psz, bool bAppend0x = true);
     void            GetOpcodeMnemonicString(CChars* psz);
     void            GetCycleOperationString(CChars* psz);
@@ -192,7 +192,7 @@ public:
     virtual char*   GetType(void) = 0;
     void            GetCycleString(CChars* psz);
     int16           GetCyclePlusOne(void);
-    CInstruction*   GetInstruction(void);
+    CW65Instruction*   GetInstruction(void);
 
 	bool			IsMemory8Bit(void);
 	bool			IsMemory16Bit(void);
@@ -201,28 +201,28 @@ public:
     void            Branch(bool condition);
     void            To8BitHexString(CChars* psz, uint8 ui8);
     void            To16BitHexString(CChars* psz, uint16 ui16);
-    void            ToAddressHexString(CChars* psz, CAddress* pcAddress, bool bAppend0x = true);
+    void            ToAddressHexString(CChars* psz, CW65Address* pcAddress, bool bAppend0x = true);
     void            DisableBuses(void);
     void            Append0x(CChars* psz, bool bAppend0x);
 	void			ToAddressOperationString(CChars* psz);
 	void			ToDataOperationString(CChars* psz);
 	void			ToInstructionDescription(CChars* psz);
 
-    void            ExecutPhi2Falling(CTimeline* pcTimeline);
-    void            ExecutPhi2Rising(CTimeline* pcTimeline);
-	CAddress*		GetAddress(void);
+    void            ExecutPhi2Falling(CW65Timeline* pcTimeline);
+    void            ExecutPhi2Rising(CW65Timeline* pcTimeline);
+	CW65Address*		GetAddress(void);
 
 
 	//Provided by each processor.
-	virtual CInstruction*	GetInstruction(uint16 uiOpcode) = 0;
-	virtual CInstruction*	GetResetOpcode(void) = 0;
-	virtual CInstruction*	GetIrqOpcode(void) = 0;
-	virtual CInstruction*	GetNmiOpcode(void) = 0;
-	virtual CInstruction*	GetAbortOpcode(void) = 0;
-	virtual CInstruction*	GetFetchNextOpcode(void) = 0;
-	virtual void			WriteSignalsPhi2Falling(CTimeline* pcTimeline, CDataOperation* pcDataOperation, CBusCycle* pcBusCycle) = 0;
-	virtual void			WriteSignalsPhi2Rising(CTimeline* pcTimeline);
-	virtual bool			IsReadCycle(CDataOperation* pcDataOperation);
+	virtual CW65Instruction*	GetInstruction(uint16 uiOpcode) = 0;
+	virtual CW65Instruction*	GetResetOpcode(void) = 0;
+	virtual CW65Instruction*	GetIrqOpcode(void) = 0;
+	virtual CW65Instruction*	GetNmiOpcode(void) = 0;
+	virtual CW65Instruction*	GetAbortOpcode(void) = 0;
+	virtual CW65Instruction*	GetFetchNextOpcode(void) = 0;
+	virtual void			WriteSignalsPhi2Falling(CW65Timeline* pcTimeline, CW65DataOperation* pcDataOperation, CW65BusCycle* pcBusCycle) = 0;
+	virtual void			WriteSignalsPhi2Rising(CW65Timeline* pcTimeline);
+	virtual bool			IsReadCycle(CW65DataOperation* pcDataOperation);
 
 
 	void			CreateAbortValues(void);
@@ -230,7 +230,7 @@ public:
 	void			RestoreAbortValues(void);
 	void			ResetPulled(void);
 	void			IncrementReset(void);
-	bool			IsReseting(STraceValue clockValue);
+	bool			IsReseting(SW65TraceValue clockValue);
 	void			ClearReset(void);
 
 	uint8			GetProcessorRegisterValue(void);
@@ -258,13 +258,13 @@ public:
 	void			ExecuteInitialSideOperation(CW65CCore* pcCPU);
 	void			ExecuteTrailingSideOperation(CW65CCore* pcCPU);
 
-	CBusCycle*		GetBusCycle(void);
+	CW65BusCycle*		GetBusCycle(void);
 	void			NextInstruction(void);
 	void			DoneInstruction(void);
 	void			NextCycle(void);
 	int16			GetCycle(void);
 	void			SetOpcode(uint16 uiOpcodeIndex);
-	CDataOperation* GetDataOperation(void);
+	CW65DataOperation* GetDataOperation(void);
 	bool			IsStopped(void);
 	bool			IsRead(void);
 	void			SetX(uint16 uiXIndex);
@@ -283,7 +283,7 @@ public:
 	uint8			GetDataBank(void);
 	void			SetDataBank(uint8 uiDataBank);
 	void			SetDirectPage(uint16 uiDirectPage);
-	CAddress*		GetProgramCounter(void);
+	CW65Address*		GetProgramCounter(void);
 	void			SetProcessorRegisterValue(uint8 uiValue);
 	void			SetZeroFlagFrom8BitValue(uint16 uiValue);
 	void			SetZeroFlagFrom16BitValue(uint16 uiValue);
@@ -302,7 +302,7 @@ public:
 	uint16			GetCarry(void);
 	bool			IsSignSet(void);
 	bool			IsOverflowSet(void);
-	void			SetProgramCounter(CAddress* pcAddress);
+	void			SetProgramCounter(CW65Address* pcAddress);
 	void			SetProgramAddressBank(uint8 uibank);
 	void			SetAddressLow(uint8 uiAddressLow);
 	void			SetAddressHigh(uint8 uiAddressHigh);
@@ -318,8 +318,8 @@ public:
 	uint16			GetStackPointer(void);
 	uint16			GetStackPointer16Bit(void);
 
-	CInstruction*	GetOpcode(void);
-	CAddress*		GetNewProgramCounter(void);
+	CW65Instruction*	GetOpcode(void);
+	CW65Address*		GetNewProgramCounter(void);
 	void			IncrementProgramAddress(void);
 	void			DecrementProgramCounter(void);
 	void			IncrementStackPointer(void);
@@ -342,10 +342,10 @@ public:
 	void			Execute16BitSBC(void);
 	virtual void	Execute8BitBCDSBC(void);
 	void			Execute16BitBCDSBC(void);
-	CBCDResult		BCDAdd8Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bCarry);
-	CBCDResult		BCDAdd16Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bCarry);
-	CBCDResult		BCDSubtract8Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bBorrow);
-	CBCDResult		BCDSubtract16Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bBorrow);
+	CW65BCDResult		BCDAdd8Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bCarry);
+	CW65BCDResult		BCDAdd16Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bCarry);
+	CW65BCDResult		BCDSubtract8Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bBorrow);
+	CW65BCDResult		BCDSubtract16Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bBorrow);
 	uint16			SetBit(uint16 uiValue, bool bBitValue, uint16 uiBitNumber);
 	uint16			ClearBit(uint16 uiValue, uint16 uiBitNumber);
 	uint16			SetBit(uint16 uiValue, uint16 uiBitNumber);

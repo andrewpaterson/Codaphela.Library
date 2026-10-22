@@ -40,13 +40,13 @@ public:
 	CW65C02Pins*	GetPins(void);
 
 	using			CW65CCore::GetInstruction;
-	CInstruction*	GetInstruction(uint16 uiOpcode) override;
-	CInstruction*	GetResetOpcode(void) override;
-	CInstruction*	GetIrqOpcode(void) override;
-	CInstruction*	GetNmiOpcode(void) override;
-	CInstruction*	GetAbortOpcode(void) override;
-	CInstruction*	GetFetchNextOpcode(void) override;
-	void			WriteSignalsPhi2Falling(CTimeline* pcTimeline, CDataOperation* pcDataOperation, CBusCycle* pcBusCycle) override;
+	CW65Instruction*	GetInstruction(uint16 uiOpcode) override;
+	CW65Instruction*	GetResetOpcode(void) override;
+	CW65Instruction*	GetIrqOpcode(void) override;
+	CW65Instruction*	GetNmiOpcode(void) override;
+	CW65Instruction*	GetAbortOpcode(void) override;
+	CW65Instruction*	GetFetchNextOpcode(void) override;
+	void			WriteSignalsPhi2Falling(CW65Timeline* pcTimeline, CW65DataOperation* pcDataOperation, CW65BusCycle* pcBusCycle) override;
 	char*			GetType(void) override;
 
 	void			RMB(void);
