@@ -427,11 +427,13 @@ void CEmbeddedObject::GetPointerFieldsTo(CEmbeddedObject* pcTo, CArrayHeapFromPo
 EFreeResult CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject, bool bValidate)
 {
 	CBaseObject*	pcContainer;
-	CObjects*		pcObjectsThisIn;
 	bool			bRemoved;
 	EFreeResult		eResult;
+#ifdef _DEBUG
+	CObjects*		pcObjectsThisIn;
 
 	pcObjectsThisIn = GetObjectsThisIn();
+#endif
 
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
 	bRemoved = PrivateRemoveHeapFrom(pcFromObject);

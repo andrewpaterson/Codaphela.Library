@@ -73,6 +73,7 @@ public:
 	int16					GetSpaceWidth(void);
 	size					GetAverageWidth(void);
 	size					GetAverageHeight(void);
+	bool					IsFixedWidth(void);
 
 	size					NumGlyphs(void);
 	size					NumGeneratedGlyphs(void);

@@ -355,8 +355,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNodeRange(CIndexTreeNodeFile* pcPare
 	size					iRequiredIndices;
 	size					uiSize;
 
-	pcNode = NULL;
-	iRequiredIndices = pcNode->NumIndexes(uiFirstIndex, uiLastIndex);
+	iRequiredIndices = CIndexTreeNodeFile::NumIndexes(uiFirstIndex, uiLastIndex);
 	uiSize = CalculateNodeSize(iRequiredIndices, uiDataSize);
 	pcNode = (CIndexTreeNodeFile*)Malloc(uiSize);
 	pcNode->Init(this, pcParent, uiFirstIndex, uiLastIndex, uiDataSize, uiIndexInParent);
@@ -2098,8 +2097,7 @@ CListTemplateMinimal<char>* CIndexTreeFile::GetNodesKeys(CArrayVoidPtr* apvNodes
 	iNumKeys = apvNodes->NumElements();
 	iKeysSize = GetNodeKeysSize(apvNodes);
 
-	paszKeyNames = NULL;
-	iTotalSize = paszKeyNames->TotalSize(iNumKeys, iKeysSize);
+	iTotalSize = CListTemplateMinimal<char>::TotalSize(iNumKeys, iKeysSize);
 	paszKeyNames = (CListTemplateMinimal<char>*)malloc(iTotalSize);
 	paszKeyNames->Init(iNumKeys, iKeysSize);
 
@@ -2133,8 +2131,7 @@ CListCharsMinimal* CIndexTreeFile::GetNodesStringKeys(CArrayVoidPtr* apvNodes)
 	iNumKeys = apvNodes->NumElements();
 	iKeysSize = GetNodeKeysSize(apvNodes);
 
-	paszKeyNames = NULL;
-	iTotalSize = paszKeyNames->TotalSize(iNumKeys, iKeysSize);
+	iTotalSize = CListCharsMinimal::TotalSize(iNumKeys, iKeysSize);
 	paszKeyNames = (CListCharsMinimal*)malloc(iTotalSize);
 	paszKeyNames->Init(iNumKeys, iKeysSize);
 

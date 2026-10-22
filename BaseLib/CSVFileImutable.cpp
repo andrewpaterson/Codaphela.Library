@@ -121,8 +121,7 @@ SCSVRowImmutable* CCSVFileImmutable::AllocateRow(char* szText)
 
 	//Allocate the heading size and the first char*, then the rest of the char pointers (iNumSeparators is the number
 	//of fields -1), then allocate the string and lastly the terminating zero.
-	psCSVRow = NULL;
-	iTotalSize = psCSVRow->TotalSize(iNumSeparators + 1, iLength);
+	iTotalSize = SCSVRowImmutable::TotalSize(iNumSeparators + 1, iLength);
 	psCSVRow = (SCSVRowImmutable*)malloc(iTotalSize);
 	psCSVRow->Init(iNumSeparators + 1, iLength);
 

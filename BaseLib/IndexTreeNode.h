@@ -64,7 +64,7 @@ public:
 	CIndexTree*			GetIndexTree(void);
 
 	size				NumIndexes(void);
-	size				NumIndexes(size uiFirstIndex, size uiLastIndex);
+	static size		NumIndexes(size uiFirstIndex, size uiLastIndex);
 	size				GetAdditionalIndexes(size uiIndex);
 
 	bool				IsEmpty(void);

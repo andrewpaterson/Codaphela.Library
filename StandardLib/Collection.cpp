@@ -218,6 +218,40 @@ bool CCollection::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult, b
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An Object in this collection more than once has a from for every copy.
+// Removes the froms for uiRemoved copies.  Only the last can free the Object,
+// freeing it sooner would leave the remaining froms to be removed from a
+// freed Object.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCollection::RemoveObjectCopiesTryFree(CEmbeddedObject* pcObject, size uiRemoved, bool bValidate)
+{
+	size	i;
+	bool	bResult;
+
+	if ((pcObject == NULL) || (uiRemoved == 0))
+	{
+		return false;
+	}
+
+	bResult = true;
+	for (i = 1; i < uiRemoved; i++)
+	{
+		if (IsEmbeddingContainerAllocatedInObjects())
+		{
+			bResult &= pcObject->PrivateRemoveHeapFrom(this);
+		}
+		else
+		{
+			bResult &= pcObject->PrivateRemoveStackFrom(this);
+		}
+	}
+	return RemoveObjectTryFree(pcObject, bResult, bValidate);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCollection::RemovePointerToTryFree(CBaseObject* pcPointedTo)

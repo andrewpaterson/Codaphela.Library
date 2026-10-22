@@ -56,9 +56,10 @@ protected:
 	CIndexGlyphDescription	macGlyphs;
 	int32					miImageWidth;
 	int32					miImageHeight;
-	size					miAverageWidth;
+	size					miAverageWidth;		//Only valid when mbWidthsCalculated.
 	size					miAverageHeight;
-	bool					mbFixedWidth;
+	bool					mbFixedWidth;		//Only valid when mbWidthsCalculated.
+	bool					mbWidthsCalculated;
 	int16					miSpaceWidth;
 	int16					miAscent;
 	int16					miDescent;
@@ -71,8 +72,6 @@ public:
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
-
-	void 				Done(void);
 
 	void				PutGlyph(uint32 c, size uiLength, CSubImage* pcSubImage, int16 iStep);
 	void				PutGlyph(uint8* puiBuffer, size uiLength, CSubImage* pcSubImage, int16 iStep);
@@ -98,6 +97,9 @@ public:
 	size				GetAverageWidth(void);
 	size				GetAverageHeight(void);
 	bool				IsFixedWidth(void);
+
+protected:
+	void				CalculateWidths(void);
 };
 
 

@@ -252,5 +252,6 @@ int16 CFont::GetLineHeight(void) { return mpDescription->GetLineHeight(); }
 int16 CFont::GetTabSpaceCount(void) { return mpDescription->GetTabSpaceCount(); }
 size CFont::GetAverageWidth(void) { return mpDescription->GetAverageWidth(); }
 size CFont::GetAverageHeight(void) { return mpDescription->GetAverageHeight(); }
+bool CFont::IsFixedWidth(void) { return mpDescription->IsFixedWidth(); }
 size CFont::NumGlyphs(void) { return mpDescription->NumGlyphs(); }
 
