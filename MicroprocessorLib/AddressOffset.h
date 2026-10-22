@@ -13,10 +13,10 @@ public:
 
             bool    IsOperation(void) override;
             bool    IsAddress(void) override;
-    virtual uint8   GetBank(CW65C816* pcCPU);
-    virtual int32   GetOffset(CW65C816* pcCPU) =0;
+    virtual uint8   GetBank(CW65CCore* pcCPU);
+    virtual int32   GetOffset(CW65CCore* pcCPU) =0;
     virtual bool    IsConstantOffset(void);
-    virtual bool    IsPageWrapped(CW65C816* pcCPU);
+    virtual bool    IsPageWrapped(CW65CCore* pcCPU);
     virtual bool    IsProgramCounter(void);
 };
 

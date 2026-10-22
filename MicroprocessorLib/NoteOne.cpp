@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "NoteOne.h"
 
 
@@ -18,7 +18,7 @@ void CNoteOne::Init(EWidthFromRegister eWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNoteOne::Execute(CW65C816* pcCPU)
+void CNoteOne::Execute(CW65CCore* pcCPU)
 {
 }
 
@@ -37,7 +37,7 @@ bool CNoteOne::IsInitialSide(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNoteOne::MustExecute(CW65C816* pcCPU)
+bool CNoteOne::MustExecute(CW65CCore* pcCPU)
 {
     if (meWidth == WFR_M)
     {

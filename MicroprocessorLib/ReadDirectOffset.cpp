@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "ReadDirectOffset.h"
 
 
@@ -16,7 +16,7 @@ void CReadDirectOffset::Init(NotMemoryLock bNotMemoryLock)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CReadDirectOffset::Execute(CW65C816* pcCPU)
+void CReadDirectOffset::Execute(CW65CCore* pcCPU)
 {
 	//This is not the 16bit Direct Page this is 8bit direct offset D0.
 	pcCPU->SetDirectOffset(pcCPU->GetIOData());

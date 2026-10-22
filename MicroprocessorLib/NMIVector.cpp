@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "NMIVector.h"
 
 
@@ -16,7 +16,7 @@ void CNMIVector::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CNMIVector::GetAddress(CW65C816* pcCPU)
+uint16 CNMIVector::GetAddress(CW65CCore* pcCPU)
 {
     if (pcCPU->IsEmulation())
     {

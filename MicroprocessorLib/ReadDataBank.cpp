@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "ReadDataBank.h"
 
 
@@ -16,7 +16,7 @@ void CReadDataBank::Init(NotMemoryLock bNotMemoryLock)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CReadDataBank::Execute(CW65C816* pcCPU)
+void CReadDataBank::Execute(CW65CCore* pcCPU)
 {
     pcCPU->SetDataBank(pcCPU->GetIOData());
 }

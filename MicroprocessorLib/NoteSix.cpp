@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "NoteSix.h"
 
 
@@ -16,7 +16,7 @@ void CNoteSix::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNoteSix::Execute(CW65C816* pcCPU)
+void CNoteSix::Execute(CW65CCore* pcCPU)
 {
 }
 
@@ -35,7 +35,7 @@ bool CNoteSix::IsInitialSide(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNoteSix::MustExecute(CW65C816* pcCPU)
+bool CNoteSix::MustExecute(CW65CCore* pcCPU)
 {
 	return pcCPU->NoteSix();
 }

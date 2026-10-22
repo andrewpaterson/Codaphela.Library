@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "ProgramCounter.h"
 
 
@@ -24,7 +24,7 @@ void CProgramCounter::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CProgramCounter::GetOffset(CW65C816* pcCPU)
+int32 CProgramCounter::GetOffset(CW65CCore* pcCPU)
 {
     return pcCPU->GetProgramCounter()->GetOffset();
 }

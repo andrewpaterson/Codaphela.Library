@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "DataBank.h"
 
 
@@ -24,7 +24,7 @@ void CDataBank::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CDataBank::GetOffset(CW65C816* pcCPU)
+int32 CDataBank::GetOffset(CW65CCore* pcCPU)
 {
     return 0;
 }
@@ -34,7 +34,7 @@ int32 CDataBank::GetOffset(CW65C816* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CDataBank::GetBank(CW65C816* pcCPU)
+uint8 CDataBank::GetBank(CW65CCore* pcCPU)
 {
     return pcCPU->GetDataBank();
 }

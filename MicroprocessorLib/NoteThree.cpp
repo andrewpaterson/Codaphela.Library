@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "NoteThree.h"
 
 
@@ -16,7 +16,7 @@ void CNoteThree::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNoteThree::Execute(CW65C816* pcCPU)
+void CNoteThree::Execute(CW65CCore* pcCPU)
 {
 	pcCPU->CreatePartialAbortValues();
 }

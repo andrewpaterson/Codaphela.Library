@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "Execute.h"
 
 
@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExecute::Init(CW65C816Func fFunction, bool bInitialSide)
+void CExecute::Init(CW65CFunc fFunction, bool bInitialSide)
 {
 	COperation::Init();
 
@@ -19,7 +19,7 @@ void CExecute::Init(CW65C816Func fFunction, bool bInitialSide)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExecute::Execute(CW65C816* pcCPU)
+void CExecute::Execute(CW65CCore* pcCPU)
 {
 	(pcCPU->*mfFunction)();
 }

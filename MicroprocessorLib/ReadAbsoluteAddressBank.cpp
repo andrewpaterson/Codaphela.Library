@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "ReadAbsoluteAddressBank.h"
 
 
@@ -16,7 +16,7 @@ void CReadAbsoluteAddressBank::Init(NotMemoryLock bNotMemoryLock)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CReadAbsoluteAddressBank::Execute(CW65C816* pcCPU)
+void CReadAbsoluteAddressBank::Execute(CW65CCore* pcCPU)
 {
 	pcCPU->SetAddressBank(pcCPU->GetIOData());
 }

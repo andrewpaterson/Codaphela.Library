@@ -5,10 +5,14 @@
 
 class CWriteProcessorStatus : public CDataOperation
 {
+protected:
+	bool	mbBreak;
+
 public:
 	void	Init(void);
+	void	Init(bool bBreak);
 
-	void	Execute(CW65C816* pcCPU) override;
+	void	Execute(CW65CCore* pcCPU) override;
 	bool	IsInitialSide(void) override;
 
 	void	Print(CChars* psz) override;

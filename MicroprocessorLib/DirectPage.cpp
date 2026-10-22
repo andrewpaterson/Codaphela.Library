@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "DirectPage.h"
 
 
@@ -35,7 +35,7 @@ void CDirectPage::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CDirectPage::GetOffset(CW65C816* pcCPU)
+int32 CDirectPage::GetOffset(CW65CCore* pcCPU)
 {
     return pcCPU->GetDirectPage();
 }
@@ -45,7 +45,7 @@ int32 CDirectPage::GetOffset(CW65C816* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDirectPage::IsPageWrapped(CW65C816* pcCPU)
+bool CDirectPage::IsPageWrapped(CW65CCore* pcCPU)
 {
 	//Datasheet caveat 7.2: in emulation mode with DL=00 direct addresses stay in page DH.
 	//[d], [d],y and PEI pointers are not wrapped.

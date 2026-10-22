@@ -50,7 +50,8 @@ enum EAddressingMode
 	
 	AM_StackInterruptSoftware,
 	AM_StackInterruptHardware,
-	AM_WaitForInterrupt
+	AM_WaitForInterrupt,
+	AM_DirectRelative,                   //D0 = [PB: PC + 1];  R0 = [PB: PC + 2];  Bit test of [00: DP + D0], (*)PC = PB: PC + R0
 };
 
 

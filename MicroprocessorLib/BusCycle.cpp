@@ -84,7 +84,7 @@ void CBusCycle::Validate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBusCycle::GetAddress(CAddress* pcDest, CW65C816* pcCPU)
+void CBusCycle::GetAddress(CAddress* pcDest, CW65CCore* pcCPU)
 {
     CalculateAddressWrappingFromAddressOffsets(pcDest, pcCPU, &mapcAddressOffsets);
 }
@@ -148,7 +148,7 @@ size CBusCycle::GetDone16(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBusCycle::MustExecute(CW65C816* pcCPU)
+bool CBusCycle::MustExecute(CW65CCore* pcCPU)
 {
     size            uiNumOperations;
     size            i;

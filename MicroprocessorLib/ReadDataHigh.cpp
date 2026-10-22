@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "ReadDataHigh.h"
 
 
@@ -16,7 +16,7 @@ void CReadDataHigh::Init(NotMemoryLock bNotMemoryLock)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CReadDataHigh::Execute(CW65C816* pcCPU)
+void CReadDataHigh::Execute(CW65CCore* pcCPU)
 {
 	pcCPU->SetDataHigh(pcCPU->GetIOData());
 }

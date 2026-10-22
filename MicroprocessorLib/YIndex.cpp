@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "YIndex.h"
 
 
@@ -24,7 +24,7 @@ void CYIndex::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CYIndex::GetOffset(CW65C816* pcCPU)
+int32 CYIndex::GetOffset(CW65CCore* pcCPU)
 {
     return pcCPU->GetY();
 }

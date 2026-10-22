@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "NoteTwo.h"
 
 
@@ -16,7 +16,7 @@ void CNoteTwo::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNoteTwo::Execute(CW65C816* pcCPU)
+void CNoteTwo::Execute(CW65CCore* pcCPU)
 {
 }
 
@@ -35,7 +35,7 @@ bool CNoteTwo::IsInitialSide(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNoteTwo::MustExecute(CW65C816* pcCPU)
+bool CNoteTwo::MustExecute(CW65CCore* pcCPU)
 {
 	return GetLowByte(pcCPU->GetDirectPage()) != 0;
 }

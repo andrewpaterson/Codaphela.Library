@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "InternalOperation.h"
 
 
@@ -26,7 +26,7 @@ void CInternalOperation::Init(bool bValidProgramAddress, bool bValidDataAddress,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInternalOperation::Execute(CW65C816* pcCPU)
+void CInternalOperation::Execute(CW65CCore* pcCPU)
 {
 }
 

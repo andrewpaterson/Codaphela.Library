@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "ReadProgramBank.h"
 
 
@@ -16,7 +16,7 @@ void CReadProgramBank::Init(NotMemoryLock bNotMemoryLock)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CReadProgramBank::Execute(CW65C816* pcCPU)
+void CReadProgramBank::Execute(CW65CCore* pcCPU)
 {
 	pcCPU->SetNewProgramCounterBank(pcCPU->GetIOData());
 }

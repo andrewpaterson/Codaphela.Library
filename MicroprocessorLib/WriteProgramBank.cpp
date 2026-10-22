@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "WriteProgramBank.h"
 
 
@@ -16,7 +16,7 @@ void CWriteProgramBank::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWriteProgramBank::Execute(CW65C816* pcCPU)
+void CWriteProgramBank::Execute(CW65CCore* pcCPU)
 {
     pcCPU->WriteProgramBank();
 }

@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "ReadDataLow.h"
 
 
@@ -16,7 +16,7 @@ void CReadDataLow::Init(NotMemoryLock bNotMemoryLock)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CReadDataLow::Execute(CW65C816* pcCPU)
+void CReadDataLow::Execute(CW65CCore* pcCPU)
 {
 	pcCPU->SetDataLow(pcCPU->GetIOData());
 }

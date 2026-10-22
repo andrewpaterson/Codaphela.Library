@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "StackPointer.h"
 
 
@@ -35,7 +35,7 @@ void CStackPointer::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CStackPointer::GetOffset(CW65C816* pcCPU)
+int32 CStackPointer::GetOffset(CW65CCore* pcCPU)
 {
 	uint16	uiStackPointer;
 

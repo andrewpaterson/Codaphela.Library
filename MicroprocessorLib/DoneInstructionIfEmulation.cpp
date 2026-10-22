@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "DoneInstructionIfEmulation.h"
 
 
@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDoneInstructionIfEmulation::Execute(CW65C816* pcCPU)
+void CDoneInstructionIfEmulation::Execute(CW65CCore* pcCPU)
 {
 	if (pcCPU->IsEmulation())
 	{

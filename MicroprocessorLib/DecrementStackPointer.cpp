@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "DecrementStackPointer.h"
 
 
@@ -16,7 +16,7 @@ void CDecrementStackPointer::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDecrementStackPointer::Execute(CW65C816* pcCPU)
+void CDecrementStackPointer::Execute(CW65CCore* pcCPU)
 {
 	pcCPU->DecrementStackPointer();
 }

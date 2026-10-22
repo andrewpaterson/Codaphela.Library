@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "NoteSeven.h"
 
 
@@ -16,7 +16,7 @@ void CNoteSeven::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNoteSeven::Execute(CW65C816* pcCPU)
+void CNoteSeven::Execute(CW65CCore* pcCPU)
 {
 }
 
@@ -35,7 +35,7 @@ bool CNoteSeven::IsInitialSide(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNoteSeven::MustExecute(CW65C816* pcCPU)
+bool CNoteSeven::MustExecute(CW65CCore* pcCPU)
 {
 	return !pcCPU->IsEmulation();
 }

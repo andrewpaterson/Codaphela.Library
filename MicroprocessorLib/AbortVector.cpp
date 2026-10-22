@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "AbortVector.h"
 
 
@@ -16,7 +16,7 @@ void CAbortVector::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CAbortVector::GetAddress(CW65C816* pcCPU)
+uint16 CAbortVector::GetAddress(CW65CCore* pcCPU)
 {
     if (pcCPU->IsEmulation())
     {

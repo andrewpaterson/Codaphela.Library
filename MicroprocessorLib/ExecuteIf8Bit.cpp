@@ -1,5 +1,5 @@
 #include "BaseLib/Logger.h"
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "ExecuteIf8Bit.h"
 
 
@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExecuteIf8Bit::Init(CW65C816Func fFunction, EWidthFromRegister eWidth, bool bInitialSide)
+void CExecuteIf8Bit::Init(CW65CFunc fFunction, EWidthFromRegister eWidth, bool bInitialSide)
 {
     COperation::Init();
 
@@ -21,7 +21,7 @@ void CExecuteIf8Bit::Init(CW65C816Func fFunction, EWidthFromRegister eWidth, boo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExecuteIf8Bit::Execute(CW65C816* pcCPU)
+void CExecuteIf8Bit::Execute(CW65CCore* pcCPU)
 {
     if (meWidth == WFR_M)
     {

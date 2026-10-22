@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "WriteProgramCounterHigh.h"
 
 
@@ -16,7 +16,7 @@ void CWriteProgramCounterHigh::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWriteProgramCounterHigh::Execute(CW65C816* pcCPU)
+void CWriteProgramCounterHigh::Execute(CW65CCore* pcCPU)
 {
     pcCPU->WriteProgramCounterHigh();
 }

@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "RestoreAbortValues.h"
 
 
@@ -16,7 +16,7 @@ void CRestoreAbortValues::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRestoreAbortValues::Execute(CW65C816* pcCPU)
+void CRestoreAbortValues::Execute(CW65CCore* pcCPU)
 {
 	pcCPU->RestoreAbortValues();
 }

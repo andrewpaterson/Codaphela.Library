@@ -6,7 +6,7 @@
 #include "StandardLib/Unknown.h"
 
 
-class CW65C816;
+class CW65CCore;
 class CInterruptVector : public CUnknown, public CRefered
 {
 protected:
@@ -14,7 +14,7 @@ public:
 			void	Init(void);
 			void	Kill(void) override;
 
-	virtual uint16	GetAddress(CW65C816* pcCPU) =0;
+	virtual uint16	GetAddress(CW65CCore* pcCPU) =0;
 };
 
 

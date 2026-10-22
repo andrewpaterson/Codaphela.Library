@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "ReadAbsoluteAddressLow.h"
 
 
@@ -16,7 +16,7 @@ void CReadAbsoluteAddressLow::Init(NotMemoryLock bNotMemoryLock, bool bNotVector
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CReadAbsoluteAddressLow::Execute(CW65C816* pcCPU)
+void CReadAbsoluteAddressLow::Execute(CW65CCore* pcCPU)
 {
 	pcCPU->SetAddressLow(pcCPU->GetIOData());
 }

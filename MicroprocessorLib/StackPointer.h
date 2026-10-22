@@ -21,7 +21,7 @@ public:
     void    Init(EStackPointerMode eMode);
     void    Kill(void) override;
 
-    int32   GetOffset(CW65C816* pcCPU) override;
+    int32   GetOffset(CW65CCore* pcCPU) override;
     void    Print(CChars* psz) override;
 };
 

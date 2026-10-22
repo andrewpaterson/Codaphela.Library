@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "XIndex.h"
 
 
@@ -24,7 +24,7 @@ void CXIndex::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CXIndex::GetOffset(CW65C816* pcCPU)
+int32 CXIndex::GetOffset(CW65CCore* pcCPU)
 {
     return pcCPU->GetX();
 }

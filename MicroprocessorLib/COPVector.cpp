@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "COPVector.h"
 
 
@@ -16,7 +16,7 @@ void CCOPVector::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CCOPVector::GetAddress(CW65C816* pcCPU)
+uint16 CCOPVector::GetAddress(CW65CCore* pcCPU)
 {
     if (pcCPU->IsEmulation())
     {

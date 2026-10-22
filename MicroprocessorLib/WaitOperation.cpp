@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "WaitOperation.h"
 
 
@@ -17,7 +17,7 @@ void CWaitOperation::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWaitOperation::Execute(CW65C816* pcCPU)
+void CWaitOperation::Execute(CW65CCore* pcCPU)
 {
 	pcCPU->Wait();
 }

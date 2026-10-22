@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "AddressBank.h"
 
 
@@ -24,7 +24,7 @@ void CAddressBank::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CAddressBank::GetOffset(CW65C816* pcCPU)
+int32 CAddressBank::GetOffset(CW65CCore* pcCPU)
 {
     return 0;
 }
@@ -34,7 +34,7 @@ int32 CAddressBank::GetOffset(CW65C816* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CAddressBank::GetBank(CW65C816* pcCPU)
+uint8 CAddressBank::GetBank(CW65CCore* pcCPU)
 {
     return pcCPU->GetAddress()->GetBank();
 }

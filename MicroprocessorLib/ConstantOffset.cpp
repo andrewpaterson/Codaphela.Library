@@ -1,4 +1,4 @@
-#include "W65C816.h"
+#include "W65CCore.h"
 #include "ConstantOffset.h"
 
 
@@ -31,6 +31,18 @@ void CConstantOffset::Init(int32 iOffset, bool bOnlyIfMemory16Bit)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CConstantOffset::InitAddress(uint16 uiAddress)
+{
+    //A fixed address rather than an offset.
+    miOffset = uiAddress;
+    mbOnlyIfMemory16Bit = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CConstantOffset::Kill(void)
 {
 }
@@ -40,7 +52,7 @@ void CConstantOffset::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CConstantOffset::GetOffset(CW65C816* pcCPU)
+int32 CConstantOffset::GetOffset(CW65CCore* pcCPU)
 {
     if (mbOnlyIfMemory16Bit && pcCPU->IsMemory8Bit())
     {
