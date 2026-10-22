@@ -62,6 +62,7 @@ protected:
 	int16		    miNextCycle;
 	uint16		    muiOpcodeIndex;
 	bool		    mbStopped;
+	bool		    mbWaiting;
 
 	uint8		    muiAbortProcessRegister;
 	uint16		    muiAbortAccumulator;
@@ -368,6 +369,11 @@ public:
 	uint16			RotateRight(uint16 uiValue);
 	uint16			ShiftRight(uint16 uiValue);
 	void			SoftBreak(void);
+	void			RTIStatus(void);
+	void			ExecuteDecimal(int iNibbles, bool bSubtract);
+	void			RTIStatusIfEmulation(void);
+	void			Wait(void);
+	bool			IsWaiting(void);
 	void			Reset(void);
 	void			DoneIfIndex8Bit(void);
 	void			DoneIfIndex16Bit(void);
@@ -388,6 +394,17 @@ public:
 	void			WriteProgramBank(void);
 	void			WriteProgramCounterHigh(void);
 	void			WriteProgramCounterLow(void);
+
+	//Only for tests.  They set registers directly, bypassing reset and instructions.
+	void			TestSetC(uint16 uiAccumulator);
+	void			TestSetX(uint16 uiXIndex);
+	void			TestSetY(uint16 uiYIndex);
+	void			TestSetStackPointer(uint16 uiStackPointer);
+	void			TestSetDirectPage(uint16 uiDirectPage);
+	void			TestSetDataBank(uint8 uiDataBank);
+	void			TestSetProgramCounter(uint8 uiProgramBank, uint16 uiProgramCounter);
+	void			TestSetProcessorStatus(uint8 uiProcessorStatus, bool bEmulation);
+	void			TestStartInstruction(void);
 };
 
 

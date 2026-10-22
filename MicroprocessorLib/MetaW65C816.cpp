@@ -132,6 +132,36 @@ bool CMetaW65C816::TickInstruction(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CMetaW65C816::TestTickCycle(void)
+{
+	//Only for tests.  Runs one PHI2 cycle, high then low, without handling reset.
+	//Returns true if the next cycle is an opcode fetch.
+	int		i;
+
+	for (i = 0; i < 2; i++)
+	{
+		mcPHI2.Invert();
+		mcMPU.InputTransition(&mcTimeline);
+
+		if (mcPHI2.IsHigh())
+		{
+			mfTickHigh(this, mpvContext);
+		}
+		else
+		{
+			SetBank(mcPins.ReadData(&mcTimeline));
+			SetX(mcPins.ReadMX(&mcTimeline));
+			mfTickLow(this, mpvContext);
+		}
+	}
+	return mcVDA.IsHigh() && mcVPA.IsHigh();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CMetaW65C816::IsResetInstruction(void)
 {
 	return IsInstruction(CInstructionFactory::GetInstance()->GetReset());
