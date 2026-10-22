@@ -1,8 +1,8 @@
 #include "BaseLib/PointerFunctions.h"
-#include "BRKVector.h"
-#include "NMIVector.h"
-#include "IRQVector.h"
-#include "ResetVector.h"
+#include "W65BRKVector.h"
+#include "W65NMIVector.h"
+#include "W65IRQVector.h"
+#include "W65ResetVector.h"
 #include "W65C02InstructionFactory.h"
 
 
@@ -25,19 +25,19 @@ CW65C02InstructionFactory* CW65C02InstructionFactory::GetInstance(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C02InstructionFactory::Init(void)
 {
-	CResetVector*	pcResetVector;
-	CIRQVector*		pcIRQVector;
-	CNMIVector*		pcNMIVector;
+	CW65ResetVector*	pcResetVector;
+	CW65IRQVector*		pcIRQVector;
+	CW65NMIVector*		pcNMIVector;
 
 	memset(this, 0, sizeof(CW65C02InstructionFactory));
 	CreateInstructions();
 	muiInstructions = 256;
 
-	pcResetVector = NewMalloc<CResetVector>();
+	pcResetVector = NewMalloc<CW65ResetVector>();
 	pcResetVector->Init();
-	pcIRQVector = NewMalloc<CIRQVector>();
+	pcIRQVector = NewMalloc<CW65IRQVector>();
 	pcIRQVector->Init();
-	pcNMIVector = NewMalloc<CNMIVector>();
+	pcNMIVector = NewMalloc<CW65NMIVector>();
 	pcNMIVector->Init();
 
 	mpcReset = Instruct(CreateStackResetCycles(pcResetVector, &CW65CCore::RES, false), "RES", "Reset the CPU");
@@ -54,7 +54,7 @@ void CW65C02InstructionFactory::Init(void)
 void CW65C02InstructionFactory::Kill(void)
 {
 	uint16			i;
-	CInstruction*	pcInstruction;
+	CW65Instruction*	pcInstruction;
 
 	for (i = 0; i < muiInstructions; i++)
 	{
@@ -68,7 +68,7 @@ void CW65C02InstructionFactory::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C02InstructionFactory::GetInstruction(uint16 uiOpcode)
+CW65Instruction* CW65C02InstructionFactory::GetInstruction(uint16 uiOpcode)
 {
 	if (uiOpcode < W65C02_INSTRUCTIONS_SIZE)
 	{
@@ -82,7 +82,7 @@ CInstruction* CW65C02InstructionFactory::GetInstruction(uint16 uiOpcode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C02InstructionFactory::GetReset(void)
+CW65Instruction* CW65C02InstructionFactory::GetReset(void)
 {
 	return mpcReset;
 }
@@ -92,7 +92,7 @@ CInstruction* CW65C02InstructionFactory::GetReset(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C02InstructionFactory::GetIRQ(void)
+CW65Instruction* CW65C02InstructionFactory::GetIRQ(void)
 {
 	return mpcIRQ;
 }
@@ -102,7 +102,7 @@ CInstruction* CW65C02InstructionFactory::GetIRQ(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C02InstructionFactory::GetNMI(void)
+CW65Instruction* CW65C02InstructionFactory::GetNMI(void)
 {
 	return mpcNMI;
 }
@@ -112,7 +112,7 @@ CInstruction* CW65C02InstructionFactory::GetNMI(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C02InstructionFactory::GetFetchNext(void)
+CW65Instruction* CW65C02InstructionFactory::GetFetchNext(void)
 {
 	return mpcFetchNext;
 }
@@ -122,11 +122,11 @@ CInstruction* CW65C02InstructionFactory::GetFetchNext(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C02InstructionFactory::Instruct(uint16 uiCode, CInstructionCycles* pcInstructionCycles, char* szName, char* szDescription)
+CW65Instruction* CW65C02InstructionFactory::Instruct(uint16 uiCode, CW65InstructionCycles* pcInstructionCycles, char* szName, char* szDescription)
 {
-	CInstruction*	pcInstruction;
+	CW65Instruction*	pcInstruction;
 
-	pcInstruction = NewMalloc<CInstruction>();
+	pcInstruction = NewMalloc<CW65Instruction>();
 	pcInstruction->Init(uiCode, pcInstructionCycles, szName, szDescription);
 	return pcInstruction;
 }
@@ -136,10 +136,10 @@ CInstruction* CW65C02InstructionFactory::Instruct(uint16 uiCode, CInstructionCyc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C02InstructionFactory::Instruct(CInstructionCycles* pcInstructionCycles, char* szName, char* szDescription)
+CW65Instruction* CW65C02InstructionFactory::Instruct(CW65InstructionCycles* pcInstructionCycles, char* szName, char* szDescription)
 {
 	//The pseudo instructions (reset, interrupts and opcode fetch) follow the 256 opcodes.
-	CInstruction*	pcInstruction;
+	CW65Instruction*	pcInstruction;
 
 	pcInstruction = Instruct(muiInstructions, pcInstructionCycles, szName, szDescription);
 	mapcInstructions[muiInstructions] = pcInstruction;
@@ -154,9 +154,9 @@ CInstruction* CW65C02InstructionFactory::Instruct(CInstructionCycles* pcInstruct
 //////////////////////////////////////////////////////////////////////////
 void CW65C02InstructionFactory::CreateInstructions(void)
 {
-	CBRKVector*		pcBRKVector;
+	CW65BRKVector*		pcBRKVector;
 
-	pcBRKVector = NewMalloc<CBRKVector>();
+	pcBRKVector = NewMalloc<CW65BRKVector>();
 	pcBRKVector->Init();
 
 	mapcInstructions[0x00] = Instruct(W65C02_BRK_Interrupt, CreateW65C02StackSoftwareInterruptCycles(pcBRKVector, &CW65CCore::BRK), "BRK", "Force software break interrupt");

@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "DataOperation.h"
+#include "W65DataOperation.h"
 #include "W65C02InstructionFactory.h"
 #include "W65C02.h"
 
@@ -63,7 +63,7 @@ char* CW65C02::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C02::GetInstruction(uint16 uiOpcode)
+CW65Instruction* CW65C02::GetInstruction(uint16 uiOpcode)
 {
 	return CW65C02InstructionFactory::GetInstance()->GetInstruction(uiOpcode);
 }
@@ -73,7 +73,7 @@ CInstruction* CW65C02::GetInstruction(uint16 uiOpcode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C02::GetResetOpcode(void)
+CW65Instruction* CW65C02::GetResetOpcode(void)
 {
 	return CW65C02InstructionFactory::GetInstance()->GetReset();
 }
@@ -83,7 +83,7 @@ CInstruction* CW65C02::GetResetOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C02::GetIrqOpcode(void)
+CW65Instruction* CW65C02::GetIrqOpcode(void)
 {
 	return CW65C02InstructionFactory::GetInstance()->GetIRQ();
 }
@@ -93,7 +93,7 @@ CInstruction* CW65C02::GetIrqOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C02::GetNmiOpcode(void)
+CW65Instruction* CW65C02::GetNmiOpcode(void)
 {
 	return CW65C02InstructionFactory::GetInstance()->GetNMI();
 }
@@ -103,7 +103,7 @@ CInstruction* CW65C02::GetNmiOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C02::GetAbortOpcode(void)
+CW65Instruction* CW65C02::GetAbortOpcode(void)
 {
 	//The W65C02S has no ABORTB.
 	return NULL;
@@ -114,7 +114,7 @@ CInstruction* CW65C02::GetAbortOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C02::GetFetchNextOpcode(void)
+CW65Instruction* CW65C02::GetFetchNextOpcode(void)
 {
 	return CW65C02InstructionFactory::GetInstance()->GetFetchNext();
 }
@@ -124,7 +124,7 @@ CInstruction* CW65C02::GetFetchNextOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C02::WriteSignalsPhi2Falling(CTimeline* pcTimeline, CDataOperation* pcDataOperation, CBusCycle* pcBusCycle)
+void CW65C02::WriteSignalsPhi2Falling(CW65Timeline* pcTimeline, CW65DataOperation* pcDataOperation, CW65BusCycle* pcBusCycle)
 {
 	bool	bSOB;
 

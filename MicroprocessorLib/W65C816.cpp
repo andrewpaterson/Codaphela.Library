@@ -21,9 +21,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "BaseLib/CalculatorParser.h"
 #include "BaseLib/PointerFunctions.h"
-#include "InstructionFactory.h"
-#include "BusCycle.h"
-#include "DataOperation.h"
+#include "W65C816InstructionFactory.h"
+#include "W65BusCycle.h"
+#include "W65DataOperation.h"
 #include "W65C816.h"
 
 
@@ -62,7 +62,7 @@ char* CW65C816::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::WriteSignalsPhi2Falling(CTimeline* pcTimeline, CDataOperation* pcDataOperation, CBusCycle* pcBusCycle)
+void CW65C816::WriteSignalsPhi2Falling(CW65Timeline* pcTimeline, CW65DataOperation* pcDataOperation, CW65BusCycle* pcBusCycle)
 {
 	bool	bValidDataAddress;
 	bool	bValidProgramAddress;
@@ -86,7 +86,7 @@ void CW65C816::WriteSignalsPhi2Falling(CTimeline* pcTimeline, CDataOperation* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::WriteSignalsPhi2Rising(CTimeline* pcTimeline)
+void CW65C816::WriteSignalsPhi2Rising(CW65Timeline* pcTimeline)
 {
 	mpcW65C816Pins->WriteMX(pcTimeline, IsMemory8Bit());
 }
@@ -212,9 +212,9 @@ void CW65C816::TXY(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C816::GetInstruction(uint16 uiOpcode)
+CW65Instruction* CW65C816::GetInstruction(uint16 uiOpcode)
 {
-	return CInstructionFactory::GetInstance()->GetInstruction(uiOpcode);
+	return CW65C816InstructionFactory::GetInstance()->GetInstruction(uiOpcode);
 }
 
 
@@ -222,9 +222,9 @@ CInstruction* CW65C816::GetInstruction(uint16 uiOpcode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C816::GetResetOpcode(void)
+CW65Instruction* CW65C816::GetResetOpcode(void)
 {
-	return CInstructionFactory::GetInstance()->GetReset();
+	return CW65C816InstructionFactory::GetInstance()->GetReset();
 }
 
 
@@ -232,9 +232,9 @@ CInstruction* CW65C816::GetResetOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C816::GetIrqOpcode(void)
+CW65Instruction* CW65C816::GetIrqOpcode(void)
 {
-	return CInstructionFactory::GetInstance()->GetIRQ();
+	return CW65C816InstructionFactory::GetInstance()->GetIRQ();
 }
 
 
@@ -242,9 +242,9 @@ CInstruction* CW65C816::GetIrqOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C816::GetNmiOpcode(void)
+CW65Instruction* CW65C816::GetNmiOpcode(void)
 {
-	return CInstructionFactory::GetInstance()->GetNMI();
+	return CW65C816InstructionFactory::GetInstance()->GetNMI();
 }
 
 
@@ -252,9 +252,9 @@ CInstruction* CW65C816::GetNmiOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C816::GetAbortOpcode(void)
+CW65Instruction* CW65C816::GetAbortOpcode(void)
 {
-	return CInstructionFactory::GetInstance()->GetAbort();
+	return CW65C816InstructionFactory::GetInstance()->GetAbort();
 }
 
 
@@ -262,9 +262,9 @@ CInstruction* CW65C816::GetAbortOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C816::GetFetchNextOpcode(void)
+CW65Instruction* CW65C816::GetFetchNextOpcode(void)
 {
-	return CInstructionFactory::GetInstance()->GetFetchNext();
+	return CW65C816InstructionFactory::GetInstance()->GetFetchNext();
 }
 
 
@@ -272,7 +272,7 @@ CInstruction* CW65C816::GetFetchNextOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65C816::IsReadCycle(CDataOperation* pcDataOperation)
+bool CW65C816::IsReadCycle(CW65DataOperation* pcDataOperation)
 {
 	bool	bModifyCycle;
 

@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816Pins::Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB)
+void CW65C816Pins::Init(CW65MetaBus16* pcAddress, CW65MetaBus8* pcData, CW65MetaTrace* pcPHI2, CW65MetaTrace* pcRESB, CW65MetaTrace* pcRWB)
 {
 	CW65CPins::Init(pcAddress, pcData, pcPHI2, pcRESB, pcRWB);
 	mpcVPA = NULL;
@@ -19,7 +19,7 @@ void CW65C816Pins::Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816Pins::SetImportantTraces(CMetaTrace* pcVPA, CMetaTrace* pcVDA, CMetaTrace* pcVPB)
+void CW65C816Pins::SetImportantTraces(CW65MetaTrace* pcVPA, CW65MetaTrace* pcVDA, CW65MetaTrace* pcVPB)
 {
 	SetVectorPullTrace(pcVPB);
 	mpcVPA = pcVPA;
@@ -31,7 +31,7 @@ void CW65C816Pins::SetImportantTraces(CMetaTrace* pcVPA, CMetaTrace* pcVDA, CMet
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816Pins::SetOtherTraces(CMetaTrace* pcMLB, CMetaTrace* pcMX, CMetaTrace* pcBE, CMetaTrace* pcE, CMetaTrace* pcRDY)
+void CW65C816Pins::SetOtherTraces(CW65MetaTrace* pcMLB, CW65MetaTrace* pcMX, CW65MetaTrace* pcBE, CW65MetaTrace* pcE, CW65MetaTrace* pcRDY)
 {
 	mpcMX = pcMX;
 	mpcE = pcE;
@@ -57,7 +57,7 @@ void CW65C816Pins::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816Pins::WriteMX(CTimeline* pcTimeline, bool bValue)
+void CW65C816Pins::WriteMX(CW65Timeline* pcTimeline, bool bValue)
 {
 	SafeSetTrace(mpcMX, bValue);
 }
@@ -67,7 +67,7 @@ void CW65C816Pins::WriteMX(CTimeline* pcTimeline, bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816Pins::WriteVDA(CTimeline* pcTimeline, bool bValue)
+void CW65C816Pins::WriteVDA(CW65Timeline* pcTimeline, bool bValue)
 {
 	SafeSetTrace(mpcVDA, bValue);
 }
@@ -77,7 +77,7 @@ void CW65C816Pins::WriteVDA(CTimeline* pcTimeline, bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816Pins::WriteVPA(CTimeline* pcTimeline, bool bValue)
+void CW65C816Pins::WriteVPA(CW65Timeline* pcTimeline, bool bValue)
 {
 	SafeSetTrace(mpcVPA, bValue);
 }
@@ -87,7 +87,7 @@ void CW65C816Pins::WriteVPA(CTimeline* pcTimeline, bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816Pins::WriteE(CTimeline* pcTimeline, bool bValue)
+void CW65C816Pins::WriteE(CW65Timeline* pcTimeline, bool bValue)
 {
 	SafeSetTrace(mpcE, bValue);
 }
@@ -97,7 +97,7 @@ void CW65C816Pins::WriteE(CTimeline* pcTimeline, bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-STraceValue CW65C816Pins::ReadMX(CTimeline* pcTimeline)
+SW65TraceValue CW65C816Pins::ReadMX(CW65Timeline* pcTimeline)
 {
 	SafeGetTrace(mpcMX);
 }

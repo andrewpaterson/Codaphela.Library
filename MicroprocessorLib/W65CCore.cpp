@@ -21,9 +21,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "BaseLib/CalculatorParser.h"
 #include "BaseLib/PointerFunctions.h"
-#include "Instruction.h"
-#include "DataOperation.h"
-#include "BusCycle.h"
+#include "W65Instruction.h"
+#include "W65DataOperation.h"
+#include "W65BusCycle.h"
 #include "W65CCore.h"
 
 
@@ -492,7 +492,7 @@ void CW65CCore::Append0x(CChars* psz, bool bAppend0x)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65CCore::ToAddressHexString(CChars* psz, CAddress* pcAddress, bool bAppend0x)
+void CW65CCore::ToAddressHexString(CChars* psz, CW65Address* pcAddress, bool bAppend0x)
 {
     uint16      ui16;
     uint8       ui8;
@@ -512,7 +512,7 @@ void CW65CCore::ToAddressHexString(CChars* psz, CAddress* pcAddress, bool bAppen
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::ToAddressOperationString(CChars* psz)
 {
-	CBusCycle*	pcBusCycle;
+	CW65BusCycle*	pcBusCycle;
 	
 	pcBusCycle = GetBusCycle();
 	if (pcBusCycle)
@@ -528,7 +528,7 @@ void CW65CCore::ToAddressOperationString(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::ToDataOperationString(CChars* psz)
 {
-	CBusCycle* pcBusCycle;
+	CW65BusCycle* pcBusCycle;
 
 	pcBusCycle = GetBusCycle();
 	if (pcBusCycle)
@@ -544,7 +544,7 @@ void CW65CCore::ToDataOperationString(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::ToInstructionDescription(CChars* psz)
 {
-	CInstruction*	pcInstruction;
+	CW65Instruction*	pcInstruction;
 
 	pcInstruction = GetInstruction();
 	if (pcInstruction)
@@ -655,7 +655,7 @@ void CW65CCore::GetDataValueHex(CChars* psz, bool bAppend0x)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65CCore::GetOpcodeValueHex(CChars* psz, int cycle, CInstruction* pcInstruction, bool bAppend0x)
+void CW65CCore::GetOpcodeValueHex(CChars* psz, int cycle, CW65Instruction* pcInstruction, bool bAppend0x)
 {
     uint16  uiCode;
 
@@ -706,9 +706,9 @@ void CW65CCore::GetOpcodeValueHex(CChars* psz, bool bAppend0x)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65CCore::GetInstruction(void)
+CW65Instruction* CW65CCore::GetInstruction(void)
 {
-    CInstruction* pcInstruction;
+    CW65Instruction* pcInstruction;
 
     pcInstruction = GetOpcode();
     return pcInstruction;
@@ -721,7 +721,7 @@ CInstruction* CW65CCore::GetInstruction(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetOpcodeMnemonicString(CChars* psz)
 {
-    CInstruction*   pcInstruction;
+    CW65Instruction*   pcInstruction;
 
     pcInstruction = GetOpcode();
     if (pcInstruction)
@@ -742,8 +742,8 @@ void CW65CCore::GetOpcodeMnemonicString(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetCycleOperationString(CChars* psz)
 {
-    CBusCycle*          pcBusCycle;
-    CDataOperation*     pcDataOperation;
+    CW65BusCycle*          pcBusCycle;
+    CW65DataOperation*     pcDataOperation;
 
     pcBusCycle = GetBusCycle();
     if (pcBusCycle)
@@ -762,10 +762,10 @@ void CW65CCore::GetCycleOperationString(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDataOperation* CW65CCore::GetDataOperation(void)
+CW65DataOperation* CW65CCore::GetDataOperation(void)
 {
-    CBusCycle*          pcBusCycle;
-    CDataOperation*     pcDataOperation;
+    CW65BusCycle*          pcBusCycle;
+    CW65DataOperation*     pcDataOperation;
 
     pcBusCycle = GetBusCycle();
     if (pcBusCycle)
@@ -841,14 +841,14 @@ void CW65CCore::DisableBuses(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65CCore::InputTransition(CTimeline* pcTimeline)
+void CW65CCore::InputTransition(CW65Timeline* pcTimeline)
 {
     CW65CPins*      pcPins;
     bool            bReset;
     bool            bNmi;
     bool            bIrq;
     bool            bAbort;
-    STraceValue     sClockValue;
+    SW65TraceValue     sClockValue;
 
     pcPins = GetPins();
     sClockValue = pcPins->ReadPhi2(pcTimeline);
@@ -911,13 +911,13 @@ void CW65CCore::InputTransition(CTimeline* pcTimeline)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65CCore::ExecutPhi2Falling(CTimeline* pcTimeline)
+void CW65CCore::ExecutPhi2Falling(CW65Timeline* pcTimeline)
 {
-    CBusCycle*          pcBusCycle;
+    CW65BusCycle*          pcBusCycle;
     bool                bRead;
-    CAddress            cAddress;
+    CW65Address            cAddress;
     CW65CPins*          pcPins;
-    CDataOperation*     pcDataOperation;
+    CW65DataOperation*     pcDataOperation;
 
     pcPins = GetPins();
     pcDataOperation = GetDataOperation();
@@ -963,10 +963,10 @@ void CW65CCore::ExecutPhi2Falling(CTimeline* pcTimeline)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65CCore::ExecutPhi2Rising(CTimeline* pcTimeline)
+void CW65CCore::ExecutPhi2Rising(CW65Timeline* pcTimeline)
 {
     CW65CPins*          pcPins;
-    CDataOperation*     pcDataOperation;
+    CW65DataOperation*     pcDataOperation;
     bool                bRead;
 
     pcPins = GetPins();
@@ -1053,7 +1053,7 @@ void CW65CCore::ResetPulled(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsReseting(STraceValue clockValue)
+bool CW65CCore::IsReseting(SW65TraceValue clockValue)
 {
 	return (muiResetCount > 0) &&
 		   ((muiResetCount <= 3) ||
@@ -1341,11 +1341,11 @@ void CW65CCore::Cycle(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::ExecuteInitialSideOperation(CW65CCore* pcCPU)
 {
-	CBusCycle*			pcBusCycle;
-	COperationArray*	pcOperations;
+	CW65BusCycle*			pcBusCycle;
+	CW65OperationArray*	pcOperations;
 	size				uiNumElements;
 	size				i;
-	COperation*			pcOperation;
+	CW65Operation*			pcOperation;
 
 	pcBusCycle = GetBusCycle();
 	pcOperations = pcBusCycle->GetOperations();
@@ -1367,11 +1367,11 @@ void CW65CCore::ExecuteInitialSideOperation(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::ExecuteTrailingSideOperation(CW65CCore* pcCPU)
 {
-	CBusCycle*			pcBusCycle;
-	COperationArray*	pcOperations;
+	CW65BusCycle*			pcBusCycle;
+	CW65OperationArray*	pcOperations;
 	size				uiNumElements;
 	size				i;
-	COperation*			pcOperation;
+	CW65Operation*			pcOperation;
 
 	pcBusCycle = GetBusCycle();
 	pcOperations = pcBusCycle->GetOperations();
@@ -1391,9 +1391,9 @@ void CW65CCore::ExecuteTrailingSideOperation(CW65CCore* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBusCycle* CW65CCore::GetBusCycle(void)
+CW65BusCycle* CW65CCore::GetBusCycle(void)
 {
-	CInstruction* pcInstruction;
+	CW65Instruction* pcInstruction;
 
 	pcInstruction = GetInstruction(muiOpcodeIndex);
 
@@ -1880,7 +1880,7 @@ void CW65CCore::SetDirectPage(uint16 uiDirectPage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAddress* CW65CCore::GetProgramCounter(void)
+CW65Address* CW65CCore::GetProgramCounter(void)
 {
 	return &mcProgramCounter;
 }
@@ -2101,7 +2101,7 @@ bool CW65CCore::IsOverflowSet(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65CCore::SetProgramCounter(CAddress* pcAddress)
+void CW65CCore::SetProgramCounter(CW65Address* pcAddress)
 {
 	mcProgramCounter.Init(pcAddress);
 }
@@ -2262,7 +2262,7 @@ uint16 CW65CCore::GetStackPointer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAddress* CW65CCore::GetAddress(void)
+CW65Address* CW65CCore::GetAddress(void)
 {
 	return &mcAddress;
 }
@@ -2272,7 +2272,7 @@ CAddress* CW65CCore::GetAddress(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65CCore::GetOpcode(void)
+CW65Instruction* CW65CCore::GetOpcode(void)
 {
 	return GetInstruction(muiOpcodeIndex);
 }
@@ -2282,7 +2282,7 @@ CInstruction* CW65CCore::GetOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAddress* CW65CCore::GetNewProgramCounter(void)
+CW65Address* CW65CCore::GetNewProgramCounter(void)
 {
 	return &mcNewProgramCounter;
 }
@@ -2652,14 +2652,14 @@ void CW65CCore::Execute16BitBCDSBC(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBCDResult CW65CCore::BCDAdd8Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bCarry)
+CW65BCDResult CW65CCore::BCDAdd8Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bCarry)
 {
 	uint16		uiShift;
 	uint16		uiResult;
 	uint16		uiDigitOfFirst;
 	uint16		uiDigitOfSecond;
 	uint16		uiSumOfDigits;
-	CBCDResult	cResult;
+	CW65BCDResult	cResult;
 
 	uiShift = 0;
 	uiResult = 0;
@@ -2691,14 +2691,14 @@ CBCDResult CW65CCore::BCDAdd8Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bCa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBCDResult CW65CCore::BCDAdd16Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bCarry)
+CW65BCDResult CW65CCore::BCDAdd16Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bCarry)
 {
 	uint16		uiShift;
 	uint16		uiResult;
 	uint16		uiDigitOfFirst;
 	uint16		uiDigitOfSecond;
-	CBCDResult	cResult;
-	CBCDResult	cBCD8BitResult;
+	CW65BCDResult	cResult;
+	CW65BCDResult	cBCD8BitResult;
 
 	uiResult = 0;
 	uiShift = 0;
@@ -2723,14 +2723,14 @@ CBCDResult CW65CCore::BCDAdd16Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBCDResult CW65CCore::BCDSubtract8Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bBorrow)
+CW65BCDResult CW65CCore::BCDSubtract8Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bBorrow)
 {
 	uint16		uiShift;
 	uint16		uiResult;
 	uint16		uiDigitOfFirst;
 	uint16		uiDigitOfSecond;
 	uint16		uiDiffOfDigits;
-	CBCDResult	cResult;
+	CW65BCDResult	cResult;
 
 	uiShift = 0;
 	uiResult = 0;
@@ -2761,14 +2761,14 @@ CBCDResult CW65CCore::BCDSubtract8Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, boo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBCDResult CW65CCore::BCDSubtract16Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bBorrow)
+CW65BCDResult CW65CCore::BCDSubtract16Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bBorrow)
 {
 	uint16		uiShift;
 	uint16		uiResult;
 	uint16		uiDigitOfFirst;
 	uint16		uiDigitOfSecond;
-	CBCDResult	cResult;
-	CBCDResult	cBCD8BitResult;
+	CW65BCDResult	cResult;
+	CW65BCDResult	cBCD8BitResult;
 
 	uiShift = 0;
 	uiResult = 0;
@@ -3614,7 +3614,7 @@ void CW65CCore::WriteDataHigh(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::ReadOpcode(void)
 {
-	CInstruction*	pcInstruction;
+	CW65Instruction*	pcInstruction;
 
 	SetOpcode(GetIOData());
 
@@ -3797,7 +3797,7 @@ void CW65CCore::TestStartInstruction(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65CCore::WriteSignalsPhi2Rising(CTimeline* pcTimeline)
+void CW65CCore::WriteSignalsPhi2Rising(CW65Timeline* pcTimeline)
 {
 }
 
@@ -3806,7 +3806,7 @@ void CW65CCore::WriteSignalsPhi2Rising(CTimeline* pcTimeline)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsReadCycle(CDataOperation* pcDataOperation)
+bool CW65CCore::IsReadCycle(CW65DataOperation* pcDataOperation)
 {
 	return pcDataOperation->IsRead();
 }

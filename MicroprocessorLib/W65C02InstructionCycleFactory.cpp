@@ -6,13 +6,13 @@
 
 
 //The W65C02S instruction functions are members of CW65C02, the operations call CW65CCore.
-CExecute* E(CW65C02Func fConsumer, bool bInitialSide)
+CW65Execute* E(CW65C02Func fConsumer, bool bInitialSide)
 {
 	return E(static_cast<CW65CFunc>(fConsumer), bInitialSide);
 }
 
 
-COperation* DONE(bool bDecimal)
+CW65Operation* DONE(bool bDecimal)
 {
 	//ADC and SBC in decimal mode are done one cycle later.
 	if (bDecimal)
@@ -23,7 +23,7 @@ COperation* DONE(bool bDecimal)
 }
 
 
-CBusCycle* DecimalCycle(CAddressOffsetArray* papcAddressOffsets, bool bDecimal)
+CW65BusCycle* DecimalCycle(CW65AddressOffsetArray* papcAddressOffsets, bool bDecimal)
 {
 	//The extra decimal mode cycle reads its address again.  It ends the cycle list when not needed.
 	if (bDecimal)
@@ -36,7 +36,7 @@ CBusCycle* DecimalCycle(CAddressOffsetArray* papcAddressOffsets, bool bDecimal)
 }
 
 
-CAddressOffset* Index(bool bIndexY)
+CW65AddressOffset* Index(bool bIndexY)
 {
 	if (bIndexY)
 	{
@@ -46,7 +46,7 @@ CAddressOffset* Index(bool bIndexY)
 }
 
 
-COperation* PageCross(bool bIndexY)
+CW65Operation* PageCross(bool bIndexY)
 {
 	if (bIndexY)
 	{
@@ -56,7 +56,7 @@ COperation* PageCross(bool bIndexY)
 }
 
 
-CInstructionCycles* CreateW65C02ImpliedCycles(CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02ImpliedCycles(CW65C02Func fOperation)
 {
 	return InstructionCycles(AM_Implied,
 		BusCycle(	Address(PBR(), PC(), NULL),		Operation(Opcode(), PC_inc(), NULL)),
@@ -65,7 +65,7 @@ CInstructionCycles* CreateW65C02ImpliedCycles(CW65C02Func fOperation)
 }
 
 
-CInstructionCycles* CreateW65C02ImmediateCycles(CW65C02Func fOperation, bool bDecimal, uint16 uiDecimalAddress)
+CW65InstructionCycles* CreateW65C02ImmediateCycles(CW65C02Func fOperation, bool bDecimal, uint16 uiDecimalAddress)
 {
 	//ADC and SBC take one more cycle in decimal mode.  With immediate data it reads a fixed
 	//address, 007F for ADC and 0000 for SBC.
@@ -77,7 +77,7 @@ CInstructionCycles* CreateW65C02ImmediateCycles(CW65C02Func fOperation, bool bDe
 }
 
 
-CInstructionCycles* CreateW65C02ZeroPageCycles(CW65C02Func fOperation, bool bDecimal)
+CW65InstructionCycles* CreateW65C02ZeroPageCycles(CW65C02Func fOperation, bool bDecimal)
 {
 	return InstructionCycles(AM_Direct,
 		BusCycle(	Address(PBR(), PC(), NULL),		Operation(Opcode(), PC_inc(), NULL)),
@@ -88,7 +88,7 @@ CInstructionCycles* CreateW65C02ZeroPageCycles(CW65C02Func fOperation, bool bDec
 }
 
 
-CInstructionCycles* CreateW65C02ZeroPageWriteCycles(CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02ZeroPageWriteCycles(CW65C02Func fOperation)
 {
 	return InstructionCycles(AM_Direct,
 		BusCycle(	Address(PBR(), PC(), NULL),		Operation(Opcode(), PC_inc(), NULL)),
@@ -98,7 +98,7 @@ CInstructionCycles* CreateW65C02ZeroPageWriteCycles(CW65C02Func fOperation)
 }
 
 
-CInstructionCycles* CreateW65C02ZeroPageRMWCycles(CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02ZeroPageRMWCycles(CW65C02Func fOperation)
 {
 	//The W65C02S reads the address twice and writes it once.
 	return InstructionCycles(AM_Direct,
@@ -111,7 +111,7 @@ CInstructionCycles* CreateW65C02ZeroPageRMWCycles(CW65C02Func fOperation)
 }
 
 
-CInstructionCycles* CreateW65C02ZeroPageIndexedCycles(bool bIndexY, CW65C02Func fOperation, bool bDecimal)
+CW65InstructionCycles* CreateW65C02ZeroPageIndexedCycles(bool bIndexY, CW65C02Func fOperation, bool bDecimal)
 {
 	//The zero page address is read before it is indexed.  The index wraps within page 0.
 	return InstructionCycles(bIndexY ? AM_DirectIndexedWithY : AM_DirectIndexedWithX,
@@ -124,7 +124,7 @@ CInstructionCycles* CreateW65C02ZeroPageIndexedCycles(bool bIndexY, CW65C02Func 
 }
 
 
-CInstructionCycles* CreateW65C02ZeroPageIndexedWriteCycles(bool bIndexY, CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02ZeroPageIndexedWriteCycles(bool bIndexY, CW65C02Func fOperation)
 {
 	return InstructionCycles(bIndexY ? AM_DirectIndexedWithY : AM_DirectIndexedWithX,
 		BusCycle(	Address(PBR(), PC(), NULL),			Operation(Opcode(), PC_inc(), NULL)),
@@ -135,7 +135,7 @@ CInstructionCycles* CreateW65C02ZeroPageIndexedWriteCycles(bool bIndexY, CW65C02
 }
 
 
-CInstructionCycles* CreateW65C02ZeroPageIndexedWithXRMWCycles(CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02ZeroPageIndexedWithXRMWCycles(CW65C02Func fOperation)
 {
 	return InstructionCycles(AM_DirectIndexedWithX,
 		BusCycle(	Address(PBR(), PC(), NULL),			Operation(Opcode(), PC_inc(), NULL)),
@@ -148,7 +148,7 @@ CInstructionCycles* CreateW65C02ZeroPageIndexedWithXRMWCycles(CW65C02Func fOpera
 }
 
 
-CInstructionCycles* CreateW65C02AbsoluteCycles(CW65C02Func fOperation, bool bDecimal)
+CW65InstructionCycles* CreateW65C02AbsoluteCycles(CW65C02Func fOperation, bool bDecimal)
 {
 	return InstructionCycles(AM_Absolute,
 		BusCycle(	Address(PBR(), PC(), NULL),		Operation(Opcode(), PC_inc(), NULL)),
@@ -160,7 +160,7 @@ CInstructionCycles* CreateW65C02AbsoluteCycles(CW65C02Func fOperation, bool bDec
 }
 
 
-CInstructionCycles* CreateW65C02AbsoluteWriteCycles(CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02AbsoluteWriteCycles(CW65C02Func fOperation)
 {
 	return InstructionCycles(AM_Absolute,
 		BusCycle(	Address(PBR(), PC(), NULL),		Operation(Opcode(), PC_inc(), NULL)),
@@ -171,7 +171,7 @@ CInstructionCycles* CreateW65C02AbsoluteWriteCycles(CW65C02Func fOperation)
 }
 
 
-CInstructionCycles* CreateW65C02AbsoluteRMWCycles(CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02AbsoluteRMWCycles(CW65C02Func fOperation)
 {
 	return InstructionCycles(AM_Absolute,
 		BusCycle(	Address(PBR(), PC(), NULL),		Operation(Opcode(), PC_inc(), NULL)),
@@ -184,7 +184,7 @@ CInstructionCycles* CreateW65C02AbsoluteRMWCycles(CW65C02Func fOperation)
 }
 
 
-CInstructionCycles* CreateW65C02AbsoluteIndexedCycles(EAddressingMode eMode, bool bIndexY, CW65C02Func fOperation, bool bDecimal)
+CW65InstructionCycles* CreateW65C02AbsoluteIndexedCycles(EAddressingMode eMode, bool bIndexY, CW65C02Func fOperation, bool bDecimal)
 {
 	//Crossing a page adds a cycle that reads the last byte of the instruction again.
 	return InstructionCycles(eMode,
@@ -198,19 +198,19 @@ CInstructionCycles* CreateW65C02AbsoluteIndexedCycles(EAddressingMode eMode, boo
 }
 
 
-CInstructionCycles* CreateW65C02AbsoluteIndexedWithXCycles(CW65C02Func fOperation, bool bDecimal)
+CW65InstructionCycles* CreateW65C02AbsoluteIndexedWithXCycles(CW65C02Func fOperation, bool bDecimal)
 {
 	return CreateW65C02AbsoluteIndexedCycles(AM_AbsoluteIndexedWithX, false, fOperation, bDecimal);
 }
 
 
-CInstructionCycles* CreateW65C02AbsoluteIndexedWithYCycles(CW65C02Func fOperation, bool bDecimal)
+CW65InstructionCycles* CreateW65C02AbsoluteIndexedWithYCycles(CW65C02Func fOperation, bool bDecimal)
 {
 	return CreateW65C02AbsoluteIndexedCycles(AM_AbsoluteIndexedWithY, true, fOperation, bDecimal);
 }
 
 
-CInstructionCycles* CreateW65C02AbsoluteIndexedWriteCycles(EAddressingMode eMode, bool bIndexY, CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02AbsoluteIndexedWriteCycles(EAddressingMode eMode, bool bIndexY, CW65C02Func fOperation)
 {
 	return InstructionCycles(eMode,
 		BusCycle(	Address(PBR(), PC(), NULL),			Operation(Opcode(), PC_inc(), NULL)),
@@ -222,19 +222,19 @@ CInstructionCycles* CreateW65C02AbsoluteIndexedWriteCycles(EAddressingMode eMode
 }
 
 
-CInstructionCycles* CreateW65C02AbsoluteIndexedWithXWriteCycles(CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02AbsoluteIndexedWithXWriteCycles(CW65C02Func fOperation)
 {
 	return CreateW65C02AbsoluteIndexedWriteCycles(AM_AbsoluteIndexedWithX, false, fOperation);
 }
 
 
-CInstructionCycles* CreateW65C02AbsoluteIndexedWithYWriteCycles(CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02AbsoluteIndexedWithYWriteCycles(CW65C02Func fOperation)
 {
 	return CreateW65C02AbsoluteIndexedWriteCycles(AM_AbsoluteIndexedWithY, true, fOperation);
 }
 
 
-CInstructionCycles* CreateW65C02AbsoluteIndexedWithXRMWCycles(CW65C02Func fOperation, bool bAlwaysIndexCycle)
+CW65InstructionCycles* CreateW65C02AbsoluteIndexedWithXRMWCycles(CW65C02Func fOperation, bool bAlwaysIndexCycle)
 {
 	//ASL, LSR, ROL and ROR only take the index cycle when crossing a page, INC and DEC always do.
 	return InstructionCycles(AM_AbsoluteIndexedWithX,
@@ -249,7 +249,7 @@ CInstructionCycles* CreateW65C02AbsoluteIndexedWithXRMWCycles(CW65C02Func fOpera
 }
 
 
-CInstructionCycles* CreateW65C02ZeroPageIndexedIndirectWithXCycles(CW65C02Func fOperation, bool bDecimal)
+CW65InstructionCycles* CreateW65C02ZeroPageIndexedIndirectWithXCycles(CW65C02Func fOperation, bool bDecimal)
 {
 	return InstructionCycles(AM_DirectIndexedIndirectWithX,
 		BusCycle(	Address(PBR(), PC(), NULL),			Operation(Opcode(), PC_inc(), NULL)),
@@ -263,7 +263,7 @@ CInstructionCycles* CreateW65C02ZeroPageIndexedIndirectWithXCycles(CW65C02Func f
 }
 
 
-CInstructionCycles* CreateW65C02ZeroPageIndexedIndirectWithXWriteCycles(CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02ZeroPageIndexedIndirectWithXWriteCycles(CW65C02Func fOperation)
 {
 	return InstructionCycles(AM_DirectIndexedIndirectWithX,
 		BusCycle(	Address(PBR(), PC(), NULL),			Operation(Opcode(), PC_inc(), NULL)),
@@ -276,7 +276,7 @@ CInstructionCycles* CreateW65C02ZeroPageIndexedIndirectWithXWriteCycles(CW65C02F
 }
 
 
-CInstructionCycles* CreateW65C02ZeroPageIndirectIndexedWithYCycles(CW65C02Func fOperation, bool bDecimal)
+CW65InstructionCycles* CreateW65C02ZeroPageIndirectIndexedWithYCycles(CW65C02Func fOperation, bool bDecimal)
 {
 	//Crossing a page adds a cycle that reads the zero page operand again.
 	return InstructionCycles(AM_DirectIndirectIndexedWithY,
@@ -291,7 +291,7 @@ CInstructionCycles* CreateW65C02ZeroPageIndirectIndexedWithYCycles(CW65C02Func f
 }
 
 
-CInstructionCycles* CreateW65C02ZeroPageIndirectIndexedWithYWriteCycles(CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02ZeroPageIndirectIndexedWithYWriteCycles(CW65C02Func fOperation)
 {
 	return InstructionCycles(AM_DirectIndirectIndexedWithY,
 		BusCycle(	Address(PBR(), PC(), NULL),			Operation(Opcode(), PC_inc(), NULL)),
@@ -304,7 +304,7 @@ CInstructionCycles* CreateW65C02ZeroPageIndirectIndexedWithYWriteCycles(CW65C02F
 }
 
 
-CInstructionCycles* CreateW65C02ZeroPageIndirectCycles(CW65C02Func fOperation, bool bDecimal)
+CW65InstructionCycles* CreateW65C02ZeroPageIndirectCycles(CW65C02Func fOperation, bool bDecimal)
 {
 	return InstructionCycles(AM_DirectIndirect,
 		BusCycle(	Address(PBR(), PC(), NULL),			Operation(Opcode(), PC_inc(), NULL)),
@@ -317,7 +317,7 @@ CInstructionCycles* CreateW65C02ZeroPageIndirectCycles(CW65C02Func fOperation, b
 }
 
 
-CInstructionCycles* CreateW65C02ZeroPageIndirectWriteCycles(CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02ZeroPageIndirectWriteCycles(CW65C02Func fOperation)
 {
 	return InstructionCycles(AM_DirectIndirect,
 		BusCycle(	Address(PBR(), PC(), NULL),			Operation(Opcode(), PC_inc(), NULL)),
@@ -329,7 +329,7 @@ CInstructionCycles* CreateW65C02ZeroPageIndirectWriteCycles(CW65C02Func fOperati
 }
 
 
-CInstructionCycles* CreateW65C02RelativeCycles(CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02RelativeCycles(CW65C02Func fOperation)
 {
 	//Taken: one cycle reading the next instruction.  Crossing a page: one more reading the
 	//target's low byte in the old page.
@@ -342,7 +342,7 @@ CInstructionCycles* CreateW65C02RelativeCycles(CW65C02Func fOperation)
 }
 
 
-CInstructionCycles* CreateW65C02ZeroPageRelativeCycles(void)
+CW65InstructionCycles* CreateW65C02ZeroPageRelativeCycles(void)
 {
 	//BBRx and BBSx.  A page crossing reads the next instruction again.
 	return InstructionCycles(AM_DirectRelative,
@@ -357,7 +357,7 @@ CInstructionCycles* CreateW65C02ZeroPageRelativeCycles(void)
 }
 
 
-CInstructionCycles* CreateW65C02AbsoluteJMPCycles(void)
+CW65InstructionCycles* CreateW65C02AbsoluteJMPCycles(void)
 {
 	return InstructionCycles(AM_Absolute,
 		BusCycle(	Address(PBR(), PC(), NULL),		Operation(Opcode(), PC_inc(), NULL)),
@@ -367,7 +367,7 @@ CInstructionCycles* CreateW65C02AbsoluteJMPCycles(void)
 }
 
 
-CInstructionCycles* CreateW65C02AbsoluteIndirectJMPCycles(void)
+CW65InstructionCycles* CreateW65C02AbsoluteIndirectJMPCycles(void)
 {
 	//The W65C02S reads the high byte of the new PC twice, the pointer may cross a page.
 	return InstructionCycles(AM_AbsoluteIndirect,
@@ -381,7 +381,7 @@ CInstructionCycles* CreateW65C02AbsoluteIndirectJMPCycles(void)
 }
 
 
-CInstructionCycles* CreateW65C02AbsoluteIndexedIndirectWithXJMPCycles(void)
+CW65InstructionCycles* CreateW65C02AbsoluteIndexedIndirectWithXJMPCycles(void)
 {
 	return InstructionCycles(AM_AbsoluteIndexedIndirectWithX,
 		BusCycle(	Address(PBR(), PC(), NULL),			Operation(Opcode(), PC_inc(), NULL)),
@@ -394,7 +394,7 @@ CInstructionCycles* CreateW65C02AbsoluteIndexedIndirectWithXJMPCycles(void)
 }
 
 
-CInstructionCycles* CreateW65C02AbsoluteJSRCycles(void)
+CW65InstructionCycles* CreateW65C02AbsoluteJSRCycles(void)
 {
 	//JSR pushes the address of its last byte and reads that byte after the push.
 	return InstructionCycles(AM_Absolute,
@@ -408,7 +408,7 @@ CInstructionCycles* CreateW65C02AbsoluteJSRCycles(void)
 }
 
 
-CInstructionCycles* CreateW65C02StackRTSCycles(void)
+CW65InstructionCycles* CreateW65C02StackRTSCycles(void)
 {
 	return InstructionCycles(AM_StackImplied,
 		BusCycle(	Address(PBR(), PC(), NULL),		Operation(Opcode(), PC_inc(), NULL)),
@@ -421,7 +421,7 @@ CInstructionCycles* CreateW65C02StackRTSCycles(void)
 }
 
 
-CInstructionCycles* CreateW65C02StackRTICycles(void)
+CW65InstructionCycles* CreateW65C02StackRTICycles(void)
 {
 	return InstructionCycles(AM_StackImplied,
 		BusCycle(	Address(PBR(), PC(), NULL),		Operation(Opcode(), PC_inc(), NULL)),
@@ -434,7 +434,7 @@ CInstructionCycles* CreateW65C02StackRTICycles(void)
 }
 
 
-CInstructionCycles* CreateW65C02StackSoftwareInterruptCycles(CInterruptVector* pcInterruptVector, CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02StackSoftwareInterruptCycles(CW65InterruptVector* pcInterruptVector, CW65C02Func fOperation)
 {
 	return InstructionCycles(AM_StackInterruptSoftware,
 		BusCycle(	Address(PBR(), PC(), NULL),						Operation(Opcode(), PC_inc(), NULL)),
@@ -448,7 +448,7 @@ CInstructionCycles* CreateW65C02StackSoftwareInterruptCycles(CInterruptVector* p
 }
 
 
-CInstructionCycles* CreateW65C02StackPushCycles(CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02StackPushCycles(CW65C02Func fOperation)
 {
 	return InstructionCycles(AM_StackImplied,
 		BusCycle(	Address(PBR(), PC(), NULL),		Operation(Opcode(), PC_inc(), NULL)),
@@ -458,7 +458,7 @@ CInstructionCycles* CreateW65C02StackPushCycles(CW65C02Func fOperation)
 }
 
 
-CInstructionCycles* CreateW65C02StackPullCycles(CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02StackPullCycles(CW65C02Func fOperation)
 {
 	return InstructionCycles(AM_StackImplied,
 		BusCycle(	Address(PBR(), PC(), NULL),		Operation(Opcode(), PC_inc(), NULL)),
@@ -469,7 +469,7 @@ CInstructionCycles* CreateW65C02StackPullCycles(CW65C02Func fOperation)
 }
 
 
-CInstructionCycles* CreateW65C02WaitForInterruptCycles(void)
+CW65InstructionCycles* CreateW65C02WaitForInterruptCycles(void)
 {
 	return InstructionCycles(AM_WaitForInterrupt,
 		BusCycle(	Address(PBR(), PC(), NULL),		Operation(Opcode(), PC_inc(), NULL)),
@@ -479,7 +479,7 @@ CInstructionCycles* CreateW65C02WaitForInterruptCycles(void)
 }
 
 
-CInstructionCycles* CreateW65C02StopTheClockCycles(CW65C02Func fOperation)
+CW65InstructionCycles* CreateW65C02StopTheClockCycles(CW65C02Func fOperation)
 {
 	return InstructionCycles(AM_StopTheClock,
 		BusCycle(	Address(PBR(), PC(), NULL),		Operation(Opcode(), PC_inc(), NULL)),
@@ -489,7 +489,7 @@ CInstructionCycles* CreateW65C02StopTheClockCycles(CW65C02Func fOperation)
 }
 
 
-CInstructionCycles* CreateW65C02NOPCycles(int iBytes)
+CW65InstructionCycles* CreateW65C02NOPCycles(int iBytes)
 {
 	//The reserved opcodes X3 and XB take one cycle, X2 two cycles (they skip a byte).
 	if (iBytes == 1)
@@ -505,7 +505,7 @@ CInstructionCycles* CreateW65C02NOPCycles(int iBytes)
 }
 
 
-CInstructionCycles* CreateW65C02NOPZeroPageCycles(void)
+CW65InstructionCycles* CreateW65C02NOPZeroPageCycles(void)
 {
 	return InstructionCycles(AM_Direct,
 		BusCycle(	Address(PBR(), PC(), NULL),		Operation(Opcode(), PC_inc(), NULL)),
@@ -515,7 +515,7 @@ CInstructionCycles* CreateW65C02NOPZeroPageCycles(void)
 }
 
 
-CInstructionCycles* CreateW65C02NOPZeroPageIndexedCycles(void)
+CW65InstructionCycles* CreateW65C02NOPZeroPageIndexedCycles(void)
 {
 	return InstructionCycles(AM_DirectIndexedWithX,
 		BusCycle(	Address(PBR(), PC(), NULL),		Operation(Opcode(), PC_inc(), NULL)),
@@ -526,7 +526,7 @@ CInstructionCycles* CreateW65C02NOPZeroPageIndexedCycles(void)
 }
 
 
-CInstructionCycles* CreateW65C02NOPAbsoluteCycles(void)
+CW65InstructionCycles* CreateW65C02NOPAbsoluteCycles(void)
 {
 	return InstructionCycles(AM_Absolute,
 		BusCycle(	Address(PBR(), PC(), NULL),			Operation(Opcode(), PC_inc(), NULL)),
