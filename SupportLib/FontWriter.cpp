@@ -53,7 +53,7 @@ bool FontWriter(Ptr<CFont> pFont, char* szImagePathName, char* szCelsPathName, c
 	CTextFile					cTextFile;
 	CChars*						szText;
 	Ptr<CArrayImageCel>			paCels;
-	Ptr<CGlyph>					pGlyph;
+	SGlyphDescription*			psDescription;
 	Ptr<CImageCel>				pCel;
 	SIndexTreeMemoryIterator	sIter;
 	uint8						auiKey[FONT_WRITER_MAX_KEY_LENGTH];
@@ -91,15 +91,16 @@ bool FontWriter(Ptr<CFont> pFont, char* szImagePathName, char* szCelsPathName, c
 			uiCodePoint |= ((uint32)auiKey[i]) << (i * 8);
 		}
 
-		pGlyph = pFont->GetGlyph(auiKey, uiKeyLength);
+		psDescription = pFont->GetGlyphDescription(auiKey, uiKeyLength);
 		szText->Append("\t\tGlyph\n\t\t{\n");
 		AppendFontInteger(szText, 3, "CodePoint", (int32)uiCodePoint);
 		AppendFontInteger(szText, 3, "Length", (int32)uiKeyLength);
 		AppendFontInteger(szText, 3, "CelIndex", (int32)paCels->NumElements());
-		AppendFontInteger(szText, 3, "Step", pGlyph->GetStep());
+		AppendFontInteger(szText, 3, "Step", psDescription->iStep);
 		szText->Append("\t\t}\n");
 
-		pCel = pGlyph->GetCel();
+		//A cel just for writing so the font's glyphs aren't all generated.
+		pCel = pFont->CreateCel(psDescription);
 		paCels->Add(pCel);
 
 		bExists = pFont->Iterate(&sIter, auiKey, &uiKeyLength, FONT_WRITER_MAX_KEY_LENGTH);

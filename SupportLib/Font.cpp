@@ -27,6 +27,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Font.h"
 
 
+#define FONT_MAX_KEY_LENGTH		64
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -46,6 +49,7 @@ Ptr<CFont> CFont::Init(char* szName, int16 iSpaceWidth, int16 iAscent, int16 iDe
 	miAscent = iAscent;
 	miDescent = iDescent;
 	macGlyphs.Init();
+	macDescriptions.Init();
 
 	PostInit();
 
@@ -67,6 +71,7 @@ void CFont::Class(void)
 	U_Bool(mbFixedWidh);
 	U_Int16(miSpaceWidth);
 	M_Embedded(macGlyphs);
+	U_Data(CIndexGlyphDescription, macDescriptions);
 	U_Int16(miAscent);
 	U_Int16(miDescent);
 	U_Int16(miTabSpaceCount);
@@ -79,6 +84,7 @@ void CFont::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CFont::Free(void)
 {
+	macDescriptions.Kill();
 	mszName.Kill();
 }
 
@@ -109,36 +115,40 @@ bool CFont::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CFont::Done(void)
 {
-	size						i;
-	Ptr<CGlyph>					pGlyph;
-	size						iTotalWidth;
-	size						iLastWidth;
-	size						iWidth;
-	SIndexTreeMemoryIterator	sIter;
+	size							i;
+	SGlyphDescription*				psDescription;
+	size							iTotalWidth;
+	size							iLastWidth;
+	size							iWidth;
+	SIndexTreeMemoryUnsafeIterator	sIter;
+	uint8							auiKey[FONT_MAX_KEY_LENGTH];
+	size							uiKeyLength;
+	bool							bExists;
 
 	iTotalWidth = 0;
 	iWidth = 0;
 	mbFixedWidh = true;
 
+	//Glyphs copy their description when they are generated so only glyphs generated after Done are aligned.
 	i = 0;
-	pGlyph = macGlyphs.StartIterationPointer(&sIter);
-	while (pGlyph.IsNotNull())
+	bExists = macDescriptions.StartIteration(&sIter, auiKey, &uiKeyLength, FONT_MAX_KEY_LENGTH, &psDescription);
+	while (bExists)
 	{
 		iLastWidth = iWidth;
-		iWidth = pGlyph->GetFullWidth();
-		iTotalWidth += pGlyph->GetFullWidth();
+		iWidth = psDescription->cSubImage.GetFullWidth();
+		iTotalWidth += iWidth;
 		if ((iLastWidth != iWidth) && (i > 1))
 		{
 			mbFixedWidh = false;
 		}
-		pGlyph->GetSubImage()->SetHorizontalAlignment(SUB_IMAGE_ALIGNMENT_LEFT);
-		pGlyph->GetSubImage()->msAlignment.y = -miAscent;
+		psDescription->cSubImage.SetHorizontalAlignment(SUB_IMAGE_ALIGNMENT_LEFT);
+		psDescription->cSubImage.msAlignment.y = -miAscent;
 
 		i++;
-		pGlyph = macGlyphs.IteratePointer(&sIter);
+		bExists = macDescriptions.Iterate(&sIter, auiKey, &uiKeyLength, FONT_MAX_KEY_LENGTH, &psDescription);
 	}
 
-	miAverageWidth = iTotalWidth / macGlyphs.NumElements();
+	miAverageWidth = iTotalWidth / macDescriptions.NumElements();
 }
 
 
@@ -168,9 +178,29 @@ char* CFont::GetName(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CGlyph> CFont::GetGlyph(CUnicodeReader* pcUTFReader)
 {
+	uint8	auiKey[FONT_MAX_KEY_LENGTH];
+	size	uiKeyLength;
+
+	uiKeyLength = ReadKey(pcUTFReader, auiKey, FONT_MAX_KEY_LENGTH);
+	if (uiKeyLength == 0)
+	{
+		return NULL;
+	}
+	return GetGlyph(auiKey, uiKeyLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Reads the next character and writes the key its glyph is indexed by
+// into puiKey.  Returns the length of the key or 0 if there is no
+// character.
+//
+//////////////////////////////////////////////////////////////////////////
+size CFont::ReadKey(CUnicodeReader* pcUTFReader, uint8* puiKey, size uiMaxKeyLength)
+{
 	uint16			uiCodePoint16;
 	uint32			uiCodePoint32;
-	uint8			auiBuffer[64];
 	size			uiUTFLength;
 	size			uiCodePointLength;
 
@@ -183,7 +213,8 @@ Ptr<CGlyph> CFont::GetGlyph(CUnicodeReader* pcUTFReader)
 			if (!pcUTFReader->IsTooSmall(uiCodePoint16))
 			{
 				uiCodePointLength = pcUTFReader->GetUnicodeCodePointLength(uiCodePoint16);
-				return GetGlyph(uiCodePoint16, uiCodePointLength);
+				memcpy(puiKey, &uiCodePoint16, uiCodePointLength);
+				return uiCodePointLength;
 			}
 			else
 			{
@@ -191,7 +222,8 @@ Ptr<CGlyph> CFont::GetGlyph(CUnicodeReader* pcUTFReader)
 				if (!pcUTFReader->IsError(uiCodePoint32))
 				{
 					uiCodePointLength = pcUTFReader->GetUnicodeCodePointLength(uiCodePoint32);
-					return GetGlyph(uiCodePoint32, uiCodePointLength);
+					memcpy(puiKey, &uiCodePoint32, uiCodePointLength);
+					return uiCodePointLength;
 				}
 			}
 		}
@@ -204,20 +236,21 @@ Ptr<CGlyph> CFont::GetGlyph(CUnicodeReader* pcUTFReader)
 			if ((uiCodePoint32 != 0xFFFD) && (uiCodePoint32 != 0xFFFF))
 			{
 				uiCodePointLength = pcUTFReader->GetUnicodeCodePointLength(uiCodePoint32);
-				return GetGlyph(uiCodePoint32, uiCodePointLength);
+				memcpy(puiKey, &uiCodePoint32, uiCodePointLength);
+				return uiCodePointLength;
 			}
 		}
 	}
 	else
 	{
-		uiCodePointLength = pcUTFReader->GetCodePointMulti(auiBuffer, 64);
+		uiCodePointLength = pcUTFReader->GetCodePointMulti(puiKey, uiMaxKeyLength);
 		if ((uiCodePointLength != 0) || (pcUTFReader->IsError((uint32)uiCodePointLength)))
 		{
-			return GetGlyph(auiBuffer, uiCodePointLength);
+			return uiCodePointLength;
 		}
 	}
 
-	return NULL;
+	return 0;
 }
 
 
@@ -227,27 +260,25 @@ Ptr<CGlyph> CFont::GetGlyph(CUnicodeReader* pcUTFReader)
 //////////////////////////////////////////////////////////////////////////
 size CFont::CalculateWidth(char* szText)
 {
-	CUTF8			cUTF8;
-	size			uiUTFElementLength;
-	size			ui;
-	size			iWidth;
-	Ptr<CGlyph>		pGlyph;
+	CUTF8				cUTF8;
+	size				uiUTFElementLength;
+	size				iWidth;
+	SGlyphDescription*	psDescription;
 
-	ui = 0;
+	//Measured from the descriptions so no glyphs are generated.
 	iWidth = 0;
 	cUTF8.Init(szText);
 	uiUTFElementLength = cUTF8.PeekUTFBytes();
 	while ((uiUTFElementLength != 0) && (uiUTFElementLength != cUTF8.GetError()))
 	{
-		pGlyph = GetGlyph(&cUTF8);
-
-		if (pGlyph.IsNotNull())
+		psDescription = GetGlyphDescription(&cUTF8);
+		if (psDescription != NULL)
 		{
-			iWidth += pGlyph->GetFullWidth();
-			ui++;
+			iWidth += psDescription->cSubImage.GetFullWidth();
 		}
 		uiUTFElementLength = cUTF8.PeekUTFBytes();
 	}
+	cUTF8.Kill();
 	return iWidth;
 }
 
@@ -259,7 +290,7 @@ size CFont::CalculateWidth(char* szText)
 bool CFont::IsWhitespace(uint16 c)
 {
 	//  c <=  to include the space.
-	if ((c <= FIRST_LETTER) || (c >= (char)(FIRST_LETTER + macGlyphs.NumElements())))
+	if ((c <= FIRST_LETTER) || (c >= (char)(FIRST_LETTER + macDescriptions.NumElements())))
 	{
 		return true;
 	}
@@ -273,7 +304,7 @@ bool CFont::IsWhitespace(uint16 c)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CGlyph> CFont::GetGlyph(uint16 c, size uiLength)
 {
-	return macGlyphs.Get((uint8*)&c, uiLength);
+	return GetGlyph((uint8*)&c, uiLength);
 }
 
 
@@ -283,17 +314,77 @@ Ptr<CGlyph> CFont::GetGlyph(uint16 c, size uiLength)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CGlyph> CFont::GetGlyph(uint32 c, size uiLength)
 {
-	return macGlyphs.Get((uint8*)&c, uiLength);
+	return GetGlyph((uint8*)&c, uiLength);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The glyph is generated from its description the first time it is
+// asked for.  NULL if the font doesn't have the character.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CGlyph> CFont::GetGlyph(uint8* puiBuffer, size uiLength)
 {
-	return macGlyphs.Get(puiBuffer, uiLength);
+	Ptr<CGlyph>			pGlyph;
+	SGlyphDescription*	psDescription;
+
+	pGlyph = macGlyphs.Get(puiBuffer, uiLength);
+	if (pGlyph.IsNull())
+	{
+		psDescription = GetGlyphDescription(puiBuffer, uiLength);
+		if (psDescription != NULL)
+		{
+			pGlyph = OMalloc<CGlyph>(CreateCel(psDescription), psDescription->iStep);
+			macGlyphs.Put(puiBuffer, uiLength, pGlyph);
+		}
+	}
+	return pGlyph;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL if the font doesn't have the character.
+//
+//////////////////////////////////////////////////////////////////////////
+SGlyphDescription* CFont::GetGlyphDescription(uint8* puiBuffer, size uiLength)
+{
+	return macDescriptions.Get(puiBuffer, uiLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Reads the next character.  NULL if the font doesn't have it.
+//
+//////////////////////////////////////////////////////////////////////////
+SGlyphDescription* CFont::GetGlyphDescription(CUnicodeReader* pcUTFReader)
+{
+	uint8	auiKey[FONT_MAX_KEY_LENGTH];
+	size	uiKeyLength;
+
+	uiKeyLength = ReadKey(pcUTFReader, auiKey, FONT_MAX_KEY_LENGTH);
+	if (uiKeyLength == 0)
+	{
+		return NULL;
+	}
+	return GetGlyphDescription(auiKey, uiKeyLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new cel over the description's pixels in the font's image.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CFont::CreateCel(SGlyphDescription* psDescription)
+{
+	Ptr<CImageCel>	pCel;
+
+	pCel = OMalloc<CImageCel>(mpImage, 0, 0, 0, 0);
+	pCel->SetSubImage(&psDescription->cSubImage);
+	return pCel;
 }
 
 
@@ -301,13 +392,9 @@ Ptr<CGlyph> CFont::GetGlyph(uint8* puiBuffer, size uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CGlyph> CFont::PutGlyph(uint8 c, Ptr<CImageCel> pCel, int16 iStep)
+void CFont::PutGlyph(uint32 c, size uiLength, CSubImage* pcSubImage, int16 iStep)
 {
-	Ptr<CGlyph>		pGlyph;
-
-	pGlyph = OMalloc<CGlyph>(pCel, iStep);
-	macGlyphs.Put((uint8*)&c, sizeof(uint8), pGlyph);
-	return pGlyph;
+	PutGlyph((uint8*)&c, uiLength, pcSubImage, iStep);
 }
 
 
@@ -315,41 +402,13 @@ Ptr<CGlyph> CFont::PutGlyph(uint8 c, Ptr<CImageCel> pCel, int16 iStep)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CGlyph> CFont::PutGlyph(uint16 c, Ptr<CImageCel> pCel, int16 iStep)
+void CFont::PutGlyph(uint8* puiBuffer, size uiLength, CSubImage* pcSubImage, int16 iStep)
 {
-	Ptr<CGlyph>		pGlyph;
+	SGlyphDescription*	psDescription;
 
-	pGlyph = OMalloc<CGlyph>(pCel, iStep);
-	macGlyphs.Put((uint8*)&c, sizeof(uint16), pGlyph);
-	return pGlyph;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CGlyph> CFont::PutGlyph(uint32 c, size uiLength, Ptr<CImageCel> pCel, int16 iStep)
-{
-	Ptr<CGlyph>		pGlyph;
-
-	pGlyph = OMalloc<CGlyph>(pCel, iStep);
-	macGlyphs.Put((uint8*)&c, uiLength, pGlyph);
-	return pGlyph;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CGlyph> CFont::PutGlyph(uint8* puiBuffer, size uiLength, Ptr<CImageCel> pCel, int16 iStep)
-{
-	Ptr<CGlyph>		pGlyph;
-
-	pGlyph = OMalloc<CGlyph>(pCel, iStep);
-	macGlyphs.Put(puiBuffer, uiLength, pGlyph);
-	return pGlyph;
+	psDescription = macDescriptions.Put(puiBuffer, uiLength);
+	psDescription->cSubImage.Copy(pcSubImage);
+	psDescription->iStep = iStep;
 }
 
 
@@ -369,6 +428,17 @@ void CFont::SetImage(Ptr<CImage> pImage)
 //////////////////////////////////////////////////////////////////////////
 size CFont::NumGlyphs(void)
 {
+	return macDescriptions.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The number of glyphs asked for so far.
+//
+//////////////////////////////////////////////////////////////////////////
+size CFont::NumGeneratedGlyphs(void)
+{
 	return macGlyphs.NumElements();
 }
 
@@ -379,11 +449,8 @@ size CFont::NumGlyphs(void)
 //////////////////////////////////////////////////////////////////////////
 bool CFont::StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize)
 {
-	bool	bExists;
-
-	macGlyphs.StartIteration(psIterator, pvKey, piKeySize, iMaxKeySize, &bExists);
-
-	return bExists;
+	//The keys of every character, whether its glyph has been generated or not.
+	return macDescriptions.StartIteration(psIterator, pvKey, piKeySize, iMaxKeySize, NULL);
 }
 
 
@@ -393,11 +460,7 @@ bool CFont::StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, s
 //////////////////////////////////////////////////////////////////////////
 bool CFont::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize)
 {
-	bool	bExists;
-
-	macGlyphs.Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, &bExists);
-
-	return bExists;
+	return macDescriptions.Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, NULL);
 }
 
 

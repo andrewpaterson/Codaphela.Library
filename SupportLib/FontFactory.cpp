@@ -169,27 +169,20 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParameters* pcImportParams, CFontCr
 		{
 			cCodePoint16 = cUTF8.GetCodePointUint16();
 			uiCodePointLength = cUTF8.GetUnicodeCodePointLength(cCodePoint16);
-			if (uiCodePointLength == 1)
-			{
-				pFont->PutGlyph((uint8)cCodePoint16, pCel, pcImportParams->msCharSize.x);
-			}
-			else
-			{
-				pFont->PutGlyph(cCodePoint16, pCel, pcImportParams->msCharSize.x);
-			}
+			pFont->PutGlyph((uint32)cCodePoint16, uiCodePointLength, pCel->GetSubImage(), pcImportParams->msCharSize.x);
 		}
 		else if (uiElementLength <= 4)
 		{
 			cCodePoint32 = cUTF8.GetCodePointUint32();
 			uiCodePointLength = cUTF8.GetUnicodeCodePointLength(cCodePoint32);
-			pFont->PutGlyph(cCodePoint32, uiCodePointLength, pCel, pcImportParams->msCharSize.x);
+			pFont->PutGlyph(cCodePoint32, uiCodePointLength, pCel->GetSubImage(), pcImportParams->msCharSize.x);
 		}
 		else
 		{
 			uiCodePointLength = cUTF8.GetCodePointMulti(auiBuffer, 20);
 			if ((uiCodePointLength != 0) || (uiCodePointLength != cUTF8.GetError()))
 			{
-				pFont->PutGlyph(auiBuffer, uiCodePointLength, pCel, pcImportParams->msCharSize.x);
+				pFont->PutGlyph(auiBuffer, uiCodePointLength, pCel->GetSubImage(), pcImportParams->msCharSize.x);
 			}
 		}
 		
@@ -198,6 +191,9 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParameters* pcImportParams, CFontCr
 	}
 	cCels.Kill();
 	szCharacters.Kill();
+
+	//The glyphs are generated from the font's image as they are asked for.
+	pFont->SetImage(pImage);
 	return pFont;
 }
 
