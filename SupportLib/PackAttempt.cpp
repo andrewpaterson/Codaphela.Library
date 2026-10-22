@@ -221,7 +221,7 @@ void CPackAttempt::Done(void)
 
 	miHeight -= mpcRectanglePacker->GetInnerEdgeWidth();
 
-	miArea = miHeight * miWidth;
+	miArea = (int64)miHeight * (int64)miWidth;
 	mbValid = true;
 }
 
@@ -290,7 +290,7 @@ bool CPackAttempt::GetLargestRectangleFittingAndRemoveIt(CRectangle* pcBounds, C
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPackAttempt::GetWastedArea(void)
+int64 CPackAttempt::GetWastedArea(void)
 {
 	return miArea - mpcRectanglePacker->GetSourceArea();
 }

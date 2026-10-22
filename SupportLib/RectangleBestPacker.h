@@ -37,7 +37,7 @@ protected:
 	int							miOutsideEdgeWidth;  //Gap around the outside of the destination image and the rectangles.
 	int							miInnerEdgeWidth;  //Gap between rectangles.
 	CArrayPackAttempt			macPackAttempts;
-	int							miSourceArea;
+	int64						miSourceArea;
 
 public:
 	void						Init(int iOutsideEdgeWidth, int iInnerEdgeWidth);
@@ -71,7 +71,7 @@ public:
 	int							GetOutsideEdgeWidth(void);
 	int							GetInnerEdgeWidth(void);
 	CArrayPackAttempt*			GetPackAttempts(void);
-	int							GetSourceArea(void);
+	int64						GetSourceArea(void);
 };
 
 

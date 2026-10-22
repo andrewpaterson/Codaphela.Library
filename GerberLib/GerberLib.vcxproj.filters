@@ -144,6 +144,24 @@
     <ClCompile Include="GerberCommands.cpp">
       <Filter>Source\Common\Command</Filter>
     </ClCompile>
+    <ClCompile Include="GerberLayerFile.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberDrillFile.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberFileSet.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberFileSets.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberOutlineBounds.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberPanel.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
     <ClCompile Include="GerberCommandFileAttribute.cpp">
       <Filter>Source\Common\Command</Filter>
     </ClCompile>
@@ -348,6 +366,24 @@
       <Filter>Source\Interpreter</Filter>
     </ClInclude>
     <ClInclude Include="GerberBoardLayer.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberLayerFile.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberDrillFile.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberFileSet.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberFileSets.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberOutlineBounds.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberPanel.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="GerberBoardSide.h">
