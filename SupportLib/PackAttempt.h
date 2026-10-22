@@ -34,7 +34,7 @@ public:
 	int							miMaxWidth;
 	int							miWidth;
 	int							miHeight;
-	int							miArea;
+	int64						miArea;  //64 bit; micrometre rectangles easily pass 2^31 square micrometres.
 	CArrayPackedLine			macLines;
 	CArrayPackRectangleAttempt	macRectangles;
 	CRectangleBestPacker*		mpcRectanglePacker;
@@ -51,7 +51,7 @@ public:
 	CPackRectangleAttempt*	GetLastRectangle(void);
 	void					RemoveLastRectangle(void);
 	bool					GetLargestRectangleFittingAndRemoveIt(CRectangle* pcBounds, CPackRectangleAttempt* pcDest);
-	int						GetWastedArea(void);
+	int64					GetWastedArea(void);
 	void					GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
 	SInt32Vec2					GetPackedImageSize(void);
 	void					Print(CChars* psz);

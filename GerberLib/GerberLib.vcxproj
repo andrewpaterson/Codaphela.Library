@@ -52,6 +52,12 @@
     <ClCompile Include="GerberCommandObjectAttribute.cpp" />
     <ClCompile Include="GerberCommandPlotMode.cpp" />
     <ClCompile Include="GerberCommands.cpp" />
+    <ClCompile Include="GerberLayerFile.cpp" />
+    <ClCompile Include="GerberDrillFile.cpp" />
+    <ClCompile Include="GerberFileSet.cpp" />
+    <ClCompile Include="GerberFileSets.cpp" />
+    <ClCompile Include="GerberOutlineBounds.cpp" />
+    <ClCompile Include="GerberPanel.cpp" />
     <ClCompile Include="GerberCommandFileAttribute.cpp" />
     <ClCompile Include="GerberExpression.cpp" />
     <ClCompile Include="GerberExpressionPosition.cpp" />
@@ -103,6 +109,12 @@
     <ClInclude Include="GerberApertureMacroVectorLine.h" />
     <ClInclude Include="GerberBoardLayer.h" />
     <ClInclude Include="GerberBoardSide.h" />
+    <ClInclude Include="GerberLayerFile.h" />
+    <ClInclude Include="GerberDrillFile.h" />
+    <ClInclude Include="GerberFileSet.h" />
+    <ClInclude Include="GerberFileSets.h" />
+    <ClInclude Include="GerberOutlineBounds.h" />
+    <ClInclude Include="GerberPanel.h" />
     <ClInclude Include="GerberCommand.h" />
     <ClInclude Include="GerberCommandApertureAttribute.h" />
     <ClInclude Include="GerberCommandApertureMacro.h" />

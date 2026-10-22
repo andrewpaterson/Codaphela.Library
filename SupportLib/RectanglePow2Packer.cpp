@@ -132,7 +132,7 @@ void CRectanglePow2Packer::AdjustAttemptAreas(void)
 		if (pcAttempt->mbValid)
 		{
 			sSize = GetPowerOf2Size(pcAttempt);
-			pcAttempt->miArea = sSize.x * sSize.y;
+			pcAttempt->miArea = (int64)sSize.x * (int64)sSize.y;
 		}
 	}
 }

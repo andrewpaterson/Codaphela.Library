@@ -74,7 +74,7 @@ bool CRectangleBestPacker::AddRectangle(CRectangle* pcRect, void* pvUserData)
 	{
 		psPacked = masSourceRectangles.Add();
 		psPacked->Init(pcRect, pvUserData);
-		miSourceArea += pcRect->GetArea();
+		miSourceArea += (int64)pcRect->GetWidth() * (int64)pcRect->GetHeight();
 		return true;
 	}
 	else
@@ -412,7 +412,7 @@ CArrayPackSourceRectangle* CRectangleBestPacker::GetSourceRectangles(void) {retu
 int CRectangleBestPacker::GetOutsideEdgeWidth(void) {return miOutsideEdgeWidth;}
 int CRectangleBestPacker::GetInnerEdgeWidth(void) {return miInnerEdgeWidth;}
 CArrayPackAttempt* CRectangleBestPacker::GetPackAttempts(void) {return &macPackAttempts;}
-int CRectangleBestPacker::GetSourceArea(void) {return miSourceArea;}
+int64 CRectangleBestPacker::GetSourceArea(void) {return miSourceArea;}
 
 
 //////////////////////////////////////////////////////////////////////////

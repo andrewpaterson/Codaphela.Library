@@ -234,6 +234,7 @@
     <ClInclude Include="TextBuilderUTFCommon.h" />
     <ClInclude Include="TextElement.h" />
     <ClInclude Include="TextLayout.h" />
+    <ClInclude Include="TextStyle.h" />
     <ClInclude Include="TextLayoutBuilder.h" />
     <ClInclude Include="TextNewLine.h" />
     <ClInclude Include="TextUTF16Long.h" />
@@ -270,6 +271,7 @@
     <ClInclude Include="Font.h" />
     <ClInclude Include="FontColours.h" />
     <ClInclude Include="FontDescription.h" />
+    <ClInclude Include="FontFamily.h" />
     <ClInclude Include="FontList.h" />
     <ClInclude Include="FontReader.h" />
     <ClInclude Include="FontWriter.h" />
@@ -479,6 +481,7 @@
     <ClCompile Include="Font.cpp" />
     <ClCompile Include="FontColours.cpp" />
     <ClCompile Include="FontDescription.cpp" />
+    <ClCompile Include="FontFamily.cpp" />
     <ClCompile Include="FontList.cpp" />
     <ClCompile Include="FontReader.cpp" />
     <ClCompile Include="FontWriter.cpp" />
@@ -502,6 +505,7 @@
     <ClCompile Include="TextBuilderUTF16Short.cpp" />
     <ClCompile Include="TextBuilderUTFCommon.cpp" />
     <ClCompile Include="TextLayout.cpp" />
+    <ClCompile Include="TextStyle.cpp" />
     <ClCompile Include="TextLayoutBuilder.cpp" />
     <ClCompile Include="TextRun.cpp" />
     <ClCompile Include="TextDrawable.cpp" />
