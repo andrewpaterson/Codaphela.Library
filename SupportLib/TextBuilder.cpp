@@ -265,6 +265,39 @@ bool CTextBuilder::PushNewLine(void)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// Text pushed after this is in pcFont.  A different font ends the current
+// run; the next text starts a new run.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextBuilder::SetFont(CFont* pcFont)
+{
+	bool	bResult;
+
+	if (pcFont == mpcFont)
+	{
+		return true;
+	}
+
+	if (mpcCommon)
+	{
+		bResult = PushCurrent();
+		if (!bResult)
+		{
+			return false;
+		}
+	}
+	if (mpcRun)
+	{
+		mpcRun->End();
+		mpcRun = NULL;
+	}
+	mpcFont = pcFont;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////

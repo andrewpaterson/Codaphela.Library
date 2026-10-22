@@ -123,6 +123,20 @@ Ptr<CText> CSimpleTextReader::Read(char* szFilename)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CText> CSimpleTextReader::Read(CUnicodeReader* pcUnicodeReader, bool bNewLines)
 {
+	return Read(pcUnicodeReader, bNewLines, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pasChanges are in order of position.  A change takes effect at the
+// first character that starts at or after its position, so a position in
+// the middle of a character doesn't split it.  Text before the first
+// change is in the reader's font.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CText> CSimpleTextReader::Read(CUnicodeReader* pcUnicodeReader, bool bNewLines, CArrayTextFontChange* pasChanges)
+{
 	Ptr<CText>			pText;
 	uint32				cCodePoint32;
 	size				uiUTFLength;
@@ -131,14 +145,35 @@ Ptr<CText> CSimpleTextReader::Read(CUnicodeReader* pcUnicodeReader, bool bNewLin
 	size				uiNumWritten;
 	CTextBuilder		cTextBuilder;
 	bool				bResult;
+	size				uiChange;
+	size				uiNumChanges;
+	STextFontChange*	psChange;
 
 	pText = OMalloc<CText>();
 	cTextBuilder.Init(pcUnicodeReader, &pText, mpcFont);
 	
+	uiChange = 0;
+	uiNumChanges = pasChanges ? pasChanges->NumElements() : 0;
 	uiNumWritten = 0;
 	uiUTFLength = pcUnicodeReader->PeekUTFBytes();
 	while (uiUTFLength != 0)
 	{
+		while (uiChange < uiNumChanges)
+		{
+			psChange = pasChanges->Get(uiChange);
+			if (psChange->uiPosition > pcUnicodeReader->GetPosition())
+			{
+				break;
+			}
+			bResult = cTextBuilder.SetFont(psChange->pcFont);
+			if (!bResult)
+			{
+				cTextBuilder.Kill();
+				return NULL;
+			}
+			uiChange++;
+		}
+
 		if (uiUTFLength <= 4)
 		{
 			cCodePoint32 = pcUnicodeReader->GetCodePointUint32();

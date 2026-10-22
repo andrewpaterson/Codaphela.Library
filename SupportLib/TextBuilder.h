@@ -49,6 +49,7 @@ public:
 	bool		Push(uint32 cCodePoint32);
 	bool		Push(uint8* puiCodePoint, size uiCodePointsLength);
 	bool		PushNewLine(void);
+	bool		SetFont(CFont* pcFont);
 
 	bool		PushCurrent(void);
 	bool		Done(void);
