@@ -4,6 +4,10 @@
 #include "IndexTreeNodeDebug.h"
 
 
+//The key buffer starts at this size and only ever grows, so recursing up and down the tree does not reallocate it.
+#define INDEX_TREE_RECURSOR_KEY_CHUNK_SIZE	64
+
+
 class CIndexTreeRecursor : public CIndexTreeNodeDebug
 {
 protected:
