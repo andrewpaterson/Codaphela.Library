@@ -1041,15 +1041,25 @@ void CBaseObject::UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParam
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An object that still has a dist to root was not cleared so already has
+// a valid path to the root.  Only a shorter path changes it; clearing it
+// would also clear the objects embedded in it that others are found from.
 //
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpectedDist, CDistCalculatorParameters* pcParameters)
 {
 	CBaseObject*	pcPointedToContainer;
+	int				iDistToRoot;
 
 	if (pcPointedTo)
 	{
 		pcPointedToContainer = pcPointedTo->GetEmbeddingContainer();
+		iDistToRoot = pcPointedToContainer->GetDistToRoot();
+		if ((iDistToRoot >= ROOT_DIST_TO_ROOT) && (iDistToRoot <= iExpectedDist))
+		{
+			return;
+		}
+
 		if (!pcPointedToContainer->IsUpdateAttachedPointerTosDistToRoot())
 		{
 			pcPointedToContainer->SetDistToRoot(CLEARED_DIST_TO_ROOT);
