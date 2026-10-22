@@ -30,6 +30,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWi
 	mpcComponentInput = NULL;
 	mpDefaultButton = NULL;
 	mbLayoutAgain = false;
+	maPopups.Init();
 
 	mFocus.Init(this);
 
@@ -76,6 +77,7 @@ void CWindow::Class(void)
 	U_Pointer(mpcComponentInput);
 	M_Pointer(mpDefaultButton);
 	U_Bool(mbLayoutAgain);
+	M_Embedded(maPopups);
 }
 
 
@@ -239,6 +241,145 @@ void CWindow::SetDefaultButton(Ptr<CButton> pButton)
 		mpDefaultButton->SetDefault(true);
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Opens pContent over everything else in the window with its top left at
+// sPosition, in window client space.  pOwner is the component opening it,
+// it is told when the popup closes.  pContent must not be in another
+// container.  The popup is laid out straight away so it can be hit before
+// the window is next painted.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CPopup> CWindow::OpenPopup(Ptr<CComponent> pContent, SInt32Vec2 sPosition, Ptr<CComponent> pOwner)
+{
+	Ptr<CPopup>	pPopup;
+
+	pPopup = OMalloc<CPopup>(this, pContent, sPosition, pOwner);
+	maPopups.Add(pPopup);
+	mpCanvas->AddComponent(pPopup);
+	pPopup->Layout(GetPosition(), GetActualSize());
+	return pPopup;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Closes the popup holding pContent and every popup opened after it, the
+// last opened first.  Each popup's owner is told once its popup is gone.
+// Returns false if pContent isn't in an open popup.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::ClosePopup(Ptr<CComponent> pContent)
+{
+	size			i;
+	size			uiIndex;
+	bool			bFound;
+	Ptr<CPopup>		pPopup;
+	Ptr<CComponent>	pClosedContent;
+	Ptr<CComponent>	pOwner;
+
+	bFound = false;
+	uiIndex = 0;
+	for (i = 0; i < maPopups.Size(); i++)
+	{
+		if (maPopups.Get(i)->GetContent() == pContent)
+		{
+			uiIndex = i;
+			bFound = true;
+			break;
+		}
+	}
+	if (!bFound)
+	{
+		return false;
+	}
+
+	//An owner told its popup has closed may close others, so the popups are counted again each time.
+	while (maPopups.Size() > uiIndex)
+	{
+		pPopup = maPopups.Get(maPopups.Size() - 1);
+		pClosedContent = pPopup->GetContent();
+		pOwner = pPopup->GetOwner();
+		mpCanvas->RemoveComponent(pPopup);
+		pPopup->RemoveAllComponents();
+		maPopups.RemoveAt(maPopups.Size() - 1);
+		pPopup = NULL;
+		if (pOwner.IsNotNull())
+		{
+			pOwner->PopupClosed(pClosedContent);
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::CloseAllPopups(void)
+{
+	if (maPopups.Size() > 0)
+	{
+		ClosePopup(maPopups.Get(0)->GetContent());
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Called when the pointer is pressed on pComponent, which can be NULL.
+// Unless it is in a popup, or in a component that opened one, every popup
+// is closed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::ClosePopupsOutside(Ptr<CComponent> pComponent)
+{
+	size			i;
+	Ptr<CPopup>		pPopup;
+
+	if (pComponent.IsNotNull())
+	{
+		for (i = 0; i < maPopups.Size(); i++)
+		{
+			pPopup = maPopups.Get(i);
+			if (pComponent->IsWithin(pPopup) || pComponent->IsWithin(pPopup->GetOwner()))
+			{
+				return;
+			}
+		}
+	}
+	CloseAllPopups();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CPopup> CWindow::GetPopup(Ptr<CComponent> pContent)
+{
+	size	i;
+
+	for (i = 0; i < maPopups.Size(); i++)
+	{
+		if (maPopups.Get(i)->GetContent() == pContent)
+		{
+			return maPopups.Get(i);
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::IsPopupOpen(Ptr<CComponent> pContent) { return GetPopup(pContent).IsNotNull(); }
+size CWindow::NumPopups(void) { return maPopups.Size(); }
 
 
 //////////////////////////////////////////////////////////////////////////

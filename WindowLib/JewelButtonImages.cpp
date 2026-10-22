@@ -28,10 +28,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 // Draws a corner tile's part of one layer of a Jewel button's border.  The
 // layer is a rounded rectangle iInset in from the tile's outside sides
-// with corners iRadius round; it runs on to the tile's inside sides.
+// with corners iRadius round; it runs on to the tile's inside sides.  The
+// tiles are iTile square.
 //
 //////////////////////////////////////////////////////////////////////////
-void CJewelButtonImages::DrawCorner(CImageDraw* pcDraw, int iTileTop, bool bRight, bool bBottom, int iInset, int iRadius)
+void CJewelButtonImages::DrawCorner(CImageDraw* pcDraw, int iTile, int iTileTop, bool bRight, bool bBottom, int iInset, int iRadius)
 {
 	int		iCircle;
 	int		iStartAngle;
@@ -45,7 +46,7 @@ void CJewelButtonImages::DrawCorner(CImageDraw* pcDraw, int iTileTop, bool bRigh
 	int		iCurveBottom;
 
 	//The quarter circle's square is iInset in from the outside sides.
-	iCircle = 8 - iInset - iRadius * 2;
+	iCircle = iTile - iInset - iRadius * 2;
 	if (bRight)
 	{
 		iStartAngle = bBottom ? 270 : 0;
@@ -58,13 +59,13 @@ void CJewelButtonImages::DrawCorner(CImageDraw* pcDraw, int iTileTop, bool bRigh
 
 	//All of the layer across the tile, and the part beyond the quarter circle, for each axis.
 	iLeft = bRight ? 0 : iInset;
-	iRight = bRight ? 7 - iInset : 7;
+	iRight = bRight ? iTile - 1 - iInset : iTile - 1;
 	iBeyondLeft = bRight ? 0 : iInset + iRadius;
-	iBeyondRight = bRight ? 7 - iInset - iRadius : 7;
+	iBeyondRight = bRight ? iTile - 1 - iInset - iRadius : iTile - 1;
 	iBeyondTop = iTileTop + (bBottom ? 0 : iInset + iRadius);
-	iBeyondBottom = iTileTop + (bBottom ? 7 - iInset - iRadius : 7);
-	iCurveTop = iTileTop + (bBottom ? 8 - iInset - iRadius : iInset);
-	iCurveBottom = iTileTop + (bBottom ? 7 - iInset : iInset + iRadius - 1);
+	iBeyondBottom = iTileTop + (bBottom ? iTile - 1 - iInset - iRadius : iTile - 1);
+	iCurveTop = iTileTop + (bBottom ? iTile - iInset - iRadius : iInset);
+	iCurveBottom = iTileTop + (bBottom ? iTile - 1 - iInset : iInset + iRadius - 1);
 
 	pcDraw->DrawBox(iLeft, iBeyondTop, iRight, iBeyondBottom, true);
 	pcDraw->DrawBox(iBeyondLeft, iCurveTop, iBeyondRight, iCurveBottom, true);
@@ -76,7 +77,7 @@ void CJewelButtonImages::DrawCorner(CImageDraw* pcDraw, int iTileTop, bool bRigh
 // Draws one layer of a Jewel button's border on every tile of the strip.
 //
 //////////////////////////////////////////////////////////////////////////
-void CJewelButtonImages::DrawLayer(CImageDraw* pcDraw, int iInset, int iRadius, ARGB32 sColour)
+void CJewelButtonImages::DrawLayer(CImageDraw* pcDraw, int iTile, int iInset, int iRadius, ARGB32 sColour)
 {
 	CImageColourARGB	cColour;
 	int					i;
@@ -88,13 +89,13 @@ void CJewelButtonImages::DrawLayer(CImageDraw* pcDraw, int iInset, int iRadius, 
 	//The edges all have their outside along their top row.
 	for (i = 0; i < 4; i++)
 	{
-		pcDraw->DrawBox(0, i * 8 + iInset, 7, i * 8 + 7, true);
+		pcDraw->DrawBox(0, i * iTile + iInset, iTile - 1, i * iTile + iTile - 1, true);
 	}
 
-	DrawCorner(pcDraw, 32, false, false, iInset, iRadius);
-	DrawCorner(pcDraw, 40, true, false, iInset, iRadius);
-	DrawCorner(pcDraw, 48, true, true, iInset, iRadius);
-	DrawCorner(pcDraw, 56, false, true, iInset, iRadius);
+	DrawCorner(pcDraw, iTile, iTile * 4, false, false, iInset, iRadius);
+	DrawCorner(pcDraw, iTile, iTile * 5, true, false, iInset, iRadius);
+	DrawCorner(pcDraw, iTile, iTile * 6, true, true, iInset, iRadius);
+	DrawCorner(pcDraw, iTile, iTile * 7, false, true, iInset, iRadius);
 }
 
 
@@ -118,10 +119,10 @@ Ptr<CImage> CJewelButtonImages::DrawStrip(bool bFocusRing, ARGB32 sFocusRing, AR
 	cDraw.Init(&pImage);
 	if (bFocusRing)
 	{
-		DrawLayer(&cDraw, 0, 6, sFocusRing);
+		DrawLayer(&cDraw, 8, 0, 6, sFocusRing);
 	}
-	DrawLayer(&cDraw, 2, 4, sBorder);
-	DrawLayer(&cDraw, 3, 3, sFace);
+	DrawLayer(&cDraw, 8, 2, 4, sBorder);
+	DrawLayer(&cDraw, 8, 3, 3, sFace);
 	cDraw.Kill();
 
 	return CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
@@ -180,5 +181,82 @@ Ptr<CButtonImages> CJewelButtonImages::CreateDefaultButtonImages(CColourFormatHe
 	pSelected = DrawStrip(true, sBlue, sDark, sBlue, pcFormat);
 	pPushed = DrawStrip(false, 0, sDarkBlue, sDarkBlue, pcFormat);
 	return OMalloc<CButtonImages>(pNormal, pMouseOver, pSelected, pPushed, sBlue, sLightBlue, sBlue, sDarkBlue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A strip of 7 x 7 tiles for a flat button, like the main menu and toolbar
+// buttons of IntelliJ IDEA's new UI.  Filled, the tiles are a rectangle
+// with corners four round, two pixels in from the outside so neighbouring
+// buttons' blocks don't touch; otherwise they are empty.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImage> CJewelButtonImages::DrawFlatStrip(bool bFilled, ARGB32 sFill, CColourFormatHelper* pcFormat)
+{
+	Ptr<CImage>		pImage;
+	CImageDraw		cDraw;
+
+	pImage = OMalloc<CImage>(7, 56, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	pImage->Black();
+
+	if (bFilled)
+	{
+		cDraw.Init(&pImage);
+		DrawLayer(&cDraw, 7, 2, 4, sFill);
+		cDraw.Kill();
+	}
+
+	return CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A small flat button: no border and no focus ring, only its face, which
+// is the colour of what it sits on.  Under the pointer, and pushed, it is
+// a block with rounded corners.  It looks the same with focus as without.
+// The border is only seven pixels, two of them empty, so with a little
+// padding it is not much bigger than its caption.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CButtonImages> CJewelButtonImages::CreateFlatButtonImages(ARGB32 sBackground, ARGB32 sHover, ARGB32 sPushed, CColourFormatHelper* pcFormat)
+{
+	Ptr<CImage>		pNormal;
+	Ptr<CImage>		pHover;
+	Ptr<CImage>		pPushed;
+
+	pNormal = DrawFlatStrip(false, 0, pcFormat);
+	pHover = DrawFlatStrip(true, sHover, pcFormat);
+	pPushed = DrawFlatStrip(true, sPushed, pcFormat);
+	return OMalloc<CButtonImages>(pNormal, pHover, pNormal, pPushed, sBackground, sHover, sBackground, sPushed);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The chevron on a menu item that opens another menu.  Two one pixel
+// lines meet at a point on the right, with nothing around them.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CJewelButtonImages::CreateChevron(ARGB32 sColour, CColourFormatHelper* pcFormat)
+{
+	Ptr<CImage>			pImage;
+	CImageDraw			cDraw;
+	CImageColourARGB	cColour;
+
+	pImage = OMalloc<CImage>(8, 9, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	pImage->Black();
+
+	cDraw.Init(&pImage);
+	cColour.Init(Get8BitAlphaColour(sColour) / 255.0f, Get8BitRedColour(sColour) / 255.0f, Get8BitGreenColour(sColour) / 255.0f, Get8BitBlueColour(sColour) / 255.0f);
+	cDraw.SetColour(&cColour);
+	cColour.Kill();
+	cDraw.DrawLine(2, 1, 5, 4);
+	cDraw.DrawLine(5, 4, 2, 7);
+	cDraw.Kill();
+
+	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
+	return OMalloc<CImageCel>(pImage);
 }
 

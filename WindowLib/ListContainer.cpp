@@ -21,7 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
-#include "List.h"
+#include "ListContainer.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -30,7 +30,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 // and page down move ten rows.
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::Init(Ptr<CWindow> pWindow)
+void CListContainer::Init(Ptr<CWindow> pWindow)
 {
 	PreInit();
 
@@ -59,7 +59,7 @@ void CList::Init(Ptr<CWindow> pWindow)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::Class(void)
+void CListContainer::Class(void)
 {
 	CGridContainer::Class();
 
@@ -81,7 +81,7 @@ void CList::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::Free(void)
+void CListContainer::Free(void)
 {
 	mcListeners.Kill();
 	mabEnabled.Kill();
@@ -93,7 +93,7 @@ void CList::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CList::Save(CObjectWriter* pcFile)
+bool CListContainer::Save(CObjectWriter* pcFile)
 {
 	return false;
 }
@@ -103,7 +103,7 @@ bool CList::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CList::Load(CObjectReader* pcFile)
+bool CListContainer::Load(CObjectReader* pcFile)
 {
 	return false;
 }
@@ -117,7 +117,7 @@ bool CList::Load(CObjectReader* pcFile)
 // after it is laid out.
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::AddHighlights(void)
+void CListContainer::AddHighlights(void)
 {
 	CGridContainer::AddComponent(mpSelectedHighlight, 0, 0);
 	CGridContainer::AddComponent(mpHoverHighlight, 0, 0);
@@ -128,7 +128,7 @@ void CList::AddHighlights(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CCanvas> CList::CreateHighlight(Ptr<CClearCanvasDraw> pDraw)
+Ptr<CCanvas> CListContainer::CreateHighlight(Ptr<CClearCanvasDraw> pDraw)
 {
 	Ptr<CCanvas>	pHighlight;
 
@@ -144,7 +144,7 @@ Ptr<CCanvas> CList::CreateHighlight(Ptr<CClearCanvasDraw> pDraw)
 // added to it.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CList::AddRow(bool bEnabled)
+int32 CListContainer::AddRow(bool bEnabled)
 {
 	mabEnabled.Add(bEnabled);
 	return NumRows() - 1;
@@ -156,7 +156,7 @@ int32 CList::AddRow(bool bEnabled)
 // A column with a width weight takes the width the list has spare.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CList::AddToRow(int32 iRow, Ptr<CComponent> pComponent, int iColumn, int iColumnSpan, int iWidthWeight)
+bool CListContainer::AddToRow(int32 iRow, Ptr<CComponent> pComponent, int iColumn, int iColumnSpan, int iWidthWeight)
 {
 	if ((iRow < 0) || (iRow >= NumRows()))
 	{
@@ -172,7 +172,7 @@ bool CList::AddToRow(int32 iRow, Ptr<CComponent> pComponent, int iColumn, int iC
 // Returns the row's index.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CList::AddItem(Ptr<CComponent> pItem, bool bEnabled)
+int32 CListContainer::AddItem(Ptr<CComponent> pItem, bool bEnabled)
 {
 	int32	iRow;
 
@@ -186,7 +186,7 @@ int32 CList::AddItem(Ptr<CComponent> pItem, bool bEnabled)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CList::RemoveAllComponents(void)
+bool CListContainer::RemoveAllComponents(void)
 {
 	bool	bResult;
 
@@ -205,7 +205,7 @@ bool CList::RemoveAllComponents(void)
 // Disabling the selected row clears the selection.
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::SetRowEnabled(int32 iRow, bool bEnabled)
+void CListContainer::SetRowEnabled(int32 iRow, bool bEnabled)
 {
 	if ((iRow < 0) || (iRow >= NumRows()))
 	{
@@ -225,7 +225,7 @@ void CList::SetRowEnabled(int32 iRow, bool bEnabled)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CList::IsRowEnabled(int32 iRow)
+bool CListContainer::IsRowEnabled(int32 iRow)
 {
 	if ((iRow < 0) || (iRow >= NumRows()))
 	{
@@ -241,7 +241,7 @@ bool CList::IsRowEnabled(int32 iRow)
 // is, if the row doesn't exist or is disabled.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CList::Select(int32 iRow)
+bool CListContainer::Select(int32 iRow)
 {
 	if (iRow < 0)
 	{
@@ -256,6 +256,7 @@ bool CList::Select(int32 iRow)
 	{
 		miSelected = iRow;
 		UpdateHighlights();
+		RowSelected(iRow);
 		mcListeners.CallListeners(&CListListener::SelectionChanged, this, NULL);
 	}
 	return true;
@@ -266,10 +267,11 @@ bool CList::Select(int32 iRow)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::Activate(void)
+void CListContainer::Activate(void)
 {
 	if (miSelected >= 0)
 	{
+		RowActivated(miSelected);
 		mcListeners.CallListeners(&CListListener::ItemActivated, this, NULL);
 	}
 }
@@ -281,7 +283,7 @@ void CList::Activate(void)
 // row, as when the list is taller than its rows.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CList::FindRowAt(int x, int y)
+int32 CListContainer::FindRowAt(int x, int y)
 {
 	int32	i;
 	int32	iTop;
@@ -312,7 +314,7 @@ int32 CList::FindRowAt(int x, int y)
 // window's colour order; the native canvas orders them.
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::SetHighlightColours(ARGB32 sSelected, ARGB32 sHover)
+void CListContainer::SetHighlightColours(ARGB32 sSelected, ARGB32 sHover)
 {
 	mpSelectedDraw->SetColour(sSelected);
 	mpHoverDraw->SetColour(sHover);
@@ -321,9 +323,26 @@ void CList::SetHighlightColours(ARGB32 sSelected, ARGB32 sHover)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Replaces the plain blocks the highlights are drawn with, by rounded
+// ones say.  The highlights become transparent so whatever the draws
+// leave empty shows the list's background.  SetHighlightColours no longer
+// changes them.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CList::AddListener(CListListener* pcListener)
+void CListContainer::SetHighlightDraws(Ptr<CCanvasDraw> pSelected, Ptr<CCanvasDraw> pHover)
+{
+	mpSelectedHighlight->SetCanvasDraw(pSelected);
+	mpSelectedHighlight->SetTransparent(true);
+	mpHoverHighlight->SetCanvasDraw(pHover);
+	mpHoverHighlight->SetTransparent(true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CListContainer::AddListener(CListListener* pcListener)
 {
 	return mcListeners.AddListener(pcListener);
 }
@@ -333,7 +352,7 @@ bool CList::AddListener(CListListener* pcListener)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CList::RemoveListener(CListListener* pcListener)
+bool CListContainer::RemoveListener(CListListener* pcListener)
 {
 	return mcListeners.RemoveListener(pcListener);
 }
@@ -345,7 +364,7 @@ bool CList::RemoveListener(CListListener* pcListener)
 // is set on an axis.
 //
 //////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CList::GetDesiredSize(void)
+SInt32Vec2 CListContainer::GetDesiredSize(void)
 {
 	return GetDesiredOrRequiredSize();
 }
@@ -355,7 +374,7 @@ SInt32Vec2 CList::GetDesiredSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
+void CListContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
 	CGridContainer::Layout(sPosition, sAreaSize);
 	UpdateHighlights();
@@ -368,7 +387,7 @@ void CList::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 // mark a row.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CList::Draw(void)
+bool CListContainer::Draw(void)
 {
 	size			i;
 	size			uiSize;
@@ -409,7 +428,7 @@ bool CList::Draw(void)
 // x and y are in window client space.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CComponent> CList::FindComponentAt(int x, int y)
+Ptr<CComponent> CListContainer::FindComponentAt(int x, int y)
 {
 	if (IsPointIn(x, y))
 	{
@@ -425,7 +444,7 @@ Ptr<CComponent> CList::FindComponentAt(int x, int y)
 // button.  With nothing selected the default button gets it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CList::WantsEnter(void)
+bool CListContainer::WantsEnter(void)
 {
 	return miSelected >= 0;
 }
@@ -436,7 +455,7 @@ bool CList::WantsEnter(void)
 // Losing focus, as when the window is deactivated, ends a press.
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::FocusLost(void)
+void CListContainer::FocusLost(void)
 {
 	mbPressed = false;
 }
@@ -446,7 +465,7 @@ void CList::FocusLost(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::MovedOutof(void)
+void CListContainer::MovedOutof(void)
 {
 	SetHover(-1);
 }
@@ -457,7 +476,7 @@ void CList::MovedOutof(void)
 // x and y are relative to the list's top left.
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::MovedOver(int x, int y)
+void CListContainer::MovedOver(int x, int y)
 {
 	SInt32Vec2	sPosition;
 
@@ -472,7 +491,7 @@ void CList::MovedOver(int x, int y)
 // or below the rows, selects nothing.
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::ActivateComponent(int x, int y)
+void CListContainer::ActivateComponent(int x, int y)
 {
 	SInt32Vec2	sPosition;
 	int32		iRow;
@@ -493,7 +512,7 @@ void CList::ActivateComponent(int x, int y)
 // only activates if the pointer is still over the selected row.
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::ExecuteComponent(int x, int y)
+void CListContainer::ExecuteComponent(int x, int y)
 {
 	if (mbPressed)
 	{
@@ -512,7 +531,7 @@ void CList::ExecuteComponent(int x, int y)
 // first.
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::Up(void)
+void CListContainer::Up(void)
 {
 	SelectEnabled(FindEnabled(miSelected < 0 ? NumRows() - 1 : miSelected - 1, -1));
 }
@@ -522,7 +541,7 @@ void CList::Up(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::Down(void)
+void CListContainer::Down(void)
 {
 	SelectEnabled(FindEnabled(miSelected + 1, 1));
 }
@@ -532,7 +551,7 @@ void CList::Down(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::Home(void)
+void CListContainer::Home(void)
 {
 	SelectEnabled(FindEnabled(0, 1));
 }
@@ -542,7 +561,7 @@ void CList::Home(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::End(void)
+void CListContainer::End(void)
 {
 	SelectEnabled(FindEnabled(NumRows() - 1, -1));
 }
@@ -552,7 +571,7 @@ void CList::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::DocumentHome(void)
+void CListContainer::DocumentHome(void)
 {
 	Home();
 }
@@ -562,7 +581,7 @@ void CList::DocumentHome(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::DocumentEnd(void)
+void CListContainer::DocumentEnd(void)
 {
 	End();
 }
@@ -574,7 +593,7 @@ void CList::DocumentEnd(void)
 // above there if none is between there and the selected row.
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::PageUp(void)
+void CListContainer::PageUp(void)
 {
 	int32	iTarget;
 	int32	iRow;
@@ -600,7 +619,7 @@ void CList::PageUp(void)
 // or below there if none is between the selected row and there.
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::PageDown(void)
+void CListContainer::PageDown(void)
 {
 	int32	iTarget;
 	int32	iRow;
@@ -624,7 +643,7 @@ void CList::PageDown(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::Space(bool bInsert)
+void CListContainer::Space(bool bInsert)
 {
 	Activate();
 }
@@ -634,7 +653,7 @@ void CList::Space(bool bInsert)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::Enter(void)
+void CListContainer::Enter(void)
 {
 	Activate();
 }
@@ -646,7 +665,7 @@ void CList::Enter(void)
 // be.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CList::IsHoverShown(void)
+bool CListContainer::IsHoverShown(void)
 {
 	return (miHover != miSelected) && IsRowEnabled(miHover);
 }
@@ -656,7 +675,7 @@ bool CList::IsHoverShown(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::UpdateHighlights(void)
+void CListContainer::UpdateHighlights(void)
 {
 	LayoutHighlight(mpSelectedHighlight, miSelected);
 	if (IsHoverShown())
@@ -672,7 +691,7 @@ void CList::UpdateHighlights(void)
 // Before the list has been laid out there is no row to cover.
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::LayoutHighlight(Ptr<CCanvas> pHighlight, int32 iRow)
+void CListContainer::LayoutHighlight(Ptr<CCanvas> pHighlight, int32 iRow)
 {
 	int32		iTop;
 	int32		iHeight;
@@ -700,7 +719,7 @@ void CList::LayoutHighlight(Ptr<CCanvas> pHighlight, int32 iRow)
 // there is none.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CList::FindEnabled(int32 iFrom, int32 iStep)
+int32 CListContainer::FindEnabled(int32 iFrom, int32 iStep)
 {
 	int32	i;
 
@@ -720,7 +739,7 @@ int32 CList::FindEnabled(int32 iFrom, int32 iStep)
 // Keyboard moves that find no row leave the selection as it is.
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::SelectEnabled(int32 iRow)
+void CListContainer::SelectEnabled(int32 iRow)
 {
 	if (iRow >= 0)
 	{
@@ -735,7 +754,7 @@ void CList::SelectEnabled(int32 iRow)
 // if it can be.  Moving off the rows leaves it selected.
 //
 //////////////////////////////////////////////////////////////////////////
-void CList::SetHover(int32 iRow)
+void CListContainer::SetHover(int32 iRow)
 {
 	if (iRow != miHover)
 	{
@@ -753,12 +772,14 @@ void CList::SetHover(int32 iRow)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CList::NumRows(void) { return (int32)mabEnabled.NumElements(); }
-int32 CList::GetSelected(void) { return miSelected; }
-int32 CList::GetHover(void) { return miHover; }
-void CList::SetSelectOnHover(bool bSelectOnHover) { mbSelectOnHover = bSelectOnHover; }
-bool CList::IsSelectOnHover(void) { return mbSelectOnHover; }
-void CList::SetPageRows(int32 iPageRows) { miPageRows = iPageRows < 1 ? 1 : iPageRows; }
-Ptr<CCanvas> CList::GetSelectedHighlight(void) { return mpSelectedHighlight; }
-Ptr<CCanvas> CList::GetHoverHighlight(void) { return mpHoverHighlight; }
+void CListContainer::RowSelected(int32 iRow) {}
+void CListContainer::RowActivated(int32 iRow) {}
+int32 CListContainer::NumRows(void) { return (int32)mabEnabled.NumElements(); }
+int32 CListContainer::GetSelected(void) { return miSelected; }
+int32 CListContainer::GetHover(void) { return miHover; }
+void CListContainer::SetSelectOnHover(bool bSelectOnHover) { mbSelectOnHover = bSelectOnHover; }
+bool CListContainer::IsSelectOnHover(void) { return mbSelectOnHover; }
+void CListContainer::SetPageRows(int32 iPageRows) { miPageRows = iPageRows < 1 ? 1 : iPageRows; }
+Ptr<CCanvas> CListContainer::GetSelectedHighlight(void) { return mpSelectedHighlight; }
+Ptr<CCanvas> CListContainer::GetHoverHighlight(void) { return mpHoverHighlight; }
 

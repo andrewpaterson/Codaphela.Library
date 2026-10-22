@@ -135,10 +135,37 @@
     <ClInclude Include="ButtonBar.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
-    <ClInclude Include="List.h">
+    <ClInclude Include="ListContainer.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
     <ClInclude Include="ListListener.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="IconComponent.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Popup.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="RoundedBoxCanvasDraw.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuListener.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuStyle.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuItem.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuContainer.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuBarItem.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuBar.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
     <ClInclude Include="JewelButtonImages.h">
@@ -248,7 +275,31 @@
     <ClCompile Include="ButtonBar.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
-    <ClCompile Include="List.cpp">
+    <ClCompile Include="ListContainer.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="IconComponent.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Popup.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="RoundedBoxCanvasDraw.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuStyle.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuItem.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuContainer.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuBarItem.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuBar.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="JewelButtonImages.cpp">

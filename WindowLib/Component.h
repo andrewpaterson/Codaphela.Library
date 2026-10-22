@@ -61,7 +61,9 @@ public:
 			bool				CanGetFocus(void);
 			void				SetCanGetFocus(bool bCanGetFocus);
 	virtual	bool				WantsEnter(void);
+	virtual	void				PopupClosed(Ptr<CComponent> pContent);
 			Ptr<CComponent>		GetParent(void);
+			bool				IsWithin(Ptr<CComponent> pAncestor);
 
 			void				SetActualSize(int fWidth, int fHeight);
 			void				SetActualSize(SInt32Vec2 sSize);

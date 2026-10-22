@@ -1,5 +1,5 @@
-#ifndef __LIST_H__
-#define __LIST_H__
+#ifndef __LIST_CONTAINER_H__
+#define __LIST_CONTAINER_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2026 Andrew Paterson
@@ -44,10 +44,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //Like a button, a list keeps the size its rows need unless a desired size is set on an axis, so in a scroll pane it is
 //its rows' height.
-class CList : public CGridContainer
+class CListContainer : public CGridContainer
 {
-CONSTRUCTABLE(CList);
-DESTRUCTABLE(CList);
+CONSTRUCTABLE(CListContainer);
+DESTRUCTABLE(CListContainer);
 protected:
 	Ptr<CClearCanvasDraw>	mpSelectedDraw;
 	Ptr<CCanvas>			mpSelectedHighlight;
@@ -87,6 +87,7 @@ public:
 	bool			IsSelectOnHover(void);
 	void			SetPageRows(int32 iPageRows);
 	void			SetHighlightColours(ARGB32 sSelected, ARGB32 sHover);
+	void			SetHighlightDraws(Ptr<CCanvasDraw> pSelected, Ptr<CCanvasDraw> pHover);
 	Ptr<CCanvas>	GetSelectedHighlight(void);
 	Ptr<CCanvas>	GetHoverHighlight(void);
 
@@ -116,6 +117,9 @@ public:
 	void			Enter(void) override;
 
 protected:
+	virtual void	RowSelected(int32 iRow);  //Called before the listeners are told, iRow is -1 when the selection is cleared.
+	virtual void	RowActivated(int32 iRow);  //Called before the listeners are told.
+
 	void			AddHighlights(void);
 	Ptr<CCanvas>	CreateHighlight(Ptr<CClearCanvasDraw> pDraw);
 	bool			IsHoverShown(void);
@@ -127,5 +131,5 @@ protected:
 };
 
 
-#endif // __LIST_H__
+#endif // __LIST_CONTAINER_H__
 

@@ -27,18 +27,21 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CImageDraw;
 
 //Draws the button images of JetBrains' Jewel dark theme with CImageDraw rather than loading them.  Each state's border
-//is a strip of 8 x 8 tiles laid out as CButtonImages expects.  From the outside in each tile has a two pixel focus
+//is a strip of 8 x 8 tiles laid out as CButtonImages expects, or 7 x 7 tiles for a flat button.  From the outside in each tile has a two pixel focus
 //ring (empty except when selected), a one pixel border and then the face, with corners six, four and three round.
 class CJewelButtonImages
 {
 public:
 	static Ptr<CButtonImages>	CreateButtonImages(CColourFormatHelper* pcFormat);  //The outlined button.
 	static Ptr<CButtonImages>	CreateDefaultButtonImages(CColourFormatHelper* pcFormat);  //The blue filled default button.
+	static Ptr<CButtonImages>	CreateFlatButtonImages(ARGB32 sBackground, ARGB32 sHover, ARGB32 sPushed, CColourFormatHelper* pcFormat);  //No border, a small rounded block under the pointer.
+	static Ptr<CImageCel>		CreateChevron(ARGB32 sColour, CColourFormatHelper* pcFormat);  //Points right, 8 x 9.
 
 protected:
 	static Ptr<CImage>			DrawStrip(bool bFocusRing, ARGB32 sFocusRing, ARGB32 sBorder, ARGB32 sFace, CColourFormatHelper* pcFormat);
-	static void					DrawLayer(CImageDraw* pcDraw, int iInset, int iRadius, ARGB32 sColour);
-	static void					DrawCorner(CImageDraw* pcDraw, int iTileTop, bool bRight, bool bBottom, int iInset, int iRadius);
+	static Ptr<CImage>			DrawFlatStrip(bool bFilled, ARGB32 sFill, CColourFormatHelper* pcFormat);
+	static void					DrawLayer(CImageDraw* pcDraw, int iTile, int iInset, int iRadius, ARGB32 sColour);
+	static void					DrawCorner(CImageDraw* pcDraw, int iTile, int iTileTop, bool bRight, bool bBottom, int iInset, int iRadius);
 };
 
 
