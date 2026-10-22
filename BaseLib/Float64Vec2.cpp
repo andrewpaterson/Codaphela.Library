@@ -428,3 +428,63 @@ void Float64Vec2RotateAboutNormalisedAxis(SFloat64Vec3* psVecDest, SFloat64Vec3 
 	psVecDest->z += (fCosTheta) * p.z;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+//
+// The counterclockwise or clockwise angle (radians) from the start to
+// the end around the center, in (0, 2 pi].  Equal points are a full
+// circle.
+//
+//////////////////////////////////////////////////////////////////////////
+float64 Float64Vec2ArcSweep(SFloat64Vec2* psStart, SFloat64Vec2* psEnd, SFloat64Vec2* psCenter, bool bClockwise)
+{
+	float64	fStart;
+	float64	fEnd;
+	float64	fSweep;
+
+	if ((psStart->x == psEnd->x) && (psStart->y == psEnd->y))
+	{
+		return 2 * N_PI_64;
+	}
+
+	fStart = atan2(psStart->y - psCenter->y, psStart->x - psCenter->x);
+	fEnd = atan2(psEnd->y - psCenter->y, psEnd->x - psCenter->x);
+	fSweep = bClockwise ? fStart - fEnd : fEnd - fStart;
+	while (fSweep <= 0)
+	{
+		fSweep += 2 * N_PI_64;
+	}
+	while (fSweep > 2 * N_PI_64)
+	{
+		fSweep -= 2 * N_PI_64;
+	}
+	return fSweep;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+//
+// Mirror (x = -x, y = -y), then rotate (degrees counterclockwise), then
+// scale, then translate.  Rotations by multiples of 90 degrees are exact.
+//
+//////////////////////////////////////////////////////////////////////////
+void SFloat64Vec2::Transform(bool bMirrorX, bool bMirrorY, float64 fRotation, float64 fScale, SFloat64Vec2* psTranslation)
+{
+	float64	fCos;
+	float64	fSin;
+	float64	fX;
+	float64	fY;
+
+	fX = bMirrorX ? -x : x;
+	fY = bMirrorY ? -y : y;
+	CosSinDegrees(fRotation, &fCos, &fSin);
+	x = (fX * fCos - fY * fSin) * fScale + psTranslation->x;
+	y = (fX * fSin + fY * fCos) * fScale + psTranslation->y;
+}
+

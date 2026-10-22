@@ -43,6 +43,8 @@ public:
 	void	Normalize(void);
 	bool	CloselyEqual(SFloat64Vec2* ps);
 	bool	CloselyEqual(SFloat64Vec2* ps, float64 fTolerance);
+
+	void	Transform(bool bMirrorX, bool bMirrorY, float64 fRotation, float64 fScale, SFloat64Vec2* psTranslation);
 };
 
 
@@ -63,6 +65,7 @@ SFloat64Vec2*	Float64Vec2TransformNormal(SFloat64Vec2* pOut, SFloat64Vec2* pV, S
 void			Float64Vec2TransformNormals(SFloat64Vec2* asOut, int iOutStride, SFloat64Vec2* asIn, int iInStride, SFloat4x4* psMat, int iNumPoints);
 void			Float64Vec2MinMax(SFloat64Vec2* psMin, SFloat64Vec2* psMax, SFloat64Vec2* asIn, int iInStride, int iNumPoints);
 void			Float64Vec2Swap(SFloat64Vec2* ps1, SFloat64Vec2* ps2);
+float64			Float64Vec2ArcSweep(SFloat64Vec2* psStart, SFloat64Vec2* psEnd, SFloat64Vec2* psCenter, bool bClockwise);
 void 			Float64Vec2InterpolatePosition(SFloat64Vec2* psVecDest, const SFloat64Vec2* psVec1, const SFloat64Vec2* psVec2, float64 fWeight);
 void 			Float64Vec2InterpolateNormal(SFloat64Vec2* psVecDest, const SFloat64Vec2* psVec1, const SFloat64Vec2* psVec2, float64 fWeight);
 void 			Float64Vec2RotateAboutNormalisedAxis(SFloat64Vec3* psVecDest, SFloat64Vec3 p, float64 fTheta, SFloat64Vec2 r);

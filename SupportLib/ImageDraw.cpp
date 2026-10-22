@@ -1,5 +1,7 @@
 #include "BaseLib/Logger.h"
 #include "ImageAccessorCreator.h"
+#include "BaseLib/FixedPoint.h"
+#include "ColourBlend.h"
 #include "ImageDraw.h"
 #include "ImageCelBlitterCache.h"
 
@@ -18,6 +20,8 @@ void CImageDraw::Init(CImage* pcImage)
 	cColour.Init(1.0f, 1.0f, 1.0f);
 	SetColour(&cColour);
 	cColour.Kill();
+
+	mcRasteriser.Init();
 }
 
 
@@ -32,6 +36,7 @@ void CImageDraw::Kill(void)
 		mpcAccessor->Kill();
 		mpcAccessor = NULL;
 	}
+	mcRasteriser.Kill();
 	mpcImage = NULL;
 }
 
@@ -225,22 +230,6 @@ void CImageDraw::DrawVerticalLine(int x, int y0, int y1)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The direction of iAngle degrees in 65536ths, rounded so the right
-// angles are exact on every build.  y is up.
-//
-//////////////////////////////////////////////////////////////////////////
-void CImageDraw::AngleDirection(int iAngle, int64* piX, int64* piY)
-{
-	float64	fRadians;
-
-	fRadians = ((float64)iAngle * 3.14159265358979323846) / 180.0;
-	*piX = (int64)floor(cos(fRadians) * 65536.0 + 0.5);
-	*piY = (int64)floor(sin(fRadians) * 65536.0 + 0.5);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Draws the part of a circle iDiameter across between two angles.  The
 // whole circle fits in the square with its top left at x, y and sides
 // iDiameter long, so its centre is on a pixel corner when iDiameter is even
@@ -252,91 +241,265 @@ void CImageDraw::AngleDirection(int iAngle, int64* piX, int64* piY)
 // image's edges.  If bFilled is false only the curved edge is drawn, one
 // pixel thick; the straight sides are left open.
 //
-// The edge is anti-aliased: a pixel's opacity is the colour's opacity
-// times the part of the pixel's 16 x 16 samples inside the part of the
-// circle (or the one pixel thick ring when not filled).  Its colour is not
-// multiplied by its opacity.  The image must have opacity, red, green and
-// blue channels.  A pixel is blended over the one already there, so
-// pieces drawn one on top of another (a border then the face inside it)
-// mix along their edges.  Pixels outside the circle are left alone.  The
-// coverage and blending are worked out with integers so every build draws
-// the same pixels.
+// The edge is anti-aliased by the exact area of each pixel inside the part
+// of the circle (or the one pixel thick ring when not filled); see
+// BlendCoverage.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CImageDraw::DrawSemicircle(int x, int y, int iDiameter, int iStartAngle, int iEndAngle, bool bFilled)
 {
-	CImageAccessorCreator	cCreator;
-	CImageAccessor*			pcAccessor;
-	uint8					auiSource[4];  //Opacity, red, green then blue.
-	uint8*					puiDest;
-	int64					iCentreX;  //In 32nds of a pixel from the image's top left, so samples sit in the middle of their 16ths.
-	int64					iCentreY;
-	int64					iRadiusSquared;
-	int64					iInnerRadius;
-	int64					iInnerRadiusSquared;  //Samples this close to the centre or closer are not drawn.  -1 draws them all.
-	int64					iDistanceSquared;
-	int64					iStartX;
-	int64					iStartY;
-	int64					iEndX;
-	int64					iEndY;
-	int64					dx;
-	int64					dy;
-	int						iSweep;
-	bool					bWhole;
-	bool					bInside;
-	int						iLeft;
-	int						iTop;
-	int						iRight;
-	int						iBottom;
-	int						px;
-	int						py;
-	int						sx;
-	int						sy;
-	int						iCoverage;
+	int			iSweep;
+	float64		fRadius;
+	float64		fInnerRadius;
 
 	if (iDiameter <= 0)
 	{
 		return true;
 	}
-	if (!mpcImage->HasChannel(IMAGE_OPACITY))
-	{
-		return gcLogger.Error2(__METHOD__, " Cannot draw an anti-aliased semicircle on an image without an opacity channel.", NULL);
-	}
 
-	bWhole = (iEndAngle - iStartAngle) >= 360;
 	iSweep = ((iEndAngle - iStartAngle) % 360 + 360) % 360;
-	if (!bWhole && (iSweep == 0))
+	if ((iEndAngle - iStartAngle) >= 360)
+	{
+		iSweep = 360;
+	}
+	else if (iSweep == 0)
 	{
 		return true;
 	}
-	AngleDirection(iStartAngle, &iStartX, &iStartY);
-	AngleDirection(iEndAngle, &iEndX, &iEndY);
 
-	iCentreX = (int64)x * 32 + (int64)iDiameter * 16;
-	iCentreY = (int64)y * 32 + (int64)iDiameter * 16;
-	iRadiusSquared = (int64)iDiameter * 16 * iDiameter * 16;
-	iInnerRadiusSquared = -1;
+	fRadius = iDiameter / 2.0;
+	fInnerRadius = 0;
 	if (!bFilled)
 	{
-		iInnerRadius = (int64)iDiameter * 16 - 32;
-		if (iInnerRadius > 0)
-		{
-			iInnerRadiusSquared = iInnerRadius * iInnerRadius;
-		}
+		fInnerRadius = fRadius - 1;
+	}
+	return DrawRing(x + fRadius, y + fRadius, fRadius, fInnerRadius, iStartAngle, iStartAngle + iSweep);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Fills pcPath, in pixels from the image's top left with y down.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageDraw::DrawPath(CVectorPath* pcPath)
+{
+	SFloat64Vec2	sOrigin;
+
+	sOrigin.Init(0, 0);
+	return DrawPath(pcPath, &sOrigin, 1, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Fills pcPath placed on the image by an origin and a scale; pixel x is
+// (x - origin) * scale and pixel y is (origin - y) * scale when y is up or
+// (y - origin) * scale when it is down.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageDraw::DrawPath(CVectorPath* pcPath, SFloat64Vec2* psOrigin, float64 fPixelsPerUnit, bool bYUp)
+{
+	int		iLeft;
+	int		iTop;
+	int		iRight;
+	int		iBottom;
+
+	if (!mpcImage->HasChannel(IMAGE_OPACITY))
+	{
+		return gcLogger.Error2(__METHOD__, " Cannot draw an anti-aliased shape on an image without an opacity channel.", NULL);
 	}
 
-	iLeft = x < 0 ? 0 : x;
-	iTop = y < 0 ? 0 : y;
-	iRight = x + iDiameter;
+	pcPath->CalculateBounds();
+	mcRasteriser.SetTransform(psOrigin, fPixelsPerUnit, bYUp);
+	if (!mcRasteriser.GetPixelBounds(pcPath, &iLeft, &iTop, &iRight, &iBottom))
+	{
+		return true;
+	}
+	if (iLeft < 0)
+	{
+		iLeft = 0;
+	}
+	if (iTop < 0)
+	{
+		iTop = 0;
+	}
 	if (iRight > (int)mpcImage->GetWidth())
 	{
 		iRight = (int)mpcImage->GetWidth();
 	}
-	iBottom = y + iDiameter;
 	if (iBottom > (int)mpcImage->GetHeight())
 	{
 		iBottom = (int)mpcImage->GetHeight();
 	}
+	if ((iRight <= iLeft) || (iBottom <= iTop))
+	{
+		return true;
+	}
+
+	if (!mcRasteriser.Rasterise(pcPath, iLeft, iTop, iRight - iLeft, iBottom - iTop))
+	{
+		return gcLogger.Error2(__METHOD__, " Could not rasterise path.", NULL);
+	}
+	return BlendCoverage();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Fills pcPath made with y up around 0, 0 with that point at pixel x, y.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageDraw::DrawCentredPath(CVectorPath* pcPath, float64 x, float64 y)
+{
+	SFloat64Vec2	sOrigin;
+
+	sOrigin.Init(-x, y);
+	return DrawPath(pcPath, &sOrigin, 1, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageDraw::DrawCircle(float64 x, float64 y, float64 fRadius)
+{
+	return DrawSector(x, y, fRadius, 0, 360);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageDraw::DrawSector(float64 x, float64 y, float64 fRadius, float64 fStartAngle, float64 fEndAngle)
+{
+	return DrawRing(x, y, fRadius, 0, fStartAngle, fEndAngle);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The part of a ring between two radii from the start angle anticlockwise
+// to the end angle.  No inner radius is a sector of a circle and an end 360
+// or more past the start is all the way round.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageDraw::DrawRing(float64 x, float64 y, float64 fOuterRadius, float64 fInnerRadius, float64 fStartAngle, float64 fEndAngle)
+{
+	CVectorPath		cPath;
+	SFloat64Vec2	sCentre;
+	bool			bResult;
+
+	cPath.Init();
+	sCentre.Init(0, 0);
+	AddVectorRing(&cPath, &sCentre, fOuterRadius, fInnerRadius, fStartAngle, fEndAngle);
+	bResult = DrawCentredPath(&cPath, x, y);
+	cPath.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line fWidth wide from x0, y0 to x1, y1 with round ends.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageDraw::DrawStroke(float64 x0, float64 y0, float64 x1, float64 y1, float64 fWidth)
+{
+	CVectorPath		cPath;
+	SFloat64Vec2	sStart;
+	SFloat64Vec2	sEnd;
+	bool			bResult;
+
+	cPath.Init();
+	sStart.Init(x0, y0);
+	sEnd.Init(x1, y1);
+	AddVectorStroke(&cPath, &sStart, &sEnd, fWidth / 2);
+	bResult = DrawPath(&cPath);
+	cPath.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageDraw::DrawPolygon(SFloat64Vec2* asPoints, size uiNumPoints)
+{
+	CVectorPath		cPath;
+	bool			bResult;
+
+	cPath.Init();
+	cPath.AddPolygon(asPoints, uiNumPoints, false);
+	bResult = DrawPath(&cPath);
+	cPath.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageDraw::DrawRectangle(float64 fLeft, float64 fTop, float64 fRight, float64 fBottom)
+{
+	return DrawRoundedRectangle(fLeft, fTop, fRight, fBottom, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A rectangle with quarter circle corners fRadius across; the radius is
+// limited to half the shorter side.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageDraw::DrawRoundedRectangle(float64 fLeft, float64 fTop, float64 fRight, float64 fBottom, float64 fRadius)
+{
+	CVectorPath		cPath;
+	SFloat64Vec2	sMinimum;
+	SFloat64Vec2	sMaximum;
+	bool			bResult;
+
+	if ((fRight <= fLeft) || (fBottom <= fTop))
+	{
+		return true;
+	}
+	cPath.Init();
+	sMinimum.Init(fLeft, fTop);
+	sMaximum.Init(fRight, fBottom);
+	AddVectorRoundedRectangle(&cPath, &sMinimum, &sMaximum, fRadius);
+	bResult = DrawPath(&cPath);
+	cPath.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Blends the colour over the rasteriser's pixels.  A pixel's opacity is
+// the colour's opacity times the part of the pixel covered.  Its colour is
+// not multiplied by its opacity.  The image must have opacity, red, green
+// and blue channels.  A pixel is blended over the one already there, so
+// pieces drawn one on top of another (a border then the face inside it)
+// mix along their edges.  Pixels not covered are left alone.  The coverage
+// and blending are worked out with integers so every build draws the same
+// pixels.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageDraw::BlendCoverage(void)
+{
+	CImageAccessorCreator	cCreator;
+	CImageAccessor*			pcAccessor;
+	uint8					auiSource[4];  //Opacity, red, green then blue.
+	uint8*					puiDest;
+	uint8*					puiCoverage;
+	int						x;
+	int						y;
+	int						iWidth;
+	int						iCoverage;
 
 	auiSource[0] = (uint8)(mfOpacity * 255.0f + 0.5f);
 	auiSource[1] = (uint8)(mfRed * 255.0f + 0.5f);
@@ -346,93 +509,26 @@ bool CImageDraw::DrawSemicircle(int x, int y, int iDiameter, int iStartAngle, in
 	cCreator.Init(mpcImage);
 	cCreator.AddAccess(IMAGE_OPACITY, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, PT_uint8);
 	pcAccessor = cCreator.CreateAndKill();
-	for (py = iTop; py < iBottom; py++)
+
+	puiCoverage = mcRasteriser.GetCoverage();
+	iWidth = mcRasteriser.GetWidth();
+	for (y = 0; y < mcRasteriser.GetHeight(); y++)
 	{
-		for (px = iLeft; px < iRight; px++)
+		for (x = 0; x < iWidth; x++)
 		{
-			iCoverage = 0;
-			for (sy = 0; sy < 16; sy++)
-			{
-				dy = (int64)py * 32 + sy * 2 + 1 - iCentreY;
-				for (sx = 0; sx < 16; sx++)
-				{
-					dx = (int64)px * 32 + sx * 2 + 1 - iCentreX;
-					iDistanceSquared = dx * dx + dy * dy;
-					if ((iDistanceSquared <= iRadiusSquared) && (iDistanceSquared > iInnerRadiusSquared))
-					{
-						//A sample is never exactly on a side at a multiple of 90 degrees so quarters and halves drawn side by side
-						//don't share one.  y is up for the angles.
-						if (bWhole)
-						{
-							bInside = true;
-						}
-						else if (iSweep <= 180)
-						{
-							bInside = (iStartX * -dy - iStartY * dx >= 0) && (dx * iEndY - -dy * iEndX >= 0);
-						}
-						else
-						{
-							bInside = !((iEndX * -dy - iEndY * dx > 0) && (dx * iStartY - -dy * iStartX > 0));
-						}
-
-						if (bInside)
-						{
-							iCoverage++;
-						}
-					}
-				}
-			}
-
+			iCoverage = puiCoverage[(size)y * iWidth + x];
 			if (iCoverage > 0)
 			{
-				puiDest = (uint8*)pcAccessor->Get(px, py);
-				BlendPixel(puiDest, auiSource, iCoverage);
-				pcAccessor->Set(px, py, puiDest);
+				//Coverage is in 255ths and the blend takes 256ths.
+				iCoverage = (int)DivideRound(iCoverage * 256, 255);
+				puiDest = (uint8*)pcAccessor->Get(mcRasteriser.GetLeft() + x, mcRasteriser.GetTop() + y);
+				BlendStraightOverPixel(puiDest, auiSource, iCoverage);
+				pcAccessor->Set(mcRasteriser.GetLeft() + x, mcRasteriser.GetTop() + y, puiDest);
 			}
 		}
 	}
 	pcAccessor->Kill();
 	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Blends the source colour, iCoverage 256ths of it, over the destination.
-// Both are opacity, red, green then blue and neither is multiplied by its
-// opacity.  The result is rounded to the nearest so drawing a colour over
-// itself doesn't change it.
-//
-//////////////////////////////////////////////////////////////////////////
-void CImageDraw::BlendPixel(uint8* puiDest, uint8* puiSource, int iCoverage)
-{
-	int64	iSourceOpacity;  //In 65280ths (255 * 256).
-	int64	iDestOpacity;
-	int64	iOpacity;  //In 65280ths of 65280ths.
-	int		i;
-
-	iSourceOpacity = (int64)puiSource[0] * iCoverage;
-	if ((puiDest[0] == 0) || (iSourceOpacity == 65280))
-	{
-		puiDest[0] = (uint8)((iSourceOpacity + 128) / 256);
-		for (i = 1; i < 4; i++)
-		{
-			puiDest[i] = puiSource[i];
-		}
-		return;
-	}
-
-	iDestOpacity = (int64)puiDest[0] * 256;
-	iOpacity = iSourceOpacity * 65280 + iDestOpacity * (65280 - iSourceOpacity);
-	if (iOpacity == 0)
-	{
-		return;
-	}
-	for (i = 1; i < 4; i++)
-	{
-		puiDest[i] = (uint8)(((int64)puiSource[i] * iSourceOpacity * 65280 + (int64)puiDest[i] * iDestOpacity * (65280 - iSourceOpacity) + iOpacity / 2) / iOpacity);
-	}
-	puiDest[0] = (uint8)((iOpacity + 65280 * 128) / (65280 * 256));
 }
 
 

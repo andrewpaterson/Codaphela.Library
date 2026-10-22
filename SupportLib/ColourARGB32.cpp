@@ -22,7 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/IntegerHelper.h"
-#include "BaseLib/FixedPoint.h"
+#include "ColourBlend.h"
 #include "ColourARGB32.h"
 
 
@@ -296,25 +296,24 @@ ARGB32 BlendAlpha32BitColours(ARGB32 uiColour1, ARGB32 uiColour2)
 {
 	uint32		r1, g1, b1, a1;
 	uint32		r2, g2, b2, a2;
-	uint32		uiBelow;
-	uint32		uiAlpha;
+	uint8		auiSource[4];
+	uint8		auiDest[4];
 
 	Get32BitColour(&r1, &g1, &b1, &a1, uiColour1);
 	Get32BitColour(&r2, &g2, &b2, &a2, uiColour2);
 
-	//Colour 1 over colour 2, straight (not premultiplied) alpha: a = a1 + a2 (1 - a1) and c = (c1 a1 + c2 a2 (1 - a1)) / a.
-	uiBelow = (uint32)DivideRound((int64)a2 * (255 - a1), 255);
-	uiAlpha = a1 + uiBelow;
-	if (uiAlpha == 0)
-	{
-		return Set32BitColour((uint32)0, (uint32)0, (uint32)0, (uint32)0);
-	}
+	//Colour 1 over colour 2 with straight (not premultiplied) alpha.
+	auiSource[0] = (uint8)a1;
+	auiSource[1] = (uint8)r1;
+	auiSource[2] = (uint8)g1;
+	auiSource[3] = (uint8)b1;
+	auiDest[0] = (uint8)a2;
+	auiDest[1] = (uint8)r2;
+	auiDest[2] = (uint8)g2;
+	auiDest[3] = (uint8)b2;
+	BlendStraightOverPixel(auiDest, auiSource, 256);
 
-	r1 = (uint32)DivideRound((int64)r1 * a1 + (int64)r2 * uiBelow, uiAlpha);
-	g1 = (uint32)DivideRound((int64)g1 * a1 + (int64)g2 * uiBelow, uiAlpha);
-	b1 = (uint32)DivideRound((int64)b1 * a1 + (int64)b2 * uiBelow, uiAlpha);
-
-	return Set32BitColour(r1, g1, b1, uiAlpha);
+	return Set32BitColour((uint32)auiDest[1], (uint32)auiDest[2], (uint32)auiDest[3], (uint32)auiDest[0]);
 }
 
 

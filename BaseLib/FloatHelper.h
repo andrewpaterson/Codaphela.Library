@@ -50,6 +50,7 @@ bool		DoubleGreaterThan(float64 f1, float64 f2);
 bool		DoubleLessThan(float64 f1, float64 f2);
 float64 	RoundFloat(float64 fInput, int64 iBinaryExponent);
 float64 	TruncateFloat(float64 fInput, int64 iBinaryExponent);
+void		CosSinDegrees(float64 fDegrees, float64* pfCos, float64* pfSin);
 float64 	NormaliseDouble(float64 fSize, float64 fPos);  //returns 1 .. -1
 float64 	NormaliseDouble(float64 fMax, float64 fMin, float64 fPos);  //returns 1 .. 0
 float64		InterpolateDouble(float64 f1, float64 f2, float64 fPos);
