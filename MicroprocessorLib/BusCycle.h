@@ -30,6 +30,7 @@ public:
     void                ToOperationString(CChars* psz);
     void                ToDataString(CChars* psz);
     bool                IsFetchOpcode();
+    bool                IsProgramAddress(void);
     void                SetCycle(int16 iCycle);
     int16               GetCycle(void);
     COperationArray*    GetOperations(void);

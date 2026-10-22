@@ -62,17 +62,38 @@ void CalculateAddressWrappingFromAddressOffsets(CAddress* pcDest, CW65C816* pcCP
 	CAddressOffset*		pcOffset;
 	uint8				uiBank;
 	uint16				uiOffset;
+	uint16				uiPage;
+	bool				bPageWrapped;
 	size				i;
 	size				uiNumElements;
 
 	uiBank = 0;
 	uiOffset = 0;
+	uiPage = 0;
+	bPageWrapped = false;
 	uiNumElements = pacAddressOffsets->NumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcOffset = pacAddressOffsets->GetPtr(i);
-		uiOffset += pcOffset->GetOffset(pcCPU);
+		if (pcOffset->IsPageWrapped(pcCPU))
+		{
+			bPageWrapped = true;
+			uiPage += pcOffset->GetOffset(pcCPU);
+		}
+		else
+		{
+			uiOffset += pcOffset->GetOffset(pcCPU);
+		}
 		uiBank += pcOffset->GetBank(pcCPU);
+	}
+
+	if (bPageWrapped)
+	{
+		uiOffset = uiPage + GetLowByte(uiOffset);
+	}
+	else
+	{
+		uiOffset += uiPage;
 	}
 	pcDest->Init(uiBank, uiOffset);
 }

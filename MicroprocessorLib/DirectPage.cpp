@@ -8,6 +8,17 @@
 //////////////////////////////////////////////////////////////////////////
 void CDirectPage::Init(void)
 {
+	Init(true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDirectPage::Init(bool bPageWrap)
+{
+	mbPageWrap = bPageWrap;
 }
 
 
@@ -27,6 +38,18 @@ void CDirectPage::Kill(void)
 int32 CDirectPage::GetOffset(CW65C816* pcCPU)
 {
     return pcCPU->GetDirectPage();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDirectPage::IsPageWrapped(CW65C816* pcCPU)
+{
+	//Datasheet caveat 7.2: in emulation mode with DL=00 direct addresses stay in page DH.
+	//[d], [d],y and PEI pointers are not wrapped.
+	return mbPageWrap && pcCPU->IsEmulation() && (GetLowByte(pcCPU->GetDirectPage()) == 0);
 }
 
 

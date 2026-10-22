@@ -8,6 +8,17 @@
 //////////////////////////////////////////////////////////////////////////
 void CStackPointer::Init(void)
 {
+	Init(SPM_Page);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CStackPointer::Init(EStackPointerMode eMode)
+{
+	meMode = eMode;
 }
 
 
@@ -26,7 +37,26 @@ void CStackPointer::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CStackPointer::GetOffset(CW65C816* pcCPU)
 {
-    return pcCPU->GetStackPointer();
+	uint16	uiStackPointer;
+
+	if (meMode == SPM_Linear)
+	{
+		return pcCPU->GetStackPointer16Bit();
+	}
+
+	uiStackPointer = pcCPU->GetStackPointer();
+	if (meMode == SPM_PagePlusOne)
+	{
+		if (pcCPU->IsEmulation())
+		{
+			return 0x100 | GetLowByte(uiStackPointer + 1);
+		}
+		else
+		{
+			return uiStackPointer + 1;
+		}
+	}
+	return uiStackPointer;
 }
 
 
@@ -36,6 +66,13 @@ int32 CStackPointer::GetOffset(CW65C816* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CStackPointer::Print(CChars* psz)
 {
-    psz->Append("S");
+	if (meMode == SPM_PagePlusOne)
+	{
+		psz->Append("S+1");
+	}
+	else
+	{
+		psz->Append("S");
+	}
 }
 

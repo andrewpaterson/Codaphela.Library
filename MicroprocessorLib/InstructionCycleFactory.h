@@ -30,6 +30,7 @@
 #include "DecrementStackPointer.h"
 #include "DoneInstruction.h"
 #include "DoneInstructionIf8Bit.h"
+#include "DoneInstructionIfEmulation.h"
 #include "DoneInstructionIf16Bit.h"
 #include "Execute.h"
 #include "ExecuteIf8Bit.h"
