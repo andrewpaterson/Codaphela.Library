@@ -181,7 +181,7 @@ int eprintf(const char* szUnformatted, ...)
 	int					iLength;
 	char*				aszParameters;
 	char*				szParameter;
-	size				iFormattedeLength;
+	int					iFormattedeLength;
 	CStackMemory<1 KB>	cStack;
 	char*				szFormattedParameter;
 
@@ -209,10 +209,13 @@ int eprintf(const char* szUnformatted, ...)
 			szParameter++;
 			szValue = (const char*)va_arg(vaMarker, const char*);
 			iFormattedeLength = snprintf(NULL, 0, szParameter, szValue);
-			szFormattedParameter = (char*)cStack.Init(iFormattedeLength);
-			sprintf(szFormattedParameter, szParameter, szValue);
-			sz.Append(szFormattedParameter);
-			cStack.Kill();
+			if (iFormattedeLength >= 0)
+			{
+				szFormattedParameter = (char*)cStack.Init((size)iFormattedeLength + 1);
+				sprintf(szFormattedParameter, szParameter, szValue);
+				sz.Append(szFormattedParameter);
+				cStack.Kill();
+			}
 		}
 
 
