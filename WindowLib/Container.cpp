@@ -33,6 +33,7 @@ void CContainer::Init(Ptr<CWindow> pWindow)
 	CComponent::Init(pWindow);
 	mcContainerBounds.Init(-1, -1, -1, -1);
 	msRequiredSize.Init(-1, -1);
+	mbClipsChildren = true;
 
 	PostInit();
 }
@@ -57,6 +58,7 @@ void CContainer::Class(void)
 	CComponent::Class();
 	U_Data(CInt32Rect, mcContainerBounds);
 	U_2Int32(msRequiredSize);
+	U_Bool(mbClipsChildren);
 }
 
 
@@ -88,6 +90,29 @@ void CContainer::SetContainerBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 			mcContainerBounds.ClipTo(&cParentBounds);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A component that overflows the area it was laid out in, like a fixed
+// size component in a shrunk grid cell, is cut off at the container's
+// edge rather than drawn over whatever is next to the container.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CContainer::ClipsChildren(void)
+{
+	return mbClipsChildren;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CContainer::SetClipsChildren(bool bClipsChildren)
+{
+	mbClipsChildren = bClipsChildren;
 }
 
 

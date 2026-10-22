@@ -268,11 +268,22 @@ Ptr<CComponent> CComponent::FindComponentAt(int x, int y)
 	size					i;
 	Ptr<CComponent>	pcComponent;
 	size					uiSize;
+	CInt32Rect				cBounds;
 
 	//x and y are in window client space.
 	if (!IsPointIn(x, y))
 	{
 		return NULL;
+	}
+
+	//Children are only found where they can be drawn.  The right and bottom edges belong to the next component over.
+	if (ClipsChildren() && GetContainerBounds(&cBounds))
+	{
+		if ((x < cBounds.msTopLeft.x) || (x >= cBounds.msBottomRight.x) ||
+			(y < cBounds.msTopLeft.y) || (y >= cBounds.msBottomRight.y))
+		{
+			return this;
+		}
 	}
 
 	//Children drawn later are drawn over earlier ones so they are searched first.

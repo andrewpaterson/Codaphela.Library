@@ -232,7 +232,6 @@
     <ClInclude Include="NativeWindow.h" />
     <ClInclude Include="NativeWindowFactory.h" />
     <ClInclude Include="TextArea.h" />
-    <ClInclude Include="TextField.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowTick.h" />
   </ItemGroup>

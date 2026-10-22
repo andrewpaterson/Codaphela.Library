@@ -39,6 +39,8 @@ public:
 	void			Init(Ptr<CWindow> pWindow);
 	void			Class(void) override;
 	void			Free(void) override;
+	bool			Save(CObjectWriter* pcFile) override;
+	bool			Load(CObjectReader* pcFile) override;
 
 	void			SetRequiredSize(void) override;
 	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;

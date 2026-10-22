@@ -34,6 +34,7 @@ DESTRUCTABLE(CContainer);
 protected:
 	CInt32Rect	mcContainerBounds;
 	SInt32Vec2	msRequiredSize;  //What the container's components need, see SetRequiredSize.
+	bool		mbClipsChildren;  //Children are only drawn inside the container bounds.  True unless turned off, for an overlay say.
 
 public:
 			void		Init(Ptr<CWindow> pWindow);
@@ -42,6 +43,8 @@ public:
 
 			bool		GetContainerBounds(CInt32Rect* pcDest);
 			void		SetContainerBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize);
+			bool		ClipsChildren(void) override;
+			void		SetClipsChildren(bool bClipsChildren);
 
 			void		Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 

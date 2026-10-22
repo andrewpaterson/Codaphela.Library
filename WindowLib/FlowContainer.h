@@ -22,25 +22,33 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "ContainerStyle.h"
 #include "Container.h"
+#include "Insets.h"
 
 
 class CFlowContainer : public CContainer
 {
-public:
+CONSTRUCTABLE(CFlowContainer);
+DESTRUCTABLE(CFlowContainer);
+protected:
 	EContainerStyleWrap			meWrap;
 	EContainerStyleDirection	meDirection;
 	EContainerStyleHorizontal	meHorizontal;  //Where the block of wrapped lines sits when the flow goes up or down.
 	EContainerStyleVertical		meVertical;    //Where the block of wrapped lines sits when the flow goes left or right.  Each component's own alignment places it within its line.
+	SInsets						msInsets;
 
+public:
 	void		Init(Ptr<CWindow> pWindow);
 	void		Free(void) override;
 	void		Class(void) override;
+	bool		Save(CObjectWriter* pcFile) override;
+	bool		Load(CObjectReader* pcFile) override;
 
 	void		SetRequiredSize(void) override;
 	void		Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 
 	void		SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleHorizontal eA);
 	void		SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleVertical eA);
+	void		SetInsets(SInsets* psInsets);
 
 protected:
 	bool		IsHorizontal(void);
