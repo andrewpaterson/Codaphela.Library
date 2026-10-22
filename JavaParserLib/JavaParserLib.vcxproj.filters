@@ -183,6 +183,9 @@
     <ClCompile Include="JavaSyntaxParentheses.cpp">
       <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
     </ClCompile>
+    <ClCompile Include="JavaSyntaxNew.cpp">
+      <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
+    </ClCompile>
     <ClCompile Include="JavaSyntaxOperator.cpp">
       <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
     </ClCompile>
@@ -339,6 +342,9 @@
       <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntaxParentheses.h">
+      <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxNew.h">
       <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntaxOperator.h">

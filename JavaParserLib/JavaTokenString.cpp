@@ -117,7 +117,7 @@ bool CJavaTokenString::Is(char* szString)
 {
 	if (meType == JST_string8)
 	{
-		int	iLength = StrLen(szString);
+		int	iLength = (int)StrLen(szString);
 
 		if (miLength != iLength)
 		{

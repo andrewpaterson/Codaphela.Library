@@ -23,7 +23,7 @@ void CJavaSyntaxMemory::Kill(void)
 	int				iNumSyntaxs;
 	int				i;
 
-	iNumSyntaxs = mapcSyntaxes.NumElements();
+	iNumSyntaxs = (int)mapcSyntaxes.NumElements();
 	for (i = 0; i < iNumSyntaxs; i++)
 	{
 		pcSyntax = mapcSyntaxes.GetPtr(i);
@@ -57,4 +57,5 @@ CJavaSyntaxLiteral*					CJavaSyntaxMemory::CreateLiteral(CJavaSyntaxTree* pcTree
 CJavaSyntaxMethodCall*				CJavaSyntaxMemory::CreateMethodCall(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)				{ return Create<CJavaSyntaxMethodCall>(pcTree, pcParent); }
 CJavaSyntaxParentheses*				CJavaSyntaxMemory::CreateParentheses(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)			{ return Create<CJavaSyntaxParentheses>(pcTree, pcParent); }
 CJavaSyntaxOperator*				CJavaSyntaxMemory::CreateOperator(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)				{ return Create<CJavaSyntaxOperator>(pcTree, pcParent); }
+CJavaSyntaxNew*						CJavaSyntaxMemory::CreateNew(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)					{ return Create<CJavaSyntaxNew>(pcTree, pcParent); }
 

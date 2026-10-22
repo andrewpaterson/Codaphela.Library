@@ -108,6 +108,7 @@ bool CJavaSyntax::IsArrayValueExpression(void) { return false; }
 bool CJavaSyntax::IsMethodCall(void) { return false; }
 bool CJavaSyntax::IsParentheses(void) { return false; }
 bool CJavaSyntax::IsOperator(void) { return false; }
+bool CJavaSyntax::IsNew(void) { return false; }
 
 bool CJavaSyntax::IsStatement(void) { return false; }
 bool CJavaSyntax::IsClassCommon(void) { return false; }

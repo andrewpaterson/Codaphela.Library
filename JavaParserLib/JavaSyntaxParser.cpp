@@ -749,11 +749,11 @@ CJavaSyntaxVariableDeclaration* CJavaSyntaxParser::ParseClassVariable(CJavaSynta
 	{
 		if (iArrayDepth == 0)
 		{
-			pcInitialiser = ParseVariableInitialiser(pcParent);
+			pcInitialiser = ParseVariableInitialiser(pcVariable);
 		}
 		else
 		{
-			pcInitialiser = ParseArrayVariableInitialiser(pcParent);
+			pcInitialiser = ParseArrayVariableInitialiser(pcVariable);
 		}
 		if (pcInitialiser->IsVariableInitialiser())
 		{
@@ -768,6 +768,12 @@ CJavaSyntaxVariableDeclaration* CJavaSyntaxParser::ParseClassVariable(CJavaSynta
 		{
 			pcVariable->Clear();
 			return Error<CJavaSyntaxVariableDeclaration>();
+		}
+
+		if (!GetSeparator(JS_Semicolon))
+		{
+			pcVariable->Clear();
+			return Error<CJavaSyntaxVariableDeclaration>(EXPECTED_SEMICOLON);
 		}
 	}
 
@@ -909,6 +915,7 @@ CJavaSyntaxValueExpression* CJavaSyntaxParser::ParseExpression(CJavaSyntax* pcPa
 	CJavaSyntaxParentheses*			pcParentheses;
 	CJavaSyntaxOperator*			pcOperator;
 	CJavaSyntaxLiteral*				pcLiteral;
+	CJavaSyntaxNew*					pcNew;
 	CJavaSyntaxMethodCall*			pcMethodCall;
 	int								iCount;
 
@@ -950,7 +957,7 @@ CJavaSyntaxValueExpression* CJavaSyntaxParser::ParseExpression(CJavaSyntax* pcPa
 		pcLiteral = ParseLiteral(pcExpression);
 		if (pcLiteral->IsLiteral())
 		{
-			pcExpression->AddExpression(pcOperator);
+			pcExpression->AddExpression(pcLiteral);
 			continue;
 		}
 		else if (pcLiteral->IsError())
@@ -958,10 +965,21 @@ CJavaSyntaxValueExpression* CJavaSyntaxParser::ParseExpression(CJavaSyntax* pcPa
 			return Error<CJavaSyntaxValueExpression>();
 		}
 
+		pcNew = ParseNew(pcExpression);
+		if (pcNew->IsNew())
+		{
+			pcExpression->AddExpression(pcNew);
+			continue;
+		}
+		else if (pcNew->IsError())
+		{
+			return Error<CJavaSyntaxValueExpression>();
+		}
+
 		pcMethodCall = ParseMethodCall(pcExpression);
 		if (pcMethodCall->IsMethodCall())
 		{
-			pcExpression->AddExpression(pcOperator);
+			pcExpression->AddExpression(pcMethodCall);
 			continue;
 		}
 		else if (pcMethodCall->IsError())
@@ -1115,6 +1133,86 @@ CJavaSyntaxMethodCall* CJavaSyntaxParser::ParseMethodCall(CJavaSyntax* pcParent)
 {
 	PushPosition();
 	return Mismatch<CJavaSyntaxMethodCall>();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxNew* CJavaSyntaxParser::ParseNew(CJavaSyntax* pcParent)
+{
+	CJavaSyntaxNew*					pcNew;
+	CJavaSyntaxType*				pcType;
+	CJavaSyntaxValueExpression*		pcArgument;
+
+	PushPosition();
+
+	if (!GetKeyword(JK_new))
+	{
+		return Mismatch<CJavaSyntaxNew>();
+	}
+
+	pcNew = mpcSyntaxes->CreateNew(&mcSyntaxTree, pcParent);
+
+	pcType = ParseType(pcNew);
+	if (pcType->IsType())
+	{
+		pcNew->SetType(pcType);
+	}
+	else if (pcType->IsMismatch())
+	{
+		pcNew->Clear();
+		return Error<CJavaSyntaxNew>(EXPECTED_IDENTIFIER);
+	}
+	else
+	{
+		pcNew->Clear();
+		return Error<CJavaSyntaxNew>();
+	}
+
+	if (!GetSeparator(JS_RoundBracketLeft))
+	{
+		pcNew->Clear();
+		return Error<CJavaSyntaxNew>(EXPECTED_OPEN_ROUND_BRACKET);
+	}
+
+	if (GetSeparator(JS_RoundBracketRight))
+	{
+		PassPosition();
+		return pcNew;
+	}
+
+	for (;;)
+	{
+		pcArgument = ParseExpression(pcNew);
+		if (pcArgument->IsValueExpression())
+		{
+			pcNew->AddArgument(pcArgument);
+		}
+		else if (pcArgument->IsMismatch())
+		{
+			pcNew->Clear();
+			return Error<CJavaSyntaxNew>(EXPECTED_EXPRESSION);
+		}
+		else
+		{
+			pcNew->Clear();
+			return Error<CJavaSyntaxNew>();
+		}
+
+		if (GetSeparator(JS_RoundBracketRight))
+		{
+			PassPosition();
+			return pcNew;
+		}
+
+		if (!GetSeparator(JS_Comma))
+		{
+			pcNew->Clear();
+			return Error<CJavaSyntaxNew>(EXPECTED_CLOSE_ROUND_BRACKET_OR_COMMA);
+		}
+	}
 }
 
 
@@ -1386,7 +1484,6 @@ CJavaSyntaxType* CJavaSyntaxParser::ParseType(CJavaSyntax* pcParent)
 	}
 	else
 	{
-		PassPosition();
 		return Error<CJavaSyntaxType>();
 	}
 }

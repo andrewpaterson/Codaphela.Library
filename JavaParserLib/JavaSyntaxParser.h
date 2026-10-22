@@ -93,6 +93,7 @@ protected:
 	CJavaSyntaxArrayValueExpression*	ParseArrayExpression(CJavaSyntax* pcParent);
 	CJavaSyntaxLiteral*					ParseLiteral(CJavaSyntax* pcParent);
 	CJavaSyntaxMethodCall*				ParseMethodCall(CJavaSyntax* pcParent);
+	CJavaSyntaxNew*						ParseNew(CJavaSyntax* pcParent);
 
 protected:
 	CJavaModifiers			ParseModifiers(uint8 uiAllowedModifiers);

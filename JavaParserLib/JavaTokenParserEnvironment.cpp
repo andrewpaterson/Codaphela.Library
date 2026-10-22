@@ -10,7 +10,7 @@ void CTokenParserEnvironment::Init(char* szFilename, char* szText, bool bBreakOn
 {
 	int		iTextLen;
 
-	iTextLen = strlen(szText);
+	iTextLen = (int)strlen(szText);
 	Init(szFilename, szText, iTextLen, bBreakOnError);
 }
 
@@ -74,7 +74,7 @@ CJavaTokenParser* CTokenParserEnvironment::GetParser(void)
 //////////////////////////////////////////////////////////////////////////
 char* CTokenParserEnvironment::GetOutput(int* piLength)
 {
-	SafeAssign(piLength, mcMemoryLog.GetBufferSize());
+	SafeAssign(piLength, (int)mcMemoryLog.GetBufferSize());
 	return (char*)mcMemoryLog.GetBufferPointer();
 }
 

@@ -23,7 +23,7 @@ void CJavaTokenMemory::Kill(void)
 	int				iNumTokens;
 	int				i;
 
-	iNumTokens = mapcTokens.NumElements();
+	iNumTokens = (int)mapcTokens.NumElements();
 	for (i = 0; i < iNumTokens; i++)
 	{
 		pcToken = mapcTokens.GetPtr(i);
