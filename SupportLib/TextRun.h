@@ -37,6 +37,7 @@ protected:
 	CFont*					mpcFont;  //Not a Ptr<CFont> because CTextRun does not extend CObject.
 	CText*					mpcText;  //Ditto Ptr<CText>
 	CArrayTextElementPtr	mapcText;
+	int16					miBaselineShift;  //Pixels up, for superscript.  Down if negative, for subscript.
 
 public:
 	void			Init(CFont* mpcFont, CText* pcText);
@@ -51,6 +52,8 @@ public:
 	void			End(void);
 
 	CFont*			GetFont(void);
+	void			SetBaselineShift(int16 iBaselineShift);
+	int16			GetBaselineShift(void);
 	size			NumElements(void);
 	CTextElement*	GetElement(size uiIndex);
 };

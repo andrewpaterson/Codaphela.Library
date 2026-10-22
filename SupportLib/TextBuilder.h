@@ -41,6 +41,7 @@ protected:
 	CTextBuilderUTF16Short	mcShort;
 	CTextBuilderUTF16Long	mcLong;
 	CTextRun*				mpcRun;
+	int16					miBaselineShift;  //Of the runs made, pixels up.
 
 public:
 	void		Init(CUnicodeReader* pcUTF, CText* pcText, CFont* pcFont);
@@ -49,7 +50,7 @@ public:
 	bool		Push(uint32 cCodePoint32);
 	bool		Push(uint8* puiCodePoint, size uiCodePointsLength);
 	bool		PushNewLine(void);
-	bool		SetFont(CFont* pcFont);
+	bool		SetFont(CFont* pcFont, int16 iBaselineShift = 0);
 
 	bool		PushCurrent(void);
 	bool		Done(void);

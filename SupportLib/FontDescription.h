@@ -65,6 +65,19 @@ protected:
 	int16					miDescent;
 	int16					miTabSpaceCount;  //tab width = miTabSpaceCount * miSpaceWidth.
 
+	//Pixels from the baseline, y down, to the top of each line drawn through the text.
+	int16					miUnderlineTop;
+	int16					miUnderlineThickness;
+	int16					miStrikeoutTop;
+	int16					miStrikeoutThickness;
+
+	//Superscript and subscript are drawn in this font's face at its size times their scale, their baselines moved by
+	//their shift in pixels: up for superscript, down for subscript.
+	float32					mfSuperscriptScale;
+	int16					miSuperscriptShift;
+	float32					mfSubscriptScale;
+	int16					miSubscriptShift;
+
 public:
 	void				Init(char* szName, int16 iSpaceWidth, int16 iAscent, int16 iDescent, int32 iImageWidth, int32 iImageHeight);
 	void				Class(void) override;
@@ -98,8 +111,22 @@ public:
 	size				GetAverageHeight(void);
 	bool				IsFixedWidth(void);
 
+	void				SetUnderline(int16 iTop, int16 iThickness);
+	void				SetStrikeout(int16 iTop, int16 iThickness);
+	void				SetSuperscript(float32 fScale, int16 iShift);
+	void				SetSubscript(float32 fScale, int16 iShift);
+	int16				GetUnderlineTop(void);
+	int16				GetUnderlineThickness(void);
+	int16				GetStrikeoutTop(void);
+	int16				GetStrikeoutThickness(void);
+	float32				GetSuperscriptScale(void);
+	int16				GetSuperscriptShift(void);
+	float32				GetSubscriptScale(void);
+	int16				GetSubscriptShift(void);
+
 protected:
 	void				CalculateWidths(void);
+	void				SetDefaultScriptAndLines(void);
 };
 
 

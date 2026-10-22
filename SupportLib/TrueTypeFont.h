@@ -75,6 +75,19 @@ protected:
 	int			miLineGap;
 	int			miNumHMetrics;
 
+	//From the optional post and OS/2 tables, in font units.  Positive is up from the baseline except the subscript
+	//offset, which is down.
+	bool		mbHasPost;
+	int			miUnderlinePosition;	//The top of the underline.
+	int			miUnderlineThickness;
+	bool		mbHasOS2;
+	int			miStrikeoutPosition;	//The top of the strikeout.
+	int			miStrikeoutSize;
+	int			miSubscriptYSize;
+	int			miSubscriptYOffset;
+	int			miSuperscriptYSize;
+	int			miSuperscriptYOffset;
+
 public:
 	void		Init(void);
 	void		Kill(void);
@@ -90,12 +103,25 @@ public:
 	void		GetBounds(int* piXMin, int* piYMin, int* piXMax, int* piYMax);
 	bool		GetName(int iNameID, CChars* psz);
 
+	bool		HasPost(void);
+	int			GetUnderlinePosition(void);
+	int			GetUnderlineThickness(void);
+	bool		HasOS2(void);
+	int			GetStrikeoutPosition(void);
+	int			GetStrikeoutSize(void);
+	int			GetSubscriptYSize(void);
+	int			GetSubscriptYOffset(void);
+	int			GetSuperscriptYSize(void);
+	int			GetSuperscriptYOffset(void);
+
 	int			GetGlyphIndex(uint32 uiCodePoint);
 	bool		GetGlyphMetrics(int iGlyph, STrueTypeGlyphMetrics* psMetrics);
 	bool		GetGlyphOutline(int iGlyph, CTrueTypeOutline* pcOutline);
 
 protected:
 	bool		Parse(void);
+	void		ParsePost(void);
+	void		ParseOS2(void);
 	bool		FindTable(const char* szTag, size* puiOffset, size* puiLength);
 	bool		ChooseCmap(size uiCmapOffset, size uiCmapLength);
 	int			GetGlyphIndexFormat4(uint32 uiCodePoint);

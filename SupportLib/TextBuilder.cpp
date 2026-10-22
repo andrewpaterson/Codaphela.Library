@@ -12,6 +12,7 @@ void CTextBuilder::Init(CUnicodeReader* pcUTF, CText* pcText, CFont* pcFont)
 	mpcFont = pcFont;
 	mpcCommon = NULL;
 	mpcRun = NULL;
+	miBaselineShift = 0;
 }
 
 
@@ -266,15 +267,16 @@ bool CTextBuilder::PushNewLine(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Text pushed after this is in pcFont.  A different font ends the current
-// run; the next text starts a new run.
+// Text pushed after this is in pcFont with its baseline iBaselineShift
+// pixels up.  A different font or shift ends the current run; the next
+// text starts a new run.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextBuilder::SetFont(CFont* pcFont)
+bool CTextBuilder::SetFont(CFont* pcFont, int16 iBaselineShift)
 {
 	bool	bResult;
 
-	if (pcFont == mpcFont)
+	if ((pcFont == mpcFont) && (iBaselineShift == miBaselineShift))
 	{
 		return true;
 	}
@@ -293,6 +295,7 @@ bool CTextBuilder::SetFont(CFont* pcFont)
 		mpcRun = NULL;
 	}
 	mpcFont = pcFont;
+	miBaselineShift = iBaselineShift;
 	return true;
 }
 
@@ -334,6 +337,7 @@ bool CTextBuilder::EnsureRun(void)
 		mpcRun = mpcText->AllocateRun(mpcFont);
 		if (mpcRun)
 		{
+			mpcRun->SetBaselineShift(miBaselineShift);
 			mpcRun->Start();
 			return true;
 		}
