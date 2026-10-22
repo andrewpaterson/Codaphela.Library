@@ -1,4 +1,6 @@
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "BaseLib/Logger.h"
 #include "SupportLib/RectangleBestPackerWithRotation.h"
 #include "GerberPanel.h"
@@ -13,8 +15,9 @@ void CGerberPanelPlacement::Init(CGerberFileSet* pcSet)
 	mpcSet = pcSet;
 	mbRotated = false;
 	msOffset.Init(0, 0);
-	msMinimum.Init(0, 0);
-	msMaximum.Init(0, 0);
+	miOffsetX = 0;
+	miOffsetY = 0;
+	mcBounds.Init();
 }
 
 
@@ -32,6 +35,48 @@ void CGerberPanelPlacement::Place(SFloat64Vec2* psPoint, SFloat64Vec2* psDest)
 	{
 		psDest->Init(psPoint->x + msOffset.x, psPoint->y + msOffset.y);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void MicrometresToNumber(int32 iMicrometres, CNumber* pcNumber)
+{
+	char	sz[64];
+
+	snprintf(sz, sizeof(sz), "%s%d.%03d", (iMicrometres < 0) ? "-" : "", abs(iMicrometres) / 1000, abs(iMicrometres) % 1000);
+	pcNumber->Init(sz);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void MillimetresToNumber(float64 fMillimetres, CNumber* pcNumber)
+{
+	char		sz[64];
+	int64		iNanometres;
+	uint64		uiNanometres;
+
+	//To the nanometre, which is as fine as the 4.6 format.
+	iNanometres = (int64)llround(fMillimetres * 1000000.0);
+	uiNanometres = (uint64)((iNanometres < 0) ? -iNanometres : iNanometres);
+	snprintf(sz, sizeof(sz), "%s%llu.%06llu", (iNanometres < 0) ? "-" : "", (unsigned long long)(uiNanometres / 1000000), (unsigned long long)(uiNanometres % 1000000));
+	pcNumber->Init(sz);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CGerberPanelPlacement::GetOffset(CNumber* pcX, CNumber* pcY)
+{
+	MicrometresToNumber(miOffsetX, pcX);
+	MicrometresToNumber(miOffsetY, pcY);
 }
 
 
@@ -144,9 +189,10 @@ bool CGerberPanel::Pack(CGerberFileSets* pcSets)
 			iMinimumX = iLeft;
 			iMinimumY = iBottom;
 		}
-		pcPlacement->msOffset.Init((pcPacked->msTopLeft.x - iMinimumX) / 1000.0, (pcPacked->msTopLeft.y - iMinimumY) / 1000.0);
-		pcPlacement->msMinimum.Init(pcPacked->msTopLeft.x / 1000.0, pcPacked->msTopLeft.y / 1000.0);
-		pcPlacement->msMaximum.Init(pcPacked->msBottomRight.x / 1000.0, pcPacked->msBottomRight.y / 1000.0);
+		pcPlacement->miOffsetX = pcPacked->msTopLeft.x - iMinimumX;
+		pcPlacement->miOffsetY = pcPacked->msTopLeft.y - iMinimumY;
+		pcPlacement->msOffset.Init(pcPlacement->miOffsetX / 1000.0, pcPlacement->miOffsetY / 1000.0);
+		pcPlacement->mcBounds.Init(pcPacked->msTopLeft.x / 1000.0, pcPacked->msTopLeft.y / 1000.0, pcPacked->msBottomRight.x / 1000.0, pcPacked->msBottomRight.y / 1000.0);
 	}
 	acPacked.Kill();
 
@@ -161,11 +207,15 @@ bool CGerberPanel::Pack(CGerberFileSets* pcSets)
 //////////////////////////////////////////////////////////////////////////
 void CGerberPanel::GetMicrometreBounds(CGerberFileSet* pcSet, int32* piLeft, int32* piBottom, int32* piRight, int32* piTop)
 {
+	CFloat64Rect*	pcBounds;
+
 	//Rounded outwards.  The nanometre allowance stops floating point noise in exact values adding a micrometre.
-	*piLeft = (int32)floor(pcSet->GetOutlineMinimum()->x * 1000.0 + 0.000001);
-	*piBottom = (int32)floor(pcSet->GetOutlineMinimum()->y * 1000.0 + 0.000001);
-	*piRight = (int32)ceil(pcSet->GetOutlineMaximum()->x * 1000.0 - 0.000001);
-	*piTop = (int32)ceil(pcSet->GetOutlineMaximum()->y * 1000.0 - 0.000001);
+	//The outline's msTopLeft is its minimum corner, the bottom left with Gerber's y up.
+	pcBounds = pcSet->GetOutlineBounds();
+	*piLeft = (int32)floor(pcBounds->msTopLeft.x * 1000.0 + 0.000001);
+	*piBottom = (int32)floor(pcBounds->msTopLeft.y * 1000.0 + 0.000001);
+	*piRight = (int32)ceil(pcBounds->msBottomRight.x * 1000.0 - 0.000001);
+	*piTop = (int32)ceil(pcBounds->msBottomRight.y * 1000.0 - 0.000001);
 }
 
 
@@ -206,6 +256,8 @@ CGerberPanelPlacement* CGerberPanel::GetPlacement(CGerberFileSet* pcSet)
 //
 //////////////////////////////////////////////////////////////////////////
 SFloat64Vec2* CGerberPanel::GetSize(void) {return &msSize;}
+float64 CGerberPanel::GetGap(void) {return mfGap;}
+float64 CGerberPanel::GetEdge(void) {return mfEdge;}
 size CGerberPanel::NumPlacements(void) {return macPlacements.NumElements();}
 CGerberPanelPlacement* CGerberPanel::GetPlacement(size uiIndex) {return macPlacements.SafeGet(uiIndex);}
 

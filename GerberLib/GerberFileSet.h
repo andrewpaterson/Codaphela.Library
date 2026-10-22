@@ -2,13 +2,14 @@
 #define __GERBER_FILE_SET_H__
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplatePtr.h"
-#include "BaseLib/Float64Vec2.h"
+#include "SupportLib/Float64Rect.h"
 #include "GerberLayerFile.h"
 #include "GerberDrillFile.h"
 
 
 //The Gerber layer files and Excellon drill files of one board, loaded from one directory.  The set is named after the directory, eg: "Adder 16bit".
 //The outline bounds are the bounding rectangle of the edge cuts layer's centre lines in millimetres, in the Gerber coordinates (y up).
+//msTopLeft is the minimum corner and msBottomRight the maximum, so with y up msTopLeft.y is the bottom of the board.
 class CGerberFileSet
 {
 protected:
@@ -17,8 +18,7 @@ protected:
 	CArrayGerberLayerFilePtr	macLayers;  //Sorted by file name.
 	CArrayGerberDrillFilePtr	macDrills;  //Sorted by file name.
 	bool						mbOutlineBounds;  //False if there is no edge cuts layer or it draws nothing.
-	SFloat64Vec2				msOutlineMinimum;
-	SFloat64Vec2				msOutlineMaximum;
+	CFloat64Rect				mcOutlineBounds;
 
 public:
 	void				Init(void);
@@ -38,9 +38,7 @@ public:
 	CGerberDrillFile*	GetDrill(EGerberDrillPlating ePlating);
 
 	bool				HasOutlineBounds(void);
-	SFloat64Vec2*		GetOutlineMinimum(void);
-	SFloat64Vec2*		GetOutlineMaximum(void);
-	SFloat64Vec2		GetOutlineSize(void);
+	CFloat64Rect*		GetOutlineBounds(void);
 
 protected:
 	bool				CalculateOutlineBounds(void);

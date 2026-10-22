@@ -53,16 +53,26 @@ bool CGerberParser::Init(char* szText, size iTextLen, char* szFileName, CGerberC
 
 	mbInRegion = false;
 
-	mcSymbols.Init(true);
-	mcSymbols.SetOperator("+", CO_Add, 4);
-	mcSymbols.SetOperator("-", CO_Subtract, 4);
-	mcSymbols.SetOperator("x", CO_Multiply, 3);
-	mcSymbols.SetOperator("/", CO_Divide, 2);
-	mcSymbols.SetOperator("=", CO_Assignment, 5);
-	mcSymbols.SetOperator("+", CO_UnaryAdd, 1);
-	mcSymbols.SetOperator("-", CO_UnarySubtract, 1);
+	InitGerberCalculatorSymbols(&mcSymbols);
 
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void InitGerberCalculatorSymbols(CCalculatorSymbols* pcSymbols)
+{
+	pcSymbols->Init(true);
+	pcSymbols->SetOperator("+", CO_Add, 4);
+	pcSymbols->SetOperator("-", CO_Subtract, 4);
+	pcSymbols->SetOperator("x", CO_Multiply, 3);
+	pcSymbols->SetOperator("/", CO_Divide, 2);
+	pcSymbols->SetOperator("=", CO_Assignment, 5);
+	pcSymbols->SetOperator("+", CO_UnaryAdd, 1);
+	pcSymbols->SetOperator("-", CO_UnarySubtract, 1);
 }
 
 

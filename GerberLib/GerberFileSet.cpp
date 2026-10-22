@@ -19,8 +19,7 @@ void CGerberFileSet::Init(void)
 	macLayers.Init();
 	macDrills.Init();
 	mbOutlineBounds = false;
-	msOutlineMinimum.Init(0, 0);
-	msOutlineMaximum.Init(0, 0);
+	mcOutlineBounds.Init();
 }
 
 
@@ -130,8 +129,7 @@ bool CGerberFileSet::CalculateOutlineBounds(void)
 	bool					bResult;
 
 	mbOutlineBounds = false;
-	msOutlineMinimum.Init(0, 0);
-	msOutlineMaximum.Init(0, 0);
+	mcOutlineBounds.Init();
 
 	pcOutline = GetLayer(GBL_Outline, GBS_Both);
 	if (pcOutline == NULL)
@@ -145,7 +143,7 @@ bool CGerberFileSet::CalculateOutlineBounds(void)
 	cInterpreter.Kill();
 	if (bResult)
 	{
-		mbOutlineBounds = cBounds.GetBounds(&msOutlineMinimum, &msOutlineMaximum);
+		mbOutlineBounds = cBounds.GetBounds(&mcOutlineBounds);
 	}
 	else
 	{
@@ -266,19 +264,6 @@ CGerberDrillFile* CGerberFileSet::GetDrill(EGerberDrillPlating ePlating)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat64Vec2 CGerberFileSet::GetOutlineSize(void)
-{
-	SFloat64Vec2	sSize;
-
-	sSize.Init(msOutlineMaximum.x - msOutlineMinimum.x, msOutlineMaximum.y - msOutlineMinimum.y);
-	return sSize;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 char* CGerberFileSet::GetName(void) {return mszName.Text();}
 char* CGerberFileSet::GetDirectory(void) {return mszDirectory.Text();}
 size CGerberFileSet::NumLayers(void) {return macLayers.NumElements();}
@@ -286,6 +271,5 @@ CGerberLayerFile* CGerberFileSet::GetLayer(size uiIndex) {return macLayers.SafeG
 size CGerberFileSet::NumDrills(void) {return macDrills.NumElements();}
 CGerberDrillFile* CGerberFileSet::GetDrill(size uiIndex) {return macDrills.SafeGetPtr(uiIndex);}
 bool CGerberFileSet::HasOutlineBounds(void) {return mbOutlineBounds;}
-SFloat64Vec2* CGerberFileSet::GetOutlineMinimum(void) {return &msOutlineMinimum;}
-SFloat64Vec2* CGerberFileSet::GetOutlineMaximum(void) {return &msOutlineMaximum;}
+CFloat64Rect* CGerberFileSet::GetOutlineBounds(void) {return &mcOutlineBounds;}
 

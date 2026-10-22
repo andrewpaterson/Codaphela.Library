@@ -62,16 +62,16 @@ void CGerberOutlineBounds::Arc(CGerberGraphicsState* pcState, SGerberPoint* psSt
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberOutlineBounds::GetBounds(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum)
+bool CGerberOutlineBounds::GetBounds(CFloat64Rect* pcBounds)
 {
 	mcPath.CalculateBounds();
 	if (!mcPath.HasBounds())
 	{
+		pcBounds->Init();
 		return false;
 	}
 
-	*psMinimum = *mcPath.GetMinimum();
-	*psMaximum = *mcPath.GetMaximum();
+	pcBounds->Init(*mcPath.GetMinimum(), *mcPath.GetMaximum());
 	return true;
 }
 

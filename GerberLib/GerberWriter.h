@@ -22,9 +22,12 @@ public:
 
 	bool	Write(CGerberCommands* pcCommands, CChars* psz);
 
+	//Writes commands one at a time to psz, eg: to join several files.  A format specifier must be written before any coordinates.
+	void	Begin(CChars* psz);
+	bool	WriteCommand(CGerberCommand* pcCommand);
+
 protected:
 	bool	WriteCommands(CGerberCommands* pcCommands);
-	bool	WriteCommand(CGerberCommand* pcCommand);
 	bool	WriteApertureDefine(CGerberCommandApertureDefine* pcDefine);
 	bool	WriteApertureMacro(CGerberCommandApertureMacro* pcMacro);
 	bool	WritePrimitive(CGerberApertureMacro* pcPrimitive);

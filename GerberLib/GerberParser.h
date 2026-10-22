@@ -116,5 +116,9 @@ if (tResult == TRIFALSE || tResult == TRIERROR) ReturnSyntanxError()
 if (tResult == TRIERROR) ReturnSyntanxError()
 
 
+//The aperture macro arithmetic operators.  The symbols must outlive every expression parsed with them.
+void InitGerberCalculatorSymbols(CCalculatorSymbols* pcSymbols);
+
+
 #endif //  __GERBER_PARSER_H__
 

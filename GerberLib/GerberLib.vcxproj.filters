@@ -162,6 +162,24 @@
     <ClCompile Include="GerberPanel.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
+    <ClCompile Include="GerberLayerMerger.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ExcellonDrillMerger.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberPanelOutlines.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberPanelTabs.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberPanelEdgeCuts.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberPanelFiles.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
     <ClCompile Include="GerberCommandFileAttribute.cpp">
       <Filter>Source\Common\Command</Filter>
     </ClCompile>
@@ -384,6 +402,24 @@
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="GerberPanel.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberLayerMerger.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ExcellonDrillMerger.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberPanelOutlines.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberPanelTabs.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberPanelEdgeCuts.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberPanelFiles.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="GerberBoardSide.h">

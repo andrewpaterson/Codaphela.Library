@@ -2,6 +2,8 @@
 #define __GERBER_PANEL_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Float64Vec2.h"
+#include "BaseLib/Number.h"
+#include "SupportLib/Float64Rect.h"
 #include "GerberFileSets.h"
 
 
@@ -13,11 +15,13 @@ public:
 	CGerberFileSet*		mpcSet;
 	bool				mbRotated;
 	SFloat64Vec2		msOffset;
-	SFloat64Vec2		msMinimum;  //The board's rounded outline bounds on the panel.
-	SFloat64Vec2		msMaximum;
+	int32				miOffsetX;  //msOffset in whole micrometres, exact.
+	int32				miOffsetY;
+	CFloat64Rect		mcBounds;  //The board's rounded outline bounds on the panel.  msTopLeft is the minimum corner.
 
 	void	Init(CGerberFileSet* pcSet);
 	void	Place(SFloat64Vec2* psPoint, SFloat64Vec2* psDest);
+	void	GetOffset(CNumber* pcX, CNumber* pcY);  //Exact millimetres.
 };
 
 
@@ -44,6 +48,8 @@ public:
 	bool					Pack(CGerberFileSets* pcSets);
 
 	SFloat64Vec2*			GetSize(void);
+	float64					GetGap(void);
+	float64					GetEdge(void);
 	size					NumPlacements(void);
 	CGerberPanelPlacement*	GetPlacement(size uiIndex);
 	CGerberPanelPlacement*	GetPlacement(CGerberFileSet* pcSet);
@@ -52,6 +58,9 @@ protected:
 	void					GetMicrometreBounds(CGerberFileSet* pcSet, int32* piLeft, int32* piBottom, int32* piRight, int32* piTop);
 	int32					ToMicrometres(float64 fMillimetres);
 };
+
+
+void MillimetresToNumber(float64 fMillimetres, CNumber* pcNumber);  //Rounded to the nanometre.
 
 
 #endif // __GERBER_PANEL_H__

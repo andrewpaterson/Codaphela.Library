@@ -58,6 +58,12 @@
     <ClCompile Include="GerberFileSets.cpp" />
     <ClCompile Include="GerberOutlineBounds.cpp" />
     <ClCompile Include="GerberPanel.cpp" />
+    <ClCompile Include="GerberLayerMerger.cpp" />
+    <ClCompile Include="ExcellonDrillMerger.cpp" />
+    <ClCompile Include="GerberPanelOutlines.cpp" />
+    <ClCompile Include="GerberPanelTabs.cpp" />
+    <ClCompile Include="GerberPanelEdgeCuts.cpp" />
+    <ClCompile Include="GerberPanelFiles.cpp" />
     <ClCompile Include="GerberCommandFileAttribute.cpp" />
     <ClCompile Include="GerberExpression.cpp" />
     <ClCompile Include="GerberExpressionPosition.cpp" />
@@ -115,6 +121,12 @@
     <ClInclude Include="GerberFileSets.h" />
     <ClInclude Include="GerberOutlineBounds.h" />
     <ClInclude Include="GerberPanel.h" />
+    <ClInclude Include="GerberLayerMerger.h" />
+    <ClInclude Include="ExcellonDrillMerger.h" />
+    <ClInclude Include="GerberPanelOutlines.h" />
+    <ClInclude Include="GerberPanelTabs.h" />
+    <ClInclude Include="GerberPanelEdgeCuts.h" />
+    <ClInclude Include="GerberPanelFiles.h" />
     <ClInclude Include="GerberCommand.h" />
     <ClInclude Include="GerberCommandApertureAttribute.h" />
     <ClInclude Include="GerberCommandApertureMacro.h" />
