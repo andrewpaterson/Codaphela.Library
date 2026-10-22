@@ -55,8 +55,9 @@ friend class CPointer;
 CONSTRUCTABLE(CEmbeddedObject)
 protected:
 	CBaseObject*								mpcEmbedded;    //Object that 'this' is embedded in.
-	CArrayTemplateEmbeddedPtr<CBaseObject, 6>		mapHeapFroms;   //Objects on the heap that 'this' is pointed to from.  This is a BaseOject not an EmbeddedObject because HollowEmbeddedObjects cannot point to anything.
-																//Heap froms are an in memory only concept with the exception that the closest from to the root is persistent.
+	CArrayTemplateEmbeddedPtr<CBaseObject, 4>		mapHeapFromObjects;		//Objects (not Collections) on the heap that 'this' is pointed to from.  This is a BaseOject not an EmbeddedObject because HollowEmbeddedObjects cannot point to anything.
+																		//Heap froms are an in memory only concept with the exception that the closest from to the root is persistent.
+	CArrayTemplateEmbeddedPtr<CBaseObject, 2>		mapHeapFromCollections;	//Collections on the heap that 'this' is pointed to from.  NumHeapFroms and GetHeapFrom see the Objects first, then the Collections.
 	CStackPointer*								mpcStackFroms;  //Objects on the stack that 'this' is pointed to from.  
 
 public:
@@ -167,6 +168,7 @@ protected:
 	virtual void				RemoveAllHeapFroms(void);
 	virtual void				RemoveAllStackFroms(void);
 			bool				PrivateRemoveHeapFrom(CBaseObject* pcFrom);
+			CArrayTemplateEmbeddedPtr<CBaseObject, 6>*	GetHeapFromsArray(CBaseObject* pcFrom);
 	virtual void				GetStackFroms(CArrayStackPointerE32* papcFroms);
 	virtual void				GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms);
 			CStackPointers*		GetStackPointers(void);
