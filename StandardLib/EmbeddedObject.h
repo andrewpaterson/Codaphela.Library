@@ -168,7 +168,6 @@ protected:
 	virtual void				RemoveAllHeapFroms(void);
 	virtual void				RemoveAllStackFroms(void);
 			bool				PrivateRemoveHeapFrom(CBaseObject* pcFrom);
-			CArrayTemplateEmbeddedPtr<CBaseObject, 6>*	GetHeapFromsArray(CBaseObject* pcFrom);
 	virtual void				GetStackFroms(CArrayStackPointerE32* papcFroms);
 	virtual void				GetHeapFroms(CArrayBaseObjectPtrE32* papcFroms);
 			CStackPointers*		GetStackPointers(void);

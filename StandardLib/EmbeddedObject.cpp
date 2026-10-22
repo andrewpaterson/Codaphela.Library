@@ -346,29 +346,19 @@ void CEmbeddedObject::ValidateObjectsConsistency(bool bValidate)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::AddHeapPointer(CBaseObject* pcFromObject)
-{
-	GetHeapFromsArray(pcFromObject)->Add(pcFromObject);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A from goes in the Collection or the Object array depending on what it is.
 // Froms are only added for real Objects; HollowObjects cannot point to anything.
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayTemplateEmbeddedPtr<CBaseObject, 6>* CEmbeddedObject::GetHeapFromsArray(CBaseObject* pcFrom)
+void CEmbeddedObject::AddHeapPointer(CBaseObject* pcFromObject)
 {
-	if (pcFrom->IsCollection())
+	if (pcFromObject->IsCollection())
 	{
-		return &mapHeapFromCollections;
+		mapHeapFromCollections.Add(pcFromObject);
 	}
 	else
 	{
-		return &mapHeapFromObjects;
+		mapHeapFromObjects.Add(pcFromObject);
 	}
 }
 
@@ -474,7 +464,14 @@ EFreeResult CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject, bo
 //////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::PrivateRemoveHeapFrom(CBaseObject* pcFrom)
 {
-	return GetHeapFromsArray(pcFrom)->Remove(&pcFrom, false);
+	if (pcFrom->IsCollection())
+	{
+		return mapHeapFromCollections.Remove(&pcFrom, false);
+	}
+	else
+	{
+		return mapHeapFromObjects.Remove(&pcFrom, false);
+	}
 }
 
 
