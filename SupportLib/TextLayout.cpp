@@ -46,6 +46,7 @@ void CTextLayout::Class(void)
 	U_Pointer(mpcDraw);
 	U_Data(CArrayTextLayoutGlyph, masWord);
 	U_Data(CArrayTextLayoutLineGlyph, masLine);
+	U_Data(STextLayoutRunStyle, msRunStyle);
 	U_Int32(miWordWidth);
 
 }
@@ -110,6 +111,10 @@ void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 	masLine.Init();
 	miWordWidth = 0;
 	pcFont = NULL;
+	msRunStyle.pcFont = NULL;
+	msRunStyle.iBaselineShift = 0;
+	msRunStyle.uiDecorations = 0;
+	msRunStyle.sDecorationColour = 0;
 	uiNumRuns = pText->NumRuns();
 	for (uiRunIndex = 0; uiRunIndex < uiNumRuns; uiRunIndex++)
 	{
@@ -118,6 +123,10 @@ void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 		//A run moved up reaches higher above the baseline and less far below it.
 		miFontAscent = pcFont->GetAscent() + pcRun->GetBaselineShift();
 		miFontDescent = pcFont->GetDescent() - pcRun->GetBaselineShift();
+		msRunStyle.pcFont = pcFont;
+		msRunStyle.iBaselineShift = pcRun->GetBaselineShift();
+		msRunStyle.uiDecorations = pcRun->GetDecorations();
+		msRunStyle.sDecorationColour = pcRun->GetDecorationColour();
 		uiNumElements = pcRun->NumElements();
 		for (uiElementIndex = 0; uiElementIndex < uiNumElements; uiElementIndex++)
 		{
@@ -275,14 +284,14 @@ void CTextLayout::Glyph(Ptr<CGlyph> pGlyph, bool bSpace)
 	{
 		if (miWidth < 0)
 		{
-			PlaceGlyph(pGlyph, miFontAscent, miFontDescent, true);
+			PlaceGlyph(pGlyph, miFontAscent, miFontDescent, true, bSpace, &msRunStyle);
 		}
 		else if (bSpace)
 		{
 			EndWord();
 
 			//Spaces at the end of a line don't make the text any wider.
-			PlaceGlyph(pGlyph, miFontAscent, miFontDescent, false);
+			PlaceGlyph(pGlyph, miFontAscent, miFontDescent, false, true, &msRunStyle);
 		}
 		else
 		{
@@ -290,6 +299,7 @@ void CTextLayout::Glyph(Ptr<CGlyph> pGlyph, bool bSpace)
 			psWordGlyph->pcGlyph = &pGlyph;
 			psWordGlyph->iAscent = miFontAscent;
 			psWordGlyph->iDescent = miFontDescent;
+			psWordGlyph->sStyle = msRunStyle;
 			miWordWidth += pGlyph->GetFullWidth();
 		}
 	}
@@ -329,7 +339,7 @@ void CTextLayout::EndWord(void)
 		{
 			NewLine();
 		}
-		PlaceGlyph(pGlyph, psWordGlyph->iAscent, psWordGlyph->iDescent, true);
+		PlaceGlyph(pGlyph, psWordGlyph->iAscent, psWordGlyph->iDescent, true, false, &psWordGlyph->sStyle);
 	}
 
 	masWord.ReInit();
@@ -341,7 +351,7 @@ void CTextLayout::EndWord(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextLayout::PlaceGlyph(Ptr<CGlyph> pGlyph, int16 iAscent, int16 iDescent, bool bSize)
+void CTextLayout::PlaceGlyph(Ptr<CGlyph> pGlyph, int16 iAscent, int16 iDescent, bool bSize, bool bSpace, STextLayoutRunStyle* psStyle)
 {
 	STextLayoutLineGlyph*	psLineGlyph;
 
@@ -349,6 +359,8 @@ void CTextLayout::PlaceGlyph(Ptr<CGlyph> pGlyph, int16 iAscent, int16 iDescent, 
 	psLineGlyph->pcGlyph = &pGlyph;
 	psLineGlyph->x = msPosition.x;
 	psLineGlyph->iAscent = iAscent;
+	psLineGlyph->bSpace = bSpace;
+	psLineGlyph->sStyle = *psStyle;
 
 	msPosition.x += pGlyph->GetFullWidth();
 	if (bSize && (msPosition.x > msSize.x))
@@ -393,7 +405,118 @@ void CTextLayout::EndLine(void)
 		pGlyph = psLineGlyph->pcGlyph;
 		mpcDraw->Place(pGlyph, psLineGlyph->x, iBaseline - psLineGlyph->iAscent);
 	}
+	DecorateLine(iBaseline);
 	masLine.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each underlined, overlined or struck through stretch of glyphs on the
+// line gets one line.  Spaces at the end of the line aren't decorated.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextLayout::DecorateLine(int32 iBaseline)
+{
+	uint8	auiDecorations[3] = { TD_Underline, TD_Overline, TD_Strikethrough };
+	size	uiEnd;
+	size	ui;
+	size	uiFirst;
+	size	uiDecoration;
+	uint8	uiFlag;
+
+	uiEnd = masLine.NumElements();
+	while ((uiEnd > 0) && masLine.Get(uiEnd - 1)->bSpace)
+	{
+		uiEnd--;
+	}
+
+	for (uiDecoration = 0; uiDecoration < 3; uiDecoration++)
+	{
+		uiFlag = auiDecorations[uiDecoration];
+		ui = 0;
+		while (ui < uiEnd)
+		{
+			if (masLine.Get(ui)->sStyle.uiDecorations & uiFlag)
+			{
+				uiFirst = ui;
+				while ((ui < uiEnd) && (masLine.Get(ui)->sStyle.uiDecorations & uiFlag))
+				{
+					ui++;
+				}
+				DecorateStretch(uiFlag, iBaseline, uiFirst, ui);
+			}
+			else
+			{
+				ui++;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The line along glyphs uiFirst to uiEnd (exclusive) is placed and as
+// thick as the largest font among them says, moved with that font's
+// baseline shift, so a stretch in mixed sizes has one straight line.  It
+// is drawn in each glyph's decoration colour.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextLayout::DecorateStretch(uint8 uiDecoration, int32 iBaseline, size uiFirst, size uiEnd)
+{
+	STextLayoutLineGlyph*	psLargest;
+	STextLayoutLineGlyph*	psLineGlyph;
+	STextLayoutLineGlyph*	psLast;
+	Ptr<CFontDescription>	pDescription;
+	size					ui;
+	size					uiColourStart;
+	int32					iShiftedBaseline;
+	int32					y;
+	int32					iThickness;
+	ARGB32					sColour;
+
+	psLargest = masLine.Get(uiFirst);
+	for (ui = uiFirst + 1; ui < uiEnd; ui++)
+	{
+		psLineGlyph = masLine.Get(ui);
+		if (psLineGlyph->sStyle.pcFont->GetLineHeight() > psLargest->sStyle.pcFont->GetLineHeight())
+		{
+			psLargest = psLineGlyph;
+		}
+	}
+
+	pDescription = psLargest->sStyle.pcFont->GetDescription();
+	iShiftedBaseline = iBaseline - psLargest->sStyle.iBaselineShift;
+	if (uiDecoration == TD_Underline)
+	{
+		y = iShiftedBaseline + pDescription->GetUnderlineTop();
+		iThickness = pDescription->GetUnderlineThickness();
+	}
+	else if (uiDecoration == TD_Overline)
+	{
+		y = iShiftedBaseline - pDescription->GetAscent();
+		iThickness = pDescription->GetUnderlineThickness();
+	}
+	else
+	{
+		y = iShiftedBaseline + pDescription->GetStrikeoutTop();
+		iThickness = pDescription->GetStrikeoutThickness();
+	}
+
+	ui = uiFirst;
+	while (ui < uiEnd)
+	{
+		uiColourStart = ui;
+		sColour = masLine.Get(ui)->sStyle.sDecorationColour;
+		while ((ui < uiEnd) && (masLine.Get(ui)->sStyle.sDecorationColour == sColour))
+		{
+			ui++;
+		}
+		psLineGlyph = masLine.Get(uiColourStart);
+		psLast = masLine.Get(ui - 1);
+		mpcDraw->Rectangle(psLineGlyph->x, y, psLast->x + psLast->pcGlyph->GetFullWidth() - psLineGlyph->x, iThickness, sColour);
+	}
 }
 
 

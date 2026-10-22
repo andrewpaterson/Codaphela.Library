@@ -51,9 +51,11 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CFontFamily> pFamily, const char*
 	mpText = NULL;
 	mpLayout = OMalloc<CTextLayout>();
 	mpSpriteMap = OMalloc<CSpriteMap>();
-	mpFontDraw = OMalloc<CMapFontDraw>(mpSpriteMap);
+	mpGeometryMap = OMalloc<CGeometryMap>();
+	mpFontDraw = OMalloc<CMapFontDraw>(mpSpriteMap, mpGeometryMap);
 	mpMaps = OMalloc<CMaps>();
 	mpMaps->AddMap(mpSpriteMap);
+	mpMaps->AddMap(mpGeometryMap);
 	mpMaps->SetViewportPosition(0, 0);
 	mbWordWrap = false;
 	msTextSize.Init(0, 0);
@@ -99,6 +101,7 @@ void CTextArea::Class(void)
 	M_Pointer(mpText);
 	M_Pointer(mpLayout);
 	M_Pointer(mpSpriteMap);
+	M_Pointer(mpGeometryMap);
 	M_Pointer(mpFontDraw);
 	M_Pointer(mpMaps);
 	U_Bool(mbWordWrap);
@@ -472,11 +475,11 @@ void CTextArea::ReadText(void)
 		return;
 	}
 
-	//The reader's font has no baseline shift so a superscript or subscript style needs a change at the start.
+	//The reader's font has no baseline shift or decorations so a style with them needs a change at the start.
 	asChanges.Init();
-	if (iBaselineShift != 0)
+	if ((iBaselineShift != 0) || (msStyle.GetDecorations() != 0))
 	{
-		asChanges.Add()->Init(0, &pFont, iBaselineShift);
+		asChanges.Add()->Init(0, &pFont, iBaselineShift, msStyle.GetDecorations(), msStyle.sColour);
 	}
 	MakeFontChanges(&asChanges, pFont, iBaselineShift);
 
@@ -542,7 +545,7 @@ void CTextArea::MakeFontChanges(CArrayTextFontChange* pasChanges, Ptr<CFont> pDe
 				pFont = pDefaultFont;
 				iBaselineShift = iDefaultBaselineShift;
 			}
-			pasChanges->Add()->Init(uiPosition, &pFont, iBaselineShift);
+			pasChanges->Add()->Init(uiPosition, &pFont, iBaselineShift, psStyles[uiPosition].GetDecorations(), psStyles[uiPosition].sColour);
 			psCurrent = &psStyles[uiPosition];
 		}
 	}

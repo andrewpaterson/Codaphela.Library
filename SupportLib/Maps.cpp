@@ -116,7 +116,8 @@ void CMaps::SetCacheAndViewport(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> p
 	size			uiNumElements;
 	size			ui;
 	bool			bChanged;
-	Ptr<CBlockMap>	pMap;
+	Ptr<CBaseMap>	pMap;
+	CBlockMap*		pcBlockMap;
 
 	//Blitters are tied to the cache and viewport they were made for so they must be remade if either changes.
 	bChanged = (mpCache != pCache) || (mpViewport != pViewport);
@@ -127,12 +128,16 @@ void CMaps::SetCacheAndViewport(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> p
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
 		pMap = maMaps.Get(ui);
-		if (bChanged)
+		pcBlockMap = pMap->GetBlockMap();
+		if (bChanged && pcBlockMap)
 		{
-			pMap->ClearCelBlitters();
+			pcBlockMap->ClearCelBlitters();
 		}
 		pMap->SetViewport(mpViewport);
-		pMap->SetBlitterCache(mpCache);
+		if (pcBlockMap)
+		{
+			pcBlockMap->SetBlitterCache(mpCache);
+		}
 	}
 }
 
@@ -141,11 +146,17 @@ void CMaps::SetCacheAndViewport(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMaps::AddMap(Ptr<CBlockMap> pMap)
+void CMaps::AddMap(Ptr<CBaseMap> pMap)
 {
+	CBlockMap*	pcBlockMap;
+
 	maMaps.Add(pMap);
 	pMap->SetViewport(mpViewport);
-	pMap->SetBlitterCache(mpCache);
+	pcBlockMap = pMap->GetBlockMap();
+	if (pcBlockMap)
+	{
+		pcBlockMap->SetBlitterCache(mpCache);
+	}
 }
 
 
@@ -187,7 +198,7 @@ bool CMaps::Blit(bool bEnsureBlitters)
 {
 	size			uiNumElements;
 	size			ui;
-	Ptr<CBlockMap>	pMap;
+	Ptr<CBaseMap>	pMap;
 	CInt32Rect		cRect;
 	SInt32Vec2		sBottomRight;
 	bool			bResult;
@@ -216,16 +227,16 @@ bool CMaps::HasCelBlitters(void)
 {
 	size			uiNumElements;
 	size			ui;
-	Ptr<CBlockMap>	pMap;
+	CBlockMap*		pcBlockMap;
 	bool			bResult;
 
 	uiNumElements = maMaps.NumElements();
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
-		pMap = maMaps.Get(ui);
-		if (pMap->UsesCelBlitters())
+		pcBlockMap = maMaps.Get(ui)->GetBlockMap();
+		if (pcBlockMap && pcBlockMap->UsesCelBlitters())
 		{
-			bResult = pMap->HasCelBlitters();
+			bResult = pcBlockMap->HasCelBlitters();
 			if (!bResult)
 			{
 				return false;
@@ -244,16 +255,16 @@ bool CMaps::CreateCelBlitters(void)
 {
 	size			uiNumElements;
 	size			ui;
-	Ptr<CBlockMap>	pMap;
+	CBlockMap*		pcBlockMap;
 	bool			bResult;
 
 	uiNumElements = maMaps.NumElements();
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
-		pMap = maMaps.Get(ui);
-		if (pMap->UsesCelBlitters())
+		pcBlockMap = maMaps.Get(ui)->GetBlockMap();
+		if (pcBlockMap && pcBlockMap->UsesCelBlitters())
 		{
-			bResult = pMap->CreateCelBlitters();
+			bResult = pcBlockMap->CreateCelBlitters();
 			if (!bResult)
 			{
 				return false;

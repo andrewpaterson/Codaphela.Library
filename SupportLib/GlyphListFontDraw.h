@@ -29,12 +29,27 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseFontDraw.h"
 
 
+//A rectangle drawn with the glyphs, such as an underline.
+struct STextDrawRectangle
+{
+	int32	x;
+	int32	y;
+	int32	iWidth;
+	int32	iHeight;
+	ARGB32	sColour;
+};
+
+
+typedef CArrayTemplate<STextDrawRectangle>	CArrayTextDrawRectangle;
+
+
 class CGlyphListFontDraw : public CBaseFontDraw
 {
 CONSTRUCTABLE(CGlyphListFontDraw);
 DESTRUCTABLE(CGlyphListFontDraw);
 protected:
 	CArrayGlyphPosition		masGlyphs;
+	CArrayTextDrawRectangle	masRectangles;
 
 public:
 	void					Init(void);
@@ -46,9 +61,11 @@ public:
 
 	void					Begin(void) override;
 	void					Place(Ptr<CGlyph> pGlyph, int32 x, int32 y) override;
+	void					Rectangle(int32 x, int32 y, int32 iWidth, int32 iHeight, ARGB32 sColour) override;
 	void					End(void) override;
 
 	CArrayGlyphPosition*	GetGlyphs(void);
+	CArrayTextDrawRectangle*	GetRectangles(void);
 };
 
 

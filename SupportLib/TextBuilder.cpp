@@ -13,6 +13,8 @@ void CTextBuilder::Init(CUnicodeReader* pcUTF, CText* pcText, CFont* pcFont)
 	mpcCommon = NULL;
 	mpcRun = NULL;
 	miBaselineShift = 0;
+	muiDecorations = 0;
+	msDecorationColour = 0;
 }
 
 
@@ -268,15 +270,16 @@ bool CTextBuilder::PushNewLine(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Text pushed after this is in pcFont with its baseline iBaselineShift
-// pixels up.  A different font or shift ends the current run; the next
-// text starts a new run.
+// pixels up, decorated with uiDecorations (TD_ flags) in
+// sDecorationColour.  A change to any of them ends the current run; the
+// next text starts a new run.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextBuilder::SetFont(CFont* pcFont, int16 iBaselineShift)
+bool CTextBuilder::SetFont(CFont* pcFont, int16 iBaselineShift, uint8 uiDecorations, ARGB32 sDecorationColour)
 {
 	bool	bResult;
 
-	if ((pcFont == mpcFont) && (iBaselineShift == miBaselineShift))
+	if ((pcFont == mpcFont) && (iBaselineShift == miBaselineShift) && (uiDecorations == muiDecorations) && (sDecorationColour == msDecorationColour))
 	{
 		return true;
 	}
@@ -296,6 +299,8 @@ bool CTextBuilder::SetFont(CFont* pcFont, int16 iBaselineShift)
 	}
 	mpcFont = pcFont;
 	miBaselineShift = iBaselineShift;
+	muiDecorations = uiDecorations;
+	msDecorationColour = sDecorationColour;
 	return true;
 }
 
@@ -338,6 +343,7 @@ bool CTextBuilder::EnsureRun(void)
 		if (mpcRun)
 		{
 			mpcRun->SetBaselineShift(miBaselineShift);
+			mpcRun->SetDecorations(muiDecorations, msDecorationColour);
 			mpcRun->Start();
 			return true;
 		}

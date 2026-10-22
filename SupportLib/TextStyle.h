@@ -37,6 +37,12 @@ enum EFontStyle
 #define NUM_FONT_STYLES		4
 
 
+//Lines drawn along text in its colour.  Bit flags.
+#define TD_Underline		0x01
+#define TD_Overline			0x02
+#define TD_Strikethrough	0x04
+
+
 //Where text sits: on the baseline, or smaller and raised or lowered.
 enum ETextPosition
 {
@@ -54,10 +60,14 @@ struct STextStyle
 	float32		fPixelSize;	//The height of an em in pixels.  0 for the font family's default size.
 	ARGB32		sColour;
 	ETextPosition	ePosition;	//Superscript and subscript are made smaller than fPixelSize by the font.
+	bool		bUnderline;
+	bool		bOverline;
+	bool		bStrikethrough;
 
 	void		Init(void);
 	void		Init(bool bBold, bool bItalic, float32 fPixelSize, ARGB32 sColour);
 	EFontStyle	GetFontStyle(void);
+	uint8		GetDecorations(void);
 	bool		Equals(STextStyle* psOther);
 	bool		EqualsFont(STextStyle* psOther);
 };
@@ -67,7 +77,10 @@ struct STextStyle
 #define TSO_Bold		0x02
 #define TSO_Italic		0x04
 #define TSO_PixelSize	0x08
-#define TSO_Position	0x10
+#define TSO_Position		0x10
+#define TSO_Underline		0x20
+#define TSO_Overline		0x40
+#define TSO_Strikethrough	0x80
 
 
 //Changes to a text style: only the properties whose TSO_ bit is in uiSet are changed.  Overrides applied one after
@@ -83,6 +96,9 @@ struct STextStyleOverride
 	void		SetItalic(bool bItalic);
 	void		SetPixelSize(float32 fPixelSize);
 	void		SetPosition(ETextPosition ePosition);
+	void		SetUnderline(bool bUnderline);
+	void		SetOverline(bool bOverline);
+	void		SetStrikethrough(bool bStrikethrough);
 	void		ApplyTo(STextStyle* psStyle);
 	bool		ChangesFont(void);
 };

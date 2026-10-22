@@ -26,27 +26,24 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/Object.h"
 #include "StandardLib/Array.h"
 #include "ImageCelBlitterCache.h"
+#include "BaseMap.h"
 
 
-class CBlockMap : public CObject
+//A map of cels drawn with blitters made for its viewport and kept in a blitter cache.
+class CBlockMap : public CBaseMap
 {
 CONSTRUCTABLE(CBlockMap);
 DESTRUCTABLE(CBlockMap);
-protected:
-	bool		mbActive;
-
 public:
-			void	Init(void);
-			void 	Free(void) override;
-			void	Class(void) override;
+			void		Init(void);
+			void 		Free(void) override;
+			void		Class(void) override;
 
-			bool	Save(CObjectWriter* pcFile) override;
-			bool	Load(CObjectReader* pcFile) override;
+			bool		Save(CObjectWriter* pcFile) override;
+			bool		Load(CObjectReader* pcFile) override;
 
-	virtual	void	Activate(void);
-	virtual	void	Deactivate(void);
+			CBlockMap*	GetBlockMap(void) override;
 
-	virtual bool	Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters) =0;
 	virtual bool	CreateCelBlitters(void) =0;
 	virtual bool	HasCelBlitters(void) =0;
 	virtual bool	UsesCelBlitters(void) =0;
@@ -55,11 +52,7 @@ public:
 	virtual	void	TileMapAbstract(void) =0;
 
 	virtual	void	SetBlitterCache(Ptr<CImageCelBlitterCache> pCache) =0;
-	virtual	void	SetViewport(Ptr<CImage> pViewport) =0;
 };
-
-
-typedef CArray<CBlockMap>	CArrayTileMap;
 
 
 #endif // __BLOCK_MAP_H__

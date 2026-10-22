@@ -13,6 +13,7 @@ void CGlyphListFontDraw::Init(void)
 
 	CBaseFontDraw::Init();
 	masGlyphs.Init();
+	masRectangles.Init();
 
 	PostInit();
 }
@@ -25,6 +26,7 @@ void CGlyphListFontDraw::Init(void)
 void CGlyphListFontDraw::Class(void)
 {
 	U_Data(CArrayGlyphPosition, masGlyphs);
+	U_Data(CArrayTextDrawRectangle, masRectangles);
 }
 
 
@@ -34,6 +36,7 @@ void CGlyphListFontDraw::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CGlyphListFontDraw::Free(void)
 {
+	masRectangles.Kill();
 	masGlyphs.Kill();
 	CBaseFontDraw::Free();
 }
@@ -66,6 +69,7 @@ bool CGlyphListFontDraw::Load(CObjectReader* pcFile)
 void CGlyphListFontDraw::Begin(void)
 {
 	masGlyphs.ReInit();
+	masRectangles.ReInit();
 }
 
 
@@ -81,6 +85,26 @@ void CGlyphListFontDraw::Place(Ptr<CGlyph> pGlyph, int32 x, int32 y)
 	psGlyphPosition->pcGlyph = &pGlyph;
 	psGlyphPosition->sPosition.Init(x, y);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CGlyphListFontDraw::Rectangle(int32 x, int32 y, int32 iWidth, int32 iHeight, ARGB32 sColour)
+{
+	STextDrawRectangle*	psRectangle;
+
+	psRectangle = masRectangles.Add();
+	psRectangle->x = x;
+	psRectangle->y = y;
+	psRectangle->iWidth = iWidth;
+	psRectangle->iHeight = iHeight;
+	psRectangle->sColour = sColour;
+}
+
+
+CArrayTextDrawRectangle* CGlyphListFontDraw::GetRectangles(void) { return &masRectangles; }
 
 
 //////////////////////////////////////////////////////////////////////////

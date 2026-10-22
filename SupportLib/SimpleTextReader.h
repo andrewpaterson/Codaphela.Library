@@ -30,14 +30,17 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 
 //From uiPosition (in the reader's units, bytes for UTF8) the text is in pcFont with its baseline iBaselineShift
-//pixels up (down if negative), as superscript and subscript are.
+//pixels up (down if negative), as superscript and subscript are, and decorated with uiDecorations (TD_ flags) in
+//sDecorationColour.
 struct STextFontChange
 {
 	size	uiPosition;
 	CFont*	pcFont;
 	int16	iBaselineShift;
+	uint8	uiDecorations;
+	ARGB32	sDecorationColour;
 
-	void	Init(size uiPosition, CFont* pcFont, int16 iBaselineShift = 0);
+	void	Init(size uiPosition, CFont* pcFont, int16 iBaselineShift = 0, uint8 uiDecorations = 0, ARGB32 sDecorationColour = 0);
 };
 
 

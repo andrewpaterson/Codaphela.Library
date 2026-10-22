@@ -43,6 +43,9 @@ void STextStyle::Init(bool bBold, bool bItalic, float32 fPixelSize, ARGB32 sColo
 	this->fPixelSize = fPixelSize;
 	this->sColour = sColour;
 	ePosition = TP_Normal;
+	bUnderline = false;
+	bOverline = false;
+	bStrikethrough = false;
 }
 
 
@@ -62,14 +65,25 @@ EFontStyle STextStyle::GetFontStyle(void)
 //////////////////////////////////////////////////////////////////////////
 bool STextStyle::Equals(STextStyle* psOther)
 {
-	return EqualsFont(psOther) && (sColour == psOther->sColour);
+	return EqualsFont(psOther) && (sColour == psOther->sColour) && (bUnderline == psOther->bUnderline) && (bOverline == psOther->bOverline) && (bStrikethrough == psOther->bStrikethrough);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// TD_ flags.
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 STextStyle::GetDecorations(void)
+{
+	return (bUnderline ? TD_Underline : 0) | (bOverline ? TD_Overline : 0) | (bStrikethrough ? TD_Strikethrough : 0);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // True if the styles use the same face, size and position, whatever their
-// colours.
+// colours and decorations.
 //
 //////////////////////////////////////////////////////////////////////////
 bool STextStyle::EqualsFont(STextStyle* psOther)
@@ -149,6 +163,39 @@ void STextStyleOverride::SetPosition(ETextPosition ePosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void STextStyleOverride::SetUnderline(bool bUnderline)
+{
+	sStyle.bUnderline = bUnderline;
+	uiSet |= TSO_Underline;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void STextStyleOverride::SetOverline(bool bOverline)
+{
+	sStyle.bOverline = bOverline;
+	uiSet |= TSO_Overline;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void STextStyleOverride::SetStrikethrough(bool bStrikethrough)
+{
+	sStyle.bStrikethrough = bStrikethrough;
+	uiSet |= TSO_Strikethrough;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void STextStyleOverride::ApplyTo(STextStyle* psStyle)
 {
 	if (uiSet & TSO_Colour)
@@ -171,17 +218,29 @@ void STextStyleOverride::ApplyTo(STextStyle* psStyle)
 	{
 		psStyle->ePosition = sStyle.ePosition;
 	}
+	if (uiSet & TSO_Underline)
+	{
+		psStyle->bUnderline = sStyle.bUnderline;
+	}
+	if (uiSet & TSO_Overline)
+	{
+		psStyle->bOverline = sStyle.bOverline;
+	}
+	if (uiSet & TSO_Strikethrough)
+	{
+		psStyle->bStrikethrough = sStyle.bStrikethrough;
+	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // True if the override can change which font is used, and so the size of
-// the text.  A colour alone only changes the font's colour.
+// the text.  Colours and decorations don't.
 //
 //////////////////////////////////////////////////////////////////////////
 bool STextStyleOverride::ChangesFont(void)
 {
-	return (uiSet & ~TSO_Colour) != 0;
+	return (uiSet & (TSO_Bold | TSO_Italic | TSO_PixelSize | TSO_Position)) != 0;
 }
 

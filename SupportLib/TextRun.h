@@ -26,6 +26,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ObjectReader.h"
 #include "StandardLib/ObjectWriter.h"
 #include "Font.h"
+#include "ColourARGB32.h"
+#include "TextStyle.h"
 #include "TextDrawable.h"
 
 
@@ -38,6 +40,8 @@ protected:
 	CText*					mpcText;  //Ditto Ptr<CText>
 	CArrayTextElementPtr	mapcText;
 	int16					miBaselineShift;  //Pixels up, for superscript.  Down if negative, for subscript.
+	uint8					muiDecorations;   //TD_ flags.
+	ARGB32					msDecorationColour;
 
 public:
 	void			Init(CFont* mpcFont, CText* pcText);
@@ -54,6 +58,9 @@ public:
 	CFont*			GetFont(void);
 	void			SetBaselineShift(int16 iBaselineShift);
 	int16			GetBaselineShift(void);
+	void			SetDecorations(uint8 uiDecorations, ARGB32 sColour);
+	uint8			GetDecorations(void);
+	ARGB32			GetDecorationColour(void);
 	size			NumElements(void);
 	CTextElement*	GetElement(size uiIndex);
 };

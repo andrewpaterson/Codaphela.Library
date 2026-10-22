@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __MAPS_H__
 #include "StandardLib/Object.h"
 #include "StandardLib/Array.h"
+#include "BaseMap.h"
 #include "TileMap.h"
 #include "SpriteMap.h"
 
@@ -34,7 +35,7 @@ class CMaps : public CObject
 CONSTRUCTABLE(CMaps);
 DESTRUCTABLE(CMaps);
 protected:
-	CArrayTileMap				maMaps;
+	CArrayBaseMap				maMaps;
 	SInt32Vec2					msViewportPosition;
 	Ptr<CImageCelBlitterCache>	mpCache;
 	Ptr<CImage>					mpViewport;
@@ -51,7 +52,7 @@ public:
 	void		SetCacheAndViewport(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport);
 	SInt32Vec2	GetViewportPosition(void);
 
-	void		AddMap(Ptr<CBlockMap> pMap);
+	void		AddMap(Ptr<CBaseMap> pMap);
 
 	bool		Blit(bool bEnsureBlitters);
 	bool		CreateCelBlitters(void);

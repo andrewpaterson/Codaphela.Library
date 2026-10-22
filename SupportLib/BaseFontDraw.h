@@ -41,6 +41,7 @@ public:
 
 	virtual void	Begin(void) =0;
 	virtual void	Place(Ptr<CGlyph> pGlyph, int32 x, int32 y) =0;
+	virtual void	Rectangle(int32 x, int32 y, int32 iWidth, int32 iHeight, ARGB32 sColour) =0;
 	virtual void	End(void) =0;
 };
 
