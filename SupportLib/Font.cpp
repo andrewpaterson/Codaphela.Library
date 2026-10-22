@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
 #include "ImageCel.h"
+#include "ImageAccessorCreator.h"
 #include "Font.h"
 
 
@@ -40,6 +41,10 @@ Ptr<CFont> CFont::Init(Ptr<CFontDescription> pDescription, Ptr<CImage> pImage)
 	mpImage = pImage;
 	mapGlyphs.Init();
 	mapGlyphs.GrowTo(pDescription->NumGlyphs());
+	mbLazy = false;
+	mabHasPixels.Init();
+	mpWhite = NULL;
+	msColour = 0xFFFFFFFF;
 
 	if (pImage.IsNull() || ((int32)pImage->GetWidth() < pDescription->GetImageWidth()) || ((int32)pImage->GetHeight() < pDescription->GetImageHeight()))
 	{
@@ -61,6 +66,10 @@ void CFont::Class(void)
 	M_Pointer(mpDescription);
 	M_Pointer(mpImage);
 	M_Embedded(mapGlyphs);
+	U_Bool(mbLazy);
+	U_Data(CArrayBit, mabHasPixels);
+	M_Pointer(mpWhite);
+	U_UInt32(msColour);
 }
 
 
@@ -70,6 +79,7 @@ void CFont::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CFont::Free(void)
 {
+	mabHasPixels.Kill();
 }
 
 
@@ -168,6 +178,7 @@ Ptr<CGlyph> CFont::GetGlyph(SGlyphDescription* psDescription)
 	pGlyph = mapGlyphs.Get(psDescription->uiIndex);
 	if (pGlyph.IsNull())
 	{
+		//CreateCel draws the glyph's pixels first if the font is lazy.
 		pGlyph = OMalloc<CGlyph>(CreateCel(psDescription), psDescription->iStep);
 		mapGlyphs.Set(psDescription->uiIndex, pGlyph);
 	}
@@ -188,16 +199,169 @@ SGlyphDescription* CFont::GetGlyphDescription(uint8* puiBuffer, size uiLength)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A new cel over the description's pixels in this font's image.
+// A new cel over the description's pixels in this font's image, drawn
+// first if the font is lazy and hasn't drawn them yet.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImageCel> CFont::CreateCel(SGlyphDescription* psDescription)
 {
 	Ptr<CImageCel>	pCel;
 
+	EnsurePixels(psDescription);
 	pCel = OMalloc<CImageCel>(mpImage, 0, 0, 0, 0);
 	pCel->SetSubImage(&psDescription->cSubImage);
 	return pCel;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The image is empty (see CTrueTypeFontFactory::CreateImage) and the
+// description's rasteriser draws each glyph's pixels into it, in white,
+// when the glyph is generated.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFont::SetLazy(void)
+{
+	mbLazy = true;
+	mpWhite = NULL;
+	msColour = 0xFFFFFFFF;
+	mabHasPixels.ReInit();
+	mabHasPixels.GrowTo(mpDescription->NumGlyphs());
+	mabHasPixels.Zero();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The image is empty and each glyph's pixels are pWhite's (a lazy white
+// font with the same description) recoloured to sColour when the glyph
+// is generated.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFont::SetLazyColour(Ptr<CFont> pWhite, ARGB32 sColour)
+{
+	SetLazy();
+	mpWhite = pWhite;
+	msColour = sColour;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the image has the glyph's pixels.  A font that isn't lazy has
+// them all.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFont::HasPixels(SGlyphDescription* psDescription)
+{
+	if (!mbLazy)
+	{
+		return true;
+	}
+	if (psDescription->uiIndex >= mabHasPixels.NumElements())
+	{
+		return false;
+	}
+	return mabHasPixels.Get(psDescription->uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Draws the glyph's pixels into a lazy font's image if they aren't there.
+// They are drawn before any cel of the glyph so its blitter sees them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFont::EnsurePixels(SGlyphDescription* psDescription)
+{
+	Ptr<CGlyphRasteriser>	pRasteriser;
+	size					uiNumBits;
+
+	if (HasPixels(psDescription))
+	{
+		return;
+	}
+
+	if (mpWhite.IsNotNull())
+	{
+		mpWhite->EnsurePixels(psDescription);
+		RecolourGlyph(psDescription);
+	}
+	else
+	{
+		pRasteriser = mpDescription->GetRasteriser();
+		if (pRasteriser.IsNotNull())
+		{
+			pRasteriser->RasteriseGlyph(psDescription, mpImage);
+		}
+	}
+
+	//Characters can have been put into the description since the font was made.
+	if (psDescription->uiIndex >= mabHasPixels.NumElements())
+	{
+		uiNumBits = mabHasPixels.NumElements();
+		mabHasPixels.GrowTo(mpDescription->NumGlyphs());
+		while (uiNumBits < mabHasPixels.NumElements())
+		{
+			mabHasPixels.Set(uiNumBits, false);
+			uiNumBits++;
+		}
+	}
+	mabHasPixels.Set(psDescription->uiIndex, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Copies the glyph's pixels from the white font, setting red, green and
+// blue to the colour and scaling the opacity by its alpha, as
+// CFontColours does to a whole image.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFont::RecolourGlyph(SGlyphDescription* psDescription)
+{
+	CImageAccessorCreator	cCreator;
+	CImageAccessor*			pcSource;
+	CImageAccessor*			pcDest;
+	Ptr<CImage>				pWhiteImage;
+	uint8					auiPixel[4];
+	uint8					uiOpacity;
+	uint8					uiAlpha;
+	int32					iLeft;
+	int32					iTop;
+	int32					x;
+	int32					y;
+
+	pWhiteImage = mpWhite->GetImage();
+	cCreator.Init(&pWhiteImage);
+	cCreator.AddAccess(IMAGE_OPACITY, PT_uint8);
+	pcSource = cCreator.CreateAndKill();
+	cCreator.Init(&mpImage);
+	cCreator.AddAccess(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, PT_uint8);
+	pcDest = cCreator.CreateAndKill();
+
+	auiPixel[0] = Get8BitRedColour(msColour);
+	auiPixel[1] = Get8BitGreenColour(msColour);
+	auiPixel[2] = Get8BitBlueColour(msColour);
+	uiAlpha = Get8BitAlphaColour(msColour);
+	iLeft = psDescription->cSubImage.mcImageRect.msTopLeft.x;
+	iTop = psDescription->cSubImage.mcImageRect.msTopLeft.y;
+	for (y = 0; y < psDescription->cSubImage.GetImageHeight(); y++)
+	{
+		for (x = 0; x < psDescription->cSubImage.GetImageWidth(); x++)
+		{
+			pcSource->Get(iLeft + x, iTop + y, &uiOpacity);
+			if (uiAlpha != 0xFF)
+			{
+				uiOpacity = (uint8)(((uint32)uiOpacity * uiAlpha + 127) / 255);
+			}
+			auiPixel[3] = uiOpacity;
+			pcDest->Set(iLeft + x, iTop + y, auiPixel);
+		}
+	}
+	pcDest->Kill();
+	pcSource->Kill();
 }
 
 
@@ -241,6 +405,7 @@ bool CFont::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* pi
 //////////////////////////////////////////////////////////////////////////
 Ptr<CFontDescription> CFont::GetDescription(void) { return mpDescription; }
 Ptr<CImage> CFont::GetImage(void) { return mpImage; }
+bool CFont::IsLazy(void) { return mbLazy; }
 bool CFont::Is(char* szName) { return mpDescription->Is(szName); }
 char* CFont::GetFontName(void) { return mpDescription->GetFontName(); }
 size CFont::CalculateWidth(char* szText) { return mpDescription->CalculateWidth(szText); }

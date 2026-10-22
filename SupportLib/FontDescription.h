@@ -24,6 +24,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/UnicodeReader.h"
 #include "StandardLib/Object.h"
 #include "SubImage.h"
+#include "GlyphRasteriser.h"
 
 
 #define FONT_MAX_KEY_LENGTH		64
@@ -37,6 +38,7 @@ struct SGlyphDescription
 	CSubImage	cSubImage;
 	int16		iStep;
 	size		uiIndex;  //0 to NumGlyphs - 1 in the order the glyphs were put.  A CFont keeps its glyphs by it.
+	int32		iSourceGlyph;  //The glyph in the font the description was made from, for its rasteriser.  -1 if none.
 };
 
 
@@ -54,6 +56,7 @@ DESTRUCTABLE(CFontDescription);
 protected:
 	CCharsImmutable			mszName;
 	CIndexGlyphDescription	macGlyphs;
+	Ptr<CGlyphRasteriser>	mpRasteriser;  //Draws glyphs into a font's image as they are first asked for.  NULL if fonts' images are complete.
 	int32					miImageWidth;
 	int32					miImageHeight;
 	size					miAverageWidth;		//Only valid when mbWidthsCalculated.
@@ -86,8 +89,10 @@ public:
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
-	void				PutGlyph(uint32 c, size uiLength, CSubImage* pcSubImage, int16 iStep);
-	void				PutGlyph(uint8* puiBuffer, size uiLength, CSubImage* pcSubImage, int16 iStep);
+	void				PutGlyph(uint32 c, size uiLength, CSubImage* pcSubImage, int16 iStep, int32 iSourceGlyph = -1);
+	void				PutGlyph(uint8* puiBuffer, size uiLength, CSubImage* pcSubImage, int16 iStep, int32 iSourceGlyph = -1);
+	void				SetRasteriser(Ptr<CGlyphRasteriser> pRasteriser);
+	Ptr<CGlyphRasteriser>	GetRasteriser(void);
 	SGlyphDescription*	GetGlyph(uint8* puiBuffer, size uiLength);
 	SGlyphDescription*	GetGlyph(CUnicodeReader* pcUTFReader);
 	size				ReadKey(CUnicodeReader* pcUTFReader, uint8* puiKey, size uiMaxKeyLength);

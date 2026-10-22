@@ -35,6 +35,7 @@ void CFontDescription::Init(char* szName, int16 iSpaceWidth, int16 iAscent, int1
 
 	mszName.Init(szName);
 	macGlyphs.Init();
+	mpRasteriser = NULL;
 	miImageWidth = iImageWidth;
 	miImageHeight = iImageHeight;
 	miAverageWidth = 0;
@@ -59,6 +60,7 @@ void CFontDescription::Class(void)
 {
 	U_String(mszName);
 	U_Data(CIndexGlyphDescription, macGlyphs);
+	M_Pointer(mpRasteriser);
 	U_Int32(miImageWidth);
 	U_Int32(miImageHeight);
 	U_Size(miAverageWidth);
@@ -165,18 +167,19 @@ void CFontDescription::CalculateWidths(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFontDescription::PutGlyph(uint32 c, size uiLength, CSubImage* pcSubImage, int16 iStep)
+void CFontDescription::PutGlyph(uint32 c, size uiLength, CSubImage* pcSubImage, int16 iStep, int32 iSourceGlyph)
 {
-	PutGlyph((uint8*)&c, uiLength, pcSubImage, iStep);
+	PutGlyph((uint8*)&c, uiLength, pcSubImage, iStep, iSourceGlyph);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A character put again keeps its index.
+// A character put again keeps its index.  iSourceGlyph is the glyph the
+// rasteriser draws it from.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFontDescription::PutGlyph(uint8* puiBuffer, size uiLength, CSubImage* pcSubImage, int16 iStep)
+void CFontDescription::PutGlyph(uint8* puiBuffer, size uiLength, CSubImage* pcSubImage, int16 iStep, int32 iSourceGlyph)
 {
 	SGlyphDescription*	psDescription;
 
@@ -188,8 +191,24 @@ void CFontDescription::PutGlyph(uint8* puiBuffer, size uiLength, CSubImage* pcSu
 	}
 	psDescription->cSubImage.Copy(pcSubImage);
 	psDescription->iStep = iStep;
+	psDescription->iSourceGlyph = iSourceGlyph;
 	mbWidthsCalculated = false;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With a rasteriser the fonts made from this description can start with
+// empty images and draw each glyph the first time it is asked for.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFontDescription::SetRasteriser(Ptr<CGlyphRasteriser> pRasteriser)
+{
+	mpRasteriser = pRasteriser;
+}
+
+
+Ptr<CGlyphRasteriser> CFontDescription::GetRasteriser(void) { return mpRasteriser; }
 
 
 //////////////////////////////////////////////////////////////////////////

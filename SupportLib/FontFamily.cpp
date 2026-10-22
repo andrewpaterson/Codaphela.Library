@@ -19,8 +19,8 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
-#include "ImageColourConverter.h"
 #include "TrueTypeFontFactory.h"
+#include "TrueTypeGlyphRasteriser.h"
 #include "FontFamily.h"
 
 
@@ -37,8 +37,6 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CFontFamily::Init(const char* szName, const char* szCharacters, float32 fDefaultPixelSize, EColourOrder eColourOrder)
 {
-	size	i;
-
 	PreInit();
 
 	mszName.Init(szName);
@@ -46,11 +44,8 @@ void CFontFamily::Init(const char* szName, const char* szCharacters, float32 fDe
 	mfDefaultPixelSize = fDefaultPixelSize;
 	meColourOrder = eColourOrder;
 	miImageWidth = FONT_FAMILY_IMAGE_WIDTH;
-	for (i = 0; i < NUM_FONT_STYLES; i++)
-	{
-		masFaces[i].szFilename.Init();
-		masFaces[i].bLoaded = false;
-	}
+	mapFaces.Init();
+	mapFaces.GrowTo(NUM_FONT_STYLES);
 	mapColours.Init();
 	masSizes.Init();
 
@@ -82,7 +77,7 @@ void CFontFamily::Class(void)
 	U_Float32(mfDefaultPixelSize);
 	U_Enum(meColourOrder);
 	U_Int32(miImageWidth);
-	U_Data(SFontFace[NUM_FONT_STYLES], masFaces);
+	M_Embedded(mapFaces);
 	M_Embedded(mapColours);
 	U_Data(CArrayFontFamilySize, masSizes);
 }
@@ -94,17 +89,7 @@ void CFontFamily::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CFontFamily::Free(void)
 {
-	size	i;
-
 	masSizes.Kill();
-	for (i = 0; i < NUM_FONT_STYLES; i++)
-	{
-		if (masFaces[i].bLoaded)
-		{
-			masFaces[i].cTrueTypeFont.Kill();
-		}
-		masFaces[i].szFilename.Kill();
-	}
 	mszCharacters.Kill();
 	mszName.Kill();
 }
@@ -138,25 +123,17 @@ bool CFontFamily::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CFontFamily::SetFace(EFontStyle eStyle, const char* szTrueTypeFilename)
 {
-	SFontFace*	psFace;
+	Ptr<CTrueTypeFace>	pFace;
+	CPointer			pNull;
 
-	psFace = &masFaces[eStyle];
-	if (psFace->bLoaded)
+	pFace = OMalloc<CTrueTypeFace>();
+	if (!pFace->Load(szTrueTypeFilename))
 	{
-		psFace->cTrueTypeFont.Kill();
-		psFace->bLoaded = false;
-	}
-	psFace->szFilename.Kill();
-	psFace->szFilename.Init(szTrueTypeFilename);
-
-	psFace->cTrueTypeFont.Init();
-	if (!psFace->cTrueTypeFont.Load((char*)szTrueTypeFilename))
-	{
-		psFace->cTrueTypeFont.Kill();
+		mapFaces.Set(eStyle, pNull);
 		gcLogger.Error2(__METHOD__, " Font family [", mszName.Text(), "] could not load ", FontStyleToString(eStyle), " face [", szTrueTypeFilename, "].", NULL);
 		return false;
 	}
-	psFace->bLoaded = true;
+	mapFaces.Set(eStyle, pFace);
 	return true;
 }
 
@@ -167,7 +144,7 @@ bool CFontFamily::SetFace(EFontStyle eStyle, const char* szTrueTypeFilename)
 //////////////////////////////////////////////////////////////////////////
 bool CFontFamily::HasFace(EFontStyle eStyle)
 {
-	return masFaces[eStyle].bLoaded;
+	return mapFaces.Get(eStyle).IsNotNull();
 }
 
 
@@ -317,20 +294,22 @@ int32 CFontFamily::GetSizeKey(float32 fPixelSize)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Rasterises the family's characters from the style's face in white.
+// Describes the family's characters in the style's face and size and makes
+// a lazy white font of them: each glyph is rasterised when it is first
+// asked for.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CFontColours> CFontFamily::Generate(EFontStyle eStyle, float32 fPixelSize)
 {
-	SFontFace*				psFace;
+	Ptr<CTrueTypeFace>		pFace;
 	CTrueTypeFontFactory	cFactory;
-	CImageColourRGB			cWhite;
 	CChars					szName;
 	Ptr<CFontDescription>	pDescription;
 	Ptr<CImage>				pImage;
+	Ptr<CFont>				pFont;
 
-	psFace = &masFaces[eStyle];
-	if (!psFace->bLoaded)
+	pFace = mapFaces.Get(eStyle);
+	if (pFace.IsNull())
 	{
 		gcLogger.Error2(__METHOD__, " Font family [", mszName.Text(), "] has no ", FontStyleToString(eStyle), " face.", NULL);
 		return NULL;
@@ -343,25 +322,23 @@ Ptr<CFontColours> CFontFamily::Generate(EFontStyle eStyle, float32 fPixelSize)
 	szName.Append((int32)(fPixelSize + 0.5f));
 	szName.Append("px");
 
-	cWhite.Init(1.0f, 1.0f, 1.0f);
-	cFactory.Init(&psFace->cTrueTypeFont, fPixelSize);
+	cFactory.Init(pFace->GetFont(), fPixelSize);
 	pDescription = cFactory.Describe(szName.Text(), mszCharacters.Text(), miImageWidth);
-	pImage = cFactory.Rasterise(pDescription, &cWhite);
-	cFactory.Kill();
-
-	if (pImage.IsNull())
+	if (pDescription.IsNull())
 	{
-		gcLogger.Error2(__METHOD__, " Font family [", mszName.Text(), "] could not rasterise [", szName.Text(), "].", NULL);
+		cFactory.Kill();
+		gcLogger.Error2(__METHOD__, " Font family [", mszName.Text(), "] could not describe [", szName.Text(), "].", NULL);
 		szName.Kill();
 		return NULL;
 	}
+	pImage = cFactory.CreateImage(pDescription, meColourOrder);
+	cFactory.Kill();
 	szName.Kill();
 
-	if ((meColourOrder != CCO_Unknown) && (pImage->GetColourOrder() != meColourOrder))
-	{
-		pImage = CImageColourConverter::ConvertColour(pImage, meColourOrder);
-	}
-	return OMalloc<CFontColours>(OMalloc<CFont>(pDescription, pImage));
+	pDescription->SetRasteriser(OMalloc<CTrueTypeGlyphRasteriser>(pFace, fPixelSize));
+	pFont = OMalloc<CFont>(pDescription, pImage);
+	pFont->SetLazy();
+	return OMalloc<CFontColours>(pFont);
 }
 
 

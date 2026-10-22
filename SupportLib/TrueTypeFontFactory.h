@@ -66,6 +66,7 @@ public:
 
 	Ptr<CFontDescription>	Describe(char* szName, char* szUTF8Characters, int iImageWidth = 512);
 	Ptr<CImage>				Rasterise(Ptr<CFontDescription> pDescription, CImageColourRGB* pcColour);
+	Ptr<CImage>				CreateImage(Ptr<CFontDescription> pDescription, EColourOrder eColourOrder);
 
 	size			NumCharacters(void);
 	int				GetAscent(void);
