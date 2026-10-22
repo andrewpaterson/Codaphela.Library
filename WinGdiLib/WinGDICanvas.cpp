@@ -174,7 +174,7 @@ Ptr<CImage> CWinGDICanvas::GetImageOrNull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDICanvas::DrawBox(CRectangle* pcRectangle, bool bFilled, ARGB32 sColour)
+void CWinGDICanvas::DrawBox(CInt32Rect* pcRectangle, bool bFilled, ARGB32 sColour)
 {
     RECT        sRect;
     HBRUSH      hBrush;
@@ -239,10 +239,10 @@ void CWinGDICanvas::DrawPixel(int32 iX, int32 iY, ARGB32 sColour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDICanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource, CRectangle* pcClip)
+void CWinGDICanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource, CInt32Rect* pcClip)
 {
     CWinGDICanvas*  pcGDISource;
-    CRectangle      cDest;
+    CInt32Rect      cDest;
     int             iSourceX;
     int             iSourceY;
 

@@ -46,7 +46,7 @@ public:
 	void						Pack(void);
 	void						Dump(void);
 
-	bool						AddRectangle(CRectangle* pcRect, void* pvUserData);
+	bool						AddRectangle(CInt32Rect* pcRect, void* pvUserData);
 	bool						AddRectangle(CSubImage* pcSubImage);
 	bool						AddRectangle(CImageCel* pcImageCel);
 

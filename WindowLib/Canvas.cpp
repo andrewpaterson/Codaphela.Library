@@ -124,7 +124,7 @@ uint8* CCanvas::GetPixelData(void)
 bool CCanvas::Draw(void)
 {
 	Ptr<CCanvas>			pWindowCanvas;
-	CRectangle				cClip;
+	CInt32Rect				cClip;
 	bool					bClipped;
 
 	if (HasNativeChanged())
@@ -256,7 +256,7 @@ Ptr<CImage> CCanvas::GetImageOrNull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas, CRectangle* pcClip)
+void CCanvas::DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas, CInt32Rect* pcClip)
 {
 	CNativeCanvas*	pcSourceNativeCanvas;
 
@@ -269,7 +269,7 @@ void CCanvas::DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas, CRectangle*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour)
+void CCanvas::DrawBox(CInt32Rect* pcRect, bool bFilled, ARGB32 sColour)
 {
 	mpcNativeCanvas->DrawBox(pcRect, bFilled, sColour);
 }

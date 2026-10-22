@@ -77,7 +77,7 @@ public:
 	CBlock*				CreateBlock(CBlockParameters* pcParameters = NULL);
 
 	CToolbar*			CreateToolbar(void);
-	CViewport*			CreateViewport(CInput* pcInput, CRectangle* pcClientRect);
+	CViewport*			CreateViewport(CInput* pcInput, CInt32Rect* pcClientRect);
 	CWidget*			CreateWidget(bool bDefaultBorder = true, bool bDefaultBackground = true);
 	CFillContainer*		CreateFillContainer(void);
 

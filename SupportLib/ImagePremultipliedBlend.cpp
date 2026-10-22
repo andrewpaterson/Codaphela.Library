@@ -27,7 +27,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool BlendPremultipliedImage(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY, CRectangle* pcClip)
+bool BlendPremultipliedImage(Ptr<CImage> pSource, Ptr<CImage> pDest, int32 iDestX, int32 iDestY, CInt32Rect* pcClip)
 {
 	CColourFormatHelper		cSourceFormatHelper;
 	CColourFormatHelper		cDestFormatHelper;

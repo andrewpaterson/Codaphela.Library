@@ -112,7 +112,7 @@ bool CMultiImageCopier::Copy(int32 iDestX, int32 iDestY, Ptr<CImageCel> pSourceC
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMultiImageCopier::Copy(int32 iDestX, int32 iDestY, Ptr<CImage> pSourceImage, CRectangle* psSourceRect)
+bool CMultiImageCopier::Copy(int32 iDestX, int32 iDestY, Ptr<CImage> pSourceImage, CInt32Rect* psSourceRect)
 {
 	CImageCopier*	pcCopier;
 

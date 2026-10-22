@@ -123,7 +123,7 @@ void CImageCopier::Copy(int iDestX, int iDestY, Ptr<CImageCel> pcSourceCel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Copy(int iDestX, int iDestY, CRectangle* psSourceRect)
+void CImageCopier::Copy(int iDestX, int iDestY, CInt32Rect* psSourceRect)
 {
 	SImageCopy	sCopy;
 
@@ -192,7 +192,7 @@ void CImageCopier::Copy(SImageCopy* psCopy)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int iDestX, int iDestY, CRectangle* psSourceRect)
+void CImageCopier::Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int iDestX, int iDestY, CInt32Rect* psSourceRect)
 {
 	CImageCopier	cCopier;
 

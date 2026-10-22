@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRecolour::Init(CImageColour* pcOldColour, CImageColour* pcNewColour, CRectangle* pcRectangle)
+void CImageRecolour::Init(CImageColour* pcOldColour, CImageColour* pcNewColour, CInt32Rect* pcRectangle)
 {
 	PreInit();
 
@@ -61,7 +61,7 @@ void CImageRecolour::Init(CImageColour* pcOldColour, CImageColour* pcNewColour, 
 void CImageRecolour::Class(void)
 {
 	CImageModifier::Class();
-	U_Data(CRectangle, mcRectangle);
+	U_Data(CInt32Rect, mcRectangle);
 	U_Bool(mbWholeImage);
 	U_Data(CArrayUnknown, macOldColour);
 	U_Data(CArrayUnknown, macNewColour);

@@ -25,7 +25,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Chars.h"
 #include "BaseLib/WindowsError.h"
 #include "BaseLib/DebugOutput.h"
-#include "SupportLib/Rectangle.h"
+#include "SupportLib/Int32Rect.h"
 #include "WindowLib/Window.h"
 #include "WindowLib/ComponentInput.h"
 #include "WinGDIWindowFactory.h"
@@ -322,7 +322,7 @@ void CWinGDIWindow::SignalPresent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDIWindow::GetRectangle(CRectangle* pcDest)
+void CWinGDIWindow::GetRectangle(CInt32Rect* pcDest)
 {
     RECT            cRect;
 

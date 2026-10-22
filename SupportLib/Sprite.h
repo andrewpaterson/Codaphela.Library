@@ -26,7 +26,7 @@ public:
 	bool			Load(CObjectReader* pcFile) override;
 
 	Ptr<CImageCel>	GetCel(void);
-	void			GetImageDestBounds(CRectangle* pcReturn);
+	void			GetImageDestBounds(CInt32Rect* pcReturn);
 
 	int32			GetX(void);
 	int32			GetY(void);

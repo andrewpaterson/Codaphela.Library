@@ -32,12 +32,12 @@ class CImageModifierDrawBox : public CImageModifier
 CONSTRUCTABLE(CImageModifierDrawBox);
 DESTRUCTABLE(CImageModifierDrawBox);
 public:
-	CRectangle		mcRectangle;
+	CInt32Rect		mcRectangle;
 	bool			mbWholeImage;
 	CImageColour*	mpcColour;
 	bool			mbFilled;
 
-	void			Init(CRectangle* pcRectangle, CImageColour* pcColour, bool bFilled = true);
+	void			Init(CInt32Rect* pcRectangle, CImageColour* pcColour, bool bFilled = true);
 	void			Class(void) override;
 
 	Ptr<CImage>		Modify(Ptr<CImage> pcImage);

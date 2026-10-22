@@ -72,7 +72,7 @@ bool CGerberPanel::Pack(CGerberFileSets* pcSets)
 	CPackedRectangle*					pcPacked;
 	CGerberPanelPlacement*				pcPlacement;
 	CGerberFileSet*						pcSet;
-	CRectangle							cRect;
+	CInt32Rect							cRect;
 	SInt32Vec2							sSize;
 	size								i;
 	int32								iLeft;

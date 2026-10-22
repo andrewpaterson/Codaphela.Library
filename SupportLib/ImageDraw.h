@@ -30,7 +30,7 @@ public:
 
 	void	DrawPixel(int x, int y);
 
-	void	DrawBox(CRectangle* pcRetangle, bool bFilled);
+	void	DrawBox(CInt32Rect* pcRetangle, bool bFilled);
 	void	DrawBox(int iLeft, int iTop, int iRight, int iBottom, bool bFilled);
 	void	DrawBox(bool bFilled);
 
@@ -52,8 +52,8 @@ public:
 	bool	DrawRectangle(float64 fLeft, float64 fTop, float64 fRight, float64 fBottom);
 	bool	DrawRoundedRectangle(float64 fLeft, float64 fTop, float64 fRight, float64 fBottom, float64 fRadius);
 
-	bool	DrawCel(int x, int y, Ptr<CImageCel> pCel, CRectangle* pcClip = NULL);
-	bool	DrawCel(int x, int y, int iWidth, int iHeight, Ptr<CImageCel> pCel, CRectangle* pcClip = NULL);
+	bool	DrawCel(int x, int y, Ptr<CImageCel> pCel, CInt32Rect* pcClip = NULL);
+	bool	DrawCel(int x, int y, int iWidth, int iHeight, Ptr<CImageCel> pCel, CInt32Rect* pcClip = NULL);
 
 protected:
 	bool	DrawCentredPath(CVectorPath* pcPath, float64 x, float64 y);

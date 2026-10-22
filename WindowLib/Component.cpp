@@ -39,7 +39,7 @@ void CComponent::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CComponent::Class(void)
 {
-		U_Data(CRectangle, mcActualBounds);
+		U_Data(CInt32Rect, mcActualBounds);
 		U_2Int32(msDesiredSize);
 		U_Enum(meHorizontalAlignment);
 		U_Enum(meVerticalAlignment);
@@ -177,7 +177,7 @@ size CComponent::NumComponents(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CComponent::GetContainerBounds(CRectangle* pcDest)
+bool CComponent::GetContainerBounds(CInt32Rect* pcDest)
 {
 	//The only way the function can be called is if the component is not a container.
 	if (mpParent)
@@ -209,10 +209,10 @@ bool CComponent::ClipsChildren(void)
 // drawn anywhere.  The area can be empty.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CComponent::GetClip(CRectangle* pcClip)
+bool CComponent::GetClip(CInt32Rect* pcClip)
 {
 	Ptr<CComponent>	pAncestor;
-	CRectangle		cBounds;
+	CInt32Rect		cBounds;
 	bool			bClipped;
 
 	bClipped = false;

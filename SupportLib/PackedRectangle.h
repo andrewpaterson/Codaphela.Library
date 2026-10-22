@@ -24,7 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __PACKED_RECTANGLE_H__
 #define __PACKED_RECTANGLE_H__
 #include "BaseLib/ArrayTemplate.h"
-#include "Rectangle.h"
+#include "Int32Rect.h"
 
 
 enum EPackRotation
@@ -42,7 +42,7 @@ public:
 	int			miHeight;
 	void*		mpvUserData;
 
-	void Init(CRectangle* pcRect, void* pvUserData);
+	void Init(CInt32Rect* pcRect, void* pvUserData);
 	bool IsRotatedBy(EPackRotation eRotation);
 	void GetSize(EPackRotation eRotation, int* piWidth, int* piHeight);
 };
@@ -69,14 +69,14 @@ typedef CArrayTemplate<CPackRectangleAttempt> CArrayPackRectangleAttempt;
 int ComparePackRectangleAttempt(const void* pv1, const void* pv2);
 
 
-class CPackedRectangle : public CRectangle
+class CPackedRectangle : public CInt32Rect
 {
 public:
 	void*		mpvUserData;
 	bool		mbRotated;  //Turned 90 degrees clockwise from the rectangle that was added.  The packed width is the added height.
 
 	void	Init(int iLeft, int iTop, int iRight, int iBottom, void* pvUserData, bool bRotated = false);
-	void	Init(CRectangle* pcRect, void* pvUserData);
+	void	Init(CInt32Rect* pcRect, void* pvUserData);
 
 	void*	GetUserData(void);
 	bool	IsRotated(void);

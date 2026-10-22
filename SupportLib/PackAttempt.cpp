@@ -251,7 +251,7 @@ void CPackAttempt::RemoveLastRectangle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPackAttempt::GetLargestRectangleFittingAndRemoveIt(CRectangle* pcBounds, CPackRectangleAttempt* pcDest)
+bool CPackAttempt::GetLargestRectangleFittingAndRemoveIt(CInt32Rect* pcBounds, CPackRectangleAttempt* pcDest)
 {
 	size					i;
 	CPackRectangleAttempt*	pcRect;

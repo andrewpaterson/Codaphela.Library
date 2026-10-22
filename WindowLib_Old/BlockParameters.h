@@ -29,7 +29,7 @@ class CBlockParameters : public CQuadParameters
 {
 CONSTRUCTABLE(CBlockParameters); 
 public:
-	CRectangle			macRects[MAX_TEX];
+	CInt32Rect			macRects[MAX_TEX];
 	unsigned int		miColour;
 	CGraphicsMaterial*	mpcGraphicsMaterial;
 	CGraphicsTexture*	mpcGraphicsTexture;

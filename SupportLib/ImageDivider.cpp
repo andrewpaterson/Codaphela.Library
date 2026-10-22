@@ -164,7 +164,7 @@ void CImageDivider::GenerateFromBorder(Ptr<CImage> pcFillMask)
 //////////////////////////////////////////////////////////////////////////
 void CImageDivider::GenerateFromNumbers(CImageDividerNumbers* pcNumbers)
 {
-	CRectangle			cFillRect;
+	CInt32Rect			cFillRect;
 	int					iRow;
 	int					iColumn;
 	int					iLeft;
@@ -193,10 +193,10 @@ void CImageDivider::GenerateFromNumbers(CImageDividerNumbers* pcNumbers)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDivider::GenerateFromRectangles(CArrayRectangle* pacRectangles)
+void CImageDivider::GenerateFromRectangles(CArrayInt32Rect* pacRectangles)
 {
 	size			i;
-	CRectangle*		pcRectangle;
+	CInt32Rect*		pcRectangle;
 
 	for (i = 0; i < pacRectangles->NumElements(); i++)
 	{
@@ -238,7 +238,7 @@ void CImageDivider::AddImageCel(CFillRectangle* pcRect, Ptr<CImage> pcFillMask)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDivider::AddImageCel(CRectangle* pcRect)
+void CImageDivider::AddImageCel(CInt32Rect* pcRect)
 {
 	if (!((pcRect->GetWidth() == 0) && mbIgnoreEmpty))
 	{

@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CFillRectangle::Init(short iMask, int iLeft, int iTop, int iRight, int iBottom)
 {
-	CRectangle::Init(iLeft, iTop, iRight, iBottom);
+	CInt32Rect::Init(iLeft, iTop, iRight, iBottom);
 	miFilled = 0;
 	miMask = iMask;
 }

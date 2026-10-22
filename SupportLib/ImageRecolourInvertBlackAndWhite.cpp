@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRecolourInvertBlackAndWhite::Init(CRectangle* pcRectangle)
+void CImageRecolourInvertBlackAndWhite::Init(CInt32Rect* pcRectangle)
 {
 	PreInit();
 

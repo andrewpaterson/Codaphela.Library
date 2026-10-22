@@ -21,7 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __FOCUS_H__
 #define __FOCUS_H__
 #include "InputLib/Input.h"
-#include "SupportLib/Rectangle.h"
+#include "SupportLib/Int32Rect.h"
 #include "Component.h"
 #include "FocusListener.h"
 

@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CopyRectangleToGDIRect(RECT* psRect, CRectangle* pcRectangle)
+void CopyRectangleToGDIRect(RECT* psRect, CInt32Rect* pcRectangle)
 {
 	psRect->left = pcRectangle->msTopLeft.x;
 	psRect->top = pcRectangle->msTopLeft.y;

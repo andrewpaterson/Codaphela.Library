@@ -23,10 +23,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __FILL_RECTANGLE_H__
 #define __FILL_RECTANGLE_H__
-#include "Rectangle.h"
+#include "Int32Rect.h"
 
 
-class CFillRectangle : public CRectangle
+class CFillRectangle : public CInt32Rect
 {
 public:
 	int			miFilled;

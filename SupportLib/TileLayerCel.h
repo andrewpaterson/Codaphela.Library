@@ -57,10 +57,10 @@ public:
 
 	bool						SetTiles(size x, size y, Ptr<CArrayImageCel> paCels, size uiIndices ...);
 
-	bool						Blit(CRectangle* pcViewportRect, bool bEnsureBlitters) override;
+	bool						Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters) override;
 
-	bool						GetImageDestBounds(CRectangle* pcRect);
-	bool						GetFullDestBounds(CRectangle* pcRect);
+	bool						GetImageDestBounds(CInt32Rect* pcRect);
+	bool						GetFullDestBounds(CInt32Rect* pcRect);
 
 	Ptr<CImage>					WriteToImage(void);
 	Ptr<CImage>					CreateViewportImage(void);

@@ -287,7 +287,7 @@ bool CScrollBar::Draw(void)
 // In window client space.
 //
 //////////////////////////////////////////////////////////////////////////
-void CScrollBar::GetThumbBounds(CRectangle* pcDest)
+void CScrollBar::GetThumbBounds(CInt32Rect* pcDest)
 {
 	SInt32Vec2	sPosition;
 	SInt32Vec2	sSize;

@@ -132,7 +132,7 @@ void CTileMap::SetViewport(Ptr<CImage> pViewport)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileMap::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters)
+bool CTileMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 {
 	size				uiNumElements;
 	size				i;

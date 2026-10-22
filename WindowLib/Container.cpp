@@ -55,7 +55,7 @@ void CContainer::Free(void)
 void CContainer::Class(void)
 {
 	CComponent::Class();
-	U_Data(CRectangle, mcContainerBounds);
+	U_Data(CInt32Rect, mcContainerBounds);
 	U_2Int32(msRequiredSize);
 }
 
@@ -64,7 +64,7 @@ void CContainer::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CContainer::GetContainerBounds(CRectangle* pcDest)
+bool CContainer::GetContainerBounds(CInt32Rect* pcDest)
 {
 	pcDest->Init(&mcContainerBounds);
 	return true;
@@ -77,7 +77,7 @@ bool CContainer::GetContainerBounds(CRectangle* pcDest)
 //////////////////////////////////////////////////////////////////////////
 void CContainer::SetContainerBounds(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
-	CRectangle	cParentBounds;
+	CInt32Rect	cParentBounds;
 
 	//The container's bounds are where it was laid out, but never outside its parent container's bounds.
 	mcContainerBounds.Init(sPosition.x, sPosition.y, sPosition.x + sAreaSize.x, sPosition.y + sAreaSize.y);

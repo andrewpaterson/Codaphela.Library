@@ -86,7 +86,7 @@ void CPackedLine::Kill(void)
 bool CPackedLine::Pack(CPackAttempt* pcPackAttempt)
 {
 	CPackRectangleAttempt*	pcUnusedRect;
-	CRectangle				cBounds;
+	CInt32Rect				cBounds;
 
 	pcUnusedRect = pcPackAttempt->GetLastRectangle();
 	cBounds.Init(0, 0, pcPackAttempt->miMaxWidth, pcUnusedRect->mcSourceRectangle.miHeight + pcPackAttempt->mpcRectanglePacker->GetInnerEdgeWidth());
@@ -99,10 +99,10 @@ bool CPackedLine::Pack(CPackAttempt* pcPackAttempt)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPackedLine::RecursePack(CPackAttempt* pcPackAttempt, CRectangle* pcBounds)
+bool CPackedLine::RecursePack(CPackAttempt* pcPackAttempt, CInt32Rect* pcBounds)
 {
-	CRectangle				cBoundsRight;
-	CRectangle				cBoundsBelow;
+	CInt32Rect				cBoundsRight;
+	CInt32Rect				cBoundsBelow;
 	bool					bAnyFit;
 	CPackRectangleAttempt	cFits;
 	CPackRectangleAttempt*	pcUsedRect;

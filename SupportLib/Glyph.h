@@ -47,8 +47,8 @@ public:
 	int				GetFullWidth(void);
 	int				GetFullHeight(void);
 	int				GetFullDestRight(int x);
-	void			GetFullDestBounds(int x, int y, CRectangle* pcRectangle);
-	void			GetImageDestBounds(int x, int y, CRectangle* pcRectangle);
+	void			GetFullDestBounds(int x, int y, CInt32Rect* pcRectangle);
+	void			GetImageDestBounds(int x, int y, CInt32Rect* pcRectangle);
 	Ptr<CImage>		GetSourceImage(void);
 	CSubImage*		GetSubImage(void);
 	Ptr<CImageCel>	GetCel(void);

@@ -281,7 +281,7 @@ void CBorder::CalculateUVCoords(SUVCornersFull* apsUVs)
 {
 	SFloat2		sTopLeft;
 	SFloat2		sBottomRight;
-	CRectangle	sSubImage;
+	CInt32Rect	sSubImage;
 	int			iTextureWidth;
 	int			iTextureHeight;
 

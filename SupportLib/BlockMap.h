@@ -46,7 +46,7 @@ public:
 	virtual	void	Activate(void);
 	virtual	void	Deactivate(void);
 
-	virtual bool	Blit(CRectangle* pcViewportRect, bool bEnsureBlitters) =0;
+	virtual bool	Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters) =0;
 	virtual bool	CreateCelBlitters(void) =0;
 	virtual bool	HasCelBlitters(void) =0;
 	virtual bool	UsesCelBlitters(void) =0;

@@ -31,7 +31,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CViewport::Init(CWorld* pcWorld, CInput* pcInput, CComponentFactory* pcFactory, CRectangle* pcClientRect)
+void CViewport::Init(CWorld* pcWorld, CInput* pcInput, CComponentFactory* pcFactory, CInt32Rect* pcClientRect)
 {
 	mpcWorld = pcWorld;
 	mpcFactory = pcFactory;

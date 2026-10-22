@@ -20,7 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __WINDOW_H__
 #define __WINDOW_H__
-#include "SupportLib/Rectangle.h"
+#include "SupportLib/Int32Rect.h"
 #include "InputLib/Input.h"
 #include "InputLib/InputListener.h"
 #include "SystemPointer.h"
@@ -35,7 +35,7 @@ CONSTRUCTABLE(CWindow);
 public:
 	CViewport*		mpcViewport;
 	CInput*			mpcInput;
-	CRectangle		mcClientRect;
+	CInt32Rect		mcClientRect;
 
 	CChars			mszMenuName;
 	CChars			mszClassName;

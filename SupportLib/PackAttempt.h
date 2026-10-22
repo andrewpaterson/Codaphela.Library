@@ -50,7 +50,7 @@ public:
 	void 					Done(void);
 	CPackRectangleAttempt*	GetLastRectangle(void);
 	void					RemoveLastRectangle(void);
-	bool					GetLargestRectangleFittingAndRemoveIt(CRectangle* pcBounds, CPackRectangleAttempt* pcDest);
+	bool					GetLargestRectangleFittingAndRemoveIt(CInt32Rect* pcBounds, CPackRectangleAttempt* pcDest);
 	int64					GetWastedArea(void);
 	void					GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
 	SInt32Vec2					GetPackedImageSize(void);

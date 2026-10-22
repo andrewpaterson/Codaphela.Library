@@ -217,7 +217,7 @@ bool CImageBlitter::PopulateOpacityFormat(CImageBlitterFormat* pcFormat)
 {
 	Ptr<CImage>			pSourceImage;
 	CSubImage*			pcSubImage;
-	CRectangle*			pcSourcePixelRect;
+	CInt32Rect*			pcSourcePixelRect;
 	size				x;
 	size				y;
 	CChannelsAccessor*	pcOpacityAccessor;
@@ -390,7 +390,7 @@ bool CImageBlitter::CreateImageRowBlitterByteAlignedOpaqueDestAlpha(CImageBlitte
 //////////////////////////////////////////////////////////////////////////
 bool CImageBlitter::CreateImageRowBlitterUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory, CreateImageRowBlitterFunc fCreate, bool bAllowSizing)
 {
-	CRectangle				cRect;
+	CInt32Rect				cRect;
 	size					y;
 	size					uiBottom;
 	size					xEnd;
@@ -437,7 +437,7 @@ bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteTranslucentDestAlpha(CI
 //////////////////////////////////////////////////////////////////////////
 bool CImageBlitter::CreateImageRowBlitterRGBByteAlphaByteUseCacheFunc(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterFactory, CreateImageRowBlitterFunc fCreateRGBByteAlphaByteTranslucent, CreateImageRowBlitterFunc fCreateByteAlignedOpaque, bool bAllowSizing)
 {
-	CRectangle				cRect;
+	CInt32Rect				cRect;
 	size					x, y;
 	size					uiBottom;
 	size					xEnd;
@@ -621,7 +621,7 @@ void CImageBlitter::PopulateContext(CImageBlitterContext* pcContext)
 //////////////////////////////////////////////////////////////////////////
 void CImageBlitter::PopulateRowStarts(void)
 {
-	CRectangle					cRect;
+	CInt32Rect					cRect;
 	int32						iHeight;
 	int32						y;
 	size						ui;
@@ -667,7 +667,7 @@ bool CImageBlitter::PopulateSizingTables(int32 iDestWidth, int32 iDestHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::ClipDestRect(CRectangle* pcClip, CRectangle* pcDestRect)
+bool CImageBlitter::ClipDestRect(CInt32Rect* pcClip, CInt32Rect* pcDestRect)
 {
 	pcDestRect->Init(0, 0, mpDestImage->GetWidth(), mpDestImage->GetHeight());
 
@@ -703,7 +703,7 @@ bool CImageBlitter::ClipDestRect(CRectangle* pcClip, CRectangle* pcDestRect)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip)
+bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, CInt32Rect* pcClip)
 {
 	size						uiNumElements;
 	size						ui;
@@ -711,8 +711,8 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip)
 	int32						xSourceStart;
 	int32						xSourceEnd;
 	int32						ySource;
-	CRectangle					cDestRect;
-	CRectangle					cSourceRect;
+	CInt32Rect					cDestRect;
+	CInt32Rect					cSourceRect;
 	int32						yDest;
 	int32						xDestStart;
 	void*						pvSource;
@@ -812,14 +812,14 @@ bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, int32 iDestWidth, int32 iDestHeight, CRectangle* pcClip)
+bool CImageBlitter::Blit(int32 iDestX, int32 iDestY, int32 iDestWidth, int32 iDestHeight, CInt32Rect* pcClip)
 {
 	CSubImage*					pcSubImage;
 	int32						iFullWidth;
 	int32						iFullHeight;
 	int32						iImageHeight;
 	int32						iSourceLeft;
-	CRectangle					cDestRect;
+	CInt32Rect					cDestRect;
 	int32						iLeft;
 	int32						iTop;
 	int32						xVisibleStart;

@@ -44,7 +44,7 @@ public:
 	bool	AddAccessor(Ptr<CImage> pImage);
 
 	bool	Copy(int32 iDestX, int32 iDestY, Ptr<CImageCel> pSourceCel);
-	bool	Copy(int32 iDestX, int32 iDestY, Ptr<CImage> pSourceImage, CRectangle* psSourceRect = NULL);
+	bool	Copy(int32 iDestX, int32 iDestY, Ptr<CImage> pSourceImage, CInt32Rect* psSourceRect = NULL);
 	bool	Copy(int32 iDestX, int32 iDestY, Ptr<CImage> pSourceImage, int32 iSourceX1, int32 iSourceY1, int32 iSourceX2, int32 iSourceY2);
 	bool	Copy(SImageCopy* psCopy, Ptr<CImage> pSourceImage);
 };

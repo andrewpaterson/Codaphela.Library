@@ -35,7 +35,7 @@ public:
 	CImageColourARGB	cARGB1111;
 	CImageColourARGB	cARGB0111;
 
-	void 				Init(CRectangle* pcRectangle = NULL);
+	void 				Init(CInt32Rect* pcRectangle = NULL);
 	void 				Class(void) override;
 
 	CImageColourARGB*	GetBlack(void);

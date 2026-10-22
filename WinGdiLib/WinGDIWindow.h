@@ -48,7 +48,7 @@ public:
 	bool	CreateNativeWindow(void) override;
 	bool	ExecuteNativeWindow(void) override;
 
-	void	GetRectangle(CRectangle* pcDest) override;
+	void	GetRectangle(CInt32Rect* pcDest) override;
 	void	SignalPresent(void) override;
 
 	void	RawInput(HRAWINPUT hRawInput);

@@ -140,12 +140,12 @@ void CSpriteMap::EndChange(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CSpriteMap::FindImageCels(CRectangle* pcRectangle, MapImageCelFunction pSpriteFunction)
+void CSpriteMap::FindImageCels(CInt32Rect* pcRectangle, MapImageCelFunction pSpriteFunction)
 {
 	size						uiNumSprites;
 	size						uiSprite;
 	Ptr<CSprite>				pSprite;
-	CRectangle					cCelRect;
+	CInt32Rect					cCelRect;
 	SIntVec2					sOffset;
 
 	uiNumSprites = maSprites.NumElements();
@@ -165,15 +165,15 @@ void CSpriteMap::FindImageCels(CRectangle* pcRectangle, MapImageCelFunction pSpr
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSpriteMap::GetImageDestBounds(CRectangle* pcRect)
+bool CSpriteMap::GetImageDestBounds(CInt32Rect* pcRect)
 {
 	size			ui;
 	size			uiNumElements;
 	Ptr<CSprite>	pSprite;
 	Ptr<CImageCel>	pCel;
 	CSubImage*		pcSubImage;
-	CRectangle		cBounding;
-	CRectangle		cCelRect;
+	CInt32Rect		cBounding;
+	CInt32Rect		cCelRect;
 	bool			bFirst;
 
 	if (pcRect)
@@ -214,15 +214,15 @@ bool CSpriteMap::GetImageDestBounds(CRectangle* pcRect)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSpriteMap::GetFullDestBounds(CRectangle* pcRect)
+bool CSpriteMap::GetFullDestBounds(CInt32Rect* pcRect)
 {
 	size			ui;
 	size			uiNumElements;
 	Ptr<CSprite>	pSprite;
 	Ptr<CImageCel>	pCel;
 	CSubImage*		pcSubImage;
-	CRectangle		cBounding;
-	CRectangle		cCelRect;
+	CInt32Rect		cBounding;
+	CInt32Rect		cCelRect;
 	bool			bFirst;
 
 	if (pcRect)
@@ -277,7 +277,7 @@ Ptr<CImage> CSpriteMap::WriteToImage(void)
 	Ptr<CImage>					pOldViewport;
 	Ptr<CImage>					pImage;
 	bool						bExists;
-	CRectangle					cBoundingRect;
+	CInt32Rect					cBoundingRect;
 
 	pOldViewport = mpViewport;
 	pOldCache = mpCache;
@@ -441,7 +441,7 @@ void CSpriteMap::ClearCelBlitters(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CSpriteMap::CreateViewportImage(CRectangle* pcBoundingRect)
+Ptr<CImage> CSpriteMap::CreateViewportImage(CInt32Rect* pcBoundingRect)
 {
 	size			uiWidth;
 	size			uiHeight;
@@ -472,7 +472,7 @@ Ptr<CImage> CSpriteMap::CreateViewportImage(CRectangle* pcBoundingRect)
 Ptr<CImage> CSpriteMap::CreateViewportImage(void)
 {
 	bool			bExists;
-	CRectangle		cBoundingRect;
+	CInt32Rect		cBoundingRect;
 
 	bExists = GetFullDestBounds(&cBoundingRect);
 	if (!bExists)
@@ -502,7 +502,7 @@ Ptr<CImageCelBlitterCache> CSpriteMap::CreateBlitterCache(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSpriteMap::Blit(CRectangle* pcViewportRect, bool bEnsureBlitters)
+bool CSpriteMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 {
 	size			ui;
 	size			uiNumElements;

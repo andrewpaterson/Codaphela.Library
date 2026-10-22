@@ -38,10 +38,10 @@ public:
 	CFocus				mcFocus;
 	CComponentFactory*	mpcFactory;
 	CComponentInput		mcInput;
-	CRectangle*			mpcClientRect;
+	CInt32Rect*			mpcClientRect;
 	CMap2D				mcMap2D;
 
-	void 				Init(CWorld* pcWorld, CInput* pcInput, CComponentFactory* pcFactory, CRectangle* pcClientRect);
+	void 				Init(CWorld* pcWorld, CInput* pcInput, CComponentFactory* pcFactory, CInt32Rect* pcClientRect);
 	void 				Kill(void);
 	bool 				Draw(void);
 	void				SetRequiredSize(void);

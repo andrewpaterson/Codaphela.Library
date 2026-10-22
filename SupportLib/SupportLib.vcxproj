@@ -293,6 +293,8 @@
     <ClInclude Include="RLEPacketEncoder.h" />
     <ClInclude Include="RLEBitmapDecoder.h" />
     <ClInclude Include="Rectangle.h" />
+    <ClInclude Include="Int32Rect.h" />
+    <ClInclude Include="Float64Rect.h" />
     <ClInclude Include="SubImage.h" />
     <ClInclude Include="PackAttempt.h" />
     <ClInclude Include="PackedLine.h" />
@@ -521,7 +523,7 @@
     <ClCompile Include="RLEPacketDecoder.cpp" />
     <ClCompile Include="RLEPacketEncoder.cpp" />
     <ClCompile Include="RLEBitmapDecoder.cpp" />
-    <ClCompile Include="Rectangle.cpp" />
+    <ClCompile Include="Int32Rect.cpp" />
     <ClCompile Include="SubImage.cpp" />
     <ClCompile Include="PackAttempt.cpp" />
     <ClCompile Include="PackedLine.cpp" />

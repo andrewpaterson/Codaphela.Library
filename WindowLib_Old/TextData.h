@@ -40,7 +40,7 @@ public:
 	int					GetWidth(void);
 	int					GetRight(void);
 	bool				IsWhiteSpace(void);
-	bool				GetBounds(CRectangle* pcDest);
+	bool				GetBounds(CInt32Rect* pcDest);
 };
 
 
@@ -76,7 +76,7 @@ public:
 	bool 				IsOutOfBoundsRight(int iIndex);
 	bool 				IsOutOfBoundsLeft(int iIndex);
 	bool 				IsOutOfBounds(int iIndex);
-	bool				GetBounds(int iX, CRectangle* pcDest);
+	bool				GetBounds(int iX, CInt32Rect* pcDest);
 };
 
 
@@ -118,7 +118,7 @@ public:
 	CTextCharLine*	GetLastLine(void);
 	int				GetLastLineIndex(void);
 	CTextChar*		GetChar(int iX, int iLine);
-	bool			GetBounds(int iX, int iLine, CRectangle* pcDest);
+	bool			GetBounds(int iX, int iLine, CInt32Rect* pcDest);
 };
 
 

@@ -20,7 +20,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "SupportLib/Rectangle.h"
+#include "SupportLib/Int32Rect.h"
 #include "WindowLib/NativeWindow.h"
 #include "WinRefCanvas.h"
 
@@ -29,13 +29,13 @@ class CWinRefWindow : public CNativeWindow
 {
 CONSTRUCTABLE(CWinRefWindow);
 protected:
-	CRectangle	mcWindowBounds;
+	CInt32Rect	mcWindowBounds;
 	bool		mbCreated;
 	char*		mszImagePath;
 	uint64		muiFrame;
 
 public:
-	void	Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, CRectangle* pcBounds, char* szImagePath);
+	void	Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, CInt32Rect* pcBounds, char* szImagePath);
 	void	Kill(void);
 
 	void	Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHeight) override;
@@ -43,7 +43,7 @@ public:
 	bool	CreateNativeWindow(void) override;
 	bool	ExecuteNativeWindow(void) override;
 
-	void	GetRectangle(CRectangle* pcDest) override;
+	void	GetRectangle(CInt32Rect* pcDest) override;
 	void	SignalPresent(void) override;
 };
 

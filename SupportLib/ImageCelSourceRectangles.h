@@ -30,11 +30,11 @@ class CImageCelSourceRectangles : public CImageCelSource
 {
 CONSTRUCTABLE(CImageCelSourceRectangles);
 protected:
-	CArrayRectangle mcRectangles;
+	CArrayInt32Rect mcRectangles;
 
 public:
-	void Init(CArrayRectangle* pcRectangles = NULL, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
-	void AddRectangle(CRectangle* pcRect);
+	void Init(CArrayInt32Rect* pcRectangles = NULL, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
+	void AddRectangle(CInt32Rect* pcRect);
 	void Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDestImageCels, CImage* pcMask);
 	void Kill(void);
 };

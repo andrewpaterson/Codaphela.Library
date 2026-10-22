@@ -48,7 +48,7 @@ protected:
 
 public:
 			void 			Init(Ptr<CImage> pcSourceImage, bool bCropTransparentBorders = false);
-			void			Init(Ptr<CImage> pcSourceImage, CRectangle* pcRect);
+			void			Init(Ptr<CImage> pcSourceImage, CInt32Rect* pcRect);
 			void 			Init(Ptr<CImage> pcSourceImage, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
 			void 			Init(Ptr<CImage> pcSourceImage, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, int32 iLeftOffset, int32 iTopOffset, int32 iRightOffset, int32 iBottomOffset, int32 iAlignment = SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
 			void			Class(void) override;
@@ -78,8 +78,8 @@ public:
 			void			AddBlitterCache(CImageCelBlitterCache* pcCache);
 			void			ForgetBlitterCache(CImageCelBlitterCache* pcCache);
 			size			NumBlitterCaches(void);
-			void			GetImageDestBounds(int32 x, int32 y, CRectangle* pcReturn);
-			void			GetImageSourceBounds(CRectangle* pcReturn);
+			void			GetImageDestBounds(int32 x, int32 y, CInt32Rect* pcReturn);
+			void			GetImageSourceBounds(CInt32Rect* pcReturn);
 			int32			GetSourceLeft(void);
 			int32			GetSourceTop(void);
 

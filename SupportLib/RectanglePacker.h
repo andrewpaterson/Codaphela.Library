@@ -25,7 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __RECTANGLE_PACKER_H__
 #include "BaseLib/DataTypes.h"
 #include "StandardLib/Unknown.h"
-#include "Rectangle.h"
+#include "Int32Rect.h"
 #include "PackedRectangle.h"
 #include "SubImage.h"
 #include "ImageCel.h"
@@ -39,7 +39,7 @@ public:
 
 	virtual void	Pack(void) =0;
 
-	virtual bool	AddRectangle(CRectangle* pcRect, void* pvUserData) =0;
+	virtual bool	AddRectangle(CInt32Rect* pcRect, void* pvUserData) =0;
 	virtual bool	AddRectangle(CSubImage* pcSubImage) =0;
 	virtual bool	AddRectangle(CImageCel* pcImageCel) =0;
 

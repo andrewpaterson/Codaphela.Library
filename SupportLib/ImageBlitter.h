@@ -27,7 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ColourFormat.h"
 #include "ImageCel.h"
 #include "ImageBlitterFormat.h"
-#include "Rectangle.h"
+#include "Int32Rect.h"
 #include "ImageCopyDimension.h"
 #include "ImageBlitterContext.h"
 #include "OffsetImageRowBlitter.h"
@@ -61,8 +61,8 @@ public:
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;
 
-	bool			Blit(int32 iDestX, int32 iDestY, CRectangle* pcClip = NULL);
-	bool			Blit(int32 iDestX, int32 iDestY, int32 iDestWidth, int32 iDestHeight, CRectangle* pcClip = NULL);
+	bool			Blit(int32 iDestX, int32 iDestY, CInt32Rect* pcClip = NULL);
+	bool			Blit(int32 iDestX, int32 iDestY, int32 iDestWidth, int32 iDestHeight, CInt32Rect* pcClip = NULL);
 	Ptr<CImageCel>	GetCel(void);
 	bool			AllowsSizing(void);
 	void			EnableSizing(CImageRowBlitterFactory* pcBlitterCache);
@@ -74,7 +74,7 @@ protected:
 	void			PopulateContext(CImageBlitterContext* pcContext);
 	void			PopulateRowStarts(void);
 	bool			PopulateSizingTables(int32 iDestWidth, int32 iDestHeight);
-	bool			ClipDestRect(CRectangle* pcClip, CRectangle* pcDestRect);
+	bool			ClipDestRect(CInt32Rect* pcClip, CInt32Rect* pcDestRect);
 
 	bool			CreateImageRowBlitterContiguous(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, bool bAllowSizing);
 	bool			CreateImageRowBlitterByteAlignedOpaque(CImageBlitterFormat* pcFormat, CImageRowBlitterFactory* pcBlitterCache, bool bAllowSizing);
