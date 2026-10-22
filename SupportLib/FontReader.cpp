@@ -115,7 +115,7 @@ TRISTATE GetFontGlyph(CTextParser* pcTextParser, Ptr<CFont> pFont, Ptr<CArrayIma
 	}
 
 	pCel = paCels->Get((size)iCelIndex);
-	pFont->PutGlyph(uiCodePoint, uiLength, pCel, iStep);
+	pFont->PutGlyph(uiCodePoint, uiLength, pCel->GetSubImage(), iStep);
 	return TRITRUE;
 }
 

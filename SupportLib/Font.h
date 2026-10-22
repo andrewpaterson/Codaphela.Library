@@ -46,7 +46,8 @@ protected:
 	size				miLineHeight;
 	bool				mbFixedWidh;
 	int16				miSpaceWidth;
-	CIndexGlyph			macGlyphs;
+	CIndexGlyph			macGlyphs;			//Only the glyphs asked for so far.  See macDescriptions.
+	CIndexGlyphDescription	macDescriptions;	//Every character in the font, keyed like macGlyphs.
 	int16				miAscent;
 	int16				miDescent;
 	int16				miTabSpaceCount;  //tab width = miTabSpaceCount * miSpaceWidth.
@@ -68,10 +69,11 @@ public:
 	Ptr<CGlyph>		GetGlyph(uint32 c, size uiLength);
 	Ptr<CGlyph>		GetGlyph(uint8* puiBuffer, size uiLength);
 	Ptr<CGlyph>		GetGlyph(CUnicodeReader* pcUTFReader);
-	Ptr<CGlyph>		PutGlyph(uint8 c, Ptr<CImageCel> pCel, int16 iStep);
-	Ptr<CGlyph>		PutGlyph(uint16 c, Ptr<CImageCel> pCel, int16 iStep);
-	Ptr<CGlyph>		PutGlyph(uint32 c, size uiLength, Ptr<CImageCel> pCel, int16 iStep);
-	Ptr<CGlyph>		PutGlyph(uint8* puiBuffer, size uiLength, Ptr<CImageCel> pCel, int16 iStep);
+	void			PutGlyph(uint32 c, size uiLength, CSubImage* pcSubImage, int16 iStep);
+	void			PutGlyph(uint8* puiBuffer, size uiLength, CSubImage* pcSubImage, int16 iStep);
+	SGlyphDescription*	GetGlyphDescription(uint8* puiBuffer, size uiLength);
+	SGlyphDescription*	GetGlyphDescription(CUnicodeReader* pcUTFReader);
+	Ptr<CImageCel>	CreateCel(SGlyphDescription* psDescription);
 	Ptr<CImage>		GetImage(void);
 	void			SetImage(Ptr<CImage> pImage);
 	int16			GetAscent(void);
@@ -83,9 +85,13 @@ public:
 	size			GetAverageHeight(void);
 
 	size			NumGlyphs(void);
+	size			NumGeneratedGlyphs(void);
 
 	bool			StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize);
 	bool			Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize);
+
+protected:
+	size			ReadKey(CUnicodeReader* pcUTFReader, uint8* puiKey, size uiMaxKeyLength);
 };
 
 

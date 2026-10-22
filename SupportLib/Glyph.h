@@ -23,6 +23,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/IndexTemplate.h"
 #include "ImageCel.h"
 #include "StandardLib/Array.h"
 #include "StandardLib/Index.h"
@@ -66,7 +67,17 @@ struct SGlyphPosition
 };
 
 
+//Where a glyph's pixels are in its font's image and how far it advances.  A font keeps one for every character it
+//has and only makes the CGlyph (and its CImageCel) the first time the character is asked for.
+struct SGlyphDescription
+{
+	CSubImage	cSubImage;
+	int16		iStep;
+};
+
+
 typedef CIndex<CGlyph> CIndexGlyph;
+typedef CIndexTemplate<SGlyphDescription> CIndexGlyphDescription;
 typedef CArrayTemplate<SGlyphPosition>	CArrayGlyphPosition;
 
 
