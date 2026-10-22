@@ -10,6 +10,7 @@ class CSequence : public CSequenceConnection
 protected:
 	CDurableFileController		mcFileController;
 	OIndex						moiNext;
+	OIndex						moiReserved;  //The index written to the Sequence file.  Indices below it may be handed out without writing.
 	CDurableFile				mcFile;
 	CSequenceConfig*			mpcConfig;
 	CLife<CSequenceConfig>		mcConfig;
@@ -24,6 +25,7 @@ public:
 protected:
 	OIndex	ReadIndex(void);
 	bool	WriteIndex(OIndex oi);
+	bool	Reserve(OIndex oiReserved);
 };
 
 

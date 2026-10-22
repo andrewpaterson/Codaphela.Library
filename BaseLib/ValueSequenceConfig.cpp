@@ -5,10 +5,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CValueSequenceConfig::Init(const char* szDirectory, EDurableSync eSync)
+void CValueSequenceConfig::Init(const char* szDirectory, EDurableSync eSync, size uiBlockSize)
 {
 	mszDirectory = szDirectory;
 	meSync = eSync;
+	muiBlockSize = uiBlockSize;
 }
 
 
@@ -46,9 +47,19 @@ EDurableSync CValueSequenceConfig::GetSync(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLifeInit<CSequenceConfig> CValueSequenceConfig::Create(const char* szDirectory, EDurableSync eSync)
+size CValueSequenceConfig::GetBlockSize(void)
 {
-	CLifeInit<CSequenceConfig> cLife = LifeAlloc<CValueSequenceConfig, CSequenceConfig>(szDirectory, eSync);
+	return muiBlockSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLifeInit<CSequenceConfig> CValueSequenceConfig::Create(const char* szDirectory, EDurableSync eSync, size uiBlockSize)
+{
+	CLifeInit<CSequenceConfig> cLife = LifeAlloc<CValueSequenceConfig, CSequenceConfig>(szDirectory, eSync, uiBlockSize);
 	return cLife;
 }
 

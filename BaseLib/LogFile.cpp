@@ -531,7 +531,10 @@ size CLogFile::Write(const void* pvSource, size iSize, size iCount)
 		bAny = FindTouchingWriteCommands(0, &apvOverlapping, miPosition, iByteLength, false);
 		if (bAny)
 		{
-			AmalgamateOverlappingWrites(&apvOverlapping, pvSource, miPosition, iByteLength);
+			if (!ExtendLastWrite(&apvOverlapping, pvSource, miPosition, iByteLength))
+			{
+				AmalgamateOverlappingWrites(&apvOverlapping, pvSource, miPosition, iByteLength);
+			}
 			apvOverlapping.Kill();
 			miPosition += iByteLength;
 		}
@@ -590,6 +593,63 @@ CLogFileCommandWrite* CLogFile::AddWriteCommand(filePos iPosition, size iByteLen
 
 	psCommand->Init(iPosition, iByteLength);
 	return psCommand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Writing just after (or inside) the last write grows that write in place.
+// Amalgamating would copy everything written so far on every append.
+// The result is the same as AmalgamateOverlappingWrites: one write command,
+// last in the list, covering both.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CLogFile::ExtendLastWrite(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, size iLength)
+{
+	CLogFileCommandWrite*	psWrite;
+	uint					iIndex;
+	size					uiNewSize;
+	size					uiNeeded;
+	size					uiAllocated;
+	void*					pvDest;
+
+	if (papvOverlapping->NumElements() != 1)
+	{
+		return false;
+	}
+
+	papvOverlapping->Get(0, (void**)&psWrite, &iIndex);
+	if (((size)iIndex != macCommands.NumElements() - 1) || (iPosition < psWrite->iPosition))
+	{
+		return false;
+	}
+
+	uiNewSize = (size)(iPosition - psWrite->iPosition) + iLength;
+	if (uiNewSize < psWrite->iSize)
+	{
+		uiNewSize = psWrite->iSize;
+	}
+
+	uiNeeded = sizeof(CLogFileCommandWrite) + uiNewSize;
+	uiAllocated = macCommands.GetSize(iIndex);
+	if (uiNeeded > uiAllocated)
+	{
+		//Double so a run of appends is copied a logarithmic number of times.
+		if (uiNeeded < uiAllocated * 2)
+		{
+			uiNeeded = uiAllocated * 2;
+		}
+		psWrite = (CLogFileCommandWrite*)macCommands.Grow(iIndex, uiNeeded);
+		if (!psWrite)
+		{
+			return false;
+		}
+	}
+
+	pvDest = RemapSinglePointer(psWrite->GetData(), (ptrdiff)(iPosition - psWrite->iPosition));
+	memcpy_fast(pvDest, (void*)pvSource, iLength);
+	psWrite->iSize = uiNewSize;
+	return true;
 }
 
 

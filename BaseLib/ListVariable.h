@@ -55,6 +55,7 @@ public:
 	void*	Get(size iIndex, size* puiElementSize);
 	void	Set(size iIndex, void* pvData, size iElementSize);
 	void*	Resize(size iIndex, size iElementSize = 0);
+	void*	Grow(size iIndex, size iElementSize);
 	void	RemoveAt(size iIndex, bool bPreserveOrder = true);
 	size	IndexOf(void* pvElement);
 	bool	Remove(void* pvElement);

@@ -34,9 +34,11 @@ bool CSequence::Init(CLifeInit<CSequenceConfig> cConfig)
 	{
 		//Not FIRST_O_INDEX, that could hand out indices that are already used.
 		moiNext = INVALID_O_INDEX;
+		moiReserved = INVALID_O_INDEX;
 		return gcLogger.Error2(__METHOD__, " Could not read Sequence file.", NULL);
 	}
 
+	moiReserved = moiNext;
 	return true;
 }
 
@@ -47,6 +49,15 @@ bool CSequence::Init(CLifeInit<CSequenceConfig> cConfig)
 //////////////////////////////////////////////////////////////////////////
 void CSequence::Kill(void)
 {
+	//Give back the unused part of the block so a clean close leaves no gap in the indices.
+	if ((moiNext != INVALID_O_INDEX) && (moiNext < moiReserved))
+	{
+		if (!Reserve(moiNext))
+		{
+			gcLogger.Error2(__METHOD__, " Could not write Sequence file.", NULL);
+		}
+	}
+
 	mcFile.Kill();
 	mcFileController.Kill();
 	mcConfig.Kill();
@@ -66,17 +77,42 @@ OIndex CSequence::GetNext(void)
 
 	moiNext++;
 
-	bResult = mcFileController.Begin();
-	bResult &= WriteIndex(moiNext);
-	bResult &= mcFileController.End();
-
-	if (!bResult)
+	if (moiNext > moiReserved)
 	{
-		//Keep counting in memory.  Going back to the first index would hand out indices that are already used.
-		gcLogger.Error2(__METHOD__, " Could not write Sequence file.", NULL);
+		bResult = Reserve(uiNext + mpcConfig->GetBlockSize());
+		if (!bResult)
+		{
+			//Keep counting in memory.  Going back to the first index would hand out indices that are already used.
+			gcLogger.Error2(__METHOD__, " Could not write Sequence file.", NULL);
+		}
 	}
 
 	return uiNext;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSequence::Reserve(OIndex oiReserved)
+{
+	bool	bResult;
+
+	if (oiReserved < moiNext)
+	{
+		oiReserved = moiNext;
+	}
+
+	bResult = mcFileController.Begin();
+	bResult &= WriteIndex(oiReserved);
+	bResult &= mcFileController.End();
+
+	if (bResult)
+	{
+		moiReserved = oiReserved;
+	}
+	return bResult;
 }
 
 
@@ -96,7 +132,7 @@ OIndex CSequence::PeekNext(void)
 //////////////////////////////////////////////////////////////////////////
 bool CSequence::WriteIndex(OIndex oi)
 {
-	return mcFile.WriteInt64(moiNext);
+	return mcFile.WriteInt64(oi);
 }
 
 
