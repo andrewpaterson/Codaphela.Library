@@ -157,9 +157,9 @@ int32 CRectangle::GetHeight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CRectangle::GetArea(void)
+int64 CRectangle::GetArea(void)
 {
-	return GetWidth() * GetHeight();
+	return (int64)GetWidth() * (int64)GetHeight();
 }
 
 

@@ -801,7 +801,10 @@ int CTrueTypeFont::GetGlyphIndexFormat4(uint32 uiCodePoint)
 	while (uiLow < uiHigh)
 	{
 		uiMiddle = (uiLow + uiHigh) / 2;
-		ReadUint16(uiEndCodes + uiMiddle * 2, &uiEnd);
+		if (!ReadUint16(uiEndCodes + uiMiddle * 2, &uiEnd))
+		{
+			return 0;
+		}
 		if (uiEnd < uiCodePoint)
 		{
 			uiLow = uiMiddle + 1;
@@ -816,13 +819,14 @@ int CTrueTypeFont::GetGlyphIndexFormat4(uint32 uiCodePoint)
 		return 0;
 	}
 
-	ReadUint16(uiStartCodes + uiLow * 2, &uiStart);
-	if (uiStart > uiCodePoint)
+	if (!ReadUint16(uiStartCodes + uiLow * 2, &uiStart) || (uiStart > uiCodePoint))
 	{
 		return 0;
 	}
-	ReadInt16(uiDeltas + uiLow * 2, &iDelta);
-	ReadUint16(uiRangeOffsets + uiLow * 2, &uiRangeOffset);
+	if (!ReadInt16(uiDeltas + uiLow * 2, &iDelta) || !ReadUint16(uiRangeOffsets + uiLow * 2, &uiRangeOffset))
+	{
+		return 0;
+	}
 
 	if (uiRangeOffset == 0)
 	{
@@ -870,8 +874,10 @@ int CTrueTypeFont::GetGlyphIndexFormat12(uint32 uiCodePoint)
 	while (uiLow < uiHigh)
 	{
 		uiMiddle = (uiLow + uiHigh) / 2;
-		ReadUint32(uiGroups + uiMiddle * 12, &uiStart);
-		ReadUint32(uiGroups + uiMiddle * 12 + 4, &uiEnd);
+		if (!ReadUint32(uiGroups + uiMiddle * 12, &uiStart) || !ReadUint32(uiGroups + uiMiddle * 12 + 4, &uiEnd))
+		{
+			return 0;
+		}
 		if (uiCodePoint < uiStart)
 		{
 			uiHigh = uiMiddle;
@@ -882,7 +888,10 @@ int CTrueTypeFont::GetGlyphIndexFormat12(uint32 uiCodePoint)
 		}
 		else
 		{
-			ReadUint32(uiGroups + uiMiddle * 12 + 8, &uiStartGlyph);
+			if (!ReadUint32(uiGroups + uiMiddle * 12 + 8, &uiStartGlyph))
+			{
+				return 0;
+			}
 			return (int)(uiStartGlyph + (uiCodePoint - uiStart));
 		}
 	}
@@ -905,6 +914,7 @@ bool CTrueTypeFont::GetGlyphMetrics(int iGlyph, STrueTypeGlyphMetrics* psMetrics
 	int16	iYMin;
 	int16	iXMax;
 	int16	iYMax;
+	bool	bRead;
 
 	if ((iGlyph < 0) || (iGlyph >= miNumGlyphs))
 	{
@@ -914,13 +924,17 @@ bool CTrueTypeFont::GetGlyphMetrics(int iGlyph, STrueTypeGlyphMetrics* psMetrics
 	//Glyphs past the last long metric share its advance width.
 	if (iGlyph < miNumHMetrics)
 	{
-		ReadUint16(muiHmtxOffset + (size)iGlyph * 4, &uiAdvance);
-		ReadInt16(muiHmtxOffset + (size)iGlyph * 4 + 2, &iLeftSideBearing);
+		bRead = ReadUint16(muiHmtxOffset + (size)iGlyph * 4, &uiAdvance) &&
+				ReadInt16(muiHmtxOffset + (size)iGlyph * 4 + 2, &iLeftSideBearing);
 	}
 	else
 	{
-		ReadUint16(muiHmtxOffset + ((size)miNumHMetrics - 1) * 4, &uiAdvance);
-		ReadInt16(muiHmtxOffset + (size)miNumHMetrics * 4 + ((size)iGlyph - miNumHMetrics) * 2, &iLeftSideBearing);
+		bRead = ReadUint16(muiHmtxOffset + ((size)miNumHMetrics - 1) * 4, &uiAdvance) &&
+				ReadInt16(muiHmtxOffset + (size)miNumHMetrics * 4 + ((size)iGlyph - miNumHMetrics) * 2, &iLeftSideBearing);
+	}
+	if (!bRead)
+	{
+		return false;
 	}
 	psMetrics->iAdvanceWidth = uiAdvance;
 	psMetrics->iLeftSideBearing = iLeftSideBearing;
@@ -969,14 +983,18 @@ bool CTrueTypeFont::GetGlyphData(int iGlyph, size* puiOffset, size* puiLength)
 
 	if (mbLongLoca)
 	{
-		ReadUint32(muiLocaOffset + (size)iGlyph * 4, &uiStart);
-		ReadUint32(muiLocaOffset + (size)iGlyph * 4 + 4, &uiEnd);
+		if (!ReadUint32(muiLocaOffset + (size)iGlyph * 4, &uiStart) || !ReadUint32(muiLocaOffset + (size)iGlyph * 4 + 4, &uiEnd))
+		{
+			return false;
+		}
 	}
 	else
 	{
 		//Short offsets are stored halved.
-		ReadUint16(muiLocaOffset + (size)iGlyph * 2, &uiStart16);
-		ReadUint16(muiLocaOffset + (size)iGlyph * 2 + 2, &uiEnd16);
+		if (!ReadUint16(muiLocaOffset + (size)iGlyph * 2, &uiStart16) || !ReadUint16(muiLocaOffset + (size)iGlyph * 2 + 2, &uiEnd16))
+		{
+			return false;
+		}
 		uiStart = (uint32)uiStart16 * 2;
 		uiEnd = (uint32)uiEnd16 * 2;
 	}
@@ -1087,7 +1105,10 @@ bool CTrueTypeFont::ReadSimpleGlyph(size uiOffset, size uiLength, int iNumContou
 	iLastContourEnd = -1;
 	for (i = 0; i < iNumContours; i++)
 	{
-		ReadUint16(uiOffset + (size)i * 2, &uiContourEnd);
+		if (!ReadUint16(uiOffset + (size)i * 2, &uiContourEnd))
+		{
+			return false;
+		}
 		if ((int)uiContourEnd <= iLastContourEnd)
 		{
 			//An empty contour.
@@ -1103,7 +1124,10 @@ bool CTrueTypeFont::ReadSimpleGlyph(size uiOffset, size uiLength, int iNumContou
 	uiNumPoints = (size)iLastContourEnd + 1;
 
 	uiPos = uiOffset + (size)iNumContours * 2;
-	ReadUint16(uiPos, &uiInstructionLength);
+	if (!ReadUint16(uiPos, &uiInstructionLength))
+	{
+		return false;
+	}
 	uiPos += 2 + uiInstructionLength;
 	if (uiPos > uiEnd)
 	{
@@ -1325,19 +1349,20 @@ bool CTrueTypeFont::ReadCompositeGlyph(size uiOffset, size uiLength, CTrueTypeOu
 		}
 		else if (uiFlags & TRUE_TYPE_HAVE_A_TWO_BY_TWO)
 		{
-			if (uiPos + 8 > uiEnd)
+			if ((uiPos + 8 > uiEnd) || !ReadInt16(uiPos, &iWord1) || !ReadInt16(uiPos + 2, &iWord2))
 			{
 				cComponent.Kill();
 				return false;
 			}
-			ReadInt16(uiPos, &iScale);
-			iXX = iScale;
-			ReadInt16(uiPos + 2, &iScale);
-			iXY = iScale;
-			ReadInt16(uiPos + 4, &iScale);
-			iYX = iScale;
-			ReadInt16(uiPos + 6, &iScale);
-			iYY = iScale;
+			iXX = iWord1;
+			iXY = iWord2;
+			if (!ReadInt16(uiPos + 4, &iWord1) || !ReadInt16(uiPos + 6, &iWord2))
+			{
+				cComponent.Kill();
+				return false;
+			}
+			iYX = iWord1;
+			iYY = iWord2;
 			uiPos += 8;
 		}
 

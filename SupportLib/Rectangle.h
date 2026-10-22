@@ -54,7 +54,7 @@ public:
 	int32			GetBottom(void);
 	int32 			GetWidth(void);
 	int32 			GetHeight(void);
-	int32 			GetArea(void);
+	int64 			GetArea(void);
 	void			SetWidth(int32 iWidth);
 	void			SetHeight(int32 iHeight);
 	void			SetSize(int32 iWidth, int32 iHeight);

@@ -74,7 +74,7 @@ bool CRectangleBestPacker::AddRectangle(CRectangle* pcRect, void* pvUserData)
 	{
 		psPacked = masSourceRectangles.Add();
 		psPacked->Init(pcRect, pvUserData);
-		miSourceArea += (int64)pcRect->GetWidth() * (int64)pcRect->GetHeight();
+		miSourceArea += pcRect->GetArea();
 		return true;
 	}
 	else
