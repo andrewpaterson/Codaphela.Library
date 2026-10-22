@@ -126,9 +126,6 @@
     <ClInclude Include="NativeCanvas.h">
       <Filter>Source\Component\Drawing\Canvas</Filter>
     </ClInclude>
-    <ClInclude Include="TextField.h">
-      <Filter>Source\Component\Drawing\Text</Filter>
-    </ClInclude>
     <ClInclude Include="TextArea.h">
       <Filter>Source\Component\Drawing\Text</Filter>
     </ClInclude>

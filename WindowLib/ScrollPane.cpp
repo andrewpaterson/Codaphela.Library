@@ -441,7 +441,8 @@ bool CScrollPane::Wheel(int iRight, int iDown)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The content is only drawn inside the scroll pane.
+// The content is only drawn inside the scroll pane, even if clipping has
+// been turned off.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CScrollPane::ClipsChildren(void)

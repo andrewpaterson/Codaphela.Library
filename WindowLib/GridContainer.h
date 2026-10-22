@@ -49,6 +49,8 @@ public:
 	void		Init(Ptr<CWindow> pWindow);
 	void		Free(void) override;
 	void		Class(void) override;
+	bool		Save(CObjectWriter* pcFile) override;
+	bool		Load(CObjectReader* pcFile) override;
 
 	bool		AddComponent(Ptr<CComponent> pComponent, int iColumn, int iRow, int iColumnSpan = 1, int iRowSpan = 1, int iWidthWeight = 0, int iHeightWeight = 0);
 	bool		AddComponent(Ptr<CComponent> pComponent) override;  //Fails, a component must be added with a cell.

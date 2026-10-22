@@ -33,6 +33,7 @@ void CFlowContainer::Init(Ptr<CWindow> pWindow)
 	meDirection = CSD_Right;
 	meHorizontal = CSH_Left;
 	meVertical = CSV_Top;
+	msInsets.Init();
 }
 
 
@@ -57,6 +58,27 @@ void CFlowContainer::Class(void)
 	U_Enum(meDirection);
 	U_Enum(meHorizontal);
 	U_Enum(meVertical);
+	U_Data(SInsets, msInsets);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFlowContainer::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFlowContainer::Load(CObjectReader* pcFile)
+{
+	return false;
 }
 
 
@@ -123,6 +145,8 @@ void CFlowContainer::SetRequiredSize(void)
 			}
 		}
 	}
+	sTotalSize.x += msInsets.GetLeftAndRight();
+	sTotalSize.y += msInsets.GetTopAndBottom();
 	msRequiredSize = sTotalSize;
 }
 
@@ -133,17 +157,24 @@ void CFlowContainer::SetRequiredSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CFlowContainer::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 {
-	SetContainerBounds(sPosition, sAreaSize);
+	SInt32Vec2	sOrigin;
+	SInt32Vec2	sArea;
+
+	sOrigin = sPosition;
+	sArea = sAreaSize;
+	msInsets.Inset(&sOrigin, &sArea);
+
+	SetContainerBounds(sOrigin, sArea);
 
 	if (meDirection != CSD_Unknown)
 	{
 		if (meWrap == CSW_Wrap)
 		{
-			LayoutWrap(sPosition, sAreaSize);
+			LayoutWrap(sOrigin, sArea);
 		}
 		else
 		{
-			LayoutLine(sPosition, sAreaSize, 0, maChildren.Size());
+			LayoutLine(sOrigin, sArea, 0, maChildren.Size());
 		}
 	}
 
@@ -444,5 +475,15 @@ void CFlowContainer::SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWr
 	meWrap = eW;
 	meDirection = eD;
 	meVertical = eA;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFlowContainer::SetInsets(SInsets* psInsets)
+{
+	memcpy(&msInsets, psInsets, sizeof(SInsets));
 }
 
