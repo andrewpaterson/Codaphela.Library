@@ -33,19 +33,19 @@ int ComparePackRectangleAttempt(const void* pv1, const void* pv2)
 	CPackRectangleAttempt*	pcRect1 = (CPackRectangleAttempt*)pv1;
 	CPackRectangleAttempt*	pcRect2 = (CPackRectangleAttempt*)pv2;
 
-	if (pcRect1->mpcPackedRectangle->miHeight < pcRect2->mpcPackedRectangle->miHeight)
+	if (pcRect1->mcSourceRectangle.miHeight < pcRect2->mcSourceRectangle.miHeight)
 	{
 		return -1;
 	}
-	if (pcRect1->mpcPackedRectangle->miHeight > pcRect2->mpcPackedRectangle->miHeight)
+	if (pcRect1->mcSourceRectangle.miHeight > pcRect2->mcSourceRectangle.miHeight)
 	{
 		return 1;
 	}
-	if (pcRect1->mpcPackedRectangle->miWidth < pcRect2->mpcPackedRectangle->miWidth)
+	if (pcRect1->mcSourceRectangle.miWidth < pcRect2->mcSourceRectangle.miWidth)
 	{
 		return -1;
 	}
-	if (pcRect1->mpcPackedRectangle->miWidth > pcRect2->mpcPackedRectangle->miWidth)
+	if (pcRect1->mcSourceRectangle.miWidth > pcRect2->mcSourceRectangle.miWidth)
 	{
 		return 1;
 	}
@@ -69,10 +69,9 @@ void CPackSourceRectangle::Init(CRectangle* pcRect, void* pvUserData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPackRectangleAttempt::Init(CPackSourceRectangle* pcPackedRectangle)
+void CPackRectangleAttempt::Init(CPackSourceRectangle* pcSourceRectangle)
 {
-	mpcPackedRectangle = pcPackedRectangle;
-	mpcLine = NULL;
+	mcSourceRectangle = *pcSourceRectangle;
 	mix = -1;
 	miy = -1;
 }
@@ -81,9 +80,8 @@ void CPackRectangleAttempt::Init(CPackSourceRectangle* pcPackedRectangle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPackRectangleAttempt::Set(CPackedLine* pcLine, int x, int y)
+void CPackRectangleAttempt::SetPos(int x, int y)
 {
-	mpcLine = pcLine;
 	mix = x;
 	miy = y;
 }

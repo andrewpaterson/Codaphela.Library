@@ -70,7 +70,7 @@ bool CRectangleBestPacker::AddRectangle(CRectangle* pcRect, void* pvUserData)
 {
 	CPackSourceRectangle*	psPacked;
 
-	if (!(pcRect->GetWidth() == 0))
+	if ((pcRect->GetWidth() > 0) && (pcRect->GetHeight() > 0))
 	{
 		psPacked = masSourceRectangles.Add();
 		psPacked->Init(pcRect, pvUserData);
@@ -113,6 +113,11 @@ void CRectangleBestPacker::Pack(void)
 {
 	size			i;
 	CPackAttempt*	pcAttempt;
+
+	if (masSourceRectangles.NumElements() == 0)
+	{
+		return;
+	}
 
 	if (macPackAttempts.NumElements() == 0)
 	{
@@ -173,10 +178,21 @@ int CRectangleBestPacker::GetSourcesMaxWidth(void)
 //////////////////////////////////////////////////////////////////////////
 int CRectangleBestPacker::GetSourcesMinWidth(void)
 {
+	size					i;
 	CPackSourceRectangle*	pcRect;
+	int						iMaxWidth;
 
-	pcRect = masSourceRectangles.Get(0);
-	return pcRect->miWidth;
+	//The narrowest attempt that can hold every rectangle is as wide as the widest rectangle.
+	iMaxWidth = 0;
+	for (i = 0; i < masSourceRectangles.NumElements(); i++)
+	{
+		pcRect = masSourceRectangles.Get(i);
+		if (pcRect->miWidth > iMaxWidth)
+		{
+			iMaxWidth = pcRect->miWidth;
+		}
+	}
+	return iMaxWidth;
 }
 
 
@@ -187,9 +203,6 @@ int CRectangleBestPacker::GetSourcesMinWidth(void)
 void CRectangleBestPacker::AddAttempt(int iMaxWidth)
 {
 	CPackAttempt*	pcAttempt;
-	SInt32Vec2			sSize;
-
-	sSize = GetSourcesSizes();
 
 	pcAttempt = macPackAttempts.Add();
 	pcAttempt->Init(this, iMaxWidth);
@@ -222,15 +235,28 @@ void CRectangleBestPacker::AddVerticalAttempt(void)
 //////////////////////////////////////////////////////////////////////////
 void CRectangleBestPacker::AddSquareAttempt(void)
 {
-	CPackAttempt*	pcAttempt;
-	SInt32Vec2			sSize;
-	int				iMaxWidth;
+	size					i;
+	CPackSourceRectangle*	pcRect;
+	float32					fArea;
+	int						iMaxWidth;
+	int						iMinWidth;
 
-	sSize = GetSourcesSizes();
-	iMaxWidth = (int)(ceilf((sSize.x + sSize.y)/4.0f))-1;
+	//Aim for a square: the side of a square with the area of the rectangles and the gaps after them.
+	fArea = 0.0f;
+	for (i = 0; i < masSourceRectangles.NumElements(); i++)
+	{
+		pcRect = masSourceRectangles.Get(i);
+		fArea += (float32)(pcRect->miWidth + miInnerEdgeWidth) * (float32)(pcRect->miHeight + miInnerEdgeWidth);
+	}
+	iMaxWidth = (int)ceilf(sqrtf(fArea)) - miInnerEdgeWidth;
 
-	pcAttempt = macPackAttempts.Add();
-	pcAttempt->Init(this, iMaxWidth);
+	iMinWidth = GetSourcesMinWidth();
+	if (iMaxWidth < iMinWidth)
+	{
+		iMaxWidth = iMinWidth;
+	}
+
+	AddAttempt(iMaxWidth);
 }
 
 
@@ -254,9 +280,10 @@ void CRectangleBestPacker::AddDefaultAttempts(void)
 
 	iLastWidth = -1;
 
+	//InterpolateFloat goes from fEndWidth at 0 to fStartWidth at 1, so the attempts run from the single row width down to the widest rectangle, both included.
 	for (i = 0; i < 25; i++)
 	{
-		fPos = i/25.0f;
+		fPos = i/24.0f;
 		InterpolateFloat(&fDest, fStartWidth, fEndWidth, fPos);
 		iWidth = (int)(fDest + 0.5f);
 		if (iWidth != iLastWidth)
@@ -319,9 +346,10 @@ void CRectangleBestPacker::GetPackedRectangles(CArrayPackedRectangle* pacPackedR
 	CPackAttempt*	pcBest;
 
 	pcBest = GetBestAttempt();
-	pcBest->GetPackedRectangles(pacPackedRectangles);
-
-	
+	if (pcBest)
+	{
+		pcBest->GetPackedRectangles(pacPackedRectangles);
+	}
 }
 
 
@@ -332,9 +360,18 @@ void CRectangleBestPacker::GetPackedRectangles(CArrayPackedRectangle* pacPackedR
 SInt32Vec2 CRectangleBestPacker::GetPackedImageSize(void)
 {
 	CPackAttempt*	pcBest;
+	SInt32Vec2		sSize;
 
 	pcBest = GetBestAttempt();
-	return pcBest->GetPackedImageSize();
+	if (pcBest)
+	{
+		return pcBest->GetPackedImageSize();
+	}
+	else
+	{
+		sSize.Zero();
+		return sSize;
+	}
 }
 
 

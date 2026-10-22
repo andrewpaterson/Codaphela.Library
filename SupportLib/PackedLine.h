@@ -31,20 +31,19 @@ class CPackAttempt;
 class CPackedLine
 {
 public:
-	CPackAttempt*				mpcPackAttempt;
 	int							miHeight;
 	int							miWidth;
 	CArrayPackRectangleAttempt	macRectangles;
 	int							miy;  //Relative to the CPackAttempt, not the CRectangleBestPacker.  The difference should be miOutsideEdgeWidth.
 
-	void					Init(CPackAttempt* pcPackAttempt);
+	void					Init(void);
 	void					Kill(void);
 
-	bool					Pack(void);
-	bool					RecursePack(CRectangle* pcBounds);
+	bool					Pack(CPackAttempt* pcPackAttempt);
+	bool					RecursePack(CPackAttempt* pcPackAttempt, CRectangle* pcBounds);
 	void					Done(void);
 	CPackRectangleAttempt*	Get(void* pvUserData);
-	void					GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
+	void					GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles, int iOutsideEdgeWidth);
 
 	void					Print(CChars* psz);
 };

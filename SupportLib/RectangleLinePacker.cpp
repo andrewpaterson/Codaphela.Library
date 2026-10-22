@@ -56,6 +56,13 @@ void CRectangleLinePacker::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CRectangleLinePacker::Pack(void)
 {
+	if (macRectangles.NumElements() == 0)
+	{
+		//Nothing to pack, the same as the other packers.
+		miSize.Zero();
+		return;
+	}
+
 	if (mbLeftToRight)
 	{
 		miSize.y = GetHighestRect() + miOutsideEdgeWidth*2;
@@ -83,7 +90,7 @@ bool CRectangleLinePacker::AddRectangle(CRectangle* pcRect, void* pvUserData)
 {
 	CPackedRectangle*	psPacked;
 
-	if (!(pcRect->GetWidth() == 0))
+	if ((pcRect->GetWidth() > 0) && (pcRect->GetHeight() > 0))
 	{
 		psPacked = macRectangles.Add();
 		psPacked->Init(pcRect, pvUserData);
@@ -202,6 +209,10 @@ int CRectangleLinePacker::PackLeftToRight(void)
 	iLeft = miOutsideEdgeWidth;
 	for (i = 0; i < macRectangles.NumElements(); i++)
 	{
+		if (i != 0)
+		{
+			iLeft += miInnerEdgeWidth;
+		}
 		pcRect = macRectangles.Get(i);
 		pcRect->SetPos(iLeft, miOutsideEdgeWidth);
 		iLeft += pcRect->GetWidth();
@@ -223,6 +234,10 @@ int CRectangleLinePacker::PackTopToBottom(void)
 	iTop = miOutsideEdgeWidth;
 	for (i = 0; i < macRectangles.NumElements(); i++)
 	{
+		if (i != 0)
+		{
+			iTop += miInnerEdgeWidth;
+		}
 		pcRect = macRectangles.Get(i);
 		pcRect->SetPos(miOutsideEdgeWidth, iTop);
 		iTop += pcRect->GetHeight();
