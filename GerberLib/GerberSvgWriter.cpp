@@ -302,7 +302,7 @@ void CGerberSvgWriter::WriteObject(CGerberVectorObject* pcObject)
 	size					uiNumParts;
 	SFloat64Vec2			sMinimum;
 	SFloat64Vec2			sMaximum;
-	SGerberVectorSegment*	psSegment;
+	SVectorSegment*	psSegment;
 	int						iFirstMask;
 	int						iNumOffRuns;
 	int						iMask;
@@ -316,7 +316,7 @@ void CGerberSvgWriter::WriteObject(CGerberVectorObject* pcObject)
 		uiRunStart = 0;
 		for (i = 1; i <= uiNumSegments; i++)
 		{
-			if ((i == uiNumSegments) || (pcObject->GetSegment(i)->eType == GVS_Part))
+			if ((i == uiNumSegments) || (pcObject->GetSegment(i)->eType == VS_Part))
 			{
 				WritePath(pcObject, uiRunStart, i);
 				uiRunStart = i;
@@ -332,7 +332,7 @@ void CGerberSvgWriter::WriteObject(CGerberVectorObject* pcObject)
 	for (i = 0; i < uiNumSegments; i++)
 	{
 		psSegment = pcObject->GetSegment(i);
-		if (psSegment->eType == GVS_Part)
+		if (psSegment->eType == VS_Part)
 		{
 			if (!psSegment->bExposure && bPreviousOn)
 			{
@@ -352,7 +352,7 @@ void CGerberSvgWriter::WriteObject(CGerberVectorObject* pcObject)
 	uiRunStart = 0;
 	for (i = 0; i <= uiNumSegments; i++)
 	{
-		if ((i == uiNumSegments) || (pcObject->GetSegment(i)->eType == GVS_Part))
+		if ((i == uiNumSegments) || (pcObject->GetSegment(i)->eType == VS_Part))
 		{
 			if ((i > uiRunStart) && !bPreviousOn)
 			{
@@ -397,7 +397,7 @@ void CGerberSvgWriter::WriteObject(CGerberVectorObject* pcObject)
 	uiRunStart = 0;
 	for (i = 0; i <= uiNumSegments; i++)
 	{
-		if ((i == uiNumSegments) || (pcObject->GetSegment(i)->eType == GVS_Part))
+		if ((i == uiNumSegments) || (pcObject->GetSegment(i)->eType == VS_Part))
 		{
 			if ((i > uiRunStart) && bPreviousOn)
 			{
@@ -427,7 +427,7 @@ void CGerberSvgWriter::WriteObject(CGerberVectorObject* pcObject)
 void CGerberSvgWriter::WritePath(CGerberVectorObject* pcObject, size uiStart, size uiEnd)
 {
 	size					i;
-	SGerberVectorSegment*	psSegment;
+	SVectorSegment*	psSegment;
 	SFloat64Vec2			sCurrent;
 	SFloat64Vec2			sOpposite;
 	float64					fRadius;
@@ -439,7 +439,7 @@ void CGerberSvgWriter::WritePath(CGerberVectorObject* pcObject, size uiStart, si
 	bEmpty = true;
 	for (i = uiStart; i < uiEnd; i++)
 	{
-		if (pcObject->GetSegment(i)->eType != GVS_Part)
+		if (pcObject->GetSegment(i)->eType != VS_Part)
 		{
 			bEmpty = false;
 			break;
@@ -458,7 +458,7 @@ void CGerberSvgWriter::WritePath(CGerberVectorObject* pcObject, size uiStart, si
 		psSegment = pcObject->GetSegment(i);
 		switch (psSegment->eType)
 		{
-			case GVS_Move:
+			case VS_Move:
 				if (bContour)
 				{
 					mpsz->Append("Z");
@@ -468,12 +468,12 @@ void CGerberSvgWriter::WritePath(CGerberVectorObject* pcObject, size uiStart, si
 				bContour = true;
 				break;
 
-			case GVS_Line:
+			case VS_Line:
 				mpsz->Append('L');
 				WritePoint(&psSegment->sPoint);
 				break;
 
-			case GVS_Arc:
+			case VS_Arc:
 				//SVG Y is down so a counterclockwise arc has sweep flag 0.
 				fRadius = hypot(sCurrent.x - psSegment->sCenter.x, sCurrent.y - psSegment->sCenter.y);
 				szSweep = psSegment->bClockwise ? (char*)" 1 " : (char*)" 0 ";
@@ -498,12 +498,12 @@ void CGerberSvgWriter::WritePath(CGerberVectorObject* pcObject, size uiStart, si
 				}
 				else
 				{
-					fSweep = GetGerberArcSweep(&sCurrent, &psSegment->sPoint, &psSegment->sCenter, psSegment->bClockwise);
+					fSweep = Float64Vec2ArcSweep(&sCurrent, &psSegment->sPoint, &psSegment->sCenter, psSegment->bClockwise);
 					mpsz->Append('A');
 					WriteNumber(fRadius);
 					mpsz->Append(' ');
 					WriteNumber(fRadius);
-					mpsz->Append((fSweep > GERBER_PI) ? " 0 1" : " 0 0");
+					mpsz->Append((fSweep > N_PI_64) ? " 0 1" : " 0 0");
 					mpsz->Append(szSweep);
 					WritePoint(&psSegment->sPoint);
 				}
@@ -512,7 +512,7 @@ void CGerberSvgWriter::WritePath(CGerberVectorObject* pcObject, size uiStart, si
 			default:
 				break;
 		}
-		if (psSegment->eType != GVS_Part)
+		if (psSegment->eType != VS_Part)
 		{
 			sCurrent = psSegment->sPoint;
 		}

@@ -1,6 +1,6 @@
 #ifndef __GERBER_RASTERISER_H__
 #define __GERBER_RASTERISER_H__
-#include "SupportLib/CoverageRasteriser.h"
+#include "SupportLib/VectorRasteriser.h"
 #include "GerberVectorImage.h"
 
 
@@ -32,19 +32,12 @@ public:
 
 
 //Fills the objects of a vector image into a raster in order: dark objects darken it and clear objects lighten it.
-//Arcs are flattened to lines about the tolerance (pixels) from the arc, either side of it so areas are kept.  The parts of an object are combined
-//first; exposure on adds and exposure off erases.  All the coverage arithmetic is integer.
+//Each object is filled by a vector rasteriser; arcs are flattened to lines about the tolerance (pixels) from the arc.
 class CGerberRasteriser
 {
 protected:
-	CCoverageRasteriser		mcCoverage;
-	uint8*					mpuiObject;
-	size					muiObjectCapacity;
-	float64					mfTolerance;
-
+	CVectorRasteriser		mcVector;
 	CGerberRaster*			mpcRaster;
-	int						miLeft;
-	int						miTop;
 
 public:
 	void	Init(float64 fTolerance = 0.05);
@@ -54,12 +47,7 @@ public:
 
 protected:
 	bool	RasteriseObject(CGerberVectorObject* pcObject);
-	bool	RasterisePart(CGerberVectorObject* pcObject, size uiStart, size uiEnd, int iWidth, int iHeight);
-	void	AddArc(SFloat64Vec2* psStart, SFloat64Vec2* psEnd, SFloat64Vec2* psCenter, bool bClockwise);
-	void	AddLine(SFloat64Vec2* psStart, SFloat64Vec2* psEnd);
-	int32	ToSubpixelX(float64 x);
-	int32	ToSubpixelY(float64 y);
-	void	Composite(uint8* puiCoverage, int iWidth, int iHeight, bool bDark);
+	void	Composite(bool bDark);
 };
 
 

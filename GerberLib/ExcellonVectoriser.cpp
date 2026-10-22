@@ -54,7 +54,7 @@ void CExcellonVectoriser::Slot(CExcellonCommandToolDefine* pcTool, SGerberPoint*
 	sEnd.Init(psEnd->cX.DoubleValue() * mfUnit, psEnd->cY.DoubleValue() * mfUnit);
 	pcObject = mpcImage->Add(GP_Dark);
 	pcObject->BeginPart(true);
-	AddGerberStroke(pcObject, &sStart, &sEnd, pcTool->GetDiameter()->DoubleValue() * mfUnit / 2);
+	AddVectorStroke(pcObject, &sStart, &sEnd, pcTool->GetDiameter()->DoubleValue() * mfUnit / 2);
 	pcObject->CalculateBounds();
 }
 

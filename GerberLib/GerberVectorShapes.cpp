@@ -6,199 +6,6 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void RotateGerberPoint(SFloat64Vec2* psPoint, float64 fDegrees)
-{
-	SGerberVectorTransform	sRotation;
-
-	sRotation.Init();
-	sRotation.fRotation = fDegrees;
-	sRotation.Transform(psPoint);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void AddGerberStroke(CGerberVectorObject* pcObject, SFloat64Vec2* psStart, SFloat64Vec2* psEnd, float64 fRadius)
-{
-	SFloat64Vec2	sDirection;
-	SFloat64Vec2	sNormal;
-	SFloat64Vec2	sPoint;
-	float64			fLength;
-
-	//A draw with a circle is a stadium; a zero length draw is a circle.  Counterclockwise.
-	if (fRadius <= 0)
-	{
-		return;
-	}
-	fLength = hypot(psEnd->x - psStart->x, psEnd->y - psStart->y);
-	if (fLength == 0)
-	{
-		pcObject->AddCircle(psStart, fRadius, false);
-		return;
-	}
-
-	sDirection.Init((psEnd->x - psStart->x) / fLength, (psEnd->y - psStart->y) / fLength);
-	sNormal.Init(-sDirection.y * fRadius, sDirection.x * fRadius);
-
-	sPoint.Init(psStart->x - sNormal.x, psStart->y - sNormal.y);
-	pcObject->MoveTo(&sPoint);
-	sPoint.Init(psEnd->x - sNormal.x, psEnd->y - sNormal.y);
-	pcObject->LineTo(&sPoint);
-	sPoint.Init(psEnd->x + sNormal.x, psEnd->y + sNormal.y);
-	pcObject->ArcTo(&sPoint, psEnd, false);
-	sPoint.Init(psStart->x + sNormal.x, psStart->y + sNormal.y);
-	pcObject->LineTo(&sPoint);
-	sPoint.Init(psStart->x - sNormal.x, psStart->y - sNormal.y);
-	pcObject->ArcTo(&sPoint, psStart, false);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void AddGerberArcStroke(CGerberVectorObject* pcObject, SFloat64Vec2* psStart, SFloat64Vec2* psEnd, SFloat64Vec2* psCenter, bool bClockwise, float64 fRadius)
-{
-	float64			fArcRadius;
-	float64			fEndRadius;
-	SFloat64Vec2	sStartRadial;
-	SFloat64Vec2	sEndRadial;
-	SFloat64Vec2	sOuterStart;
-	SFloat64Vec2	sOuterEnd;
-	SFloat64Vec2	sInnerStart;
-	SFloat64Vec2	sInnerEnd;
-	SFloat64Vec2	sEndCap;
-	float64			fInner;
-
-	if (fRadius <= 0)
-	{
-		return;
-	}
-
-	fArcRadius = hypot(psStart->x - psCenter->x, psStart->y - psCenter->y);
-	if (fArcRadius == 0)
-	{
-		pcObject->AddCircle(psStart, fRadius, false);
-		return;
-	}
-
-	if ((psStart->x == psEnd->x) && (psStart->y == psEnd->y))
-	{
-		//A full circle is a ring; the inner circle winds the other way.
-		pcObject->AddCircle(psCenter, fArcRadius + fRadius, false);
-		if (fArcRadius > fRadius)
-		{
-			pcObject->AddCircle(psCenter, fArcRadius - fRadius, true);
-		}
-		return;
-	}
-
-	//The end is put on the start radius; the specification allows them to differ slightly.
-	fEndRadius = hypot(psEnd->x - psCenter->x, psEnd->y - psCenter->y);
-	sStartRadial.Init((psStart->x - psCenter->x) / fArcRadius, (psStart->y - psCenter->y) / fArcRadius);
-	if (fEndRadius == 0)
-	{
-		sEndRadial = sStartRadial;
-	}
-	else
-	{
-		sEndRadial.Init((psEnd->x - psCenter->x) / fEndRadius, (psEnd->y - psCenter->y) / fEndRadius);
-	}
-
-	sOuterStart.Init(psCenter->x + sStartRadial.x * (fArcRadius + fRadius), psCenter->y + sStartRadial.y * (fArcRadius + fRadius));
-	sOuterEnd.Init(psCenter->x + sEndRadial.x * (fArcRadius + fRadius), psCenter->y + sEndRadial.y * (fArcRadius + fRadius));
-	sEndCap.Init(psCenter->x + sEndRadial.x * fArcRadius, psCenter->y + sEndRadial.y * fArcRadius);
-
-	fInner = fArcRadius - fRadius;
-	if (fInner > 0)
-	{
-		//Outer arc, the end cap, the inner arc back and the start cap; all turning the same way.
-		sInnerStart.Init(psCenter->x + sStartRadial.x * fInner, psCenter->y + sStartRadial.y * fInner);
-		sInnerEnd.Init(psCenter->x + sEndRadial.x * fInner, psCenter->y + sEndRadial.y * fInner);
-		pcObject->MoveTo(&sOuterStart);
-		pcObject->ArcTo(&sOuterEnd, psCenter, bClockwise);
-		pcObject->ArcTo(&sInnerEnd, &sEndCap, bClockwise);
-		pcObject->ArcTo(&sInnerStart, psCenter, !bClockwise);
-		pcObject->ArcTo(&sOuterStart, psStart, bClockwise);
-	}
-	else
-	{
-		//The stroke is wider than the arc radius; a sector to the center and the two caps, all winding the same way.
-		pcObject->MoveTo(&sOuterStart);
-		pcObject->ArcTo(&sOuterEnd, psCenter, bClockwise);
-		pcObject->LineTo(psCenter);
-		pcObject->LineTo(&sOuterStart);
-		pcObject->AddCircle(psStart, fRadius, bClockwise);
-		pcObject->AddCircle(&sEndCap, fRadius, bClockwise);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void AddGerberObround(CGerberVectorObject* pcObject, float64 fWidth, float64 fHeight)
-{
-	SFloat64Vec2	sCenter;
-	SFloat64Vec2	sPoint;
-	SFloat64Vec2	sStart;
-	SFloat64Vec2	sEnd;
-	float64			fRadius;
-
-	if (fWidth == fHeight)
-	{
-		sCenter.Init(0, 0);
-		pcObject->AddCircle(&sCenter, fWidth / 2, false);
-		return;
-	}
-
-	//A stadium along the longer side.
-	if (fWidth > fHeight)
-	{
-		fRadius = fHeight / 2;
-		sStart.Init(-(fWidth - fHeight) / 2, 0);
-		sEnd.Init((fWidth - fHeight) / 2, 0);
-	}
-	else
-	{
-		fRadius = fWidth / 2;
-		sStart.Init(0, -(fHeight - fWidth) / 2);
-		sEnd.Init(0, (fHeight - fWidth) / 2);
-	}
-	AddGerberStroke(pcObject, &sStart, &sEnd, fRadius);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void AddGerberRegularPolygon(CGerberVectorObject* pcObject, SFloat64Vec2* psCenter, float64 fDiameter, int iVertices, float64 fRotation, float64 fPrimitiveRotation)
-{
-	SFloat64Vec2	asPoints[12];
-	int				i;
-
-	//The first vertex is on the positive X axis through the center, then the polygon is rotated about its center
-	//and, for a macro primitive, the whole primitive about the macro origin.
-	for (i = 0; i < iVertices; i++)
-	{
-		asPoints[i].Init(fDiameter / 2, 0);
-		RotateGerberPoint(&asPoints[i], fRotation + 360.0 * i / iVertices);
-		asPoints[i].x += psCenter->x;
-		asPoints[i].y += psCenter->y;
-		RotateGerberPoint(&asPoints[i], fPrimitiveRotation);
-	}
-	pcObject->AddPolygon(asPoints, iVertices, false);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void AddGerberHole(CGerberVectorObject* pcObject, CGerberAperture* pcAperture, size uiIndex, float64 fUnit)
 {
 	SFloat64Vec2	sCenter;
@@ -250,13 +57,13 @@ void AddGerberThermal(CGerberVectorObject* pcObject, SFloat64Vec2* psCenter, flo
 		sOrigin.Init(0, 0);
 		for (i = 0; i < 4; i++)
 		{
-			RotateGerberPoint(&asPoints[i], 90.0 * iQuarter);
+			RotateVectorPoint(&asPoints[i], 90.0 * iQuarter);
 			asPoints[i].x += psCenter->x;
 			asPoints[i].y += psCenter->y;
-			RotateGerberPoint(&asPoints[i], fRotation);
+			RotateVectorPoint(&asPoints[i], fRotation);
 		}
 		sOrigin = *psCenter;
-		RotateGerberPoint(&sOrigin, fRotation);
+		RotateVectorPoint(&sOrigin, fRotation);
 
 		pcObject->MoveTo(&asPoints[0]);
 		pcObject->ArcTo(&asPoints[1], &sOrigin, false);
@@ -301,7 +108,7 @@ bool AddGerberMacroPrimitive(CGerberVectorObject* pcObject, CGerberEvaluatedPrim
 			//Exposure, Diameter, Center X, Center Y, Rotation
 			pcObject->BeginPart(!pcPrimitive->GetValue(0)->IsZero());
 			sCenter.Init(pcPrimitive->GetValue(2)->DoubleValue() * fUnit, pcPrimitive->GetValue(3)->DoubleValue() * fUnit);
-			RotateGerberPoint(&sCenter, fRotation);
+			RotateVectorPoint(&sCenter, fRotation);
 			pcObject->AddCircle(&sCenter, pcPrimitive->GetValue(1)->DoubleValue() * fUnit / 2, false);
 			return true;
 
@@ -323,7 +130,7 @@ bool AddGerberMacroPrimitive(CGerberVectorObject* pcObject, CGerberEvaluatedPrim
 			asPoints[0].Init(asPoints[0].x - sNormal.x, asPoints[0].y - sNormal.y);
 			for (i = 0; i < 4; i++)
 			{
-				RotateGerberPoint(&asPoints[i], fRotation);
+				RotateVectorPoint(&asPoints[i], fRotation);
 			}
 			pcObject->AddPolygon(asPoints, 4, false);
 			return true;
@@ -339,7 +146,7 @@ bool AddGerberMacroPrimitive(CGerberVectorObject* pcObject, CGerberEvaluatedPrim
 			asPoints[3].Init(sCenter.x - sNormal.x, sCenter.y + sNormal.y);
 			for (i = 0; i < 4; i++)
 			{
-				RotateGerberPoint(&asPoints[i], fRotation);
+				RotateVectorPoint(&asPoints[i], fRotation);
 			}
 			pcObject->AddPolygon(asPoints, 4, false);
 			return true;
@@ -356,7 +163,7 @@ bool AddGerberMacroPrimitive(CGerberVectorObject* pcObject, CGerberEvaluatedPrim
 			for (i = 0; i < uiVertices; i++)
 			{
 				psOutline[i].Init(pcPrimitive->GetValue(2 + 2 * i)->DoubleValue() * fUnit, pcPrimitive->GetValue(3 + 2 * i)->DoubleValue() * fUnit);
-				RotateGerberPoint(&psOutline[i], fRotation);
+				RotateVectorPoint(&psOutline[i], fRotation);
 			}
 			pcObject->AddPolygon(psOutline, uiVertices, false);
 			free(psOutline);
@@ -371,7 +178,7 @@ bool AddGerberMacroPrimitive(CGerberVectorObject* pcObject, CGerberEvaluatedPrim
 				return false;
 			}
 			sCenter.Init(pcPrimitive->GetValue(2)->DoubleValue() * fUnit, pcPrimitive->GetValue(3)->DoubleValue() * fUnit);
-			AddGerberRegularPolygon(pcObject, &sCenter, pcPrimitive->GetValue(4)->DoubleValue() * fUnit, iVertices, 0, fRotation);
+			AddVectorRegularPolygon(pcObject, &sCenter, pcPrimitive->GetValue(4)->DoubleValue() * fUnit, iVertices, 0, fRotation);
 			return true;
 
 		case GAMP_Thermal_Center:
@@ -425,14 +232,14 @@ bool AddGerberApertureShape(CGerberVectorObject* pcObject, CGerberAperture* pcAp
 
 		case GAT_Obround:
 			pcObject->BeginPart(true);
-			AddGerberObround(pcObject, pcAperture->GetParameter(0)->DoubleValue() * fUnit, pcAperture->GetParameter(1)->DoubleValue() * fUnit);
+			AddVectorObround(pcObject, pcAperture->GetParameter(0)->DoubleValue() * fUnit, pcAperture->GetParameter(1)->DoubleValue() * fUnit);
 			AddGerberHole(pcObject, pcAperture, 2, fUnit);
 			return true;
 
 		case GAT_Polygon:
 			pcObject->BeginPart(true);
 			fRotation = (pcAperture->NumParameters() > 2) ? pcAperture->GetParameter(2)->DoubleValue() : 0;
-			AddGerberRegularPolygon(pcObject, &sCenter, pcAperture->GetParameter(0)->DoubleValue() * fUnit, pcAperture->GetParameter(1)->IntValue(), fRotation, 0);
+			AddVectorRegularPolygon(pcObject, &sCenter, pcAperture->GetParameter(0)->DoubleValue() * fUnit, pcAperture->GetParameter(1)->IntValue(), fRotation, 0);
 			AddGerberHole(pcObject, pcAperture, 3, fUnit);
 			return true;
 
