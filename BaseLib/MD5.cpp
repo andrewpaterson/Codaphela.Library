@@ -36,12 +36,68 @@ static uint8 PADDING[64] =
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-/* F, G, H and I are basic MD5 functions */uint32 F(uint32 x, uint32 y, uint32 z){	return (((x) & (y)) | ((~x) & (z)));}uint32 G(uint32 x, uint32 y, uint32 z){	return (((x) & (z)) | ((y) & (~z)));}uint32 H(uint32 x, uint32 y, uint32 z){	return ((x) ^ (y) ^ (z));}uint32 I(uint32 x, uint32 y, uint32 z){	return ((y) ^ ((x) | (~z)));}
-/* ROTATE_LEFT rotates x left n bits */uint32 ROTATE_LEFT(uint32 x, uint32 n){	return (((x) << (n)) | ((x) >> (32-(n))));}
-/* FF, GG, HH, and II transformations for rounds 1, 2, 3, and 4 *//* Rotation is separate from addition to prevent recomputation */uint32 FF(uint32 a, uint32 b, uint32 c, uint32 d, uint32 x, uint32 s, uint32 ac){	(a) += F((b), (c), (d)) + (x) + (uint32)(ac);	(a) = ROTATE_LEFT((a), (s));	(a) += (b);	return a;}
-uint32 GG(uint32 a, uint32 b, uint32 c, uint32 d, uint32 x, uint32 s, uint32 ac){	(a) += G((b), (c), (d)) + (x) + (uint32)(ac);	(a) = ROTATE_LEFT ((a), (s));	(a) += (b);	return a;}
-uint32 HH(uint32 a, uint32 b, uint32 c, uint32 d, uint32 x, uint32 s, uint32 ac){	(a) += H((b), (c), (d)) + (x) + (uint32)(ac);	(a) = ROTATE_LEFT ((a), (s));	(a) += (b);	return a;}
-uint32 II(uint32 a, uint32 b, uint32 c, uint32 d, uint32 x, uint32 s, uint32 ac){	(a) += I((b), (c), (d)) + (x) + (uint32)(ac);	(a) = ROTATE_LEFT ((a), (s));	(a) += (b);	return a;}
+/* F, G, H and I are basic MD5 functions */
+uint32 F(uint32 x, uint32 y, uint32 z)
+{
+	return (((x) & (y)) | ((~x) & (z)));
+}
+
+uint32 G(uint32 x, uint32 y, uint32 z)
+{
+	return (((x) & (z)) | ((y) & (~z)));
+}
+
+uint32 H(uint32 x, uint32 y, uint32 z)
+{
+	return ((x) ^ (y) ^ (z));
+}
+
+uint32 I(uint32 x, uint32 y, uint32 z)
+{
+	return ((y) ^ ((x) | (~z)));
+}
+
+/* ROTATE_LEFT rotates x left n bits */
+uint32 ROTATE_LEFT(uint32 x, uint32 n)
+{
+	return (((x) << (n)) | ((x) >> (32-(n))));
+}
+
+/* FF, GG, HH, and II transformations for rounds 1, 2, 3, and 4 */
+
+/* Rotation is separate from addition to prevent recomputation */
+uint32 FF(uint32 a, uint32 b, uint32 c, uint32 d, uint32 x, uint32 s, uint32 ac)
+{
+	(a) += F((b), (c), (d)) + (x) + (uint32)(ac);
+	(a) = ROTATE_LEFT((a), (s));
+	(a) += (b);
+	return a;
+}
+
+uint32 GG(uint32 a, uint32 b, uint32 c, uint32 d, uint32 x, uint32 s, uint32 ac)
+{
+	(a) += G((b), (c), (d)) + (x) + (uint32)(ac);
+	(a) = ROTATE_LEFT ((a), (s));
+	(a) += (b);
+	return a;
+}
+
+uint32 HH(uint32 a, uint32 b, uint32 c, uint32 d, uint32 x, uint32 s, uint32 ac)
+{
+	(a) += H((b), (c), (d)) + (x) + (uint32)(ac);
+	(a) = ROTATE_LEFT ((a), (s));
+	(a) += (b);
+	return a;
+}
+
+uint32 II(uint32 a, uint32 b, uint32 c, uint32 d, uint32 x, uint32 s, uint32 ac)
+{
+	(a) += I((b), (c), (d)) + (x) + (uint32)(ac);
+	(a) = ROTATE_LEFT ((a), (s));
+	(a) += (b);
+	return a;
+}
+
 /*
 The routine MD5Init initializes the message-digest context
 mdContext. All fields are set to zero.
