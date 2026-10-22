@@ -385,7 +385,7 @@ void CCPPHighlighter::Sort(void)
 	{
 		return;
 	}
-	qsort(macHighlights.GetData(), macHighlights.NumElements(), sizeof(SCPPHighlight), CompareHighlights);
+	macHighlights.QuickSort(&CompareHighlights);
 
 	//A macro argument used more than once in the body gives the same token more than once.  The more specific kind sorts first and is kept.
 	iKept = 0;

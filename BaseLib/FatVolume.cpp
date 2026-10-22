@@ -3084,7 +3084,7 @@ EFatCode CFatVolume::WriteFATEntry(SFatDirectoryEntry* psNewEntry, const char* s
 	RETURN_ON_FAT_FAILURE(eResult);
 
 	psNewEntry->uiSectorAddress = uiSector;
-	psNewEntry->uiSectorOffset = (uintptr_t)psParentEntry - (uintptr_t)sBuffer.Get();
+	psNewEntry->uiSectorOffset = (uint16)((uintptr_t)psParentEntry - (uintptr_t)sBuffer.Get());
 
 	return FAT_SUCCESS;
 }
@@ -3320,7 +3320,7 @@ EFatCode CFatVolume::GetFileEntry(const char* szPath, SFatDirectoryEntry* psEntr
 			psEntry->uiSectorAddress = CalculateFirstSectorOfCluster(sQuery.uiCurrentCluster) + sQuery.uiCurrentSector;
 		}
 
-		psEntry->uiSectorOffset = (uint16)((uintptr_t)sQuery.psCurrentEntryRaw) - ((uintptr_t)sQuery.psFirstEntryRaw);
+		psEntry->uiSectorOffset = (uint16)((uintptr_t)sQuery.psCurrentEntryRaw - (uintptr_t)sQuery.psFirstEntryRaw);
 
 		psEntry->sRaw = *sQuery.psCurrentEntryRaw;
 	}
