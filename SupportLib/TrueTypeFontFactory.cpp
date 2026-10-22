@@ -106,7 +106,7 @@ Ptr<CFontDescription> CTrueTypeFontFactory::Describe(char* szName, char* szUTF8C
 		{
 			cSubImage.Init(0, 0, 0, 0, psCharacter->iAdvance, 0, 0, iLineHeight);
 		}
-		pDescription->PutGlyph(psCharacter->uiCodePoint, psCharacter->uiCodePointLength, &cSubImage, (int16)psCharacter->iAdvance);
+		pDescription->PutGlyph(psCharacter->uiCodePoint, psCharacter->uiCodePointLength, &cSubImage, (int16)psCharacter->iAdvance, psCharacter->iGlyph);
 	}
 	DescribeScriptAndLines(pDescription);
 	return pDescription;
@@ -166,6 +166,47 @@ int16 CTrueTypeFontFactory::ScaleFontUnits(int iUnits)
 		return (int16)((iScaled + iDivisor / 2) / iDivisor);
 	}
 	return (int16)(-((-iScaled + iDivisor / 2) / iDivisor));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An empty image (no opacity anywhere) the size of pDescription's, with
+// opacity then red, green and blue in eColourOrder (CCO_Unknown is red,
+// green, blue), as Rasterise and then CImageColourConverter make them.
+// For fonts that draw their glyphs as they are asked for.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImage> CTrueTypeFontFactory::CreateImage(Ptr<CFontDescription> pDescription, EColourOrder eColourOrder)
+{
+	CColourFormatHelper		cHelper;
+	CArrayChannel			asChannels;
+	SChannel*				psChannel;
+	size					i;
+	Ptr<CImage>				pImage;
+
+	if (eColourOrder == CCO_Unknown)
+	{
+		eColourOrder = CCO_RGB;
+	}
+	cHelper.Init(CFT_RGB, eColourOrder, CRGB_Unknown, ARGB_Unknown);
+
+	asChannels.Init();
+	psChannel = asChannels.Add();
+	psChannel->eType = PT_uint8;
+	psChannel->iChannel = IMAGE_OPACITY;
+	psChannel->bReverse = false;
+	for (i = 0; i < 3; i++)
+	{
+		psChannel = asChannels.Add();
+		psChannel->eType = PT_uint8;
+		psChannel->iChannel = (size)cHelper.GetColourChannel(i);
+		psChannel->bReverse = false;
+	}
+	pImage = OMalloc<CImage>(pDescription->GetImageWidth(), pDescription->GetImageHeight(), &asChannels);
+	asChannels.Kill();
+	pImage->Black();
+	return pImage;
 }
 
 

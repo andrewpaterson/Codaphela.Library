@@ -24,18 +24,9 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayTemplate.h"
 #include "StandardLib/Array.h"
 #include "ColourFormat.h"
-#include "TrueTypeFont.h"
+#include "TrueTypeFace.h"
 #include "FontColours.h"
 #include "TextStyle.h"
-
-
-//A face of the family: the TrueType font its sizes are rasterised from.
-struct SFontFace
-{
-	CChars			szFilename;
-	CTrueTypeFont	cTrueTypeFont;
-	bool			bLoaded;
-};
 
 
 //The face and size of a CFontColours in the family.  The size is in 1/64 pixels.
@@ -50,8 +41,9 @@ typedef CArrayTemplate<SFontFamilySize>	CArrayFontFamilySize;
 
 
 //The faces (regular, bold, italic and bold italic) of a typeface in any size.  Each face is a TrueType font and each
-//size of a face is rasterised in white the first time it is asked for, into the family's colour order, and kept as a
-//CFontColours that makes the colours.  A style with no face is an error.  A family can instead be given fonts already
+//size of a face is made the first time it is asked for, in white in the family's colour order, and kept as a
+//CFontColours that makes the colours.  A size is lazy: its glyphs are only rasterised (and coloured) as they are
+//first asked for.  A style with no face is an error.  A family can instead be given fonts already
 //made, each in only the one size it was made for.
 class CFontFamily : public CObject
 {
@@ -63,7 +55,7 @@ protected:
 	float32					mfDefaultPixelSize;
 	EColourOrder			meColourOrder;		//CCO_Unknown leaves the rasteriser's order.
 	int32					miImageWidth;
-	SFontFace				masFaces[NUM_FONT_STYLES];
+	CArray<CTrueTypeFace>	mapFaces;			//By EFontStyle.  NULL where the family has no face.
 	CArray<CFontColours>	mapColours;			//In the same order as masSizes.
 	CArrayFontFamilySize	masSizes;
 

@@ -119,7 +119,8 @@ Ptr<CFont> CFontColours::GetFont(ARGB32 sColour)
 //////////////////////////////////////////////////////////////////////////
 //
 // A copy of the white font's image with every pixel's red, green and blue
-// set to the colour.  The accessors write whatever channel order and
+// set to the colour, or for a lazy white font an empty image that is
+// recoloured a glyph at a time.  The accessors write whatever channel order and
 // types the image has.  An alpha less than opaque scales the opacity.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -127,6 +128,7 @@ Ptr<CFont> CFontColours::Recolour(ARGB32 sColour)
 {
 	Ptr<CImage>				pWhiteImage;
 	Ptr<CImage>				pImage;
+	Ptr<CFont>				pFont;
 	CImageAccessorCreator	cCreator;
 	CImageAccessor*			pcColour;
 	CImageAccessor*			pcOpacity;
@@ -144,6 +146,16 @@ Ptr<CFont> CFontColours::Recolour(ARGB32 sColour)
 	{
 		gcLogger.Error2(__METHOD__, " Font [", mpWhite->GetFontName(), "] has no image to recolour.", NULL);
 		return NULL;
+	}
+
+	//A lazy white font only has the glyphs asked for, so the colour recolours each glyph as it is asked for too.
+	if (mpWhite->IsLazy())
+	{
+		pImage = OMalloc<CImage>(pWhiteImage);
+		pImage->Black();
+		pFont = OMalloc<CFont>(mpWhite->GetDescription(), pImage);
+		pFont->SetLazyColour(mpWhite, sColour);
+		return pFont;
 	}
 
 	pImage = OMalloc<CImage>();

@@ -279,6 +279,15 @@
     <ClInclude Include="FontFamily.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
+    <ClInclude Include="GlyphRasteriser.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
+    <ClInclude Include="TrueTypeFace.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
+    <ClInclude Include="TrueTypeGlyphRasteriser.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
     <ClInclude Include="FontDescription.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
@@ -981,6 +990,15 @@
       <Filter>Source\Image\Font</Filter>
     </ClCompile>
     <ClCompile Include="FontFamily.cpp">
+      <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="GlyphRasteriser.cpp">
+      <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="TrueTypeFace.cpp">
+      <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="TrueTypeGlyphRasteriser.cpp">
       <Filter>Source\Image\Font</Filter>
     </ClCompile>
     <ClCompile Include="FontDescription.cpp">

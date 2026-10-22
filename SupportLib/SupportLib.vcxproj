@@ -274,6 +274,9 @@
     <ClInclude Include="FontColours.h" />
     <ClInclude Include="FontDescription.h" />
     <ClInclude Include="FontFamily.h" />
+    <ClInclude Include="GlyphRasteriser.h" />
+    <ClInclude Include="TrueTypeFace.h" />
+    <ClInclude Include="TrueTypeGlyphRasteriser.h" />
     <ClInclude Include="FontList.h" />
     <ClInclude Include="FontReader.h" />
     <ClInclude Include="FontWriter.h" />
@@ -488,6 +491,9 @@
     <ClCompile Include="FontColours.cpp" />
     <ClCompile Include="FontDescription.cpp" />
     <ClCompile Include="FontFamily.cpp" />
+    <ClCompile Include="GlyphRasteriser.cpp" />
+    <ClCompile Include="TrueTypeFace.cpp" />
+    <ClCompile Include="TrueTypeGlyphRasteriser.cpp" />
     <ClCompile Include="FontList.cpp" />
     <ClCompile Include="FontReader.cpp" />
     <ClCompile Include="FontWriter.cpp" />
