@@ -16,6 +16,8 @@ public:
     virtual uint8   GetBank(CW65C816* pcCPU);
     virtual int32   GetOffset(CW65C816* pcCPU) =0;
     virtual bool    IsConstantOffset(void);
+    virtual bool    IsPageWrapped(CW65C816* pcCPU);
+    virtual bool    IsProgramBank(void);
 };
 
 

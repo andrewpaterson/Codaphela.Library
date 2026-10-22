@@ -254,3 +254,26 @@ COperationArray* CBusCycle::GetOperations(void)
     return &mapcOperations;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBusCycle::IsProgramAddress(void)
+{
+    size            uiNumOffsets;
+    size            i;
+    CAddressOffset* pcOffset;
+
+    uiNumOffsets = mapcAddressOffsets.NumElements();
+    for (i = 0; i < uiNumOffsets; i++)
+    {
+        pcOffset = mapcAddressOffsets.GetPtr(i);
+        if (pcOffset->IsProgramBank())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+

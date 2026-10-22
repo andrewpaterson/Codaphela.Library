@@ -118,6 +118,7 @@ void CW65C816::CW65C816::Branch(bool condition)
 void CW65C816::PLD(void)
 {
     SetDirectPage(GetData16Bit());
+	SetSignAndZeroFlagFrom16BitValue(GetData16Bit());
 }
 
 
@@ -128,6 +129,7 @@ void CW65C816::PLD(void)
 void CW65C816::PLB(void)
 {
     SetDataBank(GetIOData());
+	SetSignAndZeroFlagFrom8BitValue(GetIOData());
 }
 
 
@@ -137,7 +139,7 @@ void CW65C816::PLB(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PHB(void)
 {
-    SetIOData(GetDataBank());
+    SetDataLow(GetDataBank());
 }
 
 
@@ -147,7 +149,7 @@ void CW65C816::PHB(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PHK(void)
 {
-    SetIOData(GetProgramCounter()->GetBank());
+    SetDataLow(GetProgramCounter()->GetBank());
 }
 
 
@@ -157,7 +159,7 @@ void CW65C816::PHK(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PHP(void)
 {
-    SetIOData(GetProcessorRegisterValue());
+    SetDataLow(GetPushedProcessorRegisterValue(true));
 }
 
 
@@ -177,7 +179,8 @@ void CW65C816::BRK(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::COP(void)
 {
-    SoftBreak();
+	SetInterruptDisableFlag(true);
+	SetDecimalFlag(false);
 }
 
 
@@ -1030,12 +1033,14 @@ void CW65C816::ExecutPhi2Falling(CTimeline* pcTimeline)
     CAddress            cAddress;
     CW65C816Pins*       pcPins;
     CDataOperation*     pcDataOperation;
+    bool                bValidDataAddress;
+    bool                bValidProgramAddress;
 
     pcPins = GetPins();
     pcDataOperation = GetDataOperation();
     if (pcDataOperation)
     {
-        bRead = pcDataOperation->IsRead();
+        bRead = IsReadCycle(pcDataOperation);
 
         if (bRead)
         {
@@ -1052,7 +1057,7 @@ void CW65C816::ExecutPhi2Falling(CTimeline* pcTimeline)
     if (pcDataOperation)
     {
         pcBusCycle = GetBusCycle();
-        bRead = pcDataOperation->IsRead();
+        bRead = IsReadCycle(pcDataOperation);
 
         ExecuteInitialSideOperation(this);
 
@@ -1062,8 +1067,16 @@ void CW65C816::ExecutPhi2Falling(CTimeline* pcTimeline)
         //If the write doesn't take that into account then it is okay that is is instaneous after the read.
         pcPins->WriteRWB(pcTimeline, bRead);
         pcPins->WriteMX(pcTimeline, IsIndex8Bit());
-        pcPins->WriteVDA(pcTimeline, pcDataOperation->IsValidDataAddress());
-        pcPins->WriteVPA(pcTimeline, pcDataOperation->IsValidProgramAddress());
+        bValidDataAddress = pcDataOperation->IsValidDataAddress();
+        bValidProgramAddress = pcDataOperation->IsValidProgramAddress();
+        if (bValidDataAddress && !bValidProgramAddress && pcBusCycle->IsProgramAddress())
+        {
+            //Operands and other reads through the program bank are program fetches (table 5-7).
+            bValidDataAddress = false;
+            bValidProgramAddress = true;
+        }
+        pcPins->WriteVDA(pcTimeline, bValidDataAddress);
+        pcPins->WriteVPA(pcTimeline, bValidProgramAddress);
         pcPins->WriteMLB(pcTimeline, pcDataOperation->IsNotMemoryLock());
         pcPins->WriteVPB(pcTimeline, pcDataOperation->IsNotVectorPull());
         pcPins->WriteE(pcTimeline, IsEmulation());
@@ -1089,7 +1102,7 @@ void CW65C816::ExecutPhi2Rising(CTimeline* pcTimeline)
     pcDataOperation = GetDataOperation();
     if (pcDataOperation)
     {
-        bRead = pcDataOperation->IsRead();
+        bRead = IsReadCycle(pcDataOperation);
 
         pcPins->WriteMX(pcTimeline, IsMemory8Bit());
 
@@ -1281,9 +1294,13 @@ uint8 CW65C816::GetProcessorRegisterValue(void)
 	{
 		value |= STATUS_DECIMAL;
 	}
-	if (mbEmulationFlag && mbBreakFlag)
+	if (mbEmulationFlag)
 	{
-		value |= STATUS_BREAK;
+		value |= STATUS_ACCUMULATOR_WIDTH;
+		if (mbBreakFlag)
+		{
+			value |= STATUS_BREAK;
+		}
 	}
 	if (!mbEmulationFlag && mbIndexWidthFlag)
 	{
@@ -1588,6 +1605,12 @@ CBusCycle* CW65C816::GetBusCycle(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::NextInstruction(void)
 {
+	if (IsEmulation())
+	{
+		//Instructions that use all 16 bits of S (caveat 7.1) may leave page 1, SH is 01 again afterwards.
+		muiStackPointer = 0x100 | GetLowByte(muiStackPointer);
+	}
+
 	if (!mbAbort)
 	{
 		CreateAbortValues();
@@ -1677,7 +1700,25 @@ bool CW65C816::IsStopped(void)
 //////////////////////////////////////////////////////////////////////////
 bool CW65C816::IsRead(void)
 {
-	return GetDataOperation()->IsRead();
+	return IsReadCycle(GetDataOperation());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CW65C816::IsReadCycle(CDataOperation* pcDataOperation)
+{
+	bool	bModifyCycle;
+
+	//Table 5-7 note 17: in emulation mode RWB is low during the modify cycle of a read-modify-write.
+	bModifyCycle = !pcDataOperation->IsNotMemoryLock() && !pcDataOperation->IsValidDataAddress() && !pcDataOperation->IsValidProgramAddress();
+	if (bModifyCycle && IsEmulation())
+	{
+		return false;
+	}
+	return pcDataOperation->IsRead();
 }
 
 
@@ -2161,11 +2202,12 @@ bool CW65C816::IsMemoryNegative(uint16 uiOperand)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::BlockMoveNext(void)
 {
+	//One byte has been moved.  C counts down to FFFF, the instruction repeats until it gets there.
+	muiAccumulator--;
+	muiXIndex = TrimIndex(++muiXIndex);
+	muiYIndex = TrimIndex(++muiYIndex);
 	if (muiAccumulator != 0xffff)
 	{
-		muiAccumulator--;
-		muiXIndex = TrimIndex(++muiXIndex);
-		muiYIndex = TrimIndex(++muiYIndex);
 		mcProgramCounter.Offset(-3);
 	}
 }
@@ -2177,11 +2219,12 @@ void CW65C816::BlockMoveNext(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::BlockMovePrevious(void)
 {
+	//One byte has been moved.  C counts down to FFFF, the instruction repeats until it gets there.
+	muiAccumulator--;
+	muiXIndex = TrimIndex(--muiXIndex);
+	muiYIndex = TrimIndex(--muiYIndex);
 	if (muiAccumulator != 0xffff)
 	{
-		muiAccumulator--;
-		muiXIndex = TrimIndex(--muiXIndex);
-		muiYIndex = TrimIndex(--muiYIndex);
 		mcProgramCounter.Offset(-3);
 	}
 }
@@ -2386,6 +2429,16 @@ uint16 CW65C816::GetDirectPage(void)
 uint16 CW65C816::GetDirectOffset(void)
 {
 	return muiDirectOffset;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CW65C816::GetStackPointer16Bit(void)
+{
+	return muiStackPointer;
 }
 
 
@@ -2745,7 +2798,7 @@ void CW65C816::Execute8BitBCDSBC(void)
 	uiOperand = GetMemoryData();
 	uiAccumulator = GetA();
 
-	cBCDResult = BCDSubtract8Bit(uiOperand, uiAccumulator, !IsCarrySet());
+	cBCDResult = BCDSubtract8Bit(uiAccumulator, uiOperand, !IsCarrySet());
 	SetCarryFlag(!cBCDResult.mbCarry);
 	SetA(cBCDResult.muiValue);
 }
@@ -2764,7 +2817,7 @@ void CW65C816::Execute16BitBCDSBC(void)
 	uiOperand = GetMemoryData();
 	uiAccumulator = GetA();
 
-	cBCDResult = BCDSubtract16Bit(uiOperand, uiAccumulator, !IsCarrySet());
+	cBCDResult = BCDSubtract16Bit(uiAccumulator, uiOperand, !IsCarrySet());
 	SetCarryFlag(!cBCDResult.mbCarry);
 	SetA(cBCDResult.muiValue);
 }
@@ -3312,8 +3365,7 @@ void CW65C816::ASL_A(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::TSC(void)
 {
-	SetA(GetStackPointer());
-	SetSignAndZeroFromMemory(GetA());
+	SetC(GetStackPointer());
 }
 
 
@@ -3379,18 +3431,7 @@ void CW65C816::ADC(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::TXA(void)
 {
-	if (IsMemory8Bit() && IsIndex16Bit())
-	{
-		SetA(GetLowByte(GetX()));
-	}
-	else if (IsMemory16Bit() && IsIndex8Bit())
-	{
-		SetA(SetLowByte(GetA(), (uint8)GetX()));
-	}
-	else
-	{
-		SetA(GetX());
-	}
+	SetA(GetX());
 }
 
 
@@ -3462,18 +3503,7 @@ void CW65C816::TSX(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::TYA(void)
 {
-	if (IsMemory8Bit() && IsIndex16Bit())
-	{
-		SetA(GetLowByte(GetY()));
-	}
-	else if (IsMemory16Bit() && IsIndex8Bit())
-	{
-		SetA(SetLowByte(GetA(), (uint8)GetY()));
-	}
-	else
-	{
-		SetA(GetY());
-	}
+	SetA(GetY());
 }
 
 
@@ -3545,18 +3575,7 @@ void CW65C816::REP(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::TAY(void)
 {
-	uint8	uiLower8BitsOfA;
-
-	if ((IsMemory8Bit() && IsIndex8Bit()) ||
-		(IsMemory16Bit() && IsIndex8Bit()))
-	{
-		uiLower8BitsOfA = GetLowByte(GetA());
-		SetY(SetLowByte(GetY(), uiLower8BitsOfA));
-	}
-	else
-	{
-		SetY(GetA());
-	}
+	SetY(GetC());
 }
 
 
@@ -3566,18 +3585,7 @@ void CW65C816::TAY(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::TAX(void)
 {
-	uint8	uiLower8BitsOfA;
-
-	if ((IsMemory8Bit() && IsIndex8Bit()) ||
-		(IsMemory16Bit() && IsIndex8Bit()))
-	{
-		uiLower8BitsOfA = GetLowByte(GetA());
-		SetX(SetLowByte(GetX(), uiLower8BitsOfA));
-	}
-	else
-	{
-		SetX(GetA());
-	}
+	SetX(GetC());
 }
 
 
@@ -3655,7 +3663,7 @@ void CW65C816::SEP(void)
 {
 	uint8 uiValue;
 
-	uiValue = GetIOData();
+	uiValue = GetDataLow();
 	if (IsEmulation())
 	{
 		uiValue = uiValue & 0xCF;
@@ -3674,12 +3682,10 @@ void CW65C816::XBA(void)
 	uint16 uiLowerA;
 	uint16 uiHigherA;
 
-	uiLowerA = GetLowByte(GetA());
-	uiHigherA = GetHighByte(GetA());
-
-	uiLowerA = GetLowByte(GetA());
-	uiHigherA = GetHighByte(GetA());
+	uiLowerA = GetLowByte(GetC());
+	uiHigherA = GetHighByte(GetC());
 	muiAccumulator = uiHigherA | (uiLowerA << 8);
+	SetSignAndZeroFlagFrom8BitValue(uiHigherA);
 }
 
 
@@ -3725,11 +3731,11 @@ void CW65C816::TCS(void)
 	uiStackPointer = GetStackPointer();
 	if (IsEmulation())
 	{
-		uiStackPointer = SetLowByte(uiStackPointer, GetLowByte(GetA()));
+		uiStackPointer = SetLowByte(uiStackPointer, GetLowByte(GetC()));
 	}
 	else
 	{
-		uiStackPointer = GetA();
+		uiStackPointer = GetC();
 	}
 	SetStackPointer(uiStackPointer);
 }
@@ -3803,7 +3809,31 @@ void CW65C816::DoneIfMemory16Bit(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::WriteProcessorStatus(void)
 {
-	SetIOData(GetProcessorRegisterValue());
+	SetIOData(GetPushedProcessorRegisterValue(muiOpcodeIndex == BRK_Interrupt));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 CW65C816::GetPushedProcessorRegisterValue(bool bBreak)
+{
+	uint8	uiValue;
+
+	uiValue = GetProcessorRegisterValue();
+	if (IsEmulation())
+	{
+		if (bBreak)
+		{
+			uiValue |= STATUS_BREAK;
+		}
+		else
+		{
+			uiValue &= ~STATUS_BREAK;
+		}
+	}
+	return uiValue;
 }
 
 

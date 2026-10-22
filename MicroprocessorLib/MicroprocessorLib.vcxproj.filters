@@ -159,6 +159,9 @@
     <ClCompile Include="DoneInstructionIf8Bit.cpp">
       <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
+    <ClCompile Include="DoneInstructionIfEmulation.cpp">
+      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+    </ClCompile>
     <ClCompile Include="DoneInstructionIf16Bit.cpp">
       <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
@@ -450,6 +453,9 @@
       <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="DoneInstructionIf8Bit.h">
+      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="DoneInstructionIfEmulation.h">
       <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="DoneInstructionIf16Bit.h">

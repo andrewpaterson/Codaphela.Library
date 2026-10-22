@@ -11,6 +11,7 @@ public:
 
     int32   GetOffset(CW65C816* pcCPU) override;
     uint8   GetBank(CW65C816* pcCPU) override;
+    bool    IsProgramBank(void) override;
     void    Print(CChars* psz) override;
 };
 

@@ -252,7 +252,7 @@ void CInstructionFactory::CreateInstructions(void)
     mapcInstructions[95] = Instruct(CreateEOR(EOR_AbsoluteLongIndexedWithX, CreateAbsoluteLongIndexedWithXCycles(&CW65C816::EOR, false)));
     mapcInstructions[96] = Instruct(CreateRTS(RTS_StackImplied, CreateStackRTSCycles()));
     mapcInstructions[97] = Instruct(CreateADC(ADC_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXCycles(&CW65C816::ADC, false)));
-    mapcInstructions[98] = Instruct(CreatePER(PER_StackProgramCounterRelativeLong, CreateStackPERCycles(&CW65C816::PER, false)));
+    mapcInstructions[98] = Instruct(CreatePER(PER_StackProgramCounterRelativeLong, CreateStackPERCycles(&CW65C816::PER, true)));
     mapcInstructions[99] = Instruct(CreateADC(ADC_StackRelative, CreateStackRelativeCycles(&CW65C816::ADC, false)));
     mapcInstructions[100] = Instruct(CreateSTZ(STZ_DirectPage, CreateDirectWriteCycles(&CW65C816::STZ, WFR_M, true)));
     mapcInstructions[101] = Instruct(CreateADC(ADC_DirectPage, CreateDirectCycles(&CW65C816::ADC, WFR_M, false)));

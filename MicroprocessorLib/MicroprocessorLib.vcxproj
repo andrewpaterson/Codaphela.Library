@@ -46,6 +46,7 @@
     <ClCompile Include="DoneInstruction.cpp" />
     <ClCompile Include="DoneInstructionIf16Bit.cpp" />
     <ClCompile Include="DoneInstructionIf8Bit.cpp" />
+    <ClCompile Include="DoneInstructionIfEmulation.cpp" />
     <ClCompile Include="Execute.cpp" />
     <ClCompile Include="ExecuteIf16Bit.cpp" />
     <ClCompile Include="ExecuteIf8Bit.cpp" />
@@ -144,6 +145,7 @@
     <ClInclude Include="DoneInstruction.h" />
     <ClInclude Include="DoneInstructionIf16Bit.h" />
     <ClInclude Include="DoneInstructionIf8Bit.h" />
+    <ClInclude Include="DoneInstructionIfEmulation.h" />
     <ClInclude Include="Execute.h" />
     <ClInclude Include="ExecuteIf16Bit.h" />
     <ClInclude Include="ExecuteIf8Bit.h" />

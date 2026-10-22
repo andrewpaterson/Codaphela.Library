@@ -245,6 +245,7 @@ public:
 	void			ClearReset(void);
 
 	uint8			GetProcessorRegisterValue(void);
+	uint8			GetPushedProcessorRegisterValue(bool bBreak);
 	void			SetZeroFlag(bool bZeroFlag);
 	void			SetNegativeFlag(bool bSignFlag);
 	void			SetDecimalFlag(bool bDecimalFlag);
@@ -328,6 +329,8 @@ public:
 	uint16			GetDirectPage(void);
 	uint16			GetDirectOffset(void);
 	uint16			GetStackPointer(void);
+	uint16			GetStackPointer16Bit(void);
+	bool			IsReadCycle(CDataOperation* pcDataOperation);
 
 	CInstruction*	GetOpcode(void);
 	CAddress*		GetNewProgramCounter(void);
