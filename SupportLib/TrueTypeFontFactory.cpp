@@ -57,17 +57,23 @@ void CTrueTypeFontFactory::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Rasterises each character (once, control characters are ignored) into
-// an image iImageWidth wide and as high as needed.  Returns NULL if a
-// glyph is wider than the image.
+// Measures each character (once, control characters are ignored) and
+// packs them into the layout of an image iImageWidth wide and as high as
+// needed.  Each glyph's full size is its advance by the ascent plus
+// descent, with the top of the line at the top.  Returns NULL if a glyph
+// is wider than the image.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CTrueTypeFontFactory::Rasterise(char* szUTF8Characters, CImageColourRGB* pcColour, int iImageWidth)
+Ptr<CFontDescription> CTrueTypeFontFactory::Describe(char* szName, char* szUTF8Characters, int iImageWidth)
 {
-	int						iImageHeight;
-	Ptr<CImage>				pImage;
+	Ptr<CFontDescription>	pDescription;
+	CSubImage				cSubImage;
 	size					i;
 	STrueTypeFontCharacter*	psCharacter;
+	int						iImageHeight;
+	int						iSpaceWidth;
+	int						iLineHeight;
+	int						iTopOffset;
 
 	macCharacters.ReInit();
 	if (!AddCharacters(szUTF8Characters) || !Pack(iImageWidth, &iImageHeight))
@@ -75,46 +81,9 @@ Ptr<CImage> CTrueTypeFontFactory::Rasterise(char* szUTF8Characters, CImageColour
 		return NULL;
 	}
 
-	pImage = OMalloc<CImage>(iImageWidth, iImageHeight, PT_uint8, IMAGE_OPACITY, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
-	pImage->Black();
-	for (i = 0; i < macCharacters.NumElements(); i++)
-	{
-		psCharacter = macCharacters.Get(i);
-		if (psCharacter->iImageWidth > 0)
-		{
-			CopyGlyph(pImage, psCharacter, pcColour);
-		}
-	}
-	return pImage;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Makes a font from the characters last rasterised into pImage.  Each
-// glyph's full size is its advance by the ascent plus descent, with the
-// top of the line at the top.  The font only keeps where each glyph is in
-// the image, the glyphs are generated as they are asked for.
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CFont> CTrueTypeFontFactory::Generate(char* szName, Ptr<CImage> pImage)
-{
-	Ptr<CFont>				pFont;
-	CSubImage				cSubImage;
-	size					i;
-	STrueTypeFontCharacter*	psCharacter;
-	int						iSpaceWidth;
-	int						iLineHeight;
-	int						iTopOffset;
-
-	if (pImage.IsNull())
-	{
-		return NULL;
-	}
-
 	iSpaceWidth = FixedRound(mcRasteriser.GetAdvanceSubpixels(mpcFont->GetGlyphIndex(' ')), TRUE_TYPE_SUBPIXEL_BITS);
 	iLineHeight = miAscent + miDescent;
-	pFont = OMalloc<CFont>(szName, (int16)iSpaceWidth, (int16)miAscent, (int16)miDescent);
+	pDescription = OMalloc<CFontDescription>(szName, (int16)iSpaceWidth, (int16)miAscent, (int16)miDescent, iImageWidth, iImageHeight);
 
 	for (i = 0; i < macCharacters.NumElements(); i++)
 	{
@@ -136,10 +105,55 @@ Ptr<CFont> CTrueTypeFontFactory::Generate(char* szName, Ptr<CImage> pImage)
 		{
 			cSubImage.Init(0, 0, 0, 0, psCharacter->iAdvance, 0, 0, iLineHeight);
 		}
-		pFont->PutGlyph(psCharacter->uiCodePoint, psCharacter->uiCodePointLength, &cSubImage, (int16)psCharacter->iAdvance);
+		pDescription->PutGlyph(psCharacter->uiCodePoint, psCharacter->uiCodePointLength, &cSubImage, (int16)psCharacter->iAdvance);
 	}
-	pFont->SetImage(pImage);
-	return pFont;
+	return pDescription;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Rasterises every character of pDescription into a new image in a
+// colour, each glyph where the description says it is.  pDescription must
+// have been described from the same TrueType font and pixel size.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImage> CTrueTypeFontFactory::Rasterise(Ptr<CFontDescription> pDescription, CImageColourRGB* pcColour)
+{
+	Ptr<CImage>					pImage;
+	SIndexTreeMemoryIterator	sIter;
+	uint8						auiKey[FONT_MAX_KEY_LENGTH];
+	size						uiKeyLength;
+	bool						bExists;
+	uint32						uiCodePoint;
+	size						i;
+	SGlyphDescription*			psDescription;
+
+	if (pDescription.IsNull())
+	{
+		return NULL;
+	}
+
+	pImage = OMalloc<CImage>(pDescription->GetImageWidth(), pDescription->GetImageHeight(), PT_uint8, IMAGE_OPACITY, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_STOP);
+	pImage->Black();
+
+	bExists = pDescription->StartIteration(&sIter, auiKey, &uiKeyLength, FONT_MAX_KEY_LENGTH);
+	while (bExists)
+	{
+		psDescription = pDescription->GetGlyph(auiKey, uiKeyLength);
+		if (psDescription->cSubImage.GetImageWidth() > 0)
+		{
+			//The key is the code point's bytes, little endian.
+			uiCodePoint = 0;
+			for (i = 0; i < uiKeyLength; i++)
+			{
+				uiCodePoint |= ((uint32)auiKey[i]) << (i * 8);
+			}
+			CopyGlyph(pImage, mpcFont->GetGlyphIndex(uiCodePoint), &psDescription->cSubImage, pcColour);
+		}
+		bExists = pDescription->Iterate(&sIter, auiKey, &uiKeyLength, FONT_MAX_KEY_LENGTH);
+	}
+	return pImage;
 }
 
 
@@ -323,11 +337,15 @@ uint8 CTrueTypeFontFactory::ColourByte(float32 fChannel)
 // opacity and every pixel is the colour.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTrueTypeFontFactory::CopyGlyph(Ptr<CImage> pImage, STrueTypeFontCharacter* psCharacter, CImageColourRGB* pcColour)
+void CTrueTypeFontFactory::CopyGlyph(Ptr<CImage> pImage, int iGlyph, CSubImage* pcSubImage, CImageColourRGB* pcColour)
 {
 	Ptr<CImage>		pGlyphImage;
 	int				iLeft;
 	int				iTop;
+	int				iImageLeft;
+	int				iImageTop;
+	int				iImageWidth;
+	int				iImageHeight;
 	uint8*			puiGlyph;
 	uint8*			puiDest;
 	int				x;
@@ -336,11 +354,16 @@ void CTrueTypeFontFactory::CopyGlyph(Ptr<CImage> pImage, STrueTypeFontCharacter*
 	uint8			uiGreen;
 	uint8			uiBlue;
 
-	pGlyphImage = mcRasteriser.RasteriseGlyph(psCharacter->iGlyph, &iLeft, &iTop);
+	pGlyphImage = mcRasteriser.RasteriseGlyph(iGlyph, &iLeft, &iTop);
 	if (pGlyphImage.IsNull())
 	{
 		return;
 	}
+
+	iImageLeft = pcSubImage->mcImageRect.msTopLeft.x;
+	iImageTop = pcSubImage->mcImageRect.msTopLeft.y;
+	iImageWidth = pcSubImage->GetImageWidth();
+	iImageHeight = pcSubImage->GetImageHeight();
 
 	uiRed = ColourByte(pcColour->r);
 	uiGreen = ColourByte(pcColour->g);
@@ -348,12 +371,12 @@ void CTrueTypeFontFactory::CopyGlyph(Ptr<CImage> pImage, STrueTypeFontCharacter*
 
 	//Opacity, red, green and blue bytes.
 	puiGlyph = (uint8*)pGlyphImage->GetData();
-	for (y = 0; y < psCharacter->iImageHeight; y++)
+	for (y = 0; y < iImageHeight; y++)
 	{
-		puiDest = &((uint8*)pImage->GetData())[((psCharacter->iImageTop + y) * pImage->GetWidth() + psCharacter->iImageLeft) * 4];
-		for (x = 0; x < psCharacter->iImageWidth; x++)
+		puiDest = &((uint8*)pImage->GetData())[((iImageTop + y) * pImage->GetWidth() + iImageLeft) * 4];
+		for (x = 0; x < iImageWidth; x++)
 		{
-			puiDest[0] = puiGlyph[y * psCharacter->iImageWidth + x];
+			puiDest[0] = puiGlyph[y * iImageWidth + x];
 			puiDest[1] = uiRed;
 			puiDest[2] = uiGreen;
 			puiDest[3] = uiBlue;

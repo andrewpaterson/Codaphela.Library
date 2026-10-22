@@ -108,7 +108,7 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParameters* pcImportParams, CFontCr
 	CArrayImageCel			cCels;
 	CChars					szCharacters;
 	Ptr<CImageCel>			pCel;
-	Ptr<CFont>				pFont;
+	Ptr<CFontDescription>	pDescription;
 	bool					bResult;
 	CUTF8					cUTF8;
 	size					uiElementLength;
@@ -157,7 +157,7 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParameters* pcImportParams, CFontCr
 	cDivider.GenerateFromNumbers(&cNumbers);
 	cDivider.CopyCellsTo(&cCels);
 
-	pFont = OMalloc<CFont>(pcImportParams->FontName(), pcCreationParams->miSpaceWidth, pcCreationParams->miAscent, pcCreationParams->miDescent);
+	pDescription = OMalloc<CFontDescription>(pcImportParams->FontName(), pcCreationParams->miSpaceWidth, pcCreationParams->miAscent, pcCreationParams->miDescent, pImage->GetWidth(), pImage->GetHeight());
 
 	ui = 0;
 	cUTF8.Init(&szCharacters);
@@ -169,20 +169,20 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParameters* pcImportParams, CFontCr
 		{
 			cCodePoint16 = cUTF8.GetCodePointUint16();
 			uiCodePointLength = cUTF8.GetUnicodeCodePointLength(cCodePoint16);
-			pFont->PutGlyph((uint32)cCodePoint16, uiCodePointLength, pCel->GetSubImage(), pcImportParams->msCharSize.x);
+			pDescription->PutGlyph((uint32)cCodePoint16, uiCodePointLength, pCel->GetSubImage(), pcImportParams->msCharSize.x);
 		}
 		else if (uiElementLength <= 4)
 		{
 			cCodePoint32 = cUTF8.GetCodePointUint32();
 			uiCodePointLength = cUTF8.GetUnicodeCodePointLength(cCodePoint32);
-			pFont->PutGlyph(cCodePoint32, uiCodePointLength, pCel->GetSubImage(), pcImportParams->msCharSize.x);
+			pDescription->PutGlyph(cCodePoint32, uiCodePointLength, pCel->GetSubImage(), pcImportParams->msCharSize.x);
 		}
 		else
 		{
 			uiCodePointLength = cUTF8.GetCodePointMulti(auiBuffer, 20);
 			if ((uiCodePointLength != 0) || (uiCodePointLength != cUTF8.GetError()))
 			{
-				pFont->PutGlyph(auiBuffer, uiCodePointLength, pCel->GetSubImage(), pcImportParams->msCharSize.x);
+				pDescription->PutGlyph(auiBuffer, uiCodePointLength, pCel->GetSubImage(), pcImportParams->msCharSize.x);
 			}
 		}
 		
@@ -193,7 +193,6 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParameters* pcImportParams, CFontCr
 	szCharacters.Kill();
 
 	//The glyphs are generated from the font's image as they are asked for.
-	pFont->SetImage(pImage);
-	return pFont;
+	return OMalloc<CFont>(pDescription, pImage);
 }
 

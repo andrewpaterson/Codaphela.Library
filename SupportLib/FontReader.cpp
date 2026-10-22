@@ -59,7 +59,7 @@ TRISTATE GetFontInt16(CTextParser* pcTextParser, char* szIdentifier, int16* piVa
 // See FontWriter for what a glyph's values are.
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE GetFontGlyph(CTextParser* pcTextParser, Ptr<CFont> pFont, Ptr<CArrayImageCel> paCels)
+TRISTATE GetFontGlyph(CTextParser* pcTextParser, Ptr<CFontDescription> pDescription, Ptr<CArrayImageCel> paCels)
 {
 	int64			iCodePoint;
 	int64			iLength;
@@ -115,7 +115,7 @@ TRISTATE GetFontGlyph(CTextParser* pcTextParser, Ptr<CFont> pFont, Ptr<CArrayIma
 	}
 
 	pCel = paCels->Get((size)iCelIndex);
-	pFont->PutGlyph(uiCodePoint, uiLength, pCel->GetSubImage(), iStep);
+	pDescription->PutGlyph(uiCodePoint, uiLength, pCel->GetSubImage(), iStep);
 	return TRITRUE;
 }
 
@@ -124,7 +124,7 @@ TRISTATE GetFontGlyph(CTextParser* pcTextParser, Ptr<CFont> pFont, Ptr<CArrayIma
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE GetFontGlyphs(CTextParser* pcTextParser, Ptr<CFont> pFont, Ptr<CArrayImageCel> paCels)
+TRISTATE GetFontGlyphs(CTextParser* pcTextParser, Ptr<CFontDescription> pDescription, Ptr<CArrayImageCel> paCels)
 {
 	TRISTATE	tResult;
 
@@ -132,7 +132,7 @@ TRISTATE GetFontGlyphs(CTextParser* pcTextParser, Ptr<CFont> pFont, Ptr<CArrayIm
 	ReturnOnErrorAndFalse(pcTextParser->GetExactCharacter('{'));
 	for (;;)
 	{
-		tResult = GetFontGlyph(pcTextParser, pFont, paCels);
+		tResult = GetFontGlyph(pcTextParser, pDescription, paCels);
 		if (tResult != TRITRUE)
 		{
 			break;
@@ -161,7 +161,8 @@ Ptr<CFont> FontReader(char* szPathName)
 	int16				iDescent;
 	TRISTATE			tResult;
 	Ptr<CArrayImageCel>	paCels;
-	Ptr<CFont>			pFont;
+	Ptr<CImage>			pImage;
+	Ptr<CFontDescription>	pDescription;
 
 	cTextFile.Init();
 	if (!cTextFile.Read(szPathName))
@@ -216,10 +217,22 @@ Ptr<CFont> FontReader(char* szPathName)
 		return NULL;
 	}
 
-	pFont = OMalloc<CFont>(szName.Text(), iSpaceWidth, iAscent, iDescent);
+	//CelsReader read every cel from one image.
+	if (paCels->NumElements() > 0)
+	{
+		pImage = paCels->Get(0)->GetSourceImage();
+	}
+	if (pImage.IsNotNull())
+	{
+		pDescription = OMalloc<CFontDescription>(szName.Text(), iSpaceWidth, iAscent, iDescent, pImage->GetWidth(), pImage->GetHeight());
+	}
+	else
+	{
+		pDescription = OMalloc<CFontDescription>(szName.Text(), iSpaceWidth, iAscent, iDescent, 0, 0);
+	}
 	szName.Kill();
 
-	tResult = GetFontGlyphs(&cTextParser, pFont, paCels);
+	tResult = GetFontGlyphs(&cTextParser, pDescription, paCels);
 	if (tResult == TRITRUE)
 	{
 		tResult = cTextParser.GetExactCharacter('}');
@@ -229,16 +242,11 @@ Ptr<CFont> FontReader(char* szPathName)
 
 	if (tResult != TRITRUE)
 	{
-		pFont->Kill();
+		pDescription->Kill();
 		paCels->Kill();
 		return NULL;
 	}
 
-	//CelsReader read every cel from one image.
-	if (paCels->NumElements() > 0)
-	{
-		pFont->SetImage(paCels->Get(0)->GetSourceImage());
-	}
-	return pFont;
+	return OMalloc<CFont>(pDescription, pImage);
 }
 

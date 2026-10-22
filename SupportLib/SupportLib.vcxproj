@@ -268,6 +268,7 @@
     <ClInclude Include="ImageCopier.h" />
     <ClInclude Include="ImagePremultipliedBlend.h" />
     <ClInclude Include="Font.h" />
+    <ClInclude Include="FontDescription.h" />
     <ClInclude Include="FontList.h" />
     <ClInclude Include="FontReader.h" />
     <ClInclude Include="FontWriter.h" />
@@ -474,6 +475,7 @@
     <ClCompile Include="ImageCopier.cpp" />
     <ClCompile Include="ImagePremultipliedBlend.cpp" />
     <ClCompile Include="Font.cpp" />
+    <ClCompile Include="FontDescription.cpp" />
     <ClCompile Include="FontList.cpp" />
     <ClCompile Include="FontReader.cpp" />
     <ClCompile Include="FontWriter.cpp" />

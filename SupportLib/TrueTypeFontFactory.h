@@ -45,9 +45,11 @@ struct STrueTypeFontCharacter
 typedef CArrayTemplate<STrueTypeFontCharacter>	CArrayTrueTypeFontCharacter;
 
 
-//Makes a bitmap CFont from a TrueType font.  The characters are rasterised into one image (opacity, red, green and
-//blue, PT_uint8) in a colour, and each becomes a glyph whose full size is its advance by the line height, so text
-//laid out with CTextLayout sits on a common baseline.  Advances are rounded to whole pixels.  The arithmetic is integer, so every build makes the same font.
+//Makes bitmap CFonts from a TrueType font.  Describe measures the characters and packs them into an image layout once,
+//then Rasterise draws an image (opacity, red, green and blue, PT_uint8) in a colour for that layout, as many times
+//as there are colours.  A CFont is a description with one of its images.  Each glyph's full size is its advance by
+//the line height, so text laid out with CTextLayout sits on a common baseline.  Advances are rounded to whole pixels.
+//The arithmetic is integer, so every build makes the same font.
 class CTrueTypeFontFactory
 {
 protected:
@@ -61,8 +63,8 @@ public:
 	void			Init(CTrueTypeFont* pcFont, float32 fPixelSize);
 	void			Kill(void);
 
-	Ptr<CImage>		Rasterise(char* szUTF8Characters, CImageColourRGB* pcColour, int iImageWidth = 512);
-	Ptr<CFont>		Generate(char* szName, Ptr<CImage> pImage);
+	Ptr<CFontDescription>	Describe(char* szName, char* szUTF8Characters, int iImageWidth = 512);
+	Ptr<CImage>				Rasterise(Ptr<CFontDescription> pDescription, CImageColourRGB* pcColour);
 
 	size			NumCharacters(void);
 	int				GetAscent(void);
@@ -72,7 +74,7 @@ protected:
 	bool			AddCharacters(char* szUTF8Characters);
 	bool			HasCharacter(uint32 uiCodePoint);
 	bool			Pack(int iImageWidth, int* piImageHeight);
-	void			CopyGlyph(Ptr<CImage> pImage, STrueTypeFontCharacter* psCharacter, CImageColourRGB* pcColour);
+	void			CopyGlyph(Ptr<CImage> pImage, int iGlyph, CSubImage* pcSubImage, CImageColourRGB* pcColour);
 	uint8			ColourByte(float32 fChannel);
 };
 

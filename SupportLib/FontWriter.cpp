@@ -67,7 +67,7 @@ bool FontWriter(Ptr<CFont> pFont, char* szImagePathName, char* szCelsPathName, c
 	szText = &cTextFile.mcText;
 
 	szText->Append("Font\n{\n\tName\t\"");
-	szText->Append(pFont->GetName());
+	szText->Append(pFont->GetFontName());
 	szText->Append("\";\n");
 	AppendFontInteger(szText, 1, "SpaceWidth", pFont->GetSpaceWidth());
 	AppendFontInteger(szText, 1, "Ascent", pFont->GetAscent());
