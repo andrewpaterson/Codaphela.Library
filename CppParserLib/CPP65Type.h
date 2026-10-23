@@ -33,15 +33,18 @@ enum ECPP65TypeKind
 	CPP65TK_Array,
 	CPP65TK_Function,
 	CPP65TK_Class,
+	CPP65TK_Float,
+	CPP65TK_Reference,
 };
 
 
 struct SCPP65Class;
 
 
-//The type of a value the 65C64 generator works with.  Integers are 1, 2 or 4 bytes (int and long are 4 bytes, as
-//on Windows), pointers are 4 bytes.  A class type's layout is in psClass.  Types are made by CCPP65Types and are
-//never freed while it lives.
+//The type of a value the 65C64 generator works with.  Integers are 1, 2, 4 or 8 bytes (int and long are 4 bytes,
+//as on Windows), pointers and references are 4 bytes.  Floating point and 8 byte integers can be declared but not
+//used yet.  A class type's layout is in psClass.  A function type has its parameters.  Types are made by
+//CCPP65Types and are never freed while it lives.
 struct SCPP65Type
 {
 	ECPP65TypeKind	eKind;
@@ -50,6 +53,8 @@ struct SCPP65Type
 	SCPP65Type*		psBase;		//The type pointed to, the element type or the return type.
 	int				iCount;		//Array elements.
 	SCPP65Class*	psClass;
+	CArrayTemplatePtr<SCPP65Type>*	papsParameters;		//A function type's parameters.
+	bool			bVariadic;
 
 	bool	IsInteger(void);
 	bool	IsScalar(void);
@@ -58,6 +63,9 @@ struct SCPP65Type
 	bool	IsFunction(void);
 	bool	IsVoid(void);
 	bool	IsClass(void);
+	bool	IsReference(void);
+	bool	IsFloat(void);
+	bool	IsSupported(void);
 	bool	Equals(SCPP65Type* psOther);
 	int		GetElementBytes(void);
 };
@@ -81,6 +89,8 @@ public:
 	SCPP65Type			msUnsignedShort;
 	SCPP65Type			msInt;
 	SCPP65Type			msUnsignedInt;
+	SCPP65Type			msLongLong;
+	SCPP65Type			msUnsignedLongLong;
 
 	void				Init(void);
 	void				Kill(void);
@@ -88,7 +98,9 @@ public:
 	SCPP65Type*			Integer(int iBytes, bool bSigned);
 	SCPP65Type*			Pointer(SCPP65Type* psBase);
 	SCPP65Type*			Array(SCPP65Type* psElement, int iCount);
-	SCPP65Type*			Function(SCPP65Type* psReturn);
+	SCPP65Type*			Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65Type>* papsParameters, bool bVariadic);
+	SCPP65Type*			Reference(SCPP65Type* psBase);
+	SCPP65Type*			Float(int iBytes);
 	SCPP65Type*			Class(SCPP65Class* psClass);
 	SCPP65Type*			Promote(SCPP65Type* psType);
 	SCPP65Type*			Arithmetic(SCPP65Type* psLeft, SCPP65Type* psRight);
