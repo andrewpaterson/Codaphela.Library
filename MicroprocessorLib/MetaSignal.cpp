@@ -1,11 +1,11 @@
-#include "W65MetaSignal.h"
+#include "MetaSignal.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65MetaSignal::Append0x(CChars* psz, bool bAppend0x)
+void CMetaSignal::Append0x(CChars* psz, bool bAppend0x)
 {
     if (bAppend0x)
     {

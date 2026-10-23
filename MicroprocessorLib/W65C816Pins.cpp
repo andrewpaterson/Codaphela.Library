@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816Pins::Init(CW65MetaBus16* pcAddress, CW65MetaBus8* pcData, CW65MetaTrace* pcPHI2, CW65MetaTrace* pcRESB, CW65MetaTrace* pcRWB)
+void CW65C816Pins::Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB)
 {
 	CW65CPins::Init(pcAddress, pcData, pcPHI2, pcRESB, pcRWB);
 	mpcVPA = NULL;
@@ -19,7 +19,7 @@ void CW65C816Pins::Init(CW65MetaBus16* pcAddress, CW65MetaBus8* pcData, CW65Meta
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816Pins::SetImportantTraces(CW65MetaTrace* pcVPA, CW65MetaTrace* pcVDA, CW65MetaTrace* pcVPB)
+void CW65C816Pins::SetImportantTraces(CMetaTrace* pcVPA, CMetaTrace* pcVDA, CMetaTrace* pcVPB)
 {
 	SetVectorPullTrace(pcVPB);
 	mpcVPA = pcVPA;
@@ -31,7 +31,7 @@ void CW65C816Pins::SetImportantTraces(CW65MetaTrace* pcVPA, CW65MetaTrace* pcVDA
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816Pins::SetOtherTraces(CW65MetaTrace* pcMLB, CW65MetaTrace* pcMX, CW65MetaTrace* pcBE, CW65MetaTrace* pcE, CW65MetaTrace* pcRDY)
+void CW65C816Pins::SetOtherTraces(CMetaTrace* pcMLB, CMetaTrace* pcMX, CMetaTrace* pcBE, CMetaTrace* pcE, CMetaTrace* pcRDY)
 {
 	mpcMX = pcMX;
 	mpcE = pcE;

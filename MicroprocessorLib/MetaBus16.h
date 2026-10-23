@@ -1,10 +1,10 @@
 #ifndef __META_BUS_16_H__
 #define __META_BUS_16_H__
 #include "BaseLib/PrimitiveTypes.h"
-#include "W65MetaSignal.h"
+#include "MetaSignal.h"
 
 
-class CW65MetaBus16 : public CW65MetaSignal
+class CMetaBus16 : public CMetaSignal
 {
 protected:
 	uint16	muiValue;

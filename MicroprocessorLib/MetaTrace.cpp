@@ -1,4 +1,4 @@
-#include "W65MetaTrace.h"
+#include "MetaTrace.h"
 
 
 STraceValue gcMetaTraceUndriven = { TV_Undriven };
@@ -8,7 +8,7 @@ STraceValue gcMetaTraceUndriven = { TV_Undriven };
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65MetaTrace::Init(void)
+void CMetaTrace::Init(void)
 {
 	msValue.Init(TV_Unsettled);
 }
@@ -18,7 +18,7 @@ void CW65MetaTrace::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65MetaTrace::Init(bool bValue)
+void CMetaTrace::Init(bool bValue)
 {
 	msValue.Init(bValue);
 }
@@ -28,7 +28,7 @@ void CW65MetaTrace::Init(bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65MetaTrace::Kill(void)
+void CMetaTrace::Kill(void)
 {
 }
 
@@ -37,7 +37,7 @@ void CW65MetaTrace::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65MetaTrace::Set(bool bValue)
+void CMetaTrace::Set(bool bValue)
 {
 	msValue.Init(bValue);
 }
@@ -47,7 +47,7 @@ void CW65MetaTrace::Set(bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-STraceValue CW65MetaTrace::Get(void)
+STraceValue CMetaTrace::Get(void)
 {
 	return msValue;
 }
@@ -57,7 +57,7 @@ STraceValue CW65MetaTrace::Get(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65MetaTrace::Invert(void)
+void CMetaTrace::Invert(void)
 {
 	msValue.Invert();
 }
@@ -67,7 +67,7 @@ void CW65MetaTrace::Invert(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65MetaTrace::IsHigh(void)
+bool CMetaTrace::IsHigh(void)
 {
 	return msValue.IsHigh();
 }
@@ -77,7 +77,7 @@ bool CW65MetaTrace::IsHigh(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65MetaTrace::IsLow(void)
+bool CMetaTrace::IsLow(void)
 {
 	return msValue.IsLow();
 }
@@ -87,7 +87,7 @@ bool CW65MetaTrace::IsLow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65MetaTrace::Print(CChars* psz)
+void CMetaTrace::Print(CChars* psz)
 {
 	msValue.Print(psz);
 }

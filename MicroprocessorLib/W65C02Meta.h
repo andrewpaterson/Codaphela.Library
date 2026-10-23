@@ -14,8 +14,8 @@ class CW65C02Meta : public CW65CMeta
 protected:
 	CW65C02					mcMPU;
 	CW65C02Pins				mcPins;
-	CW65MetaTrace 				mcSYNC;
-	CW65MetaTrace 				mcSOB;
+	CMetaTrace					mcSYNC;
+	CMetaTrace					mcSOB;
 
 	W65C02MetaTickHigh		mfTickHigh;
 	W65C02MetaTickLow		mfTickLow;
@@ -26,8 +26,8 @@ public:
 
 	CW65CCore*		GetCore(void) override;
 	CW65C02*		GetMPU(void);
-	CW65MetaTrace* 	GetSYNC(void);
-	CW65MetaTrace* 	GetSOB(void);
+	CMetaTrace* 	GetSYNC(void);
+	CMetaTrace* 	GetSOB(void);
 
 	bool			IsResetInstruction(void);
 	bool			IsStopInstruction(void);

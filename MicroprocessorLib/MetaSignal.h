@@ -3,7 +3,7 @@
 #include "BaseLib/Chars.h"
 
 
-class CW65MetaSignal
+class CMetaSignal
 {
 public:
 	void Append0x(CChars* psz, bool bAppend0x);

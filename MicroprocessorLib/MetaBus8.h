@@ -1,10 +1,10 @@
 #ifndef __META_BUS_8_H__
 #define __META_BUS_8_H__
 #include "BaseLib/PrimitiveTypes.h"
-#include "W65MetaSignal.h"
+#include "MetaSignal.h"
 
 
-class CW65MetaBus8 : public CW65MetaSignal
+class CMetaBus8 : public CMetaSignal
 {
 protected:
 	uint8	muiValue;

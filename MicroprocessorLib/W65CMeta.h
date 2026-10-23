@@ -12,35 +12,35 @@ class CW65CMeta
 {
 protected:
 	CTimeline					mcTimeline;
-	CW65MetaBus16 				mcAddress;
-	CW65MetaBus8 				mcData;
-	CW65MetaTrace 				mcVPB;
-	CW65MetaTrace 				mcRDY;
-	CW65MetaTrace 				mcIRQB;
-	CW65MetaTrace 				mcNMIB;
-	CW65MetaTrace 				mcMLB;
-	CW65MetaTrace 				mcRESB;
-	CW65MetaTrace 				mcPHI2;
-	CW65MetaTrace 				mcBE;
-	CW65MetaTrace 				mcRWB;
+	CMetaBus16					mcAddress;
+	CMetaBus8					mcData;
+	CMetaTrace					mcVPB;
+	CMetaTrace					mcRDY;
+	CMetaTrace					mcIRQB;
+	CMetaTrace					mcNMIB;
+	CMetaTrace					mcMLB;
+	CMetaTrace					mcRESB;
+	CMetaTrace					mcPHI2;
+	CMetaTrace					mcBE;
+	CMetaTrace					mcRWB;
 
-	void*					mpvContext;
-	uint8					muiBank;
+	void*						mpvContext;
+	uint8						muiBank;
 
 public:
 	virtual CW65CCore*		GetCore(void) = 0;
 
-	CW65MetaBus16*		GetAddress(void);
-	CW65MetaBus8* 		GetData(void);
-	CW65MetaTrace* 	GetVPB(void);
-	CW65MetaTrace* 	GetRDY(void);
-	CW65MetaTrace* 	GetIRQB(void);
-	CW65MetaTrace* 	GetNMIB(void);
-	CW65MetaTrace* 	GetMLB(void);
-	CW65MetaTrace* 	GetRESB(void);
-	CW65MetaTrace* 	GetPHI2(void);
-	CW65MetaTrace* 	GetBE(void);
-	CW65MetaTrace* 	GetRWB(void);
+	CMetaBus16*			GetAddress(void);
+	CMetaBus8*			GetData(void);
+	CMetaTrace* 	GetVPB(void);
+	CMetaTrace* 	GetRDY(void);
+	CMetaTrace* 	GetIRQB(void);
+	CMetaTrace* 	GetNMIB(void);
+	CMetaTrace* 	GetMLB(void);
+	CMetaTrace* 	GetRESB(void);
+	CMetaTrace* 	GetPHI2(void);
+	CMetaTrace* 	GetBE(void);
+	CMetaTrace* 	GetRWB(void);
 
 	bool			TickInstruction(void);
 	bool			TestTickCycle(void);

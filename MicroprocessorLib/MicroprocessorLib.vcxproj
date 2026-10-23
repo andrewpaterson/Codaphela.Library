@@ -59,11 +59,11 @@
     <ClCompile Include="W65InterruptAddress.cpp" />
     <ClCompile Include="W65InterruptVector.cpp" />
     <ClCompile Include="W65IRQVector.cpp" />
-    <ClCompile Include="W65MetaBus16.cpp" />
-    <ClCompile Include="W65MetaBus32.cpp" />
-    <ClCompile Include="W65MetaBus8.cpp" />
-    <ClCompile Include="W65MetaSignal.cpp" />
-    <ClCompile Include="W65MetaTrace.cpp" />
+    <ClCompile Include="MetaBus16.cpp" />
+    <ClCompile Include="MetaBus32.cpp" />
+    <ClCompile Include="MetaBus8.cpp" />
+    <ClCompile Include="MetaSignal.cpp" />
+    <ClCompile Include="MetaTrace.cpp" />
     <ClCompile Include="W65C816Meta.cpp" />
     <ClCompile Include="W65NewProgramBank.cpp" />
     <ClCompile Include="W65NMIVector.cpp" />
@@ -158,6 +158,9 @@
     <ClCompile Include="65VectorAddressOffset.cpp" />
     <ClCompile Include="65WaitOperation.cpp" />
     <ClCompile Include="65WriteTransferWord.cpp" />
+    <ClCompile Include="LongTime.cpp" />
+    <ClCompile Include="Event.cpp" />
+    <ClCompile Include="SimultaneousEvents.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="W65AbortVector.h" />
@@ -202,11 +205,11 @@
     <ClInclude Include="W65InterruptAddress.h" />
     <ClInclude Include="W65InterruptVector.h" />
     <ClInclude Include="W65IRQVector.h" />
-    <ClInclude Include="W65MetaBus16.h" />
-    <ClInclude Include="W65MetaBus32.h" />
-    <ClInclude Include="W65MetaBus8.h" />
-    <ClInclude Include="W65MetaSignal.h" />
-    <ClInclude Include="W65MetaTrace.h" />
+    <ClInclude Include="MetaBus16.h" />
+    <ClInclude Include="MetaBus32.h" />
+    <ClInclude Include="MetaBus8.h" />
+    <ClInclude Include="MetaSignal.h" />
+    <ClInclude Include="MetaTrace.h" />
     <ClInclude Include="W65C816Meta.h" />
     <ClInclude Include="W65NewProgramBank.h" />
     <ClInclude Include="W65NewProgramCounter.h" />
@@ -308,6 +311,9 @@
     <ClInclude Include="65VectorAddressOffset.h" />
     <ClInclude Include="65WaitOperation.h" />
     <ClInclude Include="65WriteTransferWord.h" />
+    <ClInclude Include="LongTime.h" />
+    <ClInclude Include="Event.h" />
+    <ClInclude Include="SimultaneousEvents.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">

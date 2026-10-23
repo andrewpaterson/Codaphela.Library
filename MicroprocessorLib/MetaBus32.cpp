@@ -1,11 +1,11 @@
-#include "W65MetaBus32.h"
+#include "MetaBus32.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65MetaBus32::Init(void)
+void CMetaBus32::Init(void)
 {
 	muiValue = 0;
 }
@@ -15,7 +15,7 @@ void CW65MetaBus32::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65MetaBus32::Kill(void)
+void CMetaBus32::Kill(void)
 {
 }
 
@@ -24,7 +24,7 @@ void CW65MetaBus32::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65MetaBus32::Set(uint32 uiValue)
+void CMetaBus32::Set(uint32 uiValue)
 {
 	muiValue = uiValue;
 }
@@ -34,7 +34,7 @@ void CW65MetaBus32::Set(uint32 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CW65MetaBus32::Get(void)
+uint32 CMetaBus32::Get(void)
 {
 	return muiValue;
 }
@@ -44,7 +44,7 @@ uint32 CW65MetaBus32::Get(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65MetaBus32::Print(CChars* psz, bool bAppend0x)
+void CMetaBus32::Print(CChars* psz, bool bAppend0x)
 {
 	Append0x(psz, bAppend0x);
 	psz->AppendHexHiLo(&muiValue, 4);

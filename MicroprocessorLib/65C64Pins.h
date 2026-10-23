@@ -22,9 +22,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __65C64_PINS_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "TraceValue.h"
-#include "W65MetaBus16.h"
-#include "W65MetaBus32.h"
-#include "W65MetaTrace.h"
+#include "MetaBus16.h"
+#include "MetaBus32.h"
+#include "MetaTrace.h"
 
 
 #define NUM_65C64_EDGE_INTERRUPTS	4
@@ -35,25 +35,25 @@ class CTimeline;
 class C65C64Pins
 {
 protected:
-	CW65MetaBus32*	mpcAddress;
-	CW65MetaBus16*	mpcData;
-	CW65MetaTrace*	mpcPHI2;
-	CW65MetaTrace*	mpcRESB;
-	CW65MetaTrace*	mpcRWB;
-	CW65MetaTrace*	mpcLowerByte;
-	CW65MetaTrace*	mpcUpperByte;
-	CW65MetaTrace*	mpcOPV;
-	CW65MetaTrace*	mpcVPA;
-	CW65MetaTrace*	mpcVDA;
-	CW65MetaTrace*	mpcVPB;
-	CW65MetaTrace*	mapcEIRQB[NUM_65C64_EDGE_INTERRUPTS];
-	CW65MetaTrace*	mpcLIRQB;
+	CMetaBus32*		mpcAddress;
+	CMetaBus16*		mpcData;
+	CMetaTrace*		mpcPHI2;
+	CMetaTrace*		mpcRESB;
+	CMetaTrace*		mpcRWB;
+	CMetaTrace*		mpcLowerByte;
+	CMetaTrace*		mpcUpperByte;
+	CMetaTrace*		mpcOPV;
+	CMetaTrace*		mpcVPA;
+	CMetaTrace*		mpcVDA;
+	CMetaTrace*		mpcVPB;
+	CMetaTrace*		mapcEIRQB[NUM_65C64_EDGE_INTERRUPTS];
+	CMetaTrace*		mpcLIRQB;
 
 public:
-	void			Init(CW65MetaBus32* pcAddress, CW65MetaBus16* pcData, CW65MetaTrace* pcPHI2, CW65MetaTrace* pcRESB, CW65MetaTrace* pcRWB);
-	void			SetByteTraces(CW65MetaTrace* pcLowerByte, CW65MetaTrace* pcUpperByte);
-	void			SetValidTraces(CW65MetaTrace* pcOPV, CW65MetaTrace* pcVPA, CW65MetaTrace* pcVDA, CW65MetaTrace* pcVPB);
-	void			SetInterruptTraces(CW65MetaTrace* pcEIRQB0, CW65MetaTrace* pcEIRQB1, CW65MetaTrace* pcEIRQB2, CW65MetaTrace* pcEIRQB3, CW65MetaTrace* pcLIRQB);
+	void			Init(CMetaBus32* pcAddress, CMetaBus16* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB);
+	void			SetByteTraces(CMetaTrace* pcLowerByte, CMetaTrace* pcUpperByte);
+	void			SetValidTraces(CMetaTrace* pcOPV, CMetaTrace* pcVPA, CMetaTrace* pcVDA, CMetaTrace* pcVPB);
+	void			SetInterruptTraces(CMetaTrace* pcEIRQB0, CMetaTrace* pcEIRQB1, CMetaTrace* pcEIRQB2, CMetaTrace* pcEIRQB3, CMetaTrace* pcLIRQB);
 	void			Kill(void);
 
 	//Microprocessor side methods.

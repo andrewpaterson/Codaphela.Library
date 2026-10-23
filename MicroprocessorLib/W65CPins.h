@@ -2,9 +2,9 @@
 #define __W65C_PINS_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "TraceValue.h"
-#include "W65MetaBus8.h"
-#include "W65MetaBus16.h"
-#include "W65MetaTrace.h"
+#include "MetaBus8.h"
+#include "MetaBus16.h"
+#include "MetaTrace.h"
 
 
 //The pins the W65C02S and W65C816S have in common.  Processor specific pins are added by subclasses.
@@ -12,24 +12,24 @@ class CTimeline;
 class CW65CPins
 {
 protected:
-	CW65MetaBus16*		mpcAddress;
-	CW65MetaBus8*		mpcData;
-	CW65MetaTrace*		mpcVPB;
-	CW65MetaTrace*		mpcRDY;
-	CW65MetaTrace*		mpcABORTB;
-	CW65MetaTrace*		mpcIRQB;
-	CW65MetaTrace*		mpcNMIB;
-	CW65MetaTrace*		mpcMLB;
-	CW65MetaTrace*		mpcRESB;
-	CW65MetaTrace*		mpcPHI2;
-	CW65MetaTrace*		mpcBE;
-	CW65MetaTrace*		mpcRWB;
+	CMetaBus16*			mpcAddress;
+	CMetaBus8*			mpcData;
+	CMetaTrace*			mpcVPB;
+	CMetaTrace*			mpcRDY;
+	CMetaTrace*			mpcABORTB;
+	CMetaTrace*			mpcIRQB;
+	CMetaTrace*			mpcNMIB;
+	CMetaTrace*			mpcMLB;
+	CMetaTrace*			mpcRESB;
+	CMetaTrace*			mpcPHI2;
+	CMetaTrace*			mpcBE;
+	CMetaTrace*			mpcRWB;
 
 public:
-	void			Init(CW65MetaBus16* pcAddress, CW65MetaBus8* pcData, CW65MetaTrace* pcPHI2, CW65MetaTrace* pcRESB, CW65MetaTrace* pcRWB);
-	void			SetInterruptTraces(CW65MetaTrace* pcABORTB, CW65MetaTrace* pcIRQB, CW65MetaTrace* pcNMIB);
-	void			SetVectorPullTrace(CW65MetaTrace* pcVPB);
-	void			SetControlTraces(CW65MetaTrace* pcMLB, CW65MetaTrace* pcBE, CW65MetaTrace* pcRDY);
+	void			Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB);
+	void			SetInterruptTraces(CMetaTrace* pcABORTB, CMetaTrace* pcIRQB, CMetaTrace* pcNMIB);
+	void			SetVectorPullTrace(CMetaTrace* pcVPB);
+	void			SetControlTraces(CMetaTrace* pcMLB, CMetaTrace* pcBE, CMetaTrace* pcRDY);
 	void			Kill(void);
 
 	//Microprocessor side methods.
