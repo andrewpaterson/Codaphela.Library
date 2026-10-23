@@ -101,13 +101,19 @@ bool CFamilyVoltageConfiguration::Add(CVoltageConfiguration* pcConfiguration, co
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The configuration at exactly fVcc, or NULL.
+// The configuration at exactly fVcc, or NULL.  No voltage (NaN) is checked
+// first because under /fp:fast a NaN can compare equal to anything.
 //
 //////////////////////////////////////////////////////////////////////////
 CVoltageConfiguration* CFamilyVoltageConfiguration::Get(float32 fVcc)
 {
 	size					i;
 	CVoltageConfiguration*	pcConfiguration;
+
+	if (!IsVoltage(fVcc))
+	{
+		return NULL;
+	}
 
 	for (i = 0; i < macConfigurations.NumElements(); i++)
 	{
