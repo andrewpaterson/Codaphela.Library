@@ -519,6 +519,11 @@ char* LongToString(char* szDest, size iDestLength, int64 lliValue, uint16 iBase)
 	bNegative = lliValue < 0;
 	if (bNegative && (iBase == 10))
 	{
+		if (lliValue == (int64)MIN_INT64)
+		{
+			StrCpySafe(szDest, "-9223372036854775808", iDestLength);
+			return szDest;
+		}
 		lliValue *= -1;
 	}
 	lliQuotient = lliValue;
