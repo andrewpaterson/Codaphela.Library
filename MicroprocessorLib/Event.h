@@ -34,6 +34,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //
 //Every event gets the next id when it is initialised, unless it is given one, as when it is loaded.
 class CTimeline;
+class CIntegratedCircuit;
 class CEvent : public CConstructable
 {
 CONSTRUCTABLE(CEvent);
@@ -57,6 +58,7 @@ public:
 			int64	GetID(void);
 
 	virtual void	PrintShort(CChars* psz);
+	virtual CIntegratedCircuit*	GetIntegratedCircuit(void);
 
 	static	void	ResetNextID(void);
 };

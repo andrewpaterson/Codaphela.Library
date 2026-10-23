@@ -42,7 +42,8 @@ public:
 	virtual bool				IsOutputEvent(void);
 
 			CLogicPort*			GetPort(void);
-			CIntegratedCircuit*	GetIntegratedCircuit(void);
+	virtual CIntegratedCircuit*	GetIntegratedCircuit(void);
+			void				AppendPortOwner(CChars* psz);
 };
 
 

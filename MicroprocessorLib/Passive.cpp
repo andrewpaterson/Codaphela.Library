@@ -112,4 +112,5 @@ CPort* CPassive::GetPort(size uiIndex) { return CPortHolder::GetPort(uiIndex); }
 CPort* CPassive::GetPort(const char* szName) { return CPortHolder::GetPort(szName); }
 char* CPassive::GetName(void) { return CCircuitComponent::GetName(); }
 void CPassive::AppendDescription(CChars* psz) { CCircuitComponent::AppendDescription(psz); }
+CCircuitComponent* CPassive::GetComponent(void) { return this; }
 

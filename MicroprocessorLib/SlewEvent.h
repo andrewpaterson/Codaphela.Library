@@ -55,6 +55,7 @@ public:
 			float32			GetEndVoltage(void);
 			int64			GetSlewTime(void);
 	virtual void			PrintShort(CChars* psz);
+			void			AppendDebugString(CChars* psz);
 
 protected:
 			int64			CalculateSlewTime(CVoltageConfigurationSource* pcVoltageConfiguration, float32 fVcc);

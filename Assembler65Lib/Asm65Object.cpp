@@ -23,6 +23,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 
 
 static const char* gaszSectionKinds[ASK65_NumKinds] = { "text", "rodata", "init", "fini", "data", "bss" };
+static const char* gaszBindings[3] = { "local", "global", "weak" };
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -310,7 +311,6 @@ void CAsm65Object::Dump(CChars* psz)
 	SAsm65Section*		psSection;
 	SAsm65ObjectSymbol*	psSymbol;
 	SAsm65Relocation*	psRelocation;
-	static const char*	aszBindings[3] = { "local", "global", "weak" };
 
 	for (i = 0; i < mcSections.NumElements(); i++)
 	{
@@ -344,7 +344,7 @@ void CAsm65Object::Dump(CChars* psz)
 		psz->Append(" ");
 		psz->Append(psSymbol->szName.Text());
 		psz->Append(" ");
-		psz->Append(aszBindings[psSymbol->eBinding]);
+		psz->Append(gaszBindings[psSymbol->eBinding]);
 		if (psSymbol->iSection == ASM65_SECTION_UNDEFINED)
 		{
 			psz->Append(" undefined");

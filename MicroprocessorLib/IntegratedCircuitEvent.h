@@ -37,7 +37,7 @@ public:
 			void				Init(int64 iTime, int64 iID, CIntegratedCircuit* pcIntegratedCircuit);
 
 	virtual void				RemoveFromOwner(void);
-			CIntegratedCircuit*	GetIntegratedCircuit(void);
+	virtual CIntegratedCircuit*	GetIntegratedCircuit(void);
 };
 
 

@@ -250,6 +250,48 @@ void CPort::AppendDescription(CChars* psz)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Like "U1.Output(7)": the holder's name, the port's and its trace's id.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPort::AppendDebugString(CChars* psz)
+{
+	char*	szHolderName;
+
+	szHolderName = mpcHolder->GetName();
+	if (szHolderName != NULL)
+	{
+		psz->Append(szHolderName);
+	}
+	psz->Append('.');
+	psz->Append(mszName);
+	psz->Append('(');
+	psz->Append(GetTraceID());
+	psz->Append(')');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class without its C and Port, like "Logic", as Logicim's getType.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPort::AppendType(CChars* psz)
+{
+	CChars	szName;
+
+	szName.Init(ClassName());
+	if (szName.StartsWith("C"))
+	{
+		szName.RemoveFromStart(1);
+	}
+	szName.Replace("Port", "");
+	psz->Append(szName);
+	szName.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CPort::IsLogicPort(void) { return false; }
