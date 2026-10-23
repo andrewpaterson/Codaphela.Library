@@ -107,6 +107,6 @@ void CW65C02Meta::CallTickLow(void)
 //////////////////////////////////////////////////////////////////////////
 CW65C02*    CW65C02Meta::GetMPU(void)     { return &mcMPU; }
 CW65CCore*  CW65C02Meta::GetCore(void)    { return &mcMPU; }
-CW65MetaTrace* CW65C02Meta::GetSYNC(void)	  { return &mcSYNC; }
-CW65MetaTrace* CW65C02Meta::GetSOB(void)	  { return &mcSOB; }
+CMetaTrace* CW65C02Meta::GetSYNC(void)	  { return &mcSYNC; }
+CMetaTrace* CW65C02Meta::GetSOB(void)	  { return &mcSOB; }
 

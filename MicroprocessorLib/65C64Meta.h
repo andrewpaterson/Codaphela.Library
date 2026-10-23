@@ -37,19 +37,19 @@ protected:
 	C65C64			mcMPU;
 	C65C64Pins		mcPins;
 
-	CW65MetaBus32	mcAddress;
-	CW65MetaBus16	mcData;
-	CW65MetaTrace	mcPHI2;
-	CW65MetaTrace	mcRESB;
-	CW65MetaTrace	mcRWB;
-	CW65MetaTrace	mcLowerByte;
-	CW65MetaTrace	mcUpperByte;
-	CW65MetaTrace	mcOPV;
-	CW65MetaTrace	mcVPA;
-	CW65MetaTrace	mcVDA;
-	CW65MetaTrace	mcVPB;
-	CW65MetaTrace	macEIRQB[NUM_65C64_EDGE_INTERRUPTS];
-	CW65MetaTrace	mcLIRQB;
+	CMetaBus32		mcAddress;
+	CMetaBus16		mcData;
+	CMetaTrace		mcPHI2;
+	CMetaTrace		mcRESB;
+	CMetaTrace		mcRWB;
+	CMetaTrace		mcLowerByte;
+	CMetaTrace		mcUpperByte;
+	CMetaTrace		mcOPV;
+	CMetaTrace		mcVPA;
+	CMetaTrace		mcVDA;
+	CMetaTrace		mcVPB;
+	CMetaTrace		macEIRQB[NUM_65C64_EDGE_INTERRUPTS];
+	CMetaTrace		mcLIRQB;
 
 	C65C64MetaTick	mfTickHigh;
 	C65C64MetaTick	mfTickLow;
@@ -60,19 +60,19 @@ public:
 	void			Kill(void);
 
 	C65C64*			GetMPU(void);
-	CW65MetaBus32*	GetAddress(void);
-	CW65MetaBus16*	GetData(void);
-	CW65MetaTrace*	GetPHI2(void);
-	CW65MetaTrace*	GetRESB(void);
-	CW65MetaTrace*	GetRWB(void);
-	CW65MetaTrace*	GetLowerByte(void);
-	CW65MetaTrace*	GetUpperByte(void);
-	CW65MetaTrace*	GetOPV(void);
-	CW65MetaTrace*	GetVPA(void);
-	CW65MetaTrace*	GetVDA(void);
-	CW65MetaTrace*	GetVPB(void);
-	CW65MetaTrace*	GetEIRQB(size uiInterrupt);
-	CW65MetaTrace*	GetLIRQB(void);
+	CMetaBus32*		GetAddress(void);
+	CMetaBus16*		GetData(void);
+	CMetaTrace*		GetPHI2(void);
+	CMetaTrace*		GetRESB(void);
+	CMetaTrace*		GetRWB(void);
+	CMetaTrace*		GetLowerByte(void);
+	CMetaTrace*		GetUpperByte(void);
+	CMetaTrace*		GetOPV(void);
+	CMetaTrace*		GetVPA(void);
+	CMetaTrace*		GetVDA(void);
+	CMetaTrace*		GetVPB(void);
+	CMetaTrace*		GetEIRQB(size uiInterrupt);
+	CMetaTrace*		GetLIRQB(void);
 
 	bool			TickInstruction(void);
 	bool			TestTickCycle(void);

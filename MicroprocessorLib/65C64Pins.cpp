@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::Init(CW65MetaBus32* pcAddress, CW65MetaBus16* pcData, CW65MetaTrace* pcPHI2, CW65MetaTrace* pcRESB, CW65MetaTrace* pcRWB)
+void C65C64Pins::Init(CMetaBus32* pcAddress, CMetaBus16* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB)
 {
 	size	i;
 
@@ -52,7 +52,7 @@ void C65C64Pins::Init(CW65MetaBus32* pcAddress, CW65MetaBus16* pcData, CW65MetaT
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::SetByteTraces(CW65MetaTrace* pcLowerByte, CW65MetaTrace* pcUpperByte)
+void C65C64Pins::SetByteTraces(CMetaTrace* pcLowerByte, CMetaTrace* pcUpperByte)
 {
 	mpcLowerByte = pcLowerByte;
 	mpcUpperByte = pcUpperByte;
@@ -63,7 +63,7 @@ void C65C64Pins::SetByteTraces(CW65MetaTrace* pcLowerByte, CW65MetaTrace* pcUppe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::SetValidTraces(CW65MetaTrace* pcOPV, CW65MetaTrace* pcVPA, CW65MetaTrace* pcVDA, CW65MetaTrace* pcVPB)
+void C65C64Pins::SetValidTraces(CMetaTrace* pcOPV, CMetaTrace* pcVPA, CMetaTrace* pcVDA, CMetaTrace* pcVPB)
 {
 	mpcOPV = pcOPV;
 	mpcVPA = pcVPA;
@@ -76,7 +76,7 @@ void C65C64Pins::SetValidTraces(CW65MetaTrace* pcOPV, CW65MetaTrace* pcVPA, CW65
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::SetInterruptTraces(CW65MetaTrace* pcEIRQB0, CW65MetaTrace* pcEIRQB1, CW65MetaTrace* pcEIRQB2, CW65MetaTrace* pcEIRQB3, CW65MetaTrace* pcLIRQB)
+void C65C64Pins::SetInterruptTraces(CMetaTrace* pcEIRQB0, CMetaTrace* pcEIRQB1, CMetaTrace* pcEIRQB2, CMetaTrace* pcEIRQB3, CMetaTrace* pcLIRQB)
 {
 	mapcEIRQB[0] = pcEIRQB0;
 	mapcEIRQB[1] = pcEIRQB1;

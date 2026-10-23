@@ -201,15 +201,15 @@ uint8 CW65CMeta::GetBank(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65MetaBus16* CW65CMeta::GetAddress(void) { return &mcAddress; }
-CW65MetaBus8*  CW65CMeta::GetData(void)    { return &mcData; }
-CW65MetaTrace* CW65CMeta::GetVPB(void)     { return &mcVPB; }
-CW65MetaTrace* CW65CMeta::GetRDY(void)     { return &mcRDY; }
-CW65MetaTrace* CW65CMeta::GetIRQB(void)	{ return &mcIRQB; }
-CW65MetaTrace* CW65CMeta::GetNMIB(void)	{ return &mcNMIB; }
-CW65MetaTrace* CW65CMeta::GetMLB(void)	    { return &mcMLB; }
-CW65MetaTrace* CW65CMeta::GetRESB(void)	{ return &mcRESB; }
-CW65MetaTrace* CW65CMeta::GetPHI2(void)	{ return &mcPHI2; }
-CW65MetaTrace* CW65CMeta::GetBE(void)	    { return &mcBE; }
-CW65MetaTrace* CW65CMeta::GetRWB(void)	    { return &mcRWB; }
+CMetaBus16* CW65CMeta::GetAddress(void) { return &mcAddress; }
+CMetaBus8*  CW65CMeta::GetData(void)    { return &mcData; }
+CMetaTrace* CW65CMeta::GetVPB(void)     { return &mcVPB; }
+CMetaTrace* CW65CMeta::GetRDY(void)     { return &mcRDY; }
+CMetaTrace* CW65CMeta::GetIRQB(void)	{ return &mcIRQB; }
+CMetaTrace* CW65CMeta::GetNMIB(void)	{ return &mcNMIB; }
+CMetaTrace* CW65CMeta::GetMLB(void)	    { return &mcMLB; }
+CMetaTrace* CW65CMeta::GetRESB(void)	{ return &mcRESB; }
+CMetaTrace* CW65CMeta::GetPHI2(void)	{ return &mcPHI2; }
+CMetaTrace* CW65CMeta::GetBE(void)	    { return &mcBE; }
+CMetaTrace* CW65CMeta::GetRWB(void)	    { return &mcRWB; }
 

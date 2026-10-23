@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C02Pins::Init(CW65MetaBus16* pcAddress, CW65MetaBus8* pcData, CW65MetaTrace* pcPHI2, CW65MetaTrace* pcRESB, CW65MetaTrace* pcRWB)
+void CW65C02Pins::Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB)
 {
 	CW65CPins::Init(pcAddress, pcData, pcPHI2, pcRESB, pcRWB);
 	mpcSYNC = NULL;
@@ -17,7 +17,7 @@ void CW65C02Pins::Init(CW65MetaBus16* pcAddress, CW65MetaBus8* pcData, CW65MetaT
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C02Pins::SetW65C02Traces(CW65MetaTrace* pcSYNC, CW65MetaTrace* pcSOB)
+void CW65C02Pins::SetW65C02Traces(CMetaTrace* pcSYNC, CMetaTrace* pcSOB)
 {
 	mpcSYNC = pcSYNC;
 	mpcSOB = pcSOB;

@@ -13,11 +13,11 @@ class CW65C816Meta : public CW65CMeta
 protected:
 	CW65C816				mcMPU;
 	CW65C816Pins			mcPins;
-	CW65MetaTrace 				mcABORTB;
-	CW65MetaTrace 				mcVPA;
-	CW65MetaTrace 				mcVDA;
-	CW65MetaTrace 				mcMX;
-	CW65MetaTrace 				mcE;
+	CMetaTrace					mcABORTB;
+	CMetaTrace					mcVPA;
+	CMetaTrace					mcVDA;
+	CMetaTrace					mcMX;
+	CMetaTrace					mcE;
 
 	W65C816MetaTickHigh		mfTickHigh;
 	W65C816MetaTickLow		mfTickLow;
@@ -30,11 +30,11 @@ public:
 
 	CW65CCore*		GetCore(void) override;
 	CW65C816*		GetMPU(void);
-	CW65MetaTrace* 	GetABORTB(void);
-	CW65MetaTrace* 	GetVPA(void);
-	CW65MetaTrace* 	GetVDA(void);
-	CW65MetaTrace* 	GetMX(void);
-	CW65MetaTrace* 	GetE(void);
+	CMetaTrace* 	GetABORTB(void);
+	CMetaTrace* 	GetVPA(void);
+	CMetaTrace* 	GetVDA(void);
+	CMetaTrace* 	GetMX(void);
+	CMetaTrace* 	GetE(void);
 
 	bool			IsResetInstruction(void);
 	bool			IsStopInstruction(void);

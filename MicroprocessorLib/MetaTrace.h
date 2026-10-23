@@ -2,13 +2,13 @@
 #define __META_TRACE_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "TraceValue.h"
-#include "W65MetaSignal.h"
+#include "MetaSignal.h"
 
 
 extern STraceValue gcMetaTraceUndriven;
 
 
-class CW65MetaTrace : public CW65MetaSignal
+class CMetaTrace : public CMetaSignal
 {
 protected:
 	STraceValue			msValue;

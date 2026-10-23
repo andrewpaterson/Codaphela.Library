@@ -357,16 +357,16 @@
     <ClCompile Include="W65C816Pins.cpp">
       <Filter>Source\WDC\W65C816</Filter>
     </ClCompile>
-    <ClCompile Include="W65MetaBus8.cpp">
+    <ClCompile Include="MetaBus8.cpp">
       <Filter>Source\Meta</Filter>
     </ClCompile>
-    <ClCompile Include="W65MetaBus16.cpp">
+    <ClCompile Include="MetaBus16.cpp">
       <Filter>Source\Meta</Filter>
     </ClCompile>
-    <ClCompile Include="W65MetaBus32.cpp">
+    <ClCompile Include="MetaBus32.cpp">
       <Filter>Source\Meta</Filter>
     </ClCompile>
-    <ClCompile Include="W65MetaTrace.cpp">
+    <ClCompile Include="MetaTrace.cpp">
       <Filter>Source\Meta</Filter>
     </ClCompile>
     <ClCompile Include="W65C816Meta.cpp">
@@ -375,7 +375,7 @@
     <ClCompile Include="W65CompoundAddress.cpp">
       <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
-    <ClCompile Include="W65MetaSignal.cpp">
+    <ClCompile Include="MetaSignal.cpp">
       <Filter>Source\Meta</Filter>
     </ClCompile>
     <ClCompile Include="65AddressOffset.cpp">
@@ -473,6 +473,15 @@
     </ClCompile>
     <ClCompile Include="65WriteTransferWord.cpp">
       <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="LongTime.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Event.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="SimultaneousEvents.cpp">
+      <Filter>Source\Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -797,16 +806,16 @@
     <ClInclude Include="W65C816Pins.h">
       <Filter>Source\WDC\W65C816</Filter>
     </ClInclude>
-    <ClInclude Include="W65MetaBus8.h">
+    <ClInclude Include="MetaBus8.h">
       <Filter>Source\Meta</Filter>
     </ClInclude>
-    <ClInclude Include="W65MetaBus16.h">
+    <ClInclude Include="MetaBus16.h">
       <Filter>Source\Meta</Filter>
     </ClInclude>
-    <ClInclude Include="W65MetaBus32.h">
+    <ClInclude Include="MetaBus32.h">
       <Filter>Source\Meta</Filter>
     </ClInclude>
-    <ClInclude Include="W65MetaTrace.h">
+    <ClInclude Include="MetaTrace.h">
       <Filter>Source\Meta</Filter>
     </ClInclude>
     <ClInclude Include="W65C816Meta.h">
@@ -815,7 +824,7 @@
     <ClInclude Include="W65CompoundAddress.h">
       <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
     </ClInclude>
-    <ClInclude Include="W65MetaSignal.h">
+    <ClInclude Include="MetaSignal.h">
       <Filter>Source\Meta</Filter>
     </ClInclude>
     <ClInclude Include="65AddressOffset.h">
@@ -919,6 +928,15 @@
     </ClInclude>
     <ClInclude Include="65WriteTransferWord.h">
       <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="LongTime.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Event.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="SimultaneousEvents.h">
+      <Filter>Source\Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
