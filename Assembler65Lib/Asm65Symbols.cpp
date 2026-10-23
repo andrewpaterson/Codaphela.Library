@@ -19,6 +19,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Chars.h"
+#include "Asm65Object.h"
 #include "Asm65Symbols.h"
 
 
@@ -29,6 +30,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 void CAsm65Symbols::Init(void)
 {
 	mcSymbols.Init(true, true);
+	maszNames.Init();
 }
 
 
@@ -38,6 +40,7 @@ void CAsm65Symbols::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Symbols::Kill(void)
 {
+	maszNames.Kill();
 	mcSymbols.Kill();
 }
 
@@ -78,6 +81,12 @@ SAsm65Symbol* CAsm65Symbols::Put(const char* szName, size uiLength)
 		psSymbol->iValue = 0;
 		psSymbol->uiPass = 0;
 		psSymbol->bResolved = false;
+		psSymbol->iSection = ASM65_SECTION_ABSOLUTE;
+		psSymbol->uiTermToken = 0;
+		psSymbol->bExternal = false;
+		psSymbol->bGlobal = false;
+		psSymbol->bWeak = false;
+		maszNames.Add(szKey.Text());
 	}
 	szKey.Kill();
 	return psSymbol;
@@ -91,4 +100,14 @@ SAsm65Symbol* CAsm65Symbols::Put(const char* szName, size uiLength)
 size CAsm65Symbols::NumSymbols(void)
 {
 	return mcSymbols.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CAsm65Symbols::GetName(size uiIndex)
+{
+	return maszNames.GetText(uiIndex);
 }

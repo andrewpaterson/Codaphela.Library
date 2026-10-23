@@ -261,6 +261,7 @@ static void StartInstruction(SAsm65Instruction* psInstruction, uint16 uiOpcode)
 {
 	psInstruction->auiWords[0] = uiOpcode;
 	psInstruction->uiWords = 1;
+	psInstruction->uiRelocations = 0;
 }
 
 
@@ -341,7 +342,8 @@ bool CAsm65Assembler::Instruction(SAsm65Token* psMnemonic)
 //
 // Picks the smallest width (from auiBytes, smallest first) that holds the value and
 // keeps the instruction at least as long as it was in the last pass.  uiFixedWords is
-// the instruction's length without the value.
+// the instruction's length without the value.  A section address is 32 bits unless
+// its width is given (the linker checks it fits).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Assembler::ChooseBytes(SAsm65Value* psValue, bool bSigned, uint8 uiExplicitBytes, const uint8* auiBytes, int iNumBytes, uint8 uiFixedWords, SAsm65Token* psToken, uint8* puiBytes)
@@ -349,8 +351,10 @@ bool CAsm65Assembler::ChooseBytes(SAsm65Value* psValue, bool bSigned, uint8 uiEx
 	int		i;
 	uint8	uiMinimumWords;
 	uint8	uiBytes;
+	bool	bRelocatable;
 
 	*puiBytes = 0;
+	bRelocatable = IsRelocatable(psValue);
 	if (uiExplicitBytes != 0)
 	{
 		for (i = 0; i < iNumBytes; i++)
@@ -364,7 +368,7 @@ bool CAsm65Assembler::ChooseBytes(SAsm65Value* psValue, bool bSigned, uint8 uiEx
 		{
 			return Error(psToken, "That width is not allowed here");
 		}
-		if (psValue->bResolved && !Fits(psValue->iValue, uiExplicitBytes, bSigned))
+		if (!bRelocatable && psValue->bResolved && !Fits(psValue->iValue, uiExplicitBytes, bSigned))
 		{
 			return Error(psToken, "Value does not fit");
 		}
@@ -380,13 +384,25 @@ bool CAsm65Assembler::ChooseBytes(SAsm65Value* psValue, bool bSigned, uint8 uiEx
 		{
 			continue;
 		}
-		if (!psValue->bResolved || Fits(psValue->iValue, uiBytes, bSigned))
+		if (bRelocatable)
+		{
+			if (uiBytes >= 4)
+			{
+				*puiBytes = uiBytes;
+				return true;
+			}
+		}
+		else if (!psValue->bResolved || Fits(psValue->iValue, uiBytes, bSigned))
 		{
 			*puiBytes = uiBytes;
 			return true;
 		}
 	}
 	*puiBytes = auiBytes[iNumBytes - 1];
+	if (bRelocatable)
+	{
+		return Error(psToken, "A section address cannot be used here");
+	}
 	return Error(psToken, "Value does not fit");
 }
 
@@ -405,6 +421,11 @@ bool CAsm65Assembler::RelativeBytes(SAsm65Value* psTarget, SAsm65Token* psToken,
 
 	*puiBytes = 0;
 	*piOffset = 0;
+	if (IsRelocatable(psTarget))
+	{
+		*puiBytes = gauiWidthBytes[3];
+		return true;
+	}
 	for (i = 0; i < 4; i++)
 	{
 		uiWords = 1 + (gauiWidthBytes[i] + 1) / 2;
@@ -445,7 +466,43 @@ void CAsm65Assembler::AddValueWords(SAsm65Instruction* psInstruction, uint64 uiV
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Assembler::AddAddressWords(SAsm65Instruction* psInstruction, SAsm65Memory* psMemory)
 {
-	AddValueWords(psInstruction, psMemory->uiAddress, 2 * psMemory->uiAddressWords);
+	if (psMemory->uiAddressWords != 0)
+	{
+		AddRelocatableWords(psInstruction, psMemory->psValue, psMemory->uiAddress, 2 * psMemory->uiAddressWords, false, false, psMemory->psToken);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value's words, or zeros and a relocation when the value is a section address.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::AddRelocatableWords(SAsm65Instruction* psInstruction, SAsm65Value* psValue, uint64 uiValue, uint8 uiBytes, bool bSigned, bool bRelative, SAsm65Token* psToken)
+{
+	SAsm65InstructionRelocation*	psRelocation;
+
+	if (!IsRelocatable(psValue))
+	{
+		AddValueWords(psInstruction, uiValue, uiBytes);
+		return true;
+	}
+	if (psInstruction->uiRelocations == ASM65_MAX_INSTRUCTION_RELOCATIONS)
+	{
+		return Error(psToken, "Too many section addresses in one instruction");
+	}
+
+	UseTerm();
+	psRelocation = &psInstruction->asRelocations[psInstruction->uiRelocations];
+	psInstruction->uiRelocations++;
+	psRelocation->sValue = *psValue;
+	psRelocation->uiWord = psInstruction->uiWords;
+	psRelocation->uiBytes = uiBytes;
+	psRelocation->bSigned = bSigned;
+	psRelocation->bRelative = bRelative;
+	psRelocation->psToken = psToken;
+	AddValueWords(psInstruction, 0, uiBytes);
+	return true;
 }
 
 
@@ -460,6 +517,7 @@ bool CAsm65Assembler::MemoryOperand(SAsm65Operand* psOperand, SAsm65Memory* psMe
 	SAsm65Address*	psAddress;
 	bool			bOffset;
 	bool			bFits;
+	bool			bRelocatable;
 
 	psAddress = &psOperand->sAddress;
 	if (!Memory(psAddress, psMemory))
@@ -472,10 +530,12 @@ bool CAsm65Assembler::MemoryOperand(SAsm65Operand* psOperand, SAsm65Memory* psMe
 	}
 
 	//Addresses that are too wide lose their high bits with a warning (the user, 2026-10-23).
-	bFits = !psAddress->sValue.bResolved || ((psAddress->sValue.iValue >= 0) && (psAddress->sValue.iValue <= 0xFFFF));
+	//A section address is absolute unless :16 says it is an offset (the user, 2026-10-23).
+	bRelocatable = IsRelocatable(&psAddress->sValue);
+	bFits = !bRelocatable && (!psAddress->sValue.bResolved || ((psAddress->sValue.iValue >= 0) && (psAddress->sValue.iValue <= 0xFFFF)));
 	if (psAddress->uiAddressBits == 16)
 	{
-		if (!bFits)
+		if (!bFits && !bRelocatable)
 		{
 			Warning(psAddress->psToken, "Offset address is wider than 16 bits; the high bits are discarded");
 		}
@@ -490,7 +550,7 @@ bool CAsm65Assembler::MemoryOperand(SAsm65Operand* psOperand, SAsm65Memory* psMe
 		bOffset = bFits && (uiFixedWords + 1 >= GetMinimumWords());
 	}
 
-	if (!bOffset && psAddress->sValue.bResolved && ((psAddress->sValue.iValue < 0) || (psAddress->sValue.iValue > 0xFFFFFFFFLL)))
+	if (!bOffset && !bRelocatable && psAddress->sValue.bResolved && ((psAddress->sValue.iValue < 0) || (psAddress->sValue.iValue > 0xFFFFFFFFLL)))
 	{
 		Warning(psAddress->psToken, "Address is wider than 32 bits; the high bits are discarded");
 	}
@@ -591,6 +651,7 @@ bool CAsm65Assembler::ArithmeticLogic(uint16 uiCode)
 	uint16					uiField;
 	uint8					uiBytes;
 	int64					iValue;
+	bool					bRelocatable;
 
 	if (!Operand(&sFirst) || !Expect(AP65_Comma, "','") || !Operand(&sSecond))
 	{
@@ -617,13 +678,14 @@ bool CAsm65Assembler::ArithmeticLogic(uint16 uiCode)
 	else
 	{
 		iValue = sSecond.sValue.iValue;
-		bSigned = sSecond.bSigned || (iValue < 0);
-		if ((sSecond.uiWidthBytes == 0) && (iValue == 0) && (GetMinimumWords() <= 1))
+		bRelocatable = IsRelocatable(&sSecond.sValue);
+		bSigned = sSecond.bSigned || (!bRelocatable && (iValue < 0));
+		if (!bRelocatable && (sSecond.uiWidthBytes == 0) && (iValue == 0) && (GetMinimumWords() <= 1))
 		{
 			//The zero register.
 			StartInstruction(&sInstruction, AluOpcode(psLayout, uiCode, uiFirst, R65_Zero, OPERAND_MODE_REGISTER, false));
 		}
-		else if ((sSecond.uiWidthBytes == 0) && (GetMinimumWords() <= 1) && EmbeddedField(iValue, psLayout->iEmbeddedBits, &uiSign, &uiField))
+		else if (!bRelocatable && (sSecond.uiWidthBytes == 0) && (GetMinimumWords() <= 1) && EmbeddedField(iValue, psLayout->iEmbeddedBits, &uiSign, &uiField))
 		{
 			StartInstruction(&sInstruction, AluOpcode(psLayout, uiCode, (uint16)(uiFirst | (uiSign << 12)), uiField, OPERAND_MODE_EMBEDDED, false));
 		}
@@ -634,7 +696,10 @@ bool CAsm65Assembler::ArithmeticLogic(uint16 uiCode)
 				return false;
 			}
 			StartInstruction(&sInstruction, AluOpcode(psLayout, uiCode, uiFirst, ImmediateCode(uiBytes), OPERAND_MODE_IMMEDIATE, bSigned));
-			AddValueWords(&sInstruction, (uint64)iValue, uiBytes);
+			if (!AddRelocatableWords(&sInstruction, &sSecond.sValue, (uint64)iValue, uiBytes, bSigned, false, sSecond.psToken))
+			{
+				return false;
+			}
 		}
 	}
 
@@ -976,6 +1041,7 @@ bool CAsm65Assembler::Jump(bool bPushC, bool bRelative)
 	uint8				uiBytes;
 	int64				iTarget;
 	int64				iOffset;
+	bool				bRelocatable;
 
 	mbRelative = bRelative;
 	if (!Address(&sAddress))
@@ -1011,12 +1077,16 @@ bool CAsm65Assembler::Jump(bool bPushC, bool bRelative)
 				return false;
 			}
 			StartInstruction(&sInstruction, (uint16)((uiStack << 14) | (uiBytes << 11) | (OPERAND_MODE_IMMEDIATE << 7) | (bPushP << 6) | (bPushC << 5) | (0 << 4) | 10));
-			AddValueWords(&sInstruction, (uint64)iTarget, uiBytes);
+			if (!AddRelocatableWords(&sInstruction, &sAddress.sValue, (uint64)iTarget, uiBytes, false, false, sAddress.psToken))
+			{
+				return false;
+			}
 		}
 		else
 		{
+			bRelocatable = TargetIsRelocatable(&sAddress.sValue);
 			iOffset = RelativeOffset(&sAddress.sValue, muiStatementAddress, 1);
-			if (!bPushC && !bPushP && (eStack == R65_S) && (GetMinimumWords() <= 1) && (!sAddress.sValue.bResolved || ((iOffset >= -64) && (iOffset <= 63))))
+			if (!bRelocatable && !bPushC && !bPushP && (eStack == R65_S) && (GetMinimumWords() <= 1) && (!sAddress.sValue.bResolved || ((iOffset >= -64) && (iOffset <= 63))))
 			{
 				//Branch always.
 				StartInstruction(&sInstruction, (uint16)(((iOffset & 0x7F) << 9) | (1 << 8) | (0 << 6) | (1 << 4) | 12));
@@ -1028,7 +1098,10 @@ bool CAsm65Assembler::Jump(bool bPushC, bool bRelative)
 					return false;
 				}
 				StartInstruction(&sInstruction, (uint16)((uiStack << 14) | (uiBytes << 11) | (OPERAND_MODE_IMMEDIATE << 7) | (bPushP << 6) | (bPushC << 5) | (1 << 4) | 10));
-				AddValueWords(&sInstruction, (uint64)iOffset, uiBytes);
+				if (!AddRelocatableWords(&sInstruction, &sAddress.sValue, (uint64)iOffset, uiBytes, true, true, sAddress.psToken))
+				{
+					return false;
+				}
 			}
 		}
 	}
@@ -1221,6 +1294,7 @@ bool CAsm65Assembler::Push(void)
 	E65Register			eRegister;
 	E65Register			eStack;
 	uint8				uiBytes;
+	bool				bSigned;
 
 	psToken = Peek();
 	//C is always the program counter register here, never a value.
@@ -1243,12 +1317,16 @@ bool CAsm65Assembler::Push(void)
 	{
 		return Error(sOperand.psToken, "A pushed value cannot sign extend");
 	}
-	if (!ChooseBytes(&sOperand.sValue, sOperand.sValue.iValue < 0, sOperand.uiWidthBytes, gauiWidthBytes, 7, 1, sOperand.psToken, &uiBytes))
+	bSigned = !IsRelocatable(&sOperand.sValue) && (sOperand.sValue.iValue < 0);
+	if (!ChooseBytes(&sOperand.sValue, bSigned, sOperand.uiWidthBytes, gauiWidthBytes, 7, 1, sOperand.psToken, &uiBytes))
 	{
 		return false;
 	}
 	StartInstruction(&sInstruction, (uint16)((eStack << 13) | (ImmediateCode(uiBytes) << 10) | (OPERAND_MODE_IMMEDIATE << 6) | (1 << 4) | 13));
-	AddValueWords(&sInstruction, (uint64)sOperand.sValue.iValue, uiBytes);
+	if (!AddRelocatableWords(&sInstruction, &sOperand.sValue, (uint64)sOperand.sValue.iValue, uiBytes, bSigned, false, sOperand.psToken))
+	{
+		return false;
+	}
 	Emit(&sInstruction);
 	return true;
 }
@@ -1687,6 +1765,7 @@ bool CAsm65Assembler::Branch(uint16 uiCondition)
 	int64				iOffset;
 	uint8				uiBytes;
 	int					i;
+	bool				bRelocatable;
 
 	uiSecond = 2;
 	if (uiCondition >= 2)
@@ -1726,8 +1805,9 @@ bool CAsm65Assembler::Branch(uint16 uiCondition)
 		return false;
 	}
 
+	bRelocatable = TargetIsRelocatable(&sTarget);
 	iOffset = RelativeOffset(&sTarget, muiStatementAddress, 1);
-	if (GetMinimumWords() <= 1)
+	if (!bRelocatable && (GetMinimumWords() <= 1))
 	{
 		for (i = 0; i < 8; i++)
 		{
@@ -1745,7 +1825,10 @@ bool CAsm65Assembler::Branch(uint16 uiCondition)
 		return false;
 	}
 	StartInstruction(&sInstruction, (uint16)((uiFirst << 13) | ((uiSecond - 2) << 11) | ((uiBytes - 1) << 9) | (0 << 8) | (uiCondition << 6) | (1 << 4) | 12));
-	AddValueWords(&sInstruction, (uint64)iOffset, uiBytes);
+	if (!AddRelocatableWords(&sInstruction, &sTarget, (uint64)iOffset, uiBytes, true, true, psToken))
+	{
+		return false;
+	}
 	Emit(&sInstruction);
 	return true;
 }
