@@ -1,0 +1,283 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2026 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela SupportLib
+
+Codaphela SupportLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela SupportLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#include "BaseLib/StringHelper.h"
+#include "StandardLib/ClassDefines.h"
+#include "ModSong.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The patterns start empty and every sample empty.
+//
+//////////////////////////////////////////////////////////////////////////
+void CModSong::Init(size uiNumChannels, size uiNumSamples, size uiNumPatterns)
+{
+	size	i;
+	size	uiNumNotes;
+
+	PreInit();
+
+	memset(mszTitle, 0, sizeof(mszTitle));
+	muiNumChannels = uiNumChannels;
+	muiNumSamples = uiNumSamples;
+	memset(masSamples, 0, sizeof(masSamples));
+	for (i = 0; i < MOD_MAX_SAMPLES; i++)
+	{
+		masSamples[i].uiCel = MOD_NO_CEL;
+	}
+	muiSongLength = 0;
+	muiRestart = 0;
+	memset(mauiOrders, 0, sizeof(mauiOrders));
+	muiNumPatterns = uiNumPatterns;
+	uiNumNotes = uiNumPatterns * MOD_ROWS_PER_PATTERN * uiNumChannels;
+	mpsNotes = (SModNote*)malloc(sizeof(SModNote) * (uiNumNotes + 1));
+	memset(mpsNotes, 0, sizeof(SModNote) * (uiNumNotes + 1));
+	mpSamples = NULL;
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CModSong::Class(void)
+{
+	U_CharArray(mszTitle, sizeof(mszTitle));
+	U_Size(muiNumChannels);
+	U_Size(muiNumSamples);
+	U_Data(SModSample[MOD_MAX_SAMPLES], masSamples);
+	U_Size(muiSongLength);
+	U_Size(muiRestart);
+	U_UInt8Array(mauiOrders, MOD_MAX_ORDERS);
+	U_Size(muiNumPatterns);
+	U_Pointer(mpsNotes);
+	M_Pointer(mpSamples);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CModSong::Free(void)
+{
+	SafeFree(mpsNotes);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CModSong::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CModSong::Load(CObjectReader* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CModSong::SetTitle(char* szTitle)
+{
+	StrCpySafe(mszTitle, szTitle, sizeof(mszTitle));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CModSong::GetTitle(void)
+{
+	return mszTitle;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CModSong::NumChannels(void)
+{
+	return muiNumChannels;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CModSong::NumSamples(void)
+{
+	return muiNumSamples;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CModSong::NumPatterns(void)
+{
+	return muiNumPatterns;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// uiSample is 1 to NumSamples, as in the patterns.
+//
+//////////////////////////////////////////////////////////////////////////
+SModSample* CModSong::GetSample(size uiSample)
+{
+	if ((uiSample == 0) || (uiSample > muiNumSamples))
+	{
+		return NULL;
+	}
+	return &masSamples[uiSample - 1];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL if the sample is empty.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CSoundCel> CModSong::GetSampleCel(size uiSample)
+{
+	SModSample*	psSample;
+
+	psSample = GetSample(uiSample);
+	if ((psSample == NULL) || (psSample->uiCel == MOD_NO_CEL) || mpSamples.IsNull())
+	{
+		return NULL;
+	}
+	return mpSamples->GetCel(psSample->uiCel);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CSoundCelGroup> CModSong::GetSampleBank(void)
+{
+	return mpSamples;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CModSong::SetSampleBank(Ptr<CSoundCelGroup> pSamples)
+{
+	mpSamples = pSamples;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CModSong::SetSongLength(size uiSongLength, size uiRestart)
+{
+	muiSongLength = uiSongLength > MOD_MAX_ORDERS ? MOD_MAX_ORDERS : uiSongLength;
+	muiRestart = uiRestart < muiSongLength ? uiRestart : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CModSong::GetSongLength(void)
+{
+	return muiSongLength;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The order the song goes back to after its last order.
+//
+//////////////////////////////////////////////////////////////////////////
+size CModSong::GetRestart(void)
+{
+	return muiRestart;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CModSong::SetOrder(size uiOrder, uint8 uiPattern)
+{
+	if (uiOrder < MOD_MAX_ORDERS)
+	{
+		mauiOrders[uiOrder] = uiPattern;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 CModSong::GetOrder(size uiOrder)
+{
+	if (uiOrder < MOD_MAX_ORDERS)
+	{
+		return mauiOrders[uiOrder];
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL past the end of the patterns.
+//
+//////////////////////////////////////////////////////////////////////////
+SModNote* CModSong::GetNote(size uiPattern, size uiRow, size uiChannel)
+{
+	if ((uiPattern >= muiNumPatterns) || (uiRow >= MOD_ROWS_PER_PATTERN) || (uiChannel >= muiNumChannels))
+	{
+		return NULL;
+	}
+	return &mpsNotes[(uiPattern * MOD_ROWS_PER_PATTERN + uiRow) * muiNumChannels + uiChannel];
+}
+

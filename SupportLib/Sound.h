@@ -117,9 +117,6 @@ public:
 protected:
 	void					PrivateInit(void);
 	CChannel*				GetSampleChannel(size uiChannelIndex, size uiFirstFrame, size uiNumFrames);
-	bool					IsByteAligned(CChannel* pcChannel);
-	void					GetRawSample(size uiFrame, CChannel* pcChannel, void* pvDest);
-	void					SetRawSample(size uiFrame, CChannel* pcChannel, void* pvSource);
 };
 
 

@@ -13,6 +13,9 @@
     <Filter Include="Source\Sound\IO\WAV">
       <UniqueIdentifier>{be7dfecd-0605-4678-9fdc-dc0b7b561217}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Sound\Module">
+      <UniqueIdentifier>{f00d80eb-913c-41ff-8ab1-49847d803f3b}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Animation">
       <UniqueIdentifier>{9f5c4181-d220-4b4a-963d-7f420de67f1c}</UniqueIdentifier>
     </Filter>
@@ -460,6 +463,9 @@
       <Filter>Source\Image\Modifiers\Resample</Filter>
     </ClInclude>
     <ClInclude Include="ImageResampleBicubic.h">
+      <Filter>Source\Image\Modifiers\Resample</Filter>
+    </ClInclude>
+    <ClInclude Include="CatmullRom.h">
       <Filter>Source\Image\Modifiers\Resample</Filter>
     </ClInclude>
     <ClInclude Include="ImageResampleSmart.h">
@@ -915,6 +921,21 @@
     <ClInclude Include="Sound.h">
       <Filter>Source\Sound</Filter>
     </ClInclude>
+    <ClInclude Include="ModSong.h">
+      <Filter>Source\Sound\Module</Filter>
+    </ClInclude>
+    <ClInclude Include="MODReader.h">
+      <Filter>Source\Sound\Module</Filter>
+    </ClInclude>
+    <ClInclude Include="ModPlayer.h">
+      <Filter>Source\Sound\Module</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundCel.h">
+      <Filter>Source\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundCelGroup.h">
+      <Filter>Source\Sound</Filter>
+    </ClInclude>
     <ClInclude Include="SoundChannel.h">
       <Filter>Source\Sound</Filter>
     </ClInclude>
@@ -1200,6 +1221,9 @@
       <Filter>Source\Image\Modifiers\Resample</Filter>
     </ClCompile>
     <ClCompile Include="ImageResampleBicubic.cpp">
+      <Filter>Source\Image\Modifiers\Resample</Filter>
+    </ClCompile>
+    <ClCompile Include="CatmullRom.cpp">
       <Filter>Source\Image\Modifiers\Resample</Filter>
     </ClCompile>
     <ClCompile Include="ImageResampleSmart.cpp">
@@ -1629,6 +1653,21 @@
       <Filter>Source\Image\IO\BMP</Filter>
     </ClCompile>
     <ClCompile Include="Sound.cpp">
+      <Filter>Source\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="ModSong.cpp">
+      <Filter>Source\Sound\Module</Filter>
+    </ClCompile>
+    <ClCompile Include="MODReader.cpp">
+      <Filter>Source\Sound\Module</Filter>
+    </ClCompile>
+    <ClCompile Include="ModPlayer.cpp">
+      <Filter>Source\Sound\Module</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundCel.cpp">
+      <Filter>Source\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundCelGroup.cpp">
       <Filter>Source\Sound</Filter>
     </ClCompile>
     <ClCompile Include="SoundChannel.cpp">

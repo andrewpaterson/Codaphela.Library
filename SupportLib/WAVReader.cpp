@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/MemoryFile.h"
 #include "BaseLib/NaiveFile.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
@@ -39,7 +40,7 @@ struct SWAVInfo
 	uint16	uiBitsPerSample;	//The container size.
 	uint32	uiChannelMask;
 	bool	bHasMask;
-	uint8*	puiData;
+	size	uiDataPos;
 	size	uiDataSize;
 };
 
@@ -69,41 +70,35 @@ uint32 WAVGetUInt32(uint8* pui)
 // Reads the fmt chunk.  Returns false if the format can't be read.
 //
 //////////////////////////////////////////////////////////////////////////
-bool WAVReadFormat(uint8* puiChunk, size uiChunkSize, SWAVInfo* psInfo)
+bool WAVReadFormat(CFileBasic* pcFile, size uiChunkSize, SWAVInfo* psInfo)
 {
+	uint32	uiBytesPerSecond;
 	uint16	uiCBSize;
+	uint16	uiValidBits;
+	uint16	uiSubFormat;
+	uint8	auiGUID[14];
 
-	if (uiChunkSize < WAV_FMT_SIZE)
+	if ((uiChunkSize < WAV_FMT_SIZE) ||
+		!pcFile->ReadLittleEndianInt16(&psInfo->uiFormat) || !pcFile->ReadLittleEndianInt16(&psInfo->uiNumChannels) ||
+		!pcFile->ReadLittleEndianInt32(&psInfo->uiSampleRate) || !pcFile->ReadLittleEndianInt32(&uiBytesPerSecond) ||
+		!pcFile->ReadLittleEndianInt16(&psInfo->uiBlockAlign) || !pcFile->ReadLittleEndianInt16(&psInfo->uiBitsPerSample))
 	{
 		return false;
 	}
-
-	psInfo->uiFormat = WAVGetUInt16(&puiChunk[0]);
-	psInfo->uiNumChannels = WAVGetUInt16(&puiChunk[2]);
-	psInfo->uiSampleRate = WAVGetUInt32(&puiChunk[4]);
-	psInfo->uiBlockAlign = WAVGetUInt16(&puiChunk[12]);
-	psInfo->uiBitsPerSample = WAVGetUInt16(&puiChunk[14]);
 	psInfo->uiChannelMask = 0;
 	psInfo->bHasMask = false;
 
 	if (psInfo->uiFormat == WAV_FORMAT_EXTENSIBLE)
 	{
-		if (uiChunkSize < WAV_FMT_EXTENSIBLE_SIZE)
+		if ((uiChunkSize < WAV_FMT_EXTENSIBLE_SIZE) ||
+			!pcFile->ReadLittleEndianInt16(&uiCBSize) || !pcFile->ReadLittleEndianInt16(&uiValidBits) ||
+			!pcFile->ReadLittleEndianInt32(&psInfo->uiChannelMask) || !pcFile->ReadLittleEndianInt16(&uiSubFormat) ||
+			!pcFile->ReadData(auiGUID, 14) || (uiCBSize < WAV_EXTENSIBLE_CB_SIZE) || (memcmp(auiGUID, gauiWAVSubFormatGUID, 14) != 0))
 		{
 			return false;
 		}
-		uiCBSize = WAVGetUInt16(&puiChunk[16]);
-		if (uiCBSize < WAV_EXTENSIBLE_CB_SIZE)
-		{
-			return false;
-		}
-		psInfo->uiChannelMask = WAVGetUInt32(&puiChunk[20]);
 		psInfo->bHasMask = true;
-		if (memcmp(&puiChunk[26], gauiWAVSubFormatGUID, 14) != 0)
-		{
-			return false;
-		}
-		psInfo->uiFormat = WAVGetUInt16(&puiChunk[24]);
+		psInfo->uiFormat = uiSubFormat;
 	}
 
 	if (psInfo->uiFormat == WAV_FORMAT_PCM)
@@ -142,15 +137,16 @@ bool WAVReadFormat(uint8* puiChunk, size uiChunkSize, SWAVInfo* psInfo)
 // Finds the fmt and data chunks.  Chunks are padded to an even size.
 //
 //////////////////////////////////////////////////////////////////////////
-bool WAVReadInfo(uint8* puiFile, size uiFileSize, SWAVInfo* psInfo)
+bool WAVReadInfo(CFileBasic* pcFile, size uiFileSize, SWAVInfo* psInfo)
 {
+	uint8	auiID[4];
+	uint32	uiRIFFSize;
 	size	uiPos;
 	uint32	uiChunkSize;
-	uint8*	puiChunk;
 	bool	bFormat;
 	bool	bData;
 
-	if ((uiFileSize < 12) || (memcmp(puiFile, "RIFF", 4) != 0) || (memcmp(&puiFile[8], "WAVE", 4) != 0))
+	if (!pcFile->ReadData(auiID, 4) || (memcmp(auiID, "RIFF", 4) != 0) || !pcFile->ReadLittleEndianInt32(&uiRIFFSize) || !pcFile->ReadData(auiID, 4) || (memcmp(auiID, "WAVE", 4) != 0))
 	{
 		return false;
 	}
@@ -160,26 +156,27 @@ bool WAVReadInfo(uint8* puiFile, size uiFileSize, SWAVInfo* psInfo)
 	uiPos = 12;
 	while (uiPos + 8 <= uiFileSize)
 	{
-		puiChunk = &puiFile[uiPos];
-		uiChunkSize = WAVGetUInt32(&puiChunk[4]);
+		if (!pcFile->Seek(uiPos) || !pcFile->ReadData(auiID, 4) || !pcFile->ReadLittleEndianInt32(&uiChunkSize))
+		{
+			return false;
+		}
 		uiPos += 8;
 
-		if (memcmp(puiChunk, "data", 4) == 0)
+		if (memcmp(auiID, "data", 4) == 0)
 		{
-			psInfo->puiData = &puiFile[uiPos];
+			psInfo->uiDataPos = uiPos;
+			bData = true;
 			if (uiChunkSize > uiFileSize - uiPos)
 			{
 				//Streamed files often have an unknown data size.  Everything to the end of the file is data.
 				psInfo->uiDataSize = uiFileSize - uiPos;
-				bData = true;
 				break;
 			}
 			psInfo->uiDataSize = uiChunkSize;
-			bData = true;
 		}
-		else if (memcmp(puiChunk, "fmt ", 4) == 0)
+		else if (memcmp(auiID, "fmt ", 4) == 0)
 		{
-			if (bFormat || (uiChunkSize > uiFileSize - uiPos) || !WAVReadFormat(&puiFile[uiPos], uiChunkSize, psInfo))
+			if (bFormat || (uiChunkSize > uiFileSize - uiPos) || !WAVReadFormat(pcFile, uiChunkSize, psInfo))
 			{
 				return false;
 			}
@@ -316,8 +313,18 @@ Ptr<CSound> LoadWAV(void* pvFile, size uiFileSize)
 	size			auiOffsets[WAV_MAX_CHANNELS];
 	uint8*			puiSource;
 	uint8*			puiDest;
+	CFileBasic		cFile;
+	bool			bValid;
 
-	if (!WAVReadInfo((uint8*)pvFile, uiFileSize, &sInfo))
+	cFile.Init(MemoryFile(pvFile, uiFileSize));
+	bValid = cFile.Open(EFM_Read);
+	if (bValid)
+	{
+		bValid = WAVReadInfo(&cFile, uiFileSize, &sInfo);
+		cFile.Close();
+	}
+	cFile.Kill();
+	if (!bValid)
 	{
 		return NULL;
 	}
@@ -346,7 +353,7 @@ Ptr<CSound> LoadWAV(void* pvFile, size uiFileSize)
 
 	uiBytesPerSample = sInfo.uiBitsPerSample / 8;
 	uiStride = pcSound->GetFrameByteStride();
-	puiSource = sInfo.puiData;
+	puiSource = (uint8*)pvFile + sInfo.uiDataPos;
 	puiDest = (uint8*)pcSound->GetData();
 	for (uiFrame = 0; uiFrame < uiNumFrames; uiFrame++)
 	{

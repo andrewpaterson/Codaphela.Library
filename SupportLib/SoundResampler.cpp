@@ -23,6 +23,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/LogString.h"
 #include "StandardLib/Objects.h"
 #include "StandardLib/ClassDefines.h"
+#include "CatmullRom.h"
 #include "SoundResampler.h"
 
 
@@ -114,6 +115,24 @@ size CSoundResampler::GetResampledNumFrames(size uiNumFrames, uint32 uiSourceRat
 //
 //
 //////////////////////////////////////////////////////////////////////////
+uint32 SoundResamplerGreatestCommonDivisor(uint32 uiA, uint32 uiB)
+{
+	uint32	uiRemainder;
+
+	while (uiB != 0)
+	{
+		uiRemainder = uiA % uiB;
+		uiA = uiB;
+		uiB = uiRemainder;
+	}
+	return uiA;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 Ptr<CSound> CSoundResampler::Modify(Ptr<CSound> pcSource)
 {
 	Ptr<CSound>		pcDest;
@@ -128,10 +147,6 @@ Ptr<CSound> CSoundResampler::Modify(Ptr<CSound> pcSource)
 	size			uiNumPhases;
 	size			uiNumTaps;
 	size			uiPhase;
-	uint32			uiGCD;
-	uint32			uiA;
-	uint32			uiB;
-	uint32			uiT;
 	float64			fCutoff;
 
 	if (pcSource.IsNull() || !pcSource->CanAccessSamples() || (pcSource->GetSampleRate() == 0) || (muiSampleRate == 0))
@@ -156,16 +171,7 @@ Ptr<CSound> CSoundResampler::Modify(Ptr<CSound> pcSource)
 	}
 
 	//Every output frame is at one of uiNumPhases fractions between source frames.
-	uiA = uiSourceRate;
-	uiB = muiSampleRate;
-	while (uiB != 0)
-	{
-		uiT = uiA % uiB;
-		uiA = uiB;
-		uiB = uiT;
-	}
-	uiGCD = uiA;
-	uiNumPhases = muiSampleRate / uiGCD;
+	uiNumPhases = muiSampleRate / SoundResamplerGreatestCommonDivisor(uiSourceRate, muiSampleRate);
 
 	pfTable = NULL;
 	if (meResample == SR_Sinc)
@@ -325,16 +331,13 @@ float64 CSoundResampler::Cubic(float64* pfSource, size uiSourceFrames, uint64 ul
 	float64	f1;
 	float64	f2;
 	uint64	ulliLast;
-	float64	t;
 
 	ulliLast = uiSourceFrames - 1;
 	fm1 = pfSource[ulliIndex == 0 ? 0 : (ulliIndex - 1 <= ulliLast ? ulliIndex - 1 : ulliLast)];
 	f0 = pfSource[ulliIndex <= ulliLast ? ulliIndex : ulliLast];
 	f1 = pfSource[ulliIndex + 1 <= ulliLast ? ulliIndex + 1 : ulliLast];
 	f2 = pfSource[ulliIndex + 2 <= ulliLast ? ulliIndex + 2 : ulliLast];
-	t = fFraction;
-
-	return f0 + 0.5 * t * ((f1 - fm1) + t * ((2.0 * fm1 - 5.0 * f0 + 4.0 * f1 - f2) + t * (3.0 * (f0 - f1) + f2 - fm1)));
+	return CatmullRom(fm1, f0, f1, f2, fFraction);
 }
 
 
