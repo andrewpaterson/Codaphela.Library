@@ -331,6 +331,7 @@
     <ClInclude Include="ArrayTemplate.h" />
     <ClInclude Include="ArrayDenseTemplate.h" />
     <ClInclude Include="ArraySparseTemplate.h" />
+    <ClInclude Include="RedBlackTree.h" />
     <ClInclude Include="EscapeCodes.h" />
     <ClInclude Include="FileIndex.h" />
     <ClInclude Include="FilePosition.h" />
@@ -738,6 +739,7 @@
     <ClCompile Include="ArrayBit.cpp" />
     <ClCompile Include="ArrayBlockMinimal.cpp" />
     <ClCompile Include="ArrayBlockSorted.cpp" />
+    <ClCompile Include="RedBlackTree.cpp" />
     <ClCompile Include="ArrayInt.cpp" />
     <ClCompile Include="ArrayInt2D.cpp" />
     <ClCompile Include="ArrayInt64.cpp" />
