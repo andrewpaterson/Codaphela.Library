@@ -4,6 +4,15 @@
     <Filter Include="Source">
       <UniqueIdentifier>{0d0da530-a0cc-4aed-89f7-0f571c2c7c04}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Sound">
+      <UniqueIdentifier>{d0ead4d7-0583-4ab6-a2ae-16a7aa13ebf7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Sound\IO">
+      <UniqueIdentifier>{9918fdcd-b203-4291-994b-676fac699a9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Sound\IO\WAV">
+      <UniqueIdentifier>{be7dfecd-0605-4678-9fdc-dc0b7b561217}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Animation">
       <UniqueIdentifier>{9f5c4181-d220-4b4a-963d-7f420de67f1c}</UniqueIdentifier>
     </Filter>
@@ -891,6 +900,24 @@
     <ClInclude Include="BMPReader.h">
       <Filter>Source\Image\IO\BMP</Filter>
     </ClInclude>
+    <ClInclude Include="Sound.h">
+      <Filter>Source\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundChannel.h">
+      <Filter>Source\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundResampler.h">
+      <Filter>Source\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="WAVCommon.h">
+      <Filter>Source\Sound\IO\WAV</Filter>
+    </ClInclude>
+    <ClInclude Include="WAVReader.h">
+      <Filter>Source\Sound\IO\WAV</Filter>
+    </ClInclude>
+    <ClInclude Include="WAVWriter.h">
+      <Filter>Source\Sound\IO\WAV</Filter>
+    </ClInclude>
     <ClInclude Include="TrueTypeFont.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
@@ -1570,6 +1597,24 @@
     </ClCompile>
     <ClCompile Include="BMPReader.cpp">
       <Filter>Source\Image\IO\BMP</Filter>
+    </ClCompile>
+    <ClCompile Include="Sound.cpp">
+      <Filter>Source\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundChannel.cpp">
+      <Filter>Source\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundResampler.cpp">
+      <Filter>Source\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="WAVCommon.cpp">
+      <Filter>Source\Sound\IO\WAV</Filter>
+    </ClCompile>
+    <ClCompile Include="WAVReader.cpp">
+      <Filter>Source\Sound\IO\WAV</Filter>
+    </ClCompile>
+    <ClCompile Include="WAVWriter.cpp">
+      <Filter>Source\Sound\IO\WAV</Filter>
     </ClCompile>
     <ClCompile Include="TrueTypeFont.cpp">
       <Filter>Source\Image\Font</Filter>

@@ -292,6 +292,12 @@
     <ClInclude Include="RADReader.h" />
     <ClInclude Include="TGAReader.h" />
     <ClInclude Include="BMPReader.h" />
+    <ClInclude Include="Sound.h" />
+    <ClInclude Include="SoundChannel.h" />
+    <ClInclude Include="SoundResampler.h" />
+    <ClInclude Include="WAVCommon.h" />
+    <ClInclude Include="WAVReader.h" />
+    <ClInclude Include="WAVWriter.h" />
     <ClInclude Include="BMPWriter.h" />
     <ClInclude Include="TGAWriter.h" />
     <ClInclude Include="RLEPacketDecoder.h" />
@@ -528,6 +534,12 @@
     <ClCompile Include="TextUTF16Short.cpp" />
     <ClCompile Include="TGAReader.cpp" />
     <ClCompile Include="BMPReader.cpp" />
+    <ClCompile Include="Sound.cpp" />
+    <ClCompile Include="SoundChannel.cpp" />
+    <ClCompile Include="SoundResampler.cpp" />
+    <ClCompile Include="WAVCommon.cpp" />
+    <ClCompile Include="WAVReader.cpp" />
+    <ClCompile Include="WAVWriter.cpp" />
     <ClCompile Include="BMPWriter.cpp" />
     <ClCompile Include="TGAWriter.cpp" />
     <ClCompile Include="RLEPacketDecoder.cpp" />
