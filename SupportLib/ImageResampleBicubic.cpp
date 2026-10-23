@@ -19,6 +19,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <math.h>
+#include "CatmullRom.h"
 #include "ImageResampleChannel.h"
 #include "ImageResampleBicubic.h"
 
@@ -83,10 +84,7 @@ void SBicubicAxis::Init(uint32 uiSourceSize, uint32 uiDestSize)
 			paiTaps[i] = iPixel;
 		}
 
-		pafTaps[0] = ((-t + 2.0) * t - 1.0) * t * 0.5;
-		pafTaps[1] = ((3.0 * t - 5.0) * t * t + 2.0) * 0.5;
-		pafTaps[2] = ((-3.0 * t + 4.0) * t + 1.0) * t * 0.5;
-		pafTaps[3] = (t - 1.0) * t * t * 0.5;
+		GetCatmullRomWeights(t, pafTaps);
 	}
 }
 
@@ -171,7 +169,7 @@ bool ResampleBicubic(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 	float64*				pafDest;
 	bool					bResult;
 
-	if (!CImageResampleChannel::IsSupported(pcSource) || (pcSource->NumChannels() != pcDest->NumChannels()))
+	if (!CImageResampleChannel::CanResample(pcSource, pcDest))
 	{
 		return false;
 	}

@@ -24,7 +24,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //Reads and writes every pixel of one image channel as raw values (a uint8 is 0 to 255, a nybble 0 to 15) so the resamplers
-//can interpolate it.  Byte aligned channels are read directly; bit sized and unaligned channels are read bit by bit.
+//can interpolate it, using CChannels::GetNative and SetNative.
 //Reversed channels are not supported.
 class CImageResampleChannel
 {
@@ -32,10 +32,6 @@ protected:
 	CChannels*		mpcChannels;
 	CChannel*		mpcChannel;
 	size			muiNumPixels;
-	bool			mbAligned;
-	uint8*			mpuiData;
-	size			muiByteStride;
-	size			muiBitStride;
 	float64			mfMinimum;
 	float64			mfMaximum;
 	bool			mbFloat;
@@ -56,10 +52,9 @@ public:
 	void			SetFloats(float64* pafSource);  //Integer channels are rounded to the nearest value and clamped to their range.
 
 	static bool		IsSupported(Ptr<CImage> pcImage);
+	static bool		CanResample(Ptr<CImage> pcSource, Ptr<CImage> pcDest);
 
 protected:
-	void			GetRaw(size uiPixel, void* pvDest);
-	void			SetRaw(size uiPixel, void* pvSource);
 	int32			ToInteger(void* pvRaw);
 	float64			ToFloat(void* pvRaw);
 	void			FromInteger(int32 iValue, void* pvRaw);
