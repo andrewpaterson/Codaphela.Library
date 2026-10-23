@@ -54,12 +54,8 @@ void CCPP65Generator::AllocateTemporaries(CCPPSyntax* pcNode)
 	{
 		return;
 	}
-	switch (pcNode->GetKind())
+	if (MakesObject(pcNode) || (pcNode->GetKind() == CPPS_ConstructExpression))
 	{
-	case CPPS_CallExpression:
-	case CPPS_BinaryExpression:
-	case CPPS_UnaryExpression:
-	case CPPS_ConstructExpression:
 		psType = TypeOf(pcNode);
 		if (psType && psType->IsClass() && (mcTemporarySlots.Get((int64)(size)pcNode) == NULL))
 		{
@@ -68,9 +64,6 @@ void CCPP65Generator::AllocateTemporaries(CCPPSyntax* pcNode)
 			mcTemporarySlots.Put((int64)(size)pcNode, &sSlot);
 			miFrameBytes += psType->iBytes;
 		}
-		break;
-	default:
-		break;
 	}
 	for (i = 0; i < pcNode->NumChildren(); i++)
 	{
@@ -394,12 +387,39 @@ bool CCPP65Generator::IsMadeObject(CCPPSyntax* pcExpression, SCPP65Class* psClas
 	SCPP65Type*	psType;
 
 	pcExpression = SkipParentheses(pcExpression);
-	if (!pcExpression || ((pcExpression->GetKind() != CPPS_CallExpression) && (pcExpression->GetKind() != CPPS_BinaryExpression) && (pcExpression->GetKind() != CPPS_UnaryExpression)))
+	if (!pcExpression || !MakesObject(pcExpression))
 	{
 		return false;
 	}
 	psType = TypeOf(pcExpression);
 	return psType && psType->IsClass() && (psType->psClass == psClass);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the expression is one that may make an object: a call, or an operator
+// with an object operand (an operator call; *pointer and the rest are not).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::MakesObject(CCPPSyntax* pcExpression)
+{
+	CCPPSyntaxBinaryExpression*	pcBinary;
+	CCPPSyntaxUnaryExpression*	pcUnary;
+
+	switch (pcExpression->GetKind())
+	{
+	case CPPS_CallExpression:
+		return true;
+	case CPPS_BinaryExpression:
+		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
+		return (pcBinary->meOperator != CT_Comma) && (pcBinary->meOperator != CT_Assignment) && (IsObject(pcBinary->mpcLeft) || IsObject(pcBinary->mpcRight));
+	case CPPS_UnaryExpression:
+		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
+		return IsObject(pcUnary->mpcOperand);
+	default:
+		return false;
+	}
 }
 
 
