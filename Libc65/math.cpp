@@ -299,7 +299,49 @@ static const double	gadLogLo[65] =
 	2.3190468138462996e-17
 };
 static const double	gadLog1p[9] = { 0.3333333333333333, -0.25, 0.2, -0.16666666666666666, 0.14285714285714285, -0.125, 0.1111111111111111, -0.1, 0.09090909090909091 };
-
+static const double	gadExp2Hi[64] =
+{
+	1.0, 1.0108892860517005, 1.0218971486541166, 1.0330248790212284,
+	1.0442737824274138, 1.0556451783605572, 1.0671404006768237, 1.0787607977571199,
+	1.0905077326652577, 1.102382583307841, 1.1143867425958924, 1.1265216186082418,
+	1.1387886347566916, 1.1511892299529827, 1.1637248587775775, 1.1763969916502812,
+	1.189207115002721, 1.202156731452703, 1.215247359980469, 1.22848053610687,
+	1.241857812073484, 1.255380757024691, 1.2690509571917332, 1.2828700160787783,
+	1.2968395546510096, 1.3109612115247644, 1.3252366431597413, 1.339667524053303,
+	1.3542555469368927, 1.3690024229745905, 1.383909881963832, 1.3989796725383112,
+	1.4142135623730951, 1.42961333839197, 1.4451808069770467, 1.460917794180647,
+	1.4768261459394993, 1.4929077282912648, 1.5091644275934228, 1.5255981507445384,
+	1.5422108254079407, 1.559004400237837, 1.5759808451078865, 1.593142151342267,
+	1.6104903319492543, 1.6280274218573478, 1.645755478153965, 1.6636765803267364,
+	1.681792830507429, 1.7001063537185235, 1.718619298122478, 1.7373338352737062,
+	1.7562521603732995, 1.7753764925265212, 1.7947090750031072, 1.8142521755003989,
+	1.8340080864093424, 1.8539791250833855, 1.8741676341103, 1.8945759815869656,
+	1.9152065613971474, 1.9360617934922943, 1.9571441241754002, 1.978456026387951
+};
+static const double	gadExp2Lo[64] =
+{
+	0.0, -1.5234778603368577e-17, 5.109225028973444e-17, 7.600838874027088e-18,
+	8.551889705537965e-17, 1.759325738772092e-18, -7.899853966841582e-17, -6.656660436056593e-17,
+	-3.046782079812471e-17, 5.2660368715706944e-17, 1.0410278456845571e-16, 5.165856758795457e-17,
+	8.912812676025408e-17, 3.250710218863827e-17, 3.8292048369240935e-17, 5.554203254218079e-17,
+	3.982015231465646e-17, 6.644981499252301e-17, -7.712630692681488e-17, -1.89878163130253e-17,
+	4.658027591836937e-17, -6.7113898212968784e-18, 2.667932131342186e-18, 1.713594918243561e-17,
+	2.5382502794888315e-17, -7.181536135519454e-17, -2.8587312100388614e-17, 8.927282594831732e-17,
+	7.70094837980299e-17, 9.593797919118849e-17, -6.770511658794786e-17, -9.614213209051323e-17,
+	-9.667293313452913e-17, -1.2031642489053655e-17, -3.0237581349939873e-17, -5.600377186075216e-17,
+	-3.483994556892796e-17, 1.4192920154284036e-17, -1.016455327754295e-16, -1.1024941712342561e-16,
+	7.949834809697621e-17, 3.7812070533575275e-17, -1.0136916471278304e-17, -1.0094406542311964e-16,
+	2.4707192569797888e-17, -6.712955084707084e-17, -1.0125679913674773e-16, 5.8909926967131e-17,
+	8.199010020581497e-17, -8.0237193703977e-18, -1.851380418263111e-17, 3.164389299292957e-17,
+	2.960140695448873e-17, 6.429731796556572e-17, 1.8227458427912087e-17, -9.969531538920349e-17,
+	3.283107224245627e-17, 9.761887490727594e-17, -6.122763413004143e-17, 3.4034035352165297e-17,
+	-1.0619946056195963e-16, 1.0332385960676326e-16, 8.960767791036668e-17, 4.0388753109278167e-17
+};
+static const double	gadExpSeries[5] = { 0.5, 0.16666666666666666, 0.041666666666666664, 0.008333333333333333, 0.001388888888888889 };
+static const double	gadAtanLong[13] = { -0.3333333333333333, 0.2, -0.14285714285714285, 0.1111111111111111, -0.09090909090909091, 0.07692307692307693, -0.06666666666666667, 0.058823529411764705, -0.05263157894736842, 0.047619047619047616, -0.043478260869565216, 0.04, -0.037037037037037035 };
+static const double	LN2_OVER_64_HI = 0.01083042469326756;
+static const double	LN2_OVER_64_LO = 2.9815858269852933e-12;
+static const double	SIXTY_FOUR_OVER_LN2 = 92.33248261689366;
 
 static double Infinity(void)
 {
@@ -375,30 +417,30 @@ static double Scale(double x, int n)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// e^(hi + lo), lo much smaller than hi.  hi = k ln2 + r with |r| <= ln2 / 2, then
-// e^r = 1 + r + r c / (2 - c) where c = r - (r coth(r/2) - 2), as fdlibm.
+// e^(hi + lo), lo much smaller than hi.  hi + lo = (k/64) ln2 + r with |r| at most
+// ln2/128, so e^(hi + lo) = 2^(k/64) e^r, 2^(j/64) from a table to 106 bits and e^r
+// - 1 by its series.  Only the last addition and the scaling round much.
 //
 //////////////////////////////////////////////////////////////////////////
 static double ExpExtended(double hi, double lo)
 {
 	int		k;
+	int		j;
 	double	dK;
-	double	dHigh;
-	double	dLow;
 	double	r;
-	double	t;
-	double	c;
-	double	y;
+	double	rLow;
+	double	p;
+	double	dTableHi;
+	double	dTableLo;
 
-	k = (int)(hi * INV_LN2 + ((hi < 0) ? -0.5 : 0.5));
+	k = (int)(hi * SIXTY_FOUR_OVER_LN2 + ((hi < 0) ? -0.5 : 0.5));
 	dK = k;
-	dHigh = hi - dK * LN2_HI;
-	dLow = dK * LN2_LO - lo;
-	r = dHigh - dLow;
-	t = r * r;
-	c = r - t * (gadExp[0] + t * (gadExp[1] + t * (gadExp[2] + t * (gadExp[3] + t * (gadExp[4] + t * (gadExp[5] + t * gadExp[6]))))));
-	y = 1.0 - ((dLow - (r * c) / (2.0 - c)) - dHigh);
-	return Scale(y, k);
+	TwoSum(hi - dK * LN2_OVER_64_HI, lo - dK * LN2_OVER_64_LO, &r, &rLow);
+	p = r + r * r * (gadExpSeries[0] + r * (gadExpSeries[1] + r * (gadExpSeries[2] + r * (gadExpSeries[3] + r * gadExpSeries[4])))) + rLow;
+	j = k & 63;
+	dTableHi = gadExp2Hi[j];
+	dTableLo = gadExp2Lo[j];
+	return Scale(dTableHi + (dTableLo + dTableHi * p + dTableLo * p), (k - j) / 64);
 }
 
 
@@ -426,7 +468,7 @@ double exp(double x)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// log(x) as *phi + *plo, for a finite x > 0.  x = 2^k m with m from 1 to 2, and
+// log(x) as *phi + *plo, for a finite x > 0.  x = 2^k m with m from 1 - 1/128 to 2 - 1/128, and
 // c = 1 + j/64 the nearest table entry: log x = k ln2 + log c + log(1 + u) where
 // u = (m - c) / c is at most 1/128, worked out with its rounding error.
 //
@@ -462,6 +504,12 @@ static void LogExtended(double x, double* phi, double* plo)
 	}
 	k += (int)(ulliBits >> 52) - 1023;
 	m = BitsDouble((ulliBits & 0x000FFFFFFFFFFFFFULL) | 0x3FF0000000000000ULL);
+	if (m >= 1.9921875)
+	{
+		//Just below 2 is just below 1 times 2, so x near 1 has k = 0: k ln2 and log c would cancel.
+		m *= 0.5;
+		k++;
+	}
 	j = (int)((m - 1.0) * 64.0 + 0.5);
 	c = 1.0 + j / 64.0;
 
@@ -824,8 +872,9 @@ static int Reduce(double x, double* py0, double* py1)
 }
 
 
-//sin(x + y) for |x| <= pi/4 and y much smaller, as fdlibm's __kernel_sin.
-static double SinKernel(double x, double y)
+//sin(x + y) for |x| <= pi/4 and y much smaller, as fdlibm's __kernel_sin: x and the
+//much smaller rest, *plo.
+static double SinKernelParts(double x, double y, double* plo)
 {
 	double	z;
 	double	v;
@@ -834,24 +883,34 @@ static double SinKernel(double x, double y)
 	z = x * x;
 	v = z * x;
 	r = gadSin[1] + z * (gadSin[2] + z * (gadSin[3] + z * (gadSin[4] + z * (gadSin[5] + z * (gadSin[6] + z * gadSin[7])))));
-	return x - ((z * (0.5 * y - v * r) - y) - v * gadSin[0]);
+	*plo = -((z * (0.5 * y - v * r) - y) - v * gadSin[0]);
+	return x;
 }
 
 
-//cos(x + y) for |x| <= pi/4 and y much smaller, as fdlibm's __kernel_cos.
-static double CosKernel(double x, double y)
+static double SinKernel(double x, double y)
+{
+	double	dLow;
+
+	return SinKernelParts(x, y, &dLow) + dLow;
+}
+
+
+//cos(x + y) for |x| <= pi/4 and y much smaller, as fdlibm's __kernel_cos: an exact
+//part and the smaller rest, *plo.
+static double CosKernelParts(double x, double y, double* plo)
 {
 	double	z;
 	double	r;
 	double	qx;
 	double	hz;
-	double	a;
 
 	z = x * x;
 	r = z * (gadCos[0] + z * (gadCos[1] + z * (gadCos[2] + z * (gadCos[3] + z * (gadCos[4] + z * (gadCos[5] + z * (gadCos[6] + z * gadCos[7])))))));
 	if (fabs(x) < 0.3)
 	{
-		return 1.0 - (0.5 * z - (z * r - x * y));
+		*plo = -(0.5 * z - (z * r - x * y));
+		return 1.0;
 	}
 
 	//1 - x^2/2 has x^2/4 taken out of both halves first, so 1 - qx is exact.
@@ -864,8 +923,56 @@ static double CosKernel(double x, double y)
 		qx = BitsDouble((DoubleBits(fabs(x)) - 0x0020000000000000ULL) & 0xFFFFFFFF00000000ULL);
 	}
 	hz = 0.5 * z - qx;
-	a = 1.0 - qx;
-	return a - (hz - (z * r - x * y));
+	*plo = -(hz - (z * r - x * y));
+	return 1.0 - qx;
+}
+
+
+static double CosKernel(double x, double y)
+{
+	double	dLow;
+
+	return CosKernelParts(x, y, &dLow) + dLow;
+}
+
+
+//tan(x + y), or -1/tan(x + y) if bInverse: the parts of sin and cos divided with the
+//division's error put back.
+static double TanKernel(double x, double y, bool bInverse)
+{
+	double	dSinHi;
+	double	dSinLo;
+	double	dCosHi;
+	double	dCosLo;
+	double	dNumeratorHi;
+	double	dNumeratorLo;
+	double	dDenominatorHi;
+	double	dDenominatorLo;
+	double	q;
+	double	p;
+	double	e;
+
+	dSinHi = SinKernelParts(x, y, &dSinLo);
+	dCosHi = CosKernelParts(x, y, &dCosLo);
+	if (bInverse)
+	{
+		dNumeratorHi = -dCosHi;
+		dNumeratorLo = -dCosLo;
+		dDenominatorHi = dSinHi;
+		dDenominatorLo = dSinLo;
+	}
+	else
+	{
+		dNumeratorHi = dSinHi;
+		dNumeratorLo = dSinLo;
+		dDenominatorHi = dCosHi;
+		dDenominatorLo = dCosLo;
+	}
+	TwoSum(dNumeratorHi, dNumeratorLo, &dNumeratorHi, &dNumeratorLo);
+	TwoSum(dDenominatorHi, dDenominatorLo, &dDenominatorHi, &dDenominatorLo);
+	q = dNumeratorHi / dDenominatorHi;
+	TwoProduct(q, dDenominatorHi, &p, &e);
+	return q + ((((dNumeratorHi - p) - e) + dNumeratorLo - q * dDenominatorLo) / dDenominatorHi);
 }
 
 
@@ -934,24 +1041,20 @@ double tan(double x)
 		{
 			return x;
 		}
-		return SinKernel(x, 0.0) / CosKernel(x, 0.0);
+		return TanKernel(x, 0.0, false);
 	}
 	if (IsNaNOrInfinity(x))
 	{
 		return (x != x) ? x + x : InvalidNaN();
 	}
-	if ((Reduce(x, &y0, &y1) & 1) == 0)
-	{
-		return SinKernel(y0, y1) / CosKernel(y0, y1);
-	}
-	return -CosKernel(y0, y1) / SinKernel(y0, y1);
+	return TanKernel(y0, y1, (Reduce(x, &y0, &y1) & 1) != 0);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// atan(a) for a from 0 to 1: a's nearest eighth c, then atan a = atan c +
-// atan((a - c) / (1 + a c)), the second by its series.
+// atan(a) for a from 0 to 1: below 3/16 by its series, otherwise from a's nearest
+// eighth c: atan a = atan c + atan((a - c) / (1 + a c)), the second by its series.
 //
 //////////////////////////////////////////////////////////////////////////
 static double AtanSeries(double t)
@@ -963,20 +1066,77 @@ static double AtanSeries(double t)
 }
 
 
-static double AtanUnit(double a)
+//atan(a) as the returned part and the smaller *plo.  t's division error is kept.
+static double AtanUnitParts(double a, double* plo)
 {
 	int		k;
+	int		i;
 	double	c;
 	double	t;
+	double	tLow;
+	double	z;
+	double	r;
+	double	dNumerator;
+	double	dDenominator;
+	double	dDenominatorLow;
+	double	p;
+	double	e;
 
-	k = (int)(a * 8.0 + 0.5);
-	if (k == 0)
+	if (a < 0.1875)
 	{
-		return AtanSeries(a);
+		z = a * a;
+		r = gadAtanLong[12];
+		for (i = 11; i >= 0; i--)
+		{
+			r = gadAtanLong[i] + z * r;
+		}
+		*plo = a * z * r;
+		return a;
 	}
+	k = (int)(a * 8.0 + 0.5);
 	c = k / 8.0;
-	t = (a - c) / (1.0 + a * c);
-	return gadAtanHi[k] + (gadAtanLo[k] + AtanSeries(t));
+	dNumerator = a - c;
+	TwoProduct(a, c, &p, &e);
+	TwoSum(1.0, p, &dDenominator, &dDenominatorLow);
+	dDenominatorLow += e;
+	t = dNumerator / dDenominator;
+	TwoProduct(t, dDenominator, &p, &e);
+	tLow = (((dNumerator - p) - e) - t * dDenominatorLow) / dDenominator;
+	*plo = gadAtanLo[k] + (AtanSeries(t) + tLow / (1.0 + t * t));
+	return gadAtanHi[k];
+}
+
+
+//atan(a + aLow) for a >= 0 and aLow much smaller, as the returned part and *plo.
+//Above 1 it is pi/2 - atan(1/a), 1/a with its rounding error.
+static double AtanExtended(double a, double aLow, double* plo)
+{
+	double	r;
+	double	rLow;
+	double	p;
+	double	e;
+	double	dHigh;
+	double	dLow;
+	double	s;
+
+	if (a > 7.378697629483821e19)
+	{
+		*plo = PIO2_LO;
+		return PIO2_HI;
+	}
+	if (a > 1.0)
+	{
+		r = 1.0 / a;
+		TwoProduct(r, a, &p, &e);
+		rLow = (((1.0 - p) - e) - r * aLow) / a;
+		dHigh = AtanUnitParts(r, &dLow);
+		TwoSum(PIO2_HI, -dHigh, &s, &e);
+		*plo = e + (PIO2_LO - dLow - rLow / (1.0 + r * r));
+		return s;
+	}
+	dHigh = AtanUnitParts(a, &dLow);
+	*plo = dLow + aLow / (1.0 + a * a);
+	return dHigh;
 }
 
 
@@ -984,6 +1144,7 @@ double atan(double x)
 {
 	double	a;
 	double	dResult;
+	double	dLow;
 
 	if (x != x)
 	{
@@ -994,18 +1155,8 @@ double atan(double x)
 	{
 		return x;
 	}
-	if (a > 7.378697629483821e19)
-	{
-		dResult = PIO2_HI + PIO2_LO;
-	}
-	else if (a > 1.0)
-	{
-		dResult = PIO2_HI - (AtanUnit(1.0 / a) - PIO2_LO);
-	}
-	else
-	{
-		dResult = AtanUnit(a);
-	}
+	dResult = AtanExtended(a, 0.0, &dLow);
+	dResult += dLow;
 	return (x < 0) ? -dResult : dResult;
 }
 
@@ -1099,14 +1250,18 @@ double acos(double x)
 	}
 	if (a <= 0.5)
 	{
-		return PIO2_HI - (x - (PIO2_LO - AsinRest(x)));
+		TwoSum(PIO2_HI, -x, &s, &c);
+		return s + (c + (PIO2_LO - AsinRest(x)));
 	}
 	if (x < 0)
 	{
-		//pi - 2 asin(sqrt((1 + x)/2)).
+		//pi - 2 asin(sqrt((1 + x)/2)), the root split as in asin.
 		t = (1.0 + x) * 0.5;
 		s = sqrt(t);
-		return PI_HI - 2.0 * (s + (AsinRest(s) - PIO2_LO));
+		w = BitsDouble(DoubleBits(s) & 0xFFFFFFFF00000000ULL);
+		c = (t - w * w) / (s + w);
+		TwoSum(PI_HI, -2.0 * w, &t, &a);
+		return t + (a - 2.0 * (c + AsinRest(s) - PIO2_LO));
 	}
 
 	//2 asin(sqrt((1 - x)/2)), s split as in asin.
@@ -1122,6 +1277,12 @@ double acos(double x)
 double atan2(double y, double x)
 {
 	double	z;
+	double	dLow;
+	double	ax;
+	double	ay;
+	double	q;
+	double	p;
+	double	e;
 	bool	bInfiniteX;
 	bool	bInfiniteY;
 
@@ -1160,11 +1321,43 @@ double atan2(double y, double x)
 		return (y < 0) ? -z : z;
 	}
 
-	z = atan(fabs(y / x));
+	//|y / x| with the division's error.  Huge and tiny values are scaled first so the
+	//products stay finite and normal.
+	ax = fabs(x);
+	ay = fabs(y);
+	if ((ax > 1e300) || (ay > 1e300))
+	{
+		ax *= 1.2446030555722283e-60;
+		ay *= 1.2446030555722283e-60;
+	}
+	else if ((ax < 1e-300) && (ay < 1e-300))
+	{
+		ax *= 8.034690221294951e59;
+		ay *= 8.034690221294951e59;
+	}
+	q = ay / ax;
+	if ((q > 7.378697629483821e19) || IsNaNOrInfinity(q))
+	{
+		z = PIO2_HI;
+		dLow = PIO2_LO;
+	}
+	else if (q < 1e-300)
+	{
+		z = q;
+		dLow = 0.0;
+	}
+	else
+	{
+		TwoProduct(q, ax, &p, &e);
+		z = AtanExtended(q, ((ay - p) - e) / ax, &dLow);
+	}
 	if (x < 0)
 	{
-		z = PI_HI - (z - PI_LO);
+		//pi - atan, rounded once.
+		TwoSum(PI_HI, -z, &z, &e);
+		dLow = e + (PI_LO - dLow);
 	}
+	z += dLow;
 	return (y < 0) ? -z : z;
 }
 
