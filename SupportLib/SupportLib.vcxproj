@@ -345,6 +345,10 @@
     <ClInclude Include="ImageRGBToGrey.h" />
     <ClInclude Include="BumpMapper.h" />
     <ClInclude Include="ImageResampler.h" />
+    <ClInclude Include="ImageResampleChannel.h" />
+    <ClInclude Include="ImageResampleBilinear.h" />
+    <ClInclude Include="ImageResampleBicubic.h" />
+    <ClInclude Include="ImageResampleSmart.h" />
     <ClInclude Include="ImageCelGroup.h" />
     <ClInclude Include="ImageSource.h" />
     <ClInclude Include="ImageSourceChunkedFile.h" />
@@ -584,6 +588,10 @@
     <ClCompile Include="ImageRGBToGrey.cpp" />
     <ClCompile Include="BumpMapper.cpp" />
     <ClCompile Include="ImageResampler.cpp" />
+    <ClCompile Include="ImageResampleChannel.cpp" />
+    <ClCompile Include="ImageResampleBilinear.cpp" />
+    <ClCompile Include="ImageResampleBicubic.cpp" />
+    <ClCompile Include="ImageResampleSmart.cpp" />
     <ClCompile Include="ImageCelGroup.cpp" />
     <ClCompile Include="ImageSource.cpp" />
     <ClCompile Include="ImageSourceDiskFile.cpp" />

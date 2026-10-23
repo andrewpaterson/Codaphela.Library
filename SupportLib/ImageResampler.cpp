@@ -26,6 +26,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/FastFunctions.h"
 #include "Image.h"
 #include "ImageAccessorCreator.h"
+#include "ImageResampleBilinear.h"
+#include "ImageResampleBicubic.h"
+#include "ImageResampleSmart.h"
 #include "ImageResampler.h"
 
 
@@ -121,6 +124,7 @@ Ptr<CImage> CImageResampler::ResampleTo(Ptr<CImage> pcSource)
 	float32				fScaley;
 	SImageColour*		psColour;
 	Ptr<CImage>			pcDest;
+	bool				bResampled;
 
 	pcDest = OMalloc<CImage>();
 	pcDest->BeginChange();
@@ -149,7 +153,22 @@ Ptr<CImage> CImageResampler::ResampleTo(Ptr<CImage> pcSource)
 		fScalex = fSourceWidth/fWidth;
 		fScaley = fSourceHeight/fHeight;
 
-		if (meResample == IR_NearestNeighbour)
+		bResampled = false;
+		if (meResample == IR_Bilinear)
+		{
+			bResampled = ResampleBilinear(pcSource, pcDest);
+		}
+		else if (meResample == IR_Bicubic)
+		{
+			bResampled = ResampleBicubic(pcSource, pcDest);
+		}
+		else if (meResample == IR_Smart)
+		{
+			bResampled = ResampleSmart(pcSource, pcDest);
+		}
+
+		//Channels the other methods can't resample (reversed channels) are resampled by nearest neighbour.
+		if (!bResampled)
 		{
 			for (fdy = 0.5f; fdy < fHeight; fdy++)
 			{

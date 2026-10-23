@@ -453,6 +453,18 @@
     <ClInclude Include="ImageResampler.h">
       <Filter>Source\Image\Modifiers\Resample</Filter>
     </ClInclude>
+    <ClInclude Include="ImageResampleChannel.h">
+      <Filter>Source\Image\Modifiers\Resample</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageResampleBilinear.h">
+      <Filter>Source\Image\Modifiers\Resample</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageResampleBicubic.h">
+      <Filter>Source\Image\Modifiers\Resample</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageResampleSmart.h">
+      <Filter>Source\Image\Modifiers\Resample</Filter>
+    </ClInclude>
     <ClInclude Include="ImageCelGroup.h">
       <Filter>Source\Image\Group</Filter>
     </ClInclude>
@@ -1173,6 +1185,18 @@
       <Filter>Source\Image\Modifiers\Bump</Filter>
     </ClCompile>
     <ClCompile Include="ImageResampler.cpp">
+      <Filter>Source\Image\Modifiers\Resample</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageResampleChannel.cpp">
+      <Filter>Source\Image\Modifiers\Resample</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageResampleBilinear.cpp">
+      <Filter>Source\Image\Modifiers\Resample</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageResampleBicubic.cpp">
+      <Filter>Source\Image\Modifiers\Resample</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageResampleSmart.cpp">
       <Filter>Source\Image\Modifiers\Resample</Filter>
     </ClCompile>
     <ClCompile Include="ImageCelGroup.cpp">
