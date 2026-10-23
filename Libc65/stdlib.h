@@ -28,6 +28,7 @@ void	srand(unsigned int uiSeed);
 void	qsort(void* pvBase, size_t uiCount, size_t uiBytes, int (*fCompare)(const void*, const void*));
 
 void	abort(void);
+int		atexit(void (*fFunction)(void));
 void	exit(int iStatus);
 void	_Exit(int iStatus);
 }

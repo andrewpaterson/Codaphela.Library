@@ -265,6 +265,34 @@ char* CCPP65Builder::GetMissing(size uiIndex)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The labels no object defines, sorted and space separated.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::GetMissingNames(CChars* pszDest)
+{
+	CArrayChars	aszMissing;
+	size		i;
+
+	aszMissing.Init();
+	for (i = 0; i < mcLinker.NumMissing(); i++)
+	{
+		aszMissing.Add(mcLinker.GetMissing(i));
+	}
+	aszMissing.QuickSort(true);
+	for (i = 0; i < aszMissing.NumElements(); i++)
+	{
+		if (i > 0)
+		{
+			pszDest->Append(' ');
+		}
+		pszDest->Append(aszMissing.GetText(i));
+	}
+	aszMissing.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)

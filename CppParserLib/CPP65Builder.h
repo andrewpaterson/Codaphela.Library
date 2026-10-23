@@ -86,6 +86,7 @@ public:
 	char*			GetMap(void);
 	size			NumMissing(void);
 	char*			GetMissing(size uiIndex);
+	void			GetMissingNames(CChars* pszDest);
 
 	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals);
 	CArrayCPP65IncludeDirectories*	GetIncludeDirectories(void);

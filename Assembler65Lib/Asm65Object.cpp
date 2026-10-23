@@ -183,6 +183,7 @@ SAsm65Section* CAsm65Object::GetSection(size uiIndex)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The first section with the name in the COMDAT group (NULL for any group).
 //
 //////////////////////////////////////////////////////////////////////////
 int32 CAsm65Object::FindSection(const char* szName, const char* szGroup)
@@ -193,7 +194,7 @@ int32 CAsm65Object::FindSection(const char* szName, const char* szGroup)
 	for (i = 0; i < mcSections.NumElements(); i++)
 	{
 		psSection = mcSections.Get(i);
-		if (psSection->szName.Equals(szName) && psSection->szGroup.Equals(szGroup))
+		if (psSection->szName.Equals(szName) && ((szGroup == NULL) || psSection->szGroup.Equals(szGroup)))
 		{
 			return (int32)i;
 		}

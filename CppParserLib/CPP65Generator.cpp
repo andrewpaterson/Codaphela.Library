@@ -80,6 +80,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree)
 	miFrameBytes = 0;
 	miStatics = 0;
 	mbStaticLocal = false;
+	mbLinkageExtern = false;
 	miDepth = 0;
 	miTemporaries = 0;
 	mbFramePointer = false;
@@ -273,8 +274,11 @@ bool CCPP65Generator::GenerateProgram(CChars* pszDest)
 // linked first so it is at the start of the text, 0001:0000; the reset vector is left
 // to the loader.
 //
+// After main it calls Libc65's __RunAtExit (the atexit functions, last first) when
+// stdlib.cpp is linked: the reference is weak, so it doesn't pull stdlib.cpp in.
+//
 // It also defines C's _Exit(int iStatus), which stops at once with iStatus in A.
-// Libc65's exit runs the fini table and then calls it.
+// Libc65's exit runs the atexit functions and the fini table and then calls it.
 //
 // It is kept, and everything it reaches, when the linker leaves out what is unused.
 //
@@ -299,6 +303,12 @@ void CCPP65Generator::AppendStartUp(CChars* pszDest)
 	pszDest->Append("StartMain:")->AppendNewLine();
 	pszDest->Append("\t\tjsr _main")->AppendNewLine();
 	pszDest->Append("\t\tpsh A")->AppendNewLine();
+	pszDest->Append("\t\t.weak ___RunAtExit")->AppendNewLine();
+	pszDest->Append("\t\tcpy Y, ___RunAtExit")->AppendNewLine();
+	pszDest->Append("\t\tcmp Y, 0")->AppendNewLine();
+	pszDest->Append("\t\tbras z, StartAtExitDone")->AppendNewLine();
+	pszDest->Append("\t\tjsr Y")->AppendNewLine();
+	pszDest->Append("StartAtExitDone:")->AppendNewLine();
 	pszDest->Append("\t\tcpy Y, __fini_end")->AppendNewLine();
 	pszDest->Append("StartFinalise:")->AppendNewLine();
 	pszDest->Append("\t\tcmp Y, __fini_start")->AppendNewLine();
@@ -338,6 +348,50 @@ void CCPP65Generator::AppendSection(CChars* psz, const char* szKind, CChars* psz
 		psz->Append(szOptions);
 	}
 	psz->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A data item's section (data.label and szOptions), alignment, .global (if bGlobal)
+// and label.  Its data follows.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::BeginData(CChars* pszLabel, int iAlignment, bool bGlobal, const char* szOptions)
+{
+	AppendSection(&mszData, "data", pszLabel, szOptions);
+	if (iAlignment > 1)
+	{
+		mszData.Append("\t\t.align ");
+		mszData.Append(iAlignment);
+		mszData.AppendNewLine();
+	}
+	if (bGlobal)
+	{
+		AppendGlobal(&mszData, pszLabel);
+	}
+	mszData.Append(pszLabel);
+	mszData.Append(':');
+	mszData.AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// 4 for objects and data of 4 bytes or more, 2 for 2 bytes, otherwise 1.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPP65Generator::DataAlignment(SCPP65Type* psType, bool bClass)
+{
+	if ((psType->iBytes >= 4) || bClass)
+	{
+		return 4;
+	}
+	if (psType->iBytes == 2)
+	{
+		return 2;
+	}
+	return 1;
 }
 
 
@@ -655,10 +709,11 @@ int64 CCPP65Generator::GetName(CCPPSyntaxDeclarator* pcDeclarator)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::Declarations(CArraySyntax* papcDeclarations)
 {
-	size					i;
-	CCPPSyntax*				pcDeclaration;
-	CCPPSyntaxLinkageSpecification*	pcLinkage;
-	bool					bResult;
+	size								i;
+	CCPPSyntax*							pcDeclaration;
+	CCPPSyntaxLinkageSpecification*		pcLinkage;
+	bool								bResult;
+	bool								bLinkageExtern;
 
 	bResult = true;
 	for (i = 0; i < papcDeclarations->NumElements(); i++)
@@ -673,8 +728,12 @@ bool CCPP65Generator::Declarations(CArraySyntax* papcDeclarations)
 			bResult &= GlobalDeclaration((CCPPSyntaxSimpleDeclaration*)pcDeclaration);
 			break;
 		case CPPS_LinkageSpecification:
+			//extern "C" int x; declares x, as if it were extern; extern "C" { int x; } defines it.  [dcl.link]
 			pcLinkage = (CCPPSyntaxLinkageSpecification*)pcDeclaration;
+			bLinkageExtern = mbLinkageExtern;
+			mbLinkageExtern = !pcLinkage->mbBraced;
 			bResult &= Declarations(&pcLinkage->macpDeclarations);
+			mbLinkageExtern = bLinkageExtern;
 			break;
 		case CPPS_TemplateDeclaration:
 			bResult &= TemplateDeclaration((CCPPSyntaxTemplateDeclaration*)pcDeclaration);
@@ -1055,7 +1114,8 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 			continue;
 		}
 
-		if (pcSpecifiers->muiFlags & CPPDS_EXTERN)
+		//extern without an initialiser only declares; extern int x = 1; defines x.  [basic.def]
+		if (((pcSpecifiers->muiFlags & CPPDS_EXTERN) || mbLinkageExtern) && !pcInit->mpcInitializer)
 		{
 			BeginQuiet();
 			psType = GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
@@ -1096,24 +1156,7 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 		VariablePlace(psVariable, &sPlace);
 		szLabel.Init();
 		AppendPlaceLabel(&szLabel, &sPlace);
-		AppendSection(&mszData, "data", &szLabel, HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL);
-		if ((psType->iBytes >= 4) || psElement->IsClass())
-		{
-			mszData.Append("\t\t.align 4");
-			mszData.AppendNewLine();
-		}
-		else if (psType->iBytes == 2)
-		{
-			mszData.Append("\t\t.align 2");
-			mszData.AppendNewLine();
-		}
-		if (!psVariable->bInternal)
-		{
-			AppendGlobal(&mszData, &szLabel);
-		}
-		mszData.Append(szLabel);
-		mszData.Append(':');
-		mszData.AppendNewLine();
+		BeginData(&szLabel, DataAlignment(psType, psElement->IsClass()), !psVariable->bInternal, HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL);
 
 		//What isn't constant is worked out by the global's own R_Initialise; an object is destroyed by its R_Finalise.
 		mszInitialise.Clear();
@@ -2137,22 +2180,8 @@ bool CCPP65Generator::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDe
 	VariablePlace(psVariable, &sPlace);
 	szLabel.Init();
 	AppendPlaceLabel(&szLabel, &sPlace);
-	AppendSection(&mszData, "data", &szLabel, NULL);
+	BeginData(&szLabel, DataAlignment(psType, false), false, NULL);
 	szLabel.Kill();
-	if (psType->iBytes >= 4)
-	{
-		mszData.Append("\t\t.align 4");
-		mszData.AppendNewLine();
-	}
-	else if (psType->iBytes == 2)
-	{
-		mszData.Append("\t\t.align 2");
-		mszData.AppendNewLine();
-	}
-	VariablePlace(psVariable, &sPlace);
-	AppendPlaceLabel(&mszData, &sPlace);
-	mszData.Append(':');
-	mszData.AppendNewLine();
 
 	iThisOffset = miThisOffset;
 	miThisOffset = -1;

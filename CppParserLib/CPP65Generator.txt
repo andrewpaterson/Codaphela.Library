@@ -23,6 +23,8 @@ over a heap at 0008:0000 to 000F:FFFF), ctype.cpp, time.cpp, softfloat.cpp and
 math.cpp are written in C++ for the generator and compiled with a program as its
 other translation units.  There is no clock: time is 0 and clock is -1 (unavailable);
 gmtime, localtime (UTC) and mktime use integers only.  stdio is only declared.
+exit calls the atexit functions (at most 32, last first) and the fini table, then
+_Exit, which stops at once with the status in A; abort is _Exit(EXIT_FAILURE).
 
 The preprocessor's configuration gets the target's macros from
 CCPP65Generator::AddDefines: __65C64__, which BaseLib's Define.h and DebugOutput.h use
@@ -32,8 +34,10 @@ Generate writes the translation unit as the assembly of an object, for
 CAsm65Assembler::AssembleObject and CAsm65Linker (see Several translation units).
 GenerateProgram puts the start up (AppendStartUp) in front of it, so one object is a
 whole program.  The start up sets S to $1fffff, W to 0 and A, B, X and Y to 32 bits,
-calls the init table (each global's R_Initialise, in link order), calls _main, calls the
-fini table backwards and stops.  main's result is in A when the processor stops.  The
+calls the init table (each global's R_Initialise, in link order), calls _main, calls
+Libc65's atexit functions (a weak reference to __RunAtExit, so only when stdlib.cpp is
+linked), calls the fini table backwards and stops.  main's result is in A when the
+processor stops.  The start up also defines _Exit.  The
 start up's object is linked first so it is at the start of the text, 0001:0000; the
 reset vector is left to the loader.
 
