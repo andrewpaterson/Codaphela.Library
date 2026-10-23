@@ -1,0 +1,213 @@
+65C64 assembler
+===============
+
+Assembles 65C64 source (658-Computer/W65C64/65C64 Instruction Architecture.xlsx)
+into bytes.  Encodings follow the Opcode encoding sheet as decoded by Decode65C64
+in MicroprocessorLib.  Usage:
+
+	CAsm65Assembler	cAssembler;
+
+	cAssembler.Init();
+	if (cAssembler.Assemble(szSource))
+	{
+		cAssembler.GetOutput();		//Segments of bytes at addresses.
+	}
+	else
+	{
+		cAssembler.GetErrors();		//"line:column: message 'token'" lines.
+	}
+	cAssembler.GetWarnings();		//Same format; warnings do not stop assembly.
+	cAssembler.Kill();
+
+Classes: CAsm65Tokeniser (text to tokens), CAsm65Assembler (passes, statements,
+expressions, instructions), CAsm65Symbols, CAsm65Output, CAsm65Errors.  The
+assembler is split like CppParser: Asm65Assembler.cpp (passes, labels, directives),
+Asm65Expressions.cpp (expressions and operands) and Asm65Instructions.cpp (encoders).
+
+
+Passes
+------
+
+Passes repeat until no label moves and no instruction grows (at most 16), then a
+final pass writes the output and reports errors.  An instruction picks its
+shortest form (embedded, then the narrowest immediate, offset before absolute,
+branch always before jump relative) but never gets shorter than it was in an
+earlier pass, so the passes always settle.  A forward reference starts at its
+shortest form and grows.
+
+
+Lines
+-----
+
+	{label:}... {instruction | directive | name = expression}  {; comment}
+
+Labels are bound when the next statement starts: after an instruction aligns the
+address to a word, after .org moves it and after .align pads it.  Labels and
+constants are case sensitive.  A, B, S, V, W, X, Y, C and P are reserved.
+Mnemonics and directives are not case sensitive.
+
+Numbers: 123, $7B, 0x7B, 0b1111011, 'a' (with \n \r \t \0 \\ \' \" escapes).
+Underscores may separate digits ($1234_5678).
+
+Expressions are 64 bit and C like, lowest precedence first:
+	|   ^   &   << >>   + -   * / %   unary - + ~ !
+Round brackets group arithmetic inside a single argument: cpy A, (1 + 2) * 3.
+
+
+Round brackets (the user, 2026-10-23)
+-------------------------------------
+
+Besides arithmetic inside one argument, round brackets group two or more operands
+into one (the left or right side of an instruction), for clarity:
+
+	psh (A, B), S		wtth (X, Y), 4		sep (c, n)		stp (l, e0)
+	brasa (z, c), Loop	scp (A, 2), (B, X), 4	bist f, (A, 3)
+	stab (A, Y, X, -1), n	gwth Y, (A, -1)
+
+- They are not optional: sep c, n and stp l, e0 are errors.
+- A group of one is an error: sep (c), psh (A).  (My reading of the rules: brackets
+  only group more than one operand.)
+- Directions are never grouped: vsub W, V, (-1, +1), A, 16 is an error; write
+  vsub W, V, -1, +1, A, 16.
+- Block and vector operands are never grouped in brackets.
+
+C is the program counter as the instruction runs: the address of the next
+instruction (the user, 2026-10-23).  C is never assembled as a value, because a
+value fixed at assembly time would make relocatable code confusing (the user).
+It is only allowed in branch, bra and brsr targets as C + offset or C - offset,
+which assembles the offset itself: "bra C - 2" branches to itself.  Anywhere else
+(cpy A, C; jmp C; .word C; Count = C - Table; psh C + 4) is an error; use labels
+(Count = TableEnd - Table).
+
+
+Directives
+----------
+
+	.org address
+	.align bytes				pads with zeros to a power of two
+	.byte value, "string", ...
+	.word value, ...			16 bits, little endian
+	.long value, ...			32 bits
+	.quad value, ...			64 bits
+	name = expression
+
+
+Registers, flags and suffixes
+-----------------------------
+
+Registers are upper case: A, B, S, V, W, X, Y.  Status flags are lower case:
+c, z, n, v, f, g, and 0 / 1 where a flag is read (branches, stab, stat).
+sep and cep also take e and l.
+
+One suffix may follow a value or an operand:
+	:8 :16 :24 :32 :40 :48 :64	an immediate's width in bits
+	:s8 :s16 ... :s64		a sign extended immediate of that width
+	:16 :32				an address: 16 is an offset (0000:xxxx), 32 absolute
+	:s				sign extend the second operand
+Only one suffix is allowed: :s:16, :16:s and :16s are errors (the user,
+2026-10-23).  A negative value sign extends without :s, so cpy A, -32768:16
+loads $FFFF8000 into a 32 bit A.
+
+
+Operands
+--------
+
+Memory is written in square brackets; a bare value is a constant.
+
+	R			a register
+	value			0 is the zero register, small values are embedded,
+				others are immediate (negative values sign extend)
+	[address]		memory
+
+Addresses (the brackets inside are indirection):
+
+	[value]			2 absolute, 6 offset
+	[value + R]		2 / 6 with a register
+	[[value]]		3 / 7
+	[[value + R]]		4 / 8
+	[[value] + R]		5 / 9
+	[R]			10
+	[R1 + R2]		11 (either order)
+	[[R]]			12
+	[[R1 + R2]]		13 (either order)
+	[[R1] + R2]		14
+
+Offset (one word) is used when the address is below 0001:0000 unless :32 is given.
+An offset wider than 16 bits (with :16) or an absolute address wider than 32 bits
+keeps only its low bits, with a warning (the user, 2026-10-23).
+
+
+Instructions
+------------
+
+	cpy and or xor tst add sub cmp
+		op R1, R2{:s}
+		op R, value{:width | :s | :swidth}
+		op R, [address]{:s}
+		op [address], R{:s}
+		op [address], value		-8 to 8 (0 is the zero register)
+	shl shr
+		op R1, R2 | op R, amount | op R, [address] | op [address], R | op [address], 1 to 8
+	jmp jsr bra brsr
+		op target {, P} {, S|V|W|Y}
+		The target is the effective address, not memory: R, a value, or an address
+		without the outer brackets (jmp [vector], jmp Table + X, jmp V + X).
+		bra and brsr are relative to the next instruction; bra to within -64 to 63
+		bytes is the one word branch always.  P pushes the status after C.
+		A bra or brsr value without a label is a raw byte offset; C + offset is the same.
+	psh  R | (R, R, ...) | P | C | (C, P) | value{:width} | [address]   {, stack}
+		C is always the program counter register.  To push C + 4, push C then
+		add 4 to the value on the stack (the user, 2026-10-23).
+	pul  R | (R, R, ...) | P | [address]   {, stack}
+	ret  {P} {, S|V|W|Y}		rti {S|V|W|Y}
+	brac bras  flag, target		brasa braso  (flag, c|z|n|v), target
+	nop {1 to 8}
+	sep cep  flag | (flag, flag, ...)	(e, l, f, g, n, v, z, c)
+	wth R, bytes|register		wtth (R1, R2), bytes|register	(R is A, B, X or Y)
+	gwth R, Q | gwth R, (Q, -1)		(-1 subtracts one from the width; it is not a
+					direction: the user, 2026-10-23)
+	wthx R, bytes{:s}
+	brk 0 to 1023
+	stp {wake | (wake, wake, ...)}	wake interrupts l, e0, e1, e2, e3
+	mul div
+	neg abs  R1 {, R2}
+	fsbi fcbi fscr fccr fsny fcny fsby fcby  R, index {, +1|-1}
+	scp scb  (source, index), (destination, index), count
+	bist flag, (R, index)
+	stab (R, index {, repeat {, +1|-1}}), flag
+	stat flag, flag
+	bcpy band btst bor bxor badd bsub bcmp bpcpy bpand bpor bpxor
+		op R, V, +1|-1, A {, z | !z | n | !n}
+	vcpy vnot vand vtst vor vxor vadd vsub vcmp vpcpy vpand vpor vpxor
+		op W, V, +1|-1 {, +1|-1}, A, 8|16|32|64 {, stop}
+		One direction is for both W and V; two are W's then V's.
+
+Branch, bra and brsr operands that use a label are target addresses
+(brac z, Loop).  Without a label they are raw byte offsets from the next
+instruction, as in the spreadsheet (brac z, -8).  C + offset is the same offset
+written from C: "brac z, C - 8" and "brac z, -8" are the same.  C cannot be mixed
+with a label, negated or used with any operator but + and -.
+
+
+Choices (not in the spreadsheet)
+--------------------------------
+
+- [ ] means memory, as in the Instructions sheet's [Q].  The Example Block Move
+  sheet writes "cpy B, V+W"; here it is "cpy B, [V + W]".  The Example VM fetch
+  sheet's "[regPC:16]" is "[regPC:16]" (offset memory).
+- Branch operands are target labels, and raw byte offsets are legal without a
+  label (the user, 2026-10-23): "brac z, Loop" and "brac z, -8" both work.
+  C is the real program counter and is never assembled as a value; in a
+  target, C + offset is the offset (the user, 2026-10-23).
+  Not ruled on by the user: bra and brsr following the same rule.
+- Signed (sign extend) is a :s suffix on the second operand, or :s16 etc. with
+  a width.  A negative constant sign extends without it.
+- An immediate is the narrowest width that holds it; the PDF's 32 bit default is
+  not used (same loaded value).  Its comment for $1a2b3c4d5e6f7081 is a typo
+  for the 64 bit value (the user, 2026-10-23).
+- Registers are upper case and flags lower case, so v (the flag) and V (the
+  register) differ.
+- A constant used with memory must be embedded (-8 to 8); there is no memory,
+  immediate form.
+- Hardware register instructions (hws, hwg, hwsp, hwcp) are not assembled.
+- Relative offsets do not wrap around the 32 bit address space.

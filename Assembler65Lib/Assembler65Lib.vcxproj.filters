@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{f561361b-6d11-4a09-bd10-d5cd5c7c441d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header">
+      <UniqueIdentifier>{33d669a7-8795-44bd-bb3a-b1cf986960ec}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Asm65Assembler.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Asm65Errors.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Asm65Expressions.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Asm65Instructions.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Asm65Output.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Asm65Symbols.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Asm65Token.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Asm65Tokeniser.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Asm65Assembler.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Asm65Errors.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Asm65Output.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Asm65Symbols.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Asm65Token.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Asm65Tokeniser.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Assembler65Syntax.txt" />
+  </ItemGroup>
+</Project>

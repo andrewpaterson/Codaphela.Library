@@ -1,0 +1,247 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2026 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela Assembler65Lib
+
+Codaphela Assembler65Lib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela Assembler65Lib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#ifndef __ASM65_ASSEMBLER_H__
+#define __ASM65_ASSEMBLER_H__
+#include "BaseLib/ArrayUint8.h"
+#include "BaseLib/ArraySize.h"
+#include "MicroprocessorLib/65C64Decoded.h"
+#include "Asm65Tokeniser.h"
+#include "Asm65Symbols.h"
+#include "Asm65Output.h"
+#include "Asm65Errors.h"
+
+
+#define ASM65_MAX_PASSES	16
+#define ASM65_MAX_WORDS		5
+
+
+//A value from an expression.  An unresolved value uses a symbol that has no value yet.
+//bLabel is set when the expression uses a symbol (it is an address, not an offset).
+//C (the program counter) is never a value: it counts 0 in iValue and iProgramCounter
+//says how many times it was added, so C - 2 is an offset of -2 from C.
+struct SAsm65Value
+{
+	int64	iValue;
+	bool	bResolved;
+	bool	bLabel;
+	int		iProgramCounter;
+};
+
+
+enum EAsm65OperandKind
+{
+	AO65_None,
+	AO65_Register,
+	AO65_Constant,
+	AO65_Memory,
+};
+
+
+//An address as written: base {+ inner}, [base {+ inner}] {+ post}.  The base is a
+//register or a value; eBase is R65_Zero when it is a value.
+struct SAsm65Address
+{
+	bool			bIndirect;
+	E65Register		eBase;
+	SAsm65Value		sValue;
+	uint8			uiAddressBits;
+	E65Register		eInner;
+	E65Register		ePost;
+	SAsm65Token*	psToken;
+};
+
+
+//An instruction operand: a register, a constant or memory ([address]).
+struct SAsm65Operand
+{
+	EAsm65OperandKind	eKind;
+	E65Register			eRegister;
+	SAsm65Value			sValue;
+	uint8				uiWidthBytes;
+	bool				bSigned;
+	SAsm65Address		sAddress;
+	SAsm65Token*		psToken;
+};
+
+
+//An address as an operand access mode.  eFirst is the addressing register of the single
+//register modes or the first register of the two register modes.
+struct SAsm65Memory
+{
+	uint8		uiMode;
+	E65Register	eFirst;
+	E65Register	eSecond;
+	uint8		uiAddressWords;
+	uint32		uiAddress;
+};
+
+
+//An encoded instruction: the opcode then its operand words.
+struct SAsm65Instruction
+{
+	uint16	auiWords[ASM65_MAX_WORDS];
+	uint8	uiWords;
+};
+
+
+
+//Assembles 65C64 source text (see Assembler65Syntax.txt).  Passes repeat until every
+//label has settled.  An instruction never gets shorter in a later pass so the passes
+//always settle.  Errors are only reported by the final pass.
+class CAsm65Assembler
+{
+protected:
+	CAsm65Errors		mcErrors;
+	CAsm65Errors		mcWarnings;
+	CAsm65Tokeniser		mcTokeniser;
+	CAsm65Symbols		mcSymbols;
+	CAsm65Output		mcOutput;
+	CArrayUint8			mcMinimumWords;
+	CArraySize			mcPendingLabels;
+
+	size				muiToken;
+	uint32				muiAddress;
+	uint32				muiStatementAddress;
+	uint32				muiPass;
+	bool				mbFinal;
+	bool				mbChanged;
+	bool				mbStatementError;
+	bool				mbRelative;
+	size				muiInstruction;
+	uint32				muiPasses;
+
+public:
+	void			Init(void);
+	void			Kill(void);
+
+	bool			Assemble(const char* szSource);
+
+	CAsm65Output*	GetOutput(void);
+	char*			GetErrors(void);
+	size			NumErrors(void);
+	char*			GetWarnings(void);
+	size			NumWarnings(void);
+	bool			GetSymbol(const char* szName, int64* piValue);
+	uint32			NumPasses(void);
+
+protected:
+	//Asm65Assembler.cpp: passes, statements, labels and directives.
+	void			Pass(void);
+	void			Statement(void);
+	void			BindLabels(void);
+	void			DefineSymbol(SAsm65Token* psName, int64 iValue, bool bResolved);
+	void			AlignTo(uint32 uiAlignment);
+	void			WriteByte(uint8 uiByte);
+	bool			Origin(void);
+	bool			Align(void);
+	bool			Data(uint8 uiBytes);
+	bool			Constant(SAsm65Token* psName);
+	void			Emit(SAsm65Instruction* psInstruction);
+	uint8			GetMinimumWords(void);
+
+	SAsm65Token*	Peek(size uiOffset = 0);
+	SAsm65Token*	Next(void);
+	bool			Accept(EAsm65Punctuator ePunctuator);
+	bool			Expect(EAsm65Punctuator ePunctuator, const char* szWhat);
+	bool			ExpectEnd(void);
+	bool			Error(SAsm65Token* psToken, const char* szMessage);
+	bool			ErrorExpected(SAsm65Token* psToken, const char* szWhat);
+	void			Warning(SAsm65Token* psToken, const char* szMessage);
+	void			Report(CAsm65Errors* pcReport, SAsm65Token* psToken, const char* szMessage);
+
+	//Asm65Expressions.cpp: expressions, registers, flags and operands.
+	bool			Expression(SAsm65Value* psValue);
+	bool			BitwiseOr(SAsm65Value* psValue);
+	bool			BitwiseXor(SAsm65Value* psValue);
+	bool			BitwiseAnd(SAsm65Value* psValue);
+	bool			ShiftExpression(SAsm65Value* psValue);
+	bool			Additive(SAsm65Value* psValue);
+	bool			Multiplicative(SAsm65Value* psValue);
+	bool			Unary(SAsm65Value* psValue);
+	bool			Primary(SAsm65Value* psValue);
+	bool			ExpressionValue(int64* piValue);
+	bool			Combine(SAsm65Value* psValue, SAsm65Value* psRight, SAsm65Token* psOperator);
+	bool			RelativeTarget(SAsm65Value* psValue, SAsm65Token* psToken);
+
+	bool			IsRegister(SAsm65Token* psToken, E65Register* peRegister);
+	bool			IsReservedName(SAsm65Token* psToken);
+	bool			Register(E65Register* peRegister, const char* szWhat);
+	bool			FixedRegister(E65Register eRegister);
+	bool			Flag(uint8* puiFlag, bool bAllowConstant, const char* szWhat);
+	bool			Direction(bool* pbDecrement);
+	bool			BracketedList(void);
+	bool			StopStyle(bool* pbAllowStop, uint8* puiStopStyle);
+	bool			Suffixes(uint8* puiWidthBytes, bool* pbSigned, uint8* puiAddressBits);
+	bool			Address(SAsm65Address* psAddress);
+	bool			AddressInner(SAsm65Address* psAddress);
+	bool			Operand(SAsm65Operand* psOperand);
+	bool			Memory(SAsm65Address* psAddress, SAsm65Memory* psMemory);
+
+	//Asm65Instructions.cpp: the instructions.
+	bool			Instruction(SAsm65Token* psMnemonic);
+	bool			ArithmeticLogic(uint16 uiCode);
+	bool			ArithmeticLogicMemory(uint16 uiCode, SAsm65Operand* psFirst, SAsm65Operand* psSecond, SAsm65Instruction* psInstruction);
+	bool			Shift(bool bLeft);
+	bool			ShiftMemory(uint16 uiExtend, SAsm65Operand* psFirst, SAsm65Operand* psSecond, SAsm65Instruction* psInstruction);
+	bool			Jump(bool bPushC, bool bRelative);
+	bool			JumpOptions(E65Register* peStack, bool* pbPushP);
+	bool			Return(bool bRti);
+	bool			Push(void);
+	bool			Pull(void);
+	bool			PushPullRegisters(bool bPush);
+	bool			PushPullMemory(bool bPush, SAsm65Operand* psOperand, E65Register eStack);
+	bool			StackRegister(E65Register* peStack);
+	bool			ProgramState(bool bPush, bool bC, bool bP, E65Register eStack);
+	bool			RegisterList(uint8* puiMask, bool* pbP, bool* pbC);
+	bool			StateBits(uint16 uiSub);
+	bool			NameList(const char** aszNames, int iNumNames, const char* szWhat, uint16* puiMask);
+	bool			CloseGroup(SAsm65Token* psOpen, int iCount);
+	bool			Width(bool bTwo);
+	bool			Break(void);
+	bool			Stop(void);
+	bool			GetWidth(void);
+	bool			ExtendWidth(void);
+	bool			Branch(uint16 uiCondition);
+	bool			BranchAlways(void);
+	bool			NoOperation(void);
+	bool			MultiplyDivide(uint16 uiSub);
+	bool			NegateAbsolute(uint16 uiSub);
+	bool			Find(bool bSet, uint16 uiUnit);
+	bool			Subcopy(bool bBits);
+	bool			SubcopyPair(E65Register* peRegister, uint16* puiIndexField, bool bBits);
+	bool			BitToStatus(void);
+	bool			StatusToBit(void);
+	bool			StatusToStatus(void);
+	bool			BitIndex(uint16* puiStyle, uint16* puiWord, bool bForceWord);
+	bool			Block(uint16 uiSub);
+	bool			Vector(uint16 uiSub);
+
+	bool			RelativeBytes(SAsm65Value* psTarget, SAsm65Token* psToken, uint8* puiBytes, int64* piOffset);
+	bool			ChooseBytes(SAsm65Value* psValue, bool bSigned, uint8 uiExplicitBytes, const uint8* auiBytes, int iNumBytes, uint8 uiFixedWords, SAsm65Token* psToken, uint8* puiBytes);
+	bool			MemoryOperand(SAsm65Operand* psOperand, SAsm65Memory* psMemory, uint8 uiFixedWords);
+	bool			SingleRegisterField(SAsm65Memory* psMemory, const E65Register* aeList, int iListSize, SAsm65Token* psToken, uint16* puiField);
+	bool			TwoRegisterFields(SAsm65Memory* psMemory, const E65Register* aeSecondList, int iSecondListSize, SAsm65Token* psToken, uint16* puiFirst, uint16* puiSecond);
+	void			AddValueWords(SAsm65Instruction* psInstruction, uint64 uiValue, uint8 uiBytes);
+	void			AddAddressWords(SAsm65Instruction* psInstruction, SAsm65Memory* psMemory);
+};
+
+
+#endif // __ASM65_ASSEMBLER_H__
