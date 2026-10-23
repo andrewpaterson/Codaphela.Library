@@ -66,6 +66,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree)
 	mapsLocals.Init();
 	mapsDestructors.Init();
 	macJumps.Init();
+	macGotoLabels.Init();
 	macCases.Init();
 	mpsFunction = NULL;
 	miFrameBytes = 0;
@@ -97,6 +98,7 @@ void CCPP65Generator::Kill(void)
 	SCPP65Bindings*	psBindings;
 
 	macCases.Kill();
+	macGotoLabels.Kill();
 	macJumps.Kill();
 	mapsDestructors.Kill();
 	FreeVariables(&mapsLocals);
@@ -1490,12 +1492,7 @@ SCPP65Type* CCPP65Generator::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		{
 			//The class is laid out when it is first needed whole.
 			pcClass = (CCPPSyntaxClassSpecifier*)pcType;
-			if (!pcClass->mpcSymbol)
-			{
-				Error(pcNode, "Classes without names are not supported by the 65C64 generator yet");
-				return NULL;
-			}
-			psClass = GetClass(pcClass->mpcSymbol, pcNode);
+			psClass = pcClass->mpcSymbol ? GetClass(pcClass->mpcSymbol, pcNode) : GetUnnamedClass(pcClass);
 			if (!psClass->pcSpecifier)
 			{
 				psClass->pcSpecifier = pcClass;
@@ -1830,6 +1827,7 @@ void CCPP65Generator::BeginFunction(SCPP65Function* psFunction)
 	FreeVariables(&mapsLocals);
 	mapsDestructors.ReInit();
 	macJumps.ReInit();
+	macGotoLabels.ReInit();
 	macCases.ReInit();
 
 	miFrameBytes = 0;
@@ -2110,9 +2108,95 @@ bool CCPP65Generator::Statement(CCPPSyntax* pcStatement)
 		return BreakStatement(pcStatement, false);
 	case CPPS_ContinueStatement:
 		return BreakStatement(pcStatement, true);
+	case CPPS_GotoStatement:
+		return GotoStatement((CCPPSyntaxGotoStatement*)pcStatement);
+	case CPPS_LabelStatement:
+		return LabelStatement((CCPPSyntaxLabelStatement*)pcStatement);
 	default:
 		return Error(pcStatement, "This statement is not supported by the 65C64 generator yet");
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// goto name: a branch to the label's assembly label.  Jumping past objects that
+// need destroying is not supported yet.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::GotoStatement(CCPPSyntaxGotoStatement* pcGoto)
+{
+	int		iLabel;
+
+	if (mapsDestructors.NumElements() > 0)
+	{
+		return Error(pcGoto, "goto where objects need destroying is not supported by the 65C64 generator yet");
+	}
+	iLabel = GotoLabel(pcGoto->miLabel);
+	if (iLabel == -1)
+	{
+		return Error(pcGoto, "goto needs a label");
+	}
+	Line("bra ");
+	AppendLabel(mpszOut, iLabel);
+	mpszOut->AppendNewLine();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// name: statement.  X is reloaded after a label, as after any other.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::LabelStatement(CCPPSyntaxLabelStatement* pcLabel)
+{
+	int		iLabel;
+
+	if (mapsDestructors.NumElements() > 0)
+	{
+		return Error(pcLabel, "Labels where objects need destroying are not supported by the 65C64 generator yet");
+	}
+	iLabel = GotoLabel(pcLabel->miName);
+	if (iLabel == -1)
+	{
+		return Error(pcLabel, "A label needs a name");
+	}
+	Label(iLabel);
+	return Statement(pcLabel->mpcStatement);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The assembly label for the goto label named by the token, given the first time
+// it is seen (by a goto or by the label).  -1 if the token is not a name.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPP65Generator::GotoLabel(int iToken)
+{
+	CCPPToken*			pcToken;
+	SCPP65GotoLabel*	psLabel;
+	int64				lliName;
+	size				i;
+
+	pcToken = mpcTokeniser->Get(iToken);
+	if (!pcToken || !pcToken->IsIdentifier())
+	{
+		return -1;
+	}
+	lliName = ((CCTIdentifier*)pcToken)->mlliIdentifier;
+	for (i = 0; i < macGotoLabels.NumElements(); i++)
+	{
+		if (macGotoLabels.Get(i)->lliName == lliName)
+		{
+			return macGotoLabels.Get(i)->iLabel;
+		}
+	}
+	psLabel = macGotoLabels.Add();
+	psLabel->lliName = lliName;
+	psLabel->iLabel = NewLabel();
+	return psLabel->iLabel;
 }
 
 

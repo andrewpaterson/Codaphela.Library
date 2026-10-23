@@ -264,6 +264,17 @@ struct SCPP65Jump
 };
 
 
+//A goto label in the function and the assembly label it was given.
+struct SCPP65GotoLabel
+{
+	int64	lliName;
+	int		iLabel;
+};
+
+
+typedef CArrayTemplate<SCPP65GotoLabel>	CArrayCPP65GotoLabels;
+
+
 //A case or default label and the assembly label it was given.
 struct SCPP65Case
 {
@@ -327,6 +338,7 @@ protected:
 	CArrayCPP65Variables	mapsDestructors;	//Local objects to destroy, last made last.
 	CArrayCPP65Jumps		macJumps;
 	CArrayCPP65Cases		macCases;
+	CArrayCPP65GotoLabels	macGotoLabels;
 	SCPP65Function*			mpsFunction;
 	int						miFrameBytes;
 	int						miStatics;			//Static locals in the unit.
@@ -398,6 +410,9 @@ protected:
 	void					EndFunction(SCPP65Function* psFunction);
 	bool					AllocateLocals(CCPPSyntax* pcNode);
 	bool					StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers);
+	bool					GotoStatement(CCPPSyntaxGotoStatement* pcGoto);
+	bool					LabelStatement(CCPPSyntaxLabelStatement* pcLabel);
+	int						GotoLabel(int iToken);
 	void					AppendPlaceLabel(CChars* psz, SCPP65Place* psPlace);
 	bool					Statement(CCPPSyntax* pcStatement);
 	bool					CompoundStatement(CCPPSyntaxCompoundStatement* pcCompound);
@@ -422,6 +437,7 @@ protected:
 	//Classes and templates.  CPP65GeneratorClasses.cpp
 	SCPP65Class*			NewClass(CCPPSymbol* pcSymbol, int64 lliName);
 	SCPP65Class*			GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
+	SCPP65Class*			GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecifier);
 	SCPP65Class*			FindClass(int64 lliName);
 	SCPP65Class*			GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
 	SCPP65Class*			GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);

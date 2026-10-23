@@ -16,9 +16,17 @@ back end of the C++ parser.  Usage:
 	cGenerator.Kill();
 
 Libc65 (commonlibraries/Libc65) has the 65C64's standard headers: stdint.h, stddef.h,
-limits.h, stdarg.h, string.h, memory.h, stdlib.h, malloc.h, stdio.h, math.h and new.
-They only declare (int and long are 32 bits, size_t is unsigned int); the functions
-are not written yet.  Give it to the preprocessor as a system include directory.
+limits.h, stdarg.h, string.h, memory.h, stdlib.h, malloc.h, stdio.h, math.h, new,
+ctype.h, time.h and assert.h (int and long are 32 bits, size_t is unsigned int).  Give
+it to the preprocessor as a system include directory.  string.cpp, stdlib.cpp (malloc
+over a heap at 0008:0000 to 000F:FFFF), ctype.cpp and time.cpp are written in C++ for
+the generator and compiled with a program as its other translation units.  There is
+no clock: time is 0 and clock is -1 (unavailable); gmtime, localtime (UTC) and mktime
+use integers only.  stdio and math are only declared.
+
+The preprocessor's configuration gets the target's macros from
+CCPP65Generator::AddDefines: __65C64__, which BaseLib's Define.h and DebugOutput.h use
+for the platform (FILE_SEPARATOR, __ENGINE_PRETTY_FUNCTION__, EngineOutput ...).
 
 Generate writes the translation unit only.  GenerateProgram puts the start up in front
 of it (the tests use GenerateProgram):
@@ -62,12 +70,17 @@ Types
 	char				1 byte, signed (as MSVC)
 	short				2 bytes
 	int, long			4 bytes (long is 4 bytes, as on Windows)
+	long long			8 bytes (4 byte aligned in classes, as a 32 bit g++)
 	bool				1 byte, 0 or 1
 	wchar_t, char16_t	2 bytes, unsigned
 	pointers			4 bytes (the address bus is 32 bits)
 	enums				int
 
 Values are kept in registers 32 bits wide, sign or zero extended from their type.
+A long long is the exception: it is loaded, stored, pushed and operated on with the
+register widened to 8 bytes for just those instructions (wth A, 8 ... wth A, 4;
+wtth (A, B), 8 around an operator, and Y too for mul and div).  A narrower operand is
+widened with wthx.  The signed 64 bit divide is R_DivideSigned64.
 
 
 Registers (the user, 2026-10-23)
@@ -132,7 +145,10 @@ Calling convention
 			pul V
 			ret
 
-- The result is in A.
+- The result is in A (all 8 bytes of it for a long long).
+- A variadic function's extra arguments are pushed like the others, after the default
+  argument promotions (char, short and bool are int; arrays and functions are
+  pointers), so Libc65's va_arg walks up the stack from the last named parameter.
 - V, W and S are kept by a call; A, B, X, Y and the pseudo registers may change.
 
 Places from V (they don't move when values are pushed):
@@ -149,7 +165,9 @@ right operand is loaded into B first.
 
 C++ names are labels with an underscore in front (_main, _gTable).  Members are
 _Class__name, constructors _Class__0, destructors _Class__1 and vtables _Class__2;
-an overload has __n on the end (_Counter__0__1 is the second constructor).  C++ names
+an overload has __n on the end (_Counter__0__1 is the second constructor), and a
+thunk __t and how far it moves this.  A class without a name is the unit's
+(U1_Unnamed3).  C++ names
 cannot contain __ or start with a digit, so these cannot clash.  Generated labels are
 L and a number, string literals Str and a number, and runtime routines start with R_.
 
@@ -190,7 +208,18 @@ Supported
   arrays, and arrays sized by their initialiser.  extern declarations.
 - Local variables, arrays and references, condition declarations (if (int x = f())).
 - Statements: compound, expression, if, while, do, for, switch / case / default,
-  break, continue, return.
+  break, continue, return, goto and labels (not past objects that need destroying).
+- Static local variables with constant initialisers: data labelled with the unit, S,
+  a number and the name (U1_S0_siCalls).
+- long long and unsigned long long: every operator, conversions, literals, constants,
+  returns and switches.
+- Variadic calls (see Calling convention).
+- GCC builtins: __builtin_ctz, __builtin_clz, __builtin_popcount (and their l and ll
+  forms; ctz and clz use fsbi, and are the width for 0), __builtin_expect,
+  __builtin_unreachable and __builtin_trap (stp).
+- __func__, __FUNCTION__, __PRETTY_FUNCTION__ and MSVC's __FUNCSIG__ and __FUNCDNAME__
+  (as string literal parts).  The pretty forms are "Class::Name", not the signature.
+  Adjacent string literals are joined.
 - Expressions: all the integer operators, assignment and compound assignment, ++ and --,
   ?:, the comma operator, calls, [] (either way round), * and &, casts (C style,
   static_cast, reinterpret_cast, const_cast, int(x)), sizeof, type traits
@@ -200,9 +229,10 @@ Supported
 - Overloaded functions and operators, chosen by the number of arguments (default
   arguments make up the rest) and how well their types match (the same type, then
   integer to integer, then related pointers; a reference matches its type).
-- Classes, structs and unions, multiple inheritance, templates: see below.
-- float, double, long double and 64 bit integers can be declared (variables, fields,
-  parameters, typedefs) but not used.
+- Classes, structs and unions (named or not), multiple inheritance with several
+  polymorphic bases, templates: see below.
+- float, double and long double can be declared (variables, fields, parameters,
+  typedefs) but not used.
 
 
 Not supported yet
@@ -212,15 +242,16 @@ Each gives an error "... is not supported by the 65C64 generator yet".  Declarat
 the generator cannot do are only errors when what they declare is used (see When
 code is generated).
 
-- Using long long and 64 bit integers (the registers can do it: the widths would have
-  to be tracked), float and double.
+- Using float and double (there is no floating point hardware: it would need a soft
+  float runtime).  This is now most of what stops BaseLib compiling.
 - new and delete without a placement (there is no heap), conversion functions,
   member templates, explicit and partial specialisations, variadic templates.
-- More than one polymorphic base class, virtual inheritance.
+- Virtual inheritance.
 - Objects passed or returned by value (use pointers or references), temporary
   objects (so a const reference needs an lvalue), user copy constructors.
-- Namespaces, local classes, variadic calls, static and extern local variables, goto
-  and labels, joined and wide string literals.
+- Namespaces, local classes, static locals that are objects or have initialisers that
+  are not constant (they would need a first time guard), extern and thread_local
+  locals, wide and raw string literals.
 
 
 When code is generated
@@ -264,6 +295,16 @@ U1_R_Initialise).  Inline, template and generated functions, vtables and runtime
 routines are written by the first unit that needs them and left out by the others,
 as a linker folds them.  The start up calls each unit's initialiser in order and their
 finalisers in reverse.
+
+TestCPP65RunProject (test/TestCppParserLib) does this for a list of units, one library
+per directory, finds the labels used but defined by no unit, and runs the program.
+The test names the labels it expects to be missing (they become stp).  BaseLib code
+run this way: MD5 (the RFC 1321 suite), RedBlackTree (with a FreeList stub over
+malloc), MersenneTwister (the MT19937 reference sequence) with Libc65's time, and
+QuickSort, BubbleSort and BinarySearch (with a MemSwp stub).
+
+BaseLib is the benchmark for how much C++ is supported: on 2026-10-23, 278 of its 407
+.cpp files compile without errors.  Most of the rest need floating point.
 
 
 Templates
@@ -320,7 +361,23 @@ empty base (no fields, no vtable pointer, empty bases) takes no space; an empty 
 is 1 byte.  A union's fields are all at 0.  This is the layout of a 32 bit g++ or MSVC
 build for these classes (CArrayBlock checked).  A pointer to a derived class is
 converted to a pointer to a base by adding the base's offset (not to a null pointer);
-the first base is at 0.  Only the first base can be polymorphic yet.
+the first base is at 0.
+
+Several bases can be polymorphic.  A class shares its first base's vtable pointer (if
+that base has one); every other polymorphic base subobject keeps its own vtable
+pointer, which points at a secondary vtable laid out like that base's.  The secondary
+vtables (the bases' own and their bases' secondary vtables, at their offsets in the
+class) follow the class's vtable under its label, and constructors, destructors and
+copies set every vtable pointer (cpy A, _Class__2 + 16).  A virtual call always has X
+at the subobject of the class whose vtable has the slot, so a secondary vtable entry
+for a function of a class further up is a thunk that moves X back first:
+
+	_Both__Kill__t8:
+			add X, -8
+			jmp _Both__Kill
+
+A function that overrides one in a secondary vtable also gets a slot in the class's
+own vtable (as the Itanium ABI does), so calls through the class need no thunk.
 
 Member functions get this in X.  A non-static member function keeps it at the bottom
 of its frame (cpy [1 + V], X) and loads X again from there when something else has
