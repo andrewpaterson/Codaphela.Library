@@ -200,6 +200,7 @@ protected:
 	void			SwitchSection(uint32 uiSection);
 	bool			InBss(SAsm65Token* psToken);
 	void			MarkExternals(void);
+	void			MakeExternal(SAsm65Symbol* psSymbol, size uiToken);
 	void			BuildObjectSymbols(void);
 	bool			IsRelocatable(SAsm65Value* psValue);
 	bool			IsLocalTarget(SAsm65Value* psValue);

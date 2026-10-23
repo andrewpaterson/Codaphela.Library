@@ -223,15 +223,25 @@ void CAsm65Assembler::MarkExternals(void)
 		psSymbol = mcSymbols.Get(psToken->szText, psToken->uiLength);
 		if ((psSymbol == NULL) || (!psSymbol->bResolved && (psSymbol->uiPass != muiPass)))
 		{
-			psSymbol = mcSymbols.Put(psToken->szText, psToken->uiLength);
-			psSymbol->iValue = 0;
-			psSymbol->bResolved = true;
-			psSymbol->bExternal = true;
-			psSymbol->iSection = ASM65_SECTION_UNDEFINED;
-			psSymbol->uiTermToken = uiToken;
-			mbChanged = true;
+			MakeExternal(mcSymbols.Put(psToken->szText, psToken->uiLength), uiToken);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The symbol is defined by another object; uiToken is where it was named.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Assembler::MakeExternal(SAsm65Symbol* psSymbol, size uiToken)
+{
+	psSymbol->iValue = 0;
+	psSymbol->bResolved = true;
+	psSymbol->bExternal = true;
+	psSymbol->iSection = ASM65_SECTION_UNDEFINED;
+	psSymbol->uiTermToken = uiToken;
+	mbChanged = true;
 }
 
 
@@ -566,7 +576,6 @@ bool CAsm65Assembler::Data(uint8 uiBytes)
 	char*			szString;
 	uint32			i;
 	uint8			j;
-	int64			iLimit;
 
 	if (InBss(Peek()))
 	{
@@ -604,13 +613,9 @@ bool CAsm65Assembler::Data(uint8 uiBytes)
 				}
 				continue;
 			}
-			if (uiBytes < 8)
+			if (!Asm65Fits(sValue.iValue, uiBytes, false) && !Asm65Fits(sValue.iValue, uiBytes, true))
 			{
-				iLimit = (int64)1 << (8 * uiBytes);
-				if ((sValue.iValue >= iLimit) || (sValue.iValue < -(iLimit / 2)))
-				{
-					return Error(psToken, "Value does not fit");
-				}
+				return Error(psToken, "Value does not fit");
 			}
 			for (j = 0; j < uiBytes; j++)
 			{
@@ -843,12 +848,7 @@ bool CAsm65Assembler::SymbolBinding(SAsm65Token* psDirective)
 			{
 				return Error(psName, "Symbol is already defined");
 			}
-			psSymbol->iValue = 0;
-			psSymbol->bResolved = true;
-			psSymbol->bExternal = true;
-			psSymbol->iSection = ASM65_SECTION_UNDEFINED;
-			psSymbol->uiTermToken = TokenIndex(psName);
-			mbChanged = true;
+			MakeExternal(psSymbol, TokenIndex(psName));
 		}
 	}
 	while (Accept(AP65_Comma));

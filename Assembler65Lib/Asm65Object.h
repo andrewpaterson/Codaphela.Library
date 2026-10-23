@@ -24,6 +24,8 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayUint8.h"
 #include "BaseLib/MapStringTemplate.h"
 #include "BaseLib/Chars.h"
+#include "BaseLib/AbstractFile.h"
+#include "BaseLib/ChunkFile.h"
 
 
 //A symbol's section when it is not in one.
@@ -32,6 +34,10 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 
 //A relocation that targets a symbol instead of a section.
 #define ASM65_TARGET_SYMBOL		-1
+
+//The object file: a ChunkFile with Header, Sections, Symbols and Relocations chunks.
+#define ASM65_OBJECT_MAGIC		"Asm65Object"
+#define ASM65_OBJECT_VERSION	1
 
 
 //The kind of a section comes from its name: "text", "text.anything", "rodata.x" ...
@@ -134,12 +140,27 @@ public:
 	SAsm65Relocation*	GetRelocation(size uiIndex);
 
 	void				Dump(CChars* psz);
+
+	bool				Write(CAbstractFile* pcFile);
+	bool				Read(CAbstractFile* pcFile);
+
+protected:
+	bool				WriteChunks(CChunkFile* pcChunkFile);
+	bool				ReadChunks(CChunkFile* pcChunkFile);
+	bool				ReadHeader(CChunkFile* pcChunkFile);
+	bool				ReadSections(CChunkFile* pcChunkFile);
+	bool				ReadSymbols(CChunkFile* pcChunkFile);
+	bool				ReadRelocations(CChunkFile* pcChunkFile);
 };
 
 
 bool		Asm65SectionKind(const char* szName, size uiLength, EAsm65SectionKind* peKind);
 const char*	Asm65SectionKindName(EAsm65SectionKind eKind);
-void		Asm65AppendHex(CChars* psz, uint64 uiValue, int iDigits);
+bool		Asm65Fits(int64 iValue, uint8 uiBytes, bool bSigned);
+bool		Asm65WriteText(CFileWriter* pcWriter, const char* szText);
+bool		Asm65ReadText(CFileReader* pcReader, CChars* psz);
+bool		Asm65WriteMagic(CFileWriter* pcWriter, const char* szMagic, int32 iVersion);
+bool		Asm65ReadMagic(CFileReader* pcReader, const char* szMagic, int32 iVersion);
 
 
 #endif // __ASM65_OBJECT_H__

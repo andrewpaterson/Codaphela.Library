@@ -237,7 +237,8 @@ Objects and linking
 
 Rulings by the user (2026-10-23): the linker is in Assembler65Lib; an address the
 linker places is 32 bits with :16 as the opt-in; .org stays for absolute mode only;
-the object file format on disk is decided later (ChunkedPack files may work).
+an object file is a ChunkFile with Header, Sections, Symbols and Relocations
+chunks, and a library is a PackFile of objects.
 
 	CAsm65Object	cObject;
 	CAsm65Linker	cLinker;
@@ -294,6 +295,12 @@ first weak wins over a later weak.  A name nothing defines is an error, unless
 SetStubMissing(true) makes it the address of one stp (NumMissing / GetMissing
 list them).  The linker defines __text_start, __text_end ... __bss_end and __end
 unless an object defines them.
+
+Files.  CAsm65Object::Write(DiskFile("main.o65")) and Read(...) save and load an
+object (Read wants an empty, initialised object and checks the data is valid).
+CAsm65Library::Write and Read do the same for a library: a PackFile holding
+"Library" (name, object count) and "Objects/0", "Objects/1" ... each an object's
+ChunkFile.  Like other BaseLib files, a must free file passed in is freed.
 
 Start up.  Each init section holds .long addresses of functions to call before
 main, each fini section functions to call after.  The linker places them in link

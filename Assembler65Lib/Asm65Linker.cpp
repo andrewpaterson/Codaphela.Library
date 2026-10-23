@@ -20,6 +20,9 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
 #include <string.h>
+#include "BaseLib/PackFiles.h"
+#include "BaseLib/PackFile.h"
+#include "BaseLib/MemoryFile.h"
 #include "Asm65Assembler.h"
 #include "Asm65Linker.h"
 
@@ -55,23 +58,13 @@ static int CompareMapSymbols(const void* pvLeft, const void* pvRight)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A field of uiBytes holds the value signed or unsigned.
+// $0001001a (BaseLib hex is lower case)
 //
 //////////////////////////////////////////////////////////////////////////
-static bool FitsField(int64 iValue, uint8 uiBytes, bool bSigned)
+static void AppendAddress(CChars* psz, uint32 uiAddress)
 {
-	int64	iLimit;
-
-	if (uiBytes >= 8)
-	{
-		return true;
-	}
-	iLimit = (int64)1 << (8 * uiBytes);
-	if (bSigned)
-	{
-		return (iValue >= -(iLimit / 2)) && (iValue < iLimit / 2);
-	}
-	return (iValue >= 0) && (iValue < iLimit);
+	psz->Append('$');
+	psz->AppendHexHiLo(&uiAddress, sizeof(uint32));
 }
 
 
@@ -149,6 +142,142 @@ size CAsm65Library::NumObjects(void)
 CAsm65Object* CAsm65Library::GetObject(size uiIndex)
 {
 	return *mapcObjects.Get(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// "Objects/3"
+//
+//////////////////////////////////////////////////////////////////////////
+static void ObjectPackName(CChars* psz, size uiIndex)
+{
+	psz->Init("Objects/");
+	psz->Append((uint32)uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Writes the library as a PackFile.  Each object is written as a ChunkFile in
+// memory first, then copied into the pack.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Library::Write(CAbstractFile* pcFile)
+{
+	CPackFiles		cPackFiles;
+	CFileBasic		cBasic;
+	CPackFile*		pcPackFile;
+	CMemoryFile*	pcMemoryFile;
+	CChars			szName;
+	size			i;
+	bool			bResult;
+
+	if (!cPackFiles.Init(pcFile, PFM_Write))
+	{
+		return false;
+	}
+
+	bResult = false;
+	pcPackFile = cPackFiles.WriteOpen("Library");
+	if (pcPackFile)
+	{
+		cBasic.Init(pcPackFile);
+		bResult = Asm65WriteMagic(&cBasic, ASM65_LIBRARY_MAGIC, ASM65_LIBRARY_VERSION);
+		bResult &= mszName.WriteString(&cBasic);
+		bResult &= cBasic.WriteInt32((uint32)mapcObjects.NumElements());
+		bResult &= cBasic.Close();
+		cBasic.Kill();
+	}
+
+	for (i = 0; bResult && (i < mapcObjects.NumElements()); i++)
+	{
+		pcMemoryFile = MemoryFile();
+		pcMemoryFile->mbBasicFileMustFree = false;
+		bResult = GetObject(i)->Write(pcMemoryFile);
+
+		ObjectPackName(&szName, i);
+		pcPackFile = bResult ? cPackFiles.WriteOpen(szName.Text()) : NULL;
+		szName.Kill();
+		if (pcPackFile)
+		{
+			cBasic.Init(pcPackFile);
+			bResult = cBasic.WriteData(pcMemoryFile->GetBufferPointer(), pcMemoryFile->GetBufferSize());
+			bResult &= cBasic.Close();
+			cBasic.Kill();
+		}
+		else
+		{
+			bResult = false;
+		}
+		pcMemoryFile->Kill();
+		free(pcMemoryFile);
+	}
+
+	cPackFiles.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Reads a library written by Write into this (empty, initialised) library.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Library::Read(CAbstractFile* pcFile)
+{
+	CPackFiles		cPackFiles;
+	CFileBasic		cBasic;
+	CPackFile*		pcPackFile;
+	CChars			szName;
+	CArrayUint8		cBytes;
+	uint32			uiCount;
+	uint32			i;
+	bool			bResult;
+	CAsm65Object*	pcObject;
+
+	if ((mapcObjects.NumElements() != 0) || !cPackFiles.Init(pcFile, PFM_Read))
+	{
+		return false;
+	}
+
+	bResult = false;
+	pcPackFile = cPackFiles.ReadOpen("Library");
+	if (pcPackFile)
+	{
+		cBasic.Init(pcPackFile);
+		bResult = Asm65ReadMagic(&cBasic, ASM65_LIBRARY_MAGIC, ASM65_LIBRARY_VERSION);
+		bResult = bResult && Asm65ReadText(&cBasic, &mszName);
+		bResult = bResult && cBasic.ReadInt32(&uiCount);
+		cBasic.Close();
+		cBasic.Kill();
+	}
+
+	for (i = 0; bResult && (i < uiCount); i++)
+	{
+		ObjectPackName(&szName, i);
+		pcPackFile = cPackFiles.ReadOpen(szName.Text());
+		szName.Kill();
+		if (pcPackFile == NULL)
+		{
+			bResult = false;
+			break;
+		}
+
+		cBytes.Init();
+		cBasic.Init(pcPackFile);
+		cBytes.Resize((size)cBasic.Size());
+		bResult = (cBytes.NumElements() == 0) || cBasic.ReadData(cBytes.GetData(), cBytes.NumElements());
+		cBasic.Close();
+		cBasic.Kill();
+
+		pcObject = AddObject("");
+		bResult = bResult && pcObject->Read(MemoryFile(cBytes.GetData(), cBytes.NumElements()));
+		cBytes.Kill();
+	}
+
+	cPackFiles.Kill();
+	return bResult;
 }
 
 
@@ -330,7 +459,6 @@ void CAsm65Linker::Include(CAsm65Object* pcObject)
 	SAsm65LinkReference		sReference;
 	uint32*					puiGroup;
 	uint32					uiObject;
-	uint32					uiIndex;
 	size					i;
 	CChars					szMessage;
 
@@ -390,14 +518,7 @@ void CAsm65Linker::Include(CAsm65Object* pcObject)
 		psGlobal = GetGlobal(psSymbol->szName.Text());
 		if (psGlobal == NULL)
 		{
-			uiIndex = (uint32)masSymbols.NumElements();
-			psGlobal = masSymbols.Add();
-			psGlobal->szName.Init(psSymbol->szName.Text());
-			psGlobal->iObject = (int32)uiObject;
-			psGlobal->uiSymbol = (uint32)i;
-			psGlobal->bWeak = psSymbol->eBinding == AB65_Weak;
-			psGlobal->iValue = 0;
-			mcSymbolIndices.Put(psSymbol->szName.Text(), &uiIndex);
+			AddGlobal(psSymbol->szName.Text(), (int32)uiObject, (uint32)i, psSymbol->eBinding == AB65_Weak, 0);
 		}
 		else if (psGlobal->bWeak && (psSymbol->eBinding == AB65_Global))
 		{
@@ -501,33 +622,43 @@ void CAsm65Linker::PullLibraries(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// __end and __<kind>_start / __<kind>_end.
+// The linker's own symbols: __<kind>_start and __<kind>_end for each kind
+// (iIndex 0 to 2 * ASK65_NumKinds - 1) then __end.
+//
+//////////////////////////////////////////////////////////////////////////
+static void LinkerSymbolName(CChars* psz, int iIndex)
+{
+	psz->Init("__");
+	if (iIndex == ASK65_NumKinds * 2)
+	{
+		psz->Append("end");
+	}
+	else
+	{
+		psz->Append(Asm65SectionKindName((EAsm65SectionKind)(iIndex / 2)));
+		psz->Append((iIndex % 2 == 0) ? "_start" : "_end");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Linker::IsLinkerSymbol(const char* szName)
 {
-	int			i;
-	size		uiLength;
-	const char*	szKind;
+	int		i;
+	CChars	szLinkerName;
+	bool	bResult;
 
-	if (strcmp(szName, "__end") == 0)
+	bResult = false;
+	for (i = 0; (i <= ASK65_NumKinds * 2) && !bResult; i++)
 	{
-		return true;
+		LinkerSymbolName(&szLinkerName, i);
+		bResult = szLinkerName.Equals(szName);
+		szLinkerName.Kill();
 	}
-	if ((szName[0] != '_') || (szName[1] != '_'))
-	{
-		return false;
-	}
-	for (i = 0; i < ASK65_NumKinds; i++)
-	{
-		szKind = Asm65SectionKindName((EAsm65SectionKind)i);
-		uiLength = strlen(szKind);
-		if ((strncmp(&szName[2], szKind, uiLength) == 0) && ((strcmp(&szName[2 + uiLength], "_start") == 0) || (strcmp(&szName[2 + uiLength], "_end") == 0)))
-		{
-			return true;
-		}
-	}
-	return false;
+	return bResult;
 }
 
 
@@ -667,7 +798,7 @@ void CAsm65Linker::Layout(void)
 		if ((muiLimit != 0) && (mauiStart[iKind] < mauiEnd[iKind]) && (mauiEnd[iKind] > muiLimit))
 		{
 			szMessage.Init("Sections end past the limit ");
-			Asm65AppendHex(&szMessage, muiLimit, 8);
+			AppendAddress(&szMessage, muiLimit);
 			mcErrors.Add("link", 0, 0, szMessage.Text(), Asm65SectionKindName((EAsm65SectionKind)iKind));
 			szMessage.Kill();
 		}
@@ -682,51 +813,34 @@ void CAsm65Linker::Layout(void)
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Linker::DefineLinkerSymbols(void)
 {
-	int					iKind;
-	int					iEnd;
-	uint32				uiEnd;
-	uint32				uiIndex;
-	CChars				szName;
-	SAsm65LinkSymbol*	psGlobal;
+	int		i;
+	uint32	uiEnd;
+	uint32	uiValue;
+	CChars	szName;
 
 	uiEnd = 0;
-	for (iKind = 0; iKind < ASK65_NumKinds * 2 + 1; iKind++)
+	for (i = 0; i < ASK65_NumKinds; i++)
 	{
-		szName.Init("__");
-		if (iKind == ASK65_NumKinds * 2)
+		if (mauiEnd[i] > uiEnd)
 		{
-			szName.Append("end");
+			uiEnd = mauiEnd[i];
+		}
+	}
+
+	for (i = 0; i <= ASK65_NumKinds * 2; i++)
+	{
+		if (i == ASK65_NumKinds * 2)
+		{
+			uiValue = uiEnd;
 		}
 		else
 		{
-			szName.Append(Asm65SectionKindName((EAsm65SectionKind)(iKind / 2)));
-			szName.Append((iKind % 2 == 0) ? "_start" : "_end");
+			uiValue = (i % 2 == 0) ? mauiStart[i / 2] : mauiEnd[i / 2];
 		}
-
+		LinkerSymbolName(&szName, i);
 		if (GetGlobal(szName.Text()) == NULL)
 		{
-			uiIndex = (uint32)masSymbols.NumElements();
-			psGlobal = masSymbols.Add();
-			psGlobal->szName.Init(szName.Text());
-			psGlobal->iObject = -1;
-			psGlobal->uiSymbol = 0;
-			psGlobal->bWeak = false;
-			if (iKind == ASK65_NumKinds * 2)
-			{
-				for (iEnd = 0; iEnd < ASK65_NumKinds; iEnd++)
-				{
-					if (mauiEnd[iEnd] > uiEnd)
-					{
-						uiEnd = mauiEnd[iEnd];
-					}
-				}
-				psGlobal->iValue = uiEnd;
-			}
-			else
-			{
-				psGlobal->iValue = (iKind % 2 == 0) ? mauiStart[iKind / 2] : mauiEnd[iKind / 2];
-			}
-			mcSymbolIndices.Put(szName.Text(), &uiIndex);
+			AddGlobal(szName.Text(), -1, 0, false, uiValue);
 		}
 		szName.Kill();
 	}
@@ -741,22 +855,36 @@ void CAsm65Linker::ResolveSymbols(void)
 {
 	size				i;
 	SAsm65LinkSymbol*	psGlobal;
-	SAsm65ObjectSymbol*	psSymbol;
 
 	for (i = 0; i < masSymbols.NumElements(); i++)
 	{
 		psGlobal = masSymbols.Get(i);
-		if (psGlobal->iObject < 0)
+		if (psGlobal->iObject >= 0)
 		{
-			continue;
-		}
-		psSymbol = masObjects.Get(psGlobal->iObject)->pcObject->GetSymbol(psGlobal->uiSymbol);
-		psGlobal->iValue = psSymbol->iValue;
-		if (psSymbol->iSection >= 0)
-		{
-			psGlobal->iValue += GetLinkSection(psGlobal->iObject, psSymbol->iSection)->uiAddress;
+			SymbolAddress(psGlobal->iObject, masObjects.Get(psGlobal->iObject)->pcObject->GetSymbol(psGlobal->uiSymbol), &psGlobal->iValue);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A defined symbol's value: its section's address plus its offset, or its absolute
+// value.  False when its section is a dropped COMDAT copy.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Linker::SymbolAddress(size uiObject, SAsm65ObjectSymbol* psSymbol, int64* piValue)
+{
+	SAsm65LinkSection*	psLinkSection;
+
+	*piValue = psSymbol->iValue;
+	if (psSymbol->iSection < 0)
+	{
+		return true;
+	}
+	psLinkSection = GetLinkSection(uiObject, psSymbol->iSection);
+	*piValue += psLinkSection->uiAddress;
+	return psLinkSection->bKept;
 }
 
 
@@ -771,6 +899,7 @@ bool CAsm65Linker::Target(size uiObject, SAsm65Relocation* psRelocation, int64* 
 	SAsm65ObjectSymbol*	psSymbol;
 	SAsm65LinkSymbol*	psGlobal;
 	SAsm65LinkSection*	psLinkSection;
+	int64				iSymbol;
 
 	pcObject = masObjects.Get(uiObject)->pcObject;
 	*piValue = psRelocation->iAddend;
@@ -789,17 +918,12 @@ bool CAsm65Linker::Target(size uiObject, SAsm65Relocation* psRelocation, int64* 
 	psSymbol = pcObject->GetSymbol(psRelocation->uiTargetSymbol);
 	if ((psSymbol->eBinding == AB65_Local) && (psSymbol->iSection != ASM65_SECTION_UNDEFINED))
 	{
-		*piValue += psSymbol->iValue;
-		if (psSymbol->iSection >= 0)
+		if (!SymbolAddress(uiObject, psSymbol, &iSymbol))
 		{
-			psLinkSection = GetLinkSection(uiObject, psSymbol->iSection);
-			if (!psLinkSection->bKept)
-			{
-				Error(pcObject, psRelocation, "Refers to a dropped COMDAT section", psSymbol->szName.Text());
-				return false;
-			}
-			*piValue += psLinkSection->uiAddress;
+			Error(pcObject, psRelocation, "Refers to a dropped COMDAT section", psSymbol->szName.Text());
+			return false;
 		}
+		*piValue += iSymbol;
 		return true;
 	}
 
@@ -877,7 +1001,7 @@ void CAsm65Linker::Relocate(void)
 			{
 				iValue -= (int64)psLinkSection->uiAddress + psRelocation->uiOffset;
 			}
-			if (!FitsField(iValue, psRelocation->uiBytes, psRelocation->bSigned))
+			if (!Asm65Fits(iValue, psRelocation->uiBytes, psRelocation->bSigned))
 			{
 				szValue.Init();
 				szValue.Append(iValue);
@@ -932,6 +1056,7 @@ void CAsm65Linker::WriteMap(void)
 	size							j;
 	size							uiObject;
 	bool							bDropped;
+	int64							iValue;
 
 	mszMap.Append("Sections\n");
 	for (i = 0; i < maiPlacement.NumElements(); i++)
@@ -943,9 +1068,9 @@ void CAsm65Linker::WriteMap(void)
 		psSection = psObject->pcObject->GetSection(maiPlacement.GetValue(i) - psObject->uiFirstSection);
 		psLinkSection = masSections.Get(maiPlacement.GetValue(i));
 		mszMap.Append("  ");
-		Asm65AppendHex(&mszMap, psLinkSection->uiAddress, 8);
+		AppendAddress(&mszMap, psLinkSection->uiAddress);
 		mszMap.Append(" ");
-		Asm65AppendHex(&mszMap, psSection->uiSize, 8);
+		AppendAddress(&mszMap, psSection->uiSize);
 		mszMap.Append(" ");
 		mszMap.Append(psSection->szName.Text());
 		mszMap.Append(" (");
@@ -986,16 +1111,12 @@ void CAsm65Linker::WriteMap(void)
 		for (j = 0; j < psObject->pcObject->NumSymbols(); j++)
 		{
 			psSymbol = psObject->pcObject->GetSymbol(j);
-			if ((psSymbol->iSection == ASM65_SECTION_UNDEFINED) || ((psSymbol->iSection >= 0) && !GetLinkSection(i, psSymbol->iSection)->bKept))
+			if ((psSymbol->iSection == ASM65_SECTION_UNDEFINED) || !SymbolAddress(i, psSymbol, &iValue))
 			{
 				continue;
 			}
 			psMapSymbol = asSymbols.Add();
-			psMapSymbol->iValue = psSymbol->iValue;
-			if (psSymbol->iSection >= 0)
-			{
-				psMapSymbol->iValue += GetLinkSection(i, psSymbol->iSection)->uiAddress;
-			}
+			psMapSymbol->iValue = iValue;
 			psMapSymbol->szName = psSymbol->szName.Text();
 			psMapSymbol->szObject = psObject->pcObject->GetName();
 			psMapSymbol->bGlobal = psSymbol->eBinding != AB65_Local;
@@ -1020,7 +1141,7 @@ void CAsm65Linker::WriteMap(void)
 	{
 		psMapSymbol = asSymbols.Get(i);
 		mszMap.Append("  ");
-		Asm65AppendHex(&mszMap, (uint64)psMapSymbol->iValue, 8);
+		AppendAddress(&mszMap, (uint32)psMapSymbol->iValue);
 		mszMap.Append(psMapSymbol->bGlobal ? " G " : " L ");
 		mszMap.Append(psMapSymbol->szName);
 		mszMap.Append(" (");
@@ -1028,6 +1149,27 @@ void CAsm65Linker::WriteMap(void)
 		mszMap.Append(")\n");
 	}
 	asSymbols.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// iObject is -1 for the linker's own symbols (iValue is then their value).
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Linker::AddGlobal(const char* szName, int32 iObject, uint32 uiSymbol, bool bWeak, int64 iValue)
+{
+	SAsm65LinkSymbol*	psGlobal;
+	uint32				uiIndex;
+
+	uiIndex = (uint32)masSymbols.NumElements();
+	psGlobal = masSymbols.Add();
+	psGlobal->szName.Init(szName);
+	psGlobal->iObject = iObject;
+	psGlobal->uiSymbol = uiSymbol;
+	psGlobal->bWeak = bWeak;
+	psGlobal->iValue = iValue;
+	mcSymbolIndices.Put(szName, &uiIndex);
 }
 
 
