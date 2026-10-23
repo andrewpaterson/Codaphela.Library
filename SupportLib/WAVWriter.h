@@ -25,7 +25,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 enum EWAVSampleFormat
 {
-	WSF_Default,	//Chosen from the sound's sample type: 8 bit types as PCM 8, 16 bit as PCM 16, 32 bit integers as PCM 32 and floats as themselves.
+	WSF_Default,	//Chosen from the sound's sample type: 8 bit and bit sized types as PCM 8, 16 bit as PCM 16, 32 bit integers as PCM 32 and floats as themselves.
 	WSF_PCM8,
 	WSF_PCM16,
 	WSF_PCM24,

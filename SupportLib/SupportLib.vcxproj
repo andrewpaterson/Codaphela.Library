@@ -294,6 +294,8 @@
     <ClInclude Include="BMPReader.h" />
     <ClInclude Include="Sound.h" />
     <ClInclude Include="SoundChannel.h" />
+    <ClInclude Include="SoundModifier.h" />
+    <ClInclude Include="SoundModifierStack.h" />
     <ClInclude Include="SoundResampler.h" />
     <ClInclude Include="WAVCommon.h" />
     <ClInclude Include="WAVReader.h" />
@@ -540,6 +542,8 @@
     <ClCompile Include="BMPReader.cpp" />
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="SoundChannel.cpp" />
+    <ClCompile Include="SoundModifier.cpp" />
+    <ClCompile Include="SoundModifierStack.cpp" />
     <ClCompile Include="SoundResampler.cpp" />
     <ClCompile Include="WAVCommon.cpp" />
     <ClCompile Include="WAVReader.cpp" />

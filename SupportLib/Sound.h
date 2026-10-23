@@ -37,6 +37,9 @@ struct SSoundChangingDesc
 //
 //Samples are read and written as float64 in [-1, 1).  Signed integer samples are scaled by their range (int16 -32768 is -1.0) and
 //unsigned integer samples are offset by half their range first (uint8 128 is silence).  Floating point samples are not scaled.
+//The bit sized types (crumb, tribble, nybble, nickle and sixbits) are unsigned too: a nybble's 8 is silence, 0 is -1.0 and 15 is
+//0.875.  A bit has no middle so 0 is -1.0 and 1 is 1.0.  Samples needn't be byte aligned, so packed formats (like two nybbles a
+//frame) can be read and written; byte aligned channels are faster.
 class CSound : public CObject
 {
 CONSTRUCTABLE(CSound);
@@ -55,6 +58,8 @@ public:
 	void					Init(Ptr<CSound> pcChannelsSource);  //This only sets up channels, sample rate and length.
 	void					Class(void) override;
 	void					Free(void) override;
+
+	void					ReInit(void);
 
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
@@ -78,6 +83,7 @@ public:
 	float64					GetDuration(void);
 
 	void					Copy(Ptr<CSound> pcSource);
+	void					CopyIntoInitialised(Ptr<CSound> pcSource);
 	void					Silence(void);
 
 	float64					GetSample(size uiFrame, size uiChannelIndex);
@@ -111,6 +117,9 @@ public:
 protected:
 	void					PrivateInit(void);
 	CChannel*				GetSampleChannel(size uiChannelIndex, size uiFirstFrame, size uiNumFrames);
+	bool					IsByteAligned(CChannel* pcChannel);
+	void					GetRawSample(size uiFrame, CChannel* pcChannel, void* pvDest);
+	void					SetRawSample(size uiFrame, CChannel* pcChannel, void* pvSource);
 };
 
 
@@ -121,6 +130,10 @@ float64	ConvertSampleToFloat(void* pvSample, EPrimitiveType eType);
 float64	QuantiseSample(float64 fSample, float64 fScale, float64 fMin, float64 fMax);
 void	ConvertSampleFromFloat(void* pvSample, EPrimitiveType eType, float64 fSample);
 bool	IsSampleType(EPrimitiveType eType);
+bool	IsBittySampleType(EPrimitiveType eType);
+int		GetBittySampleBits(EPrimitiveType eType);
+float64	ConvertBittySampleToFloat(uint8 uiCode, int iBits);
+uint8	ConvertBittySampleFromFloat(float64 fSample, int iBits);
 
 
 #endif // __SOUND_H__

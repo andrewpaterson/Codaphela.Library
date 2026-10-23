@@ -35,22 +35,48 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 EWAVSampleFormat WAVGetDefaultFormat(Ptr<CSound> pcSound)
 {
-	switch (pcSound->GetChannels()->GetLargestPrimitiveType())
+	size		uiIndex;
+	CChannel*	pcChannel;
+	size		uiBits;
+	bool		bFloat64;
+	bool		bFloat32;
+
+	//CChannels::GetLargestPrimitiveType skips channels that aren't whole bytes, so the bit sized types are counted here.
+	uiBits = 0;
+	bFloat32 = false;
+	bFloat64 = false;
+	for (uiIndex = 0; uiIndex < pcSound->NumChannels(); uiIndex++)
 	{
-	case PT_int8:
-	case PT_uint8:
-		return WSF_PCM8;
-	case PT_int16:
-	case PT_uint16:
-		return WSF_PCM16;
-	case PT_int32:
-	case PT_uint32:
-		return WSF_PCM32;
-	case PT_float64:
+		pcChannel = pcSound->GetChannelAtIndex(uiIndex);
+		if (pcChannel->iChannel == SOUND_IGNORED)
+		{
+			continue;
+		}
+		bFloat32 |= pcChannel->eType == PT_float32;
+		bFloat64 |= pcChannel->eType == PT_float64;
+		if (pcChannel->miBitSize > uiBits)
+		{
+			uiBits = pcChannel->miBitSize;
+		}
+	}
+
+	if (bFloat64)
+	{
 		return WSF_Float64;
-	default:
+	}
+	if (bFloat32)
+	{
 		return WSF_Float32;
 	}
+	if (uiBits <= 8)
+	{
+		return WSF_PCM8;
+	}
+	if (uiBits <= 16)
+	{
+		return WSF_PCM16;
+	}
+	return WSF_PCM32;
 }
 
 
