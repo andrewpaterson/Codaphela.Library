@@ -23,11 +23,15 @@
 ; double 23 (1000), double to float 54 (1120).
 
 
-; Add, subtract, multiply and divide, with RoundPack, Unpack, TwoNaNs and the special
-; results that the other routines share.  They are one section so the arithmetic
-; reaches them with short branches.
+; Every routine that rounds (add, subtract, multiply, divide, the conversions from
+; integers and doubles, and sqrt) with RoundPack, Unpack, TwoNaNs and the special
+; results they share.  They are one section so that they reach them with short
+; branches, and so that no routine jumps into another section (a lazily loaded section
+; is only entered by a call, with A, B, X and Y 32 bits wide).
 		.section text.SoftFloatArithmetic
-		.global _SoftFloatAdd, _SoftFloatSubtract, _SoftFloatMultiply, _SoftFloatDivide
+		.global _SoftFloatAdd, _SoftFloatSubtract, _SoftFloatMultiply, _SoftFloatDivide, _SoftFloatSqrt
+		.global _SoftFloatFromInt, _SoftFloatFromUnsigned, _SoftFloatFromLongLong, _SoftFloatFromUnsignedLongLong
+		.global _SoftDoubleToFloat
 
 ; Rounds and packs a finite result and returns from the routine that jumped here.
 ;   Y	the significand, 64 bits wide, with its top bit at 55 or 54
@@ -481,56 +485,8 @@ DivideByZero:
 		bra SignedInfinity
 
 
-; int SoftFloatCompare(uint32_t uiA, uint32_t uiB): -1, 0 or 1 as a is less than, equal
-; to or greater than b, and 2 if either is a NaN.  The magnitudes made negative for
-; negative values order as signed integers, and both zeros are 0.
-		.section text._SoftFloatCompare
-		.global _SoftFloatCompare
-_SoftFloatCompare:
-		cpy A, [5 + S]
-		cpy B, [9 + S]
-		cpy X, A
-		shl X, 1
-		cmp X, $FF000001
-		bras c, CompareNaN
-		cpy Y, B
-		shl Y, 1
-		cmp Y, $FF000001
-		bras c, CompareNaN
-		shr X, 1
-		tst A, A
-		brac n, ComparePositiveA
-		neg X, X
-
-ComparePositiveA:
-		shr Y, 1
-		tst B, B
-		brac n, ComparePositiveB
-		neg Y, Y
-
-ComparePositiveB:
-		cpy A, 0
-		cmp X, Y
-		bras z, CompareDone
-		braso (n, v), CompareLess
-		cpy A, 1
-		ret
-
-CompareLess:
-		cpy A, -1
-
-CompareDone:
-		ret
-
-CompareNaN:
-		cpy A, 2
-		ret
-
-
 ; uint32_t SoftFloatFromInt(int32_t i), SoftFloatFromUnsigned(uint32_t ui),
 ; SoftFloatFromLongLong(int64_t lli) and SoftFloatFromUnsignedLongLong(uint64_t ulli).
-		.section text._SoftFloatFromInt
-		.global _SoftFloatFromInt, _SoftFloatFromUnsigned, _SoftFloatFromLongLong, _SoftFloatFromUnsignedLongLong
 _SoftFloatFromInt:
 		cpy Y, [5 + S]
 		bras z, FromZero
@@ -596,6 +552,192 @@ FromZeroWide:
 
 FromZero:
 		cpy A, 0
+		ret
+
+
+; uint32_t SoftDoubleToFloat(uint64_t ulli).  NaNs keep the top of their payload and
+; are quietened; a double subnormal is far below the smallest float.
+_SoftDoubleToFloat:
+		wth Y, 8
+		cpy Y, [5 + S]
+		bist f, (Y, 63)
+		cpy X, 0
+		scb (Y, 52), (X, 0), 11
+		sub X, 1
+		cmp X, 2046
+		bras c, DoubleToFloatSpecial
+		shl Y, 12
+		shr Y, 9
+		stab (Y, 55), 1			; the significand with its top bit at 55
+		sub X, 896				; 1023 - 127, and RoundPack's 1
+		bra RoundPack
+
+DoubleToFloatSpecial:
+		tst X, X
+		bras n, DoubleToFloatZero
+		shl Y, 12
+		bras z, DoubleToFloatInfinity
+		shr Y, 41
+		cpy A, Y
+		or A, $7FC00000
+		bra DoubleToFloatSign
+
+DoubleToFloatInfinity:
+		cpy A, $7F800000
+		bra DoubleToFloatSign
+
+DoubleToFloatZero:
+		cpy A, 0
+
+DoubleToFloatSign:
+		wth Y, 4
+		stab (A, 31), f
+		ret
+
+
+; uint32_t SoftFloatSqrt(uint32_t ui), correctly rounded.  The root of -0 is -0 and of
+; anything else below zero the default NaN.  The significand shifted up 25 or 26 (so the
+; power of two left is even) is M, from 2^48 to 2^50, and its integer square root r
+; (25 bits) comes from a table and two Newton steps (a div each), corrected down with
+; one mul.  r and whether r * r is M round as any other result.
+_SoftFloatSqrt:
+		cpy A, [5 + S]
+		cpy X, A
+		sub X, $800000
+		cmp X, $7F000000
+		bras c, SqrtSpecial		; not a positive normal
+		cpy X, 0
+		scb (A, 23), (X, 0), 8
+		and A, $7FFFFF
+		stab (A, 23), 1
+
+; A is the significand (the top bit at 23) and X the exponent.
+SqrtSignificand:
+		cep f
+		wth Y, 8
+		cpy Y, A
+		bist c, (X, 0)
+		bras c, SqrtOdd
+		shl Y, 26
+		add X, 124				; (exponent - 26 + 150) / 2 is RoundPack's
+		bra SqrtRoot
+
+SqrtOdd:
+		shl Y, 25
+		add X, 125
+
+SqrtRoot:
+		shr X, 1
+		psh W
+		psh Y					; M at [1 + S]
+		scp (Y, 4), (B, 0), 4
+		shr B, 9
+		and B, -4				; 4 (M >> 43)
+		cpy A, [SqrtTable - 128 + B]
+		cpy B, 0
+		cpy W, 0
+		div
+		add Y, A
+		shr Y, 1
+		cpy A, Y
+		cpy Y, [1 + S]
+		cpy B, 0
+		cpy W, 0
+		div
+		add Y, A
+		shr Y, 1
+		cpy A, Y				; r, or r + 1
+		cpy B, A
+		cpy W, 0
+		mul
+		wth B, 8
+		cpy B, [1 + S]
+
+SqrtCorrect:
+		cmp B, Y
+		bras c, SqrtCorrected
+		sub Y, A				; (r - 1)^2 = r^2 - 2r + 1
+		sub Y, A
+		add Y, 1
+		sub A, 1
+		bra SqrtCorrect
+
+SqrtCorrected:
+		sub B, Y				; the remainder
+		cpy Y, A
+		shl Y, 31
+		tst B, B
+		bras z, SqrtExact
+		or Y, 1
+
+SqrtExact:
+		wth B, 4
+		add S, 8
+		pul W
+		bra RoundPack
+
+SqrtSpecial:
+		cpy X, A
+		shl X, 1
+		bras z, SqrtReturn		; -0 and +0
+		cmp X, $FF000001
+		bras c, SqrtNaN
+		tst A, A
+		bras n, DefaultNaN
+		cmp X, $FF000000
+		bras z, SqrtReturn		; +infinity
+		jsr Unpack
+		bra SqrtSignificand
+
+SqrtNaN:
+		or A, $400000
+
+SqrtReturn:
+		ret
+
+; int SoftFloatCompare(uint32_t uiA, uint32_t uiB): -1, 0 or 1 as a is less than, equal
+; to or greater than b, and 2 if either is a NaN.  The magnitudes made negative for
+; negative values order as signed integers, and both zeros are 0.
+		.section text._SoftFloatCompare
+		.global _SoftFloatCompare
+_SoftFloatCompare:
+		cpy A, [5 + S]
+		cpy B, [9 + S]
+		cpy X, A
+		shl X, 1
+		cmp X, $FF000001
+		bras c, CompareNaN
+		cpy Y, B
+		shl Y, 1
+		cmp Y, $FF000001
+		bras c, CompareNaN
+		shr X, 1
+		tst A, A
+		brac n, ComparePositiveA
+		neg X, X
+
+ComparePositiveA:
+		shr Y, 1
+		tst B, B
+		brac n, ComparePositiveB
+		neg Y, Y
+
+ComparePositiveB:
+		cpy A, 0
+		cmp X, Y
+		bras z, CompareDone
+		braso (n, v), CompareLess
+		cpy A, 1
+		ret
+
+CompareLess:
+		cpy A, -1
+
+CompareDone:
+		ret
+
+CompareNaN:
+		cpy A, 2
 		ret
 
 
@@ -783,150 +925,6 @@ ToDoubleZero:
 		wth A, 4
 		ret
 
-
-; uint32_t SoftDoubleToFloat(uint64_t ulli).  NaNs keep the top of their payload and
-; are quietened; a double subnormal is far below the smallest float.
-		.section text._SoftDoubleToFloat
-		.global _SoftDoubleToFloat
-_SoftDoubleToFloat:
-		wth Y, 8
-		cpy Y, [5 + S]
-		bist f, (Y, 63)
-		cpy X, 0
-		scb (Y, 52), (X, 0), 11
-		sub X, 1
-		cmp X, 2046
-		bras c, DoubleToFloatSpecial
-		shl Y, 12
-		shr Y, 9
-		stab (Y, 55), 1			; the significand with its top bit at 55
-		sub X, 896				; 1023 - 127, and RoundPack's 1
-		bra RoundPack
-
-DoubleToFloatSpecial:
-		tst X, X
-		bras n, DoubleToFloatZero
-		shl Y, 12
-		bras z, DoubleToFloatInfinity
-		shr Y, 41
-		cpy A, Y
-		or A, $7FC00000
-		bra DoubleToFloatSign
-
-DoubleToFloatInfinity:
-		cpy A, $7F800000
-		bra DoubleToFloatSign
-
-DoubleToFloatZero:
-		cpy A, 0
-
-DoubleToFloatSign:
-		wth Y, 4
-		stab (A, 31), f
-		ret
-
-
-; uint32_t SoftFloatSqrt(uint32_t ui), correctly rounded.  The root of -0 is -0 and of
-; anything else below zero the default NaN.  The significand shifted up 25 or 26 (so the
-; power of two left is even) is M, from 2^48 to 2^50, and its integer square root r
-; (25 bits) comes from a table and two Newton steps (a div each), corrected down with
-; one mul.  r and whether r * r is M round as any other result.
-		.section text._SoftFloatSqrt
-		.global _SoftFloatSqrt
-_SoftFloatSqrt:
-		cpy A, [5 + S]
-		cpy X, A
-		sub X, $800000
-		cmp X, $7F000000
-		bras c, SqrtSpecial		; not a positive normal
-		cpy X, 0
-		scb (A, 23), (X, 0), 8
-		and A, $7FFFFF
-		stab (A, 23), 1
-
-; A is the significand (the top bit at 23) and X the exponent.
-SqrtSignificand:
-		cep f
-		wth Y, 8
-		cpy Y, A
-		bist c, (X, 0)
-		bras c, SqrtOdd
-		shl Y, 26
-		add X, 124				; (exponent - 26 + 150) / 2 is RoundPack's
-		bra SqrtRoot
-
-SqrtOdd:
-		shl Y, 25
-		add X, 125
-
-SqrtRoot:
-		shr X, 1
-		psh W
-		psh Y					; M at [1 + S]
-		scp (Y, 4), (B, 0), 4
-		shr B, 9
-		and B, -4				; 4 (M >> 43)
-		cpy A, [SqrtTable - 128 + B]
-		cpy B, 0
-		cpy W, 0
-		div
-		add Y, A
-		shr Y, 1
-		cpy A, Y
-		cpy Y, [1 + S]
-		cpy B, 0
-		cpy W, 0
-		div
-		add Y, A
-		shr Y, 1
-		cpy A, Y				; r, or r + 1
-		cpy B, A
-		cpy W, 0
-		mul
-		wth B, 8
-		cpy B, [1 + S]
-
-SqrtCorrect:
-		cmp B, Y
-		bras c, SqrtCorrected
-		sub Y, A				; (r - 1)^2 = r^2 - 2r + 1
-		sub Y, A
-		add Y, 1
-		sub A, 1
-		bra SqrtCorrect
-
-SqrtCorrected:
-		sub B, Y				; the remainder
-		cpy Y, A
-		shl Y, 31
-		tst B, B
-		bras z, SqrtExact
-		or Y, 1
-
-SqrtExact:
-		wth B, 4
-		add S, 8
-		pul W
-		bra RoundPack
-
-SqrtSpecial:
-		cpy X, A
-		shl X, 1
-		bras z, SqrtReturn		; -0 and +0
-		cmp X, $FF000001
-		bras c, SqrtNaN
-		tst A, A
-		bras n, DefaultNaN
-		cmp X, $FF000000
-		bras z, SqrtReturn		; +infinity
-		jsr Unpack
-		bra SqrtSignificand
-
-SqrtNaN:
-		or A, $400000
-
-SqrtReturn:
-		ret
 
 ; ceil(sqrt((i + 1) * 2^43)) for i from 32 to 127: at least the root of an M whose top
 ; bits are i.
