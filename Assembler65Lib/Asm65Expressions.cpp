@@ -441,6 +441,11 @@ bool CAsm65Assembler::Primary(SAsm65Value* psValue)
 			return true;
 		}
 		psValue->iValue = psSymbol->iValue;
+		if (psSymbol->bLabel && (psSymbol->uiPass < muiPass) && (psSymbol->iSection == (mbObject ? (int32)muiSection : ASM65_SECTION_ABSOLUTE)))
+		{
+			//A label further on has moved at least as far as the last one bound, as instructions only grow.
+			psValue->iValue += miLabelShift;
+		}
 		if (psSymbol->iSection != ASM65_SECTION_ABSOLUTE)
 		{
 			psValue->iTerms = 1;

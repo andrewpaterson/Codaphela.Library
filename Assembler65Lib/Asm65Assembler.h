@@ -149,6 +149,7 @@ protected:
 	uint32				muiAddress;
 	uint32				muiStatementAddress;
 	uint32				muiPass;
+	int64				miLabelShift;
 	bool				mbFinal;
 	bool				mbChanged;
 	bool				mbStatementError;

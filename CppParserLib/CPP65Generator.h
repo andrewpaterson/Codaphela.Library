@@ -594,6 +594,10 @@ protected:
 	void					ReportFailedDeclaration(int64 lliName);
 	SCPP65Type*				ThisExpression(CCPPSyntax* pcThis);
 	SCPP65Type*				NewExpression(CCPPSyntaxNewExpression* pcNew);
+	SCPP65Type*				NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType);
+	SCPP65Type*				DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete);
+	bool					ConstructAtA(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode);
+	void					AddressPlace(SCPP65Place* psPlace, SCPP65Type* psType);
 	SCPP65Type*				CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pcOperand, CCPPSyntax* pcNode);
 	SCPP65Type*				SizeofExpression(CCPPSyntax* pcSizeof);
 	SCPP65Type*				TypeOf(CCPPSyntax* pcExpression);

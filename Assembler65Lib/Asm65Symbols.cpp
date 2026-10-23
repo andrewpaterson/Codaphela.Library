@@ -86,6 +86,7 @@ SAsm65Symbol* CAsm65Symbols::Put(const char* szName, size uiLength)
 		psSymbol->bExternal = false;
 		psSymbol->bGlobal = false;
 		psSymbol->bWeak = false;
+		psSymbol->bLabel = false;
 		maszNames.Add(szKey.Text());
 	}
 	szKey.Kill();

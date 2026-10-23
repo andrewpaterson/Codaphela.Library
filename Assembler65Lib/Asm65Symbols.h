@@ -38,6 +38,7 @@ struct SAsm65Symbol
 	bool	bExternal;
 	bool	bGlobal;
 	bool	bWeak;
+	bool	bLabel;
 };
 
 

@@ -164,6 +164,7 @@ void CAsm65Assembler::Pass(void)
 	muiToken = 0;
 	muiAddress = 0;
 	muiInstruction = 0;
+	miLabelShift = 0;
 	mcPendingLabels.Kill();
 	mcPendingLabels.Init();
 	mcUndefined.Kill();
@@ -433,11 +434,20 @@ void CAsm65Assembler::BindLabels(void)
 {
 	size			i;
 	SAsm65Token*	psLabel;
+	SAsm65Symbol*	psSymbol;
+	int32			iSection;
 
+	iSection = mbObject ? (int32)muiSection : ASM65_SECTION_ABSOLUTE;
 	for (i = 0; i < mcPendingLabels.NumElements(); i++)
 	{
 		psLabel = mcTokeniser.Get(mcPendingLabels.GetValue(i));
-		DefineSymbol(psLabel, muiAddress, true, mbObject ? (int32)muiSection : ASM65_SECTION_ABSOLUTE, mcPendingLabels.GetValue(i));
+		psSymbol = mcSymbols.Get(psLabel->szText, psLabel->uiLength);
+		if (psSymbol && psSymbol->bLabel && psSymbol->bResolved && (psSymbol->uiPass + 1 == muiPass) && (psSymbol->iSection == iSection))
+		{
+			miLabelShift = (int64)muiAddress - psSymbol->iValue;
+		}
+		DefineSymbol(psLabel, muiAddress, true, iSection, mcPendingLabels.GetValue(i));
+		mcSymbols.Get(psLabel->szText, psLabel->uiLength)->bLabel = true;
 	}
 	mcPendingLabels.Kill();
 	mcPendingLabels.Init();
@@ -538,6 +548,7 @@ bool CAsm65Assembler::Origin(void)
 	}
 	muiAddress = (uint32)iValue;
 	muiStatementAddress = muiAddress;
+	miLabelShift = 0;
 	return true;
 }
 
@@ -563,6 +574,7 @@ bool CAsm65Assembler::Align(void)
 	}
 	AlignTo((uint32)iValue);
 	muiStatementAddress = muiAddress;
+	miLabelShift = 0;
 	return true;
 }
 
@@ -881,6 +893,7 @@ void CAsm65Assembler::SwitchSection(uint32 uiSection)
 	mcSectionAddresses.SetValue(muiSection, muiAddress);
 	muiSection = uiSection;
 	muiAddress = mcSectionAddresses.GetValue(muiSection);
+	miLabelShift = 0;
 }
 
 

@@ -98,8 +98,8 @@ assembly for speed with the same results bit for bit (checked against softfloat.
 natively on millions of values; TestLibc65SoftFloat runs a few thousand per function).
 A program that uses floating point is linked with both.  Cycles per call on the
 simulator (softfloat.cpp's compiled code in brackets): add 91 (2070), subtract 95
-(2160), multiply 90 (2110), divide 109 (4740), compare 37 (1140), sqrt 91 (8840),
-from int 48 (600), to int 18 (720), to double 23 (1000), double to float 54 (1120).
+(2160), multiply 89 (2110), divide 109 (4740), compare 37 (1140), sqrt 90 (8840),
+from int 47 (600), to int 18 (720), to double 23 (1000), double to float 52 (1120).
 The generator pushes the operands like arguments (the right first) and calls:
 
 	SoftFloatAdd Subtract Multiply Divide		(and SoftDouble...)
@@ -277,6 +277,13 @@ Supported
 - long long and unsigned long long: every operator, conversions, literals, constants,
   returns and switches.
 - Variadic calls (see Calling convention).
+- new Type(arguments), new Type[count], delete and delete[]: the memory comes from the
+  global operator new / new[] and goes back to operator delete / delete[] (Libc65's
+  new.cpp, over malloc and free; a program can define its own).  An array of objects
+  is constructed first to last; if its class has a destructor its count is kept in the
+  4 bytes in front of it, and delete[] destroys the elements last first.  delete calls
+  a virtual destructor through the vtable.  Deleting a null pointer does nothing.
+  new(address) Type constructs at the address.
 - GCC builtins: __builtin_ctz, __builtin_clz, __builtin_popcount (and their l and ll
   forms; ctz and clz use fsbi, and are the width for 0), __builtin_expect,
   __builtin_unreachable and __builtin_trap (stp).
@@ -304,8 +311,10 @@ Each gives an error "... is not supported by the 65C64 generator yet".  Declarat
 the generator cannot do are only errors when what they declare is used (see When
 code is generated).
 
-- new and delete without a placement (there is no heap), conversion functions,
-  member templates, explicit and partial specialisations, variadic templates.
+- Class operator new and operator delete (the global ones are used), placement new
+  with more than an address, new Type[count] with more than one dimension or an
+  initialiser list; conversion functions, member templates, explicit and partial
+  specialisations, variadic templates.
 - Virtual inheritance.
 - Temporary objects that need destroying, in conditions; postfix ++ and -- on
   objects; conversion operators.
