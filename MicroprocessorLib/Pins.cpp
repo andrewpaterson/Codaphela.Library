@@ -20,6 +20,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ConstructorCall.h"
 #include "PowerInPort.h"
+#include "PowerPinNames.h"
 #include "LogicPort.h"
 #include "IntegratedCircuit.h"
 #include "Pins.h"
@@ -37,9 +38,9 @@ void CPins::Init(void)
 	mpcIntegratedCircuit = NULL;
 
 	mpcVCC = NewMalloc<CPowerInPort>();
-	mpcVCC->Init(PT_PowerIn, "VCC", this);
+	mpcVCC->Init(PT_PowerIn, POWER_PIN_VCC, this);
 	mpcGND = NewMalloc<CPowerInPort>();
-	mpcGND->Init(PT_PowerIn, "GND", this);
+	mpcGND->Init(PT_PowerIn, POWER_PIN_GND, this);
 }
 
 

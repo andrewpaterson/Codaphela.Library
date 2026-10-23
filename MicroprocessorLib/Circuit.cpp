@@ -29,23 +29,25 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircuit::Init(CTimeline* pcTimeline)
+void CCircuit::Init(void)
 {
-	mpcTimeline = pcTimeline;
 	mapcIntegratedCircuits.Init();
+	mapcPassives.Init();
 	mapcTraces.Init();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The chips, then the traces.  The timeline must not have been killed.
+// The components, then the traces.  The timeline must not have been
+// killed.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircuit::Kill(void)
 {
 	size				i;
 	CIntegratedCircuit*	pcIntegratedCircuit;
+	CPassive*			pcPassive;
 	CTrace*				pcTrace;
 
 	for (i = 0; i < mapcIntegratedCircuits.NumElements(); i++)
@@ -55,13 +57,19 @@ void CCircuit::Kill(void)
 	}
 	mapcIntegratedCircuits.Kill();
 
+	for (i = 0; i < mapcPassives.NumElements(); i++)
+	{
+		pcPassive = mapcPassives.GetPtr(i);
+		SafeKill(pcPassive);
+	}
+	mapcPassives.Kill();
+
 	for (i = 0; i < mapcTraces.NumElements(); i++)
 	{
 		pcTrace = mapcTraces.GetPtr(i);
 		SafeKill(pcTrace);
 	}
 	mapcTraces.Kill();
-	mpcTimeline = NULL;
 }
 
 
@@ -78,13 +86,23 @@ void CCircuit::Add(CIntegratedCircuit* pcIntegratedCircuit)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called by CPassive::Init.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuit::Add(CPassive* pcPassive)
+{
+	mapcPassives.Add(pcPassive);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The circuit no longer owns the chip; the caller kills and frees it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCircuit::Remove(CIntegratedCircuit* pcIntegratedCircuit)
 {
 	size	i;
-	CChars	sz;
 
 	for (i = 0; i < mapcIntegratedCircuits.NumElements(); i++)
 	{
@@ -94,13 +112,46 @@ bool CCircuit::Remove(CIntegratedCircuit* pcIntegratedCircuit)
 			return true;
 		}
 	}
+	LogRemoveError(pcIntegratedCircuit);
+	return false;
+}
 
-	sz.Init(" Could not remove Integrated Circuit [");
-	pcIntegratedCircuit->AppendDescription(&sz);
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The circuit no longer owns the passive; the caller kills and frees it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuit::Remove(CPassive* pcPassive)
+{
+	size	i;
+
+	for (i = 0; i < mapcPassives.NumElements(); i++)
+	{
+		if (mapcPassives.GetPtr(i) == pcPassive)
+		{
+			mapcPassives.RemoveAt(i, true);
+			return true;
+		}
+	}
+	LogRemoveError(pcPassive);
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuit::LogRemoveError(CCircuitComponent* pcComponent)
+{
+	CChars	sz;
+
+	sz.Init(" Could not remove [");
+	pcComponent->AppendDescription(&sz);
 	sz.Append("] from Circuit.");
 	gcLogger.Error2(__METHOD__, sz.Text(), NULL);
 	sz.Kill();
-	return false;
 }
 
 
@@ -122,16 +173,20 @@ CTrace* CCircuit::AddTrace(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Resets every chip, as Logicim's simulation does when it starts.
+// Resets every component, as Logicim does when a simulation starts.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircuit::SimulationStarted(void)
+void CCircuit::SimulationStarted(CTimeline* pcTimeline)
 {
 	size	i;
 
 	for (i = 0; i < mapcIntegratedCircuits.NumElements(); i++)
 	{
-		mapcIntegratedCircuits.GetPtr(i)->Reset(mpcTimeline);
+		mapcIntegratedCircuits.GetPtr(i)->Reset(pcTimeline);
+	}
+	for (i = 0; i < mapcPassives.NumElements(); i++)
+	{
+		mapcPassives.GetPtr(i)->Reset(pcTimeline);
 	}
 }
 
@@ -161,10 +216,11 @@ void CCircuit::GetIntegratedCircuits(const char* szType, CArrayIntegratedCircuit
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCircuit::IsEmpty(void) { return mapcIntegratedCircuits.NumElements() == 0; }
+bool CCircuit::IsEmpty(void) { return (mapcIntegratedCircuits.NumElements() == 0) && (mapcPassives.NumElements() == 0); }
 size CCircuit::NumIntegratedCircuits(void) { return mapcIntegratedCircuits.NumElements(); }
 CIntegratedCircuit* CCircuit::GetIntegratedCircuit(size uiIndex) { return mapcIntegratedCircuits.SafeGetPtr(uiIndex); }
 size CCircuit::NumTraces(void) { return mapcTraces.NumElements(); }
 CTrace* CCircuit::GetTrace(size uiIndex) { return mapcTraces.SafeGetPtr(uiIndex); }
-CTimeline* CCircuit::GetTimeline(void) { return mpcTimeline; }
+size CCircuit::NumPassives(void) { return mapcPassives.NumElements(); }
+CPassive* CCircuit::GetPassive(size uiIndex) { return mapcPassives.SafeGetPtr(uiIndex); }
 
