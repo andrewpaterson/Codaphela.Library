@@ -316,6 +316,11 @@ void C65C64::ExecutePhi2Falling(CTimeline* pcTimeline)
 			//Data on the data pins is read when PHI2 falls.
 			muiIOData = mpcPins->ReadData(pcTimeline);
 		}
+		else
+		{
+			//Written data is only driven while PHI2 is high.
+			mpcPins->ReleaseData(pcTimeline);
+		}
 
 		GetBusCycle()->ExecuteTrailingSide(this, false);
 	}

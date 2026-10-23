@@ -25,8 +25,9 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #include "SubcircuitSimulation.h"
 
 
-//Logicim's CircuitSimulation, with its Simulation, which only wraps the timeline: a circuit and the timeline it runs
-//on.  It owns both, its CSubcircuitTopSimulation, made in Init as Logicim's editor does, and the
+//Logicim's CircuitSimulation, with its Simulation folded in: a circuit and the timeline it runs on.  Logicim's
+//Simulation only wraps the timeline; its GetTime, RunSimultaneous, RunToTime and RemoveEvent are here, and the events
+//that Logicim passes the Simulation are passed the timeline, whose context is the circuit simulation.  It owns both, its CSubcircuitTopSimulation, made in Init as Logicim's editor does, and the
 //CSubcircuitInstanceSimulations added to it.  Kill kills the circuit before the timeline, so its components can take
 //their events off it.  The timeline's context is the circuit simulation.  Every one gets the next id unless it is
 //given one.
@@ -55,6 +56,7 @@ public:
 	int64							GetTime(void);
 	bool							RunSimultaneous(void);
 	bool							RunToTime(int64 iTimeForward);
+	bool							RemoveEvent(CEvent* pcEvent);
 	int64							GetID(void);
 	char*							GetName(void);
 	void							AppendDescription(CChars* psz);

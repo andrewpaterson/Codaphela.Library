@@ -983,6 +983,11 @@ void CW65CCore::ExecutPhi2Rising(CTimeline* pcTimeline)
         {
             pcPins->WriteData(pcTimeline, GetIOData());
         }
+        else
+        {
+            //The bank was on the data pins while PHI2 was low.  Memory drives them now.
+            pcPins->ReleaseData(pcTimeline);
+        }
     }
 }
 

@@ -38,6 +38,7 @@ public:
 	void			WriteRdy(CTimeline* pcTimeline, bool bValue);
 	void			WriteAddress(CTimeline* pcTimeline, uint16 uiAddress);
 	void			WriteData(CTimeline* pcTimeline, uint8 uiData);
+	void			ReleaseData(CTimeline* pcTimeline);
 	uint8			ReadData(CTimeline* pcTimeline);
 	uint16			ReadAddress(CTimeline* pcTimeline);
 	STraceValue			ReadRES(CTimeline* pcTimeline);

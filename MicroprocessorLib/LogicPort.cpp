@@ -161,7 +161,8 @@ void CLogicPort::WriteImpedance(CTimeline* pcTimeline)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Undriven when the port isn't connected or nothing drives its trace.
+// Undriven when the port isn't connected or nothing drives its trace,
+// or it has no voltage configuration to read with, as an oscilloscope's.
 //
 //////////////////////////////////////////////////////////////////////////
 STraceValue CLogicPort::ReadValue(int64 iTime)
@@ -169,7 +170,7 @@ STraceValue CLogicPort::ReadValue(int64 iTime)
 	float32		fVoltage;
 	STraceValue	sValue;
 
-	if (mpcTrace != NULL)
+	if ((mpcTrace != NULL) && (mpcVoltageConfigurationSource != NULL))
 	{
 		fVoltage = mpcTrace->GetVoltage(iTime);
 		if (IsVoltage(fVoltage))
