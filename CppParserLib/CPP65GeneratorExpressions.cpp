@@ -2441,6 +2441,12 @@ bool CCPP65Generator::VariablePlace(SCPP65Variable* psVariable, SCPP65Place* psP
 		psPlace->eKind = CPP65PK_Frame;
 		psPlace->iOffset = miFrameBytes + 8 + psVariable->iOffset;
 		break;
+	case CPP65S_Static:
+		psPlace->eKind = CPP65PK_Global;
+		psPlace->iOffset = 0;
+		psPlace->lliName = psVariable->pcSymbol->mlliName;
+		psPlace->iString = psVariable->iOffset;
+		break;
 	default:
 		psPlace->eKind = CPP65PK_Global;
 		psPlace->iOffset = 0;
@@ -2468,7 +2474,7 @@ void CCPP65Generator::AppendPlace(CChars* psz, SCPP65Place* psPlace, const char*
 		psz->Append(" + V");
 		break;
 	case CPP65PK_Global:
-		AppendGlobalLabel(psz, psPlace->psClass, psPlace->lliName);
+		AppendPlaceLabel(psz, psPlace);
 		if (psPlace->iOffset != 0)
 		{
 			psz->Append(" + ");
@@ -2597,7 +2603,7 @@ void CCPP65Generator::LoadAddress(SCPP65Place* psPlace)
 		break;
 	case CPP65PK_Global:
 		Line("cpy A, ");
-		AppendGlobalLabel(mpszOut, psPlace->psClass, psPlace->lliName);
+		AppendPlaceLabel(mpszOut, psPlace);
 		if (psPlace->iOffset != 0)
 		{
 			mpszOut->Append(" + ")->Append(psPlace->iOffset);

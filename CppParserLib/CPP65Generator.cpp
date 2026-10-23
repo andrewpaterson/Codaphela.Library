@@ -69,6 +69,8 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree)
 	macCases.Init();
 	mpsFunction = NULL;
 	miFrameBytes = 0;
+	miStatics = 0;
+	mbStaticLocal = false;
 	miDepth = 0;
 	miTemporaries = 0;
 	mbFramePointer = false;
@@ -1130,6 +1132,10 @@ bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitia
 	lliValue = 0;
 	if (pcInitialiser && !Constant(pcInitialiser, &lliValue))
 	{
+		if (mbStaticLocal)
+		{
+			return Error(pcInitialiser, "A static local variable needs a constant initialiser in the 65C64 generator yet");
+		}
 		//Not a constant: R_Initialise works it out before main.  [basic.start.init]
 		AppendData(psType, 0);
 		pszOut = mpszOut;
@@ -1943,9 +1949,13 @@ bool CCPP65Generator::AllocateLocals(CCPPSyntax* pcNode)
 		pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcNode->mpcParent;
 		if (pcInit->mpcSymbol && (pcInit->mpcSymbol->meKind == CPPSK_Variable))
 		{
+			if ((pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_STATIC | CPPDS_EXTERN | CPPDS_THREAD_LOCAL)) == CPPDS_STATIC)
+			{
+				return StaticLocal(pcInit, pcDeclaration->mpcSpecifiers);
+			}
 			if (pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_STATIC | CPPDS_EXTERN | CPPDS_THREAD_LOCAL))
 			{
-				return Error(pcNode, "Static and extern local variables are not supported by the 65C64 generator yet");
+				return Error(pcNode, "Extern and thread local variables are not supported by the 65C64 generator yet");
 			}
 			psType = GetType(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
 			if (!psType)
@@ -1975,6 +1985,84 @@ bool CCPP65Generator::AllocateLocals(CCPPSyntax* pcNode)
 		bResult &= AllocateLocals(pcNode->GetChild(i));
 	}
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A static local variable is data with its own label, initialised in the data.  Its
+// initialiser must be constant; one that is not (it would be worked out the first
+// time the declaration is reached) is not supported yet, nor are objects.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers)
+{
+	SCPP65Variable*		psVariable;
+	SCPP65Type*			psType;
+	SCPP65Place			sPlace;
+	bool				bResult;
+	int					iThisOffset;
+
+	psType = GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
+	if (!psType)
+	{
+		return false;
+	}
+	if ((psType->IsArray() ? psType->psBase : psType)->IsClass() || psType->IsReference())
+	{
+		return Error(pcInit, "Static local objects and references are not supported by the 65C64 generator yet");
+	}
+
+	psVariable = AddVariable(&mapsLocals, pcInit->mpcSymbol, psType, CPP65S_Static, miStatics);
+	miStatics++;
+	psVariable->bDefined = true;
+	if (psType->iBytes >= 4)
+	{
+		mszData.Append("\t\t.align 4");
+		mszData.AppendNewLine();
+	}
+	else if (psType->iBytes == 2)
+	{
+		mszData.Append("\t\t.align 2");
+		mszData.AppendNewLine();
+	}
+	VariablePlace(psVariable, &sPlace);
+	AppendPlaceLabel(&mszData, &sPlace);
+	mszData.Append(':');
+	mszData.AppendNewLine();
+
+	iThisOffset = miThisOffset;
+	miThisOffset = -1;
+	mbStaticLocal = true;
+	bResult = GlobalInitialiser(psType, pcInit->mpcInitializer, pcInit, &sPlace);
+	mbStaticLocal = false;
+	miThisOffset = iThisOffset;
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The label of a Global place: a global, a static data member or a static local
+// (unit, S, its number, _ and its name).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendPlaceLabel(CChars* psz, SCPP65Place* psPlace)
+{
+	char*	szName;
+	int		iLength;
+
+	if ((psPlace->lliName != -1) && (psPlace->iString != -1))
+	{
+		szName = mpcTokeniser->GetIdentifier(psPlace->lliName, &iLength);
+		psz->Append(&mszUnit);
+		psz->Append('S');
+		psz->Append(psPlace->iString);
+		psz->Append('_');
+		psz->Append(szName, iLength);
+		return;
+	}
+	AppendGlobalLabel(psz, psPlace->psClass, psPlace->lliName);
 }
 
 
@@ -2132,6 +2220,11 @@ bool CCPP65Generator::DeclarationStatement(CCPPSyntaxDeclarationStatement* pcSta
 		if (!psVariable)
 		{
 			bResult &= Error(pcInit, "This declaration is not supported by the 65C64 generator yet");
+			continue;
+		}
+		if (psVariable->eStorage == CPP65S_Static)
+		{
+			//Initialised in its data.
 			continue;
 		}
 		psElement = psVariable->psType->IsArray() ? psVariable->psType->psBase : psVariable->psType;

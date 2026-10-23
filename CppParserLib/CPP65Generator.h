@@ -43,6 +43,7 @@ enum ECPP65Storage
 	CPP65S_Local,
 	CPP65S_Parameter,
 	CPP65S_Global,
+	CPP65S_Static,		//A static local: data, numbered in the unit by iOffset.
 };
 
 
@@ -231,7 +232,7 @@ struct SCPP65Place
 	SCPP65Type*			psType;
 	int					iOffset;	//Frame: bytes above V + 1.  Global: bytes after the label.  This and Address: bytes after the object.
 	int64				lliName;	//Global: the variable's name.  -1 for a string literal.
-	int					iString;	//Global: the string literal's number.
+	int					iString;	//Global: the string literal's number, or a static local's when lliName is its name.
 	SCPP65Class*		psClass;	//Global: the class of a static data member.
 };
 
@@ -328,6 +329,8 @@ protected:
 	CArrayCPP65Cases		macCases;
 	SCPP65Function*			mpsFunction;
 	int						miFrameBytes;
+	int						miStatics;			//Static locals in the unit.
+	bool					mbStaticLocal;		//A static local's data is being written.
 	bool					mbFramePointer;		//The function saves V and points it at its frame.
 	int						miDepth;			//Bytes pushed on S since the frame was made.
 	int						miTemporaries;		//Bytes of pseudo registers ([offset + W]) in use.
@@ -394,6 +397,8 @@ protected:
 	void					BeginFunction(SCPP65Function* psFunction);
 	void					EndFunction(SCPP65Function* psFunction);
 	bool					AllocateLocals(CCPPSyntax* pcNode);
+	bool					StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers);
+	void					AppendPlaceLabel(CChars* psz, SCPP65Place* psPlace);
 	bool					Statement(CCPPSyntax* pcStatement);
 	bool					CompoundStatement(CCPPSyntaxCompoundStatement* pcCompound);
 	bool					DeclarationStatement(CCPPSyntaxDeclarationStatement* pcStatement);
