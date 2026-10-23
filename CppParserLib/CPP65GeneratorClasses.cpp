@@ -87,6 +87,30 @@ SCPP65Class* CCPP65Generator::GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A class without a name (typedef struct { ... } SName;) is known by its definition.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Class* CCPP65Generator::GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecifier)
+{
+	SCPP65Class*	psClass;
+	size			i;
+
+	for (i = 0; i < mapsClasses.NumElements(); i++)
+	{
+		psClass = mapsClasses.GetPtr(i);
+		if (!psClass->pcSymbol && (psClass->pcSpecifier == pcSpecifier) && !psClass->psTemplate)
+		{
+			return psClass;
+		}
+	}
+	psClass = NewClass(NULL, -1);
+	psClass->pcSpecifier = pcSpecifier;
+	return psClass;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A class (not a template instance) by name, for qualified names.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1757,7 +1781,8 @@ void CCPP65Generator::AppendClassLabel(CChars* psz, SCPP65Class* psClass, const 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Class, or Class__T and the template arguments.
+// Class, or Class__T and the template arguments.  A class without a name is the
+// unit, Unnamed and its number.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::AppendClassName(CChars* psz, SCPP65Class* psClass)
@@ -1765,6 +1790,14 @@ void CCPP65Generator::AppendClassName(CChars* psz, SCPP65Class* psClass)
 	char*	szName;
 	int		iLength;
 
+	if (psClass->lliName < 0)
+	{
+		//A class without a name is the unit's own.
+		psz->Append(&mszUnit);
+		psz->Append("Unnamed");
+		psz->Append((int)mapsClasses.Find(psClass));
+		return;
+	}
 	szName = mpcTokeniser->GetIdentifier(psClass->lliName, &iLength);
 	psz->Append(szName, iLength);
 	if (psClass->mszArguments.Length() > 0)
