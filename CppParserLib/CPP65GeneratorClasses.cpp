@@ -88,23 +88,40 @@ SCPP65Class* CCPP65Generator::GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 //
 // A class without a name (typedef struct { ... } SName;) is known by its definition.
+// One in a class template is a different class in each instance (its bindings).
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Class* CCPP65Generator::GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecifier)
 {
 	SCPP65Class*	psClass;
+	SCPP65Bindings*	psBindings;
+	CCPPSyntax*		pcParent;
 	size			i;
+
+	for (psBindings = mpsBindings; psBindings; psBindings = psBindings->psOuter)
+	{
+		pcParent = pcSpecifier->mpcParent;
+		while (pcParent && (!psBindings->psClass || (pcParent != psBindings->psClass->pcSpecifier)))
+		{
+			pcParent = pcParent->mpcParent;
+		}
+		if (pcParent)
+		{
+			break;
+		}
+	}
 
 	for (i = 0; i < mapsClasses.NumElements(); i++)
 	{
 		psClass = mapsClasses.GetPtr(i);
-		if (!psClass->pcSymbol && (psClass->pcSpecifier == pcSpecifier) && !psClass->psTemplate)
+		if (!psClass->pcSymbol && (psClass->pcSpecifier == pcSpecifier) && !psClass->psTemplate && (psClass->psBindings == psBindings))
 		{
 			return psClass;
 		}
 	}
 	psClass = NewClass(NULL, -1);
 	psClass->pcSpecifier = pcSpecifier;
+	psClass->psBindings = psBindings;
 	return psClass;
 }
 
@@ -217,9 +234,11 @@ SCPP65Class* CCPP65Generator::GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* p
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Records a template declaration: a class template, a function template, or a
-// member function of a class template defined outside it.  Explicit specialisations
-// and instantiations are not supported yet and are ignored until used.
+// Records a template declaration: a class template, a function template, a member
+// function of a class template defined outside it, or a member template defined
+// outside its class (template<class M> template<class N> ... for a class template).
+// Explicit specialisations and instantiations are not supported yet and are ignored
+// until used.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplate)
@@ -228,6 +247,7 @@ bool CCPP65Generator::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTempl
 	CCPPSyntax*						pcDeclaration;
 	CCPPSyntaxSimpleDeclaration*	pcSimple;
 	CCPPSyntaxFunctionDefinition*	pcFunction;
+	CCPPSyntaxTemplateDeclaration*	pcClassTemplate;
 	CCPPSyntaxName*					pcName;
 	CCPPSyntaxNameComponent*		pcClass;
 	SCPP65Template*					psClass;
@@ -242,16 +262,26 @@ bool CCPP65Generator::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTempl
 		return true;
 	}
 
+	//template<class M> template<class N> N SBox<M>::Mul(N n) { ... }
+	pcClassTemplate = NULL;
+	if (pcDeclaration->GetKind() == CPPS_TemplateDeclaration)
+	{
+		pcClassTemplate = pcTemplate;
+		pcTemplate = (CCPPSyntaxTemplateDeclaration*)pcDeclaration;
+		pcDeclaration = pcTemplate->mpcDeclaration;
+		if (pcTemplate->mbInstantiation || (pcTemplate->macpParameters.NumElements() == 0) || !pcDeclaration || (pcDeclaration->GetKind() != CPPS_FunctionDefinition))
+		{
+			return true;
+		}
+	}
+
 	psTemplate = NULL;
-	if (pcDeclaration->GetKind() == CPPS_SimpleDeclaration)
+	if ((pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && !pcClassTemplate)
 	{
 		pcSimple = (CCPPSyntaxSimpleDeclaration*)pcDeclaration;
 		if (pcSimple->mpcSpecifiers && pcSimple->mpcSpecifiers->mpcType && (pcSimple->mpcSpecifiers->mpcType->GetKind() == CPPS_ClassSpecifier))
 		{
-			psTemplate = (SCPP65Template*)malloc(sizeof(SCPP65Template));
-			psTemplate->pcSymbol = ((CCPPSyntaxClassSpecifier*)pcSimple->mpcSpecifiers->mpcType)->mpcSymbol;
-			psTemplate->pcDefinition = pcSimple->mpcSpecifiers->mpcType;
-			psTemplate->bMember = false;
+			psTemplate = NewTemplate(((CCPPSyntaxClassSpecifier*)pcSimple->mpcSpecifiers->mpcType)->mpcSymbol, pcTemplate, pcSimple->mpcSpecifiers->mpcType, false);
 		}
 	}
 	else if (pcDeclaration->GetKind() == CPPS_FunctionDefinition)
@@ -263,30 +293,59 @@ bool CCPP65Generator::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTempl
 			//template<class M> M* CArrayTemplate<M>::Get(size iIndex) { ... }
 			pcClass = (CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0);
 			psClass = GetTemplateByName(GetComponentName(pcClass));
-			if (psClass)
+			if (psClass && pcClassTemplate)
 			{
-				psTemplate = (SCPP65Template*)malloc(sizeof(SCPP65Template));
-				psTemplate->pcSymbol = psClass->pcSymbol;
-				psTemplate->pcDefinition = pcFunction;
-				psTemplate->bMember = true;
+				psTemplate = NewTemplate(psClass->pcSymbol, pcTemplate, pcFunction, true);
+				psTemplate->bMemberTemplate = true;
+				psTemplate->pcClassDeclaration = pcClassTemplate;
+			}
+			else if (psClass)
+			{
+				psTemplate = NewTemplate(psClass->pcSymbol, pcTemplate, pcFunction, true);
+			}
+			else if (pcClass->mpcSymbol && (pcClass->mpcSymbol->meKind == CPPSK_Class))
+			{
+				//template<class T> int CValue::Size(T* p) { ... }
+				psTemplate = NewTemplate(pcClass->mpcSymbol, pcTemplate, pcFunction, true);
+				psTemplate->bMemberTemplate = true;
+			}
+			if (psTemplate && psTemplate->bMemberTemplate)
+			{
+				psTemplate->lliName = GetFunctionName(pcName->GetLast());
 			}
 		}
-		else if (pcName && (pcName->mpcSymbol || (pcName->GetLast()->meKind == CPPNC_Operator)))
+		else if (pcName && !pcClassTemplate && (pcName->mpcSymbol || (pcName->GetLast()->meKind == CPPNC_Operator)))
 		{
 			//An operator template has no symbol; it is found by its operator (FindFreeOperator).
-			psTemplate = (SCPP65Template*)malloc(sizeof(SCPP65Template));
-			psTemplate->pcSymbol = pcName->mpcSymbol;
-			psTemplate->pcDefinition = pcFunction;
-			psTemplate->bMember = false;
+			psTemplate = NewTemplate(pcName->mpcSymbol, pcTemplate, pcFunction, false);
 		}
 	}
-
-	if (psTemplate)
-	{
-		psTemplate->pcDeclaration = pcTemplate;
-		mapsTemplates.Add(psTemplate);
-	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new template, kept until the generator is killed.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Template* CCPP65Generator::NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, bool bMember)
+{
+	SCPP65Template*	psTemplate;
+
+	psTemplate = (SCPP65Template*)malloc(sizeof(SCPP65Template));
+	psTemplate->pcSymbol = pcSymbol;
+	psTemplate->pcDeclaration = pcDeclaration;
+	psTemplate->pcDefinition = pcDefinition;
+	psTemplate->bMember = bMember;
+	psTemplate->bMemberTemplate = false;
+	psTemplate->psClass = NULL;
+	psTemplate->lliName = -1;
+	psTemplate->pcClassDeclaration = NULL;
+	psTemplate->pcDeclarator = NULL;
+	psTemplate->bStatic = false;
+	mapsTemplates.Add(psTemplate);
+	return psTemplate;
 }
 
 
@@ -562,6 +621,10 @@ SCPP65Function* CCPP65Generator::InstantiateFunction(SCPP65Template* psTemplate,
 	size							j;
 	size							uiPointers;
 
+	if (psTemplate->psClass && !DefineMemberTemplate(psTemplate, pcNode))
+	{
+		return NULL;
+	}
 	pcDefinition = (CCPPSyntaxFunctionDefinition*)psTemplate->pcDefinition;
 	pcSuffix = pcDefinition->mpcDeclarator->GetFunctionSuffix();
 
@@ -621,18 +684,30 @@ SCPP65Function* CCPP65Generator::InstantiateFunction(SCPP65Template* psTemplate,
 		}
 	}
 
+	//A member template's instance also sees its class's template arguments.
 	psSaved = mpsBindings;
-	psBindings->psOuter = mpsBindings;
+	if (psTemplate->psClass)
+	{
+		psBindings->psOuter = psTemplate->pcClassDeclaration ? RenameBindings(psTemplate->psClass, psTemplate->pcClassDeclaration) : psTemplate->psClass->psBindings;
+	}
+	else
+	{
+		psBindings->psOuter = mpsBindings;
+	}
 	mpsBindings = psBindings;
-	psFunction = DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, NULL, false, psTemplate, &szArguments);
+	psFunction = DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, psTemplate->psClass, false, psTemplate, &szArguments);
 	mpsBindings = psSaved;
-	psBindings->psOuter = NULL;
+	if (!psTemplate->psClass)
+	{
+		psBindings->psOuter = NULL;
+	}
 	szArguments.Kill();
 	if (psFunction)
 	{
 		psFunction->pcDefinition = pcDefinition;
 		psFunction->psBindings = psBindings;
 		psFunction->bInline = true;
+		psFunction->bStatic |= psTemplate->bStatic;
 	}
 	return psFunction;
 }
@@ -744,7 +819,6 @@ bool CCPP65Generator::LayoutClass(SCPP65Class* psClass, CCPPSyntax* pcNode)
 	SCPP65Bindings*					psMemberBindings;
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	size							i;
-	size							j;
 	int								iBytes;
 	int								iAlign;
 	int								iFieldAlign;
@@ -782,20 +856,11 @@ bool CCPP65Generator::LayoutClass(SCPP65Class* psClass, CCPPSyntax* pcNode)
 		for (i = 0; i < mapsTemplates.NumElements(); i++)
 		{
 			psMember = mapsTemplates.GetPtr(i);
-			if (!psMember->bMember || (psMember->pcSymbol != psClass->psTemplate->pcSymbol))
+			if (!psMember->bMember || psMember->bMemberTemplate || (psMember->pcSymbol != psClass->psTemplate->pcSymbol))
 			{
 				continue;
 			}
-			psMemberBindings = (SCPP65Bindings*)malloc(sizeof(SCPP65Bindings));
-			psMemberBindings->macBindings.Init();
-			psMemberBindings->psOuter = psClass->psBindings;
-			psMemberBindings->psClass = psClass;
-			mapsAllBindings.Add(psMemberBindings);
-			for (j = 0; (j < psMember->pcDeclaration->macpParameters.NumElements()) && (j < psClass->psBindings->macBindings.NumElements()); j++)
-			{
-				*psMemberBindings->macBindings.Add() = *psClass->psBindings->macBindings.Get(j);
-				psMemberBindings->macBindings.Tail()->pcParameter = (psMember->pcDeclaration->macpParameters.GetPtr(j)->GetKind() == CPPS_TypeParameter) ? ((CCPPSyntaxTypeParameter*)psMember->pcDeclaration->macpParameters.GetPtr(j))->mpcSymbol : ((CCPPSyntaxParameter*)psMember->pcDeclaration->macpParameters.GetPtr(j))->mpcSymbol;
-			}
+			psMemberBindings = RenameBindings(psClass, psMember->pcDeclaration);
 
 			pcDefinition = (CCPPSyntaxFunctionDefinition*)psMember->pcDefinition;
 			mpsBindings = psMemberBindings;
@@ -893,6 +958,184 @@ bool CCPP65Generator::LayoutClass(SCPP65Class* psClass, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A class template instance's bindings under the parameter names of a declaration
+// outside the class (template<class N> ... CArrayTemplate<N>::...).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Bindings* CCPP65Generator::RenameBindings(SCPP65Class* psClass, CCPPSyntaxTemplateDeclaration* pcDeclaration)
+{
+	SCPP65Bindings*	psBindings;
+	CCPPSyntax*		pcParameter;
+	size			i;
+
+	psBindings = (SCPP65Bindings*)malloc(sizeof(SCPP65Bindings));
+	psBindings->macBindings.Init();
+	psBindings->psOuter = psClass->psBindings;
+	psBindings->psClass = psClass;
+	mapsAllBindings.Add(psBindings);
+	for (i = 0; (i < pcDeclaration->macpParameters.NumElements()) && (i < psClass->psBindings->macBindings.NumElements()); i++)
+	{
+		pcParameter = pcDeclaration->macpParameters.GetPtr(i);
+		*psBindings->macBindings.Add() = *psClass->psBindings->macBindings.Get(i);
+		psBindings->macBindings.Tail()->pcParameter = (pcParameter->GetKind() == CPPS_TypeParameter) ? ((CCPPSyntaxTypeParameter*)pcParameter)->mpcSymbol : ((CCPPSyntaxParameter*)pcParameter)->mpcSymbol;
+	}
+	return psBindings;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Keeps a member template of a class being laid out.  Its instances are made when
+// it is called (InstantiateFunction).  Member class templates, friend templates and
+// constructor templates are left out.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::MemberTemplate(SCPP65Class* psClass, CCPPSyntaxTemplateDeclaration* pcTemplate)
+{
+	CCPPSyntax*						pcDeclaration;
+	CCPPSyntaxSimpleDeclaration*	pcSimple;
+	CCPPSyntaxInitDeclarator*		pcInit;
+	CCPPSyntaxDeclSpecifiers*		pcSpecifiers;
+	CCPPSyntaxDeclarator*			pcDeclarator;
+	CCPPSyntaxName*					pcName;
+	SCPP65Template*					psTemplate;
+	int64							lliName;
+
+	pcDeclaration = pcTemplate->mpcDeclaration;
+	if (pcTemplate->mbInstantiation || (pcTemplate->macpParameters.NumElements() == 0) || !pcDeclaration)
+	{
+		return true;
+	}
+
+	pcSpecifiers = NULL;
+	pcDeclarator = NULL;
+	if (pcDeclaration->GetKind() == CPPS_FunctionDefinition)
+	{
+		pcSpecifiers = ((CCPPSyntaxFunctionDefinition*)pcDeclaration)->mpcSpecifiers;
+		pcDeclarator = ((CCPPSyntaxFunctionDefinition*)pcDeclaration)->mpcDeclarator;
+	}
+	else if (pcDeclaration->GetKind() == CPPS_SimpleDeclaration)
+	{
+		pcSimple = (CCPPSyntaxSimpleDeclaration*)pcDeclaration;
+		pcInit = (pcSimple->macpDeclarators.NumElements() == 1) ? (CCPPSyntaxInitDeclarator*)pcSimple->macpDeclarators.GetPtr(0) : NULL;
+		pcSpecifiers = pcSimple->mpcSpecifiers;
+		pcDeclarator = (pcInit && pcInit->mpcDeclarator && pcInit->mpcDeclarator->IsFunction()) ? pcInit->mpcDeclarator : NULL;
+	}
+	pcName = pcDeclarator ? pcDeclarator->GetName() : NULL;
+	if (!pcName || (pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_FRIEND)))
+	{
+		return true;
+	}
+	lliName = GetFunctionName(pcName->GetLast());
+	if ((lliName == -1) || (lliName == psClass->lliName) || (pcName->GetLast()->meKind == CPPNC_Destructor))
+	{
+		return true;
+	}
+
+	psTemplate = NewTemplate(pcName->mpcSymbol, pcTemplate, (pcDeclaration->GetKind() == CPPS_FunctionDefinition) ? pcDeclaration : NULL, true);
+	psTemplate->bMemberTemplate = true;
+	psTemplate->psClass = psClass;
+	psTemplate->lliName = lliName;
+	psTemplate->pcDeclarator = pcDeclarator;
+	psTemplate->bStatic = pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_STATIC);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A member template of the name in the class (or else its bases) that can take the
+// number of arguments.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Template* CCPP65Generator::FindMemberTemplate(SCPP65Class* psClass, int64 lliName, size uiArguments)
+{
+	SCPP65Template*				psTemplate;
+	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	CCPPSyntaxParameter*		pcParameter;
+	size						i;
+	size						uiParameters;
+	size						uiRequired;
+
+	for (i = 0; i < mapsTemplates.NumElements(); i++)
+	{
+		psTemplate = mapsTemplates.GetPtr(i);
+		if (!psTemplate->bMemberTemplate || (psTemplate->psClass != psClass) || (psTemplate->lliName != lliName))
+		{
+			continue;
+		}
+		pcSuffix = psTemplate->pcDeclarator->GetFunctionSuffix();
+		if (!pcSuffix)
+		{
+			continue;
+		}
+		uiParameters = pcSuffix->macpParameters.NumElements();
+		if (uiParameters == 1)
+		{
+			pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(0);
+			if (pcParameter->mpcSpecifiers && (pcParameter->mpcSpecifiers->muiTypeKeywords == CPPTK_VOID) && (!pcParameter->mpcDeclarator || (pcParameter->mpcDeclarator->macpPrefix.NumElements() == 0)))
+			{
+				//(void)
+				uiParameters = 0;
+			}
+		}
+		uiRequired = uiParameters;
+		while ((uiRequired > 0) && ((CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(uiRequired - 1))->mpcDefault)
+		{
+			uiRequired--;
+		}
+		if ((uiArguments >= uiRequired) && ((uiArguments <= uiParameters) || pcSuffix->mbVariadic))
+		{
+			return psTemplate;
+		}
+	}
+
+	for (i = 0; i < psClass->macBases.NumElements(); i++)
+	{
+		psTemplate = FindMemberTemplate(psClass->macBases.Get(i)->psClass, lliName, uiArguments);
+		if (psTemplate)
+		{
+			return psTemplate;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A member template declared in its class but defined outside it takes the outside
+// definition (and its parameters, which the definition uses).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::DefineMemberTemplate(SCPP65Template* psTemplate, CCPPSyntax* pcNode)
+{
+	SCPP65Template*	psOutside;
+	CCPPSymbol*		pcClassSymbol;
+	size			i;
+
+	if (psTemplate->pcDefinition)
+	{
+		return true;
+	}
+	pcClassSymbol = psTemplate->psClass->psTemplate ? psTemplate->psClass->psTemplate->pcSymbol : psTemplate->psClass->pcSymbol;
+	for (i = 0; i < mapsTemplates.NumElements(); i++)
+	{
+		psOutside = mapsTemplates.GetPtr(i);
+		if (psOutside->bMemberTemplate && !psOutside->psClass && (psOutside->pcSymbol == pcClassSymbol) && (psOutside->lliName == psTemplate->lliName))
+		{
+			psTemplate->pcDeclaration = psOutside->pcDeclaration;
+			psTemplate->pcDefinition = psOutside->pcDefinition;
+			psTemplate->pcClassDeclaration = psOutside->pcClassDeclaration;
+			return true;
+		}
+	}
+	return Error(pcNode, "The member template has not been defined");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Declares a member of a class being laid out.  Functions defined in the class are
 // generated when they are called.
 //
@@ -903,6 +1146,7 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 	CCPPSyntaxFunctionDefinition*	pcFunction;
 	CCPPSyntaxInitDeclarator*		pcInit;
 	CCPPSyntaxDeclSpecifiers*		pcSpecifiers;
+	CCPPSyntaxClassSpecifier*		pcClassSpecifier;
 	SCPP65Field*					psField;
 	SCPP65Variable*					psVariable;
 	SCPP65Function*					psFunction;
@@ -919,11 +1163,12 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 	case CPPS_AccessSpecifier:
 	case CPPS_EmptyDeclaration:
 	case CPPS_StaticAssert:
-	case CPPS_TemplateDeclaration:
 	case CPPS_UsingDeclaration:
 	case CPPS_AliasDeclaration:
-		//Member templates are not supported yet; they are left out until used.
 		return true;
+
+	case CPPS_TemplateDeclaration:
+		return MemberTemplate(psClass, (CCPPSyntaxTemplateDeclaration*)pcMember);
 
 	case CPPS_FunctionDefinition:
 		pcFunction = (CCPPSyntaxFunctionDefinition*)pcMember;
@@ -968,7 +1213,11 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 		if (pcSpecifiers && pcSpecifiers->mpcType && (pcSpecifiers->mpcType->GetKind() == CPPS_ClassSpecifier))
 		{
 			//A nested class is laid out when it is used.
-			GetClass(((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType)->mpcSymbol, pcMember)->pcSpecifier = (CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType;
+			pcClassSpecifier = (CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType;
+			if (pcClassSpecifier->mpcSymbol)
+			{
+				GetClass(pcClassSpecifier->mpcSymbol, pcMember)->pcSpecifier = pcClassSpecifier;
+			}
 		}
 
 		bResult = true;
@@ -2652,9 +2901,11 @@ SCPP65Type* CCPP65Generator::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSy
 	CCPPSyntaxMemberExpression*	pcMember;
 	CCPPSyntaxIdExpression*		pcId;
 	CCPPSyntaxName*				pcName;
+	CCPPSyntaxNameComponent*	pcComponent;
 	CCPPSyntax*					pcObject;
 	SCPP65Class*				psClass;
 	SCPP65Function*				psFunction;
+	SCPP65Template*				psTemplate;
 	SCPP65Type*					psType;
 	SCPP65Place					sObject;
 	int64						lliName;
@@ -2720,8 +2971,27 @@ SCPP65Type* CCPP65Generator::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSy
 		Error(pcCallee, "This call is not supported by the 65C64 generator yet");
 		return NULL;
 	}
+	//A member template is used when it has template arguments or no other function matches.
 	uiErrors = mcErrors.NumErrors();
-	psFunction = FindFunction(psClass, lliName, CPP65FK_Function, &pcCall->macpArguments, true, pcCall);
+	pcComponent = pcName->GetLast();
+	psTemplate = (CompleteClass(psClass, pcCall) ? FindMemberTemplate(psClass, lliName, pcCall->macpArguments.NumElements()) : NULL);
+	psFunction = NULL;
+	if (!psTemplate || !pcComponent->mbTemplateArguments)
+	{
+		if (psTemplate)
+		{
+			BeginQuiet();
+		}
+		psFunction = FindFunction(psClass, lliName, CPP65FK_Function, &pcCall->macpArguments, true, pcCall);
+		if (psTemplate)
+		{
+			EndQuiet();
+		}
+	}
+	if (!psFunction && psTemplate)
+	{
+		psFunction = InstantiateFunction(psTemplate, pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL, &pcCall->macpArguments, pcCall);
+	}
 	if (!psFunction)
 	{
 		if (mcErrors.NumErrors() == uiErrors)

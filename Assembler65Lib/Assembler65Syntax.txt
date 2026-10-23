@@ -38,7 +38,10 @@ final pass writes the output and reports errors.  An instruction picks its
 shortest form (embedded, then the narrowest immediate, offset before absolute,
 branch always before jump relative) but never gets shorter than it was in an
 earlier pass, so the passes always settle.  A forward reference starts at its
-shortest form and grows.
+shortest form and grows.  A label not yet reached in a pass is taken to have moved
+as far as the last label bound in its section (instructions only grow, so it has
+moved at least that far; after .org, .align or a section switch no move is assumed),
+so a short branch after an instruction that grew is not made long for good.
 
 
 Lines

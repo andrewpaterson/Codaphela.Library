@@ -132,18 +132,90 @@ bool COrderer::Order(Ptr<CArray<CBaseObject>> pOrdered)
 //////////////////////////////////////////////////////////////////////////
 bool COrderer::Order(Ptr<CArray<CBaseObject>> pOrdered, Ptr<CArray<CBaseObject>> pUnordered)
 {
+	CArrayTemplate<size>	auiOrdered;
+	CArrayTemplate<size>	auiUnordered;
+	size					i;
+	bool					bResult;
+
+	auiOrdered.Init();
+	auiUnordered.Init();
+	bResult = OrderHolders(&auiOrdered, &auiUnordered, ARRAY_ELEMENT_NOT_FOUND, NULL);
+
+	for (i = 0; i < auiOrdered.NumElements(); i++)
+	{
+		pOrdered->Add(mpHolders->Get(*auiOrdered.Get(i))->GetObject());
+	}
+	if (pUnordered.IsNotNull())
+	{
+		for (i = 0; i < auiUnordered.NumElements(); i++)
+		{
+			pUnordered->Add(mpHolders->Get(*auiUnordered.Get(i))->GetObject());
+		}
+	}
+
+	auiUnordered.Kill();
+	auiOrdered.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the objects could still all be ordered if pObject also required
+// szName, without adding the requirement.  False if they can't be ordered
+// already.  An object that hasn't been added could require szName if the
+// objects can be ordered and one of them fulfils it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool COrderer::CanRequire(Ptr<CBaseObject> pObject, const char* szName)
+{
+	CArrayTemplate<size>	auiOrdered;
+	CArrayTemplate<size>	auiUnordered;
+	size					uiHolder;
+	bool					bResult;
+
+	auiOrdered.Init();
+	auiUnordered.Init();
+
+	uiHolder = GetHolderIndex(pObject);
+	if (uiHolder == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		bResult = OrderHolders(&auiOrdered, &auiUnordered, ARRAY_ELEMENT_NOT_FOUND, NULL);
+		if (bResult)
+		{
+			bResult = IsFulfilled(szName);
+		}
+	}
+	else
+	{
+		bResult = OrderHolders(&auiOrdered, &auiUnordered, uiHolder, szName);
+	}
+
+	auiUnordered.Kill();
+	auiOrdered.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Orders the holders by index.  The holder at uiExtraHolder also requires
+// szExtraRequirement as if it had been added.
+//
+//////////////////////////////////////////////////////////////////////////
+bool COrderer::OrderHolders(CArrayTemplate<size>* pauiOrdered, CArrayTemplate<size>* pauiUnordered, size uiExtraHolder, const char* szExtraRequirement)
+{
 	CArrayTemplate<size>	auiToProcess;
-	CArrayTemplate<size>	auiRemaining;
 	CMapStringInt			cFulfilled;
 	size					i;
 	size					j;
 	size					uiHolder;
 	Ptr<COrdererHolder>		pHolder;
 	CArrayChars*			paszFulfilments;
+	const char*				szRequirement;
 	bool					bResult;
 
 	auiToProcess.Init();
-	auiRemaining.Init();
 	cFulfilled.Init(true);
 	for (i = 0; i < mpHolders->NumElements(); i++)
 	{
@@ -154,13 +226,15 @@ bool COrderer::Order(Ptr<CArray<CBaseObject>> pOrdered, Ptr<CArray<CBaseObject>>
 	while (auiToProcess.NumElements() > 0)
 	{
 		//Objects ordered earlier in a pass fulfil requirements of objects later in it.
+		pauiUnordered->ReInit();
 		for (i = 0; i < auiToProcess.NumElements(); i++)
 		{
 			uiHolder = *auiToProcess.Get(i);
 			pHolder = mpHolders->Get(uiHolder);
-			if (AreRequirementsFulfilled(pHolder, &cFulfilled))
+			szRequirement = (uiHolder == uiExtraHolder) ? szExtraRequirement : NULL;
+			if (AreRequirementsFulfilled(pHolder, szRequirement, &cFulfilled))
 			{
-				pOrdered->Add(pHolder->GetObject());
+				pauiOrdered->Add(&uiHolder);
 				paszFulfilments = pHolder->GetFulfilments();
 				for (j = 0; j < paszFulfilments->NumElements(); j++)
 				{
@@ -169,32 +243,21 @@ bool COrderer::Order(Ptr<CArray<CBaseObject>> pOrdered, Ptr<CArray<CBaseObject>>
 			}
 			else
 			{
-				auiRemaining.Add(&uiHolder);
+				pauiUnordered->Add(&uiHolder);
 			}
 		}
 
-		if (auiRemaining.NumElements() == auiToProcess.NumElements())
+		if (pauiUnordered->NumElements() == auiToProcess.NumElements())
 		{
 			bResult = false;
 			break;
 		}
 
 		auiToProcess.ReInit();
-		auiToProcess.Copy(&auiRemaining);
-		auiRemaining.ReInit();
-	}
-
-	if (!bResult && pUnordered.IsNotNull())
-	{
-		for (i = 0; i < auiRemaining.NumElements(); i++)
-		{
-			pHolder = mpHolders->Get(*auiRemaining.Get(i));
-			pUnordered->Add(pHolder->GetObject());
-		}
+		auiToProcess.Copy(pauiUnordered);
 	}
 
 	cFulfilled.Kill();
-	auiRemaining.Kill();
 	auiToProcess.Kill();
 	return bResult;
 }
@@ -202,12 +265,18 @@ bool COrderer::Order(Ptr<CArray<CBaseObject>> pOrdered, Ptr<CArray<CBaseObject>>
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The holder's requirements and szExtraRequirement, if not NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-bool COrderer::AreRequirementsFulfilled(Ptr<COrdererHolder> pHolder, CMapStringInt* pcFulfilled)
+bool COrderer::AreRequirementsFulfilled(Ptr<COrdererHolder> pHolder, const char* szExtraRequirement, CMapStringInt* pcFulfilled)
 {
 	CArrayChars*	paszRequirements;
 	size			i;
+
+	if ((szExtraRequirement != NULL) && !pcFulfilled->HasKey(szExtraRequirement))
+	{
+		return false;
+	}
 
 	paszRequirements = pHolder->GetRequirements();
 	for (i = 0; i < paszRequirements->NumElements(); i++)
@@ -218,6 +287,28 @@ bool COrderer::AreRequirementsFulfilled(Ptr<COrdererHolder> pHolder, CMapStringI
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether any object fulfils szName.
+//
+//////////////////////////////////////////////////////////////////////////
+bool COrderer::IsFulfilled(const char* szName)
+{
+	size				i;
+	Ptr<COrdererHolder>	pHolder;
+
+	for (i = 0; i < mpHolders->NumElements(); i++)
+	{
+		pHolder = mpHolders->Get(i);
+		if (pHolder->GetFulfilments()->GetIndex(szName) != ARRAY_ELEMENT_NOT_FOUND)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 

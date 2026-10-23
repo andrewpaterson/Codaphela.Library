@@ -385,8 +385,11 @@ bool CCPP65Generator::FunctionNameText(int64 lliName, CChars* pszText)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Generator::IdExpression(CCPPSyntaxIdExpression* pcId)
 {
-	CCPPSymbol*		pcSymbol;
-	CChars			szName;
+	CCPPSymbol*				pcSymbol;
+	CChars					szName;
+	CCPPSyntaxParameter*	pcParameter;
+	SCPP65Binding*			psBinding;
+	SCPP65Type*				psType;
 
 	pcSymbol = pcId->mpcName->mpcSymbol;
 	if (IsFunctionName(pcId))
@@ -400,6 +403,21 @@ SCPP65Type* CCPP65Generator::IdExpression(CCPPSyntaxIdExpression* pcId)
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_Enumerator))
 	{
 		return SimpleValue(pcId, "A");
+	}
+	if (pcSymbol && (pcSymbol->meKind == CPPSK_ValueParameter))
+	{
+		//A non-type template parameter is its argument, at the parameter's type.
+		psBinding = FindBinding(pcSymbol);
+		if (!psBinding)
+		{
+			Error(pcId, "A template parameter used outside an instantiation");
+			return NULL;
+		}
+		pcParameter = (CCPPSyntaxParameter*)pcSymbol->mpcDeclaration;
+		psType = (pcParameter && (pcParameter->GetKind() == CPPS_Parameter)) ? GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter) : NULL;
+		psType = (psType && psType->IsInteger()) ? psType : &mcTypes.msInt;
+		LoadConstant("A", psType, psBinding->lliValue);
+		return psType;
 	}
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_Function) && (pcId->mpcName->macpComponents.NumElements() == 1))
 	{
@@ -1071,9 +1089,13 @@ SCPP65Type* CCPP65Generator::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		}
 	}
 
-	//f<Arguments>(...) and f(...) for a function template.
+	//f<Arguments>(...) and f(...) for a function template; in a member function it may be a member template.
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
 	{
+		if (mpsFunction && mpsFunction->psClass && !pcName->mbGlobal && FindMemberTemplate(mpsFunction->psClass, pcSymbol->mlliName, pcCall->macpArguments.NumElements()))
+		{
+			return MemberCall(pcCall, pcCallee);
+		}
 		psTemplate = GetTemplate(pcSymbol);
 		if (!psTemplate)
 		{

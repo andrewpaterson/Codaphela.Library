@@ -202,13 +202,22 @@ struct SCPP65Class
 };
 
 
-//A class or function template, or a member function of a class template defined outside the class.
+//A class or function template, a member function of a class template defined outside the class, or a member
+//template.  A member template is kept for each class (or class template instance) it is in (psClass).  One
+//defined outside its class is kept once, with psClass NULL, and found by the class's name (pcSymbol) and its
+//own name (lliName); pcClassDeclaration is the class template's parameters if the class is a template.
 struct SCPP65Template
 {
-	CCPPSymbol*						pcSymbol;		//The template's name; for an outside member, the class template's.
+	CCPPSymbol*						pcSymbol;		//The template's name; for an outside member, the class's.
 	CCPPSyntaxTemplateDeclaration*	pcDeclaration;
 	CCPPSyntax*						pcDefinition;	//A class specifier or a function definition.
 	bool							bMember;
+	bool							bMemberTemplate;
+	SCPP65Class*					psClass;
+	int64							lliName;
+	CCPPSyntaxTemplateDeclaration*	pcClassDeclaration;
+	CCPPSyntaxDeclarator*			pcDeclarator;	//A member template's declarator in its class.
+	bool							bStatic;
 };
 
 
@@ -501,6 +510,11 @@ protected:
 	SCPP65Binding*			FindBinding(CCPPSymbol* pcParameter);
 	SCPP65Class*			InstantiateClass(SCPP65Template* psTemplate, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	SCPP65Function*			InstantiateFunction(SCPP65Template* psTemplate, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
+	SCPP65Template*			NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, bool bMember);
+	bool					MemberTemplate(SCPP65Class* psClass, CCPPSyntaxTemplateDeclaration* pcTemplate);
+	SCPP65Template*			FindMemberTemplate(SCPP65Class* psClass, int64 lliName, size uiArguments);
+	bool					DefineMemberTemplate(SCPP65Template* psTemplate, CCPPSyntax* pcNode);
+	SCPP65Bindings*			RenameBindings(SCPP65Class* psClass, CCPPSyntaxTemplateDeclaration* pcDeclaration);
 	bool					CompleteClass(SCPP65Class* psClass, CCPPSyntax* pcNode);
 	bool					ResolveBases(SCPP65Class* psClass, CCPPSyntax* pcNode);
 	bool					LayoutClass(SCPP65Class* psClass, CCPPSyntax* pcNode);

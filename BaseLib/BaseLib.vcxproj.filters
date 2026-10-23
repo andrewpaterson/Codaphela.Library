@@ -397,6 +397,9 @@
     <Filter Include="Source\Text\Encoding">
       <UniqueIdentifier>{31917a0c-e105-4327-ba3d-75d7b21483b3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Geometric\Line">
+      <UniqueIdentifier>{99ebf51e-8733-4f9e-8cee-67972253b255}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Data\Geometric\Vector2">
       <UniqueIdentifier>{1ba3a78e-5edd-49b4-8c3d-cd1900dff4e0}</UniqueIdentifier>
     </Filter>
@@ -428,6 +431,30 @@
     </ClInclude>
     <ClInclude Include="RedBlackTree.h">
       <Filter>Source\Data\Array\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="Line.h">
+      <Filter>Source\Data\Geometric\Line</Filter>
+    </ClInclude>
+    <ClInclude Include="LineBucket.h">
+      <Filter>Source\Data\Geometric\Line</Filter>
+    </ClInclude>
+    <ClInclude Include="LineDirection.h">
+      <Filter>Source\Data\Geometric\Line</Filter>
+    </ClInclude>
+    <ClInclude Include="LineMinimiser.h">
+      <Filter>Source\Data\Geometric\Line</Filter>
+    </ClInclude>
+    <ClInclude Include="LineOverlap.h">
+      <Filter>Source\Data\Geometric\Line</Filter>
+    </ClInclude>
+    <ClInclude Include="LinePositionCache.h">
+      <Filter>Source\Data\Geometric\Line</Filter>
+    </ClInclude>
+    <ClInclude Include="LineSplitter.h">
+      <Filter>Source\Data\Geometric\Line</Filter>
+    </ClInclude>
+    <ClInclude Include="Positions.h">
+      <Filter>Source\Data\Geometric\Line</Filter>
     </ClInclude>
     <ClInclude Include="TreeBlock.h">
       <Filter>Source\Data\Types\Tree</Filter>
@@ -2080,6 +2107,30 @@
     </ClCompile>
     <ClCompile Include="RedBlackTree.cpp">
       <Filter>Source\Data\Array\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Line.cpp">
+      <Filter>Source\Data\Geometric\Line</Filter>
+    </ClCompile>
+    <ClCompile Include="LineBucket.cpp">
+      <Filter>Source\Data\Geometric\Line</Filter>
+    </ClCompile>
+    <ClCompile Include="LineDirection.cpp">
+      <Filter>Source\Data\Geometric\Line</Filter>
+    </ClCompile>
+    <ClCompile Include="LineMinimiser.cpp">
+      <Filter>Source\Data\Geometric\Line</Filter>
+    </ClCompile>
+    <ClCompile Include="LineOverlap.cpp">
+      <Filter>Source\Data\Geometric\Line</Filter>
+    </ClCompile>
+    <ClCompile Include="LinePositionCache.cpp">
+      <Filter>Source\Data\Geometric\Line</Filter>
+    </ClCompile>
+    <ClCompile Include="LineSplitter.cpp">
+      <Filter>Source\Data\Geometric\Line</Filter>
+    </ClCompile>
+    <ClCompile Include="Positions.cpp">
+      <Filter>Source\Data\Geometric\Line</Filter>
     </ClCompile>
     <ClCompile Include="MapStringInt.cpp">
       <Filter>Source\Data\Map\Map\String</Filter>
