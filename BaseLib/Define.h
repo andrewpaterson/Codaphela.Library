@@ -105,5 +105,27 @@ Microsoft Windows is Copyright Microsoft Corporation
 #endif // LINUX_GNU
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Compiled by CppParserLib's 65C64 generator with the Libc65 headers.
+//
+//////////////////////////////////////////////////////////////////////////
+#ifdef __65C64__
+#include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <memory.h>
+#include <stddef.h>
+#include <limits.h>
+#define MAX_PATH 260
+#define FILE_SEPARATOR "/"
+#define _FS_ FILE_SEPARATOR
+#define OTHER_OS_FILE_SEPARATOR "\\"
+#define __cdecl
+#define __ENGINE_FUNCTION__ __FUNCTION__
+#define __ENGINE_PRETTY_FUNCTION__ __PRETTY_FUNCTION__
+#endif // __65C64__
+
+
 #endif // __DEFINE_H__
 
