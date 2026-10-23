@@ -1,6 +1,7 @@
 //Memory allocation and general functions for the 65C64, in C++ for the 65C64 generator.
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 
 //The heap is 0008:0000 to 000F:FFFF.  A block has its size (with this header) and, while free, the next free
@@ -131,73 +132,135 @@ long labs(long i)
 }
 
 
-long strtol(const char* sz, char** pszEnd, int iBase)
+//The value of c as a digit, or 36 if it isn't one in any base.
+static int DigitValue(char c)
 {
-	return (long)strtoul(sz, pszEnd, iBase);
+	if ((c >= '0') && (c <= '9'))
+	{
+		return c - '0';
+	}
+	if ((c >= 'a') && (c <= 'z'))
+	{
+		return c - 'a' + 10;
+	}
+	if ((c >= 'A') && (c <= 'Z'))
+	{
+		return c - 'A' + 10;
+	}
+	return 36;
 }
 
 
-unsigned long strtoul(const char* sz, char** pszEnd, int iBase)
+//Reads the sign and magnitude of a number for strtol and strtoul.  *pbOverflow is set if the magnitude doesn't
+//fit in an unsigned long.  Without any digits *pszEnd is sz and false is returned.
+static bool ParseInteger(const char* sz, char** pszEnd, int iBase, unsigned long* pulValue, bool* pbNegative, bool* pbOverflow)
 {
+	const char*		szStart;
 	unsigned long	ulValue;
+	unsigned long	ulLimit;
+	int				iLimitDigit;
 	int				iDigit;
-	bool			bNegative;
+	bool			bDigits;
 
-	while ((*sz == ' ') || (*sz == '\t') || (*sz == '\n') || (*sz == '\r'))
+	szStart = sz;
+	while ((*sz == ' ') || ((*sz >= '\t') && (*sz <= '\r')))
 	{
 		sz++;
 	}
-	bNegative = false;
+	*pbNegative = false;
 	if ((*sz == '-') || (*sz == '+'))
 	{
-		bNegative = *sz == '-';
+		*pbNegative = *sz == '-';
 		sz++;
 	}
-	if (((iBase == 0) || (iBase == 16)) && (sz[0] == '0') && ((sz[1] == 'x') || (sz[1] == 'X')))
+
+	//0x is only a prefix if a hex digit follows it; otherwise the 0 is the number.
+	if (((iBase == 0) || (iBase == 16)) && (sz[0] == '0') && ((sz[1] == 'x') || (sz[1] == 'X')) && (DigitValue(sz[2]) < 16))
 	{
 		iBase = 16;
 		sz += 2;
 	}
-	else if ((iBase == 0) && (sz[0] == '0'))
-	{
-		iBase = 8;
-	}
 	else if (iBase == 0)
 	{
-		iBase = 10;
+		iBase = (sz[0] == '0') ? 8 : 10;
 	}
 
+	ulLimit = ULONG_MAX / iBase;
+	iLimitDigit = (int)(ULONG_MAX % iBase);
 	ulValue = 0;
+	bDigits = false;
+	*pbOverflow = false;
 	for (;;)
 	{
-		if ((*sz >= '0') && (*sz <= '9'))
-		{
-			iDigit = *sz - '0';
-		}
-		else if ((*sz >= 'a') && (*sz <= 'z'))
-		{
-			iDigit = *sz - 'a' + 10;
-		}
-		else if ((*sz >= 'A') && (*sz <= 'Z'))
-		{
-			iDigit = *sz - 'A' + 10;
-		}
-		else
-		{
-			break;
-		}
+		iDigit = DigitValue(*sz);
 		if (iDigit >= iBase)
 		{
 			break;
 		}
-		ulValue = ulValue * iBase + iDigit;
+		if ((ulValue > ulLimit) || ((ulValue == ulLimit) && (iDigit > iLimitDigit)))
+		{
+			*pbOverflow = true;
+		}
+		else
+		{
+			ulValue = ulValue * iBase + iDigit;
+		}
+		bDigits = true;
 		sz++;
 	}
+
 	if (pszEnd)
 	{
-		*pszEnd = (char*)sz;
+		*pszEnd = (char*)(bDigits ? sz : szStart);
 	}
-	return bNegative ? (unsigned long)(-(long)ulValue) : ulValue;
+	*pulValue = ulValue;
+	return bDigits;
+}
+
+
+//Out of range values are LONG_MIN or LONG_MAX.
+long strtol(const char* sz, char** pszEnd, int iBase)
+{
+	unsigned long	ulValue;
+	bool			bNegative;
+	bool			bOverflow;
+
+	if (!ParseInteger(sz, pszEnd, iBase, &ulValue, &bNegative, &bOverflow))
+	{
+		return 0;
+	}
+	if (bNegative)
+	{
+		if (bOverflow || (ulValue > (unsigned long)LONG_MAX + 1))
+		{
+			return LONG_MIN;
+		}
+		return (long)((unsigned long)0 - ulValue);
+	}
+	if (bOverflow || (ulValue > (unsigned long)LONG_MAX))
+	{
+		return LONG_MAX;
+	}
+	return (long)ulValue;
+}
+
+
+//Out of range values are ULONG_MAX.  A negative number is negated as an unsigned long.
+unsigned long strtoul(const char* sz, char** pszEnd, int iBase)
+{
+	unsigned long	ulValue;
+	bool			bNegative;
+	bool			bOverflow;
+
+	if (!ParseInteger(sz, pszEnd, iBase, &ulValue, &bNegative, &bOverflow))
+	{
+		return 0;
+	}
+	if (bOverflow)
+	{
+		return ULONG_MAX;
+	}
+	return bNegative ? (unsigned long)0 - ulValue : ulValue;
 }
 
 
@@ -219,7 +282,7 @@ unsigned int	guiRandom = 1;
 
 int rand(void)
 {
-	guiRandom = guiRandom * 1103525245 + 12345;
+	guiRandom = guiRandom * 1103515245 + 12345;
 	return (int)((guiRandom / 65536) % (RAND_MAX + 1));
 }
 

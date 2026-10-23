@@ -100,13 +100,24 @@ struct tm* localtime(const time_t* ptTime)
 }
 
 
+//Fields outside their ranges are carried into the others, then all of *psTime is set from the time, so it is
+//normalised and has tm_wday and tm_yday.
 time_t mktime(struct tm* psTime)
 {
 	long	lDays;
 	int		iYear;
 	int		iMonth;
+	int		iMonths;
+	time_t	tTime;
 
-	iYear = psTime->tm_year + 1900;
+	iYear = psTime->tm_year + 1900 + psTime->tm_mon / 12;
+	iMonths = psTime->tm_mon % 12;
+	if (iMonths < 0)
+	{
+		iMonths += 12;
+		iYear--;
+	}
+
 	lDays = 0;
 	if (iYear >= 1970)
 	{
@@ -122,11 +133,13 @@ time_t mktime(struct tm* psTime)
 			lDays -= IsLeapYear(i) ? 366 : 365;
 		}
 	}
-	for (iMonth = 0; iMonth < psTime->tm_mon; iMonth++)
+	for (iMonth = 0; iMonth < iMonths; iMonth++)
 	{
 		lDays += DaysInMonth(iYear, iMonth);
 	}
 	lDays += psTime->tm_mday - 1;
-	return ((lDays * 24 + psTime->tm_hour) * 60 + psTime->tm_min) * 60 + psTime->tm_sec;
+	tTime = ((lDays * 24 + psTime->tm_hour) * 60 + psTime->tm_min) * 60 + psTime->tm_sec;
+	*psTime = *gmtime(&tTime);
+	return tTime;
 }
 
