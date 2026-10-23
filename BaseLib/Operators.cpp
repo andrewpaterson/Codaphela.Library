@@ -32,28 +32,12 @@ COperators gcOperators;
 //////////////////////////////////////////////////////////////////////////
 void COperators::Init(void)
 {
-	mcAdd.Init();
-	mcSub.Init();
-	mcIncrement.Init();
-	mcDecrement.Init();
-	mcMultiply.Init();
-	mcDivide.Init();
-	mcRemainder.Init();
-	mcPower.Init();
-
 	mcEqual.Init();
 	mcNotEqual.Init();
 	mcLess.Init();
 	mcLessOrEqual.Init();
 	mcGreater.Init();
 	mcGreaterOrEqual.Init();
-
-	mcBwAnd.Init();
-	mcLeftShift.Init();
-	mcBwNot.Init();
-	mcBwOr.Init();
-	mcRightShift.Init();
-	mcBwXOr.Init();
 
 	mcLgAnd.Init();
 	mcLgNot.Init();
@@ -69,28 +53,12 @@ void COperators::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void COperators::Kill(void)
 {
-	mcAdd.Kill();
-	mcSub.Kill();
-	mcIncrement.Kill();
-	mcDecrement.Kill();
-	mcMultiply.Kill();
-	mcDivide.Kill();
-	mcRemainder.Kill();
-	mcPower.Kill();
-
 	mcEqual.Kill();
 	mcNotEqual.Kill();
 	mcLess.Kill();
 	mcLessOrEqual.Kill();
 	mcGreater.Kill();
 	mcGreaterOrEqual.Kill();
-
-	mcBwAnd.Kill();
-	mcLeftShift.Kill();
-	mcBwNot.Kill();
-	mcBwOr.Kill();
-	mcRightShift.Kill();
-	mcBwXOr.Kill();
 
 	mcLgAnd.Kill();
 	mcLgNot.Kill();

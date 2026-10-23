@@ -22,14 +22,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __OPERATORS_H__
 #define __OPERATORS_H__
-#include "OperatorPlus.h"
-#include "OperatorMinus.h"
-#include "OperatorIncrement.h"
-#include "OperatorDecrement.h"
-#include "OperatorMultiply.h"
-#include "OperatorDivide.h"
-#include "OperatorRemainder.h"
-#include "OperatorPower.h"
 
 #include "OperatorEqual.h"
 #include "OperatorNotEqual.h"
@@ -38,50 +30,25 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "OperatorGreaterThan.h"
 #include "OperatorGreatherThanOrEqual.h"
 
-#include "OperatorBitwiseAnd.h"
-#include "OperatorLeftShift.h"
-#include "OperatorBitwiseNot.h"
-#include "OperatorBitwiseOr.h"
-#include "OperatorRightShift.h"
-#include "OperatorBitwiseXOr.h"
-
 #include "OperatorLogicalAnd.h"
 #include "OperatorLogicalNot.h"
 #include "OperatorLogicalOr.h"
 
 #include "OperatorAssignment.h"
 
-//Arithmetic functions: + - * / ++ -- ^ %
 //Relational functions: > < == >= <= !=
-//Bitwise functions: << >> ~ & | xor
 //Logical functions: ! && ||
 
 
 class COperators
 {
 public:
-	COperatorPlus		mcAdd;
-	COperatorMinus		mcSub;
-	COperatorIncrement	mcIncrement;
-	COperatorDecrement	mcDecrement;
-	COperatorMultiply	mcMultiply;
-	COperatorDivide		mcDivide;
-	COperatorRemainder	mcRemainder;
-	COperatorPower		mcPower;
-
 	COperatorEqual					mcEqual;
 	COperatorNotEqual				mcNotEqual;
 	COperatorLessThan				mcLess;
 	COperatorLessThanOrEqual		mcLessOrEqual;
 	COperatorGreaterThan			mcGreater;
 	COperatorGreatherThanOrEqual	mcGreaterOrEqual;
-
-	COperatorBitwiseAnd	mcBwAnd;
-	COperatorLeftShift	mcLeftShift;
-	COperatorBitwiseNot	mcBwNot;
-	COperatorBitwiseOr	mcBwOr;
-	COperatorRightShift	mcRightShift;
-	COperatorBitwiseXOr	mcBwXOr;
 
 	COperatorLogicalAnd	mcLgAnd;
 	COperatorLogicalNot	mcLgNot;

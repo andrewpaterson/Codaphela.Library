@@ -1383,48 +1383,6 @@
     <ClInclude Include="OperatorNotEqual.h">
       <Filter>Source\Script\Operators\Relational\NotEqual</Filter>
     </ClInclude>
-    <ClInclude Include="OperatorLeftShift.h">
-      <Filter>Source\Script\Operators\Bitwise\LeftShift</Filter>
-    </ClInclude>
-    <ClInclude Include="OperatorRightShift.h">
-      <Filter>Source\Script\Operators\Bitwise\RightShift</Filter>
-    </ClInclude>
-    <ClInclude Include="OperatorBitwiseAnd.h">
-      <Filter>Source\Script\Operators\Bitwise\And</Filter>
-    </ClInclude>
-    <ClInclude Include="OperatorBitwiseOr.h">
-      <Filter>Source\Script\Operators\Bitwise\Or</Filter>
-    </ClInclude>
-    <ClInclude Include="OperatorBitwiseNot.h">
-      <Filter>Source\Script\Operators\Bitwise\Not</Filter>
-    </ClInclude>
-    <ClInclude Include="OperatorBitwiseXOr.h">
-      <Filter>Source\Script\Operators\Bitwise\XOr</Filter>
-    </ClInclude>
-    <ClInclude Include="OperatorPlus.h">
-      <Filter>Source\Script\Operators\Arithmetic\Plus</Filter>
-    </ClInclude>
-    <ClInclude Include="OperatorMultiply.h">
-      <Filter>Source\Script\Operators\Arithmetic\Multiply</Filter>
-    </ClInclude>
-    <ClInclude Include="OperatorPower.h">
-      <Filter>Source\Script\Operators\Arithmetic\Power</Filter>
-    </ClInclude>
-    <ClInclude Include="OperatorDecrement.h">
-      <Filter>Source\Script\Operators\Arithmetic\Decrement</Filter>
-    </ClInclude>
-    <ClInclude Include="OperatorDivide.h">
-      <Filter>Source\Script\Operators\Arithmetic\Divide</Filter>
-    </ClInclude>
-    <ClInclude Include="OperatorMinus.h">
-      <Filter>Source\Script\Operators\Arithmetic\Minus</Filter>
-    </ClInclude>
-    <ClInclude Include="OperatorIncrement.h">
-      <Filter>Source\Script\Operators\Arithmetic\Increment</Filter>
-    </ClInclude>
-    <ClInclude Include="OperatorRemainder.h">
-      <Filter>Source\Script\Operators\Arithmetic\Remainder</Filter>
-    </ClInclude>
     <ClInclude Include="OperatorAssignment.h">
       <Filter>Source\Script\Operators\Assignment</Filter>
     </ClInclude>
@@ -2636,48 +2594,6 @@
     <ClCompile Include="OperatorNotEqual.cpp">
       <Filter>Source\Script\Operators\Relational\NotEqual</Filter>
     </ClCompile>
-    <ClCompile Include="OperatorLeftShift.cpp">
-      <Filter>Source\Script\Operators\Bitwise\LeftShift</Filter>
-    </ClCompile>
-    <ClCompile Include="OperatorRightShift.cpp">
-      <Filter>Source\Script\Operators\Bitwise\RightShift</Filter>
-    </ClCompile>
-    <ClCompile Include="OperatorBitwiseAnd.cpp">
-      <Filter>Source\Script\Operators\Bitwise\And</Filter>
-    </ClCompile>
-    <ClCompile Include="OperatorBitwiseOr.cpp">
-      <Filter>Source\Script\Operators\Bitwise\Or</Filter>
-    </ClCompile>
-    <ClCompile Include="OperatorBitwiseNot.cpp">
-      <Filter>Source\Script\Operators\Bitwise\Not</Filter>
-    </ClCompile>
-    <ClCompile Include="OperatorBitwiseXOr.cpp">
-      <Filter>Source\Script\Operators\Bitwise\XOr</Filter>
-    </ClCompile>
-    <ClCompile Include="OperatorPlus.cpp">
-      <Filter>Source\Script\Operators\Arithmetic\Plus</Filter>
-    </ClCompile>
-    <ClCompile Include="OperatorMultiply.cpp">
-      <Filter>Source\Script\Operators\Arithmetic\Multiply</Filter>
-    </ClCompile>
-    <ClCompile Include="OperatorPower.cpp">
-      <Filter>Source\Script\Operators\Arithmetic\Power</Filter>
-    </ClCompile>
-    <ClCompile Include="OperatorDecrement.cpp">
-      <Filter>Source\Script\Operators\Arithmetic\Decrement</Filter>
-    </ClCompile>
-    <ClCompile Include="OperatorDivide.cpp">
-      <Filter>Source\Script\Operators\Arithmetic\Divide</Filter>
-    </ClCompile>
-    <ClCompile Include="OperatorMinus.cpp">
-      <Filter>Source\Script\Operators\Arithmetic\Minus</Filter>
-    </ClCompile>
-    <ClCompile Include="OperatorIncrement.cpp">
-      <Filter>Source\Script\Operators\Arithmetic\Increment</Filter>
-    </ClCompile>
-    <ClCompile Include="OperatorRemainder.cpp">
-      <Filter>Source\Script\Operators\Arithmetic\Remainder</Filter>
-    </ClCompile>
     <ClCompile Include="OperatorAssignment.cpp">
       <Filter>Source\Script\Operators\Assignment</Filter>
     </ClCompile>
@@ -3206,90 +3122,6 @@
     </None>
     <None Include="OperatorNotEqualNumber_Mapping.inl">
       <Filter>Source\Script\Operators\Relational\NotEqual</Filter>
-    </None>
-    <None Include="OperatorLeftShift_Functions.inl">
-      <Filter>Source\Script\Operators\Bitwise\LeftShift</Filter>
-    </None>
-    <None Include="OperatorLeftShift_Mapping.inl">
-      <Filter>Source\Script\Operators\Bitwise\LeftShift</Filter>
-    </None>
-    <None Include="OperatorRightShift_Functions.inl">
-      <Filter>Source\Script\Operators\Bitwise\RightShift</Filter>
-    </None>
-    <None Include="OperatorRightShift_Mapping.inl">
-      <Filter>Source\Script\Operators\Bitwise\RightShift</Filter>
-    </None>
-    <None Include="OperatorBitwiseAnd_Functions.inl">
-      <Filter>Source\Script\Operators\Bitwise\And</Filter>
-    </None>
-    <None Include="OperatorBitwiseAnd_Mapping.inl">
-      <Filter>Source\Script\Operators\Bitwise\And</Filter>
-    </None>
-    <None Include="OperatorBitwiseOr_Functions.inl">
-      <Filter>Source\Script\Operators\Bitwise\Or</Filter>
-    </None>
-    <None Include="OperatorBitwiseOr_Mapping.inl">
-      <Filter>Source\Script\Operators\Bitwise\Or</Filter>
-    </None>
-    <None Include="OperatorBitwiseNot_Functions.inl">
-      <Filter>Source\Script\Operators\Bitwise\Not</Filter>
-    </None>
-    <None Include="OperatorBitwiseNot_Mapping.inl">
-      <Filter>Source\Script\Operators\Bitwise\Not</Filter>
-    </None>
-    <None Include="OperatorBitwiseXOr_Functions.inl">
-      <Filter>Source\Script\Operators\Bitwise\XOr</Filter>
-    </None>
-    <None Include="OperatorBitwiseXOr_Mapping.inl">
-      <Filter>Source\Script\Operators\Bitwise\XOr</Filter>
-    </None>
-    <None Include="OperatorPlus_Functions.inl">
-      <Filter>Source\Script\Operators\Arithmetic\Plus</Filter>
-    </None>
-    <None Include="OperatorPlus_Mapping.inl">
-      <Filter>Source\Script\Operators\Arithmetic\Plus</Filter>
-    </None>
-    <None Include="OperatorMultiply_Functions.inl">
-      <Filter>Source\Script\Operators\Arithmetic\Multiply</Filter>
-    </None>
-    <None Include="OperatorMultiply_Mapping.inl">
-      <Filter>Source\Script\Operators\Arithmetic\Multiply</Filter>
-    </None>
-    <None Include="OperatorPower_Functions.inl">
-      <Filter>Source\Script\Operators\Arithmetic\Power</Filter>
-    </None>
-    <None Include="OperatorPower_Mapping.inl">
-      <Filter>Source\Script\Operators\Arithmetic\Power</Filter>
-    </None>
-    <None Include="OperatorDecrement_Functions.inl">
-      <Filter>Source\Script\Operators\Arithmetic\Decrement</Filter>
-    </None>
-    <None Include="OperatorDecrement_Mapping.inl">
-      <Filter>Source\Script\Operators\Arithmetic\Decrement</Filter>
-    </None>
-    <None Include="OperatorDivide_Functions.inl">
-      <Filter>Source\Script\Operators\Arithmetic\Divide</Filter>
-    </None>
-    <None Include="OperatorDivide_Mapping.inl">
-      <Filter>Source\Script\Operators\Arithmetic\Divide</Filter>
-    </None>
-    <None Include="OperatorMinus_Functions.inl">
-      <Filter>Source\Script\Operators\Arithmetic\Minus</Filter>
-    </None>
-    <None Include="OperatorMinus_Mapping.inl">
-      <Filter>Source\Script\Operators\Arithmetic\Minus</Filter>
-    </None>
-    <None Include="OperatorIncrement_Functions.inl">
-      <Filter>Source\Script\Operators\Arithmetic\Increment</Filter>
-    </None>
-    <None Include="OperatorIncrement_Mapping.inl">
-      <Filter>Source\Script\Operators\Arithmetic\Increment</Filter>
-    </None>
-    <None Include="OperatorRemainder_Functions.inl">
-      <Filter>Source\Script\Operators\Arithmetic\Remainder</Filter>
-    </None>
-    <None Include="OperatorRemainder_Mapping.inl">
-      <Filter>Source\Script\Operators\Arithmetic\Remainder</Filter>
     </None>
     <None Include="OperatorAssignment_Functions.inl">
       <Filter>Source\Script\Operators\Assignment</Filter>
