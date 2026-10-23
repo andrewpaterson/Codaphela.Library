@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __65_OPERATION_H__
 #define __65_OPERATION_H__
+#include "ArrayOwnedPtr.h"
 #include "65BusCycleParameter.h"
 
 
@@ -41,6 +42,9 @@ public:
 	virtual bool	IsInitialSide(void) =0;
 			bool	IsTrailingSide(void);
 };
+
+
+typedef CArrayOwnedPtr<C65Operation>	C65OperationArray;
 
 
 #endif // __65_OPERATION_H__

@@ -1,14 +1,14 @@
 #ifndef __W65C_PINS_H__
 #define __W65C_PINS_H__
 #include "BaseLib/PrimitiveTypes.h"
-#include "W65TraceValue.h"
+#include "TraceValue.h"
 #include "W65MetaBus8.h"
 #include "W65MetaBus16.h"
 #include "W65MetaTrace.h"
 
 
 //The pins the W65C02S and W65C816S have in common.  Processor specific pins are added by subclasses.
-class CW65Timeline;
+class CTimeline;
 class CW65CPins
 {
 protected:
@@ -33,20 +33,20 @@ public:
 	void			Kill(void);
 
 	//Microprocessor side methods.
-	void			WriteRWB(CW65Timeline* pcTimeline, bool bValue);
-	void			WriteMLB(CW65Timeline* pcTimeline, bool bValue);
-	void			WriteVPB(CW65Timeline* pcTimeline, bool bValue);
-	void			WriteRdy(CW65Timeline* pcTimeline, bool bValue);
-	void			WriteAddress(CW65Timeline* pcTimeline, uint16 uiAddress);
-	void			WriteData(CW65Timeline* pcTimeline, uint8 uiData);
-	uint8			ReadData(CW65Timeline* pcTimeline);
-	uint16			ReadAddress(CW65Timeline* pcTimeline);
-	SW65TraceValue		ReadRES(CW65Timeline* pcTimeline);
-	SW65TraceValue		ReadPhi2(CW65Timeline* pcTimeline);
-	SW65TraceValue		ReadNMI(CW65Timeline* pcTimeline);
-	SW65TraceValue		ReadIRQ(CW65Timeline* pcTimeline);
-	SW65TraceValue		ReadAbort(CW65Timeline* pcTimeline);
-	SW65TraceValue		ReadBE(CW65Timeline* pcTimeline);
+	void			WriteRWB(CTimeline* pcTimeline, bool bValue);
+	void			WriteMLB(CTimeline* pcTimeline, bool bValue);
+	void			WriteVPB(CTimeline* pcTimeline, bool bValue);
+	void			WriteRdy(CTimeline* pcTimeline, bool bValue);
+	void			WriteAddress(CTimeline* pcTimeline, uint16 uiAddress);
+	void			WriteData(CTimeline* pcTimeline, uint8 uiData);
+	uint8			ReadData(CTimeline* pcTimeline);
+	uint16			ReadAddress(CTimeline* pcTimeline);
+	STraceValue			ReadRES(CTimeline* pcTimeline);
+	STraceValue			ReadPhi2(CTimeline* pcTimeline);
+	STraceValue			ReadNMI(CTimeline* pcTimeline);
+	STraceValue			ReadIRQ(CTimeline* pcTimeline);
+	STraceValue			ReadAbort(CTimeline* pcTimeline);
+	STraceValue			ReadBE(CTimeline* pcTimeline);
 };
 
 

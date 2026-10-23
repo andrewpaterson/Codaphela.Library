@@ -15,6 +15,7 @@ public:
 
 	void	Set(uint32 uiValue);
 	uint32	Get(void);
+	void	Print(CChars* psz, bool bAppend0x);
 };
 
 

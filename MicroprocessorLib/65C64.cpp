@@ -258,9 +258,9 @@ void C65C64::ResetInstructionState(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64::InputTransition(C65Timeline* pcTimeline)
+void C65C64::InputTransition(CTimeline* pcTimeline)
 {
-	S65TraceValue	sClock;
+	STraceValue		sClock;
 	bool			bRisingEdge;
 	bool			bFallingEdge;
 
@@ -303,7 +303,7 @@ void C65C64::InputTransition(C65Timeline* pcTimeline)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64::ExecutePhi2Falling(C65Timeline* pcTimeline)
+void C65C64::ExecutePhi2Falling(CTimeline* pcTimeline)
 {
 	C65BusCycle*		pcBusCycle;
 	C65DataOperation*	pcDataOperation;
@@ -336,7 +336,7 @@ void C65C64::ExecutePhi2Falling(C65Timeline* pcTimeline)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64::WriteSignalsPhi2Falling(C65Timeline* pcTimeline, C65DataOperation* pcDataOperation, C65BusCycle* pcBusCycle)
+void C65C64::WriteSignalsPhi2Falling(CTimeline* pcTimeline, C65DataOperation* pcDataOperation, C65BusCycle* pcBusCycle)
 {
 	uint8	uiLanes;
 	bool	bInternal;
@@ -358,7 +358,7 @@ void C65C64::WriteSignalsPhi2Falling(C65Timeline* pcTimeline, C65DataOperation* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64::ExecutePhi2Rising(C65Timeline* pcTimeline)
+void C65C64::ExecutePhi2Rising(CTimeline* pcTimeline)
 {
 	C65DataOperation*	pcDataOperation;
 
@@ -440,7 +440,7 @@ void C65C64::NextInstruction(void)
 // level interrupt, edge interrupt 0 first.
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64::SampleInterrupts(C65Timeline* pcTimeline)
+void C65C64::SampleInterrupts(CTimeline* pcTimeline)
 {
 	size	i;
 	uint8	uiBit;
@@ -1272,12 +1272,13 @@ void C65C64::ExecuteAlu(E65Instruction eInstruction)
 
 	case I65_Sub:
 	case I65_Cmp:
+		//cmp sets v like sub, so signed comparisons can branch on n != v (the user, 2026-10-23).
 		uiResult = (uiFirst - uiSecond) & uiMask;
 		if (eInstruction == I65_Sub)
 		{
 			SetFirstValue(uiResult, uiBytes);
-			SetFlag(STATUS65_OVERFLOW, ((((uiFirst ^ uiSecond) & (uiFirst ^ uiResult)) >> (uiBits - 1)) & 1) != 0);
 		}
+		SetFlag(STATUS65_OVERFLOW, ((((uiFirst ^ uiSecond) & (uiFirst ^ uiResult)) >> (uiBits - 1)) & 1) != 0);
 		SetNegativeAndZero(uiResult, uiBytes);
 		SetFlag(STATUS65_CARRY, uiFirst >= uiSecond);
 		break;

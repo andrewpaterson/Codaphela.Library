@@ -2,10 +2,11 @@
 #define __BUS_CYCLE_H__
 #include "BaseLib/Logger.h"
 #include "BaseLib/ArrayTemplateEmbeddedPtr.h"
+#include "ArrayOwnedPtr.h"
 #include "StandardLib/Unknown.h"
 #include "W65Address.h"
 #include "W65AddressOffsetArray.h"
-#include "W65OperationArray.h"
+#include "W65Operation.h"
 #include "W65DataOperation.h"
 
 
@@ -40,6 +41,9 @@ public:
 private:
     void Validate(void);
 };
+
+
+typedef CArrayOwnedPtr<CW65BusCycle>	CW65BusCycleArray;
 
 
 #endif // __BUS_CYCLE_H__

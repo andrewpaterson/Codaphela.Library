@@ -293,7 +293,7 @@ void CW65C816Meta::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816Meta::SetX(SW65TraceValue sX)
+void CW65C816Meta::SetX(STraceValue sX)
 {
 	msX = sX;
 }
@@ -303,7 +303,7 @@ void CW65C816Meta::SetX(SW65TraceValue sX)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SW65TraceValue CW65C816Meta::GetX(void)
+STraceValue CW65C816Meta::GetX(void)
 {
 	return msX;
 }

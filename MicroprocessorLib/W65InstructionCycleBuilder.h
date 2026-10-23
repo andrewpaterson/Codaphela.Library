@@ -68,8 +68,7 @@
 #include "W65NoteOne.h"
 #include "W65NoteTwo.h"
 #include "W65NoteThree.h"
-#include "W65NoteFourX.h"
-#include "W65NoteFourY.h"
+#include "W65NoteFour.h"
 #include "W65NoteSix.h"
 #include "W65NoteSeven.h"
 
@@ -171,8 +170,8 @@ CW65Execute* E(CW65CFunc fConsumer, bool bInitialSide);
 CW65DoneInstructionIf8Bit* DONE8Bit(EWidthFromRegister eWidth);
 CW65DoneInstructionIf16Bit* DONE16Bit(EWidthFromRegister eWidth);
 CW65NoteOne* NoteOne(EWidthFromRegister eWidth);
-CW65NoteFourX* NoteFourX(bool bNextWillRead);
-CW65NoteFourY* NoteFourY(bool bNextWillRead);
+CW65NoteFour* NoteFourX(bool bNextWillRead);
+CW65NoteFour* NoteFourY(bool bNextWillRead);
 CW65InstructionCycles* CreateFetchOpcodeCycles(void);
 CW65InstructionCycles* CreateStackHardwareInterruptCycles(CW65InterruptVector* pcInterruptVector, CW65CFunc fOperation, bool bInitialSide);
 CW65InstructionCycles* CreateStackResetCycles(CW65InterruptVector* pcInterruptVector, CW65CFunc fOperation, bool bInitialSide);

@@ -564,22 +564,22 @@ CW65NoteOne* NoteOne(EWidthFromRegister eWidth)
 }
 
 
-CW65NoteFourX* NoteFourX(bool bNextWillRead)
+CW65NoteFour* NoteFourX(bool bNextWillRead)
 {
-	CW65NoteFourX* pcType;
+	CW65NoteFour* pcType;
 
-	pcType = NewMalloc<CW65NoteFourX>();
-	pcType->Init(bNextWillRead);
+	pcType = NewMalloc<CW65NoteFour>();
+	pcType->Init(false, bNextWillRead);
 	return pcType;
 }
 
 
-CW65NoteFourY* NoteFourY(bool bNextWillRead)
+CW65NoteFour* NoteFourY(bool bNextWillRead)
 {
-	CW65NoteFourY* pcType;
+	CW65NoteFour* pcType;
 
-	pcType = NewMalloc<CW65NoteFourY>();
-	pcType->Init(bNextWillRead);
+	pcType = NewMalloc<CW65NoteFour>();
+	pcType->Init(true, bNextWillRead);
 	return pcType;
 }
 

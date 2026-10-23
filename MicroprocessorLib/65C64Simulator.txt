@@ -71,7 +71,8 @@ Mode 3 and 7 ([Address], [Offset]) ignore their addressing register.
 add, sub and cmp do not use the carry as an input (the user: unnecessary on a 64 bit
 ALU; add with carry can be synthesised from 3 instructions).  Signed and unsigned only
 change how the second operand is extended.  c is the carry out (add) or not
-borrow (sub, cmp); v is the signed overflow.
+borrow (sub, cmp); v is the signed overflow (cmp sets it too, so signed comparisons can
+branch on n != v: the user, 2026-10-23).
 
 
 Stack

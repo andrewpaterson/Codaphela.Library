@@ -1,5 +1,6 @@
 #ifndef __OPERATION_H__
 #define __OPERATION_H__
+#include "ArrayOwnedPtr.h"
 #include "W65BusCycleParameter.h"
 
 class CW65CCore;
@@ -21,6 +22,9 @@ public:
     virtual bool    IsInitialSide(void) =0;
             bool    IsTrailingSide(void);
 };
+
+
+typedef CArrayOwnedPtr<CW65Operation>	CW65OperationArray;
 
 
 #endif // __OPERATION_H__

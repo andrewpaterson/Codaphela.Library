@@ -40,7 +40,7 @@ void CW65C02Pins::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C02Pins::WriteSYNC(CW65Timeline* pcTimeline, bool bValue)
+void CW65C02Pins::WriteSYNC(CTimeline* pcTimeline, bool bValue)
 {
 	SafeSetTrace(mpcSYNC, bValue);
 }
@@ -50,7 +50,7 @@ void CW65C02Pins::WriteSYNC(CW65Timeline* pcTimeline, bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SW65TraceValue CW65C02Pins::ReadSOB(CW65Timeline* pcTimeline)
+STraceValue CW65C02Pins::ReadSOB(CTimeline* pcTimeline)
 {
 	SafeGetTrace(mpcSOB);
 }

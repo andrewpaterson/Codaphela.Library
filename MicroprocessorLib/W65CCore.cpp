@@ -842,14 +842,14 @@ void CW65CCore::DisableBuses(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65CCore::InputTransition(CW65Timeline* pcTimeline)
+void CW65CCore::InputTransition(CTimeline* pcTimeline)
 {
     CW65CPins*      pcPins;
     bool            bReset;
     bool            bNmi;
     bool            bIrq;
     bool            bAbort;
-    SW65TraceValue     sClockValue;
+    STraceValue     sClockValue;
 
     pcPins = GetPins();
     sClockValue = pcPins->ReadPhi2(pcTimeline);
@@ -912,7 +912,7 @@ void CW65CCore::InputTransition(CW65Timeline* pcTimeline)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65CCore::ExecutPhi2Falling(CW65Timeline* pcTimeline)
+void CW65CCore::ExecutPhi2Falling(CTimeline* pcTimeline)
 {
     CW65BusCycle*          pcBusCycle;
     bool                bRead;
@@ -964,7 +964,7 @@ void CW65CCore::ExecutPhi2Falling(CW65Timeline* pcTimeline)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65CCore::ExecutPhi2Rising(CW65Timeline* pcTimeline)
+void CW65CCore::ExecutPhi2Rising(CTimeline* pcTimeline)
 {
     CW65CPins*          pcPins;
     CW65DataOperation*     pcDataOperation;
@@ -1055,7 +1055,7 @@ void CW65CCore::ResetPulled(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::IsReseting(SW65TraceValue clockValue)
+bool CW65CCore::IsReseting(STraceValue clockValue)
 {
 	return (muiResetCount > 0) &&
 		   ((muiResetCount <= 3) ||
@@ -3648,21 +3648,12 @@ void CW65CCore::ReadOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65CCore::NoteFourX(bool bNextWillRead)
+bool CW65CCore::NoteFour(bool bIndexY, bool bNextWillRead)
 {
-	return ((uint16)mcAddress.GetOffsetLow() + (uint16)GetLowByte(GetX())) > 0xFF ||
-		   !bNextWillRead ||
-		   IsIndex16Bit();
-}
+	uint16	uiIndex;
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CW65CCore::NoteFourY(bool bNextWillRead)
-{
-	return ((uint16)mcAddress.GetOffsetLow() + (uint16)GetLowByte(GetY())) > 0xFF ||
+	uiIndex = bIndexY ? GetY() : GetX();
+	return ((uint16)mcAddress.GetOffsetLow() + (uint16)GetLowByte(uiIndex)) > 0xFF ||
 		   !bNextWillRead ||
 		   IsIndex16Bit();
 }
@@ -3814,7 +3805,7 @@ void CW65CCore::TestStartInstruction(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65CCore::WriteSignalsPhi2Rising(CW65Timeline* pcTimeline)
+void CW65CCore::WriteSignalsPhi2Rising(CTimeline* pcTimeline)
 {
 }
 

@@ -1,17 +1,17 @@
 #ifndef __META_TRACE_H__
 #define __META_TRACE_H__
 #include "BaseLib/PrimitiveTypes.h"
-#include "W65TraceValue.h"
+#include "TraceValue.h"
 #include "W65MetaSignal.h"
 
 
-extern SW65TraceValue gcMetaTraceUndriven;
+extern STraceValue gcMetaTraceUndriven;
 
 
 class CW65MetaTrace : public CW65MetaSignal
 {
 protected:
-	SW65TraceValue		msValue;
+	STraceValue			msValue;
 
 public:
 	void			Init(void);
@@ -19,7 +19,7 @@ public:
 	void			Kill(void);
 
 	void			Set(bool bValue);
-	SW65TraceValue		Get(void);
+	STraceValue			Get(void);
 	void			Invert(void);
 	bool			IsHigh(void);
 	bool			IsLow(void);

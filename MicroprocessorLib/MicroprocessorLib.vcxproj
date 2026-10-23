@@ -34,7 +34,6 @@
     <ClCompile Include="W65BCDResult.cpp" />
     <ClCompile Include="W65BRKVector.cpp" />
     <ClCompile Include="W65BusCycle.cpp" />
-    <ClCompile Include="W65BusCycleArray.cpp" />
     <ClCompile Include="W65CompoundAddress.cpp" />
     <ClCompile Include="W65ConstantOffset.cpp" />
     <ClCompile Include="W65COPVector.cpp" />
@@ -68,15 +67,13 @@
     <ClCompile Include="W65C816Meta.cpp" />
     <ClCompile Include="W65NewProgramBank.cpp" />
     <ClCompile Include="W65NMIVector.cpp" />
-    <ClCompile Include="W65NoteFourX.cpp" />
-    <ClCompile Include="W65NoteFourY.cpp" />
+    <ClCompile Include="W65NoteFour.cpp" />
     <ClCompile Include="W65NoteOne.cpp" />
     <ClCompile Include="W65NoteSeven.cpp" />
     <ClCompile Include="W65NoteSix.cpp" />
     <ClCompile Include="W65NoteThree.cpp" />
     <ClCompile Include="W65NoteTwo.cpp" />
     <ClCompile Include="W65Operation.cpp" />
-    <ClCompile Include="W65OperationArray.cpp" />
     <ClCompile Include="W65ProgramBank.cpp" />
     <ClCompile Include="W65ProgramCounter.cpp" />
     <ClCompile Include="W65ReadAbsoluteAddressBank.cpp" />
@@ -100,8 +97,8 @@
     <ClCompile Include="W65C816InstructionFactory.cpp" />
     <ClCompile Include="W65ResetVector.cpp" />
     <ClCompile Include="W65StackPointer.cpp" />
-    <ClCompile Include="W65Timeline.cpp" />
-    <ClCompile Include="W65TraceValue.cpp" />
+    <ClCompile Include="Timeline.cpp" />
+    <ClCompile Include="TraceValue.cpp" />
     <ClCompile Include="W65CCore.cpp" />
     <ClCompile Include="W65CPins.cpp" />
     <ClCompile Include="W65InstructionCycleBuilder.cpp" />
@@ -132,7 +129,6 @@
     <ClCompile Include="65AddressOffset.cpp" />
     <ClCompile Include="65AddressOffsetArray.cpp" />
     <ClCompile Include="65BusCycle.cpp" />
-    <ClCompile Include="65BusCycleArray.cpp" />
     <ClCompile Include="65C64.cpp" />
     <ClCompile Include="65C64Decoded.cpp" />
     <ClCompile Include="65C64InstructionCycleFactory.cpp" />
@@ -149,13 +145,8 @@
     <ClCompile Include="65Instruction.cpp" />
     <ClCompile Include="65InstructionCycles.cpp" />
     <ClCompile Include="65InternalOperation.cpp" />
-    <ClCompile Include="65MetaBus16.cpp" />
-    <ClCompile Include="65MetaBus32.cpp" />
-    <ClCompile Include="65MetaSignal.cpp" />
-    <ClCompile Include="65MetaTrace.cpp" />
     <ClCompile Include="65OpcodeCycle.cpp" />
     <ClCompile Include="65Operation.cpp" />
-    <ClCompile Include="65OperationArray.cpp" />
     <ClCompile Include="65PointerAddressOffset.cpp" />
     <ClCompile Include="65ProgramCounterOffset.cpp" />
     <ClCompile Include="65ReadOpcode.cpp" />
@@ -163,7 +154,6 @@
     <ClCompile Include="65ReadPointerWord.cpp" />
     <ClCompile Include="65ReadTransferWord.cpp" />
     <ClCompile Include="65ReadVectorWord.cpp" />
-    <ClCompile Include="65TraceValue.cpp" />
     <ClCompile Include="65TransferWordOffset.cpp" />
     <ClCompile Include="65VectorAddressOffset.cpp" />
     <ClCompile Include="65WaitOperation.cpp" />
@@ -183,7 +173,6 @@
     <ClInclude Include="W65BCDResult.h" />
     <ClInclude Include="W65BRKVector.h" />
     <ClInclude Include="W65BusCycle.h" />
-    <ClInclude Include="W65BusCycleArray.h" />
     <ClInclude Include="W65BusCycleParameter.h" />
     <ClInclude Include="W65CompoundAddress.h" />
     <ClInclude Include="W65ConstantOffset.h" />
@@ -222,8 +211,7 @@
     <ClInclude Include="W65NewProgramBank.h" />
     <ClInclude Include="W65NewProgramCounter.h" />
     <ClInclude Include="W65NMIVector.h" />
-    <ClInclude Include="W65NoteFourX.h" />
-    <ClInclude Include="W65NoteFourY.h" />
+    <ClInclude Include="W65NoteFour.h" />
     <ClInclude Include="W65NoteOne.h" />
     <ClInclude Include="W65NoteSeven.h" />
     <ClInclude Include="W65NoteSix.h" />
@@ -231,7 +219,6 @@
     <ClInclude Include="W65NoteTwo.h" />
     <ClInclude Include="NotMemoryLock.h" />
     <ClInclude Include="W65Operation.h" />
-    <ClInclude Include="W65OperationArray.h" />
     <ClInclude Include="W65ProgramBank.h" />
     <ClInclude Include="W65ProgramCounter.h" />
     <ClInclude Include="W65ReadAbsoluteAddressBank.h" />
@@ -253,8 +240,9 @@
     <ClInclude Include="W65SignedData.h" />
     <ClInclude Include="W65SignedDataLow.h" />
     <ClInclude Include="W65StackPointer.h" />
-    <ClInclude Include="W65Timeline.h" />
-    <ClInclude Include="W65TraceValue.h" />
+    <ClInclude Include="ArrayOwnedPtr.h" />
+    <ClInclude Include="Timeline.h" />
+    <ClInclude Include="TraceValue.h" />
     <ClInclude Include="W65CCore.h" />
     <ClInclude Include="W65CPins.h" />
     <ClInclude Include="W65CFunc.h" />
@@ -289,7 +277,6 @@
     <ClInclude Include="65AddressOffset.h" />
     <ClInclude Include="65AddressOffsetArray.h" />
     <ClInclude Include="65BusCycle.h" />
-    <ClInclude Include="65BusCycleArray.h" />
     <ClInclude Include="65BusCycleParameter.h" />
     <ClInclude Include="65C64.h" />
     <ClInclude Include="65C64Decoded.h" />
@@ -308,13 +295,8 @@
     <ClInclude Include="65Instruction.h" />
     <ClInclude Include="65InstructionCycles.h" />
     <ClInclude Include="65InternalOperation.h" />
-    <ClInclude Include="65MetaBus16.h" />
-    <ClInclude Include="65MetaBus32.h" />
-    <ClInclude Include="65MetaSignal.h" />
-    <ClInclude Include="65MetaTrace.h" />
     <ClInclude Include="65OpcodeCycle.h" />
     <ClInclude Include="65Operation.h" />
-    <ClInclude Include="65OperationArray.h" />
     <ClInclude Include="65PointerAddressOffset.h" />
     <ClInclude Include="65ProgramCounterOffset.h" />
     <ClInclude Include="65ReadOpcode.h" />
@@ -322,8 +304,6 @@
     <ClInclude Include="65ReadPointerWord.h" />
     <ClInclude Include="65ReadTransferWord.h" />
     <ClInclude Include="65ReadVectorWord.h" />
-    <ClInclude Include="65Timeline.h" />
-    <ClInclude Include="65TraceValue.h" />
     <ClInclude Include="65TransferWordOffset.h" />
     <ClInclude Include="65VectorAddressOffset.h" />
     <ClInclude Include="65WaitOperation.h" />
@@ -503,4 +483,4 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-</Project>
+</Project>

@@ -2,7 +2,7 @@
 #define __TIMELINE_H__
 
 
-class CW65Timeline
+class CTimeline
 {
 public:
 };

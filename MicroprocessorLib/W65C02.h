@@ -46,7 +46,7 @@ public:
 	CW65Instruction*	GetNmiOpcode(void) override;
 	CW65Instruction*	GetAbortOpcode(void) override;
 	CW65Instruction*	GetFetchNextOpcode(void) override;
-	void			WriteSignalsPhi2Falling(CW65Timeline* pcTimeline, CW65DataOperation* pcDataOperation, CW65BusCycle* pcBusCycle) override;
+	void			WriteSignalsPhi2Falling(CTimeline* pcTimeline, CW65DataOperation* pcDataOperation, CW65BusCycle* pcBusCycle) override;
 	char*			GetType(void) override;
 
 	void			RMB(void);

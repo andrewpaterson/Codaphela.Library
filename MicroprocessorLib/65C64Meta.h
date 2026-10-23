@@ -21,7 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __65C64_META_H__
 #define __65C64_META_H__
 #include "65C64.h"
-#include "65Timeline.h"
+#include "Timeline.h"
 
 
 class C65C64Meta;
@@ -33,23 +33,23 @@ typedef void(*C65C64MetaTick)(C65C64Meta*, void*);
 class C65C64Meta
 {
 protected:
-	C65Timeline		mcTimeline;
+	CTimeline		mcTimeline;
 	C65C64			mcMPU;
 	C65C64Pins		mcPins;
 
-	C65MetaBus32	mcAddress;
-	C65MetaBus16	mcData;
-	C65MetaTrace	mcPHI2;
-	C65MetaTrace	mcRESB;
-	C65MetaTrace	mcRWB;
-	C65MetaTrace	mcLowerByte;
-	C65MetaTrace	mcUpperByte;
-	C65MetaTrace	mcOPV;
-	C65MetaTrace	mcVPA;
-	C65MetaTrace	mcVDA;
-	C65MetaTrace	mcVPB;
-	C65MetaTrace	macEIRQB[NUM_65C64_EDGE_INTERRUPTS];
-	C65MetaTrace	mcLIRQB;
+	CW65MetaBus32	mcAddress;
+	CW65MetaBus16	mcData;
+	CW65MetaTrace	mcPHI2;
+	CW65MetaTrace	mcRESB;
+	CW65MetaTrace	mcRWB;
+	CW65MetaTrace	mcLowerByte;
+	CW65MetaTrace	mcUpperByte;
+	CW65MetaTrace	mcOPV;
+	CW65MetaTrace	mcVPA;
+	CW65MetaTrace	mcVDA;
+	CW65MetaTrace	mcVPB;
+	CW65MetaTrace	macEIRQB[NUM_65C64_EDGE_INTERRUPTS];
+	CW65MetaTrace	mcLIRQB;
 
 	C65C64MetaTick	mfTickHigh;
 	C65C64MetaTick	mfTickLow;
@@ -60,19 +60,19 @@ public:
 	void			Kill(void);
 
 	C65C64*			GetMPU(void);
-	C65MetaBus32*	GetAddress(void);
-	C65MetaBus16*	GetData(void);
-	C65MetaTrace*	GetPHI2(void);
-	C65MetaTrace*	GetRESB(void);
-	C65MetaTrace*	GetRWB(void);
-	C65MetaTrace*	GetLowerByte(void);
-	C65MetaTrace*	GetUpperByte(void);
-	C65MetaTrace*	GetOPV(void);
-	C65MetaTrace*	GetVPA(void);
-	C65MetaTrace*	GetVDA(void);
-	C65MetaTrace*	GetVPB(void);
-	C65MetaTrace*	GetEIRQB(size uiInterrupt);
-	C65MetaTrace*	GetLIRQB(void);
+	CW65MetaBus32*	GetAddress(void);
+	CW65MetaBus16*	GetData(void);
+	CW65MetaTrace*	GetPHI2(void);
+	CW65MetaTrace*	GetRESB(void);
+	CW65MetaTrace*	GetRWB(void);
+	CW65MetaTrace*	GetLowerByte(void);
+	CW65MetaTrace*	GetUpperByte(void);
+	CW65MetaTrace*	GetOPV(void);
+	CW65MetaTrace*	GetVPA(void);
+	CW65MetaTrace*	GetVDA(void);
+	CW65MetaTrace*	GetVPB(void);
+	CW65MetaTrace*	GetEIRQB(size uiInterrupt);
+	CW65MetaTrace*	GetLIRQB(void);
 
 	bool			TickInstruction(void);
 	bool			TestTickCycle(void);

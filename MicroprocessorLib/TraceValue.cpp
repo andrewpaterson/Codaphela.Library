@@ -1,11 +1,11 @@
-#include "W65TraceValue.h"
+#include "TraceValue.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SW65TraceValue::Init(void)
+void STraceValue::Init(void)
 {
 	eValue = TV_Undriven;
 }
@@ -15,7 +15,7 @@ void SW65TraceValue::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SW65TraceValue::Init(ETraceValue eTraceValue)
+void STraceValue::Init(ETraceValue eTraceValue)
 {
 	eValue = eTraceValue;
 }
@@ -25,7 +25,7 @@ void SW65TraceValue::Init(ETraceValue eTraceValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SW65TraceValue::Init(bool bValue)
+void STraceValue::Init(bool bValue)
 {
 	if (bValue)
 	{
@@ -42,7 +42,7 @@ void SW65TraceValue::Init(bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SW65TraceValue::IsHigh(void)
+bool STraceValue::IsHigh(void)
 {
 	return eValue == TV_High;
 }
@@ -52,7 +52,7 @@ bool SW65TraceValue::IsHigh(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SW65TraceValue::IsLow(void)
+bool STraceValue::IsLow(void)
 {
 	return eValue == TV_Low;
 }
@@ -62,7 +62,7 @@ bool SW65TraceValue::IsLow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SW65TraceValue::Invert(void)
+void STraceValue::Invert(void)
 {
 	bool	bLow;
 	bool	bHigh;
@@ -80,7 +80,7 @@ void SW65TraceValue::Invert(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SW65TraceValue::Print(CChars* psz)
+void STraceValue::Print(CChars* psz)
 {
 	if (eValue == TV_Low)
 	{

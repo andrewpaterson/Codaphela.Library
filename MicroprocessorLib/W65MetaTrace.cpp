@@ -1,7 +1,7 @@
 #include "W65MetaTrace.h"
 
 
-SW65TraceValue gcMetaTraceUndriven;
+STraceValue gcMetaTraceUndriven = { TV_Undriven };
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -47,7 +47,7 @@ void CW65MetaTrace::Set(bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SW65TraceValue CW65MetaTrace::Get(void)
+STraceValue CW65MetaTrace::Get(void)
 {
 	return msValue;
 }

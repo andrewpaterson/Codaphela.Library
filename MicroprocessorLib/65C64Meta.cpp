@@ -287,17 +287,17 @@ void C65C64Meta::Dump(void)
 //
 //////////////////////////////////////////////////////////////////////////
 C65C64* C65C64Meta::GetMPU(void) { return &mcMPU; }
-C65MetaBus32* C65C64Meta::GetAddress(void) { return &mcAddress; }
-C65MetaBus16* C65C64Meta::GetData(void) { return &mcData; }
-C65MetaTrace* C65C64Meta::GetPHI2(void) { return &mcPHI2; }
-C65MetaTrace* C65C64Meta::GetRESB(void) { return &mcRESB; }
-C65MetaTrace* C65C64Meta::GetRWB(void) { return &mcRWB; }
-C65MetaTrace* C65C64Meta::GetLowerByte(void) { return &mcLowerByte; }
-C65MetaTrace* C65C64Meta::GetUpperByte(void) { return &mcUpperByte; }
-C65MetaTrace* C65C64Meta::GetOPV(void) { return &mcOPV; }
-C65MetaTrace* C65C64Meta::GetVPA(void) { return &mcVPA; }
-C65MetaTrace* C65C64Meta::GetVDA(void) { return &mcVDA; }
-C65MetaTrace* C65C64Meta::GetVPB(void) { return &mcVPB; }
-C65MetaTrace* C65C64Meta::GetEIRQB(size uiInterrupt) { return &macEIRQB[uiInterrupt]; }
-C65MetaTrace* C65C64Meta::GetLIRQB(void) { return &mcLIRQB; }
+CW65MetaBus32* C65C64Meta::GetAddress(void) { return &mcAddress; }
+CW65MetaBus16* C65C64Meta::GetData(void) { return &mcData; }
+CW65MetaTrace* C65C64Meta::GetPHI2(void) { return &mcPHI2; }
+CW65MetaTrace* C65C64Meta::GetRESB(void) { return &mcRESB; }
+CW65MetaTrace* C65C64Meta::GetRWB(void) { return &mcRWB; }
+CW65MetaTrace* C65C64Meta::GetLowerByte(void) { return &mcLowerByte; }
+CW65MetaTrace* C65C64Meta::GetUpperByte(void) { return &mcUpperByte; }
+CW65MetaTrace* C65C64Meta::GetOPV(void) { return &mcOPV; }
+CW65MetaTrace* C65C64Meta::GetVPA(void) { return &mcVPA; }
+CW65MetaTrace* C65C64Meta::GetVDA(void) { return &mcVDA; }
+CW65MetaTrace* C65C64Meta::GetVPB(void) { return &mcVPB; }
+CW65MetaTrace* C65C64Meta::GetEIRQB(size uiInterrupt) { return &macEIRQB[uiInterrupt]; }
+CW65MetaTrace* C65C64Meta::GetLIRQB(void) { return &mcLIRQB; }
 

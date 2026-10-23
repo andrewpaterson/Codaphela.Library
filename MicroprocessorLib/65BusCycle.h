@@ -21,9 +21,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __65_BUS_CYCLE_H__
 #define __65_BUS_CYCLE_H__
 #include "BaseLib/ArrayTemplateEmbeddedPtr.h"
+#include "ArrayOwnedPtr.h"
 #include "StandardLib/Unknown.h"
 #include "65AddressOffsetArray.h"
-#include "65OperationArray.h"
+#include "65Operation.h"
 #include "65DataOperation.h"
 
 
@@ -56,6 +57,9 @@ public:
 protected:
 	void					Validate(void);
 };
+
+
+typedef CArrayOwnedPtr<C65BusCycle>	C65BusCycleArray;
 
 
 #endif // __65_BUS_CYCLE_H__

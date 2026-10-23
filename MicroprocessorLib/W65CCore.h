@@ -22,10 +22,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __W65C_CORE_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "W65Address.h"
-#include "W65TraceValue.h"
+#include "TraceValue.h"
 #include "W65BCDResult.h"
 #include "CPUFlags.h"
-#include "W65Timeline.h"
+#include "Timeline.h"
 #include "W65CPins.h"
 
 
@@ -174,7 +174,7 @@ public:
     void            NMI(void);
     void            RES(void);
 
-    void            InputTransition(CW65Timeline* pcTimeline);// override;
+    void            InputTransition(CTimeline* pcTimeline);// override;
 
     void            GetAddressValueHex(CChars* psz, bool bAppend0x = true);
     void            GetAccumulatorValueHex(CChars* psz, bool bAppend0x = true);
@@ -209,8 +209,8 @@ public:
 	void			ToDataOperationString(CChars* psz);
 	void			ToInstructionDescription(CChars* psz);
 
-    void            ExecutPhi2Falling(CW65Timeline* pcTimeline);
-    void            ExecutPhi2Rising(CW65Timeline* pcTimeline);
+    void            ExecutPhi2Falling(CTimeline* pcTimeline);
+    void            ExecutPhi2Rising(CTimeline* pcTimeline);
 	CW65Address*		GetAddress(void);
 
 
@@ -221,8 +221,8 @@ public:
 	virtual CW65Instruction*	GetNmiOpcode(void) = 0;
 	virtual CW65Instruction*	GetAbortOpcode(void) = 0;
 	virtual CW65Instruction*	GetFetchNextOpcode(void) = 0;
-	virtual void			WriteSignalsPhi2Falling(CW65Timeline* pcTimeline, CW65DataOperation* pcDataOperation, CW65BusCycle* pcBusCycle) = 0;
-	virtual void			WriteSignalsPhi2Rising(CW65Timeline* pcTimeline);
+	virtual void			WriteSignalsPhi2Falling(CTimeline* pcTimeline, CW65DataOperation* pcDataOperation, CW65BusCycle* pcBusCycle) = 0;
+	virtual void			WriteSignalsPhi2Rising(CTimeline* pcTimeline);
 	virtual bool			IsReadCycle(CW65DataOperation* pcDataOperation);
 
 
@@ -231,7 +231,7 @@ public:
 	void			RestoreAbortValues(void);
 	void			ResetPulled(void);
 	void			IncrementReset(void);
-	bool			IsReseting(SW65TraceValue clockValue);
+	bool			IsReseting(STraceValue clockValue);
 	void			ClearReset(void);
 
 	uint8			GetProcessorRegisterValue(void);
@@ -373,8 +373,7 @@ public:
 	void			WriteDataLow(void);
 	void			WriteDataHigh(void);
 	void			ReadOpcode(void);
-	bool			NoteFourX(bool bNextWillRead);
-	bool			NoteFourY(bool bNextWillRead);
+	bool			NoteFour(bool bIndexY, bool bNextWillRead);
 	bool			NoteSix(void);
 	uint16			GetAddressOffsetLowX(void);
 	uint16			GetAddressOffsetLowY(void);
