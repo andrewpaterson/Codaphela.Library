@@ -39,6 +39,18 @@ size CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 //////////////////////////////////////////////////////////////////////////
 size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
 {
+	return RemapEmbedded(pcNew, pcOld, pcOld);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcOld is the address the froms point to.  pcOldFroms holds the froms.  They differ when
+// pcOld has been overwritten (a fat hollow converted in place) and pcOldFroms is a copy of it.
+//
+//////////////////////////////////////////////////////////////////////////
+size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld, CEmbeddedObject* pcOldFroms)
+{
 	size				iNumHeapFroms;
 	size				i;
 	CBaseObject*		pvFrom;
@@ -49,11 +61,11 @@ size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pc
 
 	iCount = 0;
 
-	iNumHeapFroms = pcOld->CEmbeddedObject::NumHeapFroms();
+	iNumHeapFroms = pcOldFroms->CEmbeddedObject::NumHeapFroms();
 	for (i = 0; i < iNumHeapFroms; i++)
 	{
-		pvFrom = pcOld->CEmbeddedObject::GetHeapFrom(i);
-		if (pvFrom->GetEmbeddingContainer() == pcOld->GetEmbeddingContainer())
+		pvFrom = pcOldFroms->CEmbeddedObject::GetHeapFrom(i);
+		if (pvFrom->GetEmbeddingContainer() == pcOldFroms->GetEmbeddingContainer())
 		{
 			//The old object points to itself.  That pointer is killed with the old object so it must not be moved to the new object.
 			continue;
@@ -69,11 +81,11 @@ size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pc
 			//If the object is not initialised it cannot point to any other objects
 			//This means this dist to root calculation for tos can be skipped.
 			pcNew->AddHeapPointerForRemap(pvFrom);
-			pcNew->SetDistToRoot(pcOld->GetDistToRoot());
+			pcNew->SetDistToRoot(pcOldFroms->GetDistToRoot());
 		}
 	}
 
-	pcFirstStackPointer = pcOld->GetFirstStackFrom();
+	pcFirstStackPointer = pcOldFroms->GetFirstStackFrom();
 	pcStackPointer = pcFirstStackPointer;
 	if (pcStackPointer)
 	{
@@ -98,7 +110,7 @@ size CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pc
 		pcNew->AddStackPointersForRemap(pcFirstStackPointer);
 	}
 
-	pcOld->PostRemapFroms();
+	pcOldFroms->PostRemapFroms();
 
 	return iCount;
 }

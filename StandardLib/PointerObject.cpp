@@ -373,6 +373,7 @@ void CPointer::UnsafePointTo(CEmbeddedObject* pcNewObject)
 void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 {
 	CEmbeddedObject*	pcOldObject;
+	CPointer			cHoldEmbedding;
 
 	if ((char*)this < CORRUPT_MEMORY)
 	{
@@ -385,9 +386,16 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 		mpcObject = pcNewObject;
 
 		if (IsEmbeddingAllocatedInObjects())
-		{			
+		{
 			if (pcOldObject)
 			{
+				//Removing the heap from on the old object can free the embedding (and this pointer) if nothing else holds the embedding.
+				//Hold it until this method is done; it is freed when cHoldEmbedding is destroyed.
+				if (!IsEmbeddingHeld())
+				{
+					cHoldEmbedding.PointTo(mpcEmbedding);
+				}
+
 				if (mpcObject)
 				{
 					mpcObject->AddHeapFrom(mpcEmbedding, false);
@@ -421,6 +429,26 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject)
 	{
 		mpcObject->LogicalDirty();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPointer::IsEmbeddingHeld(void)
+{
+	//An object attached to the root, or pointed to from the stack, cannot be freed by changing one of its own pointers.
+	//Anything else (e.g. after Return()) is only alive because nothing has tried to free it yet.
+
+	CBaseObject*	pcContainer;
+
+	pcContainer = mpcEmbedding->GetEmbeddingContainer();
+	if (pcContainer->GetDistToRoot() >= ROOT_DIST_TO_ROOT)
+	{
+		return true;
+	}
+	return pcContainer->HasStackFroms();
 }
 
 
