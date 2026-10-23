@@ -235,8 +235,26 @@ struct S65C64Decoded
 };
 
 
+//The register lists of the opcode encoding sheet, in order (the 3, 2 and 1 bit fields).
+extern const E65Register	gae65Registers[8];
+extern const E65Register	gae65NoneWXY[4];
+extern const E65Register	gae65VWXY[4];
+extern const E65Register	gae65ABSV[4];
+extern const E65Register	gae65ABXY[4];
+extern const E65Register	gae65SVWY[4];
+extern const E65Register	gae65XY[2];
+
+//Immediate widths in bytes by width code: unused, 8, 16, 24, 32, 40, 48, 64 bits.
+extern const uint8			gaui65ImmediateBytes[8];
+
+//Embedded branch offsets by field value.
+extern const int32			gai65BranchOffsets[8];
+
+
 void	Decode65C64(uint16 uiOpcode, S65C64Decoded* psDecoded);
 bool	Is65C64MemoryMode(uint8 uiMode);
+bool	Is65C64TwoRegisterMode(uint8 uiMode);
+int		Get65C64RegisterIndex(E65Register eRegister, const E65Register* aeList, int iListSize);
 char*	Get65C64RegisterName(E65Register eRegister);
 
 
