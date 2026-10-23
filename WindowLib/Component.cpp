@@ -431,6 +431,7 @@ bool CComponent::CanGetFocus(void) { return mbCanGetFocus; }
 void CComponent::SetCanGetFocus(bool bCanGetFocus) { mbCanGetFocus = bCanGetFocus; }
 bool CComponent::WantsEnter(void) { return false; }  //Enter goes to the window's default button unless the focussed component wants it.
 void CComponent::PopupClosed(Ptr<CComponent> pContent) {}  //A popup this component opened, see CWindow::OpenPopup, has closed.
+void CComponent::PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem) {}  //An item in a popup this component opened, like a menu's, was clicked.  The popup has closed.
 Ptr<CComponent> CComponent::GetParent(void) { return mpParent; }
 void CComponent::SetDesiredSize(int fWidth, int fHeight) { msDesiredSize.Init(fWidth, fHeight); }
 SInt32Vec2 CComponent::GetActualSize(void) { SInt32Vec2 sSize; sSize.Init(mcActualBounds.GetWidth(), mcActualBounds.GetHeight()); return sSize; }

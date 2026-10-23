@@ -50,6 +50,9 @@ public:
 
 	void	GetRectangle(CInt32Rect* pcDest) override;
 	void	SignalPresent(void) override;
+	void	SetEnabled(bool bEnabled) override;
+	void	DestroyNativeWindow(void) override;
+	void	Destroyed(void);
 
 	void	RawInput(HRAWINPUT hRawInput);
 	void	MouseMoved(int x, int y);

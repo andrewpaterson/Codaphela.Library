@@ -25,6 +25,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ClearCanvasDraw.h"
 #include "IconComponent.h"
 #include "MenuStyle.h"
+#include "WindowTheme.h"
 #include "MenuListener.h"
 #include "MenuBarItem.h"
 #include "MenuContainer.h"
@@ -48,7 +49,7 @@ protected:
 	CListenerCall			mcListeners;
 
 public:
-	void				Init(Ptr<CWindow> pWindow, Ptr<CMenuStyle> pStyle);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
 	void				Class(void) override;
 	void 				Free(void) override;
 	bool				Save(CObjectWriter* pcFile) override;

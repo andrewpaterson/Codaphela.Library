@@ -22,6 +22,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "Container.h"
 #include "ScrollBar.h"
+#include "WindowTheme.h"
 
 
 enum EScrollPanePolicy
@@ -59,7 +60,7 @@ protected:
 	int32				miWheelStep;  //How far one notch of the wheel scrolls.
 
 public:
-	void				Init(Ptr<CWindow> pWindow, Ptr<CScrollBarImages> pImages);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
 	void				Class(void) override;
 	void 				Free(void) override;
 

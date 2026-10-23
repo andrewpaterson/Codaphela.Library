@@ -22,6 +22,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __JEWEL_BUTTON_IMAGES_H__
 #include "SupportLib/ColourFormat.h"
 #include "ButtonImages.h"
+#include "CheckBoxImages.h"
 
 
 class CImageDraw;
@@ -36,10 +37,14 @@ public:
 	static Ptr<CButtonImages>	CreateDefaultButtonImages(CColourFormatHelper* pcFormat);  //The blue filled default button.
 	static Ptr<CButtonImages>	CreateFlatButtonImages(ARGB32 sBackground, ARGB32 sHover, ARGB32 sPushed, CColourFormatHelper* pcFormat);  //No border, a small rounded block under the pointer.
 	static Ptr<CImageCel>		CreateChevron(ARGB32 sColour, CColourFormatHelper* pcFormat);  //Points right, 8 x 9.
+	static Ptr<CImageCel>		CreateDownChevron(ARGB32 sColour, CColourFormatHelper* pcFormat);  //Points down, 9 x 8.
+	static Ptr<CCheckBoxImages>	CreateCheckBoxImages(CColourFormatHelper* pcFormat);  //Each box is 20 x 20.
 
 protected:
 	static Ptr<CImage>			DrawStrip(bool bFocusRing, ARGB32 sFocusRing, ARGB32 sBorder, ARGB32 sFace, CColourFormatHelper* pcFormat);
 	static Ptr<CImage>			DrawFlatStrip(bool bFilled, ARGB32 sFill, CColourFormatHelper* pcFormat);
+	static Ptr<CImageCel>		DrawCheckBox(bool bTicked, bool bFocusRing, bool bMouseOver, CColourFormatHelper* pcFormat);
+	static void					SetColour(CImageDraw* pcDraw, ARGB32 sColour);
 	static void					DrawLayer(CImageDraw* pcDraw, int iTile, int iInset, int iRadius, ARGB32 sColour);
 	static void					DrawCorner(CImageDraw* pcDraw, int iTile, int iTileTop, bool bRight, bool bBottom, int iInset, int iRadius);
 };

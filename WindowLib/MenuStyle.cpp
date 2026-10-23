@@ -22,6 +22,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Objects.h"
 #include "JewelButtonImages.h"
 #include "Window.h"
+#include "JewelColours.h"
 #include "MenuStyle.h"
 
 
@@ -41,12 +42,12 @@ void CMenuStyle::Init(Ptr<CWindow> pWindow, Ptr<CFont> pFont)
 	pWindow->GetColourFormat(&cFormat);
 
 	mpFont = pFont;
-	msBarBackground = Set32BitColour((uint8)0x27, 0x28, 0x2E);
-	msMenuBackground = Set32BitColour((uint8)0x2B, 0x2D, 0x30);
-	msMenuBorder = Set32BitColour((uint8)0x43, 0x45, 0x4A);
-	msSelected = Set32BitColour((uint8)0x2E, 0x43, 0x6E);
-	msHover = Set32BitColour((uint8)0x39, 0x3B, 0x40);
-	msSeparator = Set32BitColour((uint8)0x43, 0x45, 0x4A);
+	msBarBackground = JEWEL_BAR_BACKGROUND;
+	msMenuBackground = JEWEL_PANEL;
+	msMenuBorder = JEWEL_SEPARATOR;
+	msSelected = JEWEL_SELECTION;
+	msHover = JEWEL_HOVER;
+	msSeparator = JEWEL_SEPARATOR;
 	msMenuInsets.Init(aiMenuInsets);
 	miIconWidth = 32;
 	miChevronWidth = 24;
@@ -58,7 +59,7 @@ void CMenuStyle::Init(Ptr<CWindow> pWindow, Ptr<CFont> pFont)
 	miSeparatorInset = 8;
 
 	mpBarButtonImages = CJewelButtonImages::CreateFlatButtonImages(msBarBackground, msHover, msHover, &cFormat);
-	mpChevron = CJewelButtonImages::CreateChevron(Set32BitColour((uint8)0xCE, 0xD0, 0xD6), &cFormat);
+	mpChevron = CJewelButtonImages::CreateChevron(JEWEL_ICON, &cFormat);
 
 	PostInit();
 }

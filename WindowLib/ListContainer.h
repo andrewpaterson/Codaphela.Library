@@ -26,6 +26,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "GridContainer.h"
 #include "Canvas.h"
 #include "ClearCanvasDraw.h"
+#include "WindowTheme.h"
 #include "ListListener.h"
 
 
@@ -62,7 +63,7 @@ protected:
 	bool					mbSelectOnHover;
 
 public:
-	void			Init(Ptr<CWindow> pWindow);
+	void			Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
 	void			Class(void) override;
 	void 			Free(void) override;
 

@@ -53,7 +53,8 @@ protected:
 	int32				miOpenSubMenuRow;
 
 public:
-	void				Init(Ptr<CWindow> pWindow, Ptr<CMenuStyle> pStyle);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CMenuStyle> pStyle);
 	void				Class(void) override;
 	void 				Free(void) override;
 	bool				Save(CObjectWriter* pcFile) override;

@@ -149,10 +149,26 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lPa
                 return ERROR_INVALID_PARAMETER;
             }
         }
+        case WM_CLOSE:
+        {
+            //A dialog's close button only stops it.  CWindow::ShowModal enables the owner before it destroys the dialog,
+            //otherwise Windows would activate another application's window.
+            if (pcWindow && pcWindow->GetOwner())
+            {
+                pcWindow->Stop();
+                return 0;
+            }
+            break;
+        }
         case WM_DESTROY:
         {
+            //Only the main window ends the message loop, a dialog closing just stops its own.
+            pcWindow->Destroyed();
             pcWindow->Stop();
-            PostQuitMessage(0);
+            if (!pcWindow->GetOwner())
+            {
+                PostQuitMessage(0);
+            }
             return ERROR_SUCCESS;
         }
         case WM_PAINT:
@@ -238,6 +254,15 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lPa
 bool CWinGDIWindow::CreateNativeWindow(void)
 {
     WNDCLASSA               sWindowClass;
+    WNDCLASSA               sExistingClass;
+    RECT                    sRect;
+    RECT                    sOwnerRect;
+    DWORD                   dwStyle;
+    HWND                    hOwner;
+    int                     iX;
+    int                     iY;
+    int                     iWidth;
+    int                     iHeight;
     bool                    bResult;
     ATOM                    uiAtom;
     CChars                  szError;
@@ -253,22 +278,49 @@ bool CWinGDIWindow::CreateNativeWindow(void)
     sWindowClass.hCursor = LoadCursorA(NULL, IDC_ARROW);
     sWindowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 
-    uiAtom = RegisterClassA(&sWindowClass);
-    ERROR_CHECK(szError, uiAtom == 0, "RegisterClassA");
+    //Every window, a dialog's too, is of the same class so it is only registered once.
+    if (!GetClassInfoA(mhInstance, mszWindowClass.Text(), &sExistingClass))
+    {
+        uiAtom = RegisterClassA(&sWindowClass);
+        ERROR_CHECK(szError, uiAtom == 0, "RegisterClassA");
+    }
 
-    mhWnd = CreateWindowExA(0,                             // Optional window styles
+    //The requested size is the client area's, the window is that plus its frame.
+    dwStyle = mpcOwner ? (WS_POPUP | WS_CAPTION | WS_SYSMENU) : WS_OVERLAPPEDWINDOW;
+    sRect.left = 0;
+    sRect.top = 0;
+    sRect.right = (msRequestedSize.x > 0) ? msRequestedSize.x : 800;
+    sRect.bottom = (msRequestedSize.y > 0) ? msRequestedSize.y : 600;
+    AdjustWindowRect(&sRect, dwStyle, FALSE);
+    iWidth = sRect.right - sRect.left;
+    iHeight = sRect.bottom - sRect.top;
+
+    //A dialog is owned by, and centred on, its owner.
+    hOwner = NULL;
+    iX = CW_USEDEFAULT;
+    iY = CW_USEDEFAULT;
+    if (mpcOwner)
+    {
+        hOwner = ((CWinGDIWindow*)mpcOwner)->mhWnd;
+        GetWindowRect(hOwner, &sOwnerRect);
+        iX = sOwnerRect.left + (sOwnerRect.right - sOwnerRect.left - iWidth) / 2;
+        iY = sOwnerRect.top + (sOwnerRect.bottom - sOwnerRect.top - iHeight) / 2;
+    }
+
+    mhWnd = CreateWindowExA(mpcOwner ? WS_EX_DLGMODALFRAME : 0,  // Optional window styles
                             mszWindowClass.Text(),         // Window class
                             mpcWindow->GetWindowTitle(),   // Window title
-                            WS_OVERLAPPEDWINDOW,           // Window style
-                            CW_USEDEFAULT, CW_USEDEFAULT,  // Position
-                            800, 600,                      // Size
-                            NULL,                          // Parent window
+                            dwStyle,                       // Window style
+                            iX, iY,                        // Position
+                            iWidth, iHeight,               // Size
+                            hOwner,                        // Owner window
                             NULL,                          // Menu
                             mhInstance,                    // Instance handle
                             this);
     ERROR_CHECK(szError, mhWnd == NULL, "CreateWindowExA");
 
-    bResult = ShowWindow(mhWnd, miCmdShow);
+    //Only the main window is shown as the program was asked to start, maximised say.
+    bResult = ShowWindow(mhWnd, mpcOwner ? SW_SHOWNORMAL : miCmdShow);
     ERROR_CHECK(szError, bResult, "ShowWindow");
 
     bResult = UpdateWindow(mhWnd);
@@ -296,6 +348,11 @@ bool CWinGDIWindow::ExecuteNativeWindow(void)
     {
         if (sMessage.message == WM_QUIT)
         {
+            //Seen by a dialog's loop when its owner closed, so the owner's loop must see it too.
+            if (mpcOwner)
+            {
+                PostQuitMessage(0);
+            }
             return false;
         }
 
@@ -304,7 +361,57 @@ bool CWinGDIWindow::ExecuteNativeWindow(void)
         DispatchMessageA(&sMessage);
         bHasMessage = PeekMessageA(&sMessage, NULL, 0, 0, PM_REMOVE);
     }
-    return true;
+    return mhWnd != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The owner of a modal dialog is disabled so it gets no keys or clicks.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::SetEnabled(bool bEnabled)
+{
+    CNativeWindow::SetEnabled(bEnabled);
+    if (mhWnd)
+    {
+        EnableWindow(mhWnd, bEnabled ? TRUE : FALSE);
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// WM_DESTROY calls Destroyed.  Canvases are made compatible with the
+// owner's window again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::DestroyNativeWindow(void)
+{
+    CWinGDIWindowFactory*   pcFactory;
+
+    if (mhWnd)
+    {
+        DestroyWindow(mhWnd);
+    }
+    mhWnd = NULL;
+
+    pcFactory = (CWinGDIWindowFactory*)mpcWindowFactory;
+    if (mpcOwner)
+    {
+        pcFactory->SetHWnd(((CWinGDIWindow*)mpcOwner)->mhWnd);
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The native window has gone, closed by its user say.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::Destroyed(void)
+{
+    mhWnd = NULL;
 }
 
 
@@ -314,7 +421,10 @@ bool CWinGDIWindow::ExecuteNativeWindow(void)
 //////////////////////////////////////////////////////////////////////////
 void CWinGDIWindow::SignalPresent(void)
 {
-    InvalidateRect(mhWnd, NULL, TRUE);
+    if (mhWnd)
+    {
+        InvalidateRect(mhWnd, NULL, TRUE);
+    }
 }
 
 
@@ -326,8 +436,14 @@ void CWinGDIWindow::GetRectangle(CInt32Rect* pcDest)
 {
     RECT            cRect;
 
-    GetClientRect(mhWnd, &cRect);
-    pcDest->Init(cRect.left, cRect.top, cRect.right, cRect.bottom);
+    if (mhWnd && GetClientRect(mhWnd, &cRect))
+    {
+        pcDest->Init(cRect.left, cRect.top, cRect.right, cRect.bottom);
+    }
+    else
+    {
+        pcDest->Init(0, 0, 0, 0);
+    }
 }
 
 

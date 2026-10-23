@@ -1,6 +1,7 @@
 #ifndef __NATIVE_WINDOW_FACTORY_H__
 #define __NATIVE_WINDOW_FACTORY_H__
 #include "BaseLib/Constructable.h"
+#include "BaseLib/Chars.h"
 #include "NativeWindow.h"
 #include "NativeCanvas.h"
 
@@ -13,6 +14,7 @@ CONSTRUCTABLE(CNativeWindowFactory);
 friend class CWindowFactory;
 protected:
 	CMallocator*	mpcMallocator;
+	CChars			mszClipboard;  //Only this process' clipboard unless a factory uses the system's.
 
 public:
 			void			Init(CMallocator* pcMallocator);
@@ -23,6 +25,9 @@ public:
 
 	virtual CNativeCanvas*	CreateNativeCanvas(CCanvas* pcCanvas) =0;
 			bool			DestroyNativeCanvas(CNativeCanvas* pcCanvas);
+
+	virtual void			SetClipboardText(const char* szText);
+	virtual void			GetClipboardText(CChars* pszDest);
 
 protected:
 	template<class Class>

@@ -46,6 +46,7 @@ protected:
 	CNativeWindowFactory*	mpcFactory;
 	CComponentInput*		mpcComponentInput;  //Optional.  Updated every tick when set.
 	Ptr<CButton>			mpDefaultButton;  //Clicked by enter unless the focussed component wants it.
+	Ptr<CButton>			mpCancelButton;  //Clicked by escape when no popup is open.
 	bool					mbLayoutAgain;  //A component's required size changed while it was being laid out.
 	CArray<CPopup>			maPopups;  //Open popups, the last opened last.  Each opened by one before it is closed with it.
 
@@ -58,6 +59,9 @@ public:
 	bool					Load(CObjectReader* pcFile) override;
 	
 	bool					Show(void);
+	bool					ShowModal(Ptr<CWindow> pOwner);
+	void					SetWindowSize(int32 iWidth, int32 iHeight);
+	CNativeWindow*			GetNativeWindow(void);
 	void					Paint(void);
 	void					Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds);
 	void					Stop(void);
@@ -81,6 +85,8 @@ public:
 
 	void					SetDefaultButton(Ptr<CButton> pButton);
 	Ptr<CButton>			GetDefaultButton(void);
+	void					SetCancelButton(Ptr<CButton> pButton);
+	Ptr<CButton>			GetCancelButton(void);
 
 	Ptr<CPopup>				OpenPopup(Ptr<CComponent> pContent, SInt32Vec2 sPosition, Ptr<CComponent> pOwner);
 	bool					ClosePopup(Ptr<CComponent> pContent);

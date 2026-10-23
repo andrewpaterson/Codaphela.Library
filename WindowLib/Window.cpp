@@ -29,6 +29,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWi
 	mbTicking = false;
 	mpcComponentInput = NULL;
 	mpDefaultButton = NULL;
+	mpCancelButton = NULL;
 	mbLayoutAgain = false;
 	maPopups.Init();
 
@@ -76,6 +77,7 @@ void CWindow::Class(void)
 	U_Pointer(mpcFactory);
 	U_Pointer(mpcComponentInput);
 	M_Pointer(mpDefaultButton);
+	M_Pointer(mpCancelButton);
 	U_Bool(mbLayoutAgain);
 	M_Embedded(maPopups);
 }
@@ -132,6 +134,72 @@ bool CWindow::Show(void)
 		mbTicking &= bResult;
 	}
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Shows the window as a dialog over pOwner and returns once it stops.
+// While it is shown the owner can't be used: it gets no keys or pointer
+// and isn't ticked, though it is still drawn.  The owner's component
+// input, if it has one, comes to the dialog until it closes.  The dialog
+// comes off the screen when it stops but it can be shown again.
+//
+// Call it from the owner's tick, not from an input listener; reading the
+// input while it is being read isn't supported.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::ShowModal(Ptr<CWindow> pOwner)
+{
+	CComponentInput*	pcComponentInput;
+	CNativeWindow*		pcOwnerNative;
+	bool				bResult;
+
+	pOwner->CloseAllPopups();
+	pOwner->Deactivate();
+	pcOwnerNative = pOwner->GetNativeWindow();
+	pcOwnerNative->SetEnabled(false);
+
+	pcComponentInput = pOwner->GetComponentInput();
+	if (pcComponentInput)
+	{
+		pcComponentInput->ReleaseAll();
+		pcComponentInput->SetWindow(this);
+		SetComponentInput(pcComponentInput);
+	}
+
+	//The dialog is the active window, the native window may say so again.
+	mpcNativeWindow->SetOwner(pcOwnerNative);
+	Activate();
+	bResult = Show();
+	mFocus.Deactivate();
+
+	//The owner is enabled before the dialog goes so that the owner is the window activated.
+	pcOwnerNative->SetEnabled(true);
+	mpcNativeWindow->DestroyNativeWindow();
+	mpcNativeWindow->SetOwner(NULL);
+
+	if (pcComponentInput)
+	{
+		pcComponentInput->ReleaseAll();
+		pcComponentInput->SetWindow(&pOwner);
+		SetComponentInput(NULL);
+	}
+
+	pOwner->Activate();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The size of the window's client area when it is shown.  Without one
+// the native window chooses.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::SetWindowSize(int32 iWidth, int32 iHeight)
+{
+	mpcNativeWindow->SetRequestedSize(iWidth, iHeight);
 }
 
 
@@ -240,6 +308,18 @@ void CWindow::SetDefaultButton(Ptr<CButton> pButton)
 	{
 		mpDefaultButton->SetDefault(true);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A window has at most one cancel button, clicked by escape when no popup
+// is open.  It looks like any other button.  NULL clears it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::SetCancelButton(Ptr<CButton> pButton)
+{
+	mpCancelButton = pButton;
 }
 
 
@@ -447,8 +527,10 @@ void CWindow::GetColourFormat(CColourFormatHelper* pcHelper)
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CCanvas>			CWindow::GetCanvas(void) { return mpCanvas; }
+CNativeWindow*			CWindow::GetNativeWindow(void) { return mpcNativeWindow; }
 Ptr<CFocus>				CWindow::GetFocus(void) { return &mFocus; }
 Ptr<CButton>			CWindow::GetDefaultButton(void) { return mpDefaultButton; }
+Ptr<CButton>			CWindow::GetCancelButton(void) { return mpCancelButton; }
 CComponentInput*		CWindow::GetComponentInput(void) { return mpcComponentInput; }
 Ptr<CContainer>			CWindow::GetContainer(void) { return mpCanvas->GetContainer(); }
 CNativeWindowFactory*	CWindow::GetFactory(void) { return mpcFactory; }

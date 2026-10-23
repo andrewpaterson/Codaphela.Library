@@ -79,6 +79,8 @@ public:
 	void		Released(CInputSourceDesc* pcSource);
 	void		ReleaseAll(void);
 	void		SetLocks(bool bCapsLock, bool bNumLock);
+	void		SetWindow(CWindow* pcWindow);
+	CWindow*	GetWindow(void);
 
 	bool		IsShift(void);
 	bool		IsControl(void);

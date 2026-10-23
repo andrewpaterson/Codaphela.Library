@@ -213,6 +213,42 @@
     <ClInclude Include="BorderLayoutHelper.h">
       <Filter>Source\Component\Container\Grid</Filter>
     </ClInclude>
+    <ClInclude Include="ImageBorderContainer.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="TextField.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="TextFieldListener.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="TextMarksCanvasDraw.h">
+      <Filter>Source\Image\Canvas</Filter>
+    </ClInclude>
+    <ClInclude Include="CheckBox.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="CheckBoxListener.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="CheckBoxImages.h">
+      <Filter>Source\Component\Images</Filter>
+    </ClInclude>
+    <ClInclude Include="ComboBox.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="ComboBoxListener.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowTheme.h">
+      <Filter>Source\Component\Images</Filter>
+    </ClInclude>
+    <ClInclude Include="JewelTheme.h">
+      <Filter>Source\Component\Images</Filter>
+    </ClInclude>
+    <ClInclude Include="JewelColours.h">
+      <Filter>Source\Component\Images</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeWindow.cpp">
@@ -352,6 +388,30 @@
     </ClCompile>
     <ClCompile Include="BorderLayoutHelper.cpp">
       <Filter>Source\Component\Container\Grid</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageBorderContainer.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="TextField.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="TextMarksCanvasDraw.cpp">
+      <Filter>Source\Image\Canvas</Filter>
+    </ClCompile>
+    <ClCompile Include="CheckBox.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="CheckBoxImages.cpp">
+      <Filter>Source\Component\Images</Filter>
+    </ClCompile>
+    <ClCompile Include="ComboBox.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowTheme.cpp">
+      <Filter>Source\Component\Images</Filter>
+    </ClCompile>
+    <ClCompile Include="JewelTheme.cpp">
+      <Filter>Source\Component\Images</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

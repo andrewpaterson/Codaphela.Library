@@ -29,7 +29,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 // The scroll bars' thumbs are drawn with pImages, which can be shared.
 //
 //////////////////////////////////////////////////////////////////////////
-void CScrollPane::Init(Ptr<CWindow> pWindow, Ptr<CScrollBarImages> pImages)
+void CScrollPane::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 {
 	PreInit();
 
@@ -43,9 +43,9 @@ void CScrollPane::Init(Ptr<CWindow> pWindow, Ptr<CScrollBarImages> pImages)
 	miWheelStep = 48;
 
 	//The scroll bars are the last children so they are drawn over the content and hit before it.
-	mpHorizontal = OMalloc<CScrollBar>(pWindow, Ptr<CScrollPane>(this), pImages, SBO_Horizontal);
+	mpHorizontal = OMalloc<CScrollBar>(pWindow, Ptr<CScrollPane>(this), pTheme->GetScrollBarImages(), SBO_Horizontal);
 	CContainer::AddComponent(mpHorizontal);
-	mpVertical = OMalloc<CScrollBar>(pWindow, Ptr<CScrollPane>(this), pImages, SBO_Vertical);
+	mpVertical = OMalloc<CScrollBar>(pWindow, Ptr<CScrollPane>(this), pTheme->GetScrollBarImages(), SBO_Vertical);
 	CContainer::AddComponent(mpVertical);
 
 	PostInit();

@@ -63,8 +63,22 @@ void CWinRefWindow::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CWinRefWindow::CreateNativeWindow(void)
 {
+    if ((msRequestedSize.x > 0) && (msRequestedSize.y > 0))
+    {
+        mcWindowBounds.Init(mcWindowBounds.GetLeft(), mcWindowBounds.GetTop(), mcWindowBounds.GetLeft() + msRequestedSize.x, mcWindowBounds.GetTop() + msRequestedSize.y);
+    }
     mbCreated = true;
     return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinRefWindow::DestroyNativeWindow(void)
+{
+    mbCreated = false;
 }
 
 
@@ -90,8 +104,9 @@ void CWinRefWindow::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 i
 
     pcRefCanvas = (CWinRefCanvas*)pcNativeCanvas;
 
+    //A dialog's frames are kept apart from its owner's.
     szFileName.Init(mszImagePath);
-    cFileUtil.AppendToPath(&szFileName, "Frame");
+    cFileUtil.AppendToPath(&szFileName, mpcOwner ? "DialogFrame" : "Frame");
     szFileName.Append(muiFrame);
     szFileName.Append(".png");
 

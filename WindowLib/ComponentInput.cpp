@@ -597,3 +597,24 @@ CInput*		CComponentInput::GetInput(void) { return mpcInput; }
 CAction*	CComponentInput::GetButtonPressedAction(void) { return mpcButtonPressedAction; }
 CAction*	CComponentInput::GetButtonReleasedAction(void) { return mpcButtonReleasedAction; }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window the commands and printable characters go to, as when a
+// modal dialog takes them from its owner.  Release everything first.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentInput::SetWindow(CWindow* pcWindow)
+{
+	mpcWindow = pcWindow;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CWindow* CComponentInput::GetWindow(void)
+{
+	return mpcWindow;
+}

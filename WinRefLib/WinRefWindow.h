@@ -42,6 +42,7 @@ public:
 
 	bool	CreateNativeWindow(void) override;
 	bool	ExecuteNativeWindow(void) override;
+	void	DestroyNativeWindow(void) override;
 
 	void	GetRectangle(CInt32Rect* pcDest) override;
 	void	SignalPresent(void) override;

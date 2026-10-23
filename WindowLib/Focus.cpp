@@ -20,6 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ClassDefines.h"
 #include "Focus.h"
+#include "NativeWindowFactory.h"
 #include "Window.h"
 #include "Button.h"
 
@@ -227,6 +228,7 @@ void CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
 	int				y;
 	CChars			szClipboard;
 	Ptr<CButton>	pDefault;
+	Ptr<CButton>	pCancel;
 
 	if (!mbActive)
 	{
@@ -264,6 +266,22 @@ void CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
 		}
 		mpWindow->ClosePopupsOutside(mpMouseOverComponent);
 		Request();
+	}
+
+	//Escape closes the window's popups, like an open menu, or clicks its cancel button before it clears a selection.
+	if (eCommand == CIC_ClearSelection)
+	{
+		if (mpWindow->NumPopups() > 0)
+		{
+			mpWindow->CloseAllPopups();
+			return;
+		}
+		pCancel = mpWindow->GetCancelButton();
+		if (pCancel)
+		{
+			pCancel->Click();
+			return;
+		}
 	}
 
 	//Enter clicks the window's default button unless the focussed component wants it.
@@ -400,23 +418,31 @@ void CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
 	case CIC_Copy:
 	case CIC_Paste:
 	case CIC_CutLine:
-		//There is no clipboard yet.  Cut and copy go nowhere and paste pastes nothing.
+		//The clipboard is the native window factory's.  Cutting or copying nothing leaves it as it was.
 		szClipboard.Init();
-		if (eCommand == CIC_Cut)
+		if (eCommand == CIC_Paste)
 		{
-			mpFocussedComponent->Cut(&szClipboard);
-		}
-		else if (eCommand == CIC_Copy)
-		{
-			mpFocussedComponent->Copy(&szClipboard);
-		}
-		else if (eCommand == CIC_Paste)
-		{
+			mpWindow->GetFactory()->GetClipboardText(&szClipboard);
 			mpFocussedComponent->Paste(szClipboard.Text());
 		}
 		else
 		{
-			mpFocussedComponent->CutLine(&szClipboard);
+			if (eCommand == CIC_Cut)
+			{
+				mpFocussedComponent->Cut(&szClipboard);
+			}
+			else if (eCommand == CIC_Copy)
+			{
+				mpFocussedComponent->Copy(&szClipboard);
+			}
+			else
+			{
+				mpFocussedComponent->CutLine(&szClipboard);
+			}
+			if (!szClipboard.Empty())
+			{
+				mpWindow->GetFactory()->SetClipboardText(szClipboard.Text());
+			}
 		}
 		szClipboard.Kill();
 		break;

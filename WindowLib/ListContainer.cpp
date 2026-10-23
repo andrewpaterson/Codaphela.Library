@@ -30,7 +30,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 // and page down move ten rows.
 //
 //////////////////////////////////////////////////////////////////////////
-void CListContainer::Init(Ptr<CWindow> pWindow)
+void CListContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 {
 	PreInit();
 
@@ -45,9 +45,9 @@ void CListContainer::Init(Ptr<CWindow> pWindow)
 	mbSelectOnHover = false;
 	SetCanGetFocus(true);
 
-	mpSelectedDraw = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x2E, (uint8)0x43, (uint8)0x6E));
+	mpSelectedDraw = OMalloc<CClearCanvasDraw>(pTheme->GetListSelectedColour());
 	mpSelectedHighlight = CreateHighlight(mpSelectedDraw);
-	mpHoverDraw = OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x39, (uint8)0x3B, (uint8)0x40));
+	mpHoverDraw = OMalloc<CClearCanvasDraw>(pTheme->GetListHoverColour());
 	mpHoverHighlight = CreateHighlight(mpHoverDraw);
 	AddHighlights();
 
