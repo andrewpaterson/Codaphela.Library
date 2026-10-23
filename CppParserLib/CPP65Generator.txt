@@ -300,8 +300,8 @@ code is generated).
 - new and delete without a placement (there is no heap), conversion functions,
   member templates, explicit and partial specialisations, variadic templates.
 - Virtual inheritance.
-- Objects passed or returned by value (use pointers or references), temporary
-  objects (so a const reference needs an lvalue), user copy constructors.
+- Temporary objects that need destroying, in conditions; postfix ++ and -- on
+  objects; conversion operators.
 - Namespaces, local classes, static locals that are objects or have initialisers that
   are not constant (they would need a first time guard), extern and thread_local
   locals, wide and raw string literals.
@@ -354,12 +354,12 @@ per directory, finds the labels used but defined by no unit, and runs the progra
 The test names the labels it expects to be missing (they become stp).  BaseLib code
 run this way: MD5 (the RFC 1321 suite), RedBlackTree (with a FreeList stub over
 malloc), MersenneTwister (the MT19937 reference sequence) with Libc65's time,
-QuickSort, BubbleSort and BinarySearch (with a MemSwp stub), and FloatHelper (against
-the same calls natively, bit for bit).
+QuickSort, BubbleSort and BinarySearch (with a MemSwp stub), and FloatHelper and
+SQuaternion (a value type), against the same calls natively, bit for bit.
 
-BaseLib is the benchmark for how much C++ is supported: on 2026-10-23, 306 of its 407
-.cpp files compile without errors.  Most of the rest pass or return objects by value,
-or call member function templates.
+BaseLib is the benchmark for how much C++ is supported: on 2026-10-23, 364 of its 407
+.cpp files compile without errors.  Most of the rest call member function templates,
+need better overload ranking, or use variadic templates.
 
 
 Templates
@@ -469,9 +469,54 @@ Objects:
   its value first and keeps it on the stack meanwhile.
 - Globals are zero data, constructed by R_Initialise before main and destroyed last
   first by R_Finalise after it (GenerateProgram calls both, keeping main's result).
-- Assigning and initialising from another object copies it a word at a time through Y.
-  A copy from a derived class keeps the destination's vtable pointer.
-- An object used as a value is its address (so its type is known), but only pointers
-  to it can be passed or returned.
+- Assigning and initialising from another object copies it a word at a time through Y
+  (or calls the class's copy constructor or operator =).  A copy from a derived class
+  keeps the destination's vtable pointer.  A class without a copy constructor whose
+  bases or fields have them is copied as bytes, then those parts with their copy
+  constructors (the implicit copy constructor).
+- An object used as a value is its address (so its type is known).
+
+
+Objects by value
+----------------
+
+An object argument is made in its argument's place on the stack (sub S, size, then
+copied or constructed there) and the called function destroys it, as MSVC does.
+
+A function that returns an object has a hidden first argument, pushed after the
+others: the address to make its result at.  return value; constructs the value there
+and the function returns that address in A, which is the call's value (an object's
+value is its address):
+
+	_Flip:							; SPair Flip(SPair p)
+			psh V
+			sub S, 8				; the local r
+			cpy V, S
+			...
+			cpy A, [17 + V]			; the result address, before p at [21 + V]
+			...						; r copied there
+			cpy A, [17 + V]			; returned
+			...
+
+The caller passes the address of a temporary: every call or operator that makes an
+object, and every Class(arguments), has its own place in the frame, worked out
+before the function's code (AllocateTemporaries, after the locals so the types are
+known).  Outside a function (a global's initialiser) it is data (U1_T0).
+Temporaries that need destroying are destroyed at the end of their full expression
+(an expression statement, a declaration, a return); elsewhere (a condition) they are
+not supported yet.
+
+An object initialised from a call or operator that makes one of its class is made
+where it is, not in a temporary and copied (as C++17 requires, so copy constructors
+are not called for it): the hidden result address is the object's own, whether it
+is a local, a global, a field, the function's own result (return f(x);) or an
+argument's place on the stack (g(f(x))).  Class(arguments) initialising an object of
+its class constructs it in place too.
+
+Operators on objects call the left operand's member operator, or a free operator
+function (declared, a friend, or an instance of a function template, such as
+template<class M> SVec<M> operator * (M, const SVec<M>&)): binary operators, unary
++ - and ~, and comparisons (their result is tested).  Friend functions declared in a
+class are free functions.
 - Static data members are globals (_Class__name), defined outside the class; static
   member functions have no this.
