@@ -664,7 +664,7 @@ void CAsm65Linker::Layout(void)
 				szMessage.Kill();
 			}
 		}
-		if ((muiLimit != 0) && (mauiEnd[iKind] > muiLimit))
+		if ((muiLimit != 0) && (mauiStart[iKind] < mauiEnd[iKind]) && (mauiEnd[iKind] > muiLimit))
 		{
 			szMessage.Init("Sections end past the limit ");
 			Asm65AppendHex(&szMessage, muiLimit, 8);

@@ -19,8 +19,13 @@ in MicroprocessorLib.  Usage:
 	cAssembler.GetWarnings();		//Same format; warnings do not stop assembly.
 	cAssembler.Kill();
 
+Assemble is absolute mode: .org places the bytes.  AssembleObject(szSource,
+&cObject) writes sections, symbols and relocations into a CAsm65Object instead, and
+CAsm65Linker links objects (see Objects and linking below).
+
 Classes: CAsm65Tokeniser (text to tokens), CAsm65Assembler (passes, statements,
-expressions, instructions), CAsm65Symbols, CAsm65Output, CAsm65Errors.  The
+expressions, instructions), CAsm65Symbols, CAsm65Output, CAsm65Errors, CAsm65Object
+(an assembled translation unit), CAsm65Library and CAsm65Linker.  The
 assembler is split like CppParser: Asm65Assembler.cpp (passes, labels, directives),
 Asm65Expressions.cpp (expressions and operands) and Asm65Instructions.cpp (encoders).
 
@@ -42,7 +47,8 @@ Lines
 	{label:}... {instruction | directive | name = expression}  {; comment}
 
 Labels are bound when the next statement starts: after an instruction aligns the
-address to a word, after .org moves it and after .align pads it.  Labels and
+address to a word, after .org moves it, after .align pads it and after .section
+switches to another section.  Labels and
 constants are case sensitive.  A, B, S, V, W, X, Y, C and P are reserved.
 Mnemonics and directives are not case sensitive.
 
@@ -89,7 +95,20 @@ Directives
 	.word value, ...			16 bits, little endian
 	.long value, ...			32 bits
 	.quad value, ...			64 bits
+	.space bytes				zeros
 	name = expression
+
+Only when assembling an object (AssembleObject):
+
+	.section name {, comdat {group}}
+	.global name, ...			visible to other objects (or an external)
+	.weak name, ...				as .global; a global definition elsewhere wins
+								and an undefined weak name is 0
+	.extern name, ...			defined by another object (optional: any name
+								used but not defined is an external)
+
+.org is only allowed in absolute mode (the user, 2026-10-23); .section and the
+binding directives only when assembling an object.
 
 
 Registers, flags and suffixes
@@ -211,3 +230,72 @@ Choices (not in the spreadsheet)
   immediate form.
 - Hardware register instructions (hws, hwg, hwsp, hwcp) are not assembled.
 - Relative offsets do not wrap around the 32 bit address space.
+
+
+Objects and linking
+-------------------
+
+Rulings by the user (2026-10-23): the linker is in Assembler65Lib; an address the
+linker places is 32 bits with :16 as the opt-in; .org stays for absolute mode only;
+the object file format on disk is decided later (ChunkedPack files may work).
+
+	CAsm65Object	cObject;
+	CAsm65Linker	cLinker;
+
+	cObject.Init("main");
+	cAssembler.Init();
+	cAssembler.AssembleObject(szSource, &cObject);
+	cAssembler.Kill();
+
+	cLinker.Init();
+	cLinker.AddObject(&cObject);		//Always linked, in order.
+	cLinker.AddLibrary(&cLibrary);		//Members linked only when needed.
+	if (cLinker.Link())
+	{
+		cLinker.GetOutput();			//A CAsm65Output, as from absolute mode.
+		cLinker.GetMap();				//Sections, dropped COMDAT copies, symbols.
+	}
+	cLinker.GetErrors();				//"object:line:column: message 'detail'".
+	cLinker.Kill();
+	cObject.Kill();
+
+Sections.  An object starts in "text".  A section name starts with its kind:
+text, rodata, init, fini, data or bss ("text.Helper" is a text section of its
+own).  Each kind is placed after the one before in that order: text at $10000
+unless SetAddress moves a kind.  A bss section has a size but no bytes and only
+takes labels, .space and .align.  A section's alignment is the largest .align in
+it (2 once it has an instruction).  SetLimit makes ending past an address an error.
+
+Section addresses.  In an object a label is an offset in its section.  A value
+can be a constant, or one section address plus or minus a constant; two
+addresses in one section subtract to a constant (End - Start).  Any other use of
+a section address (*, |, <<, two sections, a shift count, an embedded value ...)
+is an error.  Where it is assembled:
+- an immediate or absolute address is 32 bits (:16, :8 ... :64 or :s16 give
+  another width and the linker checks that the value fits);
+- a branch, bra or brsr to a label in its own section is an ordinary offset;
+  to another section or an external it is a 32 bit relative relocation;
+- .byte, .word, .long and .quad hold the address at their own width.
+
+Relocations.  Local labels are relocated by section.  Externals and .global or
+.weak labels are relocated by name, so another object's definition (or the kept
+COMDAT copy) is used.  A relocation writes target + addend into a field of 1 to 8
+little endian bytes; a relative one subtracts the field's own address (the
+assembler folds the field to next instruction distance into the addend).
+
+COMDAT.  ".section text.Inline, comdat" puts the section in group text.Inline
+(", comdat Inline" names the group).  The linker keeps a group's sections from
+the first object that has it and drops the others with their symbols.  Code that
+refers to a dropped copy through a local label is an error; refer to it by a
+global name.
+
+Symbols.  A global defined twice is an error; a global replaces a weak; the
+first weak wins over a later weak.  A name nothing defines is an error, unless
+SetStubMissing(true) makes it the address of one stp (NumMissing / GetMissing
+list them).  The linker defines __text_start, __text_end ... __bss_end and __end
+unless an object defines them.
+
+Start up.  Each init section holds .long addresses of functions to call before
+main, each fini section functions to call after.  The linker places them in link
+order between __init_start and __init_end (and __fini_start, __fini_end); a start
+up calls the init table forwards and the fini table backwards.
