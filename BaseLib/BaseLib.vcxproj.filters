@@ -513,6 +513,9 @@
     <ClInclude Include="ArraySparseTemplate.h">
       <Filter>Source\Data\Array\Tree</Filter>
     </ClInclude>
+    <ClInclude Include="RedBlackTree.h">
+      <Filter>Source\Data\Array\Tree</Filter>
+    </ClInclude>
     <ClInclude Include="TreeBlock.h">
       <Filter>Source\Data\Types\Tree</Filter>
     </ClInclude>
@@ -2236,6 +2239,9 @@
     </ClCompile>
     <ClCompile Include="ArrayBlockSorted.cpp">
       <Filter>Source\Data\Array\Sorted</Filter>
+    </ClCompile>
+    <ClCompile Include="RedBlackTree.cpp">
+      <Filter>Source\Data\Array\Tree</Filter>
     </ClCompile>
     <ClCompile Include="MapStringInt.cpp">
       <Filter>Source\Data\Map\Map\String</Filter>
