@@ -93,6 +93,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CPP65Builder.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPP65Generator.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -614,6 +617,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CPP65Builder.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
     <ClInclude Include="CPP65Generator.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>

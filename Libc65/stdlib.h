@@ -29,6 +29,7 @@ void	qsort(void* pvBase, size_t uiCount, size_t uiBytes, int (*fCompare)(const v
 
 void	abort(void);
 void	exit(int iStatus);
+void	_Exit(int iStatus);
 }
 
 

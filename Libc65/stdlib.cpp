@@ -383,7 +383,22 @@ void abort(void)
 }
 
 
+//The linker's fini table: each unit's R_Finalise, in link order.  _Exit is in the start up.
+typedef void (*FFinalise)(void);
+extern "C" char	_fini_start;
+extern "C" char	_fini_end;
+
+
+//Runs the finalisers (the destructors of globals) backwards, as returning from main does, then stops.
 void exit(int iStatus)
 {
-	abort();
+	FFinalise*	pfFinalise;
+
+	pfFinalise = (FFinalise*)&_fini_end;
+	while (pfFinalise != (FFinalise*)&_fini_start)
+	{
+		pfFinalise--;
+		(*pfFinalise)();
+	}
+	_Exit(iStatus);
 }

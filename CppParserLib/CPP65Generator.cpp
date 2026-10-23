@@ -68,7 +68,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree)
 	mbQuietFailed = false;
 	maszStrings.Init();
 	mszInitialise.Init();
-	mszFinalise.Init();
+	miStartUps = 0;
 	mbPureVirtual = false;
 
 	mapsLocals.Init();
@@ -117,7 +117,6 @@ void CCPP65Generator::Kill(void)
 		maszStrings.Get(i)->Kill();
 	}
 	maszStrings.Kill();
-	mszFinalise.Kill();
 	mszInitialise.Kill();
 	for (i = 0; i < mapsClasses.NumElements(); i++)
 	{
@@ -179,8 +178,9 @@ void CCPP65Generator::Kill(void)
 //
 // Appends the assembly for the translation unit to pszDest, to be assembled as an
 // object (CAsm65Assembler::AssembleObject): the functions, the routines that make and
-// destroy global objects (in the init and fini tables), the runtime routines they
-// use, then the data.  Returns false if anything could not be generated; GetErrors
+// destroy the globals (in the init and fini tables), the runtime routines they use,
+// then the data.  Each function, global, static local, temporary and string literal
+// is a section of its own so the linker can leave out the ones nothing uses.  Returns false if anything could not be generated; GetErrors
 // says what.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -189,7 +189,6 @@ bool CCPP65Generator::Generate(CChars* pszDest)
 	CCPPSyntaxTranslationUnit*	pcRoot;
 	SCPP65Function*				psFunction;
 
-	AppendSection(&mszCode, "text", NULL);
 	pcRoot = mpcTree->GetRoot();
 	if (pcRoot)
 	{
@@ -204,8 +203,6 @@ bool CCPP65Generator::Generate(CChars* pszDest)
 		GenerateFunction(psFunction);
 	}
 
-	AppendStartUpRoutine("init", "R_Initialise", &mszInitialise);
-	AppendStartUpRoutine("fini", "R_Finalise", &mszFinalise);
 	AppendRuntime();
 
 	pszDest->Append(mszCode);
@@ -218,17 +215,24 @@ bool CCPP65Generator::Generate(CChars* pszDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A unit's routine that makes (or destroys) its global objects, and its entry in
-// the init (or fini) table.
+// A routine that works out (or destroys) one global, and its entry in the init (or
+// fini) table.  The entry is associated with the global's data section, so the
+// linker keeps the routine only when something uses the global.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendStartUpRoutine(const char* szTable, const char* szName, CChars* pszBody)
+void CCPP65Generator::AppendStartUpRoutine(const char* szTable, const char* szName, CChars* pszBody, CChars* pszData)
 {
+	CChars	szLabel;
+	CChars	szOptions;
+
 	if (pszBody->Length() == 0)
 	{
 		return;
 	}
-	mszCode.Append(szName);
+	szLabel.Init(szName);
+	szLabel.Append(miStartUps);
+	AppendSection(&mszCode, "text", &szLabel, NULL);
+	mszCode.Append(szLabel);
 	mszCode.Append(':');
 	mszCode.AppendNewLine();
 	mszCode.Append(pszBody);
@@ -236,10 +240,14 @@ void CCPP65Generator::AppendStartUpRoutine(const char* szTable, const char* szNa
 	mszCode.AppendNewLine();
 	mszCode.AppendNewLine();
 
-	AppendSection(&mszData, szTable, NULL);
+	szOptions.Init(", associated data.");
+	szOptions.Append(pszData);
+	AppendSection(&mszData, szTable, &szLabel, szOptions.Text());
 	mszData.Append("\t\t.long ");
-	mszData.Append(szName);
+	mszData.Append(szLabel);
 	mszData.AppendNewLine();
+	szOptions.Kill();
+	szLabel.Kill();
 }
 
 
@@ -260,15 +268,20 @@ bool CCPP65Generator::GenerateProgram(CChars* pszDest)
 //
 // The start up sets the stack to 001F:FFFF (the first 4 bytes pushed are at
 // 001F:FFFC), W to the pseudo registers at 0000:0000 and the registers to 32 bits,
-// calls the init table (each unit's R_Initialise, in link order), calls main, calls
+// calls the init table (each global's R_Initialise, in link order), calls main, calls
 // the fini table backwards and stops with main's result in A.  Its object must be
 // linked first so it is at the start of the text, 0001:0000; the reset vector is left
 // to the loader.
 //
+// It also defines C's _Exit(int iStatus), which stops at once with iStatus in A.
+// Libc65's exit runs the fini table and then calls it.
+//
+// It is kept, and everything it reaches, when the linker leaves out what is unused.
+//
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::AppendStartUp(CChars* pszDest)
 {
-	pszDest->Append("\t\t.section text")->AppendNewLine();
+	pszDest->Append("\t\t.section text, keep")->AppendNewLine();
 	pszDest->Append("Start:")->AppendNewLine();
 	pszDest->Append("\t\tcpy S, $")->Append((uint32)CPP65_STACK_TOP, 16)->AppendNewLine();
 	pszDest->Append("\t\tcpy W, 0")->AppendNewLine();
@@ -298,28 +311,68 @@ void CCPP65Generator::AppendStartUp(CChars* pszDest)
 	pszDest->Append("StartStop:")->AppendNewLine();
 	pszDest->Append("\t\tpul A")->AppendNewLine();
 	pszDest->Append("\t\tstp")->AppendNewLine();
+	pszDest->Append("\t\t.global __Exit")->AppendNewLine();
+	pszDest->Append("__Exit:")->AppendNewLine();
+	pszDest->Append("\t\tcpy V, S")->AppendNewLine();
+	pszDest->Append("\t\tcpy A, [5 + V]")->AppendNewLine();
+	pszDest->Append("\t\tstp")->AppendNewLine();
 	pszDest->AppendNewLine();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// ".section text" or, for code or data every unit that uses it writes (inline,
-// template and generated functions, vtables, thunks, runtime routines), a COMDAT
-// section of its own named after its label so the linker keeps one copy.
+// ".section kind.name" and szOptions (", comdat" for code or data every unit that
+// uses it writes: inline, template and generated functions, vtables, thunks and
+// runtime routines, so the linker keeps one copy).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendSection(CChars* psz, const char* szKind, CChars* pszComdat)
+void CCPP65Generator::AppendSection(CChars* psz, const char* szKind, CChars* pszName, const char* szOptions)
 {
 	psz->Append("\t\t.section ");
 	psz->Append(szKind);
-	if (pszComdat)
+	psz->Append('.');
+	psz->Append(pszName);
+	if (szOptions)
 	{
-		psz->Append('.');
-		psz->Append(pszComdat);
-		psz->Append(", comdat");
+		psz->Append(szOptions);
 	}
 	psz->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// __attribute__((used)) (or __used__) on a declarator: the global is kept even if
+// nothing uses it (its constructor may register it somewhere).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator)
+{
+	size		i;
+	int32		iToken;
+	CCPPSyntax*	pcAttribute;
+	CCPPToken*	pcToken;
+	char*		szName;
+	int			iLength;
+
+	for (i = 0; i < pcDeclarator->macpAttributes.NumElements(); i++)
+	{
+		pcAttribute = pcDeclarator->macpAttributes.GetPtr(i);
+		for (iToken = pcAttribute->miFirstToken; iToken <= pcAttribute->miLastToken; iToken++)
+		{
+			pcToken = mpcTokeniser->Get(iToken);
+			if (pcToken->IsIdentifier())
+			{
+				szName = mpcTokeniser->GetIdentifier(((CCTIdentifier*)pcToken)->mlliIdentifier, &iLength);
+				if (((iLength == 4) && (memcmp(szName, "used", 4) == 0)) || ((iLength == 8) && (memcmp(szName, "__used__", 8) == 0)))
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
 
 
@@ -933,8 +986,8 @@ bool CCPP65Generator::SameParameters(SCPP65Function* psFunction, SCPP65Function*
 //
 // Function declarations, classes, typedefs, enums and global variables.  Global
 // variables are data with constant initialisers (zero without one).  Global objects
-// are zero and made by R_Initialise before main, and destroyed (last first) by
-// R_Finalise after it.  A qualified name defines a static data member.  Function
+// are zero and made by their R_Initialise before main, and destroyed (last first) by
+// their R_Finalise after it.  A qualified name defines a static data member.  Function
 // and extern declarations the generator cannot do are only errors when used.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1040,7 +1093,10 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 		psVariable->bDefined = true;
 		psVariable->psType = psType;
 
-		AppendSection(&mszData, "data", NULL);
+		VariablePlace(psVariable, &sPlace);
+		szLabel.Init();
+		AppendPlaceLabel(&szLabel, &sPlace);
+		AppendSection(&mszData, "data", &szLabel, HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL);
 		if ((psType->iBytes >= 4) || psElement->IsClass())
 		{
 			mszData.Append("\t\t.align 4");
@@ -1051,36 +1107,37 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 			mszData.Append("\t\t.align 2");
 			mszData.AppendNewLine();
 		}
-		VariablePlace(psVariable, &sPlace);
 		if (!psVariable->bInternal)
 		{
-			szLabel.Init();
-			AppendPlaceLabel(&szLabel, &sPlace);
 			AppendGlobal(&mszData, &szLabel);
-			szLabel.Kill();
 		}
-		AppendPlaceLabel(&mszData, &sPlace);
+		mszData.Append(szLabel);
 		mszData.Append(':');
 		mszData.AppendNewLine();
-		VariablePlace(psVariable, &sPlace);
+
+		//What isn't constant is worked out by the global's own R_Initialise; an object is destroyed by its R_Finalise.
+		mszInitialise.Clear();
+		szDestroy.Init();
+		miThisOffset = -1;
 		if (!psElement->IsClass() && !psType->IsReference())
 		{
-			miThisOffset = -1;
 			bResult &= GlobalInitialiser(psType, pcInit->mpcInitializer, pcInit, &sPlace);
-			continue;
 		}
-
-		AppendZeros(psType->iBytes);
-		mpszOut = &mszInitialise;
-		miThisOffset = -1;
-		bResult &= Construct(&sPlace, NULL, pcInit->mpcInitializer, pcInit);
-
-		szDestroy.Init();
-		mpszOut = &szDestroy;
-		bResult &= Destroy(&sPlace);
-		mszFinalise.Insert(0, &szDestroy);
+		else
+		{
+			AppendZeros(psType->iBytes);
+			mpszOut = &mszInitialise;
+			bResult &= Construct(&sPlace, NULL, pcInit->mpcInitializer, pcInit);
+			mpszOut = &szDestroy;
+			bResult &= Destroy(&sPlace);
+			mpszOut = &mszCode;
+		}
+		AppendStartUpRoutine("init", "R_Initialise", &mszInitialise, &szLabel);
+		AppendStartUpRoutine("fini", "R_Finalise", &szDestroy, &szLabel);
+		miStartUps++;
+		mszInitialise.Clear();
 		szDestroy.Kill();
-		mpszOut = &mszCode;
+		szLabel.Kill();
 	}
 	return bResult;
 }
@@ -1762,8 +1819,8 @@ void CCPP65Generator::GenerateFunction(SCPP65Function* psFunction)
 	psFunction->bGenerated = true;
 	psFunction->bQueued = false;
 
-	//Inline, template and generated functions are written by every unit that needs them,
-	//each in a COMDAT section the linker keeps one of.
+	//Each function is a section of its own.  Inline, template and generated functions are written by every unit
+	//that needs them, each in a COMDAT section the linker keeps one of.
 	szLabel.Init();
 	AppendFunctionLabel(&szLabel, psFunction);
 	bShared = !IsUnitFunction(psFunction) && (psFunction->bInline || psFunction->bImplicit || psFunction->psTemplate);
@@ -1772,10 +1829,7 @@ void CCPP65Generator::GenerateFunction(SCPP65Function* psFunction)
 		szLabel.Kill();
 		return;
 	}
-	if (bShared)
-	{
-		AppendSection(&mszCode, "text", &szLabel);
-	}
+	AppendSection(&mszCode, "text", &szLabel, bShared ? ", comdat" : NULL);
 	if (!IsUnitFunction(psFunction))
 	{
 		AppendGlobal(&mszCode, &szLabel);
@@ -1802,10 +1856,6 @@ void CCPP65Generator::GenerateFunction(SCPP65Function* psFunction)
 		GenerateDefinition(psFunction);
 	}
 	mpsBindings = psSaved;
-	if (bShared)
-	{
-		AppendSection(&mszCode, "text", NULL);
-	}
 }
 
 
@@ -2067,6 +2117,7 @@ bool CCPP65Generator::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDe
 	SCPP65Variable*		psVariable;
 	SCPP65Type*			psType;
 	SCPP65Place			sPlace;
+	CChars				szLabel;
 	bool				bResult;
 	int					iThisOffset;
 
@@ -2083,7 +2134,11 @@ bool CCPP65Generator::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDe
 	psVariable = AddVariable(&mapsLocals, pcInit->mpcSymbol, psType, CPP65S_Static, miStatics);
 	miStatics++;
 	psVariable->bDefined = true;
-	AppendSection(&mszData, "data", NULL);
+	VariablePlace(psVariable, &sPlace);
+	szLabel.Init();
+	AppendPlaceLabel(&szLabel, &sPlace);
+	AppendSection(&mszData, "data", &szLabel, NULL);
+	szLabel.Kill();
 	if (psType->iBytes >= 4)
 	{
 		mszData.Append("\t\t.align 4");
@@ -2917,13 +2972,14 @@ bool CCPP65Generator::BreakStatement(CCPPSyntax* pcStatement, bool bContinue)
 void CCPP65Generator::AppendStrings(CChars* pszDest)
 {
 	size	i;
+	CChars	szLabel;
 
-	if (maszStrings.NumElements() > 0)
-	{
-		AppendSection(pszDest, "rodata", NULL);
-	}
 	for (i = 0; i < maszStrings.NumElements(); i++)
 	{
+		szLabel.Init("Str");
+		szLabel.Append((int)i);
+		AppendSection(pszDest, "rodata", &szLabel, NULL);
+		szLabel.Kill();
 		pszDest->Append("Str");
 		pszDest->Append((int)i);
 		pszDest->Append(':');
@@ -3023,10 +3079,6 @@ void CCPP65Generator::AppendRuntime(void)
 		BeginRuntime("R_DivideSigned64");
 		AppendDivideSigned("R_DivideSigned64", 8);
 	}
-	if (bPure || bDivide || bDivide64)
-	{
-		AppendSection(&mszCode, "text", NULL);
-	}
 }
 
 
@@ -3040,7 +3092,7 @@ void CCPP65Generator::BeginRuntime(const char* szName)
 	CChars	szLabel;
 
 	szLabel.Init(szName);
-	AppendSection(&mszCode, "text", &szLabel);
+	AppendSection(&mszCode, "text", &szLabel, ", comdat");
 	AppendGlobal(&mszCode, &szLabel);
 	szLabel.Kill();
 	mszCode.Append(szName);

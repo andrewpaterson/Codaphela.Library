@@ -299,6 +299,9 @@ void CAsm65Linker::Init(void)
 	mcSymbolIndices.Init(true, true);
 	mcReferences.Init(true, true);
 	maszReferenced.Init();
+	mcUsedReferences.Init(true, true);
+	maszUsedReferenced.Init();
+	maiRelocations.Init();
 	mcGroups.Init(true, true);
 	maszMissing.Init();
 	maiPlacement.Init();
@@ -315,6 +318,7 @@ void CAsm65Linker::Init(void)
 	mabFixed[ASK65_Text] = true;
 	muiLimit = 0;
 	mbStubMissing = false;
+	mbRemoveUnused = false;
 
 	mcOutput.Init();
 	mszMap.Init();
@@ -337,6 +341,9 @@ void CAsm65Linker::Kill(void)
 	maiPlacement.Kill();
 	maszMissing.Kill();
 	mcGroups.Kill();
+	maiRelocations.Kill();
+	maszUsedReferenced.Kill();
+	mcUsedReferences.Kill();
 	maszReferenced.Kill();
 	mcReferences.Kill();
 	mcSymbolIndices.Kill();
@@ -411,6 +418,20 @@ void CAsm65Linker::SetStubMissing(bool bStubMissing)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Links only the sections that are used: keep sections and init and fini sections
+// (not associated with another section), the sections their relocations reach, and
+// so on.  An associated section is used when the section it is associated with is.
+// A name only unused sections need is not missing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Linker::SetRemoveUnused(bool bRemoveUnused)
+{
+	mbRemoveUnused = bRemoveUnused;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Linker::Link(void)
@@ -422,7 +443,15 @@ bool CAsm65Linker::Link(void)
 		Include(mapcInputs.GetPtr(i));
 	}
 	PullLibraries();
-	FindMissing();
+	if (mbRemoveUnused)
+	{
+		MarkUsed();
+		FindMissing(&mcUsedReferences, &maszUsedReferenced);
+	}
+	else
+	{
+		FindMissing(&mcReferences, &maszReferenced);
+	}
 	AddStubs();
 	if (mcErrors.NumErrors() != 0)
 	{
@@ -456,8 +485,6 @@ void CAsm65Linker::Include(CAsm65Object* pcObject)
 	SAsm65Section*			psSection;
 	SAsm65ObjectSymbol*		psSymbol;
 	SAsm65LinkSymbol*		psGlobal;
-	SAsm65LinkReference*	psReference;
-	SAsm65LinkReference		sReference;
 	uint32*					puiGroup;
 	uint32					uiObject;
 	size					i;
@@ -474,6 +501,9 @@ void CAsm65Linker::Include(CAsm65Object* pcObject)
 		psLinkSection = masSections.Add();
 		psLinkSection->uiAddress = 0;
 		psLinkSection->bKept = true;
+		psLinkSection->bUsed = true;
+		psLinkSection->uiFirstRelocation = 0;
+		psLinkSection->uiNumRelocations = 0;
 		if (!psSection->szGroup.Empty())
 		{
 			puiGroup = mcGroups.Get(psSection->szGroup.Text());
@@ -493,18 +523,7 @@ void CAsm65Linker::Include(CAsm65Object* pcObject)
 		psSymbol = pcObject->GetSymbol(i);
 		if (psSymbol->iSection == ASM65_SECTION_UNDEFINED)
 		{
-			psReference = mcReferences.Get(psSymbol->szName.Text());
-			if (psReference == NULL)
-			{
-				sReference.bStrong = psSymbol->eBinding != AB65_Weak;
-				sReference.uiObject = uiObject;
-				mcReferences.Put(psSymbol->szName.Text(), &sReference);
-				maszReferenced.Add(psSymbol->szName.Text());
-			}
-			else if (psSymbol->eBinding != AB65_Weak)
-			{
-				psReference->bStrong = true;
-			}
+			AddReference(&mcReferences, &maszReferenced, psSymbol->szName.Text(), psSymbol->eBinding != AB65_Weak, uiObject);
 			continue;
 		}
 		if (psSymbol->eBinding == AB65_Local)
@@ -668,16 +687,16 @@ bool CAsm65Linker::IsLinkerSymbol(const char* szName)
 // Names needed (not only weakly) that nothing defines.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Linker::FindMissing(void)
+void CAsm65Linker::FindMissing(CMapStringTemplate<SAsm65LinkReference>* pcReferences, CArrayChars* paszReferenced)
 {
 	size					i;
 	char*					szName;
 	SAsm65LinkReference*	psReference;
 
-	for (i = 0; i < maszReferenced.NumElements(); i++)
+	for (i = 0; i < paszReferenced->NumElements(); i++)
 	{
-		szName = maszReferenced.GetText(i);
-		psReference = mcReferences.Get(szName);
+		szName = paszReferenced->GetText(i);
+		psReference = pcReferences->Get(szName);
 		if (!psReference->bStrong || GetGlobal(szName) || IsLinkerSymbol(szName))
 		{
 			continue;
@@ -688,6 +707,228 @@ void CAsm65Linker::FindMissing(void)
 			mcErrors.Add(masObjects.Get(psReference->uiObject)->pcObject->GetName(), 0, 0, "Undefined symbol", szName);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Notes that uiObject needs szName (bStrong when not only weakly).
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Linker::AddReference(CMapStringTemplate<SAsm65LinkReference>* pcReferences, CArrayChars* paszReferenced, const char* szName, bool bStrong, size uiObject)
+{
+	SAsm65LinkReference*	psReference;
+	SAsm65LinkReference		sReference;
+
+	psReference = pcReferences->Get(szName);
+	if (psReference == NULL)
+	{
+		sReference.bStrong = bStrong;
+		sReference.uiObject = uiObject;
+		pcReferences->Put(szName, &sReference);
+		paszReferenced->Add(szName);
+	}
+	else if (bStrong)
+	{
+		psReference->bStrong = true;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Groups the relocations by section: each section's are uiNumRelocations indices
+// (into its object's relocations) from uiFirstRelocation in maiRelocations.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Linker::IndexRelocations(void)
+{
+	size				i;
+	size				j;
+	size				uiNext;
+	SAsm65LinkObject*	psObject;
+	SAsm65LinkSection*	psLinkSection;
+	SAsm65Relocation*	psRelocation;
+
+	for (i = 0; i < masObjects.NumElements(); i++)
+	{
+		psObject = masObjects.Get(i);
+		for (j = 0; j < psObject->pcObject->NumRelocations(); j++)
+		{
+			GetLinkSection(i, psObject->pcObject->GetRelocation(j)->uiSection)->uiNumRelocations++;
+		}
+	}
+
+	uiNext = 0;
+	for (i = 0; i < masSections.NumElements(); i++)
+	{
+		psLinkSection = masSections.Get(i);
+		psLinkSection->uiFirstRelocation = uiNext;
+		uiNext += psLinkSection->uiNumRelocations;
+		psLinkSection->uiNumRelocations = 0;
+	}
+
+	maiRelocations.Resize(uiNext);
+	for (i = 0; i < masObjects.NumElements(); i++)
+	{
+		psObject = masObjects.Get(i);
+		for (j = 0; j < psObject->pcObject->NumRelocations(); j++)
+		{
+			psRelocation = psObject->pcObject->GetRelocation(j);
+			psLinkSection = GetLinkSection(i, psRelocation->uiSection);
+			maiRelocations.SetValue(psLinkSection->uiFirstRelocation + psLinkSection->uiNumRelocations, (int)j);
+			psLinkSection->uiNumRelocations++;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Marks the used sections (see SetRemoveUnused) and notes the names they need.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Linker::MarkUsed(void)
+{
+	CArraySize			aiWork;
+	SAsm65LinkObject*	psObject;
+	SAsm65Section*		psSection;
+	SAsm65LinkSection*	psLinkSection;
+	size				uiSection;
+	size				uiObject;
+	size				i;
+	size				j;
+	bool				bAdded;
+
+	IndexRelocations();
+	for (i = 0; i < masSections.NumElements(); i++)
+	{
+		masSections.Get(i)->bUsed = false;
+	}
+
+	aiWork.Init();
+	for (i = 0; i < masObjects.NumElements(); i++)
+	{
+		psObject = masObjects.Get(i);
+		for (j = 0; j < psObject->pcObject->NumSections(); j++)
+		{
+			psSection = psObject->pcObject->GetSection(j);
+			if (psSection->bKeep || (((psSection->eKind == ASK65_Init) || (psSection->eKind == ASK65_Fini)) && (psSection->iAssociated < 0)))
+			{
+				UseSection(psObject->uiFirstSection + j, &aiWork);
+			}
+		}
+	}
+
+	do
+	{
+		while (aiWork.NumElements() > 0)
+		{
+			uiSection = (size)aiWork.Pop();
+			for (uiObject = masObjects.NumElements() - 1; masObjects.Get(uiObject)->uiFirstSection > uiSection; uiObject--)
+			{
+			}
+			psObject = masObjects.Get(uiObject);
+			psLinkSection = masSections.Get(uiSection);
+			for (i = 0; i < psLinkSection->uiNumRelocations; i++)
+			{
+				UseTarget(uiObject, psObject->pcObject->GetRelocation(maiRelocations.GetValue(psLinkSection->uiFirstRelocation + i)), &aiWork);
+			}
+		}
+
+		//Associated sections whose section is used.
+		bAdded = false;
+		for (i = 0; i < masObjects.NumElements(); i++)
+		{
+			psObject = masObjects.Get(i);
+			for (j = 0; j < psObject->pcObject->NumSections(); j++)
+			{
+				psSection = psObject->pcObject->GetSection(j);
+				psLinkSection = GetLinkSection(i, j);
+				if (!psLinkSection->bUsed && (psSection->iAssociated >= 0) && GetLinkSection(i, psSection->iAssociated)->bUsed)
+				{
+					UseSection(psObject->uiFirstSection + j, &aiWork);
+					bAdded = true;
+				}
+			}
+		}
+	}
+	while (bAdded);
+	aiWork.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Linker::UseSection(size uiSection, CArraySize* paiWork)
+{
+	SAsm65LinkSection*	psLinkSection;
+
+	psLinkSection = masSections.Get(uiSection);
+	if (psLinkSection->bKept && !psLinkSection->bUsed)
+	{
+		psLinkSection->bUsed = true;
+		paiWork->Add((int)uiSection);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Uses the section a relocation reaches, or notes the name it needs if no object
+// defines it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Linker::UseTarget(size uiObject, SAsm65Relocation* psRelocation, CArraySize* paiWork)
+{
+	CAsm65Object*		pcObject;
+	SAsm65ObjectSymbol*	psSymbol;
+	SAsm65LinkSymbol*	psGlobal;
+
+	pcObject = masObjects.Get(uiObject)->pcObject;
+	if (psRelocation->iTargetSection != ASM65_TARGET_SYMBOL)
+	{
+		UseSection(masObjects.Get(uiObject)->uiFirstSection + psRelocation->iTargetSection, paiWork);
+		return;
+	}
+
+	psSymbol = pcObject->GetSymbol(psRelocation->uiTargetSymbol);
+	if ((psSymbol->eBinding == AB65_Local) && (psSymbol->iSection != ASM65_SECTION_UNDEFINED))
+	{
+		if (psSymbol->iSection >= 0)
+		{
+			UseSection(masObjects.Get(uiObject)->uiFirstSection + psSymbol->iSection, paiWork);
+		}
+		return;
+	}
+
+	psGlobal = GetGlobal(psSymbol->szName.Text());
+	if (psGlobal == NULL)
+	{
+		AddReference(&mcUsedReferences, &maszUsedReferenced, psSymbol->szName.Text(), psSymbol->eBinding != AB65_Weak, uiObject);
+		return;
+	}
+	if (psGlobal->iObject >= 0)
+	{
+		psSymbol = masObjects.Get(psGlobal->iObject)->pcObject->GetSymbol(psGlobal->uiSymbol);
+		if (psSymbol->iSection >= 0)
+		{
+			UseSection(masObjects.Get(psGlobal->iObject)->uiFirstSection + psSymbol->iSection, paiWork);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A kept and used section is placed.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Linker::IsPlaced(SAsm65LinkSection* psLinkSection)
+{
+	return psLinkSection->bKept && psLinkSection->bUsed;
 }
 
 
@@ -762,7 +1003,7 @@ void CAsm65Linker::Layout(void)
 			{
 				psSection = psObject->pcObject->GetSection(j);
 				psLinkSection = GetLinkSection(i, j);
-				if ((psSection->eKind != iKind) || !psLinkSection->bKept)
+				if ((psSection->eKind != iKind) || !IsPlaced(psLinkSection))
 				{
 					continue;
 				}
@@ -862,7 +1103,7 @@ void CAsm65Linker::ResolveSymbols(void)
 		psGlobal = masSymbols.Get(i);
 		if (psGlobal->iObject >= 0)
 		{
-			SymbolAddress(psGlobal->iObject, masObjects.Get(psGlobal->iObject)->pcObject->GetSymbol(psGlobal->uiSymbol), &psGlobal->iValue);
+			psGlobal->bPlaced = SymbolAddress(psGlobal->iObject, masObjects.Get(psGlobal->iObject)->pcObject->GetSymbol(psGlobal->uiSymbol), &psGlobal->iValue);
 		}
 	}
 }
@@ -885,7 +1126,7 @@ bool CAsm65Linker::SymbolAddress(size uiObject, SAsm65ObjectSymbol* psSymbol, in
 	}
 	psLinkSection = GetLinkSection(uiObject, psSymbol->iSection);
 	*piValue += psLinkSection->uiAddress;
-	return psLinkSection->bKept;
+	return IsPlaced(psLinkSection);
 }
 
 
@@ -984,7 +1225,7 @@ void CAsm65Linker::Relocate(void)
 			psRelocation = psObject->pcObject->GetRelocation(j);
 			psSection = psObject->pcObject->GetSection(psRelocation->uiSection);
 			psLinkSection = GetLinkSection(i, psRelocation->uiSection);
-			if (!psLinkSection->bKept)
+			if (!IsPlaced(psLinkSection))
 			{
 				continue;
 			}
@@ -1057,6 +1298,7 @@ void CAsm65Linker::WriteMap(void)
 	size							j;
 	size							uiObject;
 	bool							bDropped;
+	bool							bRemoved;
 	int64							iValue;
 
 	mszMap.Append("Sections\n");
@@ -1099,6 +1341,33 @@ void CAsm65Linker::WriteMap(void)
 			mszMap.Append(psSection->szName.Text());
 			mszMap.Append(" comdat ");
 			mszMap.Append(psSection->szGroup.Text());
+			mszMap.Append(" (");
+			mszMap.Append(psObject->pcObject->GetName());
+			mszMap.Append(")\n");
+		}
+	}
+
+	bRemoved = false;
+	for (i = 0; i < masObjects.NumElements(); i++)
+	{
+		psObject = masObjects.Get(i);
+		for (j = 0; j < psObject->pcObject->NumSections(); j++)
+		{
+			psLinkSection = GetLinkSection(i, j);
+			if (!psLinkSection->bKept || psLinkSection->bUsed)
+			{
+				continue;
+			}
+			if (!bRemoved)
+			{
+				mszMap.Append("Removed unused sections\n");
+				bRemoved = true;
+			}
+			psSection = psObject->pcObject->GetSection(j);
+			mszMap.Append("  ");
+			AppendAddress(&mszMap, psSection->uiSize);
+			mszMap.Append(" ");
+			mszMap.Append(psSection->szName.Text());
 			mszMap.Append(" (");
 			mszMap.Append(psObject->pcObject->GetName());
 			mszMap.Append(")\n");
@@ -1169,6 +1438,7 @@ void CAsm65Linker::AddGlobal(const char* szName, int32 iObject, uint32 uiSymbol,
 	psGlobal->iObject = iObject;
 	psGlobal->uiSymbol = uiSymbol;
 	psGlobal->bWeak = bWeak;
+	psGlobal->bPlaced = true;
 	psGlobal->iValue = iValue;
 	mcSymbolIndices.Put(szName, &uiIndex);
 }
@@ -1253,7 +1523,8 @@ size CAsm65Linker::NumErrors(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A global's address after Link (or a linker symbol such as __end).
+// A global's address after Link (or a linker symbol such as __end).  False for a
+// global in a removed section.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Linker::GetSymbol(const char* szName, int64* piValue)
@@ -1261,7 +1532,7 @@ bool CAsm65Linker::GetSymbol(const char* szName, int64* piValue)
 	SAsm65LinkSymbol*	psGlobal;
 
 	psGlobal = GetGlobal(szName);
-	if (psGlobal == NULL)
+	if ((psGlobal == NULL) || !psGlobal->bPlaced)
 	{
 		return false;
 	}

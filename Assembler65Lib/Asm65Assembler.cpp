@@ -52,6 +52,7 @@ void CAsm65Assembler::Init(void)
 	muiSection = 0;
 	mcSectionAddresses.Init();
 	mcUndefined.Init();
+	mcAssociations.Init();
 	miExpressionDepth = 0;
 	muiStatementTerms = 0;
 	muiStatementTermsUsed = 0;
@@ -65,6 +66,7 @@ void CAsm65Assembler::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Assembler::Kill(void)
 {
+	mcAssociations.Kill();
 	mcUndefined.Kill();
 	mcSectionAddresses.Kill();
 	mcPendingLabels.Kill();
@@ -141,6 +143,7 @@ bool CAsm65Assembler::AssembleObject(const char* szSource, CAsm65Object* pcObjec
 	bResult = Assemble(szSource);
 	if (bResult)
 	{
+		Associate();
 		BuildObjectSymbols();
 		bResult = mcErrors.NumErrors() == 0;
 	}
@@ -713,19 +716,25 @@ bool CAsm65Assembler::Space(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// .section name {, comdat {group}}
-// The name starts with text, rodata, init, fini, data or bss.  A COMDAT section's
-// group is its name unless one is given.
+// .section name {, option}...
+// The name starts with text, rodata, init, fini, data or bss.  The options are
+//   comdat {group}         a COMDAT section; its group is its name unless given
+//   associated section     used when that section of this object is used
+//   keep                   always used
+// Options given again when switching back to a section are added.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Assembler::Section(void)
 {
 	SAsm65Token*		psName;
 	SAsm65Token*		psGroup;
+	SAsm65Token*		psAssociated;
+	SAsm65Section*		psSection;
 	EAsm65SectionKind	eKind;
 	CChars				szName;
 	CChars				szGroup;
 	int32				iSection;
+	bool				bKeep;
 
 	psName = Peek();
 	if (!mbObject)
@@ -741,20 +750,9 @@ bool CAsm65Assembler::Section(void)
 		return Error(psName, "A section name starts with text, rodata, init, fini, data or bss");
 	}
 	Next();
-
-	psGroup = NULL;
-	if (Accept(AP65_Comma))
+	if (!SectionOptions(psName, &psGroup, &psAssociated, &bKeep))
 	{
-		if (!Peek()->IsIdentifierIgnoreCase("comdat"))
-		{
-			return ErrorExpected(Peek(), "comdat");
-		}
-		Next();
-		psGroup = psName;
-		if (Peek()->eType == AT65_Identifier)
-		{
-			psGroup = Next();
-		}
+		return false;
 	}
 
 	szName.Init();
@@ -773,9 +771,104 @@ bool CAsm65Assembler::Section(void)
 	szGroup.Kill();
 	szName.Kill();
 
+	psSection = mpcObject->GetSection(iSection);
+	psSection->bKeep |= bKeep;
+	if (psAssociated && mbFinal)
+	{
+		//Resolved after the final pass (Associate): the section may come later.
+		mcAssociations.Add(iSection);
+		mcAssociations.Add((int)TokenIndex(psAssociated));
+	}
+
 	SwitchSection((uint32)iSection);
 	muiStatementAddress = muiAddress;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::SectionOptions(SAsm65Token* psName, SAsm65Token** ppsGroup, SAsm65Token** ppsAssociated, bool* pbKeep)
+{
+	SAsm65Token*	psOption;
+
+	*ppsGroup = NULL;
+	*ppsAssociated = NULL;
+	*pbKeep = false;
+	while (Accept(AP65_Comma))
+	{
+		psOption = Peek();
+		if (psOption->IsIdentifierIgnoreCase("comdat"))
+		{
+			Next();
+			*ppsGroup = psName;
+			if (Peek()->eType == AT65_Identifier)
+			{
+				*ppsGroup = Next();
+			}
+		}
+		else if (psOption->IsIdentifierIgnoreCase("associated"))
+		{
+			Next();
+			if (Peek()->eType != AT65_Identifier)
+			{
+				return ErrorExpected(Peek(), "a section name");
+			}
+			*ppsAssociated = Next();
+		}
+		else if (psOption->IsIdentifierIgnoreCase("keep"))
+		{
+			Next();
+			*pbKeep = true;
+		}
+		else
+		{
+			return ErrorExpected(psOption, "comdat, associated or keep");
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Points each associated section at the section it names (by name, in this object).
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Assembler::Associate(void)
+{
+	size			i;
+	SAsm65Token*	psName;
+	CChars			szName;
+	int32			iSection;
+	size			j;
+
+	for (i = 0; i + 1 < mcAssociations.NumElements(); i += 2)
+	{
+		psName = mcTokeniser.Get(mcAssociations.GetValue(i + 1));
+		szName.Init();
+		szName.Append(psName->szText, psName->uiLength);
+		iSection = -1;
+		for (j = 0; j < mpcObject->NumSections(); j++)
+		{
+			if (mpcObject->GetSection(j)->szName.Equals(szName.Text()))
+			{
+				iSection = (int32)j;
+				break;
+			}
+		}
+		szName.Kill();
+		if (iSection < 0)
+		{
+			Report(&mcErrors, psName, "Unknown section");
+		}
+		else
+		{
+			mpcObject->GetSection(mcAssociations.GetValue(i))->iAssociated = iSection;
+		}
+	}
 }
 
 

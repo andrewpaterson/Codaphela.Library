@@ -154,6 +154,8 @@ uint32 CAsm65Object::AddSection(const char* szName, const char* szGroup, EAsm65S
 	psSection->eKind = eKind;
 	psSection->uiAlignment = 1;
 	psSection->uiSize = 0;
+	psSection->iAssociated = -1;
+	psSection->bKeep = false;
 	psSection->cBytes.Init();
 	return (uint32)(mcSections.NumElements() - 1);
 }
@@ -323,6 +325,15 @@ void CAsm65Object::Dump(CChars* psz)
 		{
 			psz->Append(" comdat ");
 			psz->Append(psSection->szGroup.Text());
+		}
+		if (psSection->iAssociated >= 0)
+		{
+			psz->Append(" associated ");
+			psz->Append(psSection->iAssociated);
+		}
+		if (psSection->bKeep)
+		{
+			psz->Append(" keep");
 		}
 		psz->Append(" align ");
 		psz->Append(psSection->uiAlignment);
@@ -516,6 +527,8 @@ bool CAsm65Object::WriteChunks(CChunkFile* pcChunkFile)
 		bResult &= pcChunkFile->WriteInt32((int32)psSection->eKind);
 		bResult &= pcChunkFile->WriteInt32(psSection->uiAlignment);
 		bResult &= pcChunkFile->WriteInt32(psSection->uiSize);
+		bResult &= pcChunkFile->WriteInt32(psSection->iAssociated);
+		bResult &= pcChunkFile->WriteBool(psSection->bKeep);
 		bResult &= pcChunkFile->WriteInt32((uint32)psSection->cBytes.NumElements());
 		if (psSection->cBytes.NumElements() != 0)
 		{
@@ -626,12 +639,17 @@ bool CAsm65Object::ReadSections(CChunkFile* pcChunkFile)
 		psSection = mcSections.Get(AddSection("", "", ASK65_Text));
 		if (!Asm65ReadText(pcChunkFile, &psSection->szName) || !Asm65ReadText(pcChunkFile, &psSection->szGroup) ||
 			!pcChunkFile->ReadInt32(&iKind) || !pcChunkFile->ReadInt32(&psSection->uiAlignment) ||
-			!pcChunkFile->ReadInt32(&psSection->uiSize) || !pcChunkFile->ReadInt32(&uiBytes))
+			!pcChunkFile->ReadInt32(&psSection->uiSize) || !pcChunkFile->ReadInt32(&psSection->iAssociated) ||
+			!pcChunkFile->ReadBool(&psSection->bKeep) || !pcChunkFile->ReadInt32(&uiBytes))
 		{
 			return false;
 		}
 		if ((iKind < 0) || (iKind >= ASK65_NumKinds) || (uiBytes > psSection->uiSize) ||
 			(psSection->uiAlignment == 0) || ((psSection->uiAlignment & (psSection->uiAlignment - 1)) != 0))
+		{
+			return false;
+		}
+		if ((psSection->iAssociated < -1) || (psSection->iAssociated >= (int32)uiCount))
 		{
 			return false;
 		}

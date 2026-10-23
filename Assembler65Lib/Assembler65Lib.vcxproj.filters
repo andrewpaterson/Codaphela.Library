@@ -24,6 +24,9 @@
     <ClCompile Include="Asm65Linker.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Asm65Memory.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="Asm65Object.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -48,6 +51,9 @@
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Asm65Linker.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Asm65Memory.h">
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Asm65Object.h">
