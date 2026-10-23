@@ -22,6 +22,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
 #include "StandardLib/Objects.h"
+#include "StandardLib/ClassDefines.h"
 #include "SoundResampler.h"
 
 
@@ -37,7 +38,11 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CSoundResampler::Init(ESoundResample eResample, uint32 uiSampleRate)
 {
-	Init(eResample, uiSampleRate, SOUND_RESAMPLER_DEFAULT_SINC_ZERO_CROSSINGS);
+	PreInit();
+
+	PrivateInit(eResample, uiSampleRate, SOUND_RESAMPLER_DEFAULT_SINC_ZERO_CROSSINGS);
+
+	PostInit();
 }
 
 
@@ -46,6 +51,20 @@ void CSoundResampler::Init(ESoundResample eResample, uint32 uiSampleRate)
 //
 //////////////////////////////////////////////////////////////////////////
 void CSoundResampler::Init(ESoundResample eResample, uint32 uiSampleRate, size uiZeroCrossings)
+{
+	PreInit();
+
+	PrivateInit(eResample, uiSampleRate, uiZeroCrossings);
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSoundResampler::PrivateInit(ESoundResample eResample, uint32 uiSampleRate, size uiZeroCrossings)
 {
 	meResample = eResample;
 	muiSampleRate = uiSampleRate;
@@ -59,8 +78,14 @@ void CSoundResampler::Init(ESoundResample eResample, uint32 uiSampleRate, size u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSoundResampler::Kill(void)
+void CSoundResampler::Class(void)
 {
+	CSoundModifier::Class();
+	U_Enum(meResample);
+	U_UInt32(muiSampleRate);
+	U_Size(muiZeroCrossings);
+	U_Float64(mfKaiserBeta);
+	U_Float64(mfRolloff);
 }
 
 
@@ -89,7 +114,7 @@ size CSoundResampler::GetResampledNumFrames(size uiNumFrames, uint32 uiSourceRat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CSound> CSoundResampler::Resample(Ptr<CSound> pcSource)
+Ptr<CSound> CSoundResampler::Modify(Ptr<CSound> pcSource)
 {
 	Ptr<CSound>		pcDest;
 	uint32			uiSourceRate;
@@ -119,9 +144,7 @@ Ptr<CSound> CSoundResampler::Resample(Ptr<CSound> pcSource)
 	uiSourceFrames = pcSource->GetNumFrames();
 	if (uiSourceRate == muiSampleRate)
 	{
-		pcDest = OMalloc<CSound>(pcSource);
-		memcpy(pcDest->GetData(), pcSource->GetData(), pcSource->GetByteSize());
-		return pcDest;
+		return pcSource;
 	}
 
 	uiDestFrames = GetResampledNumFrames(uiSourceFrames, uiSourceRate, muiSampleRate);

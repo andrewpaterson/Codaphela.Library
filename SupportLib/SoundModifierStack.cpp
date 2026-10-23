@@ -1,0 +1,152 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2026 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela SupportLib
+
+Codaphela SupportLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela SupportLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
+#include "SoundModifierStack.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSoundModifierStack::Init(Ptr<CSound> pSound)
+{
+	PreInit();
+
+	mpSound = pSound;
+	maModifiers.Init();
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSoundModifierStack::Class(void)
+{
+	M_Embedded(maModifiers);
+	M_Pointer(mpSound);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSoundModifierStack::Free(void)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSoundModifierStack::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSoundModifierStack::Load(CObjectReader* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSoundModifierStack::AddModifier(Ptr<CSoundModifier> pModifier)
+{
+	maModifiers.Add(pModifier);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSoundModifierStack::SetSound(Ptr<CSound> pSound)
+{
+	mpSound = pSound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSoundModifierStack::ApplyAll(void)
+{
+	size					i;
+	Ptr<CSoundModifier>		pModifier;
+	Ptr<CSound>				pSound;
+
+	if (mpSound.IsNotNull())
+	{
+		pSound = mpSound;
+
+		for (i = 0; i < maModifiers.NumElements(); i++)
+		{
+			pModifier = maModifiers.Get(i);
+			pSound = pModifier->Modify(pSound);
+			if (pSound.IsNull())
+			{
+				//The modifier failed.  The sound is left as it was.
+				return;
+			}
+		}
+
+		if (pSound != mpSound)
+		{
+			mpSound->ReInit();
+			mpSound->CopyIntoInitialised(pSound);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CSoundModifierStack::NumModifiers(void)
+{
+	return (int)maModifiers.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CSound> CSoundModifierStack::GetSound(void)
+{
+	return mpSound;
+}
+

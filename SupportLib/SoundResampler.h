@@ -21,6 +21,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __SOUND_RESAMPLER_H__
 #define __SOUND_RESAMPLER_H__
 #include "Sound.h"
+#include "SoundModifier.h"
 
 
 enum ESoundResample
@@ -37,9 +38,12 @@ enum ESoundResample
 
 //Output frame i is taken from source time i * source rate / dest rate, so the first frames line up.  The output has
 //ceil(frames * dest rate / source rate) frames and the same channels as the source.  Linear and cubic hold the end
-//samples past the ends of the source; sinc treats samples past the ends as silence.
-class CSoundResampler
+//samples past the ends of the source; sinc treats samples past the ends as silence.  A sound already at the sample rate
+//is returned as it is.
+class CSoundResampler : public CSoundModifier
 {
+CONSTRUCTABLE(CSoundResampler);
+DESTRUCTABLE(CSoundResampler);
 protected:
 	ESoundResample	meResample;
 	uint32			muiSampleRate;
@@ -50,12 +54,13 @@ protected:
 public:
 	void			Init(ESoundResample eResample, uint32 uiSampleRate);
 	void			Init(ESoundResample eResample, uint32 uiSampleRate, size uiZeroCrossings);
-	void			Kill(void);
+	void			Class(void) override;
 
-	Ptr<CSound>		Resample(Ptr<CSound> pcSource);
+	Ptr<CSound>		Modify(Ptr<CSound> pcSound) override;
 	static size		GetResampledNumFrames(size uiNumFrames, uint32 uiSourceRate, uint32 uiDestRate);
 
 protected:
+	void			PrivateInit(ESoundResample eResample, uint32 uiSampleRate, size uiZeroCrossings);
 	void			ResampleChannel(float64* pfSource, size uiSourceFrames, float64* pfDest, size uiDestFrames, uint32 uiSourceRate, uint32 uiDestRate, float64* pfTable, size uiNumPhases);
 	float64			Nearest(float64* pfSource, size uiSourceFrames, uint64 ulliIndex, uint64 ulliPhase, uint32 uiDestRate);
 	float64			Linear(float64* pfSource, size uiSourceFrames, uint64 ulliIndex, float64 fFraction);

@@ -21,6 +21,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <math.h>
 #include "BaseLib/TypeNames.h"
+#include "BaseLib/IntegerHelper.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
 #include "StandardLib/ObjectWriter.h"
@@ -46,7 +47,44 @@ bool IsSampleType(EPrimitiveType eType)
 	case PT_float64:
 		return true;
 	default:
-		return false;
+		return IsBittySampleType(eType);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsBittySampleType(EPrimitiveType eType)
+{
+	return GetBittySampleBits(eType) != 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bits in a bit sized sample type, zero for other types.
+//
+//////////////////////////////////////////////////////////////////////////
+int GetBittySampleBits(EPrimitiveType eType)
+{
+	switch (eType)
+	{
+	case PT_bit:
+		return 1;
+	case PT_crumb:
+		return 2;
+	case PT_tribble:
+		return 3;
+	case PT_nybble:
+		return 4;
+	case PT_nickle:
+		return 5;
+	case PT_sixbits:
+		return 6;
+	default:
+		return 0;
 	}
 }
 
@@ -75,9 +113,47 @@ float64 ConvertSampleToFloat(void* pvSample, EPrimitiveType eType)
 		return (float64)*((float32*)pvSample);
 	case PT_float64:
 		return *((float64*)pvSample);
+	case PT_bit:
+		return (*((uint8*)pvSample) & 1) ? 1.0 : -1.0;
 	default:
+		return ConvertBittySampleToFloat(*((uint8*)pvSample), GetBittySampleBits(eType));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Bit sized samples are offset binary, like uint8: the middle code is
+// silence.  iBits must be 2 or more.
+//
+//////////////////////////////////////////////////////////////////////////
+float64 ConvertBittySampleToFloat(uint8 uiCode, int iBits)
+{
+	float64	fHalf;
+
+	if (iBits < 2)
+	{
 		return 0.0;
 	}
+	fHalf = (float64)(1 << (iBits - 1));
+	return ((float64)(uiCode & ((1 << iBits) - 1)) - fHalf) / fHalf;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 ConvertBittySampleFromFloat(float64 fSample, int iBits)
+{
+	float64	fHalf;
+
+	if (iBits < 2)
+	{
+		return 0;
+	}
+	fHalf = (float64)(1 << (iBits - 1));
+	return (uint8)(QuantiseSample(fSample, fHalf, -fHalf, fHalf - 1.0) + fHalf);
 }
 
 
@@ -140,7 +216,14 @@ void ConvertSampleFromFloat(void* pvSample, EPrimitiveType eType, float64 fSampl
 	case PT_float64:
 		*((float64*)pvSample) = fSample;
 		break;
+	case PT_bit:
+		*((uint8*)pvSample) = fSample >= 0.0 ? 1 : 0;
+		break;
 	default:
+		if (IsBittySampleType(eType))
+		{
+			*((uint8*)pvSample) = ConvertBittySampleFromFloat(fSample, GetBittySampleBits(eType));
+		}
 		break;
 	}
 }
@@ -301,6 +384,17 @@ void CSound::Free(void)
 {
 	SafeFree(mpsSoundChangingDesc);
 	muiSampleRate = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSound::ReInit(void)
+{
+	Free();
+	mcChannels.ReInit();
 }
 
 
@@ -568,6 +662,30 @@ void CSound::Copy(Ptr<CSound> pcSource)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+void CSound::CopyIntoInitialised(Ptr<CSound> pcSource)
+{
+	//This assumes Sound IS initialised.
+
+	muiSampleRate = pcSource->muiSampleRate;
+	if (pcSource->mpsSoundChangingDesc)
+	{
+		mpsSoundChangingDesc = (SSoundChangingDesc*)malloc(sizeof(SSoundChangingDesc));
+		mpsSoundChangingDesc->uiSampleRate = pcSource->mpsSoundChangingDesc->uiSampleRate;
+		mpsSoundChangingDesc->uiNumFrames = pcSource->mpsSoundChangingDesc->uiNumFrames;
+	}
+	else
+	{
+		mpsSoundChangingDesc = NULL;
+	}
+
+	mcChannels.CopyIntoInitialised(&pcSource->mcChannels);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Sets every sample to zero.  Unsigned samples are set to the middle of
 // their range and padding to zero.
 //
@@ -578,27 +696,25 @@ void CSound::Silence(void)
 	size		uiIndex;
 	size		uiFrame;
 	size		uiNumFrames;
-	size		uiStride;
 	CChannel*	pcChannel;
-	uint8*		pui;
+	uint64		ulliRaw;
 
 	mcChannels.Black();
 
 	uiNumChannels = NumChannels();
 	uiNumFrames = GetNumFrames();
-	uiStride = GetFrameByteStride();
 	for (uiIndex = 0; uiIndex < uiNumChannels; uiIndex++)
 	{
 		pcChannel = GetChannelAtIndex(uiIndex);
-		if ((pcChannel->eType == PT_uint8) || (pcChannel->eType == PT_uint16) || (pcChannel->eType == PT_uint32))
+		if ((pcChannel->eType == PT_uint8) || (pcChannel->eType == PT_uint16) || (pcChannel->eType == PT_uint32) || IsBittySampleType(pcChannel->eType))
 		{
-			if ((pcChannel->miByteOffset != CHANNEL_NON_ALIGNED_BYTES) && (uiStride != 0))
+			if (!pcChannel->bReverse)
 			{
-				pui = (uint8*)GetData() + pcChannel->miByteOffset;
+				ulliRaw = 0;
+				ConvertSampleFromFloat(&ulliRaw, pcChannel->eType, 0.0);
 				for (uiFrame = 0; uiFrame < uiNumFrames; uiFrame++)
 				{
-					ConvertSampleFromFloat(pui, pcChannel->eType, 0.0);
-					pui += uiStride;
+					SetRawSample(uiFrame, pcChannel, &ulliRaw);
 				}
 			}
 		}
@@ -608,8 +724,56 @@ void CSound::Silence(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Samples can be read and written when the channel is a whole number of
-// bytes from the start of the frame and is one of the sample types.
+// True if the channel is whole bytes at a whole byte in the frame.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSound::IsByteAligned(CChannel* pcChannel)
+{
+	return !IsBittySampleType(pcChannel->eType) && (pcChannel->miByteOffset != CHANNEL_NON_ALIGNED_BYTES) && (GetFrameByteStride() != 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Copies the channel's sample in uiFrame into pvDest (8 bytes).  Bit
+// sized samples are put in the low bits of the first byte.
+//
+//////////////////////////////////////////////////////////////////////////
+void CSound::GetRawSample(size uiFrame, CChannel* pcChannel, void* pvDest)
+{
+	if (IsByteAligned(pcChannel))
+	{
+		memcpy(pvDest, (uint8*)GetData() + uiFrame * GetFrameByteStride() + pcChannel->miByteOffset, pcChannel->miByteSize);
+	}
+	else
+	{
+		memset(pvDest, 0, sizeof(uint64));
+		CopyBits(pvDest, 0, GetData(), uiFrame * GetFrameBitStride() + pcChannel->miBitOffset, pcChannel->miBitSize, true);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSound::SetRawSample(size uiFrame, CChannel* pcChannel, void* pvSource)
+{
+	if (IsByteAligned(pcChannel))
+	{
+		memcpy((uint8*)GetData() + uiFrame * GetFrameByteStride() + pcChannel->miByteOffset, pvSource, pcChannel->miByteSize);
+	}
+	else
+	{
+		CopyBits(GetData(), uiFrame * GetFrameBitStride() + pcChannel->miBitOffset, pvSource, 0, pcChannel->miBitSize, false);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Samples can be read and written when the channel is one of the sample
+// types and isn't reversed.  It needn't be byte aligned.
 //
 //////////////////////////////////////////////////////////////////////////
 CChannel* CSound::GetSampleChannel(size uiChannelIndex, size uiFirstFrame, size uiNumFrames)
@@ -633,9 +797,9 @@ CChannel* CSound::GetSampleChannel(size uiChannelIndex, size uiFirstFrame, size 
 	}
 
 	pcChannel = GetChannelAtIndex(uiChannelIndex);
-	if (!IsSampleType(pcChannel->eType) || pcChannel->bReverse || (pcChannel->miByteOffset == CHANNEL_NON_ALIGNED_BYTES) || (GetFrameByteStride() == 0))
+	if (!IsSampleType(pcChannel->eType) || pcChannel->bReverse)
 	{
-		gcLogger.Error2(__METHOD__, " Channel [", SizeToString(uiChannelIndex), "] of type [", gcTypeNames.GetPrettyName(pcChannel->eType), "] is not a byte aligned sample.", NULL);
+		gcLogger.Error2(__METHOD__, " Channel [", SizeToString(uiChannelIndex), "] of type [", gcTypeNames.GetPrettyName(pcChannel->eType), "] is not a sample.", NULL);
 		return NULL;
 	}
 	return pcChannel;
@@ -650,12 +814,15 @@ float64 CSound::GetSample(size uiFrame, size uiChannelIndex)
 {
 	CChannel*	pcChannel;
 
+	uint64		ulliRaw;
+
 	pcChannel = GetSampleChannel(uiChannelIndex, uiFrame, 1);
 	if (pcChannel == NULL)
 	{
 		return 0.0;
 	}
-	return ConvertSampleToFloat((uint8*)GetData() + uiFrame * GetFrameByteStride() + pcChannel->miByteOffset, pcChannel->eType);
+	GetRawSample(uiFrame, pcChannel, &ulliRaw);
+	return ConvertSampleToFloat(&ulliRaw, pcChannel->eType);
 }
 
 
@@ -667,10 +834,14 @@ void CSound::SetSample(size uiFrame, size uiChannelIndex, float64 fSample)
 {
 	CChannel*	pcChannel;
 
+	uint64		ulliRaw;
+
 	pcChannel = GetSampleChannel(uiChannelIndex, uiFrame, 1);
 	if (pcChannel != NULL)
 	{
-		ConvertSampleFromFloat((uint8*)GetData() + uiFrame * GetFrameByteStride() + pcChannel->miByteOffset, pcChannel->eType, fSample);
+		ulliRaw = 0;
+		ConvertSampleFromFloat(&ulliRaw, pcChannel->eType, fSample);
+		SetRawSample(uiFrame, pcChannel, &ulliRaw);
 	}
 }
 
@@ -686,6 +857,7 @@ bool CSound::GetSamples(size uiChannelIndex, size uiFirstFrame, size uiNumFrames
 	size			uiStride;
 	size			i;
 	EPrimitiveType	eType;
+	uint64			ulliRaw;
 
 	pcChannel = GetSampleChannel(uiChannelIndex, uiFirstFrame, uiNumFrames);
 	if (pcChannel == NULL)
@@ -693,13 +865,24 @@ bool CSound::GetSamples(size uiChannelIndex, size uiFirstFrame, size uiNumFrames
 		return false;
 	}
 
-	uiStride = GetFrameByteStride();
 	eType = pcChannel->eType;
-	pui = (uint8*)GetData() + uiFirstFrame * uiStride + pcChannel->miByteOffset;
-	for (i = 0; i < uiNumFrames; i++)
+	if (IsByteAligned(pcChannel))
 	{
-		pfDest[i] = ConvertSampleToFloat(pui, eType);
-		pui += uiStride;
+		uiStride = GetFrameByteStride();
+		pui = (uint8*)GetData() + uiFirstFrame * uiStride + pcChannel->miByteOffset;
+		for (i = 0; i < uiNumFrames; i++)
+		{
+			pfDest[i] = ConvertSampleToFloat(pui, eType);
+			pui += uiStride;
+		}
+	}
+	else
+	{
+		for (i = 0; i < uiNumFrames; i++)
+		{
+			GetRawSample(uiFirstFrame + i, pcChannel, &ulliRaw);
+			pfDest[i] = ConvertSampleToFloat(&ulliRaw, eType);
+		}
 	}
 	return true;
 }
@@ -716,6 +899,7 @@ bool CSound::SetSamples(size uiChannelIndex, size uiFirstFrame, size uiNumFrames
 	size			uiStride;
 	size			i;
 	EPrimitiveType	eType;
+	uint64			ulliRaw;
 
 	pcChannel = GetSampleChannel(uiChannelIndex, uiFirstFrame, uiNumFrames);
 	if (pcChannel == NULL)
@@ -723,13 +907,25 @@ bool CSound::SetSamples(size uiChannelIndex, size uiFirstFrame, size uiNumFrames
 		return false;
 	}
 
-	uiStride = GetFrameByteStride();
 	eType = pcChannel->eType;
-	pui = (uint8*)GetData() + uiFirstFrame * uiStride + pcChannel->miByteOffset;
-	for (i = 0; i < uiNumFrames; i++)
+	if (IsByteAligned(pcChannel))
 	{
-		ConvertSampleFromFloat(pui, eType, pfSource[i]);
-		pui += uiStride;
+		uiStride = GetFrameByteStride();
+		pui = (uint8*)GetData() + uiFirstFrame * uiStride + pcChannel->miByteOffset;
+		for (i = 0; i < uiNumFrames; i++)
+		{
+			ConvertSampleFromFloat(pui, eType, pfSource[i]);
+			pui += uiStride;
+		}
+	}
+	else
+	{
+		for (i = 0; i < uiNumFrames; i++)
+		{
+			ulliRaw = 0;
+			ConvertSampleFromFloat(&ulliRaw, eType, pfSource[i]);
+			SetRawSample(uiFirstFrame + i, pcChannel, &ulliRaw);
+		}
 	}
 	return true;
 }
@@ -931,7 +1127,7 @@ bool CSound::CanAccessSamples(void)
 	size		uiIndex;
 	CChannel*	pcChannel;
 
-	if (IsChanging() || (GetFrameByteStride() == 0))
+	if (IsChanging())
 	{
 		return false;
 	}
@@ -940,7 +1136,7 @@ bool CSound::CanAccessSamples(void)
 	for (uiIndex = 0; uiIndex < uiNumChannels; uiIndex++)
 	{
 		pcChannel = GetChannelAtIndex(uiIndex);
-		if (!IsSampleType(pcChannel->eType) || pcChannel->bReverse || (pcChannel->miByteOffset == CHANNEL_NON_ALIGNED_BYTES))
+		if (!IsSampleType(pcChannel->eType) || pcChannel->bReverse)
 		{
 			return false;
 		}

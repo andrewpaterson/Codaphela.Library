@@ -918,6 +918,12 @@
     <ClInclude Include="SoundChannel.h">
       <Filter>Source\Sound</Filter>
     </ClInclude>
+    <ClInclude Include="SoundModifier.h">
+      <Filter>Source\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundModifierStack.h">
+      <Filter>Source\Sound</Filter>
+    </ClInclude>
     <ClInclude Include="SoundResampler.h">
       <Filter>Source\Sound</Filter>
     </ClInclude>
@@ -1626,6 +1632,12 @@
       <Filter>Source\Sound</Filter>
     </ClCompile>
     <ClCompile Include="SoundChannel.cpp">
+      <Filter>Source\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundModifier.cpp">
+      <Filter>Source\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundModifierStack.cpp">
       <Filter>Source\Sound</Filter>
     </ClCompile>
     <ClCompile Include="SoundResampler.cpp">
