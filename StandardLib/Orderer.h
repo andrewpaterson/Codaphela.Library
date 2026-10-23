@@ -34,6 +34,11 @@ typedef CMapLongTemplate<size>	CMapLongSize;
 //each pass every object whose requirements are all fulfilled by the objects already ordered is ordered, and the passes
 //repeat until every object is ordered.  If a pass orders nothing the requirements can't be met: a name nothing fulfils,
 //or objects that require each other.  Names are case sensitive.
+//
+//Logicim orders subcircuits with it: each subcircuit fulfils its type name and requires the type names of the
+//subcircuits it has instances of, so subcircuits are saved after the ones they use.  A subcircuit type may be
+//instanced in another only if requiring it from that one can still be ordered (CanRequire); that stops a subcircuit
+//containing itself.
 class COrderer : public CObject
 {
 CONSTRUCTABLE(COrderer);
@@ -56,6 +61,7 @@ public:
 
 	bool					Order(Ptr<CArray<CBaseObject>> pOrdered);
 	bool					Order(Ptr<CArray<CBaseObject>> pOrdered, Ptr<CArray<CBaseObject>> pUnordered);
+	bool					CanRequire(Ptr<CBaseObject> pObject, const char* szName);
 
 	size					NumObjects(void);
 	Ptr<COrdererHolder>		GetHolder(Ptr<CBaseObject> pObject);
@@ -64,7 +70,9 @@ protected:
 	Ptr<COrdererHolder>		GetOrAddHolder(Ptr<CBaseObject> pObject);
 	size					GetHolderIndex(Ptr<CBaseObject> pObject);
 	void					IndexHolders(void);
-	bool					AreRequirementsFulfilled(Ptr<COrdererHolder> pHolder, CMapStringInt* pcFulfilled);
+	bool					OrderHolders(CArrayTemplate<size>* pauiOrdered, CArrayTemplate<size>* pauiUnordered, size uiExtraHolder, const char* szExtraRequirement);
+	bool					AreRequirementsFulfilled(Ptr<COrdererHolder> pHolder, const char* szExtraRequirement, CMapStringInt* pcFulfilled);
+	bool					IsFulfilled(const char* szName);
 };
 
 

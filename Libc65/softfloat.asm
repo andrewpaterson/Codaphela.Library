@@ -17,10 +17,17 @@
 ; significands make 48 bits), a quotient one div (a 64 bit dividend gives 40 quotient
 ; bits and the remainder), and a sum is exact because the smaller significand is only
 ; shifted out of the low zero bits of the larger.  A result that may need rounding goes
-; through RoundPack.  Cycles per call on the simulator, with softfloat.cpp's compiled
-; code in brackets: add 91 (2070), subtract 95 (2160), multiply 89 (2110), divide 109
-; (4740), compare 37 (1140), sqrt 90 (8840), from int 47 (600), to int 18 (720), to
-; double 23 (1000), double to float 52 (1120).
+; through RoundPack (the hot routines have their own copy of its usual path).
+;
+; For speed: a branch to a label 2 to 8 bytes on is one word (one cycle), and further
+; it is two words (two cycles) taken or not, so the rare cases (special values, results
+; out of range) are reached by a short branch over a bra to them.  W is 0 in generated
+; code, so mul and div only keep it out of line when it is not.
+;
+; Cycles per call on the simulator for normal operands from 2^-20 to 2^20, with
+; softfloat.cpp's compiled code in brackets: add 80 (2140), subtract 84 (2230),
+; multiply 64 (2180), divide 85 (4930), compare 25 (1145), sqrt 134 (16980), from int
+; 39 (590), to int 19 (770), to double 21 (1005), double to float 46 (1110).
 
 
 ; Every routine that rounds (add, subtract, multiply, divide, the conversions from
@@ -32,6 +39,50 @@
 		.global _SoftFloatAdd, _SoftFloatSubtract, _SoftFloatMultiply, _SoftFloatDivide, _SoftFloatSqrt
 		.global _SoftFloatFromInt, _SoftFloatFromUnsigned, _SoftFloatFromLongLong, _SoftFloatFromUnsignedLongLong
 		.global _SoftDoubleToFloat
+
+; uint32_t SoftFloatMultiply(uint32_t uiA, uint32_t uiB)
+_SoftFloatMultiply:
+		cpy A, [5 + S]
+		cpy B, [9 + S]
+		cpy X, A
+		xor X, B
+		bist f, (X, 31)
+		cpy X, 0
+		scb (A, 23), (X, 0), 8
+		cpy Y, 0
+		scb (B, 23), (Y, 0), 8
+		sub X, 1
+		cmp X, 254
+		brac c, NotMultiplySpecial1
+		bra MultiplySpecial
+
+NotMultiplySpecial1:
+		sub Y, 1
+		cmp Y, 254
+		brac c, NotMultiplySpecial2
+		bra MultiplySpecial
+
+NotMultiplySpecial2:
+		add X, Y
+		shl A, 8
+		stab (A, 31), 1
+		shl B, 8
+		stab (B, 31), 1
+		shr B, 8
+
+; A is a's significand shifted up 8, B is b's significand and X the sum of the exponents
+; less 2.  W is 0 in generated code, so the general case (W kept in the top of X) is out
+; of line.  The product goes on into RoundPack.
+MultiplySignificands:
+		tst W, W
+		bras z, MultiplyW0
+		bra MultiplyKeepW
+
+MultiplyW0:
+		wth Y, 8
+		mul						; from 2^54 to 2^56
+		cpy W, 0
+		sub X, 125
 
 ; Rounds and packs a finite result and returns from the routine that jumped here.
 ;   Y	the significand, 64 bits wide, with its top bit at 55 or 54
@@ -47,7 +98,10 @@ RoundPack:
 
 RoundTop:
 		cmp X, 254
-		bras c, RoundOutside
+		brac c, NotRoundOutside1
+		bra RoundOutside
+
+NotRoundOutside1:
 
 ; Nearest, ties to even: add a half, and if that leaves the low half zero it was a tie
 ; and the bottom bit is cleared.  Rounding up to 2^24 carries into the exponent.
@@ -192,26 +246,31 @@ AddSigned:
 
 AddOrdered:
 		bist f, (A, 31)			; the result's sign (unless it cancels)
-		bist g, (B, 31)
 		shr X, 24				; the exponents
 		shr Y, 24
 		cmp X, 255
-		bras z, AddLargerSpecial
+		brac z, NotAddLargerSpecial1
+		bra AddLargerSpecial
+
+NotAddLargerSpecial1:
 		tst Y, Y
-		bras z, AddSmallerSpecial
+		brac z, NotAddSmallerSpecial1
+		bra AddSmallerSpecial
+
+NotAddSmallerSpecial1:
 		sub Y, X
 		neg Y, Y				; how far apart they are
 		wtth (A, B), 8
+		bist c, (B, 31)
 		and A, $7FFFFF
 		stab (A, 23), 1
 		and B, $7FFFFF
 		stab (B, 23), 1
 
 ; A and B are the significands (64 bits wide), X the larger's exponent, Y the
-; difference of the exponents.
+; difference of the exponents, f the larger's sign and c the smaller's.
 AddSignificands:
-		stat c, f
-		braso (g, c), AddDifferent
+		braso (f, c), AddDifferent
 
 ; The larger with its top bit at 54 and the smaller lined up with it.  Its low 31 bits
 ; are zero so nothing is lost below 32 apart, and further than that the smaller only
@@ -231,13 +290,40 @@ AddSame:
 		wth Y, 8
 		cpy Y, A
 		wtth (A, B), 4
-		bra RoundPack
+		bist c, (Y, 55)
+		bras c, AddSameTop
+		shl Y, 1
+		sub X, 1
 
-; The signs are different: the larger's top bit at 55, and the difference's top bit
-; found and moved there.
+AddSameTop:
+		cmp X, 254
+		brac c, NotRoundOutside2
+		bra RoundOutside
+
+NotRoundOutside2:
+		add Y, $80000000
+		scp (Y, 4), (A, 0), 4
+		wth Y, 4
+		tst Y, Y
+		brac z, AddSamePacked
+		and A, -2
+
+AddSamePacked:
+		shl X, 23
+		add A, X
+		stab (A, 31), f
+		ret
+
+; The signs are different: the larger's top bit at 55.  Two or more apart, the
+; difference only loses its top bit if anything.
 AddDifferent:
 		shl A, 32
 		shl B, 32
+		cmp Y, 2
+		bras c, NotAddClose1
+		bra AddClose
+
+NotAddClose1:
 		cmp Y, 33
 		brac c, AddDifferentShift
 		cpy B, 1
@@ -247,6 +333,39 @@ AddDifferentShift:
 		shr B, Y
 
 AddDifferentSubtract:
+		sub A, B
+		wth Y, 8
+		cpy Y, A
+		wtth (A, B), 4
+		sub X, 1
+		bist c, (Y, 55)
+		bras c, AddDifferentTop
+		shl Y, 1
+		sub X, 1
+
+AddDifferentTop:
+		cmp X, 254
+		brac c, NotRoundOutside3
+		bra RoundOutside
+
+NotRoundOutside3:
+		add Y, $80000000
+		scp (Y, 4), (A, 0), 4
+		wth Y, 4
+		tst Y, Y
+		brac z, AddDifferentPacked
+		and A, -2
+
+AddDifferentPacked:
+		shl X, 23
+		add A, X
+		stab (A, 31), f
+		ret
+
+; Within one of each other the difference is exact but may lose any number of bits (or
+; all of them): its top bit is found and moved to 55.
+AddClose:
+		shr B, Y
 		sub A, B
 		bras z, AddCancelled
 		wth Y, 8
@@ -260,7 +379,23 @@ AddDifferentSubtract:
 		shl Y, B
 		sub X, B
 		sub X, 1
-		bra RoundPack
+		cmp X, 254
+		brac c, NotRoundOutside4
+		bra RoundOutside
+
+NotRoundOutside4:
+		add Y, $80000000
+		scp (Y, 4), (A, 0), 4
+		wth Y, 4
+		tst Y, Y
+		brac z, AddClosePacked
+		and A, -2
+
+AddClosePacked:
+		shl X, 23
+		add A, X
+		stab (A, 31), f
+		ret
 
 AddCancelled:
 		wtth (A, B), 4
@@ -269,6 +404,7 @@ AddCancelled:
 
 ; The smaller is zero or subnormal (X is the larger's exponent).
 AddSmallerSpecial:
+		bist g, (B, 31)
 		cpy Y, B
 		shl Y, 1
 		bras z, AddSmallerZero
@@ -277,6 +413,7 @@ AddSmallerSpecial:
 		cpy Y, X
 		sub Y, 1
 		wtth (A, B), 8
+		stat c, g
 		and A, $7FFFFF
 		stab (A, 23), 1
 		and B, $7FFFFF
@@ -318,6 +455,7 @@ AddSubnormalsDifferent:
 
 ; The larger is infinite or a NaN.
 AddLargerSpecial:
+		bist g, (B, 31)
 		jsr TwoNaNs
 		cmp Y, 255
 		brac z, AddReturnA
@@ -325,41 +463,6 @@ AddLargerSpecial:
 		braso (g, c), DefaultNaN
 		ret
 
-
-; uint32_t SoftFloatMultiply(uint32_t uiA, uint32_t uiB)
-_SoftFloatMultiply:
-		cpy A, [5 + S]
-		cpy B, [9 + S]
-		cpy X, A
-		xor X, B
-		bist f, (X, 31)
-		cpy X, 0
-		scb (A, 23), (X, 0), 8
-		cpy Y, 0
-		scb (B, 23), (Y, 0), 8
-		sub X, 1
-		cmp X, 254
-		bras c, MultiplySpecial
-		sub Y, 1
-		cmp Y, 254
-		bras c, MultiplySpecial
-		add X, Y
-		shl A, 8
-		stab (A, 31), 1
-		shl B, 8
-		stab (B, 31), 1
-		shr B, 8
-
-; A is a's significand shifted up 8, B is b's significand and X the sum of the exponents
-; less 2.  W is kept in the top of X.
-MultiplySignificands:
-		scp (W, 0), (X, 4), 4
-		cpy W, 0
-		wth Y, 8
-		mul						; from 2^54 to 2^56
-		scp (X, 4), (W, 0), 4
-		sub X, 125
-		bra RoundPack
 
 ; Either is zero, subnormal, infinite or a NaN.
 MultiplySpecial:
@@ -400,6 +503,15 @@ MultiplyInfiniteB:
 		bras z, DefaultNaN
 		bra SignedInfinity
 
+MultiplyKeepW:
+		scp (W, 0), (X, 4), 4
+		cpy W, 0
+		wth Y, 8
+		mul
+		scp (X, 4), (W, 0), 4
+		sub X, 125
+		bra RoundPack
+
 
 ; uint32_t SoftFloatDivide(uint32_t uiA, uint32_t uiB)
 _SoftFloatDivide:
@@ -414,10 +526,16 @@ _SoftFloatDivide:
 		scb (B, 23), (Y, 0), 8
 		sub X, 1
 		cmp X, 254
-		bras c, DivideSpecial
+		brac c, NotDivideSpecial1
+		bra DivideSpecial
+
+NotDivideSpecial1:
 		sub Y, 1
 		cmp Y, 254
-		bras c, DivideSpecial
+		brac c, NotDivideSpecial2
+		bra DivideSpecial
+
+NotDivideSpecial2:
 		sub X, Y
 		wth Y, 8
 		cpy Y, 0
@@ -428,14 +546,19 @@ _SoftFloatDivide:
 		stab (A, 23), 1			; b's significand
 
 ; Y (64 bits wide) is a's significand shifted up 40, A is b's significand and X the
-; difference of the exponents.  The quotient has 40 or 41 bits.  W is kept in the top
-; of X.
+; difference of the exponents.  The quotient has 40 or 41 bits.  W is 0 in generated
+; code; otherwise it is kept in the top of X.
 DivideSignificands:
 		cpy B, 0
-		scp (W, 0), (X, 4), 4
-		cpy W, 0
+		tst W, W
+		bras z, DivideW0
+		bra DivideKeepW
+
+DivideW0:
 		div
-		scp (X, 4), (W, 0), 4
+		cpy W, 0
+
+DivideQuotient:
 		shl Y, 15
 		tst B, B
 		bras z, DivideExact
@@ -443,7 +566,29 @@ DivideSignificands:
 
 DivideExact:
 		add X, 126
-		bra RoundPack
+		bist c, (Y, 55)
+		bras c, DivideTop
+		shl Y, 1
+		sub X, 1
+
+DivideTop:
+		cmp X, 254
+		brac c, NotRoundOutside5
+		bra RoundOutside
+
+NotRoundOutside5:
+		add Y, $80000000
+		scp (Y, 4), (A, 0), 4
+		wth Y, 4
+		tst Y, Y
+		brac z, DividePacked
+		and A, -2
+
+DividePacked:
+		shl X, 23
+		add A, X
+		stab (A, 31), f
+		ret
 
 ; Either is zero, subnormal, infinite or a NaN.
 DivideSpecial:
@@ -484,23 +629,60 @@ DivideByZero:
 		bras z, DefaultNaN		; zero over zero
 		bra SignedInfinity
 
+DivideKeepW:
+		scp (W, 0), (X, 4), 4
+		cpy W, 0
+		div
+		scp (X, 4), (W, 0), 4
+		bra DivideQuotient
+
 
 ; uint32_t SoftFloatFromInt(int32_t i), SoftFloatFromUnsigned(uint32_t ui),
 ; SoftFloatFromLongLong(int64_t lli) and SoftFloatFromUnsignedLongLong(uint64_t ulli).
 _SoftFloatFromInt:
-		cpy Y, [5 + S]
-		bras z, FromZero
-		wthx Y, 8:s
-		abs Y, Y
+		cpy A, [5 + S]
+		bras z, FromDone
+		abs A, A
 		stat f, n
-		bra FromMagnitude
+		bra FromMagnitude32
 
 _SoftFloatFromUnsigned:
-		cpy Y, [5 + S]
-		bras z, FromZero
-		wthx Y, 8
+		cpy A, [5 + S]
+		bras z, FromDone
 		cep f
-		bra FromMagnitude
+
+; A is a magnitude of up to 32 bits, not zero, and f the sign.  Below 2^24 it is exact.
+FromMagnitude32:
+		cpy B, 31
+		cep c
+		fsbi A, B, -1			; B = the top bit
+		cpy X, B
+		add X, 126
+		cmp B, 24
+		brac c, NotFromRound321
+		bra FromRound32
+
+NotFromRound321:
+
+; A's top bit is at B (below 24), X is the exponent less 1.
+FromExact:
+		neg B, B
+		add B, 23
+		shl A, B
+		shl X, 23
+		add A, X
+		stab (A, 31), f
+
+FromDone:
+		ret
+
+FromRound32:
+		wth Y, 8
+		cpy Y, A
+		neg B, B
+		add B, 55
+		shl Y, B
+		bra RoundTop
 
 _SoftFloatFromLongLong:
 		wth Y, 8
@@ -524,6 +706,8 @@ FromMagnitude:
 		fsbi Y, B, -1
 		cpy X, B
 		add X, 126
+		cmp B, 24
+		brac c, FromSmall
 		cmp B, 56
 		brac c, FromShiftLeft
 		sub B, 55
@@ -539,13 +723,18 @@ FromMagnitude:
 		or Y, 1
 
 FromRound:
-		bra RoundPack
+		bra RoundTop
 
 FromShiftLeft:
 		neg B, B
 		add B, 55
 		shl Y, B
-		bra RoundPack
+		bra RoundTop
+
+FromSmall:
+		cpy A, Y
+		wth Y, 4
+		bra FromExact
 
 FromZeroWide:
 		wth Y, 4
@@ -565,12 +754,15 @@ _SoftDoubleToFloat:
 		scb (Y, 52), (X, 0), 11
 		sub X, 1
 		cmp X, 2046
-		bras c, DoubleToFloatSpecial
+		brac c, NotDoubleToFloatSpecial1
+		bra DoubleToFloatSpecial
+
+NotDoubleToFloatSpecial1:
 		shl Y, 12
 		shr Y, 9
 		stab (Y, 55), 1			; the significand with its top bit at 55
 		sub X, 896				; 1023 - 127, and RoundPack's 1
-		bra RoundPack
+		bra RoundTop
 
 DoubleToFloatSpecial:
 		tst X, X
@@ -605,33 +797,39 @@ _SoftFloatSqrt:
 		cpy X, A
 		sub X, $800000
 		cmp X, $7F000000
-		bras c, SqrtSpecial		; not a positive normal
+		brac c, NotSqrtSpecial1		; not a positive normal
+		bra SqrtSpecial
+
+NotSqrtSpecial1:
 		cpy X, 0
 		scb (A, 23), (X, 0), 8
 		and A, $7FFFFF
 		stab (A, 23), 1
 
-; A is the significand (the top bit at 23) and X the exponent.
+; A is the significand (the top bit at 23) and X the exponent.  M is the significand
+; shifted up 25 or 26; the significand shifted up 0 or 1 is kept in the top half of X
+; to make M again, and W in the top half of A (divide and multiply only use their low
+; halves).
 SqrtSignificand:
 		cep f
-		wth Y, 8
-		cpy Y, A
 		bist c, (X, 0)
 		bras c, SqrtOdd
-		shl Y, 26
+		shl A, 1
 		add X, 124				; (exponent - 26 + 150) / 2 is RoundPack's
 		bra SqrtRoot
 
 SqrtOdd:
-		shl Y, 25
 		add X, 125
 
 SqrtRoot:
 		shr X, 1
-		psh W
-		psh Y					; M at [1 + S]
-		scp (Y, 4), (B, 0), 4
-		shr B, 9
+		scp (A, 0), (X, 4), 4
+		scp (W, 0), (A, 4), 4
+		wth Y, 8
+		cpy Y, A
+		shl Y, 25				; M
+		cpy B, A
+		shr B, 16
 		and B, -4				; 4 (M >> 43)
 		cpy A, [SqrtTable - 128 + B]
 		cpy B, 0
@@ -640,7 +838,9 @@ SqrtRoot:
 		add Y, A
 		shr Y, 1
 		cpy A, Y
-		cpy Y, [1 + S]
+		cpy Y, 0
+		scp (X, 4), (Y, 0), 4
+		shl Y, 25
 		cpy B, 0
 		cpy W, 0
 		div
@@ -650,8 +850,11 @@ SqrtRoot:
 		cpy B, A
 		cpy W, 0
 		mul
+		scp (A, 4), (W, 0), 4
 		wth B, 8
-		cpy B, [1 + S]
+		cpy B, 0
+		scp (X, 4), (B, 0), 4
+		shl B, 25
 
 SqrtCorrect:
 		cmp B, Y
@@ -665,16 +868,14 @@ SqrtCorrect:
 SqrtCorrected:
 		sub B, Y				; the remainder
 		cpy Y, A
-		shl Y, 31
+		shl Y, 31				; the top bit at 55
 		tst B, B
 		bras z, SqrtExact
 		or Y, 1
 
 SqrtExact:
 		wth B, 4
-		add S, 8
-		pul W
-		bra RoundPack
+		bra RoundTop
 
 SqrtSpecial:
 		cpy X, A
@@ -696,8 +897,9 @@ SqrtReturn:
 		ret
 
 ; int SoftFloatCompare(uint32_t uiA, uint32_t uiB): -1, 0 or 1 as a is less than, equal
-; to or greater than b, and 2 if either is a NaN.  The magnitudes made negative for
-; negative values order as signed integers, and both zeros are 0.
+; to or greater than b, and 2 if either is a NaN.  Comparing the magnitudes first says
+; which can be a NaN (the larger) and whose sign decides; equal magnitudes are equal
+; values unless their signs differ (and they are not zeros).
 		.section text._SoftFloatCompare
 		.global _SoftFloatCompare
 _SoftFloatCompare:
@@ -705,35 +907,57 @@ _SoftFloatCompare:
 		cpy B, [9 + S]
 		cpy X, A
 		shl X, 1
-		cmp X, $FF000001
-		bras c, CompareNaN
 		cpy Y, B
 		shl Y, 1
-		cmp Y, $FF000001
-		bras c, CompareNaN
-		shr X, 1
-		tst A, A
-		brac n, ComparePositiveA
-		neg X, X
-
-ComparePositiveA:
-		shr Y, 1
-		tst B, B
-		brac n, ComparePositiveB
-		neg Y, Y
-
-ComparePositiveB:
-		cpy A, 0
 		cmp X, Y
-		bras z, CompareDone
-		braso (n, v), CompareLess
-		cpy A, 1
-		ret
+		brac c, CompareSmaller
+		brac z, NotCompareSame1
+		bra CompareSame
 
-CompareLess:
+NotCompareSame1:
+		cmp X, $FF000001
+		brac c, NotCompareNaN1
+		bra CompareNaN
+
+NotCompareNaN1:
+		bist c, (A, 31)			; |a| > |b|: 1 if a is positive
+		cpy A, 1
+		brac c, CompareDone
 		cpy A, -1
 
 CompareDone:
+		ret
+
+CompareSmaller:
+		cmp Y, $FF000001
+		brac c, NotCompareNaN2
+		bra CompareNaN
+
+NotCompareNaN2:
+		bist c, (B, 31)			; |a| < |b|: -1 if b is positive
+		cpy A, -1
+		brac c, CompareDone
+		cpy A, 1
+		ret
+
+CompareSame:
+		cmp X, $FF000001
+		brac c, NotCompareNaN3
+		bra CompareNaN
+
+NotCompareNaN3:
+		tst X, X
+		bras z, CompareEqual	; -0 and +0
+		xor B, A
+		brac n, CompareEqual	; the same sign
+		bist c, (A, 31)
+		cpy A, 1
+		brac c, CompareDone
+		cpy A, -1
+		ret
+
+CompareEqual:
+		cpy A, 0
 		ret
 
 CompareNaN:
@@ -753,7 +977,10 @@ _SoftFloatToInt:
 		scb (A, 23), (X, 0), 8
 		sub X, 127				; the power of two of the top bit
 		cmp X, 31
-		bras c, ToIntOutside
+		brac c, NotToIntOutside1
+		bra ToIntOutside
+
+NotToIntOutside1:
 		cpy B, A
 		shl A, 8
 		stab (A, 31), 1
@@ -805,7 +1032,10 @@ _SoftFloatToLongLong:
 		scb (A, 23), (X, 0), 8
 		sub X, 127
 		cmp X, 63
-		bras c, ToLongOutside
+		brac c, NotToLongOutside1
+		bra ToLongOutside
+
+NotToLongOutside1:
 		wth Y, 8
 		cpy Y, 0
 		scb (A, 0), (Y, 40), 23
@@ -872,7 +1102,10 @@ _SoftFloatToDouble:
 		scb (A, 23), (X, 0), 8
 		sub X, 1
 		cmp X, 254
-		bras c, ToDoubleSpecial
+		brac c, NotToDoubleSpecial1
+		bra ToDoubleSpecial
+
+NotToDoubleSpecial1:
 		add X, 897				; 1023 - 127, and the 1 taken off
 
 ; The sign, exponent and fraction of A (32 bits wide) move to their places in a double,

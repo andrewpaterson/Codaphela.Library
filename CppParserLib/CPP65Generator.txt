@@ -97,9 +97,10 @@ bit against SSE on millions of values).  On the 65C64 its single precision funct
 assembly for speed with the same results bit for bit (checked against softfloat.cpp
 natively on millions of values; TestLibc65SoftFloat runs a few thousand per function).
 A program that uses floating point is linked with both.  Cycles per call on the
-simulator (softfloat.cpp's compiled code in brackets): add 91 (2070), subtract 95
-(2160), multiply 89 (2110), divide 109 (4740), compare 37 (1140), sqrt 90 (8840),
-from int 47 (600), to int 18 (720), to double 23 (1000), double to float 52 (1120).
+simulator for normal operands from 2^-20 to 2^20 (softfloat.cpp's compiled code in
+brackets): add 80 (2140), subtract 84 (2230), multiply 64 (2180), divide 85 (4930),
+compare 25 (1145), sqrt 134 (16980), from int 39 (590), to int 19 (770), to double 21
+(1005), double to float 46 (1110).
 The generator pushes the operands like arguments (the right first) and calls:
 
 	SoftFloatAdd Subtract Multiply Divide		(and SoftDouble...)
@@ -313,8 +314,8 @@ code is generated).
 
 - Class operator new and operator delete (the global ones are used), placement new
   with more than an address, new Type[count] with more than one dimension or an
-  initialiser list; conversion functions, member templates, explicit and partial
-  specialisations, variadic templates.
+  initialiser list; conversion functions, constructor templates, member class
+  templates, explicit and partial specialisations, variadic templates.
 - Virtual inheritance.
 - Temporary objects that need destroying, in conditions; postfix ++ and -- on
   objects; conversion operators.
@@ -392,9 +393,11 @@ malloc), MersenneTwister (the MT19937 reference sequence) with Libc65's time,
 QuickSort, BubbleSort and BinarySearch (with a MemSwp stub), and FloatHelper and
 SQuaternion (a value type), against the same calls natively, bit for bit.
 
-BaseLib is the benchmark for how much C++ is supported: on 2026-10-23, 364 of its 407
-.cpp files compile without errors.  Most of the rest call member function templates,
-need better overload ranking, or use variadic templates.
+BaseLib is the benchmark for how much C++ is supported: on 2026-10-23, 344 of its 390
+.cpp files compile without errors (317 before member templates, with 29 crashing on
+unnamed classes in class templates).  Most of the rest use pointers to members
+(DatasIO.h), need better overload ranking, take the address of an overloaded
+function or use variadic templates.
 
 
 Templates
@@ -408,6 +411,17 @@ templates are instantiated with explicit arguments (IsTrivial<Class>()) or argum
 deduced from parameters declared as T, T*, T** ... or T&.  Non-type parameters and
 default template arguments work.  template class Name<Arguments>; generates every
 member.
+
+Member templates (template<class T> T Twice(T t) in a class or a class template) are
+kept for each class or class template instance and instantiated when called, with
+explicit (c.As<short>()) or deduced arguments, the same way as function templates.
+They can be static, defined in the class or outside it (template<class T> int
+CValue::Size(T* p), and template<class M> template<class N> N SBox<M>::Mul(N n) for a
+class template), and called on an object, through a pointer, qualified or unqualified
+from another member.  A non-template member function that matches the arguments is
+chosen before a member template; one with explicit template arguments always uses
+the template.  An unnamed class inside a class template is a different class in each
+instance.
 
 Labels: an instance is Name__T and its arguments mangled: _CArrayTemplate__T_i__Add is
 CArrayTemplate<int>::Add.  Types are v void, b bool, c char, h unsigned char, s short,

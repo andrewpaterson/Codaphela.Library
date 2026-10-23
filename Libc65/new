@@ -1,4 +1,6 @@
-//Allocation and placement new.  The generator makes placement new itself: new(pv) Class constructs at pv.
+//Allocation and placement new.  new Type, new Type[count], delete and delete[] call the global operators below
+//(defined in new.cpp, over malloc and free); the generator makes placement new itself: new(pv) Class constructs
+//at pv.
 #ifndef __LIBC65_NEW__
 #define __LIBC65_NEW__
 #include <stddef.h>
