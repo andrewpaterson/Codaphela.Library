@@ -440,8 +440,7 @@ Ptr<CArray<CString>> CString::Split(char cSplitter)
 		paDest->Add(pString);
 	}
 	aszTemp.Kill();
-	msz.Kill();
-	
+
 	return paDest;
 }
 
