@@ -79,3 +79,7 @@ us.stackdump
 /WinInputLib/x64/Debug/*
 /WinInputLib/x64/Release/*
 /ThreadLib/x64/Debug/*
+/WindowLib/x64/Debug/*
+/WindowLib/x64/Release/*
+/WinRefLib/x64/Debug/*
+/WinRefLib/x64/Release/*
