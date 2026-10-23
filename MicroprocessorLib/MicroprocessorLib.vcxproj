@@ -186,6 +186,15 @@
     <ClCompile Include="TickEvent.cpp" />
     <ClCompile Include="Circuit.cpp" />
     <ClCompile Include="LogicPortBus.cpp" />
+    <ClCompile Include="CircuitComponent.cpp" />
+    <ClCompile Include="SubcircuitSimulation.cpp" />
+    <ClCompile Include="SubcircuitSimulations.cpp" />
+    <ClCompile Include="CircuitSimulation.cpp" />
+    <ClCompile Include="Passive.cpp" />
+    <ClCompile Include="PowerSource.cpp" />
+    <ClCompile Include="Pin.cpp" />
+    <ClCompile Include="Splitter.cpp" />
+    <ClCompile Include="SubcircuitInstance.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="W65AbortVector.h" />
@@ -371,6 +380,16 @@
     <ClInclude Include="TickEvent.h" />
     <ClInclude Include="Circuit.h" />
     <ClInclude Include="LogicPortBus.h" />
+    <ClInclude Include="CircuitComponent.h" />
+    <ClInclude Include="SubcircuitSimulation.h" />
+    <ClInclude Include="SubcircuitSimulations.h" />
+    <ClInclude Include="CircuitSimulation.h" />
+    <ClInclude Include="PowerPinNames.h" />
+    <ClInclude Include="Passive.h" />
+    <ClInclude Include="PowerSource.h" />
+    <ClInclude Include="Pin.h" />
+    <ClInclude Include="Splitter.h" />
+    <ClInclude Include="SubcircuitInstance.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">

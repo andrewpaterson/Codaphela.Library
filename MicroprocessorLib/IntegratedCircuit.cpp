@@ -25,25 +25,25 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #include "PowerInPort.h"
 #include "LogicPort.h"
 #include "Circuit.h"
+#include "SubcircuitSimulation.h"
 #include "IntegratedCircuitEvent.h"
 #include "IntegratedCircuit.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes ownership of pcPins and adds the chip to pcCircuit, which owns
+// Takes ownership of pcPins and adds the chip to its circuit, which owns
 // it.  The state is created by Reset.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIntegratedCircuit::Init(CCircuit* pcCircuit, const char* szName, CPins* pcPins)
+void CIntegratedCircuit::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CPins* pcPins)
 {
-	mpcCircuit = pcCircuit;
-	mszName.Init(szName);
+	CCircuitComponent::Init(pcContainingSubcircuitSimulation, szName);
 	mpcPins = pcPins;
 	mpcPins->SetIntegratedCircuit(this);
 	mpcState = NULL;
 	mapcEvents.Init();
-	mpcCircuit->Add(this);
+	GetCircuit()->Add(this);
 }
 
 
@@ -58,7 +58,7 @@ void CIntegratedCircuit::Kill(void)
 	CTimeline*	pcTimeline;
 	size		i;
 
-	pcTimeline = mpcCircuit->GetTimeline();
+	pcTimeline = GetTimeline();
 	Disconnect(pcTimeline);
 	for (i = 0; i < mpcPins->NumPorts(); i++)
 	{
@@ -68,7 +68,7 @@ void CIntegratedCircuit::Kill(void)
 
 	SafeKill(mpcPins);
 	SafeKill(mpcState);
-	mszName.Kill();
+	CCircuitComponent::Kill();
 }
 
 
@@ -194,23 +194,6 @@ bool CIntegratedCircuit::IsStateless(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Like "AND \"U1\"", or just the type when there is no name.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIntegratedCircuit::AppendDescription(CChars* psz)
-{
-	psz->Append(GetType());
-	if (!mszName.Empty())
-	{
-		psz->Append(" \"");
-		psz->Append(mszName);
-		psz->Append("\"");
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 float32 CIntegratedCircuit::GetVCC(int64 iTime)
@@ -290,8 +273,8 @@ bool CIntegratedCircuit::Remove(CIntegratedCircuitEvent* pcEvent)
 CState* CIntegratedCircuit::GetState(void) { return mpcState; }
 CPins* CIntegratedCircuit::GetPins(void) { return mpcPins; }
 CPort* CIntegratedCircuit::GetPort(const char* szName) { return mpcPins->GetPort(szName); }
-char* CIntegratedCircuit::GetName(void) { return mszName.Text(); }
-CCircuit* CIntegratedCircuit::GetCircuit(void) { return mpcCircuit; }
+CPort* CIntegratedCircuit::GetPort(size uiIndex) { return mpcPins->GetPort(uiIndex); }
+size CIntegratedCircuit::NumPorts(void) { return mpcPins->NumPorts(); }
 size CIntegratedCircuit::NumEvents(void) { return mapcEvents.NumElements(); }
 CEvent* CIntegratedCircuit::GetEvent(size uiIndex) { return mapcEvents.SafeGetPtr(uiIndex); }
 

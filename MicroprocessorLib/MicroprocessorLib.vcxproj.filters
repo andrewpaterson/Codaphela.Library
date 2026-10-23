@@ -558,6 +558,33 @@
     <ClCompile Include="LogicPortBus.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
+    <ClCompile Include="CircuitComponent.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="SubcircuitSimulation.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="SubcircuitSimulations.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="CircuitSimulation.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Passive.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerSource.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Pin.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Splitter.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="SubcircuitInstance.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="W65CCore.h">
@@ -1107,6 +1134,36 @@
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="LogicPortBus.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="CircuitComponent.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="SubcircuitSimulation.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="SubcircuitSimulations.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="CircuitSimulation.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPinNames.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Passive.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerSource.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Pin.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Splitter.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="SubcircuitInstance.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
   </ItemGroup>
