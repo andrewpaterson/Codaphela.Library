@@ -565,7 +565,7 @@ void CDirectInput::Update(CInputDevices* pcDevices, size uiSequence)
 				continue;
 			}
 
-			pcDevice->Process(&diJoyState2, uiSequence);
+			pcDevice->Process(&diJoyState2, (uint32)uiSequence);
 		}
 	}
 }

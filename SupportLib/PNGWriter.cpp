@@ -20,6 +20,9 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
 #include <string.h>
+#ifdef __AVX2__
+#include <immintrin.h>
+#endif // __AVX2__
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/MemoryFile.h"
@@ -49,39 +52,244 @@ bool IsPNGChannel16Bit(Ptr<CImage> pcImage, size iChannel)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// uiByte filtered with iFilter, given its neighbours to the left, above
+// and above left.
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 PNGFilterByte(int iFilter, uint8 uiByte, uint8 uiLeft, uint8 uiUp, uint8 uiUpLeft)
+{
+	switch (iFilter)
+	{
+	case PNG_FILTER_NONE:
+		return uiByte;
+	case PNG_FILTER_SUB:
+		return (uint8)(uiByte - uiLeft);
+	case PNG_FILTER_UP:
+		return (uint8)(uiByte - uiUp);
+	case PNG_FILTER_AVERAGE:
+		return (uint8)(uiByte - (((int)uiLeft + (int)uiUp) >> 1));
+	default:
+		return (uint8)(uiByte - PNGPaethPredictor(uiLeft, uiUp, uiUpLeft));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The absolute value of a filtered byte as a signed byte.
+//
+//////////////////////////////////////////////////////////////////////////
+size PNGFilterCost(uint8 uiFiltered)
+{
+	return (uiFiltered < 128) ? uiFiltered : 256 - uiFiltered;
+}
+
+
+#ifdef __AVX2__
+//////////////////////////////////////////////////////////////////////////
+//
+// The Paeth predictor of sixteen 16 bit values.
+//
+//////////////////////////////////////////////////////////////////////////
+__m256i PNGPaethPredictor16(__m256i sLeft, __m256i sUp, __m256i sUpLeft)
+{
+	__m256i	sUpChange;
+	__m256i	sLeftChange;
+	__m256i	sLeftDistance;
+	__m256i	sUpDistance;
+	__m256i	sUpLeftDistance;
+	__m256i	sNotLeft;
+	__m256i	sUseUpLeft;
+	__m256i	sResult;
+
+	//The estimate is left + up - up left, so its distance from left is |up - up left| and so on.
+	sUpChange = _mm256_sub_epi16(sUp, sUpLeft);
+	sLeftChange = _mm256_sub_epi16(sLeft, sUpLeft);
+	sLeftDistance = _mm256_abs_epi16(sUpChange);
+	sUpDistance = _mm256_abs_epi16(sLeftChange);
+	sUpLeftDistance = _mm256_abs_epi16(_mm256_add_epi16(sUpChange, sLeftChange));
+
+	sNotLeft = _mm256_or_si256(_mm256_cmpgt_epi16(sLeftDistance, sUpDistance), _mm256_cmpgt_epi16(sLeftDistance, sUpLeftDistance));
+	sUseUpLeft = _mm256_and_si256(sNotLeft, _mm256_cmpgt_epi16(sUpDistance, sUpLeftDistance));
+	sResult = _mm256_blendv_epi8(sLeft, sUp, sNotLeft);
+	return _mm256_blendv_epi8(sResult, sUpLeft, sUseUpLeft);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The Paeth predictor of 32 bytes.
+//
+//////////////////////////////////////////////////////////////////////////
+__m256i PNGPaethPredictor8(__m256i sLeft, __m256i sUp, __m256i sUpLeft)
+{
+	__m256i	sZero;
+	__m256i	sLow;
+	__m256i	sHigh;
+
+	//Unpacking and packing both work within each 128 bit lane so the bytes end up back where they started.
+	sZero = _mm256_setzero_si256();
+	sLow = PNGPaethPredictor16(_mm256_unpacklo_epi8(sLeft, sZero), _mm256_unpacklo_epi8(sUp, sZero), _mm256_unpacklo_epi8(sUpLeft, sZero));
+	sHigh = PNGPaethPredictor16(_mm256_unpackhi_epi8(sLeft, sZero), _mm256_unpackhi_epi8(sUp, sZero), _mm256_unpackhi_epi8(sUpLeft, sZero));
+	return _mm256_packus_epi16(sLow, sHigh);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The rounded down average of 32 pairs of bytes.  _mm256_avg_epu8 rounds
+// up.
+//
+//////////////////////////////////////////////////////////////////////////
+__m256i PNGAverage8(__m256i sLeft, __m256i sUp)
+{
+	return _mm256_sub_epi8(_mm256_avg_epu8(sLeft, sUp), _mm256_and_si256(_mm256_xor_si256(sLeft, sUp), _mm256_set1_epi8(1)));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds the sum of the absolute values (as signed bytes) of 32 filtered
+// bytes to four 64 bit sums.
+//
+//////////////////////////////////////////////////////////////////////////
+__m256i PNGAddFilterCost8(__m256i sSums, __m256i sFiltered)
+{
+	return _mm256_add_epi64(sSums, _mm256_sad_epu8(_mm256_abs_epi8(sFiltered), _mm256_setzero_si256()));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size PNGSumFilterCost8(__m256i sSums)
+{
+	uint64	auiSums[4];
+
+	_mm256_storeu_si256((__m256i*)auiSums, sSums);
+	return (size)(auiSums[0] + auiSums[1] + auiSums[2] + auiSums[3]);
+}
+#endif // __AVX2__
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Filters puiRow into puiDest with iFilter.  puiPrior is the row above,
-// or NULL for the first row.
+// all zeros for the first row.
 //
 //////////////////////////////////////////////////////////////////////////
 void PNGFilterRow(int iFilter, uint8* puiRow, uint8* puiPrior, size uiRowBytes, size uiPixelBytes, uint8* puiDest)
 {
 	size	i;
-	uint8	uiLeft;
-	uint8	uiUp;
-	uint8	uiUpLeft;
 
-	for (i = 0; i < uiRowBytes; i++)
+	//The first pixel has nothing to its left.
+	for (i = 0; (i < uiPixelBytes) && (i < uiRowBytes); i++)
 	{
-		uiLeft = (i >= uiPixelBytes) ? puiRow[i - uiPixelBytes] : 0;
-		uiUp = puiPrior ? puiPrior[i] : 0;
-		uiUpLeft = (puiPrior && (i >= uiPixelBytes)) ? puiPrior[i - uiPixelBytes] : 0;
+		puiDest[i] = PNGFilterByte(iFilter, puiRow[i], 0, puiPrior[i], 0);
+	}
+
+#ifdef __AVX2__
+	__m256i	sByte;
+	__m256i	sLeft;
+	__m256i	sUp;
+	__m256i	sUpLeft;
+	__m256i	sFiltered;
+
+	for (; i + 32 <= uiRowBytes; i += 32)
+	{
+		sByte = _mm256_loadu_si256((__m256i*)&puiRow[i]);
+		sLeft = _mm256_loadu_si256((__m256i*)&puiRow[i - uiPixelBytes]);
+		sUp = _mm256_loadu_si256((__m256i*)&puiPrior[i]);
+		sUpLeft = _mm256_loadu_si256((__m256i*)&puiPrior[i - uiPixelBytes]);
 		switch (iFilter)
 		{
 		case PNG_FILTER_NONE:
-			puiDest[i] = puiRow[i];
+			sFiltered = sByte;
 			break;
 		case PNG_FILTER_SUB:
-			puiDest[i] = (uint8)(puiRow[i] - uiLeft);
+			sFiltered = _mm256_sub_epi8(sByte, sLeft);
 			break;
 		case PNG_FILTER_UP:
-			puiDest[i] = (uint8)(puiRow[i] - uiUp);
+			sFiltered = _mm256_sub_epi8(sByte, sUp);
 			break;
 		case PNG_FILTER_AVERAGE:
-			puiDest[i] = (uint8)(puiRow[i] - (((int)uiLeft + (int)uiUp) >> 1));
+			sFiltered = _mm256_sub_epi8(sByte, PNGAverage8(sLeft, sUp));
 			break;
 		default:
-			puiDest[i] = (uint8)(puiRow[i] - PNGPaethPredictor(uiLeft, uiUp, uiUpLeft));
+			sFiltered = _mm256_sub_epi8(sByte, PNGPaethPredictor8(sLeft, sUp, sUpLeft));
 			break;
+		}
+		_mm256_storeu_si256((__m256i*)&puiDest[i], sFiltered);
+	}
+#endif // __AVX2__
+
+	for (; i < uiRowBytes; i++)
+	{
+		puiDest[i] = PNGFilterByte(iFilter, puiRow[i], puiRow[i - uiPixelBytes], puiPrior[i], puiPrior[i - uiPixelBytes]);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The cost of filtering puiRow with each filter, the sum of absolute
+// values of the filtered bytes as signed bytes.  puiPrior is the row
+// above, all zeros for the first row.
+//
+//////////////////////////////////////////////////////////////////////////
+void PNGFilterRowCosts(uint8* puiRow, uint8* puiPrior, size uiRowBytes, size uiPixelBytes, size* puiCosts)
+{
+	size	i;
+	int		iFilter;
+
+	for (iFilter = 0; iFilter < PNG_NUM_FILTERS; iFilter++)
+	{
+		puiCosts[iFilter] = 0;
+	}
+
+	for (i = 0; (i < uiPixelBytes) && (i < uiRowBytes); i++)
+	{
+		for (iFilter = 0; iFilter < PNG_NUM_FILTERS; iFilter++)
+		{
+			puiCosts[iFilter] += PNGFilterCost(PNGFilterByte(iFilter, puiRow[i], 0, puiPrior[i], 0));
+		}
+	}
+
+#ifdef __AVX2__
+	__m256i	sByte;
+	__m256i	sLeft;
+	__m256i	sUp;
+	__m256i	sUpLeft;
+	__m256i	asSums[PNG_NUM_FILTERS];
+
+	for (iFilter = 0; iFilter < PNG_NUM_FILTERS; iFilter++)
+	{
+		asSums[iFilter] = _mm256_setzero_si256();
+	}
+	for (; i + 32 <= uiRowBytes; i += 32)
+	{
+		sByte = _mm256_loadu_si256((__m256i*)&puiRow[i]);
+		sLeft = _mm256_loadu_si256((__m256i*)&puiRow[i - uiPixelBytes]);
+		sUp = _mm256_loadu_si256((__m256i*)&puiPrior[i]);
+		sUpLeft = _mm256_loadu_si256((__m256i*)&puiPrior[i - uiPixelBytes]);
+		asSums[PNG_FILTER_NONE] = PNGAddFilterCost8(asSums[PNG_FILTER_NONE], sByte);
+		asSums[PNG_FILTER_SUB] = PNGAddFilterCost8(asSums[PNG_FILTER_SUB], _mm256_sub_epi8(sByte, sLeft));
+		asSums[PNG_FILTER_UP] = PNGAddFilterCost8(asSums[PNG_FILTER_UP], _mm256_sub_epi8(sByte, sUp));
+		asSums[PNG_FILTER_AVERAGE] = PNGAddFilterCost8(asSums[PNG_FILTER_AVERAGE], _mm256_sub_epi8(sByte, PNGAverage8(sLeft, sUp)));
+		asSums[PNG_FILTER_PAETH] = PNGAddFilterCost8(asSums[PNG_FILTER_PAETH], _mm256_sub_epi8(sByte, PNGPaethPredictor8(sLeft, sUp, sUpLeft)));
+	}
+	for (iFilter = 0; iFilter < PNG_NUM_FILTERS; iFilter++)
+	{
+		puiCosts[iFilter] += PNGSumFilterCost8(asSums[iFilter]);
+	}
+#endif // __AVX2__
+
+	for (; i < uiRowBytes; i++)
+	{
+		for (iFilter = 0; iFilter < PNG_NUM_FILTERS; iFilter++)
+		{
+			puiCosts[iFilter] += PNGFilterCost(PNGFilterByte(iFilter, puiRow[i], puiRow[i - uiPixelBytes], puiPrior[i], puiPrior[i - uiPixelBytes]));
 		}
 	}
 }
@@ -91,37 +299,29 @@ void PNGFilterRow(int iFilter, uint8* puiRow, uint8* puiPrior, size uiRowBytes, 
 //
 // Filters every row with whichever filter gives the smallest sum of
 // absolute values (as signed bytes), the usual heuristic.  Each filtered
-// row starts with its filter type.
+// row starts with its filter type.  puiZeros is a row of zeros, the row
+// above the first.
 //
 //////////////////////////////////////////////////////////////////////////
-void PNGFilterRows(uint8* puiPixels, int iHeight, size uiRowBytes, size uiPixelBytes, uint8* puiFiltered, uint8* puiTrial)
+void PNGFilterRows(uint8* puiPixels, int iHeight, size uiRowBytes, size uiPixelBytes, uint8* puiFiltered, uint8* puiZeros)
 {
 	int		y;
 	int		iFilter;
 	int		iBestFilter;
-	size	uiSum;
-	size	uiBestSum;
-	size	i;
+	size	auiCosts[PNG_NUM_FILTERS];
 	uint8*	puiRow;
 	uint8*	puiPrior;
 
-	puiPrior = NULL;
+	puiPrior = puiZeros;
 	for (y = 0; y < iHeight; y++)
 	{
 		puiRow = &puiPixels[y * uiRowBytes];
+		PNGFilterRowCosts(puiRow, puiPrior, uiRowBytes, uiPixelBytes, auiCosts);
 		iBestFilter = PNG_FILTER_NONE;
-		uiBestSum = (size)-1;
-		for (iFilter = 0; iFilter < PNG_NUM_FILTERS; iFilter++)
+		for (iFilter = 1; iFilter < PNG_NUM_FILTERS; iFilter++)
 		{
-			PNGFilterRow(iFilter, puiRow, puiPrior, uiRowBytes, uiPixelBytes, puiTrial);
-			uiSum = 0;
-			for (i = 0; i < uiRowBytes; i++)
+			if (auiCosts[iFilter] < auiCosts[iBestFilter])
 			{
-				uiSum += (puiTrial[i] < 128) ? puiTrial[i] : 256 - puiTrial[i];
-			}
-			if (uiSum < uiBestSum)
-			{
-				uiBestSum = uiSum;
 				iBestFilter = iFilter;
 			}
 		}
@@ -201,7 +401,7 @@ bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
 	EPrimitiveType	eSampleType;
 	uint8*			pvPixels;
 	uint8*			pvFiltered;
-	uint8*			pvTrial;
+	uint8*			pvZeros;
 	CImage			cImageExport;
 	CImageCopier	cCopier;
 	CMemoryFile		cCompressedMemory;
@@ -278,10 +478,10 @@ bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
 	uiRowBytes = iWidth * uiPixelBytes;
 	pvPixels = (uint8*)malloc(uiRowBytes * iHeight);
 	pvFiltered = (uint8*)malloc((uiRowBytes + 1) * iHeight);
-	pvTrial = (uint8*)malloc(uiRowBytes);
-	if ((pvPixels == NULL) || (pvFiltered == NULL) || (pvTrial == NULL))
+	pvZeros = (uint8*)calloc(uiRowBytes, 1);
+	if ((pvPixels == NULL) || (pvFiltered == NULL) || (pvZeros == NULL))
 	{
-		free(pvTrial);
+		free(pvZeros);
 		free(pvFiltered);
 		free(pvPixels);
 		gcLogger.Error2(__METHOD__, " Could not allocate memory to write [", szPathName, "].", NULL);
@@ -320,8 +520,8 @@ bool SavePNG(Ptr<CImage> pcImage, char* szPathName)
 		}
 	}
 
-	PNGFilterRows(pvPixels, iHeight, uiRowBytes, uiPixelBytes, pvFiltered, pvTrial);
-	free(pvTrial);
+	PNGFilterRows(pvPixels, iHeight, uiRowBytes, uiPixelBytes, pvFiltered, pvZeros);
+	free(pvZeros);
 	free(pvPixels);
 
 	cCompressedMemory.Init();

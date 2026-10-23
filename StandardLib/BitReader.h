@@ -39,6 +39,11 @@ public:
 	bool	ReadBits(int iCount, uint32* puiValue);
 	bool	ReadBit(uint32* puiValue);
 	void	AlignToByte(void);
+
+	bool	FillByte(void);
+	uint32	GetBits(void);
+	int		NumBits(void);
+	void	SkipBits(int iCount);
 };
 
 

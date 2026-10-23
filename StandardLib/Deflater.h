@@ -75,6 +75,7 @@ protected:
 
 int	DeflateLengthCode(int iLength);
 int	DeflateDistanceCode(size uiDistance);
+int	DeflateMatchLength(uint8* puiCandidate, uint8* puiCurrent, int iMaxLength);
 
 
 #endif // __DEFLATER_H__
