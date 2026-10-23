@@ -12,6 +12,7 @@ public:
 
             bool    IsOperation(void) override;
     virtual bool    MustExecute(CW65CCore* pcCPU);
+    virtual bool    IsConditional(void);
     virtual bool    IsAddress(void) override;
     virtual bool    IsData(void);
     virtual size    GetDone8(void);

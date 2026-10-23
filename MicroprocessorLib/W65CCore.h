@@ -64,6 +64,7 @@ protected:
 	int16		    miCycle;
 	int16		    miNextCycle;
 	uint16		    muiOpcodeIndex;
+	CW65BusCycle*	mpcBusCycle;  //The bus cycle at miCycle of muiOpcodeIndex, see UpdateBusCycle.
 	bool		    mbStopped;
 	bool		    mbWaiting;
 	uint8		    muiEmulationStatusBits;  //Bits of P that read as 1 in emulation mode.
@@ -259,6 +260,7 @@ public:
 	void			ExecuteTrailingSideOperation(CW65CCore* pcCPU);
 
 	CW65BusCycle*		GetBusCycle(void);
+	void			UpdateBusCycle(void);
 	void			NextInstruction(void);
 	void			DoneInstruction(void);
 	void			NextCycle(void);

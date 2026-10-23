@@ -64,6 +64,7 @@ void CW65CCore::Init(CW65CPins* pcPins)
     miNextCycle = 0;
 
     muiOpcodeIndex = 0xffff;
+    mpcBusCycle = NULL;  //No opcode has an instruction yet, and the factory may not be initialised.
     muiData = 0;
     muiIOData = 0;
     muiDirectOffset = 0;
@@ -1044,6 +1045,7 @@ void CW65CCore::ResetPulled(void)
 	mbStopped = false;
 	miCycle = 0;
 	miNextCycle = 0;
+	UpdateBusCycle();
 
 	IncrementReset();
 }
@@ -1327,10 +1329,12 @@ void CW65CCore::Cycle(CW65CCore* pcCPU)
 
 	miCycle = miNextCycle;
 	NextCycle();
-	while (!GetBusCycle()->MustExecute(pcCPU))
+	UpdateBusCycle();
+	while (!mpcBusCycle->MustExecute(pcCPU))
 	{
 		miCycle = miNextCycle;
 		NextCycle();
+		UpdateBusCycle();
 	}
 }
 
@@ -1393,17 +1397,28 @@ void CW65CCore::ExecuteTrailingSideOperation(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 CW65BusCycle* CW65CCore::GetBusCycle(void)
 {
+	return mpcBusCycle;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Must be called whenever miCycle or muiOpcodeIndex changes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65CCore::UpdateBusCycle(void)
+{
 	CW65Instruction* pcInstruction;
 
 	pcInstruction = GetInstruction(muiOpcodeIndex);
 
 	if (pcInstruction != NULL)
 	{
-		return pcInstruction->GetBusCycle(miCycle);
+		mpcBusCycle = pcInstruction->GetBusCycle(miCycle);
 	}
 	else
 	{
-		return NULL;
+		mpcBusCycle = NULL;
 	}
 }
 
@@ -1443,6 +1458,7 @@ void CW65CCore::NextInstruction(void)
 	{
 		muiOpcodeIndex = GetFetchNextOpcode()->GetCode();
 	}
+	UpdateBusCycle();
 }
 
 
@@ -1485,6 +1501,7 @@ void CW65CCore::SetOpcode(uint16 uiOpcodeIndex)
 	if (uiOpcodeIndex <= 255)
 	{
 		muiOpcodeIndex = uiOpcodeIndex;
+		UpdateBusCycle();
 	}
 	else
 	{
