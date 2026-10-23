@@ -31,6 +31,7 @@ CEnumeratorVoid* CEnumeratorEnumerator::GetEnumerator(char* szType)
 {
 	CEnumeratorVoid*	pcVoidEnumerator;
 
+	pcVoidEnumerator = NULL;
 	__CEnumeratorEnumerator::Get(szType, &pcVoidEnumerator);
 	return pcVoidEnumerator;
 }
@@ -44,6 +45,7 @@ CEnumeratorVoid* CEnumeratorEnumerator::GetEnumerator(char* szType, int iTypeLen
 {
 	CEnumeratorVoid*	pcVoidEnumerator;
 
+	pcVoidEnumerator = NULL;
 	__CEnumeratorEnumerator::Get(szType, iTypeLen, &pcVoidEnumerator);
 	return pcVoidEnumerator;
 }

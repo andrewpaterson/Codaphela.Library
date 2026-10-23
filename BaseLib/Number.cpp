@@ -1048,6 +1048,10 @@ int16 CNumber::OffsetDigit(int16 iCurrentDigit, int16 iOffset)
 //////////////////////////////////////////////////////////////////////////
 size CNumber::GetDigitsBetween(int16 iFirst, int16 iLast)
 {
+	if (iFirst < iLast)
+	{
+		return 0;
+	}
 	if (((iFirst > 0) && (iLast > 0)) || ((iFirst < 0) && (iLast < 0)))
 	{
 		return iFirst - iLast + 1;
@@ -1265,6 +1269,13 @@ CNumber* CNumber::Shift(int16 iOffset)
 	if (iFirst > mcMaxWholeNumbers)
 	{
 		return Overflow(GetSign());
+	}
+	if (iFirst < -mcMaxDecimals)
+	{
+		//Every digit is shifted past the smallest decimal.
+		Init(mcMaxWholeNumbers, mcMaxDecimals);
+		SetFlag(NUMBER_FLAGS_UNDERFLOW);
+		return this;
 	}
 
 	iLast = OffsetDigit(iLast, iOffset);
@@ -2622,6 +2633,14 @@ void CNumber::PrivateCopy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxD
 		return;
 	}
 
+	if (iOtherFirst < -(mcMaxDecimals))
+	{
+		//Every digit is smaller than this number can hold.
+		Init(cMaxWholeNumbers, cMaxDecimals);
+		SetFlag(NUMBER_FLAGS_UNDERFLOW);
+		return;
+	}
+
 	if (iOtherLast < -(mcMaxDecimals))
 	{
 		iOtherLast = -(mcMaxDecimals);
@@ -3589,6 +3608,7 @@ uint64 CNumber::DecimalValue(uint16* puiNumDecimals)
 
 	if ((iLast > 0) || (IsZero()))
 	{
+		SafeAssign(puiNumDecimals, (uint16)0);
 		return 0;
 	}
 

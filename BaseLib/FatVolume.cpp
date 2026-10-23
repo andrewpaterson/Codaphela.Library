@@ -2075,6 +2075,7 @@ EFatCode CFatVolume::ReadFatEntry(uint32 uiOffsetInSector, uint32 uiClusterIndex
 			break;
 		}
 		default:
+			eResult = FAT_UNKNOWN_ERROR;
 			break;
 	}
 	return eResult;

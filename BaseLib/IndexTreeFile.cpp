@@ -2328,7 +2328,7 @@ bool CIndexTreeFile::RecurseValidateKeys(CIndexTreeRecursor* pcCursor, bool bRea
 	{
 		if (pcNode->HasData())
 		{
-			pcKey = (uint8*)cStack.Init();
+			pcKey = (uint8*)cStack.Init(pcCursor->GetKeySize());
 			pcCursor->GetKey(pcKey, &iKeySize);
 
 			if (meReverseKey == IKR_Yes)
@@ -2337,12 +2337,14 @@ bool CIndexTreeFile::RecurseValidateKeys(CIndexTreeRecursor* pcCursor, bool bRea
 			}
 			else if (meReverseKey == IKR_Unknown)
 			{
+				cStack.Kill();
 				gcLogger.Error2(__METHOD__, " Don't know how to order key bytes for direction [IKR_Unknown].", NULL);
 				return false;
 			}
 
 
 			bResult = Get(pcKey, iKeySize, NULL, NULL, 0);
+			cStack.Kill();
 			if (!bResult)
 			{
 				pcCursor->GenerateBad();

@@ -45,8 +45,10 @@ void CFileUtil::CurrentDirectory(CChars* szDest)
 {
 	char	szTemp[MAX_PATH];
 
-	getcwd(szTemp, MAX_PATH);
-	szDest->Append(szTemp);
+	if (getcwd(szTemp, MAX_PATH) != NULL)
+	{
+		szDest->Append(szTemp);
+	}
 }
 
 
