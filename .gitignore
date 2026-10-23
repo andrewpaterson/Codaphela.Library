@@ -58,3 +58,11 @@ us.stackdump
 /ImageLib/Release/*
 /GerberLib/Release/*
 /StandardLib/x64/Debug/*
+/Assembler65Lib/Debug/*
+/Assembler65Lib/Release/*
+/Assembler65Lib/x64/Debug/*
+/Assembler65Lib/x64/Release/*
+/MicroprocessorLib/x64/Debug/*
+/MicroprocessorLib/x64/Release/*
+/SupportLib/x64/Debug/*
+/SupportLib/x64/Release/*
