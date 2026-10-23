@@ -191,6 +191,7 @@ TRISTATE ParseXMLValueString(CTextParser* pcTextParser, char* szString, size* pi
 
 	if (!pcTextParser->IsOutside())
 	{
+		tSingle = TRIFALSE;
 		tDouble = pcTextParser->GetExactCharacter('"', false);
 		if (tDouble == TRIFALSE)
 		{

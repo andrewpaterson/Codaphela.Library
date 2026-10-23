@@ -185,6 +185,7 @@ bool CGuidClass::Get0xFormat(CTextParser* pcParser, uint32 uiValue1)
 	muiData3 = (uint16)uiValue3;
 
 	tOpenCurly = pcParser->GetExactCharacter('{');
+	tOpenRound = TRIERROR;
 	if (tOpenCurly == TRIERROR)
 	{
 		return false;
