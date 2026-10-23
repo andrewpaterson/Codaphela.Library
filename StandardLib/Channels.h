@@ -105,6 +105,8 @@ public:
 	CChannel*				GetChannel(size iChannel);		
 	size					GetNumChannels(void);
 	CChannel*				GetChannelAtIndex(size iIndex);
+	void					GetNative(size iPos, CChannel* pcChannel, void* pvDest);
+	void					SetNative(size iPos, CChannel* pcChannel, void* pvSource);
 	size					GetIndexOfChannel(CChannel* pcChannel);
 	size					GetIndexOfChannel(size iChannel);
 	bool					HasChannel(size iChannel);

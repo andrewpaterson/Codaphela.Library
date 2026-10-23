@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/IntegerHelper.h"
 #include "BaseLib/TypeNames.h"
 #include "SingleChannelAccessor.h"
 
@@ -51,10 +52,52 @@ float CSingleChannelAccessor::GetConvertToFloat(int iChannel, int iPos)
 //////////////////////////////////////////////////////////////////////////
 float CSingleChannelAccessor::GetCastToFloat(int iChannel, int iPos)
 {
-	float				f;
+	CChannel*	pcChannel;
+	uint8		auc[16];
 
-	GetCastTo(iChannel, PT_float32, &f, iPos);
-	return f;
+	pcChannel = mpcChannels->GetChannel(iChannel);
+	if (!pcChannel)
+	{
+		return 0.0f;
+	}
+
+	CChannelAccessor::Init(pcChannel->miByteSize, pcChannel->miBitSize, pcChannel->eType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
+
+	memset(auc, 0, sizeof(auc));
+	if ((miChannelByteOffset != SIZE_MAX) && (miChannelByteSize != SIZE_MAX))
+	{
+		CChannelAccessor::GetNative(mpcChannels->GetData(), auc);
+		if (mbChannelReverse)
+		{
+			ReverseEndianness(auc, miChannelByteSize);
+		}
+	}
+	else
+	{
+		CChannelAccessor::GetBits(mpcChannels->GetData(), iPos * mpcChannels->GetBitStride(), miChannelBitSize, auc);
+	}
+
+	switch (meChannelType)
+	{
+	case PT_int8:		return (float)*((int8*)auc);
+	case PT_int16:		return (float)*((int16*)auc);
+	case PT_int32:		return (float)*((int32*)auc);
+	case PT_int64:		return (float)*((int64*)auc);
+	case PT_uint8:		return (float)*((uint8*)auc);
+	case PT_uint16:		return (float)*((uint16*)auc);
+	case PT_uint32:		return (float)*((uint32*)auc);
+	case PT_uint64:		return (float)*((uint64*)auc);
+	case PT_char8:		return (float)*((char*)auc);
+	case PT_float32:	return *((float32*)auc);
+	case PT_float64:	return (float)*((float64*)auc);
+	case PT_bit:
+	case PT_crumb:
+	case PT_tribble:
+	case PT_nybble:
+	case PT_nickle:
+	case PT_sixbits:	return (float)auc[0];
+	default:			return 0.0f;
+	}
 }
 
 
@@ -107,57 +150,6 @@ void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, vo
 		}
 	}
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CSingleChannelAccessor::GetCastTo(int iChannel, EPrimitiveType eType, void* pvDest, int iPos)
-{
-	CChannel*			pcChannel;
-	size				iByteSize;
-	size				iBitSize;
-	bool				bSub;
-
-	pcChannel = mpcChannels->GetChannel(iChannel);
-	if (pcChannel)
-	{
-		pcChannel = mpcChannels->GetChannel(iChannel);
-
-		if (eType == PT_Undefined)
-		{
-			eType = pcChannel->eType;
-		}
-
-		iByteSize = gcTypeNames.GetByteSize(eType);
-		iBitSize = gcTypeNames.GetBitSize(eType);
-		if (iByteSize ==0)
-		{
-			iByteSize = SIZE_MAX;
-			bSub = true;
-		}
-		else
-		{
-			bSub = false;
-		}
-
-		CChannelAccessor::Init(iByteSize, iBitSize, eType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
-
-		bSub |= miChannelByteOffset == SIZE_MAX;
-		bSub |= miChannelByteSize == SIZE_MAX;
-
-		if (!bSub)
-		{
-			CChannelAccessor::GetCast(eType, mpcChannels->GetData(), pvDest);
-		}
-		else
-		{
-			CChannelAccessor::GetCastSub(eType, mpcChannels->GetData(), iPos * mpcChannels->GetBitStride(), pvDest);
-		}
-	}
-}
-
 
 
 //////////////////////////////////////////////////////////////////////////

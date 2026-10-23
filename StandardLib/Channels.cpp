@@ -938,6 +938,86 @@ CChannel* CChannels::GetChannelAtIndex(size iIndex)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Copies pcChannel's value at iPos into pvDest (8 bytes) as it is
+// stored, without converting it.  Channels bigger than 8 bytes are cut
+// to their first 8.  A channel that isn't whole bytes at a whole byte is
+// put in the low bits of pvDest, the rest zero.  A reversed channel is
+// byte swapped (or bit reversed if it is bit sized).
+//
+//////////////////////////////////////////////////////////////////////////
+void CChannels::GetNative(size iPos, CChannel* pcChannel, void* pvDest)
+{
+	size	uiByteSize;
+	size	uiBitPos;
+	size	uiNumBits;
+
+	uiByteSize = pcChannel->miByteSize < sizeof(uint64) ? pcChannel->miByteSize : sizeof(uint64);
+	if (pcChannel->Is8BitAligned() && (miByteStride != 0))
+	{
+		memcpy(pvDest, &mpvDataCache[iPos * miByteStride + pcChannel->miByteOffset], uiByteSize);
+	}
+	else
+	{
+		memset(pvDest, 0, sizeof(uint64));
+		uiBitPos = iPos * miBitStride + pcChannel->miBitOffset;
+		uiNumBits = pcChannel->miBitSize < 64 ? pcChannel->miBitSize : 64;
+		if (pcChannel->bReverse && (pcChannel->miByteSize == CHANNEL_NON_ALIGNED_BYTES))
+		{
+			CopyBitsReverseHiLo(pvDest, 0, mpvDataCache, uiBitPos, uiNumBits, true);
+			return;
+		}
+		CopyBits(pvDest, 0, mpvDataCache, uiBitPos, uiNumBits, true);
+	}
+
+	if (pcChannel->bReverse)
+	{
+		ReverseBytes(pvDest, uiByteSize);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The reverse of GetNative.  The other channels are left alone.
+//
+//////////////////////////////////////////////////////////////////////////
+void CChannels::SetNative(size iPos, CChannel* pcChannel, void* pvSource)
+{
+	uint64	ulliSwapped;
+	size	uiByteSize;
+	size	uiBitPos;
+	size	uiNumBits;
+
+	uiByteSize = pcChannel->miByteSize < sizeof(uint64) ? pcChannel->miByteSize : sizeof(uint64);
+	if (pcChannel->bReverse && (pcChannel->miByteSize != CHANNEL_NON_ALIGNED_BYTES))
+	{
+		ulliSwapped = 0;
+		memcpy(&ulliSwapped, pvSource, uiByteSize);
+		ReverseBytes(&ulliSwapped, uiByteSize);
+		pvSource = &ulliSwapped;
+	}
+
+	if (pcChannel->Is8BitAligned() && (miByteStride != 0))
+	{
+		memcpy(&mpvDataCache[iPos * miByteStride + pcChannel->miByteOffset], pvSource, uiByteSize);
+		return;
+	}
+
+	uiBitPos = iPos * miBitStride + pcChannel->miBitOffset;
+	uiNumBits = pcChannel->miBitSize < 64 ? pcChannel->miBitSize : 64;
+	if (pcChannel->bReverse && (pcChannel->miByteSize == CHANNEL_NON_ALIGNED_BYTES))
+	{
+		CopyBitsReverseHiLo(mpvDataCache, uiBitPos, pvSource, 0, uiNumBits, false);
+	}
+	else
+	{
+		CopyBits(mpvDataCache, uiBitPos, pvSource, 0, uiNumBits, false);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 size CChannels::GetIndexOfChannel(CChannel* pcChannel)
