@@ -79,7 +79,7 @@ bool CPPText::IsText(void)
 //////////////////////////////////////////////////////////////////////////
 char* CPPText::Print(CChars* psz)
 {
-	char	szDest[4];
+	char	szDest[5];
 	bool	bResult;
 	size	i;
 	char	c;

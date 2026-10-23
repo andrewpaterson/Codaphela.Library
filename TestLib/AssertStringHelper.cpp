@@ -313,7 +313,7 @@ void ToCharString(char c, char* szString, size iStringLength)
 	CharToString(c);
 	if ((c >= 0 && c <= 31) || (c == 127) || ((uint8)c >= 128 && (uint8)c <= 159))
 	{
-		ToIntHexString(c, szString, iStringLength);
+		ToIntHexString((uint32)(uint8)c, szString, iStringLength);
 	}
 	else
 	{
