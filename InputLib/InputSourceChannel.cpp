@@ -20,7 +20,6 @@ along with Codaphela InputLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/Operators.h"
 #include "InputSourceChannel.h"
 #include "InputSourceValue.h"
 
@@ -51,53 +50,71 @@ void CInputSouceChannel::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+template<class M>
+bool CompareInputValues(void* pvValue, void* pvTest, EInputSourceChannelComparator eCompare)
+{
+	M	tValue;
+	M	tTest;
+
+	memcpy(&tValue, pvValue, sizeof(M));
+	memcpy(&tTest, pvTest, sizeof(M));
+
+	switch (eCompare)
+	{
+	case ISCC_Equals:
+		return tValue == tTest;
+	case ISCC_LessThan:
+		return tValue < tTest;
+	case ISCC_LessThanEquals:
+		return tValue <= tTest;
+	case ISCC_GreaterThan:
+		return tValue > tTest;
+	case ISCC_GreaterThanEquals:
+		return tValue >= tTest;
+	case ISCC_NotEquals:
+		return tValue != tTest;
+	case ISCC_AlwaysValid:
+		return true;
+	case ISCC_Unknown:
+		break;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CInputSouceChannel::Compare(void* pvData)
 {
 	CChannel*			pcChannel;
-	bool				bResult;
 	char				sValue[8];
-	EPrimitiveType		eOperatorType;
+	EPrimitiveType		eType;
 
 	pcChannel = mpcSourceValue->GetDataFormat()->Get(miChannel);
-	eOperatorType = pcChannel->eType;
+	eType = pcChannel->eType;
 	mpcSourceValue->GetDataFormat()->GetAsNative(sValue, miChannel, pvData);
-	if ((eOperatorType >= PRIMTIVE_OPERATOR_END) && (eOperatorType < NUM_PRIMITIVE_TYPES))
+	if ((eType >= PRIMTIVE_OPERATOR_END) && (eType < NUM_PRIMITIVE_TYPES))
 	{
-		eOperatorType = PT_uint8;
+		eType = PT_uint8;
 	}
-	
-	if (eOperatorType < PRIMTIVE_OPERATOR_END)
+
+	switch (eType)
 	{
-		switch (meCompare)
-		{
-		case ISCC_Equals:
-			gcOperators.mcEqual.Do(&bResult, eOperatorType, sValue, eOperatorType, mTest);
-			return bResult;
-		case ISCC_LessThan:
-			gcOperators.mcLess.Do(&bResult, eOperatorType, sValue, eOperatorType, mTest);
-			return bResult;
-		case ISCC_LessThanEquals:
-			gcOperators.mcLessOrEqual.Do(&bResult, eOperatorType, sValue, eOperatorType, mTest);
-			return bResult;
-		case ISCC_GreaterThan:
-			gcOperators.mcGreater.Do(&bResult, eOperatorType, sValue, eOperatorType, mTest);
-			return bResult;
-		case ISCC_GreaterThanEquals:
-			gcOperators.mcGreaterOrEqual.Do(&bResult, eOperatorType, sValue, eOperatorType, mTest);
-			return bResult;
-		case ISCC_NotEquals:
-			gcOperators.mcNotEqual.Do(&bResult, eOperatorType, sValue, eOperatorType, mTest);
-			return bResult;
-		case ISCC_AlwaysValid:
-			return true;
-		case ISCC_Unknown:
-			break;
-		}
-		return false;
-	}
-	else
-	{
-		return false;
+	case PT_int8:		return CompareInputValues<int8>(sValue, mTest, meCompare);
+	case PT_int16:		return CompareInputValues<int16>(sValue, mTest, meCompare);
+	case PT_int32:		return CompareInputValues<int32>(sValue, mTest, meCompare);
+	case PT_int64:		return CompareInputValues<int64>(sValue, mTest, meCompare);
+	case PT_uint8:		return CompareInputValues<uint8>(sValue, mTest, meCompare);
+	case PT_uint16:		return CompareInputValues<uint16>(sValue, mTest, meCompare);
+	case PT_uint32:		return CompareInputValues<uint32>(sValue, mTest, meCompare);
+	case PT_uint64:		return CompareInputValues<uint64>(sValue, mTest, meCompare);
+	case PT_char8:		return CompareInputValues<char>(sValue, mTest, meCompare);
+	case PT_float32:	return CompareInputValues<float32>(sValue, mTest, meCompare);
+	case PT_float64:	return CompareInputValues<float64>(sValue, mTest, meCompare);
+	case PT_bool:		return CompareInputValues<bool>(sValue, mTest, meCompare);
+	default:			return false;
 	}
 }
 

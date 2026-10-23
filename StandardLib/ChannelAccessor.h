@@ -53,8 +53,6 @@ public:
 	void	GetBits(void* pvBase, size iBitOffset, size iNumBits, void* pvDest);
 	void	SetBits(void* pvBase, size iBitOffset, size iNumBits, void* pvSource);
 
-	void	GetCast(EPrimitiveType eType, void* pvBase, void* pvDest);
-	void	GetCastSub(EPrimitiveType eType, void* pvBase, size iBitOffset, void* pvDest);
 };
 
 

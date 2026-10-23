@@ -34,7 +34,6 @@ public:
 	float	GetConvertToFloat(int iChannel, int iPos = 0);
 	float	GetCastToFloat(int iChannel, int iPos = 0);
 	void	GetConvertTo(int iChannel, EPrimitiveType eType, void* pvDest, int iPos = 0);
-	void	GetCastTo(int iChannel, EPrimitiveType eType, void* pvDest, int iPos = 0);
 	void	GetNative(int iChannel, void* pvDest, int iPos = 0);
 };
 

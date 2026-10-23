@@ -20,7 +20,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/IntegerHelper.h"
 #include "BaseLib/TypeConverter.h"
-#include "BaseLib/Operators.h"
 #include "ChannelAccessor.h"
 
 
@@ -73,40 +72,12 @@ void CChannelAccessor::GetAs(EPrimitiveType eType, void* pvBase, void* pvDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::GetCast(EPrimitiveType eType, void* pvBase, void* pvDest)
-{
-	pvBase = RemapSinglePointer(pvBase, miChannelByteOffset);
-	gcOperators.mcAssignment.Do(eType, pvDest, meChannelType, pvBase);
-	if (mbChannelReverse)
-	{
-		ReverseEndianness(pvDest, miChannelByteSize);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CChannelAccessor::GetAsSub(EPrimitiveType eType, void* pvBase, size iBitOffset, void* pvDest)
 {
 	char	c[16];
 
 	GetBits(pvBase, iBitOffset, miChannelBitSize, &c);
 	gcTypeConverter.Do(eType, pvDest, meChannelType, &c);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::GetCastSub(EPrimitiveType eType, void* pvBase, size iBitOffset, void* pvDest)
-{
-	char	c[16];
-
-	GetBits(pvBase, iBitOffset, miChannelBitSize, &c);
-	gcOperators.mcAssignment.Do(eType, pvDest, meChannelType, pvBase);
 }
 
 
