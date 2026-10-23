@@ -654,6 +654,27 @@
     <ClCompile Include="Counter.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
+    <ClCompile Include="W65C816ChipPins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="W65C816Chip.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="65C64ChipPins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="65C64Chip.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="OscilloscopePins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="OscilloscopeState.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Oscilloscope.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="W65CCore.h">
@@ -1302,6 +1323,27 @@
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="Counter.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="W65C816ChipPins.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="W65C816Chip.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="65C64ChipPins.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="65C64Chip.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="OscilloscopePins.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="OscilloscopeState.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Oscilloscope.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
   </ItemGroup>

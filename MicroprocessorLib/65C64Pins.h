@@ -59,6 +59,7 @@ public:
 	void			WriteAddress(CTimeline* pcTimeline, uint32 uiAddress);
 	void			WriteData(CTimeline* pcTimeline, uint16 uiData);
 	uint16			ReadData(CTimeline* pcTimeline);
+	void			ReleaseData(CTimeline* pcTimeline);
 	void			WriteRWB(CTimeline* pcTimeline, bool bValue);
 	void			WriteByteLanes(CTimeline* pcTimeline, bool bLower, bool bUpper);
 	void			WriteOPV(CTimeline* pcTimeline, bool bValue);

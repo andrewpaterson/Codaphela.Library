@@ -196,6 +196,7 @@ CTimeline* CCircuitSimulation::GetTimeline(void) { return &mcTimeline; }
 int64 CCircuitSimulation::GetTime(void) { return mcTimeline.GetTime(); }
 bool CCircuitSimulation::RunSimultaneous(void) { return mcTimeline.RunSimultaneous(); }
 bool CCircuitSimulation::RunToTime(int64 iTimeForward) { return mcTimeline.RunToTime(iTimeForward); }
+bool CCircuitSimulation::RemoveEvent(CEvent* pcEvent) { return mcTimeline.Remove(pcEvent); }
 int64 CCircuitSimulation::GetID(void) { return miID; }
 char* CCircuitSimulation::GetName(void) { return mszName.Text(); }
 CSubcircuitTopSimulation* CCircuitSimulation::GetSubcircuitTopSimulation(void) { return mpcSubcircuitTopSimulation; }

@@ -218,6 +218,13 @@
     <ClCompile Include="CounterPins.cpp" />
     <ClCompile Include="CounterState.cpp" />
     <ClCompile Include="Counter.cpp" />
+    <ClCompile Include="W65C816ChipPins.cpp" />
+    <ClCompile Include="W65C816Chip.cpp" />
+    <ClCompile Include="65C64ChipPins.cpp" />
+    <ClCompile Include="65C64Chip.cpp" />
+    <ClCompile Include="OscilloscopePins.cpp" />
+    <ClCompile Include="OscilloscopeState.cpp" />
+    <ClCompile Include="Oscilloscope.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="W65AbortVector.h" />
@@ -436,6 +443,13 @@
     <ClInclude Include="CounterPins.h" />
     <ClInclude Include="CounterState.h" />
     <ClInclude Include="Counter.h" />
+    <ClInclude Include="W65C816ChipPins.h" />
+    <ClInclude Include="W65C816Chip.h" />
+    <ClInclude Include="65C64ChipPins.h" />
+    <ClInclude Include="65C64Chip.h" />
+    <ClInclude Include="OscilloscopePins.h" />
+    <ClInclude Include="OscilloscopeState.h" />
+    <ClInclude Include="Oscilloscope.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
