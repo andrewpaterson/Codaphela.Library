@@ -25,6 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #define MAP_COMMOM_KILL_ELEMENT	0x0001
+#define MAP_COMMOM_NO_OVERWRITE	0x0002  //Set when Put must not replace an existing key.  Clear in maps saved before it existed, which always overwrote.
 
 
 class CMapCommonUnknown : public CUnknown, public CDataIO, public CDataFree
@@ -46,6 +47,7 @@ public:
 	virtual size		GetHoldingSize(void) =0;
 
 			bool 		IsKillElements(void);
+			bool 		IsOverwriteExisting(void);
 			bool 		IsEmpty(void);
 			bool 		IsNotEmpty(void);
 };
