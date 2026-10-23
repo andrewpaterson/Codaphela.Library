@@ -46,6 +46,21 @@ double	ldexp(double x, int iExponent);
 double	frexp(double x, int* piExponent);
 double	round(double x);
 float	roundf(float x);
+double	trunc(double x);
+float	truncf(float x);
+
+//long double is double.
+long double	fabsl(long double x);
+long double	sqrtl(long double x);
+long double	floorl(long double x);
+long double	ceill(long double x);
+long double	truncl(long double x);
+long double	roundl(long double x);
+long double	fmodl(long double x, long double y);
+long double	powl(long double x, long double y);
+long double	logl(long double x);
+long double	log10l(long double x);
+long double	expl(long double x);
 }
 
 
