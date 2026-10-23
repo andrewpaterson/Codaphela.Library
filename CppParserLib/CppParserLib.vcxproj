@@ -189,6 +189,7 @@
     <ClCompile Include="CPP65GeneratorClasses.cpp" />
     <ClCompile Include="CPP65GeneratorExpressions.cpp" />
     <ClCompile Include="CPP65GeneratorFloat.cpp" />
+    <ClCompile Include="CPP65GeneratorObjects.cpp" />
     <ClCompile Include="CPP65Type.cpp" />
     <ClCompile Include="CPPSyntaxExtensionDeclaration.cpp" />
     <ClCompile Include="CppParserStatements.cpp" />

@@ -74,6 +74,7 @@ SCPP65Type* CCPP65Generator::Evaluate(CCPPSyntax* pcExpression)
 	CCPPSyntaxNamedCastExpression*	pcNamedCast;
 	CCPPSyntaxConstructExpression*	pcConstruct;
 	CArraySyntax*					papcElements;
+	SCPP65Type*						psType;
 
 	if (!pcExpression)
 	{
@@ -115,6 +116,11 @@ SCPP65Type* CCPP65Generator::Evaluate(CCPPSyntax* pcExpression)
 		return CastExpression(pcNamedCast->mpcType, pcNamedCast->mpcOperand, pcExpression);
 	case CPPS_ConstructExpression:
 		pcConstruct = (CCPPSyntaxConstructExpression*)pcExpression;
+		psType = GetTypeIdType(pcConstruct->mpcType);
+		if (psType && psType->IsClass())
+		{
+			return TemporaryObject(psType, pcConstruct->mpcInitializer, pcExpression);
+		}
 		if (pcConstruct->mpcInitializer && (pcConstruct->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer))
 		{
 			papcElements = &((CCPPSyntaxParenthesisedInitializer*)pcConstruct->mpcInitializer)->macpElements;
@@ -500,6 +506,12 @@ SCPP65Type* CCPP65Generator::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary)
 		break;
 	}
 
+	//-object, +object, ~object: the object's operator.
+	if (((pcUnary->meOperator == CT_Subtract) || (pcUnary->meOperator == CT_Add) || (pcUnary->meOperator == CT_BitwiseNot)) && IsObject(pcUnary->mpcOperand))
+	{
+		return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary);
+	}
+
 	//-1 and ~0 are constants.
 	if (((pcUnary->meOperator == CT_Subtract) || (pcUnary->meOperator == CT_BitwiseNot) || (pcUnary->meOperator == CT_Add)) && Constant(pcUnary, &lliValue))
 	{
@@ -661,6 +673,10 @@ SCPP65Type* CCPP65Generator::BinaryExpression(CCPPSyntaxBinaryExpression* pcBina
 	case CT_GreaterThanEqualTo:
 		return ConditionValue(pcBinary);
 	default:
+		if (IsObject(pcBinary->mpcLeft) || IsObject(pcBinary->mpcRight))
+		{
+			return OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary);
+		}
 		psLeft = Operands(pcBinary->mpcLeft, pcBinary->mpcRight, &sRight);
 		if (!psLeft)
 		{
@@ -1164,7 +1180,7 @@ SCPP65Type* CCPP65Generator::PointerCall(CCPPSyntaxCallExpression* pcCall, SCPP6
 {
 	int		iBytes;
 
-	iBytes = PushParameters(psFunctionType->papsParameters, NULL, psFunctionType->bVariadic, &pcCall->macpArguments, pcCall);
+	iBytes = PushParameters(psFunctionType->papsParameters, NULL, psFunctionType->bVariadic, &pcCall->macpArguments, pcCall, psFunctionType->psBase);
 	if (iBytes < 0)
 	{
 		return NULL;
@@ -1366,6 +1382,7 @@ SCPP65Type* CCPP65Generator::TypeOf(CCPPSyntax* pcExpression)
 	SCPP65TypeOf	sTypeOf;
 	size			uiErrors;
 	size			uiStrings;
+	int				iLabels;
 
 	//An expression's type only depends on the template arguments and the function it is in.
 	psTypeOf = mcTypeOfs.Get((int64)(size)pcExpression);
@@ -1381,9 +1398,14 @@ SCPP65Type* CCPP65Generator::TypeOf(CCPPSyntax* pcExpression)
 	uiErrors = mcErrors.NumErrors();
 	uiStrings = maszStrings.NumElements();
 
+	//The code is thrown away, so its labels are too.
+	iLabels = miLabels;
 	szDiscard.Init();
 	mpszOut = &szDiscard;
+	miTypeOf++;
 	psType = Expression(pcExpression);
+	miTypeOf--;
+	miLabels = iLabels;
 	mpszOut = pszOut;
 	szDiscard.Kill();
 
@@ -2025,6 +2047,20 @@ bool CCPP65Generator::Condition(CCPPSyntax* pcExpression, bool bJumpIf, int iLab
 		case CT_LessThanEqualTo:
 		case CT_GreaterThan:
 		case CT_GreaterThanEqualTo:
+			if (IsObject(pcBinary->mpcLeft) || IsObject(pcBinary->mpcRight))
+			{
+				//An operator function's result.
+				psType = OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary);
+				if (!psType || !psType->IsScalar())
+				{
+					return psType ? Error(pcBinary, "A condition must be an integer or a pointer") : false;
+				}
+				CompareZero(psType);
+				Line(bJumpIf ? "brac z, " : "bras z, ");
+				AppendLabel(mpszOut, iLabel);
+				mpszOut->AppendNewLine();
+				return true;
+			}
 			psLeft = Operands(pcBinary->mpcLeft, pcBinary->mpcRight, &sRight);
 			return Compare(pcBinary->meOperator, psLeft, &sRight, bJumpIf, iLabel, pcBinary);
 		default:
@@ -2411,11 +2447,16 @@ bool CCPP65Generator::Place(CCPPSyntax* pcExpression, SCPP65Place* psPlace)
 		return true;
 
 	case CPPS_CallExpression:
-		//A function that returns a reference.
+		//A function that returns a reference, or an object (its temporary).
 		return ResultPlace(Evaluate(pcExpression), psPlace, pcExpression);
 
 	default:
 		break;
+	}
+	if (IsObject(pcExpression))
+	{
+		//An expression that makes an object: its temporary.
+		return ResultPlace(Evaluate(pcExpression), psPlace, pcExpression);
 	}
 	return Error(pcExpression, "This lvalue is not supported by the 65C64 generator yet");
 }
@@ -2432,12 +2473,12 @@ bool CCPP65Generator::ResultPlace(SCPP65Type* psType, SCPP65Place* psPlace, CCPP
 	{
 		return false;
 	}
-	if (!psType->IsReference())
+	if (!psType->IsReference() && !psType->IsClass())
 	{
 		return Error(pcNode, "This is not an lvalue");
 	}
 	psPlace->eKind = CPP65PK_Address;
-	psPlace->psType = psType->psBase;
+	psPlace->psType = psType->IsReference() ? psType->psBase : psType;
 	psPlace->iOffset = 0;
 	psPlace->lliName = -1;
 	psPlace->iString = -1;
