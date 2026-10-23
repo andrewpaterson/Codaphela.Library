@@ -1,0 +1,355 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2026 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela WindowLib
+
+Codaphela WindowLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela WindowLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/Objects.h"
+#include "SupportLib/SubImage.h"
+#include "Window.h"
+#include "CheckBox.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCheckBox::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char* szCaption, bool bTicked)
+{
+	PreInit();
+
+	CGridContainer::Init(pWindow);
+	mpImages = pTheme->GetCheckBoxImages();
+	mcListeners.Init();
+	mcListeners.AddAllowedClass<CCheckBoxListener>();
+	meState = CBS_Normal;
+	miGap = 6;
+	mbTicked = bTicked;
+	mbMouseOver = false;
+	mbFocussed = false;
+	mbPressed = false;
+	SetCanGetFocus(true);
+
+	//The gap is part of the box's width with the box drawn at its left.
+	mpBox = OMalloc<CIconComponent>(pWindow, mpImages->GetCel(mbTicked, meState));
+	mpBox->SetCelAlignment(CSH_Left, CSV_Center);
+	mpBox->SetAlignment(CSH_Left, CSV_Center);
+	mpCaption = OMalloc<CLabel>(pWindow, pTheme->GetFont(), szCaption == NULL ? "" : szCaption);
+	mpCaption->SetAlignment(CSH_Left, CSV_Center);
+	AddComponent(mpBox, 0, 0);
+	AddComponent(mpCaption, 1, 0, 1, 1, 1, 0);
+	UpdateGap();
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCheckBox::Class(void)
+{
+	CGridContainer::Class();
+
+	M_Pointer(mpImages);
+	M_Pointer(mpBox);
+	M_Pointer(mpCaption);
+	U_Data(CListenerCall, mcListeners);
+	U_Enum(meState);
+	U_Int32(miGap);
+	U_Bool(mbTicked);
+	U_Bool(mbMouseOver);
+	U_Bool(mbFocussed);
+	U_Bool(mbPressed);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCheckBox::Free(void)
+{
+	mcListeners.Kill();
+	CGridContainer::Free();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCheckBox::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCheckBox::Load(CObjectReader* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCheckBox::UpdateGap(void)
+{
+	Ptr<CImageCel>	pCel;
+
+	pCel = mpImages->GetCel(mbTicked, meState);
+	mpBox->SetDesiredSize(pCel->GetSubImage()->GetFullWidth() + miGap, -1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCheckBox::SetGap(int32 iGap)
+{
+	miGap = iGap;
+	UpdateGap();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The listeners aren't told.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCheckBox::SetTicked(bool bTicked)
+{
+	if (mbTicked != bTicked)
+	{
+		mbTicked = bTicked;
+		UpdateLook();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As a click does: ticks or unticks the box and tells the listeners.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCheckBox::Toggle(void)
+{
+	mbTicked = !mbTicked;
+	UpdateLook();
+	mcListeners.CallListeners(&CCheckBoxListener::CheckBoxChanged, this, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCheckBox::SetCaption(const char* szCaption)
+{
+	mpCaption->SetText(szCaption == NULL ? "" : szCaption);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Like a label a check box keeps the size its parts need unless a desired
+// size is set on an axis.
+//
+//////////////////////////////////////////////////////////////////////////
+SInt32Vec2 CCheckBox::GetDesiredSize(void)
+{
+	return GetDesiredOrRequiredSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// x and y are in window client space.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CComponent> CCheckBox::FindComponentAt(int x, int y)
+{
+	if (IsPointIn(x, y))
+	{
+		return this;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCheckBox::AddListener(CCheckBoxListener* pcListener)
+{
+	return mcListeners.AddListener(pcListener);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCheckBox::RemoveListener(CCheckBoxListener* pcListener)
+{
+	return mcListeners.RemoveListener(pcListener);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Losing focus, as when the window is deactivated, ends a press.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCheckBox::FocusGained(void)
+{
+	mbFocussed = true;
+	UpdateState();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCheckBox::FocusLost(void)
+{
+	mbFocussed = false;
+	mbPressed = false;
+	UpdateState();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCheckBox::MovedInto(void)
+{
+	mbMouseOver = true;
+	UpdateState();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCheckBox::MovedOutof(void)
+{
+	mbMouseOver = false;
+	UpdateState();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The press has already given the check box focus.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCheckBox::ActivateComponent(int x, int y)
+{
+	mbPressed = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The release goes to the check box with focus wherever the pointer is.
+// It only toggles if the pointer is still over the check box.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCheckBox::ExecuteComponent(int x, int y)
+{
+	if (mbPressed)
+	{
+		mbPressed = false;
+		if (mbMouseOver)
+		{
+			Toggle();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCheckBox::Space(bool bInsert)
+{
+	Toggle();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Focussed, with or without the pointer over it, or just the pointer over
+// it, or normal.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCheckBox::UpdateState(void)
+{
+	ECheckBoxState	eState;
+
+	if (mbFocussed)
+	{
+		eState = mbMouseOver ? CBS_FocussedMouseOver : CBS_Focussed;
+	}
+	else
+	{
+		eState = mbMouseOver ? CBS_MouseOver : CBS_Normal;
+	}
+
+	if (eState != meState)
+	{
+		meState = eState;
+		UpdateLook();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCheckBox::UpdateLook(void)
+{
+	mpBox->SetCel(mpImages->GetCel(mbTicked, meState));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCheckBox::IsTicked(void) { return mbTicked; }
+char* CCheckBox::GetCaption(void) { return mpCaption->GetText(); }
+ECheckBoxState CCheckBox::GetState(void) { return meState; }
+Ptr<CIconComponent> CCheckBox::GetBoxComponent(void) { return mpBox; }
+Ptr<CLabel> CCheckBox::GetCaptionLabel(void) { return mpCaption; }
+

@@ -243,6 +243,18 @@
     <ClInclude Include="TextArea.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowTick.h" />
+    <ClInclude Include="ImageBorderContainer.h" />
+    <ClInclude Include="TextField.h" />
+    <ClInclude Include="TextFieldListener.h" />
+    <ClInclude Include="TextMarksCanvasDraw.h" />
+    <ClInclude Include="CheckBox.h" />
+    <ClInclude Include="CheckBoxListener.h" />
+    <ClInclude Include="CheckBoxImages.h" />
+    <ClInclude Include="ComboBox.h" />
+    <ClInclude Include="ComboBoxListener.h" />
+    <ClInclude Include="WindowTheme.h" />
+    <ClInclude Include="JewelTheme.h" />
+    <ClInclude Include="JewelColours.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComponentInput.cpp" />
@@ -291,6 +303,14 @@
     <ClCompile Include="NativeWindowFactory.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WindowTick.cpp" />
+    <ClCompile Include="ImageBorderContainer.cpp" />
+    <ClCompile Include="TextField.cpp" />
+    <ClCompile Include="TextMarksCanvasDraw.cpp" />
+    <ClCompile Include="CheckBox.cpp" />
+    <ClCompile Include="CheckBoxImages.cpp" />
+    <ClCompile Include="ComboBox.cpp" />
+    <ClCompile Include="WindowTheme.cpp" />
+    <ClCompile Include="JewelTheme.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Container.txt" />

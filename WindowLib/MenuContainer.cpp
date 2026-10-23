@@ -28,18 +28,29 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A menu in the theme's menu style.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMenuContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
+{
+	Init(pWindow, pTheme, pTheme->GetMenuStyle());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The row under the pointer is selected, a rounded block of the style's
 // selection colour inset from the menu's sides.
 //
 //////////////////////////////////////////////////////////////////////////
-void CMenuContainer::Init(Ptr<CWindow> pWindow, Ptr<CMenuStyle> pStyle)
+void CMenuContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CMenuStyle> pStyle)
 {
 	SInsets		sInsets;
 	int			aiInsets[4];
 
 	PreInit();
 
-	CListContainer::Init(pWindow);
+	CListContainer::Init(pWindow, pTheme);
 	mcListeners.AddAllowedClass<CMenuListener>();
 	mpStyle = pStyle;
 	maItems.Init();
@@ -499,12 +510,16 @@ void CMenuContainer::Reset(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Every menu from the first one the item was reached from closes before
-// the listeners are told.
+// the listeners are told.  The component that opened the first menu, a
+// combo box say, is told too.  It is found through the object graph, not
+// a listener, so it needs nothing removed when it is freed.
 //
 //////////////////////////////////////////////////////////////////////////
 void CMenuContainer::ItemClicked(Ptr<CMenuItem> pItem)
 {
 	Ptr<CMenuContainer>	pRoot;
+	Ptr<CPopup>			pPopup;
+	Ptr<CComponent>		pOwner;
 
 	pRoot = this;
 	while (pRoot->mpParentMenu.IsNotNull() && pRoot->mpParentMenu->IsOpen())
@@ -512,11 +527,23 @@ void CMenuContainer::ItemClicked(Ptr<CMenuItem> pItem)
 		pRoot = pRoot->mpParentMenu;
 	}
 
+	//The owner is only known while the menu's popup is open.
+	pPopup = mpWindow->GetPopup(pRoot);
+	if (pPopup.IsNotNull())
+	{
+		pOwner = pPopup->GetOwner();
+	}
+	pPopup = NULL;
+
 	pRoot->Close();
 	pRoot->mcListeners.CallListeners(&CMenuListener::MenuItemClicked, &pItem, NULL);
 	if (pRoot->mpMenuBar.IsNotNull())
 	{
 		pRoot->mpMenuBar->MenuItemClicked(pItem);
+	}
+	if (pOwner.IsNotNull())
+	{
+		pOwner->PopupItemClicked(pRoot, pItem);
 	}
 }
 

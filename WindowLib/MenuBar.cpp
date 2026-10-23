@@ -28,12 +28,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMenuBar::Init(Ptr<CWindow> pWindow, Ptr<CMenuStyle> pStyle)
+void CMenuBar::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 {
 	PreInit();
 
 	CGridContainer::Init(pWindow);
-	mpStyle = pStyle;
+	mpStyle = pTheme->GetMenuStyle();
 	maItems.Init();
 	mpOpenItem = NULL;
 	mcListeners.Init();
@@ -41,7 +41,7 @@ void CMenuBar::Init(Ptr<CWindow> pWindow, Ptr<CMenuStyle> pStyle)
 
 	//Like a list's highlights the background is the first component, so the buttons are drawn over it, in the top left
 	//cell with no size of its own.  It is moved over the whole bar after the bar is laid out.
-	mpBackgroundDraw = OMalloc<CClearCanvasDraw>(pStyle->GetBarBackground());
+	mpBackgroundDraw = OMalloc<CClearCanvasDraw>(mpStyle->GetBarBackground());
 	mpBackground = OMalloc<CCanvas>(pWindow, mpBackgroundDraw);
 	mpBackground->SetDesiredSize(-1, -1);
 	CGridContainer::AddComponent(mpBackground, 0, 0);

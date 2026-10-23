@@ -133,6 +133,13 @@ bool CCanvas::Draw(void)
 		CreateNativeCanvas();
 	}
 
+	//A canvas with no area, like a label with no text, may have no native canvas.  Only its children are drawn.
+	if (mpcNativeCanvas == NULL)
+	{
+		CComponent::Draw();
+		return true;
+	}
+
 	//A transparent canvas starts each draw empty so that only what is drawn this time shows over what is behind it.
 	if (mbTransparent)
 	{

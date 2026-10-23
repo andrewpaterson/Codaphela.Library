@@ -21,34 +21,18 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "SupportLib/SubImage.h"
-#include "ClearCanvasDraw.h"
-#include "BorderLayoutHelper.h"
 #include "Window.h"
 #include "Button.h"
 
 
-//The cell of each EButtonBorderPiece.
-static EBorderLayoutCell gaeButtonBorderCell[NUM_BUTTON_BORDER_PIECES] = { BLC_TopLeft, BLC_Top, BLC_TopRight, BLC_Left, BLC_Right, BLC_BottomLeft, BLC_Bottom, BLC_BottomRight };
-
-
 //////////////////////////////////////////////////////////////////////////
 //
+// A normal button with only a caption.
 //
 //////////////////////////////////////////////////////////////////////////
-void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CFont> pFont, const char* szCaption)
+void CButton::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char* szCaption)
 {
-	Init(pWindow, pImages, NULL, NULL, pFont, szCaption);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The default images must have the same tile size as the images.
-//
-//////////////////////////////////////////////////////////////////////////
-void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButtonImages> pDefaultImages, Ptr<CFont> pFont, const char* szCaption)
-{
-	Init(pWindow, pImages, pDefaultImages, NULL, pFont, szCaption);
+	Init(pWindow, pTheme, BL_Normal, NULL, szCaption);
 }
 
 
@@ -56,35 +40,39 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButton
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CImageCel> pIcon, Ptr<CFont> pFont, const char* szCaption)
+void CButton::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CImageCel> pIcon, const char* szCaption)
 {
-	Init(pWindow, pImages, NULL, pIcon, pFont, szCaption);
+	Init(pWindow, pTheme, BL_Normal, pIcon, szCaption);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The default images must have the same tile size as the images.  pIcon
-// can be NULL for a button with only a caption, and szCaption NULL or
-// empty for a button with only an icon.
+// pIcon can be NULL for a button with only a caption, and szCaption NULL
+// or empty for a button with only an icon.  A normal button is drawn
+// with the theme's default button images while it is its window's default.
+//
+//////////////////////////////////////////////////////////////////////////
+void CButton::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, EButtonLook eLook, Ptr<CImageCel> pIcon, const char* szCaption)
+{
+	Init(pWindow, pTheme->GetButtonImages(eLook), pTheme->GetDefaultButtonImages(eLook), pIcon, pTheme->GetFont(), szCaption);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For a button drawn with images that aren't in a theme, like a menu
+// bar's.  The default images can be NULL and must have the same tile size
+// as the images.
 //
 //////////////////////////////////////////////////////////////////////////
 void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButtonImages> pDefaultImages, Ptr<CImageCel> pIcon, Ptr<CFont> pFont, const char* szCaption)
 {
-	CBorderLayoutHelper		cBorder;
-	Ptr<CImageCanvasDraw>	pDraw;
-	Ptr<CCanvas>			pCanvas;
-	Ptr<CCanvas>			pBackground;
-	int						i;
-	int32					iTileSize;
-	bool					bEdge;
-
 	PreInit();
 
-	CGridContainer::Init(pWindow);
-	mpImages = pImages;
+	CImageBorderContainer::Init(pWindow, pImages);
+	mpNormalImages = pImages;
 	mpDefaultImages = pDefaultImages;
-	maBorderDraws.Init();
 	msPadding.Init(8, 2);
 	miIconGap = 4;
 	mcListeners.Init();
@@ -98,32 +86,6 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButton
 	mbHighlighted = false;
 	SetCanGetFocus(true);
 
-	//The corners are their tile's size.  The edges are a tile thick and stretched along the face.  Every piece is
-	//transparent: the corners are rounded and any piece can have an empty band, so what is behind shows through.
-	cBorder.Init(Ptr<CGridContainer>(this));
-	iTileSize = mpImages->GetTileSize();
-	for (i = 0; i < NUM_BUTTON_BORDER_PIECES; i++)
-	{
-		bEdge = (i == BBP_Top) || (i == BBP_Left) || (i == BBP_Right) || (i == BBP_Bottom);
-		pDraw = OMalloc<CImageCanvasDraw>(mpImages->GetCel(BS_Normal, (EButtonBorderPiece)i), bEdge);
-		maBorderDraws.Add(pDraw);
-		pCanvas = OMalloc<CCanvas>(pWindow, pDraw);
-		pCanvas->SetTransparent(true);
-		if ((i == BBP_Top) || (i == BBP_Bottom))
-		{
-			pCanvas->SetDesiredSize(-1, iTileSize);
-		}
-		else if ((i == BBP_Left) || (i == BBP_Right))
-		{
-			pCanvas->SetDesiredSize(iTileSize, -1);
-		}
-		cBorder.AddComponent(pCanvas, gaeButtonBorderCell[i]);
-	}
-
-	mpFace = OMalloc<CFillContainer>(pWindow);
-	mpFaceDraw = OMalloc<CClearCanvasDraw>(mpImages->GetFaceColour(BS_Normal));
-	pBackground = OMalloc<CCanvas>(pWindow, mpFaceDraw);
-	mpFace->AddComponent(pBackground);
 	mpPadded = OMalloc<CFillContainer>(pWindow);
 	mpPadded->SetAlignment(CSH_Stretch, CSV_Stretch);
 	mpFace->AddComponent(mpPadded);
@@ -132,9 +94,6 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButton
 	mpPadded->AddComponent(mpContent);
 	mpIcon = OMalloc<CIconComponent>(pWindow, pIcon);
 	mpCaption = OMalloc<CLabel>(pWindow, pFont, szCaption == NULL ? "" : szCaption);
-	mpFace->SetAlignment(CSH_Stretch, CSV_Stretch);
-	cBorder.AddComponent(mpFace, BLC_Center);
-	cBorder.Kill();
 	UpdateContent();
 
 	PostInit();
@@ -147,13 +106,10 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButton
 //////////////////////////////////////////////////////////////////////////
 void CButton::Class(void)
 {
-	CGridContainer::Class();
+	CImageBorderContainer::Class();
 
-	M_Pointer(mpImages);
+	M_Pointer(mpNormalImages);
 	M_Pointer(mpDefaultImages);
-	M_Pointer(mpFaceDraw);
-	M_Embedded(maBorderDraws);
-	M_Pointer(mpFace);
 	M_Pointer(mpPadded);
 	M_Pointer(mpContent);
 	M_Pointer(mpIcon);
@@ -178,7 +134,7 @@ void CButton::Class(void)
 void CButton::Free(void)
 {
 	mcListeners.Kill();
-	CGridContainer::Free();
+	CImageBorderContainer::Free();
 }
 
 
@@ -334,18 +290,6 @@ void CButton::UpdateFaceSize(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Like a label a button keeps the size its parts need unless a desired
-// size is set on an axis.
-//
-//////////////////////////////////////////////////////////////////////////
-SInt32Vec2 CButton::GetDesiredSize(void)
-{
-	return GetDesiredOrRequiredSize();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CButton::AddListener(CButtonListener* pcListener)
@@ -376,21 +320,6 @@ void CButton::Click(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// x and y are in window client space.
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CComponent> CButton::FindComponentAt(int x, int y)
-{
-	if (IsPointIn(x, y))
-	{
-		return this;
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A focussed button clicks itself on enter, not the default button.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -412,21 +341,6 @@ void CButton::SetDefault(bool bDefault)
 		mbDefault = bDefault;
 		UpdateLook();
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The images the button is drawn with now.
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CButtonImages> CButton::GetImages(void)
-{
-	if (mbDefault && mpDefaultImages)
-	{
-		return mpDefaultImages;
-	}
-	return mpImages;
 }
 
 
@@ -569,15 +483,16 @@ void CButton::UpdateState(void)
 //////////////////////////////////////////////////////////////////////////
 void CButton::UpdateLook(void)
 {
-	Ptr<CButtonImages>	pImages;
-	int					i;
-
-	pImages = GetImages();
-	for (i = 0; i < NUM_BUTTON_BORDER_PIECES; i++)
+	//The default images, while the button is the window's default, are drawn instead of its own.
+	if (mbDefault && mpDefaultImages)
 	{
-		maBorderDraws.Get(i)->SetCel(pImages->GetCel(meState, (EButtonBorderPiece)i));
+		SetImages(mpDefaultImages);
 	}
-	mpFaceDraw->SetColour(pImages->GetFaceColour(meState));
+	else
+	{
+		SetImages(mpNormalImages);
+	}
+	SetBorderState(meState);
 }
 
 

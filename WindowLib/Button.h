@@ -22,18 +22,16 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __BUTTON_H__
 #include "StandardLib/ListenerCall.h"
 #include "SupportLib/Font.h"
-#include "GridContainer.h"
-#include "FillContainer.h"
-#include "ImageCanvasDraw.h"
-#include "ClearCanvasDraw.h"
+#include "ImageBorderContainer.h"
+#include "WindowTheme.h"
 #include "Label.h"
 #include "IconComponent.h"
 #include "ButtonImages.h"
 #include "ButtonListener.h"
 
 
-//A button is a grid of its parts: eight border pieces around a face, laid out by CBorderLayoutHelper.  The face is a
-//canvas filled with the face colour under a centred caption.  The face needs the caption's size plus the padding and
+//A button is a face inside a border of image pieces, see CImageBorderContainer.  The face is filled with the face
+//colour under a centred caption.  The face needs the caption's size plus the padding and
 //stretches with the button.
 //
 //The button is hit as a whole so it, not its parts, has the pointer over it and takes focus.  A click is a press and
@@ -41,16 +39,13 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //A window's default button is also clicked by enter when the focussed component doesn't want it.  It is drawn with
 //its default images, if it has them, while it is the default.
-class CButton : public CGridContainer
+class CButton : public CImageBorderContainer
 {
 CONSTRUCTABLE(CButton);
 DESTRUCTABLE(CButton);
 protected:
-	Ptr<CButtonImages>			mpImages;
+	Ptr<CButtonImages>			mpNormalImages;
 	Ptr<CButtonImages>			mpDefaultImages;  //Optional.
-	Ptr<CClearCanvasDraw>		mpFaceDraw;
-	CArray<CImageCanvasDraw>	maBorderDraws;  //One for each EButtonBorderPiece.
-	Ptr<CFillContainer>			mpFace;
 	Ptr<CFillContainer>			mpPadded;  //The face less its padding.
 	Ptr<CGridContainer>			mpContent;  //The icon and the caption, side by side, on the face.
 	Ptr<CIconComponent>			mpIcon;  //Shows nothing without a cel.
@@ -67,10 +62,9 @@ protected:
 	bool						mbHighlighted;  //Has the mouse over look wherever the pointer is.
 
 public:
-	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CFont> pFont, const char* szCaption);
-	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButtonImages> pDefaultImages, Ptr<CFont> pFont, const char* szCaption);
-	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CImageCel> pIcon, Ptr<CFont> pFont, const char* szCaption);
-	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButtonImages> pDefaultImages, Ptr<CImageCel> pIcon, Ptr<CFont> pFont, const char* szCaption);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char* szCaption);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CImageCel> pIcon, const char* szCaption);
+	void				Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, EButtonLook eLook, Ptr<CImageCel> pIcon, const char* szCaption);
 	void				Class(void) override;
 	void 				Free(void) override;
 
@@ -85,7 +79,6 @@ public:
 	Ptr<CIconComponent>	GetIconComponent(void);
 	Ptr<CLabel>			GetCaptionLabel(void);
 	void				SetPadding(int32 iHorizontal, int32 iVertical);
-	SInt32Vec2			GetDesiredSize(void) override;
 
 	bool				AddListener(CButtonListener* pcListener);
 	bool				RemoveListener(CButtonListener* pcListener);
@@ -99,9 +92,7 @@ public:
 	bool				IsShowsPushed(void);
 	void				SetHighlighted(bool bHighlighted);
 	bool				IsHighlighted(void);
-	Ptr<CButtonImages>	GetImages(void);
 
-	Ptr<CComponent>		FindComponentAt(int x, int y) override;
 	bool				WantsEnter(void) override;
 
 	void				FocusGained(void) override;
@@ -114,6 +105,7 @@ public:
 	void				Enter(void) override;
 
 protected:
+	void				Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButtonImages> pDefaultImages, Ptr<CImageCel> pIcon, Ptr<CFont> pFont, const char* szCaption);
 	void				UpdateState(void);
 	void				UpdateLook(void);
 	void				UpdateFaceSize(void);

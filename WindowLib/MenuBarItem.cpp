@@ -35,7 +35,7 @@ void CMenuBarItem::Init(Ptr<CWindow> pWindow, Ptr<CMenuBar> pMenuBar, Ptr<CMenuS
 {
 	PreInit();
 
-	CButton::Init(pWindow, pStyle->GetBarButtonImages(), pIcon, pStyle->GetFont(), szText);
+	CButton::Init(pWindow, pStyle->GetBarButtonImages(), NULL, pIcon, pStyle->GetFont(), szText);
 	mpMenuBar = pMenuBar;
 	mpMenu = pMenu;
 	SetShowsPushed(false);

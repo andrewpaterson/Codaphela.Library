@@ -21,6 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Objects.h"
 #include "SupportLib/ImageDraw.h"
 #include "SupportLib/ImageColourConverter.h"
+#include "JewelColours.h"
 #include "JewelButtonImages.h"
 
 
@@ -79,12 +80,9 @@ void CJewelButtonImages::DrawCorner(CImageDraw* pcDraw, int iTile, int iTileTop,
 //////////////////////////////////////////////////////////////////////////
 void CJewelButtonImages::DrawLayer(CImageDraw* pcDraw, int iTile, int iInset, int iRadius, ARGB32 sColour)
 {
-	CImageColourARGB	cColour;
-	int					i;
+	int		i;
 
-	cColour.Init(Get8BitAlphaColour(sColour) / 255.0f, Get8BitRedColour(sColour) / 255.0f, Get8BitGreenColour(sColour) / 255.0f, Get8BitBlueColour(sColour) / 255.0f);
-	pcDraw->SetColour(&cColour);
-	cColour.Kill();
+	SetColour(pcDraw, sColour);
 
 	//The edges all have their outside along their top row.
 	for (i = 0; i < 4; i++)
@@ -144,12 +142,12 @@ Ptr<CButtonImages> CJewelButtonImages::CreateButtonImages(CColourFormatHelper* p
 	Ptr<CImage>		pSelected;
 	Ptr<CImage>		pPushed;
 
-	sFace = Set32BitColour((uint8)0x2B, 0x2D, 0x30);
-	sBlue = Set32BitColour((uint8)0x35, 0x74, 0xF0);
-	pNormal = DrawStrip(false, 0, Set32BitColour((uint8)0x4E, 0x51, 0x57), sFace, pcFormat);
-	pMouseOver = DrawStrip(false, 0, Set32BitColour((uint8)0x6F, 0x73, 0x7A), sFace, pcFormat);
+	sFace = JEWEL_PANEL;
+	sBlue = JEWEL_BLUE;
+	pNormal = DrawStrip(false, 0, JEWEL_BORDER, sFace, pcFormat);
+	pMouseOver = DrawStrip(false, 0, JEWEL_BORDER_HOVER, sFace, pcFormat);
 	pSelected = DrawStrip(true, sBlue, sBlue, sFace, pcFormat);
-	pPushed = DrawStrip(false, 0, Set32BitColour((uint8)0x86, 0x8A, 0x91), sFace, pcFormat);
+	pPushed = DrawStrip(false, 0, JEWEL_BORDER_PUSHED, sFace, pcFormat);
 	return OMalloc<CButtonImages>(pNormal, pMouseOver, pSelected, pPushed, sFace);
 }
 
@@ -172,10 +170,10 @@ Ptr<CButtonImages> CJewelButtonImages::CreateDefaultButtonImages(CColourFormatHe
 	Ptr<CImage>		pSelected;
 	Ptr<CImage>		pPushed;
 
-	sDark = Set32BitColour((uint8)0x2B, 0x2D, 0x30);
-	sBlue = Set32BitColour((uint8)0x35, 0x74, 0xF0);
-	sLightBlue = Set32BitColour((uint8)0x46, 0x82, 0xFA);
-	sDarkBlue = Set32BitColour((uint8)0x36, 0x6A, 0xCE);
+	sDark = JEWEL_PANEL;
+	sBlue = JEWEL_BLUE;
+	sLightBlue = JEWEL_BLUE_HOVER;
+	sDarkBlue = JEWEL_BLUE_PUSHED;
 	pNormal = DrawStrip(false, 0, sBlue, sBlue, pcFormat);
 	pMouseOver = DrawStrip(false, 0, sLightBlue, sLightBlue, pcFormat);
 	pSelected = DrawStrip(true, sBlue, sDark, sBlue, pcFormat);
@@ -243,15 +241,12 @@ Ptr<CImageCel> CJewelButtonImages::CreateChevron(ARGB32 sColour, CColourFormatHe
 {
 	Ptr<CImage>			pImage;
 	CImageDraw			cDraw;
-	CImageColourARGB	cColour;
 
 	pImage = OMalloc<CImage>(8, 9, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
 	pImage->Black();
 
 	cDraw.Init(&pImage);
-	cColour.Init(Get8BitAlphaColour(sColour) / 255.0f, Get8BitRedColour(sColour) / 255.0f, Get8BitGreenColour(sColour) / 255.0f, Get8BitBlueColour(sColour) / 255.0f);
-	cDraw.SetColour(&cColour);
-	cColour.Kill();
+	SetColour(&cDraw, sColour);
 	cDraw.DrawLine(2, 1, 5, 4);
 	cDraw.DrawLine(5, 4, 2, 7);
 	cDraw.Kill();
@@ -260,3 +255,114 @@ Ptr<CImageCel> CJewelButtonImages::CreateChevron(ARGB32 sColour, CColourFormatHe
 	return OMalloc<CImageCel>(pImage);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJewelButtonImages::SetColour(CImageDraw* pcDraw, ARGB32 sColour)
+{
+	CImageColourARGB	cColour;
+
+	cColour.Init(Get8BitAlphaColour(sColour) / 255.0f, Get8BitRedColour(sColour) / 255.0f, Get8BitGreenColour(sColour) / 255.0f, Get8BitBlueColour(sColour) / 255.0f);
+	pcDraw->SetColour(&cColour);
+	cColour.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The chevron of a combo box, 9 x 8.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CJewelButtonImages::CreateDownChevron(ARGB32 sColour, CColourFormatHelper* pcFormat)
+{
+	Ptr<CImage>			pImage;
+	CImageDraw			cDraw;
+
+	pImage = OMalloc<CImage>(9, 8, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	pImage->Black();
+
+	cDraw.Init(&pImage);
+	SetColour(&cDraw, sColour);
+	cDraw.DrawLine(1, 2, 4, 5);
+	cDraw.DrawLine(4, 5, 7, 2);
+	cDraw.Kill();
+
+	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
+	return OMalloc<CImageCel>(pImage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A 20 x 20 check box from JetBrains' Jewel dark theme: a focus ring,
+// drawn only if bFocusRing, and a dark line inside it around a 16 x 16 box
+// with corners three round.  An empty box is a grey border, the outlined
+// button's, around the dark face; a ticked box is blue with a white tick.
+// Both are lighter with the pointer over them.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CJewelButtonImages::DrawCheckBox(bool bTicked, bool bFocusRing, bool bMouseOver, CColourFormatHelper* pcFormat)
+{
+	Ptr<CImage>			pImage;
+	CImageDraw			cDraw;
+
+	pImage = OMalloc<CImage>(20, 20, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	pImage->Black();
+
+	cDraw.Init(&pImage);
+	if (bFocusRing)
+	{
+		SetColour(&cDraw, JEWEL_BLUE);
+		cDraw.DrawRoundedRectangle(0, 0, 20, 20, 5);
+
+		//A dark line keeps the ring apart from a ticked box.
+		SetColour(&cDraw, JEWEL_PANEL);
+		cDraw.DrawRoundedRectangle(1.5, 1.5, 18.5, 18.5, 3.5);
+	}
+
+	if (bTicked)
+	{
+		SetColour(&cDraw, bMouseOver ? JEWEL_BLUE_HOVER : JEWEL_BLUE);
+		cDraw.DrawRoundedRectangle(2, 2, 18, 18, 3);
+		SetColour(&cDraw, JEWEL_WHITE);
+		cDraw.DrawStroke(6.0, 10.0, 8.5, 12.5, 1.75);
+		cDraw.DrawStroke(8.5, 12.5, 14.0, 7.0, 1.75);
+	}
+	else
+	{
+		SetColour(&cDraw, bMouseOver ? JEWEL_BORDER_HOVER : JEWEL_BORDER);
+		cDraw.DrawRoundedRectangle(2, 2, 18, 18, 3);
+		SetColour(&cDraw, JEWEL_PANEL);
+		cDraw.DrawRoundedRectangle(3, 3, 17, 17, 2);
+	}
+	cDraw.Kill();
+
+	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
+	return OMalloc<CImageCel>(pImage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A box for each ECheckBoxState, ticked and not.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CCheckBoxImages> CJewelButtonImages::CreateCheckBoxImages(CColourFormatHelper* pcFormat)
+{
+	Ptr<CCheckBoxImages>	pImages;
+	int						i;
+	bool					bTicked;
+
+	pImages = OMalloc<CCheckBoxImages>();
+	for (i = 0; i < 2; i++)
+	{
+		bTicked = i == 1;
+		pImages->SetCel(bTicked, CBS_Normal, DrawCheckBox(bTicked, false, false, pcFormat));
+		pImages->SetCel(bTicked, CBS_MouseOver, DrawCheckBox(bTicked, false, true, pcFormat));
+		pImages->SetCel(bTicked, CBS_Focussed, DrawCheckBox(bTicked, true, false, pcFormat));
+		pImages->SetCel(bTicked, CBS_FocussedMouseOver, DrawCheckBox(bTicked, true, true, pcFormat));
+	}
+	return pImages;
+}

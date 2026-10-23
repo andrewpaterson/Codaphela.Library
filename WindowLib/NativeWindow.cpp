@@ -13,8 +13,11 @@ void CNativeWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactor
 	CNativeComponent::Init(pcWindowFactory);
 	mpcWindowFactory = pcWindowFactory;
 	mpcWindow = pcWindow;
+	mpcOwner = NULL;
 	mcLastRectangle.Init(-1, -1, -1, -1);
+	msRequestedSize.Init(-1, -1);
 	mbPainting = false;
+	mbEnabled = true;
 }
 
 
@@ -92,3 +95,45 @@ void CNativeWindow::Stop(void)
     mpcWindow->Stop();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Set before the window is created.  A dialog is shown over its owner.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNativeWindow::SetOwner(CNativeWindow* pcOwner)
+{
+	mpcOwner = pcOwner;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Set before the window is created.  The size of its client area.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNativeWindow::SetRequestedSize(int32 iWidth, int32 iHeight)
+{
+	msRequestedSize.Init(iWidth, iHeight);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A native window that can stop its keyboard and pointer reaching the
+// window overrides this too.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNativeWindow::SetEnabled(bool bEnabled)
+{
+	mbEnabled = bEnabled;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNativeWindow* CNativeWindow::GetOwner(void) { return mpcOwner; }
+SInt32Vec2 CNativeWindow::GetRequestedSize(void) { return msRequestedSize; }
+bool CNativeWindow::IsEnabled(void) { return mbEnabled; }

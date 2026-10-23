@@ -62,6 +62,7 @@ public:
 			void				SetCanGetFocus(bool bCanGetFocus);
 	virtual	bool				WantsEnter(void);
 	virtual	void				PopupClosed(Ptr<CComponent> pContent);
+	virtual	void				PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem);
 			Ptr<CComponent>		GetParent(void);
 			bool				IsWithin(Ptr<CComponent> pAncestor);
 
