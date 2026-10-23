@@ -42,8 +42,7 @@ struct SCPP65Class;
 
 
 //The type of a value the 65C64 generator works with.  Integers are 1, 2, 4 or 8 bytes (int and long are 4 bytes,
-//as on Windows), pointers and references are 4 bytes.  Floating point and 8 byte integers can be declared but not
-//used yet.  A class type's layout is in psClass.  A function type has its parameters.  Types are made by
+//as on Windows), pointers and references are 4 bytes.  float is 4 bytes, double and long double 8.  A class type's layout is in psClass.  A function type has its parameters.  Types are made by
 //CCPP65Types and are never freed while it lives.
 struct SCPP65Type
 {
@@ -55,6 +54,7 @@ struct SCPP65Type
 	SCPP65Class*	psClass;
 	CArrayTemplatePtr<SCPP65Type>*	papsParameters;		//A function type's parameters.
 	bool			bVariadic;
+	bool			bLongDouble;	//long double: a double, but a type of its own.
 
 	bool	IsInteger(void);
 	bool	IsScalar(void);
@@ -67,6 +67,7 @@ struct SCPP65Type
 	bool	IsFloat(void);
 	bool	IsSupported(void);
 	bool	IsWide(void);
+	bool	Is64(void);
 	bool	Equals(SCPP65Type* psOther);
 	int		GetElementBytes(void);
 };
@@ -92,6 +93,9 @@ public:
 	SCPP65Type			msUnsignedInt;
 	SCPP65Type			msLongLong;
 	SCPP65Type			msUnsignedLongLong;
+	SCPP65Type			msFloat;
+	SCPP65Type			msDouble;
+	SCPP65Type			msLongDouble;
 
 	void				Init(void);
 	void				Kill(void);
@@ -102,6 +106,7 @@ public:
 	SCPP65Type*			Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65Type>* papsParameters, bool bVariadic);
 	SCPP65Type*			Reference(SCPP65Type* psBase);
 	SCPP65Type*			Float(int iBytes);
+	SCPP65Type*			LongDouble(void);
 	SCPP65Type*			Class(SCPP65Class* psClass);
 	SCPP65Type*			Promote(SCPP65Type* psType);
 	SCPP65Type*			Arithmetic(SCPP65Type* psLeft, SCPP65Type* psRight);

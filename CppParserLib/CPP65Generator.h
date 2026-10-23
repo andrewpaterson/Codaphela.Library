@@ -86,6 +86,7 @@ struct SCPP65Variable
 	ECPP65Storage	eStorage;
 	int				iOffset;		//Locals: bytes from the bottom of the frame.  Parameters: bytes after the first argument's.
 	SCPP65Class*	psClass;		//The class of a static data member.
+	bool			bInternal;		//A static global: the unit's own.
 	bool			bDefined;		//A global's data has been written.
 	bool			bUsed;
 };
@@ -234,6 +235,7 @@ struct SCPP65Place
 	int64				lliName;	//Global: the variable's name.  -1 for a string literal.
 	int					iString;	//Global: the string literal's number, or a static local's when lliName is its name.
 	SCPP65Class*		psClass;	//Global: the class of a static data member.
+	bool				bInternal;	//Global: a static global, labelled with the unit.
 };
 
 
@@ -311,6 +313,7 @@ protected:
 	CChars					mszCode;
 	CChars					mszData;
 	CChars					mszThunks;			//Adjust this, then jump to a virtual function.
+	CArrayChars				maszRuntime;		//The soft float runtime's labels the unit calls.
 	CChars					mszBody;
 	CChars*					mpszOut;
 	CCPPErrors				mcErrors;
@@ -529,6 +532,18 @@ protected:
 	SCPP65Type*				Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65Right* psRight);
 	SCPP65Type*				Operate(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Right* psRight, CCPPSyntax* pcNode);
 	SCPP65Type*				OperateWide(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Right* psRight, SCPP65Type* psType, CCPPSyntax* pcNode);
+	SCPP65Type*				FloatArithmetic(SCPP65Type* psLeft, SCPP65Type* psRight);
+	void					CallRuntime(const char* szName, int iBytes);
+	void					MoveBToA(SCPP65Type* psType);
+	int						PushFloatOperands(SCPP65Type* psLeft, SCPP65Right* psRight, SCPP65Type* psType, CCPPSyntax* pcNode);
+	SCPP65Type*				OperateFloat(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Right* psRight, CCPPSyntax* pcNode);
+	bool					CompareFloat(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Right* psRight, bool bJumpIf, int iLabel, CCPPSyntax* pcNode);
+	bool					ConvertFloat(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode);
+	SCPP65Type*				IncrementFloat(CCPPSyntaxUnaryExpression* pcUnary, SCPP65Place* psPlace, const char* szAddress);
+	int64					FloatBits(SCPP65Type* psType, double dValue);
+	bool					FloatConstant(CCPPSyntax* pcExpression, double* pdValue);
+	bool					FloatValue(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType);
+	bool					UsesFloat(CCPPSyntax* pcNode);
 	void					MoveAToB(SCPP65Type* psType);
 	void					LoadConstant(const char* szRegister, SCPP65Type* psType, int64 lliValue);
 	bool					Compare(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Right* psRight, bool bJumpIf, int iLabel, CCPPSyntax* pcNode);

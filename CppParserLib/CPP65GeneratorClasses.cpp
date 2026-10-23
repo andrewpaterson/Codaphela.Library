@@ -1747,6 +1747,11 @@ void CCPP65Generator::AppendFunctionLabel(CChars* psz, SCPP65Function* psFunctio
 	}
 	else
 	{
+		//A static function is the unit's own.
+		if (psFunction->bStatic)
+		{
+			psz->Append(&mszUnit);
+		}
 		psz->Append('_');
 		psz->Append(&szName);
 	}
@@ -1860,7 +1865,7 @@ void CCPP65Generator::AppendMangledType(CChars* psz, SCPP65Type* psType)
 		}
 		break;
 	case CPP65TK_Float:
-		psz->Append((psType->iBytes == 4) ? 'f' : ((psType->iBytes == 8) ? 'd' : 'e'));
+		psz->Append((psType->iBytes == 4) ? 'f' : (psType->bLongDouble ? 'e' : 'd'));
 		break;
 	case CPP65TK_Pointer:
 		psz->Append('P');
@@ -2057,6 +2062,7 @@ bool CCPP65Generator::ConstructorBody(SCPP65Function* psFunction, CCPPSyntaxFunc
 	sPlace.iOffset = 0;
 	sPlace.lliName = -1;
 	sPlace.iString = -1;
+	sPlace.bInternal = false;
 	sPlace.psClass = NULL;
 
 	//The bases, in order.
@@ -2152,6 +2158,7 @@ bool CCPP65Generator::DestructorBody(SCPP65Function* psFunction)
 	sPlace.eKind = CPP65PK_This;
 	sPlace.lliName = -1;
 	sPlace.iString = -1;
+	sPlace.bInternal = false;
 	sPlace.psClass = NULL;
 	for (i = psClass->macFields.NumElements(); i > 0; i--)
 	{
@@ -2743,6 +2750,10 @@ int CCPP65Generator::PushParameters(CArrayCPP65Types* papsParameters, CArraySynt
 		{
 			psParameter = &mcTypes.msInt;
 		}
+		else if (psType->IsFloat())
+		{
+			psParameter = &mcTypes.msDouble;
+		}
 		else if (psType->IsInteger())
 		{
 			psParameter = mcTypes.Promote(psType);
@@ -2962,6 +2973,7 @@ bool CCPP65Generator::MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65Pl
 		psPlace->iOffset = 0;
 		psPlace->lliName = -1;
 		psPlace->iString = -1;
+		psPlace->bInternal = false;
 		psPlace->psClass = NULL;
 	}
 	else

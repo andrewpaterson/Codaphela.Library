@@ -40,6 +40,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree)
 	mszCode.Init();
 	mszData.Init();
 	mszThunks.Init();
+	maszRuntime.Init();
 	mszBody.Init();
 	mpszOut = &mszCode;
 	mcErrors.Init();
@@ -158,6 +159,7 @@ void CCPP65Generator::Kill(void)
 
 	mcErrors.Kill();
 	mszBody.Kill();
+	maszRuntime.Kill();
 	mszThunks.Kill();
 	mszData.Kill();
 	mszCode.Kill();
@@ -388,6 +390,12 @@ void CCPP65Generator::GetExternals(CArrayChars* paszLabels)
 			paszLabels->AddIfUnique(szLabel);
 			szLabel.Kill();
 		}
+	}
+
+	//The soft float runtime (Libc65/softfloat.cpp).
+	for (i = 0; i < maszRuntime.NumElements(); i++)
+	{
+		paszLabels->AddIfUnique(maszRuntime.GetText(i));
 	}
 }
 
@@ -1005,6 +1013,7 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 		{
 			psVariable = AddVariable(&mapsGlobals, pcInit->mpcSymbol, psType, CPP65S_Global, 0);
 		}
+		psVariable->bInternal |= !psVariable->psClass && ((pcSpecifiers->muiFlags & CPPDS_STATIC) != 0);
 		if (psVariable->bDefined)
 		{
 			bResult &= Error(pcInit, "The variable is defined twice");
@@ -1023,7 +1032,8 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 			mszData.Append("\t\t.align 2");
 			mszData.AppendNewLine();
 		}
-		AppendGlobalLabel(&mszData, psVariable->psClass, pcInit->mpcSymbol->mlliName);
+		VariablePlace(psVariable, &sPlace);
+		AppendPlaceLabel(&mszData, &sPlace);
 		mszData.Append(':');
 		mszData.AppendNewLine();
 		VariablePlace(psVariable, &sPlace);
@@ -1067,6 +1077,7 @@ bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitia
 	bool						bResult;
 	SCPP65Place					sElement;
 	CChars*						pszOut;
+	double						dValue;
 
 	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer))
 	{
@@ -1132,7 +1143,12 @@ bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitia
 		return Error(pcNode, "This type of global variable is not supported by the 65C64 generator yet");
 	}
 	lliValue = 0;
-	if (pcInitialiser && !Constant(pcInitialiser, &lliValue))
+	if (pcInitialiser && psType->IsFloat() && FloatConstant(pcInitialiser, &dValue))
+	{
+		AppendData(psType, FloatBits(psType, dValue));
+		return true;
+	}
+	if (pcInitialiser && (psType->IsFloat() || !Constant(pcInitialiser, &lliValue)))
 	{
 		if (mbStaticLocal)
 		{
@@ -1250,6 +1266,7 @@ SCPP65Variable* CCPP65Generator::AddVariable(CArrayCPP65Variables* papsVariables
 	psVariable->psClass = NULL;
 	psVariable->bDefined = false;
 	psVariable->bUsed = false;
+	psVariable->bInternal = false;
 	papsVariables->Add(psVariable);
 	return psVariable;
 }
@@ -1544,7 +1561,7 @@ SCPP65Type* CCPP65Generator::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		return NULL;
 	}
 
-	//Floating point and 64 bit integers can be declared; using them is an error.
+	//long double is double, as MSVC.
 	uiKeywords = pcSpecifiers->muiTypeKeywords;
 	bSigned = (uiKeywords & CPPTK_UNSIGNED) == 0;
 	if (uiKeywords & CPPTK_FLOAT)
@@ -1553,7 +1570,7 @@ SCPP65Type* CCPP65Generator::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	}
 	if (uiKeywords & CPPTK_DOUBLE)
 	{
-		return mcTypes.Float((pcSpecifiers->miLongs >= 1) ? 16 : 8);
+		return (pcSpecifiers->miLongs >= 1) ? mcTypes.LongDouble() : mcTypes.Float(8);
 	}
 	if ((pcSpecifiers->miLongs >= 2) || (uiKeywords & CPPTK_INT64))
 	{
@@ -2042,7 +2059,7 @@ bool CCPP65Generator::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDe
 //////////////////////////////////////////////////////////////////////////
 //
 // The label of a Global place: a global, a static data member or a static local
-// (unit, S, its number, _ and its name).
+// (unit, S, its number, _ and its name).  A static global has the unit in front.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::AppendPlaceLabel(CChars* psz, SCPP65Place* psPlace)
@@ -2059,6 +2076,10 @@ void CCPP65Generator::AppendPlaceLabel(CChars* psz, SCPP65Place* psPlace)
 		psz->Append('_');
 		psz->Append(szName, iLength);
 		return;
+	}
+	if (psPlace->bInternal)
+	{
+		psz->Append(&mszUnit);
 	}
 	AppendGlobalLabel(psz, psPlace->psClass, psPlace->lliName);
 }
@@ -2772,9 +2793,9 @@ bool CCPP65Generator::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	//The local objects are destroyed after the value is worked out.
 	if (mapsDestructors.NumElements() > 0)
 	{
-		PushWide("A", mpsFunction->psReturn->IsWide());
+		PushWide("A", mpsFunction->psReturn->Is64());
 		DestroyLocals(0);
-		PullWide("A", mpsFunction->psReturn->IsWide());
+		PullWide("A", mpsFunction->psReturn->Is64());
 	}
 	Line("bra ");
 	AppendLabel(mpszOut, miReturnLabel);
