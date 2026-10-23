@@ -55,7 +55,9 @@ typedef CArrayTemplate<SCPP65LinkLibrary>	CArrayCPP65LinkLibraries;
 //can instead be linked as a library, so only the units something uses are linked.  A label no object
 //defines is stubbed with stp (unless SetStubMissing(false)), so a call to it stops the program; NumMissing and
 //GetMissing list them.  Functions, globals and string literals nothing uses are left out (unless
-//SetRemoveUnused(false)): the start up and the init and fini entries of used globals are what is kept.
+//SetRemoveUnused(false)): the start up and the init and fini entries of used globals are what is kept.  With
+//SetLazy the functions are loaded from a drive when they are first called (only the start up and the runtime
+//routines are resident); GetLazyImage is what to write to the drive.
 class CCPP65Builder
 {
 protected:
@@ -75,6 +77,7 @@ public:
 	void			AddUnit(const char* szLibrary, const char* szDirectory, const char* szFile, bool bLinkAsLibrary = false);
 	void			SetStubMissing(bool bStubMissing);
 	void			SetRemoveUnused(bool bRemoveUnused);
+	void			SetLazy(uint32 uiSectorSize, uint32 uiFirstSector);
 
 	bool			AddStartUp(void);
 	bool			AddSource(const char* szName, const char* szSource);
@@ -87,12 +90,15 @@ public:
 	size			NumMissing(void);
 	char*			GetMissing(size uiIndex);
 	void			GetMissingNames(CChars* pszDest);
+	size			NumUnits(void);
+	bool			GetSymbol(const char* szName, int64* piValue);
+	CArrayUint8*	GetLazyImage(void);
 
 	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals);
 	CArrayCPP65IncludeDirectories*	GetIncludeDirectories(void);
 
 protected:
-	bool			AddObject(const char* szName, const char* szAssembly);
+	bool			AddObject(const char* szName, const char* szAssembly, bool bResident = false);
 	bool			Assemble(CAsm65Object* pcObject, const char* szAssembly);
 	bool			CompileUnits(void);
 	CAsm65Library*	GetLinkLibrary(CLibrary* pcLibrary);

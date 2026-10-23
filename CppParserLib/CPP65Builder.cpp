@@ -19,6 +19,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
+#include "BaseLib/TextFile.h"
+#include "BaseLib/FileUtil.h"
 #include "Assembler65Lib/Asm65Assembler.h"
 #include "Preprocessor.h"
 #include "HeaderFileMap.h"
@@ -94,13 +96,19 @@ void CCPP65Builder::AddIncludeDirectory(const char* szDirectory, bool bIncludeSu
 //
 // A translation unit of the project, szFile in szDirectory.  The units in a directory share the library szLibrary
 // (their include settings).  They are compiled by Link.  bLinkAsLibrary, given with the library's first unit,
-// links its units as a library rather than as objects.
+// links its units as a library rather than as objects.  A unit whose name ends in .asm is 65C64 assembly (such as
+// Libc65/softfloat.asm), assembled now.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, const char* szFile, bool bLinkAsLibrary)
 {
 	CLibrary*			pcLibrary;
 	SCPP65LinkLibrary*	psLinkLibrary;
+	CAsm65Library*		pcLinkLibrary;
+	CTextFile			cFile;
+	CFileUtil			cFileUtil;
+	CChars				szPath;
+	CChars				szName;
 
 	pcLibrary = mcProject.GetLibrary((char*)szLibrary);
 	if (!pcLibrary)
@@ -114,8 +122,39 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 			psLinkLibrary->cObjects.Init(szLibrary);
 		}
 	}
-	pcLibrary->AddTranslationUnit((char*)szFile);
-	muiUnits++;
+
+	szName.Init(szFile);
+	if (szName.EndsWithIgnoreCase(".asm"))
+	{
+		szPath.Init(szDirectory);
+		cFileUtil.AppendToPath(&szPath, szFile);
+		cFile.Init();
+		if (cFile.Read(szPath.Text()))
+		{
+			cFile.PassifyNewlines();
+			pcLinkLibrary = GetLinkLibrary(pcLibrary);
+			if (pcLinkLibrary)
+			{
+				Assemble(pcLinkLibrary->AddObject(szFile), cFile.Text());
+			}
+			else
+			{
+				AddObject(szFile, cFile.Text());
+			}
+		}
+		else
+		{
+			mszErrors.Append("Could not read ")->Append(szPath.Text())->Append(".\n");
+		}
+		cFile.Kill();
+		szPath.Kill();
+	}
+	else
+	{
+		pcLibrary->AddTranslationUnit((char*)szFile);
+		muiUnits++;
+	}
+	szName.Kill();
 }
 
 
@@ -143,6 +182,51 @@ void CCPP65Builder::SetRemoveUnused(bool bRemoveUnused)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Functions are loaded when they are first called, from a drive with uiSectorSize byte
+// sectors from uiFirstSector, into the memory after the core up to the heap.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetLazy(uint32 uiSectorSize, uint32 uiFirstSector)
+{
+	mcLinker.SetLazy(CPP65_HEAP_ADDRESS, uiSectorSize, uiFirstSector);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPP65Builder::NumUnits(void)
+{
+	return mcLinker.NumUnits();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A global's address after Link (see CAsm65Linker::GetSymbol).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::GetSymbol(const char* szName, int64* piValue)
+{
+	return mcLinker.GetSymbol(szName, piValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The lazy units' sectors, to write to the drive from the first sector given to
+// SetLazy.
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayUint8* CCPP65Builder::GetLazyImage(void)
+{
+	return mcLinker.GetLazyImage();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The start up that calls main.  It must be the first object.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -153,7 +237,7 @@ bool CCPP65Builder::AddStartUp(void)
 
 	szAssembly.Init();
 	CCPP65Generator::AppendStartUp(&szAssembly);
-	bResult = AddObject("start up", szAssembly.Text());
+	bResult = AddObject("start up", szAssembly.Text(), true);
 	szAssembly.Kill();
 	return bResult;
 }
@@ -384,14 +468,21 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 // Assembles one object and adds it to the link.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::AddObject(const char* szName, const char* szAssembly)
+bool CCPP65Builder::AddObject(const char* szName, const char* szAssembly, bool bResident)
 {
 	CAsm65Object*	pcObject;
 	bool			bResult;
 
 	pcObject = mcObjects.AddObject(szName);
 	bResult = Assemble(pcObject, szAssembly);
-	mcLinker.AddObject(pcObject);
+	if (bResident)
+	{
+		mcLinker.AddResidentObject(pcObject);
+	}
+	else
+	{
+		mcLinker.AddObject(pcObject);
+	}
 	return bResult;
 }
 
