@@ -483,6 +483,81 @@
     <ClCompile Include="SimultaneousEvents.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
+    <ClCompile Include="Voltage.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="VoltageConfiguration.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="FamilyVoltageConfiguration.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="FixedVoltageConfiguration.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="VoltagePropagationTimeRow.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="FamilyVoltageConfigurationStore.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Port.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="PortHolder.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerInPort.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerOutPort.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="TracePort.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="PortOutput.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Trace.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicPort.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="PortEvent.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="DriveEvent.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="SlewEvent.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="TransitionEvent.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Pins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="State.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="IntegratedCircuit.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="IntegratedCircuitEvent.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="TickEvent.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Circuit.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicPortBus.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="W65CCore.h">
@@ -936,6 +1011,102 @@
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="SimultaneousEvents.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Units.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Voltage.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="VoltageConfigurationSource.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="VoltageConfiguration.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="FamilyVoltageConfiguration.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="FixedVoltageConfiguration.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="VoltagePropagationTimeRow.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="FamilyVoltageConfigurationStore.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="LogicSignal.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="LogicBus.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="PortType.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Port.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="PortHolder.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerInPort.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerOutPort.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="TracePort.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="PortOutput.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Trace.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="LogicPort.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="PortEvent.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="PortInputEvent.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="PortOutputEvent.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="DriveEvent.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="SlewEvent.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="TransitionEvent.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Pins.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="State.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="IntegratedCircuit.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="IntegratedCircuitEvent.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="TickEvent.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Circuit.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="LogicPortBus.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
   </ItemGroup>

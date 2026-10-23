@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816Pins::Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB)
+void CW65C816Pins::Init(CLogicBus* pcAddress, CLogicBus* pcData, CLogicSignal* pcPHI2, CLogicSignal* pcRESB, CLogicSignal* pcRWB)
 {
 	CW65CPins::Init(pcAddress, pcData, pcPHI2, pcRESB, pcRWB);
 	mpcVPA = NULL;
@@ -19,7 +19,7 @@ void CW65C816Pins::Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816Pins::SetImportantTraces(CMetaTrace* pcVPA, CMetaTrace* pcVDA, CMetaTrace* pcVPB)
+void CW65C816Pins::SetImportantTraces(CLogicSignal* pcVPA, CLogicSignal* pcVDA, CLogicSignal* pcVPB)
 {
 	SetVectorPullTrace(pcVPB);
 	mpcVPA = pcVPA;
@@ -31,7 +31,7 @@ void CW65C816Pins::SetImportantTraces(CMetaTrace* pcVPA, CMetaTrace* pcVDA, CMet
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816Pins::SetOtherTraces(CMetaTrace* pcMLB, CMetaTrace* pcMX, CMetaTrace* pcBE, CMetaTrace* pcE, CMetaTrace* pcRDY)
+void CW65C816Pins::SetOtherTraces(CLogicSignal* pcMLB, CLogicSignal* pcMX, CLogicSignal* pcBE, CLogicSignal* pcE, CLogicSignal* pcRDY)
 {
 	mpcMX = pcMX;
 	mpcE = pcE;
@@ -59,7 +59,7 @@ void CW65C816Pins::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::WriteMX(CTimeline* pcTimeline, bool bValue)
 {
-	SafeSetTrace(mpcMX, bValue);
+	SafeWriteSignal(mpcMX, pcTimeline, bValue);
 }
 
 
@@ -69,7 +69,7 @@ void CW65C816Pins::WriteMX(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::WriteVDA(CTimeline* pcTimeline, bool bValue)
 {
-	SafeSetTrace(mpcVDA, bValue);
+	SafeWriteSignal(mpcVDA, pcTimeline, bValue);
 }
 
 
@@ -79,7 +79,7 @@ void CW65C816Pins::WriteVDA(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::WriteVPA(CTimeline* pcTimeline, bool bValue)
 {
-	SafeSetTrace(mpcVPA, bValue);
+	SafeWriteSignal(mpcVPA, pcTimeline, bValue);
 }
 
 
@@ -89,7 +89,7 @@ void CW65C816Pins::WriteVPA(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::WriteE(CTimeline* pcTimeline, bool bValue)
 {
-	SafeSetTrace(mpcE, bValue);
+	SafeWriteSignal(mpcE, pcTimeline, bValue);
 }
 
 
@@ -99,6 +99,6 @@ void CW65C816Pins::WriteE(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 STraceValue CW65C816Pins::ReadMX(CTimeline* pcTimeline)
 {
-	SafeGetTrace(mpcMX);
+	SafeReadSignal(mpcMX, pcTimeline);
 }
 

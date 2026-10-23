@@ -6,15 +6,15 @@
 class CW65C816Pins : public CW65CPins
 {
 protected:
-	CMetaTrace*			mpcVPA;
-	CMetaTrace*			mpcVDA;
-	CMetaTrace*			mpcMX;
-	CMetaTrace*			mpcE;
+	CLogicSignal*		mpcVPA;
+	CLogicSignal*		mpcVDA;
+	CLogicSignal*		mpcMX;
+	CLogicSignal*		mpcE;
 
 public:
-	void			Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB);
-	void			SetImportantTraces(CMetaTrace* pcVPA, CMetaTrace* pcVDA, CMetaTrace* pcVPB);
-	void			SetOtherTraces(CMetaTrace* pcMLB, CMetaTrace* pcMX, CMetaTrace* pcBE, CMetaTrace* pcE, CMetaTrace* pcRDY);
+	void			Init(CLogicBus* pcAddress, CLogicBus* pcData, CLogicSignal* pcPHI2, CLogicSignal* pcRESB, CLogicSignal* pcRWB);
+	void			SetImportantTraces(CLogicSignal* pcVPA, CLogicSignal* pcVDA, CLogicSignal* pcVPB);
+	void			SetOtherTraces(CLogicSignal* pcMLB, CLogicSignal* pcMX, CLogicSignal* pcBE, CLogicSignal* pcE, CLogicSignal* pcRDY);
 	void			Kill(void);
 
 	//Microprocessor side methods.

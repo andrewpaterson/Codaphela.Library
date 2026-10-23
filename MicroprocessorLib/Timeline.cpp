@@ -121,6 +121,42 @@ bool CTimeline::AddEvent(CEvent* pcEvent)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// For an event made to be added, as Logicim's events add themselves when
+// they are constructed.  If it can't be added it is removed from its
+// owner, killed and freed.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTimeline::AddNewFutureEvent(CEvent* pcEvent)
+{
+	if (AddFutureEvent(pcEvent))
+	{
+		return true;
+	}
+	pcEvent->RemoveFromOwner();
+	SafeKill(pcEvent);
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As AddNewFutureEvent, without logging, for loaded events.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTimeline::AddNewEvent(CEvent* pcEvent)
+{
+	if (AddEvent(pcEvent))
+	{
+		return true;
+	}
+	pcEvent->RemoveFromOwner();
+	SafeKill(pcEvent);
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Runs every event, and every event they add, until there are none.
 //
 //////////////////////////////////////////////////////////////////////////

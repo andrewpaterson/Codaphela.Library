@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::Init(CMetaBus32* pcAddress, CMetaBus16* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB)
+void C65C64Pins::Init(CLogicBus* pcAddress, CLogicBus* pcData, CLogicSignal* pcPHI2, CLogicSignal* pcRESB, CLogicSignal* pcRWB)
 {
 	size	i;
 
@@ -52,7 +52,7 @@ void C65C64Pins::Init(CMetaBus32* pcAddress, CMetaBus16* pcData, CMetaTrace* pcP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::SetByteTraces(CMetaTrace* pcLowerByte, CMetaTrace* pcUpperByte)
+void C65C64Pins::SetByteTraces(CLogicSignal* pcLowerByte, CLogicSignal* pcUpperByte)
 {
 	mpcLowerByte = pcLowerByte;
 	mpcUpperByte = pcUpperByte;
@@ -63,7 +63,7 @@ void C65C64Pins::SetByteTraces(CMetaTrace* pcLowerByte, CMetaTrace* pcUpperByte)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::SetValidTraces(CMetaTrace* pcOPV, CMetaTrace* pcVPA, CMetaTrace* pcVDA, CMetaTrace* pcVPB)
+void C65C64Pins::SetValidTraces(CLogicSignal* pcOPV, CLogicSignal* pcVPA, CLogicSignal* pcVDA, CLogicSignal* pcVPB)
 {
 	mpcOPV = pcOPV;
 	mpcVPA = pcVPA;
@@ -76,7 +76,7 @@ void C65C64Pins::SetValidTraces(CMetaTrace* pcOPV, CMetaTrace* pcVPA, CMetaTrace
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::SetInterruptTraces(CMetaTrace* pcEIRQB0, CMetaTrace* pcEIRQB1, CMetaTrace* pcEIRQB2, CMetaTrace* pcEIRQB3, CMetaTrace* pcLIRQB)
+void C65C64Pins::SetInterruptTraces(CLogicSignal* pcEIRQB0, CLogicSignal* pcEIRQB1, CLogicSignal* pcEIRQB2, CLogicSignal* pcEIRQB3, CLogicSignal* pcLIRQB)
 {
 	mapcEIRQB[0] = pcEIRQB0;
 	mapcEIRQB[1] = pcEIRQB1;
@@ -119,7 +119,7 @@ void C65C64Pins::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void C65C64Pins::WriteAddress(CTimeline* pcTimeline, uint32 uiAddress)
 {
-	mpcAddress->Set(uiAddress);
+	mpcAddress->Write(pcTimeline, uiAddress);
 }
 
 
@@ -129,7 +129,7 @@ void C65C64Pins::WriteAddress(CTimeline* pcTimeline, uint32 uiAddress)
 //////////////////////////////////////////////////////////////////////////
 void C65C64Pins::WriteData(CTimeline* pcTimeline, uint16 uiData)
 {
-	mpcData->Set(uiData);
+	mpcData->Write(pcTimeline, uiData);
 }
 
 
@@ -139,7 +139,7 @@ void C65C64Pins::WriteData(CTimeline* pcTimeline, uint16 uiData)
 //////////////////////////////////////////////////////////////////////////
 uint16 C65C64Pins::ReadData(CTimeline* pcTimeline)
 {
-	return mpcData->Get();
+	return (uint16)mpcData->Read(pcTimeline);
 }
 
 
@@ -149,7 +149,7 @@ uint16 C65C64Pins::ReadData(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 void C65C64Pins::WriteRWB(CTimeline* pcTimeline, bool bValue)
 {
-	mpcRWB->Set(bValue);
+	mpcRWB->Write(pcTimeline, bValue);
 }
 
 
@@ -159,8 +159,8 @@ void C65C64Pins::WriteRWB(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void C65C64Pins::WriteByteLanes(CTimeline* pcTimeline, bool bLower, bool bUpper)
 {
-	SafeSetTrace(mpcLowerByte, bLower);
-	SafeSetTrace(mpcUpperByte, bUpper);
+	SafeWriteSignal(mpcLowerByte, pcTimeline, bLower);
+	SafeWriteSignal(mpcUpperByte, pcTimeline, bUpper);
 }
 
 
@@ -170,7 +170,7 @@ void C65C64Pins::WriteByteLanes(CTimeline* pcTimeline, bool bLower, bool bUpper)
 //////////////////////////////////////////////////////////////////////////
 void C65C64Pins::WriteOPV(CTimeline* pcTimeline, bool bValue)
 {
-	SafeSetTrace(mpcOPV, bValue);
+	SafeWriteSignal(mpcOPV, pcTimeline, bValue);
 }
 
 
@@ -180,7 +180,7 @@ void C65C64Pins::WriteOPV(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void C65C64Pins::WriteVPA(CTimeline* pcTimeline, bool bValue)
 {
-	SafeSetTrace(mpcVPA, bValue);
+	SafeWriteSignal(mpcVPA, pcTimeline, bValue);
 }
 
 
@@ -190,7 +190,7 @@ void C65C64Pins::WriteVPA(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void C65C64Pins::WriteVDA(CTimeline* pcTimeline, bool bValue)
 {
-	SafeSetTrace(mpcVDA, bValue);
+	SafeWriteSignal(mpcVDA, pcTimeline, bValue);
 }
 
 
@@ -200,7 +200,7 @@ void C65C64Pins::WriteVDA(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void C65C64Pins::WriteVPB(CTimeline* pcTimeline, bool bValue)
 {
-	SafeSetTrace(mpcVPB, bValue);
+	SafeWriteSignal(mpcVPB, pcTimeline, bValue);
 }
 
 
@@ -210,7 +210,7 @@ void C65C64Pins::WriteVPB(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 STraceValue C65C64Pins::ReadPhi2(CTimeline* pcTimeline)
 {
-	return mpcPHI2->Get();
+	return mpcPHI2->Read(pcTimeline);
 }
 
 
@@ -220,7 +220,7 @@ STraceValue C65C64Pins::ReadPhi2(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 STraceValue C65C64Pins::ReadRES(CTimeline* pcTimeline)
 {
-	return mpcRESB->Get();
+	return mpcRESB->Read(pcTimeline);
 }
 
 
@@ -230,7 +230,7 @@ STraceValue C65C64Pins::ReadRES(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 STraceValue C65C64Pins::ReadEIRQ(CTimeline* pcTimeline, size uiInterrupt)
 {
-	SafeGetTrace(mapcEIRQB[uiInterrupt]);
+	SafeReadSignal(mapcEIRQB[uiInterrupt], pcTimeline);
 }
 
 
@@ -240,6 +240,6 @@ STraceValue C65C64Pins::ReadEIRQ(CTimeline* pcTimeline, size uiInterrupt)
 //////////////////////////////////////////////////////////////////////////
 STraceValue C65C64Pins::ReadLIRQ(CTimeline* pcTimeline)
 {
-	SafeGetTrace(mpcLIRQB);
+	SafeReadSignal(mpcLIRQB, pcTimeline);
 }
 

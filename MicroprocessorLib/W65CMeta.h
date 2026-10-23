@@ -1,6 +1,9 @@
 #ifndef __META_W65C_H__
 #define __META_W65C_H__
 #include "W65CCore.h"
+#include "MetaBus8.h"
+#include "MetaBus16.h"
+#include "MetaTrace.h"
 #include "Timeline.h"
 
 

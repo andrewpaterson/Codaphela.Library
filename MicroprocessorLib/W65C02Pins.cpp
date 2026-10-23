@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C02Pins::Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB)
+void CW65C02Pins::Init(CLogicBus* pcAddress, CLogicBus* pcData, CLogicSignal* pcPHI2, CLogicSignal* pcRESB, CLogicSignal* pcRWB)
 {
 	CW65CPins::Init(pcAddress, pcData, pcPHI2, pcRESB, pcRWB);
 	mpcSYNC = NULL;
@@ -17,7 +17,7 @@ void CW65C02Pins::Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pcP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C02Pins::SetW65C02Traces(CMetaTrace* pcSYNC, CMetaTrace* pcSOB)
+void CW65C02Pins::SetW65C02Traces(CLogicSignal* pcSYNC, CLogicSignal* pcSOB)
 {
 	mpcSYNC = pcSYNC;
 	mpcSOB = pcSOB;
@@ -42,7 +42,7 @@ void CW65C02Pins::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C02Pins::WriteSYNC(CTimeline* pcTimeline, bool bValue)
 {
-	SafeSetTrace(mpcSYNC, bValue);
+	SafeWriteSignal(mpcSYNC, pcTimeline, bValue);
 }
 
 
@@ -52,6 +52,6 @@ void CW65C02Pins::WriteSYNC(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 STraceValue CW65C02Pins::ReadSOB(CTimeline* pcTimeline)
 {
-	SafeGetTrace(mpcSOB);
+	SafeReadSignal(mpcSOB, pcTimeline);
 }
 
