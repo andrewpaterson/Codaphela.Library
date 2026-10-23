@@ -608,7 +608,7 @@ CBaseObject* CObject::GetClosestHeapFromToStack(void)
 		{
 			if (pcEmbeddedNearesetPointedFrom != NULL)
 			{
-				if (pcEmbeddedNearesetPointedFrom->GetDistToRoot() < pcNearesetPointedFrom->GetDistToRoot())
+				if (pcEmbeddedNearesetPointedFrom->GetDistToStack() < pcNearesetPointedFrom->GetDistToStack())
 				{
 					pcNearesetPointedFrom = pcEmbeddedNearesetPointedFrom;
 				}

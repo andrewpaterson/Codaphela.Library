@@ -57,3 +57,4 @@ us.stackdump
 /ImageLib/Debug/*
 /ImageLib/Release/*
 /GerberLib/Release/*
+/StandardLib/x64/Debug/*

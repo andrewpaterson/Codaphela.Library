@@ -1738,6 +1738,10 @@ CBaseObject* CObjects::ConvertFatHollowToUninitialisedByClassName(CHollowObject*
 	size			uiHollowSize;
 	void*			pvConstructor;
 	CHollowObject	cHollow;
+	CStackMemory<>	cStackEmbedded;
+	void*			pvHollowEmbedded;
+	size			uiNumEmbedded;
+	size			uiHollowEmbeddedSize;
 
 	bResult = ValidateCanAllocate(szClassName);
 	if (!bResult)
@@ -1759,15 +1763,53 @@ CBaseObject* CObjects::ConvertFatHollowToUninitialisedByClassName(CHollowObject*
 		return NULL;
 	}
 
+	//The embedded hollows are overwritten by the new object so their froms must be copied out first.
+	uiNumEmbedded = pcHollowObject->NumEmbedded();
+	uiHollowEmbeddedSize = sizeof(CHollowEmbeddedObject) * (uiNumEmbedded - 1);
+	pvHollowEmbedded = cStackEmbedded.Init(uiHollowEmbeddedSize);
+	memcpy(pvHollowEmbedded, RemapSinglePointer(pcHollowObject, sizeof(CHollowObject)), uiHollowEmbeddedSize);
 	memcpy(&cHollow, pcHollowObject, sizeof(CHollowObject));
 
 	pcObject = pcHollowObject;
 	memcpy(pcObject, pvConstructor, uiClassSize);
-	pcObject->Allocate(this);  
+	pcObject->Allocate(this);
 	pcObject->CopyFields(&cHollow);
+	RemapFatHollowEmbeddedObjects(pcObject, uiNumEmbedded, pvHollowEmbedded);
 
+	cStackEmbedded.Kill();
 	cHollow.StopDestructor();
 	return pcObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::RemapFatHollowEmbeddedObjects(CBaseObject* pcObject, size uiNumEmbedded, void* pvHollowEmbedded)
+{
+	//pvHollowEmbedded is a copy of the embedded hollows that were at the end of the fat hollow now overwritten by pcObject.
+	//Anything pointing to an embedded hollow points to its original address, not to the copy.
+
+	CObjectRemapFrom		cRemapper;
+	size					i;
+	CEmbeddedObject*		pcOldEmbedded;
+	CHollowEmbeddedObject*	pcOldEmbeddedFroms;
+	CEmbeddedObject*		pcNewEmbedded;
+
+	if (pcObject->NumEmbedded() < uiNumEmbedded)
+	{
+		uiNumEmbedded = pcObject->NumEmbedded();
+	}
+
+	for (i = 1; i < uiNumEmbedded; i++)
+	{
+		pcOldEmbedded = (CEmbeddedObject*)RemapSinglePointer(pcObject, sizeof(CHollowObject) + (sizeof(CHollowEmbeddedObject) * (i - 1)));
+		pcOldEmbeddedFroms = (CHollowEmbeddedObject*)RemapSinglePointer(pvHollowEmbedded, sizeof(CHollowEmbeddedObject) * (i - 1));
+		pcNewEmbedded = pcObject->GetEmbeddedObject(i);
+
+		cRemapper.RemapEmbedded(pcNewEmbedded, pcOldEmbedded, pcOldEmbeddedFroms);
+	}
 }
 
 

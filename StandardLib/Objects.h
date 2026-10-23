@@ -228,6 +228,7 @@ public:
 protected:
 						CBaseObject*			AllocateForInternalDeserialisationWithNameAndIndex(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
 						CBaseObject*			ConvertFatHollowToUninitialisedByClassName(CHollowObject* pcHollowObject, const char* szClassName);
+						void					RemapFatHollowEmbeddedObjects(CBaseObject* pcObject, size uiNumEmbedded, void* pvHollowEmbedded);
 };
 
 
