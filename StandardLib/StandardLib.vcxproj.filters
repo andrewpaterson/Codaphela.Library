@@ -37,6 +37,9 @@
     <Filter Include="Source\Timer">
       <UniqueIdentifier>{b1feb13a-7fbb-45ed-ba2d-7a44007b40ed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Dependency">
+      <UniqueIdentifier>{a55ee9f4-4820-4c58-b7db-d4b6eabc59eb}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Channels">
       <UniqueIdentifier>{854cdaec-d2eb-4a41-8e5a-a187d3dc539d}</UniqueIdentifier>
     </Filter>
@@ -540,6 +543,12 @@
     <ClInclude Include="KillOrderCalculator.h">
       <Filter>Source\Object\Object\Distance\Order</Filter>
     </ClInclude>
+    <ClInclude Include="Orderer.h">
+      <Filter>Source\Dependency</Filter>
+    </ClInclude>
+    <ClInclude Include="OrdererHolder.h">
+      <Filter>Source\Dependency</Filter>
+    </ClInclude>
     <ClInclude Include="FreeObjects.h">
       <Filter>Source\Object\Object\Free</Filter>
     </ClInclude>
@@ -895,6 +904,12 @@
     </ClCompile>
     <ClCompile Include="KillOrderCalculator.cpp">
       <Filter>Source\Object\Object\Distance\Order</Filter>
+    </ClCompile>
+    <ClCompile Include="Orderer.cpp">
+      <Filter>Source\Dependency</Filter>
+    </ClCompile>
+    <ClCompile Include="OrdererHolder.cpp">
+      <Filter>Source\Dependency</Filter>
     </ClCompile>
     <ClCompile Include="FreeObjects.cpp">
       <Filter>Source\Object\Object\Free</Filter>
