@@ -25,6 +25,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CTChar.h"
 #include "CTBoolean.h"
 #include "CTString.h"
+#include "CTIdentifier.h"
 #include "CppTokeniser.h"
 #include "CPPSyntaxTree.h"
 #include "CPP65Generator.h"
@@ -199,8 +200,7 @@ SCPP65Type* CCPP65Generator::Literal(CCPPSyntaxLiteralExpression* pcLiteral)
 		case CTNT_Short:
 			return &mcTypes.msInt;
 		case CTNT_LongLong:
-			Error(pcLiteral, "64 bit integers are not supported by the 65C64 generator yet");
-			return NULL;
+			return ((CCTLongLong*)pcToken)->IsSigned() ? &mcTypes.msLongLong : &mcTypes.msUnsignedLongLong;
 		default:
 			Error(pcLiteral, "Floating point is not supported by the 65C64 generator yet");
 			return NULL;
@@ -259,7 +259,7 @@ SCPP65Type* CCPP65Generator::SimpleValue(CCPPSyntax* pcExpression, const char* s
 		Error(pcExpression, "The value is not a constant");
 		return NULL;
 	}
-	Line("cpy ")->Append(szRegister)->Append(", ")->Append((int64)(int32)lliValue)->AppendNewLine();
+	LoadConstant(szRegister, psType, lliValue);
 	return psType;
 }
 
@@ -272,8 +272,6 @@ SCPP65Type* CCPP65Generator::SimpleValue(CCPPSyntax* pcExpression, const char* s
 SCPP65Type* CCPP65Generator::StringLiteral(CCPPSyntaxStringExpression* pcString)
 {
 	CArrayUint8		auiBytes;
-	CChars*			pszBytes;
-	size			i;
 
 	auiBytes.Init();
 	if (!DecodeString(pcString, &auiBytes))
@@ -282,18 +280,82 @@ SCPP65Type* CCPP65Generator::StringLiteral(CCPPSyntaxStringExpression* pcString)
 		return NULL;
 	}
 
+	StringData((char*)auiBytes.GetData(), auiBytes.NumElements());
+	auiBytes.Kill();
+	return mcTypes.Pointer(&mcTypes.msChar);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds uiLength bytes and a zero as string data.  A gets its address.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::StringData(char* szBytes, size uiLength)
+{
+	CChars*	pszBytes;
+	size	i;
+
 	pszBytes = maszStrings.Add();
 	pszBytes->Init();
-	for (i = 0; i < auiBytes.NumElements(); i++)
+	for (i = 0; i < uiLength; i++)
 	{
-		pszBytes->Append((int)auiBytes.GetValue(i));
+		pszBytes->Append((int)(uint8)szBytes[i]);
 		pszBytes->Append(", ");
 	}
 	pszBytes->Append('0');
-	auiBytes.Kill();
 
 	Line("cpy A, ")->Append(&mszUnit)->Append("Str")->Append((int)maszStrings.NumElements() - 1)->AppendNewLine();
-	return mcTypes.Pointer(&mcTypes.msChar);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// __func__ and __FUNCTION__ are the function's name.  __PRETTY_FUNCTION__ and
+// __FUNCSIG__ are its class and name ("CClass::Name"), not the whole signature.
+// Returns false if lliName is not one of them.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::FunctionNameText(int64 lliName, CChars* pszText)
+{
+	char*	szName;
+	int		iLength;
+	bool	bPretty;
+
+	if (lliName < 0)
+	{
+		return false;
+	}
+	szName = mpcTokeniser->GetIdentifier(lliName, &iLength);
+	if (!szName)
+	{
+		return false;
+	}
+	bPretty = ((iLength == 19) && (memcmp(szName, "__PRETTY_FUNCTION__", 19) == 0)) || ((iLength == 10) && (memcmp(szName, "__FUNCSIG__", 10) == 0));
+	if (!bPretty && !((iLength == 8) && (memcmp(szName, "__func__", 8) == 0)) && !((iLength == 12) && (memcmp(szName, "__FUNCTION__", 12) == 0)))
+	{
+		return false;
+	}
+
+	if (mpsFunction)
+	{
+		if (bPretty && mpsFunction->psClass)
+		{
+			szName = mpcTokeniser->GetIdentifier(mpsFunction->psClass->lliName, &iLength);
+			pszText->Append(szName, iLength);
+			pszText->Append("::");
+		}
+		if (mpsFunction->lliName >= 0)
+		{
+			szName = mpcTokeniser->GetIdentifier(mpsFunction->lliName, &iLength);
+			pszText->Append(szName, iLength);
+		}
+		else
+		{
+			pszText->Append("operator");
+		}
+	}
+	return true;
 }
 
 
@@ -303,9 +365,18 @@ SCPP65Type* CCPP65Generator::StringLiteral(CCPPSyntaxStringExpression* pcString)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Generator::IdExpression(CCPPSyntaxIdExpression* pcId)
 {
-	CCPPSymbol*	pcSymbol;
+	CCPPSymbol*		pcSymbol;
+	CChars			szName;
 
 	pcSymbol = pcId->mpcName->mpcSymbol;
+	if (IsFunctionName(pcId))
+	{
+		szName.Init();
+		FunctionNameText(GetComponentName(pcId->mpcName->GetLast()), &szName);
+		StringData(szName.Text(), szName.Length());
+		szName.Kill();
+		return mcTypes.Pointer(&mcTypes.msChar);
+	}
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_Enumerator))
 	{
 		return SimpleValue(pcId, "A");
@@ -315,6 +386,30 @@ SCPP65Type* CCPP65Generator::IdExpression(CCPPSyntaxIdExpression* pcId)
 		return FunctionAddress(pcId, pcSymbol->mlliName);
 	}
 	return Value(pcId);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True for __func__ and the other names of the enclosing function, which the parser
+// declares as globals.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsFunctionName(CCPPSyntaxIdExpression* pcId)
+{
+	CCPPSymbol*	pcSymbol;
+	CChars		szName;
+	bool		bName;
+
+	pcSymbol = pcId->mpcName->mpcSymbol;
+	if ((pcId->mpcName->macpComponents.NumElements() != 1) || (pcSymbol && ((pcSymbol->meKind != CPPSK_Variable) || GetVariable(pcSymbol))))
+	{
+		return false;
+	}
+	szName.Init();
+	bName = FunctionNameText(GetComponentName(pcId->mpcName->GetLast()), &szName);
+	szName.Kill();
+	return bName;
 }
 
 
@@ -399,8 +494,9 @@ SCPP65Type* CCPP65Generator::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary)
 		psType = TypeOf(pcUnary->mpcOperand);
 		if (psType && psType->IsInteger())
 		{
-			Line("cpy A, ")->Append((int64)(int32)lliValue)->AppendNewLine();
-			return mcTypes.Promote(psType);
+			psType = mcTypes.Promote(psType);
+			LoadConstant("A", psType, lliValue);
+			return psType;
 		}
 	}
 
@@ -420,10 +516,10 @@ SCPP65Type* CCPP65Generator::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary)
 	case CT_Add:
 		return psType;
 	case CT_Subtract:
-		Line("neg A, A")->AppendNewLine();
+		Line(psType->IsWide() ? "wth A, 8\n\t\tneg A, A\n\t\twth A, 4" : "neg A, A")->AppendNewLine();
 		return psType;
 	case CT_BitwiseNot:
-		Line("xor A, -1")->AppendNewLine();
+		Line(psType->IsWide() ? "wth A, 8\n\t\txor A, -1\n\t\twth A, 4" : "xor A, -1")->AppendNewLine();
 		return psType;
 	default:
 		Error(pcUnary, "This operator is not supported by the 65C64 generator yet");
@@ -468,13 +564,29 @@ SCPP65Type* CCPP65Generator::IncrementExpression(CCPPSyntaxUnaryExpression* pcUn
 	Load(&sPlace, "A", szAddress);
 	if (pcUnary->mbPostfix)
 	{
-		Line("cpy B, A")->AppendNewLine();
+		MoveAToB(sPlace.psType);
+		if (sPlace.psType->IsWide())
+		{
+			Line("wth B, 8")->AppendNewLine();
+		}
 		Line(szOperation)->Append("B, ")->Append(iStep)->AppendNewLine();
+		if (sPlace.psType->IsWide())
+		{
+			Line("wth B, 4")->AppendNewLine();
+		}
 		Store(&sPlace, "B", szAddress);
 	}
 	else
 	{
+		if (sPlace.psType->IsWide())
+		{
+			Line("wth A, 8")->AppendNewLine();
+		}
 		Line(szOperation)->Append("A, ")->Append(iStep)->AppendNewLine();
+		if (sPlace.psType->IsWide())
+		{
+			Line("wth A, 4")->AppendNewLine();
+		}
 		if (sPlace.psType->iBytes < 4)
 		{
 			Truncate("A", sPlace.psType->iBytes, sPlace.psType->bSigned);
@@ -609,7 +721,7 @@ SCPP65Type* CCPP65Generator::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 		default:						eOperator = CT_RightShift;	break;
 		}
 
-		Line("cpy B, A")->AppendNewLine();
+		MoveAToB(psRight);
 		if (bAddress)
 		{
 			Line("cpy X, [1 + S]")->AppendNewLine();
@@ -720,6 +832,160 @@ SCPP65Type* CCPP65Generator::ConditionValue(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True for the names of GCC's builtin functions, which are not declared.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsBuiltin(int64 lliName)
+{
+	char*	szName;
+	int		iLength;
+
+	if (lliName < 0)
+	{
+		return false;
+	}
+	szName = mpcTokeniser->GetIdentifier(lliName, &iLength);
+	return szName && (iLength > 10) && (memcmp(szName, "__builtin_", 10) == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// GCC's builtin functions: __builtin_ctz, __builtin_clz and __builtin_popcount
+// (with their l and ll forms), __builtin_expect, __builtin_unreachable and
+// __builtin_trap.  The 65C64's find set bit does ctz and clz; ctz(0) and clz(0) are
+// the width in bits.  The result is in A.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName)
+{
+	CChars			szName;
+	char*			szIdentifier;
+	int				iLength;
+	SCPP65Type*		psArgument;
+	SCPP65Type*		psType;
+	bool			bWide;
+	int				iArguments;
+
+	szIdentifier = mpcTokeniser->GetIdentifier(lliName, &iLength);
+	szName.Init();
+	szName.Append(szIdentifier + 10, iLength - 10);
+	iArguments = (int)pcCall->macpArguments.NumElements();
+
+	if (szName.Equals("unreachable") || szName.Equals("trap"))
+	{
+		szName.Kill();
+		if (iArguments != 0)
+		{
+			Error(pcCall, "The builtin takes no arguments");
+			return NULL;
+		}
+		Line("stp")->AppendNewLine();
+		return &mcTypes.msVoid;
+	}
+	if (szName.Equals("expect"))
+	{
+		szName.Kill();
+		if (iArguments != 2)
+		{
+			Error(pcCall, "__builtin_expect takes two arguments");
+			return NULL;
+		}
+		psType = Expression(pcCall->macpArguments.GetPtr(0));
+		return psType ? mcTypes.Promote(psType) : NULL;
+	}
+
+	bWide = szName.EndsWith("ll");
+	if (bWide)
+	{
+		szName.SetLength(szName.Length() - 2);
+	}
+	else if (szName.EndsWith('l'))
+	{
+		szName.SetLength(szName.Length() - 1);
+	}
+	if (!szName.Equals("ctz") && !szName.Equals("clz") && !szName.Equals("popcount"))
+	{
+		Error(pcCall, "This builtin is not supported by the 65C64 generator yet");
+		szName.Kill();
+		return NULL;
+	}
+	if (iArguments != 1)
+	{
+		Error(pcCall, "The builtin takes one argument");
+		szName.Kill();
+		return NULL;
+	}
+
+	psType = bWide ? &mcTypes.msUnsignedLongLong : &mcTypes.msUnsignedInt;
+	psArgument = Expression(pcCall->macpArguments.GetPtr(0));
+	if (!psArgument || !Convert(psArgument, psType, pcCall))
+	{
+		szName.Kill();
+		return NULL;
+	}
+
+	if (bWide)
+	{
+		Line("wtth (A, B), 8")->AppendNewLine();
+	}
+	if (szName.Equals("ctz"))
+	{
+		Line("cpy B, 0")->AppendNewLine();
+		Line("cep c")->AppendNewLine();
+		Line("fsbi A, B, +1")->AppendNewLine();
+		Line("cpy A, B")->AppendNewLine();
+	}
+	else if (szName.Equals("clz"))
+	{
+		//The highest set bit's index; -1 when there is none.
+		Line("cpy B, ")->Append(bWide ? 63 : 31)->AppendNewLine();
+		Line("cep c")->AppendNewLine();
+		Line("fsbi A, B, -1")->AppendNewLine();
+		Line("cpy A, ")->Append(bWide ? 63 : 31)->AppendNewLine();
+		Line("sub A, B")->AppendNewLine();
+	}
+	else
+	{
+		//Bits counted in pairs, then nibbles, then the bytes are added together.
+		Line("cpy B, A")->AppendNewLine();
+		Line("shr B, 1")->AppendNewLine();
+		Line("and B, ")->Append(bWide ? (int64)0x5555555555555555LL : (int64)0x55555555)->AppendNewLine();
+		Line("sub A, B")->AppendNewLine();
+		Line("cpy B, A")->AppendNewLine();
+		Line("shr B, 2")->AppendNewLine();
+		Line("and B, ")->Append(bWide ? (int64)0x3333333333333333LL : (int64)0x33333333)->AppendNewLine();
+		Line("and A, ")->Append(bWide ? (int64)0x3333333333333333LL : (int64)0x33333333)->AppendNewLine();
+		Line("add A, B")->AppendNewLine();
+		Line("cpy B, A")->AppendNewLine();
+		Line("shr B, 4")->AppendNewLine();
+		Line("add A, B")->AppendNewLine();
+		Line("and A, ")->Append(bWide ? (int64)0x0F0F0F0F0F0F0F0FLL : (int64)0x0F0F0F0F)->AppendNewLine();
+		Line("cpy B, A")->AppendNewLine();
+		Line("shr B, 8")->AppendNewLine();
+		Line("add A, B")->AppendNewLine();
+		Line("cpy B, A")->AppendNewLine();
+		Line("shr B, 16")->AppendNewLine();
+		Line("add A, B")->AppendNewLine();
+		if (bWide)
+		{
+			Line("cpy B, A")->AppendNewLine();
+			Line("shr B, 32")->AppendNewLine();
+			Line("add A, B")->AppendNewLine();
+		}
+		Line("and A, 127")->AppendNewLine();
+	}
+	if (bWide)
+	{
+		Line("wtth (A, B), 4")->AppendNewLine();
+	}
+	szName.Kill();
+	return &mcTypes.msInt;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Arguments are pushed last first, each at its own size, and removed by the caller.
 // The result is in A.  The overload is chosen by the arguments.  Function templates
 // are instantiated, calls to member functions are in MemberCall and calls through
@@ -786,6 +1052,11 @@ SCPP65Type* CCPP65Generator::CallExpression(CCPPSyntaxCallExpression* pcCall)
 	if (pcName && !pcName->mbGlobal && mpsFunction && mpsFunction->psClass && (!pcSymbol || (pcSymbol->meKind == CPPSK_Function)) && HasMember(mpsFunction->psClass, lliName))
 	{
 		return MemberCall(pcCall, pcCallee);
+	}
+
+	if (!pcSymbol && IsBuiltin(lliName))
+	{
+		return Builtin(pcCall, lliName);
 	}
 
 	if (!pcSymbol || (pcSymbol->meKind != CPPSK_Function))
@@ -1117,6 +1388,7 @@ SCPP65Type* CCPP65Generator::Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, S
 {
 	SCPP65Type*		psLeft;
 	int				iTemporary;
+	bool			bWide;
 
 	psRight->eKind = CPP65RK_B;
 	psRight->lliValue = 0;
@@ -1152,7 +1424,7 @@ SCPP65Type* CCPP65Generator::Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, S
 		{
 			return NULL;
 		}
-		Line("cpy B, A")->AppendNewLine();
+		MoveAToB(psRight->psType);
 		psLeft = SimpleValue(pcLeft, "A");
 	}
 	else if (!ContainsCall(pcLeft) && (miTemporaries + 4 <= CPP65_TEMPORARY_BYTES))
@@ -1162,11 +1434,20 @@ SCPP65Type* CCPP65Generator::Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, S
 		{
 			return NULL;
 		}
+		bWide = psRight->psType->IsWide();
 		iTemporary = miTemporaries;
-		miTemporaries += 4;
+		miTemporaries += bWide ? 8 : 4;
+		if (bWide)
+		{
+			Line("wth A, 8")->AppendNewLine();
+		}
 		Line("cpy [")->Append(iTemporary)->Append(" + W], A")->AppendNewLine();
+		if (bWide)
+		{
+			Line("wth A, 4")->AppendNewLine();
+		}
 		psLeft = Expression(pcLeft);
-		miTemporaries -= 4;
+		miTemporaries -= bWide ? 8 : 4;
 
 		//Nothing else uses the pseudo register before the operator does.
 		psRight->eKind = CPP65RK_Temporary;
@@ -1179,9 +1460,9 @@ SCPP65Type* CCPP65Generator::Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, S
 		{
 			return NULL;
 		}
-		Push("A");
+		PushWide("A", psRight->psType->IsWide());
 		psLeft = Expression(pcLeft);
-		Pull("B");
+		PullWide("B", psRight->psType->IsWide());
 	}
 
 	if (!psLeft || !psRight->psType)
@@ -1202,8 +1483,16 @@ void CCPP65Generator::RightInB(SCPP65Right* psRight)
 {
 	if (psRight->eKind != CPP65RK_B)
 	{
+		if (psRight->psType->IsWide())
+		{
+			Line("wth B, 8")->AppendNewLine();
+		}
 		Line("cpy B, ");
 		AppendRight(mpszOut, psRight)->AppendNewLine();
+		if (psRight->psType->IsWide())
+		{
+			Line("wth B, 4")->AppendNewLine();
+		}
 		psRight->eKind = CPP65RK_B;
 	}
 }
@@ -1219,7 +1508,7 @@ CChars* CCPP65Generator::AppendRight(CChars* psz, SCPP65Right* psRight)
 	switch (psRight->eKind)
 	{
 	case CPP65RK_Constant:
-		return psz->Append((int64)(int32)psRight->lliValue);
+		return psz->Append(psRight->psType->IsWide() ? psRight->lliValue : (int64)(int32)psRight->lliValue);
 	case CPP65RK_Temporary:
 		return psz->Append('[')->Append((int)psRight->lliValue)->Append(" + W]");
 	default:
@@ -1298,6 +1587,14 @@ SCPP65Type* CCPP65Generator::Operate(ECppTokens eOperator, SCPP65Type* psLeft, S
 	}
 
 	psType = mcTypes.Arithmetic(psLeft, psRight->psType);
+	if ((eOperator == CT_LeftShift) || (eOperator == CT_RightShift))
+	{
+		psType = mcTypes.Promote(psLeft);
+	}
+	if (psType->IsWide())
+	{
+		return OperateWide(eOperator, psLeft, psRight, psType, pcNode);
+	}
 	szInstruction = NULL;
 	switch (eOperator)
 	{
@@ -1392,6 +1689,139 @@ SCPP65Type* CCPP65Generator::Operate(ECppTokens eOperator, SCPP65Type* psLeft, S
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A = A op B for 64 bit integers.  The narrower operand is widened, then the
+// operation runs with A and B (and Y for mul and div) 64 bits wide.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::OperateWide(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Right* psRight, SCPP65Type* psType, CCPPSyntax* pcNode)
+{
+	bool	bShift;
+	int		iPositive;
+	int		iEnd;
+
+	bShift = (eOperator == CT_LeftShift) || (eOperator == CT_RightShift);
+	RightInB(psRight);
+	if (!psLeft->IsWide())
+	{
+		Widen("A", psLeft->bSigned);
+	}
+	if (!psRight->psType->IsWide())
+	{
+		Widen("B", !bShift && psRight->psType->bSigned);
+	}
+
+	Line("wtth (A, B), 8")->AppendNewLine();
+	switch (eOperator)
+	{
+	case CT_Add:			Line("add A, B")->AppendNewLine();	break;
+	case CT_Subtract:		Line("sub A, B")->AppendNewLine();	break;
+	case CT_BitwiseAnd:		Line("and A, B")->AppendNewLine();	break;
+	case CT_BitwiseOr:		Line("or A, B")->AppendNewLine();	break;
+	case CT_BitwiseXor:		Line("xor A, B")->AppendNewLine();	break;
+	case CT_LeftShift:		Line("shl A, B")->AppendNewLine();	break;
+	case CT_Multiply:
+		Line("wth Y, 8")->AppendNewLine();
+		Multiply("mul");
+		Line("cpy A, Y")->AppendNewLine();
+		Line("wth Y, 4")->AppendNewLine();
+		break;
+	case CT_Divide:
+	case CT_Modulus:
+		if (psType->bSigned)
+		{
+			Line("jsr R_DivideSigned64")->AppendNewLine();
+			ChangeX();
+			mbSignedDivide64 = true;
+		}
+		else
+		{
+			Line("wth Y, 8")->AppendNewLine();
+			Line("cpy Y, A")->AppendNewLine();
+			Line("cpy A, B")->AppendNewLine();
+			Line("cpy B, 0")->AppendNewLine();
+			Multiply("div");
+			Line("cpy A, Y")->AppendNewLine();
+			Line("wth Y, 4")->AppendNewLine();
+		}
+		if (eOperator == CT_Modulus)
+		{
+			Line("cpy A, B")->AppendNewLine();
+		}
+		break;
+	case CT_RightShift:
+		if (!psType->bSigned)
+		{
+			Line("shr A, B")->AppendNewLine();
+			break;
+		}
+		iPositive = NewLabel();
+		iEnd = NewLabel();
+		Line("cmp A, 0")->AppendNewLine();
+		Line("brac n, ");
+		AppendLabel(mpszOut, iPositive);
+		mpszOut->AppendNewLine();
+		Line("xor A, -1")->AppendNewLine();
+		Line("shr A, B")->AppendNewLine();
+		Line("xor A, -1")->AppendNewLine();
+		Line("bra ");
+		AppendLabel(mpszOut, iEnd);
+		mpszOut->AppendNewLine();
+		Label(iPositive);
+		Line("shr A, B")->AppendNewLine();
+		Label(iEnd);
+		break;
+	default:
+		Line("wtth (A, B), 4")->AppendNewLine();
+		Error(pcNode, "This operator is not supported by the 65C64 generator yet");
+		return NULL;
+	}
+	Line("wtth (A, B), 4")->AppendNewLine();
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Copies A to B, all 64 bits for a 64 bit value.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::MoveAToB(SCPP65Type* psType)
+{
+	if (psType && psType->IsWide())
+	{
+		Line("wtth (A, B), 8")->AppendNewLine();
+		Line("cpy B, A")->AppendNewLine();
+		Line("wtth (A, B), 4")->AppendNewLine();
+	}
+	else
+	{
+		Line("cpy B, A")->AppendNewLine();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Loads a constant into a register, all 64 bits for a 64 bit type.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::LoadConstant(const char* szRegister, SCPP65Type* psType, int64 lliValue)
+{
+	if (psType->IsWide())
+	{
+		Line("wth ")->Append(szRegister)->Append(", 8")->AppendNewLine();
+		Line("cpy ")->Append(szRegister)->Append(", ")->Append(lliValue)->AppendNewLine();
+		Line("wth ")->Append(szRegister)->Append(", 4")->AppendNewLine();
+	}
+	else
+	{
+		Line("cpy ")->Append(szRegister)->Append(", ")->Append((int64)(int32)lliValue)->AppendNewLine();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Compares A (left) with B (right) and branches to iLabel when the comparison's
 // result is bJumpIf.  Pointers compare unsigned.
 //
@@ -1402,10 +1832,11 @@ SCPP65Type* CCPP65Generator::Operate(ECppTokens eOperator, SCPP65Type* psLeft, S
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::Compare(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Right* psRight, bool bJumpIf, int iLabel, CCPPSyntax* pcNode)
 {
-	bool	bSigned;
-	bool	bSwap;
-	bool	bLess;
-	int		iSkip;
+	bool			bSigned;
+	bool			bSwap;
+	bool			bLess;
+	int				iSkip;
+	SCPP65Type*		psCompare;
 
 	if (!psLeft || !psRight->psType)
 	{
@@ -1425,7 +1856,28 @@ bool CCPP65Generator::Compare(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Ri
 	}
 
 	bSwap = (eOperator == CT_GreaterThan) || (eOperator == CT_LessThanEqualTo);
-	if (bSwap)
+	psCompare = (psLeft->IsInteger() && psRight->psType->IsInteger()) ? mcTypes.Arithmetic(psLeft, psRight->psType) : NULL;
+	if (psCompare && psCompare->IsWide())
+	{
+		//64 bits: both are widened and compared with the registers 64 bits wide.
+		RightInB(psRight);
+		if (!psLeft->IsWide())
+		{
+			Widen("A", psLeft->bSigned);
+		}
+		if (!psRight->psType->IsWide())
+		{
+			Widen("B", psRight->psType->bSigned);
+		}
+		if (bSwap)
+		{
+			eOperator = (eOperator == CT_GreaterThan) ? CT_LessThan : CT_GreaterThanEqualTo;
+		}
+		Line("wtth (A, B), 8")->AppendNewLine();
+		Line(bSwap ? "cmp B, A" : "cmp A, B")->AppendNewLine();
+		Line("wtth (A, B), 4")->AppendNewLine();
+	}
+	else if (bSwap)
 	{
 		RightInB(psRight);
 		eOperator = (eOperator == CT_GreaterThan) ? CT_LessThan : CT_GreaterThanEqualTo;
@@ -1544,7 +1996,7 @@ bool CCPP65Generator::Condition(CCPPSyntax* pcExpression, bool bJumpIf, int iLab
 		psVariable = GetVariable(((CCPPSyntaxInitDeclarator*)((CCPPSyntaxSimpleDeclaration*)pcExpression)->macpDeclarators.GetPtr(0))->mpcSymbol);
 		VariablePlace(psVariable, &sPlace);
 		Load(&sPlace, "A", NULL);
-		Line("cmp A, 0")->AppendNewLine();
+		CompareZero(sPlace.psType);
 		Line(bJumpIf ? "brac z, " : "bras z, ");
 		AppendLabel(mpszOut, iLabel);
 		mpszOut->AppendNewLine();
@@ -1560,7 +2012,7 @@ bool CCPP65Generator::Condition(CCPPSyntax* pcExpression, bool bJumpIf, int iLab
 	{
 		return Error(pcExpression, "A condition must be an integer or a pointer");
 	}
-	Line("cmp A, 0")->AppendNewLine();
+	CompareZero(psType);
 	Line(bJumpIf ? "brac z, " : "bras z, ");
 	AppendLabel(mpszOut, iLabel);
 	mpszOut->AppendNewLine();
@@ -1618,12 +2070,19 @@ bool CCPP65Generator::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* 
 		return true;
 	}
 
+	//To 64 bits: a narrower value is extended by its own signedness.  From 64 bits: the low bits are already in A.
+	if (psTo->IsWide() && !psFrom->IsWide())
+	{
+		Widen("A", psFrom->bSigned && !psFrom->IsPointer());
+		return true;
+	}
+
 	if (psTo->eKind == CPP65TK_Bool)
 	{
 		if (psFrom->eKind != CPP65TK_Bool)
 		{
 			iZero = NewLabel();
-			Line("cmp A, 0")->AppendNewLine();
+			CompareZero(psFrom);
 			Line("bras z, ");
 			AppendLabel(mpszOut, iZero);
 			mpszOut->AppendNewLine();
@@ -1659,7 +2118,27 @@ bool CCPP65Generator::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Floating point and 64 bit integers can be declared but not used yet.
+// cmp A, 0 at the value's width.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::CompareZero(SCPP65Type* psType)
+{
+	if (psType->IsWide())
+	{
+		Line("wth A, 8")->AppendNewLine();
+		Line("cmp A, 0")->AppendNewLine();
+		Line("wth A, 4")->AppendNewLine();
+	}
+	else
+	{
+		Line("cmp A, 0")->AppendNewLine();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Floating point can be declared but not used yet.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::Supported(SCPP65Type* psType, CCPPSyntax* pcNode)
@@ -1668,9 +2147,9 @@ bool CCPP65Generator::Supported(SCPP65Type* psType, CCPPSyntax* pcNode)
 	{
 		return Error(pcNode, "Floating point is not supported by the 65C64 generator yet");
 	}
-	if (psType->IsScalar() && (psType->iBytes > 4))
+	if (psType->IsScalar() && (psType->iBytes > 8))
 	{
-		return Error(pcNode, "64 bit integers are not supported by the 65C64 generator yet");
+		return Error(pcNode, "Integers wider than 64 bits are not supported by the 65C64 generator");
 	}
 	return true;
 }
@@ -1775,6 +2254,10 @@ bool CCPP65Generator::Place(CCPPSyntax* pcExpression, SCPP65Place* psPlace)
 		}
 		if (!psField)
 		{
+			if (IsFunctionName(pcId))
+			{
+				return Error(pcExpression, "This is not an lvalue");
+			}
 			return Error(pcExpression, "Only variables are supported by the 65C64 generator here yet");
 		}
 		if (miThisOffset == -1)
@@ -2012,7 +2495,8 @@ void CCPP65Generator::AppendPlace(CChars* psz, SCPP65Place* psPlace, const char*
 //////////////////////////////////////////////////////////////////////////
 //
 // Loads a place into a register, sign or zero extended to 32 bits.  Narrow values
-// are read through Y.
+// are read through Y; 8 byte values with the register 64 bits wide (it is left 32
+// bits wide, holding all 64).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::Load(SCPP65Place* psPlace, const char* szRegister, const char* szAddress)
@@ -2024,6 +2508,15 @@ void CCPP65Generator::Load(SCPP65Place* psPlace, const char* szRegister, const c
 		EnsureThis();
 	}
 	iBytes = psPlace->psType->iBytes;
+	if (iBytes == 8)
+	{
+		Line("wth ")->Append(szRegister)->Append(", 8")->AppendNewLine();
+		Line("cpy ")->Append(szRegister)->Append(", ");
+		AppendPlace(mpszOut, psPlace, szAddress);
+		mpszOut->AppendNewLine();
+		Line("wth ")->Append(szRegister)->Append(", 4")->AppendNewLine();
+		return;
+	}
 	if (iBytes >= 4)
 	{
 		Line("cpy ")->Append(szRegister)->Append(", ");
@@ -2055,6 +2548,15 @@ void CCPP65Generator::Store(SCPP65Place* psPlace, const char* szRegister, const 
 		EnsureThis();
 	}
 	iBytes = psPlace->psType->iBytes;
+	if (iBytes == 8)
+	{
+		Line("wth ")->Append(szRegister)->Append(", 8")->AppendNewLine();
+		Line("cpy ");
+		AppendPlace(mpszOut, psPlace, szAddress);
+		mpszOut->Append(", ")->Append(szRegister)->AppendNewLine();
+		Line("wth ")->Append(szRegister)->Append(", 4")->AppendNewLine();
+		return;
+	}
 	if (iBytes >= 4)
 	{
 		Line("cpy ");
@@ -2130,6 +2632,11 @@ void CCPP65Generator::Push(const char* szRegister)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::PushValue(SCPP65Type* psType)
 {
+	if (psType->iBytes == 8)
+	{
+		PushWide("A", true);
+		return;
+	}
 	if (psType->iBytes >= 4)
 	{
 		Push("A");
@@ -2140,6 +2647,56 @@ void CCPP65Generator::PushValue(SCPP65Type* psType)
 	Line("psh Y")->AppendNewLine();
 	Line("wth Y, 4")->AppendNewLine();
 	miDepth += psType->iBytes;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Pushes or pulls a register at 8 bytes when bWide, or 4.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::PushWide(const char* szRegister, bool bWide)
+{
+	if (!bWide)
+	{
+		Push(szRegister);
+		return;
+	}
+	Line("wth ")->Append(szRegister)->Append(", 8")->AppendNewLine();
+	Line("psh ")->Append(szRegister)->AppendNewLine();
+	Line("wth ")->Append(szRegister)->Append(", 4")->AppendNewLine();
+	miDepth += 8;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::PullWide(const char* szRegister, bool bWide)
+{
+	if (!bWide)
+	{
+		Pull(szRegister);
+		return;
+	}
+	Line("wth ")->Append(szRegister)->Append(", 8")->AppendNewLine();
+	Line("pul ")->Append(szRegister)->AppendNewLine();
+	Line("wth ")->Append(szRegister)->Append(", 4")->AppendNewLine();
+	miDepth -= 8;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Widens a register holding a 32 bit (or narrower, extended) integer to 64 bits,
+// sign extended if bSigned.  The register is left 32 bits wide holding all 64.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::Widen(const char* szRegister, bool bSigned)
+{
+	Line("wthx ")->Append(szRegister)->Append(bSigned ? ", 8:s" : ", 8")->AppendNewLine();
+	Line("wth ")->Append(szRegister)->Append(", 4")->AppendNewLine();
 }
 
 
@@ -2332,7 +2889,7 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 	case CPPS_CastExpression:
 		pcCast = (CCPPSyntaxCastExpression*)pcExpression;
 		psType = GetTypeIdType(pcCast->mpcType);
-		if (!psType || !psType->IsInteger() || !Constant(pcCast->mpcOperand, &lliLeft))
+		if (!psType || !(psType->IsInteger() || psType->IsPointer()) || !Constant(pcCast->mpcOperand, &lliLeft))
 		{
 			return false;
 		}
@@ -2446,7 +3003,7 @@ bool CCPP65Generator::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* p
 	}
 	else if ((strcmp(szName, "__is_polymorphic") == 0) || (strcmp(szName, "__is_abstract") == 0))
 	{
-		*plliValue = psClass && (psClass->iVtableOffset != -1);
+		*plliValue = psClass && IsPolymorphic(psClass);
 	}
 	else if ((strcmp(szName, "__is_trivially_constructible") == 0) || (strcmp(szName, "__has_trivial_constructor") == 0))
 	{
@@ -2529,7 +3086,7 @@ bool CCPP65Generator::IsSimple(CCPPSyntax* pcExpression)
 	if (pcExpression->GetKind() == CPPS_LiteralExpression)
 	{
 		pcToken = mpcTokeniser->Get(((CCPPSyntaxLiteralExpression*)pcExpression)->miLiteral);
-		return !pcToken->IsNumber() || (((CCTNumber*)pcToken)->meType == CTNT_Int) || (((CCTNumber*)pcToken)->meType == CTNT_Short);
+		return !pcToken->IsNumber() || (((CCTNumber*)pcToken)->meType == CTNT_Int) || (((CCTNumber*)pcToken)->meType == CTNT_Short) || (((CCTNumber*)pcToken)->meType == CTNT_LongLong);
 	}
 	if (pcExpression->GetKind() == CPPS_IdExpression)
 	{
@@ -2599,22 +3156,68 @@ CCPPSyntax* CCPP65Generator::SkipParentheses(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The bytes of a narrow string literal, without the zero at the end.
+// The bytes of a narrow string literal, without the zero at the end.  Adjacent
+// literals are joined.  MSVC's __FUNCTION__, __FUNCSIG__ and __FUNCDNAME__ can be
+// parts; they are the function's name, its class and name, and its label.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 {
-	CCTString*		pcToken;
+	CCPPToken*	pcToken;
+	int			iToken;
+	CChars		szName;
+	char*		szIdentifier;
+	int			iLength;
+	size		i;
+
+	for (iToken = pcString->miFirstToken; iToken <= pcString->miLastToken; iToken++)
+	{
+		pcToken = mpcTokeniser->Get(iToken);
+		if (pcToken->IsString())
+		{
+			if (!DecodeStringToken(pcString, (CCTString*)pcToken, pauiBytes))
+			{
+				return false;
+			}
+			continue;
+		}
+
+		szIdentifier = pcToken->IsIdentifier() ? mpcTokeniser->GetIdentifier(((CCTIdentifier*)pcToken)->mlliIdentifier, &iLength) : NULL;
+		szName.Init();
+		if (szIdentifier && (iLength == 11) && (memcmp(szIdentifier, "__FUNCDNAME", 11) == 0))
+		{
+			if (mpsFunction)
+			{
+				AppendFunctionLabel(&szName, mpsFunction);
+			}
+		}
+		else if (!szIdentifier || !FunctionNameText(((CCTIdentifier*)pcToken)->mlliIdentifier, &szName))
+		{
+			szName.Kill();
+			return Error(pcString, "This part of a string literal is not supported by the 65C64 generator yet");
+		}
+		for (i = 0; i < szName.Length(); i++)
+		{
+			pauiBytes->Add((uint8)szName.GetChar(i));
+		}
+		szName.Kill();
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bytes of one narrow string literal token.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, CArrayUint8* pauiBytes)
+{
 	const char*		sz;
 	const char*		szEnd;
 	uint32			uiValue;
 	int				iDigits;
 
-	if (pcString->miFirstToken != pcString->miLastToken)
-	{
-		return Error(pcString, "Joined string literals are not supported by the 65C64 generator yet");
-	}
-	pcToken = (CCTString*)mpcTokeniser->Get(pcString->miFirstToken);
 	if ((pcToken->meEncoding != CTE_Narrow) && (pcToken->meEncoding != CTE_UTF8))
 	{
 		return Error(pcString, "Wide string literals are not supported by the 65C64 generator yet");

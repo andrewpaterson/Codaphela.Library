@@ -39,6 +39,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree)
 
 	mszCode.Init();
 	mszData.Init();
+	mszThunks.Init();
 	mszBody.Init();
 	mpszOut = &mszCode;
 	mcErrors.Init();
@@ -77,6 +78,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree)
 	miLabels = 0;
 	mbSignedDivide = false;
 	mbSignedModulus = false;
+	mbSignedDivide64 = false;
 }
 
 
@@ -87,6 +89,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree)
 void CCPP65Generator::Kill(void)
 {
 	size			i;
+	size			j;
 	SCPP65Function*	psFunction;
 	SCPP65Class*	psClass;
 	SCPP65Bindings*	psBindings;
@@ -108,6 +111,12 @@ void CCPP65Generator::Kill(void)
 	{
 		psClass = mapsClasses.GetPtr(i);
 		psClass->mszArguments.Kill();
+		for (j = 0; j < psClass->macVtables.NumElements(); j++)
+		{
+			psClass->macVtables.Get(j)->maiAdjust.Kill();
+			psClass->macVtables.Get(j)->mapsFunctions.Kill();
+		}
+		psClass->macVtables.Kill();
 		psClass->mapsVirtuals.Kill();
 		psClass->macFields.Kill();
 		psClass->macBases.Kill();
@@ -145,6 +154,7 @@ void CCPP65Generator::Kill(void)
 
 	mcErrors.Kill();
 	mszBody.Kill();
+	mszThunks.Kill();
 	mszData.Kill();
 	mszCode.Kill();
 	mcTypes.Kill();
@@ -200,6 +210,7 @@ bool CCPP65Generator::Generate(CChars* pszDest)
 	AppendRuntime();
 
 	pszDest->Append(mszCode);
+	pszDest->Append(mszThunks);
 	pszDest->Append(mszData);
 	AppendStrings(pszDest);
 	return mcErrors.NumErrors() == 0;
@@ -374,6 +385,18 @@ void CCPP65Generator::GetExternals(CArrayChars* paszLabels)
 			szLabel.Kill();
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The macros the 65C64 target predefines, for the configuration code is
+// preprocessed with.  __65C64__ selects the target in BaseLib's Define.h.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AddDefines(CConfig* pcConfig)
+{
+	pcConfig->AddDefine("__65C64__=1");
 }
 
 
@@ -999,14 +1022,15 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 		AppendGlobalLabel(&mszData, psVariable->psClass, pcInit->mpcSymbol->mlliName);
 		mszData.Append(':');
 		mszData.AppendNewLine();
+		VariablePlace(psVariable, &sPlace);
 		if (!psElement->IsClass() && !psType->IsReference())
 		{
-			bResult &= GlobalInitialiser(psType, pcInit->mpcInitializer, pcInit);
+			miThisOffset = -1;
+			bResult &= GlobalInitialiser(psType, pcInit->mpcInitializer, pcInit, &sPlace);
 			continue;
 		}
 
 		AppendZeros(psType->iBytes);
-		VariablePlace(psVariable, &sPlace);
 		mpszOut = &mszInitialise;
 		miThisOffset = -1;
 		bResult &= Construct(&sPlace, NULL, pcInit->mpcInitializer, pcInit);
@@ -1024,11 +1048,12 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Appends the data for a global of psType: zero, a constant, a list of constants or
-// a string.
+// Appends the data for a global of psType at psPlace: zero, a constant, a list of
+// constants or a string.  Values that are not constants are zero data and worked
+// out by R_Initialise.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode)
+bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, SCPP65Place* psPlace)
 {
 	int64						lliValue;
 	CCPPSyntaxInitializerList*	pcList;
@@ -1036,6 +1061,8 @@ bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitia
 	size						i;
 	CArrayUint8					auiBytes;
 	bool						bResult;
+	SCPP65Place					sElement;
+	CChars*						pszOut;
 
 	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer))
 	{
@@ -1076,9 +1103,12 @@ bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitia
 			{
 				return Error(pcInitialiser, "Too many initialisers for the array");
 			}
+			sElement = *psPlace;
+			sElement.psType = psType->psBase;
 			for (i = 0; i < pcList->macpElements.NumElements(); i++)
 			{
-				bResult &= GlobalInitialiser(psType->psBase, pcList->macpElements.GetPtr(i), pcNode);
+				bResult &= GlobalInitialiser(psType->psBase, pcList->macpElements.GetPtr(i), pcNode, &sElement);
+				sElement.iOffset += psType->psBase->iBytes;
 			}
 		}
 		else
@@ -1088,22 +1118,29 @@ bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitia
 
 		for (; i < (size)psType->iCount; i++)
 		{
-			GlobalInitialiser(psType->psBase, NULL, pcNode);
+			GlobalInitialiser(psType->psBase, NULL, pcNode, psPlace);
 		}
 		return bResult;
 	}
 
-	lliValue = 0;
-	if (pcInitialiser)
-	{
-		if (!Constant(pcInitialiser, &lliValue))
-		{
-			return Error(pcInitialiser, "Global variables need constant initialisers in the 65C64 generator");
-		}
-	}
 	if (!psType->IsScalar())
 	{
 		return Error(pcNode, "This type of global variable is not supported by the 65C64 generator yet");
+	}
+	lliValue = 0;
+	if (pcInitialiser && !Constant(pcInitialiser, &lliValue))
+	{
+		//Not a constant: R_Initialise works it out before main.  [basic.start.init]
+		AppendData(psType, 0);
+		pszOut = mpszOut;
+		mpszOut = &mszInitialise;
+		bResult = Convert(Expression(pcInitialiser), psType, pcInitialiser);
+		if (bResult)
+		{
+			Store(psPlace, "A", NULL);
+		}
+		mpszOut = pszOut;
+		return bResult;
 	}
 	AppendData(psType, lliValue);
 	return true;
@@ -2558,9 +2595,9 @@ bool CCPP65Generator::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	//The local objects are destroyed after the value is worked out.
 	if (mapsDestructors.NumElements() > 0)
 	{
-		Push("A");
+		PushWide("A", mpsFunction->psReturn->IsWide());
 		DestroyLocals(0);
-		Pull("A");
+		PullWide("A", mpsFunction->psReturn->IsWide());
 	}
 	Line("bra ");
 	AppendLabel(mpszOut, miReturnLabel);
@@ -2619,6 +2656,58 @@ void CCPP65Generator::AppendStrings(CChars* pszDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Signed divide: A / B.  The quotient is in A and the remainder in B.  The quotient
+// is negative when the signs differ, the remainder has the dividend's sign.  The
+// 64 bit routine is called with A and B 64 bits wide and leaves them so; it widens
+// X and Y while it works.  Changes A, B, X and Y.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendDivideSigned(const char* szName, int iBytes)
+{
+	mszCode.Append(szName);
+	mszCode.Append(':');
+	mszCode.AppendNewLine();
+	if (iBytes == 8)
+	{
+		Line("wtth (X, Y), 8")->AppendNewLine();
+	}
+	Line("cpy X, A")->AppendNewLine();
+	Line("xor X, B")->AppendNewLine();
+	Line("psh X")->AppendNewLine();
+	Line("psh A")->AppendNewLine();
+	Line("abs Y, A")->AppendNewLine();
+	Line("abs A, B")->AppendNewLine();
+	Line("cpy B, 0")->AppendNewLine();
+	Line("psh W")->AppendNewLine();
+	Line("cpy W, 0")->AppendNewLine();
+	Line("div")->AppendNewLine();
+	Line("pul W")->AppendNewLine();
+	Line("pul X")->AppendNewLine();
+	Line("cmp X, 0")->AppendNewLine();
+	Line("brac n, ")->Append(szName)->Append('1')->AppendNewLine();
+	Line("neg B, B")->AppendNewLine();
+	mszCode.Append(szName);
+	mszCode.Append("1:");
+	mszCode.AppendNewLine();
+	Line("pul X")->AppendNewLine();
+	Line("cmp X, 0")->AppendNewLine();
+	Line("brac n, ")->Append(szName)->Append('2')->AppendNewLine();
+	Line("neg Y, Y")->AppendNewLine();
+	mszCode.Append(szName);
+	mszCode.Append("2:");
+	mszCode.AppendNewLine();
+	Line("cpy A, Y")->AppendNewLine();
+	if (iBytes == 8)
+	{
+		Line("wtth (X, Y), 4")->AppendNewLine();
+	}
+	Line("ret")->AppendNewLine();
+	mszCode.AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Runtime routines the generated code calls.  Only the ones used are added.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -2645,36 +2734,13 @@ void CCPP65Generator::AppendRuntime(void)
 	}
 	if (bDivide)
 	{
-		//Signed divide: A / B.  The quotient is in A and the remainder in B.  The
-		//quotient is negative when the signs differ, the remainder has the dividend's
-		//sign.  Changes A, B, X and Y.
-		mszCode.Append("R_DivideSigned:");
-		mszCode.AppendNewLine();
-		Line("cpy X, A")->AppendNewLine();
-		Line("xor X, B")->AppendNewLine();
-		Line("psh X")->AppendNewLine();
-		Line("psh A")->AppendNewLine();
-		Line("abs Y, A")->AppendNewLine();
-		Line("abs A, B")->AppendNewLine();
-		Line("cpy B, 0")->AppendNewLine();
-		Line("psh W")->AppendNewLine();
-		Line("cpy W, 0")->AppendNewLine();
-		Line("div")->AppendNewLine();
-		Line("pul W")->AppendNewLine();
-		Line("pul X")->AppendNewLine();
-		Line("cmp X, 0")->AppendNewLine();
-		Line("brac n, R_DivideSigned1")->AppendNewLine();
-		Line("neg B, B")->AppendNewLine();
-		mszCode.Append("R_DivideSigned1:");
-		mszCode.AppendNewLine();
-		Line("pul X")->AppendNewLine();
-		Line("cmp X, 0")->AppendNewLine();
-		Line("brac n, R_DivideSigned2")->AppendNewLine();
-		Line("neg Y, Y")->AppendNewLine();
-		mszCode.Append("R_DivideSigned2:");
-		mszCode.AppendNewLine();
-		Line("cpy A, Y")->AppendNewLine();
-		Line("ret")->AppendNewLine();
-		mszCode.AppendNewLine();
+		AppendDivideSigned("R_DivideSigned", 4);
+	}
+	szLabel.Init("R_DivideSigned64");
+	bDivide = mbSignedDivide64 && Emit(&szLabel);
+	szLabel.Kill();
+	if (bDivide)
+	{
+		AppendDivideSigned("R_DivideSigned64", 8);
 	}
 }

@@ -66,6 +66,7 @@ struct SCPP65Type
 	bool	IsReference(void);
 	bool	IsFloat(void);
 	bool	IsSupported(void);
+	bool	IsWide(void);
 	bool	Equals(SCPP65Type* psOther);
 	int		GetElementBytes(void);
 };
