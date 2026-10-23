@@ -186,7 +186,7 @@ bool ResampleBilinear(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 	float64*				pafDest;
 	bool					bResult;
 
-	if (!CImageResampleChannel::IsSupported(pcSource) || (pcSource->NumChannels() != pcDest->NumChannels()))
+	if (!CImageResampleChannel::CanResample(pcSource, pcDest))
 	{
 		return false;
 	}

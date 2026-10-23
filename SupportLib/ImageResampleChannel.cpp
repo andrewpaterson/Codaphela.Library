@@ -19,29 +19,8 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <math.h>
-#include "BaseLib/IntegerHelper.h"
+#include "BaseLib/TypeNames.h"
 #include "ImageResampleChannel.h"
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool ImageResampleIsBitty(EPrimitiveType eType)
-{
-	switch (eType)
-	{
-	case PT_bit:
-	case PT_crumb:
-	case PT_tribble:
-	case PT_nybble:
-	case PT_nickle:
-	case PT_sixbits:
-		return true;
-	default:
-		return false;
-	}
-}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -94,28 +73,13 @@ bool ImageResampleGetRange(EPrimitiveType eType, float64* pfMinimum, float64* pf
 		*pbFloat = true;
 		return true;
 	case PT_bit:
-		*pfMinimum = 0.0;
-		*pfMaximum = 1.0;
-		return true;
 	case PT_crumb:
-		*pfMinimum = 0.0;
-		*pfMaximum = 3.0;
-		return true;
 	case PT_tribble:
-		*pfMinimum = 0.0;
-		*pfMaximum = 7.0;
-		return true;
 	case PT_nybble:
-		*pfMinimum = 0.0;
-		*pfMaximum = 15.0;
-		return true;
 	case PT_nickle:
-		*pfMinimum = 0.0;
-		*pfMaximum = 31.0;
-		return true;
 	case PT_sixbits:
 		*pfMinimum = 0.0;
-		*pfMaximum = 63.0;
+		*pfMaximum = (float64)((1 << gcTypeNames.GetBitSize(eType)) - 1);
 		return true;
 	default:
 		return false;
@@ -132,16 +96,11 @@ bool CImageResampleChannel::Init(Ptr<CImage> pcImage, size uiChannelIndex)
 	mpcChannels = pcImage->GetChannels();
 	mpcChannel = pcImage->GetChannelAtIndex(uiChannelIndex);
 	muiNumPixels = (size)pcImage->GetWidth() * (size)pcImage->GetHeight();
-	mpuiData = (uint8*)pcImage->GetData();
-	muiByteStride = mpcChannels->GetByteStride();
-	muiBitStride = mpcChannels->GetBitStride();
 
 	if ((mpcChannel == NULL) || mpcChannel->bReverse || !ImageResampleGetRange(mpcChannel->eType, &mfMinimum, &mfMaximum, &mbFloat))
 	{
 		return false;
 	}
-
-	mbAligned = !ImageResampleIsBitty(mpcChannel->eType) && (mpcChannel->miByteOffset != CHANNEL_NON_ALIGNED_BYTES) && (muiByteStride != 0);
 	return true;
 }
 
@@ -176,6 +135,18 @@ bool CImageResampleChannel::IsSupported(Ptr<CImage> pcImage)
 		cChannel.Kill();
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if every channel of both images can be resampled and they have
+// the same number of channels.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageResampleChannel::CanResample(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
+{
+	return IsSupported(pcSource) && IsSupported(pcDest) && (pcSource->NumChannels() == pcDest->NumChannels());
 }
 
 
@@ -228,41 +199,6 @@ float64 CImageResampleChannel::GetMaximum(void)
 size CImageResampleChannel::NumPixels(void)
 {
 	return muiNumPixels;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CImageResampleChannel::GetRaw(size uiPixel, void* pvDest)
-{
-	if (mbAligned)
-	{
-		memcpy(pvDest, &mpuiData[uiPixel * muiByteStride + mpcChannel->miByteOffset], mpcChannel->miByteSize);
-	}
-	else
-	{
-		memset(pvDest, 0, sizeof(uint64));
-		CopyBits(pvDest, 0, mpuiData, uiPixel * muiBitStride + mpcChannel->miBitOffset, mpcChannel->miBitSize, true);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CImageResampleChannel::SetRaw(size uiPixel, void* pvSource)
-{
-	if (mbAligned)
-	{
-		memcpy(&mpuiData[uiPixel * muiByteStride + mpcChannel->miByteOffset], pvSource, mpcChannel->miByteSize);
-	}
-	else
-	{
-		CopyBits(mpuiData, uiPixel * muiBitStride + mpcChannel->miBitOffset, pvSource, 0, mpcChannel->miBitSize, false);
-	}
 }
 
 
@@ -400,7 +336,7 @@ void CImageResampleChannel::GetIntegers(int32* paiDest)
 
 	for (uiPixel = 0; uiPixel < muiNumPixels; uiPixel++)
 	{
-		GetRaw(uiPixel, &ulliRaw);
+		mpcChannels->GetNative(uiPixel, mpcChannel, &ulliRaw);
 		paiDest[uiPixel] = ToInteger(&ulliRaw);
 	}
 }
@@ -433,7 +369,7 @@ void CImageResampleChannel::SetIntegers(int32* paiSource)
 		}
 		ulliRaw = 0;
 		FromInteger(iValue, &ulliRaw);
-		SetRaw(uiPixel, &ulliRaw);
+		mpcChannels->SetNative(uiPixel, mpcChannel, &ulliRaw);
 	}
 }
 
@@ -449,7 +385,7 @@ void CImageResampleChannel::GetFloats(float64* pafDest)
 
 	for (uiPixel = 0; uiPixel < muiNumPixels; uiPixel++)
 	{
-		GetRaw(uiPixel, &ulliRaw);
+		mpcChannels->GetNative(uiPixel, mpcChannel, &ulliRaw);
 		pafDest[uiPixel] = ToFloat(&ulliRaw);
 	}
 }
@@ -468,7 +404,7 @@ void CImageResampleChannel::SetFloats(float64* pafSource)
 	{
 		ulliRaw = 0;
 		FromFloat(pafSource[uiPixel], &ulliRaw);
-		SetRaw(uiPixel, &ulliRaw);
+		mpcChannels->SetNative(uiPixel, mpcChannel, &ulliRaw);
 	}
 }
 

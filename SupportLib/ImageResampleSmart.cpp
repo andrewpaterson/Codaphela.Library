@@ -248,7 +248,7 @@ bool ResampleSmart(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 	size					uiDestPixel;
 	bool					bResult;
 
-	if (!CImageResampleChannel::IsSupported(pcSource) || !CImageResampleChannel::IsSupported(pcDest) || (pcSource->NumChannels() != pcDest->NumChannels()))
+	if (!CImageResampleChannel::CanResample(pcSource, pcDest))
 	{
 		return false;
 	}
