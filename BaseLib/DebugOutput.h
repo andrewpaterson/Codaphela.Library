@@ -39,5 +39,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #endif // LINUX_GNU
 
 
+#ifdef __65C64__
+#define EngineOutput(p)	printf("%s", p)
+#endif // __65C64__
+
+
 #endif // __DEBUG_OUTPUT_H__
 
