@@ -136,6 +136,8 @@ SCPP65Type* CCPP65Generator::Evaluate(CCPPSyntax* pcExpression)
 		return SizeofExpression(pcExpression);
 	case CPPS_NewExpression:
 		return NewExpression((CCPPSyntaxNewExpression*)pcExpression);
+	case CPPS_DeleteExpression:
+		return DeleteExpression((CCPPSyntaxDeleteExpression*)pcExpression);
 	default:
 		Error(pcExpression, "This expression is not supported by the 65C64 generator yet");
 		return NULL;
@@ -1312,55 +1314,282 @@ SCPP65Type* CCPP65Generator::SizeofExpression(CCPPSyntax* pcSizeof)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// new(address) Type constructs at address and gives it as a Type*.  There is no
-// heap yet, so new without a placement is not supported.
+// new(address) Type constructs at address and gives it as a Type*.  new Type and
+// new Type[count] get their memory from the global operator new and operator new[]
+// (Libc65's new.cpp, over malloc), then construct in it.  An array of objects that
+// need destroying has its count in the 4 bytes before its first element, for
+// delete[].
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Generator::NewExpression(CCPPSyntaxNewExpression* pcNew)
 {
 	SCPP65Type*		psType;
 	SCPP65Type*		psAddress;
-	SCPP65Place		sPlace;
 
-	if (!pcNew->mbPlacement || (pcNew->macpPlacement.NumElements() != 1) || (pcNew->macpArraySizes.NumElements() != 0))
+	if (pcNew->mbPlacement && ((pcNew->macpPlacement.NumElements() != 1) || (pcNew->macpArraySizes.NumElements() != 0)))
 	{
-		Error(pcNew, "Only placement new is supported by the 65C64 generator yet");
+		Error(pcNew, "Only new(address) Type is supported for placement new by the 65C64 generator yet");
 		return NULL;
 	}
 	psType = GetTypeIdType(pcNew->mpcType);
-	if (!psType)
+	if (!psType || (psType->IsClass() && !CompleteClass(psType->psClass, pcNew)))
 	{
 		return NULL;
 	}
-	psAddress = Expression(pcNew->macpPlacement.GetPtr(0));
-	if (!psAddress)
+	if (pcNew->macpArraySizes.NumElements() > 0)
 	{
-		return NULL;
-	}
-	if (!psAddress->IsPointer())
-	{
-		Error(pcNew, "Placement new needs an address");
-		return NULL;
+		return NewArray(pcNew, psType);
 	}
 
-	sPlace.eKind = CPP65PK_Address;
-	sPlace.psType = psType;
-	sPlace.iOffset = 0;
-	sPlace.lliName = -1;
-	sPlace.iString = -1;
-	sPlace.bInternal = false;
-	sPlace.psClass = NULL;
+	if (pcNew->mbPlacement)
+	{
+		psAddress = Expression(pcNew->macpPlacement.GetPtr(0));
+		if (!psAddress)
+		{
+			return NULL;
+		}
+		if (!psAddress->IsPointer())
+		{
+			Error(pcNew, "Placement new needs an address");
+			return NULL;
+		}
+	}
+	else
+	{
+		Line("cpy A, ")->Append(psType->iBytes)->AppendNewLine();
+		Push("A");
+		CallRuntime("opNew", 4);
+	}
+
 	if (psType->IsClass() || pcNew->mpcInitializer)
 	{
 		//The address is kept on the stack: constructing uses A.
+		if (!ConstructAtA(psType, pcNew->mpcInitializer, pcNew))
+		{
+			return NULL;
+		}
+	}
+	return mcTypes.Pointer(psType);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Constructs a psType at the address in A (from pcInitialiser, or by default), and
+// leaves the address in A.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::ConstructAtA(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode)
+{
+	SCPP65Place		sPlace;
+
+	AddressPlace(&sPlace, psType);
+	Push("A");
+	if (!Construct(&sPlace, NULL, pcInitialiser, pcNode))
+	{
+		return false;
+	}
+	Pull("A");
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A place whose address is in A.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AddressPlace(SCPP65Place* psPlace, SCPP65Type* psType)
+{
+	psPlace->eKind = CPP65PK_Address;
+	psPlace->psType = psType;
+	psPlace->iOffset = 0;
+	psPlace->lliName = -1;
+	psPlace->iString = -1;
+	psPlace->bInternal = false;
+	psPlace->psClass = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// new Type[count]: count elements from operator new[], constructed by default first
+// to last.  A class that needs destroying has the count in front of the elements.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType)
+{
+	SCPP65Type*		psCount;
+	bool			bCookie;
+	bool			bConstruct;
+	int				iLoop;
+	int				iDone;
+	int				iCountDepth;
+
+	if ((pcNew->macpArraySizes.NumElements() != 1) || (pcNew->mpcInitializer && (pcNew->mpcInitializer->GetKind() != CPPS_ParenthesisedInitializer)))
+	{
+		Error(pcNew, "Only new Type[count] (one dimension, no initialiser list) is supported by the 65C64 generator yet");
+		return NULL;
+	}
+	if (pcNew->mpcInitializer && psType->IsScalar())
+	{
+		Error(pcNew, "new Type[count]() is not supported by the 65C64 generator yet");
+		return NULL;
+	}
+	bCookie = psType->IsClass() && psType->psClass->psDestructor;
+	bConstruct = psType->IsClass() && NeedsConstructor(psType->psClass);
+
+	psCount = Expression(pcNew->macpArraySizes.GetPtr(0));
+	if (!psCount || !Convert(psCount, &mcTypes.msUnsignedInt, pcNew))
+	{
+		return NULL;
+	}
+
+	//The count stays on the stack; the bytes are count x size (+ 4 for the count).
+	Push("A");
+	iCountDepth = miDepth;
+	Scale("A", psType->iBytes);
+	if (bCookie)
+	{
+		Line("add A, 4")->AppendNewLine();
+	}
+	Push("A");
+	CallRuntime("opNewArray", 4);
+	if (bCookie)
+	{
+		Line("cpy B, [")->Append(1 + miDepth - iCountDepth)->Append(" + S]")->AppendNewLine();
+		Line("cpy [A], B")->AppendNewLine();
+		Line("add A, 4")->AppendNewLine();
+	}
+
+	if (bConstruct)
+	{
+		//The first element's address stays on the stack; A walks the elements while the count goes down.
+		iLoop = NewLabel();
+		iDone = NewLabel();
 		Push("A");
-		if (!Construct(&sPlace, NULL, pcNew->mpcInitializer, pcNew))
+		Label(iLoop);
+		Line("cpy B, [")->Append(1 + miDepth - iCountDepth)->Append(" + S]")->AppendNewLine();
+		Line("cmp B, 0")->AppendNewLine();
+		Line("bras z, ");
+		AppendLabel(mpszOut, iDone);
+		mpszOut->AppendNewLine();
+		Line("sub B, 1")->AppendNewLine();
+		Line("cpy [")->Append(1 + miDepth - iCountDepth)->Append(" + S], B")->AppendNewLine();
+		Push("A");
+		if (!ConstructAtA(psType, NULL, pcNew))
 		{
 			return NULL;
 		}
 		Pull("A");
+		Line("add A, ")->Append(psType->iBytes)->AppendNewLine();
+		Line("bra ");
+		AppendLabel(mpszOut, iLoop);
+		mpszOut->AppendNewLine();
+		Label(iDone);
+		Pull("A");
 	}
+	Line("add S, 4")->AppendNewLine();
+	miDepth -= 4;
 	return mcTypes.Pointer(psType);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// delete pointer destroys the object (through its virtual destructor if it has one)
+// and gives its memory to the global operator delete.  delete[] pointer destroys the
+// elements last first (their count is in front of them) and gives the memory to
+// operator delete[].  Deleting a null pointer does nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete)
+{
+	SCPP65Type*		psPointer;
+	SCPP65Type*		psType;
+	SCPP65Place		sPlace;
+	int				iDone;
+	int				iLoop;
+	int				iEnd;
+	int				iPointerDepth;
+
+	psPointer = Expression(pcDelete->mpcOperand);
+	if (!psPointer)
+	{
+		return NULL;
+	}
+	if (!psPointer->IsPointer())
+	{
+		Error(pcDelete, "delete needs a pointer");
+		return NULL;
+	}
+	psType = psPointer->psBase;
+	if (psType->IsClass() && !CompleteClass(psType->psClass, pcDelete))
+	{
+		return NULL;
+	}
+
+	iDone = NewLabel();
+	Line("cmp A, 0")->AppendNewLine();
+	Line("bras z, ");
+	AppendLabel(mpszOut, iDone);
+	mpszOut->AppendNewLine();
+
+	if (!pcDelete->mbArray)
+	{
+		if (psType->IsClass() && psType->psClass->psDestructor)
+		{
+			AddressPlace(&sPlace, psType);
+			Push("A");
+			if (!CallMember(psType->psClass->psDestructor, &sPlace, NULL, true, pcDelete))
+			{
+				return NULL;
+			}
+			Pull("A");
+		}
+		Push("A");
+		CallRuntime("opDelete", 4);
+	}
+	else
+	{
+		if (psType->IsClass() && psType->psClass->psDestructor)
+		{
+			//A walks back from the end of the elements; the pointer to the count is kept.
+			Line("sub A, 4")->AppendNewLine();
+			Push("A");
+			iPointerDepth = miDepth;
+			Line("cpy B, [A]")->AppendNewLine();
+			Scale("B", psType->iBytes);
+			Line("add A, 4")->AppendNewLine();
+			Line("add A, B")->AppendNewLine();
+			iLoop = NewLabel();
+			iEnd = NewLabel();
+			Label(iLoop);
+			Line("cpy B, [")->Append(1 + miDepth - iPointerDepth)->Append(" + S]")->AppendNewLine();
+			Line("add B, 4")->AppendNewLine();
+			Line("cmp A, B")->AppendNewLine();
+			Line("bras z, ");
+			AppendLabel(mpszOut, iEnd);
+			mpszOut->AppendNewLine();
+			Line("sub A, ")->Append(psType->iBytes)->AppendNewLine();
+			AddressPlace(&sPlace, psType);
+			Push("A");
+			if (!CallMember(psType->psClass->psDestructor, &sPlace, NULL, false, pcDelete))
+			{
+				return NULL;
+			}
+			Pull("A");
+			Line("bra ");
+			AppendLabel(mpszOut, iLoop);
+			mpszOut->AppendNewLine();
+			Label(iEnd);
+			Pull("A");
+		}
+		Push("A");
+		CallRuntime("opDeleteArray", 4);
+	}
+	Label(iDone);
+	return &mcTypes.msVoid;
 }
 
 
