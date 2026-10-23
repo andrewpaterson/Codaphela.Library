@@ -1,0 +1,267 @@
+65C64 code generator
+====================
+
+CCPP65Generator turns a parsed translation unit (CCPPSyntaxTree) into 65C64 assembly
+for Assembler65Lib (syntax in Assembler65Lib/Assembler65Syntax.txt).  It is the first
+back end of the C++ parser.  Usage:
+
+	CCPP65Generator	cGenerator;
+
+	cGenerator.Init(&cTree);
+	if (cGenerator.Generate(&szAssembly))		//Appends the functions, runtime routines and data.
+	{
+		...
+	}
+	cGenerator.GetErrors();						//"line:column: message 'token'" lines.
+	cGenerator.Kill();
+
+Generate writes the translation unit only.  GenerateProgram puts the start up in front
+of it (the tests use GenerateProgram):
+
+		.org $10000
+	Start:
+		cpy S, $1fffff
+		cpy W, 0
+		wtth (A, B), 4
+		wtth (X, Y), 4
+		jsr _main
+		stp
+
+main's result is in A when the processor stops.  The reset vector is left to the
+loader.
+
+Files: CPP65Generator.cpp (declarations, functions, statements),
+CPP65GeneratorExpressions.cpp (expressions, places, constants) and CPP65Type.cpp (types).
+
+The memory map, register widths, argument sizes, W, V and this below are the user's
+(2026-10-23), as is cmp setting v like sub.  The rest are my choices.
+
+
+Memory map (the user, 2026-10-23)
+---------------------------------
+
+	0000:0000 - 0000:FFFF	pseudo registers and scratch memory, addressed from W
+							(the compiler's temporaries are the first $100 bytes)
+	0001:0000				programs start here (code, then data)
+	001F:FFFC				the stack starts here and works down
+
+The stack is post decrement (a push stores at S - n + 1 ... S, then S -= n), so the
+start up sets S to 001F:FFFF and the first 4 bytes pushed are at 001F:FFFC, 4 byte
+aligned.  My reading of "start at 0x1FFFFC, 4 byte aligned": S = 001F:FFFC would put
+the first 4 byte push at 001F:FFF9.
+
+
+Types
+-----
+
+	char				1 byte, signed (as MSVC)
+	short				2 bytes
+	int, long			4 bytes (long is 4 bytes, as on Windows)
+	bool				1 byte, 0 or 1
+	wchar_t, char16_t	2 bytes, unsigned
+	pointers			4 bytes (the address bus is 32 bits)
+	enums				int
+
+Values are kept in registers 32 bits wide, sign or zero extended from their type.
+
+
+Registers (the user, 2026-10-23)
+--------------------------------
+
+A, B, X and Y stay 32 bits wide.  The widths only change where they must: Y is
+narrowed to read, write or push a 1 or 2 byte value and set back straight after.
+64 bit arithmetic will widen them when long long is supported.
+
+		wth Y, 1
+		cpy Y, [13 + V]
+		cpy A, Y:s			; sign extend a char
+		wth Y, 4
+
+Narrowing a value in a register keeps the registers 32 bits wide:
+
+		and A, 255			; (unsigned char)
+		xor A, 128			; (char): flip the sign bit and subtract it
+		sub A, 128
+
+An expression's value ends in A.  A binary operator has its left operand in A and its
+right in B, a constant (add A, 3) or a pseudo register (cmp A, [4 + W]).
+
+W points at the pseudo registers, like the 6502's zero page and the 65816's direct
+page, and is only changed around mul and div (which count in W from 0):
+
+		psh W
+		cpy W, 0
+		mul
+		pul W
+
+When neither operand of a binary operator is simple (a constant or a variable), the
+right is worked out first and kept in the next free pseudo register while the left is:
+
+		cpy [0 + W], A
+		...					; the left operand
+		add A, [0 + W]
+
+Pseudo registers are scratch: a call can use them, so when the left operand calls a
+function the right is pushed on the stack instead.  The runtime routines don't use them.
+
+V is the frame pointer.  X is a scratch register (addresses being stored through).
+
+
+Calling convention
+------------------
+
+- Arguments are pushed on the stack last first, each at its own size (the user: a 16
+  bit number is pushed as 16 bits), and removed by the caller with add S, bytes.  An
+  argument is converted to its parameter's type first.  Arguments are not aligned.
+- jsr pushes the return address (4 bytes).
+- A function with locals or parameters keeps the caller's V on the stack and points
+  V at its frame:
+
+	_name:
+			psh V
+			sub S, frame
+			cpy V, S
+			...
+	Lreturn:
+			add S, frame
+			pul V
+			ret
+
+- The result is in A.
+- V, W and S are kept by a call; A, B, X, Y and the pseudo registers may change.
+
+Places from V (they don't move when values are pushed):
+
+	[1 + local + V]						a local
+	[1 + frame + V]						the caller's V
+	[1 + frame + 4 + V]					the return address
+	[1 + frame + 8 + n + V]				the argument n bytes after the first
+
+The frame is the locals, each aligned to its size (4 at most), rounded up to 4 bytes.
+Every local in the function has its own place; blocks do not share places yet.
+add, sub and cmp can't address memory with V (only W, X and Y), so a local used as a
+right operand is loaded into B first.
+
+C++ names are labels with an underscore in front (_main, _gTable).  Members are
+_Class__name, constructors _Class__0, destructors _Class__1 and vtables _Class__2;
+an overload has __n on the end (_Counter__0__1 is the second constructor).  C++ names
+cannot contain __ or start with a digit, so these cannot clash.  Generated labels are
+L and a number, string literals Str and a number, and runtime routines start with R_.
+
+
+Instructions used for operators
+-------------------------------
+
+	+ - & | ^			add sub and or xor
+	*					mul (A x B -> Y), keeping W
+	/ % unsigned		cpy Y, A / cpy A, B / cpy B, 0 / div (Y / A -> Y, remainder in B), keeping W
+	/ % signed			jsr R_DivideSigned (only added when used): divides the absolute values
+						and fixes the signs (quotient negative if the signs differ, remainder
+						with the dividend's sign)
+	<< >> unsigned		shl shr
+	>> signed			shr is logical, so a negative value is inverted, shifted and inverted back
+	- ~					neg A, A / xor A, -1
+	== != < <= > >=		cmp then bras / brac on z or c (unsigned), braso (n, v) (signed)
+	&& || !				branches, the right operand only when needed
+	pointer + n			n is scaled by the size pointed to (shl, or mul for other sizes)
+	pointer - pointer	divided by the size pointed to
+
+There is no branch on n = v, so "branch if signed greater or equal" branches over a bra:
+
+		braso (n, v), L5
+		bra L2
+	L5:
+
+Loops test their condition at the bottom.  A switch compares the value with each case
+in turn.
+
+
+Supported
+---------
+
+- Functions with int, unsigned, char, short, bool, enum and pointer parameters and
+  results (and void).  Recursion.
+- Global variables and arrays with constant initialisers, string initialisers for char
+  arrays, and arrays sized by their initialiser.  extern declarations.
+- Local variables and arrays (initialiser lists, strings), condition declarations
+  (if (int x = f())).
+- Statements: compound, expression, if, while, do, for, switch / case / default,
+  break, continue, return.
+- Expressions: all the integer operators, assignment and compound assignment, ++ and --,
+  ?:, the comma operator, calls by name, [] (either way round), * and &, casts (C style,
+  static_cast, reinterpret_cast, const_cast, int(x)), sizeof, enumerators, string literals.
+- Constant expressions (array sizes, case labels, global initialisers) include
+  enumerators, const int variables, casts and sizeof.
+- Overloaded functions, chosen by the number of arguments and how well their types
+  match (the same type, then integer to integer, then related pointers).
+- Classes and structs: see Classes below.
+
+
+Not supported yet
+-----------------
+
+Each gives an error "... is not supported by the 65C64 generator yet".
+
+- long long and 64 bit integers (the registers can do it: the widths would have to be
+  tracked), float and double.
+- Unions, references, new and delete, operators, conversion functions, nested and
+  local classes, multiple and virtual inheritance.
+- Objects passed or returned by value (use pointers), temporary objects, user copy
+  constructors.
+- Namespaces, templates, default arguments, function pointers, variadic functions.
+- static and extern local variables, goto and labels, joined and wide string literals.
+
+
+this (the user, 2026-10-23)
+--------------------------
+
+V is the frame of the function's locals and arguments (S can't be: it moves as values
+are pushed).  this is in X.
+
+
+Classes
+-------
+
+Layout: the base class first, then the vtable pointer (4 bytes, when the class is the
+first polymorphic one in its chain: a vtable pointer added to a class with a
+non-polymorphic base goes after the base), then the fields, each aligned to its size
+(4 at most).  So a Derived* is a Base* without adjusting it.  An empty class is 1 byte.
+
+Member functions get this in X.  A non-static member function keeps it at the bottom
+of its frame (cpy [1 + V], X) and loads X again from there when something else has
+used X: a call, a store through a pointer, or a label (code can arrive from anywhere).
+Fields are [offset + X], so add, sub and cmp can use them directly.  Callers don't
+keep X: it is not preserved by calls.
+
+		cpy A, [9 + V]			; p
+		cpy X, A
+		jsr _Point__Move		; p->Move(...), not virtual
+		cpy A, [0 + X]			; the vtable pointer
+		jsr [4 * slot + A]		; a virtual call
+
+Calls through a pointer, through this and implicit member calls are virtual; calls on
+an object variable (s.f()) and qualified calls (Base::f()) are not.  A function with
+the name and parameters of a base's virtual function overrides it (and is virtual); a
+destructor overrides a virtual base destructor.  Pure virtual functions are R_Pure in
+the vtable, which stops the processor.
+
+Constructors: the base (from the member initialiser list or its default constructor),
+the vtable pointer, then the fields in order (member initialiser, default member
+initialiser, or their own default constructor), then the body.  A class that needs
+any of that and declares no constructor gets one written for it.  A class without
+constructors can be initialised from {fields}.  Destructors run their body, then
+destroy the fields last first, then the base; they set the vtable pointer to their
+own class first.  A class gets a destructor when its base or a field has one.
+
+Objects:
+- Locals are constructed at their declaration and destroyed last first at the end of
+  their block, and by return, break and continue on their way out.  return works out
+  its value first and keeps it on the stack meanwhile.
+- Globals are zero data, constructed by R_Initialise before main and destroyed last
+  first by R_Finalise after it (GenerateProgram calls both, keeping main's result).
+- Assigning and initialising from another object copies it a word at a time through Y.
+  A copy from a derived class keeps the destination's vtable pointer.
+- An object used as a value is its address (so its type is known), but only pointers
+  to it can be passed or returned.
+- Static data members are globals (_Class__name), defined outside the class; static
+  member functions have no this.

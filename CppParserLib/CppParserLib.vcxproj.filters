@@ -88,8 +88,26 @@
     <Filter Include="Source\Highlighter">
       <UniqueIdentifier>{cb906e79-a865-4dbc-9756-6d39643d26bf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Generator65">
+      <UniqueIdentifier>{04554a32-72c1-4c6d-945d-e8c1bb332c1e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CPP65Generator.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
+    <ClCompile Include="CPP65GeneratorClasses.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
+    <ClCompile Include="CPP65GeneratorExpressions.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
+    <ClCompile Include="CPP65Type.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPErrors.cpp">
+      <Filter>Source\General</Filter>
+    </ClCompile>
     <ClCompile Include="CPPHighlighter.cpp">
       <Filter>Source\Highlighter</Filter>
     </ClCompile>
@@ -590,6 +608,15 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CPP65Generator.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPP65Type.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPErrors.h">
+      <Filter>Source\General</Filter>
+    </ClInclude>
     <ClInclude Include="CPPHighlighter.h">
       <Filter>Source\Highlighter</Filter>
     </ClInclude>
@@ -1077,5 +1104,10 @@
     <ClInclude Include="PreprocessorStack.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CPP65Generator.txt">
+      <Filter>Source\Generator65</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -124,6 +124,7 @@ void CPreprocessor::Kill(void)
 	mcDefines.Kill();
 	mcDefineReplacementMemory.Kill();
 	mcDefineStrings.Kill();
+	mcErrors.Kill();
 }
 
 
@@ -207,7 +208,7 @@ bool CPreprocessor::PushFile(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap)
 	{
 		szError.Init("#include nested too deeply including ");
 		szError.Append(pcFile->ShortName());
-		gcUserError.Set(&szError);
+		mcErrors.Add(GetFileName(), -1, -1, -1, szError.Text());
 		szError.Kill();
 		mbError = true;
 		return false;
@@ -273,7 +274,6 @@ bool CPreprocessor::PopSource(void)
 	SPPSource*					psSource;
 	CHeaderNameMapDirectory*	pcDirectory;
 	bool						bResult;
-	CChars						szError;
 
 	psSource = macSources.Tail();
 	if (!psSource)
@@ -288,10 +288,7 @@ bool CPreprocessor::PopSource(void)
 		{
 			if (!mbError)
 			{
-				szError.Init("Unterminated conditional directive in ");
-				szError.Append(psSource->pcFile->ShortName());
-				gcUserError.Set(&szError);
-				szError.Kill();
+				mcErrors.Add(psSource->pcFile->ShortName(), -1, -1, -1, "Unterminated conditional directive.");
 			}
 			while (mcConditionalStack.mcStack.NumElements() > psSource->iConditionalDepth)
 			{
@@ -783,6 +780,7 @@ void CPreprocessor::Init(CConfig* pcConfig)
 	mbDefinedOperand = false;
 	mbError = false;
 	miCounter = 0;
+	mcErrors.Init();
 	mcHeaderNames.Init();
 
 	AddSpecialDefine("__DATE__");
@@ -964,7 +962,6 @@ bool CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 	size					iReplacementNum;
 	bool					bVariadic;
 	SPreprocessorPosition	sPos;
-	CChars					szError;
 	CPPTokenMemory*			pcTokenMemory;
 
 	MarkPositionForError(pcParser, &sPos);
@@ -1034,9 +1031,7 @@ bool CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 	}
 	else
 	{
-		sPos.Message(&szError);
-		szError.Append("Expected identifier");
-		return gcUserError.Set(&szError);
+		return Error(&sPos, "Expected identifier");
 	}
 }
 
@@ -1051,7 +1046,6 @@ bool CPreprocessor::ProcessHashDefineBracketted(CPreprocessorTokenParser* pcPars
 	bool					bResult;
 	bool					bVariadicFound;
 	SPreprocessorPosition	sPos;
-	CChars					szError;
 
 	bVariadicFound = false;
 	pcDefine->SetBracketed(true);
@@ -1065,9 +1059,7 @@ bool CPreprocessor::ProcessHashDefineBracketted(CPreprocessorTokenParser* pcPars
 
 		if (bVariadicFound)
 		{
-			sPos.Message(&szError);
-			szError.Append("Expected ')' after \"...\".");
-			return gcUserError.Set(&szError);
+			return Error(&sPos, "Expected ')' after \"...\".");
 		}
 
 		bResult = pcParser->GetExactDecorator("...");
@@ -1098,9 +1090,7 @@ bool CPreprocessor::ProcessHashDefineBracketted(CPreprocessorTokenParser* pcPars
 			}
 			else
 			{
-				sPos.Message(&szError);
-				szError.Append("Expected identifier.");
-				return gcUserError.Set(&szError);
+				return Error(&sPos, "Expected identifier.");
 			}
 		}
 	}
@@ -1413,11 +1403,12 @@ bool CPreprocessor::ProcessHashUnknown(CPPDirective* pcDirective)
 
 	//Unknown directives are only an error when they are not skipped by a conditional.
 	MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
-	sPos.Message(&szError);
-	szError.Append("Unknown directive #");
+	szError.Init("Unknown directive #");
 	pcDirective->GetTokenList()->Print(&szError);
 	szError.StripWhitespace(true);
-	return gcUserError.Set(&szError);
+	Error(&sPos, szError.Text());
+	szError.Kill();
+	return false;
 }
 
 
@@ -2460,29 +2451,48 @@ void CPreprocessor::AddNumber(int64 lliValue, SPreprocessedToken* psPosition, CA
 //////////////////////////////////////////////////////////////////////////
 bool CPreprocessor::Error(SPreprocessedToken* psToken, char* szMessage)
 {
-	CChars	sz;
+	CChars	szDetail;
 
-	sz.Init();
+	//Preprocessor errors have no token index: the token may not be in the output.
+	szDetail.Init();
+	if (psToken)
+	{
+		psToken->Append(&szDetail);
+	}
 	if (psToken && psToken->pcFile)
 	{
-		sz.Append(psToken->pcFile->ShortName());
-		sz.Append(" (");
-		sz.Append(psToken->iLine + 1);
-		sz.Append(", ");
-		sz.Append(psToken->iColumn + 1);
-		sz.Append("): ");
+		mcErrors.Add(psToken->pcFile->ShortName(), psToken->iLine, psToken->iColumn, -1, szMessage, szDetail.Text());
 	}
 	else
 	{
-		sz.Append(GetFileName());
-		sz.Append(": ");
+		mcErrors.Add(GetFileName(), -1, -1, -1, szMessage, psToken ? szDetail.Text() : NULL);
 	}
-	sz.Append(szMessage);
-	gcUserError.Set(&sz);
-	sz.Kill();
+	szDetail.Kill();
 
 	mbError = true;
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CPreprocessor::Error(SPreprocessorPosition* psPosition, char* szMessage, char* szDetail)
+{
+	mcErrors.Add(psPosition->mszShortName, (int)psPosition->miLine, (int)psPosition->miColumn, -1, szMessage, szDetail);
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CCPPErrors* CPreprocessor::GetErrors(void)
+{
+	//The errors in all the translation units preprocessed so far.
+	return &mcErrors;
 }
 
 
@@ -2613,7 +2623,6 @@ bool CPreprocessor::ProcessConditional(CPPDirective* pcDirective)
 	SPPSource*					psSource;
 	size						iFileDepth;
 	SPreprocessorPosition		sPos;
-	CChars						szError;
 
 	//A conditional is inactive if the group it is in is skipped.  #elif, #else and #endif are in their #if's group.
 	if (pcDirective->Is(PPD_if) || pcDirective->Is(PPD_ifdef) || pcDirective->Is(PPD_ifndef))
@@ -2645,11 +2654,7 @@ bool CPreprocessor::ProcessConditional(CPPDirective* pcDirective)
 		{
 			cParser.Kill();
 			MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
-			sPos.Message(&szError);
-			szError.Append("Expected an identifier.");
-			gcUserError.Set(&szError);
-			szError.Kill();
-			return false;
+			return Error(&sPos, "Expected an identifier.");
 		}
 		cParser.Kill();
 
@@ -2687,11 +2692,7 @@ bool CPreprocessor::ProcessConditional(CPPDirective* pcDirective)
 	if (mcConditionalStack.mcStack.NumElements() <= iFileDepth)
 	{
 		MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
-		sPos.Message(&szError);
-		szError.Append("#elif, #else or #endif without #if.");
-		gcUserError.Set(&szError);
-		szError.Kill();
-		return false;
+		return Error(&sPos, "#elif, #else or #endif without #if.");
 	}
 
 	if (pcDirective->Is(PPD_elif))
@@ -2789,12 +2790,11 @@ TRISTATE CPreprocessor::EvaluateCondition(CPPDirective* pcDirective)
 	if (tResult == TRIERROR)
 	{
 		MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
-		sPos.Message(&szError);
-		szError.Append("Cannot evaluate \"");
+		szError.Init("Cannot evaluate \"");
 		szError.Append(sz);
 		szError.Append("\".  ");
 		szError.Append(szCalculatorError);
-		gcUserError.Set(szError.Text());
+		Error(&sPos, szError.Text());
 		szError.Kill();
 	}
 
@@ -3049,23 +3049,18 @@ bool CPreprocessor::ProcessHashInclude(CPPDirective* pcDirective, bool bNext)
 	if (!bResult)
 	{
 		szName.Kill();
-		sPos.Message(&szError);
-		szError.Append("Expected \"file\" or <file> after #include.");
-		gcUserError.Set(&szError);
-		szError.Kill();
-		return false;
+		return Error(&sPos, "Expected \"file\" or <file> after #include.");
 	}
 
 	cName.Init(szName.Text(), (int)szName.Length());
 	FindBestInclude(&cName, bSystem, &pcIncludeFile, &pcHeaderNameMap, bNext);
 	if (!pcIncludeFile)
 	{
-		sPos.Message(&szError);
-		szError.Append("Could not include file ");
+		szError.Init("Could not include file ");
 		szError.Append(bSystem ? '<' : '"');
 		szError.Append(szName);
 		szError.Append(bSystem ? '>' : '"');
-		gcUserError.Set(&szError);
+		Error(&sPos, szError.Text());
 		szError.Kill();
 		szName.Kill();
 		return false;
