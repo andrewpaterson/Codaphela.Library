@@ -562,7 +562,10 @@ bool CArrayCommonUnknown::Insert(size iIndex, CUnknown* pcUnknown)
 	}
 	mcArray.InsertAt(&pcUnknown, iIndex);
 	SetFlagShort(&muiFlags, ARRAY_COMMOM_IS_PTR_SORTED, false);
-	miNonNullElements++;
+	if (pcUnknown != NULL)
+	{
+		miNonNullElements++;
+	}
 	return true;
 }
 

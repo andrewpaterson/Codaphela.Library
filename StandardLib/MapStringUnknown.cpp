@@ -224,6 +224,16 @@ bool CMapStringUnknown::WriteData(CFileWriter* pcFile, void* pvData)
 		return false;
 	}
 
+	//A flag before the value says whether it is NULL.
+	bResult = pcFile->WriteBool(*ppcUnknown != NULL);
+	if (!bResult)
+	{
+		return false;
+	}
+	if (*ppcUnknown == NULL)
+	{
+		return true;
+	}
 	bResult = (*ppcUnknown)->SaveHeader(pcFile);
 	if (!bResult)
 	{
@@ -249,6 +259,7 @@ bool CMapStringUnknown::ReadData(CFileReader* pcFile, void* pvData)
 	void*		pvValue;
 	void*		pvKey;
 	bool		bResult;
+	bool		bValue;
 	SMNode*		psNode;
 
 	psNode = (SMNode*)pvData;
@@ -260,6 +271,16 @@ bool CMapStringUnknown::ReadData(CFileReader* pcFile, void* pvData)
 	}
 
 	ppcUnknownValue = (CUnknown**)pvValue;
+	bResult = pcFile->ReadBool(&bValue);
+	if (!bResult)
+	{
+		return false;
+	}
+	if (!bValue)
+	{
+		*ppcUnknownValue = NULL;
+		return true;
+	}
 	pcUnknownValue = gcUnknowns.AddFromHeader(pcFile);
 	if (!pcUnknownValue)
 	{
