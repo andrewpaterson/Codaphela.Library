@@ -66,3 +66,16 @@ us.stackdump
 /MicroprocessorLib/x64/Release/*
 /SupportLib/x64/Debug/*
 /SupportLib/x64/Release/*
+/CppParserLib/x64/Debug/*
+/CppParserLib/x64/Release/*
+/GerberLib/x64/Debug/*
+/GerberLib/x64/Release/*
+/InputLib/x64/Debug/*
+/InputLib/x64/Release/*
+/JavaParserLib/Release/*
+/JavaParserLib/x64/Debug/*
+/JavaParserLib/x64/Release/*
+/ThreadLib/x64/Release/*
+/WinInputLib/x64/Debug/*
+/WinInputLib/x64/Release/*
+/ThreadLib/x64/Debug/*
