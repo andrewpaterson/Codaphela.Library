@@ -39,6 +39,7 @@ public:
 
 	virtual void				RemoveFromOwner(void);
 	virtual bool				IsDriveEvent(void);
+	virtual bool				IsOutputEvent(void);
 
 			CLogicPort*			GetPort(void);
 			CIntegratedCircuit*	GetIntegratedCircuit(void);

@@ -27,6 +27,9 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //Logicim's Component, with CircuitElement and Described: something on a CCircuit with ports, either a
 //CIntegratedCircuit or a CPassive.  It is made in a CSubcircuitSimulation, through which it reaches its circuit and
 //timeline.  Init adds it to the circuit, which owns it.
+//
+//To take a component out of a running simulation, as Logicim's editor does, call Disconnect and DisconnectPorts, so
+//the ports on its traces see them go undriven, then remove it from the circuit and kill it.
 class CTimeline;
 class CPort;
 class CCircuit;
@@ -49,6 +52,8 @@ public:
 	virtual size					NumPorts(void) =0;
 	virtual CPort*					GetPort(size uiIndex) =0;
 	virtual CPort*					GetPort(const char* szName) =0;
+
+			void					DisconnectPorts(CTimeline* pcTimeline);
 
 	virtual char*					GetName(void);
 	virtual void					AppendDescription(CChars* psz);

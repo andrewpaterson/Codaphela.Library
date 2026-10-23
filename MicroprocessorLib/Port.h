@@ -30,6 +30,11 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //NewMalloc and its Init adds it to its holder, which owns it from then on and kills and frees it.  Killing a port
 //disconnects it from its trace, so ports are killed before their traces, see CCircuit.
 //
+//Connect builds a circuit before the simulation starts.  ConnectLive wires a port while it runs, as Logicim's editor
+//does: the port sees its trace's level, and if connecting it drives an undriven trace the other ports on the trace see
+//the new level too.  Disconnect, while it runs, is the reverse: if the trace was driven the port sees undriven, and if
+//disconnecting it leaves the trace undriven so do the trace's other ports.  Kill disconnects without telling anyone.
+//
 //Logicim's OutputPortHelper.getPortOutputVoltage is GetVoltageOut here: the voltage the port drives its trace with,
 //NaN for ports that don't drive.
 class CTimeline;
@@ -51,8 +56,10 @@ public:
 
 			bool			Connect(CTrace* pcTrace);
 			bool			Connect(CTrace* pcTrace, bool bExplicit);
+			bool			ConnectLive(CTrace* pcTrace, CTimeline* pcTimeline);
 	virtual void			Disconnect(CTimeline* pcTimeline);
 	virtual void			TraceConnected(CTimeline* pcTimeline);
+	virtual void			TraceUndriven(CTimeline* pcTimeline);
 	virtual void			Reset(void);
 
 	virtual bool			IsLogicPort(void);

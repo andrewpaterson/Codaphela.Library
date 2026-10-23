@@ -585,6 +585,75 @@
     <ClCompile Include="SubcircuitInstance.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
+    <ClCompile Include="AndGatePins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="AndLogic.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="AndGate.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="OrGatePins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="OrGate.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="XorGatePins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="XorGate.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="BufferPins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffer.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstantPins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstantState.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Constant.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ProbePins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Probe.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ClockOscillatorPins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ClockOscillatorState.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ClockOscillator.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="DTypeFlipFlopPins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="DTypeFlipFlopState.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="DTypeFlipFlop.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="CounterPins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="CounterState.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Counter.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="W65CCore.h">
@@ -1164,6 +1233,75 @@
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="SubcircuitInstance.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="AndGatePins.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="AndLogic.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="AndGate.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="OrGatePins.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="OrGate.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="XorGatePins.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="XorGate.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferPins.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstantPins.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstantState.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Constant.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ProbePins.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Probe.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ClockOscillatorPins.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ClockOscillatorState.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ClockOscillator.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="DTypeFlipFlopPins.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="DTypeFlipFlopState.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="DTypeFlipFlop.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="CounterPins.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="CounterState.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Counter.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
   </ItemGroup>

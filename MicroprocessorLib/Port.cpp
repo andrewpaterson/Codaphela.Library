@@ -20,6 +20,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
 #include "Voltage.h"
+#include "Timeline.h"
 #include "Trace.h"
 #include "PortHolder.h"
 #include "Port.h"
@@ -96,15 +97,96 @@ bool CPort::Connect(CTrace* pcTrace)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Connects the port while the simulation runs, as Logicim's editor does.
+// The port is told its trace is connected, so a logic port sees the
+// trace's level, low or high, or a slew in progress.  If the port drives
+// a trace that was undriven, the trace's other ports are told too, so
+// they see the new level and chips see their power arrive.  The other
+// ports on a trace that was already driven are left alone, so a clock
+// input doesn't see an edge that never happened.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPort::ConnectLive(CTrace* pcTrace, CTimeline* pcTimeline)
+{
+	int64	iTime;
+	float32	fVoltageBefore;
+	float32	fVoltageAfter;
+	size	i;
+	CPort*	pcOther;
+
+	iTime = pcTimeline->GetTime();
+	fVoltageBefore = NoVoltage();
+	if (pcTrace != NULL)
+	{
+		fVoltageBefore = pcTrace->GetVoltage(iTime);
+	}
+
+	if (!Connect(pcTrace))
+	{
+		return false;
+	}
+	TraceConnected(pcTimeline);
+
+	fVoltageAfter = mpcTrace->GetVoltage(iTime);
+	if (!IsVoltage(fVoltageBefore) && IsVoltage(fVoltageAfter))
+	{
+		for (i = 0; i < mpcTrace->NumConnectedPorts(); i++)
+		{
+			pcOther = mpcTrace->GetConnectedPort(i);
+			if (pcOther != this)
+			{
+				pcOther->TraceConnected(pcTimeline);
+			}
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CPort::Disconnect(CTimeline* pcTimeline)
 {
-	if (mpcTrace != NULL)
+	CTrace*	pcTrace;
+	int64	iTime;
+	float32	fVoltageBefore;
+
+	if (mpcTrace == NULL)
 	{
-		mpcTrace->Disconnect(this);
-		mpcTrace = NULL;
+		return;
 	}
+
+	pcTrace = mpcTrace;
+	iTime = pcTimeline->GetTime();
+	fVoltageBefore = pcTrace->GetVoltage(iTime);
+	pcTrace->Disconnect(this);
+	mpcTrace = NULL;
+
+	if (IsVoltage(fVoltageBefore))
+	{
+		if (!IsVoltage(pcTrace->GetVoltage(iTime)))
+		{
+			pcTrace->NotifyUndriven(pcTimeline, NULL);
+		}
+		TraceUndriven(pcTimeline);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The port's trace has stopped being driven, or the port has been
+// disconnected from a driven trace.  The holder is told through
+// TraceConnected, Logicim's hook for a change to a port's trace, as a
+// clock uses it to stop driving when its power goes.  CLogicPort
+// schedules a transition instead.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPort::TraceUndriven(CTimeline* pcTimeline)
+{
+	mpcHolder->TraceConnected(pcTimeline, this);
 }
 
 

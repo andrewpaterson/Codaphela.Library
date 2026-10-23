@@ -19,6 +19,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 ** ------------------------------------------------------------------------ **/
 #include "SubcircuitSimulation.h"
+#include "Port.h"
 #include "CircuitComponent.h"
 
 
@@ -42,6 +43,23 @@ void CCircuitComponent::Kill(void)
 {
 	mszName.Kill();
 	mpcContainingSubcircuitSimulation = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Disconnects every port, telling the ports on traces it leaves
+// undriven, as Logicim's Ports.disconnect.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitComponent::DisconnectPorts(CTimeline* pcTimeline)
+{
+	size	i;
+
+	for (i = 0; i < NumPorts(); i++)
+	{
+		GetPort(i)->Disconnect(pcTimeline);
+	}
 }
 
 

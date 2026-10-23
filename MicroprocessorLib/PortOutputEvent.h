@@ -31,6 +31,7 @@ CONSTRUCTABLE(CPortOutputEvent);
 public:
 	virtual float32		GetVoltage(int64 iTime) =0;
 	virtual void		CopyOutput(CPortOutput* pcOutput) =0;
+	virtual bool		IsOutputEvent(void) { return true; }
 };
 
 

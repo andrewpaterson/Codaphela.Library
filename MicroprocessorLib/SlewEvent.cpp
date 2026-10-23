@@ -23,6 +23,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #include "Voltage.h"
 #include "Timeline.h"
 #include "LogicPort.h"
+#include "Trace.h"
 #include "DriveEvent.h"
 #include "SlewEvent.h"
 
@@ -93,6 +94,11 @@ void CSlewEvent::Execute(CTimeline* pcTimeline)
 // port's later drives are replaced by one at the end of the slew, which
 // is returned.  NULL when the chip has no power.
 //
+// An undriven trace takes the new level at once: the slew starts at its
+// end voltage.  Logicim slews it up from the low voltage out, so an
+// undriven trace being driven high read low for a while, see
+// CLogicPort::TraceSlew.
+//
 //////////////////////////////////////////////////////////////////////////
 CDriveEvent* CSlewEvent::Update(CTimeline* pcTimeline)
 {
@@ -107,9 +113,16 @@ CDriveEvent* CSlewEvent::Update(CTimeline* pcTimeline)
 	fVcc = mpcPort->GetVCC(miTime);
 
 	iNowTime = pcTimeline->GetTime();
-	fStartVoltage = CalculateStartVoltage(iNowTime, pcVoltageConfiguration, fVcc);
-	fPortVoltage = CalculateVoltageAtTime(iNowTime, fStartVoltage);
-	mfStartVoltage = pcVoltageConfiguration->CalculateStartVoltage(fPortVoltage, fVcc);
+	if ((mpcPort->GetTrace() != NULL) && !IsVoltage(mpcPort->GetTrace()->GetVoltage(iNowTime)))
+	{
+		mfStartVoltage = mfEndVoltage;
+	}
+	else
+	{
+		fStartVoltage = CalculateStartVoltage(iNowTime, pcVoltageConfiguration, fVcc);
+		fPortVoltage = CalculateVoltageAtTime(iNowTime, fStartVoltage);
+		mfStartVoltage = pcVoltageConfiguration->CalculateStartVoltage(fPortVoltage, fVcc);
+	}
 
 	miSlewTime = CalculateSlewTime(pcVoltageConfiguration, fVcc);
 	if (miSlewTime == MAX_INT64)
