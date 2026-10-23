@@ -206,6 +206,8 @@
     <ClInclude Include="IndexObject.h" />
     <ClInclude Include="IndexUnknown.h" />
     <ClInclude Include="KillOrderCalculator.h" />
+    <ClInclude Include="Orderer.h" />
+    <ClInclude Include="OrdererHolder.h" />
     <ClInclude Include="MapEntry.h" />
     <ClInclude Include="MapObject.h" />
     <ClInclude Include="MapUnknownUnknown.h" />
@@ -338,6 +340,8 @@
     <ClCompile Include="IndexObject.cpp" />
     <ClCompile Include="IndexUnknown.cpp" />
     <ClCompile Include="KillOrderCalculator.cpp" />
+    <ClCompile Include="Orderer.cpp" />
+    <ClCompile Include="OrdererHolder.cpp" />
     <ClCompile Include="MapEntry.cpp" />
     <ClCompile Include="MapObject.cpp" />
     <ClCompile Include="MapUnknownUnknown.cpp" />
