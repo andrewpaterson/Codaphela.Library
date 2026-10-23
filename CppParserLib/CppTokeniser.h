@@ -26,6 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CppTokens.h"
 #include "CppToken.h"
 #include "PreprocessedTokens.h"
+#include "CPPErrors.h"
 
 
 typedef CArrayTemplatePtr<CCPPToken>	CCTArrayTokens;
@@ -42,6 +43,8 @@ public:
 	CMemoryStackExtended	mcStack;
 	CPreprocessedTokens*	mpcSource;
 	bool					mbError;
+	CCPPErrors				mcErrors;
+	int						miSource;			//The preprocessed token being tokenised.
 
 	int64					mlliOverride;
 	int64					mlliFinal;
@@ -57,6 +60,7 @@ public:
 	char*				GetIdentifier(int64 lliID, int* piLength = NULL);
 	char*				GetReservedWord(ECppTokens eToken);
 	void				Print(CChars* psz);
+	CCPPErrors*			GetErrors(void);
 
 protected:
 	void				Clear(void);

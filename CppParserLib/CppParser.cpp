@@ -409,13 +409,17 @@ bool CCPPParser::Error(char* szError)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Errors go to the syntax tree's list.  Errors in system headers are only counted
+// unless ReportSkimmedErrors asked for them.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPParser::ErrorAt(int iToken, char* szError)
 {
-	CChars				sz;
+	CChars				szMessage;
+	CChars				szDetail;
 	CCPPToken*			pcToken;
 	SPreprocessedToken*	psSource;
+	bool				bSkimmed;
 
 	if (miTentative > 0)
 	{
@@ -423,39 +427,36 @@ bool CCPPParser::ErrorAt(int iToken, char* szError)
 		return false;
 	}
 
-	sz.Init();
-	if (IsSkimming(iToken))
+	bSkimmed = IsSkimming(iToken);
+	if (bSkimmed)
 	{
 		miSkimmedErrors++;
 		if (!mbReportSkimmed)
 		{
-			sz.Kill();
 			return false;
 		}
-		sz.Append("(skimmed) ");
 	}
 
+	szMessage.Init(bSkimmed ? "(skimmed) " : "");
+	szMessage.Append(szError);
+	szDetail.Init();
 	pcToken = mpcTokeniser->Get(iToken);
 	psSource = pcToken ? mpcTokeniser->GetSource(pcToken) : NULL;
-	if (psSource && psSource->pcFile)
-	{
-		sz.Append(psSource->pcFile->ShortName());
-		sz.Append(" (");
-		sz.Append(psSource->iLine + 1);
-		sz.Append(", ");
-		sz.Append(psSource->iColumn + 1);
-		sz.Append("): ");
-	}
-	sz.Append(szError);
 	if (pcToken)
 	{
-		sz.Append("  [");
-		pcToken->Append(&sz, mpcTokeniser);
-		sz.Append("]");
+		pcToken->Append(&szDetail, mpcTokeniser);
 	}
-	mpcTree->AddError(iToken, sz.Text());
-	sz.Kill();
-	if (!IsSkimming(iToken))
+	if (psSource && psSource->pcFile)
+	{
+		mpcTree->GetErrors()->Add(psSource->pcFile->ShortName(), psSource->iLine, psSource->iColumn, iToken, szMessage.Text(), pcToken ? szDetail.Text() : NULL);
+	}
+	else
+	{
+		mpcTree->GetErrors()->Add(NULL, -1, -1, iToken, szMessage.Text(), pcToken ? szDetail.Text() : NULL);
+	}
+	szDetail.Kill();
+	szMessage.Kill();
+	if (!bSkimmed)
 	{
 		miErrors++;
 	}

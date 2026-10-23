@@ -55,8 +55,7 @@ protected:
 	CCPPSyntaxMemory			mcMemory;
 	CCPPSymbolTable				mcSymbols;
 	CCPPSyntaxTranslationUnit*	mpcRoot;
-	CArrayChars					maszErrors;
-	CArrayInt					maiErrorTokens;
+	CCPPErrors					mcErrors;
 	CArrayTokenSymbols			masTokenSymbols;
 
 public:
@@ -69,7 +68,7 @@ public:
 	CCPPSyntaxTranslationUnit*	GetRoot(void);
 	void						SetRoot(CCPPSyntaxTranslationUnit* pcRoot);
 
-	void						AddError(int iToken, char* szError);
+	CCPPErrors*					GetErrors(void);
 	size						NumErrors(void);
 	char*						GetError(size iIndex);
 	int							GetErrorToken(size iIndex);

@@ -34,8 +34,7 @@ void CCPPSyntaxTree::Init(CCPPTokeniser* pcTokeniser)
 	mcMemory.Init(this);
 	mcSymbols.Init();
 	mpcRoot = NULL;
-	maszErrors.Init();
-	maiErrorTokens.Init();
+	mcErrors.Init();
 
 	masTokenSymbols.Init();
 	uiNumTokens = pcTokeniser->NumTokens();
@@ -54,8 +53,7 @@ void CCPPSyntaxTree::Init(CCPPTokeniser* pcTokeniser)
 void CCPPSyntaxTree::Kill(void)
 {
 	masTokenSymbols.Kill();
-	maiErrorTokens.Kill();
-	maszErrors.Kill();
+	mcErrors.Kill();
 	mpcRoot = NULL;
 	mcSymbols.Kill();
 	mcMemory.Kill();
@@ -115,12 +113,12 @@ void CCPPSyntaxTree::SetRoot(CCPPSyntaxTranslationUnit* pcRoot)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The parser's errors.  Their tokens are C++ token indices.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxTree::AddError(int iToken, char* szError)
+CCPPErrors* CCPPSyntaxTree::GetErrors(void)
 {
-	maszErrors.Add(szError);
-	maiErrorTokens.Add(iToken);
+	return &mcErrors;
 }
 
 
@@ -130,7 +128,7 @@ void CCPPSyntaxTree::AddError(int iToken, char* szError)
 //////////////////////////////////////////////////////////////////////////
 size CCPPSyntaxTree::NumErrors(void)
 {
-	return maszErrors.NumElements();
+	return mcErrors.NumErrors();
 }
 
 
@@ -140,7 +138,7 @@ size CCPPSyntaxTree::NumErrors(void)
 //////////////////////////////////////////////////////////////////////////
 char* CCPPSyntaxTree::GetError(size iIndex)
 {
-	return maszErrors.GetText(iIndex);
+	return mcErrors.Get(iIndex);
 }
 
 
@@ -150,7 +148,7 @@ char* CCPPSyntaxTree::GetError(size iIndex)
 //////////////////////////////////////////////////////////////////////////
 int CCPPSyntaxTree::GetErrorToken(size iIndex)
 {
-	return maiErrorTokens.GetValue(iIndex);
+	return mcErrors.GetToken(iIndex);
 }
 
 

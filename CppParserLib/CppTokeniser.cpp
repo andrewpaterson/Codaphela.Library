@@ -258,6 +258,8 @@ void CCPPTokeniser::Init(void)
 	mcTokens.Init();
 	mpcSource = NULL;
 	mbError = false;
+	mcErrors.Init();
+	miSource = -1;
 
 	//IDs are the index of the spelling in gasCPPReservedWords.
 	mcReservedWords.Init();
@@ -291,6 +293,7 @@ void CCPPTokeniser::Kill(void)
 	mcStack.Kill();
 	mcIdentifiers.Kill();
 	mcReservedWords.Kill();
+	mcErrors.Kill();
 	mpcSource = NULL;
 }
 
@@ -326,13 +329,16 @@ bool CCPPTokeniser::Tokenise(CPreprocessedTokens* pcSource)
 	SPreprocessedToken*		psToken;
 
 	Clear();
+	mcErrors.Clear();
 	mpcSource = pcSource;
 	mbError = false;
 	for (i = 0; i < pcSource->NumTokens(); i++)
 	{
 		psToken = pcSource->Get(i);
+		miSource = (int)i;
 		Token(psToken, (int)i);
 	}
+	miSource = -1;
 	return !mbError;
 }
 
@@ -933,27 +939,33 @@ void CCPPTokeniser::AddToken(CCPPToken* pcToken, int iSource)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPTokeniser::Error(SPreprocessedToken* psToken, char* szError)
 {
-	CChars	sz;
+	CChars	szDetail;
 
-	sz.Init();
+	//Errors go to GetErrors.  Their tokens are preprocessed token indices.
+	szDetail.Init();
+	psToken->Append(&szDetail);
 	if (psToken->pcFile)
 	{
-		sz.Append(psToken->pcFile->ShortName());
-		sz.Append(" (");
-		sz.Append(psToken->iLine + 1);
-		sz.Append(", ");
-		sz.Append(psToken->iColumn + 1);
-		sz.Append("): ");
+		mcErrors.Add(psToken->pcFile->ShortName(), psToken->iLine, psToken->iColumn, miSource, szError, szDetail.Text());
 	}
-	sz.Append(szError);
-	sz.Append(" [");
-	psToken->Append(&sz);
-	sz.Append("]");
-	gcUserError.Set(&sz);
-	sz.Kill();
+	else
+	{
+		mcErrors.Add(NULL, -1, -1, miSource, szError, szDetail.Text());
+	}
+	szDetail.Kill();
 
 	mbError = true;
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CCPPErrors* CCPPTokeniser::GetErrors(void)
+{
+	return &mcErrors;
 }
 
 

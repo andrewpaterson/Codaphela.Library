@@ -3,6 +3,8 @@ C++ Parser To Do
 
 What is left after the preprocessor, tokeniser, parser and highlighter were written (2026-10-21).  In order of priority.  Goal: highlighting first, then refactoring, then compiling to a VM that is not written yet.
 
+The first back end, a 65C64 code generator (CCPP65Generator), was started on 2026-10-23.  What it supports, its calling convention and what is left are in CPP65Generator.txt.  It works out the types it needs itself; item 2 below would let it share them with the highlighter.
+
 
 2. Expression types and member resolution
 -----------------------------------------

@@ -183,7 +183,12 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CPPErrors.cpp" />
     <ClCompile Include="CPPHighlighter.cpp" />
+    <ClCompile Include="CPP65Generator.cpp" />
+    <ClCompile Include="CPP65GeneratorClasses.cpp" />
+    <ClCompile Include="CPP65GeneratorExpressions.cpp" />
+    <ClCompile Include="CPP65Type.cpp" />
     <ClCompile Include="CPPSyntaxExtensionDeclaration.cpp" />
     <ClCompile Include="CppParserStatements.cpp" />
     <ClCompile Include="CppParserNames.cpp" />
@@ -351,7 +356,10 @@
     <ClCompile Include="CTShort.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CPPErrors.h" />
     <ClInclude Include="CPPHighlighter.h" />
+    <ClInclude Include="CPP65Generator.h" />
+    <ClInclude Include="CPP65Type.h" />
     <ClInclude Include="CPPSyntaxExtensionDeclaration.h" />
     <ClInclude Include="CppParser.h" />
     <ClInclude Include="CPPScope.h" />
@@ -514,6 +522,9 @@
     <ClInclude Include="CTNumber.h" />
     <ClInclude Include="CTShort.h" />
     <ClInclude Include="GeneralToken.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CPP65Generator.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

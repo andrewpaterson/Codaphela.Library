@@ -1,0 +1,2186 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2026 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela CppParserLib
+
+Codaphela CppParserLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela CppParserLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#include <stdlib.h>
+#include "SourceFile.h"
+#include "CTIdentifier.h"
+#include "CTString.h"
+#include "CppTokeniser.h"
+#include "CPPSyntaxTree.h"
+#include "CPP65Generator.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::Init(CCPPSyntaxTree* pcTree)
+{
+	mpcTree = pcTree;
+	mpcTokeniser = pcTree->GetTokeniser();
+	mcTypes.Init();
+
+	mszCode.Init();
+	mszData.Init();
+	mszBody.Init();
+	mpszOut = &mszCode;
+	mcErrors.Init();
+
+	mapsGlobals.Init();
+	mapsFunctions.Init();
+	mapsClasses.Init();
+	maszStrings.Init();
+	mszInitialise.Init();
+	mszFinalise.Init();
+	mbPureVirtual = false;
+
+	mapsLocals.Init();
+	mapsDestructors.Init();
+	macJumps.Init();
+	macCases.Init();
+	mpsFunction = NULL;
+	miFrameBytes = 0;
+	miDepth = 0;
+	miTemporaries = 0;
+	mbFramePointer = false;
+	miReturnLabel = -1;
+	miThisOffset = -1;
+	mbThisInX = false;
+	miLabels = 0;
+	mbSignedDivide = false;
+	mbSignedModulus = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::Kill(void)
+{
+	size			i;
+	SCPP65Function*	psFunction;
+	SCPP65Class*	psClass;
+
+	macCases.Kill();
+	macJumps.Kill();
+	mapsDestructors.Kill();
+	FreeVariables(&mapsLocals);
+	mapsLocals.Kill();
+
+	for (i = 0; i < maszStrings.NumElements(); i++)
+	{
+		maszStrings.Get(i)->Kill();
+	}
+	maszStrings.Kill();
+	mszFinalise.Kill();
+	mszInitialise.Kill();
+	for (i = 0; i < mapsClasses.NumElements(); i++)
+	{
+		psClass = mapsClasses.GetPtr(i);
+		psClass->mapsVirtuals.Kill();
+		psClass->macFields.Kill();
+		free(psClass);
+	}
+	mapsClasses.Kill();
+	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	{
+		psFunction = mapsFunctions.GetPtr(i);
+		psFunction->mapsParameters.Kill();
+		free(psFunction);
+	}
+	mapsFunctions.Kill();
+	FreeVariables(&mapsGlobals);
+	mapsGlobals.Kill();
+
+	mcErrors.Kill();
+	mszBody.Kill();
+	mszData.Kill();
+	mszCode.Kill();
+	mcTypes.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Appends the assembly for the translation unit to pszDest: the functions, the
+// routines that make and destroy global objects, the runtime routines they use, then
+// the data.  Returns false if anything could not be generated; GetErrors says what.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::Generate(CChars* pszDest)
+{
+	CCPPSyntaxTranslationUnit*	pcRoot;
+
+	pcRoot = mpcTree->GetRoot();
+	if (pcRoot)
+	{
+		Declarations(&pcRoot->macpDeclarations);
+	}
+	if (mszInitialise.Length() > 0)
+	{
+		mszCode.Append("R_Initialise:");
+		mszCode.AppendNewLine();
+		mszCode.Append(mszInitialise);
+		mszCode.Append("\t\tret");
+		mszCode.AppendNewLine();
+		mszCode.AppendNewLine();
+	}
+	if (mszFinalise.Length() > 0)
+	{
+		mszCode.Append("R_Finalise:");
+		mszCode.AppendNewLine();
+		mszCode.Append(mszFinalise);
+		mszCode.Append("\t\tret");
+		mszCode.AppendNewLine();
+		mszCode.AppendNewLine();
+	}
+	AppendRuntime();
+
+	pszDest->Append(mszCode);
+	pszDest->Append(mszData);
+	AppendStrings(pszDest);
+	return mcErrors.NumErrors() == 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A whole program: the start up at 0001:0000 sets the stack to 001F:FFFF (the first
+// 4 bytes pushed are at 001F:FFFC), W to the pseudo registers at 0000:0000 and the
+// registers to 32 bits, makes the global objects, calls main, destroys the global
+// objects and stops with main's result in A.  Then the translation unit.  The reset
+// vector is left to the loader.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::GenerateProgram(CChars* pszDest)
+{
+	CChars	szUnit;
+	bool	bResult;
+
+	szUnit.Init();
+	bResult = Generate(&szUnit);
+
+	pszDest->Append("\t\t.org $")->Append((uint32)CPP65_PROGRAM_ADDRESS, 16)->AppendNewLine();
+	pszDest->Append("Start:")->AppendNewLine();
+	pszDest->Append("\t\tcpy S, $")->Append((uint32)CPP65_STACK_TOP, 16)->AppendNewLine();
+	pszDest->Append("\t\tcpy W, 0")->AppendNewLine();
+	pszDest->Append("\t\twtth (A, B), 4")->AppendNewLine();
+	pszDest->Append("\t\twtth (X, Y), 4")->AppendNewLine();
+	if (mszInitialise.Length() > 0)
+	{
+		pszDest->Append("\t\tjsr R_Initialise")->AppendNewLine();
+	}
+	pszDest->Append("\t\tjsr _main")->AppendNewLine();
+	if (mszFinalise.Length() > 0)
+	{
+		pszDest->Append("\t\tpsh A")->AppendNewLine();
+		pszDest->Append("\t\tjsr R_Finalise")->AppendNewLine();
+		pszDest->Append("\t\tpul A")->AppendNewLine();
+	}
+	pszDest->Append("\t\tstp")->AppendNewLine();
+	pszDest->AppendNewLine();
+	pszDest->Append(szUnit);
+	szUnit.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPErrors* CCPP65Generator::GetErrors(void)
+{
+	//Their tokens are C++ token indices.
+	return &mcErrors;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPP65Generator::NumErrors(void)
+{
+	return (int)mcErrors.NumErrors();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Errors are "File (line, column): message [token]", like the other stages'.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::Error(CCPPSyntax* pcNode, const char* szMessage)
+{
+	return ErrorAt(pcNode ? pcNode->miFirstToken : -1, szMessage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::ErrorAt(int iToken, const char* szMessage)
+{
+	SPreprocessedToken*	psSource;
+	CChars				szDetail;
+
+	if ((iToken < 0) || ((size)iToken >= mpcTokeniser->NumTokens()))
+	{
+		mcErrors.Add(NULL, -1, -1, -1, szMessage);
+		return false;
+	}
+
+	psSource = mpcTokeniser->GetSource(mpcTokeniser->Get(iToken));
+	szDetail.Init();
+	psSource->Append(&szDetail);
+	mcErrors.Add(psSource->pcFile ? psSource->pcFile->ShortName() : NULL, psSource->iLine, psSource->iColumn, iToken, szMessage, szDetail.Text());
+	szDetail.Kill();
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Starts an instruction line.  The caller appends the rest and the new line.
+//
+//////////////////////////////////////////////////////////////////////////
+CChars* CCPP65Generator::Line(const char* szText)
+{
+	mpszOut->Append("\t\t");
+	return mpszOut->Append(szText);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::Label(int iLabel)
+{
+	//Code can arrive here from anywhere, so X may not hold this.
+	ChangeX();
+	AppendLabel(mpszOut, iLabel);
+	mpszOut->Append(':');
+	mpszOut->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Generated labels are L and a number.  C++ names start with an underscore so they
+// never clash with them or with the registers.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendLabel(CChars* psz, int iLabel)
+{
+	psz->Append('L');
+	psz->Append(iLabel);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendName(CChars* psz, int64 lliName)
+{
+	char*	szName;
+	int		iLength;
+
+	szName = mpcTokeniser->GetIdentifier(lliName, &iLength);
+	psz->Append('_');
+	psz->Append(szName, iLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPP65Generator::NewLabel(void)
+{
+	miLabels++;
+	return miLabels;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The identifier a declarator declares, or -1 for an operator, a qualified name or
+// no name.
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CCPP65Generator::GetName(CCPPSyntaxDeclarator* pcDeclarator)
+{
+	CCPPSyntaxName*				pcName;
+	CCPPSyntaxNameComponent*	pcComponent;
+	CCPPToken*					pcToken;
+
+	pcName = pcDeclarator ? pcDeclarator->GetName() : NULL;
+	if (!pcName || !pcName->IsSimple())
+	{
+		return -1;
+	}
+	pcComponent = pcName->GetLast();
+	if (!pcComponent || (pcComponent->meKind != CPPNC_Identifier) || (pcComponent->miName < 0))
+	{
+		return -1;
+	}
+	pcToken = mpcTokeniser->Get(pcComponent->miName);
+	if (!pcToken->IsIdentifier())
+	{
+		return -1;
+	}
+	return ((CCTIdentifier*)pcToken)->mlliIdentifier;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::Declarations(CArraySyntax* papcDeclarations)
+{
+	size					i;
+	CCPPSyntax*				pcDeclaration;
+	CCPPSyntaxLinkageSpecification*	pcLinkage;
+	bool					bResult;
+
+	bResult = true;
+	for (i = 0; i < papcDeclarations->NumElements(); i++)
+	{
+		pcDeclaration = papcDeclarations->GetPtr(i);
+		switch (pcDeclaration->GetKind())
+		{
+		case CPPS_FunctionDefinition:
+			bResult &= Function((CCPPSyntaxFunctionDefinition*)pcDeclaration, NULL);
+			break;
+		case CPPS_SimpleDeclaration:
+			bResult &= GlobalDeclaration((CCPPSyntaxSimpleDeclaration*)pcDeclaration);
+			break;
+		case CPPS_LinkageSpecification:
+			pcLinkage = (CCPPSyntaxLinkageSpecification*)pcDeclaration;
+			bResult &= Declarations(&pcLinkage->macpDeclarations);
+			break;
+		case CPPS_EmptyDeclaration:
+		case CPPS_StaticAssert:
+			break;
+		default:
+			bResult &= Error(pcDeclaration, "This declaration is not supported by the 65C64 generator yet");
+			break;
+		}
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Records a function's signature, a member of psClass if it is not NULL.  A function
+// may be declared any number of times but defined once.  Functions with the same
+// name and different parameters are overloads.  Returns NULL after an error.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, SCPP65Class* psClass, bool bPure)
+{
+	int64						lliName;
+	SCPP65Function*				psFunction;
+	SCPP65Function*				psOther;
+	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	CCPPSyntaxParameter*		pcParameter;
+	CCPPSyntaxName*				pcName;
+	CCPPSyntaxNameComponent*	pcComponent;
+	SCPP65Type*					psType;
+	SCPP65Type*					psReturn;
+	ECPP65FunctionKind			eKind;
+	CArrayCPP65Types			apsParameters;
+	size						i;
+	size						j;
+	uint32						uiFlags;
+
+	pcName = pcDeclarator->GetName();
+	pcComponent = pcName ? pcName->GetLast() : NULL;
+	if (!pcComponent || ((pcComponent->meKind != CPPNC_Identifier) && (pcComponent->meKind != CPPNC_Destructor)) || (!psClass && !pcName->IsSimple()))
+	{
+		Error(pcDeclarator, "Operators and qualified names are not supported by the 65C64 generator yet");
+		return NULL;
+	}
+	lliName = GetComponentName(pcComponent);
+	if (lliName == -1)
+	{
+		Error(pcDeclarator, "This function name is not supported by the 65C64 generator yet");
+		return NULL;
+	}
+	eKind = CPP65FK_Function;
+	if (pcComponent->meKind == CPPNC_Destructor)
+	{
+		eKind = CPP65FK_Destructor;
+	}
+	else if (psClass && (lliName == psClass->lliName))
+	{
+		eKind = CPP65FK_Constructor;
+	}
+
+	pcSuffix = pcDeclarator->GetFunctionSuffix();
+	if ((pcDeclarator->macpSuffixes.NumElements() != 1) || pcDeclarator->mpcNested || pcSuffix->mbVariadic || pcSuffix->mpcTrailingReturn)
+	{
+		Error(pcDeclarator, "This function declarator is not supported by the 65C64 generator yet");
+		return NULL;
+	}
+
+	psReturn = &mcTypes.msVoid;
+	if (eKind == CPP65FK_Function)
+	{
+		psReturn = GetType(pcSpecifiers, NULL, pcDeclarator);
+		if (!psReturn)
+		{
+			return NULL;
+		}
+		for (i = 0; i < pcDeclarator->macpPrefix.NumElements(); i++)
+		{
+			if (((CCPPSyntaxPointerOperator*)pcDeclarator->macpPrefix.GetPtr(i))->meKind != CPPP_Pointer)
+			{
+				Error(pcDeclarator, "References are not supported by the 65C64 generator yet");
+				return NULL;
+			}
+			psReturn = mcTypes.Pointer(psReturn);
+		}
+		if (!psReturn->IsScalar() && !psReturn->IsVoid())
+		{
+			Error(pcDeclarator, "Functions can only return void, integers and pointers in the 65C64 generator yet");
+			return NULL;
+		}
+	}
+
+	apsParameters.Init();
+	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
+	{
+		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
+		psType = GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
+		if (!psType)
+		{
+			apsParameters.Kill();
+			return NULL;
+		}
+		if (psType->IsVoid() && (pcSuffix->macpParameters.NumElements() == 1))
+		{
+			break;
+		}
+		if (psType->IsArray())
+		{
+			psType = mcTypes.Pointer(psType->psBase);
+		}
+		if (!psType->IsScalar())
+		{
+			apsParameters.Kill();
+			Error(pcParameter, "Parameters can only be integers and pointers in the 65C64 generator yet");
+			return NULL;
+		}
+		if (pcParameter->mpcDefault)
+		{
+			apsParameters.Kill();
+			Error(pcParameter, "Default arguments are not supported by the 65C64 generator yet");
+			return NULL;
+		}
+		apsParameters.Add(psType);
+	}
+
+	//A declaration of a function declared before.
+	uiFlags = pcSpecifiers ? pcSpecifiers->muiFlags : 0;
+	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	{
+		psOther = mapsFunctions.GetPtr(i);
+		if ((psOther->psClass != psClass) || (psOther->lliName != lliName) || (psOther->eKind != eKind) || (psOther->mapsParameters.NumElements() != apsParameters.NumElements()))
+		{
+			continue;
+		}
+		psFunction = psOther;
+		for (j = 0; j < apsParameters.NumElements(); j++)
+		{
+			if (!psOther->mapsParameters.GetPtr(j)->Equals(apsParameters.GetPtr(j)))
+			{
+				psFunction = NULL;
+				break;
+			}
+		}
+		if (!psFunction)
+		{
+			continue;
+		}
+		apsParameters.Kill();
+		if (psFunction->bDefined && bDefinition)
+		{
+			Error(pcDeclarator, "The function is defined twice");
+			return NULL;
+		}
+		psFunction->bDefined |= bDefinition;
+		psFunction->bVirtual |= (uiFlags & CPPDS_VIRTUAL) != 0;
+		psFunction->bPure |= bPure;
+		return psFunction;
+	}
+
+	psFunction = AddFunction(psClass, lliName, eKind, psReturn);
+	for (i = 0; i < apsParameters.NumElements(); i++)
+	{
+		psFunction->mapsParameters.Add(apsParameters.GetPtr(i));
+	}
+	apsParameters.Kill();
+	psFunction->bDefined = bDefinition;
+	psFunction->bStatic = (uiFlags & CPPDS_STATIC) != 0;
+	psFunction->bVirtual = (uiFlags & CPPDS_VIRTUAL) != 0;
+	psFunction->bPure = bPure;
+	if (eKind == CPP65FK_Constructor)
+	{
+		psClass->bConstructors = true;
+	}
+	else if (eKind == CPP65FK_Destructor)
+	{
+		psClass->psDestructor = psFunction;
+	}
+	return psFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new function.  Its overload number counts the functions with its name before it.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Function* CCPP65Generator::AddFunction(SCPP65Class* psClass, int64 lliName, ECPP65FunctionKind eKind, SCPP65Type* psReturn)
+{
+	SCPP65Function*	psFunction;
+	SCPP65Function*	psOther;
+	size			i;
+
+	psFunction = (SCPP65Function*)malloc(sizeof(SCPP65Function));
+	psFunction->lliName = lliName;
+	psFunction->psReturn = psReturn;
+	psFunction->mapsParameters.Init();
+	psFunction->bDefined = false;
+	psFunction->psClass = psClass;
+	psFunction->eKind = eKind;
+	psFunction->bStatic = false;
+	psFunction->bVirtual = false;
+	psFunction->bPure = false;
+	psFunction->iSlot = -1;
+	psFunction->iOverload = 0;
+	psFunction->bImplicit = false;
+	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	{
+		psOther = mapsFunctions.GetPtr(i);
+		if ((psOther->psClass == psClass) && (psOther->lliName == lliName) && (psOther->eKind == eKind))
+		{
+			psFunction->iOverload++;
+		}
+	}
+	mapsFunctions.Add(psFunction);
+	return psFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::SameParameters(SCPP65Function* psFunction, SCPP65Function* psOther)
+{
+	size	i;
+
+	if (psFunction->mapsParameters.NumElements() != psOther->mapsParameters.NumElements())
+	{
+		return false;
+	}
+	for (i = 0; i < psFunction->mapsParameters.NumElements(); i++)
+	{
+		if (!psFunction->mapsParameters.GetPtr(i)->Equals(psOther->mapsParameters.GetPtr(i)))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Function declarations, classes, typedefs, enums and global variables.  Global
+// variables are data with constant initialisers (zero without one).  Global objects
+// are zero and made by R_Initialise before main, and destroyed (last first) by
+// R_Finalise after it.  A qualified name defines a static data member.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
+{
+	size						i;
+	CCPPSyntaxInitDeclarator*	pcInit;
+	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
+	SCPP65Variable*				psVariable;
+	SCPP65Type*					psType;
+	SCPP65Type*					psElement;
+	SCPP65Place					sPlace;
+	CChars						szDestroy;
+	int64						lliName;
+	bool						bResult;
+
+	pcSpecifiers = pcDeclaration->mpcSpecifiers;
+	if (pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_TYPEDEF))
+	{
+		return true;
+	}
+	if (pcSpecifiers && pcSpecifiers->mpcType && (pcSpecifiers->mpcType->GetKind() == CPPS_ClassSpecifier))
+	{
+		if (!DefineClass((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType))
+		{
+			return false;
+		}
+	}
+
+	bResult = true;
+	for (i = 0; i < pcDeclaration->macpDeclarators.NumElements(); i++)
+	{
+		pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(i);
+		if (pcInit->mpcDeclarator->IsFunction())
+		{
+			bResult &= DeclareFunction(pcSpecifiers, pcInit->mpcDeclarator, false, NULL, false) != NULL;
+			continue;
+		}
+
+		lliName = GetName(pcInit->mpcDeclarator);
+		psVariable = pcInit->mpcSymbol ? GetVariable(pcInit->mpcSymbol) : NULL;
+		if (!pcInit->mpcSymbol || ((lliName == -1) && !(psVariable && psVariable->psClass)))
+		{
+			bResult &= Error(pcInit, "Only variables with simple names are supported by the 65C64 generator yet");
+			continue;
+		}
+		psType = GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
+		if (!psType)
+		{
+			bResult = false;
+			continue;
+		}
+		psElement = psType->IsArray() ? psType->psBase : psType;
+		if (psElement->IsClass() && !psElement->psClass->bComplete)
+		{
+			bResult &= Error(pcInit, "The variable's class has not been defined");
+			continue;
+		}
+
+		if (!psVariable)
+		{
+			psVariable = AddVariable(&mapsGlobals, pcInit->mpcSymbol, psType, CPP65S_Global, 0);
+		}
+		if (pcSpecifiers->muiFlags & CPPDS_EXTERN)
+		{
+			continue;
+		}
+		if (psVariable->bDefined)
+		{
+			bResult &= Error(pcInit, "The variable is defined twice");
+			continue;
+		}
+		psVariable->bDefined = true;
+		psVariable->psType = psType;
+
+		if ((psType->iBytes >= 4) || psElement->IsClass())
+		{
+			mszData.Append("\t\t.align 4");
+			mszData.AppendNewLine();
+		}
+		else if (psType->iBytes == 2)
+		{
+			mszData.Append("\t\t.align 2");
+			mszData.AppendNewLine();
+		}
+		AppendGlobalLabel(&mszData, psVariable->psClass, pcInit->mpcSymbol->mlliName);
+		mszData.Append(':');
+		mszData.AppendNewLine();
+		if (!psElement->IsClass())
+		{
+			bResult &= GlobalInitialiser(psType, pcInit->mpcInitializer, pcInit);
+			continue;
+		}
+
+		AppendZeros(psType->iBytes);
+		VariablePlace(psVariable, &sPlace);
+		mpszOut = &mszInitialise;
+		miThisOffset = -1;
+		bResult &= Construct(&sPlace, NULL, pcInit->mpcInitializer, pcInit);
+
+		szDestroy.Init();
+		mpszOut = &szDestroy;
+		bResult &= Destroy(&sPlace);
+		mszFinalise.Insert(0, &szDestroy);
+		szDestroy.Kill();
+		mpszOut = &mszCode;
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Appends the data for a global of psType: zero, a constant, a list of constants or
+// a string.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode)
+{
+	int64						lliValue;
+	CCPPSyntaxInitializerList*	pcList;
+	CArraySyntax*				papcElements;
+	size						i;
+	CArrayUint8					auiBytes;
+	bool						bResult;
+
+	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer))
+	{
+		papcElements = &((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements;
+		pcInitialiser = (papcElements->NumElements() == 1) ? papcElements->GetPtr(0) : pcInitialiser;
+	}
+	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList) && psType->IsScalar())
+	{
+		papcElements = &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
+		pcInitialiser = (papcElements->NumElements() == 1) ? papcElements->GetPtr(0) : NULL;
+	}
+
+	if (psType->IsArray())
+	{
+		bResult = true;
+		if (!pcInitialiser)
+		{
+			i = 0;
+		}
+		else if ((pcInitialiser->GetKind() == CPPS_StringExpression) && (psType->psBase->iBytes == 1))
+		{
+			auiBytes.Init();
+			bResult = DecodeString(pcInitialiser, &auiBytes);
+			for (i = 0; i < auiBytes.NumElements(); i++)
+			{
+				AppendData(psType->psBase, auiBytes.GetValue(i));
+			}
+			auiBytes.Kill();
+			if (i > (size)psType->iCount)
+			{
+				return Error(pcInitialiser, "The string is longer than the array");
+			}
+		}
+		else if (pcInitialiser->GetKind() == CPPS_InitializerList)
+		{
+			pcList = (CCPPSyntaxInitializerList*)pcInitialiser;
+			if (pcList->macpElements.NumElements() > (size)psType->iCount)
+			{
+				return Error(pcInitialiser, "Too many initialisers for the array");
+			}
+			for (i = 0; i < pcList->macpElements.NumElements(); i++)
+			{
+				bResult &= GlobalInitialiser(psType->psBase, pcList->macpElements.GetPtr(i), pcNode);
+			}
+		}
+		else
+		{
+			return Error(pcInitialiser, "An array needs a list of initialisers");
+		}
+
+		for (; i < (size)psType->iCount; i++)
+		{
+			GlobalInitialiser(psType->psBase, NULL, pcNode);
+		}
+		return bResult;
+	}
+
+	lliValue = 0;
+	if (pcInitialiser)
+	{
+		if (!Constant(pcInitialiser, &lliValue))
+		{
+			return Error(pcInitialiser, "Global variables need constant initialisers in the 65C64 generator");
+		}
+	}
+	if (!psType->IsScalar())
+	{
+		return Error(pcNode, "This type of global variable is not supported by the 65C64 generator yet");
+	}
+	AppendData(psType, lliValue);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendData(SCPP65Type* psType, int64 lliValue)
+{
+	switch (psType->iBytes)
+	{
+	case 1:
+		mszData.Append("\t\t.byte ");
+		mszData.Append((int64)(lliValue & 0xFF));
+		break;
+	case 2:
+		mszData.Append("\t\t.word ");
+		mszData.Append((int64)(lliValue & 0xFFFF));
+		break;
+	default:
+		mszData.Append("\t\t.long ");
+		mszData.Append((int64)(lliValue & 0xFFFFFFFF));
+		break;
+	}
+	mszData.AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendZeros(int iBytes)
+{
+	int		i;
+
+	for (i = 0; i + 4 <= iBytes; i += 4)
+	{
+		mszData.Append("\t\t.long 0");
+		mszData.AppendNewLine();
+	}
+	for (; i < iBytes; i++)
+	{
+		mszData.Append("\t\t.byte 0");
+		mszData.AppendNewLine();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// _name, or _Class__name for a static data member.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendGlobalLabel(CChars* psz, SCPP65Class* psClass, int64 lliName)
+{
+	CChars	szName;
+	char*	szIdentifier;
+	int		iLength;
+
+	if (!psClass)
+	{
+		AppendName(psz, lliName);
+		return;
+	}
+	szIdentifier = mpcTokeniser->GetIdentifier(lliName, &iLength);
+	szName.Init(szIdentifier, 0, iLength);
+	AppendClassLabel(psz, psClass, szName.Text());
+	szName.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Variable* CCPP65Generator::AddVariable(CArrayCPP65Variables* papsVariables, CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPP65Storage eStorage, int iOffset)
+{
+	SCPP65Variable*	psVariable;
+
+	psVariable = (SCPP65Variable*)malloc(sizeof(SCPP65Variable));
+	psVariable->pcSymbol = pcSymbol;
+	psVariable->psType = psType;
+	psVariable->eStorage = eStorage;
+	psVariable->iOffset = iOffset;
+	psVariable->psClass = NULL;
+	psVariable->bDefined = false;
+	papsVariables->Add(psVariable);
+	return psVariable;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::FreeVariables(CArrayCPP65Variables* papsVariables)
+{
+	size	i;
+
+	for (i = 0; i < papsVariables->NumElements(); i++)
+	{
+		free(papsVariables->GetPtr(i));
+	}
+	papsVariables->ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The local, parameter or global a symbol names.  Locals are searched first.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Variable* CCPP65Generator::GetVariable(CCPPSymbol* pcSymbol)
+{
+	size			i;
+	SCPP65Variable*	psVariable;
+
+	for (i = 0; i < mapsLocals.NumElements(); i++)
+	{
+		psVariable = mapsLocals.GetPtr(i);
+		if (psVariable->pcSymbol == pcSymbol)
+		{
+			return psVariable;
+		}
+	}
+	for (i = 0; i < mapsGlobals.NumElements(); i++)
+	{
+		psVariable = mapsGlobals.GetPtr(i);
+		if (psVariable->pcSymbol == pcSymbol)
+		{
+			return psVariable;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type a declarator declares.  pcDeclarator may be NULL for the base type.
+// Pointer operators apply to the base type, then array suffixes from the last.  An
+// array without a size gets it from pcInitialiser.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::GetType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcNode, CCPPSyntax* pcInitialiser)
+{
+	SCPP65Type*				psType;
+	CCPPSyntaxPointerOperator*	pcPointer;
+	CCPPSyntax*				pcSuffix;
+	CCPPSyntaxArraySuffix*	pcArray;
+	size					i;
+	int64					lliCount;
+
+	psType = GetBaseType(pcSpecifiers, pcNode);
+	if (!psType || !pcDeclarator)
+	{
+		return psType;
+	}
+	if (pcDeclarator->mpcNested)
+	{
+		Error(pcNode, "Nested declarators are not supported by the 65C64 generator yet");
+		return NULL;
+	}
+
+	for (i = 0; i < pcDeclarator->macpPrefix.NumElements(); i++)
+	{
+		pcPointer = (CCPPSyntaxPointerOperator*)pcDeclarator->macpPrefix.GetPtr(i);
+		if (pcPointer->meKind != CPPP_Pointer)
+		{
+			Error(pcNode, "References are not supported by the 65C64 generator yet");
+			return NULL;
+		}
+		psType = mcTypes.Pointer(psType);
+	}
+
+	for (i = pcDeclarator->macpSuffixes.NumElements(); i > 0; i--)
+	{
+		pcSuffix = pcDeclarator->macpSuffixes.GetPtr(i - 1);
+		if (pcSuffix->GetKind() == CPPS_FunctionSuffix)
+		{
+			psType = mcTypes.Function(psType);
+			continue;
+		}
+
+		pcArray = (CCPPSyntaxArraySuffix*)pcSuffix;
+		if (!pcArray->mpcSize)
+		{
+			lliCount = (i == 1) ? GetInitialiserCount(pcInitialiser) : 0;
+			if (lliCount <= 0)
+			{
+				Error(pcNode, "An array needs a size or an initialiser");
+				return NULL;
+			}
+		}
+		else if (!Constant(pcArray->mpcSize, &lliCount) || (lliCount <= 0))
+		{
+			Error(pcArray->mpcSize, "An array size must be a positive constant");
+			return NULL;
+		}
+		psType = mcTypes.Array(psType, (int)lliCount);
+	}
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The number of elements an initialiser gives an array without a size: the
+// elements of a list, or a string's characters and its zero.  0 if it gives none.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPP65Generator::GetInitialiserCount(CCPPSyntax* pcInitialiser)
+{
+	CArrayUint8		auiBytes;
+	int				iCount;
+
+	if (!pcInitialiser)
+	{
+		return 0;
+	}
+	if (pcInitialiser->GetKind() == CPPS_InitializerList)
+	{
+		return (int)((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements.NumElements();
+	}
+	if (pcInitialiser->GetKind() == CPPS_StringExpression)
+	{
+		auiBytes.Init();
+		iCount = DecodeString(pcInitialiser, &auiBytes) ? (int)auiBytes.NumElements() + 1 : 0;
+		auiBytes.Kill();
+		return iCount;
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type the specifiers name.  long is 4 bytes, as on Windows.  char is signed.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntax* pcNode)
+{
+	uint32								uiKeywords;
+	bool								bSigned;
+	CCPPSyntaxTypeSpecifier*			pcType;
+	CCPPSyntaxName*						pcName;
+	CCPPSyntaxClassSpecifier*			pcClass;
+	CCPPSyntaxElaboratedTypeSpecifier*	pcElaborated;
+	SCPP65Class*						psClass;
+
+	if (!pcSpecifiers)
+	{
+		return &mcTypes.msInt;
+	}
+
+	pcType = pcSpecifiers->mpcType;
+	if (pcType)
+	{
+		if (pcType->GetKind() == CPPS_EnumSpecifier)
+		{
+			return &mcTypes.msInt;
+		}
+		if (pcType->GetKind() == CPPS_ClassSpecifier)
+		{
+			pcClass = (CCPPSyntaxClassSpecifier*)pcType;
+			psClass = pcClass->mpcSymbol ? GetClass(pcClass->mpcSymbol, pcNode) : NULL;
+			if (psClass && psClass->bComplete)
+			{
+				return psClass->psType;
+			}
+			if (mpsFunction)
+			{
+				Error(pcNode, "Local classes are not supported by the 65C64 generator yet");
+				return NULL;
+			}
+			psClass = DefineClass(pcClass);
+			return psClass ? psClass->psType : NULL;
+		}
+		if (pcType->GetKind() == CPPS_ElaboratedTypeSpecifier)
+		{
+			pcElaborated = (CCPPSyntaxElaboratedTypeSpecifier*)pcType;
+			if (pcElaborated->meKey == CT_enum)
+			{
+				return &mcTypes.msInt;
+			}
+			if ((pcElaborated->meKey != CT_union) && pcElaborated->mpcName->mpcSymbol && pcElaborated->mpcName->mpcSymbol->IsClass())
+			{
+				return GetClass(pcElaborated->mpcName->mpcSymbol, pcNode)->psType;
+			}
+		}
+		else if (pcType->GetKind() == CPPS_NamedTypeSpecifier)
+		{
+			pcName = ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName;
+			if (pcName->mpcSymbol)
+			{
+				if (pcName->mpcSymbol->meKind == CPPSK_Enum)
+				{
+					return &mcTypes.msInt;
+				}
+				if (pcName->mpcSymbol->meKind == CPPSK_Typedef)
+				{
+					return GetSymbolType(pcName->mpcSymbol, pcNode);
+				}
+				if (pcName->mpcSymbol->meKind == CPPSK_Class)
+				{
+					return GetClass(pcName->mpcSymbol, pcNode)->psType;
+				}
+			}
+		}
+		Error(pcNode, "This type is not supported by the 65C64 generator yet");
+		return NULL;
+	}
+
+	uiKeywords = pcSpecifiers->muiTypeKeywords;
+	bSigned = (uiKeywords & CPPTK_UNSIGNED) == 0;
+	if (uiKeywords & (CPPTK_FLOAT | CPPTK_DOUBLE))
+	{
+		Error(pcSpecifiers, "Floating point is not supported by the 65C64 generator yet");
+		return NULL;
+	}
+	if ((pcSpecifiers->miLongs >= 2) || (uiKeywords & CPPTK_INT64))
+	{
+		Error(pcSpecifiers, "64 bit integers are not supported by the 65C64 generator yet");
+		return NULL;
+	}
+	if (uiKeywords & CPPTK_AUTO)
+	{
+		Error(pcSpecifiers, "auto is not supported by the 65C64 generator yet");
+		return NULL;
+	}
+	if (uiKeywords & CPPTK_VOID)
+	{
+		return &mcTypes.msVoid;
+	}
+	if (uiKeywords & CPPTK_BOOL)
+	{
+		return &mcTypes.msBool;
+	}
+	if (uiKeywords & (CPPTK_CHAR | CPPTK_INT8))
+	{
+		return mcTypes.Integer(1, bSigned);
+	}
+	if (uiKeywords & (CPPTK_WCHAR_T | CPPTK_CHAR16_T))
+	{
+		return mcTypes.Integer(2, false);
+	}
+	if (uiKeywords & CPPTK_CHAR32_T)
+	{
+		return mcTypes.Integer(4, false);
+	}
+	if (uiKeywords & (CPPTK_SHORT | CPPTK_INT16))
+	{
+		return mcTypes.Integer(2, bSigned);
+	}
+	if (uiKeywords & (CPPTK_INT | CPPTK_INT32 | CPPTK_SIGNED | CPPTK_UNSIGNED) || (pcSpecifiers->miLongs == 1))
+	{
+		return mcTypes.Integer(4, bSigned);
+	}
+	Error(pcNode, "This type is not supported by the 65C64 generator yet");
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::GetTypeIdType(CCPPSyntaxTypeId* pcTypeId)
+{
+	return GetType(pcTypeId->mpcSpecifiers, pcTypeId->mpcDeclarator, pcTypeId);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type a typedef, variable or parameter symbol was declared with.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::GetSymbolType(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode)
+{
+	CCPPSyntax*					pcDeclaration;
+	CCPPSyntaxInitDeclarator*	pcInit;
+	CCPPSyntaxParameter*		pcParameter;
+
+	pcDeclaration = pcSymbol->mpcDeclaration;
+	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator) && pcDeclaration->mpcParent && (pcDeclaration->mpcParent->GetKind() == CPPS_SimpleDeclaration))
+	{
+		pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration;
+		return GetType(((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers, pcInit->mpcDeclarator, pcNode, pcInit->mpcInitializer);
+	}
+	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_Parameter))
+	{
+		pcParameter = (CCPPSyntaxParameter*)pcDeclaration;
+		return GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcNode);
+	}
+	Error(pcNode, "This declaration is not supported by the 65C64 generator yet");
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Generates a function definition, a member of psClass if it is not NULL (or of the
+// class its qualified name names).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::Function(CCPPSyntaxFunctionDefinition* pcFunction, SCPP65Class* psClass)
+{
+	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	CCPPSyntaxParameter*		pcParameter;
+	CCPPSyntaxName*				pcName;
+	SCPP65Function*				psFunction;
+	SCPP65Type*					psType;
+	size						i;
+	int							iOffset;
+	bool						bResult;
+
+	pcName = pcFunction->mpcDeclarator->GetName();
+	if (!psClass && pcName && (pcName->macpComponents.NumElements() == 2))
+	{
+		psClass = FindClass(GetComponentName((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0)));
+		if (!psClass || !psClass->bComplete)
+		{
+			return Error(pcFunction, "The function's class has not been defined");
+		}
+	}
+	psFunction = DeclareFunction(pcFunction->mpcSpecifiers, pcFunction->mpcDeclarator, true, psClass, false);
+	if (!psFunction)
+	{
+		return false;
+	}
+	if (pcFunction->meBody != CPPFB_Body)
+	{
+		return Error(pcFunction, "Only functions with bodies are supported by the 65C64 generator");
+	}
+	if ((pcFunction->macpMemberInitializers.NumElements() != 0) && (psFunction->eKind != CPP65FK_Constructor))
+	{
+		return Error(pcFunction, "Only constructors have member initialisers");
+	}
+
+	BeginFunction(psFunction);
+
+	//Arguments take their own size on the stack, the first lowest.
+	pcSuffix = pcFunction->mpcDeclarator->GetFunctionSuffix();
+	iOffset = 0;
+	for (i = 0; i < psFunction->mapsParameters.NumElements(); i++)
+	{
+		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
+		psType = psFunction->mapsParameters.GetPtr(i);
+		if (pcParameter->mpcSymbol)
+		{
+			AddVariable(&mapsLocals, pcParameter->mpcSymbol, psType, CPP65S_Parameter, iOffset);
+		}
+		iOffset += psType->iBytes;
+	}
+	if (!AllocateLocals(pcFunction->mpcBody))
+	{
+		EndFunction(psFunction);
+		return false;
+	}
+	miFrameBytes = (miFrameBytes + 3) & ~3;
+
+	bResult = true;
+	if (psFunction->eKind == CPP65FK_Constructor)
+	{
+		bResult &= ConstructorBody(psFunction, pcFunction);
+	}
+	else if (psFunction->eKind == CPP65FK_Destructor)
+	{
+		bResult &= SetVtable(NULL, psClass);
+	}
+	bResult &= Statement(pcFunction->mpcBody);
+	EndFunction(psFunction);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Starts generating a function's body.  A member function keeps this (from X) at
+// the bottom of its frame.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::BeginFunction(SCPP65Function* psFunction)
+{
+	mpsFunction = psFunction;
+	FreeVariables(&mapsLocals);
+	mapsDestructors.ReInit();
+	macJumps.ReInit();
+	macCases.ReInit();
+
+	miFrameBytes = 0;
+	miThisOffset = -1;
+	if (psFunction->psClass && !psFunction->bStatic)
+	{
+		miThisOffset = 0;
+		miFrameBytes = 4;
+	}
+	mbThisInX = true;
+	miDepth = 0;
+	miTemporaries = 0;
+	mszBody.Clear();
+	mpszOut = &mszBody;
+	miReturnLabel = NewLabel();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function is a label, the frame, the body and the return.  V points at the frame
+// (the caller's V is kept on the stack) when the function has locals or parameters:
+//
+//	_name:
+//			psh V
+//			sub S, frame
+//			cpy V, S
+//			cpy [1 + V], X			; this, in a member function
+//			...
+//	Lreturn:
+//			add S, frame
+//			pul V
+//			ret
+//
+// A destructor destroys the fields and the base after the return label.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::EndFunction(SCPP65Function* psFunction)
+{
+	CChars	szReturn;
+
+	mpszOut = &mszCode;
+
+	//A return at the end of the body does not need to branch to the return.
+	szReturn.Init("\t\tbra ");
+	AppendLabel(&szReturn, miReturnLabel);
+	szReturn.AppendNewLine();
+	if (mszBody.EndsWith(szReturn.Text()))
+	{
+		mszBody.RemoveFromEnd(szReturn.Length());
+	}
+	szReturn.Kill();
+
+	mbFramePointer = (miFrameBytes > 0) || (mapsLocals.NumElements() > 0);
+	AppendFunctionLabel(&mszCode, psFunction);
+	mszCode.Append(':');
+	mszCode.AppendNewLine();
+	if (mbFramePointer)
+	{
+		Line("psh V")->AppendNewLine();
+		if (miFrameBytes > 0)
+		{
+			Line("sub S, ")->Append(miFrameBytes)->AppendNewLine();
+		}
+		Line("cpy V, S")->AppendNewLine();
+		if (miThisOffset != -1)
+		{
+			Line("cpy [")->Append(1 + miThisOffset)->Append(" + V], X")->AppendNewLine();
+		}
+	}
+	mszCode.Append(mszBody);
+	Label(miReturnLabel);
+	if (psFunction->eKind == CPP65FK_Destructor)
+	{
+		DestructorBody(psFunction);
+	}
+	if (mbFramePointer)
+	{
+		if (miFrameBytes > 0)
+		{
+			Line("add S, ")->Append(miFrameBytes)->AppendNewLine();
+		}
+		Line("pul V")->AppendNewLine();
+	}
+	Line("ret")->AppendNewLine();
+	mszCode.AppendNewLine();
+
+	mpsFunction = NULL;
+	miThisOffset = -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Gives every local variable in the function its own place in the frame before the
+// body is generated, so the frame size is known.  Places are not shared between
+// blocks yet.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::AllocateLocals(CCPPSyntax* pcNode)
+{
+	CCPPSyntaxInitDeclarator*	pcInit;
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	SCPP65Type*					psType;
+	size						i;
+	int							iAlign;
+	bool						bResult;
+
+	if (!pcNode)
+	{
+		return true;
+	}
+
+	if ((pcNode->GetKind() == CPPS_InitDeclarator) && pcNode->mpcParent && (pcNode->mpcParent->GetKind() == CPPS_SimpleDeclaration))
+	{
+		pcInit = (CCPPSyntaxInitDeclarator*)pcNode;
+		pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcNode->mpcParent;
+		if (pcInit->mpcSymbol && (pcInit->mpcSymbol->meKind == CPPSK_Variable))
+		{
+			if (pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_STATIC | CPPDS_EXTERN | CPPDS_THREAD_LOCAL))
+			{
+				return Error(pcNode, "Static and extern local variables are not supported by the 65C64 generator yet");
+			}
+			psType = GetType(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
+			if (!psType)
+			{
+				return false;
+			}
+			if (!psType->IsScalar() && !psType->IsArray() && !psType->IsClass())
+			{
+				return Error(pcNode, "This type of local variable is not supported by the 65C64 generator yet");
+			}
+			if ((psType->IsArray() ? psType->psBase : psType)->IsClass() && !(psType->IsArray() ? psType->psBase : psType)->psClass->bComplete)
+			{
+				return Error(pcNode, "The variable's class has not been defined");
+			}
+
+			iAlign = (psType->iBytes >= 4) ? 4 : psType->iBytes;
+			iAlign = (psType->IsArray() || psType->IsClass()) ? 4 : iAlign;
+			miFrameBytes = (miFrameBytes + iAlign - 1) & ~(iAlign - 1);
+			AddVariable(&mapsLocals, pcInit->mpcSymbol, psType, CPP65S_Local, miFrameBytes);
+			miFrameBytes += psType->iBytes;
+		}
+	}
+
+	bResult = true;
+	for (i = 0; i < pcNode->NumChildren(); i++)
+	{
+		bResult &= AllocateLocals(pcNode->GetChild(i));
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::Statement(CCPPSyntax* pcStatement)
+{
+	CCPPSyntaxExpressionStatement*	pcExpression;
+
+	if (!pcStatement)
+	{
+		return true;
+	}
+
+	switch (pcStatement->GetKind())
+	{
+	case CPPS_CompoundStatement:
+		return CompoundStatement((CCPPSyntaxCompoundStatement*)pcStatement);
+	case CPPS_DeclarationStatement:
+		return DeclarationStatement((CCPPSyntaxDeclarationStatement*)pcStatement);
+	case CPPS_ExpressionStatement:
+		pcExpression = (CCPPSyntaxExpressionStatement*)pcStatement;
+		if (pcExpression->mpcExpression)
+		{
+			return Expression(pcExpression->mpcExpression) != NULL;
+		}
+		return true;
+	case CPPS_IfStatement:
+		return IfStatement((CCPPSyntaxIfStatement*)pcStatement);
+	case CPPS_WhileStatement:
+		return WhileStatement((CCPPSyntaxWhileStatement*)pcStatement);
+	case CPPS_DoStatement:
+		return DoStatement((CCPPSyntaxDoStatement*)pcStatement);
+	case CPPS_ForStatement:
+		return ForStatement((CCPPSyntaxForStatement*)pcStatement);
+	case CPPS_SwitchStatement:
+		return SwitchStatement((CCPPSyntaxSwitchStatement*)pcStatement);
+	case CPPS_CaseStatement:
+		return CaseStatement((CCPPSyntaxCaseStatement*)pcStatement);
+	case CPPS_ReturnStatement:
+		return ReturnStatement((CCPPSyntaxReturnStatement*)pcStatement);
+	case CPPS_BreakStatement:
+		return BreakStatement(pcStatement, false);
+	case CPPS_ContinueStatement:
+		return BreakStatement(pcStatement, true);
+	default:
+		return Error(pcStatement, "This statement is not supported by the 65C64 generator yet");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The objects made in a block are destroyed at its end, last first.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::CompoundStatement(CCPPSyntaxCompoundStatement* pcCompound)
+{
+	size	i;
+	int		iFirst;
+	bool	bResult;
+
+	iFirst = (int)mapsDestructors.NumElements();
+	bResult = true;
+	for (i = 0; i < pcCompound->macpStatements.NumElements(); i++)
+	{
+		bResult &= Statement(pcCompound->macpStatements.GetPtr(i));
+	}
+	DestroyLocals(iFirst);
+	while ((int)mapsDestructors.NumElements() > iFirst)
+	{
+		mapsDestructors.Pop();
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Destroys the local objects from the last made back to iFirst.  They stay in the
+// list: break, continue and return destroy them on their way out of a block.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::DestroyLocals(int iFirst)
+{
+	SCPP65Place	sPlace;
+	int			i;
+
+	for (i = (int)mapsDestructors.NumElements(); i > iFirst; i--)
+	{
+		VariablePlace(mapsDestructors.GetPtr(i - 1), &sPlace);
+		Destroy(&sPlace);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Jump* CCPP65Generator::PushJump(int iBreak, int iContinue)
+{
+	SCPP65Jump*	psJump;
+
+
+	psJump = macJumps.Add();
+	psJump->iBreak = iBreak;
+	psJump->iContinue = iContinue;
+	psJump->iDestructors = (int)mapsDestructors.NumElements();
+	return psJump;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Local variables already have their places; this runs their initialisers.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::DeclarationStatement(CCPPSyntaxDeclarationStatement* pcStatement)
+{
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	CCPPSyntaxInitDeclarator*		pcInit;
+	SCPP65Variable*					psVariable;
+	SCPP65Type*						psElement;
+	SCPP65Place						sPlace;
+	size							i;
+	bool							bResult;
+
+	if (!pcStatement->mpcDeclaration || (pcStatement->mpcDeclaration->GetKind() != CPPS_SimpleDeclaration))
+	{
+		return Error(pcStatement, "This declaration is not supported by the 65C64 generator yet");
+	}
+	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcStatement->mpcDeclaration;
+	if (pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_TYPEDEF))
+	{
+		return true;
+	}
+	if (pcDeclaration->mpcSpecifiers && pcDeclaration->mpcSpecifiers->mpcType && (pcDeclaration->mpcSpecifiers->mpcType->GetKind() == CPPS_ClassSpecifier))
+	{
+		return Error(pcStatement, "Local classes are not supported by the 65C64 generator yet");
+	}
+
+	bResult = true;
+	for (i = 0; i < pcDeclaration->macpDeclarators.NumElements(); i++)
+	{
+		pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(i);
+		if (pcInit->mpcDeclarator->IsFunction())
+		{
+			bResult &= DeclareFunction(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, false, NULL, false) != NULL;
+			continue;
+		}
+		psVariable = pcInit->mpcSymbol ? GetVariable(pcInit->mpcSymbol) : NULL;
+		if (!psVariable)
+		{
+			bResult &= Error(pcInit, "This declaration is not supported by the 65C64 generator yet");
+			continue;
+		}
+		psElement = psVariable->psType->IsArray() ? psVariable->psType->psBase : psVariable->psType;
+		if (psElement->IsClass())
+		{
+			VariablePlace(psVariable, &sPlace);
+			bResult &= Construct(&sPlace, NULL, pcInit->mpcInitializer, pcInit);
+			if (psElement->psClass->psDestructor)
+			{
+				mapsDestructors.Add(psVariable);
+			}
+		}
+		else if (pcInit->mpcInitializer)
+		{
+			bResult &= LocalInitialiser(psVariable, pcInit->mpcInitializer, pcInit);
+		}
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Stores the initial value of a local.  An array's elements without an initialiser
+// are zero.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::LocalInitialiser(SCPP65Variable* psVariable, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode)
+{
+	SCPP65Place		sPlace;
+	SCPP65Type*		psType;
+	SCPP65Type*		psElement;
+	CArraySyntax*	papcElements;
+	CArrayUint8		auiBytes;
+	int				iCount;
+
+	VariablePlace(psVariable, &sPlace);
+	psType = psVariable->psType;
+	if (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer)
+	{
+		papcElements = &((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements;
+		if (papcElements->NumElements() != 1)
+		{
+			return Error(pcInitialiser, "Expected one initialiser");
+		}
+		pcInitialiser = papcElements->GetPtr(0);
+	}
+
+	if (psType->IsScalar())
+	{
+		if (pcInitialiser->GetKind() == CPPS_InitializerList)
+		{
+			papcElements = &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
+			if (papcElements->NumElements() == 0)
+			{
+				Line("cpy A, 0")->AppendNewLine();
+				Store(&sPlace, "A", NULL);
+				return true;
+			}
+			if (papcElements->NumElements() != 1)
+			{
+				return Error(pcInitialiser, "Expected one initialiser");
+			}
+			pcInitialiser = papcElements->GetPtr(0);
+		}
+		if (!Convert(Expression(pcInitialiser), psType, pcInitialiser))
+		{
+			return false;
+		}
+		Store(&sPlace, "A", NULL);
+		return true;
+	}
+
+	psElement = psType->psBase;
+	if (!psElement->IsScalar())
+	{
+		return Error(pcNode, "Arrays of arrays cannot be initialised by the 65C64 generator yet");
+	}
+	sPlace.psType = psElement;
+	iCount = 0;
+	if ((pcInitialiser->GetKind() == CPPS_StringExpression) && (psElement->iBytes == 1))
+	{
+		auiBytes.Init();
+		if (!DecodeString(pcInitialiser, &auiBytes))
+		{
+			auiBytes.Kill();
+			return false;
+		}
+		if (auiBytes.NumElements() > (size)psType->iCount)
+		{
+			auiBytes.Kill();
+			return Error(pcInitialiser, "The string is longer than the array");
+		}
+		for (iCount = 0; iCount < (int)auiBytes.NumElements(); iCount++)
+		{
+			Line("cpy A, ")->Append((int)auiBytes.GetValue(iCount))->AppendNewLine();
+			Store(&sPlace, "A", NULL);
+			sPlace.iOffset++;
+		}
+		auiBytes.Kill();
+	}
+	else if (pcInitialiser->GetKind() == CPPS_InitializerList)
+	{
+		papcElements = &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
+		if (papcElements->NumElements() > (size)psType->iCount)
+		{
+			return Error(pcInitialiser, "Too many initialisers for the array");
+		}
+		for (iCount = 0; iCount < (int)papcElements->NumElements(); iCount++)
+		{
+			if (!Convert(Expression(papcElements->GetPtr(iCount)), psElement, papcElements->GetPtr(iCount)))
+			{
+				return false;
+			}
+			Store(&sPlace, "A", NULL);
+			sPlace.iOffset += psElement->iBytes;
+		}
+	}
+	else
+	{
+		return Error(pcInitialiser, "An array needs a list of initialisers");
+	}
+
+	if (iCount < psType->iCount)
+	{
+		Line("cpy A, 0")->AppendNewLine();
+		for (; iCount < psType->iCount; iCount++)
+		{
+			Store(&sPlace, "A", NULL);
+			sPlace.iOffset += psElement->iBytes;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Runs a condition's declaration (if (int x = f())), leaving the variable's value in
+// A.  Returns false if pcCondition is not a declaration.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::ConditionDeclaration(CCPPSyntax* pcCondition)
+{
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	CCPPSyntaxInitDeclarator*		pcInit;
+	SCPP65Variable*					psVariable;
+
+	if (!pcCondition || (pcCondition->GetKind() != CPPS_SimpleDeclaration))
+	{
+		return false;
+	}
+	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcCondition;
+	pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(0);
+	psVariable = pcInit->mpcSymbol ? GetVariable(pcInit->mpcSymbol) : NULL;
+	return psVariable && pcInit->mpcInitializer && LocalInitialiser(psVariable, pcInit->mpcInitializer, pcInit);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IfStatement(CCPPSyntaxIfStatement* pcIf)
+{
+	int		iElse;
+	int		iEnd;
+	bool	bResult;
+
+	iElse = NewLabel();
+	bResult = Condition(pcIf->mpcCondition, false, iElse);
+	bResult &= Statement(pcIf->mpcThen);
+	if (pcIf->mpcElse)
+	{
+		iEnd = NewLabel();
+		Line("bra ");
+		AppendLabel(mpszOut, iEnd);
+		mpszOut->AppendNewLine();
+		Label(iElse);
+		bResult &= Statement(pcIf->mpcElse);
+		Label(iEnd);
+	}
+	else
+	{
+		Label(iElse);
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The condition is tested at the bottom so a loop is one branch a time round.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::WhileStatement(CCPPSyntaxWhileStatement* pcWhile)
+{
+	int			iBody;
+	int			iTest;
+	int			iEnd;
+	bool		bResult;
+
+	iBody = NewLabel();
+	iTest = NewLabel();
+	iEnd = NewLabel();
+	Line("bra ");
+	AppendLabel(mpszOut, iTest);
+	mpszOut->AppendNewLine();
+	Label(iBody);
+
+	PushJump(iEnd, iTest);
+	bResult = Statement(pcWhile->mpcBody);
+	macJumps.Pop();
+
+	Label(iTest);
+	bResult &= Condition(pcWhile->mpcCondition, true, iBody);
+	Label(iEnd);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::DoStatement(CCPPSyntaxDoStatement* pcDo)
+{
+	int			iBody;
+	int			iTest;
+	int			iEnd;
+	bool		bResult;
+
+	iBody = NewLabel();
+	iTest = NewLabel();
+	iEnd = NewLabel();
+	Label(iBody);
+
+	PushJump(iEnd, iTest);
+	bResult = Statement(pcDo->mpcBody);
+	macJumps.Pop();
+
+	Label(iTest);
+	bResult &= Condition(pcDo->mpcCondition, true, iBody);
+	Label(iEnd);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::ForStatement(CCPPSyntaxForStatement* pcFor)
+{
+	int			iBody;
+	int			iNext;
+	int			iTest;
+	int			iEnd;
+	bool		bResult;
+
+	iBody = NewLabel();
+	iNext = NewLabel();
+	iTest = NewLabel();
+	iEnd = NewLabel();
+	bResult = Statement(pcFor->mpcInitialiser);
+	Line("bra ");
+	AppendLabel(mpszOut, iTest);
+	mpszOut->AppendNewLine();
+	Label(iBody);
+
+	PushJump(iEnd, iNext);
+	bResult &= Statement(pcFor->mpcBody);
+	macJumps.Pop();
+
+	Label(iNext);
+	if (pcFor->mpcIncrement)
+	{
+		bResult &= Expression(pcFor->mpcIncrement) != NULL;
+	}
+	Label(iTest);
+	if (pcFor->mpcCondition)
+	{
+		bResult &= Condition(pcFor->mpcCondition, true, iBody);
+	}
+	else
+	{
+		Line("bra ");
+		AppendLabel(mpszOut, iBody);
+		mpszOut->AppendNewLine();
+	}
+	Label(iEnd);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A switch compares the value with each case in turn.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
+{
+	SCPP65Case*		psCase;
+	SCPP65Type*		psType;
+	size			uiFirst;
+	size			i;
+	int				iDefault;
+	int				iEnd;
+	int64			lliValue;
+	bool			bResult;
+
+	if (ConditionDeclaration(pcSwitch->mpcCondition))
+	{
+		psType = &mcTypes.msInt;
+	}
+	else
+	{
+		psType = Expression(pcSwitch->mpcCondition);
+	}
+	if (!psType)
+	{
+		return false;
+	}
+	if (!psType->IsInteger())
+	{
+		return Error(pcSwitch->mpcCondition, "A switch needs an integer");
+	}
+
+	iEnd = NewLabel();
+	iDefault = -1;
+	uiFirst = macCases.NumElements();
+	bResult = FindCases(pcSwitch->mpcBody, &iDefault);
+	for (i = uiFirst; i < macCases.NumElements(); i++)
+	{
+		psCase = macCases.Get(i);
+		if (!psCase->pcCase->mpcValue)
+		{
+			continue;
+		}
+		if (!Constant(psCase->pcCase->mpcValue, &lliValue))
+		{
+			bResult &= Error(psCase->pcCase->mpcValue, "A case needs a constant");
+			continue;
+		}
+		Line("cmp A, ")->Append((int64)(int32)lliValue)->AppendNewLine();
+		Line("bras z, ");
+		AppendLabel(mpszOut, psCase->iLabel);
+		mpszOut->AppendNewLine();
+	}
+	Line("bra ");
+	AppendLabel(mpszOut, (iDefault != -1) ? iDefault : iEnd);
+	mpszOut->AppendNewLine();
+
+	PushJump(iEnd, -1);
+	bResult &= Statement(pcSwitch->mpcBody);
+	macJumps.Pop();
+	Label(iEnd);
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Gives the case and default labels of a switch (not of switches inside it) their
+// assembly labels.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::FindCases(CCPPSyntax* pcNode, int* piDefault)
+{
+	SCPP65Case*		psCase;
+	size			i;
+	bool			bResult;
+
+	if (!pcNode || (pcNode->GetKind() == CPPS_SwitchStatement))
+	{
+		return true;
+	}
+
+	bResult = true;
+	if (pcNode->GetKind() == CPPS_CaseStatement)
+	{
+		psCase = macCases.Add();
+		psCase->pcCase = (CCPPSyntaxCaseStatement*)pcNode;
+		psCase->iLabel = NewLabel();
+		if (!psCase->pcCase->mpcValue)
+		{
+			if (*piDefault != -1)
+			{
+				bResult = Error(pcNode, "A switch can only have one default");
+			}
+			*piDefault = psCase->iLabel;
+		}
+	}
+	for (i = 0; i < pcNode->NumChildren(); i++)
+	{
+		bResult &= FindCases(pcNode->GetChild(i), piDefault);
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::CaseStatement(CCPPSyntaxCaseStatement* pcCase)
+{
+	size	i;
+
+	for (i = 0; i < macCases.NumElements(); i++)
+	{
+		if (macCases.Get(i)->pcCase == pcCase)
+		{
+			Label(macCases.Get(i)->iLabel);
+			return Statement(pcCase->mpcStatement);
+		}
+	}
+	return Error(pcCase, "A case outside a switch");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value is returned in A.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
+{
+	SCPP65Type*	psType;
+
+	if (pcReturn->mpcValue)
+	{
+		if (mpsFunction->psReturn->IsVoid())
+		{
+			psType = Expression(pcReturn->mpcValue);
+			if (!psType)
+			{
+				return false;
+			}
+		}
+		else if (!Convert(Expression(pcReturn->mpcValue), mpsFunction->psReturn, pcReturn->mpcValue))
+		{
+			return false;
+		}
+	}
+	else if (!mpsFunction->psReturn->IsVoid())
+	{
+		return Error(pcReturn, "The function must return a value");
+	}
+
+	//The local objects are destroyed after the value is worked out.
+	if (mapsDestructors.NumElements() > 0)
+	{
+		Push("A");
+		DestroyLocals(0);
+		Pull("A");
+	}
+	Line("bra ");
+	AppendLabel(mpszOut, miReturnLabel);
+	mpszOut->AppendNewLine();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::BreakStatement(CCPPSyntax* pcStatement, bool bContinue)
+{
+	size	i;
+	int		iLabel;
+
+	for (i = macJumps.NumElements(); i > 0; i--)
+	{
+		iLabel = bContinue ? macJumps.Get(i - 1)->iContinue : macJumps.Get(i - 1)->iBreak;
+		if (iLabel != -1)
+		{
+			DestroyLocals(macJumps.Get(i - 1)->iDestructors);
+			Line("bra ");
+			AppendLabel(mpszOut, iLabel);
+			mpszOut->AppendNewLine();
+			return true;
+		}
+	}
+	return Error(pcStatement, bContinue ? "continue outside a loop" : "break outside a loop or switch");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// String literals are Str and a number, zero terminated.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendStrings(CChars* pszDest)
+{
+	size	i;
+
+	for (i = 0; i < maszStrings.NumElements(); i++)
+	{
+		pszDest->Append("Str");
+		pszDest->Append((int)i);
+		pszDest->Append(':');
+		pszDest->AppendNewLine();
+		pszDest->Append("\t\t.byte ");
+		pszDest->Append(maszStrings.Get(i));
+		pszDest->AppendNewLine();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Runtime routines the generated code calls.  Only the ones used are added.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendRuntime(void)
+{
+	mpszOut = &mszCode;
+	if (mbPureVirtual)
+	{
+		//A pure virtual function was called.
+		mszCode.Append("R_Pure:");
+		mszCode.AppendNewLine();
+		Line("stp")->AppendNewLine();
+		mszCode.AppendNewLine();
+	}
+	if (mbSignedDivide || mbSignedModulus)
+	{
+		//Signed divide: A / B.  The quotient is in A and the remainder in B.  The
+		//quotient is negative when the signs differ, the remainder has the dividend's
+		//sign.  Changes A, B, X and Y.
+		mszCode.Append("R_DivideSigned:");
+		mszCode.AppendNewLine();
+		Line("cpy X, A")->AppendNewLine();
+		Line("xor X, B")->AppendNewLine();
+		Line("psh X")->AppendNewLine();
+		Line("psh A")->AppendNewLine();
+		Line("abs Y, A")->AppendNewLine();
+		Line("abs A, B")->AppendNewLine();
+		Line("cpy B, 0")->AppendNewLine();
+		Line("psh W")->AppendNewLine();
+		Line("cpy W, 0")->AppendNewLine();
+		Line("div")->AppendNewLine();
+		Line("pul W")->AppendNewLine();
+		Line("pul X")->AppendNewLine();
+		Line("cmp X, 0")->AppendNewLine();
+		Line("brac n, R_DivideSigned1")->AppendNewLine();
+		Line("neg B, B")->AppendNewLine();
+		mszCode.Append("R_DivideSigned1:");
+		mszCode.AppendNewLine();
+		Line("pul X")->AppendNewLine();
+		Line("cmp X, 0")->AppendNewLine();
+		Line("brac n, R_DivideSigned2")->AppendNewLine();
+		Line("neg Y, Y")->AppendNewLine();
+		mszCode.Append("R_DivideSigned2:");
+		mszCode.AppendNewLine();
+		Line("cpy A, Y")->AppendNewLine();
+		Line("ret")->AppendNewLine();
+		mszCode.AppendNewLine();
+	}
+}

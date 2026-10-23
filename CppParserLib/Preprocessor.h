@@ -37,6 +37,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PreprocessorPosition.h"
 #include "HeaderNameMapStack.h"
 #include "PreprocessedTokens.h"
+#include "CPPErrors.h"
 #include "BaseLib/ArrayTemplatePtr.h"
 
 
@@ -109,9 +110,11 @@ protected:
 	bool							mbDefinedOperand;		//The next identifier is the operand of defined.
 	bool							mbError;
 	int								miCounter;
+	CCPPErrors						mcErrors;
 
 public:
 	static bool			Preprocess(char* szSource, CChars* pszDest);
+	CCPPErrors*			GetErrors(void);
 
 public:
 	void 				Init(CConfig* pcConfig);
@@ -191,6 +194,7 @@ protected:
 	char*				AddString(const char* szText, size uiLength);
 	void				AddNumber(int64 lliValue, SPreprocessedToken* psPosition, CArrayPreprocessedTokens* pacDest);
 	bool				Error(SPreprocessedToken* psToken, char* szMessage);
+	bool				Error(SPreprocessorPosition* psPosition, char* szMessage, char* szDetail = NULL);
 
 	void				MarkPositionForError(CPreprocessorTokenParser* pcParser, SPreprocessorPosition* psPos);
 	void				MarkPositionForError(size iLine, size iColumn, SPreprocessorPosition* psPos);
