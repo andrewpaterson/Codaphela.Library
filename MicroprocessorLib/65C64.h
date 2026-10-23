@@ -24,7 +24,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Chars.h"
 #include "65C64Decoded.h"
 #include "65C64Pins.h"
-#include "65Timeline.h"
+#include "Timeline.h"
 
 
 //Status register P.
@@ -146,9 +146,9 @@ public:
 	void				Kill(void);
 
 	//Clocking.
-	void				InputTransition(C65Timeline* pcTimeline);
-	void				ExecutePhi2Falling(C65Timeline* pcTimeline);
-	void				ExecutePhi2Rising(C65Timeline* pcTimeline);
+	void				InputTransition(CTimeline* pcTimeline);
+	void				ExecutePhi2Falling(CTimeline* pcTimeline);
+	void				ExecutePhi2Rising(CTimeline* pcTimeline);
 	void				Cycle(void);
 	void				NextInstruction(void);
 	void				DoneInstruction(void);
@@ -270,7 +270,7 @@ public:
 
 protected:
 	void				ResetInstructionState(void);
-	void				SampleInterrupts(C65Timeline* pcTimeline);
+	void				SampleInterrupts(CTimeline* pcTimeline);
 	bool				EnterInterrupt(void);
 	void				StartInterrupt(uint16 uiVector, uint16 uiDisable);
 	void				AddTransfer(uint32 uiAddress, uint8 uiBytes, uint64 uiValue, bool bRead, bool bWrite);
@@ -290,7 +290,7 @@ protected:
 	void				SetFlagCode(uint8 uiFlag, bool bValue);
 	uint64				GetBitIndex(void);
 	void				BlockStep(uint64 uiData, size uiTransfer, bool bWrite, bool bSetNegativeAndZero);
-	void				WriteSignalsPhi2Falling(C65Timeline* pcTimeline, C65DataOperation* pcDataOperation, C65BusCycle* pcBusCycle);
+	void				WriteSignalsPhi2Falling(CTimeline* pcTimeline, C65DataOperation* pcDataOperation, C65BusCycle* pcBusCycle);
 };
 
 

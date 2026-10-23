@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::Init(C65MetaBus32* pcAddress, C65MetaBus16* pcData, C65MetaTrace* pcPHI2, C65MetaTrace* pcRESB, C65MetaTrace* pcRWB)
+void C65C64Pins::Init(CW65MetaBus32* pcAddress, CW65MetaBus16* pcData, CW65MetaTrace* pcPHI2, CW65MetaTrace* pcRESB, CW65MetaTrace* pcRWB)
 {
 	size	i;
 
@@ -52,7 +52,7 @@ void C65C64Pins::Init(C65MetaBus32* pcAddress, C65MetaBus16* pcData, C65MetaTrac
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::SetByteTraces(C65MetaTrace* pcLowerByte, C65MetaTrace* pcUpperByte)
+void C65C64Pins::SetByteTraces(CW65MetaTrace* pcLowerByte, CW65MetaTrace* pcUpperByte)
 {
 	mpcLowerByte = pcLowerByte;
 	mpcUpperByte = pcUpperByte;
@@ -63,7 +63,7 @@ void C65C64Pins::SetByteTraces(C65MetaTrace* pcLowerByte, C65MetaTrace* pcUpperB
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::SetValidTraces(C65MetaTrace* pcOPV, C65MetaTrace* pcVPA, C65MetaTrace* pcVDA, C65MetaTrace* pcVPB)
+void C65C64Pins::SetValidTraces(CW65MetaTrace* pcOPV, CW65MetaTrace* pcVPA, CW65MetaTrace* pcVDA, CW65MetaTrace* pcVPB)
 {
 	mpcOPV = pcOPV;
 	mpcVPA = pcVPA;
@@ -76,7 +76,7 @@ void C65C64Pins::SetValidTraces(C65MetaTrace* pcOPV, C65MetaTrace* pcVPA, C65Met
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::SetInterruptTraces(C65MetaTrace* pcEIRQB0, C65MetaTrace* pcEIRQB1, C65MetaTrace* pcEIRQB2, C65MetaTrace* pcEIRQB3, C65MetaTrace* pcLIRQB)
+void C65C64Pins::SetInterruptTraces(CW65MetaTrace* pcEIRQB0, CW65MetaTrace* pcEIRQB1, CW65MetaTrace* pcEIRQB2, CW65MetaTrace* pcEIRQB3, CW65MetaTrace* pcLIRQB)
 {
 	mapcEIRQB[0] = pcEIRQB0;
 	mapcEIRQB[1] = pcEIRQB1;
@@ -117,7 +117,7 @@ void C65C64Pins::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::WriteAddress(C65Timeline* pcTimeline, uint32 uiAddress)
+void C65C64Pins::WriteAddress(CTimeline* pcTimeline, uint32 uiAddress)
 {
 	mpcAddress->Set(uiAddress);
 }
@@ -127,7 +127,7 @@ void C65C64Pins::WriteAddress(C65Timeline* pcTimeline, uint32 uiAddress)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::WriteData(C65Timeline* pcTimeline, uint16 uiData)
+void C65C64Pins::WriteData(CTimeline* pcTimeline, uint16 uiData)
 {
 	mpcData->Set(uiData);
 }
@@ -137,7 +137,7 @@ void C65C64Pins::WriteData(C65Timeline* pcTimeline, uint16 uiData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 C65C64Pins::ReadData(C65Timeline* pcTimeline)
+uint16 C65C64Pins::ReadData(CTimeline* pcTimeline)
 {
 	return mpcData->Get();
 }
@@ -147,7 +147,7 @@ uint16 C65C64Pins::ReadData(C65Timeline* pcTimeline)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::WriteRWB(C65Timeline* pcTimeline, bool bValue)
+void C65C64Pins::WriteRWB(CTimeline* pcTimeline, bool bValue)
 {
 	mpcRWB->Set(bValue);
 }
@@ -157,10 +157,10 @@ void C65C64Pins::WriteRWB(C65Timeline* pcTimeline, bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::WriteByteLanes(C65Timeline* pcTimeline, bool bLower, bool bUpper)
+void C65C64Pins::WriteByteLanes(CTimeline* pcTimeline, bool bLower, bool bUpper)
 {
-	Safe65SetTrace(mpcLowerByte, bLower);
-	Safe65SetTrace(mpcUpperByte, bUpper);
+	SafeSetTrace(mpcLowerByte, bLower);
+	SafeSetTrace(mpcUpperByte, bUpper);
 }
 
 
@@ -168,9 +168,9 @@ void C65C64Pins::WriteByteLanes(C65Timeline* pcTimeline, bool bLower, bool bUppe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::WriteOPV(C65Timeline* pcTimeline, bool bValue)
+void C65C64Pins::WriteOPV(CTimeline* pcTimeline, bool bValue)
 {
-	Safe65SetTrace(mpcOPV, bValue);
+	SafeSetTrace(mpcOPV, bValue);
 }
 
 
@@ -178,9 +178,9 @@ void C65C64Pins::WriteOPV(C65Timeline* pcTimeline, bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::WriteVPA(C65Timeline* pcTimeline, bool bValue)
+void C65C64Pins::WriteVPA(CTimeline* pcTimeline, bool bValue)
 {
-	Safe65SetTrace(mpcVPA, bValue);
+	SafeSetTrace(mpcVPA, bValue);
 }
 
 
@@ -188,9 +188,9 @@ void C65C64Pins::WriteVPA(C65Timeline* pcTimeline, bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::WriteVDA(C65Timeline* pcTimeline, bool bValue)
+void C65C64Pins::WriteVDA(CTimeline* pcTimeline, bool bValue)
 {
-	Safe65SetTrace(mpcVDA, bValue);
+	SafeSetTrace(mpcVDA, bValue);
 }
 
 
@@ -198,9 +198,9 @@ void C65C64Pins::WriteVDA(C65Timeline* pcTimeline, bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Pins::WriteVPB(C65Timeline* pcTimeline, bool bValue)
+void C65C64Pins::WriteVPB(CTimeline* pcTimeline, bool bValue)
 {
-	Safe65SetTrace(mpcVPB, bValue);
+	SafeSetTrace(mpcVPB, bValue);
 }
 
 
@@ -208,7 +208,7 @@ void C65C64Pins::WriteVPB(C65Timeline* pcTimeline, bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-S65TraceValue C65C64Pins::ReadPhi2(C65Timeline* pcTimeline)
+STraceValue C65C64Pins::ReadPhi2(CTimeline* pcTimeline)
 {
 	return mpcPHI2->Get();
 }
@@ -218,7 +218,7 @@ S65TraceValue C65C64Pins::ReadPhi2(C65Timeline* pcTimeline)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-S65TraceValue C65C64Pins::ReadRES(C65Timeline* pcTimeline)
+STraceValue C65C64Pins::ReadRES(CTimeline* pcTimeline)
 {
 	return mpcRESB->Get();
 }
@@ -228,9 +228,9 @@ S65TraceValue C65C64Pins::ReadRES(C65Timeline* pcTimeline)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-S65TraceValue C65C64Pins::ReadEIRQ(C65Timeline* pcTimeline, size uiInterrupt)
+STraceValue C65C64Pins::ReadEIRQ(CTimeline* pcTimeline, size uiInterrupt)
 {
-	Safe65GetTrace(mapcEIRQB[uiInterrupt]);
+	SafeGetTrace(mapcEIRQB[uiInterrupt]);
 }
 
 
@@ -238,8 +238,8 @@ S65TraceValue C65C64Pins::ReadEIRQ(C65Timeline* pcTimeline, size uiInterrupt)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-S65TraceValue C65C64Pins::ReadLIRQ(C65Timeline* pcTimeline)
+STraceValue C65C64Pins::ReadLIRQ(CTimeline* pcTimeline)
 {
-	Safe65GetTrace(mpcLIRQB);
+	SafeGetTrace(mpcLIRQB);
 }
 

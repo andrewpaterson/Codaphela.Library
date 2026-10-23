@@ -15,8 +15,8 @@ public:
 	void			Kill(void);
 
 	//Microprocessor side methods.
-	void			WriteSYNC(CW65Timeline* pcTimeline, bool bValue);
-	SW65TraceValue		ReadSOB(CW65Timeline* pcTimeline);
+	void			WriteSYNC(CTimeline* pcTimeline, bool bValue);
+	STraceValue			ReadSOB(CTimeline* pcTimeline);
 };
 
 

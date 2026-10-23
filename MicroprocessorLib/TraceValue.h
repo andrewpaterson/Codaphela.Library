@@ -12,7 +12,7 @@ enum ETraceValue
 };
 
 
-struct SW65TraceValue
+struct STraceValue
 {
 	ETraceValue	eValue;
 

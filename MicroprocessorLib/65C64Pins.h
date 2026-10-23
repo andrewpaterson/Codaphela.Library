@@ -21,55 +21,55 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __65C64_PINS_H__
 #define __65C64_PINS_H__
 #include "BaseLib/PrimitiveTypes.h"
-#include "65TraceValue.h"
-#include "65MetaBus16.h"
-#include "65MetaBus32.h"
-#include "65MetaTrace.h"
+#include "TraceValue.h"
+#include "W65MetaBus16.h"
+#include "W65MetaBus32.h"
+#include "W65MetaTrace.h"
 
 
 #define NUM_65C64_EDGE_INTERRUPTS	4
 
 
 //The signals the simulator uses.  These are not the spreadsheet's pinout.
-class C65Timeline;
+class CTimeline;
 class C65C64Pins
 {
 protected:
-	C65MetaBus32*	mpcAddress;
-	C65MetaBus16*	mpcData;
-	C65MetaTrace*	mpcPHI2;
-	C65MetaTrace*	mpcRESB;
-	C65MetaTrace*	mpcRWB;
-	C65MetaTrace*	mpcLowerByte;
-	C65MetaTrace*	mpcUpperByte;
-	C65MetaTrace*	mpcOPV;
-	C65MetaTrace*	mpcVPA;
-	C65MetaTrace*	mpcVDA;
-	C65MetaTrace*	mpcVPB;
-	C65MetaTrace*	mapcEIRQB[NUM_65C64_EDGE_INTERRUPTS];
-	C65MetaTrace*	mpcLIRQB;
+	CW65MetaBus32*	mpcAddress;
+	CW65MetaBus16*	mpcData;
+	CW65MetaTrace*	mpcPHI2;
+	CW65MetaTrace*	mpcRESB;
+	CW65MetaTrace*	mpcRWB;
+	CW65MetaTrace*	mpcLowerByte;
+	CW65MetaTrace*	mpcUpperByte;
+	CW65MetaTrace*	mpcOPV;
+	CW65MetaTrace*	mpcVPA;
+	CW65MetaTrace*	mpcVDA;
+	CW65MetaTrace*	mpcVPB;
+	CW65MetaTrace*	mapcEIRQB[NUM_65C64_EDGE_INTERRUPTS];
+	CW65MetaTrace*	mpcLIRQB;
 
 public:
-	void			Init(C65MetaBus32* pcAddress, C65MetaBus16* pcData, C65MetaTrace* pcPHI2, C65MetaTrace* pcRESB, C65MetaTrace* pcRWB);
-	void			SetByteTraces(C65MetaTrace* pcLowerByte, C65MetaTrace* pcUpperByte);
-	void			SetValidTraces(C65MetaTrace* pcOPV, C65MetaTrace* pcVPA, C65MetaTrace* pcVDA, C65MetaTrace* pcVPB);
-	void			SetInterruptTraces(C65MetaTrace* pcEIRQB0, C65MetaTrace* pcEIRQB1, C65MetaTrace* pcEIRQB2, C65MetaTrace* pcEIRQB3, C65MetaTrace* pcLIRQB);
+	void			Init(CW65MetaBus32* pcAddress, CW65MetaBus16* pcData, CW65MetaTrace* pcPHI2, CW65MetaTrace* pcRESB, CW65MetaTrace* pcRWB);
+	void			SetByteTraces(CW65MetaTrace* pcLowerByte, CW65MetaTrace* pcUpperByte);
+	void			SetValidTraces(CW65MetaTrace* pcOPV, CW65MetaTrace* pcVPA, CW65MetaTrace* pcVDA, CW65MetaTrace* pcVPB);
+	void			SetInterruptTraces(CW65MetaTrace* pcEIRQB0, CW65MetaTrace* pcEIRQB1, CW65MetaTrace* pcEIRQB2, CW65MetaTrace* pcEIRQB3, CW65MetaTrace* pcLIRQB);
 	void			Kill(void);
 
 	//Microprocessor side methods.
-	void			WriteAddress(C65Timeline* pcTimeline, uint32 uiAddress);
-	void			WriteData(C65Timeline* pcTimeline, uint16 uiData);
-	uint16			ReadData(C65Timeline* pcTimeline);
-	void			WriteRWB(C65Timeline* pcTimeline, bool bValue);
-	void			WriteByteLanes(C65Timeline* pcTimeline, bool bLower, bool bUpper);
-	void			WriteOPV(C65Timeline* pcTimeline, bool bValue);
-	void			WriteVPA(C65Timeline* pcTimeline, bool bValue);
-	void			WriteVDA(C65Timeline* pcTimeline, bool bValue);
-	void			WriteVPB(C65Timeline* pcTimeline, bool bValue);
-	S65TraceValue	ReadPhi2(C65Timeline* pcTimeline);
-	S65TraceValue	ReadRES(C65Timeline* pcTimeline);
-	S65TraceValue	ReadEIRQ(C65Timeline* pcTimeline, size uiInterrupt);
-	S65TraceValue	ReadLIRQ(C65Timeline* pcTimeline);
+	void			WriteAddress(CTimeline* pcTimeline, uint32 uiAddress);
+	void			WriteData(CTimeline* pcTimeline, uint16 uiData);
+	uint16			ReadData(CTimeline* pcTimeline);
+	void			WriteRWB(CTimeline* pcTimeline, bool bValue);
+	void			WriteByteLanes(CTimeline* pcTimeline, bool bLower, bool bUpper);
+	void			WriteOPV(CTimeline* pcTimeline, bool bValue);
+	void			WriteVPA(CTimeline* pcTimeline, bool bValue);
+	void			WriteVDA(CTimeline* pcTimeline, bool bValue);
+	void			WriteVPB(CTimeline* pcTimeline, bool bValue);
+	STraceValue		ReadPhi2(CTimeline* pcTimeline);
+	STraceValue		ReadRES(CTimeline* pcTimeline);
+	STraceValue		ReadEIRQ(CTimeline* pcTimeline, size uiInterrupt);
+	STraceValue		ReadLIRQ(CTimeline* pcTimeline);
 };
 
 

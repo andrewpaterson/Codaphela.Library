@@ -1,7 +1,7 @@
 #ifndef __META_W65C_H__
 #define __META_W65C_H__
 #include "W65CCore.h"
-#include "W65Timeline.h"
+#include "Timeline.h"
 
 
 //The traces and clocking the W65C02S and W65C816S meta processors share.  A subclass owns
@@ -11,7 +11,7 @@ class CW65Instruction;
 class CW65CMeta
 {
 protected:
-	CW65Timeline				mcTimeline;
+	CTimeline					mcTimeline;
 	CW65MetaBus16 				mcAddress;
 	CW65MetaBus8 				mcData;
 	CW65MetaTrace 				mcVPB;

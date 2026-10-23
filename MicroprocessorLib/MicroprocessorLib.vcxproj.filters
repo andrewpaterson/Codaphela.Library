@@ -189,14 +189,8 @@
     <ClCompile Include="W65Operation.cpp">
       <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="W65OperationArray.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
-    </ClCompile>
     <ClCompile Include="W65DataOperation.cpp">
       <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
-    </ClCompile>
-    <ClCompile Include="W65BusCycleArray.cpp">
-      <Filter>Source\WDC\W65C816\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="W65AbortVector.cpp">
       <Filter>Source\WDC\W65C816\Instruction\Interrupt</Filter>
@@ -288,10 +282,7 @@
     <ClCompile Include="W65SetProgramBank.cpp">
       <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="W65NoteFourX.cpp">
-      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
-    </ClCompile>
-    <ClCompile Include="W65NoteFourY.cpp">
+    <ClCompile Include="W65NoteFour.cpp">
       <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
     </ClCompile>
     <ClCompile Include="W65NoteOne.cpp">
@@ -357,10 +348,10 @@
     <ClCompile Include="W65InterruptVector.cpp">
       <Filter>Source\WDC\W65C816\Instruction\Interrupt</Filter>
     </ClCompile>
-    <ClCompile Include="W65TraceValue.cpp">
+    <ClCompile Include="TraceValue.cpp">
       <Filter>Source\Common\Wire</Filter>
     </ClCompile>
-    <ClCompile Include="W65Timeline.cpp">
+    <ClCompile Include="Timeline.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
     <ClCompile Include="W65C816Pins.cpp">
@@ -394,9 +385,6 @@
       <Filter>Source\Codaphela\65C64\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="65BusCycle.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
-    </ClCompile>
-    <ClCompile Include="65BusCycleArray.cpp">
       <Filter>Source\Codaphela\65C64\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="65C64.cpp">
@@ -447,26 +435,11 @@
     <ClCompile Include="65InternalOperation.cpp">
       <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
-    <ClCompile Include="65MetaBus16.cpp">
-      <Filter>Source\Codaphela\65C64\Meta</Filter>
-    </ClCompile>
-    <ClCompile Include="65MetaBus32.cpp">
-      <Filter>Source\Codaphela\65C64\Meta</Filter>
-    </ClCompile>
-    <ClCompile Include="65MetaSignal.cpp">
-      <Filter>Source\Codaphela\65C64\Meta</Filter>
-    </ClCompile>
-    <ClCompile Include="65MetaTrace.cpp">
-      <Filter>Source\Codaphela\65C64\Meta</Filter>
-    </ClCompile>
     <ClCompile Include="65OpcodeCycle.cpp">
       <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="65Operation.cpp">
       <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
-    </ClCompile>
-    <ClCompile Include="65OperationArray.cpp">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
     </ClCompile>
     <ClCompile Include="65PointerAddressOffset.cpp">
       <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
@@ -488,9 +461,6 @@
     </ClCompile>
     <ClCompile Include="65ReadVectorWord.cpp">
       <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
-    </ClCompile>
-    <ClCompile Include="65TraceValue.cpp">
-      <Filter>Source\Codaphela\65C64\Meta</Filter>
     </ClCompile>
     <ClCompile Include="65TransferWordOffset.cpp">
       <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
@@ -647,14 +617,8 @@
     <ClInclude Include="W65Operation.h">
       <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="W65OperationArray.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
-    </ClInclude>
     <ClInclude Include="W65DataOperation.h">
       <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
-    </ClInclude>
-    <ClInclude Include="W65BusCycleArray.h">
-      <Filter>Source\WDC\W65C816\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="W65InterruptVector.h">
       <Filter>Source\WDC\W65C816\Instruction\Interrupt</Filter>
@@ -749,10 +713,7 @@
     <ClInclude Include="W65SetProgramBank.h">
       <Filter>Source\WDC\W65C816\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="W65NoteFourX.h">
-      <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
-    </ClInclude>
-    <ClInclude Include="W65NoteFourY.h">
+    <ClInclude Include="W65NoteFour.h">
       <Filter>Source\WDC\W65C816\Instruction\Operation\Note</Filter>
     </ClInclude>
     <ClInclude Include="W65NoteOne.h">
@@ -824,10 +785,13 @@
     <ClInclude Include="W65C816InstructionCodes.h">
       <Filter>Source\WDC\W65C816\Instruction</Filter>
     </ClInclude>
-    <ClInclude Include="W65TraceValue.h">
+    <ClInclude Include="TraceValue.h">
       <Filter>Source\Common\Wire</Filter>
     </ClInclude>
-    <ClInclude Include="W65Timeline.h">
+    <ClInclude Include="ArrayOwnedPtr.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Timeline.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="W65C816Pins.h">
@@ -861,9 +825,6 @@
       <Filter>Source\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="65BusCycle.h">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
-    </ClInclude>
-    <ClInclude Include="65BusCycleArray.h">
       <Filter>Source\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="65BusCycleParameter.h">
@@ -920,26 +881,11 @@
     <ClInclude Include="65InternalOperation.h">
       <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="65MetaBus16.h">
-      <Filter>Source\Codaphela\65C64\Meta</Filter>
-    </ClInclude>
-    <ClInclude Include="65MetaBus32.h">
-      <Filter>Source\Codaphela\65C64\Meta</Filter>
-    </ClInclude>
-    <ClInclude Include="65MetaSignal.h">
-      <Filter>Source\Codaphela\65C64\Meta</Filter>
-    </ClInclude>
-    <ClInclude Include="65MetaTrace.h">
-      <Filter>Source\Codaphela\65C64\Meta</Filter>
-    </ClInclude>
     <ClInclude Include="65OpcodeCycle.h">
       <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="65Operation.h">
       <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
-    </ClInclude>
-    <ClInclude Include="65OperationArray.h">
-      <Filter>Source\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="65PointerAddressOffset.h">
       <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
@@ -962,12 +908,6 @@
     <ClInclude Include="65ReadVectorWord.h">
       <Filter>Source\Codaphela\65C64\Instruction\Operation</Filter>
     </ClInclude>
-    <ClInclude Include="65Timeline.h">
-      <Filter>Source\Codaphela\65C64\Meta</Filter>
-    </ClInclude>
-    <ClInclude Include="65TraceValue.h">
-      <Filter>Source\Codaphela\65C64\Meta</Filter>
-    </ClInclude>
     <ClInclude Include="65TransferWordOffset.h">
       <Filter>Source\Codaphela\65C64\Instruction\Address</Filter>
     </ClInclude>
@@ -986,4 +926,4 @@
       <Filter>Source\Codaphela\65C64</Filter>
     </None>
   </ItemGroup>
-</Project>
+</Project>

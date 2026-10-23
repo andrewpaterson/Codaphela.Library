@@ -62,7 +62,7 @@ char* CW65C816::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::WriteSignalsPhi2Falling(CW65Timeline* pcTimeline, CW65DataOperation* pcDataOperation, CW65BusCycle* pcBusCycle)
+void CW65C816::WriteSignalsPhi2Falling(CTimeline* pcTimeline, CW65DataOperation* pcDataOperation, CW65BusCycle* pcBusCycle)
 {
 	bool	bValidDataAddress;
 	bool	bValidProgramAddress;
@@ -86,7 +86,7 @@ void CW65C816::WriteSignalsPhi2Falling(CW65Timeline* pcTimeline, CW65DataOperati
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::WriteSignalsPhi2Rising(CW65Timeline* pcTimeline)
+void CW65C816::WriteSignalsPhi2Rising(CTimeline* pcTimeline)
 {
 	mpcW65C816Pins->WriteMX(pcTimeline, IsMemory8Bit());
 }

@@ -22,7 +22,7 @@ protected:
 	W65C816MetaTickHigh		mfTickHigh;
 	W65C816MetaTickLow		mfTickLow;
 
-	SW65TraceValue				msX;
+	STraceValue					msX;
 
 public:
 	void			Init(W65C816MetaTickHigh fTickHigh, W65C816MetaTickLow fTickLow, void* pvContext);
@@ -39,8 +39,8 @@ public:
 	bool			IsResetInstruction(void);
 	bool			IsStopInstruction(void);
 
-	void			SetX(SW65TraceValue sX);
-	SW65TraceValue		GetX(void);
+	void			SetX(STraceValue sX);
+	STraceValue			GetX(void);
 
 	void			Print(CChars* psz);
 	void			Print(CChars* psz, bool bMnemonic, bool bCycle, bool bOperation, bool bA, bool bX, bool bY, bool bPC, bool bS, bool bDP, bool bDB, bool bP, bool bAddressBus, bool bDataBus, bool bBank, bool bVPB, bool bRDY, bool bMLB, bool bVPA, bool bVDA, bool bWM, bool bWX, bool bE, bool bRWB, bool bAddressOperation, bool bDataOperation, bool bDescription);

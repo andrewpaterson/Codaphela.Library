@@ -18,11 +18,11 @@ public:
 	void			Kill(void);
 
 	//Microprocessor side methods.
-	void			WriteMX(CW65Timeline* pcTimeline, bool bValue);
-	void			WriteVDA(CW65Timeline* pcTimeline, bool bValue);
-	void			WriteVPA(CW65Timeline* pcTimeline, bool bValue);
-	void			WriteE(CW65Timeline* pcTimeline, bool bValue);
-	SW65TraceValue		ReadMX(CW65Timeline* pcTimeline);
+	void			WriteMX(CTimeline* pcTimeline, bool bValue);
+	void			WriteVDA(CTimeline* pcTimeline, bool bValue);
+	void			WriteVPA(CTimeline* pcTimeline, bool bValue);
+	void			WriteE(CTimeline* pcTimeline, bool bValue);
+	STraceValue			ReadMX(CTimeline* pcTimeline);
 };
 
 

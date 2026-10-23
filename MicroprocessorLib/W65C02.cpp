@@ -124,7 +124,7 @@ CW65Instruction* CW65C02::GetFetchNextOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C02::WriteSignalsPhi2Falling(CW65Timeline* pcTimeline, CW65DataOperation* pcDataOperation, CW65BusCycle* pcBusCycle)
+void CW65C02::WriteSignalsPhi2Falling(CTimeline* pcTimeline, CW65DataOperation* pcDataOperation, CW65BusCycle* pcBusCycle)
 {
 	bool	bSOB;
 

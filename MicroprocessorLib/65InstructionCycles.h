@@ -21,7 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __65_INSTRUCTION_CYCLES_H__
 #define __65_INSTRUCTION_CYCLES_H__
 #include "BaseLib/PrimitiveTypes.h"
-#include "65BusCycleArray.h"
+#include "65BusCycle.h"
 
 
 class C65InstructionCycles

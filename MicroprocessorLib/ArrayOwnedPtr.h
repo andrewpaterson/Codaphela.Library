@@ -18,35 +18,42 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __65_TRACE_VALUE_H__
-#define __65_TRACE_VALUE_H__
-#include "BaseLib/Chars.h"
+#ifndef __ARRAY_OWNED_PTR_H__
+#define __ARRAY_OWNED_PTR_H__
+#include "BaseLib/ArrayTemplatePtr.h"
+#include "BaseLib/PointerFunctions.h"
 
 
-enum E65TraceValue
+//An array of pointers that owns its elements.  Kill kills and frees every element.
+template<class M>
+class CArrayOwnedPtr : public CArrayTemplatePtr<M>
 {
-	TV65_Low,
-	TV65_High,
-	TV65_Unsettled,
-	TV65_Undriven,
+public:
+	void	Kill(void);
 };
 
 
-struct S65TraceValue
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayOwnedPtr<M>::Kill(void)
 {
-	E65TraceValue	eValue;
+	size	i;
+	size	uiNumElements;
+	M*		pcElement;
 
-	void	Init(void);
-	void	Init(E65TraceValue eTraceValue);
-	void	Init(bool bValue);
-	bool	IsHigh(void);
-	bool	IsLow(void);
+	uiNumElements = CArrayTemplatePtr<M>::NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcElement = CArrayTemplatePtr<M>::GetPtr(i);
+		SafeKill(pcElement);
+	}
 
-	void	Invert(void);
-
-	void	Print(CChars* psz);
-};
+	CArrayTemplatePtr<M>::Kill();
+}
 
 
-#endif // __65_TRACE_VALUE_H__
+#endif // __ARRAY_OWNED_PTR_H__
 

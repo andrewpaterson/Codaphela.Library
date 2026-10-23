@@ -2,7 +2,7 @@
 #define __INSTRUCTION_CYCLES_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Malloc.h"
-#include "W65BusCycleArray.h"
+#include "W65BusCycle.h"
 #include "AddressingMode.h"
 #include "NotMemoryLock.h"
 

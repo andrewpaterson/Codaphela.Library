@@ -4,7 +4,7 @@
 #include "W65MetaSignal.h"
 
 
-class CW65MetaBus16 : CW65MetaSignal
+class CW65MetaBus16 : public CW65MetaSignal
 {
 protected:
 	uint16	muiValue;
