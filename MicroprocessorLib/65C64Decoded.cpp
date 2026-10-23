@@ -23,19 +23,19 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //The register lists of the opcode encoding sheet, in order.
-static E65Register gaeRegisters[8] = { R65_Zero, R65_A, R65_B, R65_S, R65_V, R65_W, R65_X, R65_Y };
-static E65Register gaeNoneWXY[4] = { R65_Zero, R65_W, R65_X, R65_Y };
-static E65Register gaeVWXY[4] = { R65_V, R65_W, R65_X, R65_Y };
-static E65Register gaeABSV[4] = { R65_A, R65_B, R65_S, R65_V };
-static E65Register gaeABXY[4] = { R65_A, R65_B, R65_X, R65_Y };
-static E65Register gaeSVWY[4] = { R65_S, R65_V, R65_W, R65_Y };
-static E65Register gaeXY[2] = { R65_X, R65_Y };
+const E65Register gae65Registers[8] = { R65_Zero, R65_A, R65_B, R65_S, R65_V, R65_W, R65_X, R65_Y };
+const E65Register gae65NoneWXY[4] = { R65_Zero, R65_W, R65_X, R65_Y };
+const E65Register gae65VWXY[4] = { R65_V, R65_W, R65_X, R65_Y };
+const E65Register gae65ABSV[4] = { R65_A, R65_B, R65_S, R65_V };
+const E65Register gae65ABXY[4] = { R65_A, R65_B, R65_X, R65_Y };
+const E65Register gae65SVWY[4] = { R65_S, R65_V, R65_W, R65_Y };
+const E65Register gae65XY[2] = { R65_X, R65_Y };
 
 //Immediate widths: unused, 8, 16, 24, 32, 40, 48, 64 bits.
-static uint8 gauiImmediateBytes[8] = { 0, 1, 2, 3, 4, 5, 6, 8 };
+const uint8 gaui65ImmediateBytes[8] = { 0, 1, 2, 3, 4, 5, 6, 8 };
 
 //Embedded branch offsets.
-static int32 gaiBranchOffsets[8] = { 2, 4, 6, 8, -4, -6, -8, -10 };
+const int32 gai65BranchOffsets[8] = { 2, 4, 6, 8, -4, -6, -8, -10 };
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -80,9 +80,29 @@ bool Is65C64MemoryMode(uint8 uiMode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IsTwoRegisterMode(uint8 uiMode)
+bool Is65C64TwoRegisterMode(uint8 uiMode)
 {
 	return (uiMode == OPERAND_MODE_REGISTER_REGISTER) || (uiMode == OPERAND_MODE_REGISTER_REGISTER_INDIRECT) || (uiMode == OPERAND_MODE_REGISTER_INDIRECT_REGISTER);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The register's index in one of the register lists, or -1.
+//
+//////////////////////////////////////////////////////////////////////////
+int Get65C64RegisterIndex(E65Register eRegister, const E65Register* aeList, int iListSize)
+{
+	int	i;
+
+	for (i = 0; i < iListSize; i++)
+	{
+		if (aeList[i] == eRegister)
+		{
+			return i;
+		}
+	}
+	return -1;
 }
 
 
@@ -219,33 +239,33 @@ static void DecodeLogical(uint16 uiOpcode, S65C64Decoded* psDecoded)
 	psDecoded->uiMode = uiMode;
 	if (uiMode == OPERAND_MODE_REGISTER)
 	{
-		SetRegister(&psDecoded->sFirst, gaeRegisters[Field(uiOpcode, 13, 3)]);
+		SetRegister(&psDecoded->sFirst, gae65Registers[Field(uiOpcode, 13, 3)]);
 		psDecoded->bSigned = Field(uiOpcode, 11, 1) != 0;
-		SetRegister(&psDecoded->sSecond, gaeRegisters[Field(uiOpcode, 8, 3)]);
+		SetRegister(&psDecoded->sSecond, gae65Registers[Field(uiOpcode, 8, 3)]);
 	}
 	else if (uiMode == OPERAND_MODE_IMMEDIATE)
 	{
-		SetRegister(&psDecoded->sFirst, gaeRegisters[Field(uiOpcode, 13, 3)]);
+		SetRegister(&psDecoded->sFirst, gae65Registers[Field(uiOpcode, 13, 3)]);
 		psDecoded->bSigned = Field(uiOpcode, 11, 1) != 0;
-		SetImmediate(&psDecoded->sSecond, gauiImmediateBytes[Field(uiOpcode, 8, 3)]);
+		SetImmediate(&psDecoded->sSecond, gaui65ImmediateBytes[Field(uiOpcode, 8, 3)]);
 	}
 	else if (uiMode == OPERAND_MODE_EMBEDDED)
 	{
-		SetRegister(&psDecoded->sFirst, gaeRegisters[Field(uiOpcode, 13, 3)]);
+		SetRegister(&psDecoded->sFirst, gae65Registers[Field(uiOpcode, 13, 3)]);
 		SetEmbedded(&psDecoded->sSecond, Embedded(Field(uiOpcode, 12, 1) != 0, Field(uiOpcode, 8, 4), 4));
 	}
-	else if (IsTwoRegisterMode(uiMode))
+	else if (Is65C64TwoRegisterMode(uiMode))
 	{
-		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gaeRegisters[Field(uiOpcode, 12, 3)], uiMode, gaeABSV[Field(uiOpcode, 8, 2)], gaeVWXY[Field(uiOpcode, 10, 2)]);
+		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gae65Registers[Field(uiOpcode, 12, 3)], uiMode, gae65ABSV[Field(uiOpcode, 8, 2)], gae65VWXY[Field(uiOpcode, 10, 2)]);
 	}
 	else if (Field(uiOpcode, 14, 1) == 0)
 	{
-		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gaeRegisters[Field(uiOpcode, 11, 3)], uiMode, gaeRegisters[Field(uiOpcode, 8, 3)], R65_Zero);
+		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gae65Registers[Field(uiOpcode, 11, 3)], uiMode, gae65Registers[Field(uiOpcode, 8, 3)], R65_Zero);
 	}
 	else
 	{
 		//The embedded value implies swap: the memory operand is first.
-		SetMemory(psDecoded, &psDecoded->sFirst, uiMode, gaeRegisters[Field(uiOpcode, 8, 3)], R65_Zero);
+		SetMemory(psDecoded, &psDecoded->sFirst, uiMode, gae65Registers[Field(uiOpcode, 8, 3)], R65_Zero);
 		SetEmbedded(&psDecoded->sSecond, Embedded(Field(uiOpcode, 15, 1) != 0, Field(uiOpcode, 11, 3), 3));
 	}
 }
@@ -264,30 +284,30 @@ static void DecodeArithmetic(uint16 uiOpcode, S65C64Decoded* psDecoded)
 	psDecoded->uiMode = uiMode;
 	if (uiMode == OPERAND_MODE_REGISTER)
 	{
-		SetRegister(&psDecoded->sFirst, gaeRegisters[Field(uiOpcode, 13, 3)]);
-		SetRegister(&psDecoded->sSecond, gaeRegisters[Field(uiOpcode, 9, 3)]);
+		SetRegister(&psDecoded->sFirst, gae65Registers[Field(uiOpcode, 13, 3)]);
+		SetRegister(&psDecoded->sSecond, gae65Registers[Field(uiOpcode, 9, 3)]);
 	}
 	else if (uiMode == OPERAND_MODE_IMMEDIATE)
 	{
-		SetRegister(&psDecoded->sFirst, gaeRegisters[Field(uiOpcode, 13, 3)]);
-		SetImmediate(&psDecoded->sSecond, gauiImmediateBytes[Field(uiOpcode, 9, 3)]);
+		SetRegister(&psDecoded->sFirst, gae65Registers[Field(uiOpcode, 13, 3)]);
+		SetImmediate(&psDecoded->sSecond, gaui65ImmediateBytes[Field(uiOpcode, 9, 3)]);
 	}
 	else if (uiMode == OPERAND_MODE_EMBEDDED)
 	{
-		SetRegister(&psDecoded->sFirst, gaeRegisters[Field(uiOpcode, 13, 3)]);
+		SetRegister(&psDecoded->sFirst, gae65Registers[Field(uiOpcode, 13, 3)]);
 		SetEmbedded(&psDecoded->sSecond, Embedded(Field(uiOpcode, 12, 1) != 0, Field(uiOpcode, 9, 3), 3));
 	}
-	else if (IsTwoRegisterMode(uiMode))
+	else if (Is65C64TwoRegisterMode(uiMode))
 	{
-		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gaeRegisters[Field(uiOpcode, 12, 3)], uiMode, gaeABSV[Field(uiOpcode, 9, 2)], gaeXY[Field(uiOpcode, 11, 1)]);
+		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gae65Registers[Field(uiOpcode, 12, 3)], uiMode, gae65ABSV[Field(uiOpcode, 9, 2)], gae65XY[Field(uiOpcode, 11, 1)]);
 	}
 	else if (Field(uiOpcode, 14, 1) == 0)
 	{
-		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gaeRegisters[Field(uiOpcode, 11, 3)], uiMode, gaeNoneWXY[Field(uiOpcode, 9, 2)], R65_Zero);
+		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gae65Registers[Field(uiOpcode, 11, 3)], uiMode, gae65NoneWXY[Field(uiOpcode, 9, 2)], R65_Zero);
 	}
 	else
 	{
-		SetMemory(psDecoded, &psDecoded->sFirst, uiMode, gaeNoneWXY[Field(uiOpcode, 9, 2)], R65_Zero);
+		SetMemory(psDecoded, &psDecoded->sFirst, uiMode, gae65NoneWXY[Field(uiOpcode, 9, 2)], R65_Zero);
 		SetEmbedded(&psDecoded->sSecond, Embedded(Field(uiOpcode, 15, 1) != 0, Field(uiOpcode, 11, 3), 3));
 	}
 }
@@ -305,31 +325,31 @@ static void DecodeShift(uint16 uiOpcode, S65C64Decoded* psDecoded)
 	psDecoded->uiMode = uiMode;
 	if (uiMode == OPERAND_MODE_REGISTER)
 	{
-		SetRegister(&psDecoded->sFirst, gaeRegisters[Field(uiOpcode, 13, 3)]);
-		SetRegister(&psDecoded->sSecond, gaeRegisters[Field(uiOpcode, 10, 3)]);
+		SetRegister(&psDecoded->sFirst, gae65Registers[Field(uiOpcode, 13, 3)]);
+		SetRegister(&psDecoded->sSecond, gae65Registers[Field(uiOpcode, 10, 3)]);
 	}
 	else if (uiMode == OPERAND_MODE_IMMEDIATE)
 	{
-		SetRegister(&psDecoded->sFirst, gaeRegisters[Field(uiOpcode, 13, 3)]);
+		SetRegister(&psDecoded->sFirst, gae65Registers[Field(uiOpcode, 13, 3)]);
 		SetImmediate(&psDecoded->sSecond, Field(uiOpcode, 10, 1) ? 2 : 1);
 	}
 	else if (uiMode == OPERAND_MODE_EMBEDDED)
 	{
 		//1 to 4 and 5 to 8: the high bit is not a sign.
-		SetRegister(&psDecoded->sFirst, gaeRegisters[Field(uiOpcode, 13, 3)]);
+		SetRegister(&psDecoded->sFirst, gae65Registers[Field(uiOpcode, 13, 3)]);
 		SetEmbedded(&psDecoded->sSecond, Field(uiOpcode, 10, 3) + 1);
 	}
-	else if (IsTwoRegisterMode(uiMode))
+	else if (Is65C64TwoRegisterMode(uiMode))
 	{
-		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gaeABXY[Field(uiOpcode, 13, 2)], uiMode, gaeABSV[Field(uiOpcode, 10, 2)], gaeXY[Field(uiOpcode, 12, 1)]);
+		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gae65ABXY[Field(uiOpcode, 13, 2)], uiMode, gae65ABSV[Field(uiOpcode, 10, 2)], gae65XY[Field(uiOpcode, 12, 1)]);
 	}
 	else if (Field(uiOpcode, 14, 1) == 0)
 	{
-		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gaeABSV[Field(uiOpcode, 12, 2)], uiMode, gaeNoneWXY[Field(uiOpcode, 10, 2)], R65_Zero);
+		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gae65ABSV[Field(uiOpcode, 12, 2)], uiMode, gae65NoneWXY[Field(uiOpcode, 10, 2)], R65_Zero);
 	}
 	else
 	{
-		SetMemory(psDecoded, &psDecoded->sFirst, uiMode, gaeNoneWXY[Field(uiOpcode, 10, 2)], R65_Zero);
+		SetMemory(psDecoded, &psDecoded->sFirst, uiMode, gae65NoneWXY[Field(uiOpcode, 10, 2)], R65_Zero);
 		SetEmbedded(&psDecoded->sSecond, ((Field(uiOpcode, 15, 1) << 2) | Field(uiOpcode, 12, 2)) + 1);
 	}
 }
@@ -376,7 +396,7 @@ static void DecodeJump(uint16 uiOpcode, S65C64Decoded* psDecoded)
 	uint8	uiMode;
 	uint16	uiWidth;
 
-	psDecoded->eStack = gaeSVWY[Field(uiOpcode, 14, 2)];
+	psDecoded->eStack = gae65SVWY[Field(uiOpcode, 14, 2)];
 	psDecoded->bPushP = Field(uiOpcode, 6, 1) != 0;
 	psDecoded->bPushC = Field(uiOpcode, 5, 1) != 0;
 	psDecoded->bRelative = Field(uiOpcode, 4, 1) != 0;
@@ -386,7 +406,7 @@ static void DecodeJump(uint16 uiOpcode, S65C64Decoded* psDecoded)
 	psDecoded->uiMode = uiMode;
 	if (uiMode == OPERAND_MODE_REGISTER)
 	{
-		SetRegister(&psDecoded->sSecond, gaeRegisters[Field(uiOpcode, 11, 3)]);
+		SetRegister(&psDecoded->sSecond, gae65Registers[Field(uiOpcode, 11, 3)]);
 	}
 	else if (uiMode == OPERAND_MODE_IMMEDIATE)
 	{
@@ -407,13 +427,13 @@ static void DecodeJump(uint16 uiOpcode, S65C64Decoded* psDecoded)
 		psDecoded->eInstruction = I65_Illegal;
 		return;
 	}
-	else if (IsTwoRegisterMode(uiMode))
+	else if (Is65C64TwoRegisterMode(uiMode))
 	{
-		SetMemory(psDecoded, &psDecoded->sSecond, uiMode, gaeABSV[Field(uiOpcode, 11, 2)], gaeXY[Field(uiOpcode, 13, 1)]);
+		SetMemory(psDecoded, &psDecoded->sSecond, uiMode, gae65ABSV[Field(uiOpcode, 11, 2)], gae65XY[Field(uiOpcode, 13, 1)]);
 	}
 	else
 	{
-		SetMemory(psDecoded, &psDecoded->sSecond, uiMode, gaeRegisters[Field(uiOpcode, 11, 3)], R65_Zero);
+		SetMemory(psDecoded, &psDecoded->sSecond, uiMode, gae65Registers[Field(uiOpcode, 11, 3)], R65_Zero);
 	}
 
 	if (psDecoded->sSecond.eKind == OK65_None)
@@ -447,7 +467,7 @@ static void DecodeReturnStateBreakStop(uint16 uiOpcode, S65C64Decoded* psDecoded
 	switch (Field(uiOpcode, 4, 2))
 	{
 	case 0:
-		psDecoded->eStack = gaeSVWY[Field(uiOpcode, 14, 2)];
+		psDecoded->eStack = gae65SVWY[Field(uiOpcode, 14, 2)];
 		psDecoded->bPullP = Field(uiOpcode, 9, 1) != 0;
 		psDecoded->bPullC = Field(uiOpcode, 8, 1) != 0;
 		if (Field(uiOpcode, 7, 1))
@@ -474,8 +494,8 @@ static void DecodeReturnStateBreakStop(uint16 uiOpcode, S65C64Decoded* psDecoded
 		else
 		{
 			psDecoded->eInstruction = (uiSub == 2) ? I65_Wth : I65_Wtth;
-			psDecoded->eWidthFirst = gaeABXY[Field(uiOpcode, 14, 2)];
-			psDecoded->eWidthSecond = gaeABXY[Field(uiOpcode, 12, 2)];
+			psDecoded->eWidthFirst = gae65ABXY[Field(uiOpcode, 14, 2)];
+			psDecoded->eWidthSecond = gae65ABXY[Field(uiOpcode, 12, 2)];
 			if (Field(uiOpcode, 11, 1))
 			{
 				psDecoded->uiWidthBytes = (uint8)(Field(uiOpcode, 8, 3) + 1);
@@ -483,7 +503,7 @@ static void DecodeReturnStateBreakStop(uint16 uiOpcode, S65C64Decoded* psDecoded
 			}
 			else
 			{
-				SetRegister(&psDecoded->sSecond, gaeRegisters[Field(uiOpcode, 8, 3)]);
+				SetRegister(&psDecoded->sSecond, gae65Registers[Field(uiOpcode, 8, 3)]);
 			}
 		}
 		break;
@@ -505,14 +525,14 @@ static void DecodeReturnStateBreakStop(uint16 uiOpcode, S65C64Decoded* psDecoded
 		else if (uiSub == 2)
 		{
 			psDecoded->eInstruction = I65_Gwth;
-			psDecoded->eWidthFirst = gaeABXY[Field(uiOpcode, 14, 2)];
+			psDecoded->eWidthFirst = gae65ABXY[Field(uiOpcode, 14, 2)];
 			psDecoded->bDecrement = Field(uiOpcode, 13, 1) != 0;
-			SetRegister(&psDecoded->sFirst, gaeRegisters[Field(uiOpcode, 10, 3)]);
+			SetRegister(&psDecoded->sFirst, gae65Registers[Field(uiOpcode, 10, 3)]);
 		}
 		else if (uiSub == 3)
 		{
 			psDecoded->eInstruction = I65_Wthx;
-			psDecoded->eWidthFirst = gaeABXY[Field(uiOpcode, 14, 2)];
+			psDecoded->eWidthFirst = gae65ABXY[Field(uiOpcode, 14, 2)];
 			psDecoded->bSigned = Field(uiOpcode, 11, 1) != 0;
 			psDecoded->uiWidthBytes = (uint8)(Field(uiOpcode, 8, 3) + 1);
 		}
@@ -540,7 +560,7 @@ static void DecodeBranchNopShift(uint16 uiOpcode, S65C64Decoded* psDecoded)
 		psDecoded->bSigned = true;
 		if (uiExtend == 0)
 		{
-			psDecoded->iBranchOffset = gaiBranchOffsets[Field(uiOpcode, 8, 3)];
+			psDecoded->iBranchOffset = gai65BranchOffsets[Field(uiOpcode, 8, 3)];
 			SetEmbedded(&psDecoded->sSecond, psDecoded->iBranchOffset);
 		}
 		else
@@ -588,13 +608,13 @@ static void DecodePushPullOperand(uint16 uiOpcode, S65C64Decoded* psDecoded, boo
 	if (bPush && (uiMode == OPERAND_MODE_IMMEDIATE))
 	{
 		psDecoded->eInstruction = I65_PshOperand;
-		SetImmediate(&psDecoded->sSecond, gauiImmediateBytes[Field(uiOpcode, 10, 3)]);
+		SetImmediate(&psDecoded->sSecond, gaui65ImmediateBytes[Field(uiOpcode, 10, 3)]);
 		psDecoded->eAccess = MA65_Write;
 	}
-	else if (Is65C64MemoryMode(uiMode) && !IsTwoRegisterMode(uiMode))
+	else if (Is65C64MemoryMode(uiMode) && !Is65C64TwoRegisterMode(uiMode))
 	{
 		psDecoded->eInstruction = bPush ? I65_PshOperand : I65_PulOperand;
-		SetMemory(psDecoded, &psDecoded->sSecond, uiMode, gaeRegisters[Field(uiOpcode, 10, 3)], R65_Zero);
+		SetMemory(psDecoded, &psDecoded->sSecond, uiMode, gae65Registers[Field(uiOpcode, 10, 3)], R65_Zero);
 		psDecoded->eAccess = MA65_ReadWrite;
 		if (bPush)
 		{
@@ -611,7 +631,7 @@ static void DecodePushPullOperand(uint16 uiOpcode, S65C64Decoded* psDecoded, boo
 //////////////////////////////////////////////////////////////////////////
 static void DecodePushPull(uint16 uiOpcode, S65C64Decoded* psDecoded)
 {
-	psDecoded->eStack = gaeRegisters[Field(uiOpcode, 13, 3)];
+	psDecoded->eStack = gae65Registers[Field(uiOpcode, 13, 3)];
 	if (psDecoded->eStack == R65_Zero)
 	{
 		return;
@@ -651,8 +671,8 @@ static void DecodeSubcopy(uint16 uiOpcode, S65C64Decoded* psDecoded)
 
 	bBits = Field(uiOpcode, 4, 1) != 0;
 	psDecoded->eInstruction = bBits ? I65_Scb : I65_Scp;
-	psDecoded->eSource = gaeRegisters[Field(uiOpcode, 13, 3)];
-	psDecoded->eDestination = gaeRegisters[Field(uiOpcode, 10, 3)];
+	psDecoded->eSource = gae65Registers[Field(uiOpcode, 13, 3)];
+	psDecoded->eDestination = gae65Registers[Field(uiOpcode, 10, 3)];
 	if (Field(uiOpcode, 9, 1))
 	{
 		if (bBits)
@@ -666,7 +686,7 @@ static void DecodeSubcopy(uint16 uiOpcode, S65C64Decoded* psDecoded)
 	}
 	else
 	{
-		psDecoded->eCount = gaeRegisters[Field(uiOpcode, 6, 3)];
+		psDecoded->eCount = gae65Registers[Field(uiOpcode, 6, 3)];
 	}
 	psDecoded->uiOperandWords = 1;
 }
@@ -674,10 +694,11 @@ static void DecodeSubcopy(uint16 uiOpcode, S65C64Decoded* psDecoded)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Multiply and divide use A, B, W and Y.  They have no operand fields.
+// Instruction code 14: multiply and divide (no operand fields; they use A, B, W and
+// Y), negate and absolute (two registers) and the finds (a register and an index).
 //
 //////////////////////////////////////////////////////////////////////////
-static void DecodeMultiplyDivideFindBlockVector(uint16 uiOpcode, S65C64Decoded* psDecoded)
+static void DecodeMultiplyDivideFind(uint16 uiOpcode, S65C64Decoded* psDecoded)
 {
 	static uint8	auiUnitBits[4] = { 1, 2, 4, 8 };
 	uint16			uiUnit;
@@ -696,8 +717,8 @@ static void DecodeMultiplyDivideFindBlockVector(uint16 uiOpcode, S65C64Decoded* 
 		default:
 			//Negate and absolute: the first register gets the second.
 			psDecoded->eInstruction = (Field(uiOpcode, 6, 2) == 2) ? I65_Neg : I65_Abs;
-			SetRegister(&psDecoded->sFirst, gaeRegisters[Field(uiOpcode, 13, 3)]);
-			SetRegister(&psDecoded->sSecond, gaeRegisters[Field(uiOpcode, 8, 3)]);
+			SetRegister(&psDecoded->sFirst, gae65Registers[Field(uiOpcode, 13, 3)]);
+			SetRegister(&psDecoded->sSecond, gae65Registers[Field(uiOpcode, 8, 3)]);
 			break;
 		}
 		break;
@@ -705,8 +726,8 @@ static void DecodeMultiplyDivideFindBlockVector(uint16 uiOpcode, S65C64Decoded* 
 	case 1:
 		//Find: set (not zero) before clear (zero), for bits, crumbs, nybbles and bytes.
 		uiUnit = Field(uiOpcode, 6, 2);
-		psDecoded->eSource = gaeRegisters[Field(uiOpcode, 13, 3)];
-		psDecoded->eCount = gaeRegisters[Field(uiOpcode, 10, 3)];
+		psDecoded->eSource = gae65Registers[Field(uiOpcode, 13, 3)];
+		psDecoded->eCount = gae65Registers[Field(uiOpcode, 10, 3)];
 		psDecoded->bDecrement = Field(uiOpcode, 9, 1) != 0;
 		psDecoded->bNotZero = Field(uiOpcode, 8, 1) != 0;
 		psDecoded->uiUnitBits = auiUnitBits[uiUnit];
@@ -753,7 +774,7 @@ static void DecodeBlockVector(uint16 uiOpcode, S65C64Decoded* psDecoded)
 		return;
 	}
 
-	psDecoded->eSource = gaeRegisters[Field(uiOpcode, 9, 3)];
+	psDecoded->eSource = gae65Registers[Field(uiOpcode, 9, 3)];
 	if ((psDecoded->eSource == R65_Zero) || (psDecoded->eSource == R65_A))
 	{
 		return;
@@ -831,7 +852,7 @@ static void DecodeHardwareState(uint16 uiOpcode, S65C64Decoded* psDecoded)
 		psDecoded->uiFlagFirst = (uint8)Field(uiOpcode, 13, 3);
 		if (psDecoded->eInstruction == I65_Bist)
 		{
-			psDecoded->eSource = gaeRegisters[Field(uiOpcode, 10, 3)];
+			psDecoded->eSource = gae65Registers[Field(uiOpcode, 10, 3)];
 			if (psDecoded->uiFlagFirst < 2)
 			{
 				psDecoded->eInstruction = I65_Illegal;
@@ -839,7 +860,7 @@ static void DecodeHardwareState(uint16 uiOpcode, S65C64Decoded* psDecoded)
 		}
 		else
 		{
-			psDecoded->eDestination = gaeRegisters[Field(uiOpcode, 10, 3)];
+			psDecoded->eDestination = gae65Registers[Field(uiOpcode, 10, 3)];
 		}
 
 		//Index style 7 is a register, 6 is immediate (both in the operand word), 0 to 5 is the index.
@@ -912,7 +933,7 @@ void Decode65C64(uint16 uiOpcode, S65C64Decoded* psDecoded)
 		DecodePushPull(uiOpcode, psDecoded);
 		break;
 	case 14:
-		DecodeMultiplyDivideFindBlockVector(uiOpcode, psDecoded);
+		DecodeMultiplyDivideFind(uiOpcode, psDecoded);
 		break;
 	case 15:
 		DecodeHardwareState(uiOpcode, psDecoded);

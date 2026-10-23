@@ -1759,14 +1759,13 @@ void C65C64::SHR(void)
 //////////////////////////////////////////////////////////////////////////
 uint64 C65C64::GetSubcopyIndex(uint16 uiField, bool bBits)
 {
-	static E65Register	aeRegisters[8] = { R65_Zero, R65_A, R65_B, R65_S, R65_V, R65_W, R65_X, R65_Y };
 	E65Register			eRegister;
 
 	if (uiField & 0x80)
 	{
 		return bBits ? ((uiField >> 1) & 0x3F) : ((uiField >> 4) & 0x7);
 	}
-	eRegister = aeRegisters[(uiField >> 4) & 7];
+	eRegister = gae65Registers[(uiField >> 4) & 7];
 	return GetRegister(eRegister) & Mask65(GetRegisterBytes(eRegister));
 }
 
@@ -1972,12 +1971,11 @@ void C65C64::SetFlagCode(uint8 uiFlag, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 uint64 C65C64::GetBitIndex(void)
 {
-	static E65Register	aeRegisters[8] = { R65_Zero, R65_A, R65_B, R65_S, R65_V, R65_W, R65_X, R65_Y };
 	E65Register			eRegister;
 
 	if (msDecoded.uiIndexStyle == 7)
 	{
-		eRegister = aeRegisters[(mauiOperandWords[0] >> 13) & 7];
+		eRegister = gae65Registers[(mauiOperandWords[0] >> 13) & 7];
 		return GetRegister(eRegister) & Mask65(GetRegisterBytes(eRegister));
 	}
 	else if (msDecoded.uiIndexStyle == 6)
@@ -2013,7 +2011,6 @@ void C65C64::BIST(void)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::STAB(void)
 {
-	static E65Register	aeRegisters[8] = { R65_Zero, R65_A, R65_B, R65_S, R65_V, R65_W, R65_X, R65_Y };
 	E65Register			eRegister;
 	uint16				uiWord;
 	uint16				uiRepeatStyle;
@@ -2036,7 +2033,7 @@ void C65C64::STAB(void)
 		bDecrement = uiRepeatStyle >= 2;
 		if ((uiRepeatStyle & 1) == 0)
 		{
-			eRegister = aeRegisters[(uiWord >> 5) & 7];
+			eRegister = gae65Registers[(uiWord >> 5) & 7];
 			uiRepeat = GetRegister(eRegister) & Mask65(GetRegisterBytes(eRegister));
 		}
 		else
