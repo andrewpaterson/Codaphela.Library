@@ -39,7 +39,7 @@ bool SCPP65Type::IsInteger(void)
 //////////////////////////////////////////////////////////////////////////
 bool SCPP65Type::IsScalar(void)
 {
-	return (eKind == CPP65TK_Integer) || (eKind == CPP65TK_Bool) || (eKind == CPP65TK_Pointer);
+	return (eKind == CPP65TK_Integer) || (eKind == CPP65TK_Bool) || (eKind == CPP65TK_Pointer) || (eKind == CPP65TK_Float);
 }
 
 
@@ -97,8 +97,41 @@ bool SCPP65Type::IsClass(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool SCPP65Type::IsReference(void)
+{
+	return eKind == CPP65TK_Reference;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool SCPP65Type::IsFloat(void)
+{
+	return eKind == CPP65TK_Float;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A scalar the registers can work with: not floating point or 8 bytes.
+//
+//////////////////////////////////////////////////////////////////////////
+bool SCPP65Type::IsSupported(void)
+{
+	return IsScalar() && (iBytes <= 4);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool SCPP65Type::Equals(SCPP65Type* psOther)
 {
+	size	i;
+
 	if (this == psOther)
 	{
 		return true;
@@ -107,11 +140,29 @@ bool SCPP65Type::Equals(SCPP65Type* psOther)
 	{
 		return false;
 	}
-	if (psBase && psOther->psBase)
+	if ((psBase && !psOther->psBase) || (!psBase && psOther->psBase))
 	{
-		return psBase->Equals(psOther->psBase);
+		return false;
 	}
-	return psBase == psOther->psBase;
+	if (psBase && !psBase->Equals(psOther->psBase))
+	{
+		return false;
+	}
+	if (eKind == CPP65TK_Function)
+	{
+		if ((bVariadic != psOther->bVariadic) || (papsParameters->NumElements() != psOther->papsParameters->NumElements()))
+		{
+			return false;
+		}
+		for (i = 0; i < papsParameters->NumElements(); i++)
+		{
+			if (!papsParameters->GetPtr(i)->Equals(psOther->papsParameters->GetPtr(i)))
+			{
+				return false;
+			}
+		}
+	}
+	return true;
 }
 
 
@@ -146,6 +197,8 @@ void CCPP65Types::Init(void)
 	InitBuiltin(&msUnsignedShort, CPP65TK_Integer, 2, false);
 	InitBuiltin(&msInt, CPP65TK_Integer, 4, true);
 	InitBuiltin(&msUnsignedInt, CPP65TK_Integer, 4, false);
+	InitBuiltin(&msLongLong, CPP65TK_Integer, 8, true);
+	InitBuiltin(&msUnsignedLongLong, CPP65TK_Integer, 8, false);
 }
 
 
@@ -157,9 +210,17 @@ void CCPP65Types::Kill(void)
 {
 	size	i;
 
+	SCPP65Type*	psType;
+
 	for (i = 0; i < mapsTypes.NumElements(); i++)
 	{
-		free(mapsTypes.GetPtr(i));
+		psType = mapsTypes.GetPtr(i);
+		if (psType->papsParameters)
+		{
+			psType->papsParameters->Kill();
+			free(psType->papsParameters);
+		}
+		free(psType);
 	}
 	mapsTypes.Kill();
 }
@@ -177,6 +238,8 @@ void CCPP65Types::InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iByt
 	psType->psBase = NULL;
 	psType->iCount = 0;
 	psType->psClass = NULL;
+	psType->papsParameters = NULL;
+	psType->bVariadic = false;
 }
 
 
@@ -205,6 +268,8 @@ SCPP65Type* CCPP65Types::Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBas
 	psType->psBase = psBase;
 	psType->iCount = iCount;
 	psType->psClass = NULL;
+	psType->papsParameters = NULL;
+	psType->bVariadic = false;
 	mapsTypes.Add(psType);
 	return psType;
 }
@@ -222,6 +287,8 @@ SCPP65Type* CCPP65Types::Integer(int iBytes, bool bSigned)
 		return bSigned ? &msChar : &msUnsignedChar;
 	case 2:
 		return bSigned ? &msShort : &msUnsignedShort;
+	case 8:
+		return bSigned ? &msLongLong : &msUnsignedLongLong;
 	default:
 		return bSigned ? &msInt : &msUnsignedInt;
 	}
@@ -250,11 +317,65 @@ SCPP65Type* CCPP65Types::Array(SCPP65Type* psElement, int iCount)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A function type.  The parameters are copied.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Types::Function(SCPP65Type* psReturn)
+SCPP65Type* CCPP65Types::Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65Type>* papsParameters, bool bVariadic)
 {
-	return Add(CPP65TK_Function, 0, psReturn, 0);
+	SCPP65Type*	psType;
+	SCPP65Type*	psOther;
+	size		i;
+
+	psType = (SCPP65Type*)malloc(sizeof(SCPP65Type));
+	InitBuiltin(psType, CPP65TK_Function, 0, false);
+	psType->psBase = psReturn;
+	psType->bVariadic = bVariadic;
+	psType->papsParameters = (CArrayTemplatePtr<SCPP65Type>*)malloc(sizeof(CArrayTemplatePtr<SCPP65Type>));
+	psType->papsParameters->Init();
+	for (i = 0; papsParameters && (i < papsParameters->NumElements()); i++)
+	{
+		psType->papsParameters->Add(papsParameters->GetPtr(i));
+	}
+
+	//The same function type is shared.
+	for (i = 0; i < mapsTypes.NumElements(); i++)
+	{
+		psOther = mapsTypes.GetPtr(i);
+		if ((psOther->eKind == CPP65TK_Function) && psOther->Equals(psType))
+		{
+			psType->papsParameters->Kill();
+			free(psType->papsParameters);
+			free(psType);
+			return psOther;
+		}
+	}
+	mapsTypes.Add(psType);
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::Reference(SCPP65Type* psBase)
+{
+	return Add(CPP65TK_Reference, 4, psBase, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// float (4), double (8) and long double (16).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::Float(int iBytes)
+{
+	SCPP65Type*	psType;
+
+	psType = Add(CPP65TK_Float, iBytes, NULL, 0);
+	psType->bSigned = true;
+	return psType;
 }
 
 
@@ -284,6 +405,8 @@ SCPP65Type* CCPP65Types::Class(SCPP65Class* psClass)
 	psType->psBase = NULL;
 	psType->iCount = 0;
 	psType->psClass = psClass;
+	psType->papsParameters = NULL;
+	psType->bVariadic = false;
 	mapsTypes.Add(psType);
 	return psType;
 }

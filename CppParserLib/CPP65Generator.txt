@@ -15,6 +15,11 @@ back end of the C++ parser.  Usage:
 	cGenerator.GetErrors();						//"line:column: message 'token'" lines.
 	cGenerator.Kill();
 
+Libc65 (commonlibraries/Libc65) has the 65C64's standard headers: stdint.h, stddef.h,
+limits.h, stdarg.h, string.h, memory.h, stdlib.h, malloc.h, stdio.h, math.h and new.
+They only declare (int and long are 32 bits, size_t is unsigned int); the functions
+are not written yet.  Give it to the preprocessor as a system include directory.
+
 Generate writes the translation unit only.  GenerateProgram puts the start up in front
 of it (the tests use GenerateProgram):
 
@@ -179,37 +184,123 @@ in turn.
 Supported
 ---------
 
-- Functions with int, unsigned, char, short, bool, enum and pointer parameters and
-  results (and void).  Recursion.
+- Functions with integer, bool, enum, pointer and reference parameters and results
+  (and void).  Default arguments.  Recursion.  Pointers to functions (jsr A).
 - Global variables and arrays with constant initialisers, string initialisers for char
   arrays, and arrays sized by their initialiser.  extern declarations.
-- Local variables and arrays (initialiser lists, strings), condition declarations
-  (if (int x = f())).
+- Local variables, arrays and references, condition declarations (if (int x = f())).
 - Statements: compound, expression, if, while, do, for, switch / case / default,
   break, continue, return.
 - Expressions: all the integer operators, assignment and compound assignment, ++ and --,
-  ?:, the comma operator, calls by name, [] (either way round), * and &, casts (C style,
-  static_cast, reinterpret_cast, const_cast, int(x)), sizeof, enumerators, string literals.
-- Constant expressions (array sizes, case labels, global initialisers) include
-  enumerators, const int variables, casts and sizeof.
-- Overloaded functions, chosen by the number of arguments and how well their types
-  match (the same type, then integer to integer, then related pointers).
-- Classes and structs: see Classes below.
+  ?:, the comma operator, calls, [] (either way round), * and &, casts (C style,
+  static_cast, reinterpret_cast, const_cast, int(x)), sizeof, type traits
+  (__is_trivially_constructible ...), enumerators, string literals, placement new.
+- Constant expressions (array sizes, case labels, global initialisers, template
+  arguments) include enumerators, const int variables, casts, sizeof and type traits.
+- Overloaded functions and operators, chosen by the number of arguments (default
+  arguments make up the rest) and how well their types match (the same type, then
+  integer to integer, then related pointers; a reference matches its type).
+- Classes, structs and unions, multiple inheritance, templates: see below.
+- float, double, long double and 64 bit integers can be declared (variables, fields,
+  parameters, typedefs) but not used.
 
 
 Not supported yet
 -----------------
 
-Each gives an error "... is not supported by the 65C64 generator yet".
+Each gives an error "... is not supported by the 65C64 generator yet".  Declarations
+the generator cannot do are only errors when what they declare is used (see When
+code is generated).
 
-- long long and 64 bit integers (the registers can do it: the widths would have to be
-  tracked), float and double.
-- Unions, references, new and delete, operators, conversion functions, nested and
-  local classes, multiple and virtual inheritance.
-- Objects passed or returned by value (use pointers), temporary objects, user copy
-  constructors.
-- Namespaces, templates, default arguments, function pointers, variadic functions.
-- static and extern local variables, goto and labels, joined and wide string literals.
+- Using long long and 64 bit integers (the registers can do it: the widths would have
+  to be tracked), float and double.
+- new and delete without a placement (there is no heap), conversion functions,
+  member templates, explicit and partial specialisations, variadic templates.
+- More than one polymorphic base class, virtual inheritance.
+- Objects passed or returned by value (use pointers or references), temporary
+  objects (so a const reference needs an lvalue), user copy constructors.
+- Namespaces, local classes, variadic calls, static and extern local variables, goto
+  and labels, joined and wide string literals.
+
+
+When code is generated
+----------------------
+
+Like a C++ compiler, the generator only does what is used:
+
+- Classes are laid out when they are first needed whole (an object, sizeof, a member,
+  a base).  A class used only through pointers is never laid out.
+- Functions defined outside classes and not inline are generated where they are
+  defined.  Functions defined in classes, inline, constexpr and template functions are
+  generated when they are first called (a queue is worked through after the
+  translation unit).  A class's vtable (and so its virtual functions) is written when
+  an object of the class is first made.
+- Declarations of functions and extern variables are made quietly: if one cannot be
+  done (an unsupported type), it is left out and its errors are reported when it is
+  called.
+- Bodies skipped in system headers are only declarations.
+- GetExternals lists the functions and globals that were used but not defined, which
+  must come from other translation units.
+
+So a header like BaseLib/ArrayTemplate.h, with everything it includes, compiles as
+long as what a program uses is supported.
+
+
+Several translation units
+-------------------------
+
+There is no linker; a program of several translation units is their assembly joined
+under one start up.  For each unit (a CProject's, after Process: see
+TestCPP65GeneratorProject):
+
+	cGenerator.Init(&cTree);
+	cGenerator.SetUnit("U1_", &aszEmitted);		//aszEmitted is shared by all the units.
+	cGenerator.Generate(&szUnits);
+	cGenerator.GetStartUp(&aszInitialise, &aszFinalise);
+
+then CCPP65Generator::AppendStartUp(&szProgram, &aszInitialise, &aszFinalise) and the
+units.  The prefix keeps each unit's own labels apart (U1_L5, U1_Str0,
+U1_R_Initialise).  Inline, template and generated functions, vtables and runtime
+routines are written by the first unit that needs them and left out by the others,
+as a linker folds them.  The start up calls each unit's initialiser in order and their
+finalisers in reverse.
+
+
+Templates
+---------
+
+Class templates are instantiated when they are named with arguments
+(CArrayTemplate<int>); their member functions, in the class and defined outside it
+(template<class M> M* CArrayTemplate<M>::Get(size iIndex)), are generated with the
+arguments when called.  The class's own name inside it is the instance.  Function
+templates are instantiated with explicit arguments (IsTrivial<Class>()) or arguments
+deduced from parameters declared as T, T*, T** ... or T&.  Non-type parameters and
+default template arguments work.  template class Name<Arguments>; generates every
+member.
+
+Labels: an instance is Name__T and its arguments mangled: _CArrayTemplate__T_i__Add is
+CArrayTemplate<int>::Add.  Types are v void, b bool, c char, h unsigned char, s short,
+t unsigned short, i int, j unsigned, x long long, y unsigned long long, f float,
+d double, e long double, P pointer, R reference, A count _ array, F return parameters
+E function, C length name class; constants are L and the value (Ln for negative).
+
+
+References
+----------
+
+A reference is the address of what it refers to, 4 bytes.  Using one loads the
+address and works on what it points at.  A reference parameter is passed the
+argument's address; a function returning a reference leaves the address in A; a
+reference variable or field is bound to its initialiser's address.  The initialiser
+must be an lvalue (temporaries are not supported yet).
+
+
+Operators
+---------
+
+Member operator functions are named after their token: operator[] is _Class__opIndex,
+operator+= _Class__opAddAssign and so on.  object[index], object op= value and
+object = value call them when the class has them (assignment copies otherwise).
 
 
 this (the user, 2026-10-23)
@@ -222,10 +313,14 @@ are pushed).  this is in X.
 Classes
 -------
 
-Layout: the base class first, then the vtable pointer (4 bytes, when the class is the
-first polymorphic one in its chain: a vtable pointer added to a class with a
-non-polymorphic base goes after the base), then the fields, each aligned to its size
-(4 at most).  So a Derived* is a Base* without adjusting it.  An empty class is 1 byte.
+Layout: the bases in order, each aligned to its own alignment, then the vtable pointer
+(4 bytes, when no base has one: a vtable pointer added to a class with non-polymorphic
+bases goes after them), then the fields, each aligned to its size (4 at most).  An
+empty base (no fields, no vtable pointer, empty bases) takes no space; an empty class
+is 1 byte.  A union's fields are all at 0.  This is the layout of a 32 bit g++ or MSVC
+build for these classes (CArrayBlock checked).  A pointer to a derived class is
+converted to a pointer to a base by adding the base's offset (not to a null pointer);
+the first base is at 0.  Only the first base can be polymorphic yet.
 
 Member functions get this in X.  A non-static member function keeps it at the bottom
 of its frame (cpy [1 + V], X) and loads X again from there when something else has
@@ -240,18 +335,21 @@ keep X: it is not preserved by calls.
 		jsr [4 * slot + A]		; a virtual call
 
 Calls through a pointer, through this and implicit member calls are virtual; calls on
-an object variable (s.f()) and qualified calls (Base::f()) are not.  A function with
+an object variable (s.f()) and qualified calls (Base::f()) are not.  A base's member
+function is called with X moved on to the base.  A function with
 the name and parameters of a base's virtual function overrides it (and is virtual); a
 destructor overrides a virtual base destructor.  Pure virtual functions are R_Pure in
 the vtable, which stops the processor.
 
-Constructors: the base (from the member initialiser list or its default constructor),
+Constructors: the bases in order (from the member initialiser list or their default
+constructors),
 the vtable pointer, then the fields in order (member initialiser, default member
 initialiser, or their own default constructor), then the body.  A class that needs
 any of that and declares no constructor gets one written for it.  A class without
 constructors can be initialised from {fields}.  Destructors run their body, then
-destroy the fields last first, then the base; they set the vtable pointer to their
-own class first.  A class gets a destructor when its base or a field has one.
+destroy the fields last first, then the bases last first; they set the vtable
+pointer to their own class first.  A class gets a destructor when a base or a field
+has one.  = default constructors and destructors are written by the generator.
 
 Objects:
 - Locals are constructed at their declaration and destroyed last first at the end of

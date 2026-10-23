@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <string.h>
 #include "CTInt.h"
 #include "CTShort.h"
 #include "CTLongLong.h"
@@ -38,6 +39,37 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Generator::Expression(CCPPSyntax* pcExpression)
 {
+	SCPP65Type*		psType;
+	SCPP65Place		sPlace;
+
+	psType = Evaluate(pcExpression);
+	if (psType && psType->IsReference())
+	{
+		//A reference's value is what it refers to.
+		ResultPlace(psType, &sPlace, pcExpression);
+		if (sPlace.psType->IsClass())
+		{
+			return sPlace.psType;
+		}
+		if (!Supported(sPlace.psType, pcExpression))
+		{
+			return NULL;
+		}
+		Load(&sPlace, "A", "A");
+		return sPlace.psType;
+	}
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Expression, but a function returning a reference leaves its address in A and
+// the reference type.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::Evaluate(CCPPSyntax* pcExpression)
+{
 	CCPPSyntaxNamedCastExpression*	pcNamedCast;
 	CCPPSyntaxConstructExpression*	pcConstruct;
 	CArraySyntax*					papcElements;
@@ -56,7 +88,7 @@ SCPP65Type* CCPP65Generator::Expression(CCPPSyntax* pcExpression)
 	case CPPS_IdExpression:
 		return IdExpression((CCPPSyntaxIdExpression*)pcExpression);
 	case CPPS_ParenthesisedExpression:
-		return Expression(((CCPPSyntaxParenthesisedExpression*)pcExpression)->mpcExpression);
+		return Evaluate(((CCPPSyntaxParenthesisedExpression*)pcExpression)->mpcExpression);
 	case CPPS_UnaryExpression:
 		return UnaryExpression((CCPPSyntaxUnaryExpression*)pcExpression);
 	case CPPS_BinaryExpression:
@@ -93,7 +125,10 @@ SCPP65Type* CCPP65Generator::Expression(CCPPSyntax* pcExpression)
 		Error(pcExpression, "This construction is not supported by the 65C64 generator yet");
 		return NULL;
 	case CPPS_SizeofExpression:
-		return SizeofExpression((CCPPSyntaxSizeofExpression*)pcExpression);
+	case CPPS_TypeTraitExpression:
+		return SizeofExpression(pcExpression);
+	case CPPS_NewExpression:
+		return NewExpression((CCPPSyntaxNewExpression*)pcExpression);
 	default:
 		Error(pcExpression, "This expression is not supported by the 65C64 generator yet");
 		return NULL;
@@ -126,9 +161,18 @@ SCPP65Type* CCPP65Generator::Value(CCPPSyntax* pcExpression)
 		LoadAddress(&sPlace);
 		return sPlace.psType;
 	}
+	if (sPlace.psType->IsFunction())
+	{
+		LoadAddress(&sPlace);
+		return mcTypes.Pointer(sPlace.psType);
+	}
 	if (!sPlace.psType->IsScalar())
 	{
 		Error(pcExpression, "This type of value is not supported by the 65C64 generator yet");
+		return NULL;
+	}
+	if (!Supported(sPlace.psType, pcExpression))
+	{
 		return NULL;
 	}
 	Load(&sPlace, "A", "A");
@@ -248,7 +292,7 @@ SCPP65Type* CCPP65Generator::StringLiteral(CCPPSyntaxStringExpression* pcString)
 	pszBytes->Append('0');
 	auiBytes.Kill();
 
-	Line("cpy A, Str")->Append((int)maszStrings.NumElements() - 1)->AppendNewLine();
+	Line("cpy A, ")->Append(&mszUnit)->Append("Str")->Append((int)maszStrings.NumElements() - 1)->AppendNewLine();
 	return mcTypes.Pointer(&mcTypes.msChar);
 }
 
@@ -266,7 +310,50 @@ SCPP65Type* CCPP65Generator::IdExpression(CCPPSyntaxIdExpression* pcId)
 	{
 		return SimpleValue(pcId, "A");
 	}
+	if (pcSymbol && (pcSymbol->meKind == CPPSK_Function) && (pcId->mpcName->macpComponents.NumElements() == 1))
+	{
+		return FunctionAddress(pcId, pcSymbol->mlliName);
+	}
 	return Value(pcId);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function's name used as a value is its address.  It must not be overloaded.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::FunctionAddress(CCPPSyntax* pcNode, int64 lliName)
+{
+	SCPP65Function*		psFunction;
+	SCPP65Function*		psFound;
+	size				i;
+
+	psFound = NULL;
+	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	{
+		psFunction = mapsFunctions.GetPtr(i);
+		if (!psFunction->psClass && (psFunction->lliName == lliName) && !psFunction->psTemplate)
+		{
+			if (psFound)
+			{
+				Error(pcNode, "The address of an overloaded function is not supported by the 65C64 generator yet");
+				return NULL;
+			}
+			psFound = psFunction;
+		}
+	}
+	if (!psFound)
+	{
+		Error(pcNode, "The function has not been declared");
+		return NULL;
+	}
+
+	RequireFunction(psFound);
+	Line("cpy A, ");
+	AppendFunctionLabel(mpszOut, psFound);
+	mpszOut->AppendNewLine();
+	return mcTypes.Pointer(mcTypes.Function(psFound->psReturn, &psFound->mapsParameters, psFound->bVariadic));
 }
 
 
@@ -278,6 +365,7 @@ SCPP65Type* CCPP65Generator::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary)
 {
 	SCPP65Type*		psType;
 	SCPP65Place		sPlace;
+	CCPPSyntax*		pcOperand;
 	int64			lliValue;
 
 	switch (pcUnary->meOperator)
@@ -290,6 +378,11 @@ SCPP65Type* CCPP65Generator::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary)
 	case CT_Multiply:
 		return Value(pcUnary);
 	case CT_BitwiseAnd:
+		pcOperand = SkipParentheses(pcUnary->mpcOperand);
+		if ((pcOperand->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol && (((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol->meKind == CPPSK_Function))
+		{
+			return FunctionAddress(pcOperand, ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol->mlliName);
+		}
 		if (!Place(pcUnary->mpcOperand, &sPlace))
 		{
 			return NULL;
@@ -454,7 +547,19 @@ SCPP65Type* CCPP65Generator::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 	SCPP65Right		sRight;
 	SCPP65Type*		psResult;
 	ECppTokens		eOperator;
+	CArraySyntax	apcRight;
 	bool			bAddress;
+
+	//object op= value calls the object's operator if it has one.
+	psResult = TypeOf(pcBinary->mpcLeft);
+	if (psResult && psResult->IsClass() && HasMember(psResult->psClass, GetOperatorName(pcBinary->meOperator, false)))
+	{
+		apcRight.Init();
+		apcRight.Add(pcBinary->mpcRight);
+		psResult = OperatorCall(pcBinary->mpcLeft, pcBinary->meOperator, &apcRight, pcBinary);
+		apcRight.Kill();
+		return psResult;
+	}
 
 	if (!Place(pcBinary->mpcLeft, &sPlace))
 	{
@@ -616,20 +721,23 @@ SCPP65Type* CCPP65Generator::ConditionValue(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 //
 // Arguments are pushed last first, each at its own size, and removed by the caller.
-// The result is in A.  The overload is chosen by the arguments.  Calls to member
-// functions are in MemberCall.
+// The result is in A.  The overload is chosen by the arguments.  Function templates
+// are instantiated, calls to member functions are in MemberCall and calls through
+// pointers to functions use jsr A.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Generator::CallExpression(CCPPSyntaxCallExpression* pcCall)
 {
-	CCPPSyntax*			pcCallee;
-	CCPPSyntaxName*		pcName;
-	CCPPSymbol*			pcSymbol;
-	SCPP65Function*		psFunction;
-	SCPP65Class*		psClass;
-	size				i;
-	int					iBytes;
-	size				uiErrors;
+	CCPPSyntax*					pcCallee;
+	CCPPSyntaxName*				pcName;
+	CCPPSyntaxNameComponent*	pcComponent;
+	CCPPSymbol*					pcSymbol;
+	SCPP65Function*				psFunction;
+	SCPP65Template*				psTemplate;
+	SCPP65Type*					psType;
+	int							iBytes;
+	size						uiErrors;
+	int64						lliName;
 
 	pcCallee = SkipParentheses(pcCall->mpcCallee);
 	if (pcCallee->GetKind() == CPPS_MemberExpression)
@@ -638,40 +746,66 @@ SCPP65Type* CCPP65Generator::CallExpression(CCPPSyntaxCallExpression* pcCall)
 	}
 	pcSymbol = NULL;
 	pcName = NULL;
+	pcComponent = NULL;
 	if (pcCallee->GetKind() == CPPS_IdExpression)
 	{
 		pcName = ((CCPPSyntaxIdExpression*)pcCallee)->mpcName;
 		pcSymbol = pcName->mpcSymbol;
+		pcComponent = pcName->GetLast();
+		if (pcName->macpComponents.NumElements() >= 2)
+		{
+			return MemberCall(pcCall, pcCallee);
+		}
 	}
-	if (!pcSymbol || (pcSymbol->meKind != CPPSK_Function))
+
+	//f<Arguments>(...) and f(...) for a function template.
+	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
 	{
-		Error(pcCallee, "Only calls to functions by name are supported by the 65C64 generator yet");
-		return NULL;
+		psTemplate = GetTemplate(pcSymbol);
+		if (!psTemplate)
+		{
+			Error(pcCallee, "The function template has not been defined");
+			return NULL;
+		}
+		psFunction = InstantiateFunction(psTemplate, (pcComponent && pcComponent->mbTemplateArguments) ? &pcComponent->macpTemplateArguments : NULL, &pcCall->macpArguments, pcCall);
+		if (!psFunction)
+		{
+			return NULL;
+		}
+		iBytes = PushArguments(psFunction, &pcCall->macpArguments, pcCall);
+		if (iBytes < 0)
+		{
+			return NULL;
+		}
+		Call(psFunction, false, iBytes);
+		return psFunction->psReturn;
 	}
-	if (pcName->macpComponents.NumElements() == 2)
+
+	//f() in a member function may be a member, even when the parser could not resolve it in a template.
+	lliName = pcSymbol ? pcSymbol->mlliName : GetFunctionName(pcComponent);
+	if (pcName && !pcName->mbGlobal && mpsFunction && mpsFunction->psClass && (!pcSymbol || (pcSymbol->meKind == CPPSK_Function)) && HasMember(mpsFunction->psClass, lliName))
 	{
 		return MemberCall(pcCall, pcCallee);
 	}
 
-	//f() in a member function may be a member.
-	for (psClass = mpsFunction ? mpsFunction->psClass : NULL; psClass; psClass = psClass->psBase)
+	if (!pcSymbol || (pcSymbol->meKind != CPPSK_Function))
 	{
-		for (i = 0; i < mapsFunctions.NumElements(); i++)
+		psType = TypeOf(pcCallee);
+		if (psType && psType->IsPointer() && psType->psBase->IsFunction())
 		{
-			psFunction = mapsFunctions.GetPtr(i);
-			if ((psFunction->psClass == psClass) && (psFunction->lliName == pcSymbol->mlliName) && (psFunction->eKind == CPP65FK_Function))
-			{
-				return MemberCall(pcCall, pcCallee);
-			}
+			return PointerCall(pcCall, psType->psBase);
 		}
+		Error(pcCallee, "Only calls to functions and pointers to functions are supported by the 65C64 generator yet");
+		return NULL;
 	}
 
 	uiErrors = mcErrors.NumErrors();
-	psFunction = FindFunction(NULL, pcSymbol->mlliName, CPP65FK_Function, &pcCall->macpArguments, false, pcCall);
+	psFunction = FindFunction(NULL, lliName, CPP65FK_Function, &pcCall->macpArguments, false, pcCall);
 	if (!psFunction)
 	{
 		if (mcErrors.NumErrors() == uiErrors)
 		{
+			ReportFailedDeclaration(lliName);
 			Error(pcCallee, "The function has not been declared");
 		}
 		return NULL;
@@ -684,6 +818,105 @@ SCPP65Type* CCPP65Generator::CallExpression(CCPPSyntaxCallExpression* pcCall)
 	}
 	Call(psFunction, false, iBytes);
 	return psFunction->psReturn;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the class or a base has a member function of the name.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::HasMember(SCPP65Class* psClass, int64 lliName)
+{
+	SCPP65Function*	psFunction;
+	size			i;
+
+	if (!CompleteClass(psClass, NULL))
+	{
+		return false;
+	}
+	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	{
+		psFunction = mapsFunctions.GetPtr(i);
+		if ((psFunction->psClass == psClass) && (psFunction->lliName == lliName) && (psFunction->eKind == CPP65FK_Function))
+		{
+			return true;
+		}
+	}
+	for (i = 0; i < psClass->macBases.NumElements(); i++)
+	{
+		if (HasMember(psClass->macBases.Get(i)->psClass, lliName))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A call through a pointer to a function: the arguments are pushed, then the
+// pointer is worked out into A and called.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::PointerCall(CCPPSyntaxCallExpression* pcCall, SCPP65Type* psFunctionType)
+{
+	int		iBytes;
+
+	iBytes = PushParameters(psFunctionType->papsParameters, NULL, psFunctionType->bVariadic, &pcCall->macpArguments, pcCall);
+	if (iBytes < 0)
+	{
+		return NULL;
+	}
+	if (!Expression(pcCall->mpcCallee))
+	{
+		return NULL;
+	}
+	Line("jsr A")->AppendNewLine();
+	ChangeX();
+	if (iBytes > 0)
+	{
+		Line("add S, ")->Append(iBytes)->AppendNewLine();
+		miDepth -= iBytes;
+	}
+	return psFunctionType->psBase;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A call to a function whose declaration could not be generated: the declaration's
+// errors are reported now.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::ReportFailedDeclaration(int64 lliName)
+{
+	CCPPSyntaxDeclarator*		pcDeclarator;
+	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
+	CCPPSyntax*					pcParent;
+	size						i;
+
+	for (i = 0; i < mapcFailed.NumElements(); i++)
+	{
+		pcDeclarator = (CCPPSyntaxDeclarator*)mapcFailed.GetPtr(i);
+		if (!pcDeclarator->GetName() || (GetFunctionName(pcDeclarator->GetName()->GetLast()) != lliName))
+		{
+			continue;
+		}
+		pcParent = pcDeclarator->mpcParent;
+		pcSpecifiers = NULL;
+		if (pcParent && (pcParent->GetKind() == CPPS_InitDeclarator) && pcParent->mpcParent && (pcParent->mpcParent->GetKind() == CPPS_SimpleDeclaration))
+		{
+			pcSpecifiers = ((CCPPSyntaxSimpleDeclaration*)pcParent->mpcParent)->mpcSpecifiers;
+		}
+		else if (pcParent && (pcParent->GetKind() == CPPS_FunctionDefinition))
+		{
+			pcSpecifiers = ((CCPPSyntaxFunctionDefinition*)pcParent)->mpcSpecifiers;
+		}
+		DeclareFunction(pcSpecifiers, pcDeclarator, false, NULL, false);
+		return;
+	}
 }
 
 
@@ -746,17 +979,71 @@ SCPP65Type* CCPP65Generator::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSynt
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::SizeofExpression(CCPPSyntaxSizeofExpression* pcSizeof)
+SCPP65Type* CCPP65Generator::SizeofExpression(CCPPSyntax* pcSizeof)
 {
 	int64	lliBytes;
 
+	//sizeof and type traits (__is_trivially_constructible(T) ...) are constants.
 	if (!Constant(pcSizeof, &lliBytes))
 	{
-		Error(pcSizeof, "This sizeof is not supported by the 65C64 generator yet");
+		Error(pcSizeof, "This sizeof or type trait is not supported by the 65C64 generator yet");
 		return NULL;
 	}
 	Line("cpy A, ")->Append(lliBytes)->AppendNewLine();
-	return &mcTypes.msUnsignedInt;
+	return (pcSizeof->GetKind() == CPPS_SizeofExpression) ? &mcTypes.msUnsignedInt : &mcTypes.msBool;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// new(address) Type constructs at address and gives it as a Type*.  There is no
+// heap yet, so new without a placement is not supported.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::NewExpression(CCPPSyntaxNewExpression* pcNew)
+{
+	SCPP65Type*		psType;
+	SCPP65Type*		psAddress;
+	SCPP65Place		sPlace;
+
+	if (!pcNew->mbPlacement || (pcNew->macpPlacement.NumElements() != 1) || (pcNew->macpArraySizes.NumElements() != 0))
+	{
+		Error(pcNew, "Only placement new is supported by the 65C64 generator yet");
+		return NULL;
+	}
+	psType = GetTypeIdType(pcNew->mpcType);
+	if (!psType)
+	{
+		return NULL;
+	}
+	psAddress = Expression(pcNew->macpPlacement.GetPtr(0));
+	if (!psAddress)
+	{
+		return NULL;
+	}
+	if (!psAddress->IsPointer())
+	{
+		Error(pcNew, "Placement new needs an address");
+		return NULL;
+	}
+
+	sPlace.eKind = CPP65PK_Address;
+	sPlace.psType = psType;
+	sPlace.iOffset = 0;
+	sPlace.lliName = -1;
+	sPlace.iString = -1;
+	sPlace.psClass = NULL;
+	if (psType->IsClass() || pcNew->mpcInitializer)
+	{
+		//The address is kept on the stack: constructing uses A.
+		Push("A");
+		if (!Construct(&sPlace, NULL, pcNew->mpcInitializer, pcNew))
+		{
+			return NULL;
+		}
+		Pull("A");
+	}
+	return mcTypes.Pointer(psType);
 }
 
 
@@ -774,8 +1061,17 @@ SCPP65Type* CCPP65Generator::TypeOf(CCPPSyntax* pcExpression)
 	int				iDepth;
 	int				iTemporaries;
 	bool			bThisInX;
+	SCPP65TypeOf*	psTypeOf;
+	SCPP65TypeOf	sTypeOf;
 	size			uiErrors;
 	size			uiStrings;
+
+	//An expression's type only depends on the template arguments and the function it is in.
+	psTypeOf = mcTypeOfs.Get((int64)(size)pcExpression);
+	if (psTypeOf && (psTypeOf->psBindings == mpsBindings) && (psTypeOf->psFunction == mpsFunction))
+	{
+		return psTypeOf->psType;
+	}
 
 	pszOut = mpszOut;
 	iDepth = miDepth;
@@ -799,6 +1095,11 @@ SCPP65Type* CCPP65Generator::TypeOf(CCPPSyntax* pcExpression)
 		maszStrings.Tail()->Kill();
 		maszStrings.Pop();
 	}
+
+	sTypeOf.psBindings = mpsBindings;
+	sTypeOf.psFunction = mpsFunction;
+	sTypeOf.psType = psType;
+	mcTypeOfs.Put((int64)(size)pcExpression, &sTypeOf);
 	return psType;
 }
 
@@ -1276,6 +1577,7 @@ bool CCPP65Generator::Condition(CCPPSyntax* pcExpression, bool bJumpIf, int iLab
 bool CCPP65Generator::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* pcNode)
 {
 	int		iZero;
+	int		iOffset;
 	bool	bExtended;
 
 	if (!psFrom || !psTo)
@@ -1297,6 +1599,23 @@ bool CCPP65Generator::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* 
 	if (!psFrom->IsScalar() || !psTo->IsScalar())
 	{
 		return Error(pcNode, "This conversion is not supported by the 65C64 generator yet");
+	}
+	if (!Supported(psFrom, pcNode) || !Supported(psTo, pcNode))
+	{
+		return false;
+	}
+
+	//A pointer to a derived class points at its base, which may be further on.
+	if (psFrom->IsPointer() && psTo->IsPointer() && psFrom->psBase->IsClass() && psTo->psBase->IsClass() && (psFrom->psBase->psClass != psTo->psBase->psClass) && psFrom->psBase->psClass->bComplete && IsDerived(psFrom->psBase->psClass, psTo->psBase->psClass, &iOffset) && (iOffset != 0))
+	{
+		iZero = NewLabel();
+		Line("cmp A, 0")->AppendNewLine();
+		Line("bras z, ");
+		AppendLabel(mpszOut, iZero);
+		mpszOut->AppendNewLine();
+		Line("add A, ")->Append(iOffset)->AppendNewLine();
+		Label(iZero);
+		return true;
 	}
 
 	if (psTo->eKind == CPP65TK_Bool)
@@ -1333,6 +1652,25 @@ bool CCPP65Generator::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* 
 		{
 			Truncate("A", psTo->iBytes, psTo->bSigned);
 		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Floating point and 64 bit integers can be declared but not used yet.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::Supported(SCPP65Type* psType, CCPPSyntax* pcNode)
+{
+	if (psType->IsFloat())
+	{
+		return Error(pcNode, "Floating point is not supported by the 65C64 generator yet");
+	}
+	if (psType->IsScalar() && (psType->iBytes > 4))
+	{
+		return Error(pcNode, "64 bit integers are not supported by the 65C64 generator yet");
 	}
 	return true;
 }
@@ -1409,7 +1747,9 @@ bool CCPP65Generator::Place(CCPPSyntax* pcExpression, SCPP65Place* psPlace)
 	SCPP65Right						sIndex;
 	CCPPSyntax*						pcArray;
 	CCPPSyntax*						pcIndex;
+	CArraySyntax					apcIndex;
 	int64							lliIndex;
+	int								iOffset;
 
 	pcExpression = SkipParentheses(pcExpression);
 	switch (pcExpression->GetKind())
@@ -1420,9 +1760,19 @@ bool CCPP65Generator::Place(CCPPSyntax* pcExpression, SCPP65Place* psPlace)
 		psVariable = pcSymbol ? GetVariable(pcSymbol) : NULL;
 		if (psVariable)
 		{
-			return VariablePlace(psVariable, psPlace);
+			VariablePlace(psVariable, psPlace);
+			if (psPlace->psType->IsReference())
+			{
+				DerefPlace(psPlace);
+			}
+			return true;
 		}
-		psField = (pcSymbol && (pcSymbol->meKind == CPPSK_Field) && mpsFunction && mpsFunction->psClass) ? FindFieldSymbol(mpsFunction->psClass, pcSymbol) : NULL;
+		psField = (pcSymbol && (pcSymbol->meKind == CPPSK_Field) && mpsFunction && mpsFunction->psClass) ? FindFieldSymbol(mpsFunction->psClass, pcSymbol, &iOffset) : NULL;
+		if (!psField && !pcSymbol && mpsFunction && mpsFunction->psClass && (pcId->mpcName->macpComponents.NumElements() == 1))
+		{
+			//A name in a template the parser could not resolve.
+			psField = FindField(mpsFunction->psClass, GetComponentName(pcId->mpcName->GetLast()), &iOffset);
+		}
 		if (!psField)
 		{
 			return Error(pcExpression, "Only variables are supported by the 65C64 generator here yet");
@@ -1433,10 +1783,14 @@ bool CCPP65Generator::Place(CCPPSyntax* pcExpression, SCPP65Place* psPlace)
 		}
 		psPlace->eKind = CPP65PK_This;
 		psPlace->psType = psField->psType;
-		psPlace->iOffset = psField->iOffset;
+		psPlace->iOffset = iOffset;
 		psPlace->lliName = -1;
 		psPlace->iString = -1;
 		psPlace->psClass = NULL;
+		if (psPlace->psType->IsReference())
+		{
+			DerefPlace(psPlace);
+		}
 		return true;
 
 	case CPPS_MemberExpression:
@@ -1469,6 +1823,17 @@ bool CCPP65Generator::Place(CCPPSyntax* pcExpression, SCPP65Place* psPlace)
 		pcSubscript = (CCPPSyntaxSubscriptExpression*)pcExpression;
 		pcArray = pcSubscript->mpcArray;
 		pcIndex = pcSubscript->mpcIndex;
+
+		//object[index] is a call to the object's operator[].
+		psType = TypeOf(pcArray);
+		if (psType && psType->IsClass())
+		{
+			apcIndex.Init();
+			apcIndex.Add(pcIndex);
+			psType = OperatorCall(pcArray, CT_OpenSquareBracket, &apcIndex, pcExpression);
+			apcIndex.Kill();
+			return ResultPlace(psType, psPlace, pcExpression);
+		}
 
 		//An element of an array variable at a constant index is the variable's place moved on.
 		if (Constant(pcIndex, &lliIndex) && (SkipParentheses(pcArray)->GetKind() == CPPS_IdExpression))
@@ -1509,10 +1874,60 @@ bool CCPP65Generator::Place(CCPPSyntax* pcExpression, SCPP65Place* psPlace)
 		psPlace->psClass = NULL;
 		return true;
 
+	case CPPS_CallExpression:
+		//A function that returns a reference.
+		return ResultPlace(Evaluate(pcExpression), psPlace, pcExpression);
+
 	default:
 		break;
 	}
 	return Error(pcExpression, "This lvalue is not supported by the 65C64 generator yet");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The place a reference left in A refers to.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::ResultPlace(SCPP65Type* psType, SCPP65Place* psPlace, CCPPSyntax* pcNode)
+{
+	if (!psType)
+	{
+		return false;
+	}
+	if (!psType->IsReference())
+	{
+		return Error(pcNode, "This is not an lvalue");
+	}
+	psPlace->eKind = CPP65PK_Address;
+	psPlace->psType = psType->psBase;
+	psPlace->iOffset = 0;
+	psPlace->lliName = -1;
+	psPlace->iString = -1;
+	psPlace->psClass = NULL;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A reference's place holds an address: the place becomes what it refers to, with
+// the address in A.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::DerefPlace(SCPP65Place* psPlace)
+{
+	SCPP65Type*	psBase;
+
+	psBase = psPlace->psType->psBase;
+	Load(psPlace, "A", "A");
+	psPlace->eKind = CPP65PK_Address;
+	psPlace->psType = psBase;
+	psPlace->iOffset = 0;
+	psPlace->lliName = -1;
+	psPlace->iString = -1;
+	psPlace->psClass = NULL;
 }
 
 
@@ -1547,6 +1962,7 @@ bool CCPP65Generator::VariablePlace(SCPP65Variable* psVariable, SCPP65Place* psP
 		psPlace->eKind = CPP65PK_Global;
 		psPlace->iOffset = 0;
 		psPlace->lliName = psVariable->pcSymbol->mlliName;
+		psVariable->bUsed = true;
 		break;
 	}
 	return true;
@@ -1773,6 +2189,7 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
 	SCPP65Variable*					psVariable;
 	SCPP65Type*						psType;
+	SCPP65Binding*					psBinding;
 	int64							lliLeft;
 	int64							lliRight;
 
@@ -1830,6 +2247,16 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 		if (pcSymbol->meKind == CPPSK_Enumerator)
 		{
 			return EnumeratorValue(pcSymbol, plliValue);
+		}
+		if (pcSymbol->meKind == CPPSK_ValueParameter)
+		{
+			psBinding = FindBinding(pcSymbol);
+			if (!psBinding)
+			{
+				return false;
+			}
+			*plliValue = psBinding->lliValue;
+			return true;
 		}
 
 		//A const integer initialised with a constant.
@@ -1917,6 +2344,9 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 		}
 		return true;
 
+	case CPPS_TypeTraitExpression:
+		return TypeTrait((CCPPSyntaxTypeTraitExpression*)pcExpression, plliValue);
+
 	case CPPS_SizeofExpression:
 		pcSizeof = (CCPPSyntaxSizeofExpression*)pcExpression;
 		if (pcSizeof->meKeyword != CT_sizeof)
@@ -1946,12 +2376,96 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 		{
 			return false;
 		}
+		if (psType->IsReference())
+		{
+			psType = psType->psBase;
+		}
+		if (psType->IsClass() && !CompleteClass(psType->psClass, pcExpression))
+		{
+			return false;
+		}
 		*plliValue = psType->iBytes;
 		return true;
 
 	default:
 		return false;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The compiler's type traits: __is_class, __is_enum, __is_union, __is_empty,
+// __is_polymorphic, __is_abstract, __is_pod, __is_trivial, __is_trivially_copyable,
+// __is_trivially_constructible, __is_trivially_destructible and
+// __has_trivial_destructor of one type.  Enums are ints.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValue)
+{
+	SCPP65Type*		psType;
+	SCPP65Class*	psClass;
+	char*			szName;
+	CChars			szTrait;
+	bool			bResult;
+
+	if ((pcTrait->macpArguments.NumElements() < 1) || (pcTrait->macpArguments.GetPtr(0)->GetKind() != CPPS_TypeId))
+	{
+		return false;
+	}
+	psType = GetTypeIdType((CCPPSyntaxTypeId*)pcTrait->macpArguments.GetPtr(0));
+	if (!psType)
+	{
+		return false;
+	}
+	psClass = psType->IsClass() ? psType->psClass : NULL;
+	if (psClass && !CompleteClass(psClass, pcTrait))
+	{
+		return false;
+	}
+
+	szTrait.Init();
+	mpcTokeniser->GetSource(mpcTokeniser->Get(pcTrait->miName))->Append(&szTrait);
+	szName = szTrait.Text();
+	bResult = true;
+	if (strcmp(szName, "__is_class") == 0)
+	{
+		*plliValue = psClass && !psClass->bUnion;
+	}
+	else if (strcmp(szName, "__is_union") == 0)
+	{
+		*plliValue = psClass && psClass->bUnion;
+	}
+	else if (strcmp(szName, "__is_enum") == 0)
+	{
+		*plliValue = 0;
+	}
+	else if (strcmp(szName, "__is_empty") == 0)
+	{
+		*plliValue = psClass && psClass->bEmpty;
+	}
+	else if ((strcmp(szName, "__is_polymorphic") == 0) || (strcmp(szName, "__is_abstract") == 0))
+	{
+		*plliValue = psClass && (psClass->iVtableOffset != -1);
+	}
+	else if ((strcmp(szName, "__is_trivially_constructible") == 0) || (strcmp(szName, "__has_trivial_constructor") == 0))
+	{
+		*plliValue = !psClass || !NeedsConstructor(psClass);
+	}
+	else if ((strcmp(szName, "__is_trivially_destructible") == 0) || (strcmp(szName, "__has_trivial_destructor") == 0))
+	{
+		*plliValue = !psClass || !psClass->psDestructor;
+	}
+	else if ((strcmp(szName, "__is_pod") == 0) || (strcmp(szName, "__is_trivial") == 0) || (strcmp(szName, "__is_trivially_copyable") == 0))
+	{
+		*plliValue = !psClass || (!NeedsConstructor(psClass) && !psClass->psDestructor);
+	}
+	else
+	{
+		bResult = false;
+	}
+	szTrait.Kill();
+	return bResult;
 }
 
 
@@ -2005,6 +2519,7 @@ bool CCPP65Generator::IsSimple(CCPPSyntax* pcExpression)
 	SCPP65Variable*		psVariable;
 	SCPP65Field*		psField;
 	CCPPToken*			pcToken;
+	int					iOffset;
 
 	pcExpression = SkipParentheses(pcExpression);
 	if (!pcExpression)
@@ -2032,7 +2547,7 @@ bool CCPP65Generator::IsSimple(CCPPSyntax* pcExpression)
 		{
 			return psVariable->psType->IsScalar();
 		}
-		psField = ((pcSymbol->meKind == CPPSK_Field) && mpsFunction && mpsFunction->psClass && (miThisOffset != -1)) ? FindFieldSymbol(mpsFunction->psClass, pcSymbol) : NULL;
+		psField = ((pcSymbol->meKind == CPPSK_Field) && mpsFunction && mpsFunction->psClass && (miThisOffset != -1)) ? FindFieldSymbol(mpsFunction->psClass, pcSymbol, &iOffset) : NULL;
 		return psField && psField->psType->IsScalar();
 	}
 	return false;
