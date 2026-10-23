@@ -100,7 +100,8 @@ Directives
 
 Only when assembling an object (AssembleObject):
 
-	.section name {, option}...		options: comdat {group}, associated section, keep
+	.section name {, option}...		options: comdat {group}, associated section, keep,
+										resident
 	.global name, ...			visible to other objects (or an external)
 	.weak name, ...				as .global; a global definition elsewhere wins
 								and an undefined weak name is 0
@@ -290,9 +291,35 @@ sections that are not associated, and every section their relocations reach, and
 on.  An associated section (".section init.MakeTable, associated data.gTable") is
 used when the section it names (in the same object; it may come later) is used, so
 a global's init and fini entries go when nothing uses the global.  A name that only
-removed sections need is not missing.  The map lists the removed sections and
+removed sections need is not missing, and a library object is only linked for a
+name a used section needs.  The map lists the removed sections and
 GetSymbol is false for their symbols.  Give each function and global a section of
 its own for the most to be removed.
+
+Lazy loading.  SetLazy(uiCodeEnd, uiSectorSize, uiFirstSector) makes every placed text
+section a unit loaded from a drive when it is first called, and never freed (the
+user, 2026-10-23: "once loaded the code stays loaded").  Resident sections
+(".section text.X, resident") and objects added with AddResidentObject stay in the
+core, as do all data, rodata, init and fini sections.  GetLazyImage is the units'
+sectors, to write to the drive from uiFirstSector; NumUnits counts them.
+- Every reference to a unit from outside it (calls, function pointers, vtables, init
+  tables, GetSymbol) is to a resident trampoline: jmp [slot], where the slot first
+  points back into the trampoline, at jsr R_LazyLoad and the unit's directory entry.
+  References inside a unit (its own labels) stay direct.
+- R_LazyLoad (written by the linker) sets A, B, X and Y to 32 bits and keeps them,
+  reads the unit's sectors into the memory after the core (from __end, 4 byte
+  aligned) up to uiCodeEnd, applies the unit's relocation records, points the slot at
+  the code and returns into it.  Later calls only jump through the slot.  Code called
+  with wider registers (the C++ runtime routines) must be resident.
+- A unit's sectors are its bytes then its records, each two 32 bit values: the
+  field's offset (ASM65_LAZY_RELATIVE set for a relative field) and, for a relative
+  field, its target.  An absolute field has the unit's address added; a relative one
+  becomes the target minus the field's address.  Such fields must be 32 bits.
+- A failed load stops with A -1 and R_LazyError 1 (no room) or 2 (the drive failed).
+- The simulator's drive: CAsm65Memory::SetDrive attaches a CFileDrive (such as a
+  CMemoryDrive) whose registers are at 00FF:0000: the sector, the address, the
+  number of sectors, then writing the command (1 read, 2 write) copies them at once
+  and sets the status (0 or 1).  See ASM65_DRIVE_BASE.
 
 COMDAT.  ".section text.Inline, comdat" puts the section in group text.Inline
 (", comdat Inline" names the group).  The linker keeps a group's sections from

@@ -18,13 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include <stdlib.h>
-#include <string.h>
-#include "BaseLib/PackFiles.h"
-#include "BaseLib/PackFile.h"
-#include "BaseLib/MemoryFile.h"
-#include "BaseLib/ConstructorCall.h"
-#include "BaseLib/PointerFunctions.h"
 #include "BaseLib/StringHelper.h"
 #include "Asm65Assembler.h"
 #include "Asm65Linker.h"
@@ -75,217 +68,6 @@ static void AppendAddress(CChars* psz, uint32 uiAddress)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Library::Init(const char* szName)
-{
-	mszName.Init(szName);
-	mapcObjects.Init();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CAsm65Library::Kill(void)
-{
-	size			i;
-	CAsm65Object*	pcObject;
-
-	for (i = 0; i < mapcObjects.NumElements(); i++)
-	{
-		pcObject = mapcObjects.GetPtr(i);
-		SafeKill(pcObject);
-	}
-	mapcObjects.Kill();
-	mszName.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CAsm65Library::GetName(void)
-{
-	return mszName.Text();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// An empty object for the caller to assemble into.
-//
-//////////////////////////////////////////////////////////////////////////
-CAsm65Object* CAsm65Library::AddObject(const char* szName)
-{
-	CAsm65Object*	pcObject;
-
-	pcObject = NewMalloc<CAsm65Object>();
-	pcObject->Init(szName);
-	mapcObjects.Add(pcObject);
-	return pcObject;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CAsm65Library::NumObjects(void)
-{
-	return mapcObjects.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CAsm65Object* CAsm65Library::GetObject(size uiIndex)
-{
-	return mapcObjects.GetPtr(uiIndex);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// "Objects/3"
-//
-//////////////////////////////////////////////////////////////////////////
-static void ObjectPackName(CChars* psz, size uiIndex)
-{
-	psz->Init("Objects/");
-	psz->Append((uint32)uiIndex);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Writes the library as a PackFile.  Each object is written as a ChunkFile in
-// memory first, then copied into the pack.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CAsm65Library::Write(CAbstractFile* pcFile)
-{
-	CPackFiles		cPackFiles;
-	CFileBasic		cBasic;
-	CPackFile*		pcPackFile;
-	CMemoryFile*	pcMemoryFile;
-	CChars			szName;
-	size			i;
-	bool			bResult;
-
-	if (!cPackFiles.Init(pcFile, PFM_Write))
-	{
-		return false;
-	}
-
-	bResult = false;
-	pcPackFile = cPackFiles.WriteOpen("Library");
-	if (pcPackFile)
-	{
-		cBasic.Init(pcPackFile);
-		bResult = Asm65WriteMagic(&cBasic, ASM65_LIBRARY_MAGIC, ASM65_LIBRARY_VERSION);
-		bResult &= mszName.WriteString(&cBasic);
-		bResult &= cBasic.WriteInt32((uint32)mapcObjects.NumElements());
-		bResult &= cBasic.Close();
-		cBasic.Kill();
-	}
-
-	for (i = 0; bResult && (i < mapcObjects.NumElements()); i++)
-	{
-		pcMemoryFile = MemoryFile();
-		pcMemoryFile->mbBasicFileMustFree = false;
-		bResult = GetObject(i)->Write(pcMemoryFile);
-
-		ObjectPackName(&szName, i);
-		pcPackFile = bResult ? cPackFiles.WriteOpen(szName.Text()) : NULL;
-		szName.Kill();
-		if (pcPackFile)
-		{
-			cBasic.Init(pcPackFile);
-			bResult = cBasic.WriteData(pcMemoryFile->GetBufferPointer(), pcMemoryFile->GetBufferSize());
-			bResult &= cBasic.Close();
-			cBasic.Kill();
-		}
-		else
-		{
-			bResult = false;
-		}
-		SafeKill(pcMemoryFile);
-	}
-
-	cPackFiles.Kill();
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Reads a library written by Write into this (empty, initialised) library.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CAsm65Library::Read(CAbstractFile* pcFile)
-{
-	CPackFiles		cPackFiles;
-	CFileBasic		cBasic;
-	CPackFile*		pcPackFile;
-	CChars			szName;
-	CArrayUint8		cBytes;
-	uint32			uiCount;
-	uint32			i;
-	bool			bResult;
-	CAsm65Object*	pcObject;
-
-	if ((mapcObjects.NumElements() != 0) || !cPackFiles.Init(pcFile, PFM_Read))
-	{
-		return false;
-	}
-
-	bResult = false;
-	pcPackFile = cPackFiles.ReadOpen("Library");
-	if (pcPackFile)
-	{
-		cBasic.Init(pcPackFile);
-		bResult = Asm65ReadMagic(&cBasic, ASM65_LIBRARY_MAGIC, ASM65_LIBRARY_VERSION);
-		bResult = bResult && Asm65ReadText(&cBasic, &mszName);
-		bResult = bResult && cBasic.ReadInt32(&uiCount);
-		cBasic.Close();
-		cBasic.Kill();
-	}
-
-	for (i = 0; bResult && (i < uiCount); i++)
-	{
-		ObjectPackName(&szName, i);
-		pcPackFile = cPackFiles.ReadOpen(szName.Text());
-		szName.Kill();
-		if (pcPackFile == NULL)
-		{
-			bResult = false;
-			break;
-		}
-
-		cBytes.Init();
-		cBasic.Init(pcPackFile);
-		cBytes.Resize((size)cBasic.Size());
-		bResult = (cBytes.NumElements() == 0) || cBasic.ReadData(cBytes.GetData(), cBytes.NumElements());
-		cBasic.Close();
-		cBasic.Kill();
-
-		pcObject = AddObject("");
-		bResult = bResult && pcObject->Read(MemoryFile(cBytes.GetData(), cBytes.NumElements()));
-		cBytes.Kill();
-	}
-
-	cPackFiles.Kill();
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CAsm65Linker::Init(void)
 {
 	int	i;
@@ -306,6 +88,16 @@ void CAsm65Linker::Init(void)
 	maszMissing.Init();
 	maiPlacement.Init();
 	mcStubs.Init("linker stubs");
+	mapcResidents.Init();
+	masUnits.Init();
+	masTrampolines.Init();
+	mcLazy.Init("lazy loader");
+	mcLazyImage.Init();
+	mbLazy = false;
+	muiLazyEnd = 0;
+	muiSectorSize = 0;
+	muiFirstSector = 0;
+	muiLazyObject = 0;
 
 	for (i = 0; i < ASK65_NumKinds; i++)
 	{
@@ -337,6 +129,11 @@ void CAsm65Linker::Kill(void)
 	mszMap.Kill();
 	mcOutput.Kill();
 
+	mcLazyImage.Kill();
+	mcLazy.Kill();
+	masTrampolines.Kill();
+	masUnits.Kill();
+	mapcResidents.Kill();
 	mcStubs.Kill();
 	maiPlacement.Kill();
 	maszMissing.Kill();
@@ -368,6 +165,19 @@ void CAsm65Linker::Kill(void)
 void CAsm65Linker::AddObject(CAsm65Object* pcObject)
 {
 	mapcInputs.Add(pcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An object whose code is always in the core, never loaded lazily (SetLazy): a start
+// up, interrupt handlers.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Linker::AddResidentObject(CAsm65Object* pcObject)
+{
+	mapcInputs.Add(pcObject);
+	mapcResidents.Add(pcObject);
 }
 
 
@@ -432,6 +242,11 @@ void CAsm65Linker::SetRemoveUnused(bool bRemoveUnused)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Includes the objects and the library objects they need, works out what is used
+// (SetRemoveUnused), stubs or reports what is missing, places the sections, works out
+// the symbols and writes the relocated bytes to the output and the map.  Call once.
+// When unused sections are removed, a library object is only included for a name a
+// used section needs.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Linker::Link(void)
@@ -442,20 +257,32 @@ bool CAsm65Linker::Link(void)
 	{
 		Include(mapcInputs.GetPtr(i));
 	}
-	PullLibraries();
 	if (mbRemoveUnused)
 	{
-		MarkUsed();
+		do
+		{
+			MarkUsed();
+		}
+		while (PullLibraries(&mcUsedReferences));
 		FindMissing(&mcUsedReferences, &maszUsedReferenced);
 	}
 	else
 	{
+		PullLibraries(&mcReferences);
 		FindMissing(&mcReferences, &maszReferenced);
 	}
 	AddStubs();
 	if (mcErrors.NumErrors() != 0)
 	{
 		return false;
+	}
+	if (mbLazy)
+	{
+		PlanLazy();
+		if (mcErrors.NumErrors() != 0)
+		{
+			return false;
+		}
 	}
 
 	Layout();
@@ -486,11 +313,12 @@ void CAsm65Linker::Include(CAsm65Object* pcObject)
 	SAsm65ObjectSymbol*		psSymbol;
 	SAsm65LinkSymbol*		psGlobal;
 	uint32*					puiGroup;
-	uint32					uiObject;
+	uint32					uiGroupObject;
+	size					uiObject;
 	size					i;
 	CChars					szMessage;
 
-	uiObject = (uint32)masObjects.NumElements();
+	uiObject = masObjects.NumElements();
 	psObject = masObjects.Add();
 	psObject->pcObject = pcObject;
 	psObject->uiFirstSection = masSections.NumElements();
@@ -502,6 +330,7 @@ void CAsm65Linker::Include(CAsm65Object* pcObject)
 		psLinkSection->uiAddress = 0;
 		psLinkSection->bKept = true;
 		psLinkSection->bUsed = true;
+		psLinkSection->iUnit = -1;
 		psLinkSection->uiFirstRelocation = 0;
 		psLinkSection->uiNumRelocations = 0;
 		if (!psSection->szGroup.Empty())
@@ -509,7 +338,8 @@ void CAsm65Linker::Include(CAsm65Object* pcObject)
 			puiGroup = mcGroups.Get(psSection->szGroup.Text());
 			if (puiGroup == NULL)
 			{
-				mcGroups.Put(psSection->szGroup.Text(), &uiObject);
+				uiGroupObject = (uint32)uiObject;
+				mcGroups.Put(psSection->szGroup.Text(), &uiGroupObject);
 			}
 			else if (*puiGroup != uiObject)
 			{
@@ -578,11 +408,11 @@ bool CAsm65Linker::IsIncluded(CAsm65Object* pcObject)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True when the object defines a name an included object needs (not only weakly)
-// that nothing defines yet.
+// True when the object defines a name in pcReferences that is needed (not only
+// weakly) and that nothing defines yet.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Linker::Wanted(CAsm65Object* pcObject)
+bool CAsm65Linker::Wanted(CAsm65Object* pcObject, CMapStringTemplate<SAsm65LinkReference>* pcReferences)
 {
 	size					i;
 	SAsm65ObjectSymbol*		psSymbol;
@@ -595,7 +425,7 @@ bool CAsm65Linker::Wanted(CAsm65Object* pcObject)
 		{
 			continue;
 		}
-		psReference = mcReferences.Get(psSymbol->szName.Text());
+		psReference = pcReferences->Get(psSymbol->szName.Text());
 		if (psReference && psReference->bStrong && (GetGlobal(psSymbol->szName.Text()) == NULL))
 		{
 			return true;
@@ -607,18 +437,21 @@ bool CAsm65Linker::Wanted(CAsm65Object* pcObject)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Includes library objects until no more are needed (a library object can need a
-// name from an earlier library).
+// Includes the library objects pcReferences needs, until no more are needed (a
+// library object can need a name from an earlier library).  Returns true if any were
+// included.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Linker::PullLibraries(void)
+bool CAsm65Linker::PullLibraries(CMapStringTemplate<SAsm65LinkReference>* pcReferences)
 {
 	bool			bChanged;
+	bool			bIncluded;
 	size			i;
 	size			j;
 	CAsm65Library*	pcLibrary;
 	CAsm65Object*	pcObject;
 
+	bIncluded = false;
 	do
 	{
 		bChanged = false;
@@ -628,15 +461,17 @@ void CAsm65Linker::PullLibraries(void)
 			for (j = 0; j < pcLibrary->NumObjects(); j++)
 			{
 				pcObject = pcLibrary->GetObject(j);
-				if (!IsIncluded(pcObject) && Wanted(pcObject))
+				if (!IsIncluded(pcObject) && Wanted(pcObject, pcReferences))
 				{
 					Include(pcObject);
 					bChanged = true;
+					bIncluded = true;
 				}
 			}
 		}
 	}
 	while (bChanged);
+	return bIncluded;
 }
 
 
@@ -750,6 +585,10 @@ void CAsm65Linker::IndexRelocations(void)
 	SAsm65LinkSection*	psLinkSection;
 	SAsm65Relocation*	psRelocation;
 
+	for (i = 0; i < masSections.NumElements(); i++)
+	{
+		masSections.Get(i)->uiNumRelocations = 0;
+	}
 	for (i = 0; i < masObjects.NumElements(); i++)
 	{
 		psObject = masObjects.Get(i);
@@ -785,7 +624,8 @@ void CAsm65Linker::IndexRelocations(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Marks the used sections (see SetRemoveUnused) and notes the names they need.
+// Marks the used sections (see SetRemoveUnused) and notes the names they need that
+// no included object defines.  It starts again each time it is called.
 //
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Linker::MarkUsed(void)
@@ -805,6 +645,9 @@ void CAsm65Linker::MarkUsed(void)
 	{
 		masSections.Get(i)->bUsed = false;
 	}
+	mcUsedReferences.Kill();
+	mcUsedReferences.Init(true, true);
+	maszUsedReferenced.ReInit();
 
 	aiWork.Init();
 	for (i = 0; i < masObjects.NumElements(); i++)
@@ -932,6 +775,17 @@ bool CAsm65Linker::IsPlaced(SAsm65LinkSection* psLinkSection)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A placed section that is in the core (not a lazy unit).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Linker::IsCore(SAsm65LinkSection* psLinkSection)
+{
+	return IsPlaced(psLinkSection) && (psLinkSection->iUnit < 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // One stp that every missing name is defined as.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -970,7 +824,8 @@ void CAsm65Linker::AddStubs(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Places the kept sections kind by kind, each at its alignment.
+// Places the core's sections kind by kind, each at its alignment, and checks the kinds
+// don't overlap or pass the limit.
 //
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Linker::Layout(void)
@@ -1001,7 +856,7 @@ void CAsm65Linker::Layout(void)
 			{
 				psSection = psObject->pcObject->GetSection(j);
 				psLinkSection = GetLinkSection(i, j);
-				if ((psSection->eKind != iKind) || !IsPlaced(psLinkSection))
+				if ((psSection->eKind != iKind) || !IsCore(psLinkSection))
 				{
 					continue;
 				}
@@ -1110,12 +965,14 @@ void CAsm65Linker::ResolveSymbols(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A defined symbol's value: its section's address plus its offset, or its absolute
-// value.  False when its section is a dropped COMDAT copy.
+// value.  A symbol in a lazy unit is its trampoline.  False when its section is not
+// placed (a dropped COMDAT copy or removed), or in a unit with no trampoline there.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Linker::SymbolAddress(size uiObject, SAsm65ObjectSymbol* psSymbol, int64* piValue)
 {
 	SAsm65LinkSection*	psLinkSection;
+	int32				iTrampoline;
 
 	*piValue = psSymbol->iValue;
 	if (psSymbol->iSection < 0)
@@ -1123,6 +980,16 @@ bool CAsm65Linker::SymbolAddress(size uiObject, SAsm65ObjectSymbol* psSymbol, in
 		return true;
 	}
 	psLinkSection = GetLinkSection(uiObject, psSymbol->iSection);
+	if (psLinkSection->iUnit >= 0)
+	{
+		iTrampoline = FindTrampoline(psLinkSection->iUnit, (uint32)psSymbol->iValue);
+		if (iTrampoline < 0)
+		{
+			return false;
+		}
+		*piValue = TrampolineAddress(iTrampoline);
+		return true;
+	}
 	*piValue += psLinkSection->uiAddress;
 	return IsPlaced(psLinkSection);
 }
@@ -1130,62 +997,112 @@ bool CAsm65Linker::SymbolAddress(size uiObject, SAsm65ObjectSymbol* psSymbol, in
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The relocation's target plus its addend.  An undefined weak name is 0.
+// Where the relocation's target is: an offset (with the addend) in a section
+// (*piSection, an index into masSections) or a value (*piSection is -1).  An undefined
+// weak name is 0.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Linker::Target(size uiObject, SAsm65Relocation* psRelocation, int64* piValue)
+bool CAsm65Linker::TargetPlace(size uiObject, SAsm65Relocation* psRelocation, int64* piSection, int64* piValue)
 {
 	CAsm65Object*		pcObject;
 	SAsm65ObjectSymbol*	psSymbol;
 	SAsm65LinkSymbol*	psGlobal;
-	SAsm65LinkSection*	psLinkSection;
-	int64				iSymbol;
+	size				uiDefiner;
 
 	pcObject = masObjects.Get(uiObject)->pcObject;
+	*piSection = -1;
 	*piValue = psRelocation->iAddend;
 	if (psRelocation->iTargetSection != ASM65_TARGET_SYMBOL)
 	{
-		psLinkSection = GetLinkSection(uiObject, psRelocation->iTargetSection);
-		if (!psLinkSection->bKept)
+		if (!GetLinkSection(uiObject, psRelocation->iTargetSection)->bKept)
 		{
 			Error(pcObject, psRelocation, "Refers to a dropped COMDAT section", pcObject->GetSection(psRelocation->iTargetSection)->szName.Text());
 			return false;
 		}
-		*piValue += psLinkSection->uiAddress;
+		*piSection = (int64)SectionIndex(uiObject, psRelocation->iTargetSection);
 		return true;
 	}
 
 	psSymbol = pcObject->GetSymbol(psRelocation->uiTargetSymbol);
-	if ((psSymbol->eBinding == AB65_Local) && (psSymbol->iSection != ASM65_SECTION_UNDEFINED))
+	uiDefiner = uiObject;
+	if ((psSymbol->eBinding != AB65_Local) || (psSymbol->iSection == ASM65_SECTION_UNDEFINED))
 	{
-		if (!SymbolAddress(uiObject, psSymbol, &iSymbol))
+		psGlobal = GetGlobal(psSymbol->szName.Text());
+		if (psGlobal == NULL)
+		{
+			//The linker's own symbols are values in the core, defined once the core is laid out.
+			if ((psSymbol->eBinding == AB65_Weak) || IsLinkerSymbol(psSymbol->szName.Text()))
+			{
+				return true;
+			}
+			Error(pcObject, psRelocation, "Undefined symbol", psSymbol->szName.Text());
+			return false;
+		}
+		if (psGlobal->iObject < 0)
+		{
+			*piValue += psGlobal->iValue;
+			return true;
+		}
+		uiDefiner = (size)psGlobal->iObject;
+		psSymbol = masObjects.Get(uiDefiner)->pcObject->GetSymbol(psGlobal->uiSymbol);
+	}
+
+	*piValue += psSymbol->iValue;
+	if (psSymbol->iSection >= 0)
+	{
+		if (!GetLinkSection(uiDefiner, psSymbol->iSection)->bKept)
 		{
 			Error(pcObject, psRelocation, "Refers to a dropped COMDAT section", psSymbol->szName.Text());
 			return false;
 		}
-		*piValue += iSymbol;
-		return true;
+		*piSection = (int64)SectionIndex(uiDefiner, psSymbol->iSection);
 	}
-
-	psGlobal = GetGlobal(psSymbol->szName.Text());
-	if (psGlobal)
-	{
-		*piValue += psGlobal->iValue;
-		return true;
-	}
-	if (psSymbol->eBinding == AB65_Weak)
-	{
-		return true;
-	}
-	Error(pcObject, psRelocation, "Undefined symbol", psSymbol->szName.Text());
-	return false;
+	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Copies every kept section, writes its relocated fields, then writes the copies to
-// the output in address order.  The objects are not changed.
+// The relocation's target plus its addend as an address: a place in a lazy unit is
+// its trampoline.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Linker::Target(size uiObject, SAsm65Relocation* psRelocation, int64* piValue)
+{
+	SAsm65LinkSection*	psLinkSection;
+	int64				iSection;
+	int32				iTrampoline;
+
+	if (!TargetPlace(uiObject, psRelocation, &iSection, piValue))
+	{
+		return false;
+	}
+	if (iSection < 0)
+	{
+		return true;
+	}
+	psLinkSection = masSections.Get((size)iSection);
+	if (psLinkSection->iUnit < 0)
+	{
+		*piValue += psLinkSection->uiAddress;
+		return true;
+	}
+	iTrampoline = FindTrampoline(psLinkSection->iUnit, (uint32)*piValue);
+	if (iTrampoline < 0)
+	{
+		Error(masObjects.Get(uiObject)->pcObject, psRelocation, "Refers inside a lazy unit", NULL);
+		return false;
+	}
+	*piValue = TrampolineAddress(iTrampoline);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Copies every core section, writes its relocated fields, then writes the copies to
+// the output in address order, then builds the lazy units' images.  The objects are
+// not changed.
 //
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Linker::Relocate(void)
@@ -1211,7 +1128,10 @@ void CAsm65Linker::Relocate(void)
 		{
 			pcBytes = acBytes.Add();
 			pcBytes->Init();
-			pcBytes->Copy(&psObject->pcObject->GetSection(j)->cBytes);
+			if (IsCore(GetLinkSection(i, j)))
+			{
+				pcBytes->Copy(&psObject->pcObject->GetSection(j)->cBytes);
+			}
 		}
 	}
 
@@ -1223,7 +1143,7 @@ void CAsm65Linker::Relocate(void)
 			psRelocation = psObject->pcObject->GetRelocation(j);
 			psSection = psObject->pcObject->GetSection(psRelocation->uiSection);
 			psLinkSection = GetLinkSection(i, psRelocation->uiSection);
-			if (!IsPlaced(psLinkSection))
+			if (!IsCore(psLinkSection))
 			{
 				continue;
 			}
@@ -1275,12 +1195,18 @@ void CAsm65Linker::Relocate(void)
 		acBytes.Get(i)->Kill();
 	}
 	acBytes.Kill();
+
+	if (mbLazy)
+	{
+		BuildUnitImages();
+	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The placed sections, dropped COMDAT copies and every symbol by address.
+// The placed sections, the dropped COMDAT copies, the removed unused sections, the
+// lazy units and every placed symbol by address (a symbol in a unit at its trampoline).
 //
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Linker::WriteMap(void)
@@ -1305,6 +1231,18 @@ void CAsm65Linker::WriteMap(void)
 	}
 	AppendMapSections("Dropped COMDAT sections\n", false);
 	AppendMapSections("Removed unused sections\n", true);
+	if (masUnits.NumElements() > 0)
+	{
+		mszMap.Append("Lazy units (sector, size)\n");
+		for (i = 0; i < masUnits.NumElements(); i++)
+		{
+			uiSection = masUnits.Get(i)->uiSection;
+			uiObject = ObjectOfSection(uiSection);
+			mszMap.Append("  ");
+			AppendAddress(&mszMap, masUnits.Get(i)->uiSector);
+			AppendMapSection(uiObject, uiSection - masObjects.Get(uiObject)->uiFirstSection, false);
+		}
+	}
 
 	asSymbols.Init();
 	for (i = 0; i < masObjects.NumElements(); i++)
