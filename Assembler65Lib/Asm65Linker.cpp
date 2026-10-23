@@ -638,7 +638,7 @@ void CAsm65Linker::Layout(void)
 				uiAddress = (uiAddress + uiAlignment - 1) & ~(uint64)(uiAlignment - 1);
 				psLinkSection->uiAddress = (uint32)uiAddress;
 				uiAddress += psSection->uiSize;
-				maiPlacement.Add(psObject->uiFirstSection + j);
+				maiPlacement.Add((int)(psObject->uiFirstSection + j));
 			}
 		}
 		if (uiAddress > 0xFFFFFFFFULL)
@@ -936,7 +936,7 @@ void CAsm65Linker::WriteMap(void)
 	mszMap.Append("Sections\n");
 	for (i = 0; i < maiPlacement.NumElements(); i++)
 	{
-		for (uiObject = masObjects.NumElements() - 1; masObjects.Get(uiObject)->uiFirstSection > maiPlacement.GetValue(i); uiObject--)
+		for (uiObject = masObjects.NumElements() - 1; masObjects.Get(uiObject)->uiFirstSection > (size)maiPlacement.GetValue(i); uiObject--)
 		{
 		}
 		psObject = masObjects.Get(uiObject);

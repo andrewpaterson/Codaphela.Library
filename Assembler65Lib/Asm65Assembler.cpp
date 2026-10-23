@@ -858,12 +858,13 @@ bool CAsm65Assembler::SymbolBinding(SAsm65Token* psDirective)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A value the linker must finish: an address in a section or an external.
+// A value the linker must finish: an address in a section or an external.  A value
+// that is not resolved yet is sized like any forward reference (it grows next pass).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Assembler::IsRelocatable(SAsm65Value* psValue)
 {
-	return mbObject && (psValue->iTerms != 0);
+	return mbObject && psValue->bResolved && (psValue->iTerms != 0);
 }
 
 
@@ -874,7 +875,7 @@ bool CAsm65Assembler::IsRelocatable(SAsm65Value* psValue)
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Assembler::IsLocalTarget(SAsm65Value* psValue)
 {
-	return mbObject && (psValue->iTerms == 1) && (psValue->iSection == (int32)muiSection);
+	return mbObject && psValue->bResolved && (psValue->iTerms == 1) && (psValue->iSection == (int32)muiSection);
 }
 
 
