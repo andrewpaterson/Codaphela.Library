@@ -41,7 +41,7 @@ bool CAsm65Assembler::Expression(SAsm65Value* psValue)
 	miExpressionDepth--;
 
 	//Counts the section addresses a statement must use (see UseTerm).
-	if (bResult && (miExpressionDepth == 0) && (psValue->iTerms != 0))
+	if (bResult && (miExpressionDepth == 0) && psValue->bResolved && (psValue->iTerms != 0))
 	{
 		muiStatementTerms++;
 		if (mpsTermToken == NULL)
