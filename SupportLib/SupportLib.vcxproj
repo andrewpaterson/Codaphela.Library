@@ -293,6 +293,11 @@
     <ClInclude Include="TGAReader.h" />
     <ClInclude Include="BMPReader.h" />
     <ClInclude Include="Sound.h" />
+    <ClInclude Include="ModSong.h" />
+    <ClInclude Include="MODReader.h" />
+    <ClInclude Include="ModPlayer.h" />
+    <ClInclude Include="SoundCel.h" />
+    <ClInclude Include="SoundCelGroup.h" />
     <ClInclude Include="SoundChannel.h" />
     <ClInclude Include="SoundModifier.h" />
     <ClInclude Include="SoundModifierStack.h" />
@@ -350,6 +355,7 @@
     <ClInclude Include="ImageResampleChannel.h" />
     <ClInclude Include="ImageResampleBilinear.h" />
     <ClInclude Include="ImageResampleBicubic.h" />
+    <ClInclude Include="CatmullRom.h" />
     <ClInclude Include="ImageResampleSmart.h" />
     <ClInclude Include="ImageCelGroup.h" />
     <ClInclude Include="ImageSource.h" />
@@ -541,6 +547,11 @@
     <ClCompile Include="TGAReader.cpp" />
     <ClCompile Include="BMPReader.cpp" />
     <ClCompile Include="Sound.cpp" />
+    <ClCompile Include="ModSong.cpp" />
+    <ClCompile Include="MODReader.cpp" />
+    <ClCompile Include="ModPlayer.cpp" />
+    <ClCompile Include="SoundCel.cpp" />
+    <ClCompile Include="SoundCelGroup.cpp" />
     <ClCompile Include="SoundChannel.cpp" />
     <ClCompile Include="SoundModifier.cpp" />
     <ClCompile Include="SoundModifierStack.cpp" />
@@ -595,6 +606,7 @@
     <ClCompile Include="ImageResampleChannel.cpp" />
     <ClCompile Include="ImageResampleBilinear.cpp" />
     <ClCompile Include="ImageResampleBicubic.cpp" />
+    <ClCompile Include="CatmullRom.cpp" />
     <ClCompile Include="ImageResampleSmart.cpp" />
     <ClCompile Include="ImageCelGroup.cpp" />
     <ClCompile Include="ImageSource.cpp" />
