@@ -1,6 +1,7 @@
 #ifndef __BUS_CYCLE_H__
 #define __BUS_CYCLE_H__
 #include "BaseLib/Logger.h"
+#include "BaseLib/ArrayTemplateEmbeddedPtr.h"
 #include "StandardLib/Unknown.h"
 #include "W65Address.h"
 #include "W65AddressOffsetArray.h"
@@ -14,6 +15,7 @@ class CW65BusCycle : public CUnknown
 protected:
     CW65AddressOffsetArray     mapcAddressOffsets;
     CW65OperationArray         mapcOperations;
+    CArrayTemplateEmbeddedPtr<CW65Operation, 2>  mapcConditions;  //The operations that can skip this cycle, usually none.
     CW65DataOperation*         mpcDataOperation;
     int16                   miCycle;
 

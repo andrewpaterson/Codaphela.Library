@@ -36,6 +36,7 @@ public:
 	bool	IsInitialSide(void) override;
 	void	Print(CChars* psz) override;
 	bool	MustExecute(C65C64* pcCPU) override;
+	bool	IsConditional(void) override;
 };
 
 

@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __65_BUS_CYCLE_H__
 #define __65_BUS_CYCLE_H__
+#include "BaseLib/ArrayTemplateEmbeddedPtr.h"
 #include "StandardLib/Unknown.h"
 #include "65AddressOffsetArray.h"
 #include "65OperationArray.h"
@@ -32,6 +33,7 @@ CONSTRUCTABLE(C65BusCycle);
 protected:
 	C65AddressOffsetArray	mapcAddressOffsets;
 	C65OperationArray		mapcOperations;
+	CArrayTemplateEmbeddedPtr<C65Operation, 2>	mapcConditions;  //The operations that can skip this cycle, usually none.
 	C65DataOperation*		mpcDataOperation;
 	int16					miCycle;
 

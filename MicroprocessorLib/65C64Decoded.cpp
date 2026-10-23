@@ -57,7 +57,7 @@ static int64 Embedded(bool bNegative, uint16 uiField, int iBits)
 	//Positive values are 1 to 2^bits, negative values are -2^bits to -1.
 	if (bNegative)
 	{
-		return (int64)uiField - (1 << iBits);
+		return (int64)uiField - ((int64)1 << iBits);
 	}
 	else
 	{

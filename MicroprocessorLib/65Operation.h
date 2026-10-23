@@ -35,6 +35,7 @@ public:
 			bool	IsOperation(void) override;
 			bool	IsAddress(void) override;
 	virtual bool	MustExecute(C65C64* pcCPU);
+	virtual bool	IsConditional(void);
 	virtual bool	IsData(void);
 
 	virtual bool	IsInitialSide(void) =0;

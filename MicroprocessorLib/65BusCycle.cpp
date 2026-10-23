@@ -41,6 +41,7 @@ void C65BusCycle::Init(C65AddressOffsetArray* papcAddressOffsets, C65OperationAr
 	miCycle = -1;
 	mpcDataOperation = NULL;
 
+	mapcConditions.Init();
 	uiNumOperations = mapcOperations.NumElements();
 	for (i = 0; i < uiNumOperations; i++)
 	{
@@ -48,6 +49,10 @@ void C65BusCycle::Init(C65AddressOffsetArray* papcAddressOffsets, C65OperationAr
 		if (pcOperation->IsData())
 		{
 			mpcDataOperation = (C65DataOperation*)pcOperation;
+		}
+		if (pcOperation->IsConditional())
+		{
+			mapcConditions.Add(pcOperation);
 		}
 	}
 
@@ -63,6 +68,7 @@ void C65BusCycle::Kill(void)
 {
 	mpcDataOperation = NULL;
 
+	mapcConditions.Kill();
 	mapcAddressOffsets.Kill();
 	mapcOperations.Kill();
 }
@@ -128,14 +134,14 @@ C65DataOperation* C65BusCycle::GetDataOperation(void)
 //////////////////////////////////////////////////////////////////////////
 bool C65BusCycle::MustExecute(C65C64* pcCPU)
 {
-	size			uiNumOperations;
+	size			uiNumConditions;
 	size			i;
 	C65Operation*	pcOperation;
 
-	uiNumOperations = mapcOperations.NumElements();
-	for (i = 0; i < uiNumOperations; i++)
+	uiNumConditions = mapcConditions.NumElements();
+	for (i = 0; i < uiNumConditions; i++)
 	{
-		pcOperation = mapcOperations.GetPtr(i);
+		pcOperation = mapcConditions.GetPtr(i);
 		if (!pcOperation->MustExecute(pcCPU))
 		{
 			return false;
