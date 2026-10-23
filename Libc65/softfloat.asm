@@ -18,9 +18,9 @@
 ; bits and the remainder), and a sum is exact because the smaller significand is only
 ; shifted out of the low zero bits of the larger.  A result that may need rounding goes
 ; through RoundPack.  Cycles per call on the simulator, with softfloat.cpp's compiled
-; code in brackets: add 91 (2070), subtract 95 (2160), multiply 90 (2110), divide 109
-; (4740), compare 37 (1140), sqrt 91 (8840), from int 48 (600), to int 18 (720), to
-; double 23 (1000), double to float 54 (1120).
+; code in brackets: add 91 (2070), subtract 95 (2160), multiply 89 (2110), divide 109
+; (4740), compare 37 (1140), sqrt 90 (8840), from int 47 (600), to int 18 (720), to
+; double 23 (1000), double to float 52 (1120).
 
 
 ; Every routine that rounds (add, subtract, multiply, divide, the conversions from
