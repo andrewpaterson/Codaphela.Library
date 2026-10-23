@@ -54,6 +54,15 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree)
 	mapcFailed.Init();
 	mpsBindings = NULL;
 	mcTypeOfs.Init(true);
+	mcTemporarySlots.Init(true);
+	macPendingTemporaries.Init();
+	miTypeOf = 0;
+	miDataTemporaries = 0;
+	mpcElide = NULL;
+	meElide = CPP65E_None;
+	miElideDepth = 0;
+	meNextElide = CPP65E_None;
+	miNextElideDepth = 0;
 	mszUnit.Init();
 	maszOwnEmitted.Init();
 	mpaszEmitted = &maszOwnEmitted;
@@ -151,6 +160,8 @@ void CCPP65Generator::Kill(void)
 	mapsAllBindings.Kill();
 	mapsQueue.Kill();
 	mapcFailed.Kill();
+	macPendingTemporaries.Kill();
+	mcTemporarySlots.Kill();
 	mcTypeOfs.Kill();
 	maszOwnEmitted.Kill();
 	mszUnit.Kill();
@@ -1785,6 +1796,7 @@ bool CCPP65Generator::GenerateDefinition(SCPP65Function* psFunction)
 	CCPPSyntaxFunctionSuffix*		pcSuffix;
 	CCPPSyntaxParameter*			pcParameter;
 	SCPP65Type*						psType;
+	SCPP65Variable*					psVariable;
 	size							i;
 	int								iOffset;
 	bool							bResult;
@@ -1797,16 +1809,22 @@ bool CCPP65Generator::GenerateDefinition(SCPP65Function* psFunction)
 
 	BeginFunction(psFunction);
 
-	//Arguments take their own size on the stack, the first lowest.
+	//Arguments take their own size on the stack, the first lowest, after the hidden
+	//result address of a function that returns an object.  Object arguments are the
+	//function's to destroy.
 	pcSuffix = pcFunction->mpcDeclarator->GetFunctionSuffix();
-	iOffset = 0;
+	iOffset = psFunction->psReturn->IsClass() ? 4 : 0;
 	for (i = 0; i < psFunction->mapsParameters.NumElements(); i++)
 	{
 		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
 		psType = psFunction->mapsParameters.GetPtr(i);
 		if (pcParameter->mpcSymbol)
 		{
-			AddVariable(&mapsLocals, pcParameter->mpcSymbol, psType, CPP65S_Parameter, iOffset);
+			psVariable = AddVariable(&mapsLocals, pcParameter->mpcSymbol, psType, CPP65S_Parameter, iOffset);
+			if (psType->IsClass() && CompleteClass(psType->psClass, pcParameter) && psType->psClass->psDestructor)
+			{
+				mapsDestructors.Add(psVariable);
+			}
 		}
 		iOffset += psType->iBytes;
 	}
@@ -1815,6 +1833,11 @@ bool CCPP65Generator::GenerateDefinition(SCPP65Function* psFunction)
 		EndFunction(psFunction);
 		return false;
 	}
+	for (i = 0; i < pcFunction->macpMemberInitializers.NumElements(); i++)
+	{
+		AllocateTemporaries(pcFunction->macpMemberInitializers.GetPtr(i));
+	}
+	AllocateTemporaries(pcFunction->mpcBody);
 	miFrameBytes = (miFrameBytes + 3) & ~3;
 
 	bResult = true;
@@ -1843,6 +1866,9 @@ void CCPP65Generator::BeginFunction(SCPP65Function* psFunction)
 	mpsFunction = psFunction;
 	FreeVariables(&mapsLocals);
 	mapsDestructors.ReInit();
+	mcTemporarySlots.Kill();
+	mcTemporarySlots.Init(true);
+	macPendingTemporaries.ReInit();
 	macJumps.ReInit();
 	macGotoLabels.ReInit();
 	macCases.ReInit();
@@ -2091,7 +2117,29 @@ void CCPP65Generator::AppendPlaceLabel(CChars* psz, SCPP65Place* psPlace)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::Statement(CCPPSyntax* pcStatement)
 {
+	size	uiPending;
+	bool	bResult;
+
+	//Expression, declaration and return statements destroy their temporaries.
+	uiPending = macPendingTemporaries.NumElements();
+	bResult = StatementOf(pcStatement);
+	if (macPendingTemporaries.NumElements() > uiPending)
+	{
+		macPendingTemporaries.ReInit();
+		return Error(pcStatement, "Temporary objects that need destroying are not supported here by the 65C64 generator yet");
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::StatementOf(CCPPSyntax* pcStatement)
+{
 	CCPPSyntaxExpressionStatement*	pcExpression;
+	bool							bResult;
 
 	if (!pcStatement)
 	{
@@ -2106,11 +2154,13 @@ bool CCPP65Generator::Statement(CCPPSyntax* pcStatement)
 		return DeclarationStatement((CCPPSyntaxDeclarationStatement*)pcStatement);
 	case CPPS_ExpressionStatement:
 		pcExpression = (CCPPSyntaxExpressionStatement*)pcStatement;
+		bResult = true;
 		if (pcExpression->mpcExpression)
 		{
-			return Expression(pcExpression->mpcExpression) != NULL;
+			bResult = Expression(pcExpression->mpcExpression) != NULL;
 		}
-		return true;
+		DestroyTemporaries(false, false);
+		return bResult;
 	case CPPS_IfStatement:
 		return IfStatement((CCPPSyntaxIfStatement*)pcStatement);
 	case CPPS_WhileStatement:
@@ -2346,6 +2396,7 @@ bool CCPP65Generator::DeclarationStatement(CCPPSyntaxDeclarationStatement* pcSta
 		{
 			bResult &= LocalInitialiser(psVariable, pcInit->mpcInitializer, pcInit);
 		}
+		DestroyTemporaries(false, false);
 	}
 	return bResult;
 }
@@ -2761,7 +2812,14 @@ bool CCPP65Generator::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	SCPP65Type*	psType;
 	SCPP65Place	sPlace;
 
-	if (pcReturn->mpcValue && mpsFunction->psReturn->IsReference())
+	if (mpsFunction->psReturn->IsClass())
+	{
+		if (!ReturnObject(pcReturn->mpcValue, pcReturn))
+		{
+			return false;
+		}
+	}
+	else if (pcReturn->mpcValue && mpsFunction->psReturn->IsReference())
 	{
 		//A reference returns the object's address.
 		if (!Place(pcReturn->mpcValue, &sPlace))
@@ -2790,7 +2848,8 @@ bool CCPP65Generator::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 		return Error(pcReturn, "The function must return a value");
 	}
 
-	//The local objects are destroyed after the value is worked out.
+	//The temporaries and the local objects are destroyed after the value is worked out.
+	DestroyTemporaries(true, mpsFunction->psReturn->Is64());
 	if (mapsDestructors.NumElements() > 0)
 	{
 		PushWide("A", mpsFunction->psReturn->Is64());

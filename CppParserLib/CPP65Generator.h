@@ -296,6 +296,38 @@ struct SCPP65TypeOf
 
 typedef CArrayTemplatePtr<SCPP65Variable>	CArrayCPP65Variables;
 typedef CMapLongTemplate<SCPP65TypeOf>		CMapCPP65TypeOfs;
+
+
+//Where a call's result is made instead of a temporary: a place, the function's own result, or a place on the
+//stack (an argument).
+enum ECPP65Elide
+{
+	CPP65E_None,
+	CPP65E_Place,
+	CPP65E_Result,
+	CPP65E_Stack,
+};
+
+
+//A temporary object's place in the frame.
+struct SCPP65Slot
+{
+	int		iOffset;
+};
+
+
+typedef CMapLongTemplate<SCPP65Slot>		CMapCPP65Slots;
+
+
+//A temporary to destroy at the end of its full expression.
+struct SCPP65Pending
+{
+	int				iOffset;
+	SCPP65Type*		psType;
+};
+
+
+typedef CArrayTemplate<SCPP65Pending>		CArrayCPP65Pendings;
 typedef CArrayTemplate<SCPP65Jump>			CArrayCPP65Jumps;
 typedef CArrayTemplate<SCPP65Case>			CArrayCPP65Cases;
 typedef CArrayTemplate<CChars>				CArrayCPP65Strings;
@@ -327,6 +359,16 @@ protected:
 	CArraySyntax			mapcFailed;			//Declarators of functions whose declarations were not supported.
 	SCPP65Bindings*			mpsBindings;		//The template arguments of what is being generated or laid out.
 	CMapCPP65TypeOfs		mcTypeOfs;			//TypeOf's answers, by expression.
+	CMapCPP65Slots			mcTemporarySlots;	//The function's temporary objects' places, by expression.
+	CArrayCPP65Pendings		macPendingTemporaries;
+	int						miTypeOf;			//TypeOf is working out an expression (its code is thrown away).
+	CCPPSyntax*				mpcElide;			//The call whose result is made where msElide is, not in a temporary.
+	SCPP65Place				msElide;
+	ECPP65Elide				meElide;
+	int						miElideDepth;		//CPP65E_Stack: miDepth just after the object's place was pushed.
+	ECPP65Elide				meNextElide;		//How Construct reaches an Address place's object, set by its caller.
+	int						miNextElideDepth;
+	int						miDataTemporaries;
 	CChars					mszUnit;			//Put in front of this translation unit's own labels.
 	CArrayChars				maszOwnEmitted;
 	CArrayChars*			mpaszEmitted;		//Labels of functions, vtables and runtime routines any unit has written.
@@ -418,6 +460,7 @@ protected:
 	int						GotoLabel(int iToken);
 	void					AppendPlaceLabel(CChars* psz, SCPP65Place* psPlace);
 	bool					Statement(CCPPSyntax* pcStatement);
+	bool					StatementOf(CCPPSyntax* pcStatement);
 	bool					CompoundStatement(CCPPSyntaxCompoundStatement* pcCompound);
 	bool					DeclarationStatement(CCPPSyntaxDeclarationStatement* pcStatement);
 	bool					LocalInitialiser(SCPP65Variable* psVariable, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode);
@@ -492,7 +535,7 @@ protected:
 	SCPP65Type*				MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* pcCallee);
 	SCPP65Type*				OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	int						PushArguments(SCPP65Function* psFunction, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
-	int						PushParameters(CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
+	int						PushParameters(CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, CArraySyntax* papcArguments, CCPPSyntax* pcNode, SCPP65Type* psReturn = NULL);
 	bool					CopyObject(SCPP65Place* psDestination, CCPPSyntax* pcSource, CCPPSyntax* pcNode);
 	bool					MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65Place* psPlace);
 	bool					SetVtable(SCPP65Place* psPlace, SCPP65Class* psClass);
@@ -503,6 +546,20 @@ protected:
 	//Expressions.  CPP65GeneratorExpressions.cpp
 	SCPP65Type*				Expression(CCPPSyntax* pcExpression);
 	bool					IsBuiltin(int64 lliName);
+	void					AllocateTemporaries(CCPPSyntax* pcNode);
+	bool					TemporaryAddress(CCPPSyntax* pcNode, SCPP65Type* psType);
+	void					DestroyTemporaries(bool bKeep, bool bWide);
+	bool					HasCopyConstructor(SCPP65Class* psClass);
+	bool					IsTriviallyCopyable(SCPP65Class* psClass);
+	bool					CopyConstruct(SCPP65Place* psPlace, CCPPSyntax* pcSource, CCPPSyntax* pcNode);
+	void					LoadResultAddress(void);
+	bool					ReturnObject(CCPPSyntax* pcValue, CCPPSyntax* pcNode);
+	SCPP65Type*				TemporaryObject(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode);
+	bool					IsObject(CCPPSyntax* pcExpression);
+	bool					IsMadeObject(CCPPSyntax* pcExpression, SCPP65Class* psClass);
+	bool					ConstructFromMade(SCPP65Place* psPlace, CCPPSyntax* pcInitialiser, ECPP65Elide eElide, int iDepth, CCPPSyntax* pcNode);
+	SCPP65Type*				OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode);
+	SCPP65Function*			FindFreeOperator(int64 lliName, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	void					StringData(char* szBytes, size uiLength);
 	bool					FunctionNameText(int64 lliName, CChars* pszText);
 	bool					IsFunctionName(CCPPSyntaxIdExpression* pcId);

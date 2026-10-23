@@ -271,8 +271,9 @@ bool CCPP65Generator::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTempl
 				psTemplate->bMember = true;
 			}
 		}
-		else if (pcName && pcName->mpcSymbol)
+		else if (pcName && (pcName->mpcSymbol || (pcName->GetLast()->meKind == CPPNC_Operator)))
 		{
+			//An operator template has no symbol; it is found by its operator (FindFreeOperator).
 			psTemplate = (SCPP65Template*)malloc(sizeof(SCPP65Template));
 			psTemplate->pcSymbol = pcName->mpcSymbol;
 			psTemplate->pcDefinition = pcFunction;
@@ -2196,6 +2197,8 @@ bool CCPP65Generator::Construct(SCPP65Place* psPlace, CArraySyntax* papcArgument
 	SCPP65Class*					psClass;
 	int								i;
 	bool							bResult;
+	ECPP65Elide						eElide;
+	int								iElideDepth;
 
 	psType = psPlace->psType;
 	apcArguments.Init();
@@ -2203,6 +2206,11 @@ bool CCPP65Generator::Construct(SCPP65Place* psPlace, CArraySyntax* papcArgument
 	{
 		papcArguments = &apcArguments;
 	}
+
+	//How an Address place can be reached again, from the caller (only for this place).
+	eElide = (psPlace->eKind == CPP65PK_Address) ? meNextElide : CPP65E_Place;
+	iElideDepth = miNextElideDepth;
+	meNextElide = CPP65E_None;
 
 	//A reference is bound to an object's address.
 	if (psType->IsReference())
@@ -2271,6 +2279,11 @@ bool CCPP65Generator::Construct(SCPP65Place* psPlace, CArraySyntax* papcArgument
 			}
 			pcInitialiser = (papcArguments->NumElements() == 1) ? papcArguments->GetPtr(0) : NULL;
 		}
+		//An address in A waits in X.
+		if (psPlace->eKind == CPP65PK_Address)
+		{
+			Push("A");
+		}
 		if (pcInitialiser)
 		{
 			bResult = Convert(Expression(pcInitialiser), psType, pcInitialiser);
@@ -2280,9 +2293,14 @@ bool CCPP65Generator::Construct(SCPP65Place* psPlace, CArraySyntax* papcArgument
 			Line("cpy A, 0")->AppendNewLine();
 			bResult = true;
 		}
+		if (psPlace->eKind == CPP65PK_Address)
+		{
+			Pull("X");
+			ChangeX();
+		}
 		if (bResult)
 		{
-			Store(psPlace, "A", NULL);
+			Store(psPlace, "A", "X");
 		}
 		apcArguments.Kill();
 		return bResult;
@@ -2293,6 +2311,20 @@ bool CCPP65Generator::Construct(SCPP65Place* psPlace, CArraySyntax* papcArgument
 	{
 		apcArguments.Kill();
 		return false;
+	}
+
+	//(object) copies it, as = object does.
+	if (!pcInitialiser && (papcArguments->NumElements() == 1) && !psClass->bConstructors)
+	{
+		psSource = TypeOf(papcArguments->GetPtr(0));
+		if (psSource && psSource->IsReference())
+		{
+			psSource = psSource->psBase;
+		}
+		if (psSource && psSource->IsClass() && IsDerived(psSource->psClass, psClass, NULL))
+		{
+			pcInitialiser = papcArguments->GetPtr(0);
+		}
 	}
 	if (pcInitialiser)
 	{
@@ -2310,9 +2342,20 @@ bool CCPP65Generator::Construct(SCPP65Place* psPlace, CArraySyntax* papcArgument
 
 		//= object copies it, = value calls a constructor that takes it.
 		psSource = TypeOf(pcInitialiser);
+		if (psSource && psSource->IsReference())
+		{
+			psSource = psSource->psBase;
+		}
 		if (psSource && psSource->IsClass() && IsDerived(psSource->psClass, psClass, NULL))
 		{
-			bResult = CopyObject(psPlace, pcInitialiser, pcNode);
+			if ((eElide != CPP65E_None) && IsMadeObject(pcInitialiser, psClass))
+			{
+				//Made in place, not copied.
+				bResult = ConstructFromMade(psPlace, pcInitialiser, eElide, iElideDepth, pcNode);
+				apcArguments.Kill();
+				return bResult;
+			}
+			bResult = CopyConstruct(psPlace, pcInitialiser, pcNode);
 			apcArguments.Kill();
 			return bResult;
 		}
@@ -2399,12 +2442,25 @@ bool CCPP65Generator::ConstructClass(SCPP65Place* psPlace, SCPP65Class* psClass,
 	}
 	bResult = true;
 	sField = *psPlace;
+	if (psPlace->eKind == CPP65PK_Address)
+	{
+		Push("A");
+	}
 	for (i = 0; i < psClass->macFields.NumElements(); i++)
 	{
 		psField = psClass->macFields.Get(i);
 		sField.psType = psField->psType;
 		sField.iOffset = psPlace->iOffset + psField->iOffset;
+		if (psPlace->eKind == CPP65PK_Address)
+		{
+			Line("cpy A, [1 + S]")->AppendNewLine();
+		}
 		bResult &= Construct(&sField, NULL, (i < papcArguments->NumElements()) ? papcArguments->GetPtr(i) : NULL, pcNode);
+	}
+	if (psPlace->eKind == CPP65PK_Address)
+	{
+		Line("add S, 4")->AppendNewLine();
+		miDepth -= 4;
 	}
 	return bResult;
 }
@@ -2701,7 +2757,7 @@ SCPP65Type* CCPP65Generator::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSy
 //////////////////////////////////////////////////////////////////////////
 int CCPP65Generator::PushArguments(SCPP65Function* psFunction, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
 {
-	return PushParameters(&psFunction->mapsParameters, &psFunction->mapcDefaults, psFunction->bVariadic, papcArguments, pcNode);
+	return PushParameters(&psFunction->mapsParameters, &psFunction->mapcDefaults, psFunction->bVariadic, papcArguments, pcNode, psFunction->psReturn);
 }
 
 
@@ -2711,10 +2767,12 @@ int CCPP65Generator::PushArguments(SCPP65Function* psFunction, CArraySyntax* pap
 // its size.  Missing arguments are the parameters' defaults.  A reference gets the
 // argument's address.  A variadic function's extra arguments are pushed first (they
 // are last), promoted: integers narrower than int are int, arrays and functions are
-// pointers.  Returns the bytes pushed, or -1 after an error.
+// pointers.  An object argument is copied onto the stack.  A function returning an
+// object (psReturn) gets its temporary's address pushed last.  Returns the bytes
+// pushed, or -1 after an error.
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPP65Generator::PushParameters(CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
+int CCPP65Generator::PushParameters(CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, CArraySyntax* papcArguments, CCPPSyntax* pcNode, SCPP65Type* psReturn)
 {
 	size			uiArguments;
 	size			uiParameters;
@@ -2810,8 +2868,30 @@ int CCPP65Generator::PushParameters(CArrayCPP65Types* papsParameters, CArraySynt
 		}
 		if (psParameter->IsClass())
 		{
-			Error(pcArgument, "Objects cannot be passed by value by the 65C64 generator yet; pass a pointer or a reference");
-			return -1;
+			//Made in its place on the stack.
+			if (!CompleteClass(psParameter->psClass, pcArgument))
+			{
+				return -1;
+			}
+			Line("sub S, ")->Append(psParameter->iBytes)->AppendNewLine();
+			miDepth += psParameter->iBytes;
+			Line("cpy A, S")->AppendNewLine();
+			Line("add A, 1")->AppendNewLine();
+			meNextElide = CPP65E_Stack;
+			miNextElideDepth = miDepth;
+			sPlace.eKind = CPP65PK_Address;
+			sPlace.psType = psParameter;
+			sPlace.iOffset = 0;
+			sPlace.lliName = -1;
+			sPlace.iString = -1;
+			sPlace.bInternal = false;
+			sPlace.psClass = NULL;
+			if (!Construct(&sPlace, NULL, pcArgument, pcArgument))
+			{
+				return -1;
+			}
+			iBytes += psParameter->iBytes;
+			continue;
 		}
 
 		psType = Expression(pcArgument);
@@ -2825,6 +2905,16 @@ int CCPP65Generator::PushParameters(CArrayCPP65Types* papsParameters, CArraySynt
 		}
 		PushValue(psParameter);
 		iBytes += psParameter->iBytes;
+	}
+
+	if (psReturn && psReturn->IsClass())
+	{
+		if (!CompleteClass(psReturn->psClass, pcNode) || !TemporaryAddress(pcNode, psReturn))
+		{
+			return -1;
+		}
+		Push("A");
+		iBytes += 4;
 	}
 	return iBytes;
 }
