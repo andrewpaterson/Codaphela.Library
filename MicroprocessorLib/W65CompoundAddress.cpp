@@ -10,6 +10,7 @@
 void CW65CompoundAddress::Init(void)
 {
 	mapcAddressOffsets.Init();
+	mbHasBank = true;
 }
 
 

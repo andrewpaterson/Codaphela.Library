@@ -8,6 +8,12 @@
 class CW65Address;
 class CW65AddressOffset : public CW65BusCycleParameter
 {
+protected:
+    //Set by the classes that override GetBank and IsPageWrapped so the address calculation only calls them
+    //when needed.  NewMalloc zeroes these for the classes that don't.
+    bool    mbHasBank;
+    bool    mbCanPageWrap;
+
 public:
             void    Init(void);
 
@@ -18,6 +24,8 @@ public:
     virtual bool    IsConstantOffset(void);
     virtual bool    IsPageWrapped(CW65CCore* pcCPU);
     virtual bool    IsProgramCounter(void);
+            bool    HasBank(void);
+            bool    CanPageWrap(void);
 };
 
 

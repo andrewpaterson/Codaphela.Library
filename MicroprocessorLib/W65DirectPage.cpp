@@ -19,6 +19,7 @@ void CW65DirectPage::Init(void)
 void CW65DirectPage::Init(bool bPageWrap)
 {
 	mbPageWrap = bPageWrap;
+	mbCanPageWrap = bPageWrap;
 }
 
 
