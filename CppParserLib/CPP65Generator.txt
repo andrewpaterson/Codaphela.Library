@@ -21,7 +21,8 @@ ctype.h, time.h and assert.h (int and long are 32 bits, size_t is unsigned int).
 it to the preprocessor as a system include directory.  string.cpp, stdlib.cpp (malloc
 over a heap at 0008:0000 to 000F:FFFF), ctype.cpp, time.cpp, softfloat.cpp and
 math.cpp are written in C++ for the generator and compiled with a program as its
-other translation units.  There is no clock: time is 0 and clock is -1 (unavailable);
+other translation units; softfloat.asm is 65C64 assembly, assembled with them
+(CCPP65Builder::AddUnit takes .asm units).  There is no clock: time is 0 and clock is -1 (unavailable);
 gmtime, localtime (UTC) and mktime use integers only.  stdio is only declared.
 exit calls the atexit functions (at most 32, last first) and the fini table, then
 _Exit, which stops at once with the status in A; abort is _Exit(EXIT_FAILURE).
@@ -89,9 +90,16 @@ Floating point (the soft float runtime)
 ---------------------------------------
 
 The 65C64 has no floating point instructions, so float and double arithmetic,
-comparisons and conversions call Libc65/softfloat.cpp, which works on the values' bits
-with integers only (it compiles natively too, and was checked bit for bit against
-SSE on millions of values).  A program that uses floating point is linked with it.
+comparisons and conversions call the soft float runtime.  Libc65/softfloat.cpp works on
+the values' bits with integers only (it compiles natively too, and was checked bit for
+bit against SSE on millions of values).  On the 65C64 its single precision functions
+(SoftFloat* and SoftDoubleToFloat) are left out for Libc65/softfloat.asm's, written in
+assembly for speed with the same results bit for bit (checked against softfloat.cpp
+natively on millions of values; TestLibc65SoftFloat runs a few thousand per function).
+A program that uses floating point is linked with both.  Cycles per call on the
+simulator (softfloat.cpp's compiled code in brackets): add 91 (2070), subtract 95
+(2160), multiply 90 (2110), divide 109 (4740), compare 37 (1140), sqrt 91 (8840),
+from int 48 (600), to int 18 (720), to double 23 (1000), double to float 54 (1120).
 The generator pushes the operands like arguments (the right first) and calls:
 
 	SoftFloatAdd Subtract Multiply Divide		(and SoftDouble...)
