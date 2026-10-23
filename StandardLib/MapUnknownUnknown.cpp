@@ -136,14 +136,35 @@ bool CMapUnknownUnknown::ReadMapUnknownHeader(CFileReader* pcFileReader, CDataIO
 //////////////////////////////////////////////////////////////////////////
 bool CMapUnknownUnknown::Put(CUnknown* pcKey, CUnknown* pcValue)
 {
-	bool		bResult;
+	SMNode*		psNode;
+	CUnknown**	ppcValue;
+	CUnknown*	pcOldValue;
 
-	if (pcKey)
+	if (!pcKey)
 	{
-		bResult = mcMap.Put(pcKey, pcValue);
-		return bResult;
+		return false;
 	}
-	return false;
+
+	psNode = GetNode(pcKey);
+	if (psNode)
+	{
+		if (!IsOverwriteExisting())
+		{
+			return false;
+		}
+
+		//Replace the value in place.  Removing the node and adding a new one would kill the key too when the map kills its elements.
+		ppcValue = (CUnknown**)mcMap.GetValue(psNode);
+		pcOldValue = *ppcValue;
+		*ppcValue = pcValue;
+		if (IsKillElements() && pcOldValue && (pcOldValue != pcValue) && (pcOldValue != pcKey))
+		{
+			pcOldValue->Kill();
+		}
+		return true;
+	}
+
+	return mcMap.Put(pcKey, pcValue);
 }
 
 

@@ -40,6 +40,7 @@ void CMapCommonUnknown::Init(bool bKillElements, bool bOverwriteExisting)
 {
 	miFlags = 0;
 	SetFlagShort(&miFlags, MAP_COMMOM_KILL_ELEMENT, bKillElements);
+	SetFlagShort(&miFlags, MAP_COMMOM_NO_OVERWRITE, !bOverwriteExisting);
 }
 
 
@@ -60,6 +61,16 @@ void CMapCommonUnknown::Kill(void)
 bool CMapCommonUnknown::IsKillElements(void)
 {
 	return miFlags & MAP_COMMOM_KILL_ELEMENT;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapCommonUnknown::IsOverwriteExisting(void)
+{
+	return !(miFlags & MAP_COMMOM_NO_OVERWRITE);
 }
 
 
