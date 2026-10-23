@@ -1,0 +1,15 @@
+//Allocation and placement new.  The generator makes placement new itself: new(pv) Class constructs at pv.
+#ifndef __LIBC65_NEW__
+#define __LIBC65_NEW__
+#include <stddef.h>
+
+
+void*	operator new(size_t uiBytes);
+void*	operator new[](size_t uiBytes);
+void	operator delete(void* pv) noexcept;
+void	operator delete[](void* pv) noexcept;
+inline void*	operator new(size_t uiBytes, void* pv) noexcept { return pv; }
+inline void*	operator new[](size_t uiBytes, void* pv) noexcept { return pv; }
+
+
+#endif // __LIBC65_NEW__
