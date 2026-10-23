@@ -815,7 +815,7 @@ void CAsm65Linker::MarkUsed(void)
 			psSection = psObject->pcObject->GetSection(j);
 			if (psSection->bKeep || (((psSection->eKind == ASK65_Init) || (psSection->eKind == ASK65_Fini)) && (psSection->iAssociated < 0)))
 			{
-				UseSection(psObject->uiFirstSection + j, &aiWork);
+				UseSection(SectionIndex(i, j), &aiWork);
 			}
 		}
 	}
@@ -825,9 +825,7 @@ void CAsm65Linker::MarkUsed(void)
 		while (aiWork.NumElements() > 0)
 		{
 			uiSection = (size)aiWork.Pop();
-			for (uiObject = masObjects.NumElements() - 1; masObjects.Get(uiObject)->uiFirstSection > uiSection; uiObject--)
-			{
-			}
+			uiObject = ObjectOfSection(uiSection);
 			psObject = masObjects.Get(uiObject);
 			psLinkSection = masSections.Get(uiSection);
 			for (i = 0; i < psLinkSection->uiNumRelocations; i++)
@@ -847,7 +845,7 @@ void CAsm65Linker::MarkUsed(void)
 				psLinkSection = GetLinkSection(i, j);
 				if (!psLinkSection->bUsed && (psSection->iAssociated >= 0) && GetLinkSection(i, psSection->iAssociated)->bUsed)
 				{
-					UseSection(psObject->uiFirstSection + j, &aiWork);
+					UseSection(SectionIndex(i, j), &aiWork);
 					bAdded = true;
 				}
 			}
@@ -890,7 +888,7 @@ void CAsm65Linker::UseTarget(size uiObject, SAsm65Relocation* psRelocation, CArr
 	pcObject = masObjects.Get(uiObject)->pcObject;
 	if (psRelocation->iTargetSection != ASM65_TARGET_SYMBOL)
 	{
-		UseSection(masObjects.Get(uiObject)->uiFirstSection + psRelocation->iTargetSection, paiWork);
+		UseSection(SectionIndex(uiObject, psRelocation->iTargetSection), paiWork);
 		return;
 	}
 
@@ -899,7 +897,7 @@ void CAsm65Linker::UseTarget(size uiObject, SAsm65Relocation* psRelocation, CArr
 	{
 		if (psSymbol->iSection >= 0)
 		{
-			UseSection(masObjects.Get(uiObject)->uiFirstSection + psSymbol->iSection, paiWork);
+			UseSection(SectionIndex(uiObject, psSymbol->iSection), paiWork);
 		}
 		return;
 	}
@@ -915,7 +913,7 @@ void CAsm65Linker::UseTarget(size uiObject, SAsm65Relocation* psRelocation, CArr
 		psSymbol = masObjects.Get(psGlobal->iObject)->pcObject->GetSymbol(psGlobal->uiSymbol);
 		if (psSymbol->iSection >= 0)
 		{
-			UseSection(masObjects.Get(psGlobal->iObject)->uiFirstSection + psSymbol->iSection, paiWork);
+			UseSection(SectionIndex(psGlobal->iObject, psSymbol->iSection), paiWork);
 		}
 	}
 }
@@ -1011,7 +1009,7 @@ void CAsm65Linker::Layout(void)
 				uiAddress = (uiAddress + uiAlignment - 1) & ~(uint64)(uiAlignment - 1);
 				psLinkSection->uiAddress = (uint32)uiAddress;
 				uiAddress += psSection->uiSize;
-				maiPlacement.Add((int)(psObject->uiFirstSection + j));
+				maiPlacement.Add((int)SectionIndex(i, j));
 			}
 		}
 		if (uiAddress > 0xFFFFFFFFULL)
@@ -1229,7 +1227,7 @@ void CAsm65Linker::Relocate(void)
 			{
 				continue;
 			}
-			pcBytes = acBytes.Get(psObject->uiFirstSection + psRelocation->uiSection);
+			pcBytes = acBytes.Get(SectionIndex(i, psRelocation->uiSection));
 			if ((uint64)psRelocation->uiOffset + psRelocation->uiBytes > pcBytes->NumElements())
 			{
 				Error(psObject->pcObject, psRelocation, "Relocation is outside its section", psSection->szName.Text());
@@ -1290,89 +1288,23 @@ void CAsm65Linker::WriteMap(void)
 	CArrayTemplate<SAsm65MapSymbol>	asSymbols;
 	SAsm65MapSymbol*				psMapSymbol;
 	SAsm65LinkObject*				psObject;
-	SAsm65Section*					psSection;
-	SAsm65LinkSection*				psLinkSection;
 	SAsm65ObjectSymbol*				psSymbol;
 	SAsm65LinkSymbol*				psGlobal;
 	size							i;
 	size							j;
 	size							uiObject;
-	bool							bDropped;
-	bool							bRemoved;
+	size							uiSection;
 	int64							iValue;
 
 	mszMap.Append("Sections\n");
 	for (i = 0; i < maiPlacement.NumElements(); i++)
 	{
-		for (uiObject = masObjects.NumElements() - 1; masObjects.Get(uiObject)->uiFirstSection > (size)maiPlacement.GetValue(i); uiObject--)
-		{
-		}
-		psObject = masObjects.Get(uiObject);
-		psSection = psObject->pcObject->GetSection(maiPlacement.GetValue(i) - psObject->uiFirstSection);
-		psLinkSection = masSections.Get(maiPlacement.GetValue(i));
-		mszMap.Append("  ");
-		AppendAddress(&mszMap, psLinkSection->uiAddress);
-		mszMap.Append(" ");
-		AppendAddress(&mszMap, psSection->uiSize);
-		mszMap.Append(" ");
-		mszMap.Append(psSection->szName.Text());
-		mszMap.Append(" (");
-		mszMap.Append(psObject->pcObject->GetName());
-		mszMap.Append(")\n");
+		uiSection = (size)maiPlacement.GetValue(i);
+		uiObject = ObjectOfSection(uiSection);
+		AppendMapSection(uiObject, uiSection - masObjects.Get(uiObject)->uiFirstSection, true);
 	}
-
-	bDropped = false;
-	for (i = 0; i < masObjects.NumElements(); i++)
-	{
-		psObject = masObjects.Get(i);
-		for (j = 0; j < psObject->pcObject->NumSections(); j++)
-		{
-			if (GetLinkSection(i, j)->bKept)
-			{
-				continue;
-			}
-			if (!bDropped)
-			{
-				mszMap.Append("Dropped COMDAT sections\n");
-				bDropped = true;
-			}
-			psSection = psObject->pcObject->GetSection(j);
-			mszMap.Append("  ");
-			mszMap.Append(psSection->szName.Text());
-			mszMap.Append(" comdat ");
-			mszMap.Append(psSection->szGroup.Text());
-			mszMap.Append(" (");
-			mszMap.Append(psObject->pcObject->GetName());
-			mszMap.Append(")\n");
-		}
-	}
-
-	bRemoved = false;
-	for (i = 0; i < masObjects.NumElements(); i++)
-	{
-		psObject = masObjects.Get(i);
-		for (j = 0; j < psObject->pcObject->NumSections(); j++)
-		{
-			psLinkSection = GetLinkSection(i, j);
-			if (!psLinkSection->bKept || psLinkSection->bUsed)
-			{
-				continue;
-			}
-			if (!bRemoved)
-			{
-				mszMap.Append("Removed unused sections\n");
-				bRemoved = true;
-			}
-			psSection = psObject->pcObject->GetSection(j);
-			mszMap.Append("  ");
-			AppendAddress(&mszMap, psSection->uiSize);
-			mszMap.Append(" ");
-			mszMap.Append(psSection->szName.Text());
-			mszMap.Append(" (");
-			mszMap.Append(psObject->pcObject->GetName());
-			mszMap.Append(")\n");
-		}
-	}
+	AppendMapSections("Dropped COMDAT sections\n", false);
+	AppendMapSections("Removed unused sections\n", true);
 
 	asSymbols.Init();
 	for (i = 0; i < masObjects.NumElements(); i++)
@@ -1424,6 +1356,106 @@ void CAsm65Linker::WriteMap(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The dropped COMDAT copies (bRemoved false) or the removed unused sections, under
+// szTitle when there are any.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Linker::AppendMapSections(const char* szTitle, bool bRemoved)
+{
+	size				i;
+	size				j;
+	SAsm65LinkSection*	psLinkSection;
+	bool				bAny;
+
+	bAny = false;
+	for (i = 0; i < masObjects.NumElements(); i++)
+	{
+		for (j = 0; j < masObjects.Get(i)->pcObject->NumSections(); j++)
+		{
+			psLinkSection = GetLinkSection(i, j);
+			if (bRemoved ? (!psLinkSection->bKept || psLinkSection->bUsed) : psLinkSection->bKept)
+			{
+				continue;
+			}
+			if (!bAny)
+			{
+				mszMap.Append(szTitle);
+				bAny = true;
+			}
+			AppendMapSection(i, j, false);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// "  $address $size name (object)" for a placed section, "  $size name (object)" for
+// a removed one, and "  name comdat group (object)" for a dropped COMDAT copy.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Linker::AppendMapSection(size uiObject, size uiSection, bool bPlaced)
+{
+	CAsm65Object*		pcObject;
+	SAsm65Section*		psSection;
+	SAsm65LinkSection*	psLinkSection;
+
+	pcObject = masObjects.Get(uiObject)->pcObject;
+	psSection = pcObject->GetSection(uiSection);
+	psLinkSection = GetLinkSection(uiObject, uiSection);
+	mszMap.Append("  ");
+	if (bPlaced)
+	{
+		AppendAddress(&mszMap, psLinkSection->uiAddress);
+		mszMap.Append(" ");
+	}
+	if (psLinkSection->bKept)
+	{
+		AppendAddress(&mszMap, psSection->uiSize);
+		mszMap.Append(" ");
+		mszMap.Append(psSection->szName.Text());
+	}
+	else
+	{
+		mszMap.Append(psSection->szName.Text());
+		mszMap.Append(" comdat ");
+		mszMap.Append(psSection->szGroup.Text());
+	}
+	mszMap.Append(" (");
+	mszMap.Append(pcObject->GetName());
+	mszMap.Append(")\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The object whose sections include uiSection (an index into masSections).
+//
+//////////////////////////////////////////////////////////////////////////
+size CAsm65Linker::ObjectOfSection(size uiSection)
+{
+	size	uiObject;
+
+	for (uiObject = masObjects.NumElements() - 1; masObjects.Get(uiObject)->uiFirstSection > uiSection; uiObject--)
+	{
+	}
+	return uiObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The index into masSections of an object's section.
+//
+//////////////////////////////////////////////////////////////////////////
+size CAsm65Linker::SectionIndex(size uiObject, size uiSection)
+{
+	return masObjects.Get(uiObject)->uiFirstSection + uiSection;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // iObject is -1 for the linker's own symbols (iValue is then their value).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1467,7 +1499,7 @@ SAsm65LinkSymbol* CAsm65Linker::GetGlobal(const char* szName)
 //////////////////////////////////////////////////////////////////////////
 SAsm65LinkSection* CAsm65Linker::GetLinkSection(size uiObject, size uiSection)
 {
-	return masSections.Get(masObjects.Get(uiObject)->uiFirstSection + uiSection);
+	return masSections.Get(SectionIndex(uiObject, uiSection));
 }
 
 

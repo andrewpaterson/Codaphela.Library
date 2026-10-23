@@ -349,7 +349,7 @@ bool CCPP65Generator::FunctionNameText(int64 lliName, CChars* pszText)
 	{
 		return false;
 	}
-	bPretty = ((iLength == 19) && (memcmp(szName, "__PRETTY_FUNCTION__", 19) == 0)) || ((iLength == 10) && (memcmp(szName, "__FUNCSIG__", 10) == 0));
+	bPretty = ((iLength == 19) && (memcmp(szName, "__PRETTY_FUNCTION__", 19) == 0)) || ((iLength == 11) && (memcmp(szName, "__FUNCSIG__", 11) == 0));
 	if (!bPretty && !((iLength == 8) && (memcmp(szName, "__func__", 8) == 0)) && !((iLength == 12) && (memcmp(szName, "__FUNCTION__", 12) == 0)))
 	{
 		return false;
@@ -3289,7 +3289,7 @@ bool CCPP65Generator::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 
 		szIdentifier = pcToken->IsIdentifier() ? mpcTokeniser->GetIdentifier(((CCTIdentifier*)pcToken)->mlliIdentifier, &iLength) : NULL;
 		szName.Init();
-		if (szIdentifier && (iLength == 11) && (memcmp(szIdentifier, "__FUNCDNAME", 11) == 0))
+		if (szIdentifier && (iLength == 13) && (memcmp(szIdentifier, "__FUNCDNAME__", 13) == 0))
 		{
 			if (mpsFunction)
 			{

@@ -387,6 +387,7 @@ protected:
 	int						miFrameBytes;
 	int						miStatics;			//Static locals in the unit.
 	bool					mbStaticLocal;		//A static local's data is being written.
+	bool					mbLinkageExtern;	//In extern "C" without braces: declarations are extern.
 	bool					mbFramePointer;		//The function saves V and points it at its frame.
 	int						miDepth;			//Bytes pushed on S since the frame was made.
 	int						miTemporaries;		//Bytes of pseudo registers ([offset + W]) in use.
@@ -480,6 +481,8 @@ protected:
 	void					AppendStartUpRoutine(const char* szTable, const char* szName, CChars* pszBody, CChars* pszData);
 	void					AppendSection(CChars* psz, const char* szKind, CChars* pszName, const char* szOptions);
 	bool					HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator);
+	void					BeginData(CChars* pszLabel, int iAlignment, bool bGlobal, const char* szOptions);
+	int						DataAlignment(SCPP65Type* psType, bool bClass);
 	void					AppendGlobal(CChars* psz, CChars* pszLabel);
 	bool					IsUnitFunction(SCPP65Function* psFunction);
 

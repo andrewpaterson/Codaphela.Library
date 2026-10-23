@@ -179,6 +179,10 @@ protected:
 	bool			Target(size uiObject, SAsm65Relocation* psRelocation, int64* piValue);
 	void			Relocate(void);
 	void			WriteMap(void);
+	void			AppendMapSections(const char* szTitle, bool bRemoved);
+	void			AppendMapSection(size uiObject, size uiSection, bool bPlaced);
+	size			ObjectOfSection(size uiSection);
+	size			SectionIndex(size uiObject, size uiSection);
 
 	SAsm65LinkSymbol*	GetGlobal(const char* szName);
 	void			AddGlobal(const char* szName, int32 iObject, uint32 uiSymbol, bool bWeak, int64 iValue);

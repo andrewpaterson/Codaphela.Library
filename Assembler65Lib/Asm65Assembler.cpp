@@ -843,22 +843,13 @@ void CAsm65Assembler::Associate(void)
 	SAsm65Token*	psName;
 	CChars			szName;
 	int32			iSection;
-	size			j;
 
 	for (i = 0; i + 1 < mcAssociations.NumElements(); i += 2)
 	{
 		psName = mcTokeniser.Get(mcAssociations.GetValue(i + 1));
 		szName.Init();
 		szName.Append(psName->szText, psName->uiLength);
-		iSection = -1;
-		for (j = 0; j < mpcObject->NumSections(); j++)
-		{
-			if (mpcObject->GetSection(j)->szName.Equals(szName.Text()))
-			{
-				iSection = (int32)j;
-				break;
-			}
-		}
+		iSection = mpcObject->FindSection(szName.Text(), NULL);
 		szName.Kill();
 		if (iSection < 0)
 		{

@@ -52,6 +52,7 @@ public:
 	uint64			GetQuad(uint32 uiAddress);
 	void			SetLong(uint32 uiAddress, uint32 uiValue);
 	void			Load(CAsm65Output* pcOutput);
+	void			LoadProgram(CAsm65Output* pcOutput, uint32 uiResetAddress);
 
 	size			NumBadAccesses(void);
 	size			NumCycles(void);

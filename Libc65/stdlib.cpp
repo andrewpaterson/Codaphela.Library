@@ -375,25 +375,59 @@ void qsort(void* pvBase, size_t uiCount, size_t uiBytes, int (*fCompare)(const v
 }
 
 
+//Stops at once, unsuccessfully: neither the atexit functions nor the destructors of globals run.
 void abort(void)
 {
-	for (;;)
+	_Exit(EXIT_FAILURE);
+}
+
+
+//The functions atexit registered, called last first by exit and when main returns.
+#define ATEXIT_MAX		32
+typedef void (*FAtExit)(void);
+static FAtExit	gafAtExit[ATEXIT_MAX];
+static int		giAtExits;
+
+
+//Registers fFunction to be called by exit.  Returns -1 when ATEXIT_MAX are registered already.
+int atexit(void (*fFunction)(void))
+{
+	if (giAtExits == ATEXIT_MAX)
 	{
+		return -1;
+	}
+	gafAtExit[giAtExits] = fFunction;
+	giAtExits++;
+	return 0;
+}
+
+
+//Calls the atexit functions, last first.  The start up calls it (when stdlib.cpp is linked) after main returns,
+//before the destructors of globals.
+extern "C" void __RunAtExit(void);
+void __RunAtExit(void)
+{
+	while (giAtExits > 0)
+	{
+		giAtExits--;
+		gafAtExit[giAtExits]();
 	}
 }
 
 
-//The linker's fini table: each unit's R_Finalise, in link order.  _Exit is in the start up.
+//The linker's fini table: each global's R_Finalise, in link order.  _Exit is in the start up.
 typedef void (*FFinalise)(void);
 extern "C" char	_fini_start;
 extern "C" char	_fini_end;
 
 
-//Runs the finalisers (the destructors of globals) backwards, as returning from main does, then stops.
+//Runs the atexit functions and the finalisers (the destructors of globals) backwards, as returning from main
+//does, then stops.
 void exit(int iStatus)
 {
 	FFinalise*	pfFinalise;
 
+	__RunAtExit();
 	pfFinalise = (FFinalise*)&_fini_end;
 	while (pfFinalise != (FFinalise*)&_fini_start)
 	{
