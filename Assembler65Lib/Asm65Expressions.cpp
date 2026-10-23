@@ -436,7 +436,7 @@ bool CAsm65Assembler::Primary(SAsm65Value* psValue)
 			}
 			if (mbObject)
 			{
-				mcUndefined.Add(TokenIndex(psToken));
+				mcUndefined.Add((int)TokenIndex(psToken));
 			}
 			return true;
 		}
