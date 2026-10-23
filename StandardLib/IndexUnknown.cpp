@@ -161,20 +161,27 @@ size CIndexUnknown::Remove(CUnknown* pvData)
 	CUnknown*					pcUnknown;
 	CUnknown*					pcUnknownNext;
 	bool						bExists;
-	uint8						auiKey[MAX_KEY_SIZE];
+	uint8						auiKey1[MAX_KEY_SIZE];
+	uint8						auiKey2[MAX_KEY_SIZE];
+	uint8*						puiKey;
+	uint8*						puiKeyNext;
+	uint8*						puiKeySwap;
 	size						uiKeySize;
+	size						uiKeySizeNext;
 	bool						bResult;
 	size						uiCount;
 
 	uiCount = 0;
-	bExists = StartIteration(&sIter, auiKey, &uiKeySize, MAX_KEY_SIZE, &pcUnknown);
+	puiKey = auiKey1;
+	puiKeyNext = auiKey2;
+	bExists = StartIteration(&sIter, puiKey, &uiKeySize, MAX_KEY_SIZE, &pcUnknown);
 	while (bExists)
 	{
-		//Iterate must be called before the node is removed.
-		bExists = Iterate(&sIter, NULL, NULL, 0, &pcUnknownNext);
+		//Iterate must be called before the node is removed.  The next key is needed as well as the next value.
+		bExists = Iterate(&sIter, puiKeyNext, &uiKeySizeNext, MAX_KEY_SIZE, &pcUnknownNext);
 		if (pcUnknown == pvData)
 		{
-			bResult = Remove(auiKey, uiKeySize);
+			bResult = Remove(puiKey, uiKeySize);
 			if (!bResult)
 			{
 				return ARRAY_ELEMENT_NOT_FOUND;
@@ -182,6 +189,10 @@ size CIndexUnknown::Remove(CUnknown* pvData)
 			uiCount++;
 		}
 		pcUnknown = pcUnknownNext;
+		uiKeySize = uiKeySizeNext;
+		puiKeySwap = puiKey;
+		puiKey = puiKeyNext;
+		puiKeyNext = puiKeySwap;
 	}
 	return uiCount;
 }
@@ -424,7 +435,7 @@ void CIndexUnknown::FreeData(void* pvData)
 	if (muiFlags & INDEX_TREE_KILL_ELEMENT)
 	{
 		ppcValue = (CUnknown**)pvData;
-		if (ppcValue)
+		if (ppcValue && *ppcValue)
 		{
 			(*ppcValue)->Kill();
 		}
@@ -444,6 +455,18 @@ bool CIndexUnknown::WriteData(CFileWriter* pcFileWriter, void* pvData)
 
 	psElement = (SIndexIOElement*)pvData;
 	pcUnknownValue = *((CUnknown**)psElement->pvData);
+
+	//A flag before the value says whether it is NULL.
+	bResult = pcFileWriter->WriteBool(pcUnknownValue != NULL);
+	if (!bResult)
+	{
+		return false;
+	}
+	if (pcUnknownValue == NULL)
+	{
+		return true;
+	}
+
 	bResult = pcUnknownValue->SaveHeader(pcFileWriter);
 	if (!bResult)
 	{
@@ -468,6 +491,7 @@ bool CIndexUnknown::ReadData(CFileReader* pcFileReader, void* pvData)
 	CUnknown**			ppcUnknownValue;
 	CUnknown*			pcUnknownValue;
 	bool				bResult;
+	bool				bValue;
 
 	psElement = (SIndexIOElement*)pvData;
 	pvData = mcIndex.Put((uint8*)psElement->pvData, psElement->iKeySize, NULL, psElement->iValueSize);
@@ -477,6 +501,17 @@ bool CIndexUnknown::ReadData(CFileReader* pcFileReader, void* pvData)
 	}
 
 	ppcUnknownValue = (CUnknown**)pvData;
+	*ppcUnknownValue = NULL;
+	bResult = pcFileReader->ReadBool(&bValue);
+	if (!bResult)
+	{
+		return false;
+	}
+	if (!bValue)
+	{
+		return true;
+	}
+
 	pcUnknownValue = gcUnknowns.AddFromHeader(pcFileReader);
 	if (!pcUnknownValue)
 	{

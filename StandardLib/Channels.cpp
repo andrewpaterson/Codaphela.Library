@@ -550,14 +550,16 @@ bool CChannels::EndChange(void)
 		if (!IsUserAllocated())
 		{
 			//We're using mabData and have already allocated it.
-			if ((miBitStride != 0) && (miSize != 0))
+			//Remove
+			uiRemoved = mpsChangingDesc->asRemovedChannels.NumElements();
+			for (i = 0; i < uiRemoved; i++)
 			{
-				//Remove
-				uiRemoved = mpsChangingDesc->asRemovedChannels.NumElements();
-				for (i = 0; i < uiRemoved; i++)
+				psRemovedChannel = mpsChangingDesc->asRemovedChannels.Get(i);
+				pcChannel = GetChannel(psRemovedChannel->iChannel);
+
+				//Only data that has been allocated needs its bytes removed.  The channel is removed either way.
+				if ((miBitStride != 0) && (miSize != 0))
 				{
-					psRemovedChannel = mpsChangingDesc->asRemovedChannels.Get(i);
-					pcChannel = GetChannel(psRemovedChannel->iChannel);
 					if (pcChannel->Is8BitAligned())
 					{
 						iOffset = pcChannel->miByteOffset;
@@ -568,13 +570,13 @@ bool CChannels::EndChange(void)
 					{
 						//Deal with bitty removal.
 					}
-					masChannelOffsets.RemoveAt(masChannelOffsets.GetIndex(pcChannel), true);
-					Recalculate();
+				}
+				masChannelOffsets.RemoveAt(masChannelOffsets.GetIndex(pcChannel), true);
+				Recalculate();
 
-					if (mpmicChannelDebugs)
-					{
-						mpmicChannelDebugs->Remove((int)psRemovedChannel->iChannel);
-					}
+				if (mpmicChannelDebugs)
+				{
+					mpmicChannelDebugs->Remove((int)psRemovedChannel->iChannel);
 				}
 			}
 

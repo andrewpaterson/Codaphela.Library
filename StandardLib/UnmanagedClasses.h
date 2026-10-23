@@ -33,6 +33,7 @@ protected:
 	CClass* mpcM2int32;
 	CClass* mpcM3int32;	
 	CClass* mpcM4int32;	
+	CClass* mpcM4x4float32;
 	CClass* mpcBool; 	
 	CClass* mpcVoid;	
 	CClass* mpcChar8;
@@ -77,6 +78,7 @@ public:
 	CClass*		GetInt2(void);
 	CClass*		GetInt3(void);
 	CClass*		GetInt4(void);
+	CClass*		GetFloat4x4(void);
 	CClass*		GetBool(void);
 	CClass*		GetVoid(void);
 	CClass*		GetChar(void);
