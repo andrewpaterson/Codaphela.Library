@@ -550,6 +550,10 @@ protected:
 	bool					TemporaryAddress(CCPPSyntax* pcNode, SCPP65Type* psType);
 	void					DestroyTemporaries(bool bKeep, bool bWide);
 	bool					HasCopyConstructor(SCPP65Class* psClass);
+	SCPP65Function*			GetCopyConstructor(SCPP65Class* psClass);
+	bool					CopyMembers(SCPP65Place* psPlace, CCPPSyntax* pcSource, CCPPSyntax* pcNode);
+	void					CopyParts(SCPP65Class* psClass, int iOffset, int iDestinationDepth, int iSourceDepth);
+	void					CopyPart(SCPP65Class* psClass, int iOffset, int iDestinationDepth, int iSourceDepth);
 	bool					IsTriviallyCopyable(SCPP65Class* psClass);
 	bool					CopyConstruct(SCPP65Place* psPlace, CCPPSyntax* pcSource, CCPPSyntax* pcNode);
 	void					LoadResultAddress(void);

@@ -911,6 +911,7 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 	size							i;
 	bool							bPure;
 	bool							bResult;
+	bool							bFriend;
 	int64							lliZero;
 
 	switch (pcMember->GetKind())
@@ -927,7 +928,8 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 	case CPPS_FunctionDefinition:
 		pcFunction = (CCPPSyntaxFunctionDefinition*)pcMember;
 		BeginQuiet();
-		psFunction = DeclareFunction(pcFunction->mpcSpecifiers, pcFunction->mpcDeclarator, true, psClass, false);
+		bFriend = pcFunction->mpcSpecifiers && (pcFunction->mpcSpecifiers->muiFlags & CPPDS_FRIEND);
+		psFunction = DeclareFunction(pcFunction->mpcSpecifiers, pcFunction->mpcDeclarator, true, bFriend ? NULL : psClass, false);
 		EndQuiet();
 		if (!psFunction)
 		{
@@ -940,7 +942,26 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 	case CPPS_SimpleDeclaration:
 		pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcMember;
 		pcSpecifiers = pcDeclaration->mpcSpecifiers;
-		if (pcSpecifiers && (pcSpecifiers->muiFlags & (CPPDS_TYPEDEF | CPPDS_FRIEND)))
+		if (pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_FRIEND))
+		{
+			//A friend function is a function of the namespace, not a member.
+			for (i = 0; i < pcDeclaration->macpDeclarators.NumElements(); i++)
+			{
+				pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(i);
+				if (pcInit->mpcDeclarator && pcInit->mpcDeclarator->IsFunction())
+				{
+					BeginQuiet();
+					psFunction = DeclareFunction(pcSpecifiers, pcInit->mpcDeclarator, false, NULL, false);
+					EndQuiet();
+					if (!psFunction)
+					{
+						mapcFailed.Add(pcInit->mpcDeclarator);
+					}
+				}
+			}
+			return true;
+		}
+		if (pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_TYPEDEF))
 		{
 			return true;
 		}
