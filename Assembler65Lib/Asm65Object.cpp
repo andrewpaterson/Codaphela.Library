@@ -689,12 +689,14 @@ bool CAsm65Object::ReadSymbols(CChunkFile* pcChunkFile)
 	{
 		szName.Init();
 		bResult = Asm65ReadText(pcChunkFile, &szName) && (FindSymbol(szName.Text()) < 0);
-		if (bResult)
+		if (!bResult)
 		{
-			psSymbol = mcSymbols.Get(PutSymbol(szName.Text()));
+			szName.Kill();
+			return false;
 		}
+		psSymbol = mcSymbols.Get(PutSymbol(szName.Text()));
 		szName.Kill();
-		if (!bResult || !pcChunkFile->ReadInt32(&psSymbol->iSection) || !pcChunkFile->ReadInt64(&psSymbol->iValue) || !pcChunkFile->ReadInt32(&iBinding))
+		if (!pcChunkFile->ReadInt32(&psSymbol->iSection) || !pcChunkFile->ReadInt64(&psSymbol->iValue) || !pcChunkFile->ReadInt32(&iBinding))
 		{
 			return false;
 		}
