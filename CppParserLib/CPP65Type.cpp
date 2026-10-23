@@ -115,12 +115,13 @@ bool SCPP65Type::IsFloat(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A scalar the registers can work with: not floating point or 8 bytes.
+// A scalar the generator can work with: up to 8 bytes (floating point is the soft
+// float runtime's).
 //
 //////////////////////////////////////////////////////////////////////////
 bool SCPP65Type::IsSupported(void)
 {
-	return IsScalar() && !IsFloat() && (iBytes <= 8);
+	return IsScalar() && (iBytes <= 8);
 }
 
 
@@ -137,6 +138,17 @@ bool SCPP65Type::IsWide(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An 8 byte value (long long or double): moved with the registers 64 bits wide.
+//
+//////////////////////////////////////////////////////////////////////////
+bool SCPP65Type::Is64(void)
+{
+	return IsScalar() && (iBytes == 8);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool SCPP65Type::Equals(SCPP65Type* psOther)
@@ -147,7 +159,7 @@ bool SCPP65Type::Equals(SCPP65Type* psOther)
 	{
 		return true;
 	}
-	if ((eKind != psOther->eKind) || (iBytes != psOther->iBytes) || (bSigned != psOther->bSigned) || (iCount != psOther->iCount) || (psClass != psOther->psClass))
+	if ((eKind != psOther->eKind) || (iBytes != psOther->iBytes) || (bSigned != psOther->bSigned) || (iCount != psOther->iCount) || (psClass != psOther->psClass) || (bLongDouble != psOther->bLongDouble))
 	{
 		return false;
 	}
@@ -210,6 +222,10 @@ void CCPP65Types::Init(void)
 	InitBuiltin(&msUnsignedInt, CPP65TK_Integer, 4, false);
 	InitBuiltin(&msLongLong, CPP65TK_Integer, 8, true);
 	InitBuiltin(&msUnsignedLongLong, CPP65TK_Integer, 8, false);
+	InitBuiltin(&msFloat, CPP65TK_Float, 4, true);
+	InitBuiltin(&msDouble, CPP65TK_Float, 8, true);
+	InitBuiltin(&msLongDouble, CPP65TK_Float, 8, true);
+	msLongDouble.bLongDouble = true;
 }
 
 
@@ -251,6 +267,7 @@ void CCPP65Types::InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iByt
 	psType->psClass = NULL;
 	psType->papsParameters = NULL;
 	psType->bVariadic = false;
+	psType->bLongDouble = false;
 }
 
 
@@ -281,6 +298,7 @@ SCPP65Type* CCPP65Types::Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBas
 	psType->psClass = NULL;
 	psType->papsParameters = NULL;
 	psType->bVariadic = false;
+	psType->bLongDouble = false;
 	mapsTypes.Add(psType);
 	return psType;
 }
@@ -377,16 +395,23 @@ SCPP65Type* CCPP65Types::Reference(SCPP65Type* psBase)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// float (4), double (8) and long double (16).
+// float (4), double and long double (8, as MSVC).
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::Float(int iBytes)
 {
-	SCPP65Type*	psType;
+	return (iBytes == 4) ? &msFloat : &msDouble;
+}
 
-	psType = Add(CPP65TK_Float, iBytes, NULL, 0);
-	psType->bSigned = true;
-	return psType;
+
+//////////////////////////////////////////////////////////////////////////
+//
+// long double is a double (as MSVC) but overloads apart from it.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::LongDouble(void)
+{
+	return &msLongDouble;
 }
 
 
@@ -418,6 +443,7 @@ SCPP65Type* CCPP65Types::Class(SCPP65Class* psClass)
 	psType->psClass = psClass;
 	psType->papsParameters = NULL;
 	psType->bVariadic = false;
+	psType->bLongDouble = false;
 	mapsTypes.Add(psType);
 	return psType;
 }

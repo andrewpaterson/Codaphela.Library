@@ -19,10 +19,10 @@ Libc65 (commonlibraries/Libc65) has the 65C64's standard headers: stdint.h, stdd
 limits.h, stdarg.h, string.h, memory.h, stdlib.h, malloc.h, stdio.h, math.h, new,
 ctype.h, time.h and assert.h (int and long are 32 bits, size_t is unsigned int).  Give
 it to the preprocessor as a system include directory.  string.cpp, stdlib.cpp (malloc
-over a heap at 0008:0000 to 000F:FFFF), ctype.cpp and time.cpp are written in C++ for
-the generator and compiled with a program as its other translation units.  There is
-no clock: time is 0 and clock is -1 (unavailable); gmtime, localtime (UTC) and mktime
-use integers only.  stdio and math are only declared.
+over a heap at 0008:0000 to 000F:FFFF), ctype.cpp, time.cpp, softfloat.cpp and
+math.cpp are written in C++ for the generator and compiled with a program as its
+other translation units.  There is no clock: time is 0 and clock is -1 (unavailable);
+gmtime, localtime (UTC) and mktime use integers only.  stdio is only declared.
 
 The preprocessor's configuration gets the target's macros from
 CCPP65Generator::AddDefines: __65C64__, which BaseLib's Define.h and DebugOutput.h use
@@ -71,6 +71,9 @@ Types
 	short				2 bytes
 	int, long			4 bytes (long is 4 bytes, as on Windows)
 	long long			8 bytes (4 byte aligned in classes, as a 32 bit g++)
+	float				4 bytes, IEEE 754 single
+	double				8 bytes, IEEE 754 double
+	long double			a double (as MSVC), but its own type for overloads
 	bool				1 byte, 0 or 1
 	wchar_t, char16_t	2 bytes, unsigned
 	pointers			4 bytes (the address bus is 32 bits)
@@ -80,7 +83,40 @@ Values are kept in registers 32 bits wide, sign or zero extended from their type
 A long long is the exception: it is loaded, stored, pushed and operated on with the
 register widened to 8 bytes for just those instructions (wth A, 8 ... wth A, 4;
 wtth (A, B), 8 around an operator, and Y too for mul and div).  A narrower operand is
-widened with wthx.  The signed 64 bit divide is R_DivideSigned64.
+widened with wthx.  The signed 64 bit divide is R_DivideSigned64.  A double is held
+like a long long (its bits); a float like an unsigned int.
+
+
+Floating point (the soft float runtime)
+---------------------------------------
+
+The 65C64 has no floating point instructions, so float and double arithmetic,
+comparisons and conversions call Libc65/softfloat.cpp, which works on the values' bits
+with integers only (it compiles natively too, and was checked bit for bit against
+SSE on millions of values).  A program that uses floating point is linked with it.
+The generator pushes the operands like arguments (the right first) and calls:
+
+	SoftFloatAdd Subtract Multiply Divide		(and SoftDouble...)
+	SoftFloatCompare							-1, 0, 1, or 2 when a NaN is involved
+	SoftFloatFromInt Unsigned LongLong UnsignedLongLong
+	SoftFloatToInt Unsigned LongLong UnsignedLongLong	(towards zero)
+	SoftFloatToDouble, SoftDoubleToFloat, SoftFloatSqrt, SoftDoubleSqrt
+
+Rounding is to nearest, ties to even, with subnormals, infinities and NaNs.  NaNs
+behave as SSE's (and so MSVC's) do: an invalid operation gives the default NaN
+(0xFFC00000 for a float), a NaN operand comes back quietened (the first if both are
+NaNs), and converting a NaN or an out of range value to an integer gives the most
+negative integer.  Negation (flip the sign bit) and tests against zero (mask the
+sign bit) are written in line.  Comparisons branch on the compare's result: < is
+-1, <= is A + 1 below 2 unsigned, and so on, so every comparison with a NaN but !=
+is false.  Constant expressions are worked out by the generator as the target
+would (each float result rounded to float), for global data and constant operands.
+Variadic arguments of type float are passed as double.  An expression that does
+floating point counts as a call for keeping operands in pseudo registers.
+
+Libc65/math.cpp has the functions with exact results: fabs, sqrt, trunc, floor,
+ceil, round, fmod, ldexp, frexp, modf and their f and l forms.  sin, cos, tan, exp,
+log, pow and the rest are declared but not written yet.
 
 
 Registers (the user, 2026-10-23)
@@ -167,7 +203,7 @@ C++ names are labels with an underscore in front (_main, _gTable).  Members are
 _Class__name, constructors _Class__0, destructors _Class__1 and vtables _Class__2;
 an overload has __n on the end (_Counter__0__1 is the second constructor), and a
 thunk __t and how far it moves this.  A class without a name is the unit's
-(U1_Unnamed3).  C++ names
+(U1_Unnamed3), and so are static functions and globals (U1__Helper).  C++ names
 cannot contain __ or start with a digit, so these cannot clash.  Generated labels are
 L and a number, string literals Str and a number, and runtime routines start with R_.
 
@@ -231,8 +267,7 @@ Supported
   integer to integer, then related pointers; a reference matches its type).
 - Classes, structs and unions (named or not), multiple inheritance with several
   polymorphic bases, templates: see below.
-- float, double and long double can be declared (variables, fields, parameters,
-  typedefs) but not used.
+- float, double and long double: see Floating point.
 
 
 Not supported yet
@@ -242,8 +277,7 @@ Each gives an error "... is not supported by the 65C64 generator yet".  Declarat
 the generator cannot do are only errors when what they declare is used (see When
 code is generated).
 
-- Using float and double (there is no floating point hardware: it would need a soft
-  float runtime).  This is now most of what stops BaseLib compiling.
+- The transcendental functions in math.h (sin, cos, exp, log, pow ...).
 - new and delete without a placement (there is no heap), conversion functions,
   member templates, explicit and partial specialisations, variadic templates.
 - Virtual inheritance.
@@ -300,11 +334,13 @@ TestCPP65RunProject (test/TestCppParserLib) does this for a list of units, one l
 per directory, finds the labels used but defined by no unit, and runs the program.
 The test names the labels it expects to be missing (they become stp).  BaseLib code
 run this way: MD5 (the RFC 1321 suite), RedBlackTree (with a FreeList stub over
-malloc), MersenneTwister (the MT19937 reference sequence) with Libc65's time, and
-QuickSort, BubbleSort and BinarySearch (with a MemSwp stub).
+malloc), MersenneTwister (the MT19937 reference sequence) with Libc65's time,
+QuickSort, BubbleSort and BinarySearch (with a MemSwp stub), and FloatHelper (against
+the same calls natively, bit for bit).
 
-BaseLib is the benchmark for how much C++ is supported: on 2026-10-23, 278 of its 407
-.cpp files compile without errors.  Most of the rest need floating point.
+BaseLib is the benchmark for how much C++ is supported: on 2026-10-23, 306 of its 407
+.cpp files compile without errors.  Most of the rest pass or return objects by value,
+or call member function templates.
 
 
 Templates

@@ -201,8 +201,14 @@ SCPP65Type* CCPP65Generator::Literal(CCPPSyntaxLiteralExpression* pcLiteral)
 			return &mcTypes.msInt;
 		case CTNT_LongLong:
 			return ((CCTLongLong*)pcToken)->IsSigned() ? &mcTypes.msLongLong : &mcTypes.msUnsignedLongLong;
+		case CTNT_Float:
+			return &mcTypes.msFloat;
+		case CTNT_Double:
+			return &mcTypes.msDouble;
+		case CTNT_LongDouble:
+			return &mcTypes.msLongDouble;
 		default:
-			Error(pcLiteral, "Floating point is not supported by the 65C64 generator yet");
+			Error(pcLiteral, "This literal is not supported by the 65C64 generator yet");
 			return NULL;
 		}
 	}
@@ -229,6 +235,7 @@ SCPP65Type* CCPP65Generator::SimpleValue(CCPPSyntax* pcExpression, const char* s
 	SCPP65Place		sPlace;
 	int64			lliValue;
 	CCPPSymbol*		pcSymbol;
+	double			dValue;
 
 	pcExpression = SkipParentheses(pcExpression);
 	if (pcExpression->GetKind() == CPPS_IdExpression)
@@ -251,6 +258,11 @@ SCPP65Type* CCPP65Generator::SimpleValue(CCPPSyntax* pcExpression, const char* s
 		if (!psType)
 		{
 			return NULL;
+		}
+		if (psType->IsFloat() && FloatConstant(pcExpression, &dValue))
+		{
+			LoadConstant(szRegister, psType, FloatBits(psType, dValue));
+			return psType;
 		}
 	}
 
@@ -505,6 +517,15 @@ SCPP65Type* CCPP65Generator::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary)
 	{
 		return NULL;
 	}
+	if (psType->IsFloat() && ((pcUnary->meOperator == CT_Add) || (pcUnary->meOperator == CT_Subtract)))
+	{
+		//-x flips the sign bit.
+		if (pcUnary->meOperator == CT_Subtract)
+		{
+			Line(psType->Is64() ? "wth A, 8\n\t\txor A, -9223372036854775808\n\t\twth A, 4" : "xor A, -2147483648")->AppendNewLine();
+		}
+		return psType;
+	}
 	if (!psType->IsInteger())
 	{
 		Error(pcUnary, "The operand must be an integer");
@@ -562,6 +583,10 @@ SCPP65Type* CCPP65Generator::IncrementExpression(CCPPSyntaxUnaryExpression* pcUn
 	szOperation = (pcUnary->meOperator == CT_Increment) ? "add " : "sub ";
 
 	Load(&sPlace, "A", szAddress);
+	if (sPlace.psType->IsFloat())
+	{
+		return IncrementFloat(pcUnary, &sPlace, szAddress);
+	}
 	if (pcUnary->mbPostfix)
 	{
 		MoveAToB(sPlace.psType);
@@ -767,7 +792,11 @@ SCPP65Type* CCPP65Generator::ConditionalExpression(CCPPSyntaxConditionalExpressi
 	{
 		return NULL;
 	}
-	if (psTrue->IsInteger() && psFalse->IsInteger())
+	if ((psTrue->IsFloat() && psFalse->IsScalar() && !psFalse->IsPointer()) || (psFalse->IsFloat() && psTrue->IsScalar() && !psTrue->IsPointer()))
+	{
+		psType = FloatArithmetic(psTrue, psFalse);
+	}
+	else if (psTrue->IsInteger() && psFalse->IsInteger())
 	{
 		psType = mcTypes.Arithmetic(psTrue, psFalse);
 	}
@@ -1303,6 +1332,7 @@ SCPP65Type* CCPP65Generator::NewExpression(CCPPSyntaxNewExpression* pcNew)
 	sPlace.iOffset = 0;
 	sPlace.lliName = -1;
 	sPlace.iString = -1;
+	sPlace.bInternal = false;
 	sPlace.psClass = NULL;
 	if (psType->IsClass() || pcNew->mpcInitializer)
 	{
@@ -1389,6 +1419,7 @@ SCPP65Type* CCPP65Generator::Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, S
 	SCPP65Type*		psLeft;
 	int				iTemporary;
 	bool			bWide;
+	double			dValue;
 
 	psRight->eKind = CPP65RK_B;
 	psRight->lliValue = 0;
@@ -1402,7 +1433,12 @@ SCPP65Type* CCPP65Generator::Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, S
 		if (SkipParentheses(pcRight)->GetKind() == CPPS_LiteralExpression)
 		{
 			psRight->psType = Literal((CCPPSyntaxLiteralExpression*)SkipParentheses(pcRight));
-			if (Constant(pcRight, &psRight->lliValue))
+			if (psRight->psType && psRight->psType->IsFloat() && FloatConstant(pcRight, &dValue))
+			{
+				psRight->lliValue = FloatBits(psRight->psType, dValue);
+				psRight->eKind = CPP65RK_Constant;
+			}
+			else if (Constant(pcRight, &psRight->lliValue))
 			{
 				psRight->eKind = CPP65RK_Constant;
 			}
@@ -1434,7 +1470,7 @@ SCPP65Type* CCPP65Generator::Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, S
 		{
 			return NULL;
 		}
-		bWide = psRight->psType->IsWide();
+		bWide = psRight->psType->Is64();
 		iTemporary = miTemporaries;
 		miTemporaries += bWide ? 8 : 4;
 		if (bWide)
@@ -1460,9 +1496,9 @@ SCPP65Type* CCPP65Generator::Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, S
 		{
 			return NULL;
 		}
-		PushWide("A", psRight->psType->IsWide());
+		PushWide("A", psRight->psType->Is64());
 		psLeft = Expression(pcLeft);
-		PullWide("B", psRight->psType->IsWide());
+		PullWide("B", psRight->psType->Is64());
 	}
 
 	if (!psLeft || !psRight->psType)
@@ -1483,13 +1519,13 @@ void CCPP65Generator::RightInB(SCPP65Right* psRight)
 {
 	if (psRight->eKind != CPP65RK_B)
 	{
-		if (psRight->psType->IsWide())
+		if (psRight->psType->Is64())
 		{
 			Line("wth B, 8")->AppendNewLine();
 		}
 		Line("cpy B, ");
 		AppendRight(mpszOut, psRight)->AppendNewLine();
-		if (psRight->psType->IsWide())
+		if (psRight->psType->Is64())
 		{
 			Line("wth B, 4")->AppendNewLine();
 		}
@@ -1508,7 +1544,7 @@ CChars* CCPP65Generator::AppendRight(CChars* psz, SCPP65Right* psRight)
 	switch (psRight->eKind)
 	{
 	case CPP65RK_Constant:
-		return psz->Append(psRight->psType->IsWide() ? psRight->lliValue : (int64)(int32)psRight->lliValue);
+		return psz->Append(psRight->psType->Is64() ? psRight->lliValue : (int64)(int32)psRight->lliValue);
 	case CPP65RK_Temporary:
 		return psz->Append('[')->Append((int)psRight->lliValue)->Append(" + W]");
 	default:
@@ -1535,6 +1571,10 @@ SCPP65Type* CCPP65Generator::Operate(ECppTokens eOperator, SCPP65Type* psLeft, S
 	if (!psLeft || !psRight->psType)
 	{
 		return NULL;
+	}
+	if (psLeft->IsFloat() || psRight->psType->IsFloat())
+	{
+		return OperateFloat(eOperator, psLeft, psRight, pcNode);
 	}
 
 	if (psLeft->IsPointer() || psRight->psType->IsPointer())
@@ -1787,7 +1827,7 @@ SCPP65Type* CCPP65Generator::OperateWide(ECppTokens eOperator, SCPP65Type* psLef
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::MoveAToB(SCPP65Type* psType)
 {
-	if (psType && psType->IsWide())
+	if (psType && psType->Is64())
 	{
 		Line("wtth (A, B), 8")->AppendNewLine();
 		Line("cpy B, A")->AppendNewLine();
@@ -1807,7 +1847,7 @@ void CCPP65Generator::MoveAToB(SCPP65Type* psType)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::LoadConstant(const char* szRegister, SCPP65Type* psType, int64 lliValue)
 {
-	if (psType->IsWide())
+	if (psType->Is64())
 	{
 		Line("wth ")->Append(szRegister)->Append(", 8")->AppendNewLine();
 		Line("cpy ")->Append(szRegister)->Append(", ")->Append(lliValue)->AppendNewLine();
@@ -1841,6 +1881,10 @@ bool CCPP65Generator::Compare(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Ri
 	if (!psLeft || !psRight->psType)
 	{
 		return false;
+	}
+	if (psLeft->IsFloat() || psRight->psType->IsFloat())
+	{
+		return CompareFloat(eOperator, psLeft, psRight, bJumpIf, iLabel, pcNode);
 	}
 	if (psLeft->IsPointer() || psRight->psType->IsPointer())
 	{
@@ -2070,6 +2114,11 @@ bool CCPP65Generator::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* 
 		return true;
 	}
 
+	if ((psFrom->IsFloat() || psTo->IsFloat()) && (psTo->eKind != CPP65TK_Bool))
+	{
+		return ConvertFloat(psFrom, psTo, pcNode);
+	}
+
 	//To 64 bits: a narrower value is extended by its own signedness.  From 64 bits: the low bits are already in A.
 	if (psTo->IsWide() && !psFrom->IsWide())
 	{
@@ -2118,11 +2167,17 @@ bool CCPP65Generator::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// cmp A, 0 at the value's width.
+// cmp A, 0 at the value's width.  A floating point value has its sign bit cleared.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::CompareZero(SCPP65Type* psType)
 {
+	if (psType->IsFloat())
+	{
+		//+0 and -0 are zero: the sign bit is masked off (A keeps the rest).
+		Line(psType->Is64() ? "wth A, 8\n\t\tand A, 9223372036854775807\n\t\twth A, 4" : "and A, 2147483647")->AppendNewLine();
+		return;
+	}
 	if (psType->IsWide())
 	{
 		Line("wth A, 8")->AppendNewLine();
@@ -2138,15 +2193,10 @@ void CCPP65Generator::CompareZero(SCPP65Type* psType)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Floating point can be declared but not used yet.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::Supported(SCPP65Type* psType, CCPPSyntax* pcNode)
 {
-	if (psType->IsFloat())
-	{
-		return Error(pcNode, "Floating point is not supported by the 65C64 generator yet");
-	}
 	if (psType->IsScalar() && (psType->iBytes > 8))
 	{
 		return Error(pcNode, "Integers wider than 64 bits are not supported by the 65C64 generator");
@@ -2269,6 +2319,7 @@ bool CCPP65Generator::Place(CCPPSyntax* pcExpression, SCPP65Place* psPlace)
 		psPlace->iOffset = iOffset;
 		psPlace->lliName = -1;
 		psPlace->iString = -1;
+		psPlace->bInternal = false;
 		psPlace->psClass = NULL;
 		if (psPlace->psType->IsReference())
 		{
@@ -2299,6 +2350,7 @@ bool CCPP65Generator::Place(CCPPSyntax* pcExpression, SCPP65Place* psPlace)
 		psPlace->iOffset = 0;
 		psPlace->lliName = -1;
 		psPlace->iString = -1;
+		psPlace->bInternal = false;
 		psPlace->psClass = NULL;
 		return true;
 
@@ -2354,6 +2406,7 @@ bool CCPP65Generator::Place(CCPPSyntax* pcExpression, SCPP65Place* psPlace)
 		psPlace->iOffset = 0;
 		psPlace->lliName = -1;
 		psPlace->iString = -1;
+		psPlace->bInternal = false;
 		psPlace->psClass = NULL;
 		return true;
 
@@ -2388,6 +2441,7 @@ bool CCPP65Generator::ResultPlace(SCPP65Type* psType, SCPP65Place* psPlace, CCPP
 	psPlace->iOffset = 0;
 	psPlace->lliName = -1;
 	psPlace->iString = -1;
+	psPlace->bInternal = false;
 	psPlace->psClass = NULL;
 	return true;
 }
@@ -2410,6 +2464,7 @@ void CCPP65Generator::DerefPlace(SCPP65Place* psPlace)
 	psPlace->iOffset = 0;
 	psPlace->lliName = -1;
 	psPlace->iString = -1;
+	psPlace->bInternal = false;
 	psPlace->psClass = NULL;
 }
 
@@ -2430,6 +2485,7 @@ bool CCPP65Generator::VariablePlace(SCPP65Variable* psVariable, SCPP65Place* psP
 	psPlace->psType = psVariable->psType;
 	psPlace->lliName = -1;
 	psPlace->iString = -1;
+	psPlace->bInternal = false;
 	psPlace->psClass = psVariable->psClass;
 	switch (psVariable->eStorage)
 	{
@@ -2451,6 +2507,7 @@ bool CCPP65Generator::VariablePlace(SCPP65Variable* psVariable, SCPP65Place* psP
 		psPlace->eKind = CPP65PK_Global;
 		psPlace->iOffset = 0;
 		psPlace->lliName = psVariable->pcSymbol->mlliName;
+		psPlace->bInternal = psVariable->bInternal;
 		psVariable->bUsed = true;
 		break;
 	}
@@ -2903,6 +2960,7 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 		{
 		case 1:		*plliValue = psType->bSigned ? (int64)(int8)lliLeft : (int64)(uint8)lliLeft;		break;
 		case 2:		*plliValue = psType->bSigned ? (int64)(int16)lliLeft : (int64)(uint16)lliLeft;	break;
+		case 8:		*plliValue = lliLeft;															break;
 		default:	*plliValue = psType->bSigned ? (int64)(int32)lliLeft : (int64)(uint32)lliLeft;	break;
 		}
 		return true;
@@ -3131,7 +3189,7 @@ bool CCPP65Generator::ContainsCall(CCPPSyntax* pcNode)
 	{
 		return false;
 	}
-	if (pcNode->GetKind() == CPPS_CallExpression)
+	if ((pcNode->GetKind() == CPPS_CallExpression) || UsesFloat(pcNode))
 	{
 		return true;
 	}

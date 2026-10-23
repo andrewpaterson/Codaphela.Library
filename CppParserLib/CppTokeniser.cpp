@@ -670,8 +670,9 @@ bool CCPPTokeniser::Floating(SPreprocessedToken* psToken, int iSource, char* szN
 		{
 			return Error(psToken, "Invalid floating literal suffix.");
 		}
+		//Read again at the type's precision: rounding the long double again could be a bit out.
 		pcFloat = CCTFloat::Construct(mcStack.Add(sizeof(CCTFloat)));
-		pcFloat->Init((float)ldValue);
+		pcFloat->Init(strtof(szNumber, NULL));
 		AddToken(pcFloat, iSource);
 	}
 	else if ((*szEnd == 'l') || (*szEnd == 'L'))
@@ -687,7 +688,7 @@ bool CCPPTokeniser::Floating(SPreprocessedToken* psToken, int iSource, char* szN
 	else if (*szEnd == '\0')
 	{
 		pcDouble = CCTDouble::Construct(mcStack.Add(sizeof(CCTDouble)));
-		pcDouble->Init((double)ldValue);
+		pcDouble->Init(strtod(szNumber, NULL));
 		AddToken(pcDouble, iSource);
 	}
 	else

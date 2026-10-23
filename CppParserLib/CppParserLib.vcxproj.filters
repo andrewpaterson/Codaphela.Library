@@ -102,6 +102,9 @@
     <ClCompile Include="CPP65GeneratorExpressions.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="CPP65GeneratorFloat.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPP65Type.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
