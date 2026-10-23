@@ -22,9 +22,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __65C64_PINS_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "TraceValue.h"
-#include "MetaBus16.h"
-#include "MetaBus32.h"
-#include "MetaTrace.h"
+#include "LogicSignal.h"
+#include "LogicBus.h"
 
 
 #define NUM_65C64_EDGE_INTERRUPTS	4
@@ -35,25 +34,25 @@ class CTimeline;
 class C65C64Pins
 {
 protected:
-	CMetaBus32*		mpcAddress;
-	CMetaBus16*		mpcData;
-	CMetaTrace*		mpcPHI2;
-	CMetaTrace*		mpcRESB;
-	CMetaTrace*		mpcRWB;
-	CMetaTrace*		mpcLowerByte;
-	CMetaTrace*		mpcUpperByte;
-	CMetaTrace*		mpcOPV;
-	CMetaTrace*		mpcVPA;
-	CMetaTrace*		mpcVDA;
-	CMetaTrace*		mpcVPB;
-	CMetaTrace*		mapcEIRQB[NUM_65C64_EDGE_INTERRUPTS];
-	CMetaTrace*		mpcLIRQB;
+	CLogicBus*		mpcAddress;
+	CLogicBus*		mpcData;
+	CLogicSignal*	mpcPHI2;
+	CLogicSignal*	mpcRESB;
+	CLogicSignal*	mpcRWB;
+	CLogicSignal*	mpcLowerByte;
+	CLogicSignal*	mpcUpperByte;
+	CLogicSignal*	mpcOPV;
+	CLogicSignal*	mpcVPA;
+	CLogicSignal*	mpcVDA;
+	CLogicSignal*	mpcVPB;
+	CLogicSignal*	mapcEIRQB[NUM_65C64_EDGE_INTERRUPTS];
+	CLogicSignal*	mpcLIRQB;
 
 public:
-	void			Init(CMetaBus32* pcAddress, CMetaBus16* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB);
-	void			SetByteTraces(CMetaTrace* pcLowerByte, CMetaTrace* pcUpperByte);
-	void			SetValidTraces(CMetaTrace* pcOPV, CMetaTrace* pcVPA, CMetaTrace* pcVDA, CMetaTrace* pcVPB);
-	void			SetInterruptTraces(CMetaTrace* pcEIRQB0, CMetaTrace* pcEIRQB1, CMetaTrace* pcEIRQB2, CMetaTrace* pcEIRQB3, CMetaTrace* pcLIRQB);
+	void			Init(CLogicBus* pcAddress, CLogicBus* pcData, CLogicSignal* pcPHI2, CLogicSignal* pcRESB, CLogicSignal* pcRWB);
+	void			SetByteTraces(CLogicSignal* pcLowerByte, CLogicSignal* pcUpperByte);
+	void			SetValidTraces(CLogicSignal* pcOPV, CLogicSignal* pcVPA, CLogicSignal* pcVDA, CLogicSignal* pcVPB);
+	void			SetInterruptTraces(CLogicSignal* pcEIRQB0, CLogicSignal* pcEIRQB1, CLogicSignal* pcEIRQB2, CLogicSignal* pcEIRQB3, CLogicSignal* pcLIRQB);
 	void			Kill(void);
 
 	//Microprocessor side methods.

@@ -57,6 +57,8 @@ public:
 
 	bool					AddFutureEvent(CEvent* pcEvent);
 	bool					AddEvent(CEvent* pcEvent);
+	bool					AddNewFutureEvent(CEvent* pcEvent);
+	bool					AddNewEvent(CEvent* pcEvent);
 
 	void					Run(void);
 	bool					RunToTime(int64 iTimeForward);

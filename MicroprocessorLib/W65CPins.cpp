@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65CPins::Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB)
+void CW65CPins::Init(CLogicBus* pcAddress, CLogicBus* pcData, CLogicSignal* pcPHI2, CLogicSignal* pcRESB, CLogicSignal* pcRWB)
 {
 	mpcAddress = pcAddress;
 	mpcData = pcData;
@@ -26,7 +26,7 @@ void CW65CPins::Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pcPHI
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65CPins::SetInterruptTraces(CMetaTrace* pcABORTB, CMetaTrace* pcIRQB, CMetaTrace* pcNMIB)
+void CW65CPins::SetInterruptTraces(CLogicSignal* pcABORTB, CLogicSignal* pcIRQB, CLogicSignal* pcNMIB)
 {
 	mpcABORTB = pcABORTB;
 	mpcIRQB = pcIRQB;
@@ -38,7 +38,7 @@ void CW65CPins::SetInterruptTraces(CMetaTrace* pcABORTB, CMetaTrace* pcIRQB, CMe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65CPins::SetVectorPullTrace(CMetaTrace* pcVPB)
+void CW65CPins::SetVectorPullTrace(CLogicSignal* pcVPB)
 {
 	mpcVPB = pcVPB;
 }
@@ -48,7 +48,7 @@ void CW65CPins::SetVectorPullTrace(CMetaTrace* pcVPB)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65CPins::SetControlTraces(CMetaTrace* pcMLB, CMetaTrace* pcBE, CMetaTrace* pcRDY)
+void CW65CPins::SetControlTraces(CLogicSignal* pcMLB, CLogicSignal* pcBE, CLogicSignal* pcRDY)
 {
 	mpcMLB = pcMLB;
 	mpcBE = pcBE;
@@ -83,7 +83,7 @@ void CW65CPins::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CPins::WriteRWB(CTimeline* pcTimeline, bool bValue)
 {
-	mpcRWB->Set(bValue);
+	mpcRWB->Write(pcTimeline, bValue);
 }
 
 
@@ -93,7 +93,7 @@ void CW65CPins::WriteRWB(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65CPins::WriteMLB(CTimeline* pcTimeline, bool bValue)
 {
-	SafeSetTrace(mpcMLB, bValue);
+	SafeWriteSignal(mpcMLB, pcTimeline, bValue);
 }
 
 
@@ -103,7 +103,7 @@ void CW65CPins::WriteMLB(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65CPins::WriteVPB(CTimeline* pcTimeline, bool bValue)
 {
-	SafeSetTrace(mpcVPB, bValue);
+	SafeWriteSignal(mpcVPB, pcTimeline, bValue);
 }
 
 
@@ -113,7 +113,7 @@ void CW65CPins::WriteVPB(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65CPins::WriteRdy(CTimeline* pcTimeline, bool bValue)
 {
-	SafeSetTrace(mpcRDY, bValue);
+	SafeWriteSignal(mpcRDY, pcTimeline, bValue);
 }
 
 
@@ -123,7 +123,7 @@ void CW65CPins::WriteRdy(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65CPins::WriteAddress(CTimeline* pcTimeline, uint16 uiAddress)
 {
-	mpcAddress->Set(uiAddress);
+	mpcAddress->Write(pcTimeline, uiAddress);
 }
 
 
@@ -133,7 +133,7 @@ void CW65CPins::WriteAddress(CTimeline* pcTimeline, uint16 uiAddress)
 //////////////////////////////////////////////////////////////////////////
 void CW65CPins::WriteData(CTimeline* pcTimeline, uint8 uiData)
 {
-	mpcData->Set(uiData);
+	mpcData->Write(pcTimeline, uiData);
 }
 
 
@@ -143,7 +143,7 @@ void CW65CPins::WriteData(CTimeline* pcTimeline, uint8 uiData)
 //////////////////////////////////////////////////////////////////////////
 uint8 CW65CPins::ReadData(CTimeline* pcTimeline)
 {
-	return mpcData->Get();
+	return (uint8)mpcData->Read(pcTimeline);
 }
 
 
@@ -153,7 +153,7 @@ uint8 CW65CPins::ReadData(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 uint16 CW65CPins::ReadAddress(CTimeline* pcTimeline)
 {
-	return mpcAddress->Get();
+	return (uint16)mpcAddress->Read(pcTimeline);
 }
 
 
@@ -163,7 +163,7 @@ uint16 CW65CPins::ReadAddress(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 STraceValue CW65CPins::ReadRES(CTimeline* pcTimeline)
 {
-	return mpcRESB->Get();
+	return mpcRESB->Read(pcTimeline);
 }
 
 
@@ -173,7 +173,7 @@ STraceValue CW65CPins::ReadRES(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 STraceValue CW65CPins::ReadPhi2(CTimeline* pcTimeline)
 {
-	return mpcPHI2->Get();
+	return mpcPHI2->Read(pcTimeline);
 }
 
 
@@ -183,7 +183,7 @@ STraceValue CW65CPins::ReadPhi2(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 STraceValue CW65CPins::ReadNMI(CTimeline* pcTimeline)
 {
-	SafeGetTrace(mpcNMIB);
+	SafeReadSignal(mpcNMIB, pcTimeline);
 }
 
 
@@ -193,7 +193,7 @@ STraceValue CW65CPins::ReadNMI(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 STraceValue CW65CPins::ReadIRQ(CTimeline* pcTimeline)
 {
-	SafeGetTrace(mpcIRQB);
+	SafeReadSignal(mpcIRQB, pcTimeline);
 }
 
 
@@ -203,7 +203,7 @@ STraceValue CW65CPins::ReadIRQ(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 STraceValue CW65CPins::ReadAbort(CTimeline* pcTimeline)
 {
-	SafeGetTrace(mpcABORTB);
+	SafeReadSignal(mpcABORTB, pcTimeline);
 }
 
 
@@ -213,6 +213,6 @@ STraceValue CW65CPins::ReadAbort(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 STraceValue CW65CPins::ReadBE(CTimeline* pcTimeline)
 {
-	SafeGetTrace(mpcBE);
+	SafeReadSignal(mpcBE, pcTimeline);
 }
 

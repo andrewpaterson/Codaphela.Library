@@ -21,6 +21,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __65C64_META_H__
 #define __65C64_META_H__
 #include "65C64.h"
+#include "MetaBus16.h"
+#include "MetaBus32.h"
+#include "MetaTrace.h"
 #include "Timeline.h"
 
 

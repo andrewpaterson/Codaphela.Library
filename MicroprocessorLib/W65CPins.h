@@ -2,9 +2,8 @@
 #define __W65C_PINS_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "TraceValue.h"
-#include "MetaBus8.h"
-#include "MetaBus16.h"
-#include "MetaTrace.h"
+#include "LogicSignal.h"
+#include "LogicBus.h"
 
 
 //The pins the W65C02S and W65C816S have in common.  Processor specific pins are added by subclasses.
@@ -12,24 +11,24 @@ class CTimeline;
 class CW65CPins
 {
 protected:
-	CMetaBus16*			mpcAddress;
-	CMetaBus8*			mpcData;
-	CMetaTrace*			mpcVPB;
-	CMetaTrace*			mpcRDY;
-	CMetaTrace*			mpcABORTB;
-	CMetaTrace*			mpcIRQB;
-	CMetaTrace*			mpcNMIB;
-	CMetaTrace*			mpcMLB;
-	CMetaTrace*			mpcRESB;
-	CMetaTrace*			mpcPHI2;
-	CMetaTrace*			mpcBE;
-	CMetaTrace*			mpcRWB;
+	CLogicBus*			mpcAddress;
+	CLogicBus*			mpcData;
+	CLogicSignal*		mpcVPB;
+	CLogicSignal*		mpcRDY;
+	CLogicSignal*		mpcABORTB;
+	CLogicSignal*		mpcIRQB;
+	CLogicSignal*		mpcNMIB;
+	CLogicSignal*		mpcMLB;
+	CLogicSignal*		mpcRESB;
+	CLogicSignal*		mpcPHI2;
+	CLogicSignal*		mpcBE;
+	CLogicSignal*		mpcRWB;
 
 public:
-	void			Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB);
-	void			SetInterruptTraces(CMetaTrace* pcABORTB, CMetaTrace* pcIRQB, CMetaTrace* pcNMIB);
-	void			SetVectorPullTrace(CMetaTrace* pcVPB);
-	void			SetControlTraces(CMetaTrace* pcMLB, CMetaTrace* pcBE, CMetaTrace* pcRDY);
+	void			Init(CLogicBus* pcAddress, CLogicBus* pcData, CLogicSignal* pcPHI2, CLogicSignal* pcRESB, CLogicSignal* pcRWB);
+	void			SetInterruptTraces(CLogicSignal* pcABORTB, CLogicSignal* pcIRQB, CLogicSignal* pcNMIB);
+	void			SetVectorPullTrace(CLogicSignal* pcVPB);
+	void			SetControlTraces(CLogicSignal* pcMLB, CLogicSignal* pcBE, CLogicSignal* pcRDY);
 	void			Kill(void);
 
 	//Microprocessor side methods.

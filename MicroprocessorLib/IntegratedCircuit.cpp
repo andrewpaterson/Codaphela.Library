@@ -1,0 +1,297 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2026 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela MicroprocessorLib
+
+Codaphela MicroprocessorLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela MicroprocessorLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
+#include "BaseLib/PointerFunctions.h"
+#include "Voltage.h"
+#include "Timeline.h"
+#include "PowerInPort.h"
+#include "LogicPort.h"
+#include "Circuit.h"
+#include "IntegratedCircuitEvent.h"
+#include "IntegratedCircuit.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes ownership of pcPins and adds the chip to pcCircuit, which owns
+// it.  The state is created by Reset.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuit::Init(CCircuit* pcCircuit, const char* szName, CPins* pcPins)
+{
+	mpcCircuit = pcCircuit;
+	mszName.Init(szName);
+	mpcPins = pcPins;
+	mpcPins->SetIntegratedCircuit(this);
+	mpcState = NULL;
+	mapcEvents.Init();
+	mpcCircuit->Add(this);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes the chip's and its ports' events off the timeline, disconnects
+// its ports and frees its pins and state.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuit::Kill(void)
+{
+	CTimeline*	pcTimeline;
+	size		i;
+
+	pcTimeline = mpcCircuit->GetTimeline();
+	Disconnect(pcTimeline);
+	for (i = 0; i < mpcPins->NumPorts(); i++)
+	{
+		mpcPins->GetPort(i)->Disconnect(pcTimeline);
+	}
+	mapcEvents.Kill();
+
+	SafeKill(mpcPins);
+	SafeKill(mpcState);
+	mszName.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Called by a CTickEvent.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuit::ExecuteTick(CTimeline* pcTimeline)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuit::TraceConnected(CTimeline* pcTimeline, CPort* pcPort)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes the chip's own events off the timeline, as Logicim's
+// IntegratedCircuit.disconnect.  The ports are disconnected separately.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuit::Disconnect(CTimeline* pcTimeline)
+{
+	CArrayEventPtr	apcEvents;
+	size			i;
+
+	apcEvents.Init();
+	for (i = 0; i < mapcEvents.NumElements(); i++)
+	{
+		apcEvents.Add(mapcEvents.GetPtr(i));
+	}
+	pcTimeline->RemoveAll(&apcEvents);
+	apcEvents.Kill();
+	mapcEvents.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Starts the chip again with new state.  Its events must already be off
+// the timeline, as when the timeline is new.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuit::Reset(CTimeline* pcTimeline)
+{
+	ResetState();
+	SimulationStarted(pcTimeline);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Logicim can only set the state once; here the old state is freed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuit::ResetState(void)
+{
+	size	i;
+
+	mapcEvents.ReInit();
+	for (i = 0; i < mpcPins->NumPorts(); i++)
+	{
+		mpcPins->GetPort(i)->Reset();
+	}
+
+	SafeKill(mpcState);
+	SetState(CreateState());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The chip owns pcState.  Fails if the chip already has state or
+// pcState is NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIntegratedCircuit::SetState(CState* pcState)
+{
+	CChars	sz;
+
+	if ((mpcState != NULL) || (pcState == NULL))
+	{
+		sz.Init(" Cannot set state on ");
+		AppendDescription(&sz);
+		if (pcState == NULL)
+		{
+			sz.Append(" to [NULL].");
+		}
+		else
+		{
+			sz.Append(".  It is already set.");
+		}
+		gcLogger.Error2(__METHOD__, sz.Text(), NULL);
+		sz.Kill();
+		return false;
+	}
+	mpcState = pcState;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// False when there is no state yet.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIntegratedCircuit::IsStateless(void)
+{
+	if (mpcState != NULL)
+	{
+		return mpcState->IsStateless();
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Like "AND \"U1\"", or just the type when there is no name.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuit::AppendDescription(CChars* psz)
+{
+	psz->Append(GetType());
+	if (!mszName.Empty())
+	{
+		psz->Append(" \"");
+		psz->Append(mszName);
+		psz->Append("\"");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+float32 CIntegratedCircuit::GetVCC(int64 iTime)
+{
+	return mpcPins->GetVoltageCommon()->GetVoltageIn(iTime);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+float32 CIntegratedCircuit::GetGND(int64 iTime)
+{
+	return mpcPins->GetVoltageGround()->GetVoltageIn(iTime);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// VCC is above zero and GND is zero.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIntegratedCircuit::IsPowered(int64 iTime)
+{
+	float32	fVcc;
+	float32	fGnd;
+
+	fVcc = GetVCC(iTime);
+	fGnd = GetGND(iTime);
+	return (IsVoltage(fVcc) && (fVcc > 0.0f)) && (IsVoltage(fGnd) && (fGnd == 0.0f));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Called by CIntegratedCircuitEvent::Init.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuit::Add(CIntegratedCircuitEvent* pcEvent)
+{
+	mapcEvents.Add(pcEvent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIntegratedCircuit::Remove(CIntegratedCircuitEvent* pcEvent)
+{
+	size	i;
+	CChars	sz;
+
+	for (i = 0; i < mapcEvents.NumElements(); i++)
+	{
+		if (mapcEvents.GetPtr(i) == pcEvent)
+		{
+			mapcEvents.RemoveAt(i, true);
+			return true;
+		}
+	}
+
+	sz.Init(" Cannot remove event on ");
+	AppendDescription(&sz);
+	sz.Append(".");
+	gcLogger.Error2(__METHOD__, sz.Text(), NULL);
+	sz.Kill();
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CState* CIntegratedCircuit::GetState(void) { return mpcState; }
+CPins* CIntegratedCircuit::GetPins(void) { return mpcPins; }
+CPort* CIntegratedCircuit::GetPort(const char* szName) { return mpcPins->GetPort(szName); }
+char* CIntegratedCircuit::GetName(void) { return mszName.Text(); }
+CCircuit* CIntegratedCircuit::GetCircuit(void) { return mpcCircuit; }
+size CIntegratedCircuit::NumEvents(void) { return mapcEvents.NumElements(); }
+CEvent* CIntegratedCircuit::GetEvent(size uiIndex) { return mapcEvents.SafeGetPtr(uiIndex); }
+

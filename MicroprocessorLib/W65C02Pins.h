@@ -6,12 +6,12 @@
 class CW65C02Pins : public CW65CPins
 {
 protected:
-	CMetaTrace*			mpcSYNC;
-	CMetaTrace*			mpcSOB;
+	CLogicSignal*		mpcSYNC;
+	CLogicSignal*		mpcSOB;
 
 public:
-	void			Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB);
-	void			SetW65C02Traces(CMetaTrace* pcSYNC, CMetaTrace* pcSOB);
+	void			Init(CLogicBus* pcAddress, CLogicBus* pcData, CLogicSignal* pcPHI2, CLogicSignal* pcRESB, CLogicSignal* pcRWB);
+	void			SetW65C02Traces(CLogicSignal* pcSYNC, CLogicSignal* pcSOB);
 	void			Kill(void);
 
 	//Microprocessor side methods.
