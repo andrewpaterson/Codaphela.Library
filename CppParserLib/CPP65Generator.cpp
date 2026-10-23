@@ -280,12 +280,13 @@ bool CCPP65Generator::GenerateProgram(CChars* pszDest)
 // It also defines C's _Exit(int iStatus), which stops at once with iStatus in A.
 // Libc65's exit runs the atexit functions and the fini table and then calls it.
 //
-// It is kept, and everything it reaches, when the linker leaves out what is unused.
+// It is kept, and everything it reaches, when the linker leaves out what is unused, and
+// it is resident when functions are loaded lazily.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::AppendStartUp(CChars* pszDest)
 {
-	pszDest->Append("\t\t.section text, keep")->AppendNewLine();
+	pszDest->Append("\t\t.section text, keep, resident")->AppendNewLine();
 	pszDest->Append("Start:")->AppendNewLine();
 	pszDest->Append("\t\tcpy S, $")->Append((uint32)CPP65_STACK_TOP, 16)->AppendNewLine();
 	pszDest->Append("\t\tcpy W, 0")->AppendNewLine();
@@ -3120,8 +3121,9 @@ void CCPP65Generator::BeginRuntime(const char* szName)
 {
 	CChars	szLabel;
 
+	//Resident: it is called with A and B wider than a function's 32 bits, which the lazy loader can't keep.
 	szLabel.Init(szName);
-	AppendSection(&mszCode, "text", &szLabel, ", comdat");
+	AppendSection(&mszCode, "text", &szLabel, ", comdat, resident");
 	AppendGlobal(&mszCode, &szLabel);
 	szLabel.Kill();
 	mszCode.Append(szName);

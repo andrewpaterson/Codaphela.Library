@@ -351,6 +351,10 @@ routines (R_Pure, R_DivideSigned ...) are written by every unit that needs them,
 in a COMDAT section (text._A__f, rodata._A__2) and .global, so the linker keeps one
 copy.
 
+Runtime routines are resident sections, and so is the start up: CCPP65Builder::SetLazy
+loads every other function from a drive when it is first called (see
+Assembler65Syntax.txt "Lazy loading").
+
 A global whose value isn't constant, or that is an object, has its own R_Initialise<n>
 (and an object its own R_Finalise<n>) in a text section, with its entry in an init (or
 fini) section associated with the global's data section.  The start up calls the init
