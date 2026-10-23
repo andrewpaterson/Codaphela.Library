@@ -62,16 +62,7 @@ void CAsm65Errors::Add(uint32 uiLine, uint32 uiColumn, const char* szMessage, co
 	mszErrors.Append(uiLine);
 	mszErrors.Append(':');
 	mszErrors.Append(uiColumn);
-	mszErrors.Append(": ");
-	mszErrors.Append(szMessage);
-	if (szDetail)
-	{
-		mszErrors.Append(" '");
-		mszErrors.Append(szDetail);
-		mszErrors.Append('\'');
-	}
-	mszErrors.AppendNewLine();
-	muiErrors++;
+	AppendMessage(szMessage, szDetail);
 }
 
 
@@ -90,6 +81,17 @@ void CAsm65Errors::Add(const char* szSource, uint32 uiLine, uint32 uiColumn, con
 		mszErrors.Append(':');
 		mszErrors.Append(uiColumn);
 	}
+	AppendMessage(szMessage, szDetail);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// ": message 'detail'" and the end of the line.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Errors::AppendMessage(const char* szMessage, const char* szDetail)
+{
 	mszErrors.Append(": ");
 	mszErrors.Append(szMessage);
 	if (szDetail)

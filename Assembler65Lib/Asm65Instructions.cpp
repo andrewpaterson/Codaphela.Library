@@ -180,27 +180,6 @@ static uint16 AluOpcode(const SAsm65AluLayout* psLayout, uint16 uiCode, uint16 u
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-static bool Fits(int64 iValue, uint8 uiBytes, bool bSigned)
-{
-	int64	iLimit;
-
-	if (uiBytes >= 8)
-	{
-		return true;
-	}
-	iLimit = (int64)1 << (8 * uiBytes);
-	if (bSigned)
-	{
-		return (iValue >= -(iLimit / 2)) && (iValue < iLimit / 2);
-	}
-	return (iValue >= 0) && (iValue < iLimit);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The width code of the 3 bit immediate width fields: unused, 8, 16, 24, 32, 40, 48, 64.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -368,7 +347,7 @@ bool CAsm65Assembler::ChooseBytes(SAsm65Value* psValue, bool bSigned, uint8 uiEx
 		{
 			return Error(psToken, "That width is not allowed here");
 		}
-		if (!bRelocatable && psValue->bResolved && !Fits(psValue->iValue, uiExplicitBytes, bSigned))
+		if (!bRelocatable && psValue->bResolved && !Asm65Fits(psValue->iValue, uiExplicitBytes, bSigned))
 		{
 			return Error(psToken, "Value does not fit");
 		}
@@ -392,7 +371,7 @@ bool CAsm65Assembler::ChooseBytes(SAsm65Value* psValue, bool bSigned, uint8 uiEx
 				return true;
 			}
 		}
-		else if (!psValue->bResolved || Fits(psValue->iValue, uiBytes, bSigned))
+		else if (!psValue->bResolved || Asm65Fits(psValue->iValue, uiBytes, bSigned))
 		{
 			*puiBytes = uiBytes;
 			return true;
@@ -430,7 +409,7 @@ bool CAsm65Assembler::RelativeBytes(SAsm65Value* psTarget, SAsm65Token* psToken,
 	{
 		uiWords = 1 + (gauiWidthBytes[i] + 1) / 2;
 		*piOffset = RelativeOffset(psTarget, muiStatementAddress, uiWords);
-		if ((uiWords >= GetMinimumWords()) && (!psTarget->bResolved || Fits(*piOffset, gauiWidthBytes[i], true)))
+		if ((uiWords >= GetMinimumWords()) && (!psTarget->bResolved || Asm65Fits(*piOffset, gauiWidthBytes[i], true)))
 		{
 			*puiBytes = gauiWidthBytes[i];
 			return true;

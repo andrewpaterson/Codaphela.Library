@@ -31,6 +31,11 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 
 #define ASM65_DEFAULT_TEXT_ADDRESS	0x10000
 
+//The library file: a PackFile holding "Library" (name and object count) and each
+//object's ChunkFile as "Objects/0", "Objects/1" ...
+#define ASM65_LIBRARY_MAGIC		"Asm65Library"
+#define ASM65_LIBRARY_VERSION	1
+
 
 //Objects the linker includes only when they define a name that is still needed.
 //The library owns its objects.
@@ -48,6 +53,9 @@ public:
 	CAsm65Object*	AddObject(const char* szName);
 	size			NumObjects(void);
 	CAsm65Object*	GetObject(size uiIndex);
+
+	bool			Write(CAbstractFile* pcFile);
+	bool			Read(CAbstractFile* pcFile);
 };
 
 
@@ -154,6 +162,8 @@ protected:
 	void			WriteMap(void);
 
 	SAsm65LinkSymbol*	GetGlobal(const char* szName);
+	void			AddGlobal(const char* szName, int32 iObject, uint32 uiSymbol, bool bWeak, int64 iValue);
+	bool			SymbolAddress(size uiObject, SAsm65ObjectSymbol* psSymbol, int64* piValue);
 	SAsm65LinkSection*	GetLinkSection(size uiObject, size uiSection);
 	void			Error(CAsm65Object* pcObject, SAsm65Relocation* psRelocation, const char* szMessage, const char* szDetail);
 };
