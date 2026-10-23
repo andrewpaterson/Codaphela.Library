@@ -25,7 +25,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 
 //Logicim's Trace: an analog wire.  Its voltage is the average of what the ports connected to it drive it with, NaN
-//when nothing drives it.  It doesn't own its ports.  Every trace gets the next id unless it is given one.
+//when nothing drives it.  When it stops being driven its ports are told, see NotifyUndriven.  It doesn't own its ports.  Every trace gets the next id unless it is given one.
 class CTrace
 {
 protected:
@@ -44,6 +44,7 @@ public:
 	void			AppendVoltage(CChars* psz, int64 iTime);
 
 	void			Connect(CPort* pcPort);
+	void			NotifyUndriven(CTimeline* pcTimeline, CPort* pcExcept);
 	void			Disconnect(CPort* pcPort);
 	size			NumConnectedPorts(void);
 	CPort*			GetConnectedPort(size uiIndex);

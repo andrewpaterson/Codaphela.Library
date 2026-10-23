@@ -207,6 +207,29 @@ void CTrace::Connect(CPort* pcPort)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Tells the ports, except pcExcept, that the trace has stopped being
+// driven, see CPort::TraceUndriven.  Logicim doesn't; its ports never
+// learn their trace went undriven.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTrace::NotifyUndriven(CTimeline* pcTimeline, CPort* pcExcept)
+{
+	size	i;
+	CPort*	pcPort;
+
+	for (i = 0; i < mapcConnectedPorts.NumElements(); i++)
+	{
+		pcPort = mapcConnectedPorts.GetPtr(i);
+		if (pcPort != pcExcept)
+		{
+			pcPort->TraceUndriven(pcTimeline);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Keeps the other ports in the order they were connected.
 //
 //////////////////////////////////////////////////////////////////////////

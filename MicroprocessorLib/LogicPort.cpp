@@ -136,12 +136,26 @@ void CLogicPort::Write(CTimeline* pcTimeline, bool bValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Stops driving the trace 0.01ns from now.
+// Stops driving the trace 0.01ns from now.  Slews and drives the port
+// has pending after then are dropped, so the last thing written wins;
+// Logicim lets an earlier write's slew drive the trace again.
 //
 //////////////////////////////////////////////////////////////////////////
 void CLogicPort::WriteImpedance(CTimeline* pcTimeline)
 {
-	CDriveEvent::Schedule(this, NanosecondsToTime(0.01), NoVoltage(), pcTimeline);
+	int64			iDelay;
+	CArrayEventPtr	apcLater;
+
+	iDelay = NanosecondsToTime(0.01);
+	apcLater.Init();
+	GetOutputEventsAfter(pcTimeline->GetTime() + iDelay, &apcLater);
+	if (apcLater.NumElements() > 0)
+	{
+		pcTimeline->RemoveAll(&apcLater);
+	}
+	apcLater.Kill();
+
+	CDriveEvent::Schedule(this, iDelay, NoVoltage(), pcTimeline);
 }
 
 
@@ -181,16 +195,26 @@ STraceValue CLogicPort::Read(CTimeline* pcTimeline)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Disconnects from the trace and takes the port's events off the
-// timeline.
+// Takes the port's events off the timeline then disconnects from the
+// trace, telling the ports that see it go undriven, see CPort.
 //
 //////////////////////////////////////////////////////////////////////////
 void CLogicPort::Disconnect(CTimeline* pcTimeline)
 {
+	RemoveEvents(pcTimeline);
+	CPort::Disconnect(pcTimeline);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes the port's events off the timeline.
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogicPort::RemoveEvents(CTimeline* pcTimeline)
+{
 	CArrayEventPtr	apcEvents;
 	size			i;
-
-	CPort::Disconnect(pcTimeline);
 
 	apcEvents.Init();
 	for (i = 0; i < mapcEvents.NumElements(); i++)
@@ -210,7 +234,40 @@ void CLogicPort::Disconnect(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 void CLogicPort::DriveEvent(CTimeline* pcTimeline, CDriveEvent* pcDriveEvent)
 {
+	float32	fVoltageBefore;
+
+	fVoltageBefore = (mpcTrace != NULL) ? mpcTrace->GetVoltage(pcTimeline->GetTime()) : NoVoltage();
 	pcDriveEvent->CopyOutput(&mcOutput);
+	NotifyIfTraceUndriven(pcTimeline, fVoltageBefore);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// If the port's new output has left its trace undriven, as a drive of
+// NaN or a slew with no power can, the other ports on it are told.
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogicPort::NotifyIfTraceUndriven(CTimeline* pcTimeline, float32 fVoltageBefore)
+{
+	if ((mpcTrace != NULL) && IsVoltage(fVoltageBefore))
+	{
+		if (!IsVoltage(mpcTrace->GetVoltage(pcTimeline->GetTime())))
+		{
+			mpcTrace->NotifyUndriven(pcTimeline, this);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A transition to undriven next tick, so the chip sees its input go.
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogicPort::TraceUndriven(CTimeline* pcTimeline)
+{
+	CTransitionEvent::Schedule(this, NoVoltage(), 1, pcTimeline);
 }
 
 
@@ -225,7 +282,11 @@ void CLogicPort::SlewEvent(CTimeline* pcTimeline, CSlewEvent* pcSlewEvent)
 	CPortOutput		cSlew;
 	size			i;
 	CPort*			pcConnectedPort;
+	bool			bTraceWasUndriven;
+	float32			fVoltageBefore;
 
+	fVoltageBefore = (mpcTrace != NULL) ? mpcTrace->GetVoltage(pcTimeline->GetTime()) : NoVoltage();
+	bTraceWasUndriven = (mpcTrace != NULL) && !IsVoltage(fVoltageBefore);
 	pcSlewEvent->Update(pcTimeline);
 	pcSlewEvent->CopyOutput(&cSlew);
 
@@ -236,12 +297,13 @@ void CLogicPort::SlewEvent(CTimeline* pcTimeline, CSlewEvent* pcSlewEvent)
 			pcConnectedPort = mpcTrace->GetConnectedPort(i);
 			if ((pcConnectedPort != this) && pcConnectedPort->IsLogicPort())
 			{
-				((CLogicPort*)pcConnectedPort)->TraceSlew(pcTimeline, &cSlew);
+				((CLogicPort*)pcConnectedPort)->TraceSlew(pcTimeline, &cSlew, bTraceWasUndriven);
 			}
 		}
 	}
 
 	mcOutput = cSlew;
+	NotifyIfTraceUndriven(pcTimeline, fVoltageBefore);
 }
 
 
@@ -252,12 +314,19 @@ void CLogicPort::SlewEvent(CTimeline* pcTimeline, CSlewEvent* pcSlewEvent)
 // high one when it ends high and halfway between them otherwise.  Returns
 // true if one was scheduled.
 //
+// A slew that doesn't change the voltage crosses nothing, but if the
+// trace was undriven before it the input has still changed, from
+// undriven to the slew's level, so it is a transition next tick.  A slew
+// onto an undriven trace never changes the voltage, see
+// CSlewEvent::Update.  Logicim misses this, so driving low from undriven
+// went unseen.
+//
 // Logicim also tries slews that never end, when the slewing chip has no
 // power; working out their transition never ends either, so they are
 // skipped here.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CLogicPort::TraceSlew(CTimeline* pcTimeline, CPortOutput* pcSlew)
+bool CLogicPort::TraceSlew(CTimeline* pcTimeline, CPortOutput* pcSlew, bool bTraceWasUndriven)
 {
 	float32	fStartVoltage;
 	int64	iSlewTime;
@@ -276,8 +345,16 @@ bool CLogicPort::TraceSlew(CTimeline* pcTimeline, CPortOutput* pcSlew)
 	fStartVoltage = pcSlew->GetStartVoltage();
 	iSlewTime = pcSlew->GetSlewTime();
 	fEndVoltage = pcSlew->GetEndVoltage();
-	if ((fStartVoltage == fEndVoltage) || (iSlewTime == MAX_INT64))
+	if (iSlewTime == MAX_INT64)
 	{
+		return false;
+	}
+	if (fStartVoltage == fEndVoltage)
+	{
+		if (bTraceWasUndriven)
+		{
+			return CreateTransitionEventFromVoltage(pcTimeline, fEndVoltage);
+		}
 		return false;
 	}
 
@@ -352,29 +429,42 @@ void CLogicPort::TraceConnected(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 void CLogicPort::CreateTransitionEventFromExistingVoltage(CTimeline* pcTimeline)
 {
+	CreateTransitionEventFromVoltage(pcTimeline, mpcTrace->GetVoltage(pcTimeline->GetTime()));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A transition next tick if fVoltage is at a valid level for this port.
+// Returns true if one was scheduled.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CLogicPort::CreateTransitionEventFromVoltage(CTimeline* pcTimeline, float32 fVoltage)
+{
 	int64	iTime;
-	float32	fEndVoltage;
 	float32	fLowVoltageIn;
 	float32	fHighVoltageIn;
 
 	if (mpcVoltageConfigurationSource == NULL)
 	{
-		return;
+		return false;
 	}
 
 	iTime = pcTimeline->GetTime();
-	fEndVoltage = mpcTrace->GetVoltage(iTime);
 	fLowVoltageIn = mpcVoltageConfigurationSource->GetLowVoltageIn(GetVCC(iTime));
 	fHighVoltageIn = mpcVoltageConfigurationSource->GetHighVoltageIn(GetVCC(iTime));
 
-	if (fEndVoltage <= fLowVoltageIn)
+	if (fVoltage <= fLowVoltageIn)
 	{
 		CTransitionEvent::Schedule(this, fLowVoltageIn, 1, pcTimeline);
+		return true;
 	}
-	else if (fEndVoltage >= fHighVoltageIn)
+	else if (fVoltage >= fHighVoltageIn)
 	{
 		CTransitionEvent::Schedule(this, fHighVoltageIn, 1, pcTimeline);
+		return true;
 	}
+	return false;
 }
 
 
@@ -474,6 +564,27 @@ void CLogicPort::GetFutureDriveEvents(int64 iTime, CArrayEventPtr* papcDriveEven
 		if (pcEvent->IsDriveEvent() && (pcEvent->GetTime() >= iTime))
 		{
 			papcDriveEvents->Add(pcEvent);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The pending slews and drives after iTime.
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogicPort::GetOutputEventsAfter(int64 iTime, CArrayEventPtr* papcOutputEvents)
+{
+	size		i;
+	CPortEvent*	pcEvent;
+
+	for (i = 0; i < mapcEvents.NumElements(); i++)
+	{
+		pcEvent = mapcEvents.GetPtr(i);
+		if (pcEvent->IsOutputEvent() && (pcEvent->GetTime() > iTime))
+		{
+			papcOutputEvents->Add(pcEvent);
 		}
 	}
 }

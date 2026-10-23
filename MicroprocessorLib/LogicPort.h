@@ -30,7 +30,9 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //Logicim's LogicPort: a chip's input or output on an analog CTrace.  Writing a value schedules a CSlewEvent after the
 //family's hold time; when it executes the port slews its trace to the new voltage, schedules a CDriveEvent at the end
 //of the slew, and the other logic ports on the trace schedule a CTransitionEvent for when the voltage crosses their
-//input threshold.  A transition tells the chip, through its CPins, that an input has changed.  Reading compares the
+//input threshold.  A transition tells the chip, through its CPins, that an input has changed.  An undriven trace being
+//driven takes the new level at once and the other ports see a transition next tick; Logicim slews it from the low
+//voltage out, so driving low from undriven went unseen and driving high read low for a while.  Reading compares the
 //trace's voltage with the family's input thresholds.  The family's voltages scale with the chip's VCC.
 //
 //A logic port is a CLogicSignal so a chip's pins can be wired to it or to an ideal CMetaTrace.
@@ -67,16 +69,19 @@ public:
 	virtual STraceValue						Read(CTimeline* pcTimeline);
 
 	virtual void							Disconnect(CTimeline* pcTimeline);
+			void							RemoveEvents(CTimeline* pcTimeline);
 	virtual void							TraceConnected(CTimeline* pcTimeline);
+	virtual void							TraceUndriven(CTimeline* pcTimeline);
 	virtual void							Reset(void);
 	virtual bool							IsLogicPort(void);
 	virtual float32							GetVoltageOut(int64 iTime);
 
 			void							DriveEvent(CTimeline* pcTimeline, CDriveEvent* pcDriveEvent);
 			void							SlewEvent(CTimeline* pcTimeline, CSlewEvent* pcSlewEvent);
-			bool							TraceSlew(CTimeline* pcTimeline, CPortOutput* pcSlew);
+			bool							TraceSlew(CTimeline* pcTimeline, CPortOutput* pcSlew, bool bTraceWasUndriven = false);
 			void							TransitionEvent(CTimeline* pcTimeline, CTransitionEvent* pcEvent);
 			void							GetFutureDriveEvents(int64 iTime, CArrayEventPtr* papcDriveEvents);
+			void							GetOutputEventsAfter(int64 iTime, CArrayEventPtr* papcOutputEvents);
 
 			CVoltageConfigurationSource*	GetVoltageConfigurationSource(void);
 			CPortOutput*					GetOutput(void);
@@ -86,11 +91,16 @@ public:
 			void							AppendEvents(CChars* psz);
 
 protected:
+			bool							CreateTransitionEventFromVoltage(CTimeline* pcTimeline, float32 fVoltage);
 			void							CreateTransitionEventFromExistingVoltage(CTimeline* pcTimeline);
+			void							NotifyIfTraceUndriven(CTimeline* pcTimeline, float32 fVoltageBefore);
 			int64							CalculateLowTransitionTime(CPortOutput* pcSlew, float32 fStartVoltage, float32 fEndVoltage, float32 fLowVoltageIn);
 			int64							CalculateHighTransitionTime(CPortOutput* pcSlew, float32 fStartVoltage, float32 fEndVoltage, float32 fHighVoltageIn);
 			int64							CalculateTransitionTime(float32 fStartVoltage, float32 fEndVoltage, int64 iSlewTime, float32 fY);
 };
+
+
+typedef CArrayTemplatePtr<CLogicPort>	CArrayLogicPortPtr;
 
 
 #endif // __LOGIC_PORT_H__

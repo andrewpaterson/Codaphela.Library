@@ -49,8 +49,9 @@ void CIntegratedCircuit::Init(CSubcircuitSimulation* pcContainingSubcircuitSimul
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes the chip's and its ports' events off the timeline, disconnects
-// its ports and frees its pins and state.
+// Takes the chip's and its ports' events off the timeline and frees its
+// pins and state, which disconnects its ports without telling anyone.  To
+// take a chip out of a running simulation call DisconnectPorts first.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIntegratedCircuit::Kill(void)
@@ -62,7 +63,10 @@ void CIntegratedCircuit::Kill(void)
 	Disconnect(pcTimeline);
 	for (i = 0; i < mpcPins->NumPorts(); i++)
 	{
-		mpcPins->GetPort(i)->Disconnect(pcTimeline);
+		if (mpcPins->GetPort(i)->IsLogicPort())
+		{
+			((CLogicPort*)mpcPins->GetPort(i))->RemoveEvents(pcTimeline);
+		}
 	}
 	mapcEvents.Kill();
 
