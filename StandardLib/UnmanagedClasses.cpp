@@ -35,6 +35,7 @@ void CUnmanagedClasses::Init(CClasses* pcClasses)
 	mpcM2int32 = AddClassByPrettyName(PT_M2int32);
 	mpcM3int32 = AddClassByPrettyName(PT_M3int32);
 	mpcM4int32 = AddClassByPrettyName(PT_M4int32);
+	mpcM4x4float32 = AddClassByPrettyName(PT_M4x4float32);
 	mpcBool = AddClassByPrettyName(PT_bool);
 	mpcVoid = AddClassByPrettyName(PT_void);
 	mpcChar8 = AddClassByPrettyName(PT_char8);
@@ -136,14 +137,15 @@ CClass* CUnmanagedClasses::GetULong(void) { return mpcUInt64; }
 CClass* CUnmanagedClasses::GetFloat(void) { return mpcFloat32; }
 CClass* CUnmanagedClasses::GetDouble(void) { return mpcFloat64; }
 CClass* CUnmanagedClasses::GetFloat2(void) { return mpcM2float32; }
-CClass* CUnmanagedClasses::GetFloat3(void) { return mpcM3float64; }
-CClass* CUnmanagedClasses::GetFloat4(void) { return mpcM4float64; }
+CClass* CUnmanagedClasses::GetFloat3(void) { return mpcM3float32; }
+CClass* CUnmanagedClasses::GetFloat4(void) { return mpcM4float32; }
 CClass* CUnmanagedClasses::GetDouble2(void) { return mpcM2float64; }
 CClass* CUnmanagedClasses::GetDouble3(void) { return mpcM3float64; }
 CClass* CUnmanagedClasses::GetDouble4(void) { return mpcM4float64; }
 CClass* CUnmanagedClasses::GetInt2(void) { return mpcM2int32; }
 CClass* CUnmanagedClasses::GetInt3(void) { return mpcM3int32; }
 CClass* CUnmanagedClasses::GetInt4(void) { return mpcM4int32; }
+CClass* CUnmanagedClasses::GetFloat4x4(void) { return mpcM4x4float32; }
 CClass* CUnmanagedClasses::GetBool(void) { return mpcBool; }
 CClass* CUnmanagedClasses::GetVoid(void) { return mpcVoid; }
 CClass* CUnmanagedClasses::GetChar(void) { return mpcChar8; }
