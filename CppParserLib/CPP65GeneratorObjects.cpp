@@ -129,10 +129,10 @@ bool CCPP65Generator::TemporaryAddress(CCPPSyntax* pcNode, SCPP65Type* psType)
 		return Error(pcNode, "Temporary objects that need destroying are not supported here by the 65C64 generator yet");
 	}
 
-	szLabel.Init(&mszUnit);
-	szLabel.Append('T');
+	szLabel.Init("T");
 	szLabel.Append(miDataTemporaries);
 	miDataTemporaries++;
+	AppendSection(&mszData, "data", NULL);
 	mszData.Append("\t\t.align 4");
 	mszData.AppendNewLine();
 	mszData.Append(szLabel);

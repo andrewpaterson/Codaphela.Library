@@ -64,22 +64,44 @@ bool CFileReader::ReadStringChars(char* szString, size iLength)
 bool CFileReader::ReadString(char* szString, size iMaxLength)
 {
 	size		iLength;
+	size		iRead;
+	size		iSkip;
+	char		acSkip[64];
 
+	if (iMaxLength == 0)
+	{
+		return false;
+	}
 	if (!ReadStringLength(&iLength))
 	{
 		return false;
 	}
 
-	if (iLength > iMaxLength - 1)
+	iRead = iLength;
+	if (iRead > iMaxLength - 1)
 	{
-		iLength = iMaxLength - 1;
+		iRead = iMaxLength - 1;
 	}
-
-	if (!ReadStringChars(szString, iLength))
+	if (!ReadStringChars(szString, iRead))
 	{
 		return false;
 	}
-	szString[iLength] = 0;
+	szString[iRead] = 0;
+
+	//The rest of a string too long for szString is skipped so the next read starts after it.
+	while (iRead < iLength)
+	{
+		iSkip = iLength - iRead;
+		if (iSkip > sizeof(acSkip))
+		{
+			iSkip = sizeof(acSkip);
+		}
+		if (!ReadStringChars(acSkip, iSkip))
+		{
+			return false;
+		}
+		iRead += iSkip;
+	}
 	return true;
 }
 

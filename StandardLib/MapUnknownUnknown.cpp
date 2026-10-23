@@ -326,49 +326,19 @@ void CMapUnknownUnknown::FreeData(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 bool CMapUnknownUnknown::WriteData(CFileWriter* pcFile, void* pvData)
 {
-	CUnknown**	ppcUnknownKey;
-	CUnknown**	ppcUnknownValue;
+	CUnknown*	pcUnknownKey;
 	void*		pvValue;
 	void*		pvKey;
-	bool		bResult;
 	SMNode*		psNode;
 
 	psNode = (SMNode*)pvData;
 	mcMap.RemapKeyAndData(psNode, &pvKey, &pvValue);
-	ppcUnknownValue = (CUnknown**)pvValue;
-	ppcUnknownKey = (CUnknown**)pvKey;
 
-	bResult = (*ppcUnknownKey)->SaveHeader(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
-	bResult = (*ppcUnknownKey)->Save(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
-	//A flag before the value says whether it is NULL.
-	bResult = pcFile->WriteBool(*ppcUnknownValue != NULL);
-	if (!bResult)
-	{
-		return false;
-	}
-	if (*ppcUnknownValue == NULL)
-	{
-		return true;
-	}
-	bResult = (*ppcUnknownValue)->SaveHeader(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
-	bResult = (*ppcUnknownValue)->Save(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
-	return true;
+	//A key is never NULL so it has no NULL flag.
+	pcUnknownKey = *((CUnknown**)pvKey);
+	ReturnOnFalse(pcUnknownKey->SaveHeader(pcFile));
+	ReturnOnFalse(pcUnknownKey->Save(pcFile));
+	return gcUnknowns.SaveUnknown(pcFile, *((CUnknown**)pvValue));
 }
 
 
@@ -378,56 +348,23 @@ bool CMapUnknownUnknown::WriteData(CFileWriter* pcFile, void* pvData)
 //////////////////////////////////////////////////////////////////////////
 bool CMapUnknownUnknown::ReadData(CFileReader* pcFile, void* pvData)
 {
-	CUnknown**	ppcUnknownKey;
 	CUnknown*	pcUnknownKey;
-	CUnknown**	ppcUnknownValue;
-	CUnknown*	pcUnknownValue;
 	void*		pvValue;
 	void*		pvKey;
-	bool		bResult;
-	bool		bValue;
 	SMNode*		psNode;
 
 	psNode = (SMNode*)pvData;
-
 	mcMap.RemapKeyAndData(psNode, &pvKey, &pvValue);
 
-	ppcUnknownKey = (CUnknown**)pvKey;
 	pcUnknownKey = gcUnknowns.AddFromHeader(pcFile);
 	if (!pcUnknownKey)
 	{
 		return false;
 	}
-	bResult = pcUnknownKey->Load(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
-	*ppcUnknownKey = pcUnknownKey;
+	ReturnOnFalse(pcUnknownKey->Load(pcFile));
+	*((CUnknown**)pvKey) = pcUnknownKey;
 
-	ppcUnknownValue = (CUnknown**)pvValue;
-	bResult = pcFile->ReadBool(&bValue);
-	if (!bResult)
-	{
-		return false;
-	}
-	if (!bValue)
-	{
-		*ppcUnknownValue = NULL;
-		return true;
-	}
-	pcUnknownValue = gcUnknowns.AddFromHeader(pcFile);
-	if (!pcUnknownValue)
-	{
-		return false;
-	}
-	bResult = pcUnknownValue->Load(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
-	*ppcUnknownValue = pcUnknownValue;
-	return true;
+	return gcUnknowns.LoadUnknown(pcFile, (CUnknown**)pvValue);
 }
 
 

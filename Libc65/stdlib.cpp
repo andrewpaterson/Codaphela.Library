@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <ctype.h>
 
 
 //The heap is 0008:0000 to 000F:FFFF.  A block has its size (with this header) and, while free, the next free
@@ -185,15 +186,15 @@ long labs(long i)
 //The value of c as a digit, or 36 if it isn't one in any base.
 static int DigitValue(char c)
 {
-	if ((c >= '0') && (c <= '9'))
+	if (isdigit(c))
 	{
 		return c - '0';
 	}
-	if ((c >= 'a') && (c <= 'z'))
+	if (islower(c))
 	{
 		return c - 'a' + 10;
 	}
-	if ((c >= 'A') && (c <= 'Z'))
+	if (isupper(c))
 	{
 		return c - 'A' + 10;
 	}
@@ -213,7 +214,7 @@ static bool ParseInteger(const char* sz, char** pszEnd, int iBase, unsigned long
 	bool			bDigits;
 
 	szStart = sz;
-	while ((*sz == ' ') || ((*sz >= '\t') && (*sz <= '\r')))
+	while (isspace(*sz))
 	{
 		sz++;
 	}

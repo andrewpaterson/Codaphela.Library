@@ -28,20 +28,14 @@ The preprocessor's configuration gets the target's macros from
 CCPP65Generator::AddDefines: __65C64__, which BaseLib's Define.h and DebugOutput.h use
 for the platform (FILE_SEPARATOR, __ENGINE_PRETTY_FUNCTION__, EngineOutput ...).
 
-Generate writes the translation unit only.  GenerateProgram puts the start up in front
-of it (the tests use GenerateProgram):
-
-		.org $10000
-	Start:
-		cpy S, $1fffff
-		cpy W, 0
-		wtth (A, B), 4
-		wtth (X, Y), 4
-		jsr _main
-		stp
-
-main's result is in A when the processor stops.  The reset vector is left to the
-loader.
+Generate writes the translation unit as the assembly of an object, for
+CAsm65Assembler::AssembleObject and CAsm65Linker (see Several translation units).
+GenerateProgram puts the start up (AppendStartUp) in front of it, so one object is a
+whole program.  The start up sets S to $1fffff, W to 0 and A, B, X and Y to 32 bits,
+calls the init table (each unit's R_Initialise, in link order), calls _main, calls the
+fini table backwards and stops.  main's result is in A when the processor stops.  The
+start up's object is linked first so it is at the start of the text, 0001:0000; the
+reset vector is left to the loader.
 
 Files: CPP65Generator.cpp (declarations, functions, statements),
 CPP65GeneratorExpressions.cpp (expressions, places, constants) and CPP65Type.cpp (types).
@@ -223,7 +217,8 @@ C++ names are labels with an underscore in front (_main, _gTable).  Members are
 _Class__name, constructors _Class__0, destructors _Class__1 and vtables _Class__2;
 an overload has __n on the end (_Counter__0__1 is the second constructor), and a
 thunk __t and how far it moves this.  A class without a name is the unit's
-(U1_Unnamed3), and so are static functions and globals (U1__Helper).  C++ names
+(Unnamed3), and so are static functions and globals (_Helper): their labels are local
+to the unit's object, the others are .global.  C++ names
 cannot contain __ or start with a digit, so these cannot clash.  Generated labels are
 L and a number, string literals Str and a number, and runtime routines start with R_.
 
@@ -265,8 +260,8 @@ Supported
 - Local variables, arrays and references, condition declarations (if (int x = f())).
 - Statements: compound, expression, if, while, do, for, switch / case / default,
   break, continue, return, goto and labels (not past objects that need destroying).
-- Static local variables with constant initialisers: data labelled with the unit, S,
-  a number and the name (U1_S0_siCalls).
+- Static local variables with constant initialisers: data labelled S, a number and the
+  name (S0_siCalls), local to the unit's object.
 - long long and unsigned long long: every operator, conversions, literals, constants,
   returns and switches.
 - Variadic calls (see Calling convention).
@@ -333,25 +328,29 @@ long as what a program uses is supported.
 Several translation units
 -------------------------
 
-There is no linker; a program of several translation units is their assembly joined
-under one start up.  For each unit (a CProject's, after Process: see
-TestCPP65GeneratorProject):
+Each translation unit is one object (Assembler65Lib: AssembleObject, then
+CAsm65Linker; see Assembler65Syntax.txt "Objects and linking").  For each unit (a
+CProject's, after Process):
 
 	cGenerator.Init(&cTree);
-	cGenerator.SetUnit("U1_", &aszEmitted);		//aszEmitted is shared by all the units.
-	cGenerator.Generate(&szUnits);
-	cGenerator.GetStartUp(&aszInitialise, &aszFinalise);
+	cGenerator.Generate(&szAssembly);				//One object's assembly.
 
-then CCPP65Generator::AppendStartUp(&szProgram, &aszInitialise, &aszFinalise) and the
-units.  The prefix keeps each unit's own labels apart (U1_L5, U1_Str0,
-U1_R_Initialise).  Inline, template and generated functions, vtables and runtime
-routines are written by the first unit that needs them and left out by the others,
-as a linker folds them.  The start up calls each unit's initialiser in order and their
-finalisers in reverse.
+and one more object for CCPP65Generator::AppendStartUp, linked first.  A unit's code is
+in text, its globals, static locals and temporaries in data, its string literals in
+rodata.  Generated labels (L5, Str0, S0_siCalls, T0, R_Initialise) are local to the
+object.  Functions and globals with external linkage are .global; static ones and
+members of classes without a name are local.  Inline, template and generated
+functions, vtables, thunks and runtime routines (R_Pure, R_DivideSigned ...) are
+written by every unit that needs them, each in a COMDAT section named after its label
+(text._A__f, rodata._A__2) and .global, so the linker keeps one copy.  A unit with
+global objects puts R_Initialise in its init table and R_Finalise in its fini table;
+the start up calls the init tables in link order and the fini tables backwards.
 
-TestCPP65RunProject (test/TestCppParserLib) does this for a list of units, one library
-per directory, finds the labels used but defined by no unit, and runs the program.
-The test names the labels it expects to be missing (they become stp).  BaseLib code
+TestCPP65RunProject (test/TestCppParserLib) does this for a list of units (each
+directory's units share a CLibrary for their include settings), links them with
+SetStubMissing and runs the program.  The test names the labels it expects to be
+missing (the linker makes them a stp).  TestLibc65 links the Libc65 units it lists as
+a CAsm65Library, so only the ones a test needs are linked.  BaseLib code
 run this way: MD5 (the RFC 1321 suite), RedBlackTree (with a FreeList stub over
 malloc), MersenneTwister (the MT19937 reference sequence) with Libc65's time,
 QuickSort, BubbleSort and BinarySearch (with a MemSwp stub), and FloatHelper and
@@ -501,7 +500,7 @@ value is its address):
 The caller passes the address of a temporary: every call or operator that makes an
 object, and every Class(arguments), has its own place in the frame, worked out
 before the function's code (AllocateTemporaries, after the locals so the types are
-known).  Outside a function (a global's initialiser) it is data (U1_T0).
+known).  Outside a function (a global's initialiser) it is data (T0).
 Temporaries that need destroying are destroyed at the end of their full expression
 (an expression statement, a declaration, a return); elsewhere (a condition) they are
 not supported yet.

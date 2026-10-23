@@ -1243,7 +1243,6 @@ void CCPP65Generator::EnsureVtable(SCPP65Class* psClass)
 	size			i;
 	size			j;
 	CChars			szLabel;
-	bool			bEmit;
 
 	if (psClass->bVtable)
 	{
@@ -1251,15 +1250,25 @@ void CCPP65Generator::EnsureVtable(SCPP65Class* psClass)
 	}
 	psClass->bVtable = true;
 
-	//Each class's vtable is written by the first unit that makes one of its objects.
+	//Each unit that makes one of a class's objects writes its vtable in a COMDAT section
+	//(the linker keeps one); a class without a name has its own.
 	szLabel.Init();
 	AppendClassLabel(&szLabel, psClass, "2");
-	bEmit = Emit(&szLabel);
-	szLabel.Kill();
-	if (!bEmit)
+	if (!Emit(&szLabel))
 	{
+		szLabel.Kill();
 		return;
 	}
+	if (psClass->lliName < 0)
+	{
+		AppendSection(&mszData, "rodata", NULL);
+	}
+	else
+	{
+		AppendSection(&mszData, "rodata", &szLabel);
+		AppendGlobal(&mszData, &szLabel);
+	}
+	szLabel.Kill();
 	mszData.Append("\t\t.align 4");
 	mszData.AppendNewLine();
 	AppendClassLabel(&mszData, psClass, "2");
@@ -1308,6 +1317,15 @@ void CCPP65Generator::AppendVtableEntry(SCPP65Function* psFunction, int iAdjust)
 		szLabel.Append(-iAdjust);
 		if (Emit(&szLabel))
 		{
+			if (IsUnitFunction(psFunction))
+			{
+				AppendSection(&mszThunks, "text", NULL);
+			}
+			else
+			{
+				AppendSection(&mszThunks, "text", &szLabel);
+				AppendGlobal(&mszThunks, &szLabel);
+			}
 			mszThunks.Append(szLabel);
 			mszThunks.Append(':');
 			mszThunks.AppendNewLine();
@@ -1769,11 +1787,6 @@ void CCPP65Generator::AppendFunctionLabel(CChars* psz, SCPP65Function* psFunctio
 	}
 	else
 	{
-		//A static function is the unit's own.
-		if (psFunction->bStatic)
-		{
-			psz->Append(&mszUnit);
-		}
 		psz->Append('_');
 		psz->Append(&szName);
 	}
@@ -1819,8 +1832,7 @@ void CCPP65Generator::AppendClassName(CChars* psz, SCPP65Class* psClass)
 
 	if (psClass->lliName < 0)
 	{
-		//A class without a name is the unit's own.
-		psz->Append(&mszUnit);
+		//A class without a name is the unit's own (its labels are local to the object).
 		psz->Append("Unnamed");
 		psz->Append((int)mapsClasses.Find(psClass));
 		return;

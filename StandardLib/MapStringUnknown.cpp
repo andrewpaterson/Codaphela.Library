@@ -53,16 +53,38 @@ void CMapStringUnknown::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMapStringUnknown::Put(const char* szKey, CUnknown* pcValue)
 {
-	CUnknown**	ppcNew;
+	CUnknown**	ppcValue;
+	CUnknown*	pcOldValue;
 
-	if (!StrEmpty(szKey))
+	if (StrEmpty(szKey))
 	{
-		ppcNew = mcMap.Put(szKey);
-		if (ppcNew)
+		return false;
+	}
+
+	ppcValue = mcMap.Get(szKey);
+	if (ppcValue)
+	{
+		if (!IsOverwriteExisting())
 		{
-			*ppcNew = pcValue;
-			return true;
+			return false;
 		}
+
+		//Replace the value in place.  Removing the node and adding a new one would kill the value even if it is
+		//the one being put again.
+		pcOldValue = *ppcValue;
+		*ppcValue = pcValue;
+		if (IsKillElements() && pcOldValue && (pcOldValue != pcValue))
+		{
+			pcOldValue->Kill();
+		}
+		return true;
+	}
+
+	ppcValue = mcMap.Put(szKey);
+	if (ppcValue)
+	{
+		*ppcValue = pcValue;
+		return true;
 	}
 	return false;
 }
@@ -207,44 +229,15 @@ void CMapStringUnknown::FreeData(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 bool CMapStringUnknown::WriteData(CFileWriter* pcFile, void* pvData)
 {
-	CUnknown**	ppcUnknown;
 	void*		pvValue;
 	void*		pvKey;
-	bool		bResult;
 	SMNode*		psNode;
 
 	psNode = (SMNode*)pvData;
-
 	mcMap.RemapKeyAndData(psNode, &pvKey, &pvValue);
-	ppcUnknown = (CUnknown**)pvValue;
 
-	bResult = pcFile->WriteData(pvKey, psNode->iKeySize);
-	if (!bResult)
-	{
-		return false;
-	}
-
-	//A flag before the value says whether it is NULL.
-	bResult = pcFile->WriteBool(*ppcUnknown != NULL);
-	if (!bResult)
-	{
-		return false;
-	}
-	if (*ppcUnknown == NULL)
-	{
-		return true;
-	}
-	bResult = (*ppcUnknown)->SaveHeader(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
-	bResult = (*ppcUnknown)->Save(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
-	return true;
+	ReturnOnFalse(pcFile->WriteData(pvKey, psNode->iKeySize));
+	return gcUnknowns.SaveUnknown(pcFile, *((CUnknown**)pvValue));
 }
 
 
@@ -254,45 +247,15 @@ bool CMapStringUnknown::WriteData(CFileWriter* pcFile, void* pvData)
 //////////////////////////////////////////////////////////////////////////
 bool CMapStringUnknown::ReadData(CFileReader* pcFile, void* pvData)
 {
-	CUnknown**	ppcUnknownValue;
-	CUnknown*	pcUnknownValue;
 	void*		pvValue;
 	void*		pvKey;
-	bool		bResult;
-	bool		bValue;
 	SMNode*		psNode;
 
 	psNode = (SMNode*)pvData;
 	mcMap.RemapKeyAndData(psNode, &pvKey, &pvValue);
-	bResult = pcFile->ReadData(pvKey, psNode->iKeySize);
-	if (!bResult)
-	{
-		return false;
-	}
 
-	ppcUnknownValue = (CUnknown**)pvValue;
-	bResult = pcFile->ReadBool(&bValue);
-	if (!bResult)
-	{
-		return false;
-	}
-	if (!bValue)
-	{
-		*ppcUnknownValue = NULL;
-		return true;
-	}
-	pcUnknownValue = gcUnknowns.AddFromHeader(pcFile);
-	if (!pcUnknownValue)
-	{
-		return false;
-	}
-	bResult = pcUnknownValue->Load(pcFile);
-	if (!bResult)
-	{
-		return false;
-	}
-	*ppcUnknownValue = pcUnknownValue;
-	return true;
+	ReturnOnFalse(pcFile->ReadData(pvKey, psNode->iKeySize));
+	return gcUnknowns.LoadUnknown(pcFile, (CUnknown**)pvValue);
 }
 
 

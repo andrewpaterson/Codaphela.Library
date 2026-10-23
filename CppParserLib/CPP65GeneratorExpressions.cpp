@@ -323,7 +323,7 @@ void CCPP65Generator::StringData(char* szBytes, size uiLength)
 	}
 	pszBytes->Append('0');
 
-	Line("cpy A, ")->Append(&mszUnit)->Append("Str")->Append((int)maszStrings.NumElements() - 1)->AppendNewLine();
+	Line("cpy A, Str")->Append((int)maszStrings.NumElements() - 1)->AppendNewLine();
 }
 
 
