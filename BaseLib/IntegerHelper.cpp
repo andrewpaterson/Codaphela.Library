@@ -639,6 +639,33 @@ size FindFirstClearBit(uint32 uiBits)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+size FindFirstSetBit(uint64 uiBits)
+{
+#if defined(_MSC_VER) && defined(BUILD_64)
+	unsigned long	uiIndex;
+
+	_BitScanForward64(&uiIndex, uiBits);
+	return uiIndex;
+#elif defined(_MSC_VER)
+	unsigned long	uiIndex;
+
+	if ((uint32)uiBits != 0)
+	{
+		_BitScanForward(&uiIndex, (uint32)uiBits);
+		return uiIndex;
+	}
+	_BitScanForward(&uiIndex, (uint32)(uiBits >> 32));
+	return uiIndex + 32;
+#else
+	return __builtin_ctzll(uiBits);
+#endif // _MSC_VER
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //	iArray size is in bits
 //
 //////////////////////////////////////////////////////////////////////////

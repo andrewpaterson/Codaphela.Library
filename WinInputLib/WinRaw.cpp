@@ -327,7 +327,7 @@ void CWinRawInput::UpdateJoystickDetails(void* pDevice, CRawInputDeviceDetail* p
 	HKEY 				hKey;
 	HKEY 				hKey2;
 	DWORD				dwLength;
-	size				j;
+	uint32				j;
 	CChars				szKeyName;
 	CChars				szFullKey;
 	size				iStart;
@@ -394,8 +394,8 @@ void CWinRawInput::UpdateJoystickDetails(void* pDevice, CRawInputDeviceDetail* p
 void CWinRawInput::AddDeviceDetails(void* pDevice)
 {
 	UINT				uiReturn;
-	size				uiLength;
-	size				uiSize;
+	uint32				uiLength;
+	uint32				uiSize;
 	char				szDeviceName[1024];
 	RID_DEVICE_INFO		sRidInfo;
 	CRawInputDeviceDetail*	psRIDeviceDetail;
@@ -584,12 +584,12 @@ void CWinRawInput::Update(CInputDevices* pcDevices, size uiSequence)
 			if (psEvent->eType == RDT_Mouse)
 			{
 				psRawMouse = &psEvent->uEvent.sMouse;
-				pcDevice->Process(psRawMouse, uiSequence);
+				pcDevice->Process(psRawMouse, (uint32)uiSequence);
 			}
 			else if (psEvent->eType == RDT_Keyboard)
 			{
 				psRawKeyboard = &psEvent->uEvent.sKeyboard;
-				pcDevice->Process(psRawKeyboard, uiSequence);
+				pcDevice->Process(psRawKeyboard, (uint32)uiSequence);
 
 				//gcKeyboardKeyList.Key(psEvent->uEvent.sKeyboard.usVKey, psEvent->uEvent.sKeyboard.usFlags);
 			}

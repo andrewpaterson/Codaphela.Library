@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
 #include <string.h>
+#include "BaseLib/IntegerHelper.h"
 #include "Adler32.h"
 #include "Deflater.h"
 
@@ -70,6 +71,39 @@ int DeflateDistanceCode(size uiDistance)
 		}
 	}
 	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The number of bytes, up to iMaxLength, that are the same at the start
+// of puiCandidate and puiCurrent.  Compares 8 bytes at a time.  On a
+// little endian machine the first byte that differs is the lowest set
+// byte of their exclusive or.
+//
+//////////////////////////////////////////////////////////////////////////
+int DeflateMatchLength(uint8* puiCandidate, uint8* puiCurrent, int iMaxLength)
+{
+	int		iLength;
+	uint64	uiCandidate;
+	uint64	uiCurrent;
+
+	iLength = 0;
+	while (iLength + 8 <= iMaxLength)
+	{
+		memcpy(&uiCandidate, &puiCandidate[iLength], sizeof(uint64));
+		memcpy(&uiCurrent, &puiCurrent[iLength], sizeof(uint64));
+		if (uiCandidate != uiCurrent)
+		{
+			return iLength + (int)(FindFirstSetBit(uiCandidate ^ uiCurrent) / 8);
+		}
+		iLength += 8;
+	}
+	while ((iLength < iMaxLength) && (puiCandidate[iLength] == puiCurrent[iLength]))
+	{
+		iLength++;
+	}
+	return iLength;
 }
 
 
@@ -273,11 +307,7 @@ int CDeflater::FindMatch(size uiPosition, int32 iChain, int iPreviousLength, siz
 		puiCandidate = &mpuiData[iChain];
 		if ((puiCandidate[iBest] == puiCurrent[iBest]) && (puiCandidate[0] == puiCurrent[0]) && (puiCandidate[1] == puiCurrent[1]))
 		{
-			iLength = 2;
-			while ((iLength < iMaxLength) && (puiCandidate[iLength] == puiCurrent[iLength]))
-			{
-				iLength++;
-			}
+			iLength = DeflateMatchLength(puiCandidate, puiCurrent, iMaxLength);
 			if (iLength > iBest)
 			{
 				iBest = iLength;

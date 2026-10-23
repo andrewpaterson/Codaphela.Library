@@ -24,6 +24,12 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BitReader.h"
 
 
+#define HUFFMAN_FAST_BITS			9
+#define HUFFMAN_FAST_SIZE			(1 << HUFFMAN_FAST_BITS)
+#define HUFFMAN_FAST_LENGTH_BITS	4
+#define HUFFMAN_FAST_LENGTH_MASK	((1 << HUFFMAN_FAST_LENGTH_BITS) - 1)
+
+
 //Decodes canonical Huffman codes (RFC 1951 section 3.2.2) given the code length of each symbol.  A length of zero
 //means the symbol is not used.
 class CHuffmanDecoder
@@ -31,6 +37,7 @@ class CHuffmanDecoder
 protected:
 	int16	maiCount[DEFLATE_MAX_BITS + 1];		//Number of codes of each length.
 	int16	maiSymbols[HUFFMAN_MAX_SYMBOLS];	//Symbols ordered by code.
+	uint16	mauiFast[HUFFMAN_FAST_SIZE];		//Indexed by the next HUFFMAN_FAST_BITS bits; the symbol shifted up by HUFFMAN_FAST_LENGTH_BITS and its code length, or zero.
 	int		miNumCodes;
 	int		miUnused;							//Codes left over by an incomplete set of lengths.
 
@@ -42,6 +49,10 @@ public:
 	bool	IsSingleCode(void);
 
 	bool	Decode(CBitReader* pcReader, int* piSymbol);
+
+protected:
+	void	InitFast(uint8* puiLengths, int iNumSymbols);
+	bool	DecodeSlow(CBitReader* pcReader, int* piSymbol);
 };
 
 

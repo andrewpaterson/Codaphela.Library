@@ -290,26 +290,69 @@ bool PNGUnfilterRow(int iFilter, uint8* puiRow, uint8* puiPrior, size uiRowBytes
 		return false;
 	}
 
-	for (i = 0; i < uiRowBytes; i++)
+	//Each filter has its own loop, the first pixel (with nothing to its left) separately.
+	if (uiPixelBytes > uiRowBytes)
 	{
-		uiLeft = (i >= uiPixelBytes) ? puiRow[i - uiPixelBytes] : 0;
-		uiUp = puiPrior ? puiPrior[i] : 0;
-		uiUpLeft = (puiPrior && (i >= uiPixelBytes)) ? puiPrior[i - uiPixelBytes] : 0;
-		switch (iFilter)
+		uiPixelBytes = uiRowBytes;
+	}
+	if (puiPrior == NULL)
+	{
+		//The row above the first is zeros, which makes Paeth the same as Sub.
+		if ((iFilter == PNG_FILTER_SUB) || (iFilter == PNG_FILTER_PAETH))
 		{
-		case PNG_FILTER_SUB:
-			puiRow[i] = (uint8)(puiRow[i] + uiLeft);
-			break;
-		case PNG_FILTER_UP:
-			puiRow[i] = (uint8)(puiRow[i] + uiUp);
-			break;
-		case PNG_FILTER_AVERAGE:
-			puiRow[i] = (uint8)(puiRow[i] + (((int)uiLeft + (int)uiUp) >> 1));
-			break;
-		default:
-			puiRow[i] = (uint8)(puiRow[i] + PNGPaethPredictor(uiLeft, uiUp, uiUpLeft));
-			break;
+			for (i = uiPixelBytes; i < uiRowBytes; i++)
+			{
+				puiRow[i] = (uint8)(puiRow[i] + puiRow[i - uiPixelBytes]);
+			}
 		}
+		else if (iFilter == PNG_FILTER_AVERAGE)
+		{
+			for (i = uiPixelBytes; i < uiRowBytes; i++)
+			{
+				puiRow[i] = (uint8)(puiRow[i] + (puiRow[i - uiPixelBytes] >> 1));
+			}
+		}
+		return true;
+	}
+
+	switch (iFilter)
+	{
+	case PNG_FILTER_SUB:
+		for (i = uiPixelBytes; i < uiRowBytes; i++)
+		{
+			puiRow[i] = (uint8)(puiRow[i] + puiRow[i - uiPixelBytes]);
+		}
+		break;
+	case PNG_FILTER_UP:
+		for (i = 0; i < uiRowBytes; i++)
+		{
+			puiRow[i] = (uint8)(puiRow[i] + puiPrior[i]);
+		}
+		break;
+	case PNG_FILTER_AVERAGE:
+		for (i = 0; i < uiPixelBytes; i++)
+		{
+			puiRow[i] = (uint8)(puiRow[i] + (puiPrior[i] >> 1));
+		}
+		for (; i < uiRowBytes; i++)
+		{
+			puiRow[i] = (uint8)(puiRow[i] + (((int)puiRow[i - uiPixelBytes] + (int)puiPrior[i]) >> 1));
+		}
+		break;
+	default:
+		//With nothing to the left the Paeth predictor is the byte above.
+		for (i = 0; i < uiPixelBytes; i++)
+		{
+			puiRow[i] = (uint8)(puiRow[i] + puiPrior[i]);
+		}
+		for (; i < uiRowBytes; i++)
+		{
+			uiLeft = puiRow[i - uiPixelBytes];
+			uiUp = puiPrior[i];
+			uiUpLeft = puiPrior[i - uiPixelBytes];
+			puiRow[i] = (uint8)(puiRow[i] + PNGPaethPredictor(uiLeft, uiUp, uiUpLeft));
+		}
+		break;
 	}
 	return true;
 }
