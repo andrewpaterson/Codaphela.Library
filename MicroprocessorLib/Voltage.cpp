@@ -36,12 +36,16 @@ float32 NoVoltage(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// False for NaN, whatever its bits.
+// False for NaN, whatever its bits.  The bits are tested because
+// fVoltage == fVoltage is folded to true under /fp:fast.
 //
 //////////////////////////////////////////////////////////////////////////
 bool IsVoltage(float32 fVoltage)
 {
-	return fVoltage == fVoltage;
+	uint32	ui;
+
+	ui = *((uint32*)((void*)&fVoltage));
+	return ((ui & 0x7f800000) != 0x7f800000) || ((ui & 0x007fffff) == 0);
 }
 
 
