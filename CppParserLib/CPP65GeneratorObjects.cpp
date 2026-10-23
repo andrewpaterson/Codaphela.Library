@@ -193,6 +193,18 @@ void CCPP65Generator::DestroyTemporaries(bool bKeep, bool bWide)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::HasCopyConstructor(SCPP65Class* psClass)
 {
+	return GetCopyConstructor(psClass) != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class's copy constructor (taking one of its objects by reference, any other
+// parameters having defaults), or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Function* CCPP65Generator::GetCopyConstructor(SCPP65Class* psClass)
+{
 	SCPP65Function*	psFunction;
 	SCPP65Type*		psParameter;
 	size			i;
@@ -205,12 +217,12 @@ bool CCPP65Generator::HasCopyConstructor(SCPP65Class* psClass)
 			continue;
 		}
 		psParameter = psFunction->mapsParameters.GetPtr(0);
-		if (psParameter->IsReference() && psParameter->psBase->IsClass() && (psParameter->psBase->psClass == psClass) && ((psFunction->mapsParameters.NumElements() == 1) || (psFunction->mapcDefaults.NumElements() > 1)))
+		if (psParameter->IsReference() && psParameter->psBase->IsClass() && (psParameter->psBase->psClass == psClass) && (psFunction->mapsParameters.NumElements() == 1))
 		{
-			return true;
+			return psFunction;
 		}
 	}
-	return false;
+	return NULL;
 }
 
 
@@ -272,9 +284,150 @@ bool CCPP65Generator::CopyConstruct(SCPP65Place* psPlace, CCPPSyntax* pcSource, 
 	}
 	if (!IsTriviallyCopyable(psClass))
 	{
-		return Error(pcNode, "Copying this object needs its members' copy constructors, which the 65C64 generator does not write yet");
+		return CopyMembers(psPlace, pcSource, pcNode);
 	}
 	return CopyObject(psPlace, pcSource, pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The implicit copy constructor of a class whose bases or fields have copy
+// constructors: the bytes are copied, then those bases and fields are copied again
+// with their copy constructors.  Both addresses wait on the stack.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::CopyMembers(SCPP65Place* psPlace, CCPPSyntax* pcSource, CCPPSyntax* pcNode)
+{
+	SCPP65Place		sSource;
+	SCPP65Class*	psClass;
+	int				iDestinationDepth;
+	int				iSourceDepth;
+	int				iOffset;
+	int				iChunk;
+
+	psClass = psPlace->psType->psClass;
+	iDestinationDepth = -1;
+	if (psPlace->eKind == CPP65PK_Address)
+	{
+		Push("A");
+		iDestinationDepth = miDepth;
+	}
+	if (!Place(pcSource, &sSource))
+	{
+		return false;
+	}
+	LoadAddress(&sSource);
+	Push("A");
+	iSourceDepth = miDepth;
+	if (iDestinationDepth == -1)
+	{
+		LoadAddress(psPlace);
+		Push("A");
+		iDestinationDepth = miDepth;
+	}
+
+	Line("cpy B, [")->Append(1 + miDepth - iSourceDepth)->Append(" + S]")->AppendNewLine();
+	Line("cpy A, [")->Append(1 + miDepth - iDestinationDepth)->Append(" + S]")->AppendNewLine();
+	for (iOffset = 0; iOffset < psClass->psType->iBytes; iOffset += iChunk)
+	{
+		iChunk = (psClass->psType->iBytes - iOffset >= 4) ? 4 : ((psClass->psType->iBytes - iOffset >= 2) ? 2 : 1);
+		if (iChunk < 4)
+		{
+			Line("wth Y, ")->Append(iChunk)->AppendNewLine();
+		}
+		Line("cpy Y, [")->Append(iOffset)->Append(" + B]")->AppendNewLine();
+		Line("cpy [")->Append(iOffset)->Append(" + A], Y")->AppendNewLine();
+		if (iChunk < 4)
+		{
+			Line("wth Y, 4")->AppendNewLine();
+		}
+	}
+	if (IsPolymorphic(psClass))
+	{
+		StoreVtables(psClass, "Y", "A");
+	}
+
+	CopyParts(psClass, 0, iDestinationDepth, iSourceDepth);
+	Line("add S, 8")->AppendNewLine();
+	miDepth -= 8;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Copies the bases and fields of the class (at iOffset in the objects whose
+// addresses are on the stack) that have copy constructors with them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::CopyParts(SCPP65Class* psClass, int iOffset, int iDestinationDepth, int iSourceDepth)
+{
+	SCPP65Base*		psBase;
+	SCPP65Field*	psField;
+	SCPP65Type*		psType;
+	size			i;
+	int				j;
+	int				iCount;
+
+	for (i = 0; i < psClass->macBases.NumElements(); i++)
+	{
+		psBase = psClass->macBases.Get(i);
+		CopyPart(psBase->psClass, iOffset + psBase->iOffset, iDestinationDepth, iSourceDepth);
+	}
+	for (i = 0; i < psClass->macFields.NumElements(); i++)
+	{
+		psField = psClass->macFields.Get(i);
+		psType = psField->psType;
+		iCount = 1;
+		if (psType->IsArray())
+		{
+			iCount = psType->iCount;
+			psType = psType->psBase;
+		}
+		if (!psType->IsClass())
+		{
+			continue;
+		}
+		for (j = 0; j < iCount; j++)
+		{
+			CopyPart(psType->psClass, iOffset + psField->iOffset + j * psType->iBytes, iDestinationDepth, iSourceDepth);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A part (base or field) of class psClass at iOffset: copied with its copy
+// constructor, or its own parts, or left as its bytes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::CopyPart(SCPP65Class* psClass, int iOffset, int iDestinationDepth, int iSourceDepth)
+{
+	SCPP65Function*	psConstructor;
+
+	psConstructor = GetCopyConstructor(psClass);
+	if (psConstructor)
+	{
+		Line("cpy A, [")->Append(1 + miDepth - iSourceDepth)->Append(" + S]")->AppendNewLine();
+		if (iOffset != 0)
+		{
+			Line("add A, ")->Append(iOffset)->AppendNewLine();
+		}
+		Push("A");
+		Line("cpy X, [")->Append(1 + miDepth - iDestinationDepth)->Append(" + S]")->AppendNewLine();
+		if (iOffset != 0)
+		{
+			Line("add X, ")->Append(iOffset)->AppendNewLine();
+		}
+		ChangeX();
+		Call(psConstructor, false, 4);
+	}
+	else if (!IsTriviallyCopyable(psClass))
+	{
+		CopyParts(psClass, iOffset, iDestinationDepth, iSourceDepth);
+	}
 }
 
 

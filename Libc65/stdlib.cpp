@@ -6,7 +6,8 @@
 
 //The heap is 0008:0000 to 000F:FFFF.  A block has its size (with this header) and, while free, the next free
 //block.  malloc takes the first free block that is big enough, splitting off the rest, or takes from the end of
-//the heap.  free puts the block on the free list; neighbours are not joined yet.
+//the heap.  The free list is in address order: free joins a block with the free blocks either side of it, and a
+//free block at the end of the heap is given back to it.
 #define HEAP_START		0x80000
 #define HEAP_END		0x100000
 
@@ -29,6 +30,11 @@ void* malloc(size_t uiBytes)
 	SHeapBlock*		psRest;
 	size_t			uiSize;
 
+	//Checked before rounding up so that a size near SIZE_MAX can't wrap to a small block.
+	if (uiBytes > HEAP_END - HEAP_START)
+	{
+		return NULL;
+	}
 	uiSize = ((uiBytes + 3) & ~3) + sizeof(SHeapBlock);
 	psPrevious = NULL;
 	for (psBlock = gpsFreeBlocks; psBlock; psBlock = psBlock->psNext)
@@ -69,15 +75,54 @@ void* malloc(size_t uiBytes)
 
 void free(void* pv)
 {
-	SHeapBlock*	psBlock;
+	SHeapBlock*		psBlock;
+	SHeapBlock*		psPrevious;
+	SHeapBlock*		psNext;
+	SHeapBlock**	ppsLink;
+	SHeapBlock**	ppsPreviousLink;
 
 	if (!pv)
 	{
 		return;
 	}
 	psBlock = (SHeapBlock*)((char*)pv - sizeof(SHeapBlock));
-	psBlock->psNext = gpsFreeBlocks;
-	gpsFreeBlocks = psBlock;
+
+	//Find where the block goes in the free list.  *ppsLink is the link to the free block after it and
+	//*ppsPreviousLink the link to the one before it.
+	ppsPreviousLink = NULL;
+	psPrevious = NULL;
+	ppsLink = &gpsFreeBlocks;
+	while (*ppsLink && (*ppsLink < psBlock))
+	{
+		ppsPreviousLink = ppsLink;
+		psPrevious = *ppsLink;
+		ppsLink = &psPrevious->psNext;
+	}
+	psNext = *ppsLink;
+
+	if (psNext && ((char*)psBlock + psBlock->uiSize == (char*)psNext))
+	{
+		psBlock->uiSize += psNext->uiSize;
+		psNext = psNext->psNext;
+	}
+	if (psPrevious && ((char*)psPrevious + psPrevious->uiSize == (char*)psBlock))
+	{
+		psPrevious->uiSize += psBlock->uiSize;
+		psBlock = psPrevious;
+		ppsLink = ppsPreviousLink;
+	}
+
+	if ((char*)psBlock + psBlock->uiSize == gpcHeapTop)
+	{
+		//The last block in the heap is given back, so it is the last in the free list too.
+		gpcHeapTop = (char*)psBlock;
+		*ppsLink = psNext;
+	}
+	else
+	{
+		psBlock->psNext = psNext;
+		*ppsLink = psBlock;
+	}
 }
 
 
@@ -85,6 +130,11 @@ void* calloc(size_t uiCount, size_t uiBytes)
 {
 	void*	pv;
 
+	//uiCount * uiBytes must not wrap.
+	if ((uiBytes != 0) && (uiCount > (size_t)-1 / uiBytes))
+	{
+		return NULL;
+	}
 	pv = malloc(uiCount * uiBytes);
 	if (pv)
 	{
