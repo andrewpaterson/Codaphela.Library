@@ -114,9 +114,29 @@ would (each float result rounded to float), for global data and constant operand
 Variadic arguments of type float are passed as double.  An expression that does
 floating point counts as a call for keeping operands in pseudo registers.
 
-Libc65/math.cpp has the functions with exact results: fabs, sqrt, trunc, floor,
-ceil, round, fmod, ldexp, frexp, modf and their f and l forms.  sin, cos, tan, exp,
-log, pow and the rest are declared but not written yet.
+Libc65/math.cpp has fabs, sqrt, trunc, floor, ceil, round, fmod, ldexp, frexp and
+modf (exact), and exp, log, log10, pow, sin, cos, tan, atan, asin, acos and atan2,
+with their f and l forms (the f forms work in double and round, so are correctly
+rounded but for double rounding).  The methods are fdlibm's with improvements:
+
+	exp		k ln2/64 + r, 2^(j/64) from a table to 106 bits, e^r - 1 by its series
+	log		2^k (1 + j/64)(1 + u), log(1 + j/64) from a table, u to 106 bits
+	pow		C99 F.9.4.4's special cases, then e^(y log x) with log x and y log x to
+			106 bits (double-double: TwoSum, and TwoProduct by Dekker's split)
+	sin cos	x mod pi/2: 33 bit pieces of pi/2 below 2^19, Payne-Hanek (1216 bits of
+			2/pi) above; fdlibm's kernels with Taylor coefficients to x^18
+	tan		sin over cos, each as two parts, the division's error put back
+	atan	below 3/16 its series, else atan(k/8) from a table + atan((a - c)/(1 + ac))
+	asin	its series to 1/2, then pi/2 - 2 asin(sqrt((1 - a)/2)) with the root split
+
+The constants (the tables, ln2, pi/2's pieces, 2/pi's bits and the series
+coefficients) were worked out exactly with Python integers and fractions, not
+copied.  Compiled natively and checked against glibc's long double functions on a
+million arguments each (including subnormals, overflow edges, x near 1, and huge
+trigonometric arguments such as 6381956970095103 * 2^797, where glibc's own double
+cos is several ulps out), every function is within 1 ulp, and correctly rounded for
+all but 0.02 to 3.5% of arguments (sin, cos and tan are the 3%).  The test runs a
+set of hard arguments on the 65C64 against the same references.
 
 
 Registers (the user, 2026-10-23)
@@ -277,7 +297,6 @@ Each gives an error "... is not supported by the 65C64 generator yet".  Declarat
 the generator cannot do are only errors when what they declare is used (see When
 code is generated).
 
-- The transcendental functions in math.h (sin, cos, exp, log, pow ...).
 - new and delete without a placement (there is no heap), conversion functions,
   member templates, explicit and partial specialisations, variadic templates.
 - Virtual inheritance.
