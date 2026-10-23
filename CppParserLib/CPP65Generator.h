@@ -374,8 +374,8 @@ protected:
 	int						miQuiet;			//Errors are not reported, only noted in mbQuietFailed.
 	bool					mbQuietFailed;
 	CArrayCPP65Strings		maszStrings;
-	CChars					mszInitialise;		//Constructs the global objects (R_Initialise).
-	CChars					mszFinalise;		//Destroys them (R_Finalise).
+	CChars					mszInitialise;		//Works out the global being defined (its R_Initialise).
+	int						miStartUps;			//R_Initialise and R_Finalise routines written.
 	bool					mbPureVirtual;
 
 	CArrayCPP65Variables	mapsLocals;
@@ -477,8 +477,9 @@ protected:
 	void					AppendRuntime(void);
 	void					AppendDivideSigned(const char* szName, int iBytes);
 	void					BeginRuntime(const char* szName);
-	void					AppendStartUpRoutine(const char* szTable, const char* szName, CChars* pszBody);
-	void					AppendSection(CChars* psz, const char* szKind, CChars* pszComdat);
+	void					AppendStartUpRoutine(const char* szTable, const char* szName, CChars* pszBody, CChars* pszData);
+	void					AppendSection(CChars* psz, const char* szKind, CChars* pszName, const char* szOptions);
+	bool					HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator);
 	void					AppendGlobal(CChars* psz, CChars* pszLabel);
 	bool					IsUnitFunction(SCPP65Function* psFunction);
 

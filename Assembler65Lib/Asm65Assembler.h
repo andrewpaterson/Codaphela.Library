@@ -161,6 +161,7 @@ protected:
 	uint32				muiSection;
 	CArrayUint32		mcSectionAddresses;
 	CArraySize			mcUndefined;
+	CArraySize			mcAssociations;
 	int					miExpressionDepth;
 	uint32				muiStatementTerms;
 	uint32				muiStatementTermsUsed;
@@ -196,6 +197,8 @@ protected:
 	bool			Constant(SAsm65Token* psName);
 	bool			Space(void);
 	bool			Section(void);
+	bool			SectionOptions(SAsm65Token* psName, SAsm65Token** ppsGroup, SAsm65Token** ppsAssociated, bool* pbKeep);
+	void			Associate(void);
 	bool			SymbolBinding(SAsm65Token* psDirective);
 	void			SwitchSection(uint32 uiSection);
 	bool			InBss(SAsm65Token* psToken);

@@ -1261,11 +1261,11 @@ void CCPP65Generator::EnsureVtable(SCPP65Class* psClass)
 	}
 	if (psClass->lliName < 0)
 	{
-		AppendSection(&mszData, "rodata", NULL);
+		AppendSection(&mszData, "rodata", &szLabel, NULL);
 	}
 	else
 	{
-		AppendSection(&mszData, "rodata", &szLabel);
+		AppendSection(&mszData, "rodata", &szLabel, ", comdat");
 		AppendGlobal(&mszData, &szLabel);
 	}
 	szLabel.Kill();
@@ -1319,11 +1319,11 @@ void CCPP65Generator::AppendVtableEntry(SCPP65Function* psFunction, int iAdjust)
 		{
 			if (IsUnitFunction(psFunction))
 			{
-				AppendSection(&mszThunks, "text", NULL);
+				AppendSection(&mszThunks, "text", &szLabel, NULL);
 			}
 			else
 			{
-				AppendSection(&mszThunks, "text", &szLabel);
+				AppendSection(&mszThunks, "text", &szLabel, ", comdat");
 				AppendGlobal(&mszThunks, &szLabel);
 			}
 			mszThunks.Append(szLabel);

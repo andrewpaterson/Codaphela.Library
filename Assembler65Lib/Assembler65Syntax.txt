@@ -100,7 +100,7 @@ Directives
 
 Only when assembling an object (AssembleObject):
 
-	.section name {, comdat {group}}
+	.section name {, option}...		options: comdat {group}, associated section, keep
 	.global name, ...			visible to other objects (or an external)
 	.weak name, ...				as .global; a global definition elsewhere wins
 								and an undefined weak name is 0
@@ -283,6 +283,16 @@ Relocations.  Local labels are relocated by section.  Externals and .global or
 COMDAT copy) is used.  A relocation writes target + addend into a field of 1 to 8
 little endian bytes; a relative one subtracts the field's own address (the
 assembler folds the field to next instruction distance into the addend).
+
+Removing unused sections.  With SetRemoveUnused(true) the linker only links the
+sections that are used: keep sections (".section text, keep"), init and fini
+sections that are not associated, and every section their relocations reach, and so
+on.  An associated section (".section init.MakeTable, associated data.gTable") is
+used when the section it names (in the same object; it may come later) is used, so
+a global's init and fini entries go when nothing uses the global.  A name that only
+removed sections need is not missing.  The map lists the removed sections and
+GetSymbol is false for their symbols.  Give each function and global a section of
+its own for the most to be removed.
 
 COMDAT.  ".section text.Inline, comdat" puts the section in group text.Inline
 (", comdat Inline" names the group).  The linker keeps a group's sections from

@@ -132,7 +132,7 @@ bool CCPP65Generator::TemporaryAddress(CCPPSyntax* pcNode, SCPP65Type* psType)
 	szLabel.Init("T");
 	szLabel.Append(miDataTemporaries);
 	miDataTemporaries++;
-	AppendSection(&mszData, "data", NULL);
+	AppendSection(&mszData, "data", &szLabel, NULL);
 	mszData.Append("\t\t.align 4");
 	mszData.AppendNewLine();
 	mszData.Append(szLabel);

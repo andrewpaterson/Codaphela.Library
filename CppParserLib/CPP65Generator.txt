@@ -32,7 +32,7 @@ Generate writes the translation unit as the assembly of an object, for
 CAsm65Assembler::AssembleObject and CAsm65Linker (see Several translation units).
 GenerateProgram puts the start up (AppendStartUp) in front of it, so one object is a
 whole program.  The start up sets S to $1fffff, W to 0 and A, B, X and Y to 32 bits,
-calls the init table (each unit's R_Initialise, in link order), calls _main, calls the
+calls the init table (each global's R_Initialise, in link order), calls _main, calls the
 fini table backwards and stops.  main's result is in A when the processor stops.  The
 start up's object is linked first so it is at the start of the text, 0001:0000; the
 reset vector is left to the loader.
@@ -335,16 +335,27 @@ CProject's, after Process):
 	cGenerator.Init(&cTree);
 	cGenerator.Generate(&szAssembly);				//One object's assembly.
 
-and one more object for CCPP65Generator::AppendStartUp, linked first.  A unit's code is
-in text, its globals, static locals and temporaries in data, its string literals in
-rodata.  Generated labels (L5, Str0, S0_siCalls, T0, R_Initialise) are local to the
-object.  Functions and globals with external linkage are .global; static ones and
-members of classes without a name are local.  Inline, template and generated
-functions, vtables, thunks and runtime routines (R_Pure, R_DivideSigned ...) are
-written by every unit that needs them, each in a COMDAT section named after its label
-(text._A__f, rodata._A__2) and .global, so the linker keeps one copy.  A unit with
-global objects puts R_Initialise in its init table and R_Finalise in its fini table;
-the start up calls the init tables in link order and the fini tables backwards.
+and one more object for CCPP65Generator::AppendStartUp, linked first (it is a keep
+section).  Each function, global, static local, temporary and string literal is a
+section of its own named after its label (text._f, data._gTotal, data.S0_siCalls,
+data.T0, rodata.Str0) so the linker can leave out what nothing uses
+(CAsm65Linker::SetRemoveUnused; CCPP65Builder turns it on).  Generated labels (L5,
+Str0, S0_siCalls, T0, R_Initialise3) are local to the object.  Functions and globals
+with external linkage are .global; static ones and members of classes without a name
+are local.  Inline, template and generated functions, vtables, thunks and runtime
+routines (R_Pure, R_DivideSigned ...) are written by every unit that needs them, each
+in a COMDAT section (text._A__f, rodata._A__2) and .global, so the linker keeps one
+copy.
+
+A global whose value isn't constant, or that is an object, has its own R_Initialise<n>
+(and an object its own R_Finalise<n>) in a text section, with its entry in an init (or
+fini) section associated with the global's data section.  The start up calls the init
+tables in link order and the fini tables backwards, but the linker keeps a global's
+entries only when something uses the global: a global nothing uses is not made at all,
+even if its constructor does something else.  __attribute__((used)) (or __used__) after
+the name keeps it (its data section is keep):
+
+	Registrar gcRegistrar __attribute__((used)) (MakeThing);
 
 TestCPP65RunProject (test/TestCppParserLib) does this for a list of units (each
 directory's units share a CLibrary for their include settings), links them with
@@ -466,8 +477,10 @@ Objects:
 - Locals are constructed at their declaration and destroyed last first at the end of
   their block, and by return, break and continue on their way out.  return works out
   its value first and keeps it on the stack meanwhile.
-- Globals are zero data, constructed by R_Initialise before main and destroyed last
-  first by R_Finalise after it (GenerateProgram calls both, keeping main's result).
+- Globals are zero data, constructed by their R_Initialise before main and destroyed last
+  first by their R_Finalise after it (the start up calls the init and fini tables,
+  keeping main's result).  Globals nothing uses are left out (see Several translation
+  units).
 - Assigning and initialising from another object copies it a word at a time through Y
   (or calls the class's copy constructor or operator =).  A copy from a derived class
   keeps the destination's vtable pointer.  A class without a copy constructor whose

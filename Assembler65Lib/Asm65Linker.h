@@ -68,21 +68,28 @@ struct SAsm65LinkObject
 };
 
 
-//An input section's place.  A dropped COMDAT copy is not kept.
+//An input section's place.  A dropped COMDAT copy is not kept; a section nothing uses
+//is not used (SetRemoveUnused).  Its relocations are uiNumRelocations indices from
+//uiFirstRelocation in the linker's maiRelocations.
 struct SAsm65LinkSection
 {
 	uint32	uiAddress;
 	bool	bKept;
+	bool	bUsed;
+	size	uiFirstRelocation;
+	size	uiNumRelocations;
 };
 
 
-//A global definition (iObject is -1 for the linker's own symbols).
+//A global definition (iObject is -1 for the linker's own symbols).  bPlaced is false
+//when its section was removed.
 struct SAsm65LinkSymbol
 {
 	CChars	szName;
 	int32	iObject;
 	uint32	uiSymbol;
 	bool	bWeak;
+	bool	bPlaced;
 	int64	iValue;
 };
 
@@ -112,6 +119,9 @@ protected:
 	CMapStringTemplate<uint32>				mcSymbolIndices;
 	CMapStringTemplate<SAsm65LinkReference>	mcReferences;
 	CArrayChars								maszReferenced;
+	CMapStringTemplate<SAsm65LinkReference>	mcUsedReferences;
+	CArrayChars								maszUsedReferenced;
+	CArraySize								maiRelocations;
 	CMapStringTemplate<uint32>				mcGroups;
 	CArrayChars								maszMissing;
 	CArraySize								maiPlacement;
@@ -123,6 +133,7 @@ protected:
 	uint32									mauiEnd[ASK65_NumKinds];
 	uint32									muiLimit;
 	bool									mbStubMissing;
+	bool									mbRemoveUnused;
 
 	CAsm65Output							mcOutput;
 	CChars									mszMap;
@@ -136,6 +147,7 @@ public:
 	void			SetAddress(EAsm65SectionKind eKind, uint32 uiAddress);
 	void			SetLimit(uint32 uiLimit);
 	void			SetStubMissing(bool bStubMissing);
+	void			SetRemoveUnused(bool bRemoveUnused);
 
 	bool			Link(void);
 
@@ -153,7 +165,13 @@ protected:
 	bool			Wanted(CAsm65Object* pcObject);
 	void			PullLibraries(void);
 	bool			IsLinkerSymbol(const char* szName);
-	void			FindMissing(void);
+	void			FindMissing(CMapStringTemplate<SAsm65LinkReference>* pcReferences, CArrayChars* paszReferenced);
+	void			AddReference(CMapStringTemplate<SAsm65LinkReference>* pcReferences, CArrayChars* paszReferenced, const char* szName, bool bStrong, size uiObject);
+	void			IndexRelocations(void);
+	void			MarkUsed(void);
+	void			UseSection(size uiSection, CArraySize* paiWork);
+	void			UseTarget(size uiObject, SAsm65Relocation* psRelocation, CArraySize* paiWork);
+	bool			IsPlaced(SAsm65LinkSection* psLinkSection);
 	void			AddStubs(void);
 	void			Layout(void);
 	void			DefineLinkerSymbols(void);
