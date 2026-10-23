@@ -23,6 +23,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/MapStringTemplate.h"
 #include "BaseLib/ArrayChars.h"
+#include "BaseLib/ArraySize.h"
 #include "Asm65Object.h"
 #include "Asm65Output.h"
 #include "Asm65Errors.h"
@@ -101,8 +102,10 @@ protected:
 	CArrayTemplate<SAsm65LinkSymbol>	masSymbols;
 	CMapStringTemplate<uint32>			mcSymbolIndices;
 	CMapStringTemplate<SAsm65LinkReference>	mcReferences;
+	CArrayChars							maszReferenced;
 	CMapStringTemplate<uint32>			mcGroups;
 	CArrayChars							maszMissing;
+	CArraySize							maiPlacement;
 	CAsm65Object						mcStubs;
 
 	uint32								mauiAddress[ASK65_NumKinds];
