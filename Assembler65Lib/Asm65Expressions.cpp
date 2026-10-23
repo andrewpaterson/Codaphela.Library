@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <string.h>
 #include "Asm65Assembler.h"
 
 
@@ -31,7 +32,40 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Assembler::Expression(SAsm65Value* psValue)
 {
-	return BitwiseOr(psValue);
+	SAsm65Token*	psToken;
+	bool			bResult;
+
+	psToken = Peek();
+	miExpressionDepth++;
+	bResult = BitwiseOr(psValue);
+	miExpressionDepth--;
+
+	//Counts the section addresses a statement must use (see UseTerm).
+	if (bResult && (miExpressionDepth == 0) && (psValue->iTerms != 0))
+	{
+		muiStatementTerms++;
+		if (mpsTermToken == NULL)
+		{
+			mpsTermToken = psToken;
+		}
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static void ClearValue(SAsm65Value* psValue)
+{
+	psValue->iValue = 0;
+	psValue->bResolved = true;
+	psValue->bLabel = false;
+	psValue->iProgramCounter = 0;
+	psValue->iTerms = 0;
+	psValue->iSection = ASM65_SECTION_ABSOLUTE;
+	psValue->uiTermToken = 0;
 }
 
 
@@ -185,6 +219,7 @@ bool CAsm65Assembler::ShiftExpression(SAsm65Value* psValue)
 bool CAsm65Assembler::Additive(SAsm65Value* psValue)
 {
 	SAsm65Value		sRight;
+	SAsm65Token*	psOperator;
 	bool			bAdd;
 	E65Register		eRegister;
 
@@ -211,8 +246,12 @@ bool CAsm65Assembler::Additive(SAsm65Value* psValue)
 			return true;
 		}
 
-		Next();
+		psOperator = Next();
 		if (!Multiplicative(&sRight))
+		{
+			return false;
+		}
+		if (!AddTerms(psValue, &sRight, bAdd, psOperator))
 		{
 			return false;
 		}
@@ -294,6 +333,7 @@ bool CAsm65Assembler::Unary(SAsm65Value* psValue)
 		}
 		psValue->iValue = -psValue->iValue;
 		psValue->iProgramCounter = -psValue->iProgramCounter;
+		psValue->iTerms = -psValue->iTerms;
 		return true;
 	}
 	else if (Accept(AP65_Plus))
@@ -311,6 +351,10 @@ bool CAsm65Assembler::Unary(SAsm65Value* psValue)
 		{
 			return Error(psOperator, "C can only have an offset added or subtracted");
 		}
+		if (psValue->iTerms != 0)
+		{
+			return Error(psOperator, "A section address can only have a constant added or subtracted");
+		}
 		psValue->iValue = ~psValue->iValue;
 		return true;
 	}
@@ -324,6 +368,10 @@ bool CAsm65Assembler::Unary(SAsm65Value* psValue)
 		if (psValue->iProgramCounter != 0)
 		{
 			return Error(psOperator, "C can only have an offset added or subtracted");
+		}
+		if (psValue->iTerms != 0)
+		{
+			return Error(psOperator, "A section address can only have a constant added or subtracted");
 		}
 		psValue->iValue = !psValue->iValue;
 		return true;
@@ -343,10 +391,7 @@ bool CAsm65Assembler::Primary(SAsm65Value* psValue)
 	E65Register		eRegister;
 
 	psToken = Peek();
-	psValue->iValue = 0;
-	psValue->bResolved = true;
-	psValue->bLabel = false;
-	psValue->iProgramCounter = 0;
+	ClearValue(psValue);
 
 	if (psToken->eType == AT65_Number)
 	{
@@ -389,9 +434,19 @@ bool CAsm65Assembler::Primary(SAsm65Value* psValue)
 			{
 				return Error(psToken, "Undefined symbol");
 			}
+			if (mbObject)
+			{
+				mcUndefined.Add(TokenIndex(psToken));
+			}
 			return true;
 		}
 		psValue->iValue = psSymbol->iValue;
+		if (psSymbol->iSection != ASM65_SECTION_ABSOLUTE)
+		{
+			psValue->iTerms = 1;
+			psValue->iSection = psSymbol->iSection;
+			psValue->uiTermToken = psSymbol->uiTermToken;
+		}
 		return true;
 	}
 	return Error(psToken, "Expected a value");
@@ -409,9 +464,77 @@ bool CAsm65Assembler::Combine(SAsm65Value* psValue, SAsm65Value* psRight, SAsm65
 	{
 		return Error(psOperator, "C can only have an offset added or subtracted");
 	}
+	if ((psValue->iTerms != 0) || (psRight->iTerms != 0))
+	{
+		return Error(psOperator, "A section address can only have a constant added or subtracted");
+	}
 	psValue->bResolved &= psRight->bResolved;
 	psValue->bLabel |= psRight->bLabel;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds or subtracts psRight's section addresses.  Addresses in one section subtract
+// to a constant; addresses in different sections cannot be combined.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::AddTerms(SAsm65Value* psValue, SAsm65Value* psRight, bool bAdd, SAsm65Token* psOperator)
+{
+	int	iRight;
+
+	if (psRight->iTerms == 0)
+	{
+		return true;
+	}
+
+	iRight = bAdd ? psRight->iTerms : -psRight->iTerms;
+	if (psValue->iTerms == 0)
+	{
+		psValue->iTerms = iRight;
+		psValue->iSection = psRight->iSection;
+		psValue->uiTermToken = psRight->uiTermToken;
+		return true;
+	}
+	if (!SameTerm(psValue, psRight))
+	{
+		return Error(psOperator, "Addresses in different sections cannot be combined");
+	}
+	psValue->iTerms += iRight;
+	if (psValue->iTerms == 0)
+	{
+		psValue->iSection = ASM65_SECTION_ABSOLUTE;
+	}
+	else if ((psValue->iTerms == 1) && (iRight == 1))
+	{
+		psValue->uiTermToken = psRight->uiTermToken;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The same section, or the same external.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::SameTerm(SAsm65Value* psValue, SAsm65Value* psRight)
+{
+	SAsm65Token*	psLeftTerm;
+	SAsm65Token*	psRightTerm;
+
+	if (psValue->iSection != psRight->iSection)
+	{
+		return false;
+	}
+	if (psValue->iSection != ASM65_SECTION_UNDEFINED)
+	{
+		return true;
+	}
+	psLeftTerm = mcTokeniser.Get(psValue->uiTermToken);
+	psRightTerm = mcTokeniser.Get(psRight->uiTermToken);
+	return (psLeftTerm->uiLength == psRightTerm->uiLength) && (memcmp(psLeftTerm->szText, psRightTerm->szText, psLeftTerm->uiLength) == 0);
 }
 
 
@@ -819,10 +942,7 @@ bool CAsm65Assembler::Address(SAsm65Address* psAddress)
 {
 	psAddress->bIndirect = false;
 	psAddress->eBase = R65_Zero;
-	psAddress->sValue.iValue = 0;
-	psAddress->sValue.bResolved = true;
-	psAddress->sValue.bLabel = false;
-	psAddress->sValue.iProgramCounter = 0;
+	ClearValue(&psAddress->sValue);
 	psAddress->uiAddressBits = 0;
 	psAddress->eInner = R65_Zero;
 	psAddress->ePost = R65_Zero;
@@ -864,10 +984,7 @@ bool CAsm65Assembler::Operand(SAsm65Operand* psOperand)
 	psToken = Peek();
 	psOperand->eKind = AO65_None;
 	psOperand->eRegister = R65_Zero;
-	psOperand->sValue.iValue = 0;
-	psOperand->sValue.bResolved = true;
-	psOperand->sValue.bLabel = false;
-	psOperand->sValue.iProgramCounter = 0;
+	ClearValue(&psOperand->sValue);
 	psOperand->uiWidthBytes = 0;
 	psOperand->bSigned = false;
 	psOperand->psToken = psToken;
@@ -923,6 +1040,8 @@ bool CAsm65Assembler::Memory(SAsm65Address* psAddress, SAsm65Memory* psMemory)
 	psMemory->eSecond = R65_Zero;
 	psMemory->uiAddressWords = 0;
 	psMemory->uiAddress = (uint32)psAddress->sValue.iValue;
+	psMemory->psValue = &psAddress->sValue;
+	psMemory->psToken = psAddress->psToken;
 
 	if (psAddress->eBase != R65_Zero)
 	{

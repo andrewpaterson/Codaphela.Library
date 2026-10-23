@@ -22,27 +22,36 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #define __ASM65_ASSEMBLER_H__
 #include "BaseLib/ArrayUint8.h"
 #include "BaseLib/ArraySize.h"
+#include "BaseLib/ArrayUint32.h"
 #include "MicroprocessorLib/65C64Decoded.h"
 #include "Asm65Tokeniser.h"
 #include "Asm65Symbols.h"
 #include "Asm65Output.h"
 #include "Asm65Errors.h"
+#include "Asm65Object.h"
 
 
 #define ASM65_MAX_PASSES	16
 #define ASM65_MAX_WORDS		5
+#define ASM65_MAX_INSTRUCTION_RELOCATIONS	2
 
 
 //A value from an expression.  An unresolved value uses a symbol that has no value yet.
 //bLabel is set when the expression uses a symbol (it is an address, not an offset).
 //C (the program counter) is never a value: it counts 0 in iValue and iProgramCounter
 //says how many times it was added, so C - 2 is an offset of -2 from C.
+//In an object a label is an offset in its section: iTerms counts how many times a
+//section address (iSection, or the external named by uiTermToken) was added.  Only
+//values with iTerms of 0 (a constant) or 1 (an address) can be assembled.
 struct SAsm65Value
 {
 	int64	iValue;
 	bool	bResolved;
 	bool	bLabel;
 	int		iProgramCounter;
+	int		iTerms;
+	int32	iSection;
+	size	uiTermToken;
 };
 
 
@@ -86,19 +95,35 @@ struct SAsm65Operand
 //register modes or the first register of the two register modes.
 struct SAsm65Memory
 {
-	uint8		uiMode;
-	E65Register	eFirst;
-	E65Register	eSecond;
-	uint8		uiAddressWords;
-	uint32		uiAddress;
+	uint8			uiMode;
+	E65Register		eFirst;
+	E65Register		eSecond;
+	uint8			uiAddressWords;
+	uint32			uiAddress;
+	SAsm65Value*	psValue;
+	SAsm65Token*	psToken;
+};
+
+
+//An operand field the linker fills in: uiBytes starting at word uiWord.
+struct SAsm65InstructionRelocation
+{
+	SAsm65Value		sValue;
+	uint8			uiWord;
+	uint8			uiBytes;
+	bool			bSigned;
+	bool			bRelative;
+	SAsm65Token*	psToken;
 };
 
 
 //An encoded instruction: the opcode then its operand words.
 struct SAsm65Instruction
 {
-	uint16	auiWords[ASM65_MAX_WORDS];
-	uint8	uiWords;
+	uint16						auiWords[ASM65_MAX_WORDS];
+	uint8						uiWords;
+	SAsm65InstructionRelocation	asRelocations[ASM65_MAX_INSTRUCTION_RELOCATIONS];
+	uint8						uiRelocations;
 };
 
 
@@ -106,6 +131,9 @@ struct SAsm65Instruction
 //Assembles 65C64 source text (see Assembler65Syntax.txt).  Passes repeat until every
 //label has settled.  An instruction never gets shorter in a later pass so the passes
 //always settle.  Errors are only reported by the final pass.
+//
+//Assemble writes bytes at absolute addresses (.org).  AssembleObject writes sections,
+//symbols and relocations into a CAsm65Object for CAsm65Linker.
 class CAsm65Assembler
 {
 protected:
@@ -128,11 +156,22 @@ protected:
 	size				muiInstruction;
 	uint32				muiPasses;
 
+	bool				mbObject;
+	CAsm65Object*		mpcObject;
+	uint32				muiSection;
+	CArrayUint32		mcSectionAddresses;
+	CArraySize			mcUndefined;
+	int					miExpressionDepth;
+	uint32				muiStatementTerms;
+	uint32				muiStatementTermsUsed;
+	SAsm65Token*		mpsTermToken;
+
 public:
 	void			Init(void);
 	void			Kill(void);
 
 	bool			Assemble(const char* szSource);
+	bool			AssembleObject(const char* szSource, CAsm65Object* pcObject);
 
 	CAsm65Output*	GetOutput(void);
 	char*			GetErrors(void);
@@ -147,13 +186,26 @@ protected:
 	void			Pass(void);
 	void			Statement(void);
 	void			BindLabels(void);
-	void			DefineSymbol(SAsm65Token* psName, int64 iValue, bool bResolved);
+	void			DefineSymbol(SAsm65Token* psName, int64 iValue, bool bResolved, int32 iSection, size uiTermToken);
+	size			TokenIndex(SAsm65Token* psToken);
 	void			AlignTo(uint32 uiAlignment);
 	void			WriteByte(uint8 uiByte);
 	bool			Origin(void);
 	bool			Align(void);
 	bool			Data(uint8 uiBytes);
 	bool			Constant(SAsm65Token* psName);
+	bool			Space(void);
+	bool			Section(void);
+	bool			SymbolBinding(SAsm65Token* psDirective);
+	void			SwitchSection(uint32 uiSection);
+	bool			InBss(SAsm65Token* psToken);
+	void			MarkExternals(void);
+	void			BuildObjectSymbols(void);
+	bool			IsRelocatable(SAsm65Value* psValue);
+	bool			IsLocalTarget(SAsm65Value* psValue);
+	bool			TargetIsRelocatable(SAsm65Value* psTarget);
+	void			UseTerm(void);
+	void			RecordRelocation(SAsm65Value* psValue, uint32 uiOffset, uint8 uiBytes, bool bSigned, bool bRelative, uint32 uiFieldToNext, SAsm65Token* psToken);
 	void			Emit(SAsm65Instruction* psInstruction);
 	uint8			GetMinimumWords(void);
 
@@ -179,6 +231,8 @@ protected:
 	bool			Primary(SAsm65Value* psValue);
 	bool			ExpressionValue(int64* piValue);
 	bool			Combine(SAsm65Value* psValue, SAsm65Value* psRight, SAsm65Token* psOperator);
+	bool			AddTerms(SAsm65Value* psValue, SAsm65Value* psRight, bool bAdd, SAsm65Token* psOperator);
+	bool			SameTerm(SAsm65Value* psValue, SAsm65Value* psRight);
 	bool			RelativeTarget(SAsm65Value* psValue, SAsm65Token* psToken);
 
 	bool			IsRegister(SAsm65Token* psToken, E65Register* peRegister);
@@ -241,6 +295,7 @@ protected:
 	bool			TwoRegisterFields(SAsm65Memory* psMemory, const E65Register* aeSecondList, int iSecondListSize, SAsm65Token* psToken, uint16* puiFirst, uint16* puiSecond);
 	void			AddValueWords(SAsm65Instruction* psInstruction, uint64 uiValue, uint8 uiBytes);
 	void			AddAddressWords(SAsm65Instruction* psInstruction, SAsm65Memory* psMemory);
+	bool			AddRelocatableWords(SAsm65Instruction* psInstruction, SAsm65Value* psValue, uint64 uiValue, uint8 uiBytes, bool bSigned, bool bRelative, SAsm65Token* psToken);
 };
 
 

@@ -23,7 +23,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/Chars.h"
 
 
-//Errors as "line:column: message" lines.
+//Errors as "line:column: message" lines (the linker's start with the object's name).
 class CAsm65Errors
 {
 protected:
@@ -36,6 +36,7 @@ public:
 	void	Clear(void);
 
 	void	Add(uint32 uiLine, uint32 uiColumn, const char* szMessage, const char* szDetail = NULL);
+	void	Add(const char* szSource, uint32 uiLine, uint32 uiColumn, const char* szMessage, const char* szDetail = NULL);
 	size	NumErrors(void);
 	char*	Text(void);
 };

@@ -187,6 +187,8 @@
     <ClCompile Include="Asm65Errors.cpp" />
     <ClCompile Include="Asm65Expressions.cpp" />
     <ClCompile Include="Asm65Instructions.cpp" />
+    <ClCompile Include="Asm65Linker.cpp" />
+    <ClCompile Include="Asm65Object.cpp" />
     <ClCompile Include="Asm65Output.cpp" />
     <ClCompile Include="Asm65Symbols.cpp" />
     <ClCompile Include="Asm65Token.cpp" />
@@ -195,6 +197,8 @@
   <ItemGroup>
     <ClInclude Include="Asm65Assembler.h" />
     <ClInclude Include="Asm65Errors.h" />
+    <ClInclude Include="Asm65Linker.h" />
+    <ClInclude Include="Asm65Object.h" />
     <ClInclude Include="Asm65Output.h" />
     <ClInclude Include="Asm65Symbols.h" />
     <ClInclude Include="Asm65Token.h" />

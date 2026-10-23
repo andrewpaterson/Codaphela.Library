@@ -46,6 +46,16 @@ void CAsm65Assembler::Init(void)
 	mbRelative = false;
 	muiInstruction = 0;
 	muiPasses = 0;
+
+	mbObject = false;
+	mpcObject = NULL;
+	muiSection = 0;
+	mcSectionAddresses.Init();
+	mcUndefined.Init();
+	miExpressionDepth = 0;
+	muiStatementTerms = 0;
+	muiStatementTermsUsed = 0;
+	mpsTermToken = NULL;
 }
 
 
@@ -55,6 +65,8 @@ void CAsm65Assembler::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Assembler::Kill(void)
 {
+	mcUndefined.Kill();
+	mcSectionAddresses.Kill();
 	mcPendingLabels.Kill();
 	mcMinimumWords.Kill();
 	mcOutput.Kill();
@@ -83,6 +95,10 @@ bool CAsm65Assembler::Assemble(const char* szSource)
 	{
 		mbChanged = false;
 		Pass();
+		if (mbObject)
+		{
+			MarkExternals();
+		}
 		if (!mbChanged)
 		{
 			break;
@@ -106,15 +122,65 @@ bool CAsm65Assembler::Assemble(const char* szSource)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Assembles into sections (.section) starting in "text".  Labels are section offsets
+// and every use of one that the linker must place becomes a relocation.  Names that
+// are used but never defined are externals.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::AssembleObject(const char* szSource, CAsm65Object* pcObject)
+{
+	bool	bResult;
+
+	mbObject = true;
+	mpcObject = pcObject;
+	if (mpcObject->FindSection("text", "") != 0)
+	{
+		mpcObject->AddSection("text", "", ASK65_Text);
+	}
+
+	bResult = Assemble(szSource);
+	if (bResult)
+	{
+		BuildObjectSymbols();
+		bResult = mcErrors.NumErrors() == 0;
+	}
+	mpcObject = NULL;
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Assembler::Pass(void)
 {
+	size			i;
+	SAsm65Section*	psSection;
+
 	muiToken = 0;
 	muiAddress = 0;
 	muiInstruction = 0;
 	mcPendingLabels.Kill();
 	mcPendingLabels.Init();
+	mcUndefined.Kill();
+	mcUndefined.Init();
+	if (mbObject)
+	{
+		muiSection = 0;
+		mcSectionAddresses.Kill();
+		mcSectionAddresses.Init();
+		for (i = 0; i < mpcObject->NumSections(); i++)
+		{
+			mcSectionAddresses.Add(0);
+			if (mbFinal)
+			{
+				psSection = mpcObject->GetSection(i);
+				psSection->cBytes.Kill();
+				psSection->cBytes.Init();
+			}
+		}
+	}
 
 	while (Peek()->eType != AT65_End)
 	{
@@ -122,6 +188,97 @@ void CAsm65Assembler::Pass(void)
 	}
 	muiStatementAddress = muiAddress;
 	BindLabels();
+
+	if (mbObject)
+	{
+		mcSectionAddresses.SetValue(muiSection, muiAddress);
+		if (mbFinal)
+		{
+			for (i = 0; i < mpcObject->NumSections(); i++)
+			{
+				mpcObject->GetSection(i)->uiSize = mcSectionAddresses.GetValue(i);
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A name used in a pass but not defined by it becomes an external, which needs
+// another pass: an external address is always 32 bits.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Assembler::MarkExternals(void)
+{
+	size			i;
+	SAsm65Token*	psToken;
+	SAsm65Symbol*	psSymbol;
+	size			uiToken;
+
+	for (i = 0; i < mcUndefined.NumElements(); i++)
+	{
+		uiToken = mcUndefined.GetValue(i);
+		psToken = mcTokeniser.Get(uiToken);
+		psSymbol = mcSymbols.Get(psToken->szText, psToken->uiLength);
+		if ((psSymbol == NULL) || (!psSymbol->bResolved && (psSymbol->uiPass != muiPass)))
+		{
+			psSymbol = mcSymbols.Put(psToken->szText, psToken->uiLength);
+			psSymbol->iValue = 0;
+			psSymbol->bResolved = true;
+			psSymbol->bExternal = true;
+			psSymbol->iSection = ASM65_SECTION_UNDEFINED;
+			psSymbol->uiTermToken = uiToken;
+			mbChanged = true;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every label and constant goes into the object (locals too, for the map) with
+// externals that are declared or used by a relocation.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Assembler::BuildObjectSymbols(void)
+{
+	size				i;
+	char*				szName;
+	SAsm65Symbol*		psSymbol;
+	SAsm65ObjectSymbol*	psObjectSymbol;
+	EAsm65Binding		eBinding;
+
+	for (i = 0; i < mcSymbols.NumSymbols(); i++)
+	{
+		szName = mcSymbols.GetName(i);
+		psSymbol = mcSymbols.Get(szName, strlen(szName));
+		eBinding = psSymbol->bWeak ? AB65_Weak : (psSymbol->bGlobal ? AB65_Global : AB65_Local);
+		if (psSymbol->bExternal || !psSymbol->bResolved)
+		{
+			if ((eBinding != AB65_Local) || (mpcObject->FindSymbol(szName) >= 0))
+			{
+				psObjectSymbol = mpcObject->GetSymbol(mpcObject->PutSymbol(szName));
+				psObjectSymbol->iSection = ASM65_SECTION_UNDEFINED;
+				psObjectSymbol->iValue = 0;
+				psObjectSymbol->eBinding = (eBinding == AB65_Weak) ? AB65_Weak : AB65_Global;
+			}
+		}
+		else if (psSymbol->iSection == ASM65_SECTION_UNDEFINED)
+		{
+			if (eBinding != AB65_Local)
+			{
+				Report(&mcErrors, mcTokeniser.Get(psSymbol->uiTermToken), "A global symbol cannot be an external plus a value");
+			}
+		}
+		else
+		{
+			psObjectSymbol = mpcObject->GetSymbol(mpcObject->PutSymbol(szName));
+			psObjectSymbol->iSection = psSymbol->iSection;
+			psObjectSymbol->iValue = psSymbol->iValue;
+			psObjectSymbol->eBinding = eBinding;
+		}
+	}
 }
 
 
@@ -140,6 +297,9 @@ void CAsm65Assembler::Statement(void)
 
 	mbStatementError = false;
 	mbRelative = false;
+	muiStatementTerms = 0;
+	muiStatementTermsUsed = 0;
+	mpsTermToken = NULL;
 	while ((Peek()->eType == AT65_Identifier) && Peek(1)->Is(AP65_Colon))
 	{
 		psToken = Next();
@@ -179,6 +339,11 @@ void CAsm65Assembler::Statement(void)
 			bResult = Origin();
 			BindLabels();
 		}
+		else if (psToken->IsIdentifierIgnoreCase(".section"))
+		{
+			bResult = Section();
+			BindLabels();
+		}
 		else if (psToken->IsIdentifierIgnoreCase(".align"))
 		{
 			bResult = Align();
@@ -203,6 +368,14 @@ void CAsm65Assembler::Statement(void)
 			{
 				bResult = Data(8);
 			}
+			else if (psToken->IsIdentifierIgnoreCase(".space"))
+			{
+				bResult = Space();
+			}
+			else if (psToken->IsIdentifierIgnoreCase(".global") || psToken->IsIdentifierIgnoreCase(".weak") || psToken->IsIdentifierIgnoreCase(".extern"))
+			{
+				bResult = SymbolBinding(psToken);
+			}
 			else
 			{
 				bResult = Error(psToken, "Unknown directive");
@@ -215,12 +388,16 @@ void CAsm65Assembler::Statement(void)
 		muiStatementAddress = muiAddress;
 		BindLabels();
 		Next();
-		bResult = Instruction(psToken);
+		bResult = !InBss(psToken) && Instruction(psToken);
 	}
 
 	if (bResult)
 	{
-		ExpectEnd();
+		bResult = ExpectEnd();
+	}
+	if (bResult && (muiStatementTerms != muiStatementTermsUsed))
+	{
+		Error(mpsTermToken, "A section address cannot be used here");
 	}
 
 	//Skip the rest of the line after an error.
@@ -247,7 +424,7 @@ void CAsm65Assembler::BindLabels(void)
 	for (i = 0; i < mcPendingLabels.NumElements(); i++)
 	{
 		psLabel = mcTokeniser.Get(mcPendingLabels.GetValue(i));
-		DefineSymbol(psLabel, muiAddress, true);
+		DefineSymbol(psLabel, muiAddress, true, mbObject ? (int32)muiSection : ASM65_SECTION_ABSOLUTE, mcPendingLabels.GetValue(i));
 	}
 	mcPendingLabels.Kill();
 	mcPendingLabels.Init();
@@ -260,7 +437,7 @@ void CAsm65Assembler::BindLabels(void)
 // the last pass needs another pass.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Assembler::DefineSymbol(SAsm65Token* psName, int64 iValue, bool bResolved)
+void CAsm65Assembler::DefineSymbol(SAsm65Token* psName, int64 iValue, bool bResolved, int32 iSection, size uiTermToken)
 {
 	SAsm65Symbol*	psSymbol;
 
@@ -270,13 +447,30 @@ void CAsm65Assembler::DefineSymbol(SAsm65Token* psName, int64 iValue, bool bReso
 		Error(psName, "Symbol is already defined");
 		return;
 	}
-	if ((psSymbol->iValue != iValue) || (psSymbol->bResolved != bResolved))
+	if (psSymbol->bExternal)
+	{
+		Error(psName, "Symbol is declared external");
+		return;
+	}
+	if ((psSymbol->iValue != iValue) || (psSymbol->bResolved != bResolved) || (psSymbol->iSection != iSection))
 	{
 		mbChanged = true;
 	}
 	psSymbol->iValue = iValue;
 	psSymbol->bResolved = bResolved;
 	psSymbol->uiPass = muiPass;
+	psSymbol->iSection = iSection;
+	psSymbol->uiTermToken = uiTermToken;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CAsm65Assembler::TokenIndex(SAsm65Token* psToken)
+{
+	return (size)(psToken - mcTokeniser.Get(0));
 }
 
 
@@ -297,7 +491,17 @@ bool CAsm65Assembler::Constant(SAsm65Token* psName)
 	{
 		return false;
 	}
-	DefineSymbol(psName, sValue.iValue, sValue.bResolved);
+	if (sValue.iTerms == 0)
+	{
+		DefineSymbol(psName, sValue.iValue, sValue.bResolved, ASM65_SECTION_ABSOLUTE, 0);
+		return true;
+	}
+	if (sValue.iTerms != 1)
+	{
+		return Error(psName, "An address must be one label plus or minus a constant");
+	}
+	UseTerm();
+	DefineSymbol(psName, sValue.iValue, sValue.bResolved, sValue.iSection, sValue.uiTermToken);
 	return true;
 }
 
@@ -311,6 +515,10 @@ bool CAsm65Assembler::Origin(void)
 {
 	int64	iValue;
 
+	if (mbObject)
+	{
+		return Error(Peek(), ".org is only allowed in absolute mode; use .section");
+	}
 	if (!ExpressionValue(&iValue))
 	{
 		return false;
@@ -360,6 +568,10 @@ bool CAsm65Assembler::Data(uint8 uiBytes)
 	uint8			j;
 	int64			iLimit;
 
+	if (InBss(Peek()))
+	{
+		return false;
+	}
 	do
 	{
 		psToken = Peek();
@@ -381,6 +593,16 @@ bool CAsm65Assembler::Data(uint8 uiBytes)
 			if (!Expression(&sValue))
 			{
 				return false;
+			}
+			if (IsRelocatable(&sValue))
+			{
+				UseTerm();
+				RecordRelocation(&sValue, muiAddress, uiBytes, false, false, 0, psToken);
+				for (j = 0; j < uiBytes; j++)
+				{
+					WriteByte(0);
+				}
+				continue;
 			}
 			if (uiBytes < 8)
 			{
@@ -408,6 +630,16 @@ bool CAsm65Assembler::Data(uint8 uiBytes)
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Assembler::AlignTo(uint32 uiAlignment)
 {
+	SAsm65Section*	psSection;
+
+	if (mbObject)
+	{
+		psSection = mpcObject->GetSection(muiSection);
+		if (psSection->uiAlignment < uiAlignment)
+		{
+			psSection->uiAlignment = uiAlignment;
+		}
+	}
 	while ((muiAddress & (uiAlignment - 1)) != 0)
 	{
 		WriteByte(0);
@@ -421,11 +653,315 @@ void CAsm65Assembler::AlignTo(uint32 uiAlignment)
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Assembler::WriteByte(uint8 uiByte)
 {
+	SAsm65Section*	psSection;
+
 	if (mbFinal)
 	{
-		mcOutput.Write(muiAddress, uiByte);
+		if (!mbObject)
+		{
+			mcOutput.Write(muiAddress, uiByte);
+		}
+		else
+		{
+			psSection = mpcObject->GetSection(muiSection);
+			if (psSection->eKind != ASK65_Bss)
+			{
+				while (psSection->cBytes.NumElements() < muiAddress)
+				{
+					psSection->cBytes.Add(0);
+				}
+				psSection->cBytes.Add(uiByte);
+			}
+		}
 	}
 	muiAddress++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// .space bytes (zeros)
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::Space(void)
+{
+	SAsm65Token*	psToken;
+	int64			iValue;
+	int64			i;
+
+	psToken = Peek();
+	if (!ExpressionValue(&iValue))
+	{
+		return false;
+	}
+	if ((iValue < 0) || (iValue > 0x1000000))
+	{
+		return Error(psToken, "Space must be 0 to 16MB");
+	}
+	for (i = 0; i < iValue; i++)
+	{
+		WriteByte(0);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// .section name {, comdat {group}}
+// The name starts with text, rodata, init, fini, data or bss.  A COMDAT section's
+// group is its name unless one is given.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::Section(void)
+{
+	SAsm65Token*		psName;
+	SAsm65Token*		psGroup;
+	EAsm65SectionKind	eKind;
+	CChars				szName;
+	CChars				szGroup;
+	int32				iSection;
+
+	psName = Peek();
+	if (!mbObject)
+	{
+		return Error(psName, ".section is only allowed when assembling an object");
+	}
+	if (psName->eType != AT65_Identifier)
+	{
+		return ErrorExpected(psName, "a section name");
+	}
+	if (!Asm65SectionKind(psName->szText, psName->uiLength, &eKind))
+	{
+		return Error(psName, "A section name starts with text, rodata, init, fini, data or bss");
+	}
+	Next();
+
+	psGroup = NULL;
+	if (Accept(AP65_Comma))
+	{
+		if (!Peek()->IsIdentifierIgnoreCase("comdat"))
+		{
+			return ErrorExpected(Peek(), "comdat");
+		}
+		Next();
+		psGroup = psName;
+		if (Peek()->eType == AT65_Identifier)
+		{
+			psGroup = Next();
+		}
+	}
+
+	szName.Init();
+	szName.Append(psName->szText, psName->uiLength);
+	szGroup.Init();
+	if (psGroup)
+	{
+		szGroup.Append(psGroup->szText, psGroup->uiLength);
+	}
+	iSection = mpcObject->FindSection(szName.Text(), szGroup.Text());
+	if (iSection < 0)
+	{
+		iSection = (int32)mpcObject->AddSection(szName.Text(), szGroup.Text(), eKind);
+		mcSectionAddresses.Add(0);
+	}
+	szGroup.Kill();
+	szName.Kill();
+
+	SwitchSection((uint32)iSection);
+	muiStatementAddress = muiAddress;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Assembler::SwitchSection(uint32 uiSection)
+{
+	mcSectionAddresses.SetValue(muiSection, muiAddress);
+	muiSection = uiSection;
+	muiAddress = mcSectionAddresses.GetValue(muiSection);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A bss section only has labels, .space and .align.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::InBss(SAsm65Token* psToken)
+{
+	if (mbObject && (mpcObject->GetSection(muiSection)->eKind == ASK65_Bss))
+	{
+		Error(psToken, "A bss section only has labels, .space and .align");
+		return true;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// .global name, ...    the name is visible to other objects (or is an external)
+// .weak name, ...      as .global, but another object's global definition wins and
+//                      an undefined weak name is 0
+// .extern name, ...    the name is defined by another object
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::SymbolBinding(SAsm65Token* psDirective)
+{
+	SAsm65Token*	psName;
+	SAsm65Symbol*	psSymbol;
+
+	if (!mbObject)
+	{
+		return Error(psDirective, "Symbol bindings are only allowed when assembling an object");
+	}
+	do
+	{
+		psName = Peek();
+		if ((psName->eType != AT65_Identifier) || IsReservedName(psName))
+		{
+			return ErrorExpected(psName, "a symbol name");
+		}
+		Next();
+
+		psSymbol = mcSymbols.Put(psName->szText, psName->uiLength);
+		if (psDirective->IsIdentifierIgnoreCase(".global"))
+		{
+			psSymbol->bGlobal = true;
+		}
+		else if (psDirective->IsIdentifierIgnoreCase(".weak"))
+		{
+			psSymbol->bWeak = true;
+		}
+		else if (!psSymbol->bExternal)
+		{
+			if (psSymbol->uiPass == muiPass)
+			{
+				return Error(psName, "Symbol is already defined");
+			}
+			psSymbol->iValue = 0;
+			psSymbol->bResolved = true;
+			psSymbol->bExternal = true;
+			psSymbol->iSection = ASM65_SECTION_UNDEFINED;
+			psSymbol->uiTermToken = TokenIndex(psName);
+			mbChanged = true;
+		}
+	}
+	while (Accept(AP65_Comma));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A value the linker must finish: an address in a section or an external.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::IsRelocatable(SAsm65Value* psValue)
+{
+	return mbObject && (psValue->iTerms != 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A relative target in the current section is an offset the assembler knows.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::IsLocalTarget(SAsm65Value* psValue)
+{
+	return mbObject && (psValue->iTerms == 1) && (psValue->iSection == (int32)muiSection);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A relative target in another section or an external needs a relocation.  A target
+// in this section becomes a plain offset (like the statement's address).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::TargetIsRelocatable(SAsm65Value* psTarget)
+{
+	if (IsLocalTarget(psTarget))
+	{
+		UseTerm();
+		psTarget->iTerms = 0;
+		psTarget->iSection = ASM65_SECTION_ABSOLUTE;
+		return false;
+	}
+	return IsRelocatable(psTarget);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each section address in a statement must be used by a relocation or a constant.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Assembler::UseTerm(void)
+{
+	muiStatementTermsUsed++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A relocation for the field at uiOffset in the current section.  Externals, global
+// and weak labels are relocated by name (so another object's definition or the kept
+// copy of a COMDAT section is used), local labels by their section.  A relative field
+// is measured from C, uiFieldToNext bytes after the field's start.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Assembler::RecordRelocation(SAsm65Value* psValue, uint32 uiOffset, uint8 uiBytes, bool bSigned, bool bRelative, uint32 uiFieldToNext, SAsm65Token* psToken)
+{
+	SAsm65Relocation*	psRelocation;
+	SAsm65Token*		psTerm;
+	SAsm65Symbol*		psSymbol;
+	CChars				szName;
+
+	if (!mbFinal)
+	{
+		return;
+	}
+	if (psValue->iTerms != 1)
+	{
+		Error(psToken, "An address must be one label plus or minus a constant");
+		return;
+	}
+
+	psRelocation = mpcObject->AddRelocation();
+	psRelocation->uiSection = muiSection;
+	psRelocation->uiOffset = uiOffset;
+	psRelocation->uiBytes = uiBytes;
+	psRelocation->bSigned = bSigned;
+	psRelocation->bRelative = bRelative;
+	psRelocation->uiLine = psToken->uiLine;
+	psRelocation->uiColumn = psToken->uiColumn;
+
+	psTerm = mcTokeniser.Get(psValue->uiTermToken);
+	psSymbol = mcSymbols.Get(psTerm->szText, psTerm->uiLength);
+	if (psSymbol && (psSymbol->bExternal || psSymbol->bGlobal || psSymbol->bWeak))
+	{
+		szName.Init();
+		szName.Append(psTerm->szText, psTerm->uiLength);
+		psRelocation->iTargetSection = ASM65_TARGET_SYMBOL;
+		psRelocation->uiTargetSymbol = mpcObject->PutSymbol(szName.Text());
+		psRelocation->iAddend = psSymbol->bExternal ? psValue->iValue : psValue->iValue - psSymbol->iValue;
+		szName.Kill();
+	}
+	else
+	{
+		psRelocation->iTargetSection = psValue->iSection;
+		psRelocation->iAddend = psValue->iValue;
+	}
+	if (bRelative)
+	{
+		psRelocation->iAddend -= uiFieldToNext;
+	}
 }
 
 
@@ -450,7 +986,8 @@ uint8 CAsm65Assembler::GetMinimumWords(void)
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Assembler::Emit(SAsm65Instruction* psInstruction)
 {
-	uint8	i;
+	uint8							i;
+	SAsm65InstructionRelocation*	psRelocation;
 
 	if (muiInstruction >= mcMinimumWords.NumElements())
 	{
@@ -461,6 +998,12 @@ void CAsm65Assembler::Emit(SAsm65Instruction* psInstruction)
 	{
 		mcMinimumWords.SetValue(muiInstruction, psInstruction->uiWords);
 		mbChanged = true;
+	}
+
+	for (i = 0; i < psInstruction->uiRelocations; i++)
+	{
+		psRelocation = &psInstruction->asRelocations[i];
+		RecordRelocation(&psRelocation->sValue, muiAddress + 2 * psRelocation->uiWord, psRelocation->uiBytes, psRelocation->bSigned, psRelocation->bRelative, 2 * (psInstruction->uiWords - psRelocation->uiWord), psRelocation->psToken);
 	}
 
 	for (i = 0; i < psInstruction->uiWords; i++)
