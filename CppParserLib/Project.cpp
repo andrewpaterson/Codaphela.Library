@@ -194,13 +194,18 @@ CTranslationUnit* CProject::Iterate(SProcessIter* psIter)
 			}
 		}
 		psIter->pcLibrary = mcLibraries.GetNext(psIter->pcLibrary);
-		if (psIter->pcLibrary)
-		{
-			psIter->pcFile = psIter->pcLibrary->GetFirstTranslationUnit(&psIter->sIter);
-		}
-		else
+		if (!psIter->pcLibrary)
 		{
 			break;
+		}
+		pcConfig = psIter->pcLibrary->GetConfig(psIter->szConfiguration);
+		if (pcConfig)
+		{
+			psIter->pcFile = psIter->pcLibrary->GetFirstTranslationUnit(&psIter->sIter);
+			if (psIter->pcFile)
+			{
+				return psIter->pcFile;
+			}
 		}
 	}
 	return NULL;

@@ -43,6 +43,7 @@ SCPP65Class* CCPP65Generator::NewClass(CCPPSymbol* pcSymbol, int64 lliName)
 	psClass->macFields.Init();
 	psClass->mapsVirtuals.Init();
 	psClass->iVtableOffset = -1;
+	psClass->macVtables.Init();
 	psClass->bComplete = false;
 	psClass->bLayingOut = false;
 	psClass->bBases = false;
@@ -822,13 +823,7 @@ bool CCPP65Generator::LayoutClass(SCPP65Class* psClass, CCPPSyntax* pcNode)
 		iBytes += 4;
 		iAlign = 4;
 	}
-	for (i = 1; i < psClass->macBases.NumElements(); i++)
-	{
-		if (psClass->macBases.Get(i)->psClass->iVtableOffset != -1)
-		{
-			bResult = Error(pcSpecifier, "Only the first base class can be polymorphic in the 65C64 generator yet");
-		}
-	}
+	LayoutSecondaryVtables(psClass);
 	for (i = 0; i < psClass->macFields.NumElements(); i++)
 	{
 		psField = psClass->macFields.Get(i);
@@ -1029,7 +1024,7 @@ bool CCPP65Generator::LayoutVirtuals(SCPP65Class* psClass, CCPPSyntax* pcNode)
 		for (j = 0; j < psClass->mapsVirtuals.NumElements(); j++)
 		{
 			psVirtual = psClass->mapsVirtuals.GetPtr(j);
-			if ((psVirtual->eKind == psFunction->eKind) && ((psFunction->eKind == CPP65FK_Destructor) || ((psVirtual->lliName == psFunction->lliName) && SameParameters(psVirtual, psFunction))))
+			if (Overrides(psVirtual, psFunction))
 			{
 				psClass->mapsVirtuals.SetPtr(j, psFunction);
 				psFunction->bVirtual = true;
@@ -1038,13 +1033,154 @@ bool CCPP65Generator::LayoutVirtuals(SCPP65Class* psClass, CCPPSyntax* pcNode)
 				break;
 			}
 		}
-		if (!bOverride && psFunction->bVirtual)
+		//A function that overrides one in a secondary vtable also gets a place in the class's own.
+		if (!bOverride && (psFunction->bVirtual || OverridesBase(psClass, psFunction)))
 		{
+			psFunction->bVirtual = true;
 			psFunction->iSlot = (int)psClass->mapsVirtuals.NumElements();
 			psClass->mapsVirtuals.Add(psFunction);
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if psFunction overrides psVirtual: destructors override destructors, other
+// functions need the same name and parameters.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::Overrides(SCPP65Function* psVirtual, SCPP65Function* psFunction)
+{
+	return (psVirtual->eKind == psFunction->eKind) && ((psFunction->eKind == CPP65FK_Destructor) || ((psVirtual->lliName == psFunction->lliName) && SameParameters(psVirtual, psFunction)));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if psFunction overrides a virtual function in any of psClass's bases'
+// vtables.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::OverridesBase(SCPP65Class* psClass, SCPP65Function* psFunction)
+{
+	SCPP65Class*	psBase;
+	SCPP65Vtable*	psVtable;
+	size			i;
+	size			j;
+	size			k;
+
+	for (i = 0; i < psClass->macBases.NumElements(); i++)
+	{
+		psBase = psClass->macBases.Get(i)->psClass;
+		for (j = 0; j < psBase->mapsVirtuals.NumElements(); j++)
+		{
+			if (Overrides(psBase->mapsVirtuals.GetPtr(j), psFunction))
+			{
+				return true;
+			}
+		}
+		for (j = 0; j < psBase->macVtables.NumElements(); j++)
+		{
+			psVtable = psBase->macVtables.Get(j);
+			for (k = 0; k < psVtable->mapsFunctions.NumElements(); k++)
+			{
+				if (Overrides(psVtable->mapsFunctions.GetPtr(k), psFunction))
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The vtables of the polymorphic base subobjects that do not share the class's
+// vtable pointer: the bases' own (except the first base's when the class shares it)
+// and their secondary vtables, with the class's functions overriding.  The base
+// offsets must be known.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::LayoutSecondaryVtables(SCPP65Class* psClass)
+{
+	SCPP65Base*		psBase;
+	SCPP65Vtable*	psVtable;
+	bool			bShared;
+	size			i;
+	size			j;
+
+	for (i = 0; i < psClass->macBases.NumElements(); i++)
+	{
+		psBase = psClass->macBases.Get(i);
+		bShared = (i == 0) && (psClass->psBase == psBase->psClass) && (psBase->psClass->iVtableOffset != -1) && (psClass->iVtableOffset == psBase->psClass->iVtableOffset);
+		if (!bShared && (psBase->psClass->iVtableOffset != -1))
+		{
+			AddSecondaryVtable(psClass, psBase->iOffset, psBase->psClass, &psBase->psClass->mapsVirtuals, NULL);
+		}
+		for (j = 0; j < psBase->psClass->macVtables.NumElements(); j++)
+		{
+			psVtable = psBase->psClass->macVtables.Get(j);
+			AddSecondaryVtable(psClass, psBase->iOffset + psVtable->iOffset, psVtable->psOwner, &psVtable->mapsFunctions, &psVtable->maiAdjust);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A secondary vtable at iOffset, starting as a base's.  The class's own functions
+// override; they need this moved back from the subobject to the class.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AddSecondaryVtable(SCPP65Class* psClass, int iOffset, SCPP65Class* psOwner, CArrayCPP65FunctionPtrs* papsFunctions, CArrayInt* paiAdjust)
+{
+	SCPP65Vtable*		psVtable;
+	SCPP65Function*		psFunction;
+	size				i;
+	size				j;
+
+	psVtable = psClass->macVtables.Add();
+	psVtable->iOffset = iOffset;
+	psVtable->psOwner = psOwner;
+	psVtable->mapsFunctions.Init();
+	psVtable->maiAdjust.Init();
+	for (i = 0; i < papsFunctions->NumElements(); i++)
+	{
+		psVtable->mapsFunctions.Add(papsFunctions->GetPtr(i));
+		psVtable->maiAdjust.Add(paiAdjust ? paiAdjust->GetValue(i) : 0);
+	}
+
+	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	{
+		psFunction = mapsFunctions.GetPtr(i);
+		if ((psFunction->psClass != psClass) || psFunction->bStatic || (psFunction->eKind == CPP65FK_Constructor))
+		{
+			continue;
+		}
+		for (j = 0; j < psVtable->mapsFunctions.NumElements(); j++)
+		{
+			if (Overrides(psVtable->mapsFunctions.GetPtr(j), psFunction))
+			{
+				psVtable->mapsFunctions.SetPtr(j, psFunction);
+				psVtable->maiAdjust.SetValue(j, -iOffset);
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if objects of the class have a vtable pointer, its own or a base's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsPolymorphic(SCPP65Class* psClass)
+{
+	return (psClass->iVtableOffset != -1) || (psClass->macVtables.NumElements() > 0);
 }
 
 
@@ -1057,8 +1193,9 @@ bool CCPP65Generator::LayoutVirtuals(SCPP65Class* psClass, CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::EnsureVtable(SCPP65Class* psClass)
 {
-	SCPP65Function*	psFunction;
+	SCPP65Vtable*	psVtable;
 	size			i;
+	size			j;
 	CChars			szLabel;
 	bool			bEmit;
 
@@ -1082,26 +1219,97 @@ void CCPP65Generator::EnsureVtable(SCPP65Class* psClass)
 	AppendClassLabel(&mszData, psClass, "2");
 	mszData.Append(':');
 	mszData.AppendNewLine();
-	mszData.Append("\t\t.long ");
 	for (i = 0; i < psClass->mapsVirtuals.NumElements(); i++)
 	{
-		psFunction = psClass->mapsVirtuals.GetPtr(i);
-		if (i > 0)
+		AppendVtableEntry(psClass->mapsVirtuals.GetPtr(i), 0);
+	}
+	for (i = 0; i < psClass->macVtables.NumElements(); i++)
+	{
+		psVtable = psClass->macVtables.Get(i);
+		for (j = 0; j < psVtable->mapsFunctions.NumElements(); j++)
 		{
-			mszData.Append(", ");
-		}
-		if (psFunction->bPure)
-		{
-			mszData.Append("R_Pure");
-			mbPureVirtual = true;
-		}
-		else
-		{
-			AppendFunctionLabel(&mszData, psFunction);
-			RequireFunction(psFunction);
+			AppendVtableEntry(psVtable->mapsFunctions.GetPtr(j), psVtable->maiAdjust.GetValue(j));
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A vtable entry: the function, or a thunk that adds iAdjust to this and jumps to
+// it.  Each thunk is written once.  Pure virtual functions are R_Pure.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendVtableEntry(SCPP65Function* psFunction, int iAdjust)
+{
+	CChars	szLabel;
+
+	mszData.Append("\t\t.long ");
+	if (psFunction->bPure)
+	{
+		mszData.Append("R_Pure");
+		mbPureVirtual = true;
+		mszData.AppendNewLine();
+		return;
+	}
+
+	RequireFunction(psFunction);
+	szLabel.Init();
+	AppendFunctionLabel(&szLabel, psFunction);
+	if (iAdjust != 0)
+	{
+		szLabel.Append("__t");
+		szLabel.Append(-iAdjust);
+		if (Emit(&szLabel))
+		{
+			mszThunks.Append(szLabel);
+			mszThunks.Append(':');
+			mszThunks.AppendNewLine();
+			mszThunks.Append("\t\tadd X, ");
+			mszThunks.Append(iAdjust);
+			mszThunks.AppendNewLine();
+			mszThunks.Append("\t\tjmp ");
+			AppendFunctionLabel(&mszThunks, psFunction);
+			mszThunks.AppendNewLine();
+			mszThunks.AppendNewLine();
+		}
+	}
+	mszData.Append(szLabel);
 	mszData.AppendNewLine();
+	szLabel.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Points the object's vtable pointers (the object's address is in szObject) at the
+// class's vtables, using szValue.  The secondary vtables follow the class's own.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::StoreVtables(SCPP65Class* psClass, const char* szValue, const char* szObject)
+{
+	SCPP65Vtable*	psVtable;
+	size			i;
+	int				iEntry;
+
+	EnsureVtable(psClass);
+	if (psClass->iVtableOffset != -1)
+	{
+		Line("cpy ")->Append(szValue)->Append(", ");
+		AppendClassLabel(mpszOut, psClass, "2");
+		mpszOut->AppendNewLine();
+		Line("cpy [")->Append(psClass->iVtableOffset)->Append(" + ")->Append(szObject)->Append("], ")->Append(szValue)->AppendNewLine();
+	}
+	iEntry = (int)psClass->mapsVirtuals.NumElements();
+	for (i = 0; i < psClass->macVtables.NumElements(); i++)
+	{
+		psVtable = psClass->macVtables.Get(i);
+		Line("cpy ")->Append(szValue)->Append(", ");
+		AppendClassLabel(mpszOut, psClass, "2");
+		mpszOut->Append(" + ")->Append(4 * iEntry)->AppendNewLine();
+		Line("cpy [")->Append(psVtable->iOffset + psVtable->psOwner->iVtableOffset)->Append(" + ")->Append(szObject)->Append("], ")->Append(szValue)->AppendNewLine();
+		iEntry += (int)psVtable->mapsFunctions.NumElements();
+	}
 }
 
 
@@ -1418,7 +1626,7 @@ bool CCPP65Generator::NeedsConstructor(SCPP65Class* psClass)
 	SCPP65Type*		psType;
 	size			i;
 
-	if (psClass->bConstructors || (psClass->iVtableOffset != -1))
+	if (psClass->bConstructors || IsPolymorphic(psClass))
 	{
 		return true;
 	}
@@ -2145,7 +2353,7 @@ bool CCPP65Generator::ConstructClass(SCPP65Place* psPlace, SCPP65Class* psClass,
 	}
 
 	//An aggregate: the fields in order, the rest zero.
-	if ((psClass->macBases.NumElements() > 0) || (psClass->iVtableOffset != -1) || (papcArguments->NumElements() > psClass->macFields.NumElements()))
+	if ((psClass->macBases.NumElements() > 0) || IsPolymorphic(psClass) || (papcArguments->NumElements() > psClass->macFields.NumElements()))
 	{
 		return Error(pcNode, "These initialisers do not match the class");
 	}
@@ -2461,7 +2669,9 @@ int CCPP65Generator::PushArguments(SCPP65Function* psFunction, CArraySyntax* pap
 //
 // Pushes the arguments last first, each converted to its parameter's type and at
 // its size.  Missing arguments are the parameters' defaults.  A reference gets the
-// argument's address.  Returns the bytes pushed, or -1 after an error.
+// argument's address.  A variadic function's extra arguments are pushed first (they
+// are last), promoted: integers narrower than int are int, arrays and functions are
+// pointers.  Returns the bytes pushed, or -1 after an error.
 //
 //////////////////////////////////////////////////////////////////////////
 int CCPP65Generator::PushParameters(CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
@@ -2477,13 +2687,63 @@ int CCPP65Generator::PushParameters(CArrayCPP65Types* papsParameters, CArraySynt
 
 	uiArguments = papcArguments ? papcArguments->NumElements() : 0;
 	uiParameters = papsParameters->NumElements();
-	if (uiArguments > uiParameters)
+	if ((uiArguments > uiParameters) && !bVariadic)
 	{
-		Error(pcNode, bVariadic ? "Calls with variable arguments are not supported by the 65C64 generator yet" : "The number of arguments does not match the function");
+		Error(pcNode, "The number of arguments does not match the function");
 		return -1;
 	}
 
 	iBytes = 0;
+	for (i = uiArguments; i > uiParameters; i--)
+	{
+		pcArgument = papcArguments->GetPtr(i - 1);
+		psType = Expression(pcArgument);
+		if (!psType)
+		{
+			return -1;
+		}
+		if (psType->IsReference())
+		{
+			psType = psType->psBase;
+		}
+		if (psType->eKind == CPP65TK_Bool)
+		{
+			psParameter = &mcTypes.msInt;
+		}
+		else if (psType->IsInteger())
+		{
+			psParameter = mcTypes.Promote(psType);
+		}
+		else if (psType->IsArray())
+		{
+			psParameter = mcTypes.Pointer(psType->psBase);
+		}
+		else if (psType->IsFunction())
+		{
+			psParameter = mcTypes.Pointer(psType);
+		}
+		else if (psType->IsPointer())
+		{
+			psParameter = psType;
+		}
+		else if (psType->IsClass())
+		{
+			Error(pcArgument, "Objects cannot be passed by value by the 65C64 generator yet; pass a pointer or a reference");
+			return -1;
+		}
+		else
+		{
+			Error(pcArgument, "This variable argument is not supported by the 65C64 generator yet");
+			return -1;
+		}
+		if (!Convert(psType, psParameter, pcArgument))
+		{
+			return -1;
+		}
+		PushValue(psParameter);
+		iBytes += psParameter->iBytes;
+	}
+
 	for (i = uiParameters; i > 0; i--)
 	{
 		pcArgument = (i <= uiArguments) ? papcArguments->GetPtr(i - 1) : (papcDefaults ? papcDefaults->GetPtr(i - 1) : NULL);
@@ -2631,13 +2891,9 @@ bool CCPP65Generator::CopyObject(SCPP65Place* psDestination, CCPPSyntax* pcSourc
 			Line("wth Y, 4")->AppendNewLine();
 		}
 	}
-	if (psClass->iVtableOffset != -1)
+	if (IsPolymorphic(psClass))
 	{
-		EnsureVtable(psClass);
-		Line("cpy Y, ");
-		AppendClassLabel(mpszOut, psClass, "2");
-		mpszOut->AppendNewLine();
-		Line("cpy [")->Append(psClass->iVtableOffset)->Append(" + A], Y")->AppendNewLine();
+		StoreVtables(psClass, "Y", "A");
 	}
 	return true;
 }
@@ -2721,16 +2977,12 @@ bool CCPP65Generator::MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65Pl
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::SetVtable(SCPP65Place* psPlace, SCPP65Class* psClass)
 {
-	if (psClass->iVtableOffset == -1)
+	if (!IsPolymorphic(psClass))
 	{
 		return true;
 	}
-	EnsureVtable(psClass);
-	Line("cpy A, ");
-	AppendClassLabel(mpszOut, psClass, "2");
-	mpszOut->AppendNewLine();
 	EnsureThis();
-	Line("cpy [")->Append(psClass->iVtableOffset)->Append(" + X], A")->AppendNewLine();
+	StoreVtables(psClass, "A", "X");
 	return true;
 }
 

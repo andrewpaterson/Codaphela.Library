@@ -29,11 +29,13 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayUint8.h"
 #include "BaseLib/ArrayChars.h"
+#include "BaseLib/ArrayInt.h"
 #include "BaseLib/MapLongTemplate.h"
 #include "CPPSyntaxes.h"
 #include "CPPSymbol.h"
 #include "CPP65Type.h"
 #include "CPPErrors.h"
+#include "Config.h"
 
 
 enum ECPP65Storage
@@ -46,6 +48,7 @@ enum ECPP65Storage
 
 struct SCPP65Class;
 struct SCPP65Function;
+class CCTString;
 struct SCPP65Template;
 
 
@@ -152,6 +155,21 @@ struct SCPP65Base
 typedef CArrayTemplate<SCPP65Base>		CArrayCPP65Bases;
 
 
+//A secondary vtable: the one for the polymorphic base subobject at iOffset that does not share the class's
+//vtable pointer.  It is laid out like psOwner's vtable.  A function whose object is not that subobject is
+//called through a thunk that adds maiAdjust's entry to this first.
+struct SCPP65Vtable
+{
+	int							iOffset;
+	SCPP65Class*				psOwner;
+	CArrayCPP65FunctionPtrs		mapsFunctions;
+	CArrayInt					maiAdjust;
+};
+
+
+typedef CArrayTemplate<SCPP65Vtable>	CArrayCPP65Vtables;
+
+
 //A class's layout: the bases in order (an empty base takes no space), then the vtable pointer if no base has
 //one, then the fields.  A class is laid out when it is first needed whole.  psBase is the first base.
 struct SCPP65Class
@@ -163,7 +181,8 @@ struct SCPP65Class
 	CArrayCPP65Bases			macBases;
 	CArrayCPP65Fields			macFields;
 	CArrayCPP65FunctionPtrs		mapsVirtuals;		//The vtable.
-	int							iVtableOffset;		//-1 if the class is not polymorphic.
+	int							iVtableOffset;		//-1 if the class has no vtable of its own.
+	CArrayCPP65Vtables			macVtables;			//The secondary vtables, written after the vtable.
 	bool						bComplete;
 	bool						bLayingOut;
 	bool						bBases;				//macBases is filled in (their offsets only once it is complete).
@@ -279,6 +298,7 @@ protected:
 
 	CChars					mszCode;
 	CChars					mszData;
+	CChars					mszThunks;			//Adjust this, then jump to a virtual function.
 	CChars					mszBody;
 	CChars*					mpszOut;
 	CCPPErrors				mcErrors;
@@ -317,6 +337,7 @@ protected:
 	int						miLabels;
 	bool					mbSignedDivide;
 	bool					mbSignedModulus;
+	bool					mbSignedDivide64;
 
 public:
 	void					Init(CCPPSyntaxTree* pcTree);
@@ -327,6 +348,7 @@ public:
 	void					SetUnit(const char* szUnit, CArrayChars* paszEmitted);
 	void					GetStartUp(CArrayChars* paszInitialise, CArrayChars* paszFinalise);
 	static void				AppendStartUp(CChars* pszDest, CArrayChars* paszInitialise, CArrayChars* paszFinalise);
+	static void				AddDefines(CConfig* pcConfig);
 	CCPPErrors*				GetErrors(void);
 	int						NumErrors(void);
 	void					GetExternals(CArrayChars* paszLabels);
@@ -351,7 +373,7 @@ protected:
 	bool					Emit(CChars* pszLabel);
 	bool					Declarations(CArraySyntax* papcDeclarations);
 	bool					GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration);
-	bool					GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode);
+	bool					GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, SCPP65Place* psPlace);
 	void					AppendData(SCPP65Type* psType, int64 lliValue);
 	void					AppendZeros(int iBytes);
 	void					AppendGlobalLabel(CChars* psz, SCPP65Class* psClass, int64 lliName);
@@ -390,6 +412,7 @@ protected:
 	bool					ConditionDeclaration(CCPPSyntax* pcCondition);
 	void					AppendStrings(CChars* pszDest);
 	void					AppendRuntime(void);
+	void					AppendDivideSigned(const char* szName, int iBytes);
 
 	//Classes and templates.  CPP65GeneratorClasses.cpp
 	SCPP65Class*			NewClass(CCPPSymbol* pcSymbol, int64 lliName);
@@ -410,7 +433,14 @@ protected:
 	bool					LayoutClass(SCPP65Class* psClass, CCPPSyntax* pcNode);
 	bool					ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember);
 	bool					LayoutVirtuals(SCPP65Class* psClass, CCPPSyntax* pcNode);
+	bool					Overrides(SCPP65Function* psVirtual, SCPP65Function* psFunction);
+	bool					OverridesBase(SCPP65Class* psClass, SCPP65Function* psFunction);
+	void					LayoutSecondaryVtables(SCPP65Class* psClass);
+	void					AddSecondaryVtable(SCPP65Class* psClass, int iOffset, SCPP65Class* psOwner, CArrayCPP65FunctionPtrs* papsFunctions, CArrayInt* paiAdjust);
+	bool					IsPolymorphic(SCPP65Class* psClass);
 	void					EnsureVtable(SCPP65Class* psClass);
+	void					AppendVtableEntry(SCPP65Function* psFunction, int iAdjust);
+	void					StoreVtables(SCPP65Class* psClass, const char* szValue, const char* szObject);
 	SCPP65Field*			FindField(SCPP65Class* psClass, int64 lliName, int* piOffset);
 	SCPP65Field*			FindFieldSymbol(SCPP65Class* psClass, CCPPSymbol* pcSymbol, int* piOffset);
 	SCPP65Variable*			FindStatic(SCPP65Class* psClass, int64 lliName);
@@ -448,6 +478,11 @@ protected:
 
 	//Expressions.  CPP65GeneratorExpressions.cpp
 	SCPP65Type*				Expression(CCPPSyntax* pcExpression);
+	bool					IsBuiltin(int64 lliName);
+	void					StringData(char* szBytes, size uiLength);
+	bool					FunctionNameText(int64 lliName, CChars* pszText);
+	bool					IsFunctionName(CCPPSyntaxIdExpression* pcId);
+	SCPP65Type*				Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName);
 	SCPP65Type*				Evaluate(CCPPSyntax* pcExpression);
 	SCPP65Type*				Value(CCPPSyntax* pcExpression);
 	SCPP65Type*				Literal(CCPPSyntaxLiteralExpression* pcLiteral);
@@ -472,6 +507,9 @@ protected:
 	SCPP65Type*				TypeOf(CCPPSyntax* pcExpression);
 	SCPP65Type*				Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65Right* psRight);
 	SCPP65Type*				Operate(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Right* psRight, CCPPSyntax* pcNode);
+	SCPP65Type*				OperateWide(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Right* psRight, SCPP65Type* psType, CCPPSyntax* pcNode);
+	void					MoveAToB(SCPP65Type* psType);
+	void					LoadConstant(const char* szRegister, SCPP65Type* psType, int64 lliValue);
 	bool					Compare(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Right* psRight, bool bJumpIf, int iLabel, CCPPSyntax* pcNode);
 	void					RightInB(SCPP65Right* psRight);
 	CChars*					AppendRight(CChars* psz, SCPP65Right* psRight);
@@ -491,6 +529,10 @@ protected:
 	void					LoadAddress(SCPP65Place* psPlace);
 	void					Push(const char* szRegister);
 	void					PushValue(SCPP65Type* psType);
+	void					PushWide(const char* szRegister, bool bWide);
+	void					PullWide(const char* szRegister, bool bWide);
+	void					Widen(const char* szRegister, bool bSigned);
+	void					CompareZero(SCPP65Type* psType);
 	void					Multiply(const char* szInstruction);
 	void					Pull(const char* szRegister);
 
@@ -501,6 +543,7 @@ protected:
 	bool					ContainsCall(CCPPSyntax* pcNode);
 	CCPPSyntax*				SkipParentheses(CCPPSyntax* pcExpression);
 	bool					DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes);
+	bool					DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, CArrayUint8* pauiBytes);
 };
 
 

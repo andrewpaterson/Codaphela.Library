@@ -120,7 +120,18 @@ bool SCPP65Type::IsFloat(void)
 //////////////////////////////////////////////////////////////////////////
 bool SCPP65Type::IsSupported(void)
 {
-	return IsScalar() && (iBytes <= 4);
+	return IsScalar() && !IsFloat() && (iBytes <= 8);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An 8 byte integer: worked on with the registers 64 bits wide.
+//
+//////////////////////////////////////////////////////////////////////////
+bool SCPP65Type::IsWide(void)
+{
+	return (eKind == CPP65TK_Integer) && (iBytes == 8);
 }
 
 
@@ -437,6 +448,15 @@ SCPP65Type* CCPP65Types::Arithmetic(SCPP65Type* psLeft, SCPP65Type* psRight)
 {
 	psLeft = Promote(psLeft);
 	psRight = Promote(psRight);
+	if (psLeft->IsWide() || psRight->IsWide())
+	{
+		//long long holds every unsigned int, so only an unsigned long long makes it unsigned.
+		if ((psLeft->IsWide() && !psLeft->bSigned) || (psRight->IsWide() && !psRight->bSigned))
+		{
+			return &msUnsignedLongLong;
+		}
+		return &msLongLong;
+	}
 	if (!psLeft->bSigned || !psRight->bSigned)
 	{
 		return &msUnsignedInt;
