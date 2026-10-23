@@ -52,15 +52,19 @@ public:
 
 	void	GetRectangle(CInt32Rect* pcDest) override;
 	void	SignalPresent(void) override;
+	void	DestroyNativeWindow(void) override;
+
+	void	HandleEvent(_XEvent* puEvent);
+	void	PresentIfPending(void);
+	X11ID	GetXWindow(void);
 
 protected:
-	bool	HandleEvent(_XEvent* puEvent);
+	void	SetDialogHints(int iWidth, int iHeight);
 	void	MouseMoved(int x, int y);
 	void	MouseButton(unsigned int uiButton, unsigned int uiState, int x, int y, bool bPressed);
 	void	MouseLeft(unsigned int uiState);
 	void	Activated(void);
 	void	Deactivated(void);
-	void	DestroyNativeWindow(void);
 };
 
 

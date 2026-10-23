@@ -29,10 +29,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <X11/Xutil.h>
 #include <X11/XKBlib.h>
 #include <X11/keysym.h>
+#include <X11/Xatom.h>
 
 
-#define X11_WINDOW_WIDTH		800
-#define X11_WINDOW_HEIGHT		600
+#define X11_WINDOW_WIDTH        800
+#define X11_WINDOW_HEIGHT       600
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -79,11 +80,20 @@ void CX11Window::DestroyNativeWindow(void)
         pcFactory = (CX11WindowFactory*)mpcWindowFactory;
         psDisplay = pcFactory->GetDisplay();
 
+        //The keys go back to the owner, rather than to whatever the window manager chooses.
+        if (mpcOwner && ((CX11Window*)mpcOwner)->mulWindow)
+        {
+            XSetInputFocus(psDisplay, ((CX11Window*)mpcOwner)->mulWindow, RevertToParent, CurrentTime);
+        }
+
+        pcFactory->RemoveWindow(this);
         XFreeGC(psDisplay, mpsGC);
         XDestroyWindow(psDisplay, mulWindow);
         XFlush(psDisplay);
         mpsGC = NULL;
         mulWindow = 0;
+        mbPointerKnown = false;
+        mbPresentPending = false;
     }
 }
 
@@ -162,6 +172,8 @@ bool CX11Window::CreateNativeWindow(void)
     XSetWindowAttributes    sAttributes;
     Atom                    ulDeleteWindow;
     CChars                  sz;
+    int                     iWidth;
+    int                     iHeight;
 
     pcFactory = (CX11WindowFactory*)mpcWindowFactory;
     psDisplay = pcFactory->GetDisplay();
@@ -192,10 +204,12 @@ bool CX11Window::CreateNativeWindow(void)
                              KeyPressMask | KeyReleaseMask |
                              ButtonPressMask | ButtonReleaseMask | PointerMotionMask | EnterWindowMask | LeaveWindowMask;
 
+    iWidth = (msRequestedSize.x > 0) ? msRequestedSize.x : X11_WINDOW_WIDTH;
+    iHeight = (msRequestedSize.y > 0) ? msRequestedSize.y : X11_WINDOW_HEIGHT;
     mulWindow = XCreateWindow(psDisplay,
                               RootWindow(psDisplay, iScreen),
                               0, 0,                                     // Position, the window manager places it
-                              X11_WINDOW_WIDTH, X11_WINDOW_HEIGHT,      // Size
+                              iWidth, iHeight,                          // Size
                               0,                                        // Border width
                               iDepth,
                               InputOutput,
@@ -208,8 +222,8 @@ bool CX11Window::CreateNativeWindow(void)
         return false;
     }
 
-    miWidth = X11_WINDOW_WIDTH;
-    miHeight = X11_WINDOW_HEIGHT;
+    miWidth = iWidth;
+    miHeight = iHeight;
 
     XStoreName(psDisplay, mulWindow, mpcWindow->GetWindowTitle());
 
@@ -219,6 +233,12 @@ bool CX11Window::CreateNativeWindow(void)
 
     mpsGC = XCreateGC(psDisplay, mulWindow, 0, NULL);
 
+    if (mpcOwner)
+    {
+        SetDialogHints(iWidth, iHeight);
+    }
+
+    pcFactory->AddWindow(this);
     XMapWindow(psDisplay, mulWindow);
     XFlush(psDisplay);
 
@@ -228,53 +248,136 @@ bool CX11Window::CreateNativeWindow(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Every waiting event is handled each tick.  A mouse sends motion far
-// faster than the window ticks.
-//
-// There is only one window so every event on the display is for it.
-// More windows will need the factory to route the events.
+// A dialog stays over its owner, centred on it, can't be resized and is
+// modal; the window manager is asked for all of this.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CX11Window::ExecuteNativeWindow(void)
+void CX11Window::SetDialogHints(int iWidth, int iHeight)
 {
-    CX11WindowFactory*  pcFactory;
-    Display*            psDisplay;
-    XEvent              uEvent;
-    bool                bResult;
+    CX11WindowFactory*      pcFactory;
+    Display*                psDisplay;
+    CX11Window*             pcOwner;
+    XSizeHints*             psHints;
+    XWindowAttributes       sOwnerAttributes;
+    Window                  ulChild;
+    Atom                    ulType;
+    Atom                    ulModal;
+    int                     iOwnerX;
+    int                     iOwnerY;
 
     pcFactory = (CX11WindowFactory*)mpcWindowFactory;
     psDisplay = pcFactory->GetDisplay();
-
-    while (XPending(psDisplay) > 0)
+    pcOwner = (CX11Window*)mpcOwner;
+    if (pcOwner->mulWindow == 0)
     {
-        XNextEvent(psDisplay, &uEvent);
-        bResult = HandleEvent(&uEvent);
-        if (!bResult)
-        {
-            return false;
-        }
+        //An owner that isn't on the screen has nothing for the dialog to stay over or be centred on.
+        return;
     }
 
-    if (mbPresentPending)
+    XSetTransientForHint(psDisplay, mulWindow, pcOwner->mulWindow);
+
+    ulType = pcFactory->InternAtom("_NET_WM_WINDOW_TYPE_DIALOG");
+    XChangeProperty(psDisplay, mulWindow, pcFactory->InternAtom("_NET_WM_WINDOW_TYPE"), XA_ATOM, 32, PropModeReplace, (unsigned char*)&ulType, 1);
+    ulModal = pcFactory->InternAtom("_NET_WM_STATE_MODAL");
+    XChangeProperty(psDisplay, mulWindow, pcFactory->InternAtom("_NET_WM_STATE"), XA_ATOM, 32, PropModeReplace, (unsigned char*)&ulModal, 1);
+
+    //Centred on the owner's client area, where it is on the screen.
+    iOwnerX = 0;
+    iOwnerY = 0;
+    memset(&sOwnerAttributes, 0, sizeof(XWindowAttributes));
+    XGetWindowAttributes(psDisplay, pcOwner->mulWindow, &sOwnerAttributes);
+    XTranslateCoordinates(psDisplay, pcOwner->mulWindow, RootWindow(psDisplay, pcFactory->GetScreen()), 0, 0, &iOwnerX, &iOwnerY, &ulChild);
+    XMoveWindow(psDisplay, mulWindow, iOwnerX + (sOwnerAttributes.width - iWidth) / 2, iOwnerY + (sOwnerAttributes.height - iHeight) / 2);
+
+    psHints = XAllocSizeHints();
+    if (psHints)
     {
-        CNativeWindow::Present();
+        psHints->flags = PPosition | PMinSize | PMaxSize;
+        psHints->x = iOwnerX + (sOwnerAttributes.width - iWidth) / 2;
+        psHints->y = iOwnerY + (sOwnerAttributes.height - iHeight) / 2;
+        psHints->min_width = iWidth;
+        psHints->max_width = iWidth;
+        psHints->min_height = iHeight;
+        psHints->max_height = iHeight;
+        XSetWMNormalHints(psDisplay, mulWindow, psHints);
+        XFree(psHints);
     }
-    return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Returns false when the window has been closed.
+// Every waiting event, for every window, is handled each tick.  A mouse
+// sends motion far faster than the window ticks.  Returns false once the
+// window has been closed.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CX11Window::HandleEvent(XEvent* puEvent)
+bool CX11Window::ExecuteNativeWindow(void)
+{
+    CX11WindowFactory*  pcFactory;
+
+    pcFactory = (CX11WindowFactory*)mpcWindowFactory;
+    pcFactory->ExecuteEvents();
+    return mulWindow != 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11Window::PresentIfPending(void)
+{
+    if (mbPresentPending)
+    {
+        CNativeWindow::Present();
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A disabled window, the owner of a modal dialog, ignores the keyboard,
+// the pointer and being closed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11Window::HandleEvent(XEvent* puEvent)
 {
     CX11WindowFactory*  pcFactory;
     CX11Input*          pcInput;
 
     pcFactory = (CX11WindowFactory*)mpcWindowFactory;
     pcInput = pcFactory->GetInput();
+
+    //A key or button released over a disabled window still reaches the input, it was pressed before the dialog
+    //opened, as the enter that chose the menu item that opened it was.  Otherwise it would stay down.
+    if (!mbEnabled)
+    {
+        switch (puEvent->type)
+        {
+            case KeyRelease:
+                if (pcInput)
+                {
+                    pcInput->Key(puEvent->xkey.keycode, false);
+                }
+                return;
+            case ButtonRelease:
+                if (pcInput)
+                {
+                    pcInput->MouseButton(puEvent->xbutton.button, false);
+                }
+                return;
+            case KeyPress:
+            case ButtonPress:
+            case MotionNotify:
+            case EnterNotify:
+            case LeaveNotify:
+            case FocusIn:
+            case FocusOut:
+            case ClientMessage:
+                return;
+        }
+    }
 
     switch (puEvent->type)
     {
@@ -299,7 +402,6 @@ bool CX11Window::HandleEvent(XEvent* puEvent)
             {
                 Stop();
                 DestroyNativeWindow();
-                return false;
             }
             break;
         }
@@ -353,13 +455,16 @@ bool CX11Window::HandleEvent(XEvent* puEvent)
             }
             break;
         }
-        case MappingNotify:
+        case MapNotify:
         {
-            XRefreshKeyboardMapping(&puEvent->xmapping);
+            //A dialog takes the keys from its owner.
+            if (mpcOwner)
+            {
+                XSetInputFocus(pcFactory->GetDisplay(), mulWindow, RevertToParent, CurrentTime);
+            }
             break;
         }
     }
-    return true;
 }
 
 
@@ -510,3 +615,12 @@ void CX11Window::Deactivated(void)
     mpcWindow->Deactivate();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+X11ID CX11Window::GetXWindow(void)
+{
+    return mulWindow;
+}

@@ -22,6 +22,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Define.h"
 #include "BaseLib/Chars.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 #include "WindowLib/NativeWindowFactory.h"
 
 
@@ -32,6 +33,11 @@ typedef unsigned long	X11ID;
 
 
 class CX11Input;
+class CX11Window;
+typedef CArrayTemplatePtr<CX11Window>	CArrayX11WindowPtr;
+
+
+//Every window shares the factory's display, so the factory reads the display's events and gives each to its window.
 class CX11WindowFactory : public CNativeWindowFactory
 {
 CONSTRUCTABLE(CX11WindowFactory);
@@ -41,6 +47,7 @@ protected:
 	X11ID			mulDeleteWindowAtom;  //WM_DELETE_WINDOW, sent when the window's close button is clicked.
 	X11ID			mulProtocolsAtom;  //WM_PROTOCOLS.
 	CX11Input*		mpcInput;
+	CArrayX11WindowPtr	mapcWindows;  //The windows that are on the screen.
 
 public:
 	bool			Init(CMallocator* pcMallocator, const char* szDisplayName);
@@ -56,6 +63,12 @@ public:
 
 	void			SetInput(CX11Input* pcInput);
 	CX11Input*		GetInput(void);
+
+	void			AddWindow(CX11Window* pcWindow);
+	void			RemoveWindow(CX11Window* pcWindow);
+	CX11Window*		GetWindow(X11ID ulWindow);
+	void			ExecuteEvents(void);
+	X11ID			InternAtom(const char* szName);
 };
 
 
