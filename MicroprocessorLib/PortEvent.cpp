@@ -20,6 +20,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 ** ------------------------------------------------------------------------ **/
 #include "LogicPort.h"
 #include "Pins.h"
+#include "IntegratedCircuit.h"
 #include "PortEvent.h"
 
 
@@ -88,6 +89,27 @@ bool CPortEvent::IsOutputEvent(void)
 CLogicPort* CPortEvent::GetPort(void)
 {
 	return mpcPort;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The description of the component the port belongs to, as Logicim's
+// toPortOwnerString.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPortEvent::AppendPortOwner(CChars* psz)
+{
+	CCircuitComponent*	pcComponent;
+
+	if (mpcPort != NULL)
+	{
+		pcComponent = mpcPort->GetHolder()->GetComponent();
+		if (pcComponent != NULL)
+		{
+			pcComponent->AppendDescription(psz);
+		}
+	}
 }
 
 

@@ -45,6 +45,7 @@ public:
 	virtual CPort*	GetPort(const char* szName);
 	virtual char*	GetName(void);
 	virtual void	AppendDescription(CChars* psz);
+	virtual CCircuitComponent*	GetComponent(void);
 };
 
 

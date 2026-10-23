@@ -23,6 +23,9 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/PackFiles.h"
 #include "BaseLib/PackFile.h"
 #include "BaseLib/MemoryFile.h"
+#include "BaseLib/ConstructorCall.h"
+#include "BaseLib/PointerFunctions.h"
+#include "BaseLib/StringHelper.h"
 #include "Asm65Assembler.h"
 #include "Asm65Linker.h"
 
@@ -52,7 +55,7 @@ static int CompareMapSymbols(const void* pvLeft, const void* pvRight)
 	{
 		return (psLeft->iValue < psRight->iValue) ? -1 : 1;
 	}
-	return strcmp(psLeft->szName, psRight->szName);
+	return StringCompare(psLeft->szName, psRight->szName);
 }
 
 
@@ -90,9 +93,8 @@ void CAsm65Library::Kill(void)
 
 	for (i = 0; i < mapcObjects.NumElements(); i++)
 	{
-		pcObject = *mapcObjects.Get(i);
-		pcObject->Kill();
-		free(pcObject);
+		pcObject = mapcObjects.GetPtr(i);
+		SafeKill(pcObject);
 	}
 	mapcObjects.Kill();
 	mszName.Kill();
@@ -118,9 +120,9 @@ CAsm65Object* CAsm65Library::AddObject(const char* szName)
 {
 	CAsm65Object*	pcObject;
 
-	pcObject = (CAsm65Object*)malloc(sizeof(CAsm65Object));
+	pcObject = NewMalloc<CAsm65Object>();
 	pcObject->Init(szName);
-	mapcObjects.Add(&pcObject);
+	mapcObjects.Add(pcObject);
 	return pcObject;
 }
 
@@ -141,7 +143,7 @@ size CAsm65Library::NumObjects(void)
 //////////////////////////////////////////////////////////////////////////
 CAsm65Object* CAsm65Library::GetObject(size uiIndex)
 {
-	return *mapcObjects.Get(uiIndex);
+	return mapcObjects.GetPtr(uiIndex);
 }
 
 
@@ -210,8 +212,7 @@ bool CAsm65Library::Write(CAbstractFile* pcFile)
 		{
 			bResult = false;
 		}
-		pcMemoryFile->Kill();
-		free(pcMemoryFile);
+		SafeKill(pcMemoryFile);
 	}
 
 	cPackFiles.Kill();
@@ -359,7 +360,7 @@ void CAsm65Linker::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Linker::AddObject(CAsm65Object* pcObject)
 {
-	mapcInputs.Add(&pcObject);
+	mapcInputs.Add(pcObject);
 }
 
 
@@ -370,7 +371,7 @@ void CAsm65Linker::AddObject(CAsm65Object* pcObject)
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Linker::AddLibrary(CAsm65Library* pcLibrary)
 {
-	mapcLibraries.Add(&pcLibrary);
+	mapcLibraries.Add(pcLibrary);
 }
 
 
@@ -418,7 +419,7 @@ bool CAsm65Linker::Link(void)
 
 	for (i = 0; i < mapcInputs.NumElements(); i++)
 	{
-		Include(*mapcInputs.Get(i));
+		Include(mapcInputs.GetPtr(i));
 	}
 	PullLibraries();
 	FindMissing();
@@ -604,7 +605,7 @@ void CAsm65Linker::PullLibraries(void)
 		bChanged = false;
 		for (i = 0; i < mapcLibraries.NumElements(); i++)
 		{
-			pcLibrary = *mapcLibraries.Get(i);
+			pcLibrary = mapcLibraries.GetPtr(i);
 			for (j = 0; j < pcLibrary->NumObjects(); j++)
 			{
 				pcObject = pcLibrary->GetObject(j);

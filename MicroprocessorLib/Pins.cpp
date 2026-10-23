@@ -120,6 +120,8 @@ void CPins::CalculatePortName(CChars* psz, const char* szName, size i, size uiBu
 //////////////////////////////////////////////////////////////////////////
 void CPins::SetIntegratedCircuit(CIntegratedCircuit* pcIntegratedCircuit) { mpcIntegratedCircuit = pcIntegratedCircuit; }
 CIntegratedCircuit* CPins::GetIntegratedCircuit(void) { return mpcIntegratedCircuit; }
+CCircuitComponent* CPins::GetComponent(void) { return mpcIntegratedCircuit; }
+const char* CPins::GetType(void) { return mpcIntegratedCircuit->GetType(); }
 CPowerInPort* CPins::GetVoltageCommon(void) { return mpcVCC; }
 CPowerInPort* CPins::GetVoltageGround(void) { return mpcGND; }
 

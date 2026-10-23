@@ -24,6 +24,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 
 //Logicim's PortHolder: owns its ports, see CPort.  CPins is the holder of a chip's ports.
+class CCircuitComponent;
 class CPortHolder
 {
 protected:
@@ -41,6 +42,7 @@ public:
 	virtual void	TraceConnected(CTimeline* pcTimeline, CPort* pcPort) =0;
 	virtual char*	GetName(void) =0;
 	virtual void	AppendDescription(CChars* psz) =0;
+	virtual CCircuitComponent*	GetComponent(void) =0;
 };
 
 

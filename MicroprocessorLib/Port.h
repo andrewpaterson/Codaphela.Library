@@ -73,6 +73,8 @@ public:
 			CPortHolder*	GetHolder(void);
 			bool			IsExplicit(void);
 	virtual void			AppendDescription(CChars* psz);
+	virtual void			AppendDebugString(CChars* psz);
+			void			AppendType(CChars* psz);
 };
 
 

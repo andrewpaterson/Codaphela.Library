@@ -48,6 +48,8 @@ public:
 	virtual void				TraceConnected(CTimeline* pcTimeline, CPort* pcPort);
 	virtual char*				GetName(void);
 	virtual void				AppendDescription(CChars* psz);
+	virtual CCircuitComponent*	GetComponent(void);
+			const char*			GetType(void);
 
 	static	void				CalculatePortName(CChars* psz, const char* szName, size i, size uiBufferCount);
 };

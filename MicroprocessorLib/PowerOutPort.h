@@ -35,6 +35,7 @@ public:
 
 	virtual float32	GetVoltageOut(int64 iTime);
 	virtual void	AppendDescription(CChars* psz);
+	virtual void	AppendDebugString(CChars* psz);
 };
 
 

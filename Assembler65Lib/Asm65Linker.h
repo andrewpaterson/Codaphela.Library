@@ -21,6 +21,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __ASM65_LINKER_H__
 #define __ASM65_LINKER_H__
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/MapStringTemplate.h"
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/ArraySize.h"
@@ -43,7 +44,7 @@ class CAsm65Library
 {
 protected:
 	CChars							mszName;
-	CArrayTemplate<CAsm65Object*>	mapcObjects;
+	CArrayTemplatePtr<CAsm65Object>	mapcObjects;
 
 public:
 	void			Init(const char* szName);
@@ -101,30 +102,30 @@ struct SAsm65LinkReference
 class CAsm65Linker
 {
 protected:
-	CAsm65Errors						mcErrors;
-	CArrayTemplate<CAsm65Object*>		mapcInputs;
-	CArrayTemplate<CAsm65Library*>		mapcLibraries;
+	CAsm65Errors							mcErrors;
+	CArrayTemplatePtr<CAsm65Object>			mapcInputs;
+	CArrayTemplatePtr<CAsm65Library>		mapcLibraries;
 
-	CArrayTemplate<SAsm65LinkObject>	masObjects;
-	CArrayTemplate<SAsm65LinkSection>	masSections;
-	CArrayTemplate<SAsm65LinkSymbol>	masSymbols;
-	CMapStringTemplate<uint32>			mcSymbolIndices;
+	CArrayTemplate<SAsm65LinkObject>		masObjects;
+	CArrayTemplate<SAsm65LinkSection>		masSections;
+	CArrayTemplate<SAsm65LinkSymbol>		masSymbols;
+	CMapStringTemplate<uint32>				mcSymbolIndices;
 	CMapStringTemplate<SAsm65LinkReference>	mcReferences;
-	CArrayChars							maszReferenced;
-	CMapStringTemplate<uint32>			mcGroups;
-	CArrayChars							maszMissing;
-	CArraySize							maiPlacement;
-	CAsm65Object						mcStubs;
+	CArrayChars								maszReferenced;
+	CMapStringTemplate<uint32>				mcGroups;
+	CArrayChars								maszMissing;
+	CArraySize								maiPlacement;
+	CAsm65Object							mcStubs;
 
-	uint32								mauiAddress[ASK65_NumKinds];
-	bool								mabFixed[ASK65_NumKinds];
-	uint32								mauiStart[ASK65_NumKinds];
-	uint32								mauiEnd[ASK65_NumKinds];
-	uint32								muiLimit;
-	bool								mbStubMissing;
+	uint32									mauiAddress[ASK65_NumKinds];
+	bool									mabFixed[ASK65_NumKinds];
+	uint32									mauiStart[ASK65_NumKinds];
+	uint32									mauiEnd[ASK65_NumKinds];
+	uint32									muiLimit;
+	bool									mbStubMissing;
 
-	CAsm65Output						mcOutput;
-	CChars								mszMap;
+	CAsm65Output							mcOutput;
+	CChars									mszMap;
 
 public:
 	void			Init(void);
