@@ -215,23 +215,14 @@ bool CArrayCommonUnknown::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::WriteElements(CFileWriter* pcFile)
 {
-	SSetIterator	sIter;
-	CUnknown*		pcUnknown;
-	size			iCount;
-	bool			bExists;
+	size	i;
+	size	uiNumElements;
 
-	iCount = 0;
-	bExists = StartIteration(&sIter, &pcUnknown);
-	while (bExists)
+	//Every slot is written, NULLs too, so the elements match the count in the header and keep their indices.
+	uiNumElements = mcArray.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
-		ReturnOnFalse(WriteElement(pcFile, pcUnknown));
-		bExists = Iterate(&sIter, &pcUnknown);
-		iCount++;
-	}
-
-	if (iCount != NumElements())
-	{
-		return false;
+		ReturnOnFalse(WriteElement(pcFile, *mcArray.Get(i)));
 	}
 	return true;
 }
@@ -534,8 +525,11 @@ bool CArrayCommonUnknown::AddAll(CArrayCommonUnknown* pcSource)
 	}
 	else
 	{
+		//NULLs are copied too, but only the elements that aren't NULL are counted.  The appended elements aren't
+		//in pointer order.
 		mcArray.InsertArrayAfterEnd(&pcSource->mcArray);
-		miNonNullElements += pcSource->NumElements();
+		miNonNullElements += pcSource->miNonNullElements;
+		SetFlagShort(&muiFlags, ARRAY_COMMOM_IS_PTR_SORTED, false);
 		CleanNullsIfNecessary();
 		return true;
 	}

@@ -138,6 +138,7 @@ public:
 protected:
 	void					PrivateInit(void);
 	void					Recalculate(void);
+	bool					CanAddChannels(void);
 
 	void					CopyChannelDebugs(CMapIntChannelDescriptor* mpmicSourceChannelDebugs);
 };

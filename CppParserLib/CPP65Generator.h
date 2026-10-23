@@ -24,6 +24,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //scratch memory, programs start at 0001:0000 and the stack works down from 001F:FFFC.
 #define CPP65_PROGRAM_ADDRESS		0x10000
 #define CPP65_STACK_TOP				0x1FFFFF
+#define CPP65_HEAP_ADDRESS			0x80000		//Libc65's malloc heap (stdlib.cpp HEAP_START); a program ends below it.
 #define CPP65_TEMPORARY_BYTES		0x100
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
@@ -369,9 +370,7 @@ protected:
 	ECPP65Elide				meNextElide;		//How Construct reaches an Address place's object, set by its caller.
 	int						miNextElideDepth;
 	int						miDataTemporaries;
-	CChars					mszUnit;			//Put in front of this translation unit's own labels.
-	CArrayChars				maszOwnEmitted;
-	CArrayChars*			mpaszEmitted;		//Labels of functions, vtables and runtime routines any unit has written.
+	CArrayChars				maszEmitted;		//Labels of the functions, vtables, thunks and runtime routines written.
 	int						miQuiet;			//Errors are not reported, only noted in mbQuietFailed.
 	bool					mbQuietFailed;
 	CArrayCPP65Strings		maszStrings;
@@ -405,9 +404,7 @@ public:
 
 	bool					Generate(CChars* pszDest);
 	bool					GenerateProgram(CChars* pszDest);
-	void					SetUnit(const char* szUnit, CArrayChars* paszEmitted);
-	void					GetStartUp(CArrayChars* paszInitialise, CArrayChars* paszFinalise);
-	static void				AppendStartUp(CChars* pszDest, CArrayChars* paszInitialise, CArrayChars* paszFinalise);
+	static void				AppendStartUp(CChars* pszDest);
 	static void				AddDefines(CConfig* pcConfig);
 	CCPPErrors*				GetErrors(void);
 	int						NumErrors(void);
@@ -479,6 +476,11 @@ protected:
 	void					AppendStrings(CChars* pszDest);
 	void					AppendRuntime(void);
 	void					AppendDivideSigned(const char* szName, int iBytes);
+	void					BeginRuntime(const char* szName);
+	void					AppendStartUpRoutine(const char* szTable, const char* szName, CChars* pszBody);
+	void					AppendSection(CChars* psz, const char* szKind, CChars* pszComdat);
+	void					AppendGlobal(CChars* psz, CChars* pszLabel);
+	bool					IsUnitFunction(SCPP65Function* psFunction);
 
 	//Classes and templates.  CPP65GeneratorClasses.cpp
 	SCPP65Class*			NewClass(CCPPSymbol* pcSymbol, int64 lliName);

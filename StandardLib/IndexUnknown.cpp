@@ -21,6 +21,7 @@ void CIndexUnknown::Init(bool bKillElements, bool bOverwriteExisting, EIndexKeyR
 {
 	muiFlags = 0;
 	SetFlagShort(&muiFlags, INDEX_TREE_KILL_ELEMENT, bKillElements);
+	SetFlagShort(&muiFlags, INDEX_TREE_NO_OVERWRITE, !bOverwriteExisting);
 	mcIndex.Init(eKeyReverse);
 	mcIndex.SetDataFreeCallback(this);
 	mcIndex.SetDataIOCallback(this, this);
@@ -61,7 +62,23 @@ void CIndexUnknown::ReInit(void)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexUnknown::Put(uint8* pvKey, size iKeySize, CUnknown* pcValue)
 {
-	void*	pvData;
+	void*		pvData;
+	CUnknown*	pcOldValue;
+	size		uiDataSize;
+
+	if (mcIndex.Get(pvKey, iKeySize, &pcOldValue, &uiDataSize, sizeof(CUnknown*)))
+	{
+		if (!IsOverwriteExisting())
+		{
+			return false;
+		}
+
+		//The index frees the old value when it is replaced, so the value being put again mustn't be put.
+		if (pcOldValue == pcValue)
+		{
+			return true;
+		}
+	}
 
 	pvData = mcIndex.Put(pvKey, iKeySize, &pcValue, sizeof(CUnknown*));
 	return pvData != NULL;
@@ -74,12 +91,7 @@ bool CIndexUnknown::Put(uint8* pvKey, size iKeySize, CUnknown* pcValue)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexUnknown::Put(const char* szKey, CUnknown* pcValue)
 {
-	void*	pvData;
-	size	uiLength;
-
-	uiLength = strlen(szKey);
-	pvData = mcIndex.Put((uint8*)szKey, uiLength, &pcValue, sizeof(CUnknown*));
-	return pvData != NULL;
+	return Put((uint8*)szKey, strlen(szKey), pcValue);
 }
 
 
@@ -300,6 +312,16 @@ bool CIndexUnknown::IsKillElements(void)
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
+bool CIndexUnknown::IsOverwriteExisting(void)
+{
+	return !(muiFlags & INDEX_TREE_NO_OVERWRITE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 bool CIndexUnknown::IsEmpty(void)
 {
 	return NumElements() == 0;
@@ -450,34 +472,9 @@ void CIndexUnknown::FreeData(void* pvData)
 bool CIndexUnknown::WriteData(CFileWriter* pcFileWriter, void* pvData)
 {
 	SIndexIOElement*	psElement;
-	CUnknown*			pcUnknownValue;
-	bool				bResult;
 
 	psElement = (SIndexIOElement*)pvData;
-	pcUnknownValue = *((CUnknown**)psElement->pvData);
-
-	//A flag before the value says whether it is NULL.
-	bResult = pcFileWriter->WriteBool(pcUnknownValue != NULL);
-	if (!bResult)
-	{
-		return false;
-	}
-	if (pcUnknownValue == NULL)
-	{
-		return true;
-	}
-
-	bResult = pcUnknownValue->SaveHeader(pcFileWriter);
-	if (!bResult)
-	{
-		return false;
-	}
-	bResult = pcUnknownValue->Save(pcFileWriter);
-	if (!bResult)
-	{
-		return false;
-	}
-	return true;
+	return gcUnknowns.SaveUnknown(pcFileWriter, *((CUnknown**)psElement->pvData));
 }
 
 
@@ -489,41 +486,16 @@ bool CIndexUnknown::ReadData(CFileReader* pcFileReader, void* pvData)
 {
 	SIndexIOElement*	psElement;
 	CUnknown**			ppcUnknownValue;
-	CUnknown*			pcUnknownValue;
-	bool				bResult;
-	bool				bValue;
 
 	psElement = (SIndexIOElement*)pvData;
-	pvData = mcIndex.Put((uint8*)psElement->pvData, psElement->iKeySize, NULL, psElement->iValueSize);
-	if (!pvData)
+	ppcUnknownValue = (CUnknown**)mcIndex.Put((uint8*)psElement->pvData, psElement->iKeySize, NULL, psElement->iValueSize);
+	if (!ppcUnknownValue)
 	{
 		return false;
 	}
 
-	ppcUnknownValue = (CUnknown**)pvData;
 	*ppcUnknownValue = NULL;
-	bResult = pcFileReader->ReadBool(&bValue);
-	if (!bResult)
-	{
-		return false;
-	}
-	if (!bValue)
-	{
-		return true;
-	}
-
-	pcUnknownValue = gcUnknowns.AddFromHeader(pcFileReader);
-	if (!pcUnknownValue)
-	{
-		return false;
-	}
-	bResult = pcUnknownValue->Load(pcFileReader);
-	if (!bResult)
-	{
-		return false;
-	}
-	*ppcUnknownValue = pcUnknownValue;
-	return true;
+	return gcUnknowns.LoadUnknown(pcFileReader, ppcUnknownValue);
 }
 
 

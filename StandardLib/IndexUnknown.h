@@ -26,6 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #define INDEX_TREE_KILL_ELEMENT	0x0001
+#define INDEX_TREE_NO_OVERWRITE	0x0002  //Set when Put must not replace an existing key.  Clear in indices saved before it existed, which always overwrote.
 
 
 class CIndexUnknown : public CUnknown, public CDataFree, public CDataIO, public CIndexTreeDataSize
@@ -61,6 +62,7 @@ public:
 	size		NumElements(void);
 	size		NonNullElements(void);
 	bool 		IsKillElements(void);
+	bool 		IsOverwriteExisting(void);
 	bool 		IsEmpty(void);
 	bool 		IsNotEmpty(void);
 

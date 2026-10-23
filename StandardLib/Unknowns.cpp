@@ -178,10 +178,17 @@ CUnknown* CUnknowns::AddFromHeader(CFileReader* pcFile)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Writes pcUnknown, which may be NULL, so LoadUnknown can read it back.  A flag before the unknown says whether
+// it is NULL.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CUnknowns::SaveUnknown(CFileWriter* pcFile, CUnknown* pcUnknown)
 {
+	ReturnOnFalse(pcFile->WriteBool(pcUnknown != NULL));
+	if (pcUnknown == NULL)
+	{
+		return true;
+	}
 	ReturnOnFalse(pcUnknown->SaveHeader(pcFile));
 	ReturnOnFalse(pcUnknown->Save(pcFile));
 	return true;
@@ -195,8 +202,16 @@ bool CUnknowns::SaveUnknown(CFileWriter* pcFile, CUnknown* pcUnknown)
 bool CUnknowns::LoadUnknown(CFileReader* pcFile, CUnknown** ppcUnknown)
 {
 	CUnknown*		pcUnknown;
+	bool			bExists;
 
-	pcUnknown = gcUnknowns.AddFromHeader(pcFile);
+	*ppcUnknown = NULL;
+	ReturnOnFalse(pcFile->ReadBool(&bExists));
+	if (!bExists)
+	{
+		return true;
+	}
+
+	pcUnknown = AddFromHeader(pcFile);
 	if (!pcUnknown)
 	{
 		return false;

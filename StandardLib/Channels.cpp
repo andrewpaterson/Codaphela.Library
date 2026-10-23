@@ -580,24 +580,22 @@ bool CChannels::EndChange(void)
 				}
 			}
 
-			//Add
+			//Add.  If any channel can't be added none are.
 			bAnyAdded = false;
-			uiAdded = mpsChangingDesc->asAddedChannels.NumElements();
-			for (i = 0; i < uiAdded; i++)
+			if (CanAddChannels())
 			{
-				psAddedChannel = mpsChangingDesc->asAddedChannels.Get(i);
-				pcChannel = GetChannel(psAddedChannel->iChannel);
-				if (pcChannel)
+				uiAdded = mpsChangingDesc->asAddedChannels.NumElements();
+				for (i = 0; i < uiAdded; i++)
 				{
-					gcLogger.Error2(__METHOD__, " Channel [", SizeToString(psAddedChannel->iChannel), "] already exists in Channels.", NULL);
-					bResult = false;
-					bAnyAdded = false;
-					break;
+					psAddedChannel = mpsChangingDesc->asAddedChannels.Get(i);
+					pcChannel = masChannelOffsets.Add();
+					pcChannel->Init(psAddedChannel->iChannel, psAddedChannel->eType, psAddedChannel->bReverse);
+					bAnyAdded = true;
 				}
-
-				pcChannel = masChannelOffsets.Add();
-				pcChannel->Init(psAddedChannel->iChannel, psAddedChannel->eType, psAddedChannel->bReverse);
-				bAnyAdded = true;
+			}
+			else
+			{
+				bResult = false;
 			}
 
 			if (bAnyAdded)
@@ -645,11 +643,12 @@ bool CChannels::EndChange(void)
 				}
 			}
 
+			//User data can describe the same channel more than once (bytes an image ignores, say), so these aren't
+			//checked by CanAddChannels.
 			uiAdded = mpsChangingDesc->asAddedChannels.NumElements();
 			for (i = 0; i < uiAdded; i++)
 			{
 				psAddedChannel = mpsChangingDesc->asAddedChannels.Get(i);
-
 				pcChannel = masChannelOffsets.Add();
 				pcChannel->Init(psAddedChannel->iChannel, psAddedChannel->eType, psAddedChannel->bReverse);
 			}
@@ -671,6 +670,39 @@ bool CChannels::EndChange(void)
 		mpvDataCache = mabData.GetData();
 	}
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The channels a change adds to channels that own their data must not already be in the channels (after the
+// change's removals) or be added twice.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CChannels::CanAddChannels(void)
+{
+	size		i;
+	size		j;
+	size		uiAdded;
+	SChannel*	psAddedChannel;
+
+	uiAdded = mpsChangingDesc->asAddedChannels.NumElements();
+	for (i = 0; i < uiAdded; i++)
+	{
+		psAddedChannel = mpsChangingDesc->asAddedChannels.Get(i);
+		if (GetChannel(psAddedChannel->iChannel))
+		{
+			return gcLogger.Error2(__METHOD__, " Channel [", SizeToString(psAddedChannel->iChannel), "] already exists in Channels.", NULL);
+		}
+		for (j = 0; j < i; j++)
+		{
+			if (mpsChangingDesc->asAddedChannels.Get(j)->iChannel == psAddedChannel->iChannel)
+			{
+				return gcLogger.Error2(__METHOD__, " Channel [", SizeToString(psAddedChannel->iChannel), "] is added twice.", NULL);
+			}
+		}
+	}
+	return true;
 }
 
 
