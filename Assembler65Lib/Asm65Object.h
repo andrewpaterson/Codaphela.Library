@@ -37,7 +37,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 
 //The object file: a ChunkFile with Header, Sections, Symbols and Relocations chunks.
 #define ASM65_OBJECT_MAGIC		"Asm65Object"
-#define ASM65_OBJECT_VERSION	2
+#define ASM65_OBJECT_VERSION	3
 
 
 //The kind of a section comes from its name: "text", "text.anything", "rodata.x" ...
@@ -66,7 +66,8 @@ enum EAsm65Binding
 //COMDAT group (szGroup not empty) is kept from the first object that has the group
 //and dropped from the others.  When the linker removes unused sections, a keep
 //section is always used, and an associated section (iAssociated, in this object) is
-//used when the section it is associated with is.
+//used when the section it is associated with is.  A resident section is never loaded
+//lazily.
 struct SAsm65Section
 {
 	CChars				szName;
@@ -76,6 +77,7 @@ struct SAsm65Section
 	uint32				uiSize;
 	int32				iAssociated;
 	bool				bKeep;
+	bool				bResident;
 	CArrayUint8			cBytes;
 };
 

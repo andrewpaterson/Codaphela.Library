@@ -721,6 +721,7 @@ bool CAsm65Assembler::Space(void)
 //   comdat {group}         a COMDAT section; its group is its name unless given
 //   associated section     used when that section of this object is used
 //   keep                   always used
+//   resident               never loaded lazily
 // Options given again when switching back to a section are added.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -735,6 +736,7 @@ bool CAsm65Assembler::Section(void)
 	CChars				szGroup;
 	int32				iSection;
 	bool				bKeep;
+	bool				bResident;
 
 	psName = Peek();
 	if (!mbObject)
@@ -750,7 +752,7 @@ bool CAsm65Assembler::Section(void)
 		return Error(psName, "A section name starts with text, rodata, init, fini, data or bss");
 	}
 	Next();
-	if (!SectionOptions(psName, &psGroup, &psAssociated, &bKeep))
+	if (!SectionOptions(psName, &psGroup, &psAssociated, &bKeep, &bResident))
 	{
 		return false;
 	}
@@ -773,6 +775,7 @@ bool CAsm65Assembler::Section(void)
 
 	psSection = mpcObject->GetSection(iSection);
 	psSection->bKeep |= bKeep;
+	psSection->bResident |= bResident;
 	if (psAssociated && mbFinal)
 	{
 		//Resolved after the final pass (Associate): the section may come later.
@@ -790,13 +793,14 @@ bool CAsm65Assembler::Section(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::SectionOptions(SAsm65Token* psName, SAsm65Token** ppsGroup, SAsm65Token** ppsAssociated, bool* pbKeep)
+bool CAsm65Assembler::SectionOptions(SAsm65Token* psName, SAsm65Token** ppsGroup, SAsm65Token** ppsAssociated, bool* pbKeep, bool* pbResident)
 {
 	SAsm65Token*	psOption;
 
 	*ppsGroup = NULL;
 	*ppsAssociated = NULL;
 	*pbKeep = false;
+	*pbResident = false;
 	while (Accept(AP65_Comma))
 	{
 		psOption = Peek();
@@ -823,9 +827,14 @@ bool CAsm65Assembler::SectionOptions(SAsm65Token* psName, SAsm65Token** ppsGroup
 			Next();
 			*pbKeep = true;
 		}
+		else if (psOption->IsIdentifierIgnoreCase("resident"))
+		{
+			Next();
+			*pbResident = true;
+		}
 		else
 		{
-			return ErrorExpected(psOption, "comdat, associated or keep");
+			return ErrorExpected(psOption, "comdat, associated, keep or resident");
 		}
 	}
 	return true;

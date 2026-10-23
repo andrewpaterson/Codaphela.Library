@@ -21,7 +21,13 @@
     <ClCompile Include="Asm65Instructions.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Asm65Library.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="Asm65Linker.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Asm65LinkerLazy.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Asm65Memory.cpp">
@@ -48,6 +54,9 @@
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Asm65Errors.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Asm65Library.h">
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Asm65Linker.h">

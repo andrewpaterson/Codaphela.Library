@@ -2155,6 +2155,11 @@ bool CAsm65Assembler::StatusToBit(void)
 		}
 		uiWord |= (uint16)(((bDecrement ? 2 : 0) + (bRepeatRegister ? 0 : 1)) << 8) | uiRepeat;
 	}
+	else if (uiStyle >= 6)
+	{
+		//An operand word always has a repeat (the simulator writes as many bits as it says), so one bit is a repeat of 1.
+		uiWord |= (uint16)((1 << 8) | (1 << 2));
+	}
 
 	if (!Expect(AP65_RightRound, "')'") || !Expect(AP65_Comma, "','") || !Flag(&uiFlag, true, "a status flag"))
 	{

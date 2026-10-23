@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <stdlib.h>
 #include <string.h>
 #include "Asm65Memory.h"
 
@@ -32,6 +33,9 @@ void CAsm65Memory::Init(void)
 	memset(mauiHigh, 0, sizeof(mauiHigh));
 	muiBadAccesses = 0;
 	muiCycles = 0;
+	mpcDrive = NULL;
+	memset(mauiDrive, 0, sizeof(mauiDrive));
+	muiDriveReads = 0;
 }
 
 
@@ -49,6 +53,10 @@ uint8* CAsm65Memory::Byte(uint32 uiAddress)
 	if (uiAddress >= ASM65_MEMORY_HIGH_BASE)
 	{
 		return &mauiHigh[uiAddress - ASM65_MEMORY_HIGH_BASE];
+	}
+	if (mpcDrive && (uiAddress >= ASM65_DRIVE_BASE) && (uiAddress < ASM65_DRIVE_BASE + ASM65_DRIVE_SIZE))
+	{
+		return &mauiDrive[uiAddress - ASM65_DRIVE_BASE];
 	}
 	return NULL;
 }
@@ -84,6 +92,10 @@ void CAsm65Memory::SetByte(uint32 uiAddress, uint8 uiValue)
 	if (puiByte)
 	{
 		*puiByte = uiValue;
+		if (puiByte == &mauiDrive[ASM65_DRIVE_COMMAND])
+		{
+			DriveCommand(uiValue);
+		}
 	}
 	else
 	{
@@ -243,3 +255,103 @@ void CAsm65Memory::TickLow(C65C64Meta* pcMPU, void* pvMemory)
 {
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Attaches a storage device at ASM65_DRIVE_BASE (NULL detaches it).  The drive
+// belongs to the caller.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Memory::SetDrive(CFileDrive* pcDrive)
+{
+	mpcDrive = pcDrive;
+	memset(mauiDrive, 0, sizeof(mauiDrive));
+	if (mpcDrive)
+	{
+		SetDriveRegister(ASM65_DRIVE_SECTOR_SIZE, mpcDrive->GetSectorSize());
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many read commands the program has run.
+//
+//////////////////////////////////////////////////////////////////////////
+size CAsm65Memory::NumDriveReads(void)
+{
+	return muiDriveReads;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CAsm65Memory::GetDriveRegister(uint32 uiRegister)
+{
+	return (uint32)mauiDrive[uiRegister] | ((uint32)mauiDrive[uiRegister + 1] << 8) | ((uint32)mauiDrive[uiRegister + 2] << 16) | ((uint32)mauiDrive[uiRegister + 3] << 24);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Memory::SetDriveRegister(uint32 uiRegister, uint32 uiValue)
+{
+	int	i;
+
+	for (i = 0; i < 4; i++)
+	{
+		mauiDrive[uiRegister + i] = (uint8)(uiValue >> (8 * i));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Copies the sectors between the drive and memory.  The status is 1 for an unknown
+// command or when the drive fails (sectors past its end).
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Memory::DriveCommand(uint8 uiCommand)
+{
+	uint32	uiSector;
+	uint32	uiAddress;
+	uint32	uiCount;
+	uint32	uiBytes;
+	uint32	i;
+	uint8*	puiBuffer;
+	bool	bResult;
+
+	uiSector = GetDriveRegister(ASM65_DRIVE_SECTOR);
+	uiAddress = GetDriveRegister(ASM65_DRIVE_ADDRESS);
+	uiCount = GetDriveRegister(ASM65_DRIVE_COUNT);
+	uiBytes = uiCount * mpcDrive->GetSectorSize();
+
+	bResult = (uiCommand == ASM65_DRIVE_READ) || (uiCommand == ASM65_DRIVE_WRITE);
+	if (bResult && (uiCount != 0))
+	{
+		puiBuffer = (uint8*)malloc(uiBytes);
+		if (uiCommand == ASM65_DRIVE_READ)
+		{
+			muiDriveReads++;
+			bResult = mpcDrive->Read(uiSector, uiCount, puiBuffer);
+			for (i = 0; bResult && (i < uiBytes); i++)
+			{
+				SetByte(uiAddress + i, puiBuffer[i]);
+			}
+		}
+		else
+		{
+			for (i = 0; i < uiBytes; i++)
+			{
+				puiBuffer[i] = GetByte(uiAddress + i);
+			}
+			bResult = mpcDrive->Write(uiSector, uiCount, puiBuffer);
+		}
+		free(puiBuffer);
+	}
+	SetDriveRegister(ASM65_DRIVE_STATUS, bResult ? 0 : 1);
+}
