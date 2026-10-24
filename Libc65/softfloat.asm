@@ -28,7 +28,7 @@
 ; softfloat.cpp's compiled code in brackets: add 80 (2140), subtract 84 (2230),
 ; multiply 64 (2180), divide 85 (4930), compare 25 (1145), sqrt 134 (16980), from int
 ; 39 (590), to int 19 (770), to double 21 (1005), double to float 46 (1110).  Doubles:
-; add 98 (2135), subtract 104 (2225), multiply 134 (2360), divide 206 (8245), compare 36
+; add 98 (2135), subtract 104 (2225), multiply 134 (2360), divide 105 (8245), compare 36
 ; (1140), sqrt 218 (16990), from int 28 (510), from long long 42 (545), to int 24 (750).
 
 
@@ -1162,8 +1162,8 @@ ToDoubleZero:
 
 
 ; Double precision.  Significands are 53 bits, so a product is four 32 bit muls (the
-; 106 bit product's top 64 bits and whether the rest is zero), a quotient five divs of
-; 11 bits each (long division in base 2^11), and a sum keeps a sticky bit for what
+; 106 bit product's top 64 bits and whether the rest is zero), a quotient one div with
+; the dividend's top half in B, and a sum keeps a sticky bit for what
 ; shifts out of the smaller (there are only 9 or 10 spare low bits).  DRoundPack rounds
 ; at bit 10.  The arguments are 8 bytes each: the first at [5 + S], the second at
 ; [13 + S].  A double result is all 8 bytes of A.
@@ -1786,51 +1786,29 @@ NotDDivideSpecial2:
 		stab (A, 52), 1			; b's significand
 
 ; Y is a's significand and A b's (64 bits wide), X the difference of the exponents.
-; Each div takes the remainder shifted up 11 and gives 11 more bits of the quotient
-; (12 the first time): five give floor(a 2^55 / b), from 2^54 to 2^56, put together in X
-; shifted up 7 for DRoundPack, and the last remainder is the sticky bit.  W and the
-; exponent wait on the stack.
+; With the dividend's top half in B (below A, as a's significand is below twice b's),
+; one div gives floor(a 2^63 / b), from 2^62 to 2^64, and the remainder: shifted down one
+; with what is lost (and the remainder) as the sticky bit, it is DRoundPack's.  W is
+; kept in the top half of X.
 DDivideSignificands:
-		psh (W, X)
-		wth X, 8
-		cpy X, 0
-		shl Y, 11
-		cpy B, 0
+		scp (W, 0), (X, 4), 4
+		cpy B, Y
+		shr B, 1
+		shl Y, 63				; B and Y are a's significand 2^63
 		cpy W, 0
 		div
-		scb (Y, 0), (X, 51), 12
-		cpy Y, B
-		shl Y, 11
-		cpy B, 0
-		cpy W, 0
-		div
-		scb (Y, 0), (X, 40), 11
-		cpy Y, B
-		shl Y, 11
-		cpy B, 0
-		cpy W, 0
-		div
-		scb (Y, 0), (X, 29), 11
-		cpy Y, B
-		shl Y, 11
-		cpy B, 0
-		cpy W, 0
-		div
-		scb (Y, 0), (X, 18), 11
-		cpy Y, B
-		shl Y, 11
-		cpy B, 0
-		cpy W, 0
-		div
-		scb (Y, 0), (X, 7), 11
+		scp (X, 4), (W, 0), 4
+		shr Y, 1
+		brac c, DDivideRemainder
+		or Y, 1
+		bra DDivideExact
+
+DDivideRemainder:
 		tst B, B
 		bras z, DDivideExact
-		or X, 1
+		or Y, 1
 
 DDivideExact:
-		cpy Y, X
-		wth X, 4
-		pul (W, X)
 		add X, 1022
 		wtth (A, B), 4
 		bist c, (Y, 62)
