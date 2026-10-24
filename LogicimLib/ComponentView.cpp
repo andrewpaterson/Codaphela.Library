@@ -135,6 +135,107 @@ bool CComponentView::LoadXMLPlacement(CMarkupTag* pcTag, int32* px, int32* py, E
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The box of a component sized to its text, in its unturned grid space, as
+// left, top, right and bottom attributes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentView::SaveXMLBox(CXMLWriter* pcWriter, SInt32Vec2 sBoxMinimum, SInt32Vec2 sBoxMaximum)
+{
+	pcWriter->Attribute("left", sBoxMinimum.x);
+	pcWriter->Attribute("top", sBoxMinimum.y);
+	pcWriter->Attribute("right", sBoxMaximum.x);
+	pcWriter->Attribute("bottom", sBoxMaximum.y);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The box SaveXMLBox writes.  It must have some width and height.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentView::LoadXMLBox(CMarkupTag* pcTag, SInt32Vec2* psBoxMinimum, SInt32Vec2* psBoxMaximum)
+{
+	if (!pcTag->GetInt32Attribute("left", &psBoxMinimum->x) || !pcTag->GetInt32Attribute("top", &psBoxMinimum->y) ||
+		!pcTag->GetInt32Attribute("right", &psBoxMaximum->x) || !pcTag->GetInt32Attribute("bottom", &psBoxMaximum->y))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs whole number left, top, right and bottom attributes.", NULL);
+	}
+	if ((psBoxMaximum->x <= psBoxMinimum->x) || (psBoxMaximum->y <= psBoxMinimum->y))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] right and bottom must be past left and top.", NULL);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A box in fractions of a grid unit, as SaveXMLBox's whole one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentView::SaveXMLBox(CXMLWriter* pcWriter, SFloat64Vec2 sBoxMinimum, SFloat64Vec2 sBoxMaximum)
+{
+	pcWriter->Attribute("left", sBoxMinimum.x);
+	pcWriter->Attribute("top", sBoxMinimum.y);
+	pcWriter->Attribute("right", sBoxMaximum.x);
+	pcWriter->Attribute("bottom", sBoxMaximum.y);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentView::LoadXMLBox(CMarkupTag* pcTag, SFloat64Vec2* psBoxMinimum, SFloat64Vec2* psBoxMaximum)
+{
+	if (!pcTag->GetFloat64Attribute("left", &psBoxMinimum->x) || !pcTag->GetFloat64Attribute("top", &psBoxMinimum->y) ||
+		!pcTag->GetFloat64Attribute("right", &psBoxMaximum->x) || !pcTag->GetFloat64Attribute("bottom", &psBoxMaximum->y))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs left, top, right and bottom attributes.", NULL);
+	}
+	if ((psBoxMaximum->x <= psBoxMinimum->x) || (psBoxMaximum->y <= psBoxMinimum->y))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] right and bottom must be past left and top.", NULL);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Most views make a component in the simulation.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentView::MakesComponent(void)
+{
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL unless the view joins its port views to those of other views of
+// the same name.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CComponentView::GetConnectionName(void)
+{
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds the bits the view joins; most join none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentView::GetBitJoins(CArrayPortBitJoin* pasJoins)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Draws the shapes and then the ports over them.
 //
 //////////////////////////////////////////////////////////////////////////

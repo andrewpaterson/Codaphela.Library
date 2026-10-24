@@ -28,10 +28,13 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define FORM_65C64_HASH_SIZE	4096
 
 
-//Every 16 bit opcode maps to an instruction.  Opcodes whose bus cycles are the same share it.
+//Every 16 bit opcode maps to an instruction.  Opcodes whose bus cycles are the same share it.  Init and Kill are
+//counted: the instructions are made by the first Init and freed by the last Kill, so each C65C64Chip can Init the
+//factory for itself.
 class C65C64InstructionFactory
 {
 protected:
+	size				muiUsers;
 	C65Instruction*		mapcInstructions[NUM_65C64_OPCODES];
 	uint32				mauiFormKeys[FORM_65C64_HASH_SIZE];
 	C65Instruction*		mapcForms[FORM_65C64_HASH_SIZE];

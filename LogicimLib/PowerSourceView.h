@@ -52,4 +52,26 @@ public:
 };
 
 
+//A positive supply, as Logicim's PositivePowerView: a box with a point down to the port below it and the voltage
+//written upright in the box in the voltage's colour.  Over 4V the box is the dark fill.
+class CPositivePowerView : public CPowerSourceView
+{
+CONSTRUCTABLE(CPositivePowerView);
+protected:
+	size	muiVoltageText;
+
+public:
+			void					Init(int32 x, int32 y, ERotation eRotation, const char* szName, float32 fVoltage);
+
+	virtual void					Paint(CCircuitPainter* pcPainter);
+
+	virtual const char*				GetType(void);
+	virtual const char*				GetXMLName(void);
+	virtual bool					LoadXML(CMarkupTag* pcTag);
+
+protected:
+	virtual	void					SaveXMLAttributes(CXMLWriter* pcWriter);
+};
+
+
 #endif // __POWER_SOURCE_VIEW_H__

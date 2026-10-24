@@ -36,6 +36,20 @@ class CCircuitComponent;
 class CSubcircuitSimulation;
 class CFamilyVoltageConfigurationStore;
 class CComponentStateXML;
+class CComponentView;
+
+
+//Two port bits a component joins onto one trace, as a splitter joins a bit of its bus to a bit of one of its ends.
+struct SPortBitJoin
+{
+	CPortView*	pcFrom;
+	size		uiFromBit;
+	CPortView*	pcTo;
+	size		uiToBit;
+};
+
+
+typedef CArrayTemplate<SPortBitJoin>	CArrayPortBitJoin;
 
 
 //How a component is drawn and where its ports are, as Logicim's ComponentView.  A view is drawn facing North about
@@ -47,7 +61,13 @@ class CComponentStateXML;
 //fails the view is left uninitialised and is freed without Kill.
 //
 //The bounding box is the shapes and ports, never text, so a component's size doesn't depend on the font it is drawn
-//with (Logicim measured its labels into the box).
+//with (Logicim measured its labels into the box).  A component Logicim sized to its text (a constant's box is as long
+//as its widest value) is sized by measuring the text when it's made, and its box is saved with it and loaded back,
+//so a loaded circuit keeps its layout whatever fonts it's drawn in (see SaveXMLBox).
+//
+//A view that makes no component (a label or a tunnel) says so with MakesComponent.  A view with a connection name
+//(a tunnel) joins its port views to those of every view with the same name.  A view can join bits of its port views
+//onto the same traces (GetBitJoins), as a splitter does.
 class CComponentView : public CConstructable
 {
 CONSTRUCTABLE(CComponentView);
@@ -68,6 +88,9 @@ public:
 
 	virtual const char*				GetType(void) =0;
 	virtual CCircuitComponent*		CreateComponent(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies) =0;
+	virtual bool					MakesComponent(void);
+	virtual const char*				GetConnectionName(void);
+	virtual void					GetBitJoins(CArrayPortBitJoin* pasJoins);
 	virtual void					Paint(CCircuitPainter* pcPainter);
 
 	virtual const char*				GetXMLName(void) =0;
@@ -99,6 +122,10 @@ public:
 protected:
 	virtual	void					SaveXMLAttributes(CXMLWriter* pcWriter);
 	static	bool					LoadXMLPlacement(CMarkupTag* pcTag, int32* px, int32* py, ERotation* peRotation, char** pszName);
+	static	void					SaveXMLBox(CXMLWriter* pcWriter, SInt32Vec2 sBoxMinimum, SInt32Vec2 sBoxMaximum);
+	static	bool					LoadXMLBox(CMarkupTag* pcTag, SInt32Vec2* psBoxMinimum, SInt32Vec2* psBoxMaximum);
+	static	void					SaveXMLBox(CXMLWriter* pcWriter, SFloat64Vec2 sBoxMinimum, SFloat64Vec2 sBoxMaximum);
+	static	bool					LoadXMLBox(CMarkupTag* pcTag, SFloat64Vec2* psBoxMinimum, SFloat64Vec2* psBoxMaximum);
 	virtual	bool					IncludeExtraBounds(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum, bool bHasBounds);
 			void					PaintShapes(CCircuitPainter* pcPainter);
 			void					PaintPorts(CCircuitPainter* pcPainter);

@@ -55,6 +55,10 @@ void CPortView::Init(CComponentView* pcOwner, CArrayChars* paszPortNames, int32 
 	msBubbleCentre.Init(0, 0);
 	mfBubbleDiameter = PORT_BUBBLE_DIAMETER;
 	mbClock = false;
+	masClockNotch[0].Init(0, 0);
+	masClockNotch[1].Init(0, 0);
+	masClockNotch[2].Init(0, 0);
+	mbDrawn = true;
 	mapcPorts.Init();
 }
 
@@ -99,9 +103,33 @@ void CPortView::SetInverting(ERotation eFacing)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPortView::SetClock(bool bClock)
+void CPortView::SetDrawn(bool bDrawn)
 {
-	mbClock = bClock;
+	mbDrawn = bDrawn;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The port is on the component's edge and faces eFacing out of it (as
+// SetInverting).  The notch is a grid unit along the edge and points half
+// a grid unit in.  Call before SetInverting, which moves the port.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPortView::SetClock(ERotation eFacing)
+{
+	size	i;
+
+	mbClock = true;
+	masClockNotch[0].Init(-0.5, 0);
+	masClockNotch[1].Init(0, 0.5);
+	masClockNotch[2].Init(0.5, 0);
+	for (i = 0; i < 3; i++)
+	{
+		RotatePoint(eFacing, &masClockNotch[i]);
+		masClockNotch[i].x += msRelativePosition.x;
+		masClockNotch[i].y += msRelativePosition.y;
+	}
 }
 
 
@@ -176,7 +204,15 @@ void CPortView::Paint(CCircuitPainter* pcPainter)
 	CCircuitColours*	pcColours;
 	ARGB32				sColour;
 
+	if (!mbDrawn)
+	{
+		return;
+	}
 	pcColours = pcPainter->GetColours();
+	if (mbClock)
+	{
+		pcPainter->Polygon(masClockNotch, 3, false, true, PORT_CLOCK_NOTCH_WIDTH, 0, pcColours->msShapeBorder);
+	}
 	if (mbInverting)
 	{
 		pcPainter->Circle(msBubbleCentre.x, msBubbleCentre.y, mfBubbleDiameter / 2, false, true, SHAPE_LINE_WIDTH, 0, pcColours->msShapeBorder);
@@ -254,6 +290,7 @@ SInt32Vec2 CPortView::GetGridPosition(void)
 //////////////////////////////////////////////////////////////////////////
 bool CPortView::IsInverting(void) { return mbInverting; }
 bool CPortView::IsClock(void) { return mbClock; }
+SFloat64Vec2* CPortView::GetClockNotch(void) { return masClockNotch; }
 char* CPortView::GetText(void) { return mszText.Text(); }
 size CPortView::NumPortNames(void) { return maszPortNames.NumElements(); }
 char* CPortView::GetPortName(size uiIndex) { return maszPortNames.GetText(uiIndex); }

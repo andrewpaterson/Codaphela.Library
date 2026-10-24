@@ -23,26 +23,31 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Float64Vec2.h"
 #include "BaseLib/Int32Vec2.h"
 #include "SupportLib/GeometryMap.h"
+#include "SupportLib/SpriteMap.h"
 #include "Rotation.h"
 #include "CircuitViewport.h"
 #include "CircuitColours.h"
+#include "CircuitFonts.h"
 
 
 //Draws a circuit's shapes into a geometry map.  Shapes are given in the grid space of the component being drawn,
 //facing North about its position, and are turned and moved by SetTransform before the viewport puts them on the
-//screen.  Line widths are pixels at zoom one, as Logicim's zoomable strokes.
+//screen.  Line widths are pixels at zoom one, as Logicim's zoomable strokes.  Text is drawn as glyphs into a sprite
+//map, which is blitted after the geometry map; without fonts or a sprite map there is no text.
 class CCircuitPainter
 {
 protected:
 	CCircuitViewport*	mpcViewport;
 	CGeometryMap*		mpcMap;
+	CSpriteMap*			mpcSprites;
 	CCircuitColours*	mpcColours;
+	CCircuitFonts*		mpcFonts;
 	int64				miTime;
 	SInt32Vec2			msPosition;
 	ERotation			meRotation;
 
 public:
-	void				Init(CCircuitViewport* pcViewport, CGeometryMap* pcMap, CCircuitColours* pcColours, int64 iTime);
+	void				Init(CCircuitViewport* pcViewport, CGeometryMap* pcMap, CSpriteMap* pcSprites, CCircuitColours* pcColours, CCircuitFonts* pcFonts, int64 iTime);
 	void				Kill(void);
 
 	void				SetTransform(SInt32Vec2 sPosition, ERotation eRotation);
@@ -55,14 +60,18 @@ public:
 	void				Arc(float64 fCentreX, float64 fCentreY, float64 fRadiusX, float64 fRadiusY, float64 fStartAngle, float64 fArcAngle, bool bFill, bool bBorder, float64 fWidth, ARGB32 sFill, ARGB32 sBorder);
 	void				Circle(float64 fCentreX, float64 fCentreY, float64 fRadius, bool bFill, bool bBorder, float64 fWidth, ARGB32 sFill, ARGB32 sBorder);
 	void				Dot(float64 x, float64 y, float64 fPixelRadius, ARGB32 sColour);
+	void				Text(float64 x, float64 y, const char* szText, ECircuitFont eFont, float64 fFontSize, ETextAlignment eAlignment, int iRelativeRightRotations, ARGB32 sColour);
+	void				CentredText(float64 x, float64 y, const char* szText, ECircuitFont eFont, float64 fFontSize, ARGB32 sColour);
 
 	CCircuitViewport*	GetViewport(void);
 	CCircuitColours*	GetColours(void);
+	CCircuitFonts*		GetFonts(void);
 	CGeometryMap*		GetMap(void);
 	int64				GetTime(void);
 
 protected:
 	size				NumArcSegments(float64 fRadiusX, float64 fRadiusY, float64 fArcAngle);
+	float64				GetTextWidthAdjust(float64 fOffset, float64 fWidth, ETextAlignment eAlignment);
 };
 
 

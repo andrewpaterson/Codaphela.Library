@@ -23,7 +23,7 @@ public:
 
 protected:
     void ValidateDoneOperation(void);
-    void Validate(void);
+    void ValidateComponent(void);
 };
 
 

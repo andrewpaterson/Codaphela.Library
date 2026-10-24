@@ -155,8 +155,19 @@ CCircuitComponent* CIntegratedCircuitView::CreateComponent(CSubcircuitSimulation
 //////////////////////////////////////////////////////////////////////////
 bool CIntegratedCircuitView::PowerImplicitly(CIntegratedCircuit* pcIntegratedCircuit, CFamilyVoltageConfiguration* pcFamily)
 {
+	return PowerPortsImplicitly(pcIntegratedCircuit->GetContainingSubcircuitSimulation(), pcIntegratedCircuit->GetPins()->GetVoltageCommon(), pcIntegratedCircuit->GetPins()->GetVoltageGround(), pcFamily);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A supply at the family's default voltage on pcCommon and a ground on
+// pcGround, on traces of their own.
+//
+//////////////////////////////////////////////////////////////////////////
+bool PowerPortsImplicitly(CSubcircuitSimulation* pcSimulation, CPort* pcCommon, CPort* pcGround, CFamilyVoltageConfiguration* pcFamily)
+{
 	CVoltageConfiguration*	pcVoltage;
-	CSubcircuitSimulation*	pcSimulation;
 	CCircuit*				pcCircuit;
 	CTrace*					pcVCC;
 	CTrace*					pcGND;
@@ -165,20 +176,19 @@ bool CIntegratedCircuitView::PowerImplicitly(CIntegratedCircuit* pcIntegratedCir
 	pcVoltage = pcFamily->GetDefaultVoltageConfiguration(DEFAULT_LOGIC_LEVEL);
 	if (pcVoltage == NULL)
 	{
-		return gcLogger.Error2(__METHOD__, " Family [", mszFamily.Text(), "] has no default voltage; its power ports must be explicit.", NULL);
+		return gcLogger.Error2(__METHOD__, " Family [", pcFamily->GetFamily(), "] has no default voltage; its power ports must be explicit.", NULL);
 	}
 
-	pcSimulation = pcIntegratedCircuit->GetContainingSubcircuitSimulation();
 	pcCircuit = pcSimulation->GetCircuit();
 
 	pcVCC = pcCircuit->AddTrace();
-	pcIntegratedCircuit->GetPins()->GetVoltageCommon()->Connect(pcVCC, false);
+	pcCommon->Connect(pcVCC, false);
 	pcPower = NewMalloc<CPowerSource>();
 	pcPower->Init(pcSimulation, "", pcVoltage->GetVcc());
 	pcPower->GetPowerOutPort()->Connect(pcVCC, false);
 
 	pcGND = pcCircuit->AddTrace();
-	pcIntegratedCircuit->GetPins()->GetVoltageGround()->Connect(pcGND, false);
+	pcGround->Connect(pcGND, false);
 	pcPower = NewMalloc<CPowerSource>();
 	pcPower->Init(pcSimulation, "", 0.0f);
 	pcPower->GetPowerOutPort()->Connect(pcGND, false);
@@ -215,6 +225,118 @@ void CIntegratedCircuitView::CreatePowerPortViews(void)
 	AddPortView(POWER_PIN_GND, iRight, 0);
 	mcShapes.AddLine(iLeft, 0, iLeft + 1, 0);
 	mcShapes.AddLine(iRight, 0, iRight - 1, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Ports in two rows with a label each, as Logicim's
+// createLeftAndRightPortViews and createPortLabels.  The left ports are
+// along grid y iLeftOffset from x iLeftStart, iStep apart, and the right
+// ports along y iRightOffset from x iRightStart.  (Logicim's left and
+// right are a component facing West.)  Labels are 0.6 inside the row,
+// reading inwards from the left ports' end and the right ports' start.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuitView::CreateLabelledPortViews(SPortViewCreator* asLeft, size uiNumLeft, SPortViewCreator* asRight, size uiNumRight, int32 iLeftOffset, int32 iRightOffset, int32 iLeftStart, int32 iRightStart, int32 iStep)
+{
+	size		i;
+	int32		x;
+	CPortView*	pcPortView;
+	float64		fLeftLabel;
+	float64		fRightLabel;
+
+	fLeftLabel = (iLeftOffset > iRightOffset) ? iLeftOffset - 0.6 : iLeftOffset + 0.6;
+	fRightLabel = (iLeftOffset > iRightOffset) ? iRightOffset + 0.6 : iRightOffset - 0.6;
+
+	x = iLeftStart;
+	for (i = 0; i < uiNumLeft; i++)
+	{
+		pcPortView = CreateLabelledPortView(&asLeft[i], x, iLeftOffset, ROT_South);
+		mcShapes.AddText(x, fLeftLabel, pcPortView->GetText(), CF_SansSerif, PORT_LABEL_FONT_SIZE, TA_Left);
+		x += iStep;
+	}
+
+	x = iRightStart;
+	for (i = 0; i < uiNumRight; i++)
+	{
+		pcPortView = CreateLabelledPortView(&asRight[i], x, iRightOffset, ROT_North);
+		mcShapes.AddText(x, fRightLabel, pcPortView->GetText(), CF_SansSerif, PORT_LABEL_FONT_SIZE, TA_Right);
+		x += iStep;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// eInvertFacing is the way the port faces out of the component: an
+// inverted port's bubble and a clock's notch go that way.
+//
+//////////////////////////////////////////////////////////////////////////
+CPortView* CIntegratedCircuitView::CreateLabelledPortView(SPortViewCreator* psCreator, int32 x, int32 y, ERotation eInvertFacing)
+{
+	CPortView*		pcPortView;
+	CArrayChars		aszNames;
+	CChars			szName;
+	int				i;
+
+	if (psCreator->iPortCount == 1)
+	{
+		pcPortView = AddPortView(psCreator->szName, x, y);
+	}
+	else
+	{
+		aszNames.Init();
+		for (i = 0; i < psCreator->iPortCount; i++)
+		{
+			szName.Init(psCreator->szName);
+			szName.Append(' ');
+			szName.Append(i);
+			aszNames.Add(szName.Text());
+			szName.Kill();
+		}
+		pcPortView = AddPortView(&aszNames, x, y);
+		aszNames.Kill();
+	}
+	pcPortView->SetText(psCreator->szText);
+	if (psCreator->bClock)
+	{
+		pcPortView->SetClock(eInvertFacing);
+	}
+	if (psCreator->bInverted)
+	{
+		pcPortView->SetInverting(eInvertFacing);
+	}
+	return pcPortView;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A named value in a small box, as Logicim's DetailView: the name before
+// x and the value in a box running iWidth grid units from x.  Returns the
+// value text's shape.
+//
+//////////////////////////////////////////////////////////////////////////
+size CIntegratedCircuitView::AddDetail(float64 x, int32 iWidth, const char* szName, const char* szValue)
+{
+	CChars				szLabel;
+	SComponentShape*	psShape;
+	size				uiValueText;
+
+	szLabel.Init(szName);
+	szLabel.Append(": ");
+	mcShapes.AddText(x, 0, szLabel.Text(), CF_SansSerif, PORT_LABEL_FONT_SIZE, TA_Right);
+	szLabel.Kill();
+
+	psShape = mcShapes.AddRectangle(x - 0.6, -iWidth, x + 0.6, 0, true, true);
+	psShape->fLineWidth = 1;
+	psShape->eFill = SC_Background;
+
+	uiValueText = mcShapes.NumShapes();
+	psShape = mcShapes.AddText(x, -0.6, szValue, CF_Monospaced, PORT_LABEL_FONT_SIZE, TA_Left);
+	psShape->eBorder = SC_CommentText;
+	return uiValueText;
 }
 
 

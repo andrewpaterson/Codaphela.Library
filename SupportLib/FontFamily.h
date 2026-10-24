@@ -29,11 +29,12 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TextStyle.h"
 
 
-//The face and size of a CFontColours in the family.  The size is in 1/64 pixels.
+//The face, size and turn of a CFontColours in the family.  The size is in 1/64 pixels.
 struct SFontFamilySize
 {
 	EFontStyle	eStyle;
 	int32		iSize64;
+	EFontTurn	eTurn;
 };
 
 
@@ -72,7 +73,7 @@ public:
 	bool				HasFace(EFontStyle eStyle);
 	void				AddFont(EFontStyle eStyle, float32 fPixelSize, Ptr<CFontColours> pColours);
 
-	Ptr<CFontColours>	GetColours(EFontStyle eStyle, float32 fPixelSize);
+	Ptr<CFontColours>	GetColours(EFontStyle eStyle, float32 fPixelSize, EFontTurn eTurn = FT_Upright);
 	Ptr<CFont>			GetFont(STextStyle* psStyle);
 	Ptr<CFont>			GetRunFont(STextStyle* psStyle, int16* piBaselineShift);
 
@@ -82,7 +83,7 @@ public:
 
 protected:
 	int32				GetSizeKey(float32 fPixelSize);
-	Ptr<CFontColours>	Generate(EFontStyle eStyle, float32 fPixelSize);
+	Ptr<CFontColours>	Generate(EFontStyle eStyle, float32 fPixelSize, EFontTurn eTurn);
 };
 
 

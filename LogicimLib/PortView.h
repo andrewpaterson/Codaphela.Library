@@ -30,6 +30,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #define PORT_BUBBLE_DIAMETER	0.9
+#define PORT_CLOCK_NOTCH_WIDTH	1.0
 
 
 class CComponentView;
@@ -38,7 +39,9 @@ class CCircuitComponent;
 
 //Where a component's ports join the circuit, as Logicim's PortView.  One view can stand for several ports (the bits
 //of a bus).  An inverting port has a bubble between the component and the port, which moves the port a grid unit
-//out.  The dot on the port is coloured by the voltage the ports see.
+//out.  A clock port has a notch, a triangle on the component's edge pointing in (as Logicim draws on subcircuit
+//pins).  The dot on the port is coloured by the voltage the ports see.  A port view that's only a place to connect
+//(a tunnel's end, with no ports) isn't drawn.
 class CPortView
 {
 protected:
@@ -50,6 +53,8 @@ protected:
 	SFloat64Vec2		msBubbleCentre;
 	float64				mfBubbleDiameter;
 	bool				mbClock;
+	SFloat64Vec2		masClockNotch[3];
+	bool				mbDrawn;
 	CArrayPortPtr		mapcPorts;
 
 public:
@@ -58,8 +63,9 @@ public:
 	void				Kill(void);
 
 	void				SetInverting(ERotation eFacing);
-	void				SetClock(bool bClock);
+	void				SetClock(ERotation eFacing);
 	void				SetText(const char* szText);
+	void				SetDrawn(bool bDrawn);
 	void				Rotate(ERotation eRotation);
 
 	bool				Connect(CCircuitComponent* pcComponent);
@@ -72,6 +78,7 @@ public:
 	SInt32Vec2			GetGridPosition(void);
 	bool				IsInverting(void);
 	bool				IsClock(void);
+	SFloat64Vec2*		GetClockNotch(void);
 	char*				GetText(void);
 	size				NumPortNames(void);
 	char*				GetPortName(size uiIndex);

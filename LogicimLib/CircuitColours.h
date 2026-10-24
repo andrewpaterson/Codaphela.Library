@@ -50,6 +50,8 @@ public:
 	ARGB32	msDisconnectedTrace;
 	ARGB32	msDifferingBusTrace;
 	ARGB32	msText;
+	ARGB32	msCommentText;
+	ARGB32	msHiddenText;
 
 	void	InitLogicim(void);
 	void	InitDark(void);

@@ -22,6 +22,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "MicroprocessorLib/PowerSource.h"
 #include "MicroprocessorLib/PowerPinNames.h"
+#include "MicroprocessorLib/Voltage.h"
 #include "ComponentStateXML.h"
 #include "PowerSourceView.h"
 
@@ -143,3 +144,108 @@ bool CGroundView::LoadXML(CMarkupTag* pcTag)
 	return true;
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The box runs from 0.4 below the position to 1 above it, with its point
+// at the port.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPositivePowerView::Init(int32 x, int32 y, ERotation eRotation, const char* szName, float32 fVoltage)
+{
+	SFloat64Vec2		asPoints[5];
+	SComponentShape*	psShape;
+	CChars				szVoltage;
+
+	CPowerSourceView::Init(x, y, eRotation, szName, fVoltage);
+
+	asPoints[0].Init(0, 1);
+	asPoints[1].Init(0.9, 0.4);
+	asPoints[2].Init(0.9, -1);
+	asPoints[3].Init(-0.9, -1);
+	asPoints[4].Init(-0.9, 0.4);
+	psShape = mcShapes.AddPolygon(asPoints, 5, true, true);
+	if (fVoltage > 4.0f)
+	{
+		psShape->eFill = SC_DarkShape;
+	}
+
+	szVoltage.Init();
+	AppendVoltage(&szVoltage, fVoltage, false);
+	muiVoltageText = mcShapes.NumShapes();
+	mcShapes.AddCentredText(0, -0.1, szVoltage.Text(), CF_SansSerifBold, 11);
+	szVoltage.Kill();
+
+	AddPortView(POWER_PIN_POWER, 0, 1);
+	CalculateBounds();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The voltage is written in its trace colour.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPositivePowerView::Paint(CCircuitPainter* pcPainter)
+{
+	mcShapes.SetBorder(muiVoltageText, SC_Explicit, pcPainter->GetColours()->GetTraceVoltage(mfVoltage));
+	CPowerSourceView::Paint(pcPainter);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CPositivePowerView::GetType(void)
+{
+	return "Positive Power";
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CPositivePowerView::GetXMLName(void)
+{
+	return "PositivePower";
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPositivePowerView::SaveXMLAttributes(CXMLWriter* pcWriter)
+{
+	CPowerSourceView::SaveXMLAttributes(pcWriter);
+	pcWriter->Attribute("voltage", mfVoltage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The voltage is in Volts.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPositivePowerView::LoadXML(CMarkupTag* pcTag)
+{
+	int32		x;
+	int32		y;
+	ERotation	eRotation;
+	char*		szName;
+	float32		fVoltage;
+
+	if (!LoadXMLPlacement(pcTag, &x, &y, &eRotation, &szName))
+	{
+		return false;
+	}
+	if (!pcTag->GetFloat32Attribute("voltage", &fVoltage) || !(fVoltage > 0))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs a voltage above 0.", NULL);
+	}
+	Init(x, y, eRotation, szName, fVoltage);
+	return true;
+}

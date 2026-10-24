@@ -46,6 +46,7 @@ void CFontDescription::Init(char* szName, int16 iSpaceWidth, int16 iAscent, int1
 	miAscent = iAscent;
 	miDescent = iDescent;
 	miTabSpaceCount = 4;
+	meTurn = FT_Upright;
 	SetDefaultScriptAndLines();
 
 	PostInit();
@@ -79,6 +80,7 @@ void CFontDescription::Class(void)
 	U_Int16(miSuperscriptShift);
 	U_Float32(mfSubscriptScale);
 	U_Int16(miSubscriptShift);
+	U_Enum(meTurn);
 }
 
 
@@ -110,6 +112,27 @@ bool CFontDescription::Save(CObjectWriter* pcFile)
 bool CFontDescription::Load(CObjectReader* pcFile)
 {
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Set by whatever makes the glyphs turned; see EFontTurn.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFontDescription::SetTurn(EFontTurn eTurn)
+{
+	meTurn = eTurn;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFontTurn CFontDescription::GetTurn(void)
+{
+	return meTurn;
 }
 
 
@@ -324,7 +347,8 @@ size CFontDescription::CalculateWidth(char* szText)
 		psDescription = GetGlyph(&cUTF8);
 		if (psDescription != NULL)
 		{
-			iWidth += psDescription->cSubImage.GetFullWidth();
+			//A turned glyph's step is down the page.
+			iWidth += (meTurn == FT_Clockwise) ? psDescription->cSubImage.GetFullHeight() : psDescription->cSubImage.GetFullWidth();
 		}
 		uiUTFElementLength = cUTF8.PeekUTFBytes();
 	}

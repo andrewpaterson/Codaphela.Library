@@ -22,6 +22,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
+#include "BaseLib/StringHelper.h"
 #include "MicroprocessorLib/CircuitSimulation.h"
 #include "MicroprocessorLib/SubcircuitSimulation.h"
 #include "MicroprocessorLib/Circuit.h"
@@ -185,39 +186,44 @@ void CCircuitView::Join(CArrayInt* paiParents, int iNode1, int iNode2)
 // simulation (if bStart) and wires the nets.  The circuit view must not be
 // connected to another simulation.
 //
+// Nets are found in two steps.  Wires, port views and tunnels are joined
+// into nets, each a bus as wide as its widest port view.  Then the bits of
+// the nets that components join (a splitter joins each bit of its bus to a
+// bit of one of its ends) are joined, and each set of joined bits gets one
+// trace.
+//
 //////////////////////////////////////////////////////////////////////////
 bool CCircuitView::CreateSimulation(CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, bool bStart)
 {
 	CArrayPortViewPtr			apcPortViews;
 	CArrayInt					aiParents;
 	CArrayInt					aiNetWidths;
+	CArrayInt					aiNetIndices;
 	size						uiTraces;
 	size						uiNodes;
+	size						uiNumNets;
 	size						i;
-	size						j;
 	size						k;
-	int							iRoot;
-	int							iWidth;
+	int							iNet;
 	CPortView*					pcPortView;
-	CPortView*					pcOtherPortView;
+	CComponentView*				pcComponent;
 	CSubcircuitSimulation*		pcTop;
-	CCircuit*					pcCircuit;
 	CTimeline*					pcTimeline;
 	bool						bResult;
 	CArrayTraceViewTracePtr*	papcNetTraces;
-	size						uiNumNets;
-	CArrayInt					aiNetIndices;
-	int							iNet;
 
 	pcTop = pcSimulation->GetSubcircuitTopSimulation();
-	pcCircuit = pcSimulation->GetCircuit();
 
 	bResult = true;
 	for (i = 0; i < mapcComponents.NumElements(); i++)
 	{
-		if (mapcComponents.GetPtr(i)->CreateComponent(pcTop, pcFamilies) == NULL)
+		pcComponent = mapcComponents.GetPtr(i);
+		if (pcComponent->MakesComponent())
 		{
-			bResult = false;
+			if (pcComponent->CreateComponent(pcTop, pcFamilies) == NULL)
+			{
+				bResult = false;
+			}
 		}
 	}
 
@@ -231,98 +237,15 @@ bool CCircuitView::CreateSimulation(CCircuitSimulation* pcSimulation, CFamilyVol
 	{
 		aiParents.Add((int)i);
 	}
-
-	for (i = 0; i < uiTraces; i++)
-	{
-		for (j = i + 1; j < uiTraces; j++)
-		{
-			if (mapcTraces.GetPtr(i)->Touches(mapcTraces.GetPtr(j)))
-			{
-				Join(&aiParents, (int)i, (int)j);
-			}
-		}
-	}
-	for (i = 0; i < apcPortViews.NumElements(); i++)
-	{
-		pcPortView = apcPortViews.GetPtr(i);
-		for (j = 0; j < uiTraces; j++)
-		{
-			if (mapcTraces.GetPtr(j)->Contains(pcPortView->GetGridPosition()))
-			{
-				Join(&aiParents, (int)(uiTraces + i), (int)j);
-			}
-		}
-		for (j = i + 1; j < apcPortViews.NumElements(); j++)
-		{
-			pcOtherPortView = apcPortViews.GetPtr(j);
-			if (pcOtherPortView->GetGridPosition() == pcPortView->GetGridPosition())
-			{
-				Join(&aiParents, (int)(uiTraces + i), (int)(uiTraces + j));
-			}
-		}
-	}
-
-	//A net is as wide as its widest port view; one with no ports gets a single trace to show it's undriven.
-	aiNetWidths.Init();
-	aiNetIndices.Init();
-	for (i = 0; i < uiNodes; i++)
-	{
-		aiNetWidths.Add(0);
-		aiNetIndices.Add(-1);
-	}
-	for (i = 0; i < apcPortViews.NumElements(); i++)
-	{
-		pcPortView = apcPortViews.GetPtr(i);
-		iRoot = FindRoot(&aiParents, (int)(uiTraces + i));
-		iWidth = (int)pcPortView->NumPorts();
-		if ((aiNetWidths.GetValue(iRoot) != 0) && (iWidth != 0) && (aiNetWidths.GetValue(iRoot) != iWidth))
-		{
-			gcLogger.Error2(__METHOD__, " Ports of different widths are connected at [", IntToString(pcPortView->GetGridPosition().x), ", ", IntToString(pcPortView->GetGridPosition().y), "].", NULL);
-			bResult = false;
-		}
-		if (iWidth > aiNetWidths.GetValue(iRoot))
-		{
-			aiNetWidths.SetValue(iRoot, iWidth);
-		}
-	}
-
-	//Which roots are nets: anything with a wire, and ports joined to another port.
-	uiNumNets = 0;
-	for (i = 0; i < uiNodes; i++)
-	{
-		iRoot = FindRoot(&aiParents, (int)i);
-		if ((i < uiTraces) || (iRoot != (int)i))
-		{
-			if (aiNetIndices.GetValue(iRoot) == -1)
-			{
-				aiNetIndices.SetValue(iRoot, (int)uiNumNets);
-				uiNumNets++;
-			}
-		}
-	}
+	JoinNodes(&aiParents, &apcPortViews);
+	bResult &= FindNets(&aiParents, &apcPortViews, &aiNetWidths, &aiNetIndices, &uiNumNets);
 
 	papcNetTraces = (CArrayTraceViewTracePtr*)malloc(sizeof(CArrayTraceViewTracePtr) * (uiNumNets + 1));
 	for (i = 0; i < uiNumNets; i++)
 	{
 		papcNetTraces[i].Init();
 	}
-	for (i = 0; i < uiNodes; i++)
-	{
-		iRoot = FindRoot(&aiParents, (int)i);
-		iNet = aiNetIndices.GetValue(iRoot);
-		if ((iNet != -1) && (papcNetTraces[iNet].NumElements() == 0))
-		{
-			iWidth = aiNetWidths.GetValue(iRoot);
-			if (iWidth == 0)
-			{
-				iWidth = 1;
-			}
-			for (k = 0; k < (size)iWidth; k++)
-			{
-				papcNetTraces[iNet].Add(pcCircuit->AddTrace());
-			}
-		}
-	}
+	CreateNetTraces(pcSimulation->GetCircuit(), &aiParents, &apcPortViews, &aiNetWidths, &aiNetIndices, uiNumNets, papcNetTraces);
 
 	for (i = 0; i < uiTraces; i++)
 	{
@@ -369,6 +292,255 @@ bool CCircuitView::CreateSimulation(CCircuitSimulation* pcSimulation, CFamilyVol
 
 	CalculateJunctions();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Nodes are the wires and then the port views.  Wires that touch, port
+// views on a wire, port views on the same grid point and the port views of
+// views with the same connection name are joined.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitView::JoinNodes(CArrayInt* paiParents, CArrayPortViewPtr* papcPortViews)
+{
+	size			uiTraces;
+	size			i;
+	size			j;
+	CPortView*		pcPortView;
+	CPortView*		pcOtherPortView;
+	const char*		szName;
+	const char*		szOtherName;
+
+	uiTraces = mapcTraces.NumElements();
+	for (i = 0; i < uiTraces; i++)
+	{
+		for (j = i + 1; j < uiTraces; j++)
+		{
+			if (mapcTraces.GetPtr(i)->Touches(mapcTraces.GetPtr(j)))
+			{
+				Join(paiParents, (int)i, (int)j);
+			}
+		}
+	}
+	for (i = 0; i < papcPortViews->NumElements(); i++)
+	{
+		pcPortView = papcPortViews->GetPtr(i);
+		for (j = 0; j < uiTraces; j++)
+		{
+			if (mapcTraces.GetPtr(j)->Contains(pcPortView->GetGridPosition()))
+			{
+				Join(paiParents, (int)(uiTraces + i), (int)j);
+			}
+		}
+		szName = pcPortView->GetOwner()->GetConnectionName();
+		for (j = i + 1; j < papcPortViews->NumElements(); j++)
+		{
+			pcOtherPortView = papcPortViews->GetPtr(j);
+			if (pcOtherPortView->GetGridPosition() == pcPortView->GetGridPosition())
+			{
+				Join(paiParents, (int)(uiTraces + i), (int)(uiTraces + j));
+			}
+			else if (szName != NULL)
+			{
+				szOtherName = pcOtherPortView->GetOwner()->GetConnectionName();
+				if ((szOtherName != NULL) && (StringCompare(szName, szOtherName) == 0))
+				{
+					Join(paiParents, (int)(uiTraces + i), (int)(uiTraces + j));
+				}
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A net is as wide as its widest port view; one with no ports gets a
+// single trace to show it's undriven.  Roots that are nets (anything with
+// a wire, and port views joined to another) are numbered in paiNetIndices
+// (-1 for the others) and their widths are in paiNetWidths, both by root.
+// Fails if ports of different widths are joined.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitView::FindNets(CArrayInt* paiParents, CArrayPortViewPtr* papcPortViews, CArrayInt* paiNetWidths, CArrayInt* paiNetIndices, size* puiNumNets)
+{
+	size			uiTraces;
+	size			uiNodes;
+	size			i;
+	int				iRoot;
+	int				iWidth;
+	CPortView*		pcPortView;
+	bool			bResult;
+
+	uiTraces = mapcTraces.NumElements();
+	uiNodes = uiTraces + papcPortViews->NumElements();
+	bResult = true;
+	paiNetWidths->Init();
+	paiNetIndices->Init();
+	for (i = 0; i < uiNodes; i++)
+	{
+		paiNetWidths->Add(0);
+		paiNetIndices->Add(-1);
+	}
+	for (i = 0; i < papcPortViews->NumElements(); i++)
+	{
+		pcPortView = papcPortViews->GetPtr(i);
+		iRoot = FindRoot(paiParents, (int)(uiTraces + i));
+		iWidth = (int)pcPortView->NumPorts();
+		if ((paiNetWidths->GetValue(iRoot) != 0) && (iWidth != 0) && (paiNetWidths->GetValue(iRoot) != iWidth))
+		{
+			gcLogger.Error2(__METHOD__, " Ports of different widths are connected at [", IntToString(pcPortView->GetGridPosition().x), ", ", IntToString(pcPortView->GetGridPosition().y), "].", NULL);
+			bResult = false;
+		}
+		if (iWidth > paiNetWidths->GetValue(iRoot))
+		{
+			paiNetWidths->SetValue(iRoot, iWidth);
+		}
+	}
+
+	*puiNumNets = 0;
+	for (i = 0; i < uiNodes; i++)
+	{
+		iRoot = FindRoot(paiParents, (int)i);
+		if ((i < uiTraces) || (iRoot != (int)i))
+		{
+			if (paiNetIndices->GetValue(iRoot) == -1)
+			{
+				paiNetIndices->SetValue(iRoot, (int)*puiNumNets);
+				(*puiNumNets)++;
+			}
+		}
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The traces of each net by bit, into papcNetTraces.  Bits the components
+// join (GetBitJoins) share a trace; a join to a port view that isn't on a
+// net joins nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitView::CreateNetTraces(CCircuit* pcCircuit, CArrayInt* paiParents, CArrayPortViewPtr* papcPortViews, CArrayInt* paiNetWidths, CArrayInt* paiNetIndices, size uiNumNets, CArrayTraceViewTracePtr* papcNetTraces)
+{
+	size				uiTraces;
+	size				uiNodes;
+	size				i;
+	size				k;
+	int					iRoot;
+	int					iNet;
+	CArrayInt			aiNetFirstBit;
+	CArrayInt			aiNetWidth;
+	CArrayInt			aiBitParents;
+	CArrayTraceViewTracePtr	apcBitTraces;
+	int					iBits;
+	int					iWidth;
+	CArrayPortBitJoin	asJoins;
+	SPortBitJoin*		psJoin;
+	int					iFromNet;
+	int					iToNet;
+	int					iBit;
+	CTrace*				pcTrace;
+
+	uiTraces = mapcTraces.NumElements();
+	uiNodes = uiTraces + papcPortViews->NumElements();
+
+	aiNetFirstBit.Init();
+	aiNetWidth.Init();
+	for (i = 0; i < uiNumNets; i++)
+	{
+		aiNetFirstBit.Add(0);
+		aiNetWidth.Add(0);
+	}
+	for (i = 0; i < uiNodes; i++)
+	{
+		iRoot = FindRoot(paiParents, (int)i);
+		if ((int)i == iRoot)
+		{
+			iNet = paiNetIndices->GetValue(iRoot);
+			if (iNet != -1)
+			{
+				iWidth = paiNetWidths->GetValue(iRoot);
+				aiNetWidth.SetValue(iNet, (iWidth == 0) ? 1 : iWidth);
+			}
+		}
+	}
+	iBits = 0;
+	for (i = 0; i < uiNumNets; i++)
+	{
+		aiNetFirstBit.SetValue(i, iBits);
+		iBits += aiNetWidth.GetValue(i);
+	}
+
+	aiBitParents.Init();
+	for (iBit = 0; iBit < iBits; iBit++)
+	{
+		aiBitParents.Add(iBit);
+	}
+	asJoins.Init();
+	for (i = 0; i < mapcComponents.NumElements(); i++)
+	{
+		mapcComponents.GetPtr(i)->GetBitJoins(&asJoins);
+	}
+	for (i = 0; i < asJoins.NumElements(); i++)
+	{
+		psJoin = asJoins.Get(i);
+		iFromNet = GetPortViewNet(paiParents, papcPortViews, paiNetIndices, psJoin->pcFrom);
+		iToNet = GetPortViewNet(paiParents, papcPortViews, paiNetIndices, psJoin->pcTo);
+		if ((iFromNet != -1) && (iToNet != -1) &&
+			(psJoin->uiFromBit < (size)aiNetWidth.GetValue(iFromNet)) && (psJoin->uiToBit < (size)aiNetWidth.GetValue(iToNet)))
+		{
+			Join(&aiBitParents, aiNetFirstBit.GetValue(iFromNet) + (int)psJoin->uiFromBit, aiNetFirstBit.GetValue(iToNet) + (int)psJoin->uiToBit);
+		}
+	}
+	asJoins.Kill();
+
+	apcBitTraces.Init();
+	for (iBit = 0; iBit < iBits; iBit++)
+	{
+		apcBitTraces.Add(NULL);
+	}
+	for (i = 0; i < uiNumNets; i++)
+	{
+		for (k = 0; k < (size)aiNetWidth.GetValue(i); k++)
+		{
+			iRoot = FindRoot(&aiBitParents, aiNetFirstBit.GetValue(i) + (int)k);
+			pcTrace = apcBitTraces.GetPtr(iRoot);
+			if (pcTrace == NULL)
+			{
+				pcTrace = pcCircuit->AddTrace();
+				apcBitTraces.SetPtr(iRoot, pcTrace);
+			}
+			papcNetTraces[i].Add(pcTrace);
+		}
+	}
+
+	apcBitTraces.Kill();
+	aiBitParents.Kill();
+	aiNetWidth.Kill();
+	aiNetFirstBit.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The net the port view is on, or -1.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCircuitView::GetPortViewNet(CArrayInt* paiParents, CArrayPortViewPtr* papcPortViews, CArrayInt* paiNetIndices, CPortView* pcPortView)
+{
+	size	i;
+
+	for (i = 0; i < papcPortViews->NumElements(); i++)
+	{
+		if (papcPortViews->GetPtr(i) == pcPortView)
+		{
+			return paiNetIndices->GetValue(FindRoot(paiParents, (int)(mapcTraces.NumElements() + i)));
+		}
+	}
+	return -1;
 }
 
 

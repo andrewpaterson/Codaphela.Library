@@ -1,5 +1,5 @@
-#ifndef __STACK_POINTER_H__
-#define __STACK_POINTER_H__
+#ifndef __W65_STACK_POINTER_H__
+#define __W65_STACK_POINTER_H__
 #include "W65AddressOffset.h"
 
 
@@ -26,5 +26,5 @@ public:
 };
 
 
-#endif // __STACK_POINTER_H__
+#endif // __W65_STACK_POINTER_H__
 

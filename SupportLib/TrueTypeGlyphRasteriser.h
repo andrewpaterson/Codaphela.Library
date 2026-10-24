@@ -22,6 +22,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __TRUE_TYPE_GLYPH_RASTERISER_H__
 #include "GlyphRasteriser.h"
 #include "TrueTypeFace.h"
+#include "FontDescription.h"
 
 
 //Rasterises the glyphs of a description made by CTrueTypeFontFactory::Describe from the same face and pixel size, the
@@ -33,9 +34,10 @@ DESTRUCTABLE(CTrueTypeGlyphRasteriser);
 protected:
 	Ptr<CTrueTypeFace>	mpFace;
 	float32				mfPixelSize;
+	EFontTurn			meTurn;
 
 public:
-	void	Init(Ptr<CTrueTypeFace> pFace, float32 fPixelSize);
+	void	Init(Ptr<CTrueTypeFace> pFace, float32 fPixelSize, EFontTurn eTurn = FT_Upright);
 	void	Class(void) override;
 	void 	Free(void) override;
 

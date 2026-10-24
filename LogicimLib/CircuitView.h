@@ -26,6 +26,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CCircuitSimulation;
+class CCircuit;
 class CFamilyVoltageConfigurationStore;
 
 
@@ -67,6 +68,10 @@ public:
 
 protected:
 	void				CollectPortViews(CArrayPortViewPtr* papcPortViews);
+	void				JoinNodes(CArrayInt* paiParents, CArrayPortViewPtr* papcPortViews);
+	bool				FindNets(CArrayInt* paiParents, CArrayPortViewPtr* papcPortViews, CArrayInt* paiNetWidths, CArrayInt* paiNetIndices, size* puiNumNets);
+	void				CreateNetTraces(CCircuit* pcCircuit, CArrayInt* paiParents, CArrayPortViewPtr* papcPortViews, CArrayInt* paiNetWidths, CArrayInt* paiNetIndices, size uiNumNets, CArrayTraceViewTracePtr* papcNetTraces);
+	int					GetPortViewNet(CArrayInt* paiParents, CArrayPortViewPtr* papcPortViews, CArrayInt* paiNetIndices, CPortView* pcPortView);
 	int					FindRoot(CArrayInt* paiParents, int iNode);
 	void				Join(CArrayInt* paiParents, int iNode1, int iNode2);
 };

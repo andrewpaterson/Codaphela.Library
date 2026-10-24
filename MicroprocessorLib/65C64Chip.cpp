@@ -19,18 +19,22 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ConstructorCall.h"
+#include "65C64InstructionFactory.h"
 #include "65C64Chip.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // Takes ownership of pcPins and wires the processor's signals to them.
+// The instruction factory is made ready for the chip (see
+// C65C64InstructionFactory) until it's killed.
 //
 //////////////////////////////////////////////////////////////////////////
 void C65C64Chip::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, C65C64ChipPins* pcPins)
 {
 	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pcPins);
 
+	C65C64InstructionFactory::GetInstance()->Init();
 	mcSignals.Init(pcPins->GetAddress(), pcPins->GetData(), pcPins->GetPHI2(), pcPins->GetRESB(), pcPins->GetRWB());
 	mcSignals.SetByteTraces(pcPins->GetLowerByte(), pcPins->GetUpperByte());
 	mcSignals.SetValidTraces(pcPins->GetOPV(), pcPins->GetVPA(), pcPins->GetVDA(), pcPins->GetVPB());
@@ -47,6 +51,7 @@ void C65C64Chip::Kill(void)
 {
 	mcMPU.Kill();
 	mcSignals.Kill();
+	C65C64InstructionFactory::GetInstance()->Kill();
 	CIntegratedCircuit::Kill();
 }
 

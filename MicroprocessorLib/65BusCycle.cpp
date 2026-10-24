@@ -56,7 +56,7 @@ void C65BusCycle::Init(C65AddressOffsetArray* papcAddressOffsets, C65OperationAr
 		}
 	}
 
-	Validate();
+	ValidateComponent();
 }
 
 
@@ -78,7 +78,7 @@ void C65BusCycle::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65BusCycle::Validate(void)
+void C65BusCycle::ValidateComponent(void)
 {
 	size			uiNumOperations;
 	size			i;
