@@ -116,3 +116,31 @@ size COscilloscopeState::GetTickPosition(void) { return muiTickPosition; }
 size COscilloscopeState::GetSampleCount(void) { return muiSampleCount; }
 size COscilloscopeState::GetInputCount(void) { return muiInputCount; }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For restoring a saved oscilloscope.
+//
+//////////////////////////////////////////////////////////////////////////
+void COscilloscopeState::SetVoltages(size uiInput, size uiSample, float32 fMinVoltage, float32 fMaxVoltage)
+{
+	if ((uiInput < muiInputCount) && (uiSample < muiSampleCount))
+	{
+		mafMinVoltage[uiInput * muiSampleCount + uiSample] = fMinVoltage;
+		mafMaxVoltage[uiInput * muiSampleCount + uiSample] = fMaxVoltage;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void COscilloscopeState::SetTickPosition(size uiTickPosition)
+{
+	if (uiTickPosition < muiSampleCount)
+	{
+		muiTickPosition = uiTickPosition;
+	}
+}
+

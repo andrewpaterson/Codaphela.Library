@@ -108,7 +108,7 @@ static bool MakePendingEventsXML(CArrayPendingEventXML* pasEvents, CTimeline* pc
 		psPending = pasEvents->Get(i);
 		if (psPending->iTime <= pcTimeline->GetTime())
 		{
-			return gcLogger.Error2(__METHOD__, " Event [", psPending->pcTag->GetName(), "] at [", LongLongToString(psPending->iTime), "] isn't after the simulation's time.", NULL);
+			return gcLogger.Error2(__METHOD__, " Event [", psPending->pcTag->GetName(), "] at [", LongToString(psPending->iTime), "] isn't after the simulation's time.", NULL);
 		}
 		if (psPending->pcPortEventXML != NULL)
 		{

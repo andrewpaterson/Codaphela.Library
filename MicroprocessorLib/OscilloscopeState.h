@@ -47,6 +47,8 @@ public:
 
 			float32	GetMinVoltage(size uiInput, size uiSample);
 			float32	GetMaxVoltage(size uiInput, size uiSample);
+			void	SetVoltages(size uiInput, size uiSample, float32 fMinVoltage, float32 fMaxVoltage);
+			void	SetTickPosition(size uiTickPosition);
 			size	GetTickPosition(void);
 			size	GetSampleCount(void);
 			size	GetInputCount(void);

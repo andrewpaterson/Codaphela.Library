@@ -26,12 +26,22 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #define CIRCUIT_FILE_VERSION	1
 
 
-//A circuit file is XML: a <Logicim version="1"> root holding the circuit view's <Circuit> element.  Loading adds the
-//file's circuit to an initialised circuit view, normally an empty one, and needs the data memory (DataMemoryInit) for
-//the XML reader.  The views only; simulations aren't saved yet.
+class CCircuitSimulation;
+class CFamilyVoltageConfigurationStore;
+
+
+//A circuit file is XML: a <Logicim version="1"> root holding the circuit view's <Circuit> element and, if one was
+//saved, a <Simulation> (see SimulationStateXML.h).  Loading adds the file's circuit to an initialised circuit view,
+//normally an empty one, and needs the data memory (DataMemoryInit) for the XML reader.
+//
+//Loading with a simulation (initialised, empty) makes the circuit in it: from the saved simulation if the file has one,
+//otherwise started afresh.
 bool	SaveCircuitFile(CCircuitView* pcCircuit, const char* szFilename);
+bool	SaveCircuitFile(CCircuitView* pcCircuit, CCircuitSimulation* pcSimulation, const char* szFilename);
 bool	LoadCircuitFile(CCircuitView* pcCircuit, const char* szFilename);
+bool	LoadCircuitFile(CCircuitView* pcCircuit, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, const char* szFilename);
 void	SaveCircuitXML(CCircuitView* pcCircuit, CXMLWriter* pcWriter);
+void	SaveCircuitXML(CCircuitView* pcCircuit, CCircuitSimulation* pcSimulation, CXMLWriter* pcWriter);
 
 
 #endif // __CIRCUIT_FILE_H__

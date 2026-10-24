@@ -16,6 +16,9 @@
     <Filter Include="Source\Passive">
       <UniqueIdentifier>{83ee0ff0-a2b9-5db0-bfaf-f8dbe16441a0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\SimulationState">
+      <UniqueIdentifier>{7e6adb65-a359-52bd-b429-18b6815ef5bd}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\View">
       <UniqueIdentifier>{5402b72f-c7a4-5ba8-a1b8-8a60c8851800}</UniqueIdentifier>
     </Filter>
@@ -56,6 +59,18 @@
     </ClCompile>
     <ClCompile Include="ComponentViewFactory.cpp">
       <Filter>Source\File</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentStateXML.cpp">
+      <Filter>Source\SimulationState</Filter>
+    </ClCompile>
+    <ClCompile Include="EventXML.cpp">
+      <Filter>Source\SimulationState</Filter>
+    </ClCompile>
+    <ClCompile Include="SimulationStateXML.cpp">
+      <Filter>Source\SimulationState</Filter>
+    </ClCompile>
+    <ClCompile Include="StateXML.cpp">
+      <Filter>Source\SimulationState</Filter>
     </ClCompile>
     <ClCompile Include="AndGateView.cpp">
       <Filter>Source\Gate</Filter>
@@ -109,6 +124,18 @@
     </ClInclude>
     <ClInclude Include="ComponentViewFactory.h">
       <Filter>Source\File</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentStateXML.h">
+      <Filter>Source\SimulationState</Filter>
+    </ClInclude>
+    <ClInclude Include="EventXML.h">
+      <Filter>Source\SimulationState</Filter>
+    </ClInclude>
+    <ClInclude Include="SimulationStateXML.h">
+      <Filter>Source\SimulationState</Filter>
+    </ClInclude>
+    <ClInclude Include="StateXML.h">
+      <Filter>Source\SimulationState</Filter>
     </ClInclude>
     <ClInclude Include="AndGateView.h">
       <Filter>Source\Gate</Filter>

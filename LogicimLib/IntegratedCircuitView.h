@@ -43,6 +43,7 @@ public:
 	virtual void					Kill(void);
 
 	virtual CCircuitComponent*		CreateComponent(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
+	virtual CComponentStateXML*		GetComponentStateXML(void);
 	virtual CIntegratedCircuit*		CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily) =0;
 
 			char*					GetFamily(void);

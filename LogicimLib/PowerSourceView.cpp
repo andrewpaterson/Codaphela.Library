@@ -22,6 +22,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "MicroprocessorLib/PowerSource.h"
 #include "MicroprocessorLib/PowerPinNames.h"
+#include "ComponentStateXML.h"
 #include "PowerSourceView.h"
 
 
@@ -59,6 +60,16 @@ CCircuitComponent* CPowerSourceView::CreateComponent(CSubcircuitSimulation* pcSi
 		return NULL;
 	}
 	return pcPowerSource;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CComponentStateXML* CPowerSourceView::GetComponentStateXML(void)
+{
+	return &gcPassiveStateXML;
 }
 
 

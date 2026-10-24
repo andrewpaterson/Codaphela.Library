@@ -182,11 +182,11 @@ void CCircuitView::Join(CArrayInt* paiParents, int iNode1, int iNode2)
 //////////////////////////////////////////////////////////////////////////
 //
 // Makes every component in the simulation's top subcircuit, starts the
-// simulation and wires the nets.  The circuit view must not be connected
-// to another simulation.
+// simulation (if bStart) and wires the nets.  The circuit view must not be
+// connected to another simulation.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCircuitView::CreateSimulation(CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
+bool CCircuitView::CreateSimulation(CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, bool bStart)
 {
 	CArrayPortViewPtr			apcPortViews;
 	CArrayInt					aiParents;
@@ -331,8 +331,11 @@ bool CCircuitView::CreateSimulation(CCircuitSimulation* pcSimulation, CFamilyVol
 	}
 	//Started before the ports are wired, as Logicim's editor wires them, so each port sees its trace go from undriven to
 	//whatever drives it.  Gates only act on transitions; wired before the start, a supply driving a gate's input
-	//wouldn't be seen.
-	pcSimulation->SimulationStarted();
+	//wouldn't be seen.  A simulation that's going to be loaded is wired without events; its state comes from the file.
+	if (bStart)
+	{
+		pcSimulation->SimulationStarted();
+	}
 	pcTimeline = pcSimulation->GetTimeline();
 	for (i = 0; i < apcPortViews.NumElements(); i++)
 	{
@@ -342,7 +345,14 @@ bool CCircuitView::CreateSimulation(CCircuitSimulation* pcSimulation, CFamilyVol
 		{
 			for (k = 0; k < pcPortView->NumPorts(); k++)
 			{
-				bResult &= pcPortView->GetPort(k)->ConnectLive(papcNetTraces[iNet].GetPtr(k), pcTimeline);
+				if (bStart)
+				{
+					bResult &= pcPortView->GetPort(k)->ConnectLive(papcNetTraces[iNet].GetPtr(k), pcTimeline);
+				}
+				else
+				{
+					bResult &= pcPortView->GetPort(k)->Connect(papcNetTraces[iNet].GetPtr(k));
+				}
 			}
 		}
 	}
