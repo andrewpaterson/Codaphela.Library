@@ -221,7 +221,8 @@ filePos CFileUtil::Size(const char* szFilename)
 //////////////////////////////////////////////////////////////////////////
 bool CFileUtil::IsAbsolutePath(const char* szPathName)
 {
-	return szPathName[0] == FILE_SEPARATOR[0];
+	//The paths are the host's: /home/... on Linux, C:\... on Windows.
+	return (szPathName[0] == '/') || (szPathName[0] == '\\') || ((szPathName[0] != 0) && (szPathName[1] == ':'));
 }
 
 
@@ -244,11 +245,9 @@ bool CFileUtil::FindFiles(const char* szInDirectory, bool bDirs, const char* szI
 {
 	CChars			szTemp;
 	CChars			szDirectory;
-	CChars			szFake;
 	char			szName[MAX_PATH];
 	unsigned int	uiIndex;
 	int				iKind;
-	int				iFileExtension;
 	bool			bValid;
 
 	szDirectory.Init(szInDirectory);
@@ -273,64 +272,7 @@ bool CFileUtil::FindFiles(const char* szInDirectory, bool bDirs, const char* szI
 			continue;
 		}
 
-		bValid = true;
-		if (iKind == HOST_FIND_DIRECTORY)
-		{
-			if (bDirs)
-			{
-				if (szInName != NULL)
-				{
-					szTemp.Init(szName);
-					RemoveExtension(&szTemp);
-					if (!szTemp.ContainsIgnoreCase(szInName))
-					{
-						bValid = false;
-					}
-					szTemp.Kill();
-				}
-			}
-			else
-			{
-				bValid = false;
-			}
-		}
-		else
-		{
-			if (!bDirs)
-			{
-				if (szExtension != NULL)
-				{
-					szFake.Fake(szName);
-					iFileExtension = (int)FindExtension(szFake.Text());
-					if (iFileExtension != -1)
-					{
-						if (!(szFake.SubStringEquals(iFileExtension + 1, szExtension)))
-						{
-							bValid = false;
-						}
-					}
-					else if (szExtension[0] != 0)
-					{
-						bValid = false;
-					}
-				}
-				if (szInName != NULL)
-				{
-					szTemp.Init(szName);
-					RemoveExtension(&szTemp);
-					if (!szTemp.ContainsIgnoreCase(szInName))
-					{
-						bValid = false;
-					}
-					szTemp.Kill();
-				}
-			}
-			else
-			{
-				bValid = false;
-			}
-		}
-
+		bValid = IsFindMatch(szName, iKind == HOST_FIND_DIRECTORY, bDirs, szInName, szExtension);
 		if (bValid)
 		{
 			szTemp.Init(szDirectory);

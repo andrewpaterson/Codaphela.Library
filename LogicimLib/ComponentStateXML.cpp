@@ -36,13 +36,12 @@ CPassiveStateXML			gcPassiveStateXML;
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A state no helper knows can't be saved; it's logged and left out.
+// An IC without a CStateXML remembers nothing beyond its ports and events.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIntegratedCircuitStateXML::Save(CXMLWriter* pcWriter, CCircuitComponent* pcComponent)
 {
 	CIntegratedCircuit*				pcIntegratedCircuit;
-	CState*							pcState;
 	CStateXML*						pcStateXML;
 	size							i;
 	CEvent*							pcEvent;
@@ -50,18 +49,10 @@ void CIntegratedCircuitStateXML::Save(CXMLWriter* pcWriter, CCircuitComponent* p
 	CPort*							pcPort;
 
 	pcIntegratedCircuit = (CIntegratedCircuit*)pcComponent;
-	pcState = pcIntegratedCircuit->GetState();
-	if ((pcState != NULL) && !pcState->IsStateless())
+	pcStateXML = FindStateXMLForIntegratedCircuit(pcIntegratedCircuit);
+	if (pcStateXML != NULL)
 	{
-		pcStateXML = FindStateXMLForState(pcState);
-		if (pcStateXML != NULL)
-		{
-			pcStateXML->Save(pcWriter, pcState);
-		}
-		else
-		{
-			gcLogger.Error2(__METHOD__, " Cannot save state [", pcState->ClassName(), "] of [", pcComponent->GetName(), "].", NULL);
-		}
+		pcStateXML->Save(pcWriter, pcIntegratedCircuit);
 	}
 
 	for (i = 0; i < pcIntegratedCircuit->NumEvents(); i++)
@@ -155,8 +146,8 @@ void CIntegratedCircuitStateXML::SaveOutput(CXMLWriter* pcWriter, CPortOutput* p
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The IC gets a new state from its helper, or the state it starts with
-// when the file has none.
+// An IC keeps what it remembered when it was made unless the file has its
+// state.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIntegratedCircuitStateXML::Load(CMarkupTag* pcComponentTag, CCircuitComponent* pcComponent, CArrayPendingEventXML* pasEvents)
@@ -165,7 +156,6 @@ bool CIntegratedCircuitStateXML::Load(CMarkupTag* pcComponentTag, CCircuitCompon
 	STagIterator					sIter;
 	CMarkupTag*						pcTag;
 	CStateXML*						pcStateXML;
-	CState*							pcState;
 	CIntegratedCircuitEventXML*		pcEventXML;
 	SPendingEventXML*				psPending;
 	bool							bStateLoaded;
@@ -188,16 +178,18 @@ bool CIntegratedCircuitStateXML::Load(CMarkupTag* pcComponentTag, CCircuitCompon
 			pcEventXML = FindIntegratedCircuitEventXMLForElement(pcTag->GetName());
 			if (pcStateXML != NULL)
 			{
-				if (bStateLoaded || (pcIntegratedCircuit->GetState() != NULL))
+				if (bStateLoaded)
 				{
 					return gcLogger.Error2(__METHOD__, " [", pcComponent->GetName(), "] has more than one state.", NULL);
 				}
-				pcState = pcStateXML->Load(pcTag);
-				if (pcState == NULL)
+				if (StringCompare(pcStateXML->GetIntegratedCircuitClassName(), pcIntegratedCircuit->ClassName()) != 0)
+				{
+					return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] isn't the state of [", pcComponent->GetName(), "].", NULL);
+				}
+				if (!pcStateXML->Load(pcTag, pcIntegratedCircuit))
 				{
 					return false;
 				}
-				pcIntegratedCircuit->SetState(pcState);
 				bStateLoaded = true;
 			}
 			else if (pcEventXML != NULL)
@@ -219,11 +211,6 @@ bool CIntegratedCircuitStateXML::Load(CMarkupTag* pcComponentTag, CCircuitCompon
 			}
 		}
 		pcTag = pcComponentTag->GetNextTag(&sIter);
-	}
-
-	if (!bStateLoaded && (pcIntegratedCircuit->GetState() == NULL))
-	{
-		pcIntegratedCircuit->SetState(pcIntegratedCircuit->CreateState());
 	}
 	return true;
 }

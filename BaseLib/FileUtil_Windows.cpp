@@ -361,9 +361,7 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
 	CChars				szTemp;
 	HANDLE				hFindHandle;
 	bool				bContinue;
-	int					iFileExtension;
 	bool				bValid;
-	CChars				szFake;
 	CChars				szDirectory;
 
 	szDirectory.Init(szInDirectory);
@@ -385,69 +383,7 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
 	{
 		if (!(sFindData.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) || bHidden)
 		{
-			bValid = true;
-			if (sFindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			{
-				if (bDirs)
-				{
-					if (szInName != NULL)
-					{
-						szTemp.Init(sFindData.cFileName);
-						RemoveExtension(&szTemp);
-						if (!szTemp.ContainsIgnoreCase(szInName))
-						{
-							bValid = false;
-						}
-						szTemp.Kill();
-					}
-				}
-				else
-				{
-					bValid = false;
-				}
-			}
-			else
-			{
-				if (!bDirs)
-				{
-					if (szExtension != NULL)
-					{
-						szFake.Fake(sFindData.cFileName);
-						iFileExtension = (int)FindExtension(szFake.Text());
-						if (iFileExtension != -1)
-						{
-							if (!(szFake.SubStringEquals(iFileExtension+1, szExtension)))
-							{
-								bValid = false;
-							}
-						}
-						else
-						{
-							//If there is no file extension on the current file and the
-							//extension being looked for is not empty...
-							if (szExtension[0] != 0)
-							{
-								//Then this file is not valid.
-								bValid = false;
-							}
-						}
-					}
-					if (szInName != NULL)
-					{
-						szTemp.Init(sFindData.cFileName);
-						RemoveExtension(&szTemp);
-						if (!szTemp.ContainsIgnoreCase(szInName))
-						{
-							bValid = false;
-						}
-						szTemp.Kill();
-					}
-				}
-				else
-				{
-					bValid = false;
-				}
-			}
+			bValid = IsFindMatch(sFindData.cFileName, (sFindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0, bDirs, szInName, szExtension);
 		}
 		else
 		{

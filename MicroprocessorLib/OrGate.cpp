@@ -95,16 +95,6 @@ void COrGate::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CState* COrGate::CreateState(void)
-{
-	return NewMalloc<CStateless>();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool COrGate::TransformOutput(bool bValue) { return bValue; }
 const char* COrGate::GetType(void) { return OR_GATE_TYPE; }
 COrGatePins* COrGate::GetOrGatePins(void) { return (COrGatePins*)mpcPins; }

@@ -1985,6 +1985,53 @@ uint64 CFast65C64::NumCycles(void) { return muiCycles; }
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Appends what differs from the simulator pcMPU (its registers, P, C, interrupt depth, waiting, stopping and pending
+// edges) to psz, as " A sim 0x... fast 0x...".  Returns true if anything does.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFast65C64::AppendDifferences(C65C64* pcMPU, CChars* psz)
+{
+	size	uiLength;
+
+	uiLength = psz->Length();
+	AppendDifference(psz, "A", pcMPU->GetA(), GetA());
+	AppendDifference(psz, "B", pcMPU->GetB(), GetB());
+	AppendDifference(psz, "X", pcMPU->GetX(), GetX());
+	AppendDifference(psz, "Y", pcMPU->GetY(), GetY());
+	AppendDifference(psz, "S", pcMPU->GetS(), GetS());
+	AppendDifference(psz, "V", pcMPU->GetV(), GetV());
+	AppendDifference(psz, "W", pcMPU->GetW(), GetW());
+	AppendDifference(psz, "C", pcMPU->GetProgramCounter(), GetProgramCounter());
+	AppendDifference(psz, "P", pcMPU->GetP(), GetP());
+	AppendDifference(psz, "Depth", pcMPU->GetInterruptDepth(), GetInterruptDepth());
+	AppendDifference(psz, "Stopped", pcMPU->IsStopped(), IsStopped());
+	AppendDifference(psz, "Waiting", pcMPU->IsWaiting(), IsWaiting());
+	AppendDifference(psz, "Pending", pcMPU->GetPendingEdges(), GetPendingEdges());
+	return psz->Length() != uiLength;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Appends " szName sim 0x... fast 0x..." to psz if the values differ.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFast65C64::AppendDifference(CChars* psz, const char* szName, uint64 uiOther, uint64 uiThis)
+{
+	if (uiOther != uiThis)
+	{
+		psz->Append(" ");
+		psz->Append(szName);
+		psz->Append(" sim 0x");
+		psz->AppendHexHiLo(&uiOther, 8);
+		psz->Append(" fast 0x");
+		psz->AppendHexHiLo(&uiThis, 8);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CFast65C64::TestSetRegister(E65Register eRegister, uint64 uiValue)

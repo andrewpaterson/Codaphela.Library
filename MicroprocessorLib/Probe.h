@@ -37,7 +37,6 @@ public:
 	virtual void			SimulationStarted(CTimeline* pcTimeline);
 	virtual void			InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);
 	virtual const char*		GetType(void);
-	virtual CState*			CreateState(void);
 			CProbePins*		GetProbePins(void);
 			uint64			ReadValue(CTimeline* pcTimeline);
 };

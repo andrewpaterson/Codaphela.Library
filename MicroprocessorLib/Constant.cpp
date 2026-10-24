@@ -31,6 +31,17 @@ void CConstant::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, co
 {
 	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pcPins);
 	miDefaultValue = iDefaultValue;
+	ResetState();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The default value.
+//
+//////////////////////////////////////////////////////////////////////////
+void CConstant::ResetState(void)
+{
+	miConstantValue = miDefaultValue;
 }
 
 
@@ -47,7 +58,7 @@ void CConstant::SimulationStarted(CTimeline* pcTimeline)
 	size				i;
 
 	papcOutputs = GetConstantPins()->GetOutputs();
-	uiConstantValue = (uint64)GetConstantState()->GetConstantValue();
+	uiConstantValue = (uint64)miConstantValue;
 	for (i = 0; i < papcOutputs->NumElements(); i++)
 	{
 		papcOutputs->GetPtr(i)->WriteBool(pcTimeline, (uiConstantValue & 1) == 1);
@@ -69,21 +80,8 @@ void CConstant::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CState* CConstant::CreateState(void)
-{
-	CConstantState*	pcState;
-
-	pcState = NewMalloc<CConstantState>();
-	pcState->Init(miDefaultValue);
-	return pcState;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 const char* CConstant::GetType(void) { return CONSTANT_TYPE; }
 CConstantPins* CConstant::GetConstantPins(void) { return (CConstantPins*)mpcPins; }
-CConstantState* CConstant::GetConstantState(void) { return (CConstantState*)mpcState; }
+int64 CConstant::GetConstantValue(void) { return miConstantValue; }
+void CConstant::SetConstantValue(int64 iConstantValue) { miConstantValue = iConstantValue; }
 

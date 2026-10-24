@@ -22,7 +22,6 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #define __CLOCK_OSCILLATOR_H__
 #include "IntegratedCircuit.h"
 #include "ClockOscillatorPins.h"
-#include "ClockOscillatorState.h"
 
 
 #define CLOCK_OSCILLATOR_TYPE	"Clock"
@@ -31,7 +30,8 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //Logicim's ClockOscillator: while powered its output toggles every half cycle, starting low, so the first tick, the
 //initialisation time after the simulation starts, drives it high.  The initialisation time is half a cycle unless
 //given.  A full tick is counted each time the output goes high.  Connecting its power starts it ticking, or stops it
-//driving when there is no power.
+//driving when there is no power.  The output's level and the count of full ticks are what it remembers; they're set
+//back by ResetState.
 class CClockOscillator : public CIntegratedCircuit
 {
 CONSTRUCTABLE(CClockOscillator);
@@ -39,6 +39,7 @@ protected:
 	int64	miHalfCycleTime;
 	int64	miInitialisationTime;
 	int64	miFullTicks;
+	bool	mbHigh;
 
 public:
 			void					Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CClockOscillatorPins* pcPins, float32 fFrequency);
@@ -49,13 +50,15 @@ public:
 	virtual void					ExecuteTick(CTimeline* pcTimeline);
 	virtual void					TraceConnected(CTimeline* pcTimeline, CPort* pcPort);
 	virtual const char*				GetType(void);
-	virtual CState*					CreateState(void);
+	virtual void					ResetState(void);
 
 			float32					GetInternalVoltage(int64 iTime);
 			int64					GetFullTicks(void);
+			void					SetFullTicks(int64 iFullTicks);
+			bool					IsHigh(void);
+			void					SetHigh(bool bHigh);
 			int64					GetHalfCycleTime(void);
 			CClockOscillatorPins*	GetClockOscillatorPins(void);
-			CClockOscillatorState*	GetClockOscillatorState(void);
 
 protected:
 			void					CreateTickEvent(CTimeline* pcTimeline, int64 iDelay);

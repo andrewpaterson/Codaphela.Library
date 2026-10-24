@@ -22,74 +22,77 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __STATE_XML_H__
 #include "BaseLib/XMLWriter.h"
 #include "BaseLib/MarkupTag.h"
-#include "MicroprocessorLib/State.h"
 
 
-//Saves and loads one kind of integrated circuit state.  The helpers sit beside the domain's CState classes so the
-//domain knows nothing of files: each names the state class it handles (its ClassName) and the element it is saved as.
-//Load makes a new state from an element; the caller gives it to its IC.
+class CIntegratedCircuit;
+
+
+//Saves and loads what one kind of IC remembers (a clock's level, a counter's count), beside the domain's IC classes so
+//the domain knows nothing of files.  Each names the IC class it handles (its ClassName) and the element it's saved as.
+//Load sets the remembered values on an IC of that class; ICs that remember nothing have no helper.
 class CStateXML
 {
 public:
-	virtual const char*	GetStateClassName(void) =0;
+	virtual const char*	GetIntegratedCircuitClassName(void) =0;
 	virtual const char*	GetXMLName(void) =0;
-	virtual void		Save(CXMLWriter* pcWriter, CState* pcState) =0;
-	virtual CState*		Load(CMarkupTag* pcTag) =0;
+	virtual void		Save(CXMLWriter* pcWriter, CIntegratedCircuit* pcIntegratedCircuit) =0;
+	virtual bool		Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegratedCircuit) =0;
 };
 
 
 class CClockOscillatorStateXML : public CStateXML
 {
 public:
-	const char*	GetStateClassName(void) override;
+	const char*	GetIntegratedCircuitClassName(void) override;
 	const char*	GetXMLName(void) override;
-	void		Save(CXMLWriter* pcWriter, CState* pcState) override;
-	CState*		Load(CMarkupTag* pcTag) override;
+	void		Save(CXMLWriter* pcWriter, CIntegratedCircuit* pcIntegratedCircuit) override;
+	bool		Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegratedCircuit) override;
 };
 
 
 class CConstantStateXML : public CStateXML
 {
 public:
-	const char*	GetStateClassName(void) override;
+	const char*	GetIntegratedCircuitClassName(void) override;
 	const char*	GetXMLName(void) override;
-	void		Save(CXMLWriter* pcWriter, CState* pcState) override;
-	CState*		Load(CMarkupTag* pcTag) override;
+	void		Save(CXMLWriter* pcWriter, CIntegratedCircuit* pcIntegratedCircuit) override;
+	bool		Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegratedCircuit) override;
 };
 
 
 class CCounterStateXML : public CStateXML
 {
 public:
-	const char*	GetStateClassName(void) override;
+	const char*	GetIntegratedCircuitClassName(void) override;
 	const char*	GetXMLName(void) override;
-	void		Save(CXMLWriter* pcWriter, CState* pcState) override;
-	CState*		Load(CMarkupTag* pcTag) override;
+	void		Save(CXMLWriter* pcWriter, CIntegratedCircuit* pcIntegratedCircuit) override;
+	bool		Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegratedCircuit) override;
 };
 
 
 class CDTypeFlipFlopStateXML : public CStateXML
 {
 public:
-	const char*	GetStateClassName(void) override;
+	const char*	GetIntegratedCircuitClassName(void) override;
 	const char*	GetXMLName(void) override;
-	void		Save(CXMLWriter* pcWriter, CState* pcState) override;
-	CState*		Load(CMarkupTag* pcTag) override;
+	void		Save(CXMLWriter* pcWriter, CIntegratedCircuit* pcIntegratedCircuit) override;
+	bool		Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegratedCircuit) override;
 };
 
 
-//Each input's samples are a <Samples> element of space separated minimum and maximum voltages.
+//Each input's samples are a <Samples> element of space separated minimum and maximum voltages.  The input and sample
+//counts come from the oscilloscope's properties, so a saved state must match them.
 class COscilloscopeStateXML : public CStateXML
 {
 public:
-	const char*	GetStateClassName(void) override;
+	const char*	GetIntegratedCircuitClassName(void) override;
 	const char*	GetXMLName(void) override;
-	void		Save(CXMLWriter* pcWriter, CState* pcState) override;
-	CState*		Load(CMarkupTag* pcTag) override;
+	void		Save(CXMLWriter* pcWriter, CIntegratedCircuit* pcIntegratedCircuit) override;
+	bool		Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegratedCircuit) override;
 };
 
 
-CStateXML*	FindStateXMLForState(CState* pcState);
+CStateXML*	FindStateXMLForIntegratedCircuit(CIntegratedCircuit* pcIntegratedCircuit);
 CStateXML*	FindStateXMLForElement(const char* szXMLName);
 
 

@@ -32,6 +32,18 @@ void CCounter::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, con
 	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pcPins);
 	muiBitWidth = uiBitWidth;
 	muiTerminalValue = uiTerminalValue;
+	ResetState();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Zero, not terminal.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCounter::ResetState(void)
+{
+	muiCount = 0;
+	mbTerminal = false;
 }
 
 
@@ -51,7 +63,6 @@ void CCounter::SimulationStarted(CTimeline* pcTimeline)
 void CCounter::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 {
 	CCounterPins*	pcPins;
-	CCounterState*	pcState;
 	bool			bResetLow;
 	bool			bLoadLow;
 	bool			bCountEnable;
@@ -62,19 +73,18 @@ void CCounter::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 	bool			bTerminal;
 
 	pcPins = GetCounterPins();
-	pcState = GetCounterState();
 	bResetLow = pcPins->GetReset()->Read(pcTimeline).IsLow();
 	bLoadLow = pcPins->GetLoad()->Read(pcTimeline).IsLow();
 	bCountEnable = pcPins->GetCountEnable()->Read(pcTimeline).IsHigh();
 	bCountEnableTerminal = pcPins->GetCountEnableTerminal()->Read(pcTimeline).IsHigh();
-	uiOldState = pcState->GetState();
+	uiOldState = muiCount;
 	if (bResetLow)
 	{
-		pcState->SetState(0);
+		muiCount = 0;
 	}
 	else if (bLoadLow)
 	{
-		pcState->SetState(pcPins->ReadData(pcTimeline, muiBitWidth));
+		muiCount = pcPins->ReadData(pcTimeline, muiBitWidth);
 	}
 	else if (pcPins->IsClock(pcPort))
 	{
@@ -82,20 +92,27 @@ void CCounter::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 		{
 			if (pcPort->Read(pcTimeline).IsHigh())
 			{
-				pcState->Count(muiTerminalValue);
+				if (muiCount >= muiTerminalValue)
+				{
+					muiCount = 0;
+				}
+				else
+				{
+					muiCount++;
+				}
 			}
 		}
 	}
 
-	uiState = pcState->GetState();
+	uiState = muiCount;
 	if (uiOldState != uiState)
 	{
 		pcPins->WriteOutput(pcTimeline, uiState, muiBitWidth);
 	}
 
-	bOldTerminal = pcState->GetTerminal();
+	bOldTerminal = mbTerminal;
 	bTerminal = (uiState == muiTerminalValue) && bCountEnableTerminal;
-	pcState->SetTerminal(bTerminal);
+	mbTerminal = bTerminal;
 	if (bOldTerminal != bTerminal)
 	{
 		pcPins->GetTerminalOutput()->WriteBool(pcTimeline, bTerminal);
@@ -112,24 +129,9 @@ void CCounter::AppendCounterValueHex(CChars* psz)
 {
 	uint8	uiByte;
 
-	uiByte = (uint8)GetCounterState()->GetState();
+	uiByte = (uint8)muiCount;
 	psz->Append("0x");
 	psz->AppendHexHiLo(&uiByte, 1);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Starting at zero.
-//
-//////////////////////////////////////////////////////////////////////////
-CState* CCounter::CreateState(void)
-{
-	CCounterState*	pcState;
-
-	pcState = NewMalloc<CCounterState>();
-	pcState->Init(0);
-	return pcState;
 }
 
 
@@ -139,5 +141,8 @@ CState* CCounter::CreateState(void)
 //////////////////////////////////////////////////////////////////////////
 const char* CCounter::GetType(void) { return COUNTER_TYPE; }
 CCounterPins* CCounter::GetCounterPins(void) { return (CCounterPins*)mpcPins; }
-CCounterState* CCounter::GetCounterState(void) { return (CCounterState*)mpcState; }
+uint32 CCounter::GetCount(void) { return muiCount; }
+void CCounter::SetCount(uint32 uiCount) { muiCount = uiCount; }
+bool CCounter::IsTerminal(void) { return mbTerminal; }
+void CCounter::SetTerminal(bool bTerminal) { mbTerminal = bTerminal; }
 

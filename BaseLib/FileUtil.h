@@ -88,6 +88,7 @@ private:
 	bool    RecurseCopyDir(const char* szSource, const char* szDest);
 	bool    CopyDirEntry(const char* szSource, const char* szDest, bool bDirectory);
 	bool	FindFiles(const char* szPathName, bool bDirectories, const char* szInName, const char* szExtension, CArrayChars* paszFiles, bool bHidden);
+	bool	IsFindMatch(const char* szName, bool bDirectory, bool bDirectories, const char* szInName, const char* szExtension);
 	bool	RecurseFindFiles(const char* szPathName, const char* szInName, const char* szExtension, CArrayChars* paszFiles, bool bHidden);
 	bool	Compare(const char* szFilename1, const char* szFilename2, bool bSizeOnly);
 
@@ -95,6 +96,9 @@ private:
 	size	FindLastSeparator(const char* szPathName);
 	void    RemoveLastSeparator(CChars* szPathName);
 };
+
+
+int CompareFileNamesNTFS(const char* szName1, const char* szName2);
 
 
 #endif // __FILE_UTIL_H__

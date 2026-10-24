@@ -22,7 +22,6 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #define __COUNTER_H__
 #include "IntegratedCircuit.h"
 #include "CounterPins.h"
-#include "CounterState.h"
 
 
 #define COUNTER_TYPE	"Counter"
@@ -31,13 +30,16 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //Logicim's Counter, like a 74161: the active low reset clears it and the active low load takes the data, both at once
 //rather than on the clock; otherwise, with both enables high, a rising clock counts, wrapping to zero after the
 //terminal value.  Terminal count is high at the terminal value while enable terminal is high.  Outputs are only
-//driven when they change, and the count starts at zero, so they are undriven until it first changes.
+//driven when they change, and the count starts at zero, so they are undriven until it first changes.  The count and
+//whether terminal count is high are what it remembers; ResetState sets them back to zero and low.
 class CCounter : public CIntegratedCircuit
 {
 CONSTRUCTABLE(CCounter);
 protected:
 	size	muiBitWidth;
 	uint32	muiTerminalValue;
+	uint32	muiCount;
+	bool	mbTerminal;
 
 public:
 			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CCounterPins* pcPins, size uiBitWidth, uint32 uiTerminalValue);
@@ -45,10 +47,13 @@ public:
 	virtual void			SimulationStarted(CTimeline* pcTimeline);
 	virtual void			InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);
 	virtual const char*		GetType(void);
-	virtual CState*			CreateState(void);
+	virtual void			ResetState(void);
 			void			AppendCounterValueHex(CChars* psz);
 			CCounterPins*	GetCounterPins(void);
-			CCounterState*	GetCounterState(void);
+			uint32			GetCount(void);
+			void			SetCount(uint32 uiCount);
+			bool			IsTerminal(void);
+			void			SetTerminal(bool bTerminal);
 };
 
 

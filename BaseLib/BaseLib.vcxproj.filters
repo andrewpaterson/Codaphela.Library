@@ -2489,6 +2489,9 @@
     <ClCompile Include="PlainTextEditor.cpp">
       <Filter>Source\Text\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Source\Windows</Filter>
+    </ClCompile>
     <ClCompile Include="Timer_Windows.cpp">
       <Filter>Source\Windows</Filter>
     </ClCompile>

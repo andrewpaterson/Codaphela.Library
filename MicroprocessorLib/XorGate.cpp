@@ -91,16 +91,6 @@ void CXorGate::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CState* CXorGate::CreateState(void)
-{
-	return NewMalloc<CStateless>();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CXorGate::TransformOutput(bool bValue) { return bValue; }
 const char* CXorGate::GetType(void) { return XOR_GATE_TYPE; }
 CXorGatePins* CXorGate::GetXorGatePins(void) { return (CXorGatePins*)mpcPins; }

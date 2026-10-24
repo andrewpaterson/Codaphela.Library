@@ -19,10 +19,8 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ConstructorCall.h"
-#include "BaseLib/Logger.h"
 #include "BaseLib/StringHelper.h"
 #include "LongTime.h"
-#include "Voltage.h"
 #include "Timeline.h"
 #include "TickEvent.h"
 #include "ClockOscillator.h"
@@ -48,6 +46,18 @@ void CClockOscillator::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulat
 	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pcPins);
 	miHalfCycleTime = FrequencyToTime(fFrequency) / 2;
 	miInitialisationTime = iInitialisationTime;
+	ResetState();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Low, with no full ticks.
+//
+//////////////////////////////////////////////////////////////////////////
+void CClockOscillator::ResetState(void)
+{
+	mbHigh = false;
 	miFullTicks = 0;
 }
 
@@ -79,24 +89,22 @@ void CClockOscillator::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort
 //////////////////////////////////////////////////////////////////////////
 void CClockOscillator::ExecuteTick(CTimeline* pcTimeline)
 {
-	CClockOscillatorState*	pcState;
 	CClockOscillatorPins*	pcPins;
 
 	if (IsPowered(pcTimeline->GetTime()))
 	{
-		pcState = GetClockOscillatorState();
 		pcPins = GetClockOscillatorPins();
-		pcState->Tick();
-		if (pcState->GetState())
+		mbHigh = !mbHigh;
+		if (mbHigh)
 		{
 			miFullTicks++;
 		}
 
 		CreateTickEvent(pcTimeline, miHalfCycleTime);
-		pcPins->GetOutput()->WriteBool(pcTimeline, pcState->GetState());
+		pcPins->GetOutput()->WriteBool(pcTimeline, mbHigh);
 		if (pcPins->GetOutputInverse() != NULL)
 		{
-			pcPins->GetOutputInverse()->WriteBool(pcTimeline, !pcState->GetState());
+			pcPins->GetOutputInverse()->WriteBool(pcTimeline, !mbHigh);
 		}
 	}
 }
@@ -167,33 +175,12 @@ bool CClockOscillator::HasTickEvent(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The voltage the clock is driving towards.  NaN, with an error logged,
-// before the simulation has started.
+// The voltage the clock is driving towards; low until its first tick.
 //
 //////////////////////////////////////////////////////////////////////////
 float32 CClockOscillator::GetInternalVoltage(int64 iTime)
 {
-	if (mpcState != NULL)
-	{
-		return GetClockOscillatorPins()->GetOutput()->GetVoltageConfigurationSource()->GetVoltageOut(GetClockOscillatorState()->GetState(), GetVCC(iTime));
-	}
-	gcLogger.Error2(__METHOD__, " Clock without state cannot get internal voltage.", NULL);
-	return NoVoltage();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Starting low.
-//
-//////////////////////////////////////////////////////////////////////////
-CState* CClockOscillator::CreateState(void)
-{
-	CClockOscillatorState*	pcState;
-
-	pcState = NewMalloc<CClockOscillatorState>();
-	pcState->Init(false);
-	return pcState;
+	return GetClockOscillatorPins()->GetOutput()->GetVoltageConfigurationSource()->GetVoltageOut(mbHigh, GetVCC(iTime));
 }
 
 
@@ -205,5 +192,7 @@ const char* CClockOscillator::GetType(void) { return CLOCK_OSCILLATOR_TYPE; }
 int64 CClockOscillator::GetFullTicks(void) { return miFullTicks; }
 int64 CClockOscillator::GetHalfCycleTime(void) { return miHalfCycleTime; }
 CClockOscillatorPins* CClockOscillator::GetClockOscillatorPins(void) { return (CClockOscillatorPins*)mpcPins; }
-CClockOscillatorState* CClockOscillator::GetClockOscillatorState(void) { return (CClockOscillatorState*)mpcState; }
+void CClockOscillator::SetFullTicks(int64 iFullTicks) { miFullTicks = iFullTicks; }
+bool CClockOscillator::IsHigh(void) { return mbHigh; }
+void CClockOscillator::SetHigh(bool bHigh) { mbHigh = bHigh; }
 
