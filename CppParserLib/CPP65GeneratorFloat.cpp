@@ -90,9 +90,9 @@ void CCPP65Generator::MoveBToA(SCPP65Type* psType)
 {
 	if (psType->Is64())
 	{
-		Line("wtth (A, B), 8")->AppendNewLine();
+		Line("wtth (A, B), 64")->AppendNewLine();
 		Line("cpy A, B")->AppendNewLine();
-		Line("wtth (A, B), 4")->AppendNewLine();
+		Line("wtth (A, B), 32")->AppendNewLine();
 	}
 	else
 	{
@@ -139,12 +139,12 @@ int CCPP65Generator::PushFloatOperands(SCPP65Type* psLeft, SCPP65Right* psRight,
 
 	if (psLeft->Is64())
 	{
-		Line("wth A, 8")->AppendNewLine();
+		Line("wth A, 64")->AppendNewLine();
 	}
 	Line("cpy A, [")->Append(1 + psType->iBytes)->Append(" + S]")->AppendNewLine();
 	if (psLeft->Is64())
 	{
-		Line("wth A, 4")->AppendNewLine();
+		Line("wth A, 32")->AppendNewLine();
 	}
 	if (!Convert(psLeft, psType, pcNode))
 	{

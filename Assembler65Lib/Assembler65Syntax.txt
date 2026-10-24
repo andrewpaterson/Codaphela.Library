@@ -69,7 +69,7 @@ Round brackets (the user, 2026-10-23)
 Besides arithmetic inside one argument, round brackets group two or more operands
 into one (the left or right side of an instruction), for clarity:
 
-	psh (A, B), S		wtth (X, Y), 4		sep (c, n)		stp (l, e0)
+	psh (A, B), S		wtth (X, Y), 32		sep (c, n)		stp (l, e0)
 	brasa (z, c), Loop	scp (A, 2), (B, X), 4	bist f, (A, 3)
 	stab (A, Y, X, -1), n	gwth Y, (A, -1)
 
@@ -186,10 +186,12 @@ Instructions
 	brac bras  flag, target		brasa braso  (flag, c|z|n|v), target
 	nop {1 to 8}
 	sep cep  flag | (flag, flag, ...)	(e, l, f, g, n, v, z, c)
-	wth R, bytes|register		wtth (R1, R2), bytes|register	(R is A, B, X or Y)
+	wth R, bits|register		wtth (R1, R2), bits|register	(R is A, B, X or Y)
+		Widths are in bits: 8, 16, 32 or 64 (the user, 2026-10-24).  A register
+		operand holds bits too, rounded up to the next width.
 	gwth R, Q | gwth R, (Q, -1)		(-1 subtracts one from the width; it is not a
 					direction: the user, 2026-10-23)
-	wthx R, bytes{:s}
+	wthx R, bits{:s}
 	brk 0 to 1023
 	stp {wake | (wake, wake, ...)}	wake interrupts l, e0, e1, e2, e3
 	mul div

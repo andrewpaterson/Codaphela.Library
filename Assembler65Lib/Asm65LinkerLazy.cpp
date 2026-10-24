@@ -33,8 +33,8 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 static const char* gszLazyLoader =
 	"	.section text.R_LazyLoad, keep\n"
 	"R_LazyLoad:\n"
-	"	wtth (A, B), 4\n"
-	"	wtth (X, Y), 4\n"
+	"	wtth (A, B), 32\n"
+	"	wtth (X, Y), 32\n"
 	"	psh V\n"
 	"	psh A\n"
 	"	psh B\n"

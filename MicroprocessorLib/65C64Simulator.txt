@@ -268,8 +268,10 @@ Branch offsets are in bytes (block move example).  The branch always offset
 (-64 to 63) is also in bytes.
 nop with wait n takes 1 + n cycles.
 gwth returns the width in bits (the ror example).  wth, wtth and wthx take widths
-in bytes (1 to 8: 1 = 8 bits, 2 = 16, 3-4 = 32, 5-8 = 64).  A register operand
-for wth is a byte count too.
+in bits in assembly: 8, 16, 32 or 64 (the user, 2026-10-24: "Widths in bits is
+correct").  The embedded field still encodes bytes - 1 (1 = 8 bits ... 8 = 64 bits,
+3-4 = 32, 5-8 = 64).  A register operand for wth holds bits, rounded up to the next
+width (1-8 = 8, 9-16 = 16, 17-32 = 32, more = 64).
 Undefined encodings execute as a one cycle "ill" that does nothing.
 shl: c is the last bit shifted out, v the one before it.  shr: the same, and n is the
 sign before the shift.  A shift of 0 clears c and v.

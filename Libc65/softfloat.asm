@@ -81,7 +81,7 @@ MultiplySignificands:
 		bra MultiplyKeepW
 
 MultiplyW0:
-		wth Y, 8
+		wth Y, 64
 		mul						; from 2^54 to 2^56
 		cpy W, 0
 		sub X, 125
@@ -110,7 +110,7 @@ NotRoundOutside1:
 RoundNearest:
 		add Y, $80000000
 		scp (Y, 4), (A, 0), 4
-		wth Y, 4
+		wth Y, 32
 		tst Y, Y
 		brac z, RoundPacked
 		and A, -2
@@ -132,14 +132,14 @@ RoundOutside:
 		bra RoundSubnormal
 
 RoundShift:
-		wth A, 8
+		wth A, 64
 		cpy A, Y
 		shr Y, X
 		neg X, X
 		add X, 64
 		shl A, X				; the bits shifted out, at the top
 		tst A, A
-		wth A, 4
+		wth A, 32
 		bras z, RoundSubnormal
 		or Y, 1
 
@@ -148,7 +148,7 @@ RoundSubnormal:
 		bra RoundNearest
 
 RoundOverflow:
-		wth Y, 4
+		wth Y, 32
 		cpy A, $7F800000
 		stab (A, 31), f
 		ret
@@ -262,7 +262,7 @@ NotAddLargerSpecial1:
 NotAddSmallerSpecial1:
 		sub Y, X
 		neg Y, Y				; how far apart they are
-		wtth (A, B), 8
+		wtth (A, B), 64
 		bist c, (B, 31)
 		and A, $7FFFFF
 		stab (A, 23), 1
@@ -289,9 +289,9 @@ AddSameShift:
 
 AddSame:
 		add A, B
-		wth Y, 8
+		wth Y, 64
 		cpy Y, A
-		wtth (A, B), 4
+		wtth (A, B), 32
 		bist c, (Y, 55)
 		bras c, AddSameTop
 		shl Y, 1
@@ -305,7 +305,7 @@ AddSameTop:
 NotRoundOutside2:
 		add Y, $80000000
 		scp (Y, 4), (A, 0), 4
-		wth Y, 4
+		wth Y, 32
 		tst Y, Y
 		brac z, AddSamePacked
 		and A, -2
@@ -336,9 +336,9 @@ AddDifferentShift:
 
 AddDifferentSubtract:
 		sub A, B
-		wth Y, 8
+		wth Y, 64
 		cpy Y, A
-		wtth (A, B), 4
+		wtth (A, B), 32
 		sub X, 1
 		bist c, (Y, 55)
 		bras c, AddDifferentTop
@@ -353,7 +353,7 @@ AddDifferentTop:
 NotRoundOutside3:
 		add Y, $80000000
 		scp (Y, 4), (A, 0), 4
-		wth Y, 4
+		wth Y, 32
 		tst Y, Y
 		brac z, AddDifferentPacked
 		and A, -2
@@ -370,9 +370,9 @@ AddClose:
 		shr B, Y
 		sub A, B
 		bras z, AddCancelled
-		wth Y, 8
+		wth Y, 64
 		cpy Y, A
-		wtth (A, B), 4
+		wtth (A, B), 32
 		cpy B, 55
 		cep c
 		fsbi Y, B, -1
@@ -388,7 +388,7 @@ AddClose:
 NotRoundOutside4:
 		add Y, $80000000
 		scp (Y, 4), (A, 0), 4
-		wth Y, 4
+		wth Y, 32
 		tst Y, Y
 		brac z, AddClosePacked
 		and A, -2
@@ -400,7 +400,7 @@ AddClosePacked:
 		ret
 
 AddCancelled:
-		wtth (A, B), 4
+		wtth (A, B), 32
 		cpy A, 0
 		ret
 
@@ -414,7 +414,7 @@ AddSmallerSpecial:
 		bras z, AddSubnormals
 		cpy Y, X
 		sub Y, 1
-		wtth (A, B), 8
+		wtth (A, B), 64
 		stat c, g
 		and A, $7FFFFF
 		stab (A, 23), 1
@@ -508,7 +508,7 @@ MultiplyInfiniteB:
 MultiplyKeepW:
 		scp (W, 0), (X, 4), 4
 		cpy W, 0
-		wth Y, 8
+		wth Y, 64
 		mul
 		scp (X, 4), (W, 0), 4
 		sub X, 125
@@ -539,7 +539,7 @@ NotDivideSpecial1:
 
 NotDivideSpecial2:
 		sub X, Y
-		wth Y, 8
+		wth Y, 64
 		cpy Y, 0
 		scb (A, 0), (Y, 40), 23
 		stab (Y, 63), 1			; a's significand shifted up 40
@@ -581,7 +581,7 @@ DivideTop:
 NotRoundOutside5:
 		add Y, $80000000
 		scp (Y, 4), (A, 0), 4
-		wth Y, 4
+		wth Y, 32
 		tst Y, Y
 		brac z, DividePacked
 		and A, -2
@@ -616,7 +616,7 @@ DivideSpecial:
 		pul (B, Y)				; B = a's significand, Y = a's exponent
 		sub Y, X
 		cpy X, Y
-		wth Y, 8
+		wth Y, 64
 		cpy Y, B
 		shl Y, 40
 		bra DivideSignificands
@@ -679,7 +679,7 @@ FromDone:
 		ret
 
 FromRound32:
-		wth Y, 8
+		wth Y, 64
 		cpy Y, A
 		neg B, B
 		add B, 55
@@ -687,7 +687,7 @@ FromRound32:
 		bra RoundTop
 
 _SoftFloatFromLongLong:
-		wth Y, 8
+		wth Y, 64
 		cpy Y, [5 + S]
 		bras z, FromZeroWide
 		abs Y, Y
@@ -695,7 +695,7 @@ _SoftFloatFromLongLong:
 		bra FromMagnitude
 
 _SoftFloatFromUnsignedLongLong:
-		wth Y, 8
+		wth Y, 64
 		cpy Y, [5 + S]
 		bras z, FromZeroWide
 		cep f
@@ -713,14 +713,14 @@ FromMagnitude:
 		cmp B, 56
 		brac c, FromShiftLeft
 		sub B, 55
-		wth A, 8
+		wth A, 64
 		cpy A, Y
 		shr Y, B
 		neg B, B
 		add B, 64
 		shl A, B
 		tst A, A
-		wth A, 4
+		wth A, 32
 		bras z, FromRound
 		or Y, 1
 
@@ -735,11 +735,11 @@ FromShiftLeft:
 
 FromSmall:
 		cpy A, Y
-		wth Y, 4
+		wth Y, 32
 		bra FromExact
 
 FromZeroWide:
-		wth Y, 4
+		wth Y, 32
 
 FromZero:
 		cpy A, 0
@@ -749,7 +749,7 @@ FromZero:
 ; uint32_t SoftDoubleToFloat(uint64_t ulli).  NaNs keep the top of their payload and
 ; are quietened; a double subnormal is far below the smallest float.
 _SoftDoubleToFloat:
-		wth Y, 8
+		wth Y, 64
 		cpy Y, [5 + S]
 		bist f, (Y, 63)
 		cpy X, 0
@@ -784,7 +784,7 @@ DoubleToFloatZero:
 		cpy A, 0
 
 DoubleToFloatSign:
-		wth Y, 4
+		wth Y, 32
 		stab (A, 31), f
 		ret
 
@@ -827,7 +827,7 @@ SqrtRoot:
 		shr X, 1
 		scp (A, 0), (X, 4), 4
 		scp (W, 0), (A, 4), 4
-		wth Y, 8
+		wth Y, 64
 		cpy Y, A
 		shl Y, 25				; M
 		cpy B, A
@@ -853,7 +853,7 @@ SqrtRoot:
 		cpy W, 0
 		mul
 		scp (A, 4), (W, 0), 4
-		wth B, 8
+		wth B, 64
 		cpy B, 0
 		scp (X, 4), (B, 0), 4
 		shl B, 25
@@ -876,7 +876,7 @@ SqrtCorrected:
 		or Y, 1
 
 SqrtExact:
-		wth B, 4
+		wth B, 32
 		bra RoundTop
 
 SqrtSpecial:
@@ -1038,20 +1038,20 @@ _SoftFloatToLongLong:
 		bra ToLongOutside
 
 NotToLongOutside1:
-		wth Y, 8
+		wth Y, 64
 		cpy Y, 0
 		scb (A, 0), (Y, 40), 23
 		stab (Y, 63), 1
 		neg X, X
 		add X, 63
 		shr Y, X
-		wth A, 8
+		wth A, 64
 		cpy A, Y
 		brac f, ToLongDone
 		neg A, A
 
 ToLongDone:
-		wtth (A, Y), 4
+		wtth (A, Y), 32
 		ret
 
 ToLongOutside:
@@ -1059,16 +1059,16 @@ ToLongOutside:
 		bras n, ToLongZero
 
 ToLongIndefinite:
-		wth A, 8
+		wth A, 64
 		cpy A, 0
 		stab (A, 63), 1
-		wth A, 4
+		wth A, 32
 		ret
 
 ToLongZero:
-		wth A, 8
+		wth A, 64
 		cpy A, 0
-		wth A, 4
+		wth A, 32
 		ret
 
 _SoftFloatToUnsignedLongLong:
@@ -1081,16 +1081,16 @@ _SoftFloatToUnsignedLongLong:
 		bras n, ToLongIndefinite
 		cmp X, 64
 		bras c, ToLongIndefinite
-		wth Y, 8
+		wth Y, 64
 		cpy Y, 0
 		scb (A, 0), (Y, 40), 23
 		stab (Y, 63), 1
 		neg X, X
 		add X, 63
 		shr Y, X
-		wth A, 8
+		wth A, 64
 		cpy A, Y
-		wtth (A, Y), 4
+		wtth (A, Y), 32
 		ret
 
 
@@ -1113,11 +1113,11 @@ NotToDoubleSpecial1:
 ; The sign, exponent and fraction of A (32 bits wide) move to their places in a double,
 ; then X (11 bits) is written over the exponent.
 ToDoublePack:
-		wthx A, 8
+		wthx A, 64
 		shl A, 29
 		scb (A, 60), (A, 63), 1
 		scb (X, 0), (A, 52), 11
-		wth A, 4
+		wth A, 32
 		ret
 
 ToDoubleSpecial:
@@ -1127,12 +1127,12 @@ ToDoubleSpecial:
 		cpy Y, A
 		shl Y, 9
 		bras z, ToDoublePack	; an infinity
-		wthx A, 8
+		wthx A, 64
 		shl A, 29
 		scb (A, 60), (A, 63), 1
 		scb (X, 0), (A, 52), 11
 		stab (A, 51), 1			; a NaN, quietened
-		wth A, 4
+		wth A, 32
 		ret
 
 ; Zero, or a subnormal: its top bit becomes the implicit one.
@@ -1143,21 +1143,21 @@ ToDoubleSmall:
 		cpy X, 31
 		cep c
 		fsbi A, X, -1
-		wthx A, 8
+		wthx A, 64
 		cpy Y, 52
 		sub Y, X
 		shl A, Y
 		add X, 865				; the top bit at 9 is 2^-149
 		scb (X, 0), (A, 52), 11
 		stab (A, 63), f
-		wth A, 4
+		wth A, 32
 		ret
 
 ToDoubleZero:
-		wth A, 8
+		wth A, 64
 		cpy A, 0
 		stab (A, 63), f
-		wth A, 4
+		wth A, 32
 		ret
 
 
@@ -1173,8 +1173,8 @@ ToDoubleZero:
 
 ; uint64_t SoftDoubleMultiply(uint64_t ulliA, uint64_t ulliB)
 _SoftDoubleMultiply:
-		wtth (A, B), 8
-		wtth (X, Y), 8
+		wtth (A, B), 64
+		wtth (X, Y), 64
 		cpy A, [5 + S]
 		cpy B, [13 + S]
 		cpy Y, A
@@ -1184,7 +1184,7 @@ _SoftDoubleMultiply:
 		scb (A, 52), (X, 0), 11
 		cpy Y, 0
 		scb (B, 52), (Y, 0), 11
-		wtth (X, Y), 4
+		wtth (X, Y), 32
 		sub X, 1
 		cmp X, 2046
 		brac c, NotDMultiplySpecial1
@@ -1213,14 +1213,14 @@ NotDMultiplySpecial2:
 ; the stack (a's low half is then at [13 + S]); g says aL bL's low half is zero.
 DMultiplySignificands:
 		psh (W, X)
-		wtth (A, B), 4
-		wtth (X, Y), 8
+		wtth (A, B), 32
+		wtth (X, Y), 64
 		cpy W, 0
 		mul						; aL bL
-		wth Y, 4
+		wth Y, 32
 		tst Y, Y
 		stat g, z
-		wth Y, 8
+		wth Y, 64
 		cpy X, 0
 		scp (Y, 4), (X, 0), 4
 		scp (A, 4), (A, 0), 4	; aH
@@ -1249,7 +1249,7 @@ DMultiplySticky:
 		or Y, 1
 
 DMultiplyRound:
-		wth X, 4
+		wth X, 32
 		pul (W, X)
 
 ; Rounds and packs a finite double and returns from the routine that jumped here.
@@ -1276,13 +1276,13 @@ DRoundNearest:
 
 DRoundShift:
 		shr Y, 10
-		wth A, 8
+		wth A, 64
 		cpy A, X
 		shl A, 52
 		add A, Y
 		stab (A, 63), f
-		wtth (A, B), 4
-		wtth (X, Y), 4
+		wtth (A, B), 32
+		wtth (X, Y), 32
 		ret
 
 ; X is negative (a subnormal result, or zero) or at least 2046 (too large).
@@ -1296,7 +1296,7 @@ DRoundOutside:
 		bra DRoundSubnormal
 
 DRoundSubnormalShift:
-		wth A, 8
+		wth A, 64
 		cpy A, Y
 		shr Y, X
 		neg X, X
@@ -1311,20 +1311,20 @@ DRoundSubnormal:
 		bra DRoundNearest
 
 DRoundOverflow:
-		wth A, 8
+		wth A, 64
 		cpy A, 0
 		stab (A, 52, 11, +1), 1
 		stab (A, 63), f
-		wtth (A, B), 4
-		wtth (X, Y), 4
+		wtth (A, B), 32
+		wtth (X, Y), 32
 		ret
 
 ; Either is zero, subnormal, infinite or a NaN.  The significands of subnormals are
 ; made and a's is written over a for the product to read.
 DMultiplySpecial:
 		jsr DTwoNaNs
-		wtth (A, B), 8
-		wtth (X, Y), 8
+		wtth (A, B), 64
+		wtth (X, Y), 64
 		cpy A, [5 + S]
 		cpy B, [13 + S]
 		cpy X, A
@@ -1341,7 +1341,7 @@ DMultiplySpecial:
 		bras z, DSignedZero
 		jsr DUnpack
 		cpy [5 + S], A
-		wth Y, 4
+		wth Y, 32
 		cpy Y, X
 		cpy A, B
 		jsr DUnpack
@@ -1366,7 +1366,7 @@ DMultiplyInfiniteB:
 ; (the top bit at 52) and its exponent in X (32 bits wide, below 1 for a subnormal).
 ; Only A and X change.
 DUnpack:
-		wth X, 4
+		wth X, 32
 		cpy X, 0
 		scb (A, 52), (X, 0), 11
 		shl A, 12
@@ -1392,12 +1392,12 @@ DUnpackSubnormal:
 ; is a NaN it returns from the routine with the first NaN, quietened.  Otherwise it
 ; returns with only X changed (and 64 bits wide).
 DTwoNaNs:
-		wth X, 8
+		wth X, 64
 		cpy X, [9 + S]
 		shl X, 1
 		cmp X, $FFE0000000000001
 		brac c, DTwoNaNsSecond
-		wth A, 8
+		wth A, 64
 		cpy A, [9 + S]
 		bra DTwoNaNsQuiet
 
@@ -1406,14 +1406,14 @@ DTwoNaNsSecond:
 		shl X, 1
 		cmp X, $FFE0000000000001
 		brac c, DTwoNaNsNone
-		wth A, 8
+		wth A, 64
 		cpy A, [17 + S]
 
 DTwoNaNsQuiet:
 		stab (A, 51), 1
 		add S, 4
-		wtth (A, B), 4
-		wtth (X, Y), 4
+		wtth (A, B), 32
+		wtth (X, Y), 32
 
 DTwoNaNsNone:
 		ret
@@ -1421,24 +1421,24 @@ DTwoNaNsNone:
 
 ; Results that are jumped to: they return from the routine.
 DDefaultNaN:
-		wth A, 8
+		wth A, 64
 		cpy A, 0
 		stab (A, 51, 13, +1), 1
 
 DWidths:
-		wtth (A, B), 4
-		wtth (X, Y), 4
+		wtth (A, B), 32
+		wtth (X, Y), 32
 		ret
 
 DSignedInfinity:
-		wth A, 8
+		wth A, 64
 		cpy A, 0
 		stab (A, 52, 11, +1), 1
 		stab (A, 63), f
 		bra DWidths
 
 DSignedZero:
-		wth A, 8
+		wth A, 64
 		cpy A, 0
 		stab (A, 63), f
 		bra DWidths
@@ -1447,16 +1447,16 @@ DSignedZero:
 ; uint64_t SoftDoubleAdd(uint64_t ulliA, uint64_t ulliB) and SoftDoubleSubtract.  As the
 ; float add, with the larger's significand shifted up 9 (the same signs) or 10.
 _SoftDoubleSubtract:
-		wtth (A, B), 8
-		wtth (X, Y), 8
+		wtth (A, B), 64
+		wtth (X, Y), 64
 		cpy A, [5 + S]
 		cpy B, [13 + S]
 		xor B, $8000000000000000
 		bra DAddSigned
 
 _SoftDoubleAdd:
-		wtth (A, B), 8
-		wtth (X, Y), 8
+		wtth (A, B), 64
+		wtth (X, Y), 64
 		cpy A, [5 + S]
 		cpy B, [13 + S]
 
@@ -1479,7 +1479,7 @@ DAddOrdered:
 		bist f, (A, 63)			; the result's sign (unless it cancels)
 		shr X, 53				; the exponents
 		shr Y, 53
-		wtth (X, Y), 4
+		wtth (X, Y), 32
 		cmp X, 2047
 		brac z, NotDAddLargerSpecial
 		bra DAddLargerSpecial
@@ -1526,7 +1526,7 @@ DAddSameJam:
 ; B >> Y, keeping what is shifted out as its lowest bit: B less (B >> Y) << Y is what is
 ; lost.  X is the spare register meanwhile, with the exponent in the top half of Y.
 		scp (X, 0), (Y, 4), 4
-		wth X, 8
+		wth X, 64
 		cpy X, B
 		shr X, Y
 		shl X, Y
@@ -1538,7 +1538,7 @@ DAddSameJam:
 
 DAddSameJamExact:
 		cpy B, X
-		wth X, 4
+		wth X, 32
 		scp (Y, 4), (X, 0), 4
 		bra DAddSame
 
@@ -1547,9 +1547,9 @@ DAddSameExact:
 
 DAddSame:
 		add A, B
-		wth Y, 8
+		wth Y, 64
 		cpy Y, A
-		wtth (A, B), 4
+		wtth (A, B), 32
 		bist c, (Y, 62)
 		bras c, DAddSameTop
 		shl Y, 1
@@ -1568,13 +1568,13 @@ DAddSameNearest:
 
 DAddSameShift:
 		shr Y, 10
-		wth A, 8
+		wth A, 64
 		cpy A, X
 		shl A, 52
 		add A, Y
 		stab (A, 63), f
-		wtth (A, B), 4
-		wtth (X, Y), 4
+		wtth (A, B), 32
+		wtth (X, Y), 32
 		ret
 
 ; The signs are different: the significands made with the top bit at 62.
@@ -1607,7 +1607,7 @@ DAddDifferentJam:
 ; B >> Y, keeping what is shifted out as its lowest bit: B less (B >> Y) << Y is what is
 ; lost.  X is the spare register meanwhile, with the exponent in the top half of Y.
 		scp (X, 0), (Y, 4), 4
-		wth X, 8
+		wth X, 64
 		cpy X, B
 		shr X, Y
 		shl X, Y
@@ -1619,7 +1619,7 @@ DAddDifferentJam:
 
 DAddDifferentJamExact:
 		cpy B, X
-		wth X, 4
+		wth X, 32
 		scp (Y, 4), (X, 0), 4
 		bra DAddDifferentSubtract
 
@@ -1628,9 +1628,9 @@ DAddDifferentExact:
 
 DAddDifferentSubtract:
 		sub A, B
-		wth Y, 8
+		wth Y, 64
 		cpy Y, A
-		wtth (A, B), 4
+		wtth (A, B), 32
 		sub X, 1
 		bist c, (Y, 62)
 		bras c, DAddDifferentTop
@@ -1650,13 +1650,13 @@ DAddDifferentNearest:
 
 DAddDifferentShift:
 		shr Y, 10
-		wth A, 8
+		wth A, 64
 		cpy A, X
 		shl A, 52
 		add A, Y
 		stab (A, 63), f
-		wtth (A, B), 4
-		wtth (X, Y), 4
+		wtth (A, B), 32
+		wtth (X, Y), 32
 		ret
 
 ; Within one of each other the difference is exact but may lose any number of bits (or
@@ -1665,9 +1665,9 @@ DAddClose:
 		shr B, Y
 		sub A, B
 		bras z, DAddCancelled
-		wth Y, 8
+		wth Y, 64
 		cpy Y, A
-		wtth (A, B), 4
+		wtth (A, B), 32
 		cpy B, 62
 		cep c
 		fsbi Y, B, -1
@@ -1685,10 +1685,10 @@ DAddCancelled:
 ; The smaller is zero or subnormal (X is the larger's exponent).
 DAddSmallerSpecial:
 		bist g, (B, 63)
-		wth Y, 8
+		wth Y, 64
 		cpy Y, B
 		shl Y, 1
-		wth Y, 4
+		wth Y, 32
 		bras z, DAddSmallerZero
 		tst X, X
 		bras z, DAddSubnormals
@@ -1703,7 +1703,7 @@ DAddSmallerSpecial:
 
 ; Adding zero gives the other, and zeros add to -0 only when both are -0.
 DAddSmallerZero:
-		wth X, 8
+		wth X, 64
 		cpy X, A
 		shl X, 1
 		brac z, DAddReturn
@@ -1716,8 +1716,8 @@ DAddNegativeZero:
 		stab (A, 63), 1
 
 DAddReturn:
-		wtth (A, B), 4
-		wtth (X, Y), 4
+		wtth (A, B), 32
+		wtth (X, Y), 32
 		ret
 
 ; Two subnormals add exactly, carrying into the exponent if they must.
@@ -1750,8 +1750,8 @@ DAddLargerSpecial:
 
 ; uint64_t SoftDoubleDivide(uint64_t ulliA, uint64_t ulliB)
 _SoftDoubleDivide:
-		wtth (A, B), 8
-		wtth (X, Y), 8
+		wtth (A, B), 64
+		wtth (X, Y), 64
 		cpy A, [5 + S]
 		cpy B, [13 + S]
 		cpy Y, A
@@ -1761,7 +1761,7 @@ _SoftDoubleDivide:
 		scb (A, 52), (X, 0), 11
 		cpy Y, 0
 		scb (B, 52), (Y, 0), 11
-		wtth (X, Y), 4
+		wtth (X, Y), 32
 		sub X, 1
 		cmp X, 2046
 		brac c, NotDDivideSpecial1
@@ -1775,7 +1775,7 @@ NotDDivideSpecial1:
 
 NotDDivideSpecial2:
 		sub X, Y
-		wth Y, 8
+		wth Y, 64
 		cpy Y, A
 		shl Y, 12
 		shr Y, 12
@@ -1810,7 +1810,7 @@ DDivideRemainder:
 
 DDivideExact:
 		add X, 1022
-		wtth (A, B), 4
+		wtth (A, B), 32
 		bist c, (Y, 62)
 		bras c, DDivideTop
 		shl Y, 1
@@ -1829,20 +1829,20 @@ DDivideNearest:
 
 DDivideShift:
 		shr Y, 10
-		wth A, 8
+		wth A, 64
 		cpy A, X
 		shl A, 52
 		add A, Y
 		stab (A, 63), f
-		wtth (A, B), 4
-		wtth (X, Y), 4
+		wtth (A, B), 32
+		wtth (X, Y), 32
 		ret
 
 ; Either is zero, subnormal, infinite or a NaN.
 DDivideSpecial:
 		jsr DTwoNaNs
-		wtth (A, B), 8
-		wtth (X, Y), 8
+		wtth (A, B), 64
+		wtth (X, Y), 64
 		cpy A, [5 + S]
 		cpy B, [13 + S]
 		cpy X, A
@@ -1859,13 +1859,13 @@ DDivideSpecial:
 		bras z, DSignedZero
 		jsr DUnpack
 		cpy [5 + S], A
-		wth Y, 4
+		wth Y, 32
 		cpy Y, X
 		cpy A, B
 		jsr DUnpack				; A = b's significand
 		sub Y, X
 		cpy X, Y
-		wth Y, 8
+		wth Y, 64
 		cpy Y, [5 + S]
 		bra DDivideSignificands
 
@@ -1898,7 +1898,7 @@ DFromMagnitude32:
 		cpy B, 31
 		cep c
 		fsbi A, B, -1			; B = the top bit
-		wthx A, 8
+		wthx A, 64
 
 ; A (64 bits wide) is the magnitude with its top bit at B (52 or below), f the sign.
 DFromExact:
@@ -1907,24 +1907,24 @@ DFromExact:
 		neg B, B
 		add B, 52
 		shl A, B
-		wthx X, 8
+		wthx X, 64
 		shl X, 52
 		add A, X
 		stab (A, 63), f
-		wtth (A, X), 4
+		wtth (A, X), 32
 		ret
 
 DFromZeroWide:
-		wth Y, 4
+		wth Y, 32
 
 DFromZero:
-		wth A, 8
+		wth A, 64
 		cpy A, 0
-		wth A, 4
+		wth A, 32
 		ret
 
 _SoftDoubleFromLongLong:
-		wth Y, 8
+		wth Y, 64
 		cpy Y, [5 + S]
 		bras z, DFromZeroWide
 		abs Y, Y
@@ -1932,7 +1932,7 @@ _SoftDoubleFromLongLong:
 		bra DFromMagnitude
 
 _SoftDoubleFromUnsignedLongLong:
-		wth Y, 8
+		wth Y, 64
 		cpy Y, [5 + S]
 		bras z, DFromZeroWide
 		cep f
@@ -1963,9 +1963,9 @@ DFromRound:
 		bra DRoundTop
 
 DFromSmall:
-		wth A, 8
+		wth A, 64
 		cpy A, Y
-		wth Y, 4
+		wth Y, 32
 		bra DFromExact
 
 
@@ -1978,8 +1978,8 @@ DFromSmall:
 ; says which, and whether it is exact.  MH, then p 2^24, is kept in X, and W and the
 ; exponent on the stack.
 _SoftDoubleSqrt:
-		wtth (A, B), 8
-		wtth (X, Y), 8
+		wtth (A, B), 64
+		wtth (X, Y), 64
 		cpy A, [5 + S]
 		cpy X, A
 		sub X, $10000000000000
@@ -1988,7 +1988,7 @@ _SoftDoubleSqrt:
 		bra DSqrtSpecial		; not a positive normal
 
 NotDSqrtSpecial:
-		wth X, 4
+		wth X, 32
 		cpy X, 0
 		scb (A, 52), (X, 0), 11
 		shl A, 12
@@ -2012,14 +2012,14 @@ DSqrtEven:
 DSqrtRoot:
 		shr X, 1
 		psh (W, X)				; W and the exponent wait on the stack
-		wth X, 8
+		wth X, 64
 		cpy X, Y				; MH
 		cpy B, Y
 		shr B, 55
 		and B, -4				; 4 (MH >> 57)
-		wth A, 4
+		wth A, 32
 		cpy A, [SqrtTable - 128 + B]
-		wthx A, 8
+		wthx A, 64
 		shl A, 7
 		cpy B, 0
 		cpy W, 0
@@ -2047,11 +2047,11 @@ DSqrtRoot:
 		cpy A, $FFFFFFFF
 
 DSqrtFits:
-		wtth (A, B), 4
+		wtth (A, B), 32
 		cpy B, A
 		cpy W, 0
 		mul
-		wth B, 8
+		wth B, 64
 		cpy B, X
 		cmp B, Y
 		bras c, DSqrtRemainder
@@ -2071,12 +2071,12 @@ DSqrtRemainder:
 		cpy X, B				; p 2^24
 		psh A					; r1
 		cpy A, Y
-		wth B, 4
+		wth B, 32
 		cpy B, Y
 		cpy W, 0
 		mul						; Y = d^2, B = d
 		pul A
-		wthx A, 8
+		wthx A, 64
 		shl A, 23
 		add A, B				; x
 		cmp X, Y
@@ -2098,9 +2098,9 @@ DSqrtExact:
 		shl Y, 8				; the top bit at 62
 
 DSqrtDone:
-		wth X, 4
+		wth X, 32
 		pul (W, X)
-		wtth (A, B), 4
+		wtth (A, B), 32
 		bra DRoundTop
 
 DSqrtSpecial:
@@ -2120,8 +2120,8 @@ DSqrtNaN:
 		stab (A, 51), 1
 
 DSqrtReturn:
-		wtth (A, B), 4
-		wtth (X, Y), 4
+		wtth (A, B), 32
+		wtth (X, Y), 32
 		ret
 
 
@@ -2129,8 +2129,8 @@ DSqrtReturn:
 		.section text._SoftDoubleCompare
 		.global _SoftDoubleCompare
 _SoftDoubleCompare:
-		wtth (A, B), 8
-		wtth (X, Y), 8
+		wtth (A, B), 64
+		wtth (X, Y), 64
 		cpy A, [5 + S]
 		cpy B, [13 + S]
 		cpy X, A
@@ -2154,8 +2154,8 @@ NotDCompareNaN:
 		cpy A, -1
 
 DCompareDone:
-		wtth (A, B), 4
-		wtth (X, Y), 4
+		wtth (A, B), 32
+		wtth (X, Y), 32
 		ret
 
 DCompareSmaller:
@@ -2195,7 +2195,7 @@ DCompareNaN:
 		.section text._SoftDoubleToInt
 		.global _SoftDoubleToInt, _SoftDoubleToUnsigned, _SoftDoubleToLongLong, _SoftDoubleToUnsignedLongLong
 _SoftDoubleToInt:
-		wth A, 8
+		wth A, 64
 		cpy A, [5 + S]
 		cpy X, 0
 		scb (A, 52), (X, 0), 11
@@ -2215,7 +2215,7 @@ NotDToIntOutside:
 		neg A, A
 
 DToIntDone:
-		wth A, 4
+		wth A, 32
 		ret
 
 ; Below 1 (X is negative), or too large, infinite or a NaN.  -2^31 is the indefinite
@@ -2226,16 +2226,16 @@ DToIntOutside:
 
 DToIndefinite:
 		cpy A, $80000000
-		wth A, 4
+		wth A, 32
 		ret
 
 DToZero:
 		cpy A, 0
-		wth A, 4
+		wth A, 32
 		ret
 
 _SoftDoubleToUnsigned:
-		wth A, 8
+		wth A, 64
 		cpy A, [5 + S]
 		cpy X, 0
 		scb (A, 52), (X, 0), 11
@@ -2250,11 +2250,11 @@ _SoftDoubleToUnsigned:
 		neg X, X
 		add X, 63
 		shr A, X
-		wth A, 4
+		wth A, 32
 		ret
 
 _SoftDoubleToLongLong:
-		wth A, 8
+		wth A, 64
 		cpy A, [5 + S]
 		cpy X, 0
 		scb (A, 52), (X, 0), 11
@@ -2274,7 +2274,7 @@ NotDToLongOutside:
 		neg A, A
 
 DToLongDone:
-		wth A, 4
+		wth A, 32
 		ret
 
 DToLongOutside:
@@ -2284,11 +2284,11 @@ DToLongOutside:
 DToLongIndefinite:
 		cpy A, 0
 		stab (A, 63), 1
-		wth A, 4
+		wth A, 32
 		ret
 
 _SoftDoubleToUnsignedLongLong:
-		wth A, 8
+		wth A, 64
 		cpy A, [5 + S]
 		cpy X, 0
 		scb (A, 52), (X, 0), 11
@@ -2303,7 +2303,7 @@ _SoftDoubleToUnsignedLongLong:
 		neg X, X
 		add X, 63
 		shr A, X
-		wth A, 4
+		wth A, 32
 		ret
 
 

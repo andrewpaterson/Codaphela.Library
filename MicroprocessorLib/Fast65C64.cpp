@@ -1767,16 +1767,15 @@ void CFast65C64::Execute(void)
 
 	case I65_Wth:
 	case I65_Wtth:
-		//Widths are in bytes.
+		//The embedded width is encoded in bytes, a register holds the width in bits.
 		if (psOp->uiSecondKind == OK65_Embedded)
 		{
-			uiValue = psOp->uiWidthBytes;
+			uiWidthCode = BytesToWidthCode(psOp->uiWidthBytes);
 		}
 		else
 		{
-			uiValue = mauiRegisters[psOp->uiSecondRegister] & mauiMasks[psOp->uiSecondRegister];
+			uiWidthCode = BitsToWidthCode65(mauiRegisters[psOp->uiSecondRegister] & mauiMasks[psOp->uiSecondRegister]);
 		}
-		uiWidthCode = BytesToWidthCode(uiValue);
 		SetWidthCode(psOp->uiWidthFirst, uiWidthCode);
 		if (psOp->uiInstruction == I65_Wtth)
 		{
