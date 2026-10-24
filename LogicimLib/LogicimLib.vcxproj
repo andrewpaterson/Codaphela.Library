@@ -27,14 +27,18 @@
     <ClCompile Include="CircuitView.cpp" />
     <ClCompile Include="CircuitViewport.cpp" />
     <ClCompile Include="ComponentShapes.cpp" />
+    <ClCompile Include="ComponentStateXML.cpp" />
     <ClCompile Include="ComponentView.cpp" />
     <ClCompile Include="ComponentViewFactory.cpp" />
+    <ClCompile Include="EventXML.cpp" />
     <ClCompile Include="IntegratedCircuitView.cpp" />
     <ClCompile Include="LogicGateView.cpp" />
     <ClCompile Include="OrGateView.cpp" />
     <ClCompile Include="PortView.cpp" />
     <ClCompile Include="PowerSourceView.cpp" />
     <ClCompile Include="Rotation.cpp" />
+    <ClCompile Include="SimulationStateXML.cpp" />
+    <ClCompile Include="StateXML.cpp" />
     <ClCompile Include="TraceView.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -46,14 +50,18 @@
     <ClInclude Include="CircuitView.h" />
     <ClInclude Include="CircuitViewport.h" />
     <ClInclude Include="ComponentShapes.h" />
+    <ClInclude Include="ComponentStateXML.h" />
     <ClInclude Include="ComponentView.h" />
     <ClInclude Include="ComponentViewFactory.h" />
+    <ClInclude Include="EventXML.h" />
     <ClInclude Include="IntegratedCircuitView.h" />
     <ClInclude Include="LogicGateView.h" />
     <ClInclude Include="OrGateView.h" />
     <ClInclude Include="PortView.h" />
     <ClInclude Include="PowerSourceView.h" />
     <ClInclude Include="Rotation.h" />
+    <ClInclude Include="SimulationStateXML.h" />
+    <ClInclude Include="StateXML.h" />
     <ClInclude Include="TraceView.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

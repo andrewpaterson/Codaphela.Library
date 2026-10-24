@@ -1,4 +1,5 @@
-//Memory and string functions for the 65C64, in C++ for the 65C64 generator.  Bytes are copied one at a time.
+//Memory and string functions for the 65C64, in C++ for the 65C64 generator.  memcpy, memset and memcmp work a 32
+//bit word at a time when the addresses are 4 byte aligned, otherwise a byte at a time.
 #include <string.h>
 
 
@@ -9,6 +10,16 @@ void* memcpy(void* pvDest, const void* pvSource, size_t uiBytes)
 
 	pcDest = (char*)pvDest;
 	pcSource = (const char*)pvSource;
+	if ((((size_t)pcDest | (size_t)pcSource) & 3) == 0)
+	{
+		while (uiBytes >= 4)
+		{
+			*(unsigned int*)pcDest = *(const unsigned int*)pcSource;
+			pcDest += 4;
+			pcSource += 4;
+			uiBytes -= 4;
+		}
+	}
 	while (uiBytes > 0)
 	{
 		*pcDest++ = *pcSource++;
@@ -44,9 +55,22 @@ void* memmove(void* pvDest, const void* pvSource, size_t uiBytes)
 
 void* memset(void* pvDest, int iValue, size_t uiBytes)
 {
-	char*	pcDest;
+	char*			pcDest;
+	unsigned int	uiValue;
 
 	pcDest = (char*)pvDest;
+	if (((size_t)pcDest & 3) == 0)
+	{
+		uiValue = (unsigned char)iValue;
+		uiValue |= uiValue << 8;
+		uiValue |= uiValue << 16;
+		while (uiBytes >= 4)
+		{
+			*(unsigned int*)pcDest = uiValue;
+			pcDest += 4;
+			uiBytes -= 4;
+		}
+	}
 	while (uiBytes > 0)
 	{
 		*pcDest++ = (char)iValue;
@@ -63,6 +87,16 @@ int memcmp(const void* pv1, const void* pv2, size_t uiBytes)
 
 	puc1 = (const unsigned char*)pv1;
 	puc2 = (const unsigned char*)pv2;
+	if ((((size_t)puc1 | (size_t)puc2) & 3) == 0)
+	{
+		//Equal words are skipped; the bytes of the first word that differs are compared below.
+		while ((uiBytes >= 4) && (*(const unsigned int*)puc1 == *(const unsigned int*)puc2))
+		{
+			puc1 += 4;
+			puc2 += 4;
+			uiBytes -= 4;
+		}
+	}
 	while (uiBytes > 0)
 	{
 		if (*puc1 != *puc2)

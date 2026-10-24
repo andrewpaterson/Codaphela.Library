@@ -35,6 +35,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 class CCircuitComponent;
 class CSubcircuitSimulation;
 class CFamilyVoltageConfigurationStore;
+class CComponentStateXML;
 
 
 //How a component is drawn and where its ports are, as Logicim's ComponentView.  A view is drawn facing North about
@@ -72,6 +73,7 @@ public:
 	virtual const char*				GetXMLName(void) =0;
 	virtual bool					LoadXML(CMarkupTag* pcTag) =0;
 			void					SaveXML(CXMLWriter* pcWriter);
+	virtual CComponentStateXML*		GetComponentStateXML(void);
 
 			bool					ConnectPortViews(CCircuitComponent* pcComponent);
 			void					DisconnectComponent(void);

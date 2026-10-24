@@ -29,6 +29,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MicroprocessorLib/PowerPinNames.h"
 #include "MicroprocessorLib/SubcircuitSimulation.h"
 #include "MicroprocessorLib/Circuit.h"
+#include "ComponentStateXML.h"
 #include "IntegratedCircuitView.h"
 
 
@@ -64,6 +65,16 @@ void CIntegratedCircuitView::SaveXMLAttributes(CXMLWriter* pcWriter)
 	CComponentView::SaveXMLAttributes(pcWriter);
 	pcWriter->Attribute("family", mszFamily.Text());
 	pcWriter->Attribute("explicitPowerPorts", mbExplicitPowerPorts);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CComponentStateXML* CIntegratedCircuitView::GetComponentStateXML(void)
+{
+	return &gcIntegratedCircuitStateXML;
 }
 
 

@@ -34,6 +34,7 @@ public:
 			void					Init(int32 x, int32 y, ERotation eRotation, const char* szName, float32 fVoltage);
 
 	virtual CCircuitComponent*		CreateComponent(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
+	virtual CComponentStateXML*		GetComponentStateXML(void);
 			float32					GetVoltage(void);
 };
 

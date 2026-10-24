@@ -31,7 +31,7 @@ class CFamilyVoltageConfigurationStore;
 
 //The components and wires of one circuit, as the views part of Logicim's SubcircuitView.  It owns its views.
 //CreateSimulation makes each component in a simulation, starts it, and then wires the ports the wires connect, live,
-//as Logicim's editor does: wires that touch, ports on a wire and ports on the same grid point are one net with a
+//as Logicim's editor does.  Without bStart it wires them without starting, for a saved simulation to be loaded into: wires that touch, ports on a wire and ports on the same grid point are one net with a
 //trace per bit.
 //
 //SaveXML writes a <Circuit> element holding an element per component (in the order they were added) and then a <Trace>
@@ -55,7 +55,7 @@ public:
 	size				NumTraces(void);
 	CTraceView*			GetTrace(size uiIndex);
 
-	bool				CreateSimulation(CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
+	bool				CreateSimulation(CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, bool bStart = true);
 	void				DisconnectSimulation(void);
 	void				CalculateJunctions(void);
 

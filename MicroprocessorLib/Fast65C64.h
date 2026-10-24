@@ -37,7 +37,7 @@ typedef void(*CFast65C64WriteByte)(void* pvContext, uint32 uiAddress, uint8 uiVa
 //accesses, so memory sees the same reads and writes.
 //
 //Memory is a flat block at 0000:0000 (puiMemory, uiMemorySize bytes, read and written directly) and the
-//callbacks for every other address.  The host must be little endian.
+//callbacks for every other address, and for a hole in the block (SetHole, where devices are).  The host must be little endian.
 struct SFast65C64Op;
 class CFast65C64
 {
@@ -62,6 +62,8 @@ protected:
 	uint32				muiMemorySize;
 	uint32				muiWordLimit;
 	uint32				muiQuadLimit;
+	uint32				muiHoleStart;		//Addresses in the flat block that go to the callbacks (devices).
+	uint32				muiHoleEnd;
 	CFast65C64ReadWord	mfReadWord;
 	CFast65C64WriteByte	mfWriteByte;
 	void*				mpvContext;
@@ -70,6 +72,7 @@ public:
 	void		Init(CFast65C64ReadWord fReadWord, CFast65C64WriteByte fWriteByte, void* pvContext, uint8* puiMemory, uint32 uiMemorySize);
 	void		Kill(void);
 
+	void		SetHole(uint32 uiStart, uint32 uiEnd);
 	void		Reset(void);
 	bool		Step(void);
 	size		Run(size uiMaxInstructions);
