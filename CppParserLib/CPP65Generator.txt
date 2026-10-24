@@ -542,7 +542,10 @@ size (8 for long long and double), a pointer to 4, an array as its element and a
 to its largest member's alignment (BaseLib reads and writes classes as raw bytes and
 lays them out the MSVC way on g++ -m32 too).  An empty base (no fields, no vtable
 pointer, empty bases) takes no space; an empty class is 1 byte.  A union's fields are
-all at 0.  A pointer to a derived class is
+all at 0.  #pragma pack(n) (also push, pop and pack()) aligns the bases, vtable pointer
+and fields of the classes defined after it to at most n bytes, as MSVC does: the
+preprocessor keeps it as __pragma(pack(...)) when CConfig::mbKeepPragmaPack (set by
+AddDefines), and the parser records it on each class specifier (miPack).  A pointer to a derived class is
 converted to a pointer to a base by adding the base's offset (not to a null pointer);
 the first base is at 0.
 

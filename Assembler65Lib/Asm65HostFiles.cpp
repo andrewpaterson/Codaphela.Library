@@ -212,7 +212,20 @@ uint64 CAsm65HostFiles::Command(CAsm65Memory* pcMemory, uint8 uiCommand, uint32*
 
 	case ASM65_HOST_REMOVE_DIRECTORY:
 		ReadPath(pcMemory, auiArguments[0], &szPath);
-		uiResult = cFileUtil.RemoveDir(szPath.Text()) ? 1 : 0;
+		cFileUtil.FullPath(&szPath);
+		if ((szPath.Length() > 1) && szPath.EndsWith(FILE_SEPARATOR))
+		{
+			szPath.RemoveFromEnd(1);
+		}
+		if (!mszDirectory.Empty() && mszDirectory.StartsWith(szPath.Text()) && ((mszDirectory.Length() == szPath.Length()) || (mszDirectory.GetChar(szPath.Length()) == FILE_SEPARATOR[0])))
+		{
+			//The program's own directory (or one it is in) is not removed.
+			uiResult = 0;
+		}
+		else
+		{
+			uiResult = cFileUtil.RemoveDir(szPath.Text()) ? 1 : 0;
+		}
 		break;
 
 	case ASM65_HOST_IS_DIRECTORY:
