@@ -34,6 +34,8 @@ enum EGeometryCommand
 	GC_Line,
 	GC_Circle,
 	GC_FilledCircle,
+	GC_Polygon,
+	GC_Polyline,
 };
 
 
@@ -48,6 +50,8 @@ enum EGeometryLineCap
 
 
 //A shape to draw.  The bounds are in map pixels, right and bottom exclusive, and hold every pixel the shape touches.
+//A polygon is filled with the non-zero rule.  A polyline is stroked with mitred joins (bevelled past a mitre limit of
+//ten, as Java's BasicStroke) and square caps when it isn't closed.
 //Lines and circles are anti-aliased and placed by points where a whole number is the centre of a pixel; a square
 //capped line from (1, 2) to (5, 2) one pixel thick covers pixels 1 to 5 of row 2 exactly, a butt capped one covers
 //half of pixels 1 and 5.
@@ -61,10 +65,14 @@ struct SGeometryCommand
 	float64				fRadius;		//Circle.
 	float64				fThickness;		//Line or circle outline, centred on the line or the radius.
 	EGeometryLineCap	eCap;			//Line.
+	size				uiFirstPoint;	//Polygon or polyline points in the map's point array.
+	size				uiNumPoints;
+	bool				bClosed;		//Polyline.
 };
 
 
 typedef CArrayTemplate<SGeometryCommand>	CArrayGeometryCommand;
+typedef CArrayTemplate<SFloat64Vec2>		CArrayGeometryPoint;
 
 
 //A map of shapes drawn in colours, such as the lines under and through text and the traces and junctions of a circuit.  The commands are plain data (not
@@ -77,6 +85,7 @@ CONSTRUCTABLE(CGeometryMap);
 DESTRUCTABLE(CGeometryMap);
 protected:
 	CArrayGeometryCommand	masCommands;
+	CArrayGeometryPoint		masPoints;
 	Ptr<CImage>				mpViewport;
 
 public:
@@ -92,6 +101,9 @@ public:
 	void				AddLine(float64 x0, float64 y0, float64 x1, float64 y1, float64 fThickness, ARGB32 sColour, EGeometryLineCap eCap = GLC_Square);
 	void				AddCircle(float64 x, float64 y, float64 fRadius, float64 fThickness, ARGB32 sColour);
 	void				AddFilledCircle(float64 x, float64 y, float64 fRadius, ARGB32 sColour);
+	void				AddPolygon(SFloat64Vec2* asPoints, size uiNumPoints, ARGB32 sColour);
+	void				AddPolyline(SFloat64Vec2* asPoints, size uiNumPoints, bool bClosed, float64 fThickness, ARGB32 sColour);
+	SFloat64Vec2*		GetPoint(size uiIndex);
 	size				NumCommands(void);
 	SGeometryCommand*	GetCommand(size uiIndex);
 
@@ -104,6 +116,8 @@ protected:
 	void				FillRectangle(CImageAccessor* pcAccessor, bool bOpacity, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, ARGB32 sColour);
 	bool				FillShape(CImageAccessor* pcAccessor, CVectorRasteriser* pcRasteriser, bool bOpacity, SGeometryCommand* psCommand, CInt32Rect* pcViewportRect, int32 iClipWidth, int32 iClipHeight);
 	void				AddShapePath(CVectorPath* pcPath, SGeometryCommand* psCommand);
+	void				AddPolylinePath(CVectorPath* pcPath, SGeometryCommand* psCommand);
+	SGeometryCommand*	AddPointsShape(EGeometryCommand eType, SFloat64Vec2* asPoints, size uiNumPoints, ARGB32 sColour);
 	void				BlendPixel(CImageAccessor* pcAccessor, bool bOpacity, int32 x, int32 y, ARGB32 sColour, uint32 uiAlpha);
 };
 

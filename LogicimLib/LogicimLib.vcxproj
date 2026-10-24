@@ -19,10 +19,38 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="LogicimLib.cpp" />
+    <ClCompile Include="AndGateView.cpp" />
+    <ClCompile Include="BufferView.cpp" />
+    <ClCompile Include="CircuitColours.cpp" />
+    <ClCompile Include="CircuitPainter.cpp" />
+    <ClCompile Include="CircuitView.cpp" />
+    <ClCompile Include="CircuitViewport.cpp" />
+    <ClCompile Include="ComponentShapes.cpp" />
+    <ClCompile Include="ComponentView.cpp" />
+    <ClCompile Include="IntegratedCircuitView.cpp" />
+    <ClCompile Include="LogicGateView.cpp" />
+    <ClCompile Include="OrGateView.cpp" />
+    <ClCompile Include="PortView.cpp" />
+    <ClCompile Include="PowerSourceView.cpp" />
+    <ClCompile Include="Rotation.cpp" />
+    <ClCompile Include="TraceView.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="LogicimLib.h" />
+    <ClInclude Include="AndGateView.h" />
+    <ClInclude Include="BufferView.h" />
+    <ClInclude Include="CircuitColours.h" />
+    <ClInclude Include="CircuitPainter.h" />
+    <ClInclude Include="CircuitView.h" />
+    <ClInclude Include="CircuitViewport.h" />
+    <ClInclude Include="ComponentShapes.h" />
+    <ClInclude Include="ComponentView.h" />
+    <ClInclude Include="IntegratedCircuitView.h" />
+    <ClInclude Include="LogicGateView.h" />
+    <ClInclude Include="OrGateView.h" />
+    <ClInclude Include="PortView.h" />
+    <ClInclude Include="PowerSourceView.h" />
+    <ClInclude Include="Rotation.h" />
+    <ClInclude Include="TraceView.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C3DFF95A-5E3F-452F-B879-1AF5257A94B4}</ProjectGuid>
