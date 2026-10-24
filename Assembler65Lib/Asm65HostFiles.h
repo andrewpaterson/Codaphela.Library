@@ -52,7 +52,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #define ASM65_HOST_EXISTS			11		//Path: 1 if a file or directory is there.
 #define ASM65_HOST_SIZE_OF_FILE		12		//Path: its size, -1 for a directory or nothing.
 #define ASM65_HOST_MAKE_DIRECTORY	13		//Path: 1 if it was made.
-#define ASM65_HOST_REMOVE_DIRECTORY	14		//Path: 1 if it and everything in it was removed.
+#define ASM65_HOST_REMOVE_DIRECTORY	14		//Path: 1 if it and everything in it was removed (never SetDirectory's, or one it is in).
 #define ASM65_HOST_IS_DIRECTORY		15		//Path: 1 if it is a directory.
 #define ASM65_HOST_TOUCH			16		//Path: 1 if it was created or emptied.
 #define ASM65_HOST_CURRENT_DIRECTORY	17	//Buffer, size: the length written.

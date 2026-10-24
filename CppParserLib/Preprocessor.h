@@ -109,6 +109,7 @@ protected:
 	bool							mbInCondition;			//Expanding the expression of a #if.
 	bool							mbDefinedOperand;		//The next identifier is the operand of defined.
 	bool							mbError;
+	bool							mbKeepPragmaPack;		//#pragma pack(...) is output as __pragma(pack(...)) (CConfig).
 	int								miCounter;
 	CCPPErrors						mcErrors;
 
@@ -118,6 +119,7 @@ public:
 
 public:
 	void 				Init(CConfig* pcConfig);
+	void				EmitPragmaPack(CPreprocessorTokenParser* pcParser);
 	void 				Kill(void);
 	void				InitPlatformSpecific(void);
 	void				AddConfigDefines(CConfig* pcConfig);	

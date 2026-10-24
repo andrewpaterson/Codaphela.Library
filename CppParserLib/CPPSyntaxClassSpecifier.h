@@ -37,6 +37,7 @@ public:
 	CArraySyntax			macpMembers;
 	CCPPScope*				mpcScope;
 	CCPPSymbol*				mpcSymbol;
+	int						miPack;			//The #pragma pack(n) the class was defined in: its fields are aligned to at most n bytes.  0 for none.
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
 	void					Kill(void) override;

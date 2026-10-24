@@ -21,6 +21,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "SourceFile.h"
 #include "CTIdentifier.h"
+#include "CTInt.h"
 #include "CppParser.h"
 
 
@@ -55,6 +56,9 @@ void CCPPParser::Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree)
 	mlliFunction = pcTokeniser->GetIdentifierID("__FUNCTION__");
 	mlliFuncsig = pcTokeniser->GetIdentifierID("__FUNCSIG__");
 	mlliFuncdname = pcTokeniser->GetIdentifierID("__FUNCDNAME__");
+	mlliPack = pcTokeniser->GetIdentifierID("pack");
+	miPack = 0;
+	maiPacks.Init();
 }
 
 
@@ -64,6 +68,7 @@ void CCPPParser::Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree)
 //////////////////////////////////////////////////////////////////////////
 void CCPPParser::Kill(void)
 {
+	maiPacks.Kill();
 	macDeferred.Kill();
 	mpcScope = NULL;
 	mpcSymbols = NULL;
@@ -502,6 +507,66 @@ void CCPPParser::Resolve(int iToken, CCPPSymbol* pcSymbol, ECPPTokenRole eRole)
 	{
 		mpcTree->SetTokenSymbol(iToken, pcSymbol, eRole);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// __pragma(...) between declarations (a #pragma pack the preprocessor kept, or
+// Microsoft's __pragma) is skipped.  pack(push, n), pack(push), pack(pop), pack(n)
+// and pack() change the pack later class definitions get.  Returns false if the
+// current token does not start one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPParser::SkipPragma(void)
+{
+	CCPPToken*	pcToken;
+	int			iAhead;
+	int			iPack;
+	bool		bPush;
+	bool		bPop;
+
+	if (!Is(CT___pragma) || !IsAhead(1, CT_OpenRoundBracket))
+	{
+		return false;
+	}
+	if ((GetIdentifier(2) == mlliPack) && IsAhead(3, CT_OpenRoundBracket) && (miTentative == 0))
+	{
+		iPack = 0;
+		bPush = false;
+		bPop = false;
+		for (iAhead = 4; !IsAhead(iAhead, CT_CloseRoundBracket) && Peek(iAhead); iAhead++)
+		{
+			pcToken = Peek(iAhead);
+			if (pcToken->IsIdentifier())
+			{
+				bPush |= ((CCTIdentifier*)pcToken)->mlliIdentifier == mpcTokeniser->GetIdentifierID("push");
+				bPop |= ((CCTIdentifier*)pcToken)->mlliIdentifier == mpcTokeniser->GetIdentifierID("pop");
+			}
+			else if (pcToken->IsNumber() && (((CCTNumber*)pcToken)->meType == CTNT_Int))
+			{
+				iPack = (int)((CCTInt*)pcToken)->mcValue;
+			}
+		}
+		if (bPop)
+		{
+			miPack = (maiPacks.NumElements() > 0) ? maiPacks.Pop() : 0;
+		}
+		else
+		{
+			if (bPush)
+			{
+				maiPacks.Push(miPack);
+			}
+			if (iPack || !bPush)
+			{
+				miPack = iPack;
+			}
+		}
+	}
+	Next();
+	SkipBalanced();
+	return true;
 }
 
 

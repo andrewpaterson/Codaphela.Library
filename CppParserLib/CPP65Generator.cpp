@@ -139,6 +139,7 @@ void CCPP65Generator::Kill(void)
 		psClass->macVtables.Kill();
 		psClass->mapsVirtuals.Kill();
 		psClass->macFields.Kill();
+		psClass->macUsings.Kill();
 		psClass->macBases.Kill();
 		free(psClass);
 	}
@@ -556,6 +557,7 @@ void CCPP65Generator::GetExternals(CArrayChars* paszLabels)
 void CCPP65Generator::AddDefines(CConfig* pcConfig)
 {
 	pcConfig->AddDefine("__65C64__=1");
+	pcConfig->mbKeepPragmaPack = true;
 }
 
 
@@ -830,12 +832,14 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 	size						j;
 	size						uiPack;
 	uint32						uiFlags;
+	uint32						uiConstReferences;
+	bool						bConstThis;
 
 	pcName = pcDeclarator->GetName();
 	pcComponent = pcName ? pcName->GetLast() : NULL;
-	if (!pcComponent || (pcComponent->meKind == CPPNC_Conversion) || (!psClass && !psTemplate && (pcName->mbGlobal || (pcName->macpComponents.NumElements() != 1))))
+	if (!pcComponent || ((pcComponent->meKind == CPPNC_Conversion) && !psClass) || (!psClass && !psTemplate && (pcName->mbGlobal || (pcName->macpComponents.NumElements() != 1))))
 	{
-		Error(pcDeclarator, "Conversion functions and qualified names are not supported by the 65C64 generator yet");
+		Error(pcDeclarator, "Conversion functions outside classes and qualified names are not supported by the 65C64 generator yet");
 		return NULL;
 	}
 	lliName = GetFunctionName(pcComponent);
@@ -862,7 +866,16 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 	}
 
 	psReturn = &mcTypes.msVoid;
-	if (eKind == CPP65FK_Function)
+	if (lliName == CPP65_CONVERSION_NAME)
+	{
+		//operator T () returns T.
+		psReturn = pcComponent->mpcConversionType ? GetTypeIdType(pcComponent->mpcConversionType) : NULL;
+		if (!psReturn)
+		{
+			return NULL;
+		}
+	}
+	else if (eKind == CPP65FK_Function)
 	{
 		psReturn = GetBaseType(pcSpecifiers, pcDeclarator);
 		for (i = 0; psReturn && (i < pcDeclarator->macpPrefix.NumElements()); i++)
@@ -890,6 +903,8 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 
 	apsParameters.Init();
 	apcDefaults.Init();
+	uiConstReferences = 0;
+	bConstThis = psClass && IsConstSuffix(pcSuffix);
 	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
 	{
 		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
@@ -925,6 +940,10 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 			{
 				psType = mcTypes.Pointer(psType);
 			}
+			if (psType->IsReference() && pcParameter->mpcSpecifiers && (pcParameter->mpcSpecifiers->muiFlags & CPPDS_CONST) && (apsParameters.NumElements() < 32))
+			{
+				uiConstReferences |= 1u << apsParameters.NumElements();
+			}
 			apsParameters.Add(psType);
 			apcDefaults.Add(pcParameter->mpcDefault);
 		}
@@ -940,6 +959,10 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 			continue;
 		}
 		if (psTemplate && !psOther->mszArguments.Equals(pszArguments))
+		{
+			continue;
+		}
+		if (((lliName == CPP65_CONVERSION_NAME) && !psOther->psReturn->Equals(psReturn)) || (psOther->uiConstReferences != uiConstReferences) || (psOther->bConstThis != bConstThis))
 		{
 			continue;
 		}
@@ -968,6 +991,7 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 		psFunction->bVirtual |= (uiFlags & CPPDS_VIRTUAL) != 0;
 		psFunction->bPure |= bPure;
 		psFunction->bCLinkage |= mbCLinkage && !psClass;
+		psFunction->bExplicit |= (uiFlags & CPPDS_EXPLICIT) != 0;
 		return psFunction;
 	}
 
@@ -977,6 +1001,8 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 		psFunction->mapsParameters.Add(apsParameters.GetPtr(i));
 		psFunction->mapcDefaults.Add(apcDefaults.GetPtr(i));
 	}
+	psFunction->uiConstReferences = uiConstReferences;
+	psFunction->bConstThis = bConstThis;
 	apcDefaults.Kill();
 	apsParameters.Kill();
 	psFunction->bVariadic = pcSuffix->mbVariadic;
@@ -986,6 +1012,7 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 	psFunction->bInline = (uiFlags & (CPPDS_INLINE | CPPDS_CONSTEXPR)) != 0;
 	psFunction->psTemplate = psTemplate;
 	psFunction->bCLinkage = mbCLinkage && !psClass;
+	psFunction->bExplicit = (uiFlags & CPPDS_EXPLICIT) != 0;
 	if (pszArguments)
 	{
 		psFunction->mszArguments.Append(pszArguments);
@@ -1026,6 +1053,9 @@ SCPP65Function* CCPP65Generator::AddFunction(SCPP65Class* psClass, int64 lliName
 	psFunction->iSlot = -1;
 	psFunction->iOverload = 0;
 	psFunction->bCLinkage = false;
+	psFunction->bExplicit = false;
+	psFunction->bConstThis = false;
+	psFunction->uiConstReferences = 0;
 	psFunction->bImplicit = false;
 	psFunction->mapcDefaults.Init();
 	psFunction->bVariadic = false;
@@ -1353,7 +1383,7 @@ bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitia
 		AppendData(psType, 0);
 		pszOut = mpszOut;
 		mpszOut = &mszInitialise;
-		bResult = Convert(Expression(pcInitialiser), psType, pcInitialiser);
+		bResult = Convert(ValueFor(pcInitialiser, psType, false), psType, pcInitialiser);
 		if (bResult)
 		{
 			Store(psPlace, "A", NULL);
@@ -2082,6 +2112,7 @@ bool CCPP65Generator::GenerateDefinition(SCPP65Function* psFunction)
 			j++;
 		}
 	}
+	miParameterDestructors = (int)mapsDestructors.NumElements();
 	if (!AllocateLocals(pcFunction->mpcBody))
 	{
 		EndFunction(psFunction);
@@ -2120,6 +2151,7 @@ void CCPP65Generator::BeginFunction(SCPP65Function* psFunction)
 	mpsFunction = psFunction;
 	FreeVariables(&mapsLocals);
 	mapsDestructors.ReInit();
+	miParameterDestructors = 0;
 	mcTemporarySlots.Kill();
 	mcTemporarySlots.Init(true);
 	macPendingTemporaries.ReInit();
@@ -2202,6 +2234,19 @@ void CCPP65Generator::EndFunction(SCPP65Function* psFunction)
 	}
 	mszCode.Append(mszBody);
 	Label(miReturnLabel);
+
+	//Object parameters are the called function's to destroy, however it returns.
+	if (miParameterDestructors > 0)
+	{
+		while ((int)mapsDestructors.NumElements() > miParameterDestructors)
+		{
+			mapsDestructors.Pop();
+		}
+		PushWide("A", psFunction->psReturn->Is64());
+		DestroyLocals(0);
+		PullWide("A", psFunction->psReturn->Is64());
+		miParameterDestructors = 0;
+	}
 	if (psFunction->eKind == CPP65FK_Destructor)
 	{
 		DestructorBody(psFunction);
@@ -2763,7 +2808,7 @@ bool CCPP65Generator::LocalInitialiser(SCPP65Variable* psVariable, CCPPSyntax* p
 			}
 			pcInitialiser = papcElements->GetPtr(0);
 		}
-		if (!Convert(Expression(pcInitialiser), psType, pcInitialiser))
+		if (!Convert(ValueFor(pcInitialiser, psType, false), psType, pcInitialiser))
 		{
 			return false;
 		}
@@ -2860,6 +2905,66 @@ bool CCPP65Generator::ConditionDeclaration(CCPPSyntax* pcCondition)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The condition of an if, while, do or for.  One that makes temporary objects that
+// need destroying is worked out to a bool first, so they are destroyed whichever
+// way it goes.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::StatementCondition(CCPPSyntax* pcCondition, bool bJumpIf, int iLabel)
+{
+	if (!HasDestructibleTemporaries(pcCondition))
+	{
+		return Condition(pcCondition, bJumpIf, iLabel);
+	}
+	if (!ConditionValue(pcCondition))
+	{
+		return false;
+	}
+	DestroyTemporaries(true, false);
+	CompareZero(&mcTypes.msBool);
+	Line(bJumpIf ? "brac z, " : "bras z, ");
+	AppendLabel(mpszOut, iLabel);
+	mpszOut->AppendNewLine();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an expression makes a temporary object (one with a place in the frame)
+// whose class has a destructor.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::HasDestructibleTemporaries(CCPPSyntax* pcNode)
+{
+	SCPP65Type*	psType;
+	size		i;
+
+	if (!pcNode)
+	{
+		return false;
+	}
+	if (mcTemporarySlots.Get((int64)(size)pcNode))
+	{
+		psType = TypeOf(pcNode);
+		if (psType && psType->IsClass() && psType->psClass->psDestructor)
+		{
+			return true;
+		}
+	}
+	for (i = 0; i < pcNode->NumChildren(); i++)
+	{
+		if (HasDestructibleTemporaries(pcNode->GetChild(i)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::IfStatement(CCPPSyntaxIfStatement* pcIf)
@@ -2869,7 +2974,7 @@ bool CCPP65Generator::IfStatement(CCPPSyntaxIfStatement* pcIf)
 	bool	bResult;
 
 	iElse = NewLabel();
-	bResult = Condition(pcIf->mpcCondition, false, iElse);
+	bResult = StatementCondition(pcIf->mpcCondition, false, iElse);
 	bResult &= Statement(pcIf->mpcThen);
 	if (pcIf->mpcElse)
 	{
@@ -2914,7 +3019,7 @@ bool CCPP65Generator::WhileStatement(CCPPSyntaxWhileStatement* pcWhile)
 	macJumps.Pop();
 
 	Label(iTest);
-	bResult &= Condition(pcWhile->mpcCondition, true, iBody);
+	bResult &= StatementCondition(pcWhile->mpcCondition, true, iBody);
 	Label(iEnd);
 	return bResult;
 }
@@ -2941,7 +3046,7 @@ bool CCPP65Generator::DoStatement(CCPPSyntaxDoStatement* pcDo)
 	macJumps.Pop();
 
 	Label(iTest);
-	bResult &= Condition(pcDo->mpcCondition, true, iBody);
+	bResult &= StatementCondition(pcDo->mpcCondition, true, iBody);
 	Label(iEnd);
 	return bResult;
 }
@@ -2977,11 +3082,12 @@ bool CCPP65Generator::ForStatement(CCPPSyntaxForStatement* pcFor)
 	if (pcFor->mpcIncrement)
 	{
 		bResult &= Expression(pcFor->mpcIncrement) != NULL;
+		DestroyTemporaries(false, false);
 	}
 	Label(iTest);
 	if (pcFor->mpcCondition)
 	{
-		bResult &= Condition(pcFor->mpcCondition, true, iBody);
+		bResult &= StatementCondition(pcFor->mpcCondition, true, iBody);
 	}
 	else
 	{
@@ -3156,7 +3262,7 @@ bool CCPP65Generator::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 				return false;
 			}
 		}
-		else if (!Convert(Expression(pcReturn->mpcValue), mpsFunction->psReturn, pcReturn->mpcValue))
+		else if (!Convert(ValueFor(pcReturn->mpcValue, mpsFunction->psReturn, false), mpsFunction->psReturn, pcReturn->mpcValue))
 		{
 			return false;
 		}
@@ -3166,12 +3272,13 @@ bool CCPP65Generator::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 		return Error(pcReturn, "The function must return a value");
 	}
 
-	//The temporaries and the local objects are destroyed after the value is worked out.
+	//The temporaries and the local objects are destroyed after the value is worked out.  The object parameters are
+	//destroyed at the return label (EndFunction).
 	DestroyTemporaries(true, mpsFunction->psReturn->Is64());
-	if (mapsDestructors.NumElements() > 0)
+	if ((int)mapsDestructors.NumElements() > miParameterDestructors)
 	{
 		PushWide("A", mpsFunction->psReturn->Is64());
-		DestroyLocals(0);
+		DestroyLocals(miParameterDestructors);
 		PullWide("A", mpsFunction->psReturn->Is64());
 	}
 	Line("bra ");

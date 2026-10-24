@@ -54,7 +54,7 @@ void CCPP65Generator::AllocateTemporaries(CCPPSyntax* pcNode)
 	{
 		return;
 	}
-	if (MakesObject(pcNode) || (pcNode->GetKind() == CPPS_ConstructExpression))
+	if (MakesObject(pcNode) || (pcNode->GetKind() == CPPS_ConstructExpression) || CastClassType(pcNode))
 	{
 		psType = TypeOf(pcNode);
 		if (psType && psType->IsClass() && (mcTemporarySlots.Get((int64)(size)pcNode) == NULL))
@@ -488,7 +488,8 @@ SCPP65Type* CCPP65Generator::TemporaryObject(SCPP65Type* psType, CCPPSyntax* pcI
 	{
 		return NULL;
 	}
-	psSlot = mpsFunction ? mcTemporarySlots.Get((int64)(size)pcNode) : NULL;
+	//Made where the object it initialises is (see TemporaryAddress), or else in its own place in the frame.
+	psSlot = (mpsFunction && !((miTypeOf == 0) && mpcElide && (mpcElide == pcNode))) ? mcTemporarySlots.Get((int64)(size)pcNode) : NULL;
 	sPlace.psType = psType;
 	sPlace.lliName = -1;
 	sPlace.iString = -1;
@@ -565,9 +566,42 @@ bool CCPP65Generator::MakesObject(CCPPSyntax* pcExpression)
 	case CPPS_UnaryExpression:
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
 		return IsObject(pcUnary->mpcOperand);
+	case CPPS_CastExpression:
+	case CPPS_NamedCastExpression:
+		return CastClassType(pcExpression) != NULL;
 	default:
 		return false;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class a cast, (Class)x or static_cast<Class>(x), makes a temporary object of,
+// or NULL for any other expression.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::CastClassType(CCPPSyntax* pcExpression)
+{
+	CCPPSyntaxTypeId*	pcType;
+	SCPP65Type*			psType;
+
+	if (pcExpression->GetKind() == CPPS_CastExpression)
+	{
+		pcType = ((CCPPSyntaxCastExpression*)pcExpression)->mpcType;
+	}
+	else if (pcExpression->GetKind() == CPPS_NamedCastExpression)
+	{
+		pcType = ((CCPPSyntaxNamedCastExpression*)pcExpression)->mpcType;
+	}
+	else
+	{
+		return NULL;
+	}
+	BeginQuiet();
+	psType = GetTypeIdType(pcType);
+	EndQuiet();
+	return (psType && psType->IsClass()) ? psType : NULL;
 }
 
 
@@ -627,6 +661,24 @@ bool CCPP65Generator::IsObject(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The class of an object expression (see IsObject).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Class* CCPP65Generator::ObjectClass(CCPPSyntax* pcExpression)
+{
+	SCPP65Type*	psType;
+
+	psType = TypeOf(pcExpression);
+	if (psType && psType->IsReference())
+	{
+		psType = psType->psBase;
+	}
+	return psType->psClass;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // left op right, or op operand when pcRight is NULL, with an object operand: the
 // left's member operator, or a free operator function.
 //
@@ -655,7 +707,7 @@ SCPP65Type* CCPP65Generator::OperatorExpression(ECppTokens eOperator, CCPPSyntax
 		}
 		uiErrors = mcErrors.NumErrors();
 		BeginQuiet();
-		psFunction = FindFunction(psType->psClass, lliName, CPP65FK_Function, &apcArguments, true, pcNode);
+		psFunction = FindFunction(psType->psClass, lliName, CPP65FK_Function, &apcArguments, true, pcNode, IsConstObject(pcLeft));
 		EndQuiet();
 		mcErrors.Truncate(uiErrors);
 		if (psFunction)

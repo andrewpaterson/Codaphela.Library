@@ -20,6 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __C_P_P_PARSER_H__
 #define __C_P_P_PARSER_H__
+#include "BaseLib/ArrayInt.h"
 #include "CppTokeniser.h"
 #include "CTReservedWord.h"
 #include "CPPSyntaxes.h"
@@ -96,6 +97,9 @@ protected:
 	int64					mlliFunction;
 	int64					mlliFuncsig;
 	int64					mlliFuncdname;
+	int64					mlliPack;
+	int						miPack;					//The current #pragma pack, as __pragma(pack(n)): 0 for none.
+	CArrayInt				maiPacks;				//pack(push) saves miPack here.
 
 public:
 	void							Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree);
@@ -133,6 +137,7 @@ protected:
 	bool							EndTentative(int iSavedFailed);
 	void							Resolve(int iToken, CCPPSymbol* pcSymbol, ECPPTokenRole eRole);
 	bool							SkipBalanced(void);
+	bool							SkipPragma(void);
 	bool							SkipFunctionBody(void);
 	void							SkipDeclaration(void);
 	void							SkipStatement(void);

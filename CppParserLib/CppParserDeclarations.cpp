@@ -43,6 +43,10 @@ void CCPPParser::ParseDeclarations(CArraySyntax* papcDeclarations, CCPPSyntax* p
 		{
 			break;
 		}
+		if (SkipPragma())
+		{
+			continue;
+		}
 
 		sStart = Mark();
 		pcScope = mpcScope;

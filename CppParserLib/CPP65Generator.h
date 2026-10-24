@@ -26,11 +26,13 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define CPP65_STACK_TOP				0x1FFFFF
 #define CPP65_HEAP_ADDRESS			0x80000		//Libc65's malloc heap (stdlib.cpp HEAP_START); a program ends below it.
 #define CPP65_TEMPORARY_BYTES		0x100
+#define CPP65_CONVERSION_NAME		(-1 - 2 * (int64)NUM_CPP_TOKENS)	//The name of every conversion function (operator T); they differ by their result.
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayUint8.h"
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/ArrayInt.h"
+#include "BaseLib/ArrayInt64.h"
 #include "BaseLib/MapLongTemplate.h"
 #include "CPPSyntaxes.h"
 #include "CPPSymbol.h"
@@ -111,6 +113,7 @@ struct SCPP65Function
 	SCPP65Type*						psReturn;
 	CArrayCPP65Types				mapsParameters;
 	CArraySyntax					mapcDefaults;	//Each parameter's default argument, or NULL.
+	uint32							uiConstReferences;	//A bit for each of the first 32 parameters that is a const reference (types do not record const).
 	bool							bVariadic;
 	bool							bDefined;
 	SCPP65Class*					psClass;		//NULL for a function that is not a member.
@@ -121,6 +124,8 @@ struct SCPP65Function
 	int								iSlot;			//A virtual function's place in the vtable.
 	int								iOverload;		//Other functions with the same name before this one.
 	bool							bCLinkage;		//Declared in extern "C": its label is only its name.
+	bool							bExplicit;		//An explicit constructor or conversion function: not used for implicit conversions.
+	bool							bConstThis;		//A const member function: an overload of the same function without const.
 	bool							bImplicit;		//A constructor or destructor the generator wrote.
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	SCPP65Bindings*					psBindings;		//The template arguments the definition is generated with.
@@ -141,6 +146,8 @@ enum ECPP65ConversionRank
 {
 	CPP65CR_None,
 	CPP65CR_Ellipsis,
+	CPP65CR_UserDefined,		//A conversion function whose result then needs a conversion.
+	CPP65CR_UserDefinedExact,	//A converting constructor, or a conversion function whose result matches (or promotes).
 	CPP65CR_Boolean,		//A pointer to bool, worse than the other conversions.
 	CPP65CR_Conversion,
 	CPP65CR_Promotion,
@@ -173,6 +180,17 @@ struct SCPP65Base
 typedef CArrayTemplate<SCPP65Base>		CArrayCPP65Bases;
 
 
+//using Base::f; in a class: Base's functions named f are overloads of the class's own.
+struct SCPP65Using
+{
+	SCPP65Class*	psBase;
+	int64			lliName;
+};
+
+
+typedef CArrayTemplate<SCPP65Using>		CArrayCPP65Usings;
+
+
 //A secondary vtable: the one for the polymorphic base subobject at iOffset that does not share the class's
 //vtable pointer.  It is laid out like psOwner's vtable.  A function whose object is not that subobject is
 //called through a thunk that adds maiAdjust's entry to this first.
@@ -197,6 +215,7 @@ struct SCPP65Class
 	SCPP65Type*					psType;
 	SCPP65Class*				psBase;
 	CArrayCPP65Bases			macBases;
+	CArrayCPP65Usings			macUsings;
 	CArrayCPP65Fields			macFields;
 	CArrayCPP65FunctionPtrs		mapsVirtuals;		//The vtable.
 	int							iVtableOffset;		//-1 if the class has no vtable of its own.
@@ -418,6 +437,7 @@ protected:
 
 	CArrayCPP65Variables	mapsLocals;
 	CArrayCPP65Variables	mapsDestructors;	//Local objects to destroy, last made last.
+	int						miParameterDestructors;	//The first entries of mapsDestructors are the object parameters, destroyed at the return label.
 	CArrayCPP65Jumps		macJumps;
 	CArrayCPP65Cases		macCases;
 	CArrayCPP65GotoLabels	macGotoLabels;
@@ -506,6 +526,8 @@ protected:
 	bool					CompoundStatement(CCPPSyntaxCompoundStatement* pcCompound);
 	bool					DeclarationStatement(CCPPSyntaxDeclarationStatement* pcStatement);
 	bool					LocalInitialiser(SCPP65Variable* psVariable, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode);
+	bool					StatementCondition(CCPPSyntax* pcCondition, bool bJumpIf, int iLabel);
+	bool					HasDestructibleTemporaries(CCPPSyntax* pcNode);
 	bool					IfStatement(CCPPSyntaxIfStatement* pcIf);
 	bool					WhileStatement(CCPPSyntaxWhileStatement* pcWhile);
 	bool					DoStatement(CCPPSyntaxDoStatement* pcDo);
@@ -539,19 +561,23 @@ protected:
 	SCPP65Class*			FindBaseInstance(SCPP65Class* psClass, SCPP65Template* psTemplate);
 	SCPP65Class*			QualifierClass(SCPP65Class* psClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
 	int						TypeAlignment(SCPP65Type* psType);
+	int						PackAlignment(int iAlign, int iPack);
 	SCPP65Class*			GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	bool					TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplate);
 	bool					ExplicitInstantiation(CCPPSyntax* pcDeclaration);
 	SCPP65Template*			GetTemplate(CCPPSymbol* pcSymbol);
 	SCPP65Template*			GetTemplateByName(int64 lliName);
-	SCPP65Bindings*			BindArguments(CCPPSyntaxTemplateDeclaration* pcTemplate, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CChars* pszArguments, CCPPSyntax* pcNode);
+	SCPP65Bindings*			BindArguments(CCPPSyntaxTemplateDeclaration* pcTemplate, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CChars* pszArguments, CCPPSyntax* pcNode, CArrayInt64* palliDeduced = NULL);
 	SCPP65Binding*			FindBinding(CCPPSymbol* pcParameter);
 	SCPP65Class*			InstantiateClass(SCPP65Template* psTemplate, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	SCPP65Class*			UndefinedInstance(CCPPSymbol* pcSymbol, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	SCPP65Function*			InstantiateFunction(SCPP65Template* psTemplate, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	SCPP65Template*			NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, bool bMember);
 	bool					MemberTemplate(SCPP65Class* psClass, CCPPSyntaxTemplateDeclaration* pcTemplate);
-	SCPP65Template*			FindMemberTemplate(SCPP65Class* psClass, int64 lliName, size uiArguments);
+	SCPP65Template*			FindMemberTemplate(SCPP65Class* psClass, int64 lliName, size uiArguments, int iConstObject = -1);
+	SCPP65Template*			GetCallTemplate(CCPPSymbol* pcSymbol, size uiArguments);
+	bool					TakesArguments(CCPPSyntaxFunctionSuffix* pcSuffix, size uiArguments);
+	bool					IsConstSuffix(CCPPSyntaxFunctionSuffix* pcSuffix);
 	bool					DefineMemberTemplate(SCPP65Template* psTemplate, CCPPSyntax* pcNode);
 	size					NumParameters(CCPPSyntaxFunctionSuffix* pcSuffix);
 	SCPP65Bindings*			RenameBindings(SCPP65Class* psClass, CCPPSyntaxTemplateDeclaration* pcDeclaration);
@@ -567,7 +593,11 @@ protected:
 	bool					MatchPattern(SCPP65Template* psSpecialisation, CArraySyntax* papcPattern, SCPP65Bindings* psArguments, SCPP65Bindings* psDeduced, int* piScore);
 	bool					MatchType(SCPP65Template* psSpecialisation, CCPPSyntaxTypeId* pcPattern, SCPP65Binding* psArgument, SCPP65Bindings* psDeduced, int* piScore);
 	SCPP65Binding*			DeducedBinding(SCPP65Bindings* psDeduced, CCPPSymbol* pcParameter);
-	void					DeduceArguments(SCPP65Template* psTemplate, CArrayCPP65Types* papsArguments, CArrayCPP65Types* papsDeduced);
+	void					DeduceArguments(SCPP65Template* psTemplate, CArrayCPP65Types* papsArguments, CArrayCPP65Types* papsDeduced, CArrayInt64* palliDeduced);
+	void					DeduceMemberPointerClass(SCPP65Template* psTemplate, CCPPSyntaxDeclarator* pcDeclarator, SCPP65Type* psArgument, CArrayCPP65Types* papsDeduced);
+	void					DeduceFromInstance(SCPP65Template* psTemplate, CCPPSyntaxNameComponent* pcComponent, SCPP65Type* psArgument, CArrayCPP65Types* papsDeduced, CArrayInt64* palliDeduced);
+	SCPP65Class*			FindInstanceBase(SCPP65Class* psClass, CCPPSymbol* pcTemplate);
+	CCPPSymbol*				GetArgumentSymbol(CCPPSyntax* pcArgument);
 	SCPP65Template*			FindFunctionSpecialisation(SCPP65Template* psPrimary, CChars* pszArguments, CCPPSyntax* pcNode);
 	bool					CompleteClass(SCPP65Class* psClass, CCPPSyntax* pcNode);
 	bool					ResolveBases(SCPP65Class* psClass, CCPPSyntax* pcNode);
@@ -580,15 +610,24 @@ protected:
 	void					AddSecondaryVtable(SCPP65Class* psClass, int iOffset, SCPP65Class* psOwner, CArrayCPP65FunctionPtrs* papsFunctions, CArrayInt* paiAdjust);
 	bool					IsPolymorphic(SCPP65Class* psClass);
 	void					EnsureVtable(SCPP65Class* psClass);
+	void					AppendVirtualCallThunk(CChars* psz, SCPP65Function* psFunction);
 	void					AppendVtableEntry(SCPP65Function* psFunction, int iAdjust);
 	void					StoreVtables(SCPP65Class* psClass, const char* szValue, const char* szObject);
 	SCPP65Field*			FindField(SCPP65Class* psClass, int64 lliName, int* piOffset);
 	SCPP65Field*			FindFieldSymbol(SCPP65Class* psClass, CCPPSymbol* pcSymbol, int* piOffset);
 	SCPP65Variable*			FindStatic(SCPP65Class* psClass, int64 lliName);
-	SCPP65Function*			FindFunction(SCPP65Class* psClass, int64 lliName, ECPP65FunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode);
+	void					ClassUsing(SCPP65Class* psClass, CCPPSyntaxUsingDeclaration* pcUsing);
+	bool					IsOverloadOf(SCPP65Class* psClass, SCPP65Function* psFunction, int64 lliName);
+	SCPP65Function*			FindFunction(SCPP65Class* psClass, int64 lliName, ECPP65FunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode, int iConstObject = -1);
+	bool					IsConstObject(CCPPSyntax* pcExpression);
+	bool					IsConstPointer(CCPPSyntax* pcExpression);
+	bool					IsConstDeclared(CCPPSymbol* pcSymbol, bool bPointer);
+	bool					IsConstThis(void);
 	bool					RankArguments(SCPP65Function* psFunction, SCPP65Type** apsArguments, CArraySyntax* papcArguments, int* aiRanks);
-	int						ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgument, CCPPSyntax* pcArgument);
+	int						ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgument, CCPPSyntax* pcArgument, bool bUserDefined = true);
+	bool					HasConvertingConstructor(SCPP65Class* psClass, SCPP65Type* psArgument, CCPPSyntax* pcArgument);
 	int						CompareRanks(int* aiFirst, int* aiSecond, size uiArguments);
+	int						CompareConstReferences(SCPP65Function* psFirst, SCPP65Function* psSecond, CArraySyntax* papcArguments, int iConstObject);
 	bool					IsDerived(SCPP65Class* psClass, SCPP65Class* psBase, int* piOffset);
 	bool					NeedsConstructor(SCPP65Class* psClass);
 	bool					NeedsDestructor(SCPP65Class* psClass);
@@ -611,6 +650,11 @@ protected:
 	bool					CallMember(SCPP65Function* psFunction, SCPP65Place* psObject, CArraySyntax* papcArguments, bool bVirtual, CCPPSyntax* pcNode);
 	SCPP65Type*				MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* pcCallee);
 	SCPP65Type*				OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
+	SCPP65Type*				ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode);
+	SCPP65Function*			FindConversion(SCPP65Class* psClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode);
+	SCPP65Type*				ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit);
+	SCPP65Type*				ObjectCall(CCPPSyntax* pcObject, SCPP65Class* psClass, SCPP65Function* psFunction, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
+	SCPP65Type*				ArrowPointer(CCPPSyntax* pcObject, CCPPSyntax* pcNode);
 	int						PushArguments(SCPP65Function* psFunction, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	int						PushParameters(CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, bool bVariadic, CArraySyntax* papcArguments, CCPPSyntax* pcNode, SCPP65Type* psReturn = NULL);
 	bool					CopyObject(SCPP65Place* psDestination, CCPPSyntax* pcSource, CCPPSyntax* pcNode);
@@ -637,6 +681,9 @@ protected:
 	bool					ReturnObject(CCPPSyntax* pcValue, CCPPSyntax* pcNode);
 	SCPP65Type*				TemporaryObject(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode);
 	bool					IsObject(CCPPSyntax* pcExpression);
+	bool					IsAssignmentOperator(ECppTokens eOperator);
+	SCPP65Type*				CastClassType(CCPPSyntax* pcExpression);
+	SCPP65Class*			ObjectClass(CCPPSyntax* pcExpression);
 	bool					IsMadeObject(CCPPSyntax* pcExpression, SCPP65Class* psClass);
 	bool					MakesObject(CCPPSyntax* pcExpression);
 	bool					ConstructFromMade(SCPP65Place* psPlace, CCPPSyntax* pcInitialiser, ECPP65Elide eElide, int iDepth, CCPPSyntax* pcNode);
@@ -679,6 +726,8 @@ protected:
 	SCPP65Type*				CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pcOperand, CCPPSyntax* pcNode);
 	SCPP65Type*				SizeofExpression(CCPPSyntax* pcSizeof);
 	SCPP65Type*				TypeOf(CCPPSyntax* pcExpression);
+	SCPP65Type*				PlaceTypeOf(CCPPSyntax* pcExpression);
+	SCPP65Type*				DiscardedType(CCPPSyntax* pcExpression, bool bPlace);
 	SCPP65Type*				Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65Right* psRight);
 	SCPP65Type*				Operate(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Right* psRight, CCPPSyntax* pcNode);
 	SCPP65Type*				OperateWide(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Right* psRight, SCPP65Type* psType, CCPPSyntax* pcNode);

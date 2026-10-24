@@ -2060,6 +2060,9 @@
     <ClCompile Include="ConditionVariable_Linux.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
+    <ClCompile Include="ConditionVariable_65C64.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
     <ClCompile Include="NativeThread.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
@@ -2067,6 +2070,9 @@
       <Filter>Source\Thread</Filter>
     </ClCompile>
     <ClCompile Include="NativeThread_Linux.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="NativeThread_65C64.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
     <ClCompile Include="SafeArrayBlock.cpp">
