@@ -61,7 +61,7 @@ bool CVoltageConfiguration::Init(float32 fVcc, float32 fLowVoltageIn, float32 fH
 	miLowToEnableHoldTime = (int64)(miLowToHighHoldTime * 1.2f);
 	miLowToEnableSlewTime = (int64)(miLowToHighSlewTime * 1.2f);
 
-	return Validate();
+	return IsValid();
 }
 
 
@@ -77,7 +77,7 @@ bool CVoltageConfiguration::Init(float32 fVcc, float32 fLowVoltageIn, float32 fH
 	SetDisableTime(iHighToDisEnPropagation, iLowToDisEnPropagation);
 	SetEnableTime(iHighToDisEnPropagation, iLowToDisEnPropagation);
 
-	return Validate();
+	return IsValid();
 }
 
 
@@ -107,7 +107,7 @@ bool CVoltageConfiguration::Init(float32 fVcc, float32 fLowVoltageIn, float32 fH
 	miLowToEnableHoldTime = iLowToEnableHoldTime;
 	miLowToEnableSlewTime = iLowToEnableSlewTime;
 
-	return Validate();
+	return IsValid();
 }
 
 
@@ -181,7 +181,7 @@ void CVoltageConfiguration::SetDisableTime(int64 iHighToLowDisable, int64 iLowTo
 // be greater than zero.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CVoltageConfiguration::Validate(void)
+bool CVoltageConfiguration::IsValid(void)
 {
 	if (!(mfHighVoltageOut > mfLowVoltageOut))
 	{

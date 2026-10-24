@@ -37,6 +37,7 @@ void CGeometryMap::Init(void)
 	PreInit();
 	CBaseMap::Init();
 	masCommands.Init();
+	masPoints.Init();
 	mpViewport = NULL;
 	PostInit();
 }
@@ -48,6 +49,7 @@ void CGeometryMap::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CGeometryMap::Free(void)
 {
+	masPoints.Kill();
 	masCommands.Kill();
 	CBaseMap::Free();
 }
@@ -61,6 +63,7 @@ void CGeometryMap::Class(void)
 {
 	CBaseMap::Class();
 	U_Data(CArrayGeometryCommand, masCommands);
+	U_Data(CArrayGeometryPoint, masPoints);
 	M_Pointer(mpViewport);
 }
 
@@ -92,6 +95,7 @@ bool CGeometryMap::Load(CObjectReader* pcFile)
 void CGeometryMap::Clear(void)
 {
 	masCommands.ReInit();
+	masPoints.ReInit();
 }
 
 
@@ -205,6 +209,266 @@ void CGeometryMap::AddFilledCircle(float64 x, float64 y, float64 fRadius, ARGB32
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The polygon is filled with the non-zero rule; it may wind either way.
+//
+//////////////////////////////////////////////////////////////////////////
+void CGeometryMap::AddPolygon(SFloat64Vec2* asPoints, size uiNumPoints, ARGB32 sColour)
+{
+	if (uiNumPoints < 3)
+	{
+		return;
+	}
+	AddPointsShape(GC_Polygon, asPoints, uiNumPoints, sColour);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A closed polyline joins its last point back to its first.
+//
+//////////////////////////////////////////////////////////////////////////
+void CGeometryMap::AddPolyline(SFloat64Vec2* asPoints, size uiNumPoints, bool bClosed, float64 fThickness, ARGB32 sColour)
+{
+	SGeometryCommand*	psCommand;
+	CVectorPath			cPath;
+	SFloat64Vec2*		psMinimum;
+	SFloat64Vec2*		psMaximum;
+
+	if ((uiNumPoints == 0) || (fThickness <= 0))
+	{
+		return;
+	}
+
+	psCommand = AddPointsShape(GC_Polyline, asPoints, uiNumPoints, sColour);
+	psCommand->bClosed = bClosed;
+	psCommand->fThickness = fThickness;
+
+	//Mitres reach further than the thickness so the bounds come from the stroke itself.
+	cPath.Init();
+	AddPolylinePath(&cPath, psCommand);
+	cPath.CalculateBounds();
+	if (cPath.HasBounds())
+	{
+		psMinimum = cPath.GetMinimum();
+		psMaximum = cPath.GetMaximum();
+		psCommand->cBounds.Init((int32)floor(psMinimum->x + 0.5), (int32)floor(psMinimum->y + 0.5), (int32)ceil(psMaximum->x + 0.5), (int32)ceil(psMaximum->y + 0.5));
+	}
+	else
+	{
+		psCommand->cBounds.Init(0, 0, 0, 0);
+	}
+	cPath.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SGeometryCommand* CGeometryMap::AddPointsShape(EGeometryCommand eType, SFloat64Vec2* asPoints, size uiNumPoints, ARGB32 sColour)
+{
+	SGeometryCommand*	psCommand;
+	size				uiFirstPoint;
+	size				i;
+	float64				fLeft;
+	float64				fTop;
+	float64				fRight;
+	float64				fBottom;
+
+	fLeft = asPoints[0].x;
+	fRight = asPoints[0].x;
+	fTop = asPoints[0].y;
+	fBottom = asPoints[0].y;
+	for (i = 1; i < uiNumPoints; i++)
+	{
+		fLeft = (asPoints[i].x < fLeft) ? asPoints[i].x : fLeft;
+		fRight = (asPoints[i].x > fRight) ? asPoints[i].x : fRight;
+		fTop = (asPoints[i].y < fTop) ? asPoints[i].y : fTop;
+		fBottom = (asPoints[i].y > fBottom) ? asPoints[i].y : fBottom;
+	}
+
+	uiFirstPoint = masPoints.NumElements();
+	masPoints.InsertBlockAfterEnd(asPoints, uiNumPoints);
+
+	psCommand = AddShape(eType, fLeft, fTop, fRight, fBottom, sColour);
+	psCommand->uiFirstPoint = uiFirstPoint;
+	psCommand->uiNumPoints = uiNumPoints;
+	return psCommand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds the contour winding counterclockwise (y up) whichever way the
+// points go, so contours that overlap add up under the non-zero rule
+// instead of cancelling.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AddGeometryContour(CVectorPath* pcPath, SFloat64Vec2* asPoints, size uiNumPoints)
+{
+	float64		fArea;
+	size		i;
+	size		j;
+
+	fArea = 0;
+	for (i = 0; i < uiNumPoints; i++)
+	{
+		j = (i + 1) % uiNumPoints;
+		fArea += asPoints[i].x * asPoints[j].y - asPoints[j].x * asPoints[i].y;
+	}
+	if (fArea == 0)
+	{
+		return;
+	}
+	pcPath->AddPolygon(asPoints, uiNumPoints, fArea < 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A quadrilateral per segment and a wedge per join.  Points that repeat the
+// one before are skipped; they have no direction.
+//
+//////////////////////////////////////////////////////////////////////////
+void CGeometryMap::AddPolylinePath(CVectorPath* pcPath, SGeometryCommand* psCommand)
+{
+	SFloat64Vec2*	asSource;
+	SFloat64Vec2*	asPoints;
+	size			uiNumPoints;
+	size			uiNumSegments;
+	size			i;
+	float64			fHalf;
+	SFloat64Vec2	sDirection;
+	SFloat64Vec2	sPrevious;
+	SFloat64Vec2	sNext;
+	SFloat64Vec2	sStart;
+	SFloat64Vec2	sEnd;
+	SFloat64Vec2	sNormal;
+	SFloat64Vec2	sPreviousNormal;
+	SFloat64Vec2	sNextNormal;
+	SFloat64Vec2	sSum;
+	SFloat64Vec2	asCorners[4];
+	SFloat64Vec2*	psPoint;
+	float64			fLength;
+	float64			fSide;
+	float64			fSumLengthSquared;
+
+	fHalf = psCommand->fThickness / 2;
+	asSource = masPoints.Get(psCommand->uiFirstPoint);
+
+	asPoints = (SFloat64Vec2*)malloc(sizeof(SFloat64Vec2) * psCommand->uiNumPoints);
+	uiNumPoints = 0;
+	for (i = 0; i < psCommand->uiNumPoints; i++)
+	{
+		if ((uiNumPoints == 0) || (asSource[i].x != asPoints[uiNumPoints - 1].x) || (asSource[i].y != asPoints[uiNumPoints - 1].y))
+		{
+			asPoints[uiNumPoints] = asSource[i];
+			uiNumPoints++;
+		}
+	}
+	if (psCommand->bClosed && (uiNumPoints > 1) && (asPoints[0].x == asPoints[uiNumPoints - 1].x) && (asPoints[0].y == asPoints[uiNumPoints - 1].y))
+	{
+		uiNumPoints--;
+	}
+
+	if (uiNumPoints < 2)
+	{
+		//A polyline that doesn't go anywhere is a square dot, as a square capped line is.
+		asCorners[0].Init(asPoints[0].x - fHalf, asPoints[0].y - fHalf);
+		asCorners[1].Init(asPoints[0].x + fHalf, asPoints[0].y - fHalf);
+		asCorners[2].Init(asPoints[0].x + fHalf, asPoints[0].y + fHalf);
+		asCorners[3].Init(asPoints[0].x - fHalf, asPoints[0].y + fHalf);
+		AddGeometryContour(pcPath, asCorners, 4);
+		free(asPoints);
+		return;
+	}
+
+	uiNumSegments = psCommand->bClosed ? uiNumPoints : uiNumPoints - 1;
+	for (i = 0; i < uiNumSegments; i++)
+	{
+		sStart = asPoints[i];
+		sEnd = asPoints[(i + 1) % uiNumPoints];
+		fLength = hypot(sEnd.x - sStart.x, sEnd.y - sStart.y);
+		sDirection.Init((sEnd.x - sStart.x) / fLength, (sEnd.y - sStart.y) / fLength);
+		sNormal.Init(-sDirection.y * fHalf, sDirection.x * fHalf);
+
+		//Square caps on the ends of an open polyline.
+		if (!psCommand->bClosed && (i == 0))
+		{
+			sStart.Init(sStart.x - sDirection.x * fHalf, sStart.y - sDirection.y * fHalf);
+		}
+		if (!psCommand->bClosed && (i == uiNumSegments - 1))
+		{
+			sEnd.Init(sEnd.x + sDirection.x * fHalf, sEnd.y + sDirection.y * fHalf);
+		}
+		asCorners[0].Init(sStart.x - sNormal.x, sStart.y - sNormal.y);
+		asCorners[1].Init(sEnd.x - sNormal.x, sEnd.y - sNormal.y);
+		asCorners[2].Init(sEnd.x + sNormal.x, sEnd.y + sNormal.y);
+		asCorners[3].Init(sStart.x + sNormal.x, sStart.y + sNormal.y);
+		AddGeometryContour(pcPath, asCorners, 4);
+	}
+
+	for (i = 0; i < uiNumPoints; i++)
+	{
+		if (!psCommand->bClosed && ((i == 0) || (i == uiNumPoints - 1)))
+		{
+			continue;
+		}
+
+		psPoint = &asPoints[i];
+		sPrevious = asPoints[(i + uiNumPoints - 1) % uiNumPoints];
+		sNext = asPoints[(i + 1) % uiNumPoints];
+
+		fLength = hypot(psPoint->x - sPrevious.x, psPoint->y - sPrevious.y);
+		sPreviousNormal.Init(-(psPoint->y - sPrevious.y) / fLength, (psPoint->x - sPrevious.x) / fLength);
+		fLength = hypot(sNext.x - psPoint->x, sNext.y - psPoint->y);
+		sDirection.Init((sNext.x - psPoint->x) / fLength, (sNext.y - psPoint->y) / fLength);
+		sNextNormal.Init(-sDirection.y, sDirection.x);
+
+		//The outside of the join is on the side the next segment turns away from.
+		fSide = sPreviousNormal.x * sDirection.x + sPreviousNormal.y * sDirection.y;
+		if (fSide == 0)
+		{
+			continue;
+		}
+		fSide = (fSide > 0) ? -fHalf : fHalf;
+
+		asCorners[0] = *psPoint;
+		asCorners[1].Init(psPoint->x + sPreviousNormal.x * fSide, psPoint->y + sPreviousNormal.y * fSide);
+		asCorners[3].Init(psPoint->x + sNextNormal.x * fSide, psPoint->y + sNextNormal.y * fSide);
+
+		//|n1 + n2| is 2 cos(half the turn) and the mitre tip is 1 / cos(half the turn) half thicknesses out.  Past a mitre
+		//limit of ten the join is bevelled.
+		sSum.Init(sPreviousNormal.x + sNextNormal.x, sPreviousNormal.y + sNextNormal.y);
+		fSumLengthSquared = sSum.x * sSum.x + sSum.y * sSum.y;
+		if (fSumLengthSquared >= 4.0 / 100.0)
+		{
+			asCorners[2].Init(psPoint->x + sSum.x * fSide * 2 / fSumLengthSquared, psPoint->y + sSum.y * fSide * 2 / fSumLengthSquared);
+			AddGeometryContour(pcPath, asCorners, 4);
+		}
+		else
+		{
+			asCorners[2] = asCorners[3];
+			AddGeometryContour(pcPath, asCorners, 3);
+		}
+	}
+
+	free(asPoints);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SFloat64Vec2* CGeometryMap::GetPoint(size uiIndex)
+{
+	return masPoints.Get(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A shape reaching from fLeft, fTop to fRight, fBottom in pixel centre
 // points.  The bounds hold the pixels it touches.
 //
@@ -222,6 +486,9 @@ SGeometryCommand* CGeometryMap::AddShape(EGeometryCommand eType, float64 fLeft, 
 	psCommand->fRadius = 0;
 	psCommand->fThickness = 0;
 	psCommand->eCap = GLC_Butt;
+	psCommand->uiFirstPoint = 0;
+	psCommand->uiNumPoints = 0;
+	psCommand->bClosed = false;
 	return psCommand;
 }
 
@@ -399,6 +666,14 @@ void CGeometryMap::AddShapePath(CVectorPath* pcPath, SGeometryCommand* psCommand
 	else if (psCommand->eType == GC_Circle)
 	{
 		AddVectorRing(pcPath, &psCommand->sStart, psCommand->fRadius + fHalf, psCommand->fRadius - fHalf, 0, 360);
+	}
+	else if (psCommand->eType == GC_Polygon)
+	{
+		pcPath->AddPolygon(masPoints.Get(psCommand->uiFirstPoint), psCommand->uiNumPoints, false);
+	}
+	else if (psCommand->eType == GC_Polyline)
+	{
+		AddPolylinePath(pcPath, psCommand);
 	}
 	else if (psCommand->eType == GC_Line)
 	{

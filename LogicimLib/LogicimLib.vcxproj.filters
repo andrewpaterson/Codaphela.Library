@@ -2,17 +2,113 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source">
-      <UniqueIdentifier>{87158acb-7598-4c60-9021-602371ee9aa1}</UniqueIdentifier>
+      <UniqueIdentifier>{d4093398-7a55-5828-ba74-7cf9bba6620e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Common">
+      <UniqueIdentifier>{dc28253c-359a-5334-a2ad-5b95523f5208}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Gate">
+      <UniqueIdentifier>{fce286e2-1732-58df-a4ee-011bc5ef992b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Passive">
+      <UniqueIdentifier>{83ee0ff0-a2b9-5db0-bfaf-f8dbe16441a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\View">
+      <UniqueIdentifier>{5402b72f-c7a4-5ba8-a1b8-8a60c8851800}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="LogicimLib.cpp">
-      <Filter>Source</Filter>
+    <ClCompile Include="CircuitColours.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="CircuitPainter.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="CircuitViewport.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentShapes.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Rotation.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="CircuitView.cpp">
+      <Filter>Source\View</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentView.cpp">
+      <Filter>Source\View</Filter>
+    </ClCompile>
+    <ClCompile Include="IntegratedCircuitView.cpp">
+      <Filter>Source\View</Filter>
+    </ClCompile>
+    <ClCompile Include="PortView.cpp">
+      <Filter>Source\View</Filter>
+    </ClCompile>
+    <ClCompile Include="TraceView.cpp">
+      <Filter>Source\View</Filter>
+    </ClCompile>
+    <ClCompile Include="AndGateView.cpp">
+      <Filter>Source\Gate</Filter>
+    </ClCompile>
+    <ClCompile Include="BufferView.cpp">
+      <Filter>Source\Gate</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicGateView.cpp">
+      <Filter>Source\Gate</Filter>
+    </ClCompile>
+    <ClCompile Include="OrGateView.cpp">
+      <Filter>Source\Gate</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerSourceView.cpp">
+      <Filter>Source\Passive</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="LogicimLib.h">
-      <Filter>Source</Filter>
+    <ClInclude Include="CircuitColours.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="CircuitPainter.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="CircuitViewport.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentShapes.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Rotation.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="CircuitView.h">
+      <Filter>Source\View</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentView.h">
+      <Filter>Source\View</Filter>
+    </ClInclude>
+    <ClInclude Include="IntegratedCircuitView.h">
+      <Filter>Source\View</Filter>
+    </ClInclude>
+    <ClInclude Include="PortView.h">
+      <Filter>Source\View</Filter>
+    </ClInclude>
+    <ClInclude Include="TraceView.h">
+      <Filter>Source\View</Filter>
+    </ClInclude>
+    <ClInclude Include="AndGateView.h">
+      <Filter>Source\Gate</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferView.h">
+      <Filter>Source\Gate</Filter>
+    </ClInclude>
+    <ClInclude Include="LogicGateView.h">
+      <Filter>Source\Gate</Filter>
+    </ClInclude>
+    <ClInclude Include="OrGateView.h">
+      <Filter>Source\Gate</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerSourceView.h">
+      <Filter>Source\Passive</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

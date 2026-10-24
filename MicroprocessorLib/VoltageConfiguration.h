@@ -101,7 +101,7 @@ protected:
 	void		SetPropagationTime(int64 iHighToLowPropagation, int64 iLowToHighPropagation);
 	void		SetEnableTime(int64 iHighToLowEnable, int64 iLowToHighEnable);
 	void		SetDisableTime(int64 iHighToLowDisable, int64 iLowToHighDisable);
-	bool		Validate(void);
+	bool		IsValid(void);
 	float32		GetVoltsPerTime(int64 iTime);
 };
 
