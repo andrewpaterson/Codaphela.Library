@@ -7,6 +7,9 @@
     <Filter Include="Source\Common">
       <UniqueIdentifier>{dc28253c-359a-5334-a2ad-5b95523f5208}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\File">
+      <UniqueIdentifier>{42372f03-3bf3-57b8-9e54-9df82c20f17b}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Gate">
       <UniqueIdentifier>{fce286e2-1732-58df-a4ee-011bc5ef992b}</UniqueIdentifier>
     </Filter>
@@ -47,6 +50,12 @@
     </ClCompile>
     <ClCompile Include="TraceView.cpp">
       <Filter>Source\View</Filter>
+    </ClCompile>
+    <ClCompile Include="CircuitFile.cpp">
+      <Filter>Source\File</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentViewFactory.cpp">
+      <Filter>Source\File</Filter>
     </ClCompile>
     <ClCompile Include="AndGateView.cpp">
       <Filter>Source\Gate</Filter>
@@ -94,6 +103,12 @@
     </ClInclude>
     <ClInclude Include="TraceView.h">
       <Filter>Source\View</Filter>
+    </ClInclude>
+    <ClInclude Include="CircuitFile.h">
+      <Filter>Source\File</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentViewFactory.h">
+      <Filter>Source\File</Filter>
     </ClInclude>
     <ClInclude Include="AndGateView.h">
       <Filter>Source\Gate</Filter>

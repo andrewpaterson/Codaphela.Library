@@ -24,6 +24,8 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Chars.h"
 #include "BaseLib/Int32Vec2.h"
 #include "BaseLib/Float64Vec2.h"
+#include "BaseLib/XMLWriter.h"
+#include "BaseLib/MarkupTag.h"
 #include "Rotation.h"
 #include "ComponentShapes.h"
 #include "PortView.h"
@@ -38,6 +40,10 @@ class CFamilyVoltageConfigurationStore;
 //How a component is drawn and where its ports are, as Logicim's ComponentView.  A view is drawn facing North about
 //its position and turned by its rotation.  It makes its component in a simulation (CreateComponent) and remembers it;
 //one view drives one simulation, unlike Logicim's views, which keep a component per simulation path.
+//
+//A view saves itself as an XML element named by GetXMLName with its properties as attributes.  LoadXML is called on a
+//view that has been allocated but not initialised: it reads the attributes and initialises the view from them.  If it
+//fails the view is left uninitialised and is freed without Kill.
 //
 //The bounding box is the shapes and ports, never text, so a component's size doesn't depend on the font it is drawn
 //with (Logicim measured its labels into the box).
@@ -63,6 +69,10 @@ public:
 	virtual CCircuitComponent*		CreateComponent(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies) =0;
 	virtual void					Paint(CCircuitPainter* pcPainter);
 
+	virtual const char*				GetXMLName(void) =0;
+	virtual bool					LoadXML(CMarkupTag* pcTag) =0;
+			void					SaveXML(CXMLWriter* pcWriter);
+
 			bool					ConnectPortViews(CCircuitComponent* pcComponent);
 			void					DisconnectComponent(void);
 			CCircuitComponent*		GetComponent(void);
@@ -85,6 +95,8 @@ public:
 			bool					GetBoundingBox(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum);
 
 protected:
+	virtual	void					SaveXMLAttributes(CXMLWriter* pcWriter);
+	static	bool					LoadXMLPlacement(CMarkupTag* pcTag, int32* px, int32* py, ERotation* peRotation, char** pszName);
 	virtual	bool					IncludeExtraBounds(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum, bool bHasBounds);
 			void					PaintShapes(CCircuitPainter* pcPainter);
 			void					PaintPorts(CCircuitPainter* pcPainter);

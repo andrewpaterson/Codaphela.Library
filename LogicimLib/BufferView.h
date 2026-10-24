@@ -32,6 +32,8 @@ public:
 			void					Init(int32 x, int32 y, ERotation eRotation, const char* szName, const char* szFamily, bool bExplicitPowerPorts, int iBufferCount, int iBufferWidth);
 
 	virtual const char*				GetType(void);
+	virtual const char*				GetXMLName(void);
+	virtual bool					LoadXML(CMarkupTag* pcTag);
 	virtual CIntegratedCircuit*		CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily);
 
 protected:
@@ -50,6 +52,8 @@ public:
 			void					Init(int32 x, int32 y, ERotation eRotation, const char* szName, const char* szFamily, bool bExplicitPowerPorts, int iBufferCount, int iBufferWidth);
 
 	virtual const char*				GetType(void);
+	virtual const char*				GetXMLName(void);
+	virtual bool					LoadXML(CMarkupTag* pcTag);
 };
 
 

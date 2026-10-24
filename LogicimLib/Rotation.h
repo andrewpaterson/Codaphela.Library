@@ -46,6 +46,7 @@ bool		IsRotationEastWest(ERotation eRotation);
 void		RotatePoint(ERotation eRotation, SFloat64Vec2* psPoint);
 void		RotatePoint(ERotation eRotation, SInt32Vec2* psPoint);
 const char*	RotationToString(ERotation eRotation);
+ERotation	StringToRotation(const char* szRotation);
 
 
 #endif // __ROTATION_H__

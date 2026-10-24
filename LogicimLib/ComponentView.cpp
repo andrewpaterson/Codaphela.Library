@@ -21,6 +21,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/StringHelper.h"
+#include "BaseLib/Logger.h"
 #include "MicroprocessorLib/CircuitComponent.h"
 #include "ComponentView.h"
 
@@ -63,6 +64,60 @@ void CComponentView::Kill(void)
 	mcShapes.Kill();
 	mszName.Kill();
 	mpcComponent = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentView::SaveXML(CXMLWriter* pcWriter)
+{
+	pcWriter->Begin(GetXMLName());
+	SaveXMLAttributes(pcWriter);
+	pcWriter->End();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Subclasses add their properties after these.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentView::SaveXMLAttributes(CXMLWriter* pcWriter)
+{
+	pcWriter->Attribute("name", mszName.Text());
+	pcWriter->Attribute("x", msPosition.x);
+	pcWriter->Attribute("y", msPosition.y);
+	pcWriter->Attribute("rotation", RotationToString(meRotation));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The attributes SaveXMLAttributes writes.  A missing name is empty.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentView::LoadXMLPlacement(CMarkupTag* pcTag, int32* px, int32* py, ERotation* peRotation, char** pszName)
+{
+	char*	szRotation;
+
+	*pszName = pcTag->GetStringAttribute("name");
+	if (*pszName == NULL)
+	{
+		*pszName = (char*)"";
+	}
+	if (!pcTag->GetInt32Attribute("x", px) || !pcTag->GetInt32Attribute("y", py))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs whole number x and y attributes.", NULL);
+	}
+	szRotation = pcTag->GetStringAttribute("rotation");
+	*peRotation = StringToRotation(szRotation);
+	if (*peRotation == ROT_Cannot)
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] has no rotation or an unknown one [", (szRotation != NULL) ? szRotation : "", "].", NULL);
+	}
+	return true;
 }
 
 

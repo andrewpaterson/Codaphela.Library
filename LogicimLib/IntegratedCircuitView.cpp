@@ -57,6 +57,42 @@ void CIntegratedCircuitView::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuitView::SaveXMLAttributes(CXMLWriter* pcWriter)
+{
+	CComponentView::SaveXMLAttributes(pcWriter);
+	pcWriter->Attribute("family", mszFamily.Text());
+	pcWriter->Attribute("explicitPowerPorts", mbExplicitPowerPorts);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Power ports are implicit unless the tag says otherwise.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIntegratedCircuitView::LoadXMLFamily(CMarkupTag* pcTag, char** pszFamily, bool* pbExplicitPowerPorts)
+{
+	*pszFamily = pcTag->GetStringAttribute("family");
+	if ((*pszFamily == NULL) || ((*pszFamily)[0] == '\0'))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs a family attribute.", NULL);
+	}
+	if (pcTag->GetStringAttribute("explicitPowerPorts") == NULL)
+	{
+		*pbExplicitPowerPorts = false;
+	}
+	else if (!pcTag->GetBoolAttribute("explicitPowerPorts", pbExplicitPowerPorts))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] explicitPowerPorts must be true or false.", NULL);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Makes the IC in the simulation and connects the port views to it.
 //
 //////////////////////////////////////////////////////////////////////////

@@ -50,6 +50,8 @@ public:
 			CIntegratedCircuit*		GetIntegratedCircuit(void);
 
 protected:
+	virtual	void					SaveXMLAttributes(CXMLWriter* pcWriter);
+	static	bool					LoadXMLFamily(CMarkupTag* pcTag, char** pszFamily, bool* pbExplicitPowerPorts);
 			void					CreatePowerPortViews(void);
 			bool					PowerImplicitly(CIntegratedCircuit* pcIntegratedCircuit, CFamilyVoltageConfiguration* pcFamily);
 };

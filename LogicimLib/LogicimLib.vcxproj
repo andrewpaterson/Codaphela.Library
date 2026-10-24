@@ -22,11 +22,13 @@
     <ClCompile Include="AndGateView.cpp" />
     <ClCompile Include="BufferView.cpp" />
     <ClCompile Include="CircuitColours.cpp" />
+    <ClCompile Include="CircuitFile.cpp" />
     <ClCompile Include="CircuitPainter.cpp" />
     <ClCompile Include="CircuitView.cpp" />
     <ClCompile Include="CircuitViewport.cpp" />
     <ClCompile Include="ComponentShapes.cpp" />
     <ClCompile Include="ComponentView.cpp" />
+    <ClCompile Include="ComponentViewFactory.cpp" />
     <ClCompile Include="IntegratedCircuitView.cpp" />
     <ClCompile Include="LogicGateView.cpp" />
     <ClCompile Include="OrGateView.cpp" />
@@ -39,11 +41,13 @@
     <ClInclude Include="AndGateView.h" />
     <ClInclude Include="BufferView.h" />
     <ClInclude Include="CircuitColours.h" />
+    <ClInclude Include="CircuitFile.h" />
     <ClInclude Include="CircuitPainter.h" />
     <ClInclude Include="CircuitView.h" />
     <ClInclude Include="CircuitViewport.h" />
     <ClInclude Include="ComponentShapes.h" />
     <ClInclude Include="ComponentView.h" />
+    <ClInclude Include="ComponentViewFactory.h" />
     <ClInclude Include="IntegratedCircuitView.h" />
     <ClInclude Include="LogicGateView.h" />
     <ClInclude Include="OrGateView.h" />

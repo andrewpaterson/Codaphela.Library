@@ -34,6 +34,20 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #define OR_ARC_FILL_OFFSET		6
 
 
+//The properties a gate is saved with.  The strings point into the tag they were read from.
+struct SLogicGateXML
+{
+	int32		x;
+	int32		y;
+	ERotation	eRotation;
+	char*		szName;
+	char*		szFamily;
+	bool		bExplicitPowerPorts;
+	int32		iInputCount;
+	int32		iInputWidth;
+};
+
+
 //The gates and buffers, as Logicim's BaseGateView and LogicGateView.  A gate has its inputs on the bottom (grid y 1,
 //or further back) spread either side of its position, skipping 0 for an even count, and its output two grid units up.
 //Each input is iInputWidth ports wide; the IC has iInputCount * iInputWidth inputs named "Input n".
@@ -56,7 +70,10 @@ public:
 	static	float64	CalculateWidth(int iInputCount);
 	static	void	GetPortNames(CArrayChars* paszNames, const char* szName, int iPortNumber, int iInputWidth, int iInputCount);
 
+	static	bool	LoadLogicGateXML(CMarkupTag* pcTag, SLogicGateXML* psGate);
+
 protected:
+	virtual	void	SaveXMLAttributes(CXMLWriter* pcWriter);
 			void	CreateGatePortViews(int iInputOffset);
 	virtual	bool	IncludeExtraBounds(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum, bool bHasBounds);
 };
