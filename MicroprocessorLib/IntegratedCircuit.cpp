@@ -41,7 +41,6 @@ void CIntegratedCircuit::Init(CSubcircuitSimulation* pcContainingSubcircuitSimul
 	CCircuitComponent::Init(pcContainingSubcircuitSimulation, szName);
 	mpcPins = pcPins;
 	mpcPins->SetIntegratedCircuit(this);
-	mpcState = NULL;
 	mapcEvents.Init();
 	GetCircuit()->Add(this);
 }
@@ -71,7 +70,6 @@ void CIntegratedCircuit::Kill(void)
 	mapcEvents.Kill();
 
 	SafeKill(mpcPins);
-	SafeKill(mpcState);
 	CCircuitComponent::Kill();
 }
 
@@ -125,6 +123,7 @@ void CIntegratedCircuit::Disconnect(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 void CIntegratedCircuit::Reset(CTimeline* pcTimeline)
 {
+	ResetEventsAndPorts();
 	ResetState();
 	SimulationStarted(pcTimeline);
 }
@@ -132,10 +131,10 @@ void CIntegratedCircuit::Reset(CTimeline* pcTimeline)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Logicim can only set the state once; here the old state is freed.
+// Forgets the chip's events and resets its ports, before it starts again.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIntegratedCircuit::ResetState(void)
+void CIntegratedCircuit::ResetEventsAndPorts(void)
 {
 	size	i;
 
@@ -144,55 +143,17 @@ void CIntegratedCircuit::ResetState(void)
 	{
 		mpcPins->GetPort(i)->Reset();
 	}
-
-	SafeKill(mpcState);
-	SetState(CreateState());
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The chip owns pcState.  Fails if the chip already has state or
-// pcState is NULL.
+// Sets what the chip remembers back to how it starts.  Chips with nothing
+// to remember don't override it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIntegratedCircuit::SetState(CState* pcState)
+void CIntegratedCircuit::ResetState(void)
 {
-	CChars	sz;
-
-	if ((mpcState != NULL) || (pcState == NULL))
-	{
-		sz.Init(" Cannot set state on ");
-		AppendDescription(&sz);
-		if (pcState == NULL)
-		{
-			sz.Append(" to [NULL].");
-		}
-		else
-		{
-			sz.Append(".  It is already set.");
-		}
-		gcLogger.Error2(__METHOD__, sz.Text(), NULL);
-		sz.Kill();
-		return false;
-	}
-	mpcState = pcState;
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// False when there is no state yet.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIntegratedCircuit::IsStateless(void)
-{
-	if (mpcState != NULL)
-	{
-		return mpcState->IsStateless();
-	}
-	return false;
 }
 
 
@@ -274,7 +235,6 @@ bool CIntegratedCircuit::Remove(CIntegratedCircuitEvent* pcEvent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CState* CIntegratedCircuit::GetState(void) { return mpcState; }
 CPins* CIntegratedCircuit::GetPins(void) { return mpcPins; }
 CPort* CIntegratedCircuit::GetPort(const char* szName) { return mpcPins->GetPort(szName); }
 CPort* CIntegratedCircuit::GetPort(size uiIndex) { return mpcPins->GetPort(uiIndex); }

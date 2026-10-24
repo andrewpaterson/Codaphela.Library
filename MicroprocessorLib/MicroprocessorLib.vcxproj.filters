@@ -543,9 +543,6 @@
     <ClCompile Include="Pins.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
-    <ClCompile Include="State.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
     <ClCompile Include="IntegratedCircuit.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
@@ -618,9 +615,6 @@
     <ClCompile Include="ConstantPins.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
-    <ClCompile Include="ConstantState.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
     <ClCompile Include="Constant.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
@@ -633,25 +627,16 @@
     <ClCompile Include="ClockOscillatorPins.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
-    <ClCompile Include="ClockOscillatorState.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
     <ClCompile Include="ClockOscillator.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
     <ClCompile Include="DTypeFlipFlopPins.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
-    <ClCompile Include="DTypeFlipFlopState.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
     <ClCompile Include="DTypeFlipFlop.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
     <ClCompile Include="CounterPins.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="CounterState.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
     <ClCompile Include="Counter.cpp">
@@ -670,9 +655,6 @@
       <Filter>Source\Common</Filter>
     </ClCompile>
     <ClCompile Include="OscilloscopePins.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="OscilloscopeState.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
     <ClCompile Include="Oscilloscope.cpp">
@@ -1214,9 +1196,6 @@
     <ClInclude Include="Pins.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
-    <ClInclude Include="State.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
     <ClInclude Include="IntegratedCircuit.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
@@ -1292,9 +1271,6 @@
     <ClInclude Include="ConstantPins.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
-    <ClInclude Include="ConstantState.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
     <ClInclude Include="Constant.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
@@ -1307,25 +1283,16 @@
     <ClInclude Include="ClockOscillatorPins.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
-    <ClInclude Include="ClockOscillatorState.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
     <ClInclude Include="ClockOscillator.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="DTypeFlipFlopPins.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
-    <ClInclude Include="DTypeFlipFlopState.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
     <ClInclude Include="DTypeFlipFlop.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="CounterPins.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="CounterState.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="Counter.h">
@@ -1344,9 +1311,6 @@
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="OscilloscopePins.h">
-      <Filter>Source\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="OscilloscopeState.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="Oscilloscope.h">

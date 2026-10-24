@@ -82,16 +82,6 @@ void CBuffer::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CState* CBuffer::CreateState(void)
-{
-	return NewMalloc<CStateless>();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CBuffer::TransformOutput(bool bValue) { return bValue; }
 const char* CBuffer::GetType(void) { return BUFFER_TYPE; }
 CBufferPins* CBuffer::GetBufferPins(void) { return (CBufferPins*)mpcPins; }

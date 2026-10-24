@@ -30,6 +30,17 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 void CDTypeFlipFlop::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CDTypeFlipFlopPins* pcPins)
 {
 	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pcPins);
+	ResetState();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Low.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDTypeFlipFlop::ResetState(void)
+{
+	mbState = false;
 }
 
 
@@ -49,21 +60,19 @@ void CDTypeFlipFlop::SimulationStarted(CTimeline* pcTimeline)
 void CDTypeFlipFlop::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 {
 	CDTypeFlipFlopPins*		pcPins;
-	CDTypeFlipFlopState*	pcState;
 	bool					bStateChanged;
 	bool					bSetLow;
 	bool					bResetLow;
 	STraceValue				sDataValue;
 
 	pcPins = GetDTypeFlipFlopPins();
-	pcState = GetDTypeFlipFlopState();
 	bStateChanged = false;
 	bSetLow = pcPins->GetSet()->Read(pcTimeline).IsLow();
 	bResetLow = pcPins->GetReset()->Read(pcTimeline).IsLow();
 	if (bSetLow && bResetLow)
 	{
 		//Most likely for LVC.  Could be metastable also.
-		bStateChanged = pcState->SetState(true);
+		bStateChanged = ChangeState(true);
 	}
 	else if (!bSetLow && !bResetLow)
 	{
@@ -74,44 +83,45 @@ void CDTypeFlipFlop::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 				sDataValue = pcPins->GetData()->Read(pcTimeline);
 				if (sDataValue.IsHigh())
 				{
-					bStateChanged = pcState->SetState(true);
+					bStateChanged = ChangeState(true);
 				}
 				else if (sDataValue.IsLow())
 				{
-					bStateChanged = pcState->SetState(false);
+					bStateChanged = ChangeState(false);
 				}
 			}
 		}
 	}
 	else if (bSetLow)
 	{
-		bStateChanged = pcState->SetState(true);
+		bStateChanged = ChangeState(true);
 	}
 	else
 	{
-		bStateChanged = pcState->SetState(false);
+		bStateChanged = ChangeState(false);
 	}
 
 	if (bStateChanged)
 	{
-		pcPins->GetOutputQ()->WriteBool(pcTimeline, pcState->GetState());
-		pcPins->GetOutputQB()->WriteBool(pcTimeline, !pcState->GetState());
+		pcPins->GetOutputQ()->WriteBool(pcTimeline, mbState);
+		pcPins->GetOutputQB()->WriteBool(pcTimeline, !mbState);
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Starting low.
+// Whether the state changed.
 //
 //////////////////////////////////////////////////////////////////////////
-CState* CDTypeFlipFlop::CreateState(void)
+bool CDTypeFlipFlop::ChangeState(bool bState)
 {
-	CDTypeFlipFlopState*	pcState;
-
-	pcState = NewMalloc<CDTypeFlipFlopState>();
-	pcState->Init(false);
-	return pcState;
+	if (bState != mbState)
+	{
+		mbState = bState;
+		return true;
+	}
+	return false;
 }
 
 
@@ -121,5 +131,6 @@ CState* CDTypeFlipFlop::CreateState(void)
 //////////////////////////////////////////////////////////////////////////
 const char* CDTypeFlipFlop::GetType(void) { return D_TYPE_FLIP_FLOP_TYPE; }
 CDTypeFlipFlopPins* CDTypeFlipFlop::GetDTypeFlipFlopPins(void) { return (CDTypeFlipFlopPins*)mpcPins; }
-CDTypeFlipFlopState* CDTypeFlipFlop::GetDTypeFlipFlopState(void) { return (CDTypeFlipFlopState*)mpcState; }
+bool CDTypeFlipFlop::GetState(void) { return mbState; }
+void CDTypeFlipFlop::SetState(bool bState) { mbState = bState; }
 

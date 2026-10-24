@@ -22,14 +22,15 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #define __OSCILLOSCOPE_H__
 #include "IntegratedCircuit.h"
 #include "OscilloscopePins.h"
-#include "OscilloscopeState.h"
 
 
 #define OSCILLOSCOPE_TYPE	"Oscilloscope"
 
 
 //Logicim's Oscilloscope: samples its inputs' traces at the sample frequency, numberOfDivsWide * samplesPerDiv samples
-//per input in a ring.  Each tick moves on a sample then takes it.  Logicim's view colours are left to a view.
+//per input in a ring.  Each tick moves on a sample then takes it.  Logicim's view colours are left to a view.  The
+//samples (each the trace's minimum and maximum voltage, 0 when undriven) and the ring's position are what it
+//remembers; ResetState clears them.
 class COscilloscope : public CIntegratedCircuit
 {
 CONSTRUCTABLE(COscilloscope);
@@ -38,6 +39,11 @@ protected:
 	int64		miSampleTime;
 	size		muiNumberOfDivsWide;
 	size		muiSamplesPerDiv;
+	size		muiInputCount;
+	size		muiSampleCount;
+	float32*	mafMinVoltage;  //muiInputCount rows of muiSampleCount.
+	float32*	mafMaxVoltage;
+	size		muiTickPosition;
 
 public:
 			void				Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, COscilloscopePins* pcPins, float32 fSampleFrequency, size uiNumberOfDivsWide, size uiSamplesPerDiv);
@@ -46,11 +52,21 @@ public:
 	virtual void				InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);
 	virtual void				ExecuteTick(CTimeline* pcTimeline);
 	virtual const char*			GetType(void);
-	virtual CState*				CreateState(void);
+	virtual void				ResetState(void);
+	virtual void				Kill(void);
 
 			int64				GetSampleTime(void);
 			COscilloscopePins*	GetOscilloscopePins(void);
-			COscilloscopeState*	GetOscilloscopeState(void);
+			size				GetInputCount(void);
+			size				GetSampleCount(void);
+			size				GetTickPosition(void);
+			void				SetTickPosition(size uiTickPosition);
+			float32				GetMinVoltage(size uiInput, size uiSample);
+			float32				GetMaxVoltage(size uiInput, size uiSample);
+			void				SetVoltages(size uiInput, size uiSample, float32 fMinVoltage, float32 fMaxVoltage);
+
+protected:
+			void				Sample(size uiInput, CTrace* pcTrace, int64 iTime);
 };
 
 

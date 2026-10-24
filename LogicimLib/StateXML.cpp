@@ -20,15 +20,13 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <stdio.h>
 #include <stdlib.h>
-#include "BaseLib/ConstructorCall.h"
-#include "BaseLib/PointerFunctions.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/StringHelper.h"
-#include "MicroprocessorLib/ClockOscillatorState.h"
-#include "MicroprocessorLib/ConstantState.h"
-#include "MicroprocessorLib/CounterState.h"
-#include "MicroprocessorLib/DTypeFlipFlopState.h"
-#include "MicroprocessorLib/OscilloscopeState.h"
+#include "MicroprocessorLib/ClockOscillator.h"
+#include "MicroprocessorLib/Constant.h"
+#include "MicroprocessorLib/Counter.h"
+#include "MicroprocessorLib/DTypeFlipFlop.h"
+#include "MicroprocessorLib/Oscilloscope.h"
 #include "StateXML.h"
 
 
@@ -50,16 +48,16 @@ CStateXML* gapcStateXMLs[] =
 
 //////////////////////////////////////////////////////////////////////////
 //
-// NULL for a state no helper handles (stateless ICs have nothing to save).
+// NULL for an IC that remembers nothing (gates, buffers).
 //
 //////////////////////////////////////////////////////////////////////////
-CStateXML* FindStateXMLForState(CState* pcState)
+CStateXML* FindStateXMLForIntegratedCircuit(CIntegratedCircuit* pcIntegratedCircuit)
 {
 	size	i;
 
 	for (i = 0; i < sizeof(gapcStateXMLs) / sizeof(CStateXML*); i++)
 	{
-		if (StringCompare(gapcStateXMLs[i]->GetStateClassName(), pcState->ClassName()) == 0)
+		if (StringCompare(gapcStateXMLs[i]->GetIntegratedCircuitClassName(), pcIntegratedCircuit->ClassName()) == 0)
 		{
 			return gapcStateXMLs[i];
 		}
@@ -91,7 +89,7 @@ CStateXML* FindStateXMLForElement(const char* szXMLName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CClockOscillatorStateXML::GetStateClassName(void) { return "CClockOscillatorState"; }
+const char* CClockOscillatorStateXML::GetIntegratedCircuitClassName(void) { return "CClockOscillator"; }
 const char* CClockOscillatorStateXML::GetXMLName(void) { return "ClockOscillatorState"; }
 
 
@@ -99,10 +97,14 @@ const char* CClockOscillatorStateXML::GetXMLName(void) { return "ClockOscillator
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CClockOscillatorStateXML::Save(CXMLWriter* pcWriter, CState* pcState)
+void CClockOscillatorStateXML::Save(CXMLWriter* pcWriter, CIntegratedCircuit* pcIntegratedCircuit)
 {
+	CClockOscillator*	pcClock;
+
+	pcClock = (CClockOscillator*)pcIntegratedCircuit;
 	pcWriter->Begin(GetXMLName());
-	pcWriter->Attribute("state", ((CClockOscillatorState*)pcState)->GetState());
+	pcWriter->Attribute("high", pcClock->IsHigh());
+	pcWriter->Attribute("fullTicks", pcClock->GetFullTicks());
 	pcWriter->End();
 }
 
@@ -111,19 +113,20 @@ void CClockOscillatorStateXML::Save(CXMLWriter* pcWriter, CState* pcState)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CState* CClockOscillatorStateXML::Load(CMarkupTag* pcTag)
+bool CClockOscillatorStateXML::Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegratedCircuit)
 {
-	CClockOscillatorState*	pcState;
-	bool					bState;
+	CClockOscillator*	pcClock;
+	bool				bHigh;
+	int64				iFullTicks;
 
-	if (!pcTag->GetBoolAttribute("state", &bState))
+	if (!pcTag->GetBoolAttribute("high", &bHigh) || !pcTag->GetInt64Attribute("fullTicks", &iFullTicks))
 	{
-		gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs a true or false state.", NULL);
-		return NULL;
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs a true or false high and a whole number fullTicks.", NULL);
 	}
-	pcState = NewMalloc<CClockOscillatorState>();
-	pcState->Init(bState);
-	return pcState;
+	pcClock = (CClockOscillator*)pcIntegratedCircuit;
+	pcClock->SetHigh(bHigh);
+	pcClock->SetFullTicks(iFullTicks);
+	return true;
 }
 
 
@@ -131,7 +134,7 @@ CState* CClockOscillatorStateXML::Load(CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CConstantStateXML::GetStateClassName(void) { return "CConstantState"; }
+const char* CConstantStateXML::GetIntegratedCircuitClassName(void) { return "CConstant"; }
 const char* CConstantStateXML::GetXMLName(void) { return "ConstantState"; }
 
 
@@ -139,10 +142,10 @@ const char* CConstantStateXML::GetXMLName(void) { return "ConstantState"; }
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CConstantStateXML::Save(CXMLWriter* pcWriter, CState* pcState)
+void CConstantStateXML::Save(CXMLWriter* pcWriter, CIntegratedCircuit* pcIntegratedCircuit)
 {
 	pcWriter->Begin(GetXMLName());
-	pcWriter->Attribute("value", ((CConstantState*)pcState)->GetConstantValue());
+	pcWriter->Attribute("value", ((CConstant*)pcIntegratedCircuit)->GetConstantValue());
 	pcWriter->End();
 }
 
@@ -151,19 +154,16 @@ void CConstantStateXML::Save(CXMLWriter* pcWriter, CState* pcState)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CState* CConstantStateXML::Load(CMarkupTag* pcTag)
+bool CConstantStateXML::Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegratedCircuit)
 {
-	CConstantState*	pcState;
-	int64			iValue;
+	int64	iValue;
 
 	if (!pcTag->GetInt64Attribute("value", &iValue))
 	{
-		gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs a whole number value.", NULL);
-		return NULL;
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs a whole number value.", NULL);
 	}
-	pcState = NewMalloc<CConstantState>();
-	pcState->Init(iValue);
-	return pcState;
+	((CConstant*)pcIntegratedCircuit)->SetConstantValue(iValue);
+	return true;
 }
 
 
@@ -171,7 +171,7 @@ CState* CConstantStateXML::Load(CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CCounterStateXML::GetStateClassName(void) { return "CCounterState"; }
+const char* CCounterStateXML::GetIntegratedCircuitClassName(void) { return "CCounter"; }
 const char* CCounterStateXML::GetXMLName(void) { return "CounterState"; }
 
 
@@ -179,14 +179,14 @@ const char* CCounterStateXML::GetXMLName(void) { return "CounterState"; }
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCounterStateXML::Save(CXMLWriter* pcWriter, CState* pcState)
+void CCounterStateXML::Save(CXMLWriter* pcWriter, CIntegratedCircuit* pcIntegratedCircuit)
 {
-	CCounterState*	pcCounter;
+	CCounter*	pcCounter;
 
-	pcCounter = (CCounterState*)pcState;
+	pcCounter = (CCounter*)pcIntegratedCircuit;
 	pcWriter->Begin(GetXMLName());
-	pcWriter->Attribute("count", (int64)pcCounter->GetState());
-	pcWriter->Attribute("terminal", pcCounter->GetTerminal());
+	pcWriter->Attribute("count", (int64)pcCounter->GetCount());
+	pcWriter->Attribute("terminal", pcCounter->IsTerminal());
 	pcWriter->End();
 }
 
@@ -195,21 +195,20 @@ void CCounterStateXML::Save(CXMLWriter* pcWriter, CState* pcState)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CState* CCounterStateXML::Load(CMarkupTag* pcTag)
+bool CCounterStateXML::Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegratedCircuit)
 {
-	CCounterState*	pcState;
-	int64			iCount;
-	bool			bTerminal;
+	CCounter*	pcCounter;
+	int64		iCount;
+	bool		bTerminal;
 
 	if (!pcTag->GetInt64Attribute("count", &iCount) || (iCount < 0) || (iCount > 0xffffffffLL) || !pcTag->GetBoolAttribute("terminal", &bTerminal))
 	{
-		gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs a count from 0 to 4294967295 and a true or false terminal.", NULL);
-		return NULL;
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs a count from 0 to 4294967295 and a true or false terminal.", NULL);
 	}
-	pcState = NewMalloc<CCounterState>();
-	pcState->Init((uint32)iCount);
-	pcState->SetTerminal(bTerminal);
-	return pcState;
+	pcCounter = (CCounter*)pcIntegratedCircuit;
+	pcCounter->SetCount((uint32)iCount);
+	pcCounter->SetTerminal(bTerminal);
+	return true;
 }
 
 
@@ -217,7 +216,7 @@ CState* CCounterStateXML::Load(CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CDTypeFlipFlopStateXML::GetStateClassName(void) { return "CDTypeFlipFlopState"; }
+const char* CDTypeFlipFlopStateXML::GetIntegratedCircuitClassName(void) { return "CDTypeFlipFlop"; }
 const char* CDTypeFlipFlopStateXML::GetXMLName(void) { return "DTypeFlipFlopState"; }
 
 
@@ -225,10 +224,10 @@ const char* CDTypeFlipFlopStateXML::GetXMLName(void) { return "DTypeFlipFlopStat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDTypeFlipFlopStateXML::Save(CXMLWriter* pcWriter, CState* pcState)
+void CDTypeFlipFlopStateXML::Save(CXMLWriter* pcWriter, CIntegratedCircuit* pcIntegratedCircuit)
 {
 	pcWriter->Begin(GetXMLName());
-	pcWriter->Attribute("state", ((CDTypeFlipFlopState*)pcState)->GetState());
+	pcWriter->Attribute("state", ((CDTypeFlipFlop*)pcIntegratedCircuit)->GetState());
 	pcWriter->End();
 }
 
@@ -237,19 +236,16 @@ void CDTypeFlipFlopStateXML::Save(CXMLWriter* pcWriter, CState* pcState)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CState* CDTypeFlipFlopStateXML::Load(CMarkupTag* pcTag)
+bool CDTypeFlipFlopStateXML::Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegratedCircuit)
 {
-	CDTypeFlipFlopState*	pcState;
-	bool					bState;
+	bool	bState;
 
 	if (!pcTag->GetBoolAttribute("state", &bState))
 	{
-		gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs a true or false state.", NULL);
-		return NULL;
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs a true or false state.", NULL);
 	}
-	pcState = NewMalloc<CDTypeFlipFlopState>();
-	pcState->Init(bState);
-	return pcState;
+	((CDTypeFlipFlop*)pcIntegratedCircuit)->SetState(bState);
+	return true;
 }
 
 
@@ -257,7 +253,7 @@ CState* CDTypeFlipFlopStateXML::Load(CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* COscilloscopeStateXML::GetStateClassName(void) { return "COscilloscopeState"; }
+const char* COscilloscopeStateXML::GetIntegratedCircuitClassName(void) { return "COscilloscope"; }
 const char* COscilloscopeStateXML::GetXMLName(void) { return "OscilloscopeState"; }
 
 
@@ -265,16 +261,16 @@ const char* COscilloscopeStateXML::GetXMLName(void) { return "OscilloscopeState"
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COscilloscopeStateXML::Save(CXMLWriter* pcWriter, CState* pcState)
+void COscilloscopeStateXML::Save(CXMLWriter* pcWriter, CIntegratedCircuit* pcIntegratedCircuit)
 {
-	COscilloscopeState*	pcScope;
-	size				uiInput;
-	size				uiSample;
-	CChars				szMinimum;
-	CChars				szMaximum;
-	char				sz[48];
+	COscilloscope*	pcScope;
+	size			uiInput;
+	size			uiSample;
+	CChars			szMinimum;
+	CChars			szMaximum;
+	char			sz[48];
 
-	pcScope = (COscilloscopeState*)pcState;
+	pcScope = (COscilloscope*)pcIntegratedCircuit;
 	pcWriter->Begin(GetXMLName());
 	pcWriter->Attribute("inputCount", (int64)pcScope->GetInputCount());
 	pcWriter->Attribute("sampleCount", (int64)pcScope->GetSampleCount());
@@ -309,8 +305,7 @@ void COscilloscopeStateXML::Save(CXMLWriter* pcWriter, CState* pcState)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Reads up to uiCount space separated floats.  Fails if there are fewer or
-// anything else.
+// Reads exactly uiCount space separated floats.
 //
 //////////////////////////////////////////////////////////////////////////
 static bool ReadOscilloscopeVoltages(char* szText, float32* afVoltages, size uiCount)
@@ -341,32 +336,30 @@ static bool ReadOscilloscopeVoltages(char* szText, float32* afVoltages, size uiC
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Inputs without a <Samples> keep the samples they have.
 //
 //////////////////////////////////////////////////////////////////////////
-CState* COscilloscopeStateXML::Load(CMarkupTag* pcTag)
+bool COscilloscopeStateXML::Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegratedCircuit)
 {
-	COscilloscopeState*	pcState;
-	int64				iInputCount;
-	int64				iSampleCount;
-	int64				iTickPosition;
-	int64				iInput;
-	STagIterator		sIter;
-	CMarkupTag*			pcSamples;
-	float32*			afMinimum;
-	float32*			afMaximum;
-	size				uiSample;
-	bool				bValid;
+	COscilloscope*	pcScope;
+	int64			iInputCount;
+	int64			iSampleCount;
+	int64			iTickPosition;
+	int64			iInput;
+	STagIterator	sIter;
+	CMarkupTag*		pcSamples;
+	float32*		afMinimum;
+	float32*		afMaximum;
+	size			uiSample;
+	bool			bValid;
 
+	pcScope = (COscilloscope*)pcIntegratedCircuit;
 	if (!pcTag->GetInt64Attribute("inputCount", &iInputCount) || !pcTag->GetInt64Attribute("sampleCount", &iSampleCount) || !pcTag->GetInt64Attribute("tickPosition", &iTickPosition) ||
-		(iInputCount < 1) || (iSampleCount < 1) || (iTickPosition < 0) || (iTickPosition >= iSampleCount))
+		(iInputCount != (int64)pcScope->GetInputCount()) || (iSampleCount != (int64)pcScope->GetSampleCount()) || (iTickPosition < 0) || (iTickPosition >= iSampleCount))
 	{
-		gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs inputCount and sampleCount of at least one and a tickPosition inside the samples.", NULL);
-		return NULL;
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs the oscilloscope's inputCount and sampleCount and a tickPosition inside the samples.", NULL);
 	}
-
-	pcState = NewMalloc<COscilloscopeState>();
-	pcState->Init((size)iInputCount, (size)iSampleCount);
-	pcState->SetTickPosition((size)iTickPosition);
+	pcScope->SetTickPosition((size)iTickPosition);
 
 	afMinimum = (float32*)malloc(sizeof(float32) * (size)iSampleCount);
 	afMaximum = (float32*)malloc(sizeof(float32) * (size)iSampleCount);
@@ -381,7 +374,7 @@ CState* COscilloscopeStateXML::Load(CMarkupTag* pcTag)
 		{
 			for (uiSample = 0; uiSample < (size)iSampleCount; uiSample++)
 			{
-				pcState->SetVoltages((size)iInput, uiSample, afMinimum[uiSample], afMaximum[uiSample]);
+				pcScope->SetVoltages((size)iInput, uiSample, afMinimum[uiSample], afMaximum[uiSample]);
 			}
 		}
 		pcSamples = pcTag->GetNextTag(&sIter);
@@ -391,10 +384,8 @@ CState* COscilloscopeStateXML::Load(CMarkupTag* pcTag)
 
 	if (!bValid)
 	{
-		SafeKill(pcState);
-		gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] has a Samples element without an input in range and sampleCount min and max voltages.", NULL);
-		return NULL;
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] has a Samples element without an input in range and sampleCount min and max voltages.", NULL);
 	}
-	return pcState;
+	return true;
 }
 

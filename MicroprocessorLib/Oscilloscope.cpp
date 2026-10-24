@@ -19,9 +19,12 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ConstructorCall.h"
+#include "BaseLib/PointerFunctions.h"
 #include "LongTime.h"
 #include "Timeline.h"
 #include "TickEvent.h"
+#include "Trace.h"
+#include "Voltage.h"
 #include "Oscilloscope.h"
 
 
@@ -37,6 +40,37 @@ void COscilloscope::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation
 	miSampleTime = FrequencyToTime(fSampleFrequency);
 	muiNumberOfDivsWide = uiNumberOfDivsWide;
 	muiSamplesPerDiv = uiSamplesPerDiv;
+
+	muiInputCount = pcPins->GetInputs()->NumElements();
+	muiSampleCount = uiNumberOfDivsWide * uiSamplesPerDiv;
+	mafMinVoltage = (float32*)malloc(muiInputCount * muiSampleCount * sizeof(float32));
+	mafMaxVoltage = (float32*)malloc(muiInputCount * muiSampleCount * sizeof(float32));
+	ResetState();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void COscilloscope::Kill(void)
+{
+	SafeFree(mafMinVoltage);
+	SafeFree(mafMaxVoltage);
+	CIntegratedCircuit::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every sample 0 and the ring at its start.
+//
+//////////////////////////////////////////////////////////////////////////
+void COscilloscope::ResetState(void)
+{
+	memset(mafMinVoltage, 0, muiInputCount * muiSampleCount * sizeof(float32));
+	memset(mafMaxVoltage, 0, muiInputCount * muiSampleCount * sizeof(float32));
+	muiTickPosition = 0;
 }
 
 
@@ -67,31 +101,19 @@ void COscilloscope::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 void COscilloscope::ExecuteTick(CTimeline* pcTimeline)
 {
 	CArrayLogicPortPtr*	papcInputs;
-	COscilloscopeState*	pcState;
 	size				i;
 
 	CTickEvent::Schedule(miSampleTime, this, pcTimeline);
 	papcInputs = GetOscilloscopePins()->GetInputs();
-	pcState = GetOscilloscopeState();
-	pcState->Tick();
+	muiTickPosition++;
+	if (muiTickPosition >= muiSampleCount)
+	{
+		muiTickPosition = 0;
+	}
 	for (i = 0; i < papcInputs->NumElements(); i++)
 	{
-		pcState->Sample(i, papcInputs->GetPtr(i)->GetTrace(), pcTimeline->GetTime());
+		Sample(i, papcInputs->GetPtr(i)->GetTrace(), pcTimeline->GetTime());
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CState* COscilloscope::CreateState(void)
-{
-	COscilloscopeState*	pcState;
-
-	pcState = NewMalloc<COscilloscopeState>();
-	pcState->Init(GetOscilloscopePins()->GetInputs()->NumElements(), muiNumberOfDivsWide * muiSamplesPerDiv);
-	return pcState;
 }
 
 
@@ -102,5 +124,71 @@ CState* COscilloscope::CreateState(void)
 const char* COscilloscope::GetType(void) { return OSCILLOSCOPE_TYPE; }
 int64 COscilloscope::GetSampleTime(void) { return miSampleTime; }
 COscilloscopePins* COscilloscope::GetOscilloscopePins(void) { return (COscilloscopePins*)mpcPins; }
-COscilloscopeState* COscilloscope::GetOscilloscopeState(void) { return (COscilloscopeState*)mpcState; }
+size COscilloscope::GetInputCount(void) { return muiInputCount; }
+size COscilloscope::GetSampleCount(void) { return muiSampleCount; }
+size COscilloscope::GetTickPosition(void) { return muiTickPosition; }
+float32 COscilloscope::GetMinVoltage(size uiInput, size uiSample) { return mafMinVoltage[uiInput * muiSampleCount + uiSample]; }
+float32 COscilloscope::GetMaxVoltage(size uiInput, size uiSample) { return mafMaxVoltage[uiInput * muiSampleCount + uiSample]; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The trace's minimum and maximum voltage now, 0 if it's undriven or there
+// isn't one, at the ring's position.
+//
+//////////////////////////////////////////////////////////////////////////
+void COscilloscope::Sample(size uiInput, CTrace* pcTrace, int64 iTime)
+{
+	float32	fMinimum;
+	float32	fMaximum;
+	size	uiIndex;
+
+	fMinimum = 0;
+	fMaximum = 0;
+	if (pcTrace != NULL)
+	{
+		fMinimum = pcTrace->GetMinimumVoltage(iTime);
+		fMaximum = pcTrace->GetMaximumVoltage(iTime);
+		if (!IsVoltage(fMinimum))
+		{
+			fMinimum = 0;
+		}
+		if (!IsVoltage(fMaximum))
+		{
+			fMaximum = 0;
+		}
+	}
+
+	uiIndex = uiInput * muiSampleCount + muiTickPosition;
+	mafMinVoltage[uiIndex] = fMinimum;
+	mafMaxVoltage[uiIndex] = fMaximum;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For restoring a saved oscilloscope.
+//
+//////////////////////////////////////////////////////////////////////////
+void COscilloscope::SetVoltages(size uiInput, size uiSample, float32 fMinVoltage, float32 fMaxVoltage)
+{
+	if ((uiInput < muiInputCount) && (uiSample < muiSampleCount))
+	{
+		mafMinVoltage[uiInput * muiSampleCount + uiSample] = fMinVoltage;
+		mafMaxVoltage[uiInput * muiSampleCount + uiSample] = fMaxVoltage;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void COscilloscope::SetTickPosition(size uiTickPosition)
+{
+	if (uiTickPosition < muiSampleCount)
+	{
+		muiTickPosition = uiTickPosition;
+	}
+}
 

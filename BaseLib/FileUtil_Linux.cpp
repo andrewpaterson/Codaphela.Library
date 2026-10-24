@@ -24,7 +24,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
@@ -395,21 +394,8 @@ void FreeDirEnts(struct dirent** apDirEnts, int iNumDirEnts)
 //////////////////////////////////////////////////////////////////////////
 int CompareDirEntsNTFS(const struct dirent** ppDirEnt1, const struct dirent** ppDirEnt2)
 {
-	//Match the order NTFS returns directory entries in: names compared upper-cased.
-	const unsigned char*	ps1;
-	const unsigned char*	ps2;
-	int						c1;
-	int						c2;
-
-	ps1 = (const unsigned char*)(*ppDirEnt1)->d_name;
-	ps2 = (const unsigned char*)(*ppDirEnt2)->d_name;
-	do
-	{
-		c1 = toupper(*ps1++);
-		c2 = toupper(*ps2++);
-	}
-	while ((c1 == c2) && (c1 != 0));
-	return c1 - c2;
+	//Match the order NTFS returns directory entries in.
+	return CompareFileNamesNTFS((*ppDirEnt1)->d_name, (*ppDirEnt2)->d_name);
 }
 
 
@@ -426,11 +412,9 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
     CChars				szTemp;
 	bool				bValid;
     CChars				szDirectory;
-    CChars				szFake;
 	int                 iStatus;
 	struct stat         sBuffer;
 	bool                bDirectory;
-	int                 iFileExtension;
 
 	szDirectory.Init(szInDirectory);
 	FullPath(&szDirectory);
@@ -445,7 +429,6 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
 	for (i = 0; i < iNumDirEnts; i++)
 	{
 		pDirEnt = apDirEnts[i];
-		bValid = true;
 
 		//Dot files are hidden on Linux; Windows uses the hidden attribute.  "." and ".." are never returned.
 		if ((pDirEnt->d_name[0] == '.') && !bHidden)
@@ -461,68 +444,7 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
 
 		//An entry that cannot be stat'ed (e.g. a broken symbolic link) is listed as a file, as Windows lists it.
         bDirectory = (iStatus == 0) && S_ISDIR(sBuffer.st_mode);
-		if (bDirectory)
-		{
-            if (bDirs)
-            {
-                if (szInName != NULL)
-                {
-                    szTemp.Init(pDirEnt->d_name);
-                    RemoveExtension(&szTemp);
-                    if (!szTemp.ContainsIgnoreCase(szInName))
-                    {
-                        bValid = false;
-                    }
-                    szTemp.Kill();
-                }
-            }
-            else
-            {
-                bValid = false;
-			}
-		}
-		else
-		{
-            if (!bDirs)
-            {
-                if (szExtension != NULL)
-                {
-                    szFake.Fake(pDirEnt->d_name);
-                    iFileExtension = (int)FindExtension(szFake.Text());
-                    if (iFileExtension != -1)
-                    {
-                        if (!(szFake.SubStringEquals(iFileExtension+1, szExtension)))
-                        {
-                            bValid = false;
-                        }
-                    }
-                    else
-                    {
-                        //If there is no file extension on the current file and the
-                        //extension being looked for is not empty...
-                        if (szExtension[0] != 0)
-                        {
-                            //Then this file is not valid.
-                            bValid = false;
-                        }
-                    }
-                }
-                if (szInName != NULL)
-                {
-                    szTemp.Init(pDirEnt->d_name);
-                    RemoveExtension(&szTemp);
-                    if (!szTemp.ContainsIgnoreCase(szInName))
-                    {
-                        bValid = false;
-                    }
-                    szTemp.Kill();
-                }
-            }
-            else
-            {
-                bValid = false;
-            }
-		}
+		bValid = IsFindMatch(pDirEnt->d_name, bDirectory, bDirs, szInName, szExtension);
 
         if (bValid)
         {

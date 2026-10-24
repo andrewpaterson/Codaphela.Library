@@ -133,7 +133,7 @@ static bool MakePendingEventsXML(CArrayPendingEventXML* pasEvents, CTimeline* pc
 
 //////////////////////////////////////////////////////////////////////////
 //
-// ICs the file says nothing about start with the state they're made with.
+// ICs the file says nothing about keep what they were made with.
 //
 //////////////////////////////////////////////////////////////////////////
 bool LoadSimulationXML(CMarkupTag* pcSimulationTag, CCircuitView* pcCircuit, CCircuitSimulation* pcSimulation)
@@ -145,9 +145,6 @@ bool LoadSimulationXML(CMarkupTag* pcSimulationTag, CCircuitView* pcCircuit, CCi
 	CComponentView*			pcView;
 	CComponentStateXML*		pcStateXML;
 	CArrayPendingEventXML	asEvents;
-	size					i;
-	CIntegratedCircuit*		pcIntegratedCircuit;
-	CCircuit*				pcDomainCircuit;
 	bool					bResult;
 
 	if (!pcSimulationTag->Is("Simulation"))
@@ -186,16 +183,6 @@ bool LoadSimulationXML(CMarkupTag* pcSimulationTag, CCircuitView* pcCircuit, CCi
 		bResult = MakePendingEventsXML(&asEvents, pcSimulation->GetTimeline());
 	}
 	asEvents.Kill();
-
-	pcDomainCircuit = pcSimulation->GetCircuit();
-	for (i = 0; i < pcDomainCircuit->NumIntegratedCircuits(); i++)
-	{
-		pcIntegratedCircuit = pcDomainCircuit->GetIntegratedCircuit(i);
-		if (pcIntegratedCircuit->GetState() == NULL)
-		{
-			pcIntegratedCircuit->SetState(pcIntegratedCircuit->CreateState());
-		}
-	}
 	return bResult;
 }
 

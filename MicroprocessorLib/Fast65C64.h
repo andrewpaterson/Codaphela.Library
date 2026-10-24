@@ -21,6 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __FAST_65C64_H__
 #define __FAST_65C64_H__
 #include "BaseLib/PrimitiveTypes.h"
+#include "BaseLib/Chars.h"
 #include "65C64.h"
 
 
@@ -95,6 +96,9 @@ public:
 	bool		IsWaiting(void);
 	uint8		GetPendingEdges(void);
 	uint64		NumCycles(void);
+
+	bool		AppendDifferences(C65C64* pcMPU, CChars* psz);
+	void		AppendDifference(CChars* psz, const char* szName, uint64 uiOther, uint64 uiThis);
 
 	//Only for tests.  They set registers directly, bypassing reset and instructions.
 	void		TestSetRegister(E65Register eRegister, uint64 uiValue);

@@ -1033,6 +1033,7 @@
     <ClCompile Include="XMLIdentifier.cpp" />
     <ClCompile Include="XMLParser.cpp" />
     <ClCompile Include="PlainTextEditor.cpp" />
+    <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Timer_Windows.cpp" />
     <ClCompile Include="Timer_Linux.cpp" />
     <ClCompile Include="Timer_65C64.cpp" />

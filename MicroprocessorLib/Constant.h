@@ -22,19 +22,19 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #define __CONSTANT_H__
 #include "IntegratedCircuit.h"
 #include "ConstantPins.h"
-#include "ConstantState.h"
 
 
 #define CONSTANT_TYPE	"Constant"
 
 
 //Logicim's Constant: drives its outputs with the bits of a value, the least significant on "Output 0", when the
-//simulation starts.
+//simulation starts.  The value it drives starts as its default value and is set back to it by ResetState.
 class CConstant : public CIntegratedCircuit
 {
 CONSTRUCTABLE(CConstant);
 protected:
 	int64	miDefaultValue;
+	int64	miConstantValue;
 
 public:
 			void				Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CConstantPins* pcPins, int64 iDefaultValue);
@@ -42,9 +42,10 @@ public:
 	virtual void				SimulationStarted(CTimeline* pcTimeline);
 	virtual void				InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);
 	virtual const char*			GetType(void);
-	virtual CState*				CreateState(void);
+	virtual void				ResetState(void);
 			CConstantPins*		GetConstantPins(void);
-			CConstantState*		GetConstantState(void);
+			int64				GetConstantValue(void);
+			void				SetConstantValue(int64 iConstantValue);
 };
 
 

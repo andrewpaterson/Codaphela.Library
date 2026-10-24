@@ -25,6 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "Define.h"
 #include "StringHelper.h"
 #include "FileBasic.h"
@@ -1041,5 +1042,74 @@ bool CFileUtil::TouchDir(const char* szDirectory, bool bLastIsFilename)
 	aszPathComponents.Kill();
 	szPartialPath.Kill();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a directory entry named szName is one FindFiles wants: directories (bDirectories) or files.  Its name
+// without its extension must contain szInName (ignoring case) and a file's extension must be szExtension ("" for no
+// extension), when they are not NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFileUtil::IsFindMatch(const char* szName, bool bDirectory, bool bDirectories, const char* szInName, const char* szExtension)
+{
+	CChars	szTemp;
+	CChars	szFake;
+	int		iFileExtension;
+	bool	bValid;
+
+	if (bDirectory != bDirectories)
+	{
+		return false;
+	}
+
+	bValid = true;
+	if (!bDirectory && (szExtension != NULL))
+	{
+		szFake.Fake(szName);
+		iFileExtension = (int)FindExtension(szFake.Text());
+		if (iFileExtension != -1)
+		{
+			bValid = szFake.SubStringEquals(iFileExtension + 1, szExtension);
+		}
+		else
+		{
+			//A file without an extension only matches no extension.
+			bValid = szExtension[0] == 0;
+		}
+	}
+	if (bValid && (szInName != NULL))
+	{
+		szTemp.Init(szName);
+		RemoveExtension(&szTemp);
+		bValid = szTemp.ContainsIgnoreCase(szInName);
+		szTemp.Kill();
+	}
+	return bValid;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The order NTFS lists directory entries in: names compared upper cased.
+//
+//////////////////////////////////////////////////////////////////////////
+int CompareFileNamesNTFS(const char* szName1, const char* szName2)
+{
+	const unsigned char*	ps1;
+	const unsigned char*	ps2;
+	int						c1;
+	int						c2;
+
+	ps1 = (const unsigned char*)szName1;
+	ps2 = (const unsigned char*)szName2;
+	do
+	{
+		c1 = toupper(*ps1++);
+		c2 = toupper(*ps2++);
+	}
+	while ((c1 == c2) && (c1 != 0));
+	return c1 - c2;
 }
 
