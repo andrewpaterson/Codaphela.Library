@@ -120,6 +120,7 @@ struct SCPP65Function
 	bool							bPure;
 	int								iSlot;			//A virtual function's place in the vtable.
 	int								iOverload;		//Other functions with the same name before this one.
+	bool							bCLinkage;		//Declared in extern "C": its label is only its name.
 	bool							bImplicit;		//A constructor or destructor the generator wrote.
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	SCPP65Bindings*					psBindings;		//The template arguments the definition is generated with.
@@ -140,6 +141,7 @@ enum ECPP65ConversionRank
 {
 	CPP65CR_None,
 	CPP65CR_Ellipsis,
+	CPP65CR_Boolean,		//A pointer to bool, worse than the other conversions.
 	CPP65CR_Conversion,
 	CPP65CR_Promotion,
 	CPP65CR_Exact,
@@ -424,6 +426,7 @@ protected:
 	int						miStatics;			//Static locals in the unit.
 	bool					mbStaticLocal;		//A static local's data is being written.
 	bool					mbLinkageExtern;	//In extern "C" without braces: declarations are extern.
+	bool					mbCLinkage;			//In extern "C": functions declared have C linkage.
 	bool					mbFramePointer;		//The function saves V and points it at its frame.
 	bool					mbAlloca;			//The function used __builtin_alloca, so it restores S from V.
 	int						miDepth;			//Bytes pushed on S since the frame was made.
@@ -479,6 +482,7 @@ protected:
 	SCPP65Type*				GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcNode, CCPPSyntax* pcInitialiser);
 	SCPP65Type*				GetFunctionType(SCPP65Type* psReturn, CCPPSyntaxFunctionSuffix* pcSuffix, CCPPSyntax* pcNode);
 	int						GetInitialiserCount(CCPPSyntax* pcInitialiser);
+	CCPPSyntax*				StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65Type* psElement);
 	SCPP65Type*				GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntax* pcNode);
 	SCPP65Type*				GetTypeIdType(CCPPSyntaxTypeId* pcTypeId);
 	SCPP65Type*				GetSymbolType(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
@@ -490,6 +494,9 @@ protected:
 	void					EndFunction(SCPP65Function* psFunction);
 	bool					AllocateLocals(CCPPSyntax* pcNode);
 	bool					StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers);
+	bool					AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier);
+	bool					StaticAssert(CCPPSyntaxStaticAssert* pcAssert);
+	bool					IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage);
 	bool					GotoStatement(CCPPSyntaxGotoStatement* pcGoto);
 	bool					LabelStatement(CCPPSyntaxLabelStatement* pcLabel);
 	int						GotoLabel(int iToken);
@@ -530,6 +537,8 @@ protected:
 	SCPP65Class*			FindClass(int64 lliName);
 	SCPP65Class*			GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
 	SCPP65Class*			FindBaseInstance(SCPP65Class* psClass, SCPP65Template* psTemplate);
+	SCPP65Class*			QualifierClass(SCPP65Class* psClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
+	int						TypeAlignment(SCPP65Type* psType);
 	SCPP65Class*			GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	bool					TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplate);
 	bool					ExplicitInstantiation(CCPPSyntax* pcDeclaration);
@@ -538,6 +547,7 @@ protected:
 	SCPP65Bindings*			BindArguments(CCPPSyntaxTemplateDeclaration* pcTemplate, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CChars* pszArguments, CCPPSyntax* pcNode);
 	SCPP65Binding*			FindBinding(CCPPSymbol* pcParameter);
 	SCPP65Class*			InstantiateClass(SCPP65Template* psTemplate, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
+	SCPP65Class*			UndefinedInstance(CCPPSymbol* pcSymbol, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	SCPP65Function*			InstantiateFunction(SCPP65Template* psTemplate, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	SCPP65Template*			NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, bool bMember);
 	bool					MemberTemplate(SCPP65Class* psClass, CCPPSyntaxTemplateDeclaration* pcTemplate);

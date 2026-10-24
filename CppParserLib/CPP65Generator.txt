@@ -19,11 +19,16 @@ Libc65 (commonlibraries/Libc65) has the 65C64's standard headers: stdint.h, stdd
 limits.h, stdarg.h, string.h, memory.h, stdlib.h, malloc.h, stdio.h, math.h, new,
 ctype.h, time.h and assert.h (int and long are 32 bits, size_t is unsigned int).  Give
 it to the preprocessor as a system include directory.  string.cpp, stdlib.cpp (malloc
-over a heap at 0008:0000 to 000F:FFFF), ctype.cpp, time.cpp, softfloat.cpp and
-math.cpp are written in C++ for the generator and compiled with a program as its
-other translation units; softfloat.asm is 65C64 assembly, assembled with them
-(CCPP65Builder::AddUnit takes .asm units).  There is no clock: time is 0 and clock is -1 (unavailable);
-gmtime, localtime (UTC) and mktime use integers only.  stdio is only declared.
+over a heap at 0008:0000 to 000F:FFFF, or above 2MB when there is more memory; see Memory
+map), ctype.cpp, time.cpp, softfloat.cpp, math.cpp, stdio.cpp and host.cpp are written in
+C++ for the generator and compiled with a program as its other translation units;
+softfloat.asm is 65C64 assembly, assembled with them (CCPP65Builder::AddUnit takes .asm
+units).  There is no clock: time is 0 and clock is -1 (unavailable); gmtime, localtime
+(UTC) and mktime use integers only.  stdio.cpp has the printf family (not correctly
+rounded past about 15 significant digits for floats), stdout and stderr on the console
+device (00FF:0100) and files on the host's file system through host.h (the host file
+device at 00FF:0200, Assembler65Lib's CAsm65HostFiles).  strtod is within an ulp or so,
+not always correctly rounded.
 exit calls the atexit functions (at most 32, last first) and the fini table, then
 _Exit, which stops at once with the status in A; abort is _Exit(EXIT_FAILURE).
 
@@ -57,6 +62,11 @@ Memory map (the user, 2026-10-23)
 	0001:0000				programs start here (code, then data)
 	001F:FFFC				the stack starts here and works down
 
+A memory of more than 2MB (CAsm65Memory::Init's size, read from the register at
+00FF:0300) moves Libc65's heap above the stack, to 0020:0000, or to 0100:0000 when there
+is more than 16MB (00FF:0000 to 00FF:FFFF are the devices), so a program can be longer:
+CCPP65Builder::SetLimit says where it must end.
+
 The stack is post decrement (a push stores at S - n + 1 ... S, then S -= n), so the
 start up sets S to 001F:FFFF and the first 4 bytes pushed are at 001F:FFFC, 4 byte
 aligned.  My reading of "start at 0x1FFFFC, 4 byte aligned": S = 001F:FFFC would put
@@ -69,7 +79,7 @@ Types
 	char				1 byte, signed (as MSVC)
 	short				2 bytes
 	int, long			4 bytes (long is 4 bytes, as on Windows)
-	long long			8 bytes (4 byte aligned in classes, as a 32 bit g++)
+	long long			8 bytes (8 byte aligned in classes, as MSVC)
 	float				4 bytes, IEEE 754 single
 	double				8 bytes, IEEE 754 double
 	long double			a double (as MSVC), but its own type for overloads
@@ -231,7 +241,10 @@ right operand is loaded into B first.
 C++ names are labels with an underscore in front (_main, _gTable).  Members are
 _Class__name, constructors _Class__0, destructors _Class__1 and vtables _Class__2;
 an overload has __n on the end (_Counter__0__1 is the second constructor), and a
-thunk __t and how far it moves this.  A class without a name is the unit's
+thunk __t and how far it moves this.  A function that is not a member has its
+parameters' types after __F (_Add__Fii, _Call__FPC1A), as units can declare different
+sets of overloads of it; one without parameters, main, extern "C" functions and the
+global operator new and delete (which the generator calls by name) are just their names.  A class without a name is the unit's
 (Unnamed3), and so are static functions and globals (_Helper): their labels are local
 to the unit's object, the others are .global.  C++ names
 cannot contain __ or start with a digit, so these cannot clash.  Generated labels are
@@ -496,10 +509,12 @@ Classes
 
 Layout: the bases in order, each aligned to its own alignment, then the vtable pointer
 (4 bytes, when no base has one: a vtable pointer added to a class with non-polymorphic
-bases goes after them), then the fields, each aligned to its size (4 at most).  An
-empty base (no fields, no vtable pointer, empty bases) takes no space; an empty class
-is 1 byte.  A union's fields are all at 0.  This is the layout of a 32 bit g++ or MSVC
-build for these classes (CArrayBlock checked).  A pointer to a derived class is
+bases goes after them), then the fields, each aligned as MSVC aligns it: a scalar to its
+size (8 for long long and double), a pointer to 4, an array as its element and a class
+to its largest member's alignment (BaseLib reads and writes classes as raw bytes and
+lays them out the MSVC way on g++ -m32 too).  An empty base (no fields, no vtable
+pointer, empty bases) takes no space; an empty class is 1 byte.  A union's fields are
+all at 0.  A pointer to a derived class is
 converted to a pointer to a base by adding the base's offset (not to a null pointer);
 the first base is at 0.
 

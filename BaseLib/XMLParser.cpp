@@ -437,8 +437,114 @@ TRISTATE CXMLParser::ParseValue(CChars* pszValue)
 		return FailAlways(tResult, "'] or [\"");
 	}
 
-	pszValue->AppendSubString(szStart + 1, mcParser.mszParserPos - 1);
+	AppendDecodedValue(pszValue, szStart + 1, mcParser.mszParserPos - 1);
 	return TRITRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Replaces the predefined entities (&amp; &lt; &gt; &quot; &apos;) and
+// character references (&#65; &#x41;) in an attribute value, as text
+// between tags has them replaced.  An ampersand that starts none of these
+// is kept.
+//
+//////////////////////////////////////////////////////////////////////////
+void CXMLParser::AppendDecodedValue(CChars* pszValue, const char* szStart, const char* szEnd)
+{
+	const char*		pc;
+	const char*		pcSemicolon;
+	size			uiLength;
+	uint32			uiCode;
+	bool			bHex;
+	const char*		pcDigit;
+	bool			bValid;
+
+	pc = szStart;
+	while (pc < szEnd)
+	{
+		if (*pc != '&')
+		{
+			pszValue->Append(*pc);
+			pc++;
+			continue;
+		}
+
+		pcSemicolon = pc + 1;
+		while ((pcSemicolon < szEnd) && (*pcSemicolon != ';') && (*pcSemicolon != '&'))
+		{
+			pcSemicolon++;
+		}
+		if ((pcSemicolon >= szEnd) || (*pcSemicolon != ';'))
+		{
+			pszValue->Append(*pc);
+			pc++;
+			continue;
+		}
+
+		uiLength = pcSemicolon - (pc + 1);
+		if ((uiLength == 3) && (memcmp(pc + 1, "amp", 3) == 0))
+		{
+			pszValue->Append('&');
+		}
+		else if ((uiLength == 2) && (memcmp(pc + 1, "lt", 2) == 0))
+		{
+			pszValue->Append('<');
+		}
+		else if ((uiLength == 2) && (memcmp(pc + 1, "gt", 2) == 0))
+		{
+			pszValue->Append('>');
+		}
+		else if ((uiLength == 4) && (memcmp(pc + 1, "quot", 4) == 0))
+		{
+			pszValue->Append('"');
+		}
+		else if ((uiLength == 4) && (memcmp(pc + 1, "apos", 4) == 0))
+		{
+			pszValue->Append('\'');
+		}
+		else if ((uiLength >= 2) && (pc[1] == '#'))
+		{
+			bHex = (pc[2] == 'x') || (pc[2] == 'X');
+			pcDigit = bHex ? pc + 3 : pc + 2;
+			uiCode = 0;
+			bValid = pcDigit < pcSemicolon;
+			for (; (pcDigit < pcSemicolon) && bValid; pcDigit++)
+			{
+				if ((*pcDigit >= '0') && (*pcDigit <= '9'))
+				{
+					uiCode = uiCode * (bHex ? 16 : 10) + (*pcDigit - '0');
+				}
+				else if (bHex && (*pcDigit >= 'a') && (*pcDigit <= 'f'))
+				{
+					uiCode = uiCode * 16 + (*pcDigit - 'a' + 10);
+				}
+				else if (bHex && (*pcDigit >= 'A') && (*pcDigit <= 'F'))
+				{
+					uiCode = uiCode * 16 + (*pcDigit - 'A' + 10);
+				}
+				else
+				{
+					bValid = false;
+				}
+			}
+
+			//Only single byte characters fit; anything else is kept as written.
+			if (bValid && (uiCode > 0) && (uiCode < 256))
+			{
+				pszValue->Append((char)uiCode);
+			}
+			else
+			{
+				pszValue->AppendSubString(pc, pcSemicolon + 1);
+			}
+		}
+		else
+		{
+			pszValue->AppendSubString(pc, pcSemicolon + 1);
+		}
+		pc = pcSemicolon + 1;
+	}
 }
 
 

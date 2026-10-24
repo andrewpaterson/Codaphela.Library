@@ -186,6 +186,7 @@
     <ClCompile Include="CPPErrors.cpp" />
     <ClCompile Include="CPPHighlighter.cpp" />
     <ClCompile Include="CPP65Builder.cpp" />
+    <ClCompile Include="VisualStudioProject.cpp" />
     <ClCompile Include="CPP65Generator.cpp" />
     <ClCompile Include="CPP65GeneratorClasses.cpp" />
     <ClCompile Include="CPP65GeneratorExpressions.cpp" />
@@ -362,6 +363,7 @@
     <ClInclude Include="CPPErrors.h" />
     <ClInclude Include="CPPHighlighter.h" />
     <ClInclude Include="CPP65Builder.h" />
+    <ClInclude Include="VisualStudioProject.h" />
     <ClInclude Include="CPP65Generator.h" />
     <ClInclude Include="CPP65Type.h" />
     <ClInclude Include="CPPSyntaxExtensionDeclaration.h" />

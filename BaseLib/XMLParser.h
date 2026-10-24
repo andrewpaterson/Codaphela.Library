@@ -60,6 +60,7 @@ public:
 	TRISTATE	ParseText(CChars* pszText);
 	TRISTATE	ParseIdentifier(CChars* pszIdentifier);
 	TRISTATE	ParseValue(CChars* pszValue);
+	void		AppendDecodedValue(CChars* pszValue, const char* szStart, const char* szEnd);
 	TRISTATE	ParseTextReplacement(CChars* pszText);
 	TRISTATE	ParseComment(void);
 	TRISTATE	ParseComments(void);

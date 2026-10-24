@@ -21,6 +21,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include "BaseLib/TextFile.h"
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/StringHelper.h"
+#include "VisualStudioProject.h"
 #include "Assembler65Lib/Asm65Assembler.h"
 #include "Preprocessor.h"
 #include "HeaderFileMap.h"
@@ -41,7 +43,16 @@ void CCPP65Builder::Init(void)
 	macLinkLibraries.Init();
 	mcProject.Init(false);
 	muiUnits = 0;
+	muiLimit = CPP65_HEAP_ADDRESS;
+	mbCompiled = false;
+	mbStubMissing = true;
+	mbRemoveUnused = true;
+	mbLazy = false;
+	muiLazySectorSize = 0;
+	muiLazyFirstSector = 0;
 	mcObjects.Init("objects");
+	macObjects.Init();
+	mcLinkWithObjects.Init("link with");
 	mcLinker.Init();
 	mcLinker.SetStubMissing(true);
 	mcLinker.SetRemoveUnused(true);
@@ -59,6 +70,8 @@ void CCPP65Builder::Kill(void)
 
 	mszErrors.Kill();
 	mcLinker.Kill();
+	mcLinkWithObjects.Kill();
+	macObjects.Kill();
 	mcObjects.Kill();
 	for (i = 0; i < macLinkLibraries.NumElements(); i++)
 	{
@@ -160,11 +173,73 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsExcluded(CArrayChars* paszExcluded, const char* szFile)
+{
+	size	i;
+
+	for (i = 0; i < paszExcluded->NumElements(); i++)
+	{
+		if (StringInsensitiveCompare(paszExcluded->GetText(i), szFile) == 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every C++ source of a Visual Studio project as a unit of the library szLibrary (AddUnit), except those named in
+// szExcluded (space separated).  Returns false if the project can't be read.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::AddVisualStudioProject(const char* szLibrary, const char* szProjectFile, bool bLinkAsLibrary, const char* szExcluded)
+{
+	CVisualStudioProject	cProject;
+	CArrayChars				aszExcluded;
+	CChars					szExclude;
+	size					i;
+	bool					bResult;
+
+	aszExcluded.Init();
+	if (szExcluded)
+	{
+		szExclude.Init(szExcluded);
+		szExclude.Split(&aszExcluded, ' ');
+		szExclude.Kill();
+	}
+
+	cProject.Init();
+	bResult = cProject.Read(szProjectFile);
+	if (!bResult)
+	{
+		mszErrors.Append("Could not read ")->Append(szProjectFile)->Append(".\n");
+	}
+	for (i = 0; i < cProject.NumSources(); i++)
+	{
+		if (IsExcluded(&aszExcluded, cProject.GetSource(i)))
+		{
+			continue;
+		}
+		AddUnit(szLibrary, cProject.GetDirectory(), cProject.GetSource(i), bLinkAsLibrary);
+	}
+	cProject.Kill();
+	aszExcluded.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether a label no object defines is stubbed (the default) or is a link error.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetStubMissing(bool bStubMissing)
 {
+	mbStubMissing = bStubMissing;
 	mcLinker.SetStubMissing(bStubMissing);
 }
 
@@ -176,6 +251,7 @@ void CCPP65Builder::SetStubMissing(bool bStubMissing)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetRemoveUnused(bool bRemoveUnused)
 {
+	mbRemoveUnused = bRemoveUnused;
 	mcLinker.SetRemoveUnused(bRemoveUnused);
 }
 
@@ -188,6 +264,9 @@ void CCPP65Builder::SetRemoveUnused(bool bRemoveUnused)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetLazy(uint32 uiSectorSize, uint32 uiFirstSector)
 {
+	mbLazy = true;
+	muiLazySectorSize = uiSectorSize;
+	muiLazyFirstSector = uiFirstSector;
 	mcLinker.SetLazy(CPP65_HEAP_ADDRESS, uiSectorSize, uiFirstSector);
 }
 
@@ -210,6 +289,18 @@ size CCPP65Builder::NumUnits(void)
 bool CCPP65Builder::GetSymbol(const char* szName, int64* piValue)
 {
 	return mcLinker.GetSymbol(szName, piValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the program must end (CPP65_HEAP_ADDRESS unless set).  A program in a memory of more than 2MB has its heap
+// above 0020:0000 (Libc65's malloc), so it can end nearer the stack.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetLimit(uint32 uiLimit)
+{
+	muiLimit = uiLimit;
 }
 
 
@@ -279,9 +370,107 @@ bool CCPP65Builder::AddAssembly(const char* szName, const char* szAssembly)
 bool CCPP65Builder::Link(void)
 {
 	bool	bResult;
-	size	i;
 
+	bResult = Compile();
+	bResult &= LinkObjects();
+	return bResult && mszErrors.Empty();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Compiles the project's units (once).  Returns false if they had errors (see GetErrors).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::Compile(void)
+{
+	bool	bResult;
+
+	if (mbCompiled)
+	{
+		return mszErrors.Empty();
+	}
+	mbCompiled = true;
 	bResult = CompileUnits();
+	return bResult && mszErrors.Empty();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Compiles szSource as the translation unit szName and links it with the compiled objects, instead of the source
+// given to the last LinkWith.  The project is compiled first if it hasn't been.  The errors (GetErrors) are this
+// link's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::LinkWith(const char* szName, const char* szSource)
+{
+	CChars	szAssembly;
+	bool	bResult;
+
+	bResult = Compile();
+	if (!bResult)
+	{
+		return false;
+	}
+
+	ResetLinker();
+	mcLinkWithObjects.Kill();
+	mcLinkWithObjects.Init("link with");
+	szAssembly.Init();
+	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL);
+	bResult &= Assemble(mcLinkWithObjects.AddObject(szName), szAssembly.Text());
+	szAssembly.Kill();
+	mcLinker.AddObject(mcLinkWithObjects.GetObject(0));
+
+	bResult &= LinkObjects();
+	return bResult && mszErrors.Empty();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new linker with the builder's settings and objects, for LinkWith.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::ResetLinker(void)
+{
+	SCPP65Object*	psObject;
+	size			i;
+
+	mszErrors.Kill();
+	mszErrors.Init();
+	mcLinker.Kill();
+	mcLinker.Init();
+	mcLinker.SetStubMissing(mbStubMissing);
+	mcLinker.SetRemoveUnused(mbRemoveUnused);
+	if (mbLazy)
+	{
+		mcLinker.SetLazy(CPP65_HEAP_ADDRESS, muiLazySectorSize, muiLazyFirstSector);
+	}
+	for (i = 0; i < macObjects.NumElements(); i++)
+	{
+		psObject = macObjects.Get(i);
+		if (psObject->bResident)
+		{
+			mcLinker.AddResidentObject(psObject->pcObject);
+		}
+		else
+		{
+			mcLinker.AddObject(psObject->pcObject);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::LinkObjects(void)
+{
+	bool	bResult;
+	size	i;
 
 	//The libraries are only added now, when their array won't move them any more.
 	for (i = 0; i < macLinkLibraries.NumElements(); i++)
@@ -289,10 +478,10 @@ bool CCPP65Builder::Link(void)
 		mcLinker.AddLibrary(&macLinkLibraries.Get(i)->cObjects);
 	}
 	mcLinker.SetAddress(ASK65_Text, CPP65_PROGRAM_ADDRESS);
-	mcLinker.SetLimit(CPP65_HEAP_ADDRESS);
-	bResult &= mcLinker.Link();
+	mcLinker.SetLimit(muiLimit);
+	bResult = mcLinker.Link();
 	mszErrors.Append(mcLinker.GetErrors());
-	return bResult && mszErrors.Empty();
+	return bResult;
 }
 
 
@@ -471,10 +660,14 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 bool CCPP65Builder::AddObject(const char* szName, const char* szAssembly, bool bResident)
 {
 	CAsm65Object*	pcObject;
+	SCPP65Object*	psObject;
 	bool			bResult;
 
 	pcObject = mcObjects.AddObject(szName);
 	bResult = Assemble(pcObject, szAssembly);
+	psObject = macObjects.Add();
+	psObject->pcObject = pcObject;
+	psObject->bResident = bResident;
 	if (bResident)
 	{
 		mcLinker.AddResidentObject(pcObject);

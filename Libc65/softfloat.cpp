@@ -645,6 +645,9 @@ static uint64_t SquareRoot(uint64_t ulliBits, int iFraction)
 }
 
 
+//C linkage: softfloat.asm defines the same names on the 65C64.
+extern "C"
+{
 uint32_t SoftFloatAdd(uint32_t uiA, uint32_t uiB)						{ return (uint32_t)Add(uiA, uiB, false, FLOAT_FRACTION); }
 uint32_t SoftFloatSubtract(uint32_t uiA, uint32_t uiB)					{ return (uint32_t)Add(uiA, uiB, true, FLOAT_FRACTION); }
 uint32_t SoftFloatMultiply(uint32_t uiA, uint32_t uiB)					{ return (uint32_t)Multiply(uiA, uiB, FLOAT_FRACTION); }
@@ -676,4 +679,5 @@ uint32_t SoftDoubleToUnsigned(uint64_t ulli)							{ return (uint32_t)ToInteger(
 int64_t SoftDoubleToLongLong(uint64_t ulli)								{ return (int64_t)ToInteger(ulli, DOUBLE_FRACTION, 64, true); }
 uint64_t SoftDoubleToUnsignedLongLong(uint64_t ulli)					{ return ToInteger(ulli, DOUBLE_FRACTION, 64, false); }
 uint64_t SoftDoubleSqrt(uint64_t ulli)									{ return SquareRoot(ulli, DOUBLE_FRACTION); }
+}
 #endif // __65C64__

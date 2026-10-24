@@ -9,12 +9,17 @@
 int		errno = 0;
 
 
-//The heap is 0008:0000 to 000F:FFFF.  A block has its size (with this header) and, while free, the next free
+//The heap is 0008:0000 to 000F:FFFF, or from 0020:0000 to the top of memory when the memory size register
+//(00FF:0300) says there is more than 2MB, or from 0100:0000 (past the devices' page) when there is more than 16MB.  A block has its size (with this header) and, while free, the next free
 //block.  malloc takes the first free block that is big enough, splitting off the rest, or takes from the end of
 //the heap.  The free list is in address order: free joins a block with the free blocks either side of it, and a
 //free block at the end of the heap is given back to it.
-#define HEAP_START		0x80000
-#define HEAP_END		0x100000
+#define HEAP_START			0x80000
+#define HEAP_END			0x100000
+#define HIGH_HEAP_START		0x200000
+#define DEVICES_START		0xFF0000		//The devices' page, 00FF:0000 to 00FF:FFFF, is never memory.
+#define DEVICES_END			0x1000000
+#define MEMORY_SIZE			(*(volatile unsigned int*)0x00FF0300)
 
 
 struct SHeapBlock
@@ -25,7 +30,31 @@ struct SHeapBlock
 
 
 SHeapBlock*		gpsFreeBlocks = NULL;
-char*			gpcHeapTop = (char*)HEAP_START;
+char*			gpcHeapTop = NULL;
+char*			gpcHeapEnd = NULL;
+
+
+static void InitHeap(void)
+{
+	unsigned int	uiMemorySize;
+
+	uiMemorySize = MEMORY_SIZE;
+	if (uiMemorySize > DEVICES_END)
+	{
+		gpcHeapTop = (char*)DEVICES_END;
+		gpcHeapEnd = (char*)uiMemorySize;
+	}
+	else if (uiMemorySize > HIGH_HEAP_START)
+	{
+		gpcHeapTop = (char*)HIGH_HEAP_START;
+		gpcHeapEnd = (char*)((uiMemorySize < DEVICES_START) ? uiMemorySize : DEVICES_START);
+	}
+	else
+	{
+		gpcHeapTop = (char*)HEAP_START;
+		gpcHeapEnd = (char*)HEAP_END;
+	}
+}
 
 
 void* malloc(size_t uiBytes)
@@ -35,8 +64,13 @@ void* malloc(size_t uiBytes)
 	SHeapBlock*		psRest;
 	size_t			uiSize;
 
+	if (!gpcHeapEnd)
+	{
+		InitHeap();
+	}
+
 	//Checked before rounding up so that a size near SIZE_MAX can't wrap to a small block.
-	if (uiBytes > HEAP_END - HEAP_START)
+	if (uiBytes > 0x7FFFFFF0)
 	{
 		return NULL;
 	}
@@ -67,7 +101,7 @@ void* malloc(size_t uiBytes)
 		psPrevious = psBlock;
 	}
 
-	if (gpcHeapTop + uiSize > (char*)HEAP_END)
+	if ((size_t)(gpcHeapEnd - gpcHeapTop) < uiSize)
 	{
 		return NULL;
 	}
@@ -208,14 +242,15 @@ static int DigitValue(char c)
 
 //Reads the sign and magnitude of a number for strtol and strtoul.  *pbOverflow is set if the magnitude doesn't
 //fit in an unsigned long.  Without any digits *pszEnd is sz and false is returned.
-static bool ParseInteger(const char* sz, char** pszEnd, int iBase, unsigned long* pulValue, bool* pbNegative, bool* pbOverflow)
+//Parses an integer of at most ullMaximum (its sign is in *pbNegative).  *pbOverflow is set if it is bigger.
+static bool ParseInteger(const char* sz, char** pszEnd, int iBase, unsigned long long ullMaximum, unsigned long long* pullValue, bool* pbNegative, bool* pbOverflow)
 {
-	const char*		szStart;
-	unsigned long	ulValue;
-	unsigned long	ulLimit;
-	int				iLimitDigit;
-	int				iDigit;
-	bool			bDigits;
+	const char*			szStart;
+	unsigned long long	ullValue;
+	unsigned long long	ullLimit;
+	int					iLimitDigit;
+	int					iDigit;
+	bool				bDigits;
 
 	szStart = sz;
 	while (isspace(*sz))
@@ -240,9 +275,9 @@ static bool ParseInteger(const char* sz, char** pszEnd, int iBase, unsigned long
 		iBase = (sz[0] == '0') ? 8 : 10;
 	}
 
-	ulLimit = ULONG_MAX / iBase;
-	iLimitDigit = (int)(ULONG_MAX % iBase);
-	ulValue = 0;
+	ullLimit = ullMaximum / (unsigned)iBase;
+	iLimitDigit = (int)(ullMaximum % (unsigned)iBase);
+	ullValue = 0;
 	bDigits = false;
 	*pbOverflow = false;
 	for (;;)
@@ -252,13 +287,13 @@ static bool ParseInteger(const char* sz, char** pszEnd, int iBase, unsigned long
 		{
 			break;
 		}
-		if ((ulValue > ulLimit) || ((ulValue == ulLimit) && (iDigit > iLimitDigit)))
+		if ((ullValue > ullLimit) || ((ullValue == ullLimit) && (iDigit > iLimitDigit)))
 		{
 			*pbOverflow = true;
 		}
 		else
 		{
-			ulValue = ulValue * iBase + iDigit;
+			ullValue = ullValue * (unsigned)iBase + (unsigned)iDigit;
 		}
 		bDigits = true;
 		sz++;
@@ -268,54 +303,305 @@ static bool ParseInteger(const char* sz, char** pszEnd, int iBase, unsigned long
 	{
 		*pszEnd = (char*)(bDigits ? sz : szStart);
 	}
-	*pulValue = ulValue;
+	*pullValue = ullValue;
 	return bDigits;
 }
 
 
-//Out of range values are LONG_MIN or LONG_MAX.
+//Out of range values are LONG_MIN or LONG_MAX, and errno is ERANGE.
 long strtol(const char* sz, char** pszEnd, int iBase)
 {
-	unsigned long	ulValue;
-	bool			bNegative;
-	bool			bOverflow;
+	unsigned long long	ullValue;
+	bool				bNegative;
+	bool				bOverflow;
 
-	if (!ParseInteger(sz, pszEnd, iBase, &ulValue, &bNegative, &bOverflow))
+	if (!ParseInteger(sz, pszEnd, iBase, ULONG_MAX, &ullValue, &bNegative, &bOverflow))
 	{
 		return 0;
 	}
 	if (bNegative)
 	{
-		if (bOverflow || (ulValue > (unsigned long)LONG_MAX + 1))
+		if (bOverflow || (ullValue > (unsigned long)LONG_MAX + 1))
 		{
+			errno = ERANGE;
 			return LONG_MIN;
 		}
-		return (long)((unsigned long)0 - ulValue);
+		return (long)((unsigned long)0 - (unsigned long)ullValue);
 	}
-	if (bOverflow || (ulValue > (unsigned long)LONG_MAX))
+	if (bOverflow || (ullValue > (unsigned long)LONG_MAX))
 	{
+		errno = ERANGE;
 		return LONG_MAX;
 	}
-	return (long)ulValue;
+	return (long)ullValue;
 }
 
 
-//Out of range values are ULONG_MAX.  A negative number is negated as an unsigned long.
+//Out of range values are ULONG_MAX, and errno is ERANGE.  A negative number is negated as an unsigned long.
 unsigned long strtoul(const char* sz, char** pszEnd, int iBase)
 {
-	unsigned long	ulValue;
-	bool			bNegative;
-	bool			bOverflow;
+	unsigned long long	ullValue;
+	bool				bNegative;
+	bool				bOverflow;
 
-	if (!ParseInteger(sz, pszEnd, iBase, &ulValue, &bNegative, &bOverflow))
+	if (!ParseInteger(sz, pszEnd, iBase, ULONG_MAX, &ullValue, &bNegative, &bOverflow))
 	{
 		return 0;
 	}
 	if (bOverflow)
 	{
+		errno = ERANGE;
 		return ULONG_MAX;
 	}
-	return bNegative ? (unsigned long)0 - ulValue : ulValue;
+	return bNegative ? (unsigned long)0 - (unsigned long)ullValue : (unsigned long)ullValue;
+}
+
+
+//Out of range values are LLONG_MIN or LLONG_MAX, and errno is ERANGE.
+long long strtoll(const char* sz, char** pszEnd, int iBase)
+{
+	unsigned long long	ullValue;
+	bool				bNegative;
+	bool				bOverflow;
+
+	if (!ParseInteger(sz, pszEnd, iBase, ULLONG_MAX, &ullValue, &bNegative, &bOverflow))
+	{
+		return 0;
+	}
+	if (bNegative)
+	{
+		if (bOverflow || (ullValue > (unsigned long long)LLONG_MAX + 1))
+		{
+			errno = ERANGE;
+			return LLONG_MIN;
+		}
+		return (long long)((unsigned long long)0 - ullValue);
+	}
+	if (bOverflow || (ullValue > (unsigned long long)LLONG_MAX))
+	{
+		errno = ERANGE;
+		return LLONG_MAX;
+	}
+	return (long long)ullValue;
+}
+
+
+//Out of range values are ULLONG_MAX, and errno is ERANGE.  A negative number is negated as an unsigned long long.
+unsigned long long strtoull(const char* sz, char** pszEnd, int iBase)
+{
+	unsigned long long	ullValue;
+	bool				bNegative;
+	bool				bOverflow;
+
+	if (!ParseInteger(sz, pszEnd, iBase, ULLONG_MAX, &ullValue, &bNegative, &bOverflow))
+	{
+		return 0;
+	}
+	if (bOverflow)
+	{
+		errno = ERANGE;
+		return ULLONG_MAX;
+	}
+	return bNegative ? (unsigned long long)0 - ullValue : ullValue;
+}
+
+
+static bool MatchIgnoreCase(const char* sz, const char* szWord)
+{
+	while (*szWord)
+	{
+		if (tolower((unsigned char)*sz) != *szWord)
+		{
+			return false;
+		}
+		sz++;
+		szWord++;
+	}
+	return true;
+}
+
+
+//Decimal (with an exponent), inf, infinity and nan.  Up to 19 significant digits are kept and scaled by powers of
+//ten, so the result is within an ulp or so but not always correctly rounded.  Out of range values are HUGE_VAL (or
+//0) with errno ERANGE.
+double strtod(const char* sz, char** pszEnd)
+{
+	const char*			szStart;
+	unsigned long long	ullDigits;
+	int					iDigits;
+	int					iExponent;
+	int					iExponentValue;
+	bool				bNegative;
+	bool				bNegativeExponent;
+	bool				bAny;
+	double				dValue;
+	double				dScale;
+	double				dPower;
+	int					iPower;
+
+	szStart = sz;
+	while (isspace((unsigned char)*sz))
+	{
+		sz++;
+	}
+	bNegative = false;
+	if ((*sz == '-') || (*sz == '+'))
+	{
+		bNegative = *sz == '-';
+		sz++;
+	}
+
+	if (MatchIgnoreCase(sz, "inf"))
+	{
+		sz += MatchIgnoreCase(sz, "infinity") ? 8 : 3;
+		if (pszEnd)
+		{
+			*pszEnd = (char*)sz;
+		}
+		return bNegative ? -__builtin_huge_val() : __builtin_huge_val();
+	}
+	if (MatchIgnoreCase(sz, "nan"))
+	{
+		if (pszEnd)
+		{
+			*pszEnd = (char*)(sz + 3);
+		}
+		ullDigits = 0x7FF8000000000000ULL;
+		memcpy(&dValue, &ullDigits, sizeof(double));
+		return dValue;
+	}
+
+	ullDigits = 0;
+	iDigits = 0;
+	iExponent = 0;
+	bAny = false;
+	while ((*sz >= '0') && (*sz <= '9'))
+	{
+		if (iDigits < 19)
+		{
+			ullDigits = ullDigits * 10 + (unsigned)(*sz - '0');
+			if (ullDigits != 0)
+			{
+				iDigits++;
+			}
+		}
+		else
+		{
+			iExponent++;
+		}
+		bAny = true;
+		sz++;
+	}
+	if (*sz == '.')
+	{
+		sz++;
+		while ((*sz >= '0') && (*sz <= '9'))
+		{
+			if (iDigits < 19)
+			{
+				ullDigits = ullDigits * 10 + (unsigned)(*sz - '0');
+				if (ullDigits != 0)
+				{
+					iDigits++;
+				}
+				iExponent--;
+			}
+			bAny = true;
+			sz++;
+		}
+	}
+	if (!bAny)
+	{
+		if (pszEnd)
+		{
+			*pszEnd = (char*)szStart;
+		}
+		return 0.0;
+	}
+
+	if ((*sz == 'e') || (*sz == 'E'))
+	{
+		const char*	szExponent;
+
+		szExponent = sz;
+		sz++;
+		bNegativeExponent = false;
+		if ((*sz == '-') || (*sz == '+'))
+		{
+			bNegativeExponent = *sz == '-';
+			sz++;
+		}
+		if ((*sz >= '0') && (*sz <= '9'))
+		{
+			iExponentValue = 0;
+			while ((*sz >= '0') && (*sz <= '9'))
+			{
+				if (iExponentValue < 10000)
+				{
+					iExponentValue = iExponentValue * 10 + (*sz - '0');
+				}
+				sz++;
+			}
+			iExponent += bNegativeExponent ? -iExponentValue : iExponentValue;
+		}
+		else
+		{
+			sz = szExponent;
+		}
+	}
+	if (pszEnd)
+	{
+		*pszEnd = (char*)sz;
+	}
+
+	dValue = (double)ullDigits;
+	if (dValue != 0.0)
+	{
+		//10^|exponent| by squaring, then one multiply or divide.
+		iPower = (iExponent < 0) ? -iExponent : iExponent;
+		dScale = 1.0;
+		dPower = 10.0;
+		while (iPower > 0)
+		{
+			if (iPower & 1)
+			{
+				dScale *= dPower;
+			}
+			dPower *= dPower;
+			iPower >>= 1;
+		}
+		if (iExponent < 0)
+		{
+			//Very small values are divided in two steps so the scale doesn't overflow first.
+			if (iExponent < -300)
+			{
+				dValue /= 1e300;
+				dScale /= 1e300;
+			}
+			dValue /= dScale;
+		}
+		else
+		{
+			dValue *= dScale;
+		}
+		if ((dValue == 0.0) || (dValue > 1.7976931348623157e308))
+		{
+			errno = ERANGE;
+		}
+	}
+	return bNegative ? -dValue : dValue;
+}
+
+
+float strtof(const char* sz, char** pszEnd)
+{
+	return (float)strtod(sz, pszEnd);
+}
+
+
+double atof(const char* sz)
+{
+	return strtod(sz, NULL);
 }
 
 

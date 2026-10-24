@@ -22,6 +22,11 @@ int		atoi(const char* sz);
 long	atol(const char* sz);
 long	strtol(const char* sz, char** pszEnd, int iBase);
 unsigned long	strtoul(const char* sz, char** pszEnd, int iBase);
+long long	strtoll(const char* sz, char** pszEnd, int iBase);
+unsigned long long	strtoull(const char* sz, char** pszEnd, int iBase);
+double	strtod(const char* sz, char** pszEnd);
+float	strtof(const char* sz, char** pszEnd);
+double	atof(const char* sz);
 
 int		rand(void);
 void	srand(unsigned int uiSeed);

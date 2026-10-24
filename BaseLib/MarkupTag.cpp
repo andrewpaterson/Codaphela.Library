@@ -20,6 +20,8 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include <stdlib.h>
+#include <errno.h>
 #include "DataTypes.h"
 #include "MarkupTag.h"
 #include "MarkupText.h"
@@ -162,6 +164,147 @@ void* CMarkupTag::GetAttribute(size uiIndex, uint* puiType, char** szName)
 
 	mcAttributes.Get(uiIndex, &pvData, puiType, szName);
 	return pvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A text attribute, as the XML parser reads every attribute; NULL if the
+// tag hasn't got it.
+//
+//////////////////////////////////////////////////////////////////////////
+char* CMarkupTag::GetStringAttribute(const char* szAttribute)
+{
+	void*	pvData;
+	uint	uiType;
+
+	if (!GetAttribute(szAttribute, &pvData, &uiType))
+	{
+		return NULL;
+	}
+	if (uiType != PT_char8Pointer)
+	{
+		return NULL;
+	}
+	return (char*)pvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// False if the attribute is missing or isn't a whole number in range.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMarkupTag::GetInt64Attribute(const char* szAttribute, int64* piValue)
+{
+	char*		szValue;
+	char*		szEnd;
+	long long	lli;
+
+	szValue = GetStringAttribute(szAttribute);
+	if ((szValue == NULL) || (*szValue == '\0'))
+	{
+		return false;
+	}
+	errno = 0;
+	lli = strtoll(szValue, &szEnd, 10);
+	if ((*szEnd != '\0') || (errno != 0))
+	{
+		return false;
+	}
+	*piValue = (int64)lli;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMarkupTag::GetInt32Attribute(const char* szAttribute, int32* piValue)
+{
+	int64	iValue;
+
+	if (!GetInt64Attribute(szAttribute, &iValue))
+	{
+		return false;
+	}
+	if ((iValue < -2147483648LL) || (iValue > 2147483647LL))
+	{
+		return false;
+	}
+	*piValue = (int32)iValue;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// "true" or "false".
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMarkupTag::GetBoolAttribute(const char* szAttribute, bool* pbValue)
+{
+	char*	szValue;
+
+	szValue = GetStringAttribute(szAttribute);
+	if (szValue == NULL)
+	{
+		return false;
+	}
+	if (strcmp(szValue, "true") == 0)
+	{
+		*pbValue = true;
+		return true;
+	}
+	if (strcmp(szValue, "false") == 0)
+	{
+		*pbValue = false;
+		return true;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMarkupTag::GetFloat64Attribute(const char* szAttribute, float64* pfValue)
+{
+	char*		szValue;
+	char*		szEnd;
+	float64		f;
+
+	szValue = GetStringAttribute(szAttribute);
+	if ((szValue == NULL) || (*szValue == '\0'))
+	{
+		return false;
+	}
+	f = strtod(szValue, &szEnd);
+	if (*szEnd != '\0')
+	{
+		return false;
+	}
+	*pfValue = f;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMarkupTag::GetFloat32Attribute(const char* szAttribute, float32* pfValue)
+{
+	float64		f;
+
+	if (!GetFloat64Attribute(szAttribute, &f))
+	{
+		return false;
+	}
+	*pfValue = (float32)f;
+	return true;
 }
 
 

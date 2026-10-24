@@ -74,6 +74,7 @@ SCPP65Type* CCPP65Generator::Evaluate(CCPPSyntax* pcExpression)
 	CCPPSyntaxNamedCastExpression*	pcNamedCast;
 	CCPPSyntaxConstructExpression*	pcConstruct;
 	CArraySyntax*					papcElements;
+	CArraySyntax					apcIndex;
 	SCPP65Type*						psType;
 
 	if (!pcExpression)
@@ -100,6 +101,17 @@ SCPP65Type* CCPP65Generator::Evaluate(CCPPSyntax* pcExpression)
 	case CPPS_CallExpression:
 		return CallExpression((CCPPSyntaxCallExpression*)pcExpression);
 	case CPPS_SubscriptExpression:
+		//object[index] is a call to the object's operator[], which may return a value.
+		psType = TypeOf(((CCPPSyntaxSubscriptExpression*)pcExpression)->mpcArray);
+		if (psType && psType->IsClass())
+		{
+			apcIndex.Init();
+			apcIndex.Add(((CCPPSyntaxSubscriptExpression*)pcExpression)->mpcIndex);
+			psType = OperatorCall(((CCPPSyntaxSubscriptExpression*)pcExpression)->mpcArray, CT_OpenSquareBracket, &apcIndex, pcExpression);
+			apcIndex.Kill();
+			return psType;
+		}
+		return Value(pcExpression);
 	case CPPS_MemberExpression:
 		return Value(pcExpression);
 	case CPPS_ThisExpression:
@@ -2186,7 +2198,21 @@ SCPP65Type* CCPP65Generator::Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, S
 		}
 		else if (Constant(pcRight, &psRight->lliValue))
 		{
-			psRight->psType = &mcTypes.msInt;
+			//A constant that isn't a literal (a const variable, an enumerator ...) keeps its type: a long long's
+			//value is 64 bits.  Narrower integers are int.
+			psRight->psType = TypeOf(pcRight);
+			if (psRight->psType && psRight->psType->IsReference())
+			{
+				psRight->psType = psRight->psType->psBase;
+			}
+			if (psRight->psType && psRight->psType->IsFloat() && FloatConstant(pcRight, &dValue))
+			{
+				psRight->lliValue = FloatBits(psRight->psType, dValue);
+			}
+			else if (!psRight->psType || !psRight->psType->IsInteger() || (psRight->psType->iBytes < 4) || psRight->psType->pcEnum)
+			{
+				psRight->psType = &mcTypes.msInt;
+			}
 			psRight->eKind = CPP65RK_Constant;
 		}
 		else
@@ -3737,7 +3763,7 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 
 	case CPPS_SizeofExpression:
 		pcSizeof = (CCPPSyntaxSizeofExpression*)pcExpression;
-		if (pcSizeof->meKeyword != CT_sizeof)
+		if ((pcSizeof->meKeyword != CT_sizeof) && (pcSizeof->meKeyword != CT_alignof))
 		{
 			return false;
 		}
@@ -3768,11 +3794,11 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 		{
 			psType = psType->psBase;
 		}
-		if (psType->IsClass() && !CompleteClass(psType->psClass, pcExpression))
+		if ((psType->IsArray() ? psType->psBase : psType)->IsClass() && !CompleteClass((psType->IsArray() ? psType->psBase : psType)->psClass, pcExpression))
 		{
 			return false;
 		}
-		*plliValue = psType->iBytes;
+		*plliValue = (pcSizeof->meKeyword == CT_alignof) ? TypeAlignment(psType) : psType->iBytes;
 		return true;
 
 	default:

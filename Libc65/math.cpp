@@ -8,8 +8,11 @@
 #include <stdint.h>
 
 
+extern "C"
+{
 uint32_t	SoftFloatSqrt(uint32_t ui);
 uint64_t	SoftDoubleSqrt(uint64_t ulli);
+}
 
 
 static uint64_t DoubleBits(double d)

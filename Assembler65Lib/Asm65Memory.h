@@ -22,14 +22,26 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #define __ASM65_MEMORY_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/FileDrive.h"
+#include "BaseLib/Chars.h"
 #include "MicroprocessorLib/65C64Meta.h"
 #include "MicroprocessorLib/Fast65C64.h"
 #include "Asm65Output.h"
+#include "Asm65HostFiles.h"
 
 
 #define ASM65_MEMORY_LOW_SIZE		0x200000
 #define ASM65_MEMORY_HIGH_BASE		0xFFFFF000
 #define ASM65_MEMORY_HIGH_SIZE		0x1000
+
+//The devices (the drive, the console, the host files and the memory size register) are in the page 00FF:0000 to
+//00FF:FFFF, which is never memory even when the memory is bigger.
+#define ASM65_DEVICE_BASE			0x00FF0000
+#define ASM65_DEVICE_END			0x01000000
+
+//A read only register at 00FF:0300: the 32 bit size of the memory at 0000:0000 (Init's uiLowSize).  Libc65's
+//malloc puts its heap at 0020:0000 when there is more than 2MB, and at 0100:0000 (past the devices' page) when there
+//is more than 16MB.
+#define ASM65_MEMORY_SIZE_REGISTER	0x00FF0300
 
 //A simulated storage device's registers (SetDrive), at 00FF:0000.  Write the first sector, the address and
 //the number of sectors, then a command: the sectors are copied at once.  Each register is 32 bits.
@@ -42,28 +54,40 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #define ASM65_DRIVE_SECTOR_SIZE		0x14		//Bytes in a sector (read only).
 #define ASM65_DRIVE_SIZE			0x18
 
+//A console at 00FF:0100: each byte written to it is appended to the CChars given to SetConsole.
+#define ASM65_CONSOLE				0x00FF0100
+
 #define ASM65_DRIVE_READ			1			//Copies the sectors to memory.
 #define ASM65_DRIVE_WRITE			2			//Copies memory to the sectors.
 
 
-//Flat memory for a 65C64 running assembled code: 2MB at 0000:0000 and the 4KB vector page at FFFF:F000.  An
-//access anywhere else is counted as bad and reads 0.  It is about 2MB, so allocate it rather than putting it on
-//the stack.  TickHigh and TickLow are the C65C64Meta callbacks, with the memory as their context.  InitFast
-//connects a CFast65C64 instead: it reads and writes the 2MB directly and everything else through ReadWord and
-//WriteByte.  A CFileDrive (such as a CMemoryDrive) can be attached as a storage device (see ASM65_DRIVE_BASE).
+//Flat memory for a 65C64 running assembled code: 2MB (or Init's uiLowSize) at 0000:0000 and the 4KB vector page at
+//FFFF:F000.  An access anywhere else is counted as bad and reads 0.  TickHigh and TickLow are the C65C64Meta
+//callbacks, with the memory as their context.  InitFast
+//connects a CFast65C64 instead: it reads and writes the low memory directly and everything else through ReadWord and
+//WriteByte.  A CFileDrive (such as a CMemoryDrive) can be attached as a storage device (see ASM65_DRIVE_BASE), a
+//CChars as the console (ASM65_CONSOLE) and a CAsm65HostFiles as the host file device (ASM65_HOST_BASE).
 class CAsm65Memory
 {
 protected:
-	uint8		mauiLow[ASM65_MEMORY_LOW_SIZE];
+	uint8*		mpuiLow;
+	uint32		muiLowSize;
 	uint8		mauiHigh[ASM65_MEMORY_HIGH_SIZE];
+	uint8		mauiMemorySize[4];
 	size		muiBadAccesses;
 	size		muiCycles;
 	CFileDrive*	mpcDrive;
 	uint8		mauiDrive[ASM65_DRIVE_SIZE];
 	size		muiDriveReads;
+	CChars*		mpszConsole;
+	CAsm65HostFiles*	mpcHostFiles;
+	uint8		mauiHost[ASM65_HOST_SIZE];
 
 public:
-	void			Init(void);
+	void			Init(uint32 uiLowSize = ASM65_MEMORY_LOW_SIZE);
+	void			Kill(void);
+	void			CopyFrom(CAsm65Memory* pcSource);
+	uint32			GetLowSize(void);
 
 	uint8*			Byte(uint32 uiAddress);
 	uint8			GetByte(uint32 uiAddress);
@@ -79,6 +103,8 @@ public:
 	size			NumCycles(void);
 
 	void			SetDrive(CFileDrive* pcDrive);
+	void			SetConsole(CChars* pszConsole);
+	void			SetHostFiles(CAsm65HostFiles* pcHostFiles);
 	size			NumDriveReads(void);
 
 	static void		TickHigh(C65C64Meta* pcMPU, void* pvMemory);
@@ -92,6 +118,7 @@ protected:
 	uint32			GetDriveRegister(uint32 uiRegister);
 	void			SetDriveRegister(uint32 uiRegister, uint32 uiValue);
 	void			DriveCommand(uint8 uiCommand);
+	void			HostCommand(uint8 uiCommand);
 };
 
 

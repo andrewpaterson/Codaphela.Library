@@ -87,6 +87,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree)
 	miStatics = 0;
 	mbStaticLocal = false;
 	mbLinkageExtern = false;
+	mbCLinkage = false;
 	miDepth = 0;
 	miTemporaries = 0;
 	mbFramePointer = false;
@@ -735,6 +736,7 @@ bool CCPP65Generator::Declarations(CArraySyntax* papcDeclarations)
 	CCPPSyntaxLinkageSpecification*		pcLinkage;
 	bool								bResult;
 	bool								bLinkageExtern;
+	bool								bCLinkage;
 
 	bResult = true;
 	for (i = 0; i < papcDeclarations->NumElements(); i++)
@@ -752,9 +754,12 @@ bool CCPP65Generator::Declarations(CArraySyntax* papcDeclarations)
 			//extern "C" int x; declares x, as if it were extern; extern "C" { int x; } defines it.  [dcl.link]
 			pcLinkage = (CCPPSyntaxLinkageSpecification*)pcDeclaration;
 			bLinkageExtern = mbLinkageExtern;
+			bCLinkage = mbCLinkage;
 			mbLinkageExtern = !pcLinkage->mbBraced;
+			mbCLinkage = IsCLinkage(pcLinkage);
 			bResult &= Declarations(&pcLinkage->macpDeclarations);
 			mbLinkageExtern = bLinkageExtern;
+			mbCLinkage = bCLinkage;
 			break;
 		case CPPS_TemplateDeclaration:
 			bResult &= TemplateDeclaration((CCPPSyntaxTemplateDeclaration*)pcDeclaration);
@@ -772,6 +777,29 @@ bool CCPP65Generator::Declarations(CArraySyntax* papcDeclarations)
 		}
 	}
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// extern "C" (anything but extern "C++").
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage)
+{
+	CChars		szLanguage;
+	CCPPToken*	pcToken;
+	bool		bC;
+
+	szLanguage.Init();
+	pcToken = mpcTokeniser->Get(pcLinkage->miLanguage);
+	if (pcToken)
+	{
+		pcToken->Append(&szLanguage, mpcTokeniser);
+	}
+	bC = !szLanguage.Contains("C++");
+	szLanguage.Kill();
+	return bC;
 }
 
 
@@ -939,6 +967,7 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 		apsParameters.Kill();
 		psFunction->bVirtual |= (uiFlags & CPPDS_VIRTUAL) != 0;
 		psFunction->bPure |= bPure;
+		psFunction->bCLinkage |= mbCLinkage && !psClass;
 		return psFunction;
 	}
 
@@ -956,6 +985,7 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 	psFunction->bPure = bPure;
 	psFunction->bInline = (uiFlags & (CPPDS_INLINE | CPPDS_CONSTEXPR)) != 0;
 	psFunction->psTemplate = psTemplate;
+	psFunction->bCLinkage = mbCLinkage && !psClass;
 	if (pszArguments)
 	{
 		psFunction->mszArguments.Append(pszArguments);
@@ -995,6 +1025,7 @@ SCPP65Function* CCPP65Generator::AddFunction(SCPP65Class* psClass, int64 lliName
 	psFunction->bPure = false;
 	psFunction->iSlot = -1;
 	psFunction->iOverload = 0;
+	psFunction->bCLinkage = false;
 	psFunction->bImplicit = false;
 	psFunction->mapcDefaults.Init();
 	psFunction->bVariadic = false;
@@ -1256,6 +1287,7 @@ bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitia
 	if (psType->IsArray())
 	{
 		bResult = true;
+		pcInitialiser = StringInitialiser(pcInitialiser, psType->psBase);
 		if (!pcInitialiser)
 		{
 			i = 0;
@@ -1559,7 +1591,7 @@ SCPP65Type* CCPP65Generator::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 		pcArray = (CCPPSyntaxArraySuffix*)pcSuffix;
 		if (!pcArray->mpcSize)
 		{
-			lliCount = ((i == 1) && !pcDeclarator->mpcNested) ? GetInitialiserCount(pcInitialiser) : 0;
+			lliCount = ((i == 1) && !pcDeclarator->mpcNested) ? GetInitialiserCount(StringInitialiser(pcInitialiser, psType)) : 0;
 			if (lliCount <= 0)
 			{
 				Error(pcNode, "An array needs a size or an initialiser");
@@ -1617,6 +1649,28 @@ SCPP65Type* CCPP65Generator::GetFunctionType(SCPP65Type* psReturn, CCPPSyntaxFun
 	psType = mcTypes.Function(psReturn, &apsParameters, pcSuffix->mbVariadic);
 	apsParameters.Kill();
 	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// char a[] = { "string" } is char a[] = "string": the string, when the initialiser of an array of psElement is a
+// list of just a string and the elements are characters.  Otherwise pcInitialiser.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPP65Generator::StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65Type* psElement)
+{
+	CArraySyntax*	papcElements;
+
+	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList) && psElement->IsInteger() && (psElement->iBytes == 1))
+	{
+		papcElements = &((CCPPSyntaxInitializerList*)pcInitialiser)->macpElements;
+		if ((papcElements->NumElements() == 1) && (papcElements->GetPtr(0)->GetKind() == CPPS_StringExpression))
+		{
+			return papcElements->GetPtr(0);
+		}
+	}
+	return pcInitialiser;
 }
 
 
@@ -2193,6 +2247,16 @@ bool CCPP65Generator::AllocateLocals(CCPPSyntax* pcNode)
 		return true;
 	}
 
+	if (pcNode->GetKind() == CPPS_SimpleDeclaration)
+	{
+		pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcNode;
+		if ((pcDeclaration->macpDeclarators.NumElements() == 0) && pcDeclaration->mpcSpecifiers && pcDeclaration->mpcSpecifiers->mpcType &&
+			(pcDeclaration->mpcSpecifiers->mpcType->GetKind() == CPPS_ClassSpecifier) && !((CCPPSyntaxClassSpecifier*)pcDeclaration->mpcSpecifiers->mpcType)->mpcName)
+		{
+			return AnonymousLocal((CCPPSyntaxClassSpecifier*)pcDeclaration->mpcSpecifiers->mpcType);
+		}
+	}
+
 	if ((pcNode->GetKind() == CPPS_InitDeclarator) && pcNode->mpcParent && (pcNode->mpcParent->GetKind() == CPPS_SimpleDeclaration))
 	{
 		pcInit = (CCPPSyntaxInitDeclarator*)pcNode;
@@ -2235,6 +2299,41 @@ bool CCPP65Generator::AllocateLocals(CCPPSyntax* pcNode)
 		bResult &= AllocateLocals(pcNode->GetChild(i));
 	}
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An anonymous union (or struct) declared in a function: it gets a place in the frame and each of its members
+// is a local variable at its offset in it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
+{
+	SCPP65Class*	psClass;
+	SCPP65Field*	psField;
+	int				iOffset;
+	size			i;
+
+	psClass = GetUnnamedClass(pcSpecifier);
+	if (!psClass || !CompleteClass(psClass, pcSpecifier))
+	{
+		return Error(pcSpecifier, "This anonymous class is not supported by the 65C64 generator yet");
+	}
+
+	miFrameBytes = (miFrameBytes + 3) & ~3;
+	iOffset = miFrameBytes;
+	miFrameBytes += psClass->psType->iBytes;
+	for (i = 0; i < psClass->macFields.NumElements(); i++)
+	{
+		psField = psClass->macFields.Get(i);
+		if (!psField->pcSymbol)
+		{
+			return Error(pcSpecifier, "Anonymous classes in anonymous local classes are not supported by the 65C64 generator yet");
+		}
+		AddVariable(&mapsLocals, psField->pcSymbol, psField->psType, CPP65S_Local, iOffset + psField->iOffset);
+	}
+	return true;
 }
 
 
@@ -2530,6 +2629,30 @@ SCPP65Jump* CCPP65Generator::PushJump(int iBreak, int iContinue)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A static_assert whose condition is a constant that is false is an error.  One the generator cannot work out
+// (sizeof a member function pointer ...) is ignored.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::StaticAssert(CCPPSyntaxStaticAssert* pcAssert)
+{
+	int64	lliValue;
+	size	uiErrors;
+	bool	bConstant;
+
+	uiErrors = mcErrors.NumErrors();
+	BeginQuiet();
+	bConstant = Constant(pcAssert->mpcCondition, &lliValue);
+	EndQuiet();
+	if (bConstant && (lliValue == 0))
+	{
+		return Error(pcAssert, "The static_assert failed");
+	}
+	return mcErrors.NumErrors() == uiErrors;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Local variables already have their places; this runs their initialisers.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -2543,6 +2666,10 @@ bool CCPP65Generator::DeclarationStatement(CCPPSyntaxDeclarationStatement* pcSta
 	size							i;
 	bool							bResult;
 
+	if (pcStatement->mpcDeclaration && (pcStatement->mpcDeclaration->GetKind() == CPPS_StaticAssert))
+	{
+		return StaticAssert((CCPPSyntaxStaticAssert*)pcStatement->mpcDeclaration);
+	}
 	if (!pcStatement->mpcDeclaration || (pcStatement->mpcDeclaration->GetKind() != CPPS_SimpleDeclaration))
 	{
 		return Error(pcStatement, "This declaration is not supported by the 65C64 generator yet");
@@ -2651,6 +2778,7 @@ bool CCPP65Generator::LocalInitialiser(SCPP65Variable* psVariable, CCPPSyntax* p
 	}
 	sPlace.psType = psElement;
 	iCount = 0;
+	pcInitialiser = StringInitialiser(pcInitialiser, psElement);
 	if ((pcInitialiser->GetKind() == CPPS_StringExpression) && (psElement->iBytes == 1))
 	{
 		auiBytes.Init();
