@@ -227,7 +227,6 @@
     <ClInclude Include="MapViewport.h" />
     <ClInclude Include="MultiImageCopier.h" />
     <ClInclude Include="SimpleTextReader.h" />
-    <ClInclude Include="Sprite.h" />
     <ClInclude Include="TextBuilder.h" />
     <ClInclude Include="TextBuilderUTF16Long.h" />
     <ClInclude Include="TextBuilderUTF16Short.h" />
@@ -517,7 +516,6 @@
     <ClCompile Include="FontWriter.cpp" />
     <ClCompile Include="Glyph.cpp" />
     <ClCompile Include="SimpleTextReader.cpp" />
-    <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="SpriteMap.cpp" />
     <ClCompile Include="Maps.cpp" />
     <ClCompile Include="ImageAccessorCreator.cpp" />
