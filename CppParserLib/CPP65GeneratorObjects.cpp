@@ -727,7 +727,7 @@ SCPP65Function* CCPP65Generator::FindFreeOperator(int64 lliName, CArraySyntax* p
 	for (i = 0; !psFunction && (i < mapsTemplates.NumElements()); i++)
 	{
 		psTemplate = mapsTemplates.GetPtr(i);
-		if (psTemplate->bMember || !psTemplate->pcDefinition || (psTemplate->pcDefinition->GetKind() != CPPS_FunctionDefinition))
+		if (psTemplate->bMember || (psTemplate->psPrimary != psTemplate) || !psTemplate->pcDefinition || (psTemplate->pcDefinition->GetKind() != CPPS_FunctionDefinition))
 		{
 			continue;
 		}

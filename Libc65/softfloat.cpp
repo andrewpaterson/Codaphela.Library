@@ -4,9 +4,10 @@
 //operation gives the default NaN (sign set, quiet), a NaN operand is returned quietened (the first if both
 //are NaNs), and a conversion to an integer that is out of range or a NaN gives the most negative integer.
 //The code only uses integers so it also compiles for a host, to be checked against its hardware.
-//On the 65C64 the single precision functions (SoftFloat*, and SoftDoubleToFloat) are softfloat.asm's, which
-//gives the same results much faster; these are left out there and kept as its reference.
+//On the 65C64 every function here is softfloat.asm's, which gives the same results much faster, so this file
+//compiles to nothing there; it is kept as softfloat.asm's reference (TestLibc65 compiles it natively).
 #include <stdint.h>
+#ifndef __65C64__
 
 
 #define SOFT_ZERO		0
@@ -530,6 +531,11 @@ static uint64_t ToInteger(uint64_t ulliBits, int iFraction, int iBits, bool bSig
 	{
 		return (ulliResult == 0) ? 0 : ulliIndefinite;
 	}
+	if ((iBits < 64) && ((ulliResult >> iBits) != 0))
+	{
+		//Too large: only a double from 2^32 to 2^53 gets here (shifted down), as unsigned.
+		return ulliIndefinite;
+	}
 	return ulliResult;
 }
 
@@ -639,7 +645,6 @@ static uint64_t SquareRoot(uint64_t ulliBits, int iFraction)
 }
 
 
-#ifndef __65C64__
 uint32_t SoftFloatAdd(uint32_t uiA, uint32_t uiB)						{ return (uint32_t)Add(uiA, uiB, false, FLOAT_FRACTION); }
 uint32_t SoftFloatSubtract(uint32_t uiA, uint32_t uiB)					{ return (uint32_t)Add(uiA, uiB, true, FLOAT_FRACTION); }
 uint32_t SoftFloatMultiply(uint32_t uiA, uint32_t uiB)					{ return (uint32_t)Multiply(uiA, uiB, FLOAT_FRACTION); }
@@ -656,7 +661,6 @@ uint64_t SoftFloatToUnsignedLongLong(uint32_t ui)						{ return ToInteger(ui, FL
 uint64_t SoftFloatToDouble(uint32_t ui)									{ return Change(ui, FLOAT_FRACTION, DOUBLE_FRACTION); }
 uint32_t SoftFloatSqrt(uint32_t ui)										{ return (uint32_t)SquareRoot(ui, FLOAT_FRACTION); }
 uint32_t SoftDoubleToFloat(uint64_t ulli)								{ return (uint32_t)Change(ulli, DOUBLE_FRACTION, FLOAT_FRACTION); }
-#endif // __65C64__
 
 uint64_t SoftDoubleAdd(uint64_t ulliA, uint64_t ulliB)					{ return Add(ulliA, ulliB, false, DOUBLE_FRACTION); }
 uint64_t SoftDoubleSubtract(uint64_t ulliA, uint64_t ulliB)				{ return Add(ulliA, ulliB, true, DOUBLE_FRACTION); }
@@ -672,4 +676,4 @@ uint32_t SoftDoubleToUnsigned(uint64_t ulli)							{ return (uint32_t)ToInteger(
 int64_t SoftDoubleToLongLong(uint64_t ulli)								{ return (int64_t)ToInteger(ulli, DOUBLE_FRACTION, 64, true); }
 uint64_t SoftDoubleToUnsignedLongLong(uint64_t ulli)					{ return ToInteger(ulli, DOUBLE_FRACTION, 64, false); }
 uint64_t SoftDoubleSqrt(uint64_t ulli)									{ return SquareRoot(ulli, DOUBLE_FRACTION); }
-
+#endif // __65C64__

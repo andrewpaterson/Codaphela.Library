@@ -216,7 +216,7 @@ CTranslationUnit* CProject::Iterate(SProcessIter* psIter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CProject::Process(char* szConfiguration)
+bool CProject::Process(char* szConfiguration, CChars* pszErrors)
 {
 	CTranslationUnit*	pcFile;
 	CConfig*			pcConfig;
@@ -244,6 +244,10 @@ bool CProject::Process(char* szConfiguration)
 
 		bResult = cPreprocessor.PreprocessTranslationUnit(pcFile);
 		bTotalResult &= bResult;
+		if (pszErrors)
+		{
+			pszErrors->Append(cPreprocessor.GetErrors()->Text());
+		}
 
 		WritePost(pcFile);
 

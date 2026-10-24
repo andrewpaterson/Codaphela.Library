@@ -19,6 +19,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
+#include "BaseLib/ConstructorCall.h"
+#include "BaseLib/PointerFunctions.h"
 #include "CTIdentifier.h"
 #include "CTReservedWord.h"
 #include "CppTokeniser.h"
@@ -158,6 +160,8 @@ SCPP65Class* CCPP65Generator::GetComponentClass(CCPPSyntaxNameComponent* pcCompo
 {
 	SCPP65Template*	psTemplate;
 	SCPP65Bindings*	psBindings;
+	SCPP65Binding*	psBinding;
+	SCPP65Class*	psClass;
 	SCPP65Type*		psType;
 	int64			lliName;
 
@@ -193,6 +197,11 @@ SCPP65Class* CCPP65Generator::GetComponentClass(CCPPSyntaxNameComponent* pcCompo
 		psType = GetSymbolType(pcSymbol, pcNode);
 		return (psType && psType->IsClass()) ? psType->psClass : NULL;
 	}
+	if (pcSymbol->meKind == CPPSK_TypeParameter)
+	{
+		psBinding = FindBinding(pcSymbol);
+		return (psBinding && psBinding->psType && psBinding->psType->IsClass()) ? psBinding->psType->psClass : NULL;
+	}
 	if (pcSymbol->meKind == CPPSK_ClassTemplate)
 	{
 		psTemplate = GetTemplate(pcSymbol);
@@ -206,16 +215,51 @@ SCPP65Class* CCPP65Generator::GetComponentClass(CCPPSyntaxNameComponent* pcCompo
 			return InstantiateClass(psTemplate, &pcComponent->macpTemplateArguments, pcNode);
 		}
 
-		//The template's own name inside it is the instance being made.
+		//The template's own name inside it is the instance being made, and a base's name
+		//in a class derived from an instance is that instance.
 		for (psBindings = mpsBindings; psBindings; psBindings = psBindings->psOuter)
 		{
-			if (psBindings->psClass && (psBindings->psClass->psTemplate == psTemplate))
+			if (psBindings->psClass && psBindings->psClass->psTemplate && (psBindings->psClass->psTemplate->psPrimary == psTemplate))
 			{
 				return psBindings->psClass;
 			}
 		}
+		psClass = (mpsFunction && mpsFunction->psClass) ? FindBaseInstance(mpsFunction->psClass, psTemplate) : NULL;
+		if (psClass)
+		{
+			return psClass;
+		}
 		Error(pcNode, "A class template needs template arguments");
 		return NULL;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instance of a class template that is psClass or one of its bases, or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Class* CCPP65Generator::FindBaseInstance(SCPP65Class* psClass, SCPP65Template* psTemplate)
+{
+	SCPP65Class*	psBase;
+	size			i;
+
+	if (psClass->psTemplate && (psClass->psTemplate->psPrimary == psTemplate))
+	{
+		return psClass;
+	}
+	BeginQuiet();
+	ResolveBases(psClass, NULL);
+	EndQuiet();
+	for (i = 0; i < psClass->macBases.NumElements(); i++)
+	{
+		psBase = FindBaseInstance(psClass->macBases.Get(i)->psClass, psTemplate);
+		if (psBase)
+		{
+			return psBase;
+		}
 	}
 	return NULL;
 }
@@ -235,10 +279,10 @@ SCPP65Class* CCPP65Generator::GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* p
 //////////////////////////////////////////////////////////////////////////
 //
 // Records a template declaration: a class template, a function template, a member
-// function of a class template defined outside it, or a member template defined
-// outside its class (template<class M> template<class N> ... for a class template).
-// Explicit specialisations and instantiations are not supported yet and are ignored
-// until used.
+// function of a class template defined outside it, a member template defined outside
+// its class (template<class M> template<class N> ... for a class template), or an
+// explicit or partial specialisation of a class or function template.  Explicit
+// specialisations of members are ignored until used.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplate)
@@ -248,23 +292,26 @@ bool CCPP65Generator::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTempl
 	CCPPSyntaxSimpleDeclaration*	pcSimple;
 	CCPPSyntaxFunctionDefinition*	pcFunction;
 	CCPPSyntaxTemplateDeclaration*	pcClassTemplate;
+	CCPPSyntaxClassSpecifier*		pcSpecifier;
 	CCPPSyntaxName*					pcName;
 	CCPPSyntaxNameComponent*		pcClass;
 	SCPP65Template*					psClass;
+	bool							bExplicit;
 
 	pcDeclaration = pcTemplate->mpcDeclaration;
 	if (pcTemplate->mbInstantiation && !pcTemplate->mbExtern && pcDeclaration)
 	{
 		return ExplicitInstantiation(pcDeclaration);
 	}
-	if (pcTemplate->mbInstantiation || (pcTemplate->macpParameters.NumElements() == 0) || !pcDeclaration)
+	if (pcTemplate->mbInstantiation || !pcDeclaration)
 	{
 		return true;
 	}
+	bExplicit = pcTemplate->macpParameters.NumElements() == 0;
 
 	//template<class M> template<class N> N SBox<M>::Mul(N n) { ... }
 	pcClassTemplate = NULL;
-	if (pcDeclaration->GetKind() == CPPS_TemplateDeclaration)
+	if ((pcDeclaration->GetKind() == CPPS_TemplateDeclaration) && !bExplicit)
 	{
 		pcClassTemplate = pcTemplate;
 		pcTemplate = (CCPPSyntaxTemplateDeclaration*)pcDeclaration;
@@ -281,14 +328,24 @@ bool CCPP65Generator::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTempl
 		pcSimple = (CCPPSyntaxSimpleDeclaration*)pcDeclaration;
 		if (pcSimple->mpcSpecifiers && pcSimple->mpcSpecifiers->mpcType && (pcSimple->mpcSpecifiers->mpcType->GetKind() == CPPS_ClassSpecifier))
 		{
-			psTemplate = NewTemplate(((CCPPSyntaxClassSpecifier*)pcSimple->mpcSpecifiers->mpcType)->mpcSymbol, pcTemplate, pcSimple->mpcSpecifiers->mpcType, false);
+			//template<class T> struct SAlign<T*> { ... } and template<> struct SAlign<char> { ... } specialise SAlign.
+			pcSpecifier = (CCPPSyntaxClassSpecifier*)pcSimple->mpcSpecifiers->mpcType;
+			pcClass = pcSpecifier->mpcName ? pcSpecifier->mpcName->GetLast() : NULL;
+			if (pcClass && pcClass->mbTemplateArguments)
+			{
+				Specialisation(pcSpecifier->mpcSymbol, pcTemplate, pcSpecifier, pcClass);
+			}
+			else if (!bExplicit)
+			{
+				NewTemplate(pcSpecifier->mpcSymbol, pcTemplate, pcSpecifier, false);
+			}
 		}
 	}
 	else if (pcDeclaration->GetKind() == CPPS_FunctionDefinition)
 	{
 		pcFunction = (CCPPSyntaxFunctionDefinition*)pcDeclaration;
 		pcName = pcFunction->mpcDeclarator->GetName();
-		if (pcName && (pcName->macpComponents.NumElements() == 2))
+		if (pcName && (pcName->macpComponents.NumElements() == 2) && !bExplicit)
 		{
 			//template<class M> M* CArrayTemplate<M>::Get(size iIndex) { ... }
 			pcClass = (CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0);
@@ -302,6 +359,7 @@ bool CCPP65Generator::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTempl
 			else if (psClass)
 			{
 				psTemplate = NewTemplate(psClass->pcSymbol, pcTemplate, pcFunction, true);
+				psTemplate->psOwner = OutsideMemberOwner(psClass, pcClass, pcTemplate);
 			}
 			else if (pcClass->mpcSymbol && (pcClass->mpcSymbol->meKind == CPPSK_Class))
 			{
@@ -314,13 +372,127 @@ bool CCPP65Generator::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTempl
 				psTemplate->lliName = GetFunctionName(pcName->GetLast());
 			}
 		}
-		else if (pcName && !pcClassTemplate && (pcName->mpcSymbol || (pcName->GetLast()->meKind == CPPNC_Operator)))
+		else if (pcName && (pcName->macpComponents.NumElements() == 1) && bExplicit && !pcClassTemplate)
+		{
+			//template<> int Size<char>(char c) { ... } and template<> int Size(short s) { ... }
+			Specialisation(pcName->mpcSymbol, pcTemplate, pcFunction, pcName->GetLast());
+		}
+		else if (pcName && !pcClassTemplate && !bExplicit && (pcName->mpcSymbol || (pcName->GetLast()->meKind == CPPNC_Operator)))
 		{
 			//An operator template has no symbol; it is found by its operator (FindFreeOperator).
-			psTemplate = NewTemplate(pcName->mpcSymbol, pcTemplate, pcFunction, false);
+			NewTemplate(pcName->mpcSymbol, pcTemplate, pcFunction, false);
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Records a specialisation of the template pcSymbol names, which must be declared
+// before it.  pcPattern holds its template arguments (a function specialisation's
+// may have none: they are deduced from its parameters).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Template* CCPP65Generator::Specialisation(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, CCPPSyntaxNameComponent* pcPattern)
+{
+	SCPP65Template*	psPrimary;
+	SCPP65Template*	psTemplate;
+	size			i;
+	int64			lliName;
+
+	//template<> int Size(short s) names a new function; its template is found by name.
+	psPrimary = pcSymbol ? GetTemplate(pcSymbol) : NULL;
+	lliName = pcPattern ? GetComponentName(pcPattern) : -1;
+	for (i = 0; !psPrimary && (lliName != -1) && (i < mapsTemplates.NumElements()); i++)
+	{
+		psTemplate = mapsTemplates.GetPtr(i);
+		if (!psTemplate->bMember && (psTemplate->psPrimary == psTemplate) && psTemplate->pcSymbol && (psTemplate->pcSymbol->mlliName == lliName) && (psTemplate->pcDefinition->GetKind() == pcDefinition->GetKind()))
+		{
+			psPrimary = psTemplate;
+		}
+	}
+	if (!psPrimary || (psPrimary->pcDefinition->GetKind() != pcDefinition->GetKind()))
+	{
+		return NULL;
+	}
+	psTemplate = NewTemplate(psPrimary->pcSymbol, pcDeclaration, pcDefinition, false);
+	psTemplate->psPrimary = psPrimary;
+	psTemplate->pcPattern = pcPattern;
+	return psTemplate;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class template a member function defined outside it belongs to: the primary
+// when the class's arguments are the declaration's parameters in order
+// (CArrayTemplate<M>), else the partial specialisation with the same arguments
+// written the same way (SAlign<T*>).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Template* CCPP65Generator::OutsideMemberOwner(SCPP65Template* psPrimary, CCPPSyntaxNameComponent* pcClass, CCPPSyntaxTemplateDeclaration* pcDeclaration)
+{
+	SCPP65Template*		psTemplate;
+	CCPPSyntax*			pcArgument;
+	CCPPSyntax*			pcParameter;
+	CCPPSyntaxTypeId*	pcTypeId;
+	CCPPSymbol*			pcSymbol;
+	CChars				szClass;
+	CChars				szPattern;
+	size				i;
+	bool				bPrimary;
+
+	if (!pcClass->mbTemplateArguments)
+	{
+		return psPrimary;
+	}
+	bPrimary = pcClass->macpTemplateArguments.NumElements() == pcDeclaration->macpParameters.NumElements();
+	for (i = 0; bPrimary && (i < pcClass->macpTemplateArguments.NumElements()); i++)
+	{
+		pcArgument = pcClass->macpTemplateArguments.GetPtr(i);
+		pcParameter = pcDeclaration->macpParameters.GetPtr(i);
+		pcSymbol = NULL;
+		if (pcArgument->GetKind() == CPPS_TypeId)
+		{
+			pcTypeId = (CCPPSyntaxTypeId*)pcArgument;
+			if (pcTypeId->mpcSpecifiers && pcTypeId->mpcSpecifiers->mpcType && (pcTypeId->mpcSpecifiers->mpcType->GetKind() == CPPS_NamedTypeSpecifier) && !(pcTypeId->mpcSpecifiers->muiFlags & CPPDS_CONST) && (!pcTypeId->mpcDeclarator || ((pcTypeId->mpcDeclarator->macpPrefix.NumElements() == 0) && (pcTypeId->mpcDeclarator->macpSuffixes.NumElements() == 0))))
+			{
+				pcSymbol = ((CCPPSyntaxNamedTypeSpecifier*)pcTypeId->mpcSpecifiers->mpcType)->mpcName->mpcSymbol;
+			}
+		}
+		else if (pcArgument->GetKind() == CPPS_IdExpression)
+		{
+			pcSymbol = ((CCPPSyntaxIdExpression*)pcArgument)->mpcName->mpcSymbol;
+		}
+		bPrimary = pcSymbol && (pcSymbol == ((pcParameter->GetKind() == CPPS_TypeParameter) ? ((CCPPSyntaxTypeParameter*)pcParameter)->mpcSymbol : ((CCPPSyntaxParameter*)pcParameter)->mpcSymbol));
+	}
+	if (bPrimary)
+	{
+		return psPrimary;
+	}
+
+	szClass.Init();
+	pcClass->PrettyPrint(&szClass, 0);
+	for (i = 0; i < mapsTemplates.NumElements(); i++)
+	{
+		psTemplate = mapsTemplates.GetPtr(i);
+		if ((psTemplate->psPrimary != psPrimary) || (psTemplate == psPrimary) || !psTemplate->pcPattern)
+		{
+			continue;
+		}
+		szPattern.Init();
+		psTemplate->pcPattern->PrettyPrint(&szPattern, 0);
+		if (szPattern.Equals(&szClass))
+		{
+			szPattern.Kill();
+			szClass.Kill();
+			return psTemplate;
+		}
+		szPattern.Kill();
+	}
+	szClass.Kill();
+	return psPrimary;
 }
 
 
@@ -344,6 +516,11 @@ SCPP65Template* CCPP65Generator::NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTem
 	psTemplate->pcClassDeclaration = NULL;
 	psTemplate->pcDeclarator = NULL;
 	psTemplate->bStatic = false;
+	psTemplate->psPrimary = psTemplate;
+	psTemplate->pcPattern = NULL;
+	psTemplate->psOwner = NULL;
+	psTemplate->bArguments = false;
+	psTemplate->mszArguments.Init();
 	mapsTemplates.Add(psTemplate);
 	return psTemplate;
 }
@@ -404,7 +581,7 @@ SCPP65Template* CCPP65Generator::GetTemplate(CCPPSymbol* pcSymbol)
 	for (i = 0; i < mapsTemplates.NumElements(); i++)
 	{
 		psTemplate = mapsTemplates.GetPtr(i);
-		if (!psTemplate->bMember && (psTemplate->pcSymbol == pcSymbol))
+		if (!psTemplate->bMember && (psTemplate->psPrimary == psTemplate) && (psTemplate->pcSymbol == pcSymbol))
 		{
 			return psTemplate;
 		}
@@ -426,7 +603,7 @@ SCPP65Template* CCPP65Generator::GetTemplateByName(int64 lliName)
 	for (i = 0; i < mapsTemplates.NumElements(); i++)
 	{
 		psTemplate = mapsTemplates.GetPtr(i);
-		if (!psTemplate->bMember && psTemplate->pcSymbol && (psTemplate->pcSymbol->mlliName == lliName) && (psTemplate->pcDefinition->GetKind() == CPPS_ClassSpecifier))
+		if (!psTemplate->bMember && (psTemplate->psPrimary == psTemplate) && psTemplate->pcSymbol && (psTemplate->pcSymbol->mlliName == lliName) && (psTemplate->pcDefinition->GetKind() == CPPS_ClassSpecifier))
 		{
 			return psTemplate;
 		}
@@ -450,16 +627,14 @@ SCPP65Bindings* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 	CCPPSyntax*				pcArgument;
 	CCPPSyntaxTypeParameter*	pcType;
 	CCPPSyntaxParameter*	pcValue;
+	CCPPSyntaxTypeId*		pcTypeId;
 	SCPP65Bindings*			psSaved;
+	SCPP65Type*				psType;
 	size					i;
+	size					j;
 	bool					bResult;
 
-	psBindings = (SCPP65Bindings*)malloc(sizeof(SCPP65Bindings));
-	psBindings->macBindings.Init();
-	psBindings->psOuter = NULL;
-	psBindings->psClass = NULL;
-	mapsAllBindings.Add(psBindings);
-
+	psBindings = NewBindings();
 	bResult = true;
 	for (i = 0; i < pcTemplate->macpParameters.NumElements(); i++)
 	{
@@ -469,6 +644,8 @@ SCPP65Bindings* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 		psBinding->psType = NULL;
 		psBinding->lliValue = 0;
 		psBinding->pcParameter = NULL;
+		psBinding->bConst = false;
+		psBinding->papsPack = NULL;
 
 		if (pcParameter->GetKind() == CPPS_TypeParameter)
 		{
@@ -476,12 +653,40 @@ SCPP65Bindings* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 			psBinding->pcParameter = pcType->mpcSymbol;
 			if (pcType->mbPack)
 			{
-				bResult = Error(pcNode, "Variadic templates are not supported by the 65C64 generator yet");
+				//A pack (the last parameter) takes the rest of the explicit arguments, or else the deduced types.
+				psBinding->papsPack = NewPack();
+				pszArguments->Append("_J");
+				for (j = i; papcArguments && (j < papcArguments->NumElements()); j++)
+				{
+					pcArgument = papcArguments->GetPtr(j);
+					psType = (pcArgument->GetKind() == CPPS_TypeId) ? GetTypeIdType((CCPPSyntaxTypeId*)pcArgument) : NULL;
+					if (!psType)
+					{
+						bResult = Error(pcArgument, "The template argument is not a type the 65C64 generator supports");
+						break;
+					}
+					psBinding->papsPack->Add(psType);
+				}
+				for (j = i; (!papcArguments || (i >= papcArguments->NumElements())) && papsDeduced && (j < papsDeduced->NumElements()); j++)
+				{
+					if (papsDeduced->GetPtr(j))
+					{
+						psBinding->papsPack->Add(papsDeduced->GetPtr(j));
+					}
+				}
+				for (j = 0; j < psBinding->papsPack->NumElements(); j++)
+				{
+					AppendMangledType(pszArguments, psBinding->papsPack->GetPtr(j));
+				}
+				pszArguments->Append('E');
 				break;
 			}
 			if (pcArgument && (pcArgument->GetKind() == CPPS_TypeId))
 			{
-				psBinding->psType = GetTypeIdType((CCPPSyntaxTypeId*)pcArgument);
+				//const int is a different argument to int; const char* is not const itself.
+				pcTypeId = (CCPPSyntaxTypeId*)pcArgument;
+				psBinding->psType = GetTypeIdType(pcTypeId);
+				psBinding->bConst = pcTypeId->mpcSpecifiers && (pcTypeId->mpcSpecifiers->muiFlags & CPPDS_CONST) && (!pcTypeId->mpcDeclarator || (pcTypeId->mpcDeclarator->macpPrefix.NumElements() == 0));
 			}
 			else if (!pcArgument && papsDeduced && (i < papsDeduced->NumElements()) && papsDeduced->GetPtr(i))
 			{
@@ -502,7 +707,7 @@ SCPP65Bindings* CCPP65Generator::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 				bResult = Error(pcArgument ? pcArgument : pcNode, "The template argument is not a type the 65C64 generator supports");
 				break;
 			}
-			pszArguments->Append('_');
+			pszArguments->Append(psBinding->bConst ? "_K" : "_");
 			AppendMangledType(pszArguments, psBinding->psType);
 		}
 		else if (pcParameter->GetKind() == CPPS_Parameter)
@@ -557,13 +762,41 @@ SCPP65Binding* CCPP65Generator::FindBinding(CCPPSymbol* pcParameter)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The binding of the template parameter pack a function parameter pack (Args ...
+// args) is declared with, or NULL if the parameter is not a pack.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Binding* CCPP65Generator::PackBinding(CCPPSyntaxParameter* pcParameter)
+{
+	CCPPSyntaxTypeSpecifier*	pcType;
+	SCPP65Binding*				psBinding;
+
+	if (!pcParameter->mpcDeclarator || !pcParameter->mpcDeclarator->mbPack || !pcParameter->mpcSpecifiers)
+	{
+		return NULL;
+	}
+	pcType = pcParameter->mpcSpecifiers->mpcType;
+	if (!pcType || (pcType->GetKind() != CPPS_NamedTypeSpecifier))
+	{
+		return NULL;
+	}
+	psBinding = FindBinding(((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName->mpcSymbol);
+	return (psBinding && psBinding->papsPack) ? psBinding : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The instance of a class template for the arguments, made if it is new.  It is
-// laid out when it is first needed whole.
+// laid out when it is first needed whole, from the most specialised definition
+// that matches the arguments.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Class* CCPP65Generator::InstantiateClass(SCPP65Template* psTemplate, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
 {
 	SCPP65Bindings*	psBindings;
+	SCPP65Bindings*	psSpecialised;
+	SCPP65Template*	psSpecialisation;
 	SCPP65Class*	psClass;
 	CChars			szArguments;
 	size			i;
@@ -579,11 +812,18 @@ SCPP65Class* CCPP65Generator::InstantiateClass(SCPP65Template* psTemplate, CArra
 	for (i = 0; i < mapsClasses.NumElements(); i++)
 	{
 		psClass = mapsClasses.GetPtr(i);
-		if ((psClass->psTemplate == psTemplate) && psClass->mszArguments.Equals(&szArguments))
+		if (psClass->psTemplate && (psClass->psTemplate->psPrimary == psTemplate) && psClass->mszArguments.Equals(&szArguments))
 		{
 			szArguments.Kill();
 			return psClass;
 		}
+	}
+
+	psSpecialisation = FindClassSpecialisation(psTemplate, psBindings, &psSpecialised, pcNode);
+	if (psSpecialisation)
+	{
+		psTemplate = psSpecialisation;
+		psBindings = psSpecialised;
 	}
 
 	psClass = NewClass(psTemplate->pcSymbol, psTemplate->pcSymbol->mlliName);
@@ -599,71 +839,335 @@ SCPP65Class* CCPP65Generator::InstantiateClass(SCPP65Template* psTemplate, CArra
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The most specialised specialisation of a class template that matches the
+// arguments (psArguments), with its own parameters bound in *ppsBindings.  An
+// explicit specialisation is chosen first; of the partial ones, the one whose
+// arguments match more of the types' structure.  NULL if none matches.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Template* CCPP65Generator::FindClassSpecialisation(SCPP65Template* psPrimary, SCPP65Bindings* psArguments, SCPP65Bindings** ppsBindings, CCPPSyntax* pcNode)
+{
+	SCPP65Template*	psTemplate;
+	SCPP65Template*	psBest;
+	SCPP65Bindings*	psDeduced;
+	SCPP65Bindings*	psBestDeduced;
+	SCPP65Binding*	psBinding;
+	CCPPSyntax*		pcParameter;
+	size			i;
+	size			j;
+	int				iScore;
+	int				iBest;
+	bool			bAmbiguous;
+
+	psBest = NULL;
+	psBestDeduced = NULL;
+	iBest = -1;
+	bAmbiguous = false;
+	for (i = 0; i < mapsTemplates.NumElements(); i++)
+	{
+		psTemplate = mapsTemplates.GetPtr(i);
+		if ((psTemplate->psPrimary != psPrimary) || (psTemplate == psPrimary) || !psTemplate->pcPattern)
+		{
+			continue;
+		}
+
+		//The specialisation's parameters, deduced as its arguments are matched.
+		psDeduced = NewBindings();
+		for (j = 0; j < psTemplate->pcDeclaration->macpParameters.NumElements(); j++)
+		{
+			pcParameter = psTemplate->pcDeclaration->macpParameters.GetPtr(j);
+			psBinding = psDeduced->macBindings.Add();
+			psBinding->pcParameter = (pcParameter->GetKind() == CPPS_TypeParameter) ? ((CCPPSyntaxTypeParameter*)pcParameter)->mpcSymbol : ((CCPPSyntaxParameter*)pcParameter)->mpcSymbol;
+			psBinding->psType = NULL;
+			psBinding->lliValue = 0;
+			psBinding->bConst = false;
+			psBinding->papsPack = NULL;
+		}
+
+		iScore = (psTemplate->pcDeclaration->macpParameters.NumElements() == 0) ? 1000 : 0;
+		if (!MatchPattern(psTemplate, &psTemplate->pcPattern->macpTemplateArguments, psArguments, psDeduced, &iScore))
+		{
+			continue;
+		}
+		if (iScore > iBest)
+		{
+			psBest = psTemplate;
+			psBestDeduced = psDeduced;
+			iBest = iScore;
+			bAmbiguous = false;
+		}
+		else if (iScore == iBest)
+		{
+			bAmbiguous = true;
+		}
+	}
+	if (bAmbiguous)
+	{
+		Error(pcNode, "More than one specialisation of the class template matches equally");
+	}
+	*ppsBindings = psBestDeduced;
+	return psBest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a specialisation's template arguments (papcPattern) match an instance's
+// arguments.  Its parameters are deduced into psDeduced.  *piScore counts how much
+// of the arguments' structure the pattern names.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::MatchPattern(SCPP65Template* psSpecialisation, CArraySyntax* papcPattern, SCPP65Bindings* psArguments, SCPP65Bindings* psDeduced, int* piScore)
+{
+	CCPPSyntax*		pcPattern;
+	SCPP65Binding*	psArgument;
+	SCPP65Binding*	psBinding;
+	CCPPSymbol*		pcSymbol;
+	size			i;
+	int64			lliValue;
+
+	if (papcPattern->NumElements() != psArguments->macBindings.NumElements())
+	{
+		return false;
+	}
+	for (i = 0; i < papcPattern->NumElements(); i++)
+	{
+		pcPattern = papcPattern->GetPtr(i);
+		psArgument = psArguments->macBindings.Get(i);
+		if (psArgument->psType)
+		{
+			if ((pcPattern->GetKind() != CPPS_TypeId) || !MatchType(psSpecialisation, (CCPPSyntaxTypeId*)pcPattern, psArgument, psDeduced, piScore))
+			{
+				return false;
+			}
+			continue;
+		}
+
+		//A non-type argument: a parameter of the specialisation takes it, a constant must equal it.
+		pcSymbol = (pcPattern->GetKind() == CPPS_IdExpression) ? ((CCPPSyntaxIdExpression*)pcPattern)->mpcName->mpcSymbol : NULL;
+		psBinding = pcSymbol ? DeducedBinding(psDeduced, pcSymbol) : NULL;
+		if (psBinding)
+		{
+			psBinding->lliValue = psArgument->lliValue;
+			psBinding->psType = NULL;
+			continue;
+		}
+		if (!Constant(pcPattern, &lliValue) || (lliValue != psArgument->lliValue))
+		{
+			return false;
+		}
+		(*piScore)++;
+	}
+
+	//Every parameter must be deduced.
+	for (i = 0; i < psDeduced->macBindings.NumElements(); i++)
+	{
+		pcSymbol = psDeduced->macBindings.Get(i)->pcParameter;
+		if (pcSymbol && (pcSymbol->meKind != CPPSK_ValueParameter) && !psDeduced->macBindings.Get(i)->psType)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a type pattern (T, T*, const T, T&, a class template instance X<T>, or a
+// type naming none of the specialisation's parameters) matches a type argument.
+// Pointers and references are matched outside in, then const at the top level, then
+// the type named.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::MatchType(SCPP65Template* psSpecialisation, CCPPSyntaxTypeId* pcPattern, SCPP65Binding* psArgument, SCPP65Bindings* psDeduced, int* piScore)
+{
+	CCPPSyntaxDeclSpecifiers*		pcSpecifiers;
+	CCPPSyntaxDeclarator*			pcDeclarator;
+	CCPPSyntaxPointerOperator*		pcOperator;
+	CCPPSyntaxNamedTypeSpecifier*	pcNamed;
+	CCPPSyntaxNameComponent*		pcComponent;
+	SCPP65Binding*					psBinding;
+	SCPP65Template*					psTemplate;
+	SCPP65Type*						psType;
+	SCPP65Type*						psNamed;
+	SCPP65Bindings*					psSaved;
+	size							i;
+	bool							bConst;
+	bool							bResult;
+
+	pcSpecifiers = pcPattern->mpcSpecifiers;
+	pcDeclarator = pcPattern->mpcDeclarator;
+	if (!pcSpecifiers || (pcDeclarator && (pcDeclarator->macpSuffixes.NumElements() > 0 || pcDeclarator->mpcNested)))
+	{
+		return false;
+	}
+
+	psType = psArgument->psType;
+	bConst = psArgument->bConst;
+	for (i = pcDeclarator ? pcDeclarator->macpPrefix.NumElements() : 0; i > 0; i--)
+	{
+		pcOperator = (CCPPSyntaxPointerOperator*)pcDeclarator->macpPrefix.GetPtr(i - 1);
+		if ((pcOperator->meKind == CPPP_Pointer) && psType->IsPointer())
+		{
+			psType = psType->psBase;
+		}
+		else if (((pcOperator->meKind == CPPP_Reference) || (pcOperator->meKind == CPPP_RValueReference)) && psType->IsReference())
+		{
+			psType = psType->psBase;
+		}
+		else
+		{
+			return false;
+		}
+		bConst = false;
+		(*piScore)++;
+	}
+	if ((pcSpecifiers->muiFlags & CPPDS_CONST) && (!pcDeclarator || (pcDeclarator->macpPrefix.NumElements() == 0)))
+	{
+		if (!bConst)
+		{
+			return false;
+		}
+		bConst = false;
+		(*piScore)++;
+	}
+
+	//T takes the type.
+	pcNamed = (pcSpecifiers->mpcType && (pcSpecifiers->mpcType->GetKind() == CPPS_NamedTypeSpecifier)) ? (CCPPSyntaxNamedTypeSpecifier*)pcSpecifiers->mpcType : NULL;
+	psBinding = pcNamed ? DeducedBinding(psDeduced, pcNamed->mpcName->mpcSymbol) : NULL;
+	if (psBinding)
+	{
+		if (psBinding->psType)
+		{
+			return psBinding->psType->Equals(psType) && (psBinding->bConst == bConst);
+		}
+		psBinding->psType = psType;
+		psBinding->bConst = bConst;
+		return true;
+	}
+
+	//X<T> matches an instance of X with matching arguments.
+	pcComponent = pcNamed ? pcNamed->mpcName->GetLast() : NULL;
+	if (pcComponent && pcComponent->mbTemplateArguments)
+	{
+		psTemplate = pcComponent->mpcSymbol ? GetTemplate(pcComponent->mpcSymbol) : GetTemplateByName(GetComponentName(pcComponent));
+		if (!psTemplate || !psType->IsClass() || !psType->psClass->psTemplate || (psType->psClass->psTemplate->psPrimary != psTemplate))
+		{
+			return false;
+		}
+		(*piScore)++;
+		return MatchPattern(psSpecialisation, &pcComponent->macpTemplateArguments, psType->psClass->psBindings, psDeduced, piScore);
+	}
+
+	//A type naming none of the parameters must be the same type.
+	psSaved = mpsBindings;
+	mpsBindings = NULL;
+	BeginQuiet();
+	psNamed = GetTypeIdType(pcPattern);
+	EndQuiet();
+	mpsBindings = psSaved;
+	bResult = psNamed && psNamed->Equals(psArgument->psType) && !bConst;
+	*piScore += 2;
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The binding of one of a specialisation's parameters, or NULL if pcParameter is
+// not one.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Binding* CCPP65Generator::DeducedBinding(SCPP65Bindings* psDeduced, CCPPSymbol* pcParameter)
+{
+	SCPP65Binding*	psBinding;
+	size			i;
+
+	if (!pcParameter)
+	{
+		return NULL;
+	}
+	for (i = 0; i < psDeduced->macBindings.NumElements(); i++)
+	{
+		psBinding = psDeduced->macBindings.Get(i);
+		if (psBinding->pcParameter == pcParameter)
+		{
+			return psBinding;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// New empty bindings, kept until the generator is killed.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Bindings* CCPP65Generator::NewBindings(void)
+{
+	SCPP65Bindings*	psBindings;
+
+	psBindings = (SCPP65Bindings*)malloc(sizeof(SCPP65Bindings));
+	psBindings->macBindings.Init();
+	psBindings->psOuter = NULL;
+	psBindings->psClass = NULL;
+	mapsAllBindings.Add(psBindings);
+	return psBindings;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new empty list of a pack's types, kept until the generator is killed.
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayCPP65Types* CCPP65Generator::NewPack(void)
+{
+	CArrayCPP65Types*	papsPack;
+
+	papsPack = NewMalloc<CArrayCPP65Types>();
+	papsPack->Init();
+	mapapsPacks.Add(papsPack);
+	return papsPack;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The instance of a function template for explicit arguments and the types of the
 // call's arguments.  Template parameters without an explicit argument are deduced
-// from parameters declared as T, T*, T** ... or T&.
+// (DeduceArguments).  An explicit specialisation for the arguments is used instead
+// of the template's definition.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Function* CCPP65Generator::InstantiateFunction(SCPP65Template* psTemplate, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode)
 {
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
-	CCPPSyntaxFunctionSuffix*		pcSuffix;
-	CCPPSyntaxParameter*			pcParameter;
-	CCPPSyntaxTypeSpecifier*		pcType;
-	CCPPSyntaxName*					pcName;
+	SCPP65Template*					psSpecialisation;
 	SCPP65Bindings*					psBindings;
 	SCPP65Bindings*					psSaved;
 	SCPP65Function*					psFunction;
-	SCPP65Type*						psArgument;
+	CArrayCPP65Types				apsArguments;
 	CArrayCPP65Types				apsDeduced;
 	CChars							szArguments;
 	size							i;
-	size							j;
-	size							uiPointers;
 
 	if (psTemplate->psClass && !DefineMemberTemplate(psTemplate, pcNode))
 	{
 		return NULL;
 	}
 	pcDefinition = (CCPPSyntaxFunctionDefinition*)psTemplate->pcDefinition;
-	pcSuffix = pcDefinition->mpcDeclarator->GetFunctionSuffix();
 
-	//Deduction: a parameter whose type names a template parameter takes the argument's type.
+	apsArguments.Init();
+	for (i = 0; papcArguments && (i < papcArguments->NumElements()); i++)
+	{
+		apsArguments.Add(TypeOf(papcArguments->GetPtr(i)));
+	}
 	apsDeduced.Init();
-	for (i = 0; i < psTemplate->pcDeclaration->macpParameters.NumElements(); i++)
-	{
-		apsDeduced.Add(NULL);
-	}
-	for (i = 0; pcSuffix && papcArguments && (i < pcSuffix->macpParameters.NumElements()) && (i < papcArguments->NumElements()); i++)
-	{
-		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
-		pcType = pcParameter->mpcSpecifiers ? pcParameter->mpcSpecifiers->mpcType : NULL;
-		if (!pcType || (pcType->GetKind() != CPPS_NamedTypeSpecifier))
-		{
-			continue;
-		}
-		pcName = ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName;
-		for (j = 0; j < psTemplate->pcDeclaration->macpParameters.NumElements(); j++)
-		{
-			if ((psTemplate->pcDeclaration->macpParameters.GetPtr(j)->GetKind() == CPPS_TypeParameter) && (((CCPPSyntaxTypeParameter*)psTemplate->pcDeclaration->macpParameters.GetPtr(j))->mpcSymbol == pcName->mpcSymbol))
-			{
-				psArgument = TypeOf(papcArguments->GetPtr(i));
-				uiPointers = pcParameter->mpcDeclarator ? pcParameter->mpcDeclarator->macpPrefix.NumElements() : 0;
-				if (uiPointers && pcParameter->mpcDeclarator && (((CCPPSyntaxPointerOperator*)pcParameter->mpcDeclarator->macpPrefix.GetPtr(0))->meKind != CPPP_Pointer))
-				{
-					uiPointers = 0;
-				}
-				for (; psArgument && uiPointers > 0; uiPointers--)
-				{
-					psArgument = psArgument->IsPointer() ? psArgument->psBase : NULL;
-				}
-				if (psArgument && !apsDeduced.GetPtr(j))
-				{
-					apsDeduced.SetPtr(j, psArgument);
-				}
-			}
-		}
-	}
+	DeduceArguments(psTemplate, &apsArguments, &apsDeduced);
+	apsArguments.Kill();
 
 	szArguments.Init();
 	psBindings = BindArguments(psTemplate->pcDeclaration, papcExplicit, &apsDeduced, &szArguments, pcNode);
@@ -682,6 +1186,12 @@ SCPP65Function* CCPP65Generator::InstantiateFunction(SCPP65Template* psTemplate,
 			szArguments.Kill();
 			return psFunction;
 		}
+	}
+
+	psSpecialisation = FindFunctionSpecialisation(psTemplate, &szArguments, pcNode);
+	if (psSpecialisation)
+	{
+		pcDefinition = (CCPPSyntaxFunctionDefinition*)psSpecialisation->pcDefinition;
 	}
 
 	//A member template's instance also sees its class's template arguments.
@@ -710,6 +1220,147 @@ SCPP65Function* CCPP65Generator::InstantiateFunction(SCPP65Template* psTemplate,
 		psFunction->bStatic |= psTemplate->bStatic;
 	}
 	return psFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Deduces a function template's parameters from the types of a call's arguments
+// (an entry may be NULL): a parameter declared as T, T*, T** ... or T& takes the
+// argument's type, less the pointers.  papsDeduced gets an entry for each template
+// parameter, NULL if it is not deduced.  A function parameter pack (Args ... args)
+// takes the rest of the arguments' types: the template parameter pack's entry is the
+// first and the rest are added after it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::DeduceArguments(SCPP65Template* psTemplate, CArrayCPP65Types* papsArguments, CArrayCPP65Types* papsDeduced)
+{
+	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	CCPPSyntaxParameter*		pcParameter;
+	CCPPSyntaxTypeSpecifier*	pcType;
+	CCPPSyntaxName*				pcName;
+	CCPPSyntax*					pcTemplateParameter;
+	SCPP65Type*					psArgument;
+	size						i;
+	size						j;
+	size						k;
+	size						uiPointers;
+
+	pcSuffix = ((CCPPSyntaxFunctionDefinition*)psTemplate->pcDefinition)->mpcDeclarator->GetFunctionSuffix();
+	for (i = 0; i < psTemplate->pcDeclaration->macpParameters.NumElements(); i++)
+	{
+		papsDeduced->Add(NULL);
+	}
+	for (i = 0; pcSuffix && (i < pcSuffix->macpParameters.NumElements()) && (i < papsArguments->NumElements()); i++)
+	{
+		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
+		pcType = pcParameter->mpcSpecifiers ? pcParameter->mpcSpecifiers->mpcType : NULL;
+		if (!pcType || (pcType->GetKind() != CPPS_NamedTypeSpecifier))
+		{
+			continue;
+		}
+		pcName = ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName;
+		for (j = 0; j < psTemplate->pcDeclaration->macpParameters.NumElements(); j++)
+		{
+			pcTemplateParameter = psTemplate->pcDeclaration->macpParameters.GetPtr(j);
+			if ((pcTemplateParameter->GetKind() != CPPS_TypeParameter) || (((CCPPSyntaxTypeParameter*)pcTemplateParameter)->mpcSymbol != pcName->mpcSymbol))
+			{
+				continue;
+			}
+			if (pcParameter->mpcDeclarator && pcParameter->mpcDeclarator->mbPack)
+			{
+				//Args ... args takes the types of the rest of the arguments (the pack is the last parameter).
+				for (k = i; k < papsArguments->NumElements(); k++)
+				{
+					psArgument = papsArguments->GetPtr(k);
+					psArgument = (psArgument && psArgument->IsReference()) ? psArgument->psBase : psArgument;
+					if (k == i)
+					{
+						papsDeduced->SetPtr(j, psArgument);
+					}
+					else
+					{
+						papsDeduced->Add(psArgument);
+					}
+				}
+				return;
+			}
+			psArgument = papsArguments->GetPtr(i);
+			uiPointers = pcParameter->mpcDeclarator ? pcParameter->mpcDeclarator->macpPrefix.NumElements() : 0;
+			if (uiPointers && (((CCPPSyntaxPointerOperator*)pcParameter->mpcDeclarator->macpPrefix.GetPtr(0))->meKind != CPPP_Pointer))
+			{
+				uiPointers = 0;
+			}
+			for (; psArgument && uiPointers > 0; uiPointers--)
+			{
+				psArgument = psArgument->IsPointer() ? psArgument->psBase : NULL;
+			}
+			if (psArgument && !papsDeduced->GetPtr(j))
+			{
+				papsDeduced->SetPtr(j, psArgument);
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The explicit specialisation of a function template for the mangled arguments,
+// or NULL.  A specialisation's arguments are its explicit ones (Size<char>) and
+// those deduced from its parameters' types (Size(short)), worked out once.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Template* CCPP65Generator::FindFunctionSpecialisation(SCPP65Template* psPrimary, CChars* pszArguments, CCPPSyntax* pcNode)
+{
+	SCPP65Template*				psTemplate;
+	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	CCPPSyntaxParameter*		pcParameter;
+	SCPP65Bindings*				psSaved;
+	SCPP65Type*					psType;
+	CArrayCPP65Types			apsParameters;
+	CArrayCPP65Types			apsDeduced;
+	size						i;
+	size						j;
+
+	for (i = 0; i < mapsTemplates.NumElements(); i++)
+	{
+		psTemplate = mapsTemplates.GetPtr(i);
+		if ((psTemplate->psPrimary != psPrimary) || (psTemplate == psPrimary) || (psTemplate->pcDefinition->GetKind() != CPPS_FunctionDefinition))
+		{
+			continue;
+		}
+		if (!psTemplate->bArguments)
+		{
+			psTemplate->bArguments = true;
+			psSaved = mpsBindings;
+			mpsBindings = NULL;
+			BeginQuiet();
+			apsParameters.Init();
+			pcSuffix = ((CCPPSyntaxFunctionDefinition*)psTemplate->pcDefinition)->mpcDeclarator->GetFunctionSuffix();
+			for (j = 0; pcSuffix && (j < pcSuffix->macpParameters.NumElements()); j++)
+			{
+				pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(j);
+				psType = GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
+				apsParameters.Add((psType && psType->IsReference()) ? psType->psBase : psType);
+			}
+			apsDeduced.Init();
+			DeduceArguments(psPrimary, &apsParameters, &apsDeduced);
+			if (!BindArguments(psPrimary->pcDeclaration, (psTemplate->pcPattern && psTemplate->pcPattern->mbTemplateArguments) ? &psTemplate->pcPattern->macpTemplateArguments : NULL, &apsDeduced, &psTemplate->mszArguments, pcNode))
+			{
+				psTemplate->mszArguments.Clear();
+			}
+			apsDeduced.Kill();
+			apsParameters.Kill();
+			EndQuiet();
+			mpsBindings = psSaved;
+		}
+		if (!psTemplate->mszArguments.Empty() && psTemplate->mszArguments.Equals(pszArguments))
+		{
+			return psTemplate;
+		}
+	}
+	return NULL;
 }
 
 
@@ -856,7 +1507,7 @@ bool CCPP65Generator::LayoutClass(SCPP65Class* psClass, CCPPSyntax* pcNode)
 		for (i = 0; i < mapsTemplates.NumElements(); i++)
 		{
 			psMember = mapsTemplates.GetPtr(i);
-			if (!psMember->bMember || psMember->bMemberTemplate || (psMember->pcSymbol != psClass->psTemplate->pcSymbol))
+			if (!psMember->bMember || psMember->bMemberTemplate || (psMember->psOwner != psClass->psTemplate))
 			{
 				continue;
 			}
@@ -968,11 +1619,9 @@ SCPP65Bindings* CCPP65Generator::RenameBindings(SCPP65Class* psClass, CCPPSyntax
 	CCPPSyntax*		pcParameter;
 	size			i;
 
-	psBindings = (SCPP65Bindings*)malloc(sizeof(SCPP65Bindings));
-	psBindings->macBindings.Init();
+	psBindings = NewBindings();
 	psBindings->psOuter = psClass->psBindings;
 	psBindings->psClass = psClass;
-	mapsAllBindings.Add(psBindings);
 	for (i = 0; (i < pcDeclaration->macpParameters.NumElements()) && (i < psClass->psBindings->macBindings.NumElements()); i++)
 	{
 		pcParameter = pcDeclaration->macpParameters.GetPtr(i);
@@ -1052,7 +1701,6 @@ SCPP65Template* CCPP65Generator::FindMemberTemplate(SCPP65Class* psClass, int64 
 {
 	SCPP65Template*				psTemplate;
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
-	CCPPSyntaxParameter*		pcParameter;
 	size						i;
 	size						uiParameters;
 	size						uiRequired;
@@ -1069,16 +1717,7 @@ SCPP65Template* CCPP65Generator::FindMemberTemplate(SCPP65Class* psClass, int64 
 		{
 			continue;
 		}
-		uiParameters = pcSuffix->macpParameters.NumElements();
-		if (uiParameters == 1)
-		{
-			pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(0);
-			if (pcParameter->mpcSpecifiers && (pcParameter->mpcSpecifiers->muiTypeKeywords == CPPTK_VOID) && (!pcParameter->mpcDeclarator || (pcParameter->mpcDeclarator->macpPrefix.NumElements() == 0)))
-			{
-				//(void)
-				uiParameters = 0;
-			}
-		}
+		uiParameters = NumParameters(pcSuffix);
 		uiRequired = uiParameters;
 		while ((uiRequired > 0) && ((CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(uiRequired - 1))->mpcDefault)
 		{
@@ -1104,8 +1743,36 @@ SCPP65Template* CCPP65Generator::FindMemberTemplate(SCPP65Class* psClass, int64 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The number of parameters a function suffix declares: none for (void).
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPP65Generator::NumParameters(CCPPSyntaxFunctionSuffix* pcSuffix)
+{
+	CCPPSyntaxParameter*	pcParameter;
+	size					uiParameters;
+
+	if (!pcSuffix)
+	{
+		return 0;
+	}
+	uiParameters = pcSuffix->macpParameters.NumElements();
+	if (uiParameters == 1)
+	{
+		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(0);
+		if (pcParameter->mpcSpecifiers && (pcParameter->mpcSpecifiers->muiTypeKeywords == CPPTK_VOID) && (!pcParameter->mpcDeclarator || (pcParameter->mpcDeclarator->macpPrefix.NumElements() == 0)))
+		{
+			uiParameters = 0;
+		}
+	}
+	return uiParameters;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A member template declared in its class but defined outside it takes the outside
-// definition (and its parameters, which the definition uses).
+// definition with its name and number of parameters (and its template parameters,
+// which the definition uses).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::DefineMemberTemplate(SCPP65Template* psTemplate, CCPPSyntax* pcNode)
@@ -1113,16 +1780,18 @@ bool CCPP65Generator::DefineMemberTemplate(SCPP65Template* psTemplate, CCPPSynta
 	SCPP65Template*	psOutside;
 	CCPPSymbol*		pcClassSymbol;
 	size			i;
+	size			uiParameters;
 
 	if (psTemplate->pcDefinition)
 	{
 		return true;
 	}
 	pcClassSymbol = psTemplate->psClass->psTemplate ? psTemplate->psClass->psTemplate->pcSymbol : psTemplate->psClass->pcSymbol;
+	uiParameters = NumParameters(psTemplate->pcDeclarator->GetFunctionSuffix());
 	for (i = 0; i < mapsTemplates.NumElements(); i++)
 	{
 		psOutside = mapsTemplates.GetPtr(i);
-		if (psOutside->bMemberTemplate && !psOutside->psClass && (psOutside->pcSymbol == pcClassSymbol) && (psOutside->lliName == psTemplate->lliName))
+		if (psOutside->bMemberTemplate && !psOutside->psClass && (psOutside->pcSymbol == pcClassSymbol) && (psOutside->lliName == psTemplate->lliName) && (NumParameters(((CCPPSyntaxFunctionDefinition*)psOutside->pcDefinition)->mpcDeclarator->GetFunctionSuffix()) == uiParameters))
 		{
 			psTemplate->pcDeclaration = psOutside->pcDeclaration;
 			psTemplate->pcDefinition = psOutside->pcDefinition;
@@ -1217,6 +1886,22 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 			if (pcClassSpecifier->mpcSymbol)
 			{
 				GetClass(pcClassSpecifier->mpcSymbol, pcMember)->pcSpecifier = pcClassSpecifier;
+			}
+			else if (pcDeclaration->macpDeclarators.NumElements() == 0)
+			{
+				//union { ... }; is an unnamed field whose members are the class's (FindField looks in it).
+				psType = GetUnnamedClass(pcClassSpecifier)->psType;
+				if (!CompleteClass(psType->psClass, pcMember))
+				{
+					return false;
+				}
+				psField = psClass->macFields.Add();
+				psField->pcSymbol = NULL;
+				psField->lliName = -1;
+				psField->psType = psType;
+				psField->iOffset = 0;
+				psField->pcInitialiser = NULL;
+				return true;
 			}
 		}
 
@@ -1628,12 +2313,14 @@ void CCPP65Generator::StoreVtables(SCPP65Class* psClass, const char* szValue, co
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A field of the class or of its bases.  *piOffset is set to its offset in psClass.
+// A field of the class, of an anonymous union or struct in it, or of its bases.
+// *piOffset is set to its offset in psClass.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Field* CCPP65Generator::FindField(SCPP65Class* psClass, int64 lliName, int* piOffset)
 {
 	SCPP65Field*	psField;
+	SCPP65Field*	psMember;
 	SCPP65Base*		psBase;
 	size			i;
 	int				iOffset;
@@ -1645,6 +2332,15 @@ SCPP65Field* CCPP65Generator::FindField(SCPP65Class* psClass, int64 lliName, int
 		{
 			*piOffset = psField->iOffset;
 			return psField;
+		}
+		if (!psField->pcSymbol && psField->psType->IsClass())
+		{
+			psMember = FindField(psField->psType->psClass, lliName, &iOffset);
+			if (psMember)
+			{
+				*piOffset = psField->iOffset + iOffset;
+				return psMember;
+			}
 		}
 	}
 	for (i = 0; i < psClass->macBases.NumElements(); i++)
@@ -1668,6 +2364,7 @@ SCPP65Field* CCPP65Generator::FindField(SCPP65Class* psClass, int64 lliName, int
 SCPP65Field* CCPP65Generator::FindFieldSymbol(SCPP65Class* psClass, CCPPSymbol* pcSymbol, int* piOffset)
 {
 	SCPP65Field*	psField;
+	SCPP65Field*	psMember;
 	SCPP65Base*		psBase;
 	size			i;
 	int				iOffset;
@@ -1679,6 +2376,15 @@ SCPP65Field* CCPP65Generator::FindFieldSymbol(SCPP65Class* psClass, CCPPSymbol* 
 		{
 			*piOffset = psField->iOffset;
 			return psField;
+		}
+		if (!psField->pcSymbol && psField->psType->IsClass())
+		{
+			psMember = FindFieldSymbol(psField->psType->psClass, pcSymbol, &iOffset);
+			if (psMember)
+			{
+				*piOffset = psField->iOffset + iOffset;
+				return psMember;
+			}
 		}
 	}
 	for (i = 0; i < psClass->macBases.NumElements(); i++)
@@ -1733,12 +2439,11 @@ SCPP65Variable* CCPP65Generator::FindStatic(SCPP65Class* psClass, int64 lliName)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Overload resolution, simplified: the functions of the name (in the class, then its
-// bases if bBases) that take the number of arguments (default arguments make the
-// rest), scored by how well each argument's type matches its parameter (the same
-// type, then integer to integer and related pointers).  A reference parameter
-// matches its referred type.  Returns NULL with an error if more than one is best,
-// or none matches functions of the name; NULL without an error if there are none.
+// Overload resolution: of the functions of the name (in the class, then its bases if
+// bBases) that take the number of arguments (default arguments make the rest), the
+// one whose every argument converts at least as well as for any other, and one
+// better (see ConversionRank).  Returns NULL with an error if no one is best, or
+// none matches functions of the name; NULL without an error if there are none.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliName, ECPP65FunctionKind eKind, CArraySyntax* papcArguments, bool bBases, CCPPSyntax* pcNode)
@@ -1746,18 +2451,12 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 	SCPP65Function*		psFunction;
 	SCPP65Function*		psBest;
 	SCPP65Type*			apsArguments[32];
-	SCPP65Type*			psParameter;
-	SCPP65Type*			psArgument;
+	int					aiRanks[32];
+	int					aiBest[32];
 	size				uiArguments;
-	size				uiRequired;
 	size				i;
-	size				j;
-	int					iScore;
-	int					iBest;
-	int					iMatch;
 	bool				bAmbiguous;
 	bool				bFound;
-	int64				lliValue;
 
 	if (psClass && !CompleteClass(psClass, pcNode))
 	{
@@ -1779,9 +2478,9 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 		}
 	}
 
+	//The best is found by comparing each viable function with the best so far, then
+	//checked to be better than every other.
 	psBest = NULL;
-	iBest = -1;
-	bAmbiguous = false;
 	bFound = false;
 	for (i = 0; i < mapsFunctions.NumElements(); i++)
 	{
@@ -1791,71 +2490,31 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 			continue;
 		}
 		bFound = true;
-		uiRequired = psFunction->mapsParameters.NumElements();
-		while ((uiRequired > 0) && psFunction->mapcDefaults.GetPtr(uiRequired - 1))
-		{
-			uiRequired--;
-		}
-		if ((uiArguments < uiRequired) || ((uiArguments > psFunction->mapsParameters.NumElements()) && !psFunction->bVariadic))
+		if (!RankArguments(psFunction, apsArguments, papcArguments, aiRanks))
 		{
 			continue;
 		}
-
-		iScore = 0;
-		for (j = 0; (j < uiArguments) && (j < psFunction->mapsParameters.NumElements()); j++)
-		{
-			psParameter = psFunction->mapsParameters.GetPtr(j);
-			psParameter = psParameter->IsReference() ? psParameter->psBase : psParameter;
-			psArgument = apsArguments[j];
-			if (psParameter->Equals(psArgument))
-			{
-				iMatch = 3;
-			}
-			else if (psParameter->IsInteger() && psArgument->IsInteger())
-			{
-				iMatch = 2;
-			}
-			else if (psParameter->IsPointer() && psArgument->IsPointer())
-			{
-				iMatch = (psParameter->psBase->IsVoid() || (psParameter->psBase->IsClass() && psArgument->psBase->IsClass() && IsDerived(psArgument->psBase->psClass, psParameter->psBase->psClass, NULL))) ? 1 : -1;
-			}
-			else if (psParameter->IsPointer() && psArgument->IsInteger() && Constant(papcArguments->GetPtr(j), &lliValue) && (lliValue == 0))
-			{
-				iMatch = 1;
-			}
-			else if (psParameter->IsClass() && psArgument->IsClass() && IsDerived(psArgument->psClass, psParameter->psClass, NULL))
-			{
-				iMatch = 1;
-			}
-			else if (psParameter->IsFloat() && (psArgument->IsFloat() || psArgument->IsInteger()))
-			{
-				iMatch = 1;
-			}
-			else
-			{
-				iMatch = -1;
-			}
-			if (iMatch < 0)
-			{
-				iScore = -1;
-				break;
-			}
-			iScore += iMatch;
-		}
-
-		if (iScore > iBest)
+		if (!psBest || (CompareRanks(aiRanks, aiBest, uiArguments) > 0))
 		{
 			psBest = psFunction;
-			iBest = iScore;
-			bAmbiguous = false;
+			memcpy(aiBest, aiRanks, sizeof(int) * uiArguments);
 		}
-		else if ((iScore == iBest) && (iScore >= 0))
+	}
+	bAmbiguous = false;
+	for (i = 0; psBest && (i < mapsFunctions.NumElements()); i++)
+	{
+		psFunction = mapsFunctions.GetPtr(i);
+		if ((psFunction == psBest) || (psFunction->psClass != psClass) || (psFunction->lliName != lliName) || (psFunction->eKind != eKind) || psFunction->psTemplate)
+		{
+			continue;
+		}
+		if (RankArguments(psFunction, apsArguments, papcArguments, aiRanks) && (CompareRanks(aiBest, aiRanks, uiArguments) <= 0))
 		{
 			bAmbiguous = true;
 		}
 	}
 
-	if (psBest && !bAmbiguous && (iBest >= 0))
+	if (psBest && !bAmbiguous)
 	{
 		return psBest;
 	}
@@ -1881,6 +2540,135 @@ SCPP65Function* CCPP65Generator::FindFunction(SCPP65Class* psClass, int64 lliNam
 		}
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The rank of each argument's conversion to its parameter, in aiRanks.  Returns
+// false if the function cannot take the arguments.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::RankArguments(SCPP65Function* psFunction, SCPP65Type** apsArguments, CArraySyntax* papcArguments, int* aiRanks)
+{
+	size	uiArguments;
+	size	uiRequired;
+	size	i;
+
+	uiArguments = papcArguments ? papcArguments->NumElements() : 0;
+	uiRequired = psFunction->mapsParameters.NumElements();
+	while ((uiRequired > 0) && psFunction->mapcDefaults.GetPtr(uiRequired - 1))
+	{
+		uiRequired--;
+	}
+	if ((uiArguments < uiRequired) || ((uiArguments > psFunction->mapsParameters.NumElements()) && !psFunction->bVariadic))
+	{
+		return false;
+	}
+	for (i = 0; i < uiArguments; i++)
+	{
+		aiRanks[i] = (i < psFunction->mapsParameters.NumElements()) ? ConversionRank(psFunction->mapsParameters.GetPtr(i), apsArguments[i], papcArguments->GetPtr(i)) : CPP65CR_Ellipsis;
+		if (aiRanks[i] == CPP65CR_None)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How well an argument converts to a parameter: an exact match (the same type, an
+// array or function to a pointer to it), a promotion (bool, char, short and enums to
+// int, float to double), a conversion (between other arithmetic types, a derived class
+// or its pointer to a base, a pointer to void*, 0 to a pointer, a pointer to bool),
+// or none.  A reference parameter matches its referred type.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPP65Generator::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgument, CCPPSyntax* pcArgument)
+{
+	int64	lliValue;
+
+	psParameter = psParameter->IsReference() ? psParameter->psBase : psParameter;
+	psArgument = psArgument->IsReference() ? psArgument->psBase : psArgument;
+	if (psParameter->Equals(psArgument))
+	{
+		return CPP65CR_Exact;
+	}
+	if (psParameter->IsPointer() && (psArgument->IsArray() || psArgument->IsFunction()) && psParameter->psBase->Equals(psArgument->IsArray() ? psArgument->psBase : psArgument))
+	{
+		return CPP65CR_Exact;
+	}
+	if ((psParameter->IsInteger() || psParameter->IsFloat()) && (psArgument->IsInteger() || psArgument->IsFloat()))
+	{
+		if (psParameter->pcEnum)
+		{
+			//Only the same enum (an exact match) converts to an enum.
+			return CPP65CR_None;
+		}
+		if ((psParameter == &mcTypes.msInt) && psArgument->IsInteger() && ((psArgument->iBytes < 4) || psArgument->pcEnum))
+		{
+			return CPP65CR_Promotion;
+		}
+		if (psParameter->IsFloat() && (psParameter->iBytes == 8) && !psParameter->bLongDouble && psArgument->IsFloat() && (psArgument->iBytes == 4))
+		{
+			return CPP65CR_Promotion;
+		}
+		return CPP65CR_Conversion;
+	}
+	if (psParameter->IsPointer() && psArgument->IsPointer())
+	{
+		if (psParameter->psBase->IsVoid() || (psParameter->psBase->IsClass() && psArgument->psBase->IsClass() && IsDerived(psArgument->psBase->psClass, psParameter->psBase->psClass, NULL)))
+		{
+			return CPP65CR_Conversion;
+		}
+		return CPP65CR_None;
+	}
+	if ((psParameter->IsPointer() || psParameter->IsMemberPointer()) && psArgument->IsInteger() && Constant(pcArgument, &lliValue) && (lliValue == 0))
+	{
+		return CPP65CR_Conversion;
+	}
+	if ((psParameter->eKind == CPP65TK_Bool) && (psArgument->IsPointer() || psArgument->IsMemberPointer()))
+	{
+		return CPP65CR_Conversion;
+	}
+	if (psParameter->IsClass() && psArgument->IsClass() && IsDerived(psArgument->psClass, psParameter->psClass, NULL))
+	{
+		return CPP65CR_Conversion;
+	}
+	return CPP65CR_None;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// 1 if the first function's arguments convert better (none worse, one better), -1
+// if the second's do, 0 if neither.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPP65Generator::CompareRanks(int* aiFirst, int* aiSecond, size uiArguments)
+{
+	size	i;
+	bool	bFirst;
+	bool	bSecond;
+
+	bFirst = false;
+	bSecond = false;
+	for (i = 0; i < uiArguments; i++)
+	{
+		bFirst |= aiFirst[i] > aiSecond[i];
+		bSecond |= aiSecond[i] > aiFirst[i];
+	}
+	if (bFirst && !bSecond)
+	{
+		return 1;
+	}
+	if (bSecond && !bFirst)
+	{
+		return -1;
+	}
+	return 0;
 }
 
 
@@ -2129,6 +2917,8 @@ void CCPP65Generator::AppendMangledType(CChars* psz, SCPP65Type* psType)
 {
 	CChars	szClass;
 	size	i;
+	char*	szIdentifier;
+	int		iLength;
 
 	switch (psType->eKind)
 	{
@@ -2139,6 +2929,14 @@ void CCPP65Generator::AppendMangledType(CChars* psz, SCPP65Type* psType)
 		psz->Append('b');
 		break;
 	case CPP65TK_Integer:
+		if (psType->pcEnum)
+		{
+			szIdentifier = mpcTokeniser->GetIdentifier(psType->pcEnum->mlliName, &iLength);
+			psz->Append('N');
+			psz->Append(iLength);
+			psz->Append(szIdentifier, iLength);
+			break;
+		}
 		switch (psType->iBytes)
 		{
 		case 1:		psz->Append(psType->bSigned ? 'c' : 'h');	break;
@@ -2180,6 +2978,11 @@ void CCPP65Generator::AppendMangledType(CChars* psz, SCPP65Type* psType)
 		psz->Append((int)szClass.Length());
 		psz->Append(&szClass);
 		szClass.Kill();
+		break;
+	case CPP65TK_MemberPointer:
+		psz->Append('M');
+		AppendMangledType(psz, psType->psClass->psType);
+		AppendMangledType(psz, psType->psBase);
 		break;
 	}
 }
@@ -2971,6 +3774,16 @@ SCPP65Type* CCPP65Generator::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSy
 		Error(pcCallee, "This call is not supported by the 65C64 generator yet");
 		return NULL;
 	}
+	//object.pf() calls through a field that points to a function.
+	if (pcObject && !HasMember(psClass, lliName) && FindField(psClass, lliName, &iOffset))
+	{
+		psType = TypeOf(pcCallee);
+		if (psType && psType->IsPointer() && psType->psBase->IsFunction())
+		{
+			return PointerCall(pcCall, psType->psBase);
+		}
+	}
+
 	//A member template is used when it has template arguments or no other function matches.
 	uiErrors = mcErrors.NumErrors();
 	pcComponent = pcName->GetLast();

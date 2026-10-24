@@ -21,7 +21,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
+#ifndef __65C64__
 #include <immintrin.h>
+#endif // __65C64__
 #include "PrimitiveTypes.h"
 #include "FastMemcpy.h"
 
@@ -653,6 +655,7 @@ void memcpy_large(void* pvDest, const void* pvSource, size uiByteSize)
 }
 
 
+#ifndef __65C64__
 void memcpy_avx2(void* pvDest, void* pvSource, int iLength)
 {
 	float* pfSource = (float*)pvSource;
@@ -666,4 +669,5 @@ void memcpy_avx2(void* pvDest, void* pvSource, int iLength)
 		iLength -= 32;
 	}
 }
+#endif // __65C64__
 

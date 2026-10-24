@@ -258,7 +258,7 @@ SCPP65Type* CCPP65Generator::SimpleValue(CCPPSyntax* pcExpression, const char* s
 			Load(&sPlace, szRegister, NULL);
 			return sPlace.psType;
 		}
-		psType = &mcTypes.msInt;
+		psType = EnumeratorType(pcSymbol);
 	}
 	else
 	{
@@ -423,6 +423,10 @@ SCPP65Type* CCPP65Generator::IdExpression(CCPPSyntaxIdExpression* pcId)
 	{
 		return FunctionAddress(pcId, pcSymbol->mlliName);
 	}
+	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
+	{
+		return FunctionTemplateAddress(pcId);
+	}
 	return Value(pcId);
 }
 
@@ -453,28 +457,38 @@ bool CCPP65Generator::IsFunctionName(CCPPSyntaxIdExpression* pcId)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A function's name used as a value is its address.  It must not be overloaded.
+// A function's name used as a value is its address.  An overloaded name needs the
+// type of the function wanted (psTarget, from a cast to a pointer to a function).
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Generator::FunctionAddress(CCPPSyntax* pcNode, int64 lliName)
+SCPP65Type* CCPP65Generator::FunctionAddress(CCPPSyntax* pcNode, int64 lliName, SCPP65Type* psTarget)
 {
 	SCPP65Function*		psFunction;
 	SCPP65Function*		psFound;
 	size				i;
+	bool				bOverloaded;
 
 	psFound = NULL;
+	bOverloaded = false;
 	for (i = 0; i < mapsFunctions.NumElements(); i++)
 	{
 		psFunction = mapsFunctions.GetPtr(i);
 		if (!psFunction->psClass && (psFunction->lliName == lliName) && !psFunction->psTemplate)
 		{
-			if (psFound)
+			if (psTarget && psTarget->Equals(mcTypes.Function(psFunction->psReturn, &psFunction->mapsParameters, psFunction->bVariadic)))
 			{
-				Error(pcNode, "The address of an overloaded function is not supported by the 65C64 generator yet");
-				return NULL;
+				psFound = psFunction;
+				bOverloaded = false;
+				break;
 			}
+			bOverloaded |= (psFound != NULL);
 			psFound = psFunction;
 		}
+	}
+	if (bOverloaded)
+	{
+		Error(pcNode, "The address of an overloaded function needs the type of the function it is for");
+		return NULL;
 	}
 	if (!psFound)
 	{
@@ -487,6 +501,38 @@ SCPP65Type* CCPP65Generator::FunctionAddress(CCPPSyntax* pcNode, int64 lliName)
 	AppendFunctionLabel(mpszOut, psFound);
 	mpszOut->AppendNewLine();
 	return mcTypes.Pointer(mcTypes.Function(psFound->psReturn, &psFound->mapsParameters, psFound->bVariadic));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The address of a function template's instance for explicit arguments:
+// &ComparePrimitive<int> or ComparePrimitive<int>.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::FunctionTemplateAddress(CCPPSyntaxIdExpression* pcId)
+{
+	CCPPSyntaxNameComponent*	pcComponent;
+	SCPP65Template*				psTemplate;
+	SCPP65Function*				psFunction;
+
+	pcComponent = pcId->mpcName->GetLast();
+	psTemplate = GetTemplate(pcId->mpcName->mpcSymbol);
+	if (!psTemplate || !pcComponent->mbTemplateArguments)
+	{
+		Error(pcId, "The address of a function template needs its template arguments in the 65C64 generator yet");
+		return NULL;
+	}
+	psFunction = InstantiateFunction(psTemplate, &pcComponent->macpTemplateArguments, NULL, pcId);
+	if (!psFunction)
+	{
+		return NULL;
+	}
+	RequireFunction(psFunction);
+	Line("cpy A, ");
+	AppendFunctionLabel(mpszOut, psFunction);
+	mpszOut->AppendNewLine();
+	return mcTypes.Pointer(mcTypes.Function(psFunction->psReturn, &psFunction->mapsParameters, psFunction->bVariadic));
 }
 
 
@@ -512,6 +558,17 @@ SCPP65Type* CCPP65Generator::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary)
 		return Value(pcUnary);
 	case CT_BitwiseAnd:
 		pcOperand = SkipParentheses(pcUnary->mpcOperand);
+		if ((pcOperand->GetKind() == CPPS_IdExpression) && (((CCPPSyntaxIdExpression*)pcOperand)->mpcName->macpComponents.NumElements() >= 2))
+		{
+			if (MemberAddress((CCPPSyntaxIdExpression*)pcOperand, &psType))
+			{
+				return psType;
+			}
+		}
+		if ((pcOperand->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol && (((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol->meKind == CPPSK_FunctionTemplate))
+		{
+			return FunctionTemplateAddress((CCPPSyntaxIdExpression*)pcOperand);
+		}
 		if ((pcOperand->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol && (((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol->meKind == CPPSK_Function))
 		{
 			return FunctionAddress(pcOperand, ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol->mlliName);
@@ -665,6 +722,9 @@ SCPP65Type* CCPP65Generator::BinaryExpression(CCPPSyntaxBinaryExpression* pcBina
 
 	switch (pcBinary->meOperator)
 	{
+	case CT_MemberFunctionPointerIndirection:
+	case CT_MemberByPointerFunctionPointerIndirection:
+		return Value(pcBinary);
 	case CT_Assignment:
 	case CT_AssignmentAdd:
 	case CT_AssignmentSubtract:
@@ -917,9 +977,11 @@ bool CCPP65Generator::IsBuiltin(int64 lliName)
 //////////////////////////////////////////////////////////////////////////
 //
 // GCC's builtin functions: __builtin_ctz, __builtin_clz and __builtin_popcount
-// (with their l and ll forms), __builtin_expect, __builtin_unreachable and
-// __builtin_trap.  The 65C64's find set bit does ctz and clz; ctz(0) and clz(0) are
-// the width in bits.  The result is in A.
+// (with their l and ll forms), __builtin_expect, __builtin_unreachable,
+// __builtin_trap and __builtin_alloca.  The 65C64's find set bit does ctz and clz;
+// ctz(0) and clz(0) are the width in bits.  alloca takes whole longs from the stack;
+// they are given back when the function returns (it restores S from V).  The result
+// is in A.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Generator::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName)
@@ -958,6 +1020,33 @@ SCPP65Type* CCPP65Generator::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lli
 		}
 		psType = Expression(pcCall->macpArguments.GetPtr(0));
 		return psType ? mcTypes.Promote(psType) : NULL;
+	}
+	if (szName.Equals("alloca"))
+	{
+		szName.Kill();
+		if (iArguments != 1)
+		{
+			Error(pcCall, "The builtin takes one argument");
+			return NULL;
+		}
+		if (miDepth != 0)
+		{
+			//The space would be between the arguments already pushed.
+			Error(pcCall, "__builtin_alloca in a call's arguments is not supported by the 65C64 generator yet");
+			return NULL;
+		}
+		psArgument = Expression(pcCall->macpArguments.GetPtr(0));
+		if (!psArgument || !Convert(psArgument, &mcTypes.msUnsignedInt, pcCall))
+		{
+			return NULL;
+		}
+		Line("add A, 3")->AppendNewLine();
+		Line("and A, ")->Append((int64)0xFFFFFFFC)->AppendNewLine();
+		Line("sub S, A")->AppendNewLine();
+		Line("cpy A, S")->AppendNewLine();
+		Line("add A, 1")->AppendNewLine();
+		mbAlloca = true;
+		return mcTypes.Pointer(&mcTypes.msVoid);
 	}
 
 	bWide = szName.EndsWith("ll");
@@ -1070,10 +1159,18 @@ SCPP65Type* CCPP65Generator::CallExpression(CCPPSyntaxCallExpression* pcCall)
 	size						uiErrors;
 	int64						lliName;
 
+	if (HasPackExpansion(&pcCall->macpArguments))
+	{
+		return ExpandPackCall(pcCall);
+	}
 	pcCallee = SkipParentheses(pcCall->mpcCallee);
 	if (pcCallee->GetKind() == CPPS_MemberExpression)
 	{
 		return MemberCall(pcCall, pcCallee);
+	}
+	if (IsMemberPointerOperator(pcCallee))
+	{
+		return MemberPointerCall(pcCall, (CCPPSyntaxBinaryExpression*)pcCallee);
 	}
 	pcSymbol = NULL;
 	pcName = NULL;
@@ -1092,7 +1189,7 @@ SCPP65Type* CCPP65Generator::CallExpression(CCPPSyntaxCallExpression* pcCall)
 	//f<Arguments>(...) and f(...) for a function template; in a member function it may be a member template.
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
 	{
-		if (mpsFunction && mpsFunction->psClass && !pcName->mbGlobal && FindMemberTemplate(mpsFunction->psClass, pcSymbol->mlliName, pcCall->macpArguments.NumElements()))
+		if (mpsFunction && mpsFunction->psClass && !pcName->mbGlobal && (FindMemberTemplate(mpsFunction->psClass, pcSymbol->mlliName, pcCall->macpArguments.NumElements()) || HasMember(mpsFunction->psClass, pcSymbol->mlliName)))
 		{
 			return MemberCall(pcCall, pcCallee);
 		}
@@ -1196,6 +1293,362 @@ bool CCPP65Generator::HasMember(SCPP65Class* psClass, int64 lliName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// &Class::member: a pointer to a member function (its address) or to a field (its
+// offset), its type in *ppsType (NULL after an error).  A member of a base is a
+// pointer to a member of the base.  Returns false if the name is not a non-static
+// member of the class or its bases.  Pointers to virtual functions and to overloaded
+// functions are not supported yet.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type** ppsType)
+{
+	CCPPSyntaxName*		pcName;
+	SCPP65Class*		psClass;
+	SCPP65Field*		psField;
+	int64				lliName;
+	int					iOffset;
+
+	pcName = pcId->mpcName;
+	BeginQuiet();
+	psClass = GetComponentClass((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(pcName->macpComponents.NumElements() - 2), NULL, pcId);
+	EndQuiet();
+	lliName = GetFunctionName(pcName->GetLast());
+	*ppsType = NULL;
+	if (!psClass || (lliName == -1))
+	{
+		return false;
+	}
+	if (!CompleteClass(psClass, pcId))
+	{
+		return true;
+	}
+	if (MemberFunctionAddress(psClass, lliName, ppsType, pcId))
+	{
+		return true;
+	}
+
+	psField = FindField(psClass, lliName, &iOffset);
+	if (!psField)
+	{
+		return false;
+	}
+	LoadConstant("A", &mcTypes.msInt, iOffset);
+	*ppsType = mcTypes.MemberPointer(psClass, psField->psType);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The address of the member function of the name in the class, or else in its
+// bases (see MemberAddress).  Returns false if there is none.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::MemberFunctionAddress(SCPP65Class* psClass, int64 lliName, SCPP65Type** ppsType, CCPPSyntax* pcNode)
+{
+	SCPP65Function*		psFunction;
+	SCPP65Function*		psFound;
+	size				i;
+
+	psFound = NULL;
+	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	{
+		psFunction = mapsFunctions.GetPtr(i);
+		if ((psFunction->psClass == psClass) && (psFunction->lliName == lliName) && (psFunction->eKind == CPP65FK_Function) && !psFunction->psTemplate)
+		{
+			if (psFound)
+			{
+				Error(pcNode, "The address of an overloaded function is not supported by the 65C64 generator yet");
+				return true;
+			}
+			psFound = psFunction;
+		}
+	}
+	if (!psFound)
+	{
+		for (i = 0; i < psClass->macBases.NumElements(); i++)
+		{
+			if (MemberFunctionAddress(psClass->macBases.Get(i)->psClass, lliName, ppsType, pcNode))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	if (psFound->bStatic)
+	{
+		return false;
+	}
+	if (psFound->bVirtual)
+	{
+		Error(pcNode, "Pointers to virtual member functions are not supported by the 65C64 generator yet");
+		return true;
+	}
+	RequireFunction(psFound);
+	Line("cpy A, ");
+	AppendFunctionLabel(mpszOut, psFound);
+	mpszOut->AppendNewLine();
+	*ppsType = mcTypes.MemberPointer(psClass, mcTypes.Function(psFound->psReturn, &psFound->mapsParameters, psFound->bVariadic));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an expression is object.*member or pointer->*member.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsMemberPointerOperator(CCPPSyntax* pcExpression)
+{
+	ECppTokens	eOperator;
+
+	if (pcExpression->GetKind() != CPPS_BinaryExpression)
+	{
+		return false;
+	}
+	eOperator = ((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator;
+	return (eOperator == CT_MemberFunctionPointerIndirection) || (eOperator == CT_MemberByPointerFunctionPointerIndirection);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Leaves the address of the object of object.*member or pointer->*member in A and
+// returns the pointer to member's type.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary)
+{
+	SCPP65Type*		psMember;
+	SCPP65Type*		psObject;
+	SCPP65Place		sObject;
+
+	psMember = TypeOf(pcBinary->mpcRight);
+	if (!psMember)
+	{
+		Expression(pcBinary->mpcRight);
+		return NULL;
+	}
+	if (!psMember->IsMemberPointer())
+	{
+		Error(pcBinary, "The right of .* and ->* must be a pointer to a member");
+		return NULL;
+	}
+	if (pcBinary->meOperator == CT_MemberByPointerFunctionPointerIndirection)
+	{
+		psObject = Expression(pcBinary->mpcLeft);
+		if (!psObject)
+		{
+			return NULL;
+		}
+		if (!psObject->IsPointer() || !psObject->psBase->IsClass())
+		{
+			Error(pcBinary, "The left of ->* must be a pointer to an object");
+			return NULL;
+		}
+	}
+	else
+	{
+		if (!Place(pcBinary->mpcLeft, &sObject))
+		{
+			return NULL;
+		}
+		if (!sObject.psType->IsClass())
+		{
+			Error(pcBinary, "The left of .* must be an object");
+			return NULL;
+		}
+		LoadAddress(&sObject);
+	}
+	return psMember;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// object.*field and pointer->*field: the object's address plus the field's offset.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::MemberPointerPlace(CCPPSyntaxBinaryExpression* pcBinary, SCPP65Place* psPlace)
+{
+	SCPP65Type*	psMember;
+
+	psMember = MemberPointerObject(pcBinary);
+	if (!psMember)
+	{
+		return false;
+	}
+	if (psMember->psBase->IsFunction())
+	{
+		return Error(pcBinary, "A pointer to a member function can only be called");
+	}
+	Push("A");
+	if (!Expression(pcBinary->mpcRight))
+	{
+		return false;
+	}
+	Pull("B");
+	Line("add A, B")->AppendNewLine();
+	psPlace->eKind = CPP65PK_Address;
+	psPlace->psType = psMember->psBase;
+	psPlace->iOffset = 0;
+	psPlace->lliName = -1;
+	psPlace->iString = -1;
+	psPlace->bInternal = false;
+	psPlace->psClass = NULL;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// (object.*function)(...) and (pointer->*function)(...): the arguments are pushed,
+// then the object's address goes in X and the function is called through A.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::MemberPointerCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntaxBinaryExpression* pcBinary)
+{
+	SCPP65Type*	psMember;
+	SCPP65Type*	psFunctionType;
+	int			iBytes;
+
+	psMember = TypeOf(pcBinary->mpcRight);
+	if (!psMember || !psMember->IsMemberPointer() || !psMember->psBase->IsFunction())
+	{
+		Error(pcBinary, "Only a pointer to a member function can be called");
+		return NULL;
+	}
+	psFunctionType = psMember->psBase;
+	iBytes = PushParameters(psFunctionType->papsParameters, NULL, psFunctionType->bVariadic, &pcCall->macpArguments, pcCall, psFunctionType->psBase);
+	if ((iBytes < 0) || !MemberPointerObject(pcBinary))
+	{
+		return NULL;
+	}
+	Push("A");
+	if (!Expression(pcBinary->mpcRight))
+	{
+		return NULL;
+	}
+	Pull("X");
+	Line("jsr A")->AppendNewLine();
+	ChangeX();
+	if (iBytes > 0)
+	{
+		Line("add S, ")->Append(iBytes)->AppendNewLine();
+		miDepth -= iBytes;
+	}
+	return psFunctionType->psBase;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A symbol for an element of the function parameter pack being generated: a
+// variable with the pack's name, kept until the generator is killed.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPP65Generator::NewPackElement(CCPPSymbol* pcPack)
+{
+	CCPPSymbol*	pcSymbol;
+
+	pcSymbol = (CCPPSymbol*)malloc(sizeof(CCPPSymbol));
+	pcSymbol->Init(pcPack->mlliName, CPPSK_Variable, pcPack->mpcDeclaration, pcPack->mpcScope);
+	mapcPackSymbols.Add(pcSymbol);
+	mapcPackElements.Add(pcSymbol);
+	return pcSymbol;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a call's arguments expand a pack (f(args...)).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::HasPackExpansion(CArraySyntax* papcArguments)
+{
+	size	i;
+
+	for (i = 0; i < papcArguments->NumElements(); i++)
+	{
+		if (papcArguments->GetPtr(i)->GetKind() == CPPS_PackExpansionExpression)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// f(args...): the call is generated with args... replaced by a name for each of the
+// pack's elements, then given back its arguments (the same call is in instances
+// with other packs).  Only the function parameter pack itself can be expanded.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::ExpandPackCall(CCPPSyntaxCallExpression* pcCall)
+{
+	CArraySyntax				apcArguments;
+	CCPPSyntax*					pcArgument;
+	CCPPSyntax*					pcPattern;
+	CCPPSyntaxIdExpression*		pcId;
+	CCPPSyntaxName*				pcName;
+	CCPPSyntaxNameComponent*	pcComponent;
+	CCPPSyntaxMemory*			pcMemory;
+	SCPP65Type*					psType;
+	size						i;
+	size						j;
+
+	apcArguments.Init();
+	apcArguments.Copy(&pcCall->macpArguments);
+	pcCall->macpArguments.ReInit();
+	pcMemory = mpcTree->GetMemory();
+	for (i = 0; i < apcArguments.NumElements(); i++)
+	{
+		pcArgument = apcArguments.GetPtr(i);
+		if (pcArgument->GetKind() != CPPS_PackExpansionExpression)
+		{
+			pcCall->macpArguments.Add(pcArgument);
+			continue;
+		}
+		pcPattern = SkipParentheses(((CCPPSyntaxPackExpansionExpression*)pcArgument)->mpcPattern);
+		if (!mpcPackParameter || (pcPattern->GetKind() != CPPS_IdExpression) || (((CCPPSyntaxIdExpression*)pcPattern)->mpcName->mpcSymbol != mpcPackParameter))
+		{
+			pcCall->macpArguments.ReInit();
+			pcCall->macpArguments.Copy(&apcArguments);
+			apcArguments.Kill();
+			Error(pcArgument, "Only a function parameter pack can be expanded by the 65C64 generator yet");
+			return NULL;
+		}
+		for (j = 0; j < mapcPackElements.NumElements(); j++)
+		{
+			pcId = pcMemory->CreateIdExpression(pcCall);
+			pcId->SetTokens(pcPattern->miFirstToken, pcPattern->miLastToken);
+			pcName = pcMemory->CreateName(pcId);
+			pcName->SetTokens(pcPattern->miFirstToken, pcPattern->miLastToken);
+			pcName->mpcSymbol = mapcPackElements.GetPtr(j);
+			pcComponent = pcMemory->CreateNameComponent(pcName);
+			pcComponent->SetTokens(pcPattern->miFirstToken, pcPattern->miLastToken);
+			pcComponent->meKind = ((CCPPSyntaxIdExpression*)pcPattern)->mpcName->GetLast()->meKind;
+			pcComponent->miName = ((CCPPSyntaxIdExpression*)pcPattern)->mpcName->GetLast()->miName;
+			pcComponent->mpcSymbol = pcName->mpcSymbol;
+			pcName->macpComponents.Add(pcComponent);
+			pcId->mpcName = pcName;
+			pcCall->macpArguments.Add(pcId);
+		}
+	}
+
+	psType = CallExpression(pcCall);
+	pcCall->macpArguments.ReInit();
+	pcCall->macpArguments.Copy(&apcArguments);
+	apcArguments.Kill();
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A call through a pointer to a function: the arguments are pushed, then the
 // pointer is worked out into A and called.
 //
@@ -1287,12 +1740,27 @@ SCPP65Type* CCPP65Generator::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSynt
 {
 	SCPP65Type*		psTo;
 	SCPP65Type*		psFrom;
+	CCPPSyntax*		pcFunction;
+	CCPPSymbol*		pcSymbol;
 
 	psTo = GetTypeIdType(pcTypeId);
 	if (!psTo)
 	{
 		return NULL;
 	}
+
+	//(FPointer)&f chooses the overload of f with the pointer's type.
+	pcFunction = SkipParentheses(pcOperand);
+	if ((pcFunction->GetKind() == CPPS_UnaryExpression) && (((CCPPSyntaxUnaryExpression*)pcFunction)->meOperator == CT_BitwiseAnd))
+	{
+		pcFunction = SkipParentheses(((CCPPSyntaxUnaryExpression*)pcFunction)->mpcOperand);
+	}
+	pcSymbol = (pcFunction->GetKind() == CPPS_IdExpression) ? ((CCPPSyntaxIdExpression*)pcFunction)->mpcName->mpcSymbol : NULL;
+	if (pcSymbol && (pcSymbol->meKind == CPPSK_Function) && (((CCPPSyntaxIdExpression*)pcFunction)->mpcName->macpComponents.NumElements() == 1) && psTo->IsPointer() && psTo->psBase->IsFunction())
+	{
+		return FunctionAddress(pcFunction, pcSymbol->mlliName, psTo->psBase) ? psTo : NULL;
+	}
+
 	psFrom = Expression(pcOperand);
 	if (!psFrom)
 	{
@@ -2701,6 +3169,13 @@ bool CCPP65Generator::Place(CCPPSyntax* pcExpression, SCPP65Place* psPlace)
 		//A function that returns a reference, or an object (its temporary).
 		return ResultPlace(Evaluate(pcExpression), psPlace, pcExpression);
 
+	case CPPS_BinaryExpression:
+		if (IsMemberPointerOperator(pcExpression))
+		{
+			return MemberPointerPlace((CCPPSyntaxBinaryExpression*)pcExpression, psPlace);
+		}
+		break;
+
 	default:
 		break;
 	}
@@ -3379,6 +3854,26 @@ bool CCPP65Generator::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* p
 	}
 	szTrait.Kill();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An enumerator's type: its enum's, or int for an unnamed enum.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::EnumeratorType(CCPPSymbol* pcSymbol)
+{
+	CCPPSyntax*	pcEnumerator;
+	CCPPSymbol*	pcEnum;
+
+	pcEnumerator = pcSymbol->mpcDeclaration;
+	if (!pcEnumerator || !pcEnumerator->mpcParent || (pcEnumerator->mpcParent->GetKind() != CPPS_EnumSpecifier))
+	{
+		return &mcTypes.msInt;
+	}
+	pcEnum = ((CCPPSyntaxEnumSpecifier*)pcEnumerator->mpcParent)->mpcSymbol;
+	return pcEnum ? mcTypes.Enum(pcEnum) : &mcTypes.msInt;
 }
 
 

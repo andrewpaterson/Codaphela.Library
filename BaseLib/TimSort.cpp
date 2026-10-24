@@ -86,6 +86,8 @@ void TimSort(DataCompare fCompare, void* pvArray, size uiStride, int iNumElement
 
 #if defined(_MSC_VER)
 # define DEFINE_TEMP(temp) void *temp = _alloca(WIDTH)
+#elif defined(__65C64__)
+# define DEFINE_TEMP(temp) void *temp = __builtin_alloca(WIDTH)
 #else
 # define DEFINE_TEMP(temp) char temp[WIDTH]
 #endif

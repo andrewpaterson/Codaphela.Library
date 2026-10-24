@@ -35,14 +35,17 @@ enum ECPP65TypeKind
 	CPP65TK_Class,
 	CPP65TK_Float,
 	CPP65TK_Reference,
+	CPP65TK_MemberPointer,
 };
 
 
 struct SCPP65Class;
+class CCPPSymbol;
 
 
 //The type of a value the 65C64 generator works with.  Integers are 1, 2, 4 or 8 bytes (int and long are 4 bytes,
-//as on Windows), pointers and references are 4 bytes.  float is 4 bytes, double and long double 8.  A class type's layout is in psClass.  A function type has its parameters.  Types are made by
+//as on Windows), pointers and references are 4 bytes.  A pointer to a member of psClass (psBase is the member's
+//type) is 4 bytes: a member function's address or a field's offset.  float is 4 bytes, double and long double 8.  A class type's layout is in psClass.  A function type has its parameters.  Types are made by
 //CCPP65Types and are never freed while it lives.
 struct SCPP65Type
 {
@@ -55,6 +58,7 @@ struct SCPP65Type
 	CArrayTemplatePtr<SCPP65Type>*	papsParameters;		//A function type's parameters.
 	bool			bVariadic;
 	bool			bLongDouble;	//long double: a double, but a type of its own.
+	CCPPSymbol*		pcEnum;			//An enum: an int, but a type of its own.
 
 	bool	IsInteger(void);
 	bool	IsScalar(void);
@@ -64,6 +68,7 @@ struct SCPP65Type
 	bool	IsVoid(void);
 	bool	IsClass(void);
 	bool	IsReference(void);
+	bool	IsMemberPointer(void);
 	bool	IsFloat(void);
 	bool	IsSupported(void);
 	bool	IsWide(void);
@@ -105,6 +110,8 @@ public:
 	SCPP65Type*			Array(SCPP65Type* psElement, int iCount);
 	SCPP65Type*			Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65Type>* papsParameters, bool bVariadic);
 	SCPP65Type*			Reference(SCPP65Type* psBase);
+	SCPP65Type*			MemberPointer(SCPP65Class* psClass, SCPP65Type* psMember);
+	SCPP65Type*			Enum(CCPPSymbol* pcEnum);
 	SCPP65Type*			Float(int iBytes);
 	SCPP65Type*			LongDouble(void);
 	SCPP65Type*			Class(SCPP65Class* psClass);

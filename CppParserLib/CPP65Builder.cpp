@@ -547,7 +547,7 @@ bool CCPP65Builder::CompileUnits(void)
 		return true;
 	}
 
-	bResult = mcProject.Process("65C64");
+	bResult = mcProject.Process("65C64", &mszErrors);
 	uiCompiled = 0;
 	for (pcFile = mcProject.Start(&sIter, "65C64"); pcFile; pcFile = mcProject.Iterate(&sIter))
 	{

@@ -53,7 +53,7 @@ public:
 	CLibrary*			AddLibrary(char* szName, char* szBaseDir, bool bIncludeSubDirectories);
 	void				AddIncludeDirectory(char* szBaseDir, bool bIncludeSubDirectories, bool bSystem);
 	CLibrary*			GetLibrary(char* szLibrary);
-	bool				Process(char* szConfiguration);
+	bool				Process(char* szConfiguration, CChars* pszErrors = NULL);
 	void				CreatePost(void);
 	void				WritePost(CTranslationUnit* pcTU);
 	void				DumpPost(CTranslationUnit* pcTU);

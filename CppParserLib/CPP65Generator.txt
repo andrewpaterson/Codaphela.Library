@@ -92,15 +92,17 @@ Floating point (the soft float runtime)
 The 65C64 has no floating point instructions, so float and double arithmetic,
 comparisons and conversions call the soft float runtime.  Libc65/softfloat.cpp works on
 the values' bits with integers only (it compiles natively too, and was checked bit for
-bit against SSE on millions of values).  On the 65C64 its single precision functions
-(SoftFloat* and SoftDoubleToFloat) are left out for Libc65/softfloat.asm's, written in
-assembly for speed with the same results bit for bit (checked against softfloat.cpp
+bit against SSE on millions of values).  On the 65C64 every one of its functions is
+Libc65/softfloat.asm's instead (softfloat.cpp compiles to nothing there): assembly
+written for speed with the same results bit for bit (checked against softfloat.cpp
 natively on millions of values; TestLibc65SoftFloat runs a few thousand per function).
-A program that uses floating point is linked with both.  Cycles per call on the
-simulator for normal operands from 2^-20 to 2^20 (softfloat.cpp's compiled code in
-brackets): add 80 (2140), subtract 84 (2230), multiply 64 (2180), divide 85 (4930),
-compare 25 (1145), sqrt 134 (16980), from int 39 (590), to int 19 (770), to double 21
-(1005), double to float 46 (1110).
+A program that uses floating point is linked with softfloat.asm.  Cycles per call on
+the simulator for normal operands from 2^-20 to 2^20 (softfloat.cpp's compiled code in
+brackets): float add 80 (2140), subtract 84 (2230), multiply 64 (2180), divide 85
+(4930), compare 25 (1145), sqrt 134 (16980), from int 39 (590), to int 19 (770), to
+double 21 (1005), double to float 46 (1110); double add 98 (2135), subtract 104
+(2225), multiply 134 (2360), divide 206 (8245), compare 36 (1140), sqrt 218 (16990),
+from int 28 (510), to int 24 (750).
 The generator pushes the operands like arguments (the right first) and calls:
 
 	SoftFloatAdd Subtract Multiply Divide		(and SoftDouble...)
@@ -287,7 +289,9 @@ Supported
   new(address) Type constructs at the address.
 - GCC builtins: __builtin_ctz, __builtin_clz, __builtin_popcount (and their l and ll
   forms; ctz and clz use fsbi, and are the width for 0), __builtin_expect,
-  __builtin_unreachable and __builtin_trap (stp).
+  __builtin_unreachable, __builtin_trap (stp) and __builtin_alloca (whole longs from
+  the stack; a function that uses it restores S from V when it returns; not inside a
+  call's arguments).
 - __func__, __FUNCTION__, __PRETTY_FUNCTION__ and MSVC's __FUNCSIG__ and __FUNCDNAME__
   (as string literal parts).  The pretty forms are "Class::Name", not the signature.
   Adjacent string literals are joined.
@@ -298,10 +302,22 @@ Supported
 - Constant expressions (array sizes, case labels, global initialisers, template
   arguments) include enumerators, const int variables, casts, sizeof and type traits.
 - Overloaded functions and operators, chosen by the number of arguments (default
-  arguments make up the rest) and how well their types match (the same type, then
-  integer to integer, then related pointers; a reference matches its type).
-- Classes, structs and unions (named or not), multiple inheritance with several
-  polymorphic bases, templates: see below.
+  arguments make up the rest) and the best viable function: every argument converts
+  at least as well as for any other overload, and one better.  An exact match (the
+  same type, an array or function to a pointer) beats a promotion (bool, char, short
+  and enums to int, float to double), which beats a conversion (other arithmetic
+  types, a derived class or its pointer to a base, a pointer to void*, 0 to a
+  pointer, a pointer to bool).  A reference matches its type.  An enum is an int but a
+  type of its own: an int does not convert to it.  A cast to a pointer to a function
+  chooses an overloaded function ((FConvert)&Convert).
+- Pointers to members: int C::* and R (C::*)(...) are 4 bytes, a field's offset or a
+  member function's address.  &C::member (of C or a base, also with C a template
+  parameter), casts between them, object.*p and pointer->*p (calls through X).
+  Pointers to virtual or overloaded member functions are not supported yet.
+- Classes, structs and unions (named or not, local, and anonymous unions and structs
+  whose members are the enclosing class's), multiple inheritance with several
+  polymorphic bases, templates: see below.  A call through a field that points to a
+  function (object.pf()) works.
 - float, double and long double: see Floating point.
 
 
@@ -315,13 +331,14 @@ code is generated).
 - Class operator new and operator delete (the global ones are used), placement new
   with more than an address, new Type[count] with more than one dimension or an
   initialiser list; conversion functions, constructor templates, member class
-  templates, explicit and partial specialisations, variadic templates.
+  templates, explicit specialisations of members, pack expansions other than a
+  function parameter pack in a call's arguments, sizeof...
 - Virtual inheritance.
 - Temporary objects that need destroying, in conditions; postfix ++ and -- on
   objects; conversion operators.
-- Namespaces, local classes, static locals that are objects or have initialisers that
-  are not constant (they would need a first time guard), extern and thread_local
-  locals, wide and raw string literals.
+- Namespaces, nested classes in qualified names, static locals that are objects or
+  have initialisers that are not constant (they would need a first time guard),
+  extern and thread_local locals, wide and raw string literals.
 
 
 When code is generated
@@ -393,11 +410,10 @@ malloc), MersenneTwister (the MT19937 reference sequence) with Libc65's time,
 QuickSort, BubbleSort and BinarySearch (with a MemSwp stub), and FloatHelper and
 SQuaternion (a value type), against the same calls natively, bit for bit.
 
-BaseLib is the benchmark for how much C++ is supported: on 2026-10-23, 344 of its 390
-.cpp files compile without errors (317 before member templates, with 29 crashing on
-unnamed classes in class templates).  Most of the rest use pointers to members
-(DatasIO.h), need better overload ranking, take the address of an overloaded
-function or use variadic templates.
+BaseLib is the benchmark for how much C++ is supported: since 2026-10-23 all 390 of
+its .cpp files compile without errors and link, as one library
+(TestCPP65GeneratorAllBaseLib, with TestCPP65CompileLibrary).  The builder reports
+the preprocessor's errors too (a missing header).
 
 
 Templates
@@ -423,11 +439,31 @@ chosen before a member template; one with explicit template arguments always use
 the template.  An unnamed class inside a class template is a different class in each
 instance.
 
+Specialisations: template<> struct S<char> { ... } (explicit) and template<class T>
+struct S<T*> { ... } (partial) are chosen when S is instantiated: an explicit one
+that matches first, then the partial one whose arguments match the most of the
+arguments' structure (T, T*, T&, const T, X<T>, constants and types naming none of its
+parameters); two equally good ones are an error.  A partial specialisation's
+parameters are deduced from the match.  Its members can be defined outside it
+(template<class T> int S<T*>::Get()), written with the same arguments.  const of a type
+argument is kept (S<const int> is not S<int>; mangled K).  Function templates have
+explicit specialisations (template<> int Size<char>(char) and template<> int
+Size(short)), used for the arguments they are for.
+
+Variadic templates: a template parameter pack (typename ... Args) is the last
+parameter.  It takes the rest of the explicit arguments, or the types of the rest of
+a call's arguments for a function parameter pack (Args ... args), which is a
+parameter for each type.  args... in a call's arguments is each of them (the call is
+generated with the pack's names in its place).  A pack's arguments are mangled J
+types E.
+
 Labels: an instance is Name__T and its arguments mangled: _CArrayTemplate__T_i__Add is
 CArrayTemplate<int>::Add.  Types are v void, b bool, c char, h unsigned char, s short,
 t unsigned short, i int, j unsigned, x long long, y unsigned long long, f float,
 d double, e long double, P pointer, R reference, A count _ array, F return parameters
-E function, C length name class; constants are L and the value (Ln for negative).
+E function, C length name class, N length name enum, M class member pointer to a
+member, K before a const type argument, J types E a pack; constants are L and the
+value (Ln for negative).
 
 
 References
