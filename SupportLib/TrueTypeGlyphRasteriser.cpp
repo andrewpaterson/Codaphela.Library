@@ -22,6 +22,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ImageAccessorCreator.h"
 #include "TrueTypeRasteriser.h"
 #include "FontDescription.h"
+#include "TrueTypeFontFactory.h"
 #include "TrueTypeGlyphRasteriser.h"
 
 
@@ -29,13 +30,14 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTrueTypeGlyphRasteriser::Init(Ptr<CTrueTypeFace> pFace, float32 fPixelSize)
+void CTrueTypeGlyphRasteriser::Init(Ptr<CTrueTypeFace> pFace, float32 fPixelSize, EFontTurn eTurn)
 {
 	PreInit();
 
 	CGlyphRasteriser::Init();
 	mpFace = pFace;
 	mfPixelSize = fPixelSize;
+	meTurn = eTurn;
 
 	PostInit();
 }
@@ -50,6 +52,7 @@ void CTrueTypeGlyphRasteriser::Class(void)
 	CGlyphRasteriser::Class();
 	M_Pointer(mpFace);
 	U_Float32(mfPixelSize);
+	U_Enum(meTurn);
 }
 
 
@@ -67,7 +70,8 @@ void CTrueTypeGlyphRasteriser::Free(void)
 //
 // Writes the glyph's coverage as the opacity, and white, into its place in
 // pImage, whatever the image's channel order.  A glyph with no pixels
-// (such as a space) has nothing to draw.
+// (such as a space) has nothing to draw.  A turned font's glyphs are
+// drawn turned (see EFontTurn).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CTrueTypeGlyphRasteriser::RasteriseGlyph(SGlyphDescription* psDescription, Ptr<CImage> pImage)
@@ -86,6 +90,7 @@ bool CTrueTypeGlyphRasteriser::RasteriseGlyph(SGlyphDescription* psDescription, 
 	int32					iImageHeight;
 	int32					x;
 	int32					y;
+	int32					iGlyphWidth;
 
 	iImageWidth = psDescription->cSubImage.GetImageWidth();
 	iImageHeight = psDescription->cSubImage.GetImageHeight();
@@ -104,6 +109,7 @@ bool CTrueTypeGlyphRasteriser::RasteriseGlyph(SGlyphDescription* psDescription, 
 
 	iImageLeft = psDescription->cSubImage.mcImageRect.msTopLeft.x;
 	iImageTop = psDescription->cSubImage.mcImageRect.msTopLeft.y;
+	iGlyphWidth = (meTurn == FT_Clockwise) ? iImageHeight : iImageWidth;
 
 	cCreator.Init(&pImage);
 	cCreator.AddAccess(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, PT_uint8);
@@ -117,7 +123,7 @@ bool CTrueTypeGlyphRasteriser::RasteriseGlyph(SGlyphDescription* psDescription, 
 	{
 		for (x = 0; x < iImageWidth; x++)
 		{
-			auiPixel[3] = puiCoverage[y * iImageWidth + x];
+			auiPixel[3] = puiCoverage[TurnedGlyphOffset(meTurn, x, y, iGlyphWidth, iImageWidth)];
 			pcAccessor->Set(iImageLeft + x, iImageTop + y, auiPixel);
 		}
 	}

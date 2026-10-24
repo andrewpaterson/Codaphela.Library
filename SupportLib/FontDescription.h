@@ -31,6 +31,17 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 #define FIRST_LETTER			32
 
 
+//How a font's glyphs are drawn.  A clockwise font's glyphs are turned a quarter clockwise, their tops to the right,
+//for text that runs down: each glyph's full size is the line height across by its step down, with the descent on the
+//left of the baseline and the ascent on its right.  Glyph steps, ascent and descent are the same as the upright
+//font's.
+enum EFontTurn
+{
+	FT_Upright,
+	FT_Clockwise,
+};
+
+
 //Where a glyph's pixels are in a font's image and how far it advances.  The glyph itself (a CGlyph and its
 //CImageCel) is only made by a CFont the first time the character is asked for.
 struct SGlyphDescription
@@ -80,6 +91,7 @@ protected:
 	int16					miSuperscriptShift;
 	float32					mfSubscriptScale;
 	int16					miSubscriptShift;
+	EFontTurn				meTurn;
 
 public:
 	void				Init(char* szName, int16 iSpaceWidth, int16 iAscent, int16 iDescent, int32 iImageWidth, int32 iImageHeight);
@@ -92,6 +104,8 @@ public:
 	void				PutGlyph(uint32 c, size uiLength, CSubImage* pcSubImage, int16 iStep, int32 iSourceGlyph = -1);
 	void				PutGlyph(uint8* puiBuffer, size uiLength, CSubImage* pcSubImage, int16 iStep, int32 iSourceGlyph = -1);
 	void				SetRasteriser(Ptr<CGlyphRasteriser> pRasteriser);
+	void				SetTurn(EFontTurn eTurn);
+	EFontTurn			GetTurn(void);
 	Ptr<CGlyphRasteriser>	GetRasteriser(void);
 	SGlyphDescription*	GetGlyph(uint8* puiBuffer, size uiLength);
 	SGlyphDescription*	GetGlyph(CUnicodeReader* pcUTFReader);

@@ -36,6 +36,59 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CW65Instruction;
 class CW65DataOperation;
 class CW65BusCycle;
+
+
+//Everything a core remembers between clock edges, as plain data, for saving a running core and loading it again.  The
+//bus cycle isn't kept; it follows from the opcode and the cycle.
+struct SW65CCoreState
+{
+	bool		bEmulationFlag;
+	bool		bZeroFlag;
+	bool		bNegativeFlag;
+	bool		bDecimalFlag;
+	bool		bInterruptDisableFlag;
+	bool		bAccumulatorWidthFlag;
+	bool		bIndexWidthFlag;
+	bool		bCarryFlag;
+	bool		bOverflowFlag;
+	bool		bBreakFlag;
+	uint16		uiAccumulator;
+	uint16		uiXIndex;
+	uint16		uiYIndex;
+	uint8		uiDataBank;
+	uint16		uiDirectPage;
+	CW65Address	cProgramCounter;
+	uint16		uiStackPointer;
+	int16		iCycle;
+	int16		iNextCycle;
+	uint16		uiOpcodeIndex;
+	bool		bStopped;
+	bool		bWaiting;
+	uint8		uiEmulationStatusBits;
+	uint8		uiAbortProcessRegister;
+	uint16		uiAbortAccumulator;
+	uint16		uiAbortXIndex;
+	uint16		uiAbortYIndex;
+	uint8		uiAbortDataBank;
+	uint16		uiAbortDirectPage;
+	CW65Address	cAbortProgramCounter;
+	uint16		uiAbortStackPointer;
+	CW65Address	cAddress;
+	uint16		uiData;
+	uint8		uiIOData;
+	uint16		uiDirectOffset;
+	CW65Address	cNewProgramCounter;
+	bool		bBusEnable;
+	bool		bIrq;
+	bool		bAbort;
+	bool		bNextInstruction;
+	bool		bNmi;
+	bool		bPreviousClockLow;
+	bool		bPreviousClockHigh;
+	uint16		uiResetCount;
+};
+
+
 class CW65CCore
 {
 protected:
@@ -97,6 +150,9 @@ protected:
 public:
 	void			Init(CW65CPins* pcPins);
 	void			Kill(void);
+
+	void			GetState(SW65CCoreState* psState);
+	void			SetState(SW65CCoreState* psState);
 
     CW65CPins*      GetPins(void);
 

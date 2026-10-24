@@ -26,7 +26,7 @@ void CW65InstructionCycles::Init(EAddressingMode eAddressingMode, CW65BusCycleAr
         pcBusCycle->SetCycle((int16)(i + 1));
     }
 
-    Validate();
+    ValidateComponent();
 }
 
 
@@ -44,7 +44,7 @@ void CW65InstructionCycles::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65InstructionCycles::Validate(void)
+void CW65InstructionCycles::ValidateComponent(void)
 {
     ValidateDoneOperation();
 }

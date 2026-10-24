@@ -95,6 +95,114 @@ void CW65CCore::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CW65CCore::GetState(SW65CCoreState* psState)
+{
+	psState->bEmulationFlag = mbEmulationFlag;
+	psState->bZeroFlag = mbZeroFlag;
+	psState->bNegativeFlag = mbNegativeFlag;
+	psState->bDecimalFlag = mbDecimalFlag;
+	psState->bInterruptDisableFlag = mbInterruptDisableFlag;
+	psState->bAccumulatorWidthFlag = mbAccumulatorWidthFlag;
+	psState->bIndexWidthFlag = mbIndexWidthFlag;
+	psState->bCarryFlag = mbCarryFlag;
+	psState->bOverflowFlag = mbOverflowFlag;
+	psState->bBreakFlag = mbBreakFlag;
+	psState->uiAccumulator = muiAccumulator;
+	psState->uiXIndex = muiXIndex;
+	psState->uiYIndex = muiYIndex;
+	psState->uiDataBank = muiDataBank;
+	psState->uiDirectPage = muiDirectPage;
+	psState->uiStackPointer = muiStackPointer;
+	psState->iCycle = miCycle;
+	psState->iNextCycle = miNextCycle;
+	psState->uiOpcodeIndex = muiOpcodeIndex;
+	psState->bStopped = mbStopped;
+	psState->bWaiting = mbWaiting;
+	psState->uiEmulationStatusBits = muiEmulationStatusBits;
+	psState->uiAbortProcessRegister = muiAbortProcessRegister;
+	psState->uiAbortAccumulator = muiAbortAccumulator;
+	psState->uiAbortXIndex = muiAbortXIndex;
+	psState->uiAbortYIndex = muiAbortYIndex;
+	psState->uiAbortDataBank = muiAbortDataBank;
+	psState->uiAbortDirectPage = muiAbortDirectPage;
+	psState->uiAbortStackPointer = muiAbortStackPointer;
+	psState->uiData = muiData;
+	psState->uiIOData = muiIOData;
+	psState->uiDirectOffset = muiDirectOffset;
+	psState->bBusEnable = mbBusEnable;
+	psState->bIrq = mbIrq;
+	psState->bAbort = mbAbort;
+	psState->bNextInstruction = mbNextInstruction;
+	psState->bNmi = mbNmi;
+	psState->bPreviousClockLow = mbPreviousClockLow;
+	psState->bPreviousClockHigh = mbPreviousClockHigh;
+	psState->uiResetCount = muiResetCount;
+	psState->cProgramCounter.Init(&mcProgramCounter);
+	psState->cAbortProgramCounter.Init(&mcAbortProgramCounter);
+	psState->cAddress.Init(&mcAddress);
+	psState->cNewProgramCounter.Init(&mcNewProgramCounter);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The core carries on from the state as if it had never stopped.
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65CCore::SetState(SW65CCoreState* psState)
+{
+	mbEmulationFlag = psState->bEmulationFlag;
+	mbZeroFlag = psState->bZeroFlag;
+	mbNegativeFlag = psState->bNegativeFlag;
+	mbDecimalFlag = psState->bDecimalFlag;
+	mbInterruptDisableFlag = psState->bInterruptDisableFlag;
+	mbAccumulatorWidthFlag = psState->bAccumulatorWidthFlag;
+	mbIndexWidthFlag = psState->bIndexWidthFlag;
+	mbCarryFlag = psState->bCarryFlag;
+	mbOverflowFlag = psState->bOverflowFlag;
+	mbBreakFlag = psState->bBreakFlag;
+	muiAccumulator = psState->uiAccumulator;
+	muiXIndex = psState->uiXIndex;
+	muiYIndex = psState->uiYIndex;
+	muiDataBank = psState->uiDataBank;
+	muiDirectPage = psState->uiDirectPage;
+	muiStackPointer = psState->uiStackPointer;
+	miCycle = psState->iCycle;
+	miNextCycle = psState->iNextCycle;
+	muiOpcodeIndex = psState->uiOpcodeIndex;
+	mbStopped = psState->bStopped;
+	mbWaiting = psState->bWaiting;
+	muiEmulationStatusBits = psState->uiEmulationStatusBits;
+	muiAbortProcessRegister = psState->uiAbortProcessRegister;
+	muiAbortAccumulator = psState->uiAbortAccumulator;
+	muiAbortXIndex = psState->uiAbortXIndex;
+	muiAbortYIndex = psState->uiAbortYIndex;
+	muiAbortDataBank = psState->uiAbortDataBank;
+	muiAbortDirectPage = psState->uiAbortDirectPage;
+	muiAbortStackPointer = psState->uiAbortStackPointer;
+	muiData = psState->uiData;
+	muiIOData = psState->uiIOData;
+	muiDirectOffset = psState->uiDirectOffset;
+	mbBusEnable = psState->bBusEnable;
+	mbIrq = psState->bIrq;
+	mbAbort = psState->bAbort;
+	mbNextInstruction = psState->bNextInstruction;
+	mbNmi = psState->bNmi;
+	mbPreviousClockLow = psState->bPreviousClockLow;
+	mbPreviousClockHigh = psState->bPreviousClockHigh;
+	muiResetCount = psState->uiResetCount;
+	mcProgramCounter.Init(&psState->cProgramCounter);
+	mcAbortProgramCounter.Init(&psState->cAbortProgramCounter);
+	mcAddress.Init(&psState->cAddress);
+	mcNewProgramCounter.Init(&psState->cNewProgramCounter);
+	UpdateBusCycle();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CW65CPins* CW65CCore::GetPins(void)
 {
     return mpcPins;

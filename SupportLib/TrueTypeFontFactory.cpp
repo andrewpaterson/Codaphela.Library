@@ -33,9 +33,10 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 // fPixelSize is the height of one em in pixels.
 //
 //////////////////////////////////////////////////////////////////////////
-void CTrueTypeFontFactory::Init(CTrueTypeFont* pcFont, float32 fPixelSize)
+void CTrueTypeFontFactory::Init(CTrueTypeFont* pcFont, float32 fPixelSize, EFontTurn eTurn)
 {
 	mpcFont = pcFont;
+	meTurn = eTurn;
 	mcRasteriser.Init(pcFont, fPixelSize);
 	miPixelSize64 = (int32)(fPixelSize * 64.0f + 0.5f);
 	macCharacters.Init();
@@ -61,8 +62,9 @@ void CTrueTypeFontFactory::Kill(void)
 // Measures each character (once, control characters are ignored) and
 // packs them into the layout of an image iImageWidth wide and as high as
 // needed.  Each glyph's full size is its advance by the ascent plus
-// descent, with the top of the line at the top.  Returns NULL if a glyph
-// is wider than the image.
+// descent, with the top of the line at the top.  A turned glyph's full
+// size is the line height across by its advance down, with the descent
+// left of the baseline.  Returns NULL if a glyph is wider than the image.
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CFontDescription> CTrueTypeFontFactory::Describe(char* szName, char* szUTF8Characters, int iImageWidth)
@@ -89,7 +91,19 @@ Ptr<CFontDescription> CTrueTypeFontFactory::Describe(char* szName, char* szUTF8C
 	for (i = 0; i < macCharacters.NumElements(); i++)
 	{
 		psCharacter = macCharacters.Get(i);
-		if (psCharacter->iImageWidth > 0)
+		if ((psCharacter->iImageWidth > 0) && (meTurn == FT_Clockwise))
+		{
+			//The upright glyph turned about the pen: across is up the upright glyph and down is along it.
+			cSubImage.Init(psCharacter->iImageLeft,
+						   psCharacter->iImageTop,
+						   psCharacter->iImageLeft + psCharacter->iImageHeight,
+						   psCharacter->iImageTop + psCharacter->iImageWidth,
+						   miDescent - psCharacter->iTop - psCharacter->iImageHeight,
+						   psCharacter->iBearing,
+						   miAscent + psCharacter->iTop,
+						   psCharacter->iAdvance - psCharacter->iBearing - psCharacter->iImageWidth);
+		}
+		else if (psCharacter->iImageWidth > 0)
 		{
 			//Offsets are negative where a glyph overhangs its advance or the line.
 			iTopOffset = miAscent + psCharacter->iTop;
@@ -102,6 +116,10 @@ Ptr<CFontDescription> CTrueTypeFontFactory::Describe(char* szName, char* szUTF8C
 						   psCharacter->iAdvance - psCharacter->iBearing - psCharacter->iImageWidth,
 						   iLineHeight - iTopOffset - psCharacter->iImageHeight);
 		}
+		else if (meTurn == FT_Clockwise)
+		{
+			cSubImage.Init(0, 0, 0, 0, iLineHeight, 0, 0, psCharacter->iAdvance);
+		}
 		else
 		{
 			cSubImage.Init(0, 0, 0, 0, psCharacter->iAdvance, 0, 0, iLineHeight);
@@ -109,6 +127,7 @@ Ptr<CFontDescription> CTrueTypeFontFactory::Describe(char* szName, char* szUTF8C
 		pDescription->PutGlyph(psCharacter->uiCodePoint, psCharacter->uiCodePointLength, &cSubImage, (int16)psCharacter->iAdvance, psCharacter->iGlyph);
 	}
 	DescribeScriptAndLines(pDescription);
+	pDescription->SetTurn(meTurn);
 	return pDescription;
 }
 
@@ -376,6 +395,8 @@ bool CTrueTypeFontFactory::Pack(int iImageWidth, int* piImageHeight)
 	int						x;
 	int						y;
 	int						iRowHeight;
+	int						iWidth;
+	int						iHeight;
 
 	x = 0;
 	y = 0;
@@ -387,12 +408,14 @@ bool CTrueTypeFontFactory::Pack(int iImageWidth, int* piImageHeight)
 		{
 			continue;
 		}
-		if (psCharacter->iImageWidth > iImageWidth)
+		iWidth = GetPackedWidth(psCharacter);
+		iHeight = GetPackedHeight(psCharacter);
+		if (iWidth > iImageWidth)
 		{
 			return false;
 		}
 
-		if (x + psCharacter->iImageWidth > iImageWidth)
+		if (x + iWidth > iImageWidth)
 		{
 			x = 0;
 			y += iRowHeight + TRUE_TYPE_FONT_GLYPH_SPACING;
@@ -400,10 +423,10 @@ bool CTrueTypeFontFactory::Pack(int iImageWidth, int* piImageHeight)
 		}
 		psCharacter->iImageLeft = x;
 		psCharacter->iImageTop = y;
-		x += psCharacter->iImageWidth + TRUE_TYPE_FONT_GLYPH_SPACING;
-		if (psCharacter->iImageHeight > iRowHeight)
+		x += iWidth + TRUE_TYPE_FONT_GLYPH_SPACING;
+		if (iHeight > iRowHeight)
 		{
-			iRowHeight = psCharacter->iImageHeight;
+			iRowHeight = iHeight;
 		}
 	}
 
@@ -413,6 +436,44 @@ bool CTrueTypeFontFactory::Pack(int iImageWidth, int* piImageHeight)
 		*piImageHeight = 1;
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The size of the character's glyph in the font's image, turned.
+//
+//////////////////////////////////////////////////////////////////////////
+int CTrueTypeFontFactory::GetPackedWidth(STrueTypeFontCharacter* psCharacter)
+{
+	return (meTurn == FT_Clockwise) ? psCharacter->iImageHeight : psCharacter->iImageWidth;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CTrueTypeFontFactory::GetPackedHeight(STrueTypeFontCharacter* psCharacter)
+{
+	return (meTurn == FT_Clockwise) ? psCharacter->iImageWidth : psCharacter->iImageHeight;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The offset in an upright glyph's coverage (iGlyphWidth wide) of the
+// pixel at x, y of the glyph as it is drawn, iImageWidth wide.  Turned
+// clockwise, the upright glyph's top row is the drawn right column.
+//
+//////////////////////////////////////////////////////////////////////////
+int TurnedGlyphOffset(EFontTurn eTurn, int x, int y, int iGlyphWidth, int iImageWidth)
+{
+	if (eTurn == FT_Clockwise)
+	{
+		return (iImageWidth - 1 - x) * iGlyphWidth + y;
+	}
+	return y * iGlyphWidth + x;
 }
 
 
@@ -452,6 +513,7 @@ void CTrueTypeFontFactory::CopyGlyph(Ptr<CImage> pImage, int iGlyph, CSubImage* 
 	uint8			uiRed;
 	uint8			uiGreen;
 	uint8			uiBlue;
+	int				iGlyphWidth;
 
 	pGlyphImage = mcRasteriser.RasteriseGlyph(iGlyph, &iLeft, &iTop);
 	if (pGlyphImage.IsNull())
@@ -463,6 +525,7 @@ void CTrueTypeFontFactory::CopyGlyph(Ptr<CImage> pImage, int iGlyph, CSubImage* 
 	iImageTop = pcSubImage->mcImageRect.msTopLeft.y;
 	iImageWidth = pcSubImage->GetImageWidth();
 	iImageHeight = pcSubImage->GetImageHeight();
+	iGlyphWidth = (meTurn == FT_Clockwise) ? iImageHeight : iImageWidth;
 
 	uiRed = ColourByte(pcColour->r);
 	uiGreen = ColourByte(pcColour->g);
@@ -475,7 +538,7 @@ void CTrueTypeFontFactory::CopyGlyph(Ptr<CImage> pImage, int iGlyph, CSubImage* 
 		puiDest = &((uint8*)pImage->GetData())[((iImageTop + y) * pImage->GetWidth() + iImageLeft) * 4];
 		for (x = 0; x < iImageWidth; x++)
 		{
-			puiDest[0] = puiGlyph[y * iImageWidth + x];
+			puiDest[0] = puiGlyph[TurnedGlyphOffset(meTurn, x, y, iGlyphWidth, iImageWidth)];
 			puiDest[1] = uiRed;
 			puiDest[2] = uiGreen;
 			puiDest[3] = uiBlue;

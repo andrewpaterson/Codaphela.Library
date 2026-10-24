@@ -56,6 +56,7 @@ void CComponentShapes::Init(void)
 {
 	masShapes.Init();
 	masPoints.Init();
+	maszTexts.Init();
 }
 
 
@@ -65,6 +66,7 @@ void CComponentShapes::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CComponentShapes::Kill(void)
 {
+	maszTexts.Kill();
 	masPoints.Kill();
 	masShapes.Kill();
 }
@@ -76,6 +78,7 @@ void CComponentShapes::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CComponentShapes::Clear(void)
 {
+	maszTexts.ReInit();
 	masPoints.ReInit();
 	masShapes.ReInit();
 }
@@ -105,6 +108,12 @@ SComponentShape* CComponentShapes::AddShape(EComponentShape eType, bool bFill, b
 	psShape->fRadiusY = 0;
 	psShape->fStartAngle = 0;
 	psShape->fArcAngle = 0;
+	psShape->uiText = 0;
+	psShape->eFont = CF_SansSerif;
+	psShape->fFontSize = 0;
+	psShape->eAlignment = TA_Left;
+	psShape->iRelativeRightRotations = 0;
+	psShape->bCentred = false;
 	psShape->bVisible = true;
 	return psShape;
 }
@@ -212,6 +221,128 @@ SComponentShape* CComponentShapes::AddCircle(float64 fCentreX, float64 fCentreY,
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A rectangle with its corners rounded to quarter circles, as a polygon.
+//
+//////////////////////////////////////////////////////////////////////////
+SComponentShape* CComponentShapes::AddRoundedRectangle(float64 fLeft, float64 fTop, float64 fRight, float64 fBottom, float64 fRadius, bool bFill, bool bBorder)
+{
+	SFloat64Vec2		asPoints[4 * (ROUNDED_CORNER_STEPS + 1)];
+	SFloat64Vec2		asCentres[4];
+	size				uiCorner;
+	size				i;
+	float64				fAngle;
+	size				uiPoint;
+
+	//Corners clockwise on the screen from the top right; angles counterclockwise with y down.
+	asCentres[0].Init(fRight - fRadius, fTop + fRadius);
+	asCentres[1].Init(fRight - fRadius, fBottom - fRadius);
+	asCentres[2].Init(fLeft + fRadius, fBottom - fRadius);
+	asCentres[3].Init(fLeft + fRadius, fTop + fRadius);
+	uiPoint = 0;
+	for (uiCorner = 0; uiCorner < 4; uiCorner++)
+	{
+		for (i = 0; i <= ROUNDED_CORNER_STEPS; i++)
+		{
+			fAngle = (90.0 - (float64)uiCorner * 90.0 - 90.0 * (float64)i / ROUNDED_CORNER_STEPS) * N_PI_64 / 180.0;
+			asPoints[uiPoint].Init(asCentres[uiCorner].x + fRadius * cos(fAngle), asCentres[uiCorner].y - fRadius * sin(fAngle));
+			uiPoint++;
+		}
+	}
+	return AddPolygon(asPoints, uiPoint, bFill, bBorder);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Text keeps its own copy of the string.  Remember the shape's index (not
+// its pointer, which moves as shapes are added) to change it later.
+//
+//////////////////////////////////////////////////////////////////////////
+SComponentShape* CComponentShapes::AddText(float64 x, float64 y, const char* szText, ECircuitFont eFont, float64 fFontSize, ETextAlignment eAlignment, int iRelativeRightRotations)
+{
+	SComponentShape*	psShape;
+
+	psShape = AddShape(CS_Text, false, true);
+	psShape->eBorder = SC_Text;
+	psShape->sCentre.Init(x, y);
+	psShape->uiText = maszTexts.NumElements();
+	maszTexts.Add(szText);
+	psShape->eFont = eFont;
+	psShape->fFontSize = fFontSize;
+	psShape->eAlignment = eAlignment;
+	psShape->iRelativeRightRotations = iRelativeRightRotations;
+	return psShape;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Text centred on x, y and upright whichever way the component is turned.
+//
+//////////////////////////////////////////////////////////////////////////
+SComponentShape* CComponentShapes::AddCentredText(float64 x, float64 y, const char* szText, ECircuitFont eFont, float64 fFontSize)
+{
+	SComponentShape*	psShape;
+
+	psShape = AddText(x, y, szText, eFont, fFontSize, TA_Centre);
+	psShape->bCentred = true;
+	return psShape;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentShapes::SetVisible(size uiShape, bool bVisible)
+{
+	masShapes.Get(uiShape)->bVisible = bVisible;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// sBorder is only used for SC_Explicit.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentShapes::SetBorder(size uiShape, EShapeColour eBorder, ARGB32 sBorder)
+{
+	SComponentShape*	psShape;
+
+	psShape = masShapes.Get(uiShape);
+	psShape->eBorder = eBorder;
+	psShape->sBorder = sBorder;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentShapes::SetText(size uiShape, const char* szText)
+{
+	SComponentShape*	psShape;
+
+	psShape = masShapes.Get(uiShape);
+	maszTexts.Get(psShape->uiText)->Set(szText);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CComponentShapes::GetText(size uiShape)
+{
+	SComponentShape*	psShape;
+
+	psShape = masShapes.Get(uiShape);
+	return maszTexts.GetText(psShape->uiText);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 size CComponentShapes::NumShapes(void)
@@ -254,6 +385,10 @@ ARGB32 CComponentShapes::GetFill(CCircuitPainter* pcPainter, SComponentShape* ps
 	{
 		return pcPainter->GetColours()->msDarkShapeFill;
 	}
+	else if (psShape->eFill == SC_Background)
+	{
+		return pcPainter->GetColours()->msBackground;
+	}
 	return pcPainter->GetColours()->msShapeFill;
 }
 
@@ -267,6 +402,18 @@ ARGB32 CComponentShapes::GetBorder(CCircuitPainter* pcPainter, SComponentShape* 
 	if (psShape->eBorder == SC_Explicit)
 	{
 		return psShape->sBorder;
+	}
+	else if (psShape->eBorder == SC_Text)
+	{
+		return pcPainter->GetColours()->msText;
+	}
+	else if (psShape->eBorder == SC_CommentText)
+	{
+		return pcPainter->GetColours()->msCommentText;
+	}
+	else if (psShape->eBorder == SC_HiddenText)
+	{
+		return pcPainter->GetColours()->msHiddenText;
 	}
 	return pcPainter->GetColours()->msShapeBorder;
 }
@@ -317,6 +464,14 @@ void CComponentShapes::Paint(CCircuitPainter* pcPainter, SComponentShape* psShap
 	case CS_Circle:
 		pcPainter->Circle(psShape->sCentre.x, psShape->sCentre.y, psShape->fRadiusX, psShape->bFill, psShape->bBorder, psShape->fLineWidth, GetFill(pcPainter, psShape), GetBorder(pcPainter, psShape));
 		break;
+	case CS_Text:
+		if (psShape->bCentred)
+		{
+			pcPainter->CentredText(psShape->sCentre.x, psShape->sCentre.y, maszTexts.GetText(psShape->uiText), psShape->eFont, psShape->fFontSize, GetBorder(pcPainter, psShape));
+			break;
+		}
+		pcPainter->Text(psShape->sCentre.x, psShape->sCentre.y, maszTexts.GetText(psShape->uiText), psShape->eFont, psShape->fFontSize, psShape->eAlignment, psShape->iRelativeRightRotations, GetBorder(pcPainter, psShape));
+		break;
 	}
 }
 
@@ -347,9 +502,10 @@ static void IncludeArcPoint(SComponentShape* psShape, float64 fDegrees, SFloat64
 //////////////////////////////////////////////////////////////////////////
 //
 // Grows the box to hold every shape, in the shapes' unturned grid space.
-// Line widths aren't included.  Arcs include only the part of the ellipse
-// they sweep (and the centre when filled).  Returns whether the box holds
-// anything.
+// Line widths aren't included, nor is text (so a component's size
+// doesn't change with the font).  Arcs include only the part of the
+// ellipse they sweep (and the centre when filled).  Returns whether the
+// box holds anything.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CComponentShapes::IncludeBounds(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum, bool bHasBounds)
@@ -365,6 +521,10 @@ bool CComponentShapes::IncludeBounds(SFloat64Vec2* psMinimum, SFloat64Vec2* psMa
 	for (i = 0; i < masShapes.NumElements(); i++)
 	{
 		psShape = masShapes.Get(i);
+		if (psShape->eType == CS_Text)
+		{
+			continue;
+		}
 		if ((psShape->eType == CS_Line) || (psShape->eType == CS_Polygon))
 		{
 			for (j = 0; j < psShape->uiNumPoints; j++)

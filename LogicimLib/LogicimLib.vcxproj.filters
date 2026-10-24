@@ -30,6 +30,42 @@
     <ClCompile Include="CircuitPainter.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
+    <ClCompile Include="ClockView.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="LabelView.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="TunnelView.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="W65C816View.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="65C64View.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="OscilloscopeView.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="SplitterView.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Radix.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ValueView.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="FlipFlopView.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="CounterView.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="CircuitFonts.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
     <ClCompile Include="CircuitViewport.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
@@ -93,6 +129,42 @@
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="CircuitPainter.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ClockView.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="LabelView.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="TunnelView.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="W65C816View.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="65C64View.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="OscilloscopeView.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="SplitterView.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Radix.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ValueView.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="FlipFlopView.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="CounterView.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="CircuitFonts.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="CircuitViewport.h">

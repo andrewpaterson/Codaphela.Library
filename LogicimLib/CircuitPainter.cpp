@@ -21,6 +21,8 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include "BaseLib/Numbers.h"
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/UTF8.h"
+#include "SupportLib/Glyph.h"
 #include "CircuitPainter.h"
 
 
@@ -37,11 +39,13 @@ typedef CArrayTemplate<SFloat64Vec2>	CArrayPainterPoint;
 // trace and port as disconnected.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircuitPainter::Init(CCircuitViewport* pcViewport, CGeometryMap* pcMap, CCircuitColours* pcColours, int64 iTime)
+void CCircuitPainter::Init(CCircuitViewport* pcViewport, CGeometryMap* pcMap, CSpriteMap* pcSprites, CCircuitColours* pcColours, CCircuitFonts* pcFonts, int64 iTime)
 {
 	mpcViewport = pcViewport;
 	mpcMap = pcMap;
+	mpcSprites = pcSprites;
 	mpcColours = pcColours;
+	mpcFonts = pcFonts;
 	miTime = iTime;
 	ClearTransform();
 }
@@ -55,7 +59,9 @@ void CCircuitPainter::Kill(void)
 {
 	mpcViewport = NULL;
 	mpcMap = NULL;
+	mpcSprites = NULL;
 	mpcColours = NULL;
+	mpcFonts = NULL;
 }
 
 
@@ -265,10 +271,203 @@ void CCircuitPainter::Dot(float64 x, float64 y, float64 fPixelRadius, ARGB32 sCo
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A line of text at x, y in the component's grid space, placed as
+// Logicim's TextView.paint places it.  The text is measured at its font
+// size (see SCircuitTextSize) and its alignment end is a tenth of a grid
+// unit past x, y along the text.  Across the text the baseline is a 3.5th
+// of the text's height past the position, which roughly centres capitals
+// on it.  Text facing North or East ends at the position and text facing
+// South or West starts there (for left aligned text), so port labels
+// point into the component whichever way it's turned.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitPainter::Text(float64 x, float64 y, const char* szText, ECircuitFont eFont, float64 fFontSize, ETextAlignment eAlignment, int iRelativeRightRotations, ARGB32 sColour)
+{
+	SCircuitTextSize	sSize;
+	float64				fFactor;
+	float64				fWidth;
+	float64				fHalfHeight;
+	float64				fWidthAdjust;
+	float32				fPixelSize;
+	SFloat64Vec2		sAnchor;
+	SFloat64Vec2		sOrigin;
+	ERotation			eRotation;
+	EFontTurn			eTurn;
+	Ptr<CFontColours>	pColours;
+	Ptr<CFont>			pFont;
+	Ptr<CGlyph>			pGlyph;
+	CUTF8				cUTF8;
+	int32				iPen;
+	int32				iBaseline;
+	size				uiUTFLength;
+
+	if ((mpcFonts == NULL) || (mpcSprites == NULL) || (szText == NULL) || (szText[0] == '\0'))
+	{
+		return;
+	}
+
+	sSize = mpcFonts->Measure(eFont, fFontSize, szText);
+	fFactor = mpcViewport->GetPixelsPerGrid();
+	fWidth = sSize.fWidth * fFactor;
+	fHalfHeight = sSize.fHeight * fFactor / 3.5;
+	fWidthAdjust = GetTextWidthAdjust(0.1, sSize.fWidth, eAlignment) * fFactor;
+
+	eRotation = RotateRight(meRotation, iRelativeRightRotations);
+	ToScreen(&sAnchor, x, y);
+	switch (eRotation)
+	{
+	case ROT_South:
+		sOrigin.Init(sAnchor.x - fHalfHeight, sAnchor.y + fWidthAdjust);
+		eTurn = FT_Clockwise;
+		break;
+	case ROT_East:
+		sOrigin.Init(sAnchor.x - fWidth - fWidthAdjust, sAnchor.y + fHalfHeight);
+		eTurn = FT_Upright;
+		break;
+	case ROT_West:
+		sOrigin.Init(sAnchor.x + fWidthAdjust, sAnchor.y + fHalfHeight);
+		eTurn = FT_Upright;
+		break;
+	default:
+		sOrigin.Init(sAnchor.x - fHalfHeight, sAnchor.y - fWidth - fWidthAdjust);
+		eTurn = FT_Clockwise;
+		break;
+	}
+
+	fPixelSize = (float32)floor(fFontSize * mpcViewport->GetZoom() + 0.5);
+	if (fPixelSize < 1.0f)
+	{
+		return;
+	}
+	pColours = mpcFonts->GetColours(eFont, fPixelSize, eTurn);
+	if (pColours.IsNull())
+	{
+		return;
+	}
+	pFont = pColours->GetFont(sColour);
+
+	//Sprites are placed by their full top left: the top of the line for upright glyphs, left of the descent for turned.
+	if (eTurn == FT_Clockwise)
+	{
+		iBaseline = (int32)floor(sOrigin.x + 0.5);
+		iPen = (int32)floor(sOrigin.y + 0.5);
+	}
+	else
+	{
+		iBaseline = (int32)floor(sOrigin.y + 0.5);
+		iPen = (int32)floor(sOrigin.x + 0.5);
+	}
+	cUTF8.Init(szText);
+	for (;;)
+	{
+		uiUTFLength = cUTF8.PeekUTFBytes();
+		if ((uiUTFLength == 0) || (uiUTFLength == cUTF8.GetError()))
+		{
+			break;
+		}
+		pGlyph = pFont->GetGlyph(&cUTF8);
+		if (pGlyph.IsNull())
+		{
+			continue;
+		}
+		if (eTurn == FT_Clockwise)
+		{
+			mpcSprites->AddSprite(pGlyph->GetCel(), iBaseline - pFont->GetDescent(), iPen);
+		}
+		else
+		{
+			mpcSprites->AddSprite(pGlyph->GetCel(), iPen, iBaseline - pFont->GetAscent());
+		}
+		iPen += pGlyph->GetStep();
+	}
+	cUTF8.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line of text centred on x, y and always upright, as Logicim's
+// PositivePowerView draws its voltage: measured at its drawn size and its
+// line's height centred.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitPainter::CentredText(float64 x, float64 y, const char* szText, ECircuitFont eFont, float64 fFontSize, ARGB32 sColour)
+{
+	float32				fPixelSize;
+	Ptr<CFontColours>	pColours;
+	Ptr<CFont>			pFont;
+	Ptr<CGlyph>			pGlyph;
+	SFloat64Vec2		sCentre;
+	CUTF8				cUTF8;
+	int32				iPen;
+	int32				iTop;
+	size				uiUTFLength;
+
+	if ((mpcFonts == NULL) || (mpcSprites == NULL) || (szText == NULL) || (szText[0] == '\0'))
+	{
+		return;
+	}
+	fPixelSize = (float32)floor(fFontSize * mpcViewport->GetZoom() + 0.5);
+	if (fPixelSize < 1.0f)
+	{
+		return;
+	}
+	pColours = mpcFonts->GetColours(eFont, fPixelSize, FT_Upright);
+	if (pColours.IsNull())
+	{
+		return;
+	}
+	pFont = pColours->GetFont(sColour);
+
+	ToScreen(&sCentre, x, y);
+	iPen = (int32)floor(sCentre.x - pFont->CalculateWidth((char*)szText) / 2.0 + 0.5);
+	iTop = (int32)floor(sCentre.y - pFont->GetLineHeight() / 2.0 + 0.5);
+	cUTF8.Init(szText);
+	for (;;)
+	{
+		uiUTFLength = cUTF8.PeekUTFBytes();
+		if ((uiUTFLength == 0) || (uiUTFLength == cUTF8.GetError()))
+		{
+			break;
+		}
+		pGlyph = pFont->GetGlyph(&cUTF8);
+		if (pGlyph.IsNull())
+		{
+			continue;
+		}
+		mpcSprites->AddSprite(pGlyph->GetCel(), iPen, iTop);
+		iPen += pGlyph->GetStep();
+	}
+	cUTF8.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Logicim's TextView.getWidthAdjust, in grid units.
+//
+//////////////////////////////////////////////////////////////////////////
+float64 CCircuitPainter::GetTextWidthAdjust(float64 fOffset, float64 fWidth, ETextAlignment eAlignment)
+{
+	if (eAlignment == TA_Centre)
+	{
+		return fOffset - fWidth / 2;
+	}
+	else if (eAlignment == TA_Right)
+	{
+		return fOffset - fWidth;
+	}
+	return fOffset;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CCircuitViewport* CCircuitPainter::GetViewport(void) { return mpcViewport; }
 CCircuitColours* CCircuitPainter::GetColours(void) { return mpcColours; }
+CCircuitFonts* CCircuitPainter::GetFonts(void) { return mpcFonts; }
 CGeometryMap* CCircuitPainter::GetMap(void) { return mpcMap; }
 int64 CCircuitPainter::GetTime(void) { return miTime; }
 

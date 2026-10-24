@@ -27,6 +27,21 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 class CIntegratedCircuit;
 
 
+#define PORT_LABEL_FONT_SIZE	10.0
+
+
+//A port view for CreateLabelledPortViews, as Logicim's PortViewCreator.  szName is the port's name (with " n" after it
+//for each of iPortCount ports) and szText its label.
+struct SPortViewCreator
+{
+	const char*	szText;
+	const char*	szName;
+	int			iPortCount;
+	bool		bClock;
+	bool		bInverted;
+};
+
+
 //A view of an integrated circuit of a logic family, as Logicim's IntegratedCircuitView and
 //StandardIntegratedCircuitView.  Unless its power ports are explicit the IC is powered by its own supply at the
 //family's default (TTL) voltage when it's made.  Explicit power ports are drawn as a VCC port on the left of the
@@ -54,8 +69,15 @@ protected:
 	virtual	void					SaveXMLAttributes(CXMLWriter* pcWriter);
 	static	bool					LoadXMLFamily(CMarkupTag* pcTag, char** pszFamily, bool* pbExplicitPowerPorts);
 			void					CreatePowerPortViews(void);
+			void					CreateLabelledPortViews(SPortViewCreator* asLeft, size uiNumLeft, SPortViewCreator* asRight, size uiNumRight, int32 iLeftOffset, int32 iRightOffset, int32 iLeftStart, int32 iRightStart, int32 iStep);
+			CPortView*				CreateLabelledPortView(SPortViewCreator* psCreator, int32 x, int32 y, ERotation eInvertFacing);
+			size					AddDetail(float64 x, int32 iWidth, const char* szName, const char* szValue);
 			bool					PowerImplicitly(CIntegratedCircuit* pcIntegratedCircuit, CFamilyVoltageConfiguration* pcFamily);
 };
+
+
+class CPort;
+bool PowerPortsImplicitly(CSubcircuitSimulation* pcSimulation, CPort* pcCommon, CPort* pcGround, CFamilyVoltageConfiguration* pcFamily);
 
 
 #endif // __INTEGRATED_CIRCUIT_VIEW_H__

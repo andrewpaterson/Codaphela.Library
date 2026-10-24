@@ -55,7 +55,7 @@ public:
 	C65OperationArray*		GetOperations(void);
 
 protected:
-	void					Validate(void);
+	void					ValidateComponent(void);
 };
 
 

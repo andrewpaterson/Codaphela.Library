@@ -85,6 +85,81 @@ struct S65C64TransferWord
 class C65Instruction;
 class C65BusCycle;
 class C65DataOperation;
+
+
+//Which instruction a core is running: the opcode's, one of the factory's own sequences or none yet.
+enum E65C64InstructionKind
+{
+	IK65_None,
+	IK65_Opcode,
+	IK65_Reset,
+	IK65_FetchNext,
+	IK65_Interrupt,
+	IK65_Wait,
+};
+
+
+//What the core's decoded instruction was made from: the opcode, an interrupt's vector or nothing yet.
+enum E65C64DecodedKind
+{
+	DK65_None,
+	DK65_Opcode,
+	DK65_Interrupt,
+};
+
+
+//Everything a core remembers between clock edges, as plain data, for saving a running core and loading it again.  The
+//decoded instruction and the instruction aren't kept; they're made again from their kinds, the opcode and the vector.
+struct S65C64CoreState
+{
+	uint64					uiA;
+	uint64					uiB;
+	uint64					uiX;
+	uint64					uiY;
+	uint32					uiS;
+	uint32					uiV;
+	uint32					uiW;
+	uint32					uiC;
+	uint16					uiP;
+	uint32					uiInterruptDepth;
+
+	uint64					uiDI;
+	uint8					uiOperationBytes;
+	uint16					auiOperandWords[MAX_65C64_OPERAND_WORDS];
+	uint32					uiPointerAddress;
+	uint32					uiPointer;
+	uint8					uiNumPointerWords;
+	uint32					uiEffectiveAddress;
+	uint32					uiVectorAddress;
+	uint32					uiVector;
+	S65C64Transfer			asTransfers[MAX_65C64_TRANSFERS];
+	E65Register				aePulled[MAX_65C64_TRANSFERS];
+	size					uiNumTransfers;
+	S65C64TransferWord		asReadWords[MAX_65C64_TRANSFER_WORDS];
+	size					uiNumReadWords;
+	S65C64TransferWord		asWriteWords[MAX_65C64_TRANSFER_WORDS];
+	size					uiNumWriteWords;
+
+	uint16					uiOpcode;
+	E65C64DecodedKind		eDecoded;
+	uint16					uiDecodedVector;  //DK65_Interrupt.
+	E65C64InstructionKind	eInstruction;
+	int16					iCycle;
+	int16					iNextCycle;
+	bool					bNextInstruction;
+	bool					bStopped;
+
+	bool					bWaiting;
+	uint8					uiWakeMask;
+	uint8					uiPendingEdges;
+	uint8					uiEdgeLow;
+	bool					bLevelInterrupt;
+
+	uint16					uiIOData;
+	bool					bPreviousClockLow;
+	bool					bPreviousClockHigh;
+	bool					bReset;
+};
 class C65C64
 {
 protected:
@@ -145,6 +220,9 @@ public:
 	void				Init(C65C64Pins* pcPins);
 	void				Kill(void);
 
+	void				GetState(S65C64CoreState* psState);
+	void				SetState(S65C64CoreState* psState);
+
 	//Clocking.
 	void				InputTransition(CTimeline* pcTimeline);
 	void				ExecutePhi2Falling(CTimeline* pcTimeline);
@@ -159,6 +237,7 @@ public:
 	C65DataOperation*	GetDataOperation(void);
 	S65C64Decoded*		GetDecoded(void);
 	int16				GetCycle(void);
+	uint16				GetOpcode(void);
 	bool				IsStopped(void);
 	bool				IsWaiting(void);
 	uint8				GetPendingEdges(void);
@@ -273,6 +352,7 @@ protected:
 	void				SampleInterrupts(CTimeline* pcTimeline);
 	bool				EnterInterrupt(void);
 	void				StartInterrupt(uint16 uiVector, uint16 uiDisable);
+	void				DecodeInterrupt(uint16 uiVector);
 	void				AddTransfer(uint32 uiAddress, uint8 uiBytes, uint64 uiValue, bool bRead, bool bWrite);
 	void				AddWords(S65C64TransferWord* pasWords, size* puiNumWords, uint32 uiAddress, uint8 uiBytes);
 	void				PushTransfer(uint64 uiValue, uint8 uiBytes);

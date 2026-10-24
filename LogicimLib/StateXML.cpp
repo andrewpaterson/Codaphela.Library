@@ -20,6 +20,8 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
 #include "BaseLib/Logger.h"
 #include "BaseLib/StringHelper.h"
 #include "MicroprocessorLib/ClockOscillator.h"
@@ -27,6 +29,9 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MicroprocessorLib/Counter.h"
 #include "MicroprocessorLib/DTypeFlipFlop.h"
 #include "MicroprocessorLib/Oscilloscope.h"
+#include "MicroprocessorLib/W65C816Chip.h"
+#include "MicroprocessorLib/65C64Chip.h"
+#include "BaseLib/LogString.h"
 #include "StateXML.h"
 
 
@@ -35,6 +40,8 @@ CConstantStateXML			gcConstantStateXML;
 CCounterStateXML			gcCounterStateXML;
 CDTypeFlipFlopStateXML		gcDTypeFlipFlopStateXML;
 COscilloscopeStateXML		gcOscilloscopeStateXML;
+CW65C816ChipStateXML		gcW65C816ChipStateXML;
+C65C64ChipStateXML			gc65C64ChipStateXML;
 
 CStateXML* gapcStateXMLs[] =
 {
@@ -43,6 +50,8 @@ CStateXML* gapcStateXMLs[] =
 	&gcCounterStateXML,
 	&gcDTypeFlipFlopStateXML,
 	&gcOscilloscopeStateXML,
+	&gcW65C816ChipStateXML,
+	&gc65C64ChipStateXML,
 };
 
 
@@ -389,3 +398,525 @@ bool COscilloscopeStateXML::Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegr
 	return true;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static bool LoadStateBool(CMarkupTag* pcTag, const char* szName, bool* pbValue)
+{
+	if (!pcTag->GetBoolAttribute(szName, pbValue))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] ", szName, " must be true or false.", NULL);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static bool LoadStateInt(CMarkupTag* pcTag, const char* szName, int32 iMinimum, int32 iMaximum, int32* piValue)
+{
+	if (!pcTag->GetInt32Attribute(szName, piValue) || (*piValue < iMinimum) || (*piValue > iMaximum))
+	{
+		*piValue = 0;
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] ", szName, " must be a whole number from ", IntToString(iMinimum), " to ", IntToString(iMaximum), ".", NULL);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CW65C816ChipStateXML::GetIntegratedCircuitClassName(void) { return "CW65C816Chip"; }
+const char* CW65C816ChipStateXML::GetXMLName(void) { return "W65C816State"; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every register, flag and latch of the core as an attribute; addresses
+// are a bank and an offset.
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816ChipStateXML::Save(CXMLWriter* pcWriter, CIntegratedCircuit* pcIntegratedCircuit)
+{
+	SW65CCoreState	sState;
+
+	((CW65C816Chip*)pcIntegratedCircuit)->GetMPU()->GetState(&sState);
+	pcWriter->Begin(GetXMLName());
+	pcWriter->Attribute("emulation", sState.bEmulationFlag);
+	pcWriter->Attribute("zero", sState.bZeroFlag);
+	pcWriter->Attribute("negative", sState.bNegativeFlag);
+	pcWriter->Attribute("decimal", sState.bDecimalFlag);
+	pcWriter->Attribute("interruptDisable", sState.bInterruptDisableFlag);
+	pcWriter->Attribute("accumulatorWidth", sState.bAccumulatorWidthFlag);
+	pcWriter->Attribute("indexWidth", sState.bIndexWidthFlag);
+	pcWriter->Attribute("carry", sState.bCarryFlag);
+	pcWriter->Attribute("overflow", sState.bOverflowFlag);
+	pcWriter->Attribute("break", sState.bBreakFlag);
+	pcWriter->Attribute("accumulator", (int32)sState.uiAccumulator);
+	pcWriter->Attribute("xIndex", (int32)sState.uiXIndex);
+	pcWriter->Attribute("yIndex", (int32)sState.uiYIndex);
+	pcWriter->Attribute("dataBank", (int32)sState.uiDataBank);
+	pcWriter->Attribute("directPage", (int32)sState.uiDirectPage);
+	pcWriter->Attribute("programBank", (int32)sState.cProgramCounter.GetBank());
+	pcWriter->Attribute("programCounter", (int32)sState.cProgramCounter.GetOffset());
+	pcWriter->Attribute("stackPointer", (int32)sState.uiStackPointer);
+	pcWriter->Attribute("cycle", (int32)sState.iCycle);
+	pcWriter->Attribute("nextCycle", (int32)sState.iNextCycle);
+	pcWriter->Attribute("opcode", (int32)sState.uiOpcodeIndex);
+	pcWriter->Attribute("stopped", sState.bStopped);
+	pcWriter->Attribute("waiting", sState.bWaiting);
+	pcWriter->Attribute("emulationStatusBits", (int32)sState.uiEmulationStatusBits);
+	pcWriter->Attribute("abortProcessRegister", (int32)sState.uiAbortProcessRegister);
+	pcWriter->Attribute("abortAccumulator", (int32)sState.uiAbortAccumulator);
+	pcWriter->Attribute("abortXIndex", (int32)sState.uiAbortXIndex);
+	pcWriter->Attribute("abortYIndex", (int32)sState.uiAbortYIndex);
+	pcWriter->Attribute("abortDataBank", (int32)sState.uiAbortDataBank);
+	pcWriter->Attribute("abortDirectPage", (int32)sState.uiAbortDirectPage);
+	pcWriter->Attribute("abortProgramBank", (int32)sState.cAbortProgramCounter.GetBank());
+	pcWriter->Attribute("abortProgramCounter", (int32)sState.cAbortProgramCounter.GetOffset());
+	pcWriter->Attribute("abortStackPointer", (int32)sState.uiAbortStackPointer);
+	pcWriter->Attribute("addressBank", (int32)sState.cAddress.GetBank());
+	pcWriter->Attribute("address", (int32)sState.cAddress.GetOffset());
+	pcWriter->Attribute("data", (int32)sState.uiData);
+	pcWriter->Attribute("ioData", (int32)sState.uiIOData);
+	pcWriter->Attribute("directOffset", (int32)sState.uiDirectOffset);
+	pcWriter->Attribute("newProgramBank", (int32)sState.cNewProgramCounter.GetBank());
+	pcWriter->Attribute("newProgramCounter", (int32)sState.cNewProgramCounter.GetOffset());
+	pcWriter->Attribute("busEnable", sState.bBusEnable);
+	pcWriter->Attribute("irq", sState.bIrq);
+	pcWriter->Attribute("abort", sState.bAbort);
+	pcWriter->Attribute("nextInstruction", sState.bNextInstruction);
+	pcWriter->Attribute("nmi", sState.bNmi);
+	pcWriter->Attribute("previousClockLow", sState.bPreviousClockLow);
+	pcWriter->Attribute("previousClockHigh", sState.bPreviousClockHigh);
+	pcWriter->Attribute("resetCount", (int32)sState.uiResetCount);
+	pcWriter->End();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every attribute must be there; nothing is changed if one isn't.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CW65C816ChipStateXML::Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegratedCircuit)
+{
+	SW65CCoreState	sState;
+	int32			iValue;
+	int32			iBank;
+	bool			bResult;
+
+	bResult = true;
+	iValue = 0;
+	iBank = 0;
+	bResult &= LoadStateBool(pcTag, "emulation", &sState.bEmulationFlag);
+	bResult &= LoadStateBool(pcTag, "zero", &sState.bZeroFlag);
+	bResult &= LoadStateBool(pcTag, "negative", &sState.bNegativeFlag);
+	bResult &= LoadStateBool(pcTag, "decimal", &sState.bDecimalFlag);
+	bResult &= LoadStateBool(pcTag, "interruptDisable", &sState.bInterruptDisableFlag);
+	bResult &= LoadStateBool(pcTag, "accumulatorWidth", &sState.bAccumulatorWidthFlag);
+	bResult &= LoadStateBool(pcTag, "indexWidth", &sState.bIndexWidthFlag);
+	bResult &= LoadStateBool(pcTag, "carry", &sState.bCarryFlag);
+	bResult &= LoadStateBool(pcTag, "overflow", &sState.bOverflowFlag);
+	bResult &= LoadStateBool(pcTag, "break", &sState.bBreakFlag);
+	bResult &= LoadStateInt(pcTag, "accumulator", 0, 0xFFFF, &iValue);
+	sState.uiAccumulator = (uint16)iValue;
+	bResult &= LoadStateInt(pcTag, "xIndex", 0, 0xFFFF, &iValue);
+	sState.uiXIndex = (uint16)iValue;
+	bResult &= LoadStateInt(pcTag, "yIndex", 0, 0xFFFF, &iValue);
+	sState.uiYIndex = (uint16)iValue;
+	bResult &= LoadStateInt(pcTag, "dataBank", 0, 0xFF, &iValue);
+	sState.uiDataBank = (uint8)iValue;
+	bResult &= LoadStateInt(pcTag, "directPage", 0, 0xFFFF, &iValue);
+	sState.uiDirectPage = (uint16)iValue;
+	bResult &= LoadStateInt(pcTag, "programBank", 0, 0xFF, &iBank);
+	bResult &= LoadStateInt(pcTag, "programCounter", 0, 0xFFFF, &iValue);
+	sState.cProgramCounter.Init((uint8)iBank, (uint16)iValue);
+	bResult &= LoadStateInt(pcTag, "stackPointer", 0, 0xFFFF, &iValue);
+	sState.uiStackPointer = (uint16)iValue;
+	bResult &= LoadStateInt(pcTag, "cycle", -0x8000, 0x7FFF, &iValue);
+	sState.iCycle = (int16)iValue;
+	bResult &= LoadStateInt(pcTag, "nextCycle", -0x8000, 0x7FFF, &iValue);
+	sState.iNextCycle = (int16)iValue;
+	bResult &= LoadStateInt(pcTag, "opcode", 0, 0xFFFF, &iValue);
+	sState.uiOpcodeIndex = (uint16)iValue;
+	bResult &= LoadStateBool(pcTag, "stopped", &sState.bStopped);
+	bResult &= LoadStateBool(pcTag, "waiting", &sState.bWaiting);
+	bResult &= LoadStateInt(pcTag, "emulationStatusBits", 0, 0xFF, &iValue);
+	sState.uiEmulationStatusBits = (uint8)iValue;
+	bResult &= LoadStateInt(pcTag, "abortProcessRegister", 0, 0xFF, &iValue);
+	sState.uiAbortProcessRegister = (uint8)iValue;
+	bResult &= LoadStateInt(pcTag, "abortAccumulator", 0, 0xFFFF, &iValue);
+	sState.uiAbortAccumulator = (uint16)iValue;
+	bResult &= LoadStateInt(pcTag, "abortXIndex", 0, 0xFFFF, &iValue);
+	sState.uiAbortXIndex = (uint16)iValue;
+	bResult &= LoadStateInt(pcTag, "abortYIndex", 0, 0xFFFF, &iValue);
+	sState.uiAbortYIndex = (uint16)iValue;
+	bResult &= LoadStateInt(pcTag, "abortDataBank", 0, 0xFF, &iValue);
+	sState.uiAbortDataBank = (uint8)iValue;
+	bResult &= LoadStateInt(pcTag, "abortDirectPage", 0, 0xFFFF, &iValue);
+	sState.uiAbortDirectPage = (uint16)iValue;
+	bResult &= LoadStateInt(pcTag, "abortProgramBank", 0, 0xFF, &iBank);
+	bResult &= LoadStateInt(pcTag, "abortProgramCounter", 0, 0xFFFF, &iValue);
+	sState.cAbortProgramCounter.Init((uint8)iBank, (uint16)iValue);
+	bResult &= LoadStateInt(pcTag, "abortStackPointer", 0, 0xFFFF, &iValue);
+	sState.uiAbortStackPointer = (uint16)iValue;
+	bResult &= LoadStateInt(pcTag, "addressBank", 0, 0xFF, &iBank);
+	bResult &= LoadStateInt(pcTag, "address", 0, 0xFFFF, &iValue);
+	sState.cAddress.Init((uint8)iBank, (uint16)iValue);
+	bResult &= LoadStateInt(pcTag, "data", 0, 0xFFFF, &iValue);
+	sState.uiData = (uint16)iValue;
+	bResult &= LoadStateInt(pcTag, "ioData", 0, 0xFF, &iValue);
+	sState.uiIOData = (uint8)iValue;
+	bResult &= LoadStateInt(pcTag, "directOffset", 0, 0xFFFF, &iValue);
+	sState.uiDirectOffset = (uint16)iValue;
+	bResult &= LoadStateInt(pcTag, "newProgramBank", 0, 0xFF, &iBank);
+	bResult &= LoadStateInt(pcTag, "newProgramCounter", 0, 0xFFFF, &iValue);
+	sState.cNewProgramCounter.Init((uint8)iBank, (uint16)iValue);
+	bResult &= LoadStateBool(pcTag, "busEnable", &sState.bBusEnable);
+	bResult &= LoadStateBool(pcTag, "irq", &sState.bIrq);
+	bResult &= LoadStateBool(pcTag, "abort", &sState.bAbort);
+	bResult &= LoadStateBool(pcTag, "nextInstruction", &sState.bNextInstruction);
+	bResult &= LoadStateBool(pcTag, "nmi", &sState.bNmi);
+	bResult &= LoadStateBool(pcTag, "previousClockLow", &sState.bPreviousClockLow);
+	bResult &= LoadStateBool(pcTag, "previousClockHigh", &sState.bPreviousClockHigh);
+	bResult &= LoadStateInt(pcTag, "resetCount", 0, 0xFFFF, &iValue);
+	sState.uiResetCount = (uint16)iValue;
+	if (!bResult)
+	{
+		return false;
+	}
+	((CW65C816Chip*)pcIntegratedCircuit)->GetMPU()->SetState(&sState);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* gasz65C64Decoded[] = { "none", "opcode", "interrupt" };
+static const char* gasz65C64Instructions[] = { "none", "opcode", "reset", "fetchNext", "interrupt", "wait" };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static bool LoadStateInt64(CMarkupTag* pcTag, const char* szName, int64 iMinimum, int64 iMaximum, int64* piValue)
+{
+	if (!pcTag->GetInt64Attribute(szName, piValue) || (*piValue < iMinimum) || (*piValue > iMaximum))
+	{
+		*piValue = 0;
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] ", szName, " must be a whole number in range.", NULL);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The index of szValue in aszNames, or -1 (and an error logged).
+//
+//////////////////////////////////////////////////////////////////////////
+static int LoadStateName(CMarkupTag* pcTag, const char* szName, const char** aszNames, int iNumNames)
+{
+	char*	szValue;
+	int		i;
+
+	szValue = pcTag->GetStringAttribute(szName);
+	if (szValue != NULL)
+	{
+		for (i = 0; i < iNumNames; i++)
+		{
+			if (StringCompare(szValue, aszNames[i]) == 0)
+			{
+				return i;
+			}
+		}
+	}
+	gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] has no ", szName, " or an unknown one [", (szValue != NULL) ? szValue : "", "].", NULL);
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The read or write words: each <szElement address transfer lanes/>.
+//
+//////////////////////////////////////////////////////////////////////////
+static void Save65C64Words(CXMLWriter* pcWriter, const char* szElement, S65C64TransferWord* asWords, size uiNumWords)
+{
+	size	i;
+
+	for (i = 0; i < uiNumWords; i++)
+	{
+		pcWriter->Begin(szElement);
+		pcWriter->Attribute("address", (int64)asWords[i].uiAddress);
+		pcWriter->Attribute("transfer", (int32)asWords[i].uiTransfer);
+		pcWriter->Attribute("lanes", (int32)asWords[i].uiLanes);
+		pcWriter->End();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The words go in asWords in order; there can be no more than the most a
+// core holds.  A word's transfer must be one of the uiNumTransfers.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool Load65C64Words(CMarkupTag* pcTag, const char* szElement, S65C64TransferWord* asWords, size* puiNumWords, size uiNumTransfers)
+{
+	STagIterator	sIter;
+	CMarkupTag*		pcWord;
+	int64			iAddress;
+	int64			iTransfer;
+	int64			iLanes;
+
+	memset(asWords, 0, sizeof(S65C64TransferWord) * MAX_65C64_TRANSFER_WORDS);
+	*puiNumWords = 0;
+	pcWord = pcTag->GetTag(szElement, &sIter);
+	while (pcWord != NULL)
+	{
+		if ((*puiNumWords >= MAX_65C64_TRANSFER_WORDS) ||
+			!LoadStateInt64(pcWord, "address", 0, 0xFFFFFFFFLL, &iAddress) ||
+			!LoadStateInt64(pcWord, "transfer", 0, (int64)uiNumTransfers - 1, &iTransfer) ||
+			!LoadStateInt64(pcWord, "lanes", 0, 0xFF, &iLanes))
+		{
+			return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] has a bad or one too many ", szElement, ".", NULL);
+		}
+		asWords[*puiNumWords].uiAddress = (uint32)iAddress;
+		asWords[*puiNumWords].uiTransfer = (uint8)iTransfer;
+		asWords[*puiNumWords].uiLanes = (uint8)iLanes;
+		(*puiNumWords)++;
+		pcWord = pcTag->GetNextTag(&sIter);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+const char* C65C64ChipStateXML::GetIntegratedCircuitClassName(void) { return "C65C64Chip"; }
+const char* C65C64ChipStateXML::GetXMLName(void) { return "State65C64"; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The registers, latches and flags as attributes (64 bit values as their
+// signed bits), the operand words as a list, and each transfer and read
+// and write word in progress as an element.
+//
+//////////////////////////////////////////////////////////////////////////
+void C65C64ChipStateXML::Save(CXMLWriter* pcWriter, CIntegratedCircuit* pcIntegratedCircuit)
+{
+	S65C64CoreState		sState;
+	CChars				szWords;
+	size				i;
+
+	((C65C64Chip*)pcIntegratedCircuit)->GetMPU()->GetState(&sState);
+	pcWriter->Begin(GetXMLName());
+	pcWriter->Attribute("a", (int64)sState.uiA);
+	pcWriter->Attribute("b", (int64)sState.uiB);
+	pcWriter->Attribute("x", (int64)sState.uiX);
+	pcWriter->Attribute("y", (int64)sState.uiY);
+	pcWriter->Attribute("s", (int64)sState.uiS);
+	pcWriter->Attribute("v", (int64)sState.uiV);
+	pcWriter->Attribute("w", (int64)sState.uiW);
+	pcWriter->Attribute("c", (int64)sState.uiC);
+	pcWriter->Attribute("p", (int64)sState.uiP);
+	pcWriter->Attribute("interruptDepth", (int64)sState.uiInterruptDepth);
+	pcWriter->Attribute("di", (int64)sState.uiDI);
+	pcWriter->Attribute("operationBytes", (int64)sState.uiOperationBytes);
+	pcWriter->Attribute("pointerAddress", (int64)sState.uiPointerAddress);
+	pcWriter->Attribute("pointer", (int64)sState.uiPointer);
+	pcWriter->Attribute("numPointerWords", (int64)sState.uiNumPointerWords);
+	pcWriter->Attribute("effectiveAddress", (int64)sState.uiEffectiveAddress);
+	pcWriter->Attribute("vectorAddress", (int64)sState.uiVectorAddress);
+	pcWriter->Attribute("vector", (int64)sState.uiVector);
+	pcWriter->Attribute("opcode", (int64)sState.uiOpcode);
+	pcWriter->Attribute("decodedVector", (int64)sState.uiDecodedVector);
+	pcWriter->Attribute("cycle", (int64)sState.iCycle);
+	pcWriter->Attribute("nextCycle", (int64)sState.iNextCycle);
+	pcWriter->Attribute("nextInstruction", sState.bNextInstruction);
+	pcWriter->Attribute("stopped", sState.bStopped);
+	pcWriter->Attribute("waiting", sState.bWaiting);
+	pcWriter->Attribute("wakeMask", (int64)sState.uiWakeMask);
+	pcWriter->Attribute("pendingEdges", (int64)sState.uiPendingEdges);
+	pcWriter->Attribute("edgeLow", (int64)sState.uiEdgeLow);
+	pcWriter->Attribute("levelInterrupt", sState.bLevelInterrupt);
+	pcWriter->Attribute("ioData", (int64)sState.uiIOData);
+	pcWriter->Attribute("previousClockLow", sState.bPreviousClockLow);
+	pcWriter->Attribute("previousClockHigh", sState.bPreviousClockHigh);
+	pcWriter->Attribute("reset", sState.bReset);
+	szWords.Init();
+	for (i = 0; i < MAX_65C64_OPERAND_WORDS; i++)
+	{
+		if (i != 0)
+		{
+			szWords.Append(' ');
+		}
+		szWords.Append((int32)sState.auiOperandWords[i]);
+	}
+	pcWriter->Attribute("operandWords", szWords.Text());
+	szWords.Kill();
+	pcWriter->Attribute("decoded", gasz65C64Decoded[sState.eDecoded]);
+	pcWriter->Attribute("instruction", gasz65C64Instructions[sState.eInstruction]);
+
+	for (i = 0; i < sState.uiNumTransfers; i++)
+	{
+		pcWriter->Begin("Transfer");
+		pcWriter->Attribute("address", (int64)sState.asTransfers[i].uiAddress);
+		pcWriter->Attribute("bytes", (int32)sState.asTransfers[i].uiBytes);
+		pcWriter->Attribute("value", (int64)sState.asTransfers[i].uiValue);
+		pcWriter->Attribute("pulled", (int32)sState.aePulled[i]);
+		pcWriter->End();
+	}
+	Save65C64Words(pcWriter, "ReadWord", sState.asReadWords, sState.uiNumReadWords);
+	Save65C64Words(pcWriter, "WriteWord", sState.asWriteWords, sState.uiNumWriteWords);
+	pcWriter->End();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every attribute must be there; nothing is changed if one isn't.  The
+// 65C64 instruction factory must be initialised.
+//
+//////////////////////////////////////////////////////////////////////////
+bool C65C64ChipStateXML::Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegratedCircuit)
+{
+	S65C64CoreState		sState;
+	int64				iValue;
+	bool				bResult;
+	char*				szWords;
+	char*				szEnd;
+	size				i;
+	int					iKind;
+	STagIterator		sIter;
+	CMarkupTag*			pcTransfer;
+	int64				iAddress;
+	int64				iBytes;
+	int64				iPulled;
+
+	memset(&sState, 0, sizeof(S65C64CoreState));
+	bResult = true;
+	iValue = 0;
+	bResult &= LoadStateInt64(pcTag, "a", INT64_MIN, INT64_MAX, &iValue);
+	sState.uiA = (uint64)iValue;
+	bResult &= LoadStateInt64(pcTag, "b", INT64_MIN, INT64_MAX, &iValue);
+	sState.uiB = (uint64)iValue;
+	bResult &= LoadStateInt64(pcTag, "x", INT64_MIN, INT64_MAX, &iValue);
+	sState.uiX = (uint64)iValue;
+	bResult &= LoadStateInt64(pcTag, "y", INT64_MIN, INT64_MAX, &iValue);
+	sState.uiY = (uint64)iValue;
+	bResult &= LoadStateInt64(pcTag, "s", 0, 0xFFFFFFFFLL, &iValue);
+	sState.uiS = (uint32)iValue;
+	bResult &= LoadStateInt64(pcTag, "v", 0, 0xFFFFFFFFLL, &iValue);
+	sState.uiV = (uint32)iValue;
+	bResult &= LoadStateInt64(pcTag, "w", 0, 0xFFFFFFFFLL, &iValue);
+	sState.uiW = (uint32)iValue;
+	bResult &= LoadStateInt64(pcTag, "c", 0, 0xFFFFFFFFLL, &iValue);
+	sState.uiC = (uint32)iValue;
+	bResult &= LoadStateInt64(pcTag, "p", 0, 0xFFFF, &iValue);
+	sState.uiP = (uint16)iValue;
+	bResult &= LoadStateInt64(pcTag, "interruptDepth", 0, 0xFFFFFFFFLL, &iValue);
+	sState.uiInterruptDepth = (uint32)iValue;
+	bResult &= LoadStateInt64(pcTag, "di", INT64_MIN, INT64_MAX, &iValue);
+	sState.uiDI = (uint64)iValue;
+	bResult &= LoadStateInt64(pcTag, "operationBytes", 0, 0xFF, &iValue);
+	sState.uiOperationBytes = (uint8)iValue;
+	bResult &= LoadStateInt64(pcTag, "pointerAddress", 0, 0xFFFFFFFFLL, &iValue);
+	sState.uiPointerAddress = (uint32)iValue;
+	bResult &= LoadStateInt64(pcTag, "pointer", 0, 0xFFFFFFFFLL, &iValue);
+	sState.uiPointer = (uint32)iValue;
+	bResult &= LoadStateInt64(pcTag, "numPointerWords", 0, 0xFF, &iValue);
+	sState.uiNumPointerWords = (uint8)iValue;
+	bResult &= LoadStateInt64(pcTag, "effectiveAddress", 0, 0xFFFFFFFFLL, &iValue);
+	sState.uiEffectiveAddress = (uint32)iValue;
+	bResult &= LoadStateInt64(pcTag, "vectorAddress", 0, 0xFFFFFFFFLL, &iValue);
+	sState.uiVectorAddress = (uint32)iValue;
+	bResult &= LoadStateInt64(pcTag, "vector", 0, 0xFFFFFFFFLL, &iValue);
+	sState.uiVector = (uint32)iValue;
+	bResult &= LoadStateInt64(pcTag, "opcode", 0, 0xFFFF, &iValue);
+	sState.uiOpcode = (uint16)iValue;
+	bResult &= LoadStateInt64(pcTag, "decodedVector", 0, 0xFFFF, &iValue);
+	sState.uiDecodedVector = (uint16)iValue;
+	bResult &= LoadStateInt64(pcTag, "cycle", -0x8000, 0x7FFF, &iValue);
+	sState.iCycle = (int16)iValue;
+	bResult &= LoadStateInt64(pcTag, "nextCycle", -0x8000, 0x7FFF, &iValue);
+	sState.iNextCycle = (int16)iValue;
+	bResult &= LoadStateBool(pcTag, "nextInstruction", &sState.bNextInstruction);
+	bResult &= LoadStateBool(pcTag, "stopped", &sState.bStopped);
+	bResult &= LoadStateBool(pcTag, "waiting", &sState.bWaiting);
+	bResult &= LoadStateInt64(pcTag, "wakeMask", 0, 0xFF, &iValue);
+	sState.uiWakeMask = (uint8)iValue;
+	bResult &= LoadStateInt64(pcTag, "pendingEdges", 0, 0xFF, &iValue);
+	sState.uiPendingEdges = (uint8)iValue;
+	bResult &= LoadStateInt64(pcTag, "edgeLow", 0, 0xFF, &iValue);
+	sState.uiEdgeLow = (uint8)iValue;
+	bResult &= LoadStateBool(pcTag, "levelInterrupt", &sState.bLevelInterrupt);
+	bResult &= LoadStateInt64(pcTag, "ioData", 0, 0xFFFF, &iValue);
+	sState.uiIOData = (uint16)iValue;
+	bResult &= LoadStateBool(pcTag, "previousClockLow", &sState.bPreviousClockLow);
+	bResult &= LoadStateBool(pcTag, "previousClockHigh", &sState.bPreviousClockHigh);
+	bResult &= LoadStateBool(pcTag, "reset", &sState.bReset);
+
+	szWords = pcTag->GetStringAttribute("operandWords");
+	for (i = 0; (i < MAX_65C64_OPERAND_WORDS) && bResult; i++)
+	{
+		iValue = (szWords != NULL) ? strtoll(szWords, &szEnd, 10) : -1;
+		if ((szWords == NULL) || (szEnd == szWords) || (iValue < 0) || (iValue > 0xFFFF))
+		{
+			bResult = gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs four operandWords from 0 to 65535.", NULL);
+			break;
+		}
+		sState.auiOperandWords[i] = (uint16)iValue;
+		szWords = szEnd;
+	}
+
+	iKind = LoadStateName(pcTag, "decoded", gasz65C64Decoded, sizeof(gasz65C64Decoded) / sizeof(const char*));
+	bResult &= iKind != -1;
+	sState.eDecoded = (E65C64DecodedKind)((iKind != -1) ? iKind : 0);
+	iKind = LoadStateName(pcTag, "instruction", gasz65C64Instructions, sizeof(gasz65C64Instructions) / sizeof(const char*));
+	bResult &= iKind != -1;
+	sState.eInstruction = (E65C64InstructionKind)((iKind != -1) ? iKind : 0);
+
+	pcTransfer = pcTag->GetTag("Transfer", &sIter);
+	while ((pcTransfer != NULL) && bResult)
+	{
+		if ((sState.uiNumTransfers >= MAX_65C64_TRANSFERS) ||
+			!LoadStateInt64(pcTransfer, "address", 0, 0xFFFFFFFFLL, &iAddress) ||
+			!LoadStateInt64(pcTransfer, "bytes", 0, 8, &iBytes) ||
+			!LoadStateInt64(pcTransfer, "value", INT64_MIN, INT64_MAX, &iValue) ||
+			!LoadStateInt64(pcTransfer, "pulled", R65_Zero, R65_Y, &iPulled))
+		{
+			bResult = gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] has a bad or one too many Transfer.", NULL);
+			break;
+		}
+		sState.asTransfers[sState.uiNumTransfers].uiAddress = (uint32)iAddress;
+		sState.asTransfers[sState.uiNumTransfers].uiBytes = (uint8)iBytes;
+		sState.asTransfers[sState.uiNumTransfers].uiValue = (uint64)iValue;
+		sState.aePulled[sState.uiNumTransfers] = (E65Register)iPulled;
+		sState.uiNumTransfers++;
+		pcTransfer = pcTag->GetNextTag(&sIter);
+	}
+	bResult = bResult && Load65C64Words(pcTag, "ReadWord", sState.asReadWords, &sState.uiNumReadWords, sState.uiNumTransfers);
+	bResult = bResult && Load65C64Words(pcTag, "WriteWord", sState.asWriteWords, &sState.uiNumWriteWords, sState.uiNumTransfers);
+
+	if (!bResult)
+	{
+		return false;
+	}
+	((C65C64Chip*)pcIntegratedCircuit)->GetMPU()->SetState(&sState);
+	return true;
+}

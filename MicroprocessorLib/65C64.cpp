@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <string.h>
 #include "BaseLib/Logger.h"
 #include "65Instruction.h"
 #include "65BusCycle.h"
@@ -230,6 +231,209 @@ void C65C64::Kill(void)
 {
 	mpcInstruction = NULL;
 	mpcPins = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void C65C64::GetState(S65C64CoreState* psState)
+{
+	C65C64InstructionFactory*	pcFactory;
+	S65C64Decoded				sDecoded;
+
+	psState->uiA = muiA;
+	psState->uiB = muiB;
+	psState->uiX = muiX;
+	psState->uiY = muiY;
+	psState->uiS = muiS;
+	psState->uiV = muiV;
+	psState->uiW = muiW;
+	psState->uiC = muiC;
+	psState->uiP = muiP;
+	psState->uiInterruptDepth = muiInterruptDepth;
+
+	psState->uiDI = muiDI;
+	psState->uiOperationBytes = muiOperationBytes;
+	memcpy(psState->auiOperandWords, mauiOperandWords, sizeof(mauiOperandWords));
+	psState->uiPointerAddress = muiPointerAddress;
+	psState->uiPointer = muiPointer;
+	psState->uiNumPointerWords = muiNumPointerWords;
+	psState->uiEffectiveAddress = muiEffectiveAddress;
+	psState->uiVectorAddress = muiVectorAddress;
+	psState->uiVector = muiVector;
+	memcpy(psState->asTransfers, masTransfers, sizeof(masTransfers));
+	memcpy(psState->aePulled, maePulled, sizeof(maePulled));
+	psState->uiNumTransfers = muiNumTransfers;
+	memcpy(psState->asReadWords, masReadWords, sizeof(masReadWords));
+	psState->uiNumReadWords = muiNumReadWords;
+	memcpy(psState->asWriteWords, masWriteWords, sizeof(masWriteWords));
+	psState->uiNumWriteWords = muiNumWriteWords;
+
+	psState->uiOpcode = muiOpcode;
+	psState->uiDecodedVector = 0;
+	Decode65C64(muiOpcode, &sDecoded);
+	if (msDecoded.eInstruction == I65_Interrupt)
+	{
+		psState->eDecoded = DK65_Interrupt;
+		psState->uiDecodedVector = msDecoded.uiVector;
+	}
+	else if (memcmp(&msDecoded, &sDecoded, sizeof(S65C64Decoded)) == 0)
+	{
+		psState->eDecoded = DK65_Opcode;
+	}
+	else
+	{
+		psState->eDecoded = DK65_None;
+	}
+
+	pcFactory = C65C64InstructionFactory::GetInstance();
+	if (mpcInstruction == NULL)
+	{
+		psState->eInstruction = IK65_None;
+	}
+	else if (mpcInstruction == pcFactory->GetReset())
+	{
+		psState->eInstruction = IK65_Reset;
+	}
+	else if (mpcInstruction == pcFactory->GetFetchNext())
+	{
+		psState->eInstruction = IK65_FetchNext;
+	}
+	else if (mpcInstruction == pcFactory->GetInterrupt())
+	{
+		psState->eInstruction = IK65_Interrupt;
+	}
+	else if (mpcInstruction == pcFactory->GetWait())
+	{
+		psState->eInstruction = IK65_Wait;
+	}
+	else
+	{
+		psState->eInstruction = IK65_Opcode;
+	}
+	psState->iCycle = miCycle;
+	psState->iNextCycle = miNextCycle;
+	psState->bNextInstruction = mbNextInstruction;
+	psState->bStopped = mbStopped;
+
+	psState->bWaiting = mbWaiting;
+	psState->uiWakeMask = muiWakeMask;
+	psState->uiPendingEdges = muiPendingEdges;
+	psState->uiEdgeLow = muiEdgeLow;
+	psState->bLevelInterrupt = mbLevelInterrupt;
+
+	psState->uiIOData = muiIOData;
+	psState->bPreviousClockLow = mbPreviousClockLow;
+	psState->bPreviousClockHigh = mbPreviousClockHigh;
+	psState->bReset = mbReset;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The core carries on from the state as if it had never stopped.  The
+// instruction factory must be initialised.
+//
+//////////////////////////////////////////////////////////////////////////
+void C65C64::SetState(S65C64CoreState* psState)
+{
+	C65C64InstructionFactory*	pcFactory;
+
+	muiA = psState->uiA;
+	muiB = psState->uiB;
+	muiX = psState->uiX;
+	muiY = psState->uiY;
+	muiS = psState->uiS;
+	muiV = psState->uiV;
+	muiW = psState->uiW;
+	muiC = psState->uiC;
+	muiP = psState->uiP;
+	muiInterruptDepth = psState->uiInterruptDepth;
+
+	muiDI = psState->uiDI;
+	muiOperationBytes = psState->uiOperationBytes;
+	memcpy(mauiOperandWords, psState->auiOperandWords, sizeof(mauiOperandWords));
+	muiPointerAddress = psState->uiPointerAddress;
+	muiPointer = psState->uiPointer;
+	muiNumPointerWords = psState->uiNumPointerWords;
+	muiEffectiveAddress = psState->uiEffectiveAddress;
+	muiVectorAddress = psState->uiVectorAddress;
+	muiVector = psState->uiVector;
+	memcpy(masTransfers, psState->asTransfers, sizeof(masTransfers));
+	memcpy(maePulled, psState->aePulled, sizeof(maePulled));
+	muiNumTransfers = psState->uiNumTransfers;
+	memcpy(masReadWords, psState->asReadWords, sizeof(masReadWords));
+	muiNumReadWords = psState->uiNumReadWords;
+	memcpy(masWriteWords, psState->asWriteWords, sizeof(masWriteWords));
+	muiNumWriteWords = psState->uiNumWriteWords;
+
+	muiOpcode = psState->uiOpcode;
+	if (psState->eDecoded == DK65_Interrupt)
+	{
+		DecodeInterrupt(psState->uiDecodedVector);
+	}
+	else if (psState->eDecoded == DK65_Opcode)
+	{
+		Decode65C64(muiOpcode, &msDecoded);
+	}
+	else
+	{
+		memset(&msDecoded, 0, sizeof(S65C64Decoded));
+	}
+
+	pcFactory = C65C64InstructionFactory::GetInstance();
+	switch (psState->eInstruction)
+	{
+	case IK65_Opcode:
+		mpcInstruction = pcFactory->GetInstruction(muiOpcode);
+		break;
+	case IK65_Reset:
+		mpcInstruction = pcFactory->GetReset();
+		break;
+	case IK65_FetchNext:
+		mpcInstruction = pcFactory->GetFetchNext();
+		break;
+	case IK65_Interrupt:
+		mpcInstruction = pcFactory->GetInterrupt();
+		break;
+	case IK65_Wait:
+		mpcInstruction = pcFactory->GetWait();
+		break;
+	default:
+		mpcInstruction = NULL;
+		break;
+	}
+	miCycle = psState->iCycle;
+	miNextCycle = psState->iNextCycle;
+	mbNextInstruction = psState->bNextInstruction;
+	mbStopped = psState->bStopped;
+
+	mbWaiting = psState->bWaiting;
+	muiWakeMask = psState->uiWakeMask;
+	muiPendingEdges = psState->uiPendingEdges;
+	muiEdgeLow = psState->uiEdgeLow;
+	mbLevelInterrupt = psState->bLevelInterrupt;
+
+	muiIOData = psState->uiIOData;
+	mbPreviousClockLow = psState->bPreviousClockLow;
+	mbPreviousClockHigh = psState->bPreviousClockHigh;
+	mbReset = psState->bReset;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An interrupt is decoded as an instruction of its own that pushes on S.
+//
+//////////////////////////////////////////////////////////////////////////
+void C65C64::DecodeInterrupt(uint16 uiVector)
+{
+	memset(&msDecoded, 0, sizeof(S65C64Decoded));
+	msDecoded.eInstruction = I65_Interrupt;
+	msDecoded.eStack = R65_S;
+	msDecoded.uiVector = uiVector;
 }
 
 
@@ -523,10 +727,7 @@ bool C65C64::EnterInterrupt(void)
 void C65C64::StartInterrupt(uint16 uiVector, uint16 uiDisable)
 {
 	ResetInstructionState();
-	memset(&msDecoded, 0, sizeof(S65C64Decoded));
-	msDecoded.eInstruction = I65_Interrupt;
-	msDecoded.eStack = R65_S;
-	msDecoded.uiVector = uiVector;
+	DecodeInterrupt(uiVector);
 
 	PushTransfer(muiC, 4);
 	PushTransfer(muiP, 2);
@@ -626,6 +827,16 @@ S65C64Decoded* C65C64::GetDecoded(void)
 int16 C65C64::GetCycle(void)
 {
 	return miCycle;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 C65C64::GetOpcode(void)
+{
+	return muiOpcode;
 }
 
 

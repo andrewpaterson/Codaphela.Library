@@ -92,6 +92,29 @@ public:
 };
 
 
+//The core of a W65C816 chip: every register, flag and latch, so a saved running processor carries on where it was.
+class CW65C816ChipStateXML : public CStateXML
+{
+public:
+	const char*	GetIntegratedCircuitClassName(void) override;
+	const char*	GetXMLName(void) override;
+	void		Save(CXMLWriter* pcWriter, CIntegratedCircuit* pcIntegratedCircuit) override;
+	bool		Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegratedCircuit) override;
+};
+
+
+//The core of a 65C64 chip: its registers, latches, interrupt state and the memory transfers of the instruction in
+//progress.  (XML names can't start with a digit, so the element is State65C64.)
+class C65C64ChipStateXML : public CStateXML
+{
+public:
+	const char*	GetIntegratedCircuitClassName(void) override;
+	const char*	GetXMLName(void) override;
+	void		Save(CXMLWriter* pcWriter, CIntegratedCircuit* pcIntegratedCircuit) override;
+	bool		Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegratedCircuit) override;
+};
+
+
 CStateXML*	FindStateXMLForIntegratedCircuit(CIntegratedCircuit* pcIntegratedCircuit);
 CStateXML*	FindStateXMLForElement(const char* szXMLName);
 

@@ -52,6 +52,8 @@ void CCircuitColours::InitLogicim(void)
 	msDisconnectedTrace = Set32BitColour((uint8)0, (uint8)170, (uint8)250);
 	msDifferingBusTrace = Set32BitColour((uint8)20, (uint8)230, (uint8)180);
 	msText = Set32BitColour((uint8)0, (uint8)0, (uint8)0);
+	msCommentText = Set32BitColour((uint8)64, (uint8)64, (uint8)64);
+	msHiddenText = Set32BitColour((uint8)192, (uint8)192, (uint8)192);
 }
 
 
@@ -86,6 +88,8 @@ void CCircuitColours::InitDark(void)
 	msDisconnectedTrace = Set32BitColour((uint8)0, (uint8)170, (uint8)250);
 	msDifferingBusTrace = Set32BitColour((uint8)20, (uint8)230, (uint8)180);
 	msText = Set32BitColour((uint8)0xDF, (uint8)0xE1, (uint8)0xE5);
+	msCommentText = Set32BitColour((uint8)0x8C, (uint8)0x8F, (uint8)0x94);
+	msHiddenText = Set32BitColour((uint8)0x5A, (uint8)0x5D, (uint8)0x63);
 }
 
 

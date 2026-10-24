@@ -49,7 +49,9 @@ typedef CArrayTemplate<STrueTypeFontCharacter>	CArrayTrueTypeFontCharacter;
 //then Rasterise draws an image (opacity, red, green and blue, PT_uint8) in a colour for that layout, as many times
 //as there are colours.  A CFont is a description with one of its images.  Each glyph's full size is its advance by
 //the line height, so text laid out with CTextLayout sits on a common baseline.  Advances are rounded to whole pixels.
-//The arithmetic is integer, so every build makes the same font.
+//The arithmetic is integer, so every build makes the same font.  A factory made with FT_Clockwise makes fonts whose
+//glyphs are turned a quarter clockwise (see EFontTurn).  Glyph bounds and image sizes in STrueTypeFontCharacter are
+//always upright; only the packed image is turned.
 class CTrueTypeFontFactory
 {
 protected:
@@ -59,9 +61,10 @@ protected:
 	int								miAscent;
 	int								miDescent;
 	int32							miPixelSize64;	//The size in 1/64 pixels.
+	EFontTurn						meTurn;
 
 public:
-	void			Init(CTrueTypeFont* pcFont, float32 fPixelSize);
+	void			Init(CTrueTypeFont* pcFont, float32 fPixelSize, EFontTurn eTurn = FT_Upright);
 	void			Kill(void);
 
 	Ptr<CFontDescription>	Describe(char* szName, char* szUTF8Characters, int iImageWidth = 512);
@@ -76,11 +79,16 @@ protected:
 	bool			AddCharacters(char* szUTF8Characters);
 	bool			HasCharacter(uint32 uiCodePoint);
 	bool			Pack(int iImageWidth, int* piImageHeight);
+	int				GetPackedWidth(STrueTypeFontCharacter* psCharacter);
+	int				GetPackedHeight(STrueTypeFontCharacter* psCharacter);
 	void			CopyGlyph(Ptr<CImage> pImage, int iGlyph, CSubImage* pcSubImage, CImageColourRGB* pcColour);
 	uint8			ColourByte(float32 fChannel);
 	int16			ScaleFontUnits(int iUnits);
 	void			DescribeScriptAndLines(Ptr<CFontDescription> pDescription);
 };
+
+
+int TurnedGlyphOffset(EFontTurn eTurn, int x, int y, int iGlyphWidth, int iImageWidth);
 
 
 #endif // __TRUE_TYPE_FONT_FACTORY_H__

@@ -159,7 +159,15 @@ void C65C64InstructionFactory::Init(void)
 	S65C64Form		sForm;
 	size			i;
 
-	memset(this, 0, sizeof(C65C64InstructionFactory));
+	muiUsers++;
+	if (muiUsers > 1)
+	{
+		return;
+	}
+	memset(mapcInstructions, 0, sizeof(mapcInstructions));
+	memset(mauiFormKeys, 0, sizeof(mauiFormKeys));
+	memset(mapcForms, 0, sizeof(mapcForms));
+	muiNumForms = 0;
 
 	for (i = 0; i < NUM_65_INSTRUCTIONS; i++)
 	{
@@ -191,6 +199,16 @@ void C65C64InstructionFactory::Kill(void)
 {
 	size			i;
 	C65Instruction*	pcInstruction;
+
+	if (muiUsers == 0)
+	{
+		return;
+	}
+	muiUsers--;
+	if (muiUsers > 0)
+	{
+		return;
+	}
 
 	for (i = 0; i < FORM_65C64_HASH_SIZE; i++)
 	{

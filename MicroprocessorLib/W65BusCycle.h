@@ -39,7 +39,7 @@ public:
     CW65OperationArray*    GetOperations(void);
 
 private:
-    void Validate(void);
+    void ValidateComponent(void);
 };
 
 

@@ -24,6 +24,16 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "OrGateView.h"
 #include "BufferView.h"
 #include "PowerSourceView.h"
+#include "ValueView.h"
+#include "FlipFlopView.h"
+#include "CounterView.h"
+#include "ClockView.h"
+#include "LabelView.h"
+#include "TunnelView.h"
+#include "W65C816View.h"
+#include "65C64View.h"
+#include "OscilloscopeView.h"
+#include "SplitterView.h"
 #include "ComponentViewFactory.h"
 
 
@@ -56,6 +66,19 @@ SComponentViewType gasComponentViewTypes[] =
 	{ "Buffer", NewComponentViewOfClass<CBufferView> },
 	{ "Inverter", NewComponentViewOfClass<CInverterView> },
 	{ "Ground", NewComponentViewOfClass<CGroundView> },
+	{ "Constant", NewComponentViewOfClass<CConstantView> },
+	{ "Probe", NewComponentViewOfClass<CProbeView> },
+	{ "DTypeFlipFlop", NewComponentViewOfClass<CDTypeFlipFlopView> },
+	{ "Counter", NewComponentViewOfClass<CCounterView> },
+	{ "Clock", NewComponentViewOfClass<CClockView> },
+	{ "PositivePower", NewComponentViewOfClass<CPositivePowerView> },
+	{ "Pin", NewComponentViewOfClass<CPinView> },
+	{ "W65C816", NewComponentViewOfClass<CW65C816View> },
+	{ "MPU65C64", NewComponentViewOfClass<C65C64View> },
+	{ "Oscilloscope", NewComponentViewOfClass<COscilloscopeView> },
+	{ "Splitter", NewComponentViewOfClass<CSplitterView> },
+	{ "Tunnel", NewComponentViewOfClass<CTunnelView> },
+	{ "Label", NewComponentViewOfClass<CLabelView> },
 };
 
 

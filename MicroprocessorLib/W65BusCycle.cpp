@@ -19,7 +19,7 @@ void CW65BusCycle::Init(CW65AddressOffsetArray* papcAddressOffsets, CW65Operatio
 
     miCycle = -1;
 
-    Validate();
+    ValidateComponent();
 
     mapcConditions.Init();
     uiNumOperations = mapcOperations.NumElements();
@@ -56,7 +56,7 @@ void CW65BusCycle::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65BusCycle::Validate(void)
+void CW65BusCycle::ValidateComponent(void)
 {
     size            uiNumOperations;
     size            i;

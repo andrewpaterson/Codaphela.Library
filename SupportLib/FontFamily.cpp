@@ -161,6 +161,7 @@ void CFontFamily::AddFont(EFontStyle eStyle, float32 fPixelSize, Ptr<CFontColour
 	psSize = masSizes.Add();
 	psSize->eStyle = eStyle;
 	psSize->iSize64 = GetSizeKey(fPixelSize);
+	psSize->eTurn = pColours->GetWhite()->GetDescription()->GetTurn();
 	mapColours.Add(pColours);
 }
 
@@ -172,7 +173,7 @@ void CFontFamily::AddFont(EFontStyle eStyle, float32 fPixelSize, Ptr<CFontColour
 // if the family doesn't have the style.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CFontColours> CFontFamily::GetColours(EFontStyle eStyle, float32 fPixelSize)
+Ptr<CFontColours> CFontFamily::GetColours(EFontStyle eStyle, float32 fPixelSize, EFontTurn eTurn)
 {
 	size				i;
 	int32				iSize64;
@@ -183,7 +184,7 @@ Ptr<CFontColours> CFontFamily::GetColours(EFontStyle eStyle, float32 fPixelSize)
 	for (i = 0; i < masSizes.NumElements(); i++)
 	{
 		psSize = masSizes.Get(i);
-		if ((psSize->eStyle == eStyle) && (psSize->iSize64 == iSize64))
+		if ((psSize->eStyle == eStyle) && (psSize->iSize64 == iSize64) && (psSize->eTurn == eTurn))
 		{
 			return mapColours.Get(i);
 		}
@@ -193,12 +194,13 @@ Ptr<CFontColours> CFontFamily::GetColours(EFontStyle eStyle, float32 fPixelSize)
 	{
 		fPixelSize = mfDefaultPixelSize;
 	}
-	pColours = Generate(eStyle, fPixelSize);
+	pColours = Generate(eStyle, fPixelSize, eTurn);
 	if (pColours.IsNotNull())
 	{
 		psSize = masSizes.Add();
 		psSize->eStyle = eStyle;
 		psSize->iSize64 = iSize64;
+		psSize->eTurn = eTurn;
 		mapColours.Add(pColours);
 	}
 	return pColours;
@@ -299,7 +301,7 @@ int32 CFontFamily::GetSizeKey(float32 fPixelSize)
 // asked for.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CFontColours> CFontFamily::Generate(EFontStyle eStyle, float32 fPixelSize)
+Ptr<CFontColours> CFontFamily::Generate(EFontStyle eStyle, float32 fPixelSize, EFontTurn eTurn)
 {
 	Ptr<CTrueTypeFace>		pFace;
 	CTrueTypeFontFactory	cFactory;
@@ -321,8 +323,12 @@ Ptr<CFontColours> CFontFamily::Generate(EFontStyle eStyle, float32 fPixelSize)
 	szName.Append(" ");
 	szName.Append((int32)(fPixelSize + 0.5f));
 	szName.Append("px");
+	if (eTurn == FT_Clockwise)
+	{
+		szName.Append(" clockwise");
+	}
 
-	cFactory.Init(pFace->GetFont(), fPixelSize);
+	cFactory.Init(pFace->GetFont(), fPixelSize, eTurn);
 	pDescription = cFactory.Describe(szName.Text(), mszCharacters.Text(), miImageWidth);
 	if (pDescription.IsNull())
 	{
@@ -335,7 +341,7 @@ Ptr<CFontColours> CFontFamily::Generate(EFontStyle eStyle, float32 fPixelSize)
 	cFactory.Kill();
 	szName.Kill();
 
-	pDescription->SetRasteriser(OMalloc<CTrueTypeGlyphRasteriser>(pFace, fPixelSize));
+	pDescription->SetRasteriser(OMalloc<CTrueTypeGlyphRasteriser>(pFace, fPixelSize, eTurn));
 	pFont = OMalloc<CFont>(pDescription, pImage);
 	pFont->SetLazy();
 	return OMalloc<CFontColours>(pFont);
