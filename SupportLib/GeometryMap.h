@@ -71,6 +71,22 @@ struct SGeometryCommand
 };
 
 
+//The viewport's pixels while a map blits onto it.  When its colours (and opacity) are bytes they are blended in place at
+//their offsets in each pixel, otherwise through the accessor.
+struct SGeometryPixels
+{
+	CImageAccessor*		pcAccessor;		//NULL when the pixels are blended in place.
+	uint8*				puiData;
+	size				uiPixelStride;
+	size				uiRowStride;
+	size				uiRed;			//Byte offsets in a pixel.
+	size				uiGreen;
+	size				uiBlue;
+	size				uiOpacity;
+	bool				bOpacity;
+};
+
+
 typedef CArrayTemplate<SGeometryCommand>	CArrayGeometryCommand;
 typedef CArrayTemplate<SFloat64Vec2>		CArrayGeometryPoint;
 
@@ -113,12 +129,14 @@ public:
 
 protected:
 	SGeometryCommand*	AddShape(EGeometryCommand eType, float64 fLeft, float64 fTop, float64 fRight, float64 fBottom, ARGB32 sColour);
-	void				FillRectangle(CImageAccessor* pcAccessor, bool bOpacity, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, ARGB32 sColour);
-	bool				FillShape(CImageAccessor* pcAccessor, CVectorRasteriser* pcRasteriser, bool bOpacity, SGeometryCommand* psCommand, CInt32Rect* pcViewportRect, int32 iClipWidth, int32 iClipHeight);
+	void				InitPixels(SGeometryPixels* psPixels);
+	void				KillPixels(SGeometryPixels* psPixels);
+	void				FillRectangle(SGeometryPixels* psPixels, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, ARGB32 sColour);
+	bool				FillShape(SGeometryPixels* psPixels, CVectorRasteriser* pcRasteriser, SGeometryCommand* psCommand, CInt32Rect* pcViewportRect, int32 iClipWidth, int32 iClipHeight);
 	void				AddShapePath(CVectorPath* pcPath, SGeometryCommand* psCommand);
 	void				AddPolylinePath(CVectorPath* pcPath, SGeometryCommand* psCommand);
 	SGeometryCommand*	AddPointsShape(EGeometryCommand eType, SFloat64Vec2* asPoints, size uiNumPoints, ARGB32 sColour);
-	void				BlendPixel(CImageAccessor* pcAccessor, bool bOpacity, int32 x, int32 y, ARGB32 sColour, uint32 uiAlpha);
+	void				BlendPixel(SGeometryPixels* psPixels, int32 x, int32 y, ARGB32 sColour, uint32 uiAlpha);
 };
 
 

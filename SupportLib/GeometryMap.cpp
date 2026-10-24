@@ -502,11 +502,9 @@ SGeometryCommand* CGeometryMap::AddShape(EGeometryCommand eType, float64 fLeft, 
 //////////////////////////////////////////////////////////////////////////
 bool CGeometryMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 {
-	CImageAccessorCreator	cCreator;
-	CImageAccessor*			pcAccessor;
+	SGeometryPixels			sPixels;
 	CVectorRasteriser		cRasteriser;
 	bool					bResult;
-	bool					bOpacity;
 	size					i;
 	SGeometryCommand*		psCommand;
 	int32					iLeft;
@@ -533,17 +531,7 @@ bool CGeometryMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 		iViewportBottom = pcViewportRect->msBottomRight.y;
 	}
 
-	bOpacity = mpViewport->HasChannel(IMAGE_OPACITY);
-	cCreator.Init(&mpViewport);
-	if (bOpacity)
-	{
-		cCreator.AddAccess(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, PT_uint8);
-	}
-	else
-	{
-		cCreator.AddAccess(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, PT_uint8);
-	}
-	pcAccessor = cCreator.CreateAndKill();
+	InitPixels(&sPixels);
 	cRasteriser.Init();
 
 	bResult = true;
@@ -558,22 +546,101 @@ bool CGeometryMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 		{
 			if (psCommand->eType == GC_Rectangle)
 			{
-				FillRectangle(pcAccessor, bOpacity,
+				FillRectangle(&sPixels,
 							  iLeft - pcViewportRect->msTopLeft.x, iTop - pcViewportRect->msTopLeft.y,
 							  iRight - pcViewportRect->msTopLeft.x, iBottom - pcViewportRect->msTopLeft.y,
 							  psCommand->sColour);
 			}
 			else
 			{
-				bResult &= FillShape(pcAccessor, &cRasteriser, bOpacity, psCommand, pcViewportRect,
+				bResult &= FillShape(&sPixels, &cRasteriser, psCommand, pcViewportRect,
 									 iViewportRight - pcViewportRect->msTopLeft.x, iViewportBottom - pcViewportRect->msTopLeft.y);
 			}
 		}
 	}
 
 	cRasteriser.Kill();
-	pcAccessor->Kill();
+	KillPixels(&sPixels);
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The offset of a channel in each pixel if it is a byte that starts on a
+// byte.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool GetByteChannelOffset(Ptr<CImage> pImage, size iChannel, size* puiOffset)
+{
+	CChannel*	pcChannel;
+
+	pcChannel = pImage->GetChannel(iChannel);
+	if ((pcChannel == NULL) || (pcChannel->eType != PT_uint8) || !pcChannel->Is8BitAligned())
+	{
+		return false;
+	}
+	*puiOffset = pcChannel->miByteOffset;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Blending through an accessor costs two virtual calls and a copy a pixel,
+// which is most of filling a large rectangle, so the pixels are blended in
+// place when their colours are bytes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CGeometryMap::InitPixels(SGeometryPixels* psPixels)
+{
+	CImageAccessorCreator	cCreator;
+	bool					bDirect;
+
+	psPixels->pcAccessor = NULL;
+	psPixels->bOpacity = mpViewport->HasChannel(IMAGE_OPACITY);
+	psPixels->puiData = (uint8*)mpViewport->GetData();
+	psPixels->uiPixelStride = mpViewport->GetPixelByteStride();
+	psPixels->uiRowStride = psPixels->uiPixelStride * mpViewport->GetWidth();
+	psPixels->uiOpacity = 0;
+
+	bDirect = (psPixels->puiData != NULL) && (mpViewport->GetPixelBitStride() == psPixels->uiPixelStride * 8);
+	bDirect = bDirect && GetByteChannelOffset(mpViewport, IMAGE_DIFFUSE_RED, &psPixels->uiRed);
+	bDirect = bDirect && GetByteChannelOffset(mpViewport, IMAGE_DIFFUSE_GREEN, &psPixels->uiGreen);
+	bDirect = bDirect && GetByteChannelOffset(mpViewport, IMAGE_DIFFUSE_BLUE, &psPixels->uiBlue);
+	if (psPixels->bOpacity)
+	{
+		bDirect = bDirect && GetByteChannelOffset(mpViewport, IMAGE_OPACITY, &psPixels->uiOpacity);
+	}
+	if (bDirect)
+	{
+		return;
+	}
+
+	cCreator.Init(&mpViewport);
+	if (psPixels->bOpacity)
+	{
+		cCreator.AddAccess(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, PT_uint8);
+	}
+	else
+	{
+		cCreator.AddAccess(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, PT_uint8);
+	}
+	psPixels->pcAccessor = cCreator.CreateAndKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CGeometryMap::KillPixels(SGeometryPixels* psPixels)
+{
+	if (psPixels->pcAccessor)
+	{
+		psPixels->pcAccessor->Kill();
+		psPixels->pcAccessor = NULL;
+	}
 }
 
 
@@ -583,7 +650,7 @@ bool CGeometryMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 // the viewport, clipped to iClipWidth by iClipHeight viewport pixels.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGeometryMap::FillShape(CImageAccessor* pcAccessor, CVectorRasteriser* pcRasteriser, bool bOpacity, SGeometryCommand* psCommand, CInt32Rect* pcViewportRect, int32 iClipWidth, int32 iClipHeight)
+bool CGeometryMap::FillShape(SGeometryPixels* psPixels, CVectorRasteriser* pcRasteriser, SGeometryCommand* psCommand, CInt32Rect* pcViewportRect, int32 iClipWidth, int32 iClipHeight)
 {
 	CVectorPath		cPath;
 	SFloat64Vec2	sOrigin;
@@ -635,7 +702,7 @@ bool CGeometryMap::FillShape(CImageAccessor* pcAccessor, CVectorRasteriser* pcRa
 			uiCoverage = puiCoverage[(size)y * pcRasteriser->GetWidth() + x];
 			if (uiCoverage > 0)
 			{
-				BlendPixel(pcAccessor, bOpacity, pcRasteriser->GetLeft() + x, pcRasteriser->GetTop() + y, psCommand->sColour, (uint32)DivideRound(uiAlpha * uiCoverage, 255));
+				BlendPixel(psPixels, pcRasteriser->GetLeft() + x, pcRasteriser->GetTop() + y, psCommand->sColour, (uint32)DivideRound(uiAlpha * uiCoverage, 255));
 			}
 		}
 	}
@@ -715,22 +782,54 @@ void CGeometryMap::AddShapePath(CVectorPath* pcPath, SGeometryCommand* psCommand
 //
 // Blends the colour over each pixel as a translucent cel's pixel is
 // blended (see BlendRGBByteAlphaByte and BlendAlphaByte): the colour by
-// lerping with the alpha and the opacity, if there is one, by over.
+// lerping with the alpha and the opacity, if there is one, by over.  An
+// opaque colour blended in place is just written; the blend would give
+// the same bytes.
 //
 //////////////////////////////////////////////////////////////////////////
-void CGeometryMap::FillRectangle(CImageAccessor* pcAccessor, bool bOpacity, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, ARGB32 sColour)
+void CGeometryMap::FillRectangle(SGeometryPixels* psPixels, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, ARGB32 sColour)
 {
 	uint32	uiAlpha;
 	int32	x;
 	int32	y;
+	uint8*	puiRow;
+	uint8*	puiPixel;
+	uint8	uiRed;
+	uint8	uiGreen;
+	uint8	uiBlue;
 
 	uiAlpha = Get8BitAlphaColour(sColour);
+	if (psPixels->pcAccessor || (uiAlpha != 255))
+	{
+		for (y = iTop; y < iBottom; y++)
+		{
+			for (x = iLeft; x < iRight; x++)
+			{
+				BlendPixel(psPixels, x, y, sColour, uiAlpha);
+			}
+		}
+		return;
+	}
+
+	uiRed = Get8BitRedColour(sColour);
+	uiGreen = Get8BitGreenColour(sColour);
+	uiBlue = Get8BitBlueColour(sColour);
+	puiRow = psPixels->puiData + (size)iTop * psPixels->uiRowStride + (size)iLeft * psPixels->uiPixelStride;
 	for (y = iTop; y < iBottom; y++)
 	{
+		puiPixel = puiRow;
 		for (x = iLeft; x < iRight; x++)
 		{
-			BlendPixel(pcAccessor, bOpacity, x, y, sColour, uiAlpha);
+			puiPixel[psPixels->uiRed] = uiRed;
+			puiPixel[psPixels->uiGreen] = uiGreen;
+			puiPixel[psPixels->uiBlue] = uiBlue;
+			if (psPixels->bOpacity)
+			{
+				puiPixel[psPixels->uiOpacity] = 255;
+			}
+			puiPixel += psPixels->uiPixelStride;
 		}
+		puiRow += psPixels->uiRowStride;
 	}
 }
 
@@ -741,19 +840,33 @@ void CGeometryMap::FillRectangle(CImageAccessor* pcAccessor, bool bOpacity, int3
 // alpha, so a partly covered pixel of a shape gets less of it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CGeometryMap::BlendPixel(CImageAccessor* pcAccessor, bool bOpacity, int32 x, int32 y, ARGB32 sColour, uint32 uiAlpha)
+void CGeometryMap::BlendPixel(SGeometryPixels* psPixels, int32 x, int32 y, ARGB32 sColour, uint32 uiAlpha)
 {
 	uint8	auiPixel[4];
+	uint8*	puiPixel;
 
-	pcAccessor->Get(x, y, auiPixel);
+	if (psPixels->pcAccessor == NULL)
+	{
+		puiPixel = psPixels->puiData + (size)y * psPixels->uiRowStride + (size)x * psPixels->uiPixelStride;
+		puiPixel[psPixels->uiRed] = BlendLerpByte(puiPixel[psPixels->uiRed], Get8BitRedColour(sColour), uiAlpha);
+		puiPixel[psPixels->uiGreen] = BlendLerpByte(puiPixel[psPixels->uiGreen], Get8BitGreenColour(sColour), uiAlpha);
+		puiPixel[psPixels->uiBlue] = BlendLerpByte(puiPixel[psPixels->uiBlue], Get8BitBlueColour(sColour), uiAlpha);
+		if (psPixels->bOpacity)
+		{
+			puiPixel[psPixels->uiOpacity] = BlendOverByte(puiPixel[psPixels->uiOpacity], uiAlpha);
+		}
+		return;
+	}
+
+	psPixels->pcAccessor->Get(x, y, auiPixel);
 	auiPixel[0] = BlendLerpByte(auiPixel[0], Get8BitRedColour(sColour), uiAlpha);
 	auiPixel[1] = BlendLerpByte(auiPixel[1], Get8BitGreenColour(sColour), uiAlpha);
 	auiPixel[2] = BlendLerpByte(auiPixel[2], Get8BitBlueColour(sColour), uiAlpha);
-	if (bOpacity)
+	if (psPixels->bOpacity)
 	{
 		auiPixel[3] = BlendOverByte(auiPixel[3], uiAlpha);
 	}
-	pcAccessor->Set(x, y, auiPixel);
+	psPixels->pcAccessor->Set(x, y, auiPixel);
 }
 
 
