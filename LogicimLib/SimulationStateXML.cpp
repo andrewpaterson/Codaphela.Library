@@ -102,7 +102,7 @@ static bool MakePendingEventsXML(CArrayPendingEventXML* pasEvents, CTimeline* pc
 	SPendingEventXML*	psPending;
 	CEvent*				pcEvent;
 
-	qsort(pasEvents->GetData(), pasEvents->NumElements(), sizeof(SPendingEventXML), ComparePendingEventXML);
+	pasEvents->Sort(ComparePendingEventXML);
 	for (i = 0; i < pasEvents->NumElements(); i++)
 	{
 		psPending = pasEvents->Get(i);

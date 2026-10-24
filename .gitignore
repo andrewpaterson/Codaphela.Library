@@ -83,3 +83,7 @@ us.stackdump
 /WindowLib/x64/Release/*
 /WinRefLib/x64/Debug/*
 /WinRefLib/x64/Release/*
+/LogicimLib/Debug/*
+/LogicimLib/Release/*
+/LogicimLib/x64/Debug/*
+/LogicimLib/x64/Release/*
