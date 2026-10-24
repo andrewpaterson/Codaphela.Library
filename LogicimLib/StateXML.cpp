@@ -872,6 +872,7 @@ bool C65C64ChipStateXML::Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegrate
 	bResult &= LoadStateBool(pcTag, "reset", &sState.bReset);
 
 	szWords = pcTag->GetStringAttribute("operandWords");
+	szEnd = NULL;
 	for (i = 0; (i < MAX_65C64_OPERAND_WORDS) && bResult; i++)
 	{
 		iValue = (szWords != NULL) ? strtoll(szWords, &szEnd, 10) : -1;
