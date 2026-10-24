@@ -23,6 +23,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/UTF8.h"
 #include "SupportLib/Glyph.h"
+#include "MicroprocessorLib/CircuitSimulation.h"
 #include "CircuitPainter.h"
 
 
@@ -35,18 +36,21 @@ typedef CArrayTemplate<SFloat64Vec2>	CArrayPainterPoint;
 
 //////////////////////////////////////////////////////////////////////////
 //
-// iTime is the simulation time voltages are coloured at; -1 draws every
-// trace and port as disconnected.
+// The views are drawn as they are in the circuit simulation of the view
+// path, with voltages coloured at the simulation's time.  Without a
+// simulation (NULL) every trace and port is drawn as disconnected.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircuitPainter::Init(CCircuitViewport* pcViewport, CGeometryMap* pcMap, CSpriteMap* pcSprites, CCircuitColours* pcColours, CCircuitFonts* pcFonts, int64 iTime)
+void CCircuitPainter::Init(CCircuitViewport* pcViewport, CGeometryMap* pcMap, CSpriteMap* pcSprites, CCircuitColours* pcColours, CCircuitFonts* pcFonts, CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation)
 {
 	mpcViewport = pcViewport;
 	mpcMap = pcMap;
 	mpcSprites = pcSprites;
 	mpcColours = pcColours;
 	mpcFonts = pcFonts;
-	miTime = iTime;
+	mpcViewPath = pcViewPath;
+	mpcCircuitSimulation = pcCircuitSimulation;
+	miTime = (pcCircuitSimulation != NULL) ? pcCircuitSimulation->GetTime() : -1;
 	ClearTransform();
 }
 
@@ -62,6 +66,8 @@ void CCircuitPainter::Kill(void)
 	mpcSprites = NULL;
 	mpcColours = NULL;
 	mpcFonts = NULL;
+	mpcViewPath = NULL;
+	mpcCircuitSimulation = NULL;
 }
 
 
@@ -470,4 +476,6 @@ CCircuitColours* CCircuitPainter::GetColours(void) { return mpcColours; }
 CCircuitFonts* CCircuitPainter::GetFonts(void) { return mpcFonts; }
 CGeometryMap* CCircuitPainter::GetMap(void) { return mpcMap; }
 int64 CCircuitPainter::GetTime(void) { return miTime; }
+CViewPath* CCircuitPainter::GetViewPath(void) { return mpcViewPath; }
+CCircuitSimulation* CCircuitPainter::GetCircuitSimulation(void) { return mpcCircuitSimulation; }
 

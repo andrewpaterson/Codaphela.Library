@@ -162,7 +162,7 @@ bool CTunnelView::MakesComponent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCircuitComponent* CTunnelView::CreateComponent(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
+CCircuitComponent* CTunnelView::CreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
 {
 	return NULL;
 }

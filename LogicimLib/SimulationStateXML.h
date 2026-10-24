@@ -29,14 +29,16 @@ class CCircuitSimulation;
 
 
 //A simulation's state: its timeline's times and, for each component of the circuit view in a <Component index="n">
-//(n counting the view's components), whatever its view's CComponentStateXML saves.  Wires keep no state; their traces
-//are made again from the views.
+//(n counting the view's components), whatever its view's CComponentStateXML saves of the component it made for the
+//view path, and then an <Instance index="n"> holding the same for the path through each instance of a subcircuit in
+//the circuit.  A circuit with a type name is named by a circuit attribute.  Wires keep no state; their traces are made
+//again from the views.
 //
-//Loading needs the circuit view's components made in the simulation but not started (CreateSimulation with bStart
-//false).  It restores the times, the components' state and their pending events; the simulation then runs on from
-//where it was saved.
-void	SaveSimulationXML(CXMLWriter* pcWriter, CCircuitView* pcCircuit, CCircuitSimulation* pcSimulation);
-bool	LoadSimulationXML(CMarkupTag* pcSimulationTag, CCircuitView* pcCircuit, CCircuitSimulation* pcSimulation);
+//Loading needs the circuit view's components made in the simulation for the path but not started (CreateSimulation
+//with bStart false).  It restores the times, the components' state and their pending events; the simulation then runs
+//on from where it was saved.
+void	SaveSimulationXML(CXMLWriter* pcWriter, CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation);
+bool	LoadSimulationXML(CMarkupTag* pcSimulationTag, CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation);
 
 
 #endif // __SIMULATION_STATE_XML_H__

@@ -57,13 +57,13 @@ public:
 			void					Init(int32 x, int32 y, ERotation eRotation, const char* szName, const char* szFamily, bool bExplicitPowerPorts);
 	virtual void					Kill(void);
 
-	virtual CCircuitComponent*		CreateComponent(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
+	virtual CCircuitComponent*		CreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
 	virtual CComponentStateXML*		GetComponentStateXML(void);
 	virtual CIntegratedCircuit*		CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily) =0;
 
 			char*					GetFamily(void);
 			bool					IsExplicitPowerPorts(void);
-			CIntegratedCircuit*		GetIntegratedCircuit(void);
+			CIntegratedCircuit*		GetIntegratedCircuit(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
 
 protected:
 	virtual	void					SaveXMLAttributes(CXMLWriter* pcWriter);

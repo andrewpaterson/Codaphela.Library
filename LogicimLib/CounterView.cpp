@@ -59,12 +59,14 @@ void CCounterView::Init(int32 x, int32 y, ERotation eRotation, const char* szNam
 //////////////////////////////////////////////////////////////////////////
 void CCounterView::Paint(CCircuitPainter* pcPainter)
 {
-	CChars	szValue;
+	CChars				szValue;
+	CCircuitComponent*	pcComponent;
 
-	if (mpcComponent != NULL)
+	pcComponent = GetComponent(pcPainter);
+	if (pcComponent != NULL)
 	{
 		szValue.Init();
-		((CCounter*)mpcComponent)->AppendCounterValueHex(&szValue);
+		((CCounter*)pcComponent)->AppendCounterValueHex(&szValue);
 		mcShapes.SetText(muiValueText, szValue.Text());
 		szValue.Kill();
 	}

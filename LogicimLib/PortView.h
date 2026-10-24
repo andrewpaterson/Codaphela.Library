@@ -35,13 +35,28 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CComponentView;
 class CCircuitComponent;
+class CViewPath;
+class CCircuitSimulation;
+
+
+//A port view's ports in one circuit simulation of one view path.
+struct SViewPathPorts
+{
+	CViewPath*				pcViewPath;
+	CCircuitSimulation*		pcCircuitSimulation;
+	CArrayPortPtr			apcPorts;
+};
+
+
+typedef CArrayTemplate<SViewPathPorts>	CArrayViewPathPorts;
 
 
 //Where a component's ports join the circuit, as Logicim's PortView.  One view can stand for several ports (the bits
 //of a bus).  An inverting port has a bubble between the component and the port, which moves the port a grid unit
 //out.  A clock port has a notch, a triangle on the component's edge pointing in (as Logicim draws on subcircuit
 //pins).  The dot on the port is coloured by the voltage the ports see.  A port view that's only a place to connect
-//(a tunnel's end, with no ports) isn't drawn.
+//(a tunnel's end, with no ports) isn't drawn.  Its ports are kept for each view path and circuit simulation its
+//owner has made a component in, as Logicim's.
 class CPortView
 {
 protected:
@@ -55,7 +70,7 @@ protected:
 	bool				mbClock;
 	SFloat64Vec2		masClockNotch[3];
 	bool				mbDrawn;
-	CArrayPortPtr		mapcPorts;
+	CArrayViewPathPorts	masPorts;
 
 public:
 	void				Init(CComponentView* pcOwner, const char* szPortName, int32 x, int32 y);
@@ -68,8 +83,8 @@ public:
 	void				SetDrawn(bool bDrawn);
 	void				Rotate(ERotation eRotation);
 
-	bool				Connect(CCircuitComponent* pcComponent);
-	void				Disconnect(void);
+	bool				Connect(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CCircuitComponent* pcComponent);
+	void				Disconnect(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
 
 	void				Paint(CCircuitPainter* pcPainter);
 	bool				IncludeBounds(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum, bool bHasBounds);
@@ -82,10 +97,13 @@ public:
 	char*				GetText(void);
 	size				NumPortNames(void);
 	char*				GetPortName(size uiIndex);
-	size				NumPorts(void);
-	CPort*				GetPort(size uiIndex);
-	CArrayPortPtr*		GetPorts(void);
+	size				NumPorts(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
+	CPort*				GetPort(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, size uiIndex);
+	CArrayPortPtr*		GetPorts(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
 	CComponentView*		GetOwner(void);
+
+protected:
+	SViewPathPorts*		FindPorts(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, size* puiIndex);
 };
 
 

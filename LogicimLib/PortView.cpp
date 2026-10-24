@@ -59,7 +59,7 @@ void CPortView::Init(CComponentView* pcOwner, CArrayChars* paszPortNames, int32 
 	masClockNotch[1].Init(0, 0);
 	masClockNotch[2].Init(0, 0);
 	mbDrawn = true;
-	mapcPorts.Init();
+	masPorts.Init();
 }
 
 
@@ -69,7 +69,13 @@ void CPortView::Init(CComponentView* pcOwner, CArrayChars* paszPortNames, int32 
 //////////////////////////////////////////////////////////////////////////
 void CPortView::Kill(void)
 {
-	mapcPorts.Kill();
+	size	i;
+
+	for (i = 0; i < masPorts.NumElements(); i++)
+	{
+		masPorts.Get(i)->apcPorts.Kill();
+	}
+	masPorts.Kill();
 	mszText.Kill();
 	maszPortNames.Kill();
 	mpcOwner = NULL;
@@ -158,27 +164,32 @@ void CPortView::Rotate(ERotation eRotation)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Finds the component's ports by name.  Fails (and holds none) if one is
-// missing.
+// Finds the component's ports by name for the path and circuit
+// simulation.  Fails (and holds none for them) if one is missing.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPortView::Connect(CCircuitComponent* pcComponent)
+bool CPortView::Connect(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CCircuitComponent* pcComponent)
 {
-	size	i;
-	CPort*	pcPort;
-	char*	szName;
+	size				i;
+	CPort*				pcPort;
+	char*				szName;
+	SViewPathPorts*		psPorts;
 
-	mapcPorts.ReInit();
+	Disconnect(pcViewPath, pcCircuitSimulation);
+	psPorts = masPorts.Add();
+	psPorts->pcViewPath = pcViewPath;
+	psPorts->pcCircuitSimulation = pcCircuitSimulation;
+	psPorts->apcPorts.Init();
 	for (i = 0; i < maszPortNames.NumElements(); i++)
 	{
 		szName = maszPortNames.GetText(i);
 		pcPort = pcComponent->GetPort(szName);
 		if (pcPort == NULL)
 		{
-			mapcPorts.ReInit();
+			Disconnect(pcViewPath, pcCircuitSimulation);
 			return gcLogger.Error2(__METHOD__, " Cannot find port [", szName, "] on [", pcComponent->GetName(), "].", NULL);
 		}
-		mapcPorts.Add(pcPort);
+		psPorts->apcPorts.Add(pcPort);
 	}
 	return true;
 }
@@ -188,21 +199,93 @@ bool CPortView::Connect(CCircuitComponent* pcComponent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPortView::Disconnect(void)
+void CPortView::Disconnect(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation)
 {
-	mapcPorts.ReInit();
+	SViewPathPorts*		psPorts;
+	size				uiIndex;
+
+	psPorts = FindPorts(pcViewPath, pcCircuitSimulation, &uiIndex);
+	if (psPorts != NULL)
+	{
+		psPorts->apcPorts.Kill();
+		masPorts.RemoveAt(uiIndex, true);
+	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Expects the painter to hold the owner's transform.
+//
+//////////////////////////////////////////////////////////////////////////
+SViewPathPorts* CPortView::FindPorts(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, size* puiIndex)
+{
+	return FindViewPathSimulation(&masPorts, pcViewPath, pcCircuitSimulation, puiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL if the port view has no ports for the path and circuit simulation.
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayPortPtr* CPortView::GetPorts(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation)
+{
+	SViewPathPorts*		psPorts;
+
+	psPorts = FindPorts(pcViewPath, pcCircuitSimulation, NULL);
+	if (psPorts == NULL)
+	{
+		return NULL;
+	}
+	return &psPorts->apcPorts;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CPortView::NumPorts(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation)
+{
+	CArrayPortPtr*	papcPorts;
+
+	papcPorts = GetPorts(pcViewPath, pcCircuitSimulation);
+	if (papcPorts == NULL)
+	{
+		return 0;
+	}
+	return papcPorts->NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPort* CPortView::GetPort(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, size uiIndex)
+{
+	CArrayPortPtr*	papcPorts;
+
+	papcPorts = GetPorts(pcViewPath, pcCircuitSimulation);
+	if (papcPorts == NULL)
+	{
+		return NULL;
+	}
+	return papcPorts->SafeGetPtr(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Expects the painter to hold the owner's transform.  The dot is coloured
+// by the ports of the painter's path and circuit simulation.
 //
 //////////////////////////////////////////////////////////////////////////
 void CPortView::Paint(CCircuitPainter* pcPainter)
 {
 	CCircuitColours*	pcColours;
 	ARGB32				sColour;
+	CArrayPortPtr*		papcPorts;
 
 	if (!mbDrawn)
 	{
@@ -218,9 +301,10 @@ void CPortView::Paint(CCircuitPainter* pcPainter)
 		pcPainter->Circle(msBubbleCentre.x, msBubbleCentre.y, mfBubbleDiameter / 2, false, true, SHAPE_LINE_WIDTH, 0, pcColours->msShapeBorder);
 	}
 
-	if (mapcPorts.NumElements() > 0)
+	papcPorts = GetPorts(pcPainter->GetViewPath(), pcPainter->GetCircuitSimulation());
+	if ((papcPorts != NULL) && (papcPorts->NumElements() > 0))
 	{
-		sColour = pcColours->GetColourForPorts(&mapcPorts, pcPainter->GetTime());
+		sColour = pcColours->GetColourForPorts(papcPorts, pcPainter->GetTime());
 	}
 	else
 	{
@@ -294,8 +378,5 @@ SFloat64Vec2* CPortView::GetClockNotch(void) { return masClockNotch; }
 char* CPortView::GetText(void) { return mszText.Text(); }
 size CPortView::NumPortNames(void) { return maszPortNames.NumElements(); }
 char* CPortView::GetPortName(size uiIndex) { return maszPortNames.GetText(uiIndex); }
-size CPortView::NumPorts(void) { return mapcPorts.NumElements(); }
-CPort* CPortView::GetPort(size uiIndex) { return mapcPorts.SafeGetPtr(uiIndex); }
-CArrayPortPtr* CPortView::GetPorts(void) { return &mapcPorts; }
 CComponentView* CPortView::GetOwner(void) { return mpcOwner; }
 

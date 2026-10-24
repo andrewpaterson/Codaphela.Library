@@ -107,11 +107,11 @@ void COscilloscopeView::PaintSamples(CCircuitPainter* pcPainter)
 	float32				fMin;
 	float32				fMax;
 
-	if (mpcComponent == NULL)
+	pcOscilloscope = (COscilloscope*)GetComponent(pcPainter);
+	if (pcOscilloscope == NULL)
 	{
 		return;
 	}
-	pcOscilloscope = (COscilloscope*)mpcComponent;
 	uiSamples = pcOscilloscope->GetSampleCount();
 	if (uiSamples == 0)
 	{

@@ -44,19 +44,20 @@ void CPowerSourceView::Init(int32 x, int32 y, ERotation eRotation, const char* s
 // A supply has no family.
 //
 //////////////////////////////////////////////////////////////////////////
-CCircuitComponent* CPowerSourceView::CreateComponent(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
+CCircuitComponent* CPowerSourceView::CreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
 {
-	CPowerSource*	pcPowerSource;
+	CPowerSource*			pcPowerSource;
+	CSubcircuitSimulation*	pcSimulation;
 
-	if (mpcComponent != NULL)
+	pcSimulation = CanCreateComponent(pcViewPath, pcCircuitSimulation);
+	if (pcSimulation == NULL)
 	{
-		gcLogger.Error2(__METHOD__, " [", GetType(), "] [", mszName.Text(), "] already has a component.", NULL);
 		return NULL;
 	}
 
 	pcPowerSource = NewMalloc<CPowerSource>();
 	pcPowerSource->Init(pcSimulation, mszName.Text(), mfVoltage);
-	if (!ConnectPortViews(pcPowerSource))
+	if (!PostCreateComponent(pcViewPath, pcCircuitSimulation, pcPowerSource))
 	{
 		return NULL;
 	}

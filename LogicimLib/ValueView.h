@@ -91,9 +91,9 @@ public:
 			int32			GetBitWidth(void);
 			ERadix			GetRadix(void);
 			void			GetBox(SInt32Vec2* psBoxMinimum, SInt32Vec2* psBoxMaximum);
-			void			GetValueText(CChars* psz, int64 iTime);
+			void			GetValueText(CChars* psz, CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
 
-	virtual	STraceValue		ReadPortValue(CPort* pcPort, int64 iTime);
+	virtual	STraceValue		ReadPortValue(CCircuitComponent* pcComponent, CPort* pcPort, int64 iTime);
 
 	static	void			MeasureBox(CCircuitFonts* pcFonts, int32 iBitWidth, ERadix eRadix, SInt32Vec2* psBoxMinimum, SInt32Vec2* psBoxMaximum);
 	static	bool			LoadValueXML(CMarkupTag* pcTag, SValueViewXML* psValue);
@@ -160,10 +160,10 @@ public:
 	virtual const char*				GetType(void);
 	virtual const char*				GetXMLName(void);
 	virtual bool					LoadXML(CMarkupTag* pcTag);
-	virtual CCircuitComponent*		CreateComponent(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
+	virtual CCircuitComponent*		CreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
 	virtual CIntegratedCircuit*		CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily);
 	virtual CComponentStateXML*		GetComponentStateXML(void);
-	virtual	STraceValue				ReadPortValue(CPort* pcPort, int64 iTime);
+	virtual	STraceValue				ReadPortValue(CCircuitComponent* pcComponent, CPort* pcPort, int64 iTime);
 
 			EPinAlignment			GetAlignment(void);
 			EPinAnchour				GetAnchour(void);

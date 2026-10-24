@@ -22,6 +22,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/XMLFile.h"
 #include "BaseLib/LogString.h"
+#include "BaseLib/StringHelper.h"
 #include "MicroprocessorLib/CircuitSimulation.h"
 #include "SimulationStateXML.h"
 #include "CircuitFile.h"
@@ -34,23 +35,23 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void SaveCircuitXML(CCircuitView* pcCircuit, CXMLWriter* pcWriter)
 {
-	SaveCircuitXML(pcCircuit, NULL, pcWriter);
+	SaveCircuitXML(pcCircuit, NULL, NULL, pcWriter);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The simulation may be NULL.
+// The simulation may be NULL.  If not, it's saved as the path has it.
 //
 //////////////////////////////////////////////////////////////////////////
-void SaveCircuitXML(CCircuitView* pcCircuit, CCircuitSimulation* pcSimulation, CXMLWriter* pcWriter)
+void SaveCircuitXML(CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CXMLWriter* pcWriter)
 {
 	pcWriter->Begin("Logicim");
 	pcWriter->Attribute("version", (int32)CIRCUIT_FILE_VERSION);
 	pcCircuit->SaveXML(pcWriter);
 	if (pcSimulation != NULL)
 	{
-		SaveSimulationXML(pcWriter, pcCircuit, pcSimulation);
+		SaveSimulationXML(pcWriter, pcCircuit, pcViewPath, pcSimulation);
 	}
 	pcWriter->End();
 }
@@ -62,7 +63,7 @@ void SaveCircuitXML(CCircuitView* pcCircuit, CCircuitSimulation* pcSimulation, C
 //////////////////////////////////////////////////////////////////////////
 bool SaveCircuitFile(CCircuitView* pcCircuit, const char* szFilename)
 {
-	return SaveCircuitFile(pcCircuit, NULL, szFilename);
+	return SaveCircuitFile(pcCircuit, NULL, NULL, szFilename);
 }
 
 
@@ -70,13 +71,13 @@ bool SaveCircuitFile(CCircuitView* pcCircuit, const char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveCircuitFile(CCircuitView* pcCircuit, CCircuitSimulation* pcSimulation, const char* szFilename)
+bool SaveCircuitFile(CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, const char* szFilename)
 {
 	CXMLWriter	cWriter;
 	bool		bResult;
 
 	cWriter.Init();
-	SaveCircuitXML(pcCircuit, pcSimulation, &cWriter);
+	SaveCircuitXML(pcCircuit, pcViewPath, pcSimulation, &cWriter);
 	bResult = cWriter.Write(szFilename);
 	cWriter.Kill();
 	if (!bResult)
@@ -89,11 +90,11 @@ bool SaveCircuitFile(CCircuitView* pcCircuit, CCircuitSimulation* pcSimulation, 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Reads the file and checks its root.  The file must be killed whatever
-// this returns.
+// Reads the file and checks its root, which must hold an szContents
+// element.  The file must be killed whatever this returns.
 //
 //////////////////////////////////////////////////////////////////////////
-static CMarkupTag* ReadCircuitFileRoot(CXMLFile* pcFile, const char* szFilename)
+static CMarkupTag* ReadCircuitFileRoot(CXMLFile* pcFile, const char* szFilename, const char* szContents)
 {
 	CFileUtil	cFileUtil;
 	CChars		szName;
@@ -128,12 +129,46 @@ static CMarkupTag* ReadCircuitFileRoot(CXMLFile* pcFile, const char* szFilename)
 		gcLogger.Error2(__METHOD__, " [", szFilename, "] is not version [", IntToString((int32)CIRCUIT_FILE_VERSION), "].", NULL);
 		return NULL;
 	}
-	if (pcRoot->GetTag("Circuit") == NULL)
+	if (pcRoot->GetTag(szContents) == NULL)
 	{
-		gcLogger.Error2(__METHOD__, " [", szFilename, "] has no [Circuit].", NULL);
+		gcLogger.Error2(__METHOD__, " [", szFilename, "] has no [", szContents, "].", NULL);
 		return NULL;
 	}
 	return pcRoot;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Makes the loaded circuit in the simulation for the path: from the
+// file's saved simulation if it has one of this circuit, otherwise
+// started afresh.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool CreateFileSimulation(CMarkupTag* pcRoot, CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
+{
+	CMarkupTag*	pcSimulationTag;
+	char*		szCircuit;
+
+	pcSimulationTag = pcRoot->GetTag("Simulation");
+	if (pcSimulationTag != NULL)
+	{
+		szCircuit = pcSimulationTag->GetStringAttribute("circuit");
+		if (StringCompare((szCircuit != NULL) ? szCircuit : "", pcCircuit->GetTypeName()) != 0)
+		{
+			pcSimulationTag = NULL;
+		}
+	}
+
+	if (pcSimulationTag == NULL)
+	{
+		return pcCircuit->CreateSimulation(pcViewPath, pcSimulation, pcFamilies, true);
+	}
+	if (!pcCircuit->CreateSimulation(pcViewPath, pcSimulation, pcFamilies, false))
+	{
+		return false;
+	}
+	return LoadSimulationXML(pcSimulationTag, pcCircuit, pcViewPath, pcSimulation);
 }
 
 
@@ -149,7 +184,7 @@ bool LoadCircuitFile(CCircuitView* pcCircuit, const char* szFilename)
 	bool		bResult;
 
 	cFile.Init();
-	pcRoot = ReadCircuitFileRoot(&cFile, szFilename);
+	pcRoot = ReadCircuitFileRoot(&cFile, szFilename, "Circuit");
 	if (pcRoot == NULL)
 	{
 		cFile.Kill();
@@ -165,15 +200,14 @@ bool LoadCircuitFile(CCircuitView* pcCircuit, const char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LoadCircuitFile(CCircuitView* pcCircuit, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, const char* szFilename)
+bool LoadCircuitFile(CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, const char* szFilename)
 {
 	CXMLFile	cFile;
 	CMarkupTag*	pcRoot;
-	CMarkupTag*	pcSimulationTag;
 	bool		bResult;
 
 	cFile.Init();
-	pcRoot = ReadCircuitFileRoot(&cFile, szFilename);
+	pcRoot = ReadCircuitFileRoot(&cFile, szFilename, "Circuit");
 	if (pcRoot == NULL)
 	{
 		cFile.Kill();
@@ -183,18 +217,89 @@ bool LoadCircuitFile(CCircuitView* pcCircuit, CCircuitSimulation* pcSimulation, 
 	bResult = pcCircuit->LoadXML(pcRoot->GetTag("Circuit"));
 	if (bResult)
 	{
-		pcSimulationTag = pcRoot->GetTag("Simulation");
-		if (pcSimulationTag == NULL)
+		bResult = CreateFileSimulation(pcRoot, pcCircuit, pcViewPath, pcSimulation, pcFamilies);
+	}
+	cFile.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The whole document of a project's circuits; the writer must be
+// initialised and empty.  The simulation of the top circuit on its top
+// path is saved unless the simulation is NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+void SaveCircuitsXML(CCircuitViews* pcCircuits, CCircuitView* pcTop, CCircuitSimulation* pcSimulation, CXMLWriter* pcWriter)
+{
+	pcWriter->Begin("Logicim");
+	pcWriter->Attribute("version", (int32)CIRCUIT_FILE_VERSION);
+	pcCircuits->SaveXML(pcWriter);
+	if (pcSimulation != NULL)
+	{
+		SaveSimulationXML(pcWriter, pcTop, pcCircuits->GetTopPath(pcTop), pcSimulation);
+	}
+	pcWriter->End();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The simulation may be NULL, as SaveCircuitsXML.
+//
+//////////////////////////////////////////////////////////////////////////
+bool SaveCircuitsFile(CCircuitViews* pcCircuits, CCircuitView* pcTop, CCircuitSimulation* pcSimulation, const char* szFilename)
+{
+	CXMLWriter	cWriter;
+	bool		bResult;
+
+	cWriter.Init();
+	SaveCircuitsXML(pcCircuits, pcTop, pcSimulation, &cWriter);
+	bResult = cWriter.Write(szFilename);
+	cWriter.Kill();
+	if (!bResult)
+	{
+		return gcLogger.Error2(__METHOD__, " Could not write [", szFilename, "].", NULL);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds the file's circuits.  Without a simulation (NULL) a saved one is
+// ignored.  With one, the circuit of type szTop is made in it on its top
+// path: from the saved simulation if the file's is of that circuit,
+// otherwise started afresh.
+//
+//////////////////////////////////////////////////////////////////////////
+bool LoadCircuitsFile(CCircuitViews* pcCircuits, const char* szTop, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, const char* szFilename)
+{
+	CXMLFile		cFile;
+	CMarkupTag*		pcRoot;
+	bool			bResult;
+	CCircuitView*	pcTop;
+
+	cFile.Init();
+	pcRoot = ReadCircuitFileRoot(&cFile, szFilename, "Circuits");
+	if (pcRoot == NULL)
+	{
+		cFile.Kill();
+		return false;
+	}
+
+	bResult = pcCircuits->LoadXML(pcRoot->GetTag("Circuits"));
+	if (bResult && (pcSimulation != NULL))
+	{
+		pcTop = pcCircuits->Get(szTop);
+		if (pcTop == NULL)
 		{
-			bResult = pcCircuit->CreateSimulation(pcSimulation, pcFamilies, true);
+			bResult = gcLogger.Error2(__METHOD__, " [", szFilename, "] has no circuit [", szTop, "] to simulate.", NULL);
 		}
 		else
 		{
-			bResult = pcCircuit->CreateSimulation(pcSimulation, pcFamilies, false);
-			if (bResult)
-			{
-				bResult = LoadSimulationXML(pcSimulationTag, pcCircuit, pcSimulation);
-			}
+			bResult = CreateFileSimulation(pcRoot, pcTop, pcCircuits->GetTopPath(pcTop), pcSimulation, pcFamilies);
 		}
 	}
 	cFile.Kill();

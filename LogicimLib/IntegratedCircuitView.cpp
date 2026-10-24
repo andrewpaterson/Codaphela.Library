@@ -104,17 +104,19 @@ bool CIntegratedCircuitView::LoadXMLFamily(CMarkupTag* pcTag, char** pszFamily, 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Makes the IC in the simulation and connects the port views to it.
+// Makes the IC in the path's subcircuit simulation and connects the port
+// views to it.
 //
 //////////////////////////////////////////////////////////////////////////
-CCircuitComponent* CIntegratedCircuitView::CreateComponent(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
+CCircuitComponent* CIntegratedCircuitView::CreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
 {
 	CFamilyVoltageConfiguration*	pcFamily;
 	CIntegratedCircuit*				pcIntegratedCircuit;
+	CSubcircuitSimulation*			pcSimulation;
 
-	if (mpcComponent != NULL)
+	pcSimulation = CanCreateComponent(pcViewPath, pcCircuitSimulation);
+	if (pcSimulation == NULL)
 	{
-		gcLogger.Error2(__METHOD__, " [", GetType(), "] [", mszName.Text(), "] already has a component.", NULL);
 		return NULL;
 	}
 
@@ -139,7 +141,7 @@ CCircuitComponent* CIntegratedCircuitView::CreateComponent(CSubcircuitSimulation
 		}
 	}
 
-	if (!ConnectPortViews(pcIntegratedCircuit))
+	if (!PostCreateComponent(pcViewPath, pcCircuitSimulation, pcIntegratedCircuit))
 	{
 		return NULL;
 	}
@@ -346,5 +348,5 @@ size CIntegratedCircuitView::AddDetail(float64 x, int32 iWidth, const char* szNa
 //////////////////////////////////////////////////////////////////////////
 char* CIntegratedCircuitView::GetFamily(void) { return mszFamily.Text(); }
 bool CIntegratedCircuitView::IsExplicitPowerPorts(void) { return mbExplicitPowerPorts; }
-CIntegratedCircuit* CIntegratedCircuitView::GetIntegratedCircuit(void) { return (CIntegratedCircuit*)mpcComponent; }
+CIntegratedCircuit* CIntegratedCircuitView::GetIntegratedCircuit(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation) { return (CIntegratedCircuit*)GetComponent(pcViewPath, pcCircuitSimulation); }
 

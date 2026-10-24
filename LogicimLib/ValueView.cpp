@@ -29,6 +29,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MicroprocessorLib/Trace.h"
 #include "MicroprocessorLib/Voltage.h"
 #include "MicroprocessorLib/FamilyVoltageConfigurationStore.h"
+#include "MicroprocessorLib/CircuitSimulation.h"
 #include "BaseLib/StringHelper.h"
 #include "ComponentStateXML.h"
 #include "ValueView.h"
@@ -138,27 +139,36 @@ SFloat64Vec2 CValueView::GetBoxCentre(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The value on the bus at the time, or nothing without a component or a
-// time (as Logicim's RadixHelper.getStringValue).
+// The value on the bus in the circuit simulation of the path at its time,
+// or nothing without a simulation or a component in it (as Logicim's
+// RadixHelper.getStringValue).
 //
 //////////////////////////////////////////////////////////////////////////
-void CValueView::GetValueText(CChars* psz, int64 iTime)
+void CValueView::GetValueText(CChars* psz, CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation)
 {
-	CPortView*		pcBus;
-	STraceValue		asValues[RADIX_MAX_BIT_WIDTH];
-	int32			i;
-	CPort*			pcPort;
+	CPortView*			pcBus;
+	STraceValue			asValues[RADIX_MAX_BIT_WIDTH];
+	int32				i;
+	CPort*				pcPort;
+	CCircuitComponent*	pcComponent;
+	int64				iTime;
 
+	if (pcCircuitSimulation == NULL)
+	{
+		return;
+	}
+	pcComponent = GetComponent(pcViewPath, pcCircuitSimulation);
 	pcBus = GetPortView((size)0);
-	if ((mpcComponent == NULL) || (iTime == -1) || (pcBus == NULL) || (pcBus->NumPorts() != (size)miBitWidth))
+	if ((pcComponent == NULL) || (pcBus == NULL) || (pcBus->NumPorts(pcViewPath, pcCircuitSimulation) != (size)miBitWidth))
 	{
 		return;
 	}
 
+	iTime = pcCircuitSimulation->GetTime();
 	for (i = 0; i < miBitWidth; i++)
 	{
-		pcPort = pcBus->GetPort(i);
-		asValues[i] = ReadPortValue(pcPort, iTime);
+		pcPort = pcBus->GetPort(pcViewPath, pcCircuitSimulation, i);
+		asValues[i] = ReadPortValue(pcComponent, pcPort, iTime);
 	}
 	AppendTraceValues(psz, asValues, miBitWidth, meRadix, miMaxDigits);
 }
@@ -169,7 +179,7 @@ void CValueView::GetValueText(CChars* psz, int64 iTime)
 // An IC's ports are logic ports.
 //
 //////////////////////////////////////////////////////////////////////////
-STraceValue CValueView::ReadPortValue(CPort* pcPort, int64 iTime)
+STraceValue CValueView::ReadPortValue(CCircuitComponent* pcComponent, CPort* pcPort, int64 iTime)
 {
 	return ((CLogicPort*)pcPort)->ReadValue(iTime);
 }
@@ -177,7 +187,7 @@ STraceValue CValueView::ReadPortValue(CPort* pcPort, int64 iTime)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The value is written as it is at the painter's time.
+// The value is written as it is in the painter's simulation.
 //
 //////////////////////////////////////////////////////////////////////////
 void CValueView::Paint(CCircuitPainter* pcPainter)
@@ -185,7 +195,7 @@ void CValueView::Paint(CCircuitPainter* pcPainter)
 	CChars	szValue;
 
 	szValue.Init();
-	GetValueText(&szValue, pcPainter->GetTime());
+	GetValueText(&szValue, pcPainter->GetViewPath(), pcPainter->GetCircuitSimulation());
 	mcShapes.SetText(muiValueText, szValue.Text());
 	szValue.Kill();
 
@@ -564,13 +574,14 @@ bool CPinView::LoadXML(CMarkupTag* pcTag)
 // its family's default voltage, as an IC is.
 //
 //////////////////////////////////////////////////////////////////////////
-CCircuitComponent* CPinView::CreateComponent(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
+CCircuitComponent* CPinView::CreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
 {
-	CPin*	pcPin;
+	CPin*					pcPin;
+	CSubcircuitSimulation*	pcSimulation;
 
-	if (mpcComponent != NULL)
+	pcSimulation = CanCreateComponent(pcViewPath, pcCircuitSimulation);
+	if (pcSimulation == NULL)
 	{
-		gcLogger.Error2(__METHOD__, " [", GetType(), "] [", mszName.Text(), "] already has a component.", NULL);
 		return NULL;
 	}
 
@@ -590,7 +601,7 @@ CCircuitComponent* CPinView::CreateComponent(CSubcircuitSimulation* pcSimulation
 			return NULL;
 		}
 	}
-	if (!ConnectPortViews(pcPin))
+	if (!PostCreateComponent(pcViewPath, pcCircuitSimulation, pcPin))
 	{
 		return NULL;
 	}
@@ -625,7 +636,7 @@ CComponentStateXML* CPinView::GetComponentStateXML(void)
 // Logicim's PortView.getValue.
 //
 //////////////////////////////////////////////////////////////////////////
-STraceValue CPinView::ReadPortValue(CPort* pcPort, int64 iTime)
+STraceValue CPinView::ReadPortValue(CCircuitComponent* pcComponent, CPort* pcPort, int64 iTime)
 {
 	STraceValue		sValue;
 	CTrace*			pcVCC;
@@ -636,7 +647,7 @@ STraceValue CPinView::ReadPortValue(CPort* pcPort, int64 iTime)
 	{
 		return sValue;
 	}
-	pcVCC = ((CPin*)mpcComponent)->GetVoltageCommon()->GetTrace();
+	pcVCC = ((CPin*)pcComponent)->GetVoltageCommon()->GetTrace();
 	fVcc = (pcVCC != NULL) ? pcVCC->GetVoltage(iTime) : NoVoltage();
 	sValue.Init(mpcFamily->GetValue(pcPort->GetTrace()->GetVoltage(iTime), fVcc));
 	return sValue;

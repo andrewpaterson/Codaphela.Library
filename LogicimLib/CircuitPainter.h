@@ -30,6 +30,10 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CircuitFonts.h"
 
 
+class CViewPath;
+class CCircuitSimulation;
+
+
 //Draws a circuit's shapes into a geometry map.  Shapes are given in the grid space of the component being drawn,
 //facing North about its position, and are turned and moved by SetTransform before the viewport puts them on the
 //screen.  Line widths are pixels at zoom one, as Logicim's zoomable strokes.  Text is drawn as glyphs into a sprite
@@ -42,12 +46,14 @@ protected:
 	CSpriteMap*			mpcSprites;
 	CCircuitColours*	mpcColours;
 	CCircuitFonts*		mpcFonts;
+	CViewPath*			mpcViewPath;
+	CCircuitSimulation*	mpcCircuitSimulation;
 	int64				miTime;
 	SInt32Vec2			msPosition;
 	ERotation			meRotation;
 
 public:
-	void				Init(CCircuitViewport* pcViewport, CGeometryMap* pcMap, CSpriteMap* pcSprites, CCircuitColours* pcColours, CCircuitFonts* pcFonts, int64 iTime);
+	void				Init(CCircuitViewport* pcViewport, CGeometryMap* pcMap, CSpriteMap* pcSprites, CCircuitColours* pcColours, CCircuitFonts* pcFonts, CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
 	void				Kill(void);
 
 	void				SetTransform(SInt32Vec2 sPosition, ERotation eRotation);
@@ -68,6 +74,8 @@ public:
 	CCircuitFonts*		GetFonts(void);
 	CGeometryMap*		GetMap(void);
 	int64				GetTime(void);
+	CViewPath*			GetViewPath(void);
+	CCircuitSimulation*	GetCircuitSimulation(void);
 
 protected:
 	size				NumArcSegments(float64 fRadiusX, float64 fRadiusY, float64 fArcAngle);

@@ -63,7 +63,7 @@ public:
 	virtual void					Kill(void);
 
 	virtual const char*				GetType(void);
-	virtual CCircuitComponent*		CreateComponent(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
+	virtual CCircuitComponent*		CreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
 	virtual CComponentStateXML*		GetComponentStateXML(void);
 	virtual void					GetBitJoins(CArrayPortBitJoin* pasJoins);
 	virtual const char*				GetXMLName(void);

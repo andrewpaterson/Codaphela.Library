@@ -78,6 +78,18 @@
     <ClCompile Include="CircuitView.cpp">
       <Filter>Source\View</Filter>
     </ClCompile>
+    <ClCompile Include="ViewPath.cpp">
+      <Filter>Source\View</Filter>
+    </ClCompile>
+    <ClCompile Include="CircuitViews.cpp">
+      <Filter>Source\View</Filter>
+    </ClCompile>
+    <ClCompile Include="SubcircuitInstanceView.cpp">
+      <Filter>Source\View</Filter>
+    </ClCompile>
+    <ClCompile Include="CircuitWiring.cpp">
+      <Filter>Source\View</Filter>
+    </ClCompile>
     <ClCompile Include="ComponentView.cpp">
       <Filter>Source\View</Filter>
     </ClCompile>
@@ -177,6 +189,18 @@
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="CircuitView.h">
+      <Filter>Source\View</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewPath.h">
+      <Filter>Source\View</Filter>
+    </ClInclude>
+    <ClInclude Include="CircuitViews.h">
+      <Filter>Source\View</Filter>
+    </ClInclude>
+    <ClInclude Include="SubcircuitInstanceView.h">
+      <Filter>Source\View</Filter>
+    </ClInclude>
+    <ClInclude Include="CircuitWiring.h">
       <Filter>Source\View</Filter>
     </ClInclude>
     <ClInclude Include="ComponentView.h">

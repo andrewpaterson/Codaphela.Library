@@ -87,3 +87,5 @@ us.stackdump
 /LogicimLib/Release/*
 /LogicimLib/x64/Debug/*
 /LogicimLib/x64/Release/*
+/WinGdiLib/x64/Debug/*
+/WinGdiLib/x64/Release/*

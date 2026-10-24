@@ -418,15 +418,16 @@ void CSplitterView::GetBitJoins(CArrayPortBitJoin* pasJoins)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCircuitComponent* CSplitterView::CreateComponent(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
+CCircuitComponent* CSplitterView::CreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
 {
-	CSplitter*		pcSplitter;
-	CArrayChars		aszStartNames;
-	CArrayChars		aszEndNames;
+	CSplitter*				pcSplitter;
+	CArrayChars				aszStartNames;
+	CArrayChars				aszEndNames;
+	CSubcircuitSimulation*	pcSimulation;
 
-	if (mpcComponent != NULL)
+	pcSimulation = CanCreateComponent(pcViewPath, pcCircuitSimulation);
+	if (pcSimulation == NULL)
 	{
-		gcLogger.Error2(__METHOD__, " [", GetType(), "] [", mszName.Text(), "] already has a component.", NULL);
 		return NULL;
 	}
 
@@ -438,7 +439,7 @@ CCircuitComponent* CSplitterView::CreateComponent(CSubcircuitSimulation* pcSimul
 	aszEndNames.Kill();
 	aszStartNames.Kill();
 
-	if (!ConnectPortViews(pcSplitter))
+	if (!PostCreateComponent(pcViewPath, pcCircuitSimulation, pcSplitter))
 	{
 		return NULL;
 	}

@@ -34,6 +34,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "65C64View.h"
 #include "OscilloscopeView.h"
 #include "SplitterView.h"
+#include "SubcircuitInstanceView.h"
 #include "ComponentViewFactory.h"
 
 
@@ -79,6 +80,7 @@ SComponentViewType gasComponentViewTypes[] =
 	{ "Splitter", NewComponentViewOfClass<CSplitterView> },
 	{ "Tunnel", NewComponentViewOfClass<CTunnelView> },
 	{ "Label", NewComponentViewOfClass<CLabelView> },
+	{ "Subcircuit", NewComponentViewOfClass<CSubcircuitInstanceView> },
 };
 
 
