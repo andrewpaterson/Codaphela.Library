@@ -115,7 +115,7 @@ bool CLabelView::MakesComponent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCircuitComponent* CLabelView::CreateComponent(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
+CCircuitComponent* CLabelView::CreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
 {
 	return NULL;
 }

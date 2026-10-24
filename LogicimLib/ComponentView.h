@@ -30,6 +30,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ComponentShapes.h"
 #include "PortView.h"
 #include "CircuitPainter.h"
+#include "ViewPath.h"
 
 
 class CCircuitComponent;
@@ -37,6 +38,18 @@ class CSubcircuitSimulation;
 class CFamilyVoltageConfigurationStore;
 class CComponentStateXML;
 class CComponentView;
+
+
+//The component a view made in one circuit simulation of one view path.
+struct SViewPathComponent
+{
+	CViewPath*				pcViewPath;
+	CCircuitSimulation*		pcCircuitSimulation;
+	CCircuitComponent*		pcComponent;
+};
+
+
+typedef CArrayTemplate<SViewPathComponent>	CArrayViewPathComponent;
 
 
 //Two port bits a component joins onto one trace, as a splitter joins a bit of its bus to a bit of one of its ends.
@@ -53,8 +66,10 @@ typedef CArrayTemplate<SPortBitJoin>	CArrayPortBitJoin;
 
 
 //How a component is drawn and where its ports are, as Logicim's ComponentView.  A view is drawn facing North about
-//its position and turned by its rotation.  It makes its component in a simulation (CreateComponent) and remembers it;
-//one view drives one simulation, unlike Logicim's views, which keep a component per simulation path.
+//its position and turned by its rotation.  As Logicim's views, it makes a component for each circuit simulation of
+//each view path its circuit is on (CreateComponent), in the subcircuit simulation the path has for that circuit
+//simulation, and remembers each by its path and circuit simulation.  A circuit used in many places, or simulated many
+//times, has one set of views and a component of each per use.
 //
 //A view saves itself as an XML element named by GetXMLName with its properties as attributes.  LoadXML is called on a
 //view that has been allocated but not initialised: it reads the attributes and initialises the view from them.  If it
@@ -67,7 +82,8 @@ typedef CArrayTemplate<SPortBitJoin>	CArrayPortBitJoin;
 //
 //A view that makes no component (a label or a tunnel) says so with MakesComponent.  A view with a connection name
 //(a tunnel) joins its port views to those of every view with the same name.  A view can join bits of its port views
-//onto the same traces (GetBitJoins), as a splitter does.
+//onto the same traces (GetBitJoins), as a splitter does.  An instance of a subcircuit is a circuit instance view
+//(GetCircuitInstanceView) too: the views of its subcircuit are on the path through it.
 class CComponentView : public CConstructable
 {
 CONSTRUCTABLE(CComponentView);
@@ -80,17 +96,18 @@ protected:
 	SFloat64Vec2			msBoundsMinimum;
 	SFloat64Vec2			msBoundsMaximum;
 	bool					mbHasBounds;
-	CCircuitComponent*		mpcComponent;
+	CArrayViewPathComponent	masComponents;
 
 public:
 			void					Init(int32 x, int32 y, ERotation eRotation, const char* szName);
 	virtual void					Kill(void);
 
 	virtual const char*				GetType(void) =0;
-	virtual CCircuitComponent*		CreateComponent(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies) =0;
+	virtual CCircuitComponent*		CreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CFamilyVoltageConfigurationStore* pcFamilies) =0;
 	virtual bool					MakesComponent(void);
 	virtual const char*				GetConnectionName(void);
 	virtual void					GetBitJoins(CArrayPortBitJoin* pasJoins);
+	virtual CCircuitInstanceView*	GetCircuitInstanceView(void);
 	virtual void					Paint(CCircuitPainter* pcPainter);
 
 	virtual const char*				GetXMLName(void) =0;
@@ -98,9 +115,10 @@ public:
 			void					SaveXML(CXMLWriter* pcWriter);
 	virtual CComponentStateXML*		GetComponentStateXML(void);
 
-			bool					ConnectPortViews(CCircuitComponent* pcComponent);
-			void					DisconnectComponent(void);
-			CCircuitComponent*		GetComponent(void);
+			void					DisconnectComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
+			CCircuitComponent*		GetComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
+			CCircuitComponent*		GetComponent(CCircuitPainter* pcPainter);
+			size					NumComponents(void);
 
 			void					SetPosition(int32 x, int32 y);
 			SInt32Vec2				GetPosition(void);
@@ -120,6 +138,9 @@ public:
 			bool					GetBoundingBox(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum);
 
 protected:
+			CSubcircuitSimulation*	CanCreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
+			bool					PostCreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CCircuitComponent* pcComponent);
+			SViewPathComponent*		FindComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, size* puiIndex);
 	virtual	void					SaveXMLAttributes(CXMLWriter* pcWriter);
 	static	bool					LoadXMLPlacement(CMarkupTag* pcTag, int32* px, int32* py, ERotation* peRotation, char** pszName);
 	static	void					SaveXMLBox(CXMLWriter* pcWriter, SInt32Vec2 sBoxMinimum, SInt32Vec2 sBoxMaximum);

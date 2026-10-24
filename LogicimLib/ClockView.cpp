@@ -80,12 +80,14 @@ void CClockView::Init(int32 x, int32 y, ERotation eRotation, const char* szName,
 //////////////////////////////////////////////////////////////////////////
 void CClockView::Paint(CCircuitPainter* pcPainter)
 {
-	ARGB32		sColour;
-	size		i;
+	ARGB32				sColour;
+	size				i;
+	CCircuitComponent*	pcComponent;
 
-	if ((mpcComponent != NULL) && (pcPainter->GetTime() != -1))
+	pcComponent = GetComponent(pcPainter);
+	if ((pcComponent != NULL) && (pcPainter->GetTime() != -1))
 	{
-		sColour = pcPainter->GetColours()->GetColourForVoltage(((CClockOscillator*)mpcComponent)->GetInternalVoltage(pcPainter->GetTime()));
+		sColour = pcPainter->GetColours()->GetColourForVoltage(((CClockOscillator*)pcComponent)->GetInternalVoltage(pcPainter->GetTime()));
 	}
 	else
 	{

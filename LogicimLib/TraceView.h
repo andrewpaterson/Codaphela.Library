@@ -31,16 +31,33 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 typedef CArrayTemplatePtr<CTrace>	CArrayTraceViewTracePtr;
 
 
+class CViewPath;
+class CCircuitSimulation;
+
+
+//A wire's traces in one circuit simulation of one view path.
+struct SViewPathTraces
+{
+	CViewPath*					pcViewPath;
+	CCircuitSimulation*			pcCircuitSimulation;
+	CArrayTraceViewTracePtr		apcTraces;
+};
+
+
+typedef CArrayTemplate<SViewPathTraces>	CArrayViewPathTraces;
+
+
 //A straight piece of wire between two grid points, as Logicim's TraceView.  It carries one trace per bit of the
 //ports it joins and is coloured by their average voltage.  A junction dot is drawn on an end where it meets a port or
-//where three or more wires meet.
+//where three or more wires meet.  Its traces are kept for each view path and circuit simulation its circuit is
+//simulated in, as Logicim's.
 class CTraceView : public CConstructable
 {
 CONSTRUCTABLE(CTraceView);
 protected:
 	SInt32Vec2					msStart;
 	SInt32Vec2					msEnd;
-	CArrayTraceViewTracePtr		mapcTraces;
+	CArrayViewPathTraces		masTraces;
 	bool						mbStartJunction;
 	bool						mbEndJunction;
 
@@ -57,10 +74,11 @@ public:
 			bool				IsEnd(SInt32Vec2 sPoint);
 			bool				Touches(CTraceView* pcOther);
 
-			void				SetTraces(CArrayTraceViewTracePtr* papcTraces);
-			void				ClearTraces(void);
-			size				NumTraces(void);
-			CTrace*				GetTrace(size uiIndex);
+			void						SetTraces(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CArrayTraceViewTracePtr* papcTraces);
+			void						ClearTraces(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
+			CArrayTraceViewTracePtr*	GetTraces(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
+			size						NumTraces(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
+			CTrace*						GetTrace(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, size uiIndex);
 			void				SetJunctions(bool bStart, bool bEnd);
 			bool				IsStartJunction(void);
 			bool				IsEndJunction(void);
@@ -69,6 +87,7 @@ public:
 
 protected:
 			ARGB32				GetColour(CCircuitPainter* pcPainter);
+			SViewPathTraces*	FindTraces(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, size* puiIndex);
 };
 
 

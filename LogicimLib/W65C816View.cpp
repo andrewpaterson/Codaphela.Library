@@ -136,13 +136,15 @@ void CW65C816View::SetFlagVisible(EW65C816ViewFlag eFlag, bool bVisible)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816View::Paint(CCircuitPainter* pcPainter)
 {
-	CW65C816*	pcMPU;
-	CChars		sz;
-	bool		bEmulation;
+	CW65C816*			pcMPU;
+	CChars				sz;
+	bool				bEmulation;
+	CCircuitComponent*	pcComponent;
 
-	if (mpcComponent != NULL)
+	pcComponent = GetComponent(pcPainter);
+	if (pcComponent != NULL)
 	{
-		pcMPU = ((CW65C816Chip*)mpcComponent)->GetMPU();
+		pcMPU = ((CW65C816Chip*)pcComponent)->GetMPU();
 
 		sz.Init();
 		pcMPU->GetOpcodeMnemonicString(&sz);

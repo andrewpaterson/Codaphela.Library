@@ -33,6 +33,10 @@
     <ClCompile Include="SplitterView.cpp" />
     <ClCompile Include="Radix.cpp" />
     <ClCompile Include="ValueView.cpp" />
+    <ClCompile Include="ViewPath.cpp" />
+    <ClCompile Include="CircuitViews.cpp" />
+    <ClCompile Include="SubcircuitInstanceView.cpp" />
+    <ClCompile Include="CircuitWiring.cpp" />
     <ClCompile Include="FlipFlopView.cpp" />
     <ClCompile Include="CounterView.cpp" />
     <ClCompile Include="CircuitFonts.cpp" />
@@ -68,6 +72,10 @@
     <ClInclude Include="SplitterView.h" />
     <ClInclude Include="Radix.h" />
     <ClInclude Include="ValueView.h" />
+    <ClInclude Include="ViewPath.h" />
+    <ClInclude Include="CircuitViews.h" />
+    <ClInclude Include="SubcircuitInstanceView.h" />
+    <ClInclude Include="CircuitWiring.h" />
     <ClInclude Include="FlipFlopView.h" />
     <ClInclude Include="CounterView.h" />
     <ClInclude Include="CircuitFonts.h" />

@@ -47,7 +47,7 @@ public:
 
 	virtual const char*				GetType(void);
 	virtual bool					MakesComponent(void);
-	virtual CCircuitComponent*		CreateComponent(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
+	virtual CCircuitComponent*		CreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
 	virtual const char*				GetXMLName(void);
 	virtual bool					LoadXML(CMarkupTag* pcTag);
 

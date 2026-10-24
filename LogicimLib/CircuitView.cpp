@@ -27,6 +27,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MicroprocessorLib/SubcircuitSimulation.h"
 #include "MicroprocessorLib/Circuit.h"
 #include "ComponentViewFactory.h"
+#include "CircuitWiring.h"
 #include "CircuitView.h"
 
 
@@ -36,6 +37,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CCircuitView::Init(void)
 {
+	mszTypeName.Init();
 	mapcComponents.Init();
 	mapcTraces.Init();
 }
@@ -64,6 +66,7 @@ void CCircuitView::Kill(void)
 		SafeKill(pcComponent);
 	}
 	mapcComponents.Kill();
+	mszTypeName.Kill();
 }
 
 
@@ -144,75 +147,51 @@ void CCircuitView::CollectPortViews(CArrayPortViewPtr* papcPortViews)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Makes every component of the circuit, and of the subcircuits in it all
+// the way down, in the circuit simulation for the path, starts the
+// simulation (if bStart) and wires the nets (see CCircuitWiring).  The
+// path must end in this circuit.  A top path is given the simulation's
+// top simulation; a path through an instance has its subcircuit
+// simulation from the instance.
 //
 //////////////////////////////////////////////////////////////////////////
-int CCircuitView::FindRoot(CArrayInt* paiParents, int iNode)
+bool CCircuitView::CreateSimulation(CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, bool bStart)
 {
-	int		iParent;
+	CCircuitWiring	cWiring;
+	bool			bResult;
 
-	iParent = paiParents->GetValue(iNode);
-	while (iParent != iNode)
+	if (pcViewPath->GetCircuitView() != this)
 	{
-		//Halve the path as it's walked.
-		paiParents->SetValue(iNode, paiParents->GetValue(iParent));
-		iNode = iParent;
-		iParent = paiParents->GetValue(iNode);
+		return gcLogger.Error2(__METHOD__, " The path doesn't end in this circuit.", NULL);
 	}
-	return iNode;
+	if (pcViewPath->IsTop() && !pcViewPath->ContainsCircuitSimulation(pcSimulation))
+	{
+		pcViewPath->AddSubcircuitSimulation(pcSimulation->GetSubcircuitTopSimulation());
+	}
+
+	bResult = CreateComponents(pcViewPath, pcSimulation, pcFamilies);
+
+	cWiring.Init(pcSimulation);
+	bResult &= cWiring.Wire(pcViewPath, bStart);
+	cWiring.Kill();
+	return bResult;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each view's component for the path, then those of each instance's
+// subcircuit for the path through the instance, which the instance's
+// component gives its subcircuit simulation.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircuitView::Join(CArrayInt* paiParents, int iNode1, int iNode2)
+bool CCircuitView::CreateComponents(CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
 {
-	int		iRoot1;
-	int		iRoot2;
-
-	iRoot1 = FindRoot(paiParents, iNode1);
-	iRoot2 = FindRoot(paiParents, iNode2);
-	if (iRoot1 != iRoot2)
-	{
-		paiParents->SetValue(iRoot2, iRoot1);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Makes every component in the simulation's top subcircuit, starts the
-// simulation (if bStart) and wires the nets.  The circuit view must not be
-// connected to another simulation.
-//
-// Nets are found in two steps.  Wires, port views and tunnels are joined
-// into nets, each a bus as wide as its widest port view.  Then the bits of
-// the nets that components join (a splitter joins each bit of its bus to a
-// bit of one of its ends) are joined, and each set of joined bits gets one
-// trace.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCircuitView::CreateSimulation(CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, bool bStart)
-{
-	CArrayPortViewPtr			apcPortViews;
-	CArrayInt					aiParents;
-	CArrayInt					aiNetWidths;
-	CArrayInt					aiNetIndices;
-	size						uiTraces;
-	size						uiNodes;
-	size						uiNumNets;
-	size						i;
-	size						k;
-	int							iNet;
-	CPortView*					pcPortView;
-	CComponentView*				pcComponent;
-	CSubcircuitSimulation*		pcTop;
-	CTimeline*					pcTimeline;
-	bool						bResult;
-	CArrayTraceViewTracePtr*	papcNetTraces;
-
-	pcTop = pcSimulation->GetSubcircuitTopSimulation();
+	size					i;
+	CComponentView*			pcComponent;
+	CCircuitInstanceView*	pcInstanceView;
+	CViewPath*				pcChild;
+	bool					bResult;
 
 	bResult = true;
 	for (i = 0; i < mapcComponents.NumElements(); i++)
@@ -220,195 +199,26 @@ bool CCircuitView::CreateSimulation(CCircuitSimulation* pcSimulation, CFamilyVol
 		pcComponent = mapcComponents.GetPtr(i);
 		if (pcComponent->MakesComponent())
 		{
-			if (pcComponent->CreateComponent(pcTop, pcFamilies) == NULL)
+			if (pcComponent->CreateComponent(pcViewPath, pcSimulation, pcFamilies) == NULL)
 			{
 				bResult = false;
 			}
 		}
 	}
 
-	apcPortViews.Init();
-	CollectPortViews(&apcPortViews);
-	uiTraces = mapcTraces.NumElements();
-	uiNodes = uiTraces + apcPortViews.NumElements();
-
-	aiParents.Init();
-	for (i = 0; i < uiNodes; i++)
+	for (i = 0; i < mapcComponents.NumElements(); i++)
 	{
-		aiParents.Add((int)i);
-	}
-	JoinNodes(&aiParents, &apcPortViews);
-	bResult &= FindNets(&aiParents, &apcPortViews, &aiNetWidths, &aiNetIndices, &uiNumNets);
-
-	papcNetTraces = (CArrayTraceViewTracePtr*)malloc(sizeof(CArrayTraceViewTracePtr) * (uiNumNets + 1));
-	for (i = 0; i < uiNumNets; i++)
-	{
-		papcNetTraces[i].Init();
-	}
-	CreateNetTraces(pcSimulation->GetCircuit(), &aiParents, &apcPortViews, &aiNetWidths, &aiNetIndices, uiNumNets, papcNetTraces);
-
-	for (i = 0; i < uiTraces; i++)
-	{
-		iNet = aiNetIndices.GetValue(FindRoot(&aiParents, (int)i));
-		mapcTraces.GetPtr(i)->SetTraces(&papcNetTraces[iNet]);
-	}
-	//Started before the ports are wired, as Logicim's editor wires them, so each port sees its trace go from undriven to
-	//whatever drives it.  Gates only act on transitions; wired before the start, a supply driving a gate's input
-	//wouldn't be seen.  A simulation that's going to be loaded is wired without events; its state comes from the file.
-	if (bStart)
-	{
-		pcSimulation->SimulationStarted();
-	}
-	pcTimeline = pcSimulation->GetTimeline();
-	for (i = 0; i < apcPortViews.NumElements(); i++)
-	{
-		pcPortView = apcPortViews.GetPtr(i);
-		iNet = aiNetIndices.GetValue(FindRoot(&aiParents, (int)(uiTraces + i)));
-		if (iNet != -1)
+		pcInstanceView = mapcComponents.GetPtr(i)->GetCircuitInstanceView();
+		if (pcInstanceView != NULL)
 		{
-			for (k = 0; k < pcPortView->NumPorts(); k++)
+			pcChild = pcViewPath->GetChild(pcInstanceView);
+			if ((pcChild == NULL) || !pcChild->ContainsCircuitSimulation(pcSimulation))
 			{
-				if (bStart)
-				{
-					bResult &= pcPortView->GetPort(k)->ConnectLive(papcNetTraces[iNet].GetPtr(k), pcTimeline);
-				}
-				else
-				{
-					bResult &= pcPortView->GetPort(k)->Connect(papcNetTraces[iNet].GetPtr(k));
-				}
+				bResult = false;
 			}
-		}
-	}
-
-	for (i = 0; i < uiNumNets; i++)
-	{
-		papcNetTraces[i].Kill();
-	}
-	free(papcNetTraces);
-	aiNetIndices.Kill();
-	aiNetWidths.Kill();
-	aiParents.Kill();
-	apcPortViews.Kill();
-
-	CalculateJunctions();
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Nodes are the wires and then the port views.  Wires that touch, port
-// views on a wire, port views on the same grid point and the port views of
-// views with the same connection name are joined.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCircuitView::JoinNodes(CArrayInt* paiParents, CArrayPortViewPtr* papcPortViews)
-{
-	size			uiTraces;
-	size			i;
-	size			j;
-	CPortView*		pcPortView;
-	CPortView*		pcOtherPortView;
-	const char*		szName;
-	const char*		szOtherName;
-
-	uiTraces = mapcTraces.NumElements();
-	for (i = 0; i < uiTraces; i++)
-	{
-		for (j = i + 1; j < uiTraces; j++)
-		{
-			if (mapcTraces.GetPtr(i)->Touches(mapcTraces.GetPtr(j)))
+			else
 			{
-				Join(paiParents, (int)i, (int)j);
-			}
-		}
-	}
-	for (i = 0; i < papcPortViews->NumElements(); i++)
-	{
-		pcPortView = papcPortViews->GetPtr(i);
-		for (j = 0; j < uiTraces; j++)
-		{
-			if (mapcTraces.GetPtr(j)->Contains(pcPortView->GetGridPosition()))
-			{
-				Join(paiParents, (int)(uiTraces + i), (int)j);
-			}
-		}
-		szName = pcPortView->GetOwner()->GetConnectionName();
-		for (j = i + 1; j < papcPortViews->NumElements(); j++)
-		{
-			pcOtherPortView = papcPortViews->GetPtr(j);
-			if (pcOtherPortView->GetGridPosition() == pcPortView->GetGridPosition())
-			{
-				Join(paiParents, (int)(uiTraces + i), (int)(uiTraces + j));
-			}
-			else if (szName != NULL)
-			{
-				szOtherName = pcOtherPortView->GetOwner()->GetConnectionName();
-				if ((szOtherName != NULL) && (StringCompare(szName, szOtherName) == 0))
-				{
-					Join(paiParents, (int)(uiTraces + i), (int)(uiTraces + j));
-				}
-			}
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A net is as wide as its widest port view; one with no ports gets a
-// single trace to show it's undriven.  Roots that are nets (anything with
-// a wire, and port views joined to another) are numbered in paiNetIndices
-// (-1 for the others) and their widths are in paiNetWidths, both by root.
-// Fails if ports of different widths are joined.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCircuitView::FindNets(CArrayInt* paiParents, CArrayPortViewPtr* papcPortViews, CArrayInt* paiNetWidths, CArrayInt* paiNetIndices, size* puiNumNets)
-{
-	size			uiTraces;
-	size			uiNodes;
-	size			i;
-	int				iRoot;
-	int				iWidth;
-	CPortView*		pcPortView;
-	bool			bResult;
-
-	uiTraces = mapcTraces.NumElements();
-	uiNodes = uiTraces + papcPortViews->NumElements();
-	bResult = true;
-	paiNetWidths->Init();
-	paiNetIndices->Init();
-	for (i = 0; i < uiNodes; i++)
-	{
-		paiNetWidths->Add(0);
-		paiNetIndices->Add(-1);
-	}
-	for (i = 0; i < papcPortViews->NumElements(); i++)
-	{
-		pcPortView = papcPortViews->GetPtr(i);
-		iRoot = FindRoot(paiParents, (int)(uiTraces + i));
-		iWidth = (int)pcPortView->NumPorts();
-		if ((paiNetWidths->GetValue(iRoot) != 0) && (iWidth != 0) && (paiNetWidths->GetValue(iRoot) != iWidth))
-		{
-			gcLogger.Error2(__METHOD__, " Ports of different widths are connected at [", IntToString(pcPortView->GetGridPosition().x), ", ", IntToString(pcPortView->GetGridPosition().y), "].", NULL);
-			bResult = false;
-		}
-		if (iWidth > paiNetWidths->GetValue(iRoot))
-		{
-			paiNetWidths->SetValue(iRoot, iWidth);
-		}
-	}
-
-	*puiNumNets = 0;
-	for (i = 0; i < uiNodes; i++)
-	{
-		iRoot = FindRoot(paiParents, (int)i);
-		if ((i < uiTraces) || (iRoot != (int)i))
-		{
-			if (paiNetIndices->GetValue(iRoot) == -1)
-			{
-				paiNetIndices->SetValue(iRoot, (int)*puiNumNets);
-				(*puiNumNets)++;
+				bResult &= pcInstanceView->GetInstanceCircuitView()->CreateComponents(pcChild, pcSimulation, pcFamilies);
 			}
 		}
 	}
@@ -418,149 +228,86 @@ bool CCircuitView::FindNets(CArrayInt* paiParents, CArrayPortViewPtr* papcPortVi
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The traces of each net by bit, into papcNetTraces.  Bits the components
-// join (GetBitJoins) share a trace; a join to a port view that isn't on a
-// net joins nothing.
+// Forgets the components and traces of the path in the circuit
+// simulation, and of the paths through the instances in it, which the
+// simulation still owns.  The paths forget the simulation.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircuitView::CreateNetTraces(CCircuit* pcCircuit, CArrayInt* paiParents, CArrayPortViewPtr* papcPortViews, CArrayInt* paiNetWidths, CArrayInt* paiNetIndices, size uiNumNets, CArrayTraceViewTracePtr* papcNetTraces)
+void CCircuitView::DisconnectSimulation(CViewPath* pcViewPath, CCircuitSimulation* pcSimulation)
 {
-	size				uiTraces;
-	size				uiNodes;
-	size				i;
-	size				k;
-	int					iRoot;
-	int					iNet;
-	CArrayInt			aiNetFirstBit;
-	CArrayInt			aiNetWidth;
-	CArrayInt			aiBitParents;
-	CArrayTraceViewTracePtr	apcBitTraces;
-	int					iBits;
-	int					iWidth;
-	CArrayPortBitJoin	asJoins;
-	SPortBitJoin*		psJoin;
-	int					iFromNet;
-	int					iToNet;
-	int					iBit;
-	CTrace*				pcTrace;
-
-	uiTraces = mapcTraces.NumElements();
-	uiNodes = uiTraces + papcPortViews->NumElements();
-
-	aiNetFirstBit.Init();
-	aiNetWidth.Init();
-	for (i = 0; i < uiNumNets; i++)
-	{
-		aiNetFirstBit.Add(0);
-		aiNetWidth.Add(0);
-	}
-	for (i = 0; i < uiNodes; i++)
-	{
-		iRoot = FindRoot(paiParents, (int)i);
-		if ((int)i == iRoot)
-		{
-			iNet = paiNetIndices->GetValue(iRoot);
-			if (iNet != -1)
-			{
-				iWidth = paiNetWidths->GetValue(iRoot);
-				aiNetWidth.SetValue(iNet, (iWidth == 0) ? 1 : iWidth);
-			}
-		}
-	}
-	iBits = 0;
-	for (i = 0; i < uiNumNets; i++)
-	{
-		aiNetFirstBit.SetValue(i, iBits);
-		iBits += aiNetWidth.GetValue(i);
-	}
-
-	aiBitParents.Init();
-	for (iBit = 0; iBit < iBits; iBit++)
-	{
-		aiBitParents.Add(iBit);
-	}
-	asJoins.Init();
-	for (i = 0; i < mapcComponents.NumElements(); i++)
-	{
-		mapcComponents.GetPtr(i)->GetBitJoins(&asJoins);
-	}
-	for (i = 0; i < asJoins.NumElements(); i++)
-	{
-		psJoin = asJoins.Get(i);
-		iFromNet = GetPortViewNet(paiParents, papcPortViews, paiNetIndices, psJoin->pcFrom);
-		iToNet = GetPortViewNet(paiParents, papcPortViews, paiNetIndices, psJoin->pcTo);
-		if ((iFromNet != -1) && (iToNet != -1) &&
-			(psJoin->uiFromBit < (size)aiNetWidth.GetValue(iFromNet)) && (psJoin->uiToBit < (size)aiNetWidth.GetValue(iToNet)))
-		{
-			Join(&aiBitParents, aiNetFirstBit.GetValue(iFromNet) + (int)psJoin->uiFromBit, aiNetFirstBit.GetValue(iToNet) + (int)psJoin->uiToBit);
-		}
-	}
-	asJoins.Kill();
-
-	apcBitTraces.Init();
-	for (iBit = 0; iBit < iBits; iBit++)
-	{
-		apcBitTraces.Add(NULL);
-	}
-	for (i = 0; i < uiNumNets; i++)
-	{
-		for (k = 0; k < (size)aiNetWidth.GetValue(i); k++)
-		{
-			iRoot = FindRoot(&aiBitParents, aiNetFirstBit.GetValue(i) + (int)k);
-			pcTrace = apcBitTraces.GetPtr(iRoot);
-			if (pcTrace == NULL)
-			{
-				pcTrace = pcCircuit->AddTrace();
-				apcBitTraces.SetPtr(iRoot, pcTrace);
-			}
-			papcNetTraces[i].Add(pcTrace);
-		}
-	}
-
-	apcBitTraces.Kill();
-	aiBitParents.Kill();
-	aiNetWidth.Kill();
-	aiNetFirstBit.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The net the port view is on, or -1.
-//
-//////////////////////////////////////////////////////////////////////////
-int CCircuitView::GetPortViewNet(CArrayInt* paiParents, CArrayPortViewPtr* papcPortViews, CArrayInt* paiNetIndices, CPortView* pcPortView)
-{
-	size	i;
-
-	for (i = 0; i < papcPortViews->NumElements(); i++)
-	{
-		if (papcPortViews->GetPtr(i) == pcPortView)
-		{
-			return paiNetIndices->GetValue(FindRoot(paiParents, (int)(mapcTraces.NumElements() + i)));
-		}
-	}
-	return -1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Forgets the simulation's components and traces.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCircuitView::DisconnectSimulation(void)
-{
-	size	i;
+	size					i;
+	CCircuitInstanceView*	pcInstanceView;
+	CViewPath*				pcChild;
 
 	for (i = 0; i < mapcComponents.NumElements(); i++)
 	{
-		mapcComponents.GetPtr(i)->DisconnectComponent();
+		pcInstanceView = mapcComponents.GetPtr(i)->GetCircuitInstanceView();
+		if (pcInstanceView != NULL)
+		{
+			pcChild = pcViewPath->FindChild(pcInstanceView);
+			if (pcChild != NULL)
+			{
+				pcInstanceView->GetInstanceCircuitView()->DisconnectSimulation(pcChild, pcSimulation);
+			}
+		}
+	}
+	for (i = 0; i < mapcComponents.NumElements(); i++)
+	{
+		mapcComponents.GetPtr(i)->DisconnectComponent(pcViewPath, pcSimulation);
 	}
 	for (i = 0; i < mapcTraces.NumElements(); i++)
 	{
-		mapcTraces.GetPtr(i)->ClearTraces();
+		mapcTraces.GetPtr(i)->ClearTraces(pcViewPath, pcSimulation);
 	}
+	pcViewPath->RemoveSubcircuitSimulation(pcSimulation);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A circuit is the top of its own path.
+//
+//////////////////////////////////////////////////////////////////////////
+CCircuitView* CCircuitView::GetInstanceCircuitView(void)
+{
+	return this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitView::AppendDescription(CChars* psz)
+{
+	if (mszTypeName.Empty())
+	{
+		psz->Append("Circuit");
+	}
+	else
+	{
+		psz->Append(mszTypeName);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitView::SetTypeName(const char* szTypeName)
+{
+	mszTypeName.Set(szTypeName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CCircuitView::GetTypeName(void)
+{
+	return mszTypeName.Text();
 }
 
 
@@ -631,6 +378,10 @@ void CCircuitView::SaveXML(CXMLWriter* pcWriter)
 	size	i;
 
 	pcWriter->Begin("Circuit");
+	if (!mszTypeName.Empty())
+	{
+		pcWriter->Attribute("type", mszTypeName.Text());
+	}
 	for (i = 0; i < mapcComponents.NumElements(); i++)
 	{
 		mapcComponents.GetPtr(i)->SaveXML(pcWriter);
@@ -655,10 +406,16 @@ bool CCircuitView::LoadXML(CMarkupTag* pcCircuitTag)
 	CMarkupTag*			pcTag;
 	CComponentView*		pcComponent;
 	CTraceView*			pcTrace;
+	char*				szTypeName;
 
 	if (!pcCircuitTag->Is("Circuit"))
 	{
 		return gcLogger.Error2(__METHOD__, " Expected a [Circuit] element, not [", pcCircuitTag->GetName(), "].", NULL);
+	}
+	szTypeName = pcCircuitTag->GetStringAttribute("type");
+	if (szTypeName != NULL)
+	{
+		mszTypeName.Set(szTypeName);
 	}
 
 	pcTag = pcCircuitTag->GetTag(&sIter);

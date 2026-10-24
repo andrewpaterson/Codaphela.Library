@@ -21,6 +21,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
+#include "BaseLib/StringHelper.h"
 #include "MicroprocessorLib/CircuitSimulation.h"
 #include "MicroprocessorLib/Circuit.h"
 #include "MicroprocessorLib/IntegratedCircuit.h"
@@ -33,26 +34,24 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A <Component index="n"> for each of the circuit's components that keeps
+// state, and then an <Instance index="n"> holding the same for the path
+// through each instance of a subcircuit in it.
 //
 //////////////////////////////////////////////////////////////////////////
-void SaveSimulationXML(CXMLWriter* pcWriter, CCircuitView* pcCircuit, CCircuitSimulation* pcSimulation)
+static void SaveComponentsXML(CXMLWriter* pcWriter, CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation)
 {
-	STimelineData			sTimeline;
 	size					i;
 	CComponentView*			pcView;
 	CCircuitComponent*		pcComponent;
 	CComponentStateXML*		pcStateXML;
+	CCircuitInstanceView*	pcInstanceView;
+	CViewPath*				pcChild;
 
-	pcSimulation->GetTimeline()->Save(&sTimeline);
-	pcWriter->Begin("Simulation");
-	pcWriter->Attribute("name", pcSimulation->GetName());
-	pcWriter->Attribute("time", sTimeline.iTime);
-	pcWriter->Attribute("previousEventTime", sTimeline.iPreviousEventTime);
-	pcWriter->Attribute("eventTime", sTimeline.iEventTime);
 	for (i = 0; i < pcCircuit->NumComponents(); i++)
 	{
 		pcView = pcCircuit->GetComponent(i);
-		pcComponent = pcView->GetComponent();
+		pcComponent = pcView->GetComponent(pcViewPath, pcSimulation);
 		pcStateXML = pcView->GetComponentStateXML();
 		if ((pcComponent != NULL) && (pcStateXML != NULL))
 		{
@@ -62,6 +61,43 @@ void SaveSimulationXML(CXMLWriter* pcWriter, CCircuitView* pcCircuit, CCircuitSi
 			pcWriter->End();
 		}
 	}
+	for (i = 0; i < pcCircuit->NumComponents(); i++)
+	{
+		pcInstanceView = pcCircuit->GetComponent(i)->GetCircuitInstanceView();
+		if (pcInstanceView != NULL)
+		{
+			pcChild = pcViewPath->FindChild(pcInstanceView);
+			if ((pcChild != NULL) && pcChild->ContainsCircuitSimulation(pcSimulation))
+			{
+				pcWriter->Begin("Instance");
+				pcWriter->Attribute("index", (int64)i);
+				SaveComponentsXML(pcWriter, pcInstanceView->GetInstanceCircuitView(), pcChild, pcSimulation);
+				pcWriter->End();
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void SaveSimulationXML(CXMLWriter* pcWriter, CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation)
+{
+	STimelineData	sTimeline;
+
+	pcSimulation->GetTimeline()->Save(&sTimeline);
+	pcWriter->Begin("Simulation");
+	pcWriter->Attribute("name", pcSimulation->GetName());
+	if (!StrEmpty(pcCircuit->GetTypeName()))
+	{
+		pcWriter->Attribute("circuit", pcCircuit->GetTypeName());
+	}
+	pcWriter->Attribute("time", sTimeline.iTime);
+	pcWriter->Attribute("previousEventTime", sTimeline.iPreviousEventTime);
+	pcWriter->Attribute("eventTime", sTimeline.iEventTime);
+	SaveComponentsXML(pcWriter, pcCircuit, pcViewPath, pcSimulation);
 	pcWriter->End();
 }
 
@@ -133,17 +169,69 @@ static bool MakePendingEventsXML(CArrayPendingEventXML* pasEvents, CTimeline* pc
 
 //////////////////////////////////////////////////////////////////////////
 //
-// ICs the file says nothing about keep what they were made with.
+// The <Component> and <Instance> elements SaveComponentsXML writes; the
+// events they hold are added to pasEvents.
 //
 //////////////////////////////////////////////////////////////////////////
-bool LoadSimulationXML(CMarkupTag* pcSimulationTag, CCircuitView* pcCircuit, CCircuitSimulation* pcSimulation)
+static bool LoadComponentsXML(CMarkupTag* pcParentTag, CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CArrayPendingEventXML* pasEvents)
 {
-	STimelineData			sTimeline;
 	STagIterator			sIter;
 	CMarkupTag*				pcTag;
 	int64					iIndex;
 	CComponentView*			pcView;
 	CComponentStateXML*		pcStateXML;
+	CCircuitComponent*		pcComponent;
+	CCircuitInstanceView*	pcInstanceView;
+	CViewPath*				pcChild;
+
+	pcTag = pcParentTag->GetTag(&sIter);
+	while (pcTag != NULL)
+	{
+		if ((!pcTag->Is("Component") && !pcTag->Is("Instance")) || !pcTag->GetInt64Attribute("index", &iIndex) || (iIndex < 0) || ((size)iIndex >= pcCircuit->NumComponents()))
+		{
+			return gcLogger.Error2(__METHOD__, " Expected a [Component] or [Instance] with the index of one of the circuit's components, not [", pcTag->GetName(), "].", NULL);
+		}
+		pcView = pcCircuit->GetComponent((size)iIndex);
+		if (pcTag->Is("Component"))
+		{
+			pcStateXML = pcView->GetComponentStateXML();
+			pcComponent = pcView->GetComponent(pcViewPath, pcSimulation);
+			if ((pcComponent == NULL) || (pcStateXML == NULL))
+			{
+				return gcLogger.Error2(__METHOD__, " Component [", pcView->GetName(), "] has no simulation state to load.", NULL);
+			}
+			if (!pcStateXML->Load(pcTag, pcComponent, pasEvents))
+			{
+				return false;
+			}
+		}
+		else
+		{
+			pcInstanceView = pcView->GetCircuitInstanceView();
+			pcChild = (pcInstanceView != NULL) ? pcViewPath->FindChild(pcInstanceView) : NULL;
+			if ((pcChild == NULL) || !pcChild->ContainsCircuitSimulation(pcSimulation))
+			{
+				return gcLogger.Error2(__METHOD__, " Component [", pcView->GetName(), "] isn't a simulated instance of a subcircuit.", NULL);
+			}
+			if (!LoadComponentsXML(pcTag, pcInstanceView->GetInstanceCircuitView(), pcChild, pcSimulation, pasEvents))
+			{
+				return false;
+			}
+		}
+		pcTag = pcParentTag->GetNextTag(&sIter);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// ICs the file says nothing about keep what they were made with.
+//
+//////////////////////////////////////////////////////////////////////////
+bool LoadSimulationXML(CMarkupTag* pcSimulationTag, CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation)
+{
+	STimelineData			sTimeline;
 	CArrayPendingEventXML	asEvents;
 	bool					bResult;
 
@@ -158,26 +246,7 @@ bool LoadSimulationXML(CMarkupTag* pcSimulationTag, CCircuitView* pcCircuit, CCi
 	pcSimulation->GetTimeline()->Load(&sTimeline);
 
 	asEvents.Init();
-	bResult = true;
-	pcTag = pcSimulationTag->GetTag(&sIter);
-	while ((pcTag != NULL) && bResult)
-	{
-		if (!pcTag->Is("Component") || !pcTag->GetInt64Attribute("index", &iIndex) || (iIndex < 0) || ((size)iIndex >= pcCircuit->NumComponents()))
-		{
-			bResult = gcLogger.Error2(__METHOD__, " Expected a [Component] with the index of one of the circuit's components, not [", pcTag->GetName(), "].", NULL);
-			break;
-		}
-		pcView = pcCircuit->GetComponent((size)iIndex);
-		pcStateXML = pcView->GetComponentStateXML();
-		if ((pcView->GetComponent() == NULL) || (pcStateXML == NULL))
-		{
-			bResult = gcLogger.Error2(__METHOD__, " Component [", pcView->GetName(), "] has no simulation state to load.", NULL);
-			break;
-		}
-		bResult = pcStateXML->Load(pcTag, pcView->GetComponent(), &asEvents);
-		pcTag = pcSimulationTag->GetNextTag(&sIter);
-	}
-
+	bResult = LoadComponentsXML(pcSimulationTag, pcCircuit, pcViewPath, pcSimulation, &asEvents);
 	if (bResult)
 	{
 		bResult = MakePendingEventsXML(&asEvents, pcSimulation->GetTimeline());
@@ -185,4 +254,3 @@ bool LoadSimulationXML(CMarkupTag* pcSimulationTag, CCircuitView* pcCircuit, CCi
 	asEvents.Kill();
 	return bResult;
 }
-

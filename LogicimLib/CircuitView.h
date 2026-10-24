@@ -30,16 +30,22 @@ class CCircuit;
 class CFamilyVoltageConfigurationStore;
 
 
-//The components and wires of one circuit, as the views part of Logicim's SubcircuitView.  It owns its views.
-//CreateSimulation makes each component in a simulation, starts it, and then wires the ports the wires connect, live,
-//as Logicim's editor does.  Without bStart it wires them without starting, for a saved simulation to be loaded into: wires that touch, ports on a wire and ports on the same grid point are one net with a
-//trace per bit.
+//The components and wires of one circuit, as the views part of Logicim's SubcircuitView, named by its type name (a
+//circuit on its own has none).  It owns its views.  CreateSimulation makes each component in a circuit simulation for
+//a view path ending in this circuit, and those of the subcircuits in it for the paths through their instances, starts
+//it, and then wires the ports the wires connect, live, as Logicim's editor does (see CCircuitWiring).  Without bStart
+//it wires them without starting, for a saved simulation to be loaded into.  A circuit is the first view of its own top
+//path (as Logicim's SubcircuitEditor); simulating its top path puts the circuit simulation's top simulation on the
+//path.
 //
-//SaveXML writes a <Circuit> element holding an element per component (in the order they were added) and then a <Trace>
-//per wire.  LoadXML adds what such an element holds to the circuit view.
-class CCircuitView
+//SaveXML writes a <Circuit> element (with a type attribute if it has a type name) holding an element per component
+//(in the order they were added) and then a <Trace> per wire.  LoadXML adds what such an element holds to the circuit
+//view.  Instances of subcircuits in it are loaded without their subcircuits, which are found by type name afterwards
+//(see CCircuitViews).
+class CCircuitView : public CCircuitInstanceView
 {
 protected:
+	CChars					mszTypeName;
 	CArrayComponentViewPtr	mapcComponents;
 	CArrayTraceViewPtr		mapcTraces;
 
@@ -55,10 +61,16 @@ public:
 	CComponentView*		GetComponent(size uiIndex);
 	size				NumTraces(void);
 	CTraceView*			GetTrace(size uiIndex);
+	void				CollectPortViews(CArrayPortViewPtr* papcPortViews);
 
-	bool				CreateSimulation(CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, bool bStart = true);
-	void				DisconnectSimulation(void);
+	bool				CreateSimulation(CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, bool bStart = true);
+	void				DisconnectSimulation(CViewPath* pcViewPath, CCircuitSimulation* pcSimulation);
 	void				CalculateJunctions(void);
+
+	CCircuitView*		GetInstanceCircuitView(void);
+	void				AppendDescription(CChars* psz);
+	void				SetTypeName(const char* szTypeName);
+	char*				GetTypeName(void);
 
 	void				SaveXML(CXMLWriter* pcWriter);
 	bool				LoadXML(CMarkupTag* pcCircuitTag);
@@ -67,13 +79,7 @@ public:
 	bool				GetBoundingBox(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum);
 
 protected:
-	void				CollectPortViews(CArrayPortViewPtr* papcPortViews);
-	void				JoinNodes(CArrayInt* paiParents, CArrayPortViewPtr* papcPortViews);
-	bool				FindNets(CArrayInt* paiParents, CArrayPortViewPtr* papcPortViews, CArrayInt* paiNetWidths, CArrayInt* paiNetIndices, size* puiNumNets);
-	void				CreateNetTraces(CCircuit* pcCircuit, CArrayInt* paiParents, CArrayPortViewPtr* papcPortViews, CArrayInt* paiNetWidths, CArrayInt* paiNetIndices, size uiNumNets, CArrayTraceViewTracePtr* papcNetTraces);
-	int					GetPortViewNet(CArrayInt* paiParents, CArrayPortViewPtr* papcPortViews, CArrayInt* paiNetIndices, CPortView* pcPortView);
-	int					FindRoot(CArrayInt* paiParents, int iNode);
-	void				Join(CArrayInt* paiParents, int iNode1, int iNode2);
+	bool				CreateComponents(CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
 };
 
 

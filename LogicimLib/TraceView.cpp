@@ -21,6 +21,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include "BaseLib/Logger.h"
 #include "ComponentShapes.h"
+#include "ViewPath.h"
 #include "TraceView.h"
 
 
@@ -32,7 +33,7 @@ void CTraceView::Init(int32 x0, int32 y0, int32 x1, int32 y1)
 {
 	msStart.Init(x0, y0);
 	msEnd.Init(x1, y1);
-	mapcTraces.Init();
+	masTraces.Init();
 	mbStartJunction = false;
 	mbEndJunction = false;
 }
@@ -82,7 +83,13 @@ void CTraceView::SaveXML(CXMLWriter* pcWriter)
 //////////////////////////////////////////////////////////////////////////
 void CTraceView::Kill(void)
 {
-	mapcTraces.Kill();
+	size	i;
+
+	for (i = 0; i < masTraces.NumElements(); i++)
+	{
+		masTraces.Get(i)->apcTraces.Kill();
+	}
+	masTraces.Kill();
 }
 
 
@@ -112,35 +119,38 @@ void CTraceView::Paint(CCircuitPainter* pcPainter)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The average voltage of the traces that are driven.  A trace view with no
-// traces is disconnected.
+// The average voltage of the traces of the painter's path and circuit
+// simulation that are driven.  A trace view with no traces is
+// disconnected.
 //
 //////////////////////////////////////////////////////////////////////////
 ARGB32 CTraceView::GetColour(CCircuitPainter* pcPainter)
 {
-	CCircuitColours*	pcColours;
-	size				i;
-	size				uiDriven;
-	float64				fAverage;
-	float32				fVoltage;
-	int64				iTime;
+	CCircuitColours*			pcColours;
+	size						i;
+	size						uiDriven;
+	float64						fAverage;
+	float32						fVoltage;
+	int64						iTime;
+	CArrayTraceViewTracePtr*	papcTraces;
 
 	pcColours = pcPainter->GetColours();
 	iTime = pcPainter->GetTime();
-	if ((mapcTraces.NumElements() == 0) || (iTime == -1))
+	papcTraces = GetTraces(pcPainter->GetViewPath(), pcPainter->GetCircuitSimulation());
+	if ((papcTraces == NULL) || (papcTraces->NumElements() == 0) || (iTime == -1))
 	{
 		return pcColours->msDisconnectedTrace;
 	}
-	if (mapcTraces.NumElements() == 1)
+	if (papcTraces->NumElements() == 1)
 	{
-		return pcColours->GetColourForTrace(mapcTraces.GetPtr(0), iTime);
+		return pcColours->GetColourForTrace(papcTraces->GetPtr(0), iTime);
 	}
 
 	fAverage = 0;
 	uiDriven = 0;
-	for (i = 0; i < mapcTraces.NumElements(); i++)
+	for (i = 0; i < papcTraces->NumElements(); i++)
 	{
-		fVoltage = mapcTraces.GetPtr(i)->GetVoltage(iTime);
+		fVoltage = papcTraces->GetPtr(i)->GetVoltage(iTime);
 		if (!isnan(fVoltage))
 		{
 			fAverage += fVoltage;
@@ -212,14 +222,19 @@ bool CTraceView::Touches(CTraceView* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTraceView::SetTraces(CArrayTraceViewTracePtr* papcTraces)
+void CTraceView::SetTraces(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CArrayTraceViewTracePtr* papcTraces)
 {
-	size	i;
+	size					i;
+	SViewPathTraces*		psTraces;
 
-	mapcTraces.ReInit();
+	ClearTraces(pcViewPath, pcCircuitSimulation);
+	psTraces = masTraces.Add();
+	psTraces->pcViewPath = pcViewPath;
+	psTraces->pcCircuitSimulation = pcCircuitSimulation;
+	psTraces->apcTraces.Init();
 	for (i = 0; i < papcTraces->NumElements(); i++)
 	{
-		mapcTraces.Add(papcTraces->GetPtr(i));
+		psTraces->apcTraces.Add(papcTraces->GetPtr(i));
 	}
 }
 
@@ -228,9 +243,86 @@ void CTraceView::SetTraces(CArrayTraceViewTracePtr* papcTraces)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTraceView::ClearTraces(void) { mapcTraces.ReInit(); }
-size CTraceView::NumTraces(void) { return mapcTraces.NumElements(); }
-CTrace* CTraceView::GetTrace(size uiIndex) { return mapcTraces.SafeGetPtr(uiIndex); }
+void CTraceView::ClearTraces(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation)
+{
+	SViewPathTraces*	psTraces;
+	size				uiIndex;
+
+	psTraces = FindTraces(pcViewPath, pcCircuitSimulation, &uiIndex);
+	if (psTraces != NULL)
+	{
+		psTraces->apcTraces.Kill();
+		masTraces.RemoveAt(uiIndex, true);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL if the wire has no traces for the path and circuit simulation.
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayTraceViewTracePtr* CTraceView::GetTraces(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation)
+{
+	SViewPathTraces*	psTraces;
+
+	psTraces = FindTraces(pcViewPath, pcCircuitSimulation, NULL);
+	if (psTraces == NULL)
+	{
+		return NULL;
+	}
+	return &psTraces->apcTraces;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CTraceView::NumTraces(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation)
+{
+	CArrayTraceViewTracePtr*	papcTraces;
+
+	papcTraces = GetTraces(pcViewPath, pcCircuitSimulation);
+	if (papcTraces == NULL)
+	{
+		return 0;
+	}
+	return papcTraces->NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CTrace* CTraceView::GetTrace(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, size uiIndex)
+{
+	CArrayTraceViewTracePtr*	papcTraces;
+
+	papcTraces = GetTraces(pcViewPath, pcCircuitSimulation);
+	if (papcTraces == NULL)
+	{
+		return NULL;
+	}
+	return papcTraces->SafeGetPtr(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SViewPathTraces* CTraceView::FindTraces(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, size* puiIndex)
+{
+	return FindViewPathSimulation(&masTraces, pcViewPath, pcCircuitSimulation, puiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CTraceView::SetJunctions(bool bStart, bool bEnd) { mbStartJunction = bStart; mbEndJunction = bEnd; }
 bool CTraceView::IsStartJunction(void) { return mbStartJunction; }
 bool CTraceView::IsEndJunction(void) { return mbEndJunction; }

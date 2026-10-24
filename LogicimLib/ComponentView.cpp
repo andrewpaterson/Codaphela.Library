@@ -23,6 +23,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/StringHelper.h"
 #include "BaseLib/Logger.h"
 #include "MicroprocessorLib/CircuitComponent.h"
+#include "MicroprocessorLib/CircuitSimulation.h"
 #include "ComponentView.h"
 
 
@@ -41,13 +42,13 @@ void CComponentView::Init(int32 x, int32 y, ERotation eRotation, const char* szN
 	msBoundsMinimum.Init(0, 0);
 	msBoundsMaximum.Init(0, 0);
 	mbHasBounds = false;
-	mpcComponent = NULL;
+	masComponents.Init();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The component belongs to its simulation and isn't freed.
+// The components belong to their simulations and aren't freed.
 //
 //////////////////////////////////////////////////////////////////////////
 void CComponentView::Kill(void)
@@ -63,7 +64,7 @@ void CComponentView::Kill(void)
 	mapcPortViews.Kill();
 	mcShapes.Kill();
 	mszName.Kill();
-	mpcComponent = NULL;
+	masComponents.Kill();
 }
 
 
@@ -236,6 +237,17 @@ void CComponentView::GetBitJoins(CArrayPortBitJoin* pasJoins)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// NULL unless the view is an instance of a subcircuit.
+//
+//////////////////////////////////////////////////////////////////////////
+CCircuitInstanceView* CComponentView::GetCircuitInstanceView(void)
+{
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Draws the shapes and then the ports over them.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -275,19 +287,55 @@ void CComponentView::PaintPorts(CCircuitPainter* pcPainter)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Remembers the component and gives each port view its ports.
+// The subcircuit simulation to make the component in, as Logicim's
+// validateCanCreateComponent and getSubcircuitSimulation.  NULL if the
+// view already has a component for the path and circuit simulation or the
+// path isn't simulated in it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CComponentView::ConnectPortViews(CCircuitComponent* pcComponent)
+CSubcircuitSimulation* CComponentView::CanCreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation)
 {
-	size	i;
-	bool	bResult;
+	CSubcircuitSimulation*	pcSimulation;
+	CChars					sz;
 
-	mpcComponent = pcComponent;
+	if (FindComponent(pcViewPath, pcCircuitSimulation, NULL) != NULL)
+	{
+		gcLogger.Error2(__METHOD__, " [", GetType(), "] [", mszName.Text(), "] already has a component for this path and simulation.", NULL);
+		return NULL;
+	}
+	pcSimulation = pcViewPath->GetSubcircuitSimulation(pcCircuitSimulation);
+	if (pcSimulation == NULL)
+	{
+		sz.Init();
+		pcViewPath->AppendDescription(&sz);
+		gcLogger.Error2(__METHOD__, " Path [", sz.Text(), "] isn't simulated in circuit simulation [", pcCircuitSimulation->GetName(), "].", NULL);
+		sz.Kill();
+	}
+	return pcSimulation;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Remembers the component for the path and circuit simulation and gives
+// each port view its ports, as Logicim's postCreateComponent.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentView::PostCreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CCircuitComponent* pcComponent)
+{
+	size					i;
+	bool					bResult;
+	SViewPathComponent*		psComponent;
+
+	psComponent = masComponents.Add();
+	psComponent->pcViewPath = pcViewPath;
+	psComponent->pcCircuitSimulation = pcCircuitSimulation;
+	psComponent->pcComponent = pcComponent;
+
 	bResult = true;
 	for (i = 0; i < mapcPortViews.NumElements(); i++)
 	{
-		bResult &= mapcPortViews.GetPtr(i)->Connect(pcComponent);
+		bResult &= mapcPortViews.GetPtr(i)->Connect(pcViewPath, pcCircuitSimulation, pcComponent);
 	}
 	return bResult;
 }
@@ -298,15 +346,59 @@ bool CComponentView::ConnectPortViews(CCircuitComponent* pcComponent)
 // Forgets the component, which its simulation still owns.
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentView::DisconnectComponent(void)
+void CComponentView::DisconnectComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation)
 {
 	size	i;
+	size	uiIndex;
 
 	for (i = 0; i < mapcPortViews.NumElements(); i++)
 	{
-		mapcPortViews.GetPtr(i)->Disconnect();
+		mapcPortViews.GetPtr(i)->Disconnect(pcViewPath, pcCircuitSimulation);
 	}
-	mpcComponent = NULL;
+	if (FindComponent(pcViewPath, pcCircuitSimulation, &uiIndex) != NULL)
+	{
+		masComponents.RemoveAt(uiIndex, true);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL if the view has no component for the path and circuit simulation.
+//
+//////////////////////////////////////////////////////////////////////////
+CCircuitComponent* CComponentView::GetComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation)
+{
+	SViewPathComponent*		psComponent;
+
+	psComponent = FindComponent(pcViewPath, pcCircuitSimulation, NULL);
+	if (psComponent == NULL)
+	{
+		return NULL;
+	}
+	return psComponent->pcComponent;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The component of the path and circuit simulation being drawn.
+//
+//////////////////////////////////////////////////////////////////////////
+CCircuitComponent* CComponentView::GetComponent(CCircuitPainter* pcPainter)
+{
+	return GetComponent(pcPainter->GetViewPath(), pcPainter->GetCircuitSimulation());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many paths and circuit simulations the view has components for.
+//
+//////////////////////////////////////////////////////////////////////////
+size CComponentView::NumComponents(void)
+{
+	return masComponents.NumElements();
 }
 
 
@@ -314,9 +406,9 @@ void CComponentView::DisconnectComponent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCircuitComponent* CComponentView::GetComponent(void)
+SViewPathComponent* CComponentView::FindComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, size* puiIndex)
 {
-	return mpcComponent;
+	return FindViewPathSimulation(&masComponents, pcViewPath, pcCircuitSimulation, puiIndex);
 }
 
 

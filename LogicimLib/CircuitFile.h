@@ -20,7 +20,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __CIRCUIT_FILE_H__
 #define __CIRCUIT_FILE_H__
-#include "CircuitView.h"
+#include "CircuitViews.h"
 
 
 #define CIRCUIT_FILE_VERSION	1
@@ -34,14 +34,20 @@ class CFamilyVoltageConfigurationStore;
 //saved, a <Simulation> (see SimulationStateXML.h).  Loading adds the file's circuit to an initialised circuit view,
 //normally an empty one, and needs the data memory (DataMemoryInit) for the XML reader.
 //
-//Loading with a simulation (initialised, empty) makes the circuit in it: from the saved simulation if the file has one,
-//otherwise started afresh.
+//Loading with a simulation (initialised, empty) makes the circuit in it for the view path, which must end in the
+//circuit view: from the saved simulation if the file has one, otherwise started afresh.
+//
+//A project's circuits are saved the same way with a <Circuits> element (see CCircuitViews) in place of the <Circuit>,
+//and the simulation of one of them on its top path, which names the circuit it's of.
 bool	SaveCircuitFile(CCircuitView* pcCircuit, const char* szFilename);
-bool	SaveCircuitFile(CCircuitView* pcCircuit, CCircuitSimulation* pcSimulation, const char* szFilename);
+bool	SaveCircuitFile(CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, const char* szFilename);
 bool	LoadCircuitFile(CCircuitView* pcCircuit, const char* szFilename);
-bool	LoadCircuitFile(CCircuitView* pcCircuit, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, const char* szFilename);
+bool	LoadCircuitFile(CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, const char* szFilename);
 void	SaveCircuitXML(CCircuitView* pcCircuit, CXMLWriter* pcWriter);
-void	SaveCircuitXML(CCircuitView* pcCircuit, CCircuitSimulation* pcSimulation, CXMLWriter* pcWriter);
+void	SaveCircuitXML(CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CXMLWriter* pcWriter);
+bool	SaveCircuitsFile(CCircuitViews* pcCircuits, CCircuitView* pcTop, CCircuitSimulation* pcSimulation, const char* szFilename);
+bool	LoadCircuitsFile(CCircuitViews* pcCircuits, const char* szTop, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, const char* szFilename);
+void	SaveCircuitsXML(CCircuitViews* pcCircuits, CCircuitView* pcTop, CCircuitSimulation* pcSimulation, CXMLWriter* pcWriter);
 
 
 #endif // __CIRCUIT_FILE_H__

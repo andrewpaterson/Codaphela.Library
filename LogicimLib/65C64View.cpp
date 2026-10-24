@@ -156,12 +156,14 @@ void C65C64View::SetDetail(E65C64ViewDetail eDetail, CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void C65C64View::Paint(CCircuitPainter* pcPainter)
 {
-	C65C64*		pcMPU;
-	CChars		sz;
+	C65C64*				pcMPU;
+	CChars				sz;
+	CCircuitComponent*	pcComponent;
 
-	if (mpcComponent != NULL)
+	pcComponent = GetComponent(pcPainter);
+	if (pcComponent != NULL)
 	{
-		pcMPU = ((C65C64Chip*)mpcComponent)->GetMPU();
+		pcMPU = ((C65C64Chip*)pcComponent)->GetMPU();
 
 		sz.Init();
 		pcMPU->GetMnemonicString(&sz);
