@@ -635,7 +635,9 @@ static int Format(SFormatOutput* psOutput, const char* szFormat, va_list vaArgum
 	unsigned long long	ullValue;
 	const char*			sz;
 	int					iBytes;
+	char				szChar[2];
 
+	szChar[1] = 0;
 	while (*szFormat)
 	{
 		c = *szFormat++;
@@ -769,7 +771,8 @@ static int Format(SFormatOutput* psOutput, const char* szFormat, va_list vaArgum
 			break;
 
 		case 'c':
-			Emit(psOutput, (char)va_arg(vaArguments, int));
+			szChar[0] = (char)va_arg(vaArguments, int);
+			EmitField(psOutput, "", szChar, 1, 0, iWidth, iFlags & ~FORMAT_ZERO);
 			break;
 
 		case 's':

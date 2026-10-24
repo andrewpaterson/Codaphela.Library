@@ -70,18 +70,18 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 class CAsm65Memory
 {
 protected:
-	uint8*		mpuiLow;
-	uint32		muiLowSize;
-	uint8		mauiHigh[ASM65_MEMORY_HIGH_SIZE];
-	uint8		mauiMemorySize[4];
-	size		muiBadAccesses;
-	size		muiCycles;
-	CFileDrive*	mpcDrive;
-	uint8		mauiDrive[ASM65_DRIVE_SIZE];
-	size		muiDriveReads;
-	CChars*		mpszConsole;
+	uint8*				mpuiLow;
+	uint32				muiLowSize;
+	uint8				mauiHigh[ASM65_MEMORY_HIGH_SIZE];
+	uint8				mauiMemorySize[4];
+	size				muiBadAccesses;
+	size				muiCycles;
+	CFileDrive*			mpcDrive;
+	uint8				mauiDrive[ASM65_DRIVE_SIZE];
+	size				muiDriveReads;
+	CChars*				mpszConsole;
 	CAsm65HostFiles*	mpcHostFiles;
-	uint8		mauiHost[ASM65_HOST_SIZE];
+	uint8				mauiHost[ASM65_HOST_SIZE];
 
 public:
 	void			Init(uint32 uiLowSize = ASM65_MEMORY_LOW_SIZE);

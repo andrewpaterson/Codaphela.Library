@@ -19,7 +19,6 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include <stdio.h>
-#include <ctype.h>
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/PointerFunctions.h"
 #include "Asm65Memory.h"
@@ -89,7 +88,10 @@ uint64 CAsm65HostFiles::Command(CAsm65Memory* pcMemory, uint8 uiCommand, uint32*
 	uint32			i;
 	int64			iValue;
 	EFileSeekOrigin	eOrigin;
-	uint8			uiByte;
+	uint8			auiChunk[ASM65_HOST_CHUNK];
+	uint32			uiChunk;
+	uint32			uiRead;
+	uint32			uiWritten;
 
 	szPath.Init();
 	uiResult = 0;
@@ -109,15 +111,21 @@ uint64 CAsm65HostFiles::Command(CAsm65Memory* pcMemory, uint8 uiCommand, uint32*
 		if (psFile)
 		{
 			uiAddress = auiArguments[1];
-			for (i = 0; i < auiArguments[2]; i++)
+			uiResult = 0;
+			while (uiResult < auiArguments[2])
 			{
-				if (psFile->cFile.Read(&uiByte, 1, 1) != 1)
+				uiChunk = ((auiArguments[2] - (uint32)uiResult) < ASM65_HOST_CHUNK) ? (auiArguments[2] - (uint32)uiResult) : ASM65_HOST_CHUNK;
+				uiRead = (uint32)psFile->cFile.Read(auiChunk, 1, uiChunk);
+				for (i = 0; i < uiRead; i++)
+				{
+					pcMemory->SetByte(uiAddress + (uint32)uiResult + i, auiChunk[i]);
+				}
+				uiResult += uiRead;
+				if (uiRead < uiChunk)
 				{
 					break;
 				}
-				pcMemory->SetByte(uiAddress + i, uiByte);
 			}
-			uiResult = i;
 		}
 		break;
 
@@ -130,15 +138,21 @@ uint64 CAsm65HostFiles::Command(CAsm65Memory* pcMemory, uint8 uiCommand, uint32*
 				psFile->cFile.Seek(0, EFSO_END);
 			}
 			uiAddress = auiArguments[1];
-			for (i = 0; i < auiArguments[2]; i++)
+			uiResult = 0;
+			while (uiResult < auiArguments[2])
 			{
-				uiByte = pcMemory->GetByte(uiAddress + i);
-				if (psFile->cFile.Write(&uiByte, 1, 1) != 1)
+				uiChunk = ((auiArguments[2] - (uint32)uiResult) < ASM65_HOST_CHUNK) ? (auiArguments[2] - (uint32)uiResult) : ASM65_HOST_CHUNK;
+				for (i = 0; i < uiChunk; i++)
+				{
+					auiChunk[i] = pcMemory->GetByte(uiAddress + (uint32)uiResult + i);
+				}
+				uiWritten = (uint32)psFile->cFile.Write(auiChunk, 1, uiChunk);
+				uiResult += uiWritten;
+				if (uiWritten < uiChunk)
 				{
 					break;
 				}
 			}
-			uiResult = i;
 		}
 		break;
 
@@ -439,26 +453,6 @@ uint32 CAsm65HostFiles::FindFile(const char* szDirectory, uint32 uiIndex, CChars
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Names compared upper cased, as NTFS orders them.
-//
-//////////////////////////////////////////////////////////////////////////
-static int CompareNTFSNames(const char* sz1, const char* sz2)
-{
-	int		c1;
-	int		c2;
-
-	do
-	{
-		c1 = toupper((unsigned char)*sz1++);
-		c2 = toupper((unsigned char)*sz2++);
-	}
-	while ((c1 == c2) && (c1 != 0));
-	return c1 - c2;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 void CAsm65HostFiles::ListDirectory(const char* szDirectory)
@@ -502,7 +496,7 @@ void CAsm65HostFiles::ListDirectory(const char* szDirectory)
 			cFileUtil.RemovePath(&szName);
 			szEntry.Init(aszFiles.GetText(iFile));
 			cFileUtil.RemovePath(&szEntry);
-			bDirectory = CompareNTFSNames(szName.Text(), szEntry.Text()) <= 0;
+			bDirectory = CompareFileNamesNTFS(szName.Text(), szEntry.Text()) <= 0;
 			szEntry.Kill();
 			szName.Kill();
 		}
