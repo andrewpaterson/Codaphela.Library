@@ -19,6 +19,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
+#include "BaseLib/ConstructorCall.h"
+#include "BaseLib/PointerFunctions.h"
 #include "SourceFile.h"
 #include "CTIdentifier.h"
 #include "CTString.h"
@@ -50,6 +52,10 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree)
 	mapsClasses.Init();
 	mapsTemplates.Init();
 	mapsAllBindings.Init();
+	mapapsPacks.Init();
+	mapcPackElements.Init();
+	mapcPackSymbols.Init();
+	mpcPackParameter = NULL;
 	mapsQueue.Init();
 	mapcFailed.Init();
 	mpsBindings = NULL;
@@ -100,11 +106,12 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::Kill(void)
 {
-	size			i;
-	size			j;
-	SCPP65Function*	psFunction;
-	SCPP65Class*	psClass;
-	SCPP65Bindings*	psBindings;
+	size				i;
+	size				j;
+	SCPP65Function*		psFunction;
+	SCPP65Class*		psClass;
+	SCPP65Bindings*		psBindings;
+	CArrayCPP65Types*	papsPack;
 
 	macCases.Kill();
 	macGotoLabels.Kill();
@@ -146,6 +153,7 @@ void CCPP65Generator::Kill(void)
 	mapsFunctions.Kill();
 	for (i = 0; i < mapsTemplates.NumElements(); i++)
 	{
+		mapsTemplates.GetPtr(i)->mszArguments.Kill();
 		free(mapsTemplates.GetPtr(i));
 	}
 	mapsTemplates.Kill();
@@ -156,6 +164,18 @@ void CCPP65Generator::Kill(void)
 		free(psBindings);
 	}
 	mapsAllBindings.Kill();
+	for (i = 0; i < mapapsPacks.NumElements(); i++)
+	{
+		papsPack = mapapsPacks.GetPtr(i);
+		SafeKill(papsPack);
+	}
+	mapapsPacks.Kill();
+	mapcPackElements.Kill();
+	for (i = 0; i < mapcPackSymbols.NumElements(); i++)
+	{
+		free(mapcPackSymbols.GetPtr(i));
+	}
+	mapcPackSymbols.Kill();
 	mapsQueue.Kill();
 	mapcFailed.Kill();
 	macPendingTemporaries.Kill();
@@ -777,8 +797,10 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 	ECPP65FunctionKind			eKind;
 	CArrayCPP65Types			apsParameters;
 	CArraySyntax				apcDefaults;
+	SCPP65Binding*				psPack;
 	size						i;
 	size						j;
+	size						uiPack;
 	uint32						uiFlags;
 
 	pcName = pcDeclarator->GetName();
@@ -843,27 +865,41 @@ SCPP65Function* CCPP65Generator::DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpe
 	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
 	{
 		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
-		psType = GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
-		if (!psType)
+		psPack = PackBinding(pcParameter);
+		uiPack = psPack ? psPack->papsPack->NumElements() : 1;
+		for (j = 0; j < uiPack; j++)
 		{
-			apcDefaults.Kill();
-			apsParameters.Kill();
-			return NULL;
+			//Args ... args is a parameter for each of the pack's types.
+			if (psPack)
+			{
+				psPack->psType = psPack->papsPack->GetPtr(j);
+			}
+			psType = GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
+			if (psPack)
+			{
+				psPack->psType = NULL;
+			}
+			if (!psType)
+			{
+				apcDefaults.Kill();
+				apsParameters.Kill();
+				return NULL;
+			}
+			if (psType->IsVoid() && (pcSuffix->macpParameters.NumElements() == 1))
+			{
+				break;
+			}
+			if (psType->IsArray())
+			{
+				psType = mcTypes.Pointer(psType->psBase);
+			}
+			else if (psType->IsFunction())
+			{
+				psType = mcTypes.Pointer(psType);
+			}
+			apsParameters.Add(psType);
+			apcDefaults.Add(pcParameter->mpcDefault);
 		}
-		if (psType->IsVoid() && (pcSuffix->macpParameters.NumElements() == 1))
-		{
-			break;
-		}
-		if (psType->IsArray())
-		{
-			psType = mcTypes.Pointer(psType->psBase);
-		}
-		else if (psType->IsFunction())
-		{
-			psType = mcTypes.Pointer(psType);
-		}
-		apsParameters.Add(psType);
-		apcDefaults.Add(pcParameter->mpcDefault);
 	}
 
 	//A declaration of a function declared before.
@@ -1474,10 +1510,11 @@ SCPP65Type* CCPP65Generator::GetType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCP
 SCPP65Type* CCPP65Generator::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcNode, CCPPSyntax* pcInitialiser)
 {
 	CCPPSyntaxPointerOperator*	pcPointer;
-	CCPPSyntax*				pcSuffix;
-	CCPPSyntaxArraySuffix*	pcArray;
-	size					i;
-	int64					lliCount;
+	CCPPSyntax*					pcSuffix;
+	CCPPSyntaxArraySuffix*		pcArray;
+	SCPP65Class*				psClass;
+	size						i;
+	int64						lliCount;
 
 	for (i = 0; i < pcDeclarator->macpPrefix.NumElements(); i++)
 	{
@@ -1491,8 +1528,17 @@ SCPP65Type* CCPP65Generator::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 		case CPPP_RValueReference:
 			psType = mcTypes.Reference(psType);
 			break;
+		case CPPP_MemberPointer:
+			psClass = pcPointer->mpcClass ? GetNameClass(pcPointer->mpcClass, pcNode) : NULL;
+			if (!psClass)
+			{
+				Error(pcNode, "The class of a pointer to a member is not supported by the 65C64 generator yet");
+				return NULL;
+			}
+			psType = mcTypes.MemberPointer(psClass, psType);
+			break;
 		default:
-			Error(pcNode, "Pointers to members are not supported by the 65C64 generator yet");
+			Error(pcNode, "This declarator is not supported by the 65C64 generator yet");
 			return NULL;
 		}
 	}
@@ -1617,6 +1663,7 @@ SCPP65Type* CCPP65Generator::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	CCPPSyntaxName*						pcName;
 	CCPPSyntaxClassSpecifier*			pcClass;
 	CCPPSyntaxElaboratedTypeSpecifier*	pcElaborated;
+	CCPPSymbol*							pcSymbol;
 	SCPP65Class*						psClass;
 	SCPP65Binding*						psBinding;
 
@@ -1630,7 +1677,8 @@ SCPP65Type* CCPP65Generator::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	{
 		if (pcType->GetKind() == CPPS_EnumSpecifier)
 		{
-			return &mcTypes.msInt;
+			pcSymbol = ((CCPPSyntaxEnumSpecifier*)pcType)->mpcSymbol;
+			return pcSymbol ? mcTypes.Enum(pcSymbol) : &mcTypes.msInt;
 		}
 		if (pcType->GetKind() == CPPS_ClassSpecifier)
 		{
@@ -1648,9 +1696,16 @@ SCPP65Type* CCPP65Generator::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			pcElaborated = (CCPPSyntaxElaboratedTypeSpecifier*)pcType;
 			if (pcElaborated->meKey == CT_enum)
 			{
-				return &mcTypes.msInt;
+				pcSymbol = pcElaborated->mpcName->mpcSymbol;
+				return (pcSymbol && (pcSymbol->meKind == CPPSK_Enum)) ? mcTypes.Enum(pcSymbol) : &mcTypes.msInt;
 			}
-			psClass = GetNameClass(pcElaborated->mpcName, pcNode);
+			//struct timsort names the class even when a function timsort was declared first.
+			pcSymbol = pcElaborated->mpcName->mpcSymbol;
+			while (pcSymbol && (pcSymbol->meKind != CPPSK_Class) && (pcSymbol->meKind != CPPSK_ClassTemplate))
+			{
+				pcSymbol = pcSymbol->mpcNext;
+			}
+			psClass = GetComponentClass(pcElaborated->mpcName->GetLast(), pcSymbol ? pcSymbol : pcElaborated->mpcName->mpcSymbol, pcNode);
 			if (psClass)
 			{
 				return psClass->psType;
@@ -1664,7 +1719,7 @@ SCPP65Type* CCPP65Generator::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 				switch (pcName->mpcSymbol->meKind)
 				{
 				case CPPSK_Enum:
-					return &mcTypes.msInt;
+					return mcTypes.Enum(pcName->mpcSymbol);
 				case CPPSK_Typedef:
 					return GetSymbolType(pcName->mpcSymbol, pcNode);
 				case CPPSK_TypeParameter:
@@ -1790,23 +1845,29 @@ bool CCPP65Generator::Function(CCPPSyntaxFunctionDefinition* pcFunction, SCPP65C
 	CCPPSyntaxName*		pcName;
 	SCPP65Function*		psFunction;
 	size				uiErrors;
+	size				i;
 
 	pcName = pcFunction->mpcDeclarator->GetName();
-	if (!psClass && pcName && (pcName->macpComponents.NumElements() == 2))
+	if (!psClass && pcName && (pcName->macpComponents.NumElements() >= 2))
 	{
 		psClass = GetComponentClass((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0), NULL, pcFunction);
 		if (!psClass)
 		{
 			return Error(pcFunction, "The function's class has not been defined");
 		}
+
+		//CListBlock::CListBlock::Add names the class again (its injected name).
+		for (i = 1; i + 1 < pcName->macpComponents.NumElements(); i++)
+		{
+			if (GetComponentName((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(i)) != psClass->lliName)
+			{
+				return Error(pcFunction, "Namespaces and nested classes are not supported by the 65C64 generator yet");
+			}
+		}
 		if (!CompleteClass(psClass, pcFunction))
 		{
 			return false;
 		}
-	}
-	else if (pcName && (pcName->macpComponents.NumElements() > 2))
-	{
-		return Error(pcFunction, "Namespaces and nested classes are not supported by the 65C64 generator yet");
 	}
 
 	if (pcFunction->meBody == CPPFB_Skipped)
@@ -1917,7 +1978,12 @@ bool CCPP65Generator::GenerateDefinition(SCPP65Function* psFunction)
 	CCPPSyntaxParameter*			pcParameter;
 	SCPP65Type*						psType;
 	SCPP65Variable*					psVariable;
+	SCPP65Binding*					psPack;
+	CCPPSymbol*						pcSymbol;
 	size							i;
+	size							j;
+	size							k;
+	size							uiPack;
 	int								iOffset;
 	bool							bResult;
 
@@ -1932,21 +1998,35 @@ bool CCPP65Generator::GenerateDefinition(SCPP65Function* psFunction)
 	//Arguments take their own size on the stack, the first lowest, after the hidden
 	//result address of a function that returns an object.  Object arguments are the
 	//function's to destroy.
+	//A function parameter pack is a parameter for each of its types, each with its own
+	//symbol (see ExpandPackCall).
 	pcSuffix = pcFunction->mpcDeclarator->GetFunctionSuffix();
 	iOffset = psFunction->psReturn->IsClass() ? 4 : 0;
-	for (i = 0; i < psFunction->mapsParameters.NumElements(); i++)
+	j = 0;
+	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
 	{
 		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
-		psType = psFunction->mapsParameters.GetPtr(i);
-		if (pcParameter->mpcSymbol)
+		psPack = PackBinding(pcParameter);
+		uiPack = psPack ? psPack->papsPack->NumElements() : ((j < psFunction->mapsParameters.NumElements()) ? 1 : 0);
+		if (psPack)
 		{
-			psVariable = AddVariable(&mapsLocals, pcParameter->mpcSymbol, psType, CPP65S_Parameter, iOffset);
-			if (psType->IsClass() && CompleteClass(psType->psClass, pcParameter) && psType->psClass->psDestructor)
-			{
-				mapsDestructors.Add(psVariable);
-			}
+			mpcPackParameter = pcParameter->mpcSymbol;
 		}
-		iOffset += psType->iBytes;
+		for (k = 0; k < uiPack; k++)
+		{
+			psType = psFunction->mapsParameters.GetPtr(j);
+			pcSymbol = (psPack && pcParameter->mpcSymbol) ? NewPackElement(pcParameter->mpcSymbol) : pcParameter->mpcSymbol;
+			if (pcSymbol)
+			{
+				psVariable = AddVariable(&mapsLocals, pcSymbol, psType, CPP65S_Parameter, iOffset);
+				if (psType->IsClass() && CompleteClass(psType->psClass, pcParameter) && psType->psClass->psDestructor)
+				{
+					mapsDestructors.Add(psVariable);
+				}
+			}
+			iOffset += psType->iBytes;
+			j++;
+		}
 	}
 	if (!AllocateLocals(pcFunction->mpcBody))
 	{
@@ -2001,6 +2081,9 @@ void CCPP65Generator::BeginFunction(SCPP65Function* psFunction)
 		miFrameBytes = 4;
 	}
 	mbThisInX = true;
+	mbAlloca = false;
+	mpcPackParameter = NULL;
+	mapcPackElements.ReInit();
 	miDepth = 0;
 	miTemporaries = 0;
 	mszBody.Clear();
@@ -2025,7 +2108,9 @@ void CCPP65Generator::BeginFunction(SCPP65Function* psFunction)
 //			pul V
 //			ret
 //
-// A destructor destroys the fields and the base after the return label.
+// A destructor destroys the fields and the base after the return label.  A function
+// that used __builtin_alloca restores S from V (cpy S, V) before the frame is
+// removed.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::EndFunction(SCPP65Function* psFunction)
@@ -2044,7 +2129,7 @@ void CCPP65Generator::EndFunction(SCPP65Function* psFunction)
 	}
 	szReturn.Kill();
 
-	mbFramePointer = (miFrameBytes > 0) || (mapsLocals.NumElements() > 0);
+	mbFramePointer = (miFrameBytes > 0) || (mapsLocals.NumElements() > 0) || mbAlloca;
 	AppendFunctionLabel(&mszCode, psFunction);
 	mszCode.Append(':');
 	mszCode.AppendNewLine();
@@ -2069,6 +2154,10 @@ void CCPP65Generator::EndFunction(SCPP65Function* psFunction)
 	}
 	if (mbFramePointer)
 	{
+		if (mbAlloca)
+		{
+			Line("cpy S, V")->AppendNewLine();
+		}
 		if (miFrameBytes > 0)
 		{
 			Line("add S, ")->Append(miFrameBytes)->AppendNewLine();
@@ -2463,11 +2552,6 @@ bool CCPP65Generator::DeclarationStatement(CCPPSyntaxDeclarationStatement* pcSta
 	{
 		return true;
 	}
-	if (pcDeclaration->mpcSpecifiers && pcDeclaration->mpcSpecifiers->mpcType && (pcDeclaration->mpcSpecifiers->mpcType->GetKind() == CPPS_ClassSpecifier))
-	{
-		return Error(pcStatement, "Local classes are not supported by the 65C64 generator yet");
-	}
-
 	bResult = true;
 	for (i = 0; i < pcDeclaration->macpDeclarators.NumElements(); i++)
 	{

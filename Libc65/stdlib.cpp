@@ -3,6 +3,10 @@
 #include <string.h>
 #include <limits.h>
 #include <ctype.h>
+#include <errno.h>
+
+
+int		errno = 0;
 
 
 //The heap is 0008:0000 to 000F:FFFF.  A block has its size (with this header) and, while free, the next free

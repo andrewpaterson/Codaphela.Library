@@ -39,7 +39,7 @@ bool SCPP65Type::IsInteger(void)
 //////////////////////////////////////////////////////////////////////////
 bool SCPP65Type::IsScalar(void)
 {
-	return (eKind == CPP65TK_Integer) || (eKind == CPP65TK_Bool) || (eKind == CPP65TK_Pointer) || (eKind == CPP65TK_Float);
+	return (eKind == CPP65TK_Integer) || (eKind == CPP65TK_Bool) || (eKind == CPP65TK_Pointer) || (eKind == CPP65TK_Float) || (eKind == CPP65TK_MemberPointer);
 }
 
 
@@ -50,6 +50,16 @@ bool SCPP65Type::IsScalar(void)
 bool SCPP65Type::IsPointer(void)
 {
 	return eKind == CPP65TK_Pointer;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool SCPP65Type::IsMemberPointer(void)
+{
+	return eKind == CPP65TK_MemberPointer;
 }
 
 
@@ -159,7 +169,7 @@ bool SCPP65Type::Equals(SCPP65Type* psOther)
 	{
 		return true;
 	}
-	if ((eKind != psOther->eKind) || (iBytes != psOther->iBytes) || (bSigned != psOther->bSigned) || (iCount != psOther->iCount) || (psClass != psOther->psClass) || (bLongDouble != psOther->bLongDouble))
+	if ((eKind != psOther->eKind) || (iBytes != psOther->iBytes) || (bSigned != psOther->bSigned) || (iCount != psOther->iCount) || (psClass != psOther->psClass) || (bLongDouble != psOther->bLongDouble) || (pcEnum != psOther->pcEnum))
 	{
 		return false;
 	}
@@ -268,6 +278,7 @@ void CCPP65Types::InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iByt
 	psType->papsParameters = NULL;
 	psType->bVariadic = false;
 	psType->bLongDouble = false;
+	psType->pcEnum = NULL;
 }
 
 
@@ -299,6 +310,7 @@ SCPP65Type* CCPP65Types::Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBas
 	psType->papsParameters = NULL;
 	psType->bVariadic = false;
 	psType->bLongDouble = false;
+	psType->pcEnum = NULL;
 	mapsTypes.Add(psType);
 	return psType;
 }
@@ -395,6 +407,60 @@ SCPP65Type* CCPP65Types::Reference(SCPP65Type* psBase)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A pointer to a member of psClass whose type is psMember.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::MemberPointer(SCPP65Class* psClass, SCPP65Type* psMember)
+{
+	SCPP65Type*	psType;
+	size		i;
+
+	for (i = 0; i < mapsTypes.NumElements(); i++)
+	{
+		psType = mapsTypes.GetPtr(i);
+		if ((psType->eKind == CPP65TK_MemberPointer) && (psType->psBase == psMember) && (psType->psClass == psClass))
+		{
+			return psType;
+		}
+	}
+	//A count of -1 makes Add make a new type rather than find one for another class.
+	psType = Add(CPP65TK_MemberPointer, 4, psMember, -1);
+	psType->iCount = 0;
+	psType->psClass = psClass;
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An enum: an int that is a type of its own, for overloads and templates.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::Enum(CCPPSymbol* pcEnum)
+{
+	SCPP65Type*	psType;
+	size		i;
+
+	for (i = 0; i < mapsTypes.NumElements(); i++)
+	{
+		psType = mapsTypes.GetPtr(i);
+		if ((psType->eKind == CPP65TK_Integer) && (psType->pcEnum == pcEnum))
+		{
+			return psType;
+		}
+	}
+
+	//A count of -1 makes Add make a new type rather than find int.
+	psType = Add(CPP65TK_Integer, 4, NULL, -1);
+	psType->iCount = 0;
+	psType->bSigned = true;
+	psType->pcEnum = pcEnum;
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // float (4), double and long double (8, as MSVC).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -444,6 +510,7 @@ SCPP65Type* CCPP65Types::Class(SCPP65Class* psClass)
 	psType->papsParameters = NULL;
 	psType->bVariadic = false;
 	psType->bLongDouble = false;
+	psType->pcEnum = NULL;
 	mapsTypes.Add(psType);
 	return psType;
 }
@@ -456,7 +523,7 @@ SCPP65Type* CCPP65Types::Class(SCPP65Class* psClass)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::Promote(SCPP65Type* psType)
 {
-	if (psType->IsInteger() && (psType->iBytes < 4))
+	if (psType->IsInteger() && ((psType->iBytes < 4) || psType->pcEnum))
 	{
 		return &msInt;
 	}

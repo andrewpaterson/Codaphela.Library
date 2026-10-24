@@ -852,8 +852,9 @@ CCPPSymbol* CCPPParser::DeclareDeclarator(CCPPSyntaxDeclSpecifiers* pcSpecifiers
 		eKind = CPPSK_Variable;
 	}
 
+	//A template's non-type parameter is in the template's scope, not the one enclosing it.
 	lliName = ((CCTIdentifier*)mpcTokeniser->Get(pcComponent->miName))->mlliIdentifier;
-	pcScope = mpcScope->GetDeclarationScope();
+	pcScope = (eContext == CPPDC_Parameter) ? mpcScope : mpcScope->GetDeclarationScope();
 	pcSymbol = Declare(lliName, pcComponent->miName, eKind, pcDeclaration, pcScope);
 	pcName->mpcSymbol = pcSymbol;
 	pcComponent->mpcSymbol = pcSymbol;
