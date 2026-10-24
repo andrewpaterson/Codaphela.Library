@@ -1237,6 +1237,10 @@ SCPP65Type* CCPP65Generator::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		return MemberCall(pcCall, pcCallee);
 	}
 
+	if (!pcSymbol && IsInlineMemcpy(lliName, &pcCall->macpArguments))
+	{
+		return InlineMemcpy(&pcCall->macpArguments, pcCall);
+	}
 	if (!pcSymbol && IsBuiltin(lliName))
 	{
 		return Builtin(pcCall, lliName);
@@ -1265,6 +1269,12 @@ SCPP65Type* CCPP65Generator::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		return NULL;
 	}
 
+	//memcpy of a few bytes, a constant count, is copied where it is called.
+	if (psFunction->bCLinkage && IsInlineMemcpy(lliName, &pcCall->macpArguments))
+	{
+		return InlineMemcpy(&pcCall->macpArguments, pcCall);
+	}
+
 	iBytes = PushArguments(psFunction, &pcCall->macpArguments, pcCall);
 	if (iBytes < 0)
 	{
@@ -1272,6 +1282,90 @@ SCPP65Type* CCPP65Generator::CallExpression(CCPPSyntaxCallExpression* pcCall)
 	}
 	Call(psFunction, false, iBytes);
 	return psFunction->psReturn;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a call to lliName is memcpy (or __builtin_memcpy) with a constant count
+// of 1 to CPP65_INLINE_MEMCPY bytes, which InlineMemcpy copies in place.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsInlineMemcpy(int64 lliName, CArraySyntax* papcArguments)
+{
+	char*	szName;
+	int		iLength;
+	int64	lliBytes;
+
+	if ((lliName < 0) || (papcArguments->NumElements() != 3))
+	{
+		return false;
+	}
+	szName = mpcTokeniser->GetIdentifier(lliName, &iLength);
+	if (!szName || !(((iLength == 6) && (memcmp(szName, "memcpy", 6) == 0)) || ((iLength == 16) && (memcmp(szName, "__builtin_memcpy", 16) == 0))))
+	{
+		return false;
+	}
+	return Constant(papcArguments->GetPtr(2), &lliBytes) && (lliBytes > 0) && (lliBytes <= CPP65_INLINE_MEMCPY);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// memcpy(Dest, Source, Count) with a constant Count, copied through Y 8, 4, 2 and 1
+// bytes at a time (the 65C64 reads and writes at any address).  Dest is left in A,
+// as memcpy returns it.
+//
+//		cpy B, Source
+//		cpy A, Dest
+//		wth Y, 8
+//		cpy Y, [0 + B]
+//		cpy [0 + A], Y
+//		wth Y, 4
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::InlineMemcpy(CArraySyntax* papcArguments, CCPPSyntax* pcNode)
+{
+	SCPP65Type*	psType;
+	SCPP65Type*	psVoidPointer;
+	int64		lliBytes;
+	int			iOffset;
+	int			iChunk;
+	int			iWidth;
+
+	Constant(papcArguments->GetPtr(2), &lliBytes);
+	psVoidPointer = mcTypes.Pointer(&mcTypes.msVoid);
+	psType = Expression(papcArguments->GetPtr(0));
+	if (!psType || !Convert(psType, psVoidPointer, papcArguments->GetPtr(0)))
+	{
+		return NULL;
+	}
+	Push("A");
+	psType = Expression(papcArguments->GetPtr(1));
+	if (!psType || !Convert(psType, psVoidPointer, papcArguments->GetPtr(1)))
+	{
+		return NULL;
+	}
+	Line("cpy B, A")->AppendNewLine();
+	Pull("A");
+
+	iWidth = 4;
+	for (iOffset = 0; iOffset < (int)lliBytes; iOffset += iChunk)
+	{
+		iChunk = ((int)lliBytes - iOffset >= 8) ? 8 : (((int)lliBytes - iOffset >= 4) ? 4 : (((int)lliBytes - iOffset >= 2) ? 2 : 1));
+		if (iChunk != iWidth)
+		{
+			Line("wth Y, ")->Append(iChunk)->AppendNewLine();
+			iWidth = iChunk;
+		}
+		Line("cpy Y, [")->Append(iOffset)->Append(" + B]")->AppendNewLine();
+		Line("cpy [")->Append(iOffset)->Append(" + A], Y")->AppendNewLine();
+	}
+	if (iWidth != 4)
+	{
+		Line("wth Y, 4")->AppendNewLine();
+	}
+	return psVoidPointer;
 }
 
 

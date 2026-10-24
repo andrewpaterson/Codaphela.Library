@@ -493,14 +493,8 @@ bool CFreeList::IsElementInNodeAllocated(SFNode* psNode, size iPosition)
 //////////////////////////////////////////////////////////////////////////
 void* CFreeList::GetElementInNode(SFNode* psNode, size iPosition)
 {
-	void*	pvData;
-	size	iElementOffset;
-	size	iBitArraySize;
-
-	iBitArraySize = CalculateBitArraySize(psNode->uiChunkSize);
-	iElementOffset = iPosition * muiStride;
-	pvData = RemapSinglePointer(psNode, sizeof(SFNode) + iBitArraySize + psNode->iOffset + iElementOffset);
-	return pvData;
+	//Pointer arithmetic rather than RemapSinglePointer: iteration calls this for every element.
+	return (uint8*)psNode + sizeof(SFNode) + CalculateBitArraySize(psNode->uiChunkSize) + psNode->iOffset + iPosition * muiStride;
 }
 
 
@@ -529,7 +523,7 @@ void* CFreeList::GetElement(SFNode* psNode, size iPosition)
 //////////////////////////////////////////////////////////////////////////
 void* CFreeList::GetBitArray(SFNode* psNode)
 {
-	return RemapSinglePointer(psNode, sizeof(SFNode));
+	return (uint8*)psNode + sizeof(SFNode);
 };
 
 
@@ -759,36 +753,46 @@ bool CFreeList::RemoveDuringIteration(SFreeListIterator* psIterator)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// Moves the iterator on to the next allocated element, in this node or a later one.  The bit array is read a word
+// at a time: its size is a multiple of four bytes, the bits past the chunk are clear and, as the bytes are little
+// endian with their low bit first, bit i is bit i % 32 of word i / 32.  A word of free elements is skipped at once.
+//
 //////////////////////////////////////////////////////////////////////////
 bool CFreeList::FindNextAllocatedElement(SFreeListIterator* psIterator)
 {
-	void*	pvBitArray;
+	uint32*		puiWords;
+	uint32		uiBits;
+	size		uiPosition;
+	size		uiWord;
 
 	//Assumes that the iterator position must be moved.
-	pvBitArray = GetBitArray(psIterator->psCurrent);
-	for (;;)
+	uiPosition = psIterator->iPosition + 1;
+	while (psIterator->psCurrent)
 	{
-		psIterator->iPosition++;
-
-		if (psIterator->iPosition >= psIterator->psCurrent->uiChunkSize)
+		puiWords = (uint32*)GetBitArray(psIterator->psCurrent);
+		while (uiPosition < psIterator->psCurrent->uiChunkSize)
 		{
-			psIterator->iPosition = 0;
-
-			psIterator->psCurrent = (SFNode*)mcList.GetNext(psIterator->psCurrent);
-			if (psIterator->psCurrent == NULL)
+			uiWord = uiPosition >> 5;
+			uiBits = puiWords[uiWord] >> (uiPosition & 31);
+			if (uiBits != 0)
 			{
-				return false;
+				uiPosition += FindFirstSetBit((uint64)uiBits);
+				if (uiPosition < psIterator->psCurrent->uiChunkSize)
+				{
+					psIterator->iPosition = uiPosition;
+					return true;
+				}
+				break;
 			}
-			pvBitArray = GetBitArray(psIterator->psCurrent);
+			uiPosition = (uiWord + 1) << 5;
 		}
 
-		if (GetBit(psIterator->iPosition, pvBitArray))
-		{
-			return true;
-		}
+		psIterator->psCurrent = (SFNode*)mcList.GetNext(psIterator->psCurrent);
+		uiPosition = 0;
 	}
+	psIterator->iPosition = 0;
+	return false;
 }
 
 

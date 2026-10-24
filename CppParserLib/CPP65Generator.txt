@@ -649,6 +649,12 @@ is a local, a global, a field, the function's own result (return f(x);) or an
 argument's place on the stack (g(f(x))).  Class(arguments) initialising an object of
 its class constructs it in place too.
 
+memcpy (the C function, or __builtin_memcpy) with a constant count of 1 to 64 bytes
+(CPP65_INLINE_MEMCPY) is copied where it is called, through Y 8, 4, 2 and 1 bytes at a
+time (the 65C64 reads and writes at any address), leaving the destination in A;
+BaseLib and StandardLib copy small values this way (memcpy(&uiValue, pv, 8)).  Larger
+or variable counts call Libc65's memcpy (string.asm).
+
 Operators on objects call the left operand's member operator, or a free operator
 function (declared, a friend, or an instance of a function template, such as
 template<class M> SVec<M> operator * (M, const SVec<M>&)): binary operators, unary

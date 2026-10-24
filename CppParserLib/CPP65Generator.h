@@ -26,6 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define CPP65_STACK_TOP				0x1FFFFF
 #define CPP65_HEAP_ADDRESS			0x80000		//Libc65's malloc heap (stdlib.cpp HEAP_START); a program ends below it.
 #define CPP65_TEMPORARY_BYTES		0x100
+#define CPP65_INLINE_MEMCPY			64		//memcpy of at most this many bytes, a constant, is copied in place.
 #define CPP65_CONVERSION_NAME		(-1 - 2 * (int64)NUM_CPP_TOKENS)	//The name of every conversion function (operator T); they differ by their result.
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
@@ -667,6 +668,8 @@ protected:
 	//Expressions.  CPP65GeneratorExpressions.cpp
 	SCPP65Type*				Expression(CCPPSyntax* pcExpression);
 	bool					IsBuiltin(int64 lliName);
+	bool					IsInlineMemcpy(int64 lliName, CArraySyntax* papcArguments);
+	SCPP65Type*				InlineMemcpy(CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	void					AllocateTemporaries(CCPPSyntax* pcNode);
 	bool					TemporaryAddress(CCPPSyntax* pcNode, SCPP65Type* psType);
 	void					DestroyTemporaries(bool bKeep, bool bWide);
