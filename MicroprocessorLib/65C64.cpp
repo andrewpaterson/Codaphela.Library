@@ -1907,7 +1907,8 @@ void C65C64::ABS(void)
 // in the encoded direction, for a unit with any bit set (find set) or any bit clear
 // (find clear).  If c is set the index moves on one first.  v is set if no unit was
 // found, the index is then one past the end (the width in units, or all ones when
-// decrementing).  c is always set.
+// decrementing).  c is always set.  The zero register as the index scans from 0 with
+// an 8 bit index.
 //
 //////////////////////////////////////////////////////////////////////////
 void C65C64::FIND(void)
@@ -1925,8 +1926,9 @@ void C65C64::FIND(void)
 	uiValue = GetRegister(msDecoded.eSource) & Mask65(GetRegisterBytes(msDecoded.eSource));
 	uiUnits = (8 * GetRegisterBytes(msDecoded.eSource)) / msDecoded.uiUnitBits;
 	uiUnitMask = (1ULL << msDecoded.uiUnitBits) - 1;
+	//The zero register is index 0 scanned with an 8 bit index (the result is dropped), or the scan never ends.
 	uiIndexBytes = GetRegisterBytes(msDecoded.eCount);
-	uiIndexMask = Mask65(uiIndexBytes);
+	uiIndexMask = Mask65((uiIndexBytes != 0) ? uiIndexBytes : 1);
 	uiIndex = GetRegister(msDecoded.eCount) & uiIndexMask;
 	uiStep = msDecoded.bDecrement ? uiIndexMask : 1;
 
@@ -2435,7 +2437,8 @@ void C65C64::MUL(void)
 // One step of base 16 long division.  Y's top nybble moves into the remainder B, the
 // largest multiple of A that fits (at most 15) is subtracted and the quotient nybble
 // moves into the bottom of Y, so Y goes from the dividend to the quotient.  W counts
-// the steps, one per nybble of Y.  B and W must be 0 at the start.  The remainder is
+// the steps, one per nybble of Y.  W must be 0 at the start; B is the top of the dividend
+// (usually 0, and below A so the quotient fits).  The remainder is
 // truncated to B's width.  Dividing by 0 gives quotient nybbles of 15.  Unsigned.
 // v, z (Y is 0) and c (B is not 0) are set every step.  C stays on the opcode until
 // the last step.  Every step does the whole calculation, zeros are not short cut.

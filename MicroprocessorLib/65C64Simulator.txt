@@ -161,6 +161,8 @@ down, for a unit with any bit set (find set) or any bit clear (find clear).  If 
 set the index moves on first.  c is always set afterwards, v is set when no unit was
 found.  One cycle.  When nothing is found the index is left one past the end
 (the width in units going up, all ones going down; confirmed by the user).
+The zero register as the index reads 0 and is scanned with an 8 bit index; the result is
+dropped (a choice, 2026-10-24: with no width the scan never ended).
 
 
 Bit to status, status to bit, status to status
@@ -248,7 +250,9 @@ div: base 16 long division, a nybble a step (the user: "not well thought through
 details agreed 2026-10-22).  Y's top nybble moves into the remainder B, the largest
 multiple of A that fits (at most 15) is subtracted, and the quotient nybble moves into
 Y's bottom: Y goes from the dividend to the quotient.  W counts the steps, done at
-2 x (Y's width in bytes).  B and W must be 0 at the start.  The remainder is truncated
+2 x (Y's width in bytes).  W must be 0 at the start.  B is usually 0 too; a B that is not
+0 is the top half of the dividend, (B 2^64 + Y) / A for a 64 bit Y, which is defined
+behaviour when B is below A, so the quotient fits in Y (the user, 2026-10-24).  The remainder is truncated
 to B's width every step (the user).  c is set when B is not 0.  Dividing by 0 gives
 quotient nybbles of 15.  (The Instructions sheet calls B the quotient and W the remainder.)
 
@@ -274,6 +278,19 @@ register of the register + register modes must be A, B, S or V).  The sheet was 
 from the simulator (the user: "take the simulator as truth"): V source, A destination,
 W count; both examples run in Test65C64BlockMoveSheet with the sheet's cycle counts.
 
+
+Instruction level version
+-------------------------
+
+CFast65C64 (Fast65C64.cpp, one file) does what this simulator does an instruction at a
+time, about 50 times faster: no pins, bus cycles or timeline.  It decodes with Decode65C64,
+makes the same memory accesses (aligned words, reads before writes), counts the same clock
+cycles and takes interrupts at the same instruction boundaries.  One Step is one
+C65C64Meta::TickInstruction (a block, vector, multiply or divide step is a Step).  The
+assembler, C++ and Libc65 tests run on it.  A change to an instruction here must be made
+there too: TestFast65C64 (TestMicroprocessorLib) runs every opcode from random state on
+both and compares everything after each step, TestAsm65Fast and TestCPP65GeneratorLockstep
+run programs on both in lockstep.
 
 Not implemented yet
 -------------------

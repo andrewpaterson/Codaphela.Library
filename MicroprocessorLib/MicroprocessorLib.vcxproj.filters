@@ -402,6 +402,9 @@
     <ClCompile Include="65C64Meta.cpp">
       <Filter>Source\Codaphela\65C64\Meta</Filter>
     </ClCompile>
+    <ClCompile Include="Fast65C64.cpp">
+      <Filter>Source\Codaphela\65C64\Meta</Filter>
+    </ClCompile>
     <ClCompile Include="65C64Pins.cpp">
       <Filter>Source\Codaphela\65C64\Meta</Filter>
     </ClCompile>
@@ -1047,6 +1050,9 @@
       <Filter>Source\Codaphela\65C64\Instruction</Filter>
     </ClInclude>
     <ClInclude Include="65C64Meta.h">
+      <Filter>Source\Codaphela\65C64\Meta</Filter>
+    </ClInclude>
+    <ClInclude Include="Fast65C64.h">
       <Filter>Source\Codaphela\65C64\Meta</Filter>
     </ClInclude>
     <ClInclude Include="65C64Pins.h">
