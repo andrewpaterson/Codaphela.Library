@@ -780,9 +780,11 @@
     <ClCompile Include="Mutex_65C64.cpp" />
     <ClCompile Include="ConditionVariable_Windows.cpp" />
     <ClCompile Include="ConditionVariable_Linux.cpp" />
+    <ClCompile Include="ConditionVariable_65C64.cpp" />
     <ClCompile Include="NativeThread.cpp" />
     <ClCompile Include="NativeThread_Windows.cpp" />
     <ClCompile Include="NativeThread_Linux.cpp" />
+    <ClCompile Include="NativeThread_65C64.cpp" />
     <ClCompile Include="SafeArrayBlock.cpp" />
     <ClCompile Include="SafeLinkedListBlock.cpp" />
     <ClCompile Include="ListBlock.cpp" />

@@ -36,6 +36,7 @@ void CCPPSyntaxClassSpecifier::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent
 	macpMembers.Init();
 	mpcScope = NULL;
 	mpcSymbol = NULL;
+	miPack = 0;
 }
 
 

@@ -570,6 +570,11 @@ SCPP65Type* CCPP65Generator::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary)
 		return Value(pcUnary);
 	case CT_BitwiseAnd:
 		pcOperand = SkipParentheses(pcUnary->mpcOperand);
+		if (IsObject(pcOperand) && HasMember(ObjectClass(pcOperand), GetOperatorName(CT_BitwiseAnd, false)))
+		{
+			//&object with the object's operator&.
+			return OperatorExpression(CT_BitwiseAnd, pcOperand, NULL, pcUnary);
+		}
 		if ((pcOperand->GetKind() == CPPS_IdExpression) && (((CCPPSyntaxIdExpression*)pcOperand)->mpcName->macpComponents.NumElements() >= 2))
 		{
 			if (MemberAddress((CCPPSyntaxIdExpression*)pcOperand, &psType))
@@ -825,7 +830,7 @@ SCPP65Type* CCPP65Generator::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 		Push("A");
 	}
 
-	psRight = Expression(pcBinary->mpcRight);
+	psRight = (pcBinary->meOperator == CT_Assignment) ? ValueFor(pcBinary->mpcRight, sPlace.psType, false) : Expression(pcBinary->mpcRight);
 	if (!psRight)
 	{
 		return NULL;
@@ -1205,7 +1210,7 @@ SCPP65Type* CCPP65Generator::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		{
 			return MemberCall(pcCall, pcCallee);
 		}
-		psTemplate = GetTemplate(pcSymbol);
+		psTemplate = GetCallTemplate(pcSymbol, pcCall->macpArguments.NumElements());
 		if (!psTemplate)
 		{
 			Error(pcCallee, "The function template has not been defined");
@@ -1394,13 +1399,18 @@ bool CCPP65Generator::MemberFunctionAddress(SCPP65Class* psClass, int64 lliName,
 	}
 	if (psFound->bVirtual)
 	{
-		Error(pcNode, "Pointers to virtual member functions are not supported by the 65C64 generator yet");
-		return true;
+		//A virtual function's address is a thunk that calls it through the object's vtable.
+		Line("cpy A, ");
+		AppendVirtualCallThunk(mpszOut, psFound);
+		mpszOut->AppendNewLine();
 	}
-	RequireFunction(psFound);
-	Line("cpy A, ");
-	AppendFunctionLabel(mpszOut, psFound);
-	mpszOut->AppendNewLine();
+	else
+	{
+		RequireFunction(psFound);
+		Line("cpy A, ");
+		AppendFunctionLabel(mpszOut, psFound);
+		mpszOut->AppendNewLine();
+	}
 	*ppsType = mcTypes.MemberPointer(psClass, mcTypes.Function(psFound->psReturn, &psFound->mapsParameters, psFound->bVariadic));
 	return true;
 }
@@ -1760,6 +1770,11 @@ SCPP65Type* CCPP65Generator::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSynt
 	{
 		return NULL;
 	}
+	if (psTo->IsClass())
+	{
+		//(Class)x is Class(x): a temporary made from x.
+		return TemporaryObject(psTo, pcOperand, pcNode);
+	}
 
 	//(FPointer)&f chooses the overload of f with the pointer's type.
 	pcFunction = SkipParentheses(pcOperand);
@@ -1773,7 +1788,7 @@ SCPP65Type* CCPP65Generator::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSynt
 		return FunctionAddress(pcFunction, pcSymbol->mlliName, psTo->psBase) ? psTo : NULL;
 	}
 
-	psFrom = Expression(pcOperand);
+	psFrom = ValueFor(pcOperand, psTo, true);
 	if (!psFrom)
 	{
 		return NULL;
@@ -2103,17 +2118,9 @@ SCPP65Type* CCPP65Generator::DeleteExpression(CCPPSyntaxDeleteExpression* pcDele
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Generator::TypeOf(CCPPSyntax* pcExpression)
 {
-	CChars			szDiscard;
-	CChars*			pszOut;
 	SCPP65Type*		psType;
-	int				iDepth;
-	int				iTemporaries;
-	bool			bThisInX;
 	SCPP65TypeOf*	psTypeOf;
 	SCPP65TypeOf	sTypeOf;
-	size			uiErrors;
-	size			uiStrings;
-	int				iLabels;
 
 	//An expression's type only depends on the template arguments and the function it is in.
 	psTypeOf = mcTypeOfs.Get((int64)(size)pcExpression);
@@ -2121,6 +2128,46 @@ SCPP65Type* CCPP65Generator::TypeOf(CCPPSyntax* pcExpression)
 	{
 		return psTypeOf->psType;
 	}
+
+	psType = DiscardedType(pcExpression, false);
+
+	sTypeOf.psBindings = mpsBindings;
+	sTypeOf.psFunction = mpsFunction;
+	sTypeOf.psType = psType;
+	mcTypeOfs.Put((int64)(size)pcExpression, &sTypeOf);
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of the place an lvalue is (an array stays an array), or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::PlaceTypeOf(CCPPSyntax* pcExpression)
+{
+	return DiscardedType(pcExpression, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of an expression's value (or, when bPlace, of its place) worked out by
+// generating its code and throwing the code away.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::DiscardedType(CCPPSyntax* pcExpression, bool bPlace)
+{
+	CChars			szDiscard;
+	CChars*			pszOut;
+	SCPP65Type*		psType;
+	SCPP65Place		sPlace;
+	int				iDepth;
+	int				iTemporaries;
+	bool			bThisInX;
+	size			uiErrors;
+	size			uiStrings;
+	int				iLabels;
 
 	pszOut = mpszOut;
 	iDepth = miDepth;
@@ -2134,7 +2181,16 @@ SCPP65Type* CCPP65Generator::TypeOf(CCPPSyntax* pcExpression)
 	szDiscard.Init();
 	mpszOut = &szDiscard;
 	miTypeOf++;
-	psType = Expression(pcExpression);
+	if (bPlace)
+	{
+		BeginQuiet();
+		psType = Place(pcExpression, &sPlace) ? sPlace.psType : NULL;
+		EndQuiet();
+	}
+	else
+	{
+		psType = Expression(pcExpression);
+	}
 	miTypeOf--;
 	miLabels = iLabels;
 	mpszOut = pszOut;
@@ -2149,11 +2205,6 @@ SCPP65Type* CCPP65Generator::TypeOf(CCPPSyntax* pcExpression)
 		maszStrings.Tail()->Kill();
 		maszStrings.Pop();
 	}
-
-	sTypeOf.psBindings = mpsBindings;
-	sTypeOf.psFunction = mpsFunction;
-	sTypeOf.psType = psType;
-	mcTypeOfs.Put((int64)(size)pcExpression, &sTypeOf);
 	return psType;
 }
 
@@ -2657,6 +2708,11 @@ bool CCPP65Generator::Compare(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Ri
 	{
 		bSigned = false;
 	}
+	else if ((psLeft->IsMemberPointer() || psRight->psType->IsMemberPointer()) && ((eOperator == CT_EqualTo) || (eOperator == CT_NotEqualTo)))
+	{
+		//Pointers to members (4 bytes each, an address or an offset) are equal or not.
+		bSigned = false;
+	}
 	else if (psLeft->IsInteger() && psRight->psType->IsInteger())
 	{
 		bSigned = mcTypes.Arithmetic(psLeft, psRight->psType)->bSigned;
@@ -2751,6 +2807,7 @@ bool CCPP65Generator::Condition(CCPPSyntax* pcExpression, bool bJumpIf, int iLab
 	SCPP65Right					sRight;
 	SCPP65Type*					psType;
 	SCPP65Variable*				psVariable;
+	SCPP65Function*				psFunction;
 	SCPP65Place					sPlace;
 	int							iSkip;
 	bool						bResult;
@@ -2764,6 +2821,20 @@ bool CCPP65Generator::Condition(CCPPSyntax* pcExpression, bool bJumpIf, int iLab
 	if (pcExpression->GetKind() == CPPS_UnaryExpression)
 	{
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
+		if ((pcUnary->meOperator == CT_LogicalNot) && IsObject(pcUnary->mpcOperand) && HasMember(ObjectClass(pcUnary->mpcOperand), GetOperatorName(CT_LogicalNot, false)))
+		{
+			//!object with the object's operator!.
+			psType = OperatorExpression(CT_LogicalNot, pcUnary->mpcOperand, NULL, pcUnary);
+			if (!psType || !psType->IsScalar())
+			{
+				return psType ? Error(pcUnary, "A condition must be an integer or a pointer") : false;
+			}
+			CompareZero(psType);
+			Line(bJumpIf ? "brac z, " : "bras z, ");
+			AppendLabel(mpszOut, iLabel);
+			mpszOut->AppendNewLine();
+			return true;
+		}
 		if (pcUnary->meOperator == CT_LogicalNot)
 		{
 			return Condition(pcUnary->mpcOperand, !bJumpIf, iLabel);
@@ -2828,7 +2899,16 @@ bool CCPP65Generator::Condition(CCPPSyntax* pcExpression, bool bJumpIf, int iLab
 		return true;
 	}
 
-	psType = Expression(pcExpression);
+	//An object is tested with its conversion function.
+	psFunction = IsObject(pcExpression) ? FindConversion(ObjectClass(pcExpression), &mcTypes.msBool, true, pcExpression) : NULL;
+	if (psFunction)
+	{
+		psType = ObjectCall(pcExpression, ObjectClass(pcExpression), psFunction, NULL, pcExpression);
+	}
+	else
+	{
+		psType = Expression(pcExpression);
+	}
 	if (!psType)
 	{
 		return false;
@@ -2842,6 +2922,33 @@ bool CCPP65Generator::Condition(CCPPSyntax* pcExpression, bool bJumpIf, int iLab
 	AppendLabel(mpszOut, iLabel);
 	mpszOut->AppendNewLine();
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// = and the compound assignments (+= ...).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsAssignmentOperator(ECppTokens eOperator)
+{
+	switch (eOperator)
+	{
+	case CT_Assignment:
+	case CT_AssignmentAdd:
+	case CT_AssignmentSubtract:
+	case CT_AssignmentMultiply:
+	case CT_AssignmentDivide:
+	case CT_AssignmentModulus:
+	case CT_AssignmentBitwiseAnd:
+	case CT_AssignmentBitwiseOr:
+	case CT_AssignmentBitwiseXor:
+	case CT_AssignmentLeftShift:
+	case CT_AssignmentRightShift:
+		return true;
+	default:
+		return false;
+	}
 }
 
 
@@ -3050,11 +3157,13 @@ bool CCPP65Generator::Place(CCPPSyntax* pcExpression, SCPP65Place* psPlace)
 	CCPPSyntaxIdExpression*			pcId;
 	CCPPSyntaxUnaryExpression*		pcUnary;
 	CCPPSyntaxSubscriptExpression*	pcSubscript;
+	CCPPSyntaxBinaryExpression*		pcBinary;
 	SCPP65Variable*					psVariable;
 	SCPP65Field*					psField;
 	CCPPSymbol*						pcSymbol;
 	SCPP65Type*						psType;
 	SCPP65Right						sIndex;
+	CCPPSyntax*						pcLeft;
 	CCPPSyntax*						pcArray;
 	CCPPSyntax*						pcIndex;
 	CArraySyntax					apcIndex;
@@ -3199,6 +3308,17 @@ bool CCPP65Generator::Place(CCPPSyntax* pcExpression, SCPP65Place* psPlace)
 		if (IsMemberPointerOperator(pcExpression))
 		{
 			return MemberPointerPlace((CCPPSyntaxBinaryExpression*)pcExpression, psPlace);
+		}
+		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
+		pcLeft = SkipParentheses(pcBinary->mpcLeft);
+		if (IsAssignmentOperator(pcBinary->meOperator) && (pcLeft->GetKind() == CPPS_IdExpression) && !IsObject(pcLeft))
+		{
+			//&(c = 'A'): the assignment is done, then its place is its variable's.
+			if (!Assignment(pcBinary))
+			{
+				return false;
+			}
+			return Place(pcLeft, psPlace);
 		}
 		break;
 
@@ -3780,6 +3900,11 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 			{
 				psVariable = GetVariable(((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol);
 				psType = psVariable ? psVariable->psType : NULL;
+			}
+			if (!psType && pcOperand && ((pcOperand->GetKind() == CPPS_IdExpression) || (pcOperand->GetKind() == CPPS_MemberExpression)))
+			{
+				//A field (this's or an object's) that is an array.
+				psType = PlaceTypeOf(pcOperand);
 			}
 			if (!psType)
 			{

@@ -53,6 +53,7 @@ CCPPSyntaxTypeSpecifier* CCPPParser::ParseClassSpecifier(CCPPSyntax* pcParent, E
 	pcClass = mpcMemory->CreateClassSpecifier(pcParent);
 	pcClass->miFirstToken = iFirstToken;
 	pcClass->meKey = eKey;
+	pcClass->miPack = miPack;
 	pcClass->macpAttributes.InsertArrayAfterEnd(&apcAttributes);
 	apcAttributes.Kill();
 
@@ -293,6 +294,10 @@ bool CCPPParser::ParseClassBody(CCPPSyntaxClassSpecifier* pcClass)
 			Next();
 			Next();
 			pcClass->macpMembers.Add(pcAccess);
+			continue;
+		}
+		if (SkipPragma())
+		{
 			continue;
 		}
 

@@ -29,6 +29,7 @@ class CConfig
 public:
 	CChars			mszName;
 	CArrayChars		maszDefines;
+	bool			mbKeepPragmaPack;	//#pragma pack(...) is kept as __pragma(pack(...)) for the parser (the 65C64 generator lays classes out with it).
 
 	void Init(char* szName);
 	void Kill(void);

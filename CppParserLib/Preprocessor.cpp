@@ -779,6 +779,7 @@ void CPreprocessor::Init(CConfig* pcConfig)
 	mbInCondition = false;
 	mbDefinedOperand = false;
 	mbError = false;
+	mbKeepPragmaPack = pcConfig ? pcConfig->mbKeepPragmaPack : false;
 	miCounter = 0;
 	mcErrors.Init();
 	mcHeaderNames.Init();
@@ -1376,6 +1377,17 @@ bool CPreprocessor::ProcessHashPragma(CPreprocessorTokenParser* pcParser)
 	CHeaderFile*	pcHeader;
 
 	pcParser->SkipWhitespace();
+	if (mbKeepPragmaPack)
+	{
+		pcParser->PushPosition();
+		if (pcParser->GetExactIdentifier("pack", true, true))
+		{
+			pcParser->PassPosition();
+			EmitPragmaPack(pcParser);
+			return true;
+		}
+		pcParser->PopPosition();
+	}
 	bResult = pcParser->GetExactIdentifier("once", true, true);
 	if (bResult == TRITRUE)
 	{
@@ -1389,6 +1401,62 @@ bool CPreprocessor::ProcessHashPragma(CPreprocessorTokenParser* pcParser)
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+// #pragma pack(...) is output as __pragma(pack(...)), which the parser	//
+// takes as the packing of the classes defined after it.					//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::EmitPragmaPack(CPreprocessorTokenParser* pcParser)
+{
+	CChars				szArguments;
+	SPreprocessedToken	sToken;
+	char*				sz;
+	size				i;
+	size				uiStart;
+	EPreprocessedTokenKind	eKind;
+
+	szArguments.Init("__pragma(pack");
+	pcParser->AppendRemaining(&szArguments);
+	szArguments.Append(")");
+	sz = szArguments.Text();
+	for (i = 0; sz[i];)
+	{
+		if ((sz[i] == ' ') || (sz[i] == '\t') || (sz[i] == '\n') || (sz[i] == '\r'))
+		{
+			i++;
+			continue;
+		}
+		uiStart = i;
+		if (((sz[i] >= 'a') && (sz[i] <= 'z')) || ((sz[i] >= 'A') && (sz[i] <= 'Z')) || (sz[i] == '_'))
+		{
+			eKind = PTK_Identifier;
+			while (((sz[i] >= 'a') && (sz[i] <= 'z')) || ((sz[i] >= 'A') && (sz[i] <= 'Z')) || (sz[i] == '_') || ((sz[i] >= '0') && (sz[i] <= '9')))
+			{
+				i++;
+			}
+		}
+		else if ((sz[i] >= '0') && (sz[i] <= '9'))
+		{
+			eKind = PTK_Number;
+			while ((sz[i] >= '0') && (sz[i] <= '9'))
+			{
+				i++;
+			}
+		}
+		else
+		{
+			eKind = PTK_Punctuator;
+			i++;
+		}
+		sToken.Init(eKind, mpcOutput->AddString(&sz[uiStart], i - uiStart), i - uiStart, mpcCurrentFile, pcParser->Line(), pcParser->Column());
+		sToken.uiFlags |= PTF_OUTPUT_TEXT;
+		EmitToken(&sToken);
+	}
+	szArguments.Kill();
 }
 
 
