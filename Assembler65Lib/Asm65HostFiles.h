@@ -67,6 +67,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #define ASM65_HOST_MODE_APPEND		0x10
 
 #define ASM65_HOST_MAX_PATH			4096
+#define ASM65_HOST_CHUNK			4096		//The bytes read or written to the host at once.
 
 
 class CAsm65Memory;

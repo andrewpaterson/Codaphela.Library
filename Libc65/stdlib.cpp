@@ -427,6 +427,7 @@ static bool MatchIgnoreCase(const char* sz, const char* szWord)
 double strtod(const char* sz, char** pszEnd)
 {
 	const char*			szStart;
+	const char*			szExponent;
 	unsigned long long	ullDigits;
 	int					iDigits;
 	int					iExponent;
@@ -521,8 +522,6 @@ double strtod(const char* sz, char** pszEnd)
 
 	if ((*sz == 'e') || (*sz == 'E'))
 	{
-		const char*	szExponent;
-
 		szExponent = sz;
 		sz++;
 		bNegativeExponent = false;

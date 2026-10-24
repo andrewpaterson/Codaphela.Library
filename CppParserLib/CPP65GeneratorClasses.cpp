@@ -153,10 +153,12 @@ SCPP65Class* CCPP65Generator::FindClass(int64 lliName)
 //////////////////////////////////////////////////////////////////////////
 //
 // The class a name component names: a class, a typedef of one, an instance of a
-// class template (Name<Arguments>), or a class template's own name inside it.
+// class template (Name<Arguments>), or a class template's own name inside it.  A
+// base template's name without arguments is psContext's (or else the current member
+// function's class's) base instance of it.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Class* CCPP65Generator::GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCPPSymbol* pcSymbol, CCPPSyntax* pcNode)
+SCPP65Class* CCPP65Generator::GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, SCPP65Class* psContext)
 {
 	SCPP65Template*	psTemplate;
 	SCPP65Bindings*	psBindings;
@@ -229,7 +231,11 @@ SCPP65Class* CCPP65Generator::GetComponentClass(CCPPSyntaxNameComponent* pcCompo
 				return psBindings->psClass;
 			}
 		}
-		psClass = (mpsFunction && mpsFunction->psClass) ? FindBaseInstance(mpsFunction->psClass, psTemplate) : NULL;
+		if (!psContext && mpsFunction)
+		{
+			psContext = mpsFunction->psClass;
+		}
+		psClass = psContext ? FindBaseInstance(psContext, psTemplate) : NULL;
 		if (psClass)
 		{
 			return psClass;
@@ -311,31 +317,9 @@ SCPP65Class* CCPP65Generator::FindBaseInstance(SCPP65Class* psClass, SCPP65Templ
 //////////////////////////////////////////////////////////////////////////
 SCPP65Class* CCPP65Generator::QualifierClass(SCPP65Class* psClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode)
 {
-	SCPP65Template*	psTemplate;
 	SCPP65Class*	psQualifier;
-	CCPPSymbol*		pcSymbol;
-	int64			lliName;
 
-	pcSymbol = pcComponent->mpcSymbol;
-	psTemplate = NULL;
-	if (pcSymbol && (pcSymbol->meKind == CPPSK_ClassTemplate))
-	{
-		psTemplate = GetTemplate(pcSymbol);
-	}
-	else if (!pcSymbol)
-	{
-		lliName = GetComponentName(pcComponent);
-		psTemplate = (lliName != -1) ? GetTemplateByName(lliName) : NULL;
-	}
-
-	if (psTemplate && !pcComponent->mbTemplateArguments)
-	{
-		psQualifier = FindBaseInstance(psClass, psTemplate);
-	}
-	else
-	{
-		psQualifier = GetComponentClass(pcComponent, NULL, pcNode);
-	}
+	psQualifier = GetComponentClass(pcComponent, NULL, pcNode, psClass);
 	if (!psQualifier || !IsDerived(psClass, psQualifier, NULL))
 	{
 		Error(pcNode, "The qualifier is not the object's class or one of its bases");
@@ -913,6 +897,7 @@ SCPP65Class* CCPP65Generator::InstantiateClass(SCPP65Template* psTemplate, CArra
 		if (!mapsClasses.GetPtr(i)->psTemplate && (mapsClasses.GetPtr(i)->lliName == psTemplate->pcSymbol->mlliName) && mapsClasses.GetPtr(i)->mszArguments.Equals(&szArguments))
 		{
 			psClass = mapsClasses.GetPtr(i);
+			psClass->pcSymbol = psTemplate->pcSymbol;
 			psClass->mszArguments.Kill();
 			psClass->mszArguments.Init();
 			break;
@@ -1984,6 +1969,11 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 		bFriend = pcFunction->mpcSpecifiers && (pcFunction->mpcSpecifiers->muiFlags & CPPDS_FRIEND);
 		psFunction = DeclareFunction(pcFunction->mpcSpecifiers, pcFunction->mpcDeclarator, true, bFriend ? NULL : psClass, false);
 		EndQuiet();
+		if (!psFunction && pcFunction->mpcSpecifiers && (pcFunction->mpcSpecifiers->muiFlags & CPPDS_VIRTUAL))
+		{
+			//Leaving out a virtual function would move the vtable's other entries.
+			return Error(pcFunction, "This virtual function's declaration is not supported by the 65C64 generator yet");
+		}
 		if (!psFunction)
 		{
 			mapcFailed.Add(pcFunction->mpcDeclarator);
@@ -2055,7 +2045,12 @@ bool CCPP65Generator::ClassMember(SCPP65Class* psClass, CCPPSyntax* pcMember)
 				BeginQuiet();
 				psFunction = DeclareFunction(pcSpecifiers, pcInit->mpcDeclarator, false, psClass, bPure);
 				EndQuiet();
-				if (!psFunction)
+				if (!psFunction && (pcSpecifiers->muiFlags & CPPDS_VIRTUAL))
+				{
+					//Leaving out a virtual function would move the vtable's other entries.
+					bResult &= Error(pcInit, "This virtual function's declaration is not supported by the 65C64 generator yet");
+				}
+				else if (!psFunction)
 				{
 					mapcFailed.Add(pcInit->mpcDeclarator);
 				}
@@ -2943,7 +2938,7 @@ void CCPP65Generator::AppendFunctionLabel(CChars* psz, SCPP65Function* psFunctio
 {
 	CChars	szName;
 	size	i;
-	bool	bMain;
+	bool	bPlainName;
 
 	szName.Init();
 	if (psFunction->eKind == CPP65FK_Constructor)
@@ -2960,7 +2955,7 @@ void CCPP65Generator::AppendFunctionLabel(CChars* psz, SCPP65Function* psFunctio
 	}
 
 	//main, and the global operator new and delete the generator calls by name, are just their names.
-	bMain = !psFunction->psClass && (szName.Equals("main") ||
+	bPlainName = !psFunction->psClass && (szName.Equals("main") ||
 			((psFunction->mapsParameters.NumElements() == 1) && (szName.Equals("opNew") || szName.Equals("opNewArray") || szName.Equals("opDelete") || szName.Equals("opDeleteArray"))));
 	if (psFunction->psClass)
 	{
@@ -2978,7 +2973,7 @@ void CCPP65Generator::AppendFunctionLabel(CChars* psz, SCPP65Function* psFunctio
 		psz->Append("__T");
 		psz->Append(&psFunction->mszArguments);
 	}
-	if (!psFunction->psClass && !psFunction->bCLinkage && !psFunction->psTemplate && !bMain)
+	if (!psFunction->psClass && !psFunction->bCLinkage && !psFunction->psTemplate && !bPlainName)
 	{
 		//A function that is not a member has its parameters in its label, as units can declare different sets of
 		//overloads.  Without parameters (only one such overload can exist) or with C linkage it is just its name.
