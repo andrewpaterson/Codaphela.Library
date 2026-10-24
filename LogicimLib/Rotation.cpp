@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/StringHelper.h"
 #include "Rotation.h"
 
 
@@ -186,5 +187,29 @@ const char* RotationToString(ERotation eRotation)
 		return "?";
 	}
 	return gaszRotationNames[eRotation];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The rotation RotationToString names; ROT_Cannot for anything else.
+//
+//////////////////////////////////////////////////////////////////////////
+ERotation StringToRotation(const char* szRotation)
+{
+	int		i;
+
+	if (szRotation == NULL)
+	{
+		return ROT_Cannot;
+	}
+	for (i = ROT_North; i <= ROT_West; i++)
+	{
+		if (StringCompare(gaszRotationNames[i], szRotation) == 0)
+		{
+			return (ERotation)i;
+		}
+	}
+	return ROT_Cannot;
 }
 

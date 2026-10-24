@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
 #include "MicroprocessorLib/Pins.h"
 #include "ComponentShapes.h"
 #include "LogicGateView.h"
@@ -35,6 +36,45 @@ void CLogicGateView::Init(int32 x, int32 y, ERotation eRotation, const char* szN
 	miInputCount = (iInputCount < 1) ? 1 : iInputCount;
 	miInputWidth = (iInputWidth < 1) ? 1 : iInputWidth;
 	mbNegated = bNegated;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogicGateView::SaveXMLAttributes(CXMLWriter* pcWriter)
+{
+	CIntegratedCircuitView::SaveXMLAttributes(pcWriter);
+	pcWriter->Attribute("inputCount", (int32)miInputCount);
+	pcWriter->Attribute("inputWidth", (int32)miInputWidth);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The input count and width must be at least one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CLogicGateView::LoadLogicGateXML(CMarkupTag* pcTag, SLogicGateXML* psGate)
+{
+	if (!LoadXMLPlacement(pcTag, &psGate->x, &psGate->y, &psGate->eRotation, &psGate->szName))
+	{
+		return false;
+	}
+	if (!LoadXMLFamily(pcTag, &psGate->szFamily, &psGate->bExplicitPowerPorts))
+	{
+		return false;
+	}
+	if (!pcTag->GetInt32Attribute("inputCount", &psGate->iInputCount) || !pcTag->GetInt32Attribute("inputWidth", &psGate->iInputWidth))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs whole number inputCount and inputWidth attributes.", NULL);
+	}
+	if ((psGate->iInputCount < 1) || (psGate->iInputWidth < 1))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] inputCount and inputWidth must be at least one.", NULL);
+	}
+	return true;
 }
 
 

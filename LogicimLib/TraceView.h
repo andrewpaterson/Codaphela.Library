@@ -22,6 +22,8 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __TRACE_VIEW_H__
 #include "BaseLib/Constructable.h"
 #include "BaseLib/Int32Vec2.h"
+#include "BaseLib/XMLWriter.h"
+#include "BaseLib/MarkupTag.h"
 #include "MicroprocessorLib/Trace.h"
 #include "CircuitPainter.h"
 
@@ -45,6 +47,9 @@ protected:
 public:
 			void				Init(int32 x0, int32 y0, int32 x1, int32 y1);
 	virtual void				Kill(void);
+
+			bool				LoadXML(CMarkupTag* pcTag);
+			void				SaveXML(CXMLWriter* pcWriter);
 
 			void				Paint(CCircuitPainter* pcPainter);
 

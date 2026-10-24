@@ -25,6 +25,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MicroprocessorLib/CircuitSimulation.h"
 #include "MicroprocessorLib/SubcircuitSimulation.h"
 #include "MicroprocessorLib/Circuit.h"
+#include "ComponentViewFactory.h"
 #include "CircuitView.h"
 
 
@@ -436,6 +437,78 @@ void CCircuitView::CalculateJunctions(void)
 		pcTrace->SetJunctions(abJunction[0], abJunction[1]);
 	}
 	apcPortViews.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitView::SaveXML(CXMLWriter* pcWriter)
+{
+	size	i;
+
+	pcWriter->Begin("Circuit");
+	for (i = 0; i < mapcComponents.NumElements(); i++)
+	{
+		mapcComponents.GetPtr(i)->SaveXML(pcWriter);
+	}
+	for (i = 0; i < mapcTraces.NumElements(); i++)
+	{
+		mapcTraces.GetPtr(i)->SaveXML(pcWriter);
+	}
+	pcWriter->End();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Stops at the first element it can't read; what was read before it stays
+// in the circuit view.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitView::LoadXML(CMarkupTag* pcCircuitTag)
+{
+	STagIterator		sIter;
+	CMarkupTag*			pcTag;
+	CComponentView*		pcComponent;
+	CTraceView*			pcTrace;
+
+	if (!pcCircuitTag->Is("Circuit"))
+	{
+		return gcLogger.Error2(__METHOD__, " Expected a [Circuit] element, not [", pcCircuitTag->GetName(), "].", NULL);
+	}
+
+	pcTag = pcCircuitTag->GetTag(&sIter);
+	while (pcTag != NULL)
+	{
+		if (pcTag->Is("Trace"))
+		{
+			pcTrace = NewMalloc<CTraceView>();
+			if (!pcTrace->LoadXML(pcTag))
+			{
+				free(pcTrace);
+				return false;
+			}
+			mapcTraces.Add(pcTrace);
+		}
+		else
+		{
+			pcComponent = NewComponentView(pcTag->GetName());
+			if (pcComponent == NULL)
+			{
+				return gcLogger.Error2(__METHOD__, " Unknown component [", pcTag->GetName(), "].", NULL);
+			}
+			if (!pcComponent->LoadXML(pcTag))
+			{
+				free(pcComponent);
+				return false;
+			}
+			mapcComponents.Add(pcComponent);
+		}
+		pcTag = pcCircuitTag->GetNextTag(&sIter);
+	}
+	return true;
 }
 
 

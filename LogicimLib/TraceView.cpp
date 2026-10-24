@@ -19,6 +19,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <math.h>
+#include "BaseLib/Logger.h"
 #include "ComponentShapes.h"
 #include "TraceView.h"
 
@@ -34,6 +35,43 @@ void CTraceView::Init(int32 x0, int32 y0, int32 x1, int32 y1)
 	mapcTraces.Init();
 	mbStartJunction = false;
 	mbEndJunction = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Initialises the wire from a <Trace x0 y0 x1 y1/> element.  On failure
+// the wire is left uninitialised.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTraceView::LoadXML(CMarkupTag* pcTag)
+{
+	int32	x0;
+	int32	y0;
+	int32	x1;
+	int32	y1;
+
+	if (!pcTag->GetInt32Attribute("x0", &x0) || !pcTag->GetInt32Attribute("y0", &y0) || !pcTag->GetInt32Attribute("x1", &x1) || !pcTag->GetInt32Attribute("y1", &y1))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs whole number x0, y0, x1 and y1 attributes.", NULL);
+	}
+	Init(x0, y0, x1, y1);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTraceView::SaveXML(CXMLWriter* pcWriter)
+{
+	pcWriter->Begin("Trace");
+	pcWriter->Attribute("x0", msStart.x);
+	pcWriter->Attribute("y0", msStart.y);
+	pcWriter->Attribute("x1", msEnd.x);
+	pcWriter->Attribute("y1", msEnd.y);
+	pcWriter->End();
 }
 
 

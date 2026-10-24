@@ -33,6 +33,9 @@ class CFamilyVoltageConfigurationStore;
 //CreateSimulation makes each component in a simulation, starts it, and then wires the ports the wires connect, live,
 //as Logicim's editor does: wires that touch, ports on a wire and ports on the same grid point are one net with a
 //trace per bit.
+//
+//SaveXML writes a <Circuit> element holding an element per component (in the order they were added) and then a <Trace>
+//per wire.  LoadXML adds what such an element holds to the circuit view.
 class CCircuitView
 {
 protected:
@@ -55,6 +58,9 @@ public:
 	bool				CreateSimulation(CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
 	void				DisconnectSimulation(void);
 	void				CalculateJunctions(void);
+
+	void				SaveXML(CXMLWriter* pcWriter);
+	bool				LoadXML(CMarkupTag* pcCircuitTag);
 
 	void				Paint(CCircuitPainter* pcPainter);
 	bool				GetBoundingBox(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum);
