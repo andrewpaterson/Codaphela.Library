@@ -97,6 +97,29 @@ uint8 BytesToWidthCode65(uint64 uiBytes)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A width in bits (wth's register operand) rounded up to 8, 16, 32 or 64.
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 BitsToWidthCode65(uint64 uiBits)
+{
+	if (uiBits <= 8)
+	{
+		return WIDTH65_8;
+	}
+	else if (uiBits <= 16)
+	{
+		return WIDTH65_16;
+	}
+	else if (uiBits <= 32)
+	{
+		return WIDTH65_32;
+	}
+	return WIDTH65_64;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The number of aligned words the bytes uiAddress ... uiAddress+uiBytes-1 touch.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1724,19 +1747,18 @@ void C65C64::CEP(void)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::WTH(void)
 {
-	uint64	uiBytes;
 	uint8	uiWidthCode;
 
+	//The embedded width is encoded in bytes, a register holds the width in bits.
 	if (msDecoded.sSecond.eKind == OK65_Embedded)
 	{
-		uiBytes = msDecoded.uiWidthBytes;
+		uiWidthCode = BytesToWidthCode65(msDecoded.uiWidthBytes);
 	}
 	else
 	{
-		uiBytes = GetOperandValue(&msDecoded.sSecond, 8, false);
+		uiWidthCode = BitsToWidthCode65(GetOperandValue(&msDecoded.sSecond, 8, false));
 	}
 
-	uiWidthCode = BytesToWidthCode65(uiBytes);
 	SetWidthCode(msDecoded.eWidthFirst, uiWidthCode);
 	if (msDecoded.eInstruction == I65_Wtth)
 	{

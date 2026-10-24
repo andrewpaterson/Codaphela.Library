@@ -378,6 +378,7 @@ uint64	Mask65(uint8 uiBytes);
 uint64	Extend65(uint64 uiValue, uint8 uiFromBytes, uint8 uiToBytes, bool bSigned);
 uint8	WidthCodeToBytes65(uint8 uiWidthCode);
 uint8	BytesToWidthCode65(uint64 uiBytes);
+uint8	BitsToWidthCode65(uint64 uiBits);
 
 
 #endif // __65C64_H__

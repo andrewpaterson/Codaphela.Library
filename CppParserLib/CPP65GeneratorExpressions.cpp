@@ -628,7 +628,7 @@ SCPP65Type* CCPP65Generator::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary)
 		//-x flips the sign bit.
 		if (pcUnary->meOperator == CT_Subtract)
 		{
-			Line(psType->Is64() ? "wth A, 8\n\t\txor A, -9223372036854775808\n\t\twth A, 4" : "xor A, -2147483648")->AppendNewLine();
+			Line(psType->Is64() ? "wth A, 64\n\t\txor A, -9223372036854775808\n\t\twth A, 32" : "xor A, -2147483648")->AppendNewLine();
 		}
 		return psType;
 	}
@@ -643,10 +643,10 @@ SCPP65Type* CCPP65Generator::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary)
 	case CT_Add:
 		return psType;
 	case CT_Subtract:
-		Line(psType->IsWide() ? "wth A, 8\n\t\tneg A, A\n\t\twth A, 4" : "neg A, A")->AppendNewLine();
+		Line(psType->IsWide() ? "wth A, 64\n\t\tneg A, A\n\t\twth A, 32" : "neg A, A")->AppendNewLine();
 		return psType;
 	case CT_BitwiseNot:
-		Line(psType->IsWide() ? "wth A, 8\n\t\txor A, -1\n\t\twth A, 4" : "xor A, -1")->AppendNewLine();
+		Line(psType->IsWide() ? "wth A, 64\n\t\txor A, -1\n\t\twth A, 32" : "xor A, -1")->AppendNewLine();
 		return psType;
 	default:
 		Error(pcUnary, "This operator is not supported by the 65C64 generator yet");
@@ -698,12 +698,12 @@ SCPP65Type* CCPP65Generator::IncrementExpression(CCPPSyntaxUnaryExpression* pcUn
 		MoveAToB(sPlace.psType);
 		if (sPlace.psType->IsWide())
 		{
-			Line("wth B, 8")->AppendNewLine();
+			Line("wth B, 64")->AppendNewLine();
 		}
 		Line(szOperation)->Append("B, ")->Append(iStep)->AppendNewLine();
 		if (sPlace.psType->IsWide())
 		{
-			Line("wth B, 4")->AppendNewLine();
+			Line("wth B, 32")->AppendNewLine();
 		}
 		Store(&sPlace, "B", szAddress);
 	}
@@ -711,12 +711,12 @@ SCPP65Type* CCPP65Generator::IncrementExpression(CCPPSyntaxUnaryExpression* pcUn
 	{
 		if (sPlace.psType->IsWide())
 		{
-			Line("wth A, 8")->AppendNewLine();
+			Line("wth A, 64")->AppendNewLine();
 		}
 		Line(szOperation)->Append("A, ")->Append(iStep)->AppendNewLine();
 		if (sPlace.psType->IsWide())
 		{
-			Line("wth A, 4")->AppendNewLine();
+			Line("wth A, 32")->AppendNewLine();
 		}
 		if (sPlace.psType->iBytes < 4)
 		{
@@ -1098,7 +1098,7 @@ SCPP65Type* CCPP65Generator::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lli
 
 	if (bWide)
 	{
-		Line("wtth (A, B), 8")->AppendNewLine();
+		Line("wtth (A, B), 64")->AppendNewLine();
 	}
 	if (szName.Equals("ctz"))
 	{
@@ -1148,7 +1148,7 @@ SCPP65Type* CCPP65Generator::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lli
 	}
 	if (bWide)
 	{
-		Line("wtth (A, B), 4")->AppendNewLine();
+		Line("wtth (A, B), 32")->AppendNewLine();
 	}
 	szName.Kill();
 	return &mcTypes.msInt;
@@ -1318,10 +1318,10 @@ bool CCPP65Generator::IsInlineMemcpy(int64 lliName, CArraySyntax* papcArguments)
 //
 //		cpy B, Source
 //		cpy A, Dest
-//		wth Y, 8
+//		wth Y, 64
 //		cpy Y, [0 + B]
 //		cpy [0 + A], Y
-//		wth Y, 4
+//		wth Y, 32
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Generator::InlineMemcpy(CArraySyntax* papcArguments, CCPPSyntax* pcNode)
@@ -1355,7 +1355,7 @@ SCPP65Type* CCPP65Generator::InlineMemcpy(CArraySyntax* papcArguments, CCPPSynta
 		iChunk = ((int)lliBytes - iOffset >= 8) ? 8 : (((int)lliBytes - iOffset >= 4) ? 4 : (((int)lliBytes - iOffset >= 2) ? 2 : 1));
 		if (iChunk != iWidth)
 		{
-			Line("wth Y, ")->Append(iChunk)->AppendNewLine();
+			Line("wth Y, ")->Append(8 * iChunk)->AppendNewLine();
 			iWidth = iChunk;
 		}
 		Line("cpy Y, [")->Append(iOffset)->Append(" + B]")->AppendNewLine();
@@ -1363,7 +1363,7 @@ SCPP65Type* CCPP65Generator::InlineMemcpy(CArraySyntax* papcArguments, CCPPSynta
 	}
 	if (iWidth != 4)
 	{
-		Line("wth Y, 4")->AppendNewLine();
+		Line("wth Y, 32")->AppendNewLine();
 	}
 	return psVoidPointer;
 }
@@ -2387,12 +2387,12 @@ SCPP65Type* CCPP65Generator::Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, S
 		miTemporaries += bWide ? 8 : 4;
 		if (bWide)
 		{
-			Line("wth A, 8")->AppendNewLine();
+			Line("wth A, 64")->AppendNewLine();
 		}
 		Line("cpy [")->Append(iTemporary)->Append(" + W], A")->AppendNewLine();
 		if (bWide)
 		{
-			Line("wth A, 4")->AppendNewLine();
+			Line("wth A, 32")->AppendNewLine();
 		}
 		psLeft = Expression(pcLeft);
 		miTemporaries -= bWide ? 8 : 4;
@@ -2433,13 +2433,13 @@ void CCPP65Generator::RightInB(SCPP65Right* psRight)
 	{
 		if (psRight->psType->Is64())
 		{
-			Line("wth B, 8")->AppendNewLine();
+			Line("wth B, 64")->AppendNewLine();
 		}
 		Line("cpy B, ");
 		AppendRight(mpszOut, psRight)->AppendNewLine();
 		if (psRight->psType->Is64())
 		{
-			Line("wth B, 4")->AppendNewLine();
+			Line("wth B, 32")->AppendNewLine();
 		}
 		psRight->eKind = CPP65RK_B;
 	}
@@ -2662,7 +2662,7 @@ SCPP65Type* CCPP65Generator::OperateWide(ECppTokens eOperator, SCPP65Type* psLef
 		Widen("B", !bShift && psRight->psType->bSigned);
 	}
 
-	Line("wtth (A, B), 8")->AppendNewLine();
+	Line("wtth (A, B), 64")->AppendNewLine();
 	switch (eOperator)
 	{
 	case CT_Add:			Line("add A, B")->AppendNewLine();	break;
@@ -2672,10 +2672,10 @@ SCPP65Type* CCPP65Generator::OperateWide(ECppTokens eOperator, SCPP65Type* psLef
 	case CT_BitwiseXor:		Line("xor A, B")->AppendNewLine();	break;
 	case CT_LeftShift:		Line("shl A, B")->AppendNewLine();	break;
 	case CT_Multiply:
-		Line("wth Y, 8")->AppendNewLine();
+		Line("wth Y, 64")->AppendNewLine();
 		Multiply("mul");
 		Line("cpy A, Y")->AppendNewLine();
-		Line("wth Y, 4")->AppendNewLine();
+		Line("wth Y, 32")->AppendNewLine();
 		break;
 	case CT_Divide:
 	case CT_Modulus:
@@ -2687,13 +2687,13 @@ SCPP65Type* CCPP65Generator::OperateWide(ECppTokens eOperator, SCPP65Type* psLef
 		}
 		else
 		{
-			Line("wth Y, 8")->AppendNewLine();
+			Line("wth Y, 64")->AppendNewLine();
 			Line("cpy Y, A")->AppendNewLine();
 			Line("cpy A, B")->AppendNewLine();
 			Line("cpy B, 0")->AppendNewLine();
 			Multiply("div");
 			Line("cpy A, Y")->AppendNewLine();
-			Line("wth Y, 4")->AppendNewLine();
+			Line("wth Y, 32")->AppendNewLine();
 		}
 		if (eOperator == CT_Modulus)
 		{
@@ -2723,11 +2723,11 @@ SCPP65Type* CCPP65Generator::OperateWide(ECppTokens eOperator, SCPP65Type* psLef
 		Label(iEnd);
 		break;
 	default:
-		Line("wtth (A, B), 4")->AppendNewLine();
+		Line("wtth (A, B), 32")->AppendNewLine();
 		Error(pcNode, "This operator is not supported by the 65C64 generator yet");
 		return NULL;
 	}
-	Line("wtth (A, B), 4")->AppendNewLine();
+	Line("wtth (A, B), 32")->AppendNewLine();
 	return psType;
 }
 
@@ -2741,9 +2741,9 @@ void CCPP65Generator::MoveAToB(SCPP65Type* psType)
 {
 	if (psType && psType->Is64())
 	{
-		Line("wtth (A, B), 8")->AppendNewLine();
+		Line("wtth (A, B), 64")->AppendNewLine();
 		Line("cpy B, A")->AppendNewLine();
-		Line("wtth (A, B), 4")->AppendNewLine();
+		Line("wtth (A, B), 32")->AppendNewLine();
 	}
 	else
 	{
@@ -2761,9 +2761,9 @@ void CCPP65Generator::LoadConstant(const char* szRegister, SCPP65Type* psType, i
 {
 	if (psType->Is64())
 	{
-		Line("wth ")->Append(szRegister)->Append(", 8")->AppendNewLine();
+		Line("wth ")->Append(szRegister)->Append(", 64")->AppendNewLine();
 		Line("cpy ")->Append(szRegister)->Append(", ")->Append(lliValue)->AppendNewLine();
-		Line("wth ")->Append(szRegister)->Append(", 4")->AppendNewLine();
+		Line("wth ")->Append(szRegister)->Append(", 32")->AppendNewLine();
 	}
 	else
 	{
@@ -2834,9 +2834,9 @@ bool CCPP65Generator::Compare(ECppTokens eOperator, SCPP65Type* psLeft, SCPP65Ri
 		{
 			eOperator = (eOperator == CT_GreaterThan) ? CT_LessThan : CT_GreaterThanEqualTo;
 		}
-		Line("wtth (A, B), 8")->AppendNewLine();
+		Line("wtth (A, B), 64")->AppendNewLine();
 		Line(bSwap ? "cmp B, A" : "cmp A, B")->AppendNewLine();
-		Line("wtth (A, B), 4")->AppendNewLine();
+		Line("wtth (A, B), 32")->AppendNewLine();
 	}
 	else if (bSwap)
 	{
@@ -3157,14 +3157,14 @@ void CCPP65Generator::CompareZero(SCPP65Type* psType)
 	if (psType->IsFloat())
 	{
 		//+0 and -0 are zero: the sign bit is masked off (A keeps the rest).
-		Line(psType->Is64() ? "wth A, 8\n\t\tand A, 9223372036854775807\n\t\twth A, 4" : "and A, 2147483647")->AppendNewLine();
+		Line(psType->Is64() ? "wth A, 64\n\t\tand A, 9223372036854775807\n\t\twth A, 32" : "and A, 2147483647")->AppendNewLine();
 		return;
 	}
 	if (psType->IsWide())
 	{
-		Line("wth A, 8")->AppendNewLine();
+		Line("wth A, 64")->AppendNewLine();
 		Line("cmp A, 0")->AppendNewLine();
-		Line("wth A, 4")->AppendNewLine();
+		Line("wth A, 32")->AppendNewLine();
 	}
 	else
 	{
@@ -3580,11 +3580,11 @@ void CCPP65Generator::Load(SCPP65Place* psPlace, const char* szRegister, const c
 	iBytes = psPlace->psType->iBytes;
 	if (iBytes == 8)
 	{
-		Line("wth ")->Append(szRegister)->Append(", 8")->AppendNewLine();
+		Line("wth ")->Append(szRegister)->Append(", 64")->AppendNewLine();
 		Line("cpy ")->Append(szRegister)->Append(", ");
 		AppendPlace(mpszOut, psPlace, szAddress);
 		mpszOut->AppendNewLine();
-		Line("wth ")->Append(szRegister)->Append(", 4")->AppendNewLine();
+		Line("wth ")->Append(szRegister)->Append(", 32")->AppendNewLine();
 		return;
 	}
 	if (iBytes >= 4)
@@ -3595,12 +3595,12 @@ void CCPP65Generator::Load(SCPP65Place* psPlace, const char* szRegister, const c
 		return;
 	}
 
-	Line("wth Y, ")->Append(iBytes)->AppendNewLine();
+	Line("wth Y, ")->Append(8 * iBytes)->AppendNewLine();
 	Line("cpy Y, ");
 	AppendPlace(mpszOut, psPlace, szAddress);
 	mpszOut->AppendNewLine();
 	Line("cpy ")->Append(szRegister)->Append(psPlace->psType->bSigned ? ", Y:s" : ", Y")->AppendNewLine();
-	Line("wth Y, 4")->AppendNewLine();
+	Line("wth Y, 32")->AppendNewLine();
 }
 
 
@@ -3620,11 +3620,11 @@ void CCPP65Generator::Store(SCPP65Place* psPlace, const char* szRegister, const 
 	iBytes = psPlace->psType->iBytes;
 	if (iBytes == 8)
 	{
-		Line("wth ")->Append(szRegister)->Append(", 8")->AppendNewLine();
+		Line("wth ")->Append(szRegister)->Append(", 64")->AppendNewLine();
 		Line("cpy ");
 		AppendPlace(mpszOut, psPlace, szAddress);
 		mpszOut->Append(", ")->Append(szRegister)->AppendNewLine();
-		Line("wth ")->Append(szRegister)->Append(", 4")->AppendNewLine();
+		Line("wth ")->Append(szRegister)->Append(", 32")->AppendNewLine();
 		return;
 	}
 	if (iBytes >= 4)
@@ -3635,12 +3635,12 @@ void CCPP65Generator::Store(SCPP65Place* psPlace, const char* szRegister, const 
 		return;
 	}
 
-	Line("wth Y, ")->Append(iBytes)->AppendNewLine();
+	Line("wth Y, ")->Append(8 * iBytes)->AppendNewLine();
 	Line("cpy Y, ")->Append(szRegister)->AppendNewLine();
 	Line("cpy ");
 	AppendPlace(mpszOut, psPlace, szAddress);
 	mpszOut->Append(", Y")->AppendNewLine();
-	Line("wth Y, 4")->AppendNewLine();
+	Line("wth Y, 32")->AppendNewLine();
 }
 
 
@@ -3712,10 +3712,10 @@ void CCPP65Generator::PushValue(SCPP65Type* psType)
 		Push("A");
 		return;
 	}
-	Line("wth Y, ")->Append(psType->iBytes)->AppendNewLine();
+	Line("wth Y, ")->Append(8 * psType->iBytes)->AppendNewLine();
 	Line("cpy Y, A")->AppendNewLine();
 	Line("psh Y")->AppendNewLine();
-	Line("wth Y, 4")->AppendNewLine();
+	Line("wth Y, 32")->AppendNewLine();
 	miDepth += psType->iBytes;
 }
 
@@ -3732,9 +3732,9 @@ void CCPP65Generator::PushWide(const char* szRegister, bool bWide)
 		Push(szRegister);
 		return;
 	}
-	Line("wth ")->Append(szRegister)->Append(", 8")->AppendNewLine();
+	Line("wth ")->Append(szRegister)->Append(", 64")->AppendNewLine();
 	Line("psh ")->Append(szRegister)->AppendNewLine();
-	Line("wth ")->Append(szRegister)->Append(", 4")->AppendNewLine();
+	Line("wth ")->Append(szRegister)->Append(", 32")->AppendNewLine();
 	miDepth += 8;
 }
 
@@ -3750,9 +3750,9 @@ void CCPP65Generator::PullWide(const char* szRegister, bool bWide)
 		Pull(szRegister);
 		return;
 	}
-	Line("wth ")->Append(szRegister)->Append(", 8")->AppendNewLine();
+	Line("wth ")->Append(szRegister)->Append(", 64")->AppendNewLine();
 	Line("pul ")->Append(szRegister)->AppendNewLine();
-	Line("wth ")->Append(szRegister)->Append(", 4")->AppendNewLine();
+	Line("wth ")->Append(szRegister)->Append(", 32")->AppendNewLine();
 	miDepth -= 8;
 }
 
@@ -3765,8 +3765,8 @@ void CCPP65Generator::PullWide(const char* szRegister, bool bWide)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::Widen(const char* szRegister, bool bSigned)
 {
-	Line("wthx ")->Append(szRegister)->Append(bSigned ? ", 8:s" : ", 8")->AppendNewLine();
-	Line("wth ")->Append(szRegister)->Append(", 4")->AppendNewLine();
+	Line("wthx ")->Append(szRegister)->Append(bSigned ? ", 64:s" : ", 64")->AppendNewLine();
+	Line("wth ")->Append(szRegister)->Append(", 32")->AppendNewLine();
 }
 
 

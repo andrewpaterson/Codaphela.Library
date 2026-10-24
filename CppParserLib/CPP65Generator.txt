@@ -90,8 +90,8 @@ Types
 
 Values are kept in registers 32 bits wide, sign or zero extended from their type.
 A long long is the exception: it is loaded, stored, pushed and operated on with the
-register widened to 8 bytes for just those instructions (wth A, 8 ... wth A, 4;
-wtth (A, B), 8 around an operator, and Y too for mul and div).  A narrower operand is
+register widened to 8 bytes for just those instructions (wth A, 64 ... wth A, 32;
+wtth (A, B), 64 around an operator, and Y too for mul and div).  A narrower operand is
 widened with wthx.  The signed 64 bit divide is R_DivideSigned64.  A double is held
 like a long long (its bits); a float like an unsigned int.
 
@@ -165,10 +165,10 @@ A, B, X and Y stay 32 bits wide.  The widths only change where they must: Y is
 narrowed to read, write or push a 1 or 2 byte value and set back straight after.
 64 bit arithmetic will widen them when long long is supported.
 
-		wth Y, 1
+		wth Y, 8
 		cpy Y, [13 + V]
 		cpy A, Y:s			; sign extend a char
-		wth Y, 4
+		wth Y, 32
 
 Narrowing a value in a register keeps the registers 32 bits wide:
 

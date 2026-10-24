@@ -329,13 +329,13 @@ bool CCPP65Generator::CopyMembers(SCPP65Place* psPlace, CCPPSyntax* pcSource, CC
 		iChunk = (psClass->psType->iBytes - iOffset >= 4) ? 4 : ((psClass->psType->iBytes - iOffset >= 2) ? 2 : 1);
 		if (iChunk < 4)
 		{
-			Line("wth Y, ")->Append(iChunk)->AppendNewLine();
+			Line("wth Y, ")->Append(8 * iChunk)->AppendNewLine();
 		}
 		Line("cpy Y, [")->Append(iOffset)->Append(" + B]")->AppendNewLine();
 		Line("cpy [")->Append(iOffset)->Append(" + A], Y")->AppendNewLine();
 		if (iChunk < 4)
 		{
-			Line("wth Y, 4")->AppendNewLine();
+			Line("wth Y, 32")->AppendNewLine();
 		}
 	}
 	if (IsPolymorphic(psClass))

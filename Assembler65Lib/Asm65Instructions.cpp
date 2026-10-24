@@ -1510,8 +1510,23 @@ bool CAsm65Assembler::CloseGroup(SAsm65Token* psOpen, int iCount)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// wth R, bytes|register and wtth (R1, R2), bytes|register.  R is A, B, X or Y; the
-// width is 1 to 8 bytes.
+// A width in bits (8, 16, 32 or 64) as the bytes the instruction encodes, or 0.
+//
+//////////////////////////////////////////////////////////////////////////
+static int64 WidthBitsToBytes(int64 iBits)
+{
+	if ((iBits == 8) || (iBits == 16) || (iBits == 32) || (iBits == 64))
+	{
+		return iBits / 8;
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// wth R, bits|register and wtth (R1, R2), bits|register.  R is A, B, X or Y; the
+// width is 8, 16, 32 or 64 bits (encoded as bytes).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Assembler::Width(bool bTwo)
@@ -1523,6 +1538,7 @@ bool CAsm65Assembler::Width(bool bTwo)
 	E65Register			eWidth;
 	int					iFirst;
 	int					iSecond;
+	int64				iBits;
 	int64				iBytes;
 	uint16				uiOperand;
 
@@ -1561,13 +1577,14 @@ bool CAsm65Assembler::Width(bool bTwo)
 	}
 	else
 	{
-		if (!ExpressionValue(&iBytes))
+		if (!ExpressionValue(&iBits))
 		{
 			return false;
 		}
-		if ((iBytes < 1) || (iBytes > 8))
+		iBytes = WidthBitsToBytes(iBits);
+		if (iBytes == 0)
 		{
-			return Error(psToken, "A width is 1 to 8 bytes");
+			return Error(psToken, "A width is 8, 16, 32 or 64 bits");
 		}
 		uiOperand = (uint16)((1 << 11) | ((iBytes - 1) << 8));
 	}
@@ -1685,7 +1702,7 @@ bool CAsm65Assembler::GetWidth(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// wthx R, bytes{:s}: extend R from its width to bytes (zero or sign extend).
+// wthx R, bits{:s}: extend R from its width to bits (zero or sign extend).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Assembler::ExtendWidth(void)
@@ -1694,6 +1711,7 @@ bool CAsm65Assembler::ExtendWidth(void)
 	SAsm65Token*		psToken;
 	E65Register			eRegister;
 	int					iRegister;
+	int64				iBits;
 	int64				iBytes;
 	bool				bSigned;
 
@@ -1710,13 +1728,14 @@ bool CAsm65Assembler::ExtendWidth(void)
 
 	psToken = Peek();
 	bSigned = false;
-	if (!ExpressionValue(&iBytes) || !Suffixes(NULL, &bSigned, NULL))
+	if (!ExpressionValue(&iBits) || !Suffixes(NULL, &bSigned, NULL))
 	{
 		return false;
 	}
-	if ((iBytes < 1) || (iBytes > 8))
+	iBytes = WidthBitsToBytes(iBits);
+	if (iBytes == 0)
 	{
-		return Error(psToken, "A width is 1 to 8 bytes");
+		return Error(psToken, "A width is 8, 16, 32 or 64 bits");
 	}
 
 	StartInstruction(&sInstruction, (uint16)((iRegister << 14) | (bSigned << 11) | ((iBytes - 1) << 8) | (3 << 6) | (3 << 4) | 11));

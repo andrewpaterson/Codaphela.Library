@@ -312,8 +312,8 @@ void CCPP65Generator::AppendStartUp(CChars* pszDest)
 	pszDest->Append("Start:")->AppendNewLine();
 	pszDest->Append("\t\tcpy S, $")->Append((uint32)CPP65_STACK_TOP, 16)->AppendNewLine();
 	pszDest->Append("\t\tcpy W, 0")->AppendNewLine();
-	pszDest->Append("\t\twtth (A, B), 4")->AppendNewLine();
-	pszDest->Append("\t\twtth (X, Y), 4")->AppendNewLine();
+	pszDest->Append("\t\twtth (A, B), 32")->AppendNewLine();
+	pszDest->Append("\t\twtth (X, Y), 32")->AppendNewLine();
 	pszDest->Append("\t\tcpy Y, __init_start")->AppendNewLine();
 	pszDest->Append("StartInitialise:")->AppendNewLine();
 	pszDest->Append("\t\tcmp Y, __init_end")->AppendNewLine();
@@ -3352,7 +3352,7 @@ void CCPP65Generator::AppendDivideSigned(const char* szName, int iBytes)
 {
 	if (iBytes == 8)
 	{
-		Line("wtth (X, Y), 8")->AppendNewLine();
+		Line("wtth (X, Y), 64")->AppendNewLine();
 	}
 	Line("cpy X, A")->AppendNewLine();
 	Line("xor X, B")->AppendNewLine();
@@ -3382,7 +3382,7 @@ void CCPP65Generator::AppendDivideSigned(const char* szName, int iBytes)
 	Line("cpy A, Y")->AppendNewLine();
 	if (iBytes == 8)
 	{
-		Line("wtth (X, Y), 4")->AppendNewLine();
+		Line("wtth (X, Y), 32")->AppendNewLine();
 	}
 	Line("ret")->AppendNewLine();
 	mszCode.AppendNewLine();

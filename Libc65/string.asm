@@ -103,11 +103,11 @@ _memset:
 		psh (V, W)
 		cpy V, [13 + S]
 		cpy Y, [21 + S]
-		wtth (B, X), 8
+		wtth (B, X), 64
 		cpy X, 0
-		wth X, 1
-		cpy X, [17 + S]
 		wth X, 8
+		cpy X, [17 + S]
+		wth X, 64
 		cpy B, X
 		shl X, 8
 		or B, X
@@ -124,14 +124,14 @@ _memset:
 		sub A, 1
 		bcpy B, V, +1, A
 SetBytes:
-		wth B, 1
+		wth B, 8
 		and Y, 7
 		bras z, SetDone
 		sub Y, 1
 		cpy A, Y
 		bcpy B, V, +1, A
 SetDone:
-		wtth (B, X), 4
+		wtth (B, X), 32
 		cpy A, [13 + S]
 		pul (V, W)
 		ret
@@ -172,13 +172,13 @@ CompareBytes:
 		bras z, CompareSame
 
 		; [V - 1] and [W - 1] differ: their difference as unsigned chars.
-		wtth (A, B), 4
+		wtth (A, B), 32
 		cpy A, 0
 		cpy B, 0
-		wtth (A, B), 1
+		wtth (A, B), 8
 		cpy A, [-1 + V]
 		cpy B, [-1 + W]
-		wtth (A, B), 4
+		wtth (A, B), 32
 		sub A, B
 		pul (V, W)
 		ret
@@ -191,10 +191,10 @@ _strcmp:
 		psh (V, W)
 		cpy V, [13 + S]
 		cpy A, $7FFFFFFF
-		wth B, 1
+		wth B, 8
 		cpy B, $FF
 		btst B, V, +1, A, z
-		wth B, 4
+		wth B, 32
 		cpy B, V
 		cpy X, [13 + S]
 		sub B, X
@@ -209,10 +209,10 @@ _strncmp:
 		cmp A, 0
 		bras z, CompareSame
 		sub A, 1
-		wth B, 1
+		wth B, 8
 		cpy B, $FF
 		btst B, V, +1, A, z
-		wth B, 4
+		wth B, 32
 		cpy B, V
 		cpy X, [13 + S]
 		sub B, X
@@ -232,10 +232,10 @@ _memchr:
 		cmp A, 0
 		bras z, FindNone
 		sub A, 1
-		wth B, 1
+		wth B, 8
 		cpy B, [17 + S]
 		bcmp B, V, +1, A, z
-		wth B, 4
+		wth B, 32
 		brac z, FindNone
 		cpy A, V
 		sub A, 1
@@ -255,10 +255,10 @@ _strlen:
 		psh (V, W)
 		cpy V, [13 + S]
 		cpy A, $7FFFFFFF
-		wth B, 1
+		wth B, 8
 		cpy B, $FF
 		btst B, V, +1, A, z
-		wth B, 4
+		wth B, 32
 		cpy A, V
 		cpy X, [13 + S]
 		sub A, X
@@ -300,10 +300,10 @@ _strncpy:
 		bras v, CopyNDone
 
 		; Stopped at the zero with A + 1 bytes still to fill.
-		wth B, 1
+		wth B, 8
 		cpy B, 0
 		bcpy B, V, +1, A
-		wth B, 4
+		wth B, 32
 CopyNDone:
 		cpy A, [13 + S]
 		pul (V, W)
@@ -319,10 +319,10 @@ _strcat:
 		psh (V, W)
 		cpy V, [13 + S]
 		cpy A, $7FFFFFFF
-		wth B, 1
+		wth B, 8
 		cpy B, $FF
 		btst B, V, +1, A, z
-		wth B, 4
+		wth B, 32
 		sub V, 1
 		cpy W, [17 + S]
 		cpy A, $7FFFFFFF
@@ -342,7 +342,7 @@ _strncat:
 		psh (V, W)
 		cpy V, [13 + S]
 		cpy A, $7FFFFFFF
-		wth B, 1
+		wth B, 8
 		cpy B, $FF
 		btst B, V, +1, A, z
 		sub V, 1
@@ -356,7 +356,7 @@ _strncat:
 		cpy B, 0
 		cpy [0 + V], B
 CatNDone:
-		wth B, 4
+		wth B, 32
 		cpy A, [13 + S]
 		pul (V, W)
 		ret
@@ -372,7 +372,7 @@ _strchr:
 		psh (V, W)
 		cpy V, [13 + S]
 		cpy A, $7FFFFFFF
-		wth B, 1
+		wth B, 8
 		cpy B, $FF
 		btst B, V, +1, A, z
 		cpy A, V
@@ -385,7 +385,7 @@ _strchr:
 		brac z, StringNone
 		cpy A, V
 		sub A, 1
-		wth B, 4
+		wth B, 32
 		pul (V, W)
 		ret
 
@@ -393,7 +393,7 @@ _strrchr:
 		psh (V, W)
 		cpy V, [13 + S]
 		cpy A, $7FFFFFFF
-		wth B, 1
+		wth B, 8
 		cpy B, $FF
 		btst B, V, +1, A, z
 		sub V, 1
@@ -405,13 +405,13 @@ _strrchr:
 		brac z, StringNone
 		cpy A, V
 		add A, 1
-		wth B, 4
+		wth B, 32
 		pul (V, W)
 		ret
 
 StringNone:
 		cpy A, 0
-		wth B, 4
+		wth B, 32
 		pul (V, W)
 		ret
 
