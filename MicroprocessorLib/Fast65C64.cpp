@@ -262,6 +262,8 @@ void CFast65C64::Init(CFast65C64ReadWord fReadWord, CFast65C64WriteByte fWriteBy
 	muiMemorySize = puiMemory ? uiMemorySize : 0;
 	muiWordLimit = (muiMemorySize >= 2) ? muiMemorySize - 1 : 0;
 	muiQuadLimit = (muiMemorySize >= 8) ? muiMemorySize - 7 : 0;
+	muiHoleStart = 0xFFFFFFFF;
+	muiHoleEnd = 0xFFFFFFFF;
 
 	mauiBytes[R65_Zero] = 0;
 	mauiMasks[R65_Zero] = 0;
@@ -285,6 +287,18 @@ void CFast65C64::Kill(void)
 	mfWriteByte = NULL;
 	mpvContext = NULL;
 	mpuiMemory = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Addresses uiStart to uiEnd - 1 in the flat block go to the callbacks (memory mapped devices).
+//
+//////////////////////////////////////////////////////////////////////////
+void CFast65C64::SetHole(uint32 uiStart, uint32 uiEnd)
+{
+	muiHoleStart = uiStart;
+	muiHoleEnd = uiEnd;
 }
 
 
@@ -597,7 +611,7 @@ void CFast65C64::SetWidthCode(uint8 uiRegister, uint8 uiWidthCode)
 //////////////////////////////////////////////////////////////////////////
 inline uint16 CFast65C64::ReadWord(uint32 uiAddress)
 {
-	if (uiAddress < muiWordLimit)
+	if ((uiAddress < muiWordLimit) && ((uiAddress + 2 <= muiHoleStart) || (uiAddress >= muiHoleEnd)))
 	{
 		return (uint16)(mpuiMemory[uiAddress] | (mpuiMemory[uiAddress + 1] << 8));
 	}
@@ -638,7 +652,7 @@ inline uint64 CFast65C64::ReadValue(uint32 uiAddress, uint8 uiBytes)
 
 	uiWords = CountWords(uiAddress, uiBytes);
 	muiCycles += uiWords;
-	if (uiAddress < muiQuadLimit)
+	if ((uiAddress < muiQuadLimit) && ((uiAddress + 8 <= muiHoleStart) || (uiAddress >= muiHoleEnd)))
 	{
 		memcpy(&uiValue, &mpuiMemory[uiAddress], sizeof(uint64));
 		return uiValue & gauiFast65Masks[uiBytes];
@@ -676,7 +690,7 @@ inline void CFast65C64::WriteValue(uint32 uiAddress, uint8 uiBytes, uint64 uiVal
 	uint8	i;
 
 	muiCycles += CountWords(uiAddress, uiBytes);
-	if ((uiAddress < muiMemorySize) && (uiBytes <= muiMemorySize - uiAddress))
+	if ((uiAddress < muiMemorySize) && (uiBytes <= muiMemorySize - uiAddress) && ((uiAddress + uiBytes <= muiHoleStart) || (uiAddress >= muiHoleEnd)))
 	{
 		memcpy(&mpuiMemory[uiAddress], &uiValue, uiBytes);
 		return;
@@ -685,7 +699,7 @@ inline void CFast65C64::WriteValue(uint32 uiAddress, uint8 uiBytes, uint64 uiVal
 	for (i = 0; i < uiBytes; i++)
 	{
 		uiByteAddress = uiAddress + i;
-		if (uiByteAddress < muiMemorySize)
+		if ((uiByteAddress < muiMemorySize) && ((uiByteAddress < muiHoleStart) || (uiByteAddress >= muiHoleEnd)))
 		{
 			mpuiMemory[uiByteAddress] = (uint8)(uiValue >> (8 * i));
 		}
