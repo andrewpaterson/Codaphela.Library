@@ -25,9 +25,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "WindowsHeaders.h"
 
 
-CTimer	gcTimer;
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -42,94 +39,6 @@ int64 GetDebugTickCount()
 	QueryPerformanceCounter(&counter);
 	uiMilliseconds = (counter.QuadPart * 1000) / freq.QuadPart;
 	return uiMilliseconds;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTimer::Init(void)
-{
-	miStart = GetDebugTickCount();
-	miStart2 = GetDebugTickCount();
-	miTotalTime = 0;
-	miUpdateTime = 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTimer::Update(void)
-{
-	int64	iTime;
-
-	iTime = GetDebugTickCount();
-
-	//Get the milliseconds passed since start.
-	miTotalTime = iTime - miStart;
-
-	//Get the milliseconds passed since last update
-	miUpdateTime = iTime - miStart2;
-	miStart2 = iTime;
-
-	//Give time in seconds also.
-	mfTotalTime = (float)miTotalTime * (1.0f / 1000.0f);
-	mfUpdateTime = (float)miUpdateTime * (1.0f / 1000.0f);
-
-	if (mfUpdateTime != 0.0f)
-	{
-		mfUpdatesPerSecond = 1.0f / mfUpdateTime;
-	}
-	else
-	{
-		mfUpdatesPerSecond = 0.0f;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTimer::Reset(void)
-{
-	miStart = GetDebugTickCount();
-	miTotalTime = 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTimer::Kill(void)
-{
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTimer::HumanReadable(CChars* psz)
-{
-	float	fSeconds;
-
-	if (miTotalTime < 1000)
-	{
-		psz->Append(miTotalTime);
-		psz->Append("ms");
-	}
-	else
-	{
-		fSeconds = (float)miTotalTime/1000.0f;
-
-		psz->Append(fSeconds, 3);
-		psz->Append("s");
-	}
 }
 
 
