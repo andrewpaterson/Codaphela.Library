@@ -101,7 +101,7 @@ the simulator for normal operands from 2^-20 to 2^20 (softfloat.cpp's compiled c
 brackets): float add 80 (2140), subtract 84 (2230), multiply 64 (2180), divide 85
 (4930), compare 25 (1145), sqrt 134 (16980), from int 39 (590), to int 19 (770), to
 double 21 (1005), double to float 46 (1110); double add 98 (2135), subtract 104
-(2225), multiply 134 (2360), divide 206 (8245), compare 36 (1140), sqrt 218 (16990),
+(2225), multiply 134 (2360), divide 105 (8245), compare 36 (1140), sqrt 218 (16990),
 from int 28 (510), to int 24 (750).
 The generator pushes the operands like arguments (the right first) and calls:
 
