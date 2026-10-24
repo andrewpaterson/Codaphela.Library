@@ -49,6 +49,17 @@ struct SCPP65LinkLibrary
 typedef CArrayTemplate<SCPP65LinkLibrary>	CArrayCPP65LinkLibraries;
 
 
+//An object given to the linker, again for each LinkWith.
+struct SCPP65Object
+{
+	CAsm65Object*	pcObject;
+	bool			bResident;
+};
+
+
+typedef CArrayTemplate<SCPP65Object>	CArrayCPP65Objects;
+
+
 //Builds a 65C64 program.  Each part is an object: the start up, C++ sources given as text, assembly, and the
 //translation units of a project.  They are linked in the order they were added (the project's units last, when
 //Link compiles them) with the text at CPP65_PROGRAM_ADDRESS, ending below CPP65_HEAP_ADDRESS.  A project library
@@ -57,7 +68,9 @@ typedef CArrayTemplate<SCPP65LinkLibrary>	CArrayCPP65LinkLibraries;
 //GetMissing list them.  Functions, globals and string literals nothing uses are left out (unless
 //SetRemoveUnused(false)): the start up and the init and fini entries of used globals are what is kept.  With
 //SetLazy the functions are loaded from a drive when they are first called (only the start up and the runtime
-//routines are resident); GetLazyImage is what to write to the drive.
+//routines are resident); GetLazyImage is what to write to the drive.  Compile then LinkWith links the compiled
+//objects again and again, each time with another source (a main, for example), so a large project can be run as
+//several programs that each fit.
 class CCPP65Builder
 {
 protected:
@@ -65,7 +78,16 @@ protected:
 	CArrayCPP65LinkLibraries		macLinkLibraries;
 	CProject						mcProject;
 	size							muiUnits;
+	uint32							muiLimit;
+	bool							mbCompiled;
+	bool							mbStubMissing;
+	bool							mbRemoveUnused;
+	bool							mbLazy;
+	uint32							muiLazySectorSize;
+	uint32							muiLazyFirstSector;
 	CAsm65Library					mcObjects;
+	CArrayCPP65Objects				macObjects;
+	CAsm65Library					mcLinkWithObjects;
 	CAsm65Linker					mcLinker;
 	CChars							mszErrors;
 
@@ -75,14 +97,18 @@ public:
 
 	void			AddIncludeDirectory(const char* szDirectory, bool bIncludeSubDirectories, bool bSystem);
 	void			AddUnit(const char* szLibrary, const char* szDirectory, const char* szFile, bool bLinkAsLibrary = false);
+	bool			AddVisualStudioProject(const char* szLibrary, const char* szProjectFile, bool bLinkAsLibrary, const char* szExcluded = NULL);
 	void			SetStubMissing(bool bStubMissing);
 	void			SetRemoveUnused(bool bRemoveUnused);
 	void			SetLazy(uint32 uiSectorSize, uint32 uiFirstSector);
+	void			SetLimit(uint32 uiLimit);
 
 	bool			AddStartUp(void);
 	bool			AddSource(const char* szName, const char* szSource);
 	bool			AddAssembly(const char* szName, const char* szAssembly);
 	bool			Link(void);
+	bool			Compile(void);
+	bool			LinkWith(const char* szName, const char* szSource);
 
 	CAsm65Output*	GetOutput(void);
 	char*			GetErrors(void);
@@ -102,6 +128,8 @@ protected:
 	bool			Assemble(CAsm65Object* pcObject, const char* szAssembly);
 	bool			CompileUnits(void);
 	CAsm65Library*	GetLinkLibrary(CLibrary* pcLibrary);
+	bool			LinkObjects(void);
+	void			ResetLinker(void);
 };
 
 

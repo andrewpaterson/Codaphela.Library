@@ -27,15 +27,63 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAsm65Memory::Init(void)
+void CAsm65Memory::Init(uint32 uiLowSize)
 {
-	memset(mauiLow, 0, sizeof(mauiLow));
+	int		i;
+
+	muiLowSize = uiLowSize;
+	mpuiLow = (uint8*)calloc(muiLowSize, 1);
+	for (i = 0; i < 4; i++)
+	{
+		mauiMemorySize[i] = (uint8)(muiLowSize >> (8 * i));
+	}
 	memset(mauiHigh, 0, sizeof(mauiHigh));
 	muiBadAccesses = 0;
 	muiCycles = 0;
 	mpcDrive = NULL;
 	memset(mauiDrive, 0, sizeof(mauiDrive));
 	muiDriveReads = 0;
+	mpszConsole = NULL;
+	mpcHostFiles = NULL;
+	memset(mauiHost, 0, sizeof(mauiHost));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Memory::Kill(void)
+{
+	free(mpuiLow);
+	mpuiLow = NULL;
+	muiLowSize = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Copies pcSource's memory, its counts and its drive's registers.  The low memories must be the same size.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Memory::CopyFrom(CAsm65Memory* pcSource)
+{
+	memcpy(mpuiLow, pcSource->mpuiLow, (muiLowSize < pcSource->muiLowSize) ? muiLowSize : pcSource->muiLowSize);
+	memcpy(mauiHigh, pcSource->mauiHigh, sizeof(mauiHigh));
+	memcpy(mauiDrive, pcSource->mauiDrive, sizeof(mauiDrive));
+	muiBadAccesses = pcSource->muiBadAccesses;
+	muiCycles = pcSource->muiCycles;
+	muiDriveReads = pcSource->muiDriveReads;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CAsm65Memory::GetLowSize(void)
+{
+	return muiLowSize;
 }
 
 
@@ -46,9 +94,10 @@ void CAsm65Memory::Init(void)
 //////////////////////////////////////////////////////////////////////////
 uint8* CAsm65Memory::Byte(uint32 uiAddress)
 {
-	if (uiAddress < ASM65_MEMORY_LOW_SIZE)
+	//The devices' page is never memory.
+	if ((uiAddress < muiLowSize) && ((uiAddress < ASM65_DEVICE_BASE) || (uiAddress >= ASM65_DEVICE_END)))
 	{
-		return &mauiLow[uiAddress];
+		return &mpuiLow[uiAddress];
 	}
 	if (uiAddress >= ASM65_MEMORY_HIGH_BASE)
 	{
@@ -57,6 +106,14 @@ uint8* CAsm65Memory::Byte(uint32 uiAddress)
 	if (mpcDrive && (uiAddress >= ASM65_DRIVE_BASE) && (uiAddress < ASM65_DRIVE_BASE + ASM65_DRIVE_SIZE))
 	{
 		return &mauiDrive[uiAddress - ASM65_DRIVE_BASE];
+	}
+	if (mpcHostFiles && (uiAddress >= ASM65_HOST_BASE) && (uiAddress < ASM65_HOST_BASE + ASM65_HOST_SIZE))
+	{
+		return &mauiHost[uiAddress - ASM65_HOST_BASE];
+	}
+	if ((uiAddress >= ASM65_MEMORY_SIZE_REGISTER) && (uiAddress < ASM65_MEMORY_SIZE_REGISTER + 4))
+	{
+		return &mauiMemorySize[uiAddress - ASM65_MEMORY_SIZE_REGISTER];
 	}
 	return NULL;
 }
@@ -88,6 +145,21 @@ void CAsm65Memory::SetByte(uint32 uiAddress, uint8 uiValue)
 {
 	uint8*	puiByte;
 
+	if (uiAddress == ASM65_CONSOLE)
+	{
+		if (mpszConsole)
+		{
+			mpszConsole->Append((char)uiValue);
+		}
+		return;
+	}
+	if ((uiAddress >= ASM65_MEMORY_SIZE_REGISTER) && (uiAddress < ASM65_MEMORY_SIZE_REGISTER + 4))
+	{
+		//Read only.
+		muiBadAccesses++;
+		return;
+	}
+
 	puiByte = Byte(uiAddress);
 	if (puiByte)
 	{
@@ -95,6 +167,10 @@ void CAsm65Memory::SetByte(uint32 uiAddress, uint8 uiValue)
 		if (puiByte == &mauiDrive[ASM65_DRIVE_COMMAND])
 		{
 			DriveCommand(uiValue);
+		}
+		else if (puiByte == &mauiHost[ASM65_HOST_COMMAND])
+		{
+			HostCommand(uiValue);
 		}
 	}
 	else
@@ -263,7 +339,8 @@ void CAsm65Memory::TickLow(C65C64Meta* pcMPU, void* pvMemory)
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Memory::InitFast(CFast65C64* pcMPU)
 {
-	pcMPU->Init(ReadWord, WriteByte, this, mauiLow, ASM65_MEMORY_LOW_SIZE);
+	pcMPU->Init(ReadWord, WriteByte, this, mpuiLow, muiLowSize);
+	pcMPU->SetHole(ASM65_DEVICE_BASE, ASM65_DEVICE_END);
 }
 
 
@@ -301,6 +378,57 @@ void CAsm65Memory::SetDrive(CFileDrive* pcDrive)
 	if (mpcDrive)
 	{
 		SetDriveRegister(ASM65_DRIVE_SECTOR_SIZE, mpcDrive->GetSectorSize());
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The console's bytes are appended to pszConsole (NULL drops them).  It belongs to the caller.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Memory::SetConsole(CChars* pszConsole)
+{
+	mpszConsole = pszConsole;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Attaches the host's files at ASM65_HOST_BASE (NULL detaches them).  They belong to the caller.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Memory::SetHostFiles(CAsm65HostFiles* pcHostFiles)
+{
+	mpcHostFiles = pcHostFiles;
+	memset(mauiHost, 0, sizeof(mauiHost));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Runs a host file command with the arguments in the registers and stores the result.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Memory::HostCommand(uint8 uiCommand)
+{
+	uint32	auiArguments[4];
+	uint64	uiResult;
+	int		i;
+	int		j;
+
+	for (i = 0; i < 4; i++)
+	{
+		auiArguments[i] = 0;
+		for (j = 0; j < 4; j++)
+		{
+			auiArguments[i] |= (uint32)mauiHost[ASM65_HOST_ARGUMENT_0 + 4 * i + j] << (8 * j);
+		}
+	}
+	uiResult = mpcHostFiles->Command(this, uiCommand, auiArguments);
+	for (j = 0; j < 8; j++)
+	{
+		mauiHost[ASM65_HOST_RESULT + j] = (uint8)(uiResult >> (8 * j));
 	}
 }
 

@@ -1242,6 +1242,9 @@
     <ClInclude Include="XMLFile.h">
       <Filter>Source\File\XML</Filter>
     </ClInclude>
+    <ClInclude Include="XMLWriter.h">
+      <Filter>Source\File\XML</Filter>
+    </ClInclude>
     <ClInclude Include="FunctionCaller.h">
       <Filter>Source\Function</Filter>
     </ClInclude>
@@ -1892,6 +1895,9 @@
     <ClCompile Include="DiskFile_Linux.cpp">
       <Filter>Source\File\Chains</Filter>
     </ClCompile>
+    <ClCompile Include="DiskFile_65C64.cpp">
+      <Filter>Source\File\Chains</Filter>
+    </ClCompile>
     <ClCompile Include="MD5HashFile.cpp">
       <Filter>Source\File\Chains</Filter>
     </ClCompile>
@@ -1923,6 +1929,9 @@
       <Filter>Source\File\Utils</Filter>
     </ClCompile>
     <ClCompile Include="FileUtil_Linux.cpp">
+      <Filter>Source\File\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="FileUtil_65C64.cpp">
       <Filter>Source\File\Utils</Filter>
     </ClCompile>
     <ClCompile Include="FileUtil_Windows.cpp">
@@ -2042,6 +2051,9 @@
     <ClCompile Include="Mutex_Linux.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
+    <ClCompile Include="Mutex_65C64.cpp">
+      <Filter>Source\Thread</Filter>
+    </ClCompile>
     <ClCompile Include="ConditionVariable_Windows.cpp">
       <Filter>Source\Thread</Filter>
     </ClCompile>
@@ -2076,6 +2088,9 @@
       <Filter>Source\Memory\Allocator</Filter>
     </ClCompile>
     <ClCompile Include="SlabAllocator_Linux.cpp">
+      <Filter>Source\Memory\Allocator</Filter>
+    </ClCompile>
+    <ClCompile Include="SlabAllocator_65C64.cpp">
       <Filter>Source\Memory\Allocator</Filter>
     </ClCompile>
     <ClCompile Include="NullAllocator.cpp">
@@ -2438,6 +2453,9 @@
     <ClCompile Include="XMLFile.cpp">
       <Filter>Source\File\XML</Filter>
     </ClCompile>
+    <ClCompile Include="XMLWriter.cpp">
+      <Filter>Source\File\XML</Filter>
+    </ClCompile>
     <ClCompile Include="FunctionCaller.cpp">
       <Filter>Source\Function</Filter>
     </ClCompile>
@@ -2475,6 +2493,9 @@
       <Filter>Source\Windows</Filter>
     </ClCompile>
     <ClCompile Include="Timer_Linux.cpp">
+      <Filter>Source\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer_65C64.cpp">
       <Filter>Source\Windows</Filter>
     </ClCompile>
     <ClCompile Include="ConnectSocket_Windows.cpp">

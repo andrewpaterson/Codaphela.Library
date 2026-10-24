@@ -1,4 +1,4 @@
-//Files and formatted output.  There is no file system yet; these are only declared.
+//Files and formatted output (stdio.cpp).  stdout and stderr are the console; files are the host's (host.h).
 #ifndef __LIBC65_STDIO_H__
 #define __LIBC65_STDIO_H__
 #include <stddef.h>
@@ -46,6 +46,7 @@ int		snprintf(char* szDest, size_t uiSize, const char* szFormat, ...);
 int		vsprintf(char* szDest, const char* szFormat, va_list vaArguments);
 int		vsnprintf(char* szDest, size_t uiSize, const char* szFormat, va_list vaArguments);
 int		vprintf(const char* szFormat, va_list vaArguments);
+int		vfprintf(FILE* pcFile, const char* szFormat, va_list vaArguments);
 }
 
 

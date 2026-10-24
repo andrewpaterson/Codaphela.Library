@@ -18,6 +18,9 @@
     <ClCompile Include="Asm65Expressions.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Asm65HostFiles.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="Asm65Instructions.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -54,6 +57,9 @@
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Asm65Errors.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Asm65HostFiles.h">
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Asm65Library.h">

@@ -57,6 +57,12 @@ public:
 	bool				GetAttribute(const char* szAttribute, void** ppvData, uint* puiType = NULL);
 	void*				GetAttribute(size uiIndex, uint* puiType, char** szName = NULL);
 	char*				GetAttribute(char* szAttribute);
+	char*				GetStringAttribute(const char* szAttribute);
+	bool				GetInt32Attribute(const char* szAttribute, int32* piValue);
+	bool				GetInt64Attribute(const char* szAttribute, int64* piValue);
+	bool				GetBoolAttribute(const char* szAttribute, bool* pbValue);
+	bool				GetFloat32Attribute(const char* szAttribute, float32* pfValue);
+	bool				GetFloat64Attribute(const char* szAttribute, float64* pfValue);
 	size				GetNumAttributes(void);
 	CMarkupTag*			GetTag(const char* szTagName, STagIterator* psIter = NULL);
 	CMarkupTag*			GetTag(const char* szTagName, size iTagNumber);

@@ -627,6 +627,7 @@
     <ClInclude Include="ValueNamedIndexesConfig.h" />
     <ClInclude Include="ValueSequenceConfig.h" />
     <ClInclude Include="XMLFile.h" />
+    <ClInclude Include="XMLWriter.h" />
     <ClInclude Include="FunctionCaller.h" />
     <ClInclude Include="Calculator.h" />
     <ClInclude Include="CalcBinaryExpression.h" />
@@ -776,6 +777,7 @@
     <ClCompile Include="LinkedListBlock.cpp" />
     <ClCompile Include="Mutex_Windows.cpp" />
     <ClCompile Include="Mutex_Linux.cpp" />
+    <ClCompile Include="Mutex_65C64.cpp" />
     <ClCompile Include="ConditionVariable_Windows.cpp" />
     <ClCompile Include="ConditionVariable_Linux.cpp" />
     <ClCompile Include="NativeThread.cpp" />
@@ -836,6 +838,7 @@
     <ClCompile Include="SlabAllocator.cpp" />
     <ClCompile Include="SlabAllocator_Windows.cpp" />
     <ClCompile Include="SlabAllocator_Linux.cpp" />
+    <ClCompile Include="SlabAllocator_65C64.cpp" />
     <ClCompile Include="TemporaryMemory.cpp" />
     <ClCompile Include="TextParser.cpp" />
     <ClCompile Include="TextParserConfig.cpp" />
@@ -895,6 +898,7 @@
     <ClCompile Include="BufferedFile.cpp" />
     <ClCompile Include="DiskFile_Windows.cpp" />
     <ClCompile Include="DiskFile_Linux.cpp" />
+    <ClCompile Include="DiskFile_65C64.cpp" />
     <ClCompile Include="MD5HashFile.cpp" />
     <ClCompile Include="MemoryFile.cpp" />
     <ClCompile Include="FileCompare.cpp" />
@@ -906,6 +910,7 @@
     <ClCompile Include="PackFiles.cpp" />
     <ClCompile Include="FileUtil.cpp" />
     <ClCompile Include="FileUtil_Linux.cpp" />
+    <ClCompile Include="FileUtil_65C64.cpp" />
     <ClCompile Include="FileUtil_Windows.cpp" />
     <ClCompile Include="FileBasic.cpp" />
     <ClCompile Include="MD5.cpp" />
@@ -1015,6 +1020,7 @@
     <ClCompile Include="ValueNamedIndexesConfig.cpp" />
     <ClCompile Include="ValueSequenceConfig.cpp" />
     <ClCompile Include="XMLFile.cpp" />
+    <ClCompile Include="XMLWriter.cpp" />
     <ClCompile Include="FunctionCaller.cpp" />
     <ClCompile Include="Calculator.cpp" />
     <ClCompile Include="CalcBinaryExpression.cpp" />
@@ -1029,6 +1035,7 @@
     <ClCompile Include="PlainTextEditor.cpp" />
     <ClCompile Include="Timer_Windows.cpp" />
     <ClCompile Include="Timer_Linux.cpp" />
+    <ClCompile Include="Timer_65C64.cpp" />
     <ClCompile Include="ConnectSocket_Windows.cpp" />
     <ClCompile Include="ConnectSocket_Linux.cpp" />
     <ClCompile Include="ListenSocket_Windows.cpp" />

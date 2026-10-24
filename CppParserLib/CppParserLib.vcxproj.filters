@@ -96,6 +96,9 @@
     <ClCompile Include="CPP65Builder.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="VisualStudioProject.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPP65Generator.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -618,6 +621,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CPP65Builder.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="VisualStudioProject.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPP65Generator.h">
