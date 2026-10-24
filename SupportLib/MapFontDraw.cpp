@@ -106,13 +106,7 @@ void CMapFontDraw::Rectangle(int32 x, int32 y, int32 iWidth, int32 iHeight, ARGB
 //////////////////////////////////////////////////////////////////////////
 void CMapFontDraw::Place(Ptr<CGlyph> pGlyph, int32 x, int32 y)
 {
-	Ptr<CImageCel>	pCel;
-	Ptr<CSprite>	pSprite;
-	
-	pCel = pGlyph->GetCel();
-
-	pSprite = OMalloc<CSprite>(pCel, x, y);
-	mpMap->AddSprite(pSprite);
+	mpMap->AddSprite(pGlyph->GetCel(), x, y);
 }
 
 

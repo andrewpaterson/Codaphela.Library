@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/PointerFunctions.h"
 #include "StandardLib/Objects.h"
 #include "MultiImageCopier.h"
 #include "ImageCelBlitterCache.h"
@@ -38,7 +39,10 @@ void CSpriteMap::Init(void)
 	CBlockMap::Init();
 	mpCache = NULL;
 	mpViewport = NULL;
-	maSprites.Init();
+	masSprites.Init();
+	maCels.Init();
+	maBlitters.Init();
+	mcCelIndices.Init(&ComparePtrPtr);
 
 	PostInit();
 }
@@ -50,6 +54,8 @@ void CSpriteMap::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CSpriteMap::Free(void)
 {
+	mcCelIndices.Kill();
+	masSprites.Kill();
 	CBlockMap::Free();
 }
 
@@ -61,7 +67,10 @@ void CSpriteMap::Free(void)
 void CSpriteMap::Class(void)
 {
 	CBlockMap::Class();
-	M_Embedded(maSprites);
+	U_Data(CArraySprite, masSprites);
+	M_Embedded(maCels);
+	M_Embedded(maBlitters);
+	U_Data(CMapImageCelIndex, mcCelIndices);
 	M_Pointer(mpCache);
 	M_Pointer(mpViewport);
 }
@@ -91,10 +100,45 @@ bool CSpriteMap::Save(CObjectWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSpriteMap::AddSprite(Ptr<CSprite> pSprite)
+bool CSpriteMap::AddSprite(Ptr<CImageCel> pCel, int32 x, int32 y)
 {
-	maSprites.Add(pSprite);
+	SSprite*	psSprite;
+
+	if (pCel.IsNull())
+	{
+		return false;
+	}
+
+	psSprite = masSprites.Add();
+	psSprite->sPosition.Init(x, y);
+	psSprite->uiCel = AddCel(pCel);
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+// The index of the cel in maCels, adding it if it isn't there yet.		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size CSpriteMap::AddCel(Ptr<CImageCel> pCel)
+{
+	CImageCel*	pcCel;
+	size*		puiCel;
+	size		uiCel;
+
+	pcCel = (CImageCel*)pCel.Object();
+	puiCel = mcCelIndices.Get(pcCel);
+	if (puiCel)
+	{
+		return *puiCel;
+	}
+
+	uiCel = maCels.NumElements();
+	maCels.Add(pCel);
+	maBlitters.Add(NULL);
+	mcCelIndices.Put(pcCel, &uiCel);
+	return uiCel;
 }
 
 
@@ -104,7 +148,37 @@ bool CSpriteMap::AddSprite(Ptr<CSprite> pSprite)
 //////////////////////////////////////////////////////////////////////////
 size CSpriteMap::NumSprites(void)
 {
-	return maSprites.NumElements();
+	return masSprites.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+SSprite* CSpriteMap::GetSprite(size uiIndex)
+{
+	return masSprites.SafeGet(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size CSpriteMap::NumCels(void)
+{
+	return maCels.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CSpriteMap::GetCel(size uiCel)
+{
+	return maCels.Get(uiCel);
 }
 
 
@@ -114,7 +188,10 @@ size CSpriteMap::NumSprites(void)
 //////////////////////////////////////////////////////////////////////////
 void CSpriteMap::Clear(void)
 {
-	maSprites.Clear();
+	masSprites.ReInit();
+	maCels.Clear();
+	maBlitters.Clear();
+	mcCelIndices.ReInit();
 }
 
 
@@ -142,20 +219,21 @@ void CSpriteMap::EndChange(void)
 //////////////////////////////////////////////////////////////////////////
 void CSpriteMap::FindImageCels(CInt32Rect* pcRectangle, MapImageCelFunction pSpriteFunction)
 {
-	size						uiNumSprites;
-	size						uiSprite;
-	Ptr<CSprite>				pSprite;
-	CInt32Rect					cCelRect;
-	SIntVec2					sOffset;
+	size			uiNumSprites;
+	size			uiSprite;
+	SSprite*		psSprite;
+	Ptr<CImageCel>	pCel;
+	CInt32Rect		cCelRect;
 
-	uiNumSprites = maSprites.NumElements();
+	uiNumSprites = masSprites.NumElements();
 	for (uiSprite = 0; uiSprite < uiNumSprites; uiSprite++)
 	{
-		pSprite = maSprites.Get(uiSprite);
-		pSprite->GetImageDestBounds(&cCelRect);
+		psSprite = masSprites.Get(uiSprite);
+		pCel = maCels.Get(psSprite->uiCel);
+		pCel->GetImageDestBounds(psSprite->sPosition.x, psSprite->sPosition.y, &cCelRect);
 		if (pcRectangle->Intersect(&cCelRect))
 		{
-			pSpriteFunction(pSprite->GetCel(), cCelRect.msTopLeft.x - pcRectangle->msTopLeft.x, cCelRect.msTopLeft.y - pcRectangle->msTopLeft.y);
+			pSpriteFunction(pCel, cCelRect.msTopLeft.x - pcRectangle->msTopLeft.x, cCelRect.msTopLeft.y - pcRectangle->msTopLeft.y);
 		}
 	}
 }
@@ -167,39 +245,33 @@ void CSpriteMap::FindImageCels(CInt32Rect* pcRectangle, MapImageCelFunction pSpr
 //////////////////////////////////////////////////////////////////////////
 bool CSpriteMap::GetImageDestBounds(CInt32Rect* pcRect)
 {
-	size			ui;
-	size			uiNumElements;
-	Ptr<CSprite>	pSprite;
-	Ptr<CImageCel>	pCel;
-	CSubImage*		pcSubImage;
-	CInt32Rect		cBounding;
-	CInt32Rect		cCelRect;
-	bool			bFirst;
+	size		ui;
+	size		uiNumElements;
+	SSprite*	psSprite;
+	CImageCel*	pcCel;
+	CSubImage*	pcSubImage;
+	CInt32Rect	cBounding;
+	CInt32Rect	cCelRect;
 
 	if (pcRect)
 	{
-		cBounding.Init();
-		bFirst = true;
-		uiNumElements = maSprites.NumElements();
+		uiNumElements = masSprites.NumElements();
 		if (uiNumElements > 0)
 		{
+			cBounding.Init();
 			for (ui = 0; ui < uiNumElements; ui++)
 			{
-				pSprite = maSprites.Get(ui);
-				pCel = pSprite->GetCel();
-				if (pCel)
+				psSprite = masSprites.Get(ui);
+				pcCel = (CImageCel*)maCels.UnsafeGetObject(psSprite->uiCel);
+				pcSubImage = pcCel->GetSubImage();
+				if (ui == 0)
 				{
-					pcSubImage = pCel->GetSubImage();
-					if (bFirst)
-					{
-						pcSubImage->GetImageDestBounds(pSprite->GetX(), pSprite->GetY(), &cBounding);
-						bFirst = false;
-					}
-					else
-					{
-						pcSubImage->GetImageDestBounds(pSprite->GetX(), pSprite->GetY(), &cCelRect);
-						cBounding.GrowToContain(&cCelRect);
-					}
+					pcSubImage->GetImageDestBounds(psSprite->sPosition.x, psSprite->sPosition.y, &cBounding);
+				}
+				else
+				{
+					pcSubImage->GetImageDestBounds(psSprite->sPosition.x, psSprite->sPosition.y, &cCelRect);
+					cBounding.GrowToContain(&cCelRect);
 				}
 			}
 			pcRect->Init(&cBounding);
@@ -216,45 +288,38 @@ bool CSpriteMap::GetImageDestBounds(CInt32Rect* pcRect)
 //////////////////////////////////////////////////////////////////////////
 bool CSpriteMap::GetFullDestBounds(CInt32Rect* pcRect)
 {
-	size			ui;
-	size			uiNumElements;
-	Ptr<CSprite>	pSprite;
-	Ptr<CImageCel>	pCel;
-	CSubImage*		pcSubImage;
-	CInt32Rect		cBounding;
-	CInt32Rect		cCelRect;
-	bool			bFirst;
+	size		ui;
+	size		uiNumElements;
+	SSprite*	psSprite;
+	CImageCel*	pcCel;
+	CSubImage*	pcSubImage;
+	CInt32Rect	cBounding;
+	CInt32Rect	cCelRect;
 
 	if (pcRect)
 	{
-		cBounding.Init();
-		bFirst = true;
-		uiNumElements = maSprites.NumElements();
+		uiNumElements = masSprites.NumElements();
 		if (uiNumElements > 0)
 		{
+			cBounding.Init();
 			for (ui = 0; ui < uiNumElements; ui++)
 			{
-				pSprite = maSprites.Get(ui);
-				pCel = pSprite->GetCel();
-				if (pCel)
+				psSprite = masSprites.Get(ui);
+				pcCel = (CImageCel*)maCels.UnsafeGetObject(psSprite->uiCel);
+				pcSubImage = pcCel->GetSubImage();
+				if (ui == 0)
 				{
-					pcSubImage = pCel->GetSubImage();
-					if (bFirst)
-					{
-						pcSubImage->GetFullDestBounds(pSprite->GetX(), pSprite->GetY(), &cBounding);
-						bFirst = false;
-					}
-					else
-					{
-						pcSubImage->GetFullDestBounds(pSprite->GetX(), pSprite->GetY(), &cCelRect);
-						cBounding.GrowToContain(&cCelRect);
-					}
+					pcSubImage->GetFullDestBounds(psSprite->sPosition.x, psSprite->sPosition.y, &cBounding);
+				}
+				else
+				{
+					pcSubImage->GetFullDestBounds(psSprite->sPosition.x, psSprite->sPosition.y, &cCelRect);
+					cBounding.GrowToContain(&cCelRect);
 				}
 			}
 			pcRect->Init(&cBounding);
 			return true;
 		}
-
 	}
 	return false;
 }
@@ -266,12 +331,6 @@ bool CSpriteMap::GetFullDestBounds(CInt32Rect* pcRect)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CSpriteMap::WriteToImage(void)
 {
-	size						ui;
-	size						uiNumElements;
-	Ptr<CSprite>				pSprite;
-	Ptr<CImageCel>				pCel;
-	int32						x;
-	int32						y;
 	bool						bResult;
 	Ptr<CImageCelBlitterCache>	pOldCache;
 	Ptr<CImage>					pOldViewport;
@@ -279,43 +338,31 @@ Ptr<CImage> CSpriteMap::WriteToImage(void)
 	bool						bExists;
 	CInt32Rect					cBoundingRect;
 
-	pOldViewport = mpViewport;
-	pOldCache = mpCache;
-
 	bExists = GetFullDestBounds(&cBoundingRect);
 	if (!bExists)
 	{
 		return NULL;
 	}
 
+	pOldViewport = mpViewport;
+	pOldCache = mpCache;
+
 	pImage = CreateViewportImage(&cBoundingRect);
 
 	mpViewport = pImage;
 	mpCache = CreateBlitterCache();
-	CreateCelBlitters();
+	ClearCelBlitters();
 
-	uiNumElements = maSprites.NumElements();
-	for (ui = 0; ui < uiNumElements; ui++)
-	{
-		pSprite = maSprites.Get(ui);
-		pCel = pSprite->GetCel();
-		if (pCel.IsNotNull())
-		{
-			x = pSprite->GetX();
-			y = pSprite->GetY();
-			bResult = pSprite->Blit(x - cBoundingRect.msTopLeft.x, y - cBoundingRect.msTopLeft.y);
-			if (!bResult)
-			{
-				mpViewport = pOldViewport;
-				mpCache = pOldCache;
-				return NULL;
-			}
-		}
-	}
+	bResult = BlitSprites(cBoundingRect.msTopLeft.x, cBoundingRect.msTopLeft.y, true);
 
+	ClearCelBlitters();
 	mpViewport = pOldViewport;
 	mpCache = pOldCache;
 
+	if (!bResult)
+	{
+		return NULL;
+	}
 	return pImage;
 }
 
@@ -326,27 +373,22 @@ Ptr<CImage> CSpriteMap::WriteToImage(void)
 //////////////////////////////////////////////////////////////////////////
 bool CSpriteMap::CreateCelBlitters(void)
 {
-	size			ui;
-	size			uiNumElements;
-	Ptr<CSprite>	pSprite;
-	bool			bResult;
+	size	ui;
+	size	uiNumElements;
+	bool	bResult;
 
 	if (mpCache && mpViewport)
 	{
-		if (mpCache->GetDestImage() == mpViewport)
+		uiNumElements = maCels.NumElements();
+		for (ui = 0; ui < uiNumElements; ui++)
 		{
-			uiNumElements = maSprites.NumElements();
-			for (ui = 0; ui < uiNumElements; ui++)
+			bResult = CreateCelBlitter(ui);
+			if (!bResult)
 			{
-				pSprite = maSprites.Get(ui);
-				bResult = pSprite->CreateBlitter(mpCache);
-				if (!bResult)
-				{
-					return false;
-				}
+				return false;
 			}
-			return true;
 		}
+		return true;
 	}
 	return false;
 }
@@ -358,21 +400,17 @@ bool CSpriteMap::CreateCelBlitters(void)
 //////////////////////////////////////////////////////////////////////////
 bool CSpriteMap::HasCelBlitters(void)
 {
-	size			ui;
-	size			uiNumElements;
-	Ptr<CSprite>	pSprite;
-	bool			bResult;
+	size	ui;
+	size	uiNumElements;
 
 	if (mpCache && mpViewport)
 	{
 		if (mpCache->GetDestImage() == mpViewport)
 		{
-			uiNumElements = maSprites.NumElements();
+			uiNumElements = maBlitters.NumElements();
 			for (ui = 0; ui < uiNumElements; ui++)
 			{
-				pSprite = maSprites.Get(ui);
-				bResult = pSprite->HasBlitter();
-				if (!bResult)
+				if (maBlitters.UnsafeGetObject(ui) == NULL)
 				{
 					return false;
 				}
@@ -398,19 +436,20 @@ bool CSpriteMap::UsesCelBlitters(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CSpriteMap::CreateCelBlitter(Ptr<CSprite> pSprite)
+bool CSpriteMap::CreateCelBlitter(size uiCel)
 {
-	bool			bResult;
+	Ptr<CImageBlitter>	pBlitter;
 
-	if (mpCache && mpViewport && pSprite.IsNotNull())
+	if (mpCache && mpViewport)
 	{
 		if (mpCache->GetDestImage() == mpViewport)
 		{
-			bResult = pSprite->CreateBlitter(mpCache);
-			if (!bResult)
+			pBlitter = mpCache->CreateImageBlitter(maCels.Get(uiCel));
+			if (pBlitter.IsNull())
 			{
 				return false;
 			}
+			maBlitters.Set(uiCel, pBlitter);
 			return true;
 		}
 	}
@@ -424,15 +463,13 @@ bool CSpriteMap::CreateCelBlitter(Ptr<CSprite> pSprite)
 //////////////////////////////////////////////////////////////////////////
 void CSpriteMap::ClearCelBlitters(void)
 {
-	size			ui;
-	size			uiNumElements;
-	Ptr<CSprite>	pSprite;
+	size	ui;
+	size	uiNumElements;
 
-	uiNumElements = maSprites.NumElements();
+	uiNumElements = maBlitters.NumElements();
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
-		pSprite = maSprites.Get(ui);
-		pSprite->ClearBlitter();
+		maBlitters.Set(ui, NULL);
 	}
 }
 
@@ -504,39 +541,47 @@ Ptr<CImageCelBlitterCache> CSpriteMap::CreateBlitterCache(void)
 //////////////////////////////////////////////////////////////////////////
 bool CSpriteMap::Blit(CInt32Rect* pcViewportRect, bool bEnsureBlitters)
 {
+	return BlitSprites(pcViewportRect->msTopLeft.x, pcViewportRect->msTopLeft.y, bEnsureBlitters);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+// Blits every sprite with iLeft, iTop of the map at the viewport's		//
+// top left.															//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CSpriteMap::BlitSprites(int32 iLeft, int32 iTop, bool bEnsureBlitters)
+{
 	size			ui;
 	size			uiNumElements;
-	Ptr<CSprite>	pSprite;
-	Ptr<CImageCel>	pCel;
-	int32			x;
-	int32			y;
+	SSprite*		psSprite;
+	CImageBlitter*	pcBlitter;
 	bool			bResult;
-	Ptr<CImage>		pImage;
 
-	uiNumElements = maSprites.NumElements();
+	uiNumElements = masSprites.NumElements();
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
-		pSprite = maSprites.Get(ui);
-		pCel = pSprite->GetCel();
-		if (pCel.IsNotNull())
+		psSprite = masSprites.Get(ui);
+		pcBlitter = (CImageBlitter*)maBlitters.UnsafeGetObject(psSprite->uiCel);
+		if (pcBlitter == NULL)
 		{
-			x = pSprite->GetX();
-			y = pSprite->GetY();
-
-			if (!pSprite->HasBlitter() && bEnsureBlitters)
+			if (!bEnsureBlitters)
 			{
-				bResult = CreateCelBlitter(pSprite);
-				if (!bResult)
-				{
-					return false;
-				}
+				return false;
 			}
-
-			bResult = pSprite->Blit(x - pcViewportRect->msTopLeft.x, y - pcViewportRect->msTopLeft.y);
+			bResult = CreateCelBlitter(psSprite->uiCel);
 			if (!bResult)
 			{
 				return false;
 			}
+			pcBlitter = (CImageBlitter*)maBlitters.UnsafeGetObject(psSprite->uiCel);
+		}
+
+		bResult = pcBlitter->Blit(psSprite->sPosition.x - iLeft, psSprite->sPosition.y - iTop);
+		if (!bResult)
+		{
+			return false;
 		}
 	}
 

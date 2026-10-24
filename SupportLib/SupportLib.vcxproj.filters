@@ -816,9 +816,6 @@
     <ClInclude Include="TextLayoutBuilder.h">
       <Filter>Source\Text\Layout</Filter>
     </ClInclude>
-    <ClInclude Include="Sprite.h">
-      <Filter>Source\Map\Sprite</Filter>
-    </ClInclude>
     <ClInclude Include="MapFontDraw.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
@@ -1555,9 +1552,6 @@
     </ClCompile>
     <ClCompile Include="TextLayoutBuilder.cpp">
       <Filter>Source\Text\Layout</Filter>
-    </ClCompile>
-    <ClCompile Include="Sprite.cpp">
-      <Filter>Source\Map\Sprite</Filter>
     </ClCompile>
     <ClCompile Include="MapFontDraw.cpp">
       <Filter>Source\Image\Font</Filter>
