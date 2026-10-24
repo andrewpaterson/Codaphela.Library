@@ -4,16 +4,16 @@
 #include <limits.h>
 #include <ctype.h>
 #include <errno.h>
+#include "BaseLib/TrueMallocator.h"
 
 
 int		errno = 0;
 
 
 //The heap is 0008:0000 to 000F:FFFF, or from 0020:0000 to the top of memory when the memory size register
-//(00FF:0300) says there is more than 2MB, or from 0100:0000 (past the devices' page) when there is more than 16MB.  A block has its size (with this header) and, while free, the next free
-//block.  malloc takes the first free block that is big enough, splitting off the rest, or takes from the end of
-//the heap.  The free list is in address order: free joins a block with the free blocks either side of it, and a
-//free block at the end of the heap is given back to it.
+//(00FF:0300) says there is more than 2MB, or from 0100:0000 (past the devices' page) when there is more than 16MB.
+//BaseLib's CTrueMallocator manages it: malloc and free take the same time however many blocks there are, and freed
+//blocks are joined to the free blocks either side of them.
 #define HEAP_START			0x80000
 #define HEAP_END			0x100000
 #define HIGH_HEAP_START		0x200000
@@ -22,146 +22,50 @@ int		errno = 0;
 #define MEMORY_SIZE			(*(volatile unsigned int*)0x00FF0300)
 
 
-struct SHeapBlock
-{
-	size_t			uiSize;
-	SHeapBlock*		psNext;
-};
-
-
-SHeapBlock*		gpsFreeBlocks = NULL;
-char*			gpcHeapTop = NULL;
-char*			gpcHeapEnd = NULL;
+CTrueMallocator		gcHeap;
+bool				gbHeap = false;
 
 
 static void InitHeap(void)
 {
 	unsigned int	uiMemorySize;
+	unsigned int	uiStart;
+	unsigned int	uiEnd;
 
 	uiMemorySize = MEMORY_SIZE;
 	if (uiMemorySize > DEVICES_END)
 	{
-		gpcHeapTop = (char*)DEVICES_END;
-		gpcHeapEnd = (char*)uiMemorySize;
+		uiStart = DEVICES_END;
+		uiEnd = uiMemorySize;
 	}
 	else if (uiMemorySize > HIGH_HEAP_START)
 	{
-		gpcHeapTop = (char*)HIGH_HEAP_START;
-		gpcHeapEnd = (char*)((uiMemorySize < DEVICES_START) ? uiMemorySize : DEVICES_START);
+		uiStart = HIGH_HEAP_START;
+		uiEnd = (uiMemorySize < DEVICES_START) ? uiMemorySize : DEVICES_START;
 	}
 	else
 	{
-		gpcHeapTop = (char*)HEAP_START;
-		gpcHeapEnd = (char*)HEAP_END;
+		uiStart = HEAP_START;
+		uiEnd = HEAP_END;
 	}
+	gcHeap.Init((void*)uiStart, uiEnd - uiStart);
+	gbHeap = true;
 }
 
 
 void* malloc(size_t uiBytes)
 {
-	SHeapBlock*		psBlock;
-	SHeapBlock*		psPrevious;
-	SHeapBlock*		psRest;
-	size_t			uiSize;
-
-	if (!gpcHeapEnd)
+	if (!gbHeap)
 	{
 		InitHeap();
 	}
-
-	//Checked before rounding up so that a size near SIZE_MAX can't wrap to a small block.
-	if (uiBytes > 0x7FFFFFF0)
-	{
-		return NULL;
-	}
-	uiSize = ((uiBytes + 3) & ~3) + sizeof(SHeapBlock);
-	psPrevious = NULL;
-	for (psBlock = gpsFreeBlocks; psBlock; psBlock = psBlock->psNext)
-	{
-		if (psBlock->uiSize >= uiSize)
-		{
-			if (psBlock->uiSize >= uiSize + sizeof(SHeapBlock) + 4)
-			{
-				psRest = (SHeapBlock*)((char*)psBlock + uiSize);
-				psRest->uiSize = psBlock->uiSize - uiSize;
-				psRest->psNext = psBlock->psNext;
-				psBlock->uiSize = uiSize;
-				psBlock->psNext = psRest;
-			}
-			if (psPrevious)
-			{
-				psPrevious->psNext = psBlock->psNext;
-			}
-			else
-			{
-				gpsFreeBlocks = psBlock->psNext;
-			}
-			return (char*)psBlock + sizeof(SHeapBlock);
-		}
-		psPrevious = psBlock;
-	}
-
-	if ((size_t)(gpcHeapEnd - gpcHeapTop) < uiSize)
-	{
-		return NULL;
-	}
-	psBlock = (SHeapBlock*)gpcHeapTop;
-	psBlock->uiSize = uiSize;
-	gpcHeapTop += uiSize;
-	return (char*)psBlock + sizeof(SHeapBlock);
+	return gcHeap.Malloc(uiBytes);
 }
 
 
 void free(void* pv)
 {
-	SHeapBlock*		psBlock;
-	SHeapBlock*		psPrevious;
-	SHeapBlock*		psNext;
-	SHeapBlock**	ppsLink;
-	SHeapBlock**	ppsPreviousLink;
-
-	if (!pv)
-	{
-		return;
-	}
-	psBlock = (SHeapBlock*)((char*)pv - sizeof(SHeapBlock));
-
-	//Find where the block goes in the free list.  *ppsLink is the link to the free block after it and
-	//*ppsPreviousLink the link to the one before it.
-	ppsPreviousLink = NULL;
-	psPrevious = NULL;
-	ppsLink = &gpsFreeBlocks;
-	while (*ppsLink && (*ppsLink < psBlock))
-	{
-		ppsPreviousLink = ppsLink;
-		psPrevious = *ppsLink;
-		ppsLink = &psPrevious->psNext;
-	}
-	psNext = *ppsLink;
-
-	if (psNext && ((char*)psBlock + psBlock->uiSize == (char*)psNext))
-	{
-		psBlock->uiSize += psNext->uiSize;
-		psNext = psNext->psNext;
-	}
-	if (psPrevious && ((char*)psPrevious + psPrevious->uiSize == (char*)psBlock))
-	{
-		psPrevious->uiSize += psBlock->uiSize;
-		psBlock = psPrevious;
-		ppsLink = ppsPreviousLink;
-	}
-
-	if ((char*)psBlock + psBlock->uiSize == gpcHeapTop)
-	{
-		//The last block in the heap is given back, so it is the last in the free list too.
-		gpcHeapTop = (char*)psBlock;
-		*ppsLink = psNext;
-	}
-	else
-	{
-		psBlock->psNext = psNext;
-		*ppsLink = psBlock;
-	}
+	gcHeap.Free(pv);
 }
 
 
@@ -185,27 +89,11 @@ void* calloc(size_t uiCount, size_t uiBytes)
 
 void* realloc(void* pv, size_t uiBytes)
 {
-	SHeapBlock*	psBlock;
-	void*		pvNew;
-	size_t		uiOld;
-
-	if (!pv)
+	if (!gbHeap)
 	{
-		return malloc(uiBytes);
+		InitHeap();
 	}
-	psBlock = (SHeapBlock*)((char*)pv - sizeof(SHeapBlock));
-	uiOld = psBlock->uiSize - sizeof(SHeapBlock);
-	if (uiOld >= uiBytes)
-	{
-		return pv;
-	}
-	pvNew = malloc(uiBytes);
-	if (pvNew)
-	{
-		memcpy(pvNew, pv, uiOld);
-		free(pv);
-	}
-	return pvNew;
+	return gcHeap.Realloc(pv, uiBytes);
 }
 
 

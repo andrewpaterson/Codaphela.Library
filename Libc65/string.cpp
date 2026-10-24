@@ -1,8 +1,10 @@
-//Memory and string functions for the 65C64, in C++ for the 65C64 generator.  memcpy, memset and memcmp work a 32
-//bit word at a time when the addresses are 4 byte aligned, otherwise a byte at a time.
+//Memory and string functions for the 65C64.  All but strstr are in string.asm, written with the 65C64's block and
+//vector operations; the C++ versions here are their reference and are not built for the 65C64.  memcpy, memset and
+//memcmp work a 32 bit word at a time when the addresses are 4 byte aligned, otherwise a byte at a time.
 #include <string.h>
 
 
+#ifndef __65C64__
 void* memcpy(void* pvDest, const void* pvSource, size_t uiBytes)
 {
 	char*		pcDest;
@@ -41,9 +43,20 @@ void* memmove(void* pvDest, const void* pvSource, size_t uiBytes)
 		return memcpy(pvDest, pvSource, uiBytes);
 	}
 
-	//The areas overlap with the destination above the source: copy from the end.
+	//The areas overlap with the destination above the source: copy from the end, a word at a time when both ends are
+	//word aligned.
 	pcDest += uiBytes;
 	pcSource += uiBytes;
+	if ((((size_t)pcDest | (size_t)pcSource) & 3) == 0)
+	{
+		while (uiBytes >= 4)
+		{
+			pcDest -= 4;
+			pcSource -= 4;
+			*(unsigned int*)pcDest = *(const unsigned int*)pcSource;
+			uiBytes -= 4;
+		}
+	}
 	while (uiBytes > 0)
 	{
 		*--pcDest = *--pcSource;
@@ -256,18 +269,37 @@ char* strrchr(const char* sz, int c)
 }
 
 
+#endif // __65C64__
+
+
+//The places sz could hold szFind start with szFind's first character: memchr finds them and memcmp checks them.
 char* strstr(const char* sz, const char* szFind)
 {
-	size_t	uiLength;
+	size_t		uiFind;
+	size_t		uiLength;
+	const char*	pc;
 
-	uiLength = strlen(szFind);
-	while (*sz)
+	uiFind = strlen(szFind);
+	if (uiFind == 0)
 	{
-		if (strncmp(sz, szFind, uiLength) == 0)
+		return (char*)sz;
+	}
+	uiLength = strlen(sz);
+	while (uiLength >= uiFind)
+	{
+		pc = (const char*)memchr(sz, szFind[0], uiLength - uiFind + 1);
+		if (!pc)
+		{
+			return NULL;
+		}
+		uiLength -= pc - sz;
+		sz = pc;
+		if (memcmp(sz, szFind, uiFind) == 0)
 		{
 			return (char*)sz;
 		}
 		sz++;
+		uiLength--;
 	}
-	return (uiLength == 0) ? (char*)sz : NULL;
+	return NULL;
 }

@@ -834,6 +834,9 @@
     <ClInclude Include="Mallocators.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
+    <ClInclude Include="TrueMallocator.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
     <ClInclude Include="PackFilePacker.h">
       <Filter>Source\File\Pack\Util</Filter>
     </ClInclude>
@@ -2118,6 +2121,9 @@
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
     <ClCompile Include="Mallocators.cpp">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="TrueMallocator.cpp">
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
     <ClCompile Include="PackFilePacker.cpp">

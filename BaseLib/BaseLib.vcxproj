@@ -387,6 +387,7 @@
     <ClInclude Include="MarkupTextParser.h" />
     <ClInclude Include="MemoryAllocator.h" />
     <ClInclude Include="Mallocators.h" />
+    <ClInclude Include="TrueMallocator.h" />
     <ClInclude Include="MemoryBlock.h" />
     <ClInclude Include="MemoryCacheAllocation.h" />
     <ClInclude Include="MemoryCacheDescriptor.h" />
@@ -809,6 +810,7 @@
     <ClCompile Include="MarkupTextParser.cpp" />
     <ClCompile Include="MemoryAllocator.cpp" />
     <ClCompile Include="Mallocators.cpp" />
+    <ClCompile Include="TrueMallocator.cpp" />
     <ClCompile Include="MemoryBlock.cpp" />
     <ClCompile Include="MemoryCacheAllocation.cpp" />
     <ClCompile Include="MemoryCacheDescriptor.cpp" />
