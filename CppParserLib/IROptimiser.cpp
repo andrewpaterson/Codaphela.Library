@@ -231,7 +231,7 @@ bool CIROptimiser::SimplifyCFG(void)
 	{
 		mpcFunction->Renumber();
 		mpcFunction->ComputePredecessors();
-		bChanged = RemoveUnreachable() || FoldBranches() || SkipEmptyBlocks() || JoinBlocks();
+		bChanged = RemoveUnreachable() || FoldBranches() || SkipEmptyBlocks() || ThreadBranches() || JoinBlocks();
 		bAny |= bChanged;
 	} while (bChanged);
 	ApplyReplacements();
@@ -445,6 +445,101 @@ bool CIROptimiser::SkipEmptyBlocks(void)
 				RemovePhiArguments(pcTarget, pcBlock);
 				mpcFunction->RemoveBlock(pcBlock);
 			}
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value sCondition has on the way into pcBlock from pcPredecessor, if a
+// branch on it decides that: pcPredecessor branches on it, or is reached
+// along single predecessors from a block that does.  Returns -1 if unknown.
+//
+//////////////////////////////////////////////////////////////////////////
+int CIROptimiser::KnownCondition(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIRReference sCondition)
+{
+	size		ui;
+	SIRJump*	psJump;
+
+	for (ui = 0; ui < 8; ui++)
+	{
+		psJump = &pcPredecessor->msJump;
+		if ((psJump->uiKind == IRJ_Branch) && psJump->sArgument.Equals(sCondition) && (psJump->pcThen != psJump->pcElse))
+		{
+			return psJump->pcThen == pcBlock ? 1 : 0;
+		}
+
+		//Going further back must stay where sCondition is the same value.
+		if ((pcPredecessor == mpcFunction->GetEntry()) || (pcPredecessor->mapcPredecessors.NumElements() != 1) || pcPredecessor->Defines(sCondition))
+		{
+			return -1;
+		}
+		pcBlock = pcPredecessor;
+		pcPredecessor = pcBlock->mapcPredecessors.GetPtr(0);
+	}
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A block with nothing in it but a brif is skipped by a predecessor that
+// knows which way it goes (KnownCondition).  Returns true after the first
+// block that changes.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::ThreadBranches(void)
+{
+	size			ui;
+	size			uiPredecessor;
+	size			uiPhi;
+	int				iKnown;
+	CIRBlock*		pcBlock;
+	CIRBlock*		pcTarget;
+	CIRBlock*		pcPredecessor;
+	SIRPhiArgument*	psArgument;
+	bool			bChanged;
+
+	for (ui = 1; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		if ((pcBlock->msJump.uiKind != IRJ_Branch) || !pcBlock->msJump.sArgument.IsTemporary() || (pcBlock->masPhis.NumElements() != 0) || (pcBlock->masInstructions.NumElements() != 0))
+		{
+			continue;
+		}
+
+		bChanged = false;
+		for (uiPredecessor = 0; uiPredecessor < pcBlock->mapcPredecessors.NumElements(); uiPredecessor++)
+		{
+			pcPredecessor = pcBlock->mapcPredecessors.GetPtr(uiPredecessor);
+			if (pcPredecessor == pcBlock)
+			{
+				continue;
+			}
+			iKnown = KnownCondition(pcPredecessor, pcBlock, pcBlock->msJump.sArgument);
+			if (iKnown < 0)
+			{
+				continue;
+			}
+			pcTarget = iKnown ? pcBlock->msJump.pcThen : pcBlock->msJump.pcElse;
+			if ((pcTarget == pcBlock) || ((pcTarget->masPhis.NumElements() != 0) && pcTarget->HasPredecessor(pcPredecessor)))
+			{
+				continue;
+			}
+			for (uiPhi = 0; uiPhi < pcTarget->masPhis.NumElements(); uiPhi++)
+			{
+				psArgument = pcTarget->FindPhiArgument(pcTarget->masPhis.Get(uiPhi), pcBlock);
+				pcTarget->AddPhiArgument(pcTarget->masPhis.Get(uiPhi), pcPredecessor, psArgument ? psArgument->sValue : IRNone());
+			}
+			RedirectJump(pcPredecessor, pcBlock, pcTarget);
+			bChanged = true;
+		}
+		if (bChanged)
+		{
+			//RemoveUnreachable takes pcBlock out if nothing goes to it now.
 			return true;
 		}
 	}
@@ -1367,6 +1462,7 @@ bool CIROptimiser::FoldConstants(void)
 
 	ClearReplacements();
 	FindDefinitions();
+	mpcFunction->ComputePredecessors();
 	bChanged = false;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
@@ -1380,7 +1476,7 @@ bool CIROptimiser::FoldConstants(void)
 			{
 				bChanged = true;
 			}
-			if (Fold(psInstruction, &ulliResult))
+			if (Fold(psInstruction, &ulliResult) || ImpliedComparison(pcBlock, psInstruction, &ulliResult, &bChanged))
 			{
 				sResultType = mpcFunction->GetTemporaryType(psInstruction->sResult);
 				Replace(psInstruction->sResult, mpcFunction->AddConstant(sResultType, ulliResult));
@@ -1409,6 +1505,109 @@ bool CIROptimiser::FoldConstants(void)
 		ApplyReplacements();
 	}
 	return bChanged;
+}
+
+
+//What each integer comparison (from IRO_Eq) says of its left operand against its right: IR_REL_LESS, _EQUAL and
+//_GREATER; and whether it is signed (1), unsigned (2) or either (0).
+#define IR_REL_LESS		1
+#define IR_REL_EQUAL	2
+#define IR_REL_GREATER	4
+static int	gaiIRRelations[] =		{ 2, 5, 1, 3, 4, 6, 1, 3, 4, 6 };
+static int	gaiIRSignedness[] =		{ 0, 0, 1, 1, 1, 1, 2, 2, 2, 2 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The relations of a comparison with its operands swapped.
+//
+//////////////////////////////////////////////////////////////////////////
+static int IROptimiserSwapRelations(int iRelations)
+{
+	return (iRelations & IR_REL_EQUAL) | ((iRelations & IR_REL_LESS) ? IR_REL_GREATER : 0) | ((iRelations & IR_REL_GREATER) ? IR_REL_LESS : 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An integer comparison in pcBlock that a branch on the way in (along
+// single predecessors) already decides is a constant (returns true with
+// *pulliResult); one it narrows to eq or ne is changed into that (*pbChanged
+// set): after !(a < b), a > b is a != b.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::ImpliedComparison(CIRBlock* pcBlock, SIRInstruction* psInstruction, uint64* pulliResult, bool* pbChanged)
+{
+	size				ui;
+	CIRBlock*			pcPredecessor;
+	SIRJump*			psJump;
+	SIRInstruction*		psKnown;
+	int					iKnown;
+	int					iWanted;
+	uint16				uiOpcode;
+
+	if (!IsIRIntegerComparison(psInstruction->uiOpcode))
+	{
+		return false;
+	}
+	iWanted = gaiIRRelations[psInstruction->uiOpcode - IRO_Eq];
+	for (ui = 0; ui < 8; ui++)
+	{
+		if ((pcBlock == mpcFunction->GetEntry()) || (pcBlock->mapcPredecessors.NumElements() != 1))
+		{
+			return false;
+		}
+		pcPredecessor = pcBlock->mapcPredecessors.GetPtr(0);
+		psJump = &pcPredecessor->msJump;
+		psKnown = (psJump->uiKind == IRJ_Branch) && (psJump->pcThen != psJump->pcElse) ? Definition(psJump->sArgument) : NULL;
+		if (psKnown && IsIRIntegerComparison(psKnown->uiOpcode) && psKnown->sType.Equals(psInstruction->sType) &&
+			((gaiIRSignedness[psKnown->uiOpcode - IRO_Eq] == 0) || (gaiIRSignedness[psInstruction->uiOpcode - IRO_Eq] == 0) || (gaiIRSignedness[psKnown->uiOpcode - IRO_Eq] == gaiIRSignedness[psInstruction->uiOpcode - IRO_Eq])))
+		{
+			iKnown = -1;
+			if (psKnown->asArguments[0].Equals(psInstruction->asArguments[0]) && psKnown->asArguments[1].Equals(psInstruction->asArguments[1]))
+			{
+				iKnown = gaiIRRelations[psKnown->uiOpcode - IRO_Eq];
+			}
+			else if (psKnown->asArguments[0].Equals(psInstruction->asArguments[1]) && psKnown->asArguments[1].Equals(psInstruction->asArguments[0]))
+			{
+				iKnown = IROptimiserSwapRelations(gaiIRRelations[psKnown->uiOpcode - IRO_Eq]);
+			}
+			if (iKnown >= 0)
+			{
+				if (psJump->pcElse == pcBlock)
+				{
+					iKnown = (IR_REL_LESS | IR_REL_EQUAL | IR_REL_GREATER) & ~iKnown;
+				}
+				if ((iKnown & ~iWanted) == 0)
+				{
+					*pulliResult = 1;
+					return true;
+				}
+				if ((iKnown & iWanted) == 0)
+				{
+					*pulliResult = 0;
+					return true;
+				}
+				uiOpcode = psInstruction->uiOpcode;
+				if ((iKnown & iWanted) == (iKnown & IR_REL_EQUAL))
+				{
+					uiOpcode = IRO_Eq;
+				}
+				else if ((iKnown & iWanted) == (iKnown & (IR_REL_LESS | IR_REL_GREATER)))
+				{
+					uiOpcode = IRO_Ne;
+				}
+				if (uiOpcode != psInstruction->uiOpcode)
+				{
+					psInstruction->uiOpcode = uiOpcode;
+					*pbChanged = true;
+				}
+				return false;
+			}
+		}
+		pcBlock = pcPredecessor;
+	}
+	return false;
 }
 
 

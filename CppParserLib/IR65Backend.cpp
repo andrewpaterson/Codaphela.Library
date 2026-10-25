@@ -158,6 +158,7 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRun
 	maiBlockLabels.Init();
 	mauiUses.Init();
 	masMoves.Init();
+	masStubs.Init();
 	muiSaved = 0;
 	miFrameBytes = 0;
 	miArguments = 0;
@@ -169,6 +170,9 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRun
 	msDeferred = IRNone();
 	mszDeferred.Init();
 	mpsWritten = NULL;
+	mpsFlags = NULL;
+	mpcFlags = NULL;
+	mbFlagsKnown = false;
 	mbRightImmediate = false;
 	mbFrameless = false;
 	mcFrame = 'V';
@@ -184,6 +188,7 @@ void CIR65Backend::Kill(void)
 	size	ui;
 
 	mszDeferred.Kill();
+	masStubs.Kill();
 	masMoves.Kill();
 	mauiUses.Kill();
 	maiBlockLabels.Kill();
@@ -772,6 +777,8 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	miReturnLabel = NewLabel();
 
 	Prologue(szLabel);
+	mpsFlags = NULL;
+	mpcFlags = NULL;
 	for (ui = 0; ui < pcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = pcFunction->GetBlock(ui);
@@ -874,7 +881,9 @@ void CIR65Backend::Prologue(const char* szLabel)
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Epilogue(void)
 {
-	int32	iUnit;
+	int32		iUnit;
+	size		ui;
+	SIR65Stub*	psStub;
 
 	Label(miReturnLabel);
 	for (iUnit = IR65_PSEUDO_UNITS - 1; iUnit >= 0; iUnit--)
@@ -893,6 +902,16 @@ void CIR65Backend::Epilogue(void)
 		Line("pul V")->AppendNewLine();
 	}
 	Line("ret")->AppendNewLine();
+
+	//Edges whose copies were moved out of the way.
+	for (ui = 0; ui < masStubs.NumElements(); ui++)
+	{
+		psStub = masStubs.Get(ui);
+		Label(psStub->iLabel);
+		Edge(psStub->pcFrom, psStub->pcTo);
+		Branch("bra ", *maiBlockLabels.Get(psStub->pcTo->muiIndex));
+	}
+	masStubs.FakeSetUsedElements(0);
 	mpszOut->AppendNewLine();
 }
 
@@ -2700,6 +2719,7 @@ bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 	{
 		uiNumInstructions--;
 	}
+	mbFlagsKnown = (uiNumInstructions == 0) && FlagsKnown(pcBlock, psFused);
 
 	bResult = true;
 	for (ui = 0; ui < uiNumInstructions; ui++)
@@ -2723,9 +2743,41 @@ bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 	msAvailable = msInA;
 	msInA = IRNone();
 	bResult &= Jump(pcBlock, pcNext, psFused);
+	mbFlagsKnown = false;
+	mpsFlags = (psFused && !psFused->sType.IsFloat()) ? psFused : NULL;
+	mpcFlags = pcBlock;
 	msAvailable = IRNone();
 	msDeferred = IRNone();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the flags pcBlock is entered with already give psFused, an eq or
+// ne whose block has nothing else in it: its only predecessor's jump
+// compared the same operands (cmp leaves z set when they are equal) and
+// nothing was copied on the way.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::FlagsKnown(CIRBlock* pcBlock, SIRInstruction* psFused)
+{
+	uint16	uiOpcode;
+
+	if ((psFused == NULL) || (mpsFlags == NULL) || ((psFused->uiOpcode != IRO_Eq) && (psFused->uiOpcode != IRO_Ne)) || (pcBlock->masPhis.NumElements() != 0) ||
+		(pcBlock->mapcPredecessors.NumElements() != 1) || (pcBlock->mapcPredecessors.GetPtr(0) != mpcFlags) || HasMoves(mpcFlags, pcBlock) || !psFused->sType.Equals(mpsFlags->sType))
+	{
+		return false;
+	}
+
+	//x > c and x <= c compare x with c + 1.
+	uiOpcode = mpsFlags->uiOpcode;
+	if (mpsFlags->asArguments[1].IsConstant() && ((uiOpcode == IRO_SGt) || (uiOpcode == IRO_SLe) || (uiOpcode == IRO_UGt) || (uiOpcode == IRO_ULe)))
+	{
+		return false;
+	}
+	return (psFused->asArguments[0].Equals(mpsFlags->asArguments[0]) && psFused->asArguments[1].Equals(mpsFlags->asArguments[1])) ||
+		   (psFused->asArguments[0].Equals(mpsFlags->asArguments[1]) && psFused->asArguments[1].Equals(mpsFlags->asArguments[0]));
 }
 
 
@@ -2922,6 +2974,7 @@ bool CIR65Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psF
 	SIRJump*	psJump;
 	int32		iElse;
 	bool		bResult;
+	SIR65Stub*	psStub;
 
 	psJump = &pcBlock->msJump;
 	bResult = true;
@@ -2936,6 +2989,24 @@ bool CIR65Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psF
 		break;
 
 	case IRJ_Branch:
+		if ((psJump->pcElse == pcNext) && (psJump->pcThen != pcNext) && HasMoves(pcBlock, psJump->pcThen) && !HasMoves(pcBlock, psJump->pcElse))
+		{
+			//The then edge's copies go after the function's ret (a loop that goes round when the test is true).
+			psStub = masStubs.Add();
+			psStub->iLabel = NewLabel();
+			psStub->pcFrom = pcBlock;
+			psStub->pcTo = psJump->pcThen;
+			if (psFused)
+			{
+				bResult = Compare(psFused, true, psStub->iLabel);
+			}
+			else
+			{
+				TestZero(psJump->sArgument);
+				Branch("brac z, ", psStub->iLabel);
+			}
+			break;
+		}
 		if ((psJump->pcElse == pcNext) && (psJump->pcThen != pcNext) && !HasMoves(pcBlock, psJump->pcThen))
 		{
 			//Branch to the then block, fall through to the else block.
@@ -4239,8 +4310,15 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 	int64			lliValue;
 	int64			lliLimit;
 	bool			bAdjusted;
+	int				iBits;
 
 	uiOpcode = psInstruction->uiOpcode;
+	if (mbFlagsKnown)
+	{
+		//The block before compared the same operands.
+		Branch(((uiOpcode == IRO_Eq) == bJumpIf) ? "bras z, " : "brac z, ", iLabel);
+		return true;
+	}
 	bSigned = (uiOpcode == IRO_SLt) || (uiOpcode == IRO_SLe) || (uiOpcode == IRO_SGt) || (uiOpcode == IRO_SGe);
 	bSwap = (uiOpcode == IRO_SGt) || (uiOpcode == IRO_SLe) || (uiOpcode == IRO_UGt) || (uiOpcode == IRO_ULe);
 	bWide = IsWide(psInstruction->sType);
@@ -4249,10 +4327,20 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 
 	if (bWide || (bSigned && IsNarrow(psInstruction->sType)))
 	{
-		LoadOperands(psInstruction, bSigned ? IR65E_Sign : IR65E_Zero, !bSwap);
-		if (bWide)
+		//Signed i8 and i16 are compared at their own width (the registers narrowed), which needs no extending.
+		iBits = bWide ? 64 : psInstruction->sType.IntegerBits();
+		if (iBits == 1)
 		{
-			Line("wtth (A, B), 64")->AppendNewLine();
+			LoadOperands(psInstruction, IR65E_Sign, !bSwap);
+			iBits = 32;
+		}
+		else
+		{
+			LoadOperands(psInstruction, IR65E_Zero, !bSwap);
+		}
+		if (iBits != 32)
+		{
+			Line("wtth (A, B), ")->Append(iBits)->AppendNewLine();
 		}
 		if (mbRightImmediate)
 		{
@@ -4264,7 +4352,7 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 		{
 			Line(bSwap ? "cmp B, A" : "cmp A, B")->AppendNewLine();
 		}
-		if (bWide)
+		if (iBits != 32)
 		{
 			Line("wtth (A, B), 32")->AppendNewLine();
 		}

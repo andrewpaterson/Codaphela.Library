@@ -256,6 +256,33 @@ bool CIRBlock::HasPredecessor(CIRBlock* pcBlock)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if one of the block's phis or instructions makes sValue.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRBlock::Defines(SIRReference sValue)
+{
+	size	ui;
+
+	for (ui = 0; ui < masPhis.NumElements(); ui++)
+	{
+		if (masPhis.Get(ui)->sResult.Equals(sValue))
+		{
+			return true;
+		}
+	}
+	for (ui = 0; ui < masInstructions.NumElements(); ui++)
+	{
+		if (masInstructions.Get(ui)->sResult.Equals(sValue))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The address a load reads or a store writes; IRNone for other
 // instructions.
 //

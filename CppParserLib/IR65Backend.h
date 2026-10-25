@@ -95,6 +95,18 @@ struct SIR65Move
 typedef CArrayTemplate<SIR65Move>	CArrayIR65Moves;
 
 
+//An edge's phi copies written after the function's ret: a branch goes to iLabel, which copies then jumps on.
+struct SIR65Stub
+{
+	int32		iLabel;
+	CIRBlock*	pcFrom;
+	CIRBlock*	pcTo;
+};
+
+
+typedef CArrayTemplate<SIR65Stub>	CArrayIR65Stubs;
+
+
 #define IR65_PSEUDO_UNITS		32		//Four byte units of [$00 + W] to [$7F + W], and again from [$80 + W].
 #define IR65_HOME_PSEUDO		IR65R_Count
 #define IR65_HOME_SAVED			(IR65_HOME_PSEUDO + IR65_PSEUDO_UNITS)
@@ -134,6 +146,7 @@ protected:
 	CArrayTemplate<int32>	maiBlockLabels;		//Per block index.
 	CArrayTemplate<uint32>	mauiUses;			//Per temporary: how many times it is used.
 	CArrayIR65Moves			masMoves;
+	CArrayIR65Stubs			masStubs;
 	uint32					muiSaved;			//The [$80 + W] units used, a bit each.
 	int32					miFrameBytes;
 	int32					miArguments;		//Where the arguments start: 1 + frame + 8.
@@ -145,6 +158,9 @@ protected:
 	SIRReference			msDeferred;			//A load the next instruction reads itself, from mszDeferred.
 	CChars					mszDeferred;
 	SIRInstruction*			mpsWritten;			//A store ReadModifyWrite wrote with the instruction before it.
+	SIRInstruction*			mpsFlags;			//The integer comparison the last block's jump did: the flags are its cmp's.
+	CIRBlock*				mpcFlags;
+	bool					mbFlagsKnown;		//The block's comparison uses the flags it is entered with (FlagsKnown).
 	bool					mbRightImmediate;
 	bool					mbFrameless;		//A leaf without a frame: V isn't set up, the arguments are from S...
 	char					mcFrame;			//...so the frame register is S, otherwise V.	//LoadOperands left the second operand a constant, for "op A, value".
@@ -236,6 +252,7 @@ protected:
 	void				Move(SIRReference sDestination, SIRReference sSource, SIRType sType, bool bFromB);
 	void				TestZero(SIRReference sValue);
 	bool				Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psFused);
+	bool				FlagsKnown(CIRBlock* pcBlock, SIRInstruction* psFused);
 	bool				Instruction(CIRBlock* pcBlock, size uiIndex);
 	bool				Commutes(uint16 uiOpcode);
 	bool				ReadModifyWrite(CIRBlock* pcBlock, size uiIndex);
