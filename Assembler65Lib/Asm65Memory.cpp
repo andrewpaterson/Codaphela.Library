@@ -346,6 +346,70 @@ void CAsm65Memory::InitFast(CFast65C64* pcMPU)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The W65C816S's bus: a byte at a 24 bit address when VDA, VPA or VPB says it is valid.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Memory::TickHigh816(CW65C816Meta* pcMPU, void* pvMemory)
+{
+	CAsm65Memory*	pcMemory;
+	uint32			uiAddress;
+
+	pcMemory = (CAsm65Memory*)pvMemory;
+	if (!pcMPU->GetRWB()->IsHigh() && !pcMPU->GetRWB()->IsLow())
+	{
+		return;
+	}
+	if (!pcMPU->GetVPA()->IsHigh() && !pcMPU->GetVDA()->IsHigh() && pcMPU->GetVPB()->IsHigh())
+	{
+		return;
+	}
+
+	uiAddress = pcMPU->GetAddress()->Get() | ((uint32)pcMPU->GetBank() << 16);
+	if (pcMPU->GetRWB()->IsHigh())
+	{
+		pcMPU->GetData()->Set(pcMemory->GetByte(uiAddress));
+	}
+	else
+	{
+		pcMemory->SetByte(uiAddress, (uint8)pcMPU->GetData()->Get());
+	}
+	pcMemory->muiCycles++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Memory::TickLow816(CW65C816Meta* pcMPU, void* pvMemory)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// CFast65C816 reads and writes the memory at 0000:0000 directly, the devices through ReadByte and WriteByte.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Memory::InitFast816(CFast65C816* pcMPU)
+{
+	pcMPU->Init(ReadByte, WriteByte, this, mpuiLow, (muiLowSize < ASM65_DEVICE_BASE) ? muiLowSize : ASM65_DEVICE_BASE);
+	pcMPU->SetHole(ASM65_DEVICE_BASE, ASM65_DEVICE_END);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 CAsm65Memory::ReadByte(void* pvMemory, uint32 uiAddress)
+{
+	return ((CAsm65Memory*)pvMemory)->GetByte(uiAddress);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // CFast65C64's access to memory outside the 2MB.
 //
 //////////////////////////////////////////////////////////////////////////

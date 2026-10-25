@@ -123,6 +123,13 @@ Calling convention:
 - Variadic arguments as on the 65C64 (float as double); va_arg stays Libc65's macro.
 - A, X, Y and the flags may change; D, DBR, S and the mode are kept.
 
+Bank 0 (the user, 2026-10-25): "all that is allowed in bank zero is the stack and direct
+page variables.  Place no code there."  The hardware still needs the vectors at
+$00FFE4-$00FFFF, and an interrupt starts in bank 0 (the vectors are 16 bits, PBR becomes
+0), so bank 0 also holds the vector table and one 4 byte jml stub per vector (reset's
+included), placed with .section ..., at address.  The linker (SetBankSize) refuses any
+other section there.
+
 Pointers: far (4 bytes, 24 bit address, top byte 0).  The user (2026-10-25): far pointers
 are stored in 32 bits with the top 8 bits ignored, so as not to switch between 8 and 16
 bit mode; they are loaded and stored as two 16 bit words.  The compiler keeps the top
@@ -188,6 +195,16 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	into a common CIRBackend rather than being copied.  Tested with TestIR65Backend's IR
 	programs, which are target independent IR: the same programs run on both targets
 	and must give the same results (TestIR816Backend).
+
+	Done 2026-10-25 (CIR816Backend, IR816Backend.h/.cpp; tests TestIR816Backend.cpp):
+	every integer and pointer instruction, phis, calls (direct, through a pointer,
+	variadic, thiscall), 64 bit results through a hidden pointer, frames past the
+	direct page's 256 bytes (through X).  Multiply, divide and remainder are runtime
+	routines written in IR (R816_Mul16 ... R816_SRem64) that the back end itself
+	compiles (GenerateRuntime).  Each test program runs on CFast65C816 (some in lockstep
+	with CW65C816) and must give the expected result and the 65C64's.  Not done: floats
+	(they need softfloat.cpp compiled for the W65C816, step 5).  Not shared yet with
+	CIR65Backend (another session is changing it): Binding and GenerateGlobal are copies.
 
 5.	C++ end to end: the runtime routines, the start up, Libc65 for the W65C816
 	(softfloat.cpp, string.cpp, stdlib.cpp...) and closing the IR front end's gaps.

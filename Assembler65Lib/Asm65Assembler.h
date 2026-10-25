@@ -206,7 +206,7 @@ protected:
 	bool			Constant(SAsm65Token* psName);
 	bool			Space(void);
 	bool			Section(void);
-	bool			SectionOptions(SAsm65Token* psName, SAsm65Token** ppsGroup, SAsm65Token** ppsAssociated, bool* pbKeep, bool* pbResident);
+	bool			SectionOptions(SAsm65Token* psName, SAsm65Token** ppsGroup, SAsm65Token** ppsAssociated, bool* pbKeep, bool* pbResident, bool* pbAt, uint32* puiAt);
 	void			Associate(void);
 	bool			SymbolBinding(SAsm65Token* psDirective);
 	void			SwitchSection(uint32 uiSection);

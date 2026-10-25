@@ -187,6 +187,8 @@
     <ClCompile Include="CPPHighlighter.cpp" />
     <ClCompile Include="CPP65IRFrontEnd.cpp" />
     <ClCompile Include="IR65Backend.cpp" />
+    <ClCompile Include="IR816Backend.cpp" />
+    <ClCompile Include="IR65Widths.cpp" />
     <ClCompile Include="IRBlock.cpp" />
     <ClCompile Include="IRDominators.cpp" />
     <ClCompile Include="IRFunction.cpp" />
@@ -378,6 +380,8 @@
     <ClInclude Include="CPPHighlighter.h" />
     <ClInclude Include="CPP65IRFrontEnd.h" />
     <ClInclude Include="IR65Backend.h" />
+    <ClInclude Include="IR816Backend.h" />
+    <ClInclude Include="IR65Widths.h" />
     <ClInclude Include="IRBlock.h" />
     <ClInclude Include="IRDominators.h" />
     <ClInclude Include="IRFunction.h" />

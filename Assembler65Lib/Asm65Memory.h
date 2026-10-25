@@ -25,6 +25,8 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/Chars.h"
 #include "MicroprocessorLib/65C64Meta.h"
 #include "MicroprocessorLib/Fast65C64.h"
+#include "MicroprocessorLib/W65C816Meta.h"
+#include "MicroprocessorLib/Fast65C816.h"
 #include "Asm65Output.h"
 #include "Asm65HostFiles.h"
 
@@ -67,6 +69,10 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 //connects a CFast65C64 instead: it reads and writes the low memory directly and everything else through ReadWord and
 //WriteByte.  A CFileDrive (such as a CMemoryDrive) can be attached as a storage device (see ASM65_DRIVE_BASE), a
 //CChars as the console (ASM65_CONSOLE) and a CAsm65HostFiles as the host file device (ASM65_HOST_BASE).
+//
+//It is the W65C816's test memory too: the devices' page 00FF:0000 is the W65C816's bank $FF, so the memory at 0000:0000
+//can be up to $FF0000 bytes.  TickHigh816 and TickLow816 are CW65C816Meta's callbacks; InitFast816 connects a
+//CFast65C816 (ReadByte and WriteByte).
 class CAsm65Memory
 {
 protected:
@@ -113,6 +119,11 @@ public:
 	void			InitFast(CFast65C64* pcMPU);
 	static uint16	ReadWord(void* pvMemory, uint32 uiAddress);
 	static void		WriteByte(void* pvMemory, uint32 uiAddress, uint8 uiValue);
+
+	static void		TickHigh816(CW65C816Meta* pcMPU, void* pvMemory);
+	static void		TickLow816(CW65C816Meta* pcMPU, void* pvMemory);
+	void			InitFast816(CFast65C816* pcMPU);
+	static uint8	ReadByte(void* pvMemory, uint32 uiAddress);
 
 protected:
 	uint32			GetDriveRegister(uint32 uiRegister);

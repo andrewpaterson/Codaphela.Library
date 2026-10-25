@@ -186,6 +186,7 @@
     <ClCompile Include="Asm65Assembler.cpp" />
     <ClCompile Include="Asm816Assembler.cpp" />
     <ClCompile Include="Asm816Instructions.cpp" />
+    <ClCompile Include="Asm816Lockstep.cpp" />
     <ClCompile Include="Asm65Errors.cpp" />
     <ClCompile Include="Asm65Expressions.cpp" />
     <ClCompile Include="Asm65HostFiles.cpp" />
@@ -204,6 +205,7 @@
   <ItemGroup>
     <ClInclude Include="Asm65Assembler.h" />
     <ClInclude Include="Asm816Assembler.h" />
+    <ClInclude Include="Asm816Lockstep.h" />
     <ClInclude Include="Asm65Errors.h" />
     <ClInclude Include="Asm65HostFiles.h" />
     <ClInclude Include="Asm65Lockstep.h" />

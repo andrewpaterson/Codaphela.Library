@@ -116,6 +116,10 @@ struct SAsm65LinkReference
 //Sections are placed by kind: text, rodata, init, fini, data then bss.  Text starts at
 //$10000 and each kind follows the one before unless SetAddress fixes it.  The linker
 //defines __<kind>_start and __<kind>_end for each kind and __end after the last.
+//A section with an address (.section name, at address) is placed there first and the
+//others flow around it.  With SetBankSize (the W65C816's $10000) a section no bigger
+//than a bank is never placed across the end of one, and only sections with an address
+//are in bank 0 (it is the stack and the direct page, plus the vectors and their stubs).
 class CAsm65Linker
 {
 protected:
@@ -153,6 +157,7 @@ protected:
 	uint32									mauiStart[ASK65_NumKinds];
 	uint32									mauiEnd[ASK65_NumKinds];
 	uint32									muiLimit;
+	uint32									muiBankSize;
 	bool									mbStubMissing;
 	bool									mbRemoveUnused;
 
@@ -168,6 +173,7 @@ public:
 	void				AddLibrary(CAsm65Library* pcLibrary);
 	void				SetAddress(EAsm65SectionKind eKind, uint32 uiAddress);
 	void				SetLimit(uint32 uiLimit);
+	void				SetBankSize(uint32 uiBankSize);
 	void				SetStubMissing(bool bStubMissing);
 	void				SetRemoveUnused(bool bRemoveUnused);
 	void				SetLazy(uint32 uiCodeEnd, uint32 uiSectorSize, uint32 uiFirstSector);
@@ -200,6 +206,9 @@ protected:
 	bool				IsCore(SAsm65LinkSection* psLinkSection);
 	void				AddStubs(void);
 	void				Layout(void);
+	void				LayoutAt(void);
+	uint64				FlowAddress(uint64 uiAddress, SAsm65Section* psSection);
+	bool				InBank(uint64 uiAddress, uint32 uiSize);
 	void				DefineLinkerSymbols(void);
 	void				ResolveSymbols(void);
 	bool				TargetPlace(size uiObject, SAsm65Relocation* psRelocation, int64* piSection, int64* piValue);

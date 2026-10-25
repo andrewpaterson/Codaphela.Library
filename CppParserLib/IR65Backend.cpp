@@ -176,6 +176,8 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRun
 	mbRightImmediate = false;
 	mbFrameless = false;
 	mcFrame = 'V';
+	mcWidths.Init();
+	mauiNarrowOnly.Init();
 }
 
 
@@ -187,6 +189,8 @@ void CIR65Backend::Kill(void)
 {
 	size	ui;
 
+	mauiNarrowOnly.Kill();
+	mcWidths.Kill();
 	mszDeferred.Kill();
 	masStubs.Kill();
 	masMoves.Kill();
@@ -933,6 +937,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	SinkLoads();
 	CopyAddresses();
 	mpcFunction->CountUses(&mauiUses);
+	FindNarrowOnly();
 	mcDominators.Compute(pcFunction);
 	mcLiveness.Compute(pcFunction, &mcDominators);
 	Layout();
@@ -968,6 +973,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	}
 	Epilogue();
 	Peephole(uiStart);
+	if (getenv("CPP65_NO_WIDTHS") == NULL) mcWidths.Optimise(pszDest, uiStart);	//DEBUG remove
 	return mbResult;
 }
 
@@ -2406,6 +2412,87 @@ bool CIR65Backend::IsInA(SIRReference sValue)
 bool CIR65Backend::InRegister(SIRReference sValue)
 {
 	return sValue.IsTemporary() && (PlaceOf(sValue)->uiKind == IR65P_Register);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if sValue is a constant, or an i8 or i16 load only ever compared
+// (as the type it is), so the bits it is extended to are never read.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::NarrowOnly(SIRReference sValue)
+{
+	return sValue.IsConstant() || (sValue.IsTemporary() && *mauiNarrowOnly.Get(sValue.Index()));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Marks the narrow loads whose only uses are integer comparisons (NarrowOnly).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::FindNarrowOnly(void)
+{
+	size			ui;
+	size			uiInstruction;
+	size			uiArgument;
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	SIRPhi*			psPhi;
+	SIRReference	sValue;
+
+	mauiNarrowOnly.FakeSetUsedElements(0);
+	mauiNarrowOnly.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if ((psInstruction->uiOpcode == IRO_Load) && IsNarrow(psInstruction->sType) && !psInstruction->sType.Is(IRTK_I1))
+			{
+				*mauiNarrowOnly.Get(psInstruction->sResult.Index()) = 1;
+			}
+		}
+	}
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masPhis.NumElements(); uiInstruction++)
+		{
+			psPhi = pcBlock->masPhis.Get(uiInstruction);
+			for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
+			{
+				sValue = psPhi->asArguments.Get(uiArgument)->sValue;
+				if (sValue.IsTemporary())
+				{
+					*mauiNarrowOnly.Get(sValue.Index()) = 0;
+				}
+			}
+		}
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if (IsIRIntegerComparison(psInstruction->uiOpcode))
+			{
+				continue;
+			}
+			for (uiArgument = 0; uiArgument < 2; uiArgument++)
+			{
+				sValue = psInstruction->asArguments[uiArgument];
+				if (sValue.IsTemporary())
+				{
+					*mauiNarrowOnly.Get(sValue.Index()) = 0;
+				}
+			}
+		}
+		sValue = pcBlock->msJump.sArgument;
+		if (sValue.IsTemporary())
+		{
+			*mauiNarrowOnly.Get(sValue.Index()) = 0;
+		}
+	}
 }
 
 
@@ -5075,9 +5162,10 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 	sLeft = psInstruction->asArguments[0];
 	sRight = psInstruction->asArguments[1];
 
-	if (bWide || (bSigned && IsNarrow(psInstruction->sType)))
+	if (bWide || (IsNarrow(psInstruction->sType) && (bSigned || (NarrowOnly(sLeft) && NarrowOnly(sRight)))))
 	{
-		//Signed i8 and i16 are compared at their own width (the registers narrowed), which needs no extending.
+		//Signed i8 and i16 are compared at their own width (the registers narrowed), which needs no extending; so
+		//are unsigned ones of values only ever compared, whose extending then goes (CIR65Widths).
 		iBits = bWide ? 64 : psInstruction->sType.IntegerBits();
 		if (!bWide && (iBits != 1) && InRegister(sLeft) && InRegister(sRight) && (PlaceOf(sLeft)->iOffset != PlaceOf(sRight)->iOffset))
 		{
@@ -5085,6 +5173,15 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 			Line("wtth (X, Y), ")->Append(iBits)->AppendNewLine();
 			Line("cmp ")->Append(RegisterName(PlaceOf(bSwap ? sRight : sLeft)))->Append(", ")->Append(RegisterName(PlaceOf(bSwap ? sLeft : sRight)))->AppendNewLine();
 			Line("wtth (X, Y), 32")->AppendNewLine();
+		}
+		else if (!bWide && (iBits != 1) && !bSwap && InRegister(sLeft) && Immediate(sRight, psInstruction->sType))
+		{
+			//Kept in X or Y and compared with a constant: the register is narrowed.
+			Line("wth ")->Append(RegisterName(PlaceOf(sLeft)))->Append(", ")->Append(iBits)->AppendNewLine();
+			Line("cmp ")->Append(RegisterName(PlaceOf(sLeft)))->Append(", ");
+			AppendImmediate(mpszOut, sRight, bSigned ? IR65E_Sign : IR65E_Zero);
+			mpszOut->AppendNewLine();
+			Line("wth ")->Append(RegisterName(PlaceOf(sLeft)))->Append(", 32")->AppendNewLine();
 		}
 		else
 		{

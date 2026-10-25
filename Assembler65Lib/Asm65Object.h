@@ -78,6 +78,8 @@ struct SAsm65Section
 	int32				iAssociated;
 	bool				bKeep;
 	bool				bResident;
+	bool				bAt;			//Placed at uiAt (.section name, at address), not after the others.
+	uint32				uiAt;
 	CArrayUint8			cBytes;
 };
 

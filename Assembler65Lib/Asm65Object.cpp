@@ -186,6 +186,8 @@ uint32 CAsm65Object::AddSection(const char* szName, const char* szGroup, EAsm65S
 	psSection->iAssociated = -1;
 	psSection->bKeep = false;
 	psSection->bResident = false;
+	psSection->bAt = false;
+	psSection->uiAt = 0;
 	psSection->cBytes.Init();
 	return (uint32)(mcSections.NumElements() - 1);
 }
@@ -369,6 +371,11 @@ void CAsm65Object::Dump(CChars* psz)
 		if (psSection->bResident)
 		{
 			psz->Append(" resident");
+		}
+		if (psSection->bAt)
+		{
+			psz->Append(" at ");
+			psz->Append(psSection->uiAt);
 		}
 		psz->Append(" align ");
 		psz->Append(psSection->uiAlignment);
@@ -577,6 +584,8 @@ bool CAsm65Object::WriteChunks(CChunkFile* pcChunkFile)
 		bResult &= pcChunkFile->WriteInt32(psSection->iAssociated);
 		bResult &= pcChunkFile->WriteBool(psSection->bKeep);
 		bResult &= pcChunkFile->WriteBool(psSection->bResident);
+		bResult &= pcChunkFile->WriteBool(psSection->bAt);
+		bResult &= pcChunkFile->WriteInt32(psSection->uiAt);
 		bResult &= pcChunkFile->WriteInt32((uint32)psSection->cBytes.NumElements());
 		if (psSection->cBytes.NumElements() != 0)
 		{
@@ -689,7 +698,8 @@ bool CAsm65Object::ReadSections(CChunkFile* pcChunkFile)
 		if (!Asm65ReadText(pcChunkFile, &psSection->szName) || !Asm65ReadText(pcChunkFile, &psSection->szGroup) ||
 			!pcChunkFile->ReadInt32(&iKind) || !pcChunkFile->ReadInt32(&psSection->uiAlignment) ||
 			!pcChunkFile->ReadInt32(&psSection->uiSize) || !pcChunkFile->ReadInt32(&psSection->iAssociated) ||
-			!pcChunkFile->ReadBool(&psSection->bKeep) || !pcChunkFile->ReadBool(&psSection->bResident) || !pcChunkFile->ReadInt32(&uiBytes))
+			!pcChunkFile->ReadBool(&psSection->bKeep) || !pcChunkFile->ReadBool(&psSection->bResident) ||
+			!pcChunkFile->ReadBool(&psSection->bAt) || !pcChunkFile->ReadInt32(&psSection->uiAt) || !pcChunkFile->ReadInt32(&uiBytes))
 		{
 			return false;
 		}

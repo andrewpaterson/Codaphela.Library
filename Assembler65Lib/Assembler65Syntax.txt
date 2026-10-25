@@ -294,6 +294,13 @@ Assembler816Syntax.txt): the value, its bank (Label >> 16), its low 16 bits (Lab
 $FFFF), or its low 16 bits checked to be in the field's own bank.  Lazy linking only
 takes the plain form.
 
+Placing sections.  ".section name, at address" puts a section at that address; the
+linker places those first and the others flow around them.  With SetBankSize
+($10000 for the W65C816) a section no bigger than a bank is moved to the next bank
+rather than cross the end of one, a section with an address that crosses one is an
+error, and only sections with an address may be in bank 0 (the user, 2026-10-25: bank 0
+is the stack and the direct page; the vectors and their jml stubs go there with at).
+
 Removing unused sections.  With SetRemoveUnused(true) the linker only links the
 sections that are used: keep sections (".section text, keep"), init and fini
 sections that are not associated, and every section their relocations reach, and so
