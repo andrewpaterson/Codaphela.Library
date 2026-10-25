@@ -32,6 +32,8 @@ void CKicadSchemNetlist::Init(CKicadSchemFile* pcFile)
 	mpcFile = pcFile;
 	macSubnets.Init();
 	macNets.Init();
+	macBuses.Init();
+	macBusNets.Init();
 	masNodes.Init();
 	maiParents.Init();
 }
@@ -47,6 +49,18 @@ void CKicadSchemNetlist::Kill(void)
 
 	maiParents.Kill();
 	masNodes.Kill();
+
+	for (i = 0; i < macBusNets.NumElements(); i++)
+	{
+		GetBusNet(i)->Kill();
+	}
+	macBusNets.Kill();
+
+	for (i = 0; i < macBuses.NumElements(); i++)
+	{
+		GetBus(i)->Kill();
+	}
+	macBuses.Kill();
 
 	for (i = 0; i < macNets.NumElements(); i++)
 	{
@@ -78,6 +92,9 @@ bool CKicadSchemNetlist::Build(void)
 	JoinNodes();
 	CreateSubnets();
 	CreateNets();
+	CreateBuses();
+	AddBusTaps();
+	AddBusMembers();
 
 	maiParents.Kill();
 	masNodes.Kill();
@@ -612,6 +629,316 @@ char* CKicadSchemNetlist::GetGlobalPowerName(CKicadSchemSymbol* pcSymbol, CKicad
 	}
 	return pcPin->GetName();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bus wires joined where an end of one is on another, with the
+// junctions and labels on them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CKicadSchemNetlist::CreateBuses(void)
+{
+	CArrayTemplatePtr<CKicadSchemWire>	apcWires;
+	CArrayInt							aiParents;
+	CArrayInt							aiRootBuses;
+	size								i;
+	size								j;
+	CKicadSchemWire*					pcWire;
+	CKicadSchemWire*					pcOther;
+	int									iRoot;
+	CKicadSchemBus*						pcBus;
+	bool								bVertical;
+
+	apcWires.Init();
+	aiParents.Init();
+	aiRootBuses.Init();
+	for (i = 0; i < mpcFile->NumWires(); i++)
+	{
+		pcWire = mpcFile->GetWire(i);
+		if (pcWire->IsBus())
+		{
+			apcWires.Add(pcWire);
+			aiParents.Add((int)(apcWires.NumElements() - 1));
+			aiRootBuses.Add(-1);
+		}
+	}
+	for (i = 0; i < apcWires.NumElements(); i++)
+	{
+		pcWire = apcWires.GetPtr(i);
+		for (j = i + 1; j < apcWires.NumElements(); j++)
+		{
+			pcOther = apcWires.GetPtr(j);
+			if (pcWire->Contains(pcOther->GetStart()) || pcWire->Contains(pcOther->GetEnd()) || pcOther->Contains(pcWire->GetStart()) || pcOther->Contains(pcWire->GetEnd()))
+			{
+				JoinKicadSchemRoots(&aiParents, (int)i, (int)j);
+			}
+		}
+	}
+	for (i = 0; i < apcWires.NumElements(); i++)
+	{
+		iRoot = FindKicadSchemRoot(&aiParents, (int)i);
+		if (aiRootBuses.GetValue(iRoot) == -1)
+		{
+			pcBus = (CKicadSchemBus*)macBuses.Add(sizeof(CKicadSchemBus));
+			pcBus->Init();
+			aiRootBuses.SetValue(iRoot, (int)(macBuses.NumElements() - 1));
+		}
+		GetBus(aiRootBuses.GetValue(iRoot))->AddWire(apcWires.GetPtr(i));
+	}
+	aiRootBuses.Kill();
+	aiParents.Kill();
+	apcWires.Kill();
+
+	for (i = 0; i < macBuses.NumElements(); i++)
+	{
+		pcBus = GetBus(i);
+		for (j = 0; j < mpcFile->NumJunctions(); j++)
+		{
+			if (pcBus->Contains(mpcFile->GetJunction(j)->GetPosition(), &bVertical))
+			{
+				pcBus->AddJunction(mpcFile->GetJunction(j));
+			}
+		}
+		for (j = 0; j < mpcFile->NumLabels(); j++)
+		{
+			if (pcBus->Contains(mpcFile->GetLabel(j)->GetPosition(), &bVertical))
+			{
+				pcBus->AddLabel(mpcFile->GetLabel(j));
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each bus entry with an end on a bus and the other on a member that is in
+// a net.
+//
+//////////////////////////////////////////////////////////////////////////
+void CKicadSchemNetlist::AddBusTaps(void)
+{
+	size					i;
+	size					j;
+	CKicadSchemBusEntry*	pcEntry;
+	SKicadSchemPoint		sStart;
+	SKicadSchemPoint		sEnd;
+	CKicadSchemBus*			pcBus;
+	CKicadSchemSubnet*		pcMember;
+	bool					bVertical;
+
+	for (i = 0; i < mpcFile->NumBusEntries(); i++)
+	{
+		pcEntry = mpcFile->GetBusEntry(i);
+		sStart = *pcEntry->GetPosition();
+		pcEntry->GetEnd(&sEnd);
+		for (j = 0; j < macBuses.NumElements(); j++)
+		{
+			pcBus = GetBus(j);
+			if (pcBus->Contains(&sStart, &bVertical))
+			{
+				pcMember = GetSubnetAt(&sEnd);
+				if ((pcMember != NULL) && (pcMember->GetNet() != NULL))
+				{
+					pcBus->AddTap(pcEntry, &sStart, &sEnd, pcMember, bVertical);
+				}
+				break;
+			}
+			if (pcBus->Contains(&sEnd, &bVertical))
+			{
+				pcMember = GetSubnetAt(&sStart);
+				if ((pcMember != NULL) && (pcMember->GetNet() != NULL))
+				{
+					pcBus->AddTap(pcEntry, &sEnd, &sStart, pcMember, bVertical);
+				}
+				break;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The members of each set of buses with the same name (an unnamed bus is
+// a set of its own): the members its labels name and then the nets of the
+// members its entries tap.  Each set is a bus net.
+//
+//////////////////////////////////////////////////////////////////////////
+void CKicadSchemNetlist::AddBusMembers(void)
+{
+	CArrayInt			aiDone;
+	CArrayInt			aiSet;
+	CArrayChars			aszMembers;
+	size				i;
+	size				j;
+	size				k;
+	CKicadSchemBus*		pcBus;
+	CKicadSchemBus*		pcOther;
+	CKicadSchemNet*		pcNet;
+	char*				szName;
+	CChars				szNetName;
+
+	aiDone.Init();
+	for (i = 0; i < macBuses.NumElements(); i++)
+	{
+		aiDone.Add(0);
+	}
+	for (i = 0; i < macBuses.NumElements(); i++)
+	{
+		if (aiDone.GetValue(i) != 0)
+		{
+			continue;
+		}
+		pcBus = GetBus(i);
+		szName = pcBus->GetName();
+		aiSet.Init();
+		for (j = i; j < macBuses.NumElements(); j++)
+		{
+			pcOther = GetBus(j);
+			if ((j == i) || ((szName != NULL) && (aiDone.GetValue(j) == 0) && (pcOther->GetName() != NULL) && (StringCompare(pcOther->GetName(), szName) == 0)))
+			{
+				aiSet.Add((int)j);
+				aiDone.SetValue(j, 1);
+			}
+		}
+
+		aszMembers.Init();
+		for (j = 0; j < aiSet.NumElements(); j++)
+		{
+			pcOther = GetBus(aiSet.GetValue(j));
+			for (k = 0; k < pcOther->NumLabels(); k++)
+			{
+				ParseKicadSchemBusMembers(pcOther->GetLabel(k)->GetText(), &aszMembers);
+			}
+		}
+		for (j = 0; j < aiSet.NumElements(); j++)
+		{
+			pcOther = GetBus(aiSet.GetValue(j));
+			for (k = 0; k < pcOther->NumTaps(); k++)
+			{
+				aszMembers.AddIfUnique(pcOther->GetTap(k)->pcMember->GetNet()->GetName());
+			}
+		}
+
+		pcNet = (CKicadSchemNet*)macBusNets.Add(sizeof(CKicadSchemNet));
+		pcNet->Init();
+		if (szName != NULL)
+		{
+			pcNet->SetName(szName, KSNNS_Local);
+		}
+		else
+		{
+			szNetName.Init("Bus-(");
+			szNetName.Append(macBusNets.NumElements());
+			szNetName.Append(')');
+			pcNet->SetName(szNetName.Text(), KSNNS_Pin);
+			szNetName.Kill();
+		}
+		for (j = 0; j < aiSet.NumElements(); j++)
+		{
+			pcOther = GetBus(aiSet.GetValue(j));
+			for (k = 0; k < aszMembers.NumElements(); k++)
+			{
+				pcOther->AddMember(aszMembers.GetText(k));
+			}
+			pcNet->AddSubnet(pcOther->GetSubnet());
+		}
+		aszMembers.Kill();
+		aiSet.Kill();
+	}
+	aiDone.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL if there's no net of the name., or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemSubnet* CKicadSchemNetlist::GetSubnetAt(SKicadSchemPoint* psPoint)
+{
+	size				i;
+	size				j;
+	CKicadSchemSubnet*	pcSubnet;
+
+	for (i = 0; i < macSubnets.NumElements(); i++)
+	{
+		pcSubnet = GetSubnet(i);
+		for (j = 0; j < pcSubnet->NumWires(); j++)
+		{
+			if (pcSubnet->GetWire(j)->Contains(psPoint))
+			{
+				return pcSubnet;
+			}
+		}
+		for (j = 0; j < pcSubnet->NumPins(); j++)
+		{
+			if (pcSubnet->GetPin(j)->sPosition.Equals(psPoint))
+			{
+				return pcSubnet;
+			}
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the label is on a bus.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CKicadSchemNetlist::IsBusLabel(CKicadSchemLabel* pcLabel)
+{
+	size				i;
+	size				j;
+	CKicadSchemBus*		pcBus;
+
+	for (i = 0; i < macBuses.NumElements(); i++)
+	{
+		pcBus = GetBus(i);
+		for (j = 0; j < pcBus->NumLabels(); j++)
+		{
+			if (pcBus->GetLabel(j) == pcLabel)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first bus with the name, or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemBus* CKicadSchemNetlist::GetBus(char* szName)
+{
+	size	i;
+
+	for (i = 0; i < macBuses.NumElements(); i++)
+	{
+		if ((GetBus(i)->GetName() != NULL) && (StringCompare(GetBus(i)->GetName(), szName) == 0))
+		{
+			return GetBus(i);
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CKicadSchemNetlist::NumBuses(void) { return macBuses.NumElements(); }
+CKicadSchemBus* CKicadSchemNetlist::GetBus(size uiIndex) { return (CKicadSchemBus*)macBuses.Get(uiIndex); }
+size CKicadSchemNetlist::NumBusNets(void) { return macBusNets.NumElements(); }
+CKicadSchemNet* CKicadSchemNetlist::GetBusNet(size uiIndex) { return (CKicadSchemNet*)macBusNets.Get(uiIndex); }
 
 
 //////////////////////////////////////////////////////////////////////////

@@ -58,8 +58,8 @@ enum E65C64ViewFlag
 };
 
 
-//A 65C64 microprocessor, laid out as CW65C816View: a 32 by 36 box with its inputs along the bottom (PHI2 with a clock
-//notch) and its outputs and buses along the top, each labelled, and its registers and flags shown inside.  The A, B, X
+//A 65C64 microprocessor, laid out as CW65C816View: a 36 by 32 box with its inputs down the left (PHI2 with a clock
+//notch) and its outputs and buses down the right, each labelled, and its registers and flags shown inside.  The A, B, X
 //and Y registers are shown in full (64 bits) whatever their width; the widths are a detail of their own.  A flag is
 //written in the text colour when it's set and the hidden text colour when it's clear.
 class C65C64View : public CIntegratedCircuitView

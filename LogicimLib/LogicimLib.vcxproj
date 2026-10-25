@@ -57,12 +57,16 @@
     <ClCompile Include="StateXML.cpp" />
     <ClCompile Include="TraceView.cpp" />
     <ClCompile Include="TraceAutoConnector.cpp" />
+    <ClCompile Include="InverterPackageView.cpp" />
     <ClCompile Include="CircuitSelection.cpp" />
     <ClCompile Include="CircuitEdit.cpp" />
     <ClCompile Include="MoveComponentsEdit.cpp" />
     <ClCompile Include="SelectionEdit.cpp" />
     <ClCompile Include="CircuitEditor.cpp" />
     <ClCompile Include="ComponentPlacement.cpp" />
+    <ClCompile Include="TraceLines.cpp" />
+    <ClCompile Include="WirePullEdit.cpp" />
+    <ClCompile Include="ComponentLibraries.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AndGateView.h" />
@@ -103,12 +107,16 @@
     <ClInclude Include="StateXML.h" />
     <ClInclude Include="TraceView.h" />
     <ClInclude Include="TraceAutoConnector.h" />
+    <ClInclude Include="InverterPackageView.h" />
     <ClInclude Include="CircuitSelection.h" />
     <ClInclude Include="CircuitEdit.h" />
     <ClInclude Include="MoveComponentsEdit.h" />
     <ClInclude Include="SelectionEdit.h" />
     <ClInclude Include="CircuitEditor.h" />
     <ClInclude Include="ComponentPlacement.h" />
+    <ClInclude Include="TraceLines.h" />
+    <ClInclude Include="WirePullEdit.h" />
+    <ClInclude Include="ComponentLibraries.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C3DFF95A-5E3F-452F-B879-1AF5257A94B4}</ProjectGuid>

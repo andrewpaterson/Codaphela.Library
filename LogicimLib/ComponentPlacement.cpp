@@ -24,6 +24,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "AndGateView.h"
 #include "OrGateView.h"
 #include "BufferView.h"
+#include "InverterPackageView.h"
 #include "PowerSourceView.h"
 #include "ValueView.h"
 #include "FlipFlopView.h"
@@ -177,6 +178,8 @@ CComponentView* NewPlacedComponentView(const char* szXMLName, int32 x, int32 y, 
 	CLabelView*			pcLabel;
 	CBufferView*		pcBuffer;
 	CInverterView*		pcInverter;
+	CInverterPackageView*	pcPackage;
+	CInverterUnitView*	pcUnit;
 	CChars				szName;
 
 	if (StringCompare(szXMLName, "AndGate") == 0)
@@ -214,6 +217,18 @@ CComponentView* NewPlacedComponentView(const char* szXMLName, int32 x, int32 y, 
 		pcInverter = NewMalloc<CInverterView>();
 		pcInverter->Init(x, y, eRotation, "", PLACED_FAMILY, false, 1, 1);
 		return pcInverter;
+	}
+	else if (StringCompare(szXMLName, "InverterPackage") == 0)
+	{
+		pcPackage = NewMalloc<CInverterPackageView>();
+		pcPackage->Init(x, y, eRotation, "", PLACED_FAMILY, false, "04", 6);
+		return pcPackage;
+	}
+	else if (StringCompare(szXMLName, "InverterUnit") == 0)
+	{
+		pcUnit = NewMalloc<CInverterUnitView>();
+		pcUnit->Init(x, y, eRotation, "", PLACED_FAMILY, false, "04", 0);
+		return pcUnit;
 	}
 	else if (StringCompare(szXMLName, "Ground") == 0)
 	{

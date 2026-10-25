@@ -9,9 +9,12 @@
 #define INSTRUCTIONS_SIZE 256 + 5
 
 
+//Init and Kill are counted: the instructions are made by the first Init and freed by the last Kill, so each CW65C816Chip
+//can Init the factory for itself.
 class CW65C816InstructionFactory
 {
 protected:
+	size				muiUsers;
 	CW65Instruction*	mapcInstructions[INSTRUCTIONS_SIZE];
 	CW65Instruction*	mpcReset;
 	CW65Instruction*	mpcIRQ;

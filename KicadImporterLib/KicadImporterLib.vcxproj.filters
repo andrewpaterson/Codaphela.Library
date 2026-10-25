@@ -105,6 +105,9 @@
     <ClCompile Include="KicadSchemSubnetGraph.cpp">
       <Filter>Source\Netlist</Filter>
     </ClCompile>
+    <ClCompile Include="KicadSchemBus.cpp">
+      <Filter>Source\Netlist</Filter>
+    </ClCompile>
     <ClCompile Include="KicadSchemLogicFunction.cpp">
       <Filter>Source\Logicim</Filter>
     </ClCompile>
@@ -186,6 +189,9 @@
       <Filter>Source\Netlist</Filter>
     </ClInclude>
     <ClInclude Include="KicadSchemSubnetGraph.h">
+      <Filter>Source\Netlist</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemBus.h">
       <Filter>Source\Netlist</Filter>
     </ClInclude>
     <ClInclude Include="KicadSchemLogicFunction.h">

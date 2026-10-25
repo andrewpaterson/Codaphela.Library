@@ -178,6 +178,131 @@ bool CCircuitView::RemoveTrace(CTraceView* pcTrace)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Adds wires along the lines, as Logicim's createTraceViews.  The lines,
+// and the wires of every net they or the seed wires (which may be NULL)
+// touch, are merged and split again (see MergeTraceLines), and those wires
+// are replaced by the result, added to papcAdded unless it's NULL.  The
+// replaced wires are freed; a simulated circuit must be rewired after.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitView::ReplaceWires(CArrayTraceLine* pasLines, CArrayTraceViewPtr* papcSeeds, CArrayTraceViewPtr* papcAdded)
+{
+	CArrayTraceViewPtr	apcReplaced;
+	CArrayTraceLine		asLines;
+	CArrayInt32Vec2		asEnds;
+	CArrayInt32Vec2		asPorts;
+	CArrayPortViewPtr	apcPortViews;
+	STraceLine			sLine;
+	STraceLine*			psLine;
+	CTraceView*			pcTrace;
+	SInt32Vec2			sPort;
+	size				i;
+	size				j;
+
+	apcReplaced.Init();
+	if (papcSeeds != NULL)
+	{
+		for (i = 0; i < papcSeeds->NumElements(); i++)
+		{
+			pcTrace = papcSeeds->GetPtr(i);
+			if ((mapcTraces.Find(pcTrace) != ARRAY_ELEMENT_NOT_FOUND) && (apcReplaced.Find(pcTrace) == ARRAY_ELEMENT_NOT_FOUND))
+			{
+				apcReplaced.Add(pcTrace);
+			}
+		}
+	}
+	for (i = 0; i < pasLines->NumElements(); i++)
+	{
+		AddTouchingTraces(pasLines->Get(i), &apcReplaced);
+	}
+	for (i = 0; i < apcReplaced.NumElements(); i++)
+	{
+		pcTrace = apcReplaced.GetPtr(i);
+		sLine.Init(pcTrace->GetStart(), pcTrace->GetEnd());
+		AddTouchingTraces(&sLine, &apcReplaced);
+	}
+
+	asLines.Init();
+	for (i = 0; i < pasLines->NumElements(); i++)
+	{
+		asLines.Add(pasLines->Get(i));
+	}
+	for (i = 0; i < apcReplaced.NumElements(); i++)
+	{
+		pcTrace = apcReplaced.GetPtr(i);
+		psLine = asLines.Add();
+		psLine->Init(pcTrace->GetStart(), pcTrace->GetEnd());
+		RemoveTrace(pcTrace);
+		SafeKill(pcTrace);
+	}
+	apcReplaced.Kill();
+
+	asEnds.Init();
+	for (i = 0; i < asLines.NumElements(); i++)
+	{
+		asEnds.Add(&asLines.Get(i)->sStart);
+		asEnds.Add(&asLines.Get(i)->sEnd);
+	}
+	MergeTraceLines(&asLines);
+
+	asPorts.Init();
+	apcPortViews.Init();
+	CollectPortViews(&apcPortViews);
+	for (i = 0; i < apcPortViews.NumElements(); i++)
+	{
+		sPort = apcPortViews.GetPtr(i)->GetGridPosition();
+		for (j = 0; j < asLines.NumElements(); j++)
+		{
+			if (asLines.Get(j)->Contains(sPort))
+			{
+				asPorts.Add(&sPort);
+				break;
+			}
+		}
+	}
+	apcPortViews.Kill();
+	SplitTraceLines(&asLines, &asEnds, &asPorts);
+	asPorts.Kill();
+	asEnds.Kill();
+
+	for (i = 0; i < asLines.NumElements(); i++)
+	{
+		psLine = asLines.Get(i);
+		pcTrace = AddTrace(psLine->sStart.x, psLine->sStart.y, psLine->sEnd.x, psLine->sEnd.y);
+		if (papcAdded != NULL)
+		{
+			papcAdded->Add(pcTrace);
+		}
+	}
+	asLines.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds the wires touching the line that aren't already in papcTraces.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitView::AddTouchingTraces(STraceLine* psLine, CArrayTraceViewPtr* papcTraces)
+{
+	size			i;
+	CTraceView*		pcTrace;
+	STraceLine		sLine;
+
+	for (i = 0; i < mapcTraces.NumElements(); i++)
+	{
+		pcTrace = mapcTraces.GetPtr(i);
+		sLine.Init(pcTrace->GetStart(), pcTrace->GetEnd());
+		if (sLine.Touches(psLine) && (papcTraces->Find(pcTrace) == ARRAY_ELEMENT_NOT_FOUND))
+		{
+			papcTraces->Add(pcTrace);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 size CCircuitView::NumComponents(void) { return mapcComponents.NumElements(); }
@@ -684,6 +809,96 @@ CComponentView* CCircuitView::GetComponentAt(SFloat64Vec2 sPosition)
 		}
 	}
 	return pcClosest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The wire through the grid point, as Logicim's getTraceViewInScreenSpace:
+// of several, the one whose middle is nearest.  NULL if there's none.
+//
+//////////////////////////////////////////////////////////////////////////
+CTraceView* CCircuitView::GetTraceAt(SInt32Vec2 sPoint)
+{
+	size			i;
+	CTraceView*		pcTrace;
+	CTraceView*		pcClosest;
+	float64			fDistance;
+	float64			fClosest;
+	float64			fDX;
+	float64			fDY;
+
+	pcClosest = NULL;
+	fClosest = 0;
+	for (i = 0; i < mapcTraces.NumElements(); i++)
+	{
+		pcTrace = mapcTraces.GetPtr(i);
+		if (pcTrace->Contains(sPoint))
+		{
+			fDX = sPoint.x - (pcTrace->GetStart().x + pcTrace->GetEnd().x) / 2.0;
+			fDY = sPoint.y - (pcTrace->GetStart().y + pcTrace->GetEnd().y) / 2.0;
+			fDistance = fDX * fDX + fDY * fDY;
+			if ((pcClosest == NULL) || (fDistance < fClosest))
+			{
+				pcClosest = pcTrace;
+				fClosest = fDistance;
+			}
+		}
+	}
+	return pcClosest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a port or a wire's end is on the grid point, where Logicim has a
+// connection.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitView::IsConnectionAt(SInt32Vec2 sPoint)
+{
+	size	i;
+
+	if (GetPortViewAt(sPoint) != NULL)
+	{
+		return true;
+	}
+	for (i = 0; i < mapcTraces.NumElements(); i++)
+	{
+		if (mapcTraces.GetPtr(i)->IsEnd(sPoint))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A port view on the grid point; NULL if there's none.
+//
+//////////////////////////////////////////////////////////////////////////
+CPortView* CCircuitView::GetPortViewAt(SInt32Vec2 sPoint)
+{
+	size				i;
+	size				j;
+	CComponentView*		pcComponent;
+	CPortView*			pcPortView;
+
+	for (i = 0; i < mapcComponents.NumElements(); i++)
+	{
+		pcComponent = mapcComponents.GetPtr(i);
+		for (j = 0; j < pcComponent->NumPortViews(); j++)
+		{
+			pcPortView = pcComponent->GetPortView(j);
+			if (pcPortView->GetGridPosition() == sPoint)
+			{
+				return pcPortView;
+			}
+		}
+	}
+	return NULL;
 }
 
 

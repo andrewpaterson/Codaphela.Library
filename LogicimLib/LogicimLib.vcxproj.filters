@@ -108,6 +108,9 @@
     <ClCompile Include="TraceAutoConnector.cpp">
       <Filter>Source\View</Filter>
     </ClCompile>
+    <ClCompile Include="InverterPackageView.cpp">
+      <Filter>Source\View</Filter>
+    </ClCompile>
     <ClCompile Include="CircuitFile.cpp">
       <Filter>Source\File</Filter>
     </ClCompile>
@@ -157,6 +160,15 @@
       <Filter>Source\Editor</Filter>
     </ClCompile>
     <ClCompile Include="ComponentPlacement.cpp">
+      <Filter>Source\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="TraceLines.cpp">
+      <Filter>Source\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="WirePullEdit.cpp">
+      <Filter>Source\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentLibraries.cpp">
       <Filter>Source\Editor</Filter>
     </ClCompile>
   </ItemGroup>
@@ -242,6 +254,9 @@
     <ClInclude Include="TraceAutoConnector.h">
       <Filter>Source\View</Filter>
     </ClInclude>
+    <ClInclude Include="InverterPackageView.h">
+      <Filter>Source\View</Filter>
+    </ClInclude>
     <ClInclude Include="CircuitFile.h">
       <Filter>Source\File</Filter>
     </ClInclude>
@@ -291,6 +306,15 @@
       <Filter>Source\Editor</Filter>
     </ClInclude>
     <ClInclude Include="ComponentPlacement.h">
+      <Filter>Source\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="TraceLines.h">
+      <Filter>Source\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="WirePullEdit.h">
+      <Filter>Source\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentLibraries.h">
       <Filter>Source\Editor</Filter>
     </ClInclude>
   </ItemGroup>

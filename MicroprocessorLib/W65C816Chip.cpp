@@ -19,18 +19,22 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ConstructorCall.h"
+#include "W65C816InstructionFactory.h"
 #include "W65C816Chip.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // Takes ownership of pcPins and wires the processor's signals to them.
+// The instruction factory is made ready for the chip (see
+// CW65C816InstructionFactory) until it's killed.
 //
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Chip::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CW65C816ChipPins* pcPins)
 {
 	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pcPins);
 
+	CW65C816InstructionFactory::GetInstance()->Init();
 	mcSignals.Init(pcPins->GetAddress(), pcPins->GetData(), pcPins->GetPHI2(), pcPins->GetRESB(), pcPins->GetRWB());
 	mcSignals.SetImportantTraces(pcPins->GetVPA(), pcPins->GetVDA(), pcPins->GetVPB());
 	mcSignals.SetOtherTraces(pcPins->GetMLB(), pcPins->GetMX(), pcPins->GetBE(), pcPins->GetE(), pcPins->GetRDY());
@@ -47,6 +51,7 @@ void CW65C816Chip::Kill(void)
 {
 	mcMPU.Kill();
 	mcSignals.Kill();
+	CW65C816InstructionFactory::GetInstance()->Kill();
 	CIntegratedCircuit::Kill();
 }
 

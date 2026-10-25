@@ -79,6 +79,7 @@ public:
 
 protected:
 	void			AddComponent(CComponentView* pcComponent);
+	void			AddTrace(CTraceView* pcTrace);
 	void			MoveViews(int iRightRotations, SInt32Vec2 sStart, SInt32Vec2 sDiff);
 	void			GetViews(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces);
 };

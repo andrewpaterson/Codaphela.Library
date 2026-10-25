@@ -61,7 +61,6 @@ void CTunnelView::Init(int32 x, int32 y, ERotation eRotation, const char* szName
 	msBoxMaximum = sBoxMaximum;
 	mszConnectionName.Init(szName);
 	mszConnectionName.StripWhitespace();
-	mszConnectionName.LowerCase();
 
 	fHalf = (msBoxMaximum.y - msBoxMinimum.y) / 2;
 	fPoint = fHalf - 0.125;
@@ -170,7 +169,7 @@ CCircuitComponent* CTunnelView::CreateComponent(CViewPath* pcViewPath, CCircuitS
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The name in lower case without the spaces around it.
+// The name without the spaces around it.  Names are case sensitive.
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CTunnelView::GetConnectionName(void)

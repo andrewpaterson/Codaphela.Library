@@ -105,6 +105,7 @@ void CTraceAutoConnector::Init(CCircuitView* pcCircuit)
 	mapcAddedTraces.Init();
 	maiAddedTraceNets.Init();
 	maiNetsWithExisting.Init();
+	maiNetRuns.Init();
 }
 
 
@@ -114,6 +115,7 @@ void CTraceAutoConnector::Init(CCircuitView* pcCircuit)
 //////////////////////////////////////////////////////////////////////////
 void CTraceAutoConnector::Kill(void)
 {
+	maiNetRuns.Kill();
 	maiNetsWithExisting.Kill();
 	maiAddedTraceNets.Kill();
 	mapcAddedTraces.Kill();
@@ -261,9 +263,19 @@ bool CTraceAutoConnector::Connect(void)
 	}
 
 	maiNetsWithExisting.ReInit();
+	maiNetRuns.ReInit();
 	for (i = 0; i < muiNumNets; i++)
 	{
 		maiNetsWithExisting.Add(0);
+		maiNetRuns.Add(-1);
+	}
+	for (i = 0; i < masConnections.NumElements(); i++)
+	{
+		psConnection = masConnections.Get(i);
+		if (maiNetRuns.GetValue(psConnection->uiNet) == -1)
+		{
+			maiNetRuns.SetValue(psConnection->uiNet, psConnection->iRun);
+		}
 	}
 	mapcAddedTraces.ReInit();
 	maiAddedTraceNets.ReInit();
@@ -302,7 +314,7 @@ bool CTraceAutoConnector::Connect(void)
 	//Rip up what's in the way of each that failed and route it again.
 	aiConflicts.Init();
 	uiRips = 0;
-	uiMaxRips = 4 * masConnections.NumElements() + 8;
+	uiMaxRips = 2 * aiFailed.NumElements() + 8;
 	for (uiHead = 0; (uiHead < aiFailed.NumElements()) && (uiRips < uiMaxRips); uiHead++)
 	{
 		psConnection = masConnections.Get(aiFailed.GetValue(uiHead));
@@ -1442,6 +1454,8 @@ int CTraceAutoConnector::GetStepCost(STraceAutoConnection* psConnection, int iCe
 	int		iNet;
 	int32	iOffBend;
 	bool	bHorizontal;
+	int32	x;
+	int32	y;
 
 	iNet = (int)psConnection->uiNet;
 	bHorizontal = IsDirectionHorizontal(iDirection);
@@ -1454,6 +1468,32 @@ int CTraceAutoConnector::GetStepCost(STraceAutoConnection* psConnection, int iCe
 	if ((iAcross != -1) && (iAcross != iNet))
 	{
 		iCost += TRACE_AUTO_CONNECT_CROSS_COST;
+	}
+
+	//Another net's wire running alongside, either side.
+	x = iCell % miGridWidth;
+	y = iCell / miGridWidth;
+	if (bHorizontal)
+	{
+		if ((y > 0) && IsCrowding(maiHorizontal.GetValue(iCell - miGridWidth), iNet))
+		{
+			iCost += TRACE_AUTO_CONNECT_CROWD_COST;
+		}
+		if ((y < miGridHeight - 1) && IsCrowding(maiHorizontal.GetValue(iCell + miGridWidth), iNet))
+		{
+			iCost += TRACE_AUTO_CONNECT_CROWD_COST;
+		}
+	}
+	else
+	{
+		if ((x > 0) && IsCrowding(maiVertical.GetValue(iCell - 1), iNet))
+		{
+			iCost += TRACE_AUTO_CONNECT_CROWD_COST;
+		}
+		if ((x < miGridWidth - 1) && IsCrowding(maiVertical.GetValue(iCell + 1), iNet))
+		{
+			iCost += TRACE_AUTO_CONNECT_CROWD_COST;
+		}
 	}
 	if (psConnection->bHasBend && (bHorizontal != psConnection->bHorizontal))
 	{
@@ -1469,6 +1509,26 @@ int CTraceAutoConnector::GetStepCost(STraceAutoConnection* psConnection, int iCe
 		iCost += (iOffBend < TRACE_AUTO_CONNECT_HINT_LIMIT) ? iOffBend : TRACE_AUTO_CONNECT_HINT_LIMIT;
 	}
 	return iCost;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a wire of the occupant beside a route of the net crowds it: it's
+// another net, and not one in the same run.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTraceAutoConnector::IsCrowding(int iOccupant, int iNet)
+{
+	if ((iOccupant == -1) || (iOccupant == iNet))
+	{
+		return false;
+	}
+	if ((iOccupant < (int)muiNumNets) && (maiNetRuns.GetValue(iNet) != -1) && (maiNetRuns.GetValue(iOccupant) == maiNetRuns.GetValue(iNet)))
+	{
+		return false;
+	}
+	return true;
 }
 
 

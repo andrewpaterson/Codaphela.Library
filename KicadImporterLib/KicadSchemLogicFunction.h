@@ -42,8 +42,8 @@ enum EKicadSchemLogicFunction
 //The function of a 74 series part from its part number, as "SN74LVC1G08DBVR", "74HC00" or "Nexperia:74LVC74APW,118":
 //"74", then the family's letters, then "1G", "2G" or "3G" for a small part, then the function's digits.  The family is
 //one Logicim has propagation times for (see the family voltage configurations) or LVC.  KSLF_None if it isn't a 74
-//series gate or flip flop Logicim has.
-EKicadSchemLogicFunction	ParseKicadSchemLogicFunction(const char* szPartNumber, CChars* pszFamily);
+//series gate or flip flop Logicim has.  The part type is what follows the family: "04", "1G08".
+EKicadSchemLogicFunction	ParseKicadSchemLogicFunction(const char* szPartNumber, CChars* pszFamily, CChars* pszPartType = NULL);
 const char*					KicadSchemLogicFunctionName(EKicadSchemLogicFunction eFunction);
 bool						IsKicadSchemLogicimFamily(const char* szFamily);
 
