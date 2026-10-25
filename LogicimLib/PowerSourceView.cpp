@@ -87,7 +87,7 @@ float32 CPowerSourceView::GetVoltage(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Three shrinking bars under a stem down from the port.
+// Three shrinking bars beyond a stem left from the port.
 //
 //////////////////////////////////////////////////////////////////////////
 void CGroundView::Init(int32 x, int32 y, ERotation eRotation, const char* szName)
@@ -96,11 +96,11 @@ void CGroundView::Init(int32 x, int32 y, ERotation eRotation, const char* szName
 
 	CPowerSourceView::Init(x, y, eRotation, szName, 0.0f);
 
-	fOffset = 0.5;
-	mcShapes.AddLine(-0.9, fOffset, 0.9, fOffset);
-	mcShapes.AddLine(-0.6, fOffset + 0.333, 0.6, fOffset + 0.333);
-	mcShapes.AddLine(-0.3, fOffset + 0.666, 0.3, fOffset + 0.666);
-	mcShapes.AddLine(0, 0, 0, fOffset);
+	fOffset = -0.5;
+	mcShapes.AddLine(fOffset, -0.9, fOffset, 0.9);
+	mcShapes.AddLine(fOffset - 0.333, -0.6, fOffset - 0.333, 0.6);
+	mcShapes.AddLine(fOffset - 0.666, -0.3, fOffset - 0.666, 0.3);
+	mcShapes.AddLine(0, 0, fOffset, 0);
 	AddPortView(POWER_PIN_POWER, 0, 0);
 	CalculateBounds();
 }
@@ -149,8 +149,8 @@ bool CGroundView::LoadXML(CMarkupTag* pcTag)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The box runs from 0.4 below the position to 1 above it, with its point
-// at the port.
+// The box runs from 1 left of the position to 0.4 right of it, with its
+// point at the port.
 //
 //////////////////////////////////////////////////////////////////////////
 void CPositivePowerView::Init(int32 x, int32 y, ERotation eRotation, const char* szName, float32 fVoltage)
@@ -161,11 +161,11 @@ void CPositivePowerView::Init(int32 x, int32 y, ERotation eRotation, const char*
 
 	CPowerSourceView::Init(x, y, eRotation, szName, fVoltage);
 
-	asPoints[0].Init(0, 1);
-	asPoints[1].Init(0.9, 0.4);
-	asPoints[2].Init(0.9, -1);
-	asPoints[3].Init(-0.9, -1);
-	asPoints[4].Init(-0.9, 0.4);
+	asPoints[0].Init(1, 0);
+	asPoints[1].Init(0.4, -0.9);
+	asPoints[2].Init(-1, -0.9);
+	asPoints[3].Init(-1, 0.9);
+	asPoints[4].Init(0.4, 0.9);
 	psShape = mcShapes.AddPolygon(asPoints, 5, true, true);
 	if (fVoltage > 4.0f)
 	{
@@ -175,10 +175,10 @@ void CPositivePowerView::Init(int32 x, int32 y, ERotation eRotation, const char*
 	szVoltage.Init();
 	AppendVoltage(&szVoltage, fVoltage, false);
 	muiVoltageText = mcShapes.NumShapes();
-	mcShapes.AddCentredText(0, -0.1, szVoltage.Text(), CF_SansSerifBold, 11);
+	mcShapes.AddCentredText(-0.1, 0, szVoltage.Text(), CF_SansSerifBold, 11);
 	szVoltage.Kill();
 
-	AddPortView(POWER_PIN_POWER, 0, 1);
+	AddPortView(POWER_PIN_POWER, 1, 0);
 	CalculateBounds();
 }
 

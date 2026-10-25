@@ -45,17 +45,17 @@ void CClockView::Init(int32 x, int32 y, ERotation eRotation, const char* szName,
 	}
 	else
 	{
-		mcShapes.AddRectangle(-0.5, -1, 2.5, 1, true, true);
+		mcShapes.AddRectangle(-1, -0.5, 1, 2.5, true, true);
 		fCentre = 1;
 	}
 
-	//Low, up, along high, down, along low and up, running up the box.
-	asWave[0].Init(fCentre, -0.5);
-	asWave[1].Init(fCentre - 0.33, -0.5);
-	asWave[2].Init(fCentre - 0.33, 0);
-	asWave[3].Init(fCentre + 0.33, 0);
-	asWave[4].Init(fCentre + 0.33, 0.5);
-	asWave[5].Init(fCentre, 0.5);
+	//A square wave across the box from right to left.
+	asWave[0].Init(0.5, fCentre);
+	asWave[1].Init(0.5, fCentre - 0.33);
+	asWave[2].Init(0, fCentre - 0.33);
+	asWave[3].Init(0, fCentre + 0.33);
+	asWave[4].Init(-0.5, fCentre + 0.33);
+	asWave[5].Init(-0.5, fCentre);
 	muiFirstWaveformLine = mcShapes.NumShapes();
 	for (i = 0; i < CLOCK_WAVEFORM_LINES; i++)
 	{
@@ -63,10 +63,10 @@ void CClockView::Init(int32 x, int32 y, ERotation eRotation, const char* szName,
 	}
 
 	CreatePowerPortViews();
-	AddPortView("Output", 0, -1);
+	AddPortView("Output", 1, 0);
 	if (mbInverseOut)
 	{
-		AddPortView("Output2", 2, -1);
+		AddPortView("Output2", 1, 2);
 	}
 	CalculateBounds();
 }

@@ -51,7 +51,7 @@ void CTunnelView::Init(int32 x, int32 y, ERotation eRotation, const char* szName
 	SFloat64Vec2	asPoints[6];
 	float64			fHalf;
 	float64			fPoint;
-	float64			fTop;
+	float64			fFar;
 	CArrayChars		aszNoPorts;
 	CPortView*		pcPortView;
 
@@ -63,34 +63,34 @@ void CTunnelView::Init(int32 x, int32 y, ERotation eRotation, const char* szName
 	mszConnectionName.StripWhitespace();
 	mszConnectionName.LowerCase();
 
-	fHalf = (msBoxMaximum.x - msBoxMinimum.x) / 2;
+	fHalf = (msBoxMaximum.y - msBoxMinimum.y) / 2;
 	fPoint = fHalf - 0.125;
-	fTop = msBoxMinimum.y;
+	fFar = msBoxMaximum.x;
 	asPoints[0].Init(0, 0);
-	asPoints[1].Init(-fHalf, -fPoint);
+	asPoints[1].Init(fPoint, -fHalf);
 	if (!mbDoubleSided)
 	{
-		asPoints[2].Init(-fHalf, fTop);
-		asPoints[3].Init(fHalf, fTop);
-		asPoints[4].Init(fHalf, -fPoint);
+		asPoints[2].Init(fFar, -fHalf);
+		asPoints[3].Init(fFar, fHalf);
+		asPoints[4].Init(fPoint, fHalf);
 		mcShapes.AddPolygon(asPoints, 5, true, true);
 	}
 	else
 	{
-		asPoints[2].Init(-fHalf, fTop + fPoint);
-		asPoints[3].Init(0, fTop);
-		asPoints[4].Init(fHalf, fTop + fPoint);
-		asPoints[5].Init(fHalf, -fPoint);
+		asPoints[2].Init(fFar - fPoint, -fHalf);
+		asPoints[3].Init(fFar, 0);
+		asPoints[4].Init(fFar - fPoint, fHalf);
+		asPoints[5].Init(fPoint, fHalf);
 		mcShapes.AddPolygon(asPoints, 6, true, true);
 	}
-	mcShapes.AddText(0, -0.5, szName, CF_SansSerifBold, TUNNEL_FONT_SIZE, TA_Left);
+	mcShapes.AddText(0.5, 0, szName, CF_SansSerifBold, TUNNEL_FONT_SIZE, TA_Left);
 
 	aszNoPorts.Init();
 	pcPortView = AddPortView(&aszNoPorts, 0, 0);
 	pcPortView->SetDrawn(false);
 	if (mbDoubleSided)
 	{
-		pcPortView = AddPortView(&aszNoPorts, 0, (int32)floor(fTop + 0.5));
+		pcPortView = AddPortView(&aszNoPorts, -(int32)floor(0.5 - fFar), 0);
 		pcPortView->SetDrawn(false);
 	}
 	aszNoPorts.Kill();
@@ -133,8 +133,8 @@ void CTunnelView::MeasureBox(CCircuitFonts* pcFonts, const char* szName, bool bD
 	{
 		fLength = floor(sSize.fWidth + fPoint + fPoint + 0.5 + 0.5);
 	}
-	psBoxMinimum->Init(-sSize.fHeight / 2, -fLength);
-	psBoxMaximum->Init(sSize.fHeight / 2, 0);
+	psBoxMinimum->Init(0, -sSize.fHeight / 2);
+	psBoxMaximum->Init(fLength, sSize.fHeight / 2);
 }
 
 

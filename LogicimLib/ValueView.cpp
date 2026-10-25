@@ -71,15 +71,15 @@ void CValueView::MeasureBox(CCircuitFonts* pcFonts, int32 iBitWidth, ERadix eRad
 	szWidest.Kill();
 
 	iLength = (int32)ceil(sSize.fWidth + 0.5);
-	psBoxMinimum->Init(-1, 0);
-	psBoxMaximum->Init(1, iLength);
+	psBoxMinimum->Init(-iLength, -1);
+	psBoxMaximum->Init(0, 1);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // The bus at the position and, with explicit power, VCC and GND on the
-// box's sides a grid unit along.
+// box's top and bottom a grid unit along.
 //
 //////////////////////////////////////////////////////////////////////////
 void CValueView::CreateValuePortViews(const char* szPortName)
@@ -102,8 +102,8 @@ void CValueView::CreateValuePortViews(const char* szPortName)
 
 	if (mbExplicitPowerPorts)
 	{
-		AddPortView(POWER_PIN_VCC, msBoxMinimum.x, msBoxMinimum.y + 1);
-		AddPortView(POWER_PIN_GND, msBoxMaximum.x, msBoxMinimum.y + 1);
+		AddPortView(POWER_PIN_VCC, msBoxMaximum.x - 1, msBoxMinimum.y);
+		AddPortView(POWER_PIN_GND, msBoxMaximum.x - 1, msBoxMaximum.y);
 	}
 }
 
@@ -370,7 +370,7 @@ void CProbeView::Init(int32 x, int32 y, ERotation eRotation, const char* szName,
 	if (miMaxDigits == 1)
 	{
 		sCentre = GetBoxCentre();
-		mcShapes.AddCircle(sCentre.x, sCentre.y, (msBoxMaximum.x - msBoxMinimum.x) / 2.0, true, true);
+		mcShapes.AddCircle(sCentre.x, sCentre.y, (msBoxMaximum.y - msBoxMinimum.y) / 2.0, true, true);
 	}
 	else
 	{
@@ -473,7 +473,7 @@ void CPinView::Init(int32 x, int32 y, ERotation eRotation, const char* szName, c
 	if (miMaxDigits == 1)
 	{
 		sCentre = GetBoxCentre();
-		mcShapes.AddCircle(sCentre.x, sCentre.y, (msBoxMaximum.x - msBoxMinimum.x) / 2.0, true, true);
+		mcShapes.AddCircle(sCentre.x, sCentre.y, (msBoxMaximum.y - msBoxMinimum.y) / 2.0, true, true);
 	}
 	else
 	{
@@ -481,7 +481,7 @@ void CPinView::Init(int32 x, int32 y, ERotation eRotation, const char* szName, c
 	}
 	CreateValuePortViews("Port");
 	AddValueText();
-	mcShapes.AddText(0, msBoxMaximum.y + 0.25, szName, CF_SansSerifBold, VALUE_FONT_SIZE, TA_Left, 2);
+	mcShapes.AddText(msBoxMinimum.x - 0.25, 0, szName, CF_SansSerifBold, VALUE_FONT_SIZE, TA_Left, 2);
 	CalculateBounds();
 }
 

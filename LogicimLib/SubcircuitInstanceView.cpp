@@ -471,11 +471,11 @@ bool CSubcircuitInstanceView::SetInstanceCircuitView(CCircuitView* pcInstanceCir
 //////////////////////////////////////////////////////////////////////////
 //
 // As Logicim's createTypeGraphics and createPinsAndGraphics.  Logicim
-// works in a frame turned to the right of the instance's (x across it is
-// y down the instance and y across it is x along the instance); it's kept
-// here, as R, so the steps read as Logicim's.  The type name, comment and
-// name are stacked across the instance, each centred, and their box is
-// padded; then each side is widened to fit its pins and their labels.
+// works in a frame turned against the instance's; it's kept here, as R,
+// so the steps read as Logicim's, and turned into the instance's at the
+// end (R's x is -x and R's y is y).  The type name, comment and name are
+// stacked down the instance, each centred, and their box is padded; then
+// each side is widened to fit its pins and their labels.
 //
 //////////////////////////////////////////////////////////////////////////
 void CSubcircuitInstanceView::MeasureLayout(CCircuitFonts* pcFonts, CCircuitView* pcInstanceCircuitView, const char* szName, const char* szComment, SSubcircuitInstanceLayout* psLayout)
@@ -509,9 +509,9 @@ void CSubcircuitInstanceView::MeasureLayout(CCircuitFonts* pcFonts, CCircuitView
 	abShown[1] = !StrEmpty(szComment);
 	asSizes[2] = pcFonts->Measure(CF_SansSerif, SUBCIRCUIT_TEXT_FONT_SIZE, szName);
 	abShown[2] = !StrEmpty(szName);
-	apfX[0] = &psLayout->fTypeX;
-	apfX[1] = &psLayout->fCommentX;
-	apfX[2] = &psLayout->fNameX;
+	apfX[0] = &psLayout->fTypeY;
+	apfX[1] = &psLayout->fCommentY;
+	apfX[2] = &psLayout->fNameY;
 
 	//TextView.centerHorizontally.
 	fHeight = 0;
@@ -597,8 +597,8 @@ void CSubcircuitInstanceView::MeasureLayout(CCircuitFonts* pcFonts, CCircuitView
 	sBottom.Kill();
 	sTop.Kill();
 
-	psLayout->sBoxMinimum.Init(iTopR, iLeftR);
-	psLayout->sBoxMaximum.Init(iBottomR, iRightR);
+	psLayout->sBoxMinimum.Init(-iRightR, iTopR);
+	psLayout->sBoxMaximum.Init(-iLeftR, iBottomR);
 }
 
 
@@ -625,10 +625,10 @@ void CSubcircuitInstanceView::LayOut(void)
 	int					iBottom;
 	size				uiShape;
 
-	iLeftR = msLayout.sBoxMinimum.y;
-	iRightR = msLayout.sBoxMaximum.y;
-	iTopR = msLayout.sBoxMinimum.x;
-	iBottomR = msLayout.sBoxMaximum.x;
+	iLeftR = -msLayout.sBoxMaximum.x;
+	iRightR = -msLayout.sBoxMinimum.x;
+	iTopR = msLayout.sBoxMinimum.y;
+	iBottomR = msLayout.sBoxMaximum.y;
 
 	mcShapes.AddRectangle(msLayout.sBoxMinimum.x, msLayout.sBoxMinimum.y, msLayout.sBoxMaximum.x, msLayout.sBoxMaximum.y, true, true);
 
@@ -638,30 +638,30 @@ void CSubcircuitInstanceView::LayOut(void)
 	sRight.Init(mpcInstanceCircuitView, PA_Right);
 
 	iMaxGridWidth = CalculateMaxGridSize(sTop.iExtendedSize, sBottom.iExtendedSize);
-	AddSidePins(&sTop, -(iMaxGridWidth / 2), iMaxGridWidth - iMaxGridWidth / 2, iTopR, TA_Left, 1);
-	AddSidePins(&sBottom, -(iMaxGridWidth / 2), iMaxGridWidth - iMaxGridWidth / 2, iBottomR, TA_Right, 1);
+	AddSidePins(&sTop, -(iMaxGridWidth / 2), iMaxGridWidth - iMaxGridWidth / 2, iTopR, 0, -1, TA_Left, 1);
+	AddSidePins(&sBottom, -(iMaxGridWidth / 2), iMaxGridWidth - iMaxGridWidth / 2, iBottomR, 0, 1, TA_Right, 1);
 
 	iTop = iTopR;
 	iBottom = iBottomR;
 	FitLeftRightPins(&sLeft, &sRight, &iTop, &iBottom);
-	AddSidePins(&sLeft, iTop, iBottom, iRightR, TA_Left, 0);
-	AddSidePins(&sRight, iTop, iBottom, iLeftR, TA_Right, 0);
+	AddSidePins(&sLeft, iTop, iBottom, -iRightR, -1, 0, TA_Left, 0);
+	AddSidePins(&sRight, iTop, iBottom, -iLeftR, 1, 0, TA_Right, 0);
 
 	sRight.Kill();
 	sLeft.Kill();
 	sBottom.Kill();
 	sTop.Kill();
 
-	mcShapes.AddText(msLayout.fTypeX, 0, mszTypeName.Text(), CF_SansSerifBold, SUBCIRCUIT_TYPE_FONT_SIZE, TA_Centre);
+	mcShapes.AddText(0, msLayout.fTypeY, mszTypeName.Text(), CF_SansSerifBold, SUBCIRCUIT_TYPE_FONT_SIZE, TA_Centre);
 	if (!mszComment.Empty())
 	{
 		uiShape = mcShapes.NumShapes();
-		mcShapes.AddText(msLayout.fCommentX, 0, mszComment.Text(), CF_SansSerif, SUBCIRCUIT_TEXT_FONT_SIZE, TA_Centre);
+		mcShapes.AddText(0, msLayout.fCommentY, mszComment.Text(), CF_SansSerif, SUBCIRCUIT_TEXT_FONT_SIZE, TA_Centre);
 		mcShapes.SetBorder(uiShape, SC_CommentText);
 	}
 	if (!mszName.Empty())
 	{
-		mcShapes.AddText(msLayout.fNameX, 0, mszName.Text(), CF_SansSerif, SUBCIRCUIT_TEXT_FONT_SIZE, TA_Centre);
+		mcShapes.AddText(0, msLayout.fNameY, mszName.Text(), CF_SansSerif, SUBCIRCUIT_TEXT_FONT_SIZE, TA_Centre);
 	}
 	CalculateBounds();
 }
@@ -669,13 +669,14 @@ void CSubcircuitInstanceView::LayOut(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The side's pins between iOffset and iOpposite along it, on the box's
-// edge at iEdge across it.  Top and bottom pins (turned right once) are
-// along y with their edge an x; left and right pins are along x with
-// their edge a y.
+// The side's pins between iOffset and iOpposite along it (Logicim's
+// offsets), on the box's edge at iEdge across it, their ports facing out
+// along (iOutX, iOutY).  Top and bottom pins run right to left along x
+// and their edge is a y; left and right pins run down y and their edge is
+// an x.
 //
 //////////////////////////////////////////////////////////////////////////
-void CSubcircuitInstanceView::AddSidePins(SPinSide* psSide, int iOffset, int iOpposite, int iEdge, ETextAlignment eAlignment, int iRightRotations)
+void CSubcircuitInstanceView::AddSidePins(SPinSide* psSide, int iOffset, int iOpposite, int iEdge, int iOutX, int iOutY, ETextAlignment eAlignment, int iRightRotations)
 {
 	CArrayPinOffset		asOffsets;
 	size				i;
@@ -686,13 +687,13 @@ void CSubcircuitInstanceView::AddSidePins(SPinSide* psSide, int iOffset, int iOp
 	for (i = 0; i < asOffsets.NumElements(); i++)
 	{
 		psOffset = asOffsets.Get(i);
-		if (iRightRotations == 1)
+		if (iOutY != 0)
 		{
-			AddPin(psOffset->pcPin, iEdge, psOffset->iOffset, eAlignment, iRightRotations);
+			AddPin(psOffset->pcPin, -psOffset->iOffset, iEdge, iOutX, iOutY, eAlignment, iRightRotations);
 		}
 		else
 		{
-			AddPin(psOffset->pcPin, psOffset->iOffset, iEdge, eAlignment, iRightRotations);
+			AddPin(psOffset->pcPin, iEdge, psOffset->iOffset, iOutX, iOutY, eAlignment, iRightRotations);
 		}
 	}
 	asOffsets.Kill();
@@ -702,49 +703,35 @@ void CSubcircuitInstanceView::AddSidePins(SPinSide* psSide, int iOffset, int iOp
 //////////////////////////////////////////////////////////////////////////
 //
 // A pin at (x, y) on the box's edge, as Logicim's SubcircuitPinView: its
-// port a grid unit out (turned right iRightRotations times from North and
-// mirrored for a right aligned pin), a line or an inverting bubble out to
-// it, its name half a unit in and a clock notch on the edge if it has
-// one.
+// port a grid unit out along (iOutX, iOutY), a line or an inverting
+// bubble out to it, its name half a unit in (turned right
+// iRightRotations times) and, if it has one, a clock notch on the edge
+// pointing in.
 //
 //////////////////////////////////////////////////////////////////////////
-void CSubcircuitInstanceView::AddPin(CPinView* pcPin, int32 x, int32 y, ETextAlignment eAlignment, int iRightRotations)
+void CSubcircuitInstanceView::AddPin(CPinView* pcPin, int32 x, int32 y, int iOutX, int iOutY, ETextAlignment eAlignment, int iRightRotations)
 {
-	float64					fModifier;
-	SFloat64Vec2			asPoints[3];
-	float64					afOffsets[5][2] = { { 0, -1 }, { 0, 0.5 }, { 0, -0.5 }, { -0.5, 0 }, { 0.5, 0 } };
-	SFloat64Vec2			asCalculated[5];
-	float64					fX;
-	float64					fY;
-	size					i;
+	SFloat64Vec2			asNotch[3];
+	SFloat64Vec2			sAlong;
 	int32					iPortX;
 	int32					iPortY;
+	float64					fTextX;
+	float64					fTextY;
+	size					i;
 	SComponentShape*		psShape;
 	CArrayChars				aszPortNames;
 	CChars					szPortName;
 	SSubcircuitPinView*		psPin;
 
-	fModifier = (eAlignment == TA_Left) ? -1.0 : 1.0;
-	for (i = 0; i < 5; i++)
-	{
-		fX = afOffsets[i][0];
-		fY = afOffsets[i][1] * fModifier;
-		if (iRightRotations == 1)
-		{
-			asCalculated[i].Init(x - fY, y + fX);
-		}
-		else
-		{
-			asCalculated[i].Init(x + fX, y + fY);
-		}
-	}
-	iPortX = (int32)floor(asCalculated[0].x + 0.5);
-	iPortY = (int32)floor(asCalculated[0].y + 0.5);
+	iPortX = x + iOutX;
+	iPortY = y + iOutY;
+	fTextX = x - 0.5 * iOutX;
+	fTextY = y - 0.5 * iOutY;
 
-	mcShapes.AddText(asCalculated[1].x, asCalculated[1].y, pcPin->GetName(), CF_SansSerif, SUBCIRCUIT_TEXT_FONT_SIZE, eAlignment, iRightRotations);
+	mcShapes.AddText(fTextX, fTextY, pcPin->GetName(), CF_SansSerif, SUBCIRCUIT_TEXT_FONT_SIZE, eAlignment, iRightRotations);
 	if (pcPin->IsInverting())
 	{
-		mcShapes.AddCircle(asCalculated[2].x, asCalculated[2].y, 0.5, false, true);
+		mcShapes.AddCircle(x + 0.5 * iOutX, y + 0.5 * iOutY, 0.5, false, true);
 	}
 	else
 	{
@@ -752,10 +739,18 @@ void CSubcircuitInstanceView::AddPin(CPinView* pcPin, int32 x, int32 y, ETextAli
 	}
 	if (pcPin->IsClockNotch())
 	{
-		asPoints[0] = asCalculated[3];
-		asPoints[1] = asCalculated[1];
-		asPoints[2] = asCalculated[4];
-		psShape = mcShapes.AddPolygon(asPoints, 3, false, true);
+		if (iOutY != 0)
+		{
+			sAlong.Init(0.5, 0);
+		}
+		else
+		{
+			sAlong.Init(0, -0.5);
+		}
+		asNotch[0].Init(x + sAlong.x, y + sAlong.y);
+		asNotch[1].Init(fTextX, fTextY);
+		asNotch[2].Init(x - sAlong.x, y - sAlong.y);
+		psShape = mcShapes.AddPolygon(asNotch, 3, false, true);
 		psShape->fLineWidth = PORT_CLOCK_NOTCH_WIDTH;
 	}
 
@@ -808,14 +803,14 @@ void CSubcircuitInstanceView::SaveXMLAttributes(CXMLWriter* pcWriter)
 		pcWriter->Attribute("comment", mszComment.Text());
 	}
 	SaveXMLBox(pcWriter, msLayout.sBoxMinimum, msLayout.sBoxMaximum);
-	pcWriter->Attribute("typeX", msLayout.fTypeX);
+	pcWriter->Attribute("typeY", msLayout.fTypeY);
 	if (!mszComment.Empty())
 	{
-		pcWriter->Attribute("commentX", msLayout.fCommentX);
+		pcWriter->Attribute("commentY", msLayout.fCommentY);
 	}
 	if (!mszName.Empty())
 	{
-		pcWriter->Attribute("nameX", msLayout.fNameX);
+		pcWriter->Attribute("nameY", msLayout.fNameY);
 	}
 }
 
@@ -853,13 +848,13 @@ bool CSubcircuitInstanceView::LoadXML(CMarkupTag* pcTag)
 	{
 		return false;
 	}
-	sLayout.fCommentX = 0;
-	sLayout.fNameX = 0;
-	if (!pcTag->GetFloat64Attribute("typeX", &sLayout.fTypeX) ||
-		(!StrEmpty(szComment) && !pcTag->GetFloat64Attribute("commentX", &sLayout.fCommentX)) ||
-		(!StrEmpty(szName) && !pcTag->GetFloat64Attribute("nameX", &sLayout.fNameX)))
+	sLayout.fCommentY = 0;
+	sLayout.fNameY = 0;
+	if (!pcTag->GetFloat64Attribute("typeY", &sLayout.fTypeY) ||
+		(!StrEmpty(szComment) && !pcTag->GetFloat64Attribute("commentY", &sLayout.fCommentY)) ||
+		(!StrEmpty(szName) && !pcTag->GetFloat64Attribute("nameY", &sLayout.fNameY)))
 	{
-		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs typeX, and commentX and nameX for its comment and name.", NULL);
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs typeY, and commentY and nameY for its comment and name.", NULL);
 	}
 
 	Init(x, y, eRotation, szName, szComment, szTypeName, &sLayout);

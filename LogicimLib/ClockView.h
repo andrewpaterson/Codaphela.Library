@@ -26,8 +26,8 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #define CLOCK_WAVEFORM_LINES	5
 
 
-//A clock oscillator, as Logicim's ClockView: a two grid unit box with a square wave in it and its output on top.  An
-//inverse output makes the box a grid unit wider with the inverted output on top of the extra unit.  The wave is drawn
+//A clock oscillator, as Logicim's ClockView: a two grid unit box with a square wave in it and its output on its right.
+//An inverse output makes the box a grid unit taller with the inverted output on the right of the extra unit.  The wave is drawn
 //in the colour of the clock's own voltage.  (Logicim moved the wave of a clock with an inverse output off its box when
 //the clock faced North or South; here it's always in the middle of the box.)
 class CClockView : public CIntegratedCircuitView

@@ -68,7 +68,7 @@ struct SValueViewXML
 
 
 //A component that shows the value on its bus of iBitWidth ports, as Logicim's ConstantView and ProbeView.  Its port
-//is at its position and its box runs from there down (grid y), two grid units wide and as long as its widest value
+//is at its position and its box runs from there to the left, two grid units high and as long as its widest value
 //in Logicim's monospaced 10 pixel font, measured when it's made (Logicim's createGraphics) and then kept and saved.
 //The value is written in the middle of the box in its radix, turned with the box as Logicim turns it (the view is
 //drawn as Logicim draws it turned twice to the right).

@@ -54,7 +54,7 @@ enum EShapeColour
 };
 
 
-//A shape in a component's grid space, facing North about the component's position.  Lines and polygons keep their
+//A shape in a component's grid space, facing East about the component's position.  Lines and polygons keep their
 //points in the shapes' point array.  Arcs and circles are an ellipse centre and radii; arc angles are degrees
 //counterclockwise on the screen from three o'clock, as Java's drawArc.  Text is a line at sCentre in its font and size
 //(pixels at zoom one) drawn in the border colour; its string is in the shapes' text array.  Text keeps upright: it's

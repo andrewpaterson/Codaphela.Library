@@ -56,30 +56,30 @@ void COrGateView::InitOr(int32 x, int32 y, ERotation eRotation, const char* szNa
 //////////////////////////////////////////////////////////////////////////
 void COrGateView::CreateShapes(void)
 {
-	float64			fWidth;
+	float64			fHeight;
 	float64			fRadius;
-	float64			fTop;
-	float64			fBottom;
+	float64			fCentre;
+	float64			fBack;
 	float64			fMiddle;
 	float64			fZero;
 
-	fWidth = CalculateWidth(miInputCount);
-	fRadius = fWidth * 2;
-	fTop = 0.6;
-	fBottom = 3.5;
-	fMiddle = 0.9;
+	fHeight = CalculateWidth(miInputCount);
+	fRadius = fHeight * 2;
+	fCentre = -0.6;
+	fBack = -3.5;
+	fMiddle = -0.9;
 	fZero = 0.0;
 
-	mcShapes.AddArc(fWidth, fTop, fRadius, 3, OR_ARC_LEFT_START, OR_ARC_SIDE_LENGTH - OR_ARC_FILL_OFFSET, true, false);
-	mcShapes.AddArc(-fWidth, fTop, fRadius, 3, OR_ARC_RIGHT_START + OR_ARC_FILL_OFFSET, OR_ARC_SIDE_LENGTH - OR_ARC_FILL_OFFSET, true, false);
-	mcShapes.AddTriangle(fWidth, fMiddle, fWidth - OR_FILL_OFFSET, fZero, 0, fZero, true, false);
-	mcShapes.AddTriangle(-fWidth, fMiddle, -fWidth + OR_FILL_OFFSET, fZero, 0, fZero, true, false);
-	mcShapes.AddArc(fWidth, fTop, fRadius, 3, OR_ARC_LEFT_START, OR_ARC_SIDE_LENGTH, false, true);
-	mcShapes.AddArc(-fWidth, fTop, fRadius, 3, OR_ARC_RIGHT_START, OR_ARC_SIDE_LENGTH, false, true);
-	mcShapes.AddArc(0, fBottom, fRadius, 3, OR_ARC_BOTTOM_START, OR_ARC_BOTTOM_LENGTH, false, true);
+	mcShapes.AddArc(fCentre, fHeight, 3, fRadius, OR_ARC_LOWER_START, OR_ARC_SIDE_LENGTH - OR_ARC_FILL_OFFSET, true, false);
+	mcShapes.AddArc(fCentre, -fHeight, 3, fRadius, OR_ARC_UPPER_START + OR_ARC_FILL_OFFSET, OR_ARC_SIDE_LENGTH - OR_ARC_FILL_OFFSET, true, false);
+	mcShapes.AddTriangle(fMiddle, fHeight, fZero, fHeight - OR_FILL_OFFSET, fZero, 0, true, false);
+	mcShapes.AddTriangle(fMiddle, -fHeight, fZero, -fHeight + OR_FILL_OFFSET, fZero, 0, true, false);
+	mcShapes.AddArc(fCentre, fHeight, 3, fRadius, OR_ARC_LOWER_START, OR_ARC_SIDE_LENGTH, false, true);
+	mcShapes.AddArc(fCentre, -fHeight, 3, fRadius, OR_ARC_UPPER_START, OR_ARC_SIDE_LENGTH, false, true);
+	mcShapes.AddArc(fBack, 0, 3, fRadius, OR_ARC_BACK_START, OR_ARC_BACK_LENGTH, false, true);
 	if (mbExclusive)
 	{
-		mcShapes.AddArc(0, fBottom + 1, fRadius, 3, OR_ARC_BOTTOM_START, OR_ARC_BOTTOM_LENGTH, false, true);
+		mcShapes.AddArc(fBack - 1, 0, 3, fRadius, OR_ARC_BACK_START, OR_ARC_BACK_LENGTH, false, true);
 	}
 }
 

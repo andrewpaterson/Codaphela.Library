@@ -200,15 +200,16 @@ bool PowerPortsImplicitly(CSubcircuitSimulation* pcSimulation, CPort* pcCommon, 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Call after the shapes are added.
+// VCC on the top of the shapes and GND on the bottom, in the middle.  Call
+// after the shapes are added.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIntegratedCircuitView::CreatePowerPortViews(void)
 {
 	SFloat64Vec2	sMinimum;
 	SFloat64Vec2	sMaximum;
-	int32			iLeft;
-	int32			iRight;
+	int32			iTop;
+	int32			iBottom;
 
 	if (!mbExplicitPowerPorts)
 	{
@@ -220,51 +221,50 @@ void CIntegratedCircuitView::CreatePowerPortViews(void)
 		sMinimum.Init(0, 0);
 		sMaximum.Init(0, 0);
 	}
-	iLeft = (int32)floor(sMinimum.x);
-	iRight = (int32)ceil(sMaximum.x);
+	iTop = (int32)floor(sMinimum.y);
+	iBottom = (int32)ceil(sMaximum.y);
 
-	AddPortView(POWER_PIN_VCC, iLeft, 0);
-	AddPortView(POWER_PIN_GND, iRight, 0);
-	mcShapes.AddLine(iLeft, 0, iLeft + 1, 0);
-	mcShapes.AddLine(iRight, 0, iRight - 1, 0);
+	AddPortView(POWER_PIN_VCC, 0, iTop);
+	AddPortView(POWER_PIN_GND, 0, iBottom);
+	mcShapes.AddLine(0, iTop, 0, iTop + 1);
+	mcShapes.AddLine(0, iBottom, 0, iBottom - 1);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Ports in two rows with a label each, as Logicim's
-// createLeftAndRightPortViews and createPortLabels.  The left ports are
-// along grid y iLeftOffset from x iLeftStart, iStep apart, and the right
-// ports along y iRightOffset from x iRightStart.  (Logicim's left and
-// right are a component facing West.)  Labels are 0.6 inside the row,
-// reading inwards from the left ports' end and the right ports' start.
+// Ports down the left and right of the component with a label each, as
+// Logicim's createLeftAndRightPortViews and createPortLabels.  The left
+// ports are at x iLeftX from y iLeftStart down, iStep apart, facing West,
+// and the right ports at x iRightX from y iRightStart, facing East.
+// Labels are 0.6 inside the ports, reading inwards.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIntegratedCircuitView::CreateLabelledPortViews(SPortViewCreator* asLeft, size uiNumLeft, SPortViewCreator* asRight, size uiNumRight, int32 iLeftOffset, int32 iRightOffset, int32 iLeftStart, int32 iRightStart, int32 iStep)
+void CIntegratedCircuitView::CreateLabelledPortViews(SPortViewCreator* asLeft, size uiNumLeft, SPortViewCreator* asRight, size uiNumRight, int32 iLeftX, int32 iRightX, int32 iLeftStart, int32 iRightStart, int32 iStep)
 {
 	size		i;
-	int32		x;
+	int32		y;
 	CPortView*	pcPortView;
 	float64		fLeftLabel;
 	float64		fRightLabel;
 
-	fLeftLabel = (iLeftOffset > iRightOffset) ? iLeftOffset - 0.6 : iLeftOffset + 0.6;
-	fRightLabel = (iLeftOffset > iRightOffset) ? iRightOffset + 0.6 : iRightOffset - 0.6;
+	fLeftLabel = (iLeftX < iRightX) ? iLeftX + 0.6 : iLeftX - 0.6;
+	fRightLabel = (iLeftX < iRightX) ? iRightX - 0.6 : iRightX + 0.6;
 
-	x = iLeftStart;
+	y = iLeftStart;
 	for (i = 0; i < uiNumLeft; i++)
 	{
-		pcPortView = CreateLabelledPortView(&asLeft[i], x, iLeftOffset, ROT_South);
-		mcShapes.AddText(x, fLeftLabel, pcPortView->GetText(), CF_SansSerif, PORT_LABEL_FONT_SIZE, TA_Left);
-		x += iStep;
+		pcPortView = CreateLabelledPortView(&asLeft[i], iLeftX, y, ROT_West);
+		mcShapes.AddText(fLeftLabel, y, pcPortView->GetText(), CF_SansSerif, PORT_LABEL_FONT_SIZE, TA_Left);
+		y += iStep;
 	}
 
-	x = iRightStart;
+	y = iRightStart;
 	for (i = 0; i < uiNumRight; i++)
 	{
-		pcPortView = CreateLabelledPortView(&asRight[i], x, iRightOffset, ROT_North);
-		mcShapes.AddText(x, fRightLabel, pcPortView->GetText(), CF_SansSerif, PORT_LABEL_FONT_SIZE, TA_Right);
-		x += iStep;
+		pcPortView = CreateLabelledPortView(&asRight[i], iRightX, y, ROT_East);
+		mcShapes.AddText(fRightLabel, y, pcPortView->GetText(), CF_SansSerif, PORT_LABEL_FONT_SIZE, TA_Right);
+		y += iStep;
 	}
 }
 
@@ -315,12 +315,12 @@ CPortView* CIntegratedCircuitView::CreateLabelledPortView(SPortViewCreator* psCr
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A named value in a small box, as Logicim's DetailView: the name before
-// x and the value in a box running iWidth grid units from x.  Returns the
-// value text's shape.
+// A named value in a small box on the line at y, as Logicim's DetailView:
+// the name left of the middle and the value in a box running iWidth grid
+// units right from it.  Returns the value text's shape.
 //
 //////////////////////////////////////////////////////////////////////////
-size CIntegratedCircuitView::AddDetail(float64 x, int32 iWidth, const char* szName, const char* szValue)
+size CIntegratedCircuitView::AddDetail(float64 y, int32 iWidth, const char* szName, const char* szValue)
 {
 	CChars				szLabel;
 	SComponentShape*	psShape;
@@ -328,15 +328,15 @@ size CIntegratedCircuitView::AddDetail(float64 x, int32 iWidth, const char* szNa
 
 	szLabel.Init(szName);
 	szLabel.Append(": ");
-	mcShapes.AddText(x, 0, szLabel.Text(), CF_SansSerif, PORT_LABEL_FONT_SIZE, TA_Right);
+	mcShapes.AddText(0, y, szLabel.Text(), CF_SansSerif, PORT_LABEL_FONT_SIZE, TA_Right);
 	szLabel.Kill();
 
-	psShape = mcShapes.AddRectangle(x - 0.6, -iWidth, x + 0.6, 0, true, true);
+	psShape = mcShapes.AddRectangle(0, y - 0.6, iWidth, y + 0.6, true, true);
 	psShape->fLineWidth = 1;
 	psShape->eFill = SC_Background;
 
 	uiValueText = mcShapes.NumShapes();
-	psShape = mcShapes.AddText(x, -0.6, szValue, CF_Monospaced, PORT_LABEL_FONT_SIZE, TA_Left);
+	psShape = mcShapes.AddText(0.6, y, szValue, CF_Monospaced, PORT_LABEL_FONT_SIZE, TA_Left);
 	psShape->eBorder = SC_CommentText;
 	return uiValueText;
 }

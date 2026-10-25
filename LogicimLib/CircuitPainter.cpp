@@ -90,7 +90,7 @@ void CCircuitPainter::SetTransform(SInt32Vec2 sPosition, ERotation eRotation)
 void CCircuitPainter::ClearTransform(void)
 {
 	msPosition.Init(0, 0);
-	meRotation = ROT_North;
+	meRotation = ROT_East;
 }
 
 
@@ -282,8 +282,8 @@ void CCircuitPainter::Dot(float64 x, float64 y, float64 fPixelRadius, ARGB32 sCo
 // size (see SCircuitTextSize) and its alignment end is a tenth of a grid
 // unit past x, y along the text.  Across the text the baseline is a 3.5th
 // of the text's height past the position, which roughly centres capitals
-// on it.  Text facing North or East ends at the position and text facing
-// South or West starts there (for left aligned text), so port labels
+// on it.  Text facing North or West ends at the position and text facing
+// South or East starts there (for left aligned text), so port labels
 // point into the component whichever way it's turned.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -327,11 +327,11 @@ void CCircuitPainter::Text(float64 x, float64 y, const char* szText, ECircuitFon
 		eTurn = FT_Clockwise;
 		break;
 	case ROT_East:
-		sOrigin.Init(sAnchor.x - fWidth - fWidthAdjust, sAnchor.y + fHalfHeight);
+		sOrigin.Init(sAnchor.x + fWidthAdjust, sAnchor.y + fHalfHeight);
 		eTurn = FT_Upright;
 		break;
 	case ROT_West:
-		sOrigin.Init(sAnchor.x + fWidthAdjust, sAnchor.y + fHalfHeight);
+		sOrigin.Init(sAnchor.x - fWidth - fWidthAdjust, sAnchor.y + fHalfHeight);
 		eTurn = FT_Upright;
 		break;
 	default:

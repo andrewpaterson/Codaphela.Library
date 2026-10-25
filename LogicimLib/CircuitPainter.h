@@ -35,7 +35,7 @@ class CCircuitSimulation;
 
 
 //Draws a circuit's shapes into a geometry map.  Shapes are given in the grid space of the component being drawn,
-//facing North about its position, and are turned and moved by SetTransform before the viewport puts them on the
+//facing East about its position, and are turned and moved by SetTransform before the viewport puts them on the
 //screen.  Line widths are pixels at zoom one, as Logicim's zoomable strokes.  Text is drawn as glyphs into a sprite
 //map, which is blitted after the geometry map; without fonts or a sprite map there is no text.
 class CCircuitPainter

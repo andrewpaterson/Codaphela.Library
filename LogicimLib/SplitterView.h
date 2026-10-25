@@ -37,9 +37,9 @@ enum ESplitterAppearance
 };
 
 
-//Splits a bus into ends, as Logicim's SplitterView.  The bus comes in at its start, a grid unit up and iEndOffset
-//along from the position, onto a bar; the iFanOut ends leave the bar downwards iGridSpacing apart (to the left, or
-//to the right when right handed) and stop two grid units down.  Bit b of the bus goes to end aiSplitIndices[b], in
+//Splits a bus into ends, as Logicim's SplitterView.  The bus comes in at its start, a grid unit right and iEndOffset
+//along from the position, onto a bar; the iFanOut ends leave the bar leftwards iGridSpacing apart (upwards, or
+//downwards when right handed) and stop two grid units left.  Bit b of the bus goes to end aiSplitIndices[b], in
 //order with the end's other bits; each end is labelled with its bits.  An end with no bits has no port.
 //
 //The splitter joins each bit of the bus to its bit of an end onto one trace (see GetBitJoins); its domain component
@@ -80,7 +80,7 @@ public:
 
 protected:
 	virtual	void					SaveXMLAttributes(CXMLWriter* pcWriter);
-			SFloat64Vec2			GetFanPosition(int32 iFan, float64 y);
+			SFloat64Vec2			GetFanPosition(int32 iFan, float64 fAlong);
 			SFloat64Vec2			GetStartPosition(void);
 			SFloat64Vec2			GetBarPosition(void);
 			void					GetFanBits(CArrayInt* paiBits, int32 iFan);

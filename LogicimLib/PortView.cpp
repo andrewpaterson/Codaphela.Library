@@ -27,7 +27,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The position is in the owner's grid space, facing North.
+// The position is in the owner's grid space, facing East.
 //
 //////////////////////////////////////////////////////////////////////////
 void CPortView::Init(CComponentView* pcOwner, const char* szPortName, int32 x, int32 y)
@@ -94,9 +94,9 @@ void CPortView::SetInverting(ERotation eFacing)
 	SFloat64Vec2	sBubbleOffset;
 
 	mbInverting = true;
-	sPortOffset.Init(0, -1);
+	sPortOffset.Init(1, 0);
 	RotatePoint(eFacing, &sPortOffset);
-	sBubbleOffset.Init(0, -0.5);
+	sBubbleOffset.Init(0.5, 0);
 	RotatePoint(eFacing, &sBubbleOffset);
 
 	msBubbleCentre.Init(msRelativePosition.x + sBubbleOffset.x, msRelativePosition.y + sBubbleOffset.y);
@@ -127,9 +127,9 @@ void CPortView::SetClock(ERotation eFacing)
 	size	i;
 
 	mbClock = true;
-	masClockNotch[0].Init(-0.5, 0);
-	masClockNotch[1].Init(0, 0.5);
-	masClockNotch[2].Init(0.5, 0);
+	masClockNotch[0].Init(0, -0.5);
+	masClockNotch[1].Init(-0.5, 0);
+	masClockNotch[2].Init(0, 0.5);
 	for (i = 0; i < 3; i++)
 	{
 		RotatePoint(eFacing, &masClockNotch[i]);
@@ -340,7 +340,7 @@ bool CPortView::IncludeBounds(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum, 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// In the owner's grid space, facing North.
+// In the owner's grid space, facing East.
 //
 //////////////////////////////////////////////////////////////////////////
 SInt32Vec2 CPortView::GetRelativePosition(void)

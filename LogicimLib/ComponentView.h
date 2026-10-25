@@ -65,8 +65,8 @@ struct SPortBitJoin
 typedef CArrayTemplate<SPortBitJoin>	CArrayPortBitJoin;
 
 
-//How a component is drawn and where its ports are, as Logicim's ComponentView.  A view is drawn facing North about
-//its position and turned by its rotation.  As Logicim's views, it makes a component for each circuit simulation of
+//How a component is drawn and where its ports are, as Logicim's ComponentView.  A view is drawn facing East about its
+//position, as it's normally read (-y up and -x left), and turned by its rotation.  As Logicim's views, it makes a component for each circuit simulation of
 //each view path its circuit is on (CreateComponent), in the subcircuit simulation the path has for that circuit
 //simulation, and remembers each by its path and circuit simulation.  A circuit used in many places, or simulated many
 //times, has one set of views and a component of each per use.

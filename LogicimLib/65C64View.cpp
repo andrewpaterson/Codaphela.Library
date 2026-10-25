@@ -47,20 +47,20 @@ static void Append65C64Hex(CChars* psz, uint64 uiValue, size iNumBytes)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The details and flags run down the middle (grid x) of the box from the
-// title, facing North, as CW65C816View's.
+// The details and then the flags run down the middle of the box from the
+// title, as CW65C816View's.
 //
 //////////////////////////////////////////////////////////////////////////
 void C65C64View::Init(int32 x, int32 y, ERotation eRotation, const char* szName, const char* szFamily, bool bExplicitPowerPorts)
 {
-	SPortViewCreator	asBottom[] = {	{ "PHI2", "PHI2", 1, true, false },
+	SPortViewCreator	asLeft[] = {		{ "PHI2", "PHI2", 1, true, false },
 										{ "RESB", "RESB", 1, false, true },
 										{ "EIRQB0", "EIRQB 0", 1, false, true },
 										{ "EIRQB1", "EIRQB 1", 1, false, true },
 										{ "EIRQB2", "EIRQB 2", 1, false, true },
 										{ "EIRQB3", "EIRQB 3", 1, false, true },
 										{ "LIRQB", "LIRQB", 1, false, true } };
-	SPortViewCreator	asTop[] = {		{ "RWB", "RWB", 1, false, false },
+	SPortViewCreator	asRight[] = {	{ "RWB", "RWB", 1, false, false },
 										{ "OPV", "OPV", 1, false, false },
 										{ "VPA", "VPA", 1, false, false },
 										{ "VDA", "VDA", 1, false, false },
@@ -73,11 +73,11 @@ void C65C64View::Init(int32 x, int32 y, ERotation eRotation, const char* szName,
 
 	CIntegratedCircuitView::Init(x, y, eRotation, szName, szFamily, bExplicitPowerPorts);
 
-	mcShapes.AddRectangle(-16, -18, 16, 18, true, true);
+	mcShapes.AddRectangle(-18, -16, 18, 16, true, true);
 	CreatePowerPortViews();
-	CreateLabelledPortViews(asBottom, 7, asTop, 9, 18, -18, -6, -8, 2);
+	CreateLabelledPortViews(asLeft, 7, asRight, 9, -18, 18, -6, -8, 2);
 
-	mcShapes.AddText(-15, 0, "Microprocessor", CF_SansSerifBold, C65C64_VIEW_FONT_SIZE, TA_Centre);
+	mcShapes.AddText(0, -15, "Microprocessor", CF_SansSerifBold, C65C64_VIEW_FONT_SIZE, TA_Centre);
 	mauiDetails[C65C64_OpCodeName] = AddDetail(-13, 5, "Op-code", "RES");
 	mauiDetails[C65C64_OpCodeNumber] = AddDetail(-11, 5, "Op-code", "0x0000");
 	mauiDetails[C65C64_Cycle] = AddDetail(-9, 3, "Cycle", "0");
@@ -93,16 +93,16 @@ void C65C64View::Init(int32 x, int32 y, ERotation eRotation, const char* szName,
 	mauiDetails[C65C64_InterruptDepth] = AddDetail(11, 4, "Interrupts", "0");
 
 	fFlag = 4.9;
-	AddFlag(C65C64_EdgeDisable, "E", 13, fFlag);
-	AddFlag(C65C64_LevelDisable, "L", 13, fFlag - 1.4);
-	AddFlag(C65C64_FlagF, "F", 13, fFlag - 1.4 * 2);
-	AddFlag(C65C64_FlagG, "G", 13, fFlag - 1.4 * 3);
-	AddFlag(C65C64_Negative, "N", 13, fFlag - 1.4 * 4);
-	AddFlag(C65C64_Overflow, "V", 13, fFlag - 1.4 * 5);
-	AddFlag(C65C64_Zero, "Z", 13, fFlag - 1.4 * 6);
-	AddFlag(C65C64_Carry, "C", 13, fFlag - 1.4 * 7);
+	AddFlag(C65C64_EdgeDisable, "E", -fFlag, 13);
+	AddFlag(C65C64_LevelDisable, "L", -fFlag + 1.4, 13);
+	AddFlag(C65C64_FlagF, "F", -fFlag + 1.4 * 2, 13);
+	AddFlag(C65C64_FlagG, "G", -fFlag + 1.4 * 3, 13);
+	AddFlag(C65C64_Negative, "N", -fFlag + 1.4 * 4, 13);
+	AddFlag(C65C64_Overflow, "V", -fFlag + 1.4 * 5, 13);
+	AddFlag(C65C64_Zero, "Z", -fFlag + 1.4 * 6, 13);
+	AddFlag(C65C64_Carry, "C", -fFlag + 1.4 * 7, 13);
 
-	mcShapes.AddText(15, 0, "65C64", CF_SansSerifBold, C65C64_VIEW_FONT_SIZE, TA_Centre);
+	mcShapes.AddText(0, 15, "65C64", CF_SansSerifBold, C65C64_VIEW_FONT_SIZE, TA_Centre);
 	CalculateBounds();
 }
 

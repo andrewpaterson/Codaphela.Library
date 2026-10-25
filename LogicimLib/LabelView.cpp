@@ -64,8 +64,7 @@ void CLabelView::Init(int32 x, int32 y, ERotation eRotation, const char* szText,
 //////////////////////////////////////////////////////////////////////////
 //
 // As Logicim's TextView.calculateTopLeft and calculateBottomRight: the
-// text's box facing East, a quarter of its height longer at each end,
-// turned to face North.
+// text's box, a quarter of its height longer at each end.
 //
 //////////////////////////////////////////////////////////////////////////
 void CLabelView::MeasureBox(CCircuitFonts* pcFonts, const char* szText, ETextAlignment eAlignment, bool bBold, SFloat64Vec2* psBoxMinimum, SFloat64Vec2* psBoxMaximum)
@@ -86,8 +85,8 @@ void CLabelView::MeasureBox(CCircuitFonts* pcFonts, const char* szText, ETextAli
 	{
 		fAdjust = 0;
 	}
-	psBoxMinimum->Init(-sSize.fHeight / 2, -(sSize.fWidth + fAdjust + sSize.fHeight / 4));
-	psBoxMaximum->Init(sSize.fHeight / 2, -(fAdjust - sSize.fHeight / 4));
+	psBoxMinimum->Init(fAdjust - sSize.fHeight / 4, -sSize.fHeight / 2);
+	psBoxMaximum->Init(sSize.fWidth + fAdjust + sSize.fHeight / 4, sSize.fHeight / 2);
 }
 
 

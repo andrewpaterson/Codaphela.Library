@@ -34,12 +34,12 @@ ERotation RotateRight(ERotation eRotation)
 	switch (eRotation)
 	{
 	case ROT_North:
-		return ROT_West;
-	case ROT_West:
-		return ROT_South;
-	case ROT_South:
 		return ROT_East;
 	case ROT_East:
+		return ROT_South;
+	case ROT_South:
+		return ROT_West;
+	case ROT_West:
 		return ROT_North;
 	default:
 		return ROT_Cannot;
@@ -90,18 +90,18 @@ ERotation OppositeRotation(ERotation eRotation)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Counterclockwise on the screen.
+// Counterclockwise on the screen from East.
 //
 //////////////////////////////////////////////////////////////////////////
 int RotationToDegrees(ERotation eRotation)
 {
 	switch (eRotation)
 	{
-	case ROT_East:
+	case ROT_North:
 		return 90;
-	case ROT_South:
-		return 180;
 	case ROT_West:
+		return 180;
+	case ROT_South:
 		return 270;
 	default:
 		return 0;
@@ -121,7 +121,7 @@ bool IsRotationEastWest(ERotation eRotation)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Turns a point drawn facing North to face eRotation.
+// Turns a point drawn facing East to face eRotation.
 //
 //////////////////////////////////////////////////////////////////////////
 void RotatePoint(ERotation eRotation, SFloat64Vec2* psPoint)
@@ -133,14 +133,14 @@ void RotatePoint(ERotation eRotation, SFloat64Vec2* psPoint)
 	y = psPoint->y;
 	switch (eRotation)
 	{
-	case ROT_East:
+	case ROT_North:
 		psPoint->Init(y, -x);
 		break;
 	case ROT_South:
-		psPoint->Init(-x, -y);
+		psPoint->Init(-y, x);
 		break;
 	case ROT_West:
-		psPoint->Init(-y, x);
+		psPoint->Init(-x, -y);
 		break;
 	default:
 		break;
@@ -161,14 +161,14 @@ void RotatePoint(ERotation eRotation, SInt32Vec2* psPoint)
 	y = psPoint->y;
 	switch (eRotation)
 	{
-	case ROT_East:
+	case ROT_North:
 		psPoint->Init(y, -x);
 		break;
 	case ROT_South:
-		psPoint->Init(-x, -y);
+		psPoint->Init(-y, x);
 		break;
 	case ROT_West:
-		psPoint->Init(-y, x);
+		psPoint->Init(-x, -y);
 		break;
 	default:
 		break;
