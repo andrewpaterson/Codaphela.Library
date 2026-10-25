@@ -31,9 +31,10 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 //Rotating right (clockwise) goes North, East, South, West.
 //
 //Logicim's Rotation drew components facing North and had East and West the other way round: Logicim's West is East
-//here, its East is West, and North and South are the same; its rotateRight turned anticlockwise.  Anything ported from
-//Logicim that rotates or places components (rotate commands, the editor, file import) must be translated to these
-//rotations to behave as it did in Logicim.
+//here, its East is West, and North and South are the same.  Its rotateRight goes North, West, South, East by its
+//names, which is the same clockwise turn as RotateRight here.  Anything ported from Logicim that rotates or places
+//components (rotate commands, the editor, file import) must be translated to these rotations to behave as it did in
+//Logicim; Logicim's creation rotation, West, is East here.
 enum ERotation
 {
 	ROT_Cannot,

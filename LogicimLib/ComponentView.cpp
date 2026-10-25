@@ -64,6 +64,10 @@ void CComponentView::Kill(void)
 	mapcPortViews.Kill();
 	mcShapes.Kill();
 	mszName.Kill();
+	for (i = 0; i < masComponents.NumElements(); i++)
+	{
+		masComponents.Get(i)->apcSupplies.Kill();
+	}
 	masComponents.Kill();
 }
 
@@ -317,11 +321,12 @@ CSubcircuitSimulation* CComponentView::CanCreateComponent(CViewPath* pcViewPath,
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Remembers the component for the path and circuit simulation and gives
+// Remembers the component for the path and circuit simulation, with the
+// supplies powering it implicitly (papcSupplies may be NULL), and gives
 // each port view its ports, as Logicim's postCreateComponent.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CComponentView::PostCreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CCircuitComponent* pcComponent)
+bool CComponentView::PostCreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CCircuitComponent* pcComponent, CArrayCircuitComponentPtr* papcSupplies)
 {
 	size					i;
 	bool					bResult;
@@ -331,6 +336,14 @@ bool CComponentView::PostCreateComponent(CViewPath* pcViewPath, CCircuitSimulati
 	psComponent->pcViewPath = pcViewPath;
 	psComponent->pcCircuitSimulation = pcCircuitSimulation;
 	psComponent->pcComponent = pcComponent;
+	psComponent->apcSupplies.Init();
+	if (papcSupplies != NULL)
+	{
+		for (i = 0; i < papcSupplies->NumElements(); i++)
+		{
+			psComponent->apcSupplies.Add(papcSupplies->GetPtr(i));
+		}
+	}
 
 	bResult = true;
 	for (i = 0; i < mapcPortViews.NumElements(); i++)
@@ -348,17 +361,75 @@ bool CComponentView::PostCreateComponent(CViewPath* pcViewPath, CCircuitSimulati
 //////////////////////////////////////////////////////////////////////////
 void CComponentView::DisconnectComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation)
 {
-	size	i;
-	size	uiIndex;
+	size					i;
+	size					uiIndex;
+	SViewPathComponent*		psComponent;
 
 	for (i = 0; i < mapcPortViews.NumElements(); i++)
 	{
 		mapcPortViews.GetPtr(i)->Disconnect(pcViewPath, pcCircuitSimulation);
 	}
-	if (FindComponent(pcViewPath, pcCircuitSimulation, &uiIndex) != NULL)
+	psComponent = FindComponent(pcViewPath, pcCircuitSimulation, &uiIndex);
+	if (psComponent != NULL)
 	{
+		psComponent->apcSupplies.Kill();
 		masComponents.RemoveAt(uiIndex, true);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes the component, and the supplies powering it implicitly, out of
+// the running simulation, as Logicim's
+// disconnectViewAndDestroyComponents.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentView::DestroyComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation)
+{
+	SViewPathComponent*			psComponent;
+	CCircuitComponent*			pcComponent;
+	CArrayCircuitComponentPtr	apcSupplies;
+	size						i;
+
+	psComponent = FindComponent(pcViewPath, pcCircuitSimulation, NULL);
+	if (psComponent == NULL)
+	{
+		return;
+	}
+
+	pcComponent = psComponent->pcComponent;
+	apcSupplies.Init();
+	for (i = 0; i < psComponent->apcSupplies.NumElements(); i++)
+	{
+		apcSupplies.Add(psComponent->apcSupplies.GetPtr(i));
+	}
+	DisconnectComponent(pcViewPath, pcCircuitSimulation);
+
+	DestroySimulatedComponent(pcComponent, pcCircuitSimulation);
+	for (i = 0; i < apcSupplies.NumElements(); i++)
+	{
+		DestroySimulatedComponent(apcSupplies.GetPtr(i), pcCircuitSimulation);
+	}
+	apcSupplies.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Its events go, the ports on its traces see its ports go, and it's
+// removed from the circuit, killed and freed.
+//
+//////////////////////////////////////////////////////////////////////////
+void DestroySimulatedComponent(CCircuitComponent* pcComponent, CCircuitSimulation* pcCircuitSimulation)
+{
+	CTimeline*	pcTimeline;
+
+	pcTimeline = pcCircuitSimulation->GetTimeline();
+	pcComponent->Disconnect(pcTimeline);
+	pcComponent->DisconnectPorts(pcTimeline);
+	pcCircuitSimulation->GetCircuit()->Remove(pcComponent);
+	SafeKill(pcComponent);
 }
 
 

@@ -213,6 +213,7 @@ void CComponentInputDevice::InitKeyboard(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Only the buttons, the pointer position comes from the native window.
+// Button one with shift, control or both drags a selection.
 //
 //////////////////////////////////////////////////////////////////////////
 void CComponentInputDevice::InitMouse(void)
@@ -221,6 +222,10 @@ void CComponentInputDevice::InitMouse(void)
 	AddCommand("Button 1", CIC_ExecuteComponent, false, false, false, false);
 	AddCommand("Button 1", CIC_StartDragSelect, false, false, true, true);
 	AddCommand("Button 1", CIC_StopDragSelect, false, false, true, false);
+	AddCommand("Button 1", CIC_StartDragSelect, true, false, false, true);
+	AddCommand("Button 1", CIC_StopDragSelect, true, false, false, false);
+	AddCommand("Button 1", CIC_StartDragSelect, true, false, true, true);
+	AddCommand("Button 1", CIC_StopDragSelect, true, false, true, false);
 	AddCommand("Button 2", CIC_ContextMenu, false, false, false, true);
 	AddCommand("Button 3", CIC_StartDragScroll, false, false, false, true);
 	AddCommand("Button 3", CIC_StopDragScroll, false, false, false, false);

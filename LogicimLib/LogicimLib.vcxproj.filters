@@ -22,6 +22,9 @@
     <Filter Include="Source\View">
       <UniqueIdentifier>{5402b72f-c7a4-5ba8-a1b8-8a60c8851800}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Editor">
+      <UniqueIdentifier>{4270bec4-285c-4736-8408-44948ccb7e2a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CircuitColours.cpp">
@@ -102,6 +105,9 @@
     <ClCompile Include="TraceView.cpp">
       <Filter>Source\View</Filter>
     </ClCompile>
+    <ClCompile Include="TraceAutoConnector.cpp">
+      <Filter>Source\View</Filter>
+    </ClCompile>
     <ClCompile Include="CircuitFile.cpp">
       <Filter>Source\File</Filter>
     </ClCompile>
@@ -134,6 +140,24 @@
     </ClCompile>
     <ClCompile Include="PowerSourceView.cpp">
       <Filter>Source\Passive</Filter>
+    </ClCompile>
+    <ClCompile Include="CircuitSelection.cpp">
+      <Filter>Source\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="CircuitEdit.cpp">
+      <Filter>Source\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="MoveComponentsEdit.cpp">
+      <Filter>Source\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="SelectionEdit.cpp">
+      <Filter>Source\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="CircuitEditor.cpp">
+      <Filter>Source\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentPlacement.cpp">
+      <Filter>Source\Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -215,6 +239,9 @@
     <ClInclude Include="TraceView.h">
       <Filter>Source\View</Filter>
     </ClInclude>
+    <ClInclude Include="TraceAutoConnector.h">
+      <Filter>Source\View</Filter>
+    </ClInclude>
     <ClInclude Include="CircuitFile.h">
       <Filter>Source\File</Filter>
     </ClInclude>
@@ -247,6 +274,24 @@
     </ClInclude>
     <ClInclude Include="PowerSourceView.h">
       <Filter>Source\Passive</Filter>
+    </ClInclude>
+    <ClInclude Include="CircuitSelection.h">
+      <Filter>Source\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="CircuitEdit.h">
+      <Filter>Source\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="MoveComponentsEdit.h">
+      <Filter>Source\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="SelectionEdit.h">
+      <Filter>Source\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="CircuitEditor.h">
+      <Filter>Source\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentPlacement.h">
+      <Filter>Source\Editor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -576,8 +576,10 @@ bool CPinView::LoadXML(CMarkupTag* pcTag)
 //////////////////////////////////////////////////////////////////////////
 CCircuitComponent* CPinView::CreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
 {
-	CPin*					pcPin;
-	CSubcircuitSimulation*	pcSimulation;
+	CPin*						pcPin;
+	CSubcircuitSimulation*		pcSimulation;
+	CArrayCircuitComponentPtr	apcSupplies;
+	bool						bResult;
 
 	pcSimulation = CanCreateComponent(pcViewPath, pcCircuitSimulation);
 	if (pcSimulation == NULL)
@@ -594,14 +596,18 @@ CCircuitComponent* CPinView::CreateComponent(CViewPath* pcViewPath, CCircuitSimu
 
 	pcPin = NewMalloc<CPin>();
 	pcPin->Init(pcSimulation, mszName.Text(), miBitWidth);
+	apcSupplies.Init();
 	if (!mbExplicitPowerPorts)
 	{
-		if (!PowerPortsImplicitly(pcSimulation, pcPin->GetVoltageCommon(), pcPin->GetVoltageGround(), mpcFamily))
+		if (!PowerPortsImplicitly(pcSimulation, pcPin->GetVoltageCommon(), pcPin->GetVoltageGround(), mpcFamily, &apcSupplies))
 		{
+			apcSupplies.Kill();
 			return NULL;
 		}
 	}
-	if (!PostCreateComponent(pcViewPath, pcCircuitSimulation, pcPin))
+	bResult = PostCreateComponent(pcViewPath, pcCircuitSimulation, pcPin, &apcSupplies);
+	apcSupplies.Kill();
+	if (!bResult)
 	{
 		return NULL;
 	}

@@ -94,7 +94,7 @@ bool SaveCircuitFile(CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSim
 // element.  The file must be killed whatever this returns.
 //
 //////////////////////////////////////////////////////////////////////////
-static CMarkupTag* ReadCircuitFileRoot(CXMLFile* pcFile, const char* szFilename, const char* szContents)
+CMarkupTag* ReadCircuitFileRoot(CXMLFile* pcFile, const char* szFilename, const char* szContents)
 {
 	CFileUtil	cFileUtil;
 	CChars		szName;
@@ -145,7 +145,7 @@ static CMarkupTag* ReadCircuitFileRoot(CXMLFile* pcFile, const char* szFilename,
 // started afresh.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool CreateFileSimulation(CMarkupTag* pcRoot, CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
+bool LoadCircuitFileSimulation(CMarkupTag* pcRoot, CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
 {
 	CMarkupTag*	pcSimulationTag;
 	char*		szCircuit;
@@ -217,7 +217,7 @@ bool LoadCircuitFile(CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSim
 	bResult = pcCircuit->LoadXML(pcRoot->GetTag("Circuit"));
 	if (bResult)
 	{
-		bResult = CreateFileSimulation(pcRoot, pcCircuit, pcViewPath, pcSimulation, pcFamilies);
+		bResult = LoadCircuitFileSimulation(pcRoot, pcCircuit, pcViewPath, pcSimulation, pcFamilies);
 	}
 	cFile.Kill();
 	return bResult;
@@ -299,7 +299,7 @@ bool LoadCircuitsFile(CCircuitViews* pcCircuits, const char* szTop, CCircuitSimu
 		}
 		else
 		{
-			bResult = CreateFileSimulation(pcRoot, pcTop, pcCircuits->GetTopPath(pcTop), pcSimulation, pcFamilies);
+			bResult = LoadCircuitFileSimulation(pcRoot, pcTop, pcCircuits->GetTopPath(pcTop), pcSimulation, pcFamilies);
 		}
 	}
 	cFile.Kill();

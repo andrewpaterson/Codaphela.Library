@@ -84,6 +84,7 @@ public:
 			bool				IsEndJunction(void);
 			SInt32Vec2			GetStart(void);
 			SInt32Vec2			GetEnd(void);
+			void				SetEnds(SInt32Vec2 sStart, SInt32Vec2 sEnd);
 
 protected:
 			ARGB32				GetColour(CCircuitPainter* pcPainter);

@@ -50,6 +50,7 @@ public:
 	void							SimulationStarted(void);
 	CSubcircuitInstanceSimulation*	AddInstanceSimulation(CSubcircuitInstance* pcSubcircuitInstance);
 	CSubcircuitInstanceSimulation*	AddInstanceSimulation(int64 iID);
+	bool							RemoveInstanceSimulation(CSubcircuitInstanceSimulation* pcSimulation);
 
 	CCircuit*						GetCircuit(void);
 	CTimeline*						GetTimeline(void);

@@ -104,6 +104,7 @@ public:
 			bool					IsTop(void);
 			bool					EqualsPath(CArrayCircuitInstanceViewPtr* papcPath);
 			CViewPath*				GetPrevious(void);
+			CViewPath*				GetTop(void);
 			CViewPath*				GetChild(CCircuitInstanceView* pcInstanceView);
 			CViewPath*				FindChild(CCircuitInstanceView* pcInstanceView);
 			bool					ContainsCircuitView(CCircuitView* pcCircuitView);
@@ -161,6 +162,7 @@ public:
 	CViewPath*		GetViewPath(CViewPath* pcParent, CCircuitInstanceView* pcInstanceView);
 	CViewPath*		GetOrAddViewPath(CViewPath* pcParent, CCircuitInstanceView* pcInstanceView);
 	void			GetPathsEndingWith(CCircuitView* pcCircuitView, CArrayViewPathPtr* papcViewPaths);
+	void			RemovePathsThrough(CCircuitInstanceView* pcInstanceView);
 
 	size			NumViewPaths(void);
 	CViewPath*		GetViewPath(size uiIndex);

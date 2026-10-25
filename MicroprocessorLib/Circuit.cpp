@@ -141,6 +141,58 @@ bool CCircuit::Remove(CPassive* pcPassive)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A chip or a passive; the caller kills and frees it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuit::Remove(CCircuitComponent* pcComponent)
+{
+	size	i;
+
+	for (i = 0; i < mapcIntegratedCircuits.NumElements(); i++)
+	{
+		if ((CCircuitComponent*)mapcIntegratedCircuits.GetPtr(i) == pcComponent)
+		{
+			mapcIntegratedCircuits.RemoveAt(i, true);
+			return true;
+		}
+	}
+	for (i = 0; i < mapcPassives.NumElements(); i++)
+	{
+		if ((CCircuitComponent*)mapcPassives.GetPtr(i) == pcComponent)
+		{
+			mapcPassives.RemoveAt(i, true);
+			return true;
+		}
+	}
+	LogRemoveError(pcComponent);
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Kills and frees the trace, which should have no ports left on it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuit::RemoveTrace(CTrace* pcTrace)
+{
+	size	i;
+
+	for (i = 0; i < mapcTraces.NumElements(); i++)
+	{
+		if (mapcTraces.GetPtr(i) == pcTrace)
+		{
+			mapcTraces.RemoveAt(i, true);
+			SafeKill(pcTrace);
+			return true;
+		}
+	}
+	return gcLogger.Error2(__METHOD__, " Could not remove a trace from Circuit.", NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircuit::LogRemoveError(CCircuitComponent* pcComponent)

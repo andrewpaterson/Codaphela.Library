@@ -53,6 +53,9 @@ typedef CArrayTemplate<SWiringLevel>	CArrayWiringLevel;
 //bits of the nets that components join (a splitter joins each bit of its bus to a bit of one of its ends) are
 //joined, and each set of joined bits gets one trace.  So a signal through a subcircuit's pin is one trace on both
 //sides of it.
+//
+//Rewire wires a running simulation again after its circuits have been edited.  The simulation must be of the path's
+//circuit only: traces in it that end up with no ports and no wire are removed.
 class CCircuitWiring
 {
 protected:
@@ -63,6 +66,9 @@ protected:
 	CArrayInt					maiNetWidths;
 	CArrayInt					maiNetIndices;
 	size						muiNumNets;
+	CArrayInt					maiNetFirstBits;
+	CArrayInt					maiNetBitWidths;
+	CArrayInt					maiBitParents;
 	CArrayTraceViewTracePtr*	mapcNetTraces;
 
 public:
@@ -70,15 +76,24 @@ public:
 	void	Kill(void);
 
 	bool	Wire(CViewPath* pcViewPath, bool bStart);
+	bool	Rewire(CViewPath* pcViewPath);
 
 protected:
+	bool	JoinNodes(CViewPath* pcViewPath);
 	bool	AddLevels(CViewPath* pcViewPath, int iParent, CCircuitInstanceView* pcInstanceView);
 	void	JoinLevel(SWiringLevel* psLevel);
 	void	JoinPins(SWiringLevel* psLevel);
 	bool	FindNets(void);
-	void	CreateNetTraces(void);
+	void	FindBits(void);
+	void	ReuseBitTraces(CArrayTraceViewTracePtr* papcBitTraces);
+	void	AddBitTraces(CArrayTraceViewTracePtr* papcBitTraces);
+	void	CreateNetTraces(CArrayTraceViewTracePtr* papcBitTraces);
 	void	SetLevelTraces(SWiringLevel* psLevel);
+	void	DisconnectLevel(SWiringLevel* psLevel);
 	bool	ConnectLevel(SWiringLevel* psLevel, bool bStart);
+	void	RemoveUnusedTraces(void);
+	bool	IsNetTrace(CTrace* pcTrace);
+	int		GetBitRoot(int iNet, size uiBit);
 	size	NumLevelTraces(SWiringLevel* psLevel);
 	bool	IsTraceNode(size uiNode);
 	int		GetPortViewNode(SWiringLevel* psLevel, CPortView* pcPortView);

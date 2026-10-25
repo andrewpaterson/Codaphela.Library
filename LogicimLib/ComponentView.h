@@ -26,6 +26,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Float64Vec2.h"
 #include "BaseLib/XMLWriter.h"
 #include "BaseLib/MarkupTag.h"
+#include "MicroprocessorLib/CircuitComponent.h"
 #include "Rotation.h"
 #include "ComponentShapes.h"
 #include "PortView.h"
@@ -40,12 +41,14 @@ class CComponentStateXML;
 class CComponentView;
 
 
-//The component a view made in one circuit simulation of one view path.
+//The component a view made in one circuit simulation of one view path, and the supplies made to power it implicitly
+//(see PowerPortsImplicitly), which go with it.
 struct SViewPathComponent
 {
-	CViewPath*				pcViewPath;
-	CCircuitSimulation*		pcCircuitSimulation;
-	CCircuitComponent*		pcComponent;
+	CViewPath*					pcViewPath;
+	CCircuitSimulation*			pcCircuitSimulation;
+	CCircuitComponent*			pcComponent;
+	CArrayCircuitComponentPtr	apcSupplies;
 };
 
 
@@ -116,6 +119,7 @@ public:
 	virtual CComponentStateXML*		GetComponentStateXML(void);
 
 			void					DisconnectComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
+			void					DestroyComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
 			CCircuitComponent*		GetComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
 			CCircuitComponent*		GetComponent(CCircuitPainter* pcPainter);
 			size					NumComponents(void);
@@ -139,7 +143,7 @@ public:
 
 protected:
 			CSubcircuitSimulation*	CanCreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
-			bool					PostCreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CCircuitComponent* pcComponent);
+			bool					PostCreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CCircuitComponent* pcComponent, CArrayCircuitComponentPtr* papcSupplies = NULL);
 			SViewPathComponent*		FindComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, size* puiIndex);
 	virtual	void					SaveXMLAttributes(CXMLWriter* pcWriter);
 	static	bool					LoadXMLPlacement(CMarkupTag* pcTag, int32* px, int32* py, ERotation* peRotation, char** pszName);
@@ -154,6 +158,9 @@ protected:
 
 
 typedef CArrayTemplatePtr<CComponentView>	CArrayComponentViewPtr;
+
+
+void DestroySimulatedComponent(CCircuitComponent* pcComponent, CCircuitSimulation* pcCircuitSimulation);
 
 
 #endif // __COMPONENT_VIEW_H__
