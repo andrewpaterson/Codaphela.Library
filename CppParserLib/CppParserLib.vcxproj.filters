@@ -99,6 +99,9 @@
     <ClCompile Include="CPP65Builder.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="CPPTarget.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="VisualStudioProject.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -133,6 +136,12 @@
       <Filter>Source\IR</Filter>
     </ClCompile>
     <ClCompile Include="IR816Backend.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR65Code.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR65Flags.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
     <ClCompile Include="IR65Widths.cpp">
@@ -674,6 +683,9 @@
     <ClInclude Include="CPP65Builder.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
+    <ClInclude Include="CPPTarget.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
     <ClInclude Include="VisualStudioProject.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
@@ -696,6 +708,12 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IR816Backend.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IR65Code.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IR65Flags.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IR65Widths.h">

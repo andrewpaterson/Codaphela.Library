@@ -259,17 +259,36 @@ object's fields, becomes a slot per offset, so promotion makes them temporaries;
 move to the entry block first), loop invariant code motion (loads and integer operations
 of what a loop doesn't change move to the block that enters it, or to a block put on that
 edge when it branches, divisions only by a constant that is not 0 or -1; loads only if the loop
-makes no calls and stores nothing that may alias), and dead code.
+makes no calls and stores nothing that may alias), and dead code.  Added 2026-10-25: a load
+in a block entered from several blocks is the value all of them leave known for it; a phi
+taking the same values as an earlier phi of its block is that phi; a loop that goes round
+while a <= b (signed) goes round while a < b + 1 when b doesn't change in the loop and b + 1
+can't wrap (an extended narrow value or a constant), or a - 1 < b the other way round, as
+the 65C64 branches on less in one instruction (LessLoopTests); and strength reduction
+(ReduceStrength): in a loop with one way back and a counter i (a phi of init, then i + c),
+an address p + (i << s) or p + i * k with p unchanged by the loop becomes a pointer of its
+own, p + init * k before the loop and stepped by c * k going round.
 
 Inlining (CIRInliner, IRInliner.h/.cpp, 2026-10-25): a call of a function of the same
-module with at most 16 instructions (32 when the call is in a loop; not variadic, not taking its parameters' addresses,
-not itself) is replaced by a copy of its blocks: the block is split after the call, the
-arguments are the parameters, returns jump to the rest and the result is a phi there.
-Calls in the copies are inlined too, up to 24 in a function.  The front end keeps each
-unit's functions as IR until the generator has written them all (CCPP65IRFrontEnd::
-FinishUnit, called from CCPP65Generator::Generate), inlines (callees first: they are
-written after their callers), optimises and generates them again; a function that fails
-then keeps the code Body generated for it.  The front end runs it
+module with at most 16 instructions (32 when the call is in a loop, 8 more for each
+constant argument whose parameter it compares or branches on, as those fold; not variadic,
+not taking its parameters' addresses, not itself) is replaced by a copy of its blocks: the
+block is split after the call, the arguments are the parameters, returns jump to the rest
+and the result is a phi there.  Calls in the copies are inlined too, up to 24 in a function
+a round.  The front end keeps each unit's functions as IR until the generator has written
+them all (CCPP65IRFrontEnd::FinishUnit, called from CCPP65Generator::Generate), inlines
+(callees first: they are written after their callers), optimises, and inlines again what
+optimising made direct (up to 4 rounds), then generates them again; a function that fails
+then keeps the code Body generated for it.
+
+Indirect calls (2026-10-25): a load from a constant global, or from known data (CIRModule::
+AddKnownData: read only data defined outside the module, never written out), at a constant
+offset is what is there (CIROptimiser::ConstantData), so a call through it is direct.  The
+front end describes each vtable it stores as known data (DescribeVtable, as the generator's
+EnsureVtable writes it), and writes implicit default constructors and destructors as IR too
+(the generator falls back to its own), so a virtual call on an object whose vtable store
+the optimiser sees becomes a call of the function, and may be inlined.  Calls through
+function pointers held in objects (CArrayBlockSorted's mfCompare) stay indirect.  The front end runs it
 on every function it writes (CCPP65IRFrontEnd::sbOptimise switches it off).
 
 
@@ -422,7 +441,7 @@ next time round a loop) moves to the end of its block when an operand of it is u
 later in the block, so that operand dies there and the result shares its home (add Y, 1).
 
 A function with nothing in the frame doesn't set V up when it is a leaf (no calls: S
-only moves around mul and div) or when the parameters left where they arrived are only
+doesn't move) or when the parameters left where they arrived are only
 read in its entry block before anything is pushed (and it takes no argaddr): its
 arguments are read from S ([5 + S] is the first, 4 more for each kept pseudo register
 pushed).  A brif branches straight to its then block when the else block comes next and
@@ -432,17 +451,59 @@ after the function's ret, where the branch goes, and on to the then block.
 Comparisons: a signed i8 or i16 compares at its own width (wtth (A, B), 8) rather than
 sign extending; a signed comparison with 0 branches on n alone (no overflow); an eq or ne
 alone in a block whose only predecessor's branch compared the same operands, with no
-copies on the way, branches on the flags that cmp left (wtth doesn't change them).  A
-comparison of a 32 bit value with 0 straight after a cpy that wrote it (cpy sets n and z,
-to memory too), or in the block only that branch goes to, branches on those flags.
+copies on the way, branches on the flags that cmp left (wtth doesn't change them).  Other
+compares whose flags are already set go in the Flags pass.
 Signed i8 and i16 kept in X and Y compare there (wtth (X, Y), 8).  Narrow x > c is
 x >= c + 1 too.  A signed comparison branches in one instruction only on less (braso
 (n, v)): outside loop heads, one that would need two (a branch round a bra) is turned
 round with its blocks swapped before layout, so the block it falls through to is the
 cheap one.
 
+mul and div are "mul / cpy W, 0": W is always 0 (the calling convention, the user
+2026-10-25), and they leave it counted up.
+
 Peephole (per function, on the text): a branch to a label just after it goes, and a
 value stored then read straight back at 32 bits is copied from the register instead.
+
+Flags (CIR65Flags, IR65Flags.h/.cpp, 2026-10-25; per function, on the text after the
+peephole, before Widths; CIR65Code, IR65Code.h/.cpp, decodes the text for both): the flags
+are followed through the code, across labels where the ways in agree, as either n and z of
+a register's value (cpy, and, or, xor, add, sub and neg set them from what they write, a
+cpy R1, R2 from both registers, a cpy [m], R from R) or everything a cmp left while its
+operands (registers, and memory if it reads any) are unchanged.  A cmp the flags already
+hold goes, and so does a cmp R, 0 after n and z were set from R at the same width when only
+n and z are read after it (the flags each line's successors read before setting them are
+worked out backwards).  It replaced the back end's FlagsHold (n and z from a cpy, carried
+into the block only that branch goes to); FlagsKnown stays, as it knows from the IR that an
+eq of two i16 values after their 16 bit slt needs no cmp although the text compares them at
+different widths.
+
+Widths (CIR65Widths, IR65Widths.h/.cpp, 2026-10-25; per function, on the text after the
+peephole): instructions are written with A, B, X and Y 32 bits wide before and after
+each, so a narrow load is wth X, 8 / cpy X, [m] / wthx X, 32 even when only its low byte
+is read.  The pass decodes the back end's instructions (any other leaves the function as
+it was), works out the widths each line runs at, and which bits of each register are
+read before they are written (8, 16, 32 and 64 bit bands; a call reads the four at their
+widths, a ret all of A).  A wthx whose extended bits are never read becomes a wth.  Then
+the code is written again without its wth and wtth: each instruction gets the widths of
+the registers it uses set just before it, and only when they aren't already.  A loop's
+label (one a later branch goes back to) starts with the widths its code first needs, set
+once before the loop and at each branch back; any other label starts with the widths the
+code reaching it agrees on, unknown (set at the next use) for the others.  A width the
+code after a label (both ways, for a branch) first needs is set before going there, and
+a register next needed at the same width shares a wtth.  Calls and returns keep the 32 bit
+convention; a runtime routine called with other widths (R_DivideSigned64) leaves those
+unknown.  An unsigned or eq i8 or i16 comparison of narrow loads only ever compared
+(NarrowOnly) is made at its own width too, so their extending goes: StringCompare's loop
+is 8 instructions a character, not 12.  Map benchmark 1.020B -> 0.961B.  Before that, an
+i8 or i16 extended in a 32 bit register after a copy is done by the copy with the source
+narrowed: cpy R1, R2 / and R1, 65535 is cpy R1, R2 with R2 16 bits wide, and cpy R1, R2 /
+xor R1, 32768 / sub R1, 32768 is cpy R1, R2:s (when c and v aren't read after); a sign
+extend on its own is wthx R, 32:s when no flag it sets is read (NarrowExtensions).
+
+Map benchmark (TestMapStringIntAndPointer) 2026-10-25: 1.020B; widths 0.961B; W always 0
+0.936B; flags 0.930B; less loop tests 0.928B; narrow extensions 0.923B; strength
+reduction 0.921B; merged loads, same phis and constant argument inlining 0.917B.
 
 Calls push their arguments last first at their own size (a thiscall's this goes in X),
 floats are the soft float runtime's, sdiv and srem call R_DivideSigned (the generator

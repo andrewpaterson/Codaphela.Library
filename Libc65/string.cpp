@@ -1,7 +1,9 @@
 //Memory and string functions for the 65C64.  All but strstr are in string.asm, written with the 65C64's block and
 //vector operations; the C++ versions here are their reference and are not built for the 65C64.  memcpy, memset and
-//memcmp work a 32 bit word at a time when the addresses are 4 byte aligned, otherwise a byte at a time.
+//memcmp work a 32 bit word (uint32_t: an int is 16 bits on the W65C816) at a time when the addresses are 4 byte
+//aligned, otherwise a byte at a time.
 #include <string.h>
+#include <stdint.h>
 
 
 #ifndef __65C64__
@@ -16,7 +18,7 @@ void* memcpy(void* pvDest, const void* pvSource, size_t uiBytes)
 	{
 		while (uiBytes >= 4)
 		{
-			*(unsigned int*)pcDest = *(const unsigned int*)pcSource;
+			*(uint32_t*)pcDest = *(const uint32_t*)pcSource;
 			pcDest += 4;
 			pcSource += 4;
 			uiBytes -= 4;
@@ -53,7 +55,7 @@ void* memmove(void* pvDest, const void* pvSource, size_t uiBytes)
 		{
 			pcDest -= 4;
 			pcSource -= 4;
-			*(unsigned int*)pcDest = *(const unsigned int*)pcSource;
+			*(uint32_t*)pcDest = *(const uint32_t*)pcSource;
 			uiBytes -= 4;
 		}
 	}
@@ -69,7 +71,7 @@ void* memmove(void* pvDest, const void* pvSource, size_t uiBytes)
 void* memset(void* pvDest, int iValue, size_t uiBytes)
 {
 	char*			pcDest;
-	unsigned int	uiValue;
+	uint32_t		uiValue;
 
 	pcDest = (char*)pvDest;
 	if (((size_t)pcDest & 3) == 0)
@@ -79,7 +81,7 @@ void* memset(void* pvDest, int iValue, size_t uiBytes)
 		uiValue |= uiValue << 16;
 		while (uiBytes >= 4)
 		{
-			*(unsigned int*)pcDest = uiValue;
+			*(uint32_t*)pcDest = uiValue;
 			pcDest += 4;
 			uiBytes -= 4;
 		}
@@ -103,7 +105,7 @@ int memcmp(const void* pv1, const void* pv2, size_t uiBytes)
 	if ((((size_t)puc1 | (size_t)puc2) & 3) == 0)
 	{
 		//Equal words are skipped; the bytes of the first word that differs are compared below.
-		while ((uiBytes >= 4) && (*(const unsigned int*)puc1 == *(const unsigned int*)puc2))
+		while ((uiBytes >= 4) && (*(const uint32_t*)puc1 == *(const uint32_t*)puc2))
 		{
 			puc1 += 4;
 			puc2 += 4;

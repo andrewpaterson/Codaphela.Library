@@ -101,6 +101,8 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 		bChanged |= FoldConstants();
 		bChanged |= RemoveCommonSubexpressions();
 		bChanged |= RemoveRedundantLoads();
+		bChanged |= LessLoopTests();
+		bChanged |= ReduceStrength();
 		bChanged |= HoistInvariants();
 		bChanged |= RemoveDeadCode();
 		if (!bChanged)
@@ -670,7 +672,9 @@ bool CIROptimiser::JoinBlocks(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A phi whose arguments are all one value (or the phi itself) is that value.
+// A phi whose arguments are all one value (or the phi itself) is that
+// value; one taking the same values as an earlier phi of its block is that
+// phi.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::RemoveTrivialPhis(void)
@@ -713,7 +717,11 @@ bool CIROptimiser::RemoveTrivialPhis(void)
 					}
 					sValue = sArgument;
 				}
-				if (bTrivial && !sValue.IsNone())
+				if (!(bTrivial && !sValue.IsNone()))
+				{
+					sValue = SamePhi(pcBlock, uiPhi - 1);
+				}
+				if (!sValue.IsNone())
 				{
 					Replace(psPhi->sResult, sValue);
 					psPhi->asArguments.Kill();
@@ -726,6 +734,46 @@ bool CIROptimiser::RemoveTrivialPhis(void)
 	} while (bChanged);
 	ApplyReplacements();
 	return bAny;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An earlier phi of pcBlock taking the same value from each block as its
+// phi uiPhi does; IRNone for none.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIROptimiser::SamePhi(CIRBlock* pcBlock, size uiPhi)
+{
+	SIRPhi*			psPhi;
+	SIRPhi*			psOther;
+	SIRPhiArgument*	psArgument;
+	SIRPhiArgument*	psOtherArgument;
+	size			uiOther;
+	size			uiArgument;
+	bool			bSame;
+
+	psPhi = pcBlock->masPhis.Get(uiPhi);
+	for (uiOther = 0; uiOther < uiPhi; uiOther++)
+	{
+		psOther = pcBlock->masPhis.Get(uiOther);
+		if (!psOther->sType.Equals(psPhi->sType) || (psOther->asArguments.NumElements() != psPhi->asArguments.NumElements()))
+		{
+			continue;
+		}
+		bSame = true;
+		for (uiArgument = 0; bSame && (uiArgument < psPhi->asArguments.NumElements()); uiArgument++)
+		{
+			psArgument = psPhi->asArguments.Get(uiArgument);
+			psOtherArgument = pcBlock->FindPhiArgument(psOther, psArgument->pcBlock);
+			bSame = psOtherArgument && Replacement(psOtherArgument->sValue).Equals(Replacement(psArgument->sValue));
+		}
+		if (bSame)
+		{
+			return psOther->sResult;
+		}
+	}
+	return IRNone();
 }
 
 
@@ -2049,6 +2097,86 @@ SIRInstruction* CIROptimiser::Definition(SIRReference sValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What a load of sType reads at sRoot + lliOffset when sRoot is a symbol
+// whose contents never change (a constant global, or known data such as a
+// vtable): a constant, or a symbol for a pointer to one (a vtable entry);
+// IRNone when it isn't known.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIROptimiser::ConstantData(SIRReference sRoot, int64 lliOffset, SIRType sType)
+{
+	CIRGlobal*		pcData;
+	SIRDataItem*	psItem;
+	size			ui;
+	int64			lliStart;
+	int64			lliSize;
+	int				iBytes;
+	int				i;
+	uint64			ulliBits;
+
+	if (!sRoot.IsSymbol() || (lliOffset < 0) || sType.IsFloat())
+	{
+		return IRNone();
+	}
+	pcData = mpcModule->FindConstantData(sRoot.Index());
+	if (pcData == NULL)
+	{
+		return IRNone();
+	}
+	iBytes = mpcModule->GetSize(sType);
+	lliStart = 0;
+	for (ui = 0; ui < pcData->masItems.NumElements(); ui++)
+	{
+		psItem = pcData->masItems.Get(ui);
+		switch (psItem->uiKind)
+		{
+		case IRDK_Value:
+		case IRDK_Symbol:
+			lliSize = mpcModule->GetSize(psItem->sType);
+			break;
+		case IRDK_Bytes:
+			lliSize = (int64)psItem->uiLength;
+			break;
+		default:
+			lliSize = (int64)psItem->ulliValue;
+			break;
+		}
+		if (lliOffset < lliStart + lliSize)
+		{
+			if (lliOffset + iBytes > lliStart + lliSize)
+			{
+				//Across two items.
+				return IRNone();
+			}
+			switch (psItem->uiKind)
+			{
+			case IRDK_Value:
+				return ((lliOffset == lliStart) && psItem->sType.Equals(sType)) ? mpcFunction->AddConstant(sType, psItem->ulliValue) : IRNone();
+			case IRDK_Symbol:
+				return ((lliOffset == lliStart) && sType.IsPointer() && (psItem->lliOffset == 0)) ? IRReference(IRRK_Symbol, (uint32)psItem->ulliValue) : IRNone();
+			case IRDK_Bytes:
+				if (!sType.IsInteger())
+				{
+					return IRNone();
+				}
+				ulliBits = 0;
+				for (i = iBytes - 1; i >= 0; i--)
+				{
+					ulliBits = (ulliBits << 8) | *pcData->macBytes.Get(psItem->uiStart + (size)(lliOffset - lliStart) + i);
+				}
+				return mpcFunction->AddConstant(sType, ulliBits);
+			default:
+				return (sType.IsInteger() || sType.IsPointer()) ? mpcFunction->AddConstant(sType, 0) : IRNone();
+			}
+		}
+		lliStart += lliSize;
+	}
+	return IRNone();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // An address as a root (a temporary or symbol that isn't a ptradd of a
 // constant) and a constant offset from it.
 //
@@ -2148,10 +2276,68 @@ void CIROptimiser::AddAvailable(CArrayIRAvailables* pasAvailable, SIRReference s
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What a block entered from several blocks knows is in memory: what all
+// of them leave known, as the same value (none if one is a loop's way back,
+// not walked yet).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::MergeAvailable(CIRBlock* pcBlock, CArrayIRAvailables* pasAvailable, CArrayIRAvailables* pasEnds, CArrayTemplate<SIRBlockEnd>* pasBlockEnds)
+{
+	size			uiPredecessor;
+	size			uiFirst;
+	size			uiOther;
+	SIRBlockEnd*	psFirstEnd;
+	SIRBlockEnd*	psEnd;
+	SIRAvailable*	psCandidate;
+	SIRAvailable*	psOther;
+	bool			bEverywhere;
+	bool			bFound;
+
+	if (pcBlock->mapcPredecessors.NumElements() < 2)
+	{
+		return;
+	}
+	for (uiPredecessor = 0; uiPredecessor < pcBlock->mapcPredecessors.NumElements(); uiPredecessor++)
+	{
+		if (pasBlockEnds->Get(pcBlock->mapcPredecessors.GetPtr(uiPredecessor)->muiIndex)->iStart < 0)
+		{
+			return;
+		}
+	}
+	psFirstEnd = pasBlockEnds->Get(pcBlock->mapcPredecessors.GetPtr(0)->muiIndex);
+	for (uiFirst = 0; uiFirst < (size)psFirstEnd->iCount; uiFirst++)
+	{
+		psCandidate = pasEnds->Get(psFirstEnd->iStart + uiFirst);
+		bEverywhere = true;
+		for (uiPredecessor = 1; bEverywhere && (uiPredecessor < pcBlock->mapcPredecessors.NumElements()); uiPredecessor++)
+		{
+			psEnd = pasBlockEnds->Get(pcBlock->mapcPredecessors.GetPtr(uiPredecessor)->muiIndex);
+			bFound = false;
+			for (uiOther = 0; uiOther < (size)psEnd->iCount; uiOther++)
+			{
+				psOther = pasEnds->Get(psEnd->iStart + uiOther);
+				if (psOther->sRoot.Equals(psCandidate->sRoot) && (psOther->lliOffset == psCandidate->lliOffset) && psOther->sType.Equals(psCandidate->sType) && Replacement(psOther->sValue).Equals(Replacement(psCandidate->sValue)))
+				{
+					bFound = true;
+					break;
+				}
+			}
+			bEverywhere = bFound;
+		}
+		if (bEverywhere)
+		{
+			AddAvailable(pasAvailable, psCandidate->sRoot, psCandidate->lliOffset, psCandidate->sType, Replacement(psCandidate->sValue));
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A load of what is known to be in memory is that value: what an earlier
-// load read or a store wrote, in its block or in the blocks before it that
-// are its only predecessors, with no call, volatile load or store that may
-// touch it between.
+// load read or a store wrote, in its block or in the blocks before it (all
+// the blocks that enter it agreeing), with no call, volatile load or store
+// that may touch it between.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::RemoveRedundantLoads(void)
@@ -2167,6 +2353,7 @@ bool CIROptimiser::RemoveRedundantLoads(void)
 	SIRAvailable*					psAvailable;
 	SIRBlockEnd*					psEnd;
 	SIRReference					sRoot;
+	SIRReference					sConstant;
 	int64							lliOffset;
 	bool							bChanged;
 	bool							bFound;
@@ -2194,6 +2381,10 @@ bool CIROptimiser::RemoveRedundantLoads(void)
 				asAvailable.InsertBlockAt(asEnds.Get(psEnd->iStart), psEnd->iCount, 0);
 			}
 		}
+		else
+		{
+			MergeAvailable(pcBlock, &asAvailable, &asEnds, &asBlockEnds);
+		}
 
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
@@ -2203,6 +2394,13 @@ bool CIROptimiser::RemoveRedundantLoads(void)
 			if ((psInstruction->uiOpcode == IRO_Load) && !(psInstruction->uiFlags & IRF_Volatile) && psInstruction->sResult.IsTemporary())
 			{
 				SplitAddress(psInstruction->asArguments[0], &sRoot, &lliOffset);
+				sConstant = ConstantData(sRoot, lliOffset, psInstruction->sType);
+				if (!sConstant.IsNone())
+				{
+					Replace(psInstruction->sResult, sConstant);
+					bChanged = true;
+					continue;
+				}
 				bFound = false;
 				for (uiAvailable = 0; uiAvailable < asAvailable.NumElements(); uiAvailable++)
 				{
@@ -2632,6 +2830,278 @@ static bool IROptimiserHoistable(CIRFunction* pcFunction, SIRInstruction* psInst
 // branch now goes to and which jumps to the head.
 //
 //////////////////////////////////////////////////////////////////////////
+//
+// The loop pcHead heads, if a block jumps back to it: its blocks are marked
+// with pcHead's index in paiLoop (found from the blocks that jump back),
+// and *ppcEntering is the one block outside that enters it (pcHead when
+// several do, NULL when none).  False if pcHead heads no loop.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::FindLoop(CIRBlock* pcHead, CArrayTemplate<int32>* paiLoop, CArrayIRBlocks* papcStack, CIRBlock** ppcEntering)
+{
+	size		uiPredecessor;
+	int32		iHead;
+	CIRBlock*	pcBlock;
+	CIRBlock*	pcPredecessor;
+
+	iHead = (int32)pcHead->muiIndex;
+	*ppcEntering = NULL;
+	*paiLoop->Get(iHead) = iHead;
+	papcStack->FakeSetUsedElements(0);
+	for (uiPredecessor = 0; uiPredecessor < pcHead->mapcPredecessors.NumElements(); uiPredecessor++)
+	{
+		pcPredecessor = pcHead->mapcPredecessors.GetPtr(uiPredecessor);
+		if (mcDominators.IsBackEdge(pcPredecessor, pcHead))
+		{
+			papcStack->Push(pcPredecessor);
+		}
+		else
+		{
+			*ppcEntering = *ppcEntering ? pcHead : pcPredecessor;
+		}
+	}
+	if (papcStack->NumElements() == 0)
+	{
+		return false;
+	}
+	while (papcStack->NumElements() > 0)
+	{
+		pcBlock = papcStack->Pop();
+		if (*paiLoop->Get(pcBlock->muiIndex) == iHead)
+		{
+			continue;
+		}
+		*paiLoop->Get(pcBlock->muiIndex) = iHead;
+		for (uiPredecessor = 0; uiPredecessor < pcBlock->mapcPredecessors.NumElements(); uiPredecessor++)
+		{
+			papcStack->Push(pcBlock->mapcPredecessors.GetPtr(uiPredecessor));
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if sValue + iStep (1 or -1) can't wrap: a constant that isn't the
+// largest (smallest) of its type, or an extension of a narrower value.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::CanStep(SIRReference sValue, int iStep)
+{
+	SIRInstruction*	psDefinition;
+	SIRType			sType;
+	int64			lliValue;
+	int				iBits;
+
+	sType = mpcFunction->TypeOf(sValue);
+	iBits = sType.IntegerBits();
+	if (sValue.IsConstant())
+	{
+		lliValue = mpcFunction->GetSigned(sValue);
+		return (iBits >= 64) ? (iStep > 0 ? (lliValue != 0x7FFFFFFFFFFFFFFFLL) : (lliValue != (-0x7FFFFFFFFFFFFFFFLL - 1))) :
+							   (iStep > 0 ? (lliValue < (((int64)1 << (iBits - 1)) - 1)) : (lliValue > -((int64)1 << (iBits - 1))));
+	}
+	psDefinition = Definition(sValue);
+	return psDefinition && ((psDefinition->uiOpcode == IRO_SExt) || (psDefinition->uiOpcode == IRO_ZExt)) &&
+		   (mpcFunction->TypeOf(psDefinition->asArguments[0]).IntegerBits() < iBits);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A loop's test that goes on round when a <= b (or b >= a), signed, is
+// a < b + 1 when b + 1 can't wrap and the loop doesn't change b (or
+// a - 1 < b, the other way round): the 65C64 branches on less in one
+// instruction but on less or equal in two.  The new add is moved out of
+// the loop by HoistInvariants.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::LessLoopTests(void)
+{
+	CArrayTemplate<int32>	aiLoop;			//Per block index: the head's index of the loop it was last found in.
+	CArrayTemplate<int32>	aiDefined;		//Per temporary: the index of the block that defines it, -1 for a parameter.
+	CArrayIRBlocks			apcStack;
+	size					ui;
+	size					uiBlock;
+	int32					iHead;
+	CIRBlock*				pcHead;
+	CIRBlock*				pcBlock;
+	CIRBlock*				pcEntering;
+	CIRBlock*				pcInside;
+	CIRBlock*				pcOutside;
+	SIRInstruction*			psCompare;
+	SIRInstruction*			psNew;
+	SIRReference			sA;
+	SIRReference			sB;
+	SIRReference			sStepped;
+	SIRReference			sTest;
+	SIRType					sType;
+	uint16					uiOpcode;
+	bool					bChanged;
+	bool					bStepB;
+
+	mpcFunction->Renumber();
+	mpcFunction->ComputePredecessors();
+	mcDominators.Compute(mpcFunction);
+	FindDefinitions();
+	aiDefined.Init();
+	FindDefiningBlocks(&aiDefined);
+	aiLoop.Init();
+	aiLoop.GrowToAtLeastNumElements(mpcFunction->NumBlocks(), true, 0xFF);
+	apcStack.Init();
+	bChanged = false;
+	for (ui = 0; ui < mcDominators.NumReachable(); ui++)
+	{
+		pcHead = mcDominators.GetReversePostOrder(ui);
+		iHead = (int32)pcHead->muiIndex;
+		if (!FindLoop(pcHead, &aiLoop, &apcStack, &pcEntering))
+		{
+			continue;
+		}
+		for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+		{
+			pcBlock = mpcFunction->GetBlock(uiBlock);
+			if ((*aiLoop.Get(uiBlock) != iHead) || (pcBlock->msJump.uiKind != IRJ_Branch) || !pcBlock->msJump.sArgument.IsTemporary())
+			{
+				continue;
+			}
+			psCompare = Definition(pcBlock->msJump.sArgument);
+			if ((psCompare == NULL) || !IsIRSignedComparison(psCompare->uiOpcode))
+			{
+				continue;
+			}
+
+			//The way round the loop and the way out.
+			if ((*aiLoop.Get(pcBlock->msJump.pcThen->muiIndex) == iHead) && (*aiLoop.Get(pcBlock->msJump.pcElse->muiIndex) != iHead))
+			{
+				pcInside = pcBlock->msJump.pcThen;
+				pcOutside = pcBlock->msJump.pcElse;
+				uiOpcode = psCompare->uiOpcode;
+			}
+			else if ((*aiLoop.Get(pcBlock->msJump.pcElse->muiIndex) == iHead) && (*aiLoop.Get(pcBlock->msJump.pcThen->muiIndex) != iHead))
+			{
+				pcInside = pcBlock->msJump.pcElse;
+				pcOutside = pcBlock->msJump.pcThen;
+				uiOpcode = IRInvertedComparison(psCompare->uiOpcode);
+			}
+			else
+			{
+				continue;
+			}
+
+			//Round when a <= b.
+			if (uiOpcode == IRO_SLe)
+			{
+				sA = psCompare->asArguments[0];
+				sB = psCompare->asArguments[1];
+			}
+			else if (uiOpcode == IRO_SGe)
+			{
+				sA = psCompare->asArguments[1];
+				sB = psCompare->asArguments[0];
+			}
+			else
+			{
+				continue;
+			}
+			if (!IsLoopInvariant(sB, &aiDefined, &aiLoop, iHead) || !CanStep(sB, 1))
+			{
+				if (!IsLoopInvariant(sA, &aiDefined, &aiLoop, iHead) || !CanStep(sA, -1))
+				{
+					continue;
+				}
+				bStepB = false;
+			}
+			else
+			{
+				bStepB = true;
+			}
+
+			sType = psCompare->sType;
+			sStepped = mpcFunction->AddTemporary(sType);
+			sTest = mpcFunction->AddTemporary(IRType(IRTK_I1));
+			psNew = pcBlock->masInstructions.Add();
+			psNew->uiOpcode = bStepB ? IRO_Add : IRO_Sub;
+			psNew->uiFlags = 0;
+			psNew->uiNamed = 0;
+			psNew->sType = sType;
+			psNew->sResult = sStepped;
+			psNew->asArguments[0] = bStepB ? sB : sA;
+			psNew->asArguments[1] = mpcFunction->AddInteger(sType, 1);
+			psNew = pcBlock->masInstructions.Add();
+			psNew->uiOpcode = IRO_SLt;
+			psNew->uiFlags = 0;
+			psNew->uiNamed = 0;
+			psNew->sType = sType;
+			psNew->sResult = sTest;
+			psNew->asArguments[0] = bStepB ? sA : sStepped;
+			psNew->asArguments[1] = bStepB ? sStepped : sB;
+			pcBlock->msJump.sArgument = sTest;
+			pcBlock->msJump.pcThen = pcInside;
+			pcBlock->msJump.pcElse = pcOutside;
+			bChanged = true;
+		}
+	}
+	apcStack.Kill();
+	aiLoop.Kill();
+	aiDefined.Kill();
+	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if sValue is a constant, a parameter or worked out outside the
+// loop iHead heads.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::IsLoopInvariant(SIRReference sValue, CArrayTemplate<int32>* paiDefined, CArrayTemplate<int32>* paiLoop, int32 iHead)
+{
+	int32	iDefined;
+
+	if (!sValue.IsTemporary())
+	{
+		return true;
+	}
+	iDefined = *paiDefined->Get(sValue.Index());
+	return (iDefined < 0) || (*paiLoop->Get(iDefined) != iHead);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Per temporary: the index of the block that defines it, -1 for a
+// parameter.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::FindDefiningBlocks(CArrayTemplate<int32>* paiDefined)
+{
+	size		ui;
+	size		uiBlock;
+	CIRBlock*	pcBlock;
+
+	paiDefined->FakeSetUsedElements(0);
+	paiDefined->GrowToAtLeastNumElements(mpcFunction->NumTemporaries(), true, 0xFF);
+	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = mpcFunction->GetBlock(uiBlock);
+		for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
+		{
+			*paiDefined->Get(pcBlock->masPhis.Get(ui)->sResult.Index()) = (int32)uiBlock;
+		}
+		for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+		{
+			if (pcBlock->masInstructions.Get(ui)->sResult.IsTemporary())
+			{
+				*paiDefined->Get(pcBlock->masInstructions.Get(ui)->sResult.Index()) = (int32)uiBlock;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 CIRBlock* CIROptimiser::AddPreheader(CIRBlock* pcEntering, CIRBlock* pcHead)
 {
 	CIRBlock*	pcPreheader;
@@ -2642,6 +3112,199 @@ CIRBlock* CIROptimiser::AddPreheader(CIRBlock* pcEntering, CIRBlock* pcHead)
 	RenamePhiArguments(pcHead, pcEntering, pcPreheader);
 	mpcFunction->ComputePredecessors();
 	return pcPreheader;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new instruction at the end of pcBlock's instructions; sType is its
+// result's (ptr for a ptradd).
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIROptimiser::AppendInstruction(CIRBlock* pcBlock, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond)
+{
+	SIRInstruction*	psNew;
+
+	psNew = pcBlock->masInstructions.Add();
+	psNew->uiOpcode = uiOpcode;
+	psNew->uiFlags = 0;
+	psNew->uiNamed = 0;
+	psNew->sType = sType;
+	psNew->sResult = mpcFunction->AddTemporary(sType);
+	psNew->asArguments[0] = sFirst;
+	psNew->asArguments[1] = sSecond;
+	return psNew->sResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Strength reduction: in a loop with one block going round to its head and
+// a counter i (a phi of init, then i + c), an address p + (i << s) or
+// p + i * k with p not changed by the loop becomes a pointer of its own: p +
+// init * k before the loop, stepped by c * k going round.  The shift or
+// multiply and the add each time round become one add.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::ReduceStrength(void)
+{
+	CArrayTemplate<int32>	aiLoop;			//Per block index: the head's index of the loop it was last found in.
+	CArrayTemplate<int32>	aiDefined;		//Per temporary: the index of the block that defines it, -1 for a parameter.
+	CArrayIRBlocks			apcStack;
+	size					ui;
+	size					uiPhi;
+	size					uiArgument;
+	size					uiBlock;
+	size					uiInstruction;
+	int32					iHead;
+	CIRBlock*				pcHead;
+	CIRBlock*				pcBlock;
+	CIRBlock*				pcEntering;
+	CIRBlock*				pcLatch;
+	SIRPhi*					psPhi;
+	SIRPhi*					psNewPhi;
+	SIRInstruction*			psNext;
+	SIRInstruction*			psScaled;
+	SIRInstruction*			psAddress;
+	SIRReference			sCounter;
+	SIRReference			sBase;
+	SIRReference			sAddress;
+	SIRReference			sInit;
+	SIRReference			sNext;
+	SIRReference			sStart;
+	SIRReference			sPointer;
+	SIRReference			sStepped;
+	SIRType					sType;
+	int64					lliStep;
+	int64					lliScale;
+	bool					bChanged;
+
+	mpcFunction->Renumber();
+	mpcFunction->ComputePredecessors();
+	mcDominators.Compute(mpcFunction);
+	FindDefinitions();
+	aiDefined.Init();
+	FindDefiningBlocks(&aiDefined);
+	aiLoop.Init();
+	aiLoop.GrowToAtLeastNumElements(mpcFunction->NumBlocks(), true, 0xFF);
+	apcStack.Init();
+	ClearReplacements();
+	bChanged = false;
+	for (ui = 0; ui < mcDominators.NumReachable(); ui++)
+	{
+		pcHead = mcDominators.GetReversePostOrder(ui);
+		iHead = (int32)pcHead->muiIndex;
+		if (!FindLoop(pcHead, &aiLoop, &apcStack, &pcEntering) || !pcEntering || (pcEntering == pcHead) || (pcHead->mapcPredecessors.NumElements() != 2))
+		{
+			continue;
+		}
+		pcLatch = (pcHead->mapcPredecessors.GetPtr(0) == pcEntering) ? pcHead->mapcPredecessors.GetPtr(1) : pcHead->mapcPredecessors.GetPtr(0);
+
+		for (uiPhi = 0; uiPhi < pcHead->masPhis.NumElements(); uiPhi++)
+		{
+			//The counter: i = phi [entering, init], [latch, i + c].
+			psPhi = pcHead->masPhis.Get(uiPhi);
+			sCounter = psPhi->sResult;
+			if (!psPhi->sType.Is(IRTK_I32) || (psPhi->asArguments.NumElements() != 2))
+			{
+				continue;
+			}
+			sInit = IRNone();
+			sNext = IRNone();
+			for (uiArgument = 0; uiArgument < 2; uiArgument++)
+			{
+				if (psPhi->asArguments.Get(uiArgument)->pcBlock == pcEntering)
+				{
+					sInit = psPhi->asArguments.Get(uiArgument)->sValue;
+				}
+				else
+				{
+					sNext = psPhi->asArguments.Get(uiArgument)->sValue;
+				}
+			}
+			psNext = sNext.IsTemporary() ? Definition(sNext) : NULL;
+			if (sInit.IsNone() || (psNext == NULL) || (psNext->uiOpcode != IRO_Add) || !psNext->asArguments[0].Equals(sCounter) || !psNext->asArguments[1].IsConstant())
+			{
+				continue;
+			}
+			lliStep = mpcFunction->GetSigned(psNext->asArguments[1]);
+			sType = psPhi->sType;
+
+			//Addresses p + (i << s) or p + i * k in the loop.
+			for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+			{
+				pcBlock = mpcFunction->GetBlock(uiBlock);
+				if (*aiLoop.Get(uiBlock) != iHead)
+				{
+					continue;
+				}
+				for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+				{
+					psAddress = pcBlock->masInstructions.Get(uiInstruction);
+					if ((psAddress->uiOpcode != IRO_PtrAdd) || !psAddress->asArguments[1].IsTemporary() || !Replacement(psAddress->sResult).Equals(psAddress->sResult) || !IsLoopInvariant(psAddress->asArguments[0], &aiDefined, &aiLoop, iHead))
+					{
+						continue;
+					}
+					psScaled = Definition(psAddress->asArguments[1]);
+					if ((psScaled == NULL) || !psScaled->asArguments[0].Equals(sCounter) || !psScaled->asArguments[1].IsConstant())
+					{
+						continue;
+					}
+					if ((psScaled->uiOpcode == IRO_Shl) && (mpcFunction->GetSigned(psScaled->asArguments[1]) >= 0) && (mpcFunction->GetSigned(psScaled->asArguments[1]) < 16))
+					{
+						lliScale = (int64)1 << mpcFunction->GetSigned(psScaled->asArguments[1]);
+					}
+					else if (psScaled->uiOpcode == IRO_Mul)
+					{
+						lliScale = mpcFunction->GetSigned(psScaled->asArguments[1]);
+					}
+					else
+					{
+						continue;
+					}
+
+					if (pcEntering->msJump.uiKind != IRJ_Jump)
+					{
+						pcEntering = AddPreheader(pcEntering, pcHead);
+						aiLoop.GrowToAtLeastNumElements(mpcFunction->NumBlocks(), true, 0xFF);
+						*aiLoop.Get(pcEntering->muiIndex) = -1;
+					}
+
+					//p + init * k before the loop; the pointer steps by c * k going round.  (Adding to the latch may
+					//move this block's instructions.)
+					sBase = psAddress->asArguments[0];
+					sAddress = psAddress->sResult;
+					sStart = sInit.IsConstant() ? mpcFunction->AddInteger(sType, mpcFunction->GetSigned(sInit) * lliScale) : AppendInstruction(pcEntering, IRO_Mul, sType, sInit, mpcFunction->AddInteger(sType, lliScale));
+					if (!sStart.IsConstant() || (mpcFunction->GetSigned(sStart) != 0))
+					{
+						sStart = AppendInstruction(pcEntering, IRO_PtrAdd, IRType(IRTK_Pointer), sBase, sStart);
+					}
+					else
+					{
+						sStart = sBase;
+					}
+					sPointer = mpcFunction->AddTemporary(IRType(IRTK_Pointer));
+					sStepped = AppendInstruction(pcLatch, IRO_PtrAdd, IRType(IRTK_Pointer), sPointer, mpcFunction->AddInteger(sType, lliStep * lliScale));
+					psNewPhi = pcHead->AddPhi(IRType(IRTK_Pointer), sPointer);
+					pcHead->AddPhiArgument(psNewPhi, pcEntering, sStart);
+					pcHead->AddPhiArgument(psNewPhi, pcLatch, sStepped);
+					Replace(sAddress, sPointer);
+					bChanged = true;
+
+					//AddPhi may have moved the head's phis.
+					psPhi = pcHead->masPhis.Get(uiPhi);
+				}
+			}
+		}
+	}
+	apcStack.Kill();
+	aiLoop.Kill();
+	aiDefined.Kill();
+	if (bChanged)
+	{
+		ApplyReplacements();
+	}
+	return bChanged;
 }
 
 
@@ -2665,14 +3328,12 @@ bool CIROptimiser::HoistInvariants(void)
 	size					ui;
 	size					uiBlock;
 	size					uiInstruction;
-	size					uiPredecessor;
 	size					uiStore;
 	int32					iHead;
 	int32					iDefined;
 	CIRBlock*				pcHead;
 	CIRBlock*				pcBlock;
 	CIRBlock*				pcEntering;
-	CIRBlock*				pcPredecessor;
 	SIRInstruction*			psInstruction;
 	SIRInstruction			sMoved;
 	SIRReference			sRoot;
@@ -2691,22 +3352,7 @@ bool CIROptimiser::HoistInvariants(void)
 	aiLoop.Init();
 	aiLoop.GrowToAtLeastNumElements(mpcFunction->NumBlocks(), true, 0xFF);
 	aiDefined.Init();
-	aiDefined.GrowToAtLeastNumElements(mpcFunction->NumTemporaries(), true, 0xFF);
-	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
-	{
-		pcBlock = mpcFunction->GetBlock(uiBlock);
-		for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
-		{
-			*aiDefined.Get(pcBlock->masPhis.Get(ui)->sResult.Index()) = (int32)uiBlock;
-		}
-		for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
-		{
-			if (pcBlock->masInstructions.Get(ui)->sResult.IsTemporary())
-			{
-				*aiDefined.Get(pcBlock->masInstructions.Get(ui)->sResult.Index()) = (int32)uiBlock;
-			}
-		}
-	}
+	FindDefiningBlocks(&aiDefined);
 	apcStack.Init();
 	asStores.Init();
 	bChanged = false;
@@ -2715,38 +3361,9 @@ bool CIROptimiser::HoistInvariants(void)
 	{
 		pcHead = mcDominators.GetReversePostOrder(ui);
 		iHead = (int32)pcHead->muiIndex;
-
-		//The loop's blocks, from the blocks that jump back to the head; the one block outside that enters it.
-		pcEntering = NULL;
-		*aiLoop.Get(iHead) = iHead;
-		for (uiPredecessor = 0; uiPredecessor < pcHead->mapcPredecessors.NumElements(); uiPredecessor++)
-		{
-			pcPredecessor = pcHead->mapcPredecessors.GetPtr(uiPredecessor);
-			if (mcDominators.IsBackEdge(pcPredecessor, pcHead))
-			{
-				apcStack.Push(pcPredecessor);
-			}
-			else
-			{
-				pcEntering = pcEntering ? pcHead : pcPredecessor;
-			}
-		}
-		if (apcStack.NumElements() == 0)
+		if (!FindLoop(pcHead, &aiLoop, &apcStack, &pcEntering))
 		{
 			continue;
-		}
-		while (apcStack.NumElements() > 0)
-		{
-			pcBlock = apcStack.Pop();
-			if (*aiLoop.Get(pcBlock->muiIndex) == iHead)
-			{
-				continue;
-			}
-			*aiLoop.Get(pcBlock->muiIndex) = iHead;
-			for (uiPredecessor = 0; uiPredecessor < pcBlock->mapcPredecessors.NumElements(); uiPredecessor++)
-			{
-				apcStack.Push(pcBlock->mapcPredecessors.GetPtr(uiPredecessor));
-			}
 		}
 		if (!pcEntering || (pcEntering == pcHead))
 		{

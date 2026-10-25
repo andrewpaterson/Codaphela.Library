@@ -171,6 +171,28 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	65C64 is the first CCPPTarget and produces exactly the same assembly as now.
 	Libc65's headers get __W65C816__ blocks.
 
+	Done 2026-10-25 (CPPTarget.h/.cpp, SCPPTarget): int's size, the predefined macro,
+	whether results widen to 32 bits, whether the generator may write functions itself,
+	the bank size and the stack top.  CCPP65Builder::SetTarget (before anything is
+	added) picks the configuration, the defines, the generator's target, the assembler
+	(CAsm816Assembler) and the linker's bank size; CCPP65Generator::Init takes the
+	target.  Types: int is the target's (2 bytes), long a 4 byte type of its own
+	(CCPP65Types::Long), the usual arithmetic conversions take the wider type, and an
+	int literal that doesn't fit int is long.  int and short are the same type on the
+	W65C816 (types compare by size), as int and long are on the 65C64.  The IR front end
+	widens a pointer's index to the pointer's size and generates with CIR816Backend;
+	implicit default constructors and destructors go through it too (they have no
+	definition: no member initialisers).  On the W65C816 everything else the generator
+	would write as 65C64 code is an error: functions the front end can't write,
+	globals that need code to construct, this adjusting and virtual call thunks,
+	implicit copy constructors.  The start up (AppendStartUp816): the reset vector and
+	a jml stub in bank 0, native mode, S, D = 0, jsl _main, stp with main's result in
+	A; the init and fini tables aren't walked yet.  The runtime: R_Pure and the R816_
+	routines the unit used, as COMDAT sections (AppendRuntime816).  Libc65: the 32 bit
+	types (int32_t, size_t, ptrdiff_t ...) are long on both targets, limits.h's int is
+	per target.  Tests: TestCPP816.cpp (C++ programs built for the W65C816 and run on
+	CFast65C816, some in lockstep).
+
 2.	A W65C816 assembler (Assembler65Lib, CAsm816Assembler: WDC's syntax, QUESTION 4)
 	writing the same CAsm65Object.  Relocations gain a shift so a field can be the bank
 	byte (^label) and a check that a 16 bit address is in the bank it is used in.  The
@@ -210,6 +232,22 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	(softfloat.cpp, string.cpp, stdlib.cpp...) and closing the IR front end's gaps.
 	Then the TestCPP65 projects and TestLibc65 run on the W65C816, compared with the
 	65C64 and native results.
+	Done so far (2026-10-25): the target description (CPPTarget.h: int, pointer and bank
+	sizes, stack top, whether the direct generator is used); the start up (reset stub in
+	bank 0, the init table's R_Initialise routines, main, __RunAtExit when linked, the fini
+	table last first); globals' constructors, destructors and non constant initialisers
+	written by the IR front end (CCPP65IRFrontEnd::GlobalRoutine); __builtin_clz/ctz/
+	popcount; L literals are long.  All of Libc65 compiles for the W65C816 and
+	"TestLibc65 816" passes everything (106361), on CFast65C816.  Libc65 and BaseLib fixes
+	for a 16 bit int: string.cpp's words, the heap bounds, rand's state and RAND_MAX + 1 are
+	uint32_t, INT32_C/UINT32_C are long, TrueMallocator and FindFirstClearBit use
+	__builtin_clzl/ctzl on the W65C816.  The tests write their results as longs.
+	new Type[count] and delete[] are the IR front end's (the generator's layout).  The
+	TestCPP65 BaseLib projects and new/delete run on the W65C816 (TestCPP816).  Their
+	instruction counts on CFast65C816 before any optimisation, step 7's starting point:
+	MD5 0.31M, RedBlackTree 11.3M, Sort 9.4M, MersenneTwister 57.3M (a runtime call for
+	every 32 bit multiply and remainder), 1000 new int[1000] / delete[] 13.8M.
+	Not done: FloatHelper and Quaternion (floats against native results) on the W65C816.
 
 6.	TestBaseLib65 and TestStandardLib65 on the W65C816.  This is where int 16 meets
 	BaseLib (QUESTION 1).

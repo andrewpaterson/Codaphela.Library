@@ -19,6 +19,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
+#include <string.h>
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/PointerFunctions.h"
 #include "SourceFile.h"
@@ -27,6 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CppTokeniser.h"
 #include "CPPSyntaxTree.h"
 #include "CPP65IRFrontEnd.h"
+#include "IR816Backend.h"
 #include "CPP65Generator.h"
 
 
@@ -82,11 +84,12 @@ void CCPP65Generator::SetUseIR(bool bUseIR)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::Init(CCPPSyntaxTree* pcTree)
+void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 {
 	mpcTree = pcTree;
 	mpcTokeniser = pcTree->GetTokeniser();
-	mcTypes.Init();
+	mpsTarget = GetCPPTarget(eTarget);
+	mcTypes.Init(mpsTarget->iIntBytes);
 
 	mszCode.Init();
 	mszData.Init();
@@ -95,7 +98,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree)
 	mszBody.Init();
 	mpszOut = &mszCode;
 	mpcIRFrontEnd = NULL;
-	SetUseIR(gbCPP65DefaultUseIR);
+	SetUseIR(gbCPP65DefaultUseIR || !mpsTarget->bDirectGenerator);
 	mcErrors.Init();
 
 	mapsGlobals.Init();
@@ -304,7 +307,6 @@ bool CCPP65Generator::Generate(CChars* pszDest)
 void CCPP65Generator::AppendStartUpRoutine(const char* szTable, const char* szName, CChars* pszBody, CChars* pszData)
 {
 	CChars	szLabel;
-	CChars	szOptions;
 
 	if (pszBody->Length() == 0)
 	{
@@ -320,15 +322,64 @@ void CCPP65Generator::AppendStartUpRoutine(const char* szTable, const char* szNa
 	mszCode.Append("\t\tret");
 	mszCode.AppendNewLine();
 	mszCode.AppendNewLine();
+	AppendStartUpEntry(szTable, &szLabel, pszData);
+	szLabel.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A start up routine's entry in the init (or fini) table, kept only while the global's data section is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendStartUpEntry(const char* szTable, CChars* pszLabel, CChars* pszData)
+{
+	CChars	szOptions;
 
 	szOptions.Init(", associated data.");
 	szOptions.Append(pszData);
-	AppendSection(&mszData, szTable, &szLabel, szOptions.Text());
+	AppendSection(&mszData, szTable, pszLabel, szOptions.Text());
 	mszData.Append("\t\t.long ");
-	mszData.Append(szLabel);
+	mszData.Append(pszLabel);
 	mszData.AppendNewLine();
 	szOptions.Kill();
-	szLabel.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// On a target the generator doesn't write code for, a global's R_Initialise and R_Finalise are written by the IR
+// front end (CCPP65IRFrontEnd::GlobalRoutine).  bConstruct when it needs constructing, bDestroy when it needs
+// destroying.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, bool bConstruct, bool bDestroy)
+{
+	CChars	szLabel;
+	bool	bResult;
+	int		i;
+
+	bResult = true;
+	for (i = 0; i < 2; i++)
+	{
+		if (!((i == 0) ? bConstruct : bDestroy))
+		{
+			continue;
+		}
+		szLabel.Init((i == 0) ? "R_Initialise" : "R_Finalise");
+		szLabel.Append(miStartUps);
+		AppendSection(&mszCode, "text", &szLabel, NULL);
+		if (mpcIRFrontEnd->GlobalRoutine(szLabel.Text(), pszData->Text(), psType, pcInitialiser, i == 1))
+		{
+			AppendStartUpEntry((i == 0) ? "init" : "fini", &szLabel, pszData);
+		}
+		else
+		{
+			bResult = ErrorAt(-1, "This global's construction or destruction uses C++ the IR front end doesn't support yet");
+		}
+		szLabel.Kill();
+	}
+	return bResult;
 }
 
 
@@ -364,8 +415,13 @@ bool CCPP65Generator::GenerateProgram(CChars* pszDest)
 // it is resident when functions are loaded lazily.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AppendStartUp(CChars* pszDest)
+void CCPP65Generator::AppendStartUp(CChars* pszDest, ECPPTarget eTarget)
 {
+	if (eTarget == CPPT_W65C816)
+	{
+		AppendStartUp816(pszDest);
+		return;
+	}
 	pszDest->Append("\t\t.section text, keep, resident")->AppendNewLine();
 	pszDest->Append("Start:")->AppendNewLine();
 	pszDest->Append("\t\tcpy S, $")->Append((uint32)CPP65_STACK_TOP, 16)->AppendNewLine();
@@ -407,6 +463,118 @@ void CCPP65Generator::AppendStartUp(CChars* pszDest)
 	pszDest->Append("\t\tcpy V, S")->AppendNewLine();
 	pszDest->Append("\t\tcpy A, [5 + V]")->AppendNewLine();
 	pszDest->Append("\t\tstp")->AppendNewLine();
+	pszDest->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The W65C816's start up.  Bank 0 only holds the stack, the direct page, the vectors and their stubs (the user,
+// 2026-10-25), so the reset vector goes to a jml stub there and the start up is in bank 1 onwards.  It switches to
+// native mode with 16 bit registers, sets S to the target's stack top and D to 0, calls the init table's routines
+// (each global's R_Initialise, in link order), calls main, Libc65's __RunAtExit when stdlib.cpp is linked (a weak
+// reference), the fini table's routines last first, and stops with main's result in A.  The table walks keep a far
+// pointer at 0000:0000 (the direct page while D is 0).  _Exit(int) stops with its argument in A.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendStartUp816(CChars* pszDest)
+{
+	pszDest->Append("\t\t.section rodata.ResetVector, at $FFFC, keep\n");
+	pszDest->Append("\t\t.word ResetStub\n");
+	pszDest->Append("\t\t.section text.ResetStub, at $FF00, keep\n");
+	pszDest->Append("ResetStub:\n");
+	pszDest->Append("\t\tjml Start\n");
+	pszDest->Append("\t\t.section text, keep\n");
+	pszDest->Append("Start:\n");
+	pszDest->Append("\t\tclc\n");
+	pszDest->Append("\t\txce\n");
+	pszDest->Append("\t\trep (m, x)\n");
+	pszDest->Append("\t\tlda $")->Append(GetCPPTarget(CPPT_W65C816)->uiStackTop, 16)->AppendNewLine();
+	pszDest->Append("\t\ttcs\n");
+	pszDest->Append("\t\tlda 0\n");
+	pszDest->Append("\t\ttcd\n");
+	pszDest->Append("\t\tlda __init_start & $FFFF\n");
+	pszDest->Append("\t\tsta [D + 0]\n");
+	pszDest->Append("\t\tlda __init_start >> 16\n");
+	pszDest->Append("\t\tsta [D + 2]\n");
+	pszDest->Append("StartInitialise:\n");
+	pszDest->Append("\t\tlda [D + 0]\n");
+	pszDest->Append("\t\tcmp __init_end & $FFFF\n");
+	pszDest->Append("\t\tbne StartInitialiseCall\n");
+	pszDest->Append("\t\tlda [D + 2]\n");
+	pszDest->Append("\t\tcmp __init_end >> 16\n");
+	pszDest->Append("\t\tbeq StartMain\n");
+	pszDest->Append("StartInitialiseCall:\n");
+	pszDest->Append("\t\tjsr StartCallEntry\n");
+	pszDest->Append("\t\tclc\n");
+	pszDest->Append("\t\tlda [D + 0]\n");
+	pszDest->Append("\t\tadc 4\n");
+	pszDest->Append("\t\tsta [D + 0]\n");
+	pszDest->Append("\t\tlda [D + 2]\n");
+	pszDest->Append("\t\tadc 0\n");
+	pszDest->Append("\t\tsta [D + 2]\n");
+	pszDest->Append("\t\tbra StartInitialise\n");
+	pszDest->Append("StartMain:\n");
+	pszDest->Append("\t\tjsl _main\n");
+	pszDest->Append("\t\tpha\n");
+	pszDest->Append("\t\t.weak ___RunAtExit\n");
+	pszDest->Append("\t\tlda ___RunAtExit & $FFFF\n");
+	pszDest->Append("\t\tora ___RunAtExit >> 16\n");
+	pszDest->Append("\t\tbeq StartAtExitDone\n");
+	pszDest->Append("\t\tjsl ___RunAtExit\n");
+	pszDest->Append("StartAtExitDone:\n");
+	pszDest->Append("\t\tlda __fini_end & $FFFF\n");
+	pszDest->Append("\t\tsta [D + 0]\n");
+	pszDest->Append("\t\tlda __fini_end >> 16\n");
+	pszDest->Append("\t\tsta [D + 2]\n");
+	pszDest->Append("StartFinalise:\n");
+	pszDest->Append("\t\tlda [D + 0]\n");
+	pszDest->Append("\t\tcmp __fini_start & $FFFF\n");
+	pszDest->Append("\t\tbne StartFinaliseCall\n");
+	pszDest->Append("\t\tlda [D + 2]\n");
+	pszDest->Append("\t\tcmp __fini_start >> 16\n");
+	pszDest->Append("\t\tbeq StartStop\n");
+	pszDest->Append("StartFinaliseCall:\n");
+	pszDest->Append("\t\tsec\n");
+	pszDest->Append("\t\tlda [D + 0]\n");
+	pszDest->Append("\t\tsbc 4\n");
+	pszDest->Append("\t\tsta [D + 0]\n");
+	pszDest->Append("\t\tlda [D + 2]\n");
+	pszDest->Append("\t\tsbc 0\n");
+	pszDest->Append("\t\tsta [D + 2]\n");
+	pszDest->Append("\t\tjsr StartCallEntry\n");
+	pszDest->Append("\t\tbra StartFinalise\n");
+	pszDest->Append("StartStop:\n");
+	pszDest->Append("\t\tpla\n");
+	pszDest->Append("\t\tstp\n");
+
+	//Calls the routine the table entry [D + 0] points at: the return address and the routine - 1 are pushed, and rtl
+	//goes to it.
+	pszDest->Append("StartCallEntry:\n");
+	pszDest->Append("\t\t.width (A, X), 16\n");
+	pszDest->Append("\t\tldy 0\n");
+	pszDest->Append("\t\tlda [[D + 0]:24 + Y]\n");
+	pszDest->Append("\t\tsta [D + 4]\n");
+	pszDest->Append("\t\tldy 2\n");
+	pszDest->Append("\t\tlda [[D + 0]:24 + Y]\n");
+	pszDest->Append("\t\tsta [D + 6]\n");
+	pszDest->Append("\t\tphk\n");
+	pszDest->Append("\t\tper StartCallReturn - 1\n");
+	pszDest->Append("\t\tsep m\n");
+	pszDest->Append("\t\tlda [D + 6]\n");
+	pszDest->Append("\t\tpha\n");
+	pszDest->Append("\t\trep m\n");
+	pszDest->Append("\t\tlda [D + 4]\n");
+	pszDest->Append("\t\tdec A\n");
+	pszDest->Append("\t\tpha\n");
+	pszDest->Append("\t\trtl\n");
+	pszDest->Append("StartCallReturn:\n");
+	pszDest->Append("\t\trts\n");
+	pszDest->Append("\t\t.global __Exit\n");
+	pszDest->Append("__Exit:\n");
+	pszDest->Append("\t\t.width (A, X), 16\n");
+	pszDest->Append("\t\tlda [S + 4]\n");
+	pszDest->Append("\t\tstp\n");
 	pszDest->AppendNewLine();
 }
 
@@ -608,13 +776,14 @@ void CCPP65Generator::GetExternals(CArrayChars* paszLabels)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The macros the 65C64 target predefines, for the configuration code is
-// preprocessed with.  __65C64__ selects the target in BaseLib's Define.h.
+// The macros the target predefines, for the configuration code is preprocessed
+// with.  __65C64__ or __W65C816__ selects the target in BaseLib's Define.h and
+// Libc65's headers.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AddDefines(CConfig* pcConfig)
+void CCPP65Generator::AddDefines(CConfig* pcConfig, ECPPTarget eTarget)
 {
-	pcConfig->AddDefine("__65C64__=1");
+	pcConfig->AddDefine((char*)GetCPPTarget(eTarget)->szDefine);
 	pcConfig->mbKeepPragmaPack = true;
 }
 
@@ -1319,7 +1488,22 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 		mszInitialise.Clear();
 		szDestroy.Init();
 		miThisOffset = -1;
-		if (!psElement->IsClass() && !psType->IsReference())
+		if (!mpsTarget->bDirectGenerator)
+		{
+			//The generator's code for it (mszInitialise) is the 65C64's: the IR front end writes the routines instead.
+			if (!psElement->IsClass() && !psType->IsReference())
+			{
+				bResult &= GlobalInitialiser(psType, pcInit->mpcInitializer, pcInit, &sPlace);
+				bResult &= GlobalStartUpRoutines(psType, pcInit->mpcInitializer, &szLabel, mszInitialise.Length() != 0, false);
+			}
+			else
+			{
+				AppendZeros(psType->iBytes);
+				bResult &= GlobalStartUpRoutines(psType, pcInit->mpcInitializer, &szLabel, true, psElement->IsClass() && (psElement->psClass->psDestructor != NULL));
+			}
+			mszInitialise.Clear();
+		}
+		else if (!psElement->IsClass() && !psType->IsReference())
 		{
 			bResult &= GlobalInitialiser(psType, pcInit->mpcInitializer, pcInit, &sPlace);
 		}
@@ -1948,9 +2132,13 @@ SCPP65Type* CCPP65Generator::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	{
 		return mcTypes.Integer(2, bSigned);
 	}
-	if (uiKeywords & (CPPTK_INT | CPPTK_INT32 | CPPTK_SIGNED | CPPTK_UNSIGNED) || (pcSpecifiers->miLongs == 1))
+	if ((uiKeywords & CPPTK_INT32) || (pcSpecifiers->miLongs == 1))
 	{
-		return mcTypes.Integer(4, bSigned);
+		return mcTypes.Long(bSigned);
+	}
+	if (uiKeywords & (CPPTK_INT | CPPTK_SIGNED | CPPTK_UNSIGNED))
+	{
+		return bSigned ? &mcTypes.msInt : &mcTypes.msUnsignedInt;
 	}
 	Error(pcNode, "This type is not supported by the 65C64 generator yet");
 	return NULL;
@@ -2104,18 +2292,33 @@ void CCPP65Generator::GenerateFunction(SCPP65Function* psFunction)
 	psSaved = mpsBindings;
 	mpsBindings = psFunction->psBindings;
 
-	if (psFunction->bImplicit)
+	if (psFunction->bImplicit && !mpsTarget->bDirectGenerator)
 	{
+		//Only the IR front end writes code for this target: an implicit default constructor or destructor.
 		BeginFunction(psFunction);
-		if (psFunction->eKind == CPP65FK_Constructor)
+		if ((psFunction->mapsParameters.NumElements() != 0) || !mpcIRFrontEnd || !mpcIRFrontEnd->Body(psFunction))
 		{
-			ConstructorBody(psFunction, NULL);
+			ErrorAt(-1, "An implicit copy constructor (or one the IR front end can't write) is not supported on this target yet");
+			EndFunction(psFunction);
 		}
-		else
+	}
+	else if (psFunction->bImplicit)
+	{
+		//An implicit default constructor or destructor is the IR front end's when it is in use (so the optimiser
+		//sees the vtable pointers it stores), else written here.
+		BeginFunction(psFunction);
+		if ((psFunction->mapsParameters.NumElements() != 0) || !mpcIRFrontEnd || !mpcIRFrontEnd->Body(psFunction))
 		{
-			SetVtable(NULL, psFunction->psClass);
+			if (psFunction->eKind == CPP65FK_Constructor)
+			{
+				ConstructorBody(psFunction, NULL);
+			}
+			else
+			{
+				SetVtable(NULL, psFunction->psClass);
+			}
+			EndFunction(psFunction);
 		}
-		EndFunction(psFunction);
 	}
 	else
 	{
@@ -2147,6 +2350,7 @@ bool CCPP65Generator::GenerateDefinition(SCPP65Function* psFunction)
 	size							uiPack;
 	int								iOffset;
 	bool							bResult;
+	CChars							szMessage;
 
 	pcFunction = psFunction->pcDefinition;
 	if ((pcFunction->macpMemberInitializers.NumElements() != 0) && (psFunction->eKind != CPP65FK_Constructor))
@@ -2202,10 +2406,29 @@ bool CCPP65Generator::GenerateDefinition(SCPP65Function* psFunction)
 	AllocateTemporaries(pcFunction->mpcBody);
 	miFrameBytes = (miFrameBytes + 3) & ~3;
 
-	//The IR front end writes the whole function when it supports everything in it.
+	//The IR front end writes the whole function when it supports everything in it.  A target without the direct
+	//generator (the W65C816) can't have it written any other way.
 	if (mpcIRFrontEnd && mpcIRFrontEnd->Body(psFunction))
 	{
 		return true;
+	}
+	if (!mpsTarget->bDirectGenerator)
+	{
+		szMessage.Init("This function uses C++ the ");
+		szMessage.Append(mpsTarget->szName);
+		szMessage.Append(" compiler doesn't support yet (CPP65IRFrontEnd.cpp line ");
+		szMessage.Append(CCPP65IRFrontEnd::siUnsupportedLine);
+		szMessage.Append(")");
+		if (CCPP65IRFrontEnd::sszUnsupported[0] != '\0')
+		{
+			szMessage.Append(": ");
+			szMessage.Append(CCPP65IRFrontEnd::sszUnsupported);
+			CCPP65IRFrontEnd::sszUnsupported[0] = '\0';
+		}
+		Error(pcFunction, szMessage.Text());
+		szMessage.Kill();
+		EndFunction(psFunction);
+		return false;
 	}
 
 	bResult = true;
@@ -3550,10 +3773,8 @@ void CCPP65Generator::AppendDivideSigned(const char* szName, int iBytes)
 	Line("abs Y, A")->AppendNewLine();
 	Line("abs A, B")->AppendNewLine();
 	Line("cpy B, 0")->AppendNewLine();
-	Line("psh W")->AppendNewLine();
-	Line("cpy W, 0")->AppendNewLine();
 	Line("div")->AppendNewLine();
-	Line("pul W")->AppendNewLine();
+	Line("cpy W, 0")->AppendNewLine();
 	Line("pul X")->AppendNewLine();
 	Line("cmp X, 0")->AppendNewLine();
 	Line("brac n, ")->Append(szName)->Append('1')->AppendNewLine();
@@ -3591,6 +3812,11 @@ void CCPP65Generator::AppendRuntime(void)
 	bool	bDivide64;
 
 	mpszOut = &mszCode;
+	if (!mpsTarget->bDirectGenerator)
+	{
+		AppendRuntime816();
+		return;
+	}
 	szLabel.Init("R_Pure");
 	bPure = mbPureVirtual && Emit(&szLabel);
 	szLabel.Kill();
@@ -3617,6 +3843,49 @@ void CCPP65Generator::AppendRuntime(void)
 		BeginRuntime("R_DivideSigned64");
 		AppendDivideSigned("R_DivideSigned64", 8);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The W65C816's runtime: R_Pure, and the routines the W65C816 back end called (R816_Mul16 ..., generated from
+// their IR), each a COMDAT section so only one copy is linked.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendRuntime816(void)
+{
+	CChars		szLabel;
+	CArrayChars	aszRoutines;
+	CCPPErrors	cErrors;
+	size		i;
+
+	szLabel.Init("R_Pure");
+	if (mbPureVirtual && Emit(&szLabel))
+	{
+		BeginRuntime("R_Pure");
+		Line("stp")->AppendNewLine();
+		mszCode.AppendNewLine();
+	}
+	szLabel.Kill();
+
+	aszRoutines.Init();
+	for (i = 0; i < maszRuntime.NumElements(); i++)
+	{
+		if (strncmp(maszRuntime.GetText(i), "R816_", 5) == 0)
+		{
+			aszRoutines.Add(maszRuntime.GetText(i));
+		}
+	}
+	if (aszRoutines.NumElements() != 0)
+	{
+		cErrors.Init();
+		if (!CIR816Backend::GenerateRuntime(&aszRoutines, &miLabels, &mszCode, &cErrors))
+		{
+			ErrorAt(-1, cErrors.Text());
+		}
+		cErrors.Kill();
+	}
+	aszRoutines.Kill();
 }
 
 

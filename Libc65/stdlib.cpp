@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <ctype.h>
 #include <errno.h>
+#include <stdint.h>
 #include "BaseLib/TrueMallocator.h"
 
 
@@ -19,7 +20,7 @@ int		errno = 0;
 #define HIGH_HEAP_START		0x200000
 #define DEVICES_START		0xFF0000		//The devices' page, 00FF:0000 to 00FF:FFFF, is never memory.
 #define DEVICES_END			0x1000000
-#define MEMORY_SIZE			(*(volatile unsigned int*)0x00FF0300)
+#define MEMORY_SIZE			(*(volatile uint32_t*)0x00FF0300)
 
 
 CTrueMallocator		gcHeap;
@@ -28,9 +29,9 @@ bool				gbHeap = false;
 
 static void InitHeap(void)
 {
-	unsigned int	uiMemorySize;
-	unsigned int	uiStart;
-	unsigned int	uiEnd;
+	uint32_t	uiMemorySize;
+	uint32_t	uiStart;
+	uint32_t	uiEnd;
 
 	uiMemorySize = MEMORY_SIZE;
 	if (uiMemorySize > DEVICES_END)
@@ -510,14 +511,14 @@ long atol(const char* sz)
 }
 
 
-//A linear congruential generator, as the C standard's example.
-unsigned int	guiRandom = 1;
+//A linear congruential generator, as the C standard's example (with 32 bits of state where int is 16 bits).
+uint32_t	guiRandom = 1;
 
 
 int rand(void)
 {
-	guiRandom = guiRandom * 1103515245 + 12345;
-	return (int)((guiRandom / 65536) % (RAND_MAX + 1));
+	guiRandom = guiRandom * 1103515245UL + 12345;
+	return (int)((guiRandom / 65536) % ((uint32_t)RAND_MAX + 1));
 }
 
 

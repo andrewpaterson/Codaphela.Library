@@ -30,6 +30,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IRVerifier.h"
 #include "IROptimiser.h"
 #include "IR65Backend.h"
+#include "IR816Backend.h"
 #include "CPP65IRFrontEnd.h"
 
 
@@ -117,17 +118,8 @@ void CCPP65IRFrontEnd::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Body(SCPP65Function* psFunction)
 {
-	CCPPErrors				cErrors;
-	CIRVerifier				cVerifier;
-	CIROptimiser			cOptimiser;
-	CIR65Backend			cBackend;
 	CChars					szLabel;
-	CChars					szCode;
-	SCPP65IRWritten*		psWritten;
 	bool					bResult;
-	size					ui;
-	size					uiStart;
-	size					uiLength;
 
 	suiAttempts++;
 	if (suiAttempts > suiLimit)
@@ -145,27 +137,9 @@ bool CCPP65IRFrontEnd::Body(SCPP65Function* psFunction)
 		return false;
 	}
 
-	mpsFunction = psFunction;
-	mbUnsupported = false;
-	masJumps.ReInit();
-	masCases.ReInit();
-	masLabels.ReInit();
-	masLiving.ReInit();
-	masTemporaries.ReInit();
-	miConditional = 0;
-	maszRuntime.ReInit();
-	mpcExit = NULL;
-	mauiStringBytes.ReInit();
-	mauiStringLengths.ReInit();
-	muiFirstString = mpcGenerator->maszStrings.NumElements();
-	mcAddresses.Init(true);
 	szLabel.Init();
 	mpcGenerator->AppendFunctionLabel(&szLabel, psFunction);
-	mpcFunction = mcModule.AddFunction(szLabel.Text(), ReturnIRType(psFunction->psReturn), (psFunction->bVariadic ? IRA_Variadic : 0) | ((psFunction->psClass && !psFunction->bStatic) ? IRA_ThisCall : 0));
-	msThis = IRNone();
-	msResult = IRNone();
-	msElide = IRNone();
-	mpcBlock = mpcFunction->AddBlock();
+	BeginWriting(psFunction, szLabel.Text(), ReturnIRType(psFunction->psReturn), (psFunction->bVariadic ? IRA_Variadic : 0) | ((psFunction->psClass && !psFunction->bStatic) ? IRA_ThisCall : 0));
 
 	//The generator's errors are not reported while the front end works (it reports them if it writes the function
 	//itself).  What it fails to work out comes back as NULL, which the front end doesn't support; quiet errors from
@@ -184,7 +158,7 @@ bool CCPP65IRFrontEnd::Body(SCPP65Function* psFunction)
 		mpcExit = NewBlock();
 		bResult = StoreVtables(msThis, psFunction->psClass);
 	}
-	bResult = bResult && Statement(psFunction->pcDefinition->mpcBody) && DestroyLiving(0);
+	bResult = bResult && (!psFunction->pcDefinition || Statement(psFunction->pcDefinition->mpcBody)) && DestroyLiving(0);
 	if (bResult && mpcExit)
 	{
 		JumpTo(mpcExit);
@@ -193,6 +167,59 @@ bool CCPP65IRFrontEnd::Body(SCPP65Function* psFunction)
 		mpcBlock->Return();
 	}
 	mpcGenerator->EndQuiet();
+	bResult = FinishWriting(bResult, szLabel.Text());
+	szLabel.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Starts writing an IR function: the front end's state for it, and its entry block.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::BeginWriting(SCPP65Function* psFunction, const char* szLabel, SIRType sReturn, uint32 uiAttributes)
+{
+	mpsFunction = psFunction;
+	mbUnsupported = false;
+	masJumps.ReInit();
+	masCases.ReInit();
+	masLabels.ReInit();
+	masLiving.ReInit();
+	masTemporaries.ReInit();
+	miConditional = 0;
+	maszRuntime.ReInit();
+	mpcExit = NULL;
+	mauiStringBytes.ReInit();
+	mauiStringLengths.ReInit();
+	muiFirstString = mpcGenerator->maszStrings.NumElements();
+	mcAddresses.Init(true);
+	mpcFunction = mcModule.AddFunction(szLabel, sReturn, uiAttributes);
+	msThis = IRNone();
+	msResult = IRNone();
+	msElide = IRNone();
+	mpcBlock = mpcFunction->AddBlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Finishes the function BeginWriting started (bResult false if writing it failed): verifies, optimises and generates
+// it, and leaves a marker where its code goes in the generator's code (FinishUnit).  False, with nothing changed,
+// if it didn't verify or generate.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
+{
+	CCPPErrors				cErrors;
+	CIRVerifier				cVerifier;
+	CIROptimiser			cOptimiser;
+	CChars					szCode;
+	SCPP65IRWritten*		psWritten;
+	size					ui;
+	size					uiStart;
+	size					uiLength;
+
 	bResult = bResult && !mbUnsupported;
 	if (bResult)
 	{
@@ -224,8 +251,7 @@ bool CCPP65IRFrontEnd::Body(SCPP65Function* psFunction)
 	if (bResult)
 	{
 		szCode.Init();
-		cBackend.Init(&mcModule, &mpcGenerator->miLabels, &mpcGenerator->maszRuntime);
-		bResult = cBackend.GenerateFunction(mpcFunction, szLabel.Text(), &szCode, NULL);
+		bResult = GenerateCode(mpcFunction, szLabel, &szCode);
 		if (bResult)
 		{
 			//The code waits (with a marker where it goes) for FinishUnit, which inlines across the unit.
@@ -240,8 +266,6 @@ bool CCPP65IRFrontEnd::Body(SCPP65Function* psFunction)
 			{
 				mpcGenerator->maszRuntime.AddIfUnique(*maszRuntime.Get(ui));
 			}
-			mpcGenerator->mbSignedDivide |= cBackend.UsesSignedDivide();
-			mpcGenerator->mbSignedDivide64 |= cBackend.UsesSignedDivide64();
 			uiStart = 0;
 			for (ui = 0; ui < mauiStringLengths.NumElements(); ui++)
 			{
@@ -250,7 +274,6 @@ bool CCPP65IRFrontEnd::Body(SCPP65Function* psFunction)
 				uiStart += uiLength;
 			}
 		}
-		cBackend.Kill();
 		szCode.Kill();
 	}
 
@@ -265,7 +288,6 @@ bool CCPP65IRFrontEnd::Body(SCPP65Function* psFunction)
 	{
 		mcModule.RemoveFunction(mpcFunction);
 	}
-	szLabel.Kill();
 	mcAddresses.Kill();
 	mpcFunction = NULL;
 	mpcBlock = NULL;
@@ -280,6 +302,39 @@ bool CCPP65IRFrontEnd::Body(SCPP65Function* psFunction)
 		sauiUnsupported[siUnsupportedLine & 8191]++;
 	}
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A global's R_Initialise (constructs it from pcInitialiser) or, with bFinalise, its R_Finalise (destroys it), as a
+// function of its own named szLabel that takes and returns nothing.  For a target the generator doesn't write code
+// for.  False if the front end can't write it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise)
+{
+	SCPP65Function	sFunction;
+	SCPP65IRPlace	sPlace;
+	bool			bResult;
+
+	memset(&sFunction, 0, sizeof(SCPP65Function));
+	sFunction.eKind = CPP65FK_Function;
+	sFunction.psReturn = &mpcTypes->msVoid;
+	BeginWriting(&sFunction, szLabel, IRType(IRTK_None), IRA_Local);
+	mpcGenerator->BeginQuiet();
+	sPlace.sAddress = mcModule.Symbol(szGlobal);
+	sPlace.psType = psType;
+	if (bFinalise)
+	{
+		bResult = Destroy(sPlace.sAddress, psType);
+	}
+	else
+	{
+		bResult = Construct(&sPlace, NULL, pcInitialiser) && DestroyTemporaries(0);
+	}
+	mpcGenerator->EndQuiet();
+	return FinishWriting(bResult, szLabel);
 }
 
 
@@ -328,13 +383,13 @@ SIRType CCPP65IRFrontEnd::IRTypeOf(SCPP65Type* psType)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A result narrower than 4 bytes comes back extended to 32 bits in A, so the
-// IR returns an i32.
+// On the 65C64 a result narrower than 4 bytes comes back extended to 32 bits
+// in A, so the IR returns an i32.
 //
 //////////////////////////////////////////////////////////////////////////
 SIRType CCPP65IRFrontEnd::ReturnIRType(SCPP65Type* psType)
 {
-	if (psType->IsScalar() && !psType->IsPointer() && (psType->iBytes < 4))
+	if (mpcGenerator->mpsTarget->bWidenResults && psType->IsScalar() && !psType->IsPointer() && (psType->iBytes < 4))
 	{
 		return IRType(IRTK_I32);
 	}
@@ -663,6 +718,42 @@ int CCPP65IRFrontEnd::PieceBytes(int iLeft)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Generates a function with the target's back end: CIR65Backend, or CIR816Backend
+// for the W65C816 (whose runtime routines the generator then writes).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel, CChars* pszCode)
+{
+	CIR65Backend	cBackend;
+	CIR816Backend	cBackend816;
+	CArrayChars*	paszRuntime;
+	size			ui;
+	bool			bResult;
+
+	if (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816)
+	{
+		cBackend816.Init(&mcModule, &mpcGenerator->miLabels);
+		bResult = cBackend816.GenerateFunction(pcFunction, szLabel, pszCode, NULL);
+		paszRuntime = cBackend816.GetRuntime();
+		for (ui = 0; bResult && (ui < paszRuntime->NumElements()); ui++)
+		{
+			mpcGenerator->maszRuntime.AddIfUnique(paszRuntime->GetText(ui));
+		}
+		cBackend816.Kill();
+		return bResult;
+	}
+
+	cBackend.Init(&mcModule, &mpcGenerator->miLabels, &mpcGenerator->maszRuntime);
+	bResult = cBackend.GenerateFunction(pcFunction, szLabel, pszCode, NULL);
+	mpcGenerator->mbSignedDivide |= cBackend.UsesSignedDivide();
+	mpcGenerator->mbSignedDivide64 |= cBackend.UsesSignedDivide64();
+	cBackend.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // After the generator has written every function of the unit: small
 // functions are inlined into the functions written as IR (callees, which
 // are written after their callers, first), which are optimised and
@@ -677,7 +768,6 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 	CIROptimiser		cOptimiser;
 	CIRVerifier			cVerifier;
 	CCPPErrors			cErrors;
-	CIR65Backend		cBackend;
 	CChars				szCode;
 	CChars				szAll;
 	SCPP65IRWritten*	psWritten;
@@ -685,6 +775,7 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 	char*				szMarker;
 	char*				szText;
 	int					iIndex;
+	int					iRound;
 	bool				bResult;
 
 	cInliner.Init(&mcModule, IR65_INLINE_INSTRUCTIONS, IR65_INLINE_LOOP_INSTRUCTIONS, IR65_INLINE_CALLS);
@@ -695,9 +786,18 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 		{
 			continue;
 		}
-		cOptimiser.Init(&mcModule);
-		cOptimiser.Optimise(psWritten->pcFunction);
-		cOptimiser.Kill();
+		//Optimising can make an indirect call direct (a function pointer argument, a vtable entry), which is then
+		//inlined too.
+		for (iRound = 0; iRound < IR65_INLINE_ROUNDS; iRound++)
+		{
+			cOptimiser.Init(&mcModule);
+			cOptimiser.Optimise(psWritten->pcFunction);
+			cOptimiser.Kill();
+			if ((iRound + 1 == IR65_INLINE_ROUNDS) || !cInliner.InlineCalls(psWritten->pcFunction))
+			{
+				break;
+			}
+		}
 		if (sbPrint)
 		{
 			fprintf(stderr, "Inlined\n");
@@ -711,11 +811,7 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 		szCode.Init();
 		if (bResult)
 		{
-			cBackend.Init(&mcModule, &mpcGenerator->miLabels, &mpcGenerator->maszRuntime);
-			bResult = cBackend.GenerateFunction(psWritten->pcFunction, psWritten->szLabel.Text(), &szCode, NULL);
-			mpcGenerator->mbSignedDivide |= cBackend.UsesSignedDivide();
-			mpcGenerator->mbSignedDivide64 |= cBackend.UsesSignedDivide64();
-			cBackend.Kill();
+			bResult = GenerateCode(psWritten->pcFunction, psWritten->szLabel.Text(), &szCode);
 		}
 		if (bResult)
 		{
@@ -2470,11 +2566,20 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		return true;
 
 	case CPPS_BinaryExpression:
-		if (!mpcGenerator->IsMemberPointerOperator(pcExpression))
+		if (mpcGenerator->IsMemberPointerOperator(pcExpression))
+		{
+			return MemberPointerPlace((CCPPSyntaxBinaryExpression*)pcExpression, psPlace);
+		}
+
+		//An operator function's object (a temporary it made, or the object it refers to).
+		psType = mpcGenerator->TypeOf(pcExpression);
+		if (!psType || !(psType->IsReference() || psType->IsClass()) || !Value(pcExpression, &sAddress))
 		{
 			return Unsupported(__LINE__);
 		}
-		return MemberPointerPlace((CCPPSyntaxBinaryExpression*)pcExpression, psPlace);
+		psPlace->sAddress = sAddress.sValue;
+		psPlace->psType = sAddress.psType->IsReference() ? sAddress.psType->psBase : sAddress.psType;
+		return psPlace->psType->IsClass() || Unsupported(__LINE__);
 
 	default:
 		return Unsupported(__LINE__);
@@ -2716,6 +2821,10 @@ bool CCPP65IRFrontEnd::BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SC
 	case CT_GreaterThanEqualTo:
 		return ConditionValue(pcBinary, psValue);
 	default:
+		if (mpcGenerator->IsObject(pcBinary->mpcLeft) || mpcGenerator->IsObject(pcBinary->mpcRight))
+		{
+			return OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, psValue);
+		}
 		if (!Value(pcBinary->mpcRight, &sRight) || !Value(pcBinary->mpcLeft, &sLeft))
 		{
 			return false;
@@ -2861,7 +2970,8 @@ bool CCPP65IRFrontEnd::Operate(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 			{
 				return Unsupported(__LINE__);
 			}
-			if (!Convert(&sIndex, &mpcTypes->msInt))
+			//The index widens to the pointer's size (an int is narrower on the W65C816).
+			if (!Convert(&sIndex, mpcTypes->Integer(mcModule.GetPointerSize(0), sIndex.psType->bSigned)))
 			{
 				return false;
 			}
@@ -2885,8 +2995,9 @@ bool CCPP65IRFrontEnd::Operate(ECppTokens eOperator, SCPP65IRValue* psLeft, SCPP
 			{
 				sDifference = mpcFunction->Add(mpcBlock, IRO_SDiv, sOffset, sDifference, mpcFunction->AddInteger(sOffset, iBytes));
 			}
+			//ptrdiff_t: as wide as a pointer (int on the 65C64, long on the W65C816).
 			psResult->sValue = sDifference;
-			psResult->psType = &mpcTypes->msInt;
+			psResult->psType = mpcTypes->Integer(mcModule.GetPointerSize(0), true);
 			return true;
 		}
 		return Unsupported(__LINE__);
@@ -3168,7 +3279,13 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 		case CT_GreaterThanEqualTo:
 			if (mpcGenerator->IsObject(pcBinary->mpcLeft) || mpcGenerator->IsObject(pcBinary->mpcRight))
 			{
-				return Unsupported(__LINE__);
+				//An operator function's result.
+				if (!OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, &sValue) || !sValue.psType->IsScalar() || !Truth(&sValue, &sCondition))
+				{
+					return Unsupported(__LINE__);
+				}
+				mpcBlock->Branch(sCondition, pcTrue, pcFalse);
+				return true;
 			}
 			if (!Value(pcBinary->mpcRight, &sRight) || !Value(pcBinary->mpcLeft, &sLeft) || !Compare(pcBinary->meOperator, &sLeft, &sRight, &sCondition))
 			{
@@ -3236,6 +3353,7 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 	SCPP65Template*				psTemplate;
 	SIRReference				sSymbol;
 	int64						lliName;
+	SCPP65Type*					psOperandType;
 
 	if (mpcGenerator->HasPackExpansion(&pcCall->macpArguments))
 	{
@@ -3287,11 +3405,23 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 	//A call through an expression (table[i](...), (*pf)(...), GetF()(...)): a pointer to a function.
 	if (!pcName)
 	{
+		//(*pf)() is pf(); (*ppf)() calls the function pointer ppf points to, so it keeps its *.
 		if ((pcCallee->GetKind() == CPPS_UnaryExpression) && (((CCPPSyntaxUnaryExpression*)pcCallee)->meOperator == CT_Multiply))
 		{
-			pcCallee = mpcGenerator->SkipParentheses(((CCPPSyntaxUnaryExpression*)pcCallee)->mpcOperand);
+			psOperandType = mpcGenerator->TypeOf(((CCPPSyntaxUnaryExpression*)pcCallee)->mpcOperand);
+			if (psOperandType && psOperandType->IsPointer() && psOperandType->psBase->IsFunction())
+			{
+				pcCallee = mpcGenerator->SkipParentheses(((CCPPSyntaxUnaryExpression*)pcCallee)->mpcOperand);
+			}
 		}
 		return CallThroughPointer(pcCall, pcCallee, psValue);
+	}
+
+	//__builtin_ functions, on a target the generator doesn't write code for (the 65C64's are the generator's).
+	lliName = pcSymbol ? pcSymbol->mlliName : mpcGenerator->GetFunctionName(pcComponent);
+	if (!mpcGenerator->mpsTarget->bDirectGenerator && (!pcSymbol || (pcSymbol->meKind == CPPSK_Function)) && mpcGenerator->IsBuiltin(lliName))
+	{
+		return Builtin(pcCall, lliName, psValue);
 	}
 
 	psFunction = NULL;
@@ -3324,6 +3454,152 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 
 	sSymbol = FunctionSymbol(psFunction);
 	return Call(psFunction, sSymbol, NULL, &pcCall->macpArguments, psValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The __builtin_ functions the generator has (CCPP65Generator::Builtin), as IR: the float constants (huge_val,
+// inf, nan), expect, unreachable and trap, ia32_pause, and ctz, clz and popcount (of unsigned int, l: unsigned long,
+// ll: unsigned long long) as loops.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, SCPP65IRValue* psValue)
+{
+	CChars			szName;
+	char*			szIdentifier;
+	int				iLength;
+	double			dValue;
+	SCPP65Type*		psType;
+	SCPP65IRValue	sArgument;
+	SIRType			sType;
+	SIRType			sInt;
+	CIRBlock*		pcEntry;
+	CIRBlock*		pcLoop;
+	CIRBlock*		pcBody;
+	CIRBlock*		pcZero;
+	CIRBlock*		pcDone;
+	SIRPhi*			psX;
+	SIRPhi*			psCount;
+	SIRPhi*			psResult;
+	SIRReference	sX2;
+	SIRReference	sCount2;
+	SIRReference	sTest;
+	int				iBits;
+	int				iArguments;
+	bool			bResult;
+
+	if (mpcGenerator->FloatBuiltin(pcCall, &dValue, &psType))
+	{
+		psValue->sValue = (psType->iBytes == 4) ? mpcFunction->AddFloat((float)dValue) : mpcFunction->AddDouble(dValue);
+		psValue->psType = psType;
+		return true;
+	}
+
+	szIdentifier = mpcGenerator->mpcTokeniser->GetIdentifier(lliName, &iLength);
+	szName.Init();
+	szName.Append(szIdentifier + 10, iLength - 10);
+	iArguments = (int)pcCall->macpArguments.NumElements();
+	bResult = true;
+	psValue->sValue = IRNone();
+	psValue->psType = &mpcTypes->msVoid;
+	if ((szName.Equals("unreachable") || szName.Equals("trap")) && (iArguments == 0))
+	{
+		mpcBlock->Unreachable();
+		StartBlock(NewBlock());
+	}
+	else if (szName.Equals("ia32_pause") && (iArguments == 0))
+	{
+	}
+	else if (szName.Equals("expect") && (iArguments == 2))
+	{
+		bResult = Value(pcCall->macpArguments.GetPtr(0), psValue) && Convert(psValue, mpcTypes->Promote(psValue->psType));
+	}
+	else
+	{
+		psType = &mpcTypes->msUnsignedInt;
+		if (szName.EndsWith("ll"))
+		{
+			psType = &mpcTypes->msUnsignedLongLong;
+			szName.SetLength(szName.Length() - 2);
+		}
+		else if (szName.EndsWith('l'))
+		{
+			psType = mpcTypes->Long(false);
+			szName.SetLength(szName.Length() - 1);
+		}
+		if ((!szName.Equals("ctz") && !szName.Equals("clz") && !szName.Equals("popcount")) || (iArguments != 1) ||
+			!Value(pcCall->macpArguments.GetPtr(0), &sArgument) || !Convert(&sArgument, psType))
+		{
+			szName.Kill();
+			return Unsupported(__LINE__);
+		}
+
+		//loop: x and the count; ctz and clz stop at the first set bit from their end (0 counts the width), popcount
+		//clears the lowest set bit until there are none.
+		sType = IRTypeOf(psType);
+		sInt = IRTypeOf(&mpcTypes->msInt);
+		iBits = psType->iBytes * 8;
+		pcEntry = mpcBlock;
+		pcLoop = NewBlock();
+		pcBody = NewBlock();
+		pcZero = szName.Equals("popcount") ? NULL : NewBlock();
+		pcDone = NewBlock();
+		sTest = mpcFunction->Add(mpcBlock, IRO_Eq, sType, sArgument.sValue, mpcFunction->AddInteger(sType, 0));
+		mpcBlock->Branch(sTest, szName.Equals("popcount") ? pcDone : pcZero, pcLoop);
+		StartBlock(pcLoop);
+		//Adding a phi can move the block's others: both are found again after.
+		mpcBlock->AddPhi(sType, mpcFunction->AddTemporary(sType));
+		mpcBlock->AddPhi(sInt, mpcFunction->AddTemporary(sInt));
+		psX = mpcBlock->masPhis.Get(mpcBlock->masPhis.NumElements() - 2);
+		psCount = mpcBlock->masPhis.Get(mpcBlock->masPhis.NumElements() - 1);
+		if (szName.Equals("popcount"))
+		{
+			sTest = mpcFunction->Add(mpcBlock, IRO_Eq, sType, psX->sResult, mpcFunction->AddInteger(sType, 0));
+		}
+		else
+		{
+			sTest = mpcFunction->Add(mpcBlock, IRO_And, sType, psX->sResult, mpcFunction->AddConstant(sType, szName.Equals("ctz") ? 1 : ((uint64)1 << (iBits - 1))));
+			sTest = mpcFunction->Add(mpcBlock, IRO_Ne, sType, sTest, mpcFunction->AddInteger(sType, 0));
+		}
+		mpcBlock->Branch(sTest, pcDone, pcBody);
+		StartBlock(pcBody);
+		if (szName.Equals("popcount"))
+		{
+			sX2 = mpcFunction->Add(mpcBlock, IRO_Sub, sType, psX->sResult, mpcFunction->AddInteger(sType, 1));
+			sX2 = mpcFunction->Add(mpcBlock, IRO_And, sType, psX->sResult, sX2);
+		}
+		else
+		{
+			sX2 = mpcFunction->Add(mpcBlock, szName.Equals("ctz") ? IRO_LShr : IRO_Shl, sType, psX->sResult, mpcFunction->AddInteger(sType, 1));
+		}
+		sCount2 = mpcFunction->Add(mpcBlock, IRO_Add, sInt, psCount->sResult, mpcFunction->AddInteger(sInt, 1));
+		mpcBlock->Jump(pcLoop);
+		pcLoop->AddPhiArgument(psX, pcEntry, sArgument.sValue);
+		pcLoop->AddPhiArgument(psX, pcBody, sX2);
+		pcLoop->AddPhiArgument(psCount, pcEntry, mpcFunction->AddInteger(sInt, 0));
+		pcLoop->AddPhiArgument(psCount, pcBody, sCount2);
+		if (pcZero)
+		{
+			StartBlock(pcZero);
+			mpcBlock->Jump(pcDone);
+		}
+		StartBlock(pcDone);
+		psResult = mpcBlock->AddPhi(sInt, mpcFunction->AddTemporary(sInt));
+		mpcBlock->AddPhiArgument(psResult, pcLoop, psCount->sResult);
+		if (szName.Equals("popcount"))
+		{
+			mpcBlock->AddPhiArgument(psResult, pcEntry, mpcFunction->AddInteger(sInt, 0));
+		}
+		else
+		{
+			mpcBlock->AddPhiArgument(psResult, pcZero, mpcFunction->AddInteger(sInt, iBits));
+		}
+		psValue->sValue = psResult->sResult;
+		psValue->psType = &mpcTypes->msInt;
+	}
+	szName.Kill();
+	return bResult || Unsupported(__LINE__);
 }
 
 
@@ -4285,6 +4561,61 @@ bool CCPP65IRFrontEnd::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// left op right, or op operand when pcRight is NULL, with an object
+// operand, as the generator's OperatorExpression: the left's member
+// operator if one matches, otherwise a free operator function.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::OperatorExpression(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, SCPP65IRValue* psValue)
+{
+	SCPP65Type*		psType;
+	SCPP65Function*	psFunction;
+	CArraySyntax	apcArguments;
+	int64			lliName;
+	bool			bResult;
+
+	lliName = mpcGenerator->GetOperatorName(eOperator, false);
+	psType = mpcGenerator->TypeOf(pcLeft);
+	if (psType && psType->IsReference())
+	{
+		psType = psType->psBase;
+	}
+	apcArguments.Init();
+	if (psType && psType->IsClass() && mpcGenerator->CompleteClass(psType->psClass, NULL) && mpcGenerator->HasMember(psType->psClass, lliName))
+	{
+		if (pcRight)
+		{
+			apcArguments.Add(pcRight);
+		}
+		psFunction = mpcGenerator->FindFunction(psType->psClass, lliName, CPP65FK_Function, &apcArguments, true, pcLeft, mpcGenerator->IsConstObject(pcLeft));
+		apcArguments.Kill();
+		if (psFunction)
+		{
+			return OperatorCall(pcLeft, eOperator, pcRight, psValue);
+		}
+		apcArguments.Init();
+	}
+
+	//operator op(left, right), declared or from a function template.
+	apcArguments.Add(pcLeft);
+	if (pcRight)
+	{
+		apcArguments.Add(pcRight);
+	}
+	psFunction = mpcGenerator->FindFreeOperator(lliName, &apcArguments, pcLeft);
+	if (!psFunction)
+	{
+		apcArguments.Kill();
+		return Unsupported(__LINE__);
+	}
+	bResult = Call(psFunction, FunctionSymbol(psFunction), NULL, &apcArguments, psValue);
+	apcArguments.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::PrintIR(CIRFunction* pcFunction)
@@ -4312,6 +4643,7 @@ void CCPP65IRFrontEnd::PrintIR(CIRFunction* pcFunction)
 bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction)
 {
 	SCPP65Class*					psClass;
+	CArraySyntax*					papcInitialisers;
 	CCPPSyntaxMemberInitializer*	pcMember;
 	CCPPSyntaxMemberInitializer*	pcFound;
 	CArraySyntax*					papcArguments;
@@ -4324,6 +4656,8 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 	size							uiMember;
 	int								iOffset;
 
+	//An implicit constructor has no definition, so no member initialisers.
+	papcInitialisers = pcFunction ? &pcFunction->macpMemberInitializers : &mapcNone;
 	psClass = mpsFunction->psClass;
 	if (msThis.IsNone() || !mpcGenerator->CompleteClass(psClass, NULL))
 	{
@@ -4335,9 +4669,9 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 	{
 		psBase = psClass->macBases.Get(ui);
 		pcFound = NULL;
-		for (uiMember = 0; uiMember < pcFunction->macpMemberInitializers.NumElements(); uiMember++)
+		for (uiMember = 0; uiMember < papcInitialisers->NumElements(); uiMember++)
 		{
-			pcMember = (CCPPSyntaxMemberInitializer*)pcFunction->macpMemberInitializers.GetPtr(uiMember);
+			pcMember = (CCPPSyntaxMemberInitializer*)papcInitialisers->GetPtr(uiMember);
 			psNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcGenerator->GetNameClass(pcMember->mpcName, pcMember);
 			if (psNamed == psBase->psClass)
 			{
@@ -4374,9 +4708,9 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 	{
 		psField = psClass->macFields.Get(ui);
 		pcFound = NULL;
-		for (uiMember = 0; uiMember < pcFunction->macpMemberInitializers.NumElements(); uiMember++)
+		for (uiMember = 0; uiMember < papcInitialisers->NumElements(); uiMember++)
 		{
-			pcMember = (CCPPSyntaxMemberInitializer*)pcFunction->macpMemberInitializers.GetPtr(uiMember);
+			pcMember = (CCPPSyntaxMemberInitializer*)papcInitialisers->GetPtr(uiMember);
 			if ((pcMember->mpcName->mpcSymbol == psField->pcSymbol) || (!pcMember->mpcName->mpcSymbol && (mpcGenerator->GetComponentName(pcMember->mpcName->GetLast()) == psField->lliName)))
 			{
 				pcFound = pcMember;
@@ -4395,9 +4729,9 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 	}
 
 	//Member initialisers that name nothing are the generator's to report.
-	for (uiMember = 0; uiMember < pcFunction->macpMemberInitializers.NumElements(); uiMember++)
+	for (uiMember = 0; uiMember < papcInitialisers->NumElements(); uiMember++)
 	{
-		pcMember = (CCPPSyntaxMemberInitializer*)pcFunction->macpMemberInitializers.GetPtr(uiMember);
+		pcMember = (CCPPSyntaxMemberInitializer*)papcInitialisers->GetPtr(uiMember);
 		psNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcGenerator->GetNameClass(pcMember->mpcName, pcMember);
 		if (!(psNamed && mpcGenerator->IsDerived(psClass, psNamed, NULL)) && !mpcGenerator->FindField(psClass, mpcGenerator->GetComponentName(pcMember->mpcName->GetLast()), &iOffset))
 		{
@@ -4469,6 +4803,7 @@ bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, SCPP65Class* psClass)
 	mpcGenerator->AppendClassLabel(&szLabel, psClass, "2");
 	sLabel = mcModule.Symbol(szLabel.Text());
 	szLabel.Kill();
+	DescribeVtable(psClass, sLabel.Index());
 	if (psClass->iVtableOffset != -1)
 	{
 		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), sLabel, AddressAt(sObject, psClass->iVtableOffset));
@@ -4481,6 +4816,70 @@ bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, SCPP65Class* psClass)
 		iEntry += (int)psVtable->mapsFunctions.NumElements();
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The module's known data for a class's vtable, as the generator's
+// EnsureVtable writes it, so a virtual call through a vtable pointer the
+// optimiser can see stored becomes a call of the function (and may be
+// inlined).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::DescribeVtable(SCPP65Class* psClass, uint32 uiSymbol)
+{
+	CIRGlobal*		pcVtable;
+	SCPP65Vtable*	psVtable;
+	size			i;
+	size			j;
+
+	if (mcModule.FindConstantData(uiSymbol))
+	{
+		return;
+	}
+	pcVtable = mcModule.AddKnownData(mcModule.GetSymbolName(uiSymbol), 4);
+	for (i = 0; i < psClass->mapsVirtuals.NumElements(); i++)
+	{
+		AddVtableEntry(pcVtable, psClass->mapsVirtuals.GetPtr(i), 0);
+	}
+	for (i = 0; i < psClass->macVtables.NumElements(); i++)
+	{
+		psVtable = psClass->macVtables.Get(i);
+		for (j = 0; j < psVtable->mapsFunctions.NumElements(); j++)
+		{
+			AddVtableEntry(pcVtable, psVtable->mapsFunctions.GetPtr(j), psVtable->maiAdjust.GetValue(j));
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A vtable entry, as the generator's AppendVtableEntry: the function, the
+// thunk that adjusts this by iAdjust, or R_Pure.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::AddVtableEntry(CIRGlobal* pcVtable, SCPP65Function* psFunction, int iAdjust)
+{
+	CChars	szLabel;
+
+	szLabel.Init();
+	if (psFunction->bPure)
+	{
+		szLabel.Append("R_Pure");
+	}
+	else
+	{
+		mpcGenerator->AppendFunctionLabel(&szLabel, psFunction);
+		if (iAdjust != 0)
+		{
+			szLabel.Append("__t");
+			szLabel.Append(-iAdjust);
+		}
+	}
+	pcVtable->AddSymbol(IRType(IRTK_Pointer), mcModule.AddSymbol(szLabel.Text()), 0);
+	szLabel.Kill();
 }
 
 
@@ -4808,8 +5207,8 @@ SIRReference CCPP65IRFrontEnd::CallRuntime(const char* szName, SIRType sResult, 
 //////////////////////////////////////////////////////////////////////////
 //
 // new Type, new Type(arguments) and new Type{arguments}: operator new's
-// memory (or new (address) Type's address), constructed.  Arrays are left
-// to the generator.
+// memory (or new (address) Type's address), constructed.  new Type[count]
+// is NewArray's.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRValue* psValue)
@@ -4818,7 +5217,7 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 	SCPP65IRPlace	sPlace;
 	SCPP65IRValue	sAddress;
 
-	if ((pcNew->macpArraySizes.NumElements() > 0) || (pcNew->mbPlacement && (pcNew->macpPlacement.NumElements() != 1)))
+	if (pcNew->mbPlacement && ((pcNew->macpPlacement.NumElements() != 1) || (pcNew->macpArraySizes.NumElements() > 0)))
 	{
 		return Unsupported(__LINE__);
 	}
@@ -4826,6 +5225,10 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 	if (!psType || !IsLocalType(psType) || psType->IsVoid() || psType->IsArray() || psType->IsReference())
 	{
 		return Unsupported(__LINE__);
+	}
+	if (pcNew->macpArraySizes.NumElements() > 0)
+	{
+		return NewArray(pcNew, psType, psValue);
 	}
 	if (pcNew->mbPlacement)
 	{
@@ -4857,9 +5260,148 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 
 //////////////////////////////////////////////////////////////////////////
 //
+// new Type[count], as the generator's NewArray: count elements from operator
+// new[], constructed by default first to last.  A class that needs
+// destroying has the count (32 bits) in front of the elements.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, SCPP65IRValue* psValue)
+{
+	SCPP65IRValue	sCount;
+	SCPP65IRPlace	sElement;
+	SIRType			sSize;
+	SIRReference	sBytes;
+	SIRReference	sMemory;
+	SIRReference	sIndex;
+	SIRReference	sNext;
+	CIRBlock*		pcEntry;
+	CIRBlock*		pcLoop;
+	CIRBlock*		pcBody;
+	CIRBlock*		pcLatch;
+	CIRBlock*		pcDone;
+	size			uiPhi;
+	bool			bCookie;
+
+	//Only new Type[count] and new Class[count]().
+	if ((pcNew->macpArraySizes.NumElements() != 1) || (pcNew->mpcInitializer &&
+		((pcNew->mpcInitializer->GetKind() != CPPS_ParenthesisedInitializer) || !psType->IsClass() ||
+		(((CCPPSyntaxParenthesisedInitializer*)pcNew->mpcInitializer)->macpElements.NumElements() != 0))))
+	{
+		return Unsupported(__LINE__);
+	}
+	if (psType->IsClass() && !mpcGenerator->CompleteClass(psType->psClass, NULL))
+	{
+		return Unsupported(__LINE__);
+	}
+	if (!Value(pcNew->macpArraySizes.GetPtr(0), &sCount) || !Convert(&sCount, mpcTypes->Integer(mcModule.GetPointerSize(0), false)))
+	{
+		return false;
+	}
+	sSize = IRTypeOf(sCount.psType);
+	bCookie = psType->IsClass() && psType->psClass->psDestructor;
+
+	sBytes = mpcFunction->Add(mpcBlock, IRO_Mul, sSize, sCount.sValue, mpcFunction->AddInteger(sSize, psType->iBytes));
+	if (bCookie)
+	{
+		sBytes = mpcFunction->Add(mpcBlock, IRO_Add, sSize, sBytes, mpcFunction->AddInteger(sSize, 4));
+	}
+	sMemory = CallRuntime("opNewArray", IRType(IRTK_Pointer), sSize, sBytes);
+	if (bCookie)
+	{
+		mpcFunction->Store(mpcBlock, sSize, sCount.sValue, sMemory);
+		sMemory = AddressAt(sMemory, 4);
+	}
+
+	if (psType->IsClass() && mpcGenerator->NeedsConstructor(psType->psClass))
+	{
+		//loop: the index counts up to the count.
+		pcEntry = mpcBlock;
+		pcLoop = NewBlock();
+		pcBody = NewBlock();
+		pcDone = NewBlock();
+		JumpTo(pcLoop);
+		StartBlock(pcLoop);
+		uiPhi = pcLoop->masPhis.NumElements();
+		sIndex = pcLoop->AddPhi(sSize, mpcFunction->AddTemporary(sSize))->sResult;
+		mpcBlock->Branch(mpcFunction->Add(mpcBlock, IRO_ULt, sSize, sIndex, sCount.sValue), pcBody, pcDone);
+		StartBlock(pcBody);
+		sElement.psType = psType;
+		sElement.sAddress = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sMemory, mpcFunction->Add(mpcBlock, IRO_Mul, sSize, sIndex, mpcFunction->AddInteger(sSize, psType->iBytes)));
+		if (!Construct(&sElement, NULL, NULL))
+		{
+			return false;
+		}
+		sNext = mpcFunction->Add(mpcBlock, IRO_Add, sSize, sIndex, mpcFunction->AddInteger(sSize, 1));
+		pcLatch = mpcBlock;
+		JumpTo(pcLoop);
+		pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiPhi), pcEntry, mpcFunction->AddInteger(sSize, 0));
+		pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiPhi), pcLatch, sNext);
+		StartBlock(pcDone);
+	}
+	psValue->sValue = sMemory;
+	psValue->psType = mpcTypes->Pointer(psType);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// delete[] of objects with a destructor, as the generator's: the count is
+// in front of the elements, which are destroyed last first, and operator
+// delete[] is given the memory from the count on.  psPointer isn't null.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::DeleteArray(SCPP65IRValue* psPointer, SCPP65Class* psClass)
+{
+	SIRType			sSize;
+	SIRReference	sBase;
+	SIRReference	sCount;
+	SIRReference	sIndex;
+	SIRReference	sNext;
+	SIRReference	sElement;
+	CIRBlock*		pcEntry;
+	CIRBlock*		pcLoop;
+	CIRBlock*		pcBody;
+	CIRBlock*		pcLatch;
+	CIRBlock*		pcDone;
+	size			uiPhi;
+
+	sSize = IRIntegerType(mcModule.GetPointerSize(0));
+	sBase = AddressAt(psPointer->sValue, -4);
+	sCount = mpcFunction->Load(mpcBlock, sSize, sBase);
+
+	//loop: the index counts down from the count.
+	pcEntry = mpcBlock;
+	pcLoop = NewBlock();
+	pcBody = NewBlock();
+	pcDone = NewBlock();
+	JumpTo(pcLoop);
+	StartBlock(pcLoop);
+	uiPhi = pcLoop->masPhis.NumElements();
+	sIndex = pcLoop->AddPhi(sSize, mpcFunction->AddTemporary(sSize))->sResult;
+	mpcBlock->Branch(mpcFunction->Add(mpcBlock, IRO_Ne, sSize, sIndex, mpcFunction->AddInteger(sSize, 0)), pcBody, pcDone);
+	StartBlock(pcBody);
+	sNext = mpcFunction->Add(mpcBlock, IRO_Sub, sSize, sIndex, mpcFunction->AddInteger(sSize, 1));
+	sElement = mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), psPointer->sValue, mpcFunction->Add(mpcBlock, IRO_Mul, sSize, sNext, mpcFunction->AddInteger(sSize, psClass->psType->iBytes)));
+	if (!CallObject(psClass->psDestructor, sElement, psClass, NULL, false))
+	{
+		return false;
+	}
+	pcLatch = mpcBlock;
+	JumpTo(pcLoop);
+	pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiPhi), pcEntry, sCount);
+	pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiPhi), pcLatch, sNext);
+	StartBlock(pcDone);
+	CallRuntime("opDeleteArray", IRType(IRTK_None), IRType(IRTK_Pointer), sBase);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // delete pointer: unless it is null, the object's destructor (virtual if
 // it is) then operator delete.  delete[] of objects with destructors is
-// left to the generator.
+// DeleteArray's.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SCPP65IRValue* psValue)
@@ -4879,7 +5421,7 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 		return Unsupported(__LINE__);
 	}
 	psType = sPointer.psType->psBase;
-	if (psType->IsClass() && (!mpcGenerator->CompleteClass(psType->psClass, NULL) || (pcDelete->mbArray && psType->psClass->psDestructor)))
+	if (psType->IsClass() && !mpcGenerator->CompleteClass(psType->psClass, NULL))
 	{
 		return Unsupported(__LINE__);
 	}
@@ -4892,11 +5434,21 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 	}
 	mpcBlock->Branch(sCondition, pcFree, pcDone);
 	StartBlock(pcFree);
-	if (psType->IsClass() && psType->psClass->psDestructor && !CallObject(psType->psClass->psDestructor, sPointer.sValue, psType->psClass, NULL, true))
+	if (pcDelete->mbArray && psType->IsClass() && psType->psClass->psDestructor)
 	{
-		return false;
+		if (!DeleteArray(&sPointer, psType->psClass))
+		{
+			return false;
+		}
 	}
-	CallRuntime(pcDelete->mbArray ? "opDeleteArray" : "opDelete", IRType(IRTK_None), IRType(IRTK_Pointer), sPointer.sValue);
+	else
+	{
+		if (psType->IsClass() && psType->psClass->psDestructor && !CallObject(psType->psClass->psDestructor, sPointer.sValue, psType->psClass, NULL, true))
+		{
+			return false;
+		}
+		CallRuntime(pcDelete->mbArray ? "opDeleteArray" : "opDelete", IRType(IRTK_None), IRType(IRTK_Pointer), sPointer.sValue);
+	}
 	JumpTo(pcDone);
 	StartBlock(pcDone);
 	psValue->sValue = IRNone();
@@ -4912,7 +5464,7 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 // a call that returns one and Class(arguments) make a temporary (or the
 // object being initialised, see msElide); object = object copies and
 // object op= value calls the class's operator.  Other operators on objects
-// are left to the generator.
+// call their operator functions (OperatorExpression).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
@@ -4929,8 +5481,16 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 	case CPPS_ThisExpression:
 		break;
 	case CPPS_UnaryExpression:
-		if (((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator != CT_Multiply)
+		switch (((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator)
 		{
+		case CT_Multiply:
+			break;
+		case CT_Subtract:
+		case CT_Add:
+		case CT_BitwiseNot:
+			//-object, +object, ~object: the object's operator.
+			return OperatorExpression(((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator, ((CCPPSyntaxUnaryExpression*)pcExpression)->mpcOperand, NULL, psValue);
+		default:
 			return Unsupported(__LINE__);
 		}
 		break;
@@ -4939,7 +5499,7 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 	case CPPS_BinaryExpression:
 		if (!mpcGenerator->IsAssignmentOperator(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator))
 		{
-			return Unsupported(__LINE__);
+			return OperatorExpression(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator, ((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft, ((CCPPSyntaxBinaryExpression*)pcExpression)->mpcRight, psValue);
 		}
 		return Assignment((CCPPSyntaxBinaryExpression*)pcExpression, psValue);
 	case CPPS_ConstructExpression:

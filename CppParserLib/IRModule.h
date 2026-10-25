@@ -105,6 +105,7 @@ public:
 
 	CArrayIRFunctions			mapcFunctions;
 	CArrayIRGlobals				mapcGlobals;
+	CArrayIRGlobals				mapcKnown;			//Read only data defined elsewhere (the generator's vtables): never written out.
 
 	SIROpcode*					mpasTargetOpcodes;
 	uint16						muiNumTargetOpcodes;
@@ -136,6 +137,9 @@ public:
 	size			NumGlobals(void);
 	CIRGlobal*		GetGlobal(size uiIndex);
 	bool			IsDefined(uint32 uiSymbol);
+
+	CIRGlobal*		AddKnownData(const char* szName, uint32 uiAlign = 1);
+	CIRGlobal*		FindConstantData(uint32 uiSymbol);
 
 	void			SetTargetOpcodes(SIROpcode* pasOpcodes, uint16 uiNumOpcodes);
 	SIROpcode*		GetOpcode(uint16 uiOpcode);

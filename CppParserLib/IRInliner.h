@@ -34,10 +34,14 @@ struct SIRInlineReturn
 typedef CArrayTemplate<SIRInlineReturn>	CArrayIRInlineReturns;
 
 
+#define IR_INLINE_CONSTANT_BONUS	8		//More instructions inlined for each constant argument the callee compares.
+
+
 //Inlining (IR.txt Passes): a call of a small function of the same module is replaced by a copy of the function's
 //blocks.  The block the call is in is split after it; the arguments become the copy's parameters, its returns
 //jump to the rest of the block, and the call's result is a phi there of the values returned.  A function is
-//small if it has at most muiMaxInstructions instructions (muiMaxLoopInstructions for a call in a loop); variadic
+//small if it has at most muiMaxInstructions instructions (muiMaxLoopInstructions for a call in a loop, and
+//IR_INLINE_CONSTANT_BONUS more for each constant argument whose parameter it compares or branches on); variadic
 //functions, functions that take their parameters' addresses (argaddr) and calls of the function itself aren't
 //inlined.  The copies' own calls are inlined too, up to muiMaxInlines in one caller.  The caller should be optimised
 //again afterwards.
@@ -59,11 +63,12 @@ public:
 	void			Kill(void);
 
 	static size		NumInstructions(CIRFunction* pcFunction);
-	bool			CanInline(CIRFunction* pcCallee, bool bInLoop);
+	bool			CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCallBlock = NULL, size uiCall = 0);
 	bool			InlineCalls(CIRFunction* pcCaller);
 
 protected:
 	void			FindLoops(void);
+	size			NumComparedConstants(CIRFunction* pcCallee, CIRBlock* pcCallBlock, size uiCall);
 	bool			HasLoopCandidate(void);
 	SIRReference	Map(SIRReference sValue, CIRFunction* pcCallee);
 	bool			InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCallee);
