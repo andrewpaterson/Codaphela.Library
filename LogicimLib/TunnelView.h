@@ -28,7 +28,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //A named tag that joins its wire to the wires of every other tunnel of the same name, as Logicim's TunnelView.  Names
-//are matched without case or the spaces around them.  Its point is at its position and its name runs away from it
+//are matched with their case but without the spaces around them (Logicim ignored case).  Its point is at its position and its name runs away from it
 //(to the right, facing East).  A double sided tunnel has a second point at its far end, a whole number of grid units away,
 //that's joined to the first.  How long it is depends on its name as it measured when the tunnel was made; its box is
 //saved and loaded with it.  A tunnel makes no component.

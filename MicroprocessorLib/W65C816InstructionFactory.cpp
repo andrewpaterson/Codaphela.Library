@@ -31,11 +31,21 @@ CW65C816InstructionFactory* CW65C816InstructionFactory::GetInstance(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Only the first of the users' Inits makes the instructions.
 //
 //////////////////////////////////////////////////////////////////////////
 void CW65C816InstructionFactory::Init(void)
 {
-    memset(this, 0, sizeof(CW65C816InstructionFactory));
+	size	uiUsers;
+
+	uiUsers = muiUsers + 1;
+	if (uiUsers > 1)
+	{
+		muiUsers = uiUsers;
+		return;
+	}
+	memset(this, 0, sizeof(CW65C816InstructionFactory));
+	muiUsers = uiUsers;
 
 	CreateInstructions();
     ValidateOpcodes();
@@ -50,6 +60,7 @@ void CW65C816InstructionFactory::Init(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Only the last of the users' Kills frees the instructions.
 //
 //////////////////////////////////////////////////////////////////////////
 void CW65C816InstructionFactory::Kill(void)
@@ -57,10 +68,21 @@ void CW65C816InstructionFactory::Kill(void)
     uint16          i;
     CW65Instruction*   pcInstruction;
 
+	if (muiUsers == 0)
+	{
+		return;
+	}
+	muiUsers--;
+	if (muiUsers > 0)
+	{
+		return;
+	}
+
     for (i = 0; i <= 255; i++)
     {
         pcInstruction = mapcInstructions[i];
         SafeKill(pcInstruction);
+		mapcInstructions[i] = NULL;
     }
 
     SafeKill(mpcReset);

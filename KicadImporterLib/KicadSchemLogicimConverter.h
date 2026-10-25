@@ -35,6 +35,16 @@ along with Codaphela KicadImporterLib.  If not, see <http://www.gnu.org/licenses
 //The gap kept between components' boxes.
 #define KICAD_SCHEM_LOGICIM_SPACING			2
 
+//Knots are wire turns and crossings.  An area of DENSE_WINDOW grid units square with more than DENSE_KNOTS is dense,
+//and is exploded: EXPLODE_SPACE grid units are put in across it each way.
+#define KICAD_SCHEM_LOGICIM_DENSE_WINDOW	12
+#define KICAD_SCHEM_LOGICIM_DENSE_KNOTS		24
+#define KICAD_SCHEM_LOGICIM_DENSE_AREAS		3
+#define KICAD_SCHEM_LOGICIM_DENSE_SCAN		12
+#define KICAD_SCHEM_LOGICIM_EXPLODE_SPACE	4
+#define KICAD_SCHEM_LOGICIM_EXPLODE_PASSES	4
+
+
 //How far a component is moved to keep it clear of the others before giving up.
 #define KICAD_SCHEM_LOGICIM_SEPARATE_RADIUS	400
 
@@ -48,18 +58,21 @@ struct SKicadSchemLogicimItem
 	CComponentView*		pcView;
 	SFloat64Vec2		sKicadPosition;
 	SInt32Vec2			sAnchor;
+	SInt32Vec2			sOffset;
 	CPortView*			pcPort;
 	CPortView*			pcAttachedTo;
 };
 
 
-//A port in the Logicim circuit standing for a pin, power symbol or label of a subnet.
+//A port in the Logicim circuit standing for a pin, power symbol or label of a subnet, or (bBus) a bus's splitter or
+//tunnel, which carries all its members.
 struct SKicadSchemLogicimTerminal
 {
 	CKicadSchemSubnet*	pcSubnet;
 	SKicadSchemPoint	sKicadPosition;
 	CPortView*			pcPortView;
 	size				uiItem;
+	bool				bBus;
 };
 
 
@@ -85,7 +98,9 @@ typedef CArrayTemplate<SKicadSchemLogicimConnection>	CArrayKicadSchemLogicimConn
 //Each symbol becomes the components Logicim has for it.  A 74 series gate part (see ParseKicadSchemLogicFunction)
 //becomes a gate for each of its gates, found by its pin names ("1A", "1B" and "1Y"; "A" and "Y" on a single gate),
 //(or, if its pins have no names, by their types) and a 74 flip flop a D flip flop for each of its flip flops ("1CP", "1D", "~{1SD}", "~{1RD}", "1Q" and "~{1Q}").
-//Their power pins are left out: the gates have implied power.  A power symbol becomes a ground or a positive supply
+//Their power pins are left out: the gates have implied power.  An inverter part is placed as KiCad has it: each unit
+//of a part drawn as units (a 74LVC04's "_Multi" symbol) is an inverter unit, and a part drawn whole is an inverter
+//package of all its inverters; a single inverter is an inverter.  A power symbol becomes a ground or a positive supply
 //of its voltage ("+3V3" is 3.3V).  Resistors, capacitors, inductors, diodes, LEDs, mounting holes, net ties, test
 //points and power flags are left out.  Any other symbol becomes an instance of a placeholder subcircuit made for its
 //library symbol and unit: an empty circuit with a pin for each of its shown pins, on the side KiCad draws it, so it
@@ -95,6 +110,16 @@ typedef CArrayTemplate<SKicadSchemLogicimConnection>	CArrayKicadSchemLogicimConn
 //its labels, so each subnet is wired on its own, as KiCad drew it.  The terminals of each subnet are wired as a tree
 //in the order KiCad's wires join them, each connection hinted to bend as KiCad's wire first bends.  Connections
 //between the same two components are routed as a run (see CTraceAutoConnector).
+//
+//A bus becomes a bus of its members in Logicim.  Each run of its entries on one side of it (a column of entries
+//tapping a bus going up and down) becomes a splitter, its ends in the order KiCad's entries are, joined to the
+//members' wires.  A splitter has an end for each member it taps and, if the bus has others, an end for the rest.  The
+//splitters of a bus are wired to each other along it, and a bus whose name is on other buses gets a tunnel at each of
+//its labels.
+//
+//Then dense areas, where the wires knot (turn and cross a lot), are exploded a few times: space is put in across each
+//one, up and down and left and right (so what's lined up stays lined up), and it's rewired.  An explosion is kept if it wires as well and leaves
+//fewer knots over the limit in the dense areas.
 //
 //The components are first placed spread out from where KiCad has them (like raisins in rising dough), wired, and
 //then moved back towards KiCad's places in steps and rewired at each, while the wiring stays as good.  The circuit
@@ -116,8 +141,12 @@ protected:
 	size								muiPlaceholders;
 	size								muiPowers;
 	size								muiTunnels;
+	size								muiSplitters;
 	size								muiSkipped;
 	size								muiOverlaps;
+	size								muiExplosions;
+	size								muiExcessBefore;
+	size								muiExcessAfter;
 
 public:
 	void							Init(CKicadSchemFile* pcFile, CKicadSchemNetlist* pcNetlist, CCircuitViews* pcCircuits, CCircuitFonts* pcFonts);
@@ -137,8 +166,13 @@ public:
 	size							NumPlaceholders(void);
 	size							NumPowers(void);
 	size							NumTunnels(void);
+	size							NumSplitters(void);
 	size							NumSkipped(void);
 	size							NumOverlaps(void);
+	size							NumExplosions(void);
+	size							GetExcessKnotsBefore(void);
+	size							GetExcessKnotsAfter(void);
+	size							FindDenseAreas(CArrayTemplate<SFloat64Vec2>* pasCentres);
 
 	static bool						IsSkippedSymbol(CKicadSchemSymbol* pcSymbol);
 	static bool						IsGroundName(const char* szName);
@@ -148,11 +182,15 @@ public:
 protected:
 	bool							AddSymbol(CKicadSchemSymbol* pcSymbol);
 	bool							AddPower(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol);
-	bool							AddLogicParts(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, EKicadSchemLogicFunction eFunction, const char* szFamily);
+	bool							AddLogicParts(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, EKicadSchemLogicFunction eFunction, const char* szFamily, const char* szPartType);
+	void							AddInverterPackage(CKicadSchemSymbol* pcSymbol, CArrayChars* paszIndices, CArrayTemplatePtr<CKicadSchemLibPin>* papcPins, CArrayInt* paiGroups, CArrayChars* paszLetters, CArrayKicadSchemPoint* pasPositions, const char* szFamily, const char* szPartType);
 	bool							AddPlaceholder(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol);
 	CCircuitView*					GetPlaceholderCircuit(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol);
 	void							GetPlaceholderPins(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, CArrayTemplatePtr<CKicadSchemLibPin>* papcPins, CArrayChars* paszNames);
 	void							AddTunnels(void);
+	void							AddBuses(void);
+	void							AddBus(CKicadSchemBus* pcBus, size uiBus);
+	void							AddBusSplitter(CKicadSchemBus* pcBus, CArrayInt* paiTaps, bool bVertical, int iSide);
 	void							AddConnections(void);
 	void							AddSubnetConnections(CKicadSchemSubnet* pcSubnet, size uiSubnet);
 
@@ -160,10 +198,12 @@ protected:
 	void							AttachItems(void);
 	void							PlaceAttachedItems(void);
 	bool							GetItemBox(size uiItem, SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum);
-	void							AddTerminal(CKicadSchemSubnet* pcSubnet, SKicadSchemPoint* psKicadPosition, CPortView* pcPortView, size uiItem);
+	void							AddTerminal(CKicadSchemSubnet* pcSubnet, SKicadSchemPoint* psKicadPosition, CPortView* pcPortView, size uiItem, bool bBus = false);
 	void							AddPinTerminal(CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin, CPortView* pcPortView, size uiItem);
 
 	void							Place(float64 fSpread);
+	void							Explode(void);
+	void							ExplodeAreas(CArrayTemplate<SFloat64Vec2>* pasCentres);
 	void							SeparateItems(void);
 	size							Route(void);
 };

@@ -44,6 +44,7 @@
     <ClCompile Include="KicadSchemNet.cpp" />
     <ClCompile Include="KicadSchemNetlist.cpp" />
     <ClCompile Include="KicadSchemSubnetGraph.cpp" />
+    <ClCompile Include="KicadSchemBus.cpp" />
     <ClCompile Include="KicadSchemLogicFunction.cpp" />
     <ClCompile Include="KicadSchemLogicimConverter.cpp" />
   </ItemGroup>
@@ -73,6 +74,7 @@
     <ClInclude Include="KicadSchemNet.h" />
     <ClInclude Include="KicadSchemNetlist.h" />
     <ClInclude Include="KicadSchemSubnetGraph.h" />
+    <ClInclude Include="KicadSchemBus.h" />
     <ClInclude Include="KicadSchemLogicFunction.h" />
     <ClInclude Include="KicadSchemLogicimConverter.h" />
   </ItemGroup>

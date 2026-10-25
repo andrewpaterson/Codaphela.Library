@@ -23,8 +23,8 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IntegratedCircuitView.h"
 
 
-//An up counter of iBitWidth bits, as Logicim's CounterView: an 18 by 12 box titled "Up Counter" with the clock,
-//reset, load, enables and data in along its bottom (grid y 6) and the count and terminal count out along its top,
+//An up counter of iBitWidth bits, as Logicim's CounterView: a 12 by 18 box titled "Up Counter" with the clock,
+//reset, load, enables and data in down its left (grid x -6) and the count and terminal count out down its right,
 //each labelled inside the box.  Reset and load are inverted.  A detail box shows the count in hexadecimal.
 class CCounterView : public CIntegratedCircuitView
 {

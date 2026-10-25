@@ -37,6 +37,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #define TRACE_AUTO_CONNECT_HINT_COST	6
 #define TRACE_AUTO_CONNECT_HINT_LIMIT	60
 #define TRACE_AUTO_CONNECT_RIP_COST		200
+#define TRACE_AUTO_CONNECT_CROWD_COST	4
 
 
 //How many cells straight out in front of a port are kept for its net.
@@ -88,7 +89,8 @@ typedef CArrayTemplate<STraceAutoConnectHeapNode>	CArrayTraceAutoConnectHeapNode
 //The connections of a run (a bus: several nets between the same components) are routed one after another with their
 //bends stepped apart, so they turn in a stair and don't cross each other.  Runs are routed shortest first, then the
 //connections that aren't in one, shortest first.  A connection is routed by a search of the grid that charges for
-//length, turns, crossings, running beside a component and for its turn being away from its bend.  A connection that
+//length, turns, crossings, running beside a component, running right beside another net's wire (unless they're in
+//the same run, which is meant to be a bundle) and for its turn being away from its bend.  A connection that
 //can't be routed is tried again through the other nets' new wires (at a cost); the nets it went through are ripped
 //up, it's routed, and they're routed again.  A connection that still can't be routed is left unconnected and the
 //others are still routed.
@@ -125,6 +127,7 @@ protected:
 	CArrayTraceViewPtr				mapcAddedTraces;
 	CArrayInt						maiAddedTraceNets;
 	CArrayInt						maiNetsWithExisting;
+	CArrayInt						maiNetRuns;
 
 public:
 	void			Init(CCircuitView* pcCircuit);
@@ -172,6 +175,7 @@ protected:
 	void			MarkGoal(int iTarget, int iNet);
 	bool			IsGoal(int iCell);
 	int				GetStepCost(STraceAutoConnection* psConnection, int iCell, int iDirection);
+	bool			IsCrowding(int iOccupant, int iNet);
 	int				GetHeuristic(int iCell, SInt32Vec2 sTarget);
 
 	void			PushHeap(int32 iCost, int32 iState);

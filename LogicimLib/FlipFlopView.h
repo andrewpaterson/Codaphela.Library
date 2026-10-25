@@ -23,8 +23,8 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IntegratedCircuitView.h"
 
 
-//A D-type flip flop, as Logicim's DTypeFlipFlopView: an 8 by 6 box with the clock, set, data and reset ports along its
-//bottom (grid y 3) and Q and QB along its top, each labelled inside the box.  Set, reset and QB are inverted.
+//A D-type flip flop, as Logicim's DTypeFlipFlopView: a 6 by 8 box with the clock, set, data and reset ports down its
+//left (grid x -3) and Q and QB down its right, each labelled inside the box.  Set, reset and QB are inverted.
 class CDTypeFlipFlopView : public CIntegratedCircuitView
 {
 CONSTRUCTABLE(CDTypeFlipFlopView);

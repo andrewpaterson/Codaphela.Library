@@ -45,8 +45,6 @@ void CMoveComponentsEdit::Init(CComponentView* pcComponent, bool bNew)
 void CMoveComponentsEdit::Init(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, bool bNew)
 {
 	size			i;
-	CTraceView*		pcTrace;
-	SMovedTrace*	psTrace;
 
 	masComponents.Init();
 	masTraces.Init();
@@ -58,11 +56,7 @@ void CMoveComponentsEdit::Init(CArrayComponentViewPtr* papcComponents, CArrayTra
 	}
 	for (i = 0; i < papcTraces->NumElements(); i++)
 	{
-		pcTrace = papcTraces->GetPtr(i);
-		psTrace = masTraces.Add();
-		psTrace->pcTrace = pcTrace;
-		psTrace->sStart = pcTrace->GetStart();
-		psTrace->sEnd = pcTrace->GetEnd();
+		AddTrace(papcTraces->GetPtr(i));
 	}
 }
 
@@ -95,12 +89,45 @@ void CMoveComponentsEdit::AddComponent(CComponentView* pcComponent)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The views being moved aren't selected while they move.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMoveComponentsEdit::AddTrace(CTraceView* pcTrace)
+{
+	SMovedTrace*	psTrace;
+
+	psTrace = masTraces.Add();
+	psTrace->pcTrace = pcTrace;
+	psTrace->sStart = pcTrace->GetStart();
+	psTrace->sEnd = pcTrace->GetEnd();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The views being moved aren't selected while they move, and the leads of
+// moved components are found (see CCircuitEditor::StartMoveViews).  Wires
+// that only hang off them move with them.
 //
 //////////////////////////////////////////////////////////////////////////
 void CMoveComponentsEdit::Start(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit)
 {
-	pcEdit->GetEditor()->StartMoveViews();
+	CArrayComponentViewPtr	apcComponents;
+	CArrayTraceViewPtr		apcTraces;
+	CArrayTraceViewPtr		apcFollowing;
+	size					i;
+
+	apcComponents.Init();
+	apcTraces.Init();
+	apcFollowing.Init();
+	GetViews(&apcComponents, &apcTraces);
+	pcEdit->GetEditor()->StartMoveViews(&apcComponents, &apcTraces, mbNew, &apcFollowing);
+	for (i = 0; i < apcFollowing.NumElements(); i++)
+	{
+		AddTrace(apcFollowing.GetPtr(i));
+	}
+	apcFollowing.Kill();
+	apcTraces.Kill();
+	apcComponents.Kill();
 }
 
 

@@ -86,7 +86,7 @@ static bool IsKicadSchemUpper(char c)
 // Tries each "74" in the part number that doesn't follow a digit.
 //
 //////////////////////////////////////////////////////////////////////////
-EKicadSchemLogicFunction ParseKicadSchemLogicFunction(const char* szPartNumber, CChars* pszFamily)
+EKicadSchemLogicFunction ParseKicadSchemLogicFunction(const char* szPartNumber, CChars* pszFamily, CChars* pszPartType)
 {
 	size		i;
 	size		j;
@@ -152,6 +152,11 @@ EKicadSchemLogicFunction ParseKicadSchemLogicFunction(const char* szPartNumber, 
 			szFamily.Init(szPartNumber, uiFamilyStart, uiFamilyEnd);
 			pszFamily->Set(IsKicadSchemLogicimFamily(szFamily.Text()) ? szFamily.Text() : "LVC");
 			szFamily.Kill();
+		}
+		if (pszPartType != NULL)
+		{
+			pszPartType->Kill();
+			pszPartType->Init(szPartNumber, uiFamilyEnd, j);
 		}
 		return eFunction;
 	}

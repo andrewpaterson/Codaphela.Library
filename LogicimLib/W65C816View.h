@@ -56,8 +56,8 @@ enum EW65C816ViewFlag
 };
 
 
-//A W65C816 microprocessor, as Logicim's W65C816View: a 26 by 22 box with its inputs along the bottom (PHI2 with a
-//clock notch) and its outputs and buses along the top, each labelled, and its registers and flags shown inside.  A
+//A W65C816 microprocessor, as Logicim's W65C816View: a 22 by 26 box with its inputs down the left (PHI2 with a
+//clock notch) and its outputs and buses down the right, each labelled, and its registers and flags shown inside.  A
 //flag is written in the text colour when it's set and the hidden text colour when it's clear.  In emulation mode the
 //memory width flag is hidden and the index width flag is the break flag.
 class CW65C816View : public CIntegratedCircuitView

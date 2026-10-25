@@ -24,6 +24,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MicroprocessorLib/CircuitComponent.h"
 #include "ComponentView.h"
 #include "TraceView.h"
+#include "TraceLines.h"
 
 
 class CCircuitSimulation;
@@ -65,6 +66,7 @@ public:
 	CTraceView*			AddTraces(int32 x0, int32 y0, int32 x1, int32 y1);
 	bool				Remove(CComponentView* pcComponent);
 	bool				RemoveTrace(CTraceView* pcTrace);
+	void				ReplaceWires(CArrayTraceLine* pasLines, CArrayTraceViewPtr* papcSeeds, CArrayTraceViewPtr* papcAdded);
 	void				KillTraces(void);
 
 	size				NumComponents(void);
@@ -90,10 +92,14 @@ public:
 	void				Paint(CCircuitPainter* pcPainter);
 	bool				GetBoundingBox(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum);
 	CComponentView*		GetComponentAt(SFloat64Vec2 sPosition);
+	CTraceView*			GetTraceAt(SInt32Vec2 sPoint);
+	bool				IsConnectionAt(SInt32Vec2 sPoint);
+	CPortView*			GetPortViewAt(SInt32Vec2 sPoint);
 	void				GetViewsInRectangle(SFloat64Vec2 sStart, SFloat64Vec2 sEnd, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces);
 
 protected:
 	void				DestroySimulation(CViewPath* pcViewPath, CCircuitSimulation* pcSimulation);
+	void				AddTouchingTraces(STraceLine* psLine, CArrayTraceViewPtr* papcTraces);
 };
 
 

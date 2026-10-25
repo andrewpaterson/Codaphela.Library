@@ -23,6 +23,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "AndGateView.h"
 #include "OrGateView.h"
 #include "BufferView.h"
+#include "InverterPackageView.h"
 #include "PowerSourceView.h"
 #include "ValueView.h"
 #include "FlipFlopView.h"
@@ -66,6 +67,8 @@ SComponentViewType gasComponentViewTypes[] =
 	{ "XnorGate", NewComponentViewOfClass<CXnorGateView> },
 	{ "Buffer", NewComponentViewOfClass<CBufferView> },
 	{ "Inverter", NewComponentViewOfClass<CInverterView> },
+	{ "InverterPackage", NewComponentViewOfClass<CInverterPackageView> },
+	{ "InverterUnit", NewComponentViewOfClass<CInverterUnitView> },
 	{ "Ground", NewComponentViewOfClass<CGroundView> },
 	{ "Constant", NewComponentViewOfClass<CConstantView> },
 	{ "Probe", NewComponentViewOfClass<CProbeView> },

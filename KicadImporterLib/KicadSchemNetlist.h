@@ -25,6 +25,7 @@ along with Codaphela KicadImporterLib.  If not, see <http://www.gnu.org/licenses
 #include "BaseLib/ListVariable.h"
 #include "KicadSchemFile.h"
 #include "KicadSchemNet.h"
+#include "KicadSchemBus.h"
 
 
 enum EKicadSchemNetNodeType
@@ -62,14 +63,18 @@ typedef CArrayTemplate<SKicadSchemNetNode>	CArrayKicadSchemNetNode;
 //"Net-(U1-Pad3)".  A pin common to all the units of an annotated symbol is placed with each unit and joins the
 //subnets of its places.
 //
-//Buses and bus entries are left out: the wires of a bus's members are joined by their labels.  Hierarchical sheets
-//are not followed; a sheet pin is part of the subnet it is wired to.
+//Buses are kept apart: the wires of a bus's members are joined by their labels, as KiCad joins them.  The buses
+//themselves (see CKicadSchemBus) are found after the nets, each with the labels on it and the entries tapping it.
+//A bus's labels name a subnet of their own too.  Buses with the same name are one bus net (not one of the nets).
+//Hierarchical sheets are not followed; a sheet pin is part of the subnet it is wired to.
 class CKicadSchemNetlist
 {
 protected:
 	CKicadSchemFile*			mpcFile;
 	CListVariable				macSubnets;
 	CListVariable				macNets;
+	CListVariable				macBuses;
+	CListVariable				macBusNets;
 	CArrayKicadSchemNetNode		masNodes;
 	CArrayInt					maiParents;
 
@@ -87,6 +92,13 @@ public:
 	CKicadSchemSubnet*	GetPinSubnet(CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin);
 	CKicadSchemSubnet*	GetPinSubnet(char* szReference, char* szPinNumber);
 	CKicadSchemNet*		GetPinNet(char* szReference, char* szPinNumber);
+	size				NumBuses(void);
+	CKicadSchemBus*		GetBus(size uiIndex);
+	CKicadSchemBus*		GetBus(char* szName);
+	size				NumBusNets(void);
+	CKicadSchemNet*		GetBusNet(size uiIndex);
+	bool				IsBusLabel(CKicadSchemLabel* pcLabel);
+	CKicadSchemSubnet*	GetSubnetAt(SKicadSchemPoint* psPoint);
 
 	static bool			IsGlobalPowerPin(CKicadSchemLibSymbol* pcLibSymbol, CKicadSchemLibPin* pcPin);
 	static bool			IsSharedPin(CKicadSchemLibSymbol* pcLibSymbol, CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin);
@@ -101,6 +113,9 @@ protected:
 	void				AddSubnetNames(CKicadSchemSubnet* pcSubnet, size uiSubnet, CArrayChars* paszNames, CArrayInt* paiNameSubnets, CArrayInt* paiSubnetParents);
 	void				AddSubnetName(char* szScope, char* szName, size uiSubnet, CArrayChars* paszNames, CArrayInt* paiNameSubnets, CArrayInt* paiSubnetParents);
 	void				NameNet(CKicadSchemNet* pcNet);
+	void				CreateBuses(void);
+	void				AddBusTaps(void);
+	void				AddBusMembers(void);
 	bool				IsWireNode(SKicadSchemNetNode* psNode);
 };
 

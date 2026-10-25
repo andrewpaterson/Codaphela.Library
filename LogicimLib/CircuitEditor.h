@@ -28,16 +28,49 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CCircuitSimulation;
 class CFamilyVoltageConfigurationStore;
+class CWirePullEdit;
+
+
+//The wires from a port of a component being moved to the next junction or port, and where they end: a port of a
+//component that isn't moving (pcTargetPort) or a junction of the rest of the net (pcTargetPort is then a port of the
+//net, NULL if it has none).
+struct SMoveLead
+{
+	CPortView*			pcPort;
+	SInt32Vec2			sTarget;
+	CPortView*			pcTargetPort;
+	CArrayTraceViewPtr	apcTraces;
+};
+
+
+typedef CArrayTemplate<SMoveLead>	CArrayMoveLead;
 
 
 //Edits a project's circuits while one of them is simulated, as Logicim's editor (Logicim, CircuitEditor and
-//SubcircuitEditor): selecting, placing, moving, turning and deleting components and wires, and loading and saving.
-//Wires aren't drawn yet.  The editor owns the circuits and the simulation; the families and fonts are the caller's.
+//SubcircuitEditor): selecting, placing, moving, turning and deleting components and wires, drawing wires, and loading
+//and saving.  The editor owns the circuits and the simulation; the families and fonts are the caller's.
 //
 //The pointer is given in grid space.  Button one's press starts an edit (or ends a placement): on a selected view it
-//moves the selection if dragged, anywhere else it drags a selection rectangle; its release ends the edit.  The
-//selection mode follows the control and shift keys (see SetModifiers and CalculateSelectionMode).  With no edit and
-//nothing selected the component under the pointer is hovered; turning and deleting act on it.
+//moves the selection if dragged; on a hovered connection it pulls a wire out if dragged (see CWirePullEdit); anywhere
+//else it drags a selection rectangle; its release ends the edit.  The selection mode follows the control and shift
+//keys (see SetModifiers and CalculateSelectionMode).
+//
+//With no edit and nothing selected the component under the pointer is hovered, and a connection (a port or a wire's
+//end) on the grid point under the pointer in it, or else a point on a wire there, as Logicim's
+//calculateHighlightedPort.  Turning acts on the hovered component.  Deleting a hovered point on a wire deletes the
+//wire; a hovered connection, the wires ending there or else the component.
+//
+//A wire pulled from one component's port and released on another's is routed around the components (see
+//CTraceAutoConnector) rather than drawn as pulled, which Logicim doesn't do.
+//
+//Moving components drags their wires with them, which Logicim doesn't: the wires from each moved port to the next
+//junction or port (its lead) are found when the move starts and, when it's done, are taken out and the port routed
+//again to where its lead went (see CTraceAutoConnector), or wired there straight if there's no route.  A lead that
+//ends on nothing moves with its component instead.  Leads between moved components, and leads with moved wires in
+//them, stay as they are.
+//
+//Wires are kept as Logicim keeps them (see MergeTraceLines): those along each other are merged and they're split
+//where one ends on another and at ports, whenever wires are drawn, moved or deleted, or components moved.
 //
 //The simulation runs on unchanged while views are edited.  Placed components are made in every simulation of every
 //path through the circuit being edited, and started; deleted ones are taken out of them; and after any change each
@@ -58,6 +91,11 @@ protected:
 	CCircuitEdit*						mpcEdit;
 	ERotation							meCreationRotation;
 	CComponentView*						mpcHover;
+	bool								mbHoverConnection;
+	SInt32Vec2							msHoverConnection;
+	CTraceView*							mpcHoverTrace;  //The wire the hovered connection is a point on, NULL if it's a connection.
+	CArrayMoveLead						masLeads;  //Of the components being moved.
+	CArrayTraceViewPtr					mapcFollowing;  //Wires that only hang off the components being moved, moving with them.
 	SFloat64Vec2						msPointer;
 	bool								mbPointer;
 	bool								mbControl;
@@ -95,14 +133,17 @@ public:
 	CCircuitSimulation*	GetSimulation(void);
 	CCircuitSelection*	GetSelection(void);
 	CComponentView*		GetHover(void);
+	bool				GetHoverConnection(SInt32Vec2* psConnection);
+	CTraceView*			GetHoverTrace(void);
 	ERotation			GetCreationRotation(void);
 	bool				IsControl(void);
 	bool				IsShift(void);
 
-	void				StartMoveViews(void);
+	void				StartMoveViews(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, bool bNew, CArrayTraceViewPtr* papcFollowing);
 	void				DoneMoveViews(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces, bool bSelect, bool bNew, bool bChanged);
 	void				DeleteViews(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces);
 	bool				SelectInRectangle(SFloat64Vec2 sStart, SFloat64Vec2 sEnd, CCircuitSelection* pcPrevious);
+	void				PullWire(CWirePullEdit* pcPull);
 
 protected:
 	void				StartEdit(CStatefulEdit* pcEdit, SFloat64Vec2 sStart);
@@ -112,6 +153,15 @@ protected:
 	bool				StartPlace(CComponentView* pcComponent);
 	void				RotateComponents(bool bRight);
 	void				UpdateHover(void);
+	void				ClearHover(void);
+	void				GetTracesEndingAt(SInt32Vec2 sPoint, CArrayTraceViewPtr* papcTraces);
+	bool				RouteWire(SInt32Vec2 sFrom, SInt32Vec2 sTo);
+	void				FindLeads(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces);
+	void				FindLead(CPortView* pcPort, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces);
+	CPortView*			FindNetPort(SInt32Vec2 sPoint, CArrayTraceViewPtr* papcExcluded, CArrayComponentViewPtr* papcComponents);
+	void				RerouteLeads(CArrayTraceViewPtr* papcSeeds);
+	void				KillLeads(void);
+	bool				IsAnythingAt(SInt32Vec2 sPoint, CArrayTraceViewPtr* papcExcluded);
 	void				GetEditedPaths(CArrayViewPathPtr* papcViewPaths);
 	void				CreateComponents(CArrayComponentViewPtr* papcComponents);
 	bool				Rewire(void);
