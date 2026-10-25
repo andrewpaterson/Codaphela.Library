@@ -704,6 +704,8 @@ protected:
 	bool					HasCopyConstructor(SCPP65Class* psClass);
 	SCPP65Function*			GetCopyConstructor(SCPP65Class* psClass);
 	bool					CopyMembers(SCPP65Place* psPlace, CCPPSyntax* pcSource, CCPPSyntax* pcNode);
+	void					AppendAdjustThunk816(int iAdjust);
+	void					AppendVirtualCallThunk816(SCPP65Function* psFunction);
 	void					CopyParts(SCPP65Class* psClass, int iOffset, int iDestinationDepth, int iSourceDepth);
 	void					CopyPart(SCPP65Class* psClass, int iOffset, int iDestinationDepth, int iSourceDepth);
 	bool					IsTriviallyCopyable(SCPP65Class* psClass);

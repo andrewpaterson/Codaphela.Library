@@ -501,12 +501,33 @@ narrowed: cpy R1, R2 / and R1, 65535 is cpy R1, R2 with R2 16 bits wide, and cpy
 xor R1, 32768 / sub R1, 32768 is cpy R1, R2:s (when c and v aren't read after); a sign
 extend on its own is wthx R, 32:s when no flag it sets is read (NarrowExtensions).
 
+Last peephole (CIR65Peephole, IR65Peephole.h/.cpp, 2026-10-25; per function, on the text
+after Widths, so it sees the code Flags and Widths added; loaded with
+CIR65Code::Load(bConflicts) as widths may differ between the ways into a label after
+Widths).  First, what A, B, X and Y hold at 32 bits is followed through the code (across
+labels where the ways in agree): a register, a number or symbol, or the function's own
+memory ([n + W], [n + V], [n + S]; memory through a pointer or at a symbol may be volatile
+and is never followed).  A cpy into a register at 32 bits of what it already holds goes
+when the n and z it sets aren't read (cpy B, [9 + V] / cpy X, [6 + B] / cpy B, [9 + V]).  A
+store from a register makes it hold that memory too.  A register's value is forgotten when
+it, or a register the value names (B in [4 + B] isn't followed; S, V and W are) is
+written; mul and div change W; a store to [n + W] forgets values within 8 bytes of it, one
+to the frame all the frame's from the other base, one to any other memory all the frame's
+(a local's address may be taken) but no [n + W]; a call forgets everything.  Then the
+jumps, repeated until nothing changes: a jump to a label whose code is a bra goes where
+that bra goes; a bra to a ret is a ret; bras/brac round a bra (nothing else going to the
+bra) is the opposite branch to the bra's label; a branch to the next line goes; code
+(and labels) nothing reaches goes.
+
 Map benchmark (TestMapStringIntAndPointer) 2026-10-25: 1.020B; widths 0.961B; W always 0
 0.936B; flags 0.930B; less loop tests 0.928B; narrow extensions 0.923B; strength
-reduction 0.921B; merged loads, same phis and constant argument inlining 0.917B.
+reduction 0.921B; merged loads, same phis and constant argument inlining 0.917B; jsr to
+the callee where it is 0.905B; last peephole jumps 0.900B, its copies 0.898B.
 
 Calls push their arguments last first at their own size (a thiscall's this goes in X),
-floats are the soft float runtime's, sdiv and srem call R_DivideSigned (the generator
+and jump to the callee where it is: jsr _f, jsr X or Y (X only when this doesn't go
+there), or through a pointer in a pseudo register or the frame (jsr [n + W], jsr [n + V],
+not [n + S] as the arguments pushed move S); else it is loaded into A (jsr A).  Floats are the soft float runtime's, sdiv and srem call R_DivideSigned (the generator
 adds it when UsesSignedDivide).  GenerateModule writes a whole module (each function and
 global a section of its own) for IR programs that don't come from C++.
 

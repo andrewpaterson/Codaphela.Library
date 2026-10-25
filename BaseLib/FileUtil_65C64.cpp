@@ -20,7 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifdef __65C64__
+#ifdef __LIBC65__
 #include <string.h>
 #include <host.h>
 #include "Logger.h"
@@ -286,5 +286,5 @@ bool CFileUtil::FindFiles(const char* szInDirectory, bool bDirs, const char* szI
 }
 
 
-#endif // __65C64__
+#endif // __LIBC65__
 

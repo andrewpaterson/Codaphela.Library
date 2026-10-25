@@ -20,7 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifdef __65C64__
+#ifdef __LIBC65__
 #include <stdlib.h>
 #include "SlabAllocator.h"
 
@@ -60,5 +60,5 @@ void CSlabAllocator::FreeSlab(void* pvSlab)
 }
 
 
-#endif // __65C64__
+#endif // __LIBC65__
 

@@ -17,9 +17,9 @@
 #endif // LINUX_GNU
 
 
-#ifdef __65C64__
+#ifdef __LIBC65__
 #define BREAK()	__builtin_trap();
-#endif // __65C64__
+#endif // __LIBC65__
 
 
 #define Validate(test)	if (!test) BREAK();

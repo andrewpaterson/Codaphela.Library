@@ -739,6 +739,16 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 
 	pcFunction->Renumber();
 	Layout();
+	if (miFrameBytes > IR816_MAX_FRAME_BYTES)
+	{
+		CChars	szBytes;
+
+		szBytes.Init();
+		szBytes.Append(miFrameBytes);
+		Error("The frame is too big for the W65C816's stack (bytes)", szBytes.Text());
+		szBytes.Kill();
+		return false;
+	}
 	maiBlockLabels.FakeSetUsedElements(0);
 	for (ui = 0; ui < pcFunction->NumBlocks(); ui++)
 	{

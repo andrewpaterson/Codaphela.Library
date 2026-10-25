@@ -120,7 +120,7 @@ void CIR65Widths::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CIR65Widths::Optimise(CChars* pszCode, size uiStart)
 {
-	if (!mcCode.Load(pszCode, uiStart))
+	if (!mcCode.Load(pszCode, uiStart, false))
 	{
 		return;
 	}

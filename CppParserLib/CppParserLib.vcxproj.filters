@@ -144,6 +144,9 @@
     <ClCompile Include="IR65Flags.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IR65Peephole.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IR65Widths.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -714,6 +717,9 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IR65Flags.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IR65Peephole.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IR65Widths.h">

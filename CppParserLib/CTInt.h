@@ -29,6 +29,7 @@ public:
 	unsigned int	mcValue;
 	bool			mbSigned;
 	bool			mbLong;		//long or unsigned long (32 bits on Windows) rather than int.
+	bool			mbDecimal;	//Written in decimal (a hex or octal literal may be unsigned without a u).
 
 	CPP_TOKEN_CONSTRUCT(CCTInt);
 	void Init(void);

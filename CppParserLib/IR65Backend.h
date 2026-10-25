@@ -26,6 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IRDominators.h"
 #include "IR65Flags.h"
 #include "IR65Widths.h"
+#include "IR65Peephole.h"
 
 
 //Where a temporary is kept.
@@ -180,6 +181,7 @@ protected:
 	char					mcFrame;			//...so the frame register is S, otherwise V.
 	CIR65Flags				mcFlags;
 	CIR65Widths				mcWidths;
+	CIR65Peephole			mcPeephole;
 
 public:
 	void				Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRuntime);

@@ -91,7 +91,7 @@ void CIR65Flags::Optimise(CChars* pszCode, size uiStart)
 	int		iRound;
 	bool	bRemoved;
 
-	if (!mcCode.Load(pszCode, uiStart))
+	if (!mcCode.Load(pszCode, uiStart, false))
 	{
 		return;
 	}

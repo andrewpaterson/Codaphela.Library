@@ -36,6 +36,16 @@ bool PrivateAssertInt(uint32 iExpected, uint32 iActual, const char* szPrefix, si
 bool PrivateAssertIntHex(int32 iExpected, int32 iActual, char* szPrefix, size iLine, const char* szFile);
 bool PrivateAssertIntHex(int32 iExpected, uint32 iActual, char* szPrefix, size iLine, const char* szFile);
 bool PrivateAssertIntHex(uint32 iExpected, uint32 iActual, char* szPrefix, size iLine, const char* szFile);
+#ifdef __W65C816__
+//An int is 16 bits on the W65C816: AssertInt and AssertIntHex of ints match these exactly (the 32 bit ones would all
+//need a conversion, so none would be chosen).  There are none for 16 and 32 bit arguments mixed.
+bool PrivateAssertInt(int16 iExpected, int16 iActual, const char* szPrefix, size iLine, const char* szFile);
+bool PrivateAssertInt(int16 iExpected, uint16 iActual, const char* szPrefix, size iLine, const char* szFile);
+bool PrivateAssertInt(uint16 iExpected, uint16 iActual, const char* szPrefix, size iLine, const char* szFile);
+bool PrivateAssertIntHex(int16 iExpected, int16 iActual, char* szPrefix, size iLine, const char* szFile);
+bool PrivateAssertIntHex(int16 iExpected, uint16 iActual, char* szPrefix, size iLine, const char* szFile);
+bool PrivateAssertIntHex(uint16 iExpected, uint16 iActual, char* szPrefix, size iLine, const char* szFile);
+#endif // __W65C816__
 bool PrivateAssertByte(int8 iExpected, int8 iActual, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertByte(int8 iExpected, uint8 iActual, char* szPrefix, size iLine, char* szFile);
 bool PrivateAssertByte(uint8 iExpected, uint8 iActual, char* szPrefix, size iLine, char* szFile);

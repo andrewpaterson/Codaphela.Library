@@ -31,6 +31,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IROptimiser.h"
 #include "IR65Backend.h"
 #include "IR816Backend.h"
+#include "SourceFile.h"
 #include "CPP65IRFrontEnd.h"
 
 
@@ -726,14 +727,23 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 {
 	CIR65Backend	cBackend;
 	CIR816Backend	cBackend816;
+	CCPPErrors		cErrors;
 	CArrayChars*	paszRuntime;
 	size			ui;
 	bool			bResult;
 
 	if (mpcGenerator->mpsTarget->eTarget == CPPT_W65C816)
 	{
+		//The back end's errors (a frame too big ...) are why the function wasn't written.
+		cErrors.Init();
 		cBackend816.Init(&mcModule, &mpcGenerator->miLabels);
-		bResult = cBackend816.GenerateFunction(pcFunction, szLabel, pszCode, NULL);
+		bResult = cBackend816.GenerateFunction(pcFunction, szLabel, pszCode, &cErrors);
+		if (!bResult)
+		{
+			siUnsupportedLine = __LINE__;
+			StrCpySafe(sszUnsupported, cErrors.Text(), sizeof(sszUnsupported));
+		}
+		cErrors.Kill();
 		paszRuntime = cBackend816.GetRuntime();
 		for (ui = 0; bResult && (ui < paszRuntime->NumElements()); ui++)
 		{
@@ -1162,6 +1172,11 @@ bool CCPP65IRFrontEnd::DeclarationStatement(CCPPSyntaxDeclarationStatement* pcSt
 	size							ui;
 	size							uiTemporaries;
 
+	if (pcStatement->mpcDeclaration && (pcStatement->mpcDeclaration->GetKind() == CPPS_StaticAssert))
+	{
+		//Checked when it is compiled; nothing is written.
+		return mpcGenerator->StaticAssert((CCPPSyntaxStaticAssert*)pcStatement->mpcDeclaration) || Unsupported(__LINE__);
+	}
 	if (!pcStatement->mpcDeclaration || (pcStatement->mpcDeclaration->GetKind() != CPPS_SimpleDeclaration))
 	{
 		return Unsupported(__LINE__);
@@ -1937,6 +1952,27 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	psType = mpcGenerator->TypeOf(pcExpression);
 	if (!psType || (!IsSupportedType(psType) && !psType->IsFunction() && !psType->IsClass()))
 	{
+		if (mcModule.GetPointerSize(0) == 4 && !mpcGenerator->mpsTarget->bDirectGenerator)
+		{
+			SPreprocessedToken* psSourceDiag = mpcGenerator->mpcTokeniser->GetSource(mpcGenerator->mpcTokeniser->Get(pcExpression->miFirstToken));
+			CChars szDiag; szDiag.Init(); psSourceDiag->Append(&szDiag);
+			int iExp = psSourceDiag->iExpansion; CSourceFile* pcF = psSourceDiag->pcFile; int iL = psSourceDiag->iLine;
+			while (iExp >= 0) { SMacroExpansion* psE = mpcGenerator->mpcTokeniser->mpcSource->GetExpansion(iExp); pcF = psE->pcFile; iL = psE->iLine; iExp = psE->iParent; }
+			fprintf(stderr, "DIAG %s:%d [%s]", pcF ? pcF->ShortName() : "?", iL + 1, szDiag.Text());
+			if (pcExpression->GetKind() == CPPS_CallExpression)
+			{
+				CCPPSyntaxCallExpression* pcCallDiag = (CCPPSyntaxCallExpression*)pcExpression;
+				for (size k = 0; k < pcCallDiag->macpArguments.NumElements() && k < 2; k++)
+				{
+					CCPPSyntax* pcA = mpcGenerator->SkipParentheses(pcCallDiag->macpArguments.GetPtr(k));
+					SCPP65Type* psA = mpcGenerator->TypeOf(pcA);
+					if (psA && psA->IsReference()) psA = psA->psBase;
+					fprintf(stderr, " %s%s%d", (pcA->GetKind() == CPPS_LiteralExpression) ? "L" : ((pcA->GetKind() == CPPS_UnaryExpression) ? "U" : "V"), psA ? (psA->IsPointer() ? "p" : (psA->IsFloat() ? "f" : (psA->bSigned ? "s" : "u"))) : "?", psA ? psA->iBytes : -1);
+				}
+			}
+			fprintf(stderr, "\n");
+			szDiag.Kill();
+		}
 		return Unsupported(__LINE__);
 	}
 	if (psType->IsClass())
@@ -1964,7 +2000,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 		}
 		if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
 		{
-			return Unsupported(__LINE__);
+			return FunctionTemplateAddress((CCPPSyntaxIdExpression*)pcExpression, psValue);
 		}
 		//A name without a symbol (a member in a template the parser could not resolve) is a place.
 		if (pcSymbol && ((pcSymbol->meKind == CPPSK_Enumerator) || (pcSymbol->meKind == CPPSK_ValueParameter)))
@@ -1981,6 +2017,22 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	case CPPS_CallExpression:
 		return CallExpression((CCPPSyntaxCallExpression*)pcExpression, psValue);
 	case CPPS_SubscriptExpression:
+		if (IsObjectSubscript((CCPPSyntaxSubscriptExpression*)pcExpression))
+		{
+			//object[index] is a call to the object's operator[], which may return a value.
+			if (!OperatorCall(((CCPPSyntaxSubscriptExpression*)pcExpression)->mpcArray, CT_OpenSquareBracket, ((CCPPSyntaxSubscriptExpression*)pcExpression)->mpcIndex, psValue))
+			{
+				return false;
+			}
+			if (!psValue->psType->IsReference())
+			{
+				return true;
+			}
+			sPlace.sAddress = psValue->sValue;
+			sPlace.psType = psValue->psType->psBase;
+			return Load(&sPlace, psValue);
+		}
+		break;
 	case CPPS_MemberExpression:
 		break;
 	case CPPS_ThisExpression:
@@ -2509,7 +2561,26 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 	case CPPS_SubscriptExpression:
 		pcSubscript = (CCPPSyntaxSubscriptExpression*)pcExpression;
 		psType = mpcGenerator->TypeOf(pcSubscript->mpcArray);
-		if (!psType || psType->IsClass())
+		if (psType && psType->IsReference())
+		{
+			psType = psType->psBase;
+		}
+		if (psType && psType->IsClass())
+		{
+			//object[index] is a call to the object's operator[], which must return a reference here.
+			if (!OperatorCall(pcSubscript->mpcArray, CT_OpenSquareBracket, pcSubscript->mpcIndex, &sAddress))
+			{
+				return false;
+			}
+			if (!sAddress.psType->IsReference())
+			{
+				return Unsupported(__LINE__);
+			}
+			psPlace->sAddress = sAddress.sValue;
+			psPlace->psType = sAddress.psType->psBase;
+			return true;
+		}
+		if (!psType)
 		{
 			return Unsupported(__LINE__);
 		}
@@ -2676,6 +2747,10 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 		if ((pcOperand->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol && (((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol->meKind == CPPSK_Function))
 		{
 			return FunctionAddress((CCPPSyntaxIdExpression*)pcOperand, NULL, psValue);
+		}
+		if ((pcOperand->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol && (((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol->meKind == CPPSK_FunctionTemplate))
+		{
+			return FunctionTemplateAddress((CCPPSyntaxIdExpression*)pcOperand, psValue);
 		}
 		if ((pcOperand->GetKind() == CPPS_IdExpression) && (((CCPPSyntaxIdExpression*)pcOperand)->mpcName->macpComponents.NumElements() >= 2))
 		{
@@ -4003,9 +4078,11 @@ bool CCPP65IRFrontEnd::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSyntax* pc
 	{
 		pcFunction = mpcGenerator->SkipParentheses(((CCPPSyntaxUnaryExpression*)pcFunction)->mpcOperand);
 	}
-	if ((pcFunction->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcFunction)->mpcName->mpcSymbol && (((CCPPSyntaxIdExpression*)pcFunction)->mpcName->mpcSymbol->meKind == CPPSK_Function))
+	if ((pcFunction->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcFunction)->mpcName->mpcSymbol && (((CCPPSyntaxIdExpression*)pcFunction)->mpcName->mpcSymbol->meKind == CPPSK_Function) &&
+		!psTo->IsMemberPointer())
 	{
-		//(FPointer)&f chooses the overload of f with the pointer's type.
+		//(FPointer)&f chooses the overload of f with the pointer's type.  (MPointer)&Class::f is a member pointer
+		//converted below.
 		if (!psTo->IsPointer() || !psTo->psBase->IsFunction() || !FunctionAddress((CCPPSyntaxIdExpression*)pcFunction, psTo->psBase, psValue))
 		{
 			return Unsupported(__LINE__);
@@ -4561,6 +4638,24 @@ bool CCPP65IRFrontEnd::OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether array[index] subscripts an object (a call of its operator[]).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::IsObjectSubscript(CCPPSyntaxSubscriptExpression* pcSubscript)
+{
+	SCPP65Type*	psType;
+
+	psType = mpcGenerator->TypeOf(pcSubscript->mpcArray);
+	if (psType && psType->IsReference())
+	{
+		psType = psType->psBase;
+	}
+	return psType && psType->IsClass();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // left op right, or op operand when pcRight is NULL, with an object
 // operand, as the generator's OperatorExpression: the left's member
 // operator if one matches, otherwise a free operator function.
@@ -4932,15 +5027,8 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 		}
 		if (psType->IsArray())
 		{
-			sElement.psType = psType->psBase;
-			for (i = 0; i < psType->iCount; i++)
-			{
-				sElement.sAddress = AddressAt(psPlace->sAddress, i * psType->psBase->iBytes);
-				if (!Construct(&sElement, NULL, NULL))
-				{
-					return false;
-				}
-			}
+			//An array of scalars is zeroed.
+			ZeroBytes(psPlace->sAddress, psType->iBytes);
 			return true;
 		}
 		sZero.sValue = mpcFunction->AddConstant(IRTypeOf(psType), 0);
@@ -5145,6 +5233,36 @@ SIRReference CCPP65IRFrontEnd::Phi(CIRBlock* pcBlock, SIRType sType, CIRBlock* p
 	pcBlock->AddPhiArgument(psPhi, pcFrom1, sValue1);
 	pcBlock->AddPhiArgument(psPhi, pcFrom2, sValue2);
 	return sResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The address of a function template's instance for explicit arguments, as
+// the generator's FunctionTemplateAddress: &ComparePrimitive<int> or
+// ComparePrimitive<int>.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::FunctionTemplateAddress(CCPPSyntaxIdExpression* pcId, SCPP65IRValue* psValue)
+{
+	CCPPSyntaxNameComponent*	pcComponent;
+	SCPP65Template*				psTemplate;
+	SCPP65Function*				psFunction;
+
+	pcComponent = pcId->mpcName->GetLast();
+	psTemplate = mpcGenerator->GetTemplate(pcId->mpcName->mpcSymbol);
+	if (!psTemplate || !pcComponent->mbTemplateArguments)
+	{
+		return Unsupported(__LINE__);
+	}
+	psFunction = mpcGenerator->InstantiateFunction(psTemplate, &pcComponent->macpTemplateArguments, NULL, pcId);
+	if (!psFunction)
+	{
+		return Unsupported(__LINE__);
+	}
+	psValue->sValue = FunctionSymbol(psFunction);
+	psValue->psType = mpcTypes->Pointer(FunctionType(psFunction));
+	return true;
 }
 
 
@@ -5563,8 +5681,7 @@ bool CCPP65IRFrontEnd::Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, boo
 //
 // Copy constructs the object at psPlace from pcSource (of its class or one
 // derived from it), as the generator's CopyConstruct: with the class's copy
-// constructor, or its bytes.  An implicit copy constructor that copies
-// members with their own is left to the generator.
+// constructor, its implicit one (CopyMembers), or its bytes.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::CopyConstruct(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource)
@@ -5584,9 +5701,166 @@ bool CCPP65IRFrontEnd::CopyConstruct(SCPP65IRPlace* psPlace, CCPPSyntax* pcSourc
 	}
 	if (!mpcGenerator->IsTriviallyCopyable(psClass))
 	{
-		return Unsupported(__LINE__);
+		return CopyMembers(psPlace, pcSource);
 	}
 	return CopyObject(psPlace, pcSource);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Zeroes iBytes from sAddress on: a long at a time (in a loop when there
+// are many), then the bytes left.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::ZeroBytes(SIRReference sAddress, int iBytes)
+{
+	SIRType			sOffset;
+	SIRReference	sIndex;
+	SIRReference	sNext;
+	CIRBlock*		pcEntry;
+	CIRBlock*		pcLoop;
+	CIRBlock*		pcBody;
+	CIRBlock*		pcLatch;
+	CIRBlock*		pcDone;
+	size			uiPhi;
+	int				iLongs;
+	int				i;
+
+	iLongs = iBytes / 4;
+	if (iLongs > 4)
+	{
+		//loop: the offset counts up in longs.
+		sOffset = IRIntegerType(mcModule.GetPointerSize(0));
+		pcEntry = mpcBlock;
+		pcLoop = NewBlock();
+		pcBody = NewBlock();
+		pcDone = NewBlock();
+		JumpTo(pcLoop);
+		StartBlock(pcLoop);
+		uiPhi = pcLoop->masPhis.NumElements();
+		sIndex = pcLoop->AddPhi(sOffset, mpcFunction->AddTemporary(sOffset))->sResult;
+		mpcBlock->Branch(mpcFunction->Add(mpcBlock, IRO_ULt, sOffset, sIndex, mpcFunction->AddInteger(sOffset, 4 * iLongs)), pcBody, pcDone);
+		StartBlock(pcBody);
+		mpcFunction->Store(mpcBlock, IRType(IRTK_I32), mpcFunction->AddInteger(IRType(IRTK_I32), 0), mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sAddress, sIndex));
+		sNext = mpcFunction->Add(mpcBlock, IRO_Add, sOffset, sIndex, mpcFunction->AddInteger(sOffset, 4));
+		pcLatch = mpcBlock;
+		JumpTo(pcLoop);
+		pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiPhi), pcEntry, mpcFunction->AddInteger(sOffset, 0));
+		pcLoop->AddPhiArgument(pcLoop->masPhis.Get(uiPhi), pcLatch, sNext);
+		StartBlock(pcDone);
+	}
+	else
+	{
+		for (i = 0; i < iLongs; i++)
+		{
+			mpcFunction->Store(mpcBlock, IRType(IRTK_I32), mpcFunction->AddInteger(IRType(IRTK_I32), 0), AddressAt(sAddress, 4 * i));
+		}
+	}
+	for (i = 4 * iLongs; i < iBytes; i++)
+	{
+		mpcFunction->Store(mpcBlock, IRType(IRTK_I8), mpcFunction->AddInteger(IRType(IRTK_I8), 0), AddressAt(sAddress, i));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The implicit copy constructor of a class whose bases or fields have copy
+// constructors, as the generator's CopyMembers: the bytes are copied (and
+// the vtable pointers stored), then those bases and fields are copied again
+// with their copy constructors.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::CopyMembers(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource)
+{
+	SCPP65IRPlace	sSource;
+	SIRReference	sAddress;
+
+	if (!Place(pcSource, &sSource))
+	{
+		return false;
+	}
+	if (!sSource.psType->IsClass() || !mpcGenerator->IsDerived(sSource.psType->psClass, psPlace->psType->psClass, NULL) ||
+		!ReferenceAddress(&sSource, mpcTypes->Pointer(psPlace->psType), &sAddress))
+	{
+		return Unsupported(__LINE__);
+	}
+	CopyPieces(psPlace->sAddress, sAddress, psPlace->psType->iBytes);
+	if (!StoreVtables(psPlace->sAddress, psPlace->psType->psClass))
+	{
+		return false;
+	}
+	CopyParts(psPlace->psType->psClass, psPlace->sAddress, sAddress);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Copies the bases and fields of the class (the objects at sDestination and
+// sSource) that have copy constructors with them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::CopyParts(SCPP65Class* psClass, SIRReference sDestination, SIRReference sSource)
+{
+	SCPP65Base*		psBase;
+	SCPP65Field*	psField;
+	SCPP65Type*		psType;
+	size			i;
+	int				j;
+	int				iCount;
+	int				iOffset;
+
+	for (i = 0; i < psClass->macBases.NumElements(); i++)
+	{
+		psBase = psClass->macBases.Get(i);
+		CopyPart(psBase->psClass, AddressAt(sDestination, psBase->iOffset), AddressAt(sSource, psBase->iOffset));
+	}
+	for (i = 0; i < psClass->macFields.NumElements(); i++)
+	{
+		psField = psClass->macFields.Get(i);
+		psType = psField->psType;
+		iCount = 1;
+		if (psType->IsArray())
+		{
+			iCount = psType->iCount;
+			psType = psType->psBase;
+		}
+		if (!psType->IsClass())
+		{
+			continue;
+		}
+		for (j = 0; j < iCount; j++)
+		{
+			iOffset = psField->iOffset + j * psType->iBytes;
+			CopyPart(psType->psClass, AddressAt(sDestination, iOffset), AddressAt(sSource, iOffset));
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A part (base or field) of a class: copied with its copy constructor, or
+// its own parts, or left as its bytes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::CopyPart(SCPP65Class* psClass, SIRReference sDestination, SIRReference sSource)
+{
+	SCPP65Function*	psConstructor;
+
+	psConstructor = mpcGenerator->GetCopyConstructor(psClass);
+	if (psConstructor)
+	{
+		mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sDestination);
+		mpcFunction->Argument(mpcBlock, IRType(IRTK_Pointer), sSource);
+		mpcFunction->Call(mpcBlock, IRType(IRTK_None), FunctionSymbol(psConstructor), -1, true);
+	}
+	else if (!mpcGenerator->IsTriviallyCopyable(psClass))
+	{
+		CopyParts(psClass, sDestination, sSource);
+	}
 }
 
 

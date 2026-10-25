@@ -51,7 +51,7 @@ void SInt32Vec3::Print(CChars* psx, int iWholeNumbers)
 //////////////////////////////////////////////////////////////////////////
 int SInt32Vec3::WholeNumbers(void)
 {
-	int i[3];
+	int32 i[3];
 
 	i[0] = (int)CountDigits(x);
 	i[1] = (int)CountDigits(y);

@@ -20,7 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifdef __65C64__
+#ifdef __LIBC65__
 #include "ConditionVariable.h"
 
 
@@ -71,5 +71,5 @@ void CConditionVariable::WakeAll(void)
 }
 
 
-#endif // __65C64__
+#endif // __LIBC65__
 

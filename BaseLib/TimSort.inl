@@ -158,6 +158,7 @@ static void NAME(binarySort) (void* a, size hi, size start,
 		// a[left] = pivot;
 		ASSIGN(leftp, pivot);
 	}
+	FREE_TEMP(pivot);
 	(void)width;
 }
 
@@ -238,6 +239,7 @@ static void NAME(reverseRange) (void* a, size hi, size width) {
 		front = INCPTR(front);
 		back = DECPTR(back);
 	}
+	FREE_TEMP(t);
 	(void)width;
 }
 

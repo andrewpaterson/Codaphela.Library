@@ -68,12 +68,12 @@ void SSizeVec2::Print(CChars* psx, size iWholeNumbers)
 //////////////////////////////////////////////////////////////////////////
 size SSizeVec2::WholeNumbers(void)
 {
-	size i[2];
+	int32 i[2];
 
-	i[0] = CountDigits((int)x);
-	i[1] = CountDigits((int)y);
+	i[0] = (int32)CountDigits((int64)x);
+	i[1] = (int32)CountDigits((int64)y);
 
-	return LargestInt((int*)i, 2);
+	return LargestInt(i, 2);
 }
 
 

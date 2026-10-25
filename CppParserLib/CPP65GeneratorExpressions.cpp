@@ -247,7 +247,8 @@ SCPP65Type* CCPP65Generator::Literal(CCPPSyntaxLiteralExpression* pcLiteral)
 //////////////////////////////////////////////////////////////////////////
 //
 // An int literal is int (or unsigned int) if it fits and has no L suffix, otherwise long (or unsigned long): only
-// different where int is narrower than 32 bits (the W65C816).
+// different where int is narrower than 32 bits (the W65C816).  A hex or octal one too big for an int is an unsigned
+// int if it fits one ([lex.icon]).
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Generator::IntegerLiteralType(CCTInt* pcInt)
@@ -258,6 +259,10 @@ SCPP65Type* CCPP65Generator::IntegerLiteralType(CCTInt* pcInt)
 	if (pcInt->IsSigned())
 	{
 		lliValue = (int32)pcInt->mcValue;
+		if ((mcTypes.msInt.iBytes < 4) && !pcInt->mbLong && !pcInt->mbDecimal && (lliValue > 32767) && (lliValue <= 0xFFFF))
+		{
+			return &mcTypes.msUnsignedInt;
+		}
 		bLong = pcInt->mbLong || (lliValue < -32768) || (lliValue > 32767);
 		return bLong && (mcTypes.msInt.iBytes < 4) ? &mcTypes.msLong : &mcTypes.msInt;
 	}

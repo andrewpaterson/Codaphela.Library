@@ -148,7 +148,7 @@ void SFloat32Vec3::Fix(void)
 //////////////////////////////////////////////////////////////////////////
 int SFloat32Vec3::WholeNumbers(void)
 {
-	int i[3];
+	int32 i[3];
 
 	i[0] = (int)FloatWholeNumbers(x);
 	i[1] = (int)FloatWholeNumbers(y);

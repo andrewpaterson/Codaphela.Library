@@ -111,7 +111,7 @@ public:
 	void			Init(void);
 	void			Kill(void);
 
-	bool			Load(CChars* pszCode, size uiStart);
+	bool			Load(CChars* pszCode, size uiStart, bool bConflicts);
 
 	size			NumLines(void);
 	SIR65CodeLine*	GetLine(size uiLine);

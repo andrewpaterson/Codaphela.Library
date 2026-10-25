@@ -86,10 +86,18 @@ void TimSort(DataCompare fCompare, void* pvArray, size uiStride, int iNumElement
 
 #if defined(_MSC_VER)
 # define DEFINE_TEMP(temp) void *temp = _alloca(WIDTH)
-#elif defined(__65C64__)
+#elif defined(__W65C816__)
+# define DEFINE_TEMP(temp) void *temp = malloc(WIDTH)	//The W65C816's stack is in bank 0, so it is small.
+#elif defined(__LIBC65__)
 # define DEFINE_TEMP(temp) void *temp = __builtin_alloca(WIDTH)
 #else
 # define DEFINE_TEMP(temp) char temp[WIDTH]
+#endif
+
+#if defined(__W65C816__)
+# define FREE_TEMP(temp) free(temp)
+#else
+# define FREE_TEMP(temp)
 #endif
 
 #define ASSIGN(x, y) memcpy(x, y, WIDTH)

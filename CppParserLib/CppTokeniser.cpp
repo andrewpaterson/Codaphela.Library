@@ -624,6 +624,7 @@ bool CCPPTokeniser::Integer(SPreprocessedToken* psToken, int iSource, char* szDi
 			pcInt->Init((unsigned int)ulliValue);
 			pcInt->mbSigned = true;
 			pcInt->mbLong = (iLongs == 1);
+			pcInt->mbDecimal = bDecimal;
 			AddToken(pcInt, iSource);
 			return true;
 		}
@@ -633,6 +634,7 @@ bool CCPPTokeniser::Integer(SPreprocessedToken* psToken, int iSource, char* szDi
 			pcInt->Init((unsigned int)ulliValue);
 			pcInt->mbSigned = false;
 			pcInt->mbLong = (iLongs == 1);
+			pcInt->mbDecimal = bDecimal;
 			AddToken(pcInt, iSource);
 			return true;
 		}

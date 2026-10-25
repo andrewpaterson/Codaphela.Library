@@ -422,6 +422,70 @@ bool PrivateAssertIntHex(int32 iExpected, int32 iActual, char* szPrefix, size iL
 }
 
 
+#ifdef __W65C816__
+//////////////////////////////////////////////////////////////////////////
+//
+// The W65C816's 16 bit ints, checked as the 32 bit ones: a signed value is sign extended and an unsigned one zero
+// extended (an unsigned actual against a signed expected is taken as signed, as the 32 bit ones do).
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertInt(int16 iExpected, int16 iActual, const char* szPrefix, size iLine, const char* szFile)
+{
+	return PrivateAssertInt((int32)iExpected, (int32)iActual, szPrefix, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertInt(int16 iExpected, uint16 iActual, const char* szPrefix, size iLine, const char* szFile)
+{
+	return PrivateAssertInt((int32)iExpected, (int32)(int16)iActual, szPrefix, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertInt(uint16 iExpected, uint16 iActual, const char* szPrefix, size iLine, const char* szFile)
+{
+	return PrivateAssertInt((int32)iExpected, (int32)iActual, szPrefix, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertIntHex(int16 iExpected, int16 iActual, char* szPrefix, size iLine, const char* szFile)
+{
+	return PrivateAssertIntHex((int32)iExpected, (int32)iActual, szPrefix, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertIntHex(int16 iExpected, uint16 iActual, char* szPrefix, size iLine, const char* szFile)
+{
+	return PrivateAssertIntHex((int32)iExpected, (int32)(int16)iActual, szPrefix, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertIntHex(uint16 iExpected, uint16 iActual, char* szPrefix, size iLine, const char* szFile)
+{
+	return PrivateAssertIntHex((int32)iExpected, (int32)iActual, szPrefix, iLine, szFile);
+}
+#endif // __W65C816__
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //

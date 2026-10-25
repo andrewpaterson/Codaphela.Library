@@ -28,7 +28,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 #define FILE_BLOCK_SIZE		(1 MB)
+#ifdef __W65C816__
+#define MAX_DIRECTORY_LENGTH 4096	//The W65C816's stack, where these buffers usually are, is in bank 0.
+#else
 #define MAX_DIRECTORY_LENGTH 65536
+#endif // __W65C816__
 
 
 class CFileUtil
