@@ -123,6 +123,7 @@ public:
 	size			NumSuccessors(void);
 	CIRBlock*		GetSuccessor(size uiIndex);
 	bool			HasPredecessor(CIRBlock* pcBlock);
+	bool			Defines(SIRReference sValue);
 
 protected:
 	void			SetJump(EIRJumpKind eKind, SIRType sType, SIRReference sArgument, CIRBlock* pcThen, CIRBlock* pcElse);

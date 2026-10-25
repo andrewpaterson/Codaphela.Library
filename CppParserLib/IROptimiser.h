@@ -150,6 +150,8 @@ protected:
 	bool			RemoveUnreachable(void);
 	bool			FoldBranches(void);
 	bool			SkipEmptyBlocks(void);
+	int				KnownCondition(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIRReference sCondition);
+	bool			ThreadBranches(void);
 	bool			JoinBlocks(void);
 	void			RemovePhiArguments(CIRBlock* pcBlock, CIRBlock* pcPredecessor);
 	void			RenamePhiArguments(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pcNew);
@@ -175,6 +177,7 @@ protected:
 	void			AddAvailable(CArrayIRAvailables* pasAvailable, SIRReference sRoot, int64 lliOffset, SIRType sType, SIRReference sValue);
 	SIRReference	Unextended(SIRReference sValue, uint16 uiOpcode, SIRType* psType);
 	bool			NarrowComparison(SIRInstruction* psInstruction);
+	bool			ImpliedComparison(CIRBlock* pcBlock, SIRInstruction* psInstruction, uint64* pulliResult, bool* pbChanged);
 	bool			SlotOffset(SIRReference sAddress, SIRReference* psSlot, int64* plliOffset);
 	void			RemovePromoted(void);
 };
