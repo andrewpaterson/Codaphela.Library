@@ -751,6 +751,8 @@ bool CAsm65Assembler::Section(void)
 	int32				iSection;
 	bool				bKeep;
 	bool				bResident;
+	bool				bAt;
+	uint32				uiAt;
 
 	psName = Peek();
 	if (!mbObject)
@@ -766,7 +768,7 @@ bool CAsm65Assembler::Section(void)
 		return Error(psName, "A section name starts with text, rodata, init, fini, data or bss");
 	}
 	Next();
-	if (!SectionOptions(psName, &psGroup, &psAssociated, &bKeep, &bResident))
+	if (!SectionOptions(psName, &psGroup, &psAssociated, &bKeep, &bResident, &bAt, &uiAt))
 	{
 		return false;
 	}
@@ -790,6 +792,15 @@ bool CAsm65Assembler::Section(void)
 	psSection = mpcObject->GetSection(iSection);
 	psSection->bKeep |= bKeep;
 	psSection->bResident |= bResident;
+	if (bAt)
+	{
+		if (psSection->bAt && (psSection->uiAt != uiAt))
+		{
+			return Error(psName, "The section is already at another address");
+		}
+		psSection->bAt = true;
+		psSection->uiAt = uiAt;
+	}
 	if (psAssociated && mbFinal)
 	{
 		//Resolved after the final pass (Associate): the section may come later.
@@ -808,14 +819,17 @@ bool CAsm65Assembler::Section(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CAsm65Assembler::SectionOptions(SAsm65Token* psName, SAsm65Token** ppsGroup, SAsm65Token** ppsAssociated, bool* pbKeep, bool* pbResident)
+bool CAsm65Assembler::SectionOptions(SAsm65Token* psName, SAsm65Token** ppsGroup, SAsm65Token** ppsAssociated, bool* pbKeep, bool* pbResident, bool* pbAt, uint32* puiAt)
 {
 	SAsm65Token*	psOption;
+	SAsm65Value		sValue;
 
 	*ppsGroup = NULL;
 	*ppsAssociated = NULL;
 	*pbKeep = false;
 	*pbResident = false;
+	*pbAt = false;
+	*puiAt = 0;
 	while (Accept(AP65_Comma))
 	{
 		psOption = Peek();
@@ -847,9 +861,23 @@ bool CAsm65Assembler::SectionOptions(SAsm65Token* psName, SAsm65Token** ppsGroup
 			Next();
 			*pbResident = true;
 		}
+		else if (psOption->IsIdentifierIgnoreCase("at"))
+		{
+			Next();
+			if (!Expression(&sValue))
+			{
+				return false;
+			}
+			if ((sValue.iTerms != 0) || (sValue.bResolved && ((sValue.iValue < 0) || (sValue.iValue > 0xFFFFFFFFLL))))
+			{
+				return Error(psOption, "A section's address is a constant");
+			}
+			*pbAt = true;
+			*puiAt = (uint32)sValue.iValue;
+		}
 		else
 		{
-			return ErrorExpected(psOption, "comdat, associated, keep or resident");
+			return ErrorExpected(psOption, "comdat, associated, keep, resident or at");
 		}
 	}
 	return true;

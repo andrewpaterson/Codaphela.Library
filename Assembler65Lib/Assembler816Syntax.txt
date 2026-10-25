@@ -123,6 +123,23 @@ As Assembler65Syntax.txt (.byte .word .long .quad .space .align), plus
 A far pointer in C++ data is .long Label (24 bits and a zero byte).
 
 
+Running and testing
+-------------------
+
+CAsm65Memory is the W65C816's test memory too: its devices (console, drive, host
+files, memory size register) are at 00FF:0000, the W65C816's bank $FF.
+InitFast816 connects a CFast65C816, TickHigh816 / TickLow816 a CW65C816Meta, and
+CAsm816Lockstep runs both side by side (as CAsm65Lockstep does for the 65C64).
+
+Bank 0 holds only the stack, the direct page, the vectors and a jml stub per vector:
+
+	.section rodata.Vectors, at $FFFC
+		.word ResetStub
+	.section text.ResetStub, at $FF00
+	ResetStub:
+		jml Start
+
+
 Everything else
 ---------------
 

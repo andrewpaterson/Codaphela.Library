@@ -109,6 +109,7 @@ void CAsm65Linker::Init(void)
 	mauiAddress[ASK65_Text] = ASM65_DEFAULT_TEXT_ADDRESS;
 	mabFixed[ASK65_Text] = true;
 	muiLimit = 0;
+	muiBankSize = 0;
 	mbStubMissing = false;
 	mbRemoveUnused = false;
 
@@ -212,6 +213,17 @@ void CAsm65Linker::SetAddress(EAsm65SectionKind eKind, uint32 uiAddress)
 void CAsm65Linker::SetLimit(uint32 uiLimit)
 {
 	muiLimit = uiLimit;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Sections no bigger than a bank are kept inside one (0 for no banks).
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Linker::SetBankSize(uint32 uiBankSize)
+{
+	muiBankSize = uiBankSize;
 }
 
 
@@ -831,7 +843,6 @@ void CAsm65Linker::AddStubs(void)
 void CAsm65Linker::Layout(void)
 {
 	uint64				uiAddress;
-	uint32				uiAlignment;
 	int					iKind;
 	int					iOther;
 	size				i;
@@ -841,6 +852,7 @@ void CAsm65Linker::Layout(void)
 	SAsm65LinkSection*	psLinkSection;
 	CChars				szMessage;
 
+	LayoutAt();
 	uiAddress = mauiAddress[ASK65_Text];
 	for (iKind = 0; iKind < ASK65_NumKinds; iKind++)
 	{
@@ -856,13 +868,17 @@ void CAsm65Linker::Layout(void)
 			{
 				psSection = psObject->pcObject->GetSection(j);
 				psLinkSection = GetLinkSection(i, j);
-				if ((psSection->eKind != iKind) || !IsCore(psLinkSection))
+				if ((psSection->eKind != iKind) || !IsCore(psLinkSection) || psSection->bAt)
 				{
 					continue;
 				}
-				uiAlignment = psSection->uiAlignment;
-				uiAddress = (uiAddress + uiAlignment - 1) & ~(uint64)(uiAlignment - 1);
+				uiAddress = FlowAddress(uiAddress, psSection);
 				psLinkSection->uiAddress = (uint32)uiAddress;
+				if ((muiBankSize != 0) && (uiAddress < muiBankSize) && (psSection->uiSize != 0))
+				{
+					//Bank 0 is the stack and direct page (the user, 2026-10-25), and the vectors and their stubs placed with at.
+					mcErrors.Add(psObject->pcObject->GetName(), 0, 0, "Only a section with an address (at) can be in bank 0", psSection->szName.Text());
+				}
 				uiAddress += psSection->uiSize;
 				maiPlacement.Add((int)SectionIndex(i, j));
 			}
@@ -898,6 +914,122 @@ void CAsm65Linker::Layout(void)
 			szMessage.Kill();
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Sections with an address go there.  They must not overlap each other or, with banks,
+// cross the end of one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Linker::LayoutAt(void)
+{
+	size				i;
+	size				j;
+	size				k;
+	SAsm65LinkObject*	psObject;
+	SAsm65Section*		psSection;
+	SAsm65LinkSection*	psLinkSection;
+	SAsm65Section*		psOther;
+	SAsm65LinkSection*	psOtherLink;
+	size				uiOther;
+
+	for (i = 0; i < masObjects.NumElements(); i++)
+	{
+		psObject = masObjects.Get(i);
+		for (j = 0; j < psObject->pcObject->NumSections(); j++)
+		{
+			psSection = psObject->pcObject->GetSection(j);
+			psLinkSection = GetLinkSection(i, j);
+			if (!psSection->bAt || !IsCore(psLinkSection))
+			{
+				continue;
+			}
+			psLinkSection->uiAddress = psSection->uiAt;
+			if ((uint64)psSection->uiAt + psSection->uiSize > 0x100000000ULL)
+			{
+				mcErrors.Add(psObject->pcObject->GetName(), 0, 0, "Section ends past $FFFFFFFF", psSection->szName.Text());
+			}
+			if (!InBank(psSection->uiAt, psSection->uiSize))
+			{
+				mcErrors.Add(psObject->pcObject->GetName(), 0, 0, "Section crosses the end of a bank", psSection->szName.Text());
+			}
+			for (k = 0; k < maiPlacement.NumElements(); k++)
+			{
+				uiOther = maiPlacement.GetValue(k);
+				psOtherLink = masSections.Get(uiOther);
+				psOther = masObjects.Get(ObjectOfSection(uiOther))->pcObject->GetSection(uiOther - masObjects.Get(ObjectOfSection(uiOther))->uiFirstSection);
+				if ((psSection->uiSize != 0) && (psOther->uiSize != 0) &&
+					((uint64)psSection->uiAt < (uint64)psOtherLink->uiAddress + psOther->uiSize) && ((uint64)psOtherLink->uiAddress < (uint64)psSection->uiAt + psSection->uiSize))
+				{
+					mcErrors.Add(psObject->pcObject->GetName(), 0, 0, "Section overlaps another section with an address", psSection->szName.Text());
+				}
+			}
+			maiPlacement.Add((int)SectionIndex(i, j));
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where a section goes at or after uiAddress: aligned, not across the end of a bank (unless
+// it is bigger than one), and not over a section with an address.
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CAsm65Linker::FlowAddress(uint64 uiAddress, SAsm65Section* psSection)
+{
+	uint32				uiAlignment;
+	size				k;
+	size				uiAt;
+	SAsm65Section*		psAt;
+	SAsm65LinkSection*	psAtLink;
+	SAsm65LinkObject*	psObject;
+	bool				bMoved;
+
+	uiAlignment = psSection->uiAlignment;
+	do
+	{
+		bMoved = false;
+		uiAddress = (uiAddress + uiAlignment - 1) & ~(uint64)(uiAlignment - 1);
+		if (!InBank(uiAddress, psSection->uiSize))
+		{
+			uiAddress = (uiAddress / muiBankSize + 1) * muiBankSize;
+			bMoved = true;
+		}
+		for (k = 0; k < maiPlacement.NumElements(); k++)
+		{
+			uiAt = maiPlacement.GetValue(k);
+			psObject = masObjects.Get(ObjectOfSection(uiAt));
+			psAt = psObject->pcObject->GetSection(uiAt - psObject->uiFirstSection);
+			psAtLink = masSections.Get(uiAt);
+			if (psAt->bAt && (psAt->uiSize != 0) && (psSection->uiSize != 0) &&
+				(uiAddress < (uint64)psAtLink->uiAddress + psAt->uiSize) && ((uint64)psAtLink->uiAddress < uiAddress + psSection->uiSize))
+			{
+				uiAddress = (uint64)psAtLink->uiAddress + psAt->uiSize;
+				bMoved = true;
+			}
+		}
+	}
+	while (bMoved);
+	return uiAddress;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether uiSize bytes at uiAddress stay in one bank (always, without banks or when
+// they are more than a bank).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Linker::InBank(uint64 uiAddress, uint32 uiSize)
+{
+	if ((muiBankSize == 0) || (uiSize == 0) || (uiSize > muiBankSize))
+	{
+		return true;
+	}
+	return (uiAddress / muiBankSize) == ((uiAddress + uiSize - 1) / muiBankSize);
 }
 
 

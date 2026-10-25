@@ -24,6 +24,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IRModule.h"
 #include "IRLiveness.h"
 #include "IRDominators.h"
+#include "IR65Widths.h"
 
 
 //Where a temporary is kept.
@@ -156,6 +157,7 @@ protected:
 	CArrayTemplate<int32>	maiChangesY;		//...and that change Y.
 	CArrayTemplate<int32>	maiBlockLabels;		//Per block index.
 	CArrayTemplate<uint32>	mauiUses;			//Per temporary: how many times it is used.
+	CArrayTemplate<uint8>	mauiNarrowOnly;		//Per temporary: 1 for a narrow load only compared (NarrowOnly).
 	CArrayIR65Moves			masMoves;
 	CArrayIR65Stubs			masStubs;
 	uint32					muiSaved;			//The [$80 + W] units used, a bit each.
@@ -180,6 +182,7 @@ protected:
 	bool					mbRightImmediate;	//LoadOperands left the second operand a constant, for "op A, value".
 	bool					mbFrameless;		//No frame: V isn't set up, the arguments are from S...
 	char					mcFrame;			//...so the frame register is S, otherwise V.
+	CIR65Widths				mcWidths;
 
 public:
 	void				Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRuntime);
@@ -247,6 +250,8 @@ protected:
 	bool				IsDeferred(SIRReference sValue);
 	bool				IsInA(SIRReference sValue);
 	bool				InRegister(SIRReference sValue);
+	bool				NarrowOnly(SIRReference sValue);
+	void				FindNarrowOnly(void);
 	const char*			RegisterName(SIR65Place* psPlace);
 	bool				IsFrameOperand(CChars* pszOperand);
 	bool				IsLeaf(void);

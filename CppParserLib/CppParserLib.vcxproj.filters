@@ -132,6 +132,12 @@
     <ClCompile Include="IR65Backend.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IR816Backend.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR65Widths.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IRBlock.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -687,6 +693,12 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IR65Backend.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IR816Backend.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IR65Widths.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRBlock.h">
