@@ -96,20 +96,22 @@ typedef CArrayTemplate<SKicadSchemLogicimConnection>	CArrayKicadSchemLogicimConn
 //Makes a Logicim circuit from one KiCad sheet.
 //
 //Each symbol becomes the components Logicim has for it.  A 74 series gate part (see ParseKicadSchemLogicFunction)
-//becomes a gate for each of its gates, found by its pin names ("1A", "1B" and "1Y"; "A" and "Y" on a single gate),
-//(or, if its pins have no names, by their types) and a 74 flip flop a D flip flop for each of its flip flops ("1CP", "1D", "~{1SD}", "~{1RD}", "1Q" and "~{1Q}").
-//Their power pins are left out: the gates have implied power.  An inverter part is placed as KiCad has it: each unit
-//of a part drawn as units (a 74LVC04's "_Multi" symbol) is an inverter unit, and a part drawn whole is an inverter
-//package of all its inverters; a single inverter is an inverter.  A power symbol becomes a ground or a positive supply
-//of its voltage ("+3V3" is 3.3V).  Resistors, capacitors, inductors, diodes, LEDs, mounting holes, net ties, test
-//points and power flags are left out.  Any other symbol becomes an instance of a placeholder subcircuit made for its
-//library symbol and unit: an empty circuit with a pin for each of its shown pins, on the side KiCad draws it, so it
-//can be wired and its logic filled in later.  Hierarchical sheets are left out.
+//becomes a gate for each of its gates, found by its pin names ("1A", "1B" and "1Y"; "A" and "Y" on a single gate) or,
+//if its pins have no names, by their types; and a 74 flip flop becomes a D flip flop for each of its flip flops ("1CP",
+//"1D", "~{1SD}", "~{1RD}", "1Q" and "~{1Q}").  Their power pins are left out: the gates have implied power.  An
+//inverter part is placed as KiCad has it: each unit of a part drawn as units (a 74LVC04's "_Multi" symbol) is an
+//inverter unit, and a part drawn whole is an inverter package of all its inverters; a single inverter is an
+//inverter.  A power symbol becomes a ground or a positive supply of its voltage ("+3V3" is 3.3V).  Resistors,
+//capacitors, inductors, diodes, LEDs, mounting holes, net ties, test points and power flags are left out.  Any other
+//symbol becomes an instance of a placeholder subcircuit made for its library symbol and unit: an empty circuit with a
+//pin for each of its shown pins, on the side KiCad draws it, so it can be wired and its logic filled in
+//later.  Hierarchical sheets are left out.
 //
 //A subnet that is part of a bigger net (it's joined to the rest by labels) gets a tunnel named as the net at each of
-//its labels, so each subnet is wired on its own, as KiCad drew it.  The terminals of each subnet are wired as a tree
-//in the order KiCad's wires join them, each connection hinted to bend as KiCad's wire first bends.  Connections
-//between the same two components are routed as a run (see CTraceAutoConnector).
+//its labels, so each subnet is wired on its own, as KiCad drew it.  A tunnel or supply KiCad has right on a pin is
+//attached to the pin's port: port to port, pointing away from it, and moving with it.  The terminals of each subnet are
+//wired as a tree in the order KiCad's wires join them, each connection hinted to bend as KiCad's wire first
+//bends.  Connections between the same two components are routed as a run (see CTraceAutoConnector).
 //
 //A bus becomes a bus of its members in Logicim.  Each run of its entries on one side of it (a column of entries
 //tapping a bus going up and down) becomes a splitter, its ends in the order KiCad's entries are, joined to the
@@ -117,13 +119,14 @@ typedef CArrayTemplate<SKicadSchemLogicimConnection>	CArrayKicadSchemLogicimConn
 //splitters of a bus are wired to each other along it, and a bus whose name is on other buses gets a tunnel at each of
 //its labels.
 //
-//Then dense areas, where the wires knot (turn and cross a lot), are exploded a few times: space is put in across each
-//one, up and down and left and right (so what's lined up stays lined up), and it's rewired.  An explosion is kept if it wires as well and leaves
-//fewer knots over the limit in the dense areas.
-//
 //The components are first placed spread out from where KiCad has them (like raisins in rising dough), wired, and
-//then moved back towards KiCad's places in steps and rewired at each, while the wiring stays as good.  The circuit
-//is left at the smallest spread that wired as many connections as the first.
+//then moved back towards KiCad's places in steps and rewired at each, while the wiring stays as good; between the
+//last spread that wired as well and the first that didn't, two halfway spreads are tried.  The circuit is left at
+//the smallest spread that wired as many connections as the first.
+//
+//Then dense areas, where the wires knot (turn and cross a lot), are exploded a few times: space is put in across
+//each one, up and down and left and right (so what's lined up stays lined up), and it's rewired.  An explosion is
+//kept if it wires as well and leaves fewer knots over the limit in the dense areas.
 class CKicadSchemLogicimConverter
 {
 protected:

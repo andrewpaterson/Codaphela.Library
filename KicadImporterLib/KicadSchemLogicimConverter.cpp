@@ -42,6 +42,10 @@ along with Codaphela KicadImporterLib.  If not, see <http://www.gnu.org/licenses
 static float64 gafKicadSchemLogicimSpreads[] = { 3.0, 2.5, 2.1, 1.8, 1.55, 1.35, 1.2, 1.1, 1.0 };
 
 
+//The rotations, turning right from East, to try something in each of.
+static ERotation gaeKicadSchemLogicimRotations[4] = { ROT_East, ROT_South, ROT_West, ROT_North };
+
+
 //Reference prefixes and library names of the symbols that are left out.
 static const char* gaszKicadSchemSkippedReferences[] = { "R", "RN", "C", "L", "FB", "D", "LED", "H", "MH", "TP", "NT", "FID" };
 static const char* gaszKicadSchemSkippedLibraryNames[] = { "MountingHole", "NetTie", "TestPoint", "PWR_FLAG", "Fiducial" };
@@ -369,6 +373,22 @@ static ERotation GetKicadSchemFacing(SKicadSchemPoint* psFrom, SKicadSchemPoint*
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// A gate (or buffer) of one bit inputs at the origin, with implied power.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+static CComponentView* NewKicadSchemGateView(ERotation eRotation, const char* szName, const char* szFamily, int iInputCount)
+{
+	M*	pcGate;
+
+	pcGate = NewMalloc<M>();
+	pcGate->Init(0, 0, eRotation, szName, szFamily, false, iInputCount, 1);
+	return pcGate;
+}
+
+
 //Which Logicim flip flop port a KiCad flip flop pin is, by its letters.
 struct SKicadSchemFlipFlopPin
 {
@@ -652,32 +672,25 @@ bool CKicadSchemLogicimConverter::AddLogicParts(CKicadSchemSymbol* pcSymbol, CKi
 		switch (eFunction)
 		{
 		case KSLF_And:
-			pcView = NewMalloc<CAndGateView>();
-			((CAndGateView*)pcView)->Init(0, 0, eRotation, szName.Text(), szFamily, false, iInputs, 1);
+			pcView = NewKicadSchemGateView<CAndGateView>(eRotation, szName.Text(), szFamily, iInputs);
 			break;
 		case KSLF_Nand:
-			pcView = NewMalloc<CNandGateView>();
-			((CNandGateView*)pcView)->Init(0, 0, eRotation, szName.Text(), szFamily, false, iInputs, 1);
+			pcView = NewKicadSchemGateView<CNandGateView>(eRotation, szName.Text(), szFamily, iInputs);
 			break;
 		case KSLF_Or:
-			pcView = NewMalloc<COrGateView>();
-			((COrGateView*)pcView)->Init(0, 0, eRotation, szName.Text(), szFamily, false, iInputs, 1);
+			pcView = NewKicadSchemGateView<COrGateView>(eRotation, szName.Text(), szFamily, iInputs);
 			break;
 		case KSLF_Nor:
-			pcView = NewMalloc<CNorGateView>();
-			((CNorGateView*)pcView)->Init(0, 0, eRotation, szName.Text(), szFamily, false, iInputs, 1);
+			pcView = NewKicadSchemGateView<CNorGateView>(eRotation, szName.Text(), szFamily, iInputs);
 			break;
 		case KSLF_Xor:
-			pcView = NewMalloc<CXorGateView>();
-			((CXorGateView*)pcView)->Init(0, 0, eRotation, szName.Text(), szFamily, false, iInputs, 1);
+			pcView = NewKicadSchemGateView<CXorGateView>(eRotation, szName.Text(), szFamily, iInputs);
 			break;
 		case KSLF_Xnor:
-			pcView = NewMalloc<CXnorGateView>();
-			((CXnorGateView*)pcView)->Init(0, 0, eRotation, szName.Text(), szFamily, false, iInputs, 1);
+			pcView = NewKicadSchemGateView<CXnorGateView>(eRotation, szName.Text(), szFamily, iInputs);
 			break;
 		case KSLF_Buffer:
-			pcView = NewMalloc<CBufferView>();
-			((CBufferView*)pcView)->Init(0, 0, eRotation, szName.Text(), szFamily, false, 1, 1);
+			pcView = NewKicadSchemGateView<CBufferView>(eRotation, szName.Text(), szFamily, 1);
 			break;
 		case KSLF_Inverter:
 			if (pcLibSymbol->NumUnits() > 1)
@@ -688,8 +701,7 @@ bool CKicadSchemLogicimConverter::AddLogicParts(CKicadSchemSymbol* pcSymbol, CKi
 			}
 			else
 			{
-				pcView = NewMalloc<CInverterView>();
-				((CInverterView*)pcView)->Init(0, 0, eRotation, szName.Text(), szFamily, false, 1, 1);
+				pcView = NewKicadSchemGateView<CInverterView>(eRotation, szName.Text(), szFamily, 1);
 			}
 			break;
 		default:
@@ -1031,19 +1043,18 @@ void CKicadSchemLogicimConverter::AddBuses(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The way from a tap's bus point to its wire point, across the bus: East
-// or West for a bus going up and down, South or North for one going
-// across (as CTraceAutoConnector's directions: 0 East, 1 South, 2 West,
-// 3 North).  Along is where it is on the bus.
+// The way from a tap's bus point to its wire point, across the bus (a
+// TRACE_DIRECTION): East or West for a bus going up and down, South or
+// North for one going across.
 //
 //////////////////////////////////////////////////////////////////////////
 static int GetKicadSchemTapSide(SKicadSchemBusTap* psTap)
 {
 	if (psTap->bVertical)
 	{
-		return (psTap->sWirePoint.fX >= psTap->sBusPoint.fX) ? 0 : 2;
+		return (psTap->sWirePoint.fX >= psTap->sBusPoint.fX) ? TRACE_DIRECTION_EAST : TRACE_DIRECTION_WEST;
 	}
-	return (psTap->sWirePoint.fY >= psTap->sBusPoint.fY) ? 1 : 3;
+	return (psTap->sWirePoint.fY >= psTap->sBusPoint.fY) ? TRACE_DIRECTION_SOUTH : TRACE_DIRECTION_NORTH;
 }
 
 
@@ -1199,7 +1210,6 @@ void CKicadSchemLogicimConverter::AddBus(CKicadSchemBus* pcBus, size uiBus)
 //////////////////////////////////////////////////////////////////////////
 void CKicadSchemLogicimConverter::AddBusSplitter(CKicadSchemBus* pcBus, CArrayInt* paiTaps, bool bVertical, int iSide)
 {
-	ERotation				aeRotations[4] = { ROT_East, ROT_South, ROT_West, ROT_North };
 	ERotation				eRotation;
 	CSplitterView*			pcSplitter;
 	CArrayInt				aiFans;
@@ -1228,11 +1238,11 @@ void CKicadSchemLogicimConverter::AddBusSplitter(CKicadSchemBus* pcBus, CArrayIn
 	for (i = 0; i < 4; i++)
 	{
 		pcSplitter = NewMalloc<CSplitterView>();
-		pcSplitter->Init(0, 0, aeRotations[i], "", iBitWidth, iFanOut, 1, SA_LeftHanded, 0);
+		pcSplitter->Init(0, 0, gaeKicadSchemLogicimRotations[i], "", iBitWidth, iFanOut, 1, SA_LeftHanded, 0);
 		pcEnd = pcSplitter->GetEndPortView(0);
 		if ((pcEnd != NULL) && (CTraceAutoConnector::GetPortFacing(pcEnd) == iSide))
 		{
-			eRotation = aeRotations[i];
+			eRotation = gaeKicadSchemLogicimRotations[i];
 			for (iFan = 0; iFan < iFanOut; iFan++)
 			{
 				pcEnd = pcSplitter->GetEndPortView(iFan);
@@ -1773,10 +1783,22 @@ size CKicadSchemLogicimConverter::FindDenseAreas(CArrayTemplate<SFloat64Vec2>* p
 	for (i = 1; i < asKnots.NumElements(); i++)
 	{
 		sPoint = *asKnots.Get(i);
-		if (sPoint.x < sMinimum.x) sMinimum.x = sPoint.x;
-		if (sPoint.y < sMinimum.y) sMinimum.y = sPoint.y;
-		if (sPoint.x > sMaximum.x) sMaximum.x = sPoint.x;
-		if (sPoint.y > sMaximum.y) sMaximum.y = sPoint.y;
+		if (sPoint.x < sMinimum.x)
+		{
+			sMinimum.x = sPoint.x;
+		}
+		if (sPoint.y < sMinimum.y)
+		{
+			sMinimum.y = sPoint.y;
+		}
+		if (sPoint.x > sMaximum.x)
+		{
+			sMaximum.x = sPoint.x;
+		}
+		if (sPoint.y > sMaximum.y)
+		{
+			sMaximum.y = sPoint.y;
+		}
 	}
 	iWindow = KICAD_SCHEM_LOGICIM_DENSE_WINDOW;
 	iWidth = sMaximum.x - sMinimum.x + 1 + iWindow;
@@ -1922,7 +1944,6 @@ void CKicadSchemLogicimConverter::AttachItems(void)
 	SKicadSchemLogicimTerminal*		psOther;
 	CPortView*						pcTarget;
 	int								iWanted;
-	ERotation						aeRotations[4] = { ROT_East, ROT_South, ROT_West, ROT_North };
 	ERotation						eOriginal;
 
 	for (i = 0; i < masItems.NumElements(); i++)
@@ -1957,11 +1978,11 @@ void CKicadSchemLogicimConverter::AttachItems(void)
 		}
 
 		psItem->pcAttachedTo = pcTarget;
-		iWanted = (CTraceAutoConnector::GetPortFacing(pcTarget) + 2) % 4;
+		iWanted = CTraceAutoConnector::OppositeDirection(CTraceAutoConnector::GetPortFacing(pcTarget));
 		eOriginal = psItem->pcView->GetRotation();
 		for (k = 0; k < 4; k++)
 		{
-			psItem->pcView->SetRotation(aeRotations[k]);
+			psItem->pcView->SetRotation(gaeKicadSchemLogicimRotations[k]);
 			if (CTraceAutoConnector::GetPortFacing(psItem->pcPort) == iWanted)
 			{
 				break;

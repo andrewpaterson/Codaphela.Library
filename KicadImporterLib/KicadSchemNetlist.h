@@ -59,9 +59,9 @@ typedef CArrayTemplate<SKicadSchemNetNode>	CArrayKicadSchemNetNode;
 //Local and hierarchical labels name nets on this sheet; global labels, power symbols and hidden power input pins
 //name nets on every sheet (KiCad's SCH_PIN::IsGlobalPower: a power input pin that is hidden or on a power symbol).
 //A power symbol names its net by its Value and a hidden power input pin by its pin name.  On one sheet every name is
-//the same net whatever its scope: KiCad joins a local label to the global label or power symbol with its text.  A net with no name gets one from its first pin, as KiCad's
-//"Net-(U1-Pad3)".  A pin common to all the units of an annotated symbol is placed with each unit and joins the
-//subnets of its places.
+//the same net whatever its scope: KiCad joins a local label to the global label or power symbol with its text.  A net
+//with no name gets one from its first pin, as KiCad's "Net-(U1-Pad3)".  A pin common to all the units of an annotated
+//symbol is placed with each unit and joins the subnets of its places.
 //
 //Buses are kept apart: the wires of a bus's members are joined by their labels, as KiCad joins them.  The buses
 //themselves (see CKicadSchemBus) are found after the nets, each with the labels on it and the entries tapping it.

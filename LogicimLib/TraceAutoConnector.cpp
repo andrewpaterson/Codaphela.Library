@@ -1448,13 +1448,6 @@ bool CTraceAutoConnector::IsGoal(int iCell)
 
 
 //////////////////////////////////////////////////////////////////////////
-bool CTraceAutoConnector::IsOnNet(int iCell, int iNet)
-{
-	return (maiHorizontal.GetValue(iCell) == iNet) || (maiVertical.GetValue(iCell) == iNet);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
 //
 // The cost of going into the cell in the direction, not counting a turn.
 //
