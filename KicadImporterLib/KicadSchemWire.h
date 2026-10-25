@@ -24,8 +24,9 @@ along with Codaphela KicadImporterLib.  If not, see <http://www.gnu.org/licenses
 #include "KicadSchemPoint.h"
 
 
-//A straight wire or bus segment: (wire (pts (xy x1 y1) (xy x2 y2)) ...).  Wires connect where an end touches a pin,
-//a label or another wire's end, or where a junction sits on them.  Two wires that only cross are not connected.
+//A straight wire or bus segment: (wire (pts (xy x1 y1) (xy x2 y2)) ...).  A wire is joined to what touches it
+//anywhere along it (Contains): another wire's end, a pin, a label or a junction.  Two wires that only cross are not
+//joined (see CKicadSchemNetlist).
 class CKicadSchemWire
 {
 protected:
