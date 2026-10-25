@@ -158,6 +158,29 @@ CSubcircuitInstanceSimulation* CCircuitSimulation::AddInstanceSimulation(int64 i
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Kills and frees the simulation of an instance that has been taken out
+// of the circuit.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitSimulation::RemoveInstanceSimulation(CSubcircuitInstanceSimulation* pcSimulation)
+{
+	size	i;
+
+	for (i = 0; i < mapcInstanceSimulations.NumElements(); i++)
+	{
+		if (mapcInstanceSimulations.GetPtr(i) == pcSimulation)
+		{
+			mapcInstanceSimulations.RemoveAt(i, true);
+			SafeKill(pcSimulation);
+			return true;
+		}
+	}
+	return gcLogger.Error2(__METHOD__, " Could not remove an instance simulation from Circuit Simulation [", mszName.Text(), "].", NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Like "Main (1)", or just the id when there is no name.
 //
 //////////////////////////////////////////////////////////////////////////

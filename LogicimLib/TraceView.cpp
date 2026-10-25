@@ -329,3 +329,15 @@ bool CTraceView::IsEndJunction(void) { return mbEndJunction; }
 SInt32Vec2 CTraceView::GetStart(void) { return msStart; }
 SInt32Vec2 CTraceView::GetEnd(void) { return msEnd; }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Moves the wire's ends; a simulated wire must be rewired after.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTraceView::SetEnds(SInt32Vec2 sStart, SInt32Vec2 sEnd)
+{
+	msStart = sStart;
+	msEnd = sEnd;
+}
+

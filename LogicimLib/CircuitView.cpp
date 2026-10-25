@@ -116,6 +116,68 @@ CTraceView* CCircuitView::AddTraces(int32 x0, int32 y0, int32 x1, int32 y1)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Frees every wire.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitView::KillTraces(void)
+{
+	size			i;
+	CTraceView*		pcTrace;
+
+	for (i = 0; i < mapcTraces.NumElements(); i++)
+	{
+		pcTrace = mapcTraces.GetPtr(i);
+		SafeKill(pcTrace);
+	}
+	mapcTraces.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The circuit view no longer frees the component.  Fails if it isn't
+// here.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitView::Remove(CComponentView* pcComponent)
+{
+	size	i;
+
+	for (i = 0; i < mapcComponents.NumElements(); i++)
+	{
+		if (mapcComponents.GetPtr(i) == pcComponent)
+		{
+			mapcComponents.RemoveAt(i, true);
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The circuit view no longer frees the wire.  Fails if it isn't here.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitView::RemoveTrace(CTraceView* pcTrace)
+{
+	size	i;
+
+	for (i = 0; i < mapcTraces.NumElements(); i++)
+	{
+		if (mapcTraces.GetPtr(i) == pcTrace)
+		{
+			mapcTraces.RemoveAt(i, true);
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 size CCircuitView::NumComponents(void) { return mapcComponents.NumElements(); }
@@ -169,7 +231,7 @@ bool CCircuitView::CreateSimulation(CViewPath* pcViewPath, CCircuitSimulation* p
 		pcViewPath->AddSubcircuitSimulation(pcSimulation->GetSubcircuitTopSimulation());
 	}
 
-	bResult = CreateComponents(pcViewPath, pcSimulation, pcFamilies);
+	bResult = CreateComponents(pcViewPath, pcSimulation, pcFamilies, &mapcComponents, NULL);
 
 	cWiring.Init(pcSimulation);
 	bResult &= cWiring.Wire(pcViewPath, bStart);
@@ -180,35 +242,44 @@ bool CCircuitView::CreateSimulation(CViewPath* pcViewPath, CCircuitSimulation* p
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Each view's component for the path, then those of each instance's
-// subcircuit for the path through the instance, which the instance's
-// component gives its subcircuit simulation.
+// The component of each of the views (which are in this circuit) for the
+// path, then those of each instance's subcircuit for the path through the
+// instance, which the instance's component gives its subcircuit
+// simulation.  The components made are added to papcCreated unless it's
+// NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCircuitView::CreateComponents(CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
+bool CCircuitView::CreateComponents(CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, CArrayComponentViewPtr* papcComponents, CArrayCircuitComponentPtr* papcCreated)
 {
 	size					i;
 	CComponentView*			pcComponent;
+	CCircuitComponent*		pcCreated;
 	CCircuitInstanceView*	pcInstanceView;
+	CCircuitView*			pcSubcircuit;
 	CViewPath*				pcChild;
 	bool					bResult;
 
 	bResult = true;
-	for (i = 0; i < mapcComponents.NumElements(); i++)
+	for (i = 0; i < papcComponents->NumElements(); i++)
 	{
-		pcComponent = mapcComponents.GetPtr(i);
+		pcComponent = papcComponents->GetPtr(i);
 		if (pcComponent->MakesComponent())
 		{
-			if (pcComponent->CreateComponent(pcViewPath, pcSimulation, pcFamilies) == NULL)
+			pcCreated = pcComponent->CreateComponent(pcViewPath, pcSimulation, pcFamilies);
+			if (pcCreated == NULL)
 			{
 				bResult = false;
+			}
+			else if (papcCreated != NULL)
+			{
+				papcCreated->Add(pcCreated);
 			}
 		}
 	}
 
-	for (i = 0; i < mapcComponents.NumElements(); i++)
+	for (i = 0; i < papcComponents->NumElements(); i++)
 	{
-		pcInstanceView = mapcComponents.GetPtr(i)->GetCircuitInstanceView();
+		pcInstanceView = papcComponents->GetPtr(i)->GetCircuitInstanceView();
 		if (pcInstanceView != NULL)
 		{
 			pcChild = pcViewPath->GetChild(pcInstanceView);
@@ -218,11 +289,72 @@ bool CCircuitView::CreateComponents(CViewPath* pcViewPath, CCircuitSimulation* p
 			}
 			else
 			{
-				bResult &= pcInstanceView->GetInstanceCircuitView()->CreateComponents(pcChild, pcSimulation, pcFamilies);
+				pcSubcircuit = pcInstanceView->GetInstanceCircuitView();
+				bResult &= pcSubcircuit->CreateComponents(pcChild, pcSimulation, pcFamilies, &pcSubcircuit->mapcComponents, papcCreated);
 			}
 		}
 	}
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes the view's component for the path out of the running simulation,
+// as CComponentView::DestroyComponent.  An instance's subcircuit is taken
+// out first, all the way down, and the path through the instance loses
+// the instance's simulation.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitView::DestroyComponent(CComponentView* pcComponent, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation)
+{
+	CCircuitInstanceView*	pcInstanceView;
+	CViewPath*				pcChild;
+	CSubcircuitSimulation*	pcInstanceSimulation;
+
+	pcInstanceSimulation = NULL;
+	pcInstanceView = pcComponent->GetCircuitInstanceView();
+	if (pcInstanceView != NULL)
+	{
+		pcChild = pcViewPath->FindChild(pcInstanceView);
+		if (pcChild != NULL)
+		{
+			pcInstanceSimulation = pcChild->GetSubcircuitSimulation(pcSimulation);
+			if (pcInstanceSimulation != NULL)
+			{
+				pcInstanceView->GetInstanceCircuitView()->DestroySimulation(pcChild, pcSimulation);
+			}
+		}
+	}
+
+	pcComponent->DestroyComponent(pcViewPath, pcSimulation);
+	if ((pcInstanceSimulation != NULL) && pcInstanceSimulation->IsInstance())
+	{
+		pcSimulation->RemoveInstanceSimulation((CSubcircuitInstanceSimulation*)pcInstanceSimulation);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes every component of the path out of the running simulation, all
+// the way down, as DestroyComponent; the wires forget their traces and
+// the path forgets the simulation.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitView::DestroySimulation(CViewPath* pcViewPath, CCircuitSimulation* pcSimulation)
+{
+	size	i;
+
+	for (i = 0; i < mapcComponents.NumElements(); i++)
+	{
+		DestroyComponent(mapcComponents.GetPtr(i), pcViewPath, pcSimulation);
+	}
+	for (i = 0; i < mapcTraces.NumElements(); i++)
+	{
+		mapcTraces.GetPtr(i)->ClearTraces(pcViewPath, pcSimulation);
+	}
+	pcViewPath->RemoveSubcircuitSimulation(pcSimulation);
 }
 
 
@@ -512,6 +644,158 @@ bool CCircuitView::GetBoundingBox(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaxim
 		IncludeBoundsPoint(psMinimum, psMaximum, pcTrace->GetEnd().x, pcTrace->GetEnd().y);
 	}
 	return bHasBounds;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The component whose box the grid position is in, as Logicim's
+// getComponentViewInScreenSpace: of several, the one whose box's centre is
+// nearest.  NULL if there's none.
+//
+//////////////////////////////////////////////////////////////////////////
+CComponentView* CCircuitView::GetComponentAt(SFloat64Vec2 sPosition)
+{
+	size				i;
+	CComponentView*		pcComponent;
+	CComponentView*		pcClosest;
+	SFloat64Vec2		sMinimum;
+	SFloat64Vec2		sMaximum;
+	float64				fDistance;
+	float64				fClosest;
+	float64				fDX;
+	float64				fDY;
+
+	pcClosest = NULL;
+	fClosest = 0;
+	for (i = 0; i < mapcComponents.NumElements(); i++)
+	{
+		pcComponent = mapcComponents.GetPtr(i);
+		if (pcComponent->GetBoundingBox(&sMinimum, &sMaximum) && IsInBox(sPosition, sMinimum, sMaximum))
+		{
+			fDX = sPosition.x - (sMinimum.x + sMaximum.x) / 2;
+			fDY = sPosition.y - (sMinimum.y + sMaximum.y) / 2;
+			fDistance = fDX * fDX + fDY * fDY;
+			if ((pcClosest == NULL) || (fDistance < fClosest))
+			{
+				pcClosest = pcComponent;
+				fClosest = fDistance;
+			}
+		}
+	}
+	return pcClosest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The views a selection rectangle from sStart to sEnd (grid positions)
+// picks, as Logicim's getSelectionFromRectangle.  If the corners round to
+// the same grid point it's a click there: components whose boxes hold the
+// point and wires through it.  Otherwise components and wires wholly in
+// the rectangle, or (dragged right to left) touching it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitView::GetViewsInRectangle(SFloat64Vec2 sStart, SFloat64Vec2 sEnd, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces)
+{
+	size				i;
+	CComponentView*		pcComponent;
+	CTraceView*			pcTrace;
+	SFloat64Vec2		sMinimum;
+	SFloat64Vec2		sMaximum;
+	SInt32Vec2			sPoint;
+	SInt32Vec2			sEndPoint;
+	SFloat64Vec2		sPointPosition;
+	bool				bPoint;
+	bool				bIntersections;
+
+	sPoint.Init(RoundToGrid(sStart.x), RoundToGrid(sStart.y));
+	sEndPoint.Init(RoundToGrid(sEnd.x), RoundToGrid(sEnd.y));
+	sPointPosition.Init(sPoint.x, sPoint.y);
+	bPoint = sPoint == sEndPoint;
+	bIntersections = sStart.x > sEnd.x;
+
+	for (i = 0; i < mapcComponents.NumElements(); i++)
+	{
+		pcComponent = mapcComponents.GetPtr(i);
+		if (pcComponent->GetBoundingBox(&sMinimum, &sMaximum))
+		{
+			if (bPoint ? IsInBox(sPointPosition, sMinimum, sMaximum) : IsBoxInRectangle(sStart, sEnd, sMinimum, sMaximum, bIntersections))
+			{
+				papcComponents->Add(pcComponent);
+			}
+		}
+	}
+
+	for (i = 0; i < mapcTraces.NumElements(); i++)
+	{
+		pcTrace = mapcTraces.GetPtr(i);
+		if (bPoint)
+		{
+			if (pcTrace->Contains(sPoint))
+			{
+				papcTraces->Add(pcTrace);
+			}
+		}
+		else
+		{
+			sMinimum.Init(pcTrace->GetStart().x, pcTrace->GetStart().y);
+			sMaximum = sMinimum;
+			IncludeBoundsPoint(&sMinimum, &sMaximum, pcTrace->GetEnd().x, pcTrace->GetEnd().y);
+			if (IsBoxInRectangle(sStart, sEnd, sMinimum, sMaximum, bIntersections))
+			{
+				papcTraces->Add(pcTrace);
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As Logicim's Math.round to a grid point.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 RoundToGrid(float64 f)
+{
+	return (int32)floor(f + 0.5);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Edges count as in, as Logicim's BoundingBox.containsPoint.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsInBox(SFloat64Vec2 sPosition, SFloat64Vec2 sMinimum, SFloat64Vec2 sMaximum)
+{
+	return (sPosition.x >= sMinimum.x) && (sPosition.x <= sMaximum.x) && (sPosition.y >= sMinimum.y) && (sPosition.y <= sMaximum.y);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the box is wholly in the rectangle with corners sStart and sEnd
+// or, if bIntersections, touches it, as Logicim's BoundingBox.containsBox.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsBoxInRectangle(SFloat64Vec2 sStart, SFloat64Vec2 sEnd, SFloat64Vec2 sMinimum, SFloat64Vec2 sMaximum, bool bIntersections)
+{
+	float64		fLeft;
+	float64		fTop;
+	float64		fRight;
+	float64		fBottom;
+
+	fLeft = (sStart.x < sEnd.x) ? sStart.x : sEnd.x;
+	fRight = (sStart.x < sEnd.x) ? sEnd.x : sStart.x;
+	fTop = (sStart.y < sEnd.y) ? sStart.y : sEnd.y;
+	fBottom = (sStart.y < sEnd.y) ? sEnd.y : sStart.y;
+
+	if (bIntersections)
+	{
+		return (fLeft <= sMaximum.x) && (fTop <= sMaximum.y) && (fRight >= sMinimum.x) && (fBottom >= sMinimum.y);
+	}
+	return (fLeft <= sMinimum.x) && (fTop <= sMinimum.y) && (fRight >= sMaximum.x) && (fBottom >= sMaximum.y);
 }
 
 

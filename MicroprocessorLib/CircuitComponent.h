@@ -22,6 +22,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #define __CIRCUIT_COMPONENT_H__
 #include "BaseLib/Constructable.h"
 #include "BaseLib/Chars.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 
 
 //Logicim's Component, with CircuitElement and Described: something on a CCircuit with ports, either a
@@ -61,6 +62,9 @@ public:
 			CCircuit*				GetCircuit(void);
 			CTimeline*				GetTimeline(void);
 };
+
+
+typedef CArrayTemplatePtr<CCircuitComponent>	CArrayCircuitComponentPtr;
 
 
 #endif // __CIRCUIT_COMPONENT_H__

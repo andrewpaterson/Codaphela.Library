@@ -113,6 +113,8 @@ CCircuitComponent* CIntegratedCircuitView::CreateComponent(CViewPath* pcViewPath
 	CFamilyVoltageConfiguration*	pcFamily;
 	CIntegratedCircuit*				pcIntegratedCircuit;
 	CSubcircuitSimulation*			pcSimulation;
+	CArrayCircuitComponentPtr		apcSupplies;
+	bool							bResult;
 
 	pcSimulation = CanCreateComponent(pcViewPath, pcCircuitSimulation);
 	if (pcSimulation == NULL)
@@ -133,15 +135,19 @@ CCircuitComponent* CIntegratedCircuitView::CreateComponent(CViewPath* pcViewPath
 		return NULL;
 	}
 
+	apcSupplies.Init();
 	if (!mbExplicitPowerPorts)
 	{
-		if (!PowerImplicitly(pcIntegratedCircuit, pcFamily))
+		if (!PowerImplicitly(pcIntegratedCircuit, pcFamily, &apcSupplies))
 		{
+			apcSupplies.Kill();
 			return NULL;
 		}
 	}
 
-	if (!PostCreateComponent(pcViewPath, pcCircuitSimulation, pcIntegratedCircuit))
+	bResult = PostCreateComponent(pcViewPath, pcCircuitSimulation, pcIntegratedCircuit, &apcSupplies);
+	apcSupplies.Kill();
+	if (!bResult)
 	{
 		return NULL;
 	}
@@ -155,19 +161,20 @@ CCircuitComponent* CIntegratedCircuitView::CreateComponent(CViewPath* pcViewPath
 // their own.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIntegratedCircuitView::PowerImplicitly(CIntegratedCircuit* pcIntegratedCircuit, CFamilyVoltageConfiguration* pcFamily)
+bool CIntegratedCircuitView::PowerImplicitly(CIntegratedCircuit* pcIntegratedCircuit, CFamilyVoltageConfiguration* pcFamily, CArrayCircuitComponentPtr* papcSupplies)
 {
-	return PowerPortsImplicitly(pcIntegratedCircuit->GetContainingSubcircuitSimulation(), pcIntegratedCircuit->GetPins()->GetVoltageCommon(), pcIntegratedCircuit->GetPins()->GetVoltageGround(), pcFamily);
+	return PowerPortsImplicitly(pcIntegratedCircuit->GetContainingSubcircuitSimulation(), pcIntegratedCircuit->GetPins()->GetVoltageCommon(), pcIntegratedCircuit->GetPins()->GetVoltageGround(), pcFamily, papcSupplies);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // A supply at the family's default voltage on pcCommon and a ground on
-// pcGround, on traces of their own.
+// pcGround, on traces of their own.  The supplies are added to
+// papcSupplies.
 //
 //////////////////////////////////////////////////////////////////////////
-bool PowerPortsImplicitly(CSubcircuitSimulation* pcSimulation, CPort* pcCommon, CPort* pcGround, CFamilyVoltageConfiguration* pcFamily)
+bool PowerPortsImplicitly(CSubcircuitSimulation* pcSimulation, CPort* pcCommon, CPort* pcGround, CFamilyVoltageConfiguration* pcFamily, CArrayCircuitComponentPtr* papcSupplies)
 {
 	CVoltageConfiguration*	pcVoltage;
 	CCircuit*				pcCircuit;
@@ -188,12 +195,14 @@ bool PowerPortsImplicitly(CSubcircuitSimulation* pcSimulation, CPort* pcCommon, 
 	pcPower = NewMalloc<CPowerSource>();
 	pcPower->Init(pcSimulation, "", pcVoltage->GetVcc());
 	pcPower->GetPowerOutPort()->Connect(pcVCC, false);
+	papcSupplies->Add(pcPower);
 
 	pcGND = pcCircuit->AddTrace();
 	pcGround->Connect(pcGND, false);
 	pcPower = NewMalloc<CPowerSource>();
 	pcPower->Init(pcSimulation, "", 0.0f);
 	pcPower->GetPowerOutPort()->Connect(pcGND, false);
+	papcSupplies->Add(pcPower);
 	return true;
 }
 

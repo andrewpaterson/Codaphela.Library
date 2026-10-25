@@ -21,6 +21,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __CIRCUIT_VIEW_H__
 #define __CIRCUIT_VIEW_H__
 #include "BaseLib/ArrayInt.h"
+#include "MicroprocessorLib/CircuitComponent.h"
 #include "ComponentView.h"
 #include "TraceView.h"
 
@@ -37,6 +38,12 @@ class CFamilyVoltageConfigurationStore;
 //it wires them without starting, for a saved simulation to be loaded into.  A circuit is the first view of its own top
 //path (as Logicim's SubcircuitEditor); simulating its top path puts the circuit simulation's top simulation on the
 //path.
+//
+//KillTraces is only for a circuit that isn't being simulated: the simulation's traces aren't rewired.
+//
+//A simulated circuit is edited live, as CCircuitEditor does: CreateComponents makes added views' components, and
+//DestroyComponent takes removed views' components out of the running simulation, and then the simulation is wired
+//again (see CCircuitWiring::Rewire).
 //
 //SaveXML writes a <Circuit> element (with a type attribute if it has a type name) holding an element per component
 //(in the order they were added) and then a <Trace> per wire.  LoadXML adds what such an element holds to the circuit
@@ -56,6 +63,9 @@ public:
 	CComponentView*		Add(CComponentView* pcComponent);
 	CTraceView*			AddTrace(int32 x0, int32 y0, int32 x1, int32 y1);
 	CTraceView*			AddTraces(int32 x0, int32 y0, int32 x1, int32 y1);
+	bool				Remove(CComponentView* pcComponent);
+	bool				RemoveTrace(CTraceView* pcTrace);
+	void				KillTraces(void);
 
 	size				NumComponents(void);
 	CComponentView*		GetComponent(size uiIndex);
@@ -65,6 +75,8 @@ public:
 
 	bool				CreateSimulation(CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, bool bStart = true);
 	void				DisconnectSimulation(CViewPath* pcViewPath, CCircuitSimulation* pcSimulation);
+	bool				CreateComponents(CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, CArrayComponentViewPtr* papcComponents, CArrayCircuitComponentPtr* papcCreated);
+	void				DestroyComponent(CComponentView* pcComponent, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation);
 	void				CalculateJunctions(void);
 
 	CCircuitView*		GetInstanceCircuitView(void);
@@ -77,13 +89,18 @@ public:
 
 	void				Paint(CCircuitPainter* pcPainter);
 	bool				GetBoundingBox(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum);
+	CComponentView*		GetComponentAt(SFloat64Vec2 sPosition);
+	void				GetViewsInRectangle(SFloat64Vec2 sStart, SFloat64Vec2 sEnd, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces);
 
 protected:
-	bool				CreateComponents(CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
+	void				DestroySimulation(CViewPath* pcViewPath, CCircuitSimulation* pcSimulation);
 };
 
 
-void PaintCircuitGrid(CCircuitPainter* pcPainter);
+void	PaintCircuitGrid(CCircuitPainter* pcPainter);
+int32	RoundToGrid(float64 f);
+bool	IsInBox(SFloat64Vec2 sPosition, SFloat64Vec2 sMinimum, SFloat64Vec2 sMaximum);
+bool	IsBoxInRectangle(SFloat64Vec2 sStart, SFloat64Vec2 sEnd, SFloat64Vec2 sMinimum, SFloat64Vec2 sMaximum, bool bIntersections);
 
 
 #endif // __CIRCUIT_VIEW_H__

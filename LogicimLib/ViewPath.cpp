@@ -309,6 +309,24 @@ CViewPath* CViewPath::GetPrevious(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The top path this one goes down from, or this one if it's a top path.
+//
+//////////////////////////////////////////////////////////////////////////
+CViewPath* CViewPath::GetTop(void)
+{
+	CViewPath*	pcViewPath;
+
+	pcViewPath = this;
+	while (pcViewPath->mpcPrevious != NULL)
+	{
+		pcViewPath = pcViewPath->mpcPrevious;
+	}
+	return pcViewPath;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // This path with the instance view, which must be in this path's last
 // circuit, on the end; made if it isn't there yet.  NULL if the
 // instance's subcircuit is already on the path.
@@ -559,6 +577,40 @@ void CViewPaths::GetPathsEndingWith(CCircuitView* pcCircuitView, CArrayViewPathP
 		if (pcViewPath->GetCircuitView() == pcCircuitView)
 		{
 			papcViewPaths->Add(pcViewPath);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Kills every path through the instance, which is being taken out of its
+// circuit.  Their simulations must already have been taken off them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CViewPaths::RemovePathsThrough(CCircuitInstanceView* pcInstanceView)
+{
+	size		i;
+	size		j;
+	CViewPath*	pcViewPath;
+	bool		bThrough;
+
+	for (i = mapcViewPaths.NumElements(); i > 0; i--)
+	{
+		pcViewPath = mapcViewPaths.GetPtr(i - 1);
+		bThrough = false;
+		for (j = 0; j < pcViewPath->Length(); j++)
+		{
+			if (pcViewPath->Get(j) == pcInstanceView)
+			{
+				bThrough = true;
+				break;
+			}
+		}
+		if (bThrough)
+		{
+			mapcViewPaths.RemoveAt(i - 1, true);
+			SafeKill(pcViewPath);
 		}
 	}
 }

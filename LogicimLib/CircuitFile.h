@@ -26,6 +26,8 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #define CIRCUIT_FILE_VERSION	2
 
 
+class CXMLFile;
+class CMarkupTag;
 class CCircuitSimulation;
 class CFamilyVoltageConfigurationStore;
 
@@ -39,6 +41,10 @@ class CFamilyVoltageConfigurationStore;
 //
 //A project's circuits are saved the same way with a <Circuits> element (see CCircuitViews) in place of the <Circuit>,
 //and the simulation of one of them on its top path, which names the circuit it's of.
+//
+//ReadCircuitFileRoot reads a file and checks its root holds an szContents element, for files with more in them (see
+//CCircuitEditor); the file must be killed whatever it returns.  LoadCircuitFileSimulation makes a loaded circuit in
+//the simulation as the file's <Simulation> has it, or started afresh if it has none of the circuit.
 bool	SaveCircuitFile(CCircuitView* pcCircuit, const char* szFilename);
 bool	SaveCircuitFile(CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, const char* szFilename);
 bool	LoadCircuitFile(CCircuitView* pcCircuit, const char* szFilename);
@@ -48,6 +54,8 @@ void	SaveCircuitXML(CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimu
 bool	SaveCircuitsFile(CCircuitViews* pcCircuits, CCircuitView* pcTop, CCircuitSimulation* pcSimulation, const char* szFilename);
 bool	LoadCircuitsFile(CCircuitViews* pcCircuits, const char* szTop, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, const char* szFilename);
 void	SaveCircuitsXML(CCircuitViews* pcCircuits, CCircuitView* pcTop, CCircuitSimulation* pcSimulation, CXMLWriter* pcWriter);
+CMarkupTag*	ReadCircuitFileRoot(CXMLFile* pcFile, const char* szFilename, const char* szContents);
+bool	LoadCircuitFileSimulation(CMarkupTag* pcRoot, CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
 
 
 #endif // __CIRCUIT_FILE_H__

@@ -24,7 +24,9 @@ public:
 	void				Add(CPassive* pcPassive);
 	bool				Remove(CIntegratedCircuit* pcIntegratedCircuit);
 	bool				Remove(CPassive* pcPassive);
+	bool				Remove(CCircuitComponent* pcComponent);
 	CTrace*				AddTrace(void);
+	bool				RemoveTrace(CTrace* pcTrace);
 	void				DisconnectComponent(CCircuitComponent* pcComponent, CTimeline* pcTimeline);
 	bool				IsEmpty(void);
 
