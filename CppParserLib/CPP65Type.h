@@ -94,18 +94,21 @@ public:
 	SCPP65Type			msUnsignedChar;
 	SCPP65Type			msShort;
 	SCPP65Type			msUnsignedShort;
-	SCPP65Type			msInt;
+	SCPP65Type			msInt;				//The target's int: 4 bytes on the 65C64, 2 on the W65C816.
 	SCPP65Type			msUnsignedInt;
+	SCPP65Type			msLong;				//4 bytes.  The same type as int when int is 4 bytes.
+	SCPP65Type			msUnsignedLong;
 	SCPP65Type			msLongLong;
 	SCPP65Type			msUnsignedLongLong;
 	SCPP65Type			msFloat;
 	SCPP65Type			msDouble;
 	SCPP65Type			msLongDouble;
 
-	void				Init(void);
+	void				Init(int iIntBytes = 4);
 	void				Kill(void);
 
 	SCPP65Type*			Integer(int iBytes, bool bSigned);
+	SCPP65Type*			Long(bool bSigned);
 	SCPP65Type*			Pointer(SCPP65Type* psBase);
 	SCPP65Type*			Array(SCPP65Type* psElement, int iCount);
 	SCPP65Type*			Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65Type>* papsParameters, bool bVariadic);

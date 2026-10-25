@@ -86,6 +86,7 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 	maiPendingArguments.Init();
 	miFrameBytes = 0;
 	miHiddenResult = -1;
+	mszSectionOptions = "";
 }
 
 
@@ -124,6 +125,7 @@ bool CIR816Backend::GenerateModule(CChars* pszDest, CCPPErrors* pcErrors)
 		szName = mpcModule->GetSymbolName(pcFunction->muiSymbol);
 		pszDest->Append("\t\t.section text.");
 		pszDest->Append(szName);
+		pszDest->Append(mszSectionOptions);
 		pszDest->AppendNewLine();
 		Binding(szName, pcFunction->muiAttributes, pszDest);
 		bResult &= GenerateFunction(pcFunction, szName, pszDest, pcErrors);
@@ -1047,9 +1049,263 @@ bool CIR816Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 	case IRO_Call:
 		Call(pcBlock, psInstruction);
 		return true;
+	case IRO_FAdd:
+	case IRO_FSub:
+	case IRO_FMul:
+	case IRO_FDiv:
+		FloatArithmetic(psInstruction);
+		return true;
+	case IRO_FNeg:
+		CopyWords(OffsetOf(psInstruction->sResult), psInstruction->asArguments[0], Words(psInstruction->sType));
+		Frame("lda", OffsetOf(psInstruction->sResult) + 2 * (Words(psInstruction->sType) - 1));
+		Line("eor $8000");
+		Frame("sta", OffsetOf(psInstruction->sResult) + 2 * (Words(psInstruction->sType) - 1));
+		return true;
+	case IRO_FEq:
+	case IRO_FNe:
+	case IRO_FLt:
+	case IRO_FLe:
+	case IRO_FGt:
+	case IRO_FGe:
+	case IRO_FOrdered:
+	case IRO_FUnordered:
+		FloatCompare(psInstruction);
+		return true;
+	case IRO_SIToF:
+	case IRO_UIToF:
+	case IRO_FToSI:
+	case IRO_FToUI:
+	case IRO_FExt:
+	case IRO_FTrunc:
+		FloatConversion(psInstruction);
+		return true;
 	default:
-		return Error("The W65C816 back end doesn't do floats yet", GetIROpcode(psInstruction->uiOpcode)->szName);
+		return Error("The W65C816 back end doesn't do this instruction yet", GetIROpcode(psInstruction->uiOpcode)->szName);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The soft float runtime (Libc65's softfloat.cpp, compiled for the W65C816): _SoftFloat<operation> for f32 and
+// _SoftDouble<operation> for f64.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::FloatArithmetic(SIRInstruction* psInstruction)
+{
+	CChars	szName;
+
+	szName.Init(psInstruction->sType.Is(IRTK_F64) ? "_SoftDouble" : "_SoftFloat");
+	switch (psInstruction->uiOpcode)
+	{
+	case IRO_FAdd:	szName.Append("Add");		break;
+	case IRO_FSub:	szName.Append("Subtract");	break;
+	case IRO_FMul:	szName.Append("Multiply");	break;
+	default:		szName.Append("Divide");	break;
+	}
+	PushValue(psInstruction->asArguments[1], psInstruction->sType);
+	PushValue(psInstruction->asArguments[0], psInstruction->sType);
+	CallFunction(szName.Text(), 2 * ValueBytes(psInstruction->sType), psInstruction);
+	szName.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Pushes the hidden result pointer when the result is 64 bits, calls szName and removes the iBytes of arguments
+// already pushed (and the pointer), leaving the result in its place.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::CallFunction(const char* szName, int32 iBytes, SIRInstruction* psInstruction)
+{
+	CChars	sz;
+
+	UseRuntime(szName);
+	if (!psInstruction->sResult.IsNone() && IsHiddenResult(psInstruction->sType))
+	{
+		PushFrameAddress(OffsetOf(psInstruction->sResult));
+		iBytes += 4;
+	}
+	sz.Init("jsl ");
+	sz.Append(szName);
+	Line(sz.Text());
+	sz.Kill();
+	CallerCleanUp(iBytes, psInstruction);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// _SoftFloatCompare gives -1, 0 or 1, or 2 when either is a NaN, in A: each comparison is true for some of those.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::FloatCompare(SIRInstruction* psInstruction)
+{
+	int					aiValues[2];
+	int					iValues;
+	bool				bNot;
+	int32				iTrue;
+	int32				iFalse;
+	int32				iEnd;
+	int					i;
+	CChars				sz;
+	SIRType				sType;
+
+	sType = psInstruction->sType;
+	PushValue(psInstruction->asArguments[1], sType);
+	PushValue(psInstruction->asArguments[0], sType);
+	UseRuntime(sType.Is(IRTK_F64) ? "_SoftDoubleCompare" : "_SoftFloatCompare");
+	Line(sType.Is(IRTK_F64) ? "jsl _SoftDoubleCompare" : "jsl _SoftFloatCompare");
+	Frame("sta", IR816_SCRATCH_RESULT);
+	Line("tsc");
+	Line("clc");
+	Line("adc ", 2 * ValueBytes(sType));
+	Line("tcs");
+
+	//The compare's results that make it true (or false, for fne and fordered).
+	bNot = false;
+	iValues = 1;
+	switch (psInstruction->uiOpcode)
+	{
+	case IRO_FEq:		aiValues[0] = 0;	break;
+	case IRO_FNe:		aiValues[0] = 0;	bNot = true;	break;
+	case IRO_FLt:		aiValues[0] = -1;	break;
+	case IRO_FGt:		aiValues[0] = 1;	break;
+	case IRO_FLe:		aiValues[0] = -1;	aiValues[1] = 0;	iValues = 2;	break;
+	case IRO_FGe:		aiValues[0] = 0;	aiValues[1] = 1;	iValues = 2;	break;
+	case IRO_FOrdered:	aiValues[0] = 2;	bNot = true;	break;
+	default:			aiValues[0] = 2;	break;
+	}
+
+	iTrue = NewLabel();
+	iFalse = NewLabel();
+	iEnd = NewLabel();
+	sz.Init();
+	Frame("lda", IR816_SCRATCH_RESULT);
+	for (i = 0; i < iValues; i++)
+	{
+		Line("cmp ", aiValues[i] & 0xFFFF);
+		sz.Clear();
+		sz.Append("beq L");
+		sz.Append(bNot ? iFalse : iTrue);
+		Line(sz.Text());
+	}
+	sz.Clear();
+	sz.Append("bra L");
+	sz.Append(bNot ? iTrue : iFalse);
+	Line(sz.Text());
+	Label(iTrue);
+	Line("lda 1");
+	sz.Clear();
+	sz.Append("bra L");
+	sz.Append(iEnd);
+	Line(sz.Text());
+	Label(iFalse);
+	Line("lda 0");
+	Label(iEnd);
+	Store(psInstruction->sResult, 0);
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Conversions with floats: an integer narrower than 32 bits converts as an int32_t (sign or zero extended), a 64
+// bit one as a long long.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::FloatConversion(SIRInstruction* psInstruction)
+{
+	SIRType			sFrom;
+	SIRType			sTo;
+	SIRReference	sValue;
+	bool			bSigned;
+	CChars			szName;
+	int32			iBytes;
+
+	sValue = psInstruction->asArguments[0];
+	sFrom = mpcFunction->TypeOf(sValue);
+	sTo = psInstruction->sType;
+	szName.Init();
+	switch (psInstruction->uiOpcode)
+	{
+	case IRO_FExt:
+	case IRO_FTrunc:
+		szName.Append(sTo.Is(IRTK_F64) ? "_SoftFloatToDouble" : "_SoftDoubleToFloat");
+		PushValue(sValue, sFrom);
+		iBytes = ValueBytes(sFrom);
+		break;
+	case IRO_SIToF:
+	case IRO_UIToF:
+		bSigned = psInstruction->uiOpcode == IRO_SIToF;
+		szName.Append(sTo.Is(IRTK_F64) ? "_SoftDoubleFrom" : "_SoftFloatFrom");
+		if (sFrom.Is(IRTK_I64))
+		{
+			szName.Append(bSigned ? "LongLong" : "UnsignedLongLong");
+			PushValue(sValue, sFrom);
+			iBytes = 8;
+		}
+		else
+		{
+			szName.Append((bSigned || (sFrom.IntegerBits() < 32)) ? "Int" : "Unsigned");
+			PushInt32(sValue, sFrom, bSigned);
+			iBytes = 4;
+		}
+		break;
+	default:
+		bSigned = psInstruction->uiOpcode == IRO_FToSI;
+		szName.Append(sFrom.Is(IRTK_F64) ? "_SoftDoubleTo" : "_SoftFloatTo");
+		if (sTo.Is(IRTK_I64))
+		{
+			szName.Append(bSigned ? "LongLong" : "UnsignedLongLong");
+		}
+		else
+		{
+			szName.Append((bSigned || (sTo.IntegerBits() < 32)) ? "Int" : "Unsigned");
+		}
+		PushValue(sValue, sFrom);
+		iBytes = ValueBytes(sFrom);
+		break;
+	}
+	CallFunction(szName.Text(), iBytes, psInstruction);
+	szName.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Pushes an integer of up to 32 bits as 32 bits, sign or zero extended.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::PushInt32(SIRReference sValue, SIRType sType, bool bSigned)
+{
+	if (Words(sType) == 2)
+	{
+		PushValue(sValue, sType);
+		return;
+	}
+	Operand("lda", sValue, 0);
+	if (bSigned && sType.Is(IRTK_I8))
+	{
+		Line("eor $80");
+		Line("sec");
+		Line("sbc $80");
+	}
+	Frame("sta", IR816_SCRATCH_VALUE);
+	if (bSigned && !sType.Is(IRTK_I1))
+	{
+		Line("asl A");
+		Line("lda 0");
+		Line("adc $FFFF");
+		Line("eor $FFFF");
+	}
+	else
+	{
+		Line("lda 0");
+	}
+	Line("pha");
+	Frame("lda", IR816_SCRATCH_VALUE);
+	Line("pha");
 }
 
 
@@ -1676,10 +1932,14 @@ bool CIR816Backend::GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CCh
 	bool			bResult;
 	bool			bFound;
 
+	//Only the R816_ routines are made here (the soft float functions are Libc65's).
 	aszNames.Init();
 	for (i = 0; i < paszRuntime->NumElements(); i++)
 	{
-		aszNames.Add(paszRuntime->GetText(i));
+		if (strncmp(paszRuntime->GetText(i), "R816_", 5) == 0)
+		{
+			aszNames.Add(paszRuntime->GetText(i));
+		}
 	}
 	for (i = 0; i < aszNames.NumElements(); i++)
 	{
@@ -1748,7 +2008,9 @@ bool CIR816Backend::GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CCh
 	szIR.Kill();
 	if (bResult)
 	{
+		//Each unit that uses a routine writes it, so it is COMDAT.
 		cBackend.Init(&cModule, piLabels);
+		cBackend.mszSectionOptions = ", comdat";
 		bResult = cBackend.GenerateModule(pszDest, pcErrors);
 		cBackend.Kill();
 	}

@@ -22,274 +22,64 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IR65Widths.h"
 
 
-#define IR65_WIDTH_ALL			0x0F		//A use bit per register.
-#define IR65_WIDTH_CONFLICT		0xFF		//Widths that differ between the ways a line is reached.
-#define IR65_WIDTH_MAX_OPERANDS	3
-
-
-//An instruction's operand: where it is in the line.
-struct SIR65WidthOperand
-{
-	const char*	szStart;
-	size		uiLength;
-};
-
-
-//The instructions the back end writes (IR65Backend.cpp) and how they decode.
-struct SIR65WidthMnemonic
-{
-	const char*	szName;
-	uint8		uiKind;
-	bool		bReadsFirst;	//An Alu reading its first operand; stp reading all four.
-	bool		bWritesFirst;	//An Alu writing its first operand.
-	bool		bShift;
-};
-
-
-static const char gacIR65WidthRegisters[IR65_WIDTH_REGISTERS] = { 'A', 'B', 'X', 'Y' };
-
-
-static const SIR65WidthMnemonic gasIR65WidthMnemonics[] =
-{
-	{ "cpy",	IR65WK_Alu,			false,	true,	false },
-	{ "add",	IR65WK_Alu,			true,	true,	false },
-	{ "sub",	IR65WK_Alu,			true,	true,	false },
-	{ "and",	IR65WK_Alu,			true,	true,	false },
-	{ "or",		IR65WK_Alu,			true,	true,	false },
-	{ "xor",	IR65WK_Alu,			true,	true,	false },
-	{ "shl",	IR65WK_Alu,			true,	true,	true },
-	{ "shr",	IR65WK_Alu,			true,	true,	true },
-	{ "cmp",	IR65WK_Alu,			true,	false,	false },
-	{ "neg",	IR65WK_Negate,		false,	true,	false },
-	{ "psh",	IR65WK_Push,		false,	false,	false },
-	{ "pul",	IR65WK_Pull,		false,	false,	false },
-	{ "wth",	IR65WK_Width,		false,	false,	false },
-	{ "wtth",	IR65WK_Width,		false,	false,	false },
-	{ "wthx",	IR65WK_Extend,		false,	false,	false },
-	{ "mul",	IR65WK_Multiply,	false,	false,	false },
-	{ "div",	IR65WK_Divide,		false,	false,	false },
-	{ "jsr",	IR65WK_Call,		false,	false,	false },
-	{ "ret",	IR65WK_Return,		false,	false,	false },
-	{ "stp",	IR65WK_Return,		true,	false,	false },
-	{ "bra",	IR65WK_Jump,		false,	false,	false },
-	{ "bras",	IR65WK_Branch,		false,	false,	false },
-	{ "brac",	IR65WK_Branch,		false,	false,	false },
-	{ "brasa",	IR65WK_Branch,		false,	false,	false },
-	{ "braso",	IR65WK_Branch,		false,	false,	false },
-	{ NULL,		IR65WK_Other,		false,	false,	false },
-};
-
-
 //////////////////////////////////////////////////////////////////////////
 //
-// The bits read or written at a width, as bands: bit 0 is bits 0 to 7,
-// bit 1 bits 8 to 15, bit 2 bits 16 to 31 and bit 3 bits 32 to 63.  An
-// unknown width is all of them.
+// True if the line is "szMnemonic R, value" with R one of A, B, X and Y;
+// the register's index and the value.
 //
 //////////////////////////////////////////////////////////////////////////
-static uint8 IR65WidthBands(uint8 uiBits)
-{
-	switch (uiBits)
-	{
-	case 8:		return 0x1;
-	case 16:	return 0x3;
-	case 32:	return 0x7;
-	default:	return 0xF;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// 0 to 3 for A, B, X or Y, -1 for anything else.
-//
-//////////////////////////////////////////////////////////////////////////
-static int IR65WidthRegister(SIR65WidthOperand* psOperand)
-{
-	int	i;
-
-	if (psOperand->uiLength != 1)
-	{
-		return -1;
-	}
-	for (i = 0; i < IR65_WIDTH_REGISTERS; i++)
-	{
-		if (psOperand->szStart[0] == gacIR65WidthRegisters[i])
-		{
-			return i;
-		}
-	}
-	return -1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// True if the operand is any register an instruction can name (A, B, X,
-// Y, S, V or W).
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IR65WidthIsRegister(SIR65WidthOperand* psOperand)
-{
-	return (psOperand->uiLength == 1) && (strchr("ABXYSVW", psOperand->szStart[0]) != NULL);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A bit for each of A, B, X and Y named on its own in a memory operand
-// ([4 + X], [A], [[8 + W] + Y]); 0 for an operand that isn't memory.
-//
-//////////////////////////////////////////////////////////////////////////
-static uint8 IR65WidthAddresses(SIR65WidthOperand* psOperand)
+static bool IR65WidthsImmediate(CChars* pszLine, const char* szMnemonic, int* piRegister, int64* plliValue)
 {
 	const char*	sz;
-	const char*	szEnd;
-	const char*	szWord;
-	uint8		uiAddresses;
+	size		uiLength;
 	int			i;
+	char*		szEnd;
 
-	if ((psOperand->uiLength == 0) || (psOperand->szStart[0] != '['))
+	sz = pszLine->Text();
+	while (*sz == '\t')
 	{
-		return 0;
+		sz++;
 	}
-	uiAddresses = 0;
-	szEnd = psOperand->szStart + psOperand->uiLength;
-	sz = psOperand->szStart;
-	while (sz < szEnd)
+	uiLength = strlen(szMnemonic);
+	if ((strncmp(sz, szMnemonic, uiLength) != 0) || (sz[uiLength] != ' ') || (sz[uiLength + 2] != ',') || (sz[uiLength + 3] != ' '))
 	{
-		if (((*sz >= 'A') && (*sz <= 'Z')) || ((*sz >= 'a') && (*sz <= 'z')) || ((*sz >= '0') && (*sz <= '9')) || (*sz == '_'))
+		return false;
+	}
+	for (i = 0; i < IR65_CODE_REGISTERS; i++)
+	{
+		if (sz[uiLength + 1] == CIR65Code::RegisterName(i))
 		{
-			szWord = sz;
-			while ((sz < szEnd) && (((*sz >= 'A') && (*sz <= 'Z')) || ((*sz >= 'a') && (*sz <= 'z')) || ((*sz >= '0') && (*sz <= '9')) || (*sz == '_')))
-			{
-				sz++;
-			}
-			if (sz - szWord == 1)
-			{
-				for (i = 0; i < IR65_WIDTH_REGISTERS; i++)
-				{
-					if (*szWord == gacIR65WidthRegisters[i])
-					{
-						uiAddresses |= (uint8)(1 << i);
-					}
-				}
-			}
-		}
-		else
-		{
-			sz++;
+			*piRegister = i;
+			*plliValue = strtoll(sz + uiLength + 4, &szEnd, 10);
+			return (szEnd != sz + uiLength + 4) && (*szEnd == '\0');
 		}
 	}
-	return uiAddresses;
+	return false;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A bit for each register of a "(A, B)" list, or the one register named;
-// false if anything else is named.
+// True if the line is "cpy R1, R2" with R1 and R2 two of A, B, X and Y.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR65WidthRegisterList(SIR65WidthOperand* psOperand, uint8* puiRegisters)
+static bool IR65WidthsCopy(CIR65Code* pcCode, size uiLine, int iDestination, int* piSource)
 {
-	SIR65WidthOperand	sName;
-	const char*			sz;
-	const char*			szEnd;
-	int					iRegister;
+	SIR65CodeLine*	psLine;
+	const char*		sz;
 
-	*puiRegisters = 0;
-	sz = psOperand->szStart;
-	szEnd = sz + psOperand->uiLength;
-	if ((sz < szEnd) && (*sz == '('))
+	psLine = pcCode->GetLine(uiLine);
+	sz = pcCode->GetText(uiLine)->Text();
+	while (*sz == '\t')
 	{
 		sz++;
-		szEnd--;
 	}
-	while (sz < szEnd)
+	if ((psLine->uiKind != IR65CK_Alu) || (strncmp(sz, "cpy ", 4) != 0) || (psLine->iFirst != iDestination) || (psLine->iSecond < 0) || (psLine->iSecond == iDestination) || (strlen(sz) != 8))
 	{
-		while ((sz < szEnd) && ((*sz == ' ') || (*sz == ',')))
-		{
-			sz++;
-		}
-		sName.szStart = sz;
-		while ((sz < szEnd) && (*sz != ' ') && (*sz != ','))
-		{
-			sz++;
-		}
-		sName.uiLength = sz - sName.szStart;
-		if (sName.uiLength > 0)
-		{
-			iRegister = IR65WidthRegister(&sName);
-			if (iRegister < 0)
-			{
-				return false;
-			}
-			*puiRegisters |= (uint8)(1 << iRegister);
-		}
+		return false;
 	}
+	*piSource = psLine->iSecond;
 	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Splits the operands after the mnemonic at the commas outside brackets;
-// the number found, or -1 for too many.
-//
-//////////////////////////////////////////////////////////////////////////
-static int IR65WidthOperands(const char* sz, SIR65WidthOperand* asOperands)
-{
-	int		iOperands;
-	int		iDepth;
-
-	iOperands = 0;
-	while (*sz == ' ')
-	{
-		sz++;
-	}
-	if ((*sz == '\0') || (*sz == ';'))
-	{
-		return 0;
-	}
-	asOperands[0].szStart = sz;
-	iDepth = 0;
-	for (;;)
-	{
-		if ((*sz == '\0') || (*sz == ';') || ((*sz == ',') && (iDepth == 0)))
-		{
-			asOperands[iOperands].uiLength = sz - asOperands[iOperands].szStart;
-			while ((asOperands[iOperands].uiLength > 0) && (asOperands[iOperands].szStart[asOperands[iOperands].uiLength - 1] == ' '))
-			{
-				asOperands[iOperands].uiLength--;
-			}
-			iOperands++;
-			if (*sz != ',')
-			{
-				return iOperands;
-			}
-			if (iOperands == IR65_WIDTH_MAX_OPERANDS)
-			{
-				return -1;
-			}
-			sz++;
-			while (*sz == ' ')
-			{
-				sz++;
-			}
-			asOperands[iOperands].szStart = sz;
-			continue;
-		}
-		if ((*sz == '[') || (*sz == '('))
-		{
-			iDepth++;
-		}
-		else if ((*sz == ']') || (*sz == ')'))
-		{
-			iDepth--;
-		}
-		sz++;
-	}
 }
 
 
@@ -299,15 +89,11 @@ static int IR65WidthOperands(const char* sz, SIR65WidthOperand* asOperands)
 //////////////////////////////////////////////////////////////////////////
 void CIR65Widths::Init(void)
 {
-	maszLines.Init();
-	masLines.Init();
-	masWidths.Init();
+	mcCode.Init();
+	mauiDemand.Init();
 	masLive.Init();
 	masEntries.Init();
-	mauiReached.Init();
-	mauiJumpedBack.Init();
 	mauiArrived.Init();
-	mmLabels.Init();
 	mpszOut = NULL;
 }
 
@@ -318,15 +104,11 @@ void CIR65Widths::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CIR65Widths::Kill(void)
 {
-	mmLabels.Kill();
 	mauiArrived.Kill();
-	mauiJumpedBack.Kill();
-	mauiReached.Kill();
 	masEntries.Kill();
 	masLive.Kill();
-	masWidths.Kill();
-	masLines.Kill();
-	maszLines.Kill();
+	mauiDemand.Kill();
+	mcCode.Kill();
 }
 
 
@@ -338,18 +120,13 @@ void CIR65Widths::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CIR65Widths::Optimise(CChars* pszCode, size uiStart)
 {
-	CChars	szText;
-
-	maszLines.ReInit();
-	szText.Init(pszCode->Text() + uiStart);
-	szText.SplitLines(&maszLines);
-	szText.Kill();
-	mpszOut = pszCode;
-
-	if (!Decode() || !ComputeWidths())
+	if (!mcCode.Load(pszCode, uiStart))
 	{
 		return;
 	}
+	mpszOut = pszCode;
+	mcCode.ComputeFlagDemand(&mauiDemand);
+	NarrowExtensions();
 	do
 	{
 		ComputeLive();
@@ -358,486 +135,6 @@ void CIR65Widths::Optimise(CChars* pszCode, size uiStart)
 
 	pszCode->SetLength(uiStart);
 	Write();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Decodes every line; false if one isn't understood or a branch goes
-// outside the function.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR65Widths::Decode(void)
-{
-	size			ui;
-	size			uiNum;
-	CChars*			pszLine;
-	SIR65WidthLine*	psLine;
-	CChars			szName;
-	bool			bDecoded;
-
-	uiNum = maszLines.NumElements();
-	mmLabels.Kill();
-	mmLabels.Init();
-	for (ui = 0; ui < uiNum; ui++)
-	{
-		pszLine = maszLines.Get(ui);
-		if (!pszLine->Empty() && !pszLine->StartsWith("\t") && pszLine->EndsWith(':'))
-		{
-			szName.Init();
-			szName.AppendSubString(pszLine->Text(), pszLine->Length() - 1);
-			mmLabels.Put(szName.Text(), (int32)ui);
-			szName.Kill();
-		}
-	}
-
-	masLines.ReInit();
-	mauiJumpedBack.ReInit();
-	for (ui = 0; ui < uiNum; ui++)
-	{
-		psLine = masLines.Add();
-		mauiJumpedBack.Add()[0] = 0;
-		bDecoded = DecodeLine(maszLines.Get(ui), psLine);
-		if (!bDecoded)
-		{
-			return false;
-		}
-		if ((psLine->iTarget >= 0) && ((size)psLine->iTarget <= ui))
-		{
-			*mauiJumpedBack.Get(psLine->iTarget) = 1;
-		}
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Decodes one line of the back end's code (IR65Backend.cpp writes only
-// these instructions).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR65Widths::DecodeLine(CChars* pszLine, SIR65WidthLine* psLine)
-{
-	const char*					szText;
-	char						szMnemonic[8];
-	size						uiMnemonic;
-	SIR65WidthOperand			asOperands[IR65_WIDTH_MAX_OPERANDS];
-	SIR65WidthOperand*			psLast;
-	const SIR65WidthMnemonic*	psMnemonic;
-	int							iOperands;
-	int							i;
-	CChars						szTarget;
-
-	memset(psLine, 0, sizeof(SIR65WidthLine));
-	psLine->iFirst = -1;
-	psLine->iSecond = -1;
-	psLine->iTarget = -1;
-	psLine->uiKind = IR65WK_Other;
-
-	if (pszLine->Empty())
-	{
-		return true;
-	}
-	if (!pszLine->StartsWith("\t"))
-	{
-		if (pszLine->EndsWith(':'))
-		{
-			psLine->uiKind = IR65WK_Label;
-		}
-		return true;
-	}
-
-	szText = pszLine->Text();
-	while ((*szText == '\t') || (*szText == ' '))
-	{
-		szText++;
-	}
-	if ((*szText == '\0') || (*szText == ';'))
-	{
-		return true;
-	}
-	for (uiMnemonic = 0; (szText[uiMnemonic] != '\0') && (szText[uiMnemonic] != ' '); uiMnemonic++)
-	{
-		if (uiMnemonic + 1 >= sizeof(szMnemonic))
-		{
-			return false;
-		}
-		szMnemonic[uiMnemonic] = szText[uiMnemonic];
-	}
-	szMnemonic[uiMnemonic] = '\0';
-	for (psMnemonic = gasIR65WidthMnemonics; psMnemonic->szName != NULL; psMnemonic++)
-	{
-		if (StringCompare(psMnemonic->szName, szMnemonic) == 0)
-		{
-			break;
-		}
-	}
-	if (psMnemonic->szName == NULL)
-	{
-		return false;
-	}
-	iOperands = IR65WidthOperands(szText + uiMnemonic, asOperands);
-	if (iOperands < 0)
-	{
-		return false;
-	}
-	for (i = 0; i < iOperands; i++)
-	{
-		psLine->uiAddresses |= IR65WidthAddresses(&asOperands[i]);
-	}
-	psLast = (iOperands > 0) ? &asOperands[iOperands - 1] : NULL;
-
-	psLine->uiKind = psMnemonic->uiKind;
-	psLine->bReadsFirst = psMnemonic->bReadsFirst;
-	psLine->bWritesFirst = psMnemonic->bWritesFirst;
-	psLine->bShift = psMnemonic->bShift;
-	switch (psMnemonic->uiKind)
-	{
-	case IR65WK_Alu:
-		if (iOperands != 2)
-		{
-			return false;
-		}
-		psLine->iFirst = (int8)IR65WidthRegister(&asOperands[0]);
-		psLine->iSecond = (int8)IR65WidthRegister(&asOperands[1]);
-		psLine->bFirstRegister = IR65WidthIsRegister(&asOperands[0]);
-		return true;
-
-	case IR65WK_Negate:
-		//neg R1 {, R2}: R2 (R1 when there is one register) is negated into R1.
-		if ((iOperands < 1) || (iOperands > 2))
-		{
-			return false;
-		}
-		psLine->iFirst = (int8)IR65WidthRegister(&asOperands[0]);
-		psLine->iSecond = (int8)IR65WidthRegister(psLast);
-		psLine->bFirstRegister = true;
-		return (psLine->iFirst >= 0) && (psLine->iSecond >= 0);
-
-	case IR65WK_Push:
-	case IR65WK_Pull:
-		//Registers, memory or (psh) a value.  S, V and W are 32 bits; P and C would change or show the widths.
-		if (iOperands != 1)
-		{
-			return false;
-		}
-		if ((asOperands[0].szStart[0] == '(') || (IR65WidthRegister(&asOperands[0]) >= 0))
-		{
-			return IR65WidthRegisterList(&asOperands[0], &psLine->uiRegisters);
-		}
-		return (asOperands[0].uiLength > 0) && (asOperands[0].szStart[0] != 'P') && (asOperands[0].szStart[0] != 'C');
-
-	case IR65WK_Width:
-	case IR65WK_Extend:
-		if (iOperands != 2)
-		{
-			return false;
-		}
-		psLine->uiBits = (uint8)atoi(asOperands[1].szStart);
-		if ((psLine->uiBits != 8) && (psLine->uiBits != 16) && (psLine->uiBits != 32) && (psLine->uiBits != 64))
-		{
-			return false;
-		}
-		if (psLine->uiKind == IR65WK_Extend)
-		{
-			psLine->iFirst = (int8)IR65WidthRegister(&asOperands[0]);
-			return psLine->iFirst >= 0;
-		}
-		return IR65WidthRegisterList(&asOperands[0], &psLine->uiRegisters) && (psLine->uiRegisters != 0);
-
-	case IR65WK_Multiply:
-	case IR65WK_Divide:
-	case IR65WK_Return:
-		return iOperands == 0;
-
-	case IR65WK_Call:
-		if (iOperands != 1)
-		{
-			return false;
-		}
-		psLine->iFirst = (int8)IR65WidthRegister(&asOperands[0]);
-		return true;
-
-	case IR65WK_Branch:
-	case IR65WK_Jump:
-		if (psLast == NULL)
-		{
-			return false;
-		}
-		szTarget.Init();
-		szTarget.AppendSubString(psLast->szStart, psLast->uiLength);
-		psLine->iTarget = mmLabels.Get(szTarget.Text(), -1);
-		szTarget.Kill();
-		return psLine->iTarget >= 0;
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// What a line does to A, B, X and Y given the widths it starts with
-// (changed to the widths it leaves): the bits it reads and writes (as
-// IR65WidthBands) and a bit for each register whose width it depends on.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR65Widths::Effect(SIR65WidthLine* psLine, SIR65Widths* psWidths, SIR65Widths* psReads, SIR65Widths* psWrites, uint8* puiUses)
-{
-	uint8*	auiWidths;
-	uint8	uiBits;
-	int		i;
-
-	auiWidths = psWidths->auiRegisters;
-	memset(psReads, 0, sizeof(SIR65Widths));
-	memset(psWrites, 0, sizeof(SIR65Widths));
-	*puiUses = 0;
-
-	for (i = 0; i < IR65_WIDTH_REGISTERS; i++)
-	{
-		if (psLine->uiAddresses & (1 << i))
-		{
-			*puiUses |= (uint8)(1 << i);
-			psReads->auiRegisters[i] |= IR65WidthBands(auiWidths[i]);
-		}
-	}
-
-	switch (psLine->uiKind)
-	{
-	case IR65WK_Alu:
-	case IR65WK_Negate:
-		//The operation is the first register's width; with memory first, the second register's (or 32 bits).
-		if (psLine->iFirst >= 0)
-		{
-			uiBits = auiWidths[psLine->iFirst];
-		}
-		else if (!psLine->bFirstRegister && (psLine->iSecond >= 0))
-		{
-			uiBits = auiWidths[psLine->iSecond];
-		}
-		else
-		{
-			uiBits = 32;
-		}
-		if (psLine->iFirst >= 0)
-		{
-			*puiUses |= (uint8)(1 << psLine->iFirst);
-			if (psLine->bReadsFirst)
-			{
-				psReads->auiRegisters[psLine->iFirst] |= IR65WidthBands(uiBits);
-			}
-			if (psLine->bWritesFirst)
-			{
-				psWrites->auiRegisters[psLine->iFirst] |= IR65WidthBands(uiBits);
-			}
-		}
-		if (psLine->iSecond >= 0)
-		{
-			*puiUses |= (uint8)(1 << psLine->iSecond);
-			if (psLine->bShift || (auiWidths[psLine->iSecond] < uiBits))
-			{
-				psReads->auiRegisters[psLine->iSecond] |= IR65WidthBands(auiWidths[psLine->iSecond]);
-			}
-			else
-			{
-				psReads->auiRegisters[psLine->iSecond] |= IR65WidthBands(uiBits);
-			}
-		}
-		//A register read and written in one instruction (add A, A) is still read.
-		break;
-
-	case IR65WK_Push:
-	case IR65WK_Pull:
-		for (i = 0; i < IR65_WIDTH_REGISTERS; i++)
-		{
-			if (psLine->uiRegisters & (1 << i))
-			{
-				*puiUses |= (uint8)(1 << i);
-				if (psLine->uiKind == IR65WK_Push)
-				{
-					psReads->auiRegisters[i] |= IR65WidthBands(auiWidths[i]);
-				}
-				else
-				{
-					psWrites->auiRegisters[i] |= IR65WidthBands(auiWidths[i]);
-				}
-			}
-		}
-		break;
-
-	case IR65WK_Width:
-		for (i = 0; i < IR65_WIDTH_REGISTERS; i++)
-		{
-			if (psLine->uiRegisters & (1 << i))
-			{
-				auiWidths[i] = psLine->uiBits;
-			}
-		}
-		break;
-
-	case IR65WK_Extend:
-		i = psLine->iFirst;
-		*puiUses |= (uint8)(1 << i);
-		psReads->auiRegisters[i] |= IR65WidthBands(auiWidths[i]);
-		if (psLine->uiBits > auiWidths[i])
-		{
-			psWrites->auiRegisters[i] |= IR65WidthBands(psLine->uiBits) & ~IR65WidthBands(auiWidths[i]);
-		}
-		auiWidths[i] = psLine->uiBits;
-		break;
-
-	case IR65WK_Multiply:
-		*puiUses |= 0x1 | 0x2 | 0x8;
-		psReads->auiRegisters[0] |= IR65WidthBands(auiWidths[0]);
-		psReads->auiRegisters[1] |= IR65WidthBands(auiWidths[1]);
-		psWrites->auiRegisters[3] |= IR65WidthBands(auiWidths[3]);
-		break;
-
-	case IR65WK_Divide:
-		*puiUses |= 0x1 | 0x2 | 0x8;
-		psReads->auiRegisters[0] |= IR65WidthBands(auiWidths[0]);
-		psReads->auiRegisters[1] |= IR65WidthBands(auiWidths[1]);
-		psReads->auiRegisters[3] |= IR65WidthBands(auiWidths[3]);
-		psWrites->auiRegisters[1] |= IR65WidthBands(auiWidths[1]);
-		psWrites->auiRegisters[3] |= IR65WidthBands(auiWidths[3]);
-		break;
-
-	case IR65WK_Call:
-		//The callee starts with all four 32 bits wide, may read them (this in X) and changes them all.
-		*puiUses = IR65_WIDTH_ALL;
-		for (i = 0; i < IR65_WIDTH_REGISTERS; i++)
-		{
-			psReads->auiRegisters[i] |= IR65WidthBands(32);
-			psWrites->auiRegisters[i] = IR65WidthBands(64);
-			auiWidths[i] = 32;
-		}
-		if (psLine->iFirst >= 0)
-		{
-			psReads->auiRegisters[psLine->iFirst] |= IR65WidthBands(64);
-		}
-		break;
-
-	case IR65WK_Return:
-		//The result is A, all of it for a 64 bit one; stp may be looked at by anything.
-		*puiUses = IR65_WIDTH_ALL;
-		psReads->auiRegisters[0] = IR65WidthBands(64);
-		if (psLine->bReadsFirst)
-		{
-			for (i = 1; i < IR65_WIDTH_REGISTERS; i++)
-			{
-				psReads->auiRegisters[i] = IR65WidthBands(64);
-			}
-		}
-		break;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR65Widths::FallsThrough(SIR65WidthLine* psLine)
-{
-	return (psLine->uiKind != IR65WK_Jump) && (psLine->uiKind != IR65WK_Return);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The widths each line starts with: 32 bits at the function's label,
-// then what the lines before it leave.  False if a line can be reached
-// with two different widths of one register.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR65Widths::ComputeWidths(void)
-{
-	size			ui;
-	size			uiNum;
-	size			uiNext;
-	SIR65Widths		sWidths;
-	SIR65Widths		sReads;
-	SIR65Widths		sWrites;
-	SIR65WidthLine*	psLine;
-	SIR65Widths*	psTo;
-	uint8			uiUses;
-	bool			bChanged;
-	int				i;
-	int				iTo;
-	size			auiTo[2];
-
-	uiNum = masLines.NumElements();
-	masWidths.ReInit();
-	mauiReached.ReInit();
-	for (ui = 0; ui < uiNum; ui++)
-	{
-		memset(masWidths.Add(), 0, sizeof(SIR65Widths));
-		mauiReached.Add()[0] = 0;
-	}
-	if (uiNum == 0)
-	{
-		return false;
-	}
-	memset(masWidths.Get(0), 32, sizeof(SIR65Widths));
-	mauiReached.Set(0, (uint8*)"\1");
-
-	do
-	{
-		bChanged = false;
-		for (ui = 0; ui < uiNum; ui++)
-		{
-			if (!*mauiReached.Get(ui))
-			{
-				continue;
-			}
-			psLine = masLines.Get(ui);
-			sWidths = *masWidths.Get(ui);
-			Effect(psLine, &sWidths, &sReads, &sWrites, &uiUses);
-
-			auiTo[0] = (FallsThrough(psLine) && (ui + 1 < uiNum)) ? ui + 1 : uiNum;
-			auiTo[1] = (psLine->iTarget >= 0) ? (size)psLine->iTarget : uiNum;
-			for (iTo = 0; iTo < 2; iTo++)
-			{
-				uiNext = auiTo[iTo];
-				if (uiNext >= uiNum)
-				{
-					continue;
-				}
-				psTo = masWidths.Get(uiNext);
-				if (!*mauiReached.Get(uiNext))
-				{
-					*psTo = sWidths;
-					*mauiReached.Get(uiNext) = 1;
-					bChanged = true;
-					continue;
-				}
-				for (i = 0; i < IR65_WIDTH_REGISTERS; i++)
-				{
-					if ((psTo->auiRegisters[i] != sWidths.auiRegisters[i]) && (psTo->auiRegisters[i] != IR65_WIDTH_CONFLICT))
-					{
-						psTo->auiRegisters[i] = IR65_WIDTH_CONFLICT;
-						bChanged = true;
-					}
-				}
-			}
-		}
-	}
-	while (bChanged);
-
-	for (ui = 0; ui < uiNum; ui++)
-	{
-		if (*mauiReached.Get(ui))
-		{
-			for (i = 0; i < IR65_WIDTH_REGISTERS; i++)
-			{
-				if (masWidths.Get(ui)->auiRegisters[i] == IR65_WIDTH_CONFLICT)
-				{
-					return false;
-				}
-			}
-		}
-	}
-	return true;
 }
 
 
@@ -861,7 +158,7 @@ void CIR65Widths::ComputeLive(void)
 	bool			bChanged;
 	int				i;
 
-	uiNum = masLines.NumElements();
+	uiNum = mcCode.NumLines();
 	masLive.ReInit();
 	for (ui = 0; ui < uiNum; ui++)
 	{
@@ -873,15 +170,15 @@ void CIR65Widths::ComputeLive(void)
 		bChanged = false;
 		for (ui = uiNum; ui-- > 0;)
 		{
-			if (!*mauiReached.Get(ui))
+			if (!mcCode.IsReached(ui))
 			{
 				continue;
 			}
 			LiveOut(ui, &sOut);
-			sWidths = *masWidths.Get(ui);
-			Effect(masLines.Get(ui), &sWidths, &sReads, &sWrites, &uiUses);
+			sWidths = *mcCode.GetWidths(ui);
+			mcCode.Effect(ui, &sWidths, &sReads, &sWrites, &uiUses);
 			psIn = masLive.Get(ui);
-			for (i = 0; i < IR65_WIDTH_REGISTERS; i++)
+			for (i = 0; i < IR65_CODE_REGISTERS; i++)
 			{
 				uiIn = sReads.auiRegisters[i] | (sOut.auiRegisters[i] & ~sWrites.auiRegisters[i]);
 				if (uiIn != psIn->auiRegisters[i])
@@ -904,16 +201,16 @@ void CIR65Widths::ComputeLive(void)
 //////////////////////////////////////////////////////////////////////////
 void CIR65Widths::LiveOut(size uiLine, SIR65Widths* psOut)
 {
-	SIR65WidthLine*	psLine;
+	SIR65CodeLine*	psLine;
 	SIR65Widths*	psNext;
 	int				i;
 
-	psLine = masLines.Get(uiLine);
+	psLine = mcCode.GetLine(uiLine);
 	memset(psOut, 0, sizeof(SIR65Widths));
-	if (FallsThrough(psLine) && (uiLine + 1 < masLines.NumElements()))
+	if (mcCode.FallsThrough(uiLine) && (uiLine + 1 < mcCode.NumLines()))
 	{
 		psNext = masLive.Get(uiLine + 1);
-		for (i = 0; i < IR65_WIDTH_REGISTERS; i++)
+		for (i = 0; i < IR65_CODE_REGISTERS; i++)
 		{
 			psOut->auiRegisters[i] |= psNext->auiRegisters[i];
 		}
@@ -921,9 +218,86 @@ void CIR65Widths::LiveOut(size uiLine, SIR65Widths* psOut)
 	if (psLine->iTarget >= 0)
 	{
 		psNext = masLive.Get(psLine->iTarget);
-		for (i = 0; i < IR65_WIDTH_REGISTERS; i++)
+		for (i = 0; i < IR65_CODE_REGISTERS; i++)
 		{
 			psOut->auiRegisters[i] |= psNext->auiRegisters[i];
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The back end extends an i8 or i16 kept in a 32 bit register with "and R,
+// 255" (zero) or "xor R, 128 / sub R, 128" (sign).  After "cpy R1, R2" the
+// copy can do it, with R2 that narrow: "cpy R1, R2:s" (the sign extend
+// sets n and z alike, but not c and v, so only when nothing reads those).
+// A sign extend on its own is a wthx when nothing reads the flags it sets.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Widths::NarrowExtensions(void)
+{
+	size	ui;
+	size	uiNum;
+	int		iRegister;
+	int		iSub;
+	int		iSource;
+	int64	lliValue;
+	int64	lliSub;
+	uint8	uiBits;
+	uint8	uiDemand;
+	CChars	szInstruction;
+
+	uiNum = mcCode.NumLines();
+	for (ui = 0; ui < uiNum; ui++)
+	{
+		if (!mcCode.IsReached(ui))
+		{
+			continue;
+		}
+		if (IR65WidthsImmediate(mcCode.GetText(ui), "and", &iRegister, &lliValue) && ((lliValue == 0xFF) || (lliValue == 0xFFFF)) && (mcCode.GetWidths(ui)->auiRegisters[iRegister] == 32))
+		{
+			uiBits = (lliValue == 0xFF) ? 8 : 16;
+			if ((ui > 0) && mcCode.IsReached(ui - 1) && IR65WidthsCopy(&mcCode, ui - 1, iRegister, &iSource) && (mcCode.GetWidths(ui - 1)->auiRegisters[iSource] == 32))
+			{
+				//cpy R1, R2 / and R1, 255 is cpy R1, R2 with R2 8 bits wide (the same flags).
+				mcCode.GetWidths(ui - 1)->auiRegisters[iSource] = uiBits;
+				mcCode.Remove(ui);
+			}
+			continue;
+		}
+		if (!IR65WidthsImmediate(mcCode.GetText(ui), "xor", &iRegister, &lliValue) || ((lliValue != 0x80) && (lliValue != 0x8000)) || (mcCode.GetWidths(ui)->auiRegisters[iRegister] != 32))
+		{
+			continue;
+		}
+		if ((ui + 1 >= uiNum) || !IR65WidthsImmediate(mcCode.GetText(ui + 1), "sub", &iSub, &lliSub) || (iSub != iRegister) || (lliSub != lliValue))
+		{
+			continue;
+		}
+		uiBits = (lliValue == 0x80) ? 8 : 16;
+		uiDemand = *mauiDemand.Get(ui + 1);
+		if ((ui > 0) && mcCode.IsReached(ui - 1) && IR65WidthsCopy(&mcCode, ui - 1, iRegister, &iSource) && (mcCode.GetWidths(ui - 1)->auiRegisters[iSource] == 32) && ((uiDemand & (IR65_FLAG_C | IR65_FLAG_V)) == 0))
+		{
+			szInstruction.Init("cpy ");
+			szInstruction.Append(CIR65Code::RegisterName(iRegister))->Append(", ")->Append(CIR65Code::RegisterName(iSource))->Append(":s");
+			if (mcCode.Replace(ui - 1, szInstruction.Text()))
+			{
+				mcCode.GetWidths(ui - 1)->auiRegisters[iSource] = uiBits;
+				mcCode.Remove(ui);
+				mcCode.Remove(ui + 1);
+			}
+			szInstruction.Kill();
+		}
+		else if (uiDemand == 0)
+		{
+			szInstruction.Init("wthx ");
+			szInstruction.Append(CIR65Code::RegisterName(iRegister))->Append(", 32:s");
+			if (mcCode.Replace(ui, szInstruction.Text()))
+			{
+				mcCode.GetWidths(ui)->auiRegisters[iRegister] = uiBits;
+				mcCode.Remove(ui + 1);
+			}
+			szInstruction.Kill();
 		}
 	}
 }
@@ -938,26 +312,26 @@ void CIR65Widths::LiveOut(size uiLine, SIR65Widths* psOut)
 bool CIR65Widths::RemoveExtensions(void)
 {
 	size			ui;
-	SIR65WidthLine*	psLine;
+	SIR65CodeLine*	psLine;
 	SIR65Widths		sOut;
 	uint8			uiFrom;
 	uint8			uiExtended;
 	bool			bRemoved;
 
 	bRemoved = false;
-	for (ui = 0; ui < masLines.NumElements(); ui++)
+	for (ui = 0; ui < mcCode.NumLines(); ui++)
 	{
-		psLine = masLines.Get(ui);
-		if ((psLine->uiKind != IR65WK_Extend) || !*mauiReached.Get(ui))
+		psLine = mcCode.GetLine(ui);
+		if ((psLine->uiKind != IR65CK_Extend) || !mcCode.IsReached(ui))
 		{
 			continue;
 		}
 		LiveOut(ui, &sOut);
-		uiFrom = masWidths.Get(ui)->auiRegisters[psLine->iFirst];
-		uiExtended = IR65WidthBands(psLine->uiBits) & ~IR65WidthBands(uiFrom);
+		uiFrom = mcCode.GetWidths(ui)->auiRegisters[psLine->iFirst];
+		uiExtended = CIR65Code::Bands(psLine->uiBits) & ~CIR65Code::Bands(uiFrom);
 		if ((sOut.auiRegisters[psLine->iFirst] & uiExtended) == 0)
 		{
-			psLine->uiKind = IR65WK_Width;
+			psLine->uiKind = IR65CK_Width;
 			psLine->uiRegisters = (uint8)(1 << psLine->iFirst);
 			psLine->iFirst = -1;
 			bRemoved = true;
@@ -977,24 +351,24 @@ bool CIR65Widths::RemoveExtensions(void)
 uint8 CIR65Widths::NextNeed(size uiFirst, int iRegister)
 {
 	size			ui;
-	SIR65WidthLine*	psLine;
+	SIR65CodeLine*	psLine;
 	SIR65Widths		sWidths;
 	SIR65Widths		sReads;
 	SIR65Widths		sWrites;
 	uint8			uiUses;
 
-	for (ui = uiFirst; ui < masLines.NumElements(); ui++)
+	for (ui = uiFirst; ui < mcCode.NumLines(); ui++)
 	{
-		psLine = masLines.Get(ui);
-		if (!*mauiReached.Get(ui) || (psLine->uiKind == IR65WK_Branch) || (psLine->uiKind == IR65WK_Jump))
+		psLine = mcCode.GetLine(ui);
+		if (!mcCode.IsReached(ui) || (psLine->uiKind == IR65CK_Branch) || (psLine->uiKind == IR65CK_Jump))
 		{
 			return 0;
 		}
-		sWidths = *masWidths.Get(ui);
-		Effect(psLine, &sWidths, &sReads, &sWrites, &uiUses);
+		sWidths = *mcCode.GetWidths(ui);
+		mcCode.Effect(ui, &sWidths, &sReads, &sWrites, &uiUses);
 		if (uiUses & (1 << iRegister))
 		{
-			return masWidths.Get(ui)->auiRegisters[iRegister];
+			return mcCode.GetWidths(ui)->auiRegisters[iRegister];
 		}
 	}
 	return 0;
@@ -1014,15 +388,15 @@ void CIR65Widths::Anticipate(size uiLabel, size uiFallThrough)
 	SIR65Widths	sTarget;
 	int			i;
 
-	for (i = 0; i < IR65_WIDTH_REGISTERS; i++)
+	for (i = 0; i < IR65_CODE_REGISTERS; i++)
 	{
 		sTarget.auiRegisters[i] = NextNeed(uiLabel + 1, i);
-		if ((uiFallThrough < masLines.NumElements()) && (NextNeed(uiFallThrough, i) != sTarget.auiRegisters[i]))
+		if ((uiFallThrough < mcCode.NumLines()) && (NextNeed(uiFallThrough, i) != sTarget.auiRegisters[i]))
 		{
 			sTarget.auiRegisters[i] = 0;
 		}
 	}
-	SetWidths(&sTarget, masLines.NumElements());
+	SetWidths(&sTarget, mcCode.NumLines());
 }
 
 
@@ -1041,7 +415,7 @@ void CIR65Widths::DecideEntry(size uiLabel, bool bFromActual)
 	int				i;
 
 	psEntry = masEntries.Get(uiLabel);
-	for (i = 0; i < IR65_WIDTH_REGISTERS; i++)
+	for (i = 0; i < IR65_CODE_REGISTERS; i++)
 	{
 		if (psEntry->auiRegisters[i] != 0)
 		{
@@ -1050,7 +424,11 @@ void CIR65Widths::DecideEntry(size uiLabel, bool bFromActual)
 		uiNeed = NextNeed(uiLabel + 1, i);
 		if (uiNeed == 0)
 		{
-			uiNeed = bFromActual ? msActual.auiRegisters[i] : masWidths.Get(uiLabel)->auiRegisters[i];
+			uiNeed = bFromActual ? msActual.auiRegisters[i] : mcCode.GetWidths(uiLabel)->auiRegisters[i];
+		}
+		if (uiNeed == IR65_WIDTH_UNKNOWN)
+		{
+			uiNeed = 0;
 		}
 		psEntry->auiRegisters[i] = uiNeed;
 	}
@@ -1070,7 +448,7 @@ void CIR65Widths::Arrive(size uiLabel)
 	int				i;
 
 	psEntry = masEntries.Get(uiLabel);
-	for (i = 0; i < IR65_WIDTH_REGISTERS; i++)
+	for (i = 0; i < IR65_CODE_REGISTERS; i++)
 	{
 		if (!*mauiArrived.Get(uiLabel))
 		{
@@ -1098,23 +476,23 @@ void CIR65Widths::SetWidths(SIR65Widths* psTarget, size uiNext)
 	int		iPair;
 	uint8	uiBits;
 
-	for (i = 0; i < IR65_WIDTH_REGISTERS; i++)
+	for (i = 0; i < IR65_CODE_REGISTERS; i++)
 	{
 		uiBits = psTarget->auiRegisters[i];
 		if ((uiBits == 0) || (msActual.auiRegisters[i] == uiBits))
 		{
 			continue;
 		}
-		for (iPair = i + 1; iPair < IR65_WIDTH_REGISTERS; iPair++)
+		for (iPair = i + 1; iPair < IR65_CODE_REGISTERS; iPair++)
 		{
 			if ((psTarget->auiRegisters[iPair] == uiBits) && (msActual.auiRegisters[iPair] != uiBits))
 			{
 				break;
 			}
 		}
-		if (iPair == IR65_WIDTH_REGISTERS)
+		if (iPair == IR65_CODE_REGISTERS)
 		{
-			for (iPair = 0; iPair < IR65_WIDTH_REGISTERS; iPair++)
+			for (iPair = 0; iPair < IR65_CODE_REGISTERS; iPair++)
 			{
 				if ((iPair != i) && (psTarget->auiRegisters[iPair] == 0) && (msActual.auiRegisters[iPair] != uiBits) && (NextNeed(uiNext, iPair) == uiBits))
 				{
@@ -1122,14 +500,14 @@ void CIR65Widths::SetWidths(SIR65Widths* psTarget, size uiNext)
 				}
 			}
 		}
-		if (iPair < IR65_WIDTH_REGISTERS)
+		if (iPair < IR65_CODE_REGISTERS)
 		{
-			mpszOut->Append("\t\twtth (")->Append(gacIR65WidthRegisters[i])->Append(", ")->Append(gacIR65WidthRegisters[iPair])->Append("), ")->Append((int32)uiBits)->AppendNewLine();
+			mpszOut->Append("\t\twtth (")->Append(CIR65Code::RegisterName(i))->Append(", ")->Append(CIR65Code::RegisterName(iPair))->Append("), ")->Append((int32)uiBits)->AppendNewLine();
 			msActual.auiRegisters[iPair] = uiBits;
 		}
 		else
 		{
-			mpszOut->Append("\t\twth ")->Append(gacIR65WidthRegisters[i])->Append(", ")->Append((int32)uiBits)->AppendNewLine();
+			mpszOut->Append("\t\twth ")->Append(CIR65Code::RegisterName(i))->Append(", ")->Append((int32)uiBits)->AppendNewLine();
 		}
 		msActual.auiRegisters[i] = uiBits;
 	}
@@ -1147,7 +525,7 @@ void CIR65Widths::Write(void)
 {
 	size			ui;
 	size			uiNum;
-	SIR65WidthLine*	psLine;
+	SIR65CodeLine*	psLine;
 	SIR65Widths		sWidths;
 	SIR65Widths		sReads;
 	SIR65Widths		sWrites;
@@ -1157,7 +535,7 @@ void CIR65Widths::Write(void)
 	bool			bFirstLabel;
 	int				i;
 
-	uiNum = masLines.NumElements();
+	uiNum = mcCode.NumLines();
 	masEntries.ReInit();
 	mauiArrived.ReInit();
 	for (ui = 0; ui < uiNum; ui++)
@@ -1171,16 +549,16 @@ void CIR65Widths::Write(void)
 
 	for (ui = 0; ui < uiNum; ui++)
 	{
-		psLine = masLines.Get(ui);
-		if (!*mauiReached.Get(ui) || (psLine->uiKind == IR65WK_Other))
+		psLine = mcCode.GetLine(ui);
+		if (!mcCode.IsReached(ui) || (psLine->uiKind == IR65CK_Other))
 		{
-			WriteLine(ui);
+			mcCode.WriteLine(mpszOut, ui);
 			continue;
 		}
 
 		switch (psLine->uiKind)
 		{
-		case IR65WK_Label:
+		case IR65CK_Label:
 			if (bFirstLabel)
 			{
 				//The function's own label: callers set all four to 32 bits.
@@ -1188,7 +566,7 @@ void CIR65Widths::Write(void)
 				*mauiArrived.Get(ui) = 1;
 				bFirstLabel = false;
 			}
-			else if (*mauiJumpedBack.Get(ui))
+			else if (mcCode.IsJumpedBack(ui))
 			{
 				DecideEntry(ui, bKnown);
 				if (bKnown)
@@ -1203,65 +581,50 @@ void CIR65Widths::Write(void)
 			}
 			msActual = *masEntries.Get(ui);
 			bKnown = true;
-			WriteLine(ui);
+			mcCode.WriteLine(mpszOut, ui);
 			break;
 
-		case IR65WK_Width:
+		case IR65CK_Width:
 			break;
 
-		case IR65WK_Branch:
-		case IR65WK_Jump:
-			if (*mauiJumpedBack.Get(psLine->iTarget))
+		case IR65CK_Branch:
+		case IR65CK_Jump:
+			if (mcCode.IsJumpedBack(psLine->iTarget))
 			{
 				DecideEntry(psLine->iTarget, true);
 				SetWidths(masEntries.Get(psLine->iTarget), uiNum);
 			}
 			else
 			{
-				Anticipate(psLine->iTarget, (psLine->uiKind == IR65WK_Branch) ? ui + 1 : uiNum);
+				Anticipate(psLine->iTarget, (psLine->uiKind == IR65CK_Branch) ? ui + 1 : uiNum);
 				Arrive(psLine->iTarget);
 			}
-			WriteLine(ui);
-			bKnown = psLine->uiKind == IR65WK_Branch;
+			mcCode.WriteLine(mpszOut, ui);
+			bKnown = psLine->uiKind == IR65CK_Branch;
 			break;
 
 		default:
-			sWidths = *masWidths.Get(ui);
-			Effect(psLine, &sWidths, &sReads, &sWrites, &uiUses);
+			sWidths = *mcCode.GetWidths(ui);
+			mcCode.Effect(ui, &sWidths, &sReads, &sWrites, &uiUses);
 			memset(&sTarget, 0, sizeof(SIR65Widths));
-			for (i = 0; i < IR65_WIDTH_REGISTERS; i++)
+			for (i = 0; i < IR65_CODE_REGISTERS; i++)
 			{
 				if (uiUses & (1 << i))
 				{
-					sTarget.auiRegisters[i] = masWidths.Get(ui)->auiRegisters[i];
+					sTarget.auiRegisters[i] = mcCode.GetWidths(ui)->auiRegisters[i];
 				}
 			}
 			SetWidths(&sTarget, ui);
-			WriteLine(ui);
-			for (i = 0; i < IR65_WIDTH_REGISTERS; i++)
+			mcCode.WriteLine(mpszOut, ui);
+			for (i = 0; i < IR65_CODE_REGISTERS; i++)
 			{
 				if (uiUses & (1 << i))
 				{
-					msActual.auiRegisters[i] = sWidths.auiRegisters[i];
+					msActual.auiRegisters[i] = (sWidths.auiRegisters[i] == IR65_WIDTH_UNKNOWN) ? 0 : sWidths.auiRegisters[i];
 				}
 			}
-			bKnown = psLine->uiKind != IR65WK_Return;
+			bKnown = psLine->uiKind != IR65CK_Return;
 			break;
 		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A line as it was, with the new line after it that the code had.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR65Widths::WriteLine(size uiLine)
-{
-	mpszOut->Append(maszLines.Get(uiLine));
-	if (uiLine + 1 < maszLines.NumElements())
-	{
-		mpszOut->AppendNewLine();
 	}
 }

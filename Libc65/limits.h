@@ -1,4 +1,5 @@
-//The limits of the 65C64's integers: char is signed and 8 bits, int and long are 32 bits.
+//The limits of the 65C64's and the W65C816's integers: char is signed and 8 bits, long is 32 bits, int is 32 bits on
+//the 65C64 and 16 on the W65C816.
 #ifndef __LIBC65_LIMITS_H__
 #define __LIBC65_LIMITS_H__
 
@@ -16,9 +17,15 @@
 #define SHRT_MAX		32767
 #define USHRT_MAX		0xffff
 
+#ifdef __W65C816__
+#define INT_MIN			(-32767 - 1)
+#define INT_MAX			32767
+#define UINT_MAX		0xffffU
+#else
 #define INT_MIN			(-2147483647 - 1)
 #define INT_MAX			2147483647
 #define UINT_MAX		0xffffffffU
+#endif // __W65C816__
 
 #define LONG_MIN		(-2147483647L - 1)
 #define LONG_MAX		2147483647L

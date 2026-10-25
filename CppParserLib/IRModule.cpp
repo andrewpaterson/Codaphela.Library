@@ -165,6 +165,7 @@ void CIRModule::Init(void)
 	masDefinitions.Init();
 	mapcFunctions.Init();
 	mapcGlobals.Init();
+	mapcKnown.Init();
 	mpasTargetOpcodes = NULL;
 	muiNumTargetOpcodes = 0;
 }
@@ -180,6 +181,12 @@ void CIRModule::Kill(void)
 	CIRFunction*	pcFunction;
 	CIRGlobal*		pcGlobal;
 
+	for (ui = 0; ui < mapcKnown.NumElements(); ui++)
+	{
+		pcGlobal = mapcKnown.GetPtr(ui);
+		SafeKill(pcGlobal);
+	}
+	mapcKnown.Kill();
 	for (ui = 0; ui < mapcGlobals.NumElements(); ui++)
 	{
 		pcGlobal = mapcGlobals.GetPtr(ui);
@@ -447,6 +454,52 @@ CIRGlobal* CIRModule::FindGlobal(uint32 uiSymbol)
 
 	psDefinition = masDefinitions.SafeGet(uiSymbol);
 	return psDefinition ? psDefinition->pcGlobal : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The contents of read only data defined outside the module (a vtable the
+// generator writes), for the optimiser to read through.  It is not a
+// global of the module: nothing writes it out.
+//
+//////////////////////////////////////////////////////////////////////////
+CIRGlobal* CIRModule::AddKnownData(const char* szName, uint32 uiAlign)
+{
+	CIRGlobal*	pcKnown;
+
+	pcKnown = NewMalloc<CIRGlobal>();
+	pcKnown->Init(AddSymbol(szName), uiAlign, IRA_Constant);
+	mapcKnown.Add(pcKnown);
+	return pcKnown;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The contents of a symbol that are never written: a constant global or
+// known data; NULL for any other.
+//
+//////////////////////////////////////////////////////////////////////////
+CIRGlobal* CIRModule::FindConstantData(uint32 uiSymbol)
+{
+	CIRGlobal*	pcGlobal;
+	size		ui;
+
+	pcGlobal = FindGlobal(uiSymbol);
+	if (pcGlobal)
+	{
+		return (pcGlobal->muiAttributes & IRA_Constant) ? pcGlobal : NULL;
+	}
+	for (ui = 0; ui < mapcKnown.NumElements(); ui++)
+	{
+		pcGlobal = mapcKnown.GetPtr(ui);
+		if (pcGlobal->muiSymbol == uiSymbol)
+		{
+			return pcGlobal;
+		}
+	}
+	return NULL;
 }
 
 

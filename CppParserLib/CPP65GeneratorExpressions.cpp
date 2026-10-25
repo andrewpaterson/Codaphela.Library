@@ -216,7 +216,7 @@ SCPP65Type* CCPP65Generator::Literal(CCPPSyntaxLiteralExpression* pcLiteral)
 		switch (((CCTNumber*)pcToken)->meType)
 		{
 		case CTNT_Int:
-			return ((CCTInt*)pcToken)->IsSigned() ? &mcTypes.msInt : &mcTypes.msUnsignedInt;
+			return IntegerLiteralType((CCTInt*)pcToken);
 		case CTNT_Short:
 			return &mcTypes.msInt;
 		case CTNT_LongLong:
@@ -241,6 +241,29 @@ SCPP65Type* CCPP65Generator::Literal(CCPPSyntaxLiteralExpression* pcLiteral)
 		return &mcTypes.msBool;
 	}
 	return mcTypes.Pointer(&mcTypes.msVoid);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An int literal is int (or unsigned int) if it fits and has no L suffix, otherwise long (or unsigned long): only
+// different where int is narrower than 32 bits (the W65C816).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::IntegerLiteralType(CCTInt* pcInt)
+{
+	int64	lliValue;
+	bool	bLong;
+
+	if (pcInt->IsSigned())
+	{
+		lliValue = (int32)pcInt->mcValue;
+		bLong = pcInt->mbLong || (lliValue < -32768) || (lliValue > 32767);
+		return bLong && (mcTypes.msInt.iBytes < 4) ? &mcTypes.msLong : &mcTypes.msInt;
+	}
+	lliValue = (uint32)pcInt->mcValue;
+	bLong = pcInt->mbLong || (lliValue > 0xFFFF);
+	return bLong && (mcTypes.msInt.iBytes < 4) ? &mcTypes.msUnsignedLong : &mcTypes.msUnsignedInt;
 }
 
 
@@ -3957,16 +3980,14 @@ void CCPP65Generator::Widen(const char* szRegister, bool bSigned)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// mul and div count their steps in W, from 0.  W points at the pseudo registers, so
-// it is kept on the stack.
+// mul and div count their steps in W, from 0.  W is always 0 (the calling
+// convention), so it is only set back afterwards.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::Multiply(const char* szInstruction)
 {
-	Push("W");
-	Line("cpy W, 0")->AppendNewLine();
 	Line(szInstruction)->AppendNewLine();
-	Pull("W");
+	Line("cpy W, 0")->AppendNewLine();
 }
 
 

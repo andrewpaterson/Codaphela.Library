@@ -25,6 +25,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Assembler65Lib/Asm65Object.h"
 #include "Assembler65Lib/Asm65Linker.h"
 #include "Project.h"
+#include "CPPTarget.h"
 
 
 struct SCPP65IncludeDirectory
@@ -60,7 +61,8 @@ struct SCPP65Object
 typedef CArrayTemplate<SCPP65Object>	CArrayCPP65Objects;
 
 
-//Builds a 65C64 program.  Each part is an object: the start up, C++ sources given as text, assembly, and the
+//Builds a program for a target (SetTarget, before anything is added: the 65C64 unless set, or the W65C816, whose
+//sections are kept inside 64KB banks and only the vectors and their stubs are in bank 0).  Each part is an object: the start up, C++ sources given as text, assembly, and the
 //translation units of a project.  They are linked in the order they were added (the project's units last, when
 //Link compiles them) with the text at CPP65_PROGRAM_ADDRESS, ending below CPP65_HEAP_ADDRESS.  A project library
 //can instead be linked as a library, so only the units something uses are linked.  A label no object
@@ -77,6 +79,7 @@ protected:
 	CArrayCPP65IncludeDirectories	macIncludeDirectories;
 	CArrayCPP65LinkLibraries		macLinkLibraries;
 	CProject						mcProject;
+	ECPPTarget						meTarget;
 	size							muiUnits;
 	uint32							muiLimit;
 	bool							mbCompiled;
@@ -94,6 +97,7 @@ protected:
 public:
 	void			Init(void);
 	void			Kill(void);
+	void			SetTarget(ECPPTarget eTarget);
 
 	void			AddIncludeDirectory(const char* szDirectory, bool bIncludeSubDirectories, bool bSystem);
 	void			AddUnit(const char* szLibrary, const char* szDirectory, const char* szFile, bool bLinkAsLibrary = false);
@@ -120,7 +124,7 @@ public:
 	bool			GetSymbol(const char* szName, int64* piValue);
 	CArrayUint8*	GetLazyImage(void);
 
-	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals);
+	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64);
 	CArrayCPP65IncludeDirectories*	GetIncludeDirectories(void);
 
 protected:

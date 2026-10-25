@@ -2960,7 +2960,11 @@ void CCPP65Generator::AppendVtableEntry(SCPP65Function* psFunction, int iAdjust)
 	{
 		szLabel.Append("__t");
 		szLabel.Append(-iAdjust);
-		if (Emit(&szLabel))
+		if (!mpsTarget->bDirectGenerator)
+		{
+			ErrorAt(-1, "A virtual function of a base that isn't at the start of its class (a this adjusting thunk) is not supported on this target yet");
+		}
+		else if (Emit(&szLabel))
 		{
 			if (IsUnitFunction(psFunction))
 			{
@@ -4722,7 +4726,11 @@ void CCPP65Generator::AppendVirtualCallThunk(CChars* psz, SCPP65Function* psFunc
 	szLabel.Append(psFunction->psClass->iVtableOffset);
 	szLabel.Append('_');
 	szLabel.Append(psFunction->iSlot);
-	if (Emit(&szLabel))
+	if (!mpsTarget->bDirectGenerator)
+	{
+		ErrorAt(-1, "The address of a virtual member function (a virtual call thunk) is not supported on this target yet");
+	}
+	else if (Emit(&szLabel))
 	{
 		AppendSection(&mszThunks, "text", &szLabel, ", comdat");
 		AppendGlobal(&mszThunks, &szLabel);

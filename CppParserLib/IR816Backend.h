@@ -49,8 +49,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //the caller removes them.  A result of up to 16 bits is in A, of 32 bits in A (low) and X (high); a 64 bit result
 //is written through a hidden pointer the caller pushes after the arguments (the function's first parameter).  A
 //call through a pointer pushes the return address and the target then rtl's.  Multiply, divide and remainder are
-//calls to runtime routines written in IR (R816_Mul16 ...), which GenerateRuntime generates.  Floats are not done
-//yet.  A, X and Y may change in a call; D and the widths are kept.
+//calls to runtime routines written in IR (R816_Mul16 ...), which GenerateRuntime generates.  Float operations call
+//Libc65's soft float functions (_SoftFloatAdd ..., softfloat.cpp compiled for the W65C816).  A, X and Y may change
+//in a call; D and the widths are kept.
 class CIR816Backend
 {
 protected:
@@ -69,6 +70,7 @@ protected:
 	CArrayTemplate<size>	maiPendingArguments;	//Instruction indices of the args before a call.
 	int32					miFrameBytes;
 	int32					miHiddenResult;		//The hidden result pointer's place, -1 when the result isn't 64 bits.
+	const char*				mszSectionOptions;	//After each function's section name: ", comdat" for the runtime.
 
 public:
 	void			Init(CIRModule* pcModule, int* piLabels);
@@ -120,6 +122,11 @@ protected:
 	void			StoreMemory(SIRInstruction* psInstruction);
 	void			Call(CIRBlock* pcBlock, SIRInstruction* psInstruction);
 	void			CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction);
+	void			CallFunction(const char* szName, int32 iBytes, SIRInstruction* psInstruction);
+	void			FloatArithmetic(SIRInstruction* psInstruction);
+	void			FloatCompare(SIRInstruction* psInstruction);
+	void			FloatConversion(SIRInstruction* psInstruction);
+	void			PushInt32(SIRReference sValue, SIRType sType, bool bSigned);
 
 	void			Prologue(const char* szLabel);
 	void			Epilogue(void);

@@ -38,6 +38,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPPSyntaxes.h"
 #include "CPPSymbol.h"
 #include "CPP65Type.h"
+#include "CPPTarget.h"
 #include "CPPErrors.h"
 #include "Config.h"
 
@@ -394,6 +395,7 @@ typedef CArrayTemplate<CChars>				CArrayCPP65Strings;
 
 
 class CCPP65IRFrontEnd;
+class CCTInt;
 
 
 //Generates 65C64 assembly (Assembler65Lib syntax) from a parsed translation unit.  The calling convention and
@@ -406,6 +408,7 @@ protected:
 	CCPPSyntaxTree*			mpcTree;
 	CCPPTokeniser*			mpcTokeniser;
 	CCPP65Types				mcTypes;
+	SCPPTarget*				mpsTarget;
 
 	CChars					mszCode;
 	CChars					mszData;
@@ -472,7 +475,7 @@ protected:
 	CCPP65IRFrontEnd*		mpcIRFrontEnd;		//NULL unless SetUseIR(true).
 
 public:
-	void					Init(CCPPSyntaxTree* pcTree);
+	void					Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget = CPPT_65C64);
 	void					Kill(void);
 	void					SetUseIR(bool bUseIR);
 	static void				SetDefaultUseIR(bool bUseIR);
@@ -480,8 +483,9 @@ public:
 
 	bool					Generate(CChars* pszDest);
 	bool					GenerateProgram(CChars* pszDest);
-	static void				AppendStartUp(CChars* pszDest);
-	static void				AddDefines(CConfig* pcConfig);
+	static void				AppendStartUp(CChars* pszDest, ECPPTarget eTarget = CPPT_65C64);
+	static void				AppendStartUp816(CChars* pszDest);
+	static void				AddDefines(CConfig* pcConfig, ECPPTarget eTarget = CPPT_65C64);
 	CCPPErrors*				GetErrors(void);
 	int						NumErrors(void);
 	void					GetExternals(CArrayChars* paszLabels);
@@ -489,6 +493,7 @@ public:
 protected:
 	//Declarations, functions and statements.  CPP65Generator.cpp
 	bool					Error(CCPPSyntax* pcNode, const char* szMessage);
+	SCPP65Type*				IntegerLiteralType(CCTInt* pcInt);
 	bool					ErrorAt(int iToken, const char* szMessage);
 	void					BeginQuiet(void);
 	bool					EndQuiet(void);
@@ -560,9 +565,12 @@ protected:
 	bool					ConditionDeclaration(CCPPSyntax* pcCondition);
 	void					AppendStrings(CChars* pszDest);
 	void					AppendRuntime(void);
+	void					AppendRuntime816(void);
 	void					AppendDivideSigned(const char* szName, int iBytes);
 	void					BeginRuntime(const char* szName);
 	void					AppendStartUpRoutine(const char* szTable, const char* szName, CChars* pszBody, CChars* pszData);
+	void					AppendStartUpEntry(const char* szTable, CChars* pszLabel, CChars* pszData);
+	bool					GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, bool bConstruct, bool bDestroy);
 	void					AppendSection(CChars* psz, const char* szKind, CChars* pszName, const char* szOptions);
 	bool					HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator);
 	void					BeginData(CChars* pszLabel, int iAlignment, bool bGlobal, const char* szOptions);

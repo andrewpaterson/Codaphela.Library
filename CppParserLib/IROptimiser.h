@@ -97,14 +97,20 @@ struct SIRSlotAccess
 //						fields) becomes a slot per offset
 //	slot promotion		slots and argaddrs only loaded and stored (all at one type, not volatile) become
 //						temporaries and phis (as LLVM's mem2reg, with dominance frontiers)
-//	trivial phis		a phi whose arguments are all one value (or itself) is that value
+//	trivial phis		a phi whose arguments are all one value (or itself) is that value; a phi taking the same
+//						values as an earlier phi of its block is that phi
 //	constant folding	integer instructions (and integer and pointer conversions) of constants; x * 2^n is
 //						x << n and unsigned / and % by 2^n are >> and &; a comparison of two extended narrow
 //						values compares the narrow values; a comparison a branch on the way in decides is a
 //						constant (or eq, ne); an extension undone, or of a phi of constants, goes
 //	local cse			an instruction without effects that a block already did is the earlier result
 //	redundant loads		a load of a value known to be in memory (loaded or stored before it, with nothing
-//						that may change it between) is that value
+//						that may change it between) is that value; a load from a constant global or known
+//						data (a vtable) is what is there
+//	less loop tests		a loop that goes round while a <= b (signed) goes round while a < b + 1 when b + 1 can't
+//						wrap and b is invariant (or a - 1 < b): the 65C64 branches on less in one instruction
+//	strength reduction	in a loop with a counter i (i + c each time round), an address p + (i << s) or p + i * k
+//						with p unchanged by the loop becomes a pointer stepped by c * k
 //	invariant code		loads and integer operations in a loop of what the loop doesn't change move to the
 //						block that enters it (one put on the way when that block branches)
 //	dead code			instructions without effects whose results are not used
@@ -146,6 +152,8 @@ public:
 	bool			FoldConstants(void);
 	bool			RemoveCommonSubexpressions(void);
 	bool			RemoveRedundantLoads(void);
+	bool			LessLoopTests(void);
+	bool			ReduceStrength(void);
 	bool			HoistInvariants(void);
 	bool			RemoveDeadCode(void);
 
@@ -186,6 +194,14 @@ protected:
 	bool			ImpliedComparison(CIRBlock* pcBlock, SIRInstruction* psInstruction, uint64* pulliResult, bool* pbChanged);
 	void			FindDefinitions(void);
 	SIRInstruction*	Definition(SIRReference sValue);
+	SIRReference	ConstantData(SIRReference sRoot, int64 lliOffset, SIRType sType);
+	SIRReference	SamePhi(CIRBlock* pcBlock, size uiPhi);
+	void			MergeAvailable(CIRBlock* pcBlock, CArrayIRAvailables* pasAvailable, CArrayIRAvailables* pasEnds, CArrayTemplate<SIRBlockEnd>* pasBlockEnds);
+	bool			FindLoop(CIRBlock* pcHead, CArrayTemplate<int32>* paiLoop, CArrayIRBlocks* papcStack, CIRBlock** ppcEntering);
+	void			FindDefiningBlocks(CArrayTemplate<int32>* paiDefined);
+	bool			IsLoopInvariant(SIRReference sValue, CArrayTemplate<int32>* paiDefined, CArrayTemplate<int32>* paiLoop, int32 iHead);
+	bool			CanStep(SIRReference sValue, int iStep);
+	SIRReference	AppendInstruction(CIRBlock* pcBlock, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond);
 	void			SplitAddress(SIRReference sAddress, SIRReference* psRoot, int64* plliOffset);
 	bool			IsFrameRoot(SIRReference sRoot);
 	bool			MayAlias(SIRAvailable* psAvailable, SIRReference sRoot, int64 lliOffset, int iBytes);

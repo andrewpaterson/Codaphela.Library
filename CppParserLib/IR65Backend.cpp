@@ -168,14 +168,10 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRun
 	mpsFlags = NULL;
 	mpcFlags = NULL;
 	mbFlagsKnown = false;
-	msFlagsValue = IRNone();
-	muiFlagsLength = 0;
-	msEndFlags = IRNone();
-	mpcEndFlags = NULL;
-	mbFlagsUsed = false;
 	mbRightImmediate = false;
 	mbFrameless = false;
 	mcFrame = 'V';
+	mcFlags.Init();
 	mcWidths.Init();
 	mauiNarrowOnly.Init();
 }
@@ -191,6 +187,7 @@ void CIR65Backend::Kill(void)
 
 	mauiNarrowOnly.Kill();
 	mcWidths.Kill();
+	mcFlags.Kill();
 	mszDeferred.Kill();
 	masStubs.Kill();
 	masMoves.Kill();
@@ -943,8 +940,8 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	Layout();
 	Allocate();
 
-	//A function with nothing in the frame doesn't set V up when its arguments can be found from S: a leaf (S only
-	//moves around mul and div) or one that reads them before pushing anything.  Otherwise V points at the frame.
+	//A function with nothing in the frame doesn't set V up when its arguments can be found from S: a leaf (S doesn't
+	//move) or one that reads them before pushing anything.  Otherwise V points at the frame.
 	mbFrameless = (miFrameBytes == 0) && (miThisOffset < 0) && (IsLeaf() || ArgumentsReadFirst());
 	mcFrame = mbFrameless ? 'S' : 'V';
 	miArguments = mbFrameless ? (1 + 4 + 4 * NumSaved()) : (1 + miFrameBytes + 8);
@@ -960,9 +957,6 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	Prologue(szLabel);
 	mpsFlags = NULL;
 	mpcFlags = NULL;
-	msFlagsValue = IRNone();
-	msEndFlags = IRNone();
-	mpcEndFlags = NULL;
 	for (ui = 0; ui < pcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = pcFunction->GetBlock(ui);
@@ -973,7 +967,8 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	}
 	Epilogue();
 	Peephole(uiStart);
-	if (getenv("CPP65_NO_WIDTHS") == NULL) mcWidths.Optimise(pszDest, uiStart);	//DEBUG remove
+	mcFlags.Optimise(pszDest, uiStart);
+	mcWidths.Optimise(pszDest, uiStart);
 	return mbResult;
 }
 
@@ -2521,7 +2516,7 @@ bool CIR65Backend::IsFrameOperand(CChars* pszOperand)
 //////////////////////////////////////////////////////////////////////////
 //
 // True if the function calls nothing (not even the runtime), so nothing is
-// pushed while it runs except around mul and div.
+// pushed while it runs.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Backend::IsLeaf(void)
@@ -3030,7 +3025,6 @@ void CIR65Backend::StoreResult(SIRReference sResult, const char* szRegister, boo
 	SIR65Place*	psPlace;
 	SIRType		sType;
 	bool		bA;
-	size		uiLength;
 
 	if (!sResult.IsTemporary())
 	{
@@ -3066,13 +3060,7 @@ void CIR65Backend::StoreResult(SIRReference sResult, const char* szRegister, boo
 	{
 		Truncate(szRegister, sType);
 	}
-	uiLength = mpszOut->Length();
 	StorePlace(psPlace, sType, szRegister);
-	if ((mpszOut->Length() != uiLength) && !IsWide(sType) && !IsNarrow(sType))
-	{
-		//The cpy set n and z from the value.
-		SetFlagsValue(sResult);
-	}
 	if (bA)
 	{
 		msInA = sResult;
@@ -3279,15 +3267,14 @@ void CIR65Backend::Push(SIRReference sValue, SIRType sType)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// mul and div count their steps in W, from 0, so W is kept on the stack.
+// mul and div count their steps in W, from 0.  W is always 0 (the calling
+// convention, CPP65Generator.txt), so it is only set back afterwards.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Multiply(const char* szInstruction)
 {
-	Line("psh W")->AppendNewLine();
-	Line("cpy W, 0")->AppendNewLine();
 	Line(szInstruction)->AppendNewLine();
-	Line("pul W")->AppendNewLine();
+	Line("cpy W, 0")->AppendNewLine();
 }
 
 
@@ -3394,11 +3381,6 @@ bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 		uiNumInstructions--;
 	}
 	mbFlagsKnown = (uiNumInstructions == 0) && FlagsKnown(pcBlock, psFused);
-	if (!msEndFlags.IsNone() && EnteredOnlyFrom(pcBlock, mpcEndFlags))
-	{
-		//Only its predecessor's branch on the flags comes here, so they are still the value's.
-		SetFlagsValue(msEndFlags);
-	}
 
 	bResult = true;
 	for (ui = 0; ui < uiNumInstructions; ui++)
@@ -3421,14 +3403,7 @@ bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 	}
 	msAvailable = msInA;
 	msInA = IRNone();
-	mbFlagsUsed = false;
 	bResult &= Jump(pcBlock, pcNext, psFused);
-	if (mbFlagsUsed)
-	{
-		//The comparison used the flags the value's cpy set (FlagsHold), which its successors may use too.
-		msEndFlags = psFused->asArguments[0];
-		mpcEndFlags = pcBlock;
-	}
 	mbFlagsKnown = false;
 	if (psFused && !psFused->sType.IsFloat())
 	{
@@ -3469,29 +3444,6 @@ bool CIR65Backend::BranchOn(SIRInstruction* psFused, SIRReference sCondition, bo
 bool CIR65Backend::EnteredOnlyFrom(CIRBlock* pcBlock, CIRBlock* pcFrom)
 {
 	return (pcBlock->masPhis.NumElements() == 0) && (pcBlock->mapcPredecessors.NumElements() == 1) && (pcBlock->mapcPredecessors.GetPtr(0) == pcFrom) && !HasMoves(pcFrom, pcBlock);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The last line written was a cpy of sValue (32 bits), so n and z are its.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR65Backend::SetFlagsValue(SIRReference sValue)
-{
-	msFlagsValue = sValue;
-	muiFlagsLength = mpszOut->Length();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// True if n and z are still sValue's (nothing written since SetFlagsValue).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::FlagsHold(SIRReference sValue)
-{
-	return sValue.IsTemporary() && sValue.Equals(msFlagsValue) && (mpszOut->Length() == muiFlagsLength);
 }
 
 
@@ -4886,7 +4838,6 @@ bool CIR65Backend::Load(CIRBlock* pcBlock, size uiIndex)
 	else if (iBytes == 4)
 	{
 		Line("cpy ")->Append(szWork)->Append(", ")->Append(szOperand)->AppendNewLine();
-		SetFlagsValue(psInstruction->sResult);
 	}
 	else
 	{
@@ -5136,25 +5087,6 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 		//The block before compared the same operands.
 		Branch(((uiOpcode == IRO_Eq) == bJumpIf) ? "bras z, " : "brac z, ", iLabel);
 		return true;
-	}
-	if (FlagsHold(psInstruction->asArguments[0]) && IsZero(psInstruction->asArguments[1]) && !IsNarrow(psInstruction->sType) && !IsWide(psInstruction->sType))
-	{
-		//The cpy just written set n and z from the value.
-		switch (uiOpcode)
-		{
-		case IRO_Eq:
-		case IRO_Ne:
-			Branch(((uiOpcode == IRO_Eq) == bJumpIf) ? "bras z, " : "brac z, ", iLabel);
-			mbFlagsUsed = true;
-			return true;
-		case IRO_SLt:
-		case IRO_SGe:
-			Branch(((uiOpcode == IRO_SLt) == bJumpIf) ? "bras n, " : "brac n, ", iLabel);
-			mbFlagsUsed = true;
-			return true;
-		default:
-			break;
-		}
 	}
 	bSigned = IsIRSignedComparison(uiOpcode);
 	bSwap = IsIRSwappedComparison(uiOpcode);

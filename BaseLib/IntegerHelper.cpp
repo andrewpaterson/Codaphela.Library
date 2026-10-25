@@ -631,6 +631,8 @@ size FindFirstClearBit(uint32 uiBits)
 
 	_BitScanForward(&uiIndex, ~uiBits);
 	return uiIndex;
+#elif defined(__W65C816__)
+	return __builtin_ctzl(~uiBits);		//An int is 16 bits.
 #else
 	return __builtin_ctz(~uiBits);
 #endif // _MSC_VER

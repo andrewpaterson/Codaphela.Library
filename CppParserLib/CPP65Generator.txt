@@ -180,12 +180,12 @@ An expression's value ends in A.  A binary operator has its left operand in A an
 right in B, a constant (add A, 3) or a pseudo register (cmp A, [4 + W]).
 
 W points at the pseudo registers, like the 6502's zero page and the 65816's direct
-page, and is only changed around mul and div (which count in W from 0):
+page.  It is always 0 (the user, 2026-10-25: part of the calling convention), so the
+pseudo registers are $0000 to $00FF.  mul and div count in W from 0 and leave it at
+twice their width in bytes, so it is set back straight after:
 
-		psh W
-		cpy W, 0
 		mul
-		pul W
+		cpy W, 0
 
 When neither operand of a binary operator is simple (a constant or a variable), the
 right is worked out first and kept in the next free pseudo register while the left is:
@@ -224,7 +224,8 @@ Calling convention
 - A variadic function's extra arguments are pushed like the others, after the default
   argument promotions (char, short and bool are int; arrays and functions are
   pointers), so Libc65's va_arg walks up the stack from the last named parameter.
-- V, W and S are kept by a call; A, B, X, Y and the pseudo registers may change.
+- V, W and S are kept by a call; A, B, X, Y and the pseudo registers may change.  W is 0
+  at every call and return (code that changes it, like mul and div, sets it back).
 
 Places from V (they don't move when values are pushed):
 

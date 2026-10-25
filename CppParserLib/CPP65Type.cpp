@@ -219,7 +219,7 @@ int SCPP65Type::GetElementBytes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Types::Init(void)
+void CCPP65Types::Init(int iIntBytes)
 {
 	mapsTypes.Init();
 	InitBuiltin(&msVoid, CPP65TK_Void, 0, false);
@@ -228,8 +228,10 @@ void CCPP65Types::Init(void)
 	InitBuiltin(&msUnsignedChar, CPP65TK_Integer, 1, false);
 	InitBuiltin(&msShort, CPP65TK_Integer, 2, true);
 	InitBuiltin(&msUnsignedShort, CPP65TK_Integer, 2, false);
-	InitBuiltin(&msInt, CPP65TK_Integer, 4, true);
-	InitBuiltin(&msUnsignedInt, CPP65TK_Integer, 4, false);
+	InitBuiltin(&msInt, CPP65TK_Integer, iIntBytes, true);
+	InitBuiltin(&msUnsignedInt, CPP65TK_Integer, iIntBytes, false);
+	InitBuiltin(&msLong, CPP65TK_Integer, 4, true);
+	InitBuiltin(&msUnsignedLong, CPP65TK_Integer, 4, false);
 	InitBuiltin(&msLongLong, CPP65TK_Integer, 8, true);
 	InitBuiltin(&msUnsignedLongLong, CPP65TK_Integer, 8, false);
 	InitBuiltin(&msFloat, CPP65TK_Float, 4, true);
@@ -322,6 +324,10 @@ SCPP65Type* CCPP65Types::Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBas
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::Integer(int iBytes, bool bSigned)
 {
+	if (iBytes == msInt.iBytes)
+	{
+		return bSigned ? &msInt : &msUnsignedInt;
+	}
 	switch (iBytes)
 	{
 	case 1:
@@ -331,8 +337,19 @@ SCPP65Type* CCPP65Types::Integer(int iBytes, bool bSigned)
 	case 8:
 		return bSigned ? &msLongLong : &msUnsignedLongLong;
 	default:
-		return bSigned ? &msInt : &msUnsignedInt;
+		return bSigned ? &msLong : &msUnsignedLong;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// long: 4 bytes (int itself when int is 4 bytes).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::Long(bool bSigned)
+{
+	return Integer(4, bSigned);
 }
 
 
@@ -451,7 +468,7 @@ SCPP65Type* CCPP65Types::Enum(CCPPSymbol* pcEnum)
 	}
 
 	//A count of -1 makes Add make a new type rather than find int.
-	psType = Add(CPP65TK_Integer, 4, NULL, -1);
+	psType = Add(CPP65TK_Integer, msInt.iBytes, NULL, -1);
 	psType->iCount = 0;
 	psType->bSigned = true;
 	psType->pcEnum = pcEnum;
@@ -523,7 +540,7 @@ SCPP65Type* CCPP65Types::Class(SCPP65Class* psClass)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::Promote(SCPP65Type* psType)
 {
-	if (psType->IsInteger() && ((psType->iBytes < 4) || psType->pcEnum))
+	if (psType->IsInteger() && ((psType->iBytes < msInt.iBytes) || psType->pcEnum))
 	{
 		return &msInt;
 	}
@@ -550,9 +567,16 @@ SCPP65Type* CCPP65Types::Arithmetic(SCPP65Type* psLeft, SCPP65Type* psRight)
 		}
 		return &msLongLong;
 	}
-	if (!psLeft->bSigned || !psRight->bSigned)
+	if (!psLeft->IsInteger() || !psRight->IsInteger())
 	{
-		return &msUnsignedInt;
+		return (!psLeft->bSigned || !psRight->bSigned) ? &msUnsignedInt : &msInt;
 	}
-	return &msInt;
+
+	//The wider type, unsigned when it is or when both are the same width and either is.  (A long holds every
+	//unsigned int where int is narrower.)
+	if (psLeft->iBytes != psRight->iBytes)
+	{
+		return (psLeft->iBytes > psRight->iBytes) ? Integer(psLeft->iBytes, psLeft->bSigned) : Integer(psRight->iBytes, psRight->bSigned);
+	}
+	return Integer(psLeft->iBytes, psLeft->bSigned && psRight->bSigned);
 }

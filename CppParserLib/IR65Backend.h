@@ -24,6 +24,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IRModule.h"
 #include "IRLiveness.h"
 #include "IRDominators.h"
+#include "IR65Flags.h"
 #include "IR65Widths.h"
 
 
@@ -174,14 +175,10 @@ protected:
 	SIRInstruction*			mpsFlags;			//The last integer comparison a block (mpcFlags) jumped on: the flags its successors start with.
 	CIRBlock*				mpcFlags;
 	bool					mbFlagsKnown;		//The block's comparison uses the flags it is entered with (FlagsKnown).
-	SIRReference			msFlagsValue;		//n and z are this value's while mpszOut is muiFlagsLength long (SetFlagsValue).
-	size					muiFlagsLength;
-	SIRReference			msEndFlags;			//The value n and z are at the end of mpcEndFlags, whose branch used them.
-	CIRBlock*				mpcEndFlags;
-	bool					mbFlagsUsed;		//The jump's comparison branched on the flags a cpy set.
 	bool					mbRightImmediate;	//LoadOperands left the second operand a constant, for "op A, value".
 	bool					mbFrameless;		//No frame: V isn't set up, the arguments are from S...
 	char					mcFrame;			//...so the frame register is S, otherwise V.
+	CIR65Flags				mcFlags;
 	CIR65Widths				mcWidths;
 
 public:
@@ -280,8 +277,6 @@ protected:
 	bool				Block(CIRBlock* pcBlock, CIRBlock* pcNext);
 	bool				BranchOn(SIRInstruction* psFused, SIRReference sCondition, bool bJumpIf, int32 iLabel);
 	bool				EnteredOnlyFrom(CIRBlock* pcBlock, CIRBlock* pcFrom);
-	void				SetFlagsValue(SIRReference sValue);
-	bool				FlagsHold(SIRReference sValue);
 	bool				IsZero(SIRReference sValue);
 	bool				FlagsKnown(CIRBlock* pcBlock, SIRInstruction* psFused);
 	void				Edge(CIRBlock* pcFrom, CIRBlock* pcTo);

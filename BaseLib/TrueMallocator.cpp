@@ -39,6 +39,8 @@ static int TrueMallocatorHighestBit(uint32 ui)
 
 	_BitScanReverse(&uiIndex, ui);
 	return (int)uiIndex;
+#elif defined(__W65C816__)
+	return 31 - __builtin_clzl(ui);		//An int is 16 bits.
 #else
 	return 31 - __builtin_clz(ui);
 #endif // _MSC_VER
@@ -57,6 +59,8 @@ static int TrueMallocatorLowestBit(uint32 ui)
 
 	_BitScanForward(&uiIndex, ui);
 	return (int)uiIndex;
+#elif defined(__W65C816__)
+	return __builtin_ctzl(ui);		//An int is 16 bits.
 #else
 	return __builtin_ctz(ui);
 #endif // _MSC_VER

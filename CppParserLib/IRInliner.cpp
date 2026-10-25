@@ -74,17 +74,29 @@ size CIRInliner::NumInstructions(CIRFunction* pcFunction)
 //////////////////////////////////////////////////////////////////////////
 //
 // True if calls of pcCallee (from mpcCaller) may be replaced by its body:
-// a call in a loop by a larger one.
+// a call in a loop by a larger one, and a call (the one at uiCall in
+// pcBlock, if given) passing constants the callee compares by a larger one
+// again, as those comparisons fold.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRInliner::CanInline(CIRFunction* pcCallee, bool bInLoop)
+bool CIRInliner::CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCallBlock, size uiCall)
 {
 	size			ui;
 	size			uiInstruction;
+	size			uiLimit;
 	CIRBlock*		pcBlock;
 	bool			bReturns;
 
-	if ((pcCallee == NULL) || (pcCallee == mpcCaller) || (pcCallee->muiAttributes & IRA_Variadic) || (pcCallee->NumBlocks() == 0) || (NumInstructions(pcCallee) > (bInLoop ? muiMaxLoopInstructions : muiMaxInstructions)))
+	if ((pcCallee == NULL) || (pcCallee == mpcCaller) || (pcCallee->muiAttributes & IRA_Variadic) || (pcCallee->NumBlocks() == 0))
+	{
+		return false;
+	}
+	uiLimit = bInLoop ? muiMaxLoopInstructions : muiMaxInstructions;
+	if (pcCallBlock)
+	{
+		uiLimit += IR_INLINE_CONSTANT_BONUS * NumComparedConstants(pcCallee, pcCallBlock, uiCall);
+	}
+	if (NumInstructions(pcCallee) > uiLimit)
 	{
 		return false;
 	}
@@ -102,6 +114,59 @@ bool CIRInliner::CanInline(CIRFunction* pcCallee, bool bInLoop)
 		}
 	}
 	return bReturns;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many of the call's arguments are constants (or symbols) whose
+// parameter the callee compares or branches on.
+//
+//////////////////////////////////////////////////////////////////////////
+size CIRInliner::NumComparedConstants(CIRFunction* pcCallee, CIRBlock* pcCallBlock, size uiCall)
+{
+	size			uiFirst;
+	size			uiParameter;
+	size			uiBlock;
+	size			uiInstruction;
+	size			uiCount;
+	SIRReference	sArgument;
+	SIRReference	sParameter;
+	SIRInstruction*	psInstruction;
+	CIRBlock*		pcBlock;
+	bool			bCompared;
+
+	uiFirst = uiCall;
+	while ((uiFirst > 0) && (pcCallBlock->masInstructions.Get(uiFirst - 1)->uiOpcode == IRO_Arg))
+	{
+		uiFirst--;
+	}
+	uiCount = 0;
+	for (uiParameter = 0; (uiParameter < uiCall - uiFirst) && (uiParameter < pcCallee->masParameters.NumElements()); uiParameter++)
+	{
+		sArgument = pcCallBlock->masInstructions.Get(uiFirst + uiParameter)->asArguments[0];
+		if (!sArgument.IsConstant() && !sArgument.IsSymbol())
+		{
+			continue;
+		}
+		sParameter = *pcCallee->masParameters.Get(uiParameter);
+		bCompared = false;
+		for (uiBlock = 0; !bCompared && (uiBlock < pcCallee->NumBlocks()); uiBlock++)
+		{
+			pcBlock = pcCallee->GetBlock(uiBlock);
+			bCompared = pcBlock->msJump.sArgument.Equals(sParameter) && (pcBlock->msJump.uiKind == IRJ_Branch);
+			for (uiInstruction = 0; !bCompared && (uiInstruction < pcBlock->masInstructions.NumElements()); uiInstruction++)
+			{
+				psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+				bCompared = IsIRIntegerComparison(psInstruction->uiOpcode) && (psInstruction->asArguments[0].Equals(sParameter) || psInstruction->asArguments[1].Equals(sParameter));
+			}
+		}
+		if (bCompared)
+		{
+			uiCount++;
+		}
+	}
+	return uiCount;
 }
 
 
@@ -138,7 +203,7 @@ bool CIRInliner::InlineCalls(CIRFunction* pcCaller)
 			}
 			pcCallee = mpcModule->FindFunction(psInstruction->asArguments[0].Index());
 			uiBlocks = pcCaller->NumBlocks();
-			if (CanInline(pcCallee, bInLoop) && InlineCall(pcBlock, uiInstruction, pcCallee))
+			if (CanInline(pcCallee, bInLoop, pcBlock, uiInstruction) && InlineCall(pcBlock, uiInstruction, pcCallee))
 			{
 				//The rest of the block was moved to a new block, which is looked at later; the new blocks are in the
 				//block's loop.
@@ -220,7 +285,7 @@ bool CIRInliner::HasLoopCandidate(void)
 			if ((psInstruction->uiOpcode == IRO_Call) && psInstruction->asArguments[0].IsSymbol())
 			{
 				pcCallee = mpcModule->FindFunction(psInstruction->asArguments[0].Index());
-				if (CanInline(pcCallee, true) && !CanInline(pcCallee, false))
+				if (CanInline(pcCallee, true, pcBlock, uiInstruction) && !CanInline(pcCallee, false, pcBlock, uiInstruction))
 				{
 					return true;
 				}

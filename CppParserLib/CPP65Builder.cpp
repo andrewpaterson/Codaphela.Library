@@ -24,6 +24,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/StringHelper.h"
 #include "VisualStudioProject.h"
 #include "Assembler65Lib/Asm65Assembler.h"
+#include "Assembler65Lib/Asm816Assembler.h"
 #include "Preprocessor.h"
 #include "HeaderFileMap.h"
 #include "HeaderFiles.h"
@@ -42,6 +43,7 @@ void CCPP65Builder::Init(void)
 	macIncludeDirectories.Init();
 	macLinkLibraries.Init();
 	mcProject.Init(false);
+	meTarget = CPPT_65C64;
 	muiUnits = 0;
 	muiLimit = CPP65_HEAP_ADDRESS;
 	mbCompiled = false;
@@ -127,7 +129,7 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 	if (!pcLibrary)
 	{
 		pcLibrary = mcProject.AddLibrary((char*)szLibrary, (char*)szDirectory, false);
-		CCPP65Generator::AddDefines(pcLibrary->AddConfiguration("65C64"));
+		CCPP65Generator::AddDefines(pcLibrary->AddConfiguration((char*)GetCPPTarget(meTarget)->szName), meTarget);
 		if (bLinkAsLibrary)
 		{
 			psLinkLibrary = macLinkLibraries.Add();
@@ -283,6 +285,17 @@ size CCPP65Builder::NumUnits(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The processor to build for.  Set it before adding anything.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetTarget(ECPPTarget eTarget)
+{
+	meTarget = eTarget;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A global's address after Link (see CAsm65Linker::GetSymbol).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -327,7 +340,7 @@ bool CCPP65Builder::AddStartUp(void)
 	bool	bResult;
 
 	szAssembly.Init();
-	CCPP65Generator::AppendStartUp(&szAssembly);
+	CCPP65Generator::AppendStartUp(&szAssembly, meTarget);
 	bResult = AddObject("start up", szAssembly.Text(), true);
 	szAssembly.Kill();
 	return bResult;
@@ -345,7 +358,7 @@ bool CCPP65Builder::AddSource(const char* szName, const char* szSource)
 	bool	bResult;
 
 	szAssembly.Init();
-	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL);
+	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget);
 	bResult &= AddObject(szName, szAssembly.Text());
 	szAssembly.Kill();
 	return bResult;
@@ -418,7 +431,7 @@ bool CCPP65Builder::LinkWith(const char* szName, const char* szSource)
 	mcLinkWithObjects.Kill();
 	mcLinkWithObjects.Init("link with");
 	szAssembly.Init();
-	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL);
+	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget);
 	bResult &= Assemble(mcLinkWithObjects.AddObject(szName), szAssembly.Text());
 	szAssembly.Kill();
 	mcLinker.AddObject(mcLinkWithObjects.GetObject(0));
@@ -479,6 +492,7 @@ bool CCPP65Builder::LinkObjects(void)
 	}
 	mcLinker.SetAddress(ASK65_Text, CPP65_PROGRAM_ADDRESS);
 	mcLinker.SetLimit(muiLimit);
+	mcLinker.SetBankSize(GetCPPTarget(meTarget)->uiBankSize);
 	bResult = mcLinker.Link();
 	mszErrors.Append(mcLinker.GetErrors());
 	return bResult;
@@ -581,7 +595,7 @@ CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)
 // pszErrors.  The labels it uses but does not define are added to paszExternals if it isn't NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals)
+bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget)
 {
 	CTranslationUnit		cFile;
 	CPreprocessor			cPreprocessor;
@@ -606,8 +620,8 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 		acHeaderFiles[i].Init(psInclude->szDirectory.Text(), &cHeaderFileMap, psInclude->bIncludeSubDirectories, psInclude->bSystem);
 	}
 
-	cConfig.Init("65C64");
-	CCPP65Generator::AddDefines(&cConfig);
+	cConfig.Init((char*)GetCPPTarget(eTarget)->szName);
+	CCPP65Generator::AddDefines(&cConfig, eTarget);
 	cFile.Init((char*)szName, NULL, false);
 	cFile.SetContents((char*)szSource);
 	cPreprocessor.Init(&cConfig);
@@ -629,7 +643,7 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	pszErrors->Append(cTree.GetErrors()->Text());
 	cParser.Kill();
 
-	cGenerator.Init(&cTree);
+	cGenerator.Init(&cTree, eTarget);
 	bResult &= bProgram ? cGenerator.GenerateProgram(pszAssembly) : cGenerator.Generate(pszAssembly);
 	if (paszExternals)
 	{
@@ -686,9 +700,18 @@ bool CCPP65Builder::AddObject(const char* szName, const char* szAssembly, bool b
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::Assemble(CAsm65Object* pcObject, const char* szAssembly)
 {
-	CAsm65Assembler	cAssembler;
-	bool			bResult;
+	CAsm65Assembler		cAssembler;
+	CAsm816Assembler	cAssembler816;
+	bool				bResult;
 
+	if (meTarget == CPPT_W65C816)
+	{
+		cAssembler816.Init();
+		bResult = cAssembler816.AssembleObject(szAssembly, pcObject);
+		mszErrors.Append(cAssembler816.GetErrors());
+		cAssembler816.Kill();
+		return bResult;
+	}
 	cAssembler.Init();
 	bResult = cAssembler.AssembleObject(szAssembly, pcObject);
 	mszErrors.Append(cAssembler.GetErrors());
@@ -740,9 +763,9 @@ bool CCPP65Builder::CompileUnits(void)
 		return true;
 	}
 
-	bResult = mcProject.Process("65C64", &mszErrors);
+	bResult = mcProject.Process((char*)GetCPPTarget(meTarget)->szName, &mszErrors);
 	uiCompiled = 0;
-	for (pcFile = mcProject.Start(&sIter, "65C64"); pcFile; pcFile = mcProject.Iterate(&sIter))
+	for (pcFile = mcProject.Start(&sIter, (char*)GetCPPTarget(meTarget)->szName); pcFile; pcFile = mcProject.Iterate(&sIter))
 	{
 		uiCompiled++;
 		cTokeniser.Init();
@@ -755,7 +778,7 @@ bool CCPP65Builder::CompileUnits(void)
 		cParser.Kill();
 
 		szAssembly.Init();
-		cGenerator.Init(&cTree);
+		cGenerator.Init(&cTree, meTarget);
 		bResult &= cGenerator.Generate(&szAssembly);
 		mszErrors.Append(cGenerator.GetErrors()->Text());
 		cGenerator.Kill();
