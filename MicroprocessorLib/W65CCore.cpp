@@ -71,6 +71,7 @@ void CW65CCore::Init(CW65CPins* pcPins)
     mcNewProgramCounter.Init();
     mcAddress.Init();
     mbNmi = false;
+    mbNmiLow = false;
 
     mbPreviousClockHigh = false;
     mbPreviousClockLow = false;
@@ -134,6 +135,7 @@ void CW65CCore::GetState(SW65CCoreState* psState)
 	psState->bAbort = mbAbort;
 	psState->bNextInstruction = mbNextInstruction;
 	psState->bNmi = mbNmi;
+	psState->bNmiLow = mbNmiLow;
 	psState->bPreviousClockLow = mbPreviousClockLow;
 	psState->bPreviousClockHigh = mbPreviousClockHigh;
 	psState->uiResetCount = muiResetCount;
@@ -188,6 +190,7 @@ void CW65CCore::SetState(SW65CCoreState* psState)
 	mbAbort = psState->bAbort;
 	mbNextInstruction = psState->bNextInstruction;
 	mbNmi = psState->bNmi;
+	mbNmiLow = psState->bNmiLow;
 	mbPreviousClockLow = psState->bPreviousClockLow;
 	mbPreviousClockHigh = psState->bPreviousClockHigh;
 	muiResetCount = psState->uiResetCount;
@@ -955,6 +958,7 @@ void CW65CCore::InputTransition(CTimeline* pcTimeline)
     CW65CPins*      pcPins;
     bool            bReset;
     bool            bNmi;
+    bool            bNmiEdge;
     bool            bIrq;
     bool            bAbort;
     STraceValue     sClockValue;
@@ -971,7 +975,9 @@ void CW65CCore::InputTransition(CTimeline* pcTimeline)
         ClearReset();
     }
 
+    //NMIB is edge sensitive: only a fall is remembered, holding it low doesn't interrupt again.
     bNmi = pcPins->ReadNMI(pcTimeline).IsLow();
+    bNmiEdge = bNmi && !mbNmiLow;
     bIrq = pcPins->ReadIRQ(pcTimeline).IsLow();
     bAbort = pcPins->ReadAbort(pcTimeline).IsLow();
 
@@ -981,9 +987,21 @@ void CW65CCore::InputTransition(CTimeline* pcTimeline)
         DisableBuses();
     }
 
-    if (mbWaiting && (bReset || pcPins->ReadNMI(pcTimeline).IsLow() || pcPins->ReadIRQ(pcTimeline).IsLow() || pcPins->ReadAbort(pcTimeline).IsLow()))
+    if (mbWaiting && (bReset || mbNmi || bNmiEdge || bIrq || bAbort))
     {
+        //WAI chose the next opcode before it waited.  The interrupt that ends it is taken straight away (a
+        //masked IRQ just continues), so choose again.  An interrupt's first cycle is on the bus as the fetch is.
         mbWaiting = false;
+        mbIrq = bIrq;
+        if (bNmiEdge)
+        {
+            mbNmi = true;
+            bNmiEdge = false;
+        }
+        if (muiOpcodeIndex == GetFetchNextOpcode()->GetCode())
+        {
+            ChooseNextOpcode();
+        }
     }
 
     if (sClockValue.IsHigh() || sClockValue.IsLow())
@@ -1009,9 +1027,13 @@ void CW65CCore::InputTransition(CTimeline* pcTimeline)
     }
 
     mbIrq = bIrq;
+    if (bNmiEdge)
+    {
+        mbNmi = true;
+    }
+    mbNmiLow = bNmi;
 
-    //These don't look properly edge triggered.
-    mbNmi = bNmi;
+    //ABORTB is level sensitive here.
     mbAbort = bAbort;
 }
 
@@ -1552,7 +1574,17 @@ void CW65CCore::NextInstruction(void)
 	{
 		CreateAbortValues();
 	}
+	ChooseNextOpcode();
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An interrupt (NMI, then ABORT, then IRQ if I is clear) or the fetch of the next instruction.
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65CCore::ChooseNextOpcode(void)
+{
 	if (mbNmi)
 	{
 		muiOpcodeIndex = GetNmiOpcode()->GetCode();

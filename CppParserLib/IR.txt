@@ -235,11 +235,21 @@ switching passes off one at a time.
 
 Written (CIROptimiser, IROptimiser.h/.cpp, 2026-10-25), run on each function until
 nothing changes: simplify cfg (unreachable blocks, jumps through empty blocks, joining a
-block to its only successor, brif on a constant), slot promotion (slots and argaddrs only
+block to its only successor, brif on a constant, and a predecessor skipping an empty block
+whose brif it already knows the way of: it, or a block it is reached from along single
+predecessors, branched on the same condition; a block of only phis and a ret copied into
+each predecessor that just jumps to it, returning what it would have passed), slot promotion (slots and argaddrs only
 loaded and stored, at one type and not volatile, become temporaries and phis: dominance
 frontiers, then renaming down the dominator tree), trivial phis, constant folding of
-integer instructions and conversions (wrapping; x * 2^n becomes x << n; a comparison of
-two values extended from one narrow type compares the narrow values), common
+integer instructions and conversions (wrapping; x * 2^n becomes x << n, unsigned x / 2^n
+x >> n and x % 2^n x & (2^n - 1); a comparison of two values extended from one narrow type
+compares the narrow values; a comparison of the operands a branch on the way in (along
+single predecessors) compared is a constant, or eq or ne: after !(a < b), a > b is
+a != b; trunc of an extension back to the value's type is the value, and a sext (zext)
+of a trunc is the value when it is already sign (zero) extended from that width: a
+constant that fits, an extension or mask from no more bits, or a phi of such; an
+extension or trunc of a phi of constants only it uses makes the phi one of the converted
+constants), common
 subexpressions within a block and its dominators, redundant loads (a load of what an
 earlier load read or a store wrote, in its block or the blocks before it that are its
 only predecessors, with no call or store that may touch it between: same base and
@@ -247,11 +257,12 @@ offsets that don't overlap, different globals and different slots don't alias), 
 splitting (a slot only loaded and stored at constant offsets that don't overlap, an
 object's fields, becomes a slot per offset, so promotion makes them temporaries; slots
 move to the entry block first), loop invariant code motion (loads and integer operations
-of what a loop doesn't change move to the block that enters it; loads only if the loop
+of what a loop doesn't change move to the block that enters it, or to a block put on that
+edge when it branches, divisions only by a constant that is not 0 or -1; loads only if the loop
 makes no calls and stores nothing that may alias), and dead code.
 
 Inlining (CIRInliner, IRInliner.h/.cpp, 2026-10-25): a call of a function of the same
-module with at most 16 instructions (not variadic, not taking its parameters' addresses,
+module with at most 16 instructions (32 when the call is in a loop; not variadic, not taking its parameters' addresses,
 not itself) is replaced by a copy of its blocks: the block is split after the call, the
 arguments are the parameters, returns jump to the rest and the result is a phi there.
 Calls in the copies are inlined too, up to 24 in a function.  The front end keeps each
@@ -314,9 +325,23 @@ Copies call the copy constructor if the class has one, else copy the bytes and s
 vtable pointers; object = object copies the bytes (as the generator does) unless the
 class has operator=.  Class(arguments) makes a temporary.
 
-Not yet: passing objects that need a copy constructor, temporaries that need destroying,
-operators on objects (operator=, +, ...), new[] of objects with destructors, builtins,
-inline memcpy, function addresses (&f) and member pointers.
+Also (2026-10-25): object op= value calls the class's operator; an object's operator->
+gives the pointer for calls and fields; temporaries that need destroying are destroyed
+at the end of their full expression (expression, declaration and return statements),
+last made first (one made where it may not be, in an operand of && || or ?:, one left
+in a condition or a member initialiser, and one a reference is bound to are left to
+the generator); memcpy of a small constant count is loads and stores; a function's name
+and &f are its address (a static member's too; a cast picks one of an overload); calls
+through any expression that is a pointer to a function (table[i](), (*pf)(), a field);
+pointers to members as the generator has them (a member function's address, a
+virtual one's vcall thunk, or a field's offset; 0 is null): &Class::member, object.*m,
+pointer->*m, calls through them, ==, != and conversions; f(args...) expands the
+function parameter pack (as the generator's ExpandPackCall).
+
+Not yet (38 of 11261 BaseLib and StandardLib functions, 2026-10-25): passing objects
+that need a copy constructor (14; the IR passes arguments as values, so the copy would
+have to be moved by its bytes), __builtin_alloca, __builtin_trap, ctz and clz, new[] of
+objects with destructors, and a few others.
 CCPP65IRFrontEnd::siUnsupportedLine is the line that left the last function to the
 generator, for finding what to support next.
 
@@ -357,6 +382,10 @@ copies.  Classes are given homes most weighted first:
 							registers, 2026-10-24)
 	the frame				[1 + offset + V]
 
+A class's weight leaves out the uses a pointer costs nothing more for in memory: a load's
+or store's address ([[n + W]] reads through it) and a ptradd of -8 to 8 in its own class
+(add [n + W], 1), so in a string loop the bytes get X and Y, not the pointers.
+
 A parameter used at most once, or that gets no X, Y or low pseudo register, stays where
 it was pushed; others are copied to their home by the prologue (this from X).  64 bit values only get memory (two units).  Narrow
 integers are held zero extended everywhere.
@@ -366,7 +395,12 @@ kept there too (add X, 1; add [8 + W], A; shl [4 + W], 2), in the result's regis
 (cpy X, [4 + W] / sub X, B), or in A, with the second operand as it is kept when the
 instruction allows (add A, Y; and A, [12 + V]; add, sub, cmp, shl and shr can't address
 memory with V, so those go through B).  mul leaves the product in Y and div the quotient
-in Y and remainder in B, which are stored from there.  Loads and stores use the address
+in Y and remainder in B, which are stored from there; an unsigned udiv and urem of the same
+operands in one block are moved together and share the div.  A multiply by 2^a + 2^b or
+2^a - 2^b (10, 7, 24...) is shifts and an add or sub (mul steps once a byte of B and needs
+W saved and cleared round it).  A narrow load that only a sext just after it uses is
+widened signed (wthx A, 32:s).  A multiplier below 256 has B 8 bits wide for the mul (one
+step).  Loads and stores use the address
 where it is kept ([X], [[4 + W]], [[8 + V]], [n + V] for a slot) or, for a ptradd of a
 constant (copied next to each load or store that uses it), the base and offset ([8 + X],
 [_gTable + 8], [12 + B]), read or write narrow
@@ -387,10 +421,28 @@ use, and an add, sub or ptradd whose result only a successor's phi takes (p + 1 
 next time round a loop) moves to the end of its block when an operand of it is used
 later in the block, so that operand dies there and the result shares its home (add Y, 1).
 
-A leaf function (no calls, nothing in the frame, no kept pseudo registers) doesn't set V
-up: its arguments are read from S ([5 + S] is the first), which only moves around mul and
-div.  A brif branches straight to its then block when the else block comes next and the
-then edge has no phi copies to make.
+A function with nothing in the frame doesn't set V up when it is a leaf (no calls: S
+only moves around mul and div) or when the parameters left where they arrived are only
+read in its entry block before anything is pushed (and it takes no argaddr): its
+arguments are read from S ([5 + S] is the first, 4 more for each kept pseudo register
+pushed).  A brif branches straight to its then block when the else block comes next and
+the then edge has no phi copies to make; when only the then edge has copies they go
+after the function's ret, where the branch goes, and on to the then block.
+
+Comparisons: a signed i8 or i16 compares at its own width (wtth (A, B), 8) rather than
+sign extending; a signed comparison with 0 branches on n alone (no overflow); an eq or ne
+alone in a block whose only predecessor's branch compared the same operands, with no
+copies on the way, branches on the flags that cmp left (wtth doesn't change them).  A
+comparison of a 32 bit value with 0 straight after a cpy that wrote it (cpy sets n and z,
+to memory too), or in the block only that branch goes to, branches on those flags.
+Signed i8 and i16 kept in X and Y compare there (wtth (X, Y), 8).  Narrow x > c is
+x >= c + 1 too.  A signed comparison branches in one instruction only on less (braso
+(n, v)): outside loop heads, one that would need two (a branch round a bra) is turned
+round with its blocks swapped before layout, so the block it falls through to is the
+cheap one.
+
+Peephole (per function, on the text): a branch to a label just after it goes, and a
+value stored then read straight back at 32 bits is copied from the register instead.
 
 Calls push their arguments last first at their own size (a thiscall's this goes in X),
 floats are the soft float runtime's, sdiv and srem call R_DivideSigned (the generator

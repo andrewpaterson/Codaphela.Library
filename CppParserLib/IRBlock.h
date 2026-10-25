@@ -83,11 +83,11 @@ struct SIRJump
 
 
 typedef CArrayTemplate<SIRInstruction>	CArrayIRInstructions;
+typedef CArrayTemplate<SIRPhi>			CArrayIRPhis;
+typedef CArrayTemplatePtr<CIRBlock>		CArrayIRBlocks;
 
 
 SIRReference	IRAddressOf(SIRInstruction* psInstruction);
-typedef CArrayTemplate<SIRPhi>			CArrayIRPhis;
-typedef CArrayTemplatePtr<CIRBlock>		CArrayIRBlocks;
 
 
 //A basic block: phis, instructions and the jump that ends it.  Predecessors are worked out from the jumps by

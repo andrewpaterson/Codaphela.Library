@@ -37,7 +37,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 
 //The object file: a ChunkFile with Header, Sections, Symbols and Relocations chunks.
 #define ASM65_OBJECT_MAGIC		"Asm65Object"
-#define ASM65_OBJECT_VERSION	3
+#define ASM65_OBJECT_VERSION	4
 
 
 //The kind of a section comes from its name: "text", "text.anything", "rodata.x" ...
@@ -95,6 +95,17 @@ struct SAsm65ObjectSymbol
 //A field the linker writes: the target (a section's address or a symbol's value) plus
 //iAddend.  A relative field holds the result minus the field's own address.  The
 //field is uiBytes little endian bytes and must hold the result, signed or unsigned.
+//What the linker writes into a relocated field (the W65C816 uses the last three).
+enum EAsm65RelocationForm
+{
+	ASM65RF_Plain,		//The value.
+	ASM65RF_Bank,		//The value >> 16: an address's bank.
+	ASM65RF_Low16,		//The value & $FFFF.
+	ASM65RF_InBank,		//The value & $FFFF, an error unless it is in the field's own bank.
+	ASM65RF_NumForms,
+};
+
+
 struct SAsm65Relocation
 {
 	uint32	uiSection;
@@ -105,6 +116,7 @@ struct SAsm65Relocation
 	uint8	uiBytes;
 	bool	bSigned;
 	bool	bRelative;
+	uint8	uiForm;
 	uint32	uiLine;
 	uint32	uiColumn;
 };
@@ -163,6 +175,7 @@ protected:
 bool		Asm65SectionKind(const char* szName, size uiLength, EAsm65SectionKind* peKind);
 const char*	Asm65SectionKindName(EAsm65SectionKind eKind);
 bool		Asm65Fits(int64 iValue, uint8 uiBytes, bool bSigned);
+bool		Asm65ApplyForm(uint8 uiForm, int64 iFieldAddress, int64* piValue);
 bool		Asm65WriteText(CFileWriter* pcWriter, const char* szText);
 bool		Asm65ReadText(CFileReader* pcReader, CChars* psz);
 bool		Asm65WriteMagic(CFileWriter* pcWriter, const char* szMagic, int32 iVersion);

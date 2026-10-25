@@ -83,6 +83,7 @@ struct SW65CCoreState
 	bool		bAbort;
 	bool		bNextInstruction;
 	bool		bNmi;
+	bool		bNmiLow;
 	bool		bPreviousClockLow;
 	bool		bPreviousClockHigh;
 	uint16		uiResetCount;
@@ -141,7 +142,8 @@ protected:
 	bool		    mbIrq;
 	bool		    mbAbort;
 	bool		    mbNextInstruction;
-	bool		    mbNmi;
+	bool		    mbNmi;  //A falling edge of NMIB is waiting to be taken.
+	bool		    mbNmiLow;  //NMIB at the last input transition.
 	bool		    mbPreviousClockLow;
 	bool		    mbPreviousClockHigh;
 	uint16		    muiResetCount;
@@ -318,6 +320,7 @@ public:
 	CW65BusCycle*		GetBusCycle(void);
 	void			UpdateBusCycle(void);
 	void			NextInstruction(void);
+	void			ChooseNextOpcode(void);
 	void			DoneInstruction(void);
 	void			NextCycle(void);
 	int16			GetCycle(void);

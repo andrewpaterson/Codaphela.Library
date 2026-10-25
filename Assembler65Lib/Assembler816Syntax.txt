@@ -1,0 +1,149 @@
+W65C816 assembler
+=================
+
+Approved by the user (2026-10-25, see the rulings at the end).  The user chose Assembler65Lib's style for the
+W65C816 assembler (CppParserLib/W65C816.txt question 4).  So: the W65C816's own mnemonics
+(lda, sta, adc, jsl, rep ...), with Assembler65Syntax.txt's conventions: upper case
+registers, lower case flags, memory in square brackets, a bare value is a constant, :
+suffixes for widths, and the same lines, labels, numbers, expressions, directives,
+sections and objects.  It writes the same CAsm65Object, so CAsm65Linker links both.
+
+Class CAsm816Assembler (Asm816Assembler.h/.cpp and Asm816Instructions.cpp) derives from
+CAsm65Assembler and shares its passes, tokeniser, expressions, symbols, errors, sections,
+object and output; it supplies the instructions, operands, widths and two directives
+(CAsm65Assembler's virtual Instruction, IsRegisterName, InstructionAlignment,
+ProcessorDirective and SectionStarted).  Usage is CAsm65Assembler's: Assemble (.org) or
+AssembleObject.  The opcode table is checked against MicroprocessorLib's
+CW65C816InstructionFactory by TestAsm816Opcodes (the simulator calls jml JMP and puts per
+with the stack instructions; those two are allowed).  Tests: test/TestAssembler65Lib
+TestAsm816.cpp (every mode, widths, errors, relocations through CAsm65Linker, and a
+program run on CFast65C816).
+
+
+Registers and flags
+-------------------
+
+	A X Y S D		accumulator, index registers, stack pointer, direct page register
+	c z i d x m v n	status flags (rep and sep)
+
+A as an operand is the accumulator addressing mode: asl A, inc A.
+
+
+Widths (m and x)
+----------------
+
+An immediate's size depends on m (lda, adc, and, bit, cmp, eor, ora, sbc) or x (ldx,
+ldy, cpx, cpy), so the assembler keeps track of them in each section, top to bottom:
+
+	rep (m, x)		16 bit A and X/Y; rep m, sep x, rep $30 ($30 is m and x)
+	sep m			8 bit A
+	.width A, 16		says what the width is (after a label jumped to from code with
+	.width X, 8			other widths, after a call, at a function's start); X means X
+	.width (A, X), 16	and Y, which always have the same width
+
+At the start of a section both widths are unknown, and an immediate whose size depends on
+an unknown width is an error, so a wrong guess can't assemble silently.  rep and sep
+with a constant change the tracked widths; xce, plp and rti make them unknown (the code
+says .width after them).  The widths are followed top to bottom, not along jumps, so code
+reached by a jump from code with other widths says .width at its label.  A width can be given for one immediate with a suffix: lda 5:8,
+ldx 1000:16; an error if it disagrees with the tracked width.  The compiler writes
+.width at each function start and label.
+
+
+Operands
+--------
+
+	value				an immediate: lda 5, ldx Count, pea Label, rep (m, x)
+	A					the accumulator: asl A
+
+Memory is in square brackets.  The direct page and the stack are registers in the
+address, so it is clear which bank and which base an address uses:
+
+	[value]				absolute, in the data bank (DBR): lda [$1234]
+	[value]:24			long: lda [$123456]:24, or [value] when value > $FFFF
+	[value + X]			absolute,x		[value + Y]	absolute,y
+	[value + X]:24		long,x
+	[D + value]			direct page: lda [D + 4]
+	[D + value + X]		direct page,x	[D + value + Y]	direct page,y (ldx, stx)
+	[[D + value]]		(direct page): a 16 bit pointer, in the data bank
+	[[D + value + X]]	(direct page,x)
+	[[D + value] + Y]	(direct page),y
+	[[D + value]:24]	[direct page]: a 24 bit pointer
+	[[D + value]:24 + Y]	[direct page],y
+	[S + value]			stack relative
+	[[S + value] + Y]	(stack relative),y
+
+The :24 suffix on a bracket means a long (24 bit) address or pointer, like
+Assembler65Syntax.txt's :16 and :32.  Without it, [value] is absolute when the value
+fits 16 bits and long when it doesn't; an unresolved label is absolute unless :24 is
+given.  In an object the field is relocated "in bank": the linker writes the label's low
+16 bits and reports an error unless the label is in the bank of the instruction (the
+data bank is taken to be the program bank; write :24 when it isn't).  jmp / jsr Label
+and jmp [Table + X] are checked the same way, against the program bank.  D's value is not known to the assembler, so [D + value] is
+always direct page, value 0 to 255.
+
+
+Jumps, calls and branches
+-------------------------
+
+As Assembler65Syntax.txt, the target of a jump is the effective address:
+
+	jmp Label			absolute, in the program bank
+	jmp [Vector]		(absolute): the address read from Vector (bank 0)
+	jmp [Table + X]		(absolute,x), in the program bank
+	jml Label			long
+	jml [Vector]:24		[absolute]: a 24 bit address read from Vector
+	jsr Label			jsr [Table + X]
+	jsl Label
+	rts rtl rti
+	bra Label  brl Label  bne bcc ...	relative; raw byte offsets without a label as now,
+						and C + offset / C - offset (C is the next instruction)
+	per Label			pushes the label's address relative to the next instruction
+
+
+Block moves and banks
+---------------------
+
+	mvn Source >> 16, Destination >> 16		source bank, destination bank (the
+	mvp Source >> 16, Destination >> 16		instruction's bytes are the other way round)
+
+Label >> 16 is a label's bank and Label & $FFFF its offset in the bank.  In an object
+they are relocations of that form (CAsm65Object version 4, EAsm65RelocationForm, shared
+with the 65C64 assembler); nothing can be added to them afterwards: (Label + 2) >> 16,
+not (Label >> 16) + 2.  Assembled absolute (.org) they are ordinary arithmetic.
+
+
+Data
+----
+
+As Assembler65Syntax.txt (.byte .word .long .quad .space .align), plus
+
+	.word24 value, ...		24 bits, little endian (a far address without its pad byte)
+
+A far pointer in C++ data is .long Label (24 bits and a zero byte).
+
+
+Everything else
+---------------
+
+The rest of the instruction set is the W65C816's mnemonics with these operands: implied
+(clc, tax, phb, xba, xce, wai, stp ...), A, value, or an address.  brk and cop take a
+signature byte (brk 0), wdm too.
+
+
+The user's rulings (2026-10-25)
+-------------------------------
+
+1.	[D + value] and [S + value], as proposed.
+2.	:24 for long addresses and pointers as proposed.  Far pointers are stored in 32 bits
+	"with the upper 8 bits ignored so as to not swap between 8 and 16 bit mode": a
+	pointer is loaded and stored as two 16 bit words, and [d] / [d],y read only its
+	first 3 bytes.  My choice: the compiler always writes the top byte as 0 (the high
+	word is the bank and a zero byte, written in one 16 bit store), so == and != compare
+	two words without masking; a pointer made from an integer is masked once.
+3.	rep and sep take flag names and values, as proposed.
+4.	Widths are unknown at a section's start, as proposed.
+5.	An unresolved label in [Label] is absolute and the linker checks its bank, as
+	proposed.
+6.	.word24 for hand written 3 byte data, as proposed; the compiler writes far pointers
+	with .long.

@@ -107,6 +107,17 @@ struct SIR65Stub
 typedef CArrayTemplate<SIR65Stub>	CArrayIR65Stubs;
 
 
+//A class of temporaries sharing a home and how much they are used, for the order homes are given in.
+struct SIR65Weight
+{
+	int32	iLeader;
+	uint32	uiWeight;
+};
+
+
+typedef CArrayTemplate<SIR65Weight>	CArrayIR65Weights;
+
+
 #define IR65_PSEUDO_UNITS		32		//Four byte units of [$00 + W] to [$7F + W], and again from [$80 + W].
 #define IR65_HOME_PSEUDO		IR65R_Count
 #define IR65_HOME_SAVED			(IR65_HOME_PSEUDO + IR65_PSEUDO_UNITS)
@@ -157,13 +168,18 @@ protected:
 	SIRReference			msAvailable;		//What A holds as the current instruction starts.
 	SIRReference			msDeferred;			//A load the next instruction reads itself, from mszDeferred.
 	CChars					mszDeferred;
-	SIRInstruction*			mpsWritten;			//A store ReadModifyWrite wrote with the instruction before it.
-	SIRInstruction*			mpsFlags;			//The integer comparison the last block's jump did: the flags are its cmp's.
+	SIRInstruction*			mpsWritten;			//Written with the instruction before it: a store (ReadModifyWrite) or a div's partner (Divide).
+	SIRInstruction*			mpsFlags;			//The last integer comparison a block (mpcFlags) jumped on: the flags its successors start with.
 	CIRBlock*				mpcFlags;
 	bool					mbFlagsKnown;		//The block's comparison uses the flags it is entered with (FlagsKnown).
-	bool					mbRightImmediate;
-	bool					mbFrameless;		//A leaf without a frame: V isn't set up, the arguments are from S...
-	char					mcFrame;			//...so the frame register is S, otherwise V.	//LoadOperands left the second operand a constant, for "op A, value".
+	SIRReference			msFlagsValue;		//n and z are this value's while mpszOut is muiFlagsLength long (SetFlagsValue).
+	size					muiFlagsLength;
+	SIRReference			msEndFlags;			//The value n and z are at the end of mpcEndFlags, whose branch used them.
+	CIRBlock*				mpcEndFlags;
+	bool					mbFlagsUsed;		//The jump's comparison branched on the flags a cpy set.
+	bool					mbRightImmediate;	//LoadOperands left the second operand a constant, for "op A, value".
+	bool					mbFrameless;		//No frame: V isn't set up, the arguments are from S...
+	char					mcFrame;			//...so the frame register is S, otherwise V.
 
 public:
 	void				Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRuntime);
@@ -179,11 +195,16 @@ protected:
 	void				Binding(const char* szName, uint32 uiAttributes, CChars* pszDest);
 	void				OrderBlocks(void);
 	void				RotateLoops(void);
+	void				AdjustComparisons(void);
+	void				PreferSingleBranches(void);
+	void				PairDivides(void);
+	bool				DividePartner(SIRInstruction* psFirst, SIRInstruction* psPartner);
 	void				SinkLoads(void);
 	void				SinkToEnd(CIRBlock* pcBlock);
 	bool				ConstantPtrAdd(SIRInstruction* psInstruction);
 	void				CopyAddresses(void);
 	void				MarkFolded(void);
+	void				Peephole(size uiStart);
 	void				Prologue(const char* szLabel);
 	void				Epilogue(void);
 	bool				Error(const char* szMessage, const char* szDetail = NULL);
@@ -204,6 +225,7 @@ protected:
 	void				Layout(void);
 	bool				NeedsHome(int32 iTemporary);
 	void				Allocate(void);
+	void				DiscountAddresses(CArrayIR65Weights* pasWeights);
 	void				FindChanges(void);
 	void				Coalesce(void);
 	int32				Find(int32 iTemporary);
@@ -224,10 +246,13 @@ protected:
 	bool				Overlaps(SIR65Place* psPlace1, SIR65Place* psPlace2);
 	bool				IsDeferred(SIRReference sValue);
 	bool				IsInA(SIRReference sValue);
-	bool				IsFrameOperand(CChars* pszOperand);
-	bool				IsLeaf(void);
 	bool				InRegister(SIRReference sValue);
 	const char*			RegisterName(SIR65Place* psPlace);
+	bool				IsFrameOperand(CChars* pszOperand);
+	bool				IsLeaf(void);
+	bool				ArgumentsReadFirst(void);
+	bool				IsArrivalPlace(SIRReference sValue);
+	int					NumSaved(void);
 	void				AppendPlace(CChars* psz, SIR65Place* psPlace);
 	void				AppendImmediate(CChars* psz, SIRReference sConstant, EIR65Extend eExtend);
 	bool				Operand(SIRReference sValue, CChars* pszOperand, bool bArithmetic, EIR65Extend eExtend);
@@ -248,19 +273,25 @@ protected:
 	bool				Skipped(SIRInstruction* psInstruction);
 	size				NextWritten(CIRBlock* pcBlock, size uiAfter, size uiEnd);
 	bool				Block(CIRBlock* pcBlock, CIRBlock* pcNext);
+	bool				BranchOn(SIRInstruction* psFused, SIRReference sCondition, bool bJumpIf, int32 iLabel);
+	bool				EnteredOnlyFrom(CIRBlock* pcBlock, CIRBlock* pcFrom);
+	void				SetFlagsValue(SIRReference sValue);
+	bool				FlagsHold(SIRReference sValue);
+	bool				IsZero(SIRReference sValue);
+	bool				FlagsKnown(CIRBlock* pcBlock, SIRInstruction* psFused);
 	void				Edge(CIRBlock* pcFrom, CIRBlock* pcTo);
 	void				Move(SIRReference sDestination, SIRReference sSource, SIRType sType, bool bFromB);
 	void				TestZero(SIRReference sValue);
 	bool				Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psFused);
-	bool				FlagsKnown(CIRBlock* pcBlock, SIRInstruction* psFused);
 	bool				Instruction(CIRBlock* pcBlock, size uiIndex);
 	bool				Commutes(uint16 uiOpcode);
 	bool				ReadModifyWrite(CIRBlock* pcBlock, size uiIndex);
 	bool				Integer(SIRInstruction* psInstruction);
 	bool				IntegerWide(SIRInstruction* psInstruction);
 	bool				MultiplyInstruction(SIRInstruction* psInstruction);
+	bool				MultiplyByShifts(SIRInstruction* psInstruction);
 	bool				ShiftSigned(SIRInstruction* psInstruction);
-	bool				Divide(SIRInstruction* psInstruction);
+	bool				Divide(SIRInstruction* psInstruction, SIRInstruction* psNext);
 	bool				Conversion(SIRInstruction* psInstruction);
 	bool				FloatOperation(SIRInstruction* psInstruction);
 	bool				FloatConversion(SIRInstruction* psInstruction);
@@ -270,7 +301,7 @@ protected:
 	bool				Store(SIRInstruction* psInstruction);
 	bool				Call(CIRBlock* pcBlock, size uiIndex);
 	bool				Compare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel);
-	void				CompareOperands(SIRReference sFirst, SIRReference sSecond, bool bConstant, int64 lliConstant);
+	void				CompareOperands(SIRReference sFirst, SIRReference sSecond);
 	bool				IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel);
 	bool				FloatCompare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel);
 	bool				TakesInA(SIRInstruction* psNext, SIRReference sValue);

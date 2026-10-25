@@ -372,6 +372,9 @@
     <ClCompile Include="W65C816Meta.cpp">
       <Filter>Source\WDC\W65C816\Meta</Filter>
     </ClCompile>
+    <ClCompile Include="Fast65C816.cpp">
+      <Filter>Source\WDC\W65C816\Meta</Filter>
+    </ClCompile>
     <ClCompile Include="W65CompoundAddress.cpp">
       <Filter>Source\WDC\W65C816\Instruction\Address</Filter>
     </ClCompile>
@@ -996,6 +999,9 @@
       <Filter>Source\Meta</Filter>
     </ClInclude>
     <ClInclude Include="W65C816Meta.h">
+      <Filter>Source\WDC\W65C816\Meta</Filter>
+    </ClInclude>
+    <ClInclude Include="Fast65C816.h">
       <Filter>Source\WDC\W65C816\Meta</Filter>
     </ClInclude>
     <ClInclude Include="W65CompoundAddress.h">

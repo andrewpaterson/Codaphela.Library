@@ -168,3 +168,59 @@ bool IsIRIntegerComparison(uint16 uiOpcode)
 {
 	return (uiOpcode >= IRO_Eq) && (uiOpcode <= IRO_UGe);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// slt, sle, sgt and sge.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsIRSignedComparison(uint16 uiOpcode)
+{
+	return (uiOpcode >= IRO_SLt) && (uiOpcode <= IRO_SGe);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// sgt, sle, ugt and ule: a less than comparison with the operands swapped.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsIRSwappedComparison(uint16 uiOpcode)
+{
+	return (uiOpcode == IRO_SGt) || (uiOpcode == IRO_SLe) || (uiOpcode == IRO_UGt) || (uiOpcode == IRO_ULe);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The integer comparison that is true when uiOpcode's is false.
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 IRInvertedComparison(uint16 uiOpcode)
+{
+	switch (uiOpcode)
+	{
+	case IRO_Eq:	return IRO_Ne;
+	case IRO_Ne:	return IRO_Eq;
+	case IRO_SLt:	return IRO_SGe;
+	case IRO_SLe:	return IRO_SGt;
+	case IRO_SGt:	return IRO_SLe;
+	case IRO_SGe:	return IRO_SLt;
+	case IRO_ULt:	return IRO_UGe;
+	case IRO_ULe:	return IRO_UGt;
+	case IRO_UGt:	return IRO_ULe;
+	default:		return IRO_ULt;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// trunc, sext and zext: an integer to an integer of another width.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsIRIntegerConversion(uint16 uiOpcode)
+{
+	return (uiOpcode == IRO_Trunc) || (uiOpcode == IRO_SExt) || (uiOpcode == IRO_ZExt);
+}

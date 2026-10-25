@@ -186,6 +186,7 @@ void CAsm65Assembler::Pass(void)
 		}
 	}
 
+	SectionStarted();
 	while (Peek()->eType != AT65_End)
 	{
 		Statement();
@@ -390,7 +391,7 @@ void CAsm65Assembler::Statement(void)
 			{
 				bResult = SymbolBinding(psToken);
 			}
-			else
+			else if (!ProcessorDirective(psToken, &bResult))
 			{
 				bResult = Error(psToken, "Unknown directive");
 			}
@@ -398,7 +399,7 @@ void CAsm65Assembler::Statement(void)
 	}
 	else
 	{
-		AlignTo(2);
+		AlignTo(InstructionAlignment());
 		muiStatementAddress = muiAddress;
 		BindLabels();
 		Next();
@@ -549,6 +550,7 @@ bool CAsm65Assembler::Origin(void)
 	muiAddress = (uint32)iValue;
 	muiStatementAddress = muiAddress;
 	miLabelShift = 0;
+	SectionStarted();
 	return true;
 }
 
@@ -797,6 +799,7 @@ bool CAsm65Assembler::Section(void)
 
 	SwitchSection((uint32)iSection);
 	muiStatementAddress = muiAddress;
+	SectionStarted();
 	return true;
 }
 
@@ -1046,6 +1049,7 @@ void CAsm65Assembler::RecordRelocation(SAsm65Value* psValue, uint32 uiOffset, ui
 	psRelocation->uiBytes = uiBytes;
 	psRelocation->bSigned = bSigned;
 	psRelocation->bRelative = bRelative;
+	psRelocation->uiForm = psValue->uiForm;
 	psRelocation->uiLine = psToken->uiLine;
 	psRelocation->uiColumn = psToken->uiColumn;
 
@@ -1272,6 +1276,38 @@ void CAsm65Assembler::Report(CAsm65Errors* pcReport, SAsm65Token* psToken, const
 		pcReport->Add(psToken->uiLine, psToken->uiColumn, szMessage, szText.Text());
 		szText.Kill();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// 65C64 instructions are whole words.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CAsm65Assembler::InstructionAlignment(void)
+{
+	return 2;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A directive only one processor's assembler has.  Returns false if it isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::ProcessorDirective(SAsm65Token* psDirective, bool* pbResult)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Called at the start of a pass, .org and .section.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Assembler::SectionStarted(void)
+{
 }
 
 

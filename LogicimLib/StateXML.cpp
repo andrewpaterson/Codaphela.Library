@@ -493,6 +493,7 @@ void CW65C816ChipStateXML::Save(CXMLWriter* pcWriter, CIntegratedCircuit* pcInte
 	pcWriter->Attribute("abort", sState.bAbort);
 	pcWriter->Attribute("nextInstruction", sState.bNextInstruction);
 	pcWriter->Attribute("nmi", sState.bNmi);
+	pcWriter->Attribute("nmiLow", sState.bNmiLow);
 	pcWriter->Attribute("previousClockLow", sState.bPreviousClockLow);
 	pcWriter->Attribute("previousClockHigh", sState.bPreviousClockHigh);
 	pcWriter->Attribute("resetCount", (int32)sState.uiResetCount);
@@ -584,6 +585,7 @@ bool CW65C816ChipStateXML::Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegra
 	bResult &= LoadStateBool(pcTag, "abort", &sState.bAbort);
 	bResult &= LoadStateBool(pcTag, "nextInstruction", &sState.bNextInstruction);
 	bResult &= LoadStateBool(pcTag, "nmi", &sState.bNmi);
+	bResult &= LoadStateBool(pcTag, "nmiLow", &sState.bNmiLow);
 	bResult &= LoadStateBool(pcTag, "previousClockLow", &sState.bPreviousClockLow);
 	bResult &= LoadStateBool(pcTag, "previousClockHigh", &sState.bPreviousClockHigh);
 	bResult &= LoadStateInt(pcTag, "resetCount", 0, 0xFFFF, &iValue);

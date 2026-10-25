@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "IRLiveness.h"
 #include "IRInliner.h"
 
 
@@ -25,15 +26,17 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRInliner::Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxInlines)
+void CIRInliner::Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoopInstructions, size uiMaxInlines)
 {
 	mpcModule = pcModule;
 	mpcCaller = NULL;
 	muiMaxInstructions = uiMaxInstructions;
+	muiMaxLoopInstructions = uiMaxLoopInstructions;
 	muiMaxInlines = uiMaxInlines;
 	masMap.Init();
 	mapcCopies.Init();
 	masReturns.Init();
+	mabInLoop.Init();
 }
 
 
@@ -43,6 +46,7 @@ void CIRInliner::Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxInl
 //////////////////////////////////////////////////////////////////////////
 void CIRInliner::Kill(void)
 {
+	mabInLoop.Kill();
 	masReturns.Kill();
 	mapcCopies.Kill();
 	masMap.Kill();
@@ -69,17 +73,18 @@ size CIRInliner::NumInstructions(CIRFunction* pcFunction)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if calls of pcCallee (from mpcCaller) may be replaced by its body.
+// True if calls of pcCallee (from mpcCaller) may be replaced by its body:
+// a call in a loop by a larger one.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRInliner::CanInline(CIRFunction* pcCallee)
+bool CIRInliner::CanInline(CIRFunction* pcCallee, bool bInLoop)
 {
 	size			ui;
 	size			uiInstruction;
 	CIRBlock*		pcBlock;
 	bool			bReturns;
 
-	if ((pcCallee == NULL) || (pcCallee == mpcCaller) || (pcCallee->muiAttributes & IRA_Variadic) || (pcCallee->NumBlocks() == 0) || (NumInstructions(pcCallee) > muiMaxInstructions))
+	if ((pcCallee == NULL) || (pcCallee == mpcCaller) || (pcCallee->muiAttributes & IRA_Variadic) || (pcCallee->NumBlocks() == 0) || (NumInstructions(pcCallee) > (bInLoop ? muiMaxLoopInstructions : muiMaxInstructions)))
 	{
 		return false;
 	}
@@ -111,15 +116,19 @@ bool CIRInliner::InlineCalls(CIRFunction* pcCaller)
 	size			uiBlock;
 	size			uiInstruction;
 	size			uiInlines;
+	size			uiBlocks;
 	CIRBlock*		pcBlock;
 	SIRInstruction*	psInstruction;
 	CIRFunction*	pcCallee;
+	bool			bInLoop;
 
 	mpcCaller = pcCaller;
+	FindLoops();
 	uiInlines = 0;
 	for (uiBlock = 0; (uiBlock < pcCaller->NumBlocks()) && (uiInlines < muiMaxInlines); uiBlock++)
 	{
 		pcBlock = pcCaller->GetBlock(uiBlock);
+		bInLoop = *mabInLoop.Get(uiBlock);
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
@@ -128,9 +137,15 @@ bool CIRInliner::InlineCalls(CIRFunction* pcCaller)
 				continue;
 			}
 			pcCallee = mpcModule->FindFunction(psInstruction->asArguments[0].Index());
-			if (CanInline(pcCallee) && InlineCall(pcBlock, uiInstruction, pcCallee))
+			uiBlocks = pcCaller->NumBlocks();
+			if (CanInline(pcCallee, bInLoop) && InlineCall(pcBlock, uiInstruction, pcCallee))
 			{
-				//The rest of the block was moved to a new block, which is looked at later.
+				//The rest of the block was moved to a new block, which is looked at later; the new blocks are in the
+				//block's loop.
+				for (; uiBlocks < pcCaller->NumBlocks(); uiBlocks++)
+				{
+					mabInLoop.Add(&bInLoop);
+				}
 				uiInlines++;
 				break;
 			}
@@ -138,6 +153,81 @@ bool CIRInliner::InlineCalls(CIRFunction* pcCaller)
 	}
 	mpcCaller = NULL;
 	return uiInlines > 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Which of the caller's blocks are in a loop (CIRLiveness's loop depths),
+// worked out only if a call's callee is small enough for a loop but not
+// otherwise.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInliner::FindLoops(void)
+{
+	CIRDominators	cDominators;
+	CIRLiveness		cLiveness;
+	size			ui;
+	bool			bInLoop;
+
+	bInLoop = false;
+	mabInLoop.FakeSetUsedElements(0);
+	if (!HasLoopCandidate())
+	{
+		for (ui = 0; ui < mpcCaller->NumBlocks(); ui++)
+		{
+			mabInLoop.Add(&bInLoop);
+		}
+		return;
+	}
+
+	mpcCaller->Renumber();
+	mpcCaller->ComputePredecessors();
+	cDominators.Init();
+	cDominators.Compute(mpcCaller);
+	cLiveness.Init();
+	cLiveness.ComputeLoops(mpcCaller, &cDominators);
+	for (ui = 0; ui < mpcCaller->NumBlocks(); ui++)
+	{
+		bInLoop = cLiveness.LoopDepth(mpcCaller->GetBlock(ui)) > 0;
+		mabInLoop.Add(&bInLoop);
+	}
+	cLiveness.Kill();
+	cDominators.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the caller calls a function only small enough to inline in a
+// loop.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInliner::HasLoopCandidate(void)
+{
+	size			uiBlock;
+	size			uiInstruction;
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	CIRFunction*	pcCallee;
+
+	for (uiBlock = 0; uiBlock < mpcCaller->NumBlocks(); uiBlock++)
+	{
+		pcBlock = mpcCaller->GetBlock(uiBlock);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if ((psInstruction->uiOpcode == IRO_Call) && psInstruction->asArguments[0].IsSymbol())
+			{
+				pcCallee = mpcModule->FindFunction(psInstruction->asArguments[0].Index());
+				if (CanInline(pcCallee, true) && !CanInline(pcCallee, false))
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
 
 

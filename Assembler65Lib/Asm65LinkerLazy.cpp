@@ -308,6 +308,11 @@ EAsm65LazyField CAsm65Linker::LazyField(size uiObject, SAsm65Relocation* psReloc
 	bool				bInside;
 
 	pcObject = masObjects.Get(uiObject)->pcObject;
+	if (psRelocation->uiForm != ASM65RF_Plain)
+	{
+		Error(pcObject, psRelocation, "Lazy linking only takes whole values (no >> 16, & $FFFF or in bank)", NULL);
+		return ALF65_Error;
+	}
 	if (!TargetPlace(uiObject, psRelocation, &iSection, piValue))
 	{
 		return ALF65_Error;

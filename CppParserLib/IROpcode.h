@@ -160,6 +160,10 @@ extern SIRFlagName	gasIRFlagNames[IRF_NumWordFlags];
 SIROpcode*	GetIROpcode(uint16 uiOpcode);
 uint16		FindIROpcode(SIROpcode* pasOpcodes, uint16 uiNumOpcodes, uint16 uiFirst, const char* szName);
 bool		IsIRIntegerComparison(uint16 uiOpcode);
+bool		IsIRSignedComparison(uint16 uiOpcode);
+bool		IsIRSwappedComparison(uint16 uiOpcode);
+uint16		IRInvertedComparison(uint16 uiOpcode);
+bool		IsIRIntegerConversion(uint16 uiOpcode);
 
 
 #endif // __I_R_OPCODE_H__

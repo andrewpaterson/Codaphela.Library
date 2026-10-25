@@ -84,6 +84,18 @@ void CIRLiveness::Compute(CIRFunction* pcFunction, CIRDominators* pcDominators)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Only each block's loop depth (LoopDepth), for a pass that needs no more.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRLiveness::ComputeLoops(CIRFunction* pcFunction, CIRDominators* pcDominators)
+{
+	mpcFunction = pcFunction;
+	ComputeLoopDepths(pcDominators);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The first block starts at 0, where the parameters are defined.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -337,7 +349,18 @@ void CIRLiveness::AddWeight(SIRReference sValue, int32 iDepth)
 		return;
 	}
 	puiWeight = mauiWeights.Get(sValue.Index());
-	*puiWeight += 1u << (3 * ((iDepth > 5) ? 5 : iDepth));
+	*puiWeight += LoopWeight(iDepth);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A use's weight at a loop depth: 8 times more per loop, up to five.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CIRLiveness::LoopWeight(int32 iDepth)
+{
+	return 1u << (3 * ((iDepth > 5) ? 5 : iDepth));
 }
 
 

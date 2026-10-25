@@ -59,6 +59,7 @@ public:
 	void			Kill(void);
 
 	void			Compute(CIRFunction* pcFunction, CIRDominators* pcDominators);
+	void			ComputeLoops(CIRFunction* pcFunction, CIRDominators* pcDominators);
 
 	int32			Start(CIRBlock* pcBlock);
 	int32			Position(CIRBlock* pcBlock, size uiInstruction);
@@ -68,6 +69,7 @@ public:
 	size			NumRanges(SIRReference sTemporary);
 	SIRRange*		GetRanges(SIRReference sTemporary);
 	uint32			GetWeight(SIRReference sTemporary);
+	static uint32	LoopWeight(int32 iDepth);
 
 	static bool		Intersect(SIRRange* psRanges1, size uiNum1, SIRRange* psRanges2, size uiNum2);
 

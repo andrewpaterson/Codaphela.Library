@@ -37,31 +37,36 @@ typedef CArrayTemplate<SIRInlineReturn>	CArrayIRInlineReturns;
 //Inlining (IR.txt Passes): a call of a small function of the same module is replaced by a copy of the function's
 //blocks.  The block the call is in is split after it; the arguments become the copy's parameters, its returns
 //jump to the rest of the block, and the call's result is a phi there of the values returned.  A function is
-//small if it has at most muiMaxInstructions instructions; variadic functions, functions that take their
-//parameters' addresses (argaddr) and calls of the function itself aren't inlined.  The copies' own calls are
-//inlined too, up to muiMaxInlines in one caller.  The caller should be optimised again afterwards.
+//small if it has at most muiMaxInstructions instructions (muiMaxLoopInstructions for a call in a loop); variadic
+//functions, functions that take their parameters' addresses (argaddr) and calls of the function itself aren't
+//inlined.  The copies' own calls are inlined too, up to muiMaxInlines in one caller.  The caller should be optimised
+//again afterwards.
 class CIRInliner
 {
 protected:
 	CIRModule*				mpcModule;
 	CIRFunction*			mpcCaller;
 	size					muiMaxInstructions;
+	size					muiMaxLoopInstructions;		//For a call in a loop.
 	size					muiMaxInlines;
-	CArrayIRReferences		masMap;			//Per callee temporary: what it is in the caller, IRNone until it is made.
-	CArrayIRBlocks			mapcCopies;		//Per callee block index: its copy.
+	CArrayIRReferences		masMap;						//Per callee temporary: what it is in the caller, IRNone until it is made.
+	CArrayIRBlocks			mapcCopies;					//Per callee block index: its copy.
 	CArrayIRInlineReturns	masReturns;
+	CArrayTemplate<bool>	mabInLoop;					//Per caller block index.
 
 public:
-	void			Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxInlines);
+	void			Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoopInstructions, size uiMaxInlines);
 	void			Kill(void);
 
-	bool			InlineCalls(CIRFunction* pcCaller);
-	bool			CanInline(CIRFunction* pcCallee);
 	static size		NumInstructions(CIRFunction* pcFunction);
+	bool			CanInline(CIRFunction* pcCallee, bool bInLoop);
+	bool			InlineCalls(CIRFunction* pcCaller);
 
 protected:
-	bool			InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCallee);
+	void			FindLoops(void);
+	bool			HasLoopCandidate(void);
 	SIRReference	Map(SIRReference sValue, CIRFunction* pcCallee);
+	bool			InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCallee);
 	void			CopyBlock(CIRBlock* pcFrom, CIRFunction* pcCallee, CIRBlock* pcRest);
 };
 

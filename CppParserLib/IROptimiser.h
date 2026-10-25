@@ -70,6 +70,7 @@ struct SIRBlockEnd
 
 
 typedef CArrayTemplatePtr<SIRInstruction>	CArrayIRInstructionPtrs;
+typedef CArrayTemplatePtr<SIRPhi>			CArrayIRPhiPtrs;
 
 
 //A load or store of a slot at a constant offset, and the slot of its own it gets when the slot is split.
@@ -83,25 +84,32 @@ struct SIRSlotAccess
 
 
 #define IR_AVAILABLE_LIMIT	64
+#define IR_KNOWN_DEPTH		8		//How many single predecessors back KnownCondition and ImpliedComparison look for a branch.
 
 
 //The mid level passes (IR.txt Passes), run on a function until nothing changes:
 //
 //	simplify cfg		removes unreachable blocks, jumps through empty blocks, joins a block to its only
-//						successor when it is that block's only predecessor, and folds brif on a constant
+//						successor when it is that block's only predecessor, folds brif on a constant, skips
+//						an empty brif a predecessor knows the way of, and copies a block of only phis and a
+//						ret into the blocks that jump to it
 //	slot splitting		a slot only loaded and stored at constant offsets that don't overlap (an object's
 //						fields) becomes a slot per offset
 //	slot promotion		slots and argaddrs only loaded and stored (all at one type, not volatile) become
 //						temporaries and phis (as LLVM's mem2reg, with dominance frontiers)
 //	trivial phis		a phi whose arguments are all one value (or itself) is that value
 //	constant folding	integer instructions (and integer and pointer conversions) of constants; x * 2^n is
-//						x << n; a comparison of two extended narrow values compares the narrow values
+//						x << n and unsigned / and % by 2^n are >> and &; a comparison of two extended narrow
+//						values compares the narrow values; a comparison a branch on the way in decides is a
+//						constant (or eq, ne); an extension undone, or of a phi of constants, goes
 //	local cse			an instruction without effects that a block already did is the earlier result
 //	redundant loads		a load of a value known to be in memory (loaded or stored before it, with nothing
 //						that may change it between) is that value
 //	invariant code		loads and integer operations in a loop of what the loop doesn't change move to the
-//						block that enters it
+//						block that enters it (one put on the way when that block branches)
 //	dead code			instructions without effects whose results are not used
+
+
 class CIROptimiser
 {
 protected:
@@ -122,6 +130,7 @@ protected:
 	CArrayTemplate<int32>	maiChildren;		//The dominator tree, per block from maiChildStarts.
 	CArrayTemplate<int32>	maiChildStarts;
 	CArrayIRInstructionPtrs	mapsDefinitions;	//Per temporary: the instruction that defines it, NULL for none.
+	CArrayIRPhiPtrs			mapsPhis;			//Per temporary: the phi that defines it, NULL for none.
 	CArrayIRReferences		masArgAddresses;	//Per parameter: its first argaddr, IRNone for none.
 
 public:
@@ -146,29 +155,35 @@ protected:
 	SIRReference	Replacement(SIRReference sReference);
 	void			ApplyReplacements(void);
 	bool			HasEffect(SIRInstruction* psInstruction);
-
+	void			RemovePhiArguments(CIRBlock* pcBlock, CIRBlock* pcPredecessor);
+	void			RenamePhiArguments(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pcNew);
+	void			RedirectJump(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pcNew);
+	void			Bypass(CIRBlock* pcPredecessor, CIRBlock* pcBlock, CIRBlock* pcTarget);
 	bool			RemoveUnreachable(void);
 	bool			FoldBranches(void);
 	bool			SkipEmptyBlocks(void);
 	int				KnownCondition(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIRReference sCondition);
 	bool			ThreadBranches(void);
+	bool			DuplicateReturns(void);
 	bool			JoinBlocks(void);
-	void			RemovePhiArguments(CIRBlock* pcBlock, CIRBlock* pcPredecessor);
-	void			RenamePhiArguments(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pcNew);
-	void			RedirectJump(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pcNew);
-
+	int32			PromotionOf(SIRReference sAddress);
 	void			FindPromotions(void);
 	void			ComputeFrontiers(void);
 	void			ComputeChildren(void);
 	void			PlacePhis(void);
-	void			Rename(void);
-	void			RenameBlock(CIRBlock* pcBlock, size* puiPushed);
-	void			FillSuccessorPhis(CIRBlock* pcBlock);
 	void			PushValue(int32 iPromotion, SIRReference sValue);
 	void			PopValue(void);
 	SIRReference	CurrentValue(int32 iPromotion);
-	int32			PromotionOf(SIRReference sAddress);
+	void			Rename(void);
+	void			RenameBlock(CIRBlock* pcBlock, size* puiPushed);
+	void			FillSuccessorPhis(CIRBlock* pcBlock);
+	void			RemovePromoted(void);
 	bool			Fold(SIRInstruction* psInstruction, uint64* pulliResult);
+	bool			UndoesExtension(SIRInstruction* psInstruction, SIRReference* psValue);
+	bool			ConvertPhi(SIRInstruction* psInstruction, SIRReference* psValue);
+	bool			Extended(SIRReference sValue, int iBits, bool bSigned, int iDepth);
+	int				EntryRelations(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIRInstruction* psInstruction);
+	bool			ImpliedComparison(CIRBlock* pcBlock, SIRInstruction* psInstruction, uint64* pulliResult, bool* pbChanged);
 	void			FindDefinitions(void);
 	SIRInstruction*	Definition(SIRReference sValue);
 	void			SplitAddress(SIRReference sAddress, SIRReference* psRoot, int64* plliOffset);
@@ -177,9 +192,8 @@ protected:
 	void			AddAvailable(CArrayIRAvailables* pasAvailable, SIRReference sRoot, int64 lliOffset, SIRType sType, SIRReference sValue);
 	SIRReference	Unextended(SIRReference sValue, uint16 uiOpcode, SIRType* psType);
 	bool			NarrowComparison(SIRInstruction* psInstruction);
-	bool			ImpliedComparison(CIRBlock* pcBlock, SIRInstruction* psInstruction, uint64* pulliResult, bool* pbChanged);
 	bool			SlotOffset(SIRReference sAddress, SIRReference* psSlot, int64* plliOffset);
-	void			RemovePromoted(void);
+	CIRBlock*		AddPreheader(CIRBlock* pcEntering, CIRBlock* pcHead);
 };
 
 
