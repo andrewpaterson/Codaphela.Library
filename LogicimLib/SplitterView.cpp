@@ -121,7 +121,7 @@ void CSplitterView::Init(int32 x, int32 y, ERotation eRotation, const char* szNa
 	}
 	sFirst = GetFanPosition(0, 0);
 	sLast = GetFanPosition(miFanOut - 1, 0);
-	mcShapes.AddRectangle((sFirst.x < sLast.x) ? sFirst.x : sLast.x, -0.1, (sFirst.x < sLast.x) ? sLast.x : sFirst.x, 0.1, true, true);
+	mcShapes.AddRectangle(-0.1, (sFirst.y < sLast.y) ? sFirst.y : sLast.y, 0.1, (sFirst.y < sLast.y) ? sLast.y : sFirst.y, true, true);
 
 	aiBits.Init();
 	for (iFan = 0; iFan < miFanOut; iFan++)
@@ -131,8 +131,8 @@ void CSplitterView::Init(int32 x, int32 y, ERotation eRotation, const char* szNa
 		szText.Init();
 		AppendBitsText(&szText, &aiBits);
 		sMid = GetFanPosition(iFan, 0);
-		sMid.x += (meAppearance == SA_RightHanded) ? -0.4 : 0.4;
-		sMid.y += 0.3;
+		sMid.x -= 0.3;
+		sMid.y += (meAppearance == SA_RightHanded) ? -0.4 : 0.4;
 		mcShapes.AddText(sMid.x, sMid.y, szText.Text(), CF_SansSerif, SPLITTER_FONT_SIZE, TA_Right);
 		szText.Kill();
 	}
@@ -295,20 +295,20 @@ void CSplitterView::AppendBitsText(CChars* psz, CArrayInt* paiBits)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Where an end leaves the bar (y 0) or stops (y 2).
+// Where an end leaves the bar (fAlong 0) or stops (fAlong 2).
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat64Vec2 CSplitterView::GetFanPosition(int32 iFan, float64 y)
+SFloat64Vec2 CSplitterView::GetFanPosition(int32 iFan, float64 fAlong)
 {
 	SFloat64Vec2	sPosition;
 
 	if (meAppearance == SA_RightHanded)
 	{
-		sPosition.Init(iFan * miGridSpacing, y);
+		sPosition.Init(-fAlong, iFan * miGridSpacing);
 	}
 	else
 	{
-		sPosition.Init(-iFan * miGridSpacing, y);
+		sPosition.Init(-fAlong, -iFan * miGridSpacing);
 	}
 	return sPosition;
 }
@@ -324,11 +324,11 @@ SFloat64Vec2 CSplitterView::GetStartPosition(void)
 
 	if (meAppearance == SA_RightHanded)
 	{
-		sPosition.Init(miEndOffset, -1);
+		sPosition.Init(1, miEndOffset);
 	}
 	else
 	{
-		sPosition.Init(-miEndOffset, -1);
+		sPosition.Init(1, -miEndOffset);
 	}
 	return sPosition;
 }
@@ -336,7 +336,7 @@ SFloat64Vec2 CSplitterView::GetStartPosition(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Where the bus meets the bar: straight down from the start, or the
+// Where the bus meets the bar: straight left from the start, or the
 // nearest end of the bar when the start is past it.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -348,32 +348,32 @@ SFloat64Vec2 CSplitterView::GetBarPosition(void)
 	sStart = GetStartPosition();
 	if (meAppearance == SA_RightHanded)
 	{
-		if (sStart.x > (miFanOut - 1) * miGridSpacing)
+		if (sStart.y > (miFanOut - 1) * miGridSpacing)
 		{
 			sBar = GetFanPosition(miFanOut - 1, 0);
 		}
-		else if (sStart.x < 0)
+		else if (sStart.y < 0)
 		{
 			sBar = GetFanPosition(0, 0);
 		}
 		else
 		{
-			sBar.Init(sStart.x, 0);
+			sBar.Init(0, sStart.y);
 		}
 	}
 	else
 	{
-		if (sStart.x > 0)
+		if (sStart.y > 0)
 		{
 			sBar = GetFanPosition(0, 0);
 		}
-		else if (sStart.x < -(miFanOut - 1) * miGridSpacing)
+		else if (sStart.y < -(miFanOut - 1) * miGridSpacing)
 		{
 			sBar = GetFanPosition(miFanOut - 1, 0);
 		}
 		else
 		{
-			sBar.Init(sStart.x, 0);
+			sBar.Init(0, sStart.y);
 		}
 	}
 	return sBar;

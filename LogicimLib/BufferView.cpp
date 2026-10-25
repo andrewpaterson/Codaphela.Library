@@ -64,7 +64,7 @@ void CBufferView::CreateShapes(void)
 	for (i = 0; i < aiOffsets.NumElements(); i++)
 	{
 		fOffset = aiOffsets.GetValue(i);
-		mcShapes.AddTriangle(fOffset, -0.9, fOffset + fWidth, 1, fOffset - fWidth, 1, true, true);
+		mcShapes.AddTriangle(0.9, fOffset, -1, fOffset + fWidth, -1, fOffset - fWidth, true, true);
 	}
 	aiOffsets.Kill();
 }
@@ -90,18 +90,18 @@ void CBufferView::CreateBufferPortViews(void)
 	{
 		aszNames.Init();
 		GetPortNames(&aszNames, "Input", (int)i, miInputWidth, miInputCount);
-		AddPortView(&aszNames, aiOffsets.GetValue(i), 1);
+		AddPortView(&aszNames, -1, aiOffsets.GetValue(i));
 		aszNames.Kill();
 	}
 	for (i = 0; i < aiOffsets.NumElements(); i++)
 	{
 		aszNames.Init();
 		GetPortNames(&aszNames, "Output", (int)i, miInputWidth, miInputCount);
-		pcOutput = AddPortView(&aszNames, aiOffsets.GetValue(i), -1);
+		pcOutput = AddPortView(&aszNames, 1, aiOffsets.GetValue(i));
 		aszNames.Kill();
 		if (mbNegated)
 		{
-			pcOutput->SetInverting(ROT_North);
+			pcOutput->SetInverting(ROT_East);
 		}
 	}
 	aiOffsets.Kill();

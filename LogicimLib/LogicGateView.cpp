@@ -103,7 +103,7 @@ void CLogicGateView::CalculatePortOffsets(CArrayInt* paiOffsets, int iInputCount
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Half the gate's width.
+// Half the gate's height.
 //
 //////////////////////////////////////////////////////////////////////////
 float64 CLogicGateView::CalculateWidth(int iInputCount)
@@ -156,33 +156,33 @@ void CLogicGateView::CreateGatePortViews(int iInputOffset)
 	{
 		aszNames.Init();
 		GetPortNames(&aszNames, "Input", (int)i, miInputWidth, miInputCount);
-		AddPortView(&aszNames, aiOffsets.GetValue(i), 1 + iInputOffset);
+		AddPortView(&aszNames, -(1 + iInputOffset), aiOffsets.GetValue(i));
 		aszNames.Kill();
 	}
 	aiOffsets.Kill();
 
-	pcOutput = AddPortView("Output", 0, -2);
+	pcOutput = AddPortView("Output", 2, 0);
 	if (mbNegated)
 	{
-		pcOutput->SetInverting(ROT_North);
+		pcOutput->SetInverting(ROT_East);
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A gate is three grid units wide at least, whatever its shape.
+// A gate is three grid units high at least, whatever its shape.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CLogicGateView::IncludeExtraBounds(SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum, bool bHasBounds)
 {
 	if (!bHasBounds)
 	{
-		psMinimum->Init(-1.5, 0);
-		psMaximum->Init(1.5, 0);
+		psMinimum->Init(0, -1.5);
+		psMaximum->Init(0, 1.5);
 	}
-	IncludeBoundsPoint(psMinimum, psMaximum, -1.5, 0);
-	IncludeBoundsPoint(psMinimum, psMaximum, 1.5, 0);
+	IncludeBoundsPoint(psMinimum, psMaximum, 0, -1.5);
+	IncludeBoundsPoint(psMinimum, psMaximum, 0, 1.5);
 	return true;
 }
 

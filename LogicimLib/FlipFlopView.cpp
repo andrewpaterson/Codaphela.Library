@@ -29,17 +29,17 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CDTypeFlipFlopView::Init(int32 x, int32 y, ERotation eRotation, const char* szName, const char* szFamily, bool bExplicitPowerPorts)
 {
-	SPortViewCreator	asBottom[] = {	{ "CP", "CP", 1, true, false },
+	SPortViewCreator	asLeft[] = {		{ "CP", "CP", 1, true, false },
 										{ "SD", "SD", 1, false, true },
 										{ "D", "D", 1, false, false },
 										{ "RD", "RD", 1, false, true } };
-	SPortViewCreator	asTop[] = {		{ "Q", "Q", 1, false, false },
+	SPortViewCreator	asRight[] = {	{ "Q", "Q", 1, false, false },
 										{ "Q", "QB", 1, false, true } };
 
 	CIntegratedCircuitView::Init(x, y, eRotation, szName, szFamily, bExplicitPowerPorts);
-	mcShapes.AddRectangle(-4, -3, 4, 3, true, true);
+	mcShapes.AddRectangle(-3, -4, 3, 4, true, true);
 	CreatePowerPortViews();
-	CreateLabelledPortViews(asBottom, 4, asTop, 2, 3, -3, -3, -1, 2);
+	CreateLabelledPortViews(asLeft, 4, asRight, 2, -3, 3, -3, -1, 2);
 	CalculateBounds();
 }
 

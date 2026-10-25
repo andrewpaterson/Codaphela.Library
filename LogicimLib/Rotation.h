@@ -24,9 +24,16 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Int32Vec2.h"
 
 
-//The way a component faces, as Logicim's Rotation.  Grid y increases downwards.  A component is drawn facing North
-//(its output up, towards -y) and each other rotation turns it about its position.  Rotating right goes North, West,
-//South, East.
+//The way a component faces on the screen: North is up, East is right, South is down and West is left.  Grid y
+//increases downwards.  A component is drawn facing East, as it's normally read (its output to the right, towards +x,
+//and -y up), and each other rotation turns it about its position to face that way.  A component with one port faces
+//the way that port points out of it, so an upright ground faces North and an upright positive supply faces South.
+//Rotating right (clockwise) goes North, East, South, West.
+//
+//Logicim's Rotation drew components facing North and had East and West the other way round: Logicim's West is East
+//here, its East is West, and North and South are the same; its rotateRight turned anticlockwise.  Anything ported from
+//Logicim that rotates or places components (rotate commands, the editor, file import) must be translated to these
+//rotations to behave as it did in Logicim.
 enum ERotation
 {
 	ROT_Cannot,

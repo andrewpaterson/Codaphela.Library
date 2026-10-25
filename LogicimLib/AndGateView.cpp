@@ -54,17 +54,17 @@ void CAndGateView::InitAnd(int32 x, int32 y, ERotation eRotation, const char* sz
 //////////////////////////////////////////////////////////////////////////
 void CAndGateView::CreateShapes(void)
 {
-	float64		fWidth;
-	float64		fBottom;
+	float64		fHeight;
+	float64		fBack;
 
-	fWidth = CalculateWidth(miInputCount);
-	fBottom = -0.5 + 1.4;
+	fHeight = CalculateWidth(miInputCount);
+	fBack = 0.5 - 1.4;
 
-	mcShapes.AddRectangle(-fWidth, -0.5, fWidth, fBottom, true, false);
-	mcShapes.AddArc(0, -0.4, fWidth, 1.5, 0, 180, true, true);
-	mcShapes.AddLine(-fWidth, -0.5, -fWidth, fBottom);
-	mcShapes.AddLine(-fWidth, fBottom, fWidth, fBottom);
-	mcShapes.AddLine(fWidth, fBottom, fWidth, -0.5);
+	mcShapes.AddRectangle(fBack, -fHeight, 0.5, fHeight, true, false);
+	mcShapes.AddArc(0.4, 0, 1.5, fHeight, -90, 180, true, true);
+	mcShapes.AddLine(0.5, -fHeight, fBack, -fHeight);
+	mcShapes.AddLine(fBack, -fHeight, fBack, fHeight);
+	mcShapes.AddLine(fBack, fHeight, 0.5, fHeight);
 }
 
 

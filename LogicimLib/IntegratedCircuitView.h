@@ -69,9 +69,9 @@ protected:
 	virtual	void					SaveXMLAttributes(CXMLWriter* pcWriter);
 	static	bool					LoadXMLFamily(CMarkupTag* pcTag, char** pszFamily, bool* pbExplicitPowerPorts);
 			void					CreatePowerPortViews(void);
-			void					CreateLabelledPortViews(SPortViewCreator* asLeft, size uiNumLeft, SPortViewCreator* asRight, size uiNumRight, int32 iLeftOffset, int32 iRightOffset, int32 iLeftStart, int32 iRightStart, int32 iStep);
+			void					CreateLabelledPortViews(SPortViewCreator* asLeft, size uiNumLeft, SPortViewCreator* asRight, size uiNumRight, int32 iLeftX, int32 iRightX, int32 iLeftStart, int32 iRightStart, int32 iStep);
 			CPortView*				CreateLabelledPortView(SPortViewCreator* psCreator, int32 x, int32 y, ERotation eInvertFacing);
-			size					AddDetail(float64 x, int32 iWidth, const char* szName, const char* szValue);
+			size					AddDetail(float64 y, int32 iWidth, const char* szName, const char* szValue);
 			bool					PowerImplicitly(CIntegratedCircuit* pcIntegratedCircuit, CFamilyVoltageConfiguration* pcFamily);
 };
 

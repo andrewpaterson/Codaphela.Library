@@ -45,16 +45,16 @@ struct SSubcircuitPinView
 typedef CArrayTemplate<SSubcircuitPinView>	CArraySubcircuitPinView;
 
 
-//What Logicim measures with fonts when it lays an instance out: its box, in the instance's grid space facing North,
-//and where its type name, comment and name are across it (y is 0 for all three).  It's measured when an instance is
+//What Logicim measures with fonts when it lays an instance out: its box, in the instance's grid space, and where its
+//type name, comment and name are down it (x is 0 for all three).  It's measured when an instance is
 //made and then kept and saved, so a loaded instance keeps its shape whatever fonts it's drawn in.
 struct SSubcircuitInstanceLayout
 {
 	SInt32Vec2	sBoxMinimum;
 	SInt32Vec2	sBoxMaximum;
-	float64		fTypeX;
-	float64		fCommentX;
-	float64		fNameX;
+	float64		fTypeY;
+	float64		fCommentY;
+	float64		fNameY;
 };
 
 
@@ -108,8 +108,8 @@ public:
 protected:
 	virtual	void					SaveXMLAttributes(CXMLWriter* pcWriter);
 			void					LayOut(void);
-			void					AddSidePins(SPinSide* psSide, int iOffset, int iOpposite, int iEdge, ETextAlignment eAlignment, int iRightRotations);
-			void					AddPin(CPinView* pcPin, int32 x, int32 y, ETextAlignment eAlignment, int iRightRotations);
+			void					AddSidePins(SPinSide* psSide, int iOffset, int iOpposite, int iEdge, int iOutX, int iOutY, ETextAlignment eAlignment, int iRightRotations);
+			void					AddPin(CPinView* pcPin, int32 x, int32 y, int iOutX, int iOutY, ETextAlignment eAlignment, int iRightRotations);
 };
 
 

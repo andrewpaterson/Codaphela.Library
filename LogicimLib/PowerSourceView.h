@@ -39,7 +39,8 @@ public:
 };
 
 
-//A 0V supply drawn as Logicim's ground symbol; the port is at the top of its stem.
+//A 0V supply drawn as Logicim's ground symbol; the port is at the end of its stem.  It faces the way its stem points
+//from the bars, so an upright ground, its port on top, faces North.
 class CGroundView : public CPowerSourceView
 {
 CONSTRUCTABLE(CGroundView);
@@ -52,8 +53,9 @@ public:
 };
 
 
-//A positive supply, as Logicim's PositivePowerView: a box with a point down to the port below it and the voltage
-//written upright in the box in the voltage's colour.  Over 4V the box is the dark fill.
+//A positive supply, as Logicim's PositivePowerView: a box with a point to its port and the voltage written upright in
+//the box in the voltage's colour.  Over 4V the box is the dark fill.  It faces the way its point does, so an upright
+//supply, its port below, faces South.
 class CPositivePowerView : public CPowerSourceView
 {
 CONSTRUCTABLE(CPositivePowerView);

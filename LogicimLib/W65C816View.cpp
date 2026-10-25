@@ -28,20 +28,20 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The details and flags run down the middle (grid x) of the box from the
-// title, facing North; Logicim's W65C816 faces West, so they read across.
+// The details and then the flags run down the middle of the box from the
+// title.
 //
 //////////////////////////////////////////////////////////////////////////
 void CW65C816View::Init(int32 x, int32 y, ERotation eRotation, const char* szName, const char* szFamily, bool bExplicitPowerPorts)
 {
-	SPortViewCreator	asBottom[] = {	{ "PHI2", "PHI2", 1, true, false },
+	SPortViewCreator	asLeft[] = {		{ "PHI2", "PHI2", 1, true, false },
 										{ "RESB", "RESB", 1, false, true },
 										{ "NMIB", "NMIB", 1, false, true },
 										{ "IRQB", "IRQB", 1, false, true },
 										{ "ABORTB", "ABORTB", 1, false, true },
 										{ "RDY", "RDY", 1, false, false },
 										{ "BE", "BE", 1, false, false } };
-	SPortViewCreator	asTop[] = {		{ "RWB", "RWB", 1, false, false },
+	SPortViewCreator	asRight[] = {	{ "RWB", "RWB", 1, false, false },
 										{ "VDA", "VDA", 1, false, false },
 										{ "VPA", "VPA", 1, false, false },
 										{ "VPB", "VPB", 1, false, true },
@@ -54,11 +54,11 @@ void CW65C816View::Init(int32 x, int32 y, ERotation eRotation, const char* szNam
 
 	CIntegratedCircuitView::Init(x, y, eRotation, szName, szFamily, bExplicitPowerPorts);
 
-	mcShapes.AddRectangle(-13, -11, 13, 11, true, true);
+	mcShapes.AddRectangle(-11, -13, 11, 13, true, true);
 	CreatePowerPortViews();
-	CreateLabelledPortViews(asBottom, 7, asTop, 9, 11, -11, -6, -8, 2);
+	CreateLabelledPortViews(asLeft, 7, asRight, 9, -11, 11, -6, -8, 2);
 
-	mcShapes.AddText(-12, 0, "Microprocessor", CF_SansSerifBold, W65C816_VIEW_FONT_SIZE, TA_Centre);
+	mcShapes.AddText(0, -12, "Microprocessor", CF_SansSerifBold, W65C816_VIEW_FONT_SIZE, TA_Centre);
 	mauiDetails[W65C816_OpCodeName] = AddDetail(-10, 4, "Op-code", "RES");
 	mauiDetails[W65C816_OpCodeNumber] = AddDetail(-8, 4, "Op-code", "###");
 	mauiDetails[W65C816_Cycle] = AddDetail(-6, 2, "Cycle", "0");
@@ -71,17 +71,17 @@ void CW65C816View::Init(int32 x, int32 y, ERotation eRotation, const char* szNam
 	mauiDetails[W65C816_DataBank] = AddDetail(8, 4, "Data Bank", "0x00");
 
 	fFlag = 5.5;
-	AddFlag(W65C816_Emulation, "E", 10, fFlag, true, true);
-	AddFlag(W65C816_Carry, "C", 10, fFlag - 1.4, false, true);
-	AddFlag(W65C816_Zero, "Z", 10, fFlag - 1.4 * 2, false, true);
-	AddFlag(W65C816_MemoryWidth, "M", 10, fFlag - 1.4 * 3, false, false);
-	AddFlag(W65C816_IndexWidthOrBreak, "B", 10, fFlag - 1.4 * 4, false, true);
-	AddFlag(W65C816_DecimalMode, "D", 10, fFlag - 1.4 * 5, false, true);
-	AddFlag(W65C816_InterruptDisable, "I", 10, fFlag - 1.4 * 6, false, true);
-	AddFlag(W65C816_Negative, "N", 10, fFlag - 1.4 * 7, false, true);
-	AddFlag(W65C816_Overflow, "V", 10, fFlag - 1.4 * 8, false, true);
+	AddFlag(W65C816_Emulation, "E", -fFlag, 10, true, true);
+	AddFlag(W65C816_Carry, "C", -fFlag + 1.4, 10, false, true);
+	AddFlag(W65C816_Zero, "Z", -fFlag + 1.4 * 2, 10, false, true);
+	AddFlag(W65C816_MemoryWidth, "M", -fFlag + 1.4 * 3, 10, false, false);
+	AddFlag(W65C816_IndexWidthOrBreak, "B", -fFlag + 1.4 * 4, 10, false, true);
+	AddFlag(W65C816_DecimalMode, "D", -fFlag + 1.4 * 5, 10, false, true);
+	AddFlag(W65C816_InterruptDisable, "I", -fFlag + 1.4 * 6, 10, false, true);
+	AddFlag(W65C816_Negative, "N", -fFlag + 1.4 * 7, 10, false, true);
+	AddFlag(W65C816_Overflow, "V", -fFlag + 1.4 * 8, 10, false, true);
 
-	mcShapes.AddText(12, 0, "W65C816", CF_SansSerifBold, W65C816_VIEW_FONT_SIZE, TA_Centre);
+	mcShapes.AddText(0, 12, "W65C816", CF_SansSerifBold, W65C816_VIEW_FONT_SIZE, TA_Centre);
 	CalculateBounds();
 }
 

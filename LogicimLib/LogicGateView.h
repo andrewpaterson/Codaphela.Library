@@ -26,11 +26,11 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //Logicim's OR shape: the arcs are parts of ellipses twice the gate's half width across and three grid units high.
 #define OR_FILL_OFFSET			0.25
-#define OR_ARC_RIGHT_START		354
+#define OR_ARC_UPPER_START		264
 #define OR_ARC_SIDE_LENGTH		66
-#define OR_ARC_LEFT_START		120
-#define OR_ARC_BOTTOM_START		61
-#define OR_ARC_BOTTOM_LENGTH	58
+#define OR_ARC_LOWER_START		30
+#define OR_ARC_BACK_START		-29
+#define OR_ARC_BACK_LENGTH		58
 #define OR_ARC_FILL_OFFSET		6
 
 

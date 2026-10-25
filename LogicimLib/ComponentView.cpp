@@ -550,7 +550,7 @@ CPortView* CComponentView::GetPortView(const char* szPortName)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The box around the shapes and ports, facing North about the position.
+// The box around the shapes and ports, facing East about the position.
 //
 //////////////////////////////////////////////////////////////////////////
 void CComponentView::CalculateBounds(void)

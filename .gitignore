@@ -89,3 +89,7 @@ us.stackdump
 /LogicimLib/x64/Release/*
 /WinGdiLib/x64/Debug/*
 /WinGdiLib/x64/Release/*
+/KicadImporterLib/Debug/*
+/KicadImporterLib/Release/*
+/KicadImporterLib/x64/Debug/*
+/KicadImporterLib/x64/Release/*

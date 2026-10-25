@@ -23,8 +23,8 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "LogicGateView.h"
 
 
-//A row of buffers side by side, each a triangle pointing North from its input at grid y 1 to its output at y -1, as
-//Logicim's BaseBufferView.  The input count is the number of buffers and the input width the bits each one carries.
+//A column of buffers one above the other, each a triangle pointing East from its input at grid x -1 to its output at
+//x 1, as Logicim's BaseBufferView.  The input count is the number of buffers and the input width the bits each one carries.
 class CBufferView : public CLogicGateView
 {
 CONSTRUCTABLE(CBufferView);

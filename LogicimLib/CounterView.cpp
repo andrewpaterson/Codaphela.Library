@@ -30,23 +30,23 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CCounterView::Init(int32 x, int32 y, ERotation eRotation, const char* szName, const char* szFamily, bool bExplicitPowerPorts, int32 iBitWidth, uint32 uiTerminalValue)
 {
-	SPortViewCreator	asBottom[] = {	{ "Clock", "Clock", 1, true, false },
+	SPortViewCreator	asLeft[] = {		{ "Clock", "Clock", 1, true, false },
 										{ "Reset", "Reset", 1, false, true },
 										{ "Load", "Load", 1, false, true },
 										{ "Enable", "Enable", 1, false, false },
 										{ "Enable Terminal", "Enable Terminal", 1, false, false },
 										{ "Data", "Data", (int)iBitWidth, false, false } };
-	SPortViewCreator	asTop[] = {		{ "Count", "Count", (int)iBitWidth, false, false },
+	SPortViewCreator	asRight[] = {	{ "Count", "Count", (int)iBitWidth, false, false },
 										{ "Terminal Count", "Terminal Count", 1, false, false } };
 
 	CIntegratedCircuitView::Init(x, y, eRotation, szName, szFamily, bExplicitPowerPorts);
 	miBitWidth = iBitWidth;
 	muiTerminalValue = uiTerminalValue;
 
-	mcShapes.AddRectangle(-9, -6, 9, 6, true, true);
+	mcShapes.AddRectangle(-6, -9, 6, 9, true, true);
 	CreatePowerPortViews();
-	CreateLabelledPortViews(asBottom, 6, asTop, 2, 6, -6, -6, 4, 2);
-	mcShapes.AddText(-8, 0, "Up Counter", CF_SansSerifBold, PORT_LABEL_FONT_SIZE, TA_Centre);
+	CreateLabelledPortViews(asLeft, 6, asRight, 2, -6, 6, -6, 4, 2);
+	mcShapes.AddText(0, -8, "Up Counter", CF_SansSerifBold, PORT_LABEL_FONT_SIZE, TA_Centre);
 	muiValueText = AddDetail(8, 4, "Value", "0");
 	CalculateBounds();
 }
