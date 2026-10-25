@@ -191,6 +191,7 @@
     <ClCompile Include="CPPTarget.cpp" />
     <ClCompile Include="IR65Code.cpp" />
     <ClCompile Include="IR65Flags.cpp" />
+    <ClCompile Include="IR65Peephole.cpp" />
     <ClCompile Include="IR65Widths.cpp" />
     <ClCompile Include="IRBlock.cpp" />
     <ClCompile Include="IRDominators.cpp" />
@@ -387,6 +388,7 @@
     <ClInclude Include="CPPTarget.h" />
     <ClInclude Include="IR65Code.h" />
     <ClInclude Include="IR65Flags.h" />
+    <ClInclude Include="IR65Peephole.h" />
     <ClInclude Include="IR65Widths.h" />
     <ClInclude Include="IRBlock.h" />
     <ClInclude Include="IRDominators.h" />

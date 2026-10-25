@@ -20,7 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifdef __65C64__
+#ifdef __LIBC65__
 #include "Logger.h"
 #include "NativeThread.h"
 
@@ -112,5 +112,5 @@ int CurrentThreadId(void)
 }
 
 
-#endif // __65C64__
+#endif // __LIBC65__
 

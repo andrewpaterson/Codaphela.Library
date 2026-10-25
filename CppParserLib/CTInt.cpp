@@ -32,6 +32,7 @@ void CCTInt::Init(void)
 	mcValue = 0;
 	mbSigned = false;
 	mbLong = false;
+	mbDecimal = true;
 }
 
 
@@ -45,6 +46,7 @@ void CCTInt::Init(unsigned int i)
 	mcValue = i;
 	mbSigned = false;
 	mbLong = false;
+	mbDecimal = true;
 }
 
 

@@ -62,6 +62,12 @@ char*		ShortToString(char* szDest, size iDestLength, int16 iValue, uint16 iBase 
 char*		ShortToString(char* szDest, size iDestLength, uint16 iValue, uint16 iBase = 10);
 char*		IntToString(char* szDest, size iDestLength, int32 iValue, uint16 iBase = 10);
 char*		IntToString(char* szDest, size iDestLength, uint32 iValue, uint16 iBase = 10);
+#ifdef __W65C816__
+//An int is 16 bits on the W65C816: ints match these exactly (the 32 bit ones would all need a conversion, so none
+//would be chosen).
+char*		IntToString(char* szDest, size iDestLength, int16 iValue, uint16 iBase = 10);
+char*		IntToString(char* szDest, size iDestLength, uint16 iValue, uint16 iBase = 10);
+#endif // __W65C816__
 char*		SizeToString(char* szDest, size iDestLength, size iValue, uint16 iBase = 10);
 char*		LongToString(char* szDest, size iDestLength, int64 lliValue, uint16 iBase = 10);
 char*		LongToString(char* szDest, size iDestLength, uint64 ulliValue, uint16 iBase = 10);

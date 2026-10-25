@@ -107,10 +107,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Compiled by CppParserLib's 65C64 generator with the Libc65 headers.
+// Compiled by CppParserLib for the 65C64 or the W65C816, with the Libc65 headers.
 //
 //////////////////////////////////////////////////////////////////////////
-#ifdef __65C64__
+#ifdef __LIBC65__
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -124,7 +124,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __cdecl
 #define __ENGINE_FUNCTION__ __FUNCTION__
 #define __ENGINE_PRETTY_FUNCTION__ __PRETTY_FUNCTION__
-#endif // __65C64__
+#endif // __LIBC65__
 
 
 #endif // __DEFINE_H__

@@ -36,6 +36,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //The bytes between the frame and the arguments: the caller's D (phd) and the return address (jsl).
 #define IR816_LINK_BYTES		5
 
+//The stack is in bank 0 (from the target's stack top down) with the direct page: a frame may use most of it, but
+//not all.
+#define IR816_MAX_FRAME_BYTES	0xC000
+
 
 //Writes W65C816 assembly (Assembler816Syntax.txt) for IR functions, without optimising (W65C816.txt step 4).
 //

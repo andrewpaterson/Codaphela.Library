@@ -157,7 +157,7 @@ void SFloat64Vec4::Fix(void)
 //////////////////////////////////////////////////////////////////////////
 int SFloat64Vec4::WholeNumbers(void)
 {
-	int i[4];
+	int32 i[4];
 
 	i[0] = (int)FloatWholeNumbers(x);
 	i[1] = (int)FloatWholeNumbers(y);

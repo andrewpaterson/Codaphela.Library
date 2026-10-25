@@ -128,7 +128,7 @@ bool SDouble4x4::Load(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 void SDouble4x4::Print(CChars* psz, bool bOneLine, int iWholeNumbers, int iDecimals)
 {
-	int	i[4];
+	int32	i[4];
 
 	if (bOneLine)
 	{

@@ -41,6 +41,12 @@ char* ShortToString(int16 i, uint16 iBase = 10);
 char* ShortToString(uint16 i, uint16 iBase = 10);
 char* IntToString(int32 i, uint16 iBase = 10);
 char* IntToString(uint32 i, uint16 iBase = 10);
+#ifdef __W65C816__
+//An int is 16 bits on the W65C816: ints match these exactly (the 32 bit ones would all need a conversion, so none
+//would be chosen).
+char* IntToString(int16 i, uint16 iBase = 10);
+char* IntToString(uint16 i, uint16 iBase = 10);
+#endif // __W65C816__
 char* LongToString(int64 lli, uint16 iBase = 10);
 char* LongToString(uint64 ulli, uint16 iBase = 10);
 char* FloatToString(float f, uint16 iDecimals = -1);

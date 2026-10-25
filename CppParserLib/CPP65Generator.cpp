@@ -777,13 +777,15 @@ void CCPP65Generator::GetExternals(CArrayChars* paszLabels)
 //////////////////////////////////////////////////////////////////////////
 //
 // The macros the target predefines, for the configuration code is preprocessed
-// with.  __65C64__ or __W65C816__ selects the target in BaseLib's Define.h and
-// Libc65's headers.
+// with.  __65C64__ or __W65C816__ is the processor (Libc65 uses __65C64__ for
+// what its 65C64 assembly does); __LIBC65__ is on both: the Libc65 headers and
+// devices, which BaseLib's Define.h and its _65C64.cpp files are written for.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::AddDefines(CConfig* pcConfig, ECPPTarget eTarget)
 {
 	pcConfig->AddDefine((char*)GetCPPTarget(eTarget)->szDefine);
+	pcConfig->AddDefine("__LIBC65__=1");
 	pcConfig->mbKeepPragmaPack = true;
 }
 
@@ -2298,7 +2300,22 @@ void CCPP65Generator::GenerateFunction(SCPP65Function* psFunction)
 		BeginFunction(psFunction);
 		if ((psFunction->mapsParameters.NumElements() != 0) || !mpcIRFrontEnd || !mpcIRFrontEnd->Body(psFunction))
 		{
-			ErrorAt(-1, "An implicit copy constructor (or one the IR front end can't write) is not supported on this target yet");
+			szLabel.Init("An implicit copy constructor or assignment (or one the IR front end can't write) is not supported on this target yet: ");
+			AppendFunctionLabel(&szLabel, psFunction);
+			if (psFunction->mapsParameters.NumElements() == 0)
+			{
+				szLabel.Append(" (CPP65IRFrontEnd.cpp line ");
+				szLabel.Append(CCPP65IRFrontEnd::siUnsupportedLine);
+				szLabel.Append(")");
+				if (CCPP65IRFrontEnd::sszUnsupported[0] != '\0')
+				{
+					szLabel.Append(": ");
+					szLabel.Append(CCPP65IRFrontEnd::sszUnsupported);
+					CCPP65IRFrontEnd::sszUnsupported[0] = '\0';
+				}
+			}
+			ErrorAt(-1, szLabel.Text());
+			szLabel.Kill();
 			EndFunction(psFunction);
 		}
 	}

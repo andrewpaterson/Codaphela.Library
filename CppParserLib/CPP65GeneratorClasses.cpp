@@ -2960,11 +2960,7 @@ void CCPP65Generator::AppendVtableEntry(SCPP65Function* psFunction, int iAdjust)
 	{
 		szLabel.Append("__t");
 		szLabel.Append(-iAdjust);
-		if (!mpsTarget->bDirectGenerator)
-		{
-			ErrorAt(-1, "A virtual function of a base that isn't at the start of its class (a this adjusting thunk) is not supported on this target yet");
-		}
-		else if (Emit(&szLabel))
+		if (Emit(&szLabel))
 		{
 			if (IsUnitFunction(psFunction))
 			{
@@ -2978,10 +2974,18 @@ void CCPP65Generator::AppendVtableEntry(SCPP65Function* psFunction, int iAdjust)
 			mszThunks.Append(szLabel);
 			mszThunks.Append(':');
 			mszThunks.AppendNewLine();
-			mszThunks.Append("\t\tadd X, ");
-			mszThunks.Append(iAdjust);
-			mszThunks.AppendNewLine();
-			mszThunks.Append("\t\tjmp ");
+			if (mpsTarget->eTarget == CPPT_W65C816)
+			{
+				AppendAdjustThunk816(iAdjust);
+				mszThunks.Append("\t\tjml ");
+			}
+			else
+			{
+				mszThunks.Append("\t\tadd X, ");
+				mszThunks.Append(iAdjust);
+				mszThunks.AppendNewLine();
+				mszThunks.Append("\t\tjmp ");
+			}
 			AppendFunctionLabel(&mszThunks, psFunction);
 			mszThunks.AppendNewLine();
 			mszThunks.AppendNewLine();
@@ -4726,9 +4730,14 @@ void CCPP65Generator::AppendVirtualCallThunk(CChars* psz, SCPP65Function* psFunc
 	szLabel.Append(psFunction->psClass->iVtableOffset);
 	szLabel.Append('_');
 	szLabel.Append(psFunction->iSlot);
-	if (!mpsTarget->bDirectGenerator)
+	if (Emit(&szLabel) && (mpsTarget->eTarget == CPPT_W65C816))
 	{
-		ErrorAt(-1, "The address of a virtual member function (a virtual call thunk) is not supported on this target yet");
+		AppendSection(&mszThunks, "text", &szLabel, ", comdat");
+		AppendGlobal(&mszThunks, &szLabel);
+		mszThunks.Append(szLabel);
+		mszThunks.Append(':');
+		mszThunks.AppendNewLine();
+		AppendVirtualCallThunk816(psFunction);
 	}
 	else if (Emit(&szLabel))
 	{
@@ -4749,6 +4758,73 @@ void CCPP65Generator::AppendVirtualCallThunk(CChars* psz, SCPP65Function* psFunc
 	}
 	psz->Append(szLabel);
 	szLabel.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A W65C816 this adjusting thunk's body before its jml: this is the first
+// argument, pushed last, so it is above the return address at S + 4.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendAdjustThunk816(int iAdjust)
+{
+	mszThunks.Append("\t\t.width (A, X), 16\n");
+	mszThunks.Append("\t\tclc\n");
+	mszThunks.Append("\t\tlda [S + 4]\n");
+	mszThunks.Append("\t\tadc $")->Append((uint32)iAdjust & 0xFFFF, 16)->AppendNewLine();
+	mszThunks.Append("\t\tsta [S + 4]\n");
+	mszThunks.Append("\t\tlda [S + 6]\n");
+	mszThunks.Append("\t\tadc $")->Append(((uint32)iAdjust >> 16) & 0xFFFF, 16)->AppendNewLine();
+	mszThunks.Append("\t\tsta [S + 6]\n");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A W65C816 virtual call thunk's body.  Four bytes are pushed below D (saved)
+// and D pointed at them: D + 1 .. D + 4 is the vtable pointer, D + 5 the
+// caller's D, D + 7 the return address and D + 10 this.  The function's
+// address - 1 is put where the caller's D was, D restored, the bytes below
+// it dropped and rtl jumps to the function with the stack as the caller left
+// it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::AppendVirtualCallThunk816(SCPP65Function* psFunction)
+{
+	mszThunks.Append("\t\t.width (A, X), 16\n");
+	mszThunks.Append("\t\tphd\n");
+	mszThunks.Append("\t\tpha\n");
+	mszThunks.Append("\t\tpha\n");
+	mszThunks.Append("\t\ttsc\n");
+	mszThunks.Append("\t\ttcd\n");
+	mszThunks.Append("\t\tldy ")->Append(psFunction->psClass->iVtableOffset)->AppendNewLine();
+	mszThunks.Append("\t\tlda [[D + 10]:24 + Y]\n");
+	mszThunks.Append("\t\tsta [D + 1]\n");
+	mszThunks.Append("\t\tldy ")->Append(psFunction->psClass->iVtableOffset + 2)->AppendNewLine();
+	mszThunks.Append("\t\tlda [[D + 10]:24 + Y]\n");
+	mszThunks.Append("\t\tsta [D + 3]\n");
+	mszThunks.Append("\t\tldy ")->Append(4 * psFunction->iSlot + 2)->AppendNewLine();
+	mszThunks.Append("\t\tlda [[D + 1]:24 + Y]\n");
+	mszThunks.Append("\t\ttax\n");
+	mszThunks.Append("\t\tldy ")->Append(4 * psFunction->iSlot)->AppendNewLine();
+	mszThunks.Append("\t\tlda [[D + 1]:24 + Y]\n");
+	mszThunks.Append("\t\tdec A\n");
+	mszThunks.Append("\t\tsta [D + 1]\n");
+	mszThunks.Append("\t\tlda [D + 5]\n");
+	mszThunks.Append("\t\ttay\n");
+	mszThunks.Append("\t\tlda [D + 1]\n");
+	mszThunks.Append("\t\tsta [D + 4]\n");
+	mszThunks.Append("\t\ttxa\n");
+	mszThunks.Append("\t\tsep m\n");
+	mszThunks.Append("\t\tsta [D + 6]\n");
+	mszThunks.Append("\t\tpla\n");
+	mszThunks.Append("\t\trep m\n");
+	mszThunks.Append("\t\tpla\n");
+	mszThunks.Append("\t\ttya\n");
+	mszThunks.Append("\t\ttcd\n");
+	mszThunks.Append("\t\trtl\n");
+	mszThunks.AppendNewLine();
 }
 
 

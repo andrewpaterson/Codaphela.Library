@@ -93,6 +93,12 @@ public:
 	//Initialisation(cMaxWholeNumbers, cMaxDecimals)
 	CNumber*	Init(int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	CNumber*	Init(int32 iNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals);
+#ifdef __W65C816__
+	//An int is 16 bits on the W65C816: ints match these exactly (the 32 bit ones would all need a conversion, so none
+	//would be chosen).
+	CNumber*	Init(int16 iNumber);
+	CNumber*	Init(int16 iNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals);
+#endif // __W65C816__
 	CNumber*	Init(float32 ff, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	CNumber*	Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals, size iLen = 0);
 	CNumber*	Init(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals);

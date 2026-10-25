@@ -342,10 +342,12 @@ void CIR65Code::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Splits the function's code from uiStart (its label first) into lines
-// and decodes them; false for code the passes must leave as it is.
+// and decodes them; false for code the passes must leave as it is.  With
+// bConflicts a register may have a width that depends on the way a line
+// was reached (IR65_WIDTH_CONFLICT), as it can after the Widths pass.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Code::Load(CChars* pszCode, size uiStart)
+bool CIR65Code::Load(CChars* pszCode, size uiStart, bool bConflicts)
 {
 	CChars	szText;
 
@@ -353,7 +355,11 @@ bool CIR65Code::Load(CChars* pszCode, size uiStart)
 	szText.Init(pszCode->Text() + uiStart);
 	szText.SplitLines(&maszLines);
 	szText.Kill();
-	return Decode() && ComputeWidths();
+	if (!Decode())
+	{
+		return false;
+	}
+	return ComputeWidths() || (bConflicts && (masLines.NumElements() > 0));
 }
 
 
@@ -1047,9 +1053,9 @@ bool CIR65Code::IsRemoved(size uiLine)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Makes a line another instruction (not a branch), decoded; its widths
-// stay those it started with, which the caller may change.  False (and the
-// line as it was) if it isn't one the decoder knows.
+// Makes a line another instruction, decoded; its widths stay those it
+// started with, which the caller may change.  False (and the line as it
+// was) if it isn't one the decoder knows.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Code::Replace(size uiLine, const char* szInstruction)
@@ -1059,10 +1065,14 @@ bool CIR65Code::Replace(size uiLine, const char* szInstruction)
 
 	szLine.Init("\t\t");
 	szLine.Append(szInstruction);
-	if (!DecodeLine(&szLine, &sLine) || (sLine.iTarget >= 0))
+	if (!DecodeLine(&szLine, &sLine))
 	{
 		szLine.Kill();
 		return false;
+	}
+	if ((sLine.iTarget >= 0) && ((size)sLine.iTarget <= uiLine))
+	{
+		*mauiJumpedBack.Get(sLine.iTarget) = 1;
 	}
 	*masLines.Get(uiLine) = sLine;
 	maszLines.Get(uiLine)->Kill();

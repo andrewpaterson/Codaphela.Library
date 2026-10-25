@@ -36,6 +36,12 @@ void ToShortString(int16 i, char* szString, size iStringLength);
 void ToShortString(uint16 i, char* szString, size iStringLength);
 void ToIntString(int32 i, char* szString, size iStringLength);
 void ToIntString(uint32 i, char* szString, size iStringLength);
+#ifdef __W65C816__
+//An int is 16 bits on the W65C816: ints match these exactly (the 32 bit ones would all need a conversion, so none
+//would be chosen).
+void ToIntString(int16 i, char* szString, size iStringLength);
+void ToIntString(uint16 i, char* szString, size iStringLength);
+#endif // __W65C816__
 void ToByteHexString(int8 i, char* szString, size iStringLength);
 void ToByteHexString(uint8 i, char* szString, size iStringLength);
 void ToShortHexString(int16 i, char* szString, size iStringLength);

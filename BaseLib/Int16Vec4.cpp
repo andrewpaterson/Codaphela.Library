@@ -70,7 +70,7 @@ void SInt16Vec4::Print(CChars* psx, int iWholeNumbers)
 //////////////////////////////////////////////////////////////////////////
 int SInt16Vec4::WholeNumbers(void)
 {
-	int i[4];
+	int32 i[4];
 
 	i[0] = (int)CountDigits(x);
 	i[1] = (int)CountDigits(y);

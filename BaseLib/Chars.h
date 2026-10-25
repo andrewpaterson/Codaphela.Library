@@ -78,6 +78,14 @@ public:
 	CChars*		Append(int32 i, uint16 iBase);
 	CChars*		Append(uint32 ui);
 	CChars*		Append(uint32 ui, uint16 iBase);
+#ifdef __W65C816__
+	//An int is 16 bits on the W65C816: ints match these exactly (the 32 bit ones would all need a conversion, so none
+	//would be chosen).
+	CChars*		Append(int16 i);
+	CChars*		Append(int16 i, uint16 iBase);
+	CChars*		Append(uint16 ui);
+	CChars*		Append(uint16 ui, uint16 iBase);
+#endif // __W65C816__
 	CChars*		Append(float f, size iMaxDecimals = -1, bool bAppendF = false);
 	CChars*		Append(double d, size iMaxDecimals = -1, bool bAppendD = false);
 	CChars*		Append(int64 lli);

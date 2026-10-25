@@ -68,7 +68,7 @@ void SInt32Vec2::Print(CChars* psx, int iWholeNumbers)
 //////////////////////////////////////////////////////////////////////////
 int SInt32Vec2::WholeNumbers(void)
 {
-	int i[2];
+	int32 i[2];
 
 	i[0] = (int)CountDigits(x);
 	i[1] = (int)CountDigits(y);

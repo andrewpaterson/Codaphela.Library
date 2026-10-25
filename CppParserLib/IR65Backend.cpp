@@ -173,6 +173,7 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRun
 	mcFrame = 'V';
 	mcFlags.Init();
 	mcWidths.Init();
+	mcPeephole.Init();
 	mauiNarrowOnly.Init();
 }
 
@@ -186,6 +187,7 @@ void CIR65Backend::Kill(void)
 	size	ui;
 
 	mauiNarrowOnly.Kill();
+	mcPeephole.Kill();
 	mcWidths.Kill();
 	mcFlags.Kill();
 	mszDeferred.Kill();
@@ -969,6 +971,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	Peephole(uiStart);
 	mcFlags.Optimise(pszDest, uiStart);
 	mcWidths.Optimise(pszDest, uiStart);
+	mcPeephole.Optimise(pszDest, uiStart);
 	return mbResult;
 }
 
@@ -4946,7 +4949,7 @@ bool CIR65Backend::Call(CIRBlock* pcBlock, size uiIndex)
 	size			ui;
 	int				iBytes;
 	bool			bThisCall;
-	const char*		szCallee;
+	CChars			szCallee;
 
 	psCall = pcBlock->masInstructions.Get(uiIndex);
 	sCallee = psCall->asArguments[0];
@@ -4965,25 +4968,32 @@ bool CIR65Backend::Call(CIRBlock* pcBlock, size uiIndex)
 		iBytes += ValueBytes(psArg->sType);
 	}
 
-	szCallee = NULL;
+	//The callee is jumped to where it is: a register (X only when this doesn't go there), or through a pointer in a
+	//pseudo register or the frame (jsr [n + W]); else it is loaded into A.
+	szCallee.Init();
 	if (sCallee.IsSymbol())
 	{
-		szCallee = mpcModule->GetSymbolName(sCallee.Index());
+		szCallee.Append(mpcModule->GetSymbolName(sCallee.Index()));
 	}
-	else if (InRegister(sCallee) && (PlaceOf(sCallee)->iOffset == IR65R_Y))
+	else if (InRegister(sCallee) && ((PlaceOf(sCallee)->iOffset == IR65R_Y) || !bThisCall))
 	{
-		szCallee = "Y";
+		AppendPlace(&szCallee, PlaceOf(sCallee));
+	}
+	else if (sCallee.IsTemporary() && !IsInA(sCallee) && IsMemoryHome(PlaceOf(sCallee)) && ((PlaceOf(sCallee)->uiKind == IR65P_Pseudo) || !mbFrameless))
+	{
+		AppendPlace(&szCallee, PlaceOf(sCallee));
 	}
 	else
 	{
 		LoadValue(sCallee, "A", IR65E_Zero);
-		szCallee = "A";
+		szCallee.Append('A');
 	}
 	if (bThisCall)
 	{
 		LoadValue(pcBlock->masInstructions.Get(uiFirst)->asArguments[0], "X", IR65E_Zero);
 	}
 	Line("jsr ")->Append(szCallee)->AppendNewLine();
+	szCallee.Kill();
 	if (iBytes > 0)
 	{
 		Line("add S, ")->Append(iBytes)->AppendNewLine();

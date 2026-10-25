@@ -27,6 +27,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PointerFunctions.h"
 
 
+//The longest line ReadLine reads.  The W65C816's stack, where the line is, is in bank 0.
+#ifdef __W65C816__
+#define CSV_FILE_IMMUTABLE_MAX_LINE		(16 KB)
+#else
+#define CSV_FILE_IMMUTABLE_MAX_LINE		(128 KB)
+#endif // __W65C816__
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -202,14 +210,14 @@ bool CCSVFileImmutable::ReadLine(char* szString, int32 iMaxLength)
 bool CCSVFileImmutable::ReadLine(filePos iFileOffset, SCSVRowImmutable** ppsCSVRow)
 {
 	bool	bResult;
-	char	szBuffer[128 KB];
+	char	szBuffer[CSV_FILE_IMMUTABLE_MAX_LINE];
 
 	if (iFileOffset != -1)
 	{
 		mcFile.Seek(iFileOffset, EFSO_SET);
 	}
 
-	bResult = ReadLine(szBuffer, 128 KB);
+	bResult = ReadLine(szBuffer, CSV_FILE_IMMUTABLE_MAX_LINE);
 	if (bResult)
 	{
 		*ppsCSVRow = AllocateRow(szBuffer);

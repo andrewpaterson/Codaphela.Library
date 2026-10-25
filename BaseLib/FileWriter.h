@@ -47,6 +47,12 @@ public:
 						bool	WriteInt16(uint16 i);
 						bool	WriteInt32(int32 i);
 						bool	WriteInt32(uint32 i);
+#ifdef __W65C816__
+						//An int is 16 bits on the W65C816: ints match these exactly (the 32 bit ones would all need a conversion, so none
+						//would be chosen).
+						bool	WriteInt32(int16 i);
+						bool	WriteInt32(uint16 i);
+#endif // __W65C816__
 						bool	WriteInt64(int64 i);
 						bool	WriteInt64(uint64 i);
 						bool	WriteSize(size ui);  //Four bytes in 32 and 64 bit builds, see ReadSize.

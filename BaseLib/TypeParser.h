@@ -49,6 +49,11 @@ public:
 	TRISTATE	GetSmallIntegerValue(int64* plliValue, int64 lliMax, int64 lliMin);
 	TRISTATE	GetCharAndFloat(char c, float* pf);
 	TRISTATE	GetCharAndInt(char c, int32* pi);
+#ifdef __W65C816__
+	//An int is 16 bits on the W65C816: ints match these exactly (the 32 bit ones would all need a conversion, so none
+	//would be chosen).
+	TRISTATE	GetCharAndInt(char c, int16* pi);
+#endif // __W65C816__
 
 	TRISTATE	ParseInt(int32* pDest);  	
 	TRISTATE	ParseChar(char* pDest);
