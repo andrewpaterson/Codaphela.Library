@@ -25,6 +25,13 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CircuitView.h"
 
 
+//The four ways a route goes and a port faces (see GetPortFacing), turning right from East.
+#define TRACE_DIRECTION_EAST			0
+#define TRACE_DIRECTION_SOUTH			1
+#define TRACE_DIRECTION_WEST			2
+#define TRACE_DIRECTION_NORTH			3
+
+
 //A connection with no hint takes the cheapest route.
 #define TRACE_AUTO_CONNECT_NO_BEND		-1.0
 
@@ -51,7 +58,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 //A port to be wired to another on the same net.  A connection leaves its from port in the direction the port faces
 //out of its component (across the nearest edge of its box) and its first change of direction is at its bend: that
 //fraction of the way across the gap between the two components' facing edges (not the ports), plus its offset in
-//its run.  It ends on its to port or on any wire already routed for its net.
+//its run.  It ends on its to port, or on a wire of its net that is already joined to its to port.
 struct STraceAutoConnection
 {
 	size			uiNet;
@@ -144,6 +151,7 @@ public:
 	size			NumUnconnected(void);
 
 	static int		GetPortFacing(CPortView* pcPortView);
+	static int		OppositeDirection(int iDirection);
 
 protected:
 	bool			AddPort(CPortView* pcPortView, size uiNet);
@@ -171,7 +179,6 @@ protected:
 	int				GetCell(SInt32Vec2 sPosition);
 	bool			CanPass(int iCell, int iNet, bool bHorizontal);
 	bool			CanNode(int iCell, int iNet);
-	bool			IsOnNet(int iCell, int iNet);
 	void			MarkGoal(int iTarget, int iNet);
 	bool			IsGoal(int iCell);
 	int				GetStepCost(STraceAutoConnection* psConnection, int iCell, int iDirection);

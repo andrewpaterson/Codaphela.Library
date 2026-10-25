@@ -293,3 +293,25 @@ bool C65C64View::IsFlagSet(E65C64ViewFlag eFlag)
 {
 	return mcShapes.GetShape(mauiFlagTexts[eFlag])->eBorder == SC_Text;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void C65C64View::GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	CComponentView::GetProperties(pcProperties, psContext);
+	AddPowerProperties(pcProperties, psContext);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool C65C64View::InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	Init(x, y, eRotation, pcProperties->GetText("name", ""), pcProperties->GetText("family", ""), pcProperties->GetBoolean("explicitPowerPorts", mbExplicitPowerPorts));
+	return true;
+}

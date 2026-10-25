@@ -241,6 +241,31 @@ void CComponentView::GetBitJoins(CArrayPortBitJoin* pasJoins)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The next unit of a part placed as its units (see CInverterUnitView),
+// to be placed after this one.  NULL for anything else, or after the
+// part's last unit.
+//
+//////////////////////////////////////////////////////////////////////////
+CComponentView* CComponentView::NewNextUnit(void)
+{
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the other view is another unit of the part this view is a unit
+// of (see CInverterUnitView), so they're deleted together.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentView::IsUnitOfSamePart(CComponentView* pcOther)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // NULL unless the view is an instance of a subcircuit.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -689,3 +714,27 @@ bool CComponentView::GetBoundingBox(SFloat64Vec2* psMinimum, SFloat64Vec2* psMax
 	return true;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Its name, the property every component has, as Logicim's
+// ComponentProperties.  Views add theirs after it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentView::GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	pcProperties->AddText("name", mszName.Text());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Initialises the view, which must be new, from its properties, as
+// Logicim's ViewFactory makes a view from new properties.  Fails for a view
+// with no properties of its own.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentView::InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	return false;
+}

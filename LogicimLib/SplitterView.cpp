@@ -24,6 +24,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/StringHelper.h"
 #include "MicroprocessorLib/Splitter.h"
 #include "ComponentStateXML.h"
+#include "Radix.h"
 #include "SplitterView.h"
 
 
@@ -645,4 +646,34 @@ ESplitterAppearance StringToSplitterAppearance(const char* szAppearance)
 		return SA_RightHanded;
 	}
 	return SA_Cannot;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As Logicim's SplitterProperties.  The bits are split in order again when
+// it's made from them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CSplitterView::GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	const char*		aszAppearances[] = { "Left Handed", "Right Handed" };
+
+	CComponentView::GetProperties(pcProperties, psContext);
+	pcProperties->AddInteger("bitWidth", miBitWidth, 1, RADIX_MAX_BIT_WIDTH);
+	pcProperties->AddInteger("fanOut", miFanOut, 1, RADIX_MAX_BIT_WIDTH);
+	pcProperties->AddInteger("gridSpacing", miGridSpacing, 1, 16);
+	pcProperties->AddChoice("appearance", aszAppearances, 2, (size)meAppearance - SA_LeftHanded);
+	pcProperties->AddInteger("endOffset", miEndOffset, -RADIX_MAX_BIT_WIDTH, RADIX_MAX_BIT_WIDTH);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSplitterView::InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	Init(x, y, eRotation, pcProperties->GetText("name", ""), (int32)pcProperties->GetInteger("bitWidth", miBitWidth), (int32)pcProperties->GetInteger("fanOut", miFanOut), (int32)pcProperties->GetInteger("gridSpacing", miGridSpacing), (ESplitterAppearance)(SA_LeftHanded + pcProperties->GetChoice("appearance", (size)meAppearance - SA_LeftHanded)), (int32)pcProperties->GetInteger("endOffset", miEndOffset));
+	return true;
 }

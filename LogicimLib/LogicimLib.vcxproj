@@ -67,6 +67,7 @@
     <ClCompile Include="TraceLines.cpp" />
     <ClCompile Include="WirePullEdit.cpp" />
     <ClCompile Include="ComponentLibraries.cpp" />
+    <ClCompile Include="ComponentProperties.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AndGateView.h" />
@@ -117,6 +118,7 @@
     <ClInclude Include="TraceLines.h" />
     <ClInclude Include="WirePullEdit.h" />
     <ClInclude Include="ComponentLibraries.h" />
+    <ClInclude Include="ComponentProperties.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C3DFF95A-5E3F-452F-B879-1AF5257A94B4}</ProjectGuid>

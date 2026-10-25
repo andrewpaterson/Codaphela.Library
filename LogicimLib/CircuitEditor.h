@@ -46,6 +46,19 @@ struct SMoveLead
 typedef CArrayTemplate<SMoveLead>	CArrayMoveLead;
 
 
+//An end of a wire being moved that was joined to something that isn't moving (a wire or a port), and where it was.
+//While the wire moves it's joined back there by a stretch of new wire, see CCircuitEditor::GetAnchorLines.
+struct SMoveAnchor
+{
+	CTraceView*		pcTrace;
+	bool			bStart;
+	SInt32Vec2		sOriginal;
+};
+
+
+typedef CArrayTemplate<SMoveAnchor>	CArrayMoveAnchor;
+
+
 //Edits a project's circuits while one of them is simulated, as Logicim's editor (Logicim, CircuitEditor and
 //SubcircuitEditor): selecting, placing, moving, turning and deleting components and wires, drawing wires, and loading
 //and saving.  The editor owns the circuits and the simulation; the families and fonts are the caller's.
@@ -69,6 +82,10 @@ typedef CArrayTemplate<SMoveLead>	CArrayMoveLead;
 //ends on nothing moves with its component instead.  Leads between moved components, and leads with moved wires in
 //them, stay as they are.
 //
+//Moving wires stretches them: each end of a moved wire that was joined to something that isn't moving is joined back
+//to where it was by new wire, along and then across, drawn as a disconnected wire while it moves and added when the
+//move is done.  The circuit and the simulations aren't changed until then.
+//
 //Wires are kept as Logicim keeps them (see MergeTraceLines): those along each other are merged and they're split
 //where one ends on another and at ports, whenever wires are drawn, moved or deleted, or components moved.
 //
@@ -76,6 +93,10 @@ typedef CArrayTemplate<SMoveLead>	CArrayMoveLead;
 //path through the circuit being edited, and started; deleted ones are taken out of them; and after any change each
 //simulation is rewired (see CCircuitWiring::Rewire), so components that didn't move keep their state.  A simulation
 //shouldn't run while an edit is in progress (CanRun).
+//
+//A component's properties (see CComponentProperties) are edited as Logicim's property editor dialog edits them: the
+//hovered component's, or else the selected one's, are listed by GetProperties and a new component made from them (and
+//turned to a rotation) replaces it, in the circuit and in the running simulations, by SetProperties.
 //
 //A saved project is a circuits file (see CircuitFile.h) with an <Editor> element naming the circuit being edited and
 //the rotation new components are placed with.
@@ -89,6 +110,7 @@ protected:
 	CCircuitFonts*						mpcFonts;
 	CCircuitSelection					mcSelection;
 	CCircuitEdit*						mpcEdit;
+	CComponentView*						mpcNextUnit;
 	ERotation							meCreationRotation;
 	CComponentView*						mpcHover;
 	bool								mbHoverConnection;
@@ -96,6 +118,7 @@ protected:
 	CTraceView*							mpcHoverTrace;  //The wire the hovered connection is a point on, NULL if it's a connection.
 	CArrayMoveLead						masLeads;  //Of the components being moved.
 	CArrayTraceViewPtr					mapcFollowing;  //Wires that only hang off the components being moved, moving with them.
+	CArrayMoveAnchor					masAnchors;  //Of the wires being moved.
 	SFloat64Vec2						msPointer;
 	bool								mbPointer;
 	bool								mbControl;
@@ -119,6 +142,10 @@ public:
 	void				RotateLeft(void);
 	bool				Delete(void);
 	void				StopEdit(void);
+
+	CComponentView*		GetPropertiesComponent(void);
+	void				GetProperties(CComponentView* pcComponent, CComponentProperties* pcProperties);
+	CComponentView*		SetProperties(CComponentView* pcComponent, CComponentProperties* pcProperties, ERotation eRotation);
 
 	bool				Save(const char* szFilename);
 	bool				Load(const char* szFilename);
@@ -161,7 +188,12 @@ protected:
 	CPortView*			FindNetPort(SInt32Vec2 sPoint, CArrayTraceViewPtr* papcExcluded, CArrayComponentViewPtr* papcComponents);
 	void				RerouteLeads(CArrayTraceViewPtr* papcSeeds);
 	void				KillLeads(void);
+	void				InitPropertiesContext(SComponentPropertiesContext* psContext);
 	bool				IsAnythingAt(SInt32Vec2 sPoint, CArrayTraceViewPtr* papcExcluded);
+	void				FindAnchors(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces);
+	bool				IsJoinedAt(SInt32Vec2 sPoint, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces);
+	void				GetAnchorLines(SMoveAnchor* psAnchor, CArrayTraceLine* pasLines);
+	void				PaintAnchors(CCircuitPainter* pcPainter);
 	void				GetEditedPaths(CArrayViewPathPtr* papcViewPaths);
 	void				CreateComponents(CArrayComponentViewPtr* papcComponents);
 	bool				Rewire(void);

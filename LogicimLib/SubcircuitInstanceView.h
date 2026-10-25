@@ -88,6 +88,8 @@ public:
 
 	virtual const char*				GetType(void);
 	virtual const char*				GetXMLName(void);
+	virtual void					GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
+	virtual bool					InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
 	virtual bool					LoadXML(CMarkupTag* pcTag);
 	virtual CCircuitComponent*		CreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
 	virtual CCircuitInstanceView*	GetCircuitInstanceView(void);

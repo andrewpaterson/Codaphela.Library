@@ -302,3 +302,25 @@ bool CW65C816View::IsFlagVisible(EW65C816ViewFlag eFlag)
 {
 	return mcShapes.GetShape(mauiFlagTexts[eFlag])->bVisible;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816View::GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	CComponentView::GetProperties(pcProperties, psContext);
+	AddPowerProperties(pcProperties, psContext);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CW65C816View::InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	Init(x, y, eRotation, pcProperties->GetText("name", ""), pcProperties->GetText("family", ""), pcProperties->GetBoolean("explicitPowerPorts", mbExplicitPowerPorts));
+	return true;
+}

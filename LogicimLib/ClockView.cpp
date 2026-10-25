@@ -189,3 +189,28 @@ CIntegratedCircuit* CClockView::CreateIntegratedCircuit(CSubcircuitSimulation* p
 //////////////////////////////////////////////////////////////////////////
 float64 CClockView::GetFrequency(void) { return mfFrequency; }
 bool CClockView::IsInverseOut(void) { return mbInverseOut; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As Logicim's ClockProperties, the frequency in MHz.
+//
+//////////////////////////////////////////////////////////////////////////
+void CClockView::GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	CComponentView::GetProperties(pcProperties, psContext);
+	AddPowerProperties(pcProperties, psContext);
+	pcProperties->AddFloat("frequency", "MHz", mfFrequency / 1000000.0, 0.000001, 999000.0);
+	pcProperties->AddBoolean("inverseOut", mbInverseOut);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CClockView::InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	Init(x, y, eRotation, pcProperties->GetText("name", ""), pcProperties->GetText("family", ""), pcProperties->GetBoolean("explicitPowerPorts", mbExplicitPowerPorts), pcProperties->GetFloat("frequency", mfFrequency / 1000000.0) * 1000000.0, pcProperties->GetBoolean("inverseOut", mbInverseOut));
+	return true;
+}

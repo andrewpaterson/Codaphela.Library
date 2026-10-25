@@ -47,6 +47,8 @@ public:
 
 	virtual const char*				GetType(void);
 	virtual const char*				GetXMLName(void);
+	virtual void					GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
+	virtual bool					InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
 	virtual bool					LoadXML(CMarkupTag* pcTag);
 	virtual CIntegratedCircuit*		CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily);
 
@@ -60,6 +62,7 @@ public:
 	static	void					GetPartNumber(CChars* psz, const char* szFamily, const char* szPartType);
 	static	void					GetDescription(CChars* psz, const char* szPartType, int iUnitCount);
 	static	int32					GetUnitY(int iUnit, int iUnitCount);
+	static	int						GetPartUnitCount(const char* szPartType);
 
 protected:
 	virtual	void					SaveXMLAttributes(CXMLWriter* pcWriter);
@@ -70,7 +73,9 @@ protected:
 
 //One inverter of a 74 series part of inverters, placed on its own: drawn as an inverter view of one, with its unit
 //("Unit A" for the first) above it and its family below.  It knows its part's type, so the six units of a 74LVC04
-//placed apart are still its units; each is an inverter of one.
+//placed apart are still its units; each is an inverter of one.  Placing a unit in the editor goes on to the next
+//(NewNextUnit) until the part's last.  Units with the same name and part type are one part's (IsUnitOfSamePart), and
+//are deleted together; units without a name aren't any part's.
 class CInverterUnitView : public CInverterView
 {
 CONSTRUCTABLE(CInverterUnitView);
@@ -84,11 +89,16 @@ public:
 
 	virtual const char*				GetType(void);
 	virtual const char*				GetXMLName(void);
+	virtual void					GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
+	virtual bool					InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
 	virtual bool					LoadXML(CMarkupTag* pcTag);
 
 			char*					GetPartType(void);
 			int						GetUnit(void);
 			char					GetUnitLetter(void);
+			int						GetUnitCount(void);
+	virtual CComponentView*			NewNextUnit(void);
+	virtual bool					IsUnitOfSamePart(CComponentView* pcOther);
 
 protected:
 	virtual	void					SaveXMLAttributes(CXMLWriter* pcWriter);

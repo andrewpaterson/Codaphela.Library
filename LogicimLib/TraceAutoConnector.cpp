@@ -31,13 +31,6 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #define OWNER_BODY		-3
 
 
-//The four directions a route goes in.  A search state is a cell and the direction it was entered in.
-#define DIRECTION_EAST	0
-#define DIRECTION_SOUTH	1
-#define DIRECTION_WEST	2
-#define DIRECTION_NORTH	3
-
-
 static int32 gaiDirectionX[4] = { 1, 0, -1, 0 };
 static int32 gaiDirectionY[4] = { 0, 1, 0, -1 };
 
@@ -48,7 +41,7 @@ static int32 gaiDirectionY[4] = { 0, 1, 0, -1 };
 //////////////////////////////////////////////////////////////////////////
 static bool IsDirectionHorizontal(int iDirection)
 {
-	return (iDirection == DIRECTION_EAST) || (iDirection == DIRECTION_WEST);
+	return (iDirection == TRACE_DIRECTION_EAST) || (iDirection == TRACE_DIRECTION_WEST);
 }
 
 
@@ -56,9 +49,24 @@ static bool IsDirectionHorizontal(int iDirection)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static int OppositeDirection(int iDirection)
+int CTraceAutoConnector::OppositeDirection(int iDirection)
 {
 	return (iDirection + 2) % 4;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The set the wire is in, for the circuit's wires joined into sets.
+//
+//////////////////////////////////////////////////////////////////////////
+static int FindTraceGroup(CArrayInt* paiParents, int iTrace)
+{
+	while (paiParents->GetValue(iTrace) != iTrace)
+	{
+		iTrace = paiParents->GetValue(iTrace);
+	}
+	return iTrace;
 }
 
 
@@ -429,10 +437,22 @@ void CTraceAutoConnector::IncludeGridPoint(SInt32Vec2* psMinimum, SInt32Vec2* ps
 		*pbHasBounds = true;
 		return;
 	}
-	if (x < psMinimum->x) psMinimum->x = x;
-	if (y < psMinimum->y) psMinimum->y = y;
-	if (x > psMaximum->x) psMaximum->x = x;
-	if (y > psMaximum->y) psMaximum->y = y;
+	if (x < psMinimum->x)
+	{
+		psMinimum->x = x;
+	}
+	if (y < psMinimum->y)
+	{
+		psMinimum->y = y;
+	}
+	if (x > psMaximum->x)
+	{
+		psMaximum->x = x;
+	}
+	if (y > psMaximum->y)
+	{
+		psMaximum->y = y;
+	}
 }
 
 
@@ -606,10 +626,8 @@ void CTraceAutoConnector::MarkExistingTraces(void)
 		{
 			if (mpcCircuit->GetTrace(i)->Touches(mpcCircuit->GetTrace(j)))
 			{
-				iRoot = (int)i;
-				while (aiParents.GetValue(iRoot) != iRoot) iRoot = aiParents.GetValue(iRoot);
-				iOther = (int)j;
-				while (aiParents.GetValue(iOther) != iOther) iOther = aiParents.GetValue(iOther);
+				iRoot = FindTraceGroup(&aiParents, (int)i);
+				iOther = FindTraceGroup(&aiParents, (int)j);
 				if (iRoot != iOther)
 				{
 					aiParents.SetValue(iOther, iRoot);
@@ -626,8 +644,7 @@ void CTraceAutoConnector::MarkExistingTraces(void)
 		{
 			if (mpcCircuit->GetTrace(j)->Contains(sPosition))
 			{
-				iRoot = (int)j;
-				while (aiParents.GetValue(iRoot) != iRoot) iRoot = aiParents.GetValue(iRoot);
+				iRoot = FindTraceGroup(&aiParents, (int)j);
 				if (aiGroupNets.GetValue(iRoot) == -1)
 				{
 					aiGroupNets.SetValue(iRoot, iNet);
@@ -644,8 +661,7 @@ void CTraceAutoConnector::MarkExistingTraces(void)
 
 	for (i = 0; i < uiTraces; i++)
 	{
-		iRoot = (int)i;
-		while (aiParents.GetValue(iRoot) != iRoot) iRoot = aiParents.GetValue(iRoot);
+		iRoot = FindTraceGroup(&aiParents, (int)i);
 		iNet = aiGroupNets.GetValue(iRoot);
 		if (iNet == -1)
 		{
@@ -1302,20 +1318,20 @@ int CTraceAutoConnector::GetPortFacing(CPortView* pcPortView)
 
 	if (!pcPortView->GetOwner()->GetBoundingBox(&sMinimum, &sMaximum))
 	{
-		return DIRECTION_EAST;
+		return TRACE_DIRECTION_EAST;
 	}
 	sPosition = pcPortView->GetGridPosition();
-	afDistances[DIRECTION_EAST] = sMaximum.x - sPosition.x;
-	afDistances[DIRECTION_SOUTH] = sMaximum.y - sPosition.y;
-	afDistances[DIRECTION_WEST] = sPosition.x - sMinimum.x;
-	afDistances[DIRECTION_NORTH] = sPosition.y - sMinimum.y;
+	afDistances[TRACE_DIRECTION_EAST] = sMaximum.x - sPosition.x;
+	afDistances[TRACE_DIRECTION_SOUTH] = sMaximum.y - sPosition.y;
+	afDistances[TRACE_DIRECTION_WEST] = sPosition.x - sMinimum.x;
+	afDistances[TRACE_DIRECTION_NORTH] = sPosition.y - sMinimum.y;
 
-	iBest = DIRECTION_WEST;
-	if (afDistances[DIRECTION_EAST] < afDistances[iBest])
+	iBest = TRACE_DIRECTION_WEST;
+	if (afDistances[TRACE_DIRECTION_EAST] < afDistances[iBest])
 	{
-		iBest = DIRECTION_EAST;
+		iBest = TRACE_DIRECTION_EAST;
 	}
-	for (iDirection = DIRECTION_SOUTH; iDirection <= DIRECTION_NORTH; iDirection += 2)
+	for (iDirection = TRACE_DIRECTION_SOUTH; iDirection <= TRACE_DIRECTION_NORTH; iDirection += 2)
 	{
 		if (afDistances[iDirection] < afDistances[iBest])
 		{
@@ -1431,10 +1447,6 @@ bool CTraceAutoConnector::IsGoal(int iCell)
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether a wire of the net is through the cell.
-//
 //////////////////////////////////////////////////////////////////////////
 bool CTraceAutoConnector::IsOnNet(int iCell, int iNet)
 {

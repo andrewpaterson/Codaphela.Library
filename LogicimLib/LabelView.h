@@ -49,6 +49,8 @@ public:
 	virtual bool					MakesComponent(void);
 	virtual CCircuitComponent*		CreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
 	virtual const char*				GetXMLName(void);
+	virtual void					GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
+	virtual bool					InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
 	virtual bool					LoadXML(CMarkupTag* pcTag);
 
 			ETextAlignment			GetAlignment(void);

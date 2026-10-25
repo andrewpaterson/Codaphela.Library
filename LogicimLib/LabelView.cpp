@@ -192,3 +192,32 @@ bool CLabelView::LoadXML(CMarkupTag* pcTag)
 ETextAlignment CLabelView::GetAlignment(void) { return meAlignment; }
 bool CLabelView::IsBold(void) { return mbBold; }
 void CLabelView::GetBox(SFloat64Vec2* psBoxMinimum, SFloat64Vec2* psBoxMaximum) { *psBoxMinimum = msBoxMinimum; *psBoxMaximum = msBoxMaximum; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As Logicim's LabelProperties; its name is its text.
+//
+//////////////////////////////////////////////////////////////////////////
+void CLabelView::GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	const char*		aszAlignments[] = { "Left", "Centre", "Right" };
+
+	CComponentView::GetProperties(pcProperties, psContext);
+	pcProperties->AddChoice("alignment", aszAlignments, 3, (size)meAlignment);
+	pcProperties->AddBoolean("bold", mbBold);
+	pcProperties->AddBoolean("fill", mbFill);
+	pcProperties->AddBoolean("border", mbBorder);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Measured again with the fonts, as its text may have changed.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CLabelView::InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	Init(x, y, eRotation, pcProperties->GetText("name", ""), (ETextAlignment)pcProperties->GetChoice("alignment", (size)meAlignment), pcProperties->GetBoolean("bold", mbBold), pcProperties->GetBoolean("fill", mbFill), pcProperties->GetBoolean("border", mbBorder), psContext->pcFonts);
+	return true;
+}

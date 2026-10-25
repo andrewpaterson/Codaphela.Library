@@ -26,6 +26,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MicroprocessorLib/SubcircuitInstance.h"
 #include "MicroprocessorLib/SubcircuitSimulation.h"
 #include "CircuitView.h"
+#include "CircuitViews.h"
 #include "SubcircuitInstanceView.h"
 
 
@@ -1021,3 +1022,40 @@ SSubcircuitPinView* CSubcircuitInstanceView::GetPin(const char* szPinName)
 	return NULL;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The subcircuit it's an instance of, its name and its comment, as
+// Logicim's SubcircuitInstanceProperties.  Its size comes from its
+// subcircuit's pins.
+//
+//////////////////////////////////////////////////////////////////////////
+void CSubcircuitInstanceView::GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	pcProperties->AddText("subcircuitTypeName", mszTypeName.Text());
+	CComponentView::GetProperties(pcProperties, psContext);
+	pcProperties->AddText("comment", mszComment.Text());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An instance of the subcircuit named, which must be one of the project's,
+// measured again with the fonts.  A subcircuit that holds the circuit the
+// instance is in mustn't be named (see CCircuitEditor::SetProperties).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CSubcircuitInstanceView::InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	CCircuitView*	pcSubcircuit;
+	const char*		szTypeName;
+
+	szTypeName = pcProperties->GetText("subcircuitTypeName", "");
+	pcSubcircuit = psContext->pcCircuits->Get(szTypeName);
+	if (pcSubcircuit == NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " There is no subcircuit [", szTypeName, "].", NULL);
+	}
+	Init(x, y, eRotation, pcProperties->GetText("name", ""), pcProperties->GetText("comment", ""), pcSubcircuit, psContext->pcFonts);
+	return true;
+}

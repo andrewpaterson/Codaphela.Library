@@ -68,6 +68,8 @@ public:
 protected:
 	virtual	void					SaveXMLAttributes(CXMLWriter* pcWriter);
 	static	bool					LoadXMLFamily(CMarkupTag* pcTag, char** pszFamily, bool* pbExplicitPowerPorts);
+			void					AddFamilyProperty(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
+			void					AddPowerProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
 			void					CreatePowerPortViews(void);
 			void					CreateLabelledPortViews(SPortViewCreator* asLeft, size uiNumLeft, SPortViewCreator* asRight, size uiNumRight, int32 iLeftX, int32 iRightX, int32 iLeftStart, int32 iRightStart, int32 iStep);
 			CPortView*				CreateLabelledPortView(SPortViewCreator* psCreator, int32 x, int32 y, ERotation eInvertFacing);

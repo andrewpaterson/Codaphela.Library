@@ -89,6 +89,7 @@ public:
 	virtual void			Paint(CCircuitPainter* pcPainter);
 
 			int32			GetBitWidth(void);
+	virtual void			GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
 			ERadix			GetRadix(void);
 			void			GetBox(SInt32Vec2* psBoxMinimum, SInt32Vec2* psBoxMaximum);
 			void			GetValueText(CChars* psz, CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
@@ -116,6 +117,7 @@ public:
 
 	virtual const char*				GetType(void);
 	virtual const char*				GetXMLName(void);
+	virtual bool					InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
 	virtual bool					LoadXML(CMarkupTag* pcTag);
 	virtual CIntegratedCircuit*		CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily);
 };
@@ -132,6 +134,7 @@ public:
 
 	virtual const char*				GetType(void);
 	virtual const char*				GetXMLName(void);
+	virtual bool					InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
 	virtual bool					LoadXML(CMarkupTag* pcTag);
 	virtual CIntegratedCircuit*		CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily);
 };
@@ -159,6 +162,8 @@ public:
 
 	virtual const char*				GetType(void);
 	virtual const char*				GetXMLName(void);
+	virtual void					GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
+	virtual bool					InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
 	virtual bool					LoadXML(CMarkupTag* pcTag);
 	virtual CCircuitComponent*		CreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
 	virtual CIntegratedCircuit*		CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily);
@@ -176,6 +181,8 @@ protected:
 };
 
 
+void			AddRadixProperty(CComponentProperties* pcProperties, ERadix eRadix);
+ERadix			GetRadixProperty(CComponentProperties* pcProperties, ERadix eDefault);
 const char*		PinAlignmentToString(EPinAlignment eAlignment);
 EPinAlignment	StringToPinAlignment(const char* szAlignment);
 const char*		PinAnchourToString(EPinAnchour eAnchour);
