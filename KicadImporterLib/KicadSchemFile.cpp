@@ -1,0 +1,714 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2026 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela KicadImporterLib
+
+Codaphela KicadImporterLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela KicadImporterLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela KicadImporterLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#include "BaseLib/Logger.h"
+#include "BaseLib/TextFile.h"
+#include "BaseLib/FileUtil.h"
+#include "BaseLib/StringHelper.h"
+#include "KicadSchemParser.h"
+#include "KicadSchemImporter.h"
+#include "KicadSchemFile.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CKicadSchemFile::Init(void)
+{
+	mszFileName.Init();
+	miVersion = 0;
+	mszGenerator.Init();
+	mszGeneratorVersion.Init();
+	mszUuid.Init();
+	mszPaper.Init();
+	mszTitle.Init();
+	mszDate.Init();
+	mszRevision.Init();
+	mszCompany.Init();
+
+	macLibSymbols.Init();
+	macSymbols.Init();
+	macWires.Init();
+	macJunctions.Init();
+	macNoConnects.Init();
+	macBusEntries.Init();
+	macLabels.Init();
+	macSheets.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CKicadSchemFile::Kill(void)
+{
+	size	i;
+
+	for (i = 0; i < macSheets.NumElements(); i++)
+	{
+		GetSheet(i)->Kill();
+	}
+	macSheets.Kill();
+
+	for (i = 0; i < macLabels.NumElements(); i++)
+	{
+		GetLabel(i)->Kill();
+	}
+	macLabels.Kill();
+
+	for (i = 0; i < macBusEntries.NumElements(); i++)
+	{
+		GetBusEntry(i)->Kill();
+	}
+	macBusEntries.Kill();
+
+	for (i = 0; i < macNoConnects.NumElements(); i++)
+	{
+		GetNoConnect(i)->Kill();
+	}
+	macNoConnects.Kill();
+
+	for (i = 0; i < macJunctions.NumElements(); i++)
+	{
+		GetJunction(i)->Kill();
+	}
+	macJunctions.Kill();
+
+	for (i = 0; i < macWires.NumElements(); i++)
+	{
+		GetWire(i)->Kill();
+	}
+	macWires.Kill();
+
+	for (i = 0; i < macSymbols.NumElements(); i++)
+	{
+		GetSymbol(i)->Kill();
+	}
+	macSymbols.Kill();
+
+	for (i = 0; i < macLibSymbols.NumElements(); i++)
+	{
+		GetLibSymbol(i)->Kill();
+	}
+	macLibSymbols.Kill();
+
+	mszCompany.Kill();
+	mszRevision.Kill();
+	mszDate.Kill();
+	mszTitle.Kill();
+	mszPaper.Kill();
+	mszUuid.Kill();
+	mszGeneratorVersion.Kill();
+	mszGenerator.Kill();
+	mszFileName.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CKicadSchemFile::Load(char* szPathName)
+{
+	CTextFile	cFile;
+	bool		bResult;
+
+	cFile.Init();
+	if (!cFile.Read(szPathName))
+	{
+		cFile.Kill();
+		gcLogger.Error2(__METHOD__, " Could not read KiCad schematic file [", szPathName, "].", NULL);
+		return false;
+	}
+
+	//KiCad writes CRLF line endings on Windows.
+	cFile.PassifyNewlines();
+
+	bResult = Import(cFile.Text(), cFile.Length(), szPathName);
+	cFile.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CKicadSchemFile::Import(char* szText, size iTextLen, char* szFileName)
+{
+	CKicadSchemParser		cParser;
+	CKicadSchemExpressions	cExpressions;
+	CKicadSchemImporter		cImporter;
+	CFileUtil				cFileUtil;
+	TRISTATE				tResult;
+
+	//The text must not contain carriage returns (see CTextFile::PassifyNewlines).
+	mszFileName.Clear();
+	cFileUtil.GetFileName(&mszFileName, szFileName);
+
+	cExpressions.Init();
+	if (!cParser.Init(szText, iTextLen, szFileName, &cExpressions))
+	{
+		cParser.Kill();
+		cExpressions.Kill();
+		return false;
+	}
+
+	tResult = cParser.Parse();
+	cParser.Kill();
+	if (tResult != TRITRUE)
+	{
+		cExpressions.Kill();
+		gcLogger.Error2(__METHOD__, " Could not parse KiCad schematic file [", szFileName, "].", NULL);
+		return false;
+	}
+
+	cImporter.Init(this, szFileName);
+	tResult = cImporter.Import(cExpressions.GetRoot());
+	cImporter.Kill();
+	cExpressions.Kill();
+
+	if (tResult != TRITRUE)
+	{
+		gcLogger.Error2(__METHOD__, " Could not import KiCad schematic file [", szFileName, "].", NULL);
+		return false;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CKicadSchemFile::SetVersion(int32 iVersion)
+{
+	miVersion = iVersion;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CKicadSchemFile::SetGenerator(char* szGenerator, char* szGeneratorVersion)
+{
+	mszGenerator.Set(szGenerator);
+	mszGeneratorVersion.Set(szGeneratorVersion);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CKicadSchemFile::SetUuid(char* szUuid)
+{
+	mszUuid.Set(szUuid);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CKicadSchemFile::SetPaper(char* szPaper)
+{
+	mszPaper.Set(szPaper);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CKicadSchemFile::SetTitleBlock(char* szTitle, char* szDate, char* szRevision, char* szCompany)
+{
+	mszTitle.Set(szTitle);
+	mszDate.Set(szDate);
+	mszRevision.Set(szRevision);
+	mszCompany.Set(szCompany);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemLibSymbol* CKicadSchemFile::AddLibSymbol(char* szName)
+{
+	CKicadSchemLibSymbol*	pcLibSymbol;
+
+	pcLibSymbol = (CKicadSchemLibSymbol*)macLibSymbols.Add(sizeof(CKicadSchemLibSymbol));
+	pcLibSymbol->Init(szName);
+	return pcLibSymbol;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemSymbol* CKicadSchemFile::AddSymbol(char* szLibId)
+{
+	CKicadSchemSymbol*	pcSymbol;
+
+	pcSymbol = (CKicadSchemSymbol*)macSymbols.Add(sizeof(CKicadSchemSymbol));
+	pcSymbol->Init(szLibId);
+	return pcSymbol;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemWire* CKicadSchemFile::AddWire(SKicadSchemPoint* psStart, SKicadSchemPoint* psEnd, bool bBus)
+{
+	CKicadSchemWire*	pcWire;
+
+	pcWire = (CKicadSchemWire*)macWires.Add(sizeof(CKicadSchemWire));
+	pcWire->Init(psStart, psEnd, bBus);
+	return pcWire;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemJunction* CKicadSchemFile::AddJunction(SKicadSchemPoint* psPosition, float64 fDiameter)
+{
+	CKicadSchemJunction*	pcJunction;
+
+	pcJunction = (CKicadSchemJunction*)macJunctions.Add(sizeof(CKicadSchemJunction));
+	pcJunction->Init(psPosition, fDiameter);
+	return pcJunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemNoConnect* CKicadSchemFile::AddNoConnect(SKicadSchemPoint* psPosition)
+{
+	CKicadSchemNoConnect*	pcNoConnect;
+
+	pcNoConnect = (CKicadSchemNoConnect*)macNoConnects.Add(sizeof(CKicadSchemNoConnect));
+	pcNoConnect->Init(psPosition);
+	return pcNoConnect;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemBusEntry* CKicadSchemFile::AddBusEntry(SKicadSchemPoint* psPosition, SKicadSchemPoint* psSize)
+{
+	CKicadSchemBusEntry*	pcBusEntry;
+
+	pcBusEntry = (CKicadSchemBusEntry*)macBusEntries.Add(sizeof(CKicadSchemBusEntry));
+	pcBusEntry->Init(psPosition, psSize);
+	return pcBusEntry;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemLabel* CKicadSchemFile::AddLabel(EKicadSchemLabelType eType, char* szText)
+{
+	CKicadSchemLabel*	pcLabel;
+
+	pcLabel = (CKicadSchemLabel*)macLabels.Add(sizeof(CKicadSchemLabel));
+	pcLabel->Init(eType, szText);
+	return pcLabel;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemSheet* CKicadSchemFile::AddSheet(SKicadSchemPoint* psPosition, SKicadSchemPoint* psSize)
+{
+	CKicadSchemSheet*	pcSheet;
+
+	pcSheet = (CKicadSchemSheet*)macSheets.Add(sizeof(CKicadSchemSheet));
+	pcSheet->Init(psPosition, psSize);
+	return pcSheet;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CKicadSchemFile::GetFileName(void)
+{
+	return mszFileName.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CKicadSchemFile::GetVersion(void)
+{
+	return miVersion;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CKicadSchemFile::GetGenerator(void)
+{
+	return mszGenerator.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CKicadSchemFile::GetGeneratorVersion(void)
+{
+	return mszGeneratorVersion.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CKicadSchemFile::GetUuid(void)
+{
+	return mszUuid.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CKicadSchemFile::GetPaper(void)
+{
+	return mszPaper.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CKicadSchemFile::GetTitle(void)
+{
+	return mszTitle.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CKicadSchemFile::GetDate(void)
+{
+	return mszDate.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CKicadSchemFile::GetRevision(void)
+{
+	return mszRevision.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CKicadSchemFile::GetCompany(void)
+{
+	return mszCompany.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CKicadSchemFile::NumLibSymbols(void)
+{
+	return macLibSymbols.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemLibSymbol* CKicadSchemFile::GetLibSymbol(size uiIndex)
+{
+	return (CKicadSchemLibSymbol*)macLibSymbols.Get(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemLibSymbol* CKicadSchemFile::GetLibSymbol(char* szName)
+{
+	size					i;
+	size					uiNumElements;
+	CKicadSchemLibSymbol*	pcLibSymbol;
+
+	uiNumElements = macLibSymbols.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcLibSymbol = GetLibSymbol(i);
+		if (StringCompare(pcLibSymbol->GetName(), szName) == 0)
+		{
+			return pcLibSymbol;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemLibSymbol* CKicadSchemFile::GetLibSymbol(CKicadSchemSymbol* pcSymbol)
+{
+	return GetLibSymbol(pcSymbol->GetLibSymbolName());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CKicadSchemFile::NumSymbols(void)
+{
+	return macSymbols.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemSymbol* CKicadSchemFile::GetSymbol(size uiIndex)
+{
+	return (CKicadSchemSymbol*)macSymbols.Get(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemSymbol* CKicadSchemFile::GetSymbol(char* szReference)
+{
+	size				i;
+	size				uiNumElements;
+	CKicadSchemSymbol*	pcSymbol;
+	char*				szSymbolReference;
+
+	uiNumElements = macSymbols.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcSymbol = GetSymbol(i);
+		szSymbolReference = pcSymbol->GetReference();
+		if ((szSymbolReference != NULL) && (StringCompare(szSymbolReference, szReference) == 0))
+		{
+			return pcSymbol;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemSymbol* CKicadSchemFile::GetSymbolByUuid(char* szUuid)
+{
+	size				i;
+	size				uiNumElements;
+	CKicadSchemSymbol*	pcSymbol;
+
+	uiNumElements = macSymbols.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcSymbol = GetSymbol(i);
+		if (StringCompare(pcSymbol->GetUuid(), szUuid) == 0)
+		{
+			return pcSymbol;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CKicadSchemFile::NumWires(void)
+{
+	return macWires.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemWire* CKicadSchemFile::GetWire(size uiIndex)
+{
+	return (CKicadSchemWire*)macWires.Get(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CKicadSchemFile::NumJunctions(void)
+{
+	return macJunctions.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemJunction* CKicadSchemFile::GetJunction(size uiIndex)
+{
+	return (CKicadSchemJunction*)macJunctions.Get(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CKicadSchemFile::NumNoConnects(void)
+{
+	return macNoConnects.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemNoConnect* CKicadSchemFile::GetNoConnect(size uiIndex)
+{
+	return (CKicadSchemNoConnect*)macNoConnects.Get(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CKicadSchemFile::NumBusEntries(void)
+{
+	return macBusEntries.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemBusEntry* CKicadSchemFile::GetBusEntry(size uiIndex)
+{
+	return (CKicadSchemBusEntry*)macBusEntries.Get(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CKicadSchemFile::NumLabels(void)
+{
+	return macLabels.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemLabel* CKicadSchemFile::GetLabel(size uiIndex)
+{
+	return (CKicadSchemLabel*)macLabels.Get(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CKicadSchemFile::NumSheets(void)
+{
+	return macSheets.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CKicadSchemSheet* CKicadSchemFile::GetSheet(size uiIndex)
+{
+	return (CKicadSchemSheet*)macSheets.Get(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CKicadSchemFile::GetPinPosition(SKicadSchemPoint* psDest, CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin)
+{
+	return pcSymbol->GetSheetPosition(psDest, pcPin->GetPosition());
+}
+

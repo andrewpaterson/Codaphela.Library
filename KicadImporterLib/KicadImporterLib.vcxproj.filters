@@ -1,0 +1,198 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{cb511c71-b8f3-5e9b-a52c-a575cc2e00be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Common">
+      <UniqueIdentifier>{3a7afcf0-1209-5ab3-ab7e-96201299d350}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Parser">
+      <UniqueIdentifier>{3d449d66-dc78-56c7-b3ae-ddd17530127a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Symbol">
+      <UniqueIdentifier>{a74c24ec-6df1-5ffd-a37c-494cd075155c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Wiring">
+      <UniqueIdentifier>{9d57810a-062c-512c-962c-c5552c6fb44d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Sheet">
+      <UniqueIdentifier>{4558853e-5cb4-5b77-b877-06470b82e805}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\File">
+      <UniqueIdentifier>{e44cc37b-581c-5b23-aea5-718e2d08d73f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Netlist">
+      <UniqueIdentifier>{0eb3c383-f34d-593d-a13a-4e393ef2def3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Logicim">
+      <UniqueIdentifier>{1eb4f6f8-99d3-5c4b-b2f0-9bea8f4e2725}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="KicadSchemPoint.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemTransform.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemPinType.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemProperty.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemProperties.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemExpression.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemExpressions.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemParser.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemLibSymbol.cpp">
+      <Filter>Source\Symbol</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemLibPin.cpp">
+      <Filter>Source\Symbol</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemSymbol.cpp">
+      <Filter>Source\Symbol</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemSymbolInstance.cpp">
+      <Filter>Source\Symbol</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemWire.cpp">
+      <Filter>Source\Wiring</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemJunction.cpp">
+      <Filter>Source\Wiring</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemNoConnect.cpp">
+      <Filter>Source\Wiring</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemBusEntry.cpp">
+      <Filter>Source\Wiring</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemLabel.cpp">
+      <Filter>Source\Wiring</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemSheet.cpp">
+      <Filter>Source\Sheet</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemSheetPin.cpp">
+      <Filter>Source\Sheet</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemFile.cpp">
+      <Filter>Source\File</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemImporter.cpp">
+      <Filter>Source\File</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemSubnet.cpp">
+      <Filter>Source\Netlist</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemNet.cpp">
+      <Filter>Source\Netlist</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemNetlist.cpp">
+      <Filter>Source\Netlist</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemSubnetGraph.cpp">
+      <Filter>Source\Netlist</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemLogicFunction.cpp">
+      <Filter>Source\Logicim</Filter>
+    </ClCompile>
+    <ClCompile Include="KicadSchemLogicimConverter.cpp">
+      <Filter>Source\Logicim</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="KicadSchemPoint.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemTransform.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemPinType.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemProperty.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemProperties.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemExpression.h">
+      <Filter>Source\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemExpressions.h">
+      <Filter>Source\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemParser.h">
+      <Filter>Source\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemLibSymbol.h">
+      <Filter>Source\Symbol</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemLibPin.h">
+      <Filter>Source\Symbol</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemSymbol.h">
+      <Filter>Source\Symbol</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemSymbolInstance.h">
+      <Filter>Source\Symbol</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemWire.h">
+      <Filter>Source\Wiring</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemJunction.h">
+      <Filter>Source\Wiring</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemNoConnect.h">
+      <Filter>Source\Wiring</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemBusEntry.h">
+      <Filter>Source\Wiring</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemLabel.h">
+      <Filter>Source\Wiring</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemSheet.h">
+      <Filter>Source\Sheet</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemSheetPin.h">
+      <Filter>Source\Sheet</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemFile.h">
+      <Filter>Source\File</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemImporter.h">
+      <Filter>Source\File</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemSubnet.h">
+      <Filter>Source\Netlist</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemNet.h">
+      <Filter>Source\Netlist</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemNetlist.h">
+      <Filter>Source\Netlist</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemSubnetGraph.h">
+      <Filter>Source\Netlist</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemLogicFunction.h">
+      <Filter>Source\Logicim</Filter>
+    </ClInclude>
+    <ClInclude Include="KicadSchemLogicimConverter.h">
+      <Filter>Source\Logicim</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
