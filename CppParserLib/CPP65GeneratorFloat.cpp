@@ -19,6 +19,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
+#include <math.h>
 #include "CTFloat.h"
 #include "CTDouble.h"
 #include "CTLongDouble.h"
@@ -511,6 +512,13 @@ bool CCPP65Generator::FloatValue(CCPPSyntax* pcExpression, double* pdValue, SCPP
 		}
 		break;
 
+	case CPPS_CallExpression:
+		if (FloatBuiltin(pcExpression, pdValue, ppsType))
+		{
+			return true;
+		}
+		break;
+
 	default:
 		break;
 	}
@@ -522,6 +530,67 @@ bool CCPP65Generator::FloatValue(CCPPSyntax* pcExpression, double* pdValue, SCPP
 	}
 	*pdValue = (double)lliValue;
 	*ppsType = NULL;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// GCC's floating point constant builtins (math.h's HUGE_VAL, INFINITY and NAN):
+// __builtin_huge_val, __builtin_inf and __builtin_nan("") are double, and their f
+// forms float.  NaNs are quiet and positive; a payload string is ignored.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::FloatBuiltin(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType)
+{
+	CCPPSyntaxCallExpression*	pcCall;
+	CCPPSyntax*					pcCallee;
+	CCPPSyntaxName*				pcName;
+	char*						szName;
+	int							iLength;
+	int64						lliName;
+	bool						bFloat;
+	bool						bNaN;
+
+	pcCall = (CCPPSyntaxCallExpression*)pcExpression;
+	pcCallee = SkipParentheses(pcCall->mpcCallee);
+	if (!pcCallee || (pcCallee->GetKind() != CPPS_IdExpression))
+	{
+		return false;
+	}
+	pcName = ((CCPPSyntaxIdExpression*)pcCallee)->mpcName;
+	if (!pcName || (pcName->macpComponents.NumElements() != 1))
+	{
+		return false;
+	}
+	lliName = GetFunctionName(pcName->GetLast());
+	if (!IsBuiltin(lliName))
+	{
+		return false;
+	}
+	szName = mpcTokeniser->GetIdentifier(lliName, &iLength);
+	szName += 10;
+	iLength -= 10;
+	bFloat = (iLength > 0) && (szName[iLength - 1] == 'f');
+	iLength -= bFloat ? 1 : 0;
+	if (((iLength == 8) && (memcmp(szName, "huge_val", 8) == 0)) || ((iLength == 3) && (memcmp(szName, "inf", 3) == 0)))
+	{
+		bNaN = false;
+	}
+	else if ((iLength == 3) && (memcmp(szName, "nan", 3) == 0))
+	{
+		bNaN = true;
+	}
+	else
+	{
+		return false;
+	}
+	if (pcCall->macpArguments.NumElements() != (bNaN ? 1 : 0))
+	{
+		return false;
+	}
+	*pdValue = bNaN ? (double)NAN : (double)INFINITY;
+	*ppsType = bFloat ? &mcTypes.msFloat : &mcTypes.msDouble;
 	return true;
 }
 

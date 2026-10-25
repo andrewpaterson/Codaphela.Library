@@ -325,6 +325,17 @@ SCPP65Type* CCPP65Generator::StringLiteral(CCPPSyntaxStringExpression* pcString)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::StringData(char* szBytes, size uiLength)
 {
+	Line("cpy A, Str")->Append(AddString(szBytes, uiLength))->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds uiLength bytes and a zero as string data, labelled Str and the number returned.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPP65Generator::AddString(char* szBytes, size uiLength)
+{
 	CChars*	pszBytes;
 	size	i;
 
@@ -336,8 +347,7 @@ void CCPP65Generator::StringData(char* szBytes, size uiLength)
 		pszBytes->Append(", ");
 	}
 	pszBytes->Append('0');
-
-	Line("cpy A, Str")->Append((int)maszStrings.NumElements() - 1)->AppendNewLine();
+	return (int)maszStrings.NumElements() - 1;
 }
 
 
@@ -431,7 +441,7 @@ SCPP65Type* CCPP65Generator::IdExpression(CCPPSyntaxIdExpression* pcId)
 		LoadConstant("A", psType, psBinding->lliValue);
 		return psType;
 	}
-	if (pcSymbol && (pcSymbol->meKind == CPPSK_Function) && (pcId->mpcName->macpComponents.NumElements() == 1))
+	if (pcSymbol && (pcSymbol->meKind == CPPSK_Function))
 	{
 		return FunctionAddress(pcId, pcSymbol->mlliName);
 	}
@@ -471,18 +481,42 @@ bool CCPP65Generator::IsFunctionName(CCPPSyntaxIdExpression* pcId)
 //
 // A function's name used as a value is its address.  An overloaded name needs the
 // type of the function wanted (psTarget, from a cast to a pointer to a function).
+// Class::f and, in a member function, f may be a static member function (of the
+// class or its bases); an unqualified name is looked for in the class first.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Generator::FunctionAddress(CCPPSyntax* pcNode, int64 lliName, SCPP65Type* psTarget)
 {
 	SCPP65Function*		psFunction;
 	SCPP65Function*		psFound;
+	SCPP65Class*		psClass;
+	CCPPSyntaxName*		pcName;
 	size				i;
 	bool				bOverloaded;
+	bool				bQualified;
 
 	psFound = NULL;
 	bOverloaded = false;
-	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	psClass = NULL;
+	bQualified = false;
+	pcName = (pcNode && (pcNode->GetKind() == CPPS_IdExpression)) ? ((CCPPSyntaxIdExpression*)pcNode)->mpcName : NULL;
+	if (pcName && (pcName->macpComponents.NumElements() >= 2))
+	{
+		bQualified = true;
+		BeginQuiet();
+		psClass = GetComponentClass((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(pcName->macpComponents.NumElements() - 2), NULL, pcNode);
+		EndQuiet();
+	}
+	else if (mpsFunction && mpsFunction->psClass)
+	{
+		psClass = mpsFunction->psClass;
+	}
+	if (psClass && CompleteClass(psClass, pcNode))
+	{
+		psFound = FindStaticFunction(psClass, lliName, psTarget, &bOverloaded);
+	}
+
+	for (i = 0; !psFound && !bQualified && (i < mapsFunctions.NumElements()); i++)
 	{
 		psFunction = mapsFunctions.GetPtr(i);
 		if (!psFunction->psClass && (psFunction->lliName == lliName) && !psFunction->psTemplate)
@@ -513,6 +547,51 @@ SCPP65Type* CCPP65Generator::FunctionAddress(CCPPSyntax* pcNode, int64 lliName, 
 	AppendFunctionLabel(mpszOut, psFound);
 	mpszOut->AppendNewLine();
 	return mcTypes.Pointer(mcTypes.Function(psFound->psReturn, &psFound->mapsParameters, psFound->bVariadic));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The static member function of the name in the class, or else in its bases (the
+// first base that has one).  *pbOverloaded is set when the name has several and
+// psTarget does not pick one.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Function* CCPP65Generator::FindStaticFunction(SCPP65Class* psClass, int64 lliName, SCPP65Type* psTarget, bool* pbOverloaded)
+{
+	SCPP65Function*		psFunction;
+	SCPP65Function*		psFound;
+	size				i;
+
+	psFound = NULL;
+	*pbOverloaded = false;
+	for (i = 0; i < mapsFunctions.NumElements(); i++)
+	{
+		psFunction = mapsFunctions.GetPtr(i);
+		if ((psFunction->psClass == psClass) && psFunction->bStatic && (psFunction->lliName == lliName) && (psFunction->eKind == CPP65FK_Function) && !psFunction->psTemplate)
+		{
+			if (psTarget && psTarget->Equals(mcTypes.Function(psFunction->psReturn, &psFunction->mapsParameters, psFunction->bVariadic)))
+			{
+				*pbOverloaded = false;
+				return psFunction;
+			}
+			*pbOverloaded |= (psFound != NULL);
+			psFound = psFunction;
+		}
+	}
+	if (psFound)
+	{
+		return psFound;
+	}
+	for (i = 0; i < psClass->macBases.NumElements(); i++)
+	{
+		psFound = FindStaticFunction(psClass->macBases.Get(i)->psClass, lliName, psTarget, pbOverloaded);
+		if (psFound || *pbOverloaded)
+		{
+			return psFound;
+		}
+	}
+	return NULL;
 }
 
 
@@ -905,9 +984,18 @@ SCPP65Type* CCPP65Generator::ConditionalExpression(CCPPSyntaxConditionalExpressi
 	{
 		return NULL;
 	}
+	if (IsObject(pcConditional->mpcTrue) || IsObject(pcConditional->mpcFalse))
+	{
+		return ObjectConditional(pcConditional, psTrue, psFalse);
+	}
 	if ((psTrue->IsFloat() && psFalse->IsScalar() && !psFalse->IsPointer()) || (psFalse->IsFloat() && psTrue->IsScalar() && !psTrue->IsPointer()))
 	{
 		psType = FloatArithmetic(psTrue, psFalse);
+	}
+	else if ((psTrue == psFalse) && psTrue->pcEnum)
+	{
+		//Both the same enum: the result is that enum, not an int.
+		psType = psTrue;
 	}
 	else if (psTrue->IsInteger() && psFalse->IsInteger())
 	{
@@ -924,6 +1012,8 @@ SCPP65Type* CCPP65Generator::ConditionalExpression(CCPPSyntaxConditionalExpressi
 
 	iFalse = NewLabel();
 	iEnd = NewLabel();
+	ClearTemporaryGuards(pcConditional->mpcTrue);
+	ClearTemporaryGuards(pcConditional->mpcFalse);
 	if (!Condition(pcConditional->mpcCondition, false, iFalse))
 	{
 		return NULL;
@@ -942,6 +1032,59 @@ SCPP65Type* CCPP65Generator::ConditionalExpression(CCPPSyntaxConditionalExpressi
 	}
 	Label(iEnd);
 	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// c ? x : y with objects of the same class: an object made (see MakesObject) where
+// the object it initialises is, or in its temporary, copied or made from the operand
+// the condition picks.  Its address is left in A.  An lvalue result is a copy too.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::ObjectConditional(CCPPSyntaxConditionalExpression* pcConditional, SCPP65Type* psTrue, SCPP65Type* psFalse)
+{
+	SCPP65Place		sPlace;
+	int				iFalse;
+	int				iEnd;
+	bool			bResult;
+
+	psTrue = psTrue->IsReference() ? psTrue->psBase : psTrue;
+	psFalse = psFalse->IsReference() ? psFalse->psBase : psFalse;
+	if (!psTrue->IsClass() || !psFalse->IsClass() || (psTrue->psClass != psFalse->psClass))
+	{
+		Error(pcConditional, "c ? x : y with objects of different types is not supported by the 65C64 generator yet");
+		return NULL;
+	}
+	if (!CompleteClass(psTrue->psClass, pcConditional) || !TemporaryAddress(pcConditional, psTrue))
+	{
+		return NULL;
+	}
+	Push("A");
+
+	sPlace.eKind = CPP65PK_Address;
+	sPlace.psType = psTrue;
+	sPlace.iOffset = 0;
+	sPlace.lliName = -1;
+	sPlace.iString = -1;
+	sPlace.bInternal = false;
+	sPlace.psClass = NULL;
+	iFalse = NewLabel();
+	iEnd = NewLabel();
+	ClearTemporaryGuards(pcConditional->mpcTrue);
+	ClearTemporaryGuards(pcConditional->mpcFalse);
+	bResult = Condition(pcConditional->mpcCondition, false, iFalse);
+	Line("cpy A, [1 + S]")->AppendNewLine();
+	bResult = bResult && Construct(&sPlace, NULL, pcConditional->mpcTrue, pcConditional->mpcTrue);
+	Line("bra ");
+	AppendLabel(mpszOut, iEnd);
+	mpszOut->AppendNewLine();
+	Label(iFalse);
+	Line("cpy A, [1 + S]")->AppendNewLine();
+	bResult = bResult && Construct(&sPlace, NULL, pcConditional->mpcFalse, pcConditional->mpcFalse);
+	Label(iEnd);
+	Pull("A");
+	return bResult ? psTrue : NULL;
 }
 
 
@@ -995,7 +1138,8 @@ bool CCPP65Generator::IsBuiltin(int64 lliName)
 //
 // GCC's builtin functions: __builtin_ctz, __builtin_clz and __builtin_popcount
 // (with their l and ll forms), __builtin_expect, __builtin_unreachable,
-// __builtin_trap and __builtin_alloca.  The 65C64's find set bit does ctz and clz;
+// __builtin_trap, __builtin_alloca, __builtin_ia32_pause (a nop) and the floating
+// point constants (see FloatBuiltin).  The 65C64's find set bit does ctz and clz;
 // ctz(0) and clz(0) are the width in bits.  alloca takes whole longs from the stack;
 // they are given back when the function returns (it restores S from V).  The result
 // is in A.
@@ -1010,6 +1154,13 @@ SCPP65Type* CCPP65Generator::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lli
 	SCPP65Type*		psType;
 	bool			bWide;
 	int				iArguments;
+	double			dValue;
+
+	if (FloatBuiltin(pcCall, &dValue, &psType))
+	{
+		LoadConstant("A", psType, FloatBits(psType, dValue));
+		return psType;
+	}
 
 	szIdentifier = mpcTokeniser->GetIdentifier(lliName, &iLength);
 	szName.Init();
@@ -1025,6 +1176,18 @@ SCPP65Type* CCPP65Generator::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lli
 			return NULL;
 		}
 		Line("stp")->AppendNewLine();
+		return &mcTypes.msVoid;
+	}
+	if (szName.Equals("ia32_pause"))
+	{
+		//A spin wait's hint: there is nothing to wait for on one 65C64.
+		szName.Kill();
+		if (iArguments != 0)
+		{
+			Error(pcCall, "The builtin takes no arguments");
+			return NULL;
+		}
+		Line("nop")->AppendNewLine();
 		return &mcTypes.msVoid;
 	}
 	if (szName.Equals("expect"))
@@ -1531,14 +1694,17 @@ bool CCPP65Generator::IsMemberPointerOperator(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 //
 // Leaves the address of the object of object.*member or pointer->*member in A and
-// returns the pointer to member's type.
+// returns the pointer to member's type.  The address is of the member pointer's
+// class: a base further on in the object is moved to.
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Generator::MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary)
 {
 	SCPP65Type*		psMember;
 	SCPP65Type*		psObject;
+	SCPP65Class*	psClass;
 	SCPP65Place		sObject;
+	int				iOffset;
 
 	psMember = TypeOf(pcBinary->mpcRight);
 	if (!psMember)
@@ -1563,6 +1729,7 @@ SCPP65Type* CCPP65Generator::MemberPointerObject(CCPPSyntaxBinaryExpression* pcB
 			Error(pcBinary, "The left of ->* must be a pointer to an object");
 			return NULL;
 		}
+		psClass = psObject->psBase->psClass;
 	}
 	else
 	{
@@ -1576,6 +1743,11 @@ SCPP65Type* CCPP65Generator::MemberPointerObject(CCPPSyntaxBinaryExpression* pcB
 			return NULL;
 		}
 		LoadAddress(&sObject);
+		psClass = sObject.psType->psClass;
+	}
+	if (psMember->psClass && (psClass != psMember->psClass) && CompleteClass(psClass, pcBinary) && IsDerived(psClass, psMember->psClass, &iOffset) && (iOffset != 0))
+	{
+		Line("add A, ")->Append(iOffset)->AppendNewLine();
 	}
 	return psMember;
 }
@@ -2941,6 +3113,7 @@ bool CCPP65Generator::Condition(CCPPSyntax* pcExpression, bool bJumpIf, int iLab
 		{
 		case CT_LogicalAnd:
 		case CT_LogicalOr:
+			ClearTemporaryGuards(pcBinary->mpcRight);
 			if ((pcBinary->meOperator == CT_LogicalAnd) != bJumpIf)
 			{
 				bResult = Condition(pcBinary->mpcLeft, bJumpIf, iLabel);
@@ -3083,8 +3256,9 @@ bool CCPP65Generator::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* 
 		return false;
 	}
 
-	//A pointer to a derived class points at its base, which may be further on.
-	if (psFrom->IsPointer() && psTo->IsPointer() && psFrom->psBase->IsClass() && psTo->psBase->IsClass() && (psFrom->psBase->psClass != psTo->psBase->psClass) && psFrom->psBase->psClass->bComplete && IsDerived(psFrom->psBase->psClass, psTo->psBase->psClass, &iOffset) && (iOffset != 0))
+	//A pointer to a derived class points at its base, which may be further on.  The offset needs the derived class
+	//laid out, which a function that only uses pointers to it has not done yet.
+	if (psFrom->IsPointer() && psTo->IsPointer() && psFrom->psBase->IsClass() && psTo->psBase->IsClass() && (psFrom->psBase->psClass != psTo->psBase->psClass) && IsDerived(psFrom->psBase->psClass, psTo->psBase->psClass, NULL) && CompleteClass(psFrom->psBase->psClass, pcNode) && IsDerived(psFrom->psBase->psClass, psTo->psBase->psClass, &iOffset) && (iOffset != 0))
 	{
 		iZero = NewLabel();
 		Line("cmp A, 0")->AppendNewLine();
@@ -3093,6 +3267,17 @@ bool CCPP65Generator::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax* 
 		mpszOut->AppendNewLine();
 		Line("add A, ")->Append(iOffset)->AppendNewLine();
 		Label(iZero);
+		return true;
+	}
+
+	//A pointer to a member of a base is a pointer to a member of a class derived from it ([conv.mem]).
+	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer() && psFrom->psClass && psTo->psClass && (psFrom->psClass != psTo->psClass) && CompleteClass(psTo->psClass, pcNode) && IsDerived(psTo->psClass, psFrom->psClass, &iOffset) && (iOffset != 0))
+	{
+		if (psFrom->psBase->IsFunction())
+		{
+			return Error(pcNode, "A pointer to a member function of a base further on in the class is not supported by the 65C64 generator yet");
+		}
+		Line("add A, ")->Append(iOffset)->AppendNewLine();
 		return true;
 	}
 

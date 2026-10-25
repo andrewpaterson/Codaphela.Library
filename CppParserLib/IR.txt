@@ -1,0 +1,528 @@
+Intermediate representation
+===========================
+
+The IR between the C++ front end and the back ends, so the compiler can optimise.  The
+first back end is the 65C64; the W65C816 comes later and the design keeps room for its
+banks (see W65C816).
+
+The user's rulings (2026-10-24): a two level IR, a variant of QBE (c9x.me/compile), in
+CppParserLib; phi instructions; callee saved pseudo registers; signed overflow wraps
+around; on the W65C816 near inside a linker object and far calls at its boundaries;
+LLVM like text.  "The IR will be a black box to me": the rest are my choices.
+
+Today CCPP65Generator walks the syntax tree and writes 65C64 assembly as it goes: every
+value ends in A, every local has its own place from V and nothing sees further than one
+expression.  With the IR the generator keeps all of its C++ work (overloads,
+conversions, templates, temporaries, destructors, this adjustments, class layout,
+mangled names) but writes IR instead of assembly:
+
+	syntax tree
+	  -> front end (CCPP65Generator's C++ semantics)		writes IR, already in SSA
+	  -> mid level passes									target independent
+	  -> legalisation										types and operations the target has
+	  -> instruction selection								machine IR (the same structures)
+	  -> register allocation, frame layout
+	  -> peephole
+	  -> assembly text										Assembler65Lib, as now
+
+
+What is taken from QBE
+----------------------
+
+- Instructions are small fixed size records (an opcode, a type, a result and two
+  arguments) kept in an array per block, and a pass that changes a block writes a new
+  array for it.
+- Operands are references: a 32 bit kind and index into the function's temporaries or
+  constants, or the module's symbols.  Not pointers.
+- Calls are an arg instruction for each argument followed by the call.
+- Each block ends with a jump (jmp, brif, ret, unreachable) that is not an instruction.
+- Phi instructions are kept apart from a block's instructions, at its start.
+- Both levels are the same structures: instruction selection turns the generic opcodes
+  into the target's, and references can then also be physical registers and memory
+  operands.  So the printer, parser and verifier work on machine IR too.
+
+What is different from QBE: types include i1, i8 and i16 as values (the W65C816 works in
+16 bits, and QBE only has 32 and 64 bit values), pointers are a type with an address
+space, there is no aggregate type (the front end has already laid out classes and does
+the ABI itself) and the text is LLVM like.
+
+
+Values and SSA
+--------------
+
+A temporary is defined once: by an instruction, a phi or as a function parameter.  It is
+used in blocks its definition dominates (every path from the entry to the use passes
+the definition; for a phi argument, to the end of the predecessor).  Constants are
+typed and kept in a table per function; symbols (functions, globals, string literals)
+are the module's.
+
+The front end writes every local as a slot (read and written with load and store) and
+every parameter as its argaddr, as clang writes allocas.  A pass (slot promotion, as
+LLVM's mem2reg) then makes the slots whose address never escapes into temporaries and
+phis.  This keeps the front end simple: every C++ lvalue is an address.  (The first
+plan was to build SSA while writing, Braun et al. 2013; promoting afterwards does the
+same and also catches slots that stop escaping after inlining.)
+
+
+Types
+-----
+
+	i1					a condition: made by comparisons, used by brif and phi
+	i8 i16 i32 i64		integers; signed or unsigned is in the operation, not the type
+	f32 f64				IEEE floats (long double is f64)
+	ptr					a pointer in the module's first address space
+	ptr.space			a pointer in a named address space
+
+i1 is never in memory or an argument: a bool is an i8, made with zext.  Keeping
+comparisons as i1 lets instruction selection join one with the branch that uses it
+(cmp then bras on the 65C64) and keeps a W65C816 comparison out of its accumulator.
+
+There is no alignment on loads and stores: neither target faults on an unaligned
+access, and the front end lays out memory.
+
+
+Address spaces
+--------------
+
+A module lists its address spaces with the size of a pointer in each; the first is the
+default.  The 65C64 has one, 4 bytes.  For the W65C816 see W65C816.
+
+	spacecast p to ptr.other		zero to far is a zero extend; far to near keeps the
+									low 16 bits (only correct inside the data bank)
+
+
+Instructions
+------------
+
+Integers (both operands the result's type):
+
+	add sub mul			wrap around (the user)
+	sdiv udiv srem urem	divide by zero is undefined; INT_MIN / -1 wraps to INT_MIN, remainder 0
+	and or xor
+	shl lshr ashr		the amount is the same type; an amount of the width or more gives
+						an unspecified value
+	neg not copy
+	sext zext trunc		widen or narrow to the result type
+	eq ne slt sle sgt sge ult ule ugt uge			-> i1
+
+Floats:
+
+	fadd fsub fmul fdiv fneg
+	feq fne flt fle fgt fge fordered funordered		-> i1
+	sitof utof ftosi ftoui fext ftrunc
+
+Floats are instructions until legalisation, which makes them SoftFloat* calls on both
+targets.  So constant folding works out 1.0f + 2.0f, value numbering shares a repeated
+x * y, and dead code removes an unused one; as calls they would be opaque (question 6,
+"pick whichever will optimise best").
+
+Pointers and memory:
+
+	slot size, align				a frame object; the result's space is the stack's
+	ptradd p, offset				p + offset; offset is an integer of the pointer's size;
+									inbank: the result is in p's 64KB bank (W65C816)
+	ptrtoi p   itoptr i   spacecast p
+	load p							volatile allowed
+	store v, p						volatile allowed
+
+Symbols are operands of the default pointer type: @gTable is the global's address.
+memcpy, memmove and memset are calls; a pass may treat calls to them as known.
+
+Calls:
+
+	arg v							one per argument, in order, straight before the call
+	call @f   call %p				the result type, or none; variadic: the number of
+									named arguments; thiscall: the first argument is a
+									member function's this
+	argaddr n						the address of parameter n where the caller put it
+									(va_start, and &parameter)
+
+A call may read and write any memory whose address has escaped.  The calling
+convention (pushing each argument at its own size, the caller removing them, the
+result in A) belongs to the back end.  va_start is still to do (the front end walks the
+stack now).
+
+Jumps (a block's last, and only there):
+
+	jmp block
+	brif c, then, else				c is i1
+	ret {v}
+	unreachable						after a noreturn call
+
+A switch is written as compares and branches, as the generator does now.  Exceptions
+are not in the IR (the front end does not support them).
+
+Globals:
+
+	global @gTable, align 4, local { i32 1, i32 2, ptr @Str3+4, zero 52 }
+	global @Str3, local, constant { bytes "hello\00" }
+
+Function and global attributes: local (the unit's label, as static functions are now),
+weak, constant, noreturn, inline, variadic.  Names are the front end's mangled labels.
+
+
+Text form
+---------
+
+	space default 4
+
+	function i32 @_Sum__FPii(ptr %p, i32 %n)
+	{
+	entry:
+		jmp loop
+	loop:
+		%s = phi i32 [entry, 0], [body, %s2]
+		%i = phi i32 [entry, 0], [body, %i2]
+		%c = slt i32 %i, %n
+		brif %c, body, exit
+	body:
+		%o = shl i32 %i, 2
+		%a = ptradd ptr %p, %o
+		%v = load i32 %a
+		%s2 = add i32 %s, %v
+		%i2 = add i32 %i, 1
+		jmp loop
+	exit:
+		ret i32 %s
+	}
+
+- Temporaries are %name; blocks are name: and are named in jumps and phis without a
+  sigil; symbols are @name.  Unnamed temporaries print as %0, %1 ... in the order they
+  are defined, and unnamed blocks as 0:, 1: ... in block order; numbers parse back as
+  unnamed, so names are only kept (and the name maps only made) when a pass or the
+  front end gives one.  A name that is all digits is not kept.
+- The type after the opcode is the result's, except: comparisons give the operands'
+  type (the result is i1), store and arg give the value's type, and sext, zext,
+  trunc, the float conversions, ptrtoi, itoptr and spacecast are "op T v to T".
+- Constants take the type their operand must have.  Integers are decimal; floats are
+  their bits in hexadecimal (f64 0x3FF0000000000000), so they print and parse exactly.
+- Flags follow the opcode: load volatile i32 %a, ptradd inbank ptr.far %p, %o.
+- Calls print with their args: %r = call i32 @f(i32 %a, ptr %b); call void @printf(ptr
+  @Str1, ..., i32 %x) for a variadic call (... after the named arguments).
+- ; starts a comment to the end of the line.
+
+The printer and parser round trip exactly, so a pass is tested with IR text before and
+the IR text expected after.  The verifier checks every function after every pass in
+debug builds:
+
+- every block ends with a jump, and the predecessor lists match the jumps
+- each phi has one argument for each predecessor, of its type
+- each temporary is defined once, and its definition dominates its uses
+- operand types are what the opcode needs; no i1 in memory or in an arg
+- args only straight before a call, and no more named arguments than args
+
+
+Passes
+------
+
+The first passes, roughly in the order they will be written:
+
+	simplify cfg				join straight line blocks, remove empty and unreachable
+								ones, fold brif on a constant
+	constant folding			floats bit exact with softfloat.cpp
+	dead code elimination
+	copy elimination			copies and phis that are always one value
+	inlining					small functions, functions called once, the front end's
+								inline queue; most of C++'s benefit
+	slot promotion				slots whose address stops escaping after inlining become
+								temporaries (inlined this pointers go here)
+	value numbering (GVN)		the same computation once
+	loop invariant code motion
+	strength reduction			i * 4 in a loop becomes a pointer stepping by 4
+
+Each pass can be switched off on its own, so a wrong answer can be narrowed down by
+switching passes off one at a time.
+
+Written (CIROptimiser, IROptimiser.h/.cpp, 2026-10-25), run on each function until
+nothing changes: simplify cfg (unreachable blocks, jumps through empty blocks, joining a
+block to its only successor, brif on a constant), slot promotion (slots and argaddrs only
+loaded and stored, at one type and not volatile, become temporaries and phis: dominance
+frontiers, then renaming down the dominator tree), trivial phis, constant folding of
+integer instructions and conversions (wrapping; x * 2^n becomes x << n; a comparison of
+two values extended from one narrow type compares the narrow values), common
+subexpressions within a block and its dominators, redundant loads (a load of what an
+earlier load read or a store wrote, in its block or the blocks before it that are its
+only predecessors, with no call or store that may touch it between: same base and
+offsets that don't overlap, different globals and different slots don't alias), slot
+splitting (a slot only loaded and stored at constant offsets that don't overlap, an
+object's fields, becomes a slot per offset, so promotion makes them temporaries; slots
+move to the entry block first), loop invariant code motion (loads and integer operations
+of what a loop doesn't change move to the block that enters it; loads only if the loop
+makes no calls and stores nothing that may alias), and dead code.
+
+Inlining (CIRInliner, IRInliner.h/.cpp, 2026-10-25): a call of a function of the same
+module with at most 16 instructions (not variadic, not taking its parameters' addresses,
+not itself) is replaced by a copy of its blocks: the block is split after the call, the
+arguments are the parameters, returns jump to the rest and the result is a phi there.
+Calls in the copies are inlined too, up to 24 in a function.  The front end keeps each
+unit's functions as IR until the generator has written them all (CCPP65IRFrontEnd::
+FinishUnit, called from CCPP65Generator::Generate), inlines (callees first: they are
+written after their callers), optimises and generates them again; a function that fails
+then keeps the code Body generated for it.  The front end runs it
+on every function it writes (CCPP65IRFrontEnd::sbOptimise switches it off).
+
+
+Front end
+---------
+
+CCPP65IRFrontEnd (CPP65IRFrontEnd.h/.cpp, a friend of CCPP65Generator) writes function
+bodies as IR.  The generator still does everything about the C++: declarations, types,
+classes, templates, overloads, labels, data, vtables, the start up and the runtime
+routines.  GenerateDefinition sets a function up as for its own code (parameters,
+locals, static locals' data, temporaries' places); then, with SetUseIR(true), it asks
+the front end for the body.  The front end writes it as IR, verifies it and generates
+it with CIR65Backend into the generator's code, or returns false having changed nothing
+and the generator writes the function itself.  So functions move to the IR one kind of
+C++ at a time with every test passing.  SetDefaultUseIR (or building with
+-DCPP65_DEFAULT_USE_IR=1) makes every generator use it, to run whole test suites on the
+IR path.  The generator's errors are not reported while the front end works (it reports
+them when it writes the function itself).
+
+Supported so far (2026-10-25): functions, member functions, constructors and
+destructors returning scalars, pointers, references or objects; parameters of those
+(objects only if their copy is their bytes, see below); locals of any of those and arrays
+of them; static locals and globals; every statement (if, while, do, for, switch, break,
+continue, goto, labels, return, declarations with scalar, reference, array, string and
+constructor initialisers); literals, enumerators, sizeof, __func__, string literals,
+variables, fields, this, unary and binary operators on scalars, assignments (objects'
+too), ++ and --, && || ! and comparisons, ?:, casts to scalars, subscripts, pointer
+arithmetic, floats, calls of functions, member functions (virtual through the vtable, a
+base's at its offset) and function templates by name and of pointers to functions,
+variadic calls (va_arg is Libc65's macro, plain pointer arithmetic), new, new (address)
+and delete (which does nothing with a null pointer).
+
+Constructors and destructors are written as the generator's ConstructorBody and
+DestructorBody: a constructor starts with its bases (from the member initialisers or by
+default), the vtable pointers, then the fields (member initialisers, default member
+initialisers or their own constructors); a destructor stores its vtable pointers, and its
+returns go to a last block that destroys the fields then the bases, last first.  Local
+objects are constructed where they are declared and destroyed (last first) at the end
+of their scope, and by return (after its value is worked out), break and continue on
+their way out; a goto while an object is living is left to the generator.  (The body of
+an if, loop or switch is a scope of its own, and so is a for with its declarations, as
+C++ says; the generator destroys a for's objects at the end of the enclosing block.)
+
+Objects by value, as the generator's ABI (CPP65Generator.txt Objects by value): an
+object used as a value is its address.  A function that returns one takes a hidden
+pointer parameter (the first on the stack) and returns it; the caller passes a
+temporary's slot, or the object being initialised (msElide: made in place, as C++17
+says).  An object parameter is its bytes where the caller pushed them (IR parameters of
+4, 2 and 1 bytes, its address the first's argaddr), destroyed by the function.  The
+caller copies an argument's bytes as it is worked out (through a temporary with its own
+vtables for a polymorphic class), so only classes whose copy is their bytes are passed.
+Copies call the copy constructor if the class has one, else copy the bytes and store the
+vtable pointers; object = object copies the bytes (as the generator does) unless the
+class has operator=.  Class(arguments) makes a temporary.
+
+Not yet: passing objects that need a copy constructor, temporaries that need destroying,
+operators on objects (operator=, +, ...), new[] of objects with destructors, builtins,
+inline memcpy, function addresses (&f) and member pointers.
+CCPP65IRFrontEnd::siUnsupportedLine is the line that left the last function to the
+generator, for finding what to support next.
+
+The 65C64's ABI shows in the IR in two places: a result narrower than 32 bits is an i32
+(the caller gets A extended by the C++ type's signedness, so the front end extends
+before ret and truncates after call), and a member function takes this with thiscall.
+
+
+65C64 back end
+--------------
+
+CIR65Backend (IR65Backend.h/.cpp) writes 65C64 assembly for IR functions.
+
+Layout.  A loop's test is moved after its body (a block that branches into the block
+after it or out of the loop goes after the last block that jumps back to it), so the
+loop is entered with a bra to the test and each time round takes one branch.  A brif
+whose else block comes next branches to its then block and falls through.
+
+Values left in A.  A result only the next instruction uses, and takes from A (its first
+operand, its second for the instructions that copy it to B or swap it in, a load's
+address, a brif's condition or a return's value), is not kept anywhere.  A comparison
+only its block's brif uses branches directly.
+
+Register allocation (2026-10-25).  CIRLiveness (IRLiveness.h/.cpp, not 65C64 specific)
+numbers the instructions in block order, finds what is live in and out of each block,
+and gives each temporary its live ranges (with holes, one per block at most), its loop
+depth and a weight (its definition and uses, 8 times more per loop).  Each phi joins the
+class of each value it takes when their ranges don't overlap, so most phis need no
+copies.  Classes are given homes most weighted first:
+
+	X or Y					if nothing that changes them is done while the class is live
+							(calls, the soft float routines and R_DivideSigned change X
+							and Y; mul and div change Y)
+	[$00 + W] to [$7F + W]	if no call is made while it is live (calls may change them)
+	[$80 + W] to [$FF + W]	if the class weighs 8 or more (used in a loop, say): the
+							function pushes those it uses after setting V up and pulls
+							them before returning (the user's callee saved pseudo
+							registers, 2026-10-24)
+	the frame				[1 + offset + V]
+
+A parameter used at most once, or that gets no X, Y or low pseudo register, stays where
+it was pushed; others are copied to their home by the prologue (this from X).  64 bit values only get memory (two units).  Narrow
+integers are held zero extended everywhere.
+
+Instructions work where it is shortest: in the result's home when the first operand is
+kept there too (add X, 1; add [8 + W], A; shl [4 + W], 2), in the result's register
+(cpy X, [4 + W] / sub X, B), or in A, with the second operand as it is kept when the
+instruction allows (add A, Y; and A, [12 + V]; add, sub, cmp, shl and shr can't address
+memory with V, so those go through B).  mul leaves the product in Y and div the quotient
+in Y and remainder in B, which are stored from there.  Loads and stores use the address
+where it is kept ([X], [[4 + W]], [[8 + V]], [n + V] for a slot) or, for a ptradd of a
+constant (copied next to each load or store that uses it), the base and offset ([8 + X],
+[_gTable + 8], [12 + B]), read or write narrow
+values at their own width (wth A, 8 / cpy A, [X] / wthx A, 32) and store small
+constants straight to memory.  Pushes are from the value's home (psh X, psh [4 + W],
+psh 5:32).  A jump's phi copies are one parallel copy: a copy is made once nothing still
+to be copied reads its destination, and a cycle is broken through B.
+
+A load used once later in its block moves down to just before its use when nothing
+between writes memory.  A load left in A for the next instruction whose address needs
+no instructions isn't written: the next instruction reads the memory itself (add A, [Y];
+cmp X, [4 + Y]; cpy Y, [8 + X]).  Such a load, an operation on it and a store back to
+the same place are one instruction on memory (add [4 + X], 1), but not with V (add,
+sub, shl and shr) and with a shift's amount only in A, B or 1 to 8.
+
+Before allocation, a load used once later in its block moves down to just before its
+use, and an add, sub or ptradd whose result only a successor's phi takes (p + 1 for the
+next time round a loop) moves to the end of its block when an operand of it is used
+later in the block, so that operand dies there and the result shares its home (add Y, 1).
+
+A leaf function (no calls, nothing in the frame, no kept pseudo registers) doesn't set V
+up: its arguments are read from S ([5 + S] is the first), which only moves around mul and
+div.  A brif branches straight to its then block when the else block comes next and the
+then edge has no phi copies to make.
+
+Calls push their arguments last first at their own size (a thiscall's this goes in X),
+floats are the soft float runtime's, sdiv and srem call R_DivideSigned (the generator
+adds it when UsesSignedDivide).  GenerateModule writes a whole module (each function and
+global a section of its own) for IR programs that don't come from C++.
+
+
+Back ends
+---------
+
+A target describes its address spaces, the types and operations it has (others are
+split, widened or become calls), its register classes, which registers a call keeps, the
+calling convention and costs.  Legalisation rewrites the mid level IR to what the target
+has.  Instruction selection turns generic opcodes into the target's, keeping
+temporaries.  SSA is left before register allocation: each phi becomes copies at the
+end of its predecessors (ordered so a, b = b, a is right; an edge from a block with two
+successors to a block with phis is split first).  Register allocation (linear scan
+first, Poletto and Sarkar 1999) gives temporaries registers or spill slots, frame
+layout gives slots their offsets and writes the prologue and epilogue, the peephole
+pass cleans up, and the instructions print as assembly.
+
+
+65C64
+-----
+
+	Types		i8, i16, i32 and i64 are legal (i64 operations are wth A, 64 ... wth A,
+				32 as now).  f32 and f64 become SoftFloat* calls (softfloat.asm).  sdiv and
+				srem become R_DivideSigned; mul, udiv and urem keep W around them as now.
+	Pointers	one space, 4 bytes.
+	Registers	A, B, X and Y.  The pseudo registers [n + W] are a second register
+				class: slower than A..Y, but add, sub and cmp can use them where they
+				can't use [n + V].  Spills go to the frame ([n + V]).
+	Calls		V, W and S are kept as now, and so are the pseudo registers [$80 + W] to
+				[$FF + W] (callee saved, the user 2026-10-24): a function that uses one
+				pushes it first and pulls it before returning.  [$00 + W] to [$7F + W]
+				may change.  The runtime routines (softfloat.asm, string.asm, R_*) use
+				no pseudo registers, so they already keep them.
+	Selection	add i32 %a, 3 is add A, 3 when %a is in A; load + add folds to add A,
+				[address]; ptradd + load folds to [R1 + R2] and [value + R]; a
+				comparison and the brif using it become cmp then bras / braso (with the
+				bra over it for signed greater or equal, see CPP65Generator.txt).
+
+The front end's classes, vtables, thunks, mangling, string literals, init table and
+objects are kept.  Only the code inside functions moves to the IR.
+
+
+W65C816
+-------
+
+The user (2026-10-24): near inside a linker object, far calls at its boundaries ("the
+bounce table or something").  As I read it:
+
+	Code		a function cannot cross a 64KB bank (the program counter wraps), so the
+				linker keeps each object's code in one bank.  Calls inside an object are
+				jsr / rts.  Calls to another object's functions are jsl to its bounce
+				table: an entry per exported function that sets the data bank (DBR) to
+				the object's, jsr's to the function, restores DBR and rtl's.  Function
+				pointers are far and point at the bounce entry.
+	Globals		the linker keeps each object's data in one bank too, so while DBR is the
+				object's (set by the bounce entry) the object's own globals and string
+				literals are short absolute addresses: near.
+	Pointers	pointer values are far (24 bits in 4 bytes).  A char* passed to another
+				object, a malloc'd block or the address of a local (the stack is in
+				bank 0) can't be near, because a near address means nothing with
+				another object's DBR, and C++ gives a pointer parameter one type in every
+				unit.  The user's "if my comment about pointer size doesn't make sense
+				then just use far for now": far for now.  A pass can make a pointer near
+				later where it can show it only ever points into the object's own data.
+	Spaces		far (the default, 4 bytes), near (2 bytes, the object's data bank) and
+				zero (2 bytes, bank 0: slots, the stack and direct page).
+	Registers	A is 8 or 16 bits (m flag), X and Y 8 or 16 bits (x flag), set with rep
+				and sep; one accumulator.  Legalisation keeps i8 and i16 and splits i32
+				and i64 into i16 pieces; mul and div become calls.  The back end puts
+				rep / sep where the width must change, as the 65C64 does with wth.
+				Direct page is the pseudo register class, as W is on the 65C64.
+	Bank carry	indexed addresses carry into the next bank (abs,x and (dp),y) but a 16
+				bit add does not.  ptradd inbank lets the back end add only the low 16
+				bits; without it a far ptradd carries into the bank byte.  The front end
+				marks a member's offset and an index into an object no bigger than a
+				bank as inbank (the linker doesn't let such objects cross banks).
+	Block moves	mvn / mvp hold both banks in the instruction: memcpy with constant
+				banks uses them, otherwise a loop or a runtime routine.
+
+Of all this only the address spaces and inbank are in the IR; the bounce table is the
+linker's and the back end's.  sizeof(void*) and size_t must come from the target rather
+than being 4 in CPP65Type.
+
+
+Code
+----
+
+	IRTypes.h / .cpp				SIRType (kind and address space), type sets (IRTM_),
+									SIRReference (kind and index), truncation and sign
+									extension
+	IROpcode.h / .cpp				EIROpcode and the opcode table: for each opcode its
+									text shape, allowed types, operand kinds, result kind
+									and flags.  The parser, printer and verifier are driven
+									by it, so a target's opcodes (CIRModule::
+									SetTargetOpcodes, numbered from IRO_NumGeneric) need no
+									code in them
+	IRBlock.h / .cpp				SIRInstruction, SIRPhi, SIRJump, CIRBlock
+	IRFunction.h / .cpp				CIRFunction: blocks, temporaries, constants (hashed),
+									parameters and the instruction builders
+	IRModule.h / .cpp				CIRModule: spaces, symbols (with what each is defined
+									as), functions, globals, target opcodes
+	IRPrinter.h / .cpp				module or function to text
+	IRParser.h / .cpp				text to module, errors in a CCPPErrors
+	IRVerifier.h / .cpp				the checks above, errors in a CCPPErrors
+	IRDominators.h / .cpp			dominator tree (Cooper, Harvey and Kennedy), numbered
+									so dominance is constant time
+
+Tests are in test/TestCppParserLib/TestCppParserLib/TestIR.cpp (round trips, the API,
+parser and verifier errors, dominators, target opcodes and a large function).
+
+
+Steps
+-----
+
+1.	The IR classes, the printer, parser and verifier, with text tests (TestIR*).  Done
+	2026-10-25.
+2.	The front end writes IR for function bodies behind a switch, and a 65C64 back end
+	does no optimisation: every temporary in its own frame place, about what the
+	generator writes now.  Back end done 2026-10-25; front end started (see Front end).  All of TestCppParserLib's runnable projects (MD5, sorts,
+	MersenneTwister, FloatHelper, SQuaternion, Libc65, TestBaseLib65, TestStandardLib65)
+	must pass on the IR path before going on.
+3.	SSA as it is written, then simplify cfg, constant folding, dead code and copy
+	elimination.
+4.	Instruction selection with folding, register allocation over A..Y and W.  Register
+	allocation (X, Y and the pseudo registers) and loop rotation done 2026-10-25.
+5.	Inlining and slot promotion.
+6.	GVN and the loop passes.
+7.	Remove the direct path.
+
+Each step is measured by instruction and cycle counts of the runnable projects on
+CFast65C64 and C65C64.

@@ -42,13 +42,17 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 // Gives each expression in the function that makes an object a place in the frame
 // for it.  The locals must have their places first, for the expressions' types.
+// bConditional is true inside the right of && or ||, or the second or third operand
+// of ?:, which may not be worked out: such a temporary gets a guard too.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Generator::AllocateTemporaries(CCPPSyntax* pcNode)
+void CCPP65Generator::AllocateTemporaries(CCPPSyntax* pcNode, bool bConditional)
 {
-	SCPP65Type*		psType;
-	SCPP65Slot		sSlot;
-	size			i;
+	SCPP65Type*							psType;
+	SCPP65Slot							sSlot;
+	CCPPSyntaxBinaryExpression*			pcBinary;
+	CCPPSyntaxConditionalExpression*	pcConditional;
+	size								i;
 
 	if (!pcNode)
 	{
@@ -61,13 +65,66 @@ void CCPP65Generator::AllocateTemporaries(CCPPSyntax* pcNode)
 		{
 			miFrameBytes = (miFrameBytes + 3) & ~3;
 			sSlot.iOffset = miFrameBytes;
-			mcTemporarySlots.Put((int64)(size)pcNode, &sSlot);
 			miFrameBytes += psType->iBytes;
+			sSlot.iGuard = -1;
+			if (bConditional)
+			{
+				miFrameBytes = (miFrameBytes + 3) & ~3;
+				sSlot.iGuard = miFrameBytes;
+				miFrameBytes += 4;
+			}
+			mcTemporarySlots.Put((int64)(size)pcNode, &sSlot);
 		}
+	}
+
+	if (pcNode->GetKind() == CPPS_BinaryExpression)
+	{
+		pcBinary = (CCPPSyntaxBinaryExpression*)pcNode;
+		if ((pcBinary->meOperator == CT_LogicalAnd) || (pcBinary->meOperator == CT_LogicalOr))
+		{
+			AllocateTemporaries(pcBinary->mpcLeft, bConditional);
+			AllocateTemporaries(pcBinary->mpcRight, true);
+			return;
+		}
+	}
+	else if (pcNode->GetKind() == CPPS_ConditionalExpression)
+	{
+		pcConditional = (CCPPSyntaxConditionalExpression*)pcNode;
+		AllocateTemporaries(pcConditional->mpcCondition, bConditional);
+		AllocateTemporaries(pcConditional->mpcTrue, true);
+		AllocateTemporaries(pcConditional->mpcFalse, true);
+		return;
 	}
 	for (i = 0; i < pcNode->NumChildren(); i++)
 	{
-		AllocateTemporaries(pcNode->GetChild(i));
+		AllocateTemporaries(pcNode->GetChild(i), bConditional);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Clears the guards of the temporaries an operand that may not be worked out makes
+// (see AllocateTemporaries), before the branch that may skip it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::ClearTemporaryGuards(CCPPSyntax* pcNode)
+{
+	SCPP65Slot*	psSlot;
+	size		i;
+
+	if (!pcNode || !mpsFunction || (miTypeOf > 0))
+	{
+		return;
+	}
+	psSlot = mcTemporarySlots.Get((int64)(size)pcNode);
+	if (psSlot && (psSlot->iGuard != -1))
+	{
+		Line("cpy [")->Append(1 + psSlot->iGuard)->Append(" + V], 0")->AppendNewLine();
+	}
+	for (i = 0; i < pcNode->NumChildren(); i++)
+	{
+		ClearTemporaryGuards(pcNode->GetChild(i));
 	}
 }
 
@@ -116,6 +173,12 @@ bool CCPP65Generator::TemporaryAddress(CCPPSyntax* pcNode, SCPP65Type* psType)
 			psPending = macPendingTemporaries.Add();
 			psPending->iOffset = psSlot->iOffset;
 			psPending->psType = psType;
+			psPending->iGuard = psSlot->iGuard;
+			if (psSlot->iGuard != -1)
+			{
+				//Made: it is destroyed at the end of the full expression.
+				Line("cpy [")->Append(1 + psSlot->iGuard)->Append(" + V], 1")->AppendNewLine();
+			}
 		}
 		return true;
 	}
@@ -151,6 +214,7 @@ void CCPP65Generator::DestroyTemporaries(bool bKeep, bool bWide)
 	SCPP65Pending*	psPending;
 	SCPP65Place		sPlace;
 	size			i;
+	int				iSkip;
 
 	if (macPendingTemporaries.NumElements() == 0)
 	{
@@ -170,7 +234,22 @@ void CCPP65Generator::DestroyTemporaries(bool bKeep, bool bWide)
 		sPlace.iString = -1;
 		sPlace.bInternal = false;
 		sPlace.psClass = NULL;
-		Destroy(&sPlace);
+		if (psPending->iGuard != -1)
+		{
+			//Only if it was made: a side of && or || or a ?: operand may have been skipped.
+			iSkip = NewLabel();
+			Line("cpy A, [")->Append(1 + psPending->iGuard)->Append(" + V]")->AppendNewLine();
+			Line("cmp A, 0")->AppendNewLine();
+			Line("bras z, ");
+			AppendLabel(mpszOut, iSkip);
+			mpszOut->AppendNewLine();
+			Destroy(&sPlace);
+			Label(iSkip);
+		}
+		else
+		{
+			Destroy(&sPlace);
+		}
 	}
 	macPendingTemporaries.ReInit();
 	if (bKeep)
@@ -547,19 +626,24 @@ bool CCPP65Generator::IsMadeObject(CCPPSyntax* pcExpression, SCPP65Class* psClas
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if the expression is one that may make an object: a call, or an operator
-// with an object operand (an operator call; *pointer and the rest are not).
+// True if the expression is one that may make an object: a call, an operator with
+// an object operand (an operator call; *pointer and the rest are not), or c ? x : y
+// with object operands.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Generator::MakesObject(CCPPSyntax* pcExpression)
 {
-	CCPPSyntaxBinaryExpression*	pcBinary;
-	CCPPSyntaxUnaryExpression*	pcUnary;
+	CCPPSyntaxBinaryExpression*			pcBinary;
+	CCPPSyntaxUnaryExpression*			pcUnary;
+	CCPPSyntaxConditionalExpression*	pcConditional;
 
 	switch (pcExpression->GetKind())
 	{
 	case CPPS_CallExpression:
 		return true;
+	case CPPS_ConditionalExpression:
+		pcConditional = (CCPPSyntaxConditionalExpression*)pcExpression;
+		return IsObject(pcConditional->mpcTrue) || IsObject(pcConditional->mpcFalse);
 	case CPPS_BinaryExpression:
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
 		return (pcBinary->meOperator != CT_Comma) && (pcBinary->meOperator != CT_Assignment) && (IsObject(pcBinary->mpcLeft) || IsObject(pcBinary->mpcRight));

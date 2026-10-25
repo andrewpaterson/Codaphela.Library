@@ -1,0 +1,170 @@
+/** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
+
+Copyright (c) 2026 Andrew Paterson
+
+This file is part of The Codaphela Project: Codaphela CppParserLib
+
+Codaphela CppParserLib is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Codaphela CppParserLib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
+
+** ------------------------------------------------------------------------ **/
+#include "BaseLib/StringHelper.h"
+#include "IROpcode.h"
+
+
+#define IR_INTEGER_OP(name)		{ name, IRSH_Operands, IRTM_I1 | IRTM_Integer, 0, { IROK_Same, IROK_Same }, IRRS_Same, 0 }
+#define IR_INTEGER_UNARY(name)	{ name, IRSH_Operands, IRTM_I1 | IRTM_Integer, 0, { IROK_Same, IROK_None }, IRRS_Same, 0 }
+#define IR_INTEGER_COMPARE(name)	{ name, IRSH_Operands, IRTM_I1 | IRTM_Integer | IRTM_Pointer, 0, { IROK_Same, IROK_Same }, IRRS_I1, 0 }
+#define IR_FLOAT_OP(name)		{ name, IRSH_Operands, IRTM_Float, 0, { IROK_Same, IROK_Same }, IRRS_Same, 0 }
+#define IR_FLOAT_COMPARE(name)	{ name, IRSH_Operands, IRTM_Float, 0, { IROK_Same, IROK_Same }, IRRS_I1, 0 }
+#define IR_CONVERSION(name, to, from)	{ name, IRSH_Conversion, to, from, { IROK_Source, IROK_None }, IRRS_Same, 0 }
+
+
+SIROpcode	gasIROpcodes[IRO_NumGeneric] =
+{
+	{ "", IRSH_Operands, 0, 0, { IROK_None, IROK_None }, IRRS_None, 0 },
+
+	IR_INTEGER_OP("add"),
+	IR_INTEGER_OP("sub"),
+	IR_INTEGER_OP("mul"),
+	IR_INTEGER_OP("sdiv"),
+	IR_INTEGER_OP("udiv"),
+	IR_INTEGER_OP("srem"),
+	IR_INTEGER_OP("urem"),
+	IR_INTEGER_OP("and"),
+	IR_INTEGER_OP("or"),
+	IR_INTEGER_OP("xor"),
+	IR_INTEGER_OP("shl"),
+	IR_INTEGER_OP("lshr"),
+	IR_INTEGER_OP("ashr"),
+	IR_INTEGER_UNARY("neg"),
+	IR_INTEGER_UNARY("not"),
+	{ "copy", IRSH_Operands, IRTM_I1 | IRTM_Memory, 0, { IROK_Same, IROK_None }, IRRS_Same, 0 },
+	IR_CONVERSION("sext", IRTM_Integer, IRTM_I1 | IRTM_Integer),
+	IR_CONVERSION("zext", IRTM_Integer, IRTM_I1 | IRTM_Integer),
+	IR_CONVERSION("trunc", IRTM_I1 | IRTM_Integer, IRTM_Integer),
+
+	IR_INTEGER_COMPARE("eq"),
+	IR_INTEGER_COMPARE("ne"),
+	IR_INTEGER_COMPARE("slt"),
+	IR_INTEGER_COMPARE("sle"),
+	IR_INTEGER_COMPARE("sgt"),
+	IR_INTEGER_COMPARE("sge"),
+	IR_INTEGER_COMPARE("ult"),
+	IR_INTEGER_COMPARE("ule"),
+	IR_INTEGER_COMPARE("ugt"),
+	IR_INTEGER_COMPARE("uge"),
+
+	IR_FLOAT_OP("fadd"),
+	IR_FLOAT_OP("fsub"),
+	IR_FLOAT_OP("fmul"),
+	IR_FLOAT_OP("fdiv"),
+	{ "fneg", IRSH_Operands, IRTM_Float, 0, { IROK_Same, IROK_None }, IRRS_Same, 0 },
+	IR_FLOAT_COMPARE("feq"),
+	IR_FLOAT_COMPARE("fne"),
+	IR_FLOAT_COMPARE("flt"),
+	IR_FLOAT_COMPARE("fle"),
+	IR_FLOAT_COMPARE("fgt"),
+	IR_FLOAT_COMPARE("fge"),
+	IR_FLOAT_COMPARE("fordered"),
+	IR_FLOAT_COMPARE("funordered"),
+	IR_CONVERSION("sitof", IRTM_Float, IRTM_Integer),
+	IR_CONVERSION("uitof", IRTM_Float, IRTM_Integer),
+	IR_CONVERSION("ftosi", IRTM_Integer, IRTM_Float),
+	IR_CONVERSION("ftoui", IRTM_Integer, IRTM_Float),
+	IR_CONVERSION("fext", IRTM_Float, IRTM_Float),
+	IR_CONVERSION("ftrunc", IRTM_Float, IRTM_Float),
+
+	{ "slot", IRSH_Operands, IRTM_Pointer, 0, { IROK_Constant, IROK_Constant }, IRRS_Same, 0 },
+	{ "argaddr", IRSH_Operands, IRTM_Pointer, 0, { IROK_Constant, IROK_None }, IRRS_Same, 0 },
+	{ "ptradd", IRSH_Operands, IRTM_Pointer, 0, { IROK_Same, IROK_Offset }, IRRS_Same, IRF_InBank },
+	IR_CONVERSION("ptrtoi", IRTM_Integer, IRTM_Pointer),
+	IR_CONVERSION("itoptr", IRTM_Pointer, IRTM_Integer),
+	IR_CONVERSION("spacecast", IRTM_Pointer, IRTM_Pointer),
+	{ "load", IRSH_Operands, IRTM_Memory, 0, { IROK_Pointer, IROK_None }, IRRS_Same, IRF_Volatile },
+	{ "store", IRSH_Operands, IRTM_Memory, 0, { IROK_Same, IROK_Pointer }, IRRS_None, IRF_Volatile },
+	{ "arg", IRSH_Operands, IRTM_Memory, 0, { IROK_Same, IROK_None }, IRRS_None, 0 },
+	{ "call", IRSH_Call, IRTM_Memory | IRTM_Void, 0, { IROK_Pointer, IROK_None }, IRRS_Optional, IRF_ThisCall | IRF_Variadic },
+};
+
+
+SIRFlagName	gasIRFlagNames[IRF_NumWordFlags] =
+{
+	{ IRF_Volatile, "volatile" },
+	{ IRF_InBank, "inbank" },
+	{ IRF_ThisCall, "thiscall" },
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int SIROpcode::NumOperands(void)
+{
+	return (auiOperands[0] != IROK_None ? 1 : 0) + (auiOperands[1] != IROK_None ? 1 : 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A generic opcode; NULL for a target's (see CIRModule::GetOpcode).
+//
+//////////////////////////////////////////////////////////////////////////
+SIROpcode* GetIROpcode(uint16 uiOpcode)
+{
+	if ((uiOpcode > IRO_None) && (uiOpcode < IRO_NumGeneric))
+	{
+		return &gasIROpcodes[uiOpcode];
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The opcode called szName in pasOpcodes (the generic table when NULL),
+// whose first entry is opcode uiFirst; IRO_None if there is none.
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 FindIROpcode(SIROpcode* pasOpcodes, uint16 uiNumOpcodes, uint16 uiFirst, const char* szName)
+{
+	uint16	ui;
+
+	if (pasOpcodes == NULL)
+	{
+		pasOpcodes = gasIROpcodes;
+		uiNumOpcodes = IRO_NumGeneric;
+		uiFirst = IRO_None;
+	}
+	for (ui = 0; ui < uiNumOpcodes; ui++)
+	{
+		if ((pasOpcodes[ui].szName[0] != '\0') && (StringCompare(pasOpcodes[ui].szName, szName) == 0))
+		{
+			return uiFirst + ui;
+		}
+	}
+	return IRO_None;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True for the integer comparisons: eq, ne and the signed and unsigned
+// orderings (eq to uge).
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsIRIntegerComparison(uint16 uiOpcode)
+{
+	return (uiOpcode >= IRO_Eq) && (uiOpcode <= IRO_UGe);
+}

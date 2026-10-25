@@ -185,6 +185,20 @@
   <ItemGroup>
     <ClCompile Include="CPPErrors.cpp" />
     <ClCompile Include="CPPHighlighter.cpp" />
+    <ClCompile Include="CPP65IRFrontEnd.cpp" />
+    <ClCompile Include="IR65Backend.cpp" />
+    <ClCompile Include="IRBlock.cpp" />
+    <ClCompile Include="IRDominators.cpp" />
+    <ClCompile Include="IRFunction.cpp" />
+    <ClCompile Include="IRInliner.cpp" />
+    <ClCompile Include="IRLiveness.cpp" />
+    <ClCompile Include="IRModule.cpp" />
+    <ClCompile Include="IROptimiser.cpp" />
+    <ClCompile Include="IROpcode.cpp" />
+    <ClCompile Include="IRParser.cpp" />
+    <ClCompile Include="IRPrinter.cpp" />
+    <ClCompile Include="IRTypes.cpp" />
+    <ClCompile Include="IRVerifier.cpp" />
     <ClCompile Include="CPP65Builder.cpp" />
     <ClCompile Include="VisualStudioProject.cpp" />
     <ClCompile Include="CPP65Generator.cpp" />
@@ -362,6 +376,20 @@
   <ItemGroup>
     <ClInclude Include="CPPErrors.h" />
     <ClInclude Include="CPPHighlighter.h" />
+    <ClInclude Include="CPP65IRFrontEnd.h" />
+    <ClInclude Include="IR65Backend.h" />
+    <ClInclude Include="IRBlock.h" />
+    <ClInclude Include="IRDominators.h" />
+    <ClInclude Include="IRFunction.h" />
+    <ClInclude Include="IRInliner.h" />
+    <ClInclude Include="IRLiveness.h" />
+    <ClInclude Include="IRModule.h" />
+    <ClInclude Include="IROptimiser.h" />
+    <ClInclude Include="IROpcode.h" />
+    <ClInclude Include="IRParser.h" />
+    <ClInclude Include="IRPrinter.h" />
+    <ClInclude Include="IRTypes.h" />
+    <ClInclude Include="IRVerifier.h" />
     <ClInclude Include="CPP65Builder.h" />
     <ClInclude Include="VisualStudioProject.h" />
     <ClInclude Include="CPP65Generator.h" />

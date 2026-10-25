@@ -91,6 +91,9 @@
     <Filter Include="Source\Generator65">
       <UniqueIdentifier>{04554a32-72c1-4c6d-945d-e8c1bb332c1e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\IR">
+      <UniqueIdentifier>{d332996c-d173-4508-95b3-7bb16f3006ed}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CPP65Builder.cpp">
@@ -122,6 +125,48 @@
     </ClCompile>
     <ClCompile Include="CPPHighlighter.cpp">
       <Filter>Source\Highlighter</Filter>
+    </ClCompile>
+    <ClCompile Include="CPP65IRFrontEnd.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IR65Backend.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IRBlock.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IRDominators.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IRFunction.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IRInliner.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IRLiveness.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IROptimiser.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IRModule.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IROpcode.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IRParser.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IRPrinter.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IRTypes.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IRVerifier.cpp">
+      <Filter>Source\IR</Filter>
     </ClCompile>
     <ClCompile Include="CPPSyntaxExtensionDeclaration.cpp">
       <Filter>Source\Syntax</Filter>
@@ -637,6 +682,48 @@
     </ClInclude>
     <ClInclude Include="CPPHighlighter.h">
       <Filter>Source\Highlighter</Filter>
+    </ClInclude>
+    <ClInclude Include="CPP65IRFrontEnd.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IR65Backend.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRBlock.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRDominators.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRFunction.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRInliner.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRLiveness.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IROptimiser.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRModule.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IROpcode.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRParser.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRPrinter.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRTypes.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRVerifier.h">
+      <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="CPPSyntaxExtensionDeclaration.h">
       <Filter>Source\Syntax</Filter>

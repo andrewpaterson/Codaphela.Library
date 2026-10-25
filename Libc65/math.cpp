@@ -1365,6 +1365,91 @@ double atan2(double y, double x)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// 2^n, exactly, for n from -1074 to 1023.
+//
+//////////////////////////////////////////////////////////////////////////
+static double PowerOfTwo(int n)
+{
+	if (n >= -1022)
+	{
+		return BitsDouble((uint64_t)(n + 1023) << 52);
+	}
+	return BitsDouble(1ULL << (n + 1074));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// sqrt(x^2 + y^2) without overflow or underflow on the way.  The larger is scaled to
+// 1 to 2 (exactly: by a power of two), the sum of the squares worked out in
+// double-double and the root corrected once by Newton's method.  An infinity wins
+// over a NaN (C99 F.9.4.3).
+//
+//////////////////////////////////////////////////////////////////////////
+double hypot(double x, double y)
+{
+	double	a;
+	double	b;
+	double	t;
+	double	p1;
+	double	e1;
+	double	p2;
+	double	e2;
+	double	s;
+	double	se;
+	double	r;
+	double	q;
+	double	qe;
+	int		iExponent;
+
+	a = fabs(x);
+	b = fabs(y);
+	if (IsNaNOrInfinity(a) || IsNaNOrInfinity(b))
+	{
+		if ((DoubleBits(a) == 0x7FF0000000000000ULL) || (DoubleBits(b) == 0x7FF0000000000000ULL))
+		{
+			return Infinity();
+		}
+		return x + y;
+	}
+	if (a < b)
+	{
+		t = a;
+		a = b;
+		b = t;
+	}
+	if (b == 0.0)
+	{
+		return a;
+	}
+	iExponent = Exponent(a);
+	if (iExponent - Exponent(b) > 60)
+	{
+		return a + b;
+	}
+
+	a *= PowerOfTwo(-iExponent);
+	b *= PowerOfTwo(-iExponent);
+	TwoProduct(a, a, &p1, &e1);
+	TwoProduct(b, b, &p2, &e2);
+	TwoSum(p1, p2, &s, &se);
+	se += e1 + e2;
+	r = sqrt(s + se);
+	TwoProduct(r, r, &q, &qe);
+	r += (((s - q) - qe) + se) / (2.0 * r);
+	return r * PowerOfTwo(iExponent);
+}
+
+
+long lround(double x)								{ return (long)round(x); }
+long lroundf(float x)								{ return (long)round((double)x); }
+long long llround(double x)							{ return (long long)round(x); }
+long long llroundf(float x)							{ return (long long)round((double)x); }
+float hypotf(float x, float y)						{ return (float)hypot((double)x, (double)y); }
+float asinf(float x)								{ return (float)asin((double)x); }
+float acosf(float x)								{ return (float)acos((double)x); }
 float expf(float x)									{ return (float)exp(x); }
 float logf(float x)									{ return (float)log(x); }
 float powf(float x, float y)						{ return (float)pow(x, y); }
@@ -1377,4 +1462,15 @@ long double expl(long double x)						{ return exp(x); }
 long double logl(long double x)						{ return log(x); }
 long double log10l(long double x)					{ return log10(x); }
 long double powl(long double x, long double y)		{ return pow(x, y); }
+
+
+#ifdef __65C64__
+//A host's math.h has its own (C99 macros or C++ overloads).  A NaN is not equal to itself.
+bool isnan(double x)		{ return x != x; }
+bool isnan(float x)			{ return x != x; }
+bool isinf(double x)		{ return IsNaNOrInfinity(x) && (x == x); }
+bool isinf(float x)			{ return isinf((double)x); }
+bool isfinite(double x)		{ return !IsNaNOrInfinity(x); }
+bool isfinite(float x)		{ return isfinite((double)x); }
+#endif // __65C64__
 

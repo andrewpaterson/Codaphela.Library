@@ -1,4 +1,4 @@
-//Mathematical functions.  The 65C64 generator does not support floating point yet; these are only declared.
+//Mathematical functions (math.cpp).
 #ifndef __LIBC65_MATH_H__
 #define __LIBC65_MATH_H__
 
@@ -46,8 +46,16 @@ double	ldexp(double x, int iExponent);
 double	frexp(double x, int* piExponent);
 double	round(double x);
 float	roundf(float x);
+long	lround(double x);
+long	lroundf(float x);
+long long	llround(double x);
+long long	llroundf(float x);
 double	trunc(double x);
 float	truncf(float x);
+double	hypot(double x, double y);
+float	hypotf(float x, float y);
+float	asinf(float x);
+float	acosf(float x);
 
 //long double is double.
 long double	fabsl(long double x);
@@ -62,6 +70,16 @@ long double	logl(long double x);
 long double	log10l(long double x);
 long double	expl(long double x);
 }
+
+
+//The classification macros of C are overloaded functions here (as C++'s <cmath>), defined in math.cpp (bodies
+//in system headers are skipped).
+bool	isnan(double x);
+bool	isnan(float x);
+bool	isinf(double x);
+bool	isinf(float x);
+bool	isfinite(double x);
+bool	isfinite(float x);
 
 
 #endif // __LIBC65_MATH_H__
