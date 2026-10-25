@@ -90,6 +90,35 @@ bool Asm65Fits(int64 iValue, uint8 uiBytes, bool bSigned)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The value a relocation's form writes into its field at iFieldAddress (after a relative
+// field has been made relative).  False if an in bank value is in another bank.
+//
+//////////////////////////////////////////////////////////////////////////
+bool Asm65ApplyForm(uint8 uiForm, int64 iFieldAddress, int64* piValue)
+{
+	switch (uiForm)
+	{
+	case ASM65RF_Bank:
+		*piValue = *piValue >> 16;
+		return true;
+	case ASM65RF_Low16:
+		*piValue = *piValue & 0xFFFF;
+		return true;
+	case ASM65RF_InBank:
+		if ((*piValue >> 16) != (iFieldAddress >> 16))
+		{
+			return false;
+		}
+		*piValue = *piValue & 0xFFFF;
+		return true;
+	default:
+		return true;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Object::Init(const char* szName)
@@ -413,6 +442,18 @@ void CAsm65Object::Dump(CChars* psz)
 			psz->Append(" - ");
 			psz->Append(-psRelocation->iAddend);
 		}
+		if (psRelocation->uiForm == ASM65RF_Bank)
+		{
+			psz->Append(" >> 16");
+		}
+		else if (psRelocation->uiForm == ASM65RF_Low16)
+		{
+			psz->Append(" & $FFFF");
+		}
+		else if (psRelocation->uiForm == ASM65RF_InBank)
+		{
+			psz->Append(" in bank");
+		}
 		psz->AppendNewLine();
 	}
 }
@@ -569,6 +610,7 @@ bool CAsm65Object::WriteChunks(CChunkFile* pcChunkFile)
 		bResult &= pcChunkFile->WriteInt8(psRelocation->uiBytes);
 		bResult &= pcChunkFile->WriteBool(psRelocation->bSigned);
 		bResult &= pcChunkFile->WriteBool(psRelocation->bRelative);
+		bResult &= pcChunkFile->WriteInt8(psRelocation->uiForm);
 		bResult &= pcChunkFile->WriteInt32(psRelocation->uiLine);
 		bResult &= pcChunkFile->WriteInt32(psRelocation->uiColumn);
 	}
@@ -737,11 +779,11 @@ bool CAsm65Object::ReadRelocations(CChunkFile* pcChunkFile)
 			!pcChunkFile->ReadInt32(&psRelocation->iTargetSection) || !pcChunkFile->ReadInt32(&psRelocation->uiTargetSymbol) ||
 			!pcChunkFile->ReadInt64(&psRelocation->iAddend) || !pcChunkFile->ReadInt8(&psRelocation->uiBytes) ||
 			!pcChunkFile->ReadBool(&psRelocation->bSigned) || !pcChunkFile->ReadBool(&psRelocation->bRelative) ||
-			!pcChunkFile->ReadInt32(&psRelocation->uiLine) || !pcChunkFile->ReadInt32(&psRelocation->uiColumn))
+			!pcChunkFile->ReadInt8(&psRelocation->uiForm) || !pcChunkFile->ReadInt32(&psRelocation->uiLine) || !pcChunkFile->ReadInt32(&psRelocation->uiColumn))
 		{
 			return false;
 		}
-		if ((psRelocation->uiSection >= mcSections.NumElements()) || (psRelocation->uiBytes == 0) || (psRelocation->uiBytes > 8) ||
+		if ((psRelocation->uiSection >= mcSections.NumElements()) || (psRelocation->uiBytes == 0) || (psRelocation->uiBytes > 8) || (psRelocation->uiForm >= ASM65RF_NumForms) ||
 			((uint64)psRelocation->uiOffset + psRelocation->uiBytes > mcSections.Get(psRelocation->uiSection)->cBytes.NumElements()))
 		{
 			return false;

@@ -12,6 +12,12 @@
     <ClCompile Include="Asm65Assembler.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Asm816Assembler.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Asm816Instructions.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="Asm65Errors.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -59,6 +65,9 @@
     <ClInclude Include="Asm65Assembler.h">
       <Filter>Header</Filter>
     </ClInclude>
+    <ClInclude Include="Asm816Assembler.h">
+      <Filter>Header</Filter>
+    </ClInclude>
     <ClInclude Include="Asm65Errors.h">
       <Filter>Header</Filter>
     </ClInclude>
@@ -95,5 +104,6 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Assembler65Syntax.txt" />
+    <Text Include="Assembler816Syntax.txt" />
   </ItemGroup>
 </Project>

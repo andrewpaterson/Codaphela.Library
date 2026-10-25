@@ -135,6 +135,7 @@
     <ClCompile Include="65C64InstructionFactory.cpp" />
     <ClCompile Include="65C64Meta.cpp" />
     <ClCompile Include="Fast65C64.cpp" />
+    <ClCompile Include="Fast65C816.cpp" />
     <ClCompile Include="65C64Pins.cpp" />
     <ClCompile Include="65ConstantOffset.cpp" />
     <ClCompile Include="65DataOperation.cpp" />
@@ -347,6 +348,7 @@
     <ClInclude Include="65C64InstructionFactory.h" />
     <ClInclude Include="65C64Meta.h" />
     <ClInclude Include="Fast65C64.h" />
+    <ClInclude Include="Fast65C816.h" />
     <ClInclude Include="65C64Pins.h" />
     <ClInclude Include="65ConstantOffset.h" />
     <ClInclude Include="65DataOperation.h" />

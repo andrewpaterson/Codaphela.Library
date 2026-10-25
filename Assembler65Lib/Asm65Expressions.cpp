@@ -66,6 +66,7 @@ static void ClearValue(SAsm65Value* psValue)
 	psValue->iTerms = 0;
 	psValue->iSection = ASM65_SECTION_ABSOLUTE;
 	psValue->uiTermToken = 0;
+	psValue->uiForm = ASM65RF_Plain;
 }
 
 
@@ -146,6 +147,10 @@ bool CAsm65Assembler::BitwiseAnd(SAsm65Value* psValue)
 		{
 			return false;
 		}
+		if (FormTerm(psValue, &sRight, 0xFFFF, ASM65RF_Low16))
+		{
+			continue;
+		}
 		if (!Combine(psValue, &sRight, psOperator))
 		{
 			return false;
@@ -191,6 +196,10 @@ bool CAsm65Assembler::ShiftExpression(SAsm65Value* psValue)
 		{
 			return false;
 		}
+		if (!bLeft && FormTerm(psValue, &sRight, 16, ASM65RF_Bank))
+		{
+			continue;
+		}
 		if (!Combine(psValue, &sRight, psOperator))
 		{
 			return false;
@@ -221,7 +230,6 @@ bool CAsm65Assembler::Additive(SAsm65Value* psValue)
 	SAsm65Value		sRight;
 	SAsm65Token*	psOperator;
 	bool			bAdd;
-	E65Register		eRegister;
 
 	if (!Multiplicative(psValue))
 	{
@@ -231,7 +239,7 @@ bool CAsm65Assembler::Additive(SAsm65Value* psValue)
 	{
 		if (Peek()->Is(AP65_Plus))
 		{
-			if (IsRegister(Peek(1), &eRegister))
+			if (IsRegisterName(Peek(1)))
 			{
 				return true;
 			}
@@ -250,6 +258,10 @@ bool CAsm65Assembler::Additive(SAsm65Value* psValue)
 		if (!Multiplicative(&sRight))
 		{
 			return false;
+		}
+		if ((psValue->uiForm != ASM65RF_Plain) || (sRight.uiForm != ASM65RF_Plain))
+		{
+			return Error(psOperator, "Nothing can be added to an address's bank or low 16 bits; add to the address first");
 		}
 		if (!AddTerms(psValue, &sRight, bAdd, psOperator))
 		{
@@ -331,6 +343,10 @@ bool CAsm65Assembler::Unary(SAsm65Value* psValue)
 		{
 			return false;
 		}
+		if (psValue->uiForm != ASM65RF_Plain)
+		{
+			return Error(mcTokeniser.Get(muiToken - 1), "An address's bank or low 16 bits cannot be negated");
+		}
 		psValue->iValue = -psValue->iValue;
 		psValue->iProgramCounter = -psValue->iProgramCounter;
 		psValue->iTerms = -psValue->iTerms;
@@ -388,7 +404,6 @@ bool CAsm65Assembler::Primary(SAsm65Value* psValue)
 {
 	SAsm65Token*	psToken;
 	SAsm65Symbol*	psSymbol;
-	E65Register		eRegister;
 
 	psToken = Peek();
 	ClearValue(psValue);
@@ -420,7 +435,7 @@ bool CAsm65Assembler::Primary(SAsm65Value* psValue)
 	}
 	else if (psToken->eType == AT65_Identifier)
 	{
-		if (IsRegister(psToken, &eRegister))
+		if (IsRegisterName(psToken))
 		{
 			return Error(psToken, "A register cannot be used in an expression");
 		}
@@ -460,7 +475,25 @@ bool CAsm65Assembler::Primary(SAsm65Value* psValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Operators other than + and - cannot use C.
+// A section address >> 16 (its bank) or & $FFFF (its offset in the bank) is a
+// relocation of that form.  False, changing nothing, if this isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::FormTerm(SAsm65Value* psValue, SAsm65Value* psRight, int64 iOperand, uint8 uiForm)
+{
+	if ((psValue->iTerms != 1) || (psValue->uiForm != ASM65RF_Plain) || (psValue->iProgramCounter != 0) ||
+		(psRight->iTerms != 0) || !psRight->bResolved || (psRight->iProgramCounter != 0) || (psRight->iValue != iOperand))
+	{
+		return false;
+	}
+	psValue->uiForm = uiForm;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Operators other than + and - cannot use C, section addresses or a formed address.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Assembler::Combine(SAsm65Value* psValue, SAsm65Value* psRight, SAsm65Token* psOperator)
@@ -604,14 +637,25 @@ bool CAsm65Assembler::IsRegister(SAsm65Token* psToken, E65Register* peRegister)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A register's name: not a symbol, and an expression stops before + register.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::IsRegisterName(SAsm65Token* psToken)
+{
+	E65Register	eRegister;
+
+	return IsRegister(psToken, &eRegister);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Registers, C (the program counter) and P (the status) cannot be symbols.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Assembler::IsReservedName(SAsm65Token* psToken)
 {
-	E65Register	eRegister;
-
-	return IsRegister(psToken, &eRegister) || psToken->IsIdentifier("C") || psToken->IsIdentifier("P");
+	return IsRegisterName(psToken) || psToken->IsIdentifier("C") || psToken->IsIdentifier("P");
 }
 
 

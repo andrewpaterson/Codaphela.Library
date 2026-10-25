@@ -1161,6 +1161,11 @@ void CAsm65Linker::Relocate(void)
 			{
 				iValue -= (int64)psLinkSection->uiAddress + psRelocation->uiOffset;
 			}
+			if (!Asm65ApplyForm(psRelocation->uiForm, (int64)psLinkSection->uiAddress + psRelocation->uiOffset, &iValue))
+			{
+				Error(psObject->pcObject, psRelocation, "Address is not in the bank of the instruction using it", psSection->szName.Text());
+				continue;
+			}
 			if (!Asm65Fits(iValue, psRelocation->uiBytes, psRelocation->bSigned))
 			{
 				szValue.Init();

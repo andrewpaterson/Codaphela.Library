@@ -289,6 +289,10 @@ Relocations.  Local labels are relocated by section.  Externals and .global or
 COMDAT copy) is used.  A relocation writes target + addend into a field of 1 to 8
 little endian bytes; a relative one subtracts the field's own address (the
 assembler folds the field to next instruction distance into the addend).
+A relocation also has a form (object version 4, for the W65C816 assembler, see
+Assembler816Syntax.txt): the value, its bank (Label >> 16), its low 16 bits (Label &
+$FFFF), or its low 16 bits checked to be in the field's own bank.  Lazy linking only
+takes the plain form.
 
 Removing unused sections.  With SetRemoveUnused(true) the linker only links the
 sections that are used: keep sections (".section text, keep"), init and fini

@@ -19,15 +19,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/StringHelper.h"
+#include "BaseLib/ArrayChars.h"
+#include "BaseLib/IntegerHelper.h"
 #include "IR65Backend.h"
-
-
-//A class of temporaries sharing a home and how much they are used, for the order homes are given in.
-struct SIR65Weight
-{
-	int32	iLeader;
-	uint32	uiWeight;
-};
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -61,6 +55,7 @@ static int CompareIR65Weights(const void* pv1, const void* pv2)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What the lowering of an opcode needs and changes (IR65F_ flags).
 //
 //////////////////////////////////////////////////////////////////////////
 static uint8 IR65OpcodeFlags(uint16 uiOpcode)
@@ -173,6 +168,11 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRun
 	mpsFlags = NULL;
 	mpcFlags = NULL;
 	mbFlagsKnown = false;
+	msFlagsValue = IRNone();
+	muiFlagsLength = 0;
+	msEndFlags = IRNone();
+	mpcEndFlags = NULL;
+	mbFlagsUsed = false;
 	mbRightImmediate = false;
 	mbFrameless = false;
 	mcFrame = 'V';
@@ -474,6 +474,176 @@ void CIR65Backend::RotateLoops(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// x > c becomes x >= c + 1 and x <= c becomes x < c + 1 (signed and
+// unsigned, up to 32 bits, unless c is the largest value), so every
+// comparison with a constant is cmp x, c with the operands as they are.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::AdjustComparisons(void)
+{
+	size			ui;
+	size			uiInstruction;
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	SIRConstant*	psConstant;
+	int64			lliValue;
+	int64			lliLimit;
+	int				iBits;
+	bool			bSigned;
+
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			iBits = psInstruction->sType.IntegerBits();
+			if (!IsIRSwappedComparison(psInstruction->uiOpcode) || !psInstruction->asArguments[1].IsConstant() || (iBits <= 1) || (iBits > 32))
+			{
+				continue;
+			}
+			bSigned = IsIRSignedComparison(psInstruction->uiOpcode);
+			psConstant = mpcFunction->GetConstant(psInstruction->asArguments[1]);
+			if (bSigned)
+			{
+				lliValue = IRSignExtend(psInstruction->sType, psConstant->ulliBits);
+				lliLimit = (((int64)1) << (iBits - 1)) - 1;
+			}
+			else
+			{
+				lliValue = (int64)IRTruncate(psInstruction->sType, psConstant->ulliBits);
+				lliLimit = (int64)IRTruncate(psInstruction->sType, (uint64)-1);
+			}
+			if (lliValue < lliLimit)
+			{
+				switch (psInstruction->uiOpcode)
+				{
+				case IRO_SGt:	psInstruction->uiOpcode = IRO_SGe;	break;
+				case IRO_SLe:	psInstruction->uiOpcode = IRO_SLt;	break;
+				case IRO_UGt:	psInstruction->uiOpcode = IRO_UGe;	break;
+				default:		psInstruction->uiOpcode = IRO_ULt;	break;
+				}
+				psInstruction->asArguments[1] = mpcFunction->AddInteger(psInstruction->sType, lliValue + 1);
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A signed comparison branches in one instruction only when it goes on
+// less (braso (n, v)); there is no branch on n = v.  Blocks are laid out
+// with a brif's then block next where they can (OrderBlocks), so it
+// branches to its else block when the comparison is false: a comparison
+// that would then need two branches is turned round (slt is sge, sgt is
+// sle) with its blocks swapped, so the else block comes next instead.  A
+// loop's head is left as it is for RotateLoops (its test goes to the end,
+// branching back when it is true).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::PreferSingleBranches(void)
+{
+	size			ui;
+	size			uiPredecessor;
+	CIRBlock*		pcBlock;
+	CIRBlock*		pcThen;
+	SIRInstruction*	psFused;
+	uint16			uiOpcode;
+	bool			bHead;
+
+	mcDominators.Compute(mpcFunction);
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		psFused = FusedComparison(pcBlock);
+		if ((psFused == NULL) || (pcBlock->msJump.pcThen == pcBlock->msJump.pcElse) || !mcDominators.IsReachable(pcBlock))
+		{
+			continue;
+		}
+		bHead = false;
+		for (uiPredecessor = 0; uiPredecessor < pcBlock->mapcPredecessors.NumElements(); uiPredecessor++)
+		{
+			bHead |= mcDominators.IsBackEdge(pcBlock->mapcPredecessors.GetPtr(uiPredecessor), pcBlock);
+		}
+		if (bHead)
+		{
+			continue;
+		}
+		uiOpcode = psFused->uiOpcode;
+		if (((uiOpcode != IRO_SLt) && (uiOpcode != IRO_SGt)) || ((uiOpcode == IRO_SLt) && IsZero(psFused->asArguments[1])))
+		{
+			//One branch already (x < 0 branches on n).
+			continue;
+		}
+		psFused->uiOpcode = IRInvertedComparison(uiOpcode);
+		pcThen = pcBlock->msJump.pcThen;
+		pcBlock->msJump.pcThen = pcBlock->msJump.pcElse;
+		pcBlock->msJump.pcElse = pcThen;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The unsigned 32 bit udiv or urem that is DividePartner of one earlier in
+// its block moves to just after it, so one div gives both (Divide).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::PairDivides(void)
+{
+	size			ui;
+	size			uiFirst;
+	size			uiPartner;
+	CIRBlock*		pcBlock;
+	SIRInstruction	sPartner;
+	uint16			uiOpcode;
+
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uiFirst = 0; uiFirst + 1 < pcBlock->masInstructions.NumElements(); uiFirst++)
+		{
+			uiOpcode = pcBlock->masInstructions.Get(uiFirst)->uiOpcode;
+			if ((uiOpcode != IRO_UDiv) && (uiOpcode != IRO_URem))
+			{
+				continue;
+			}
+			for (uiPartner = uiFirst + 2; uiPartner < pcBlock->masInstructions.NumElements(); uiPartner++)
+			{
+				if (DividePartner(pcBlock->masInstructions.Get(uiFirst), pcBlock->masInstructions.Get(uiPartner)))
+				{
+					//Its operands are the first's, so it can be worked out as early.
+					sPartner = *pcBlock->masInstructions.Get(uiPartner);
+					pcBlock->masInstructions.RemoveAt(uiPartner, true);
+					pcBlock->masInstructions.InsertAt(&sPartner, uiFirst + 1);
+					break;
+				}
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if psPartner is the unsigned 32 bit udiv of psFirst's urem (or the
+// urem of its udiv): the same operands, so the one div does both.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::DividePartner(SIRInstruction* psFirst, SIRInstruction* psPartner)
+{
+	if (((psFirst->uiOpcode != IRO_UDiv) && (psFirst->uiOpcode != IRO_URem)) || IsWide(psFirst->sType))
+	{
+		return false;
+	}
+	return (psPartner->uiOpcode == ((psFirst->uiOpcode == IRO_UDiv) ? IRO_URem : IRO_UDiv)) && psPartner->sType.Equals(psFirst->sType) &&
+		psPartner->asArguments[0].Equals(psFirst->asArguments[0]) && psPartner->asArguments[1].Equals(psFirst->asArguments[1]) && psPartner->sResult.IsTemporary();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Moves a load used once, later in its block, to just before its use when
 // nothing between writes memory (a store, a call, a volatile load) or
 // pushes arguments, so the use can take it from A or as a memory operand.
@@ -744,16 +914,22 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	size		ui;
 	CIRBlock*	pcBlock;
 	int32		iLabel;
+	size		uiStart;
 
 	mpcFunction = pcFunction;
 	mpszOut = pszDest;
 	mpcErrors = pcErrors;
 	mbResult = true;
+	uiStart = pszDest->Length();
 
 	pcFunction->Renumber();
 	pcFunction->ComputePredecessors();
+	mpcFunction->CountUses(&mauiUses);
+	AdjustComparisons();
+	PreferSingleBranches();
 	OrderBlocks();
 	RotateLoops();
+	PairDivides();
 	SinkLoads();
 	CopyAddresses();
 	mpcFunction->CountUses(&mauiUses);
@@ -762,11 +938,11 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	Layout();
 	Allocate();
 
-	//A leaf function with nothing in the frame doesn't set V up: its arguments are found from S, which only moves
-	//around mul and div (when nothing is read from the stack).  Otherwise V points at the frame.
-	mbFrameless = (miFrameBytes == 0) && (muiSaved == 0) && (miThisOffset < 0) && IsLeaf();
+	//A function with nothing in the frame doesn't set V up when its arguments can be found from S: a leaf (S only
+	//moves around mul and div) or one that reads them before pushing anything.  Otherwise V points at the frame.
+	mbFrameless = (miFrameBytes == 0) && (miThisOffset < 0) && (IsLeaf() || ArgumentsReadFirst());
 	mcFrame = mbFrameless ? 'S' : 'V';
-	miArguments = mbFrameless ? (1 + 4) : (1 + miFrameBytes + 8);
+	miArguments = mbFrameless ? (1 + 4 + 4 * NumSaved()) : (1 + miFrameBytes + 8);
 
 	maiBlockLabels.FakeSetUsedElements(0);
 	for (ui = 0; ui < pcFunction->NumBlocks(); ui++)
@@ -779,6 +955,9 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	Prologue(szLabel);
 	mpsFlags = NULL;
 	mpcFlags = NULL;
+	msFlagsValue = IRNone();
+	msEndFlags = IRNone();
+	mpcEndFlags = NULL;
 	for (ui = 0; ui < pcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = pcFunction->GetBlock(ui);
@@ -788,7 +967,256 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 		}
 	}
 	Epilogue();
+	Peephole(uiStart);
 	return mbResult;
+}
+
+
+#define IR65_PEEPHOLE_REGISTERS	4		//A, B, X and Y (IR65RegisterIndex).
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The index of a register A, B, X or Y named by sz (just the name), -1 for
+// anything else.
+//
+//////////////////////////////////////////////////////////////////////////
+static int IR65RegisterIndex(const char* sz, size uiLength)
+{
+	if (uiLength != 1)
+	{
+		return -1;
+	}
+	switch (sz[0])
+	{
+	case 'A':	return 0;
+	case 'B':	return 1;
+	case 'X':	return 2;
+	case 'Y':	return 3;
+	default:	return -1;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Splits "\t\tcpy first, second" into its operands; false if pszLine isn't
+// a cpy of two.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR65CopyOperands(CChars* pszLine, CChars* pszFirst, CChars* pszSecond)
+{
+	const char*	szText;
+	const char*	szComma;
+
+	if (!pszLine->StartsWith("\t\tcpy "))
+	{
+		return false;
+	}
+	szText = pszLine->Text() + 6;
+	szComma = strstr(szText, ", ");
+	if ((szComma == NULL) || strstr(szComma + 2, ", "))
+	{
+		return false;
+	}
+	pszFirst->AppendSubString(szText, szComma);
+	pszSecond->Append(szComma + 2);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A, B, X and Y 32 bits wide, as between instructions.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR65ResetWidths(int* aiWidths)
+{
+	int	iRegister;
+
+	for (iRegister = 0; iRegister < IR65_PEEPHOLE_REGISTERS; iRegister++)
+	{
+		aiWidths[iRegister] = 32;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Keeps track of the widths wth, wtth and wthx give A, B, X and Y (0 when
+// unknown).
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR65UpdateWidths(CChars* pszLine, int* aiWidths)
+{
+	const char*	szText;
+	const char*	szComma;
+	int			iRegister;
+	int			iWidth;
+
+	if (pszLine->StartsWith("\t\twtth ("))
+	{
+		szText = pszLine->Text() + 8;
+		szComma = strstr(szText, "), ");
+		iWidth = szComma ? atoi(szComma + 3) : 0;
+		iRegister = IR65RegisterIndex(szText, 1);
+		if (iRegister >= 0)
+		{
+			aiWidths[iRegister] = iWidth;
+		}
+		iRegister = IR65RegisterIndex(szText + 3, 1);
+		if (iRegister >= 0)
+		{
+			aiWidths[iRegister] = iWidth;
+		}
+		return;
+	}
+	if (pszLine->StartsWith("\t\twth ") || pszLine->StartsWith("\t\twthx "))
+	{
+		szText = pszLine->Text() + (pszLine->StartsWith("\t\twth ") ? 6 : 7);
+		szComma = strstr(szText, ", ");
+		iRegister = IR65RegisterIndex(szText, szComma ? (size)(szComma - szText) : 0);
+		if (iRegister >= 0)
+		{
+			aiWidths[iRegister] = szComma ? atoi(szComma + 2) : 0;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if pszOperand is a pseudo register or the frame ([n + W], [n + V],
+// [n + S]): memory only the function's own code touches, so never volatile.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR65OwnMemory(CChars* pszOperand)
+{
+	const char*	sz;
+
+	if (!pszOperand->StartsWith('[') || !(pszOperand->EndsWith(" + W]") || pszOperand->EndsWith(" + V]") || pszOperand->EndsWith(" + S]")))
+	{
+		return false;
+	}
+	for (sz = pszOperand->Text() + 1; (*sz >= '0') && (*sz <= '9'); sz++)
+	{
+	}
+	return (sz != pszOperand->Text() + 1) && (*sz == ' ') && (sz + 5 == pszOperand->Text() + pszOperand->Length());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the branch at uiLine goes to a label straight after it.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR65BranchToNext(CArrayChars* paszLines, size uiLine)
+{
+	CChars*		pszLine;
+	CChars*		pszLabel;
+	const char*	szTarget;
+	size		ui;
+
+	pszLine = paszLines->Get(uiLine);
+	if (!pszLine->StartsWith("\t\tbra ") && !pszLine->StartsWith("\t\tbras ") && !pszLine->StartsWith("\t\tbrac ") && !pszLine->StartsWith("\t\tbrasa ") && !pszLine->StartsWith("\t\tbraso "))
+	{
+		return false;
+	}
+	szTarget = FindChar(pszLine->Text(), ' ', true) + 1;
+	for (ui = uiLine + 1; ui < paszLines->NumElements(); ui++)
+	{
+		pszLabel = paszLines->Get(ui);
+		if (pszLabel->Empty() || pszLabel->StartsWith('\t'))
+		{
+			return false;
+		}
+		if (pszLabel->EndsWith(':') && (pszLabel->Length() == strlen(szTarget) + 1) && pszLabel->StartsWith(szTarget))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Cleans up the function's code written from uiStart: a branch to the
+// label just after it goes, and a value stored to a pseudo register or the
+// frame then read straight back (at 32 bits) is copied from the register it
+// was stored from instead (or not at all into the same register: the store
+// set the same flags).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::Peephole(size uiStart)
+{
+	CChars			szText;
+	CArrayChars		aszLines;
+	CChars*			pszLine;
+	CChars*			pszNext;
+	CChars			szStored;
+	CChars			szFrom;
+	CChars			szTo;
+	CChars			szLoaded;
+	size			ui;
+	int				aiWidths[IR65_PEEPHOLE_REGISTERS];
+	int				iFrom;
+	int				iTo;
+
+	szText.Init(mpszOut->Text() + uiStart);
+	aszLines.Init();
+	szText.SplitLines(&aszLines);
+	szText.Kill();
+	mpszOut->SetLength(uiStart);
+
+	IR65ResetWidths(aiWidths);
+	for (ui = 0; ui < aszLines.NumElements(); ui++)
+	{
+		pszLine = aszLines.Get(ui);
+		if (!pszLine->StartsWith("\t\t"))
+		{
+			//Each block starts with all four 32 bits wide.
+			IR65ResetWidths(aiWidths);
+		}
+		else if ((pszLine->Length() == 2) || IR65BranchToNext(&aszLines, ui))
+		{
+			continue;
+		}
+		else if (ui + 1 < aszLines.NumElements())
+		{
+			pszNext = aszLines.Get(ui + 1);
+			szStored.Init();
+			szFrom.Init();
+			szTo.Init();
+			szLoaded.Init();
+			if (IR65CopyOperands(pszLine, &szStored, &szFrom) && IR65CopyOperands(pszNext, &szTo, &szLoaded) && IR65OwnMemory(&szStored) && szLoaded.Equals(szStored))
+			{
+				iFrom = IR65RegisterIndex(szFrom.Text(), szFrom.Length());
+				iTo = IR65RegisterIndex(szTo.Text(), szTo.Length());
+				if ((iFrom >= 0) && (iTo >= 0) && (aiWidths[iFrom] == 32) && (aiWidths[iTo] == 32))
+				{
+					pszNext->Kill();
+					pszNext->Init("\t\t");
+					if (iFrom != iTo)
+					{
+						pszNext->Append("cpy ")->Append(szTo)->Append(", ")->Append(szFrom);
+					}
+				}
+			}
+			szLoaded.Kill();
+			szTo.Kill();
+			szFrom.Kill();
+			szStored.Kill();
+		}
+		IR65UpdateWidths(pszLine, aiWidths);
+		mpszOut->Append(*pszLine);
+		if (ui + 1 < aszLines.NumElements())
+		{
+			//The last piece is what follows the last new line.
+			mpszOut->AppendNewLine();
+		}
+	}
+	aszLines.Kill();
 }
 
 
@@ -1299,7 +1727,7 @@ bool CIR65Backend::NeedsHome(int32 iTemporary)
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Allocate(void)
 {
-	CArrayTemplate<SIR65Weight>	asWeights;
+	CArrayIR65Weights			asWeights;
 	SIR65Weight*				psWeight;
 	SIR65Home*					psHome;
 	size						ui;
@@ -1347,6 +1775,7 @@ void CIR65Backend::Allocate(void)
 			psWeight->uiWeight += mcLiveness.GetWeight(IRReference(IRRK_Temporary, (uint32)iMember));
 		}
 	}
+	DiscountAddresses(&asWeights);
 	asWeights.QuickSort(CompareIR65Weights);
 	for (ui = 0; ui < asWeights.NumElements(); ui++)
 	{
@@ -1354,6 +1783,59 @@ void CIR65Backend::Allocate(void)
 		AllocateClass(psWeight->iLeader, psWeight->uiWeight);
 	}
 	asWeights.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A pointer in memory costs nothing more than one in a register where it is
+// a load's or store's address ([[n + W]]) or stepped by a small constant in
+// its own class (add [n + W], 1), so those uses (and the step's result)
+// don't count towards its class's weight.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::DiscountAddresses(CArrayIR65Weights* pasWeights)
+{
+	CArrayTemplate<uint32>	auiDiscounts;	//Per class leader.
+	size					ui;
+	size					uiInstruction;
+	CIRBlock*				pcBlock;
+	SIRInstruction*			psInstruction;
+	SIRReference			sAddress;
+	SIR65Weight*			psWeight;
+	uint32					uiUse;
+	int32					iLeader;
+	uint32*					puiDiscount;
+
+	auiDiscounts.Init();
+	auiDiscounts.GrowToAtLeastNumElements(mpcFunction->NumTemporaries(), true, 0);
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		uiUse = CIRLiveness::LoopWeight(mcLiveness.LoopDepth(pcBlock));
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			sAddress = IRAddressOf(psInstruction);
+			if (sAddress.IsTemporary() && (PlaceOf(sAddress)->uiKind != IR65P_Folded) && !psInstruction->asArguments[0].Equals(psInstruction->asArguments[1]))
+			{
+				*auiDiscounts.Get((size)Find((int32)sAddress.Index())) += uiUse;
+			}
+			else if ((psInstruction->uiOpcode == IRO_PtrAdd) && psInstruction->asArguments[0].IsTemporary() && psInstruction->sResult.IsTemporary() &&
+					 SmallImmediate(psInstruction->asArguments[1], -8, 8) && (Find((int32)psInstruction->asArguments[0].Index()) == Find((int32)psInstruction->sResult.Index())))
+			{
+				*auiDiscounts.Get((size)Find((int32)psInstruction->sResult.Index())) += 2 * uiUse;
+			}
+		}
+	}
+	for (ui = 0; ui < pasWeights->NumElements(); ui++)
+	{
+		psWeight = pasWeights->Get(ui);
+		iLeader = psWeight->iLeader;
+		puiDiscount = auiDiscounts.Get((size)iLeader);
+		psWeight->uiWeight = (psWeight->uiWeight > *puiDiscount) ? (psWeight->uiWeight - *puiDiscount) : 1;
+	}
+	auiDiscounts.Kill();
 }
 
 
@@ -1976,6 +2458,104 @@ bool CIR65Backend::IsLeaf(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if the parameters left where they arrived are only read in the
+// entry block before anything is pushed (for a call's arguments or the
+// runtime), and no argaddr is taken: then S hasn't moved since the
+// prologue, so they can be read from [n + S] without a frame.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::ArgumentsReadFirst(void)
+{
+	size			ui;
+	size			uiInstruction;
+	size			uiFirstPush;
+	size			uiArgument;
+	size			uiPhi;
+	CIRBlock*		pcBlock;
+	CIRBlock*		pcEntry;
+	SIRInstruction*	psInstruction;
+	SIRPhi*			psPhi;
+
+	pcEntry = mpcFunction->GetEntry();
+	for (uiFirstPush = 0; uiFirstPush < pcEntry->masInstructions.NumElements(); uiFirstPush++)
+	{
+		psInstruction = pcEntry->masInstructions.Get(uiFirstPush);
+		if ((psInstruction->uiOpcode == IRO_Arg) || (IR65OpcodeFlags(psInstruction->uiOpcode) & (IR65F_CALLS | IR65F_CHANGES_XY)))
+		{
+			break;
+		}
+	}
+
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if (psInstruction->uiOpcode == IRO_ArgAddress)
+			{
+				return false;
+			}
+			if ((IsArrivalPlace(psInstruction->asArguments[0]) || IsArrivalPlace(psInstruction->asArguments[1])) && ((pcBlock != pcEntry) || (uiInstruction >= uiFirstPush)))
+			{
+				return false;
+			}
+		}
+		if (IsArrivalPlace(pcBlock->msJump.sArgument) && ((pcBlock != pcEntry) || (uiFirstPush < pcBlock->masInstructions.NumElements())))
+		{
+			return false;
+		}
+		for (uiPhi = 0; uiPhi < pcBlock->masPhis.NumElements(); uiPhi++)
+		{
+			psPhi = pcBlock->masPhis.Get(uiPhi);
+			for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
+			{
+				if (IsArrivalPlace(psPhi->asArguments.Get(uiArgument)->sValue))
+				{
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if sValue is a parameter read from where it arrived.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::IsArrivalPlace(SIRReference sValue)
+{
+	return sValue.IsTemporary() && (PlaceOf(sValue)->uiKind == IR65P_Argument);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The number of callee saved pseudo registers the prologue pushes.
+//
+//////////////////////////////////////////////////////////////////////////
+int CIR65Backend::NumSaved(void)
+{
+	int		iUnit;
+	int		iCount;
+
+	iCount = 0;
+	for (iUnit = 0; iUnit < IR65_PSEUDO_UNITS; iUnit++)
+	{
+		if (muiSaved & (1u << iUnit))
+		{
+			iCount++;
+		}
+	}
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A home as an operand: X, [n + W] or [n + V] ([n + S] in a function
 // without a frame).
 //
@@ -2363,6 +2943,7 @@ void CIR65Backend::StoreResult(SIRReference sResult, const char* szRegister, boo
 	SIR65Place*	psPlace;
 	SIRType		sType;
 	bool		bA;
+	size		uiLength;
 
 	if (!sResult.IsTemporary())
 	{
@@ -2398,7 +2979,13 @@ void CIR65Backend::StoreResult(SIRReference sResult, const char* szRegister, boo
 	{
 		Truncate(szRegister, sType);
 	}
+	uiLength = mpszOut->Length();
 	StorePlace(psPlace, sType, szRegister);
+	if ((mpszOut->Length() != uiLength) && !IsWide(sType) && !IsNarrow(sType))
+	{
+		//The cpy set n and z from the value.
+		SetFlagsValue(sResult);
+	}
 	if (bA)
 	{
 		msInA = sResult;
@@ -2720,6 +3307,11 @@ bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 		uiNumInstructions--;
 	}
 	mbFlagsKnown = (uiNumInstructions == 0) && FlagsKnown(pcBlock, psFused);
+	if (!msEndFlags.IsNone() && EnteredOnlyFrom(pcBlock, mpcEndFlags))
+	{
+		//Only its predecessor's branch on the flags comes here, so they are still the value's.
+		SetFlagsValue(msEndFlags);
+	}
 
 	bResult = true;
 	for (ui = 0; ui < uiNumInstructions; ui++)
@@ -2742,13 +3334,88 @@ bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 	}
 	msAvailable = msInA;
 	msInA = IRNone();
+	mbFlagsUsed = false;
 	bResult &= Jump(pcBlock, pcNext, psFused);
+	if (mbFlagsUsed)
+	{
+		//The comparison used the flags the value's cpy set (FlagsHold), which its successors may use too.
+		msEndFlags = psFused->asArguments[0];
+		mpcEndFlags = pcBlock;
+	}
 	mbFlagsKnown = false;
-	mpsFlags = (psFused && !psFused->sType.IsFloat()) ? psFused : NULL;
-	mpcFlags = pcBlock;
+	if (psFused && !psFused->sType.IsFloat())
+	{
+		//Kept until another block compares: a block FlagsKnown allows has only this one before it.
+		mpsFlags = psFused;
+		mpcFlags = pcBlock;
+	}
 	msAvailable = IRNone();
 	msDeferred = IRNone();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Branches to iLabel when a brif's condition is bJumpIf: psFused's compare
+// if it has one, else the condition tested against 0.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::BranchOn(SIRInstruction* psFused, SIRReference sCondition, bool bJumpIf, int32 iLabel)
+{
+	if (psFused)
+	{
+		return Compare(psFused, bJumpIf, iLabel);
+	}
+	TestZero(sCondition);
+	Branch(bJumpIf ? "brac z, " : "bras z, ", iLabel);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if pcBlock (without phis) is only entered by pcFrom's jump, with no
+// copies on the way, so it starts with the flags pcFrom left.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::EnteredOnlyFrom(CIRBlock* pcBlock, CIRBlock* pcFrom)
+{
+	return (pcBlock->masPhis.NumElements() == 0) && (pcBlock->mapcPredecessors.NumElements() == 1) && (pcBlock->mapcPredecessors.GetPtr(0) == pcFrom) && !HasMoves(pcFrom, pcBlock);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The last line written was a cpy of sValue (32 bits), so n and z are its.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::SetFlagsValue(SIRReference sValue)
+{
+	msFlagsValue = sValue;
+	muiFlagsLength = mpszOut->Length();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if n and z are still sValue's (nothing written since SetFlagsValue).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::FlagsHold(SIRReference sValue)
+{
+	return sValue.IsTemporary() && sValue.Equals(msFlagsValue) && (mpszOut->Length() == muiFlagsLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if sValue is the constant 0.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::IsZero(SIRReference sValue)
+{
+	return sValue.IsConstant() && (mpcFunction->GetConstant(sValue)->ulliBits == 0);
 }
 
 
@@ -2762,17 +3429,7 @@ bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Backend::FlagsKnown(CIRBlock* pcBlock, SIRInstruction* psFused)
 {
-	uint16	uiOpcode;
-
-	if ((psFused == NULL) || (mpsFlags == NULL) || ((psFused->uiOpcode != IRO_Eq) && (psFused->uiOpcode != IRO_Ne)) || (pcBlock->masPhis.NumElements() != 0) ||
-		(pcBlock->mapcPredecessors.NumElements() != 1) || (pcBlock->mapcPredecessors.GetPtr(0) != mpcFlags) || HasMoves(mpcFlags, pcBlock) || !psFused->sType.Equals(mpsFlags->sType))
-	{
-		return false;
-	}
-
-	//x > c and x <= c compare x with c + 1.
-	uiOpcode = mpsFlags->uiOpcode;
-	if (mpsFlags->asArguments[1].IsConstant() && ((uiOpcode == IRO_SGt) || (uiOpcode == IRO_SLe) || (uiOpcode == IRO_UGt) || (uiOpcode == IRO_ULe)))
+	if ((psFused == NULL) || (mpsFlags == NULL) || ((psFused->uiOpcode != IRO_Eq) && (psFused->uiOpcode != IRO_Ne)) || !psFused->sType.Equals(mpsFlags->sType) || !EnteredOnlyFrom(pcBlock, mpcFlags))
 	{
 		return false;
 	}
@@ -2974,6 +3631,8 @@ bool CIR65Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psF
 	SIRJump*	psJump;
 	int32		iElse;
 	bool		bResult;
+	bool		bThenMoves;
+	bool		bElseMoves;
 	SIR65Stub*	psStub;
 
 	psJump = &pcBlock->msJump;
@@ -2989,55 +3648,33 @@ bool CIR65Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psF
 		break;
 
 	case IRJ_Branch:
-		if ((psJump->pcElse == pcNext) && (psJump->pcThen != pcNext) && HasMoves(pcBlock, psJump->pcThen) && !HasMoves(pcBlock, psJump->pcElse))
+		bThenMoves = HasMoves(pcBlock, psJump->pcThen);
+		bElseMoves = HasMoves(pcBlock, psJump->pcElse);
+		if ((psJump->pcElse == pcNext) && (psJump->pcThen != pcNext) && bThenMoves && !bElseMoves)
 		{
 			//The then edge's copies go after the function's ret (a loop that goes round when the test is true).
 			psStub = masStubs.Add();
 			psStub->iLabel = NewLabel();
 			psStub->pcFrom = pcBlock;
 			psStub->pcTo = psJump->pcThen;
-			if (psFused)
-			{
-				bResult = Compare(psFused, true, psStub->iLabel);
-			}
-			else
-			{
-				TestZero(psJump->sArgument);
-				Branch("brac z, ", psStub->iLabel);
-			}
+			bResult = BranchOn(psFused, psJump->sArgument, true, psStub->iLabel);
 			break;
 		}
-		if ((psJump->pcElse == pcNext) && (psJump->pcThen != pcNext) && !HasMoves(pcBlock, psJump->pcThen))
+		if ((psJump->pcElse == pcNext) && (psJump->pcThen != pcNext) && !bThenMoves)
 		{
 			//Branch to the then block, fall through to the else block.
-			if (psFused)
-			{
-				bResult = Compare(psFused, true, *maiBlockLabels.Get(psJump->pcThen->muiIndex));
-			}
-			else
-			{
-				TestZero(psJump->sArgument);
-				Branch("brac z, ", *maiBlockLabels.Get(psJump->pcThen->muiIndex));
-			}
+			bResult = BranchOn(psFused, psJump->sArgument, true, *maiBlockLabels.Get(psJump->pcThen->muiIndex));
 			Edge(pcBlock, psJump->pcElse);
 			break;
 		}
-		iElse = HasMoves(pcBlock, psJump->pcElse) ? NewLabel() : *maiBlockLabels.Get(psJump->pcElse->muiIndex);
-		if (psFused)
-		{
-			bResult = Compare(psFused, false, iElse);
-		}
-		else
-		{
-			TestZero(psJump->sArgument);
-			Branch("bras z, ", iElse);
-		}
+		iElse = bElseMoves ? NewLabel() : *maiBlockLabels.Get(psJump->pcElse->muiIndex);
+		bResult = BranchOn(psFused, psJump->sArgument, false, iElse);
 		Edge(pcBlock, psJump->pcThen);
-		if ((psJump->pcThen != pcNext) || HasMoves(pcBlock, psJump->pcElse))
+		if ((psJump->pcThen != pcNext) || bElseMoves)
 		{
 			Branch("bra ", *maiBlockLabels.Get(psJump->pcThen->muiIndex));
 		}
-		if (HasMoves(pcBlock, psJump->pcElse))
+		if (bElseMoves)
 		{
 			Label(iElse);
 			Edge(pcBlock, psJump->pcElse);
@@ -3110,7 +3747,7 @@ bool CIR65Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 	case IRO_UDiv:
 	case IRO_SRem:
 	case IRO_URem:
-		return Divide(psInstruction);
+		return Divide(psInstruction, (uiIndex + 1 < pcBlock->masInstructions.NumElements()) ? pcBlock->masInstructions.Get(uiIndex + 1) : NULL);
 
 	case IRO_SExt:
 	case IRO_ZExt:
@@ -3582,8 +4219,13 @@ bool CIR65Backend::IntegerWide(SIRInstruction* psInstruction)
 bool CIR65Backend::MultiplyInstruction(SIRInstruction* psInstruction)
 {
 	bool	bWide;
+	bool	bByte;
 
 	bWide = IsWide(psInstruction->sType);
+	if (!bWide && MultiplyByShifts(psInstruction))
+	{
+		return true;
+	}
 	if (!bWide && IsInA(psInstruction->asArguments[1]) && !IsInA(psInstruction->asArguments[0]))
 	{
 		LoadValue(psInstruction->asArguments[0], "B", IR65E_Zero);
@@ -3597,7 +4239,17 @@ bool CIR65Backend::MultiplyInstruction(SIRInstruction* psInstruction)
 		Line("wtth (A, B), 64")->AppendNewLine();
 		Line("wth Y, 64")->AppendNewLine();
 	}
+	bByte = !bWide && psInstruction->asArguments[1].IsConstant() && (IRTruncate(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) < 256);
+	if (bByte)
+	{
+		//mul takes a step for each byte of B: a multiplier below 256 takes one.
+		Line("wth B, 8")->AppendNewLine();
+	}
 	Multiply("mul");
+	if (bByte)
+	{
+		Line("wth B, 32")->AppendNewLine();
+	}
 	msAvailable = IRNone();
 	if (bWide)
 	{
@@ -3610,6 +4262,65 @@ bool CIR65Backend::MultiplyInstruction(SIRInstruction* psInstruction)
 	{
 		StoreResult(psInstruction->sResult, "Y");
 	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// x * (2^a + 2^b) is ((x << (a - b)) + x) << b and x * (2^a - 2^b) is
+// ((x << (a - b)) - x) << b, which beat mul (a step a byte of B, with W
+// saved round it).  Returns false for other multipliers.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::MultiplyByShifts(SIRInstruction* psInstruction)
+{
+	uint32		uiMultiplier;
+	uint32		uiLow;
+	uint32		uiRest;
+	int			iLow;
+	int			iHigh;
+	const char*	szCombine;
+
+	if (!psInstruction->asArguments[1].IsConstant())
+	{
+		return false;
+	}
+	uiMultiplier = (uint32)IRTruncate(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
+	if (uiMultiplier == 0)
+	{
+		return false;
+	}
+	uiLow = uiMultiplier & (0 - uiMultiplier);
+	uiRest = uiMultiplier - uiLow;
+	szCombine = "add A, B";
+	if ((uiRest == 0) || ((uiRest & (uiRest - 1)) != 0))
+	{
+		//Not two bits: maybe a run of them, 2^a - 2^b.
+		uiRest = uiMultiplier + uiLow;
+		if ((uiRest == 0) || ((uiRest & (uiRest - 1)) != 0))
+		{
+			return false;
+		}
+		szCombine = "sub A, B";
+	}
+	iLow = (int)FindFirstSetBit(uiLow);
+	iHigh = (int)FindFirstSetBit(uiRest);
+	if ((iHigh - iLow > 8) || (iLow > 8))
+	{
+		return false;
+	}
+
+	LoadValue(psInstruction->asArguments[0], "A", IR65E_Zero);
+	Line("cpy B, A")->AppendNewLine();
+	Line("shl A, ")->Append(iHigh - iLow)->AppendNewLine();
+	Line(szCombine)->AppendNewLine();
+	if (iLow > 0)
+	{
+		Line("shl A, ")->Append(iLow)->AppendNewLine();
+	}
+	msAvailable = IRNone();
+	StoreResult(psInstruction->sResult, "A");
 	return true;
 }
 
@@ -3666,11 +4377,12 @@ bool CIR65Backend::ShiftSigned(SIRInstruction* psInstruction)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Unsigned: div (Y / A -> Y, the remainder in B, which starts at 0).
+// Unsigned: div (Y / A -> Y, the remainder in B, which starts at 0); a
+// psNext that is its DividePartner gets its result from the same div.
 // Signed: R_DivideSigned (A / B -> A, the remainder in B).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::Divide(SIRInstruction* psInstruction)
+bool CIR65Backend::Divide(SIRInstruction* psInstruction, SIRInstruction* psNext)
 {
 	bool			bWide;
 	bool			bSigned;
@@ -3753,6 +4465,24 @@ bool CIR65Backend::Divide(SIRInstruction* psInstruction)
 	Line("cpy B, 0")->AppendNewLine();
 	Multiply("div");
 	msAvailable = IRNone();
+	if (psNext && DividePartner(psInstruction, psNext) && !PlaceOf(psInstruction->sResult)->bInA)
+	{
+		//The result from Y goes first, as the other may be kept in Y; one kept in A goes last.
+		if (!bRemainder)
+		{
+			StoreResult(psInstruction->sResult, "Y");
+			StoreResult(psNext->sResult, "B");
+			mpsWritten = psNext;
+			return true;
+		}
+		if (!PlaceOf(psNext->sResult)->bInA)
+		{
+			StoreResult(psNext->sResult, "Y");
+			StoreResult(psInstruction->sResult, "B");
+			mpsWritten = psNext;
+			return true;
+		}
+	}
 	StoreResult(psInstruction->sResult, bRemainder ? "B" : "Y");
 	return true;
 }
@@ -4028,12 +4758,15 @@ bool CIR65Backend::PureMemoryOperand(SIRReference sAddress, CChars* pszOperand, 
 //////////////////////////////////////////////////////////////////////////
 //
 // Into the result's register (or A): narrow values read at their width
-// and widened, 8 byte values with A 64 bits wide.
+// and widened, 8 byte values with A 64 bits wide.  A narrow load only a
+// sext just after it uses is sign extended as it is widened, giving the
+// sext's result.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Backend::Load(CIRBlock* pcBlock, size uiIndex)
 {
 	SIRInstruction*	psInstruction;
+	SIRInstruction*	psExtend;
 	CChars			szOperand;
 	int				iBytes;
 	const char*		szWork;
@@ -4044,7 +4777,13 @@ bool CIR65Backend::Load(CIRBlock* pcBlock, size uiIndex)
 		return true;
 	}
 	iBytes = ValueBytes(psInstruction->sType);
-	szWork = WorkRegister(psInstruction);
+	psExtend = pcBlock->masInstructions.SafeGet(uiIndex + 1);
+	if ((iBytes >= 4) || (psExtend == NULL) || (psExtend->uiOpcode != IRO_SExt) || !psExtend->asArguments[0].Equals(psInstruction->sResult) ||
+		!psInstruction->sResult.IsTemporary() || (*mauiUses.Get(psInstruction->sResult.Index()) != 1) || IsWide(psExtend->sType) || Skipped(psExtend))
+	{
+		psExtend = NULL;
+	}
+	szWork = WorkRegister(psExtend ? psExtend : psInstruction);
 	szOperand.Init();
 	MemoryOperand(psInstruction->asArguments[0], &szOperand, (iBytes == 4) ? NULL : szWork);
 	if (StringCompare(szWork, "A") == 0)
@@ -4060,14 +4799,21 @@ bool CIR65Backend::Load(CIRBlock* pcBlock, size uiIndex)
 	else if (iBytes == 4)
 	{
 		Line("cpy ")->Append(szWork)->Append(", ")->Append(szOperand)->AppendNewLine();
+		SetFlagsValue(psInstruction->sResult);
 	}
 	else
 	{
 		Line("wth ")->Append(szWork)->Append(", ")->Append(8 * iBytes)->AppendNewLine();
 		Line("cpy ")->Append(szWork)->Append(", ")->Append(szOperand)->AppendNewLine();
-		Line("wthx ")->Append(szWork)->Append(", 32")->AppendNewLine();
+		Line("wthx ")->Append(szWork)->Append(psExtend ? ", 32:s" : ", 32")->AppendNewLine();
 	}
 	szOperand.Kill();
+	if (psExtend)
+	{
+		StoreResult(psExtend->sResult, szWork);
+		mpsWritten = psExtend;
+		return true;
+	}
 	StoreResult(psInstruction->sResult, szWork, true);
 	return true;
 }
@@ -4229,11 +4975,10 @@ bool CIR65Backend::Compare(SIRInstruction* psInstruction, bool bJumpIf, int32 iL
 //
 // cmp first, second for a comparison of 32 bits or less that needs no
 // sign extending: the first operand where it is kept (X, [4 + W]) or in A
-// or B, the second as an operand that can go with it, or the constant
-// lliConstant when bConstant.
+// or B, the second as an operand that can go with it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::CompareOperands(SIRReference sFirst, SIRReference sSecond, bool bConstant, int64 lliConstant)
+void CIR65Backend::CompareOperands(SIRReference sFirst, SIRReference sSecond)
 {
 	CChars	szLeft;
 	CChars	szRight;
@@ -4241,14 +4986,7 @@ void CIR65Backend::CompareOperands(SIRReference sFirst, SIRReference sSecond, bo
 
 	szLeft.Init();
 	szRight.Init();
-	if (bConstant)
-	{
-		bSmall = (lliConstant >= -8) && (lliConstant <= 8);
-	}
-	else
-	{
-		bSmall = IsInA(sSecond) || InRegister(sSecond) || SmallImmediate(sSecond, -8, 8);
-	}
+	bSmall = IsInA(sSecond) || InRegister(sSecond) || SmallImmediate(sSecond, -8, 8);
 
 	if (IsInA(sFirst))
 	{
@@ -4263,7 +5001,7 @@ void CIR65Backend::CompareOperands(SIRReference sFirst, SIRReference sSecond, bo
 		//Memory goes with a register or -8 to 8.
 		AppendPlace(&szLeft, PlaceOf(sFirst));
 	}
-	else if (!bConstant && IsInA(sSecond))
+	else if (IsInA(sSecond))
 	{
 		LoadValue(sFirst, "B", IR65E_Zero);
 		szLeft.Append('B');
@@ -4274,11 +5012,7 @@ void CIR65Backend::CompareOperands(SIRReference sFirst, SIRReference sSecond, bo
 		szLeft.Append('A');
 	}
 
-	if (bConstant)
-	{
-		szRight.Append(lliConstant);
-	}
-	else if (!Operand(sSecond, &szRight, true, IR65E_Zero))
+	if (!Operand(sSecond, &szRight, true, IR65E_Zero))
 	{
 		LoadValue(sSecond, (StringCompare(szLeft.Text(), "B") == 0) ? "A" : "B", IR65E_Zero);
 		szRight.Append((StringCompare(szLeft.Text(), "B") == 0) ? 'A' : 'B');
@@ -4292,8 +5026,9 @@ void CIR65Backend::CompareOperands(SIRReference sFirst, SIRReference sSecond, bo
 //////////////////////////////////////////////////////////////////////////
 //
 // After cmp X, Y: z is X = Y, c clear is X < Y unsigned and n != v is X < Y
-// signed.  > and <= swap the operands (or compare with the constant plus
-// one).  There is no branch on n = v, so it branches round a bra.
+// signed.  > and <= swap the operands (with a constant they were made >=
+// and < by AdjustComparisons).  There is no branch on n = v, so it branches
+// round a bra.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel)
@@ -4306,10 +5041,6 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 	int32			iSkip;
 	SIRReference	sLeft;
 	SIRReference	sRight;
-	SIRConstant*	psConstant;
-	int64			lliValue;
-	int64			lliLimit;
-	bool			bAdjusted;
 	int				iBits;
 
 	uiOpcode = psInstruction->uiOpcode;
@@ -4319,8 +5050,27 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 		Branch(((uiOpcode == IRO_Eq) == bJumpIf) ? "bras z, " : "brac z, ", iLabel);
 		return true;
 	}
-	bSigned = (uiOpcode == IRO_SLt) || (uiOpcode == IRO_SLe) || (uiOpcode == IRO_SGt) || (uiOpcode == IRO_SGe);
-	bSwap = (uiOpcode == IRO_SGt) || (uiOpcode == IRO_SLe) || (uiOpcode == IRO_UGt) || (uiOpcode == IRO_ULe);
+	if (FlagsHold(psInstruction->asArguments[0]) && IsZero(psInstruction->asArguments[1]) && !IsNarrow(psInstruction->sType) && !IsWide(psInstruction->sType))
+	{
+		//The cpy just written set n and z from the value.
+		switch (uiOpcode)
+		{
+		case IRO_Eq:
+		case IRO_Ne:
+			Branch(((uiOpcode == IRO_Eq) == bJumpIf) ? "bras z, " : "brac z, ", iLabel);
+			mbFlagsUsed = true;
+			return true;
+		case IRO_SLt:
+		case IRO_SGe:
+			Branch(((uiOpcode == IRO_SLt) == bJumpIf) ? "bras n, " : "brac n, ", iLabel);
+			mbFlagsUsed = true;
+			return true;
+		default:
+			break;
+		}
+	}
+	bSigned = IsIRSignedComparison(uiOpcode);
+	bSwap = IsIRSwappedComparison(uiOpcode);
 	bWide = IsWide(psInstruction->sType);
 	sLeft = psInstruction->asArguments[0];
 	sRight = psInstruction->asArguments[1];
@@ -4329,74 +5079,51 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 	{
 		//Signed i8 and i16 are compared at their own width (the registers narrowed), which needs no extending.
 		iBits = bWide ? 64 : psInstruction->sType.IntegerBits();
-		if (iBits == 1)
+		if (!bWide && (iBits != 1) && InRegister(sLeft) && InRegister(sRight) && (PlaceOf(sLeft)->iOffset != PlaceOf(sRight)->iOffset))
 		{
-			LoadOperands(psInstruction, IR65E_Sign, !bSwap);
-			iBits = 32;
+			//Both kept in X and Y: those are narrowed instead.
+			Line("wtth (X, Y), ")->Append(iBits)->AppendNewLine();
+			Line("cmp ")->Append(RegisterName(PlaceOf(bSwap ? sRight : sLeft)))->Append(", ")->Append(RegisterName(PlaceOf(bSwap ? sLeft : sRight)))->AppendNewLine();
+			Line("wtth (X, Y), 32")->AppendNewLine();
 		}
 		else
 		{
-			LoadOperands(psInstruction, IR65E_Zero, !bSwap);
-		}
-		if (iBits != 32)
-		{
-			Line("wtth (A, B), ")->Append(iBits)->AppendNewLine();
-		}
-		if (mbRightImmediate)
-		{
-			Line("cmp A, ");
-			AppendImmediate(mpszOut, sRight, bSigned ? IR65E_Sign : IR65E_Zero);
-			mpszOut->AppendNewLine();
-		}
-		else
-		{
-			Line(bSwap ? "cmp B, A" : "cmp A, B")->AppendNewLine();
-		}
-		if (iBits != 32)
-		{
-			Line("wtth (A, B), 32")->AppendNewLine();
-		}
-	}
-	else
-	{
-		bAdjusted = false;
-		lliValue = 0;
-		if (bSwap && sRight.IsConstant())
-		{
-			//x > c is x >= c + 1 and x <= c is x < c + 1, unless c is the largest value.
-			psConstant = mpcFunction->GetConstant(sRight);
-			if (bSigned)
+			if (iBits == 1)
 			{
-				lliValue = (int64)(int32)psConstant->ulliBits;
-				lliLimit = 0x7FFFFFFF;
+				LoadOperands(psInstruction, IR65E_Sign, !bSwap);
+				iBits = 32;
 			}
 			else
 			{
-				lliValue = (int64)IRTruncate(psConstant->sType, psConstant->ulliBits);
-				lliLimit = (int64)IRTruncate(psConstant->sType, (uint64)-1);
+				LoadOperands(psInstruction, IR65E_Zero, !bSwap);
 			}
-			if (lliValue < lliLimit)
+			if (iBits != 32)
 			{
-				lliValue = (int64)(int32)(lliValue + 1);
-				bAdjusted = true;
-				switch (uiOpcode)
-				{
-				case IRO_SGt:	uiOpcode = IRO_SGe;	break;
-				case IRO_SLe:	uiOpcode = IRO_SLt;	break;
-				case IRO_UGt:	uiOpcode = IRO_UGe;	break;
-				default:		uiOpcode = IRO_ULt;	break;
-				}
-				bSwap = false;
+				Line("wtth (A, B), ")->Append(iBits)->AppendNewLine();
+			}
+			if (mbRightImmediate)
+			{
+				Line("cmp A, ");
+				AppendImmediate(mpszOut, sRight, bSigned ? IR65E_Sign : IR65E_Zero);
+				mpszOut->AppendNewLine();
+			}
+			else
+			{
+				Line(bSwap ? "cmp B, A" : "cmp A, B")->AppendNewLine();
+			}
+			if (iBits != 32)
+			{
+				Line("wtth (A, B), 32")->AppendNewLine();
 			}
 		}
-		if (bSwap)
-		{
-			CompareOperands(sRight, sLeft, false, 0);
-		}
-		else
-		{
-			CompareOperands(sLeft, sRight, bAdjusted, lliValue);
-		}
+	}
+	else if (bSwap)
+	{
+		CompareOperands(sRight, sLeft);
+	}
+	else
+	{
+		CompareOperands(sLeft, sRight);
 	}
 
 	if ((uiOpcode == IRO_Eq) || (uiOpcode == IRO_Ne))
@@ -4410,6 +5137,11 @@ bool CIR65Backend::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, i
 	if (!bSigned)
 	{
 		Branch(bLess ? "brac c, " : "bras c, ", iLabel);
+	}
+	else if (!bSwap && IsZero(sRight))
+	{
+		//cmp x, 0 can't overflow, so n alone is x < 0 (x > -1 is x >= 0 by AdjustComparisons; x > 0 is x >= 1).
+		Branch(bLess ? "bras n, " : "brac n, ", iLabel);
 	}
 	else if (bLess)
 	{

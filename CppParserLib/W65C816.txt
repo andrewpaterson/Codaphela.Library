@@ -1,0 +1,251 @@
+C++ for the W65C816
+===================
+
+A plan for a second target for the C++ compiler: the W65C816S.  The first target is the
+65C64 (CPP65Generator.txt, IR.txt).  Written 2026-10-25; nothing here is built yet.
+Decisions marked QUESTION are the user's to make; each has a recommendation.
+
+
+Why the W65C816 is a poor fit for C++
+-------------------------------------
+
+C++ (and C) compilers assume things the W65C816 doesn't have:
+
+- One accumulator.  A, X and Y are not general registers: arithmetic is only in A, X and
+  Y only count, index and compare.  Every binary operation is load A, operate with
+  memory, store A.
+- 16 bits at most.  int, long, pointers and size_t of 32 bits are two operations each,
+  with the carry between them.  No multiply or divide at all.
+- Mode bits.  A is 8 or 16 bits (m) and X/Y 8 or 16 bits (x).  An immediate's size
+  depends on the mode at that point, so the assembler must know it, and code that
+  mixes char and int switches modes with rep and sep.
+- Banks.  Addresses are 24 bits but the program counter wraps within its 64KB bank, a 16
+  bit add doesn't carry into the bank byte, the stack and direct page are in bank 0,
+  and absolute data addressing uses the data bank register (DBR).
+- No 24 bit pointer register.  A far pointer can only be followed through direct page
+  ([d] and [d],y) or with long absolute addresses fixed at assembly time.
+- Signed comparison: cmp doesn't set v, so signed < needs sbc and the n xor v trick.
+- No indirect long call.  There is jml [a] (from a fixed bank 0 address) but no jsl
+  through a pointer, so function pointers and virtual calls need a trick.
+- Interrupts can arrive in any mode with any D and DBR.
+
+The 65C64 was designed as a C++ target (32 bit registers, pseudo registers, mul and div),
+so the generator's direct path doesn't translate.  The IR path does: its instructions are
+target independent, and everything above is the back end's (and the linker's) problem.
+
+
+What is kept
+------------
+
+- The parser, preprocessor and all of the generator's C++ (CCPP65Generator: types,
+  classes, templates, overloads, conversions, temporaries, destructors, vtables,
+  mangling, init/fini tables).
+- The IR (IR*.cpp): types already include i8 and i16, address spaces (far, near, zero)
+  and ptradd inbank were put in for this target (IR.txt "W65C816").
+- The mid level passes: CIROptimiser, CIRInliner, CIRLiveness (not 65C64 specific).
+- The object format, linker and library (CAsm65Object, CAsm65Linker, CAsm65Library):
+  sections, symbols, relocations, dead section removal and COMDAT have no 65C64 in them.
+- Libc65's C sources, including softfloat.cpp (the bit exact C reference) and string.cpp.
+- CFast65C816 (fast emulator) and CW65C816 (cycle exact simulator) to run and cross check.
+- The test corpus: TestIR65Backend's IR programs, the TestCPP65 projects (MD5, sorts,
+  MersenneTwister, FloatHelper, SQuaternion), TestLibc65, TestBaseLib65, TestStandardLib65.
+
+What is not kept: the generator's direct path (about 280 places write 65C64 instructions
+inline) and CIR65Backend.  The W65C816 goes through the IR only: a function the IR front
+end can't write is an error on this target ("... is not supported on the W65C816 yet").
+That makes the IR front end's remaining 3.3% (arguments needing copy constructors,
+temporaries with destructors, operators on objects, new[] with destructors, &f, member
+pointers) part of this work, which is also IR.txt step 7 (remove the direct path).
+
+Another Claude session is removing the generator's direct code now (2026-10-25), so
+closing those gaps is its work, not this plan's.  This plan waits for it where it
+touches the generator (see Order of work).
+
+
+Proposed model (the "large model", like WDC's -DLARGE)
+------------------------------------------------------
+
+Types (QUESTION 1):
+
+	char 8, short 16, int 16, long 32, long long 64, float 32, double 64
+	pointers, function pointers, size_t, ptrdiff_t: 32 (24 bit address, top byte 0)
+
+int 16 is what the hardware is; 32 would make every int operation two.  But BaseLib and
+StandardLib were written with 32 bit int, and some code may keep values over 32767 in an
+int.  Recommendation: the sizes come from a target description (needed anyway), int is
+16 by default and a target option makes it 32, so a failing BaseLib test can be checked
+both ways.  size_t is 32 because BaseLib's size and malloc need more than 64KB.
+Libc65's stdint.h/stddef.h/limits.h become per target (int32_t is long here).
+
+Code and calls (v1): every function is called with jsl and returns with rtl, and globals
+are reached with long addresses (lda $123456 / lda $123456,x).  DBR isn't used, so it
+doesn't matter what an interrupt or mvn leaves in it.  The user's earlier ruling (near
+calls inside a linker object, far at its boundaries) is v2: once it all works, calls
+within an object become jsr / rts (the linker already keeps an object's code in one
+bank) and an object's own globals become DBR relative.  The user (2026-10-25): "Start
+with large data, far calls.  We'll try and compile to an automatic mixed model": the
+compiler and linker choose near or far for each call and each piece of data themselves,
+so v1 is all far and the mixed model is the goal of step 7.
+
+Frame (QUESTION 3): the direct page is the frame.  A function's prologue is
+
+		phd						; the caller's D
+		tsc
+		sec
+		sbc #frame size
+		tcs
+		tcd						; D = S: locals are d, the arguments are above them
+
+and its epilogue the reverse then rtl.  Locals, spilled temporaries and the arguments
+(above the saved D and the 3 byte return address) are all direct page operands, so:
+
+- a far pointer in a local is followed directly: lda [p],y (no copying it somewhere first)
+- every addressing mode works on them: inc d, asl d, bit d, adc (d),y, pei (d) to push one
+- each function has its own D, so pseudo registers need no saving across calls, and an
+  interrupt's C handler sets its own D (the start up's IRQ stub problem goes away)
+
+Costs: about 20 cycles of prologue and epilogue, a cycle more per direct page access when
+the frame isn't page aligned (DL != 0), and frames over 256 bytes need their far part
+addressed through a pointer.  The alternative is a fixed direct page of pseudo registers
+(callee saved, as the 65C64's [$80 + W]) with locals stack relative (d,s): cheaper calls,
+but d,s only works with lda/sta/adc/and/cmp/eor/ora/sbc and (d,s),y is near only, so far
+pointers in locals would always be copied to the direct page first.  Recommendation: the
+frame as direct page (as far as I know WDC's compiler does the same).
+
+Calling convention:
+
+- m and x are 16 bit (rep #$30) on entry and exit of every function, and at labels.
+- Arguments are pushed last first, each in 16 bit units (a char takes 2), and the caller
+  removes them.  Constants push with pea, direct page values with pei.
+- Results: 8 and 16 bit in A, 32 bit and pointers in A (low) and X (high), 64 bit and
+  objects through a hidden pointer as on the 65C64.
+- this is the first argument (pushed last).
+- Variadic arguments as on the 65C64 (float as double); va_arg stays Libc65's macro.
+- A, X, Y and the flags may change; D, DBR, S and the mode are kept.
+
+Pointers: far (4 bytes, 24 bit address, top byte 0).  The user (2026-10-25): far pointers
+are stored in 32 bits with the top 8 bits ignored, so as not to switch between 8 and 16
+bit mode; they are loaded and stored as two 16 bit words.  The compiler keeps the top
+byte 0 so == and != need no mask (Assembler816Syntax.txt rulings).  Following one: put it in the frame
+(it usually already is) and use [d] / [d],y.  The address of a local is bank 0: D + offset.
+A ptradd is 24 bit (adc low 16, then adc #0 on the bank byte) unless inbank, then 16 bit.
+Later (v2) the near and zero address spaces let a pass make pointers 16 bit where it can
+show where they point.
+
+Indirect calls (function pointers, virtual calls): there is no jsl through a pointer, so
+push the return address and the target, then rtl:
+
+		phk						; return bank
+		per Return - 1			; return offset
+		(push target bank, push target offset - 1)
+		rtl						; "returns" into the target
+	Return:
+
+or a runtime routine R_CallFar that does the same.  Vtables hold 4 byte entries.
+
+Runtime (W65C816 assembly, R_ names as now): 16 and 32 bit multiply, unsigned and signed
+divide and remainder, 32 bit shifts by a variable, 64 bit operations, R_CallFar, memcpy
+and memset (mvn needs its banks in the instruction: a byte loop through [d],y first, mvn
+from code written into RAM later).  Floats: softfloat.cpp compiled for the W65C816 first
+(correct, slow); a hand written softfloat816.asm later, as softfloat.asm was for the
+65C64.
+
+
+Steps
+-----
+
+Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regress.
+
+1.	A target description.  CCPPTarget (in CppParserLib) holds what is target specific
+	outside the back end: type sizes (CPP65Type's 4s become the target's), predefined
+	macros (__W65C816__), the ABI's few places in the IR front end (narrow results
+	widen to int, which is i32 on the 65C64 and i16 here), how data is written (.long
+	for a pointer becomes the target's), the start up, thunks and runtime routines.  The
+	65C64 is the first CCPPTarget and produces exactly the same assembly as now.
+	Libc65's headers get __W65C816__ blocks.
+
+2.	A W65C816 assembler (Assembler65Lib, CAsm816Assembler: WDC's syntax, QUESTION 4)
+	writing the same CAsm65Object.  Relocations gain a shift so a field can be the bank
+	byte (^label) and a check that a 16 bit address is in the bank it is used in.  The
+	assembler tracks m and x from directives (.a8 .a16 .i8 .i16, or LONGA/LONGI) to size
+	immediates, and warns when rep/sep and the directives disagree.  The linker learns
+	bank placement: a section never crosses a bank, sections can be pinned to bank 0
+	(vectors, start up, interrupt stubs), and the image can have a load address that
+	differs from the run address (for the ROM machine, step 8).  Tests: encoding of
+	every opcode and mode (checked against CW65C816's instruction table), and a few of
+	Assembler65Lib's feature programs rewritten for the W65C816 (Sieve, Queens, Base64),
+	run on CFast65C816.
+
+3.	A test context: CAsm816Memory (a flat 16MB for tests, CFast65C816 behind it, host
+	files and results as CAsm65Memory has them), a start up for tests, and lockstep with
+	CW65C816 for compiled programs as Asm65Lockstep does for the 65C64.
+
+4.	CIR816Backend, naive: every temporary in the frame, every operation through A at 16
+	bits, i32 and i64 split into 16 bit pieces by a legalisation pass, mul/div/float as
+	runtime calls, rep/sep only around 8 bit loads and stores, signed comparisons with
+	sbc and n xor v, far pointers through [d],y.  What both back ends share (block order
+	and loop rotation, phi copies as parallel copies, frame layout, assembly text) moves
+	into a common CIRBackend rather than being copied.  Tested with TestIR65Backend's IR
+	programs, which are target independent IR: the same programs run on both targets
+	and must give the same results (TestIR816Backend).
+
+5.	C++ end to end: the runtime routines, the start up, Libc65 for the W65C816
+	(softfloat.cpp, string.cpp, stdlib.cpp...) and closing the IR front end's gaps.
+	Then the TestCPP65 projects and TestLibc65 run on the W65C816, compared with the
+	65C64 and native results.
+
+6.	TestBaseLib65 and TestStandardLib65 on the W65C816.  This is where int 16 meets
+	BaseLib (QUESTION 1).
+
+7.	Make it fast, measured with CFast65C816 cycle counts of the runnable projects:
+	- register allocation over A, X and Y (loop counters and indexes in X/Y) with the
+	  frame as the second class
+	- keeping m and x where they are and removing rep/sep pairs; 8 bit arithmetic for
+	  char values instead of widening
+	- near calls inside an object (jsr), DBR relative globals, near and zero pointers
+	  where a pass can prove them, inbank ptradds
+	- inc/dec/asl/lsr/rol/ror and stz on memory, pei/pea, bit, trb/tsb, mvn
+	- softfloat816.asm and string816.asm
+	- a fixed page for leaf functions without a prologue
+	QUESTION 2 decides the order.
+
+8.	The real machine: a memory map description (ROM and RAM regions, load and run
+	addresses, the bank swap), a ROM image as the link output, a start up in the
+	style of the user's startup.asm (copy, swap, zero bss, stack, D, DBR, call main),
+	C interrupt handlers (__attribute__((interrupt)): save registers, set the mode and
+	D, rti), and the emulator modelling the swap (see the memory notes).
+
+
+Order of work
+-------------
+
+Steps 2, 3 and 4 don't touch the generator: the assembler and linker are in
+Assembler65Lib, the test context is new, and CIR816Backend is tested with IR programs.
+So they come first, while the other session removes the direct path.  Step 1 edits
+the generator (CPP65Type's sizes, data, start up, thunks, runtime) and the IR front end
+(the ABI's places), so it waits until that work is committed, or is agreed with that
+session first.  Step 5 needs both.  Before editing CPP65Generator*, CPP65Type* or
+CPP65IRFrontEnd*, check git status and ListAgents.
+
+
+Testing throughout
+------------------
+
+- IR programs: the same text on both targets, results compared.
+- C++ projects and the library suites: the same source natively, on the 65C64 and on
+  the W65C816, results compared bit for bit (as FloatHelper and SQuaternion are now).
+- Lockstep: compiled programs run on CFast65C816 and CW65C816 together for a while, so a
+  difference between the emulator and the simulator shows up as soon as it happens.
+- Cycle counts of the projects after each change in step 7, kept in a table.
+
+
+Questions for the user
+----------------------
+
+1.	Answered (2026-10-25): int is 16 bits; "to get a 32 bit int explicitly declare it as
+	an int32" (int32_t / int32 are long).  No 32 bit int option.
+2.	Answered (2026-10-25): large data, far calls first; then an automatic mixed model.
+3.	Answered (2026-10-25): "Which ever will optimise for speed, probably Direct page =
+	frame".  The direct page frame first; step 7 measures the other where it may win
+	(leaf functions).
+4.	Answered (2026-10-25): Assembler65Lib's style.

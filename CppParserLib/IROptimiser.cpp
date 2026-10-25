@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/IntegerHelper.h"
 #include "IROptimiser.h"
 
 
@@ -47,6 +48,7 @@ void CIROptimiser::Init(CIRModule* pcModule)
 	maiChildren.Init();
 	maiChildStarts.Init();
 	mapsDefinitions.Init();
+	mapsPhis.Init();
 	masArgAddresses.Init();
 }
 
@@ -58,6 +60,7 @@ void CIROptimiser::Init(CIRModule* pcModule)
 void CIROptimiser::Kill(void)
 {
 	masArgAddresses.Kill();
+	mapsPhis.Kill();
 	mapsDefinitions.Kill();
 	maiChildStarts.Kill();
 	maiChildren.Kill();
@@ -231,7 +234,7 @@ bool CIROptimiser::SimplifyCFG(void)
 	{
 		mpcFunction->Renumber();
 		mpcFunction->ComputePredecessors();
-		bChanged = RemoveUnreachable() || FoldBranches() || SkipEmptyBlocks() || ThreadBranches() || JoinBlocks();
+		bChanged = RemoveUnreachable() || FoldBranches() || SkipEmptyBlocks() || ThreadBranches() || DuplicateReturns() || JoinBlocks();
 		bAny |= bChanged;
 	} while (bChanged);
 	ApplyReplacements();
@@ -311,6 +314,26 @@ void CIROptimiser::RedirectJump(CIRBlock* pcBlock, CIRBlock* pcOld, CIRBlock* pc
 	{
 		pcBlock->Jump(pcBlock->msJump.pcThen);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcPredecessor jumps straight to pcTarget instead of through pcBlock,
+// passing pcTarget's phis what pcBlock did.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::Bypass(CIRBlock* pcPredecessor, CIRBlock* pcBlock, CIRBlock* pcTarget)
+{
+	size			uiPhi;
+	SIRPhiArgument*	psArgument;
+
+	for (uiPhi = 0; uiPhi < pcTarget->masPhis.NumElements(); uiPhi++)
+	{
+		psArgument = pcTarget->FindPhiArgument(pcTarget->masPhis.Get(uiPhi), pcBlock);
+		pcTarget->AddPhiArgument(pcTarget->masPhis.Get(uiPhi), pcPredecessor, psArgument ? psArgument->sValue : IRNone());
+	}
+	RedirectJump(pcPredecessor, pcBlock, pcTarget);
 }
 
 
@@ -403,12 +426,9 @@ bool CIROptimiser::SkipEmptyBlocks(void)
 {
 	size			ui;
 	size			uiPredecessor;
-	size			uiPhi;
 	CIRBlock*		pcBlock;
 	CIRBlock*		pcTarget;
 	CIRBlock*		pcPredecessor;
-	SIRPhiArgument*	psArgument;
-	SIRReference	sValue;
 	bool			bChanged;
 
 	for (ui = 1; ui < mpcFunction->NumBlocks(); ui++)
@@ -428,13 +448,7 @@ bool CIROptimiser::SkipEmptyBlocks(void)
 			{
 				continue;
 			}
-			for (uiPhi = 0; uiPhi < pcTarget->masPhis.NumElements(); uiPhi++)
-			{
-				psArgument = pcTarget->FindPhiArgument(pcTarget->masPhis.Get(uiPhi), pcBlock);
-				sValue = psArgument ? psArgument->sValue : IRNone();
-				pcTarget->AddPhiArgument(pcTarget->masPhis.Get(uiPhi), pcPredecessor, sValue);
-			}
-			RedirectJump(pcPredecessor, pcBlock, pcTarget);
+			Bypass(pcPredecessor, pcBlock, pcTarget);
 			bChanged = true;
 		}
 		if (bChanged)
@@ -464,7 +478,7 @@ int CIROptimiser::KnownCondition(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIR
 	size		ui;
 	SIRJump*	psJump;
 
-	for (ui = 0; ui < 8; ui++)
+	for (ui = 0; ui < IR_KNOWN_DEPTH; ui++)
 	{
 		psJump = &pcPredecessor->msJump;
 		if ((psJump->uiKind == IRJ_Branch) && psJump->sArgument.Equals(sCondition) && (psJump->pcThen != psJump->pcElse))
@@ -495,12 +509,10 @@ bool CIROptimiser::ThreadBranches(void)
 {
 	size			ui;
 	size			uiPredecessor;
-	size			uiPhi;
 	int				iKnown;
 	CIRBlock*		pcBlock;
 	CIRBlock*		pcTarget;
 	CIRBlock*		pcPredecessor;
-	SIRPhiArgument*	psArgument;
 	bool			bChanged;
 
 	for (ui = 1; ui < mpcFunction->NumBlocks(); ui++)
@@ -529,17 +541,79 @@ bool CIROptimiser::ThreadBranches(void)
 			{
 				continue;
 			}
-			for (uiPhi = 0; uiPhi < pcTarget->masPhis.NumElements(); uiPhi++)
-			{
-				psArgument = pcTarget->FindPhiArgument(pcTarget->masPhis.Get(uiPhi), pcBlock);
-				pcTarget->AddPhiArgument(pcTarget->masPhis.Get(uiPhi), pcPredecessor, psArgument ? psArgument->sValue : IRNone());
-			}
-			RedirectJump(pcPredecessor, pcBlock, pcTarget);
+			Bypass(pcPredecessor, pcBlock, pcTarget);
 			bChanged = true;
 		}
 		if (bChanged)
 		{
 			//RemoveUnreachable takes pcBlock out if nothing goes to it now.
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A block with nothing in it but phis and a ret is copied into each
+// predecessor that just jumps to it: that one returns what it would have
+// passed to the phi, so no copy is made to the phi's home on the way.
+// Returns true after the first block that changes.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::DuplicateReturns(void)
+{
+	size			ui;
+	size			uiPredecessor;
+	size			uiPhi;
+	CIRBlock*		pcBlock;
+	CIRBlock*		pcPredecessor;
+	SIRPhi*			psPhi;
+	SIRPhiArgument*	psArgument;
+	SIRReference	sValue;
+	bool			bChanged;
+
+	for (ui = 1; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		if ((pcBlock->msJump.uiKind != IRJ_Return) || (pcBlock->masInstructions.NumElements() != 0))
+		{
+			continue;
+		}
+
+		//The phi the ret returns, if it returns one of the block's.
+		psPhi = NULL;
+		for (uiPhi = 0; uiPhi < pcBlock->masPhis.NumElements(); uiPhi++)
+		{
+			if (pcBlock->masPhis.Get(uiPhi)->sResult.Equals(pcBlock->msJump.sArgument))
+			{
+				psPhi = pcBlock->masPhis.Get(uiPhi);
+			}
+		}
+
+		bChanged = false;
+		for (uiPredecessor = 0; uiPredecessor < pcBlock->mapcPredecessors.NumElements(); uiPredecessor++)
+		{
+			pcPredecessor = pcBlock->mapcPredecessors.GetPtr(uiPredecessor);
+			if ((pcPredecessor == pcBlock) || (pcPredecessor->msJump.uiKind != IRJ_Jump))
+			{
+				continue;
+			}
+			sValue = pcBlock->msJump.sArgument;
+			if (psPhi)
+			{
+				psArgument = pcBlock->FindPhiArgument(psPhi, pcPredecessor);
+				sValue = psArgument ? psArgument->sValue : IRNone();
+			}
+			pcPredecessor->Return(pcBlock->msJump.sType, sValue);
+			RemovePhiArguments(pcBlock, pcPredecessor);
+			bChanged = true;
+		}
+		if (bChanged)
+		{
+			//RemoveUnreachable takes the block out if nothing goes to it now.
+			mpcFunction->ComputePredecessors();
 			return true;
 		}
 	}
@@ -1446,7 +1520,11 @@ bool CIROptimiser::Fold(SIRInstruction* psInstruction, uint64* pulliResult)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Instructions of constants are their constant results.
+// Instructions of constants are their constant results, and so are
+// comparisons a branch on the way in decides (ImpliedComparison); x * 2^n,
+// unsigned x / 2^n and x % 2^n are shifts and ands; comparisons of
+// extended values are narrowed (NarrowComparison) and extensions that are
+// undone go (UndoesExtension, ConvertPhi).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::FoldConstants(void)
@@ -1457,12 +1535,14 @@ bool CIROptimiser::FoldConstants(void)
 	SIRInstruction*	psInstruction;
 	uint64			ulliResult;
 	SIRType			sResultType;
+	SIRReference	sValue;
 	bool			bChanged;
 	int				iShift;
 
 	ClearReplacements();
 	FindDefinitions();
 	mpcFunction->ComputePredecessors();
+	mpcFunction->CountUses(&mauiUses);
 	bChanged = false;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
@@ -1482,19 +1562,33 @@ bool CIROptimiser::FoldConstants(void)
 				Replace(psInstruction->sResult, mpcFunction->AddConstant(sResultType, ulliResult));
 				bChanged = true;
 			}
-			else if ((psInstruction->uiOpcode == IRO_Mul) && psInstruction->asArguments[1].IsConstant())
+			else if (UndoesExtension(psInstruction, &sValue) || ConvertPhi(psInstruction, &sValue))
 			{
-				//x * 2^n is x << n.
-				ulliResult = mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits;
+				//The value's uses go up by the result's (ConvertPhi mustn't change a phi something else now uses).
+				Replace(psInstruction->sResult, sValue);
+				if (sValue.IsTemporary() && psInstruction->sResult.IsTemporary())
+				{
+					*mauiUses.Get(sValue.Index()) += *mauiUses.Get(psInstruction->sResult.Index());
+				}
+				bChanged = true;
+			}
+			else if (((psInstruction->uiOpcode == IRO_Mul) || (psInstruction->uiOpcode == IRO_UDiv) || (psInstruction->uiOpcode == IRO_URem)) && psInstruction->asArguments[1].IsConstant())
+			{
+				//x * 2^n is x << n; unsigned x / 2^n is x >> n and x % 2^n is x & (2^n - 1).
+				ulliResult = IRTruncate(psInstruction->sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
 				if ((ulliResult > 1) && ((ulliResult & (ulliResult - 1)) == 0))
 				{
-					iShift = 0;
-					while ((((uint64)1) << iShift) != ulliResult)
+					iShift = (int)FindFirstSetBit(ulliResult);
+					if (psInstruction->uiOpcode == IRO_URem)
 					{
-						iShift++;
+						psInstruction->uiOpcode = IRO_And;
+						psInstruction->asArguments[1] = mpcFunction->AddInteger(psInstruction->sType, (int64)(ulliResult - 1));
 					}
-					psInstruction->uiOpcode = IRO_Shl;
-					psInstruction->asArguments[1] = mpcFunction->AddInteger(psInstruction->sType, iShift);
+					else
+					{
+						psInstruction->uiOpcode = (psInstruction->uiOpcode == IRO_Mul) ? IRO_Shl : IRO_LShr;
+						psInstruction->asArguments[1] = mpcFunction->AddInteger(psInstruction->sType, iShift);
+					}
 					bChanged = true;
 				}
 			}
@@ -1508,12 +1602,178 @@ bool CIROptimiser::FoldConstants(void)
 }
 
 
+#define IR_EXTENDED_DEPTH	6
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if psInstruction gives back a value it was made from: a trunc of an
+// extension of a value of the trunc's type, or a sext (zext) of a trunc of
+// a value already sign (zero) extended from the trunc's width (Extended).
+// *psValue is that value.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::UndoesExtension(SIRInstruction* psInstruction, SIRReference* psValue)
+{
+	SIRInstruction*	psDefinition;
+	SIRType			sResultType;
+	SIRReference	sInner;
+
+	if (!IsIRIntegerConversion(psInstruction->uiOpcode) || !psInstruction->sResult.IsTemporary())
+	{
+		return false;
+	}
+	psDefinition = Definition(psInstruction->asArguments[0]);
+	if (psDefinition == NULL)
+	{
+		return false;
+	}
+	sResultType = mpcFunction->GetTemporaryType(psInstruction->sResult);
+	sInner = psDefinition->asArguments[0];
+	if (!sResultType.IsInteger() || !mpcFunction->TypeOf(sInner).Equals(sResultType))
+	{
+		return false;
+	}
+	if (psInstruction->uiOpcode == IRO_Trunc)
+	{
+		if ((psDefinition->uiOpcode != IRO_SExt) && (psDefinition->uiOpcode != IRO_ZExt))
+		{
+			return false;
+		}
+	}
+	else if ((psDefinition->uiOpcode != IRO_Trunc) || !Extended(sInner, mpcFunction->TypeOf(psInstruction->asArguments[0]).IntegerBits(), psInstruction->uiOpcode == IRO_SExt, 0))
+	{
+		return false;
+	}
+	*psValue = sInner;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A sext, zext or trunc of a phi of constants that nothing else uses
+// changes the phi into one of the converted constants (so a ret of it can
+// go to each predecessor: DuplicateReturns).  *psValue is the phi.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::ConvertPhi(SIRInstruction* psInstruction, SIRReference* psValue)
+{
+	SIRPhi*			psPhi;
+	SIRPhiArgument*	psArgument;
+	SIRConstant*	psConstant;
+	SIRType			sResultType;
+	uint64			ulliBits;
+	size			ui;
+
+	if (!IsIRIntegerConversion(psInstruction->uiOpcode) || !psInstruction->sResult.IsTemporary() || !psInstruction->asArguments[0].IsTemporary() || (psInstruction->asArguments[0].Index() >= mapsPhis.NumElements()))
+	{
+		return false;
+	}
+	psPhi = *mapsPhis.Get(psInstruction->asArguments[0].Index());
+	sResultType = mpcFunction->GetTemporaryType(psInstruction->sResult);
+	if ((psPhi == NULL) || !psPhi->sType.IsInteger() || !sResultType.IsInteger() || (*mauiUses.Get(psPhi->sResult.Index()) != 1))
+	{
+		return false;
+	}
+	for (ui = 0; ui < psPhi->asArguments.NumElements(); ui++)
+	{
+		if (!psPhi->asArguments.Get(ui)->sValue.IsConstant())
+		{
+			return false;
+		}
+	}
+
+	for (ui = 0; ui < psPhi->asArguments.NumElements(); ui++)
+	{
+		psArgument = psPhi->asArguments.Get(ui);
+		psConstant = mpcFunction->GetConstant(psArgument->sValue);
+		ulliBits = (psInstruction->uiOpcode == IRO_SExt) ? (uint64)IRSignExtend(psConstant->sType, psConstant->ulliBits) : IRTruncate(psConstant->sType, psConstant->ulliBits);
+		psArgument->sValue = mpcFunction->AddConstant(sResultType, IRTruncate(sResultType, ulliBits));
+	}
+	psPhi->sType = sResultType;
+	mpcFunction->SetTemporaryType(psPhi->sResult, sResultType);
+	*mauiUses.Get(psPhi->sResult.Index()) = 0;
+	*psValue = psPhi->sResult;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if sValue is the sign (bSigned) or zero extension of its low iBits:
+// a constant that fits, an extension from no more bits (a zext from fewer
+// for signed), an and with a mask that fits, or a phi of such.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::Extended(SIRReference sValue, int iBits, bool bSigned, int iDepth)
+{
+	SIRConstant*	psConstant;
+	SIRInstruction*	psDefinition;
+	SIRPhi*			psPhi;
+	int64			lliValue;
+	int				iFrom;
+	size			ui;
+
+	if ((iBits <= 0) || (iBits >= 64))
+	{
+		return false;
+	}
+	if (sValue.IsConstant())
+	{
+		psConstant = mpcFunction->GetConstant(sValue);
+		if (bSigned)
+		{
+			lliValue = IRSignExtend(psConstant->sType, psConstant->ulliBits);
+			return (lliValue >= -(((int64)1) << (iBits - 1))) && (lliValue < (((int64)1) << (iBits - 1)));
+		}
+		return IRTruncate(psConstant->sType, psConstant->ulliBits) < (((uint64)1) << iBits);
+	}
+	if (!sValue.IsTemporary() || (iDepth > IR_EXTENDED_DEPTH))
+	{
+		return false;
+	}
+	psDefinition = Definition(sValue);
+	if (psDefinition)
+	{
+		iFrom = mpcFunction->TypeOf(psDefinition->asArguments[0]).IntegerBits();
+		switch (psDefinition->uiOpcode)
+		{
+		case IRO_SExt:
+			return bSigned && (iFrom > 0) && (iFrom <= iBits);
+		case IRO_ZExt:
+			return (iFrom > 0) && (bSigned ? (iFrom < iBits) : (iFrom <= iBits));
+		case IRO_And:
+			return psDefinition->asArguments[1].IsConstant() && Extended(psDefinition->asArguments[1], bSigned ? iBits - 1 : iBits, false, iDepth + 1);
+		default:
+			return false;
+		}
+	}
+	psPhi = (sValue.Index() < mapsPhis.NumElements()) ? *mapsPhis.Get(sValue.Index()) : NULL;
+	if (psPhi == NULL)
+	{
+		return false;
+	}
+	for (ui = 0; ui < psPhi->asArguments.NumElements(); ui++)
+	{
+		if (!Extended(psPhi->asArguments.Get(ui)->sValue, iBits, bSigned, iDepth + 1))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
 //What each integer comparison (from IRO_Eq) says of its left operand against its right: IR_REL_LESS, _EQUAL and
 //_GREATER; and whether it is signed (1), unsigned (2) or either (0).
 #define IR_REL_LESS		1
 #define IR_REL_EQUAL	2
 #define IR_REL_GREATER	4
-static int	gaiIRRelations[] =		{ 2, 5, 1, 3, 4, 6, 1, 3, 4, 6 };
+#define IR_REL_ALL		(IR_REL_LESS | IR_REL_EQUAL | IR_REL_GREATER)
+static int	gaiIRRelations[] =		{ IR_REL_EQUAL, IR_REL_LESS | IR_REL_GREATER,
+									  IR_REL_LESS, IR_REL_LESS | IR_REL_EQUAL, IR_REL_GREATER, IR_REL_GREATER | IR_REL_EQUAL,
+									  IR_REL_LESS, IR_REL_LESS | IR_REL_EQUAL, IR_REL_GREATER, IR_REL_GREATER | IR_REL_EQUAL };
 static int	gaiIRSignedness[] =		{ 0, 0, 1, 1, 1, 1, 2, 2, 2, 2 };
 
 
@@ -1530,6 +1790,50 @@ static int IROptimiserSwapRelations(int iRelations)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What pcPredecessor's branch into pcBlock says of psInstruction's operands
+// (IR_REL_ bits), if it branches on a comparison of them of the same type
+// and signedness; -1 if it doesn't.
+//
+//////////////////////////////////////////////////////////////////////////
+int CIROptimiser::EntryRelations(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIRInstruction* psInstruction)
+{
+	SIRJump*			psJump;
+	SIRInstruction*		psKnown;
+	int					iKnown;
+	int					iSigned;
+	int					iKnownSigned;
+
+	psJump = &pcPredecessor->msJump;
+	psKnown = ((psJump->uiKind == IRJ_Branch) && (psJump->pcThen != psJump->pcElse)) ? Definition(psJump->sArgument) : NULL;
+	if (!psKnown || !IsIRIntegerComparison(psKnown->uiOpcode) || !psKnown->sType.Equals(psInstruction->sType))
+	{
+		return -1;
+	}
+	iSigned = gaiIRSignedness[psInstruction->uiOpcode - IRO_Eq];
+	iKnownSigned = gaiIRSignedness[psKnown->uiOpcode - IRO_Eq];
+	if ((iSigned != 0) && (iKnownSigned != 0) && (iSigned != iKnownSigned))
+	{
+		return -1;
+	}
+
+	if (psKnown->asArguments[0].Equals(psInstruction->asArguments[0]) && psKnown->asArguments[1].Equals(psInstruction->asArguments[1]))
+	{
+		iKnown = gaiIRRelations[psKnown->uiOpcode - IRO_Eq];
+	}
+	else if (psKnown->asArguments[0].Equals(psInstruction->asArguments[1]) && psKnown->asArguments[1].Equals(psInstruction->asArguments[0]))
+	{
+		iKnown = IROptimiserSwapRelations(gaiIRRelations[psKnown->uiOpcode - IRO_Eq]);
+	}
+	else
+	{
+		return -1;
+	}
+	return (psJump->pcElse == pcBlock) ? (IR_REL_ALL & ~iKnown) : iKnown;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // An integer comparison in pcBlock that a branch on the way in (along
 // single predecessors) already decides is a constant (returns true with
 // *pulliResult); one it narrows to eq or ne is changed into that (*pbChanged
@@ -1540,8 +1844,6 @@ bool CIROptimiser::ImpliedComparison(CIRBlock* pcBlock, SIRInstruction* psInstru
 {
 	size				ui;
 	CIRBlock*			pcPredecessor;
-	SIRJump*			psJump;
-	SIRInstruction*		psKnown;
 	int					iKnown;
 	int					iWanted;
 	uint16				uiOpcode;
@@ -1551,61 +1853,45 @@ bool CIROptimiser::ImpliedComparison(CIRBlock* pcBlock, SIRInstruction* psInstru
 		return false;
 	}
 	iWanted = gaiIRRelations[psInstruction->uiOpcode - IRO_Eq];
-	for (ui = 0; ui < 8; ui++)
+	for (ui = 0; ui < IR_KNOWN_DEPTH; ui++)
 	{
 		if ((pcBlock == mpcFunction->GetEntry()) || (pcBlock->mapcPredecessors.NumElements() != 1))
 		{
 			return false;
 		}
 		pcPredecessor = pcBlock->mapcPredecessors.GetPtr(0);
-		psJump = &pcPredecessor->msJump;
-		psKnown = (psJump->uiKind == IRJ_Branch) && (psJump->pcThen != psJump->pcElse) ? Definition(psJump->sArgument) : NULL;
-		if (psKnown && IsIRIntegerComparison(psKnown->uiOpcode) && psKnown->sType.Equals(psInstruction->sType) &&
-			((gaiIRSignedness[psKnown->uiOpcode - IRO_Eq] == 0) || (gaiIRSignedness[psInstruction->uiOpcode - IRO_Eq] == 0) || (gaiIRSignedness[psKnown->uiOpcode - IRO_Eq] == gaiIRSignedness[psInstruction->uiOpcode - IRO_Eq])))
+		iKnown = EntryRelations(pcPredecessor, pcBlock, psInstruction);
+		if (iKnown < 0)
 		{
-			iKnown = -1;
-			if (psKnown->asArguments[0].Equals(psInstruction->asArguments[0]) && psKnown->asArguments[1].Equals(psInstruction->asArguments[1]))
-			{
-				iKnown = gaiIRRelations[psKnown->uiOpcode - IRO_Eq];
-			}
-			else if (psKnown->asArguments[0].Equals(psInstruction->asArguments[1]) && psKnown->asArguments[1].Equals(psInstruction->asArguments[0]))
-			{
-				iKnown = IROptimiserSwapRelations(gaiIRRelations[psKnown->uiOpcode - IRO_Eq]);
-			}
-			if (iKnown >= 0)
-			{
-				if (psJump->pcElse == pcBlock)
-				{
-					iKnown = (IR_REL_LESS | IR_REL_EQUAL | IR_REL_GREATER) & ~iKnown;
-				}
-				if ((iKnown & ~iWanted) == 0)
-				{
-					*pulliResult = 1;
-					return true;
-				}
-				if ((iKnown & iWanted) == 0)
-				{
-					*pulliResult = 0;
-					return true;
-				}
-				uiOpcode = psInstruction->uiOpcode;
-				if ((iKnown & iWanted) == (iKnown & IR_REL_EQUAL))
-				{
-					uiOpcode = IRO_Eq;
-				}
-				else if ((iKnown & iWanted) == (iKnown & (IR_REL_LESS | IR_REL_GREATER)))
-				{
-					uiOpcode = IRO_Ne;
-				}
-				if (uiOpcode != psInstruction->uiOpcode)
-				{
-					psInstruction->uiOpcode = uiOpcode;
-					*pbChanged = true;
-				}
-				return false;
-			}
+			pcBlock = pcPredecessor;
+			continue;
 		}
-		pcBlock = pcPredecessor;
+
+		if ((iKnown & ~iWanted) == 0)
+		{
+			*pulliResult = 1;
+			return true;
+		}
+		if ((iKnown & iWanted) == 0)
+		{
+			*pulliResult = 0;
+			return true;
+		}
+		uiOpcode = psInstruction->uiOpcode;
+		if ((iKnown & iWanted) == (iKnown & IR_REL_EQUAL))
+		{
+			uiOpcode = IRO_Eq;
+		}
+		else if ((iKnown & iWanted) == (iKnown & (IR_REL_LESS | IR_REL_GREATER)))
+		{
+			uiOpcode = IRO_Ne;
+		}
+		if (uiOpcode != psInstruction->uiOpcode)
+		{
+			psInstruction->uiOpcode = uiOpcode;
+			*pbChanged = true;
+		}
+		return false;
 	}
 	return false;
 }
@@ -1701,7 +1987,8 @@ bool CIROptimiser::RemoveCommonSubexpressions(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Each temporary's defining instruction (mapsDefinitions), NULL for
-// parameters and phis, and each parameter's first argaddr.
+// parameters and phis, its phi (mapsPhis), and each parameter's first
+// argaddr.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIROptimiser::FindDefinitions(void)
@@ -1710,15 +1997,23 @@ void CIROptimiser::FindDefinitions(void)
 	size			uiInstruction;
 	CIRBlock*		pcBlock;
 	SIRInstruction*	psInstruction;
+	SIRPhi*			psPhi;
 	size			uiParameter;
 
 	mapsDefinitions.FakeSetUsedElements(0);
 	mapsDefinitions.GrowToAtLeastNumElements(mpcFunction->NumTemporaries(), true, 0);
+	mapsPhis.FakeSetUsedElements(0);
+	mapsPhis.GrowToAtLeastNumElements(mpcFunction->NumTemporaries(), true, 0);
 	masArgAddresses.FakeSetUsedElements(0);
 	masArgAddresses.GrowToAtLeastNumElements(mpcFunction->masParameters.NumElements(), true, 0);
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = mpcFunction->GetBlock(ui);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masPhis.NumElements(); uiInstruction++)
+		{
+			psPhi = pcBlock->masPhis.Get(uiInstruction);
+			*mapsPhis.Get(psPhi->sResult.Index()) = psPhi;
+		}
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
@@ -1975,9 +2270,6 @@ bool CIROptimiser::RemoveRedundantLoads(void)
 SIRReference CIROptimiser::Unextended(SIRReference sValue, uint16 uiOpcode, SIRType* psType)
 {
 	SIRInstruction*	psDefinition;
-	SIRConstant*	psConstant;
-	uint64			ulliNarrow;
-	uint64			ulliWide;
 
 	psDefinition = Definition(sValue);
 	if (psDefinition)
@@ -1989,16 +2281,9 @@ SIRReference CIROptimiser::Unextended(SIRReference sValue, uint16 uiOpcode, SIRT
 		}
 		return IRNone();
 	}
-	if (sValue.IsConstant() && !psType->IsNone())
+	if (sValue.IsConstant() && !psType->IsNone() && Extended(sValue, psType->IntegerBits(), uiOpcode == IRO_SExt, 0))
 	{
-		psConstant = mpcFunction->GetConstant(sValue);
-		ulliNarrow = IRTruncate(*psType, psConstant->ulliBits);
-		ulliWide = (uiOpcode == IRO_SExt) ? (uint64)IRSignExtend(*psType, ulliNarrow) : ulliNarrow;
-		if (IRTruncate(psConstant->sType, ulliWide) != IRTruncate(psConstant->sType, psConstant->ulliBits))
-		{
-			return IRNone();
-		}
-		return mpcFunction->AddConstant(*psType, ulliNarrow);
+		return mpcFunction->AddConstant(*psType, IRTruncate(*psType, mpcFunction->GetConstant(sValue)->ulliBits));
 	}
 	return IRNone();
 }
@@ -2298,10 +2583,23 @@ bool CIROptimiser::SplitSlots(void)
 // comparisons and loads that aren't volatile.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IROptimiserHoistable(SIRInstruction* psInstruction)
+static bool IROptimiserHoistable(CIRFunction* pcFunction, SIRInstruction* psInstruction)
 {
+	uint64	ulliDivisor;
+
 	switch (psInstruction->uiOpcode)
 	{
+	case IRO_UDiv:
+	case IRO_URem:
+	case IRO_SDiv:
+	case IRO_SRem:
+		//Only by a constant that can't trap or overflow.
+		if (!psInstruction->asArguments[1].IsConstant() || !psInstruction->sResult.IsTemporary())
+		{
+			return false;
+		}
+		ulliDivisor = IRTruncate(psInstruction->sType, pcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
+		return (ulliDivisor != 0) && (ulliDivisor != IRTruncate(psInstruction->sType, (uint64)-1));
 	case IRO_Add:
 	case IRO_Sub:
 	case IRO_Mul:
@@ -2330,12 +2628,32 @@ static bool IROptimiserHoistable(SIRInstruction* psInstruction)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Loop invariant code motion: in a loop entered only from a block that just
-// jumps to its head, an instruction IROptimiserHoistable allows whose
-// operands are all worked out outside the loop moves to the end of that
-// block.  A load only moves if the loop makes no calls and stores nothing
-// that may be where it reads (see MayAlias).  Loads moved may be done when
-// the loop wouldn't have done them, which the 65C64 doesn't mind.
+// A block between pcEntering and the loop head pcHead, which pcEntering's
+// branch now goes to and which jumps to the head.
+//
+//////////////////////////////////////////////////////////////////////////
+CIRBlock* CIROptimiser::AddPreheader(CIRBlock* pcEntering, CIRBlock* pcHead)
+{
+	CIRBlock*	pcPreheader;
+
+	pcPreheader = mpcFunction->AddBlock();
+	pcPreheader->Jump(pcHead);
+	RedirectJump(pcEntering, pcHead, pcPreheader);
+	RenamePhiArguments(pcHead, pcEntering, pcPreheader);
+	mpcFunction->ComputePredecessors();
+	return pcPreheader;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Loop invariant code motion: in a loop entered from only one block, an
+// instruction IROptimiserHoistable allows whose operands are all worked out
+// outside the loop moves to the end of that block (or of a block put on its
+// way to the head, when it branches: AddPreheader).  A load only moves if
+// the loop makes no calls and stores nothing that may be where it reads
+// (see MayAlias).  Loads moved may be done when the loop wouldn't have done
+// them, which the 65C64 doesn't mind.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::HoistInvariants(void)
@@ -2363,6 +2681,7 @@ bool CIROptimiser::HoistInvariants(void)
 	bool					bCalls;
 	bool					bInvariant;
 	bool					bChanged;
+	bool					bPreheader;
 	int						iArgument;
 
 	mpcFunction->Renumber();
@@ -2429,10 +2748,11 @@ bool CIROptimiser::HoistInvariants(void)
 				apcStack.Push(pcBlock->mapcPredecessors.GetPtr(uiPredecessor));
 			}
 		}
-		if (!pcEntering || (pcEntering == pcHead) || (pcEntering->msJump.uiKind != IRJ_Jump))
+		if (!pcEntering || (pcEntering == pcHead))
 		{
 			continue;
 		}
+		bPreheader = pcEntering->msJump.uiKind != IRJ_Jump;
 
 		//What the loop writes.
 		bCalls = false;
@@ -2471,7 +2791,7 @@ bool CIROptimiser::HoistInvariants(void)
 			for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 			{
 				psInstruction = pcBlock->masInstructions.Get(uiInstruction);
-				if (!IROptimiserHoistable(psInstruction))
+				if (!IROptimiserHoistable(mpcFunction, psInstruction))
 				{
 					continue;
 				}
@@ -2497,6 +2817,12 @@ bool CIROptimiser::HoistInvariants(void)
 				if (!bInvariant)
 				{
 					continue;
+				}
+				if (bPreheader)
+				{
+					pcEntering = AddPreheader(pcEntering, pcHead);
+					aiLoop.GrowToAtLeastNumElements(mpcFunction->NumBlocks(), true, 0xFF);
+					bPreheader = false;
 				}
 				sMoved = *psInstruction;
 				pcBlock->masInstructions.RemoveAt(uiInstruction, true);

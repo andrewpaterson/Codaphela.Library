@@ -52,6 +52,7 @@ struct SAsm65Value
 	int		iTerms;
 	int32	iSection;
 	size	uiTermToken;
+	uint8	uiForm;		//EAsm65RelocationForm: a section address >> 16 or & $FFFF.
 };
 
 
@@ -184,6 +185,13 @@ public:
 	uint32			NumPasses(void);
 
 protected:
+	//Provided by each processor's assembler (CAsm816Assembler for the W65C816).
+	virtual bool	Instruction(SAsm65Token* psMnemonic);
+	virtual bool	IsRegisterName(SAsm65Token* psToken);
+	virtual uint32	InstructionAlignment(void);
+	virtual bool	ProcessorDirective(SAsm65Token* psDirective, bool* pbResult);
+	virtual void	SectionStarted(void);
+
 	//Asm65Assembler.cpp: passes, statements, labels and directives.
 	void			Pass(void);
 	void			Statement(void);
@@ -235,6 +243,7 @@ protected:
 	bool			Unary(SAsm65Value* psValue);
 	bool			Primary(SAsm65Value* psValue);
 	bool			ExpressionValue(int64* piValue);
+	bool			FormTerm(SAsm65Value* psValue, SAsm65Value* psRight, int64 iOperand, uint8 uiForm);
 	bool			Combine(SAsm65Value* psValue, SAsm65Value* psRight, SAsm65Token* psOperator);
 	bool			AddTerms(SAsm65Value* psValue, SAsm65Value* psRight, bool bAdd, SAsm65Token* psOperator);
 	bool			SameTerm(SAsm65Value* psValue, SAsm65Value* psRight);
@@ -255,7 +264,6 @@ protected:
 	bool			Memory(SAsm65Address* psAddress, SAsm65Memory* psMemory);
 
 	//Asm65Instructions.cpp: the instructions.
-	bool			Instruction(SAsm65Token* psMnemonic);
 	bool			ArithmeticLogic(uint16 uiCode);
 	bool			ArithmeticLogicMemory(uint16 uiCode, SAsm65Operand* psFirst, SAsm65Operand* psSecond, SAsm65Instruction* psInstruction);
 	bool			Shift(bool bLeft);
