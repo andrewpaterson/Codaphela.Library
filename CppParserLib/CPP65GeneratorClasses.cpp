@@ -55,6 +55,7 @@ SCPP65Class* CCPP65Generator::NewClass(CCPPSymbol* pcSymbol, int64 lliName)
 	psClass->bUnion = false;
 	psClass->bVtable = false;
 	psClass->bConstructors = false;
+	psClass->psInheritedBase = NULL;
 	psClass->psDestructor = NULL;
 	psClass->pcSpecifier = NULL;
 	psClass->psTemplate = NULL;
@@ -1311,6 +1312,8 @@ SCPP65Function* CCPP65Generator::InstantiateFunction(SCPP65Template* psTemplate,
 	CArrayCPP65Types				apsDeduced;
 	CArrayInt64						alliDeduced;
 	CChars							szArguments;
+	CCPPSyntaxFunctionSuffix*		pcInClass;
+	CCPPSyntaxParameter*			pcParameter;
 	size							i;
 
 	if (psTemplate->psClass && !DefineMemberTemplate(psTemplate, pcNode))
@@ -1379,6 +1382,20 @@ SCPP65Function* CCPP65Generator::InstantiateFunction(SCPP65Template* psTemplate,
 		psFunction->psBindings = psBindings;
 		psFunction->bInline = true;
 		psFunction->bStatic |= psTemplate->bStatic;
+
+		//A member template defined outside its class has its default arguments in the class.  [dcl.fct.default]
+		pcInClass = (psTemplate->pcDeclarator && (psTemplate->pcDeclarator != pcDefinition->mpcDeclarator)) ? psTemplate->pcDeclarator->GetFunctionSuffix() : NULL;
+		if (pcInClass && (pcInClass->macpParameters.NumElements() == psFunction->mapcDefaults.NumElements()))
+		{
+			for (i = 0; i < pcInClass->macpParameters.NumElements(); i++)
+			{
+				pcParameter = (CCPPSyntaxParameter*)pcInClass->macpParameters.GetPtr(i);
+				if (!psFunction->mapcDefaults.GetPtr(i) && pcParameter->mpcDefault)
+				{
+					psFunction->mapcDefaults.SetPtr(i, pcParameter->mpcDefault);
+				}
+			}
+		}
 	}
 	return psFunction;
 }
@@ -1928,6 +1945,11 @@ bool CCPP65Generator::LayoutClass(SCPP65Class* psClass, CCPPSyntax* pcNode)
 	psClass->bComplete = true;
 	psClass->bLayingOut = false;
 
+	if (psClass->psInheritedBase)
+	{
+		InheritConstructors(psClass);
+	}
+
 	//A class that needs one but declares none gets a constructor written for it when it is called.
 	if (!psClass->bConstructors && NeedsConstructor(psClass))
 	{
@@ -2196,7 +2218,8 @@ size CCPP65Generator::NumParameters(CCPPSyntaxFunctionSuffix* pcSuffix)
 //////////////////////////////////////////////////////////////////////////
 //
 // using Base::f; in a class makes Base's functions named f overloads of the class's
-// own.  Other using declarations (of types, or of constructors) are left out.
+// own.  using Base::Base; inherits Base's constructors (see InheritConstructors).
+// Other using declarations (of types) are left out.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::ClassUsing(SCPP65Class* psClass, CCPPSyntaxUsingDeclaration* pcUsing)
@@ -2219,13 +2242,162 @@ void CCPP65Generator::ClassUsing(SCPP65Class* psClass, CCPPSyntaxUsingDeclaratio
 	BeginQuiet();
 	psBase = GetComponentClass((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0), NULL, pcUsing, psClass);
 	EndQuiet();
-	if (!psBase || (psBase == psClass) || (psBase->lliName == lliName))
+	if (!psBase || (psBase == psClass))
 	{
+		return;
+	}
+	if (psBase->lliName == lliName)
+	{
+		psClass->psInheritedBase = psBase;
 		return;
 	}
 	psUsing = psClass->macUsings.Add();
 	psUsing->psBase = psBase;
 	psUsing->lliName = lliName;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// using Base::Base;  The class gets a constructor for each of the base's (not its
+// default, copy or move constructors, constructor templates, or ones with the same
+// parameters as the class's own) that calls the base's with its arguments and makes
+// the rest of the object as a default constructor does.  A class that declares no
+// constructor of its own keeps its default constructor.  [class.inhctor.init]
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::InheritConstructors(SCPP65Class* psClass)
+{
+	SCPP65Class*	psBase;
+	SCPP65Function*	psInherited;
+	SCPP65Function*	psOwn;
+	SCPP65Function*	psFunction;
+	SCPP65Type*		psParameter;
+	size			uiFunctions;
+	size			i;
+	size			j;
+	size			k;
+	bool			bSame;
+	bool			bAdded;
+
+	psBase = psClass->psInheritedBase;
+	if (!CompleteClass(psBase, NULL))
+	{
+		return;
+	}
+	bAdded = false;
+	uiFunctions = mapsFunctions.NumElements();
+	for (i = 0; i < uiFunctions; i++)
+	{
+		psInherited = mapsFunctions.GetPtr(i);
+		if ((psInherited->psClass != psBase) || (psInherited->eKind != CPP65FK_Constructor) || psInherited->psTemplate || psInherited->bImplicit || (psInherited->mapsParameters.NumElements() == 0))
+		{
+			continue;
+		}
+		psParameter = psInherited->mapsParameters.GetPtr(0);
+		if ((psInherited->mapsParameters.NumElements() == 1) && psParameter->IsReference() && psParameter->psBase->IsClass() && (psParameter->psBase->psClass == psBase))
+		{
+			continue;
+		}
+
+		bSame = false;
+		for (j = 0; !bSame && (j < mapsFunctions.NumElements()); j++)
+		{
+			psOwn = mapsFunctions.GetPtr(j);
+			if ((psOwn->psClass != psClass) || (psOwn->eKind != CPP65FK_Constructor) || (psOwn->mapsParameters.NumElements() != psInherited->mapsParameters.NumElements()))
+			{
+				continue;
+			}
+			bSame = true;
+			for (k = 0; bSame && (k < psOwn->mapsParameters.NumElements()); k++)
+			{
+				bSame = psOwn->mapsParameters.GetPtr(k)->Equals(psInherited->mapsParameters.GetPtr(k));
+			}
+		}
+		if (bSame)
+		{
+			continue;
+		}
+
+		psFunction = AddFunction(psClass, psClass->lliName, CPP65FK_Constructor, &mcTypes.msVoid);
+		psInherited = mapsFunctions.GetPtr(i);
+		for (k = 0; k < psInherited->mapsParameters.NumElements(); k++)
+		{
+			psFunction->mapsParameters.Add(psInherited->mapsParameters.GetPtr(k));
+			psFunction->mapcDefaults.Add(psInherited->mapcDefaults.GetPtr(k));
+		}
+		psFunction->uiConstReferences = psInherited->uiConstReferences;
+		psFunction->bExplicit = psInherited->bExplicit;
+		psFunction->bImplicit = true;
+		psFunction->bDefined = true;
+		psFunction->psInherited = psInherited;
+		bAdded = true;
+	}
+
+	if (bAdded && !psClass->bConstructors)
+	{
+		psFunction = AddFunction(psClass, psClass->lliName, CPP65FK_Constructor, &mcTypes.msVoid);
+		psFunction->bImplicit = true;
+		psFunction->bDefined = true;
+		psClass->bConstructors = true;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An inherited constructor's call of the base's: its own parameters pushed again
+// (a reference's address, a value at its size), this moved to the base, then the
+// call.  Objects passed by value are not supported.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::InheritedConstructorCall(SCPP65Function* psFunction, SCPP65Place* psBase)
+{
+	SCPP65Place		sParameter;
+	SCPP65Type*		psType;
+	int				aiOffsets[32];
+	int				iOffset;
+	int				iBytes;
+	size			uiParameters;
+	size			i;
+
+	uiParameters = psFunction->mapsParameters.NumElements();
+	if (uiParameters > 32)
+	{
+		return Error(NULL, "Too many parameters");
+	}
+	iOffset = 0;
+	for (i = 0; i < uiParameters; i++)
+	{
+		aiOffsets[i] = iOffset;
+		iOffset += psFunction->mapsParameters.GetPtr(i)->iBytes;
+	}
+
+	sParameter.eKind = CPP65PK_Frame;
+	sParameter.lliName = -1;
+	sParameter.iString = -1;
+	sParameter.bInternal = false;
+	sParameter.psClass = NULL;
+	iBytes = 0;
+	for (i = uiParameters; i > 0; i--)
+	{
+		psType = psFunction->mapsParameters.GetPtr(i - 1);
+		if (psType->IsClass())
+		{
+			return Error(NULL, "An inherited constructor that takes an object by value is not supported by the 65C64 generator yet");
+		}
+		sParameter.psType = psType->IsReference() ? mcTypes.Pointer(psType->psBase) : psType;
+		sParameter.iOffset = miFrameBytes + 8 + aiOffsets[i - 1];
+		Load(&sParameter, "A", NULL);
+		PushValue(sParameter.psType);
+		iBytes += sParameter.psType->iBytes;
+	}
+
+	LoadAddress(psBase);
+	Line("cpy X, A")->AppendNewLine();
+	ChangeX();
+	Call(psFunction->psInherited, false, iBytes);
+	return true;
 }
 
 
@@ -3171,6 +3343,15 @@ int CCPP65Generator::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgum
 		}
 		return CPP65CR_None;
 	}
+	if (psParameter->IsMemberPointer() && psArgument->IsMemberPointer())
+	{
+		//A pointer to a member of a base converts to a pointer to the same member of a derived class.
+		if (psParameter->psClass && psArgument->psClass && psParameter->psBase->Equals(psArgument->psBase) && IsDerived(psParameter->psClass, psArgument->psClass, NULL))
+		{
+			return CPP65CR_Conversion;
+		}
+		return CPP65CR_None;
+	}
 	if ((psParameter->IsPointer() || psParameter->IsMemberPointer()) && psArgument->IsInteger() && pcArgument && Constant(pcArgument, &lliValue) && (lliValue == 0))
 	{
 		return CPP65CR_Conversion;
@@ -4023,6 +4204,11 @@ bool CCPP65Generator::ConstructorBody(SCPP65Function* psFunction, CCPPSyntaxFunc
 		}
 		sPlace.psType = psBase->psClass->psType;
 		sPlace.iOffset = psBase->iOffset;
+		if (!pcFunction && psFunction->psInherited && (psFunction->psInherited->psClass == psBase->psClass))
+		{
+			bResult &= InheritedConstructorCall(psFunction, &sPlace);
+			continue;
+		}
 		papcArguments = &apcNone;
 		if (pcFound && pcFound->mpcInitializer)
 		{

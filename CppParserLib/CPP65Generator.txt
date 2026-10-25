@@ -292,7 +292,10 @@ Supported
 - Statements: compound, expression, if, while, do, for, switch / case / default,
   break, continue, return, goto and labels (not past objects that need destroying).
 - Static local variables with constant initialisers: data labelled S, a number and the
-  name (S0_siCalls), local to the unit's object.
+  name (S0_siCalls), local to the unit's object.  A char pointer initialised with a
+  string literal (static const char* aszMonths[] = { "Jan", ... }), in a static local
+  or a global, is the literal's address as data (.long Str0), not worked out by
+  R_Initialise.
 - long long and unsigned long long: every operator, conversions, literals, constants,
   returns and switches.
 - Variadic calls (see Calling convention).
@@ -305,9 +308,28 @@ Supported
   new(address) Type constructs at the address.
 - GCC builtins: __builtin_ctz, __builtin_clz, __builtin_popcount (and their l and ll
   forms; ctz and clz use fsbi, and are the width for 0), __builtin_expect,
-  __builtin_unreachable, __builtin_trap (stp) and __builtin_alloca (whole longs from
+  __builtin_unreachable, __builtin_trap (stp), __builtin_ia32_pause (nop) and
+  __builtin_alloca (whole longs from
   the stack; a function that uses it restores S from V when it returns; not inside a
-  call's arguments).
+  call's arguments).  The floating point constants __builtin_huge_val, __builtin_inf
+  and __builtin_nan("") (double; their f forms float; math.h's HUGE_VAL, INFINITY and
+  NAN) are constants, also in data and constant expressions; NaNs are quiet.
+- c ? x : y with x and y of the same enum is that enum (not an int), so it picks an
+  enum overload.  With objects of the same class it makes an object (as a call does:
+  where the object it initialises is, or in a temporary) copied or made from the
+  operand picked; an lvalue result is a copy too.
+- A temporary made in the right of && or ||, or in the second or third operand of
+  ?:, has a guard in the frame too: cleared before the branch that may skip it, set
+  when it is made, and checked when the temporaries of the full expression are
+  destroyed, so one that was not made is not destroyed.
+- Local arrays of arrays are initialised from nested lists, strings, or a flat list
+  (the braces elided); elements without an initialiser are zero.
+- A parameter declared as an array without a size (char* argv[]) is a pointer.
+- Default arguments of a member template defined outside its class come from its
+  declaration in the class.
+- A static member function's name used as a value (Class::f, &Class::f, or f in a
+  member function, looked for in the class and its bases before free functions) is
+  its address.
 - __func__, __FUNCTION__, __PRETTY_FUNCTION__ and MSVC's __FUNCSIG__ and __FUNCDNAME__
   (as string literal parts).  The pretty forms are "Class::Name", not the signature.
   Adjacent string literals are joined.
@@ -338,14 +360,25 @@ Supported
   to it.  A cast to a pointer to a function chooses an overloaded function
   ((FConvert)&Convert).  using Base::f; in a class makes Base's f overloads of the
   class's own (using CPointer::operator =;), unless one of the class's own has the
-  same parameters.
+  same parameters.  using Base::Base; inherits Base's constructors (not its default,
+  copy or move constructors, constructor templates, or ones the class declares with
+  the same parameters): each is a constructor the generator writes, which pushes its
+  own arguments again for the base's, then makes the other bases and the fields as
+  a default constructor does.  A class that declares no constructor keeps its
+  default constructor.  Inherited constructors that take objects by value are not
+  supported yet.
 - Pointers to members: int C::* and R (C::*)(...) are 4 bytes, a field's offset or a
   member function's address.  &C::member (of C or a base, also with C a template
   parameter), casts between them, object.*p and pointer->*p (calls through X), and ==
   and != between them.  A pointer to a virtual member function is the address of a
   vcall thunk (as MSVC's), __vcall_<vtable offset>_<slot>, which jumps through the
   vtable of the object in X; the thunks are comdat, shared by every class.  Pointers
-  to overloaded member functions are not supported yet.
+  to overloaded member functions are not supported yet.  A pointer to a member of a
+  base converts to a pointer to the same member of a derived class ([conv.mem]): a
+  field's offset has the base's offset added; a member function's address is kept
+  when the base is at the start of the derived class (a base further on would need a
+  thunk to move this, and is an error).  object.*p and pointer->*p move the object's
+  address to p's class first.
 - Classes, structs and unions (named or not, local, and anonymous unions and structs
   whose members are the enclosing class's), multiple inheritance with several
   polymorphic bases, templates: see below.  A call through a field that points to a
@@ -366,9 +399,7 @@ code is generated).
   templates, explicit specialisations of members, pack expansions other than a
   function parameter pack in a call's arguments, sizeof...
 - Virtual inheritance.
-- Temporary objects that need destroying made only on one side of && and || or ?:
-  (they are destroyed at the end of the full expression either way); postfix ++ and
-  -- on objects; operator-> that returns an object; conversion functions to classes and
+- Postfix ++ and -- on objects; operator-> that returns an object; conversion functions to classes and
   references, and conversion function templates.
 - Namespaces, nested classes in qualified names, static locals that are objects or
   have initialisers that are not constant (they would need a first time guard),

@@ -26,6 +26,7 @@ long long	strtoll(const char* sz, char** pszEnd, int iBase);
 unsigned long long	strtoull(const char* sz, char** pszEnd, int iBase);
 double	strtod(const char* sz, char** pszEnd);
 float	strtof(const char* sz, char** pszEnd);
+long double	strtold(const char* sz, char** pszEnd);
 double	atof(const char* sz);
 
 int		rand(void);

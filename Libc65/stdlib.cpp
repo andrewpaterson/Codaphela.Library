@@ -486,6 +486,12 @@ float strtof(const char* sz, char** pszEnd)
 }
 
 
+long double strtold(const char* sz, char** pszEnd)
+{
+	return strtod(sz, pszEnd);
+}
+
+
 double atof(const char* sz)
 {
 	return strtod(sz, NULL);
