@@ -157,6 +157,27 @@ bool CCircuitView::Remove(CComponentView* pcComponent)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Puts the new component where the old one is in the order; the circuit
+// view frees the new one and no longer frees the old.  Fails if the old
+// one isn't here.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitView::Replace(CComponentView* pcOld, CComponentView* pcNew)
+{
+	size	uiIndex;
+
+	uiIndex = mapcComponents.Find(pcOld);
+	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return false;
+	}
+	mapcComponents.SetPtr(uiIndex, pcNew);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The circuit view no longer frees the wire.  Fails if it isn't here.
 //
 //////////////////////////////////////////////////////////////////////////

@@ -30,6 +30,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Rotation.h"
 #include "ComponentShapes.h"
 #include "PortView.h"
+#include "ComponentProperties.h"
 #include "CircuitPainter.h"
 #include "ViewPath.h"
 
@@ -111,10 +112,14 @@ public:
 	virtual const char*				GetConnectionName(void);
 	virtual void					GetBitJoins(CArrayPortBitJoin* pasJoins);
 	virtual CCircuitInstanceView*	GetCircuitInstanceView(void);
+	virtual CComponentView*			NewNextUnit(void);
+	virtual bool					IsUnitOfSamePart(CComponentView* pcOther);
 	virtual void					Paint(CCircuitPainter* pcPainter);
 
 	virtual const char*				GetXMLName(void) =0;
 	virtual bool					LoadXML(CMarkupTag* pcTag) =0;
+	virtual void					GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
+	virtual bool					InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
 			void					SaveXML(CXMLWriter* pcWriter);
 	virtual CComponentStateXML*		GetComponentStateXML(void);
 

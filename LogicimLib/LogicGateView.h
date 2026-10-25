@@ -63,6 +63,7 @@ public:
 			void	Init(int32 x, int32 y, ERotation eRotation, const char* szName, const char* szFamily, bool bExplicitPowerPorts, int iInputCount, int iInputWidth, bool bNegated);
 
 			int		GetInputCount(void);
+	virtual void	GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext);
 			int		GetInputWidth(void);
 			bool	IsNegated(void);
 

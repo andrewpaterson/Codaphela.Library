@@ -260,3 +260,32 @@ int32 COscilloscopeView::GetNumberOfDivsWide(void) { return miNumberOfDivsWide; 
 int32 COscilloscopeView::GetSamplesPerDiv(void) { return miSamplesPerDiv; }
 int32 COscilloscopeView::GetDivHeight(void) { return miDivHeight; }
 float64 COscilloscopeView::GetSampleFrequency(void) { return mfSampleFrequency; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As Logicim's OscilloscopeProperties, clamped as its clampProperties.
+// Its power is always implicit.
+//
+//////////////////////////////////////////////////////////////////////////
+void COscilloscopeView::GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	CComponentView::GetProperties(pcProperties, psContext);
+	AddFamilyProperty(pcProperties, psContext);
+	pcProperties->AddInteger("inputCount", miInputCount, 1, 24);
+	pcProperties->AddInteger("numberOfDivsWide", miNumberOfDivsWide, 4, 128);
+	pcProperties->AddInteger("divHeightInGrids", miDivHeight, 2, 6);
+	pcProperties->AddInteger("samplesPerDiv", miSamplesPerDiv, 4, 64);
+	pcProperties->AddFloat("samplingFrequency", "GHz", mfSampleFrequency / 1000000000.0, 0.00000000001, 999.0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool COscilloscopeView::InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	Init(x, y, eRotation, pcProperties->GetText("name", ""), pcProperties->GetText("family", ""), (int32)pcProperties->GetInteger("inputCount", miInputCount), (int32)pcProperties->GetInteger("numberOfDivsWide", miNumberOfDivsWide), (int32)pcProperties->GetInteger("samplesPerDiv", miSamplesPerDiv), (int32)pcProperties->GetInteger("divHeightInGrids", miDivHeight), pcProperties->GetFloat("samplingFrequency", mfSampleFrequency / 1000000000.0) * 1000000000.0);
+	return true;
+}

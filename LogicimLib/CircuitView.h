@@ -65,6 +65,7 @@ public:
 	CTraceView*			AddTrace(int32 x0, int32 y0, int32 x1, int32 y1);
 	CTraceView*			AddTraces(int32 x0, int32 y0, int32 x1, int32 y1);
 	bool				Remove(CComponentView* pcComponent);
+	bool				Replace(CComponentView* pcOld, CComponentView* pcNew);
 	bool				RemoveTrace(CTraceView* pcTrace);
 	void				ReplaceWires(CArrayTraceLine* pasLines, CArrayTraceViewPtr* papcSeeds, CArrayTraceViewPtr* papcAdded);
 	void				KillTraces(void);

@@ -359,3 +359,41 @@ char* CIntegratedCircuitView::GetFamily(void) { return mszFamily.Text(); }
 bool CIntegratedCircuitView::IsExplicitPowerPorts(void) { return mbExplicitPowerPorts; }
 CIntegratedCircuit* CIntegratedCircuitView::GetIntegratedCircuit(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation) { return (CIntegratedCircuit*)GetComponent(pcViewPath, pcCircuitSimulation); }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Its family, a choice of the families there are, as Logicim's
+// FamilyPropertyEditor; the family it has is a choice even if it isn't
+// there.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuitView::AddFamilyProperty(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	CArrayChars		aszFamilies;
+	size			i;
+
+	aszFamilies.Init();
+	for (i = 0; i < psContext->pcFamilies->NumFamilies(); i++)
+	{
+		aszFamilies.Add(psContext->pcFamilies->GetFamily(i)->GetFamily());
+	}
+	if (!aszFamilies.Contains(mszFamily.Text()))
+	{
+		aszFamilies.Add(mszFamily.Text());
+	}
+	pcProperties->AddChoice("family", &aszFamilies, mszFamily.Text());
+	aszFamilies.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Its family and whether its power ports are explicit, as Logicim's
+// StandardIntegratedCircuitProperties.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuitView::AddPowerProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	AddFamilyProperty(pcProperties, psContext);
+	pcProperties->AddBoolean("explicitPowerPorts", mbExplicitPowerPorts);
+}

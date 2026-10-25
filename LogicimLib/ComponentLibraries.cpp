@@ -22,7 +22,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ComponentLibraries.h"
 
 
-static SComponentLibraryEntry gasLogicGates[] =
+static SComponentLibraryEntry gasGenericLogic[] =
 {
 	{ "AndGate", "AND Gate", "Output high when all its inputs are high.", "and logic gate" },
 	{ "NandGate", "NAND Gate", "Output low when all its inputs are high.", "nand not and logic gate" },
@@ -32,6 +32,11 @@ static SComponentLibraryEntry gasLogicGates[] =
 	{ "XnorGate", "XNOR Gate", "Output high when an even number of its inputs are high.", "xnor exclusive nor logic gate equality" },
 	{ "Buffer", "Buffer", "Drives its output to its input's level.", "buffer driver logic" },
 	{ "Inverter", "Inverter", "Drives its output to the opposite of its input's level.", "inverter not logic" },
+};
+
+
+static SComponentLibraryEntry gas74Series[] =
+{
 	{ "InverterPackage", "74LVC04", "Six inverters in one 74 series part, drawn as one block.", "74lvc04 74x04 hex inverter package part not" },
 	{ "InverterUnit", "74LVC04 Unit", "One inverter of a 74 series part, placed on its own.", "74lvc04 74x04 hex inverter unit part not" },
 };
@@ -86,7 +91,8 @@ static SComponentLibraryEntry gasDecorative[] =
 
 static SComponentLibrary gasComponentLibraries[] =
 {
-	LIBRARY("Logic Gates", "Combinational gates and buffers.", gasLogicGates),
+	LIBRARY("Generic Logic", "Combinational gates and buffers of any width.", gasGenericLogic),
+	LIBRARY("74' Series", "74 series logic parts, as packages and as their units.", gas74Series),
 	LIBRARY("Sequential", "Flip flops and counters.", gasSequential),
 	LIBRARY("Sources", "Clocks, constants and supplies.", gasSources),
 	LIBRARY("Instruments", "Probes and oscilloscopes.", gasInstruments),

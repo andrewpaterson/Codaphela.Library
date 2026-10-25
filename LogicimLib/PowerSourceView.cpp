@@ -250,3 +250,37 @@ bool CPositivePowerView::LoadXML(CMarkupTag* pcTag)
 	Init(x, y, eRotation, szName, fVoltage);
 	return true;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGroundView::InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	Init(x, y, eRotation, pcProperties->GetText("name", ""));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As Logicim's PositivePowerProperties.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPositivePowerView::GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	CComponentView::GetProperties(pcProperties, psContext);
+	pcProperties->AddFloat("voltage", "V", mfVoltage, 0.0, 100.0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPositivePowerView::InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	Init(x, y, eRotation, pcProperties->GetText("name", ""), (float32)pcProperties->GetFloat("voltage", mfVoltage));
+	return true;
+}

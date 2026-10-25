@@ -161,3 +161,28 @@ CIntegratedCircuit* CCounterView::CreateIntegratedCircuit(CSubcircuitSimulation*
 //////////////////////////////////////////////////////////////////////////
 int32 CCounterView::GetBitWidth(void) { return miBitWidth; }
 uint32 CCounterView::GetTerminalValue(void) { return muiTerminalValue; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As Logicim's CounterProperties.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCounterView::GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	CComponentView::GetProperties(pcProperties, psContext);
+	AddPowerProperties(pcProperties, psContext);
+	pcProperties->AddInteger("bitWidth", miBitWidth, 1, 32);
+	pcProperties->AddInteger("terminalValue", muiTerminalValue, 0, 0xFFFFFFFFLL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCounterView::InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	Init(x, y, eRotation, pcProperties->GetText("name", ""), pcProperties->GetText("family", ""), pcProperties->GetBoolean("explicitPowerPorts", mbExplicitPowerPorts), (int32)pcProperties->GetInteger("bitWidth", miBitWidth), (uint32)pcProperties->GetInteger("terminalValue", muiTerminalValue));
+	return true;
+}

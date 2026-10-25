@@ -160,6 +160,43 @@ void SplitComponentName(const char* szName, CChars* pszStem, int* piNumber)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The prefix and the lowest number after it that no component in the
+// circuit is named (U1, U2 and so on).
+//
+//////////////////////////////////////////////////////////////////////////
+void GetFreeReference(CChars* psz, CCircuitView* pcCircuit, const char* szPrefix)
+{
+	size	i;
+	size	uiPrefix;
+	int		iNumber;
+	int		iUsed;
+	char*	szName;
+	char*	szEnd;
+
+	uiPrefix = StrLen(szPrefix);
+	iUsed = 0;
+	if (pcCircuit != NULL)
+	{
+		for (i = 0; i < pcCircuit->NumComponents(); i++)
+		{
+			szName = pcCircuit->GetComponent(i)->GetName();
+			if ((szName != NULL) && (strncmp(szName, szPrefix, uiPrefix) == 0) && (szName[uiPrefix] >= '0') && (szName[uiPrefix] <= '9'))
+			{
+				iNumber = (int)strtol(&szName[uiPrefix], &szEnd, 10);
+				if ((*szEnd == '\0') && (iNumber > iUsed))
+				{
+					iUsed = iNumber;
+				}
+			}
+		}
+	}
+	psz->Append(szPrefix);
+	psz->Append((int32)(iUsed + 1));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CComponentView* NewPlacedComponentView(const char* szXMLName, int32 x, int32 y, ERotation eRotation, CCircuitView* pcCircuit, CCircuitFonts* pcFonts)
@@ -226,8 +263,12 @@ CComponentView* NewPlacedComponentView(const char* szXMLName, int32 x, int32 y, 
 	}
 	else if (StringCompare(szXMLName, "InverterUnit") == 0)
 	{
+		//Named, so its units are one part's.
+		szName.Init();
+		GetFreeReference(&szName, pcCircuit, "U");
 		pcUnit = NewMalloc<CInverterUnitView>();
-		pcUnit->Init(x, y, eRotation, "", PLACED_FAMILY, false, "04", 0);
+		pcUnit->Init(x, y, eRotation, szName.Text(), PLACED_FAMILY, false, "04", 0);
+		szName.Kill();
 		return pcUnit;
 	}
 	else if (StringCompare(szXMLName, "Ground") == 0)

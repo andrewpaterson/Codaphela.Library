@@ -744,3 +744,99 @@ EPinAnchour StringToPinAnchour(const char* szAnchour)
 	}
 	return PAN_Cannot;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As Logicim's ConstantProperties and ProbeProperties.
+//
+//////////////////////////////////////////////////////////////////////////
+void CValueView::GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	CComponentView::GetProperties(pcProperties, psContext);
+	AddPowerProperties(pcProperties, psContext);
+	pcProperties->AddInteger("bitWidth", miBitWidth, 1, RADIX_MAX_BIT_WIDTH);
+	AddRadixProperty(pcProperties, meRadix);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A radix as a choice, as Logicim's Radix editor.
+//
+//////////////////////////////////////////////////////////////////////////
+void AddRadixProperty(CComponentProperties* pcProperties, ERadix eRadix)
+{
+	const char*		aszRadices[] = { "Binary", "Decimal", "Hexadecimal" };
+
+	pcProperties->AddChoice("radix", aszRadices, 3, (size)eRadix - RADIX_Binary);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+ERadix GetRadixProperty(CComponentProperties* pcProperties, ERadix eDefault)
+{
+	return (ERadix)(RADIX_Binary + pcProperties->GetChoice("radix", (size)eDefault - RADIX_Binary));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CConstantView::InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	Init(x, y, eRotation, pcProperties->GetText("name", ""), pcProperties->GetText("family", ""), pcProperties->GetBoolean("explicitPowerPorts", mbExplicitPowerPorts), (int32)pcProperties->GetInteger("bitWidth", miBitWidth), GetRadixProperty(pcProperties, meRadix), psContext->pcFonts);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CProbeView::InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	Init(x, y, eRotation, pcProperties->GetText("name", ""), pcProperties->GetText("family", ""), pcProperties->GetBoolean("explicitPowerPorts", mbExplicitPowerPorts), (int32)pcProperties->GetInteger("bitWidth", miBitWidth), GetRadixProperty(pcProperties, meRadix), psContext->pcFonts);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As Logicim's PinProperties: where and how it's shown on an instance of
+// its subcircuit after its name, width and power.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPinView::GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	const char*		aszAlignments[] = { "Left", "Right", "Top", "Bottom", "Not Shown" };
+	const char*		aszAnchours[] = { "Negative", "Centre", "Positive" };
+
+	CComponentView::GetProperties(pcProperties, psContext);
+	pcProperties->AddInteger("bitWidth", miBitWidth, 1, RADIX_MAX_BIT_WIDTH);
+	AddPowerProperties(pcProperties, psContext);
+	pcProperties->AddDivider("instanceLocation");
+	pcProperties->AddChoice("alignment", aszAlignments, 5, (size)meAlignment - PA_Left);
+	pcProperties->AddChoice("anchour", aszAnchours, 3, (size)meAnchour - PAN_Negative);
+	pcProperties->AddInteger("weight", miWeight, -1000, 1000);
+	pcProperties->AddDivider("instanceDisplay");
+	pcProperties->AddBoolean("inverting", mbInverting);
+	pcProperties->AddBoolean("clockNotch", mbClockNotch);
+	AddRadixProperty(pcProperties, meRadix);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPinView::InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	Init(x, y, eRotation, pcProperties->GetText("name", ""), pcProperties->GetText("family", ""), pcProperties->GetBoolean("explicitPowerPorts", mbExplicitPowerPorts), (int32)pcProperties->GetInteger("bitWidth", miBitWidth), GetRadixProperty(pcProperties, meRadix), psContext->pcFonts);
+	SetSubcircuitAppearance((EPinAlignment)(PA_Left + pcProperties->GetChoice("alignment", (size)meAlignment - PA_Left)), (EPinAnchour)(PAN_Negative + pcProperties->GetChoice("anchour", (size)meAnchour - PAN_Negative)), (int32)pcProperties->GetInteger("weight", miWeight), pcProperties->GetBoolean("inverting", mbInverting), pcProperties->GetBoolean("clockNotch", mbClockNotch));
+	return true;
+}

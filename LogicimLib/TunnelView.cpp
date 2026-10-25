@@ -237,3 +237,27 @@ bool CTunnelView::LoadXML(CMarkupTag* pcTag)
 //////////////////////////////////////////////////////////////////////////
 bool CTunnelView::IsDoubleSided(void) { return mbDoubleSided; }
 void CTunnelView::GetBox(SFloat64Vec2* psBoxMinimum, SFloat64Vec2* psBoxMaximum) { *psBoxMinimum = msBoxMinimum; *psBoxMaximum = msBoxMaximum; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As Logicim's TunnelProperties.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTunnelView::GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	CComponentView::GetProperties(pcProperties, psContext);
+	pcProperties->AddBoolean("doubleSided", mbDoubleSided);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Measured again with the fonts, as its name may have changed.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTunnelView::InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	Init(x, y, eRotation, pcProperties->GetText("name", ""), pcProperties->GetBoolean("doubleSided", mbDoubleSided), psContext->pcFonts);
+	return true;
+}

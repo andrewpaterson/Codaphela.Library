@@ -208,6 +208,22 @@ void CInverterPackageView::GetDescription(CChars* psz, const char* szPartType, i
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How many inverters a part of the type has: the count before a small
+// part's G ("2G04" is two), otherwise six (an 04, 05, 06 or 14).
+//
+//////////////////////////////////////////////////////////////////////////
+int CInverterPackageView::GetPartUnitCount(const char* szPartType)
+{
+	if ((szPartType != NULL) && (szPartType[0] >= '1') && (szPartType[0] <= '9') && (szPartType[1] == 'G'))
+	{
+		return szPartType[0] - '0';
+	}
+	return 6;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CInverterPackageView::GetPartNumber(CChars* psz)
@@ -444,5 +460,98 @@ bool CInverterUnitView::LoadXML(CMarkupTag* pcTag)
 //
 //////////////////////////////////////////////////////////////////////////
 char* CInverterUnitView::GetPartType(void) { return mszPartType.Text(); }
+int CInverterUnitView::GetUnitCount(void) { return CInverterPackageView::GetPartUnitCount(mszPartType.Text()); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Another inverter unit with this one's name (which it must have) and
+// part type.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInverterUnitView::IsUnitOfSamePart(CComponentView* pcOther)
+{
+	CInverterUnitView*	pcUnit;
+
+	if ((pcOther == this) || (pcOther == NULL) || mszName.Empty() || (StringCompare(pcOther->GetXMLName(), GetXMLName()) != 0))
+	{
+		return false;
+	}
+	pcUnit = (CInverterUnitView*)pcOther;
+	return mszName.Equals(pcUnit->GetName()) && mszPartType.Equals(pcUnit->GetPartType());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The part's next unit where this one is, named, turned and of the family
+// as it is.  NULL after the part's last unit.
+//
+//////////////////////////////////////////////////////////////////////////
+CComponentView* CInverterUnitView::NewNextUnit(void)
+{
+	CInverterUnitView*	pcNext;
+
+	if (miUnit + 1 >= GetUnitCount())
+	{
+		return NULL;
+	}
+	pcNext = NewMalloc<CInverterUnitView>();
+	pcNext->Init(msPosition.x, msPosition.y, meRotation, mszName.Text(), mszFamily.Text(), mbExplicitPowerPorts, mszPartType.Text(), miUnit + 1);
+	return pcNext;
+}
 int CInverterUnitView::GetUnit(void) { return miUnit; }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Its part's type ("04"), how many inverters it has and its description,
+// after its name and power.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInverterPackageView::GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	CComponentView::GetProperties(pcProperties, psContext);
+	AddPowerProperties(pcProperties, psContext);
+	pcProperties->AddText("partType", mszPartType.Text());
+	pcProperties->AddInteger("unitCount", miUnitCount, 1, 26);
+	pcProperties->AddText("description", mszDescription.Text());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInverterPackageView::InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	Init(x, y, eRotation, pcProperties->GetText("name", ""), pcProperties->GetText("family", ""), pcProperties->GetBoolean("explicitPowerPorts", mbExplicitPowerPorts), pcProperties->GetText("partType", ""), (int)pcProperties->GetInteger("unitCount", miUnitCount), pcProperties->GetText("description", ""));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Its part's type and which of its units it is, after its name and power.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInverterUnitView::GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	const char*		aszUnits[] = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
+
+	CComponentView::GetProperties(pcProperties, psContext);
+	AddPowerProperties(pcProperties, psContext);
+	pcProperties->AddText("partType", mszPartType.Text());
+	pcProperties->AddChoice("unit", aszUnits, 26, (size)miUnit);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInverterUnitView::InitFromProperties(int32 x, int32 y, ERotation eRotation, CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	Init(x, y, eRotation, pcProperties->GetText("name", ""), pcProperties->GetText("family", ""), pcProperties->GetBoolean("explicitPowerPorts", mbExplicitPowerPorts), pcProperties->GetText("partType", ""), (int)pcProperties->GetChoice("unit", (size)miUnit));
+	return true;
+}

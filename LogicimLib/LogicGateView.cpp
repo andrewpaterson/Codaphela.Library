@@ -21,6 +21,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "MicroprocessorLib/Pins.h"
 #include "ComponentShapes.h"
+#include "Radix.h"
 #include "LogicGateView.h"
 
 
@@ -195,3 +196,17 @@ int CLogicGateView::GetInputCount(void) { return miInputCount; }
 int CLogicGateView::GetInputWidth(void) { return miInputWidth; }
 bool CLogicGateView::IsNegated(void) { return mbNegated; }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As Logicim's LogicGateProperties (and BufferProperties, whose input
+// count is its count of buffers).
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogicGateView::GetProperties(CComponentProperties* pcProperties, SComponentPropertiesContext* psContext)
+{
+	CComponentView::GetProperties(pcProperties, psContext);
+	AddPowerProperties(pcProperties, psContext);
+	pcProperties->AddInteger("inputCount", miInputCount, 1, RADIX_MAX_BIT_WIDTH);
+	pcProperties->AddInteger("inputWidth", miInputWidth, 1, RADIX_MAX_BIT_WIDTH);
+}

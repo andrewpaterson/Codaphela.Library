@@ -171,6 +171,9 @@
     <ClCompile Include="ComponentLibraries.cpp">
       <Filter>Source\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="ComponentProperties.cpp">
+      <Filter>Source\Editor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CircuitColours.h">
@@ -315,6 +318,9 @@
       <Filter>Source\Editor</Filter>
     </ClInclude>
     <ClInclude Include="ComponentLibraries.h">
+      <Filter>Source\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentProperties.h">
       <Filter>Source\Editor</Filter>
     </ClInclude>
   </ItemGroup>

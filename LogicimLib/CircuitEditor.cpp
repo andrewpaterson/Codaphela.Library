@@ -29,6 +29,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CircuitFile.h"
 #include "SimulationStateXML.h"
 #include "ComponentPlacement.h"
+#include "ComponentViewFactory.h"
 #include "MoveComponentsEdit.h"
 #include "SelectionEdit.h"
 #include "WirePullEdit.h"
@@ -52,10 +53,12 @@ void CCircuitEditor::Init(CFamilyVoltageConfigurationStore* pcFamilies, CCircuit
 	mpcFonts = pcFonts;
 	mcSelection.Init();
 	mpcEdit = NULL;
+	mpcNextUnit = NULL;
 	meCreationRotation = ROT_East;
 	ClearHover();
 	masLeads.Init();
 	mapcFollowing.Init();
+	masAnchors.Init();
 	msPointer.Init(0, 0);
 	mbPointer = false;
 	mbControl = false;
@@ -69,7 +72,9 @@ void CCircuitEditor::Init(CFamilyVoltageConfigurationStore* pcFamilies, CCircuit
 //////////////////////////////////////////////////////////////////////////
 void CCircuitEditor::Kill(void)
 {
+	SafeKill(mpcNextUnit);
 	KillProject();
+	masAnchors.Kill();
 	mapcFollowing.Kill();
 	masLeads.Kill();
 	mcSelection.Kill();
@@ -87,6 +92,7 @@ void CCircuitEditor::KillProject(void)
 {
 	KillEdit();
 	KillLeads();
+	masAnchors.ReInit();
 	mcSelection.Clear();
 	ClearHover();
 	KillSimulation();
@@ -209,9 +215,28 @@ void CCircuitEditor::ButtonPressed(SFloat64Vec2 sPosition)
 //////////////////////////////////////////////////////////////////////////
 void CCircuitEditor::ButtonReleased(SFloat64Vec2 sPosition)
 {
+	CComponentView*		pcNextUnit;
+
 	msPointer = sPosition;
 	mbPointer = true;
 	DoneEdit(sPosition);
+
+	//A unit placed by the press is followed by placing the part's next unit under the pointer, once the button is up
+	//(the release would otherwise place it straight away).
+	if (mpcNextUnit != NULL)
+	{
+		pcNextUnit = mpcNextUnit;
+		mpcNextUnit = NULL;
+		if (mpcEdit == NULL)
+		{
+			pcNextUnit->SetPosition(RoundToGrid(msPointer.x), RoundToGrid(msPointer.y));
+			StartPlace(pcNextUnit);
+		}
+		else
+		{
+			SafeKill(pcNextUnit);
+		}
+	}
 }
 
 
@@ -407,6 +432,10 @@ bool CCircuitEditor::Delete(void)
 	CArrayComponentViewPtr	apcComponents;
 	CArrayTraceViewPtr		apcTraces;
 	size					i;
+	size					j;
+	size					uiNumComponents;
+	CComponentView*			pcComponent;
+	CComponentView*			pcOther;
 
 	if (mpcEdit != NULL)
 	{
@@ -448,6 +477,21 @@ bool CCircuitEditor::Delete(void)
 		apcComponents.Kill();
 		return false;
 	}
+
+	//A unit of a part placed as its units takes the part's other units with it.
+	uiNumComponents = apcComponents.NumElements();
+	for (i = 0; i < uiNumComponents; i++)
+	{
+		pcComponent = apcComponents.GetPtr(i);
+		for (j = 0; j < mpcCircuit->NumComponents(); j++)
+		{
+			pcOther = mpcCircuit->GetComponent(j);
+			if (pcComponent->IsUnitOfSamePart(pcOther) && (apcComponents.Find(pcOther) == ARRAY_ELEMENT_NOT_FOUND))
+			{
+				apcComponents.Add(pcOther);
+			}
+		}
+	}
 	DeleteViews(&apcComponents, &apcTraces);
 	apcTraces.Kill();
 	apcComponents.Kill();
@@ -467,6 +511,177 @@ void CCircuitEditor::StopEdit(void)
 	DiscardEdit();
 	mcSelection.Clear();
 	UpdateHover();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The component whose properties are edited, as Logicim's getComponent:
+// the hovered one, or else the only selected one.  NULL if there's neither
+// or an edit is in progress.
+//
+//////////////////////////////////////////////////////////////////////////
+CComponentView* CCircuitEditor::GetPropertiesComponent(void)
+{
+	if (mpcEdit != NULL)
+	{
+		return NULL;
+	}
+	if (mpcHover != NULL)
+	{
+		return mpcHover;
+	}
+	if (mcSelection.NumTraces() == 0)
+	{
+		return mcSelection.GetSingleComponent();
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The component's properties, with their current values, added to the
+// (initialised) properties.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEditor::GetProperties(CComponentView* pcComponent, CComponentProperties* pcProperties)
+{
+	SComponentPropertiesContext	sContext;
+
+	InitPropertiesContext(&sContext);
+	pcComponent->GetProperties(pcProperties, &sContext);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Replaces the component with a new one of the same kind made from the
+// properties (see CComponentView::InitFromProperties) and turned to the
+// rotation, as Logicim's PropertyEditEvent.  The old component is taken
+// out of every simulation and freed; the new one is made and started in
+// them, its wires merged and split, and the simulations rewired.  The new
+// one is selected if the old one was.  Returns the new component, or NULL
+// (leaving the old one) if it can't be made, or an instance would be of a
+// subcircuit that holds the circuit being edited.
+//
+//////////////////////////////////////////////////////////////////////////
+CComponentView* CCircuitEditor::SetProperties(CComponentView* pcComponent, CComponentProperties* pcProperties, ERotation eRotation)
+{
+	SComponentPropertiesContext	sContext;
+	CComponentView*				pcNew;
+	CCircuitInstanceView*		pcInstanceView;
+	CCircuitView*				pcSubcircuit;
+	CArrayComponentViewPtr		apcComponents;
+	CArrayTraceViewPtr			apcSeeds;
+	CArrayTraceLine				asNoLines;
+	CArrayViewPathPtr			apcViewPaths;
+	CViewPath*					pcViewPath;
+	CTraceView*					pcTrace;
+	SInt32Vec2					sPort;
+	bool						bSelected;
+	size						i;
+	size						j;
+
+	if ((mpcEdit != NULL) || (mpcCircuit == NULL))
+	{
+		return NULL;
+	}
+
+	InitPropertiesContext(&sContext);
+	pcNew = NewComponentView(pcComponent->GetXMLName());
+	if ((pcNew == NULL) || !pcNew->InitFromProperties(pcComponent->GetPosition().x, pcComponent->GetPosition().y, eRotation, pcProperties, &sContext))
+	{
+		if (pcNew != NULL)
+		{
+			free(pcNew);
+		}
+		return NULL;
+	}
+	pcInstanceView = pcNew->GetCircuitInstanceView();
+	if (pcInstanceView != NULL)
+	{
+		pcSubcircuit = pcInstanceView->GetInstanceCircuitView();
+		if ((pcSubcircuit == mpcCircuit) || CircuitUses(pcSubcircuit, mpcCircuit))
+		{
+			SafeKill(pcNew);
+			gcLogger.Error2(__METHOD__, " Circuit [", mpcCircuit->GetTypeName(), "] cannot hold an instance of [", pcSubcircuit->GetTypeName(), "], which would hold it.", NULL);
+			return NULL;
+		}
+	}
+
+	ClearHover();
+	apcViewPaths.Init();
+	GetEditedPaths(&apcViewPaths);
+	for (i = 0; i < apcViewPaths.NumElements(); i++)
+	{
+		pcViewPath = apcViewPaths.GetPtr(i);
+		for (j = 0; j < pcViewPath->NumCircuitSimulations(); j++)
+		{
+			mpcCircuit->DestroyComponent(pcComponent, pcViewPath, pcViewPath->GetCircuitSimulation(j));
+		}
+	}
+	apcViewPaths.Kill();
+	pcInstanceView = pcComponent->GetCircuitInstanceView();
+	if (pcInstanceView != NULL)
+	{
+		mpcCircuits->GetViewPaths()->RemovePathsThrough(pcInstanceView);
+	}
+
+	bSelected = mcSelection.Contains(pcComponent);
+	mcSelection.Remove(pcComponent);
+	mpcCircuit->Replace(pcComponent, pcNew);
+	SafeKill(pcComponent);
+	if (bSelected)
+	{
+		mcSelection.Add(pcNew);
+	}
+
+	apcComponents.Init();
+	apcComponents.Add(pcNew);
+	CreateComponents(&apcComponents);
+	apcComponents.Kill();
+
+	apcSeeds.Init();
+	for (i = 0; i < pcNew->NumPortViews(); i++)
+	{
+		sPort = pcNew->GetPortView(i)->GetGridPosition();
+		for (j = 0; j < mpcCircuit->NumTraces(); j++)
+		{
+			pcTrace = mpcCircuit->GetTrace(j);
+			if (pcTrace->Contains(sPort) && (apcSeeds.Find(pcTrace) == ARRAY_ELEMENT_NOT_FOUND))
+			{
+				apcSeeds.Add(pcTrace);
+			}
+		}
+	}
+	if (apcSeeds.NumElements() > 0)
+	{
+		for (i = 0; i < apcSeeds.NumElements(); i++)
+		{
+			mcSelection.Remove(apcSeeds.GetPtr(i));
+		}
+		asNoLines.Init();
+		mpcCircuit->ReplaceWires(&asNoLines, &apcSeeds, NULL);
+		asNoLines.Kill();
+	}
+	apcSeeds.Kill();
+
+	Rewire();
+	UpdateHover();
+	return pcNew;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEditor::InitPropertiesContext(SComponentPropertiesContext* psContext)
+{
+	psContext->pcFamilies = mpcFamilies;
+	psContext->pcFonts = mpcFonts;
+	psContext->pcCircuits = mpcCircuits;
 }
 
 
@@ -628,9 +843,43 @@ void CCircuitEditor::Paint(CCircuitPainter* pcPainter)
 	if (mpcEdit != NULL)
 	{
 		mpcEdit->Paint(pcPainter);
+		PaintAnchors(pcPainter);
 	}
 	mcSelection.Paint(pcPainter);
 	pcPainter->ClearTransform();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The stretches of wire that will join the moved wires back to where they
+// were, drawn as disconnected wires, as a pulled wire is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEditor::PaintAnchors(CCircuitPainter* pcPainter)
+{
+	CArrayTraceLine		asLines;
+	size				i;
+	STraceLine*			psLine;
+	ARGB32				sColour;
+
+	if (masAnchors.NumElements() == 0)
+	{
+		return;
+	}
+	asLines.Init();
+	for (i = 0; i < masAnchors.NumElements(); i++)
+	{
+		GetAnchorLines(masAnchors.Get(i), &asLines);
+	}
+	pcPainter->ClearTransform();
+	sColour = pcPainter->GetColours()->msDisconnectedTrace;
+	for (i = 0; i < asLines.NumElements(); i++)
+	{
+		psLine = asLines.Get(i);
+		pcPainter->Line(psLine->sStart.x, psLine->sStart.y, psLine->sEnd.x, psLine->sEnd.y, SHAPE_LINE_WIDTH, sColour);
+	}
+	asLines.Kill();
 }
 
 
@@ -705,9 +954,11 @@ void CCircuitEditor::StartMoveViews(CArrayComponentViewPtr* papcComponents, CArr
 
 	mcSelection.Clear();
 	KillLeads();
+	masAnchors.ReInit();
 	if (!bNew)
 	{
 		FindLeads(papcComponents, papcTraces);
+		FindAnchors(papcComponents, papcTraces);
 	}
 
 	for (i = masLeads.NumElements(); i > 0; i--)
@@ -724,6 +975,115 @@ void CCircuitEditor::StartMoveViews(CArrayComponentViewPtr* papcComponents, CArr
 			psLead->apcTraces.Kill();
 			masLeads.RemoveAt(i - 1, true);
 		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The ends of the moved wires that are joined to something that isn't
+// moving, see SMoveAnchor.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEditor::FindAnchors(CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces)
+{
+	size			i;
+	int				iEnd;
+	CTraceView*		pcTrace;
+	SInt32Vec2		sEnd;
+	SMoveAnchor*	psAnchor;
+
+	for (i = 0; i < papcTraces->NumElements(); i++)
+	{
+		pcTrace = papcTraces->GetPtr(i);
+		for (iEnd = 0; iEnd < 2; iEnd++)
+		{
+			sEnd = (iEnd == 0) ? pcTrace->GetStart() : pcTrace->GetEnd();
+			if (IsJoinedAt(sEnd, papcComponents, papcTraces))
+			{
+				psAnchor = masAnchors.Add();
+				psAnchor->pcTrace = pcTrace;
+				psAnchor->bStart = (iEnd == 0);
+				psAnchor->sOriginal = sEnd;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a wire that isn't moving is on the grid point, or a port of a
+// component that isn't.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitEditor::IsJoinedAt(SInt32Vec2 sPoint, CArrayComponentViewPtr* papcComponents, CArrayTraceViewPtr* papcTraces)
+{
+	size				i;
+	size				j;
+	CTraceView*			pcTrace;
+	CComponentView*		pcComponent;
+
+	for (i = 0; i < mpcCircuit->NumTraces(); i++)
+	{
+		pcTrace = mpcCircuit->GetTrace(i);
+		if (pcTrace->Contains(sPoint) && (papcTraces->Find(pcTrace) == ARRAY_ELEMENT_NOT_FOUND))
+		{
+			return true;
+		}
+	}
+	for (i = 0; i < mpcCircuit->NumComponents(); i++)
+	{
+		pcComponent = mpcCircuit->GetComponent(i);
+		if (papcComponents->Find(pcComponent) == ARRAY_ELEMENT_NOT_FOUND)
+		{
+			for (j = 0; j < pcComponent->NumPortViews(); j++)
+			{
+				if (pcComponent->GetPortView(j)->GetGridPosition() == sPoint)
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The new wire joining the anchor's end, where it's been moved to, back to
+// where it was: first square to its wire, then along it, so a wire moved
+// sideways stretches straight back.  None if it hasn't moved.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEditor::GetAnchorLines(SMoveAnchor* psAnchor, CArrayTraceLine* pasLines)
+{
+	SInt32Vec2	sMoved;
+	SInt32Vec2	sCorner;
+	STraceLine	sWire;
+
+	sMoved = psAnchor->bStart ? psAnchor->pcTrace->GetStart() : psAnchor->pcTrace->GetEnd();
+	if (sMoved == psAnchor->sOriginal)
+	{
+		return;
+	}
+	sWire.Init(psAnchor->pcTrace->GetStart(), psAnchor->pcTrace->GetEnd());
+	if (sWire.IsHorizontal())
+	{
+		sCorner.Init(sMoved.x, psAnchor->sOriginal.y);
+	}
+	else
+	{
+		sCorner.Init(psAnchor->sOriginal.x, sMoved.y);
+	}
+	if (sCorner != sMoved)
+	{
+		pasLines->Add()->Init(sMoved, sCorner);
+	}
+	if (sCorner != psAnchor->sOriginal)
+	{
+		pasLines->Add()->Init(sCorner, psAnchor->sOriginal);
 	}
 }
 
@@ -773,7 +1133,7 @@ void CCircuitEditor::DoneMoveViews(CArrayComponentViewPtr* papcComponents, CArra
 	CArrayTraceLine		asMovedLines;
 	CArrayTraceViewPtr	apcSeeds;
 	CArrayTraceViewPtr	apcAdded;
-	CArrayTraceLine		asNoLines;
+	CArrayTraceLine		asAnchorLines;
 	CTraceView*			pcTrace;
 	CComponentView*		pcComponent;
 	STraceLine*			psLine;
@@ -784,7 +1144,23 @@ void CCircuitEditor::DoneMoveViews(CArrayComponentViewPtr* papcComponents, CArra
 	if (bNew)
 	{
 		CreateComponents(papcComponents);
+
+		//A unit of a part placed as its units is followed by the part's next unit (see ButtonReleased).
+		if (papcComponents->NumElements() == 1)
+		{
+			mpcNextUnit = papcComponents->GetPtr(0)->NewNextUnit();
+		}
 	}
+
+	asAnchorLines.Init();
+	if (bChanged)
+	{
+		for (i = 0; i < masAnchors.NumElements(); i++)
+		{
+			GetAnchorLines(masAnchors.Get(i), &asAnchorLines);
+		}
+	}
+	masAnchors.ReInit();
 
 	asMovedLines.Init();
 	apcAdded.Init();
@@ -828,9 +1204,7 @@ void CCircuitEditor::DoneMoveViews(CArrayComponentViewPtr* papcComponents, CArra
 				}
 			}
 		}
-		asNoLines.Init();
-		mpcCircuit->ReplaceWires(&asNoLines, &apcSeeds, &apcAdded);
-		asNoLines.Kill();
+		mpcCircuit->ReplaceWires(&asAnchorLines, &apcSeeds, &apcAdded);
 		Rewire();
 	}
 	else
@@ -865,6 +1239,7 @@ void CCircuitEditor::DoneMoveViews(CArrayComponentViewPtr* papcComponents, CArra
 	}
 	apcAdded.Kill();
 	asMovedLines.Kill();
+	asAnchorLines.Kill();
 }
 
 
