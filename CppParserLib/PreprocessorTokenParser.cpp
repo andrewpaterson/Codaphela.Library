@@ -631,7 +631,8 @@ bool CPreprocessorTokenParser::GetFloat(long double* pf)
 					fTemp = pow(10.0L, -iNumDecimals);
 					fRight *= fTemp;
 
-					if (fLeft >= 0)
+					//Test the sign, not fLeft: "-0.5" has an fLeft of -0.0 which is >= 0.
+					if (iSign >= 0)
 					{
 						*pf = fLeft + fRight;
 					}
