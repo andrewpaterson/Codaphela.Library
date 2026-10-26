@@ -55,6 +55,21 @@ void CDTypeFlipFlop::SimulationStarted(CTimeline* pcTimeline)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Q is the state and QB its inverse.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDTypeFlipFlop::WriteOutputs(CTimeline* pcTimeline)
+{
+	CDTypeFlipFlopPins*		pcPins;
+
+	pcPins = GetDTypeFlipFlopPins();
+	pcPins->GetOutputQ()->WriteBool(pcTimeline, mbState);
+	pcPins->GetOutputQB()->WriteBool(pcTimeline, !mbState);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CDTypeFlipFlop::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
@@ -103,8 +118,7 @@ void CDTypeFlipFlop::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 
 	if (bStateChanged)
 	{
-		pcPins->GetOutputQ()->WriteBool(pcTimeline, mbState);
-		pcPins->GetOutputQB()->WriteBool(pcTimeline, !mbState);
+		WriteOutputs(pcTimeline);
 	}
 }
 

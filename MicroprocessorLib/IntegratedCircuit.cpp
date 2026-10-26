@@ -117,8 +117,9 @@ void CIntegratedCircuit::Disconnect(CTimeline* pcTimeline)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Starts the chip again with new state.  Its events must already be off
-// the timeline, as when the timeline is new.
+// Starts the chip again with new state, and drives its outputs from it.
+// Its events must already be off the timeline, as when the timeline is
+// new.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIntegratedCircuit::Reset(CTimeline* pcTimeline)
@@ -126,6 +127,7 @@ void CIntegratedCircuit::Reset(CTimeline* pcTimeline)
 	ResetEventsAndPorts();
 	ResetState();
 	SimulationStarted(pcTimeline);
+	WriteOutputs(pcTimeline);
 }
 
 
@@ -153,6 +155,17 @@ void CIntegratedCircuit::ResetEventsAndPorts(void)
 //
 //////////////////////////////////////////////////////////////////////////
 void CIntegratedCircuit::ResetState(void)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Drives the outputs from what the chip remembers.  Chips whose outputs
+// don't come from what they remember don't override it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuit::WriteOutputs(CTimeline* pcTimeline)
 {
 }
 

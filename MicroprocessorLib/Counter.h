@@ -29,9 +29,11 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 //Logicim's Counter, like a 74161: the active low reset clears it and the active low load takes the data, both at once
 //rather than on the clock; otherwise, with both enables high, a rising clock counts, wrapping to zero after the
-//terminal value.  Terminal count is high at the terminal value while enable terminal is high.  Outputs are only
-//driven when they change, and the count starts at zero, so they are undriven until it first changes.  The count and
-//whether terminal count is high are what it remembers; ResetState sets them back to zero and low.
+//terminal value.  Terminal count is high at the terminal value while enable terminal is high.  The count starts at
+//zero and the outputs are driven from it when the chip starts (see CIntegratedCircuit::WriteOutputs), and again
+//whenever they change; Logicim's only drives them when they change, so they're undriven until the count first
+//changes.  The count and whether terminal count is high are what it remembers; ResetState sets them back to zero and
+//low.
 class CCounter : public CIntegratedCircuit
 {
 CONSTRUCTABLE(CCounter);
@@ -45,6 +47,7 @@ public:
 			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CCounterPins* pcPins, size uiBitWidth, uint32 uiTerminalValue);
 
 	virtual void			SimulationStarted(CTimeline* pcTimeline);
+	virtual void			WriteOutputs(CTimeline* pcTimeline);
 	virtual void			InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);
 	virtual const char*		GetType(void);
 	virtual void			ResetState(void);

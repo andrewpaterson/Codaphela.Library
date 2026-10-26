@@ -28,9 +28,10 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 
 //Logicim's DTypeFlipFlop: on a rising clock it takes D, unless the active low set or reset is asserted.  Set and reset
-//together set it, as an LVC part most likely does.  Q and QB are only driven when the state changes, and the state
-//starts low, so they are undriven until it first goes high.  Undriven set and reset inputs are not asserted.  The
-//state is what it remembers; ResetState sets it back to low.
+//together set it, as an LVC part most likely does.  The state starts low and Q and QB are driven from it when the
+//chip starts (see CIntegratedCircuit::WriteOutputs), and again whenever it changes; Logicim's only drives them when it
+//changes, so they're undriven until it first goes high.  Undriven set and reset inputs are not asserted.  The state
+//is what it remembers; ResetState sets it back to low.
 class CDTypeFlipFlop : public CIntegratedCircuit
 {
 CONSTRUCTABLE(CDTypeFlipFlop);
@@ -41,6 +42,7 @@ public:
 			void					Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CDTypeFlipFlopPins* pcPins);
 
 	virtual void					SimulationStarted(CTimeline* pcTimeline);
+	virtual void					WriteOutputs(CTimeline* pcTimeline);
 	virtual void					InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);
 	virtual const char*				GetType(void);
 	virtual void					ResetState(void);
