@@ -56,7 +56,7 @@ void ConvertScaleTruncate_##source_type##_To_##dest_type(dest_type* psDest, sour
 void ConvertScaleTruncate_##source_type##_To_##dest_type(dest_type* psDest, source_type* pf) { FLOAT_U(dest_type, source_type, min, max); }
 
 #define SCALE_TRUNCATE_BIG_SINT_TO_SMALL_SINT(source_type, dest_type, dest_max, source_max) \
-void ConvertScaleTruncate_##source_type##_To_##dest_type(dest_type* psDest, source_type* pi) { *psDest = (dest_type)(*pi / (((u##source_type)source_max + 1) / (dest_max + 1))); }
+void ConvertScaleTruncate_##source_type##_To_##dest_type(dest_type* psDest, source_type* pi) { *psDest = (dest_type)(*pi / (source_type)(((u##source_type)source_max + 1) / (dest_max + 1))); }
 
 #define SCALE_TRUNCATE_BIG_UINT_TO_SMALL_SINT(source_type, dest_type, dest_max, source_max) \
 void ConvertScaleTruncate_##source_type##_To_##dest_type(dest_type* psDest, source_type* pi) { *psDest = (dest_type)(*pi / ((((source_type)source_max + 1) / (dest_max + 1)) * 2)); }

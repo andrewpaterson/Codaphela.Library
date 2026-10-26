@@ -6,15 +6,15 @@
 class CIndexTreeIterator
 {
 protected:
-	uint8			macKey[MAX_KEY_SIZE];
+	CArrayTemplateEmbedded<uint8, INDEX_TREE_ITERATOR_KEY_SIZE>	macKey;
 	char			macData[MAX_DATA_SIZE];
-	int				miType;
+	uint32			miType;
 	bool			mbStarted;
 	size			miKeySize;
 	size			miDataSize;
 
 public:
-			void	Init(int iType);
+			void	Init(uint32 iType);
 	virtual void	Kill(void);
 
 			size	GetDataSize(void);
@@ -26,6 +26,7 @@ public:
 
 protected:
 			void	Clear(void);
+			void	SetKey(uint8* pvKey, size uiKeySize);
 };
 
 

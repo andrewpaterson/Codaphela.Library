@@ -51,7 +51,7 @@ CSerialisedObject* CFileObjectReader::Read(const char* szObjectName)
 	CSerialisedObject*	pcSerialised;
 	char				szExtension[4];
 	bool				bResult;
-	int					iFileType;
+	int32				iFileType;
 
 	bResult = mpcFile->Open(EFM_Read);
 	if (!bResult)

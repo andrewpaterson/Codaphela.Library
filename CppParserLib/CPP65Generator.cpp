@@ -100,6 +100,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpcIRFrontEnd = NULL;
 	SetUseIR(gbCPP65DefaultUseIR || !mpsTarget->bDirectGenerator);
 	mcErrors.Init();
+	mcWarnings.Init();
 
 	mapsGlobals.Init();
 	mapsFunctions.Init();
@@ -125,6 +126,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	miNextElideDepth = 0;
 	maszEmitted.Init();
 	miQuiet = 0;
+	miWarningChecks = 0;
 	mbQuietFailed = false;
 	maszStrings.Init();
 	mszInitialise.Init();
@@ -242,6 +244,7 @@ void CCPP65Generator::Kill(void)
 	FreeVariables(&mapsGlobals);
 	mapsGlobals.Kill();
 
+	mcWarnings.Kill();
 	mcErrors.Kill();
 	mszBody.Kill();
 	maszRuntime.Kill();
@@ -723,6 +726,16 @@ CCPPErrors* CCPP65Generator::GetErrors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CCPPErrors* CCPP65Generator::GetWarnings(void)
+{
+	return &mcWarnings;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int CCPP65Generator::NumErrors(void)
 {
 	return (int)mcErrors.NumErrors();
@@ -805,6 +818,44 @@ bool CCPP65Generator::Error(CCPPSyntax* pcNode, const char* szMessage)
 		return false;
 	}
 	return ErrorAt(pcNode ? pcNode->miFirstToken : -1, szMessage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A warning at pcNode's first token, unless that token already has one (the
+// same expression is often looked at more than once).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::Warning(CCPPSyntax* pcNode, const char* szMessage)
+{
+	SPreprocessedToken*	psSource;
+	CChars				szMessageText;
+	CChars				szDetail;
+	int					iToken;
+	size				i;
+
+	iToken = pcNode ? pcNode->miFirstToken : -1;
+	if ((iToken < 0) || ((size)iToken >= mpcTokeniser->NumTokens()))
+	{
+		return;
+	}
+	for (i = 0; i < mcWarnings.NumErrors(); i++)
+	{
+		if (mcWarnings.GetToken(i) == iToken)
+		{
+			return;
+		}
+	}
+
+	psSource = mpcTokeniser->GetSource(mpcTokeniser->Get(iToken));
+	szMessageText.Init("Warning: ");
+	szMessageText.Append(szMessage);
+	szDetail.Init();
+	psSource->Append(&szDetail);
+	mcWarnings.Add(psSource->pcFile ? psSource->pcFile->ShortName() : NULL, psSource->iLine, psSource->iColumn, iToken, szMessageText.Text(), szDetail.Text());
+	szDetail.Kill();
+	szMessageText.Kill();
 }
 
 
@@ -1648,6 +1699,10 @@ bool CCPP65Generator::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitia
 		mpszOut = pszOut;
 		return bResult;
 	}
+	if (pcInitialiser)
+	{
+		ConversionOverflow(pcInitialiser, psType);
+	}
 	AppendData(psType, lliValue);
 	return true;
 }
@@ -1749,6 +1804,8 @@ SCPP65Variable* CCPP65Generator::AddVariable(CArrayCPP65Variables* papsVariables
 	psVariable->bDefined = false;
 	psVariable->bUsed = false;
 	psVariable->bInternal = false;
+	psVariable->psAnonymous = NULL;
+	psVariable->iAnonymous = 0;
 	papsVariables->Add(psVariable);
 	return psVariable;
 }
@@ -2024,8 +2081,7 @@ SCPP65Type* CCPP65Generator::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	{
 		if (pcType->GetKind() == CPPS_EnumSpecifier)
 		{
-			pcSymbol = ((CCPPSyntaxEnumSpecifier*)pcType)->mpcSymbol;
-			return pcSymbol ? mcTypes.Enum(pcSymbol) : &mcTypes.msInt;
+			return EnumType(((CCPPSyntaxEnumSpecifier*)pcType)->mpcSymbol, (CCPPSyntaxEnumSpecifier*)pcType);
 		}
 		if (pcType->GetKind() == CPPS_ClassSpecifier)
 		{
@@ -2044,7 +2100,7 @@ SCPP65Type* CCPP65Generator::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			if (pcElaborated->meKey == CT_enum)
 			{
 				pcSymbol = pcElaborated->mpcName->mpcSymbol;
-				return (pcSymbol && (pcSymbol->meKind == CPPSK_Enum)) ? mcTypes.Enum(pcSymbol) : &mcTypes.msInt;
+				return (pcSymbol && (pcSymbol->meKind == CPPSK_Enum)) ? EnumType(pcSymbol, NULL) : &mcTypes.msInt;
 			}
 			//struct timsort names the class even when a function timsort was declared first.
 			pcSymbol = pcElaborated->mpcName->mpcSymbol;
@@ -2066,7 +2122,7 @@ SCPP65Type* CCPP65Generator::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 				switch (pcName->mpcSymbol->meKind)
 				{
 				case CPPSK_Enum:
-					return mcTypes.Enum(pcName->mpcSymbol);
+					return EnumType(pcName->mpcSymbol, NULL);
 				case CPPSK_Typedef:
 					return GetSymbolType(pcName->mpcSymbol, pcNode);
 				case CPPSK_TypeParameter:
@@ -2680,6 +2736,7 @@ bool CCPP65Generator::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
 {
 	SCPP65Class*	psClass;
 	SCPP65Field*	psField;
+	SCPP65Variable*	psVariable;
 	int				iOffset;
 	size			i;
 
@@ -2699,7 +2756,9 @@ bool CCPP65Generator::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
 		{
 			return Error(pcSpecifier, "Anonymous classes in anonymous local classes are not supported by the 65C64 generator yet");
 		}
-		AddVariable(&mapsLocals, psField->pcSymbol, psField->psType, CPP65S_Local, iOffset + psField->iOffset);
+		psVariable = AddVariable(&mapsLocals, psField->pcSymbol, psField->psType, CPP65S_Local, iOffset + psField->iOffset);
+		psVariable->psAnonymous = psClass;
+		psVariable->iAnonymous = iOffset;
 	}
 	return true;
 }

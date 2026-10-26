@@ -8,7 +8,8 @@ typedef long					ptrdiff_t;
 typedef long long				max_align_t;
 
 #ifndef NULL
-#define NULL					0
+//Pointer sized (long is 32 bits on both targets), so NULL passed to a variadic function is a whole pointer.
+#define NULL					0L
 #endif // NULL
 
 #define offsetof(type, member)	((size_t)&(((type*)0)->member))

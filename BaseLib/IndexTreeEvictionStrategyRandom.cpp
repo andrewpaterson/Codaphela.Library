@@ -26,7 +26,7 @@ void CIndexTreeEvictionStrategyRandom::Init(size iMaxAttempts)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeEvictionStrategyRandom::Init(size iMaxAttempts, int iSeed)
+void CIndexTreeEvictionStrategyRandom::Init(size iMaxAttempts, uint32 iSeed)
 {
 	CIndexTreeEvictionStrategy::Init();
 	mcRandom.Init(iSeed);

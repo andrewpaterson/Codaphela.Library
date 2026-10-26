@@ -186,7 +186,7 @@ uint32 CUTF8::GetCodePointUint32(void)
 			return muiError;
 		}
 
-		c32 = ((c & 0x0F) << 12) | ((c2 & 0x3F) << 6) | (c3 & 0x3F);
+		c32 = ((uint32)(c & 0x0F) << 12) | ((uint32)(c2 & 0x3F) << 6) | (c3 & 0x3F);
 		if (c32 < 0x0800 || (c32 >= 0xD800 && c32 <= 0xDFFF))
 		{
 			return muiError;
@@ -211,7 +211,7 @@ uint32 CUTF8::GetCodePointUint32(void)
 			return muiError;
 		}
 
-		c32 = ((c & 0x07) << 18) | ((c2 & 0x3F) << 12) | ((c3 & 0x3F) << 6) | (c4 & 0x3F);
+		c32 = ((uint32)(c & 0x07) << 18) | ((uint32)(c2 & 0x3F) << 12) | ((uint32)(c3 & 0x3F) << 6) | (c4 & 0x3F);
 		if (c32 < 0x10000 || c32 > 0x10FFFF)
 		{
 			return muiError;
@@ -406,7 +406,7 @@ size CUTF8::GetUTF8ElementLength(void)
 			return muiError;
 		}
 
-		c32 = ((c & 0x0F) << 12) | ((c2 & 0x3F) << 6) | (c3 & 0x3F);
+		c32 = ((uint32)(c & 0x0F) << 12) | ((uint32)(c2 & 0x3F) << 6) | (c3 & 0x3F);
 		if (c32 < 0x0800 || (c32 >= 0xD800 && c32 <= 0xDFFF))
 		{
 			return muiError;
@@ -435,7 +435,7 @@ size CUTF8::GetUTF8ElementLength(void)
 			return muiError;
 		}
 
-		c32 = ((c & 0x07) << 18) | ((c2 & 0x3F) << 12) | ((c3 & 0x3F) << 6) | (c4 & 0x3F);
+		c32 = ((uint32)(c & 0x07) << 18) | ((uint32)(c2 & 0x3F) << 12) | ((uint32)(c3 & 0x3F) << 6) | (c4 & 0x3F);
 		if (c32 < 0x10000 || c32 > 0x10FFFF)
 		{
 			return muiError;

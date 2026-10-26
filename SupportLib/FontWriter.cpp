@@ -82,6 +82,7 @@ bool FontWriter(Ptr<CFont> pFont, char* szImagePathName, char* szCelsPathName, c
 		if ((uiKeyLength == 0) || (uiKeyLength > 4))
 		{
 			cTextFile.Kill();
+			sIter.Kill();
 			return false;
 		}
 

@@ -823,7 +823,7 @@ void CArrayTemplateEmbedded<M, I>::Swap(size iIndex1, size iIndex2)
 template<class M, int8 I>
 void CArrayTemplateEmbedded<M, I>::QuickSort(DataCompare fCompare)
 {
-	::QuickSort(fCompare, GetData(), sizeof(M), (int)NumElements());
+	::QuickSort(fCompare, GetData(), sizeof(M), NumElements());
 }
 
 

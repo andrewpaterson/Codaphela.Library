@@ -13,7 +13,7 @@ protected:
 
 public:
 	void			Init(void);
-	void			Init(int iChunkSize);
+	void			Init(size uiChunkSize);
 	void			Kill(void);
 
 	void*			Malloc(size uiSize);
@@ -31,7 +31,7 @@ public:
 
 public:
 	static CLifeInit<CMallocator> Create(void);
-	static CLifeInit<CMallocator> Create(int iChunkSize);
+	static CLifeInit<CMallocator> Create(size uiChunkSize);
 };
 
 

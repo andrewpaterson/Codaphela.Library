@@ -38,7 +38,7 @@ bool CExternalObjectReader::End(void)
 //////////////////////////////////////////////////////////////////////////
 CSerialisedObject* CExternalObjectReader::ReadSerialised(CFileReader* pcReader)
 {
-	int					iLength;
+	int32				iLength;
 	CSerialisedObject*	pcSerialised;
 	void*				pvOffset;
 	bool				bResult;
@@ -59,9 +59,9 @@ CSerialisedObject* CExternalObjectReader::ReadSerialised(CFileReader* pcReader)
 	}
 
 	pcSerialised->SetLength(iLength);
-	iLength -= (int)sizeof(int);
+	iLength -= (int32)sizeof(uint32);
 
-	pvOffset = RemapSinglePointer(pcSerialised, sizeof(int));
+	pvOffset = RemapSinglePointer(pcSerialised, sizeof(uint32));
 	bResult = pcReader->ReadData(pvOffset, iLength);
 	if (!bResult)
 	{

@@ -226,7 +226,8 @@ bool CIndexedFiles::DataFilename(char* szFile1, char* szFile2, size uiDataSize, 
 
 	sz.Kill();
 
-	if (szFilename.Length() < MAX_DIRECTORY_LENGTH)
+	//The rewrite name is the longer (by its '_').
+	if (szRewriteName.Length() < MAX_DIRECTORY_LENGTH)
 	{
 		strcpy(szFile1, szFilename.Text());
 		szFilename.Kill();

@@ -18,9 +18,13 @@ struct SIndexTreeMemoryUnsafeIterator
 
 struct SIndexTreeMemoryIterator
 {
-	uint8	pvKey[MAX_KEY_SIZE];
+	CArrayTemplateEmbedded<uint8, INDEX_TREE_ITERATOR_KEY_SIZE>	acKey;
 	size	iKeyLength;
 	size	iIndex;
+
+	void	Init(void);
+	void	Kill(void);
+	bool	IsLive(void);
 };
 
 
@@ -158,6 +162,7 @@ protected:
 	size					NumAllocatedNodes(void);
 
 	bool					StepNext(SIndexTreeMemoryUnsafeIterator* psIterator);
+	void					SetIteratorKey(SIndexTreeMemoryIterator* psIterator, CIndexTreeNodeMemory* pcNode);
 
 	bool					ValidateSize(void);
 	size					RecurseSize(void);

@@ -23,7 +23,7 @@ public:
 	void	Kill(void);
 
 	uint32	Next(void);
-	int		Next(int iMin, int iMaxInclusive);
+	int32	Next(int32 iMin, int32 iMaxInclusive);
 };
 
 

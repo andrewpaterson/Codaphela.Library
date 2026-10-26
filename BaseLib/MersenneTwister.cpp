@@ -108,7 +108,7 @@ uint32 CMersenneTwister::Next(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMersenneTwister::Next(int iMin, int iMaxInclusive)
+int32 CMersenneTwister::Next(int32 iMin, int32 iMaxInclusive)
 {
 	uint32	uiRange;
 	uint32	uiThreshold;
@@ -123,7 +123,7 @@ int CMersenneTwister::Next(int iMin, int iMaxInclusive)
 	if (uiRange == 0)
 	{
 		//The whole 32 bit range.
-		return (int)Next();
+		return (int32)Next();
 	}
 
 	//Reject the lowest (2^32 % uiRange) values so that every value in the range is equally likely.
@@ -134,6 +134,6 @@ int CMersenneTwister::Next(int iMin, int iMaxInclusive)
 	}
 	while (uiValue < uiThreshold);
 
-	return (int)((uint32)iMin + (uiValue % uiRange));
+	return (int32)((uint32)iMin + (uiValue % uiRange));
 }
 

@@ -675,6 +675,8 @@ OIndex CWriteTransaction::StartIndexIteration(SIndexTreeFileIterator* psIterator
 	size			iRecordSize;
 	bool			bExists;
 
+	//The transaction iterates its own records; the iterator is only made safe to Kill.
+	psIterator->Init();
 	//The stored indices and the ones this transaction changed.  Removed ones are skipped when iterating.
 	paoi = mcIteration.StartIndices();
 	mpcCodabase->StoredIndices(paoi);
@@ -724,6 +726,8 @@ bool CWriteTransaction::StartNameIteration(SIndexTreeFileIterator* psIterator, c
 	size			iIndexSize;
 	bool			bExists;
 
+	//The transaction iterates its own records; the iterator is only made safe to Kill.
+	psIterator->Init();
 	//The stored names and the ones this transaction added or removed.  Removed ones are skipped when iterating.  String
 	//map keys keep their terminating zero.
 	paszNames = mcIteration.StartNames();

@@ -2,6 +2,7 @@
 //Assembler65Lib/Asm65HostFiles.h).  Paths are the host's.  A handle is 0 when a file could not be opened.
 #ifndef __LIBC65_HOST_H__
 #define __LIBC65_HOST_H__
+#include <stdint.h>
 
 
 //HostOpen's modes.
@@ -26,8 +27,8 @@ extern "C"
 {
 int				HostOpen(const char* szPath, int iMode);
 int				HostClose(int iHandle);
-unsigned int	HostRead(int iHandle, void* pvBuffer, unsigned int uiBytes);
-unsigned int	HostWrite(int iHandle, const void* pvBuffer, unsigned int uiBytes);
+uint32_t		HostRead(int iHandle, void* pvBuffer, uint32_t uiBytes);
+uint32_t		HostWrite(int iHandle, const void* pvBuffer, uint32_t uiBytes);
 int				HostSeek(int iHandle, long long llOffset, int iOrigin);
 long long		HostTell(int iHandle);
 long long		HostSize(int iHandle);
@@ -42,8 +43,8 @@ int				HostMakeDir(const char* szPath);
 int				HostRemoveDir(const char* szPath);
 int				HostIsDirectory(const char* szPath);
 int				HostTouch(const char* szPath);
-int				HostCurrentDirectory(char* szDest, unsigned int uiSize);
-int				HostFindFile(const char* szDirectory, unsigned int uiIndex, char* szName, unsigned int uiSize);
+int				HostCurrentDirectory(char* szDest, uint32_t uiSize);
+int				HostFindFile(const char* szDirectory, uint32_t uiIndex, char* szName, uint32_t uiSize);
 }
 
 

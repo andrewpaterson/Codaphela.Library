@@ -85,7 +85,7 @@ bool CFatClusterCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClu
 	uiFirstSectorIndex = uiOffset / muiSectorSize;
 	uiLastSectorIndexInclusive = (uiOffset + (uiLength - 1)) / muiSectorSize;
 
-	uiMaximumSector = (uiMaximumOffset - 1) / muiSectorSize;
+	uiMaximumSector = (uint16)(((int32)uiMaximumOffset - 1) / muiSectorSize);
 
 	if (uiFirstSectorIndex > uiMaximumSector)
 	{
@@ -187,7 +187,7 @@ bool CFatClusterCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiCluster
 		*puiLength = 0;
 	}
 
-	uiPreviousMaximumSector = (uiPreviousMaximumOffset - 1)  / muiSectorSize;
+	uiPreviousMaximumSector = (uint16)(((int32)uiPreviousMaximumOffset - 1) / muiSectorSize);
 
 	if (uiFirstSectorIndex <= uiPreviousMaximumSector)
 	{
@@ -217,7 +217,7 @@ bool CFatClusterCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiCluster
 	uiLength -= uiSectorLength;
 
 	uiSectorLength = muiSectorSize;
-	for (i = uiFirstSectorIndex + 1; i <= uiLastSectorIndexInclusive - 1; i++)
+	for (i = uiFirstSectorIndex + 1; i < uiLastSectorIndexInclusive; i++)
 	{
 		memcpy(&msCluster.pvCache[uiOffset], &pvSource[uiIndex], uiSectorLength);
 		SetCachedSector(i, true);

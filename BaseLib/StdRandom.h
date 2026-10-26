@@ -11,10 +11,10 @@ private:
 
 public:
 	void	Init(void);
-	void	Init(uint iSeed);
+	void	Init(uint32 iSeed);
 	void	Kill(void);
 		
-	int		Next(int iMin, int iMaxInclusive);
+	int32	Next(int32 iMin, int32 iMaxInclusive);
 };
 
 

@@ -31,7 +31,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IROptimiser.h"
 #include "IR65Backend.h"
 #include "IR816Backend.h"
-#include "SourceFile.h"
 #include "CPP65IRFrontEnd.h"
 
 
@@ -195,6 +194,7 @@ void CCPP65IRFrontEnd::BeginWriting(SCPP65Function* psFunction, const char* szLa
 	mauiStringLengths.ReInit();
 	muiFirstString = mpcGenerator->maszStrings.NumElements();
 	mcAddresses.Init(true);
+	mcAnonymousAddresses.Init(true);
 	mpcFunction = mcModule.AddFunction(szLabel, sReturn, uiAttributes);
 	msThis = IRNone();
 	msResult = IRNone();
@@ -290,6 +290,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 		mcModule.RemoveFunction(mpcFunction);
 	}
 	mcAddresses.Kill();
+	mcAnonymousAddresses.Kill();
 	mpcFunction = NULL;
 	mpcBlock = NULL;
 	mpsFunction = NULL;
@@ -592,6 +593,7 @@ bool CCPP65IRFrontEnd::Parameters(void)
 	SIRReference			sAddress;
 	SCPP65IRPlace			sPlace;
 	CArrayTemplate<int32>	aiFirst;	//Per C++ parameter: its first IR parameter.
+	CArrayTemplate<SIRReference>	asByAddress;	//Per C++ parameter: the IR parameter of an object passed by address.
 	int32					iFirst;
 
 	//A member function's this comes first (in X), then the address a function that returns an object makes it at
@@ -605,25 +607,38 @@ bool CCPP65IRFrontEnd::Parameters(void)
 		msResult = mpcFunction->AddParameter(IRType(IRTK_Pointer));
 	}
 	aiFirst.Init();
+	asByAddress.Init();
 	for (ui = 0; ui < mpsFunction->mapsParameters.NumElements(); ui++)
 	{
 		psType = mpsFunction->mapsParameters.GetPtr(ui);
 		iFirst = (int32)mpcFunction->masParameters.NumElements();
 		aiFirst.Add(&iFirst);
+		sAddress = IRNone();
 		if (psType->IsClass())
 		{
-			//An object passed by value is its bytes where the caller pushed them.
+			//An object passed by value is its bytes where the caller pushed them, or its address (IsPassedByAddress).
 			if (!mpcGenerator->CompleteClass(psType->psClass, NULL))
 			{
 				aiFirst.Kill();
+				asByAddress.Kill();
 				return Unsupported(__LINE__);
 			}
-			AddPieces(psType->iBytes);
+			if (IsPassedByAddress(psType))
+			{
+				sAddress = mpcFunction->AddParameter(IRType(IRTK_Pointer));
+			}
+			else
+			{
+				AddPieces(psType->iBytes);
+			}
+			asByAddress.Add(&sAddress);
 			continue;
 		}
+		asByAddress.Add(&sAddress);
 		if (!IsSupportedType(psType) || psType->IsVoid() || psType->IsArray())
 		{
 			aiFirst.Kill();
+			asByAddress.Kill();
 			return Unsupported(__LINE__);
 		}
 		mpcFunction->AddParameter(IRTypeOf(psType));
@@ -650,7 +665,14 @@ bool CCPP65IRFrontEnd::Parameters(void)
 		if (uiParameter == mpsFunction->mapsParameters.NumElements())
 		{
 			aiFirst.Kill();
+			asByAddress.Kill();
 			return Unsupported(__LINE__);
+		}
+		if (!asByAddress.Get(uiParameter)->IsNone())
+		{
+			//The caller's copy, which the caller destroys.
+			mcAddresses.Put((int64)(size)psVariable, asByAddress.Get(uiParameter));
+			continue;
 		}
 		sAddress = mpcFunction->Add(mpcBlock, IRO_ArgAddress, IRType(IRTK_Pointer), mpcFunction->AddInteger(IRType(IRTK_I32), *aiFirst.Get(uiParameter)));
 		mcAddresses.Put((int64)(size)psVariable, &sAddress);
@@ -662,7 +684,23 @@ bool CCPP65IRFrontEnd::Parameters(void)
 		}
 	}
 	aiFirst.Kill();
+	asByAddress.Kill();
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an object passed by value is passed by its address: on a target
+// without the direct generator, one whose copy isn't its bytes (it has a
+// copy constructor, or a base or field does).  The caller copies it to a
+// temporary, passes its address and destroys it at the end of the full
+// expression, as the Itanium C++ ABI does; others are their bytes, pushed.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::IsPassedByAddress(SCPP65Type* psType)
+{
+	return psType->IsClass() && !mpcGenerator->mpsTarget->bDirectGenerator && !mpcGenerator->IsTriviallyCopyable(psType->psClass);
 }
 
 
@@ -880,8 +918,11 @@ bool CCPP65IRFrontEnd::Locals(void)
 	size			ui;
 	SCPP65Variable*	psVariable;
 	SIRReference	sAddress;
+	SIRReference*	psAnonymousAddress;
 	int				iAlign;
 
+	mcAnonymousAddresses.Kill();
+	mcAnonymousAddresses.Init(true);
 	for (ui = 0; ui < mpcGenerator->mapsLocals.NumElements(); ui++)
 	{
 		psVariable = mpcGenerator->mapsLocals.GetPtr(ui);
@@ -892,6 +933,20 @@ bool CCPP65IRFrontEnd::Locals(void)
 		if (!IsLocalType(psVariable->psType) || psVariable->psType->IsVoid())
 		{
 			return Unsupported(__LINE__);
+		}
+		if (psVariable->psAnonymous)
+		{
+			//The members of an anonymous union or struct share its slot (made for its first member).
+			psAnonymousAddress = mcAnonymousAddresses.Get((int64)psVariable->iAnonymous);
+			if (!psAnonymousAddress)
+			{
+				sAddress = mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), (uint32)psVariable->psAnonymous->psType->iBytes, 4);
+				mcAnonymousAddresses.Put((int64)psVariable->iAnonymous, &sAddress);
+				psAnonymousAddress = mcAnonymousAddresses.Get((int64)psVariable->iAnonymous);
+			}
+			sAddress = AddressAt(*psAnonymousAddress, psVariable->iOffset - psVariable->iAnonymous);
+			mcAddresses.Put((int64)(size)psVariable, &sAddress);
+			continue;
 		}
 		iAlign = ((psVariable->psType->iBytes >= 4) || psVariable->psType->IsArray() || psVariable->psType->IsClass()) ? 4 : psVariable->psType->iBytes;
 		sAddress = mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), (uint32)psVariable->psType->iBytes, (uint32)iAlign);
@@ -1295,6 +1350,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), sValue.sValue, psPlace->sAddress);
 		return true;
 	}
+	mpcGenerator->ConversionOverflow(pcInitialiser, psPlace->psType);
 	if (!Value(pcInitialiser, &sValue) || !Convert(&sValue, psPlace->psType))
 	{
 		return false;
@@ -1413,6 +1469,7 @@ bool CCPP65IRFrontEnd::ArrayElements(SCPP65IRPlace* psPlace, CArraySyntax* papcE
 			}
 			pcElement = papcOne->GetPtr(0);
 		}
+		mpcGenerator->ConversionOverflow(pcElement, psElement);
 		if (!Value(pcElement, &sValue) || !Convert(&sValue, psElement))
 		{
 			return false;
@@ -1468,7 +1525,7 @@ bool CCPP65IRFrontEnd::IfStatement(CCPPSyntaxIfStatement* pcIf)
 	pcThen = NewBlock();
 	pcEnd = NewBlock();
 	pcElse = pcIf->mpcElse ? NewBlock() : pcEnd;
-	if (!Condition(pcIf->mpcCondition, pcThen, pcElse))
+	if (!FullCondition(pcIf->mpcCondition, pcThen, pcElse))
 	{
 		return false;
 	}
@@ -1508,7 +1565,7 @@ bool CCPP65IRFrontEnd::WhileStatement(CCPPSyntaxWhileStatement* pcWhile)
 	pcEnd = NewBlock();
 	JumpTo(pcTest);
 	StartBlock(pcTest);
-	if (!Condition(pcWhile->mpcCondition, pcBody, pcEnd))
+	if (!FullCondition(pcWhile->mpcCondition, pcBody, pcEnd))
 	{
 		return false;
 	}
@@ -1543,7 +1600,7 @@ bool CCPP65IRFrontEnd::DoStatement(CCPPSyntaxDoStatement* pcDo)
 	}
 	JumpTo(pcTest);
 	StartBlock(pcTest);
-	if (!Condition(pcDo->mpcCondition, pcBody, pcEnd))
+	if (!FullCondition(pcDo->mpcCondition, pcBody, pcEnd))
 	{
 		return false;
 	}
@@ -1579,7 +1636,7 @@ bool CCPP65IRFrontEnd::ForStatement(CCPPSyntaxForStatement* pcFor)
 	StartBlock(pcTest);
 	if (pcFor->mpcCondition)
 	{
-		if (!Condition(pcFor->mpcCondition, pcBody, pcEnd))
+		if (!FullCondition(pcFor->mpcCondition, pcBody, pcEnd))
 		{
 			return false;
 		}
@@ -1808,6 +1865,7 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	}
 	else
 	{
+		mpcGenerator->ConversionOverflow(pcReturn->mpcValue, psReturn);
 		if (!Value(pcReturn->mpcValue, &sValue) || !Convert(&sValue, psReturn))
 		{
 			return false;
@@ -1952,27 +2010,6 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	psType = mpcGenerator->TypeOf(pcExpression);
 	if (!psType || (!IsSupportedType(psType) && !psType->IsFunction() && !psType->IsClass()))
 	{
-		if (mcModule.GetPointerSize(0) == 4 && !mpcGenerator->mpsTarget->bDirectGenerator)
-		{
-			SPreprocessedToken* psSourceDiag = mpcGenerator->mpcTokeniser->GetSource(mpcGenerator->mpcTokeniser->Get(pcExpression->miFirstToken));
-			CChars szDiag; szDiag.Init(); psSourceDiag->Append(&szDiag);
-			int iExp = psSourceDiag->iExpansion; CSourceFile* pcF = psSourceDiag->pcFile; int iL = psSourceDiag->iLine;
-			while (iExp >= 0) { SMacroExpansion* psE = mpcGenerator->mpcTokeniser->mpcSource->GetExpansion(iExp); pcF = psE->pcFile; iL = psE->iLine; iExp = psE->iParent; }
-			fprintf(stderr, "DIAG %s:%d [%s]", pcF ? pcF->ShortName() : "?", iL + 1, szDiag.Text());
-			if (pcExpression->GetKind() == CPPS_CallExpression)
-			{
-				CCPPSyntaxCallExpression* pcCallDiag = (CCPPSyntaxCallExpression*)pcExpression;
-				for (size k = 0; k < pcCallDiag->macpArguments.NumElements() && k < 2; k++)
-				{
-					CCPPSyntax* pcA = mpcGenerator->SkipParentheses(pcCallDiag->macpArguments.GetPtr(k));
-					SCPP65Type* psA = mpcGenerator->TypeOf(pcA);
-					if (psA && psA->IsReference()) psA = psA->psBase;
-					fprintf(stderr, " %s%s%d", (pcA->GetKind() == CPPS_LiteralExpression) ? "L" : ((pcA->GetKind() == CPPS_UnaryExpression) ? "U" : "V"), psA ? (psA->IsPointer() ? "p" : (psA->IsFloat() ? "f" : (psA->bSigned ? "s" : "u"))) : "?", psA ? psA->iBytes : -1);
-				}
-			}
-			fprintf(stderr, "\n");
-			szDiag.Kill();
-		}
 		return Unsupported(__LINE__);
 	}
 	if (psType->IsClass())
@@ -2642,6 +2679,14 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 			return MemberPointerPlace((CCPPSyntaxBinaryExpression*)pcExpression, psPlace);
 		}
 
+		//(x = y) and (x op= y) of a scalar are x's place after the assignment.
+		psType = mpcGenerator->TypeOf(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft);
+		if (mpcGenerator->IsAssignmentOperator(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator) && psType && !psType->IsClass() &&
+			!(psType->IsReference() && psType->psBase->IsClass()))
+		{
+			return Assignment((CCPPSyntaxBinaryExpression*)pcExpression, &sAddress, psPlace);
+		}
+
 		//An operator function's object (a temporary it made, or the object it refers to).
 		psType = mpcGenerator->TypeOf(pcExpression);
 		if (!psType || !(psType->IsReference() || psType->IsClass()) || !Value(pcExpression, &sAddress))
@@ -2651,6 +2696,16 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		psPlace->sAddress = sAddress.sValue;
 		psPlace->psType = sAddress.psType->IsReference() ? sAddress.psType->psBase : sAddress.psType;
 		return psPlace->psType->IsClass() || Unsupported(__LINE__);
+
+	case CPPS_CastExpression:
+		psType = mpcGenerator->TypeOf(pcExpression);
+		if (!psType || !psType->IsClass() || !ObjectValue(pcExpression, &sAddress))
+		{
+			return Unsupported(__LINE__);
+		}
+		psPlace->sAddress = sAddress.sValue;
+		psPlace->psType = sAddress.psType;
+		return true;
 
 	default:
 		return Unsupported(__LINE__);
@@ -2742,7 +2797,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 		if (mpcGenerator->IsObject(pcOperand) && mpcGenerator->HasMember(mpcGenerator->ObjectClass(pcOperand), mpcGenerator->GetOperatorName(CT_BitwiseAnd, false)))
 		{
 			//&object with the object's operator&.
-			return Unsupported(__LINE__);
+			return OperatorExpression(CT_BitwiseAnd, pcOperand, NULL, psValue);
 		}
 		if ((pcOperand->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol && (((CCPPSyntaxIdExpression*)pcOperand)->mpcName->mpcSymbol->meKind == CPPSK_Function))
 		{
@@ -2911,10 +2966,11 @@ bool CCPP65IRFrontEnd::BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SC
 
 //////////////////////////////////////////////////////////////////////////
 //
-// x = y and x op= y.  The value is the one stored.
+// x = y and x op= y.  The value is the one stored, and psStored (if not
+// NULL) gets the place stored to (of a scalar).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue)
+bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IRValue* psValue, SCPP65IRPlace* psStored)
 {
 	SCPP65IRPlace	sPlace;
 	SCPP65IRValue	sRight;
@@ -2950,8 +3006,13 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 	{
 		return Unsupported(__LINE__);
 	}
+	if (psStored)
+	{
+		*psStored = sPlace;
+	}
 	if (pcBinary->meOperator == CT_Assignment)
 	{
+		mpcGenerator->ConversionOverflow(pcBinary->mpcRight, sPlace.psType);
 		if (!Convert(&sRight, sPlace.psType))
 		{
 			return false;
@@ -3297,6 +3358,42 @@ bool CCPP65IRFrontEnd::ConditionValue(CCPPSyntax* pcExpression, SCPP65IRValue* p
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A statement's condition, a full expression: branches to pcTrue or pcFalse
+// after destroying the temporaries made working it out (on both ways out).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::FullCondition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIRBlock* pcFalse)
+{
+	size		uiTemporaries;
+	CIRBlock*	pcDestroyTrue;
+	CIRBlock*	pcDestroyFalse;
+
+	uiTemporaries = masTemporaries.NumElements();
+	pcDestroyTrue = NewBlock();
+	pcDestroyFalse = NewBlock();
+	if (!Condition(pcExpression, pcDestroyTrue, pcDestroyFalse))
+	{
+		return false;
+	}
+	StartBlock(pcDestroyTrue);
+	if (!DestroyPlaces(&masTemporaries, uiTemporaries))
+	{
+		return false;
+	}
+	JumpTo(pcTrue);
+	StartBlock(pcDestroyFalse);
+	if (!DestroyPlaces(&masTemporaries, uiTemporaries))
+	{
+		return false;
+	}
+	JumpTo(pcFalse);
+	masTemporaries.FakeSetUsedElements(uiTemporaries);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Branches to pcTrue or pcFalse.  && and || only work out their right
 // operand when they need to.
 //
@@ -3322,9 +3419,15 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
 		if (pcUnary->meOperator == CT_LogicalNot)
 		{
-			if (mpcGenerator->IsObject(pcUnary->mpcOperand))
+			if (mpcGenerator->IsObject(pcUnary->mpcOperand) && mpcGenerator->HasMember(mpcGenerator->ObjectClass(pcUnary->mpcOperand), mpcGenerator->GetOperatorName(CT_LogicalNot, false)))
 			{
-				return Unsupported(__LINE__);
+				//!object with the object's operator!.
+				if (!OperatorExpression(CT_LogicalNot, pcUnary->mpcOperand, NULL, &sValue) || !Truth(&sValue, &sCondition))
+				{
+					return false;
+				}
+				mpcBlock->Branch(sCondition, pcTrue, pcFalse);
+				return true;
 			}
 			return Condition(pcUnary->mpcOperand, pcFalse, pcTrue);
 		}
@@ -3377,12 +3480,55 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 		return Unsupported(__LINE__);
 	}
 
-	if (mpcGenerator->IsObject(pcExpression) || !Value(pcExpression, &sValue) || !Truth(&sValue, &sCondition))
+	//An object is converted to bool (with its conversion function).
+	if (!Value(pcExpression, &sValue) || !Truth(&sValue, &sCondition))
 	{
-		return Unsupported(__LINE__);
+		return false;
 	}
 	mpcBlock->Branch(sCondition, pcTrue, pcFalse);
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a value is an object (its address), or a reference to one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::IsObjectValue(SCPP65IRValue* psValue)
+{
+	SCPP65Type*	psType;
+
+	psType = psValue->psType->IsReference() ? psValue->psType->psBase : psValue->psType;
+	return psType->IsClass();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An object converted to a scalar by its class's conversion function (the
+// generator's FindConversion: operator T, its own or a base's), then the
+// result to psTo.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::ConvertObject(SCPP65IRValue* psValue, SCPP65Type* psTo)
+{
+	SCPP65Class*	psClass;
+	SCPP65Function*	psFunction;
+	SCPP65IRValue	sResult;
+
+	psClass = (psValue->psType->IsReference() ? psValue->psType->psBase : psValue->psType)->psClass;
+	psFunction = mpcGenerator->FindConversion(psClass, psTo, true, NULL);
+	if (!psFunction)
+	{
+		return Unsupported(__LINE__);
+	}
+	if (!Call(psFunction, FunctionSymbol(psFunction), NULL, &mapcNone, &sResult, NULL, false, psClass, true, psValue->sValue))
+	{
+		return false;
+	}
+	*psValue = sResult;
+	return Convert(psValue, psTo);
 }
 
 
@@ -3395,6 +3541,10 @@ bool CCPP65IRFrontEnd::Truth(SCPP65IRValue* psValue, SIRReference* psCondition)
 {
 	SIRType	sType;
 
+	if (IsObjectValue(psValue) && !ConvertObject(psValue, &mpcTypes->msBool))
+	{
+		return false;
+	}
 	if (!psValue->psType->IsScalar())
 	{
 		return Unsupported(__LINE__);
@@ -3887,6 +4037,21 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 	{
 		pcArgument = (ui <= uiArguments) ? papcArguments->GetPtr(ui - 1) : (papcDefaults ? papcDefaults->GetPtr(ui - 1) : NULL);
 		psParameter = papsParameters->GetPtr(ui - 1);
+		if (pcArgument && psParameter->IsClass() && !bVariadic && mpcGenerator->CompleteClass(psParameter->psClass, NULL) && IsPassedByAddress(psParameter))
+		{
+			//A copy made here (and destroyed at the end of the full expression) is passed by its address.
+			if (!Temporary(psParameter, &sCopy, true) || !Construct(&sCopy, NULL, pcArgument))
+			{
+				asArguments.Kill();
+				asLoaded.Kill();
+				aiLoaded.Kill();
+				return false;
+			}
+			sArgument.sValue = sCopy.sAddress;
+			sArgument.psType = mpcTypes->Pointer(psParameter);
+			*asArguments.Get(ui - 1) = sArgument;
+			continue;
+		}
 		if (!pcArgument || psParameter->IsArray() || (!IsSupportedType(psParameter) && !psParameter->IsClass()) ||
 			(psParameter->IsClass() && (bVariadic || !mpcGenerator->CompleteClass(psParameter->psClass, NULL) || !mpcGenerator->IsTriviallyCopyable(psParameter->psClass))))
 		{
@@ -3895,6 +4060,7 @@ bool CCPP65IRFrontEnd::Call(SCPP65Function* psFunction, SIRReference sCallee, SC
 			aiLoaded.Kill();
 			return Unsupported(__LINE__);
 		}
+		mpcGenerator->ConversionOverflow(pcArgument, psParameter);
 		if (psParameter->IsClass())
 		{
 			//An object passed by value is copied a piece at a time (only objects whose copy is their bytes).
@@ -4121,6 +4287,10 @@ bool CCPP65IRFrontEnd::Convert(SCPP65IRValue* psValue, SCPP65Type* psTo)
 	{
 		psValue->psType = psTo;
 		return true;
+	}
+	if (IsObjectValue(psValue) && psTo->IsScalar())
+	{
+		return ConvertObject(psValue, psTo);
 	}
 	if (psFrom->IsMemberPointer() || psTo->IsMemberPointer())
 	{
@@ -4550,6 +4720,11 @@ bool CCPP65IRFrontEnd::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* 
 		bThis = true;
 	}
 
+	if (pcName->GetLast()->meKind == CPPNC_Destructor)
+	{
+		return DestructorCall(pcCall, psClass, pcObject, bArrow, (pcName->macpComponents.NumElements() == 2) ? false : bVirtual, psValue);
+	}
+
 	lliName = mpcGenerator->GetFunctionName(pcName->GetLast());
 	if (!psClass || (lliName == -1) || (pcName->macpComponents.NumElements() > 2))
 	{
@@ -4594,6 +4769,47 @@ bool CCPP65IRFrontEnd::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* 
 
 	sSymbol = FunctionSymbol(psFunction);
 	return Call(psFunction, sSymbol, NULL, &pcCall->macpArguments, psValue, pcObject, bArrow, pcObject ? psClass : NULL, bVirtual);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An explicit destructor call, p->~X(), o.~X() or ~X() (this's): the class's
+// destructor runs on the object (through its vtable unless the call is
+// qualified or on a named object), or nothing happens if it has none.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::DestructorCall(CCPPSyntaxCallExpression* pcCall, SCPP65Class* psClass, CCPPSyntax* pcObject, bool bArrow, bool bVirtual, SCPP65IRValue* psValue)
+{
+	SIRReference	sObject;
+
+	if (!psClass || (pcCall->macpArguments.NumElements() != 0))
+	{
+		return Unsupported(__LINE__);
+	}
+	psValue->psType = &mpcTypes->msVoid;
+	psValue->sValue = IRNone();
+	if (!psClass->psDestructor)
+	{
+		return true;
+	}
+
+	if (pcObject)
+	{
+		if (!ObjectAddress(pcObject, bArrow, &sObject))
+		{
+			return false;
+		}
+	}
+	else
+	{
+		if (msThis.IsNone())
+		{
+			return Unsupported(__LINE__);
+		}
+		sObject = msThis;
+	}
+	return CallObject(psClass->psDestructor, sObject, psClass, NULL, bVirtual);
 }
 
 
@@ -5590,6 +5806,8 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 	SCPP65IRPlace					sPlace;
 	CCPPSyntaxConstructExpression*	pcConstruct;
 	SCPP65Type*						psType;
+	CArraySyntax					apcArguments;
+	bool							bResult;
 
 	switch (pcExpression->GetKind())
 	{
@@ -5628,6 +5846,24 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 			return Unsupported(__LINE__);
 		}
 		if (!Construct(&sPlace, NULL, pcConstruct->mpcInitializer))
+		{
+			return false;
+		}
+		psValue->sValue = sPlace.sAddress;
+		psValue->psType = psType;
+		return true;
+	case CPPS_CastExpression:
+		//(Class)value is a temporary made from the value, as Class(value).
+		psType = mpcGenerator->GetTypeIdType(((CCPPSyntaxCastExpression*)pcExpression)->mpcType);
+		if (!psType || !psType->IsClass() || !Temporary(psType, &sPlace, true))
+		{
+			return Unsupported(__LINE__);
+		}
+		apcArguments.Init();
+		apcArguments.Add(((CCPPSyntaxCastExpression*)pcExpression)->mpcOperand);
+		bResult = Construct(&sPlace, &apcArguments, NULL);
+		apcArguments.Kill();
+		if (!bResult)
 		{
 			return false;
 		}

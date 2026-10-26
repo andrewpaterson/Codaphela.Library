@@ -35,10 +35,10 @@ char gsz_pi[] = "3.1415926535897932384626433832795028841971693993751058209749445
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void NumberInit(int iScratchPadSize)
+void NumberInit(size uiScratchPadSize)
 {
 	gbNumberControl = true;
-	gcNumberControl.Init(iScratchPadSize);
+	gcNumberControl.Init(uiScratchPadSize);
 }
 
 
@@ -67,9 +67,9 @@ bool FailNumberControlInitialised(char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumberControl::Init(int iScratchPadSize)
+void CNumberControl::Init(size uiScratchPadSize)
 {
-	mcScratchPad.Init(iScratchPadSize);
+	mcScratchPad.Init(uiScratchPadSize);
 	mc_pi.Init(gsz_pi);
 	mc_e.Init(gsz_e);
 	mc_pi_lots.c.Init(gsz_pi, 1, 255);

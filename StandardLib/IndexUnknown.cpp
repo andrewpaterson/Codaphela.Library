@@ -196,6 +196,7 @@ size CIndexUnknown::Remove(CUnknown* pvData)
 			bResult = Remove(puiKey, uiKeySize);
 			if (!bResult)
 			{
+				sIter.Kill();
 				return ARRAY_ELEMENT_NOT_FOUND;
 			}
 			uiCount++;

@@ -10,9 +10,9 @@ void _quicksort(void* const pbase, size total_elems, size size, DataCompare cmp)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void QuickSort(DataCompare fCompare, void* pvArray, size uiStride, int iNumElements)
+void QuickSort(DataCompare fCompare, void* pvArray, size uiStride, size uiNumElements)
 {
-    _quicksort(pvArray, iNumElements, uiStride, fCompare);
+    _quicksort(pvArray, uiNumElements, uiStride, fCompare);
 }
 
 

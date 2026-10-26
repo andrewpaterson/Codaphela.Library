@@ -450,10 +450,35 @@ SCPP65Type* CCPP65Types::MemberPointer(SCPP65Class* psClass, SCPP65Type* psMembe
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An enum: an int that is a type of its own, for overloads and templates.
+// An enum: an integer of its underlying type's size that is a type of its own, for
+// overloads and templates.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Types::Enum(CCPPSymbol* pcEnum)
+SCPP65Type* CCPP65Types::Enum(CCPPSymbol* pcEnum, int iBytes, bool bSigned)
+{
+	SCPP65Type*	psType;
+
+	psType = FindEnum(pcEnum);
+	if (psType)
+	{
+		return psType;
+	}
+
+	//A count of -1 makes Add make a new type rather than find int.
+	psType = Add(CPP65TK_Integer, iBytes, NULL, -1);
+	psType->iCount = 0;
+	psType->bSigned = bSigned;
+	psType->pcEnum = pcEnum;
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The enum's type if it has been made, or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Types::FindEnum(CCPPSymbol* pcEnum)
 {
 	SCPP65Type*	psType;
 	size		i;
@@ -466,13 +491,7 @@ SCPP65Type* CCPP65Types::Enum(CCPPSymbol* pcEnum)
 			return psType;
 		}
 	}
-
-	//A count of -1 makes Add make a new type rather than find int.
-	psType = Add(CPP65TK_Integer, msInt.iBytes, NULL, -1);
-	psType->iCount = 0;
-	psType->bSigned = true;
-	psType->pcEnum = pcEnum;
-	return psType;
+	return NULL;
 }
 
 

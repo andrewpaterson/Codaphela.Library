@@ -947,7 +947,7 @@ uint32 CFatVolume::GetEntryCluster(SFatRawDirectoryEntry* psEntry)
 
 	uiClusterEntryMask = GetClusterEntryMask();
 
-	uiEntry = psEntry->uEntry.sFatRawCommon.uiFirstClusterLowWord | psEntry->uEntry.sFatRawCommon.uiFirstClusterHighWord << 16;
+	uiEntry = psEntry->uEntry.sFatRawCommon.uiFirstClusterLowWord | (uint32)psEntry->uEntry.sFatRawCommon.uiFirstClusterHighWord << 16;
 	uiEntry &= uiClusterEntryMask;
 
 	return uiEntry;

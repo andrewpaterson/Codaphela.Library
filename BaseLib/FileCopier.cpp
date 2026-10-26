@@ -36,7 +36,7 @@ bool CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 	CFileBasic	cDest;
 	void*		pvTemp;
 	filePos		iLength;
-	int			iChunk;
+	size		iChunk;
 	filePos		iRemaining;
 	EFileMode	eWriteMode;
 
@@ -80,7 +80,7 @@ bool CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 	}
 	else
 	{
-		pvTemp = malloc((int)iLength);
+		pvTemp = malloc((size)iLength);
 	}
 
 	iRemaining = iLength;
@@ -92,7 +92,7 @@ bool CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 		}
 		else
 		{
-			iChunk = (int) iRemaining;
+			iChunk = (size)iRemaining;
 		}
 		if (!cSource.ReadData(pvTemp, iChunk))
 		{

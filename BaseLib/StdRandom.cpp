@@ -16,7 +16,7 @@ void CRandom::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRandom::Init(uint iSeed)
+void CRandom::Init(uint32 iSeed)
 {
 	mcRNG.Init(iSeed);
 }
@@ -36,7 +36,7 @@ void CRandom::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRandom::Next(int iMin, int iMaxInclusive)
+int32 CRandom::Next(int32 iMin, int32 iMaxInclusive)
 {
 	return mcRNG.Next(iMin, iMaxInclusive);
 }

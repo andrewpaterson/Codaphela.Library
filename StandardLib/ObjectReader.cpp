@@ -159,7 +159,7 @@ bool CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 	size			iExpectedLength;
 	filePos			iLength;
 	bool			bResult;
-	int				iMagic;
+	int32			iMagic;
 
 	iStart = mcFile.GetFilePos();
 	bResult = ReadSize(&iExpectedLength);
@@ -192,7 +192,7 @@ bool CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 //////////////////////////////////////////////////////////////////////////
 bool CObjectReader::ReadIdentifier(CObjectIdentifier* pcObjectIdentifier)
 {
-	int		iIgnored;
+	int32	iIgnored;
 	bool	bResult;
 
 	pcObjectIdentifier->Init();
@@ -348,7 +348,7 @@ bool CObjectReader::ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseOb
 {
 	CPointerHeader	cHeader;
 	bool			bResult;
-	int				iDistToRoot;
+	int32			iDistToRoot;
 
 	bResult = ReadIdentifier(&cHeader);
 	if (bResult)
@@ -357,7 +357,7 @@ bool CObjectReader::ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseOb
 		{
 			bResult = ReadInt16(&cHeader.miNumEmbedded);
 			bResult &= ReadInt16(&cHeader.miEmbeddedIndex);
-			bResult &= ReadSInt(&iDistToRoot);
+			bResult &= ReadInt32(&iDistToRoot);
 
 			SafeAssign(ppcObjectPtr, NULL);
 			

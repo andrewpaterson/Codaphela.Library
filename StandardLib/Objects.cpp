@@ -254,7 +254,7 @@ void CObjects::PrintMemoryNames(CChars* psz)
 	bExists = pcIndex->StartIteration(&sIter, NULL, NULL, 0, NULL, NULL, 0);
 	while (bExists)
 	{
-		psz->Append((char*)sIter.pvKey, sIter.iKeyLength);
+		psz->Append((char*)sIter.acKey.GetData(), sIter.iKeyLength);
 		psz->AppendNewLine();
 
 		bExists = pcIndex->Iterate(&sIter, NULL, NULL, 0, NULL, NULL, 0);
@@ -339,7 +339,7 @@ void CObjects::DumpMemoryNames(void)
 	bExists = pcIndex->StartIteration(&sIter, NULL, NULL, 0, NULL, NULL, 0);
 	while (bExists)
 	{
-		sz.Init((char*)sIter.pvKey, 0, sIter.iKeyLength);
+		sz.Init((char*)sIter.acKey.GetData(), 0, sIter.iKeyLength);
 		sz.AppendNewLine();
 		sz.DumpKill();
 

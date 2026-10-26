@@ -36,7 +36,7 @@ CSerialisedObject* CObjectReaderSimpleDisk::Read(const char* szObjectName)
 	CChars				szFilename;
 	char				szExtension[4];
 	bool				bResult;
-	int					iFileType;
+	int32				iFileType;
 
 	Filename(szObjectName, mszFullDirectory.Text(), &szDirectory, &szFilename);
 

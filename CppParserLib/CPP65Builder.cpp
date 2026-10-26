@@ -59,6 +59,7 @@ void CCPP65Builder::Init(void)
 	mcLinker.SetStubMissing(true);
 	mcLinker.SetRemoveUnused(true);
 	mszErrors.Init();
+	mszWarnings.Init();
 }
 
 
@@ -70,6 +71,7 @@ void CCPP65Builder::Kill(void)
 {
 	size	i;
 
+	mszWarnings.Kill();
 	mszErrors.Kill();
 	mcLinker.Kill();
 	mcLinkWithObjects.Kill();
@@ -358,7 +360,7 @@ bool CCPP65Builder::AddSource(const char* szName, const char* szSource)
 	bool	bResult;
 
 	szAssembly.Init();
-	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget);
+	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings);
 	bResult &= AddObject(szName, szAssembly.Text());
 	szAssembly.Kill();
 	return bResult;
@@ -431,7 +433,7 @@ bool CCPP65Builder::LinkWith(const char* szName, const char* szSource)
 	mcLinkWithObjects.Kill();
 	mcLinkWithObjects.Init("link with");
 	szAssembly.Init();
-	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget);
+	bResult = Generate(&szAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, meTarget, &mszWarnings);
 	bResult &= Assemble(mcLinkWithObjects.AddObject(szName), szAssembly.Text());
 	szAssembly.Kill();
 	mcLinker.AddObject(mcLinkWithObjects.GetObject(0));
@@ -524,6 +526,16 @@ char* CCPP65Builder::GetErrors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+char* CCPP65Builder::GetWarnings(void)
+{
+	return mszWarnings.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 char* CCPP65Builder::GetMap(void)
 {
 	return mcLinker.GetMap();
@@ -595,7 +607,7 @@ CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)
 // pszErrors.  The labels it uses but does not define are added to paszExternals if it isn't NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget)
+bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings)
 {
 	CTranslationUnit		cFile;
 	CPreprocessor			cPreprocessor;
@@ -650,6 +662,10 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 		cGenerator.GetExternals(paszExternals);
 	}
 	pszErrors->Append(cGenerator.GetErrors()->Text());
+	if (pszWarnings)
+	{
+		pszWarnings->Append(cGenerator.GetWarnings()->Text());
+	}
 	cGenerator.Kill();
 
 	cTree.Kill();
@@ -781,6 +797,7 @@ bool CCPP65Builder::CompileUnits(void)
 		cGenerator.Init(&cTree, meTarget);
 		bResult &= cGenerator.Generate(&szAssembly);
 		mszErrors.Append(cGenerator.GetErrors()->Text());
+		mszWarnings.Append(cGenerator.GetWarnings()->Text());
 		cGenerator.Kill();
 		pcLinkLibrary = GetLinkLibrary(pcFile->GetLibrary());
 		if (pcLinkLibrary)

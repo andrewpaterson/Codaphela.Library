@@ -13,7 +13,7 @@ protected:
 public:
 	void		Init(void);
 	void		Init(size iMaxAttempts);
-	void		Init(size iMaxAttempts, int iSeed);
+	void		Init(size iMaxAttempts, uint32 iSeed);
 	void		Kill(void);
 
 	bool		Run(CIndexTreeNodeFile* pcDontEvict);

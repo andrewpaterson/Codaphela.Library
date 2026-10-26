@@ -1965,6 +1965,7 @@ TRISTATE CTextParser::GetFloat(double* pf, bool bSkipWhitespace)
 		//Try and get the mantissa.
 		tReturn = GetDigits(&ulliLeft, &iLeftSign, NULL);
 		bLeft = true;
+		iLeftSign = iSign;
 
 		//Just return on errors an non-numbers.
 		if (tReturn == TRIFALSE)
@@ -1973,6 +1974,8 @@ TRISTATE CTextParser::GetFloat(double* pf, bool bSkipWhitespace)
 			ulliLeft = 0;
 			iLeftSign = 1;
 			bLeft = false;
+			iSign = 1;
+			iLeftSign = 1;
 		}
 		else if (tReturn == TRIERROR)
 		{
@@ -1999,7 +2002,7 @@ TRISTATE CTextParser::GetFloat(double* pf, bool bSkipWhitespace)
 					}
 
 					fRight = (double)ulliRight;
-					fTemp = powl(10.0L, (long double)-iNumDecimals);
+					fTemp = powl(10.0L, -(long double)iNumDecimals);
 					fRight *= fTemp;
 
 					//Test the sign, not fLeft: "-0.5" has an fLeft of -0.0 which is >= 0.

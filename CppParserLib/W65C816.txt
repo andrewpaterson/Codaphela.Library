@@ -253,6 +253,51 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 
 6.	TestBaseLib65 and TestStandardLib65 on the W65C816.  This is where int 16 meets
 	BaseLib (QUESTION 1).
+	Done (2026-10-26): "TestBaseLib65 816" and "TestStandardLib65 816" (the shared
+	TestProject65 runner, geTestProject65Target; 816 exclusions and minimums) compile all
+	of BaseLib, StandardLib and their tests and run them on CFast65C816: TestBaseLib
+	384/384, TestStandardLib 161/161.
+	Excluded on the W65C816: TestListVariable (more than 16MB), and as too slow for the 4G
+	instructions a program gets (they pass when given longer, TEST_PROJECT65_STEPS):
+	TestMapStringIntAndPointer, TestSetUnknown, TestMapUnknownUnknown.  The user's ruling
+	for int 16: overload sets of 32 bit ints get a 16 bit family under __W65C816__
+	(AssertInt, IntToString, CChars and CString::Append, CNumber::Init, Read/WriteInt32
+	...), never mixed 16 and 32 bit, and the tests' expected values (and some variables)
+	are fixed to what the test means.  The int 16 traps found, all silent:
+	- an int passed to ReadInt32/WriteInt32 picks the 16 bit overload: 2 bytes of a 4
+	  byte file field (object readers, dist to root, test classes' Save and Load)
+	- *(int*) and sizeof(int) for 4 byte data (the serialised object's type tag, the
+	  index tree node header, FastMemcpy/Memset/MemcpyBackwards words)
+	- uint16 and unsigned short promote to unsigned int: u16 - 1 is 65535, not -1
+	  (FatClusterCache's loop never ended), TypeConverter, CalculateOffset, TextParser
+	- uint8 << 16 or more; seeds, counts and sizes cast to int (CRandom::Init and Next,
+	  Shuffle, QuickSort/TimSort's element count, malloc(12000 * 6) in a test)
+	- multi character literals ('\0MAN') are long; NULL must be pointer sized for
+	  varargs (0L); caches bigger than 16MB (Codabase factory)
+	A real bug the 816 showed: CNumber::Init("0", whole, decimals) zeroed a default
+	sized number over a smaller one (a heap overrun natively hidden by slack).  Also
+	fixed: CTextParser::GetFloat lost the sign of "-0.5" (it failed natively too).
+	Compiler: objects that aren't trivially copyable pass by the address of the caller's
+	copy (Itanium style), condition temporaries, operators and conversion functions on
+	objects, casts to classes, anonymous unions, scalar arrays zeroed by a loop, thunks in
+	816 assembly, frames over 48KB are an error, Libc65's high heap starts after a
+	program past 2MB.  Debugging: TEST_PROJECT65_ONLY=<tests> runs some programs;
+	gcHeap.IsValid() between statements finds what corrupts the heap.
+	Warnings (2026-10-26, the user asked): the generator has a second CCPPErrors for
+	warnings (each token at most once; they don't fail a unit) and the builder collects
+	them (GetWarnings; Generate's pszWarnings).  "Integer overflow": a constant int
+	expression whose exact value doesn't fit its type (signed, or an unsigned sum,
+	product or shift; unsigned subtraction wraps by definition).  "Integer conversion
+	overflow": a constant an implicit conversion truncates (initialisers, assignments,
+	arguments, returns, globals), unless it fits the target's signed or unsigned range
+	(-1 to unsigned, 0xFFFF to a 16 bit int are bit patterns).  They found an enum bug:
+	an enum's underlying type is now [dcl.enum]'s (int, unsigned int, long, unsigned
+	long, long long; the given one; int for a scoped enum), so TRIERROR = 0xffffffff
+	makes TRISTATE 32 bits on the W65C816.  Then 25 more, all fixed: Deflater's hash
+	size (1 << 15), NumberInit's and CScratchPad's int sizes (1MB and 6MB were 0),
+	FileCopier's int chunk, the index tree iterator's type, and test values.  The
+	TestProject65 runner prints the warnings; BaseLib, StandardLib and their tests have
+	none on the W65C816.
 
 7.	Make it fast, measured with CFast65C816 cycle counts of the runnable projects:
 	- register allocation over A, X and Y (loop counters and indexes in X/Y) with the

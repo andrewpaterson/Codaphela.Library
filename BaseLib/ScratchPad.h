@@ -25,6 +25,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "MemoryStackExtended.h"
 
 
+#ifdef __W65C816__
+#define SCRATCH_PAD_CHUNK_SIZE	(32 KB)		//Each chunk is allocated whole; the W65C816 has 16MB in all.
+#else
+#define SCRATCH_PAD_CHUNK_SIZE	(6 MB)
+#endif // __W65C816__
+
+
 struct SSPNode
 {
 public:
@@ -35,7 +42,7 @@ public:
 
 struct SScratchPadParams
 {
-	int	iChunkSize;
+	int32	iChunkSize;	//Written to files: four bytes everywhere.
 };
 
 
@@ -43,11 +50,11 @@ class CScratchPad
 {
 protected:
 	CMemoryStackExtended	mcScratchPad;
-	int						miSourceChunkSize;
+	size					miSourceChunkSize;
 
 public:
 	void	Init(void);
-	void	Init(int iChunkSize);
+	void	Init(size uiChunkSize);
 	void	Kill(void);
 
 	void*	Add(size uiSize);

@@ -371,7 +371,10 @@ bool CNamedIndexedObjects::ValidateNoDirty(void)
 		{
 			szIdentifier.Init();
 			pcObject->PrintIdentifier(&szIdentifier);
-			return gcLogger.Error2(__METHOD__, " Object [", szIdentifier.Text(), "] is dirty.", NULL);
+			gcLogger.Error2(__METHOD__, " Object [", szIdentifier.Text(), "] is dirty.", NULL);
+			szIdentifier.Kill();
+			sIter.Kill();
+			return false;
 		}
 		oi = mcMemoryIndexedObjects.Iterate(&sIter);
 	}

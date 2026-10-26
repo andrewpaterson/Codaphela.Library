@@ -4124,7 +4124,7 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 		switch (pcUnary->meOperator)
 		{
 		case CT_Add:			*plliValue = lliLeft;			return true;
-		case CT_Subtract:		*plliValue = -lliLeft;			return true;
+		case CT_Subtract:		*plliValue = -lliLeft;			ConstantOverflow(pcExpression, *plliValue, true);	return true;
 		case CT_BitwiseNot:		*plliValue = ~lliLeft;			return true;
 		case CT_LogicalNot:		*plliValue = !lliLeft;			return true;
 		default:				return false;
@@ -4138,12 +4138,12 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 		}
 		switch (pcBinary->meOperator)
 		{
-		case CT_Add:				*plliValue = lliLeft + lliRight;		return true;
-		case CT_Subtract:			*plliValue = lliLeft - lliRight;		return true;
-		case CT_Multiply:			*plliValue = lliLeft * lliRight;		return true;
+		case CT_Add:				*plliValue = lliLeft + lliRight;		ConstantOverflow(pcExpression, *plliValue, false);	return true;
+		case CT_Subtract:			*plliValue = lliLeft - lliRight;		ConstantOverflow(pcExpression, *plliValue, true);	return true;
+		case CT_Multiply:			*plliValue = lliLeft * lliRight;		ConstantOverflow(pcExpression, *plliValue, false);	return true;
 		case CT_Divide:				if (lliRight == 0) return false;	*plliValue = lliLeft / lliRight;	return true;
 		case CT_Modulus:			if (lliRight == 0) return false;	*plliValue = lliLeft % lliRight;	return true;
-		case CT_LeftShift:			*plliValue = lliLeft << lliRight;		return true;
+		case CT_LeftShift:			*plliValue = lliLeft << lliRight;		ConstantOverflow(pcExpression, *plliValue, false);	return true;
 		case CT_RightShift:			*plliValue = lliLeft >> lliRight;		return true;
 		case CT_BitwiseAnd:			*plliValue = lliLeft & lliRight;		return true;
 		case CT_BitwiseOr:			*plliValue = lliLeft | lliRight;		return true;
@@ -4239,6 +4239,115 @@ bool CCPP65Generator::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Warns if lliValue, an integer constant expression's exact value, doesn't
+// fit its type: an int expression that is right with a 32 bit int can
+// silently be wrong with the W65C816's 16 bit one ("12000 * 6").  Unsigned
+// arithmetic wraps by definition; bUnsignedWraps says if this one is meant to
+// (subtraction and negation are, a sum, product or shift that loses bits is
+// taken as a mistake).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue, bool bUnsignedWraps)
+{
+	SCPP65Type*	psType;
+	int			iBits;
+	int64		lliMin;
+	int64		lliMax;
+	CChars		szMessage;
+
+	if (miWarningChecks > 0)
+	{
+		return;
+	}
+	miWarningChecks++;
+	psType = TypeOf(pcExpression);
+	miWarningChecks--;
+	if (!psType || !psType->IsInteger() || (psType->iBytes >= 8))
+	{
+		return;
+	}
+	iBits = psType->iBytes * 8;
+	if (psType->bSigned)
+	{
+		lliMin = -((int64)1 << (iBits - 1));
+		lliMax = ((int64)1 << (iBits - 1)) - 1;
+	}
+	else
+	{
+		if (bUnsignedWraps)
+		{
+			return;
+		}
+		lliMin = 0;
+		lliMax = ((int64)1 << iBits) - 1;
+	}
+	if ((lliValue >= lliMin) && (lliValue <= lliMax))
+	{
+		return;
+	}
+
+	szMessage.Init("Integer overflow: the constant expression is ");
+	szMessage.Append(lliValue)->Append(", which doesn't fit its ")->Append(iBits)->Append(" bit ")->Append(psType->bSigned ? "signed" : "unsigned")->Append(" type.");
+	Warning(pcExpression, szMessage.Text());
+	szMessage.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Warns if pcExpression is an integer constant that an implicit conversion to
+// psTo truncates: it fits neither psTo's signed nor its unsigned range (so -1
+// to an unsigned type and 0xFFFF to a 16 bit signed one are bit patterns, not
+// warned about).  89037124 passed to an int parameter is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo)
+{
+	SCPP65Type*	psFrom;
+	int64		lliValue;
+	int			iBits;
+	bool		bConstant;
+	bool		bQuietFailed;
+	CChars		szMessage;
+
+	if (!psTo || !psTo->IsInteger() || (psTo->iBytes >= 8) || (psTo->eKind == CPP65TK_Bool) || (miWarningChecks > 0))
+	{
+		return;
+	}
+	miWarningChecks++;
+	psFrom = TypeOf(pcExpression);
+	miWarningChecks--;
+	if (!psFrom || !psFrom->IsInteger())
+	{
+		return;
+	}
+
+	//Most expressions aren't constant; looking must not leave an error.
+	bQuietFailed = mbQuietFailed;
+	BeginQuiet();
+	bConstant = Constant(pcExpression, &lliValue);
+	EndQuiet();
+	mbQuietFailed = bQuietFailed;
+	if (!bConstant)
+	{
+		return;
+	}
+
+	iBits = psTo->iBytes * 8;
+	if ((lliValue >= -((int64)1 << (iBits - 1))) && (lliValue <= ((int64)1 << iBits) - 1))
+	{
+		return;
+	}
+
+	szMessage.Init("Integer conversion overflow: the constant ");
+	szMessage.Append(lliValue)->Append(" doesn't fit the ")->Append(iBits)->Append(" bit type it is converted to and is truncated.");
+	Warning(pcExpression, szMessage.Text());
+	szMessage.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The compiler's type traits: __is_class, __is_enum, __is_union, __is_empty,
 // __is_polymorphic, __is_abstract, __is_pod, __is_trivial, __is_trivially_copyable,
 // __is_trivially_constructible, __is_trivially_destructible and
@@ -4315,21 +4424,135 @@ bool CCPP65Generator::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* p
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An enumerator's type: its enum's, or int for an unnamed enum.
+// An enumerator's type: its enum's (an unnamed enum's is its underlying type).
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Generator::EnumeratorType(CCPPSymbol* pcSymbol)
 {
-	CCPPSyntax*	pcEnumerator;
-	CCPPSymbol*	pcEnum;
+	CCPPSyntax*					pcEnumerator;
+	CCPPSyntaxEnumSpecifier*	pcSpecifier;
 
 	pcEnumerator = pcSymbol->mpcDeclaration;
 	if (!pcEnumerator || !pcEnumerator->mpcParent || (pcEnumerator->mpcParent->GetKind() != CPPS_EnumSpecifier))
 	{
 		return &mcTypes.msInt;
 	}
-	pcEnum = ((CCPPSyntaxEnumSpecifier*)pcEnumerator->mpcParent)->mpcSymbol;
-	return pcEnum ? mcTypes.Enum(pcEnum) : &mcTypes.msInt;
+	pcSpecifier = (CCPPSyntaxEnumSpecifier*)pcEnumerator->mpcParent;
+	return EnumType(pcSpecifier->mpcSymbol, pcSpecifier);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An enum's type (pcEnum's, or an unnamed enum's from pcSpecifier).  Its
+// underlying type is the one given ("enum E : uint8"), int for a scoped enum,
+// or else [dcl.enum] the first of int, unsigned int, long, unsigned long and
+// long long that holds all its enumerators: TRIERROR = 0xffffffff makes
+// TRISTATE an unsigned long on the W65C816, where int is 16 bits.
+// pcSpecifier can be NULL or a forward declaration.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSpecifier)
+{
+	SCPP65Type*				psType;
+	SCPP65Type*				psBase;
+	CCPPSyntaxEnumerator*	pcEnumerator;
+	CCPPSymbol**			ppcMember;
+	SMapIterator			sIter;
+	CCPPSyntax*				pcDeclaration;
+	int64					lliValue;
+	int64					lliMin;
+	int64					lliMax;
+	int						iBits;
+	int						iBytes;
+	bool					bSigned;
+	size					i;
+
+	if (pcEnum)
+	{
+		psType = mcTypes.FindEnum(pcEnum);
+		if (psType)
+		{
+			return psType;
+		}
+	}
+
+	//The specifier with the enumerators: the symbol's declaration, or the parent of one of its enumerators.
+	if ((!pcSpecifier || !pcSpecifier->mbBody) && pcEnum)
+	{
+		pcSpecifier = NULL;
+		pcDeclaration = pcEnum->mpcDeclaration;
+		if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_EnumSpecifier) && ((CCPPSyntaxEnumSpecifier*)pcDeclaration)->mbBody)
+		{
+			pcSpecifier = (CCPPSyntaxEnumSpecifier*)pcDeclaration;
+		}
+		else if (pcEnum->mpcMembers && pcEnum->mpcMembers->mcSymbols.StartIteration(&sIter, NULL, NULL, (void**)&ppcMember, NULL) && ppcMember && *ppcMember)
+		{
+			pcDeclaration = (*ppcMember)->mpcDeclaration;
+			if (pcDeclaration && pcDeclaration->mpcParent && (pcDeclaration->mpcParent->GetKind() == CPPS_EnumSpecifier))
+			{
+				pcSpecifier = (CCPPSyntaxEnumSpecifier*)pcDeclaration->mpcParent;
+			}
+		}
+	}
+
+	iBytes = mcTypes.msInt.iBytes;
+	bSigned = true;
+	if (pcSpecifier && pcSpecifier->mpcBase)
+	{
+		psBase = GetTypeIdType(pcSpecifier->mpcBase);
+		if (psBase && psBase->IsInteger())
+		{
+			iBytes = psBase->iBytes;
+			bSigned = psBase->bSigned;
+		}
+	}
+	else if (pcSpecifier && !pcSpecifier->mbScoped)
+	{
+		lliValue = 0;
+		lliMin = 0;
+		lliMax = 0;
+		for (i = 0; i < pcSpecifier->macpEnumerators.NumElements(); i++)
+		{
+			pcEnumerator = (CCPPSyntaxEnumerator*)pcSpecifier->macpEnumerators.GetPtr(i);
+			if (pcEnumerator->mpcValue && !Constant(pcEnumerator->mpcValue, &lliValue))
+			{
+				break;
+			}
+			lliMin = (lliValue < lliMin) ? lliValue : lliMin;
+			lliMax = (lliValue > lliMax) ? lliValue : lliMax;
+			lliValue++;
+		}
+
+		iBits = mcTypes.msInt.iBytes * 8;
+		if ((lliMin >= -((int64)1 << (iBits - 1))) && (lliMax < ((int64)1 << (iBits - 1))))
+		{
+			//int.
+		}
+		else if ((lliMin >= 0) && (lliMax < ((int64)1 << iBits)))
+		{
+			bSigned = false;
+		}
+		else if ((lliMin >= -((int64)1 << 31)) && (lliMax < ((int64)1 << 31)))
+		{
+			iBytes = 4;
+		}
+		else if ((lliMin >= 0) && (lliMax <= (int64)0xFFFFFFFF))
+		{
+			iBytes = 4;
+			bSigned = false;
+		}
+		else
+		{
+			iBytes = 8;
+		}
+	}
+
+	if (pcEnum)
+	{
+		return mcTypes.Enum(pcEnum, iBytes, bSigned);
+	}
+	return mcTypes.Integer(iBytes, bSigned);
 }
 
 

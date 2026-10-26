@@ -11,8 +11,9 @@
 int		errno = 0;
 
 
-//The heap is 0008:0000 to 000F:FFFF, or from 0020:0000 to the top of memory when the memory size register
-//(00FF:0300) says there is more than 2MB, or from 0100:0000 (past the devices' page) when there is more than 16MB.
+//The heap is 0008:0000 to 000F:FFFF, or from 0020:0000 (or the end of a program that goes past it) to the top of
+//memory when the memory size register (00FF:0300) says there is more than 2MB, or from 0100:0000 (past the devices'
+//page) when there is more than 16MB.
 //BaseLib's CTrueMallocator manages it: malloc and free take the same time however many blocks there are, and freed
 //blocks are joined to the free blocks either side of them.
 #define HEAP_START			0x80000
@@ -25,6 +26,9 @@ int		errno = 0;
 
 CTrueMallocator		gcHeap;
 bool				gbHeap = false;
+
+//The linker's __end: the end of the program.
+extern "C" char		_end;
 
 
 static void InitHeap(void)
@@ -41,7 +45,9 @@ static void InitHeap(void)
 	}
 	else if (uiMemorySize > HIGH_HEAP_START)
 	{
-		uiStart = HIGH_HEAP_START;
+		//After the program if it goes past 0020:0000.
+		uiStart = (uint32_t)&_end;
+		uiStart = (uiStart > HIGH_HEAP_START) ? ((uiStart + 15) & ~(uint32_t)15) : HIGH_HEAP_START;
 		uiEnd = (uiMemorySize < DEVICES_START) ? uiMemorySize : DEVICES_START;
 	}
 	else

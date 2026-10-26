@@ -69,7 +69,7 @@ uint32 GetMMNodeDataSize(SMMNode* psNode)
 	uint32 uiSize;
 
 	uiSize = psNode->uiSize;
-	psNode->uiSize |= (psNode->uiFlags & MM_NODE_SIZE_MASK) << 16;
+	psNode->uiSize |= (uint32)(psNode->uiFlags & MM_NODE_SIZE_MASK) << 16;
 	return uiSize;
 }
 

@@ -1244,21 +1244,21 @@ bool CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, uint
 	size							iDataSize;
 	bool							bResult;
 
+	psIterator->Init();
 	if (mpcRoot == NULL)
 	{
+		psIterator->Kill();
 		return false;  //Never Init'd, or Killed.  An empty tree has nothing to iterate.
 	}
-
-	memset(psIterator->pvKey, 0, MAX_KEY_SIZE);
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
-	psIterator->iKeyLength = 0;
 
-	bResult = StartIteration(&sIter, psIterator->pvKey, &psIterator->iKeyLength, MAX_KEY_SIZE, NULL, NULL);
+	bResult = StartIteration(&sIter, NULL, NULL, 0, NULL, NULL);
 	psIterator->iIndex = sIter.iIndex;
 
 	if (bResult)
 	{
-		CopyData((uint8*)pvKey, psIterator->pvKey, psIterator->iKeyLength, iMaxKeySize);
+		SetIteratorKey(psIterator, sIter.pcNode);
+		CopyData((uint8*)pvKey, psIterator->acKey.GetData(), psIterator->iKeyLength, iMaxKeySize);
 		SafeAssign(piKeySize, psIterator->iKeyLength);
 		if (piDataSize)
 		{
@@ -1270,12 +1270,17 @@ bool CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, uint
 			GetNodeData(sIter.pcNode, pvData, iMaxDataSize);
 		}
 	}
+	else
+	{
+		psIterator->Kill();
+	}
 	return bResult;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// False at the end, which frees the iterator's key.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeMemory::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* piDataSize, size iMaxDataSize)
@@ -1284,20 +1289,26 @@ bool CIndexTreeMemory::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKe
 	size							iDataSize;
 	bool							bResult;
 
-	sIter.iIndex = psIterator->iIndex;
-	sIter.pcNode = GetNode(psIterator->pvKey, psIterator->iKeyLength);
-
-	if (!sIter.pcNode)
+	if (!psIterator->IsLive())
 	{
 		return false;
 	}
+	sIter.iIndex = psIterator->iIndex;
+	sIter.pcNode = GetNode(psIterator->acKey.GetData(), psIterator->iKeyLength);
 
-	bResult = Iterate(&sIter, (uint8*)psIterator->pvKey, &psIterator->iKeyLength, MAX_KEY_SIZE, NULL, NULL);
+	if (!sIter.pcNode)
+	{
+		psIterator->Kill();
+		return false;
+	}
+
+	bResult = Iterate(&sIter, NULL, NULL, 0, NULL, NULL);
 	psIterator->iIndex = sIter.iIndex;
 
 	if (bResult)
 	{
-		CopyData((uint8*)pvKey, psIterator->pvKey, psIterator->iKeyLength, iMaxKeySize);
+		SetIteratorKey(psIterator, sIter.pcNode);
+		CopyData((uint8*)pvKey, psIterator->acKey.GetData(), psIterator->iKeyLength, iMaxKeySize);
 		SafeAssign(piKeySize, psIterator->iKeyLength);
 		if (piDataSize)
 		{
@@ -1309,7 +1320,62 @@ bool CIndexTreeMemory::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKe
 			GetNodeData(sIter.pcNode, pvData, iMaxDataSize);
 		}
 	}
+	else
+	{
+		psIterator->Kill();
+	}
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The iterator's key becomes pcNode's (the key array grows if it is long).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::SetIteratorKey(SIndexTreeMemoryIterator* psIterator, CIndexTreeNodeMemory* pcNode)
+{
+	psIterator->iKeyLength = GetNodeKeySize(pcNode);
+	psIterator->acKey.Resize(psIterator->iKeyLength);
+	GetNodeKey(pcNode, psIterator->acKey.GetData(), psIterator->iKeyLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// StartIteration does this; an iterator that might be killed before it
+// starts needs it first.
+//
+//////////////////////////////////////////////////////////////////////////
+void SIndexTreeMemoryIterator::Init(void)
+{
+	acKey.Init();
+	iKeyLength = 0;
+	iIndex = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Frees the key of an iteration that was stopped before its end (an
+// iteration that ends frees it).  It can be called more than once.
+//
+//////////////////////////////////////////////////////////////////////////
+void SIndexTreeMemoryIterator::Kill(void)
+{
+	acKey.Kill();
+	iKeyLength = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the iteration has not ended (or been killed).
+//
+//////////////////////////////////////////////////////////////////////////
+bool SIndexTreeMemoryIterator::IsLive(void)
+{
+	return acKey.IsEmbedded() || acKey.IsArray();
 }
 
 

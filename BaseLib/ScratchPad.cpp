@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CScratchPad::Init(void)
 {
-	Init(6 MB);
+	Init(SCRATCH_PAD_CHUNK_SIZE);
 }
 
 
@@ -40,10 +40,10 @@ void CScratchPad::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CScratchPad::Init(int iChunkSize)
+void CScratchPad::Init(size uiChunkSize)
 {
-	mcScratchPad.Init(iChunkSize);
-	miSourceChunkSize = iChunkSize;
+	mcScratchPad.Init(uiChunkSize);
+	miSourceChunkSize = uiChunkSize;
 }
 
 
@@ -110,6 +110,6 @@ size CScratchPad::GetUsedSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CScratchPad::GetParams(SScratchPadParams* psParams)
 {
-	psParams->iChunkSize = miSourceChunkSize;
+	psParams->iChunkSize = (int32)miSourceChunkSize;
 }
 
