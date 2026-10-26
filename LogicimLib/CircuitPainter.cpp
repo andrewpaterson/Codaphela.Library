@@ -57,6 +57,28 @@ void CCircuitPainter::Init(CCircuitViewport* pcViewport, CGeometryMap* pcMap, CS
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The sprite map is given a new blitter cache only when the image isn't
+// the one it was last on, so painting the same image again reuses it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitPainter::InitImage(Ptr<CImage> pImage, CCircuitViewport* pcViewport, CGeometryMap* pcMap, CSpriteMap* pcSprites, CCircuitColours* pcColours, CCircuitFonts* pcFonts, CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation)
+{
+	pcViewport->SetSize(pImage->GetWidth(), pImage->GetHeight());
+	pcMap->Clear();
+	pcMap->SetViewport(pImage);
+	pcSprites->Clear();
+	if (pcSprites->GetViewport() != pImage)
+	{
+		pcSprites->SetViewport(pImage);
+		pcSprites->SetBlitterCache(pcSprites->CreateBlitterCache());
+	}
+	pcMap->AddRectangle(0, 0, pImage->GetWidth(), pImage->GetHeight(), pcColours->msBackground);
+	Init(pcViewport, pcMap, pcSprites, pcColours, pcFonts, pcViewPath, pcCircuitSimulation);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircuitPainter::Kill(void)
@@ -68,6 +90,26 @@ void CCircuitPainter::Kill(void)
 	mpcFonts = NULL;
 	mpcViewPath = NULL;
 	mpcCircuitSimulation = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The shapes and then the text over them onto the whole of the image
+// given to InitImage.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitPainter::BlitImage(void)
+{
+	CInt32Rect	cRect;
+	SInt32Vec2	sSize;
+	bool		bResult;
+
+	sSize = mpcViewport->GetSize();
+	cRect.Init(0, 0, sSize.x, sSize.y);
+	bResult = mpcMap->Blit(&cRect, false);
+	bResult &= mpcSprites->Blit(&cRect, true);
+	return bResult;
 }
 
 
