@@ -30,6 +30,7 @@ public:
 	CChars			mszName;
 	CArrayChars		maszDefines;
 	bool			mbKeepPragmaPack;	//#pragma pack(...) is kept as __pragma(pack(...)) for the parser (the 65C64 generator lays classes out with it).
+	bool			mbHostDefines;		//The macros of the compiler this is built with (_MSC_VER, _WIN32, ...) are defined.  Not for the 65 targets.
 
 	void Init(char* szName);
 	void Kill(void);

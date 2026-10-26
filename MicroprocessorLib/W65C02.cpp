@@ -33,7 +33,7 @@ void CW65C02::Init(CW65C02Pins* pcPins)
 	mpcW65C02Pins = pcPins;
 
 	//P reads bit 5 as 1, B (bit 4) only exists on the stack.
-	muiEmulationStatusBits = STATUS_ACCUMULATOR_WIDTH;
+	msState.uiEmulationStatusBits = STATUS_ACCUMULATOR_WIDTH;
 	mbBitBranch = false;
 	mbPreviousSOB = true;
 }
@@ -147,7 +147,7 @@ void CW65C02::WriteSignalsPhi2Falling(CTimeline* pcTimeline, CW65DataOperation* 
 uint8 CW65C02::GetOpcodeBit(void)
 {
 	//RMBx, SMBx, BBRx and BBSx encode the bit in bits 4 to 6 of the opcode.
-	return (muiOpcodeIndex >> 4) & 0x7;
+	return (msState.uiOpcodeIndex >> 4) & 0x7;
 }
 
 
@@ -181,7 +181,7 @@ void CW65C02::BitBranchTest(void)
 	bool	bBitSet;
 
 	bBitSet = (GetDataLow() & (1 << GetOpcodeBit())) != 0;
-	mbBitBranch = bBitSet == ((muiOpcodeIndex & 0x80) != 0);
+	mbBitBranch = bBitSet == ((msState.uiOpcodeIndex & 0x80) != 0);
 }
 
 

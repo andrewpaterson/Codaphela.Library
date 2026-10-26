@@ -69,6 +69,7 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	size				AddItem(const char* szText);
+	void				RemoveAllItems(void);
 	size				NumItems(void);
 	char*				GetItemText(size uiIndex);
 	void				Select(int32 iIndex);

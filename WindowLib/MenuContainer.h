@@ -62,6 +62,7 @@ public:
 
 	Ptr<CMenuItem>		AddItem(const char* szText, Ptr<CImageCel> pIcon = NULL, Ptr<CMenuContainer> pSubMenu = NULL);
 	int32				AddSeparator(void);
+	void				RemoveAllItems(void);  //And the separators.
 	size				NumItems(void);
 	Ptr<CMenuItem>		GetItem(size uiIndex);
 	Ptr<CMenuItem>		GetItemInRow(int32 iRow);

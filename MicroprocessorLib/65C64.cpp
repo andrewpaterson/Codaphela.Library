@@ -212,35 +212,35 @@ void C65C64::Init(C65C64Pins* pcPins)
 {
 	mpcPins = pcPins;
 
-	muiA = 0;
-	muiB = 0;
-	muiX = 0;
-	muiY = 0;
-	muiS = RESET_65C64_STACK_POINTER;
-	muiV = 0;
-	muiW = 0;
-	muiC = 0;
-	muiP = STATUS65_EDGE_DISABLE | STATUS65_LEVEL_DISABLE;
-	muiInterruptDepth = 1;
+	msState.uiA = 0;
+	msState.uiB = 0;
+	msState.uiX = 0;
+	msState.uiY = 0;
+	msState.uiS = RESET_65C64_STACK_POINTER;
+	msState.uiV = 0;
+	msState.uiW = 0;
+	msState.uiC = 0;
+	msState.uiP = STATUS65_EDGE_DISABLE | STATUS65_LEVEL_DISABLE;
+	msState.uiInterruptDepth = 1;
 
-	muiOpcode = 0;
+	msState.uiOpcode = 0;
 	memset(&msDecoded, 0, sizeof(S65C64Decoded));
 	mpcInstruction = NULL;
-	miCycle = -1;
-	miNextCycle = 0;
-	mbNextInstruction = false;
-	mbStopped = false;
+	msState.iCycle = -1;
+	msState.iNextCycle = 0;
+	msState.bNextInstruction = false;
+	msState.bStopped = false;
 
-	mbWaiting = false;
-	muiWakeMask = 0;
-	muiPendingEdges = 0;
-	muiEdgeLow = 0;
-	mbLevelInterrupt = false;
+	msState.bWaiting = false;
+	msState.uiWakeMask = 0;
+	msState.uiPendingEdges = 0;
+	msState.uiEdgeLow = 0;
+	msState.bLevelInterrupt = false;
 
-	muiIOData = 0;
-	mbPreviousClockLow = false;
-	mbPreviousClockHigh = false;
-	mbReset = false;
+	msState.uiIOData = 0;
+	msState.bPreviousClockLow = false;
+	msState.bPreviousClockHigh = false;
+	msState.bReset = false;
 
 	ResetInstructionState();
 }
@@ -266,37 +266,9 @@ void C65C64::GetState(S65C64CoreState* psState)
 	C65C64InstructionFactory*	pcFactory;
 	S65C64Decoded				sDecoded;
 
-	psState->uiA = muiA;
-	psState->uiB = muiB;
-	psState->uiX = muiX;
-	psState->uiY = muiY;
-	psState->uiS = muiS;
-	psState->uiV = muiV;
-	psState->uiW = muiW;
-	psState->uiC = muiC;
-	psState->uiP = muiP;
-	psState->uiInterruptDepth = muiInterruptDepth;
-
-	psState->uiDI = muiDI;
-	psState->uiOperationBytes = muiOperationBytes;
-	memcpy(psState->auiOperandWords, mauiOperandWords, sizeof(mauiOperandWords));
-	psState->uiPointerAddress = muiPointerAddress;
-	psState->uiPointer = muiPointer;
-	psState->uiNumPointerWords = muiNumPointerWords;
-	psState->uiEffectiveAddress = muiEffectiveAddress;
-	psState->uiVectorAddress = muiVectorAddress;
-	psState->uiVector = muiVector;
-	memcpy(psState->asTransfers, masTransfers, sizeof(masTransfers));
-	memcpy(psState->aePulled, maePulled, sizeof(maePulled));
-	psState->uiNumTransfers = muiNumTransfers;
-	memcpy(psState->asReadWords, masReadWords, sizeof(masReadWords));
-	psState->uiNumReadWords = muiNumReadWords;
-	memcpy(psState->asWriteWords, masWriteWords, sizeof(masWriteWords));
-	psState->uiNumWriteWords = muiNumWriteWords;
-
-	psState->uiOpcode = muiOpcode;
+	*psState = msState;
 	psState->uiDecodedVector = 0;
-	Decode65C64(muiOpcode, &sDecoded);
+	Decode65C64(msState.uiOpcode, &sDecoded);
 	if (msDecoded.eInstruction == I65_Interrupt)
 	{
 		psState->eDecoded = DK65_Interrupt;
@@ -336,21 +308,6 @@ void C65C64::GetState(S65C64CoreState* psState)
 	{
 		psState->eInstruction = IK65_Opcode;
 	}
-	psState->iCycle = miCycle;
-	psState->iNextCycle = miNextCycle;
-	psState->bNextInstruction = mbNextInstruction;
-	psState->bStopped = mbStopped;
-
-	psState->bWaiting = mbWaiting;
-	psState->uiWakeMask = muiWakeMask;
-	psState->uiPendingEdges = muiPendingEdges;
-	psState->uiEdgeLow = muiEdgeLow;
-	psState->bLevelInterrupt = mbLevelInterrupt;
-
-	psState->uiIOData = muiIOData;
-	psState->bPreviousClockLow = mbPreviousClockLow;
-	psState->bPreviousClockHigh = mbPreviousClockHigh;
-	psState->bReset = mbReset;
 }
 
 
@@ -364,42 +321,14 @@ void C65C64::SetState(S65C64CoreState* psState)
 {
 	C65C64InstructionFactory*	pcFactory;
 
-	muiA = psState->uiA;
-	muiB = psState->uiB;
-	muiX = psState->uiX;
-	muiY = psState->uiY;
-	muiS = psState->uiS;
-	muiV = psState->uiV;
-	muiW = psState->uiW;
-	muiC = psState->uiC;
-	muiP = psState->uiP;
-	muiInterruptDepth = psState->uiInterruptDepth;
-
-	muiDI = psState->uiDI;
-	muiOperationBytes = psState->uiOperationBytes;
-	memcpy(mauiOperandWords, psState->auiOperandWords, sizeof(mauiOperandWords));
-	muiPointerAddress = psState->uiPointerAddress;
-	muiPointer = psState->uiPointer;
-	muiNumPointerWords = psState->uiNumPointerWords;
-	muiEffectiveAddress = psState->uiEffectiveAddress;
-	muiVectorAddress = psState->uiVectorAddress;
-	muiVector = psState->uiVector;
-	memcpy(masTransfers, psState->asTransfers, sizeof(masTransfers));
-	memcpy(maePulled, psState->aePulled, sizeof(maePulled));
-	muiNumTransfers = psState->uiNumTransfers;
-	memcpy(masReadWords, psState->asReadWords, sizeof(masReadWords));
-	muiNumReadWords = psState->uiNumReadWords;
-	memcpy(masWriteWords, psState->asWriteWords, sizeof(masWriteWords));
-	muiNumWriteWords = psState->uiNumWriteWords;
-
-	muiOpcode = psState->uiOpcode;
+	msState = *psState;
 	if (psState->eDecoded == DK65_Interrupt)
 	{
 		DecodeInterrupt(psState->uiDecodedVector);
 	}
 	else if (psState->eDecoded == DK65_Opcode)
 	{
-		Decode65C64(muiOpcode, &msDecoded);
+		Decode65C64(msState.uiOpcode, &msDecoded);
 	}
 	else
 	{
@@ -410,7 +339,7 @@ void C65C64::SetState(S65C64CoreState* psState)
 	switch (psState->eInstruction)
 	{
 	case IK65_Opcode:
-		mpcInstruction = pcFactory->GetInstruction(muiOpcode);
+		mpcInstruction = pcFactory->GetInstruction(msState.uiOpcode);
 		break;
 	case IK65_Reset:
 		mpcInstruction = pcFactory->GetReset();
@@ -428,21 +357,6 @@ void C65C64::SetState(S65C64CoreState* psState)
 		mpcInstruction = NULL;
 		break;
 	}
-	miCycle = psState->iCycle;
-	miNextCycle = psState->iNextCycle;
-	mbNextInstruction = psState->bNextInstruction;
-	mbStopped = psState->bStopped;
-
-	mbWaiting = psState->bWaiting;
-	muiWakeMask = psState->uiWakeMask;
-	muiPendingEdges = psState->uiPendingEdges;
-	muiEdgeLow = psState->uiEdgeLow;
-	mbLevelInterrupt = psState->bLevelInterrupt;
-
-	muiIOData = psState->uiIOData;
-	mbPreviousClockLow = psState->bPreviousClockLow;
-	mbPreviousClockHigh = psState->bPreviousClockHigh;
-	mbReset = psState->bReset;
 }
 
 
@@ -466,18 +380,16 @@ void C65C64::DecodeInterrupt(uint16 uiVector)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::ResetInstructionState(void)
 {
-	muiDI = 0;
-	muiOperationBytes = 0;
-	memset(mauiOperandWords, 0, sizeof(mauiOperandWords));
-	muiPointerAddress = 0;
-	muiPointer = 0;
-	muiNumPointerWords = 0;
-	muiEffectiveAddress = 0;
-	muiVectorAddress = 0;
-	muiVector = 0;
-	muiNumTransfers = 0;
-	muiNumReadWords = 0;
-	muiNumWriteWords = 0;
+	msState.uiDI = 0;
+	msState.uiOperationBytes = 0;
+	memset(msState.auiOperandWords, 0, sizeof(msState.auiOperandWords));
+	msState.uiPointerAddress = 0;
+	msState.uiPointer = 0;
+	msState.uiNumPointerWords = 0;
+	msState.uiEffectiveAddress = 0;
+	msState.uiVectorAddress = 0;
+	msState.uiVector = 0;
+	msState.uiNumTransfers = 0;
 }
 
 
@@ -495,8 +407,8 @@ void C65C64::InputTransition(CTimeline* pcTimeline)
 	if (mpcPins->ReadRES(pcTimeline).IsLow())
 	{
 		ResetPulled();
-		mbPreviousClockLow = sClock.IsLow();
-		mbPreviousClockHigh = sClock.IsHigh();
+		msState.bPreviousClockLow = sClock.IsLow();
+		msState.bPreviousClockHigh = sClock.IsHigh();
 		return;
 	}
 
@@ -504,13 +416,13 @@ void C65C64::InputTransition(CTimeline* pcTimeline)
 
 	if (sClock.IsHigh() || sClock.IsLow())
 	{
-		bRisingEdge = sClock.IsHigh() && mbPreviousClockLow;
-		bFallingEdge = sClock.IsLow() && mbPreviousClockHigh;
+		bRisingEdge = sClock.IsHigh() && msState.bPreviousClockLow;
+		bFallingEdge = sClock.IsLow() && msState.bPreviousClockHigh;
 
-		mbPreviousClockLow = sClock.IsLow();
-		mbPreviousClockHigh = sClock.IsHigh();
+		msState.bPreviousClockLow = sClock.IsLow();
+		msState.bPreviousClockHigh = sClock.IsHigh();
 
-		if (!mbStopped && !mbWaiting)
+		if (!msState.bStopped && !msState.bWaiting)
 		{
 			if (bFallingEdge)
 			{
@@ -541,7 +453,7 @@ void C65C64::ExecutePhi2Falling(CTimeline* pcTimeline)
 		if (pcDataOperation->IsRead())
 		{
 			//Data on the data pins is read when PHI2 falls.
-			muiIOData = mpcPins->ReadData(pcTimeline);
+			msState.uiIOData = mpcPins->ReadData(pcTimeline);
 		}
 		else
 		{
@@ -553,7 +465,7 @@ void C65C64::ExecutePhi2Falling(CTimeline* pcTimeline)
 	}
 
 	Cycle();
-	if (mbStopped)
+	if (msState.bStopped)
 	{
 		return;
 	}
@@ -599,7 +511,7 @@ void C65C64::ExecutePhi2Rising(CTimeline* pcTimeline)
 	{
 		if (!pcDataOperation->IsRead())
 		{
-			mpcPins->WriteData(pcTimeline, muiIOData);
+			mpcPins->WriteData(pcTimeline, msState.uiIOData);
 		}
 	}
 }
@@ -613,27 +525,27 @@ void C65C64::Cycle(void)
 {
 	C65BusCycle*	pcBusCycle;
 
-	if (mbStopped)
+	if (msState.bStopped)
 	{
 		return;
 	}
 
 	for (;;)
 	{
-		if (mbNextInstruction)
+		if (msState.bNextInstruction)
 		{
-			mbNextInstruction = false;
+			msState.bNextInstruction = false;
 			NextInstruction();
 		}
 
-		miCycle = miNextCycle;
-		miNextCycle++;
+		msState.iCycle = msState.iNextCycle;
+		msState.iNextCycle++;
 
 		//An instruction is done when none of its remaining bus cycles must execute.
 		pcBusCycle = GetBusCycle();
 		if (pcBusCycle == NULL)
 		{
-			mbNextInstruction = true;
+			msState.bNextInstruction = true;
 		}
 		else if (pcBusCycle->MustExecute(this))
 		{
@@ -649,13 +561,13 @@ void C65C64::Cycle(void)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::NextInstruction(void)
 {
-	miNextCycle = 0;
+	msState.iNextCycle = 0;
 	if (EnterInterrupt())
 	{
 		return;
 	}
 
-	if (mbWaiting)
+	if (msState.bWaiting)
 	{
 		mpcInstruction = C65C64InstructionFactory::GetInstance()->GetWait();
 	}
@@ -682,28 +594,28 @@ void C65C64::SampleInterrupts(CTimeline* pcTimeline)
 	{
 		uiBit = (uint8)(1 << i);
 		bLow = mpcPins->ReadEIRQ(pcTimeline, i).IsLow();
-		if (bLow && !(muiEdgeLow & uiBit))
+		if (bLow && !(msState.uiEdgeLow & uiBit))
 		{
-			muiPendingEdges |= uiBit;
+			msState.uiPendingEdges |= uiBit;
 		}
 
 		if (bLow)
 		{
-			muiEdgeLow |= uiBit;
+			msState.uiEdgeLow |= uiBit;
 		}
 		else
 		{
-			muiEdgeLow &= ~uiBit;
+			msState.uiEdgeLow &= ~uiBit;
 		}
 	}
-	mbLevelInterrupt = mpcPins->ReadLIRQ(pcTimeline).IsLow();
+	msState.bLevelInterrupt = mpcPins->ReadLIRQ(pcTimeline).IsLow();
 
 	//An interrupt stp allows wakes the processor even if the interrupt is disabled.
-	if (mbWaiting)
+	if (msState.bWaiting)
 	{
-		if (((muiPendingEdges << 1) & muiWakeMask) || (mbLevelInterrupt && (muiWakeMask & WAKE65_LEVEL)))
+		if (((msState.uiPendingEdges << 1) & msState.uiWakeMask) || (msState.bLevelInterrupt && (msState.uiWakeMask & WAKE65_LEVEL)))
 		{
-			mbWaiting = false;
+			msState.bWaiting = false;
 		}
 	}
 }
@@ -718,21 +630,21 @@ bool C65C64::EnterInterrupt(void)
 	size	i;
 	uint8	uiBit;
 
-	if (!IsFlagSet(STATUS65_EDGE_DISABLE) && (muiPendingEdges != 0))
+	if (!IsFlagSet(STATUS65_EDGE_DISABLE) && (msState.uiPendingEdges != 0))
 	{
 		for (i = 0; i < NUM_65C64_EDGE_INTERRUPTS; i++)
 		{
 			uiBit = (uint8)(1 << i);
-			if (muiPendingEdges & uiBit)
+			if (msState.uiPendingEdges & uiBit)
 			{
-				muiPendingEdges &= ~uiBit;
+				msState.uiPendingEdges &= ~uiBit;
 				StartInterrupt((uint16)(VECTOR_65C64_EDGE_0 - i), STATUS65_EDGE_DISABLE | STATUS65_LEVEL_DISABLE);
 				return true;
 			}
 		}
 	}
 
-	if (!IsFlagSet(STATUS65_LEVEL_DISABLE) && mbLevelInterrupt)
+	if (!IsFlagSet(STATUS65_LEVEL_DISABLE) && msState.bLevelInterrupt)
 	{
 		StartInterrupt(VECTOR_65C64_LEVEL, STATUS65_LEVEL_DISABLE);
 		return true;
@@ -752,14 +664,14 @@ void C65C64::StartInterrupt(uint16 uiVector, uint16 uiDisable)
 	ResetInstructionState();
 	DecodeInterrupt(uiVector);
 
-	PushTransfer(muiC, 4);
-	PushTransfer(muiP, 2);
-	muiP |= uiDisable;
-	muiVectorAddress = VECTOR_65C64_BASE + 4 * uiVector;
-	muiVector = 0;
-	muiInterruptDepth++;
+	PushTransfer(msState.uiC, 4);
+	PushTransfer(msState.uiP, 2);
+	msState.uiP |= uiDisable;
+	msState.uiVectorAddress = VECTOR_65C64_BASE + 4 * uiVector;
+	msState.uiVector = 0;
+	msState.uiInterruptDepth++;
 
-	mbWaiting = false;
+	msState.bWaiting = false;
 	mpcInstruction = C65C64InstructionFactory::GetInstance()->GetInterrupt();
 }
 
@@ -770,7 +682,7 @@ void C65C64::StartInterrupt(uint16 uiVector, uint16 uiDisable)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::DoneInstruction(void)
 {
-	mbNextInstruction = true;
+	msState.bNextInstruction = true;
 }
 
 
@@ -781,13 +693,13 @@ void C65C64::DoneInstruction(void)
 void C65C64::ResetPulled(void)
 {
 	mpcInstruction = C65C64InstructionFactory::GetInstance()->GetReset();
-	miCycle = -1;
-	miNextCycle = 0;
-	mbNextInstruction = false;
-	mbStopped = false;
-	mbWaiting = false;
-	muiWakeMask = 0;
-	muiPendingEdges = 0;
+	msState.iCycle = -1;
+	msState.iNextCycle = 0;
+	msState.bNextInstruction = false;
+	msState.bStopped = false;
+	msState.bWaiting = false;
+	msState.uiWakeMask = 0;
+	msState.uiPendingEdges = 0;
 	ResetInstructionState();
 }
 
@@ -808,9 +720,9 @@ C65Instruction* C65C64::GetInstruction(void)
 //////////////////////////////////////////////////////////////////////////
 C65BusCycle* C65C64::GetBusCycle(void)
 {
-	if ((mpcInstruction != NULL) && (miCycle >= 0))
+	if ((mpcInstruction != NULL) && (msState.iCycle >= 0))
 	{
-		return mpcInstruction->GetBusCycle(miCycle);
+		return mpcInstruction->GetBusCycle(msState.iCycle);
 	}
 	return NULL;
 }
@@ -849,7 +761,7 @@ S65C64Decoded* C65C64::GetDecoded(void)
 //////////////////////////////////////////////////////////////////////////
 int16 C65C64::GetCycle(void)
 {
-	return miCycle;
+	return msState.iCycle;
 }
 
 
@@ -859,7 +771,7 @@ int16 C65C64::GetCycle(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 C65C64::GetOpcode(void)
 {
-	return muiOpcode;
+	return msState.uiOpcode;
 }
 
 
@@ -869,7 +781,7 @@ uint16 C65C64::GetOpcode(void)
 //////////////////////////////////////////////////////////////////////////
 bool C65C64::IsStopped(void)
 {
-	return mbStopped;
+	return msState.bStopped;
 }
 
 
@@ -879,7 +791,7 @@ bool C65C64::IsStopped(void)
 //////////////////////////////////////////////////////////////////////////
 bool C65C64::IsWaiting(void)
 {
-	return mbWaiting;
+	return msState.bWaiting;
 }
 
 
@@ -889,7 +801,7 @@ bool C65C64::IsWaiting(void)
 //////////////////////////////////////////////////////////////////////////
 uint8 C65C64::GetPendingEdges(void)
 {
-	return muiPendingEdges;
+	return msState.uiPendingEdges;
 }
 
 
@@ -901,15 +813,15 @@ void C65C64::ReadOpcode(void)
 {
 	C65BusCycle*	pcBusCycle;
 
-	muiOpcode = muiIOData;
-	Decode65C64(muiOpcode, &msDecoded);
-	mpcInstruction = C65C64InstructionFactory::GetInstance()->GetInstruction(muiOpcode);
+	msState.uiOpcode = msState.uiIOData;
+	Decode65C64(msState.uiOpcode, &msDecoded);
+	mpcInstruction = C65C64InstructionFactory::GetInstance()->GetInstruction(msState.uiOpcode);
 	ResetInstructionState();
 
 	//The opcode fetch is the instruction's first cycle.  An instruction executes in the
 	//cycle its last word is read, so a register instruction is done in this cycle.
-	miCycle = 0;
-	miNextCycle = 1;
+	msState.iCycle = 0;
+	msState.iNextCycle = 1;
 	pcBusCycle = GetBusCycle();
 	pcBusCycle->ExecuteTrailingSide(this, true);
 }
@@ -921,7 +833,7 @@ void C65C64::ReadOpcode(void)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::IncrementProgramCounter(void)
 {
-	muiC += 2;
+	msState.uiC += 2;
 }
 
 
@@ -933,7 +845,7 @@ void C65C64::SetOperandWord(uint8 uiWord, uint16 uiData)
 {
 	if (uiWord < MAX_65C64_OPERAND_WORDS)
 	{
-		mauiOperandWords[uiWord] = uiData;
+		msState.auiOperandWords[uiWord] = uiData;
 	}
 }
 
@@ -944,7 +856,7 @@ void C65C64::SetOperandWord(uint8 uiWord, uint16 uiData)
 //////////////////////////////////////////////////////////////////////////
 uint32 C65C64::GetPointerAddress(void)
 {
-	return muiPointerAddress;
+	return msState.uiPointerAddress;
 }
 
 
@@ -954,7 +866,7 @@ uint32 C65C64::GetPointerAddress(void)
 //////////////////////////////////////////////////////////////////////////
 uint8 C65C64::GetNumPointerWords(void)
 {
-	return muiNumPointerWords;
+	return msState.uiNumPointerWords;
 }
 
 
@@ -964,7 +876,7 @@ uint8 C65C64::GetNumPointerWords(void)
 //////////////////////////////////////////////////////////////////////////
 uint8 C65C64::GetPointerWordLanes(uint8 uiWord)
 {
-	return LanesAt(WordAddress(muiPointerAddress, uiWord), muiPointerAddress, 4);
+	return LanesAt(WordAddress(msState.uiPointerAddress, uiWord), msState.uiPointerAddress, 4);
 }
 
 
@@ -976,37 +888,63 @@ void C65C64::SetPointerWord(uint8 uiWord, uint16 uiData)
 {
 	uint64	uiPointer;
 
-	uiPointer = muiPointer;
-	MergeAt(&uiPointer, WordAddress(muiPointerAddress, uiWord), muiPointerAddress, 4, uiData);
-	muiPointer = (uint32)uiPointer;
+	uiPointer = msState.uiPointer;
+	MergeAt(&uiPointer, WordAddress(msState.uiPointerAddress, uiWord), msState.uiPointerAddress, 4, uiData);
+	msState.uiPointer = (uint32)uiPointer;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The number of words of the transfers that are written (bWrite) or read.
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64::AddWords(S65C64TransferWord* pasWords, size* puiNumWords, uint32 uiAddress, uint8 uiBytes)
+size C65C64::CountTransferWords(bool bWrite)
 {
-	S65C64TransferWord*	psWord;
-	uint8				uiNumWords;
-	uint8				i;
+	S65C64Transfer*	psTransfer;
+	size			uiNumWords;
+	size			i;
 
-	uiNumWords = CountWords(uiAddress, uiBytes);
-	if (*puiNumWords + uiNumWords > MAX_65C64_TRANSFER_WORDS)
+	uiNumWords = 0;
+	for (i = 0; i < msState.uiNumTransfers; i++)
 	{
-		LOG_ERROR("Too many transfer words in one instruction.");
-		return;
+		psTransfer = &msState.asTransfers[i];
+		if (bWrite ? psTransfer->bWrite : psTransfer->bRead)
+		{
+			uiNumWords += CountWords(psTransfer->uiAddress, psTransfer->uiBytes);
+		}
 	}
+	return uiNumWords;
+}
 
-	for (i = 0; i < uiNumWords; i++)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The transfer uiWord of the written (bWrite) or read words is in, and the
+// word's address, or NULL if there are not that many words.
+//
+//////////////////////////////////////////////////////////////////////////
+S65C64Transfer* C65C64::FindTransferWord(uint8 uiWord, bool bWrite, uint32* puiWordAddress)
+{
+	S65C64Transfer*	psTransfer;
+	size			uiNumWords;
+	size			i;
+
+	for (i = 0; i < msState.uiNumTransfers; i++)
 	{
-		psWord = &pasWords[*puiNumWords];
-		psWord->uiAddress = WordAddress(uiAddress, i);
-		psWord->uiTransfer = (uint8)muiNumTransfers;
-		psWord->uiLanes = LanesAt(psWord->uiAddress, uiAddress, uiBytes);
-		(*puiNumWords)++;
+		psTransfer = &msState.asTransfers[i];
+		if (bWrite ? psTransfer->bWrite : psTransfer->bRead)
+		{
+			uiNumWords = CountWords(psTransfer->uiAddress, psTransfer->uiBytes);
+			if (uiWord < uiNumWords)
+			{
+				*puiWordAddress = WordAddress(psTransfer->uiAddress, uiWord);
+				return psTransfer;
+			}
+			uiWord -= (uint8)uiNumWords;
+		}
 	}
+	return NULL;
 }
 
 
@@ -1018,27 +956,19 @@ void C65C64::AddTransfer(uint32 uiAddress, uint8 uiBytes, uint64 uiValue, bool b
 {
 	S65C64Transfer*		psTransfer;
 
-	//Words that are read come before words that are written.
-	if (muiNumTransfers >= MAX_65C64_TRANSFERS)
+	if (msState.uiNumTransfers >= MAX_65C64_TRANSFERS)
 	{
 		LOG_ERROR("Too many transfers in one instruction.");
 		return;
 	}
 
-	psTransfer = &masTransfers[muiNumTransfers];
+	psTransfer = &msState.asTransfers[msState.uiNumTransfers];
 	psTransfer->uiAddress = uiAddress;
 	psTransfer->uiBytes = uiBytes;
+	psTransfer->bRead = bRead;
+	psTransfer->bWrite = bWrite;
 	psTransfer->uiValue = uiValue;
-
-	if (bRead)
-	{
-		AddWords(masReadWords, &muiNumReadWords, uiAddress, uiBytes);
-	}
-	if (bWrite)
-	{
-		AddWords(masWriteWords, &muiNumWriteWords, uiAddress, uiBytes);
-	}
-	muiNumTransfers++;
+	msState.uiNumTransfers++;
 }
 
 
@@ -1048,7 +978,7 @@ void C65C64::AddTransfer(uint32 uiAddress, uint8 uiBytes, uint64 uiValue, bool b
 //////////////////////////////////////////////////////////////////////////
 size C65C64::GetNumReadWords(void)
 {
-	return muiNumReadWords;
+	return CountTransferWords(false);
 }
 
 
@@ -1058,9 +988,11 @@ size C65C64::GetNumReadWords(void)
 //////////////////////////////////////////////////////////////////////////
 uint32 C65C64::GetReadWordAddress(uint8 uiWord)
 {
-	if (uiWord < muiNumReadWords)
+	uint32	uiWordAddress;
+
+	if (FindTransferWord(uiWord, false, &uiWordAddress))
 	{
-		return masReadWords[uiWord].uiAddress;
+		return uiWordAddress;
 	}
 	return 0;
 }
@@ -1072,9 +1004,13 @@ uint32 C65C64::GetReadWordAddress(uint8 uiWord)
 //////////////////////////////////////////////////////////////////////////
 uint8 C65C64::GetReadWordLanes(uint8 uiWord)
 {
-	if (uiWord < muiNumReadWords)
+	S65C64Transfer*	psTransfer;
+	uint32			uiWordAddress;
+
+	psTransfer = FindTransferWord(uiWord, false, &uiWordAddress);
+	if (psTransfer)
 	{
-		return masReadWords[uiWord].uiLanes;
+		return LanesAt(uiWordAddress, psTransfer->uiAddress, psTransfer->uiBytes);
 	}
 	return 0;
 }
@@ -1086,14 +1022,13 @@ uint8 C65C64::GetReadWordLanes(uint8 uiWord)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::SetReadWord(uint8 uiWord, uint16 uiData)
 {
-	S65C64TransferWord*	psWord;
-	S65C64Transfer*		psTransfer;
+	S65C64Transfer*	psTransfer;
+	uint32			uiWordAddress;
 
-	if (uiWord < muiNumReadWords)
+	psTransfer = FindTransferWord(uiWord, false, &uiWordAddress);
+	if (psTransfer)
 	{
-		psWord = &masReadWords[uiWord];
-		psTransfer = &masTransfers[psWord->uiTransfer];
-		MergeAt(&psTransfer->uiValue, psWord->uiAddress, psTransfer->uiAddress, psTransfer->uiBytes, uiData);
+		MergeAt(&psTransfer->uiValue, uiWordAddress, psTransfer->uiAddress, psTransfer->uiBytes, uiData);
 	}
 }
 
@@ -1104,7 +1039,7 @@ void C65C64::SetReadWord(uint8 uiWord, uint16 uiData)
 //////////////////////////////////////////////////////////////////////////
 size C65C64::GetNumWriteWords(void)
 {
-	return muiNumWriteWords;
+	return CountTransferWords(true);
 }
 
 
@@ -1114,9 +1049,11 @@ size C65C64::GetNumWriteWords(void)
 //////////////////////////////////////////////////////////////////////////
 uint32 C65C64::GetWriteWordAddress(uint8 uiWord)
 {
-	if (uiWord < muiNumWriteWords)
+	uint32	uiWordAddress;
+
+	if (FindTransferWord(uiWord, true, &uiWordAddress))
 	{
-		return masWriteWords[uiWord].uiAddress;
+		return uiWordAddress;
 	}
 	return 0;
 }
@@ -1128,9 +1065,13 @@ uint32 C65C64::GetWriteWordAddress(uint8 uiWord)
 //////////////////////////////////////////////////////////////////////////
 uint8 C65C64::GetWriteWordLanes(uint8 uiWord)
 {
-	if (uiWord < muiNumWriteWords)
+	S65C64Transfer*	psTransfer;
+	uint32			uiWordAddress;
+
+	psTransfer = FindTransferWord(uiWord, true, &uiWordAddress);
+	if (psTransfer)
 	{
-		return masWriteWords[uiWord].uiLanes;
+		return LanesAt(uiWordAddress, psTransfer->uiAddress, psTransfer->uiBytes);
 	}
 	return 0;
 }
@@ -1142,14 +1083,13 @@ uint8 C65C64::GetWriteWordLanes(uint8 uiWord)
 //////////////////////////////////////////////////////////////////////////
 uint16 C65C64::GetWriteWord(uint8 uiWord)
 {
-	S65C64TransferWord*	psWord;
-	S65C64Transfer*		psTransfer;
+	S65C64Transfer*	psTransfer;
+	uint32			uiWordAddress;
 
-	if (uiWord < muiNumWriteWords)
+	psTransfer = FindTransferWord(uiWord, true, &uiWordAddress);
+	if (psTransfer)
 	{
-		psWord = &masWriteWords[uiWord];
-		psTransfer = &masTransfers[psWord->uiTransfer];
-		return ExtractAt(psTransfer->uiValue, psWord->uiAddress, psTransfer->uiAddress, psTransfer->uiBytes);
+		return ExtractAt(psTransfer->uiValue, uiWordAddress, psTransfer->uiAddress, psTransfer->uiBytes);
 	}
 	return 0;
 }
@@ -1161,7 +1101,7 @@ uint16 C65C64::GetWriteWord(uint8 uiWord)
 //////////////////////////////////////////////////////////////////////////
 uint32 C65C64::GetVectorAddress(void)
 {
-	return muiVectorAddress;
+	return msState.uiVectorAddress;
 }
 
 
@@ -1171,7 +1111,7 @@ uint32 C65C64::GetVectorAddress(void)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::SetVectorWord(uint8 uiWord, uint16 uiData)
 {
-	muiVector |= (uint32)uiData << (16 * uiWord);
+	msState.uiVector |= (uint32)uiData << (16 * uiWord);
 }
 
 
@@ -1192,7 +1132,7 @@ uint8 C65C64::GetNumWaitCycles(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 C65C64::GetIOData(void)
 {
-	return muiIOData;
+	return msState.uiIOData;
 }
 
 
@@ -1202,7 +1142,7 @@ uint16 C65C64::GetIOData(void)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::SetIOData(uint16 uiData)
 {
-	muiIOData = uiData;
+	msState.uiIOData = uiData;
 }
 
 
@@ -1293,25 +1233,25 @@ void C65C64::CalculateOperand(void)
 	psDecoded = &msDecoded;
 	if (psDecoded->sSecond.eKind == OK65_Immediate)
 	{
-		muiDI = 0;
+		msState.uiDI = 0;
 		for (i = 0; i < psDecoded->uiOperandWords; i++)
 		{
-			muiDI |= (uint64)mauiOperandWords[i] << (16 * i);
+			msState.uiDI |= (uint64)msState.auiOperandWords[i] << (16 * i);
 		}
-		muiDI &= Mask65(psDecoded->sSecond.uiImmediateBytes);
+		msState.uiDI &= Mask65(psDecoded->sSecond.uiImmediateBytes);
 	}
 
-	muiOperationBytes = CalculateOperationBytes();
+	msState.uiOperationBytes = CalculateOperationBytes();
 
 	if ((psDecoded->sFirst.eKind == OK65_Memory) || (psDecoded->sSecond.eKind == OK65_Memory))
 	{
 		if (psDecoded->uiAddressWords == 2)
 		{
-			uiAddress = (uint32)mauiOperandWords[0] | ((uint32)mauiOperandWords[1] << 16);
+			uiAddress = (uint32)msState.auiOperandWords[0] | ((uint32)msState.auiOperandWords[1] << 16);
 		}
 		else if (psDecoded->uiAddressWords == 1)
 		{
-			uiAddress = mauiOperandWords[0];
+			uiAddress = msState.auiOperandWords[0];
 		}
 		else
 		{
@@ -1322,13 +1262,13 @@ void C65C64::CalculateOperand(void)
 
 		if (psDecoded->bIndirect)
 		{
-			muiPointerAddress = uiAddress;
-			muiNumPointerWords = CountWords(uiAddress, 4);
-			muiPointer = 0;
+			msState.uiPointerAddress = uiAddress;
+			msState.uiNumPointerWords = CountWords(uiAddress, 4);
+			msState.uiPointer = 0;
 		}
 		else
 		{
-			muiEffectiveAddress = uiAddress;
+			msState.uiEffectiveAddress = uiAddress;
 			DataAddressKnown();
 		}
 	}
@@ -1341,7 +1281,7 @@ void C65C64::CalculateOperand(void)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::CalculateIndirectAddress(void)
 {
-	muiEffectiveAddress = muiPointer + GetRegisterAddress(msDecoded.ePost);
+	msState.uiEffectiveAddress = msState.uiPointer + GetRegisterAddress(msDecoded.ePost);
 	DataAddressKnown();
 }
 
@@ -1354,7 +1294,7 @@ void C65C64::DataAddressKnown(void)
 {
 	if (msDecoded.bMemoryData)
 	{
-		AddTransfer(muiEffectiveAddress, muiOperationBytes, 0, (msDecoded.eDataAccess == MA65_Read) || (msDecoded.eDataAccess == MA65_ReadWrite), (msDecoded.eDataAccess == MA65_Write) || (msDecoded.eDataAccess == MA65_ReadWrite));
+		AddTransfer(msState.uiEffectiveAddress, msState.uiOperationBytes, 0, (msDecoded.eDataAccess == MA65_Read) || (msDecoded.eDataAccess == MA65_ReadWrite), (msDecoded.eDataAccess == MA65_Write) || (msDecoded.eDataAccess == MA65_ReadWrite));
 	}
 }
 
@@ -1365,7 +1305,7 @@ void C65C64::DataAddressKnown(void)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::LoadVector(void)
 {
-	muiC = muiVector;
+	msState.uiC = msState.uiVector;
 }
 
 
@@ -1375,18 +1315,18 @@ void C65C64::LoadVector(void)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::Reset(void)
 {
-	muiA = 0;
-	muiB = 0;
-	muiX = 0;
-	muiY = 0;
-	muiV = 0;
-	muiW = 0;
-	muiS = RESET_65C64_STACK_POINTER;
-	muiP = STATUS65_EDGE_DISABLE | STATUS65_LEVEL_DISABLE;
-	muiInterruptDepth = 1;
+	msState.uiA = 0;
+	msState.uiB = 0;
+	msState.uiX = 0;
+	msState.uiY = 0;
+	msState.uiV = 0;
+	msState.uiW = 0;
+	msState.uiS = RESET_65C64_STACK_POINTER;
+	msState.uiP = STATUS65_EDGE_DISABLE | STATUS65_LEVEL_DISABLE;
+	msState.uiInterruptDepth = 1;
 
-	muiVectorAddress = VECTOR_65C64_BASE + 4 * VECTOR_65C64_RESET;
-	muiVector = 0;
+	msState.uiVectorAddress = VECTOR_65C64_BASE + 4 * VECTOR_65C64_RESET;
+	msState.uiVector = 0;
 }
 
 
@@ -1404,11 +1344,11 @@ uint64 C65C64::GetOperandValue(S65C64Operand* psOperand, uint8 uiBytes, bool bSi
 		uiRegisterBytes = GetRegisterBytes(psOperand->eRegister);
 		return Extend65(GetRegister(psOperand->eRegister), uiRegisterBytes, uiBytes, bSigned);
 	case OK65_Immediate:
-		return Extend65(muiDI, psOperand->uiImmediateBytes, uiBytes, bSigned);
+		return Extend65(msState.uiDI, psOperand->uiImmediateBytes, uiBytes, bSigned);
 	case OK65_Embedded:
 		return (uint64)psOperand->iEmbedded & Mask65(uiBytes);
 	case OK65_Memory:
-		return masTransfers[0].uiValue & Mask65(uiBytes);
+		return msState.asTransfers[0].uiValue & Mask65(uiBytes);
 	default:
 		return 0;
 	}
@@ -1423,7 +1363,7 @@ void C65C64::SetFirstValue(uint64 uiValue, uint8 uiBytes)
 {
 	if (msDecoded.sFirst.eKind == OK65_Memory)
 	{
-		masTransfers[0].uiValue = uiValue & Mask65(uiBytes);
+		msState.asTransfers[0].uiValue = uiValue & Mask65(uiBytes);
 	}
 	else if (msDecoded.sFirst.eKind == OK65_Register)
 	{
@@ -1457,7 +1397,7 @@ void C65C64::ExecuteAlu(E65Instruction eInstruction)
 	uint64	uiResult;
 	bool	bCarry;
 
-	uiBytes = muiOperationBytes;
+	uiBytes = msState.uiOperationBytes;
 	uiBits = 8 * uiBytes;
 	uiMask = Mask65(uiBytes);
 	uiFirst = GetOperandValue(&msDecoded.sFirst, uiBytes, false);
@@ -1633,9 +1573,9 @@ uint32 C65C64::GetTarget(void)
 		uiBytes = GetRegisterBytes(psOperand->eRegister);
 		return (uint32)Extend65(GetRegister(psOperand->eRegister), uiBytes, 4, msDecoded.bRelative);
 	case OK65_Immediate:
-		return (uint32)Extend65(muiDI, psOperand->uiImmediateBytes, 4, msDecoded.bRelative);
+		return (uint32)Extend65(msState.uiDI, psOperand->uiImmediateBytes, 4, msDecoded.bRelative);
 	case OK65_Memory:
-		return muiEffectiveAddress;
+		return msState.uiEffectiveAddress;
 	default:
 		return 0;
 	}
@@ -1657,22 +1597,22 @@ void C65C64::JMP(void)
 
 	if (msDecoded.bPushC)
 	{
-		PushTransfer(muiC, 4);
+		PushTransfer(msState.uiC, 4);
 	}
 	if (msDecoded.bPushP)
 	{
-		PushTransfer(muiP, 2);
+		PushTransfer(msState.uiP, 2);
 	}
 
 	if (bJump)
 	{
 		if (msDecoded.bRelative)
 		{
-			muiC += uiTarget;
+			msState.uiC += uiTarget;
 		}
 		else
 		{
-			muiC = uiTarget;
+			msState.uiC = uiTarget;
 		}
 	}
 }
@@ -1706,17 +1646,17 @@ void C65C64::RET(void)
 	uiTransfer = 0;
 	if (msDecoded.bPullP)
 	{
-		muiP = (uint16)masTransfers[uiTransfer].uiValue;
+		msState.uiP = (uint16)msState.asTransfers[uiTransfer].uiValue;
 		uiTransfer++;
 	}
 	if (msDecoded.bPullC)
 	{
-		muiC = (uint32)masTransfers[uiTransfer].uiValue;
+		msState.uiC = (uint32)msState.asTransfers[uiTransfer].uiValue;
 	}
 
-	if ((msDecoded.eInstruction == I65_Rti) && (muiInterruptDepth > 0))
+	if ((msDecoded.eInstruction == I65_Rti) && (msState.uiInterruptDepth > 0))
 	{
-		muiInterruptDepth--;
+		msState.uiInterruptDepth--;
 	}
 }
 
@@ -1727,7 +1667,7 @@ void C65C64::RET(void)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::SEP(void)
 {
-	muiP |= msDecoded.uiMask;
+	msState.uiP |= msDecoded.uiMask;
 }
 
 
@@ -1737,7 +1677,7 @@ void C65C64::SEP(void)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::CEP(void)
 {
-	muiP &= ~(uint16)msDecoded.uiMask;
+	msState.uiP &= ~(uint16)msDecoded.uiMask;
 }
 
 
@@ -1773,11 +1713,11 @@ void C65C64::WTH(void)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::BRK(void)
 {
-	PushTransfer(muiC, 4);
-	PushTransfer(muiP, 2);
-	muiVectorAddress = VECTOR_65C64_BASE + 4 * msDecoded.uiVector;
-	muiVector = 0;
-	muiInterruptDepth++;
+	PushTransfer(msState.uiC, 4);
+	PushTransfer(msState.uiP, 2);
+	msState.uiVectorAddress = VECTOR_65C64_BASE + 4 * msDecoded.uiVector;
+	msState.uiVector = 0;
+	msState.uiInterruptDepth++;
 }
 
 
@@ -1790,12 +1730,12 @@ void C65C64::STP(void)
 	//With wake bits stp waits for an interrupt (WAI), without them only reset restarts it.
 	if (msDecoded.uiMask != 0)
 	{
-		mbWaiting = true;
-		muiWakeMask = msDecoded.uiMask;
+		msState.bWaiting = true;
+		msState.uiWakeMask = msDecoded.uiMask;
 	}
 	else
 	{
-		mbStopped = true;
+		msState.bStopped = true;
 	}
 }
 
@@ -1876,7 +1816,7 @@ int64 C65C64::GetBranchOffset(void)
 {
 	if (msDecoded.sSecond.eKind == OK65_Immediate)
 	{
-		return (int64)Extend65(muiDI, msDecoded.sSecond.uiImmediateBytes, 8, true);
+		return (int64)Extend65(msState.uiDI, msDecoded.sSecond.uiImmediateBytes, 8, true);
 	}
 	return msDecoded.iBranchOffset;
 }
@@ -1913,7 +1853,7 @@ void C65C64::BRANCH(void)
 
 	if (bTaken)
 	{
-		muiC += (uint32)GetBranchOffset();
+		msState.uiC += (uint32)GetBranchOffset();
 	}
 }
 
@@ -1924,7 +1864,7 @@ void C65C64::BRANCH(void)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::BAL(void)
 {
-	muiC += (uint32)GetBranchOffset();
+	msState.uiC += (uint32)GetBranchOffset();
 }
 
 
@@ -1950,7 +1890,7 @@ void C65C64::SHL(void)
 	uint64	uiResult;
 
 	//c is the last bit shifted out, v the bit shifted out before it.
-	uiBytes = muiOperationBytes;
+	uiBytes = msState.uiOperationBytes;
 	uiBits = 8 * uiBytes;
 	uiValue = GetOperandValue(&msDecoded.sFirst, uiBytes, false);
 	uiShift = GetOperandValue(&msDecoded.sSecond, 8, false);
@@ -1976,7 +1916,7 @@ void C65C64::SHR(void)
 	uint64	uiResult;
 
 	//c is the last bit shifted out, v the bit shifted out before it.  n is the sign before shifting.
-	uiBytes = muiOperationBytes;
+	uiBytes = msState.uiOperationBytes;
 	uiBits = 8 * uiBytes;
 	uiValue = GetOperandValue(&msDecoded.sFirst, uiBytes, false);
 	uiShift = GetOperandValue(&msDecoded.sSecond, 8, false);
@@ -2034,7 +1974,7 @@ void C65C64::SCP(void)
 	uint8	uiBytes;
 
 	bBits = msDecoded.eInstruction == I65_Scb;
-	uiWord = mauiOperandWords[0];
+	uiWord = msState.auiOperandWords[0];
 	uiUnit = bBits ? 1 : 8;
 	uiUnitMask = bBits ? 1 : 0xFF;
 	uiUnits = 64 / uiUnit;
@@ -2216,12 +2156,12 @@ uint64 C65C64::GetBitIndex(void)
 
 	if (msDecoded.uiIndexStyle == 7)
 	{
-		eRegister = gae65Registers[(mauiOperandWords[0] >> 13) & 7];
+		eRegister = gae65Registers[(msState.auiOperandWords[0] >> 13) & 7];
 		return GetRegister(eRegister) & Mask65(GetRegisterBytes(eRegister));
 	}
 	else if (msDecoded.uiIndexStyle == 6)
 	{
-		return (mauiOperandWords[0] >> 10) & 0x3F;
+		return (msState.auiOperandWords[0] >> 10) & 0x3F;
 	}
 	return msDecoded.uiIndexStyle;
 }
@@ -2269,7 +2209,7 @@ void C65C64::STAB(void)
 	bDecrement = false;
 	if (msDecoded.uiOperandWords != 0)
 	{
-		uiWord = mauiOperandWords[0];
+		uiWord = msState.auiOperandWords[0];
 		uiRepeatStyle = (uiWord >> 8) & 3;
 		bDecrement = uiRepeatStyle >= 2;
 		if ((uiRepeatStyle & 1) == 0)
@@ -2323,9 +2263,9 @@ void C65C64::BlockSetup(void)
 	//Copy only writes, test and compare only read; the others read [V] then write it.
 	bRead = msDecoded.eAccess != MA65_Write;
 	bWrite = msDecoded.eAccess != MA65_Read;
-	muiOperationBytes = GetRegisterBytes(msDecoded.eSource);
-	muiEffectiveAddress = muiV;
-	AddTransfer(muiEffectiveAddress, muiOperationBytes, 0, bRead, bWrite);
+	msState.uiOperationBytes = GetRegisterBytes(msDecoded.eSource);
+	msState.uiEffectiveAddress = msState.uiV;
+	AddTransfer(msState.uiEffectiveAddress, msState.uiOperationBytes, 0, bRead, bWrite);
 }
 
 
@@ -2346,11 +2286,11 @@ void C65C64::BlockStep(uint64 uiData, size uiTransfer, bool bWrite, bool bSetNeg
 	bool	bNegative;
 	bool	bStop;
 
-	uiBytes = muiOperationBytes;
+	uiBytes = msState.uiOperationBytes;
 	uiData &= Mask65(uiBytes);
 	if (bWrite)
 	{
-		masTransfers[uiTransfer].uiValue = uiData;
+		msState.asTransfers[uiTransfer].uiValue = uiData;
 	}
 	if (bSetNegativeAndZero)
 	{
@@ -2359,21 +2299,21 @@ void C65C64::BlockStep(uint64 uiData, size uiTransfer, bool bWrite, bool bSetNeg
 
 	if (msDecoded.bDecrement)
 	{
-		muiV -= uiBytes;
+		msState.uiV -= uiBytes;
 	}
 	else
 	{
-		muiV += uiBytes;
+		msState.uiV += uiBytes;
 	}
 	if (msDecoded.bVector)
 	{
 		if (msDecoded.bDecrementW)
 		{
-			muiW -= uiBytes;
+			msState.uiW -= uiBytes;
 		}
 		else
 		{
-			muiW += uiBytes;
+			msState.uiW += uiBytes;
 		}
 	}
 
@@ -2405,7 +2345,7 @@ void C65C64::BlockStep(uint64 uiData, size uiTransfer, bool bWrite, bool bSetNeg
 
 	if (!bNegative && !bStop)
 	{
-		muiC -= 2;
+		msState.uiC -= 2;
 	}
 }
 
@@ -2422,7 +2362,7 @@ void C65C64::BLOCK(void)
 	uint64	uiRegister;
 	uint64	uiData;
 
-	uiMemory = masTransfers[0].uiValue;
+	uiMemory = msState.asTransfers[0].uiValue;
 	uiRegister = GetRegister(msDecoded.eSource);
 	switch (msDecoded.eInstruction)
 	{
@@ -2472,9 +2412,9 @@ void C65C64::BPRE(void)
 	uint64	uiRegister;
 	uint64	uiData;
 
-	uiRead = masTransfers[0].uiValue;
+	uiRead = msState.asTransfers[0].uiValue;
 	uiRegister = GetRegister(msDecoded.eSource);
-	SetNegativeAndZero(uiRead, muiOperationBytes);
+	SetNegativeAndZero(uiRead, msState.uiOperationBytes);
 	switch (msDecoded.eInstruction)
 	{
 	case I65_Bpand:
@@ -2507,9 +2447,9 @@ void C65C64::VectorSetup(void)
 
 	bReadV = (msDecoded.eInstruction != I65_Vcpy) && (msDecoded.eInstruction != I65_Vnot);
 	bWriteV = msDecoded.eAccess == MA65_ReadWrite;
-	muiOperationBytes = msDecoded.uiWidthBytes;
-	AddTransfer(muiW, muiOperationBytes, 0, true, false);
-	AddTransfer(muiV, muiOperationBytes, 0, bReadV, bWriteV);
+	msState.uiOperationBytes = msDecoded.uiWidthBytes;
+	AddTransfer(msState.uiW, msState.uiOperationBytes, 0, true, false);
+	AddTransfer(msState.uiV, msState.uiOperationBytes, 0, bReadV, bWriteV);
 }
 
 
@@ -2528,8 +2468,8 @@ void C65C64::VECTOR(void)
 	bool	bWrite;
 	bool	bPre;
 
-	uiW = masTransfers[0].uiValue;
-	uiV = masTransfers[1].uiValue;
+	uiW = msState.asTransfers[0].uiValue;
+	uiV = msState.asTransfers[1].uiValue;
 	bWrite = msDecoded.eAccess == MA65_ReadWrite;
 	bPre = false;
 	switch (msDecoded.eInstruction)
@@ -2577,7 +2517,7 @@ void C65C64::VECTOR(void)
 
 	if (bPre)
 	{
-		SetNegativeAndZero(uiV, muiOperationBytes);
+		SetNegativeAndZero(uiV, msState.uiOperationBytes);
 	}
 	BlockStep(uiData, 1, bWrite, !bPre);
 }
@@ -2592,11 +2532,11 @@ void C65C64::PushOperand(void)
 {
 	if (msDecoded.sSecond.eKind == OK65_Immediate)
 	{
-		PushTransfer(muiDI, msDecoded.sSecond.uiImmediateBytes);
+		PushTransfer(msState.uiDI, msDecoded.sSecond.uiImmediateBytes);
 	}
 	else
 	{
-		PushTransfer(masTransfers[0].uiValue, 4);
+		PushTransfer(msState.asTransfers[0].uiValue, 4);
 	}
 }
 
@@ -2619,7 +2559,7 @@ void C65C64::PullOperandSetup(void)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::PullOperand(void)
 {
-	AddTransfer(muiEffectiveAddress, 4, masTransfers[0].uiValue, false, true);
+	AddTransfer(msState.uiEffectiveAddress, 4, msState.asTransfers[0].uiValue, false, true);
 }
 
 
@@ -2644,7 +2584,7 @@ void C65C64::MUL(void)
 
 	uiNybbles = 2 * GetRegisterBytes(R65_B);
 	uiYBytes = GetRegisterBytes(R65_Y);
-	uiStep = muiW;
+	uiStep = msState.uiW;
 	if (uiStep < uiNybbles)
 	{
 		uiY = (uiStep == 0) ? 0 : GetRegister(R65_Y) & Mask65(uiYBytes);
@@ -2652,15 +2592,15 @@ void C65C64::MUL(void)
 		uiA = GetRegister(R65_A) & Mask65(GetRegisterBytes(R65_A));
 		uiY = (uiY + ((uiA * uiByte) << (4 * uiStep))) & Mask65(uiYBytes);
 		SetRegister(R65_Y, uiY, uiYBytes);
-		muiW = uiStep + 2;
+		msState.uiW = uiStep + 2;
 	}
 
-	bDone = muiW >= uiNybbles;
+	bDone = msState.uiW >= uiNybbles;
 	SetFlag(STATUS65_OVERFLOW, bDone);
 	SetFlag(STATUS65_ZERO, (GetRegister(R65_Y) & Mask65(uiYBytes)) == 0);
 	if (!bDone)
 	{
-		muiC -= 2;
+		msState.uiC -= 2;
 	}
 }
 
@@ -2692,7 +2632,7 @@ void C65C64::DIV(void)
 	uiYBytes = GetRegisterBytes(R65_Y);
 	uiBBytes = GetRegisterBytes(R65_B);
 	uiNybbles = 2 * uiYBytes;
-	if (muiW < uiNybbles)
+	if (msState.uiW < uiNybbles)
 	{
 		//The remainder is 68 bits after the shift: the top 4 bits are kept apart.
 		uiY = GetRegister(R65_Y) & Mask65(uiYBytes);
@@ -2722,16 +2662,16 @@ void C65C64::DIV(void)
 		SetRegister(R65_B, uiRemainder, uiBBytes);
 		uiY = ((uiY << 4) | uiQuotient) & Mask65(uiYBytes);
 		SetRegister(R65_Y, uiY, uiYBytes);
-		muiW++;
+		msState.uiW++;
 	}
 
-	bDone = muiW >= uiNybbles;
+	bDone = msState.uiW >= uiNybbles;
 	SetFlag(STATUS65_OVERFLOW, bDone);
 	SetFlag(STATUS65_ZERO, (GetRegister(R65_Y) & Mask65(uiYBytes)) == 0);
 	SetFlag(STATUS65_CARRY, (GetRegister(R65_B) & Mask65(uiBBytes)) != 0);
 	if (!bDone)
 	{
-		muiC -= 2;
+		msState.uiC -= 2;
 	}
 }
 
@@ -2791,7 +2731,7 @@ void C65C64::PullRegistersSetup(void)
 		if (msDecoded.uiMask & (1 << i))
 		{
 			eRegister = (E65Register)(R65_A + i);
-			maePulled[muiNumTransfers] = eRegister;
+			msState.aePulled[msState.uiNumTransfers] = eRegister;
 			PullTransfer(GetRegisterBytes(eRegister));
 		}
 	}
@@ -2807,10 +2747,10 @@ void C65C64::PullRegisters(void)
 	size			i;
 	S65C64Transfer*	psTransfer;
 
-	for (i = 0; i < muiNumTransfers; i++)
+	for (i = 0; i < msState.uiNumTransfers; i++)
 	{
-		psTransfer = &masTransfers[i];
-		SetRegister(maePulled[i], psTransfer->uiValue, psTransfer->uiBytes);
+		psTransfer = &msState.asTransfers[i];
+		SetRegister(msState.aePulled[i], psTransfer->uiValue, psTransfer->uiBytes);
 		SetNegativeAndZero(psTransfer->uiValue, psTransfer->uiBytes);
 	}
 }
@@ -2825,19 +2765,19 @@ uint64 C65C64::GetRegister(E65Register eRegister)
 	switch (eRegister)
 	{
 	case R65_A:
-		return muiA;
+		return msState.uiA;
 	case R65_B:
-		return muiB;
+		return msState.uiB;
 	case R65_S:
-		return muiS;
+		return msState.uiS;
 	case R65_V:
-		return muiV;
+		return msState.uiV;
 	case R65_W:
-		return muiW;
+		return msState.uiW;
 	case R65_X:
-		return muiX;
+		return msState.uiX;
 	case R65_Y:
-		return muiY;
+		return msState.uiY;
 	default:
 		return 0;
 	}
@@ -2857,25 +2797,25 @@ void C65C64::SetRegister(E65Register eRegister, uint64 uiValue, uint8 uiBytes)
 	switch (eRegister)
 	{
 	case R65_A:
-		muiA = (muiA & ~uiMask) | (uiValue & uiMask);
+		msState.uiA = (msState.uiA & ~uiMask) | (uiValue & uiMask);
 		break;
 	case R65_B:
-		muiB = (muiB & ~uiMask) | (uiValue & uiMask);
+		msState.uiB = (msState.uiB & ~uiMask) | (uiValue & uiMask);
 		break;
 	case R65_S:
-		muiS = (uint32)((muiS & ~uiMask) | (uiValue & uiMask));
+		msState.uiS = (uint32)((msState.uiS & ~uiMask) | (uiValue & uiMask));
 		break;
 	case R65_V:
-		muiV = (uint32)((muiV & ~uiMask) | (uiValue & uiMask));
+		msState.uiV = (uint32)((msState.uiV & ~uiMask) | (uiValue & uiMask));
 		break;
 	case R65_W:
-		muiW = (uint32)((muiW & ~uiMask) | (uiValue & uiMask));
+		msState.uiW = (uint32)((msState.uiW & ~uiMask) | (uiValue & uiMask));
 		break;
 	case R65_X:
-		muiX = (muiX & ~uiMask) | (uiValue & uiMask);
+		msState.uiX = (msState.uiX & ~uiMask) | (uiValue & uiMask);
 		break;
 	case R65_Y:
-		muiY = (muiY & ~uiMask) | (uiValue & uiMask);
+		msState.uiY = (msState.uiY & ~uiMask) | (uiValue & uiMask);
 		break;
 	default:
 		break;
@@ -2925,13 +2865,13 @@ uint8 C65C64::GetWidthCode(E65Register eRegister)
 	switch (eRegister)
 	{
 	case R65_A:
-		return (muiP >> STATUS65_WIDTH_A_SHIFT) & 3;
+		return (msState.uiP >> STATUS65_WIDTH_A_SHIFT) & 3;
 	case R65_B:
-		return (muiP >> STATUS65_WIDTH_B_SHIFT) & 3;
+		return (msState.uiP >> STATUS65_WIDTH_B_SHIFT) & 3;
 	case R65_X:
-		return (muiP >> STATUS65_WIDTH_X_SHIFT) & 3;
+		return (msState.uiP >> STATUS65_WIDTH_X_SHIFT) & 3;
 	case R65_Y:
-		return (muiP >> STATUS65_WIDTH_Y_SHIFT) & 3;
+		return (msState.uiP >> STATUS65_WIDTH_Y_SHIFT) & 3;
 	default:
 		return WIDTH65_32;
 	}
@@ -2963,7 +2903,7 @@ void C65C64::SetWidthCode(E65Register eRegister, uint8 uiWidthCode)
 	default:
 		return;
 	}
-	muiP = (uint16)((muiP & ~(3 << iShift)) | ((uiWidthCode & 3) << iShift));
+	msState.uiP = (uint16)((msState.uiP & ~(3 << iShift)) | ((uiWidthCode & 3) << iShift));
 }
 
 
@@ -2971,16 +2911,16 @@ void C65C64::SetWidthCode(E65Register eRegister, uint8 uiWidthCode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 C65C64::GetA(void) { return muiA; }
-uint64 C65C64::GetB(void) { return muiB; }
-uint64 C65C64::GetX(void) { return muiX; }
-uint64 C65C64::GetY(void) { return muiY; }
-uint32 C65C64::GetS(void) { return muiS; }
-uint32 C65C64::GetV(void) { return muiV; }
-uint32 C65C64::GetW(void) { return muiW; }
-uint32 C65C64::GetProgramCounter(void) { return muiC; }
-uint16 C65C64::GetP(void) { return muiP; }
-uint32 C65C64::GetInterruptDepth(void) { return muiInterruptDepth; }
+uint64 C65C64::GetA(void) { return msState.uiA; }
+uint64 C65C64::GetB(void) { return msState.uiB; }
+uint64 C65C64::GetX(void) { return msState.uiX; }
+uint64 C65C64::GetY(void) { return msState.uiY; }
+uint32 C65C64::GetS(void) { return msState.uiS; }
+uint32 C65C64::GetV(void) { return msState.uiV; }
+uint32 C65C64::GetW(void) { return msState.uiW; }
+uint32 C65C64::GetProgramCounter(void) { return msState.uiC; }
+uint16 C65C64::GetP(void) { return msState.uiP; }
+uint32 C65C64::GetInterruptDepth(void) { return msState.uiInterruptDepth; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -2989,7 +2929,7 @@ uint32 C65C64::GetInterruptDepth(void) { return muiInterruptDepth; }
 //////////////////////////////////////////////////////////////////////////
 bool C65C64::IsFlagSet(uint16 uiFlag)
 {
-	return (muiP & uiFlag) != 0;
+	return (msState.uiP & uiFlag) != 0;
 }
 
 
@@ -3001,11 +2941,11 @@ void C65C64::SetFlag(uint16 uiFlag, bool bValue)
 {
 	if (bValue)
 	{
-		muiP |= uiFlag;
+		msState.uiP |= uiFlag;
 	}
 	else
 	{
-		muiP &= ~uiFlag;
+		msState.uiP &= ~uiFlag;
 	}
 }
 
@@ -3088,7 +3028,7 @@ void C65C64::TestSetRegister(E65Register eRegister, uint64 uiValue)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::TestSetProgramCounter(uint32 uiC)
 {
-	muiC = uiC;
+	msState.uiC = uiC;
 }
 
 
@@ -3098,7 +3038,7 @@ void C65C64::TestSetProgramCounter(uint32 uiC)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::TestSetP(uint16 uiP)
 {
-	muiP = uiP;
+	msState.uiP = uiP;
 }
 
 
@@ -3110,11 +3050,11 @@ void C65C64::TestStartInstruction(void)
 {
 	//The next falling edge of PHI2 starts the fetch of the opcode at C.  Reset is skipped.
 	mpcInstruction = NULL;
-	miCycle = -1;
-	miNextCycle = 0;
-	mbStopped = false;
-	mbWaiting = false;
-	mbNextInstruction = true;
+	msState.iCycle = -1;
+	msState.iNextCycle = 0;
+	msState.bStopped = false;
+	msState.bWaiting = false;
+	msState.bNextInstruction = true;
 	ResetInstructionState();
 }
 
