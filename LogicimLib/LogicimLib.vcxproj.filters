@@ -144,6 +144,9 @@
     <ClCompile Include="CircuitSelection.cpp">
       <Filter>Source\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="UndoStack.cpp">
+      <Filter>Source\Editor</Filter>
+    </ClCompile>
     <ClCompile Include="CircuitEdit.cpp">
       <Filter>Source\Editor</Filter>
     </ClCompile>
@@ -288,6 +291,9 @@
       <Filter>Source\Passive</Filter>
     </ClInclude>
     <ClInclude Include="CircuitSelection.h">
+      <Filter>Source\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="UndoStack.h">
       <Filter>Source\Editor</Filter>
     </ClInclude>
     <ClInclude Include="CircuitEdit.h">

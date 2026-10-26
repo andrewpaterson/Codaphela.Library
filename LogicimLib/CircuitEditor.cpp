@@ -23,6 +23,9 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "BaseLib/XMLFile.h"
 #include "BaseLib/XMLWriter.h"
+#include "BaseLib/Markup.h"
+#include "BaseLib/LogString.h"
+#include "BaseLib/ArrayElementNotFound.h"
 #include "MicroprocessorLib/CircuitSimulation.h"
 #include "CircuitPainter.h"
 #include "CircuitWiring.h"
@@ -52,6 +55,7 @@ void CCircuitEditor::Init(CFamilyVoltageConfigurationStore* pcFamilies, CCircuit
 	mpcFamilies = pcFamilies;
 	mpcFonts = pcFonts;
 	mcSelection.Init();
+	mcUndo.Init();
 	mpcEdit = NULL;
 	mpcNextUnit = NULL;
 	meCreationRotation = ROT_East;
@@ -74,6 +78,7 @@ void CCircuitEditor::Kill(void)
 {
 	SafeKill(mpcNextUnit);
 	KillProject();
+	mcUndo.Kill();
 	masAnchors.Kill();
 	mapcFollowing.Kill();
 	masLeads.Kill();
@@ -140,12 +145,14 @@ CCircuitView* CCircuitEditor::AddCircuit(const char* szTypeName)
 //////////////////////////////////////////////////////////////////////////
 //
 // Edits the circuit of the type and simulates it, in a new simulation
-// started afresh; the last one is killed.
+// started afresh; the last one is killed.  Starting to edit a circuit can
+// be undone; simulating the same one again, as a reset does, can't.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCircuitEditor::Simulate(const char* szTypeName)
 {
 	CCircuitView*	pcCircuit;
+	CCircuitView*	pcPrevious;
 
 	pcCircuit = mpcCircuits->Get(szTypeName);
 	if (pcCircuit == NULL)
@@ -156,11 +163,20 @@ bool CCircuitEditor::Simulate(const char* szTypeName)
 	DiscardEdit();
 	mcSelection.Clear();
 	KillSimulation();
+	pcPrevious = mpcCircuit;
 	mpcCircuit = pcCircuit;
 	mpcSimulation = NewMalloc<CCircuitSimulation>();
 	mpcSimulation->Init(szTypeName);
 	UpdateHover();
-	return mpcCircuit->CreateSimulation(GetViewPath(), mpcSimulation, mpcFamilies, true);
+	if (!mpcCircuit->CreateSimulation(GetViewPath(), mpcSimulation, mpcFamilies, true))
+	{
+		return false;
+	}
+	if ((mcUndo.NumSnapshots() == 0) || (pcCircuit != pcPrevious))
+	{
+		PushUndo(false);
+	}
+	return true;
 }
 
 
@@ -478,6 +494,7 @@ bool CCircuitEditor::Delete(void)
 	apcTraces.Kill();
 	apcComponents.Kill();
 	UpdateHover();
+	PushUndo(false);
 	return true;
 }
 
@@ -651,6 +668,7 @@ CComponentView* CCircuitEditor::SetProperties(CComponentView* pcComponent, CComp
 
 	Rewire();
 	UpdateHover();
+	PushUndo(false);
 	return pcNew;
 }
 
@@ -681,21 +699,7 @@ bool CCircuitEditor::Save(const char* szFilename)
 	DiscardEdit();
 
 	cWriter.Init();
-	cWriter.Begin("Logicim");
-	cWriter.Attribute("version", (int32)CIRCUIT_FILE_VERSION);
-	cWriter.Begin("Editor");
-	if (mpcCircuit != NULL)
-	{
-		cWriter.Attribute("circuit", mpcCircuit->GetTypeName());
-	}
-	cWriter.Attribute("rotation", RotationToString(meCreationRotation));
-	cWriter.End();
-	mpcCircuits->SaveXML(&cWriter);
-	if (mpcSimulation != NULL)
-	{
-		SaveSimulationXML(&cWriter, mpcCircuit, GetViewPath(), mpcSimulation);
-	}
-	cWriter.End();
+	SaveXML(&cWriter);
 	bResult = cWriter.Write(szFilename);
 	cWriter.Kill();
 	if (!bResult)
@@ -708,32 +712,97 @@ bool CCircuitEditor::Save(const char* szFilename)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Replaces the project with the file's, as Logicim's load: its circuits,
-// the circuit being edited (the first if the file has no <Editor>) and its
-// simulation as saved.  If the file can't be loaded the project is left
-// as it was.
+// The whole project as Save writes it; the writer must be initialised and
+// empty.  An edit in progress isn't discarded, so call it when there's
+// none or it's done.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEditor::SaveXML(CXMLWriter* pcWriter)
+{
+	size	i;
+
+	pcWriter->Begin("Logicim");
+	pcWriter->Attribute("version", (int32)CIRCUIT_FILE_VERSION);
+	pcWriter->Begin("Editor");
+	if (mpcCircuit != NULL)
+	{
+		pcWriter->Attribute("circuit", mpcCircuit->GetTypeName());
+	}
+	pcWriter->Attribute("rotation", RotationToString(meCreationRotation));
+	if (mpcCircuit != NULL)
+	{
+		for (i = 0; i < mcSelection.NumComponents(); i++)
+		{
+			pcWriter->Begin("Selected");
+			pcWriter->Attribute("component", (int64)FindComponentIndex(mcSelection.GetComponent(i)));
+			pcWriter->End();
+		}
+		for (i = 0; i < mcSelection.NumTraces(); i++)
+		{
+			pcWriter->Begin("Selected");
+			pcWriter->Attribute("trace", (int64)FindTraceIndex(mcSelection.GetTrace(i)));
+			pcWriter->End();
+		}
+	}
+	pcWriter->End();
+	mpcCircuits->SaveXML(pcWriter);
+	if (mpcSimulation != NULL)
+	{
+		SaveSimulationXML(pcWriter, mpcCircuit, GetViewPath(), mpcSimulation);
+	}
+	pcWriter->End();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Replaces the project with the file's, as Logicim's loadFile, which is
+// the first change that can be undone back to (see LoadXML).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCircuitEditor::Load(const char* szFilename)
 {
-	CXMLFile			cFile;
-	CMarkupTag*			pcRoot;
-	CMarkupTag*			pcEditorTag;
-	CCircuitViews*		pcCircuits;
-	CCircuitView*		pcCircuit;
-	CCircuitSimulation*	pcSimulation;
-	ERotation			eRotation;
-	char*				szCircuit;
-	char*				szRotation;
-	bool				bResult;
+	CXMLFile	cFile;
+	CMarkupTag*	pcRoot;
+	bool		bResult;
 
 	cFile.Init();
 	pcRoot = ReadCircuitFileRoot(&cFile, szFilename, "Circuits");
-	if (pcRoot == NULL)
+	bResult = (pcRoot != NULL) && LoadXML(pcRoot, szFilename);
+	cFile.Kill();
+	if (bResult)
 	{
-		cFile.Kill();
-		return false;
+		PushUndo(false);
 	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Replaces the project with the one under pcRoot, as Logicim's load: its
+// circuits, the circuit being edited (the first if there's no <Editor>),
+// the selection in it and its simulation as saved.  szSource names the
+// document in errors.  If it can't be loaded the project is left as it
+// was.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitEditor::LoadXML(CMarkupTag* pcRoot, const char* szSource)
+{
+	CMarkupTag*					pcEditorTag;
+	CMarkupTag*					pcTag;
+	STagIterator				sIter;
+	CCircuitViews*				pcCircuits;
+	CCircuitView*				pcCircuit;
+	CCircuitSimulation*			pcSimulation;
+	ERotation					eRotation;
+	char*						szCircuit;
+	char*						szRotation;
+	CArrayTemplate<int64>		aiComponents;
+	CArrayTemplate<int64>		aiTraces;
+	int64						iIndex;
+	size						i;
+	bool						bResult;
 
 	pcCircuits = NewMalloc<CCircuitViews>();
 	pcCircuits->Init();
@@ -741,6 +810,8 @@ bool CCircuitEditor::Load(const char* szFilename)
 
 	eRotation = ROT_East;
 	szCircuit = NULL;
+	aiComponents.Init();
+	aiTraces.Init();
 	pcEditorTag = pcRoot->GetTag("Editor");
 	if (pcEditorTag != NULL)
 	{
@@ -751,8 +822,26 @@ bool CCircuitEditor::Load(const char* szFilename)
 			eRotation = StringToRotation(szRotation);
 			if (eRotation == ROT_Cannot)
 			{
-				bResult = gcLogger.Error2(__METHOD__, " [", szFilename, "] has an unknown rotation [", szRotation, "].", NULL);
+				bResult = gcLogger.Error2(__METHOD__, " [", szSource, "] has an unknown rotation [", szRotation, "].", NULL);
 			}
+		}
+
+		pcTag = pcEditorTag->GetTag("Selected", &sIter);
+		while (pcTag != NULL)
+		{
+			if (pcTag->GetInt64Attribute("component", &iIndex))
+			{
+				aiComponents.Add(&iIndex);
+			}
+			else if (pcTag->GetInt64Attribute("trace", &iIndex))
+			{
+				aiTraces.Add(&iIndex);
+			}
+			else
+			{
+				bResult = gcLogger.Error2(__METHOD__, " [", szSource, "] has a [Selected] that is neither a component nor a trace.", NULL);
+			}
+			pcTag = pcEditorTag->GetNextTag(&sIter);
 		}
 	}
 
@@ -762,7 +851,27 @@ bool CCircuitEditor::Load(const char* szFilename)
 		pcCircuit = (szCircuit != NULL) ? pcCircuits->Get(szCircuit) : pcCircuits->Get((size)0);
 		if (pcCircuit == NULL)
 		{
-			bResult = gcLogger.Error2(__METHOD__, " [", szFilename, "] has no circuit to edit.", NULL);
+			bResult = gcLogger.Error2(__METHOD__, " [", szSource, "] has no circuit to edit.", NULL);
+		}
+	}
+
+	if (bResult)
+	{
+		for (i = 0; i < aiComponents.NumElements(); i++)
+		{
+			iIndex = *aiComponents.Get(i);
+			if ((iIndex < 0) || ((size)iIndex >= pcCircuit->NumComponents()))
+			{
+				bResult = gcLogger.Error2(__METHOD__, " [", szSource, "] selects component [", LongToString(iIndex), "], which isn't in the circuit.", NULL);
+			}
+		}
+		for (i = 0; i < aiTraces.NumElements(); i++)
+		{
+			iIndex = *aiTraces.Get(i);
+			if ((iIndex < 0) || ((size)iIndex >= pcCircuit->NumTraces()))
+			{
+				bResult = gcLogger.Error2(__METHOD__, " [", szSource, "] selects trace [", LongToString(iIndex), "], which isn't in the circuit.", NULL);
+			}
 		}
 	}
 
@@ -773,7 +882,6 @@ bool CCircuitEditor::Load(const char* szFilename)
 		pcSimulation->Init(pcCircuit->GetTypeName());
 		bResult = LoadCircuitFileSimulation(pcRoot, pcCircuit, pcCircuits->GetTopPath(pcCircuit), pcSimulation, mpcFamilies);
 	}
-	cFile.Kill();
 
 	if (!bResult)
 	{
@@ -785,6 +893,8 @@ bool CCircuitEditor::Load(const char* szFilename)
 		}
 		pcCircuits->Kill();
 		free(pcCircuits);
+		aiTraces.Kill();
+		aiComponents.Kill();
 		return false;
 	}
 
@@ -793,8 +903,161 @@ bool CCircuitEditor::Load(const char* szFilename)
 	mpcCircuit = pcCircuit;
 	mpcSimulation = pcSimulation;
 	meCreationRotation = eRotation;
+	for (i = 0; i < aiComponents.NumElements(); i++)
+	{
+		mcSelection.Add(mpcCircuit->GetComponent((size)*aiComponents.Get(i)));
+	}
+	for (i = 0; i < aiTraces.NumElements(); i++)
+	{
+		mcSelection.Add(mpcCircuit->GetTrace((size)*aiTraces.Get(i)));
+	}
+	aiTraces.Kill();
+	aiComponents.Kill();
 	UpdateHover();
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Saves the project as it is now onto the undo stack, after a change.
+// Nothing is saved until a circuit is being edited.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitEditor::PushUndo(bool bSelectionOnly)
+{
+	CXMLWriter	cWriter;
+
+	if (mpcCircuit == NULL)
+	{
+		return;
+	}
+
+	cWriter.Init();
+	SaveXML(&cWriter);
+	mcUndo.Push(cWriter.GetText(), bSelectionOnly);
+	cWriter.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Ctrl+Z goes back to before the last change that wasn't only to the
+// selection; bStep (Ctrl+Shift+Z) goes back one change, whatever it was.
+// An edit in progress is discarded first.  False if there's nothing to
+// undo or the snapshot couldn't be loaded, when nothing changes.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitEditor::Undo(bool bStep)
+{
+	return LoadUndo(mcUndo.FindUndo(bStep));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Ctrl+Y goes forward to after the next change that wasn't only to the
+// selection, or to the last change if they all were; bStep (Ctrl+Shift+Y)
+// goes forward one change.  As Undo otherwise.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitEditor::Redo(bool bStep)
+{
+	return LoadUndo(mcUndo.FindRedo(bStep));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Not while an edit is in progress.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitEditor::CanUndo(bool bStep)
+{
+	return (mpcEdit == NULL) && (mcUndo.FindUndo(bStep) != ARRAY_ELEMENT_NOT_FOUND);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Not while an edit is in progress.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitEditor::CanRedo(bool bStep)
+{
+	return (mpcEdit == NULL) && (mcUndo.FindRedo(bStep) != ARRAY_ELEMENT_NOT_FOUND);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Loads the snapshot at uiIndex and makes it the undo stack's current
+// one.  A part's next unit waiting to be placed is dropped.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitEditor::LoadUndo(size uiIndex)
+{
+	CMarkup		cMarkup;
+	CMarkupTag*	pcRoot;
+	bool		bResult;
+
+	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return false;
+	}
+
+	DiscardEdit();
+	SafeKill(mpcNextUnit);
+
+	cMarkup.Init();
+	pcRoot = ReadCircuitTextRoot(&cMarkup, mcUndo.Get(uiIndex), "Undo", "Circuits");
+	bResult = (pcRoot != NULL) && LoadXML(pcRoot, "Undo");
+	cMarkup.Kill();
+	if (bResult)
+	{
+		mcUndo.MoveTo(uiIndex);
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The component's index in the circuit being edited.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCircuitEditor::FindComponentIndex(CComponentView* pcComponent)
+{
+	size	i;
+
+	for (i = 0; i < mpcCircuit->NumComponents(); i++)
+	{
+		if (mpcCircuit->GetComponent(i) == pcComponent)
+		{
+			return i;
+		}
+	}
+	return ARRAY_ELEMENT_NOT_FOUND;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The wire's index in the circuit being edited.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCircuitEditor::FindTraceIndex(CTraceView* pcTrace)
+{
+	size	i;
+
+	for (i = 0; i < mpcCircuit->NumTraces(); i++)
+	{
+		if (mpcCircuit->GetTrace(i) == pcTrace)
+		{
+			return i;
+		}
+	}
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -884,6 +1147,7 @@ bool CCircuitEditor::IsEditing(void) { return mpcEdit != NULL; }
 CCircuitViews* CCircuitEditor::GetCircuits(void) { return mpcCircuits; }
 CCircuitView* CCircuitEditor::GetCircuit(void) { return mpcCircuit; }
 CCircuitSimulation* CCircuitEditor::GetSimulation(void) { return mpcSimulation; }
+CUndoStack* CCircuitEditor::GetUndoStack(void) { return &mcUndo; }
 CCircuitSelection* CCircuitEditor::GetSelection(void) { return &mcSelection; }
 CComponentView* CCircuitEditor::GetHover(void) { return mpcHover; }
 CTraceView* CCircuitEditor::GetHoverTrace(void) { return mpcHoverTrace; }
@@ -1222,6 +1486,11 @@ void CCircuitEditor::DoneMoveViews(CArrayComponentViewPtr* papcComponents, CArra
 	apcAdded.Kill();
 	asMovedLines.Kill();
 	asAnchorLines.Kill();
+
+	if (bNew || bChanged)
+	{
+		PushUndo(false);
+	}
 }
 
 
@@ -1341,6 +1610,7 @@ void CCircuitEditor::PullWire(CWirePullEdit* pcPull)
 		asLines.Kill();
 	}
 	Rewire();
+	PushUndo(false);
 }
 
 

@@ -70,7 +70,8 @@ CStatefulEdit* CStartEditInPort::Rotate(bool bRight, CCircuitEdit* pcEdit)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A click on a port or a wire selects as a click anywhere does.
+// A click on a port or a wire selects as a click anywhere does.  A
+// changed selection can be undone.
 //
 //////////////////////////////////////////////////////////////////////////
 void CStartEditInPort::Done(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit)
@@ -79,7 +80,10 @@ void CStartEditInPort::Done(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit)
 
 	cPrevious.Init();
 	cPrevious.Set(pcEdit->GetEditor()->GetSelection());
-	pcEdit->GetEditor()->SelectInRectangle(sPosition, sPosition, &cPrevious);
+	if (pcEdit->GetEditor()->SelectInRectangle(sPosition, sPosition, &cPrevious))
+	{
+		pcEdit->GetEditor()->PushUndo(true);
+	}
 	cPrevious.Kill();
 }
 

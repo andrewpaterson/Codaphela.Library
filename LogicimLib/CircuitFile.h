@@ -27,6 +27,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CXMLFile;
+class CMarkup;
 class CMarkupTag;
 class CCircuitSimulation;
 class CFamilyVoltageConfigurationStore;
@@ -43,8 +44,9 @@ class CFamilyVoltageConfigurationStore;
 //and the simulation of one of them on its top path, which names the circuit it's of.
 //
 //ReadCircuitFileRoot reads a file and checks its root holds an szContents element, for files with more in them (see
-//CCircuitEditor); the file must be killed whatever it returns.  LoadCircuitFileSimulation makes a loaded circuit in
-//the simulation as the file's <Simulation> has it, or started afresh if it has none of the circuit.
+//CCircuitEditor); the file must be killed whatever it returns.  ReadCircuitTextRoot does the same for a document held
+//in memory, such as a CXMLWriter's.  LoadCircuitFileSimulation makes a loaded circuit in the simulation as the file's
+//<Simulation> has it, or started afresh if it has none of the circuit.
 bool	SaveCircuitFile(CCircuitView* pcCircuit, const char* szFilename);
 bool	SaveCircuitFile(CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, const char* szFilename);
 bool	LoadCircuitFile(CCircuitView* pcCircuit, const char* szFilename);
@@ -55,6 +57,7 @@ bool	SaveCircuitsFile(CCircuitViews* pcCircuits, CCircuitView* pcTop, CCircuitSi
 bool	LoadCircuitsFile(CCircuitViews* pcCircuits, const char* szTop, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies, const char* szFilename);
 void	SaveCircuitsXML(CCircuitViews* pcCircuits, CCircuitView* pcTop, CCircuitSimulation* pcSimulation, CXMLWriter* pcWriter);
 CMarkupTag*	ReadCircuitFileRoot(CXMLFile* pcFile, const char* szFilename, const char* szContents);
+CMarkupTag*	ReadCircuitTextRoot(CMarkup* pcMarkup, const char* szText, const char* szSource, const char* szContents);
 bool	LoadCircuitFileSimulation(CMarkupTag* pcRoot, CCircuitView* pcCircuit, CViewPath* pcViewPath, CCircuitSimulation* pcSimulation, CFamilyVoltageConfigurationStore* pcFamilies);
 
 
