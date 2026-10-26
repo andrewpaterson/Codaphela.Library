@@ -113,7 +113,6 @@ public:
 	virtual void					GetBitJoins(CArrayPortBitJoin* pasJoins);
 	virtual CCircuitInstanceView*	GetCircuitInstanceView(void);
 	virtual CComponentView*			NewNextUnit(void);
-	virtual bool					IsUnitOfSamePart(CComponentView* pcOther);
 	virtual void					Paint(CCircuitPainter* pcPainter);
 
 	virtual const char*				GetXMLName(void) =0;

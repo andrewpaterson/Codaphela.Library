@@ -432,10 +432,6 @@ bool CCircuitEditor::Delete(void)
 	CArrayComponentViewPtr	apcComponents;
 	CArrayTraceViewPtr		apcTraces;
 	size					i;
-	size					j;
-	size					uiNumComponents;
-	CComponentView*			pcComponent;
-	CComponentView*			pcOther;
 
 	if (mpcEdit != NULL)
 	{
@@ -478,20 +474,6 @@ bool CCircuitEditor::Delete(void)
 		return false;
 	}
 
-	//A unit of a part placed as its units takes the part's other units with it.
-	uiNumComponents = apcComponents.NumElements();
-	for (i = 0; i < uiNumComponents; i++)
-	{
-		pcComponent = apcComponents.GetPtr(i);
-		for (j = 0; j < mpcCircuit->NumComponents(); j++)
-		{
-			pcOther = mpcCircuit->GetComponent(j);
-			if (pcComponent->IsUnitOfSamePart(pcOther) && (apcComponents.Find(pcOther) == ARRAY_ELEMENT_NOT_FOUND))
-			{
-				apcComponents.Add(pcOther);
-			}
-		}
-	}
 	DeleteViews(&apcComponents, &apcTraces);
 	apcTraces.Kill();
 	apcComponents.Kill();
