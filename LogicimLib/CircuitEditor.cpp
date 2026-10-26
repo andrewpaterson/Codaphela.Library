@@ -1794,18 +1794,31 @@ void CCircuitEditor::KillEdit(void)
 //
 // The component under the pointer and the connection or point on a wire,
 // as Logicim's calculateHighlightedPort; none during an edit or while
-// anything is selected.
+// anything is selected.  A port on the grid point nearest the pointer is
+// hovered, with its component, from any side; ports are on the edge of
+// their component's box, or outside it, so the box alone would only find
+// them from inside.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircuitEditor::UpdateHover(void)
 {
 	SInt32Vec2	sPoint;
+	CPortView*	pcPort;
 
 	ClearHover();
 	if ((mpcEdit == NULL) && mcSelection.IsEmpty() && mbPointer && (mpcCircuit != NULL))
 	{
-		mpcHover = mpcCircuit->GetComponentAt(msPointer);
 		sPoint.Init(RoundToGrid(msPointer.x), RoundToGrid(msPointer.y));
+		pcPort = mpcCircuit->GetPortViewAt(sPoint);
+		if (pcPort != NULL)
+		{
+			mpcHover = pcPort->GetOwner();
+			mbHoverConnection = true;
+			msHoverConnection = sPoint;
+			return;
+		}
+
+		mpcHover = mpcCircuit->GetComponentAt(msPointer);
 		if ((mpcHover != NULL) && mpcCircuit->IsConnectionAt(sPoint))
 		{
 			mbHoverConnection = true;

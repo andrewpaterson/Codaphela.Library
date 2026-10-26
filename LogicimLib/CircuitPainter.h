@@ -38,6 +38,9 @@ class CCircuitSimulation;
 //facing East about its position, and are turned and moved by SetTransform before the viewport puts them on the
 //screen.  Line widths are pixels at zoom one, as Logicim's zoomable strokes.  Text is drawn as glyphs into a sprite
 //map, which is blitted after the geometry map; without fonts or a sprite map there is no text.
+//
+//InitImage paints into a whole image, as the circuit canvas does: the viewport is made the image's size and the maps
+//are cleared onto the image with the background drawn.  Paint, then BlitImage puts the maps on the image.
 class CCircuitPainter
 {
 protected:
@@ -54,7 +57,10 @@ protected:
 
 public:
 	void				Init(CCircuitViewport* pcViewport, CGeometryMap* pcMap, CSpriteMap* pcSprites, CCircuitColours* pcColours, CCircuitFonts* pcFonts, CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
+	void				InitImage(Ptr<CImage> pImage, CCircuitViewport* pcViewport, CGeometryMap* pcMap, CSpriteMap* pcSprites, CCircuitColours* pcColours, CCircuitFonts* pcFonts, CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation);
 	void				Kill(void);
+
+	bool				BlitImage(void);
 
 	void				SetTransform(SInt32Vec2 sPosition, ERotation eRotation);
 	void				ClearTransform(void);
