@@ -3559,6 +3559,7 @@ void CIR65Backend::Edge(CIRBlock* pcFrom, CIRBlock* pcTo)
 		if (!bProgress)
 		{
 			//Only cycles: the value in the first copy's destination goes to B.
+			psMove = NULL;
 			for (ui = 0; ui < masMoves.NumElements(); ui++)
 			{
 				psMove = masMoves.Get(ui);
@@ -3566,6 +3567,11 @@ void CIR65Backend::Edge(CIRBlock* pcFrom, CIRBlock* pcTo)
 				{
 					break;
 				}
+			}
+			if ((psMove == NULL) || psMove->sSource.IsNone())
+			{
+				Error("Phi copies have no cycle to break.");
+				return;
 			}
 			psDestination = PlaceOf(psMove->sDestination);
 			sCycle = IRNone();
