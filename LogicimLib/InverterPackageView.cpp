@@ -465,25 +465,6 @@ int CInverterUnitView::GetUnitCount(void) { return CInverterPackageView::GetPart
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Another inverter unit with this one's name (which it must have) and
-// part type.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CInverterUnitView::IsUnitOfSamePart(CComponentView* pcOther)
-{
-	CInverterUnitView*	pcUnit;
-
-	if ((pcOther == this) || (pcOther == NULL) || mszName.Empty() || (StringCompare(pcOther->GetXMLName(), GetXMLName()) != 0))
-	{
-		return false;
-	}
-	pcUnit = (CInverterUnitView*)pcOther;
-	return mszName.Equals(pcUnit->GetName()) && mszPartType.Equals(pcUnit->GetPartType());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The part's next unit where this one is, named, turned and of the family
 // as it is.  NULL after the part's last unit.
 //

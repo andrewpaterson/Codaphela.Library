@@ -74,8 +74,7 @@ protected:
 //One inverter of a 74 series part of inverters, placed on its own: drawn as an inverter view of one, with its unit
 //("Unit A" for the first) above it and its family below.  It knows its part's type, so the six units of a 74LVC04
 //placed apart are still its units; each is an inverter of one.  Placing a unit in the editor goes on to the next
-//(NewNextUnit) until the part's last.  Units with the same name and part type are one part's (IsUnitOfSamePart), and
-//are deleted together; units without a name aren't any part's.
+//(NewNextUnit) until the part's last.
 class CInverterUnitView : public CInverterView
 {
 CONSTRUCTABLE(CInverterUnitView);
@@ -98,7 +97,6 @@ public:
 			char					GetUnitLetter(void);
 			int						GetUnitCount(void);
 	virtual CComponentView*			NewNextUnit(void);
-	virtual bool					IsUnitOfSamePart(CComponentView* pcOther);
 
 protected:
 	virtual	void					SaveXMLAttributes(CXMLWriter* pcWriter);
