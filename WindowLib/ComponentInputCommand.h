@@ -80,6 +80,10 @@ enum EComponentInputCommand
 	CIC_DeleteWordRemainingLeft,
 	CIC_DeleteWordRemainingRight,
 	CIC_DeleteLine,
+	CIC_Undo,
+	CIC_StepUndo,
+	CIC_Redo,
+	CIC_StepRedo,
 
 	//Components
 	CIC_ActivateComponent,

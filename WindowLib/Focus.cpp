@@ -458,6 +458,18 @@ void CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
 	case CIC_DeleteLine:
 		mpFocussedComponent->DeleteLine();
 		break;
+	case CIC_Undo:
+		mpFocussedComponent->Undo();
+		break;
+	case CIC_StepUndo:
+		mpFocussedComponent->StepUndo();
+		break;
+	case CIC_Redo:
+		mpFocussedComponent->Redo();
+		break;
+	case CIC_StepRedo:
+		mpFocussedComponent->StepRedo();
+		break;
 	case CIC_ActivateComponent:
 		mpFocussedComponent->ActivateComponent(x, y);
 		break;

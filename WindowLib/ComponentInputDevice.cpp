@@ -194,7 +194,10 @@ void CComponentInputDevice::InitKeyboard(void)
 	AddCommand("D", CIC_Duplicate, true, false, false);
 	AddCommand("Backspace", CIC_DeleteWordRemainingLeft, true, false, false);
 	AddCommand("Delete", CIC_DeleteWordRemainingRight, true, false, false);
-	AddCommand("Y", CIC_DeleteLine, true, false, false);
+	AddCommand("Z", CIC_Undo, true, false, false);
+	AddCommand("Z", CIC_StepUndo, true, false, true);
+	AddCommand("Y", CIC_Redo, true, false, false);
+	AddCommand("Y", CIC_StepRedo, true, false, true);
 
 	AddNumKeyRemap("Numpad 1", "1", "End");
 	AddNumKeyRemap("Numpad 2", "2", "Cursor Down");
