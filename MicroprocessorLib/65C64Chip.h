@@ -44,6 +44,9 @@ public:
 	virtual void			SimulationStarted(CTimeline* pcTimeline);
 	virtual void			InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);
 	virtual const char*		GetType(void);
+	virtual const char*		GetStateXMLName(void);
+	virtual void			SaveXML(CXMLWriter* pcWriter);
+	virtual bool			LoadXML(CMarkupTag* pcTag);
 
 			C65C64*			GetMPU(void);
 			C65C64ChipPins*	GetChipPins(void);

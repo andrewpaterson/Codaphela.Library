@@ -126,9 +126,6 @@
     <ClCompile Include="SimulationStateXML.cpp">
       <Filter>Source\SimulationState</Filter>
     </ClCompile>
-    <ClCompile Include="StateXML.cpp">
-      <Filter>Source\SimulationState</Filter>
-    </ClCompile>
     <ClCompile Include="AndGateView.cpp">
       <Filter>Source\Gate</Filter>
     </ClCompile>
@@ -273,9 +270,6 @@
       <Filter>Source\SimulationState</Filter>
     </ClInclude>
     <ClInclude Include="SimulationStateXML.h">
-      <Filter>Source\SimulationState</Filter>
-    </ClInclude>
-    <ClInclude Include="StateXML.h">
       <Filter>Source\SimulationState</Filter>
     </ClInclude>
     <ClInclude Include="AndGateView.h">

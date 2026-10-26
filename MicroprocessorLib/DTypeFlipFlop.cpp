@@ -19,6 +19,8 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ConstructorCall.h"
+#include "BaseLib/Logger.h"
+#include "StateXMLFields.h"
 #include "DTypeFlipFlop.h"
 
 
@@ -147,4 +149,38 @@ const char* CDTypeFlipFlop::GetType(void) { return D_TYPE_FLIP_FLOP_TYPE; }
 CDTypeFlipFlopPins* CDTypeFlipFlop::GetDTypeFlipFlopPins(void) { return (CDTypeFlipFlopPins*)mpcPins; }
 bool CDTypeFlipFlop::GetState(void) { return mbState; }
 void CDTypeFlipFlop::SetState(bool bState) { mbState = bState; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CDTypeFlipFlop::GetStateXMLName(void) { return "DTypeFlipFlopState"; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDTypeFlipFlop::SaveXML(CXMLWriter* pcWriter)
+{
+	pcWriter->Attribute("state", GetState());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDTypeFlipFlop::LoadXML(CMarkupTag* pcTag)
+{
+	bool	bState;
+
+	if (!pcTag->GetBoolAttribute("state", &bState))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs a true or false state.", NULL);
+	}
+	SetState(bState);
+	return true;
+}
 

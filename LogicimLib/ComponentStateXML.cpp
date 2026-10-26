@@ -26,7 +26,6 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MicroprocessorLib/PortEvent.h"
 #include "MicroprocessorLib/PortOutput.h"
 #include "MicroprocessorLib/Pins.h"
-#include "StateXML.h"
 #include "ComponentStateXML.h"
 
 
@@ -36,23 +35,26 @@ CPassiveStateXML			gcPassiveStateXML;
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An IC without a CStateXML remembers nothing beyond its ports and events.
+// An IC without a GetStateXMLName remembers nothing beyond its ports and
+// events.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIntegratedCircuitStateXML::Save(CXMLWriter* pcWriter, CCircuitComponent* pcComponent)
 {
 	CIntegratedCircuit*				pcIntegratedCircuit;
-	CStateXML*						pcStateXML;
+	const char*						szStateName;
 	size							i;
 	CEvent*							pcEvent;
 	CIntegratedCircuitEventXML*		pcEventXML;
 	CPort*							pcPort;
 
 	pcIntegratedCircuit = (CIntegratedCircuit*)pcComponent;
-	pcStateXML = FindStateXMLForIntegratedCircuit(pcIntegratedCircuit);
-	if (pcStateXML != NULL)
+	szStateName = pcIntegratedCircuit->GetStateXMLName();
+	if (szStateName != NULL)
 	{
-		pcStateXML->Save(pcWriter, pcIntegratedCircuit);
+		pcWriter->Begin(szStateName);
+		pcIntegratedCircuit->SaveXML(pcWriter);
+		pcWriter->End();
 	}
 
 	for (i = 0; i < pcIntegratedCircuit->NumEvents(); i++)
@@ -155,12 +157,13 @@ bool CIntegratedCircuitStateXML::Load(CMarkupTag* pcComponentTag, CCircuitCompon
 	CIntegratedCircuit*				pcIntegratedCircuit;
 	STagIterator					sIter;
 	CMarkupTag*						pcTag;
-	CStateXML*						pcStateXML;
+	const char*						szStateName;
 	CIntegratedCircuitEventXML*		pcEventXML;
 	SPendingEventXML*				psPending;
 	bool							bStateLoaded;
 
 	pcIntegratedCircuit = (CIntegratedCircuit*)pcComponent;
+	szStateName = pcIntegratedCircuit->GetStateXMLName();
 	bStateLoaded = false;
 	pcTag = pcComponentTag->GetTag(&sIter);
 	while (pcTag != NULL)
@@ -174,19 +177,14 @@ bool CIntegratedCircuitStateXML::Load(CMarkupTag* pcComponentTag, CCircuitCompon
 		}
 		else
 		{
-			pcStateXML = FindStateXMLForElement(pcTag->GetName());
 			pcEventXML = FindIntegratedCircuitEventXMLForElement(pcTag->GetName());
-			if (pcStateXML != NULL)
+			if ((szStateName != NULL) && pcTag->Is(szStateName))
 			{
 				if (bStateLoaded)
 				{
 					return gcLogger.Error2(__METHOD__, " [", pcComponent->GetName(), "] has more than one state.", NULL);
 				}
-				if (StringCompare(pcStateXML->GetIntegratedCircuitClassName(), pcIntegratedCircuit->ClassName()) != 0)
-				{
-					return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] isn't the state of [", pcComponent->GetName(), "].", NULL);
-				}
-				if (!pcStateXML->Load(pcTag, pcIntegratedCircuit))
+				if (!pcIntegratedCircuit->LoadXML(pcTag))
 				{
 					return false;
 				}

@@ -18,13 +18,18 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <stdio.h>
+#include <stdlib.h>
 #include "BaseLib/ConstructorCall.h"
+#include "BaseLib/Chars.h"
+#include "BaseLib/Logger.h"
 #include "BaseLib/PointerFunctions.h"
 #include "LongTime.h"
 #include "Timeline.h"
 #include "TickEvent.h"
 #include "Trace.h"
 #include "Voltage.h"
+#include "StateXMLFields.h"
 #include "Oscilloscope.h"
 
 
@@ -190,5 +195,139 @@ void COscilloscope::SetTickPosition(size uiTickPosition)
 	{
 		muiTickPosition = uiTickPosition;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+const char* COscilloscope::GetStateXMLName(void) { return "OscilloscopeState"; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void COscilloscope::SaveXML(CXMLWriter* pcWriter)
+{
+	size			uiInput;
+	size			uiSample;
+	CChars			szMinimum;
+	CChars			szMaximum;
+	char			sz[48];
+
+	pcWriter->Attribute("inputCount", (int64)GetInputCount());
+	pcWriter->Attribute("sampleCount", (int64)GetSampleCount());
+	pcWriter->Attribute("tickPosition", (int64)GetTickPosition());
+	for (uiInput = 0; uiInput < GetInputCount(); uiInput++)
+	{
+		szMinimum.Init();
+		szMaximum.Init();
+		for (uiSample = 0; uiSample < GetSampleCount(); uiSample++)
+		{
+			if (uiSample != 0)
+			{
+				szMinimum.Append(' ');
+				szMaximum.Append(' ');
+			}
+			snprintf(sz, sizeof(sz), "%.9g", (double)GetMinVoltage(uiInput, uiSample));
+			szMinimum.Append(sz);
+			snprintf(sz, sizeof(sz), "%.9g", (double)GetMaxVoltage(uiInput, uiSample));
+			szMaximum.Append(sz);
+		}
+		pcWriter->Begin("Samples");
+		pcWriter->Attribute("input", (int64)uiInput);
+		pcWriter->Attribute("min", szMinimum.Text());
+		pcWriter->Attribute("max", szMaximum.Text());
+		pcWriter->End();
+		szMaximum.Kill();
+		szMinimum.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Reads exactly uiCount space separated floats.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool ReadOscilloscopeVoltages(char* szText, float32* afVoltages, size uiCount)
+{
+	char*	szEnd;
+	size	i;
+
+	if (szText == NULL)
+	{
+		return false;
+	}
+	for (i = 0; i < uiCount; i++)
+	{
+		afVoltages[i] = (float32)strtod(szText, &szEnd);
+		if (szEnd == szText)
+		{
+			return false;
+		}
+		szText = szEnd;
+	}
+	while (*szText == ' ')
+	{
+		szText++;
+	}
+	return *szText == '\0';
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Inputs without a <Samples> keep the samples they have.
+//
+//////////////////////////////////////////////////////////////////////////
+bool COscilloscope::LoadXML(CMarkupTag* pcTag)
+{
+	int64			iInputCount;
+	int64			iSampleCount;
+	int64			iTickPosition;
+	int64			iInput;
+	STagIterator	sIter;
+	CMarkupTag*		pcSamples;
+	float32*		afMinimum;
+	float32*		afMaximum;
+	size			uiSample;
+	bool			bValid;
+
+	if (!pcTag->GetInt64Attribute("inputCount", &iInputCount) || !pcTag->GetInt64Attribute("sampleCount", &iSampleCount) || !pcTag->GetInt64Attribute("tickPosition", &iTickPosition) ||
+		(iInputCount != (int64)GetInputCount()) || (iSampleCount != (int64)GetSampleCount()) || (iTickPosition < 0) || (iTickPosition >= iSampleCount))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs the oscilloscope's inputCount and sampleCount and a tickPosition inside the samples.", NULL);
+	}
+	SetTickPosition((size)iTickPosition);
+
+	afMinimum = (float32*)malloc(sizeof(float32) * (size)iSampleCount);
+	afMaximum = (float32*)malloc(sizeof(float32) * (size)iSampleCount);
+	bValid = true;
+	pcSamples = pcTag->GetTag("Samples", &sIter);
+	while ((pcSamples != NULL) && bValid)
+	{
+		bValid = pcSamples->GetInt64Attribute("input", &iInput) && (iInput >= 0) && (iInput < iInputCount) &&
+				 ReadOscilloscopeVoltages(pcSamples->GetStringAttribute("min"), afMinimum, (size)iSampleCount) &&
+				 ReadOscilloscopeVoltages(pcSamples->GetStringAttribute("max"), afMaximum, (size)iSampleCount);
+		if (bValid)
+		{
+			for (uiSample = 0; uiSample < (size)iSampleCount; uiSample++)
+			{
+				SetVoltages((size)iInput, uiSample, afMinimum[uiSample], afMaximum[uiSample]);
+			}
+		}
+		pcSamples = pcTag->GetNextTag(&sIter);
+	}
+	free(afMaximum);
+	free(afMinimum);
+
+	if (!bValid)
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] has a Samples element without an input in range and sampleCount min and max voltages.", NULL);
+	}
+	return true;
 }
 

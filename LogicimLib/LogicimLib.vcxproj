@@ -54,7 +54,6 @@
     <ClCompile Include="PowerSourceView.cpp" />
     <ClCompile Include="Rotation.cpp" />
     <ClCompile Include="SimulationStateXML.cpp" />
-    <ClCompile Include="StateXML.cpp" />
     <ClCompile Include="TraceView.cpp" />
     <ClCompile Include="TraceAutoConnector.cpp" />
     <ClCompile Include="InverterPackageView.cpp" />
@@ -105,7 +104,6 @@
     <ClInclude Include="PowerSourceView.h" />
     <ClInclude Include="Rotation.h" />
     <ClInclude Include="SimulationStateXML.h" />
-    <ClInclude Include="StateXML.h" />
     <ClInclude Include="TraceView.h" />
     <ClInclude Include="TraceAutoConnector.h" />
     <ClInclude Include="InverterPackageView.h" />

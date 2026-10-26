@@ -19,6 +19,8 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ConstructorCall.h"
+#include "BaseLib/Logger.h"
+#include "StateXMLFields.h"
 #include "Counter.h"
 
 
@@ -155,4 +157,41 @@ uint32 CCounter::GetCount(void) { return muiCount; }
 void CCounter::SetCount(uint32 uiCount) { muiCount = uiCount; }
 bool CCounter::IsTerminal(void) { return mbTerminal; }
 void CCounter::SetTerminal(bool bTerminal) { mbTerminal = bTerminal; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CCounter::GetStateXMLName(void) { return "CounterState"; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCounter::SaveXML(CXMLWriter* pcWriter)
+{
+	pcWriter->Attribute("count", (int64)GetCount());
+	pcWriter->Attribute("terminal", IsTerminal());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCounter::LoadXML(CMarkupTag* pcTag)
+{
+	int64	iCount;
+	bool	bTerminal;
+
+	if (!pcTag->GetInt64Attribute("count", &iCount) || (iCount < 0) || (iCount > 0xffffffffLL) || !pcTag->GetBoolAttribute("terminal", &bTerminal))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs a count from 0 to 4294967295 and a true or false terminal.", NULL);
+	}
+	SetCount((uint32)iCount);
+	SetTerminal(bTerminal);
+	return true;
+}
 
