@@ -4,12 +4,12 @@
 
 
 #define HOST_DEVICE			0x00FF0200
-#define HOST_ARGUMENT_0		(*(volatile unsigned int*)(HOST_DEVICE + 0x00))
-#define HOST_ARGUMENT_1		(*(volatile unsigned int*)(HOST_DEVICE + 0x04))
-#define HOST_ARGUMENT_2		(*(volatile unsigned int*)(HOST_DEVICE + 0x08))
-#define HOST_ARGUMENT_3		(*(volatile unsigned int*)(HOST_DEVICE + 0x0C))
-#define HOST_RESULT			(*(volatile unsigned int*)(HOST_DEVICE + 0x10))
-#define HOST_RESULT_HIGH	(*(volatile unsigned int*)(HOST_DEVICE + 0x14))
+#define HOST_ARGUMENT_0		(*(volatile uint32_t*)(HOST_DEVICE + 0x00))
+#define HOST_ARGUMENT_1		(*(volatile uint32_t*)(HOST_DEVICE + 0x04))
+#define HOST_ARGUMENT_2		(*(volatile uint32_t*)(HOST_DEVICE + 0x08))
+#define HOST_ARGUMENT_3		(*(volatile uint32_t*)(HOST_DEVICE + 0x0C))
+#define HOST_RESULT			(*(volatile uint32_t*)(HOST_DEVICE + 0x10))
+#define HOST_RESULT_HIGH	(*(volatile uint32_t*)(HOST_DEVICE + 0x14))
 #define HOST_COMMAND		(*(volatile unsigned char*)(HOST_DEVICE + 0x18))
 
 #define HOST_OPEN			1
@@ -33,7 +33,7 @@
 #define HOST_RENAME			19
 
 
-static unsigned int Command(int iCommand)
+static uint32_t Command(int iCommand)
 {
 	HOST_COMMAND = (unsigned char)iCommand;
 	return HOST_RESULT;
@@ -42,8 +42,8 @@ static unsigned int Command(int iCommand)
 
 static long long CommandLong(int iCommand)
 {
-	unsigned int	uiLow;
-	unsigned int	uiHigh;
+	uint32_t	uiLow;
+	uint32_t	uiHigh;
 
 	HOST_COMMAND = (unsigned char)iCommand;
 	uiLow = HOST_RESULT;
@@ -52,41 +52,41 @@ static long long CommandLong(int iCommand)
 }
 
 
-static unsigned int PathCommand(int iCommand, const char* szPath)
+static uint32_t PathCommand(int iCommand, const char* szPath)
 {
-	HOST_ARGUMENT_0 = (unsigned int)szPath;
+	HOST_ARGUMENT_0 = (uint32_t)szPath;
 	return Command(iCommand);
 }
 
 
 int HostOpen(const char* szPath, int iMode)
 {
-	HOST_ARGUMENT_0 = (unsigned int)szPath;
-	HOST_ARGUMENT_1 = (unsigned int)iMode;
+	HOST_ARGUMENT_0 = (uint32_t)szPath;
+	HOST_ARGUMENT_1 = (uint32_t)iMode;
 	return (int)Command(HOST_OPEN);
 }
 
 
 int HostClose(int iHandle)
 {
-	HOST_ARGUMENT_0 = (unsigned int)iHandle;
+	HOST_ARGUMENT_0 = (uint32_t)iHandle;
 	return (int)Command(HOST_CLOSE);
 }
 
 
-unsigned int HostRead(int iHandle, void* pvBuffer, unsigned int uiBytes)
+uint32_t HostRead(int iHandle, void* pvBuffer, uint32_t uiBytes)
 {
-	HOST_ARGUMENT_0 = (unsigned int)iHandle;
-	HOST_ARGUMENT_1 = (unsigned int)pvBuffer;
+	HOST_ARGUMENT_0 = (uint32_t)iHandle;
+	HOST_ARGUMENT_1 = (uint32_t)pvBuffer;
 	HOST_ARGUMENT_2 = uiBytes;
 	return Command(HOST_READ_FILE);
 }
 
 
-unsigned int HostWrite(int iHandle, const void* pvBuffer, unsigned int uiBytes)
+uint32_t HostWrite(int iHandle, const void* pvBuffer, uint32_t uiBytes)
 {
-	HOST_ARGUMENT_0 = (unsigned int)iHandle;
-	HOST_ARGUMENT_1 = (unsigned int)pvBuffer;
+	HOST_ARGUMENT_0 = (uint32_t)iHandle;
+	HOST_ARGUMENT_1 = (uint32_t)pvBuffer;
 	HOST_ARGUMENT_2 = uiBytes;
 	return Command(HOST_WRITE_FILE);
 }
@@ -94,40 +94,40 @@ unsigned int HostWrite(int iHandle, const void* pvBuffer, unsigned int uiBytes)
 
 int HostSeek(int iHandle, long long llOffset, int iOrigin)
 {
-	HOST_ARGUMENT_0 = (unsigned int)iHandle;
-	HOST_ARGUMENT_1 = (unsigned int)llOffset;
-	HOST_ARGUMENT_2 = (unsigned int)((unsigned long long)llOffset >> 32);
-	HOST_ARGUMENT_3 = (unsigned int)iOrigin;
+	HOST_ARGUMENT_0 = (uint32_t)iHandle;
+	HOST_ARGUMENT_1 = (uint32_t)llOffset;
+	HOST_ARGUMENT_2 = (uint32_t)((unsigned long long)llOffset >> 32);
+	HOST_ARGUMENT_3 = (uint32_t)iOrigin;
 	return (int)Command(HOST_SEEK);
 }
 
 
 long long HostTell(int iHandle)
 {
-	HOST_ARGUMENT_0 = (unsigned int)iHandle;
+	HOST_ARGUMENT_0 = (uint32_t)iHandle;
 	return CommandLong(HOST_TELL);
 }
 
 
 long long HostSize(int iHandle)
 {
-	HOST_ARGUMENT_0 = (unsigned int)iHandle;
+	HOST_ARGUMENT_0 = (uint32_t)iHandle;
 	return CommandLong(HOST_SIZE);
 }
 
 
 int HostTruncate(int iHandle, long long llSize)
 {
-	HOST_ARGUMENT_0 = (unsigned int)iHandle;
-	HOST_ARGUMENT_1 = (unsigned int)llSize;
-	HOST_ARGUMENT_2 = (unsigned int)((unsigned long long)llSize >> 32);
+	HOST_ARGUMENT_0 = (uint32_t)iHandle;
+	HOST_ARGUMENT_1 = (uint32_t)llSize;
+	HOST_ARGUMENT_2 = (uint32_t)((unsigned long long)llSize >> 32);
 	return (int)Command(HOST_TRUNCATE_FILE);
 }
 
 
 int HostFlush(int iHandle)
 {
-	HOST_ARGUMENT_0 = (unsigned int)iHandle;
+	HOST_ARGUMENT_0 = (uint32_t)iHandle;
 	return (int)Command(HOST_FLUSH);
 }
 
@@ -140,8 +140,8 @@ int HostDelete(const char* szPath)
 
 int HostRename(const char* szOld, const char* szNew)
 {
-	HOST_ARGUMENT_0 = (unsigned int)szOld;
-	HOST_ARGUMENT_1 = (unsigned int)szNew;
+	HOST_ARGUMENT_0 = (uint32_t)szOld;
+	HOST_ARGUMENT_1 = (uint32_t)szNew;
 	return (int)Command(HOST_RENAME);
 }
 
@@ -154,7 +154,7 @@ int HostExists(const char* szPath)
 
 long long HostFileSize(const char* szPath)
 {
-	HOST_ARGUMENT_0 = (unsigned int)szPath;
+	HOST_ARGUMENT_0 = (uint32_t)szPath;
 	return CommandLong(HOST_FILE_SIZE);
 }
 
@@ -183,19 +183,19 @@ int HostTouch(const char* szPath)
 }
 
 
-int HostCurrentDirectory(char* szDest, unsigned int uiSize)
+int HostCurrentDirectory(char* szDest, uint32_t uiSize)
 {
-	HOST_ARGUMENT_0 = (unsigned int)szDest;
+	HOST_ARGUMENT_0 = (uint32_t)szDest;
 	HOST_ARGUMENT_1 = uiSize;
 	return (int)Command(HOST_CURRENT_DIR);
 }
 
 
-int HostFindFile(const char* szDirectory, unsigned int uiIndex, char* szName, unsigned int uiSize)
+int HostFindFile(const char* szDirectory, uint32_t uiIndex, char* szName, uint32_t uiSize)
 {
-	HOST_ARGUMENT_0 = (unsigned int)szDirectory;
+	HOST_ARGUMENT_0 = (uint32_t)szDirectory;
 	HOST_ARGUMENT_1 = uiIndex;
-	HOST_ARGUMENT_2 = (unsigned int)szName;
+	HOST_ARGUMENT_2 = (uint32_t)szName;
 	HOST_ARGUMENT_3 = uiSize;
 	return (int)Command(HOST_FIND_FILE_CMD);
 }

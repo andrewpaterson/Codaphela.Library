@@ -8,7 +8,7 @@
 //This means it's length is strlen+1.
 struct SSerialisedName
 {
-	int		miLength;
+	int32	miLength;
 	char	msz[4];
 };
 

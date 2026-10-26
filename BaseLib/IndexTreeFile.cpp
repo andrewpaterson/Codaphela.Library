@@ -381,8 +381,8 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNodeFromBuffer(CIndexTreeNodeFile* p
 
 	pucMemory = (uint8*)pvBuffer;
 	iPos = 0;
-	iPos += sizeof(int);
-	iPos += sizeof(int);
+	iPos += sizeof(uint32);
+	iPos += sizeof(uint32);
 	uiDataSize = *((uint16*)&pucMemory[iPos]);  iPos += sizeof(uint16);
 
 	uiFirstIndex = pucMemory[iPos];  iPos++;
@@ -1913,16 +1913,16 @@ bool CIndexTreeFile::StartIteration(SIndexTreeFileIterator* psIterator, uint8* p
 	size							iDataSize;
 	bool							bResult;
 
-	memset(psIterator->pvKey, 0, MAX_KEY_SIZE);
+	psIterator->Init();
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
-	psIterator->iKeyLength = 0;
-	
-	bResult = StartUnsafeIteration(&sIter, psIterator->pvKey, &psIterator->iKeyLength, MAX_KEY_SIZE, NULL, NULL);
+
+	bResult = StartUnsafeIteration(&sIter, NULL, NULL, 0, NULL, NULL);
 	psIterator->iIndex = sIter.iIndex;
 
 	if (bResult)
 	{
-		CopyData((uint8*)pvKey, psIterator->pvKey, psIterator->iKeyLength, iMaxKeySize);
+		SetIteratorKey(psIterator, sIter.pcNode);
+		CopyData((uint8*)pvKey, psIterator->acKey.GetData(), psIterator->iKeyLength, iMaxKeySize);
 		SafeAssign(piKeySize, psIterator->iKeyLength);
 		if (piDataSize)
 		{
@@ -1934,12 +1934,17 @@ bool CIndexTreeFile::StartIteration(SIndexTreeFileIterator* psIterator, uint8* p
 			GetNodeData(sIter.pcNode, pvData, iMaxDataSize);
 		}
 	}
+	else
+	{
+		psIterator->Kill();
+	}
 	return bResult;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// False at the end, which frees the iterator's key.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeFile::Iterate(SIndexTreeFileIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* piDataSize, size iMaxDataSize)
@@ -1948,20 +1953,26 @@ bool CIndexTreeFile::Iterate(SIndexTreeFileIterator* psIterator, uint8* pvKey, s
 	size							iDataSize;
 	bool							bResult;
 
-	sIter.iIndex = psIterator->iIndex;
-	sIter.pcNode = GetNode(psIterator->pvKey, psIterator->iKeyLength);
-
-	if (!sIter.pcNode)
+	if (!psIterator->IsLive())
 	{
 		return false;
 	}
+	sIter.iIndex = psIterator->iIndex;
+	sIter.pcNode = GetNode(psIterator->acKey.GetData(), psIterator->iKeyLength);
 
-	bResult = UnsafeIterate(&sIter, psIterator->pvKey, &psIterator->iKeyLength, MAX_KEY_SIZE, NULL, NULL);
+	if (!sIter.pcNode)
+	{
+		psIterator->Kill();
+		return false;
+	}
+
+	bResult = UnsafeIterate(&sIter, NULL, NULL, 0, NULL, NULL);
 	psIterator->iIndex = sIter.iIndex;
 
 	if (bResult)
 	{
-		CopyData((char*)pvKey, psIterator->pvKey, psIterator->iKeyLength, iMaxKeySize);
+		SetIteratorKey(psIterator, sIter.pcNode);
+		CopyData((char*)pvKey, psIterator->acKey.GetData(), psIterator->iKeyLength, iMaxKeySize);
 		SafeAssign(piKeySize, psIterator->iKeyLength);
 		if (piDataSize)
 		{
@@ -1973,7 +1984,63 @@ bool CIndexTreeFile::Iterate(SIndexTreeFileIterator* psIterator, uint8* pvKey, s
 			GetNodeData(sIter.pcNode, pvData, iMaxDataSize);
 		}
 	}
+	else
+	{
+		psIterator->Kill();
+	}
+
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The iterator's key becomes pcNode's (the key array grows if it is long).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeFile::SetIteratorKey(SIndexTreeFileIterator* psIterator, CIndexTreeNodeFile* pcNode)
+{
+	psIterator->iKeyLength = GetNodeKeySize(pcNode);
+	psIterator->acKey.Resize(psIterator->iKeyLength);
+	GetNodeKey(pcNode, psIterator->acKey.GetData(), psIterator->iKeyLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// StartIteration does this; an iterator that might be killed before it
+// starts needs it first.
+//
+//////////////////////////////////////////////////////////////////////////
+void SIndexTreeFileIterator::Init(void)
+{
+	acKey.Init();
+	iKeyLength = 0;
+	iIndex = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Frees the key of an iteration that was stopped before its end (an
+// iteration that ends frees it).  It can be called more than once.
+//
+//////////////////////////////////////////////////////////////////////////
+void SIndexTreeFileIterator::Kill(void)
+{
+	acKey.Kill();
+	iKeyLength = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the iteration has not ended (or been killed).
+//
+//////////////////////////////////////////////////////////////////////////
+bool SIndexTreeFileIterator::IsLive(void)
+{
+	return acKey.IsEmbedded() || acKey.IsArray();
 }
 
 
@@ -2161,7 +2228,7 @@ CIndexTreeNodeFile* CIndexTreeFile::StepNext(SIndexTreeFileIterator* psIterator)
 
 	iCount = 0;
 	iIndex = psIterator->iIndex;
-	pcNode = GetNode(psIterator->pvKey, psIterator->iKeyLength);
+	pcNode = GetNode(psIterator->acKey.GetData(), psIterator->iKeyLength);
 
 	if (pcNode)
 	{
@@ -2176,7 +2243,7 @@ CIndexTreeNodeFile* CIndexTreeFile::StepNext(SIndexTreeFileIterator* psIterator)
 
 				if (HasData(pcChildNode))
 				{
-					psIterator->iKeyLength = GetNodeKey(pcChildNode, psIterator->pvKey, MAX_KEY_SIZE);
+					SetIteratorKey(psIterator, pcChildNode);
 					psIterator->iIndex = iIndex;
 					return pcChildNode;
 				}
@@ -3937,7 +4004,7 @@ void CIndexTreeFile::PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars*
 	{
 		for (i = 0; i <= sDebugNode.uiLastIndex - sDebugNode.uiFirstIndex; i++)
 		{
-			iFile = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
+			iFile = *((int32*)&pucMemory[iPos]);  iPos += sizeof(int32);
 			ulliFilePos = *((uint32*)&pucMemory[iPos]);  iPos += sizeof(uint32);
 
 			if (iFile != -1)

@@ -30,6 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "StringHelper.h"
 #include "FileBasic.h"
 #include "ArrayChars.h"
+#include "StackMemory.h"
 #include "DiskFile.h"
 
 
@@ -497,7 +498,8 @@ void CFileUtil::CollapsePath(CChars* szPathName)
 	CArrayChars		szNodes;
 	int				i;
 	CChars*			pszNode;
-	CChars*			apCharDirectories[4096];
+	CChars**		apCharDirectories;
+	CStackMemory<256>	cStack;
 	int				iPos;
 	int				iNumElements;
 	bool			bLeadingSeparator;
@@ -530,6 +532,7 @@ void CFileUtil::CollapsePath(CChars* szPathName)
 	}
 
 	iNumElements = (int)szNodes.NumElements();
+	apCharDirectories = (CChars**)cStack.Init(iNumElements * sizeof(CChars*));  //A pointer for each part of the path.
 	iPos = 0;
 	for (i = 0; i < iNumElements; i++)
 	{
@@ -585,6 +588,7 @@ void CFileUtil::CollapsePath(CChars* szPathName)
 	szPathName->Set(szTemp.Text());
 	szTemp.Kill();
 
+	cStack.Kill();
 	szNodes.Kill();
 }
 

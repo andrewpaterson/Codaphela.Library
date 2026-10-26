@@ -58,7 +58,7 @@ struct SCPP65Type
 	CArrayTemplatePtr<SCPP65Type>*	papsParameters;		//A function type's parameters.
 	bool			bVariadic;
 	bool			bLongDouble;	//long double: a double, but a type of its own.
-	CCPPSymbol*		pcEnum;			//An enum: an int, but a type of its own.
+	CCPPSymbol*		pcEnum;			//An enum: an integer (int unless its values need more), but a type of its own.
 
 	bool	IsInteger(void);
 	bool	IsScalar(void);
@@ -114,7 +114,8 @@ public:
 	SCPP65Type*			Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65Type>* papsParameters, bool bVariadic);
 	SCPP65Type*			Reference(SCPP65Type* psBase);
 	SCPP65Type*			MemberPointer(SCPP65Class* psClass, SCPP65Type* psMember);
-	SCPP65Type*			Enum(CCPPSymbol* pcEnum);
+	SCPP65Type*			Enum(CCPPSymbol* pcEnum, int iBytes, bool bSigned);
+	SCPP65Type*			FindEnum(CCPPSymbol* pcEnum);
 	SCPP65Type*			Float(int iBytes);
 	SCPP65Type*			LongDouble(void);
 	SCPP65Type*			Class(SCPP65Class* psClass);

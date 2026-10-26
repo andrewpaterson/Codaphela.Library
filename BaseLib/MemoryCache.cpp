@@ -36,8 +36,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CMemoryCache::Init(size uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize)
 {
+	//A cache that can't be allocated has no memory (rather than clearing memory from address 0).
 	mpvCache = malloc(uiCacheSize + sizeof(SCircularMemoryList));
-	mcMemoryList.Init(mpvCache, uiCacheSize + sizeof(SCircularMemoryList), iDescriptorSize);
+	mcMemoryList.Init(mpvCache, mpvCache ? uiCacheSize + sizeof(SCircularMemoryList) : 0, iDescriptorSize);
 	mpcEvictionCallback = pcEvictionCallback;
 }
 

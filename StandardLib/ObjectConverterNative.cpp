@@ -60,7 +60,7 @@ CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, const
 	CObjectSourceSimple*	pcSourceSimple;
 	bool					bResult;
 	CFileBasic				cFile;
-	int						c;
+	int32					c;
 
 	if ((!pcFile) || (!szFilename))
 	{

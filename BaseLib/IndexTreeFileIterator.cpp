@@ -9,6 +9,7 @@ void CIndexTreeFileIterator::Init(CIndexTreeFile* pcIndexTree)
 {
 	CIndexTreeIterator::Init(INDEX_TREE_FILE_ITERATOR_TYPE);
 	mpcTree = pcIndexTree;
+	sIter.Init();
 }
 
 
@@ -18,6 +19,7 @@ void CIndexTreeFileIterator::Init(CIndexTreeFile* pcIndexTree)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeFileIterator::Kill(void)
 {
+	sIter.Kill();
 	CIndexTreeIterator::Kill();
 	mpcTree = NULL;
 }
@@ -33,15 +35,19 @@ bool CIndexTreeFileIterator::Iterate(void)
 
 	if (mbStarted)
 	{
-		bHasData = mpcTree->Iterate(&sIter, macKey, &miKeySize, MAX_KEY_SIZE, &macData, &miDataSize, MAX_DATA_SIZE);
+		bHasData = mpcTree->Iterate(&sIter, NULL, &miKeySize, 0, &macData, &miDataSize, MAX_DATA_SIZE);
 	}
 	else
 	{
-		bHasData = mpcTree->StartIteration(&sIter, macKey, &miKeySize, MAX_KEY_SIZE, &macData, &miDataSize, MAX_DATA_SIZE);
+		bHasData = mpcTree->StartIteration(&sIter, NULL, &miKeySize, 0, &macData, &miDataSize, MAX_DATA_SIZE);
 		mbStarted = true;
 	}
 
-	if (!bHasData)
+	if (bHasData)
+	{
+		SetKey(sIter.acKey.GetData(), sIter.iKeyLength);
+	}
+	else
 	{
 		Clear();
 	}

@@ -504,7 +504,7 @@ void CArrayTemplateMinimal<M>::Swap(size iIndex1, size iIndex2)
 template<class M>
 void CArrayTemplateMinimal<M>::QuickSort(DataCompare fCompare)
 {
-	::QuickSort(fCompare, mpvArray, sizeof(M), (int)miUsedElements);
+	::QuickSort(fCompare, mpvArray, sizeof(M), miUsedElements);
 }
 
 

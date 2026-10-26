@@ -52,6 +52,13 @@ public:
 	Ptr<CString>	Append(int32 i) { msz.Append(i); D(); return this; }
 	Ptr<CString>	Append(int32 i, uint16 iBase) { msz.Append(i, iBase); D(); return this; }
 	Ptr<CString>	Append(uint32 ui) { msz.Append(ui); D(); return this; }
+#ifdef __W65C816__
+	//An int is 16 bits on the W65C816: ints match these exactly (the 32 bit ones would all need a conversion, so none
+	//would be chosen).
+	Ptr<CString>	Append(int16 i) { msz.Append(i); D(); return this; }
+	Ptr<CString>	Append(int16 i, uint16 iBase) { msz.Append(i, iBase); D(); return this; }
+	Ptr<CString>	Append(uint16 ui) { msz.Append(ui); D(); return this; }
+#endif // __W65C816__
 	Ptr<CString>	Append(float f) { msz.Append(f); D(); return this; }
 	Ptr<CString>	Append(float f, int iNumDecimals) { msz.Append(f, iNumDecimals); D(); return this; }
 	Ptr<CString>	Append(double d) { msz.Append(d); D(); return this; }

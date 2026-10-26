@@ -27,6 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "IntegerHelper.h"
 #include "FloatHelper.h"
 #include "NumberControl.h"
+#include "StackMemory.h"
 
 
 #define ZERO '0'
@@ -262,7 +263,8 @@ CNumber* CNumber::BinaryOne(int16 iBinaryExponent, int16 cMaxWholeNumbers, int16
 //////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals, size iLen)
 {
-	char	cDigits[MAX_INT16];
+	CStackMemory<64>	cStack;
+	char*	cDigits;
 	int16	iSign;
 	int16	iDecimalPoint;
 	size	i;
@@ -281,6 +283,7 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 	{
 		return NotANumber();
 	}
+	cDigits = (char*)cStack.Init(iLen + 1);  //Each digit, and a 0 before a leading point.  Usually on the stack.
 
 	iPos = 0;
 	bAnyDigits = false;
@@ -304,6 +307,7 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 		{
 			if (iDecimalPoint != 0)
 			{
+				cStack.Kill();
 				SetFlag(NUMBER_FLAGS_NAN);
 				return this;
 			}
@@ -323,6 +327,7 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 			}
 			else
 			{
+				cStack.Kill();
 				SetFlag(NUMBER_FLAGS_NAN);
 				return this;
 			}
@@ -331,12 +336,14 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 
 	if (!bAnyDigits)
 	{
+		cStack.Kill();
 		return NotANumber();
 	}
 
 	if (iNonZero == -1)
 	{
-		Zero();
+		cStack.Kill();
+		Zero(mcMaxWholeNumbers, mcMaxDecimals);
 		return this;
 	}
 
@@ -347,6 +354,7 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 
 	if (iDecimalPoint - iNonZero > mcMaxWholeNumbers)
 	{
+		cStack.Kill();
 		return Overflow(iSign);
 	}
 
@@ -357,6 +365,7 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 	}
 
 	memcpy_fast(&mcDigits[mcMaxWholeNumbers-iDecimalPoint], cDigits, iPos);
+	cStack.Kill();
 	SetFirstNonZerotDigit(iDecimalPoint);
 	SetLastNonZeroDigit(-(iPos-iDecimalPoint));
 	SetSign(iSign);
@@ -2930,7 +2939,7 @@ CNumber* CNumber::LogicalNot(void)
 	}
 	else
 	{
-		Zero();
+		Zero(mcMaxWholeNumbers, mcMaxDecimals);
 	}
 	gcNumberControl.Remove();
 	return this;
@@ -2952,7 +2961,7 @@ CNumber* CNumber::LogicalOr(CNumber* pcRight)
 	bRightZero = pcRight->Equals(pcZero);
 	if (bLeftZero && bRightZero)
 	{
-		Zero();
+		Zero(mcMaxWholeNumbers, mcMaxDecimals);
 	}
 	else
 	{
@@ -2978,7 +2987,7 @@ CNumber* CNumber::LogicalAnd(CNumber* pcRight)
 	bRightZero = pcRight->Equals(pcZero);
 	if (bLeftZero || bRightZero)
 	{
-		Zero();
+		Zero(mcMaxWholeNumbers, mcMaxDecimals);
 	}
 	else
 	{

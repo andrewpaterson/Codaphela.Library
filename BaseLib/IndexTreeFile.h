@@ -24,9 +24,13 @@ struct SIndexTreeFileUnsafeIterator
 
 struct SIndexTreeFileIterator
 {
-	uint8	pvKey[MAX_KEY_SIZE];
+	CArrayTemplateEmbedded<uint8, INDEX_TREE_ITERATOR_KEY_SIZE>	acKey;
 	size	iKeyLength;
 	size	iIndex;
+
+	void	Init(void);
+	void	Kill(void);
+	bool	IsLive(void);
 };
 
 
@@ -195,6 +199,7 @@ protected:
 	bool					RecurseValidateKeys(CIndexTreeRecursor* pcCursor, bool bReadNodes);
 
 	CIndexTreeNodeFile*		StepNext(SIndexTreeFileIterator* psIterator);
+	void					SetIteratorKey(SIndexTreeFileIterator* psIterator, CIndexTreeNodeFile* pcNode);
 	bool					StepNext(SIndexTreeFileUnsafeIterator* psIterator);
 
 	bool					FlushDeleted(void);

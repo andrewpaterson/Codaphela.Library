@@ -93,6 +93,7 @@ protected:
 	CAsm65Library					mcLinkWithObjects;
 	CAsm65Linker					mcLinker;
 	CChars							mszErrors;
+	CChars							mszWarnings;		//The generator's warnings for every unit compiled; they don't fail a build.
 
 public:
 	void			Init(void);
@@ -116,6 +117,7 @@ public:
 
 	CAsm65Output*	GetOutput(void);
 	char*			GetErrors(void);
+	char*			GetWarnings(void);
 	char*			GetMap(void);
 	size			NumMissing(void);
 	char*			GetMissing(size uiIndex);
@@ -124,7 +126,7 @@ public:
 	bool			GetSymbol(const char* szName, int64* piValue);
 	CArrayUint8*	GetLazyImage(void);
 
-	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64);
+	static bool		Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL);
 	CArrayCPP65IncludeDirectories*	GetIncludeDirectories(void);
 
 protected:

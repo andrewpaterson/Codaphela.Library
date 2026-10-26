@@ -9,7 +9,7 @@ bool CSerialisedObject::IsNamed(void)
 {
 	bool bNamed;
 
-	bNamed = *((int*)&mszType) == OBJECT_POINTER_NAMED;
+	bNamed = *((int32*)&mszType) == OBJECT_POINTER_NAMED;
 	if (!bNamed)
 	{
 		return false;
@@ -33,13 +33,13 @@ bool CSerialisedObject::IsIndexed(void)
 	bool bIndexed;
 	bool bNamed;
 
-	bIndexed = *((int*)&mszType) == OBJECT_POINTER_ID;
+	bIndexed = *((int32*)&mszType) == OBJECT_POINTER_ID;
 	if (bIndexed)
 	{
 		return true;
 	}
 
-	bNamed = *((int*)&mszType) == OBJECT_POINTER_NAMED;
+	bNamed = *((int32*)&mszType) == OBJECT_POINTER_NAMED;
 	if (bNamed && msName.miLength == 1)
 	{
 		return true;
@@ -55,7 +55,7 @@ bool CSerialisedObject::IsIndexed(void)
 //////////////////////////////////////////////////////////////////////////
 bool CSerialisedObject::IsVoid(void)
 {
-	return *((int*)&mszType) == OBJECT_POINTER_NULL;
+	return *((int32*)&mszType) == OBJECT_POINTER_NULL;
 }
 
 

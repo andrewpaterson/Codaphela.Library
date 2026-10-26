@@ -989,6 +989,7 @@ bool CNamedIndexedData::ValidateOidToNameToOid(void)
 		if (!bResult)
 		{
 			cStackMemory.Kill();
+			sIter.Kill();
 			return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Iterated index [0x", LongToString(oi, 16), "] but it doesn not exist.", NULL);
 		}
 		if (uiDataSize > uiMaxDataSize)
@@ -1008,6 +1009,7 @@ bool CNamedIndexedData::ValidateOidToNameToOid(void)
 			if (oi != oiFromData)
 			{
 				cStackMemory.Kill();
+				sIter.Kill();
 				return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Index [0x", LongToString(oi, 16), "] maps to name [", szName, "] but the name maps to index [0x", LongToString(oiFromData, 16), "].", NULL);
 			}
 		}
@@ -1048,6 +1050,7 @@ bool CNamedIndexedData::ValidateNameToOidToName(void)
 		if (!bResult)
 		{
 			cStackMemory.Kill();
+			sIter.Kill();
 			return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Iterated oid [0x", LongToString(oi, 16), "] but it doesn not exist.", NULL);
 		}
 		if (uiDataSize > uiMaxDataSize)
@@ -1065,6 +1068,7 @@ bool CNamedIndexedData::ValidateNameToOidToName(void)
 		if (iResult != 0)
 		{
 			cStackMemory.Kill();
+			sIter.Kill();
 			return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Name [", szName, "] maps to index [0x", LongToString(oi, 16), "] but the index maps to name [", szNameFromData, "].", NULL);
 		}
 

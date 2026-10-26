@@ -27,6 +27,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Number.h"
 
 
+#ifdef __W65C816__
+#define NUMBER_CONTROL_SCRATCH_PAD_SIZE	(32 KB)		//Its scratch pad's chunks; the W65C816 has 16MB in all.
+#else
+#define NUMBER_CONTROL_SCRATCH_PAD_SIZE	(1 MB)
+#endif // __W65C816__
+
+
 class CNumberControl
 {
 protected:
@@ -37,7 +44,7 @@ protected:
 	UNumber(1, 255)			mc_e_lots;
 
 public:
-	void 		Init(int iScratchPadSize);
+	void 		Init(size uiScratchPadSize);
 	void 		Kill(void);
 	void 		Pi(CNumber* pcDest, bool bPositive = true);
 	void 		Pi(CNumber* pcDest, int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive = true);
@@ -55,7 +62,7 @@ public:
 extern CNumberControl gcNumberControl;
 extern bool gbNumberControl;
 
-void NumberInit(int iScratchPadSize = 1 MB);
+void NumberInit(size uiScratchPadSize = NUMBER_CONTROL_SCRATCH_PAD_SIZE);
 void NumberKill(void);
 bool IsNumberControlInitialised(void);
 bool FailNumberControlInitialised(char* szMethod);

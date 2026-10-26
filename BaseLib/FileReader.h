@@ -47,6 +47,11 @@ public:
 						bool	ReadInt16(uint16* pi);
 						bool	ReadInt32(int32* pi);
 						bool	ReadInt32(uint32* pi);
+#ifdef __W65C816__
+						//An int is 16 bits on the W65C816: the 32 bit value is read into an int.
+						bool	ReadInt32(int16* pi);
+						bool	ReadInt32(uint16* pi);
+#endif // __W65C816__
 						bool	ReadInt64(int64* plli);
 						bool	ReadInt64(uint64* plli);
 						bool	ReadSInt(int* pi);

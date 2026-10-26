@@ -192,6 +192,8 @@ bool CReadTransaction::Contains(CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 OIndex CReadTransaction::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
 {
+	//The transaction iterates its own snapshot; the iterator is only made safe to Kill.
+	psIterator->Init();
 	mpcCodabase->SnapshotIndices(miSnapshot, mcIteration.StartIndices());
 	mcIteration.SortIndices();
 	return IndexIterate(psIterator, pvData, piDataSize, iMaxDataSize);
@@ -225,6 +227,8 @@ OIndex CReadTransaction::IndexIterate(SIndexTreeFileIterator* psIterator, void* 
 //////////////////////////////////////////////////////////////////////////
 bool CReadTransaction::StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
 {
+	//The transaction iterates its own snapshot; the iterator is only made safe to Kill.
+	psIterator->Init();
 	mpcCodabase->SnapshotNames(miSnapshot, mcIteration.StartNames());
 	mcIteration.SortNames();
 	return NameIterate(psIterator, szKey, poi);

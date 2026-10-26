@@ -1394,10 +1394,10 @@ bool CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 	size			i;
 	size			uiNumElements;
 	CBaseObject*	pcHeapFrom;
-	int				iDistToRoot;
+	int32			iDistToRoot;
 
 	iDistToRoot = GetDistToRoot();
-	bResult = pcFile->WriteSInt(iDistToRoot);
+	bResult = pcFile->WriteInt32(iDistToRoot);
 	ReturnOnFalse(bResult);
 
 	bResult = SaveEmbeddedObjectsHeapFroms(pcFile);
@@ -1413,7 +1413,7 @@ bool CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 		pcHeapFrom = CEmbeddedObject::GetHeapFrom(i);
 		bResult = pcFile->WriteDependent(pcHeapFrom, false);
 		iDistToRoot = pcHeapFrom->GetDistToRoot();
-		bResult &= pcFile->WriteSInt(iDistToRoot);
+		bResult &= pcFile->WriteInt32(iDistToRoot);
 		ReturnOnFalse(bResult);
 	}
 	
@@ -1761,9 +1761,9 @@ bool CBaseObject::LoadUnmanaged(CObjectReader* pcFile)
 bool CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
 {
 	bool				bResult;
-	int					iDistToRoot;
+	int32				iDistToRoot;
 	
-	bResult = pcFile->ReadSInt(&iDistToRoot);
+	bResult = pcFile->ReadInt32(&iDistToRoot);
 	ReturnOnFalse(bResult);
 
 	miDistToRoot = iDistToRoot;

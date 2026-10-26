@@ -1321,11 +1321,11 @@ int CompareShortReverse(const void* arg1, const void* arg2)
 //////////////////////////////////////////////////////////////////////////
 int CompareInt(const void* arg1, const void* arg2)
 {
-	if ((*((int32*)arg1)) < (*((int32*)arg2)))
+	if ((*((int*)arg1)) < (*((int*)arg2)))
 	{
 		return -1;
 	}
-	if ((*((int32*)arg1)) > (*((int32*)arg2)))
+	if ((*((int*)arg1)) > (*((int*)arg2)))
 	{
 		return 1;
 	}
@@ -1339,11 +1339,11 @@ int CompareInt(const void* arg1, const void* arg2)
 //////////////////////////////////////////////////////////////////////////
 int CompareIntReverse(const void* arg1, const void* arg2)
 {
-	if ((*((int32*)arg1)) < (*((int32*)arg2)))
+	if ((*((int*)arg1)) < (*((int*)arg2)))
 	{
 		return 1;
 	}
-	if ((*((int32*)arg1)) > (*((int32*)arg2)))
+	if ((*((int*)arg1)) > (*((int*)arg2)))
 	{
 		return -1;
 	}
@@ -1625,13 +1625,14 @@ uint8 CalculateOffset(int16 iOffset, uint16 iAlignment)
 		return 0;
 	}
 
+	//Signed (where an int is 16 bits a uint16 would make the remainder unsigned).
 	if (iOffset < 0)
 	{
-		return (iAlignment + (iOffset % iAlignment)) % iAlignment;
+		return (uint8)(((int32)iAlignment + ((int32)iOffset % (int32)iAlignment)) % (int32)iAlignment);
 	}
 	else
 	{
-		return iOffset % iAlignment;
+		return (uint8)((int32)iOffset % (int32)iAlignment);
 	}
 }
 

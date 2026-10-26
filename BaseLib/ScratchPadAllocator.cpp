@@ -17,9 +17,9 @@ void CScratchPadAllocator::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CScratchPadAllocator::Init(int iChunkSize)
+void CScratchPadAllocator::Init(size uiChunkSize)
 {
-	mcScratchPad.Init(iChunkSize);
+	mcScratchPad.Init(uiChunkSize);
 }
 
 
@@ -184,8 +184,8 @@ CLifeInit<CMallocator> CScratchPadAllocator::Create(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLifeInit<CMallocator> CScratchPadAllocator::Create(int iChunkSize)
+CLifeInit<CMallocator> CScratchPadAllocator::Create(size uiChunkSize)
 {
-	return LifeAlloc<CScratchPadAllocator, CMallocator>(iChunkSize);
+	return LifeAlloc<CScratchPadAllocator, CMallocator>(uiChunkSize);
 }
 

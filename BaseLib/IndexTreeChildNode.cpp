@@ -52,7 +52,7 @@ void CIndexTreeChildNode::Init(CIndexTreeNodeFile* pcMemory)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeChildNode::Clear(void)
 {
-	memset(this, INDEX_TREE_FILE_NODE_UNALLOCATED, sizeof(CIndexTreeChildNode));
+	memset(this, 0xFF, sizeof(CIndexTreeChildNode));  //INDEX_TREE_FILE_NODE_UNALLOCATED in every byte.
 }
 
 

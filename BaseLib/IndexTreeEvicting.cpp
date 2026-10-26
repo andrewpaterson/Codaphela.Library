@@ -640,7 +640,7 @@ bool CIndexTreeEvicting::StartIteration(SIndexTreeFileIterator* psIterator, uint
 	bResult = mcIndexTree.StartIteration(psIterator, pvKey, piKeySize, iMaxKeySize, pvData, piDataSize, iMaxDataSize);
 	if (bResult)
 	{
-		PotentiallyEvict(psIterator->pvKey, psIterator->iKeyLength);
+		PotentiallyEvict(psIterator->acKey.GetData(), psIterator->iKeyLength);
 	}
 	else
 	{
@@ -662,7 +662,7 @@ bool CIndexTreeEvicting::Iterate(SIndexTreeFileIterator* psIterator, uint8* pvKe
 	bResult = mcIndexTree.Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, pvData, piDataSize, iMaxDataSize);
 	if (bResult)
 	{
-		PotentiallyEvict(psIterator->pvKey, psIterator->iKeyLength);
+		PotentiallyEvict(psIterator->acKey.GetData(), psIterator->iKeyLength);
 	}
 	else
 	{

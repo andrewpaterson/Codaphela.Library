@@ -190,7 +190,7 @@ uint32 CUnicodeReader::MakeCodePointUint32FromBuffer(uint8* puiCodePointBuffer, 
 	uiCodePoint = 0;
 	while (ui != uiBufferLength)
 	{
-		uiCodePoint |= puiCodePointBuffer[ui] << uiShift;
+		uiCodePoint |= (uint32)puiCodePointBuffer[ui] << uiShift;
 		ui++;
 		uiShift += 8;
 	}
@@ -209,7 +209,7 @@ uint16 CUnicodeReader::MakeCodePointUint16FromBuffer(uint8* puiCodePointBuffer, 
 	uiCodePoint = puiCodePointBuffer[0];
 	if (uiBufferLength == 2)
 	{
-		uiCodePoint |= puiCodePointBuffer[1] << 8;
+		uiCodePoint |= (uint32)puiCodePointBuffer[1] << 8;
 	}
 	return uiCodePoint;
 }

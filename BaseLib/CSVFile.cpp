@@ -104,35 +104,46 @@ bool CCSVFile::ReadLine(CChars* szString)
 ////////////////////////////////////////////////////////////////////////
 bool CCSVFile::ReadLine(char* szBuffer, size iMaxLength)
 {
-	size		iLength;
+	char	sChunk[CSV_FILE_LINE_BUFFER_LENGTH+1];
+	size	iLength;
+	size	iCopy;
+	size	iPosition;
 	bool	bDoneAnything;
-	size		iPosition;
 
+	//A line longer than iMaxLength - 1 is cut short (the rest of it is still read past).
+	if (iMaxLength == 0)
+	{
+		return false;
+	}
 	bDoneAnything = false;
 	iPosition = 0;
 	for (;;)
 	{
-		iLength = ReadLine(&szBuffer[iPosition]);
-		iPosition += iLength;
-		if ((iLength > 0) && (iLength < CSV_FILE_LINE_BUFFER_LENGTH))
-		{
-			szBuffer[iPosition] = 0;
-			return true;
-		}
+		iLength = ReadLine(sChunk);
 		if (iLength == 0)
 		{
-			if (bDoneAnything)
-			{
-				szBuffer[iPosition] = 0;
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+			break;
 		}
+		iCopy = iLength;
+		if (iPosition + iCopy > iMaxLength - 1)
+		{
+			iCopy = iMaxLength - 1 - iPosition;
+		}
+		memcpy(&szBuffer[iPosition], sChunk, iCopy);
+		iPosition += iCopy;
 		bDoneAnything = true;
+		if (iLength < CSV_FILE_LINE_BUFFER_LENGTH)
+		{
+			break;
+		}
 	}
+
+	if (!bDoneAnything)
+	{
+		return false;
+	}
+	szBuffer[iPosition] = 0;
+	return true;
 }
 
 

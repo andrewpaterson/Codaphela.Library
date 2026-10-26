@@ -403,7 +403,7 @@ char* NumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDecimals, 
 //////////////////////////////////////////////////////////////////////////
 char* FloatToString(char* szDest, size iDestLength, float f, int iMaxDecimals, bool bAppendType)
 {
-	return NumberToString<float, int>(szDest, iDestLength, f, iMaxDecimals, bAppendType, "f", 0x80000000, 0x7fffff, 0x800000, 0x7f800000, 23, 255, 127, 9);
+	return NumberToString<float, int32>(szDest, iDestLength, f, iMaxDecimals, bAppendType, "f", 0x80000000, 0x7fffff, 0x800000, 0x7f800000, 23, 255, 127, 9);
 }
 
 

@@ -4730,14 +4730,17 @@ void CCPP65Generator::AppendVirtualCallThunk(CChars* psz, SCPP65Function* psFunc
 	szLabel.Append(psFunction->psClass->iVtableOffset);
 	szLabel.Append('_');
 	szLabel.Append(psFunction->iSlot);
-	if (Emit(&szLabel) && (mpsTarget->eTarget == CPPT_W65C816))
+	if (mpsTarget->eTarget == CPPT_W65C816)
 	{
-		AppendSection(&mszThunks, "text", &szLabel, ", comdat");
-		AppendGlobal(&mszThunks, &szLabel);
-		mszThunks.Append(szLabel);
-		mszThunks.Append(':');
-		mszThunks.AppendNewLine();
-		AppendVirtualCallThunk816(psFunction);
+		if (Emit(&szLabel))
+		{
+			AppendSection(&mszThunks, "text", &szLabel, ", comdat");
+			AppendGlobal(&mszThunks, &szLabel);
+			mszThunks.Append(szLabel);
+			mszThunks.Append(':');
+			mszThunks.AppendNewLine();
+			AppendVirtualCallThunk816(psFunction);
+		}
 	}
 	else if (Emit(&szLabel))
 	{
@@ -4879,9 +4882,7 @@ SCPP65Type* CCPP65Generator::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSy
 	SCPP65Function*				psFunction;
 	SCPP65Template*				psTemplate;
 	SCPP65Type*					psType;
-	SCPP65Place					sObject;
 	int64						lliName;
-	int							iBytes;
 	int							iOffset;
 	size						uiErrors;
 	bool						bVirtual;
@@ -4936,6 +4937,25 @@ SCPP65Type* CCPP65Generator::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSy
 			psClass = mpsFunction->psClass;
 		}
 		bThis = true;
+	}
+
+	//p->~X(), o.~X(), p->X::~X() (not virtual) or ~X() (this's): nothing if the class has no destructor.
+	if (pcName->GetLast()->meKind == CPPNC_Destructor)
+	{
+		if (!psClass || (pcCall->macpArguments.NumElements() != 0) || !CompleteClass(psClass, pcCallee))
+		{
+			Error(pcCallee, "This destructor call is not supported by the 65C64 generator yet");
+			return NULL;
+		}
+		if (!psClass->psDestructor)
+		{
+			return &mcTypes.msVoid;
+		}
+		if (pcName->macpComponents.NumElements() == 2)
+		{
+			bVirtual = false;
+		}
+		return CallMemberFunction(pcCall, pcCallee, pcObject, psClass, psClass->psDestructor, bVirtual);
 	}
 
 	lliName = GetFunctionName(pcName->GetLast());
@@ -5001,6 +5021,22 @@ SCPP65Type* CCPP65Generator::MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSy
 		Error(pcCallee, "A member function needs an object");
 		return NULL;
 	}
+
+	return CallMemberFunction(pcCall, pcCallee, pcObject, psClass, psFunction, bVirtual);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The end of MemberCall: psFunction (found in psClass, the object's class)
+// is called on pcObject (this's when NULL) with pcCall's arguments.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65Generator::CallMemberFunction(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* pcCallee, CCPPSyntax* pcObject, SCPP65Class* psClass, SCPP65Function* psFunction, bool bVirtual)
+{
+	SCPP65Place		sObject;
+	int				iBytes;
+	int				iOffset;
 
 	//The arguments are pushed before the object's address is worked out, as that is
 	//left in A.

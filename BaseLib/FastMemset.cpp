@@ -138,16 +138,16 @@ void memset_fast_3bytes(void* pvDest, uint8 cVal)
 void memset_fast_4bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
 }
 
 
 void memset_fast_5bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
 	((char*)pvDest)[4] = cVal;
 }
 
@@ -155,8 +155,8 @@ void memset_fast_5bytes(void* pvDest, uint8 cVal)
 void memset_fast_6bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
 	((char*)pvDest)[4] = cVal;
 	((char*)pvDest)[5] = cVal;
 }
@@ -165,8 +165,8 @@ void memset_fast_6bytes(void* pvDest, uint8 cVal)
 void memset_fast_7bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
 	((char*)pvDest)[4] = cVal;
 	((char*)pvDest)[5] = cVal;
 	((char*)pvDest)[6] = cVal;
@@ -177,9 +177,9 @@ void memset_fast_7bytes(void* pvDest, uint8 cVal)
 void memset_fast_8bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
 }
 
 
@@ -187,9 +187,9 @@ void memset_fast_9bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
 
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
 	((char*)pvDest)[8] = cVal;
 }
 
@@ -197,9 +197,9 @@ void memset_fast_9bytes(void* pvDest, uint8 cVal)
 void memset_fast_10bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
 	((char*)pvDest)[8] = cVal;
 	((char*)pvDest)[9] = cVal;
 }
@@ -208,9 +208,9 @@ void memset_fast_10bytes(void* pvDest, uint8 cVal)
 void memset_fast_11bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
 	((char*)pvDest)[8] = cVal;
 	((char*)pvDest)[9] = cVal;
 	((char*)pvDest)[10] = cVal;
@@ -220,20 +220,20 @@ void memset_fast_11bytes(void* pvDest, uint8 cVal)
 void memset_fast_12bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
 }
 
 
 void memset_fast_13bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
 	((char*)pvDest)[12] = cVal;
 }
 
@@ -241,10 +241,10 @@ void memset_fast_13bytes(void* pvDest, uint8 cVal)
 void memset_fast_14bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
 	((char*)pvDest)[12] = cVal;
 	((char*)pvDest)[13] = cVal;
 }
@@ -253,10 +253,10 @@ void memset_fast_14bytes(void* pvDest, uint8 cVal)
 void memset_fast_15bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
 	((char*)pvDest)[12] = cVal;
 	((char*)pvDest)[13] = cVal;
 	((char*)pvDest)[14] = cVal;
@@ -266,11 +266,11 @@ void memset_fast_15bytes(void* pvDest, uint8 cVal)
 void memset_fast_16bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
 }
 
 
@@ -290,11 +290,11 @@ void memset_fast(void* pvDest, uint8 cVal, size iByteSize)
 void memset_fast_17bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
 	((char*)pvDest)[16] = cVal;
 }
 
@@ -302,11 +302,11 @@ void memset_fast_17bytes(void* pvDest, uint8 cVal)
 void memset_fast_18bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
 	((char*)pvDest)[16] = cVal;
 	((char*)pvDest)[17] = cVal;
 }
@@ -315,11 +315,11 @@ void memset_fast_18bytes(void* pvDest, uint8 cVal)
 void memset_fast_19bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
 	((char*)pvDest)[16] = cVal;
 	((char*)pvDest)[17] = cVal;
 	((char*)pvDest)[18] = cVal;
@@ -329,24 +329,24 @@ void memset_fast_19bytes(void* pvDest, uint8 cVal)
 void memset_fast_20bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
 }
 
 
 void memset_fast_21bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
 	((char*)pvDest)[20] = cVal;
 }
 
@@ -354,12 +354,12 @@ void memset_fast_21bytes(void* pvDest, uint8 cVal)
 void memset_fast_22bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
 	((char*)pvDest)[20] = cVal;
 	((char*)pvDest)[21] = cVal;
 }
@@ -368,12 +368,12 @@ void memset_fast_22bytes(void* pvDest, uint8 cVal)
 void memset_fast_23bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
 	((char*)pvDest)[20] = cVal;
 	((char*)pvDest)[21] = cVal;
 	((char*)pvDest)[22] = cVal;
@@ -383,26 +383,26 @@ void memset_fast_23bytes(void* pvDest, uint8 cVal)
 void memset_fast_24bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
 }
 
 
 void memset_fast_25bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
 	((char*)pvDest)[24] = cVal;
 }
 
@@ -410,13 +410,13 @@ void memset_fast_25bytes(void* pvDest, uint8 cVal)
 void memset_fast_26bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
 	((char*)pvDest)[24] = cVal;
 	((char*)pvDest)[25] = cVal;
 }
@@ -425,13 +425,13 @@ void memset_fast_26bytes(void* pvDest, uint8 cVal)
 void memset_fast_27bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
 	((char*)pvDest)[24] = cVal;
 	((char*)pvDest)[25] = cVal;
 	((char*)pvDest)[26] = cVal;
@@ -441,28 +441,28 @@ void memset_fast_27bytes(void* pvDest, uint8 cVal)
 void memset_fast_28bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
 }
 
 
 void memset_fast_29bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
 	((char*)pvDest)[28] = cVal;
 }
 
@@ -470,14 +470,14 @@ void memset_fast_29bytes(void* pvDest, uint8 cVal)
 void memset_fast_30bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
 	((char*)pvDest)[28] = cVal;
 	((char*)pvDest)[29] = cVal;
 }
@@ -486,14 +486,14 @@ void memset_fast_30bytes(void* pvDest, uint8 cVal)
 void memset_fast_31bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
 	((char*)pvDest)[28] = cVal;
 	((char*)pvDest)[29] = cVal;
 	((char*)pvDest)[30] = cVal;
@@ -503,30 +503,30 @@ void memset_fast_31bytes(void* pvDest, uint8 cVal)
 void memset_fast_32bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
 }
 
 
 void memset_fast_33bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
 	((char*)pvDest)[32] = cVal;
 }
 
@@ -534,15 +534,15 @@ void memset_fast_33bytes(void* pvDest, uint8 cVal)
 void memset_fast_34bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
 	((char*)pvDest)[32] = cVal;
 	((char*)pvDest)[33] = cVal;
 }
@@ -551,15 +551,15 @@ void memset_fast_34bytes(void* pvDest, uint8 cVal)
 void memset_fast_35bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
 	((char*)pvDest)[32] = cVal;
 	((char*)pvDest)[33] = cVal;
 	((char*)pvDest)[34] = cVal;
@@ -569,32 +569,32 @@ void memset_fast_35bytes(void* pvDest, uint8 cVal)
 void memset_fast_36bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
 }
 
 
 void memset_fast_37bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
 	((char*)pvDest)[36] = cVal;
 }
 
@@ -602,16 +602,16 @@ void memset_fast_37bytes(void* pvDest, uint8 cVal)
 void memset_fast_38bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
 	((char*)pvDest)[36] = cVal;
 	((char*)pvDest)[37] = cVal;
 }
@@ -621,16 +621,16 @@ void memset_fast_38bytes(void* pvDest, uint8 cVal)
 void memset_fast_39bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
 	((char*)pvDest)[36] = cVal;
 	((char*)pvDest)[37] = cVal;
 	((char*)pvDest)[38] = cVal;}
@@ -639,34 +639,34 @@ void memset_fast_39bytes(void* pvDest, uint8 cVal)
 void memset_fast_40bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
 }
 
 
 void memset_fast_41bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
 	((char*)pvDest)[40] = cVal;
 }
 
@@ -674,17 +674,17 @@ void memset_fast_41bytes(void* pvDest, uint8 cVal)
 void memset_fast_42bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
 	((char*)pvDest)[40] = cVal;
 	((char*)pvDest)[41] = cVal;
 }
@@ -693,17 +693,17 @@ void memset_fast_42bytes(void* pvDest, uint8 cVal)
 void memset_fast_43bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
 	((char*)pvDest)[40] = cVal;
 	((char*)pvDest)[41] = cVal;
 	((char*)pvDest)[42] = cVal;
@@ -713,36 +713,36 @@ void memset_fast_43bytes(void* pvDest, uint8 cVal)
 void memset_fast_44bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
 }
 
 
 void memset_fast_45bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
 	((char*)pvDest)[44] = cVal;
 }
 
@@ -750,18 +750,18 @@ void memset_fast_45bytes(void* pvDest, uint8 cVal)
 void memset_fast_46bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
 	((char*)pvDest)[44] = cVal;
 	((char*)pvDest)[45] = cVal;
 }
@@ -770,18 +770,18 @@ void memset_fast_46bytes(void* pvDest, uint8 cVal)
 void memset_fast_47bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
 	((char*)pvDest)[44] = cVal;
 	((char*)pvDest)[45] = cVal;
 	((char*)pvDest)[46] = cVal;
@@ -791,38 +791,38 @@ void memset_fast_47bytes(void* pvDest, uint8 cVal)
 void memset_fast_48bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
-	((int*)pvDest)[11] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
+	((int32*)pvDest)[11] = iVal;
 }
 
 
 void memset_fast_49bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
-	((int*)pvDest)[11] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
+	((int32*)pvDest)[11] = iVal;
 	((char*)pvDest)[48] = cVal;
 }
 
@@ -830,19 +830,19 @@ void memset_fast_49bytes(void* pvDest, uint8 cVal)
 void memset_fast_50bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
-	((int*)pvDest)[11] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
+	((int32*)pvDest)[11] = iVal;
 	((char*)pvDest)[48] = cVal;
 	((char*)pvDest)[49] = cVal;
 }
@@ -851,19 +851,19 @@ void memset_fast_50bytes(void* pvDest, uint8 cVal)
 void memset_fast_51bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
-	((int*)pvDest)[11] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
+	((int32*)pvDest)[11] = iVal;
 	((char*)pvDest)[48] = cVal;
 	((char*)pvDest)[49] = cVal;
 	((char*)pvDest)[50] = cVal;
@@ -873,40 +873,40 @@ void memset_fast_51bytes(void* pvDest, uint8 cVal)
 void memset_fast_52bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
-	((int*)pvDest)[11] = iVal;
-	((int*)pvDest)[12] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
+	((int32*)pvDest)[11] = iVal;
+	((int32*)pvDest)[12] = iVal;
 }
 
 
 void memset_fast_53bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
-	((int*)pvDest)[11] = iVal;
-	((int*)pvDest)[12] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
+	((int32*)pvDest)[11] = iVal;
+	((int32*)pvDest)[12] = iVal;
 	((char*)pvDest)[52] = cVal;
 }
 
@@ -914,20 +914,20 @@ void memset_fast_53bytes(void* pvDest, uint8 cVal)
 void memset_fast_54bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
-	((int*)pvDest)[11] = iVal;
-	((int*)pvDest)[12] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
+	((int32*)pvDest)[11] = iVal;
+	((int32*)pvDest)[12] = iVal;
 	((char*)pvDest)[52] = cVal;
 	((char*)pvDest)[53] = cVal;
 }
@@ -936,20 +936,20 @@ void memset_fast_54bytes(void* pvDest, uint8 cVal)
 void memset_fast_55bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
-	((int*)pvDest)[11] = iVal;
-	((int*)pvDest)[12] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
+	((int32*)pvDest)[11] = iVal;
+	((int32*)pvDest)[12] = iVal;
 	((char*)pvDest)[52] = cVal;
 	((char*)pvDest)[53] = cVal;
 	((char*)pvDest)[54] = cVal;
@@ -959,42 +959,42 @@ void memset_fast_55bytes(void* pvDest, uint8 cVal)
 void memset_fast_56bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
-	((int*)pvDest)[11] = iVal;
-	((int*)pvDest)[12] = iVal;
-	((int*)pvDest)[13] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
+	((int32*)pvDest)[11] = iVal;
+	((int32*)pvDest)[12] = iVal;
+	((int32*)pvDest)[13] = iVal;
 }
 
 
 void memset_fast_57bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
-	((int*)pvDest)[11] = iVal;
-	((int*)pvDest)[12] = iVal;
-	((int*)pvDest)[13] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
+	((int32*)pvDest)[11] = iVal;
+	((int32*)pvDest)[12] = iVal;
+	((int32*)pvDest)[13] = iVal;
 	((char*)pvDest)[56] = cVal;
 }
 
@@ -1002,21 +1002,21 @@ void memset_fast_57bytes(void* pvDest, uint8 cVal)
 void memset_fast_58bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
-	((int*)pvDest)[11] = iVal;
-	((int*)pvDest)[12] = iVal;
-	((int*)pvDest)[13] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
+	((int32*)pvDest)[11] = iVal;
+	((int32*)pvDest)[12] = iVal;
+	((int32*)pvDest)[13] = iVal;
 	((char*)pvDest)[56] = cVal;
 	((char*)pvDest)[57] = cVal;
 }
@@ -1025,21 +1025,21 @@ void memset_fast_58bytes(void* pvDest, uint8 cVal)
 void memset_fast_59bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
-	((int*)pvDest)[11] = iVal;
-	((int*)pvDest)[12] = iVal;
-	((int*)pvDest)[13] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
+	((int32*)pvDest)[11] = iVal;
+	((int32*)pvDest)[12] = iVal;
+	((int32*)pvDest)[13] = iVal;
 	((char*)pvDest)[56] = cVal;
 	((char*)pvDest)[57] = cVal;
 	((char*)pvDest)[58] = cVal;
@@ -1049,44 +1049,44 @@ void memset_fast_59bytes(void* pvDest, uint8 cVal)
 void memset_fast_60bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
-	((int*)pvDest)[11] = iVal;
-	((int*)pvDest)[12] = iVal;
-	((int*)pvDest)[13] = iVal;
-	((int*)pvDest)[14] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
+	((int32*)pvDest)[11] = iVal;
+	((int32*)pvDest)[12] = iVal;
+	((int32*)pvDest)[13] = iVal;
+	((int32*)pvDest)[14] = iVal;
 }
 
 
 void memset_fast_61bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
-	((int*)pvDest)[11] = iVal;
-	((int*)pvDest)[12] = iVal;
-	((int*)pvDest)[13] = iVal;
-	((int*)pvDest)[14] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
+	((int32*)pvDest)[11] = iVal;
+	((int32*)pvDest)[12] = iVal;
+	((int32*)pvDest)[13] = iVal;
+	((int32*)pvDest)[14] = iVal;
 	((char*)pvDest)[60] = cVal;
 }
 
@@ -1094,22 +1094,22 @@ void memset_fast_61bytes(void* pvDest, uint8 cVal)
 void memset_fast_62bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
-	((int*)pvDest)[11] = iVal;
-	((int*)pvDest)[12] = iVal;
-	((int*)pvDest)[13] = iVal;
-	((int*)pvDest)[14] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
+	((int32*)pvDest)[11] = iVal;
+	((int32*)pvDest)[12] = iVal;
+	((int32*)pvDest)[13] = iVal;
+	((int32*)pvDest)[14] = iVal;
 	((char*)pvDest)[60] = cVal;
 	((char*)pvDest)[61] = cVal;
 }
@@ -1118,22 +1118,22 @@ void memset_fast_62bytes(void* pvDest, uint8 cVal)
 void memset_fast_63bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
-	((int*)pvDest)[11] = iVal;
-	((int*)pvDest)[12] = iVal;
-	((int*)pvDest)[13] = iVal;
-	((int*)pvDest)[14] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
+	((int32*)pvDest)[11] = iVal;
+	((int32*)pvDest)[12] = iVal;
+	((int32*)pvDest)[13] = iVal;
+	((int32*)pvDest)[14] = iVal;
 	((char*)pvDest)[60] = cVal;
 	((char*)pvDest)[61] = cVal;
 	((char*)pvDest)[62] = cVal;
@@ -1143,23 +1143,23 @@ void memset_fast_63bytes(void* pvDest, uint8 cVal)
 void memset_fast_64bytes(void* pvDest, uint8 cVal)
 {
 	uint32 iVal;
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
-	((int*)pvDest)[0] = iVal;
-	((int*)pvDest)[1] = iVal;
-	((int*)pvDest)[2] = iVal;
-	((int*)pvDest)[3] = iVal;
-	((int*)pvDest)[4] = iVal;
-	((int*)pvDest)[5] = iVal;
-	((int*)pvDest)[6] = iVal;
-	((int*)pvDest)[7] = iVal;
-	((int*)pvDest)[8] = iVal;
-	((int*)pvDest)[9] = iVal;
-	((int*)pvDest)[10] = iVal;
-	((int*)pvDest)[11] = iVal;
-	((int*)pvDest)[12] = iVal;
-	((int*)pvDest)[13] = iVal;
-	((int*)pvDest)[14] = iVal;
-	((int*)pvDest)[15] = iVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
+	((int32*)pvDest)[0] = iVal;
+	((int32*)pvDest)[1] = iVal;
+	((int32*)pvDest)[2] = iVal;
+	((int32*)pvDest)[3] = iVal;
+	((int32*)pvDest)[4] = iVal;
+	((int32*)pvDest)[5] = iVal;
+	((int32*)pvDest)[6] = iVal;
+	((int32*)pvDest)[7] = iVal;
+	((int32*)pvDest)[8] = iVal;
+	((int32*)pvDest)[9] = iVal;
+	((int32*)pvDest)[10] = iVal;
+	((int32*)pvDest)[11] = iVal;
+	((int32*)pvDest)[12] = iVal;
+	((int32*)pvDest)[13] = iVal;
+	((int32*)pvDest)[14] = iVal;
+	((int32*)pvDest)[15] = iVal;
 }
 
 
@@ -1175,11 +1175,11 @@ void memset_fast_65bytesUp(void* pvDest, uint8 cVal, size iByteSize)
 	iDone = iInts << 2;
 	iChars = iByteSize - iDone;
 
-	iVal = (cVal << 24) | (cVal << 16) | (cVal << 8) | cVal;
+	iVal = ((uint32)cVal << 24) | ((uint32)cVal << 16) | ((uint32)cVal << 8) | cVal;
 
 	for (i = 0; i < iInts; i++)
 	{
-		((int*)pvDest)[i] = iVal;
+		((int32*)pvDest)[i] = iVal;
 	}
 	ga_memset_fast[iChars]((void*)((uint8*)pvDest + iDone), cVal);
 }

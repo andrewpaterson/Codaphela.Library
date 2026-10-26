@@ -15,6 +15,10 @@
 
 #define MAX_DATA_SIZE ((size)(8 KB))
 
+//An iterator's key starts in the iterator (most keys are short); a longer one grows onto the heap, which the end of the
+//iteration frees (the iterator's Kill frees it if the iteration is stopped early).
+#define INDEX_TREE_ITERATOR_KEY_SIZE	16
+
 
 class CIndexTree
 {

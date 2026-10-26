@@ -75,6 +75,9 @@ protected:
 	int32					miFrameBytes;
 	int32					miHiddenResult;		//The hidden result pointer's place, -1 when the result isn't 64 bits.
 	const char*				mszSectionOptions;	//After each function's section name: ", comdat" for the runtime.
+	CArrayTemplate<SIRReference>	masFoldBase;	//Per temporary: the pointer a folded pointer adds a constant to, else none.
+	CArrayTemplate<int32>	maiFoldOffset;		//Per temporary: that constant.
+	CArrayTemplate<int32>	maiUses;			//Per temporary: how many times it is used.
 
 public:
 	void			Init(CIRModule* pcModule, int* piLabels);
@@ -99,6 +102,8 @@ protected:
 	int				Words(SIRType sType);
 	bool			IsHiddenResult(SIRType sType);
 	void			Layout(void);
+	void			Peephole(CChars* pszDest, size uiStart);
+	int32			PackTemporaries(void);
 	int32			Allocate(int32* piNext, int32 iBytes);
 	int32			OffsetOf(SIRReference sTemporary);
 
@@ -111,14 +116,19 @@ protected:
 	void			FillSign(int32 iDestination, int iFirst, int iWords);
 	void			PushValue(SIRReference sValue, SIRType sType);
 	void			PushFrameAddress(int32 iOffset);
-	void			PointerPlace(SIRReference sPointer, int32* piPlace, char** pszSymbol);
+	void			PointerPlace(SIRReference sPointer, int32* piPlace, char** pszSymbol, int32* piOffset);
+	void			FoldPointers(void);
+	SIRReference	FoldedBase(SIRReference sValue);
 
 	bool			Instruction(CIRBlock* pcBlock, size uiIndex);
 	void			Arithmetic(SIRInstruction* psInstruction, const char* szCarry, const char* szMnemonic);
 	void			Logic(SIRInstruction* psInstruction, const char* szMnemonic, uint64 ulliNot);
 	void			Shift(SIRInstruction* psInstruction);
+	void			ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, int iAmount);
 	bool			RuntimeCall(SIRInstruction* psInstruction);
 	void			Compare(SIRInstruction* psInstruction);
+	bool			IsFusedCompare(CIRBlock* pcBlock, size uiIndex);
+	void			FusedBranch(SIRInstruction* psInstruction, int32 iElse);
 	void			CompareFlags(SIRReference sLeft, SIRReference sRight, SIRType sType, bool bSigned);
 	void			Extend(SIRInstruction* psInstruction);
 	void			Address(SIRInstruction* psInstruction, int32 iOffset);
@@ -137,6 +147,7 @@ protected:
 	void			Return(CIRBlock* pcBlock);
 	void			EdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo);
 	void			PhiCopies(CIRBlock* pcBlock);
+	bool			IsCoalescedPhiBlock(CIRBlock* pcBlock);
 	void			JumpTo(CIRBlock* pcTo, CIRBlock* pcNext);
 	void			Jump(CIRBlock* pcBlock, CIRBlock* pcNext);
 };

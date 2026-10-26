@@ -33,9 +33,9 @@ int timsort(void* base, size nel, size width, int (*compar) (const void*, const 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void TimSort(DataCompare fCompare, void* pvArray, size uiStride, int iNumElements)
+void TimSort(DataCompare fCompare, void* pvArray, size uiStride, size uiNumElements)
 {
-	timsort(pvArray, iNumElements, uiStride, fCompare);
+	timsort(pvArray, uiNumElements, uiStride, fCompare);
 }
 
  /**

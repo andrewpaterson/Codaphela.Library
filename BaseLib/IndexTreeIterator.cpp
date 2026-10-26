@@ -6,10 +6,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeIterator::Init(int iType)
+void CIndexTreeIterator::Init(uint32 iType)
 {
 	miType = iType;
 	mbStarted = false;
+	macKey.Init();
 	Clear();
 }
 
@@ -23,6 +24,7 @@ void CIndexTreeIterator::Kill(void)
 	miType = 0;
 	mbStarted = false;
 	Clear();
+	macKey.Kill();
 }
 
 
@@ -62,7 +64,7 @@ size CIndexTreeIterator::GetKeySize(void)
 //////////////////////////////////////////////////////////////////////////
 uint8* CIndexTreeIterator::GetKey(void)
 {
-	return macKey;
+	return macKey.GetData();
 }
 
 
@@ -72,9 +74,25 @@ uint8* CIndexTreeIterator::GetKey(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeIterator::Clear(void)
 {
-	memset_fast(macKey, 0, MAX_KEY_SIZE);
+	if (macKey.IsEmbedded() || macKey.IsArray())
+	{
+		macKey.Resize(0);
+	}
 	memset_fast(macData, 0, MAX_DATA_SIZE);
 	miDataSize = 0;
 	miKeySize = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeIterator::SetKey(uint8* pvKey, size uiKeySize)
+{
+	//Ended by a zero: GetKey is often used as a string.
+	macKey.Resize(uiKeySize + 1);
+	memcpy(macKey.GetData(), pvKey, uiKeySize);
+	macKey.GetData()[uiKeySize] = 0;
 }
 

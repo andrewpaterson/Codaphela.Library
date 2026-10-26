@@ -96,6 +96,8 @@ struct SCPP65Variable
 	bool			bInternal;		//A static global: the unit's own.
 	bool			bDefined;		//A global's data has been written.
 	bool			bUsed;
+	SCPP65Class*	psAnonymous;	//The anonymous union or struct declared in a function that this local is a member of.
+	int				iAnonymous;		//The anonymous object's offset in the frame (the member's is iOffset).
 };
 
 
@@ -417,6 +419,7 @@ protected:
 	CChars					mszBody;
 	CChars*					mpszOut;
 	CCPPErrors				mcErrors;
+	CCPPErrors				mcWarnings;			//Each at most once (by token); they don't fail the unit.
 
 	CArrayCPP65Variables	mapsGlobals;
 	CArrayCPP65FunctionPtrs	mapsFunctions;
@@ -443,6 +446,7 @@ protected:
 	int						miDataTemporaries;
 	CArrayChars				maszEmitted;		//Labels of the functions, vtables, thunks and runtime routines written.
 	int						miQuiet;			//Errors are not reported, only noted in mbQuietFailed.
+	int						miWarningChecks;	//Above 0 while a warning check works out a type (TypeOf can fold the same constant again).
 	bool					mbQuietFailed;
 	CArrayCPP65Strings		maszStrings;
 	CChars					mszInitialise;		//Works out the global being defined (its R_Initialise).
@@ -487,12 +491,14 @@ public:
 	static void				AppendStartUp816(CChars* pszDest);
 	static void				AddDefines(CConfig* pcConfig, ECPPTarget eTarget = CPPT_65C64);
 	CCPPErrors*				GetErrors(void);
+	CCPPErrors*				GetWarnings(void);
 	int						NumErrors(void);
 	void					GetExternals(CArrayChars* paszLabels);
 
 protected:
 	//Declarations, functions and statements.  CPP65Generator.cpp
 	bool					Error(CCPPSyntax* pcNode, const char* szMessage);
+	void					Warning(CCPPSyntax* pcNode, const char* szMessage);
 	SCPP65Type*				IntegerLiteralType(CCTInt* pcInt);
 	bool					ErrorAt(int iToken, const char* szMessage);
 	void					BeginQuiet(void);
@@ -677,6 +683,7 @@ protected:
 	void					Call(SCPP65Function* psFunction, bool bVirtual, int iBytes);
 	bool					CallMember(SCPP65Function* psFunction, SCPP65Place* psObject, CArraySyntax* papcArguments, bool bVirtual, CCPPSyntax* pcNode);
 	SCPP65Type*				MemberCall(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* pcCallee);
+	SCPP65Type*				CallMemberFunction(CCPPSyntaxCallExpression* pcCall, CCPPSyntax* pcCallee, CCPPSyntax* pcObject, SCPP65Class* psClass, SCPP65Function* psFunction, bool bVirtual);
 	SCPP65Type*				OperatorCall(CCPPSyntax* pcObject, ECppTokens eOperator, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	SCPP65Type*				ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode);
 	SCPP65Function*			FindConversion(SCPP65Class* psClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode);
@@ -809,8 +816,11 @@ protected:
 	void					Pull(const char* szRegister);
 
 	bool					Constant(CCPPSyntax* pcExpression, int64* plliValue);
+	void					ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue, bool bUnsignedWraps);
+	void					ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	bool					TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValue);
 	bool					EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue);
+	SCPP65Type*				EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSpecifier);
 	SCPP65Type*				EnumeratorType(CCPPSymbol* pcSymbol);
 	bool					IsSimple(CCPPSyntax* pcExpression);
 	bool					ContainsCall(CCPPSyntax* pcNode);

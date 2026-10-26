@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #define DEFLATER_HASH_BITS			15
-#define DEFLATER_HASH_SIZE			(1 << DEFLATER_HASH_BITS)
+#define DEFLATER_HASH_SIZE			((int32)1 << DEFLATER_HASH_BITS)
 #define DEFLATER_BLOCK_SYMBOLS		16384
 
 

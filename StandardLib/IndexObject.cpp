@@ -471,6 +471,7 @@ bool CIndexObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 	{
 		if ((pcPointedTo) && (pcPointedTo == pcEmbedded))
 		{
+			sIter.Kill();
 			return true;
 		}
 		bExists = mcIndex.Iterate(&sIter, NULL, NULL, 0, (CUnknown**)&pcPointedTo);

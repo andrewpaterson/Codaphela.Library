@@ -1105,7 +1105,7 @@ void CArrayBlock::Shuffle(CRandom* pcRandom)
 	iNumElements = NumElements();
 	for (i = 0; i < iNumElements; i++)
 	{
-		iIndex = pcRandom->Next((int)i, (int)(iNumElements - 1));
+		iIndex = pcRandom->Next((int32)i, (int32)(iNumElements - 1));
 		Swap(i, iIndex);
 	}
 
@@ -1808,8 +1808,8 @@ bool CArrayBlock::Pop(void) { return RemoveTail(); }
 bool CArrayBlock::Contains(void* pvData) { return Find(pvData) != ARRAY_ELEMENT_NOT_FOUND; }
 void CArrayBlock::Sort(DataCompare fCompare) { TimSort(fCompare); }
 void CArrayBlock::BubbleSort(DataCompare fCompare) { ::BubbleSort(fCompare, mpvArray, miElementSize, miUsedElements); }
-void CArrayBlock::QuickSort(DataCompare fCompare) { ::QuickSort(fCompare, mpvArray, miElementSize, (int)miUsedElements); }
-void CArrayBlock::TimSort(DataCompare fCompare) { ::TimSort(fCompare, mpvArray, miElementSize, (int)miUsedElements); }
+void CArrayBlock::QuickSort(DataCompare fCompare) { ::QuickSort(fCompare, mpvArray, miElementSize, miUsedElements); }
+void CArrayBlock::TimSort(DataCompare fCompare) { ::TimSort(fCompare, mpvArray, miElementSize, miUsedElements); }
 void* CArrayBlock::GetData(void) { return mpvArray; }
 size CArrayBlock::ChunkSize(void) { return miChunkSize; }
 size CArrayBlock::AddNum(size iNumElements) { return SetUsedElements(miUsedElements + iNumElements); }

@@ -135,21 +135,21 @@ void memcpy_fast_backwards_3bytes(void* pvDest, void* pvSource)
 
 void memcpy_fast_backwards_4bytes(void* pvDest, void* pvSource)
 {
-	((int*)pvDest)[0] = ((int*)pvSource)[0];
+	((int32*)pvDest)[0] = ((int32*)pvSource)[0];
 }
 
 
 void memcpy_fast_backwards_5bytes(void* pvDest, void* pvSource)
 {
 	((char*)pvDest)[4] = ((char*)pvSource)[4];
-	((int*)pvDest)[0] = ((int*)pvSource)[0];
+	((int32*)pvDest)[0] = ((int32*)pvSource)[0];
 }
 
 
 void memcpy_fast_backwards_6bytes(void* pvDest, void* pvSource)
 {
 	((int16*)pvDest)[2] = ((int16*)pvSource)[2];
-	((int*)pvDest)[0] = ((int*)pvSource)[0];
+	((int32*)pvDest)[0] = ((int32*)pvSource)[0];
 }
 
 
@@ -157,31 +157,31 @@ void memcpy_fast_backwards_7bytes(void* pvDest, void* pvSource)
 {
 	((char*)pvDest)[6] = ((char*)pvSource)[6];
 	((int16*)pvDest)[2] = ((int16*)pvSource)[2];
-	((int*)pvDest)[0] = ((int*)pvSource)[0];
+	((int32*)pvDest)[0] = ((int32*)pvSource)[0];
 }
 
 
 
 void memcpy_fast_backwards_8bytes(void* pvDest, void* pvSource)
 {
-	((int*)pvDest)[1] = ((int*)pvSource)[1];
-	((int*)pvDest)[0] = ((int*)pvSource)[0];
+	((int32*)pvDest)[1] = ((int32*)pvSource)[1];
+	((int32*)pvDest)[0] = ((int32*)pvSource)[0];
 }
 
 
 void memcpy_fast_backwards_9bytes(void* pvDest, void* pvSource)
 {
 	((char*)pvDest)[8] = ((char*)pvSource)[8];
-	((int*)pvDest)[1] = ((int*)pvSource)[1];
-	((int*)pvDest)[0] = ((int*)pvSource)[0];
+	((int32*)pvDest)[1] = ((int32*)pvSource)[1];
+	((int32*)pvDest)[0] = ((int32*)pvSource)[0];
 }
 
 
 void memcpy_fast_backwards_10bytes(void* pvDest, void* pvSource)
 {
 	((int16*)pvDest)[4] = ((int16*)pvSource)[4];
-	((int*)pvDest)[1] = ((int*)pvSource)[1];
-	((int*)pvDest)[0] = ((int*)pvSource)[0];
+	((int32*)pvDest)[1] = ((int32*)pvSource)[1];
+	((int32*)pvDest)[0] = ((int32*)pvSource)[0];
 }
 
 
@@ -189,34 +189,34 @@ void memcpy_fast_backwards_11bytes(void* pvDest, void* pvSource)
 {
 	((char*)pvDest)[10] = ((char*)pvSource)[10];
 	((int16*)pvDest)[4] = ((int16*)pvSource)[4];
-	((int*)pvDest)[1] = ((int*)pvSource)[1];
-	((int*)pvDest)[0] = ((int*)pvSource)[0];
+	((int32*)pvDest)[1] = ((int32*)pvSource)[1];
+	((int32*)pvDest)[0] = ((int32*)pvSource)[0];
 }
 
 
 void memcpy_fast_backwards_12bytes(void* pvDest, void* pvSource)
 {
-	((int*)pvDest)[2] = ((int*)pvSource)[2];
-	((int*)pvDest)[1] = ((int*)pvSource)[1];
-	((int*)pvDest)[0] = ((int*)pvSource)[0];
+	((int32*)pvDest)[2] = ((int32*)pvSource)[2];
+	((int32*)pvDest)[1] = ((int32*)pvSource)[1];
+	((int32*)pvDest)[0] = ((int32*)pvSource)[0];
 }
 
 
 void memcpy_fast_backwards_13bytes(void* pvDest, void* pvSource)
 {
 	((char*)pvDest)[12] = ((char*)pvSource)[12];
-	((int*)pvDest)[2] = ((int*)pvSource)[2];
-	((int*)pvDest)[1] = ((int*)pvSource)[1];
-	((int*)pvDest)[0] = ((int*)pvSource)[0];
+	((int32*)pvDest)[2] = ((int32*)pvSource)[2];
+	((int32*)pvDest)[1] = ((int32*)pvSource)[1];
+	((int32*)pvDest)[0] = ((int32*)pvSource)[0];
 }
 
 
 void memcpy_fast_backwards_14bytes(void* pvDest, void* pvSource)
 {
 	((int16*)pvDest)[6] = ((int16*)pvSource)[6];
-	((int*)pvDest)[2] = ((int*)pvSource)[2];
-	((int*)pvDest)[1] = ((int*)pvSource)[1];
-	((int*)pvDest)[0] = ((int*)pvSource)[0];
+	((int32*)pvDest)[2] = ((int32*)pvSource)[2];
+	((int32*)pvDest)[1] = ((int32*)pvSource)[1];
+	((int32*)pvDest)[0] = ((int32*)pvSource)[0];
 }
 
 
@@ -224,18 +224,18 @@ void memcpy_fast_backwards_15bytes(void* pvDest, void* pvSource)
 {
 	((char*)pvDest)[14] = ((char*)pvSource)[14];
 	((int16*)pvDest)[6] = ((int16*)pvSource)[6];
-	((int*)pvDest)[2] = ((int*)pvSource)[2];
-	((int*)pvDest)[1] = ((int*)pvSource)[1];
-	((int*)pvDest)[0] = ((int*)pvSource)[0];
+	((int32*)pvDest)[2] = ((int32*)pvSource)[2];
+	((int32*)pvDest)[1] = ((int32*)pvSource)[1];
+	((int32*)pvDest)[0] = ((int32*)pvSource)[0];
 }
 
 
 void memcpy_fast_backwards_16bytes(void* pvDest, void* pvSource)
 {
-	((int*)pvDest)[3] = ((int*)pvSource)[3];
-	((int*)pvDest)[2] = ((int*)pvSource)[2];
-	((int*)pvDest)[1] = ((int*)pvSource)[1];
-	((int*)pvDest)[0] = ((int*)pvSource)[0];
+	((int32*)pvDest)[3] = ((int32*)pvSource)[3];
+	((int32*)pvDest)[2] = ((int32*)pvSource)[2];
+	((int32*)pvDest)[1] = ((int32*)pvSource)[1];
+	((int32*)pvDest)[0] = ((int32*)pvSource)[0];
 }
 
 
