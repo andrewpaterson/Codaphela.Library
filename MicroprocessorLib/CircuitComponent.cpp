@@ -30,8 +30,12 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //////////////////////////////////////////////////////////////////////////
 void CCircuitComponent::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName)
 {
+	PreInit();
+
 	mpcContainingSubcircuitSimulation = pcContainingSubcircuitSimulation;
 	mszName.Init(szName);
+
+	PostInit();
 }
 
 
@@ -39,10 +43,41 @@ void CCircuitComponent::Init(CSubcircuitSimulation* pcContainingSubcircuitSimula
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircuitComponent::Kill(void)
+void CCircuitComponent::Class(void)
+{
+	U_Pointer(mpcContainingSubcircuitSimulation);
+	U_String(mszName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The containing subcircuit simulation is kept, see the class comment.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitComponent::Free(void)
 {
 	mszName.Kill();
-	mpcContainingSubcircuitSimulation = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitComponent::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitComponent::Load(CObjectReader* pcFile)
+{
+	return false;
 }
 
 
@@ -104,6 +139,6 @@ CTimeline* CCircuitComponent::GetTimeline(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCircuitComponent::GetName(void) { return mszName.Text(); }
+char* CCircuitComponent::GetComponentName(void) { return mszName.Text(); }
 CSubcircuitSimulation* CCircuitComponent::GetContainingSubcircuitSimulation(void) { return mpcContainingSubcircuitSimulation; }
 

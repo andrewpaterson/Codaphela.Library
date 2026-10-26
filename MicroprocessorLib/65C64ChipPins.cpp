@@ -45,6 +45,8 @@ void C65C64ChipPins::Init(CVoltageConfigurationSource* pcVoltageConfiguration)
 	size	i;
 	CChars	szName;
 
+	PreInit();
+
 	CPins::Init();
 	mcAddress.Init();
 	for (i = 0; i < 32; i++)
@@ -80,6 +82,32 @@ void C65C64ChipPins::Init(CVoltageConfigurationSource* pcVoltageConfiguration)
 		szName.Kill();
 	}
 	mpcLIRQB = AddChipPort(this, PT_Input, "LIRQB", pcVoltageConfiguration);
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void C65C64ChipPins::Class(void)
+{
+	CPins::Class();
+
+	U_Data(CLogicPortBus, mcAddress);
+	U_Data(CLogicPortBus, mcData);
+	U_Pointer(mpcPHI2);
+	U_Pointer(mpcRESB);
+	U_Pointer(mpcRWB);
+	U_Pointer(mpcLowerByte);
+	U_Pointer(mpcUpperByte);
+	U_Pointer(mpcOPV);
+	U_Pointer(mpcVPA);
+	U_Pointer(mpcVDA);
+	U_Pointer(mpcVPB);
+	U_Data(CLogicPort*[NUM_65C64_EDGE_INTERRUPTS], mapcEIRQB);
+	U_Pointer(mpcLIRQB);
 }
 
 
@@ -88,11 +116,11 @@ void C65C64ChipPins::Init(CVoltageConfigurationSource* pcVoltageConfiguration)
 // The ports are freed by CPortHolder.
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64ChipPins::Kill(void)
+void C65C64ChipPins::Free(void)
 {
 	mcAddress.Kill();
 	mcData.Kill();
-	CPins::Kill();
+	CPins::Free();
 }
 
 

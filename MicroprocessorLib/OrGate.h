@@ -35,7 +35,7 @@ class COrGate : public CIntegratedCircuit
 {
 CONSTRUCTABLE(COrGate);
 public:
-			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, COrGatePins* pcPins);
+			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<COrGatePins> pPins);
 
 	virtual void			SimulationStarted(CTimeline* pcTimeline);
 	virtual void			InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);

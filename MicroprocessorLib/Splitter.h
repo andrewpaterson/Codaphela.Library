@@ -34,7 +34,8 @@ protected:
 
 public:
 			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CArrayChars* paszStartPortNames, CArrayChars* paszEndPortNames);
-	virtual void			Kill(void);
+			void			Class(void) override;
+			void			Free(void) override;
 
 	virtual const char*		GetType(void);
 			size			NumStartPorts(void);

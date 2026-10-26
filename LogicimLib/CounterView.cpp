@@ -144,13 +144,9 @@ bool CCounterView::LoadXML(CMarkupTag* pcTag)
 //////////////////////////////////////////////////////////////////////////
 CIntegratedCircuit* CCounterView::CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily)
 {
-	CCounterPins*	pcPins;
 	CCounter*		pcCounter;
 
-	pcPins = NewMalloc<CCounterPins>();
-	pcPins->Init(pcFamily, miBitWidth);
-	pcCounter = NewMalloc<CCounter>();
-	pcCounter->Init(pcSimulation, mszName.Text(), pcPins, miBitWidth, muiTerminalValue);
+	pcCounter = &OMalloc<CCounter>(pcSimulation, mszName.Text(), OMalloc<CCounterPins>(pcFamily, miBitWidth), miBitWidth, muiTerminalValue);
 	return pcCounter;
 }
 

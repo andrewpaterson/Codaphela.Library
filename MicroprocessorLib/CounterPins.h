@@ -30,6 +30,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //mistake.
 class CCounterPins : public CPins
 {
+CONSTRUCTABLE(CCounterPins);
 protected:
 	CLogicPort*			mpcClock;
 	CLogicPort*			mpcReset;
@@ -42,7 +43,8 @@ protected:
 
 public:
 			void				Init(CVoltageConfigurationSource* pcVoltageConfiguration, size uiBitWidth);
-	virtual void				Kill(void);
+			void				Class(void) override;
+			void				Free(void) override;
 
 			bool				IsClock(CLogicPort* pcPort);
 			uint32				ReadData(CTimeline* pcTimeline, size uiBitWidth);

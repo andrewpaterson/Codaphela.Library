@@ -92,13 +92,9 @@ bool CDTypeFlipFlopView::LoadXML(CMarkupTag* pcTag)
 //////////////////////////////////////////////////////////////////////////
 CIntegratedCircuit* CDTypeFlipFlopView::CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily)
 {
-	CDTypeFlipFlopPins*		pcPins;
 	CDTypeFlipFlop*			pcFlipFlop;
 
-	pcPins = NewMalloc<CDTypeFlipFlopPins>();
-	pcPins->Init(pcFamily);
-	pcFlipFlop = NewMalloc<CDTypeFlipFlop>();
-	pcFlipFlop->Init(pcSimulation, mszName.Text(), pcPins);
+	pcFlipFlop = &OMalloc<CDTypeFlipFlop>(pcSimulation, mszName.Text(), OMalloc<CDTypeFlipFlopPins>(pcFamily));
 	return pcFlipFlop;
 }
 

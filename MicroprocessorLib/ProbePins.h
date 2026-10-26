@@ -27,12 +27,14 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //Logicim's ProbePins: an input per bit, "Input 0" up, the least significant first.
 class CProbePins : public CPins
 {
+CONSTRUCTABLE(CProbePins);
 protected:
 	CArrayLogicPortPtr	mapcInputs;
 
 public:
 			void				Init(CVoltageConfigurationSource* pcVoltageConfiguration, size uiBitWidth);
-	virtual void				Kill(void);
+			void				Class(void) override;
+			void				Free(void) override;
 
 			CArrayLogicPortPtr*	GetInputs(void);
 			CLogicPort*			GetInput(size uiIndex);

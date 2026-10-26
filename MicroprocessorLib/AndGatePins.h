@@ -27,13 +27,15 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //Logicim's AndGatePins: an "Output" and inputCount inputs, "Input" or "Input 0" up.
 class CAndGatePins : public CPins
 {
+CONSTRUCTABLE(CAndGatePins);
 protected:
 	CArrayLogicPortPtr	mapcInputs;
 	CLogicPort*			mpcOutput;
 
 public:
 			void				Init(size uiInputCount, CVoltageConfigurationSource* pcVoltageConfiguration);
-	virtual void				Kill(void);
+			void				Class(void) override;
+			void				Free(void) override;
 
 			CLogicPort*			GetOutput(void);
 			CArrayLogicPortPtr*	GetInputs(void);

@@ -28,6 +28,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //(reset).  Logicim always makes every port; its inverse out and set reset options are ignored, as here.
 class CDTypeFlipFlopPins : public CPins
 {
+CONSTRUCTABLE(CDTypeFlipFlopPins);
 protected:
 	CLogicPort*		mpcOutputQ;
 	CLogicPort*		mpcOutputQB;
@@ -38,7 +39,8 @@ protected:
 
 public:
 			void		Init(CVoltageConfigurationSource* pcVoltageConfiguration);
-	virtual void		Kill(void);
+			void		Class(void) override;
+			void		Free(void) override;
 
 			bool		IsClock(CLogicPort* pcPort);
 			CLogicPort*	GetOutputQ(void);

@@ -34,27 +34,84 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //////////////////////////////////////////////////////////////////////////
 void CPins::Init(void)
 {
-	CPortHolder::Init();
+	PreInit();
+
+	CPortHolder::InitPorts();
 	mpcIntegratedCircuit = NULL;
 
 	mpcVCC = NewMalloc<CPowerInPort>();
 	mpcVCC->Init(PT_PowerIn, POWER_PIN_VCC, this);
 	mpcGND = NewMalloc<CPowerInPort>();
 	mpcGND->Init(PT_PowerIn, POWER_PIN_GND, this);
+
+	PostInit();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Kills and frees the ports.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPins::Kill(void)
+void CPins::Class(void)
 {
+	U_Data(CArrayPortPtr, mapcPorts);
+	U_Pointer(mpcIntegratedCircuit);
+	U_Pointer(mpcVCC);
+	U_Pointer(mpcGND);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes the logic ports' events off the timeline, then kills and frees
+// the ports, which disconnects them from their traces.  The chip may
+// already have been freed in the same batch; its memory, and its
+// containing subcircuit simulation, are still there.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPins::Free(void)
+{
+	CTimeline*	pcTimeline;
+	size		i;
+	CPort*		pcPort;
+
+	if (mpcIntegratedCircuit != NULL)
+	{
+		pcTimeline = mpcIntegratedCircuit->GetTimeline();
+		for (i = 0; i < mapcPorts.NumElements(); i++)
+		{
+			pcPort = mapcPorts.GetPtr(i);
+			if (pcPort->IsLogicPort())
+			{
+				((CLogicPort*)pcPort)->RemoveEvents(pcTimeline);
+			}
+		}
+	}
+
 	mpcVCC = NULL;
 	mpcGND = NULL;
 	mpcIntegratedCircuit = NULL;
-	CPortHolder::Kill();
+	CPortHolder::KillPorts();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPins::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CPins::Load(CObjectReader* pcFile)
+{
+	return false;
 }
 
 
@@ -82,9 +139,9 @@ void CPins::TraceConnected(CTimeline* pcTimeline, CPort* pcPort)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPins::GetName(void)
+char* CPins::GetComponentName(void)
 {
-	return mpcIntegratedCircuit->GetName();
+	return mpcIntegratedCircuit->GetComponentName();
 }
 
 

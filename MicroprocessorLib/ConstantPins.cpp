@@ -32,6 +32,8 @@ void CConstantPins::Init(CVoltageConfigurationSource* pcVoltageConfiguration, si
 	CLogicPort*	pcPort;
 	CChars		szName;
 
+	PreInit();
+
 	CPins::Init();
 	mapcOutputs.Init();
 	for (i = 0; i < uiBitWidth; i++)
@@ -43,6 +45,20 @@ void CConstantPins::Init(CVoltageConfigurationSource* pcVoltageConfiguration, si
 		mapcOutputs.Add(pcPort);
 		szName.Kill();
 	}
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CConstantPins::Class(void)
+{
+	CPins::Class();
+
+	U_Data(CArrayLogicPortPtr, mapcOutputs);
 }
 
 
@@ -51,10 +67,10 @@ void CConstantPins::Init(CVoltageConfigurationSource* pcVoltageConfiguration, si
 // The ports are freed by CPortHolder.
 //
 //////////////////////////////////////////////////////////////////////////
-void CConstantPins::Kill(void)
+void CConstantPins::Free(void)
 {
 	mapcOutputs.Kill();
-	CPins::Kill();
+	CPins::Free();
 }
 
 

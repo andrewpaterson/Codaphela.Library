@@ -34,7 +34,7 @@ class CXorGate : public CIntegratedCircuit
 {
 CONSTRUCTABLE(CXorGate);
 public:
-			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CXorGatePins* pcPins);
+			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CXorGatePins> pPins);
 
 	virtual void			SimulationStarted(CTimeline* pcTimeline);
 	virtual void			InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);

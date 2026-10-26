@@ -29,9 +29,25 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //////////////////////////////////////////////////////////////////////////
 void CPowerSource::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, float32 fVoltage)
 {
+	PreInit();
+
 	CPassive::Init(pcContainingSubcircuitSimulation, szName);
 	mpcPowerOutPort = NewMalloc<CPowerOutPort>();
 	mpcPowerOutPort->Init(POWER_PIN_POWER, this, fVoltage);
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPowerSource::Class(void)
+{
+	CPassive::Class();
+
+	U_Pointer(mpcPowerOutPort);
 }
 
 

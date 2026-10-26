@@ -24,12 +24,16 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes ownership of pcPins.
+// Keeps pPins.
 //
 //////////////////////////////////////////////////////////////////////////
-void CProbe::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CProbePins* pcPins)
+void CProbe::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CProbePins> pPins)
 {
-	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pcPins);
+	PreInit();
+
+	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pPins);
+
+	PostInit();
 }
 
 
@@ -82,5 +86,5 @@ uint64 CProbe::ReadValue(CTimeline* pcTimeline)
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CProbe::GetType(void) { return PROBE_TYPE; }
-CProbePins* CProbe::GetProbePins(void) { return (CProbePins*)mpcPins; }
+CProbePins* CProbe::GetProbePins(void) { return (CProbePins*)&mpPins; }
 

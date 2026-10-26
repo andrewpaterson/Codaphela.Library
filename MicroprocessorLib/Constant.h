@@ -37,7 +37,8 @@ protected:
 	int64	miConstantValue;
 
 public:
-			void				Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CConstantPins* pcPins, int64 iDefaultValue);
+			void				Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CConstantPins> pPins, int64 iDefaultValue);
+			void				Class(void) override;
 
 	virtual void				SimulationStarted(CTimeline* pcTimeline);
 	virtual void				InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);

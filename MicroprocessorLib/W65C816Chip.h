@@ -40,8 +40,9 @@ protected:
 	CW65C816Pins	mcSignals;
 
 public:
-			void				Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CW65C816ChipPins* pcPins);
-	virtual void				Kill(void);
+			void				Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CW65C816ChipPins> pPins);
+			void				Class(void) override;
+			void				Free(void) override;
 
 	virtual void				SimulationStarted(CTimeline* pcTimeline);
 	virtual void				InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);

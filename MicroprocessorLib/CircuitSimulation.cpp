@@ -21,6 +21,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/Logger.h"
+#include "StandardLib/Objects.h"
 #include "CircuitSimulation.h"
 
 
@@ -47,7 +48,7 @@ void CCircuitSimulation::Init(int64 iID, const char* szName)
 {
 	mszName.Init(szName);
 	mcTimeline.Init(this);
-	mcCircuit.Init();
+	mpCircuit = OMalloc<CCircuit>();
 
 	miID = iID;
 	if (iID >= giNextCircuitSimulationID)
@@ -64,7 +65,8 @@ void CCircuitSimulation::Init(int64 iID, const char* szName)
 //////////////////////////////////////////////////////////////////////////
 //
 // The circuit, so its components can take their events off the
-// timeline, then the subcircuit simulations and the timeline.
+// timeline, then the subcircuit simulations and the timeline.  Letting go
+// of the circuit frees it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircuitSimulation::Kill(void)
@@ -72,7 +74,7 @@ void CCircuitSimulation::Kill(void)
 	size					i;
 	CSubcircuitSimulation*	pcSubcircuitSimulation;
 
-	mcCircuit.Kill();
+	mpCircuit = NULL;
 
 	for (i = 0; i < mapcInstanceSimulations.NumElements(); i++)
 	{
@@ -97,7 +99,7 @@ bool CCircuitSimulation::Reset(void)
 {
 	CChars	sz;
 
-	if (!mcCircuit.IsEmpty())
+	if (!mpCircuit->IsEmpty())
 	{
 		sz.Init(" Cannot reset Circuit Simulation [");
 		AppendDescription(&sz);
@@ -119,7 +121,7 @@ bool CCircuitSimulation::Reset(void)
 //////////////////////////////////////////////////////////////////////////
 void CCircuitSimulation::SimulationStarted(void)
 {
-	mcCircuit.SimulationStarted(&mcTimeline);
+	mpCircuit->SimulationStarted(&mcTimeline);
 }
 
 
@@ -214,7 +216,7 @@ void CCircuitSimulation::ResetNextID(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCircuit* CCircuitSimulation::GetCircuit(void) { return &mcCircuit; }
+CCircuit* CCircuitSimulation::GetCircuit(void) { return &mpCircuit; }
 CTimeline* CCircuitSimulation::GetTimeline(void) { return &mcTimeline; }
 int64 CCircuitSimulation::GetTime(void) { return mcTimeline.GetTime(); }
 bool CCircuitSimulation::RunSimultaneous(void) { return mcTimeline.RunSimultaneous(); }

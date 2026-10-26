@@ -37,8 +37,9 @@ protected:
 	CAndLogic*	mpcLogic;
 
 public:
-			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CAndGatePins* pcPins);
-	virtual void			Kill(void);
+			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CAndGatePins> pPins);
+			void			Class(void) override;
+			void			Free(void) override;
 
 	virtual void			SimulationStarted(CTimeline* pcTimeline);
 	virtual void			InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);

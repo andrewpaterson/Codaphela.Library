@@ -32,6 +32,8 @@ void CProbePins::Init(CVoltageConfigurationSource* pcVoltageConfiguration, size 
 	CLogicPort*	pcPort;
 	CChars		szName;
 
+	PreInit();
+
 	CPins::Init();
 	mapcInputs.Init();
 	for (i = 0; i < uiBitWidth; i++)
@@ -43,6 +45,20 @@ void CProbePins::Init(CVoltageConfigurationSource* pcVoltageConfiguration, size 
 		mapcInputs.Add(pcPort);
 		szName.Kill();
 	}
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CProbePins::Class(void)
+{
+	CPins::Class();
+
+	U_Data(CArrayLogicPortPtr, mapcInputs);
 }
 
 
@@ -51,10 +67,10 @@ void CProbePins::Init(CVoltageConfigurationSource* pcVoltageConfiguration, size 
 // The ports are freed by CPortHolder.
 //
 //////////////////////////////////////////////////////////////////////////
-void CProbePins::Kill(void)
+void CProbePins::Free(void)
 {
 	mapcInputs.Kill();
-	CPins::Kill();
+	CPins::Free();
 }
 
 

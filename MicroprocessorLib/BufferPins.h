@@ -27,13 +27,15 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //Logicim's BufferPins: an input and an output for each buffer, "Input" and "Output" or "Input 0" and "Output 0" up.
 class CBufferPins : public CPins
 {
+CONSTRUCTABLE(CBufferPins);
 protected:
 	CArrayLogicPortPtr	mapcInputs;
 	CArrayLogicPortPtr	mapcOutputs;
 
 public:
 			void				Init(size uiBufferCount, CVoltageConfigurationSource* pcVoltageConfiguration);
-	virtual void				Kill(void);
+			void				Class(void) override;
+			void				Free(void) override;
 
 			CArrayLogicPortPtr*	GetInputs(void);
 			CArrayLogicPortPtr*	GetOutputs(void);

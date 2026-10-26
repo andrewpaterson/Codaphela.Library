@@ -28,7 +28,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPortHolder::Init(void)
+void CPortHolder::InitPorts(void)
 {
 	mapcPorts.Init();
 }
@@ -36,10 +36,10 @@ void CPortHolder::Init(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Kills and frees the ports.
+// Kills and frees the ports, which disconnects them from their traces.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPortHolder::Kill(void)
+void CPortHolder::KillPorts(void)
 {
 	size	i;
 	CPort*	pcPort;

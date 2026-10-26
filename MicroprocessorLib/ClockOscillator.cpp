@@ -30,12 +30,12 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes ownership of pcPins.  fFrequency is in hertz.
+// Keeps pPins.  fFrequency is in hertz.
 //
 //////////////////////////////////////////////////////////////////////////
-void CClockOscillator::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CClockOscillatorPins* pcPins, float32 fFrequency)
+void CClockOscillator::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CClockOscillatorPins> pPins, float32 fFrequency)
 {
-	Init(pcContainingSubcircuitSimulation, szName, pcPins, fFrequency, FrequencyToTime(fFrequency) / 2);
+	Init(pcContainingSubcircuitSimulation, szName, pPins, fFrequency, FrequencyToTime(fFrequency) / 2);
 }
 
 
@@ -43,12 +43,31 @@ void CClockOscillator::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CClockOscillator::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CClockOscillatorPins* pcPins, float32 fFrequency, int64 iInitialisationTime)
+void CClockOscillator::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CClockOscillatorPins> pPins, float32 fFrequency, int64 iInitialisationTime)
 {
-	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pcPins);
+	PreInit();
+
+	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pPins);
 	miHalfCycleTime = FrequencyToTime(fFrequency) / 2;
 	miInitialisationTime = iInitialisationTime;
 	ResetState();
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClockOscillator::Class(void)
+{
+	CIntegratedCircuit::Class();
+
+	U_Int64(miHalfCycleTime);
+	U_Int64(miInitialisationTime);
+	U_Int64(miFullTicks);
+	U_Bool(mbHigh);
 }
 
 
@@ -193,7 +212,7 @@ float32 CClockOscillator::GetInternalVoltage(int64 iTime)
 const char* CClockOscillator::GetType(void) { return CLOCK_OSCILLATOR_TYPE; }
 int64 CClockOscillator::GetFullTicks(void) { return miFullTicks; }
 int64 CClockOscillator::GetHalfCycleTime(void) { return miHalfCycleTime; }
-CClockOscillatorPins* CClockOscillator::GetClockOscillatorPins(void) { return (CClockOscillatorPins*)mpcPins; }
+CClockOscillatorPins* CClockOscillator::GetClockOscillatorPins(void) { return (CClockOscillatorPins*)&mpPins; }
 void CClockOscillator::SetFullTicks(int64 iFullTicks) { miFullTicks = iFullTicks; }
 bool CClockOscillator::IsHigh(void) { return mbHigh; }
 void CClockOscillator::SetHigh(bool bHigh) { mbHigh = bHigh; }

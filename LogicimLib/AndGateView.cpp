@@ -84,21 +84,11 @@ const char* CAndGateView::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 CIntegratedCircuit* CAndGateView::CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily)
 {
-	CAndGatePins*	pcPins;
-	CAndGate*		pcGate;
-
-	pcPins = NewMalloc<CAndGatePins>();
-	pcPins->Init(miInputCount * miInputWidth, pcFamily);
 	if (mbNegated)
 	{
-		pcGate = NewMalloc<CNandGate>();
+		return &OMalloc<CNandGate>(pcSimulation, mszName.Text(), OMalloc<CAndGatePins>(miInputCount * miInputWidth, pcFamily));
 	}
-	else
-	{
-		pcGate = NewMalloc<CAndGate>();
-	}
-	pcGate->Init(pcSimulation, mszName.Text(), pcPins);
-	return pcGate;
+	return &OMalloc<CAndGate>(pcSimulation, mszName.Text(), OMalloc<CAndGatePins>(miInputCount * miInputWidth, pcFamily));
 }
 
 

@@ -32,6 +32,8 @@ void CBufferPins::Init(size uiBufferCount, CVoltageConfigurationSource* pcVoltag
 	CLogicPort*	pcPort;
 	CChars		szName;
 
+	PreInit();
+
 	CPins::Init();
 	mapcInputs.Init();
 	mapcOutputs.Init();
@@ -51,6 +53,21 @@ void CBufferPins::Init(size uiBufferCount, CVoltageConfigurationSource* pcVoltag
 		mapcOutputs.Add(pcPort);
 		szName.Kill();
 	}
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBufferPins::Class(void)
+{
+	CPins::Class();
+
+	U_Data(CArrayLogicPortPtr, mapcInputs);
+	U_Data(CArrayLogicPortPtr, mapcOutputs);
 }
 
 
@@ -59,11 +76,11 @@ void CBufferPins::Init(size uiBufferCount, CVoltageConfigurationSource* pcVoltag
 // The ports are freed by CPortHolder.
 //
 //////////////////////////////////////////////////////////////////////////
-void CBufferPins::Kill(void)
+void CBufferPins::Free(void)
 {
 	mapcInputs.Kill();
 	mapcOutputs.Kill();
-	CPins::Kill();
+	CPins::Free();
 }
 
 

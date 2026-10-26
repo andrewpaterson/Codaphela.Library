@@ -240,13 +240,9 @@ bool COscilloscopeView::LoadXML(CMarkupTag* pcTag)
 //////////////////////////////////////////////////////////////////////////
 CIntegratedCircuit* COscilloscopeView::CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily)
 {
-	COscilloscopePins*	pcPins;
 	COscilloscope*		pcOscilloscope;
 
-	pcPins = NewMalloc<COscilloscopePins>();
-	pcPins->Init(miInputCount);
-	pcOscilloscope = NewMalloc<COscilloscope>();
-	pcOscilloscope->Init(pcSimulation, mszName.Text(), pcPins, (float32)mfSampleFrequency, miNumberOfDivsWide, miSamplesPerDiv);
+	pcOscilloscope = &OMalloc<COscilloscope>(pcSimulation, mszName.Text(), OMalloc<COscilloscopePins>(miInputCount), (float32)mfSampleFrequency, miNumberOfDivsWide, miSamplesPerDiv);
 	return pcOscilloscope;
 }
 

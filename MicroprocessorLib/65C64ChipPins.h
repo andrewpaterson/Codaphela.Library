@@ -30,6 +30,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //the least significant bits first.  These are not the spreadsheet's pinout.
 class C65C64ChipPins : public CPins
 {
+CONSTRUCTABLE(C65C64ChipPins);
 protected:
 	CLogicPortBus	mcAddress;
 	CLogicPortBus	mcData;
@@ -47,7 +48,8 @@ protected:
 
 public:
 			void			Init(CVoltageConfigurationSource* pcVoltageConfiguration);
-	virtual void			Kill(void);
+			void			Class(void) override;
+			void			Free(void) override;
 
 			CLogicPortBus*	GetAddress(void);
 			CLogicPortBus*	GetData(void);

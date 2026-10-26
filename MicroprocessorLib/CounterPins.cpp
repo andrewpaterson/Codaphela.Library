@@ -52,6 +52,8 @@ void CCounterPins::Init(CVoltageConfigurationSource* pcVoltageConfiguration, siz
 {
 	size	i;
 
+	PreInit();
+
 	CPins::Init();
 	mpcClock = AddCounterPort(this, PT_Input, "Clock", -1, pcVoltageConfiguration);
 	mapcData.Init();
@@ -70,6 +72,27 @@ void CCounterPins::Init(CVoltageConfigurationSource* pcVoltageConfiguration, siz
 		mapcOutput.Add(AddCounterPort(this, PT_Output, "Count", i, pcVoltageConfiguration));
 	}
 	mpcTerminalOutput = AddCounterPort(this, PT_Output, "Terminal Count", -1, pcVoltageConfiguration);
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCounterPins::Class(void)
+{
+	CPins::Class();
+
+	U_Pointer(mpcClock);
+	U_Pointer(mpcReset);
+	U_Pointer(mpcLoad);
+	U_Data(CArrayLogicPortPtr, mapcData);
+	U_Pointer(mpcCountEnable);
+	U_Pointer(mpcCountEnableTerminal);
+	U_Data(CArrayLogicPortPtr, mapcOutput);
+	U_Pointer(mpcTerminalOutput);
 }
 
 
@@ -78,11 +101,11 @@ void CCounterPins::Init(CVoltageConfigurationSource* pcVoltageConfiguration, siz
 // The ports are freed by CPortHolder.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCounterPins::Kill(void)
+void CCounterPins::Free(void)
 {
 	mapcData.Kill();
 	mapcOutput.Kill();
-	CPins::Kill();
+	CPins::Free();
 }
 
 

@@ -28,12 +28,14 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //oscilloscope samples its traces' voltages rather than reading logic levels.
 class COscilloscopePins : public CPins
 {
+CONSTRUCTABLE(COscilloscopePins);
 protected:
 	CArrayLogicPortPtr	mapcInputs;
 
 public:
 			void				Init(size uiInputCount);
-	virtual void				Kill(void);
+			void				Class(void) override;
+			void				Free(void) override;
 
 			CArrayLogicPortPtr*	GetInputs(void);
 			CLogicPort*			GetInput(size uiIndex);

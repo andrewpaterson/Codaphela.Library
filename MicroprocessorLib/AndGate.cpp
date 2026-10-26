@@ -24,13 +24,17 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes ownership of pcPins.
+// Keeps pPins.
 //
 //////////////////////////////////////////////////////////////////////////
-void CAndGate::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CAndGatePins* pcPins)
+void CAndGate::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CAndGatePins> pPins)
 {
-	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pcPins);
+	PreInit();
+
+	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pPins);
 	mpcLogic = CreateLogic();
+
+	PostInit();
 }
 
 
@@ -38,11 +42,23 @@ void CAndGate::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, con
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAndGate::Kill(void)
+void CAndGate::Class(void)
+{
+	CIntegratedCircuit::Class();
+
+	U_Pointer(mpcLogic);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CAndGate::Free(void)
 {
 	free(mpcLogic);
 	mpcLogic = NULL;
-	CIntegratedCircuit::Kill();
+	CIntegratedCircuit::Free();
 }
 
 
@@ -80,7 +96,7 @@ CAndLogic* CAndGate::CreateLogic(void)
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CAndGate::GetType(void) { return AND_GATE_TYPE; }
-CAndGatePins* CAndGate::GetAndGatePins(void) { return (CAndGatePins*)mpcPins; }
+CAndGatePins* CAndGate::GetAndGatePins(void) { return (CAndGatePins*)&mpPins; }
 
 
 //////////////////////////////////////////////////////////////////////////

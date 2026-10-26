@@ -39,7 +39,8 @@ protected:
 
 public:
 			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, size uiPortCount);
-	virtual void			Kill(void);
+			void			Class(void) override;
+			void			Free(void) override;
 
 	virtual const char*		GetType(void);
 			size			NumTracePorts(void);

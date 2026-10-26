@@ -135,14 +135,11 @@ const char* CBufferView::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 CIntegratedCircuit* CBufferView::CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily)
 {
-	CBufferPins*	pcPins;
-	CBuffer*		pcBuffer;
-
-	pcPins = NewMalloc<CBufferPins>();
-	pcPins->Init(miInputCount * miInputWidth, pcFamily);
-	pcBuffer = mbNegated ? NewMalloc<CInverter>() : NewMalloc<CBuffer>();
-	pcBuffer->Init(pcSimulation, mszName.Text(), pcPins);
-	return pcBuffer;
+	if (mbNegated)
+	{
+		return &OMalloc<CInverter>(pcSimulation, mszName.Text(), OMalloc<CBufferPins>(miInputCount * miInputWidth, pcFamily));
+	}
+	return &OMalloc<CBuffer>(pcSimulation, mszName.Text(), OMalloc<CBufferPins>(miInputCount * miInputWidth, pcFamily));
 }
 
 

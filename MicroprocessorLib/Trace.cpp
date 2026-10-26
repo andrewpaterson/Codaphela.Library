@@ -54,11 +54,18 @@ void CTrace::Init(int64 iID)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The ports must already have been disconnected or killed.
+// Ports still on the trace forget it, without telling anyone, as when
+// a circuit is freed before its components.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTrace::Kill(void)
 {
+	size	i;
+
+	for (i = 0; i < mapcConnectedPorts.NumElements(); i++)
+	{
+		mapcConnectedPorts.GetPtr(i)->TraceKilled();
+	}
 	mapcConnectedPorts.Kill();
 }
 

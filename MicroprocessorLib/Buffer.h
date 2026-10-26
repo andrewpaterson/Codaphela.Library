@@ -34,7 +34,7 @@ class CBuffer : public CIntegratedCircuit
 {
 CONSTRUCTABLE(CBuffer);
 public:
-			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CBufferPins* pcPins);
+			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CBufferPins> pPins);
 
 	virtual void			SimulationStarted(CTimeline* pcTimeline);
 	virtual void			InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);

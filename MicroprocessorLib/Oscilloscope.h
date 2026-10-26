@@ -46,7 +46,7 @@ protected:
 	size		muiTickPosition;
 
 public:
-			void				Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, COscilloscopePins* pcPins, float32 fSampleFrequency, size uiNumberOfDivsWide, size uiSamplesPerDiv);
+			void				Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<COscilloscopePins> pPins, float32 fSampleFrequency, size uiNumberOfDivsWide, size uiSamplesPerDiv);
 
 	virtual void				SimulationStarted(CTimeline* pcTimeline);
 	virtual void				InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);
@@ -56,7 +56,8 @@ public:
 	virtual void				SaveXML(CXMLWriter* pcWriter);
 	virtual bool				LoadXML(CMarkupTag* pcTag);
 	virtual void				ResetState(void);
-	virtual void				Kill(void);
+			void				Class(void) override;
+			void				Free(void) override;
 
 			int64				GetSampleTime(void);
 			COscilloscopePins*	GetOscilloscopePins(void);

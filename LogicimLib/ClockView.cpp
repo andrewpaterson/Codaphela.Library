@@ -172,13 +172,9 @@ bool CClockView::LoadXML(CMarkupTag* pcTag)
 //////////////////////////////////////////////////////////////////////////
 CIntegratedCircuit* CClockView::CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily)
 {
-	CClockOscillatorPins*	pcPins;
 	CClockOscillator*		pcClock;
 
-	pcPins = NewMalloc<CClockOscillatorPins>();
-	pcPins->Init(pcFamily, mbInverseOut);
-	pcClock = NewMalloc<CClockOscillator>();
-	pcClock->Init(pcSimulation, mszName.Text(), pcPins, (float32)mfFrequency);
+	pcClock = &OMalloc<CClockOscillator>(pcSimulation, mszName.Text(), OMalloc<CClockOscillatorPins>(pcFamily, mbInverseOut), (float32)mfFrequency);
 	return pcClock;
 }
 

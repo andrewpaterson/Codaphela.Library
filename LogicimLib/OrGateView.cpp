@@ -102,25 +102,19 @@ CIntegratedCircuit* COrGateView::CreateIntegratedCircuit(CSubcircuitSimulation* 
 {
 	if (mbExclusive)
 	{
-		CXorGatePins*	pcPins;
-		CXorGate*		pcGate;
-
-		pcPins = NewMalloc<CXorGatePins>();
-		pcPins->Init(miInputCount * miInputWidth, pcFamily);
-		pcGate = mbNegated ? NewMalloc<CXnorGate>() : NewMalloc<CXorGate>();
-		pcGate->Init(pcSimulation, mszName.Text(), pcPins);
-		return pcGate;
+		if (mbNegated)
+		{
+			return &OMalloc<CXnorGate>(pcSimulation, mszName.Text(), OMalloc<CXorGatePins>(miInputCount * miInputWidth, pcFamily));
+		}
+		return &OMalloc<CXorGate>(pcSimulation, mszName.Text(), OMalloc<CXorGatePins>(miInputCount * miInputWidth, pcFamily));
 	}
 	else
 	{
-		COrGatePins*	pcPins;
-		COrGate*		pcGate;
-
-		pcPins = NewMalloc<COrGatePins>();
-		pcPins->Init(miInputCount * miInputWidth, pcFamily);
-		pcGate = mbNegated ? NewMalloc<CNorGate>() : NewMalloc<COrGate>();
-		pcGate->Init(pcSimulation, mszName.Text(), pcPins);
-		return pcGate;
+		if (mbNegated)
+		{
+			return &OMalloc<CNorGate>(pcSimulation, mszName.Text(), OMalloc<COrGatePins>(miInputCount * miInputWidth, pcFamily));
+		}
+		return &OMalloc<COrGate>(pcSimulation, mszName.Text(), OMalloc<COrGatePins>(miInputCount * miInputWidth, pcFamily));
 	}
 }
 

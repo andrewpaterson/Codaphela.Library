@@ -330,13 +330,9 @@ bool CConstantView::LoadXML(CMarkupTag* pcTag)
 //////////////////////////////////////////////////////////////////////////
 CIntegratedCircuit* CConstantView::CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily)
 {
-	CConstantPins*	pcPins;
 	CConstant*		pcConstant;
 
-	pcPins = NewMalloc<CConstantPins>();
-	pcPins->Init(pcFamily, miBitWidth);
-	pcConstant = NewMalloc<CConstant>();
-	pcConstant->Init(pcSimulation, mszName.Text(), pcPins, 0);
+	pcConstant = &OMalloc<CConstant>(pcSimulation, mszName.Text(), OMalloc<CConstantPins>(pcFamily, miBitWidth), 0);
 	return pcConstant;
 }
 
@@ -425,13 +421,9 @@ bool CProbeView::LoadXML(CMarkupTag* pcTag)
 //////////////////////////////////////////////////////////////////////////
 CIntegratedCircuit* CProbeView::CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily)
 {
-	CProbePins*		pcPins;
 	CProbe*			pcProbe;
 
-	pcPins = NewMalloc<CProbePins>();
-	pcPins->Init(pcFamily, miBitWidth);
-	pcProbe = NewMalloc<CProbe>();
-	pcProbe->Init(pcSimulation, mszName.Text(), pcPins);
+	pcProbe = &OMalloc<CProbe>(pcSimulation, mszName.Text(), OMalloc<CProbePins>(pcFamily, miBitWidth));
 	return pcProbe;
 }
 
@@ -594,14 +586,15 @@ CCircuitComponent* CPinView::CreateComponent(CViewPath* pcViewPath, CCircuitSimu
 		return NULL;
 	}
 
-	pcPin = NewMalloc<CPin>();
-	pcPin->Init(pcSimulation, mszName.Text(), miBitWidth);
+	pcPin = &OMalloc<CPin>(pcSimulation, mszName.Text(), miBitWidth);
 	apcSupplies.Init();
 	if (!mbExplicitPowerPorts)
 	{
 		if (!PowerPortsImplicitly(pcSimulation, pcPin->GetVoltageCommon(), pcPin->GetVoltageGround(), mpcFamily, &apcSupplies))
 		{
+			//Nothing points to the pin yet, so removing it frees it.
 			apcSupplies.Kill();
+			pcSimulation->GetCircuit()->Remove(pcPin);
 			return NULL;
 		}
 	}

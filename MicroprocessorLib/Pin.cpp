@@ -33,6 +33,8 @@ void CPin::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const c
 	CTracePort*	pcPort;
 	CChars		szPortName;
 
+	PreInit();
+
 	CPassive::Init(pcContainingSubcircuitSimulation, szName);
 	mapcTracePorts.Init();
 	for (i = 0; i < uiPortCount; i++)
@@ -49,6 +51,22 @@ void CPin::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const c
 	mpcVCC->Init(PT_PowerIn, POWER_PIN_VCC, this);
 	mpcGND = NewMalloc<CPowerInPort>();
 	mpcGND->Init(PT_PowerIn, POWER_PIN_GND, this);
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPin::Class(void)
+{
+	CPassive::Class();
+
+	U_Data(CArrayTracePortPtr, mapcTracePorts);
+	U_Pointer(mpcVCC);
+	U_Pointer(mpcGND);
 }
 
 
@@ -57,12 +75,12 @@ void CPin::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const c
 // The ports are freed by CPortHolder.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPin::Kill(void)
+void CPin::Free(void)
 {
 	mapcTracePorts.Kill();
 	mpcVCC = NULL;
 	mpcGND = NULL;
-	CPassive::Kill();
+	CPassive::Free();
 }
 
 

@@ -26,15 +26,34 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes ownership of pcPins.
+// Keeps pPins.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCounter::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CCounterPins* pcPins, size uiBitWidth, uint32 uiTerminalValue)
+void CCounter::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CCounterPins> pPins, size uiBitWidth, uint32 uiTerminalValue)
 {
-	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pcPins);
+	PreInit();
+
+	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pPins);
 	muiBitWidth = uiBitWidth;
 	muiTerminalValue = uiTerminalValue;
 	ResetState();
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCounter::Class(void)
+{
+	CIntegratedCircuit::Class();
+
+	U_Size(muiBitWidth);
+	U_UInt32(muiTerminalValue);
+	U_UInt32(muiCount);
+	U_Bool(mbTerminal);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -152,7 +171,7 @@ void CCounter::AppendCounterValueHex(CChars* psz)
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CCounter::GetType(void) { return COUNTER_TYPE; }
-CCounterPins* CCounter::GetCounterPins(void) { return (CCounterPins*)mpcPins; }
+CCounterPins* CCounter::GetCounterPins(void) { return (CCounterPins*)&mpPins; }
 uint32 CCounter::GetCount(void) { return muiCount; }
 void CCounter::SetCount(uint32 uiCount) { muiCount = uiCount; }
 bool CCounter::IsTerminal(void) { return mbTerminal; }

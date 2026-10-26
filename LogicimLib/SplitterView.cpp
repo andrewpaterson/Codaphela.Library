@@ -435,8 +435,7 @@ CCircuitComponent* CSplitterView::CreateComponent(CViewPath* pcViewPath, CCircui
 	aszStartNames.Init();
 	aszEndNames.Init();
 	GetPortNames(&aszStartNames, &aszEndNames);
-	pcSplitter = NewMalloc<CSplitter>();
-	pcSplitter->Init(pcSimulation, mszName.Text(), &aszStartNames, &aszEndNames);
+	pcSplitter = &OMalloc<CSplitter>(pcSimulation, mszName.Text(), &aszStartNames, &aszEndNames);
 	aszEndNames.Kill();
 	aszStartNames.Kill();
 

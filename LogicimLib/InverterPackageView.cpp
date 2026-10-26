@@ -157,13 +157,9 @@ int32 CInverterPackageView::GetUnitY(int iUnit, int iUnitCount)
 //////////////////////////////////////////////////////////////////////////
 CIntegratedCircuit* CInverterPackageView::CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily)
 {
-	CBufferPins*	pcPins;
 	CInverter*		pcInverter;
 
-	pcPins = NewMalloc<CBufferPins>();
-	pcPins->Init(miUnitCount, pcFamily);
-	pcInverter = NewMalloc<CInverter>();
-	pcInverter->Init(pcSimulation, mszName.Text(), pcPins);
+	pcInverter = &OMalloc<CInverter>(pcSimulation, mszName.Text(), OMalloc<CBufferPins>(miUnitCount, pcFamily));
 	return pcInverter;
 }
 

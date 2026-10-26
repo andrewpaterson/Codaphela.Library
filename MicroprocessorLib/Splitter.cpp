@@ -28,11 +28,28 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //////////////////////////////////////////////////////////////////////////
 void CSplitter::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CArrayChars* paszStartPortNames, CArrayChars* paszEndPortNames)
 {
+	PreInit();
+
 	CPassive::Init(pcContainingSubcircuitSimulation, szName);
 	mapcStartPorts.Init();
 	mapcEndPorts.Init();
 	AddTracePorts(&mapcStartPorts, paszStartPortNames);
 	AddTracePorts(&mapcEndPorts, paszEndPortNames);
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSplitter::Class(void)
+{
+	CPassive::Class();
+
+	U_Data(CArrayTracePortPtr, mapcStartPorts);
+	U_Data(CArrayTracePortPtr, mapcEndPorts);
 }
 
 
@@ -41,11 +58,11 @@ void CSplitter::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, co
 // The ports are freed by CPortHolder.
 //
 //////////////////////////////////////////////////////////////////////////
-void CSplitter::Kill(void)
+void CSplitter::Free(void)
 {
 	mapcStartPorts.Kill();
 	mapcEndPorts.Kill();
-	CPassive::Kill();
+	CPassive::Free();
 }
 
 

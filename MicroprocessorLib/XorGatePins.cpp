@@ -32,6 +32,8 @@ void CXorGatePins::Init(size uiInputCount, CVoltageConfigurationSource* pcVoltag
 	CLogicPort*	pcPort;
 	CChars		szName;
 
+	PreInit();
+
 	CPins::Init();
 	mpcOutput = NewMalloc<CLogicPort>();
 	mpcOutput->Init(PT_Output, this, "Output", pcVoltageConfiguration);
@@ -46,6 +48,21 @@ void CXorGatePins::Init(size uiInputCount, CVoltageConfigurationSource* pcVoltag
 		mapcInputs.Add(pcPort);
 		szName.Kill();
 	}
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CXorGatePins::Class(void)
+{
+	CPins::Class();
+
+	U_Data(CArrayLogicPortPtr, mapcInputs);
+	U_Pointer(mpcOutput);
 }
 
 
@@ -54,11 +71,11 @@ void CXorGatePins::Init(size uiInputCount, CVoltageConfigurationSource* pcVoltag
 // The ports are freed by CPortHolder.
 //
 //////////////////////////////////////////////////////////////////////////
-void CXorGatePins::Kill(void)
+void CXorGatePins::Free(void)
 {
 	mapcInputs.Kill();
 	mpcOutput = NULL;
-	CPins::Kill();
+	CPins::Free();
 }
 
 

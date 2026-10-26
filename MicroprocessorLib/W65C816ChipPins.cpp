@@ -45,6 +45,8 @@ void CW65C816ChipPins::Init(CVoltageConfigurationSource* pcVoltageConfiguration)
 	size	i;
 	CChars	szName;
 
+	PreInit();
+
 	CPins::Init();
 	mcAddress.Init();
 	for (i = 0; i < 16; i++)
@@ -77,6 +79,35 @@ void CW65C816ChipPins::Init(CVoltageConfigurationSource* pcVoltageConfiguration)
 	mpcBE = AddChipPort(this, PT_Input, "BE", pcVoltageConfiguration);
 	mpcE = AddChipPort(this, PT_Output, "E", pcVoltageConfiguration);
 	mpcRWB = AddChipPort(this, PT_Output, "RWB", pcVoltageConfiguration);
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816ChipPins::Class(void)
+{
+	CPins::Class();
+
+	U_Data(CLogicPortBus, mcAddress);
+	U_Data(CLogicPortBus, mcData);
+	U_Pointer(mpcVPB);
+	U_Pointer(mpcRDY);
+	U_Pointer(mpcABORTB);
+	U_Pointer(mpcIRQB);
+	U_Pointer(mpcNMIB);
+	U_Pointer(mpcMLB);
+	U_Pointer(mpcVPA);
+	U_Pointer(mpcVDA);
+	U_Pointer(mpcRESB);
+	U_Pointer(mpcMX);
+	U_Pointer(mpcPHI2);
+	U_Pointer(mpcBE);
+	U_Pointer(mpcE);
+	U_Pointer(mpcRWB);
 }
 
 
@@ -85,11 +116,11 @@ void CW65C816ChipPins::Init(CVoltageConfigurationSource* pcVoltageConfiguration)
 // The ports are freed by CPortHolder.
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816ChipPins::Kill(void)
+void CW65C816ChipPins::Free(void)
 {
 	mcAddress.Kill();
 	mcData.Kill();
-	CPins::Kill();
+	CPins::Free();
 }
 
 
