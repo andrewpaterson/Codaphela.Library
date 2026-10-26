@@ -58,6 +58,21 @@ void CCounter::SimulationStarted(CTimeline* pcTimeline)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The count and whether it's at the terminal count.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCounter::WriteOutputs(CTimeline* pcTimeline)
+{
+	CCounterPins*	pcPins;
+
+	pcPins = GetCounterPins();
+	pcPins->WriteOutput(pcTimeline, muiCount, muiBitWidth);
+	pcPins->GetTerminalOutput()->WriteBool(pcTimeline, mbTerminal);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCounter::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
@@ -105,17 +120,12 @@ void CCounter::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 	}
 
 	uiState = muiCount;
-	if (uiOldState != uiState)
-	{
-		pcPins->WriteOutput(pcTimeline, uiState, muiBitWidth);
-	}
-
 	bOldTerminal = mbTerminal;
 	bTerminal = (uiState == muiTerminalValue) && bCountEnableTerminal;
 	mbTerminal = bTerminal;
-	if (bOldTerminal != bTerminal)
+	if ((uiOldState != uiState) || (bOldTerminal != bTerminal))
 	{
-		pcPins->GetTerminalOutput()->WriteBool(pcTimeline, bTerminal);
+		WriteOutputs(pcTimeline);
 	}
 }
 

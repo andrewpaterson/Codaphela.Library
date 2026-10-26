@@ -35,6 +35,12 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //A chip that remembers anything (a clock's level, a flip-flop's bit) keeps it in its own fields, set up by its Init
 //and set back by ResetState.  Logicim keeps those in a separate State object; here they are part of the chip.
 //
+//A chip whose outputs come from what it remembers drives them from it in WriteOutputs, which Reset calls once the
+//chip has started, as a real part drives its outputs from power up, and which the chip calls itself whenever what it
+//remembers changes.  Logicim's chips only drive them when what they
+//remember changes, so until then they're undriven, and a chip fed back to itself (a flip-flop's QB to its D) never
+//starts.  Chips whose outputs follow their inputs (gates) don't override it; undriven inputs leave them undriven.
+//
 //Logicim's IntegratedCircuit is generic over its pins and state; here a subclass casts GetPins.
 class CIntegratedCircuitEvent;
 class CIntegratedCircuit : public CCircuitComponent
@@ -53,6 +59,7 @@ public:
 	virtual void			Disconnect(CTimeline* pcTimeline);
 	virtual void			Reset(CTimeline* pcTimeline);
 	virtual void			ResetState(void);
+	virtual void			WriteOutputs(CTimeline* pcTimeline);
 
 	virtual void			SimulationStarted(CTimeline* pcTimeline) =0;
 	virtual void			InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort) =0;
