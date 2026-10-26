@@ -93,12 +93,16 @@ CStatefulEdit* CSelectionEdit::Rotate(bool bRight, CCircuitEdit* pcEdit)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The rectangle ends where it was last dragged to.
+// The rectangle ends where it was last dragged to.  A changed selection
+// can be undone.
 //
 //////////////////////////////////////////////////////////////////////////
 void CSelectionEdit::Done(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit)
 {
-	mpcEditor->SelectInRectangle(msStart, msEnd, &mcPrevious);
+	if (mpcEditor->SelectInRectangle(msStart, msEnd, &mcPrevious))
+	{
+		mpcEditor->PushUndo(true);
+	}
 }
 
 
@@ -258,7 +262,8 @@ CStatefulEdit* CStartEditInComponent::Rotate(bool bRight, CCircuitEdit* pcEdit)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A click on a selected view selects as a click anywhere does.
+// A click on a selected view selects as a click anywhere does.  A changed
+// selection can be undone.
 //
 //////////////////////////////////////////////////////////////////////////
 void CStartEditInComponent::Done(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit)
@@ -267,7 +272,10 @@ void CStartEditInComponent::Done(SFloat64Vec2 sPosition, CCircuitEdit* pcEdit)
 
 	cPrevious.Init();
 	cPrevious.Set(pcEdit->GetEditor()->GetSelection());
-	pcEdit->GetEditor()->SelectInRectangle(sPosition, sPosition, &cPrevious);
+	if (pcEdit->GetEditor()->SelectInRectangle(sPosition, sPosition, &cPrevious))
+	{
+		pcEdit->GetEditor()->PushUndo(true);
+	}
 	cPrevious.Kill();
 }
 

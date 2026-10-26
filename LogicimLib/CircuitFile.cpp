@@ -21,11 +21,15 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/XMLFile.h"
+#include "BaseLib/XMLParser.h"
 #include "BaseLib/LogString.h"
 #include "BaseLib/StringHelper.h"
 #include "MicroprocessorLib/CircuitSimulation.h"
 #include "SimulationStateXML.h"
 #include "CircuitFile.h"
+
+
+static CMarkupTag* CheckCircuitRoot(CMarkupTag* pcRoot, const char* szSource, const char* szContents);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -99,8 +103,6 @@ CMarkupTag* ReadCircuitFileRoot(CXMLFile* pcFile, const char* szFilename, const 
 	CFileUtil	cFileUtil;
 	CChars		szName;
 	CChars		szDirectory;
-	CMarkupTag*	pcRoot;
-	int32		iVersion;
 	bool		bResult;
 
 	szName.Init();
@@ -118,20 +120,58 @@ CMarkupTag* ReadCircuitFileRoot(CXMLFile* pcFile, const char* szFilename, const 
 		return NULL;
 	}
 
-	pcRoot = pcFile->mcMarkup.mpcDoc->GetRootTag();
+	return CheckCircuitRoot(pcFile->mcMarkup.mpcDoc->GetRootTag(), szFilename, szContents);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As ReadCircuitFileRoot, from a document in szText, such as a
+// CXMLWriter's.  szSource names it in errors.  The markup must be
+// initialised, and killed whatever this returns.
+//
+//////////////////////////////////////////////////////////////////////////
+CMarkupTag* ReadCircuitTextRoot(CMarkup* pcMarkup, const char* szText, const char* szSource, const char* szContents)
+{
+	CXMLParser	cParser;
+	TRISTATE	tResult;
+
+	cParser.Init(szText, szSource, pcMarkup->mpcDoc, &gcLogger);
+	tResult = cParser.Parse();
+	cParser.Kill();
+	if ((tResult != TRITRUE) || !pcMarkup->mpcDoc->FixReferences())
+	{
+		gcLogger.Error2(__METHOD__, " [", szSource, "] could not be read.", NULL);
+		return NULL;
+	}
+
+	return CheckCircuitRoot(pcMarkup->mpcDoc->GetRootTag(), szSource, szContents);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The root must be a <Logicim> of this version holding an szContents
+// element.
+//
+//////////////////////////////////////////////////////////////////////////
+static CMarkupTag* CheckCircuitRoot(CMarkupTag* pcRoot, const char* szSource, const char* szContents)
+{
+	int32	iVersion;
+
 	if ((pcRoot == NULL) || !pcRoot->Is("Logicim"))
 	{
-		gcLogger.Error2(__METHOD__, " [", szFilename, "] isn't a Logicim circuit.", NULL);
+		gcLogger.Error2(__METHOD__, " [", szSource, "] isn't a Logicim circuit.", NULL);
 		return NULL;
 	}
 	if (!pcRoot->GetInt32Attribute("version", &iVersion) || (iVersion != CIRCUIT_FILE_VERSION))
 	{
-		gcLogger.Error2(__METHOD__, " [", szFilename, "] is not version [", IntToString((int32)CIRCUIT_FILE_VERSION), "].", NULL);
+		gcLogger.Error2(__METHOD__, " [", szSource, "] is not version [", IntToString((int32)CIRCUIT_FILE_VERSION), "].", NULL);
 		return NULL;
 	}
 	if (pcRoot->GetTag(szContents) == NULL)
 	{
-		gcLogger.Error2(__METHOD__, " [", szFilename, "] has no [", szContents, "].", NULL);
+		gcLogger.Error2(__METHOD__, " [", szSource, "] has no [", szContents, "].", NULL);
 		return NULL;
 	}
 	return pcRoot;

@@ -24,11 +24,14 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CircuitFonts.h"
 #include "CircuitSelection.h"
 #include "CircuitEdit.h"
+#include "UndoStack.h"
 
 
 class CCircuitSimulation;
 class CFamilyVoltageConfigurationStore;
 class CWirePullEdit;
+class CXMLWriter;
+class CMarkupTag;
 
 
 //The wires from a port of a component being moved to the next junction or port, and where they end: a port of a
@@ -98,8 +101,13 @@ typedef CArrayTemplate<SMoveAnchor>	CArrayMoveAnchor;
 //hovered component's, or else the selected one's, are listed by GetProperties and a new component made from them (and
 //turned to a rotation) replaces it, in the circuit and in the running simulations, by SetProperties.
 //
-//A saved project is a circuits file (see CircuitFile.h) with an <Editor> element naming the circuit being edited and
-//the rotation new components are placed with.
+//A saved project is a circuits file (see CircuitFile.h) with an <Editor> element naming the circuit being edited, the
+//rotation new components are placed with and the selection in it (each <Selected> a component's or wire's index).
+//
+//Undo and redo are Logicim's: after each change (and a load, and starting to simulate a circuit) the whole project is
+//saved onto an undo stack (see CUndoStack), and undoing or redoing loads one of those again, simulation and all.  A
+//change that only changed the selection is marked so: Undo and Redo skip it, as if it were part of the change before
+//or after it, and stepping (as Logicim does) doesn't.
 class CCircuitEditor
 {
 protected:
@@ -109,6 +117,7 @@ protected:
 	CFamilyVoltageConfigurationStore*	mpcFamilies;
 	CCircuitFonts*						mpcFonts;
 	CCircuitSelection					mcSelection;
+	CUndoStack							mcUndo;
 	CCircuitEdit*						mpcEdit;
 	CComponentView*						mpcNextUnit;
 	ERotation							meCreationRotation;
@@ -149,6 +158,14 @@ public:
 
 	bool				Save(const char* szFilename);
 	bool				Load(const char* szFilename);
+	void				SaveXML(CXMLWriter* pcWriter);
+	bool				LoadXML(CMarkupTag* pcRoot, const char* szSource);
+	void				PushUndo(bool bSelectionOnly);
+	bool				Undo(bool bStep = false);
+	bool				Redo(bool bStep = false);
+	bool				CanUndo(bool bStep = false);
+	bool				CanRedo(bool bStep = false);
+	CUndoStack*			GetUndoStack(void);
 
 	void				Paint(CCircuitPainter* pcPainter);
 
@@ -198,6 +215,9 @@ protected:
 	void				CreateComponents(CArrayComponentViewPtr* papcComponents);
 	bool				Rewire(void);
 	void				KillProject(void);
+	bool				LoadUndo(size uiIndex);
+	size				FindComponentIndex(CComponentView* pcComponent);
+	size				FindTraceIndex(CTraceView* pcTrace);
 	void				KillSimulation(void);
 };
 
