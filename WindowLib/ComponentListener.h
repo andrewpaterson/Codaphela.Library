@@ -26,7 +26,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CComponentListener : public CTextEditor, public CListener
 {
-	CONSTRUCTABLE(CComponentListener);
+CONSTRUCTABLE(CComponentListener);
 public:
 	virtual void Up(void) {};
 	virtual void Down(void) {};
@@ -80,6 +80,12 @@ public:
 	virtual void DeleteWordRemainingRight(void) {};
 	virtual void DeleteWordRemainingLeft(void) {};
 	virtual void DeleteLine(void) {};
+
+	//Undo and redo; stepping goes one change at a time where a component skips some.
+	virtual void Undo(void) {};
+	virtual void StepUndo(void) {};
+	virtual void Redo(void) {};
+	virtual void StepRedo(void) {};
 
 	//Mouse/Miscellaneous
 	virtual void ActivateComponent(int x, int y) {};
