@@ -58,6 +58,7 @@ public:
 			bool			Connect(CTrace* pcTrace, bool bExplicit);
 			bool			ConnectLive(CTrace* pcTrace, CTimeline* pcTimeline);
 	virtual void			Disconnect(CTimeline* pcTimeline);
+			void			TraceKilled(void);
 	virtual void			TraceConnected(CTimeline* pcTimeline);
 	virtual void			TraceUndriven(CTimeline* pcTimeline);
 	virtual void			Reset(void);

@@ -32,7 +32,7 @@ class CProbe : public CIntegratedCircuit
 {
 CONSTRUCTABLE(CProbe);
 public:
-			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CProbePins* pcPins);
+			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CProbePins> pPins);
 
 	virtual void			SimulationStarted(CTimeline* pcTimeline);
 	virtual void			InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);

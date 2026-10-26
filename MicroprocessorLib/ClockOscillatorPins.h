@@ -27,13 +27,15 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //Logicim's ClockOscillatorPins: "Output", and "Output2", the inverse, if asked for.
 class CClockOscillatorPins : public CPins
 {
+CONSTRUCTABLE(CClockOscillatorPins);
 protected:
 	CLogicPort*		mpcOutput;
 	CLogicPort*		mpcOutputInverse;
 
 public:
 			void		Init(CVoltageConfigurationSource* pcVoltageConfiguration, bool bInverseOut);
-	virtual void		Kill(void);
+			void		Class(void) override;
+			void		Free(void) override;
 
 			CLogicPort*	GetOutput(void);
 			CLogicPort*	GetOutputInverse(void);

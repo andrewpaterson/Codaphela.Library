@@ -868,7 +868,10 @@ bool CSubcircuitInstanceView::LoadXML(CMarkupTag* pcTag)
 // Logicim's createComponent: a subcircuit instance in the path's
 // subcircuit simulation with trace ports for every pin of the subcircuit
 // (shown on the instance or not), and the subcircuit simulation its
-// subcircuit is made in for the path through this instance.
+// subcircuit is made in for the path through this instance.  If it fails
+// before the view knows the instance, the instance (and its simulation)
+// are taken out again; once the view knows it, it is left for
+// DestroyComponent.
 //
 //////////////////////////////////////////////////////////////////////////
 CCircuitComponent* CSubcircuitInstanceView::CreateComponent(CViewPath* pcViewPath, CCircuitSimulation* pcCircuitSimulation, CFamilyVoltageConfigurationStore* pcFamilies)
@@ -898,8 +901,7 @@ CCircuitComponent* CSubcircuitInstanceView::CreateComponent(CViewPath* pcViewPat
 		return NULL;
 	}
 
-	pcInstance = NewMalloc<CSubcircuitInstance>();
-	pcInstance->Init(pcSimulation, mszName.Text());
+	pcInstance = &OMalloc<CSubcircuitInstance>(pcSimulation, mszName.Text());
 	apcPins.Init();
 	GetCircuitPinViews(mpcInstanceCircuitView, &apcPins);
 	bResult = true;
@@ -914,6 +916,8 @@ CCircuitComponent* CSubcircuitInstanceView::CreateComponent(CViewPath* pcViewPat
 	apcPins.Kill();
 	if (!bResult)
 	{
+		//Nothing points to the instance yet, so removing it frees it.
+		pcSimulation->GetCircuit()->Remove(pcInstance);
 		return NULL;
 	}
 
@@ -921,6 +925,9 @@ CCircuitComponent* CSubcircuitInstanceView::CreateComponent(CViewPath* pcViewPat
 	pcInstance->SetSubcircuitInstanceSimulation(pcInstanceSimulation);
 	if (!pcChild->AddSubcircuitSimulation(pcInstanceSimulation))
 	{
+		//The instance goes first, as CCircuitView::DestroyComponent takes it out before its simulation.
+		pcSimulation->GetCircuit()->Remove(pcInstance);
+		pcCircuitSimulation->RemoveInstanceSimulation(pcInstanceSimulation);
 		return NULL;
 	}
 	if (!PostCreateComponent(pcViewPath, pcCircuitSimulation, pcInstance))

@@ -25,12 +25,16 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes ownership of pcPins.
+// Keeps pPins.
 //
 //////////////////////////////////////////////////////////////////////////
-void CBuffer::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CBufferPins* pcPins)
+void CBuffer::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CBufferPins> pPins)
 {
-	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pcPins);
+	PreInit();
+
+	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pPins);
+
+	PostInit();
 }
 
 
@@ -84,7 +88,7 @@ void CBuffer::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 //////////////////////////////////////////////////////////////////////////
 bool CBuffer::TransformOutput(bool bValue) { return bValue; }
 const char* CBuffer::GetType(void) { return BUFFER_TYPE; }
-CBufferPins* CBuffer::GetBufferPins(void) { return (CBufferPins*)mpcPins; }
+CBufferPins* CBuffer::GetBufferPins(void) { return (CBufferPins*)&mpPins; }
 
 
 //////////////////////////////////////////////////////////////////////////

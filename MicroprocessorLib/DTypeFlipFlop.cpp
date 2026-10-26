@@ -26,13 +26,29 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes ownership of pcPins.
+// Keeps pPins.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDTypeFlipFlop::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CDTypeFlipFlopPins* pcPins)
+void CDTypeFlipFlop::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CDTypeFlipFlopPins> pPins)
 {
-	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pcPins);
+	PreInit();
+
+	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pPins);
 	ResetState();
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDTypeFlipFlop::Class(void)
+{
+	CIntegratedCircuit::Class();
+
+	U_Bool(mbState);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -146,7 +162,7 @@ bool CDTypeFlipFlop::ChangeState(bool bState)
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CDTypeFlipFlop::GetType(void) { return D_TYPE_FLIP_FLOP_TYPE; }
-CDTypeFlipFlopPins* CDTypeFlipFlop::GetDTypeFlipFlopPins(void) { return (CDTypeFlipFlopPins*)mpcPins; }
+CDTypeFlipFlopPins* CDTypeFlipFlop::GetDTypeFlipFlopPins(void) { return (CDTypeFlipFlopPins*)&mpPins; }
 bool CDTypeFlipFlop::GetState(void) { return mbState; }
 void CDTypeFlipFlop::SetState(bool bState) { mbState = bState; }
 

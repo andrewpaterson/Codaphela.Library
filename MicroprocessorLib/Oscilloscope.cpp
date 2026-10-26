@@ -35,22 +35,26 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes ownership of pcPins.  fSampleFrequency is in hertz.
+// Keeps pPins.  fSampleFrequency is in hertz.
 //
 //////////////////////////////////////////////////////////////////////////
-void COscilloscope::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, COscilloscopePins* pcPins, float32 fSampleFrequency, size uiNumberOfDivsWide, size uiSamplesPerDiv)
+void COscilloscope::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<COscilloscopePins> pPins, float32 fSampleFrequency, size uiNumberOfDivsWide, size uiSamplesPerDiv)
 {
-	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pcPins);
+	PreInit();
+
+	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pPins);
 	mfSampleFrequency = fSampleFrequency;
 	miSampleTime = FrequencyToTime(fSampleFrequency);
 	muiNumberOfDivsWide = uiNumberOfDivsWide;
 	muiSamplesPerDiv = uiSamplesPerDiv;
 
-	muiInputCount = pcPins->GetInputs()->NumElements();
+	muiInputCount = pPins->GetInputs()->NumElements();
 	muiSampleCount = uiNumberOfDivsWide * uiSamplesPerDiv;
 	mafMinVoltage = (float32*)malloc(muiInputCount * muiSampleCount * sizeof(float32));
 	mafMaxVoltage = (float32*)malloc(muiInputCount * muiSampleCount * sizeof(float32));
 	ResetState();
+
+	PostInit();
 }
 
 
@@ -58,11 +62,31 @@ void COscilloscope::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COscilloscope::Kill(void)
+void COscilloscope::Class(void)
+{
+	CIntegratedCircuit::Class();
+
+	U_Float32(mfSampleFrequency);
+	U_Int64(miSampleTime);
+	U_Size(muiNumberOfDivsWide);
+	U_Size(muiSamplesPerDiv);
+	U_Size(muiInputCount);
+	U_Size(muiSampleCount);
+	U_Pointer(mafMinVoltage);
+	U_Pointer(mafMaxVoltage);
+	U_Size(muiTickPosition);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void COscilloscope::Free(void)
 {
 	SafeFree(mafMinVoltage);
 	SafeFree(mafMaxVoltage);
-	CIntegratedCircuit::Kill();
+	CIntegratedCircuit::Free();
 }
 
 
@@ -128,7 +152,7 @@ void COscilloscope::ExecuteTick(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 const char* COscilloscope::GetType(void) { return OSCILLOSCOPE_TYPE; }
 int64 COscilloscope::GetSampleTime(void) { return miSampleTime; }
-COscilloscopePins* COscilloscope::GetOscilloscopePins(void) { return (COscilloscopePins*)mpcPins; }
+COscilloscopePins* COscilloscope::GetOscilloscopePins(void) { return (COscilloscopePins*)&mpPins; }
 size COscilloscope::GetInputCount(void) { return muiInputCount; }
 size COscilloscope::GetSampleCount(void) { return muiSampleCount; }
 size COscilloscope::GetTickPosition(void) { return muiTickPosition; }

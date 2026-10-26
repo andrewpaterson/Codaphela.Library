@@ -39,7 +39,8 @@ protected:
 	bool	mbState;
 
 public:
-			void					Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CDTypeFlipFlopPins* pcPins);
+			void					Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CDTypeFlipFlopPins> pPins);
+			void					Class(void) override;
 
 	virtual void					SimulationStarted(CTimeline* pcTimeline);
 	virtual void					WriteOutputs(CTimeline* pcTimeline);

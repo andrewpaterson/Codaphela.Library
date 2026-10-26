@@ -253,13 +253,9 @@ bool CW65C816View::LoadXML(CMarkupTag* pcTag)
 //////////////////////////////////////////////////////////////////////////
 CIntegratedCircuit* CW65C816View::CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily)
 {
-	CW65C816ChipPins*	pcPins;
 	CW65C816Chip*		pcChip;
 
-	pcPins = NewMalloc<CW65C816ChipPins>();
-	pcPins->Init(pcFamily);
-	pcChip = NewMalloc<CW65C816Chip>();
-	pcChip->Init(pcSimulation, mszName.Text(), pcPins);
+	pcChip = &OMalloc<CW65C816Chip>(pcSimulation, mszName.Text(), OMalloc<CW65C816ChipPins>(pcFamily));
 	return pcChip;
 }
 

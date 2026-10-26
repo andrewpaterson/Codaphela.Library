@@ -50,7 +50,8 @@ protected:
 
 public:
 			void							Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName);
-	virtual void							Kill(void);
+			void							Class(void) override;
+			void							Free(void) override;
 
 	virtual const char*						GetType(void);
 			CArrayTracePortPtr*				AddTracePorts(const char* szPinName, size uiPortCount);

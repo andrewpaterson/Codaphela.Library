@@ -27,13 +27,15 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //Logicim's OrGatePins: an "Output" and inputCount inputs, "Input" or "Input 0" up.
 class COrGatePins : public CPins
 {
+CONSTRUCTABLE(COrGatePins);
 protected:
 	CArrayLogicPortPtr	mapcInputs;
 	CLogicPort*			mpcOutput;
 
 public:
 			void				Init(size uiInputCount, CVoltageConfigurationSource* pcVoltageConfiguration);
-	virtual void				Kill(void);
+			void				Class(void) override;
+			void				Free(void) override;
 
 			CLogicPort*			GetOutput(void);
 			CArrayLogicPortPtr*	GetInputs(void);

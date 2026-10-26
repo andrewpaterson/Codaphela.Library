@@ -27,12 +27,14 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //Logicim's ConstantPins: an output per bit, "Output 0" up, the least significant first.
 class CConstantPins : public CPins
 {
+CONSTRUCTABLE(CConstantPins);
 protected:
 	CArrayLogicPortPtr	mapcOutputs;
 
 public:
 			void				Init(CVoltageConfigurationSource* pcVoltageConfiguration, size uiBitWidth);
-	virtual void				Kill(void);
+			void				Class(void) override;
+			void				Free(void) override;
 
 			CArrayLogicPortPtr*	GetOutputs(void);
 			CLogicPort*			GetOutput(size uiIndex);

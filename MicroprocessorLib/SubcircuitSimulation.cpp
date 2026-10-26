@@ -163,7 +163,7 @@ void CSubcircuitInstanceSimulation::AppendDescription(CChars* psz)
 	CSubcircuitSimulation::AppendDescription(psz);
 	if (mpcSubcircuitInstance != NULL)
 	{
-		szName = mpcSubcircuitInstance->GetName();
+		szName = mpcSubcircuitInstance->GetComponentName();
 		if ((szName != NULL) && (szName[0] != '\0'))
 		{
 			psz->Append(" Name[");

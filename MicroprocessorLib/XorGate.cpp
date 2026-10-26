@@ -24,12 +24,16 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes ownership of pcPins.
+// Keeps pPins.
 //
 //////////////////////////////////////////////////////////////////////////
-void CXorGate::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CXorGatePins* pcPins)
+void CXorGate::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CXorGatePins> pPins)
 {
-	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pcPins);
+	PreInit();
+
+	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pPins);
+
+	PostInit();
 }
 
 
@@ -93,7 +97,7 @@ void CXorGate::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 //////////////////////////////////////////////////////////////////////////
 bool CXorGate::TransformOutput(bool bValue) { return bValue; }
 const char* CXorGate::GetType(void) { return XOR_GATE_TYPE; }
-CXorGatePins* CXorGate::GetXorGatePins(void) { return (CXorGatePins*)mpcPins; }
+CXorGatePins* CXorGate::GetXorGatePins(void) { return (CXorGatePins*)&mpPins; }
 
 
 //////////////////////////////////////////////////////////////////////////

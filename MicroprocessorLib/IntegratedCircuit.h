@@ -28,9 +28,9 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //Logicim's IntegratedCircuit: a chip with CPins.  Subclasses create their state, start it when the simulation starts
 //and respond when an input transitions; a clocked chip can schedule CTickEvents.
 //
-//A chip is made with NewMalloc; Init adds it to its circuit, which kills and frees it, see CCircuitComponent.  The chip
-//owns its pins, which are made with NewMalloc too.  Killing a chip takes its events, and its ports' events, off the
-//timeline and disconnects its ports.
+//A chip is made with OMalloc; Init adds it to its circuit, see CCircuitComponent.  Its pins are made with OMalloc too
+//and given to Init; the chip's pointer to them keeps them alive.  Freeing a chip takes its own events off the timeline;
+//freeing its pins takes their ports' events off and disconnects the ports.
 //
 //A chip that remembers anything (a clock's level, a flip-flop's bit) keeps it in its own fields, set up by its Init
 //and set back by ResetState.  Logicim keeps those in a separate State object; here they are part of the chip.
@@ -53,12 +53,13 @@ class CIntegratedCircuit : public CCircuitComponent
 {
 CONSTRUCTABLE(CIntegratedCircuit);
 protected:
-	CPins*			mpcPins;
+	Ptr<CPins>		mpPins;
 	CArrayEventPtr	mapcEvents;
 
 public:
-			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CPins* pcPins);
-	virtual void			Kill(void);
+			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CPins> pPins);
+			void			Class(void) override;
+			void			Free(void) override;
 
 	virtual void			ExecuteTick(CTimeline* pcTimeline);
 	virtual void			TraceConnected(CTimeline* pcTimeline, CPort* pcPort);

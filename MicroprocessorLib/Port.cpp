@@ -145,6 +145,17 @@ bool CPort::ConnectLive(CTrace* pcTrace, CTimeline* pcTimeline)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Called by CTrace::Kill.  The trace is going, so it isn't told.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPort::TraceKilled(void)
+{
+	mpcTrace = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CPort::Disconnect(CTimeline* pcTimeline)
@@ -257,7 +268,7 @@ void CPort::AppendDebugString(CChars* psz)
 {
 	char*	szHolderName;
 
-	szHolderName = mpcHolder->GetName();
+	szHolderName = mpcHolder->GetComponentName();
 	if (szHolderName != NULL)
 	{
 		psz->Append(szHolderName);

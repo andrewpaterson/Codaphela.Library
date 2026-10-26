@@ -30,9 +30,25 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //////////////////////////////////////////////////////////////////////////
 void CPassive::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName)
 {
+	PreInit();
+
 	CCircuitComponent::Init(pcContainingSubcircuitSimulation, szName);
-	CPortHolder::Init();
+	CPortHolder::InitPorts();
 	GetCircuit()->Add(this);
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPassive::Class(void)
+{
+	CCircuitComponent::Class();
+
+	U_Data(CArrayPortPtr, mapcPorts);
 }
 
 
@@ -41,10 +57,10 @@ void CPassive::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, con
 // Kills the ports, which disconnects them from their traces.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPassive::Kill(void)
+void CPassive::Free(void)
 {
-	CPortHolder::Kill();
-	CCircuitComponent::Kill();
+	CPortHolder::KillPorts();
+	CCircuitComponent::Free();
 }
 
 
@@ -110,7 +126,7 @@ void CPassive::TraceConnected(CTimeline* pcTimeline, CPort* pcPort)
 size CPassive::NumPorts(void) { return CPortHolder::NumPorts(); }
 CPort* CPassive::GetPort(size uiIndex) { return CPortHolder::GetPort(uiIndex); }
 CPort* CPassive::GetPort(const char* szName) { return CPortHolder::GetPort(szName); }
-char* CPassive::GetName(void) { return CCircuitComponent::GetName(); }
+char* CPassive::GetComponentName(void) { return CCircuitComponent::GetComponentName(); }
 void CPassive::AppendDescription(CChars* psz) { CCircuitComponent::AppendDescription(psz); }
 CCircuitComponent* CPassive::GetComponent(void) { return this; }
 

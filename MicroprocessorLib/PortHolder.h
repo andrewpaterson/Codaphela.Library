@@ -23,7 +23,8 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #include "Port.h"
 
 
-//Logicim's PortHolder: owns its ports, see CPort.  CPins is the holder of a chip's ports.
+//Logicim's PortHolder: owns its ports, see CPort.  CPins is the holder of a chip's ports.  Both holders are CObjects,
+//so the ports are set up and freed by InitPorts and KillPorts, not Init and Kill.
 class CCircuitComponent;
 class CPortHolder
 {
@@ -31,8 +32,8 @@ protected:
 	CArrayPortPtr	mapcPorts;
 
 public:
-			void	Init(void);
-	virtual void	Kill(void);
+			void	InitPorts(void);
+			void	KillPorts(void);
 
 			void	AddPort(CPort* pcPort);
 			CPort*	GetPort(const char* szName);
@@ -40,7 +41,7 @@ public:
 			CPort*	GetPort(size uiIndex);
 
 	virtual void	TraceConnected(CTimeline* pcTimeline, CPort* pcPort) =0;
-	virtual char*	GetName(void) =0;
+	virtual char*	GetComponentName(void) =0;
 	virtual void	AppendDescription(CChars* psz) =0;
 	virtual CCircuitComponent*	GetComponent(void) =0;
 };

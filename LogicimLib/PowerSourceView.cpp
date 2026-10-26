@@ -55,8 +55,7 @@ CCircuitComponent* CPowerSourceView::CreateComponent(CViewPath* pcViewPath, CCir
 		return NULL;
 	}
 
-	pcPowerSource = NewMalloc<CPowerSource>();
-	pcPowerSource->Init(pcSimulation, mszName.Text(), mfVoltage);
+	pcPowerSource = &OMalloc<CPowerSource>(pcSimulation, mszName.Text(), mfVoltage);
 	if (!PostCreateComponent(pcViewPath, pcCircuitSimulation, pcPowerSource))
 	{
 		return NULL;

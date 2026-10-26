@@ -31,38 +31,38 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //////////////////////////////////////////////////////////////////////////
 void CCircuit::Init(void)
 {
-	mapcIntegratedCircuits.Init();
-	mapcPassives.Init();
+	PreInit();
+
+	maIntegratedCircuits.Init();
+	maPassives.Init();
 	mapcTraces.Init();
+
+	PostInit();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The components, then the traces.  The timeline must not have been
-// killed.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCircuit::Kill(void)
+void CCircuit::Class(void)
 {
-	size				i;
-	CIntegratedCircuit*	pcIntegratedCircuit;
-	CPassive*			pcPassive;
-	CTrace*				pcTrace;
+	M_Embedded(maIntegratedCircuits);
+	M_Embedded(maPassives);
+	U_Data(CArrayTracePtr, mapcTraces);
+}
 
-	for (i = 0; i < mapcIntegratedCircuits.NumElements(); i++)
-	{
-		pcIntegratedCircuit = mapcIntegratedCircuits.GetPtr(i);
-		SafeKill(pcIntegratedCircuit);
-	}
-	mapcIntegratedCircuits.Kill();
 
-	for (i = 0; i < mapcPassives.NumElements(); i++)
-	{
-		pcPassive = mapcPassives.GetPtr(i);
-		SafeKill(pcPassive);
-	}
-	mapcPassives.Kill();
+//////////////////////////////////////////////////////////////////////////
+//
+// Kills the traces.  The components are freed with the circuit, before
+// or after it, see the class comment.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuit::Free(void)
+{
+	size		i;
+	CTrace*		pcTrace;
 
 	for (i = 0; i < mapcTraces.NumElements(); i++)
 	{
@@ -75,12 +75,32 @@ void CCircuit::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuit::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuit::Load(CObjectReader* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Called by CIntegratedCircuit::Init.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircuit::Add(CIntegratedCircuit* pcIntegratedCircuit)
 {
-	mapcIntegratedCircuits.Add(pcIntegratedCircuit);
+	maIntegratedCircuits.Add(pcIntegratedCircuit);
 }
 
 
@@ -91,26 +111,20 @@ void CCircuit::Add(CIntegratedCircuit* pcIntegratedCircuit)
 //////////////////////////////////////////////////////////////////////////
 void CCircuit::Add(CPassive* pcPassive)
 {
-	mapcPassives.Add(pcPassive);
+	maPassives.Add(pcPassive);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The circuit no longer owns the chip; the caller kills and frees it.
+// Frees the chip, unless something else still points to it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCircuit::Remove(CIntegratedCircuit* pcIntegratedCircuit)
 {
-	size	i;
-
-	for (i = 0; i < mapcIntegratedCircuits.NumElements(); i++)
+	if (RemoveFrom(&maIntegratedCircuits, pcIntegratedCircuit))
 	{
-		if (mapcIntegratedCircuits.GetPtr(i) == pcIntegratedCircuit)
-		{
-			mapcIntegratedCircuits.RemoveAt(i, true);
-			return true;
-		}
+		return true;
 	}
 	LogRemoveError(pcIntegratedCircuit);
 	return false;
@@ -119,20 +133,14 @@ bool CCircuit::Remove(CIntegratedCircuit* pcIntegratedCircuit)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The circuit no longer owns the passive; the caller kills and frees it.
+// Frees the passive, unless something else still points to it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCircuit::Remove(CPassive* pcPassive)
 {
-	size	i;
-
-	for (i = 0; i < mapcPassives.NumElements(); i++)
+	if (RemoveFrom(&maPassives, pcPassive))
 	{
-		if (mapcPassives.GetPtr(i) == pcPassive)
-		{
-			mapcPassives.RemoveAt(i, true);
-			return true;
-		}
+		return true;
 	}
 	LogRemoveError(pcPassive);
 	return false;
@@ -141,30 +149,41 @@ bool CCircuit::Remove(CPassive* pcPassive)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A chip or a passive; the caller kills and frees it.
+// A chip or a passive, freed unless something else still points to it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCircuit::Remove(CCircuitComponent* pcComponent)
 {
-	size	i;
-
-	for (i = 0; i < mapcIntegratedCircuits.NumElements(); i++)
+	if (RemoveFrom(&maIntegratedCircuits, pcComponent))
 	{
-		if ((CCircuitComponent*)mapcIntegratedCircuits.GetPtr(i) == pcComponent)
-		{
-			mapcIntegratedCircuits.RemoveAt(i, true);
-			return true;
-		}
+		return true;
 	}
-	for (i = 0; i < mapcPassives.NumElements(); i++)
+	if (RemoveFrom(&maPassives, pcComponent))
 	{
-		if ((CCircuitComponent*)mapcPassives.GetPtr(i) == pcComponent)
-		{
-			mapcPassives.RemoveAt(i, true);
-			return true;
-		}
+		return true;
 	}
 	LogRemoveError(pcComponent);
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// False, without an error, if the component isn't in the array.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+bool CCircuit::RemoveFrom(CArray<M>* paComponents, CCircuitComponent* pcComponent)
+{
+	size	i;
+
+	for (i = 0; i < paComponents->NumElements(); i++)
+	{
+		if (paComponents->UnsafeGetObject(i) == pcComponent)
+		{
+			return paComponents->RemoveAt(i);
+		}
+	}
 	return false;
 }
 
@@ -244,13 +263,13 @@ void CCircuit::SimulationStarted(CTimeline* pcTimeline)
 {
 	size	i;
 
-	for (i = 0; i < mapcIntegratedCircuits.NumElements(); i++)
+	for (i = 0; i < maIntegratedCircuits.NumElements(); i++)
 	{
-		mapcIntegratedCircuits.GetPtr(i)->Reset(pcTimeline);
+		GetIntegratedCircuit(i)->Reset(pcTimeline);
 	}
-	for (i = 0; i < mapcPassives.NumElements(); i++)
+	for (i = 0; i < maPassives.NumElements(); i++)
 	{
-		mapcPassives.GetPtr(i)->Reset(pcTimeline);
+		GetPassive(i)->Reset(pcTimeline);
 	}
 }
 
@@ -265,9 +284,9 @@ void CCircuit::GetIntegratedCircuits(const char* szType, CArrayIntegratedCircuit
 	size				i;
 	CIntegratedCircuit*	pcIntegratedCircuit;
 
-	for (i = 0; i < mapcIntegratedCircuits.NumElements(); i++)
+	for (i = 0; i < maIntegratedCircuits.NumElements(); i++)
 	{
-		pcIntegratedCircuit = mapcIntegratedCircuits.GetPtr(i);
+		pcIntegratedCircuit = GetIntegratedCircuit(i);
 		if (StringCompare(pcIntegratedCircuit->GetType(), szType) == 0)
 		{
 			papcIntegratedCircuits->Add(pcIntegratedCircuit);
@@ -280,11 +299,39 @@ void CCircuit::GetIntegratedCircuits(const char* szType, CArrayIntegratedCircuit
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCircuit::IsEmpty(void) { return (mapcIntegratedCircuits.NumElements() == 0) && (mapcPassives.NumElements() == 0); }
-size CCircuit::NumIntegratedCircuits(void) { return mapcIntegratedCircuits.NumElements(); }
-CIntegratedCircuit* CCircuit::GetIntegratedCircuit(size uiIndex) { return mapcIntegratedCircuits.SafeGetPtr(uiIndex); }
+bool CCircuit::IsEmpty(void) { return (maIntegratedCircuits.NumElements() == 0) && (maPassives.NumElements() == 0); }
+size CCircuit::NumIntegratedCircuits(void) { return maIntegratedCircuits.NumElements(); }
 size CCircuit::NumTraces(void) { return mapcTraces.NumElements(); }
 CTrace* CCircuit::GetTrace(size uiIndex) { return mapcTraces.SafeGetPtr(uiIndex); }
-size CCircuit::NumPassives(void) { return mapcPassives.NumElements(); }
-CPassive* CCircuit::GetPassive(size uiIndex) { return mapcPassives.SafeGetPtr(uiIndex); }
+size CCircuit::NumPassives(void) { return maPassives.NumElements(); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL if uiIndex is past the end.
+//
+//////////////////////////////////////////////////////////////////////////
+CIntegratedCircuit* CCircuit::GetIntegratedCircuit(size uiIndex)
+{
+	if (uiIndex >= maIntegratedCircuits.NumElements())
+	{
+		return NULL;
+	}
+	return (CIntegratedCircuit*)maIntegratedCircuits.UnsafeGetObject(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL if uiIndex is past the end.
+//
+//////////////////////////////////////////////////////////////////////////
+CPassive* CCircuit::GetPassive(size uiIndex)
+{
+	if (uiIndex >= maPassives.NumElements())
+	{
+		return NULL;
+	}
+	return (CPassive*)maPassives.UnsafeGetObject(uiIndex);
+}
 

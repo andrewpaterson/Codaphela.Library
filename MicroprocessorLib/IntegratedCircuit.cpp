@@ -32,45 +32,51 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes ownership of pcPins and adds the chip to its circuit, which owns
-// it.  The state is created by Reset.
+// Keeps pPins and adds the chip to its circuit, which keeps it.  The
+// state is created by Reset.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIntegratedCircuit::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CPins* pcPins)
+void CIntegratedCircuit::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CPins> pPins)
 {
+	PreInit();
+
 	CCircuitComponent::Init(pcContainingSubcircuitSimulation, szName);
-	mpcPins = pcPins;
-	mpcPins->SetIntegratedCircuit(this);
+	mpPins = pPins;
+	mpPins->SetIntegratedCircuit(this);
 	mapcEvents.Init();
 	GetCircuit()->Add(this);
+
+	PostInit();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes the chip's and its ports' events off the timeline and frees its
-// pins and state, which disconnects its ports without telling anyone.  To
-// take a chip out of a running simulation call DisconnectPorts first.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIntegratedCircuit::Kill(void)
+void CIntegratedCircuit::Class(void)
 {
-	CTimeline*	pcTimeline;
-	size		i;
+	CCircuitComponent::Class();
 
-	pcTimeline = GetTimeline();
-	Disconnect(pcTimeline);
-	for (i = 0; i < mpcPins->NumPorts(); i++)
-	{
-		if (mpcPins->GetPort(i)->IsLogicPort())
-		{
-			((CLogicPort*)mpcPins->GetPort(i))->RemoveEvents(pcTimeline);
-		}
-	}
+	M_Pointer(mpPins);
+	U_Data(CArrayEventPtr, mapcEvents);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes the chip's own events off the timeline.  Its pins, which may be
+// freed before or after it, take their ports' events off and disconnect
+// the ports without telling anyone.  To take a chip out of a running
+// simulation call DisconnectPorts first.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuit::Free(void)
+{
+	Disconnect(GetTimeline());
 	mapcEvents.Kill();
 
-	SafeKill(mpcPins);
-	CCircuitComponent::Kill();
+	CCircuitComponent::Free();
 }
 
 
@@ -141,9 +147,9 @@ void CIntegratedCircuit::ResetEventsAndPorts(void)
 	size	i;
 
 	mapcEvents.ReInit();
-	for (i = 0; i < mpcPins->NumPorts(); i++)
+	for (i = 0; i < mpPins->NumPorts(); i++)
 	{
-		mpcPins->GetPort(i)->Reset();
+		mpPins->GetPort(i)->Reset();
 	}
 }
 
@@ -211,7 +217,7 @@ bool CIntegratedCircuit::LoadXML(CMarkupTag* pcTag)
 //////////////////////////////////////////////////////////////////////////
 float32 CIntegratedCircuit::GetVCC(int64 iTime)
 {
-	return mpcPins->GetVoltageCommon()->GetVoltageIn(iTime);
+	return mpPins->GetVoltageCommon()->GetVoltageIn(iTime);
 }
 
 
@@ -221,7 +227,7 @@ float32 CIntegratedCircuit::GetVCC(int64 iTime)
 //////////////////////////////////////////////////////////////////////////
 float32 CIntegratedCircuit::GetGND(int64 iTime)
 {
-	return mpcPins->GetVoltageGround()->GetVoltageIn(iTime);
+	return mpPins->GetVoltageGround()->GetVoltageIn(iTime);
 }
 
 
@@ -283,10 +289,10 @@ bool CIntegratedCircuit::Remove(CIntegratedCircuitEvent* pcEvent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPins* CIntegratedCircuit::GetPins(void) { return mpcPins; }
-CPort* CIntegratedCircuit::GetPort(const char* szName) { return mpcPins->GetPort(szName); }
-CPort* CIntegratedCircuit::GetPort(size uiIndex) { return mpcPins->GetPort(uiIndex); }
-size CIntegratedCircuit::NumPorts(void) { return mpcPins->NumPorts(); }
+CPins* CIntegratedCircuit::GetPins(void) { return &mpPins; }
+CPort* CIntegratedCircuit::GetPort(const char* szName) { return mpPins->GetPort(szName); }
+CPort* CIntegratedCircuit::GetPort(size uiIndex) { return mpPins->GetPort(uiIndex); }
+size CIntegratedCircuit::NumPorts(void) { return mpPins->NumPorts(); }
 size CIntegratedCircuit::NumEvents(void) { return mapcEvents.NumElements(); }
 CEvent* CIntegratedCircuit::GetEvent(size uiIndex) { return mapcEvents.SafeGetPtr(uiIndex); }
 

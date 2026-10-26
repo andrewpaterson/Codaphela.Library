@@ -20,16 +20,23 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 ** ------------------------------------------------------------------------ **/
 #ifndef __PINS_H__
 #define __PINS_H__
+#include "StandardLib/Object.h"
 #include "PortHolder.h"
 
 
 //Logicim's Pins: the ports of a CIntegratedCircuit, always with a VCC and a GND power in port.  A chip's pins add
 //their CLogicPorts in Init.  An input transition on a logic port is passed to the chip.
+//
+//Pins are a CObject made with OMalloc and given to their chip's Init; the chip's pointer to them keeps them alive.
+//They are freed with their chip, in either order, see CCircuitComponent.  Freeing them reaches the timeline through
+//their chip, so nothing else may keep a Ptr to them: pass the OMalloc straight to the chip's OMalloc and get them back
+//from the chip.
 class CPowerInPort;
 class CLogicPort;
 class CIntegratedCircuit;
-class CPins : public CPortHolder
+class CPins : public CObject, public CPortHolder
 {
+CONSTRUCTABLE(CPins);
 protected:
 	CIntegratedCircuit*		mpcIntegratedCircuit;
 	CPowerInPort*			mpcVCC;
@@ -37,7 +44,11 @@ protected:
 
 public:
 			void				Init(void);
-	virtual void				Kill(void);
+			void				Class(void) override;
+			void				Free(void) override;
+
+			bool				Save(CObjectWriter* pcFile) override;
+			bool				Load(CObjectReader* pcFile) override;
 
 			void				SetIntegratedCircuit(CIntegratedCircuit* pcIntegratedCircuit);
 			CIntegratedCircuit*	GetIntegratedCircuit(void);
@@ -46,7 +57,7 @@ public:
 
 			void				InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);
 	virtual void				TraceConnected(CTimeline* pcTimeline, CPort* pcPort);
-	virtual char*				GetName(void);
+	virtual char*				GetComponentName(void);
 	virtual void				AppendDescription(CChars* psz);
 	virtual CCircuitComponent*	GetComponent(void);
 			const char*			GetType(void);

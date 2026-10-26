@@ -44,7 +44,8 @@ protected:
 	bool	mbTerminal;
 
 public:
-			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CCounterPins* pcPins, size uiBitWidth, uint32 uiTerminalValue);
+			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CCounterPins> pPins, size uiBitWidth, uint32 uiTerminalValue);
+			void			Class(void) override;
 
 	virtual void			SimulationStarted(CTimeline* pcTimeline);
 	virtual void			WriteOutputs(CTimeline* pcTimeline);

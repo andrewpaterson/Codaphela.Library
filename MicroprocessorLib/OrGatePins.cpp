@@ -32,6 +32,8 @@ void COrGatePins::Init(size uiInputCount, CVoltageConfigurationSource* pcVoltage
 	CLogicPort*	pcPort;
 	CChars		szName;
 
+	PreInit();
+
 	CPins::Init();
 	mpcOutput = NewMalloc<CLogicPort>();
 	mpcOutput->Init(PT_Output, this, "Output", pcVoltageConfiguration);
@@ -46,6 +48,21 @@ void COrGatePins::Init(size uiInputCount, CVoltageConfigurationSource* pcVoltage
 		mapcInputs.Add(pcPort);
 		szName.Kill();
 	}
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void COrGatePins::Class(void)
+{
+	CPins::Class();
+
+	U_Data(CArrayLogicPortPtr, mapcInputs);
+	U_Pointer(mpcOutput);
 }
 
 
@@ -54,11 +71,11 @@ void COrGatePins::Init(size uiInputCount, CVoltageConfigurationSource* pcVoltage
 // The ports are freed by CPortHolder.
 //
 //////////////////////////////////////////////////////////////////////////
-void COrGatePins::Kill(void)
+void COrGatePins::Free(void)
 {
 	mapcInputs.Kill();
 	mpcOutput = NULL;
-	CPins::Kill();
+	CPins::Free();
 }
 
 

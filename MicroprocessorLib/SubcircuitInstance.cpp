@@ -53,9 +53,26 @@ void SSubcircuitNamedPin::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CSubcircuitInstance::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName)
 {
+	PreInit();
+
 	CPassive::Init(pcContainingSubcircuitSimulation, szName);
 	mapsNamedPins.Init();
 	mpcSubcircuitInstanceSimulation = NULL;
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSubcircuitInstance::Class(void)
+{
+	CPassive::Class();
+
+	U_Data(CArraySubcircuitNamedPinPtr, mapsNamedPins);
+	U_Pointer(mpcSubcircuitInstanceSimulation);
 }
 
 
@@ -64,7 +81,7 @@ void CSubcircuitInstance::Init(CSubcircuitSimulation* pcContainingSubcircuitSimu
 // The ports are freed by CPortHolder.
 //
 //////////////////////////////////////////////////////////////////////////
-void CSubcircuitInstance::Kill(void)
+void CSubcircuitInstance::Free(void)
 {
 	size					i;
 	SSubcircuitNamedPin*	psNamedPin;
@@ -76,7 +93,7 @@ void CSubcircuitInstance::Kill(void)
 	}
 	mapsNamedPins.Kill();
 	mpcSubcircuitInstanceSimulation = NULL;
-	CPassive::Kill();
+	CPassive::Free();
 }
 
 

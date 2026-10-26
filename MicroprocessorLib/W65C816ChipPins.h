@@ -31,6 +31,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //the processor pulls it low while waiting.
 class CW65C816ChipPins : public CPins
 {
+CONSTRUCTABLE(CW65C816ChipPins);
 protected:
 	CLogicPortBus	mcAddress;
 	CLogicPortBus	mcData;
@@ -51,7 +52,8 @@ protected:
 
 public:
 			void			Init(CVoltageConfigurationSource* pcVoltageConfiguration);
-	virtual void			Kill(void);
+			void			Class(void) override;
+			void			Free(void) override;
 
 			CLogicPortBus*	GetAddress(void);
 			CLogicPortBus*	GetData(void);

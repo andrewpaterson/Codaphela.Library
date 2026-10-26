@@ -26,13 +26,14 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 //Logicim's Passive: a component that holds its own ports and does nothing when the simulation runs, as a power
 //source, a pin or a splitter.  Logicim joins the traces a passive's trace ports connect when it builds the circuit;
-//the passive itself only names them.  Made with NewMalloc; Init adds it to its circuit, which owns it.
+//the passive itself only names them.  Made with OMalloc; Init adds it to its circuit, see CCircuitComponent.
 class CPassive : public CCircuitComponent, public CPortHolder
 {
 CONSTRUCTABLE(CPassive);
 public:
 			void	Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName);
-	virtual void	Kill(void);
+			void	Class(void) override;
+			void	Free(void) override;
 
 	virtual void	Disconnect(CTimeline* pcTimeline);
 	virtual void	SimulationStarted(CTimeline* pcTimeline);
@@ -43,7 +44,7 @@ public:
 	virtual size	NumPorts(void);
 	virtual CPort*	GetPort(size uiIndex);
 	virtual CPort*	GetPort(const char* szName);
-	virtual char*	GetName(void);
+	virtual char*	GetComponentName(void);
 	virtual void	AppendDescription(CChars* psz);
 	virtual CCircuitComponent*	GetComponent(void);
 };

@@ -33,6 +33,7 @@ protected:
 
 public:
 			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, float32 fVoltage);
+			void			Class(void) override;
 
 	virtual const char*		GetType(void);
 			CPowerOutPort*	GetPowerOutPort(void);

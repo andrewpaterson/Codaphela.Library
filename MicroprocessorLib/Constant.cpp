@@ -26,14 +26,31 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes ownership of pcPins.
+// Keeps pPins.
 //
 //////////////////////////////////////////////////////////////////////////
-void CConstant::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CConstantPins* pcPins, int64 iDefaultValue)
+void CConstant::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CConstantPins> pPins, int64 iDefaultValue)
 {
-	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pcPins);
+	PreInit();
+
+	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pPins);
 	miDefaultValue = iDefaultValue;
 	ResetState();
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CConstant::Class(void)
+{
+	CIntegratedCircuit::Class();
+
+	U_Int64(miDefaultValue);
+	U_Int64(miConstantValue);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,7 +100,7 @@ void CConstant::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CConstant::GetType(void) { return CONSTANT_TYPE; }
-CConstantPins* CConstant::GetConstantPins(void) { return (CConstantPins*)mpcPins; }
+CConstantPins* CConstant::GetConstantPins(void) { return (CConstantPins*)&mpPins; }
 int64 CConstant::GetConstantValue(void) { return miConstantValue; }
 void CConstant::SetConstantValue(int64 iConstantValue) { miConstantValue = iConstantValue; }
 

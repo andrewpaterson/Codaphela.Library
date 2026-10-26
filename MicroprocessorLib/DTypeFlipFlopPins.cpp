@@ -28,6 +28,8 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //////////////////////////////////////////////////////////////////////////
 void CDTypeFlipFlopPins::Init(CVoltageConfigurationSource* pcVoltageConfiguration)
 {
+	PreInit();
+
 	CPins::Init();
 	mpcOutputQ = NewMalloc<CLogicPort>();
 	mpcOutputQ->Init(PT_Output, this, "Q", pcVoltageConfiguration);
@@ -41,6 +43,25 @@ void CDTypeFlipFlopPins::Init(CVoltageConfigurationSource* pcVoltageConfiguratio
 	mpcSet->Init(PT_Input, this, "SD", pcVoltageConfiguration);
 	mpcReset = NewMalloc<CLogicPort>();
 	mpcReset->Init(PT_Input, this, "RD", pcVoltageConfiguration);
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDTypeFlipFlopPins::Class(void)
+{
+	CPins::Class();
+
+	U_Pointer(mpcOutputQ);
+	U_Pointer(mpcOutputQB);
+	U_Pointer(mpcClock);
+	U_Pointer(mpcData);
+	U_Pointer(mpcSet);
+	U_Pointer(mpcReset);
 }
 
 
@@ -49,7 +70,7 @@ void CDTypeFlipFlopPins::Init(CVoltageConfigurationSource* pcVoltageConfiguratio
 // The ports are freed by CPortHolder.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDTypeFlipFlopPins::Kill(void)
+void CDTypeFlipFlopPins::Free(void)
 {
 	mpcOutputQ = NULL;
 	mpcOutputQB = NULL;
@@ -57,7 +78,7 @@ void CDTypeFlipFlopPins::Kill(void)
 	mpcData = NULL;
 	mpcSet = NULL;
 	mpcReset = NULL;
-	CPins::Kill();
+	CPins::Free();
 }
 
 

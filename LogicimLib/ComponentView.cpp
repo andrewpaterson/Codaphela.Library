@@ -431,7 +431,7 @@ void CComponentView::DestroyComponent(CViewPath* pcViewPath, CCircuitSimulation*
 //////////////////////////////////////////////////////////////////////////
 //
 // Its events go, the ports on its traces see its ports go, and it's
-// removed from the circuit, killed and freed.
+// removed from the circuit, which frees it.
 //
 //////////////////////////////////////////////////////////////////////////
 void DestroySimulatedComponent(CCircuitComponent* pcComponent, CCircuitSimulation* pcCircuitSimulation)
@@ -442,7 +442,6 @@ void DestroySimulatedComponent(CCircuitComponent* pcComponent, CCircuitSimulatio
 	pcComponent->Disconnect(pcTimeline);
 	pcComponent->DisconnectPorts(pcTimeline);
 	pcCircuitSimulation->GetCircuit()->Remove(pcComponent);
-	SafeKill(pcComponent);
 }
 
 

@@ -140,7 +140,9 @@ CCircuitComponent* CIntegratedCircuitView::CreateComponent(CViewPath* pcViewPath
 	{
 		if (!PowerImplicitly(pcIntegratedCircuit, pcFamily, &apcSupplies))
 		{
+			//Nothing points to the IC yet, so removing it frees it.
 			apcSupplies.Kill();
+			pcSimulation->GetCircuit()->Remove(pcIntegratedCircuit);
 			return NULL;
 		}
 	}
@@ -192,15 +194,13 @@ bool PowerPortsImplicitly(CSubcircuitSimulation* pcSimulation, CPort* pcCommon, 
 
 	pcVCC = pcCircuit->AddTrace();
 	pcCommon->Connect(pcVCC, false);
-	pcPower = NewMalloc<CPowerSource>();
-	pcPower->Init(pcSimulation, "", pcVoltage->GetVcc());
+	pcPower = &OMalloc<CPowerSource>(pcSimulation, "", pcVoltage->GetVcc());
 	pcPower->GetPowerOutPort()->Connect(pcVCC, false);
 	papcSupplies->Add(pcPower);
 
 	pcGND = pcCircuit->AddTrace();
 	pcGround->Connect(pcGND, false);
-	pcPower = NewMalloc<CPowerSource>();
-	pcPower->Init(pcSimulation, "", 0.0f);
+	pcPower = &OMalloc<CPowerSource>(pcSimulation, "", 0.0f);
 	pcPower->GetPowerOutPort()->Connect(pcGND, false);
 	papcSupplies->Add(pcPower);
 	return true;

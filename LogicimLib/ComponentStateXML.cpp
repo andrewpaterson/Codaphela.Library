@@ -67,7 +67,7 @@ void CIntegratedCircuitStateXML::Save(CXMLWriter* pcWriter, CCircuitComponent* p
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Cannot save event [", pcEvent->ClassName(), "] of [", pcComponent->GetName(), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Cannot save event [", pcEvent->ClassName(), "] of [", pcComponent->GetComponentName(), "].", NULL);
 		}
 	}
 
@@ -182,7 +182,7 @@ bool CIntegratedCircuitStateXML::Load(CMarkupTag* pcComponentTag, CCircuitCompon
 			{
 				if (bStateLoaded)
 				{
-					return gcLogger.Error2(__METHOD__, " [", pcComponent->GetName(), "] has more than one state.", NULL);
+					return gcLogger.Error2(__METHOD__, " [", pcComponent->GetComponentName(), "] has more than one state.", NULL);
 				}
 				if (!pcIntegratedCircuit->LoadXML(pcTag))
 				{
@@ -205,7 +205,7 @@ bool CIntegratedCircuitStateXML::Load(CMarkupTag* pcComponentTag, CCircuitCompon
 			}
 			else
 			{
-				return gcLogger.Error2(__METHOD__, " Unknown simulation state [", pcTag->GetName(), "] on [", pcComponent->GetName(), "].", NULL);
+				return gcLogger.Error2(__METHOD__, " Unknown simulation state [", pcTag->GetName(), "] on [", pcComponent->GetComponentName(), "].", NULL);
 			}
 		}
 		pcTag = pcComponentTag->GetNextTag(&sIter);
@@ -232,7 +232,7 @@ bool CIntegratedCircuitStateXML::LoadPort(CMarkupTag* pcPortTag, CIntegratedCirc
 	pcPort = (szName != NULL) ? pcIntegratedCircuit->GetPort(szName) : NULL;
 	if ((pcPort == NULL) || !pcPort->IsLogicPort())
 	{
-		return gcLogger.Error2(__METHOD__, " [", pcIntegratedCircuit->GetName(), "] has no logic port [", (szName != NULL) ? szName : "", "].", NULL);
+		return gcLogger.Error2(__METHOD__, " [", pcIntegratedCircuit->GetComponentName(), "] has no logic port [", (szName != NULL) ? szName : "", "].", NULL);
 	}
 	pcLogicPort = (CLogicPort*)pcPort;
 
@@ -328,7 +328,7 @@ bool CPassiveStateXML::Load(CMarkupTag* pcComponentTag, CCircuitComponent* pcCom
 {
 	if (pcComponentTag->GetTag((STagIterator*)NULL) != NULL)
 	{
-		return gcLogger.Error2(__METHOD__, " [", pcComponent->GetName(), "] keeps no simulation state.", NULL);
+		return gcLogger.Error2(__METHOD__, " [", pcComponent->GetComponentName(), "] keeps no simulation state.", NULL);
 	}
 	return true;
 }

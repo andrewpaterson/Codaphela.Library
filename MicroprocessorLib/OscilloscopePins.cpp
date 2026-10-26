@@ -32,6 +32,8 @@ void COscilloscopePins::Init(size uiInputCount)
 	CLogicPort*	pcPort;
 	CChars		szName;
 
+	PreInit();
+
 	CPins::Init();
 	mapcInputs.Init();
 	for (i = 0; i < uiInputCount; i++)
@@ -43,6 +45,20 @@ void COscilloscopePins::Init(size uiInputCount)
 		mapcInputs.Add(pcPort);
 		szName.Kill();
 	}
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void COscilloscopePins::Class(void)
+{
+	CPins::Class();
+
+	U_Data(CArrayLogicPortPtr, mapcInputs);
 }
 
 
@@ -51,10 +67,10 @@ void COscilloscopePins::Init(size uiInputCount)
 // The ports are freed by CPortHolder.
 //
 //////////////////////////////////////////////////////////////////////////
-void COscilloscopePins::Kill(void)
+void COscilloscopePins::Free(void)
 {
 	mapcInputs.Kill();
-	CPins::Kill();
+	CPins::Free();
 }
 
 

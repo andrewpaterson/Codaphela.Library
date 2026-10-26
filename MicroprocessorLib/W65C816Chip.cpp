@@ -28,21 +28,25 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes ownership of pcPins and wires the processor's signals to them.
+// Keeps pPins and wires the processor's signals to them.
 // The instruction factory is made ready for the chip (see
 // CW65C816InstructionFactory) until it's killed.
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816Chip::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CW65C816ChipPins* pcPins)
+void CW65C816Chip::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CW65C816ChipPins> pPins)
 {
-	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pcPins);
+	PreInit();
+
+	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pPins);
 
 	CW65C816InstructionFactory::GetInstance()->Init();
-	mcSignals.Init(pcPins->GetAddress(), pcPins->GetData(), pcPins->GetPHI2(), pcPins->GetRESB(), pcPins->GetRWB());
-	mcSignals.SetImportantTraces(pcPins->GetVPA(), pcPins->GetVDA(), pcPins->GetVPB());
-	mcSignals.SetOtherTraces(pcPins->GetMLB(), pcPins->GetMX(), pcPins->GetBE(), pcPins->GetE(), pcPins->GetRDY());
-	mcSignals.SetInterruptTraces(pcPins->GetABORTB(), pcPins->GetIRQB(), pcPins->GetNMIB());
+	mcSignals.Init(pPins->GetAddress(), pPins->GetData(), pPins->GetPHI2(), pPins->GetRESB(), pPins->GetRWB());
+	mcSignals.SetImportantTraces(pPins->GetVPA(), pPins->GetVDA(), pPins->GetVPB());
+	mcSignals.SetOtherTraces(pPins->GetMLB(), pPins->GetMX(), pPins->GetBE(), pPins->GetE(), pPins->GetRDY());
+	mcSignals.SetInterruptTraces(pPins->GetABORTB(), pPins->GetIRQB(), pPins->GetNMIB());
 	mcMPU.Init(&mcSignals);
+
+	PostInit();
 }
 
 
@@ -50,12 +54,25 @@ void CW65C816Chip::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816Chip::Kill(void)
+void CW65C816Chip::Class(void)
+{
+	CIntegratedCircuit::Class();
+
+	U_Data(CW65C816, mcMPU);
+	U_Data(CW65C816Pins, mcSignals);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816Chip::Free(void)
 {
 	mcMPU.Kill();
 	mcSignals.Kill();
 	CW65C816InstructionFactory::GetInstance()->Kill();
-	CIntegratedCircuit::Kill();
+	CIntegratedCircuit::Free();
 }
 
 
@@ -86,7 +103,7 @@ void CW65C816Chip::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 //////////////////////////////////////////////////////////////////////////
 const char* CW65C816Chip::GetType(void) { return W65C816_CHIP_TYPE; }
 CW65C816* CW65C816Chip::GetMPU(void) { return &mcMPU; }
-CW65C816ChipPins* CW65C816Chip::GetChipPins(void) { return (CW65C816ChipPins*)mpcPins; }
+CW65C816ChipPins* CW65C816Chip::GetChipPins(void) { return (CW65C816ChipPins*)&mpPins; }
 
 
 //////////////////////////////////////////////////////////////////////////

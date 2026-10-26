@@ -31,21 +31,25 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes ownership of pcPins and wires the processor's signals to them.
+// Keeps pPins and wires the processor's signals to them.
 // The instruction factory is made ready for the chip (see
 // C65C64InstructionFactory) until it's killed.
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Chip::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, C65C64ChipPins* pcPins)
+void C65C64Chip::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<C65C64ChipPins> pPins)
 {
-	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pcPins);
+	PreInit();
+
+	CIntegratedCircuit::Init(pcContainingSubcircuitSimulation, szName, pPins);
 
 	C65C64InstructionFactory::GetInstance()->Init();
-	mcSignals.Init(pcPins->GetAddress(), pcPins->GetData(), pcPins->GetPHI2(), pcPins->GetRESB(), pcPins->GetRWB());
-	mcSignals.SetByteTraces(pcPins->GetLowerByte(), pcPins->GetUpperByte());
-	mcSignals.SetValidTraces(pcPins->GetOPV(), pcPins->GetVPA(), pcPins->GetVDA(), pcPins->GetVPB());
-	mcSignals.SetInterruptTraces(pcPins->GetEIRQB(0), pcPins->GetEIRQB(1), pcPins->GetEIRQB(2), pcPins->GetEIRQB(3), pcPins->GetLIRQB());
+	mcSignals.Init(pPins->GetAddress(), pPins->GetData(), pPins->GetPHI2(), pPins->GetRESB(), pPins->GetRWB());
+	mcSignals.SetByteTraces(pPins->GetLowerByte(), pPins->GetUpperByte());
+	mcSignals.SetValidTraces(pPins->GetOPV(), pPins->GetVPA(), pPins->GetVDA(), pPins->GetVPB());
+	mcSignals.SetInterruptTraces(pPins->GetEIRQB(0), pPins->GetEIRQB(1), pPins->GetEIRQB(2), pPins->GetEIRQB(3), pPins->GetLIRQB());
 	mcMPU.Init(&mcSignals);
+
+	PostInit();
 }
 
 
@@ -53,12 +57,25 @@ void C65C64Chip::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, c
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void C65C64Chip::Kill(void)
+void C65C64Chip::Class(void)
+{
+	CIntegratedCircuit::Class();
+
+	U_Data(C65C64, mcMPU);
+	U_Data(C65C64Pins, mcSignals);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void C65C64Chip::Free(void)
 {
 	mcMPU.Kill();
 	mcSignals.Kill();
 	C65C64InstructionFactory::GetInstance()->Kill();
-	CIntegratedCircuit::Kill();
+	CIntegratedCircuit::Free();
 }
 
 
@@ -89,7 +106,7 @@ void C65C64Chip::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 //////////////////////////////////////////////////////////////////////////
 const char* C65C64Chip::GetType(void) { return C65C64_CHIP_TYPE; }
 C65C64* C65C64Chip::GetMPU(void) { return &mcMPU; }
-C65C64ChipPins* C65C64Chip::GetChipPins(void) { return (C65C64ChipPins*)mpcPins; }
+C65C64ChipPins* C65C64Chip::GetChipPins(void) { return (C65C64ChipPins*)&mpPins; }
 
 
 //////////////////////////////////////////////////////////////////////////

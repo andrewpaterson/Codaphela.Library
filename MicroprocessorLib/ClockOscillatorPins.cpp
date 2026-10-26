@@ -28,6 +28,8 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //////////////////////////////////////////////////////////////////////////
 void CClockOscillatorPins::Init(CVoltageConfigurationSource* pcVoltageConfiguration, bool bInverseOut)
 {
+	PreInit();
+
 	CPins::Init();
 	mpcOutput = NewMalloc<CLogicPort>();
 	mpcOutput->Init(PT_Output, this, "Output", pcVoltageConfiguration);
@@ -37,6 +39,21 @@ void CClockOscillatorPins::Init(CVoltageConfigurationSource* pcVoltageConfigurat
 		mpcOutputInverse = NewMalloc<CLogicPort>();
 		mpcOutputInverse->Init(PT_Output, this, "Output2", pcVoltageConfiguration);
 	}
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClockOscillatorPins::Class(void)
+{
+	CPins::Class();
+
+	U_Pointer(mpcOutput);
+	U_Pointer(mpcOutputInverse);
 }
 
 
@@ -45,11 +62,11 @@ void CClockOscillatorPins::Init(CVoltageConfigurationSource* pcVoltageConfigurat
 // The ports are freed by CPortHolder.
 //
 //////////////////////////////////////////////////////////////////////////
-void CClockOscillatorPins::Kill(void)
+void CClockOscillatorPins::Free(void)
 {
 	mpcOutput = NULL;
 	mpcOutputInverse = NULL;
-	CPins::Kill();
+	CPins::Free();
 }
 
 

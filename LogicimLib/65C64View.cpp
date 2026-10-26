@@ -264,13 +264,9 @@ bool C65C64View::LoadXML(CMarkupTag* pcTag)
 //////////////////////////////////////////////////////////////////////////
 CIntegratedCircuit* C65C64View::CreateIntegratedCircuit(CSubcircuitSimulation* pcSimulation, CFamilyVoltageConfiguration* pcFamily)
 {
-	C65C64ChipPins*		pcPins;
 	C65C64Chip*			pcChip;
 
-	pcPins = NewMalloc<C65C64ChipPins>();
-	pcPins->Init(pcFamily);
-	pcChip = NewMalloc<C65C64Chip>();
-	pcChip->Init(pcSimulation, mszName.Text(), pcPins);
+	pcChip = &OMalloc<C65C64Chip>(pcSimulation, mszName.Text(), OMalloc<C65C64ChipPins>(pcFamily));
 	return pcChip;
 }
 

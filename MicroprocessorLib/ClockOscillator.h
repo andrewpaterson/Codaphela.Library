@@ -42,8 +42,9 @@ protected:
 	bool	mbHigh;
 
 public:
-			void					Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CClockOscillatorPins* pcPins, float32 fFrequency);
-			void					Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, CClockOscillatorPins* pcPins, float32 fFrequency, int64 iInitialisationTime);
+			void					Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CClockOscillatorPins> pPins, float32 fFrequency);
+			void					Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CClockOscillatorPins> pPins, float32 fFrequency, int64 iInitialisationTime);
+			void					Class(void) override;
 
 	virtual void					SimulationStarted(CTimeline* pcTimeline);
 	virtual void					InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);
