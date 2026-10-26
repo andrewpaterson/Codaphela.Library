@@ -30,6 +30,7 @@ void CConfig::Init(char* szName)
 	mszName.Init(szName);
 	maszDefines.Init();
 	mbKeepPragmaPack = false;
+	mbHostDefines = true;
 }
 
 

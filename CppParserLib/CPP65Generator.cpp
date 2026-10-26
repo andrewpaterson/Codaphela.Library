@@ -793,6 +793,8 @@ void CCPP65Generator::GetExternals(CArrayChars* paszLabels)
 // with.  __65C64__ or __W65C816__ is the processor (Libc65 uses __65C64__ for
 // what its 65C64 assembly does); __LIBC65__ is on both: the Libc65 headers and
 // devices, which BaseLib's Define.h and its _65C64.cpp files are written for.
+// The host's macros (_MSC_VER, _WIN32) are not defined, so its headers and
+// _Windows.cpp files are left out.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::AddDefines(CConfig* pcConfig, ECPPTarget eTarget)
@@ -800,6 +802,7 @@ void CCPP65Generator::AddDefines(CConfig* pcConfig, ECPPTarget eTarget)
 	pcConfig->AddDefine((char*)GetCPPTarget(eTarget)->szDefine);
 	pcConfig->AddDefine("__LIBC65__=1");
 	pcConfig->mbKeepPragmaPack = true;
+	pcConfig->mbHostDefines = false;
 }
 
 

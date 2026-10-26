@@ -293,12 +293,12 @@ bool CW65C816::IsReadCycle(CW65DataOperation* pcDataOperation)
 void CW65C816::BlockMoveNext(void)
 {
 	//One byte has been moved.  C counts down to FFFF, the instruction repeats until it gets there.
-	muiAccumulator--;
-	muiXIndex = TrimIndex(++muiXIndex);
-	muiYIndex = TrimIndex(++muiYIndex);
-	if (muiAccumulator != 0xffff)
+	msState.uiAccumulator--;
+	msState.uiXIndex = TrimIndex(++msState.uiXIndex);
+	msState.uiYIndex = TrimIndex(++msState.uiYIndex);
+	if (msState.uiAccumulator != 0xffff)
 	{
-		mcProgramCounter.Offset(-3);
+		msState.cProgramCounter.Offset(-3);
 	}
 }
 
@@ -310,12 +310,12 @@ void CW65C816::BlockMoveNext(void)
 void CW65C816::BlockMovePrevious(void)
 {
 	//One byte has been moved.  C counts down to FFFF, the instruction repeats until it gets there.
-	muiAccumulator--;
-	muiXIndex = TrimIndex(--muiXIndex);
-	muiYIndex = TrimIndex(--muiYIndex);
-	if (muiAccumulator != 0xffff)
+	msState.uiAccumulator--;
+	msState.uiXIndex = TrimIndex(--msState.uiXIndex);
+	msState.uiYIndex = TrimIndex(--msState.uiYIndex);
+	if (msState.uiAccumulator != 0xffff)
 	{
-		mcProgramCounter.Offset(-3);
+		msState.cProgramCounter.Offset(-3);
 	}
 }
 
@@ -326,7 +326,7 @@ void CW65C816::BlockMovePrevious(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PER(void)
 {
-	muiData = muiData + mcProgramCounter.GetOffset();  // + Carry?
+	msState.uiData = msState.uiData + msState.cProgramCounter.GetOffset();  // + Carry?
 }
 
 
@@ -336,7 +336,7 @@ void CW65C816::PER(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PHD(void)
 {
-	muiData = muiDirectPage;
+	msState.uiData = msState.uiDirectPage;
 }
 
 
@@ -356,8 +356,8 @@ void CW65C816::TSC(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::TCD(void)
 {
-	SetDirectPage(muiAccumulator);
-	SetSignAndZeroFlagFrom16BitValue(muiAccumulator);
+	SetDirectPage(msState.uiAccumulator);
+	SetSignAndZeroFlagFrom16BitValue(msState.uiAccumulator);
 }
 
 
@@ -404,7 +404,7 @@ void CW65C816::XBA(void)
 
 	uiLowerA = GetLowByte(GetC());
 	uiHigherA = GetHighByte(GetC());
-	muiAccumulator = uiHigherA | (uiLowerA << 8);
+	msState.uiAccumulator = uiHigherA | (uiLowerA << 8);
 	SetSignAndZeroFlagFrom8BitValue(uiHigherA);
 }
 
@@ -452,7 +452,7 @@ void CW65C816::TCS(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::TestSetDirectPage(uint16 uiDirectPage)
 {
-	muiDirectPage = uiDirectPage;
+	msState.uiDirectPage = uiDirectPage;
 }
 
 
@@ -462,7 +462,7 @@ void CW65C816::TestSetDirectPage(uint16 uiDirectPage)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::TestSetDataBank(uint8 uiDataBank)
 {
-	muiDataBank = uiDataBank;
+	msState.uiDataBank = uiDataBank;
 }
 
 

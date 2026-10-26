@@ -650,62 +650,6 @@ static int LoadStateName(CMarkupTag* pcTag, const char* szName, const char** asz
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The read or write words: each <szElement address transfer lanes/>.
-//
-//////////////////////////////////////////////////////////////////////////
-static void Save65C64Words(CXMLWriter* pcWriter, const char* szElement, S65C64TransferWord* asWords, size uiNumWords)
-{
-	size	i;
-
-	for (i = 0; i < uiNumWords; i++)
-	{
-		pcWriter->Begin(szElement);
-		pcWriter->Attribute("address", (int64)asWords[i].uiAddress);
-		pcWriter->Attribute("transfer", (int32)asWords[i].uiTransfer);
-		pcWriter->Attribute("lanes", (int32)asWords[i].uiLanes);
-		pcWriter->End();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The words go in asWords in order; there can be no more than the most a
-// core holds.  A word's transfer must be one of the uiNumTransfers.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool Load65C64Words(CMarkupTag* pcTag, const char* szElement, S65C64TransferWord* asWords, size* puiNumWords, size uiNumTransfers)
-{
-	STagIterator	sIter;
-	CMarkupTag*		pcWord;
-	int64			iAddress;
-	int64			iTransfer;
-	int64			iLanes;
-
-	memset(asWords, 0, sizeof(S65C64TransferWord) * MAX_65C64_TRANSFER_WORDS);
-	*puiNumWords = 0;
-	pcWord = pcTag->GetTag(szElement, &sIter);
-	while (pcWord != NULL)
-	{
-		if ((*puiNumWords >= MAX_65C64_TRANSFER_WORDS) ||
-			!LoadStateInt64(pcWord, "address", 0, 0xFFFFFFFFLL, &iAddress) ||
-			!LoadStateInt64(pcWord, "transfer", 0, (int64)uiNumTransfers - 1, &iTransfer) ||
-			!LoadStateInt64(pcWord, "lanes", 0, 0xFF, &iLanes))
-		{
-			return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] has a bad or one too many ", szElement, ".", NULL);
-		}
-		asWords[*puiNumWords].uiAddress = (uint32)iAddress;
-		asWords[*puiNumWords].uiTransfer = (uint8)iTransfer;
-		asWords[*puiNumWords].uiLanes = (uint8)iLanes;
-		(*puiNumWords)++;
-		pcWord = pcTag->GetNextTag(&sIter);
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 const char* C65C64ChipStateXML::GetIntegratedCircuitClassName(void) { return "C65C64Chip"; }
@@ -779,12 +723,12 @@ void C65C64ChipStateXML::Save(CXMLWriter* pcWriter, CIntegratedCircuit* pcIntegr
 		pcWriter->Begin("Transfer");
 		pcWriter->Attribute("address", (int64)sState.asTransfers[i].uiAddress);
 		pcWriter->Attribute("bytes", (int32)sState.asTransfers[i].uiBytes);
+		pcWriter->Attribute("read", sState.asTransfers[i].bRead);
+		pcWriter->Attribute("write", sState.asTransfers[i].bWrite);
 		pcWriter->Attribute("value", (int64)sState.asTransfers[i].uiValue);
 		pcWriter->Attribute("pulled", (int32)sState.aePulled[i]);
 		pcWriter->End();
 	}
-	Save65C64Words(pcWriter, "ReadWord", sState.asReadWords, sState.uiNumReadWords);
-	Save65C64Words(pcWriter, "WriteWord", sState.asWriteWords, sState.uiNumWriteWords);
 	pcWriter->End();
 }
 
@@ -900,6 +844,8 @@ bool C65C64ChipStateXML::Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegrate
 		if ((sState.uiNumTransfers >= MAX_65C64_TRANSFERS) ||
 			!LoadStateInt64(pcTransfer, "address", 0, 0xFFFFFFFFLL, &iAddress) ||
 			!LoadStateInt64(pcTransfer, "bytes", 0, 8, &iBytes) ||
+			!LoadStateBool(pcTransfer, "read", &sState.asTransfers[sState.uiNumTransfers].bRead) ||
+			!LoadStateBool(pcTransfer, "write", &sState.asTransfers[sState.uiNumTransfers].bWrite) ||
 			!LoadStateInt64(pcTransfer, "value", INT64_MIN, INT64_MAX, &iValue) ||
 			!LoadStateInt64(pcTransfer, "pulled", R65_Zero, R65_Y, &iPulled))
 		{
@@ -913,8 +859,6 @@ bool C65C64ChipStateXML::Load(CMarkupTag* pcTag, CIntegratedCircuit* pcIntegrate
 		sState.uiNumTransfers++;
 		pcTransfer = pcTag->GetNextTag(&sIter);
 	}
-	bResult = bResult && Load65C64Words(pcTag, "ReadWord", sState.asReadWords, &sState.uiNumReadWords, sState.uiNumTransfers);
-	bResult = bResult && Load65C64Words(pcTag, "WriteWord", sState.asWriteWords, &sState.uiNumWriteWords, sState.uiNumTransfers);
 
 	if (!bResult)
 	{

@@ -34,49 +34,49 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 void CW65CCore::Init(CW65CPins* pcPins)
 {
     mpcPins = pcPins;
-    mcProgramCounter.Init();
-    muiStackPointer = 0x01FF;
-    muiAccumulator = 0;
-    muiXIndex = 0;
-    muiYIndex = 0;
-    muiDataBank = 0;
-    muiDirectPage = 0;
+    msState.cProgramCounter.Init();
+    msState.uiStackPointer = 0x01FF;
+    msState.uiAccumulator = 0;
+    msState.uiXIndex = 0;
+    msState.uiYIndex = 0;
+    msState.uiDataBank = 0;
+    msState.uiDirectPage = 0;
 
-    mbZeroFlag = false;
-    mbNegativeFlag = false;
-    mbDecimalFlag = false;
-    mbInterruptDisableFlag = false;
-    mbAccumulatorWidthFlag = false;
-    mbIndexWidthFlag = false;
-    mbCarryFlag = false;
-    mbEmulationFlag = true;
-    mbOverflowFlag = false;
-    mbBreakFlag = false;
+    msState.bZeroFlag = false;
+    msState.bNegativeFlag = false;
+    msState.bDecimalFlag = false;
+    msState.bInterruptDisableFlag = false;
+    msState.bAccumulatorWidthFlag = false;
+    msState.bIndexWidthFlag = false;
+    msState.bCarryFlag = false;
+    msState.bEmulationFlag = true;
+    msState.bOverflowFlag = false;
+    msState.bBreakFlag = false;
 
-    mbStopped = false;
-    mbWaiting = false;
-    muiEmulationStatusBits = STATUS_ACCUMULATOR_WIDTH | STATUS_BREAK;
-    mbBusEnable = true;
-    mbNextInstruction = false;
+    msState.bStopped = false;
+    msState.bWaiting = false;
+    msState.uiEmulationStatusBits = STATUS_ACCUMULATOR_WIDTH | STATUS_BREAK;
+    msState.bBusEnable = true;
+    msState.bNextInstruction = false;
 
-    //muiData = 0;
-    miCycle = 0;
-    miNextCycle = 0;
+    //msState.uiData = 0;
+    msState.iCycle = 0;
+    msState.iNextCycle = 0;
 
-    muiOpcodeIndex = 0xffff;
+    msState.uiOpcodeIndex = 0xffff;
     mpcBusCycle = NULL;  //No opcode has an instruction yet, and the factory may not be initialised.
-    muiData = 0;
-    muiIOData = 0;
-    muiDirectOffset = 0;
-    mcNewProgramCounter.Init();
-    mcAddress.Init();
-    mbNmi = false;
-    mbNmiLow = false;
+    msState.uiData = 0;
+    msState.uiIOData = 0;
+    msState.uiDirectOffset = 0;
+    msState.cNewProgramCounter.Init();
+    msState.cAddress.Init();
+    msState.bNmi = false;
+    msState.bNmiLow = false;
 
-    mbPreviousClockHigh = false;
-    mbPreviousClockLow = false;
+    msState.bPreviousClockHigh = false;
+    msState.bPreviousClockLow = false;
 
-    muiResetCount = 0;
+    msState.uiResetCount = 0;
 
     CreateAbortValues();
 }
@@ -98,51 +98,7 @@ void CW65CCore::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetState(SW65CCoreState* psState)
 {
-	psState->bEmulationFlag = mbEmulationFlag;
-	psState->bZeroFlag = mbZeroFlag;
-	psState->bNegativeFlag = mbNegativeFlag;
-	psState->bDecimalFlag = mbDecimalFlag;
-	psState->bInterruptDisableFlag = mbInterruptDisableFlag;
-	psState->bAccumulatorWidthFlag = mbAccumulatorWidthFlag;
-	psState->bIndexWidthFlag = mbIndexWidthFlag;
-	psState->bCarryFlag = mbCarryFlag;
-	psState->bOverflowFlag = mbOverflowFlag;
-	psState->bBreakFlag = mbBreakFlag;
-	psState->uiAccumulator = muiAccumulator;
-	psState->uiXIndex = muiXIndex;
-	psState->uiYIndex = muiYIndex;
-	psState->uiDataBank = muiDataBank;
-	psState->uiDirectPage = muiDirectPage;
-	psState->uiStackPointer = muiStackPointer;
-	psState->iCycle = miCycle;
-	psState->iNextCycle = miNextCycle;
-	psState->uiOpcodeIndex = muiOpcodeIndex;
-	psState->bStopped = mbStopped;
-	psState->bWaiting = mbWaiting;
-	psState->uiEmulationStatusBits = muiEmulationStatusBits;
-	psState->uiAbortProcessRegister = muiAbortProcessRegister;
-	psState->uiAbortAccumulator = muiAbortAccumulator;
-	psState->uiAbortXIndex = muiAbortXIndex;
-	psState->uiAbortYIndex = muiAbortYIndex;
-	psState->uiAbortDataBank = muiAbortDataBank;
-	psState->uiAbortDirectPage = muiAbortDirectPage;
-	psState->uiAbortStackPointer = muiAbortStackPointer;
-	psState->uiData = muiData;
-	psState->uiIOData = muiIOData;
-	psState->uiDirectOffset = muiDirectOffset;
-	psState->bBusEnable = mbBusEnable;
-	psState->bIrq = mbIrq;
-	psState->bAbort = mbAbort;
-	psState->bNextInstruction = mbNextInstruction;
-	psState->bNmi = mbNmi;
-	psState->bNmiLow = mbNmiLow;
-	psState->bPreviousClockLow = mbPreviousClockLow;
-	psState->bPreviousClockHigh = mbPreviousClockHigh;
-	psState->uiResetCount = muiResetCount;
-	psState->cProgramCounter.Init(&mcProgramCounter);
-	psState->cAbortProgramCounter.Init(&mcAbortProgramCounter);
-	psState->cAddress.Init(&mcAddress);
-	psState->cNewProgramCounter.Init(&mcNewProgramCounter);
+	*psState = msState;
 }
 
 
@@ -153,51 +109,7 @@ void CW65CCore::GetState(SW65CCoreState* psState)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetState(SW65CCoreState* psState)
 {
-	mbEmulationFlag = psState->bEmulationFlag;
-	mbZeroFlag = psState->bZeroFlag;
-	mbNegativeFlag = psState->bNegativeFlag;
-	mbDecimalFlag = psState->bDecimalFlag;
-	mbInterruptDisableFlag = psState->bInterruptDisableFlag;
-	mbAccumulatorWidthFlag = psState->bAccumulatorWidthFlag;
-	mbIndexWidthFlag = psState->bIndexWidthFlag;
-	mbCarryFlag = psState->bCarryFlag;
-	mbOverflowFlag = psState->bOverflowFlag;
-	mbBreakFlag = psState->bBreakFlag;
-	muiAccumulator = psState->uiAccumulator;
-	muiXIndex = psState->uiXIndex;
-	muiYIndex = psState->uiYIndex;
-	muiDataBank = psState->uiDataBank;
-	muiDirectPage = psState->uiDirectPage;
-	muiStackPointer = psState->uiStackPointer;
-	miCycle = psState->iCycle;
-	miNextCycle = psState->iNextCycle;
-	muiOpcodeIndex = psState->uiOpcodeIndex;
-	mbStopped = psState->bStopped;
-	mbWaiting = psState->bWaiting;
-	muiEmulationStatusBits = psState->uiEmulationStatusBits;
-	muiAbortProcessRegister = psState->uiAbortProcessRegister;
-	muiAbortAccumulator = psState->uiAbortAccumulator;
-	muiAbortXIndex = psState->uiAbortXIndex;
-	muiAbortYIndex = psState->uiAbortYIndex;
-	muiAbortDataBank = psState->uiAbortDataBank;
-	muiAbortDirectPage = psState->uiAbortDirectPage;
-	muiAbortStackPointer = psState->uiAbortStackPointer;
-	muiData = psState->uiData;
-	muiIOData = psState->uiIOData;
-	muiDirectOffset = psState->uiDirectOffset;
-	mbBusEnable = psState->bBusEnable;
-	mbIrq = psState->bIrq;
-	mbAbort = psState->bAbort;
-	mbNextInstruction = psState->bNextInstruction;
-	mbNmi = psState->bNmi;
-	mbNmiLow = psState->bNmiLow;
-	mbPreviousClockLow = psState->bPreviousClockLow;
-	mbPreviousClockHigh = psState->bPreviousClockHigh;
-	muiResetCount = psState->uiResetCount;
-	mcProgramCounter.Init(&psState->cProgramCounter);
-	mcAbortProgramCounter.Init(&psState->cAbortProgramCounter);
-	mcAddress.Init(&psState->cAddress);
-	mcNewProgramCounter.Init(&psState->cNewProgramCounter);
+	msState = *psState;
 	UpdateBusCycle();
 }
 
@@ -461,7 +373,7 @@ void CW65CCore::PHX(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::STP(void)
 {
-    mbStopped = true;
+    msState.bStopped = true;
 }
 
 
@@ -936,7 +848,7 @@ void CW65CCore::GetCycleString(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 int16 CW65CCore::GetCyclePlusOne(void)
 {
-    return miCycle + 1;
+    return msState.iCycle + 1;
 }
 
 
@@ -977,28 +889,28 @@ void CW65CCore::InputTransition(CTimeline* pcTimeline)
 
     //NMIB is edge sensitive: only a fall is remembered, holding it low doesn't interrupt again.
     bNmi = pcPins->ReadNMI(pcTimeline).IsLow();
-    bNmiEdge = bNmi && !mbNmiLow;
+    bNmiEdge = bNmi && !msState.bNmiLow;
     bIrq = pcPins->ReadIRQ(pcTimeline).IsLow();
     bAbort = pcPins->ReadAbort(pcTimeline).IsLow();
 
-    mbBusEnable = pcPins->ReadBE(pcTimeline).IsHigh();
+    msState.bBusEnable = pcPins->ReadBE(pcTimeline).IsHigh();
     if (!IsBusEnable())
     {
         DisableBuses();
     }
 
-    if (mbWaiting && (bReset || mbNmi || bNmiEdge || bIrq || bAbort))
+    if (msState.bWaiting && (bReset || msState.bNmi || bNmiEdge || bIrq || bAbort))
     {
         //WAI chose the next opcode before it waited.  The interrupt that ends it is taken straight away (a
         //masked IRQ just continues), so choose again.  An interrupt's first cycle is on the bus as the fetch is.
-        mbWaiting = false;
-        mbIrq = bIrq;
+        msState.bWaiting = false;
+        msState.bIrq = bIrq;
         if (bNmiEdge)
         {
-            mbNmi = true;
+            msState.bNmi = true;
             bNmiEdge = false;
         }
-        if (muiOpcodeIndex == GetFetchNextOpcode()->GetCode())
+        if (msState.uiOpcodeIndex == GetFetchNextOpcode()->GetCode())
         {
             ChooseNextOpcode();
         }
@@ -1006,13 +918,13 @@ void CW65CCore::InputTransition(CTimeline* pcTimeline)
 
     if (sClockValue.IsHigh() || sClockValue.IsLow())
     {
-        bool risingEdge = sClockValue.IsHigh() && mbPreviousClockLow;
-        bool fallingEdge= sClockValue.IsLow() && mbPreviousClockHigh;
+        bool risingEdge = sClockValue.IsHigh() && msState.bPreviousClockLow;
+        bool fallingEdge= sClockValue.IsLow() && msState.bPreviousClockHigh;
 
-        mbPreviousClockLow = sClockValue.IsLow();
-        mbPreviousClockHigh = sClockValue.IsHigh();
+        msState.bPreviousClockLow = sClockValue.IsLow();
+        msState.bPreviousClockHigh = sClockValue.IsHigh();
 
-        if (!IsStopped() && !mbWaiting)
+        if (!IsStopped() && !msState.bWaiting)
         {
             if (fallingEdge)
             {
@@ -1026,15 +938,15 @@ void CW65CCore::InputTransition(CTimeline* pcTimeline)
         }
     }
 
-    mbIrq = bIrq;
+    msState.bIrq = bIrq;
     if (bNmiEdge)
     {
-        mbNmi = true;
+        msState.bNmi = true;
     }
-    mbNmiLow = bNmi;
+    msState.bNmiLow = bNmi;
 
     //ABORTB is level sensitive here.
-    mbAbort = bAbort;
+    msState.bAbort = bAbort;
 }
 
 
@@ -1128,14 +1040,14 @@ void CW65CCore::ExecutPhi2Rising(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::CreateAbortValues(void)
 {
-	muiAbortProcessRegister = GetProcessorRegisterValue();
-	muiAbortAccumulator = muiAccumulator;
-	muiAbortXIndex = muiXIndex;
-	muiAbortYIndex = muiYIndex;
-	muiAbortDataBank = muiDataBank;
-	muiAbortDirectPage = muiDirectPage;
-	mcAbortProgramCounter.Init(&mcProgramCounter);
-	muiAbortStackPointer = muiStackPointer;
+	msState.uiAbortProcessRegister = GetProcessorRegisterValue();
+	msState.uiAbortAccumulator = msState.uiAccumulator;
+	msState.uiAbortXIndex = msState.uiXIndex;
+	msState.uiAbortYIndex = msState.uiYIndex;
+	msState.uiAbortDataBank = msState.uiDataBank;
+	msState.uiAbortDirectPage = msState.uiDirectPage;
+	msState.cAbortProgramCounter.Init(&msState.cProgramCounter);
+	msState.uiAbortStackPointer = msState.uiStackPointer;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1144,9 +1056,9 @@ void CW65CCore::CreateAbortValues(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::CreatePartialAbortValues(void)
 {
-	muiAbortProcessRegister = GetProcessorRegisterValue();
-	muiAbortDataBank = muiDataBank;
-	mcAbortProgramCounter.Init(mcProgramCounter.GetBank(), mcAbortProgramCounter.GetOffset());
+	msState.uiAbortProcessRegister = GetProcessorRegisterValue();
+	msState.uiAbortDataBank = msState.uiDataBank;
+	msState.cAbortProgramCounter.Init(msState.cProgramCounter.GetBank(), msState.cAbortProgramCounter.GetOffset());
 }
 
 
@@ -1156,14 +1068,14 @@ void CW65CCore::CreatePartialAbortValues(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::RestoreAbortValues(void)
 {
-	muiAbortProcessRegister = GetProcessorRegisterValue();
-	muiAccumulator = muiAbortAccumulator;
-	muiXIndex = muiAbortXIndex;
-	muiYIndex = muiAbortYIndex;
-	muiDataBank = muiAbortDataBank;
-	muiDirectPage = muiAbortDirectPage;
-	mcProgramCounter.Init(&mcAbortProgramCounter);
-	muiStackPointer = muiAbortStackPointer;
+	msState.uiAbortProcessRegister = GetProcessorRegisterValue();
+	msState.uiAccumulator = msState.uiAbortAccumulator;
+	msState.uiXIndex = msState.uiAbortXIndex;
+	msState.uiYIndex = msState.uiAbortYIndex;
+	msState.uiDataBank = msState.uiAbortDataBank;
+	msState.uiDirectPage = msState.uiAbortDirectPage;
+	msState.cProgramCounter.Init(&msState.cAbortProgramCounter);
+	msState.uiStackPointer = msState.uiAbortStackPointer;
 }
 
 
@@ -1173,13 +1085,13 @@ void CW65CCore::RestoreAbortValues(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::ResetPulled(void)
 {
-	mbWaiting = false;
-	mbAbort = false;
-	mbNmi = false;
-	muiOpcodeIndex = GetResetOpcode()->GetCode();
-	mbStopped = false;
-	miCycle = 0;
-	miNextCycle = 0;
+	msState.bWaiting = false;
+	msState.bAbort = false;
+	msState.bNmi = false;
+	msState.uiOpcodeIndex = GetResetOpcode()->GetCode();
+	msState.bStopped = false;
+	msState.iCycle = 0;
+	msState.iNextCycle = 0;
 	UpdateBusCycle();
 
 	IncrementReset();
@@ -1192,9 +1104,9 @@ void CW65CCore::ResetPulled(void)
 //////////////////////////////////////////////////////////////////////////
 bool CW65CCore::IsReseting(STraceValue clockValue)
 {
-	return (muiResetCount > 0) &&
-		   ((muiResetCount <= 3) ||
-		    ((muiResetCount == 4) && (!clockValue.IsLow())));
+	return (msState.uiResetCount > 0) &&
+		   ((msState.uiResetCount <= 3) ||
+		    ((msState.uiResetCount == 4) && (!clockValue.IsLow())));
 }
 
 
@@ -1204,7 +1116,7 @@ bool CW65CCore::IsReseting(STraceValue clockValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::ClearReset(void)
 {
-	muiResetCount = 0;
+	msState.uiResetCount = 0;
 }
 
 
@@ -1214,9 +1126,9 @@ void CW65CCore::ClearReset(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::IncrementReset(void)
 {
-	if (muiResetCount <= 3)
+	if (msState.uiResetCount <= 3)
 	{
-		muiResetCount++;
+		msState.uiResetCount++;
 	}
 }
 
@@ -1244,15 +1156,15 @@ uint8 CW65CCore::GetProcessorRegisterValue(void)
 	{
 		value |= STATUS_DECIMAL;
 	}
-	if (mbEmulationFlag)
+	if (msState.bEmulationFlag)
 	{
-		value |= muiEmulationStatusBits;
+		value |= msState.uiEmulationStatusBits;
 	}
-	if (!mbEmulationFlag && mbIndexWidthFlag)
+	if (!msState.bEmulationFlag && msState.bIndexWidthFlag)
 	{
 		value |= STATUS_INDEX_WIDTH;
 	}
-	if (!mbEmulationFlag && mbAccumulatorWidthFlag)
+	if (!msState.bEmulationFlag && msState.bAccumulatorWidthFlag)
 	{
 		value |= STATUS_ACCUMULATOR_WIDTH;
 	}
@@ -1275,7 +1187,7 @@ uint8 CW65CCore::GetProcessorRegisterValue(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetZeroFlag(bool bZeroFlag)
 {
-	mbZeroFlag = bZeroFlag;
+	msState.bZeroFlag = bZeroFlag;
 }
 
 
@@ -1285,7 +1197,7 @@ void CW65CCore::SetZeroFlag(bool bZeroFlag)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetNegativeFlag(bool bSignFlag)
 {
-	mbNegativeFlag = bSignFlag;
+	msState.bNegativeFlag = bSignFlag;
 }
 
 
@@ -1295,7 +1207,7 @@ void CW65CCore::SetNegativeFlag(bool bSignFlag)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetDecimalFlag(bool bDecimalFlag)
 {
-	mbDecimalFlag = bDecimalFlag;
+	msState.bDecimalFlag = bDecimalFlag;
 }
 
 
@@ -1305,7 +1217,7 @@ void CW65CCore::SetDecimalFlag(bool bDecimalFlag)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetInterruptDisableFlag(bool bInterruptDisableFlag)
 {
-	mbInterruptDisableFlag = bInterruptDisableFlag;
+	msState.bInterruptDisableFlag = bInterruptDisableFlag;
 }
 
 
@@ -1315,7 +1227,7 @@ void CW65CCore::SetInterruptDisableFlag(bool bInterruptDisableFlag)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetAccumulatorWidthFlag(bool bAccumulatorWidthFlag)
 {
-	mbAccumulatorWidthFlag = bAccumulatorWidthFlag;
+	msState.bAccumulatorWidthFlag = bAccumulatorWidthFlag;
 }
 
 
@@ -1325,7 +1237,7 @@ void CW65CCore::SetAccumulatorWidthFlag(bool bAccumulatorWidthFlag)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetIndexWidthFlag(bool bIndexWidthFlag)
 {
-	mbIndexWidthFlag = bIndexWidthFlag;
+	msState.bIndexWidthFlag = bIndexWidthFlag;
 }
 
 
@@ -1335,7 +1247,7 @@ void CW65CCore::SetIndexWidthFlag(bool bIndexWidthFlag)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetCarryFlag(bool bCarryFlag)
 {
-	mbCarryFlag = bCarryFlag;
+	msState.bCarryFlag = bCarryFlag;
 }
 
 
@@ -1345,7 +1257,7 @@ void CW65CCore::SetCarryFlag(bool bCarryFlag)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetEmulationFlag(bool bEmulationFlag)
 {
-	mbEmulationFlag = bEmulationFlag;
+	msState.bEmulationFlag = bEmulationFlag;
 }
 
 
@@ -1355,7 +1267,7 @@ void CW65CCore::SetEmulationFlag(bool bEmulationFlag)
 //////////////////////////////////////////////////////////////////////////
 bool CW65CCore::IsZeroFlagSet(void)
 {
-	return mbZeroFlag;
+	return msState.bZeroFlag;
 }
 
 
@@ -1365,7 +1277,7 @@ bool CW65CCore::IsZeroFlagSet(void)
 //////////////////////////////////////////////////////////////////////////
 bool CW65CCore::IsNegativeSet(void)
 {
-	return mbNegativeFlag;
+	return msState.bNegativeFlag;
 }
 
 
@@ -1375,7 +1287,7 @@ bool CW65CCore::IsNegativeSet(void)
 //////////////////////////////////////////////////////////////////////////
 bool CW65CCore::IsDecimal(void)
 {
-	return mbDecimalFlag;
+	return msState.bDecimalFlag;
 }
 
 
@@ -1385,7 +1297,7 @@ bool CW65CCore::IsDecimal(void)
 //////////////////////////////////////////////////////////////////////////
 bool CW65CCore::IsInterruptDisable(void)
 {
-	return mbInterruptDisableFlag;
+	return msState.bInterruptDisableFlag;
 }
 
 
@@ -1395,7 +1307,7 @@ bool CW65CCore::IsInterruptDisable(void)
 //////////////////////////////////////////////////////////////////////////
 bool CW65CCore::IsCarrySet(void)
 {
-	return mbCarryFlag;
+	return msState.bCarryFlag;
 }
 
 
@@ -1405,7 +1317,7 @@ bool CW65CCore::IsCarrySet(void)
 //////////////////////////////////////////////////////////////////////////
 bool CW65CCore::IsEmulation(void)
 {
-	return mbEmulationFlag;
+	return msState.bEmulationFlag;
 }
 
 
@@ -1415,7 +1327,7 @@ bool CW65CCore::IsEmulation(void)
 //////////////////////////////////////////////////////////////////////////
 bool CW65CCore::IsBreak(void)
 {
-	return mbBreakFlag;
+	return msState.bBreakFlag;
 }
 
 
@@ -1425,7 +1337,7 @@ bool CW65CCore::IsBreak(void)
 //////////////////////////////////////////////////////////////////////////
 bool CW65CCore::IsOverflowFlag(void)
 {
-	return mbOverflowFlag;
+	return msState.bOverflowFlag;
 }
 
 
@@ -1435,7 +1347,7 @@ bool CW65CCore::IsOverflowFlag(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetBreakFlag(bool bBreakFlag)
 {
-	mbBreakFlag = bBreakFlag;
+	msState.bBreakFlag = bBreakFlag;
 }
 
 
@@ -1445,7 +1357,7 @@ void CW65CCore::SetBreakFlag(bool bBreakFlag)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetOverflowFlag(bool bOverflowFlag)
 {
-	mbOverflowFlag = bOverflowFlag;
+	msState.bOverflowFlag = bOverflowFlag;
 }
 
 
@@ -1455,19 +1367,19 @@ void CW65CCore::SetOverflowFlag(bool bOverflowFlag)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::Cycle(CW65CCore* pcCPU)
 {
-	if (mbNextInstruction)
+	if (msState.bNextInstruction)
 	{
-		miNextCycle = 0;
-		mbNextInstruction = false;
+		msState.iNextCycle = 0;
+		msState.bNextInstruction = false;
 		NextInstruction();
 	}
 
-	miCycle = miNextCycle;
+	msState.iCycle = msState.iNextCycle;
 	NextCycle();
 	UpdateBusCycle();
 	while (!mpcBusCycle->MustExecute(pcCPU))
 	{
-		miCycle = miNextCycle;
+		msState.iCycle = msState.iNextCycle;
 		NextCycle();
 		UpdateBusCycle();
 	}
@@ -1538,18 +1450,18 @@ CW65BusCycle* CW65CCore::GetBusCycle(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Must be called whenever miCycle or muiOpcodeIndex changes.
+// Must be called whenever msState.iCycle or msState.uiOpcodeIndex changes.
 //
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::UpdateBusCycle(void)
 {
 	CW65Instruction* pcInstruction;
 
-	pcInstruction = GetInstruction(muiOpcodeIndex);
+	pcInstruction = GetInstruction(msState.uiOpcodeIndex);
 
 	if (pcInstruction != NULL)
 	{
-		mpcBusCycle = pcInstruction->GetBusCycle(miCycle);
+		mpcBusCycle = pcInstruction->GetBusCycle(msState.iCycle);
 	}
 	else
 	{
@@ -1567,10 +1479,10 @@ void CW65CCore::NextInstruction(void)
 	if (IsEmulation())
 	{
 		//Instructions that use all 16 bits of S (caveat 7.1) may leave page 1, SH is 01 again afterwards.
-		muiStackPointer = 0x100 | GetLowByte(muiStackPointer);
+		msState.uiStackPointer = 0x100 | GetLowByte(msState.uiStackPointer);
 	}
 
-	if (!mbAbort)
+	if (!msState.bAbort)
 	{
 		CreateAbortValues();
 	}
@@ -1585,23 +1497,23 @@ void CW65CCore::NextInstruction(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::ChooseNextOpcode(void)
 {
-	if (mbNmi)
+	if (msState.bNmi)
 	{
-		muiOpcodeIndex = GetNmiOpcode()->GetCode();
-		mbNmi = false;
+		msState.uiOpcodeIndex = GetNmiOpcode()->GetCode();
+		msState.bNmi = false;
 	}
-	else if (mbAbort)
+	else if (msState.bAbort)
 	{
-		muiOpcodeIndex = GetAbortOpcode()->GetCode();
-		mbAbort = false;
+		msState.uiOpcodeIndex = GetAbortOpcode()->GetCode();
+		msState.bAbort = false;
 	}
-	else if (mbIrq && !mbInterruptDisableFlag)
+	else if (msState.bIrq && !msState.bInterruptDisableFlag)
 	{
-		muiOpcodeIndex = GetIrqOpcode()->GetCode();
+		msState.uiOpcodeIndex = GetIrqOpcode()->GetCode();
 	}
 	else
 	{
-		muiOpcodeIndex = GetFetchNextOpcode()->GetCode();
+		msState.uiOpcodeIndex = GetFetchNextOpcode()->GetCode();
 	}
 	UpdateBusCycle();
 }
@@ -1613,7 +1525,7 @@ void CW65CCore::ChooseNextOpcode(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::DoneInstruction(void)
 {
-	mbNextInstruction = true;
+	msState.bNextInstruction = true;
 }
 
 
@@ -1623,7 +1535,7 @@ void CW65CCore::DoneInstruction(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::NextCycle(void)
 {
-	miNextCycle++;
+	msState.iNextCycle++;
 }
 
 
@@ -1633,7 +1545,7 @@ void CW65CCore::NextCycle(void)
 //////////////////////////////////////////////////////////////////////////
 int16 CW65CCore::GetCycle(void)
 {
-	return miCycle;
+	return msState.iCycle;
 }
 
 
@@ -1645,7 +1557,7 @@ void CW65CCore::SetOpcode(uint16 uiOpcodeIndex)
 {
 	if (uiOpcodeIndex <= 255)
 	{
-		muiOpcodeIndex = uiOpcodeIndex;
+		msState.uiOpcodeIndex = uiOpcodeIndex;
 		UpdateBusCycle();
 	}
 	else
@@ -1661,7 +1573,7 @@ void CW65CCore::SetOpcode(uint16 uiOpcodeIndex)
 //////////////////////////////////////////////////////////////////////////
 bool CW65CCore::IsStopped(void)
 {
-	return mbStopped;
+	return msState.bStopped;
 }
 
 
@@ -1671,7 +1583,7 @@ bool CW65CCore::IsStopped(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::Wait(void)
 {
-	mbWaiting = true;
+	msState.bWaiting = true;
 }
 
 
@@ -1681,7 +1593,7 @@ void CW65CCore::Wait(void)
 //////////////////////////////////////////////////////////////////////////
 bool CW65CCore::IsWaiting(void)
 {
-	return mbWaiting;
+	return msState.bWaiting;
 }
 
 
@@ -1732,7 +1644,7 @@ bool CW65CCore::IsMemory8Bit(void)
 	}
 	else
 	{
-		return mbAccumulatorWidthFlag;
+		return msState.bAccumulatorWidthFlag;
 	}
 }
 
@@ -1759,7 +1671,7 @@ bool CW65CCore::IsIndex8Bit()
 	}
 	else
 	{
-		return mbIndexWidthFlag;
+		return msState.bIndexWidthFlag;
 	}
 }
 
@@ -1772,13 +1684,13 @@ void CW65CCore::SetX(uint16 uiXIndex)
 {
 	if (IsIndex16Bit())
 	{
-		muiXIndex = uiXIndex;
+		msState.uiXIndex = uiXIndex;
 	}
 	else
 	{
-		muiXIndex = SetLowByte(muiXIndex, (uint8)uiXIndex);
+		msState.uiXIndex = SetLowByte(msState.uiXIndex, (uint8)uiXIndex);
 	}
-	SetSignAndZeroFromIndex(muiXIndex);
+	SetSignAndZeroFromIndex(msState.uiXIndex);
 }
 
 
@@ -1790,13 +1702,13 @@ void CW65CCore::SetY(uint16 uiYIndex)
 {
 	if (IsIndex16Bit())
 	{
-		muiYIndex = uiYIndex;
+		msState.uiYIndex = uiYIndex;
 	}
 	else
 	{
-		muiYIndex = SetLowByte(muiYIndex, (uint8)uiYIndex);
+		msState.uiYIndex = SetLowByte(msState.uiYIndex, (uint8)uiYIndex);
 	}
-	SetSignAndZeroFromIndex(muiYIndex);
+	SetSignAndZeroFromIndex(msState.uiYIndex);
 }
 
 
@@ -1808,14 +1720,14 @@ void CW65CCore::SetA(uint16 uiAccumulator)
 {
 	if (IsMemory16Bit())
 	{
-		muiAccumulator = uiAccumulator;
+		msState.uiAccumulator = uiAccumulator;
 	}
 	else
 	{
-		muiAccumulator = SetLowByte(muiAccumulator, (uint8)uiAccumulator);
+		msState.uiAccumulator = SetLowByte(msState.uiAccumulator, (uint8)uiAccumulator);
 	}
 
-	SetSignAndZeroFromMemory(muiAccumulator);
+	SetSignAndZeroFromMemory(msState.uiAccumulator);
 }
 
 
@@ -1825,7 +1737,7 @@ void CW65CCore::SetA(uint16 uiAccumulator)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetC(uint16 uiAccumulator)
 {
-	muiAccumulator = uiAccumulator;
+	msState.uiAccumulator = uiAccumulator;
 	SetSignAndZeroFlagFrom16BitValue(uiAccumulator);
 }
 
@@ -1838,11 +1750,11 @@ void CW65CCore::SetMemoryData(uint16 uiData, bool bUpdateFlags)
 {
 	if (IsMemory16Bit())
 	{
-		muiData = uiData;
+		msState.uiData = uiData;
 	}
 	else
 	{
-		muiData = SetLowByte(muiData, (uint8)uiData);
+		msState.uiData = SetLowByte(msState.uiData, (uint8)uiData);
 	}
 	if (bUpdateFlags)
 	{
@@ -1859,11 +1771,11 @@ void CW65CCore::SetIndexData(uint16 uiData, bool bUpdateFlags)
 {
 	if (IsIndex16Bit())
 	{
-		muiData = uiData;
+		msState.uiData = uiData;
 	}
 	else
 	{
-		muiData = SetLowByte(muiData, (uint8)uiData);
+		msState.uiData = SetLowByte(msState.uiData, (uint8)uiData);
 	}
 
 	if (bUpdateFlags)
@@ -1923,7 +1835,7 @@ void CW65CCore::SetMemoryData(uint16 uiData)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetDataLow(uint8 uiData)
 {
-	muiData = SetLowByte(muiData, uiData);
+	msState.uiData = SetLowByte(msState.uiData, uiData);
 }
 
 
@@ -1933,7 +1845,7 @@ void CW65CCore::SetDataLow(uint8 uiData)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetIOData(uint8 uiData)
 {
-	muiIOData = uiData;
+	msState.uiIOData = uiData;
 }
 
 
@@ -1943,7 +1855,7 @@ void CW65CCore::SetIOData(uint8 uiData)
 //////////////////////////////////////////////////////////////////////////
 uint8 CW65CCore::GetIOData(void)
 {
-	return muiIOData;
+	return msState.uiIOData;
 }
 
 
@@ -1955,11 +1867,11 @@ uint16 CW65CCore::GetA(void)
 {
 	if (IsMemory16Bit())
 	{
-		return muiAccumulator;
+		return msState.uiAccumulator;
 	}
 	else
 	{
-		return GetLowByte(muiAccumulator);
+		return GetLowByte(msState.uiAccumulator);
 	}
 }
 
@@ -1970,7 +1882,7 @@ uint16 CW65CCore::GetA(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CW65CCore::GetC(void)
 {
-	return muiAccumulator;
+	return msState.uiAccumulator;
 }
 
 
@@ -1982,11 +1894,11 @@ uint16 CW65CCore::GetX(void)
 {
 	if (IsIndex16Bit())
 	{
-		return muiXIndex;
+		return msState.uiXIndex;
 	}
 	else
 	{
-		return GetLowByte(muiXIndex);
+		return GetLowByte(msState.uiXIndex);
 	}
 }
 
@@ -1999,11 +1911,11 @@ uint16 CW65CCore::GetY(void)
 {
 	if (IsIndex16Bit())
 	{
-		return muiYIndex;
+		return msState.uiYIndex;
 	}
 	else
 	{
-		return GetLowByte(muiYIndex);
+		return GetLowByte(msState.uiYIndex);
 	}
 }
 
@@ -2014,7 +1926,7 @@ uint16 CW65CCore::GetY(void)
 //////////////////////////////////////////////////////////////////////////
 uint8 CW65CCore::GetDataBank(void)
 {
-	return muiDataBank;
+	return msState.uiDataBank;
 }
 
 
@@ -2024,7 +1936,7 @@ uint8 CW65CCore::GetDataBank(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetDataBank(uint8 uiDataBank)
 {
-	muiDataBank = uiDataBank;
+	msState.uiDataBank = uiDataBank;
 }
 
 
@@ -2034,7 +1946,7 @@ void CW65CCore::SetDataBank(uint8 uiDataBank)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetDirectPage(uint16 uiDirectPage)
 {
-	muiDirectPage = uiDirectPage;
+	msState.uiDirectPage = uiDirectPage;
 }
 
 
@@ -2044,7 +1956,7 @@ void CW65CCore::SetDirectPage(uint16 uiDirectPage)
 //////////////////////////////////////////////////////////////////////////
 CW65Address* CW65CCore::GetProgramCounter(void)
 {
-	return &mcProgramCounter;
+	return &msState.cProgramCounter;
 }
 
 
@@ -2265,7 +2177,7 @@ bool CW65CCore::IsOverflowSet(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetProgramCounter(CW65Address* pcAddress)
 {
-	mcProgramCounter.Init(pcAddress);
+	msState.cProgramCounter.Init(pcAddress);
 }
 
 
@@ -2275,7 +2187,7 @@ void CW65CCore::SetProgramCounter(CW65Address* pcAddress)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetProgramAddressBank(uint8 uibank)
 {
-	mcProgramCounter.SetBank(uibank);
+	msState.cProgramCounter.SetBank(uibank);
 }
 
 
@@ -2285,7 +2197,7 @@ void CW65CCore::SetProgramAddressBank(uint8 uibank)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetAddressLow(uint8 uiAddressLow)
 {
-	mcAddress.SetOffsetLow(uiAddressLow);
+	msState.cAddress.SetOffsetLow(uiAddressLow);
 }
 
 
@@ -2295,7 +2207,7 @@ void CW65CCore::SetAddressLow(uint8 uiAddressLow)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetAddressHigh(uint8 uiAddressHigh)
 {
-	mcAddress.SetOffsetHigh(uiAddressHigh);
+	msState.cAddress.SetOffsetHigh(uiAddressHigh);
 }
 
 
@@ -2305,7 +2217,7 @@ void CW65CCore::SetAddressHigh(uint8 uiAddressHigh)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetAddressBank(uint8 uiAddressBank)
 {
-	mcAddress.SetBank(uiAddressBank);
+	msState.cAddress.SetBank(uiAddressBank);
 }
 
 
@@ -2315,7 +2227,7 @@ void CW65CCore::SetAddressBank(uint8 uiAddressBank)
 //////////////////////////////////////////////////////////////////////////
 uint8 CW65CCore::GetDataLow(void)
 {
-	return GetLowByte(muiData);
+	return GetLowByte(msState.uiData);
 }
 
 
@@ -2325,7 +2237,7 @@ uint8 CW65CCore::GetDataLow(void)
 //////////////////////////////////////////////////////////////////////////
 uint8 CW65CCore::GetDataHigh(void)
 {
-	return GetHighByte(muiData);
+	return GetHighByte(msState.uiData);
 }
 
 
@@ -2337,11 +2249,11 @@ uint16 CW65CCore::GetMemoryData(void)
 {
 	if (IsMemory16Bit())
 	{
-		return muiData;
+		return msState.uiData;
 	}
 	else
 	{
-		return GetLowByte(muiData);
+		return GetLowByte(msState.uiData);
 	}
 }
 
@@ -2354,11 +2266,11 @@ uint16 CW65CCore::GetIndexData(void)
 {
 	if (IsIndex16Bit())
 	{
-		return muiData;
+		return msState.uiData;
 	}
 	else
 	{
-		return GetLowByte(muiData);
+		return GetLowByte(msState.uiData);
 	}
 }
 
@@ -2369,7 +2281,7 @@ uint16 CW65CCore::GetIndexData(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CW65CCore::GetData16Bit(void)
 {
-	return muiData;
+	return msState.uiData;
 }
 
 
@@ -2379,7 +2291,7 @@ uint16 CW65CCore::GetData16Bit(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CW65CCore::GetDirectPage(void)
 {
-	return muiDirectPage;
+	return msState.uiDirectPage;
 }
 
 
@@ -2389,7 +2301,7 @@ uint16 CW65CCore::GetDirectPage(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CW65CCore::GetDirectOffset(void)
 {
-	return muiDirectOffset;
+	return msState.uiDirectOffset;
 }
 
 
@@ -2399,7 +2311,7 @@ uint16 CW65CCore::GetDirectOffset(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CW65CCore::GetStackPointer16Bit(void)
 {
-	return muiStackPointer;
+	return msState.uiStackPointer;
 }
 
 
@@ -2411,11 +2323,11 @@ uint16 CW65CCore::GetStackPointer(void)
 {
 	if (!IsEmulation())
 	{
-		return muiStackPointer;
+		return msState.uiStackPointer;
 	}
 	else
 	{
-		return GetLowByte(muiStackPointer) | 0x100;
+		return GetLowByte(msState.uiStackPointer) | 0x100;
 	}
 }
 
@@ -2426,7 +2338,7 @@ uint16 CW65CCore::GetStackPointer(void)
 //////////////////////////////////////////////////////////////////////////
 CW65Address* CW65CCore::GetAddress(void)
 {
-	return &mcAddress;
+	return &msState.cAddress;
 }
 
 
@@ -2436,7 +2348,7 @@ CW65Address* CW65CCore::GetAddress(void)
 //////////////////////////////////////////////////////////////////////////
 CW65Instruction* CW65CCore::GetOpcode(void)
 {
-	return GetInstruction(muiOpcodeIndex);
+	return GetInstruction(msState.uiOpcodeIndex);
 }
 
 
@@ -2446,7 +2358,7 @@ CW65Instruction* CW65CCore::GetOpcode(void)
 //////////////////////////////////////////////////////////////////////////
 CW65Address* CW65CCore::GetNewProgramCounter(void)
 {
-	return &mcNewProgramCounter;
+	return &msState.cNewProgramCounter;
 }
 
 
@@ -2456,7 +2368,7 @@ CW65Address* CW65CCore::GetNewProgramCounter(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::IncrementProgramAddress(void)
 {
-	mcProgramCounter.Offset(1);
+	msState.cProgramCounter.Offset(1);
 }
 
 
@@ -2466,7 +2378,7 @@ void CW65CCore::IncrementProgramAddress(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::DecrementProgramCounter(void)
 {
-	mcProgramCounter.Offset(-1);
+	msState.cProgramCounter.Offset(-1);
 }
 
 
@@ -2476,7 +2388,7 @@ void CW65CCore::DecrementProgramCounter(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::IncrementStackPointer(void)
 {
-	muiStackPointer++;
+	msState.uiStackPointer++;
 }
 
 
@@ -2486,7 +2398,7 @@ void CW65CCore::IncrementStackPointer(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::DecrementStackPointer(void)
 {
-	muiStackPointer--;
+	msState.uiStackPointer--;
 }
 
 
@@ -2496,7 +2408,7 @@ void CW65CCore::DecrementStackPointer(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetDirectOffset(uint8 uiData)
 {
-	muiDirectOffset = uiData;
+	msState.uiDirectOffset = uiData;
 }
 
 
@@ -2506,7 +2418,7 @@ void CW65CCore::SetDirectOffset(uint8 uiData)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetDataHigh(uint8 uiData)
 {
-	muiData = SetHighByte(muiData, uiData);
+	msState.uiData = SetHighByte(msState.uiData, uiData);
 }
 
 
@@ -2516,7 +2428,7 @@ void CW65CCore::SetDataHigh(uint8 uiData)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetStackPointer(uint16 uiData)
 {
-	muiStackPointer = uiData;
+	msState.uiStackPointer = uiData;
 }
 
 
@@ -2526,7 +2438,7 @@ void CW65CCore::SetStackPointer(uint16 uiData)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetNewProgramCounterLow(uint8 uiData)
 {
-	mcNewProgramCounter.SetOffsetLow(uiData);
+	msState.cNewProgramCounter.SetOffsetLow(uiData);
 
 }
 
@@ -2537,7 +2449,7 @@ void CW65CCore::SetNewProgramCounterLow(uint8 uiData)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetNewProgramCounterHigh(uint8 uiData)
 {
-	mcNewProgramCounter.SetOffsetHigh(uiData);
+	msState.cNewProgramCounter.SetOffsetHigh(uiData);
 }
 
 
@@ -2547,7 +2459,7 @@ void CW65CCore::SetNewProgramCounterHigh(uint8 uiData)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SetNewProgramCounterBank(uint8 uiData)
 {
-	mcNewProgramCounter.SetBank(uiData);
+	msState.cNewProgramCounter.SetBank(uiData);
 }
 
 
@@ -2560,11 +2472,11 @@ void CW65CCore::SetEmulationMode(bool bEmulation)
 	SetEmulationFlag(bEmulation);
 	if (bEmulation)
 	{
-		muiXIndex = GetLowByte(muiXIndex);
-		muiYIndex = GetLowByte(muiYIndex);
+		msState.uiXIndex = GetLowByte(msState.uiXIndex);
+		msState.uiYIndex = GetLowByte(msState.uiYIndex);
 		SetAccumulatorWidthFlag(true);
 		SetIndexWidthFlag(true);
-		muiStackPointer = GetLowByte(muiStackPointer) | 0x100;
+		msState.uiStackPointer = GetLowByte(msState.uiStackPointer) | 0x100;
 	}
 }
 
@@ -2575,10 +2487,10 @@ void CW65CCore::SetEmulationMode(bool bEmulation)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::ProcessorStatusChanged(void)
 {
-	if (mbIndexWidthFlag)
+	if (msState.bIndexWidthFlag)
 	{
-		muiXIndex = GetLowByte(muiXIndex);
-		muiYIndex = GetLowByte(muiYIndex);
+		msState.uiXIndex = GetLowByte(msState.uiXIndex);
+		msState.uiYIndex = GetLowByte(msState.uiYIndex);
 	}
 	if (IsEmulation())
 	{
@@ -2995,7 +2907,7 @@ uint16 CW65CCore::SetBit(uint16 uiValue, uint16 uiBitNumber)
 //////////////////////////////////////////////////////////////////////////
 bool CW65CCore::IsBusEnable(void)
 {
-	return mbBusEnable;
+	return msState.bBusEnable;
 }
 
 
@@ -3399,11 +3311,11 @@ void CW65CCore::LDY(void)
 {
 	if (IsIndex16Bit())
 	{
-		SetY(muiData);
+		SetY(msState.uiData);
 	}
 	else
 	{
-		SetY(GetLowByte(muiData));
+		SetY(GetLowByte(msState.uiData));
 	}
 }
 
@@ -3416,11 +3328,11 @@ void CW65CCore::LDX(void)
 {
 	if (IsIndex16Bit())
 	{
-		SetX(muiData);
+		SetX(msState.uiData);
 	}
 	else
 	{
-		SetX(GetLowByte(muiData));
+		SetX(GetLowByte(msState.uiData));
 	}
 }
 
@@ -3594,9 +3506,9 @@ void CW65CCore::SBC(void)
 void CW65CCore::Reset(void)
 {
 	SetEmulationMode(true);
-	muiDataBank = 0;
-	muiDirectPage = 0;
-	mcProgramCounter.SetBank(0);
+	msState.uiDataBank = 0;
+	msState.uiDirectPage = 0;
+	msState.cProgramCounter.SetBank(0);
 	SetDecimalFlag(false);
 	SetInterruptDisableFlag(true);
 }
@@ -3781,7 +3693,7 @@ void CW65CCore::ReadOpcode(void)
 	SetOpcode(GetIOData());
 
 	//An instruction that is only its opcode fetch (some W65C02S NOPs) is done.
-	pcInstruction = GetInstruction(muiOpcodeIndex);
+	pcInstruction = GetInstruction(msState.uiOpcodeIndex);
 	if (pcInstruction && (pcInstruction->GetCycles()->Size() == 1))
 	{
 		DoneInstruction();
@@ -3798,7 +3710,7 @@ bool CW65CCore::NoteFour(bool bIndexY, bool bNextWillRead)
 	uint16	uiIndex;
 
 	uiIndex = bIndexY ? GetY() : GetX();
-	return ((uint16)mcAddress.GetOffsetLow() + (uint16)GetLowByte(uiIndex)) > 0xFF ||
+	return ((uint16)msState.cAddress.GetOffsetLow() + (uint16)GetLowByte(uiIndex)) > 0xFF ||
 		   !bNextWillRead ||
 		   IsIndex16Bit();
 }
@@ -3814,7 +3726,7 @@ bool CW65CCore::NoteSix(void)
 
 	if (IsEmulation())
 	{
-		uiOffset = mcProgramCounter.GetOffset();
+		uiOffset = msState.cProgramCounter.GetOffset();
 		return AreOffsetsOnDifferentPages(uiOffset, uiOffset + (int8)GetDataLow());
 	}
 	return false;
@@ -3827,7 +3739,7 @@ bool CW65CCore::NoteSix(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CW65CCore::GetAddressOffsetLowX(void)
 {
-	return GetLowByte(mcAddress.GetOffsetLow() + GetLowByte(GetX()));
+	return GetLowByte(msState.cAddress.GetOffsetLow() + GetLowByte(GetX()));
 }
 
 
@@ -3837,7 +3749,7 @@ uint16 CW65CCore::GetAddressOffsetLowX(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CW65CCore::GetAddressOffsetLowY(void)
 {
-	return GetLowByte(mcAddress.GetOffsetLow() + GetLowByte(GetY()));
+	return GetLowByte(msState.cAddress.GetOffsetLow() + GetLowByte(GetY()));
 }
 
 
@@ -3847,7 +3759,7 @@ uint16 CW65CCore::GetAddressOffsetLowY(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::WriteProgramBank(void)
 {
-	SetIOData(mcProgramCounter.GetBank());
+	SetIOData(msState.cProgramCounter.GetBank());
 }
 
 
@@ -3857,7 +3769,7 @@ void CW65CCore::WriteProgramBank(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::WriteProgramCounterHigh(void)
 {
-	SetIOData(mcProgramCounter.GetOffsetHigh());
+	SetIOData(msState.cProgramCounter.GetOffsetHigh());
 }
 
 
@@ -3867,7 +3779,7 @@ void CW65CCore::WriteProgramCounterHigh(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::WriteProgramCounterLow(void)
 {
-	SetIOData(mcProgramCounter.GetOffsetLow());
+	SetIOData(msState.cProgramCounter.GetOffsetLow());
 }
 
 
@@ -3877,7 +3789,7 @@ void CW65CCore::WriteProgramCounterLow(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::TestSetC(uint16 uiAccumulator)
 {
-	muiAccumulator = uiAccumulator;
+	msState.uiAccumulator = uiAccumulator;
 }
 
 
@@ -3887,7 +3799,7 @@ void CW65CCore::TestSetC(uint16 uiAccumulator)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::TestSetX(uint16 uiXIndex)
 {
-	muiXIndex = uiXIndex;
+	msState.uiXIndex = uiXIndex;
 }
 
 
@@ -3897,7 +3809,7 @@ void CW65CCore::TestSetX(uint16 uiXIndex)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::TestSetY(uint16 uiYIndex)
 {
-	muiYIndex = uiYIndex;
+	msState.uiYIndex = uiYIndex;
 }
 
 
@@ -3907,7 +3819,7 @@ void CW65CCore::TestSetY(uint16 uiYIndex)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::TestSetStackPointer(uint16 uiStackPointer)
 {
-	muiStackPointer = uiStackPointer;
+	msState.uiStackPointer = uiStackPointer;
 }
 
 
@@ -3917,7 +3829,7 @@ void CW65CCore::TestSetStackPointer(uint16 uiStackPointer)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::TestSetProgramCounter(uint8 uiProgramBank, uint16 uiProgramCounter)
 {
-	mcProgramCounter.Init(uiProgramBank, uiProgramCounter);
+	msState.cProgramCounter.Init(uiProgramBank, uiProgramCounter);
 }
 
 
@@ -3927,7 +3839,7 @@ void CW65CCore::TestSetProgramCounter(uint8 uiProgramBank, uint16 uiProgramCount
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::TestSetProcessorStatus(uint8 uiProcessorStatus, bool bEmulation)
 {
-	mbEmulationFlag = bEmulation;
+	msState.bEmulationFlag = bEmulation;
 	SetProcessorRegisterValue(uiProcessorStatus);
 	ProcessorStatusChanged();
 }
@@ -3940,9 +3852,9 @@ void CW65CCore::TestSetProcessorStatus(uint8 uiProcessorStatus, bool bEmulation)
 void CW65CCore::TestStartInstruction(void)
 {
 	//The next falling edge of PHI2 starts the fetch of the opcode at PBR:PC.  Reset is skipped.
-	muiResetCount = 0;
-	mbStopped = false;
-	mbNextInstruction = true;
+	msState.uiResetCount = 0;
+	msState.bStopped = false;
+	msState.bNextInstruction = true;
 }
 
 

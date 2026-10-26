@@ -59,24 +59,18 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MAX_65C64_OPERAND_WORDS		4
 #define MAX_65C64_TRANSFERS			8
-#define MAX_65C64_TRANSFER_WORDS	40
 
 
-//Memory an instruction reads or writes: a value of 1 to 8 bytes at any address.
+//Memory an instruction reads or writes: a value of 1 to 8 bytes at any address.  Its aligned words follow from the
+//address and the bytes.  Instructions read the words of the transfers that are read, execute, then write the words
+//of those that are written.
 struct S65C64Transfer
 {
 	uint32	uiAddress;
 	uint8	uiBytes;
+	bool	bRead;
+	bool	bWrite;
 	uint64	uiValue;
-};
-
-
-//An aligned word of a transfer.  Instructions read their read words, execute, then write their write words.
-struct S65C64TransferWord
-{
-	uint32	uiAddress;
-	uint8	uiTransfer;
-	uint8	uiLanes;
 };
 
 
@@ -112,6 +106,7 @@ enum E65C64DecodedKind
 //decoded instruction and the instruction aren't kept; they're made again from their kinds, the opcode and the vector.
 struct S65C64CoreState
 {
+	//Registers.
 	uint64					uiA;
 	uint64					uiB;
 	uint64					uiX;
@@ -123,6 +118,7 @@ struct S65C64CoreState
 	uint16					uiP;
 	uint32					uiInterruptDepth;
 
+	//Internal data.
 	uint64					uiDI;
 	uint8					uiOperationBytes;
 	uint16					auiOperandWords[MAX_65C64_OPERAND_WORDS];
@@ -135,11 +131,8 @@ struct S65C64CoreState
 	S65C64Transfer			asTransfers[MAX_65C64_TRANSFERS];
 	E65Register				aePulled[MAX_65C64_TRANSFERS];
 	size					uiNumTransfers;
-	S65C64TransferWord		asReadWords[MAX_65C64_TRANSFER_WORDS];
-	size					uiNumReadWords;
-	S65C64TransferWord		asWriteWords[MAX_65C64_TRANSFER_WORDS];
-	size					uiNumWriteWords;
 
+	//The instruction.  The core runs msDecoded and mpcInstruction: their kinds are only filled in by GetState.
 	uint16					uiOpcode;
 	E65C64DecodedKind		eDecoded;
 	uint16					uiDecodedVector;  //DK65_Interrupt.
@@ -149,12 +142,14 @@ struct S65C64CoreState
 	bool					bNextInstruction;
 	bool					bStopped;
 
+	//Interrupts.
 	bool					bWaiting;
 	uint8					uiWakeMask;
 	uint8					uiPendingEdges;
 	uint8					uiEdgeLow;
 	bool					bLevelInterrupt;
 
+	//The bus.
 	uint16					uiIOData;
 	bool					bPreviousClockLow;
 	bool					bPreviousClockHigh;
@@ -163,57 +158,9 @@ struct S65C64CoreState
 class C65C64
 {
 protected:
-	//Registers.
-	uint64				muiA;
-	uint64				muiB;
-	uint64				muiX;
-	uint64				muiY;
-	uint32				muiS;
-	uint32				muiV;
-	uint32				muiW;
-	uint32				muiC;
-	uint16				muiP;
-	uint32				muiInterruptDepth;
-
-	//Internal data.
-	uint64				muiDI;
-	uint8				muiOperationBytes;
-	uint16				mauiOperandWords[MAX_65C64_OPERAND_WORDS];
-	uint32				muiPointerAddress;
-	uint32				muiPointer;
-	uint8				muiNumPointerWords;
-	uint32				muiEffectiveAddress;
-	uint32				muiVectorAddress;
-	uint32				muiVector;
-	S65C64Transfer		masTransfers[MAX_65C64_TRANSFERS];
-	size				muiNumTransfers;
-	S65C64TransferWord	masReadWords[MAX_65C64_TRANSFER_WORDS];
-	size				muiNumReadWords;
-	S65C64TransferWord	masWriteWords[MAX_65C64_TRANSFER_WORDS];
-	size				muiNumWriteWords;
-	E65Register			maePulled[MAX_65C64_TRANSFERS];
-
-	//The instruction.
-	uint16				muiOpcode;
+	S65C64CoreState		msState;
 	S65C64Decoded		msDecoded;
 	C65Instruction*		mpcInstruction;
-	int16				miCycle;
-	int16				miNextCycle;
-	bool				mbNextInstruction;
-	bool				mbStopped;
-
-	//Interrupts.
-	bool				mbWaiting;
-	uint8				muiWakeMask;
-	uint8				muiPendingEdges;
-	uint8				muiEdgeLow;
-	bool				mbLevelInterrupt;
-
-	//The bus.
-	uint16				muiIOData;
-	bool				mbPreviousClockLow;
-	bool				mbPreviousClockHigh;
-	bool				mbReset;
 	C65C64Pins*			mpcPins;
 
 public:
@@ -354,7 +301,8 @@ protected:
 	void				StartInterrupt(uint16 uiVector, uint16 uiDisable);
 	void				DecodeInterrupt(uint16 uiVector);
 	void				AddTransfer(uint32 uiAddress, uint8 uiBytes, uint64 uiValue, bool bRead, bool bWrite);
-	void				AddWords(S65C64TransferWord* pasWords, size* puiNumWords, uint32 uiAddress, uint8 uiBytes);
+	size				CountTransferWords(bool bWrite);
+	S65C64Transfer*		FindTransferWord(uint8 uiWord, bool bWrite, uint32* puiWordAddress);
 	void				PushTransfer(uint64 uiValue, uint8 uiBytes);
 	void				PullTransfer(uint8 uiBytes);
 	void				DataAddressKnown(void);

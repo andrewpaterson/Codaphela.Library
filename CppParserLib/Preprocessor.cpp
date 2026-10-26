@@ -804,7 +804,10 @@ void CPreprocessor::Init(CConfig* pcConfig)
 	AddSpecialOperator("__has_feature", PPSO_HasFeature);
 	AddSpecialOperator("__has_extension", PPSO_HasFeature);
 
-	InitPlatformSpecific();
+	if (!pcConfig || pcConfig->mbHostDefines)
+	{
+		InitPlatformSpecific();
+	}
 	AddConfigDefines(pcConfig);
 	mszVaArgs.Init("__VA_ARGS__");
 }
