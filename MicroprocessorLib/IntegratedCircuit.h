@@ -42,7 +42,13 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //starts.  Chips whose outputs follow their inputs (gates) don't override it; undriven inputs leave them undriven.
 //
 //Logicim's IntegratedCircuit is generic over its pins and state; here a subclass casts GetPins.
+//
+//A chip that remembers anything saves it with a saved simulation: GetStateXMLName names the element it's saved in
+//(NULL, the default, for a chip that remembers nothing), SaveXML writes the element's attributes and child elements
+//and LoadXML sets what the chip remembers from them.
 class CIntegratedCircuitEvent;
+class CXMLWriter;
+class CMarkupTag;
 class CIntegratedCircuit : public CCircuitComponent
 {
 CONSTRUCTABLE(CIntegratedCircuit);
@@ -64,6 +70,10 @@ public:
 	virtual void			SimulationStarted(CTimeline* pcTimeline) =0;
 	virtual void			InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort) =0;
 	virtual const char*		GetType(void) =0;
+
+	virtual const char*		GetStateXMLName(void);
+	virtual void			SaveXML(CXMLWriter* pcWriter);
+	virtual bool			LoadXML(CMarkupTag* pcTag);
 
 	virtual size			NumPorts(void);
 	virtual CPort*			GetPort(size uiIndex);

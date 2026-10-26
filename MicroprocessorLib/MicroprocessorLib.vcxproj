@@ -183,6 +183,7 @@
     <ClCompile Include="TransitionEvent.cpp" />
     <ClCompile Include="Pins.cpp" />
     <ClCompile Include="IntegratedCircuit.cpp" />
+    <ClCompile Include="StateXMLFields.cpp" />
     <ClCompile Include="IntegratedCircuitEvent.cpp" />
     <ClCompile Include="TickEvent.cpp" />
     <ClCompile Include="Circuit.cpp" />
@@ -403,6 +404,7 @@
     <ClInclude Include="TransitionEvent.h" />
     <ClInclude Include="Pins.h" />
     <ClInclude Include="IntegratedCircuit.h" />
+    <ClInclude Include="StateXMLFields.h" />
     <ClInclude Include="IntegratedCircuitEvent.h" />
     <ClInclude Include="TickEvent.h" />
     <ClInclude Include="Circuit.h" />

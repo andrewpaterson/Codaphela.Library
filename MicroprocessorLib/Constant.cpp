@@ -19,6 +19,8 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ConstructorCall.h"
+#include "BaseLib/Logger.h"
+#include "StateXMLFields.h"
 #include "Constant.h"
 
 
@@ -84,4 +86,38 @@ const char* CConstant::GetType(void) { return CONSTANT_TYPE; }
 CConstantPins* CConstant::GetConstantPins(void) { return (CConstantPins*)mpcPins; }
 int64 CConstant::GetConstantValue(void) { return miConstantValue; }
 void CConstant::SetConstantValue(int64 iConstantValue) { miConstantValue = iConstantValue; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CConstant::GetStateXMLName(void) { return "ConstantState"; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CConstant::SaveXML(CXMLWriter* pcWriter)
+{
+	pcWriter->Attribute("value", GetConstantValue());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CConstant::LoadXML(CMarkupTag* pcTag)
+{
+	int64	iValue;
+
+	if (!pcTag->GetInt64Attribute("value", &iValue))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs a whole number value.", NULL);
+	}
+	SetConstantValue(iValue);
+	return true;
+}
 

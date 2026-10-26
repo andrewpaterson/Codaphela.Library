@@ -59,7 +59,7 @@ public:
 };
 
 
-//An IC's state (by its CStateXML), its own events, and each logic port's output and events in a <Port name="...">.
+//An IC's state (its own SaveXML and LoadXML), its own events, and each logic port's output and events in a <Port name="...">.
 class CIntegratedCircuitStateXML : public CComponentStateXML
 {
 public:

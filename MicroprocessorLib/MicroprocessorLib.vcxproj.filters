@@ -549,6 +549,9 @@
     <ClCompile Include="IntegratedCircuit.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
+    <ClCompile Include="StateXMLFields.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
     <ClCompile Include="IntegratedCircuitEvent.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
@@ -1203,6 +1206,9 @@
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="IntegratedCircuit.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="StateXMLFields.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="IntegratedCircuitEvent.h">

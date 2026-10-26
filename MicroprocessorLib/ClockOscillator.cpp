@@ -19,10 +19,12 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ConstructorCall.h"
+#include "BaseLib/Logger.h"
 #include "BaseLib/StringHelper.h"
 #include "LongTime.h"
 #include "Timeline.h"
 #include "TickEvent.h"
+#include "StateXMLFields.h"
 #include "ClockOscillator.h"
 
 
@@ -195,4 +197,41 @@ CClockOscillatorPins* CClockOscillator::GetClockOscillatorPins(void) { return (C
 void CClockOscillator::SetFullTicks(int64 iFullTicks) { miFullTicks = iFullTicks; }
 bool CClockOscillator::IsHigh(void) { return mbHigh; }
 void CClockOscillator::SetHigh(bool bHigh) { mbHigh = bHigh; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CClockOscillator::GetStateXMLName(void) { return "ClockOscillatorState"; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CClockOscillator::SaveXML(CXMLWriter* pcWriter)
+{
+	pcWriter->Attribute("high", IsHigh());
+	pcWriter->Attribute("fullTicks", GetFullTicks());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CClockOscillator::LoadXML(CMarkupTag* pcTag)
+{
+	bool	bHigh;
+	int64	iFullTicks;
+
+	if (!pcTag->GetBoolAttribute("high", &bHigh) || !pcTag->GetInt64Attribute("fullTicks", &iFullTicks))
+	{
+		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs a true or false high and a whole number fullTicks.", NULL);
+	}
+	SetHigh(bHigh);
+	SetFullTicks(iFullTicks);
+	return true;
+}
 

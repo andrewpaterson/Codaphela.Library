@@ -50,6 +50,9 @@ public:
 	virtual void					ExecuteTick(CTimeline* pcTimeline);
 	virtual void					TraceConnected(CTimeline* pcTimeline, CPort* pcPort);
 	virtual const char*				GetType(void);
+	virtual const char*				GetStateXMLName(void);
+	virtual void					SaveXML(CXMLWriter* pcWriter);
+	virtual bool					LoadXML(CMarkupTag* pcTag);
 	virtual void					ResetState(void);
 
 			float32					GetInternalVoltage(int64 iTime);
