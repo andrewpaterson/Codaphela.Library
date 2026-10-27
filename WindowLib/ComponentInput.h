@@ -20,9 +20,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __COMPONENT_INPUT_H__
 #define __COMPONENT_INPUT_H__
-#include "InputLib/Input.h"
+#include "WindowInputSource.h"
 #include "ComponentInputDevice.h"
-#include "ComponentInputListener.h"
 
 
 //The modifiers held when a source was pressed.  Its release is read with them
@@ -39,19 +38,19 @@ struct SComponentInputPressed
 typedef CArrayTemplate<SComponentInputPressed>	CArrayComponentInputPressed;
 
 
-//Turns keyboard and mouse button events from InputLib into commands and
-//printable characters for a window's focussed component.  The pointer's
-//position is not read here, the native window gives it to CWindow::PointerMoved.
+//Turns the keyboard and mouse button changes queued by a CWindowInputSource
+//into commands and printable characters for a window's focussed component.
+//Chords are left for the application.  The pointer's position is not read
+//here, the native window gives it to CWindow::PointerMoved.
 //
-//Kill a CComponentInput before the CInput it was given.
+//Kill a CComponentInput before the CWindowInputSource it was given.
 class CWindow;
 class CComponentInput
 {
 protected:
 	CArrayComponentInputDevice	macDevices;
 	CArrayComponentInputPressed	masPressed;
-	CComponentInputListener		mcListener;
-	CInput*						mpcInput;
+	CWindowInputSource*			mpcSource;
 	CWindow*					mpcWindow;
 
 	int							miShift;  //Counts so that both shift keys can be held.
@@ -61,11 +60,8 @@ protected:
 	bool						mbNumLock;
 	bool						mbInsert;
 
-	CAction*					mpcButtonPressedAction;
-	CAction*					mpcButtonReleasedAction;
-
 public:
-	void		Init(CInput* pcInput, CWindow* pcWindow);
+	void		Init(CWindowInputSource* pcSource, CWindow* pcWindow);
 	void		Kill(void);
 
 	bool		AddKeyboard(CInputDevice* pcDevice);
@@ -73,8 +69,7 @@ public:
 	size		AddKeyboards(char* szCategory = "Keyboard");
 	size		AddMice(char* szCategory = "Mouse");
 
-	void		ButtonPressed(CUnknown* pcSource, void* pvContext);
-	void		ButtonReleased(CUnknown* pcSource, void* pvContext);
+	void		Update(void);
 	void		Pressed(CInputSourceDesc* pcSource);
 	void		Released(CInputSourceDesc* pcSource);
 	void		ReleaseAll(void);
@@ -88,12 +83,11 @@ public:
 	bool		IsCapsLock(void);
 	bool		IsNumLock(void);
 	bool		IsInsert(void);
-	CInput*		GetInput(void);
-	CAction*	GetButtonPressedAction(void);
-	CAction*	GetButtonReleasedAction(void);
+	CWindowInputSource*	GetSource(void);
 
 protected:
 	CComponentInputDevice*		AddDevice(CInputDevice* pcDevice);
+	CComponentInputDevice*		GetDevice(CInputDevice* pcDevice);
 	size						AddDevices(char* szCategory, bool bKeyboard);
 	bool						PressedKey(CComponentInputKey* psKey);
 	void						ReleasedKey(CComponentInputKey* psKey);

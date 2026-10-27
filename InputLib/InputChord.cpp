@@ -629,6 +629,7 @@ void CInputChord::Call(void* pvContext)
 //////////////////////////////////////////////////////////////////////////
 CInputChordDesc* CInputChord::GetDesc(void) { return mpcDesc; }
 UInputChordCriteria* CInputChord::GetActionCriteria(void) { return &muActionCriteria; }
+CAction* CInputChord::GetAction(void) { return mpcAction; }
 size CInputChord::GetTotalCriteria(void) { return miTotalCriteria; }
 size CInputChord::GetUpdateCriteria(void) { return miUpdateCriteria; }
 size CInputChord::GetMatchedCriteria(void) { return miMatchedCriteria; }

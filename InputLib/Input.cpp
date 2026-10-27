@@ -31,6 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CInput::Init(CNativeInput* pcNativeInput)
 {
 	muiSequence = 0;
+	muiTime = 0;
 	mcDevices.Init(&mcActions);
 	mpcNativeInput = pcNativeInput;
 	mcProgramInput.Init();
@@ -131,6 +132,19 @@ void CInput::Update(void)
 
 	CallListeners();
 	Step();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// uiTime is milliseconds from any start, it only needs to go forward.
+// Update without it keeps the last time, so partial chords never age.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInput::Update(uint32 uiTime)
+{
+	muiTime = uiTime;
+	Update();
 }
 
 
@@ -242,7 +256,9 @@ void CInput::CallListeners(void)
 	bExists = mcDevices.mlcVirtuals.StartIteration(&sIter, &pcVirtual);
 	while (bExists)
 	{
+		pcVirtual->GetChords()->BeginUpdate(muiTime);
 		pcVirtual->CallListeners();
+		pcVirtual->GetChords()->EndUpdate();
 		bExists = mcDevices.mlcVirtuals.Iterate(&sIter, &pcVirtual);
 	}
 }

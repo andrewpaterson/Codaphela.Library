@@ -38,6 +38,7 @@ protected:
 	CInputDevices		mcDevices;
 	CInputActions		mcActions;
 	uint32				muiSequence;  //Sequence is updated everytime CInput::Update is called.  Not every event.
+	uint32				muiTime;  //Milliseconds, given to Update.  The chords time out partial matches by it.
 
 	CNativeInput*		mpcNativeInput;
 	CProgramInput		mcProgramInput;
@@ -50,6 +51,7 @@ public:
 	bool				AddNativeInput(CNativeInput* pcNativeInput);
 
 	void 				Update(void);
+	void 				Update(uint32 uiTime);
 	void 				Step(void);
 	void 				ClearStateFlags(void);
 	void 				UpdateRestEvents(void);

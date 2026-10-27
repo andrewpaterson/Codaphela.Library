@@ -410,6 +410,9 @@ size COrderedInputChordCriteria::Size(size iLastIndexInclusive)
 			case BAA_Group:
 				iSize += puCriteria->cGroup.Size();
 				break;
+			case BAA_Ordered:
+				iSize += puCriteria->cOrdered.Size();
+				break;
 			default:
 				return 0;
 			}
@@ -447,6 +450,8 @@ void COrderedInputChordCriteria::ToString(CChars* psz)
 			puCriteria->cGroup.ToString(psz);
 			break;
 		case BAA_Ordered:
+			puCriteria->cOrdered.ToString(psz);
+			break;
 		case BAA_Unknown:
 			break;
 		}
@@ -485,6 +490,21 @@ CGroupInputChordCriteria* COrderedInputChordCriteria::AddGroupAction(void)
 	puCriteria = (UInputChordCriteria*)mausBasicActionCriteria.Add();
 	puCriteria->cGroup.Init();
 	return &puCriteria->cGroup;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Its criteria follow each other where it is in this one.
+//
+//////////////////////////////////////////////////////////////////////////
+COrderedInputChordCriteria* COrderedInputChordCriteria::AddOrderedAction(void)
+{
+	UInputChordCriteria*	puCriteria;
+
+	puCriteria = (UInputChordCriteria*)mausBasicActionCriteria.Add();
+	puCriteria->cOrdered.Init();
+	return &puCriteria->cOrdered;
 }
 
 

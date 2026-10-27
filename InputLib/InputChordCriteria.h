@@ -111,6 +111,7 @@ public:
 	CActiveInputChordCriteria*		AddActiveAction(CInputSourceEvaluator* pcAction);
 	CInactiveInputChordCriteria*	AddInactiveAction(CInputSourceEvaluator* pcAction);
 	CGroupInputChordCriteria*		AddGroupAction(void);
+	COrderedInputChordCriteria*		AddOrderedAction(void);
 	void							RemoveLastAction(void);
 };
 
