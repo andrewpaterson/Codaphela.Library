@@ -90,7 +90,7 @@ public:
 class CFileChooser : public CDialogApprover
 {
 protected:
-	CDialog				mcDialog;
+	CDialog						mcDialog;
 	Ptr<CComboBox>				mpLookIn;
 	Ptr<CButton>				mpUp;
 	Ptr<CButton>				mpHome;
