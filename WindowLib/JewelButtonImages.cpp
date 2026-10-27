@@ -377,6 +377,92 @@ Ptr<CImageCel> CJewelButtonImages::CreateKeyboard(ARGB32 sColour, CColourFormatH
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A folder in the style of the New UI's outlined icons: a tab on the left
+// of its top edge, in a 16 x 16 cel.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CJewelButtonImages::CreateFolder(ARGB32 sColour, CColourFormatHelper* pcFormat)
+{
+	SFloat64Vec2	asPoints[6];
+
+	asPoints[0].Init(1.5, 3.5);
+	asPoints[1].Init(6.5, 3.5);
+	asPoints[2].Init(8.5, 5.5);
+	asPoints[3].Init(14.5, 5.5);
+	asPoints[4].Init(14.5, 12.5);
+	asPoints[5].Init(1.5, 12.5);
+	return DrawOutline(asPoints, 6, NULL, 0, sColour, pcFormat);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A page in the style of the New UI's outlined icons, its top right
+// corner folded over, in a 16 x 16 cel.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CJewelButtonImages::CreateFile(ARGB32 sColour, CColourFormatHelper* pcFormat)
+{
+	SFloat64Vec2	asPoints[5];
+	SFloat64Vec2	asFold[3];
+
+	asPoints[0].Init(3.5, 1.5);
+	asPoints[1].Init(9.5, 1.5);
+	asPoints[2].Init(12.5, 4.5);
+	asPoints[3].Init(12.5, 14.5);
+	asPoints[4].Init(3.5, 14.5);
+	asFold[0].Init(9.5, 1.5);
+	asFold[1].Init(9.5, 4.5);
+	asFold[2].Init(12.5, 4.5);
+	return DrawOutline(asPoints, 5, asFold, 3, sColour, pcFormat);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A 16 x 16 cel of one pixel wide strokes around the closed shape
+// asPoints, and along the open line asExtra (which can be NULL).  Points
+// on pixel centres keep straight edges sharp.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CJewelButtonImages::DrawOutline(SFloat64Vec2* asPoints, size uiNumPoints, SFloat64Vec2* asExtra, size uiNumExtra, ARGB32 sColour, CColourFormatHelper* pcFormat)
+{
+	Ptr<CImage>			pImage;
+	CImageDraw			cDraw;
+	CVectorPath			cPath;
+	SFloat64Vec2*		psStart;
+	SFloat64Vec2*		psEnd;
+	size				i;
+
+	pImage = OMalloc<CImage>(16, 16, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	pImage->Black();
+
+	cPath.Init();
+	cPath.BeginPart(true);
+	for (i = 0; i < uiNumPoints; i++)
+	{
+		psStart = &asPoints[i];
+		psEnd = &asPoints[(i + 1) % uiNumPoints];
+		AddVectorStroke(&cPath, psStart, psEnd, 0.5);
+	}
+	for (i = 1; i < uiNumExtra; i++)
+	{
+		AddVectorStroke(&cPath, &asExtra[i - 1], &asExtra[i], 0.5);
+	}
+
+	cDraw.Init(&pImage);
+	SetColour(&cDraw, sColour);
+	cDraw.DrawPath(&cPath);
+	cDraw.Kill();
+	cPath.Kill();
+
+	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
+	return OMalloc<CImageCel>(pImage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A 20 x 20 check box from JetBrains' Jewel dark theme: a focus ring,
 // drawn only if bFocusRing, and a dark line inside it around a 16 x 16 box
 // with corners three round.  An empty box is a grey border, the outlined

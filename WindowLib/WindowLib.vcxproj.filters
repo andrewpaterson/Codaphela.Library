@@ -67,6 +67,9 @@
     <Filter Include="Source\Component\Widgets\Icon">
       <UniqueIdentifier>{8c91a091-c9da-41f5-a08f-f2f1c0e85ce4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Component\Widgets\Dialog">
+      <UniqueIdentifier>{1ff29ea1-5967-4397-84d3-cdadc082496f}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Component\Widgets\TextField">
       <UniqueIdentifier>{0c8e4af8-8ea7-4e9a-aba8-9200167bcd78}</UniqueIdentifier>
     </Filter>
@@ -258,6 +261,12 @@
     <ClInclude Include="IconComponent.h">
       <Filter>Source\Component\Widgets\Icon</Filter>
     </ClInclude>
+    <ClInclude Include="Dialog.h">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="FileChooser.h">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClInclude>
     <ClInclude Include="TextField.h">
       <Filter>Source\Component\Widgets\TextField</Filter>
     </ClInclude>
@@ -436,6 +445,12 @@
     </ClCompile>
     <ClCompile Include="IconComponent.cpp">
       <Filter>Source\Component\Widgets\Icon</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialog.cpp">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="FileChooser.cpp">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClCompile>
     <ClCompile Include="TextField.cpp">
       <Filter>Source\Component\Widgets\TextField</Filter>

@@ -20,6 +20,7 @@ along with Codaphela LogicimLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <math.h>
 #include "BaseLib/Logger.h"
+#include "BaseLib/IntegerHelper.h"
 #include "BaseLib/PointerFunctions.h"
 #include "TraceAutoConnector.h"
 
@@ -67,16 +68,6 @@ static int FindTraceGroup(CArrayInt* paiParents, int iTrace)
 		iTrace = paiParents->GetValue(iTrace);
 	}
 	return iTrace;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-static int32 IntAbs(int32 i)
-{
-	return (i < 0) ? -i : i;
 }
 
 
