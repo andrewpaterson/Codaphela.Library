@@ -38,6 +38,7 @@ public:
 	static Ptr<CButtonImages>	CreateFlatButtonImages(ARGB32 sBackground, ARGB32 sHover, ARGB32 sPushed, CColourFormatHelper* pcFormat);  //No border, a small rounded block under the pointer.
 	static Ptr<CImageCel>		CreateChevron(ARGB32 sColour, CColourFormatHelper* pcFormat);  //Points right, 8 x 9.
 	static Ptr<CImageCel>		CreateDownChevron(ARGB32 sColour, CColourFormatHelper* pcFormat);  //Points down, 9 x 8.
+	static Ptr<CImageCel>		CreateCross(ARGB32 sColour, CColourFormatHelper* pcFormat);  //A close cross, 16 x 16.
 	static Ptr<CCheckBoxImages>	CreateCheckBoxImages(CColourFormatHelper* pcFormat);  //Each box is 20 x 20.
 
 protected:

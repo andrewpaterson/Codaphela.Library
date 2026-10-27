@@ -296,6 +296,31 @@ Ptr<CImageCel> CJewelButtonImages::CreateDownChevron(ARGB32 sColour, CColourForm
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A tab's close cross, two anti-aliased strokes 8 pixels across in the
+// middle of a 16 x 16 cel.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CJewelButtonImages::CreateCross(ARGB32 sColour, CColourFormatHelper* pcFormat)
+{
+	Ptr<CImage>			pImage;
+	CImageDraw			cDraw;
+
+	pImage = OMalloc<CImage>(16, 16, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	pImage->Black();
+
+	cDraw.Init(&pImage);
+	SetColour(&cDraw, sColour);
+	cDraw.DrawStroke(4.5, 4.5, 11.5, 11.5, 1.25);
+	cDraw.DrawStroke(11.5, 4.5, 4.5, 11.5, 1.25);
+	cDraw.Kill();
+
+	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
+	return OMalloc<CImageCel>(pImage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A 20 x 20 check box from JetBrains' Jewel dark theme: a focus ring,
 // drawn only if bFocusRing, and a dark line inside it around a 16 x 16 box
 // with corners three round.  An empty box is a grey border, the outlined

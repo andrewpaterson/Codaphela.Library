@@ -62,6 +62,12 @@ protected:
 	ARGB32					msCaret;
 	ARGB32					msListSelected;
 	ARGB32					msListHover;
+	ARGB32					msTabBar;  //Behind a tabbed container's tabs.
+	ARGB32					msTabHover;  //Behind a tab under the pointer.
+	ARGB32					msTabUnderline;  //Under the selected tab.
+	ARGB32					msTabSeparator;  //The line between the tabs and the page.
+	Ptr<CImageCel>			mpTabClose;  //A tab's close cross, NULL for none.
+	Ptr<CImageCel>			mpTabCloseHover;  //The cross under the pointer.
 
 public:
 	void					Init(Ptr<CFont> pFont);
@@ -80,6 +86,7 @@ public:
 	void					SetScrollBarImages(Ptr<CScrollBarImages> pImages);
 	void					SetTextColours(ARGB32 sSelection, ARGB32 sCaret);
 	void					SetListColours(ARGB32 sSelected, ARGB32 sHover);
+	void					SetTabLook(ARGB32 sBar, ARGB32 sHover, ARGB32 sUnderline, ARGB32 sSeparator, Ptr<CImageCel> pClose, Ptr<CImageCel> pCloseHover);
 
 	Ptr<CFont>				GetFont(void);
 	Ptr<CButtonImages>		GetButtonImages(EButtonLook eLook);
@@ -93,6 +100,12 @@ public:
 	ARGB32					GetCaretColour(void);
 	ARGB32					GetListSelectedColour(void);
 	ARGB32					GetListHoverColour(void);
+	ARGB32					GetTabBarColour(void);
+	ARGB32					GetTabHoverColour(void);
+	ARGB32					GetTabUnderlineColour(void);
+	ARGB32					GetTabSeparatorColour(void);
+	Ptr<CImageCel>			GetTabClose(void);
+	Ptr<CImageCel>			GetTabCloseHover(void);
 };
 
 

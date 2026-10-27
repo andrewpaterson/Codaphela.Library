@@ -58,6 +58,27 @@
     <Filter Include="Source\Component\Images">
       <UniqueIdentifier>{8e5a8ca4-b11c-4912-89f6-59fba527dd92}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Component\Widgets\Menu">
+      <UniqueIdentifier>{2cac44de-99ec-4cd6-89fd-97c903f6bdd6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Widgets\Button">
+      <UniqueIdentifier>{7eb3a565-3dfa-4757-bca1-ad6001631ff8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Widgets\ComboBox">
+      <UniqueIdentifier>{f43ff1d6-c8e1-4ca1-9518-56dba9997cbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Widgets\Icon">
+      <UniqueIdentifier>{8c91a091-c9da-41f5-a08f-f2f1c0e85ce4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Widgets\TextField">
+      <UniqueIdentifier>{0c8e4af8-8ea7-4e9a-aba8-9200167bcd78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Widgets\ScrollPane">
+      <UniqueIdentifier>{22bacfce-dad8-4a1f-9067-c336b378d4e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Widgets\TabbedPane">
+      <UniqueIdentifier>{09184f79-77f1-47f6-a226-fd42dd9cc116}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NativeWindow.h">
@@ -132,19 +153,10 @@
     <ClInclude Include="TextArea.h">
       <Filter>Source\Component\Drawing\Text</Filter>
     </ClInclude>
-    <ClInclude Include="Button.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="ButtonBar.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
     <ClInclude Include="ListContainer.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
     <ClInclude Include="ListListener.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="IconComponent.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
     <ClInclude Include="Popup.h">
@@ -153,41 +165,14 @@
     <ClInclude Include="RoundedBoxCanvasDraw.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
-    <ClInclude Include="MenuListener.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="MenuStyle.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="MenuItem.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="MenuContainer.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="MenuBarItem.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="MenuBar.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
     <ClInclude Include="JewelButtonImages.h">
       <Filter>Source\Component\Images</Filter>
     </ClInclude>
     <ClInclude Include="ScrollBarImages.h">
       <Filter>Source\Component\Images</Filter>
     </ClInclude>
-    <ClInclude Include="ScrollBar.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="ScrollPane.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
     <ClInclude Include="ButtonImages.h">
       <Filter>Source\Component\Images</Filter>
-    </ClInclude>
-    <ClInclude Include="ButtonListener.h">
-      <Filter>Source\Component</Filter>
     </ClInclude>
     <ClInclude Include="Label.h">
       <Filter>Source\Component\Drawing\Text</Filter>
@@ -219,29 +204,11 @@
     <ClInclude Include="ImageBorderContainer.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
-    <ClInclude Include="TextField.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="TextFieldListener.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
     <ClInclude Include="TextMarksCanvasDraw.h">
       <Filter>Source\Image\Canvas</Filter>
     </ClInclude>
-    <ClInclude Include="CheckBox.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="CheckBoxListener.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
     <ClInclude Include="CheckBoxImages.h">
       <Filter>Source\Component\Images</Filter>
-    </ClInclude>
-    <ClInclude Include="ComboBox.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="ComboBoxListener.h">
-      <Filter>Source\Component</Filter>
     </ClInclude>
     <ClInclude Include="WindowTheme.h">
       <Filter>Source\Component\Images</Filter>
@@ -251,6 +218,66 @@
     </ClInclude>
     <ClInclude Include="JewelColours.h">
       <Filter>Source\Component\Images</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuBar.h">
+      <Filter>Source\Component\Widgets\Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuBarItem.h">
+      <Filter>Source\Component\Widgets\Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuContainer.h">
+      <Filter>Source\Component\Widgets\Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuItem.h">
+      <Filter>Source\Component\Widgets\Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuListener.h">
+      <Filter>Source\Component\Widgets\Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuStyle.h">
+      <Filter>Source\Component\Widgets\Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="Button.h">
+      <Filter>Source\Component\Widgets\Button</Filter>
+    </ClInclude>
+    <ClInclude Include="ButtonBar.h">
+      <Filter>Source\Component\Widgets\Button</Filter>
+    </ClInclude>
+    <ClInclude Include="ButtonListener.h">
+      <Filter>Source\Component\Widgets\Button</Filter>
+    </ClInclude>
+    <ClInclude Include="CheckBox.h">
+      <Filter>Source\Component\Widgets\ComboBox</Filter>
+    </ClInclude>
+    <ClInclude Include="CheckBoxListener.h">
+      <Filter>Source\Component\Widgets\ComboBox</Filter>
+    </ClInclude>
+    <ClInclude Include="ComboBox.h">
+      <Filter>Source\Component\Widgets\ComboBox</Filter>
+    </ClInclude>
+    <ClInclude Include="ComboBoxListener.h">
+      <Filter>Source\Component\Widgets\ComboBox</Filter>
+    </ClInclude>
+    <ClInclude Include="IconComponent.h">
+      <Filter>Source\Component\Widgets\Icon</Filter>
+    </ClInclude>
+    <ClInclude Include="TextField.h">
+      <Filter>Source\Component\Widgets\TextField</Filter>
+    </ClInclude>
+    <ClInclude Include="TextFieldListener.h">
+      <Filter>Source\Component\Widgets\TextField</Filter>
+    </ClInclude>
+    <ClInclude Include="ScrollBar.h">
+      <Filter>Source\Component\Widgets\ScrollPane</Filter>
+    </ClInclude>
+    <ClInclude Include="ScrollPane.h">
+      <Filter>Source\Component\Widgets\ScrollPane</Filter>
+    </ClInclude>
+    <ClInclude Include="TabbedContainer.h">
+      <Filter>Source\Component\Widgets\TabbedPane</Filter>
+    </ClInclude>
+    <ClInclude Include="TabComponent.h">
+      <Filter>Source\Component\Widgets\TabbedPane</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -311,16 +338,7 @@
     <ClCompile Include="Canvas.cpp">
       <Filter>Source\Component\Drawing\Canvas</Filter>
     </ClCompile>
-    <ClCompile Include="Button.cpp">
-      <Filter>Source\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="ButtonBar.cpp">
-      <Filter>Source\Component</Filter>
-    </ClCompile>
     <ClCompile Include="ListContainer.cpp">
-      <Filter>Source\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="IconComponent.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="Popup.cpp">
@@ -329,32 +347,11 @@
     <ClCompile Include="RoundedBoxCanvasDraw.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
-    <ClCompile Include="MenuStyle.cpp">
-      <Filter>Source\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="MenuItem.cpp">
-      <Filter>Source\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="MenuContainer.cpp">
-      <Filter>Source\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="MenuBarItem.cpp">
-      <Filter>Source\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="MenuBar.cpp">
-      <Filter>Source\Component</Filter>
-    </ClCompile>
     <ClCompile Include="JewelButtonImages.cpp">
       <Filter>Source\Component\Images</Filter>
     </ClCompile>
     <ClCompile Include="ScrollBarImages.cpp">
       <Filter>Source\Component\Images</Filter>
-    </ClCompile>
-    <ClCompile Include="ScrollBar.cpp">
-      <Filter>Source\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="ScrollPane.cpp">
-      <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="ButtonImages.cpp">
       <Filter>Source\Component\Images</Filter>
@@ -398,26 +395,62 @@
     <ClCompile Include="ImageBorderContainer.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
-    <ClCompile Include="TextField.cpp">
-      <Filter>Source\Component</Filter>
-    </ClCompile>
     <ClCompile Include="TextMarksCanvasDraw.cpp">
       <Filter>Source\Image\Canvas</Filter>
     </ClCompile>
-    <ClCompile Include="CheckBox.cpp">
-      <Filter>Source\Component</Filter>
-    </ClCompile>
     <ClCompile Include="CheckBoxImages.cpp">
       <Filter>Source\Component\Images</Filter>
-    </ClCompile>
-    <ClCompile Include="ComboBox.cpp">
-      <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="WindowTheme.cpp">
       <Filter>Source\Component\Images</Filter>
     </ClCompile>
     <ClCompile Include="JewelTheme.cpp">
       <Filter>Source\Component\Images</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuBar.cpp">
+      <Filter>Source\Component\Widgets\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuBarItem.cpp">
+      <Filter>Source\Component\Widgets\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuContainer.cpp">
+      <Filter>Source\Component\Widgets\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuItem.cpp">
+      <Filter>Source\Component\Widgets\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuStyle.cpp">
+      <Filter>Source\Component\Widgets\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="Button.cpp">
+      <Filter>Source\Component\Widgets\Button</Filter>
+    </ClCompile>
+    <ClCompile Include="ButtonBar.cpp">
+      <Filter>Source\Component\Widgets\Button</Filter>
+    </ClCompile>
+    <ClCompile Include="CheckBox.cpp">
+      <Filter>Source\Component\Widgets\ComboBox</Filter>
+    </ClCompile>
+    <ClCompile Include="ComboBox.cpp">
+      <Filter>Source\Component\Widgets\ComboBox</Filter>
+    </ClCompile>
+    <ClCompile Include="IconComponent.cpp">
+      <Filter>Source\Component\Widgets\Icon</Filter>
+    </ClCompile>
+    <ClCompile Include="TextField.cpp">
+      <Filter>Source\Component\Widgets\TextField</Filter>
+    </ClCompile>
+    <ClCompile Include="ScrollBar.cpp">
+      <Filter>Source\Component\Widgets\ScrollPane</Filter>
+    </ClCompile>
+    <ClCompile Include="ScrollPane.cpp">
+      <Filter>Source\Component\Widgets\ScrollPane</Filter>
+    </ClCompile>
+    <ClCompile Include="TabbedContainer.cpp">
+      <Filter>Source\Component\Widgets\TabbedPane</Filter>
+    </ClCompile>
+    <ClCompile Include="TabComponent.cpp">
+      <Filter>Source\Component\Widgets\TabbedPane</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
