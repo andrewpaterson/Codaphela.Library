@@ -20,6 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Objects.h"
 #include "SupportLib/ImageDraw.h"
+#include "SupportLib/VectorShapes.h"
 #include "SupportLib/ImageColourConverter.h"
 #include "JewelColours.h"
 #include "JewelButtonImages.h"
@@ -313,6 +314,61 @@ Ptr<CImageCel> CJewelButtonImages::CreateCross(ARGB32 sColour, CColourFormatHelp
 	cDraw.DrawStroke(4.5, 4.5, 11.5, 11.5, 1.25);
 	cDraw.DrawStroke(11.5, 4.5, 4.5, 11.5, 1.25);
 	cDraw.Kill();
+
+	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
+	return OMalloc<CImageCel>(pImage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An input icon in the style of the New UI's outlined icons: a keyboard
+// with a one pixel border, corners two round, around two rows of five
+// keys and a space bar, in the middle of a 16 x 16 cel.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImageCel> CJewelButtonImages::CreateKeyboard(ARGB32 sColour, CColourFormatHelper* pcFormat)
+{
+	Ptr<CImage>			pImage;
+	CImageDraw			cDraw;
+	CVectorPath			cPath;
+	SFloat64Vec2		sMinimum;
+	SFloat64Vec2		sMaximum;
+	int					x;
+
+	pImage = OMalloc<CImage>(16, 16, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_STOP);
+	pImage->Black();
+
+	cPath.Init();
+	cPath.BeginPart(true);
+	sMinimum.Init(1, 3);
+	sMaximum.Init(16, 14);
+	AddVectorRoundedRectangle(&cPath, &sMinimum, &sMaximum, 2);
+
+	cPath.BeginPart(false);
+	sMinimum.Init(2, 4);
+	sMaximum.Init(15, 13);
+	AddVectorRoundedRectangle(&cPath, &sMinimum, &sMaximum, 1);
+
+	cPath.BeginPart(true);
+	for (x = 4; x <= 12; x += 2)
+	{
+		sMinimum.Init(x, 6);
+		sMaximum.Init(x + 1, 7);
+		AddVectorRectangle(&cPath, &sMinimum, &sMaximum);
+		sMinimum.Init(x, 8);
+		sMaximum.Init(x + 1, 9);
+		AddVectorRectangle(&cPath, &sMinimum, &sMaximum);
+	}
+	sMinimum.Init(6, 10);
+	sMaximum.Init(11, 11);
+	AddVectorRectangle(&cPath, &sMinimum, &sMaximum);
+
+	cDraw.Init(&pImage);
+	SetColour(&cDraw, sColour);
+	cDraw.DrawPath(&cPath);
+	cDraw.Kill();
+	cPath.Kill();
 
 	pImage = CImageColourConverter::ConvertColour(pImage, pcFormat->meOrder);
 	return OMalloc<CImageCel>(pImage);

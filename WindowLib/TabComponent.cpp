@@ -32,7 +32,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define TAB_ICON_SIZE		16
 
 
-static EComponentInputCommand	gaeTabCommands[] = { CIC_ActivateComponent, CIC_Space, CIC_Enter };
+static EComponentInputCommand	gaeTabCommands[] = { CIC_ActivateComponent, CIC_ExecuteComponent, CIC_Space, CIC_Enter };
 
 
 //The tab's columns and rows.  The background spans them all, under everything else.
@@ -242,12 +242,17 @@ void CTabComponent::MovedOver(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 //
 // The input actions of gaeTabCommands.  Closing removes the tab from its
-// container, so nothing of it is used after.
+// container, so nothing of it is used after.  A release on the cross isn't
+// a click, for double clicks.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTabComponent::CommandAction(SComponentInputEvent* psEvent)
 {
-	if ((psEvent->eCommand == CIC_ActivateComponent) && IsInClose(psEvent->x, psEvent->y))
+	if (psEvent->eCommand == CIC_ExecuteComponent)
+	{
+		mpTabbed->TabReleased(this, psEvent->x, psEvent->y, !IsInClose(psEvent->x, psEvent->y));
+	}
+	else if ((psEvent->eCommand == CIC_ActivateComponent) && IsInClose(psEvent->x, psEvent->y))
 	{
 		mpTabbed->RemoveTab(this);
 	}
@@ -306,5 +311,6 @@ bool CTabComponent::IsSelected(void) { return mbSelected; }
 bool CTabComponent::IsClosable(void) { return mpClose.IsNotNull(); }
 bool CTabComponent::IsMouseOver(void) { return mbMouseOver; }
 char* CTabComponent::GetText(void) { return mpName->GetText(); }
+void CTabComponent::SetText(const char* szName) { mpName->SetText(szName); }
 Ptr<CIconComponent> CTabComponent::GetIcon(void) { return mpIcon; }
 Ptr<CIconComponent> CTabComponent::GetClose(void) { return mpClose; }
