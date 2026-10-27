@@ -7,9 +7,6 @@
     <Filter Include="Source\Component">
       <UniqueIdentifier>{bdcca057-dc6d-447e-a54f-70a1228a1878}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Component\TextEditor">
-      <UniqueIdentifier>{db9efb3a-7262-44e8-8b6b-3b622d78e7f5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Component\Widgets">
       <UniqueIdentifier>{e6d6bffe-421f-4e79-ad7c-71eef9e4a824}</UniqueIdentifier>
     </Filter>
