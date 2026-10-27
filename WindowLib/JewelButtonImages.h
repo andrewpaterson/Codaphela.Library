@@ -20,6 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __JEWEL_BUTTON_IMAGES_H__
 #define __JEWEL_BUTTON_IMAGES_H__
+#include "BaseLib/Float64Vec2.h"
 #include "SupportLib/ColourFormat.h"
 #include "ButtonImages.h"
 #include "CheckBoxImages.h"
@@ -40,6 +41,8 @@ public:
 	static Ptr<CImageCel>		CreateDownChevron(ARGB32 sColour, CColourFormatHelper* pcFormat);  //Points down, 9 x 8.
 	static Ptr<CImageCel>		CreateCross(ARGB32 sColour, CColourFormatHelper* pcFormat);  //A close cross, 16 x 16.
 	static Ptr<CImageCel>		CreateKeyboard(ARGB32 sColour, CColourFormatHelper* pcFormat);  //An outlined keyboard, 16 x 16.
+	static Ptr<CImageCel>		CreateFolder(ARGB32 sColour, CColourFormatHelper* pcFormat);  //An outlined folder, 16 x 16.
+	static Ptr<CImageCel>		CreateFile(ARGB32 sColour, CColourFormatHelper* pcFormat);  //An outlined page, 16 x 16.
 	static Ptr<CCheckBoxImages>	CreateCheckBoxImages(CColourFormatHelper* pcFormat);  //Each box is 20 x 20.
 
 protected:
@@ -47,6 +50,7 @@ protected:
 	static Ptr<CImage>			DrawFlatStrip(bool bFilled, ARGB32 sFill, CColourFormatHelper* pcFormat);
 	static Ptr<CImageCel>		DrawCheckBox(bool bTicked, bool bFocusRing, bool bMouseOver, CColourFormatHelper* pcFormat);
 	static void					SetColour(CImageDraw* pcDraw, ARGB32 sColour);
+	static Ptr<CImageCel>		DrawOutline(SFloat64Vec2* asPoints, size uiNumPoints, SFloat64Vec2* asExtra, size uiNumExtra, ARGB32 sColour, CColourFormatHelper* pcFormat);
 	static void					DrawLayer(CImageDraw* pcDraw, int iTile, int iInset, int iRadius, ARGB32 sColour);
 	static void					DrawCorner(CImageDraw* pcDraw, int iTile, int iTileTop, bool bRight, bool bBottom, int iInset, int iRadius);
 };
