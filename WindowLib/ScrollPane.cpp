@@ -47,8 +47,24 @@ void CScrollPane::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	CContainer::AddComponent(mpHorizontal);
 	mpVertical = OMalloc<CScrollBar>(pWindow, Ptr<CScrollPane>(this), pTheme->GetScrollBarImages(), SBO_Vertical);
 	CContainer::AddComponent(mpVertical);
+	AddInputAction(IAF_Wheel, NULL, this, &CScrollPane::WheelAction);
 
 	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A wheel the pane can't scroll by goes on to its parent, which may be
+// another scroll pane.
+//
+//////////////////////////////////////////////////////////////////////////
+void CScrollPane::WheelAction(SComponentInputEvent* psEvent)
+{
+	if (!Wheel(psEvent->iRight, psEvent->iDown))
+	{
+		psEvent->bPass = true;
+	}
 }
 
 

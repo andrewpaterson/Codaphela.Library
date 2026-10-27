@@ -24,6 +24,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ListContainer.h"
 
 
+static EComponentInputCommand	gaeListContainerCommands[] = { CIC_ActivateComponent, CIC_ExecuteComponent, CIC_Up, CIC_Down, CIC_Home, CIC_End, CIC_DocumentHome, CIC_DocumentEnd, CIC_PageUp, CIC_PageDown, CIC_Space, CIC_Enter };
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The highlights are the Jewel dark selection and hover colours.  Page up
@@ -50,8 +53,60 @@ void CListContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mpHoverDraw = OMalloc<CClearCanvasDraw>(pTheme->GetListHoverColour());
 	mpHoverHighlight = CreateHighlight(mpHoverDraw);
 	AddHighlights();
+	AddInputActions(gaeListContainerCommands, sizeof(gaeListContainerCommands) / sizeof(EComponentInputCommand), this, &CListContainer::CommandAction);
 
 	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The input actions of gaeListContainerCommands.
+//
+//////////////////////////////////////////////////////////////////////////
+void CListContainer::CommandAction(SComponentInputEvent* psEvent)
+{
+	switch (psEvent->eCommand)
+	{
+	case CIC_ActivateComponent:
+		ActivateComponent(psEvent->x, psEvent->y);
+		break;
+	case CIC_ExecuteComponent:
+		ExecuteComponent(psEvent->x, psEvent->y);
+		break;
+	case CIC_Up:
+		Up();
+		break;
+	case CIC_Down:
+		Down();
+		break;
+	case CIC_Home:
+		Home();
+		break;
+	case CIC_End:
+		End();
+		break;
+	case CIC_DocumentHome:
+		DocumentHome();
+		break;
+	case CIC_DocumentEnd:
+		DocumentEnd();
+		break;
+	case CIC_PageUp:
+		PageUp();
+		break;
+	case CIC_PageDown:
+		PageDown();
+		break;
+	case CIC_Space:
+		Space(psEvent->bInsert);
+		break;
+	case CIC_Enter:
+		Enter();
+		break;
+	default:
+		break;
+	}
 }
 
 

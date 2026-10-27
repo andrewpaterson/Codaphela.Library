@@ -115,19 +115,26 @@ void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
 		sValue.pcDevice = psEvent->pcDevice;
 		sValue.pcSource = psEvent->pcSource;
 		sValue.uiTime = muiTime;
+		sValue.bCarried = false;
 		AddEvent(NULL, &sValue);
 		return;
 	}
 
+	//Letting go of a carried input ends its carrying; the release is matched like any other input.
+	if (!IsDown(psEvent))
+	{
+		RemoveCarried(psEvent);
+	}
+
 	if (macHistory.NumElements() == MAX_INPUT_HISTORY_EVENTS)
 	{
-		if (mpcPending && (muiPendingStart == 0))
+		if (mpcPending && (muiPendingStart == NumCarried()))
 		{
 			CallPending();
 		}
 		else
 		{
-			Release(1);
+			Release(NumCarried() + 1);
 		}
 	}
 
@@ -136,8 +143,182 @@ void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
 	psHistory->pcDevice = psEvent->pcDevice;
 	psHistory->pcSource = psEvent->pcSource;
 	psHistory->uiTime = muiTime;
+	psHistory->bCarried = false;
 
 	Match(psEvent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A key or button that is pressed.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInputChords::IsDown(SInputDeviceValue* psValue)
+{
+	return (psValue->pcSource->GetType() == ISET_State) && (psValue->fValue >= INPUT_CHORDS_DOWN);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the input at uiIndex is pressed and isn't let go later in the
+// history.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInputChords::IsStillDown(size uiIndex)
+{
+	SInputDeviceTimeValue*	psValue;
+	SInputDeviceTimeValue*	psLater;
+	size					i;
+	size					uiNumElements;
+
+	psValue = macHistory.Get(uiIndex);
+	if (!IsDown(psValue))
+	{
+		return false;
+	}
+
+	uiNumElements = macHistory.NumElements();
+	for (i = uiIndex + 1; i < uiNumElements; i++)
+	{
+		psLater = macHistory.Get(i);
+		if ((psLater->pcDevice == psValue->pcDevice) && (psLater->pcSource == psValue->pcSource) && !IsDown(psLater))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Of the inputs after the carried ones.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInputChords::IsAnyStillDown(void)
+{
+	size	i;
+	size	uiNumElements;
+
+	uiNumElements = macHistory.NumElements();
+	for (i = NumCarried(); i < uiNumElements; i++)
+	{
+		if (IsStillDown(i))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The carried inputs are always the first of the history.
+//
+//////////////////////////////////////////////////////////////////////////
+size CInputChords::NumCarried(void)
+{
+	size	i;
+	size	uiNumElements;
+
+	uiNumElements = macHistory.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		if (!macHistory.Get(i)->bCarried)
+		{
+			return i;
+		}
+	}
+	return uiNumElements;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the input at uiIndex is still down and could start a chord, so
+// it is carried once it has been let through or used: like shift held
+// while typing for shift+tab after.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInputChords::IsCarriable(size uiIndex)
+{
+	SSetIterator	sIter;
+	CInputChord*	pcChord;
+	bool			bExists;
+
+	if (!IsStillDown(uiIndex))
+	{
+		return false;
+	}
+
+	bExists = mlcChords.StartIteration(&sIter, &pcChord);
+	while (bExists)
+	{
+		if (pcChord->IsStart(macHistory.Get(uiIndex)))
+		{
+			return true;
+		}
+		bExists = mlcChords.Iterate(&sIter, &pcChord);
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Removes the carried input of psValue's source, if it has one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInputChords::RemoveCarried(SInputDeviceValue* psValue)
+{
+	SInputDeviceTimeValue*	psHistory;
+	size					i;
+	size					uiNumElements;
+
+	uiNumElements = macHistory.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		psHistory = macHistory.Get(i);
+		if (psHistory->bCarried && (psHistory->pcDevice == psValue->pcDevice) && (psHistory->pcSource == psValue->pcSource))
+		{
+			macHistory.RemoveAt(i, true);
+			if (mpcPending && (i < muiPendingStart))
+			{
+				muiPendingStart--;
+			}
+			return;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The inputs a chord used.  Those still down that could start a chord are
+// carried, like ctrl held for ctrl+z, z.  The rest are used up.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInputChords::Consume(size uiStart, size uiLength)
+{
+	size	i;
+	size	uiIndex;
+
+	uiIndex = uiStart;
+	for (i = 0; i < uiLength; i++)
+	{
+		if (IsCarriable(uiIndex))
+		{
+			macHistory.Get(uiIndex)->bCarried = true;
+			uiIndex++;
+		}
+		else
+		{
+			macHistory.RemoveAt(uiIndex, true);
+		}
+	}
 }
 
 
@@ -168,6 +349,7 @@ void CInputChords::Match(CInputDeviceValue* psValue)
 	bool					bExists;
 	bool					bLonger;
 	bool					bPendingGoesOn;
+	size					uiKept;
 
 	sMatch.iIndex = MAX_UINT;
 	sMatch.iLength = 0;
@@ -214,7 +396,7 @@ void CInputChords::Match(CInputDeviceValue* psValue)
 	if (mpcPending && !bPendingGoesOn)
 	{
 		CallPending();
-		Match(NULL);
+		Match(psValue);
 		return;
 	}
 
@@ -249,16 +431,16 @@ void CInputChords::Match(CInputDeviceValue* psValue)
 
 	if (sMatch.bTotalMatch && bLonger)
 	{
-		Release(iLowestIndex);
+		uiKept = Release(iLowestIndex);
 		mpcPending = pcComplete;
-		muiPendingStart = sMatch.iIndex - iLowestIndex;
+		muiPendingStart = sMatch.iIndex - (iLowestIndex - uiKept);
 		muiPendingLength = sMatch.iLength;
 	}
 	else if (sMatch.bTotalMatch)
 	{
 		//The inputs before the chord are let through before it.  The chord's are used up.  A pending chord was the start of it.
 		mpcPending = NULL;
-		Release(sMatch.iIndex);
+		uiKept = Release(sMatch.iIndex);
 		bExists = mlcChords.StartIteration(&sIter, &pcChord);
 		while (bExists)
 		{
@@ -268,11 +450,11 @@ void CInputChords::Match(CInputDeviceValue* psValue)
 				sChordInputEvent.pcValue = psValue;
 				sChordInputEvent.pcChord = pcChord;
 				pcChord->Call(&sChordInputEvent);
-				AddEvent(pcChord, macHistory.Get(sMatch.iLength - 1));
+				AddEvent(pcChord, macHistory.Get(uiKept + sMatch.iLength - 1));
 			}
 			bExists = mlcChords.Iterate(&sIter, &pcChord);
 		}
-		macHistory.RemoveRange(0, sMatch.iLength, true);
+		Consume(uiKept, sMatch.iLength);
 	}
 	else
 	{
@@ -291,38 +473,66 @@ void CInputChords::CallPending(void)
 {
 	CInputChord*		pcChord;
 	SChordInputEvent	sChordInputEvent;
+	size				uiKept;
 
-	Release(muiPendingStart);
+	uiKept = Release(muiPendingStart);
 	pcChord = mpcPending;
 	mpcPending = NULL;
 
 	sChordInputEvent.pcValue = NULL;
 	sChordInputEvent.pcChord = pcChord;
 	pcChord->Call(&sChordInputEvent);
-	AddEvent(pcChord, macHistory.Get(muiPendingLength - 1));
-	macHistory.RemoveRange(0, muiPendingLength, true);
+	AddEvent(pcChord, macHistory.Get(uiKept + muiPendingLength - 1));
+	Consume(uiKept, muiPendingLength);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Lets through the first uiNumHistory inputs of the history.  They are
-// all before the pending chord, if there is one.
+// Lets through the inputs in the first uiNumHistory of the history.  They
+// are all before the pending chord, if there is one.  Carried inputs have
+// been let through or used already so they are kept, at the front, as are
+// those let through now that are still down and could start a chord.
+// Returns how many were kept.
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputChords::Release(size uiNumHistory)
+size CInputChords::Release(size uiNumHistory)
 {
-	size	i;
+	size					i;
+	size					uiKept;
+	size					uiRemoved;
+	SInputDeviceTimeValue*	psValue;
 
+	uiKept = 0;
+	uiRemoved = 0;
 	for (i = 0; i < uiNumHistory; i++)
 	{
-		AddEvent(NULL, macHistory.Get(i));
+		psValue = macHistory.Get(uiKept);
+		if (!psValue->bCarried)
+		{
+			AddEvent(NULL, psValue);
+			if (IsCarriable(uiKept))
+			{
+				psValue->bCarried = true;
+			}
+		}
+
+		if (psValue->bCarried)
+		{
+			uiKept++;
+		}
+		else
+		{
+			macHistory.RemoveAt(uiKept, true);
+			uiRemoved++;
+		}
 	}
-	macHistory.RemoveRange(0, uiNumHistory, true);
+
 	if (mpcPending)
 	{
-		muiPendingStart -= uiNumHistory;
+		muiPendingStart -= uiRemoved;
 	}
+	return uiKept;
 }
 
 
@@ -342,31 +552,42 @@ void CInputChords::AddEvent(CInputChord* pcChord, SInputDeviceTimeValue* psValue
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The partial chord the oldest held input starts is too old to finish.
-// If the input is the start of a pending chord the pending chord is
-// called, otherwise the input is let through.  What is left is matched
-// again, which lets through the rest unless a later chord could still
-// match.
+// An input that is still down never ages, so a partial chord is only too
+// old to finish once everything after the carried inputs has been let go
+// for longer than the eviction age.  If the oldest of them is the start
+// of a pending chord the pending chord is called, otherwise it is let
+// through.  What is left is matched again, which lets through the rest
+// unless a later chord could still match.  The carried inputs don't age.
 //
 //////////////////////////////////////////////////////////////////////////
 void CInputChords::Evict(void)
 {
-	SInputDeviceTimeValue*	psOldest;
+	SInputDeviceTimeValue*	psNewest;
+	size					uiNumCarried;
 
-	while (macHistory.NumElements() > 0)
+	for (;;)
 	{
-		psOldest = macHistory.Get(0);
-		if (muiTime - psOldest->uiTime <= muiEvictionAge)
+		uiNumCarried = NumCarried();
+		if (uiNumCarried == macHistory.NumElements())
 		{
 			break;
 		}
-		if (mpcPending && (muiPendingStart == 0))
+		if (IsAnyStillDown())
+		{
+			break;
+		}
+		psNewest = macHistory.Tail();
+		if (muiTime - psNewest->uiTime <= muiEvictionAge)
+		{
+			break;
+		}
+		if (mpcPending && (muiPendingStart == uiNumCarried))
 		{
 			CallPending();
 		}
 		else
 		{
-			Release(1);
+			Release(uiNumCarried + 1);
 		}
 		Match(NULL);
 	}

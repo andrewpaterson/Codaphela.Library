@@ -25,6 +25,34 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MenuBarItem.h"
 
 
+//As well as the button's.
+static EComponentInputCommand	gaeMenuBarItemCommands[] = { CIC_Down, CIC_Left, CIC_Right };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The input actions of gaeMenuBarItemCommands.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMenuBarItem::CommandAction(SComponentInputEvent* psEvent)
+{
+	switch (psEvent->eCommand)
+	{
+	case CIC_Down:
+		Down();
+		break;
+	case CIC_Left:
+		Left();
+		break;
+	case CIC_Right:
+		Right();
+		break;
+	default:
+		break;
+	}
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // pIcon can be NULL, and szText NULL or empty for a button with only an
@@ -40,6 +68,7 @@ void CMenuBarItem::Init(Ptr<CWindow> pWindow, Ptr<CMenuBar> pMenuBar, Ptr<CMenuS
 	mpMenu = pMenu;
 	SetShowsPushed(false);
 	SetPadding(pStyle->GetBarPadding().x, pStyle->GetBarPadding().y);
+	AddInputActions(gaeMenuBarItemCommands, sizeof(gaeMenuBarItemCommands) / sizeof(EComponentInputCommand), this, &CMenuBarItem::CommandAction);
 
 	PostInit();
 }

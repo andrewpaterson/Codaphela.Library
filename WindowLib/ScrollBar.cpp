@@ -25,6 +25,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ScrollBar.h"
 
 
+static EComponentInputCommand	gaeScrollBarCommands[] = { CIC_ActivateComponent, CIC_ExecuteComponent, CIC_StartDragScroll, CIC_ContDragScroll, CIC_StopDragScroll };
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -51,8 +54,39 @@ void CScrollBar::Init(Ptr<CWindow> pWindow, Ptr<CScrollPane> pScrollPane, Ptr<CS
 	mpStart = CreatePiece(pWindow, SBP_Start);
 	mpMiddle = CreatePiece(pWindow, SBP_Middle);
 	mpEnd = CreatePiece(pWindow, SBP_End);
+	AddInputActions(gaeScrollBarCommands, sizeof(gaeScrollBarCommands) / sizeof(EComponentInputCommand), this, &CScrollBar::CommandAction);
 
 	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The input actions of gaeScrollBarCommands.
+//
+//////////////////////////////////////////////////////////////////////////
+void CScrollBar::CommandAction(SComponentInputEvent* psEvent)
+{
+	switch (psEvent->eCommand)
+	{
+	case CIC_ActivateComponent:
+		ActivateComponent(psEvent->x, psEvent->y);
+		break;
+	case CIC_ExecuteComponent:
+		ExecuteComponent(psEvent->x, psEvent->y);
+		break;
+	case CIC_StartDragScroll:
+		StartDragScroll(psEvent->x, psEvent->y);
+		break;
+	case CIC_ContDragScroll:
+		ContDragScroll(psEvent->x, psEvent->y);
+		break;
+	case CIC_StopDragScroll:
+		StopDragScroll(psEvent->x, psEvent->y);
+		break;
+	default:
+		break;
+	}
 }
 
 

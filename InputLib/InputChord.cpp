@@ -169,6 +169,34 @@ void CInputChord::Calculate(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if the input could be the first of this chord.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInputChord::IsStart(SInputDeviceValue* psValue)
+{
+	CActionInputChordCriteria*	psCriteria;
+	float						fValue;
+	size						i;
+	size						uiNumElements;
+
+	uiNumElements = masStartDeviceValue.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		psCriteria = masStartDeviceValue.Get(i);
+		if (psCriteria->mpcEvaluator->Evaluate(psValue, &fValue))
+		{
+			if (((psCriteria->eAction == BAA_Active) && (fValue > 0.0f)) || ((psCriteria->eAction == BAA_Inactive) && (fValue == 0.0f)))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The criteria as blocks of inputs that follow each other; the inputs in
 // a block are in any order.  An active or inactive criteria is a block of
 // one, a group is a block of its criteria and an ordered is its children's
@@ -777,11 +805,13 @@ size MatchActionEvent(UInputChordCriteria* puCriteria, CArrayInputDeviceTimeValu
 		{
 			puIterCriteria = (UInputChordCriteria*)puCriteria->cGroup.mausBasicActionCriteria.Get(i);
 			iCount = MatchActionEvent(puIterCriteria, pcHistory, iStartPos + iTotalCount, pasScratchPadEvent);
-			if (iCount == 0)
+			iTotalCount += iCount;
+
+			//A child that didn't match all of itself (it ran out of history or something else came) is where the match ends.
+			if (iCount < ActionCriteriaSize(puIterCriteria))
 			{
 				return iTotalCount;
 			}
-			iTotalCount += iCount;
 		}
 		return iTotalCount;
 	}

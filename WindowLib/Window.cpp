@@ -254,6 +254,7 @@ void CWindow::Layout(void)
 void CWindow::LayoutAgain(void) { mbLayoutAgain = true; }
 void CWindow::PointerMoved(int x, int y) { mFocus.PointerMoved(x, y); }
 void CWindow::PointerLeft(void) { mFocus.PointerLeft(); }
+void CWindow::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput) { mFocus.Input(psWindowEvent, pcComponentInput); }
 void CWindow::InputCommand(EComponentInputCommand eCommand, bool bInsert) { mFocus.Command(eCommand, bInsert); }
 void CWindow::InputPrintable(char c, bool bInsert) { mFocus.Printable(c, bInsert); }
 void CWindow::Activate(void) { mFocus.Activate(); }

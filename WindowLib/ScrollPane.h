@@ -87,7 +87,8 @@ public:
 	void				SetRequiredSize(void) override;
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	bool				ClipsChildren(void) override;
-	bool				Wheel(int iRight, int iDown) override;
+	void				WheelAction(SComponentInputEvent* psEvent);
+	bool				Wheel(int iRight, int iDown);
 
 protected:
 	int32				GetContentLength(int32 iDesired, int32 iView, EScrollPanePolicy ePolicy);

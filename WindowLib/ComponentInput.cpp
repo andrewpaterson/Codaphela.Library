@@ -25,6 +25,73 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define COMPONENT_INPUT_PRESSED		0.5f	//A key or button's value at or above which it is pressed.
 
 
+//The keys that mean something with control, shift or both held.  Each is a chord named for its modifiers and key,
+//like "Control+C" or "Control+Shift+Cursor Left", made for every left and right modifier the keyboard has.
+struct SComponentInputChordRow
+{
+	bool					bControl;
+	bool					bShift;
+	char*					szKey;
+	EComponentInputCommand	ePressed;
+	EComponentInputCommand	eReleased;  //When the chord's key is let go, CIC_Ignored for nothing.
+};
+
+
+static SComponentInputChordRow	gasKeyboardChordRows[] =
+{
+	{ true,  false, "Cursor Left",	CIC_WordLeft,					CIC_Ignored },
+	{ true,  false, "Cursor Right",	CIC_WordRight,					CIC_Ignored },
+	{ true,  false, "Home",			CIC_DocumentHome,				CIC_Ignored },
+	{ true,  false, "End",			CIC_DocumentEnd,				CIC_Ignored },
+	{ true,  false, "Cursor Up",	CIC_LineUp,						CIC_Ignored },
+	{ true,  false, "Cursor Down",	CIC_LineDown,					CIC_Ignored },
+	{ false, true,  "Cursor Up",	CIC_SelectUp,					CIC_Ignored },
+	{ false, true,  "Cursor Down",	CIC_SelectDown,					CIC_Ignored },
+	{ false, true,  "Cursor Left",	CIC_SelectLeft,					CIC_Ignored },
+	{ false, true,  "Cursor Right",	CIC_SelectRight,				CIC_Ignored },
+	{ true,  true,  "Cursor Left",	CIC_SelectWordLeft,				CIC_Ignored },
+	{ true,  true,  "Cursor Right",	CIC_SelectWordRight,			CIC_Ignored },
+	{ false, true,  "Home",			CIC_SelectHome,					CIC_Ignored },
+	{ false, true,  "End",			CIC_SelectEnd,					CIC_Ignored },
+	{ true,  true,  "Home",			CIC_SelectDocumentHome,			CIC_Ignored },
+	{ true,  true,  "End",			CIC_SelectDocumentEnd,			CIC_Ignored },
+	{ false, true,  "Page Up",		CIC_SelectPageUp,				CIC_Ignored },
+	{ false, true,  "Page Down",	CIC_SelectPageDown,				CIC_Ignored },
+	{ true,  false, "W",			CIC_SelectWholeWord,			CIC_Ignored },
+	{ true,  false, "A",			CIC_SelectAll,					CIC_Ignored },
+	{ false, true,  "Space",		CIC_Space,						CIC_Ignored },
+	{ false, true,  "Tab",			CIC_BackTab,					CIC_Ignored },
+	{ true,  true,  "Enter",		CIC_HomeEnter,					CIC_Ignored },
+	{ true,  true,  "Numpad Enter",	CIC_HomeEnter,					CIC_Ignored },
+	{ false, true,  "Enter",		CIC_EndEnter,					CIC_Ignored },
+	{ false, true,  "Numpad Enter",	CIC_EndEnter,					CIC_Ignored },
+	{ true,  false, "X",			CIC_Cut,						CIC_Ignored },
+	{ false, true,  "Delete",		CIC_Cut,						CIC_Ignored },
+	{ true,  false, "C",			CIC_Copy,						CIC_Ignored },
+	{ true,  false, "Insert",		CIC_Copy,						CIC_Ignored },
+	{ true,  false, "V",			CIC_Paste,						CIC_Ignored },
+	{ false, true,  "Insert",		CIC_Paste,						CIC_Ignored },
+	{ true,  false, "D",			CIC_Duplicate,					CIC_Ignored },
+	{ true,  false, "Backspace",	CIC_DeleteWordRemainingLeft,	CIC_Ignored },
+	{ true,  false, "Delete",		CIC_DeleteWordRemainingRight,	CIC_Ignored },
+	{ true,  false, "Z",			CIC_Undo,						CIC_Ignored },
+	{ true,  true,  "Z",			CIC_StepUndo,					CIC_Ignored },
+	{ true,  false, "Y",			CIC_Redo,						CIC_Ignored },
+	{ true,  true,  "Y",			CIC_StepRedo,					CIC_Ignored },
+};
+
+
+//The keyboard's modifiers with the mouse's buttons.
+static SComponentInputChordRow	gasMouseChordRows[] =
+{
+	{ false, true,  "Button 1",			CIC_StartDragSelect,	CIC_StopDragSelect },
+	{ true,  false, "Button 1",			CIC_StartDragSelect,	CIC_StopDragSelect },
+	{ true,  true,  "Button 1",			CIC_StartDragSelect,	CIC_StopDragSelect },
+	{ false, true,  "Wheel Forward",	CIC_WheelLeft,			CIC_Ignored },
+	{ false, true,  "Wheel Backward",	CIC_WheelRight,			CIC_Ignored },
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // No devices are added, see AddKeyboard and AddMouse.
@@ -37,10 +104,8 @@ void CComponentInput::Init(CWindowInputSource* pcSource, CWindow* pcWindow)
 
 	macDevices.Init();
 	masPressed.Init();
+	masChordCommands.Init();
 
-	miShift = 0;
-	miControl = 0;
-	miAlt = 0;
 	mbCapsLock = false;
 	mbNumLock = false;
 	mbInsert = true;
@@ -56,6 +121,13 @@ void CComponentInput::Kill(void)
 	CComponentInputDevice*	pcDevice;
 	size					i;
 	size					uiNumElements;
+
+	uiNumElements = masChordCommands.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		masChordCommands.Get(i)->szName.Kill();
+	}
+	masChordCommands.Kill();
 
 	uiNumElements = macDevices.NumElements();
 	for (i = 0; i < uiNumElements; i++)
@@ -123,19 +195,37 @@ CComponentInputDevice* CComponentInput::GetDevice(CInputDevice* pcDevice)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The keyboard's chords are made with it, and those of its modifiers with
+// the buttons of every mouse added so far.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CComponentInput::AddKeyboard(CInputDevice* pcDevice)
 {
 	CComponentInputDevice*	pcInputDevice;
+	CComponentInputDevice*	pcMouse;
+	size					i;
+	size					uiNumElements;
 
 	pcInputDevice = AddDevice(pcDevice);
-	if (pcInputDevice)
+	if (!pcInputDevice)
 	{
-		pcInputDevice->InitKeyboard();
-		return true;
+		return false;
 	}
-	return false;
+
+	pcInputDevice->InitKeyboard();
+	AddKeyboardChords(pcInputDevice);
+
+	//The keyboard was added last, the array may have moved.
+	uiNumElements = macDevices.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcMouse = macDevices.Get(i);
+		if (pcMouse->IsMouse())
+		{
+			AddMouseChords(macDevices.Get(uiNumElements - 1), pcMouse);
+		}
+	}
+	return true;
 }
 
 
@@ -146,14 +236,28 @@ bool CComponentInput::AddKeyboard(CInputDevice* pcDevice)
 bool CComponentInput::AddMouse(CInputDevice* pcDevice)
 {
 	CComponentInputDevice*	pcInputDevice;
+	CComponentInputDevice*	pcKeyboard;
+	size					i;
+	size					uiNumElements;
 
 	pcInputDevice = AddDevice(pcDevice);
-	if (pcInputDevice)
+	if (!pcInputDevice)
 	{
-		pcInputDevice->InitMouse();
-		return true;
+		return false;
 	}
-	return false;
+
+	pcInputDevice->InitMouse();
+
+	uiNumElements = macDevices.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcKeyboard = macDevices.Get(i);
+		if (!pcKeyboard->IsMouse())
+		{
+			AddMouseChords(pcKeyboard, macDevices.Get(uiNumElements - 1));
+		}
+	}
+	return true;
 }
 
 
@@ -210,142 +314,356 @@ size CComponentInput::AddDevices(char* szCategory, bool bKeyboard)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Updates the source and turns what it queued from this input's devices'
-// keys and buttons into presses and releases.  Movement, chords and other
-// devices are for someone else.
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentInput::Update(void)
+void CComponentInput::AddKeyboardChords(CComponentInputDevice* pcKeyboard)
 {
-	SWindowInputEvent*	psEvent;
-	size				i;
-	size				uiNumEvents;
+	size						i;
+	SComponentInputChordRow*	psRow;
 
-	mpcSource->Update();
-
-	uiNumEvents = mpcSource->NumEvents();
-	for (i = 0; i < uiNumEvents; i++)
+	for (i = 0; i < sizeof(gasKeyboardChordRows) / sizeof(SComponentInputChordRow); i++)
 	{
-		psEvent = mpcSource->GetEvent(i);
-		if ((psEvent->eType == WIET_State) && GetDevice(psEvent->pcDevice))
-		{
-			if (psEvent->fValue >= COMPONENT_INPUT_PRESSED)
-			{
-				Pressed(psEvent->pcSource);
-			}
-			else
-			{
-				Released(psEvent->pcSource);
-			}
-		}
+		psRow = &gasKeyboardChordRows[i];
+		AddChordCommands(pcKeyboard, pcKeyboard, psRow->bControl, psRow->bShift, psRow->szKey, psRow->ePressed, psRow->eReleased);
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A pressed source is, in order: a modifier or lock, a numpad key standing
-// in for another source, a command for the modifiers held or a printable
-// character if neither control nor alt is held.
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentInput::Pressed(CInputSourceDesc* pcSource)
+void CComponentInput::AddMouseChords(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcMouse)
+{
+	size						i;
+	SComponentInputChordRow*	psRow;
+
+	for (i = 0; i < sizeof(gasMouseChordRows) / sizeof(SComponentInputChordRow); i++)
+	{
+		psRow = &gasMouseChordRows[i];
+		AddChordCommands(pcKeyboard, pcMouse, psRow->bControl, psRow->bShift, psRow->szKey, psRow->ePressed, psRow->eReleased);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A chord for each of the keyboard's left and right controls and shifts
+// that the row wants, then szKey on pcKeyDevice.  They share one name and
+// command.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentInput::AddChordCommands(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcKeyDevice, bool bControl, bool bShift, char* szKey, EComponentInputCommand ePressed, EComponentInputCommand eReleased)
+{
+	CInputSourceDesc*				apcControls[2];
+	CInputSourceDesc*				apcShifts[2];
+	CInputSourceDesc*				pcKey;
+	CChars							szName;
+	SComponentInputChordCommand*	psCommand;
+	size							i;
+	size							j;
+
+	pcKey = pcKeyDevice->GetSource(szKey);
+	if (!pcKey)
+	{
+		return;
+	}
+
+	apcControls[0] = pcKeyboard->GetSource("Left Control");
+	apcControls[1] = pcKeyboard->GetSource("Right Control");
+	apcShifts[0] = pcKeyboard->GetSource("Left Shift");
+	apcShifts[1] = pcKeyboard->GetSource("Right Shift");
+
+	szName.Init();
+	if (bControl)
+	{
+		szName.Append("Control+");
+	}
+	if (bShift)
+	{
+		szName.Append("Shift+");
+	}
+	szName.Append(szKey);
+
+	for (i = 0; i < 2; i++)
+	{
+		if (bControl && bShift)
+		{
+			for (j = 0; j < 2; j++)
+			{
+				mpcSource->AddKeyChord(szName.Text(), pcKeyboard->GetDevice(), apcControls[i], apcShifts[j], pcKeyDevice->GetDevice(), pcKey);
+			}
+		}
+		else if (bControl)
+		{
+			mpcSource->AddKeyChord(szName.Text(), pcKeyboard->GetDevice(), apcControls[i], NULL, pcKeyDevice->GetDevice(), pcKey);
+		}
+		else
+		{
+			mpcSource->AddKeyChord(szName.Text(), pcKeyboard->GetDevice(), apcShifts[i], NULL, pcKeyDevice->GetDevice(), pcKey);
+		}
+	}
+
+	if (!GetChordCommand(szName.Text()))
+	{
+		psCommand = masChordCommands.Add();
+		psCommand->szName.Init(szName.Text());
+		psCommand->ePressed = ePressed;
+		psCommand->eReleased = eReleased;
+	}
+	szName.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SComponentInputChordCommand* CComponentInput::GetChordCommand(char* szName)
+{
+	SComponentInputChordCommand*	psCommand;
+	size							i;
+	size							uiNumElements;
+
+	uiNumElements = masChordCommands.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		psCommand = masChordCommands.Get(i);
+		if (psCommand->szName.Equals(szName))
+		{
+			return psCommand;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Updates the source and gives each event it queued to the window, whose
+// focus translates (see Translate) and dispatches it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentInput::Update(void)
+{
+	size	i;
+
+	mpcSource->Update();
+
+	for (i = 0; i < mpcSource->NumEvents(); i++)
+	{
+		mpcWindow->Input(mpcSource->GetEvent(i), this);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentInput::InitEvent(SComponentInputEvent* psEvent, EComponentInputEventType eType, SWindowInputEvent* psWindowEvent)
+{
+	memset(psEvent, 0, sizeof(SComponentInputEvent));
+	psEvent->eType = eType;
+	psEvent->eCommand = CIC_Ignored;
+	psEvent->bInsert = mbInsert;
+	psEvent->bShift = IsShift();
+	psEvent->bCapsLock = mbCapsLock;
+	psEvent->bNumLock = mbNumLock;
+	psEvent->uiTime = psWindowEvent->uiTime;
+	psEvent->psWindowEvent = psWindowEvent;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Writes into asDest (COMPONENT_INPUT_MAX_EVENTS long) what the queued
+// event means, in the order they are given to the components:
+//   A key or button of a keyboard or mouse added here: its key event, then
+//     the command or printable it means alone, if any.
+//   A chord: its chord event, then its command if it is a standard chord.
+//   Movement of a mouse added here: a movement event.
+//   A key or button of another device: its key event.
+// Returns how many were written.  The pointer position is set by the focus.
+//
+//////////////////////////////////////////////////////////////////////////
+size CComponentInput::Translate(SWindowInputEvent* psWindowEvent, SComponentInputEvent* asDest)
+{
+	SComponentInputChordCommand*	psChordCommand;
+	CComponentInputDevice*			pcDevice;
+	char*							szName;
+	bool							bDown;
+
+	pcDevice = GetDevice(psWindowEvent->pcDevice);
+	if (psWindowEvent->eType == WIET_Chord)
+	{
+		InitEvent(&asDest[0], CIET_Chord, psWindowEvent);
+		asDest[0].szName = psWindowEvent->szChord;
+		psChordCommand = GetChordCommand(psWindowEvent->szChord);
+		if (!psChordCommand)
+		{
+			return 1;
+		}
+
+		//The chord's key was used up so its release only means something if the chord said so.
+		if (psChordCommand->eReleased != CIC_Ignored)
+		{
+			AddPressed(psWindowEvent->pcSource, psChordCommand->eReleased);
+		}
+		InitEvent(&asDest[1], CIET_Command, psWindowEvent);
+		asDest[1].eCommand = psChordCommand->ePressed;
+		return 2;
+	}
+	else if (psWindowEvent->eType == WIET_Delta)
+	{
+		if (!pcDevice || !pcDevice->IsMouse())
+		{
+			return 0;
+		}
+
+		InitEvent(&asDest[0], CIET_Movement, psWindowEvent);
+		szName = mpcSource->GetName(psWindowEvent->pcSource);
+		if (strcmp(szName, "Left") == 0)
+		{
+			asDest[0].iRight = -(int)psWindowEvent->fValue;
+		}
+		else if (strcmp(szName, "Right") == 0)
+		{
+			asDest[0].iRight = (int)psWindowEvent->fValue;
+		}
+		else if (strcmp(szName, "Up") == 0)
+		{
+			asDest[0].iDown = -(int)psWindowEvent->fValue;
+		}
+		else if (strcmp(szName, "Down") == 0)
+		{
+			asDest[0].iDown = (int)psWindowEvent->fValue;
+		}
+		return 1;
+	}
+
+	bDown = psWindowEvent->fValue >= COMPONENT_INPUT_PRESSED;
+	InitEvent(&asDest[0], bDown ? CIET_KeyDown : CIET_KeyUp, psWindowEvent);
+	asDest[0].szName = mpcSource->GetName(psWindowEvent->pcSource);
+	asDest[0].fValue = psWindowEvent->fValue;
+	if (!pcDevice)
+	{
+		return 1;
+	}
+
+	if (bDown)
+	{
+		return Pressed(psWindowEvent, &asDest[1]) ? 2 : 1;
+	}
+	else
+	{
+		return Released(psWindowEvent, &asDest[1]) ? 2 : 1;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A pressed source is, in order: a lock or insert, a numpad key standing
+// in for another source, then nothing if control or alt is held (it would
+// have been a chord), a command or a printable character.  Returns true if
+// psDest is set.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::Pressed(SWindowInputEvent* psWindowEvent, SComponentInputEvent* psDest)
 {
 	CComponentInputKey*			psKey;
 	CComponentInputNumKey*		psNumKey;
 	CComponentInputCommand*		psCommand;
+	CComponentInputCommand*		psReleased;
 	CComponentInputPrintable*	psPrintable;
+	CInputSourceDesc*			pcSource;
 	CInputSourceDesc*			pcRemapped;
-	bool						bControl;
-	bool						bAlt;
-	bool						bShift;
 
+	pcSource = psWindowEvent->pcSource;
 	psKey = GetKey(pcSource);
 	if (psKey)
 	{
 		if (PressedKey(psKey))
 		{
-			return;
+			return false;
 		}
 	}
 
-	bControl = miControl > 0;
-	bAlt = miAlt > 0;
-	bShift = miShift > 0;
-	AddPressed(pcSource, bControl, bAlt, bShift);
-
-	//With num lock off the numpad keys move, and shift doesn't select.
+	//With num lock off the numpad keys move.
 	pcRemapped = pcSource;
 	psNumKey = GetNumKeyRemap(pcSource);
 	if (psNumKey)
 	{
-		if (mbNumLock)
-		{
-			pcRemapped = psNumKey->pcYesNumLockRemap;
-		}
-		else
-		{
-			pcRemapped = psNumKey->pcNoNumLockRemap;
-			bShift = false;
-		}
+		pcRemapped = mbNumLock ? psNumKey->pcYesNumLockRemap : psNumKey->pcNoNumLockRemap;
 		if (!pcRemapped)
 		{
-			return;
+			return false;
 		}
 	}
 
-	psCommand = GetCommand(pcRemapped, bControl, bAlt, bShift, true);
+	//With control or alt held a key is a chord or nothing.
+	if (IsControl() || IsAlt())
+	{
+		return false;
+	}
+
+	psReleased = GetCommand(pcRemapped, false);
+	AddPressed(pcSource, psReleased ? psReleased->eCommand : CIC_Ignored);
+
+	psCommand = GetCommand(pcRemapped, true);
 	if (psCommand)
 	{
-		Command(psCommand->eCommand);
-		return;
+		if (psCommand->eCommand == CIC_Ignored)
+		{
+			return false;
+		}
+		InitEvent(psDest, CIET_Command, psWindowEvent);
+		psDest->eCommand = psCommand->eCommand;
+		return true;
 	}
 
 	psPrintable = GetPrintable(pcRemapped);
 	if (psPrintable)
 	{
-		if (!bAlt && !bControl)
-		{
-			mpcWindow->InputPrintable(psPrintable->Get(miShift > 0, mbCapsLock), mbInsert);
-		}
+		InitEvent(psDest, CIET_Printable, psWindowEvent);
+		psDest->cPrintable = psPrintable->Get(IsShift(), mbCapsLock);
+		return true;
 	}
+	return false;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Returns true if psDest is set to the command letting go gives.
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentInput::Released(CInputSourceDesc* pcSource)
+bool CComponentInput::Released(SWindowInputEvent* psWindowEvent, SComponentInputEvent* psDest)
 {
-	CComponentInputKey*			psKey;
-	CComponentInputCommand*		psCommand;
 	SComponentInputPressed		sPressed;
 
-	psKey = GetKey(pcSource);
-	if (psKey)
+	if (!RemovePressed(psWindowEvent->pcSource, &sPressed))
 	{
-		ReleasedKey(psKey);
+		//Pressed before this was listening, used up by a chord, or a lock.
+		return false;
+	}
+	if (sPressed.eReleased == CIC_Ignored)
+	{
+		return false;
 	}
 
-	if (!RemovePressed(pcSource, &sPressed))
-	{
-		//Pressed before this was listening, or a modifier.
-		return;
-	}
-
-	psCommand = GetCommand(pcSource, sPressed.bControl, sPressed.bAlt, sPressed.bShift, false);
-	if (psCommand)
-	{
-		Command(psCommand->eCommand);
-	}
+	InitEvent(psDest, CIET_Command, psWindowEvent);
+	psDest->eCommand = sPressed.eReleased;
+	return true;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Returns true if the key has been used up.  Insert with control or shift
-// held isn't, it gives copy or paste.
+// Returns true if the key has been used up.  Shift, control and alt are
+// read from the keyboard when they are needed.  Insert with control or
+// shift is a chord so it never gets here.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CComponentInput::PressedKey(CComponentInputKey* psKey)
@@ -353,13 +671,8 @@ bool CComponentInput::PressedKey(CComponentInputKey* psKey)
 	switch (psKey->eKey)
 	{
 	case CIK_Shift:
-		miShift++;
-		return true;
 	case CIK_Control:
-		miControl++;
-		return true;
 	case CIK_Alt:
-		miAlt++;
 		return true;
 	case CIK_CapsLock:
 		mbCapsLock = !mbCapsLock;
@@ -368,48 +681,10 @@ bool CComponentInput::PressedKey(CComponentInputKey* psKey)
 		mbNumLock = !mbNumLock;
 		return true;
 	case CIK_Insert:
-		if ((miShift == 0) && (miControl == 0) && (miAlt == 0))
-		{
-			mbInsert = !mbInsert;
-			return true;
-		}
-		return false;
+		mbInsert = !mbInsert;
+		return true;
 	}
 	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CComponentInput::ReleasedKey(CComponentInputKey* psKey)
-{
-	switch (psKey->eKey)
-	{
-	case CIK_Shift:
-		if (miShift > 0)
-		{
-			miShift--;
-		}
-		break;
-	case CIK_Control:
-		if (miControl > 0)
-		{
-			miControl--;
-		}
-		break;
-	case CIK_Alt:
-		if (miAlt > 0)
-		{
-			miAlt--;
-		}
-		break;
-	case CIK_CapsLock:
-	case CIK_NumLock:
-	case CIK_Insert:
-		break;
-	}
 }
 
 
@@ -422,10 +697,8 @@ void CComponentInput::ReleasedKey(CComponentInputKey* psKey)
 //////////////////////////////////////////////////////////////////////////
 void CComponentInput::ReleaseAll(void)
 {
-	miShift = 0;
-	miControl = 0;
-	miAlt = 0;
 	masPressed.ReInit();
+	mpcSource->ForgetDown();
 }
 
 
@@ -447,20 +720,7 @@ void CComponentInput::SetLocks(bool bCapsLock, bool bNumLock)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentInput::Command(EComponentInputCommand eCommand)
-{
-	if (eCommand != CIC_Ignored)
-	{
-		mpcWindow->InputCommand(eCommand, mbInsert);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CComponentInput::AddPressed(CInputSourceDesc* pcSource, bool bControl, bool bAlt, bool bShift)
+void CComponentInput::AddPressed(CInputSourceDesc* pcSource, EComponentInputCommand eReleased)
 {
 	SComponentInputPressed*	psPressed;
 	SComponentInputPressed	sIgnored;
@@ -470,9 +730,7 @@ void CComponentInput::AddPressed(CInputSourceDesc* pcSource, bool bControl, bool
 
 	psPressed = masPressed.Add();
 	psPressed->pcSource = pcSource;
-	psPressed->bControl = bControl;
-	psPressed->bAlt = bAlt;
-	psPressed->bShift = bShift;
+	psPressed->eReleased = eReleased;
 }
 
 
@@ -505,7 +763,7 @@ bool CComponentInput::RemovePressed(CInputSourceDesc* pcSource, SComponentInputP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CComponentInputCommand* CComponentInput::GetCommand(CInputSourceDesc* pcSource, bool bControl, bool bAlt, bool bShift, bool bPressed)
+CComponentInputCommand* CComponentInput::GetCommand(CInputSourceDesc* pcSource, bool bPressed)
 {
 	CComponentInputCommand*		psCommand;
 	size						i;
@@ -514,7 +772,7 @@ CComponentInputCommand* CComponentInput::GetCommand(CInputSourceDesc* pcSource, 
 	uiNumElements = macDevices.NumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		psCommand = macDevices.Get(i)->GetCommand(pcSource, bControl, bAlt, bShift, bPressed);
+		psCommand = macDevices.Get(i)->GetCommand(pcSource, bPressed);
 		if (psCommand)
 		{
 			return psCommand;
@@ -595,11 +853,33 @@ CComponentInputKey* CComponentInput::GetKey(CInputSourceDesc* pcSource)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if any keyboard has a key of this kind down.
 //
 //////////////////////////////////////////////////////////////////////////
-bool		CComponentInput::IsShift(void) { return miShift > 0; }
-bool		CComponentInput::IsControl(void) { return miControl > 0; }
-bool		CComponentInput::IsAlt(void) { return miAlt > 0; }
+bool CComponentInput::IsKeyDown(EComponentInputKey eKey)
+{
+	size	i;
+	size	uiNumElements;
+
+	uiNumElements = macDevices.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		if (macDevices.Get(i)->IsKeyDown(eKey))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool		CComponentInput::IsShift(void) { return IsKeyDown(CIK_Shift); }
+bool		CComponentInput::IsControl(void) { return IsKeyDown(CIK_Control); }
+bool		CComponentInput::IsAlt(void) { return IsKeyDown(CIK_Alt); }
 bool		CComponentInput::IsCapsLock(void) { return mbCapsLock; }
 bool		CComponentInput::IsNumLock(void) { return mbNumLock; }
 bool		CComponentInput::IsInsert(void) { return mbInsert; }
@@ -608,8 +888,8 @@ CWindowInputSource*	CComponentInput::GetSource(void) { return mpcSource; }
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The window the commands and printable characters go to, as when a
-// modal dialog takes them from its owner.  Release everything first.
+// The window the events go to, as when a modal dialog takes them from its
+// owner.  Release everything first.
 //
 //////////////////////////////////////////////////////////////////////////
 void CComponentInput::SetWindow(CWindow* pcWindow)

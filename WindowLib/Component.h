@@ -8,13 +8,14 @@
 #include "SupportLib/ColourFormat.h"
 #include "Focus.h"
 #include "FocusListener.h"
-#include "ComponentListener.h"
 #include "SupportLib/Int32Rect.h"
 #include "ContainerStyle.h"
+#include "InputAction.h"
 
 
 class CWindow;
-class CComponent : public CObject, public CFocusListener, public CComponentListener
+//Input reaches a component through the input actions added to it (see AddInputAction), given by the window's focus.
+class CComponent : public CObject, public CFocusListener
 {
 CONSTRUCTABLE(CComponent);
 DESTRUCTABLE(CComponent);
@@ -27,6 +28,7 @@ protected:
 	Ptr<CComponent>		mpParent;
 	CArray<CComponent>	maChildren;
 	Ptr<CWindow>		mpWindow;
+	CArray<CInputAction>	maInputActions;
 
 public:
 			void				Init(Ptr<CWindow> pWindow);
@@ -78,7 +80,74 @@ public:
 			void				SetAlignment(EContainerStyleHorizontal eHorizontal, EContainerStyleVertical eVertical);
 			EContainerStyleHorizontal	GetHorizontalAlignment(void);
 			EContainerStyleVertical		GetVerticalAlignment(void);
+
+	template<class M>
+			Ptr<CInputAction>	AddInputAction(EInputActionFilter eFilter, const char* szName, M* pcObject, void(M::*fFunction)(SComponentInputEvent*));
+	template<class M>
+			Ptr<CInputAction>	AddInputAction(EComponentInputCommand eCommand, M* pcObject, void(M::*fFunction)(SComponentInputEvent*));
+	template<class M>
+			void				AddInputActions(const EComponentInputCommand* aeCommands, size uiNumCommands, M* pcObject, void(M::*fFunction)(SComponentInputEvent*));
+			bool				RemoveInputAction(Ptr<CInputAction> pAction);
+			size				NumInputActions(void);
+			bool				CallInputActions(SComponentInputEvent* psEvent);
+
+protected:
+			Ptr<CInputAction>	MallocInputAction(void);
+			void				AddInputAction(Ptr<CInputAction> pAction);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szName is the key or chord for IAF_KeyDown, IAF_KeyUp and IAF_Chord,
+// otherwise NULL.  pcObject is usually this component.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+Ptr<CInputAction> CComponent::AddInputAction(EInputActionFilter eFilter, const char* szName, M* pcObject, void(M::*fFunction)(SComponentInputEvent*))
+{
+	Ptr<CInputAction>	pAction;
+
+	pAction = MallocInputAction();
+	pAction->Init(eFilter, szName, pcObject, fFunction);
+	AddInputAction(pAction);
+	return pAction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An IAF_Command action.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+Ptr<CInputAction> CComponent::AddInputAction(EComponentInputCommand eCommand, M* pcObject, void(M::*fFunction)(SComponentInputEvent*))
+{
+	Ptr<CInputAction>	pAction;
+
+	pAction = MallocInputAction();
+	pAction->Init(eCommand, pcObject, fFunction);
+	AddInputAction(pAction);
+	return pAction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An IAF_Command action for each command, all calling fFunction, which
+// can switch on the event's command.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CComponent::AddInputActions(const EComponentInputCommand* aeCommands, size uiNumCommands, M* pcObject, void(M::*fFunction)(SComponentInputEvent*))
+{
+	size	i;
+
+	for (i = 0; i < uiNumCommands; i++)
+	{
+		AddInputAction(aeCommands[i], pcObject, fFunction);
+	}
+}
 
 
 #endif // __COMPONENT_H__

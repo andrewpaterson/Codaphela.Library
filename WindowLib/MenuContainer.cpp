@@ -26,6 +26,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MenuContainer.h"
 
 
+//As well as the list's.
+static EComponentInputCommand	gaeMenuContainerCommands[] = { CIC_Left, CIC_Right };
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // A menu in the theme's menu style.
@@ -68,8 +72,30 @@ void CMenuContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CM
 	sInsets.Init(aiInsets);
 	SetHighlightDraws(OMalloc<CRoundedBoxCanvasDraw>(pStyle->GetSelected(), pStyle->GetSelectionRadius(), &sInsets),
 					  OMalloc<CRoundedBoxCanvasDraw>(pStyle->GetHover(), pStyle->GetSelectionRadius(), &sInsets));
+	AddInputActions(gaeMenuContainerCommands, sizeof(gaeMenuContainerCommands) / sizeof(EComponentInputCommand), this, &CMenuContainer::CommandAction);
 
 	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The input actions of gaeMenuContainerCommands.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMenuContainer::CommandAction(SComponentInputEvent* psEvent)
+{
+	switch (psEvent->eCommand)
+	{
+	case CIC_Left:
+		Left();
+		break;
+	case CIC_Right:
+		Right();
+		break;
+	default:
+		break;
+	}
 }
 
 

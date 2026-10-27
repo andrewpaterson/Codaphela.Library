@@ -23,6 +23,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "NativeWindowFactory.h"
 #include "Window.h"
 #include "Button.h"
+#include "ComponentInput.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,13 +93,14 @@ bool CFocus::Load(CObjectReader* pcFile)
 //
 // x and y are in window client space.  The component under the pointer is
 // told where in it the pointer is.  A component that started a drag keeps
-// getting ContDrag* wherever the pointer goes until the drag stops.
+// getting CIC_ContDrag* wherever the pointer goes until the drag stops.
 //
 //////////////////////////////////////////////////////////////////////////
 void CFocus::PointerMoved(int x, int y)
 {
-	int		lx;
-	int		ly;
+	int						lx;
+	int						ly;
+	SComponentInputEvent	sEvent;
 
 	msPointer.Init(x, y);
 	mbPointerIn = true;
@@ -112,15 +114,9 @@ void CFocus::PointerMoved(int x, int y)
 
 	if (mpDragComponent)
 	{
-		ToComponentSpace(mpDragComponent, &lx, &ly);
-		if (meDrag == FD_Select)
-		{
-			mpDragComponent->ContDragSelect(lx, ly);
-		}
-		else if (meDrag == FD_Scroll)
-		{
-			mpDragComponent->ContDragScroll(lx, ly);
-		}
+		InitEvent(&sEvent, CIET_Command, true);
+		sEvent.eCommand = (meDrag == FD_Select) ? CIC_ContDragSelect : CIC_ContDragScroll;
+		Deliver(mpDragComponent, &sEvent);
 	}
 }
 
@@ -219,281 +215,267 @@ void CFocus::SetFocus(Ptr<CComponent> pComponent)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Pointer commands are given x and y relative to the component's top left.
+// Translates a queued event (see CComponentInput::Translate) and gives
+// each event it means, in order, to DispatchEvent.  Once one is taken the
+// later ones aren't given, so a key taken by its key event isn't also a
+// command.  A click focusses the component under the pointer before
+// anything is given.
 //
 //////////////////////////////////////////////////////////////////////////
-void CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
+void CFocus::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput)
 {
-	int				x;
-	int				y;
-	CChars			szClipboard;
-	Ptr<CButton>	pDefault;
-	Ptr<CButton>	pCancel;
+	SComponentInputEvent	asEvents[COMPONENT_INPUT_MAX_EVENTS];
+	size					uiNumEvents;
+	size					i;
 
 	if (!mbActive)
 	{
 		return;
 	}
 
-	if (eCommand == CIC_Hover)
+	uiNumEvents = pcComponentInput->Translate(psWindowEvent, asEvents);
+	for (i = 0; i < uiNumEvents; i++)
 	{
-		if (mpMouseOverComponent)
+		if (IsClick(&asEvents[i]))
 		{
-			ToComponentSpace(mpMouseOverComponent, &x, &y);
-			mpMouseOverComponent->Hover(x, y);
+			if (!FocusClick())
+			{
+				return;
+			}
+			break;
 		}
-		return;
 	}
 
-	if ((eCommand == CIC_WheelUp) || (eCommand == CIC_WheelDown) || (eCommand == CIC_WheelLeft) || (eCommand == CIC_WheelRight))
+	for (i = 0; i < uiNumEvents; i++)
 	{
-		Wheel(eCommand);
-		return;
-	}
-
-	if ((eCommand == CIC_StopDragSelect) || (eCommand == CIC_StopDragScroll))
-	{
-		StopDrag(eCommand == CIC_StopDragSelect ? FD_Select : FD_Scroll);
-		return;
-	}
-
-	if ((eCommand == CIC_ActivateComponent) || (eCommand == CIC_ContextMenu) || (eCommand == CIC_StartDragSelect) || (eCommand == CIC_StartDragScroll))
-	{
-		//A press outside the window, on its title bar say, isn't for any component.
-		if (!mbPointerIn || !mpWindow->IsPointIn(msPointer.x, msPointer.y))
+		if (DispatchEvent(&asEvents[i]))
 		{
 			return;
 		}
-		mpWindow->ClosePopupsOutside(mpMouseOverComponent);
-		Request();
 	}
+}
 
-	//Escape closes the window's popups, like an open menu, or clicks its cancel button before it clears a selection.
-	if (eCommand == CIC_ClearSelection)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window first, then the input actions.  Escape closes the window's
+// popups or clicks its cancel button, and enter clicks its default button
+// unless the focussed component wants it.  A drag's start goes to the
+// focussed component and the rest of it to whatever started it.
+// Otherwise the event goes to the focussed component, or for movement and
+// the wheel the component under the pointer, then up through its parents
+// to the first with an action that matches; all its matching actions are
+// called.  Returns true if the event was taken.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFocus::DispatchEvent(SComponentInputEvent* psEvent)
+{
+	Ptr<CButton>	pDefault;
+	Ptr<CButton>	pCancel;
+	int				x;
+	int				y;
+
+	if (psEvent->eType == CIET_Command)
 	{
-		if (mpWindow->NumPopups() > 0)
+		switch (psEvent->eCommand)
 		{
-			mpWindow->CloseAllPopups();
-			return;
+		case CIC_Ignored:
+			return false;
+		case CIC_Hover:
+			if (mpMouseOverComponent)
+			{
+				return Deliver(mpMouseOverComponent, psEvent);
+			}
+			return false;
+		case CIC_WheelUp:
+		case CIC_WheelDown:
+		case CIC_WheelLeft:
+		case CIC_WheelRight:
+			GetWheel(psEvent->eCommand, &psEvent->iRight, &psEvent->iDown);
+			psEvent->eType = CIET_Wheel;
+			psEvent->eCommand = CIC_Ignored;
+			return Dispatch(mpMouseOverComponent, psEvent);
+		case CIC_StopDragSelect:
+			StopDrag(FD_Select);
+			return true;
+		case CIC_StopDragScroll:
+			StopDrag(FD_Scroll);
+			return true;
+		case CIC_ClearSelection:
+			if (mpWindow->NumPopups() > 0)
+			{
+				mpWindow->CloseAllPopups();
+				return true;
+			}
+			pCancel = mpWindow->GetCancelButton();
+			if (pCancel)
+			{
+				pCancel->Click();
+				return true;
+			}
+			break;
+		case CIC_Enter:
+			pDefault = mpWindow->GetDefaultButton();
+			if (pDefault && !(mpFocussedComponent && mpFocussedComponent->WantsEnter()))
+			{
+				pDefault->Enter();
+				return true;
+			}
+			break;
+		default:
+			break;
 		}
-		pCancel = mpWindow->GetCancelButton();
-		if (pCancel)
+
+		if (IsClick(psEvent))
 		{
-			pCancel->Click();
-			return;
+			if (!FocusClick())
+			{
+				return true;
+			}
+		}
+
+		if ((psEvent->eCommand == CIC_StartDragSelect) || (psEvent->eCommand == CIC_StartDragScroll))
+		{
+			if (!mpFocussedComponent)
+			{
+				return false;
+			}
+			ToComponentSpace(mpFocussedComponent, &x, &y);
+			StartDrag(psEvent->eCommand == CIC_StartDragSelect ? FD_Select : FD_Scroll, x, y);
+			return true;
 		}
 	}
 
-	//Enter clicks the window's default button unless the focussed component wants it.
-	if (eCommand == CIC_Enter)
+	if ((psEvent->eType == CIET_Movement) || (psEvent->eType == CIET_Wheel))
 	{
-		pDefault = mpWindow->GetDefaultButton();
-		if (pDefault && !(mpFocussedComponent && mpFocussedComponent->WantsEnter()))
-		{
-			pDefault->Enter();
-			return;
-		}
+		return Dispatch(mpMouseOverComponent, psEvent);
 	}
+	return Dispatch(mpFocussedComponent, psEvent);
+}
 
-	if (!mpFocussedComponent)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Focusses the component under the pointer for a click, closing popups it
+// isn't in.  Returns false for a click outside the window, on its title
+// bar say, which isn't for any component.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFocus::FocusClick(void)
+{
+	if (!mbPointerIn || !mpWindow->IsPointIn(msPointer.x, msPointer.y))
 	{
-		return;
+		return false;
 	}
-	ToComponentSpace(mpFocussedComponent, &x, &y);
+	mpWindow->ClosePopupsOutside(mpMouseOverComponent);
+	Request();
+	return true;
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Returns true if a component from pComponent up took the event.  The
+// event's x and y are the pointer relative to the component given it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFocus::Dispatch(Ptr<CComponent> pComponent, SComponentInputEvent* psEvent)
+{
+	while (pComponent)
+	{
+		if (Deliver(pComponent, psEvent))
+		{
+			return true;
+		}
+		pComponent = pComponent->GetParent();
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// To pComponent's actions only, the pointer relative to it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFocus::Deliver(Ptr<CComponent> pComponent, SComponentInputEvent* psEvent)
+{
+	ToComponentSpace(pComponent, &psEvent->x, &psEvent->y);
+	return pComponent->CallInputActions(psEvent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFocus::InitEvent(SComponentInputEvent* psEvent, EComponentInputEventType eType, bool bInsert)
+{
+	memset(psEvent, 0, sizeof(SComponentInputEvent));
+	psEvent->eType = eType;
+	psEvent->eCommand = CIC_Ignored;
+	psEvent->bInsert = bInsert;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A pointer button press that is for the component under the pointer.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFocus::IsClick(SComponentInputEvent* psEvent)
+{
+	if (psEvent->eType != CIET_Command)
+	{
+		return false;
+	}
+	return (psEvent->eCommand == CIC_ActivateComponent) || (psEvent->eCommand == CIC_ContextMenu) || (psEvent->eCommand == CIC_StartDragSelect) || (psEvent->eCommand == CIC_StartDragScroll);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Returns false if the command isn't the wheel's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFocus::GetWheel(EComponentInputCommand eCommand, int* piRight, int* piDown)
+{
+	*piRight = 0;
+	*piDown = 0;
 	switch (eCommand)
 	{
-	case CIC_Up:
-		mpFocussedComponent->Up();
-		break;
-	case CIC_Down:
-		mpFocussedComponent->Down();
-		break;
-	case CIC_Left:
-		mpFocussedComponent->Left();
-		break;
-	case CIC_Right:
-		mpFocussedComponent->Right();
-		break;
-	case CIC_WordLeft:
-		mpFocussedComponent->WordLeft();
-		break;
-	case CIC_WordRight:
-		mpFocussedComponent->WordRight();
-		break;
-	case CIC_Home:
-		mpFocussedComponent->Home();
-		break;
-	case CIC_End:
-		mpFocussedComponent->End();
-		break;
-	case CIC_DocumentHome:
-		mpFocussedComponent->DocumentHome();
-		break;
-	case CIC_DocumentEnd:
-		mpFocussedComponent->DocumentEnd();
-		break;
-	case CIC_PageUp:
-		mpFocussedComponent->PageUp();
-		break;
-	case CIC_PageDown:
-		mpFocussedComponent->PageDown();
-		break;
-	case CIC_LineUp:
-		mpFocussedComponent->LineUp();
-		break;
-	case CIC_LineDown:
-		mpFocussedComponent->LineDown();
-		break;
-	case CIC_SelectUp:
-		mpFocussedComponent->SelectUp();
-		break;
-	case CIC_SelectDown:
-		mpFocussedComponent->SelectDown();
-		break;
-	case CIC_SelectLeft:
-		mpFocussedComponent->SelectLeft();
-		break;
-	case CIC_SelectRight:
-		mpFocussedComponent->SelectRight();
-		break;
-	case CIC_SelectWordLeft:
-		mpFocussedComponent->SelectWordLeft();
-		break;
-	case CIC_SelectWordRight:
-		mpFocussedComponent->SelectWordRight();
-		break;
-	case CIC_SelectHome:
-		mpFocussedComponent->SelectHome();
-		break;
-	case CIC_SelectEnd:
-		mpFocussedComponent->SelectEnd();
-		break;
-	case CIC_SelectDocumentHome:
-		mpFocussedComponent->SelectDocumentHome();
-		break;
-	case CIC_SelectDocumentEnd:
-		mpFocussedComponent->SelectDocumentEnd();
-		break;
-	case CIC_SelectPageUp:
-		mpFocussedComponent->SelectPageUp();
-		break;
-	case CIC_SelectPageDown:
-		mpFocussedComponent->SelectPageDown();
-		break;
-	case CIC_SelectWholeWord:
-		mpFocussedComponent->SelectWholeWord();
-		break;
-	case CIC_SelectAll:
-		mpFocussedComponent->SelectAll();
-		break;
-	case CIC_ClearSelection:
-		mpFocussedComponent->ClearSelection();
-		break;
-	case CIC_Space:
-		mpFocussedComponent->Space(bInsert);
-		break;
-	case CIC_Tab:
-		mpFocussedComponent->Tab(bInsert);
-		break;
-	case CIC_BackTab:
-		mpFocussedComponent->BackTab();
-		break;
-	case CIC_Enter:
-		mpFocussedComponent->Enter();
-		break;
-	case CIC_HomeEnter:
-		mpFocussedComponent->HomeEnter();
-		break;
-	case CIC_EndEnter:
-		mpFocussedComponent->EndEnter();
-		break;
-	case CIC_Delete:
-		mpFocussedComponent->Delete();
-		break;
-	case CIC_Backspace:
-		mpFocussedComponent->Backspace();
-		break;
-	case CIC_Cut:
-	case CIC_Copy:
-	case CIC_Paste:
-	case CIC_CutLine:
-		//The clipboard is the native window factory's.  Cutting or copying nothing leaves it as it was.
-		szClipboard.Init();
-		if (eCommand == CIC_Paste)
-		{
-			mpWindow->GetFactory()->GetClipboardText(&szClipboard);
-			mpFocussedComponent->Paste(szClipboard.Text());
-		}
-		else
-		{
-			if (eCommand == CIC_Cut)
-			{
-				mpFocussedComponent->Cut(&szClipboard);
-			}
-			else if (eCommand == CIC_Copy)
-			{
-				mpFocussedComponent->Copy(&szClipboard);
-			}
-			else
-			{
-				mpFocussedComponent->CutLine(&szClipboard);
-			}
-			if (!szClipboard.Empty())
-			{
-				mpWindow->GetFactory()->SetClipboardText(szClipboard.Text());
-			}
-		}
-		szClipboard.Kill();
-		break;
-	case CIC_Duplicate:
-		mpFocussedComponent->Duplicate();
-		break;
-	case CIC_DeleteWordRemainingLeft:
-		mpFocussedComponent->DeleteWordRemainingLeft();
-		break;
-	case CIC_DeleteWordRemainingRight:
-		mpFocussedComponent->DeleteWordRemainingRight();
-		break;
-	case CIC_DeleteLine:
-		mpFocussedComponent->DeleteLine();
-		break;
-	case CIC_Undo:
-		mpFocussedComponent->Undo();
-		break;
-	case CIC_StepUndo:
-		mpFocussedComponent->StepUndo();
-		break;
-	case CIC_Redo:
-		mpFocussedComponent->Redo();
-		break;
-	case CIC_StepRedo:
-		mpFocussedComponent->StepRedo();
-		break;
-	case CIC_ActivateComponent:
-		mpFocussedComponent->ActivateComponent(x, y);
-		break;
-	case CIC_ExecuteComponent:
-		mpFocussedComponent->ExecuteComponent(x, y);
-		break;
-	case CIC_ContextMenu:
-		mpFocussedComponent->ContextMenu(x, y);
-		break;
-	case CIC_StartDragSelect:
-		StartDrag(FD_Select, x, y);
-		break;
-	case CIC_StartDragScroll:
-		StartDrag(FD_Scroll, x, y);
-		break;
-	case CIC_StopDragSelect:
-	case CIC_StopDragScroll:
-	case CIC_Hover:
 	case CIC_WheelUp:
+		*piDown = -1;
+		return true;
 	case CIC_WheelDown:
+		*piDown = 1;
+		return true;
 	case CIC_WheelLeft:
+		*piRight = -1;
+		return true;
 	case CIC_WheelRight:
-	case CIC_Ignored:
-		break;
+		*piRight = 1;
+		return true;
+	default:
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A command not from the input, as a test gives one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
+{
+	SComponentInputEvent	sEvent;
+
+	if (mbActive)
+	{
+		InitEvent(&sEvent, CIET_Command, bInsert);
+		sEvent.eCommand = eCommand;
+		DispatchEvent(&sEvent);
 	}
 }
 
@@ -504,71 +486,43 @@ void CFocus::Command(EComponentInputCommand eCommand, bool bInsert)
 //////////////////////////////////////////////////////////////////////////
 void CFocus::Printable(char c, bool bInsert)
 {
-	if (mbActive && mpFocussedComponent)
+	SComponentInputEvent	sEvent;
+
+	if (mbActive)
 	{
-		mpFocussedComponent->Printable(c, bInsert);
+		InitEvent(&sEvent, CIET_Printable, bInsert);
+		sEvent.cPrintable = c;
+		DispatchEvent(&sEvent);
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The wheel turns the component under the pointer, or the nearest of its
-// ancestors that uses it, like the scroll pane it is in.
-//
-//////////////////////////////////////////////////////////////////////////
-void CFocus::Wheel(EComponentInputCommand eCommand)
-{
-	Ptr<CComponent>	pComponent;
-	int				iRight;
-	int				iDown;
-
-	iRight = 0;
-	iDown = 0;
-	if (eCommand == CIC_WheelUp)
-	{
-		iDown = -1;
-	}
-	else if (eCommand == CIC_WheelDown)
-	{
-		iDown = 1;
-	}
-	else if (eCommand == CIC_WheelLeft)
-	{
-		iRight = -1;
-	}
-	else if (eCommand == CIC_WheelRight)
-	{
-		iRight = 1;
-	}
-
-	pComponent = mpMouseOverComponent;
-	while (pComponent && !pComponent->Wheel(iRight, iDown))
-	{
-		pComponent = pComponent->GetParent();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Starting a drag while one is going stops the first one.
+// The focussed component starts dragging, as told by CIC_StartDragSelect
+// or CIC_StartDragScroll at x, y relative to it.  It is given the rest of
+// the drag, CIC_ContDrag* as the pointer moves and CIC_StopDrag* when it
+// stops, wherever the pointer goes.  Starting a drag while one is going
+// stops the first one.
 //
 //////////////////////////////////////////////////////////////////////////
 void CFocus::StartDrag(EFocusDrag eDrag, int x, int y)
 {
+	SComponentInputEvent	sEvent;
+
 	StopDrag(meDrag);
+	if (!mpFocussedComponent)
+	{
+		return;
+	}
 
 	meDrag = eDrag;
 	mpDragComponent = mpFocussedComponent;
-	if (eDrag == FD_Select)
-	{
-		mpDragComponent->StartDragSelect(x, y);
-	}
-	else if (eDrag == FD_Scroll)
-	{
-		mpDragComponent->StartDragScroll(x, y);
-	}
+	InitEvent(&sEvent, CIET_Command, true);
+	sEvent.eCommand = (eDrag == FD_Select) ? CIC_StartDragSelect : CIC_StartDragScroll;
+	sEvent.x = x;
+	sEvent.y = y;
+	mpDragComponent->CallInputActions(&sEvent);
 }
 
 
@@ -579,9 +533,8 @@ void CFocus::StartDrag(EFocusDrag eDrag, int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CFocus::StopDrag(EFocusDrag eDrag)
 {
-	Ptr<CComponent>	pComponent;
-	int				x;
-	int				y;
+	Ptr<CComponent>			pComponent;
+	SComponentInputEvent	sEvent;
 
 	if ((meDrag == FD_None) || (meDrag != eDrag))
 	{
@@ -592,15 +545,9 @@ void CFocus::StopDrag(EFocusDrag eDrag)
 	mpDragComponent = NULL;
 	meDrag = FD_None;
 
-	ToComponentSpace(pComponent, &x, &y);
-	if (eDrag == FD_Select)
-	{
-		pComponent->StopDragSelect(x, y);
-	}
-	else if (eDrag == FD_Scroll)
-	{
-		pComponent->StopDragScroll(x, y);
-	}
+	InitEvent(&sEvent, CIET_Command, true);
+	sEvent.eCommand = (eDrag == FD_Select) ? CIC_StopDragSelect : CIC_StopDragScroll;
+	Deliver(pComponent, &sEvent);
 }
 
 

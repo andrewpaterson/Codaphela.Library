@@ -99,6 +99,12 @@
     <ClInclude Include="WindowInputSource.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentInputEvent.h">
+      <Filter>Source\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="InputAction.h">
+      <Filter>Source\Event</Filter>
+    </ClInclude>
     <ClInclude Include="ComponentInputNumKey.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
@@ -106,9 +112,6 @@
       <Filter>Source\Event</Filter>
     </ClInclude>
     <ClInclude Include="ComponentInputCommand.h">
-      <Filter>Source\Event</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentListener.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
     <ClInclude Include="Insets.h">
@@ -276,6 +279,9 @@
       <Filter>Source\Event</Filter>
     </ClCompile>
     <ClCompile Include="WindowInputSource.cpp">
+      <Filter>Source\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="InputAction.cpp">
       <Filter>Source\Event</Filter>
     </ClCompile>
     <ClCompile Include="ComponentInputNumKey.cpp">

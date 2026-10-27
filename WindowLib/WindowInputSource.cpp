@@ -39,6 +39,7 @@ void CWindowInputSource::Init(CInput* pcInput)
 	mapcDevices.Init();
 	mcTimer.Init();
 	masEvents.Init();
+	masForgotten.Init();
 
 	mpcVirtual = mpcInput->GetDevices()->CreateVirtualDevice("Window Input");
 	AddDevices("Keyboard");
@@ -65,6 +66,7 @@ void CWindowInputSource::Class(void)
 	U_Data(CArrayInputDevicePtr, mapcDevices);
 	U_Data(CTimer, mcTimer);
 	U_Data(CArrayWindowInputEvent, masEvents);
+	U_Data(CArrayTemplate<SInputDeviceValueSource>, masForgotten);
 }
 
 
@@ -75,6 +77,7 @@ void CWindowInputSource::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindowInputSource::Free(void)
 {
+	masForgotten.Kill();
 	masEvents.Kill();
 	mcTimer.Kill();
 	mapcDevices.Kill();
@@ -168,6 +171,7 @@ void CWindowInputSource::Update(void)
 	mcTimer.Update();
 	masEvents.ReInit();
 	mpcInput->Update((uint32)mcTimer.GetTotalTimeInMillieconds());
+	RememberLetGo();
 
 	pasChordsEvents = mpcVirtual->GetChords()->GetEvents();
 	uiNumElements = pasChordsEvents->NumElements();
@@ -259,8 +263,141 @@ CInputChord* CWindowInputSource::AddChord(char* szName)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A chord of one or two modifiers (in either order) then the key, all
+// held down, like control then c.  pcSecondModifier can be NULL.  The
+// modifiers are on one device, the key can be on another (shift and a
+// mouse button).  Returns false if the chord couldn't be made, or another
+// chord would match the same inputs.
 //
 //////////////////////////////////////////////////////////////////////////
+bool CWindowInputSource::AddKeyChord(char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey)
+{
+	CInputChord*				pcChord;
+	COrderedInputChordCriteria*	pcOrdered;
+	CGroupInputChordCriteria*	pcGroup;
+
+	if (!pcFirstModifier || !pcKey)
+	{
+		return false;
+	}
+
+	pcChord = AddChord(szName);
+	pcOrdered = pcChord->AsOrdered();
+	if (pcSecondModifier)
+	{
+		pcGroup = pcOrdered->AddGroupAction();
+		pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcModifierDevice, pcFirstModifier, ICT_Toggle));
+		pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcModifierDevice, pcSecondModifier, ICT_Toggle));
+	}
+	else
+	{
+		pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcModifierDevice, pcFirstModifier, ICT_Toggle));
+	}
+	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcKeyDevice, pcKey, ICT_Toggle));
+	return pcChord->Done();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the key or button is down, as the device last said, unless it
+// was down when ForgetDown was called and hasn't been let go since.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindowInputSource::IsDown(CInputDevice* pcDevice, CInputSourceDesc* pcSource)
+{
+	float					fValue;
+	SInputDeviceValueSource*	psForgotten;
+	size					i;
+	size					uiNumElements;
+
+	if (!pcDevice || !pcSource)
+	{
+		return false;
+	}
+	if (!pcDevice->GetValue(pcSource, &fValue) || (fValue < INPUT_CHORDS_DOWN))
+	{
+		return false;
+	}
+
+	uiNumElements = masForgotten.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		psForgotten = masForgotten.Get(i);
+		if ((psForgotten->pcDevice == pcDevice) && (psForgotten->pcSource == pcSource))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For when the window loses focus.  Keys let go while another window has
+// focus are never heard of, so those down now aren't down to IsDown until
+// they have been let go.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindowInputSource::ForgetDown(void)
+{
+	CInputDevice*				pcDevice;
+	CInputSourceDesc*			pcSource;
+	SInputDeviceValueSource*	psForgotten;
+	SSetIterator				sIter;
+	size						i;
+	size						uiNumDevices;
+	bool						bExists;
+
+	masForgotten.ReInit();
+	uiNumDevices = mapcDevices.NumElements();
+	for (i = 0; i < uiNumDevices; i++)
+	{
+		pcDevice = *mapcDevices.Get(i);
+		bExists = pcDevice->GetDesc()->StartInputsIteration(&sIter, &pcSource);
+		while (bExists)
+		{
+			if (IsDown(pcDevice, pcSource))
+			{
+				psForgotten = masForgotten.Add();
+				psForgotten->pcDevice = pcDevice;
+				psForgotten->pcSource = pcSource;
+			}
+			bExists = pcDevice->GetDesc()->IterateInputs(&sIter, &pcSource);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A forgotten key that is let go is remembered again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindowInputSource::RememberLetGo(void)
+{
+	SInputDeviceValueSource*	psForgotten;
+	float						fValue;
+	size						i;
+
+	for (i = masForgotten.NumElements(); i > 0; i--)
+	{
+		psForgotten = masForgotten.Get(i - 1);
+		if (!psForgotten->pcDevice->GetValue(psForgotten->pcSource, &fValue) || (fValue < INPUT_CHORDS_DOWN))
+		{
+			masForgotten.RemoveAt(i - 1, true);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CWindowInputSource::GetName(CInputSourceDesc* pcSource) { return pcSource->GetFriendlyName(); }
+bool CWindowInputSource::IsDelta(CInputSourceDesc* pcSource) { return pcSource->GetType() == ISET_Delta; }
 size CWindowInputSource::NumEvents(void) { return masEvents.NumElements(); }
 SWindowInputEvent* CWindowInputSource::GetEvent(size uiIndex) { return masEvents.Get(uiIndex); }
 CInputVirtualDevice* CWindowInputSource::GetVirtualDevice(void) { return mpcVirtual; }

@@ -1,4 +1,5 @@
 #include "StandardLib/ClassDefines.h"
+#include "StandardLib/Objects.h"
 #include "Window.h"
 #include "Component.h"
 
@@ -12,6 +13,7 @@ void CComponent::Init(Ptr<CWindow> pWindow)
 	PreInit();
 
 	maChildren.Init();
+	maInputActions.Init();
 	mcActualBounds.Init();
 	msDesiredSize.Init(-1, -1);
 	meHorizontalAlignment = CSH_Center;
@@ -47,6 +49,7 @@ void CComponent::Class(void)
 		M_Pointer(mpParent);
 		M_Embedded(maChildren);
 	Nes(M_Pointer(mpWindow));
+		M_Embedded(maInputActions);
 }
 
 
@@ -57,6 +60,81 @@ void CComponent::Class(void)
 bool CComponent::Save(CObjectWriter* pcFile)
 {
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For AddInputAction, which initialises it.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CInputAction> CComponent::MallocInputAction(void)
+{
+	return OMallocNoI<CInputAction>();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponent::AddInputAction(Ptr<CInputAction> pAction)
+{
+	maInputActions.Add(pAction);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponent::RemoveInputAction(Ptr<CInputAction> pAction)
+{
+	return maInputActions.Remove(pAction);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CComponent::NumInputActions(void)
+{
+	return maInputActions.Size();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Calls every action that matches, in the order they were added.  Returns
+// true if any did, then the event goes no further, unless every one that
+// did set the event's bPass.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponent::CallInputActions(SComponentInputEvent* psEvent)
+{
+	Ptr<CInputAction>	pAction;
+	size				i;
+	size				uiNumElements;
+	bool				bTaken;
+
+	bTaken = false;
+	uiNumElements = maInputActions.Size();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pAction = maInputActions.Get(i);
+		if (pAction->Matches(psEvent))
+		{
+			psEvent->bPass = false;
+			pAction->Call(psEvent);
+			if (!psEvent->bPass)
+			{
+				bTaken = true;
+			}
+		}
+	}
+	psEvent->bPass = false;
+	return bTaken;
 }
 
 

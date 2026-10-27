@@ -21,7 +21,18 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "Window.h"
+#include "NativeWindowFactory.h"
 #include "TextField.h"
+
+
+static EComponentInputCommand	gaeTextFieldCommands[] =
+{
+	CIC_ActivateComponent, CIC_ExecuteComponent, CIC_StartDragSelect, CIC_ContDragSelect, CIC_StopDragSelect,
+	CIC_Left, CIC_Right, CIC_WordLeft, CIC_WordRight, CIC_Home, CIC_End, CIC_DocumentHome, CIC_DocumentEnd,
+	CIC_SelectLeft, CIC_SelectRight, CIC_SelectWordLeft, CIC_SelectWordRight, CIC_SelectHome, CIC_SelectEnd,
+	CIC_SelectDocumentHome, CIC_SelectDocumentEnd, CIC_SelectWholeWord, CIC_SelectAll, CIC_ClearSelection,
+	CIC_Space, CIC_Delete, CIC_Backspace, CIC_Cut, CIC_Copy, CIC_Paste, CIC_DeleteWordRemainingRight, CIC_DeleteWordRemainingLeft,
+};
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -65,8 +76,90 @@ void CTextField::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char
 	mpPadded->AddComponent(mpText);
 
 	UpdateFaceSize();
+	AddInputActions(gaeTextFieldCommands, sizeof(gaeTextFieldCommands) / sizeof(EComponentInputCommand), this, &CTextField::CommandAction);
+	AddInputAction(IAF_Printable, NULL, this, &CTextField::PrintableAction);
 
 	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The input actions of gaeTextFieldCommands.  The clipboard is the native
+// window factory's; cutting or copying nothing leaves it as it was.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextField::CommandAction(SComponentInputEvent* psEvent)
+{
+	CChars	szClipboard;
+
+	switch (psEvent->eCommand)
+	{
+	case CIC_ActivateComponent:			ActivateComponent(psEvent->x, psEvent->y);	break;
+	case CIC_ExecuteComponent:			ExecuteComponent(psEvent->x, psEvent->y);	break;
+	case CIC_StartDragSelect:			StartDragSelect(psEvent->x, psEvent->y);	break;
+	case CIC_ContDragSelect:			ContDragSelect(psEvent->x, psEvent->y);		break;
+	case CIC_StopDragSelect:			StopDragSelect(psEvent->x, psEvent->y);		break;
+	case CIC_Left:						Left();						break;
+	case CIC_Right:						Right();					break;
+	case CIC_WordLeft:					WordLeft();					break;
+	case CIC_WordRight:					WordRight();				break;
+	case CIC_Home:						Home();						break;
+	case CIC_End:						End();						break;
+	case CIC_DocumentHome:				DocumentHome();				break;
+	case CIC_DocumentEnd:				DocumentEnd();				break;
+	case CIC_SelectLeft:				SelectLeft();				break;
+	case CIC_SelectRight:				SelectRight();				break;
+	case CIC_SelectWordLeft:			SelectWordLeft();			break;
+	case CIC_SelectWordRight:			SelectWordRight();			break;
+	case CIC_SelectHome:				SelectHome();				break;
+	case CIC_SelectEnd:					SelectEnd();				break;
+	case CIC_SelectDocumentHome:		SelectDocumentHome();		break;
+	case CIC_SelectDocumentEnd:			SelectDocumentEnd();		break;
+	case CIC_SelectWholeWord:			SelectWholeWord();			break;
+	case CIC_SelectAll:					SelectAll();				break;
+	case CIC_ClearSelection:			ClearSelection();			break;
+	case CIC_Space:						Space(psEvent->bInsert);	break;
+	case CIC_Delete:					Delete();					break;
+	case CIC_Backspace:					Backspace();				break;
+	case CIC_DeleteWordRemainingRight:	DeleteWordRemainingRight();	break;
+	case CIC_DeleteWordRemainingLeft:	DeleteWordRemainingLeft();	break;
+	case CIC_Cut:
+	case CIC_Copy:
+		szClipboard.Init();
+		if (psEvent->eCommand == CIC_Cut)
+		{
+			Cut(&szClipboard);
+		}
+		else
+		{
+			Copy(&szClipboard);
+		}
+		if (!szClipboard.Empty())
+		{
+			mpWindow->GetFactory()->SetClipboardText(szClipboard.Text());
+		}
+		szClipboard.Kill();
+		break;
+	case CIC_Paste:
+		szClipboard.Init();
+		mpWindow->GetFactory()->GetClipboardText(&szClipboard);
+		Paste(szClipboard.Text());
+		szClipboard.Kill();
+		break;
+	default:
+		break;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextField::PrintableAction(SComponentInputEvent* psEvent)
+{
+	Printable(psEvent->cPrintable, psEvent->bInsert);
 }
 
 

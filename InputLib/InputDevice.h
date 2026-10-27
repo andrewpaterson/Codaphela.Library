@@ -61,6 +61,7 @@ public:
 	void 						SortEvents(void);
 	int							GetDeviceID(void);
 	CInputSourceDesc*			GetSource(char* szFriendlyName);
+	bool						GetValue(CInputSourceDesc* pcSource, float* pfValue);
 	CInputVirtualDevice*		GetDefaultVirtualDevice(void);
 	CInputVirtualDevice*		CreateDefaultVirtualDeviceFromThis(char* szName = NULL);
 	bool						SetDefaultVirtualDevice(CInputVirtualDevice* pcVirtual);

@@ -25,6 +25,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Button.h"
 
 
+static EComponentInputCommand	gaeButtonCommands[] = { CIC_ActivateComponent, CIC_ExecuteComponent, CIC_Space, CIC_Enter };
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // A normal button with only a caption.
@@ -95,6 +98,7 @@ void CButton::Init(Ptr<CWindow> pWindow, Ptr<CButtonImages> pImages, Ptr<CButton
 	mpIcon = OMalloc<CIconComponent>(pWindow, pIcon);
 	mpCaption = OMalloc<CLabel>(pWindow, pFont, szCaption == NULL ? "" : szCaption);
 	UpdateContent();
+	AddInputActions(gaeButtonCommands, sizeof(gaeButtonCommands) / sizeof(EComponentInputCommand), this, &CButton::CommandAction);
 
 	PostInit();
 }
@@ -387,6 +391,33 @@ void CButton::MovedOutof(void)
 {
 	mbMouseOver = false;
 	UpdateState();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The input actions of gaeButtonCommands.
+//
+//////////////////////////////////////////////////////////////////////////
+void CButton::CommandAction(SComponentInputEvent* psEvent)
+{
+	switch (psEvent->eCommand)
+	{
+	case CIC_ActivateComponent:
+		ActivateComponent(psEvent->x, psEvent->y);
+		break;
+	case CIC_ExecuteComponent:
+		ExecuteComponent(psEvent->x, psEvent->y);
+		break;
+	case CIC_Space:
+		Space(psEvent->bInsert);
+		break;
+	case CIC_Enter:
+		Enter();
+		break;
+	default:
+		break;
+	}
 }
 
 
