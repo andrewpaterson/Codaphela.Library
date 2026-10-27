@@ -32,6 +32,7 @@ void	AddVectorObround(CVectorPath* pcPath, float64 fWidth, float64 fHeight);
 void	AddVectorRegularPolygon(CVectorPath* pcPath, SFloat64Vec2* psCenter, float64 fDiameter, int iVertices, float64 fRotation, float64 fPrimitiveRotation);
 void	AddVectorRectangle(CVectorPath* pcPath, SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum);
 void	AddVectorRoundedRectangle(CVectorPath* pcPath, SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum, float64 fRadius);
+void	AddVectorRoundedRectangle(CVectorPath* pcPath, SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum, float64 fMinimumYRadius, float64 fMaximumYRadius);
 void	AddVectorSector(CVectorPath* pcPath, SFloat64Vec2* psCenter, float64 fRadius, float64 fStartAngle, float64 fEndAngle);
 void	AddVectorRing(CVectorPath* pcPath, SFloat64Vec2* psCenter, float64 fOuterRadius, float64 fInnerRadius, float64 fStartAngle, float64 fEndAngle);
 

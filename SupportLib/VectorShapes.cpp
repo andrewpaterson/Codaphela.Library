@@ -239,47 +239,85 @@ void AddVectorRectangle(CVectorPath* pcPath, SFloat64Vec2* psMinimum, SFloat64Ve
 //////////////////////////////////////////////////////////////////////////
 void AddVectorRoundedRectangle(CVectorPath* pcPath, SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum, float64 fRadius)
 {
-	float64			fLimit;
+	AddVectorRoundedRectangle(pcPath, psMinimum, psMaximum, fRadius, fRadius);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A rectangle whose two corners at the minimum y are quarter circles
+// fMinimumYRadius round and whose two at the maximum y are fMaximumYRadius
+// round.  Each radius is limited to half the width, and both together to
+// the height, keeping their proportion.
+//
+//////////////////////////////////////////////////////////////////////////
+void AddVectorRoundedRectangle(CVectorPath* pcPath, SFloat64Vec2* psMinimum, SFloat64Vec2* psMaximum, float64 fMinimumYRadius, float64 fMaximumYRadius)
+{
+	float64			fHalfWidth;
+	float64			fHeight;
+	float64			fMinimum;
+	float64			fMaximum;
 	SFloat64Vec2	sPoint;
 	SFloat64Vec2	sCenter;
 
-	fLimit = (psMaximum->x - psMinimum->x) / 2;
-	if ((psMaximum->y - psMinimum->y) / 2 < fLimit)
+	fHalfWidth = (psMaximum->x - psMinimum->x) / 2;
+	fHeight = psMaximum->y - psMinimum->y;
+	fMinimum = (fMinimumYRadius > fHalfWidth) ? fHalfWidth : fMinimumYRadius;
+	fMaximum = (fMaximumYRadius > fHalfWidth) ? fHalfWidth : fMaximumYRadius;
+	if (fMinimum < 0)
 	{
-		fLimit = (psMaximum->y - psMinimum->y) / 2;
+		fMinimum = 0;
 	}
-	if (fRadius > fLimit)
+	if (fMaximum < 0)
 	{
-		fRadius = fLimit;
+		fMaximum = 0;
 	}
-	if (fRadius <= 0)
+	if (fMinimum + fMaximum > fHeight)
+	{
+		fMinimum = fMinimum * fHeight / (fMinimum + fMaximum);
+		fMaximum = fHeight - fMinimum;
+	}
+	if ((fMinimum <= 0) && (fMaximum <= 0))
 	{
 		AddVectorRectangle(pcPath, psMinimum, psMaximum);
 		return;
 	}
 
-	sPoint.Init(psMinimum->x + fRadius, psMinimum->y);
+	//A corner with no radius is where the edges before and after it meet.
+	sPoint.Init(psMinimum->x + fMinimum, psMinimum->y);
 	pcPath->MoveTo(&sPoint);
-	sPoint.Init(psMaximum->x - fRadius, psMinimum->y);
+	sPoint.Init(psMaximum->x - fMinimum, psMinimum->y);
 	pcPath->LineTo(&sPoint);
-	sCenter.Init(psMaximum->x - fRadius, psMinimum->y + fRadius);
-	sPoint.Init(psMaximum->x, psMinimum->y + fRadius);
-	pcPath->ArcTo(&sPoint, &sCenter, false);
-	sPoint.Init(psMaximum->x, psMaximum->y - fRadius);
+	if (fMinimum > 0)
+	{
+		sCenter.Init(psMaximum->x - fMinimum, psMinimum->y + fMinimum);
+		sPoint.Init(psMaximum->x, psMinimum->y + fMinimum);
+		pcPath->ArcTo(&sPoint, &sCenter, false);
+	}
+	sPoint.Init(psMaximum->x, psMaximum->y - fMaximum);
 	pcPath->LineTo(&sPoint);
-	sCenter.Init(psMaximum->x - fRadius, psMaximum->y - fRadius);
-	sPoint.Init(psMaximum->x - fRadius, psMaximum->y);
-	pcPath->ArcTo(&sPoint, &sCenter, false);
-	sPoint.Init(psMinimum->x + fRadius, psMaximum->y);
+	if (fMaximum > 0)
+	{
+		sCenter.Init(psMaximum->x - fMaximum, psMaximum->y - fMaximum);
+		sPoint.Init(psMaximum->x - fMaximum, psMaximum->y);
+		pcPath->ArcTo(&sPoint, &sCenter, false);
+	}
+	sPoint.Init(psMinimum->x + fMaximum, psMaximum->y);
 	pcPath->LineTo(&sPoint);
-	sCenter.Init(psMinimum->x + fRadius, psMaximum->y - fRadius);
-	sPoint.Init(psMinimum->x, psMaximum->y - fRadius);
-	pcPath->ArcTo(&sPoint, &sCenter, false);
-	sPoint.Init(psMinimum->x, psMinimum->y + fRadius);
+	if (fMaximum > 0)
+	{
+		sCenter.Init(psMinimum->x + fMaximum, psMaximum->y - fMaximum);
+		sPoint.Init(psMinimum->x, psMaximum->y - fMaximum);
+		pcPath->ArcTo(&sPoint, &sCenter, false);
+	}
+	sPoint.Init(psMinimum->x, psMinimum->y + fMinimum);
 	pcPath->LineTo(&sPoint);
-	sCenter.Init(psMinimum->x + fRadius, psMinimum->y + fRadius);
-	sPoint.Init(psMinimum->x + fRadius, psMinimum->y);
-	pcPath->ArcTo(&sPoint, &sCenter, false);
+	if (fMinimum > 0)
+	{
+		sCenter.Init(psMinimum->x + fMinimum, psMinimum->y + fMinimum);
+		sPoint.Init(psMinimum->x + fMinimum, psMinimum->y);
+		pcPath->ArcTo(&sPoint, &sCenter, false);
+	}
 }
 
 

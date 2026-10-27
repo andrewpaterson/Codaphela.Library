@@ -458,6 +458,18 @@ bool CImageDraw::DrawRectangle(float64 fLeft, float64 fTop, float64 fRight, floa
 //////////////////////////////////////////////////////////////////////////
 bool CImageDraw::DrawRoundedRectangle(float64 fLeft, float64 fTop, float64 fRight, float64 fBottom, float64 fRadius)
 {
+	return DrawRoundedRectangle(fLeft, fTop, fRight, fBottom, fRadius, fRadius);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The top corners are fTopRadius round and the bottom ones fBottomRadius,
+// limited as AddVectorRoundedRectangle limits them.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageDraw::DrawRoundedRectangle(float64 fLeft, float64 fTop, float64 fRight, float64 fBottom, float64 fTopRadius, float64 fBottomRadius)
+{
 	CVectorPath		cPath;
 	SFloat64Vec2	sMinimum;
 	SFloat64Vec2	sMaximum;
@@ -470,7 +482,7 @@ bool CImageDraw::DrawRoundedRectangle(float64 fLeft, float64 fTop, float64 fRigh
 	cPath.Init();
 	sMinimum.Init(fLeft, fTop);
 	sMaximum.Init(fRight, fBottom);
-	AddVectorRoundedRectangle(&cPath, &sMinimum, &sMaximum, fRadius);
+	AddVectorRoundedRectangle(&cPath, &sMinimum, &sMaximum, fTopRadius, fBottomRadius);
 	bResult = DrawPath(&cPath);
 	cPath.Kill();
 	return bResult;
