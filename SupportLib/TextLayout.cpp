@@ -24,6 +24,9 @@ void CTextLayout::Init(int32 iWidth)
 	miWidth = iWidth;
 	msSize.Init(0, 0);
 	miWordWidth = 0;
+	masStops.Init();
+	masLines.Init();
+	muiLineFirstStop = 0;
 
 	PostInit();
 }
@@ -48,7 +51,9 @@ void CTextLayout::Class(void)
 	U_Data(CArrayTextLayoutLineGlyph, masLine);
 	U_Data(STextLayoutRunStyle, msRunStyle);
 	U_Int32(miWordWidth);
-
+	U_Data(CArrayTextLayoutStop, masStops);
+	U_Data(CArrayTextLayoutLine, masLines);
+	U_Size(muiLineFirstStop);
 }
 
 
@@ -58,6 +63,8 @@ void CTextLayout::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextLayout::Free(void)
 {
+	masLines.Kill();
+	masStops.Kill();
 }
 
 
@@ -109,6 +116,9 @@ void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 	mcUTF16.Init(NULL, 0);
 	masWord.Init();
 	masLine.Init();
+	masStops.ReInit();
+	masLines.ReInit();
+	muiLineFirstStop = 0;
 	miWordWidth = 0;
 	pcFont = NULL;
 	msRunStyle.pcFont = NULL;
@@ -147,11 +157,13 @@ void CTextLayout::Layout(Ptr<CBaseFontDraw> pDraw, Ptr<CText> pText)
 			else if (pcTextElement->IsNewLine())
 			{
 				EndWord();
+				AddStop(0);
 				NewLine();
 			}
 		}
 	}
 	EndWord();
+	AddStop(0);
 	EndLine();
 	msSize.y = msPosition.y + miRowAscent + miRowDescent;
 	masLine.Kill();
@@ -273,33 +285,48 @@ void CTextLayout::Layout(CFont* pcFont, CTextUTF16Multi* pcUTFMulti)
 // Without a width a glyph is placed straight away.  With a width the
 // glyphs of a word are held until the word ends so that the whole word
 // can go on the next line if it doesn't fit on this one.  Spaces end words
-// and are never moved to the next line.
+// and are never moved to the next line.  A character the font has no
+// glyph for (pGlyph is NULL) is not drawn but still has a stop.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextLayout::Glyph(Ptr<CGlyph> pGlyph, bool bSpace)
 {
 	STextLayoutGlyph*	psWordGlyph;
 
-	if (pGlyph.IsNotNull())
+	if (miWidth < 0)
 	{
-		if (miWidth < 0)
+		if (pGlyph.IsNotNull())
 		{
 			PlaceGlyph(pGlyph, miFontAscent, miFontDescent, true, bSpace, &msRunStyle);
 		}
-		else if (bSpace)
+		else
 		{
-			EndWord();
+			AddStop(0);
+		}
+	}
+	else if (bSpace)
+	{
+		EndWord();
 
-			//Spaces at the end of a line don't make the text any wider.
+		//Spaces at the end of a line don't make the text any wider.
+		if (pGlyph.IsNotNull())
+		{
 			PlaceGlyph(pGlyph, miFontAscent, miFontDescent, false, true, &msRunStyle);
 		}
 		else
 		{
-			psWordGlyph = masWord.Add();
-			psWordGlyph->pcGlyph = &pGlyph;
-			psWordGlyph->iAscent = miFontAscent;
-			psWordGlyph->iDescent = miFontDescent;
-			psWordGlyph->sStyle = msRunStyle;
+			AddStop(0);
+		}
+	}
+	else
+	{
+		psWordGlyph = masWord.Add();
+		psWordGlyph->pcGlyph = &pGlyph;
+		psWordGlyph->iAscent = miFontAscent;
+		psWordGlyph->iDescent = miFontDescent;
+		psWordGlyph->sStyle = msRunStyle;
+		if (pGlyph.IsNotNull())
+		{
 			miWordWidth += pGlyph->GetFullWidth();
 		}
 	}
@@ -334,6 +361,11 @@ void CTextLayout::EndWord(void)
 	for (ui = 0; ui < uiNumGlyphs; ui++)
 	{
 		psWordGlyph = masWord.Get(ui);
+		if (psWordGlyph->pcGlyph == NULL)
+		{
+			AddStop(0);
+			continue;
+		}
 		pGlyph = psWordGlyph->pcGlyph;
 		if ((msPosition.x > 0) && (msPosition.x + pGlyph->GetFullWidth() > miWidth))
 		{
@@ -355,6 +387,7 @@ void CTextLayout::PlaceGlyph(Ptr<CGlyph> pGlyph, int16 iAscent, int16 iDescent, 
 {
 	STextLayoutLineGlyph*	psLineGlyph;
 
+	AddStop(pGlyph->GetFullWidth());
 	psLineGlyph = masLine.Add();
 	psLineGlyph->pcGlyph = &pGlyph;
 	psLineGlyph->x = msPosition.x;
@@ -391,12 +424,21 @@ void CTextLayout::EndLine(void)
 	STextLayoutLineGlyph*	psLineGlyph;
 	int32					iBaseline;
 	Ptr<CGlyph>				pGlyph;
+	STextLayoutLine*		psLine;
 
 	if (masLine.NumElements() == 0)
 	{
 		miRowAscent = miFontAscent;
 		miRowDescent = miFontDescent;
 	}
+
+	psLine = masLines.Add();
+	psLine->iTop = msPosition.y;
+	psLine->iHeight = miRowAscent + miRowDescent;
+	psLine->iBaseline = msPosition.y + miRowAscent;
+	psLine->uiFirstStop = muiLineFirstStop;
+	psLine->uiNumStops = masStops.NumElements() - muiLineFirstStop;
+	muiLineFirstStop = masStops.NumElements();
 
 	iBaseline = msPosition.y + miRowAscent;
 	for (ui = 0; ui < masLine.NumElements(); ui++)
@@ -548,5 +590,32 @@ void CTextLayout::SetWidth(int32 iWidth)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// A stop on the line being laid out, where the next glyph goes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextLayout::AddStop(int32 iWidth)
+{
+	STextLayoutStop*	psStop;
+
+	psStop = masStops.Add();
+	psStop->x = msPosition.x;
+	psStop->iWidth = iWidth;
+	psStop->uiLine = masLines.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The stops and lines of the text last laid out.  There is a stop for
+// each character read from the text, in order, and one more after the
+// last, so there is always at least one stop and one line.
+//
+//////////////////////////////////////////////////////////////////////////
 int32 CTextLayout::GetWidth(void) { return miWidth; }
+size CTextLayout::NumStops(void) { return masStops.NumElements(); }
+STextLayoutStop* CTextLayout::GetStop(size uiIndex) { return masStops.Get(uiIndex); }
+size CTextLayout::NumLines(void) { return masLines.NumElements(); }
+STextLayoutLine* CTextLayout::GetLine(size uiIndex) { return masLines.Get(uiIndex); }
 

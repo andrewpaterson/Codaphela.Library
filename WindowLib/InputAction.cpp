@@ -139,5 +139,5 @@ void CInputAction::Call(SComponentInputEvent* psEvent)
 //
 //////////////////////////////////////////////////////////////////////////
 EInputActionFilter CInputAction::GetFilter(void) { return meFilter; }
-char* CInputAction::GetName(void) { return mszName.Text(); }
+char* CInputAction::GetActionName(void) { return mszName.Text(); }
 EComponentInputCommand CInputAction::GetCommand(void) { return meCommand; }

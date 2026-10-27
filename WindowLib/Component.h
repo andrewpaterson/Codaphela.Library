@@ -74,6 +74,8 @@ public:
 			void				SetPosition(SInt32Vec2 sPosition);
 			SInt32Vec2			GetPosition(void);
 	virtual	SInt32Vec2			GetDesiredSize(void);
+	virtual	void				ScrollToShow(CInt32Rect* pcRect);
+	virtual	bool				GetScrollView(CInt32Rect* pcDest);
 			void				SetDesiredSize(int fWidth, int fHeight);
 			SInt32Vec2			GetActualSize(void);
 

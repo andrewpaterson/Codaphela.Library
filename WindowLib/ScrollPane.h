@@ -56,6 +56,7 @@ protected:
 	EScrollPanePolicy	meVerticalPolicy;
 	SInt32Vec2			msScrollPosition;  //As asked for, it is kept between 0 and the maximum when used.
 	SInt32Vec2			msContentSize;  //The size the content was last laid out to.
+	SInt32Vec2			msLaidOutScroll;  //The scroll position the content was last laid out at.
 	int32				miMargin;  //Between a scroll bar and the edge of the scroll pane.
 	int32				miWheelStep;  //How far one notch of the wheel scrolls.
 
@@ -89,6 +90,8 @@ public:
 	bool				ClipsChildren(void) override;
 	void				WheelAction(SComponentInputEvent* psEvent);
 	bool				Wheel(int iRight, int iDown);
+	void				ScrollToShow(CInt32Rect* pcRect) override;
+	bool				GetScrollView(CInt32Rect* pcDest) override;
 
 protected:
 	int32				GetContentLength(int32 iDesired, int32 iView, EScrollPanePolicy ePolicy);
