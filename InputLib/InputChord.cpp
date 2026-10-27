@@ -20,6 +20,8 @@ along with Codaphela InputLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/ArraySize.h"
+#include "InputSourceDesc.h"
 #include "InputChords.h"
 #include "InputChord.h"
 
@@ -127,13 +129,272 @@ void CInputChord::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Returns false if another chord of the same chords could match the same
+// inputs, both would be called.  This chord is then removed and killed
+// and *ppcMatching, if given, is the other chord (NULL when true).
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputChord::Done(void)
+bool CInputChord::Done(CInputChord** ppcMatching)
+{
+	CInputChord*	pcMatching;
+
+	Calculate();
+
+	pcMatching = mpcInputChords->FindMatchingChord(this);
+	if (ppcMatching)
+	{
+		*ppcMatching = pcMatching;
+	}
+	if (pcMatching)
+	{
+		//This is killed, nothing of it can be used after.
+		mpcInputChords->RemoveChord(this);
+		return false;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInputChord::Calculate(void)
 {
 	CalculateLongestAction();
 	CalculateTotalCriteria();
 	CalculatePotentialStart();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The criteria as blocks of inputs that follow each other; the inputs in
+// a block are in any order.  An active or inactive criteria is a block of
+// one, a group is a block of its criteria and an ordered is its children's
+// blocks one after another.
+//
+//////////////////////////////////////////////////////////////////////////
+void FlattenCriteria(UInputChordCriteria* puCriteria, CArrayTemplate<CActionInputChordCriteria>* pasInputs, CArraySize* paiBlockSizes)
+{
+	size					i;
+	size					uiNumElements;
+	UInputChordCriteria*	puChild;
+
+	switch (puCriteria->eType.eAction)
+	{
+	case BAA_Active:
+		pasInputs->Add(&puCriteria->cActive);
+		paiBlockSizes->Add(1);
+		break;
+	case BAA_Inactive:
+		pasInputs->Add(&puCriteria->cInactive);
+		paiBlockSizes->Add(1);
+		break;
+	case BAA_Group:
+		uiNumElements = puCriteria->cGroup.mausBasicActionCriteria.NumElements();
+		for (i = 0; i < uiNumElements; i++)
+		{
+			puChild = (UInputChordCriteria*)puCriteria->cGroup.mausBasicActionCriteria.Get(i);
+			if (puChild->eType.eAction == BAA_Active)
+			{
+				pasInputs->Add(&puChild->cActive);
+			}
+			else if (puChild->eType.eAction == BAA_Inactive)
+			{
+				pasInputs->Add(&puChild->cInactive);
+			}
+		}
+		paiBlockSizes->Add((int)uiNumElements);
+		break;
+	case BAA_Ordered:
+		uiNumElements = puCriteria->cOrdered.mausBasicActionCriteria.NumElements();
+		for (i = 0; i < uiNumElements; i++)
+		{
+			puChild = (UInputChordCriteria*)puCriteria->cOrdered.mausBasicActionCriteria.Get(i);
+			FlattenCriteria(puChild, pasInputs, paiBlockSizes);
+		}
+		break;
+	case BAA_Unknown:
+		break;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if some input could satisfy both.  Two generic sources are only
+// known to overlap when they are the same generic.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CriteriaOverlap(CActionInputChordCriteria* psA, CActionInputChordCriteria* psB)
+{
+	CInputSourceEvaluator*			pcA;
+	CInputSourceEvaluator*			pcB;
+	CInputSourceEvaluator*			pcSpecific;
+	CInputSourceEvaluator*			pcGeneric;
+	SInputConfigSpecificSource*		psSpecific;
+
+	if (psA->eAction != psB->eAction)
+	{
+		return false;
+	}
+
+	pcA = psA->mpcEvaluator;
+	pcB = psB->mpcEvaluator;
+	if ((pcA->GetEvaluatorType() == IET_AnyToggleSource) || (pcB->GetEvaluatorType() == IET_AnyToggleSource))
+	{
+		return true;
+	}
+
+	if ((pcA->GetEvaluatorType() == IET_SpecificSource) && (pcB->GetEvaluatorType() == IET_SpecificSource))
+	{
+		return (pcA->GetDeviceSource()->pcDevice == pcB->GetDeviceSource()->pcDevice) && (pcA->GetDeviceSource()->pcSource == pcB->GetDeviceSource()->pcSource);
+	}
+
+	if ((pcA->GetEvaluatorType() == IET_GenericSource) && (pcB->GetEvaluatorType() == IET_GenericSource))
+	{
+		return pcA->GetDeviceGeneric()->pcGeneric == pcB->GetDeviceGeneric()->pcGeneric;
+	}
+
+	if (pcA->GetEvaluatorType() == IET_SpecificSource)
+	{
+		pcSpecific = pcA;
+		pcGeneric = pcB;
+	}
+	else
+	{
+		pcSpecific = pcB;
+		pcGeneric = pcA;
+	}
+	psSpecific = pcSpecific->GetDeviceSource();
+	return psSpecific->pcSource->GetGenerics()->Contains(&pcGeneric->GetDeviceGeneric()->pcGeneric);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The inputs being matched, as flattened criteria, and where each chord
+// is in them.  A block's used inputs are bits of its mask.
+//
+//////////////////////////////////////////////////////////////////////////
+struct SChordOverlapSide
+{
+	CArrayTemplate<CActionInputChordCriteria>	asInputs;
+	CArraySize									aiBlockSizes;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Tries every pairing of the next input of A's current block with the
+// next of B's, each block's inputs being in any order.  uiBlockStartA is
+// the first input of A's block uiBlockA, uiUsedA which of its inputs have
+// been matched so far.
+//
+//////////////////////////////////////////////////////////////////////////
+bool BlocksOverlap(SChordOverlapSide* psA, size uiBlockA, size uiBlockStartA, uint32 uiUsedA, SChordOverlapSide* psB, size uiBlockB, size uiBlockStartB, uint32 uiUsedB)
+{
+	size	uiSizeA;
+	size	uiSizeB;
+	size	i;
+	size	j;
+	uint32	uiNextUsedA;
+	uint32	uiNextUsedB;
+	size	uiNextBlockA;
+	size	uiNextBlockStartA;
+	size	uiNextBlockB;
+	size	uiNextBlockStartB;
+
+	if (uiBlockA == psA->aiBlockSizes.NumElements())
+	{
+		return uiBlockB == psB->aiBlockSizes.NumElements();
+	}
+	if (uiBlockB == psB->aiBlockSizes.NumElements())
+	{
+		return false;
+	}
+
+	uiSizeA = (size)psA->aiBlockSizes.GetValue(uiBlockA);
+	uiSizeB = (size)psB->aiBlockSizes.GetValue(uiBlockB);
+	for (i = 0; i < uiSizeA; i++)
+	{
+		if (uiUsedA & (1 << i))
+		{
+			continue;
+		}
+		for (j = 0; j < uiSizeB; j++)
+		{
+			if (uiUsedB & (1 << j))
+			{
+				continue;
+			}
+			if (!CriteriaOverlap(psA->asInputs.Get(uiBlockStartA + i), psB->asInputs.Get(uiBlockStartB + j)))
+			{
+				continue;
+			}
+
+			uiNextUsedA = uiUsedA | (1 << i);
+			uiNextBlockA = uiBlockA;
+			uiNextBlockStartA = uiBlockStartA;
+			if (uiNextUsedA == (uint32)((1 << uiSizeA) - 1))
+			{
+				uiNextUsedA = 0;
+				uiNextBlockA++;
+				uiNextBlockStartA += uiSizeA;
+			}
+
+			uiNextUsedB = uiUsedB | (1 << j);
+			uiNextBlockB = uiBlockB;
+			uiNextBlockStartB = uiBlockStartB;
+			if (uiNextUsedB == (uint32)((1 << uiSizeB) - 1))
+			{
+				uiNextUsedB = 0;
+				uiNextBlockB++;
+				uiNextBlockStartB += uiSizeB;
+			}
+
+			if (BlocksOverlap(psA, uiNextBlockA, uiNextBlockStartA, uiNextUsedA, psB, uiNextBlockB, uiNextBlockStartB, uiNextUsedB))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if some inputs would match all of this and all of pcOther, so
+// both would be called for them.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInputChord::MatchesSameAs(CInputChord* pcOther)
+{
+	SChordOverlapSide	sThis;
+	SChordOverlapSide	sOther;
+	bool				bResult;
+
+	if (miTotalCriteria != pcOther->miTotalCriteria)
+	{
+		return false;
+	}
+
+	sThis.asInputs.Init();
+	sThis.aiBlockSizes.Init();
+	sOther.asInputs.Init();
+	sOther.aiBlockSizes.Init();
+
+	FlattenCriteria(&muActionCriteria, &sThis.asInputs, &sThis.aiBlockSizes);
+	FlattenCriteria(&pcOther->muActionCriteria, &sOther.asInputs, &sOther.aiBlockSizes);
+	bResult = BlocksOverlap(&sThis, 0, 0, 0, &sOther, 0, 0, 0);
+
+	sOther.aiBlockSizes.Kill();
+	sOther.asInputs.Kill();
+	sThis.aiBlockSizes.Kill();
+	sThis.asInputs.Kill();
+	return bResult;
 }
 
 
@@ -194,8 +455,9 @@ void CInputChord::Copy(CInputChord* pcSource, CInputDeviceCopyContext* pcContext
 
 	mpcAction = pcSource->mpcAction;
 	CopyActionCriteria(&muActionCriteria, &pcSource->muActionCriteria, pcContext);
-	
-	Done();
+
+	//The chords copied from were already checked against each other.
+	Calculate();
 }
 
 

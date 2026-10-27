@@ -460,6 +460,46 @@ CInputChord* CInputChords::AddChord(CAction* pcAction, CInputChordDesc* pcDesc)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Another chord that some inputs would match all of as well as all of
+// pcChord, or NULL if none.
+//
+//////////////////////////////////////////////////////////////////////////
+CInputChord* CInputChords::FindMatchingChord(CInputChord* pcChord)
+{
+	SSetIterator	sIter;
+	CInputChord*	pcOther;
+	bool			bExists;
+
+	bExists = mlcChords.StartIteration(&sIter, &pcOther);
+	while (bExists)
+	{
+		if ((pcOther != pcChord) && pcChord->MatchesSameAs(pcOther))
+		{
+			return pcOther;
+		}
+		bExists = mlcChords.Iterate(&sIter, &pcOther);
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Kills the chord.  Its evaluators aren't removed from the evaluators.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInputChords::RemoveChord(CInputChord* pcChord)
+{
+	if (mpcPending == pcChord)
+	{
+		mpcPending = NULL;
+	}
+	mlcChords.Remove(pcChord);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CInputChords::StartChordsIteration(SSetIterator* psIter, CInputChord** ppChord)

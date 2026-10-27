@@ -244,7 +244,8 @@ CInputSourceDesc* CWindowInputSource::GetSource(CInputDevice* pcDevice, char* sz
 //////////////////////////////////////////////////////////////////////////
 //
 // Give the chord its criteria (AsGroup, AsOrdered...) from the virtual
-// device's sources then call Done on it.
+// device's sources then call Done on it.  Done returns false, and kills
+// the chord, if another chord could match the same inputs.
 //
 //////////////////////////////////////////////////////////////////////////
 CInputChord* CWindowInputSource::AddChord(char* szName)

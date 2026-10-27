@@ -56,7 +56,9 @@ protected:
 public:
 	void 							Init(CAction* pcAction, CInputChords* pcInputChords, CInputChordDesc* pcDesc);
 	void 							Kill(void);
-	void							Done(void);  //Remember to call this after adding all criteria.
+	bool							Done(CInputChord** ppcMatching = NULL);  //Remember to call this after adding all criteria.
+	void							Calculate(void);
+	bool							MatchesSameAs(CInputChord* pcOther);
 	void							Copy(CInputChord* pcSource, CInputDeviceCopyContext* pcContext, CInputChords* pcInputChords);
 
 	CActiveInputChordCriteria*		AsActive(CInputSourceEvaluator* pcAction);

@@ -97,6 +97,8 @@ public:
 	void 					InputEvent(CUnknown* pcSource, void* pvContext);
 	CInputSourceEvaluator*	AddEvaluator(void);
 	CInputChord*			AddChord(CAction* pcAction, CInputChordDesc* pcDesc);
+	CInputChord*			FindMatchingChord(CInputChord* pcChord);
+	void					RemoveChord(CInputChord* pcChord);
 
 	bool					StartChordsIteration(SSetIterator* psIter, CInputChord** ppChord);
 	bool					IterateChords(SSetIterator* psIter, CInputChord** ppChord);
