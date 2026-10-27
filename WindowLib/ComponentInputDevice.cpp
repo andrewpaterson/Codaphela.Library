@@ -34,6 +34,7 @@ void CComponentInputDevice::Init(CInputDevice* pcDevice, CComponentInput* pcComp
 	masCommands.Init();
 	masNumKeys.Init();
 	masKeys.Init();
+	mbMouse = false;
 }
 
 
@@ -120,76 +121,37 @@ void CComponentInputDevice::InitKeyboard(void)
 	AddPrintable("Numpad +", '+', '+', '+', '+');
 
 	//Function keys don't type anything.
-	AddCommand("F1", CIC_Ignored, false, false, false);
-	AddCommand("F2", CIC_Ignored, false, false, false);
-	AddCommand("F3", CIC_Ignored, false, false, false);
-	AddCommand("F4", CIC_Ignored, false, false, false);
-	AddCommand("F5", CIC_Ignored, false, false, false);
-	AddCommand("F6", CIC_Ignored, false, false, false);
-	AddCommand("F7", CIC_Ignored, false, false, false);
-	AddCommand("F8", CIC_Ignored, false, false, false);
-	AddCommand("F9", CIC_Ignored, false, false, false);
-	AddCommand("F10", CIC_Ignored, false, false, false);
-	AddCommand("F11", CIC_Ignored, false, false, false);
-	AddCommand("F12", CIC_Ignored, false, false, false);
+	AddCommand("F1", CIC_Ignored);
+	AddCommand("F2", CIC_Ignored);
+	AddCommand("F3", CIC_Ignored);
+	AddCommand("F4", CIC_Ignored);
+	AddCommand("F5", CIC_Ignored);
+	AddCommand("F6", CIC_Ignored);
+	AddCommand("F7", CIC_Ignored);
+	AddCommand("F8", CIC_Ignored);
+	AddCommand("F9", CIC_Ignored);
+	AddCommand("F10", CIC_Ignored);
+	AddCommand("F11", CIC_Ignored);
+	AddCommand("F12", CIC_Ignored);
 
-	AddCommand("Cursor Up", CIC_Up, false, false, false);
-	AddCommand("Cursor Down", CIC_Down, false, false, false);
-	AddCommand("Cursor Left", CIC_Left, false, false, false);
-	AddCommand("Cursor Right", CIC_Right, false, false, false);
-	AddCommand("Cursor Left", CIC_WordLeft, true, false, false);
-	AddCommand("Cursor Right", CIC_WordRight, true, false, false);
-	AddCommand("Home", CIC_Home, false, false, false);
-	AddCommand("End", CIC_End, false, false, false);
-	AddCommand("Home", CIC_DocumentHome, true, false, false);
-	AddCommand("End", CIC_DocumentEnd, true, false, false);
-	AddCommand("Page Up", CIC_PageUp, false, false, false);
-	AddCommand("Page Down", CIC_PageDown, false, false, false);
-	AddCommand("Cursor Up", CIC_LineUp, true, false, false);
-	AddCommand("Cursor Down", CIC_LineDown, true, false, false);
+	//The keys alone.  With control or shift they are chords, see CComponentInput's chord commands.
+	AddCommand("Cursor Up", CIC_Up);
+	AddCommand("Cursor Down", CIC_Down);
+	AddCommand("Cursor Left", CIC_Left);
+	AddCommand("Cursor Right", CIC_Right);
+	AddCommand("Home", CIC_Home);
+	AddCommand("End", CIC_End);
+	AddCommand("Page Up", CIC_PageUp);
+	AddCommand("Page Down", CIC_PageDown);
+	AddCommand("Escape", CIC_ClearSelection);
 
-	AddCommand("Cursor Up", CIC_SelectUp, false, false, true);
-	AddCommand("Cursor Down", CIC_SelectDown, false, false, true);
-	AddCommand("Cursor Left", CIC_SelectLeft, false, false, true);
-	AddCommand("Cursor Right", CIC_SelectRight, false, false, true);
-	AddCommand("Cursor Left", CIC_SelectWordLeft, true, false, true);
-	AddCommand("Cursor Right", CIC_SelectWordRight, true, false, true);
-	AddCommand("Home", CIC_SelectHome, false, false, true);
-	AddCommand("End", CIC_SelectEnd, false, false, true);
-	AddCommand("Home", CIC_SelectDocumentHome, true, false, true);
-	AddCommand("End", CIC_SelectDocumentEnd, true, false, true);
-	AddCommand("Page Up", CIC_SelectPageUp, false, false, true);
-	AddCommand("Page Down", CIC_SelectPageDown, false, false, true);
-	AddCommand("W", CIC_SelectWholeWord, true, false, false);
-	AddCommand("A", CIC_SelectAll, true, false, false);
-	AddCommand("Escape", CIC_ClearSelection, false, false, false);
+	AddCommand("Space", CIC_Space);
+	AddCommand("Tab", CIC_Tab);
+	AddCommand("Enter", CIC_Enter);
+	AddCommand("Numpad Enter", CIC_Enter);
 
-	AddCommand("Space", CIC_Space, false, false, false);
-	AddCommand("Space", CIC_Space, false, false, true);
-	AddCommand("Tab", CIC_Tab, false, false, false);
-	AddCommand("Tab", CIC_BackTab, false, false, true);
-	AddCommand("Enter", CIC_Enter, false, false, false);
-	AddCommand("Numpad Enter", CIC_Enter, false, false, false);
-	AddCommand("Enter", CIC_HomeEnter, true, false, true);
-	AddCommand("Numpad Enter", CIC_HomeEnter, true, false, true);
-	AddCommand("Enter", CIC_EndEnter, false, false, true);
-	AddCommand("Numpad Enter", CIC_EndEnter, false, false, true);
-
-	AddCommand("Delete", CIC_Delete, false, false, false);
-	AddCommand("Backspace", CIC_Backspace, false, false, false);
-	AddCommand("X", CIC_Cut, true, false, false);
-	AddCommand("Delete", CIC_Cut, false, false, true);
-	AddCommand("C", CIC_Copy, true, false, false);
-	AddCommand("Insert", CIC_Copy, true, false, false);
-	AddCommand("V", CIC_Paste, true, false, false);
-	AddCommand("Insert", CIC_Paste, false, false, true);
-	AddCommand("D", CIC_Duplicate, true, false, false);
-	AddCommand("Backspace", CIC_DeleteWordRemainingLeft, true, false, false);
-	AddCommand("Delete", CIC_DeleteWordRemainingRight, true, false, false);
-	AddCommand("Z", CIC_Undo, true, false, false);
-	AddCommand("Z", CIC_StepUndo, true, false, true);
-	AddCommand("Y", CIC_Redo, true, false, false);
-	AddCommand("Y", CIC_StepRedo, true, false, true);
+	AddCommand("Delete", CIC_Delete);
+	AddCommand("Backspace", CIC_Backspace);
 
 	AddNumKeyRemap("Numpad 1", "1", "End");
 	AddNumKeyRemap("Numpad 2", "2", "Cursor Down");
@@ -208,26 +170,20 @@ void CComponentInputDevice::InitKeyboard(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Only the buttons, the pointer position comes from the native window.
-// Button one with shift, control or both drags a selection.
+// Button one with shift, control or both drags a selection; those are
+// chords, see CComponentInput's chord commands.
 //
 //////////////////////////////////////////////////////////////////////////
 void CComponentInputDevice::InitMouse(void)
 {
-	AddCommand("Button 1", CIC_ActivateComponent, false, false, false, true);
-	AddCommand("Button 1", CIC_ExecuteComponent, false, false, false, false);
-	AddCommand("Button 1", CIC_StartDragSelect, false, false, true, true);
-	AddCommand("Button 1", CIC_StopDragSelect, false, false, true, false);
-	AddCommand("Button 1", CIC_StartDragSelect, true, false, false, true);
-	AddCommand("Button 1", CIC_StopDragSelect, true, false, false, false);
-	AddCommand("Button 1", CIC_StartDragSelect, true, false, true, true);
-	AddCommand("Button 1", CIC_StopDragSelect, true, false, true, false);
-	AddCommand("Button 2", CIC_ContextMenu, false, false, false, true);
-	AddCommand("Button 3", CIC_StartDragScroll, false, false, false, true);
-	AddCommand("Button 3", CIC_StopDragScroll, false, false, false, false);
-	AddCommand("Wheel Forward", CIC_WheelUp, false, false, false, true);
-	AddCommand("Wheel Backward", CIC_WheelDown, false, false, false, true);
-	AddCommand("Wheel Forward", CIC_WheelLeft, false, false, true, true);
-	AddCommand("Wheel Backward", CIC_WheelRight, false, false, true, true);
+	mbMouse = true;
+	AddCommand("Button 1", CIC_ActivateComponent, true);
+	AddCommand("Button 1", CIC_ExecuteComponent, false);
+	AddCommand("Button 2", CIC_ContextMenu, true);
+	AddCommand("Button 3", CIC_StartDragScroll, true);
+	AddCommand("Button 3", CIC_StopDragScroll, false);
+	AddCommand("Wheel Forward", CIC_WheelUp, true);
+	AddCommand("Wheel Backward", CIC_WheelDown, true);
 }
 
 
@@ -246,7 +202,7 @@ CInputSourceDesc* CComponentInputDevice::GetSource(char* szFriendlyName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceDesc* CComponentInputDevice::AddCommand(char* szFriendlyName, EComponentInputCommand eCommand, bool bControl, bool bAlt, bool bShift, bool bPressed)
+CInputSourceDesc* CComponentInputDevice::AddCommand(char* szFriendlyName, EComponentInputCommand eCommand, bool bPressed)
 {
 	CInputSourceDesc*			pcSource;
 	CComponentInputCommand*		psCommand;
@@ -255,7 +211,7 @@ CInputSourceDesc* CComponentInputDevice::AddCommand(char* szFriendlyName, ECompo
 	if (pcSource)
 	{
 		psCommand = masCommands.Add();
-		psCommand->Init(eCommand, pcSource, bControl, bAlt, bShift, bPressed);
+		psCommand->Init(eCommand, pcSource, bPressed);
 	}
 	return pcSource;
 }
@@ -351,7 +307,7 @@ CComponentInputPrintable* CComponentInputDevice::GetPrintable(CInputSourceDesc* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CComponentInputCommand* CComponentInputDevice::GetCommand(CInputSourceDesc* pcSource, bool bControl, bool bAlt, bool bShift, bool bPressed)
+CComponentInputCommand* CComponentInputDevice::GetCommand(CInputSourceDesc* pcSource, bool bPressed)
 {
 	CComponentInputCommand*		psCommand;
 	size						i;
@@ -361,15 +317,36 @@ CComponentInputCommand* CComponentInputDevice::GetCommand(CInputSourceDesc* pcSo
 	for (i = 0; i < uiNumElements; i++)
 	{
 		psCommand = masCommands.Get(i);
-		if (psCommand->pcSource == pcSource)
+		if ((psCommand->pcSource == pcSource) && (psCommand->bPressed == bPressed))
 		{
-			if ((psCommand->bAlt == bAlt) && (psCommand->bControl == bControl) && (psCommand->bShift == bShift) && (psCommand->bPressed == bPressed))
-			{
-				return psCommand;
-			}
+			return psCommand;
 		}
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a key of this kind on the device is down.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInputDevice::IsKeyDown(EComponentInputKey eKey)
+{
+	CComponentInputKey*		psKey;
+	size					i;
+	size					uiNumElements;
+
+	uiNumElements = masKeys.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		psKey = masKeys.Get(i);
+		if ((psKey->eKey == eKey) && mpcComponentInput->GetSource()->IsDown(mpcDevice, psKey->pcSource))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 
@@ -424,4 +401,5 @@ CComponentInputKey* CComponentInputDevice::GetKey(CInputSourceDesc* pcSource)
 //
 //////////////////////////////////////////////////////////////////////////
 CInputDevice* CComponentInputDevice::GetDevice(void) { return mpcDevice; }
+bool CComponentInputDevice::IsMouse(void) { return mbMouse; }
 

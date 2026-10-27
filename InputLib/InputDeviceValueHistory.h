@@ -28,7 +28,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SInputDeviceTimeValue : SInputDeviceValue
 {
-	uint32		uiTime;  //You're going to need to update this with a timer and evict events that are too aged.
+	uint32		uiTime;  //Milliseconds, the time given to CInput::Update.
+	bool		bCarried;  //Down and used by a chord that matched; it can start the next chord until it is let go.
 };
 
 

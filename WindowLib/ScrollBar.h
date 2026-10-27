@@ -74,11 +74,12 @@ public:
 	Ptr<CComponent>	FindComponentAt(int x, int y) override;
 
 	void			FocusLost(void) override;
-	void			ActivateComponent(int x, int y) override;
-	void			ExecuteComponent(int x, int y) override;
-	void			StartDragScroll(int x, int y) override;
-	void			ContDragScroll(int x, int y) override;
-	void			StopDragScroll(int x, int y) override;
+	void			CommandAction(SComponentInputEvent* psEvent);
+	void			ActivateComponent(int x, int y);
+	void			ExecuteComponent(int x, int y);
+	void			StartDragScroll(int x, int y);
+	void			ContDragScroll(int x, int y);
+	void			StopDragScroll(int x, int y);
 
 protected:
 	Ptr<CCanvas>	CreatePiece(Ptr<CWindow> pWindow, EScrollBarPiece ePiece);

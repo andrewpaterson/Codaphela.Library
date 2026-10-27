@@ -74,6 +74,7 @@ protected:
 	CArrayInputDevicePtr	mapcDevices;  //Whose sources are in the virtual device.
 	CTimer					mcTimer;
 	CArrayWindowInputEvent	masEvents;
+	CArrayTemplate<SInputDeviceValueSource>	masForgotten;  //Down when ForgetDown was called, not down to IsDown until let go.
 
 public:
 	void					Init(CInput* pcInput);
@@ -89,12 +90,19 @@ public:
 	bool					AddDevice(CInputDevice* pcDevice);
 	size					GetDevices(CArrayInputDevicePtr* papcDevices, char* szCategory);
 	CInputSourceDesc*		GetSource(CInputDevice* pcDevice, char* szFriendlyName);
+	char*					GetName(CInputSourceDesc* pcSource);
+	bool					IsDelta(CInputSourceDesc* pcSource);
 	CInputChord*			AddChord(char* szName);
+	bool					AddKeyChord(char* szName, CInputDevice* pcModifierDevice, CInputSourceDesc* pcFirstModifier, CInputSourceDesc* pcSecondModifier, CInputDevice* pcKeyDevice, CInputSourceDesc* pcKey);
 	CInputVirtualDevice*	GetVirtualDevice(void);
+
+	bool					IsDown(CInputDevice* pcDevice, CInputSourceDesc* pcSource);
+	void					ForgetDown(void);
 
 protected:
 	void					AddDevices(char* szCategory);
 	void					Queue(SInputChordsEvent* psChordsEvent);
+	void					RememberLetGo(void);
 };
 
 

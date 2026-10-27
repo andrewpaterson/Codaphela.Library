@@ -23,7 +23,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayTemplate.h"
 
 
-//What a key or pointer button means to a component.  CFocus::Command sends each one to the matching CComponentListener call.
+//What a key, chord or pointer button means to a component.  CFocus gives each one to the input actions (IAF_Command) of
+//the focussed component and its parents.
 enum EComponentInputCommand
 {
 	CIC_Ignored,
@@ -90,8 +91,10 @@ enum EComponentInputCommand
 	CIC_ExecuteComponent,
 	CIC_ContextMenu,
 	CIC_StartDragScroll,
+	CIC_ContDragScroll,  //The pointer moved during a drag; only CFocus gives these, to the drag component.
 	CIC_StopDragScroll,
 	CIC_StartDragSelect,
+	CIC_ContDragSelect,
 	CIC_StopDragSelect,
 	CIC_Hover,
 	CIC_WheelUp,  //The wheel goes to the component under the pointer, not the focussed one.
@@ -109,11 +112,8 @@ public:
 	EComponentInputCommand		eCommand;
 	CInputSourceDesc*			pcSource;
 	bool						bPressed;
-	bool						bControl;
-	bool						bAlt;
-	bool						bShift;
 
-	void Init(EComponentInputCommand eCommand, CInputSourceDesc* pcSource, bool bControl, bool bAlt, bool bShift, bool bPressed);
+	void Init(EComponentInputCommand eCommand, CInputSourceDesc* pcSource, bool bPressed);
 	void Kill(void);
 };
 

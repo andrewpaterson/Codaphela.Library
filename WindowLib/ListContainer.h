@@ -104,18 +104,19 @@ public:
 	void			FocusLost(void) override;
 	void			MovedOutof(void) override;
 	void			MovedOver(int x, int y) override;
-	void			ActivateComponent(int x, int y) override;
-	void			ExecuteComponent(int x, int y) override;
-	void			Up(void) override;
-	void			Down(void) override;
-	void			Home(void) override;
-	void			End(void) override;
-	void			DocumentHome(void) override;
-	void			DocumentEnd(void) override;
-	void			PageUp(void) override;
-	void			PageDown(void) override;
-	void			Space(bool bInsert) override;
-	void			Enter(void) override;
+	void			CommandAction(SComponentInputEvent* psEvent);
+	void			ActivateComponent(int x, int y);
+	void			ExecuteComponent(int x, int y);
+	void			Up(void);
+	void			Down(void);
+	void			Home(void);
+	void			End(void);
+	void			DocumentHome(void);
+	void			DocumentEnd(void);
+	void			PageUp(void);
+	void			PageDown(void);
+	void			Space(bool bInsert);
+	void			Enter(void);
 
 protected:
 	virtual void	RowSelected(int32 iRow);  //Called before the listeners are told, iRow is -1 when the selection is cleared.

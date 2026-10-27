@@ -31,6 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 #define MAX_INPUT_HISTORY_EVENTS	24
+#define INPUT_CHORDS_DOWN			0.5f	//A key or button's value at or above which it is down.
 
 
 typedef CSetType<CInputSourceEvaluator>	CSetInputSourceEvaluators;
@@ -68,8 +69,11 @@ typedef CArrayTemplate<SInputChordsEvent>	CArrayInputChordsEvent;
 
 
 //Matches the inputs of a virtual device against its chords.  An input that could be part of a chord is held in the
-//history until a chord matches, using it up, or no chord can match, letting it through.  A chord must match within the
-//eviction age of its first input or its held inputs are let through.  A chord that matches while a longer chord with
+//history until a chord matches, using it up, or no chord can match, letting it through.  Held inputs that are down
+//never age; once all are let go a partial chord has the eviction age to finish or its held inputs are let through.
+//An input that is still down and could start a chord is carried once it has been let through or used by a chord, as
+//the start of the next chord (ctrl held for ctrl+z, z, or shift held while typing for shift+tab after) until it is let
+//go.  Carried inputs are never let through again and never age.  A chord that matches while a longer chord with
 //the same start could still match, like ctrl+shift then a before ctrl+shift then a then b, is pending: it is called
 //when the longer chord stops matching or is evicted, and not at all if the longer one matches.  Movement (a delta)
 //that isn't part of a chord is let through straight away and doesn't stop a chord matching.  What is let through is
@@ -112,7 +116,14 @@ protected:
 	void					Match(CInputDeviceValue* psValue);
 	void					CallPending(void);
 	void					Evict(void);
-	void					Release(size uiNumHistory);
+	size					Release(size uiNumHistory);
+	size					NumCarried(void);
+	bool					IsCarriable(size uiIndex);
+	void					Consume(size uiStart, size uiLength);
+	bool					IsDown(SInputDeviceValue* psValue);
+	bool					IsStillDown(size uiIndex);
+	bool					IsAnyStillDown(void);
+	void					RemoveCarried(SInputDeviceValue* psValue);
 	void					AddEvent(CInputChord* pcChord, SInputDeviceTimeValue* psValue);
 };
 

@@ -71,6 +71,7 @@ public:
 	//Input in window client space.  Native windows, and later CComponentInput, call these.
 	void					PointerMoved(int x, int y);
 	void					PointerLeft(void);
+	void					Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput);
 	void					InputCommand(EComponentInputCommand eCommand, bool bInsert);
 	void					InputPrintable(char c, bool bInsert);
 	void					Activate(void);

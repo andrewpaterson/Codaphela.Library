@@ -20,8 +20,8 @@ along with Codaphela InputLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __INPUT_ACTION_H__
-#define __INPUT_ACTION_H__
+#ifndef __INPUT_CHORD_H__
+#define __INPUT_CHORD_H__
 #include "BaseLib/MapPtrPtr.h"
 #include "StandardLib/Action.h"
 #include "InputCategoryGeneric.h"
@@ -59,6 +59,7 @@ public:
 	bool							Done(CInputChord** ppcMatching = NULL);  //Remember to call this after adding all criteria.
 	void							Calculate(void);
 	bool							MatchesSameAs(CInputChord* pcOther);
+	bool							IsStart(SInputDeviceValue* psValue);
 	void							Copy(CInputChord* pcSource, CInputDeviceCopyContext* pcContext, CInputChords* pcInputChords);
 
 	CActiveInputChordCriteria*		AsActive(CInputSourceEvaluator* pcAction);
@@ -91,5 +92,5 @@ public:
 };
 
 
-#endif // __INPUT_ACTION_H__
+#endif // __INPUT_CHORD_H__
 

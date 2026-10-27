@@ -40,6 +40,7 @@ protected:
 	CArrayComponentInputCommand			masCommands;
 	CArrayComponentInputNumKey			masNumKeys;
 	CArrayComponentInputKey				masKeys;
+	bool								mbMouse;
 
 public:
 	void						Init(CInputDevice* pcDevice, CComponentInput* pcComponentInput);
@@ -49,17 +50,20 @@ public:
 	void						InitMouse(void);
 
 	CComponentInputPrintable*	GetPrintable(CInputSourceDesc* pcSource);
-	CComponentInputCommand*		GetCommand(CInputSourceDesc* pcSource, bool bControl, bool bAlt, bool bShift, bool bPressed);
+	CComponentInputCommand*		GetCommand(CInputSourceDesc* pcSource, bool bPressed);
+	bool						IsKeyDown(EComponentInputKey eKey);
+	bool						IsMouse(void);
 	CComponentInputNumKey*		GetNumKeyRemap(CInputSourceDesc* pcSource);
 	CComponentInputKey*			GetKey(CInputSourceDesc* pcSource);
 	CInputDevice*				GetDevice(void);
 
-	CInputSourceDesc*			AddCommand(char* szFriendlyName, EComponentInputCommand eCommand, bool bControl, bool bAlt, bool bShift, bool bPressed = true);
+	CInputSourceDesc*			AddCommand(char* szFriendlyName, EComponentInputCommand eCommand, bool bPressed = true);
 	CInputSourceDesc*			AddPrintable(char* szFriendlyName, char cNoShiftNoCaps, char cYesShiftNoCaps, char cNoShiftYesCaps, char cYesShiftYesCaps);
 	CInputSourceDesc*			AddNumKeyRemap(char* szFriendlyName, char* szYesNumLockRemap, char* szNoNumLockRemap);
 	CInputSourceDesc*			AddKey(char* szFriendlyName, EComponentInputKey eKey);
 
 protected:
+public:
 	CInputSourceDesc*			GetSource(char* szFriendlyName);
 };
 

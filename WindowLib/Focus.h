@@ -22,6 +22,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "SupportLib/Int32Rect.h"
 #include "ComponentInputCommand.h"
+#include "ComponentInputEvent.h"
 #include "Component.h"
 
 
@@ -35,6 +36,8 @@ enum EFocusDrag
 
 class CWindow;
 class CComponent;
+struct SWindowInputEvent;
+class CComponentInput;
 class CFocus : public CObject
 {
 CONSTRUCTABLE(CFocus);
@@ -61,6 +64,7 @@ public:
 	void				Refresh(void);
 	void 				Request(void);
 	void				SetFocus(Ptr<CComponent> pComponent);
+	void				Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput);
 	void				Command(EComponentInputCommand eCommand, bool bInsert);
 	void				Printable(char c, bool bInsert);
 	void 				Activate(void);
@@ -80,7 +84,13 @@ public:
 
 protected:
 	void				SetMouseOver(Ptr<CComponent> pComponent);
-	void				Wheel(EComponentInputCommand eCommand);
+	bool				DispatchEvent(SComponentInputEvent* psEvent);
+	bool				Dispatch(Ptr<CComponent> pComponent, SComponentInputEvent* psEvent);
+	bool				Deliver(Ptr<CComponent> pComponent, SComponentInputEvent* psEvent);
+	bool				FocusClick(void);
+	void				InitEvent(SComponentInputEvent* psEvent, EComponentInputEventType eType, bool bInsert);
+	bool				IsClick(SComponentInputEvent* psEvent);
+	bool				GetWheel(EComponentInputCommand eCommand, int* piRight, int* piDown);
 	void				ToComponentSpace(Ptr<CComponent> pComponent, int* px, int* py);
 	bool				IsWithin(Ptr<CComponent> pComponent, Ptr<CComponent> pAncestor);
 };
