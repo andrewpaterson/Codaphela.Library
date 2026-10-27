@@ -39,6 +39,7 @@ void CScrollPane::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	meVerticalPolicy = SPP_AsNeeded;
 	msScrollPosition.Init(0, 0);
 	msContentSize.Init(0, 0);
+	msLaidOutScroll.Init(0, 0);
 	miMargin = 2;
 	miWheelStep = 48;
 
@@ -83,6 +84,7 @@ void CScrollPane::Class(void)
 	U_Enum(meVerticalPolicy);
 	U_2Int32(msScrollPosition);
 	U_2Int32(msContentSize);
+	U_2Int32(msLaidOutScroll);
 	U_Int32(miMargin);
 	U_Int32(miWheelStep);
 }
@@ -359,6 +361,7 @@ void CScrollPane::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 		msContentSize = sAreaSize;
 	}
 	sScrollPosition = GetScrollPosition();
+	msLaidOutScroll = sScrollPosition;
 
 	if (mpContent.IsNotNull())
 	{
@@ -452,6 +455,94 @@ bool CScrollPane::Wheel(int iRight, int iDown)
 		SetScrollPosition(sPosition.x, sPosition.y);
 	}
 	return bUsed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Scrolls as little as shows pcRect (in the window's space), or its top
+// left if it is bigger than the view.  The rect is measured from the
+// content, not the view, so asking again before the scroll pane is laid
+// out again doesn't scroll further.  The position isn't limited to the
+// content's last size, the content may have grown; it is when laid out.
+// Scroll panes this is in are then asked to show what is left of it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CScrollPane::ScrollToShow(CInt32Rect* pcRect)
+{
+	SInt32Vec2	sScroll;
+	CInt32Rect	cShown;
+	int32		iLeft;
+	int32		iTop;
+
+	if (mpContent.IsNull())
+	{
+		CContainer::ScrollToShow(pcRect);
+		return;
+	}
+
+	//Where the rect is in the content, measured from the content's top left as if it weren't scrolled.
+	iLeft = pcRect->GetLeft() - mcActualBounds.GetLeft() + msLaidOutScroll.x;
+	iTop = pcRect->GetTop() - mcActualBounds.GetTop() + msLaidOutScroll.y;
+	sScroll = msScrollPosition;
+
+	if (meHorizontalPolicy != SPP_Never)
+	{
+		if (iLeft + pcRect->GetWidth() > sScroll.x + mcActualBounds.GetWidth())
+		{
+			sScroll.x = iLeft + pcRect->GetWidth() - mcActualBounds.GetWidth();
+		}
+		if (iLeft < sScroll.x)
+		{
+			sScroll.x = iLeft;
+		}
+	}
+	if (meVerticalPolicy != SPP_Never)
+	{
+		if (iTop + pcRect->GetHeight() > sScroll.y + mcActualBounds.GetHeight())
+		{
+			sScroll.y = iTop + pcRect->GetHeight() - mcActualBounds.GetHeight();
+		}
+		if (iTop < sScroll.y)
+		{
+			sScroll.y = iTop;
+		}
+	}
+	if (sScroll.x < 0)
+	{
+		sScroll.x = 0;
+	}
+	if (sScroll.y < 0)
+	{
+		sScroll.y = 0;
+	}
+
+	if ((sScroll.x != msScrollPosition.x) || (sScroll.y != msScrollPosition.y))
+	{
+		msScrollPosition = sScroll;
+		mpWindow->LayoutAgain();
+	}
+
+	//The rect where it will be once the content has moved, cut to the view.
+	cShown.Init(pcRect);
+	cShown.SetPos(mcActualBounds.GetLeft() + iLeft - sScroll.x, mcActualBounds.GetTop() + iTop - sScroll.y);
+	cShown.ClipTo(&mcActualBounds);
+	if (cShown.IsValid())
+	{
+		CContainer::ScrollToShow(&cShown);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The view is the whole scroll pane.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CScrollPane::GetScrollView(CInt32Rect* pcDest)
+{
+	pcDest->Init(&mcActualBounds);
+	return true;
 }
 
 

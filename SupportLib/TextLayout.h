@@ -71,8 +71,31 @@ struct STextLayoutLineGlyph
 };
 
 
+//Where a character of the text was laid out, so a caret can be put before it.  Every character read from the text has
+//one, in order, even those the font has no glyph for (they have no width) and line feeds (at the end of their line).
+struct STextLayoutStop
+{
+	int32		x;
+	int32		iWidth;
+	size		uiLine;
+};
+
+
+//A line as laid out: lines end at line feeds and, when wrapping, where a word didn't fit.
+struct STextLayoutLine
+{
+	int32		iTop;
+	int32		iHeight;
+	int32		iBaseline;  //Below the top of the text, not the line.
+	size		uiFirstStop;
+	size		uiNumStops;
+};
+
+
 typedef CArrayTemplate<STextLayoutGlyph>		CArrayTextLayoutGlyph;
 typedef CArrayTemplate<STextLayoutLineGlyph>	CArrayTextLayoutLineGlyph;
+typedef CArrayTemplate<STextLayoutStop>			CArrayTextLayoutStop;
+typedef CArrayTemplate<STextLayoutLine>			CArrayTextLayoutLine;
 
 
 class CTextLayout : public CObject
@@ -93,6 +116,9 @@ protected:
 	CArrayTextLayoutLineGlyph	masLine;
 	int32			miWordWidth;
 	STextLayoutRunStyle	msRunStyle;  //Of the run being laid out.
+	CArrayTextLayoutStop	masStops;  //Of the text last laid out, and one more after its last character.
+	CArrayTextLayoutLine	masLines;
+	size			muiLineFirstStop;  //Of the line being laid out.
 
 public:
 	void			Init(void);
@@ -108,9 +134,15 @@ public:
 	void			SetWidth(int32 iWidth);
 	int32			GetWidth(void);
 
+	size			NumStops(void);
+	STextLayoutStop*	GetStop(size uiIndex);
+	size			NumLines(void);
+	STextLayoutLine*	GetLine(size uiIndex);
+
 protected:
 	void			Glyph(Ptr<CGlyph> pGlyph, bool bSpace);
 	void			PlaceGlyph(Ptr<CGlyph> pGlyph, int16 iAscent, int16 iDescent, bool bSize, bool bSpace, STextLayoutRunStyle* psStyle);
+	void			AddStop(int32 iWidth);
 	void			EndLine(void);
 	void			DecorateLine(int32 iBaseline);
 	void			DecorateStretch(uint8 uiDecoration, int32 iBaseline, size uiFirst, size uiEnd);

@@ -31,9 +31,6 @@
     <Filter Include="Source\Component\Drawing\Canvas">
       <UniqueIdentifier>{8abda37a-d787-43bc-bb24-8c3257248f26}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Component\Drawing\Text">
-      <UniqueIdentifier>{bf81206b-63ee-4b55-9d42-047fb257362e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Component\Container">
       <UniqueIdentifier>{88a4135b-d80d-4b41-8542-04c1384b9057}</UniqueIdentifier>
     </Filter>
@@ -78,6 +75,12 @@
     </Filter>
     <Filter Include="Source\Component\Widgets\TabbedPane">
       <UniqueIdentifier>{09184f79-77f1-47f6-a226-fd42dd9cc116}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Widgets\Label">
+      <UniqueIdentifier>{8c7e5d17-bdd0-43da-9a95-99f16a742e8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Widgets\TextArea">
+      <UniqueIdentifier>{f0e0cfa8-90b2-4a70-bda7-5975a97308a8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -150,9 +153,6 @@
     <ClInclude Include="NativeCanvas.h">
       <Filter>Source\Component\Drawing\Canvas</Filter>
     </ClInclude>
-    <ClInclude Include="TextArea.h">
-      <Filter>Source\Component\Drawing\Text</Filter>
-    </ClInclude>
     <ClInclude Include="ListContainer.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
@@ -173,9 +173,6 @@
     </ClInclude>
     <ClInclude Include="ButtonImages.h">
       <Filter>Source\Component\Images</Filter>
-    </ClInclude>
-    <ClInclude Include="Label.h">
-      <Filter>Source\Component\Drawing\Text</Filter>
     </ClInclude>
     <ClInclude Include="MapsCanvasDraw.h">
       <Filter>Source\Image\Canvas</Filter>
@@ -279,6 +276,12 @@
     <ClInclude Include="TabComponent.h">
       <Filter>Source\Component\Widgets\TabbedPane</Filter>
     </ClInclude>
+    <ClInclude Include="Label.h">
+      <Filter>Source\Component\Widgets\Label</Filter>
+    </ClInclude>
+    <ClInclude Include="TextArea.h">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeWindow.cpp">
@@ -355,12 +358,6 @@
     </ClCompile>
     <ClCompile Include="ButtonImages.cpp">
       <Filter>Source\Component\Images</Filter>
-    </ClCompile>
-    <ClCompile Include="Label.cpp">
-      <Filter>Source\Component\Drawing\Text</Filter>
-    </ClCompile>
-    <ClCompile Include="TextArea.cpp">
-      <Filter>Source\Component\Drawing\Text</Filter>
     </ClCompile>
     <ClCompile Include="CanvasDraw.cpp">
       <Filter>Source\Component\Drawing\Canvas</Filter>
@@ -451,6 +448,12 @@
     </ClCompile>
     <ClCompile Include="TabComponent.cpp">
       <Filter>Source\Component\Widgets\TabbedPane</Filter>
+    </ClCompile>
+    <ClCompile Include="Label.cpp">
+      <Filter>Source\Component\Widgets\Label</Filter>
+    </ClCompile>
+    <ClCompile Include="TextArea.cpp">
+      <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

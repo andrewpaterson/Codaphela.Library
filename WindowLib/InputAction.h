@@ -95,7 +95,7 @@ public:
 	void					Call(SComponentInputEvent* psEvent);
 
 	EInputActionFilter		GetFilter(void);
-	char*					GetName(void);
+	char*					GetActionName(void);
 	EComponentInputCommand	GetCommand(void);
 
 protected:
