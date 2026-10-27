@@ -66,6 +66,7 @@ public:
 	virtual	void				PopupClosed(Ptr<CComponent> pContent);
 	virtual	void				PopupItemClicked(Ptr<CComponent> pContent, Ptr<CComponent> pItem);
 			Ptr<CComponent>		GetParent(void);
+			Ptr<CWindow>		GetWindow(void);
 			bool				IsWithin(Ptr<CComponent> pAncestor);
 
 			void				SetActualSize(int fWidth, int fHeight);

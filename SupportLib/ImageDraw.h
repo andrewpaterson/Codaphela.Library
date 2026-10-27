@@ -51,6 +51,7 @@ public:
 	bool	DrawPolygon(SFloat64Vec2* asPoints, size uiNumPoints);
 	bool	DrawRectangle(float64 fLeft, float64 fTop, float64 fRight, float64 fBottom);
 	bool	DrawRoundedRectangle(float64 fLeft, float64 fTop, float64 fRight, float64 fBottom, float64 fRadius);
+	bool	DrawRoundedRectangle(float64 fLeft, float64 fTop, float64 fRight, float64 fBottom, float64 fTopRadius, float64 fBottomRadius);
 
 	bool	DrawCel(int x, int y, Ptr<CImageCel> pCel, CInt32Rect* pcClip = NULL);
 	bool	DrawCel(int x, int y, int iWidth, int iHeight, Ptr<CImageCel> pCel, CInt32Rect* pcClip = NULL);
