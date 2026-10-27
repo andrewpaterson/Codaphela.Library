@@ -95,6 +95,7 @@ public:
 	bool		IsCapsLock(void);
 	bool		IsNumLock(void);
 	bool		IsInsert(void);
+	bool		IsSourceDown(const char* szFriendlyName);
 	CWindowInputSource*	GetSource(void);
 
 protected:
