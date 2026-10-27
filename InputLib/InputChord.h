@@ -79,6 +79,7 @@ public:
 
 	CInputChordDesc*				GetDesc(void);
 	UInputChordCriteria*			GetActionCriteria(void);
+	CAction*						GetAction(void);
 	size							GetTotalCriteria(void);
 	size							GetUpdateCriteria(void);
 	size							GetMatchedCriteria(void);

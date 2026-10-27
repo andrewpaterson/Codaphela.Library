@@ -45,7 +45,7 @@ protected:
 	float							mfRestValue;
 	bool							mbEmitRestEvent;
 	bool							mbHasRestValue;
-	size								miStateIndex;
+	size							miStateIndex;
 	CArrayInputCategoryGenericPtr	mapcGenerics;
 
 public:

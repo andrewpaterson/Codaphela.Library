@@ -18,7 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "InputLib/InputDevice.h"
 #include "ComponentInput.h"
 #include "ComponentInputDevice.h"
 
@@ -31,30 +30,23 @@ void CComponentInputDevice::Init(CInputDevice* pcDevice, CComponentInput* pcComp
 {
 	mpcComponentInput = pcComponentInput;
 	mpcDevice = pcDevice;
-	mpcVirtual = pcDevice->CreateDefaultVirtualDeviceFromThis("Component Input");
 	masPrintables.Init();
 	masCommands.Init();
 	masNumKeys.Init();
 	masKeys.Init();
-	mapcHooked.Init();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The virtual device belongs to CInput so it can't be removed, it is
-// disabled instead so its actions don't call a dead CComponentInput.
 //
 //////////////////////////////////////////////////////////////////////////
 void CComponentInputDevice::Kill(void)
 {
-	Disable();
-	mapcHooked.Kill();
 	masKeys.Kill();
 	masNumKeys.Kill();
 	masCommands.Kill();
 	masPrintables.Kill();
-	mpcVirtual = NULL;
 	mpcDevice = NULL;
 }
 
@@ -241,58 +233,12 @@ void CComponentInputDevice::InitMouse(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Returns NULL if the device doesn't have the source.
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentInputDevice::Enable(void)
+CInputSourceDesc* CComponentInputDevice::GetSource(char* szFriendlyName)
 {
-	mpcVirtual->Enable();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CComponentInputDevice::Disable(void)
-{
-	if (mpcVirtual)
-	{
-		mpcVirtual->Disable();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Adds the pressed and released actions for the source the first time it
-// is used.  Returns NULL if the device doesn't have the source.
-//
-//////////////////////////////////////////////////////////////////////////
-CInputSourceDesc* CComponentInputDevice::Hook(char* szFriendlyName)
-{
-	CInputVirtualDeviceSource*	pcSource;
-	size						i;
-	size						uiNumElements;
-
-	pcSource = mpcVirtual->GetSource(szFriendlyName);
-	if (!pcSource)
-	{
-		return NULL;
-	}
-
-	uiNumElements = mapcHooked.NumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		if (*mapcHooked.Get(i) == pcSource)
-		{
-			return pcSource->GetSourceDesc();
-		}
-	}
-
-	mpcVirtual->AddActiveAction(mpcComponentInput->GetButtonPressedAction(), pcSource);
-	mpcVirtual->AddInactiveAction(mpcComponentInput->GetButtonReleasedAction(), pcSource);
-	mapcHooked.Add(pcSource);
-	return pcSource->GetSourceDesc();
+	return mpcComponentInput->GetSource()->GetSource(mpcDevice, szFriendlyName);
 }
 
 
@@ -305,7 +251,7 @@ CInputSourceDesc* CComponentInputDevice::AddCommand(char* szFriendlyName, ECompo
 	CInputSourceDesc*			pcSource;
 	CComponentInputCommand*		psCommand;
 
-	pcSource = Hook(szFriendlyName);
+	pcSource = GetSource(szFriendlyName);
 	if (pcSource)
 	{
 		psCommand = masCommands.Add();
@@ -324,7 +270,7 @@ CInputSourceDesc* CComponentInputDevice::AddPrintable(char* szFriendlyName, char
 	CInputSourceDesc*			pcSource;
 	CComponentInputPrintable*	psPrintable;
 
-	pcSource = Hook(szFriendlyName);
+	pcSource = GetSource(szFriendlyName);
 	if (pcSource)
 	{
 		psPrintable = masPrintables.Add();
@@ -347,11 +293,11 @@ CInputSourceDesc* CComponentInputDevice::AddNumKeyRemap(char* szFriendlyName, ch
 	CInputSourceDesc*			pcYesNumLockRemap;
 	CInputSourceDesc*			pcNoNumLockRemap;
 
-	pcSource = Hook(szFriendlyName);
+	pcSource = GetSource(szFriendlyName);
 	if (pcSource)
 	{
-		pcYesNumLockRemap = szYesNumLockRemap ? mpcDevice->GetSource(szYesNumLockRemap) : NULL;
-		pcNoNumLockRemap = szNoNumLockRemap ? mpcDevice->GetSource(szNoNumLockRemap) : NULL;
+		pcYesNumLockRemap = szYesNumLockRemap ? GetSource(szYesNumLockRemap) : NULL;
+		pcNoNumLockRemap = szNoNumLockRemap ? GetSource(szNoNumLockRemap) : NULL;
 		psNumKey = masNumKeys.Add();
 		psNumKey->Init(pcSource, pcYesNumLockRemap, pcNoNumLockRemap);
 	}
@@ -368,7 +314,7 @@ CInputSourceDesc* CComponentInputDevice::AddKey(char* szFriendlyName, EComponent
 	CInputSourceDesc*		pcSource;
 	CComponentInputKey*		psKey;
 
-	pcSource = Hook(szFriendlyName);
+	pcSource = GetSource(szFriendlyName);
 	if (pcSource)
 	{
 		psKey = masKeys.Add();

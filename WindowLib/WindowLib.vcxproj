@@ -221,7 +221,7 @@
     <ClInclude Include="ComponentInput.h" />
     <ClInclude Include="ComponentInputDevice.h" />
     <ClInclude Include="ComponentInputKey.h" />
-    <ClInclude Include="ComponentInputListener.h" />
+    <ClInclude Include="WindowInputSource.h" />
     <ClInclude Include="ComponentInputNumKey.h" />
     <ClInclude Include="ComponentInputPrintable.h" />
     <ClInclude Include="ComponentInputCommand.h" />
@@ -261,7 +261,7 @@
     <ClCompile Include="ComponentInputCommand.cpp" />
     <ClCompile Include="ComponentInputDevice.cpp" />
     <ClCompile Include="ComponentInputKey.cpp" />
-    <ClCompile Include="ComponentInputListener.cpp" />
+    <ClCompile Include="WindowInputSource.cpp" />
     <ClCompile Include="ComponentInputNumKey.cpp" />
     <ClCompile Include="ComponentInputPrintable.cpp" />
     <ClCompile Include="Component.cpp" />

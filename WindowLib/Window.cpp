@@ -127,7 +127,7 @@ bool CWindow::Show(void)
 		cTimer.Update();
 		if (mpcComponentInput)
 		{
-			mpcComponentInput->GetInput()->Update();
+			mpcComponentInput->Update();
 		}
 		Tick(cTimer.GetUpdateTimeInMillieconds(), cTimer.GetTotalTimeInMillieconds());
 		bResult = mpcNativeWindow->ExecuteNativeWindow();

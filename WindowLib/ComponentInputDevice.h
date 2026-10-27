@@ -20,32 +20,26 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __COMPONENT_INPUT_DEVICE_H__
 #define __COMPONENT_INPUT_DEVICE_H__
-#include "InputLib/InputVirtualDevice.h"
+#include "WindowInputSource.h"
 #include "ComponentInputCommand.h"
 #include "ComponentInputPrintable.h"
 #include "ComponentInputNumKey.h"
 #include "ComponentInputKey.h"
-#include "BaseLib/ArrayTemplatePtr.h"
 
 
-typedef CArrayTemplatePtr<CInputVirtualDeviceSource>	CArrayInputVirtualDeviceSourcePtr;
-
-
-//What the sources of one input device mean to components.  The device gets its own
-//virtual device whose pressed and released actions go to CComponentInput.
-//Sources the device doesn't have are skipped so any keyboard or mouse can be used.
+//What the sources of one input device mean to components.  Its sources are
+//found by name through CComponentInput's CWindowInputSource.  Sources the
+//device doesn't have are skipped so any keyboard or mouse can be used.
 class CComponentInput;
 class CComponentInputDevice
 {
 protected:
 	CComponentInput*					mpcComponentInput;
-	CInputVirtualDevice*				mpcVirtual;
 	CInputDevice*						mpcDevice;
 	CArrayComponentInputPrintable		masPrintables;
 	CArrayComponentInputCommand			masCommands;
 	CArrayComponentInputNumKey			masNumKeys;
 	CArrayComponentInputKey				masKeys;
-	CArrayInputVirtualDeviceSourcePtr	mapcHooked;  //Sources whose pressed and released actions have been added.
 
 public:
 	void						Init(CInputDevice* pcDevice, CComponentInput* pcComponentInput);
@@ -53,8 +47,6 @@ public:
 
 	void						InitKeyboard(void);
 	void						InitMouse(void);
-	void						Enable(void);
-	void						Disable(void);
 
 	CComponentInputPrintable*	GetPrintable(CInputSourceDesc* pcSource);
 	CComponentInputCommand*		GetCommand(CInputSourceDesc* pcSource, bool bControl, bool bAlt, bool bShift, bool bPressed);
@@ -68,7 +60,7 @@ public:
 	CInputSourceDesc*			AddKey(char* szFriendlyName, EComponentInputKey eKey);
 
 protected:
-	CInputSourceDesc*			Hook(char* szFriendlyName);
+	CInputSourceDesc*			GetSource(char* szFriendlyName);
 };
 
 

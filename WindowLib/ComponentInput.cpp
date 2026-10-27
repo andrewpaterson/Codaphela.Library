@@ -18,10 +18,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "InputLib/InputChords.h"
-#include "InputLib/InputCategory.h"
 #include "Window.h"
 #include "ComponentInput.h"
+
+
+#define COMPONENT_INPUT_PRESSED		0.5f	//A key or button's value at or above which it is pressed.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -29,17 +30,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 // No devices are added, see AddKeyboard and AddMouse.
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentInput::Init(CInput* pcInput, CWindow* pcWindow)
+void CComponentInput::Init(CWindowInputSource* pcSource, CWindow* pcWindow)
 {
-	CInputActions*	pcActions;
-
-	mpcInput = pcInput;
+	mpcSource = pcSource;
 	mpcWindow = pcWindow;
-
-	mcListener.Init(this);
-	pcActions = mpcInput->GetActions();
-	mpcButtonPressedAction = pcActions->AddActionWithListener("Button Pressed", &CComponentInputListener::ButtonPressed, &mcListener);
-	mpcButtonReleasedAction = pcActions->AddActionWithListener("Button Released", &CComponentInputListener::ButtonReleased, &mcListener);
 
 	macDevices.Init();
 	masPressed.Init();
@@ -72,10 +66,8 @@ void CComponentInput::Kill(void)
 	macDevices.Kill();
 	masPressed.Kill();
 
-	mpcButtonPressedAction = NULL;
-	mpcButtonReleasedAction = NULL;
 	mpcWindow = NULL;
-	mpcInput = NULL;
+	mpcSource = NULL;
 }
 
 
@@ -86,26 +78,46 @@ void CComponentInput::Kill(void)
 CComponentInputDevice* CComponentInput::AddDevice(CInputDevice* pcDevice)
 {
 	CComponentInputDevice*	pcInputDevice;
-	size					i;
-	size					uiNumElements;
 
 	if (!pcDevice)
 	{
 		return NULL;
 	}
 
-	uiNumElements = macDevices.NumElements();
-	for (i = 0; i < uiNumElements; i++)
+	if (GetDevice(pcDevice))
 	{
-		if (macDevices.Get(i)->GetDevice() == pcDevice)
-		{
-			return NULL;
-		}
+		return NULL;
 	}
+
+	//A device that isn't a keyboard or mouse, like a programmatic one, isn't in the source yet.
+	mpcSource->AddDevice(pcDevice);
 
 	pcInputDevice = macDevices.Add();
 	pcInputDevice->Init(pcDevice, this);
 	return pcInputDevice;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CComponentInputDevice* CComponentInput::GetDevice(CInputDevice* pcDevice)
+{
+	CComponentInputDevice*	pcInputDevice;
+	size					i;
+	size					uiNumElements;
+
+	uiNumElements = macDevices.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcInputDevice = macDevices.Get(i);
+		if (pcInputDevice->GetDevice() == pcDevice)
+		{
+			return pcInputDevice;
+		}
+	}
+	return NULL;
 }
 
 
@@ -121,7 +133,6 @@ bool CComponentInput::AddKeyboard(CInputDevice* pcDevice)
 	if (pcInputDevice)
 	{
 		pcInputDevice->InitKeyboard();
-		pcInputDevice->Enable();
 		return true;
 	}
 	return false;
@@ -140,7 +151,6 @@ bool CComponentInput::AddMouse(CInputDevice* pcDevice)
 	if (pcInputDevice)
 	{
 		pcInputDevice->InitMouse();
-		pcInputDevice->Enable();
 		return true;
 	}
 	return false;
@@ -174,7 +184,6 @@ size CComponentInput::AddMice(char* szCategory)
 //////////////////////////////////////////////////////////////////////////
 size CComponentInput::AddDevices(char* szCategory, bool bKeyboard)
 {
-	CInputCategory*			pcCategory;
 	CArrayInputDevicePtr	apcDevices;
 	size					i;
 	size					uiNumElements;
@@ -182,16 +191,9 @@ size CComponentInput::AddDevices(char* szCategory, bool bKeyboard)
 	bool					bAdded;
 	CInputDevice*			pcDevice;
 
-	pcCategory = mpcInput->GetCategory(szCategory);
-	if (!pcCategory)
-	{
-		return 0;
-	}
-
 	uiAdded = 0;
 	apcDevices.Init();
-	pcCategory->GetDevices(&apcDevices, false);
-	uiNumElements = apcDevices.NumElements();
+	uiNumElements = mpcSource->GetDevices(&apcDevices, szCategory);
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcDevice = *apcDevices.Get(i);
@@ -208,27 +210,35 @@ size CComponentInput::AddDevices(char* szCategory, bool bKeyboard)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Updates the source and turns what it queued from this input's devices'
+// keys and buttons into presses and releases.  Movement, chords and other
+// devices are for someone else.
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentInput::ButtonPressed(CUnknown* pcSource, void* pvContext)
+void CComponentInput::Update(void)
 {
-	SChordInputEvent*	psEvent;
+	SWindowInputEvent*	psEvent;
+	size				i;
+	size				uiNumEvents;
 
-	psEvent = (SChordInputEvent*)pvContext;
-	Pressed(psEvent->pcValue->pcSource);
-}
+	mpcSource->Update();
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CComponentInput::ButtonReleased(CUnknown* pcSource, void* pvContext)
-{
-	SChordInputEvent*	psEvent;
-
-	psEvent = (SChordInputEvent*)pvContext;
-	Released(psEvent->pcValue->pcSource);
+	uiNumEvents = mpcSource->NumEvents();
+	for (i = 0; i < uiNumEvents; i++)
+	{
+		psEvent = mpcSource->GetEvent(i);
+		if ((psEvent->eType == WIET_State) && GetDevice(psEvent->pcDevice))
+		{
+			if (psEvent->fValue >= COMPONENT_INPUT_PRESSED)
+			{
+				Pressed(psEvent->pcSource);
+			}
+			else
+			{
+				Released(psEvent->pcSource);
+			}
+		}
+	}
 }
 
 
@@ -593,9 +603,7 @@ bool		CComponentInput::IsAlt(void) { return miAlt > 0; }
 bool		CComponentInput::IsCapsLock(void) { return mbCapsLock; }
 bool		CComponentInput::IsNumLock(void) { return mbNumLock; }
 bool		CComponentInput::IsInsert(void) { return mbInsert; }
-CInput*		CComponentInput::GetInput(void) { return mpcInput; }
-CAction*	CComponentInput::GetButtonPressedAction(void) { return mpcButtonPressedAction; }
-CAction*	CComponentInput::GetButtonReleasedAction(void) { return mpcButtonReleasedAction; }
+CWindowInputSource*	CComponentInput::GetSource(void) { return mpcSource; }
 
 
 //////////////////////////////////////////////////////////////////////////

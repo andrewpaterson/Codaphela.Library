@@ -96,7 +96,7 @@
     <ClInclude Include="ComponentInputKey.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentInputListener.h">
+    <ClInclude Include="WindowInputSource.h">
       <Filter>Source\Event</Filter>
     </ClInclude>
     <ClInclude Include="ComponentInputNumKey.h">
@@ -275,7 +275,7 @@
     <ClCompile Include="ComponentInputKey.cpp">
       <Filter>Source\Event</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentInputListener.cpp">
+    <ClCompile Include="WindowInputSource.cpp">
       <Filter>Source\Event</Filter>
     </ClCompile>
     <ClCompile Include="ComponentInputNumKey.cpp">
