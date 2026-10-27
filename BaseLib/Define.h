@@ -56,7 +56,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <malloc.h>
 #include <memory.h>
 
-#define restrict __restrict
 
 #define FILE_SEPARATOR "\\"
 #define _FS_ FILE_SEPARATOR
@@ -81,6 +80,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define OTHER_OS_FILE_SEPARATOR "/"
 #define __ENGINE_FUNCTION__ __FUNCTION__
 #define __ENGINE_PRETTY_FUNCTION__ __PRETTY_FUNCTION__
+#define restrict __restrict__
 #endif // WIN_GNU_32
 
 
@@ -102,6 +102,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __cdecl
 #define __ENGINE_FUNCTION__ __FUNCTION__
 #define __ENGINE_PRETTY_FUNCTION__ __PRETTY_FUNCTION__
+#define restrict __restrict__
 #endif // LINUX_GNU
 
 
@@ -124,6 +125,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __cdecl
 #define __ENGINE_FUNCTION__ __FUNCTION__
 #define __ENGINE_PRETTY_FUNCTION__ __PRETTY_FUNCTION__
+#define restrict __restrict
 #endif // __LIBC65__
 
 

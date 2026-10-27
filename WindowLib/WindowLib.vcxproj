@@ -224,6 +224,8 @@
     <ClInclude Include="WindowInputSource.h" />
     <ClInclude Include="ComponentInputEvent.h" />
     <ClInclude Include="InputAction.h" />
+    <ClInclude Include="TabComponent.h" />
+    <ClInclude Include="TabbedContainer.h" />
     <ClInclude Include="ComponentInputNumKey.h" />
     <ClInclude Include="ComponentInputPrintable.h" />
     <ClInclude Include="ComponentInputCommand.h" />
@@ -264,6 +266,8 @@
     <ClCompile Include="ComponentInputKey.cpp" />
     <ClCompile Include="WindowInputSource.cpp" />
     <ClCompile Include="InputAction.cpp" />
+    <ClCompile Include="TabComponent.cpp" />
+    <ClCompile Include="TabbedContainer.cpp" />
     <ClCompile Include="ComponentInputNumKey.cpp" />
     <ClCompile Include="ComponentInputPrintable.cpp" />
     <ClCompile Include="Component.cpp" />

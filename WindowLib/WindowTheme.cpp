@@ -45,6 +45,12 @@ void CWindowTheme::Init(Ptr<CFont> pFont)
 	msCaret = JEWEL_ICON;
 	msListSelected = JEWEL_SELECTION;
 	msListHover = JEWEL_HOVER;
+	msTabBar = JEWEL_EDITOR;
+	msTabHover = JEWEL_HOVER;
+	msTabUnderline = JEWEL_BLUE;
+	msTabSeparator = JEWEL_SEPARATOR;
+	mpTabClose = NULL;
+	mpTabCloseHover = NULL;
 
 	PostInit();
 }
@@ -69,6 +75,12 @@ void CWindowTheme::Class(void)
 	U_UInt32(msCaret);
 	U_UInt32(msListSelected);
 	U_UInt32(msListHover);
+	U_UInt32(msTabBar);
+	U_UInt32(msTabHover);
+	U_UInt32(msTabUnderline);
+	U_UInt32(msTabSeparator);
+	M_Pointer(mpTabClose);
+	M_Pointer(mpTabCloseHover);
 }
 
 
@@ -151,6 +163,23 @@ void CWindowTheme::SetListColours(ARGB32 sSelected, ARGB32 sHover)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A tabbed container's look.  Without close images a tab can't show its
+// cross so it can't be closed from its tab.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindowTheme::SetTabLook(ARGB32 sBar, ARGB32 sHover, ARGB32 sUnderline, ARGB32 sSeparator, Ptr<CImageCel> pClose, Ptr<CImageCel> pCloseHover)
+{
+	msTabBar = sBar;
+	msTabHover = sHover;
+	msTabUnderline = sUnderline;
+	msTabSeparator = sSeparator;
+	mpTabClose = pClose;
+	mpTabCloseHover = pCloseHover;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 Ptr<CButtonImages> CWindowTheme::GetButtonImages(EButtonLook eLook)
@@ -197,4 +226,10 @@ ARGB32 CWindowTheme::GetTextSelectionColour(void) { return msTextSelection; }
 ARGB32 CWindowTheme::GetCaretColour(void) { return msCaret; }
 ARGB32 CWindowTheme::GetListSelectedColour(void) { return msListSelected; }
 ARGB32 CWindowTheme::GetListHoverColour(void) { return msListHover; }
+ARGB32 CWindowTheme::GetTabBarColour(void) { return msTabBar; }
+ARGB32 CWindowTheme::GetTabHoverColour(void) { return msTabHover; }
+ARGB32 CWindowTheme::GetTabUnderlineColour(void) { return msTabUnderline; }
+ARGB32 CWindowTheme::GetTabSeparatorColour(void) { return msTabSeparator; }
+Ptr<CImageCel> CWindowTheme::GetTabClose(void) { return mpTabClose; }
+Ptr<CImageCel> CWindowTheme::GetTabCloseHover(void) { return mpTabCloseHover; }
 

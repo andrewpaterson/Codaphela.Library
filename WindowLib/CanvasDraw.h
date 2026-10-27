@@ -39,14 +39,14 @@ CONSTRUCTABLE(CCanvasDraw);
 DESTRUCTABLE(CCanvasDraw);
 protected:
 public:
-			void	Init(void);
-			void	Class(void) override;
-			void 	Free(void) override;
+			void		Init(void);
+			void		Class(void) override;
+			void 		Free(void) override;
 
-			bool	Save(CObjectWriter* pcFile) override;
-			bool	Load(CObjectReader* pcFile) override;
+			bool		Save(CObjectWriter* pcFile) override;
+			bool		Load(CObjectReader* pcFile) override;
 
-	virtual bool	Draw(Ptr<CCanvas> pCanvas) =0;
+	virtual bool		Draw(Ptr<CCanvas> pCanvas) =0;
 	virtual SInt32Vec2	GetDesiredSize(void);
 };
 

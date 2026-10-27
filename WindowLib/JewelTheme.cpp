@@ -52,6 +52,9 @@ Ptr<CWindowTheme> CJewelTheme::CreateDarkTheme(Ptr<CWindow> pWindow, Ptr<CFont> 
 	pTheme->SetScrollBarImages(OMalloc<CScrollBarImages>(8, Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)128), &cFormat));
 	pTheme->SetTextColours(JEWEL_SELECTION, JEWEL_ICON);
 	pTheme->SetListColours(JEWEL_SELECTION, JEWEL_HOVER);
+
+	//IDEA's editor tabs: flat on the editor's colour, the selected one underlined in blue, a grey cross that whitens.
+	pTheme->SetTabLook(JEWEL_EDITOR, JEWEL_HOVER, JEWEL_BLUE, JEWEL_SEPARATOR, CJewelButtonImages::CreateCross(JEWEL_BORDER_PUSHED, &cFormat), CJewelButtonImages::CreateCross(JEWEL_TEXT, &cFormat));
 	return pTheme;
 }
 
