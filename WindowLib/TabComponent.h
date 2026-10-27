@@ -34,7 +34,7 @@ class CTabbedContainer;
 //A tab on a tabbed container's bar, like IntelliJ IDEA's editor tabs: an optional icon on the left, the name, and an
 //optional close cross on the right, flat on the bar with the selected tab underlined.  The tab is lighter under the
 //pointer, as is the cross.  Pressing the cross closes the tab; pressing anywhere else, or space or enter while it has
-//focus, shows its page.
+//focus, shows its page.  Releasing the pointer anywhere but the cross tells the tabbed container, for double clicks.
 class CTabComponent : public CGridContainer
 {
 CONSTRUCTABLE(CTabComponent);
@@ -65,6 +65,7 @@ public:
 	bool				IsClosable(void);
 	bool				IsMouseOver(void);
 	char*				GetText(void);
+	void				SetText(const char* szName);
 	Ptr<CIconComponent>	GetIcon(void);
 	Ptr<CIconComponent>	GetClose(void);
 

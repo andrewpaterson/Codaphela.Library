@@ -273,6 +273,9 @@
     <ClInclude Include="TabbedContainer.h">
       <Filter>Source\Component\Widgets\TabbedPane</Filter>
     </ClInclude>
+    <ClInclude Include="TabbedContainerListener.h">
+      <Filter>Source\Component\Widgets\TabbedPane</Filter>
+    </ClInclude>
     <ClInclude Include="TabComponent.h">
       <Filter>Source\Component\Widgets\TabbedPane</Filter>
     </ClInclude>

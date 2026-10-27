@@ -18,9 +18,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <stdlib.h>
+#include "BaseLib/Timer.h"
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "TabbedContainer.h"
+
+
+#define TABBED_DOUBLE_CLICK_MILLISECONDS	500
+#define TABBED_DOUBLE_CLICK_PIXELS			4
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -41,6 +47,11 @@ void CTabbedContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	maPages.Init();
 	mpSelected = NULL;
 	miNextColumn = 0;
+	mcListeners.Init();
+	mcListeners.AddAllowedClass<CTabbedContainerListener>();
+	mpLastReleased = NULL;
+	miLastRelease = 0;
+	msLastRelease.Init(0, 0);
 
 	//The background is in the bar's cell first so the bar is drawn over it.
 	pBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pTheme->GetTabBarColour()));
@@ -82,6 +93,10 @@ void CTabbedContainer::Class(void)
 	M_Embedded(maPages);
 	M_Pointer(mpSelected);
 	U_Int32(miNextColumn);
+	U_Data(CListenerCall, mcListeners);
+	M_Pointer(mpLastReleased);
+	U_Int64(miLastRelease);
+	U_Data(SInt32Vec2, msLastRelease);
 }
 
 
@@ -91,6 +106,7 @@ void CTabbedContainer::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CTabbedContainer::Free(void)
 {
+	mcListeners.Kill();
 	CGridContainer::Free();
 }
 
@@ -168,6 +184,11 @@ bool CTabbedContainer::RemoveTab(Ptr<CTabComponent> pTab)
 	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		return false;
+	}
+
+	if (mpLastReleased == pTab)
+	{
+		mpLastReleased = NULL;
 	}
 
 	bWasSelected = (mpSelected == pTab);
@@ -263,3 +284,58 @@ Ptr<CTabComponent> CTabbedContainer::GetSelected(void) { return mpSelected; }
 size CTabbedContainer::NumTabs(void) { return maTabs.Size(); }
 Ptr<CTabComponent> CTabbedContainer::GetTab(size uiIndex) { return maTabs.Get(uiIndex); }
 Ptr<CComponent> CTabbedContainer::GetPage(size uiIndex) { return maPages.Get(uiIndex); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTabbedContainer::AddListener(CTabbedContainerListener* pcListener)
+{
+	return mcListeners.AddListener(pcListener);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTabbedContainer::RemoveListener(CTabbedContainerListener* pcListener)
+{
+	return mcListeners.RemoveListener(pcListener);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Called by a tab when button one is released on it, x and y relative to
+// its top left; bClick is false on its cross.  Released twice on the same
+// tab in half a second within a few pixels it's a double click, which
+// tells the listeners.  They are told after the release so a dialog they
+// open doesn't take it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTabbedContainer::TabReleased(Ptr<CTabComponent> pTab, int x, int y, bool bClick)
+{
+	int64	iNow;
+
+	if (!bClick || (IndexOf(pTab) == ARRAY_ELEMENT_NOT_FOUND))
+	{
+		mpLastReleased = NULL;
+		return;
+	}
+
+	iNow = GetDebugTickCount();
+	if ((mpLastReleased == pTab) && (iNow - miLastRelease <= TABBED_DOUBLE_CLICK_MILLISECONDS) && (abs(x - msLastRelease.x) <= TABBED_DOUBLE_CLICK_PIXELS) && (abs(y - msLastRelease.y) <= TABBED_DOUBLE_CLICK_PIXELS))
+	{
+		mpLastReleased = NULL;
+		mcListeners.CallListeners(&CTabbedContainerListener::TabDoubleClicked, &pTab, NULL);
+	}
+	else
+	{
+		mpLastReleased = pTab;
+		miLastRelease = iNow;
+		msLastRelease.Init(x, y);
+	}
+}
+

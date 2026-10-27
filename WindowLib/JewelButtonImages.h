@@ -39,6 +39,7 @@ public:
 	static Ptr<CImageCel>		CreateChevron(ARGB32 sColour, CColourFormatHelper* pcFormat);  //Points right, 8 x 9.
 	static Ptr<CImageCel>		CreateDownChevron(ARGB32 sColour, CColourFormatHelper* pcFormat);  //Points down, 9 x 8.
 	static Ptr<CImageCel>		CreateCross(ARGB32 sColour, CColourFormatHelper* pcFormat);  //A close cross, 16 x 16.
+	static Ptr<CImageCel>		CreateKeyboard(ARGB32 sColour, CColourFormatHelper* pcFormat);  //An outlined keyboard, 16 x 16.
 	static Ptr<CCheckBoxImages>	CreateCheckBoxImages(CColourFormatHelper* pcFormat);  //Each box is 20 x 20.
 
 protected:
