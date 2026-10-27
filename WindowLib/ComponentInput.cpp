@@ -875,6 +875,35 @@ bool CComponentInput::IsKeyDown(EComponentInputKey eKey)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the key or button with the friendly name, like "Left Shift" or
+// "Button 1", is down on any keyboard or mouse added.  It is read from the
+// devices, not the events, so it is down even while the chords hold back
+// its event, as they do a modifier that could start a chord.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::IsSourceDown(const char* szFriendlyName)
+{
+	CComponentInputDevice*	pcDevice;
+	CInputSourceDesc*		pcSource;
+	size					i;
+	size					uiNumElements;
+
+	uiNumElements = macDevices.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcDevice = macDevices.Get(i);
+		pcSource = pcDevice->GetSource((char*)szFriendlyName);
+		if (pcSource && mpcSource->IsDown(pcDevice->GetDevice(), pcSource))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool		CComponentInput::IsShift(void) { return IsKeyDown(CIK_Shift); }
