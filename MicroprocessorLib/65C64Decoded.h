@@ -68,8 +68,11 @@ enum E65Instruction
 	I65_Brac,
 	I65_Brasa,
 	I65_Braso,
+	I65_Brae,
+	I65_Brane,
 	I65_Bal,
 	I65_Nop,
+	I65_Cpyx,
 	I65_Shl,
 	I65_Shr,
 	I65_PshRegisters,
@@ -249,6 +252,15 @@ extern const uint8			gaui65ImmediateBytes[8];
 
 //Embedded branch offsets by field value.
 extern const int32			gai65BranchOffsets[8];
+
+//brae and brane's embedded branch offsets by field value.
+extern const int32			gai65EqualBranchOffsets[4];
+
+//cpyx's minimal addressing modes: the full mode of each 3 bit minimal mode.
+extern const uint8			gaui65MinimalModes[8];
+
+//cpyx's data widths in bytes.
+extern const uint8			gaui65CopyExtendBytes[4];
 
 
 void	Decode65C64(uint16 uiOpcode, S65C64Decoded* psDecoded);

@@ -239,6 +239,7 @@ public:
 	void				BRANCH(void);
 	void				BAL(void);
 	void				NOP(void);
+	void				CPYX(void);
 	void				SHL(void);
 	void				SHR(void);
 	void				SCP(void);

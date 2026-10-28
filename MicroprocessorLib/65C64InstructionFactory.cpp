@@ -67,8 +67,11 @@ static S65C64InstructionName gasInstructionNames[NUM_65_INSTRUCTIONS] =
 	{ I65_Brac,				"brac",	"Branch on clear" },
 	{ I65_Brasa,			"brasa","Branch on set and set" },
 	{ I65_Braso,			"braso","Branch on set xor set" },
+	{ I65_Brae,				"brae",	"Branch on equal" },
+	{ I65_Brane,			"brane","Branch on not equal" },
 	{ I65_Bal,				"bra",	"Branch always" },
 	{ I65_Nop,				"nop",	"No operation" },
+	{ I65_Cpyx,			"cpyx",	"Copy extend (zero extend)" },
 	{ I65_Shl,				"shl",	"Shift left" },
 	{ I65_Shr,				"shr",	"Shift right" },
 	{ I65_PshRegisters,		"psh",	"Push registers" },
@@ -379,8 +382,12 @@ void C65C64InstructionFactory::GetForm(S65C64Decoded* psDecoded, S65C64Form* psF
 	case I65_Brac:
 	case I65_Brasa:
 	case I65_Braso:
+	case I65_Brae:
+	case I65_Brane:
 		psForm->fExecute = &C65C64::BRANCH;
 		break;
+
+	case I65_Cpyx:	psForm->fExecute = &C65C64::CPYX;	break;
 
 	case I65_Bal:	psForm->fExecute = &C65C64::BAL;	break;
 	case I65_Mul:	psForm->fExecute = &C65C64::MUL;	break;
@@ -501,13 +508,14 @@ uint32 C65C64InstructionFactory::GetFormKey(S65C64Form* psForm)
 {
 	uint32	uiKey;
 
+	//The instruction takes 7 bits (there are more than 64).
 	uiKey = psForm->eInstruction;
-	uiKey |= (uint32)psForm->uiOperandWords << 6;
-	uiKey |= (uint32)psForm->bIndirect << 9;
-	uiKey |= (uint32)psForm->eAccess << 10;
-	uiKey |= (uint32)psForm->uiMaxTransferWords << 12;
-	uiKey |= (uint32)psForm->uiMaxWait << 18;
-	uiKey |= (uint32)psForm->bVector << 22;
+	uiKey |= (uint32)psForm->uiOperandWords << 7;
+	uiKey |= (uint32)psForm->bIndirect << 10;
+	uiKey |= (uint32)psForm->eAccess << 11;
+	uiKey |= (uint32)psForm->uiMaxTransferWords << 13;
+	uiKey |= (uint32)psForm->uiMaxWait << 19;
+	uiKey |= (uint32)psForm->bVector << 23;
 
 	//Zero marks an empty slot.
 	return uiKey + 1;

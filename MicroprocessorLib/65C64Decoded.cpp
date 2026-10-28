@@ -37,6 +37,17 @@ const uint8 gaui65ImmediateBytes[8] = { 0, 1, 2, 3, 4, 5, 6, 8 };
 //Embedded branch offsets.
 const int32 gai65BranchOffsets[8] = { 2, 4, 6, 8, -4, -6, -8, -10 };
 
+//brae and brane's embedded branch offsets (the user, 2026-10-28).
+const int32 gai65EqualBranchOffsets[4] = { -8, -4, 4, 8 };
+
+//Minimal addressing modes drop the indirect register modes and two register modes.
+const uint8 gaui65MinimalModes[8] = { OPERAND_MODE_ABSOLUTE, OPERAND_MODE_ABSOLUTE_INDIRECT, OPERAND_MODE_ABSOLUTE_REGISTER_INDIRECT,
+									  OPERAND_MODE_OFFSET, OPERAND_MODE_OFFSET_INDIRECT, OPERAND_MODE_OFFSET_REGISTER_INDIRECT,
+									  OPERAND_MODE_ADDRESS_REGISTER, OPERAND_MODE_REGISTER_INDIRECT };
+
+//cpyx's data widths: 8, 16, 32 and 64 bits.
+const uint8 gaui65CopyExtendBytes[4] = { 1, 2, 4, 8 };
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -367,6 +378,7 @@ static void SetAluAccess(S65C64Decoded* psDecoded)
 		switch (psDecoded->eInstruction)
 		{
 		case I65_Cpy:
+		case I65_Cpyx:
 			psDecoded->eAccess = MA65_Write;
 			break;
 		case I65_Tst:
@@ -545,7 +557,7 @@ static void DecodeReturnStateBreakStop(uint16 uiOpcode, S65C64Decoded* psDecoded
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void DecodeBranchNopShift(uint16 uiOpcode, S65C64Decoded* psDecoded)
+static void DecodeBranchNopCopyExtend(uint16 uiOpcode, S65C64Decoded* psDecoded)
 {
 	static E65Instruction	aeBranches[4] = { I65_Brac, I65_Bras, I65_Brasa, I65_Braso };
 	uint16					uiExtend;
@@ -586,10 +598,35 @@ static void DecodeBranchNopShift(uint16 uiOpcode, S65C64Decoded* psDecoded)
 			psDecoded->uiWait = (uint8)(Field(uiOpcode, 9, 3) + 1);
 		}
 	}
+	else if (uiExtend == 2)
+	{
+		//brae and brane: both flags are c, z, n, v, f or g.  uiFlagSecond is counted from c, as
+		//in the qualified branches.  b7 set is an embedded offset, clear an immediate.
+		if ((Field(uiOpcode, 13, 3) < 2) || (Field(uiOpcode, 10, 3) < 2))
+		{
+			return;
+		}
+		psDecoded->uiFlagFirst = (uint8)Field(uiOpcode, 13, 3);
+		psDecoded->uiFlagSecond = (uint8)(Field(uiOpcode, 10, 3) - 2);
+		psDecoded->uiCondition = (uint8)(4 + Field(uiOpcode, 6, 1));
+		psDecoded->eInstruction = (Field(uiOpcode, 6, 1) == 0) ? I65_Brae : I65_Brane;
+		psDecoded->bSigned = true;
+		if (Field(uiOpcode, 7, 1) != 0)
+		{
+			psDecoded->iBranchOffset = gai65EqualBranchOffsets[Field(uiOpcode, 8, 2)];
+			SetEmbedded(&psDecoded->sSecond, psDecoded->iBranchOffset);
+		}
+		else
+		{
+			SetImmediate(&psDecoded->sSecond, (uint8)(Field(uiOpcode, 8, 2) + 1));
+		}
+	}
 	else
 	{
-		psDecoded->eInstruction = (uiExtend == 2) ? I65_Shl : I65_Shr;
-		DecodeShift(uiOpcode, psDecoded);
+		//cpyx: a register and a minimal addressing mode memory operand, uiWidthBytes wide in memory.
+		psDecoded->eInstruction = I65_Cpyx;
+		psDecoded->uiWidthBytes = gaui65CopyExtendBytes[Field(uiOpcode, 6, 2)];
+		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gae65ABXY[Field(uiOpcode, 13, 2)], gaui65MinimalModes[Field(uiOpcode, 8, 3)], gae65NoneWXY[Field(uiOpcode, 11, 2)], R65_Zero);
 		SetAluAccess(psDecoded);
 	}
 }
@@ -695,10 +732,11 @@ static void DecodeSubcopy(uint16 uiOpcode, S65C64Decoded* psDecoded)
 //////////////////////////////////////////////////////////////////////////
 //
 // Instruction code 14: multiply and divide (no operand fields; they use A, B, W and
-// Y), negate and absolute (two registers) and the finds (a register and an index).
+// Y), negate and absolute (two registers), the finds (a register and an index) and
+// the shifts (extend 2 and 3).
 //
 //////////////////////////////////////////////////////////////////////////
-static void DecodeMultiplyDivideFind(uint16 uiOpcode, S65C64Decoded* psDecoded)
+static void DecodeMultiplyDivideFindShift(uint16 uiOpcode, S65C64Decoded* psDecoded)
 {
 	static uint8	auiUnitBits[4] = { 1, 2, 4, 8 };
 	uint16			uiUnit;
@@ -732,6 +770,12 @@ static void DecodeMultiplyDivideFind(uint16 uiOpcode, S65C64Decoded* psDecoded)
 		psDecoded->bNotZero = Field(uiOpcode, 8, 1) != 0;
 		psDecoded->uiUnitBits = auiUnitBits[uiUnit];
 		psDecoded->eInstruction = (E65Instruction)(I65_Fsbi + 2 * uiUnit + (psDecoded->bNotZero ? 0 : 1));
+		break;
+
+	default:
+		psDecoded->eInstruction = (Field(uiOpcode, 4, 2) == 2) ? I65_Shl : I65_Shr;
+		DecodeShift(uiOpcode, psDecoded);
+		SetAluAccess(psDecoded);
 		break;
 	}
 }
@@ -839,7 +883,7 @@ static void DecodeBlockVector(uint16 uiOpcode, S65C64Decoded* psDecoded)
 //////////////////////////////////////////////////////////////////////////
 //
 // Hardware register instructions (extend 0 to 3) are not simulated.  Status flags are
-// numbered as in the branches: 0, 1, c, z, n, v, f, g.
+// numbered as in the branches: 0, 1, c, z, n, v, f, g.  Extend 6 is the sign extending cpyx.
 //
 //////////////////////////////////////////////////////////////////////////
 static void DecodeHardwareState(uint16 uiOpcode, S65C64Decoded* psDecoded)
@@ -866,6 +910,20 @@ static void DecodeHardwareState(uint16 uiOpcode, S65C64Decoded* psDecoded)
 		//Index style 7 is a register, 6 is immediate (both in the operand word), 0 to 5 is the index.
 		psDecoded->uiIndexStyle = (uint8)Field(uiOpcode, 7, 3);
 		psDecoded->uiOperandWords = (psDecoded->uiIndexStyle >= 6) ? 1 : 0;
+		break;
+
+	case 6:
+		//cpyx sign extend: memory into A, B, X or Y (the zero extending cpyx is code 12 extend 3).
+		//Width code 3 (64 bits, nothing to extend) is unused.
+		if (Field(uiOpcode, 7, 2) == 3)
+		{
+			break;
+		}
+		psDecoded->eInstruction = I65_Cpyx;
+		psDecoded->bSigned = true;
+		psDecoded->uiWidthBytes = gaui65CopyExtendBytes[Field(uiOpcode, 7, 2)];
+		SetMemoryOperands(psDecoded, false, gae65ABXY[Field(uiOpcode, 14, 2)], gaui65MinimalModes[Field(uiOpcode, 9, 3)], gae65NoneWXY[Field(uiOpcode, 12, 2)], R65_Zero);
+		SetAluAccess(psDecoded);
 		break;
 
 	case 7:
@@ -927,13 +985,13 @@ void Decode65C64(uint16 uiOpcode, S65C64Decoded* psDecoded)
 		DecodeReturnStateBreakStop(uiOpcode, psDecoded);
 		break;
 	case 12:
-		DecodeBranchNopShift(uiOpcode, psDecoded);
+		DecodeBranchNopCopyExtend(uiOpcode, psDecoded);
 		break;
 	case 13:
 		DecodePushPull(uiOpcode, psDecoded);
 		break;
 	case 14:
-		DecodeMultiplyDivideFind(uiOpcode, psDecoded);
+		DecodeMultiplyDivideFindShift(uiOpcode, psDecoded);
 		break;
 	case 15:
 		DecodeHardwareState(uiOpcode, psDecoded);

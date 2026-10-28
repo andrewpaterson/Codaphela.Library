@@ -274,7 +274,16 @@ correct").  The embedded field still encodes bytes - 1 (1 = 8 bits ... 8 = 64 bi
 width (1-8 = 8, 9-16 = 16, 17-32 = 32, more = 64).
 Undefined encodings execute as a one cycle "ill" that does nothing.
 shl: c is the last bit shifted out, v the one before it.  shr: the same, and n is the
-sign before the shift.  A shift of 0 clears c and v.
+sign before the shift.  A shift of 0 clears c and v.  The shifts are instruction code 14
+extend 2 (shl) and 3 (shr); their fields did not change (the user's sheet, 2026-10-28).
+brae and brane (code 12 extend 2, the user 2026-10-28): flags b15-13 and b12-10 are c, z,
+n, v, f or g (0 and 1 are illegal); b7 set is an embedded offset in b9-8 (-8, -4, 4, 8),
+clear an 8 to 32 bit signed immediate (width in b9-8); b6 0 = equal, 1 = not equal.
+cpyx (code 12 extend 3, the user 2026-10-28): b15 swap, b14-13 A/B/X/Y, b12-11 none/W/X/Y,
+b10-8 minimal addressing mode (2, 3, 4, 6, 7, 8, 10, 12), b7-6 data width 8/16/32/64.
+Memory into a register zero extends; wider than the register truncates.  With swap the
+register's low data width bits (zero extended) are written.  n and z come from the value
+copied (at the register's width, or the data width when writing memory).
 The block move example's "cpy B, X+W" and "cpy Y+W, B" could not be encoded (the first
 register of the register + register modes must be A, B, S or V).  The sheet was rewritten
 from the simulator (the user: "take the simulator as truth"): V source, A destination,
