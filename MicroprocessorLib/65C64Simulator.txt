@@ -284,6 +284,10 @@ b10-8 minimal addressing mode (2, 3, 4, 6, 7, 8, 10, 12), b7-6 data width 8/16/3
 Memory into a register zero extends; wider than the register truncates.  With swap the
 register's low data width bits (zero extended) are written.  n and z come from the value
 copied (at the register's width, or the data width when writing memory).
+The sign extending cpyx (cpyx R, [M]:s8, the user 2026-10-28) is code 15 extend 6, among the
+hardware instructions because code 12 is full: b15-14 A/B/X/Y, b13-12 none/W/X/Y, b11-9
+minimal mode, b8-7 width 8/16/32 (3 is illegal), memory into the register only.  It decodes
+as I65_Cpyx with bSigned set.
 The block move example's "cpy B, X+W" and "cpy Y+W, B" could not be encoded (the first
 register of the register + register modes must be A, B, S or V).  The sheet was rewritten
 from the simulator (the user: "take the simulator as truth"): V source, A destination,
