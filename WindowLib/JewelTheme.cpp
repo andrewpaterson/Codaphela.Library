@@ -20,7 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Objects.h"
 #include "JewelColours.h"
-#include "JewelButtonImages.h"
+#include "JewelImageGenerator.h"
 #include "Window.h"
 #include "JewelTheme.h"
 
@@ -39,22 +39,22 @@ Ptr<CWindowTheme> CJewelTheme::CreateDarkTheme(Ptr<CWindow> pWindow, Ptr<CFont> 
 	pWindow->GetColourFormat(&cFormat);
 
 	pTheme = OMalloc<CWindowTheme>(pFont);
-	pTheme->SetButtonImages(CJewelButtonImages::CreateButtonImages(&cFormat), CJewelButtonImages::CreateDefaultButtonImages(&cFormat));
-	pTheme->SetToolButtonImages(CJewelButtonImages::CreateFlatButtonImages(JEWEL_PANEL, JEWEL_HOVER, JEWEL_SEPARATOR, &cFormat));
-	pTheme->SetCheckBoxImages(CJewelButtonImages::CreateCheckBoxImages(&cFormat));
+	pTheme->SetButtonImages(CJewelImageGenerator::CreateButtonImages(&cFormat), CJewelImageGenerator::CreateDefaultButtonImages(&cFormat));
+	pTheme->SetToolButtonImages(CJewelImageGenerator::CreateFlatButtonImages(JEWEL_PANEL, JEWEL_HOVER, JEWEL_SEPARATOR, &cFormat));
+	pTheme->SetCheckBoxImages(CJewelImageGenerator::CreateCheckBoxImages(&cFormat));
 	pTheme->SetMenuStyle(OMalloc<CMenuStyle>(pWindow, pFont));
 
 	//The combo box's items have no icons, so their text lines up with the combo box's.
 	pComboStyle = OMalloc<CMenuStyle>(pWindow, pFont);
 	pComboStyle->SetIconWidth(13);
-	pTheme->SetComboBoxLook(pComboStyle, CJewelButtonImages::CreateDownChevron(JEWEL_ICON, &cFormat));
+	pTheme->SetComboBoxLook(pComboStyle, CJewelImageGenerator::CreateDownChevron(JEWEL_ICON, &cFormat));
 
 	pTheme->SetScrollBarImages(OMalloc<CScrollBarImages>(8, Set32BitColour((uint8)200, (uint8)200, (uint8)200, (uint8)128), &cFormat));
 	pTheme->SetTextColours(JEWEL_SELECTION, JEWEL_ICON);
 	pTheme->SetListColours(JEWEL_SELECTION, JEWEL_HOVER);
 
 	//IDEA's editor tabs: flat on the editor's colour, the selected one underlined in blue, a grey cross that whitens.
-	pTheme->SetTabLook(JEWEL_EDITOR, JEWEL_HOVER, JEWEL_BLUE, JEWEL_SEPARATOR, CJewelButtonImages::CreateCross(JEWEL_BORDER_PUSHED, &cFormat), CJewelButtonImages::CreateCross(JEWEL_TEXT, &cFormat));
+	pTheme->SetTabLook(JEWEL_EDITOR, JEWEL_HOVER, JEWEL_BLUE, JEWEL_SEPARATOR, CJewelImageGenerator::CreateCross(JEWEL_BORDER_PUSHED, &cFormat), CJewelImageGenerator::CreateCross(JEWEL_TEXT, &cFormat));
 	return pTheme;
 }
 

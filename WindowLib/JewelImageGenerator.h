@@ -31,7 +31,7 @@ class CImageDraw;
 //Draws the button images of JetBrains' Jewel dark theme with CImageDraw rather than loading them.  Each state's border
 //is a strip of 8 x 8 tiles laid out as CButtonImages expects, or 7 x 7 tiles for a flat button.  From the outside in each tile has a two pixel focus
 //ring (empty except when selected), a one pixel border and then the face, with corners six, four and three round.
-class CJewelButtonImages
+class CJewelImageGenerator
 {
 public:
 	static Ptr<CButtonImages>	CreateButtonImages(CColourFormatHelper* pcFormat);  //The outlined button.

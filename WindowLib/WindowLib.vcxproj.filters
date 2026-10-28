@@ -49,9 +49,6 @@
     <Filter Include="Source\Component\Container\Grid">
       <UniqueIdentifier>{c544ca7b-1068-448b-859c-caf91421c407}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Component\Images">
-      <UniqueIdentifier>{8e5a8ca4-b11c-4912-89f6-59fba527dd92}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Component\Widgets\Menu">
       <UniqueIdentifier>{2cac44de-99ec-4cd6-89fd-97c903f6bdd6}</UniqueIdentifier>
     </Filter>
@@ -81,6 +78,15 @@
     </Filter>
     <Filter Include="Source\Component\Widgets\TextArea">
       <UniqueIdentifier>{f0e0cfa8-90b2-4a70-bda7-5975a97308a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Theme">
+      <UniqueIdentifier>{7c536195-1c92-4f91-8f64-6a9d37688f0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Theme\Jewel">
+      <UniqueIdentifier>{97d9119b-41d8-44cb-81f7-8ffb125075be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Theme">
+      <UniqueIdentifier>{8e5a8ca4-b11c-4912-89f6-59fba527dd92}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -165,15 +171,6 @@
     <ClInclude Include="RoundedBoxCanvasDraw.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
-    <ClInclude Include="JewelButtonImages.h">
-      <Filter>Source\Component\Images</Filter>
-    </ClInclude>
-    <ClInclude Include="ScrollBarImages.h">
-      <Filter>Source\Component\Images</Filter>
-    </ClInclude>
-    <ClInclude Include="ButtonImages.h">
-      <Filter>Source\Component\Images</Filter>
-    </ClInclude>
     <ClInclude Include="MapsCanvasDraw.h">
       <Filter>Source\Image\Canvas</Filter>
     </ClInclude>
@@ -204,17 +201,8 @@
     <ClInclude Include="TextMarksCanvasDraw.h">
       <Filter>Source\Image\Canvas</Filter>
     </ClInclude>
-    <ClInclude Include="CheckBoxImages.h">
-      <Filter>Source\Component\Images</Filter>
-    </ClInclude>
     <ClInclude Include="WindowTheme.h">
-      <Filter>Source\Component\Images</Filter>
-    </ClInclude>
-    <ClInclude Include="JewelTheme.h">
-      <Filter>Source\Component\Images</Filter>
-    </ClInclude>
-    <ClInclude Include="JewelColours.h">
-      <Filter>Source\Component\Images</Filter>
+      <Filter>Source\Component\Theme</Filter>
     </ClInclude>
     <ClInclude Include="MenuBar.h">
       <Filter>Source\Component\Widgets\Menu</Filter>
@@ -291,6 +279,24 @@
     <ClInclude Include="TextArea.h">
       <Filter>Source\Component\Widgets\TextArea</Filter>
     </ClInclude>
+    <ClInclude Include="ButtonImages.h">
+      <Filter>Source\Component\Widgets\Button</Filter>
+    </ClInclude>
+    <ClInclude Include="CheckBoxImages.h">
+      <Filter>Source\Component\Widgets\ComboBox</Filter>
+    </ClInclude>
+    <ClInclude Include="JewelTheme.h">
+      <Filter>Source\Theme\Jewel</Filter>
+    </ClInclude>
+    <ClInclude Include="JewelImageGenerator.h">
+      <Filter>Source\Theme\Jewel</Filter>
+    </ClInclude>
+    <ClInclude Include="JewelColours.h">
+      <Filter>Source\Theme\Jewel</Filter>
+    </ClInclude>
+    <ClInclude Include="ScrollBarImages.h">
+      <Filter>Source\Component\Widgets\ScrollPane</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeWindow.cpp">
@@ -359,15 +365,6 @@
     <ClCompile Include="RoundedBoxCanvasDraw.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
-    <ClCompile Include="JewelButtonImages.cpp">
-      <Filter>Source\Component\Images</Filter>
-    </ClCompile>
-    <ClCompile Include="ScrollBarImages.cpp">
-      <Filter>Source\Component\Images</Filter>
-    </ClCompile>
-    <ClCompile Include="ButtonImages.cpp">
-      <Filter>Source\Component\Images</Filter>
-    </ClCompile>
     <ClCompile Include="CanvasDraw.cpp">
       <Filter>Source\Component\Drawing\Canvas</Filter>
     </ClCompile>
@@ -404,14 +401,8 @@
     <ClCompile Include="TextMarksCanvasDraw.cpp">
       <Filter>Source\Image\Canvas</Filter>
     </ClCompile>
-    <ClCompile Include="CheckBoxImages.cpp">
-      <Filter>Source\Component\Images</Filter>
-    </ClCompile>
     <ClCompile Include="WindowTheme.cpp">
-      <Filter>Source\Component\Images</Filter>
-    </ClCompile>
-    <ClCompile Include="JewelTheme.cpp">
-      <Filter>Source\Component\Images</Filter>
+      <Filter>Source\Component\Theme</Filter>
     </ClCompile>
     <ClCompile Include="MenuBar.cpp">
       <Filter>Source\Component\Widgets\Menu</Filter>
@@ -469,6 +460,21 @@
     </ClCompile>
     <ClCompile Include="TextArea.cpp">
       <Filter>Source\Component\Widgets\TextArea</Filter>
+    </ClCompile>
+    <ClCompile Include="ButtonImages.cpp">
+      <Filter>Source\Component\Widgets\Button</Filter>
+    </ClCompile>
+    <ClCompile Include="CheckBoxImages.cpp">
+      <Filter>Source\Component\Widgets\ComboBox</Filter>
+    </ClCompile>
+    <ClCompile Include="JewelImageGenerator.cpp">
+      <Filter>Source\Theme\Jewel</Filter>
+    </ClCompile>
+    <ClCompile Include="JewelTheme.cpp">
+      <Filter>Source\Theme\Jewel</Filter>
+    </ClCompile>
+    <ClCompile Include="ScrollBarImages.cpp">
+      <Filter>Source\Component\Widgets\ScrollPane</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

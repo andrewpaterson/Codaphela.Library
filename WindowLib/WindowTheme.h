@@ -34,7 +34,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 enum EButtonLook
 {
 	BL_Normal,
-	BL_Tool,
+	BL_Flat,
 };
 
 

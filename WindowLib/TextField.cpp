@@ -572,7 +572,7 @@ void CTextField::UpdateLook(void)
 {
 	if (mbFocussed)
 	{
-		SetBorderState(BS_Selected);
+		SetBorderState(BS_Focussed);
 	}
 	else if (mbMouseOver)
 	{

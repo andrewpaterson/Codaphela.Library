@@ -493,7 +493,7 @@ void CButton::UpdateState(void)
 	}
 	else if (mbFocussed)
 	{
-		eState = BS_Selected;
+		eState = BS_Focussed;
 	}
 	else
 	{

@@ -30,7 +30,7 @@ enum EButtonState
 {
 	BS_Normal,
 	BS_MouseOver,
-	BS_Selected,  //Has focus.
+	BS_Focussed,
 	BS_Pushed,
 
 	NUM_BUTTON_STATES

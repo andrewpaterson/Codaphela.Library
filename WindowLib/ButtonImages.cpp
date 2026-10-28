@@ -50,7 +50,7 @@ void CButtonImages::Init(Ptr<CImage> pNormal, Ptr<CImage> pMouseOver, Ptr<CImage
 	maCels.Init();
 	masFaceColours[BS_Normal] = sNormalFace;
 	masFaceColours[BS_MouseOver] = sMouseOverFace;
-	masFaceColours[BS_Selected] = sSelectedFace;
+	masFaceColours[BS_Focussed] = sSelectedFace;
 	masFaceColours[BS_Pushed] = sPushedFace;
 	miTileSize = (int32)pNormal->GetWidth();
 
