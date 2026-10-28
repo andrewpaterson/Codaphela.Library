@@ -432,7 +432,7 @@ void CComboBox::UpdateLook(void)
 {
 	if (mbFocussed || IsOpen())
 	{
-		SetBorderState(BS_Selected);
+		SetBorderState(BS_Focussed);
 	}
 	else if (mbMouseOver)
 	{

@@ -23,7 +23,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/VectorShapes.h"
 #include "SupportLib/ImageColourConverter.h"
 #include "JewelColours.h"
-#include "JewelButtonImages.h"
+#include "JewelImageGenerator.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -34,7 +34,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 // tiles are iTile square.
 //
 //////////////////////////////////////////////////////////////////////////
-void CJewelButtonImages::DrawCorner(CImageDraw* pcDraw, int iTile, int iTileTop, bool bRight, bool bBottom, int iInset, int iRadius)
+void CJewelImageGenerator::DrawCorner(CImageDraw* pcDraw, int iTile, int iTileTop, bool bRight, bool bBottom, int iInset, int iRadius)
 {
 	int		iCircle;
 	int		iStartAngle;
@@ -79,7 +79,7 @@ void CJewelButtonImages::DrawCorner(CImageDraw* pcDraw, int iTile, int iTileTop,
 // Draws one layer of a Jewel button's border on every tile of the strip.
 //
 //////////////////////////////////////////////////////////////////////////
-void CJewelButtonImages::DrawLayer(CImageDraw* pcDraw, int iTile, int iInset, int iRadius, ARGB32 sColour)
+void CJewelImageGenerator::DrawLayer(CImageDraw* pcDraw, int iTile, int iInset, int iRadius, ARGB32 sColour)
 {
 	int		i;
 
@@ -107,7 +107,7 @@ void CJewelButtonImages::DrawLayer(CImageDraw* pcDraw, int iTile, int iInset, in
 // filled and the face over it.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CJewelButtonImages::DrawStrip(bool bFocusRing, ARGB32 sFocusRing, ARGB32 sBorder, ARGB32 sFace, CColourFormatHelper* pcFormat)
+Ptr<CImage> CJewelImageGenerator::DrawStrip(bool bFocusRing, ARGB32 sFocusRing, ARGB32 sBorder, ARGB32 sFace, CColourFormatHelper* pcFormat)
 {
 	Ptr<CImage>		pImage;
 	CImageDraw		cDraw;
@@ -134,7 +134,7 @@ Ptr<CImage> CJewelButtonImages::DrawStrip(bool bFocusRing, ARGB32 sFocusRing, AR
 // pixels of every tile are its focus ring, empty except when selected.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CButtonImages> CJewelButtonImages::CreateButtonImages(CColourFormatHelper* pcFormat)
+Ptr<CButtonImages> CJewelImageGenerator::CreateButtonImages(CColourFormatHelper* pcFormat)
 {
 	ARGB32			sFace;
 	ARGB32			sBlue;
@@ -160,7 +160,7 @@ Ptr<CButtonImages> CJewelButtonImages::CreateButtonImages(CColourFormatHelper* p
 // a dark line between its face and its focus ring.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CButtonImages> CJewelButtonImages::CreateDefaultButtonImages(CColourFormatHelper* pcFormat)
+Ptr<CButtonImages> CJewelImageGenerator::CreateDefaultButtonImages(CColourFormatHelper* pcFormat)
 {
 	ARGB32			sDark;
 	ARGB32			sBlue;
@@ -191,7 +191,7 @@ Ptr<CButtonImages> CJewelButtonImages::CreateDefaultButtonImages(CColourFormatHe
 // buttons' blocks don't touch; otherwise they are empty.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CJewelButtonImages::DrawFlatStrip(bool bFilled, ARGB32 sFill, CColourFormatHelper* pcFormat)
+Ptr<CImage> CJewelImageGenerator::DrawFlatStrip(bool bFilled, ARGB32 sFill, CColourFormatHelper* pcFormat)
 {
 	Ptr<CImage>		pImage;
 	CImageDraw		cDraw;
@@ -219,7 +219,7 @@ Ptr<CImage> CJewelButtonImages::DrawFlatStrip(bool bFilled, ARGB32 sFill, CColou
 // padding it is not much bigger than its caption.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CButtonImages> CJewelButtonImages::CreateFlatButtonImages(ARGB32 sBackground, ARGB32 sHover, ARGB32 sPushed, CColourFormatHelper* pcFormat)
+Ptr<CButtonImages> CJewelImageGenerator::CreateFlatButtonImages(ARGB32 sBackground, ARGB32 sHover, ARGB32 sPushed, CColourFormatHelper* pcFormat)
 {
 	Ptr<CImage>		pNormal;
 	Ptr<CImage>		pHover;
@@ -238,7 +238,7 @@ Ptr<CButtonImages> CJewelButtonImages::CreateFlatButtonImages(ARGB32 sBackground
 // lines meet at a point on the right, with nothing around them.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CJewelButtonImages::CreateChevron(ARGB32 sColour, CColourFormatHelper* pcFormat)
+Ptr<CImageCel> CJewelImageGenerator::CreateChevron(ARGB32 sColour, CColourFormatHelper* pcFormat)
 {
 	Ptr<CImage>			pImage;
 	CImageDraw			cDraw;
@@ -261,7 +261,7 @@ Ptr<CImageCel> CJewelButtonImages::CreateChevron(ARGB32 sColour, CColourFormatHe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJewelButtonImages::SetColour(CImageDraw* pcDraw, ARGB32 sColour)
+void CJewelImageGenerator::SetColour(CImageDraw* pcDraw, ARGB32 sColour)
 {
 	CImageColourARGB	cColour;
 
@@ -276,7 +276,7 @@ void CJewelButtonImages::SetColour(CImageDraw* pcDraw, ARGB32 sColour)
 // The chevron of a combo box, 9 x 8.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CJewelButtonImages::CreateDownChevron(ARGB32 sColour, CColourFormatHelper* pcFormat)
+Ptr<CImageCel> CJewelImageGenerator::CreateDownChevron(ARGB32 sColour, CColourFormatHelper* pcFormat)
 {
 	Ptr<CImage>			pImage;
 	CImageDraw			cDraw;
@@ -301,7 +301,7 @@ Ptr<CImageCel> CJewelButtonImages::CreateDownChevron(ARGB32 sColour, CColourForm
 // middle of a 16 x 16 cel.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CJewelButtonImages::CreateCross(ARGB32 sColour, CColourFormatHelper* pcFormat)
+Ptr<CImageCel> CJewelImageGenerator::CreateCross(ARGB32 sColour, CColourFormatHelper* pcFormat)
 {
 	Ptr<CImage>			pImage;
 	CImageDraw			cDraw;
@@ -327,7 +327,7 @@ Ptr<CImageCel> CJewelButtonImages::CreateCross(ARGB32 sColour, CColourFormatHelp
 // keys and a space bar, in the middle of a 16 x 16 cel.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CJewelButtonImages::CreateKeyboard(ARGB32 sColour, CColourFormatHelper* pcFormat)
+Ptr<CImageCel> CJewelImageGenerator::CreateKeyboard(ARGB32 sColour, CColourFormatHelper* pcFormat)
 {
 	Ptr<CImage>			pImage;
 	CImageDraw			cDraw;
@@ -381,7 +381,7 @@ Ptr<CImageCel> CJewelButtonImages::CreateKeyboard(ARGB32 sColour, CColourFormatH
 // of its top edge, in a 16 x 16 cel.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CJewelButtonImages::CreateFolder(ARGB32 sColour, CColourFormatHelper* pcFormat)
+Ptr<CImageCel> CJewelImageGenerator::CreateFolder(ARGB32 sColour, CColourFormatHelper* pcFormat)
 {
 	SFloat64Vec2	asPoints[6];
 
@@ -401,7 +401,7 @@ Ptr<CImageCel> CJewelButtonImages::CreateFolder(ARGB32 sColour, CColourFormatHel
 // corner folded over, in a 16 x 16 cel.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CJewelButtonImages::CreateFile(ARGB32 sColour, CColourFormatHelper* pcFormat)
+Ptr<CImageCel> CJewelImageGenerator::CreateFile(ARGB32 sColour, CColourFormatHelper* pcFormat)
 {
 	SFloat64Vec2	asPoints[5];
 	SFloat64Vec2	asFold[3];
@@ -425,7 +425,7 @@ Ptr<CImageCel> CJewelButtonImages::CreateFile(ARGB32 sColour, CColourFormatHelpe
 // on pixel centres keep straight edges sharp.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CJewelButtonImages::DrawOutline(SFloat64Vec2* asPoints, size uiNumPoints, SFloat64Vec2* asExtra, size uiNumExtra, ARGB32 sColour, CColourFormatHelper* pcFormat)
+Ptr<CImageCel> CJewelImageGenerator::DrawOutline(SFloat64Vec2* asPoints, size uiNumPoints, SFloat64Vec2* asExtra, size uiNumExtra, ARGB32 sColour, CColourFormatHelper* pcFormat)
 {
 	Ptr<CImage>			pImage;
 	CImageDraw			cDraw;
@@ -470,7 +470,7 @@ Ptr<CImageCel> CJewelButtonImages::DrawOutline(SFloat64Vec2* asPoints, size uiNu
 // Both are lighter with the pointer over them.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCel> CJewelButtonImages::DrawCheckBox(bool bTicked, bool bFocusRing, bool bMouseOver, CColourFormatHelper* pcFormat)
+Ptr<CImageCel> CJewelImageGenerator::DrawCheckBox(bool bTicked, bool bFocusRing, bool bMouseOver, CColourFormatHelper* pcFormat)
 {
 	Ptr<CImage>			pImage;
 	CImageDraw			cDraw;
@@ -516,7 +516,7 @@ Ptr<CImageCel> CJewelButtonImages::DrawCheckBox(bool bTicked, bool bFocusRing, b
 // A box for each ECheckBoxState, ticked and not.
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CCheckBoxImages> CJewelButtonImages::CreateCheckBoxImages(CColourFormatHelper* pcFormat)
+Ptr<CCheckBoxImages> CJewelImageGenerator::CreateCheckBoxImages(CColourFormatHelper* pcFormat)
 {
 	Ptr<CCheckBoxImages>	pImages;
 	int						i;

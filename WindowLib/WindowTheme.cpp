@@ -184,7 +184,7 @@ void CWindowTheme::SetTabLook(ARGB32 sBar, ARGB32 sHover, ARGB32 sUnderline, ARG
 //////////////////////////////////////////////////////////////////////////
 Ptr<CButtonImages> CWindowTheme::GetButtonImages(EButtonLook eLook)
 {
-	if (eLook == BL_Tool)
+	if (eLook == BL_Flat)
 	{
 		return mpToolButtonImages;
 	}
@@ -199,7 +199,7 @@ Ptr<CButtonImages> CWindowTheme::GetButtonImages(EButtonLook eLook)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CButtonImages> CWindowTheme::GetDefaultButtonImages(EButtonLook eLook)
 {
-	if (eLook == BL_Tool)
+	if (eLook == BL_Flat)
 	{
 		return NULL;
 	}

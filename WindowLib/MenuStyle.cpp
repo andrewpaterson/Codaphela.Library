@@ -20,7 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
-#include "JewelButtonImages.h"
+#include "JewelImageGenerator.h"
 #include "Window.h"
 #include "JewelColours.h"
 #include "MenuStyle.h"
@@ -58,8 +58,8 @@ void CMenuStyle::Init(Ptr<CWindow> pWindow, Ptr<CFont> pFont)
 	miSelectionInset = 6;
 	miSeparatorInset = 8;
 
-	mpBarButtonImages = CJewelButtonImages::CreateFlatButtonImages(msBarBackground, msHover, msHover, &cFormat);
-	mpChevron = CJewelButtonImages::CreateChevron(JEWEL_ICON, &cFormat);
+	mpBarButtonImages = CJewelImageGenerator::CreateFlatButtonImages(msBarBackground, msHover, msHover, &cFormat);
+	mpChevron = CJewelImageGenerator::CreateChevron(JEWEL_ICON, &cFormat);
 
 	PostInit();
 }
