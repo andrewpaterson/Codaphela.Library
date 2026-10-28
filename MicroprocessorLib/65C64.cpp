@@ -1214,6 +1214,10 @@ uint8 C65C64::CalculateOperationBytes(void)
 	case I65_PulOperand:
 		return 4;
 
+	case I65_Cpyx:
+		//The memory is cpyx's data width; the register keeps its own width.
+		return msDecoded.uiWidthBytes;
+
 	default:
 		return 0;
 	}
@@ -1832,7 +1836,7 @@ void C65C64::BRANCH(void)
 	bool	bSecond;
 	bool	bTaken;
 
-	//The second flag is one of c, z, n or v.
+	//The second flag is counted from c: c, z, n or v (brae and brane: c, z, n, v, f or g).
 	bFirst = GetBranchFlag(msDecoded.uiFlagFirst);
 	bSecond = GetBranchFlag(msDecoded.uiFlagSecond + 2);
 	switch (msDecoded.uiCondition)
@@ -1846,7 +1850,11 @@ void C65C64::BRANCH(void)
 	case 2:
 		bTaken = bFirst && bSecond;
 		break;
+	case 4:
+		bTaken = bFirst == bSecond;
+		break;
 	default:
+		//braso and brane.
 		bTaken = bFirst != bSecond;
 		break;
 	}
@@ -1874,6 +1882,40 @@ void C65C64::BAL(void)
 //////////////////////////////////////////////////////////////////////////
 void C65C64::NOP(void)
 {
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// cpyx: memory of the data width into a register (zero or sign extended, or truncated to
+// the register's width), or with swap the register's low data width bits (zero extended)
+// into memory.  n and z come from the value copied (the user, 2026-10-28).
+//
+//////////////////////////////////////////////////////////////////////////
+void C65C64::CPYX(void)
+{
+	E65Register	eRegister;
+	uint8		uiDataBytes;
+	uint8		uiRegisterBytes;
+	uint64		uiValue;
+
+	uiDataBytes = msState.uiOperationBytes;
+	if (msDecoded.sFirst.eKind == OK65_Register)
+	{
+		eRegister = msDecoded.sFirst.eRegister;
+		uiRegisterBytes = GetRegisterBytes(eRegister);
+		uiValue = Extend65(msState.asTransfers[0].uiValue & Mask65(uiDataBytes), uiDataBytes, 8, msDecoded.bSigned) & Mask65(uiRegisterBytes);
+		SetRegister(eRegister, uiValue, uiRegisterBytes);
+		SetNegativeAndZero(uiValue, uiRegisterBytes);
+	}
+	else
+	{
+		eRegister = msDecoded.sSecond.eRegister;
+		uiRegisterBytes = GetRegisterBytes(eRegister);
+		uiValue = GetRegister(eRegister) & Mask65(uiRegisterBytes) & Mask65(uiDataBytes);
+		msState.asTransfers[0].uiValue = uiValue;
+		SetNegativeAndZero(uiValue, uiDataBytes);
+	}
 }
 
 

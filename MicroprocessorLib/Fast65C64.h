@@ -134,6 +134,7 @@ protected:
 	void		BlockStep(uint8 uiBytes, bool bVector, bool bDecrement, bool bDecrementW, bool bAllowStop, uint8 uiStopStyle);
 
 	void		Alu(SFast65C64Op* psOp, uint16* auiWords);
+	void		CopyExtend(SFast65C64Op* psOp, uint16* auiWords);
 	void		Jump(SFast65C64Op* psOp, uint16* auiWords);
 	void		Return(SFast65C64Op* psOp);
 	void		Subcopy(SFast65C64Op* psOp, uint16* auiWords);

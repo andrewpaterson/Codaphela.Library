@@ -1019,6 +1019,38 @@ void CFast65C64::Alu(SFast65C64Op* psOp, uint16* auiWords)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// cpyx: memory of the data width into a register (zero or sign extended, or truncated to the register's width), or
+// with swap the register's low data width bits into memory.  n and z come from the value copied.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFast65C64::CopyExtend(SFast65C64Op* psOp, uint16* auiWords)
+{
+	uint32	uiAddress;
+	uint8	uiRegister;
+	uint8	uiRegisterBytes;
+	uint64	uiValue;
+
+	uiAddress = DataAddress(psOp, auiWords);
+	if (psOp->uiFirstKind == OK65_Register)
+	{
+		uiRegister = psOp->uiFirstRegister;
+		uiRegisterBytes = mauiBytes[uiRegister];
+		uiValue = Extend(ReadValue(uiAddress, psOp->uiWidthBytes), psOp->uiWidthBytes, 8, psOp->bSigned) & gauiFast65Masks[uiRegisterBytes];
+		SetRegister(uiRegister, uiValue, uiRegisterBytes);
+		SetNegativeAndZero(uiValue, uiRegisterBytes);
+	}
+	else
+	{
+		uiRegister = psOp->uiSecondRegister;
+		uiValue = mauiRegisters[uiRegister] & gauiFast65Masks[mauiBytes[uiRegister]] & gauiFast65Masks[psOp->uiWidthBytes];
+		WriteValue(uiAddress, psOp->uiWidthBytes, uiValue);
+		SetNegativeAndZero(uiValue, psOp->uiWidthBytes);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // jmp, jsr, bra, brsr and psh (no target): C is already the next instruction.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1708,7 +1740,9 @@ void CFast65C64::Execute(void)
 	case I65_Brac:
 	case I65_Brasa:
 	case I65_Braso:
-		//The second flag is one of c, z, n or v.
+	case I65_Brae:
+	case I65_Brane:
+		//The second flag is counted from c: c, z, n or v (brae and brane: c, z, n, v, f or g).
 		bFirst = GetFlagCode(psOp->uiFlagFirst);
 		bSecond = GetFlagCode(psOp->uiFlagSecond + 2);
 		switch (psOp->uiCondition)
@@ -1722,7 +1756,11 @@ void CFast65C64::Execute(void)
 		case 2:
 			bTaken = bFirst && bSecond;
 			break;
+		case 4:
+			bTaken = bFirst == bSecond;
+			break;
 		default:
+			//braso and brane.
 			bTaken = bFirst != bSecond;
 			break;
 		}
@@ -1741,6 +1779,10 @@ void CFast65C64::Execute(void)
 
 	case I65_Bal:
 		muiC += (uint32)psOp->iBranchOffset;
+		break;
+
+	case I65_Cpyx:
+		CopyExtend(psOp, auiWords);
 		break;
 
 	case I65_Jmp:

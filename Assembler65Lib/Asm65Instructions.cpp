@@ -42,7 +42,9 @@ enum EAsm65Kind
 	AK65_GetWidth,
 	AK65_ExtendWidth,
 	AK65_Branch,
+	AK65_BranchEqual,
 	AK65_NoOperation,
+	AK65_CopyExtend,
 	AK65_MultiplyDivide,
 	AK65_NegateAbsolute,
 	AK65_Find,
@@ -97,7 +99,10 @@ static const SAsm65Mnemonic gasMnemonics[] =
 	{ "bras",	AK65_Branch,			1 },
 	{ "brasa",	AK65_Branch,			2 },
 	{ "braso",	AK65_Branch,			3 },
+	{ "brae",	AK65_BranchEqual,		0 },
+	{ "brane",	AK65_BranchEqual,		1 },
 	{ "nop",	AK65_NoOperation,		0 },
+	{ "cpyx",	AK65_CopyExtend,		0 },
 	{ "mul",	AK65_MultiplyDivide,	0 },
 	{ "div",	AK65_MultiplyDivide,	1 },
 	{ "neg",	AK65_NegateAbsolute,	2 },
@@ -289,8 +294,12 @@ bool CAsm65Assembler::Instruction(SAsm65Token* psMnemonic)
 			return ExtendWidth();
 		case AK65_Branch:
 			return Branch(psEntry->uiParameter);
+		case AK65_BranchEqual:
+			return BranchEqual(psEntry->uiParameter);
 		case AK65_NoOperation:
 			return NoOperation();
+		case AK65_CopyExtend:
+			return CopyExtend();
 		case AK65_MultiplyDivide:
 			return MultiplyDivide(psEntry->uiParameter);
 		case AK65_NegateAbsolute:
@@ -796,7 +805,7 @@ bool CAsm65Assembler::ArithmeticLogicMemory(uint16 uiCode, SAsm65Operand* psFirs
 
 //////////////////////////////////////////////////////////////////////////
 //
-// shl and shr (instruction code 12, extend 2 and 3).
+// shl and shr (instruction code 14, extend 2 and 3).
 //   shl R1, R2
 //   shl R, amount          0, 1 to 8 embedded, else an 8 or 16 bit immediate
 //   shl R, [address]       shl [address], R       shl [address], 1 to 8
@@ -834,7 +843,7 @@ bool CAsm65Assembler::Shift(bool bLeft)
 	}
 	else if (sSecond.eKind == AO65_Register)
 	{
-		StartInstruction(&sInstruction, (uint16)((sFirst.eRegister << 13) | (sSecond.eRegister << 10) | (OPERAND_MODE_REGISTER << 6) | (uiExtend << 4) | 12));
+		StartInstruction(&sInstruction, (uint16)((sFirst.eRegister << 13) | (sSecond.eRegister << 10) | (OPERAND_MODE_REGISTER << 6) | (uiExtend << 4) | 14));
 	}
 	else
 	{
@@ -845,11 +854,11 @@ bool CAsm65Assembler::Shift(bool bLeft)
 		}
 		if ((sSecond.uiWidthBytes == 0) && (iValue == 0) && (GetMinimumWords() <= 1))
 		{
-			StartInstruction(&sInstruction, (uint16)((sFirst.eRegister << 13) | (R65_Zero << 10) | (OPERAND_MODE_REGISTER << 6) | (uiExtend << 4) | 12));
+			StartInstruction(&sInstruction, (uint16)((sFirst.eRegister << 13) | (R65_Zero << 10) | (OPERAND_MODE_REGISTER << 6) | (uiExtend << 4) | 14));
 		}
 		else if ((sSecond.uiWidthBytes == 0) && (iValue >= 1) && (iValue <= 8) && (GetMinimumWords() <= 1))
 		{
-			StartInstruction(&sInstruction, (uint16)((sFirst.eRegister << 13) | ((iValue - 1) << 10) | (OPERAND_MODE_EMBEDDED << 6) | (uiExtend << 4) | 12));
+			StartInstruction(&sInstruction, (uint16)((sFirst.eRegister << 13) | ((iValue - 1) << 10) | (OPERAND_MODE_EMBEDDED << 6) | (uiExtend << 4) | 14));
 		}
 		else
 		{
@@ -857,7 +866,7 @@ bool CAsm65Assembler::Shift(bool bLeft)
 			{
 				return false;
 			}
-			StartInstruction(&sInstruction, (uint16)((sFirst.eRegister << 13) | ((uiBytes == 2) << 10) | (OPERAND_MODE_IMMEDIATE << 6) | (uiExtend << 4) | 12));
+			StartInstruction(&sInstruction, (uint16)((sFirst.eRegister << 13) | ((uiBytes == 2) << 10) | (OPERAND_MODE_IMMEDIATE << 6) | (uiExtend << 4) | 14));
 			AddValueWords(&sInstruction, (uint64)iValue, uiBytes);
 		}
 	}
@@ -916,7 +925,7 @@ bool CAsm65Assembler::ShiftMemory(uint16 uiExtend, SAsm65Operand* psFirst, SAsm6
 		{
 			return false;
 		}
-		uiOpcode = (uint16)((bSwap << 15) | (iRegister << 13) | (uiSecond << 12) | (uiFirst << 10) | (sMemory.uiMode << 6) | (uiExtend << 4) | 12);
+		uiOpcode = (uint16)((bSwap << 15) | (iRegister << 13) | (uiSecond << 12) | (uiFirst << 10) | (sMemory.uiMode << 6) | (uiExtend << 4) | 14);
 	}
 	else
 	{
@@ -931,7 +940,7 @@ bool CAsm65Assembler::ShiftMemory(uint16 uiExtend, SAsm65Operand* psFirst, SAsm6
 			{
 				return Error(psOther->psToken, "The register must be A, B, S or V");
 			}
-			uiOpcode = (uint16)((bSwap << 15) | (iRegister << 12) | (uiFirst << 10) | (sMemory.uiMode << 6) | (uiExtend << 4) | 12);
+			uiOpcode = (uint16)((bSwap << 15) | (iRegister << 12) | (uiFirst << 10) | (sMemory.uiMode << 6) | (uiExtend << 4) | 14);
 		}
 		else
 		{
@@ -948,7 +957,7 @@ bool CAsm65Assembler::ShiftMemory(uint16 uiExtend, SAsm65Operand* psFirst, SAsm6
 			{
 				iValue = 1;
 			}
-			uiOpcode = (uint16)(((((iValue - 1) >> 2) & 1) << 15) | (1 << 14) | (((iValue - 1) & 3) << 12) | (uiFirst << 10) | (sMemory.uiMode << 6) | (uiExtend << 4) | 12);
+			uiOpcode = (uint16)(((((iValue - 1) >> 2) & 1) << 15) | (1 << 14) | (((iValue - 1) & 3) << 12) | (uiFirst << 10) | (sMemory.uiMode << 6) | (uiExtend << 4) | 14);
 		}
 	}
 
@@ -1827,6 +1836,188 @@ bool CAsm65Assembler::Branch(uint16 uiCondition)
 	{
 		return false;
 	}
+	Emit(&sInstruction);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// brae (flag, flag), target    brane (flag, flag), target    (flags: c, z, n, v, f or g)
+// Branches when the two flags are equal (brae) or not equal (brane).  The target is as
+// in the qualified branches.  Offsets of -8, -4, 4 and 8 are embedded, others take an
+// 8 to 32 bit immediate.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::BranchEqual(uint16 uiSub)
+{
+	SAsm65Instruction	sInstruction;
+	SAsm65Token*		psToken;
+	SAsm65Value			sTarget;
+	uint8				uiFirst;
+	uint8				uiSecond;
+	uint16				uiFlags;
+	int64				iOffset;
+	uint8				uiBytes;
+	int					i;
+	bool				bRelocatable;
+
+	if (!Expect(AP65_LeftRound, "'('") || !Flag(&uiFirst, false, "a status flag") || !Expect(AP65_Comma, "','") ||
+		!Flag(&uiSecond, false, "a status flag") || !Expect(AP65_RightRound, "')'") || !Expect(AP65_Comma, "','"))
+	{
+		return false;
+	}
+	uiFlags = (uint16)((uiFirst << 13) | (uiSecond << 10) | (uiSub << 6) | (2 << 4) | 12);
+
+	psToken = Peek();
+	mbRelative = true;
+	if (!Expression(&sTarget))
+	{
+		return false;
+	}
+	mbRelative = false;
+	if (!RelativeTarget(&sTarget, psToken))
+	{
+		return false;
+	}
+
+	bRelocatable = TargetIsRelocatable(&sTarget);
+	iOffset = RelativeOffset(&sTarget, muiStatementAddress, 1);
+	if (!bRelocatable && (GetMinimumWords() <= 1))
+	{
+		for (i = 0; i < 4; i++)
+		{
+			if (!sTarget.bResolved || (gai65EqualBranchOffsets[i] == iOffset))
+			{
+				StartInstruction(&sInstruction, (uint16)(uiFlags | (i << 8) | (1 << 7)));
+				Emit(&sInstruction);
+				return true;
+			}
+		}
+	}
+
+	if (!RelativeBytes(&sTarget, psToken, &uiBytes, &iOffset))
+	{
+		return false;
+	}
+	StartInstruction(&sInstruction, (uint16)(uiFlags | ((uiBytes - 1) << 8) | (0 << 7)));
+	if (!AddRelocatableWords(&sInstruction, &sTarget, (uint64)iOffset, uiBytes, true, true, psToken))
+	{
+		return false;
+	}
+	Emit(&sInstruction);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// cpyx R, [address]:bits      memory of bits (8, 16, 32 or 64) into R, zero extended
+// cpyx R, [address]:sbits     memory of bits (8, 16 or 32) into R, sign extended (code 15)
+// cpyx [address]:bits, R      R's low bits into memory (swap)
+// R is A, B, X or Y.  The address is a minimal addressing mode: [value {+ R}],
+// [[value]], [[value + R]], [R] or [[R]], with R None, W, X or Y.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::CopyExtend(void)
+{
+	SAsm65Operand		sFirst;
+	SAsm65Operand		sSecond;
+	SAsm65Operand*		psMemoryOperand;
+	SAsm65Operand*		psRegisterOperand;
+	SAsm65Memory		sMemory;
+	SAsm65Instruction	sInstruction;
+	bool				bSwap;
+	bool				bSigned;
+	bool				bResult;
+	int					iRegister;
+	int					iMinimal;
+	int					iWidthCode;
+	uint16				uiAddress;
+	int					i;
+
+	//Only cpyx's memory operand takes a width.
+	mbMemoryWidth = true;
+	bResult = Operand(&sFirst) && Expect(AP65_Comma, "','") && Operand(&sSecond);
+	mbMemoryWidth = false;
+	if (!bResult)
+	{
+		return false;
+	}
+
+	bSwap = sFirst.eKind == AO65_Memory;
+	psMemoryOperand = bSwap ? &sFirst : &sSecond;
+	psRegisterOperand = bSwap ? &sSecond : &sFirst;
+	if (psMemoryOperand->eKind != AO65_Memory)
+	{
+		return Error(psMemoryOperand->psToken, "cpyx needs a memory operand");
+	}
+	for (iWidthCode = 0; iWidthCode < 4; iWidthCode++)
+	{
+		if (gaui65CopyExtendBytes[iWidthCode] == psMemoryOperand->uiWidthBytes)
+		{
+			break;
+		}
+	}
+	if (iWidthCode == 4)
+	{
+		return Error(psMemoryOperand->psToken, "cpyx memory needs a width of :8, :16, :32 or :64");
+	}
+	if (psRegisterOperand->eKind != AO65_Register)
+	{
+		return Error(psRegisterOperand->psToken, "cpyx needs a register operand");
+	}
+	if (psRegisterOperand->bSigned)
+	{
+		return Error(psRegisterOperand->psToken, "cpyx sign extends memory: [address]:s8, :s16 or :s32");
+	}
+	bSigned = psMemoryOperand->bSigned;
+	if (bSigned && bSwap)
+	{
+		return Error(psMemoryOperand->psToken, "A copy into memory cannot sign extend");
+	}
+	if (bSigned && (psMemoryOperand->uiWidthBytes == 8))
+	{
+		return Error(psMemoryOperand->psToken, "64 bits has nothing to sign extend; use :64");
+	}
+	iRegister = Get65C64RegisterIndex(psRegisterOperand->eRegister, gae65ABXY, 4);
+	if (iRegister < 0)
+	{
+		return Error(psRegisterOperand->psToken, "The register must be A, B, X or Y");
+	}
+
+	if (!MemoryOperand(psMemoryOperand, &sMemory, 1))
+	{
+		return false;
+	}
+	iMinimal = -1;
+	for (i = 0; i < 8; i++)
+	{
+		if (gaui65MinimalModes[i] == sMemory.uiMode)
+		{
+			iMinimal = i;
+			break;
+		}
+	}
+	if (iMinimal < 0)
+	{
+		return Error(psMemoryOperand->psToken, "cpyx cannot use that addressing mode");
+	}
+	if (!SingleRegisterField(&sMemory, gae65NoneWXY, 4, psMemoryOperand->psToken, &uiAddress))
+	{
+		return false;
+	}
+
+	if (bSigned)
+	{
+		//Instruction code 15 extend 6: there is no room in code 12.
+		StartInstruction(&sInstruction, (uint16)((iRegister << 14) | (uiAddress << 12) | (iMinimal << 9) | (iWidthCode << 7) | (6 << 4) | 15));
+	}
+	else
+	{
+		StartInstruction(&sInstruction, (uint16)((bSwap << 15) | (iRegister << 13) | (uiAddress << 11) | (iMinimal << 8) | (iWidthCode << 6) | (3 << 4) | 12));
+	}
+	AddAddressWords(&sInstruction, &sMemory);
 	Emit(&sInstruction);
 	return true;
 }

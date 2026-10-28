@@ -1056,7 +1056,7 @@ bool CAsm65Assembler::Operand(SAsm65Operand* psOperand)
 		{
 			return false;
 		}
-		return Suffixes(NULL, &psOperand->bSigned, NULL);
+		return Suffixes(mbMemoryWidth ? &psOperand->uiWidthBytes : NULL, &psOperand->bSigned, NULL);
 	}
 
 	psOperand->eKind = AO65_Constant;

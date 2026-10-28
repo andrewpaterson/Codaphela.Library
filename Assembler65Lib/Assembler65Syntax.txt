@@ -126,6 +126,7 @@ One suffix may follow a value or an operand:
 	:8 :16 :24 :32 :40 :48 :64	an immediate's width in bits
 	:s8 :s16 ... :s64		a sign extended immediate of that width
 	:16 :32				an address: 16 is an offset (0000:xxxx), 32 absolute
+	[address]:8 ... :64 :s8 ...	cpyx's data width (only cpyx's memory takes one)
 	:s				sign extend the second operand
 Only one suffix is allowed: :s:16, :16:s and :16s are errors (the user,
 2026-10-23).  A negative value sign extends without :s, so cpy A, -32768:16
@@ -169,6 +170,10 @@ Instructions
 		op R, [address]{:s}
 		op [address], R{:s}
 		op [address], value		-8 to 8 (0 is the zero register)
+	cpyx R, [address]:bits		cpyx [address]:bits, R		cpyx R, [address]:sbits
+		R is A, B, X or Y; bits is 8, 16, 32 or 64 (:s8, :s16 or :s32 sign extend,
+		which only reads memory).  The address is a minimal mode:
+		[value {+ R}], [[value]], [[value + R]], [R] or [[R]] with R None, W, X or Y.
 	shl shr
 		op R1, R2 | op R, amount | op R, [address] | op [address], R | op [address], 1 to 8
 	jmp jsr bra brsr
@@ -184,6 +189,7 @@ Instructions
 	pul  R | (R, R, ...) | P | [address]   {, stack}
 	ret  {P} {, S|V|W|Y}		rti {S|V|W|Y}
 	brac bras  flag, target		brasa braso  (flag, c|z|n|v), target
+	brae brane  (flag, flag), target	(flags c, z, n, v, f or g; -8, -4, 4 and 8 are embedded)
 	nop {1 to 8}
 	sep cep  flag | (flag, flag, ...)	(e, l, f, g, n, v, z, c)
 	wth R, bits|register		wtth (R1, R2), bits|register	(R is A, B, X or Y)

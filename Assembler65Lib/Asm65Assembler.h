@@ -155,6 +155,7 @@ protected:
 	bool				mbChanged;
 	bool				mbStatementError;
 	bool				mbRelative;
+	bool				mbMemoryWidth;
 	size				muiInstruction;
 	uint32				muiPasses;
 
@@ -287,6 +288,8 @@ protected:
 	bool			GetWidth(void);
 	bool			ExtendWidth(void);
 	bool			Branch(uint16 uiCondition);
+	bool			BranchEqual(uint16 uiSub);
+	bool			CopyExtend(void);
 	bool			BranchAlways(void);
 	bool			NoOperation(void);
 	bool			MultiplyDivide(uint16 uiSub);

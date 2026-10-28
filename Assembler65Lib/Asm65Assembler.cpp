@@ -44,6 +44,7 @@ void CAsm65Assembler::Init(void)
 	mbChanged = false;
 	mbStatementError = false;
 	mbRelative = false;
+	mbMemoryWidth = false;
 	muiInstruction = 0;
 	muiPasses = 0;
 
@@ -312,6 +313,7 @@ void CAsm65Assembler::Statement(void)
 
 	mbStatementError = false;
 	mbRelative = false;
+	mbMemoryWidth = false;
 	muiStatementTerms = 0;
 	muiStatementTermsUsed = 0;
 	mpsTermToken = NULL;
