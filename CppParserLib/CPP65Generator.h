@@ -303,7 +303,7 @@ enum ECPP65RightKind
 {
 	CPP65RK_B,
 	CPP65RK_Constant,
-	CPP65RK_Temporary,		//[offset + W], a pseudo register.
+	CPP65RK_Temporary,		//[offset], a pseudo register (W is 0).
 };
 
 
@@ -468,7 +468,7 @@ protected:
 	bool					mbFramePointer;		//The function saves V and points it at its frame.
 	bool					mbAlloca;			//The function used __builtin_alloca, so it restores S from V.
 	int						miDepth;			//Bytes pushed on S since the frame was made.
-	int						miTemporaries;		//Bytes of pseudo registers ([offset + W]) in use.
+	int						miTemporaries;		//Bytes of pseudo registers ([offset]) in use.
 	int						miReturnLabel;
 	int						miThisOffset;		//this's place in the frame of a member function, or -1.
 	bool					mbThisInX;

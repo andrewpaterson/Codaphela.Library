@@ -893,9 +893,12 @@ static double SinKernelParts(double x, double y, double* plo)
 
 static double SinKernel(double x, double y)
 {
+	double	dHigh;
 	double	dLow;
 
-	return SinKernelParts(x, y, &dLow) + dLow;
+	//Two statements: in one expression the call and the read of dLow are unsequenced, and dLow may be read first.
+	dHigh = SinKernelParts(x, y, &dLow);
+	return dHigh + dLow;
 }
 
 
@@ -933,9 +936,12 @@ static double CosKernelParts(double x, double y, double* plo)
 
 static double CosKernel(double x, double y)
 {
+	double	dHigh;
 	double	dLow;
 
-	return CosKernelParts(x, y, &dLow) + dLow;
+	//Two statements: in one expression the call and the read of dLow are unsequenced, and dLow may be read first.
+	dHigh = CosKernelParts(x, y, &dLow);
+	return dHigh + dLow;
 }
 
 

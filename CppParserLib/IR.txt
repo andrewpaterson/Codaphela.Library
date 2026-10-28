@@ -523,6 +523,17 @@ Map benchmark (TestMapStringIntAndPointer) 2026-10-25: 1.020B; widths 0.961B; W 
 0.936B; flags 0.930B; less loop tests 0.928B; narrow extensions 0.923B; strength
 reduction 0.921B; merged loads, same phis and constant argument inlining 0.917B; jsr to
 the callee where it is 0.905B; last peephole jumps 0.900B, its copies 0.898B.
+Arithmetic on [n + V] (2026-10-28): 897,565,377 -> 897,564,939 steps (no change).
+cpyx (2026-10-28): narrow loads and stores are one cpyx when the address fits its minimal
+modes (CIR65Code::IsCopyExtendAddress: not through A, B or S), and narrow arguments from
+[n + V].  A NarrowOnly load keeps wth / cpy / wthx: CIR65Widths turns that into a bare
+narrow cpy and keeps the register narrow (across a whole loop in StringCompare), which a
+cpyx's 32 bit result would undo (cpyx for every narrow load was 928.4M steps).  CIR65Code
+decodes cpyx as an Alu (a store's n and z aren't the register's) and CIR65Peephole drops
+its width suffix from the operand.  Map benchmark 897,536,375 -> 890,042,058 steps.
+An address in A or B (which cpyx can't use) is put in X or Y instead when one is free for
+the instruction (no live range of its home covers it; CopyExtendOperand writes the operand
+again with mszAddress X or Y): 883,646,305 steps.
 
 Calls push their arguments last first at their own size (a thiscall's this goes in X),
 and jump to the callee where it is: jsr _f, jsr X or Y (X only when this doesn't go
@@ -555,8 +566,10 @@ pass cleans up, and the instructions print as assembly.
 				srem become R_DivideSigned; mul, udiv and urem keep W around them as now.
 	Pointers	one space, 4 bytes.
 	Registers	A, B, X and Y.  The pseudo registers [n + W] are a second register
-				class: slower than A..Y, but add, sub and cmp can use them where they
-				can't use [n + V].  Spills go to the frame ([n + V]).
+				class: slower than A..Y.  Spills go to the frame ([n + V]).  add, sub,
+				cmp, shl and shr address memory with V, X or Y but not W (the user,
+				2026-10-28), so the last pass writes their pseudo registers as [n] (W
+				is 0); the passes before see [n + W].  They still can't use [n + S].
 	Calls		V, W and S are kept as now, and so are the pseudo registers [$80 + W] to
 				[$FF + W] (callee saved, the user 2026-10-24): a function that uses one
 				pushes it first and pulls it before returning.  [$00 + W] to [$7F + W]

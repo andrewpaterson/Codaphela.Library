@@ -169,7 +169,7 @@ struct SAsm65AluLayout
 };
 
 static const SAsm65AluLayout gsLogicalLayout = { 8, 4, 11, 10, 4, gae65Registers, 8, gae65VWXY, 4 };
-static const SAsm65AluLayout gsArithmeticLayout = { 9, 5, 4, 11, 3, gae65NoneWXY, 4, gae65XY, 2 };
+static const SAsm65AluLayout gsArithmeticLayout = { 9, 5, 4, 11, 3, gae65NoneVXY, 4, gae65XY, 2 };
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -699,7 +699,7 @@ bool CAsm65Assembler::ArithmeticLogic(uint16 uiCode)
 //////////////////////////////////////////////////////////////////////////
 //
 // One operand is memory.  Logical instructions address with any register and have no
-// sign bit; arithmetic instructions address with W, X or Y and have a sign bit.
+// sign bit; arithmetic instructions address with V, X or Y and have a sign bit.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Assembler::ArithmeticLogicMemory(uint16 uiCode, SAsm65Operand* psFirst, SAsm65Operand* psSecond, SAsm65Instruction* psInstruction)
@@ -879,7 +879,7 @@ bool CAsm65Assembler::Shift(bool bLeft)
 //////////////////////////////////////////////////////////////////////////
 //
 // The shift's register is A, B, S or V with a one register address and A, B, X or Y
-// with a two register address.  Addressing registers are W, X or Y.
+// with a two register address.  Addressing registers are V, X or Y.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Assembler::ShiftMemory(uint16 uiExtend, SAsm65Operand* psFirst, SAsm65Operand* psSecond, SAsm65Instruction* psInstruction)
@@ -929,7 +929,7 @@ bool CAsm65Assembler::ShiftMemory(uint16 uiExtend, SAsm65Operand* psFirst, SAsm6
 	}
 	else
 	{
-		if (!SingleRegisterField(&sMemory, gae65NoneWXY, 4, psMemoryOperand->psToken, &uiFirst))
+		if (!SingleRegisterField(&sMemory, gae65NoneVXY, 4, psMemoryOperand->psToken, &uiFirst))
 		{
 			return false;
 		}
@@ -1916,7 +1916,7 @@ bool CAsm65Assembler::BranchEqual(uint16 uiSub)
 // cpyx R, [address]:sbits     memory of bits (8, 16 or 32) into R, sign extended (code 15)
 // cpyx [address]:bits, R      R's low bits into memory (swap)
 // R is A, B, X or Y.  The address is a minimal addressing mode: [value {+ R}],
-// [[value]], [[value + R]], [R] or [[R]], with R None, W, X or Y.
+// [[value]], [[value + R]], [R] or [[R]], with R V, X or Y.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Assembler::CopyExtend(void)
@@ -2003,7 +2003,7 @@ bool CAsm65Assembler::CopyExtend(void)
 	{
 		return Error(psMemoryOperand->psToken, "cpyx cannot use that addressing mode");
 	}
-	if (!SingleRegisterField(&sMemory, gae65NoneWXY, 4, psMemoryOperand->psToken, &uiAddress))
+	if (!SingleRegisterField(&sMemory, gae65NoneVXY, 4, psMemoryOperand->psToken, &uiAddress))
 	{
 		return false;
 	}

@@ -24,7 +24,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //The register lists of the opcode encoding sheet, in order.
 const E65Register gae65Registers[8] = { R65_Zero, R65_A, R65_B, R65_S, R65_V, R65_W, R65_X, R65_Y };
-const E65Register gae65NoneWXY[4] = { R65_Zero, R65_W, R65_X, R65_Y };
+const E65Register gae65NoneVXY[4] = { R65_Zero, R65_V, R65_X, R65_Y };
 const E65Register gae65VWXY[4] = { R65_V, R65_W, R65_X, R65_Y };
 const E65Register gae65ABSV[4] = { R65_A, R65_B, R65_S, R65_V };
 const E65Register gae65ABXY[4] = { R65_A, R65_B, R65_X, R65_Y };
@@ -314,11 +314,11 @@ static void DecodeArithmetic(uint16 uiOpcode, S65C64Decoded* psDecoded)
 	}
 	else if (Field(uiOpcode, 14, 1) == 0)
 	{
-		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gae65Registers[Field(uiOpcode, 11, 3)], uiMode, gae65NoneWXY[Field(uiOpcode, 9, 2)], R65_Zero);
+		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gae65Registers[Field(uiOpcode, 11, 3)], uiMode, gae65NoneVXY[Field(uiOpcode, 9, 2)], R65_Zero);
 	}
 	else
 	{
-		SetMemory(psDecoded, &psDecoded->sFirst, uiMode, gae65NoneWXY[Field(uiOpcode, 9, 2)], R65_Zero);
+		SetMemory(psDecoded, &psDecoded->sFirst, uiMode, gae65NoneVXY[Field(uiOpcode, 9, 2)], R65_Zero);
 		SetEmbedded(&psDecoded->sSecond, Embedded(Field(uiOpcode, 15, 1) != 0, Field(uiOpcode, 11, 3), 3));
 	}
 }
@@ -356,11 +356,11 @@ static void DecodeShift(uint16 uiOpcode, S65C64Decoded* psDecoded)
 	}
 	else if (Field(uiOpcode, 14, 1) == 0)
 	{
-		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gae65ABSV[Field(uiOpcode, 12, 2)], uiMode, gae65NoneWXY[Field(uiOpcode, 10, 2)], R65_Zero);
+		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gae65ABSV[Field(uiOpcode, 12, 2)], uiMode, gae65NoneVXY[Field(uiOpcode, 10, 2)], R65_Zero);
 	}
 	else
 	{
-		SetMemory(psDecoded, &psDecoded->sFirst, uiMode, gae65NoneWXY[Field(uiOpcode, 10, 2)], R65_Zero);
+		SetMemory(psDecoded, &psDecoded->sFirst, uiMode, gae65NoneVXY[Field(uiOpcode, 10, 2)], R65_Zero);
 		SetEmbedded(&psDecoded->sSecond, ((Field(uiOpcode, 15, 1) << 2) | Field(uiOpcode, 12, 2)) + 1);
 	}
 }
@@ -623,10 +623,11 @@ static void DecodeBranchNopCopyExtend(uint16 uiOpcode, S65C64Decoded* psDecoded)
 	}
 	else
 	{
-		//cpyx: a register and a minimal addressing mode memory operand, uiWidthBytes wide in memory.
+		//cpyx: a register and a minimal addressing mode memory operand, uiWidthBytes wide in memory.  The
+		//addressing register is none, V, X or Y, so frame places ([n + V]) can be reached (the user, 2026-10-28).
 		psDecoded->eInstruction = I65_Cpyx;
 		psDecoded->uiWidthBytes = gaui65CopyExtendBytes[Field(uiOpcode, 6, 2)];
-		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gae65ABXY[Field(uiOpcode, 13, 2)], gaui65MinimalModes[Field(uiOpcode, 8, 3)], gae65NoneWXY[Field(uiOpcode, 11, 2)], R65_Zero);
+		SetMemoryOperands(psDecoded, Field(uiOpcode, 15, 1) != 0, gae65ABXY[Field(uiOpcode, 13, 2)], gaui65MinimalModes[Field(uiOpcode, 8, 3)], gae65NoneVXY[Field(uiOpcode, 11, 2)], R65_Zero);
 		SetAluAccess(psDecoded);
 	}
 }
@@ -922,7 +923,7 @@ static void DecodeHardwareState(uint16 uiOpcode, S65C64Decoded* psDecoded)
 		psDecoded->eInstruction = I65_Cpyx;
 		psDecoded->bSigned = true;
 		psDecoded->uiWidthBytes = gaui65CopyExtendBytes[Field(uiOpcode, 7, 2)];
-		SetMemoryOperands(psDecoded, false, gae65ABXY[Field(uiOpcode, 14, 2)], gaui65MinimalModes[Field(uiOpcode, 9, 3)], gae65NoneWXY[Field(uiOpcode, 12, 2)], R65_Zero);
+		SetMemoryOperands(psDecoded, false, gae65ABXY[Field(uiOpcode, 14, 2)], gaui65MinimalModes[Field(uiOpcode, 9, 3)], gae65NoneVXY[Field(uiOpcode, 12, 2)], R65_Zero);
 		SetAluAccess(psDecoded);
 		break;
 

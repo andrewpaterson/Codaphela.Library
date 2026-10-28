@@ -173,7 +173,7 @@ Instructions
 	cpyx R, [address]:bits		cpyx [address]:bits, R		cpyx R, [address]:sbits
 		R is A, B, X or Y; bits is 8, 16, 32 or 64 (:s8, :s16 or :s32 sign extend,
 		which only reads memory).  The address is a minimal mode:
-		[value {+ R}], [[value]], [[value + R]], [R] or [[R]] with R None, W, X or Y.
+		[value {+ R}], [[value]], [[value + R]], [R] or [[R]] with R V, X or Y.
 	shl shr
 		op R1, R2 | op R, amount | op R, [address] | op [address], R | op [address], 1 to 8
 	jmp jsr bra brsr
@@ -241,6 +241,9 @@ Choices (not in the spreadsheet)
 - A constant used with memory must be embedded (-8 to 8); there is no memory,
   immediate form.
 - Hardware register instructions (hws, hwg, hwsp, hwcp) are not assembled.
+- add, sub, cmp, shl, shr and cpyx address memory with V, X or Y ([n + V] works, [n + W]
+  does not: W is 0 by the calling convention, so write [n]).  The logical instructions
+  take any register (the user, 2026-10-28).
 - Relative offsets do not wrap around the 32 bit address space.
 
 

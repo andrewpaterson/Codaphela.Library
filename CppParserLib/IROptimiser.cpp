@@ -3041,6 +3041,9 @@ bool CIROptimiser::LessLoopTests(void)
 			pcBlock->msJump.pcThen = pcInside;
 			pcBlock->msJump.pcElse = pcOutside;
 			bChanged = true;
+
+			//The instructions added may have moved the block's, which the definitions point at.
+			FindDefinitions();
 		}
 	}
 	apcStack.Kill();
@@ -3291,8 +3294,10 @@ bool CIROptimiser::ReduceStrength(void)
 					Replace(sAddress, sPointer);
 					bChanged = true;
 
-					//AddPhi may have moved the head's phis.
+					//AddPhi may have moved the head's phis, and the instructions added the entering block's and the
+					//latch's instructions, which the definitions point at.
 					psPhi = pcHead->masPhis.Get(uiPhi);
+					FindDefinitions();
 				}
 			}
 		}
@@ -3447,6 +3452,10 @@ bool CIROptimiser::HoistInvariants(void)
 				*aiDefined.Get(sMoved.sResult.Index()) = (int32)pcEntering->muiIndex;
 				uiInstruction--;
 				bChanged = true;
+
+				//Moving shifts the block's later instructions and may move the entering block's: the definitions
+				//(Definition, used by SplitAddress) point at them.
+				FindDefinitions();
 			}
 		}
 	}

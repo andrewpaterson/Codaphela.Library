@@ -52,6 +52,7 @@ static const char gacIR65CodeRegisters[IR65_CODE_REGISTERS] = { 'A', 'B', 'X', '
 static const SIR65CodeMnemonic gasIR65CodeMnemonics[] =
 {
 	{ "cpy",	IR65CK_Alu,			false,	true,	false,	true,	IR65_FLAG_N | IR65_FLAG_Z },
+	{ "cpyx",	IR65CK_Alu,			false,	true,	false,	true,	IR65_FLAG_N | IR65_FLAG_Z },
 	{ "add",	IR65CK_Alu,			true,	true,	false,	true,	IR65_FLAGS_ALL },
 	{ "sub",	IR65CK_Alu,			true,	true,	false,	true,	IR65_FLAGS_ALL },
 	{ "and",	IR65CK_Alu,			true,	true,	false,	true,	IR65_FLAG_N | IR65_FLAG_Z },
@@ -304,6 +305,75 @@ static uint8 IR65CodeFlags(SIR65CodeOperand* psOperand)
 		}
 	}
 	return uiFlags;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a memory operand a generator wrote fits cpyx's minimal addressing
+// modes: [address], [address + R], [[address]], [[address + R]], [R] or [[R]]
+// with R V, X, Y or W (a pseudo register, written [n] at the end).  Not with A,
+// B or S, nor [[address] + R] or two registers.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Code::IsCopyExtendAddress(CChars* pszOperand)
+{
+	const char*	sz;
+	const char*	szEnd;
+	const char*	szWord;
+	int			iRegisters;
+
+	sz = pszOperand->Text();
+	szEnd = sz + pszOperand->Length();
+	if ((pszOperand->Length() < 3) || (sz[0] != '[') || (szEnd[-1] != ']'))
+	{
+		return false;
+	}
+	sz++;
+	szEnd--;
+	if (*sz == '[')
+	{
+		//[[...]]: the inside must end the operand.
+		if (szEnd[-1] != ']')
+		{
+			return false;
+		}
+		sz++;
+		szEnd--;
+	}
+
+	iRegisters = 0;
+	while (sz < szEnd)
+	{
+		if ((*sz == '[') || (*sz == ']'))
+		{
+			return false;
+		}
+		if (((*sz >= 'A') && (*sz <= 'Z')) || ((*sz >= 'a') && (*sz <= 'z')) || ((*sz >= '0') && (*sz <= '9')) || (*sz == '_'))
+		{
+			szWord = sz;
+			while ((sz < szEnd) && (((*sz >= 'A') && (*sz <= 'Z')) || ((*sz >= 'a') && (*sz <= 'z')) || ((*sz >= '0') && (*sz <= '9')) || (*sz == '_')))
+			{
+				sz++;
+			}
+			if (sz - szWord == 1)
+			{
+				if ((*szWord == 'A') || (*szWord == 'B') || (*szWord == 'S'))
+				{
+					return false;
+				}
+				if ((*szWord == 'V') || (*szWord == 'W') || (*szWord == 'X') || (*szWord == 'Y'))
+				{
+					iRegisters++;
+				}
+			}
+		}
+		else
+		{
+			sz++;
+		}
+	}
+	return iRegisters <= 1;
 }
 
 
@@ -604,6 +674,11 @@ bool CIR65Code::DecodeLine(CChars* pszLine, SIR65CodeLine* psLine)
 		psLine->iSecond = (int8)IR65CodeRegister(&asOperands[1]);
 		psLine->bFirstRegister = IR65CodeIsRegister(&asOperands[0]);
 		psLine->bFirstMemory = asOperands[0].szStart[0] == '[';
+		if (psLine->bFirstMemory && (StringCompare(szMnemonic, "cpyx") == 0))
+		{
+			//cpyx [m]:bits, R sets n and z from the bits stored, not from R at its width.
+			psLine->bResultFlags = false;
+		}
 		return true;
 
 	case IR65CK_Negate:

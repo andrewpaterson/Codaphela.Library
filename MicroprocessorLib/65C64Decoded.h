@@ -240,7 +240,7 @@ struct S65C64Decoded
 
 //The register lists of the opcode encoding sheet, in order (the 3, 2 and 1 bit fields).
 extern const E65Register	gae65Registers[8];
-extern const E65Register	gae65NoneWXY[4];
+extern const E65Register	gae65NoneVXY[4];
 extern const E65Register	gae65VWXY[4];
 extern const E65Register	gae65ABSV[4];
 extern const E65Register	gae65ABXY[4];
