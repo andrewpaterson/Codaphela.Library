@@ -129,6 +129,7 @@ public:
 
 	static uint8	Bands(uint8 uiBits);
 	static char		RegisterName(int iRegister);
+	static bool		IsCopyExtendAddress(CChars* pszOperand);
 
 protected:
 	bool			Decode(void);

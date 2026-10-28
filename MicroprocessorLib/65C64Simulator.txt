@@ -279,15 +279,18 @@ extend 2 (shl) and 3 (shr); their fields did not change (the user's sheet, 2026-
 brae and brane (code 12 extend 2, the user 2026-10-28): flags b15-13 and b12-10 are c, z,
 n, v, f or g (0 and 1 are illegal); b7 set is an embedded offset in b9-8 (-8, -4, 4, 8),
 clear an 8 to 32 bit signed immediate (width in b9-8); b6 0 = equal, 1 = not equal.
-cpyx (code 12 extend 3, the user 2026-10-28): b15 swap, b14-13 A/B/X/Y, b12-11 none/W/X/Y,
+cpyx (code 12 extend 3, the user 2026-10-28): b15 swap, b14-13 A/B/X/Y, b12-11 none/V/X/Y,
 b10-8 minimal addressing mode (2, 3, 4, 6, 7, 8, 10, 12), b7-6 data width 8/16/32/64.
 Memory into a register zero extends; wider than the register truncates.  With swap the
 register's low data width bits (zero extended) are written.  n and z come from the value
 copied (at the register's width, or the data width when writing memory).
 The sign extending cpyx (cpyx R, [M]:s8, the user 2026-10-28) is code 15 extend 6, among the
-hardware instructions because code 12 is full: b15-14 A/B/X/Y, b13-12 none/W/X/Y, b11-9
+hardware instructions because code 12 is full: b15-14 A/B/X/Y, b13-12 none/V/X/Y, b11-9
 minimal mode, b8-7 width 8/16/32 (3 is illegal), memory into the register only.  It decodes
 as I65_Cpyx with bSigned set.
+add, sub, cmp, shl, shr and both cpyx address memory (single register modes) with none, V, X
+or Y, not W, so frame places ([n + V]) fit; W is 0 by the calling convention, so [n + W] is
+[n] (the user, 2026-10-28).  The logical instructions still take any register.
 The block move example's "cpy B, X+W" and "cpy Y+W, B" could not be encoded (the first
 register of the register + register modes must be A, B, S or V).  The sheet was rewritten
 from the simulator (the user: "take the simulator as truth"): V source, A destination,

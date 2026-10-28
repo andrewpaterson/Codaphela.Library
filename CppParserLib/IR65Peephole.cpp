@@ -54,9 +54,33 @@ static uint8 IR65PeepholeName(char c)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The length of a memory operand without cpyx's width (":8" in [8 + W]:8).
+//
+//////////////////////////////////////////////////////////////////////////
+static size IR65PeepholeWithoutWidth(const char* szOperand, size uiLength)
+{
+	size	ui;
+
+	if ((uiLength == 0) || (szOperand[0] != '['))
+	{
+		return uiLength;
+	}
+	for (ui = uiLength; ui > 0; ui--)
+	{
+		if (szOperand[ui - 1] == ']')
+		{
+			return ui;
+		}
+	}
+	return uiLength;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Finds the operands of an instruction line ("\t\tcpy [8 + W], A"): the
 // first starts at *pszFirst, the second (if there is one) at *pszSecond,
-// and their lengths.
+// and their lengths (a cpyx memory operand's without its width).
 //
 //////////////////////////////////////////////////////////////////////////
 static void IR65PeepholeOperands(CChars* pszLine, const char** pszFirst, size* puiFirst, const char** pszSecond, size* puiSecond)
@@ -78,6 +102,11 @@ static void IR65PeepholeOperands(CChars* pszLine, const char** pszFirst, size* p
 		*puiFirst = strlen(*pszFirst);
 		*pszSecond = NULL;
 		*puiSecond = 0;
+	}
+	*puiFirst = IR65PeepholeWithoutWidth(*pszFirst, *puiFirst);
+	if (*pszSecond != NULL)
+	{
+		*puiSecond = IR65PeepholeWithoutWidth(*pszSecond, *puiSecond);
 	}
 }
 

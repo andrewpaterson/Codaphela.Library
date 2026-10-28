@@ -179,6 +179,7 @@ protected:
 	bool					mbRightImmediate;	//LoadOperands left the second operand a constant, for "op A, value".
 	bool					mbFrameless;		//No frame: V isn't set up, the arguments are from S...
 	char					mcFrame;			//...so the frame register is S, otherwise V.
+	const char*				mszAddress;			//Where MemoryOperand puts an address it must load: B, or for a cpyx a free X or Y (not A).
 	CIR65Flags				mcFlags;
 	CIR65Widths				mcWidths;
 	CIR65Peephole			mcPeephole;
@@ -262,6 +263,9 @@ protected:
 	bool				Operand(SIRReference sValue, CChars* pszOperand, bool bArithmetic, EIR65Extend eExtend);
 	bool				SmallImmediate(SIRReference sValue, int iMin, int iMax);
 	const char*			WorkRegister(SIRInstruction* psInstruction);
+	bool				IsRegisterFree(int iRegister, CIRBlock* pcBlock, size uiIndex);
+	const char*			FreeAddressRegister(CIRBlock* pcBlock, size uiIndex, const char* szPrefer);
+	bool				CopyExtendOperand(SIRReference sAddress, CChars* pszOperand, const char* szWidened, CIRBlock* pcBlock, size uiIndex, const char* szPrefer);
 	void				Extend(const char* szRegister, SIRType sType, EIR65Extend eExtend);
 	void				Truncate(const char* szRegister, SIRType sType);
 	void				LoadConstant(const char* szRegister, SIRType sType, uint64 ulliBits, EIR65Extend eExtend);
@@ -300,7 +304,7 @@ protected:
 	bool				Defer(CIRBlock* pcBlock, size uiIndex);
 	bool				PureMemoryOperand(SIRReference sAddress, CChars* pszOperand, char* pcRegister);
 	bool				Load(CIRBlock* pcBlock, size uiIndex);
-	bool				Store(SIRInstruction* psInstruction);
+	bool				Store(CIRBlock* pcBlock, size uiIndex);
 	bool				Call(CIRBlock* pcBlock, size uiIndex);
 	bool				Compare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel);
 	void				CompareOperands(SIRReference sFirst, SIRReference sSecond);

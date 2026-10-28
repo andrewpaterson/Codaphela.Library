@@ -161,12 +161,18 @@ set of hard arguments on the 65C64 against the same references.
 Registers (the user, 2026-10-23)
 --------------------------------
 
-A, B, X and Y stay 32 bits wide.  The widths only change where they must: Y is
-narrowed to read, write or push a 1 or 2 byte value and set back straight after.
-64 bit arithmetic will widen them when long long is supported.
+A, B, X and Y stay 32 bits wide.  A 1 or 2 byte value is read or written with cpyx
+(2026-10-28), which extends it into the register or stores the register's low bits:
+
+		cpyx A, [13 + V]:s8		; sign extend a char
+		cpyx [13 + V]:8, A
+
+cpyx can't address memory through A, B or S, so a place reached through one of those
+(a pointer in A) still narrows Y to read or write the value and sets it back straight
+after.  64 bit values widen the register around the instruction.
 
 		wth Y, 8
-		cpy Y, [13 + V]
+		cpy Y, [A]
 		cpy A, Y:s			; sign extend a char
 		wth Y, 32
 
@@ -177,12 +183,14 @@ Narrowing a value in a register keeps the registers 32 bits wide:
 		sub A, 128
 
 An expression's value ends in A.  A binary operator has its left operand in A and its
-right in B, a constant (add A, 3) or a pseudo register (cmp A, [4 + W]).
+right in B, a constant (add A, 3) or a pseudo register (cmp A, [4]).
 
 W points at the pseudo registers, like the 6502's zero page and the 65816's direct
 page.  It is always 0 (the user, 2026-10-25: part of the calling convention), so the
-pseudo registers are $0000 to $00FF.  mul and div count in W from 0 and leave it at
-twice their width in bytes, so it is set back straight after:
+pseudo registers are $0000 to $00FF.  The direct generator writes them as [n]: add, sub,
+cmp, shl, shr and cpyx address memory with V, X or Y but not W (the user, 2026-10-28).  mul
+and div count in W from 0 and leave it at twice their width in bytes, so it is set back
+straight after:
 
 		mul
 		cpy W, 0
@@ -190,9 +198,9 @@ twice their width in bytes, so it is set back straight after:
 When neither operand of a binary operator is simple (a constant or a variable), the
 right is worked out first and kept in the next free pseudo register while the left is:
 
-		cpy [0 + W], A
+		cpy [0], A
 		...					; the left operand
-		add A, [0 + W]
+		add A, [0]
 
 Pseudo registers are scratch: a call can use them, so when the left operand calls a
 function the right is pushed on the stack instead.  The runtime routines don't use them.

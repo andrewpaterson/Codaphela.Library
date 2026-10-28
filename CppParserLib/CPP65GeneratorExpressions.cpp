@@ -28,6 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CTIdentifier.h"
 #include "CppTokeniser.h"
 #include "CPPSyntaxTree.h"
+#include "IR65Code.h"
 #include "CPP65Generator.h"
 
 
@@ -2589,7 +2590,7 @@ SCPP65Type* CCPP65Generator::Operands(CCPPSyntax* pcLeft, CCPPSyntax* pcRight, S
 		{
 			Line("wth A, 64")->AppendNewLine();
 		}
-		Line("cpy [")->Append(iTemporary)->Append(" + W], A")->AppendNewLine();
+		Line("cpy [")->Append(iTemporary)->Append("], A")->AppendNewLine();
 		if (bWide)
 		{
 			Line("wth A, 32")->AppendNewLine();
@@ -2658,7 +2659,9 @@ CChars* CCPP65Generator::AppendRight(CChars* psz, SCPP65Right* psRight)
 	case CPP65RK_Constant:
 		return psz->Append(psRight->psType->Is64() ? psRight->lliValue : (int64)(int32)psRight->lliValue);
 	case CPP65RK_Temporary:
-		return psz->Append('[')->Append((int)psRight->lliValue)->Append(" + W]");
+		//[offset], not [offset + W]: W is 0 by the calling convention and add, sub, cmp, shl and shr can't
+		//address memory with W (the user, 2026-10-28).
+		return psz->Append('[')->Append((int)psRight->lliValue)->Append(']');
 	default:
 		return psz->Append('B');
 	}
@@ -3778,13 +3781,14 @@ void CCPP65Generator::AppendPlace(CChars* psz, SCPP65Place* psPlace, const char*
 //////////////////////////////////////////////////////////////////////////
 //
 // Loads a place into a register, sign or zero extended to 32 bits.  Narrow values
-// are read through Y; 8 byte values with the register 64 bits wide (it is left 32
-// bits wide, holding all 64).
+// are read with cpyx, or through Y when cpyx can't address the place; 8 byte values
+// with the register 64 bits wide (it is left 32 bits wide, holding all 64).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::Load(SCPP65Place* psPlace, const char* szRegister, const char* szAddress)
 {
 	int		iBytes;
+	CChars	szPlace;
 
 	if (psPlace->eKind == CPP65PK_This)
 	{
@@ -3807,6 +3811,16 @@ void CCPP65Generator::Load(SCPP65Place* psPlace, const char* szRegister, const c
 		mpszOut->AppendNewLine();
 		return;
 	}
+
+	szPlace.Init();
+	AppendPlace(&szPlace, psPlace, szAddress);
+	if (CIR65Code::IsCopyExtendAddress(&szPlace))
+	{
+		Line("cpyx ")->Append(szRegister)->Append(", ")->Append(szPlace)->Append(psPlace->psType->bSigned ? ":s" : ":")->Append(8 * iBytes)->AppendNewLine();
+		szPlace.Kill();
+		return;
+	}
+	szPlace.Kill();
 
 	Line("wth Y, ")->Append(8 * iBytes)->AppendNewLine();
 	Line("cpy Y, ");
@@ -3819,12 +3833,14 @@ void CCPP65Generator::Load(SCPP65Place* psPlace, const char* szRegister, const c
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Stores a register to a place.  Narrow values are written through Y.
+// Stores a register to a place.  Narrow values are written with cpyx, or through Y
+// when cpyx can't address the place.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::Store(SCPP65Place* psPlace, const char* szRegister, const char* szAddress)
 {
 	int		iBytes;
+	CChars	szPlace;
 
 	if (psPlace->eKind == CPP65PK_This)
 	{
@@ -3847,6 +3863,16 @@ void CCPP65Generator::Store(SCPP65Place* psPlace, const char* szRegister, const 
 		mpszOut->Append(", ")->Append(szRegister)->AppendNewLine();
 		return;
 	}
+
+	szPlace.Init();
+	AppendPlace(&szPlace, psPlace, szAddress);
+	if (CIR65Code::IsCopyExtendAddress(&szPlace))
+	{
+		Line("cpyx ")->Append(szPlace)->Append(':')->Append(8 * iBytes)->Append(", ")->Append(szRegister)->AppendNewLine();
+		szPlace.Kill();
+		return;
+	}
+	szPlace.Kill();
 
 	Line("wth Y, ")->Append(8 * iBytes)->AppendNewLine();
 	Line("cpy Y, ")->Append(szRegister)->AppendNewLine();

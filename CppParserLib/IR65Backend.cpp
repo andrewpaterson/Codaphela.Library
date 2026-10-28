@@ -171,6 +171,7 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CArrayChars* paszRun
 	mbRightImmediate = false;
 	mbFrameless = false;
 	mcFrame = 'V';
+	mszAddress = "B";
 	mcFlags.Init();
 	mcWidths.Init();
 	mcPeephole.Init();
@@ -908,6 +909,50 @@ void CIR65Backend::MarkFolded(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// add, sub, cmp, shl, shr and cpyx can't address memory with W (the user,
+// 2026-10-28), so their pseudo registers are written [n] instead of [n + W] (W
+// is 0 by the calling convention).  The passes before see [n + W] everywhere, so
+// it is done last.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IR65PseudoWithoutW(CChars* pszCode, size uiStart)
+{
+	static const char*	aszArithmetic[] = { "\t\tadd ", "\t\tsub ", "\t\tcmp ", "\t\tshl ", "\t\tshr ", "\t\tcpyx ", NULL };
+	CChars				szOut;
+	CChars				szLine;
+	const char*			szText;
+	const char*			szEnd;
+	size				uiLength;
+	int					i;
+
+	szOut.Init();
+	szText = pszCode->Text() + uiStart;
+	while (*szText != '\0')
+	{
+		szEnd = FindChar(szText, '\n');
+		uiLength = szEnd ? (size)(szEnd - szText + 1) : StrLen(szText);
+		szLine.Init();
+		szLine.Append(szText, uiLength);
+		for (i = 0; aszArithmetic[i]; i++)
+		{
+			if (szLine.StartsWith(aszArithmetic[i]))
+			{
+				szLine.Replace(" + W]", "]");
+				break;
+			}
+		}
+		szOut.Append(szLine);
+		szLine.Kill();
+		szText += uiLength;
+	}
+	pszCode->SetLength(uiStart);
+	pszCode->Append(szOut);
+	szOut.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The function's label, frame, blocks and return, appended to pszDest
 // (see Prologue and Epilogue).
 //
@@ -972,6 +1017,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	mcFlags.Optimise(pszDest, uiStart);
 	mcWidths.Optimise(pszDest, uiStart);
 	mcPeephole.Optimise(pszDest, uiStart);
+	IR65PseudoWithoutW(pszDest, uiStart);
 	return mbResult;
 }
 
@@ -2506,13 +2552,14 @@ const char* CIR65Backend::RegisterName(SIR65Place* psPlace)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if a memory operand addresses the frame (or the arguments) with V or
-// S, which add, sub, cmp, shl and shr can't do.
+// True if a memory operand addresses the frame (or the arguments) with S, which
+// add, sub, cmp, shl and shr can't do (they address with V, X or Y: the user,
+// 2026-10-28).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Backend::IsFrameOperand(CChars* pszOperand)
 {
-	return (pszOperand->Find("V]") != (size)-1) || (pszOperand->Find("S]") != (size)-1);
+	return pszOperand->Find("S]") != (size)-1;
 }
 
 
@@ -2688,8 +2735,9 @@ void CIR65Backend::AppendImmediate(CChars* psz, SIRReference sConstant, EIR65Ext
 // True if sValue can be the second operand of an instruction as it is:
 // a 32 bit (or narrower) constant, a symbol's address, A if the
 // instruction before left it there, its register or pseudo register, or
-// its frame place unless the instruction is bArithmetic (add, sub, cmp,
-// shl and shr can't address memory with V).  Appends the operand.
+// its frame place unless the instruction is bArithmetic and the function is
+// frameless (add, sub, cmp, shl and shr can't address memory with S).  Appends
+// the operand.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Backend::Operand(SIRReference sValue, CChars* pszOperand, bool bArithmetic, EIR65Extend eExtend)
@@ -2699,7 +2747,7 @@ bool CIR65Backend::Operand(SIRReference sValue, CChars* pszOperand, bool bArithm
 
 	if (IsDeferred(sValue))
 	{
-		//add, sub, cmp, shl and shr can't address memory with V.
+		//add, sub, cmp, shl and shr can't address memory with S.
 		if (bArithmetic && IsFrameOperand(&mszDeferred))
 		{
 			return false;
@@ -2739,14 +2787,14 @@ bool CIR65Backend::Operand(SIRReference sValue, CChars* pszOperand, bool bArithm
 		AppendPlace(pszOperand, psPlace);
 		return true;
 	case IR65P_Frame:
-		if (bArithmetic)
+		if (bArithmetic && (mcFrame == 'S'))
 		{
 			return false;
 		}
 		AppendPlace(pszOperand, psPlace);
 		return true;
 	case IR65P_Argument:
-		if (bArithmetic || (psPlace->iBytes != 4))
+		if ((bArithmetic && (mcFrame == 'S')) || (psPlace->iBytes != 4))
 		{
 			return false;
 		}
@@ -2780,6 +2828,103 @@ bool CIR65Backend::SmallImmediate(SIRReference sValue, int iMin, int iMax)
 	}
 	lliValue = IsNarrow(psConstant->sType) ? (int64)psConstant->ulliBits : (int64)(int32)psConstant->ulliBits;
 	return (lliValue >= iMin) && (lliValue <= iMax);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if no temporary kept in X or Y (iRegister) is live during the block's
+// instruction uiIndex, so it can hold something else for that instruction.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::IsRegisterFree(int iRegister, CIRBlock* pcBlock, size uiIndex)
+{
+	SIR65Home*	psHome;
+	SIRRange*	psRange;
+	int32		iPosition;
+	size		ui;
+
+	iPosition = mcLiveness.Position(pcBlock, uiIndex);
+	psHome = masHomes.Get(iRegister);
+	for (ui = 0; ui < psHome->asRanges.NumElements(); ui++)
+	{
+		psRange = psHome->asRanges.Get(ui);
+		if ((psRange->iFrom <= iPosition) && (iPosition < psRange->iTo))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// X or Y to hold an address for the block's instruction uiIndex: szPrefer
+// when it is X or Y (the instruction's result goes there, after it), else
+// one that is free (IsRegisterFree), else NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CIR65Backend::FreeAddressRegister(CIRBlock* pcBlock, size uiIndex, const char* szPrefer)
+{
+	if (szPrefer && ((StringCompare(szPrefer, "X") == 0) || (StringCompare(szPrefer, "Y") == 0)))
+	{
+		return szPrefer;
+	}
+	if (IsRegisterFree(IR65R_X, pcBlock, uiIndex))
+	{
+		return "X";
+	}
+	if (IsRegisterFree(IR65R_Y, pcBlock, uiIndex))
+	{
+		return "Y";
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// MemoryOperand for a narrow load or store that would be a cpyx: if the
+// address it gives is through A or B (which cpyx can't use), it is written
+// again with the address in a free X or Y.  True if the operand fits cpyx;
+// otherwise it is the one MemoryOperand gives with szWidened.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::CopyExtendOperand(SIRReference sAddress, CChars* pszOperand, const char* szWidened, CIRBlock* pcBlock, size uiIndex, const char* szPrefer)
+{
+	size		uiMark;
+	const char*	szFree;
+
+	uiMark = mpszOut->Length();
+	MemoryOperand(sAddress, pszOperand, szWidened);
+	if (CIR65Code::IsCopyExtendAddress(pszOperand))
+	{
+		return true;
+	}
+	szFree = FreeAddressRegister(pcBlock, uiIndex, szPrefer);
+	if (szFree == NULL)
+	{
+		return false;
+	}
+
+	//Loading an address into B, X or Y changes nothing the back end keeps track of, so what was written can go.
+	mpszOut->SetLength(uiMark);
+	pszOperand->Kill();
+	pszOperand->Init();
+	mszAddress = szFree;
+	MemoryOperand(sAddress, pszOperand, NULL);
+	mszAddress = "B";
+	if (CIR65Code::IsCopyExtendAddress(pszOperand))
+	{
+		return true;
+	}
+
+	mpszOut->SetLength(uiMark);
+	pszOperand->Kill();
+	pszOperand->Init();
+	MemoryOperand(sAddress, pszOperand, szWidened);
+	return false;
 }
 
 
@@ -2885,6 +3030,14 @@ void CIR65Backend::LoadPlace(SIR65Place* psPlace, SIRType sType, const char* szR
 		AppendPlace(psz, psPlace);
 		psz->AppendNewLine();
 		Line("wth ")->Append(szRegister)->Append(", 32")->AppendNewLine();
+		return;
+	}
+	if ((psPlace->uiKind == IR65P_Argument) && (psPlace->iBytes < 4) && (mcFrame == 'V'))
+	{
+		//cpyx extends the argument into the 32 bit register (it can't address with S).
+		psz = Line("cpyx ")->Append(szRegister)->Append(", ");
+		AppendPlace(psz, psPlace);
+		psz->Append(((eExtend == IR65E_Sign) && IsNarrow(sType)) ? ":s" : ":")->Append(8 * psPlace->iBytes)->AppendNewLine();
 		return;
 	}
 	if ((psPlace->uiKind == IR65P_Argument) && (psPlace->iBytes < 4))
@@ -3102,7 +3255,7 @@ void CIR65Backend::MemoryOperand(SIRReference sAddress, CChars* pszOperand, cons
 	{
 		if (IsInA(sAddress) && !InRegister(sAddress))
 		{
-			if ((szWidened == NULL) || (StringCompare(szWidened, "A") != 0))
+			if (((szWidened == NULL) || (StringCompare(szWidened, "A") != 0)) && (StringCompare(mszAddress, "B") == 0))
 			{
 				pszOperand->Append("[A]");
 				return;
@@ -3136,8 +3289,8 @@ void CIR65Backend::MemoryOperand(SIRReference sAddress, CChars* pszOperand, cons
 			}
 		}
 	}
-	LoadValue(sAddress, "B", IR65E_Zero);
-	pszOperand->Append("[B]");
+	LoadValue(sAddress, mszAddress, IR65E_Zero);
+	pszOperand->Append('[')->Append(mszAddress)->Append(']');
 }
 
 
@@ -3191,10 +3344,10 @@ void CIR65Backend::FoldedOperand(SIR65Place* psFolded, CChars* pszOperand, const
 			szRegister = RegisterName(psBase);
 		}
 	}
-	if ((szRegister == NULL) || (szWidened && (StringCompare(szRegister, szWidened) == 0)))
+	if ((szRegister == NULL) || (szWidened && (StringCompare(szRegister, szWidened) == 0)) || ((StringCompare(szRegister, "A") == 0) && (StringCompare(mszAddress, "B") != 0)))
 	{
-		LoadValue(sBase, "B", IR65E_Zero);
-		szRegister = "B";
+		LoadValue(sBase, mszAddress, IR65E_Zero);
+		szRegister = mszAddress;
 	}
 	pszOperand->Append('[')->Append(psFolded->iOffset)->Append(" + ")->Append(szRegister)->Append(']');
 }
@@ -3865,7 +4018,7 @@ bool CIR65Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 	case IRO_Load:
 		return Load(pcBlock, uiIndex);
 	case IRO_Store:
-		return Store(psInstruction);
+		return Store(pcBlock, uiIndex);
 	case IRO_Arg:
 		return true;
 	case IRO_Call:
@@ -3955,7 +4108,7 @@ bool CIR65Backend::ReadModifyWrite(CIRBlock* pcBlock, size uiIndex)
 	bResult = !szOperand.Empty() && PureMemoryOperand(psStore->asArguments[1], &szAddress, &cRegister) && szAddress.Equals(mszDeferred.Text());
 	if (bResult && ((psInstruction->uiOpcode == IRO_Add) || (psInstruction->uiOpcode == IRO_Sub) || bShift) && IsFrameOperand(&szAddress))
 	{
-		//add, sub, shl and shr can't address memory with V.
+		//add, sub, shl and shr can't address memory with S.
 		bResult = false;
 	}
 	if (bResult)
@@ -4818,6 +4971,7 @@ bool CIR65Backend::Load(CIRBlock* pcBlock, size uiIndex)
 	CChars			szOperand;
 	int				iBytes;
 	const char*		szWork;
+	bool			bCopyExtend;
 
 	psInstruction = pcBlock->masInstructions.Get(uiIndex);
 	if (Defer(pcBlock, uiIndex))
@@ -4833,7 +4987,17 @@ bool CIR65Backend::Load(CIRBlock* pcBlock, size uiIndex)
 	}
 	szWork = WorkRegister(psExtend ? psExtend : psInstruction);
 	szOperand.Init();
-	MemoryOperand(psInstruction->asArguments[0], &szOperand, (iBytes == 4) ? NULL : szWork);
+	bCopyExtend = false;
+	if ((iBytes < 4) && !NarrowOnly(psInstruction->sResult))
+	{
+		//cpyx extends memory of the value's width into the 32 bit register.  A load only compared at its own width
+		//(NarrowOnly) isn't: CIR65Widths keeps the register narrow for it, often across a whole loop.
+		bCopyExtend = CopyExtendOperand(psInstruction->asArguments[0], &szOperand, szWork, pcBlock, uiIndex, szWork);
+	}
+	else
+	{
+		MemoryOperand(psInstruction->asArguments[0], &szOperand, (iBytes == 4) ? NULL : szWork);
+	}
 	if (StringCompare(szWork, "A") == 0)
 	{
 		msAvailable = IRNone();
@@ -4847,6 +5011,10 @@ bool CIR65Backend::Load(CIRBlock* pcBlock, size uiIndex)
 	else if (iBytes == 4)
 	{
 		Line("cpy ")->Append(szWork)->Append(", ")->Append(szOperand)->AppendNewLine();
+	}
+	else if (bCopyExtend)
+	{
+		Line("cpyx ")->Append(szWork)->Append(", ")->Append(szOperand)->Append(psExtend ? ":s" : ":")->Append(8 * iBytes)->AppendNewLine();
 	}
 	else
 	{
@@ -4873,15 +5041,18 @@ bool CIR65Backend::Load(CIRBlock* pcBlock, size uiIndex)
 // 64 bits wide.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Backend::Store(SIRInstruction* psInstruction)
+bool CIR65Backend::Store(CIRBlock* pcBlock, size uiIndex)
 {
+	SIRInstruction*	psInstruction;
 	CChars			szOperand;
 	CChars			szValue;
 	int				iBytes;
 	const char*		szValueRegister;
 	SIRReference	sValue;
 	bool			bLoad;
+	bool			bCopyExtend;
 
+	psInstruction = pcBlock->masInstructions.Get(uiIndex);
 	sValue = psInstruction->asArguments[0];
 	iBytes = ValueBytes(psInstruction->sType);
 	szOperand.Init();
@@ -4907,7 +5078,15 @@ bool CIR65Backend::Store(SIRInstruction* psInstruction)
 	}
 
 	//The address first, so it doesn't use A when the value is loaded into it afterwards.
-	MemoryOperand(psInstruction->asArguments[1], &szOperand, (bLoad || (iBytes != 4)) ? szValueRegister : NULL);
+	bCopyExtend = false;
+	if ((iBytes < 4) && szValueRegister)
+	{
+		bCopyExtend = CopyExtendOperand(psInstruction->asArguments[1], &szOperand, szValueRegister, pcBlock, uiIndex, NULL);
+	}
+	else
+	{
+		MemoryOperand(psInstruction->asArguments[1], &szOperand, (bLoad || (iBytes != 4)) ? szValueRegister : NULL);
+	}
 	if (bLoad)
 	{
 		LoadValue(sValue, "A", IR65E_Zero);
@@ -4926,6 +5105,11 @@ bool CIR65Backend::Store(SIRInstruction* psInstruction)
 		Line("wth A, 64")->AppendNewLine();
 		Line("cpy ")->Append(szOperand)->Append(", A")->AppendNewLine();
 		Line("wth A, 32")->AppendNewLine();
+	}
+	else if (bCopyExtend)
+	{
+		//cpyx stores the register's low bits.
+		Line("cpyx ")->Append(szOperand)->Append(':')->Append(8 * iBytes)->Append(", ")->Append(szValueRegister)->AppendNewLine();
 	}
 	else
 	{
