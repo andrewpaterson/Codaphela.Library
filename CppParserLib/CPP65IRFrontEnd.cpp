@@ -673,6 +673,10 @@ bool CCPP65IRFrontEnd::Parameters(void)
 			asByAddress.Kill();
 			return Unsupported(__LINE__);
 		}
+		if (psVariable->bRestrict)
+		{
+			mpcFunction->SetRestrictParameter((size)*aiFirst.Get(uiParameter));
+		}
 		if (!asByAddress.Get(uiParameter)->IsNone())
 		{
 			//The caller's copy, which the caller destroys.
@@ -2569,6 +2573,7 @@ void CCPP65IRFrontEnd::StringData(char* pcBytes, size uiLength, SCPP65IRValue* p
 	szLabel.Init("Str");
 	szLabel.Append((int)(muiFirstString + mauiStringLengths.NumElements() - 1));
 	psValue->sValue = mcModule.Symbol(szLabel.Text());
+	mcModule.SetLocal(psValue->sValue.Index());
 	psValue->psType = mpcTypes->Pointer(&mpcTypes->msChar);
 	szLabel.Kill();
 }
@@ -2778,6 +2783,14 @@ bool CCPP65IRFrontEnd::VariablePlace(SCPP65Variable* psVariable, SCPP65IRPlace* 
 		mpcGenerator->AppendPlaceLabel(&szLabel, &sPlace);
 		psPlace->sAddress = mcModule.Symbol(szLabel.Text());
 		szLabel.Kill();
+		if (psVariable->bRestrict)
+		{
+			mcModule.SetRestrict(psPlace->sAddress.Index());
+		}
+		if (psVariable->bInternal || (psVariable->eStorage == CPP65S_Static))
+		{
+			mcModule.SetLocal(psPlace->sAddress.Index());
+		}
 	}
 	psPlace->psType = psVariable->psType;
 	if (psPlace->psType->IsReference())
@@ -5223,6 +5236,10 @@ bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, SCPP65Class* psClass)
 	mpcGenerator->AppendClassLabel(&szLabel, psClass, "2");
 	sLabel = mcModule.Symbol(szLabel.Text());
 	szLabel.Kill();
+	if (psClass->lliName < 0)
+	{
+		mcModule.SetLocal(sLabel.Index());
+	}
 	DescribeVtable(psClass, sLabel.Index());
 	if (psClass->iVtableOffset != -1)
 	{
@@ -5606,6 +5623,10 @@ SIRReference CCPP65IRFrontEnd::FunctionSymbol(SCPP65Function* psFunction)
 	mpcGenerator->AppendFunctionLabel(&szLabel, psFunction);
 	sSymbol = mcModule.Symbol(szLabel.Text());
 	szLabel.Kill();
+	if (mpcGenerator->IsUnitFunction(psFunction))
+	{
+		mcModule.SetLocal(sSymbol.Index());
+	}
 	return sSymbol;
 }
 

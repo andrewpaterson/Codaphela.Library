@@ -22,6 +22,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FloatHelper.h"
 #include "BaseLib/Numbers.h"
 #include "Triangle.h"
+#include "BaseLib/ErrorHandler.h"
 
 
 //////////////////////////////////////////////////////////////////////////

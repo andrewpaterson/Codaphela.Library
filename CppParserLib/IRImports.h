@@ -25,9 +25,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //Functions other translation units may inline (CIRInliner::SetImports): a copy, in its own module, of each small
-//function with external linkage (not local, weak or variadic) that refers to no symbol (no calls of named functions,
-//no globals), so its body means the same in any unit.  Units add their functions after they are optimised (Export);
-//a unit compiled before a function it calls was exported can be compiled again (the builder's CompileUnits).
+//function with external linkage (not local, weak or variadic) that calls no named function and refers to no symbol
+//local to its unit (globals and the like may be named: they are the same symbols in any unit, and the inliner maps
+//them by name).  Units add their functions after they are optimised (Export); a unit compiled before a function it
+//calls was exported can be compiled again (the builder's CompileUnits).
 class CIRImports
 {
 protected:
@@ -41,9 +42,11 @@ public:
 	bool			Export(CIRModule* pcModule, CIRFunction* pcFunction);
 	CIRFunction*	Find(const char* szName);
 	size			NumFunctions(void);
+	CIRModule*		GetModule(void);
 
 protected:
-	bool			IsExportable(CIRFunction* pcFunction);
+	bool			IsExportable(CIRModule* pcModule, CIRFunction* pcFunction);
+	bool			IsLocalSymbol(CIRModule* pcModule, SIRReference sValue);
 };
 
 

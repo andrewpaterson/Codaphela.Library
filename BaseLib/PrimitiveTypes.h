@@ -121,6 +121,14 @@ typedef uintptr_t		ptr;
 typedef ptrdiff_t		ptrdiff;
 #endif // LINUX_GNU && BUILD_64
 
+//lsize counts and measures things that can pass 64KB.  It is the same type as size except on 16 bit targets.
+#if defined(__W65C816__)
+typedef uint32			lsize;
+#else
+typedef size			lsize;
+#endif // __W65C816__
+#define MAX_LSIZE		((lsize)-1)
+
 #if INT_MAX == MAX_INT32
 typedef int64			longint;
 typedef uint64			ulongint;

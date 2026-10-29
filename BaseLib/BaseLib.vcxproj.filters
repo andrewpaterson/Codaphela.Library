@@ -726,9 +726,6 @@
     <ClInclude Include="ArrayBit.h">
       <Filter>Source\Data\Array\Bit</Filter>
     </ClInclude>
-    <ClInclude Include="ArrayTemplateMinimal.h">
-      <Filter>Source\Data\Array\Minimal</Filter>
-    </ClInclude>
     <ClInclude Include="ArrayVoidPtr.h">
       <Filter>Source\Data\Array\Basic\Specific</Filter>
     </ClInclude>
@@ -740,12 +737,6 @@
     </ClInclude>
     <ClInclude Include="ArrayTemplate.h">
       <Filter>Source\Data\Array\Basic</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayIntMinimal.h">
-      <Filter>Source\Data\Array\Minimal\Specific</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayCharMinimal.h">
-      <Filter>Source\Data\Array\Minimal\Specific</Filter>
     </ClInclude>
     <ClInclude Include="ArrayInt64.h">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
@@ -941,9 +932,6 @@
     </ClInclude>
     <ClInclude Include="BaseMemory.h">
       <Filter>Source\Memory\Manager</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayBlockMinimal.h">
-      <Filter>Source\Data\Array\Minimal</Filter>
     </ClInclude>
     <ClInclude Include="ArraySizer.h">
       <Filter>Source\Data\Array</Filter>
@@ -2006,12 +1994,6 @@
     <ClCompile Include="ArrayInt2D.cpp">
       <Filter>Source\Data\Array\Basic\Specific</Filter>
     </ClCompile>
-    <ClCompile Include="ArrayCharMinimal.cpp">
-      <Filter>Source\Data\Array\Minimal\Specific</Filter>
-    </ClCompile>
-    <ClCompile Include="ArrayIntMinimal.cpp">
-      <Filter>Source\Data\Array\Minimal\Specific</Filter>
-    </ClCompile>
     <ClCompile Include="ArrayInt.cpp">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClCompile>
@@ -2224,9 +2206,6 @@
     </ClCompile>
     <ClCompile Include="GeneralMemory.cpp">
       <Filter>Source\Memory\Manager</Filter>
-    </ClCompile>
-    <ClCompile Include="ArrayBlockMinimal.cpp">
-      <Filter>Source\Data\Array\Minimal</Filter>
     </ClCompile>
     <ClCompile Include="ArraySizer.cpp">
       <Filter>Source\Data\Array</Filter>
@@ -2969,6 +2948,33 @@
     <None Include="LibraryBreakdown.txt" />
     <None Include="CodabaseTransactions.txt">
       <Filter>Source\Database\Codabase</Filter>
+    </None>
+    <None Include="ArrayBlockClass.inl">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </None>
+    <None Include="ArrayBlockCode.inl">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </None>
+    <None Include="ArraySizeNatural.inl">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </None>
+    <None Include="ArraySizeLarge.inl">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </None>
+    <None Include="ArraySizeUndef.inl">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </None>
+    <None Include="ArrayTemplate.inl">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </None>
+    <None Include="ArrayTemplatePrimitive.inl">
+      <Filter>Source\Data\Array\Primitive</Filter>
+    </None>
+    <None Include="ArrayCharClass.inl">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </None>
+    <None Include="ArrayCharCode.inl">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </None>
     <None Include="TimSort.inl">
       <Filter>Source\Sort</Filter>

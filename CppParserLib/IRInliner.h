@@ -61,6 +61,7 @@ protected:
 	CArrayTemplate<bool>	mabInLoop;					//Per caller block index.
 	CIRImports*				mpcImports;					//Other units' functions, NULL for none.
 	CArrayChars*			mpaszMissing;				//Named callees with no body here or in mpcImports, NULL to not keep.
+	CIRModule*				mpcCalleeModule;			//The module of the callee being inlined when it isn't this one (its symbols are mapped by name).
 
 public:
 	void			Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoopInstructions, size uiMaxInlines);

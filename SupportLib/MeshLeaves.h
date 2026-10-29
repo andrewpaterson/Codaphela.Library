@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_LEAVES_H__
 #define __MESH_LEAVES_H__
-#include "BaseLib/ArrayIntMinimal.h"
+#include "BaseLib/ArrayEmbeddedInt.h"
 #include "MeshDetail.h"
 #include "ShapesIndexed.h"
 
@@ -61,7 +61,7 @@ class CMeshLeaf
 {
 public:
 	CSphereIndexed		mcSphere;
-	CArrayIntMinimal		maiTriangles;
+	CArrayEmbeddedInt		maiTriangles;
 
 	void	Init(void);
 	void	Kill(void);

@@ -28,6 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PPHashes.h"
 #include "PPTokenReplacementsHolder.h"
 #include "PPBlock.h"
+#include "BaseLib/ErrorHandler.h"
 
 
 //////////////////////////////////////////////////////////////////////////

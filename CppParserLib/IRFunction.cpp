@@ -44,6 +44,7 @@ void CIRFunction::Init(uint32 uiSymbol, SIRType sReturnType, uint32 uiAttributes
 	msReturnType = sReturnType;
 	muiAttributes = uiAttributes;
 	masParameters.Init();
+	muiRestrictParameters = 0;
 
 	masTemporaries.Init();
 	maszTemporaryNames.Init();
@@ -175,6 +176,56 @@ SIRReference CIRFunction::AddParameter(SIRType sType, const char* szName)
 	sParameter = AddTemporary(sType, szName);
 	masParameters.Add(&sParameter);
 	return sParameter;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Marks a pointer parameter restrict (C's restrict): memory reached through
+// pointers based on its value is reached through no other pointer, symbol
+// or slot while the function runs.  Only the first 32 parameters can be.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRFunction::SetRestrictParameter(size uiParameter)
+{
+	if (uiParameter < 32)
+	{
+		muiRestrictParameters |= (uint32)1 << uiParameter;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRFunction::IsRestrictParameter(size uiParameter)
+{
+	return (uiParameter < 32) && ((muiRestrictParameters & ((uint32)1 << uiParameter)) != 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The index of the parameter sValue is, else -1.
+//
+//////////////////////////////////////////////////////////////////////////
+int CIRFunction::FindParameter(SIRReference sValue)
+{
+	size	ui;
+
+	if (!sValue.IsTemporary())
+	{
+		return -1;
+	}
+	for (ui = 0; ui < masParameters.NumElements(); ui++)
+	{
+		if (masParameters.Get(ui)->Equals(sValue))
+		{
+			return (int)ui;
+		}
+	}
+	return -1;
 }
 
 

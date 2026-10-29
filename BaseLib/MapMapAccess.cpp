@@ -1,6 +1,7 @@
 #include "MapBlock.h"
 #include "MapMapIterator.h"
 #include "MapMapAccess.h"
+#include "PointerFunctions.h"
 
 
 //////////////////////////////////////////////////////////////////////////

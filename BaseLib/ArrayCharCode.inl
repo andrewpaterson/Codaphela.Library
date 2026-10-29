@@ -20,21 +20,24 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_INT_MINIMAL_H__
-#define __ARRAY_INT_MINIMAL_H__
-#include "ArrayTemplateMinimal.h"
+//No include guard: ArrayCharCode.inl is included once per array size (ArraySizeNatural.inl and
+//ArraySizeLarge.inl define the names and types it is written with).
 
-
-class CArrayIntMinimal : public CArrayTemplateMinimal<uint>
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void ARRAY_CHAR::AddList(char iStop, ...)
 {
-public:
-	void	Add(uint i);
-	size	AddIfUnique(uint i);
-	size	Find(uint i);
-	uint	GetValue(size iElementPos);
-	void	QuickSort(void);
-};
+	va_list		vaMarker;
+	char		iValue;
 
-
-#endif // __ARRAY_INT_MINIMAL_H__
-
+	va_start(vaMarker, iStop);
+	iValue = (char)va_arg(vaMarker, int);  //char is promoted to int when passed through ...
+	while (iValue != iStop)
+	{
+		Add((char)iValue);
+		iValue = (char)va_arg(vaMarker, int);  //char is promoted to int when passed through ...
+	}
+	va_end(vaMarker);
+}

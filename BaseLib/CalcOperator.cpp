@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "CalculatorError.h"
 #include "CalculatorSymbols.h"
 #include "CalcOperator.h"
+#include "ErrorHandler.h"
 
 
 //////////////////////////////////////////////////////////////////////////

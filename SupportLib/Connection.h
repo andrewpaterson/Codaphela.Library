@@ -24,9 +24,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayInt.h"
 #include "BaseLib/ArrayBlock.h"
-#include "BaseLib/ArrayTemplateMinimal.h"
 #include "BaseLib/ChunkFile.h"
-#include "BaseLib/ArrayIntMinimal.h"
 #include "BaseLib/Float4x4.h"
 #include "StandardLib/Object.h"
 

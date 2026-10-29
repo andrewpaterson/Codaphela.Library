@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __INPUT_VIRTUAL_DEVICE_COMMONALITY_H__
 #define __INPUT_VIRTUAL_DEVICE_COMMONALITY_H__
-#include "BaseLib/ArrayTemplateMinimal.h"
+#include "BaseLib/ArrayTemplate.h"
 
 
 class CInputVirtualDevice;
@@ -31,7 +31,7 @@ class CInputVirtualDeviceCommonality : public CUnknown
 CONSTRUCTABLE(CInputVirtualDeviceCommonality);
 protected:
 	CInputVirtualDevice*				mpcVirtualDevice;
-	CArrayTemplateMinimal<CInputVirtualDevice*>	mapcSharedDeviceSources;
+	CArrayTemplate<CInputVirtualDevice*>	mapcSharedDeviceSources;
 
 public:
 	void Init(CInputVirtualDevice* pcVirtualDevice);

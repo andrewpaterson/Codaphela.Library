@@ -1,5 +1,6 @@
 #include "CalculatorError.h"
 #include "CalcVariableDefinition.h"
+#include "PointerFunctions.h"
 
 
 //////////////////////////////////////////////////////////////////////////

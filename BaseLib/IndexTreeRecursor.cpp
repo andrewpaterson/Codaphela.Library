@@ -2,6 +2,7 @@
 #include "LogString.h"
 #include "SystemAllocator.h"
 #include "IndexTreeRecursor.h"
+#include "PointerFunctions.h"
 
 
 //////////////////////////////////////////////////////////////////////////

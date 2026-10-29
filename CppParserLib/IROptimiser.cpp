@@ -41,6 +41,7 @@ void CIROptimiser::Init(CIRModule* pcModule)
 	mpcFunction = NULL;
 	mbIndexedAddresses = true;
 	mbNarrowMultiplies = false;
+	mbRestrict = false;
 	miUnswitched = 0;
 	msLibraryInt = IRType(IRTK_None);
 	mcDominators.Init();
@@ -131,6 +132,7 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 	int		iRound;
 
 	mpcFunction = pcFunction;
+	mbRestrict = mpcModule->HasRestrict() || (pcFunction->muiRestrictParameters != 0);
 	miUnswitched = 0;
 	bAny = false;
 	for (iRound = 0; iRound < IR_OPTIMISE_ROUNDS; iRound++)
@@ -2688,23 +2690,172 @@ bool CIROptimiser::IsFrameRoot(SIRReference sRoot)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What a root's pointer is based on: a pointer loaded from a restrict
+// symbol or a parameter, through ptradds (with any offset) and phis whose
+// values are all based on the same.  Else IRPB_Unknown.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::PointerBase(SIRReference sRoot, SIRPointerBase* psBase)
+{
+	SIRReference	asWork[IR_BASE_VALUES];
+	SIRReference	asSeen[IR_BASE_VALUES];
+	size			uiWork;
+	size			uiSeen;
+	size			ui;
+	SIRReference	sValue;
+	SIRInstruction*	psDefinition;
+	SIRPhi*			psPhi;
+	SIRPointerBase	sBase;
+	bool			bFound;
+	int				iSteps;
+	int				iParameter;
+
+	psBase->eKind = IRPB_Unknown;
+	if (!mbRestrict)
+	{
+		return;
+	}
+
+	asWork[0] = sRoot;
+	uiWork = 1;
+	uiSeen = 0;
+	bFound = false;
+	while (uiWork > 0)
+	{
+		sValue = asWork[--uiWork];
+		for (iSteps = 0; iSteps < 16; iSteps++)
+		{
+			psDefinition = mcDefinitions.Instruction(sValue);
+			if ((psDefinition == NULL) || (psDefinition->uiOpcode != IRO_PtrAdd))
+			{
+				break;
+			}
+			sValue = psDefinition->asArguments[0];
+		}
+		for (ui = 0; ui < uiSeen; ui++)
+		{
+			if (asSeen[ui].Equals(sValue))
+			{
+				break;
+			}
+		}
+		if (ui < uiSeen)
+		{
+			continue;
+		}
+		if (uiSeen == IR_BASE_VALUES)
+		{
+			psBase->eKind = IRPB_Unknown;
+			return;
+		}
+		asSeen[uiSeen++] = sValue;
+
+		psPhi = mcDefinitions.Phi(sValue);
+		if (psPhi)
+		{
+			for (ui = 0; ui < psPhi->asArguments.NumElements(); ui++)
+			{
+				if (uiWork == IR_BASE_VALUES)
+				{
+					psBase->eKind = IRPB_Unknown;
+					return;
+				}
+				asWork[uiWork++] = psPhi->asArguments.Get(ui)->sValue;
+			}
+			continue;
+		}
+
+		iParameter = mpcFunction->FindParameter(sValue);
+		psDefinition = mcDefinitions.Instruction(sValue);
+		if (iParameter >= 0)
+		{
+			sBase.eKind = IRPB_Parameter;
+			sBase.uiIndex = (uint32)iParameter;
+			sBase.bRestrict = mpcFunction->IsRestrictParameter((size)iParameter);
+		}
+		else if (psDefinition && (psDefinition->uiOpcode == IRO_Load) && psDefinition->asArguments[0].IsSymbol() && mpcModule->IsRestrict(psDefinition->asArguments[0].Index()))
+		{
+			sBase.eKind = IRPB_RestrictSymbol;
+			sBase.uiIndex = psDefinition->asArguments[0].Index();
+			sBase.bRestrict = true;
+		}
+		else
+		{
+			psBase->eKind = IRPB_Unknown;
+			return;
+		}
+
+		if (!bFound)
+		{
+			*psBase = sBase;
+			bFound = true;
+		}
+		else if ((psBase->eKind != sBase.eKind) || (psBase->uiIndex != sBase.uiIndex))
+		{
+			psBase->eKind = IRPB_Unknown;
+			return;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // False only if the two accesses can't touch the same bytes: the same root
 // at offsets that don't overlap, different symbols, different slots or
-// argaddrs, or a slot and a symbol.
+// argaddrs, or a slot and a symbol.  What is reached through a restrict
+// pointer (a restrict symbol's value or a restrict parameter, see
+// PointerBase) is no symbol's or slot's, and isn't reached through a
+// pointer with another base when either base is restrict and a parameter,
+// or both are restrict.  A restrict symbol and a plain parameter may alias:
+// the caller may have passed the symbol's value.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::MayAlias(SIRAvailable* psAvailable, SIRReference sRoot, int64 lliOffset, int iBytes)
 {
-	bool	bFrame1;
-	bool	bFrame2;
+	bool			bFrame1;
+	bool			bFrame2;
+	SIRPointerBase	sBase1;
+	SIRPointerBase	sBase2;
+	bool			bRestrict1;
+	bool			bRestrict2;
 
 	if (psAvailable->sRoot.Equals(sRoot))
 	{
 		return (psAvailable->lliOffset < lliOffset + iBytes) && (lliOffset < psAvailable->lliOffset + mpcModule->GetSize(psAvailable->sType));
 	}
-	bFrame1 = IsFrameRoot(psAvailable->sRoot);
-	bFrame2 = IsFrameRoot(sRoot);
-	if ((bFrame1 || psAvailable->sRoot.IsSymbol()) && (bFrame2 || sRoot.IsSymbol()))
+	bFrame1 = IsFrameRoot(psAvailable->sRoot) || psAvailable->sRoot.IsSymbol();
+	bFrame2 = IsFrameRoot(sRoot) || sRoot.IsSymbol();
+	if (bFrame1 && bFrame2)
+	{
+		return false;
+	}
+
+	sBase1.eKind = IRPB_Unknown;
+	sBase2.eKind = IRPB_Unknown;
+	if (!bFrame1)
+	{
+		PointerBase(psAvailable->sRoot, &sBase1);
+	}
+	if (!bFrame2)
+	{
+		PointerBase(sRoot, &sBase2);
+	}
+	bRestrict1 = (sBase1.eKind != IRPB_Unknown) && sBase1.bRestrict;
+	bRestrict2 = (sBase2.eKind != IRPB_Unknown) && sBase2.bRestrict;
+	if ((bRestrict1 && bFrame2) || (bRestrict2 && bFrame1))
+	{
+		return false;
+	}
+	if ((sBase1.eKind == IRPB_Unknown) || (sBase2.eKind == IRPB_Unknown))
+	{
+		return true;
+	}
+	if ((sBase1.eKind == sBase2.eKind) && (sBase1.uiIndex == sBase2.uiIndex))
+	{
+		return true;
+	}
+	if ((bRestrict1 && bRestrict2) || (bRestrict1 && (sBase1.eKind == IRPB_Parameter)) || (bRestrict2 && (sBase2.eKind == IRPB_Parameter)))
 	{
 		return false;
 	}
@@ -4685,6 +4836,8 @@ bool CIROptimiser::UnswitchLoops(void)
 	CArrayIRReferences	asMap;
 	CArrayIRBlocks		apcBlocks;
 	CArrayIRBlocks		apcCopies;
+	CArrayTemplate<SIRUnswitchedValue>	asValues;
+	SIRUnswitchedValue*	psValue;
 	CIRSSAUpdater		cUpdater;
 	SIRInstruction		sCopy;
 	SIRLoop*			psLoop;
@@ -4842,10 +4995,13 @@ bool CIROptimiser::UnswitchLoops(void)
 		pcSwitchCopy->Jump(IROptimiserCopyOf(&apcBlocks, &apcCopies, pcElse));
 		IROptimiserRemovePhiArguments(IROptimiserCopyOf(&apcBlocks, &apcCopies, pcThen), pcSwitchCopy);
 		pcPreheader->Branch(sCondition, psLoop->pcHead, IROptimiserCopyOf(&apcBlocks, &apcCopies, psLoop->pcHead));
+		mpcFunction->Renumber();
 		mpcFunction->ComputePredecessors();
 
-		//Values used after the loop come from the loop or the copy.
-		cUpdater.Init(mpcFunction);
+		//The values the loop defines (with their blocks, and whether each block and its copy can still be reached),
+		//before the blocks the branch no longer reaches go: an unreachable cycle would send the updater round it.
+		mcDominators.Compute(mpcFunction);
+		asValues.Init();
 		for (ui = 0; ui < apcBlocks.NumElements(); ui++)
 		{
 			pcBlock = apcBlocks.GetPtr(ui);
@@ -4854,14 +5010,39 @@ bool CIROptimiser::UnswitchLoops(void)
 				sValue = (uiIndex < pcBlock->masPhis.NumElements()) ? pcBlock->masPhis.Get(uiIndex)->sResult : pcBlock->masInstructions.Get(uiIndex - pcBlock->masPhis.NumElements())->sResult;
 				if (sValue.IsTemporary())
 				{
-					cUpdater.Begin(mpcFunction->GetTemporaryType(sValue));
-					cUpdater.Define(pcBlock, sValue);
-					cUpdater.Define(apcCopies.GetPtr(ui), IROptimiserMapped(&asMap, sValue));
-					RewriteOutsideUses(sValue, &apcBlocks, &apcCopies, &cUpdater);
+					psValue = asValues.Add();
+					psValue->sValue = sValue;
+					psValue->uiBlock = ui;
+					psValue->bReached = mcDominators.IsReachable(pcBlock);
+					psValue->bCopyReached = mcDominators.IsReachable(apcCopies.GetPtr(ui));
 				}
 			}
 		}
+		RemoveUnreachable();
+		mpcFunction->Renumber();
+		mpcFunction->ComputePredecessors();
+
+		//Values used after the loop come from the loop or the copy.
+		cUpdater.Init(mpcFunction);
+		for (ui = 0; ui < asValues.NumElements(); ui++)
+		{
+			psValue = asValues.Get(ui);
+			if (psValue->bReached || psValue->bCopyReached)
+			{
+				cUpdater.Begin(mpcFunction->GetTemporaryType(psValue->sValue));
+				if (psValue->bReached)
+				{
+					cUpdater.Define(apcBlocks.GetPtr(psValue->uiBlock), psValue->sValue);
+				}
+				if (psValue->bCopyReached)
+				{
+					cUpdater.Define(apcCopies.GetPtr(psValue->uiBlock), IROptimiserMapped(&asMap, psValue->sValue));
+				}
+				RewriteOutsideUses(psValue->sValue, &apcBlocks, &apcCopies, &cUpdater);
+			}
+		}
 		cUpdater.Kill();
+		asValues.Kill();
 		asMap.Kill();
 		apcCopies.Kill();
 		apcBlocks.Kill();

@@ -23,6 +23,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/TextFile.h"
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/Numbers.h"
+#include "BaseLib/ErrorHandler.h"
 
 
 //////////////////////////////////////////////////////////////////////////

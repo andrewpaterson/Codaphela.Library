@@ -114,7 +114,7 @@ M CArrayTemplateEmbeddedPrimitive<M, I>::SafeGetValue(size iIndex, M iNotFound)
 {
 	if (iIndex < this->NumElements())
 	{
-		return ((M*)this->mpvArray)[iIndex];
+		return *(CArrayTemplateEmbedded<M, I>::Get(iIndex));
 	}
 	return iNotFound;
 }
@@ -191,7 +191,7 @@ void CArrayTemplateEmbeddedPrimitive<M, I>::SetArrayValues(M iValue)
 
 	for (i = 0; i < this->NumElements(); i++)
 	{
-		((M*)this->mpvArray)[i] = iValue;
+		this->GetData()[i] = iValue;
 	}
 }
 
@@ -207,7 +207,7 @@ void CArrayTemplateEmbeddedPrimitive<M, I>::SetArrayValues(M iStartValue, M iInc
 
 	for (i = 0; i < this->NumElements(); i++)
 	{
-		((M*)this->mpvArray)[i] = iStartValue;
+		this->GetData()[i] = iStartValue;
 		iStartValue += iIncrement;
 	}
 }
@@ -246,7 +246,7 @@ size CArrayTemplateEmbeddedPrimitive<M, I>::Find(M iValue)
 
 	for (i = 0; i < this->NumElements(); i++)
 	{
-		if (((M*)this->mpvArray)[i] == iValue)
+		if (this->GetData()[i] == iValue)
 		{
 			return i;
 		}

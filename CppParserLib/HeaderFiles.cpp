@@ -21,6 +21,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FileUtil.h"
 #include "HeaderFiles.h"
 #include "HeaderFileMap.h"
+#include "BaseLib/ErrorHandler.h"
 
 
 //////////////////////////////////////////////////////////////////////////
