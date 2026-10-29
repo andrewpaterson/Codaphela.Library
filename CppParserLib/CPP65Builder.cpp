@@ -833,7 +833,7 @@ bool CCPP65Builder::CompileUnits(void)
 		bResult &= CompileUnit(psUnit);
 	}
 
-	for (ui = 0; bResult && (meTarget == CPPT_W65C816) && !getenv("NO_RECOMPILE_TEMP") && (ui < asUnits.NumElements()); ui++)
+	for (ui = 0; bResult && (meTarget == CPPT_W65C816) && (ui < asUnits.NumElements()); ui++)
 	{
 		psUnit = asUnits.Get(ui);
 		bAgain = false;

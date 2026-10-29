@@ -87,6 +87,25 @@ struct SIRSlotAccess
 
 //An unsigned divide or remainder by a constant that BoundDivisions makes cheaper: the dividend is below the divisor
 //(bOnce false) or below twice it.
+//An address SplitLoopAddresses splits: where it is and the add's operands (the loop's invariant one and the other).
+struct SIRSplitAddress
+{
+	CIRBlock*		pcBlock;
+	size			uiInstruction;
+	SIRReference	sInvariant;
+	SIRReference	sVariant;
+};
+
+
+//A mul NarrowMultiplies makes narrow: where it is and its narrow operand.
+struct SIRNarrowMultiply
+{
+	CIRBlock*		pcBlock;
+	size			uiInstruction;
+	SIRReference	sNarrow;
+};
+
+
 struct SIRBoundDivision
 {
 	CIRBlock*		pcBlock;
@@ -174,6 +193,8 @@ protected:
 	CIRModule*				mpcModule;
 	CIRFunction*			mpcFunction;
 	bool					mbIndexedAddresses;	//Loads and stores add a pointer and an index for nothing (the 65C64's [R1 + R2]).
+	bool					mbNarrowMultiplies;	//Multiplies are cheaper narrow (the W65C816's: NarrowMultiplies).
+	int						miUnswitched;		//Loops UnswitchLoops copied in this Optimise.
 	SIRType					msLibraryInt;		//memset's int (16 or 32 bits); IRTK_None: loops aren't made library calls.
 	CIRDominators			mcDominators;
 	CIRDefinitions			mcDefinitions;		//Each temporary's definition (FindDefinitions).
@@ -195,6 +216,7 @@ public:
 
 	bool			Optimise(CIRFunction* pcFunction);
 	void			SetIndexedAddresses(bool bIndexedAddresses);
+	void			SetNarrowMultiplies(bool bNarrowMultiplies);
 	void			SetLibraryInt(SIRType sInt);
 
 	bool			SimplifyCFG(void);
@@ -209,6 +231,12 @@ public:
 	bool			HoistInvariants(void);
 	bool			RotateLoops(void);
 	bool			NarrowTruncations(void);
+	bool			NarrowMultiplies(void);
+	bool			SplitLoopAddresses(void);
+	bool			UnswitchLoops(void);
+	void			RewriteOutsideUses(SIRReference sValue, CArrayIRBlocks* papcBlocks, CArrayIRBlocks* papcCopies, CIRSSAUpdater* pcUpdater);
+	void			DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int64* plliMin, int64* plliMax);
+	bool			NotNegative(CIRBlock* pcBlock, SIRReference sValue);
 	bool			BoundDivisions(void);
 	bool			ReplaceLoopIdioms(void);
 	bool			RemoveDeadCode(void);
