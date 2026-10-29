@@ -1,0 +1,96 @@
+Garth Wilson's 16 bit maths tables (plan, 2026-10-29)
+=====================================================
+
+The files
+---------
+There are 17 Intel HEX files.  They use record types 00, 01 and 02 only, and every
+checksum is good.  The addresses are Garth's ROM addresses: two 1MB images that share
+the same address range, and MULT overlaps BITREV15.  The tables total 2112KB.
+
+Formats checked here against every entry:
+  MULT    E0000  128KB  word [a << 8 | b] = a * b                (a, b 8 bit)
+  SQUARE  00000  256KB  long [i] = i * i                         (i 16 bit)
+  INVERT  40000  256KB  long [i] = round(2^32 / i), [0] = [1] = $FFFFFFFF
+  ATAN    C0000  64KB+2 word [i] = round(atan(i/$8000) * 65536/2pi), i = 0..$8000
+  LOG2    D0000  128KB  word [i] = round(log2(i) * 4096), i = 1..$FFFF.  [0] is
+                        ATAN[$8000]: Garth's shared word, which is kept (user ruling).
+
+Rulings (user, 2026-10-29)
+--------------------------
+- Lazy loading of tables is dropped.
+- Focus on multiplication and division.
+- There is only 512KB of ROM for everything, so the trig, log and other tables stay in
+  the file system (machine B's FAT32 SD card).  They are not linked into the ROM.
+  When needed, they are read into RAM at run time by a library call, with no linker
+  involvement.
+- CIntelHex goes in BaseLib.
+- The two 816 machines both have a 512KB boot ROM that is copied to 512KB RAM, then
+  swapped.  Machine A has no drive; machine B has an SD card with FAT32.  On A the
+  tables can stay in ROM.  On B, ROM is slow and RAM is fast, so MULT (at least) is
+  copied to RAM.
+- Divide uses a 128KB slice of INVERT (user, 2026-10-29): the divisor is normalised to 16
+  significant bits, looked up in entries $8000..$FFFF, then one correction step.
+- Start with multiply (user, 2026-10-29).
+- Machine B also has 4MB of RAM, the same speed as the 512KB.  Its first 1MB is masked by
+  the 512KB ROM and RAM, so $100000-$3FFFFF (3MB) is usable, for example for tables read
+  from the file system.
+- Lazy loading of code on the 816 is a separate project.  The 816 version will use a
+  per-machine fetch routine: the ROM on A, and a real FAT32 reader on B (eventually
+  BaseLib's CFatVolume/CFatFile in 816 assembly).  Code is copied out of ROM as needed.
+
+Multiply with MULT (128KB)
+--------------------------
+The 816 runtime's R816_Mul16 and R816_Mul32 are shift and add loops today.  With MULT:
+- 16 x 16 -> 16 (int): aL*bL + ((aL*bH + aH*bL) << 8).  That is 3 lookups, and only the
+  low bytes of the cross products are needed.
+- 32 x 32 -> 32 (long): the 10 byte products with i + j < 4, added at their byte
+  offsets.
+- The index (a << 8 | b) * 2 is 17 bits.  Bit 7 of a picks MathMult or
+  MathMult + $10000, and X = (a & $7F) << 9 | b << 1.  It is read with lda long,X.
+
+Divide with INVERT
+------------------
+q = (a * INVERT[b]) >> 32 is a//b or one less, for 16 bit a and b (b >= 2).  So:
+estimate, then r = a - q*b, and if r >= b then q++ (b = 1 is a special case).  That
+takes the top of a 16 x 32 product plus a 16 x 16 multiply: about 11 MULT lookups.
+Today's shift and subtract loop is about 16 iterations, so the table version may not
+win.  It must be measured before it replaces the loop.  A 32 bit divisor of more than
+16 bits keeps the loop.
+
+ROM budget: MULT 128KB + INVERT 256KB = 384KB of the 512KB.  That leaves 128KB for
+everything else, which is too much to give up.  Options:
+- No INVERT: divide stays a loop, made faster with MULT where possible.
+- A slice of INVERT: normalise the divisor to its top N bits, look up the reciprocal,
+  then correct.  Entries $100..$1FF are 1KB, and entries $8000..$FFFF are 128KB (one
+  correction step).
+- All of INVERT, only on machine B, read from the file system.
+
+Work
+----
+1. CIntelHex (BaseLib): reads record types 00, 01, 02 and 04, fills holes with $FF,
+   and reports errors.  A writer comes later, for ROM images.
+2. .inchex "file"{, base} in the 65C64 and 816 assemblers.
+3. MathTbls sources: MathMult.asm, and MathInvert.asm (or a slice of it).  Each starts
+   with .section rodata.math.<name> and .align $10000, followed by a global label and
+   .inchex.  They go in one library, and a table is linked only if it is used.
+4. Linker: a table either stays in ROM (read in place), or is linked at a RAM address,
+   stored in the ROM image, and copied by startup (MVN; 128KB is about 70ms at
+   12.5MHz).  The machine description picks which for each table.  This brings back
+   load != run, but only for these copied sections.
+5. Runtime: R816_Mul16 and R816_Mul32 use MULT, and the table-driven divide is added
+   only if it measures faster.
+6. Tests: every MULT product on CFast65C816.  Mul and div against the loop versions
+   over edge cases and random values.  Cycle counts before and after, and the
+   TestBaseLib65 816 total.
+
+Status (2026-10-29, not committed)
+----------------------------------
+Done: 1 (BaseLib/IntelHex.h/.cpp, test TestIntelHex), 2 (.inchex, SetDirectory; test
+TestAsm65IncHex checks every MULT product after linking), 3 for MULT (MathMult.asm),
+5 for multiply (R816_Mul16/R816_Mul32 in IR816Backend.cpp; CCPP65Builder::AddMathTables
+links MathMult; test TestIR816BackendMultiply).  Not started: INVERT slice and the
+table divide, step 4 (copy to RAM at startup), ROM image output.
+Measured: TestCPP816's timed programs -4.9% cycles (MersenneTwister -27..-33%);
+TestBaseLib65 816 46.715G -> 46.320G (-0.85%, best programs -7%, worst +0.3%).  Slower
+than the old loop: 16 bit 0 * 0, and 32 bit with a 1-3 byte operand against a wide one
+(about 10%).

@@ -32,8 +32,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //The runtime routines, as IR for each width: $T is the type, $N its bits, $M its bits - 1 and $NAME the routine
 //(R816_$NAME).  Multiply adds and shifts; divide is restoring division a bit at a time (a remainder that shifts
 //past the top is bigger than any divisor); signed divide and remainder work on the magnitudes.
-//The unsigned 16 and 32 bit runtime routines in assembly (the IR ones are much slower).  Multiply loops over the
-//smaller operand's bits (b, swapped with a when it is bigger).  The arguments are a at S + 4
+//The unsigned 16 and 32 bit runtime routines in assembly (the IR ones are much slower).  Multiply adds byte products
+//from a table (IR816_MULTIPLY_BYTES) and skips those of a high half that is 0.  The arguments are a at S + 4
 //and b after it (pushed last first, after the jsl's return address); they are worked on where they are.  Space for
 //the result is pushed, then D is pointed at the stack: D + 1 is the caller's D, then the result, the return address
 //and the arguments.  A 16 bit result is left in A, a 32 bit one in A (low) and X (high).
@@ -156,6 +156,38 @@ struct SIR816Routine
 	"\t\tldy 6\n\t\tlda [D + " RESULT " + 6]\n\t\tsta [[D + 14]:24 + Y]\n" \
 	"\t\tpld\n\t\tpla\n\t\tpla\n\t\tpla\n\t\tpla\n\t\trtl\n"
 
+//Multiply looks bytes up in Garth Wilson's table (Libc65/MathTbls/MathMult.asm): the word at MathMult + ((x << 8) | y)
+//* 2 is x * y.  The table is two banks from a bank's start, so the index doubled is X and its top bit (bit 7 of x)
+//picks the bank.  A holds (x << 8) | y and gets x * y.
+#define IR816_MULTIPLY_BYTES(NAME) \
+	"\t\tasl A\n\t\ttax\n\t\tbcs " NAME "_High\n" \
+	"\t\tlda [MathMult + X]:24\n\t\tbra " NAME "_Got\n" \
+	NAME "_High:\n" \
+	"\t\tlda [MathMult + $10000 + X]:24\n" \
+	NAME "_Got:\n"
+
+//Adds the product in A a byte up into the word at WORD (only its low byte reaches it).
+#define IR816_MULTIPLY_ADD_BYTE_1(WORD) \
+	"\t\txba\n\t\tand $FF00\n\t\tclc\n\t\tadc " WORD "\n\t\tsta " WORD "\n"
+
+//R816_Mul32's result is D + 3 to D + 6 (0 to start) and D + 7 is a word for the low byte of a product, then the
+//return address, a (bytes D + 12 to D + 15) and b (D + 16 to D + 19).  A 32 bit product is up to ten byte products:
+//x and y are the bytes' offsets and ADD puts the product (in A) in the result.  A product of a 0 byte is skipped, as
+//are those of a high word that is 0.  A product a byte up adds to the result's middle word and carries into its top
+//byte; two bytes up adds to its high word.
+#define IR816_MULTIPLY_32(NAME, X, Y, ADD) \
+	"\t\tlda [D + " Y "]\n\t\tand $FF\n\t\tbeq R816_Mul32_" NAME "_Zero\n\t\tsta [D + 7]\n" \
+	"\t\tlda [D + " X " - 1]\n\t\tand $FF00\n\t\tbeq R816_Mul32_" NAME "_Zero\n\t\tora [D + 7]\n" \
+	IR816_MULTIPLY_BYTES("R816_Mul32_" NAME) \
+	ADD \
+	"R816_Mul32_" NAME "_Zero:\n"
+
+#define IR816_MULTIPLY_ADD_BYTES_1 \
+	"\t\tclc\n\t\tadc [D + 4]\n\t\tsta [D + 4]\n\t\tbcc C + 2\n\t\tinc [D + 6]\n"
+
+#define IR816_MULTIPLY_ADD_BYTES_2 \
+	"\t\tclc\n\t\tadc [D + 5]\n\t\tsta [D + 5]\n"
+
 static const SIR816Routine gasIR816Routines[] =
 {
 	{ "R816_UDiv64", IR816_DIVIDE_64("R816_UDiv64", "18") },
@@ -166,40 +198,39 @@ static const SIR816Routine gasIR816Routines[] =
 	{ "R816_URem16", IR816_DIVIDE_16("R816_URem16", "3") },
 	{ "R816_Mul16",
 		"\t\t.width (A, X), 16\n"
-		"\t\tpea 0\n\t\tphd\n\t\ttsc\n\t\ttcd\n"
-		"\t\tlda [D + 10]\n\t\tcmp [D + 8]\n\t\tbcc R816_Mul16_Bit\n"
-		"\t\tldx [D + 8]\n\t\tsta [D + 8]\n\t\tstx [D + 10]\n"
-		"R816_Mul16_Bit:\n"
-		"\t\tlda [D + 10]\n\t\tbeq R816_Mul16_Done\n"
-		"\t\tlsr [D + 10]\n\t\tbcc R816_Mul16_Next\n"
-		"\t\tclc\n\t\tlda [D + 3]\n\t\tadc [D + 8]\n\t\tsta [D + 3]\n"
-		"R816_Mul16_Next:\n"
-		"\t\tasl [D + 8]\n\t\tbra R816_Mul16_Bit\n"
+		"\t\tpea 0\n\t\tpea 0\n\t\tphd\n\t\ttsc\n\t\ttcd\n"
+		"\t\tlda [D + 10]\n\t\tand $FF\n\t\tsta [D + 5]\n"
+		"\t\tlda [D + 12]\n\t\txba\n\t\tand $FF00\n\t\tora [D + 5]\n"
+		IR816_MULTIPLY_BYTES("R816_Mul16_LL")
+		"\t\tsta [D + 3]\n"
+		"\t\tlda [D + 12]\n\t\tand $FF00\n\t\tbeq R816_Mul16_NoHighB\n\t\tora [D + 5]\n"
+		IR816_MULTIPLY_BYTES("R816_Mul16_LH")
+		IR816_MULTIPLY_ADD_BYTE_1("[D + 3]")
+		"R816_Mul16_NoHighB:\n"
+		"\t\tlda [D + 10]\n\t\tand $FF00\n\t\tbeq R816_Mul16_Done\n\t\tsta [D + 5]\n"
+		"\t\tlda [D + 12]\n\t\tand $FF\n\t\tora [D + 5]\n"
+		IR816_MULTIPLY_BYTES("R816_Mul16_HL")
+		IR816_MULTIPLY_ADD_BYTE_1("[D + 3]")
 		"R816_Mul16_Done:\n"
-		"\t\tlda [D + 3]\n\t\ttay\n\t\tpld\n\t\tpla\n\t\ttya\n\t\trtl\n" },
+		"\t\tlda [D + 3]\n\t\ttay\n\t\tpld\n\t\tpla\n\t\tpla\n\t\ttya\n\t\trtl\n" },
 	{ "R816_Mul32",
 		"\t\t.width (A, X), 16\n"
-		"\t\tpea 0\n\t\tpea 0\n\t\tphd\n\t\ttsc\n\t\ttcd\n"
-		"\t\tlda [D + 14]\n\t\tcmp [D + 10]\n\t\tlda [D + 16]\n\t\tsbc [D + 12]\n\t\tbcc R816_Mul32_Smaller\n"
-		"\t\tlda [D + 10]\n\t\tldx [D + 14]\n\t\tsta [D + 14]\n\t\tstx [D + 10]\n"
-		"\t\tlda [D + 12]\n\t\tldx [D + 16]\n\t\tsta [D + 16]\n\t\tstx [D + 12]\n"
-		"R816_Mul32_Smaller:\n"
-		"\t\tlda [D + 16]\n\t\tbne R816_Mul32_Bit\n"
-		"\t\tldx [D + 14]\n\t\tbeq R816_Mul32_Done\n"
-		"R816_Mul32_Short:\n"
-		"\t\ttxa\n\t\tlsr A\n\t\ttax\n\t\tbcc R816_Mul32_ShortNext\n"
-		"\t\tclc\n\t\tlda [D + 3]\n\t\tadc [D + 10]\n\t\tsta [D + 3]\n\t\tlda [D + 5]\n\t\tadc [D + 12]\n\t\tsta [D + 5]\n"
-		"R816_Mul32_ShortNext:\n"
-		"\t\ttxa\n\t\tbeq R816_Mul32_Done\n"
-		"\t\tasl [D + 10]\n\t\trol [D + 12]\n\t\tbra R816_Mul32_Short\n"
-		"R816_Mul32_Bit:\n"
-		"\t\tlda [D + 14]\n\t\tora [D + 16]\n\t\tbeq R816_Mul32_Done\n"
-		"\t\tlsr [D + 16]\n\t\tror [D + 14]\n\t\tbcc R816_Mul32_Next\n"
-		"\t\tclc\n\t\tlda [D + 3]\n\t\tadc [D + 10]\n\t\tsta [D + 3]\n\t\tlda [D + 5]\n\t\tadc [D + 12]\n\t\tsta [D + 5]\n"
-		"R816_Mul32_Next:\n"
-		"\t\tasl [D + 10]\n\t\trol [D + 12]\n\t\tbra R816_Mul32_Bit\n"
+		"\t\tpea 0\n\t\tpea 0\n\t\tpea 0\n\t\tphd\n\t\ttsc\n\t\ttcd\n"
+		IR816_MULTIPLY_32("LL", "12", "16", "\t\tsta [D + 3]\n")
+		IR816_MULTIPLY_32("HH", "13", "17", "\t\tsta [D + 5]\n")
+		IR816_MULTIPLY_32("LH", "12", "17", IR816_MULTIPLY_ADD_BYTES_1)
+		IR816_MULTIPLY_32("HL", "13", "16", IR816_MULTIPLY_ADD_BYTES_1)
+		"\t\tlda [D + 18]\n\t\tbeq R816_Mul32_NoHighB\n"
+		IR816_MULTIPLY_32("B2", "12", "18", IR816_MULTIPLY_ADD_BYTES_2)
+		IR816_MULTIPLY_32("B3", "12", "19", IR816_MULTIPLY_ADD_BYTE_1("[D + 5]"))
+		IR816_MULTIPLY_32("B2A1", "13", "18", IR816_MULTIPLY_ADD_BYTE_1("[D + 5]"))
+		"R816_Mul32_NoHighB:\n"
+		"\t\tlda [D + 14]\n\t\tbeq R816_Mul32_Done\n"
+		IR816_MULTIPLY_32("A2", "14", "16", IR816_MULTIPLY_ADD_BYTES_2)
+		IR816_MULTIPLY_32("A3", "15", "16", IR816_MULTIPLY_ADD_BYTE_1("[D + 5]"))
+		IR816_MULTIPLY_32("A2B1", "14", "17", IR816_MULTIPLY_ADD_BYTE_1("[D + 5]"))
 		"R816_Mul32_Done:\n"
-		"\t\tlda [D + 5]\n\t\ttax\n\t\tlda [D + 3]\n\t\ttay\n\t\tpld\n\t\tpla\n\t\tpla\n\t\ttya\n\t\trtl\n" },
+		"\t\tlda [D + 5]\n\t\ttax\n\t\tlda [D + 3]\n\t\ttay\n\t\tpld\n\t\tpla\n\t\tpla\n\t\tpla\n\t\ttya\n\t\trtl\n" },
 	{ NULL, NULL }
 };
 

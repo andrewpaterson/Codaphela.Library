@@ -19,6 +19,9 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
+#include "BaseLib/ConstructorCall.h"
+#include "BaseLib/PointerFunctions.h"
+#include "BaseLib/FileUtil.h"
 #include "Asm65Assembler.h"
 
 
@@ -57,6 +60,9 @@ void CAsm65Assembler::Init(void)
 	miExpressionDepth = 0;
 	muiStatementTerms = 0;
 	muiStatementTermsUsed = 0;
+	mszDirectory.Init();
+	maszHexFiles.Init();
+	mapcHexFiles.Init();
 	mpsTermToken = NULL;
 }
 
@@ -67,6 +73,17 @@ void CAsm65Assembler::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CAsm65Assembler::Kill(void)
 {
+	size		i;
+	CIntelHex*	pcHex;
+
+	for (i = 0; i < mapcHexFiles.NumElements(); i++)
+	{
+		pcHex = mapcHexFiles.GetPtr(i);
+		SafeKill(pcHex);
+	}
+	mapcHexFiles.Kill();
+	maszHexFiles.Kill();
+	mszDirectory.Kill();
 	mcAssociations.Kill();
 	mcUndefined.Kill();
 	mcSectionAddresses.Kill();
@@ -388,6 +405,10 @@ void CAsm65Assembler::Statement(void)
 			else if (psToken->IsIdentifierIgnoreCase(".space"))
 			{
 				bResult = Space();
+			}
+			else if (psToken->IsIdentifierIgnoreCase(".inchex"))
+			{
+				bResult = IncludeHex();
 			}
 			else if (psToken->IsIdentifierIgnoreCase(".global") || psToken->IsIdentifierIgnoreCase(".weak") || psToken->IsIdentifierIgnoreCase(".extern"))
 			{
@@ -727,6 +748,142 @@ bool CAsm65Assembler::Space(void)
 		WriteByte(0);
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// .inchex "file" {, base}
+// The bytes of an Intel HEX file from its address base (its lowest address
+// when not given) to its highest, $FF where it has none (as an erased ROM).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm65Assembler::IncludeHex(void)
+{
+	SAsm65Token*	psName;
+	SAsm65Token*	psBase;
+	CIntelHex*		pcHex;
+	int64			iBase;
+	uint64			ulliLength;
+	uint8*			puiBytes;
+	uint32			i;
+
+	if (InBss(Peek()))
+	{
+		return false;
+	}
+	psName = Peek();
+	if (psName->eType != AT65_String)
+	{
+		return ErrorExpected(psName, "a file name");
+	}
+	Next();
+	pcHex = GetHexFile(psName);
+	if (!pcHex)
+	{
+		return false;
+	}
+
+	iBase = pcHex->GetLowAddress();
+	if (Accept(AP65_Comma))
+	{
+		psBase = Peek();
+		if (!ExpressionValue(&iBase))
+		{
+			return false;
+		}
+		if ((iBase < 0) || (iBase > 0xFFFFFFFFLL))
+		{
+			return Error(psBase, "The base must be a 32 bit address");
+		}
+		if (!pcHex->IsEmpty() && ((uint32)iBase > pcHex->GetLowAddress()))
+		{
+			return Error(psBase, "The file has bytes below the base");
+		}
+	}
+
+	ulliLength = pcHex->IsEmpty() ? 0 : pcHex->GetEndAddress() - (uint64)iBase;
+	if (ulliLength > 0x1000000)
+	{
+		return Error(psName, "Included bytes must be 0 to 16MB");
+	}
+	if (!mbFinal)
+	{
+		muiAddress += (uint32)ulliLength;
+		return true;
+	}
+	puiBytes = (uint8*)malloc((size)ulliLength + 1);
+	pcHex->Fill((uint32)iBase, (uint32)ulliLength, 0xFF, puiBytes);
+	for (i = 0; i < (uint32)ulliLength; i++)
+	{
+		WriteByte(puiBytes[i]);
+	}
+	free(puiBytes);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The file named by the string psName (relative to SetDirectory's), read
+// once for all the passes.
+//
+//////////////////////////////////////////////////////////////////////////
+CIntelHex* CAsm65Assembler::GetHexFile(SAsm65Token* psName)
+{
+	CChars		szPath;
+	CFileUtil	cFileUtil;
+	CIntelHex*	pcHex;
+	CChars		szMessage;
+	size		i;
+
+	szPath.Init();
+	if (!mszDirectory.Empty() && !cFileUtil.IsAbsolutePath(mcTokeniser.GetString(psName)))
+	{
+		szPath.Append(mszDirectory);
+		cFileUtil.AppendToPath(&szPath, mcTokeniser.GetString(psName));
+	}
+	else
+	{
+		szPath.Append(mcTokeniser.GetString(psName));
+	}
+
+	for (i = 0; i < maszHexFiles.NumElements(); i++)
+	{
+		if (StringCompare(maszHexFiles.GetText(i), szPath.Text()) == 0)
+		{
+			szPath.Kill();
+			return mapcHexFiles.GetPtr(i);
+		}
+	}
+
+	pcHex = NewMalloc<CIntelHex>();
+	pcHex->Init();
+	if (!pcHex->Read(szPath.Text()))
+	{
+		szMessage.Init(pcHex->GetError());
+		Error(psName, szMessage.Text());
+		szMessage.Kill();
+		SafeKill(pcHex);
+		szPath.Kill();
+		return NULL;
+	}
+	maszHexFiles.Add(szPath.Text());
+	mapcHexFiles.Add(pcHex);
+	szPath.Kill();
+	return pcHex;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The directory .inchex file names are relative to.
+//
+//////////////////////////////////////////////////////////////////////////
+void CAsm65Assembler::SetDirectory(const char* szDirectory)
+{
+	mszDirectory.Kill();
+	mszDirectory.Init(szDirectory);
 }
 
 

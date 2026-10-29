@@ -102,6 +102,7 @@ public:
 
 	void			AddIncludeDirectory(const char* szDirectory, bool bIncludeSubDirectories, bool bSystem);
 	void			AddUnit(const char* szLibrary, const char* szDirectory, const char* szFile, bool bLinkAsLibrary = false);
+	void			AddMathTables(const char* szLibc65Directory);
 	bool			AddVisualStudioProject(const char* szLibrary, const char* szProjectFile, bool bLinkAsLibrary, const char* szExcluded = NULL);
 	void			SetStubMissing(bool bStubMissing);
 	void			SetRemoveUnused(bool bRemoveUnused);
@@ -130,8 +131,8 @@ public:
 	CArrayCPP65IncludeDirectories*	GetIncludeDirectories(void);
 
 protected:
-	bool			AddObject(const char* szName, const char* szAssembly, bool bResident = false);
-	bool			Assemble(CAsm65Object* pcObject, const char* szAssembly);
+	bool			AddObject(const char* szName, const char* szAssembly, bool bResident = false, const char* szDirectory = NULL);
+	bool			Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory = NULL);
 	bool			CompileUnits(void);
 	CAsm65Library*	GetLinkLibrary(CLibrary* pcLibrary);
 	bool			LinkObjects(void);
