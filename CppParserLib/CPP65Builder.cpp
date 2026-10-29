@@ -25,6 +25,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "VisualStudioProject.h"
 #include "Assembler65Lib/Asm65Assembler.h"
 #include "Assembler65Lib/Asm816Assembler.h"
+#include "CPP65IRFrontEnd.h"
 #include "Preprocessor.h"
 #include "HeaderFileMap.h"
 #include "HeaderFiles.h"
@@ -60,6 +61,7 @@ void CCPP65Builder::Init(void)
 	mcLinker.SetRemoveUnused(true);
 	mszErrors.Init();
 	mszWarnings.Init();
+	mcImports.Init(IR65_INLINE_LOOP_INSTRUCTIONS);
 }
 
 
@@ -71,6 +73,7 @@ void CCPP65Builder::Kill(void)
 {
 	size	i;
 
+	mcImports.Kill();
 	mszWarnings.Kill();
 	mszErrors.Kill();
 	mcLinker.Kill();
@@ -794,21 +797,23 @@ CAsm65Library* CCPP65Builder::GetLinkLibrary(CLibrary* pcLibrary)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Compiles each of the project's units to an object.
+// Compiles the project's units, each into an object (of its library when it
+// is linked as one).  On the W65C816 the units' small functions are kept for
+// inlining in the units compiled after them (mcImports), and a unit that
+// called one before it was exported is compiled again at the end.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::CompileUnits(void)
 {
-	CTranslationUnit*	pcFile;
-	SProcessIter		sIter;
-	CCPPTokeniser		cTokeniser;
-	CCPPSyntaxTree		cTree;
-	CCPPParser			cParser;
-	CCPP65Generator		cGenerator;
-	CChars				szAssembly;
-	CAsm65Library*		pcLinkLibrary;
-	size				uiCompiled;
-	bool				bResult;
+	CTranslationUnit*			pcFile;
+	SProcessIter				sIter;
+	CArrayCPP65CompiledUnits	asUnits;
+	SCPP65CompiledUnit*			psUnit;
+	size						uiCompiled;
+	size						ui;
+	size						uiName;
+	bool						bResult;
+	bool						bAgain;
 
 	if (muiUnits == 0)
 	{
@@ -817,44 +822,111 @@ bool CCPP65Builder::CompileUnits(void)
 
 	bResult = mcProject.Process((char*)GetCPPTarget(meTarget)->szName, &mszErrors);
 	uiCompiled = 0;
+	asUnits.Init();
 	for (pcFile = mcProject.Start(&sIter, (char*)GetCPPTarget(meTarget)->szName); pcFile; pcFile = mcProject.Iterate(&sIter))
 	{
 		uiCompiled++;
-		cTokeniser.Init();
-		bResult &= cTokeniser.Tokenise(pcFile->GetTokens());
-		mszErrors.Append(cTokeniser.GetErrors()->Text());
-		cTree.Init(&cTokeniser);
-		cParser.Init(&cTokeniser, &cTree);
-		bResult &= cParser.Parse();
-		mszErrors.Append(cTree.GetErrors()->Text());
-		cParser.Kill();
-
-		szAssembly.Init();
-		cGenerator.Init(&cTree, meTarget);
-		bResult &= cGenerator.Generate(&szAssembly);
-		mszErrors.Append(cGenerator.GetErrors()->Text());
-		mszWarnings.Append(cGenerator.GetWarnings()->Text());
-		cGenerator.Kill();
-		pcLinkLibrary = GetLinkLibrary(pcFile->GetLibrary());
-		if (pcLinkLibrary)
-		{
-			bResult &= Assemble(pcLinkLibrary->AddObject(pcFile->ShortName()), szAssembly.Text());
-		}
-		else
-		{
-			bResult &= AddObject(pcFile->ShortName(), szAssembly.Text());
-		}
-		szAssembly.Kill();
-
-		cTree.Kill();
-		cTokeniser.Kill();
+		psUnit = asUnits.Add();
+		psUnit->pcFile = pcFile;
+		psUnit->pcObject = NULL;
+		psUnit->aszMissing.Init();
+		bResult &= CompileUnit(psUnit);
 	}
+
+	for (ui = 0; bResult && (meTarget == CPPT_W65C816) && !getenv("NO_RECOMPILE_TEMP") && (ui < asUnits.NumElements()); ui++)
+	{
+		psUnit = asUnits.Get(ui);
+		bAgain = false;
+		for (uiName = 0; uiName < psUnit->aszMissing.NumElements(); uiName++)
+		{
+			bAgain |= mcImports.Find(psUnit->aszMissing.GetText(uiName)) != NULL;
+		}
+		if (bAgain)
+		{
+			psUnit->aszMissing.ReInit();
+			bResult &= CompileUnit(psUnit);
+		}
+	}
+	for (ui = 0; ui < asUnits.NumElements(); ui++)
+	{
+		asUnits.Get(ui)->aszMissing.Kill();
+	}
+	asUnits.Kill();
 
 	if (uiCompiled != muiUnits)
 	{
 		mszErrors.Append("Only ")->Append((int)uiCompiled)->Append(" of the ")->Append((int)muiUnits)->Append(" translation units were compiled.\n");
 		return false;
 	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Compiles psUnit's file into its object: a new one, or its old one again.
+// The functions it calls that weren't found for inlining go to its
+// aszMissing.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit)
+{
+	CCPPTokeniser		cTokeniser;
+	CCPPSyntaxTree		cTree;
+	CCPPParser			cParser;
+	CCPP65Generator		cGenerator;
+	CChars				szAssembly;
+	CAsm65Library*		pcLinkLibrary;
+	bool				bResult;
+
+	cTokeniser.Init();
+	bResult = cTokeniser.Tokenise(psUnit->pcFile->GetTokens());
+	mszErrors.Append(cTokeniser.GetErrors()->Text());
+	cTree.Init(&cTokeniser);
+	cParser.Init(&cTokeniser, &cTree);
+	bResult &= cParser.Parse();
+	mszErrors.Append(cTree.GetErrors()->Text());
+	cParser.Kill();
+
+	szAssembly.Init();
+	cGenerator.Init(&cTree, meTarget);
+	if (meTarget == CPPT_W65C816)
+	{
+		cGenerator.SetImports(&mcImports);
+	}
+	bResult &= cGenerator.Generate(&szAssembly);
+	cGenerator.GetMissingCallees(&psUnit->aszMissing);
+	mszErrors.Append(cGenerator.GetErrors()->Text());
+	if (!psUnit->pcObject)
+	{
+		mszWarnings.Append(cGenerator.GetWarnings()->Text());
+	}
+	cGenerator.Kill();
+
+	if (psUnit->pcObject)
+	{
+		psUnit->pcObject->Kill();
+		psUnit->pcObject->Init(psUnit->pcFile->ShortName());
+		bResult &= Assemble(psUnit->pcObject, szAssembly.Text());
+	}
+	else
+	{
+		pcLinkLibrary = GetLinkLibrary(psUnit->pcFile->GetLibrary());
+		if (pcLinkLibrary)
+		{
+			psUnit->pcObject = pcLinkLibrary->AddObject(psUnit->pcFile->ShortName());
+			bResult &= Assemble(psUnit->pcObject, szAssembly.Text());
+		}
+		else
+		{
+			bResult &= AddObject(psUnit->pcFile->ShortName(), szAssembly.Text());
+			psUnit->pcObject = macObjects.Tail()->pcObject;
+		}
+	}
+	szAssembly.Kill();
+
+	cTree.Kill();
+	cTokeniser.Kill();
 	return bResult;
 }
 

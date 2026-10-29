@@ -118,6 +118,41 @@ void CCPP65Generator::SetUseIR(bool bUseIR)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Small functions of other units the IR front end's inliner may use; this
+// unit's are added to pcImports when it is finished (CCPP65IRFrontEnd::
+// FinishUnit).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::SetImports(CIRImports* pcImports)
+{
+	mpcImports = pcImports;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The functions the unit calls that were neither its own nor in the
+// imports when it was finished (a later unit may export them).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::GetMissingCallees(CArrayChars* paszNames)
+{
+	CArrayChars*	paszMissing;
+	size			i;
+
+	if (mpcIRFrontEnd)
+	{
+		paszMissing = mpcIRFrontEnd->GetMissingCallees();
+		for (i = 0; i < paszMissing->NumElements(); i++)
+		{
+			paszNames->AddIfUnique(paszMissing->GetText(i));
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
@@ -134,6 +169,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mszBody.Init();
 	mpszOut = &mszCode;
 	mpcIRFrontEnd = NULL;
+	mpcImports = NULL;
 	SetUseIR(gbCPP65DefaultUseIR || !mpsTarget->bDirectGenerator);
 	mcErrors.Init();
 	mcWarnings.Init();

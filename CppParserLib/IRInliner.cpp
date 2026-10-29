@@ -37,6 +37,8 @@ void CIRInliner::Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoo
 	mapcCopies.Init();
 	masReturns.Init();
 	mabInLoop.Init();
+	mpcImports = NULL;
+	mpaszMissing = NULL;
 }
 
 
@@ -201,7 +203,7 @@ bool CIRInliner::InlineCalls(CIRFunction* pcCaller)
 			{
 				continue;
 			}
-			pcCallee = mpcModule->FindFunction(psInstruction->asArguments[0].Index());
+			pcCallee = Callee(psInstruction->asArguments[0], true);
 			uiBlocks = pcCaller->NumBlocks();
 			if (CanInline(pcCallee, bInLoop, pcBlock, uiInstruction) && InlineCall(pcBlock, uiInstruction, pcCallee))
 			{
@@ -218,6 +220,45 @@ bool CIRInliner::InlineCalls(CIRFunction* pcCaller)
 	}
 	mpcCaller = NULL;
 	return uiInlines > 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function a call of sSymbol calls: the module's, else (with no body
+// here) another unit's from mpcImports, else NULL.  bMissing adds the name
+// of one in neither to mpaszMissing.
+//
+//////////////////////////////////////////////////////////////////////////
+CIRFunction* CIRInliner::Callee(SIRReference sSymbol, bool bMissing)
+{
+	CIRFunction*	pcCallee;
+
+	pcCallee = mpcModule->FindFunction(sSymbol.Index());
+	if ((pcCallee && (pcCallee->NumBlocks() != 0)) || !mpcImports)
+	{
+		return pcCallee;
+	}
+	pcCallee = mpcImports->Find(mpcModule->GetSymbolName(sSymbol.Index()));
+	if (!pcCallee && bMissing && mpaszMissing)
+	{
+		mpaszMissing->AddIfUnique(mpcModule->GetSymbolName(sSymbol.Index()));
+	}
+	return pcCallee;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Callees with no body in the module are looked for in pcImports (other
+// units' functions); the names of those not there either are added to
+// paszMissing when it isn't NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRInliner::SetImports(CIRImports* pcImports, CArrayChars* paszMissing)
+{
+	mpcImports = pcImports;
+	mpaszMissing = paszMissing;
 }
 
 
@@ -284,7 +325,7 @@ bool CIRInliner::HasLoopCandidate(void)
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 			if ((psInstruction->uiOpcode == IRO_Call) && psInstruction->asArguments[0].IsSymbol())
 			{
-				pcCallee = mpcModule->FindFunction(psInstruction->asArguments[0].Index());
+				pcCallee = Callee(psInstruction->asArguments[0], false);
 				if (CanInline(pcCallee, true, pcBlock, uiInstruction) && !CanInline(pcCallee, false, pcBlock, uiInstruction))
 				{
 					return true;

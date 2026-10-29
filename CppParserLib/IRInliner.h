@@ -20,7 +20,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __I_R_INLINER_H__
 #define __I_R_INLINER_H__
+#include "BaseLib/ArrayChars.h"
 #include "IRModule.h"
+#include "IRImports.h"
 
 
 //A return of the function being inlined: the copy of its block and the value it returns.
@@ -44,7 +46,7 @@ typedef CArrayTemplate<SIRInlineReturn>	CArrayIRInlineReturns;
 //IR_INLINE_CONSTANT_BONUS more for each constant argument whose parameter it compares or branches on); variadic
 //functions, functions that take their parameters' addresses (argaddr) and calls of the function itself aren't
 //inlined.  The copies' own calls are inlined too, up to muiMaxInlines in one caller.  The caller should be optimised
-//again afterwards.
+//again afterwards.  A callee with no body in the module may be another unit's, from SetImports' CIRImports.
 class CIRInliner
 {
 protected:
@@ -57,6 +59,8 @@ protected:
 	CArrayIRBlocks			mapcCopies;					//Per callee block index: its copy.
 	CArrayIRInlineReturns	masReturns;
 	CArrayTemplate<bool>	mabInLoop;					//Per caller block index.
+	CIRImports*				mpcImports;					//Other units' functions, NULL for none.
+	CArrayChars*			mpaszMissing;				//Named callees with no body here or in mpcImports, NULL to not keep.
 
 public:
 	void			Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoopInstructions, size uiMaxInlines);
@@ -65,9 +69,11 @@ public:
 	static size		NumInstructions(CIRFunction* pcFunction);
 	bool			CanInline(CIRFunction* pcCallee, bool bInLoop, CIRBlock* pcCallBlock = NULL, size uiCall = 0);
 	bool			InlineCalls(CIRFunction* pcCaller);
+	void			SetImports(CIRImports* pcImports, CArrayChars* paszMissing);
 
 protected:
 	void			FindLoops(void);
+	CIRFunction*	Callee(SIRReference sSymbol, bool bMissing);
 	size			NumComparedConstants(CIRFunction* pcCallee, CIRBlock* pcCallBlock, size uiCall);
 	bool			HasLoopCandidate(void);
 	SIRReference	Map(SIRReference sValue, CIRFunction* pcCallee);
