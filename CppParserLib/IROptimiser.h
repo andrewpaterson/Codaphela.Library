@@ -141,6 +141,8 @@ struct SIRIdiomAddress
 //						memmove, when a check on the way in finds the copy doesn't overlap the wrong way); one
 //						that counts bytes until a 0 is strlen (what leaves it worked out from the length); one
 //						that leaves at the first elements that differ is memcmp (as equal or not)
+//						that leaves at the first byte that is c is memchr (what found uses worked out from where
+//						it is); one that steps a pointer to c, leaving at a 0 first, is strchr
 //	less loop tests		a loop that goes round while a <= b (signed) goes round while a < b + 1 when b + 1 can't
 //						wrap and b is invariant (or a - 1 < b): the 65C64 branches on less in one instruction
 //	strength reduction	in a loop with a counter i (i + c each time round), an address p + (i << s) or p + i * k
@@ -256,7 +258,12 @@ protected:
 	bool			OnlyUsedInLoop(size uiLoop);
 	bool			ReplaceStrlen(size uiLoop);
 	bool			ReplaceMemcmp(size uiLoop);
-	bool			MatchLinear(CIRBlock* pcLoop, SIRReference sValue, SIRReference* psStart, int64* plliStep, bool* pbNext);
+	bool			ReplaceMemchr(size uiLoop);
+	bool			ReplaceStrchr(size uiLoop);
+	bool			IsLoopValue(size uiLoop, SIRReference sValue);
+	bool			FoundValues(size uiLoop, CIRBlock* pcFrom, CIRBlock* pcFound, CArrayIRReferences* pasUsed);
+	void			FoundAt(size uiLoop, CIRBlock* pcBlock, SIRReference sTimes, SIRReference sBase, SIRReference sAt, CIRBlock* pcFrom, CIRBlock* pcFound, CArrayIRReferences* pasUsed);
+	bool			MatchLinear(size uiLoop, SIRReference sValue, SIRReference* psStart, int64* plliStep, bool* pbNext);
 	SIRReference	IdiomStart(CIRBlock* pcBlock, SIRIdiomAddress* psAddress, SIRIdiomCounter* psCounter);
 	SIRReference	IdiomBytes(CIRBlock* pcBlock, SIRIdiomCounter* psCounter, int64 lliBytes);
 	SIRReference	LibraryCall(CIRBlock* pcBlock, const char* szName, SIRReference sFirst, SIRType sFirstType, SIRReference sSecond, SIRType sSecondType, SIRReference sBytes);

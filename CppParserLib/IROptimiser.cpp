@@ -4346,7 +4346,7 @@ bool CIROptimiser::ReplaceLoopIdioms(void)
 
 	szName = mpcModule->GetSymbolName(mpcFunction->muiSymbol);
 	if (msLibraryInt.IsNone() || (strcmp(szName, "_memset") == 0) || (strcmp(szName, "_memmove") == 0) || (strcmp(szName, "_memcpy") == 0) ||
-		(strcmp(szName, "_memcmp") == 0) || (strcmp(szName, "_strlen") == 0))
+		(strcmp(szName, "_memcmp") == 0) || (strcmp(szName, "_strlen") == 0) || (strcmp(szName, "_memchr") == 0) || (strcmp(szName, "_strchr") == 0))
 	{
 		//The library's own loops stay loops.
 		return false;
@@ -4357,7 +4357,7 @@ bool CIROptimiser::ReplaceLoopIdioms(void)
 	mpcFunction->CountUses(&mauiUses);
 	for (uiLoop = 0; uiLoop < mcLoops.NumLoops(); uiLoop++)
 	{
-		if (ReplaceStrlen(uiLoop) || ReplaceMemcmp(uiLoop))
+		if (ReplaceStrlen(uiLoop) || ReplaceMemcmp(uiLoop) || ReplaceMemchr(uiLoop) || ReplaceStrchr(uiLoop))
 		{
 			bChanged = true;
 			ComputeLoops();
@@ -4691,7 +4691,7 @@ bool CIROptimiser::ReplaceStrlen(size uiLoop)
 		}
 		if (uiExitUses > 0)
 		{
-			bResult = (MatchLinear(pcLoop, sValue, &sStart, &lliStep, &bNext));
+			bResult = (MatchLinear(uiLoop, sValue, &sStart, &lliStep, &bNext));
 		}
 	}
 	if (bResult)
@@ -4729,7 +4729,7 @@ bool CIROptimiser::ReplaceStrlen(size uiLoop)
 		sValue = psArgument->sValue;
 		if (mcDefinitions.Block(sValue) == pcLoop)
 		{
-			MatchLinear(pcLoop, sValue, &sStart, &lliStep, &bNext);
+			MatchLinear(uiLoop, sValue, &sStart, &lliStep, &bNext);
 			sType = mpcFunction->TypeOf(sValue);
 			sTimes = bNext ? mpcFunction->Add(pcPreheader, IRO_Add, IRType(IRTK_I32), sLength, mpcFunction->AddInteger(IRType(IRTK_I32), 1)) : sLength;
 			if (sType.IsPointer())
@@ -4758,13 +4758,13 @@ bool CIROptimiser::ReplaceStrlen(size uiLoop)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether sValue, worked out in the loop block pcLoop, is start + k * step
-// the k-th time round (from 0): a phi of the block taking start on the way
-// in and phi + step (an add or ptradd of a constant) from the loop, or that
-// next value (*pbNext: start + (k + 1) * step).
+// Whether sValue, worked out in the loop, is start + k * step the k-th time
+// round (from 0): a phi of its head taking start on the way in and phi +
+// step (an add or ptradd of a constant) from the loop, or that next value
+// (*pbNext: start + (k + 1) * step).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIROptimiser::MatchLinear(CIRBlock* pcLoop, SIRReference sValue, SIRReference* psStart, int64* plliStep, bool* pbNext)
+bool CIROptimiser::MatchLinear(size uiLoop, SIRReference sValue, SIRReference* psStart, int64* plliStep, bool* pbNext)
 {
 	SIRInstruction*	psStep;
 	SIRPhi*			psPhi;
@@ -4785,7 +4785,7 @@ bool CIROptimiser::MatchLinear(CIRBlock* pcLoop, SIRReference sValue, SIRReferen
 		*pbNext = true;
 	}
 	psPhi = mcDefinitions.Phi(sPhi);
-	if ((psPhi == NULL) || (mcDefinitions.Block(sPhi) != pcLoop) || (psPhi->asArguments.NumElements() != 2))
+	if ((psPhi == NULL) || (mcDefinitions.Block(sPhi) != mcLoops.GetLoop(uiLoop)->pcHead) || (psPhi->asArguments.NumElements() != 2))
 	{
 		return false;
 	}
@@ -4794,7 +4794,7 @@ bool CIROptimiser::MatchLinear(CIRBlock* pcLoop, SIRReference sValue, SIRReferen
 	for (ui = 0; ui < 2; ui++)
 	{
 		psArgument = psPhi->asArguments.Get(ui);
-		if (psArgument->pcBlock == pcLoop)
+		if (mcLoops.Contains(uiLoop, psArgument->pcBlock))
 		{
 			psStep = mcDefinitions.Instruction(psArgument->sValue);
 			if ((psStep == NULL) || ((psStep->uiOpcode != IRO_Add) && (psStep->uiOpcode != IRO_PtrAdd)) || !psStep->asArguments[0].Equals(sPhi) ||
@@ -4975,4 +4975,622 @@ bool CIROptimiser::ReplaceMemcmp(size uiLoop)
 	RemovePhiArguments(pcHead, pcPreheader);
 	pcPreheader->Branch(sTest, pcDiffer, pcSame);
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the values the loop works out are only used, outside it, by
+// pcFound's phis (from pcFrom) or in blocks pcFound dominates, and are then
+// phis of the loop stepped by a constant (MatchLinear, not next values).
+// The values used are added to pasUsed.  mauiUses must be counted.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::FoundValues(size uiLoop, CIRBlock* pcFrom, CIRBlock* pcFound, CArrayIRReferences* pasUsed)
+{
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	SIRPhi*			psPhi;
+	SIRPhiArgument*	psArgument;
+	SIRReference	sValue;
+	SIRReference	sStart;
+	int64			lliStep;
+	size			ui;
+	size			uiIndex;
+	size			uiArgument;
+	bool			bNext;
+	bool			bAllowed;
+
+	pasUsed->FakeSetUsedElements(0);
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		if (mcLoops.Contains(uiLoop, pcBlock) || !mcDominators.IsReachable(pcBlock))
+		{
+			continue;
+		}
+		bAllowed = mcDominators.Dominates(pcFound, pcBlock);
+		for (uiIndex = 0; uiIndex < pcBlock->masPhis.NumElements(); uiIndex++)
+		{
+			psPhi = pcBlock->masPhis.Get(uiIndex);
+			for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
+			{
+				psArgument = psPhi->asArguments.Get(uiArgument);
+				sValue = psArgument->sValue;
+				if (mcDefinitions.Block(sValue) && mcLoops.Contains(uiLoop, mcDefinitions.Block(sValue)))
+				{
+					if (!((pcBlock == pcFound) && (psArgument->pcBlock == pcFrom)) && !(bAllowed && (pcBlock != pcFound)))
+					{
+						return false;
+					}
+					pasUsed->Add(&sValue);
+				}
+			}
+		}
+		for (uiIndex = 0; uiIndex < pcBlock->masInstructions.NumElements() + 1; uiIndex++)
+		{
+			for (uiArgument = 0; uiArgument < 2; uiArgument++)
+			{
+				if (uiIndex < pcBlock->masInstructions.NumElements())
+				{
+					psInstruction = pcBlock->masInstructions.Get(uiIndex);
+					sValue = psInstruction->asArguments[uiArgument];
+				}
+				else
+				{
+					sValue = (uiArgument == 0) ? pcBlock->msJump.sArgument : IRNone();
+				}
+				if (sValue.IsTemporary() && mcDefinitions.Block(sValue) && mcLoops.Contains(uiLoop, mcDefinitions.Block(sValue)))
+				{
+					if (!bAllowed)
+					{
+						return false;
+					}
+					pasUsed->Add(&sValue);
+				}
+			}
+		}
+	}
+	for (ui = 0; ui < pasUsed->NumElements(); ui++)
+	{
+		if (!MatchLinear(uiLoop, *pasUsed->Get(ui), &sStart, &lliStep, &bNext) || bNext)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The values a search loop found at k times round (sTimes, an i32): each in
+// pasUsed (a phi of the head stepped by a constant) is start + k * step,
+// worked out at the end of pcBlock, or sAt for a pointer stepped a byte a time
+// from sBase (sAt being sBase + k); the uses outside the loop (by pcFound's
+// phis from pcFrom, which then take them from pcBlock, and in the blocks
+// pcFound dominates) use them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::FoundAt(size uiLoop, CIRBlock* pcBlock, SIRReference sTimes, SIRReference sBase, SIRReference sAt, CIRBlock* pcFrom, CIRBlock* pcFound, CArrayIRReferences* pasUsed)
+{
+	CIRBlock*		pcUser;
+	SIRInstruction*	psInstruction;
+	SIRPhi*			psPhi;
+	SIRPhiArgument*	psArgument;
+	SIRReference	sValue;
+	SIRReference	sStart;
+	SIRReference	sOffset;
+	SIRReference	sNew;
+	SIRType			sType;
+	int64			lliStep;
+	size			ui;
+	size			uj;
+	size			uiIndex;
+	size			uiArgument;
+	bool			bNext;
+
+	for (ui = 0; ui < pasUsed->NumElements(); ui++)
+	{
+		sValue = *pasUsed->Get(ui);
+		for (uj = 0; uj < ui; uj++)
+		{
+			if (pasUsed->Get(uj)->Equals(sValue))
+			{
+				break;
+			}
+		}
+		if (uj < ui)
+		{
+			continue;
+		}
+		MatchLinear(uiLoop, sValue, &sStart, &lliStep, &bNext);
+		sType = mpcFunction->TypeOf(sValue);
+		if (sType.IsPointer() && (lliStep == 1) && sStart.Equals(sBase))
+		{
+			sNew = sAt;
+		}
+		else if (sType.IsPointer())
+		{
+			sOffset = mpcFunction->Add(pcBlock, IRO_Mul, IRType(IRTK_I32), sTimes, mpcFunction->AddInteger(IRType(IRTK_I32), lliStep));
+			sNew = mpcFunction->Add(pcBlock, IRO_PtrAdd, sType, sStart, sOffset);
+		}
+		else
+		{
+			sOffset = sType.Is(IRTK_I32) ? sTimes : mpcFunction->Add(pcBlock, (sType.IntegerBits() < 32) ? IRO_Trunc : IRO_ZExt, sType, sTimes);
+			sOffset = mpcFunction->Add(pcBlock, IRO_Mul, sType, sOffset, mpcFunction->AddInteger(sType, lliStep));
+			sNew = mpcFunction->Add(pcBlock, IRO_Add, sType, sStart, sOffset);
+		}
+
+		//The uses outside the loop.
+		for (uiIndex = 0; uiIndex < pcFound->masPhis.NumElements(); uiIndex++)
+		{
+			psPhi = pcFound->masPhis.Get(uiIndex);
+			psArgument = pcFound->FindPhiArgument(psPhi, pcFrom);
+			if (psArgument && psArgument->sValue.Equals(sValue))
+			{
+				psArgument->pcBlock = pcBlock;
+				psArgument->sValue = sNew;
+			}
+		}
+		for (uiIndex = 0; uiIndex < mpcFunction->NumBlocks(); uiIndex++)
+		{
+			pcUser = mpcFunction->GetBlock(uiIndex);
+			if (mcLoops.Contains(uiLoop, pcUser) || (pcUser == pcBlock) || !mcDominators.IsReachable(pcUser) || !mcDominators.Dominates(pcFound, pcUser))
+			{
+				continue;
+			}
+			for (uj = 0; uj < pcUser->masPhis.NumElements(); uj++)
+			{
+				psPhi = pcUser->masPhis.Get(uj);
+				for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
+				{
+					if ((pcUser != pcFound) && psPhi->asArguments.Get(uiArgument)->sValue.Equals(sValue))
+					{
+						psPhi->asArguments.Get(uiArgument)->sValue = sNew;
+					}
+				}
+			}
+			for (uj = 0; uj < pcUser->masInstructions.NumElements(); uj++)
+			{
+				psInstruction = pcUser->masInstructions.Get(uj);
+				for (uiArgument = 0; uiArgument < 2; uiArgument++)
+				{
+					if (psInstruction->asArguments[uiArgument].Equals(sValue))
+					{
+						psInstruction->asArguments[uiArgument] = sNew;
+					}
+				}
+			}
+			if (pcUser->msJump.sArgument.Equals(sValue))
+			{
+				pcUser->msJump.sArgument = sNew;
+			}
+		}
+	}
+	//Phis of pcFound from pcFrom that took a value from outside the loop take it from pcBlock too.
+	for (uiIndex = 0; uiIndex < pcFound->masPhis.NumElements(); uiIndex++)
+	{
+		psArgument = pcFound->FindPhiArgument(pcFound->masPhis.Get(uiIndex), pcFrom);
+		if (psArgument)
+		{
+			psArgument->pcBlock = pcBlock;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// memchr: a loop of a head that loads a byte through an address stepped a
+// byte a time round and leaves for one exit (found) when it is c (not
+// changed by the loop), and a latch that counts n - init times round
+// (MatchIdiomCounter) and leaves for another, nothing else.  On the way in
+// memchr: not found (NULL) goes to the second exit, found to a block that
+// works out what found uses at k = the byte's offset times round
+// (FoundValues), then to the first.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::ReplaceMemchr(size uiLoop)
+{
+	SIRIdiomCounter		sCounter;
+	SIRIdiomAddress		sAddress;
+	CArrayIRReferences	asUsed;
+	SIRLoop*			psLoop;
+	CIRBlock*			pcHead;
+	CIRBlock*			pcLatch;
+	CIRBlock*			pcFound;
+	CIRBlock*			pcMissing;
+	CIRBlock*			pcPreheader;
+	CIRBlock*			pcAt;
+	SIRInstruction*		psInstruction;
+	SIRInstruction*		psLoad;
+	SIRInstruction*		psCompare;
+	SIRPhiArgument*		psArgument;
+	SIRReference		sValue;
+	SIRReference		sStart;
+	SIRReference		sResult;
+	SIRReference		sTimes;
+	SIRReference		sTest;
+	size				ui;
+	uint16				uiOpcode;
+	bool				bResult;
+
+	psLoop = mcLoops.GetLoop(uiLoop);
+	pcHead = psLoop->pcHead;
+	if ((mcLoops.NumBlocks(uiLoop) != 2) || (mcLoops.NumLatches(uiLoop) != 1) || !psLoop->pcEntering || (pcHead->msJump.uiKind != IRJ_Branch))
+	{
+		return false;
+	}
+	pcLatch = mcLoops.GetLatch(uiLoop, 0);
+	if ((pcLatch == pcHead) || (pcLatch->msJump.uiKind != IRJ_Branch) || (pcLatch->masPhis.NumElements() != 0))
+	{
+		return false;
+	}
+	if (pcHead->msJump.pcThen == pcLatch)
+	{
+		pcFound = pcHead->msJump.pcElse;
+	}
+	else if (pcHead->msJump.pcElse == pcLatch)
+	{
+		pcFound = pcHead->msJump.pcThen;
+	}
+	else
+	{
+		return false;
+	}
+	pcMissing = (pcLatch->msJump.pcThen == pcHead) ? pcLatch->msJump.pcElse : pcLatch->msJump.pcThen;
+	if ((pcMissing == pcHead) || (pcMissing == pcFound) || mcLoops.Contains(uiLoop, pcFound) || mcLoops.Contains(uiLoop, pcMissing) ||
+		(pcFound->mapcPredecessors.NumElements() != 1))
+	{
+		return false;
+	}
+
+	//One byte load compared with c in the head, nothing with an effect in either block.
+	psLoad = NULL;
+	for (ui = 0; ui < pcHead->masInstructions.NumElements(); ui++)
+	{
+		psInstruction = pcHead->masInstructions.Get(ui);
+		if (psInstruction->uiOpcode == IRO_Load)
+		{
+			if (psLoad)
+			{
+				return false;
+			}
+			psLoad = psInstruction;
+		}
+		else if (!IsIRPure(psInstruction->uiOpcode))
+		{
+			return false;
+		}
+	}
+	for (ui = 0; ui < pcLatch->masInstructions.NumElements(); ui++)
+	{
+		if (!IsIRPure(pcLatch->masInstructions.Get(ui)->uiOpcode))
+		{
+			return false;
+		}
+	}
+	if (!psLoad || !psLoad->sType.Is(IRTK_I8) || (psLoad->uiFlags & IRF_Volatile))
+	{
+		return false;
+	}
+	psCompare = mcDefinitions.Instruction(pcHead->msJump.sArgument);
+	if ((psCompare == NULL) || ((psCompare->uiOpcode != IRO_Eq) && (psCompare->uiOpcode != IRO_Ne)))
+	{
+		return false;
+	}
+	uiOpcode = (pcHead->msJump.pcThen == pcFound) ? psCompare->uiOpcode : IRInvertedComparison(psCompare->uiOpcode);
+	if (uiOpcode != IRO_Eq)
+	{
+		return false;
+	}
+	if (psCompare->asArguments[0].Equals(psLoad->sResult))
+	{
+		sValue = psCompare->asArguments[1];
+	}
+	else if (psCompare->asArguments[1].Equals(psLoad->sResult))
+	{
+		sValue = psCompare->asArguments[0];
+	}
+	else
+	{
+		return false;
+	}
+	if (!mcLoops.IsInvariant(uiLoop, sValue, &mcDefinitions) || !MatchIdiomCounter(uiLoop, pcHead, pcLatch, &sCounter) ||
+		!MatchIdiomAddress(uiLoop, pcHead, pcLatch, psLoad->asArguments[0], &sCounter, 1, &sAddress))
+	{
+		return false;
+	}
+	asUsed.Init();
+	bResult = FoundValues(uiLoop, pcHead, pcFound, &asUsed);
+	for (ui = 0; bResult && (ui < pcMissing->masPhis.NumElements()); ui++)
+	{
+		psArgument = pcMissing->FindPhiArgument(pcMissing->masPhis.Get(ui), pcLatch);
+		bResult = !psArgument || mcLoops.IsInvariant(uiLoop, psArgument->sValue, &mcDefinitions);
+	}
+	if (!bResult)
+	{
+		asUsed.Kill();
+		return false;
+	}
+
+	//memchr on the way in; found works out its values from the offset.
+	pcPreheader = AddPreheader(uiLoop);
+	sStart = IdiomStart(pcPreheader, &sAddress, &sCounter);
+	if (sValue.IsConstant())
+	{
+		sValue = mpcFunction->AddConstant(msLibraryInt, mpcFunction->GetConstant(sValue)->ulliBits & 0xFF);
+	}
+	else
+	{
+		sValue = mpcFunction->Add(pcPreheader, IRO_ZExt, msLibraryInt, sValue);
+	}
+	sTimes = IdiomBytes(pcPreheader, &sCounter, 1);
+	mpcFunction->Argument(pcPreheader, IRType(IRTK_Pointer), sStart);
+	mpcFunction->Argument(pcPreheader, msLibraryInt, sValue);
+	mpcFunction->Argument(pcPreheader, IRType(IRTK_I32), sTimes);
+	sResult = mpcFunction->Call(pcPreheader, IRType(IRTK_Pointer), IRReference(IRRK_Symbol, mpcModule->AddSymbol("_memchr")));
+	sTest = mpcFunction->Add(pcPreheader, IRO_Eq, IRType(IRTK_Pointer), sResult, mpcFunction->AddConstant(IRType(IRTK_Pointer), 0));
+	pcAt = mpcFunction->AddBlock();
+	sTimes = mpcFunction->Add(pcAt, IRO_PtrToI, IRType(IRTK_I32), sResult);
+	sTimes = mpcFunction->Add(pcAt, IRO_Sub, IRType(IRTK_I32), sTimes, mpcFunction->Add(pcAt, IRO_PtrToI, IRType(IRTK_I32), sStart));
+	FoundAt(uiLoop, pcAt, sTimes, sStart, sResult, pcHead, pcFound, &asUsed);
+	pcAt->Jump(pcFound);
+	for (ui = 0; ui < pcMissing->masPhis.NumElements(); ui++)
+	{
+		psArgument = pcMissing->FindPhiArgument(pcMissing->masPhis.Get(ui), pcLatch);
+		if (psArgument)
+		{
+			pcMissing->AddPhiArgument(pcMissing->masPhis.Get(ui), pcPreheader, psArgument->sValue);
+		}
+	}
+	RemovePhiArguments(pcHead, pcPreheader);
+	pcPreheader->Branch(sTest, pcMissing, pcAt);
+	asUsed.Kill();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// strchr, as a rotated "while (*p != c) { if (*p == 0) ...; p++; }" leaves
+// it: a loop of a head with a pointer phi p and a phi b of the byte at p
+// (loaded from p's start on the way in) that leaves for one exit (zero)
+// when b is 0, and a latch that steps p by one, loads the byte there and
+// goes round while it isn't c (not changed by the loop), else leaves for
+// another (found) with the new p.  On the way in: b 0 goes to zero, else
+// strchr(p + 1, c), NULL to zero, else to found with that pointer (and
+// with it less one for p).  Nothing else the loop works out is used
+// outside.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::ReplaceStrchr(size uiLoop)
+{
+	SIRLoop*		psLoop;
+	CIRBlock*		pcHead;
+	CIRBlock*		pcLatch;
+	CIRBlock*		pcZero;
+	CIRBlock*		pcFound;
+	CIRBlock*		pcEntering;
+	CIRBlock*		pcPreheader;
+	CIRBlock*		pcCall;
+	SIRInstruction*	psZeroTest;
+	SIRInstruction*	psStep;
+	SIRInstruction*	psLoad;
+	SIRInstruction*	psTest;
+	SIRInstruction*	psFirstLoad;
+	SIRPhi*			psPointer;
+	SIRPhi*			psByte;
+	SIRPhi*			psPhi;
+	SIRPhiArgument*	psArgument;
+	SIRReference	sPointer;
+	SIRReference	sByte;
+	SIRReference	sStart;
+	SIRReference	sFirst;
+	SIRReference	sValue;
+	SIRReference	sResult;
+	SIRReference	sTest;
+	SIRReference	sBefore;
+	SIRReference	sZero;
+	size			ui;
+	uint16			uiOpcode;
+	bool			bOnly;
+
+	psLoop = mcLoops.GetLoop(uiLoop);
+	pcHead = psLoop->pcHead;
+	pcEntering = psLoop->pcEntering;
+	if ((mcLoops.NumBlocks(uiLoop) != 2) || (mcLoops.NumLatches(uiLoop) != 1) || !pcEntering || (pcHead->msJump.uiKind != IRJ_Branch) ||
+		(pcHead->masPhis.NumElements() != 2) || (pcHead->masInstructions.NumElements() != 1))
+	{
+		return false;
+	}
+	pcLatch = mcLoops.GetLatch(uiLoop, 0);
+	if ((pcLatch == pcHead) || (pcLatch->msJump.uiKind != IRJ_Branch) || (pcLatch->masPhis.NumElements() != 0) || (pcLatch->masInstructions.NumElements() != 3))
+	{
+		return false;
+	}
+
+	//The head: b == 0 to zero, else the latch.
+	psZeroTest = pcHead->masInstructions.Get(0);
+	if (!pcHead->msJump.sArgument.Equals(psZeroTest->sResult) || ((psZeroTest->uiOpcode != IRO_Eq) && (psZeroTest->uiOpcode != IRO_Ne)) ||
+		!psZeroTest->asArguments[1].IsConstant() || (mpcFunction->GetConstant(psZeroTest->asArguments[1])->ulliBits != 0))
+	{
+		return false;
+	}
+	if (pcHead->msJump.pcThen == pcLatch)
+	{
+		pcZero = pcHead->msJump.pcElse;
+		uiOpcode = IRInvertedComparison(psZeroTest->uiOpcode);
+	}
+	else if (pcHead->msJump.pcElse == pcLatch)
+	{
+		pcZero = pcHead->msJump.pcThen;
+		uiOpcode = psZeroTest->uiOpcode;
+	}
+	else
+	{
+		return false;
+	}
+	if (uiOpcode != IRO_Eq)
+	{
+		return false;
+	}
+	sByte = psZeroTest->asArguments[0];
+	psByte = mcDefinitions.Phi(sByte);
+	if (!psByte || (mcDefinitions.Block(sByte) != pcHead) || !psByte->sType.Is(IRTK_I8))
+	{
+		return false;
+	}
+	psPointer = (pcHead->masPhis.Get(0) == psByte) ? pcHead->masPhis.Get(1) : pcHead->masPhis.Get(0);
+	sPointer = psPointer->sResult;
+	if (!psPointer->sType.IsPointer())
+	{
+		return false;
+	}
+
+	//The latch: p + 1, the byte there, round while it isn't c, else found.
+	psStep = pcLatch->masInstructions.Get(0);
+	psLoad = pcLatch->masInstructions.Get(1);
+	psTest = pcLatch->masInstructions.Get(2);
+	if ((psStep->uiOpcode != IRO_PtrAdd) || !psStep->asArguments[0].Equals(sPointer) || !psStep->asArguments[1].IsConstant() || (mpcFunction->GetSigned(psStep->asArguments[1]) != 1) ||
+		(psLoad->uiOpcode != IRO_Load) || !psLoad->sType.Is(IRTK_I8) || (psLoad->uiFlags & IRF_Volatile) || !psLoad->asArguments[0].Equals(psStep->sResult) ||
+		((psTest->uiOpcode != IRO_Ne) && (psTest->uiOpcode != IRO_Eq)) || !pcLatch->msJump.sArgument.Equals(psTest->sResult))
+	{
+		return false;
+	}
+	if (psTest->asArguments[0].Equals(psLoad->sResult))
+	{
+		sValue = psTest->asArguments[1];
+	}
+	else if (psTest->asArguments[1].Equals(psLoad->sResult))
+	{
+		sValue = psTest->asArguments[0];
+	}
+	else
+	{
+		return false;
+	}
+	pcFound = (pcLatch->msJump.pcThen == pcHead) ? pcLatch->msJump.pcElse : pcLatch->msJump.pcThen;
+	uiOpcode = (pcLatch->msJump.pcThen == pcHead) ? psTest->uiOpcode : IRInvertedComparison(psTest->uiOpcode);
+	if ((uiOpcode != IRO_Ne) || (pcFound == pcHead) || (pcFound == pcZero) || mcLoops.Contains(uiLoop, pcFound) || mcLoops.Contains(uiLoop, pcZero) ||
+		!mcLoops.IsInvariant(uiLoop, sValue, &mcDefinitions))
+	{
+		return false;
+	}
+
+	//The phis come round from the latch as p + 1 and its byte; in, b is the byte at p's start.
+	psArgument = pcHead->FindPhiArgument(psPointer, pcLatch);
+	if (!psArgument || !psArgument->sValue.Equals(psStep->sResult))
+	{
+		return false;
+	}
+	psArgument = pcHead->FindPhiArgument(psByte, pcLatch);
+	if (!psArgument || !psArgument->sValue.Equals(psLoad->sResult))
+	{
+		return false;
+	}
+	psArgument = pcHead->FindPhiArgument(psPointer, pcEntering);
+	if (!psArgument)
+	{
+		return false;
+	}
+	sStart = psArgument->sValue;
+	psArgument = pcHead->FindPhiArgument(psByte, pcEntering);
+	if (!psArgument)
+	{
+		return false;
+	}
+	sFirst = psArgument->sValue;
+	psFirstLoad = mcDefinitions.Instruction(sFirst);
+	if (!psFirstLoad || (psFirstLoad->uiOpcode != IRO_Load) || !psFirstLoad->asArguments[0].Equals(sStart) || (psFirstLoad->uiFlags & IRF_Volatile))
+	{
+		return false;
+	}
+
+	//Only found's phis from the latch take the loop's values, p + 1 or p: else the loop's values stay in it.
+	for (ui = 0; ui < pcFound->masPhis.NumElements(); ui++)
+	{
+		psArgument = pcFound->FindPhiArgument(pcFound->masPhis.Get(ui), pcLatch);
+		if (psArgument && IsLoopValue(uiLoop, psArgument->sValue))
+		{
+			if (!psArgument->sValue.Equals(psStep->sResult) && !psArgument->sValue.Equals(sPointer))
+			{
+				return false;
+			}
+			(*mauiUses.Get(psArgument->sValue.Index()))--;
+		}
+	}
+	bOnly = OnlyUsedInLoop(uiLoop);
+	for (ui = 0; ui < pcFound->masPhis.NumElements(); ui++)
+	{
+		psArgument = pcFound->FindPhiArgument(pcFound->masPhis.Get(ui), pcLatch);
+		if (psArgument && IsLoopValue(uiLoop, psArgument->sValue))
+		{
+			(*mauiUses.Get(psArgument->sValue.Index()))++;
+		}
+	}
+	if (!bOnly)
+	{
+		return false;
+	}
+
+	//On the way in.
+	pcPreheader = AddPreheader(uiLoop);
+	pcCall = mpcFunction->AddBlock();
+	sZero = mpcFunction->Add(pcPreheader, IRO_Eq, IRType(IRTK_I8), sFirst, mpcFunction->AddInteger(IRType(IRTK_I8), 0));
+	sValue = sValue.IsConstant() ? mpcFunction->AddConstant(msLibraryInt, mpcFunction->GetConstant(sValue)->ulliBits & 0xFF) :
+								   mpcFunction->Add(pcCall, IRO_ZExt, msLibraryInt, sValue);
+	sTest = mpcFunction->Add(pcCall, IRO_PtrAdd, IRType(IRTK_Pointer), sStart, mpcFunction->AddInteger(IRType(IRTK_I32), 1));
+	mpcFunction->Argument(pcCall, IRType(IRTK_Pointer), sTest);
+	mpcFunction->Argument(pcCall, msLibraryInt, sValue);
+	sResult = mpcFunction->Call(pcCall, IRType(IRTK_Pointer), IRReference(IRRK_Symbol, mpcModule->AddSymbol("_strchr")));
+	sBefore = mpcFunction->Add(pcCall, IRO_PtrAdd, IRType(IRTK_Pointer), sResult, mpcFunction->AddInteger(IRType(IRTK_I32), -1));
+	pcCall->Branch(mpcFunction->Add(pcCall, IRO_Eq, IRType(IRTK_Pointer), sResult, mpcFunction->AddConstant(IRType(IRTK_Pointer), 0)), pcZero, pcFound);
+	for (ui = 0; ui < pcZero->masPhis.NumElements(); ui++)
+	{
+		psPhi = pcZero->masPhis.Get(ui);
+		psArgument = pcZero->FindPhiArgument(psPhi, pcHead);
+		if (psArgument)
+		{
+			sValue = psArgument->sValue;
+			pcZero->AddPhiArgument(pcZero->masPhis.Get(ui), pcPreheader, sValue);
+			pcZero->AddPhiArgument(pcZero->masPhis.Get(ui), pcCall, sValue);
+		}
+	}
+	for (ui = 0; ui < pcFound->masPhis.NumElements(); ui++)
+	{
+		psPhi = pcFound->masPhis.Get(ui);
+		psArgument = pcFound->FindPhiArgument(psPhi, pcLatch);
+		if (psArgument)
+		{
+			sValue = psArgument->sValue;
+			if (sValue.Equals(psStep->sResult))
+			{
+				sValue = sResult;
+			}
+			else if (sValue.Equals(sPointer))
+			{
+				sValue = sBefore;
+			}
+			pcFound->AddPhiArgument(pcFound->masPhis.Get(ui), pcCall, sValue);
+		}
+	}
+	RemovePhiArguments(pcHead, pcPreheader);
+	pcPreheader->Branch(sZero, pcZero, pcCall);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if sValue is worked out in the loop.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::IsLoopValue(size uiLoop, SIRReference sValue)
+{
+	CIRBlock*	pcBlock;
+
+	pcBlock = mcDefinitions.Block(sValue);
+	return pcBlock && mcLoops.Contains(uiLoop, pcBlock);
 }
