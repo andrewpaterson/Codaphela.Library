@@ -698,7 +698,7 @@ void CInputChord::CalculateLongestAction(void)
 	size	iLongest;
 
 	iLongest = FindLongestAction(&muActionCriteria);
-	masScratchPadDeviceValue.Allocate(iLongest);
+	masScratchPadDeviceValue.Resize(iLongest);
 }
 
 

@@ -97,6 +97,7 @@ struct SCPP65Variable
 	bool			bInternal;		//A static global: the unit's own.
 	bool			bDefined;		//A global's data has been written.
 	bool			bUsed;
+	bool			bRestrict;		//A global or parameter pointer declared __restrict.
 	SCPP65Class*	psAnonymous;	//The anonymous union or struct declared in a function that this local is a member of.
 	int				iAnonymous;		//The anonymous object's offset in the frame (the member's is iOffset).
 };
@@ -587,6 +588,7 @@ protected:
 	bool					GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, bool bConstruct, bool bDestroy);
 	void					AppendSection(CChars* psz, const char* szKind, CChars* pszName, const char* szOptions);
 	bool					HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator);
+	bool					IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator);
 	void					BeginData(CChars* pszLabel, int iAlignment, bool bGlobal, const char* szOptions);
 	int						DataAlignment(SCPP65Type* psType, bool bClass);
 	void					AppendGlobal(CChars* psz, CChars* pszLabel);

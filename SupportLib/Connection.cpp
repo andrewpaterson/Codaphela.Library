@@ -21,6 +21,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/ObjectReader.h"
 #include "StandardLib/ObjectWriter.h"
 #include "Connection.h"
+#include "BaseLib/ErrorHandler.h"
 
 
 //////////////////////////////////////////////////////////////////////////

@@ -5,6 +5,7 @@
 #include "FatTime.h"
 #include "FatFilenameHelper.h"
 #include "FatVolume.h"
+#include "PointerFunctions.h"
 
 
 #define READ_SECTOR(c, s) c = mcSectorCache.ReadSector(s); if (!c.IsValid()) { return FAT_CANNOT_READ_MEDIA; }

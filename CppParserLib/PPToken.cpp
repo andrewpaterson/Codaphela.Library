@@ -20,6 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Validation.h"
 #include "PPToken.h"
+#include "BaseLib/ErrorHandler.h"
 
 
 int64		giTokenNum = 0;

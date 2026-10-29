@@ -75,11 +75,15 @@ protected:
 };
 
 
-//What a symbol is defined as here; both NULL for a symbol from another unit.
+//What a symbol is defined as here; both NULL for a symbol from another unit.  bRestrict: the symbol is a pointer
+//variable declared restrict, so what is reached through its value is reached no other way (see SetRestrict).
+//bLocal: the symbol is the unit's own (a string, a static variable or function) even if nothing here defines it.
 struct SIRSymbolDefinition
 {
 	CIRFunction*	pcFunction;
 	CIRGlobal*		pcGlobal;
+	bool			bRestrict;
+	bool			bLocal;
 };
 
 
@@ -102,6 +106,7 @@ public:
 	CArrayChars					maszSymbols;
 	CMapStringInt				mmSymbols;
 	CArrayIRSymbolDefinitions	masDefinitions;
+	size						muiNumRestrict;
 
 	CArrayIRFunctions			mapcFunctions;
 	CArrayIRGlobals				mapcGlobals;
@@ -125,6 +130,11 @@ public:
 	int				FindSymbol(const char* szName);
 	char*			GetSymbolName(uint32 uiSymbol);
 	SIRReference	Symbol(const char* szName);
+	void			SetRestrict(uint32 uiSymbol);
+	bool			IsRestrict(uint32 uiSymbol);
+	bool			HasRestrict(void);
+	void			SetLocal(uint32 uiSymbol);
+	bool			IsLocal(uint32 uiSymbol);
 
 	CIRFunction*	AddFunction(const char* szName, SIRType sReturnType, uint32 uiAttributes = 0);
 	CIRFunction*	FindFunction(uint32 uiSymbol);

@@ -36,6 +36,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "NullAllocator.h"
 #include "FloatPrinter.h"
 #include "Chars.h"
+#include "PointerFunctions.h"
 
 
 //////////////////////////////////////////////////////////////////////////

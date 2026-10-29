@@ -137,7 +137,7 @@ void CMeshConvexHull::GenerateConvexHull(CMeshPositions* pcPositions, CMeshNorma
 		{
 			psPosition = *((SFloat32Vec3**)pcPolygon->mapsPositions.Get(j));
 			iPositionIndex = (uint32)pcPositions->mcPositions.GetIndex(psPosition);
-			pcPolygonIndexed->maiPositions.Set(j, &iPositionIndex);
+			pcPolygonIndexed->maiPositions.SetValue(j, (int)iPositionIndex);
 		}
 		pcPolygonIndexed->mbConvex = pcPolygon->mbConvex;
 		iNormalIndex = (int)pcNormals->mcNormals.GetIndex(pcPolygon->mpsNormal);

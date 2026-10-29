@@ -163,6 +163,7 @@ void CIRModule::Init(void)
 	maszSymbols.Init();
 	mmSymbols.Init();
 	masDefinitions.Init();
+	muiNumRestrict = 0;
 	mapcFunctions.Init();
 	mapcGlobals.Init();
 	mapcKnown.Init();
@@ -350,6 +351,70 @@ char* CIRModule::GetSymbolName(uint32 uiSymbol)
 SIRReference CIRModule::Symbol(const char* szName)
 {
 	return IRReference(IRRK_Symbol, AddSymbol(szName));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Marks the symbol as a pointer variable declared restrict (C's restrict on
+// a file scope pointer): memory reached through a value loaded from it is
+// reached through no other symbol or frame slot.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRModule::SetRestrict(uint32 uiSymbol)
+{
+	SIRSymbolDefinition*	psDefinition;
+
+	psDefinition = masDefinitions.Get(uiSymbol);
+	if (!psDefinition->bRestrict)
+	{
+		psDefinition->bRestrict = true;
+		muiNumRestrict++;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRModule::IsRestrict(uint32 uiSymbol)
+{
+	return (uiSymbol < masDefinitions.NumElements()) && masDefinitions.Get(uiSymbol)->bRestrict;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if some symbol is restrict.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRModule::HasRestrict(void)
+{
+	return muiNumRestrict != 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Marks the symbol as the unit's own (a string, a static variable or a
+// static function): another unit's symbol of the same name is another
+// thing.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRModule::SetLocal(uint32 uiSymbol)
+{
+	masDefinitions.Get(uiSymbol)->bLocal = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRModule::IsLocal(uint32 uiSymbol)
+{
+	return (uiSymbol < masDefinitions.NumElements()) && masDefinitions.Get(uiSymbol)->bLocal;
 }
 
 

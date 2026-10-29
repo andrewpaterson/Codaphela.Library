@@ -272,6 +272,31 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	  copy is in the deepest loop (a phi's copy weighs the shallower block of the
 	  edge), so a pointer stepped in a loop keeps its place (inc in place).
 	  DrawSprite's opaque pixel ~200 -> ~120 cycles.
+	- Functions that read or write globals are inlined across units too
+	  (CIRImports: any symbol not local to its unit; no calls of named
+	  functions), the inliner mapping the symbols by name into the caller's
+	  module.  Tide/Video (TestCPP816TideVideo, Graphics.sft): 69.6M -> 46.5M.
+	- __restrict on a global pointer (uint8_t* __restrict guiImageMemory, both
+	  targets): the module marks the symbol (CIRModule::SetRestrict, IR text
+	  "restrict @name"; CIRImports and the inliner carry it to other units).
+	  __restrict on a pointer parameter marks the IR parameter
+	  (CIRFunction::SetRestrictParameter, the first 32; IR text "ptr restrict
+	  %p"; dropped when the function is inlined).  CIROptimiser::PointerBase
+	  follows a root through ptradds and phis (so p++ in a loop keeps its base)
+	  to a pointer loaded from a restrict symbol or a parameter; MayAlias then
+	  says a restrict base doesn't alias a symbol or a slot, nor another base
+	  when either is a restrict parameter or both are restrict.  A restrict
+	  symbol and a plain parameter may alias (the caller may have passed the
+	  symbol's value); pointers loaded from memory or returned by calls may
+	  alias anything.  Only the outermost pointer of a declarator counts;
+	  restrict locals are ignored.  DrawSprite's loads of the image's width,
+	  bounds and memory leave the pixel loops, so y * width is once a row.
+	  Tide/Video: 46.5M -> 26.6M.
+	- Functions naming their unit's own symbols (strings, static globals and
+	  locals, static functions, an unnamed class's vtable) aren't exported to
+	  other units: the IR front end marks them (CIRModule::SetLocal) for
+	  CIRImports::IsLocalSymbol (TestCPP816LocalSymbols; TestConstructorCall
+	  read the calling unit's string).
 	Cost (2026-10-29): TestBaseLib65 816 44.887G -> 41.830G (-6.81%) from the three
 	above, then 41.833G with the last two (no change there; TestCPP816 -0.26%); cross-unit inlining recompiles 349 of 591 units,
 	compile 19s -> 32s for TestBaseLib65 816, TestCPP816 219s -> 331s.

@@ -3,7 +3,7 @@
 #include "FreeList.h"
 #include "PointerRemapper.h"
 #include "ArrayVoidPtr.h"
-#include "ArrayTemplateMinimal.h"
+#include "ArrayTemplate.h"
 #include "LinkedListBlockAligned.h"
 #include "ArrayTemplatePtr.h"
 
@@ -74,7 +74,7 @@ struct SMemory
 };
 
 
-typedef CArrayTemplateMinimal<SFreeListDesc>	CArrayFreeListDesc;
+typedef CArrayTemplate<SFreeListDesc>	CArrayFreeListDesc;
 typedef CArrayTemplate<SAlignedFreeListDesc>	CArrayFreeListAlignedDesc;
 typedef CArrayTemplatePtr<CFreeList>				CArrayFreeListPtrs;
 

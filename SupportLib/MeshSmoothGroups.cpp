@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Mesh.h"
 #include "MeshEditor.h"
 #include "MeshSmoothGroups.h"
+#include "BaseLib/ErrorHandler.h"
 
 
 //////////////////////////////////////////////////////////////////////////

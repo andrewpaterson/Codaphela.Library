@@ -39,6 +39,7 @@ void CIRInliner::Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoo
 	mabInLoop.Init();
 	mpcImports = NULL;
 	mpaszMissing = NULL;
+	mpcCalleeModule = NULL;
 }
 
 
@@ -204,6 +205,7 @@ bool CIRInliner::InlineCalls(CIRFunction* pcCaller)
 				continue;
 			}
 			pcCallee = Callee(psInstruction->asArguments[0], true);
+			mpcCalleeModule = (pcCallee && (pcCallee != mpcModule->FindFunction(psInstruction->asArguments[0].Index()))) ? mpcImports->GetModule() : NULL;
 			uiBlocks = pcCaller->NumBlocks();
 			if (CanInline(pcCallee, bInLoop, pcBlock, uiInstruction) && InlineCall(pcBlock, uiInstruction, pcCallee))
 			{
@@ -347,6 +349,7 @@ SIRReference CIRInliner::Map(SIRReference sValue, CIRFunction* pcCallee)
 {
 	SIRReference*	psMapped;
 	SIRConstant*	psConstant;
+	SIRReference	sSymbol;
 
 	if (sValue.IsTemporary())
 	{
@@ -361,6 +364,16 @@ SIRReference CIRInliner::Map(SIRReference sValue, CIRFunction* pcCallee)
 	{
 		psConstant = pcCallee->GetConstant(sValue);
 		return mpcCaller->AddConstant(psConstant->sType, psConstant->ulliBits);
+	}
+	if (sValue.IsSymbol() && mpcCalleeModule)
+	{
+		//Another unit's function: its symbols are the same names here.
+		sSymbol = mpcModule->Symbol(mpcCalleeModule->GetSymbolName(sValue.Index()));
+		if (mpcCalleeModule->IsRestrict(sValue.Index()))
+		{
+			mpcModule->SetRestrict(sSymbol.Index());
+		}
+		return sSymbol;
 	}
 	return sValue;
 }

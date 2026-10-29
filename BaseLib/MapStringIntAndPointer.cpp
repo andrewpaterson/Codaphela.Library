@@ -1,5 +1,6 @@
 #include "DataTypes.h"
 #include "MapStringIntAndPointer.h"
+#include "PointerFunctions.h"
 
 
 //////////////////////////////////////////////////////////////////////////

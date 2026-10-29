@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_SKIN_H__
 #define __MESH_SKIN_H__
-#include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/ArrayTemplateEmbedded.h"
 #include "BaseLib/GeometricTypes.h"
 #include "MeshDetail.h"
 
@@ -38,7 +38,7 @@ struct SSkinWeight
 int CompareSkinWeight(const void* arg1, const void* arg2);
 
 
-typedef CArrayTemplateMinimal<SSkinWeight>	CArrayVertWeight;
+typedef CArrayTemplateEmbedded<SSkinWeight, 4>	CArrayVertWeight;
 
 
 //Each one of these represents one vertex in the mesh.  The sum of each of the vert weights must equal one.

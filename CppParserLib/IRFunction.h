@@ -78,6 +78,7 @@ public:
 	SIRType				msReturnType;
 	uint32				muiAttributes;
 	CArrayIRReferences	masParameters;
+	uint32				muiRestrictParameters;	//A bit for each of the first 32 parameters that is a restrict pointer.
 
 	CArrayIRTemporaries	masTemporaries;
 	CArrayChars			maszTemporaryNames;
@@ -95,6 +96,9 @@ public:
 
 	SIRReference	AddTemporary(SIRType sType, const char* szName = NULL);
 	SIRReference	AddParameter(SIRType sType, const char* szName = NULL);
+	void			SetRestrictParameter(size uiParameter);
+	bool			IsRestrictParameter(size uiParameter);
+	int				FindParameter(SIRReference sValue);
 	SIRReference	FindTemporary(const char* szName);
 	size			NumTemporaries(void);
 	SIRType			GetTemporaryType(SIRReference sTemporary);

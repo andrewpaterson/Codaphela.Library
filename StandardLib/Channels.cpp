@@ -22,7 +22,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/IntegerHelper.h"
-#include "BaseLib/ArrayIntMinimal.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/Define.h"
 #include "BaseLib/SystemAllocator.h"
@@ -30,6 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
 #include "Channels.h"
+#include "BaseLib/ErrorHandler.h"
 
 
 //////////////////////////////////////////////////////////////////////////

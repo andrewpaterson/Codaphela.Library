@@ -20,25 +20,11 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_CHAR_MINIMAL_H__
-#define __ARRAY_CHAR_MINIMAL_H__
-#include "ArrayTemplateMinimal.h"
+//No include guard: ArrayCharClass.inl is included once per array size (ArraySizeNatural.inl and
+//ArraySizeLarge.inl define the names and types it is written with).
 
-
-class CArrayCharMinimal : public CArrayTemplateMinimal<char>
+class ARRAY_CHAR: public ARRAY_TEMPLATE_PRIMITIVE<char>
 {
 public:
-	void	Init(void);
-	void	Init(const char* sz);
-	void	Allocate(char* sz);
-	void	Allocate(size iNumElements);
-	void	Add(char c);
-	size	AddIfUnique(char c);
-	size	Find(char c);
-	char	GetValue(size iElementPos);
-	char*	GetArray(void);
+	void AddList(char iStop, ...);
 };
-
-
-#endif // __ARRAY_CHAR_MINIMAL_H__
-

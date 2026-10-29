@@ -283,7 +283,6 @@
     <ClInclude Include="LogToMemory.h" />
     <ClInclude Include="Malloc.h" />
     <ClInclude Include="ArrayBlock.h" />
-    <ClInclude Include="ArrayBlockMinimal.h" />
     <ClInclude Include="ArrayBlockSorted.h" />
     <ClInclude Include="ArraySizer.h" />
     <ClInclude Include="ArrayVoidPtr.h" />
@@ -325,8 +324,6 @@
     <ClInclude Include="ArrayInt64.h" />
     <ClInclude Include="ArrayIntAndPointer.h" />
     <ClInclude Include="ArrayTemplatePrimitive.h" />
-    <ClInclude Include="ArrayTemplateMinimal.h" />
-    <ClInclude Include="ArrayCharMinimal.h" />
     <ClInclude Include="ArrayChars.h" />
     <ClInclude Include="ArrayTemplate.h" />
     <ClInclude Include="ArrayDenseTemplate.h" />
@@ -436,7 +433,6 @@
     <ClInclude Include="CharsHelper.h" />
     <ClInclude Include="Newline.h" />
     <ClInclude Include="StringHelper.h" />
-    <ClInclude Include="ArrayIntMinimal.h" />
     <ClInclude Include="MapIntInt.h" />
     <ClInclude Include="MapIntTemplate.h" />
     <ClInclude Include="MapPtrPtr.h" />
@@ -718,7 +714,6 @@
     <ClCompile Include="Malloc.cpp" />
     <ClCompile Include="ArrayBlock.cpp" />
     <ClCompile Include="ArrayBit.cpp" />
-    <ClCompile Include="ArrayBlockMinimal.cpp" />
     <ClCompile Include="ArrayBlockSorted.cpp" />
     <ClCompile Include="RedBlackTree.cpp" />
     <ClCompile Include="Line.cpp" />
@@ -733,7 +728,6 @@
     <ClCompile Include="ArrayInt2D.cpp" />
     <ClCompile Include="ArrayInt64.cpp" />
     <ClCompile Include="ArrayIntAndPointer.cpp" />
-    <ClCompile Include="ArrayCharMinimal.cpp" />
     <ClCompile Include="ArrayChars.cpp" />
     <ClCompile Include="ArraySizer.cpp" />
     <ClCompile Include="BaseFileNode.cpp" />
@@ -855,7 +849,6 @@
     <ClCompile Include="CharsHelper.cpp" />
     <ClCompile Include="Newline.cpp" />
     <ClCompile Include="StringHelper.cpp" />
-    <ClCompile Include="ArrayIntMinimal.cpp" />
     <ClCompile Include="MapIntInt.cpp" />
     <ClCompile Include="MapPtrPtr.cpp" />
     <ClCompile Include="MapStringInt.cpp" />
@@ -1054,6 +1047,15 @@
     <None Include="gpl.txt" />
     <None Include="lgpl.txt" />
     <None Include="TimSort.inl" />
+    <None Include="ArrayBlockClass.inl" />
+    <None Include="ArrayBlockCode.inl" />
+    <None Include="ArraySizeNatural.inl" />
+    <None Include="ArraySizeLarge.inl" />
+    <None Include="ArraySizeUndef.inl" />
+    <None Include="ArrayTemplate.inl" />
+    <None Include="ArrayTemplatePrimitive.inl" />
+    <None Include="ArrayCharClass.inl" />
+    <None Include="ArrayCharCode.inl" />
     <None Include="TypeConverter_Mapping.inl" />
     <None Include="LibraryBreakdown.txt" />
     <None Include="CodabaseTransactions.txt" />

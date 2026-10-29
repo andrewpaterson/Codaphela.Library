@@ -52,6 +52,24 @@ struct SIRRenameFrame
 typedef CArrayTemplate<SIRRenameFrame>	CArrayIRRenameFrames;
 
 
+//What the pointers at a root are based on (CIROptimiser::PointerBase): a pointer loaded from a restrict symbol
+//(uiIndex the symbol), a parameter (uiIndex the parameter, bRestrict if it is restrict) or something unknown.
+enum EIRPointerBase
+{
+	IRPB_Unknown,
+	IRPB_RestrictSymbol,
+	IRPB_Parameter,
+};
+
+
+struct SIRPointerBase
+{
+	EIRPointerBase	eKind;
+	uint32			uiIndex;
+	bool			bRestrict;
+};
+
+
 //A value known to be in memory: what a load read or a store wrote at sRoot + lliOffset.
 struct SIRAvailable
 {
@@ -87,6 +105,17 @@ struct SIRSlotAccess
 
 //An unsigned divide or remainder by a constant that BoundDivisions makes cheaper: the dividend is below the divisor
 //(bOnce false) or below twice it.
+//A value an unswitched loop defines: its block (an index in the loop's blocks) and whether that block and its copy
+//can be reached after the branch is gone.
+struct SIRUnswitchedValue
+{
+	SIRReference	sValue;
+	size			uiBlock;
+	bool			bReached;
+	bool			bCopyReached;
+};
+
+
 //An address SplitLoopAddresses splits: where it is and the add's operands (the loop's invariant one and the other).
 struct SIRSplitAddress
 {
@@ -138,6 +167,7 @@ struct SIRIdiomAddress
 
 
 #define IR_AVAILABLE_LIMIT	64
+#define IR_BASE_VALUES		16		//How many phis and their arguments PointerBase looks through.
 #define IR_KNOWN_DEPTH		8		//How many single predecessors back KnownCondition and ImpliedComparison look for a branch.
 
 
@@ -193,6 +223,7 @@ protected:
 	CIRModule*				mpcModule;
 	CIRFunction*			mpcFunction;
 	bool					mbIndexedAddresses;	//Loads and stores add a pointer and an index for nothing (the 65C64's [R1 + R2]).
+	bool					mbRestrict;			//The module has restrict symbols or the function restrict parameters (see PointerBase).
 	bool					mbNarrowMultiplies;	//Multiplies are cheaper narrow (the W65C816's: NarrowMultiplies).
 	int						miUnswitched;		//Loops UnswitchLoops copied in this Optimise.
 	SIRType					msLibraryInt;		//memset's int (16 or 32 bits); IRTK_None: loops aren't made library calls.
@@ -289,6 +320,7 @@ protected:
 	bool			CanStep(SIRReference sValue, int iStep);
 	void			SplitAddress(SIRReference sAddress, SIRReference* psRoot, int64* plliOffset);
 	bool			IsFrameRoot(SIRReference sRoot);
+	void			PointerBase(SIRReference sRoot, SIRPointerBase* psBase);
 	bool			MayAlias(SIRAvailable* psAvailable, SIRReference sRoot, int64 lliOffset, int iBytes);
 	void			AddAvailable(CArrayIRAvailables* pasAvailable, SIRReference sRoot, int64 lliOffset, SIRType sType, SIRReference sValue);
 	SIRReference	Unextended(SIRReference sValue, uint16 uiOpcode, SIRType* psType);

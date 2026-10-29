@@ -27,6 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/ObjectWriter.h"
 #include "MeshDefines.h"
 #include "MeshConnectivity.h"
+#include "BaseLib/ErrorHandler.h"
 
 
 //////////////////////////////////////////////////////////////////////////

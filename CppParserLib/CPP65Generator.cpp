@@ -726,6 +726,44 @@ int CCPP65Generator::DataAlignment(SCPP65Type* psType, bool bClass)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if the declarator declares a pointer that is itself __restrict
+// (T* __restrict p): its outermost pointer is qualified.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator)
+{
+	CCPPSyntaxPointerOperator*	pcPointer;
+	CCPPSyntax*					pcQualifier;
+	ECppTokens					eKeyword;
+	size						i;
+
+	if (pcDeclarator->mpcNested || (pcDeclarator->macpSuffixes.NumElements() != 0) || (pcDeclarator->macpPrefix.NumElements() == 0))
+	{
+		return false;
+	}
+	pcPointer = (CCPPSyntaxPointerOperator*)pcDeclarator->macpPrefix.GetPtr(pcDeclarator->macpPrefix.NumElements() - 1);
+	if (pcPointer->meKind != CPPP_Pointer)
+	{
+		return false;
+	}
+	for (i = 0; i < pcPointer->macpQualifiers.NumElements(); i++)
+	{
+		pcQualifier = pcPointer->macpQualifiers.GetPtr(i);
+		if (pcQualifier->GetKind() == CPPS_KeywordSpecifier)
+		{
+			eKeyword = ((CCPPSyntaxKeywordSpecifier*)pcQualifier)->meKeyword;
+			if ((eKeyword == CT___restrict) || (eKeyword == CT___restrict__))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // __attribute__((used)) (or __used__) on a declarator: the global is kept even if
 // nothing uses it (its constructor may register it somewhere).
 //
@@ -1581,7 +1619,11 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 			EndQuiet();
 			if (psType && !psVariable)
 			{
-				AddVariable(&mapsGlobals, pcInit->mpcSymbol, psType, CPP65S_Global, 0);
+				psVariable = AddVariable(&mapsGlobals, pcInit->mpcSymbol, psType, CPP65S_Global, 0);
+			}
+			if (psVariable)
+			{
+				psVariable->bRestrict |= IsRestrictPointer(pcInit->mpcDeclarator);
 			}
 			continue;
 		}
@@ -1604,6 +1646,7 @@ bool CCPP65Generator::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclarati
 			psVariable = AddVariable(&mapsGlobals, pcInit->mpcSymbol, psType, CPP65S_Global, 0);
 		}
 		psVariable->bInternal |= !psVariable->psClass && ((pcSpecifiers->muiFlags & CPPDS_STATIC) != 0);
+		psVariable->bRestrict |= IsRestrictPointer(pcInit->mpcDeclarator);
 		if (psVariable->bDefined)
 		{
 			bResult &= Error(pcInit, "The variable is defined twice");
@@ -1884,6 +1927,7 @@ SCPP65Variable* CCPP65Generator::AddVariable(CArrayCPP65Variables* papsVariables
 	psVariable->bDefined = false;
 	psVariable->bUsed = false;
 	psVariable->bInternal = false;
+	psVariable->bRestrict = false;
 	psVariable->psAnonymous = NULL;
 	psVariable->iAnonymous = 0;
 	papsVariables->Add(psVariable);
@@ -2537,6 +2581,7 @@ bool CCPP65Generator::GenerateDefinition(SCPP65Function* psFunction)
 			if (pcSymbol)
 			{
 				psVariable = AddVariable(&mapsLocals, pcSymbol, psType, CPP65S_Parameter, iOffset);
+				psVariable->bRestrict = !psPack && pcParameter->mpcDeclarator && IsRestrictPointer(pcParameter->mpcDeclarator);
 				if (psType->IsClass() && CompleteClass(psType->psClass, pcParameter) && psType->psClass->psDestructor)
 				{
 					mapsDestructors.Add(psVariable);

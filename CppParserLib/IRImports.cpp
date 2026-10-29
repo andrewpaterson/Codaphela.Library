@@ -50,11 +50,38 @@ void CIRImports::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether pcFunction's body can be copied to another unit: it has one, is
-// small, has external linkage and refers to no symbol.
+// Whether sValue is a symbol local to pcModule's unit (a static global or
+// function, a static local, a string's label): another unit can't name it.
+// The front end marks those it doesn't define as IR (CIRModule::SetLocal).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRImports::IsExportable(CIRFunction* pcFunction)
+bool CIRImports::IsLocalSymbol(CIRModule* pcModule, SIRReference sValue)
+{
+	CIRGlobal*		pcGlobal;
+	CIRFunction*	pcFunction;
+
+	if (!sValue.IsSymbol())
+	{
+		return false;
+	}
+	if (pcModule->IsLocal(sValue.Index()))
+	{
+		return true;
+	}
+	pcGlobal = pcModule->FindGlobal(sValue.Index());
+	pcFunction = pcModule->FindFunction(sValue.Index());
+	return (pcGlobal && (pcGlobal->muiAttributes & IRA_Local)) || (pcFunction && (pcFunction->muiAttributes & IRA_Local));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcFunction's body can be copied to another unit: it has one, is
+// small, has external linkage, calls no named function and names no symbol
+// local to pcModule's unit.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRImports::IsExportable(CIRModule* pcModule, CIRFunction* pcFunction)
 {
 	CIRBlock*		pcBlock;
 	SIRInstruction*	psInstruction;
@@ -74,7 +101,8 @@ bool CIRImports::IsExportable(CIRFunction* pcFunction)
 		for (uiIndex = 0; uiIndex < pcBlock->masInstructions.NumElements(); uiIndex++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiIndex);
-			if (psInstruction->asArguments[0].IsSymbol() || psInstruction->asArguments[1].IsSymbol())
+			if (((psInstruction->uiOpcode == IRO_Call) && psInstruction->asArguments[0].IsSymbol()) ||
+				IsLocalSymbol(pcModule, psInstruction->asArguments[0]) || IsLocalSymbol(pcModule, psInstruction->asArguments[1]))
 			{
 				return false;
 			}
@@ -84,13 +112,13 @@ bool CIRImports::IsExportable(CIRFunction* pcFunction)
 			psPhi = pcBlock->masPhis.Get(uiIndex);
 			for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
 			{
-				if (psPhi->asArguments.Get(uiArgument)->sValue.IsSymbol())
+				if (IsLocalSymbol(pcModule, psPhi->asArguments.Get(uiArgument)->sValue))
 				{
 					return false;
 				}
 			}
 		}
-		if (pcBlock->msJump.sArgument.IsSymbol())
+		if (IsLocalSymbol(pcModule, pcBlock->msJump.sArgument))
 		{
 			return false;
 		}
@@ -112,8 +140,10 @@ bool CIRImports::Export(CIRModule* pcModule, CIRFunction* pcFunction)
 	CIRParser	cParser;
 	CCPPErrors	cErrors;
 	bool		bResult;
+	size		ui;
+	int			iSymbol;
 
-	if (!IsExportable(pcFunction) || Find(pcModule->GetSymbolName(pcFunction->muiSymbol)))
+	if (!IsExportable(pcModule, pcFunction) || Find(pcModule->GetSymbolName(pcFunction->muiSymbol)))
 	{
 		return false;
 	}
@@ -127,6 +157,19 @@ bool CIRImports::Export(CIRModule* pcModule, CIRFunction* pcFunction)
 	cParser.Kill();
 	cErrors.Kill();
 	szText.Kill();
+
+	//The function's restrict symbols stay restrict.
+	for (ui = 0; ui < pcModule->maszSymbols.NumElements(); ui++)
+	{
+		if (pcModule->IsRestrict((uint32)ui))
+		{
+			iSymbol = mcModule.FindSymbol(pcModule->GetSymbolName((uint32)ui));
+			if (iSymbol >= 0)
+			{
+				mcModule.SetRestrict((uint32)iSymbol);
+			}
+		}
+	}
 	return bResult;
 }
 
@@ -158,4 +201,16 @@ CIRFunction* CIRImports::Find(const char* szName)
 size CIRImports::NumFunctions(void)
 {
 	return mcModule.NumFunctions();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The module the functions were copied into (their symbols' names are
+// pcModule's: CIRInliner maps them to the caller's).
+//
+//////////////////////////////////////////////////////////////////////////
+CIRModule* CIRImports::GetModule(void)
+{
+	return &mcModule;
 }

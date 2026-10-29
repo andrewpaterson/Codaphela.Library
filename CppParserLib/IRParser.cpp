@@ -109,9 +109,13 @@ bool CIRParser::Parse(const char* szText)
 		{
 			bResult = ParseFunction();
 		}
+		else if (GetKeyword("restrict"))
+		{
+			bResult = ParseRestrict();
+		}
 		else
 		{
-			bResult = ErrorAt(uiStart, "Expected space, global or function.");
+			bResult = ErrorAt(uiStart, "Expected space, global, function or restrict.");
 		}
 		if (!bResult)
 		{
@@ -711,6 +715,23 @@ bool CIRParser::ParseSpace(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// restrict @name: the symbol is a restrict pointer variable.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRParser::ParseRestrict(void)
+{
+	SkipSpace();
+	if (!ExpectChar('@') || !ExpectName("Expected a symbol's name."))
+	{
+		return false;
+	}
+	mpcModule->SetRestrict(mpcModule->AddSymbol(mszName.Text()));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // global @name{, attributes} { items }
 //
 //////////////////////////////////////////////////////////////////////////
@@ -819,7 +840,7 @@ bool CIRParser::ParseGlobalItem(CIRGlobal* pcGlobal)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// function T @name(T %p, ...){, attributes} { blocks }
+// function T @name(T {restrict} %p, ...){, attributes} { blocks }
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRParser::ParseFunction(void)
@@ -829,6 +850,7 @@ bool CIRParser::ParseFunction(void)
 	uint32			uiSymbol;
 	uint32			uiAttributes;
 	bool			bVariadic;
+	bool			bRestrict;
 	SIRReference	sParameter;
 	bool			bResult;
 
@@ -866,6 +888,7 @@ bool CIRParser::ParseFunction(void)
 			{
 				return false;
 			}
+			bRestrict = GetKeyword("restrict");
 			SkipSpace();
 			muiResultPosition = muiPosition;
 			if (!ExpectChar('%') || !ExpectName("Expected a parameter."))
@@ -879,6 +902,10 @@ bool CIRParser::ParseFunction(void)
 				return false;
 			}
 			mpcFunction->masParameters.Add(&sParameter);
+			if (bRestrict)
+			{
+				mpcFunction->SetRestrictParameter(mpcFunction->masParameters.NumElements() - 1);
+			}
 		} while (GetChar(','));
 		if (!ExpectChar(')'))
 		{

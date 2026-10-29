@@ -52,8 +52,9 @@ void CIRPrinter::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The spaces, then the globals, then the functions, with a blank line
-// before each global and function that follows something.
+// The spaces, then the restrict symbols, then the globals, then the
+// functions, with a blank line before each global and function that
+// follows something.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRPrinter::PrintModule(void)
@@ -69,6 +70,15 @@ void CIRPrinter::PrintModule(void)
 		mpszDest->Append(' ');
 		mpszDest->Append(mpcModule->GetPointerSize((uint8)ui));
 		mpszDest->AppendNewLine();
+	}
+	for (ui = 0; ui < mpcModule->maszSymbols.NumElements(); ui++)
+	{
+		if (mpcModule->IsRestrict((uint32)ui))
+		{
+			mpszDest->Append("restrict @");
+			mpszDest->Append(mpcModule->GetSymbolName((uint32)ui));
+			mpszDest->AppendNewLine();
+		}
 	}
 	for (ui = 0; ui < mpcModule->NumGlobals(); ui++)
 	{
@@ -447,7 +457,9 @@ void CIRPrinter::PrintFunction(CIRFunction* pcFunction)
 			mpszDest->Append(", ");
 		}
 		sParameter = *pcFunction->masParameters.Get(ui);
-		PrintTyped(pcFunction, pcFunction->GetTemporaryType(sParameter), sParameter);
+		PrintType(pcFunction->GetTemporaryType(sParameter));
+		mpszDest->Append(pcFunction->IsRestrictParameter(ui) ? " restrict " : " ");
+		PrintReference(pcFunction, sParameter);
 	}
 	if (pcFunction->muiAttributes & IRA_Variadic)
 	{
