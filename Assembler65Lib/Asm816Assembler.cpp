@@ -35,6 +35,7 @@ void CAsm816Assembler::Init(void)
 	CAsm65Assembler::Init();
 	muiWidthA = ASM816_WIDTH_UNKNOWN;
 	muiWidthX = ASM816_WIDTH_UNKNOWN;
+	mbRelax = false;
 }
 
 
@@ -81,19 +82,27 @@ bool CAsm816Assembler::ProcessorDirective(SAsm65Token* psDirective, bool* pbResu
 		*pbResult = Data(3);
 		return true;
 	}
+	else if (psDirective->IsIdentifierIgnoreCase(".relax"))
+	{
+		mbRelax = true;
+		*pbResult = true;
+		return true;
+	}
 	return false;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The widths are unknown at the start of each section until rep, sep or .width.
+// The widths are unknown at the start of each section until rep, sep or .width, and
+// branches aren't relaxed until .relax.
 //
 //////////////////////////////////////////////////////////////////////////
 void CAsm816Assembler::SectionStarted(void)
 {
 	muiWidthA = ASM816_WIDTH_UNKNOWN;
 	muiWidthX = ASM816_WIDTH_UNKNOWN;
+	mbRelax = false;
 }
 
 

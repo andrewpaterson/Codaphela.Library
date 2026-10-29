@@ -229,6 +229,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 		if (sbOptimise)
 		{
 			cOptimiser.Init(&mcModule);
+			cOptimiser.SetIndexedAddresses(mpcGenerator->mpsTarget->eTarget != CPPT_W65C816);
 			cOptimiser.Optimise(mpcFunction);
 			cOptimiser.Kill();
 		}
@@ -839,6 +840,7 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 		for (iRound = 0; iRound < IR65_INLINE_ROUNDS; iRound++)
 		{
 			cOptimiser.Init(&mcModule);
+			cOptimiser.SetIndexedAddresses(mpcGenerator->mpsTarget->eTarget != CPPT_W65C816);
 			cOptimiser.Optimise(psWritten->pcFunction);
 			cOptimiser.Kill();
 			if ((iRound + 1 == IR65_INLINE_ROUNDS) || !cInliner.InlineCalls(psWritten->pcFunction))
@@ -3684,6 +3686,62 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The half of *psValue (*piBits wide and not 0) that ctz (the low half) or
+// clz (the high half) counts from, unless it is 0: then the other half, and
+// the half's bits are added to *psCount.  *psValue and *piBits become the
+// half's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::NarrowCount(bool bLeading, SIRReference* psValue, SIRReference* psCount, int* piBits, SIRType sInt)
+{
+	SIRType			sType;
+	SIRType			sHalf;
+	SIRReference	sHigh;
+	SIRReference	sLow;
+	SIRReference	sFirst;
+	SIRReference	sOther;
+	SIRReference	sTest;
+	SIRReference	sCounted;
+	CIRBlock*		pcFrom;
+	CIRBlock*		pcOther;
+	CIRBlock*		pcJoin;
+	SIRPhi*			psValuePhi;
+	SIRPhi*			psCountPhi;
+	int				iHalf;
+
+	iHalf = *piBits / 2;
+	sType = mpcFunction->TypeOf(*psValue);
+	sHalf = IRType((iHalf == 32) ? IRTK_I32 : IRTK_I16);
+	sHigh = mpcFunction->Add(mpcBlock, IRO_LShr, sType, *psValue, mpcFunction->AddInteger(sType, iHalf));
+	sHigh = mpcFunction->Add(mpcBlock, IRO_Trunc, sHalf, sHigh);
+	sLow = mpcFunction->Add(mpcBlock, IRO_Trunc, sHalf, *psValue);
+	sFirst = bLeading ? sHigh : sLow;
+	sOther = bLeading ? sLow : sHigh;
+	sTest = mpcFunction->Add(mpcBlock, IRO_Eq, sHalf, sFirst, mpcFunction->AddInteger(sHalf, 0));
+	pcFrom = mpcBlock;
+	pcOther = NewBlock();
+	pcJoin = NewBlock();
+	mpcBlock->Branch(sTest, pcOther, pcJoin);
+	StartBlock(pcOther);
+	sCounted = mpcFunction->Add(mpcBlock, IRO_Add, sInt, *psCount, mpcFunction->AddInteger(sInt, iHalf));
+	mpcBlock->Jump(pcJoin);
+	StartBlock(pcJoin);
+	mpcBlock->AddPhi(sHalf, mpcFunction->AddTemporary(sHalf));
+	mpcBlock->AddPhi(sInt, mpcFunction->AddTemporary(sInt));
+	psValuePhi = mpcBlock->masPhis.Get(mpcBlock->masPhis.NumElements() - 2);
+	psCountPhi = mpcBlock->masPhis.Get(mpcBlock->masPhis.NumElements() - 1);
+	mpcBlock->AddPhiArgument(psValuePhi, pcFrom, sFirst);
+	mpcBlock->AddPhiArgument(psValuePhi, pcOther, sOther);
+	mpcBlock->AddPhiArgument(psCountPhi, pcFrom, *psCount);
+	mpcBlock->AddPhiArgument(psCountPhi, pcOther, sCounted);
+	*psValue = psValuePhi->sResult;
+	*psCount = psCountPhi->sResult;
+	*piBits = iHalf;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The __builtin_ functions the generator has (CCPP65Generator::Builtin), as IR: the float constants (huge_val,
 // inf, nan), expect, unreachable and trap, ia32_pause, and ctz, clz and popcount (of unsigned int, l: unsigned long,
 // ll: unsigned long long) as loops.
@@ -3703,12 +3761,14 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 	CIRBlock*		pcLoop;
 	CIRBlock*		pcBody;
 	CIRBlock*		pcZero;
+	CIRBlock*		pcNarrow;
 	CIRBlock*		pcDone;
 	SIRPhi*			psX;
 	SIRPhi*			psCount;
 	SIRPhi*			psResult;
 	SIRReference	sX2;
 	SIRReference	sCount2;
+	SIRReference	sCount;
 	SIRReference	sTest;
 	int				iBits;
 	int				iArguments;
@@ -3761,17 +3821,34 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 		}
 
 		//loop: x and the count; ctz and clz stop at the first set bit from their end (0 counts the width), popcount
-		//clears the lowest set bit until there are none.
+		//clears the lowest set bit until there are none.  ctz and clz of more than 16 bits are narrowed first
+		//(NarrowCount), so the loop goes round at most 15 times on 16 bits.
 		sType = IRTypeOf(psType);
 		sInt = IRTypeOf(&mpcTypes->msInt);
 		iBits = psType->iBytes * 8;
-		pcEntry = mpcBlock;
 		pcLoop = NewBlock();
 		pcBody = NewBlock();
 		pcZero = szName.Equals("popcount") ? NULL : NewBlock();
 		pcDone = NewBlock();
 		sTest = mpcFunction->Add(mpcBlock, IRO_Eq, sType, sArgument.sValue, mpcFunction->AddInteger(sType, 0));
-		mpcBlock->Branch(sTest, szName.Equals("popcount") ? pcDone : pcZero, pcLoop);
+		sCount = mpcFunction->AddInteger(sInt, 0);
+		if (pcZero && (iBits > 16))
+		{
+			pcNarrow = NewBlock();
+			mpcBlock->Branch(sTest, pcZero, pcNarrow);
+			StartBlock(pcNarrow);
+			while (iBits > 16)
+			{
+				NarrowCount(szName.Equals("clz"), &sArgument.sValue, &sCount, &iBits, sInt);
+			}
+			sType = IRType(IRTK_I16);
+			mpcBlock->Jump(pcLoop);
+		}
+		else
+		{
+			mpcBlock->Branch(sTest, szName.Equals("popcount") ? pcDone : pcZero, pcLoop);
+		}
+		pcEntry = mpcBlock;
 		StartBlock(pcLoop);
 		//Adding a phi can move the block's others: both are found again after.
 		mpcBlock->AddPhi(sType, mpcFunction->AddTemporary(sType));
@@ -3802,7 +3879,7 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 		mpcBlock->Jump(pcLoop);
 		pcLoop->AddPhiArgument(psX, pcEntry, sArgument.sValue);
 		pcLoop->AddPhiArgument(psX, pcBody, sX2);
-		pcLoop->AddPhiArgument(psCount, pcEntry, mpcFunction->AddInteger(sInt, 0));
+		pcLoop->AddPhiArgument(psCount, pcEntry, sCount);
 		pcLoop->AddPhiArgument(psCount, pcBody, sCount2);
 		if (pcZero)
 		{
@@ -3818,7 +3895,7 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, int64 lliName, 
 		}
 		else
 		{
-			mpcBlock->AddPhiArgument(psResult, pcZero, mpcFunction->AddInteger(sInt, iBits));
+			mpcBlock->AddPhiArgument(psResult, pcZero, mpcFunction->AddInteger(sInt, psType->iBytes * 8));
 		}
 		psValue->sValue = psResult->sResult;
 		psValue->psType = &mpcTypes->msInt;

@@ -26,6 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define IR_OPTIMISE_ROUNDS		16
 #define IR_ROTATE_LIMIT			8		//The most instructions a loop's head may have for RotateLoops to copy it.
 #define IR_THREAD_LIMIT			8		//The most instructions a block may have for ThreadPhis to work out.
+#define IR_NARROW_DEPTH			4		//How deep NarrowTruncations follows operations to narrow.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -36,6 +37,7 @@ void CIROptimiser::Init(CIRModule* pcModule)
 {
 	mpcModule = pcModule;
 	mpcFunction = NULL;
+	mbIndexedAddresses = true;
 	mcDominators.Init();
 	mcDefinitions.Init();
 	mcLoops.Init();
@@ -76,6 +78,19 @@ void CIROptimiser::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the target's loads and stores add a pointer and an index for
+// nothing (the 65C64's [R1 + R2]; the W65C816's don't): if not, p + i in a
+// loop is strength reduced too.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::SetIndexedAddresses(bool bIndexedAddresses)
+{
+	mbIndexedAddresses = bIndexedAddresses;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Runs the passes until none changes the function.  Returns true if any did.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -94,6 +109,7 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 		bChanged |= PromoteSlots();
 		bChanged |= RemoveTrivialPhis();
 		bChanged |= FoldConstants();
+		bChanged |= NarrowTruncations();
 		bChanged |= RemoveCommonSubexpressions();
 		bChanged |= RemoveRedundantLoads();
 		bChanged |= RotateLoops();
@@ -943,50 +959,104 @@ SIRReference CIROptimiser::SamePhi(CIRBlock* pcBlock, size uiPhi)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Instructions and phis without effects whose results nothing uses go.
+// Instructions and phis without effects whose results nothing with an
+// effect needs go: what instructions with effects, and jumps, use is live,
+// and so is what live values are made from (so a counter only going round a
+// loop to itself goes too).
+//
+//////////////////////////////////////////////////////////////////////////
+static void IROptimiserMarkLive(CArrayTemplate<uint8>* pabLive, CArrayIRReferences* pasWork, SIRReference sValue)
+{
+	if (sValue.IsTemporary() && !*pabLive->Get(sValue.Index()))
+	{
+		*pabLive->Get(sValue.Index()) = true;
+		pasWork->Add(&sValue);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::RemoveDeadCode(void)
 {
-	size			ui;
-	size			uiInstruction;
-	CIRBlock*		pcBlock;
-	SIRInstruction*	psInstruction;
-	SIRPhi*			psPhi;
-	bool			bChanged;
-	bool			bAny;
+	CArrayTemplate<uint8>	abLive;		//Per temporary.
+	CArrayIRReferences		asWork;
+	SIRReference			sValue;
+	size					ui;
+	size					uiInstruction;
+	size					uiArgument;
+	CIRBlock*				pcBlock;
+	SIRInstruction*			psInstruction;
+	SIRPhi*					psPhi;
+	bool					bChanged;
 
-	bAny = false;
-	do
+	FindDefinitions();
+	abLive.Init();
+	abLive.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
+	asWork.Init();
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
-		bChanged = false;
-		mpcFunction->CountUses(&mauiUses);
-		for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
-			pcBlock = mpcFunction->GetBlock(ui);
-			for (uiInstruction = pcBlock->masInstructions.NumElements(); uiInstruction > 0; uiInstruction--)
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if (HasEffect(psInstruction) || !psInstruction->sResult.IsTemporary())
 			{
-				psInstruction = pcBlock->masInstructions.Get(uiInstruction - 1);
-				if (!HasEffect(psInstruction) && psInstruction->sResult.IsTemporary() && (*mauiUses.Get(psInstruction->sResult.Index()) == 0))
-				{
-					pcBlock->masInstructions.RemoveAt(uiInstruction - 1, true);
-					bChanged = true;
-				}
-			}
-			for (uiInstruction = pcBlock->masPhis.NumElements(); uiInstruction > 0; uiInstruction--)
-			{
-				psPhi = pcBlock->masPhis.Get(uiInstruction - 1);
-				if (*mauiUses.Get(psPhi->sResult.Index()) == 0)
-				{
-					psPhi->asArguments.Kill();
-					pcBlock->masPhis.RemoveAt(uiInstruction - 1, true);
-					bChanged = true;
-				}
+				IROptimiserMarkLive(&abLive, &asWork, psInstruction->asArguments[0]);
+				IROptimiserMarkLive(&abLive, &asWork, psInstruction->asArguments[1]);
+				IROptimiserMarkLive(&abLive, &asWork, psInstruction->sResult);
 			}
 		}
-		bAny |= bChanged;
-	} while (bChanged);
-	return bAny;
+		IROptimiserMarkLive(&abLive, &asWork, pcBlock->msJump.sArgument);
+	}
+	while (asWork.NumElements() > 0)
+	{
+		asWork.Pop(&sValue);
+		psInstruction = mcDefinitions.Instruction(sValue);
+		psPhi = mcDefinitions.Phi(sValue);
+		if (psInstruction)
+		{
+			IROptimiserMarkLive(&abLive, &asWork, psInstruction->asArguments[0]);
+			IROptimiserMarkLive(&abLive, &asWork, psInstruction->asArguments[1]);
+		}
+		else if (psPhi)
+		{
+			for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
+			{
+				IROptimiserMarkLive(&abLive, &asWork, psPhi->asArguments.Get(uiArgument)->sValue);
+			}
+		}
+	}
+
+	bChanged = false;
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uiInstruction = pcBlock->masInstructions.NumElements(); uiInstruction > 0; uiInstruction--)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction - 1);
+			if (!HasEffect(psInstruction) && psInstruction->sResult.IsTemporary() && !*abLive.Get(psInstruction->sResult.Index()))
+			{
+				pcBlock->masInstructions.RemoveAt(uiInstruction - 1, true);
+				bChanged = true;
+			}
+		}
+		for (uiInstruction = pcBlock->masPhis.NumElements(); uiInstruction > 0; uiInstruction--)
+		{
+			psPhi = pcBlock->masPhis.Get(uiInstruction - 1);
+			if (!*abLive.Get(psPhi->sResult.Index()))
+			{
+				psPhi->asArguments.Kill();
+				pcBlock->masPhis.RemoveAt(uiInstruction - 1, true);
+				bChanged = true;
+			}
+		}
+	}
+	asWork.Kill();
+	abLive.Kill();
+	return bChanged;
 }
 
 
@@ -1660,6 +1730,13 @@ bool CIROptimiser::FoldConstants(void)
 				{
 					*mauiUses.Get(sValue.Index()) += *mauiUses.Get(psInstruction->sResult.Index());
 				}
+				bChanged = true;
+			}
+			else if ((psInstruction->uiOpcode == IRO_SExt) && (mpcFunction->TypeOf(psInstruction->asArguments[0]).IntegerBits() > 1) &&
+					 Extended(psInstruction->asArguments[0], mpcFunction->TypeOf(psInstruction->asArguments[0]).IntegerBits() - 1, false, 0))
+			{
+				//A sext of a value whose top bit is 0 is a zext (cheaper where a sign must be worked out).
+				psInstruction->uiOpcode = IRO_ZExt;
 				bChanged = true;
 			}
 			else if (((psInstruction->uiOpcode == IRO_Mul) || (psInstruction->uiOpcode == IRO_UDiv) || (psInstruction->uiOpcode == IRO_URem)) && psInstruction->asArguments[1].IsConstant())
@@ -3058,10 +3135,12 @@ SIRReference CIROptimiser::AppendInstruction(CIRBlock* pcBlock, uint16 uiOpcode,
 //////////////////////////////////////////////////////////////////////////
 //
 // Strength reduction: in a loop with one block going round to its head and
-// a counter i (a phi of init, then i + c), an address p + (i << s) or
-// p + i * k with p not changed by the loop becomes a pointer of its own: p +
-// init * k before the loop, stepped by c * k going round.  The shift or
-// multiply and the add each time round become one add.
+// a counter i (a phi of init, then i + c or i - c), an address p + i (when
+// the target's loads and stores don't add it for nothing),
+// p + (i << s) or p + i * k with p not changed by the loop becomes a
+// pointer of its own: p + init * k before the loop, stepped by c * k going
+// round.  The shift or multiply and the add each time round become one
+// add.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::ReduceStrength(void)
@@ -3130,11 +3209,15 @@ bool CIROptimiser::ReduceStrength(void)
 				}
 			}
 			psNext = sNext.IsTemporary() ? mcDefinitions.Instruction(sNext) : NULL;
-			if (sInit.IsNone() || (psNext == NULL) || (psNext->uiOpcode != IRO_Add) || !psNext->asArguments[0].Equals(sCounter) || !psNext->asArguments[1].IsConstant())
+			if (sInit.IsNone() || (psNext == NULL) || ((psNext->uiOpcode != IRO_Add) && (psNext->uiOpcode != IRO_Sub)) || !psNext->asArguments[0].Equals(sCounter) || !psNext->asArguments[1].IsConstant())
 			{
 				continue;
 			}
 			lliStep = mpcFunction->GetSigned(psNext->asArguments[1]);
+			if (psNext->uiOpcode == IRO_Sub)
+			{
+				lliStep = -lliStep;
+			}
 			sType = psPhi->sType;
 
 			//Addresses p + (i << s) or p + i * k in the loop.
@@ -3153,11 +3236,20 @@ bool CIROptimiser::ReduceStrength(void)
 						continue;
 					}
 					psScaled = mcDefinitions.Instruction(psAddress->asArguments[1]);
-					if ((psScaled == NULL) || !psScaled->asArguments[0].Equals(sCounter) || !psScaled->asArguments[1].IsConstant())
+					if (psAddress->asArguments[1].Equals(sCounter))
+					{
+						//p + i, unless loads and stores add it for nothing.
+						if (mbIndexedAddresses)
+						{
+							continue;
+						}
+						lliScale = 1;
+					}
+					else if ((psScaled == NULL) || !psScaled->asArguments[0].Equals(sCounter) || !psScaled->asArguments[1].IsConstant())
 					{
 						continue;
 					}
-					if ((psScaled->uiOpcode == IRO_Shl) && (mpcFunction->GetSigned(psScaled->asArguments[1]) >= 0) && (mpcFunction->GetSigned(psScaled->asArguments[1]) < 16))
+					else if ((psScaled->uiOpcode == IRO_Shl) && (mpcFunction->GetSigned(psScaled->asArguments[1]) >= 0) && (mpcFunction->GetSigned(psScaled->asArguments[1]) < 16))
 					{
 						lliScale = (int64)1 << mpcFunction->GetSigned(psScaled->asArguments[1]);
 					}
@@ -3179,7 +3271,14 @@ bool CIROptimiser::ReduceStrength(void)
 					//move this block's instructions.)
 					sBase = psAddress->asArguments[0];
 					sAddress = psAddress->sResult;
-					sStart = sInit.IsConstant() ? mpcFunction->AddInteger(sType, mpcFunction->GetSigned(sInit) * lliScale) : AppendInstruction(pcEntering, IRO_Mul, sType, sInit, mpcFunction->AddInteger(sType, lliScale));
+					if (sInit.IsConstant())
+					{
+						sStart = mpcFunction->AddInteger(sType, mpcFunction->GetSigned(sInit) * lliScale);
+					}
+					else
+					{
+						sStart = (lliScale == 1) ? sInit : AppendInstruction(pcEntering, IRO_Mul, sType, sInit, mpcFunction->AddInteger(sType, lliScale));
+					}
 					if (!sStart.IsConstant() || (mpcFunction->GetSigned(sStart) != 0))
 					{
 						sStart = AppendInstruction(pcEntering, IRO_PtrAdd, IRType(IRTK_Pointer), sBase, sStart);
@@ -3619,5 +3718,155 @@ bool CIROptimiser::RotateLoops(void)
 	asValues.Kill();
 	asLatch.Kill();
 	asPreheader.Kill();
+	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the low bits of uiOpcode's result depend only on the low bits of
+// its operands (a shift left by a constant less than iBits too).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IROptimiserNarrows(CIRFunction* pcFunction, SIRInstruction* psInstruction, int iBits)
+{
+	switch (psInstruction->uiOpcode)
+	{
+	case IRO_Add:
+	case IRO_Sub:
+	case IRO_Mul:
+	case IRO_And:
+	case IRO_Or:
+	case IRO_Xor:
+		return true;
+	case IRO_Shl:
+		return psInstruction->asArguments[1].IsConstant() && (pcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits < (uint64)iBits);
+	default:
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// sValue's low bits as a value of the narrower sType with no instruction: a
+// constant truncated, or the value an extension from sType extended; IRNone
+// when it takes one.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIROptimiser::FreeNarrow(SIRReference sValue, SIRType sType)
+{
+	SIRInstruction*	psDefinition;
+
+	if (sValue.IsConstant())
+	{
+		return mpcFunction->AddConstant(sType, IRTruncate(sType, mpcFunction->GetConstant(sValue)->ulliBits));
+	}
+	psDefinition = mcDefinitions.Instruction(sValue);
+	if (psDefinition && ((psDefinition->uiOpcode == IRO_SExt) || (psDefinition->uiOpcode == IRO_ZExt)) && mpcFunction->TypeOf(psDefinition->asArguments[0]).Equals(sType))
+	{
+		return psDefinition->asArguments[0];
+	}
+	return IRNone();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// sValue narrowed to sType, adding the instructions that takes to pasNew:
+// free (FreeNarrow), the operation done narrow when only the trunc being
+// narrowed uses it, or else a trunc.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIROptimiser::Narrowed(SIRReference sValue, SIRType sType, CArrayIRInstructions* pasNew, int iDepth)
+{
+	SIRInstruction*	psDefinition;
+	SIRInstruction	sNew;
+	SIRReference	sNarrow;
+
+	sNarrow = FreeNarrow(sValue, sType);
+	if (!sNarrow.IsNone())
+	{
+		return sNarrow;
+	}
+	psDefinition = mcDefinitions.Instruction(sValue);
+	memset(&sNew, 0, sizeof(SIRInstruction));
+	if (psDefinition && (iDepth < IR_NARROW_DEPTH) && (mcDefinitions.NumUses(sValue) == 1) && IROptimiserNarrows(mpcFunction, psDefinition, sType.IntegerBits()))
+	{
+		sNew = *psDefinition;
+		sNew.asArguments[0] = Narrowed(sNew.asArguments[0], sType, pasNew, iDepth + 1);
+		sNew.asArguments[1] = Narrowed(sNew.asArguments[1], sType, pasNew, iDepth + 1);
+	}
+	else
+	{
+		sNew.uiOpcode = IRO_Trunc;
+		sNew.asArguments[0] = sValue;
+		sNew.asArguments[1] = IRNone();
+	}
+	sNew.sType = sType;
+	sNew.sResult = mpcFunction->AddTemporary(sType);
+	pasNew->Add(&sNew);
+	return sNew.sResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A trunc of an add, sub, mul, and, or, xor or shift left by a constant
+// that only it uses is the operation done narrow, when an operand of it is
+// narrow for nothing (an extension or a constant: C's promotions of char
+// and short arithmetic).  Operands are narrowed the same way, or truncated.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::NarrowTruncations(void)
+{
+	CArrayIRInstructions	asNew;
+	SIRInstruction			sInstruction;
+	SIRInstruction*			psWide;
+	CIRBlock*				pcBlock;
+	SIRType					sType;
+	size					ui;
+	size					uiInstruction;
+	bool					bChanged;
+	bool					bBlockChanged;
+
+	FindDefinitions();
+	asNew.Init();
+	bChanged = false;
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		asNew.FakeSetUsedElements(0);
+		bBlockChanged = false;
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			sInstruction = *pcBlock->masInstructions.Get(uiInstruction);
+			sType = sInstruction.sType;
+			psWide = (sInstruction.uiOpcode == IRO_Trunc) && sInstruction.sResult.IsTemporary() && sType.IsInteger() && !sType.Is(IRTK_I1) ? mcDefinitions.Instruction(sInstruction.asArguments[0]) : NULL;
+			if (psWide && (mcDefinitions.NumUses(sInstruction.asArguments[0]) == 1) && IROptimiserNarrows(mpcFunction, psWide, sType.IntegerBits()) &&
+				(!FreeNarrow(psWide->asArguments[0], sType).IsNone() || !FreeNarrow(psWide->asArguments[1], sType).IsNone()))
+			{
+				sInstruction.uiOpcode = psWide->uiOpcode;
+				sInstruction.uiFlags = psWide->uiFlags;
+				sInstruction.asArguments[0] = psWide->asArguments[0];
+				sInstruction.asArguments[1] = psWide->asArguments[1];
+				sInstruction.asArguments[0] = Narrowed(sInstruction.asArguments[0], sType, &asNew, 1);
+				sInstruction.asArguments[1] = Narrowed(sInstruction.asArguments[1], sType, &asNew, 1);
+				bBlockChanged = true;
+			}
+			asNew.Add(&sInstruction);
+		}
+		if (bBlockChanged)
+		{
+			pcBlock->masInstructions.FakeSetUsedElements(0);
+			for (uiInstruction = 0; uiInstruction < asNew.NumElements(); uiInstruction++)
+			{
+				pcBlock->masInstructions.Add(asNew.Get(uiInstruction));
+			}
+			bChanged = true;
+			FindDefinitions();
+		}
+	}
+	asNew.Kill();
 	return bChanged;
 }

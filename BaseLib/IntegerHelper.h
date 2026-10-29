@@ -58,8 +58,6 @@ size 	FindLastClearBit(void* pvArray, size iArraySize);
 size 	FindLastSetBit(void* pvArray, size iArraySize);
 size	FindNextSetBit(void* pvArray, size iArraySize, size iStartBit);
 size	FindNextClearBit(void* pvArray, size iArraySize, size iStartBit);
-bool 	FixBool(int32 i);
-bool	FixBool(void* pv);
 void 	SwapInt16(int16* pi1, int16* pi2);
 void 	SwapUint16(uint16* pi1, uint16* pi2);
 void 	SwapInt32(int32* pi1, int32* pi2);
@@ -114,6 +112,20 @@ int64	Absolute(int64 i);
 int16	SquareRoot(int16 i);
 int32	SquareRoot(int32 i);
 int64	SquareRoot(int64 i);
+
+
+
+//Inline: called often (flag tests) and too small to be worth a call.
+inline bool FixBool(int32 i)
+{
+	return i != 0;
+}
+
+
+inline bool FixBool(void* pv)
+{
+	return pv != NULL;
+}
 
 
 #endif // __INTEGER_HELPER_H__

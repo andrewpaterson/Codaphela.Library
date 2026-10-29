@@ -9,7 +9,8 @@
 ; The calling convention is the compiler's (IR816Backend.h): arguments are pushed last first
 ; (pointers and size_t 4 bytes, int 2), A and X are 16 bits wide on the way in and out, the
 ; result is in A (low) and X (high), D and the data bank are kept and A, X and Y change.
-; Each function pushes the data bank, 14 bytes of locals and D, and points D at the stack:
+; Each function (but memset within one bank, which reads its arguments from S) pushes the data
+; bank, 14 bytes of locals and D, and points D at the stack:
 ;	D + 1		the caller's D
 ;	D + 3		Count: the bytes of this move less 1
 ;	D + 5		Dst: the destination (memmove down: its last byte)
@@ -90,9 +91,90 @@ ToUp:
 		.width (A, X), 16
 		brl MoveUp
 
-; void* memset(void* pvDest, int iValue, size_t uiBytes): the first byte, then each from the
+; void* memset(void* pvDest, int iValue, size_t uiBytes): within one bank, without a frame
+; (the arguments are read from S), the data bank set to the destination's and the value's
+; byte twice in a word stored 16 bytes at a time (sta [n + Y], about 4 cycles a byte), then
+; the words and the byte left; otherwise (or for 0 bytes) the first byte, then each from the
 ; one before.
 _memset:
+		.width (A, X), 16
+		lda [S + 12]
+		bne MemsetMove
+		lda [S + 10]
+		beq MemsetMove
+		clc
+		adc [S + 4]
+		bcs MemsetMove
+		phb
+		sep m
+		lda [S + 7]
+		pha
+		plb
+		lda [S + 9]
+		xba
+		lda [S + 9]
+		rep m
+		pha
+		lda [S + 7]
+		tay
+		lda [S + 13]
+		lsr A
+		lsr A
+		lsr A
+		lsr A
+		beq MemsetWords
+		tax
+		lda [S + 1]
+MemsetSixteen:
+		.width (A, X), 16
+		sta [0 + Y]
+		sta [2 + Y]
+		sta [4 + Y]
+		sta [6 + Y]
+		sta [8 + Y]
+		sta [10 + Y]
+		sta [12 + Y]
+		sta [14 + Y]
+		tya
+		clc
+		adc 16
+		tay
+		lda [S + 1]
+		dex
+		bne MemsetSixteen
+MemsetWords:
+		.width (A, X), 16
+		lda [S + 13]
+		and 14
+		lsr A
+		beq MemsetByte
+		tax
+		lda [S + 1]
+MemsetWord:
+		.width (A, X), 16
+		sta [0 + Y]
+		iny
+		iny
+		dex
+		bne MemsetWord
+MemsetByte:
+		.width (A, X), 16
+		lda [S + 13]
+		and 1
+		beq MemsetDone
+		sep m
+		lda [S + 1]
+		sta [0 + Y]
+		rep m
+MemsetDone:
+		.width (A, X), 16
+		ply
+		plb
+		lda [S + 6]
+		tax
+		lda [S + 4]
+		rtl
+MemsetMove:
 		.width (A, X), 16
 		phb
 		pea 0
@@ -622,7 +704,7 @@ Difference:
 
 ; int memcmp(const void* pv1, const void* pv2, size_t uiBytes): words while there are two
 ; bytes left, then the byte left; the bytes of a word that differs are compared first to
-; last.
+; last.  One byte (CNumber compares a digit at a time) is compared straight away.
 _memcmp:
 		.width (A, X), 16
 		pea 0
@@ -631,6 +713,19 @@ _memcmp:
 		phd
 		tsc
 		tcd
+		lda [D + Second + 6]
+		bne MemcmpWords
+		lda [D + Second + 4]
+		cmp 1
+		bne MemcmpWords
+		ldy 0
+		sep m
+		lda [[D + First]:24 + Y]
+		cmp [[D + Second]:24 + Y]
+		bne Difference
+		bra MemcmpSame
+MemcmpWords:
+		.width (A, X), 16
 		lda [D + Second + 6]
 		lsr A
 		sta [D + Hi]
@@ -670,11 +765,24 @@ MemcmpOdd:
 		sep m
 		lda [D + Second + 4]
 		and 1
-		beq Same
+		beq MemcmpSame
 		lda [[D + First]:24 + Y]
 		cmp [[D + Second]:24 + Y]
-		bne Difference
-		bra Same
+		bne MemcmpDifference
+MemcmpSame:
+		.width A, 8
+		.width X, 16
+		rep m
+		lda 0
+		pld
+		ply
+		ply
+		ply
+		rtl
+MemcmpDifference:
+		.width A, 8
+		.width X, 16
+		brl Difference
 
 ; void* memchr(const void* pv, int iValue, size_t uiBytes): iValue as an unsigned char.
 _memchr:
