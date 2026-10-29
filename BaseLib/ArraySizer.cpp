@@ -5,7 +5,7 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CalculateChunkSize(size iNumElements)
+lsize CalculateChunkSize(lsize iNumElements)
 {
 	if (iNumElements < 192)
 	{
@@ -99,9 +99,9 @@ size CalculateChunkSize(size iNumElements)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CalculateChunkSize(size iNumElements, size iCurrentChunkSize)
+lsize CalculateChunkSize(lsize iNumElements, lsize iCurrentChunkSize)
 {
-	size	iNewChunkSize;
+	lsize	iNewChunkSize;
 
 	iNewChunkSize = CalculateChunkSize(iNumElements);
 	if (iNewChunkSize < iCurrentChunkSize)
@@ -116,10 +116,10 @@ size CalculateChunkSize(size iNumElements, size iCurrentChunkSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CalculateArraySize(size iNumElements, size iChunkeSize)
+lsize CalculateArraySize(lsize iNumElements, lsize iChunkeSize)
 {
-	size	iNumAllocations;
-	size	iNumLeftOvers;
+	lsize	iNumAllocations;
+	lsize	iNumLeftOvers;
 
 
 	iNumAllocations = iNumElements / iChunkeSize;

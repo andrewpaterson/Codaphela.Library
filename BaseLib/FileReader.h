@@ -33,7 +33,7 @@ class CFileReader
 {
 public:
 	//General
-						bool	ReadData(void* pvData, size iDataSize);
+						bool	ReadData(void* pvData, lsize iDataSize);
 
 	//Strings.
 						bool	ReadStringLength(size* piLength);
@@ -56,7 +56,7 @@ public:
 						bool	ReadInt64(uint64* plli);
 						bool	ReadSInt(int* pi);
 						bool	ReadSInt(uint* pi);
-						bool	ReadSize(size* pui);  //Four bytes in 32 and 64 bit builds, sign extended so 0xffffffff is SIZE_MAX.
+						bool	ReadSize(lsize* pui);  //Four bytes in 32 and 64 bit builds, sign extended so 0xffffffff is SIZE_MAX.
 						bool	ReadSizes(size* pai, size iLength);
 						bool	ReadFloat(float32* pf);
 						bool	ReadFloat(float64* pf);
@@ -82,7 +82,7 @@ public:
 						bool	ReadPrimitive(M* pc);
 
 protected:
-	virtual				size	Read(void* pvDest, size iSize, size iCount) =0;
+	virtual				size	Read(void* pvDest, lsize iSize, lsize iCount) =0;
 };
 
 

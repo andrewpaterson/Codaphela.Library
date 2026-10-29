@@ -38,7 +38,7 @@ int CTrackingAllocator::AllocatedCount(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CTrackingAllocator::Malloc(size uiSize)
+void* CTrackingAllocator::Malloc(lsize uiSize)
 {
 	void*	pv;
 
@@ -53,7 +53,7 @@ void* CTrackingAllocator::Malloc(size uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CTrackingAllocator::Realloc(void* pv, size uiSize)
+void* CTrackingAllocator::Realloc(void* pv, lsize uiSize)
 {
 	void*	pvNew;
 

@@ -515,7 +515,7 @@ CLogFileCommandTruncate* CLogFile::AddTruncateCommand(filePos iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CLogFile::Write(const void* pvSource, size iSize, size iCount)
+lsize CLogFile::Write(const void* pvSource, lsize iSize, lsize iCount)
 {
 	CArrayIntAndPointer		apvOverlapping;
 	bool					bAny;
@@ -736,7 +736,7 @@ bool CLogFile::AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CLogFile::Read(void* pvDest, size iSize, size iCount)
+lsize CLogFile::Read(void* pvDest, lsize iSize, lsize iCount)
 {
 	size	uiBytesRead;
 	size	uiWriteIndex;

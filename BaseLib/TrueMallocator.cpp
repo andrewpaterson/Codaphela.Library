@@ -142,7 +142,7 @@ void CTrueMallocator::Kill(void)
 // smallest free block that is sure to fit is used and what is left of it is a free block again.
 //
 //////////////////////////////////////////////////////////////////////////
-void* CTrueMallocator::Malloc(size uiBytes)
+void* CTrueMallocator::Malloc(lsize uiBytes)
 {
 	STrueMallocatorBlock*	psBlock;
 	size					uiSize;
@@ -176,7 +176,7 @@ void* CTrueMallocator::Malloc(size uiBytes)
 // pv as it was, if there is no room.
 //
 //////////////////////////////////////////////////////////////////////////
-void* CTrueMallocator::Realloc(void* pv, size uiBytes)
+void* CTrueMallocator::Realloc(void* pv, lsize uiBytes)
 {
 	STrueMallocatorBlock*	psBlock;
 	STrueMallocatorBlock*	psNext;

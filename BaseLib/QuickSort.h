@@ -5,7 +5,7 @@
 #include "DataCompare.h"
 
 
-void QuickSort(DataCompare fCompare, void* pvArray, size uiStride, size uiNumElements);
+void QuickSort(DataCompare fCompare, void* pvArray, lsize uiStride, lsize uiNumElements);
 
 
 #endif // __QUICK_SORT_H__

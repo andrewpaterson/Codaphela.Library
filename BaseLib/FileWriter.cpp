@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteData(const void* pvData, size iDataSize)
+bool CFileWriter::WriteData(const void* pvData, lsize iDataSize)
 {
 	CheckWrite(pvData, iDataSize);
 	return true;
@@ -99,7 +99,7 @@ bool CFileWriter::WriteInt32(uint16 ui)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteSize(size ui)
+bool CFileWriter::WriteSize(lsize ui)
 {
 	uint32	ui32;
 
@@ -107,7 +107,7 @@ bool CFileWriter::WriteSize(size ui)
 	//size that has wrapped below zero (such as SIZE_MAX) reads back the same in a 64 bit build.  A 64 bit build cannot
 	//write a size that would not read back.
 	ui32 = (uint32)ui;
-	if ((size)(ptrdiff)(int32)ui32 != ui)
+	if ((lsize)(ptrdiff)(int32)ui32 != ui)
 	{
 		return false;
 	}

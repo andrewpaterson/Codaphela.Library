@@ -75,7 +75,7 @@ bool CChunkFileFile::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChunkFileFile::Read(void* pvBuffer, size iSize, size iCount)
+lsize CChunkFileFile::Read(void* pvBuffer, lsize iSize, lsize iCount)
 {
 	size	iRemain;
 	size	iReadSize;
@@ -137,7 +137,7 @@ bool CChunkFileFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChunkFileFile::Write(const void* pvBuffer, size iSize, size iCount)
+lsize CChunkFileFile::Write(const void* pvBuffer, lsize iSize, lsize iCount)
 {
 	if (!mbWriteMode)
 	{

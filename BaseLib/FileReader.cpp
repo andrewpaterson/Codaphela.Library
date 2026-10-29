@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadData(void* pvData, size iDataSize)
+bool CFileReader::ReadData(void* pvData, lsize iDataSize)
 {
 	CheckRead(pvData, iDataSize);
 	return true;
@@ -168,13 +168,13 @@ bool CFileReader::ReadInt32(uint16* pui)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadSize(size* pui)
+bool CFileReader::ReadSize(lsize* pui)
 {
 	int32	i32;
 
 	//See WriteSize.
 	CheckRead(&i32, sizeof(int32));
-	*pui = (size)(ptrdiff)i32;
+	*pui = (lsize)(ptrdiff)i32;
 	return true;
 }
 

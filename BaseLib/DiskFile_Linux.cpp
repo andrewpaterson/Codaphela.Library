@@ -225,7 +225,7 @@ bool CDiskFile::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CDiskFile::Read(void* pvBuffer, size iSize, size iCount)
+lsize CDiskFile::Read(void* pvBuffer, lsize iSize, lsize iCount)
 {
 	ssize_t	iReadLength;
 
@@ -292,7 +292,7 @@ bool CDiskFile::Seek(filePos iOffset, EFileSeekOrigin eSeekOrigin)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CDiskFile::Write(const void* pvBuffer, size iSize, size iCount)
+lsize CDiskFile::Write(const void* pvBuffer, lsize iSize, lsize iCount)
 {
 	ssize_t	iWritten;
 

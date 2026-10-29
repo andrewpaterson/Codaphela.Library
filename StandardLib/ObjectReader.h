@@ -51,7 +51,7 @@ public:
 	bool			ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining);
 
 protected:
-	size			Read(void* pvDest, size iSize, size iCount);
+	lsize			Read(void* pvDest, lsize iSize, lsize iCount);
 };
 
 

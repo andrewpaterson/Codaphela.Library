@@ -41,7 +41,7 @@ void CSlabAllocator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CSlabAllocator::Malloc(size uiSize)
+void* CSlabAllocator::Malloc(lsize uiSize)
 {
 	if (uiSize > SLAB_SIZE)
 	{
@@ -57,7 +57,7 @@ void* CSlabAllocator::Malloc(size uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CSlabAllocator::Realloc(void* pv, size uiSize)
+void* CSlabAllocator::Realloc(void* pv, lsize uiSize)
 {
 	if (pv == NULL)
 	{

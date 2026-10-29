@@ -96,7 +96,7 @@ public:
 	void*	InsertBlockBeforeStart(void* paElements, ASIZE iLength);
 	ASIZE	InsertIntoSorted(DataCompare fCompare, void* pvData, bool bOverwriteExisting);
 	void*	InsertNumAt(ASIZE iNumElements, ASIZE iIndex);
-	void	InsertBatch(ASIZE iFirstIndex, ASIZE iNumInBatch, int32 iNumBatches, ASIZE iStrideToNextBatch);
+	void	InsertBatch(ASIZE iFirstIndex, ASIZE iNumInBatch, ASIZE iNumBatches, ASIZE iStrideToNextBatch);
 
 	bool	Pop(void* pvDest);
 	bool	Pop(void);
@@ -171,4 +171,7 @@ protected:
 	void	PrivateRemoveRange(ASIZE iStartIndex, ASIZE iEndIndexExclusive, bool bPreserveOrder, ASIZE iDataSize);
 	ASIZE	RemoveAtNoDeallocate(ASIZE iIndex, bool bPreserveOrder, ASIZE iDataSize);
 	void 	SetArraySize(ASIZE iNumElements);
+#ifdef ARRAY_CHECK_SIZE
+	void	Overflowed(void);
+#endif // ARRAY_CHECK_SIZE
 };

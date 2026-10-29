@@ -61,7 +61,7 @@
   */
 
 
-void TimSort(DataCompare fCompare, void* pvArray, size uiStride, size uiNumElements);
+void TimSort(DataCompare fCompare, void* pvArray, lsize uiStride, lsize uiNumElements);
 
 
 #endif // __TIMSORT_H__

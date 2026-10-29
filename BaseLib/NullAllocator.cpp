@@ -20,7 +20,7 @@ void CNullAllocator::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CNullAllocator::Malloc(size uiSize)
+void* CNullAllocator::Malloc(lsize uiSize)
 {
 #ifdef _DEBUG
 	if (uiSize > guiMaxDebugAllocatorSize)
@@ -47,7 +47,7 @@ bool CNullAllocator::Free(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CNullAllocator::Realloc(void* pv, size uiSize)
+void* CNullAllocator::Realloc(void* pv, lsize uiSize)
 {
 #ifdef _DEBUG
 	if (uiSize > guiMaxDebugAllocatorSize)

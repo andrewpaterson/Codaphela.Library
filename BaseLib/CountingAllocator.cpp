@@ -50,7 +50,7 @@ size CCountingAllocator::AllocatedSystemSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CCountingAllocator::Malloc(size uiSize)
+void* CCountingAllocator::Malloc(lsize uiSize)
 {
 	SCountingMemoryAllocation*	ps;
 	void*						pv;
@@ -92,7 +92,7 @@ void* CCountingAllocator::Malloc(size uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CCountingAllocator::Realloc(void* pv, size uiSize)
+void* CCountingAllocator::Realloc(void* pv, lsize uiSize)
 {
 	SCountingMemoryAllocation*	ps;
 	size						tOffset;

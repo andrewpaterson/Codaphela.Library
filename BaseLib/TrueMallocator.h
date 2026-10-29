@@ -81,8 +81,8 @@ public:
 	bool					Init(void* pvMemory, size uiBytes);
 	void					Kill(void);
 
-	void*					Malloc(size uiBytes);
-	void*					Realloc(void* pv, size uiBytes);
+	void*					Malloc(lsize uiBytes);
+	void*					Realloc(void* pv, lsize uiBytes);
 	void					Free(void* pv);
 	size					Size(void* pv);
 

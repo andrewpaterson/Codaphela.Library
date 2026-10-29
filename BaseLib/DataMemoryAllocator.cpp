@@ -37,7 +37,7 @@ void CDataMemoryAllocator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CDataMemoryAllocator::Malloc(size uiSize)
+void* CDataMemoryAllocator::Malloc(lsize uiSize)
 {
 #ifdef _DEBUG
 	if (uiSize > guiMaxDebugAllocatorSize)
@@ -54,7 +54,7 @@ void* CDataMemoryAllocator::Malloc(size uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CDataMemoryAllocator::Malloc(size uiSize, char(**pacDebugName)[4])
+void* CDataMemoryAllocator::Malloc(lsize uiSize, char(**pacDebugName)[4])
 {
 	void*					pv;
 
@@ -67,7 +67,7 @@ void* CDataMemoryAllocator::Malloc(size uiSize, char(**pacDebugName)[4])
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CDataMemoryAllocator::Realloc(void* pv, size uiSize)
+void* CDataMemoryAllocator::Realloc(void* pv, lsize uiSize)
 {
 	void* pvNew;
 

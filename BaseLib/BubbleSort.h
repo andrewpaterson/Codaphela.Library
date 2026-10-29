@@ -5,7 +5,7 @@
 #include "DataCompare.h"
 
 
-void BubbleSort(DataCompare fCompare, void* pvArray, size uiStride, size iNumElements);
+void BubbleSort(DataCompare fCompare, void* pvArray, lsize uiStride, lsize iNumElements);
 
 
 #endif // __BUBBLE_SORT_H__

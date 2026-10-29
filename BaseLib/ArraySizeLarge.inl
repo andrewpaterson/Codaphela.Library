@@ -26,6 +26,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define ARRAY_TEMPLATE				CArrayLargeTemplate
 #define ARRAY_TEMPLATE_PRIMITIVE	CArrayLargeTemplatePrimitive
 #define ARRAY_CHAR					CArrayLargeChar
+#define CHARS						CLargeChars
+#define CHARS_NATURAL				CChars
 #define ARRAY_HEADER				SArrayLargeTemplateHeader
 #define ASIZE						lsize
 #define ARRAY_SIZE_MAX				MAX_LSIZE

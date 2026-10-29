@@ -9,8 +9,8 @@ CONSTRUCTABLE(CNullAllocator)
 public:
 	void		Kill(void);
 
-	void*		Malloc(size uiSize);
-	void*		Realloc(void* pv, size iMemSize);
+	void*		Malloc(lsize uiSize);
+	void*		Realloc(void* pv, lsize iMemSize);
 	bool		Free(void* pv);
 
 	const char*	GetName(void);

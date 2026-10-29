@@ -26,7 +26,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define ARRAY_TEMPLATE				CArrayTemplate
 #define ARRAY_TEMPLATE_PRIMITIVE	CArrayTemplatePrimitive
 #define ARRAY_CHAR					CArrayChar
+#define CHARS						CChars
 #define ARRAY_HEADER				SArrayTemplateHeader
 #define ASIZE						size
-#define ARRAY_SIZE_MAX				SIZE_MAX
+#define ARRAY_SIZE_MAX				MAX_SIZE
 #define ARRAY_NOT_FOUND				ARRAY_ELEMENT_NOT_FOUND
+
+//On 16 bit targets a natural array holds at most MAX_SIZE bytes.  Past that it fails as if out of memory.
+#if defined(__W65C816__)
+#define ARRAY_CHECK_SIZE
+#endif // __W65C816__

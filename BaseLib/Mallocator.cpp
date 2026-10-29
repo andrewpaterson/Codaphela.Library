@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMallocator::Malloc(size uiSize, char(** pacDebugName)[4])
+void* CMallocator::Malloc(lsize uiSize, char(** pacDebugName)[4])
 {
 	if (pacDebugName)
 	{

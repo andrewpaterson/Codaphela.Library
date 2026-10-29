@@ -18,9 +18,9 @@ typedef CArrayTemplatePtr<void>	CArrayVoidPtr;
 class CMallocator : public CConstructable, public CKillable
 {
 public:
-	virtual void*		Malloc(size uiSize) =0;
-	virtual void*		Malloc(size uiSize, char(** pacDebugName)[4]);
-	virtual void*		Realloc(void* pv, size uiSize) =0;
+	virtual void*		Malloc(lsize uiSize) =0;
+	virtual void*		Malloc(lsize uiSize, char(** pacDebugName)[4]);
+	virtual void*		Realloc(void* pv, lsize uiSize) =0;
 	virtual bool		Free(void* pv) =0;
 	virtual size		FreeMultiple(CArrayVoidPtr* pav);
 

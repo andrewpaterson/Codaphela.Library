@@ -4,9 +4,9 @@
 #include "PrimitiveTypes.h"
 
 
-size CalculateChunkSize(size iNumElements);
-size CalculateChunkSize(size iNumElements, size iCurrentChunkSize);
-size CalculateArraySize(size iNumElements, size iChunkeSize);
+lsize CalculateChunkSize(lsize iNumElements);
+lsize CalculateChunkSize(lsize iNumElements, lsize iCurrentChunkSize);
+lsize CalculateArraySize(lsize iNumElements, lsize iChunkeSize);
 
 
 #endif // __ARRAY_SIZER_H__

@@ -7,12 +7,12 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void BubbleSort(DataCompare fCompare, void* pvArray, size uiStride, size iNumElements)
+void BubbleSort(DataCompare fCompare, void* pvArray, lsize uiStride, lsize iNumElements)
 {
-	size	iIndex;
+	lsize	iIndex;
 	int		iResult;
 	bool	bSwapped;
-	size	iNumDone;
+	lsize	iNumDone;
 	void*	pvLeft;
 	void*	pvRight;
 

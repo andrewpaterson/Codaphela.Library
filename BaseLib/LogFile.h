@@ -34,8 +34,8 @@ public:
 
 	bool					Open(EFileMode eFileMode);
 	bool					Close(void);
-	size					Write(const void* pvSource, size iSize, size iCount);
-	size					Read(void* pvDest, size iSize, size iCount);
+	lsize					Write(const void* pvSource, lsize iSize, lsize iCount);
+	lsize					Read(void* pvDest, lsize iSize, lsize iCount);
 	filePos					Tell(void);
 	filePos					Size(void);
 	bool					Truncate(filePos iSize);

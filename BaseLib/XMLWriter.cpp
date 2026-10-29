@@ -117,7 +117,7 @@ void CXMLWriter::End(void)
 	{
 		mszText.Append(' ', (maszOpen.NumElements() - 1) * 2);
 		mszText.Append("</");
-		mszText.Append(maszOpen.Tail());
+		mszText.Append(maszOpen.Tail()->Text());
 		mszText.Append(">\n");
 		maszOpen.RemoveTail();
 	}

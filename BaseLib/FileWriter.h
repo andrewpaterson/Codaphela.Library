@@ -33,7 +33,7 @@ class CFileWriter
 {
 public:
 	//General
-						bool	WriteData(const void* pvData, size iDataSize);
+						bool	WriteData(const void* pvData, lsize iDataSize);
 
 	//Strings.
 						bool	WriteString(const char* szString);
@@ -55,7 +55,7 @@ public:
 #endif // __W65C816__
 						bool	WriteInt64(int64 i);
 						bool	WriteInt64(uint64 i);
-						bool	WriteSize(size ui);  //Four bytes in 32 and 64 bit builds, see ReadSize.
+						bool	WriteSize(lsize ui);  //Four bytes in 32 and 64 bit builds, see ReadSize.
 						bool	WriteSizes(size* pai, size iLength);
 						bool	WriteSInt(int i);
 						bool	WriteSInt(uint i);
@@ -84,7 +84,7 @@ public:
 						bool	WritePrimitive(M c);
 
 protected:
-	virtual				size	Write(const void* pvSource, size iSize, size iCount) =0;
+	virtual				size	Write(const void* pvSource, lsize iSize, lsize iCount) =0;
 };
 
 

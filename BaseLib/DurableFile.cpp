@@ -453,7 +453,7 @@ size CDurableFile::Write(EFileSeekOrigin eOrigin, filePos iDistance, const void*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CDurableFile::Write(const void* pvSource, size iSize, size iCount)
+lsize CDurableFile::Write(const void* pvSource, lsize iSize, lsize iCount)
 {
 	bool bResult;
 
@@ -516,7 +516,7 @@ size CDurableFile::Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CDurableFile::Read(void* pvDest, size iSize, size iCount)
+lsize CDurableFile::Read(void* pvDest, lsize iSize, lsize iCount)
 {
 	bool bResult;
 

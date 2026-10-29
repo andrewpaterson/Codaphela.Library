@@ -25,7 +25,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #undef ARRAY_TEMPLATE
 #undef ARRAY_TEMPLATE_PRIMITIVE
 #undef ARRAY_CHAR
+#undef CHARS
+#undef CHARS_NATURAL
 #undef ARRAY_HEADER
 #undef ASIZE
 #undef ARRAY_SIZE_MAX
 #undef ARRAY_NOT_FOUND
+#undef ARRAY_CHECK_SIZE

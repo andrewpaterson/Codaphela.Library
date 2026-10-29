@@ -51,7 +51,7 @@ protected:
 	void			InitObjectHeader(CObjectHeader* pcHeader, CBaseObject* pcObject, bool bFatHollow);
 	void			InitIdentifier(CObjectIdentifier* pcObjectIdentifier, CBaseObject* pcObject, bool bFatHollow);
 
-	size			Write(const void* pvSource, size iSize, size iCount);
+	lsize			Write(const void* pvSource, lsize iSize, lsize iCount);
 };
 
 

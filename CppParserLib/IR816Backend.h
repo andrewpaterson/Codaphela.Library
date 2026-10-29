@@ -85,6 +85,7 @@ protected:
 	const char*				mszSectionOptions;	//After each function's section name: ", comdat" for the runtime.
 	CArrayTemplate<SIRReference>	masFoldBase;	//Per temporary: the pointer a folded pointer adds a constant to, else none.
 	CArrayTemplate<int32>	maiFoldOffset;		//Per temporary: that constant.
+	CArrayTemplate<SIRReference>	masFoldIndex;	//Per temporary: the i16 a folded pointer adds in Y instead (its offset is 0), else none.
 	CArrayTemplate<int32>	maiUses;			//Per temporary: how many times it is used.
 	CArrayTemplate<int32>	maiUseBlock;		//Per temporary: the block of its one use by an instruction or a jump, else -1.
 	int32					miBlock;			//The block being written.
@@ -101,6 +102,7 @@ public:
 	void			DropFrame(size uiStart);
 	void			FindSingleUses(void);
 	void			ExpandMultiplies(void);
+	void			PeepholeBranches(CChars* pszDest, size uiStart);
 	SIRReference	InsertBefore(CIRBlock* pcBlock, size* puiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond);
 	void			GenerateGlobal(CIRGlobal* pcGlobal, CChars* pszDest);
 	CArrayChars*	GetRuntime(void);
@@ -141,6 +143,10 @@ protected:
 	void			PointerPlace(SIRReference sPointer, int32* piPlace, char** pszSymbol, int32* piOffset);
 	void			FoldPointers(void);
 	SIRReference	FoldedBase(SIRReference sValue);
+	SIRReference	FoldedIndex(SIRReference sValue);
+	bool			IsFolded(SIRInstruction* psInstruction);
+	void			FoldIndices(CArrayTemplate<int32>* paiUses);
+	void			LoadY(SIRReference sPointer, int32 iOffset);
 
 	bool			Instruction(CIRBlock* pcBlock, size uiIndex);
 	void			Arithmetic(SIRInstruction* psInstruction);

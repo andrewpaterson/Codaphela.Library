@@ -19,8 +19,8 @@ public:
 	size	GetSize(void);
 
 protected:	
-	void*	Malloc(size uiSize);
-	void*	Realloc(void* pv, size uiSize);
+	void*	Malloc(lsize uiSize);
+	void*	Realloc(void* pv, lsize uiSize);
 	void	Free(void* pv);
 };
 

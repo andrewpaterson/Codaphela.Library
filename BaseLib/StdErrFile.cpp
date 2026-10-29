@@ -53,7 +53,7 @@ bool CStdErrFile::Close(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CStdErrFile::Read(void* pvBuffer, size iSize, size iCount)
+lsize CStdErrFile::Read(void* pvBuffer, lsize iSize, lsize iCount)
 {
 	return 0;
 }
@@ -80,7 +80,7 @@ bool CStdErrFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CStdErrFile::Write(const void* pvBuffer, size iSize, size iCount)
+lsize CStdErrFile::Write(const void* pvBuffer, lsize iSize, lsize iCount)
 {
 	size	iWritten;
 

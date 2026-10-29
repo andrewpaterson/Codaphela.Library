@@ -16,9 +16,9 @@ public:
 	void				Init(int iDefaultAlignment, bool bDefaultFreeListParams = true);
 	void				Kill(void);
 
-	void*				Malloc(size uiSize) override;
-	void*				Malloc(size uiSize, char(**pacDebugName)[4]) override;
-	void*				Realloc(void* pv, size uiSize) override;
+	void*				Malloc(lsize uiSize) override;
+	void*				Malloc(lsize uiSize, char(**pacDebugName)[4]) override;
+	void*				Realloc(void* pv, lsize uiSize) override;
 	bool				Free(void* pv) override;
 	size				FreeMultiple(CArrayVoidPtr* pav) override;
 

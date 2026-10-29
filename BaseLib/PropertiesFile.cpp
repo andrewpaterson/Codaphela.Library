@@ -90,7 +90,7 @@ bool CPropertiesFile::Read(void)
 
 	cFile.mcText.PassifyNewlines();
 
-	cParser.Init(&cFile.mcText);
+	cParser.Init(cFile.mcText.Text(), cFile.mcText.Length());
 
 	for (;;)
 	{

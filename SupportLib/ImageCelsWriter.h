@@ -31,8 +31,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 bool CelsWriter(Ptr<CArrayImageCel> paCels, char* szImagePathName, char* szPathName);
 
 //Writing shared with other text descriptors written in the same style.
-void AppendImageCelsIntegers(CChars* szText, char* szIdentifier, int32* aiValues, size uiCount);
-void AppendImageCelsPath(CChars* szText, char* szIdentifier, char* szPathName);
+void AppendImageCelsIntegers(CLargeChars* szText, char* szIdentifier, int32* aiValues, size uiCount);
+void AppendImageCelsPath(CLargeChars* szText, char* szIdentifier, char* szPathName);
 
 
 #endif // __IMAGE_CELS_WRITER_H__

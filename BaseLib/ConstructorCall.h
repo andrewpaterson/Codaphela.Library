@@ -68,12 +68,12 @@ class CPostMalloc
 {
 public:
 	Class* 		PostMalloc(Class* pv);
-	Class* 		PostMalloc(Class* pv, size iNumElements, size iStride);
+	Class* 		PostMalloc(Class* pv, lsize iNumElements, lsize iStride);
 
 	template<class Subclass>
 	Class* 		PostMalloc(Subclass* pv);
 	template<class Subclass>
-	Class* 		PostMalloc(Subclass* pv, int iNumElements, int iStride);
+	Class* 		PostMalloc(Subclass* pv, lsize iNumElements, lsize iStride);
 
 	bool 		RequiresVirtualFunctionTable(void);
 };
@@ -99,9 +99,9 @@ Class* CPostMalloc<Class>::PostMalloc(Class* pv)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class Class>
-Class* CPostMalloc<Class>::PostMalloc(Class* pv, size iNumElements, size iStride)
+Class* CPostMalloc<Class>::PostMalloc(Class* pv, lsize iNumElements, lsize iStride)
 {
-	size	i;
+	lsize	i;
 
 	if (RequiresVirtualFunctionTable())
 	{
@@ -134,9 +134,9 @@ Class* CPostMalloc<Class>::PostMalloc(Subclass* pv)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class Class> template<class Subclass>
-Class* CPostMalloc<Class>::PostMalloc(Subclass* pv, int iNumElements, int iStride)
+Class* CPostMalloc<Class>::PostMalloc(Subclass* pv, lsize iNumElements, lsize iStride)
 {
-	int		i;
+	lsize	i;
 
 	if (RequiresVirtualFunctionTable())
 	{

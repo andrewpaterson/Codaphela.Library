@@ -297,6 +297,35 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	  other units: the IR front end marks them (CIRModule::SetLocal) for
 	  CIRImports::IsLocalSymbol (TestCPP816LocalSymbols; TestConstructorCall
 	  read the calling unit's string).
+	- ptradd p, zext x (x an i16) used only as 1 word loads' and stores'
+	  addresses isn't worked out: they put x in Y (txy when x is in X) and use
+	  [[D + p]:24 + Y], which carries into the bank (CIR816Backend::FoldIndices);
+	  the zext isn't worked out either when those are its only uses.  Not for
+	  wider accesses or with a constant folded on top (Y would wrap).
+	- Linear test replacement (CIROptimiser::ReplaceLoopCounters, both
+	  targets): a loop counting c from a constant c0 by 1 to c + 1 < N (ult
+	  or slt) beside another phi v going up by 1 tests v + 1 != v0 - c0 + N,
+	  and c goes.  Only when a branch on c0 < N dominates the loop's way in
+	  (LoopGuarded), else N <= c0 would go round 65536 times.
+	  DrawSprite's pixel loop: ~120 -> ~77 cycles a drawn pixel; Tide/Video
+	  26.6M -> 23.4M (indices) -> 22.3M (counters).
+	- A load whose only use is in another block moves down to it when nothing
+	  on the way may write what it reads, and the use isn't in a loop the load
+	  isn't in (CIROptimiser::SinkLoads, both targets): ways that don't use it
+	  don't load it.  A 1 word load stored by the next instruction that writes
+	  code (folded ones write none) is fused into the store, any address: a
+	  byte is copied under the store's sep m (sep m, ldy, lda [[s]], txy, sta
+	  [[d]], rep m).  Tide/Video 22.3M -> 21.3M.
+	- Branches tidied after the peephole (CIR816Backend::PeepholeBranches):
+	  a bra to the next label goes; branches to a bra go where it goes; Bcc X,
+	  bra Y, X: is B!cc Y; bcc X, beq X, bra Y, X: is beq X, bcs Y; an lda of a
+	  direct page word or a constant before a bra to code that sets A first
+	  goes; a second txy with nothing between that changes X or Y goes; code
+	  after a bra/rtl/stp up to a used label goes.  Tide/Video 21.3M -> 20.8M.
+	  Ordering blocks so a successor falls through was tried and dropped: with
+	  no profile, which way a branch goes isn't known (Tide's drawn pixel and
+	  the sprite test's hash of zero bytes want opposite orders: -1% and +4%;
+	  keeping the source's order where it was a successor: +0.4%).
 	Cost (2026-10-29): TestBaseLib65 816 44.887G -> 41.830G (-6.81%) from the three
 	above, then 41.833G with the last two (no change there; TestCPP816 -0.26%); cross-unit inlining recompiles 349 of 591 units,
 	compile 19s -> 32s for TestBaseLib65 816, TestCPP816 219s -> 331s.

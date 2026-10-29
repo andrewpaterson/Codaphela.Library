@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void AppendImageCelsIntegers(CChars* szText, char* szIdentifier, int32* aiValues, size uiCount)
+void AppendImageCelsIntegers(CLargeChars* szText, char* szIdentifier, int32* aiValues, size uiCount)
 {
 	size	i;
 
@@ -54,7 +54,7 @@ void AppendImageCelsIntegers(CChars* szText, char* szIdentifier, int32* aiValues
 // Writes a block with the FileName and Directory of szPathName.
 //
 //////////////////////////////////////////////////////////////////////////
-void AppendImageCelsPath(CChars* szText, char* szIdentifier, char* szPathName)
+void AppendImageCelsPath(CLargeChars* szText, char* szIdentifier, char* szPathName)
 {
 	CChars		szFileName;
 	CChars		szDirectory;
@@ -87,7 +87,7 @@ void AppendImageCelsPath(CChars* szText, char* szIdentifier, char* szPathName)
 bool CelsWriter(Ptr<CArrayImageCel> paCels, char* szImagePathName, char* szPathName)
 {
 	CTextFile		cTextFile;
-	CChars*			szText;
+	CLargeChars*	szText;
 	size			i;
 	size			uiNumCels;
 	Ptr<CImageCel>	pCel;
