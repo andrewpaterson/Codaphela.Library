@@ -25,6 +25,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "IRModule.h"
 
 
+class CIR816LiveRanges;
+
+
 //The frame's first bytes (direct page offsets) are scratch: a pointer loads and stores go through, a call's result,
 //a shift's count and a value being worked on.
 #define IR816_SCRATCH_POINTER	1
@@ -80,6 +83,7 @@ protected:
 	CArrayTemplate<int32>	maiUses;			//Per temporary: how many times it is used.
 	CArrayTemplate<int32>	maiUseBlock;		//Per temporary: the block of its one use by an instruction or a jump, else -1.
 	int32					miBlock;			//The block being written.
+	CArrayTemplate<uint8>	mabInX;				//Per temporary: kept in X instead of its frame place (AllocateX).
 
 public:
 	void			Init(CIRModule* pcModule, int* piLabels);
@@ -108,6 +112,8 @@ protected:
 	void			Peephole(CChars* pszDest, size uiStart);
 	void			RemoveDeadStores(CChars* pszDest, size uiStart);
 	int32			PackTemporaries(void);
+	void			AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter);
+	bool			InX(SIRReference sValue);
 	int32			Allocate(int32* piNext, int32 iBytes);
 	int32			OffsetOf(SIRReference sTemporary);
 

@@ -22,6 +22,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 #include "IRParser.h"
+#include "IRLoops.h"
 #include "IR816Backend.h"
 
 
@@ -263,6 +264,7 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 	maiFoldOffset.Init();
 	maiUses.Init();
 	maiUseBlock.Init();
+	mabInX.Init();
 	miFrameBytes = 0;
 	miHiddenResult = -1;
 	mszSectionOptions = "";
@@ -280,6 +282,7 @@ void CIR816Backend::Kill(void)
 	maiBlockLabels.Kill();
 	maiSlots.Kill();
 	maiIncoming.Kill();
+	mabInX.Kill();
 	maiUseBlock.Kill();
 	maiUses.Kill();
 	maiFoldOffset.Kill();
@@ -659,6 +662,15 @@ void CIR816Backend::Layout(void)
 		*maiOffsets.Get(sParameter.Index()) = iArgument;
 		iArgument += ValueBytes(mpcFunction->GetTemporaryType(sParameter));
 	}
+
+	//Frame reaches past the direct page through X, so nothing is kept in X then.
+	if (iArgument > 255)
+	{
+		for (ui = 0; ui < mabInX.NumElements(); ui++)
+		{
+			*mabInX.Get(ui) = false;
+		}
+	}
 }
 
 
@@ -842,6 +854,7 @@ public:
 	bool	Interferes(int32 iOne, int32 iOther, bool bSamePlace);
 	int32	Start(int32 iTemporary);
 	bool	IsFree(int32 iTemporary, int32 iOffset, int32 iBytes, CArrayTemplate<int32>* paiOffsets);
+	bool	LiveAcross(int32 iTemporary, int32 iPosition);
 	void	Take(int32 iTemporary, int32 iOffset, int32 iBytes);
 };
 
@@ -1039,6 +1052,27 @@ int32 CIR816LiveRanges::Start(int32 iTemporary)
 
 	iRange = *maiFirst.Get(iTemporary);
 	return (iRange == -1) ? -1 : *maiStart.Get(iRange);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a temporary is live before and after iPosition (not only read or
+// written there).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816LiveRanges::LiveAcross(int32 iTemporary, int32 iPosition)
+{
+	int32	iRange;
+
+	for (iRange = *maiFirst.Get(iTemporary); iRange != -1; iRange = *maiNext.Get(iRange))
+	{
+		if ((*maiStart.Get(iRange) < iPosition) && (*maiEnd.Get(iRange) > iPosition))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 
@@ -1561,6 +1595,7 @@ int32 CIR816Backend::PackTemporaries(void)
 		}
 	}
 
+	AllocateX(&cRanges, &abParameter);
 	abParameter.Kill();
 	aiOrder.Kill();
 	aiOpened.Kill();
@@ -1576,6 +1611,326 @@ int32 CIR816Backend::PackTemporaries(void)
 	asEvents.Kill();
 	cRanges.Kill();
 	return iNext;
+}
+
+
+#define IR816_X_BAD		-100000		//A use X can't serve: the temporary isn't kept in X.
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What keeping argument iArgument of an instruction in X saves (in about
+// cycles) where it is read: txa for an lda, phx for a push, the operands
+// of a commutative instruction swapped; a second operand read through a
+// scratch word costs.  IR816_X_BAD for a use that can't read X.
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 IR816XUse(uint16 uiOpcode, int iArgument)
+{
+	switch (uiOpcode)
+	{
+	case IRO_Arg:
+	case IRO_Copy:
+	case IRO_Shl:
+	case IRO_LShr:
+	case IRO_AShr:
+	case IRO_Mul:
+	case IRO_UDiv:
+	case IRO_SDiv:
+	case IRO_URem:
+	case IRO_SRem:
+	case IRO_Add:
+	case IRO_And:
+	case IRO_Or:
+	case IRO_Xor:
+	case IRO_Not:
+		return 3;
+	case IRO_Sub:
+	case IRO_Eq:
+	case IRO_Ne:
+	case IRO_ULt:
+	case IRO_ULe:
+	case IRO_UGt:
+	case IRO_UGe:
+		return (iArgument == 0) ? 3 : -5;
+	case IRO_SLt:
+	case IRO_SLe:
+	case IRO_SGt:
+	case IRO_SGe:
+		return 3;
+	case IRO_Neg:
+		return -5;
+	case IRO_SExt:
+	case IRO_ZExt:
+	case IRO_Trunc:
+	case IRO_PtrToI:
+	case IRO_IToPtr:
+		return 0;
+	case IRO_Store:
+		return (iArgument == 0) ? 3 : IR816_X_BAD;
+	default:
+		return IR816_X_BAD;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an instruction's result goes to its place through Store (which
+// can put it in X).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816XResult(uint16 uiOpcode)
+{
+	switch (uiOpcode)
+	{
+	case IRO_Add:
+	case IRO_Sub:
+	case IRO_And:
+	case IRO_Or:
+	case IRO_Xor:
+	case IRO_Not:
+	case IRO_Neg:
+	case IRO_Load:
+	case IRO_Call:
+	case IRO_Mul:
+	case IRO_UDiv:
+	case IRO_SDiv:
+	case IRO_URem:
+	case IRO_SRem:
+		return true;
+	default:
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether writing an instruction changes X: calls (and the runtime and soft
+// float routines), and shifts by a count only known at run time.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816ClobbersX(SIRInstruction* psInstruction)
+{
+	switch (psInstruction->uiOpcode)
+	{
+	case IRO_Call:
+	case IRO_Mul:
+	case IRO_UDiv:
+	case IRO_SDiv:
+	case IRO_URem:
+	case IRO_SRem:
+	case IRO_FAdd:
+	case IRO_FSub:
+	case IRO_FMul:
+	case IRO_FDiv:
+	case IRO_FEq:
+	case IRO_FNe:
+	case IRO_FLt:
+	case IRO_FLe:
+	case IRO_FGt:
+	case IRO_FGe:
+	case IRO_FOrdered:
+	case IRO_FUnordered:
+	case IRO_SIToF:
+	case IRO_UIToF:
+	case IRO_FToSI:
+	case IRO_FToUI:
+	case IRO_FExt:
+	case IRO_FTrunc:
+		return true;
+	case IRO_Shl:
+	case IRO_LShr:
+	case IRO_AShr:
+		return !psInstruction->asArguments[1].IsConstant();
+	default:
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Register allocation of X: one word temporaries (16 bits or fewer) whose
+// results Store writes, or phis, are kept in X instead of their places when
+// nothing that changes X is done while they are live (a call, a shift by a
+// count in X) and they don't interfere with the others in X (pairs in one
+// place may meet, as PackTemporaries' ranges allow).  Each is scored by what
+// X saves where it is used and defined (tax for sta, txa for lda, phx, inx,
+// cpx, phi copies), 8 times more for each loop it is in, and the best are
+// taken first.  Layout takes them all out again for a frame past the direct
+// page (Frame reaches it through X).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* pabParameter)
+{
+	CIRDominators			cDominators;
+	CIRLoops				cLoops;
+	CArrayTemplate<int32>	aiScore;		//Per temporary.
+	CArrayTemplate<uint8>	abCandidate;	//Per temporary.
+	CArrayTemplate<int32>	aiClobbers;		//Positions that change X.
+	CArrayTemplate<int32>	aiOrder;
+	CArrayTemplate<int32>	aiInX;
+	CIRBlock*				pcBlock;
+	CIRBlock*				pcSuccessor;
+	SIRInstruction*			psInstruction;
+	SIRPhi*					psPhi;
+	SIRPhiArgument*			psArgument;
+	SIRReference			sValue;
+	size					uiTemporaries;
+	size					ui;
+	size					uj;
+	size					uk;
+	int32					iPosition;
+	int32					iWeight;
+	int32					iDepth;
+	int32					iTemporary;
+	int32					iScore;
+	int						iArgument;
+	bool					bFree;
+
+	uiTemporaries = mpcFunction->NumTemporaries();
+	mabInX.FakeSetUsedElements(0);
+	mabInX.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
+	aiScore.Init();
+	aiScore.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
+	abCandidate.Init();
+	abCandidate.GrowToAtLeastNumElements(uiTemporaries + 1, true, 0);
+	aiClobbers.Init();
+
+	mpcFunction->ComputePredecessors();
+	cDominators.Init();
+	cDominators.Compute(mpcFunction);
+	cLoops.Init();
+	cLoops.Compute(mpcFunction, &cDominators);
+
+	//The scores and the positions that change X, numbered as PackTemporaries numbers them.
+	iPosition = 0;
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		iDepth = cLoops.Depth(pcBlock);
+		iWeight = 1 << ((iDepth > 4) ? 12 : 3 * iDepth);
+		for (uj = 0; uj < pcBlock->masPhis.NumElements(); uj++)
+		{
+			*abCandidate.Get(pcBlock->masPhis.Get(uj)->sResult.Index()) = true;
+		}
+		iPosition++;
+		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uj);
+			if (IR816ClobbersX(psInstruction))
+			{
+				aiClobbers.Add(&iPosition);
+			}
+			for (iArgument = 0; iArgument < 2; iArgument++)
+			{
+				sValue = psInstruction->asArguments[iArgument];
+				if (sValue.IsTemporary())
+				{
+					iScore = IR816XUse(psInstruction->uiOpcode, iArgument);
+					if (!FoldedBase(sValue).Equals(sValue) || (psInstruction->uiOpcode == IRO_Call) || (psInstruction->uiOpcode == IRO_Load))
+					{
+						iScore = IR816_X_BAD;
+					}
+					*aiScore.Get(sValue.Index()) += (iScore == IR816_X_BAD) ? IR816_X_BAD : iScore * iWeight;
+				}
+			}
+			sValue = psInstruction->sResult;
+			if (sValue.IsTemporary() && FoldedBase(sValue).Equals(sValue) && IR816XResult(psInstruction->uiOpcode))
+			{
+				*abCandidate.Get(sValue.Index()) = true;
+				*aiScore.Get(sValue.Index()) += 3 * iWeight;
+				if (((psInstruction->uiOpcode == IRO_Add) || (psInstruction->uiOpcode == IRO_Sub)) && psInstruction->asArguments[0].IsTemporary() &&
+					psInstruction->asArguments[1].IsConstant() && (mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits <= 2))
+				{
+					//inx or dex when both are in X.
+					*aiScore.Get(sValue.Index()) += 6 * iWeight;
+					*aiScore.Get(psInstruction->asArguments[0].Index()) += 6 * iWeight;
+				}
+			}
+			iPosition++;
+		}
+		if (pcBlock->msJump.sArgument.IsTemporary())
+		{
+			*aiScore.Get(pcBlock->msJump.sArgument.Index()) += 3 * iWeight;
+		}
+		for (uj = 0; uj < pcBlock->NumSuccessors(); uj++)
+		{
+			pcSuccessor = pcBlock->GetSuccessor(uj);
+			for (uk = 0; uk < pcSuccessor->masPhis.NumElements(); uk++)
+			{
+				psPhi = pcSuccessor->masPhis.Get(uk);
+				psArgument = pcSuccessor->FindPhiArgument(psPhi, pcBlock);
+				*aiScore.Get(psPhi->sResult.Index()) += 5 * iWeight;
+				if (psArgument && psArgument->sValue.IsTemporary())
+				{
+					*aiScore.Get(psArgument->sValue.Index()) += 3 * iWeight;
+				}
+			}
+		}
+		iPosition++;
+	}
+
+	//The candidates, best first.
+	aiOrder.Init();
+	for (ui = 0; ui < uiTemporaries; ui++)
+	{
+		iTemporary = (int32)ui;
+		if (*abCandidate.Get(ui) && !*pabParameter->Get(ui) && (*aiScore.Get(ui) > 0) && (pcRanges->Start(iTemporary) >= 0) &&
+			(Words(mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)ui))) == 1))
+		{
+			aiOrder.Add(&iTemporary);
+		}
+	}
+	for (ui = 1; ui < aiOrder.NumElements(); ui++)
+	{
+		iTemporary = *aiOrder.Get(ui);
+		for (uj = ui; (uj > 0) && (*aiScore.Get(*aiOrder.Get(uj - 1)) < *aiScore.Get(iTemporary)); uj--)
+		{
+			*aiOrder.Get(uj) = *aiOrder.Get(uj - 1);
+		}
+		*aiOrder.Get(uj) = iTemporary;
+	}
+
+	aiInX.Init();
+	for (ui = 0; ui < aiOrder.NumElements(); ui++)
+	{
+		iTemporary = *aiOrder.Get(ui);
+		bFree = true;
+		for (uj = 0; bFree && (uj < aiClobbers.NumElements()); uj++)
+		{
+			bFree = !pcRanges->LiveAcross(iTemporary, *aiClobbers.Get(uj));
+		}
+		for (uj = 0; bFree && (uj < aiInX.NumElements()); uj++)
+		{
+			bFree = !pcRanges->Interferes(iTemporary, *aiInX.Get(uj), true);
+		}
+		if (bFree)
+		{
+			aiInX.Add(&iTemporary);
+			*mabInX.Get(iTemporary) = true;
+		}
+	}
+
+	aiInX.Kill();
+	aiOrder.Kill();
+	cLoops.Kill();
+	cDominators.Kill();
+	aiClobbers.Kill();
+	abCandidate.Kill();
+	aiScore.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::InX(SIRReference sValue)
+{
+	return sValue.IsTemporary() && (sValue.Index() < mabInX.NumElements()) && *mabInX.Get(sValue.Index());
 }
 
 
@@ -1629,6 +1984,24 @@ void CIR816Backend::Operand(const char* szMnemonic, SIRReference sValue, int iWo
 
 	if (sValue.IsTemporary())
 	{
+		if ((iWord == 0) && InX(sValue))
+		{
+			//Kept in X (AllocateX): read through A or a push, or else the scratch word.
+			if (strcmp(szMnemonic, "lda") == 0)
+			{
+				Line("txa");
+			}
+			else if (strcmp(szMnemonic, "pei") == 0)
+			{
+				Line("phx");
+			}
+			else if (strcmp(szMnemonic, "ldx") != 0)
+			{
+				Frame("stx", IR816_SCRATCH_COUNT);
+				Frame(szMnemonic, IR816_SCRATCH_COUNT);
+			}
+			return;
+		}
 		if (iWord < Words(mpcFunction->GetTemporaryType(sValue)))
 		{
 			Frame(szMnemonic, OffsetOf(sValue) + 2 * iWord);
@@ -1682,6 +2055,11 @@ void CIR816Backend::Operand(const char* szMnemonic, SIRReference sValue, int iWo
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::Store(SIRReference sResult, int iWord)
 {
+	if (InX(sResult))
+	{
+		Line("tax");
+		return;
+	}
 	if ((miBlock >= 0) && (Words(mpcFunction->GetTemporaryType(sResult)) == 1) && (OffsetOf(sResult) <= 255) &&
 		(sResult.Index() < maiUseBlock.NumElements()) && (*maiUseBlock.Get(sResult.Index()) == miBlock))
 	{
@@ -1810,7 +2188,7 @@ void CIR816Backend::PushValue(SIRReference sValue, SIRType sType)
 
 	for (i = Words(sType) - 1; i >= 0; i--)
 	{
-		if (sValue.IsTemporary() && (i < Words(mpcFunction->GetTemporaryType(sValue))) && (OffsetOf(sValue) + 2 * i <= 255))
+		if (sValue.IsTemporary() && (i < Words(mpcFunction->GetTemporaryType(sValue))) && ((OffsetOf(sValue) + 2 * i <= 255) || InX(sValue)))
 		{
 			//pei pushes a direct page word without A (Peephole makes it pha when A holds it).
 			Operand("pei", sValue, i);
@@ -2833,15 +3211,27 @@ void CIR816Backend::EdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo)
 	size			ui;
 	SIRPhi*			psPhi;
 	SIRPhiArgument*	psArgument;
+	SIRPhi*			psInX;
 
+	//A phi kept in X is given its value last, so the copies before it can still read a value in X.
+	psInX = NULL;
 	for (ui = 0; ui < pcTo->masPhis.NumElements(); ui++)
 	{
 		psPhi = pcTo->masPhis.Get(ui);
 		psArgument = pcTo->FindPhiArgument(psPhi, pcFrom);
-		if (psArgument)
+		if (psArgument && InX(psPhi->sResult) && IsCoalescedPhiBlock(pcTo))
+		{
+			psInX = psPhi;
+		}
+		else if (psArgument)
 		{
 			CopyWords(*maiIncoming.Get(psPhi->sResult.Index()), psArgument->sValue, Words(psPhi->sType));
 		}
+	}
+	if (psInX)
+	{
+		psArgument = pcTo->FindPhiArgument(psInX, pcFrom);
+		Operand("ldx", psArgument->sValue, 0);
 	}
 }
 
@@ -3406,15 +3796,35 @@ void CIR816Backend::PushInt32(SIRReference sValue, SIRType sType, bool bSigned)
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::Arithmetic(SIRInstruction* psInstruction, const char* szCarry, const char* szMnemonic)
 {
-	int		i;
-	int		iWords;
+	int				i;
+	int				iWords;
+	uint16			uiStep;
+	SIRReference	sFirst;
+	SIRReference	sSecond;
 
 	iWords = Words(psInstruction->sType);
+	sFirst = psInstruction->asArguments[0];
+	sSecond = psInstruction->asArguments[1];
+	if ((iWords == 1) && psInstruction->sType.Is(IRTK_I16) && InX(psInstruction->sResult) && InX(sFirst) && ConstantWord(sSecond, 0, &uiStep) && (uiStep >= 1) && (uiStep <= 2))
+	{
+		//Stepped in X.
+		for (i = 0; i < uiStep; i++)
+		{
+			Line((strcmp(szMnemonic, "adc") == 0) ? "inx" : "dex");
+		}
+		return;
+	}
+	if ((iWords == 1) && (strcmp(szMnemonic, "adc") == 0) && InX(sSecond) && !InX(sFirst))
+	{
+		//The one in X first (txa).
+		sFirst = psInstruction->asArguments[1];
+		sSecond = psInstruction->asArguments[0];
+	}
 	Line(szCarry);
 	for (i = 0; i < iWords; i++)
 	{
-		Operand("lda", psInstruction->asArguments[0], i);
-		Operand(szMnemonic, psInstruction->asArguments[1], i);
+		Operand("lda", sFirst, i);
+		Operand(szMnemonic, sSecond, i);
 		if (iWords == 1)
 		{
 			Mask(psInstruction->sType);
@@ -3431,31 +3841,48 @@ void CIR816Backend::Arithmetic(SIRInstruction* psInstruction, const char* szCarr
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::Logic(SIRInstruction* psInstruction, const char* szMnemonic, uint64 ulliNot)
 {
-	int		i;
-	uint16	uiWord;
-	uint16	uiAll;
-	bool	bAnd;
+	int				i;
+	uint16			uiWord;
+	uint16			uiAll;
+	bool			bAnd;
+	SIRReference	sFirst;
+	SIRReference	sSecond;
 
 	bAnd = strcmp(szMnemonic, "and") == 0;
 	uiAll = psInstruction->sType.Is(IRTK_I8) ? 0xFF : (psInstruction->sType.Is(IRTK_I1) ? 1 : 0xFFFF);
+	sFirst = psInstruction->asArguments[0];
+	sSecond = psInstruction->asArguments[1];
+	if (!ulliNot && (Words(psInstruction->sType) == 1) && InX(sSecond) && !InX(sFirst))
+	{
+		//The one in X first (txa).
+		sFirst = psInstruction->asArguments[1];
+		sSecond = psInstruction->asArguments[0];
+	}
 	for (i = 0; i < Words(psInstruction->sType); i++)
 	{
 		//A constant word that leaves the other's (and all ones, or and eor 0) is a copy; and 0 is 0.
-		if (!ulliNot && ConstantWord(psInstruction->asArguments[1], i, &uiWord))
+		if (!ulliNot && ConstantWord(sSecond, i, &uiWord))
 		{
 			if (bAnd && (uiWord == 0))
 			{
-				Frame("stz", OffsetOf(psInstruction->sResult) + 2 * i);
+				if (InX(psInstruction->sResult))
+				{
+					Line("ldx 0");
+				}
+				else
+				{
+					Frame("stz", OffsetOf(psInstruction->sResult) + 2 * i);
+				}
 				continue;
 			}
 			if ((bAnd && (uiWord == uiAll)) || (!bAnd && (uiWord == 0)))
 			{
-				Operand("lda", psInstruction->asArguments[0], i);
+				Operand("lda", sFirst, i);
 				Store(psInstruction->sResult, i);
 				continue;
 			}
 		}
-		Operand("lda", psInstruction->asArguments[0], i);
+		Operand("lda", sFirst, i);
 		if (ulliNot)
 		{
 			Line("eor $FFFF");
@@ -3463,7 +3890,7 @@ void CIR816Backend::Logic(SIRInstruction* psInstruction, const char* szMnemonic,
 		}
 		else
 		{
-			Operand(szMnemonic, psInstruction->asArguments[1], i);
+			Operand(szMnemonic, sSecond, i);
 		}
 		Store(psInstruction->sResult, i);
 	}
@@ -3932,6 +4359,10 @@ void CIR816Backend::CompareFlags(SIRReference sLeft, SIRReference sRight, SIRTyp
 			Line(szFlip);
 			Frame("cmp", IR816_SCRATCH_VALUE);
 		}
+		else if ((iWords == 1) && InX(sLeft))
+		{
+			Operand("cpx", sRight, i);
+		}
 		else
 		{
 			Operand("lda", sLeft, i);
@@ -3997,8 +4428,34 @@ void CIR816Backend::FusedBranch(SIRInstruction* psInstruction, bool bWhen, int32
 {
 	int32	iSkip;
 	uint16	uiOpcode;
+	uint16	uiZero;
 
 	uiOpcode = bWhen ? psInstruction->uiOpcode : IRInvertedComparison(psInstruction->uiOpcode);
+	if (IsIRSignedComparison(uiOpcode) && psInstruction->sType.Is(IRTK_I16) && ConstantWord(psInstruction->asArguments[1], 0, &uiZero) && (uiZero == 0))
+	{
+		//Against 0 the sign and zero flags of the value itself answer (lda or txa sets them).
+		Operand("lda", psInstruction->asArguments[0], 0);
+		switch (uiOpcode)
+		{
+		case IRO_SLt:
+			Branch("bmi", iLabel);
+			break;
+		case IRO_SGe:
+			Branch("bpl", iLabel);
+			break;
+		case IRO_SGt:
+			iSkip = NewLabel();
+			Branch("beq", iSkip);
+			Branch("bpl", iLabel);
+			Label(iSkip);
+			break;
+		default:
+			Branch("bmi", iLabel);
+			Branch("beq", iLabel);
+			break;
+		}
+		return;
+	}
 	CompareFlags(psInstruction->asArguments[0], psInstruction->asArguments[1], psInstruction->sType, IsIRSignedComparison(psInstruction->uiOpcode));
 	switch (uiOpcode)
 	{
