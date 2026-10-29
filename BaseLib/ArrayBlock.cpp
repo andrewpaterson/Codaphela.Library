@@ -6,6 +6,7 @@
 #include "GlobalMemory.h"
 #include "ArraySizer.h"
 #include "StdRandom.h"
+#include "ErrorHandler.h"
 #include "ArrayBlock.h"
 
 

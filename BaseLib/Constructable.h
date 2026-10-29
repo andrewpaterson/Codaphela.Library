@@ -47,6 +47,10 @@ public:
 #define CLASS_NAME(c) #c
 
 
+//For a class whose name is itself a macro (the name is expanded before it is turned into a string).
+#define CONSTRUCTABLE_MACRO(c) CONSTRUCTABLE(c)
+
+
 #define CONSTRUCTABLE(c) \
 public:\
 const char* ClassName(void)\

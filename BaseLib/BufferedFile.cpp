@@ -111,7 +111,7 @@ bool CBufferedFile::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CBufferedFile::Read(void* pvDest, size iSize, size iCount)
+lsize CBufferedFile::Read(void* pvDest, lsize iSize, lsize iCount)
 {
 	size		iRemainingBuffer;
 	size		iByteSize;
@@ -188,7 +188,7 @@ size CBufferedFile::Read(void* pvDest, size iSize, size iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CBufferedFile::Write(const void* pvSource, size iSize, size iCount)
+lsize CBufferedFile::Write(const void* pvSource, lsize iSize, lsize iCount)
 {
 	size		iRemainingBuffer;
 	size		iByteSize;

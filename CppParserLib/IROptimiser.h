@@ -258,6 +258,12 @@ public:
 	bool			RemoveCommonSubexpressions(void);
 	bool			RemoveRedundantLoads(void);
 	bool			LessLoopTests(void);
+	bool			ReplaceLoopCounters(void);
+	bool			SinkLoads(void);
+	bool			SinkLoad(CIRBlock* pcFrom, size uiLoad, CIRBlock* pcTo, size uiUse);
+	bool			WritesBetween(CIRBlock* pcBlock, size uiStart, size uiEnd, SIRReference sRoot, int64 lliOffset, int iBytes);
+	bool			StepsByOne(SIRReference sStepped, SIRReference sValue);
+	bool			LoopGuarded(size uiLoop, uint16 uiOpcode, SIRReference sInitial, SIRReference sBound);
 	bool			ReduceStrength(void);
 	bool			HoistInvariants(void);
 	bool			RotateLoops(void);

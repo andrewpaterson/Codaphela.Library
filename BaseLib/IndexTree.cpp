@@ -88,7 +88,7 @@ void CIndexTree::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTree::Malloc(size uiSize)
+void* CIndexTree::Malloc(lsize uiSize)
 {
 	return mpcMalloc->Malloc(uiSize);
 }
@@ -108,7 +108,7 @@ void CIndexTree::Free(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTree::Realloc(void* pv, size uiSize)
+void* CIndexTree::Realloc(void* pv, lsize uiSize)
 {
 	return mpcMalloc->Realloc(pv, uiSize);
 }

@@ -441,7 +441,7 @@ CChunkFile* CChunkFileFileSystem::GetChunkFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChunkFileFileSystem::Write(const void* pvSource, size iSize, size iCount)
+lsize CChunkFileFileSystem::Write(const void* pvSource, lsize iSize, lsize iCount)
 {
 	return mpcChunkFile->Write(pvSource, iSize, iCount);
 }
@@ -451,7 +451,7 @@ size CChunkFileFileSystem::Write(const void* pvSource, size iSize, size iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChunkFileFileSystem::Read(void* pvDest, size iSize, size iCount)
+lsize CChunkFileFileSystem::Read(void* pvDest, lsize iSize, lsize iCount)
 {
 	return mpcChunkFile->Read(pvDest, iSize, iCount);
 }

@@ -2976,6 +2976,12 @@
     <None Include="ArrayCharCode.inl">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </None>
+    <None Include="CharsClass.inl">
+      <Filter>Source\Data\String</Filter>
+    </None>
+    <None Include="CharsCode.inl">
+      <Filter>Source\Data\String</Filter>
+    </None>
     <None Include="TimSort.inl">
       <Filter>Source\Sort</Filter>
     </None>

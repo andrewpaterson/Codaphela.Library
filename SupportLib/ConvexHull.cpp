@@ -818,7 +818,7 @@ void CConvexHull::BeginSetFromPoints(CConvexHullGenerator* psConvexHullGenerator
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CConvexHullGenerator::DumpTriangleObj(CChars* psz, int iLoop)
+void CConvexHullGenerator::DumpTriangleObj(CLargeChars* psz, int iLoop)
 {
 	size				i;
 	SFloat32Vec3*			psPosition;

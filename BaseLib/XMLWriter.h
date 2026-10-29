@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CXMLWriter
 {
 protected:
-	CChars			mszText;
+	CLargeChars		mszText;
 	CArrayChars		maszOpen;
 	bool			mbStartOpen;		//The last element's start tag still takes attributes.
 	bool			mbHasChildren;		//The innermost element has children (elements or text).

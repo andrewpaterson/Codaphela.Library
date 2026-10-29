@@ -46,7 +46,7 @@ void CFreeListAllocator::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CFreeListAllocator::Malloc(size uiSize)
+void* CFreeListAllocator::Malloc(lsize uiSize)
 {
 #ifdef _DEBUG
 	if (uiSize > guiMaxDebugAllocatorSize)
@@ -78,7 +78,7 @@ bool CFreeListAllocator::Free(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CFreeListAllocator::Realloc(void* pv, size uiSize)
+void* CFreeListAllocator::Realloc(void* pv, lsize uiSize)
 {
 #ifdef _DEBUG
 	if (uiSize > guiMaxDebugAllocatorSize)

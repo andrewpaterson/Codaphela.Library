@@ -88,7 +88,7 @@ size CMemoryBlock::GetSize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryBlock::Malloc(size uiSize)
+void* CMemoryBlock::Malloc(lsize uiSize)
 {
 	return mpcMalloc->Malloc(uiSize);
 }
@@ -108,7 +108,7 @@ void CMemoryBlock::Free(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryBlock::Realloc(void* pv, size uiSize)
+void* CMemoryBlock::Realloc(void* pv, lsize uiSize)
 {
 	pv = mpcMalloc->Realloc(pv, uiSize);
 	return pv;

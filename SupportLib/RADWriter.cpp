@@ -35,7 +35,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 bool SaveRAD(Ptr<CImage> pcImage, char *szPathName)
 {
 	CTextFile	cTextFile;
-	CChars*		szText;
+	CLargeChars*	szText;
 	CChannel*	psChannel;
 	size		j;
 	CTypeNames	cTypeNames;

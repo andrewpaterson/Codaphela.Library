@@ -16,8 +16,8 @@ public:
 
 	int				AllocatedCount(void);
 
-	void*			Malloc(size uiSize);
-	void*			Realloc(void* pv, size uiSize);
+	void*			Malloc(lsize uiSize);
+	void*			Realloc(void* pv, lsize uiSize);
 	bool			Free(void* pv);
 
 	//This looks very wrong.  CONSTRUCTABLE(CCountingAllocator); should be used!

@@ -32,7 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void AddOBJHeading(CChars* psz)
+void AddOBJHeading(CLargeChars* psz)
 {
 	psz->Append("# Codaphela Wavefront OBJ Exporter ");
 	psz->Append(ENGINE_VERSION);
@@ -48,7 +48,7 @@ void AddOBJHeading(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void AddOBJName(CMesh* pcMesh, CChars* psz)
+void AddOBJName(CMesh* pcMesh, CLargeChars* psz)
 {
 	psz->Append("#\n");
 	psz->Append("# ");
@@ -63,7 +63,7 @@ void AddOBJName(CMesh* pcMesh, CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void AddOBJVertices(CMesh* pcMesh, CChars* psz)
+void AddOBJVertices(CMesh* pcMesh, CLargeChars* psz)
 {
 	int			i;
 	SFloat32Vec3*	psPosition;
@@ -97,7 +97,7 @@ void AddOBJVertices(CMesh* pcMesh, CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool AddOBJNormals(CMeshNormals* pcNormals, CChars* psz)
+bool AddOBJNormals(CMeshNormals* pcNormals, CLargeChars* psz)
 {
 	size		i;
 	SFloat32Vec3*	psNormal;
@@ -134,7 +134,7 @@ bool AddOBJNormals(CMeshNormals* pcNormals, CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool AddOBJTextureCoords(CMeshUVCoords* pcUVs, CChars* psz)
+bool AddOBJTextureCoords(CMeshUVCoords* pcUVs, CLargeChars* psz)
 {
 	size			i;
 	SFloat32Vec2*		psUV;
@@ -171,7 +171,7 @@ bool AddOBJTextureCoords(CMeshUVCoords* pcUVs, CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void AddOBJFaces(CMesh* pcMesh, CChars* psz, bool bTextureCoords, bool bVertexNormals)
+void AddOBJFaces(CMesh* pcMesh, CLargeChars* psz, bool bTextureCoords, bool bVertexNormals)
 {
 	int					i;
 	int					iNumFaces;

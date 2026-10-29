@@ -37,7 +37,7 @@ void CScratchPadAllocator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CScratchPadAllocator::Malloc(size uiSize)
+void* CScratchPadAllocator::Malloc(lsize uiSize)
 {
 #ifdef _DEBUG
 	if (uiSize > guiMaxDebugAllocatorSize)
@@ -54,7 +54,7 @@ void* CScratchPadAllocator::Malloc(size uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CScratchPadAllocator::Realloc(void* pv, size uiSize)
+void* CScratchPadAllocator::Realloc(void* pv, lsize uiSize)
 {
 	SSPNode*	psNode;
 	void*		pvNew;

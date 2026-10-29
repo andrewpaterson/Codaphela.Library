@@ -81,7 +81,7 @@ public:
 	void					RemoveSlivers(void);
 	void					MoveTrianglesPointFrom(int iOldIndex, int iNewIndex);
 	CFreeList*				GetNormals(void);
-	void					DumpTriangleObj(CChars* psz, int iLoop);
+	void					DumpTriangleObj(CLargeChars* psz, int iLoop);
 };
 
 

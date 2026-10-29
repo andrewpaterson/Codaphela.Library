@@ -40,9 +40,9 @@ public:
 
 	bool		Open(EFileMode eFileMode);
 	bool		Close(void);
-	size		Read(void* pvBuffer, size iSize, size iCount);
+	lsize		Read(void* pvBuffer, lsize iSize, lsize iCount);
 	bool		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
-	size		Write(const void* pvBuffer, size iSize, size iCount);
+	lsize		Write(const void* pvBuffer, lsize iSize, lsize iCount);
 	filePos		Tell(void);
 	bool		IsOpen(void);
 	filePos		Size(void);

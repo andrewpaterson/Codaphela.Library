@@ -15,38 +15,38 @@
  * limitations under the License.
  */
 
-static void NAME(binarySort) (void* a, size hi, size start,
-	CMPPARAMS(compare, carg), size width);
-static size NAME(countRunAndMakeAscending) (void* a, size hi,
+static void NAME(binarySort) (void* a, lsize hi, lsize start,
+	CMPPARAMS(compare, carg), lsize width);
+static lsize NAME(countRunAndMakeAscending) (void* a, lsize hi,
 	CMPPARAMS(compare, carg),
-	size width);
-static void NAME(reverseRange) (void* a, size hi, size width);
-static int NAME(mergeCollapse) (struct timsort* ts, size width);
-static int NAME(mergeForceCollapse) (struct timsort* ts, size width);
-static int NAME(mergeAt) (struct timsort* ts, size i, size width);
-static size NAME(gallopLeft) (void* key, void* base, size len,
-	size hint, CMPPARAMS(compare, carg),
-	size width);
-static size NAME(gallopRight) (void* key, void* base, size len,
-	size hint, CMPPARAMS(compare, carg),
-	size width);
-static int NAME(mergeLo) (struct timsort* ts, void* base1, size len1,
-	void* base2, size len2, size width);
-static int NAME(mergeHi) (struct timsort* ts, void* base1, size len1,
-	void* base2, size len2, size width);
+	lsize width);
+static void NAME(reverseRange) (void* a, lsize hi, lsize width);
+static int NAME(mergeCollapse) (struct timsort* ts, lsize width);
+static int NAME(mergeForceCollapse) (struct timsort* ts, lsize width);
+static int NAME(mergeAt) (struct timsort* ts, lsize i, lsize width);
+static lsize NAME(gallopLeft) (void* key, void* base, lsize len,
+	lsize hint, CMPPARAMS(compare, carg),
+	lsize width);
+static lsize NAME(gallopRight) (void* key, void* base, lsize len,
+	lsize hint, CMPPARAMS(compare, carg),
+	lsize width);
+static int NAME(mergeLo) (struct timsort* ts, void* base1, lsize len1,
+	void* base2, lsize len2, lsize width);
+static int NAME(mergeHi) (struct timsort* ts, void* base1, lsize len1,
+	void* base2, lsize len2, lsize width);
 
-static int NAME(timsort) (void* a, size nel, size width, CMPPARAMS(c, carg))
+static int NAME(timsort) (void* a, lsize nel, lsize width, CMPPARAMS(c, carg))
 {
 	int err = SUCCESS;
 	struct timsort ts;
-	size minRun;
+	lsize minRun;
 
 	if (nel < 2 || !width)
 		return err;	// Arrays of size 0 and 1 are always sorted
 
 	// If array is small, do a "mini-TimSort" with no merges
 	if (nel < MIN_MERGE) {
-		size initRunLen =
+		lsize initRunLen =
 			CALL(countRunAndMakeAscending) (a, nel, CMPARGS(c, carg), width);
 		CALL(binarySort) (a, nel, initRunLen, CMPARGS(c, carg), width);
 		return err;
@@ -63,12 +63,12 @@ static int NAME(timsort) (void* a, size nel, size width, CMPPARAMS(c, carg))
 	minRun = minRunLength(nel);
 	do {
 		// Identify next run
-		size runLen =
+		lsize runLen =
 			CALL(countRunAndMakeAscending) (a, nel, CMPARGS(c, carg), width);
 
 		// If run is int16, extend to min(minRun, nel)
 		if (runLen < minRun) {
-			size force = nel <= minRun ? nel : minRun;
+			lsize force = nel <= minRun ? nel : minRun;
 			CALL(binarySort) (a, force, runLen, CMPARGS(c, carg), width);
 			runLen = force;
 		}
@@ -109,8 +109,8 @@ out:
  *        not already known to be sorted ({@code lo <= start <= hi})
  * @param c comparator to used for the sort
  */
-static void NAME(binarySort) (void* a, size hi, size start,
-	CMPPARAMS(compare, carg), size width) {
+static void NAME(binarySort) (void* a, lsize hi, lsize start,
+	CMPPARAMS(compare, carg), lsize width) {
 	DEFINE_TEMP(pivot);
 	char* startp;
 
@@ -123,8 +123,8 @@ static void NAME(binarySort) (void* a, size hi, size start,
 
 		// Set left (and right) to the index where a[start] (pivot) belongs
 		char* leftp = (char*)a;
-		size right = start;
-		size n;
+		lsize right = start;
+		lsize n;
 
 		/*
 		 * Invariants:
@@ -132,7 +132,7 @@ static void NAME(binarySort) (void* a, size hi, size start,
 		 *   pivot <  all in [right, start).
 		 */
 		while (0 < right) {
-			size mid = right >> 1;
+			lsize mid = right >> 1;
 			void* midp = ELEM(leftp, mid);
 			if (CMP(compare, carg, startp, midp) < 0) {
 				right = mid;
@@ -186,10 +186,10 @@ static void NAME(binarySort) (void* a, size hi, size start,
  * @return  the length of the run beginning at the specified position in
  *          the specified array
  */
-static size NAME(countRunAndMakeAscending) (void* a, size hi,
-	CMPPARAMS(compare, carg), size width)
+static lsize NAME(countRunAndMakeAscending) (void* a, lsize hi,
+	CMPPARAMS(compare, carg), lsize width)
 {
-	size runHi = 1;
+	lsize runHi = 1;
 	char* cur;
 	char* next;
 
@@ -227,7 +227,7 @@ static size NAME(countRunAndMakeAscending) (void* a, size hi,
  * @param a the array in which a range is to be reversed
  * @param hi the index after the last element in the range to be reversed
  */
-static void NAME(reverseRange) (void* a, size hi, size width) {
+static void NAME(reverseRange) (void* a, lsize hi, lsize width) {
 	DEFINE_TEMP(t);
 	char* front = (char*)a;
 	char* back = ELEM(a, hi - 1);
@@ -262,11 +262,11 @@ static void NAME(reverseRange) (void* a, size hi, size width) {
  * https://bugs.openjdk.java.net/browse/JDK-8072909 (suggestion 2)
  *
  */
-static int NAME(mergeCollapse) (struct timsort* ts, size width) {
+static int NAME(mergeCollapse) (struct timsort* ts, lsize width) {
 	int err = SUCCESS;
 
 	while (ts->stackSize > 1) {
-		size n = ts->stackSize - 2;
+		lsize n = ts->stackSize - 2;
 		struct timsort_run* run = ts->run;
 
 		if ((n > 0 && run[n - 1].len <= run[n].len + run[n + 1].len)
@@ -288,11 +288,11 @@ static int NAME(mergeCollapse) (struct timsort* ts, size width) {
  * Merges all runs on the stack until only one remains.  This method is
  * called once, to complete the sort.
  */
-static int NAME(mergeForceCollapse) (struct timsort* ts, size width) {
+static int NAME(mergeForceCollapse) (struct timsort* ts, lsize width) {
 	int err = SUCCESS;
 
 	while (ts->stackSize > 1) {
-		size n = ts->stackSize - 2;
+		lsize n = ts->stackSize - 2;
 		if (n > 0 && ts->run[n - 1].len < ts->run[n + 1].len)
 			n--;
 		err = CALL(mergeAt) (ts, n, width);
@@ -309,12 +309,12 @@ static int NAME(mergeForceCollapse) (struct timsort* ts, size width) {
  *
  * @param i stack index of the first of the two runs to merge
  */
-static int NAME(mergeAt) (struct timsort* ts, size i, size width) {
+static int NAME(mergeAt) (struct timsort* ts, lsize i, lsize width) {
 	void* base1 = ts->run[i].base;
-	size len1 = ts->run[i].len;
+	lsize len1 = ts->run[i].len;
 	void* base2 = ts->run[i + 1].base;
-	size len2 = ts->run[i + 1].len;
-	size k;
+	lsize len2 = ts->run[i + 1].len;
+	lsize k;
 
 	/*
 	 * Record the length of the combined runs; if i is the 3rd-last
@@ -371,9 +371,9 @@ static int NAME(mergeAt) (struct timsort* ts, size i, size width) {
  *    the first k elements of a should precede key, and the last n - k
  *    should follow it.
  */
-static size NAME(gallopLeft) (void* key, void* base, size len,
-	size hint, CMPPARAMS(compare, carg),
-	size width) {
+static lsize NAME(gallopLeft) (void* key, void* base, lsize len,
+	lsize hint, CMPPARAMS(compare, carg),
+	lsize width) {
 	char* hintp = ELEM(base, hint);
 	ptrdiff_t lastOfs = 0;
 	ptrdiff_t ofs = 1;
@@ -396,7 +396,7 @@ static size NAME(gallopLeft) (void* key, void* base, size len,
 	else {		// key <= a[hint]
 	 // Gallop left until a[hint-ofs] < key <= a[hint-lastOfs]
 		const ptrdiff_t maxOfs = hint + 1;
-		size tmp;
+		lsize tmp;
 		while (ofs < maxOfs && CMP(compare, carg, key, ELEM(hintp, -ofs)) <= 0) 
 		{
 			lastOfs = ofs;
@@ -420,7 +420,7 @@ static size NAME(gallopLeft) (void* key, void* base, size len,
 	while (lastOfs < ofs) {
 		//size m = lastOfs + ((ofs - lastOfs) >> 1);
 		// http://stackoverflow.com/questions/4844165/safe-integer-middle-value-formula
-		size m = (lastOfs & ofs) + ((lastOfs ^ ofs) >> 1);
+		lsize m = (lastOfs & ofs) + ((lastOfs ^ ofs) >> 1);
 
 		if (CMP(compare, carg, key, ELEM(base, m)) > 0)
 			lastOfs = m + 1;	// a[m] < key
@@ -444,9 +444,9 @@ static size NAME(gallopLeft) (void* key, void* base, size len,
  * @param c the comparator used to order the range, and to search
  * @return the int k,  0 <= k <= n such that a[b + k - 1] <= key < a[b + k]
  */
-static size NAME(gallopRight) (void* key, void* base, size len,
-	size hint, CMPPARAMS(compare, carg),
-	size width) {
+static lsize NAME(gallopRight) (void* key, void* base, lsize len,
+	lsize hint, CMPPARAMS(compare, carg),
+	lsize width) {
 	char* hintp = ELEM(base, hint);
 	ptrdiff_t ofs = 1;
 	ptrdiff_t lastOfs = 0;
@@ -454,7 +454,7 @@ static size NAME(gallopRight) (void* key, void* base, size len,
 	if (CMP(compare, carg, key, hintp) < 0) {
 		// Gallop left until a[hint - ofs] <= key < a[hint - lastOfs]
 		ptrdiff_t maxOfs = hint + 1;
-		size tmp;
+		lsize tmp;
 		while (ofs < maxOfs
 			&& CMP(compare, carg, key, ELEM(hintp, -ofs)) < 0) {
 			lastOfs = ofs;
@@ -491,7 +491,7 @@ static size NAME(gallopRight) (void* key, void* base, size len,
 	 */
 	while (lastOfs < ofs) {
 		// size m = lastOfs + ((ofs - lastOfs) >> 1);
-		size m = (lastOfs & ofs) + ((lastOfs ^ ofs) >> 1);
+		lsize m = (lastOfs & ofs) + ((lastOfs ^ ofs) >> 1);
 
 		if (CMP(compare, carg, key, ELEM(base, m)) < 0)
 			ofs = m;	// key < a[m]
@@ -518,8 +518,8 @@ static size NAME(gallopRight) (void* key, void* base, size len,
  *        (must be aBase + aLen)
  * @param len2  length of second run to be merged (must be > 0)
  */
-static int NAME(mergeLo) (struct timsort* ts, void* base1, size len1,
-	void* base2, size len2, size width) {
+static int NAME(mergeLo) (struct timsort* ts, void* base1, lsize len1,
+	void* base2, lsize len2, lsize width) {
 
 	// Copy first run into temp array
 	void* tmp = ensureCapacity(ts, len1, width);
@@ -530,7 +530,7 @@ static int NAME(mergeLo) (struct timsort* ts, void* base1, size len1,
 #ifdef IS_TIMSORT_R
 	void* carg;		// Use local variable for performance
 #endif
-	size minGallop;	//  "    "       "     "      "
+	lsize minGallop;	//  "    "       "     "      "
 
 	if (!tmp)
 		return FAILURE;
@@ -567,8 +567,8 @@ static int NAME(mergeLo) (struct timsort* ts, void* base1, size len1,
 	minGallop = ts->minGallop;	//  "    "       "     "      "
 
 	while (1) {
-		size count1 = 0;	// Number of times in a row that first run won
-		size count2 = 0;	// Number of times in a row that second run won
+		lsize count1 = 0;	// Number of times in a row that first run won
+		lsize count2 = 0;	// Number of times in a row that second run won
 
 		/*
 		 * Do the straightforward thing until (if ever) one run starts
@@ -675,8 +675,8 @@ outer:
  *        (must be aBase + aLen)
  * @param len2  length of second run to be merged (must be > 0)
  */
-static int NAME(mergeHi) (struct timsort* ts, void* base1, size len1,
-	void* base2, size len2, size width) {
+static int NAME(mergeHi) (struct timsort* ts, void* base1, lsize len1,
+	void* base2, lsize len2, lsize width) {
 
 	// Copy second run into temp array
 	void* tmp = ensureCapacity(ts, len2, width);

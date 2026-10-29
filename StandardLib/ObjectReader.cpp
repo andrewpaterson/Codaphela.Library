@@ -251,7 +251,7 @@ bool CObjectReader::ReadObjectHeader(CObjectHeader* pcObjectHeader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CObjectReader::Read(void* pvDest, size iSize, size iCount)
+lsize CObjectReader::Read(void* pvDest, lsize iSize, lsize iCount)
 {
 	return mcFile.Read(pvDest, iSize, iCount);
 }

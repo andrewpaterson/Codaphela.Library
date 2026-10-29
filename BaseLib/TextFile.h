@@ -31,7 +31,7 @@ class CTextFile
 {
 public:
 	CChars		mszFilename;
-	CChars		mcText;
+	CLargeChars	mcText;
 
 	CTextFile*	Init(void);
 	void		Init(const char* szText);
@@ -43,8 +43,8 @@ public:
 	bool		Write(const char* szFilename);
 
 	char*		Text(void);
-	char*		Text(int iOffset);
-	int			Length(void);
+	char*		Text(lsize iOffset);
+	lsize		Length(void);
 
 	void		PassifyNewlines(void);
 	void		Dump(void);

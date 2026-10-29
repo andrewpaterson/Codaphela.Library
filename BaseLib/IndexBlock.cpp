@@ -404,7 +404,7 @@ size CIndexBlock::AdjustDataSize(void* pvValue, size iValueSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CIndexBlock::Malloc(size uiSize)
+void* CIndexBlock::Malloc(lsize uiSize)
 {
 	return mcIndex.GetMalloc()->Malloc(uiSize);
 }
@@ -414,7 +414,7 @@ void* CIndexBlock::Malloc(size uiSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CIndexBlock::Realloc(void* pv, size uiSize)
+void* CIndexBlock::Realloc(void* pv, lsize uiSize)
 {
 	return mcIndex.GetMalloc()->Realloc(pv, uiSize);
 }

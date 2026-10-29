@@ -19,7 +19,7 @@ void CSystemAllocator::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CSystemAllocator::Malloc(size uiSize)
+void* CSystemAllocator::Malloc(lsize uiSize)
 {
 #ifdef _DEBUG
 	if (uiSize > guiMaxDebugAllocatorSize)
@@ -54,7 +54,7 @@ bool CSystemAllocator::Free(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CSystemAllocator::Realloc(void* pv, size uiSize)
+void* CSystemAllocator::Realloc(void* pv, lsize uiSize)
 {
 #ifdef _DEBUG
 	if (uiSize > guiMaxDebugAllocatorSize)

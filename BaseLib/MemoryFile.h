@@ -30,28 +30,28 @@ class CMemoryFile : public CAbstractFile
 {
 protected:
 	size		miFlags;
-	size		miPos;
+	lsize		miPos;
 	bool		mbOpen;
 	void*		mpvInitialMem;
-	size		miInitialLength;
+	lsize		miInitialLength;
 	bool		mbFakeArray;
-	CArrayChar	mcArray;
+	CArrayLargeChar	mcArray;
 
 public:
 	void		Init(void);
-	void		Init(void* pvInitialMem, size iInitialLength);
+	void		Init(void* pvInitialMem, lsize iInitialLength);
 	void		Kill(void);
 
 	void*		GetBufferPointer(void);
-	size		GetBufferSize(void);
+	lsize		GetBufferSize(void);
 	void		SetBufferPointer(void* pvBuffer);
-	void		SetBufferSize(size iBufferSize);
+	void		SetBufferSize(lsize iBufferSize);
 
 	bool		Open(EFileMode eFileMode);
 	bool		Close(void);
-	size		Read(void* pvBuffer, size iSize, size iCount);
+	lsize		Read(void* pvBuffer, lsize iSize, lsize iCount);
 	bool		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
-	size		Write(const void* pvBuffer, size iSize, size iCount);
+	lsize		Write(const void* pvBuffer, lsize iSize, lsize iCount);
 	filePos		Tell(void);
 	bool		IsOpen(void);
 	filePos		Size(void);
@@ -63,7 +63,7 @@ public:
 
 
 CMemoryFile* MemoryFile(void);
-CMemoryFile* MemoryFile(void* pvInitialMem, size iInitialLength);
+CMemoryFile* MemoryFile(void* pvInitialMem, lsize iInitialLength);
 
 
 #endif // __MEMORY_FILE_H__

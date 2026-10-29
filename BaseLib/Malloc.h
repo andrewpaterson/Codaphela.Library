@@ -12,8 +12,8 @@ public:
 	void	Init(CMallocator* pcMalloc);
 	void	Kill(void);
 
-	void*	Malloc(size uiSize);
-	void*	Realloc(void* pv, size iMemSize);
+	void*	Malloc(lsize uiSize);
+	void*	Realloc(void* pv, lsize iMemSize);
 	void	Free(void* pv);
 
 	bool	IsMallocInitialised(void);

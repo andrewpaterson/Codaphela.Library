@@ -565,9 +565,13 @@ void CInputDeviceDesc::Dump(void)
 {
 	CTextFile	cFile;
 	CChars		szName;
+	CChars		szText;
 
 	cFile.Init();
-	ToString(&cFile.mcText);
+	szText.Init();
+	ToString(&szText);
+	cFile.mcText.Append(szText.Text());
+	szText.Kill();
 
 	szName.Init("../");
 	szName.Append(mszFriendlyName.Text());

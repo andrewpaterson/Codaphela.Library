@@ -24,8 +24,8 @@ public:
 	size			AllocatedUserSize(void);
 	size			AllocatedSystemSize(void);
 
-	void*			Malloc(size uiSize);
-	void*			Realloc(void* pv, size uiSize);
+	void*			Malloc(lsize uiSize);
+	void*			Realloc(void* pv, lsize uiSize);
 	bool			Free(void* pv);
 
 	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator) should be used!

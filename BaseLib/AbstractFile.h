@@ -37,9 +37,9 @@ public:
 	virtual void		Kill(void) =0;
 	virtual bool		Open(EFileMode eFileMode) =0;
 	virtual bool		Close(void) =0;
-	virtual size		Read(void* pvBuffer, size iSize, size iCount) =0;
+	virtual lsize		Read(void* pvBuffer, lsize iSize, lsize iCount) =0;
 	virtual bool		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin) =0;
-	virtual size		Write(const void* pvBuffer, size iSize, size iCount) =0;
+	virtual lsize		Write(const void* pvBuffer, lsize iSize, lsize iCount) =0;
 	virtual filePos		Tell(void) =0;
 	virtual bool		IsOpen(void) =0;
 	virtual filePos		Size(void) =0;

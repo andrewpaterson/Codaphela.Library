@@ -19,7 +19,7 @@ void CGlobalMemoryAllocator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CGlobalMemoryAllocator::Malloc(size uiSize)
+void* CGlobalMemoryAllocator::Malloc(lsize uiSize)
 {
 #ifdef _DEBUG
 	if (uiSize > guiMaxDebugAllocatorSize)
@@ -36,7 +36,7 @@ void* CGlobalMemoryAllocator::Malloc(size uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CGlobalMemoryAllocator::Realloc(void* pv, size uiSize)
+void* CGlobalMemoryAllocator::Realloc(void* pv, lsize uiSize)
 {
 	void*	pvNew;
 

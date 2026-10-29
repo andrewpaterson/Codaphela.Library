@@ -239,8 +239,15 @@ void ARRAY_BLOCK::SetArraySize(ASIZE iNeededElements)
 	}
 	else
 	{
-		iChunkSize = CalculateChunkSize(iNeededElements, miChunkSize);
-		iNumElements = CalculateArraySize(iNeededElements, iChunkSize);
+		iChunkSize = (ASIZE)CalculateChunkSize(iNeededElements, miChunkSize);
+		iNumElements = (ASIZE)CalculateArraySize(iNeededElements, iChunkSize);
+#ifdef ARRAY_CHECK_SIZE
+		if ((iNumElements < iNeededElements) || ((miElementSize != 0) && (iNumElements > ARRAY_SIZE_MAX / miElementSize)))
+		{
+			Overflowed();
+			return;
+		}
+#endif // ARRAY_CHECK_SIZE
 
 		if (miNumElements != iNumElements)
 		{
@@ -260,12 +267,59 @@ void ARRAY_BLOCK::SetArraySize(ASIZE iNeededElements)
 }
 
 
+#ifdef ARRAY_CHECK_SIZE
+//////////////////////////////////////////////////////////////////////////
+//
+// The array would need more than MAX_SIZE bytes.  It is emptied, as if out of memory; debug builds say so,
+// so it can be made a large array.
+//
+//////////////////////////////////////////////////////////////////////////
+void ARRAY_BLOCK::Overflowed(void)
+{
+#ifdef _DEBUG
+	gcUserError.Set("An array counted with size needs more than MAX_SIZE bytes.  Make it a large array (counted with lsize).");
+#endif // _DEBUG
+	if (mpvArray != NULL)
+	{
+		Free(mpvArray);
+		mpvArray = NULL;
+	}
+	miNumElements = 0;
+	miUsedElements = 0;
+}
+#endif // ARRAY_CHECK_SIZE
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+ASIZE ARRAY_BLOCK::AddNum(ASIZE iNumElements)
+{
+#ifdef ARRAY_CHECK_SIZE
+	if (iNumElements > ARRAY_SIZE_MAX - miUsedElements)
+	{
+		Overflowed();
+		return 0;
+	}
+#endif // ARRAY_CHECK_SIZE
+	return SetUsedElements(miUsedElements + iNumElements);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
 void* ARRAY_BLOCK::Add(void)
 {
+#ifdef ARRAY_CHECK_SIZE
+	if (miUsedElements == ARRAY_SIZE_MAX)
+	{
+		Overflowed();
+		return NULL;
+	}
+#endif // ARRAY_CHECK_SIZE
 	miUsedElements++;
 	if (miUsedElements > miNumElements)
 	{
@@ -346,6 +400,13 @@ void* ARRAY_BLOCK::InsertAt(ASIZE iIndex)
 	}
 
 	//This assumes that iIndex is within the array (or the last element).
+#ifdef ARRAY_CHECK_SIZE
+	if (miUsedElements == ARRAY_SIZE_MAX)
+	{
+		Overflowed();
+		return NULL;
+	}
+#endif // ARRAY_CHECK_SIZE
 	miUsedElements++;
 	if (miUsedElements > miNumElements)
 	{
@@ -1456,7 +1517,7 @@ ASIZE ARRAY_BLOCK::RemoveArrayFromSorted(ARRAY_BLOCK* pcOtherArray, DataCompare 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, int32 iNumBatches, ASIZE iSkip)
+void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, ASIZE iNumBatches, ASIZE iSkip)
 {
 	ASIZE	i;
 	void*	pcFirst;
@@ -1469,6 +1530,13 @@ void ARRAY_BLOCK::InsertBatch(ASIZE iFirstElementPos, ASIZE iNumInBatch, int32 i
 	ASIZE	iRemaining;
 	ASIZE	iStride;
 
+#ifdef ARRAY_CHECK_SIZE
+	if ((iNumBatches != 0) && (iNumInBatch > ARRAY_SIZE_MAX / iNumBatches))
+	{
+		Overflowed();
+		return;
+	}
+#endif // ARRAY_CHECK_SIZE
 	iOldNumElements = AddNum(iNumInBatch * iNumBatches);
 
 	pcFirst = Get(iFirstElementPos);
@@ -1826,7 +1894,6 @@ void ARRAY_BLOCK::QuickSort(DataCompare fCompare) { ::QuickSort(fCompare, mpvArr
 void ARRAY_BLOCK::TimSort(DataCompare fCompare) { ::TimSort(fCompare, mpvArray, miElementSize, miUsedElements); }
 void* ARRAY_BLOCK::GetData(void) { return mpvArray; }
 ASIZE ARRAY_BLOCK::ChunkSize(void) { return miChunkSize; }
-ASIZE ARRAY_BLOCK::AddNum(ASIZE iNumElements) { return SetUsedElements(miUsedElements + iNumElements); }
 ASIZE ARRAY_BLOCK::RemoveNum(ASIZE iNumElements) { return SetUsedElements(miUsedElements - iNumElements); }
 void ARRAY_BLOCK::FakeSetUsedElements(ASIZE iUsedElements) { miUsedElements = iUsedElements; }
 void ARRAY_BLOCK::SetAllocateSize(ASIZE iSize) { miChunkSize = iSize; }

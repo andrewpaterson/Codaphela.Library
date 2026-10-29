@@ -310,7 +310,7 @@ bool CObjectWriter::WriteIdentifier(CObjectIdentifier* pcObjectIdentifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CObjectWriter::Write(const void* pvSource, size iSize, size iCount)
+lsize CObjectWriter::Write(const void* pvSource, lsize iSize, lsize iCount)
 {
 	return mcFile.Write(pvSource, iSize, iCount);
 }

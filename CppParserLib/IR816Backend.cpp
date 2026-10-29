@@ -402,6 +402,7 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 	maiPendingArguments.Init();
 	masFoldBase.Init();
 	maiFoldOffset.Init();
+	masFoldIndex.Init();
 	maiUses.Init();
 	maiUseBlock.Init();
 	mabInX.Init();
@@ -426,6 +427,7 @@ void CIR816Backend::Kill(void)
 	mabInX.Kill();
 	maiUseBlock.Kill();
 	maiUses.Kill();
+	masFoldIndex.Kill();
 	maiFoldOffset.Kill();
 	masFoldBase.Kill();
 	maiOffsets.Kill();
@@ -820,7 +822,8 @@ void CIR816Backend::Layout(void)
 // A pointer plus a constant that is only used as loads' and stores'
 // addresses isn't worked out: they use the pointer it adds to, with the
 // constant in Y ([[D + n]:24 + Y]) or added to a symbol.  Its base pointer
-// (msFoldBase) and constant (miFoldOffset) are kept per temporary.
+// (msFoldBase) and constant (miFoldOffset) are kept per temporary.  Then
+// pointers plus zero extended 16 bit values are folded too (FoldIndices).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::FoldPointers(void)
@@ -843,12 +846,14 @@ void CIR816Backend::FoldPointers(void)
 	iZero = 0;
 	masFoldBase.FakeSetUsedElements(0);
 	maiFoldOffset.FakeSetUsedElements(0);
+	masFoldIndex.FakeSetUsedElements(0);
 	aiAddressUses.Init();
 	aiUses.Init();
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
 		masFoldBase.Add(&sNone);
 		maiFoldOffset.Add(&iZero);
+		masFoldIndex.Add(&sNone);
 		aiAddressUses.Add(&iZero);
 		aiUses.Add(&iZero);
 	}
@@ -924,6 +929,7 @@ void CIR816Backend::FoldPointers(void)
 			*maiFoldOffset.Get(ui) = 0;
 		}
 	}
+	FoldIndices(&aiUses);
 	maiUses.FakeSetUsedElements(0);
 	for (ui = 0; ui < uiTemporaries; ui++)
 	{
@@ -931,6 +937,177 @@ void CIR816Backend::FoldPointers(void)
 	}
 	aiUses.Kill();
 	aiAddressUses.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A pointer plus a zero extended i16 x (ptradd p, zext x) that is only used
+// as the addresses of 1 word loads and stores isn't worked out: they put x
+// in Y and use p ([[D + p]:24 + Y]; the W65C816 adds Y to all 24 bits).
+// p must be a temporary that isn't folded itself, and nothing folded may
+// add to the ptradd (Y would be x plus a constant, which can wrap).  The
+// zext isn't worked out either when the folded ptradds are all its uses:
+// it is folded to x (FoldedBase), so x lives to the loads and stores.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::FoldIndices(CArrayTemplate<int32>* paiUses)
+{
+	CArrayTemplate<SIRInstruction*>	apsDefinitions;
+	CArrayTemplate<int32>			aiWordUses;		//Per temporary: its uses as a 1 word load's or store's address.
+	CArrayTemplate<int32>			aiFoldedUses;	//Per zext: its uses by ptradds folded here.
+	CArrayTemplate<uint8>			abBase;			//Per temporary: something folded adds to it.
+	SIRInstruction*					psInstruction;
+	SIRInstruction*					psExtend;
+	CIRBlock*						pcBlock;
+	SIRInstruction*					psNull;
+	SIRReference					sPointer;
+	size							uiTemporaries;
+	size							ui;
+	size							uj;
+	int32							iZero;
+	uint8							uiFalse;
+
+	uiTemporaries = mpcFunction->NumTemporaries();
+	psNull = NULL;
+	iZero = 0;
+	uiFalse = 0;
+	apsDefinitions.Init();
+	aiWordUses.Init();
+	aiFoldedUses.Init();
+	abBase.Init();
+	for (ui = 0; ui < uiTemporaries; ui++)
+	{
+		apsDefinitions.Add(&psNull);
+		aiWordUses.Add(&iZero);
+		aiFoldedUses.Add(&iZero);
+		abBase.Add(&uiFalse);
+	}
+	for (ui = 0; ui < uiTemporaries; ui++)
+	{
+		if (!masFoldBase.Get(ui)->IsNone() && masFoldBase.Get(ui)->IsTemporary())
+		{
+			*abBase.Get(masFoldBase.Get(ui)->Index()) = true;
+		}
+	}
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uj);
+			if (psInstruction->sResult.IsTemporary())
+			{
+				*apsDefinitions.Get(psInstruction->sResult.Index()) = psInstruction;
+			}
+			if (psInstruction->uiOpcode == IRO_Load)
+			{
+				sPointer = psInstruction->asArguments[0];
+			}
+			else if (psInstruction->uiOpcode == IRO_Store)
+			{
+				sPointer = psInstruction->asArguments[1];
+			}
+			else
+			{
+				continue;
+			}
+			if (sPointer.IsTemporary() && (Words(psInstruction->sType) == 1) && !(psInstruction->uiFlags & IRF_Volatile))
+			{
+				(*aiWordUses.Get(sPointer.Index()))++;
+			}
+		}
+	}
+
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uj = 0; uj < pcBlock->masInstructions.NumElements(); uj++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uj);
+			if ((psInstruction->uiOpcode != IRO_PtrAdd) || !psInstruction->sResult.IsTemporary() || !psInstruction->asArguments[0].IsTemporary() ||
+				!psInstruction->asArguments[1].IsTemporary() || !masFoldBase.Get(psInstruction->sResult.Index())->IsNone() ||
+				!masFoldBase.Get(psInstruction->asArguments[0].Index())->IsNone() || *abBase.Get(psInstruction->sResult.Index()) ||
+				(*paiUses->Get(psInstruction->sResult.Index()) == 0) || (*paiUses->Get(psInstruction->sResult.Index()) != *aiWordUses.Get(psInstruction->sResult.Index())))
+			{
+				continue;
+			}
+			psExtend = *apsDefinitions.Get(psInstruction->asArguments[1].Index());
+			if ((psExtend == NULL) || (psExtend->uiOpcode != IRO_ZExt) || !psExtend->asArguments[0].IsTemporary() ||
+				!mpcFunction->GetTemporaryType(psExtend->asArguments[0]).Is(IRTK_I16))
+			{
+				continue;
+			}
+			*masFoldBase.Get(psInstruction->sResult.Index()) = psInstruction->asArguments[0];
+			*maiFoldOffset.Get(psInstruction->sResult.Index()) = 0;
+			*masFoldIndex.Get(psInstruction->sResult.Index()) = psExtend->asArguments[0];
+			(*aiFoldedUses.Get(psInstruction->asArguments[1].Index()))++;
+		}
+	}
+
+	//A zext only the folded ptradds use isn't worked out.
+	for (ui = 0; ui < uiTemporaries; ui++)
+	{
+		psExtend = *apsDefinitions.Get(ui);
+		if (psExtend && (psExtend->uiOpcode == IRO_ZExt) && (*aiFoldedUses.Get(ui) > 0) && (*aiFoldedUses.Get(ui) == *paiUses->Get(ui)))
+		{
+			*masFoldBase.Get(ui) = psExtend->asArguments[0];
+			*maiFoldOffset.Get(ui) = 0;
+		}
+	}
+	apsDefinitions.Kill();
+	aiWordUses.Kill();
+	aiFoldedUses.Kill();
+	abBase.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The i16 a folded pointer adds in Y (FoldIndices), else none.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIR816Backend::FoldedIndex(SIRReference sValue)
+{
+	if (sValue.IsTemporary() && (sValue.Index() < masFoldIndex.NumElements()))
+	{
+		return *masFoldIndex.Get(sValue.Index());
+	}
+	return IRNone();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an instruction isn't worked out: a ptradd or add folded into its
+// loads and stores (FoldPointers), or a zext folded into its ptradds
+// (FoldIndices).  It writes no code.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::IsFolded(SIRInstruction* psInstruction)
+{
+	return ((psInstruction->uiOpcode == IRO_PtrAdd) || (psInstruction->uiOpcode == IRO_Add) || (psInstruction->uiOpcode == IRO_ZExt)) &&
+		psInstruction->sResult.IsTemporary() && !FoldedBase(psInstruction->sResult).Equals(psInstruction->sResult);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Y for word iOffset / 2 of a load or store through sPointer: the folded
+// index (a 1 word access, so iOffset is 0), else the constant.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::LoadY(SIRReference sPointer, int32 iOffset)
+{
+	SIRReference	sIndex;
+
+	sIndex = FoldedIndex(sPointer);
+	if (sIndex.IsNone())
+	{
+		Line("ldy ", iOffset);
+		return;
+	}
+	Operand("ldy", sIndex, 0);
 }
 
 
@@ -1527,6 +1704,8 @@ int32 CIR816Backend::PackTemporaries(void)
 			{
 				IR816AddEvent(&asEvents, FoldedBase(psInstruction->asArguments[0]), iPosition, IR816_EVENT_USE);
 				IR816AddEvent(&asEvents, FoldedBase(psInstruction->asArguments[1]), iPosition, IR816_EVENT_USE);
+				IR816AddEvent(&asEvents, FoldedIndex(psInstruction->asArguments[0]), iPosition, IR816_EVENT_USE);
+				IR816AddEvent(&asEvents, FoldedIndex(psInstruction->asArguments[1]), iPosition, IR816_EVENT_USE);
 			}
 			if (psInstruction->sResult.IsTemporary() && (FoldedBase(psInstruction->sResult).Equals(psInstruction->sResult)))
 			{
@@ -2194,6 +2373,10 @@ void CIR816Backend::Operand(const char* szMnemonic, SIRReference sValue, int iWo
 			{
 				Line("txa");
 			}
+			else if (strcmp(szMnemonic, "ldy") == 0)
+			{
+				Line("txy");
+			}
 			else if (strcmp(szMnemonic, "pei") == 0)
 			{
 				Line("phx");
@@ -2783,6 +2966,11 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 		miFused = 0;
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
+			//Folded instructions write nothing: what is fused goes on past them.
+			if (IsFolded(pcBlock->masInstructions.Get(uiInstruction)))
+			{
+				continue;
+			}
 			if (CanFuse(pcBlock, uiInstruction))
 			{
 				mapsFused[miFused] = pcBlock->masInstructions.Get(uiInstruction);
@@ -2797,6 +2985,7 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 	}
 	miBlock = -1;
 	Peephole(mpszOut, uiStart);
+	PeepholeBranches(mpszOut, uiStart);
 }
 
 
@@ -3044,6 +3233,375 @@ static void IR816SplitLine(const char* szLine, char* szMnemonic, const char** ps
 	szMnemonic[i] = '\0';
 	*pszOperand = szLine + 2 + i + ((2 + (size)i < uiLength) ? 1 : 0);
 	*puiOperand = (size)(szLine + uiLength - *pszOperand);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a line is a label ("L12:" or a function's).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816IsLabel(CChars* psz)
+{
+	return (psz->Length() > 1) && (psz->Text()[0] != '\t') && (psz->Text()[psz->Length() - 1] == ':');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a line is a branch (bra or a conditional one) to a label: its
+// mnemonic and label (without the colon).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816BranchLine(CChars* psz, char* szMnemonic, char* szLabel)
+{
+	const char*	szOperand;
+	size		uiOperand;
+
+	if ((psz->Length() < 3) || (psz->Text()[0] != '\t'))
+	{
+		return false;
+	}
+	IR816SplitLine(psz->Text(), szMnemonic, &szOperand, &uiOperand);
+	if ((szMnemonic[0] != 'b') || (strlen(szMnemonic) != 3) || (strcmp(szMnemonic, "brk") == 0) || (strcmp(szMnemonic, "bit") == 0) ||
+		(uiOperand < 2) || (uiOperand > 30) || (szOperand[0] != 'L'))
+	{
+		return false;
+	}
+	memcpy(szLabel, szOperand, uiOperand);
+	szLabel[uiOperand] = '\0';
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The branch that goes when szMnemonic's doesn't, or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* IR816InvertedBranch(const char* szMnemonic)
+{
+	static const char*	aszPairs[] = { "bcc", "bcs", "beq", "bne", "bmi", "bpl", "bvc", "bvs" };
+	int					i;
+
+	for (i = 0; i < 8; i++)
+	{
+		if (strcmp(szMnemonic, aszPairs[i]) == 0)
+		{
+			return aszPairs[i ^ 1];
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the lines from uiFrom up to the first instruction are labels
+// with szLabel among them.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816LabelFollows(CArrayChars* paszLines, size uiFrom, const char* szLabel)
+{
+	size	ui;
+	size	uiLength;
+	CChars*	psz;
+
+	uiLength = strlen(szLabel);
+	for (ui = uiFrom; (ui < paszLines->NumElements()) && IR816IsLabel(paszLines->Get(ui)); ui++)
+	{
+		psz = paszLines->Get(ui);
+		if ((psz->Length() == uiLength + 1) && (strncmp(psz->Text(), szLabel, uiLength) == 0))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The index of the first instruction after label szLabel, else -1.
+//
+//////////////////////////////////////////////////////////////////////////
+static size IR816LabelledInstruction(CArrayChars* paszLines, const char* szLabel)
+{
+	size	ui;
+	size	uiLength;
+	CChars*	psz;
+
+	uiLength = strlen(szLabel);
+	for (ui = 0; ui < paszLines->NumElements(); ui++)
+	{
+		psz = paszLines->Get(ui);
+		if (IR816IsLabel(psz) && (psz->Length() == uiLength + 1) && (strncmp(psz->Text(), szLabel, uiLength) == 0))
+		{
+			for (ui++; (ui < paszLines->NumElements()) && IR816IsLabel(paszLines->Get(ui)); ui++)
+			{
+			}
+			return (ui < paszLines->NumElements()) ? ui : (size)-1;
+		}
+	}
+	return (size)-1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a line's mnemonic is one of aszMnemonics (NULL terminated).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816LineIsOneOf(CChars* psz, const char** aszMnemonics)
+{
+	char		szMnemonic[8];
+	const char*	szOperand;
+	size		uiOperand;
+	int			i;
+
+	if ((psz->Length() < 3) || (psz->Text()[0] != '\t'))
+	{
+		return false;
+	}
+	IR816SplitLine(psz->Text(), szMnemonic, &szOperand, &uiOperand);
+	for (i = 0; aszMnemonics[i]; i++)
+	{
+		if (strcmp(szMnemonic, aszMnemonics[i]) == 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816IsNameCharacter(char c)
+{
+	return ((c >= 'A') && (c <= 'Z')) || ((c >= 'a') && (c <= 'z')) || ((c >= '0') && (c <= '9')) || (c == '_');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a local label ("L12:") is named by an instruction's operand.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816LabelUsed(CArrayChars* paszLines, CChars* pszLabel)
+{
+	size		ui;
+	size		uiLength;
+	const char*	szAt;
+	const char*	szText;
+
+	uiLength = pszLabel->Length() - 1;
+	for (ui = 0; ui < paszLines->NumElements(); ui++)
+	{
+		szText = paszLines->GetText(ui);
+		if (szText[0] != '\t')
+		{
+			continue;
+		}
+		for (szAt = szText; (szAt = strchr(szAt, 'L')) != NULL; szAt++)
+		{
+			if ((strncmp(szAt, pszLabel->Text(), uiLength) == 0) && !IR816IsNameCharacter(szAt[-1]) && !IR816IsNameCharacter(szAt[uiLength]))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Removes the instructions after a bra, brl, jml, rtl or stp up to a label
+// other than an unused local one (IR816LabelUsed), which go too.  True if
+// any did.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816Unreachable(CArrayChars* paszLines)
+{
+	static const char*	aszEnds[] = { "bra", "brl", "jml", "jmp", "rtl", "rts", "stp", NULL };
+	size				ui;
+	CChars*				psz;
+	bool				bChanged;
+
+	bChanged = false;
+	for (ui = 0; ui + 1 < paszLines->NumElements(); ui++)
+	{
+		if (!IR816LineIsOneOf(paszLines->Get(ui), aszEnds))
+		{
+			continue;
+		}
+		while (ui + 1 < paszLines->NumElements())
+		{
+			psz = paszLines->Get(ui + 1);
+			if (psz->Empty() || ((psz->Text()[0] != '\t') && ((psz->Text()[0] != 'L') || !IR816IsLabel(psz) || IR816LabelUsed(paszLines, psz))))
+			{
+				break;
+			}
+			if ((psz->Text()[0] == '\t') && (psz->Text()[2] == '.'))
+			{
+				break;
+			}
+			paszLines->Remove(ui + 1);
+			bChanged = true;
+		}
+	}
+	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Branches tidied in the code written from uiStart on, until none changes:
+// a bra to the label that follows goes; a branch to a label whose first
+// instruction is a bra goes where that does; Bcc X, bra Y, X: is B!cc Y,
+// X: (and bcc X, beq X, bra Y, X: is beq X, bcs Y, X:); an lda of a direct
+// page word or a constant before a bra to code that sets A and N and Z
+// first goes; a txy goes after a txy and an instruction that changes
+// neither X nor Y; and code after a bra, rtl or stp up to a label that is
+// used goes (IR816Unreachable).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
+{
+	static const char*	aszSetsA[] = { "lda", "txa", "tya", "pla", "tdc", "tsc", NULL };
+	static const char*	aszKeepsXY[] = { "lda", "sta", "and", "ora", "eor", "adc", "sbc", "cmp", "sep", "rep", "clc", "sec", NULL };
+	CArrayChars			aszLines;
+	CChars				szOut;
+	CChars*				psz;
+	char				szMnemonic[8];
+	char				szLabel[32];
+	char				szMnemonic2[8];
+	char				szLabel2[32];
+	char				szMnemonic3[8];
+	char				szLabel3[32];
+	const char*			szOperand;
+	size				uiOperand;
+	size				ui;
+	size				uiTarget;
+	int					iPass;
+	bool				bChanged;
+
+	aszLines.Init();
+	aszLines.Split(pszDest->Text() + uiStart, '\n');
+	if ((aszLines.NumElements() > 0) && aszLines.Tail()->Empty())
+	{
+		aszLines.RemoveTail();
+	}
+	for (iPass = 0; iPass < 8; iPass++)
+	{
+		bChanged = false;
+		for (ui = 0; ui < aszLines.NumElements(); ui++)
+		{
+			psz = aszLines.Get(ui);
+			if (IR816BranchLine(psz, szMnemonic, szLabel))
+			{
+				//To a bra: straight to where it goes.
+				uiTarget = IR816LabelledInstruction(&aszLines, szLabel);
+				if ((uiTarget != (size)-1) && IR816BranchLine(aszLines.Get(uiTarget), szMnemonic2, szLabel2) && (strcmp(szMnemonic2, "bra") == 0) &&
+					(strcmp(szLabel2, szLabel) != 0))
+				{
+					psz->Clear();
+					psz->Append("\t\t");
+					psz->Append(szMnemonic);
+					psz->Append(" ");
+					psz->Append(szLabel2);
+					bChanged = true;
+					continue;
+				}
+
+				//A bra to the next label.
+				if ((strcmp(szMnemonic, "bra") == 0) && IR816LabelFollows(&aszLines, ui + 1, szLabel))
+				{
+					aszLines.Remove(ui);
+					ui--;
+					bChanged = true;
+					continue;
+				}
+
+				//Bcc X, bra Y, X:
+				if ((ui + 1 < aszLines.NumElements()) && IR816InvertedBranch(szMnemonic) && IR816BranchLine(aszLines.Get(ui + 1), szMnemonic2, szLabel2) &&
+					(strcmp(szMnemonic2, "bra") == 0) && IR816LabelFollows(&aszLines, ui + 2, szLabel))
+				{
+					psz->Clear();
+					psz->Append("\t\t");
+					psz->Append(IR816InvertedBranch(szMnemonic));
+					psz->Append(" ");
+					psz->Append(szLabel2);
+					aszLines.Remove(ui + 1);
+					bChanged = true;
+					continue;
+				}
+
+				//bcc X, beq X, bra Y, X: (either order of the first two) is beq X, bcs Y, X:.
+				if ((ui + 2 < aszLines.NumElements()) && IR816BranchLine(aszLines.Get(ui + 1), szMnemonic2, szLabel2) &&
+					IR816BranchLine(aszLines.Get(ui + 2), szMnemonic3, szLabel3) && (strcmp(szMnemonic3, "bra") == 0) && (strcmp(szLabel, szLabel2) == 0) &&
+					(((strcmp(szMnemonic, "bcc") == 0) && (strcmp(szMnemonic2, "beq") == 0)) || ((strcmp(szMnemonic, "beq") == 0) && (strcmp(szMnemonic2, "bcc") == 0))) &&
+					IR816LabelFollows(&aszLines, ui + 3, szLabel))
+				{
+					psz->Clear();
+					psz->Append("\t\tbeq ");
+					psz->Append(szLabel);
+					psz = aszLines.Get(ui + 1);
+					psz->Clear();
+					psz->Append("\t\tbcs ");
+					psz->Append(szLabel3);
+					aszLines.Remove(ui + 2);
+					bChanged = true;
+					continue;
+				}
+				continue;
+			}
+
+			//An lda for nothing before a bra.
+			if ((ui + 1 < aszLines.NumElements()) && (psz->Length() > 3) && (psz->Text()[0] == '\t') &&
+				IR816BranchLine(aszLines.Get(ui + 1), szMnemonic2, szLabel2) && (strcmp(szMnemonic2, "bra") == 0))
+			{
+				IR816SplitLine(psz->Text(), szMnemonic, &szOperand, &uiOperand);
+				uiTarget = IR816LabelledInstruction(&aszLines, szLabel2);
+				if ((strcmp(szMnemonic, "lda") == 0) && ((strncmp(szOperand, "[D + ", 5) == 0) || ((szOperand[0] >= '0') && (szOperand[0] <= '9'))) &&
+					(uiTarget != (size)-1) && IR816LineIsOneOf(aszLines.Get(uiTarget), aszSetsA))
+				{
+					aszLines.Remove(ui);
+					ui--;
+					bChanged = true;
+					continue;
+				}
+			}
+
+			//txy, an instruction that keeps X and Y, txy.
+			if ((ui + 2 < aszLines.NumElements()) && (strcmp(psz->Text(), "\t\ttxy") == 0) && IR816LineIsOneOf(aszLines.Get(ui + 1), aszKeepsXY) &&
+				(strcmp(aszLines.Get(ui + 2)->Text(), "\t\ttxy") == 0))
+			{
+				aszLines.Remove(ui + 2);
+				bChanged = true;
+				continue;
+			}
+		}
+		bChanged |= IR816Unreachable(&aszLines);
+		if (!bChanged)
+		{
+			break;
+		}
+	}
+
+	szOut.Init();
+	for (ui = 0; ui < aszLines.NumElements(); ui++)
+	{
+		szOut.Append(aszLines.Get(ui));
+		szOut.AppendNewLine();
+	}
+	pszDest->SetLength(uiStart);
+	pszDest->Append(szOut);
+	szOut.Kill();
+	aszLines.Kill();
 }
 
 
@@ -4009,7 +4567,11 @@ bool CIR816Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 	case IRO_PtrToI:
 	case IRO_IToPtr:
 	case IRO_SpaceCast:
-		Extend(psInstruction);
+		//A zext folded into its ptradds' loads and stores (FoldIndices) isn't worked out.
+		if (FoldedBase(psInstruction->sResult).Equals(psInstruction->sResult))
+		{
+			Extend(psInstruction);
+		}
 		return true;
 	case IRO_Slot:
 		Address(psInstruction, *maiSlots.Get(psInstruction->sResult.Index()));
@@ -5383,11 +5945,17 @@ SIRInstruction* CIR816Backend::Fused(SIRReference sValue)
 bool CIR816Backend::FusedInputsKept(SIRInstruction* psInstruction, SIRReference sResult)
 {
 	SIRReference	sPointer;
+	SIRReference	sIndex;
 	int				i;
 
 	if (psInstruction->uiOpcode == IRO_Load)
 	{
 		sPointer = FoldedBase(psInstruction->asArguments[0]);
+		sIndex = FoldedIndex(psInstruction->asArguments[0]);
+		if (sIndex.IsTemporary() && !InX(sIndex) && FusedOverlaps(sResult, sIndex, true))
+		{
+			return false;
+		}
 		if (sPointer.IsTemporary())
 		{
 			return (OffsetOf(sPointer) <= 253) && !FusedOverlaps(sResult, sPointer, true);
@@ -5440,19 +6008,31 @@ bool CIR816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 	int				iChainCarries;	//The chain's, this one's too.
 	int				i;
 	bool			bStore;
+	bool			bWordCopy;
+	size			uiNext;
 
 	if (miFused >= IR816_MAX_FUSED)
 	{
 		return false;
 	}
 	psInstruction = pcBlock->masInstructions.Get(uiIndex);
-	if (uiIndex + 1 >= pcBlock->masInstructions.NumElements())
+
+	//The next instruction that writes code (IsFolded ones don't).
+	for (uiNext = uiIndex + 1; (uiNext < pcBlock->masInstructions.NumElements()) && IsFolded(pcBlock->masInstructions.Get(uiNext)); uiNext++)
+	{
+	}
+	if (uiNext >= pcBlock->masInstructions.NumElements())
 	{
 		return CanFuseReturn(pcBlock, psInstruction);
 	}
-	psNext = pcBlock->masInstructions.Get(uiIndex + 1);
+	psNext = pcBlock->masInstructions.Get(uiNext);
 	sResult = psInstruction->sResult;
-	if (!sResult.IsTemporary() || (Words(psInstruction->sType) < 2) || psInstruction->sType.IsFloat() ||
+
+	//A 1 word load only stored by the next instruction is a copy through A (a byte's under the store's sep m), from
+	//any address: there is no second word to read after the first is written.
+	bWordCopy = (miFused == 0) && (psInstruction->uiOpcode == IRO_Load) && (Words(psInstruction->sType) == 1) && (psNext->uiOpcode == IRO_Store) &&
+		psNext->sType.Equals(psInstruction->sType) && psNext->asArguments[0].Equals(sResult) && !psNext->asArguments[1].Equals(sResult);
+	if (!sResult.IsTemporary() || ((Words(psInstruction->sType) < 2) && !bWordCopy) || psInstruction->sType.IsFloat() ||
 		(*maiUseBlock.Get(sResult.Index()) != miBlock))
 	{
 		return false;
@@ -5505,6 +6085,7 @@ bool CIR816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 			return false;
 		}
 		iCarries++;
+		//Fall through.
 	case IRO_And:
 	case IRO_Or:
 	case IRO_Xor:
@@ -5535,7 +6116,7 @@ bool CIR816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
 		{
 			iChainCarries++;
 		}
-		if ((psChained->uiOpcode == IRO_Load) && bStore && !psChained->asArguments[0].Equals(psNext->asArguments[1]))
+		if ((psChained->uiOpcode == IRO_Load) && bStore && !bWordCopy && !psChained->asArguments[0].Equals(psNext->asArguments[1]))
 		{
 			return false;
 		}
@@ -5654,7 +6235,7 @@ void CIR816Backend::WordInA(SIRInstruction* psInstruction, int iWord)
 		}
 		else
 		{
-			Line("ldy ", iOffset + 2 * iWord);
+			LoadY(sFirst, iOffset + 2 * iWord);
 			sz.Append("lda [[D + ");
 			sz.Append(iPlace);
 			sz.Append("]:24 + Y]");
@@ -5740,7 +6321,7 @@ void CIR816Backend::StoreMemory(SIRInstruction* psInstruction)
 		Operand("lda", psInstruction->asArguments[0], i);
 		if (!szSymbol)
 		{
-			Line("ldy ", iOffset + 2 * i);
+			LoadY(psInstruction->asArguments[1], iOffset + 2 * i);
 		}
 		Line(sz.Text());
 	}

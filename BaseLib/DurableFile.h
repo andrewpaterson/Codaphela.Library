@@ -78,11 +78,11 @@ public:
 
 	size		Write(filePos iDistance, const void* pvSource, size iSize, size iCount);
 	size		Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, size iSize, size iCount);
-	size		Write(const void* pvSource, size iSize, size iCount);
+	lsize		Write(const void* pvSource, lsize iSize, lsize iCount);
 
 	size		Read(filePos iDistance, void* pvDest, size iSize, size iCount);
 	size		Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest, size iSize, size iCount);
-	size		Read(void* pvDest, size iSize, size iCount);
+	lsize		Read(void* pvDest, lsize iSize, lsize iCount);
 
 	bool		Create(void);
 	bool		Exists(void);

@@ -127,6 +127,7 @@ typedef uint32			lsize;
 #else
 typedef size			lsize;
 #endif // __W65C816__
+#define MAX_SIZE		((size)-1)
 #define MAX_LSIZE		((lsize)-1)
 
 #if INT_MAX == MAX_INT32

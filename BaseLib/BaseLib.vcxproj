@@ -1047,6 +1047,8 @@
     <None Include="gpl.txt" />
     <None Include="lgpl.txt" />
     <None Include="TimSort.inl" />
+    <None Include="CharsClass.inl" />
+    <None Include="CharsCode.inl" />
     <None Include="ArrayBlockClass.inl" />
     <None Include="ArrayBlockCode.inl" />
     <None Include="ArraySizeNatural.inl" />

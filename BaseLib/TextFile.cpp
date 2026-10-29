@@ -101,8 +101,8 @@ bool CTextFile::Read(CAbstractFile* pcAbstractFile)
 	{
 		iSize = mcFile.Size();
 
-		mcText.SetLength((size)iSize);
-		mcFile.ReadData(mcText.Text(), (size)iSize);
+		mcText.SetLength((lsize)iSize);
+		mcFile.ReadData(mcText.Text(), (lsize)iSize);
 		mcFile.Close();
 		mcFile.Kill();
 		return true;
@@ -155,7 +155,7 @@ char* CTextFile::Text(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CTextFile::Text(int iOffset)
+char* CTextFile::Text(lsize iOffset)
 {
 	return mcText.Text(iOffset);
 }
@@ -165,9 +165,9 @@ char* CTextFile::Text(int iOffset)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CTextFile::Length(void)
+lsize CTextFile::Length(void)
 {
-	return (int)mcText.Length();
+	return mcText.Length();
 }
 
 

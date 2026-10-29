@@ -30,7 +30,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void AppendFontInteger(CChars* szText, size uiDepth, char* szIdentifier, int32 iValue)
+void AppendFontInteger(CLargeChars* szText, size uiDepth, char* szIdentifier, int32 iValue)
 {
 	szText->Append('\t', uiDepth);
 	szText->Append(szIdentifier);
@@ -51,7 +51,7 @@ void AppendFontInteger(CChars* szText, size uiDepth, char* szIdentifier, int32 i
 bool FontWriter(Ptr<CFont> pFont, char* szImagePathName, char* szCelsPathName, char* szPathName)
 {
 	CTextFile					cTextFile;
-	CChars*						szText;
+	CLargeChars*				szText;
 	Ptr<CArrayImageCel>			paCels;
 	SGlyphDescription*			psDescription;
 	Ptr<CImageCel>				pCel;

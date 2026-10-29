@@ -60,8 +60,8 @@ public:
 	void	FreeData(void* pvData);
 
 protected:
-	void*	Malloc(size uiSize);
-	void*	Realloc(void* pv, size iMemSize);
+	void*	Malloc(lsize uiSize);
+	void*	Realloc(void* pv, lsize iMemSize);
 	void	Free(void* pv);
 };
 

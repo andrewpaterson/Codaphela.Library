@@ -37,7 +37,7 @@ void CMemoryAllocator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryAllocator::Malloc(size uiSize)
+void* CMemoryAllocator::Malloc(lsize uiSize)
 {
 #ifdef _DEBUG
 	if (uiSize > guiMaxDebugAllocatorSize)
@@ -54,7 +54,7 @@ void* CMemoryAllocator::Malloc(size uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryAllocator::Malloc(size uiSize, char(**pacDebugName)[4])
+void* CMemoryAllocator::Malloc(lsize uiSize, char(**pacDebugName)[4])
 {
 	void*						pv;
 	SGeneralMemoryAllocation*	psGeneralMemoryAllocation;
@@ -73,7 +73,7 @@ void* CMemoryAllocator::Malloc(size uiSize, char(**pacDebugName)[4])
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryAllocator::Realloc(void* pv, size uiSize)
+void* CMemoryAllocator::Realloc(void* pv, lsize uiSize)
 {
 	void*	pvNew;
 
