@@ -179,8 +179,8 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 //////////////////////////////////////////////////////////////////////////
 //
 // The W65C816's maths tables (Libc65/MathTbls, Garth Wilson's): MathMult for
-// the runtime's multiply.  Each is linked only when it is used.  The other
-// targets need none.
+// the runtime's multiply and MathInvert for its divide.  Each is linked only
+// when it is used.  The other targets need none.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::AddMathTables(const char* szLibc65Directory)
@@ -195,6 +195,7 @@ void CCPP65Builder::AddMathTables(const char* szLibc65Directory)
 	szDirectory.Init(szLibc65Directory);
 	cFileUtil.AppendToPath(&szDirectory, "MathTbls");
 	AddUnit("MathTables", szDirectory.Text(), "MathMult.asm", true);
+	AddUnit("MathTables", szDirectory.Text(), "MathInvert.asm");
 	szDirectory.Kill();
 }
 

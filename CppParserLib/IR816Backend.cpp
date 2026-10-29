@@ -36,7 +36,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //from a table (IR816_MULTIPLY_BYTES) and skips those of a high half that is 0.  The arguments are a at S + 4
 //and b after it (pushed last first, after the jsl's return address); they are worked on where they are.  Space for
 //the result is pushed, then D is pointed at the stack: D + 1 is the caller's D, then the result, the return address
-//and the arguments.  A 16 bit result is left in A, a 32 bit one in A (low) and X (high).
+//and the arguments.  A 16 bit result is left in A, a 32 bit one in A (low) and X (high); multiply pulls its result
+//straight into them.
 struct SIR816Routine
 {
 	const char*	szName;
@@ -44,84 +45,167 @@ struct SIR816Routine
 };
 
 
-//A 32 bit divide with both operands under 65536 runs 16 steps with the remainder in A (a step that carries out of A
-//always subtracts: the remainder was over the divisor); a dividend below the divisor (the quotient is 0) or a divisor
-//of 1 is the answer at once, and a dividend under 256 starts a byte up (xba) and takes 8 steps.  A divisor under 65536 keeps the remainder in A too: 16 steps
-//from the dividend's high word as the remainder when that is below the divisor (the quotient's high word is 0),
-//else the high word's 16 steps then the low word's, the remainder carried in A between them.  A dividend under 65536
-//with a wider divisor is a quotient of 0.  Otherwise 32 steps on the remainder at
-//D + 3 and D + 5.
-#define IR816_DIVIDE_32(NAME, RESULT_LOW, RESULT_HIGH) \
+//A 32 bit divide with both operands under 65536 is the 16 bit one (SHORT, with its reciprocal table): the divisor is
+//written over the dividend's high word (0) and SHORT is jumped to, which returns the 32 bit result (X is 0).  A divisor
+//under 65536 keeps the remainder in A: 16 unrolled steps (IR816_DIVIDE_STEP) on the dividend's low word, after 16 on
+//its high word when that is not below the divisor (else the quotient's high word is 0 and the high word is the
+//remainder to start).  A dividend under 65536 with a wider divisor is a quotient of 0.  Otherwise 32 steps on the
+//remainder at D + 3 and D + 5, the quotient bit (C) rotated into the dividend as its next bit comes out.
+//One step of a 16 bit restoring divide, unrolled: the next dividend bit (in C) is rotated into the remainder in A,
+//which is compared with the divisor at D + 14 (a remainder that carries out of A is always over it) and taken from
+//when it is over; C is then the quotient bit, which rol shifts into the dividend word at D + WORD as the word's next
+//bit comes out.  bcs skips the cmp and bcc (4 bytes), bcc skips the sbc and sec (3 bytes).
+#define IR816_DIVIDE_STEP(WORD) \
+	"\t\trol A\n\t\tbcs C + 4\n\t\tcmp [D + 14]\n\t\tbcc C + 3\n\t\tsbc [D + 14]\n\t\tsec\n\t\trol [D + " WORD "]\n"
+
+#define IR816_DIVIDE_STEPS_4(WORD) IR816_DIVIDE_STEP(WORD) IR816_DIVIDE_STEP(WORD) IR816_DIVIDE_STEP(WORD) IR816_DIVIDE_STEP(WORD)
+#define IR816_DIVIDE_STEPS_16(WORD) IR816_DIVIDE_STEPS_4(WORD) IR816_DIVIDE_STEPS_4(WORD) IR816_DIVIDE_STEPS_4(WORD) IR816_DIVIDE_STEPS_4(WORD)
+
+#define IR816_DIVIDE_32(NAME, SHORT, RESULT_LOW, RESULT_HIGH) \
 	"\t\t.width (A, X), 16\n" \
+	"\t\t.relax\n" \
+	"\t\tlda [S + 6]\n\t\tora [S + 10]\n\t\tbne " NAME "_Wide32\n" \
+	"\t\tlda [S + 8]\n\t\tsta [S + 6]\n\t\tjml " SHORT "\n" \
+	NAME "_Wide32:\n" \
 	"\t\tpea 0\n\t\tpea 0\n\t\tphd\n\t\ttsc\n\t\ttcd\n" \
-	"\t\tlda [D + 12]\n\t\tora [D + 16]\n\t\tbne " NAME "_Wide\n" \
-	"\t\tlda [D + 10]\n\t\tcmp [D + 14]\n\t\tbcs " NAME "_Divides\n" \
-	"\t\tsta [D + 3]\n\t\tstz [D + 10]\n\t\tbrl " NAME "_Done\n" \
-	NAME "_Divides:\n" \
-	"\t\tldx [D + 14]\n\t\tdex\n\t\tbne " NAME "_NotOne\n\t\tbrl " NAME "_Done\n" \
-	NAME "_NotOne:\n" \
-	"\t\tcmp 256\n\t\tbcs " NAME "_Full16\n" \
-	"\t\txba\n\t\tsta [D + 10]\n\t\tldx 8\n\t\tlda 0\n\t\tbra " NAME "_Bit16\n" \
-	NAME "_Full16:\n" \
-	"\t\tldx 16\n\t\tlda 0\n" \
-	NAME "_Bit16:\n" \
-	"\t\tasl [D + 10]\n\t\trol A\n\t\tbcs " NAME "_Over16\n" \
-	"\t\tcmp [D + 14]\n\t\tbcc " NAME "_Next16\n" \
-	NAME "_Over16:\n" \
-	"\t\tsbc [D + 14]\n\t\tinc [D + 10]\n" \
-	NAME "_Next16:\n" \
-	"\t\tdex\n\t\tbne " NAME "_Bit16\n" \
-	"\t\tsta [D + 3]\n\t\tbra " NAME "_Done\n" \
-	NAME "_Wide:\n" \
 	"\t\tlda [D + 16]\n\t\tbne " NAME "_WideDivisor\n" \
-	"\t\tlda [D + 12]\n\t\tcmp [D + 14]\n\t\tbcs " NAME "_Mid\n" \
-	"\t\tstz [D + 12]\n\t\tldx 16\n\t\tbra " NAME "_Bit16\n" \
-	NAME "_Mid:\n" \
-	"\t\tldx 16\n\t\tlda 0\n" \
-	NAME "_High:\n" \
-	"\t\tasl [D + 12]\n\t\trol A\n\t\tbcs " NAME "_OverHigh\n" \
-	"\t\tcmp [D + 14]\n\t\tbcc " NAME "_NextHigh\n" \
-	NAME "_OverHigh:\n" \
-	"\t\tsbc [D + 14]\n\t\tinc [D + 12]\n" \
-	NAME "_NextHigh:\n" \
-	"\t\tdex\n\t\tbne " NAME "_High\n" \
-	"\t\tldx 16\n\t\tbrl " NAME "_Bit16\n" \
+	"\t\tlda [D + 12]\n\t\tcmp [D + 14]\n\t\tbcc " NAME "_LowWord\n" \
+	"\t\tlda 0\n\t\tasl [D + 12]\n" \
+	IR816_DIVIDE_STEPS_16("12") \
+	"\t\tbra " NAME "_Low\n" \
+	NAME "_LowWord:\n" \
+	"\t\tstz [D + 12]\n" \
+	NAME "_Low:\n" \
+	"\t\tasl [D + 10]\n" \
+	IR816_DIVIDE_STEPS_16("10") \
+	"\t\tsta [D + 3]\n\t\tbra " NAME "_Done\n" \
 	NAME "_WideDivisor:\n" \
 	"\t\tlda [D + 12]\n\t\tbne " NAME "_Long\n" \
 	"\t\tlda [D + 10]\n\t\tsta [D + 3]\n\t\tstz [D + 10]\n\t\tbra " NAME "_Done\n" \
 	NAME "_Long:\n" \
-	"\t\tldx 32\n" \
+	"\t\tldx 32\n\t\tasl [D + 10]\n" \
 	NAME "_Bit:\n" \
-	"\t\tasl [D + 10]\n\t\trol [D + 12]\n\t\trol [D + 3]\n\t\trol [D + 5]\n" \
+	"\t\trol [D + 12]\n\t\trol [D + 3]\n\t\trol [D + 5]\n" \
 	"\t\tbcs " NAME "_Over\n" \
 	"\t\tsec\n\t\tlda [D + 3]\n\t\tsbc [D + 14]\n\t\ttay\n\t\tlda [D + 5]\n\t\tsbc [D + 16]\n" \
 	"\t\tbcc " NAME "_Next\n" \
 	"\t\tbra " NAME "_Keep\n" \
 	NAME "_Over:\n" \
-	"\t\tsec\n\t\tlda [D + 3]\n\t\tsbc [D + 14]\n\t\ttay\n\t\tlda [D + 5]\n\t\tsbc [D + 16]\n" \
+	"\t\tsec\n\t\tlda [D + 3]\n\t\tsbc [D + 14]\n\t\ttay\n\t\tlda [D + 5]\n\t\tsbc [D + 16]\n\t\tsec\n" \
 	NAME "_Keep:\n" \
-	"\t\tsta [D + 5]\n\t\tsty [D + 3]\n\t\tinc [D + 10]\n" \
+	"\t\tsta [D + 5]\n\t\tsty [D + 3]\n" \
 	NAME "_Next:\n" \
-	"\t\tdex\n\t\tbne " NAME "_Bit\n" \
+	"\t\trol [D + 10]\n\t\tdex\n\t\tbne " NAME "_Bit\n" \
+	"\t\trol [D + 12]\n" \
 	NAME "_Done:\n" \
 	"\t\tlda [D + " RESULT_HIGH "]\n\t\ttax\n\t\tlda [D + " RESULT_LOW "]\n\t\ttay\n" \
 	"\t\tpld\n\t\tpla\n\t\tpla\n\t\ttya\n\t\trtl\n"
 
-//16 steps with the remainder in A, as the 32 bit divide's fast path.
+//The 16 bit divide n / d with Garth Wilson's reciprocals (Libc65/MathTbls/MathInvert.asm, MathInvert): d is shifted
+//up s places to d' (its top bit set) and R = round(2^32 / d') is 1:Rlo (17 bits; d' = $8000, a power of two, is
+//a shift instead).  The quotient is (n * R) >> (32 - s): T = n + nH * rH + ((nH * rL + nL * rH) >> 8) is
+//(n * R) >> 16 less nL * rL and the carries below it, then q = T >> (16 - s).  Checked for every n and d: q is never
+//over and at most 1 under, so the remainder n - q * d (two byte products: q or d is under 256) is taken from once
+//more when it is d or over.  n < d is q = 0, d >= $8000 is q = 1 and d = 0 is q = $FFFF, r = n (as the loop gave).
+//A product's index is built a byte at a time with A 8 bits wide (IR816_BYTES_INDEX); the shift right jumps into a
+//run of lsr (_Shifts by 2s).  D + 1 is the caller's D, D + 3 q, D + 5 the remainder, D + 7 2s, D + 9 Rlo (0 for a
+//power of two), D + 11 unused, then the return address, n (D + 16) and d (D + 18).  X is 0 at the end, so the 32 bit
+//divide can return through it (IR816_DIVIDE_32).
+#define IR816_INVERT_BYTES(NAME) \
+	"\t\tasl A\n\t\ttax\n\t\tbcs " NAME "_High\n" \
+	"\t\tlda [MathInvert + X]:24\n\t\tbra " NAME "_Got\n" \
+	NAME "_High:\n" \
+	"\t\tlda [MathInvert + $10000 + X]:24\n" \
+	NAME "_Got:\n"
+
+//A = (the byte at D + HIGH << 8) | the byte at D + LOW.
+#define IR816_BYTES_INDEX(HIGH, LOW) \
+	"\t\tsep m\n\t\tlda [D + " HIGH "]\n\t\txba\n\t\tlda [D + " LOW "]\n\t\trep m\n"
+
 #define IR816_DIVIDE_16(NAME, RESULT) \
 	"\t\t.width (A, X), 16\n" \
-	"\t\tpea 0\n\t\tphd\n\t\ttsc\n\t\ttcd\n" \
-	"\t\tldx 16\n\t\tlda 0\n" \
-	NAME "_Bit:\n" \
-	"\t\tasl [D + 8]\n\t\trol A\n\t\tbcs " NAME "_Over\n" \
-	"\t\tcmp [D + 10]\n\t\tbcc " NAME "_Next\n" \
-	NAME "_Over:\n" \
-	"\t\tsbc [D + 10]\n\t\tinc [D + 8]\n" \
-	NAME "_Next:\n" \
-	"\t\tdex\n\t\tbne " NAME "_Bit\n" \
+	"\t\t.relax\n" \
+	"\t\ttsc\n\t\tsec\n\t\tsbc 10\n\t\ttcs\n\t\tphd\n\t\ttsc\n\t\ttcd\n" \
+	"\t\tstz [D + 3]\n" \
+	"\t\tlda [D + 16]\n\t\tcmp [D + 18]\n\t\tbcs " NAME "_Divides\n" \
+	"\t\tsta [D + 5]\n\t\tbra " NAME "_Done\n" \
+	NAME "_Divides:\n" \
+	"\t\tldx [D + 18]\n\t\tbpl " NAME "_Small\n" \
+	"\t\tsbc [D + 18]\n\t\tsta [D + 5]\n\t\tinc [D + 3]\n\t\tbra " NAME "_Done\n" \
+	NAME "_Small:\n" \
+	"\t\ttxa\n\t\tbeq " NAME "_Zero\n" \
+	"\t\tldx 0\n\t\tcmp 256\n\t\tbcs " NAME "_Shift\n" \
+	"\t\txba\n\t\tldx 8\n" \
+	NAME "_Shift:\n" \
+	"\t\tinx\n\t\tasl A\n\t\tbcc " NAME "_Shift\n" \
+	"\t\tror A\n\t\tdex\n\t\tstx [D + 7]\n\t\tasl [D + 7]\n" \
+	"\t\tcmp $8000\n\t\tbeq " NAME "_Power\n" \
+	"\t\tasl A\n" \
+	IR816_INVERT_BYTES(NAME "_Inv") \
+	"\t\tsta [D + 9]\n" \
+	"\t\tsep m\n\t\tlda [D + 17]\n\t\tbeq " NAME "_SmallN\n\t\txba\n\t\tlda [D + 9]\n\t\trep m\n" \
+	IR816_MULTIPLY_BYTES(NAME "_HL") \
 	"\t\tsta [D + 3]\n" \
+	IR816_BYTES_INDEX("10", "16") \
+	IR816_MULTIPLY_BYTES(NAME "_LH") \
+	"\t\tclc\n\t\tadc [D + 3]\n\t\txba\n\t\tand $FF\n\t\tbcc C + 3\n\t\tora $100\n\t\tsta [D + 3]\n" \
+	IR816_BYTES_INDEX("17", "10") \
+	IR816_MULTIPLY_BYTES(NAME "_HH") \
+	"\t\tclc\n\t\tadc [D + 3]\n\t\tbra " NAME "_AddN\n" \
+	NAME "_SmallN:\n" \
+	"\t\t.width A, 8\n" \
+	"\t\tlda [D + 10]\n\t\txba\n\t\tlda [D + 16]\n\t\trep m\n" \
+	IR816_MULTIPLY_BYTES(NAME "_LHn") \
+	"\t\txba\n\t\tand $FF\n" \
+	NAME "_AddN:\n" \
+	"\t\tclc\n\t\tadc [D + 16]\n\t\tror A\n" \
+	"\t\tldx [D + 7]\n\t\tjmp [" NAME "_Shifts + X]\n" \
+	NAME "_Chain:\n" \
+	"\t\tlsr A\n\t\tlsr A\n\t\tlsr A\n\t\tlsr A\n\t\tlsr A\n\t\tlsr A\n\t\tlsr A\n\t\tlsr A\n\t\tlsr A\n\t\tlsr A\n\t\tlsr A\n\t\tlsr A\n\t\tlsr A\n\t\tlsr A\n\t\tlsr A\n" \
+	"\t\tsta [D + 3]\n" \
+	"\t\tldy [D + 9]\n\t\tbeq " NAME "_Done\n" \
+	IR816_BYTES_INDEX("3", "18") \
+	IR816_MULTIPLY_BYTES(NAME "_QD") \
+	"\t\tsta [D + 5]\n" \
+	"\t\tsep m\n\t\tlda [D + 19]\n\t\tbeq " NAME "_NoHighD\n\t\txba\n\t\tlda [D + 3]\n\t\trep m\n" \
+	IR816_MULTIPLY_BYTES(NAME "_QDH") \
+	IR816_MULTIPLY_ADD_BYTE_1("[D + 5]") \
+	NAME "_NoHighD:\n" \
+	"\t\trep m\n" \
+	"\t\tsep m\n\t\tlda [D + 4]\n\t\tbeq " NAME "_NoHighQ\n\t\txba\n\t\tlda [D + 18]\n\t\trep m\n" \
+	IR816_MULTIPLY_BYTES(NAME "_QHD") \
+	IR816_MULTIPLY_ADD_BYTE_1("[D + 5]") \
+	NAME "_NoHighQ:\n" \
+	"\t\trep m\n" \
+	"\t\tlda [D + 16]\n\t\tsec\n\t\tsbc [D + 5]\n\t\tcmp [D + 18]\n\t\tbcc " NAME "_Remainder\n" \
+	"\t\tsbc [D + 18]\n\t\tinc [D + 3]\n" \
+	NAME "_Remainder:\n" \
+	"\t\tsta [D + 5]\n\t\tbra " NAME "_Done\n" \
+	NAME "_Power:\n" \
+	"\t\tstz [D + 9]\n\t\tlda [D + 18]\n\t\tdec A\n\t\tand [D + 16]\n\t\tsta [D + 5]\n" \
+	"\t\tlda [D + 16]\n\t\tldx [D + 7]\n\t\tjmp [" NAME "_Shifts + X]\n" \
+	NAME "_Zero:\n" \
+	"\t\tlda $FFFF\n\t\tsta [D + 3]\n\t\tlda [D + 16]\n\t\tsta [D + 5]\n" \
+	NAME "_Done:\n" \
 	"\t\tlda [D + " RESULT "]\n\t\ttay\n" \
-	"\t\tpld\n\t\tpla\n\t\ttya\n\t\trtl\n"
+	"\t\tpld\n\t\ttsc\n\t\tclc\n\t\tadc 10\n\t\ttcs\n\t\tldx 0\n\t\ttya\n\t\trtl\n" \
+	NAME "_Shifts:\n" \
+	"\t\t.word (" NAME "_Chain + 0) & $FFFF\n" \
+	"\t\t.word (" NAME "_Chain + 1) & $FFFF\n" \
+	"\t\t.word (" NAME "_Chain + 2) & $FFFF\n" \
+	"\t\t.word (" NAME "_Chain + 3) & $FFFF\n" \
+	"\t\t.word (" NAME "_Chain + 4) & $FFFF\n" \
+	"\t\t.word (" NAME "_Chain + 5) & $FFFF\n" \
+	"\t\t.word (" NAME "_Chain + 6) & $FFFF\n" \
+	"\t\t.word (" NAME "_Chain + 7) & $FFFF\n" \
+	"\t\t.word (" NAME "_Chain + 8) & $FFFF\n" \
+	"\t\t.word (" NAME "_Chain + 9) & $FFFF\n" \
+	"\t\t.word (" NAME "_Chain + 10) & $FFFF\n" \
+	"\t\t.word (" NAME "_Chain + 11) & $FFFF\n" \
+	"\t\t.word (" NAME "_Chain + 12) & $FFFF\n" \
+	"\t\t.word (" NAME "_Chain + 13) & $FFFF\n" \
+	"\t\t.word (" NAME "_Chain + 14) & $FFFF\n" \
+	"\t\t.word (" NAME "_Chain + 15) & $FFFF\n"
 
 //The 64 bit divide: D + 3 to D + 10 is the remainder, then the caller's return address, the hidden result pointer at
 //D + 14, the dividend (shifted into the quotient) at D + 18 and the divisor at D + 26.  Zero words at the top of the
@@ -170,20 +254,20 @@ struct SIR816Routine
 #define IR816_MULTIPLY_ADD_BYTE_1(WORD) \
 	"\t\txba\n\t\tand $FF00\n\t\tclc\n\t\tadc " WORD "\n\t\tsta " WORD "\n"
 
-//R816_Mul32's result is D + 3 to D + 6 (0 to start) and D + 7 is a word for the low byte of a product, then the
-//return address, a (bytes D + 12 to D + 15) and b (D + 16 to D + 19).  A 32 bit product is up to ten byte products:
-//x and y are the bytes' offsets and ADD puts the product (in A) in the result.  A product of a 0 byte is skipped, as
-//are those of a high word that is 0.  A product a byte up adds to the result's middle word and carries into its top
-//byte; two bytes up adds to its high word.
+//R816_Mul32's result is D + 3 to D + 6 (0 to start), then the return address, a (bytes D + 10 to D + 13) and b (D + 14
+//to D + 17).  A 32 bit product is up to ten byte products: x and y are the bytes' offsets, the index is built with A
+//8 bits wide and ADD puts the product (in A) in the result.  A product of a 0 byte is skipped (A is made 16 bits again
+//at _Zero), as are those of a high word that is 0.  A product a byte up adds to the result's middle word and carries
+//into its top byte (8 bits: the return address is above it); two bytes up adds to its high word.
 #define IR816_MULTIPLY_32(NAME, X, Y, ADD) \
-	"\t\tlda [D + " Y "]\n\t\tand $FF\n\t\tbeq R816_Mul32_" NAME "_Zero\n\t\tsta [D + 7]\n" \
-	"\t\tlda [D + " X " - 1]\n\t\tand $FF00\n\t\tbeq R816_Mul32_" NAME "_Zero\n\t\tora [D + 7]\n" \
+	"\t\tsep m\n\t\tlda [D + " Y "]\n\t\tbeq R816_Mul32_" NAME "_Zero\n\t\txba\n\t\tlda [D + " X "]\n\t\tbeq R816_Mul32_" NAME "_Zero\n\t\trep m\n" \
 	IR816_MULTIPLY_BYTES("R816_Mul32_" NAME) \
 	ADD \
-	"R816_Mul32_" NAME "_Zero:\n"
+	"R816_Mul32_" NAME "_Zero:\n" \
+	"\t\trep m\n"
 
 #define IR816_MULTIPLY_ADD_BYTES_1 \
-	"\t\tclc\n\t\tadc [D + 4]\n\t\tsta [D + 4]\n\t\tbcc C + 2\n\t\tinc [D + 6]\n"
+	"\t\tclc\n\t\tadc [D + 4]\n\t\tsta [D + 4]\n\t\tbcc C + 6\n\t\tsep m\n\t\tinc [D + 6]\n\t\trep m\n"
 
 #define IR816_MULTIPLY_ADD_BYTES_2 \
 	"\t\tclc\n\t\tadc [D + 5]\n\t\tsta [D + 5]\n"
@@ -192,45 +276,45 @@ static const SIR816Routine gasIR816Routines[] =
 {
 	{ "R816_UDiv64", IR816_DIVIDE_64("R816_UDiv64", "18") },
 	{ "R816_URem64", IR816_DIVIDE_64("R816_URem64", "3") },
-	{ "R816_UDiv32", IR816_DIVIDE_32("R816_UDiv32", "10", "12") },
-	{ "R816_URem32", IR816_DIVIDE_32("R816_URem32", "3", "5") },
-	{ "R816_UDiv16", IR816_DIVIDE_16("R816_UDiv16", "8") },
-	{ "R816_URem16", IR816_DIVIDE_16("R816_URem16", "3") },
+	{ "R816_UDiv32", IR816_DIVIDE_32("R816_UDiv32", "R816_UDiv16", "10", "12") },
+	{ "R816_URem32", IR816_DIVIDE_32("R816_URem32", "R816_URem16", "3", "5") },
+	{ "R816_UDiv16", IR816_DIVIDE_16("R816_UDiv16", "3") },
+	{ "R816_URem16", IR816_DIVIDE_16("R816_URem16", "5") },
 	{ "R816_Mul16",
 		"\t\t.width (A, X), 16\n"
-		"\t\tpea 0\n\t\tpea 0\n\t\tphd\n\t\ttsc\n\t\ttcd\n"
-		"\t\tlda [D + 10]\n\t\tand $FF\n\t\tsta [D + 5]\n"
-		"\t\tlda [D + 12]\n\t\txba\n\t\tand $FF00\n\t\tora [D + 5]\n"
+		"\t\tpea 0\n\t\tphd\n\t\ttsc\n\t\ttcd\n"
+		IR816_BYTES_INDEX("10", "8")
 		IR816_MULTIPLY_BYTES("R816_Mul16_LL")
 		"\t\tsta [D + 3]\n"
-		"\t\tlda [D + 12]\n\t\tand $FF00\n\t\tbeq R816_Mul16_NoHighB\n\t\tora [D + 5]\n"
+		"\t\tsep m\n\t\tlda [D + 11]\n\t\tbeq R816_Mul16_NoHighB\n\t\txba\n\t\tlda [D + 8]\n\t\trep m\n"
 		IR816_MULTIPLY_BYTES("R816_Mul16_LH")
 		IR816_MULTIPLY_ADD_BYTE_1("[D + 3]")
 		"R816_Mul16_NoHighB:\n"
-		"\t\tlda [D + 10]\n\t\tand $FF00\n\t\tbeq R816_Mul16_Done\n\t\tsta [D + 5]\n"
-		"\t\tlda [D + 12]\n\t\tand $FF\n\t\tora [D + 5]\n"
+		"\t\trep m\n"
+		"\t\tsep m\n\t\tlda [D + 9]\n\t\tbeq R816_Mul16_Done\n\t\txba\n\t\tlda [D + 10]\n\t\trep m\n"
 		IR816_MULTIPLY_BYTES("R816_Mul16_HL")
 		IR816_MULTIPLY_ADD_BYTE_1("[D + 3]")
 		"R816_Mul16_Done:\n"
-		"\t\tlda [D + 3]\n\t\ttay\n\t\tpld\n\t\tpla\n\t\tpla\n\t\ttya\n\t\trtl\n" },
+		"\t\trep m\n"
+		"\t\tpld\n\t\tpla\n\t\trtl\n" },
 	{ "R816_Mul32",
 		"\t\t.width (A, X), 16\n"
-		"\t\tpea 0\n\t\tpea 0\n\t\tpea 0\n\t\tphd\n\t\ttsc\n\t\ttcd\n"
-		IR816_MULTIPLY_32("LL", "12", "16", "\t\tsta [D + 3]\n")
-		IR816_MULTIPLY_32("HH", "13", "17", "\t\tsta [D + 5]\n")
-		IR816_MULTIPLY_32("LH", "12", "17", IR816_MULTIPLY_ADD_BYTES_1)
-		IR816_MULTIPLY_32("HL", "13", "16", IR816_MULTIPLY_ADD_BYTES_1)
-		"\t\tlda [D + 18]\n\t\tbeq R816_Mul32_NoHighB\n"
-		IR816_MULTIPLY_32("B2", "12", "18", IR816_MULTIPLY_ADD_BYTES_2)
-		IR816_MULTIPLY_32("B3", "12", "19", IR816_MULTIPLY_ADD_BYTE_1("[D + 5]"))
-		IR816_MULTIPLY_32("B2A1", "13", "18", IR816_MULTIPLY_ADD_BYTE_1("[D + 5]"))
+		"\t\tpea 0\n\t\tpea 0\n\t\tphd\n\t\ttsc\n\t\ttcd\n"
+		IR816_MULTIPLY_32("LL", "10", "14", "\t\tsta [D + 3]\n")
+		IR816_MULTIPLY_32("HH", "11", "15", "\t\tsta [D + 5]\n")
+		IR816_MULTIPLY_32("LH", "10", "15", IR816_MULTIPLY_ADD_BYTES_1)
+		IR816_MULTIPLY_32("HL", "11", "14", IR816_MULTIPLY_ADD_BYTES_1)
+		"\t\tlda [D + 16]\n\t\tbeq R816_Mul32_NoHighB\n"
+		IR816_MULTIPLY_32("B2", "10", "16", IR816_MULTIPLY_ADD_BYTES_2)
+		IR816_MULTIPLY_32("B3", "10", "17", IR816_MULTIPLY_ADD_BYTE_1("[D + 5]"))
+		IR816_MULTIPLY_32("B2A1", "11", "16", IR816_MULTIPLY_ADD_BYTE_1("[D + 5]"))
 		"R816_Mul32_NoHighB:\n"
-		"\t\tlda [D + 14]\n\t\tbeq R816_Mul32_Done\n"
-		IR816_MULTIPLY_32("A2", "14", "16", IR816_MULTIPLY_ADD_BYTES_2)
-		IR816_MULTIPLY_32("A3", "15", "16", IR816_MULTIPLY_ADD_BYTE_1("[D + 5]"))
-		IR816_MULTIPLY_32("A2B1", "14", "17", IR816_MULTIPLY_ADD_BYTE_1("[D + 5]"))
+		"\t\tlda [D + 12]\n\t\tbeq R816_Mul32_Done\n"
+		IR816_MULTIPLY_32("A2", "12", "14", IR816_MULTIPLY_ADD_BYTES_2)
+		IR816_MULTIPLY_32("A3", "13", "14", IR816_MULTIPLY_ADD_BYTE_1("[D + 5]"))
+		IR816_MULTIPLY_32("A2B1", "12", "15", IR816_MULTIPLY_ADD_BYTE_1("[D + 5]"))
 		"R816_Mul32_Done:\n"
-		"\t\tlda [D + 5]\n\t\ttax\n\t\tlda [D + 3]\n\t\ttay\n\t\tpld\n\t\tpla\n\t\tpla\n\t\tpla\n\t\ttya\n\t\trtl\n" },
+		"\t\tpld\n\t\tpla\n\t\tplx\n\t\trtl\n" },
 	{ NULL, NULL }
 };
 
@@ -5461,12 +5545,21 @@ bool CIR816Backend::GenerateRuntime(CArrayChars* paszRuntime, int* piLabels, CCh
 	}
 	for (i = 0; i < aszNames.NumElements(); i++)
 	{
-		//Signed divide and remainder call the unsigned ones.
+		//Signed divide and remainder call the unsigned ones, and the 32 bit unsigned ones call the 16 bit ones.
 		szName = aszNames.GetText(i);
-		if ((strncmp(szName, "R816_SDiv", 9) == 0) || (strncmp(szName, "R816_SRem", 9) == 0))
+		if ((strncmp(szName, "R816_SDiv", 9) == 0) || (strncmp(szName, "R816_SRem", 9) == 0) ||
+			(strcmp(szName, "R816_UDiv32") == 0) || (strcmp(szName, "R816_URem32") == 0))
 		{
 			szText.Init("R816_U");
-			szText.Append(&szName[6]);
+			if (szName[5] == 'U')
+			{
+				szText.Append(&szName[6], 3);
+				szText.Append("16");
+			}
+			else
+			{
+				szText.Append(&szName[6]);
+			}
 			bFound = false;
 			for (j = 0; j < aszNames.NumElements(); j++)
 			{

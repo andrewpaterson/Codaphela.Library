@@ -234,7 +234,9 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	816 build that multiplies must link MathMult: CCPP65Builder::AddMathTables(Libc65
 	directory) adds it as a library (TestCPP816, TestProject65, TestLibc65Context do),
 	and TestIR816Backend links it itself.  Cycles per call, old loop -> table: 16 bit
-	174-259 (was 128-848), 32 bit 252-745 (was 312-2803).
+	174-259 (was 128-848), 32 bit 252-745 (was 312-2803).  R816_UDiv16 and R816_URem16 use the
+	reciprocal slice MathInvert (Libc65/MathTbls/MathInvert.asm, linked by AddMathTables
+	too); R816_UDiv32/URem32 jump to them when both operands are under 65536.
 
 5.	C++ end to end: the runtime routines, the start up, Libc65 for the W65C816
 	(softfloat.cpp, string.cpp, stdlib.cpp...) and closing the IR front end's gaps.

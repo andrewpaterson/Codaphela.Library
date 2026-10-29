@@ -753,18 +753,20 @@ bool CAsm65Assembler::Space(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// .inchex "file" {, base}
-// The bytes of an Intel HEX file from its address base (its lowest address
-// when not given) to its highest, $FF where it has none (as an erased ROM).
+// .inchex "file" {, start {, length}}
+// The bytes of an Intel HEX file from address start (its lowest address when
+// not given) to its highest, or length bytes from start (a slice): $FF where
+// the file has none (as an erased ROM).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CAsm65Assembler::IncludeHex(void)
 {
 	SAsm65Token*	psName;
-	SAsm65Token*	psBase;
+	SAsm65Token*	psToken;
 	CIntelHex*		pcHex;
-	int64			iBase;
-	uint64			ulliLength;
+	int64			iStart;
+	int64			iLength;
+	uint64			ulliEnd;
 	uint8*			puiBytes;
 	uint32			i;
 
@@ -784,37 +786,42 @@ bool CAsm65Assembler::IncludeHex(void)
 		return false;
 	}
 
-	iBase = pcHex->GetLowAddress();
+	iStart = pcHex->GetLowAddress();
+	ulliEnd = pcHex->GetEndAddress();
+	iLength = (ulliEnd > (uint64)iStart) ? (int64)(ulliEnd - (uint64)iStart) : 0;
 	if (Accept(AP65_Comma))
 	{
-		psBase = Peek();
-		if (!ExpressionValue(&iBase))
+		psToken = Peek();
+		if (!ExpressionValue(&iStart))
 		{
 			return false;
 		}
-		if ((iBase < 0) || (iBase > 0xFFFFFFFFLL))
+		if ((iStart < 0) || (iStart > 0xFFFFFFFFLL))
 		{
-			return Error(psBase, "The base must be a 32 bit address");
+			return Error(psToken, "The start must be a 32 bit address");
 		}
-		if (!pcHex->IsEmpty() && ((uint32)iBase > pcHex->GetLowAddress()))
+		iLength = (ulliEnd > (uint64)iStart) ? (int64)(ulliEnd - (uint64)iStart) : 0;
+		if (Accept(AP65_Comma))
 		{
-			return Error(psBase, "The file has bytes below the base");
+			psToken = Peek();
+			if (!ExpressionValue(&iLength))
+			{
+				return false;
+			}
 		}
 	}
-
-	ulliLength = pcHex->IsEmpty() ? 0 : pcHex->GetEndAddress() - (uint64)iBase;
-	if (ulliLength > 0x1000000)
+	if ((iLength < 0) || (iLength > 0x1000000))
 	{
 		return Error(psName, "Included bytes must be 0 to 16MB");
 	}
 	if (!mbFinal)
 	{
-		muiAddress += (uint32)ulliLength;
+		muiAddress += (uint32)iLength;
 		return true;
 	}
-	puiBytes = (uint8*)malloc((size)ulliLength + 1);
-	pcHex->Fill((uint32)iBase, (uint32)ulliLength, 0xFF, puiBytes);
-	for (i = 0; i < (uint32)ulliLength; i++)
+	puiBytes = (uint8*)malloc((size)iLength + 1);
+	pcHex->Fill((uint32)iStart, (uint32)iLength, 0xFF, puiBytes);
+	for (i = 0; i < (uint32)iLength; i++)
 	{
 		WriteByte(puiBytes[i]);
 	}
