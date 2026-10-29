@@ -54,6 +54,7 @@ public:
 	SIRInstruction*	Instruction(SIRReference sValue);
 	SIRPhi*			Phi(SIRReference sValue);
 	CIRBlock*		Block(SIRReference sValue);
+	int32			Index(SIRReference sValue);
 	uint32			NumUses(SIRReference sValue);
 	bool			IsDefinedBy(SIRReference sValue, uint16 uiOpcode);
 

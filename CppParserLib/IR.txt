@@ -307,6 +307,21 @@ effects ending in a brif to a block only it enters, or out) and whose one latch 
 tests at the bottom: the head is copied to the end of the preheader (the loop is only entered
 if the first test passes) and of the latch (round while it passes), and goes.  Each time round
 takes one jump fewer, and what is hoisted out of the loop is only worked out when the loop runs.
+A loop entered from several blocks (each loop before it leaving straight to its head) is given a
+preheader first, with phis joining what they pass (AddMergedPreheader).
+Bounded divisions (BoundDivisions, 2026-10-29): an unsigned x / c or x % c by a constant (not a
+power of 2) is 0 or x when x is known to be below c, and x >= c or x - (c & -(x >= c)) when below
+2c.  UpperBound works out the most a value can be from constants, zexts, ands, shifts right,
+divides and remainders by constants, adds that can't wrap, and phis, each argument bounded by an
+unsigned compare with a constant on the branch into the phi (EdgeBound): (i + 1) % 624 in a loop
+going round while i + 1 < 624 is a compare and subtract.  x / 1 is x.
+Tried and taken out (2026-10-29): replacing a loop counter only tested (and used on the way
+out) by a test of a pointer stepped with it.  TestBaseLib65 on the W65C816 was 0.4% slower with
+the counters worked out on the way out, and 0.1% slower without that: CNumber's loops go round 2
+or 3 times, so the end worked out on the way in costs about what the loop saves.
+Integer comparisons only their block's brif uses move to the end of the block
+(SinkComparisons) so the back ends branch on their flags.  Constant folding also takes
+x - (x - y) to y and x * -1 to -x.
 Jump threading through phis (ThreadPhis, in simplify cfg): a block of phis and up to 8 pure
 instructions ending in a brif, whose values are only used in it, is gone round by a predecessor
 whose phi arguments decide the brif (an inlined test returning a constant on some ways), when

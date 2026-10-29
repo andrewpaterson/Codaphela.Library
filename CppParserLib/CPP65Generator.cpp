@@ -37,6 +37,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define CPP65_DEFAULT_USE_IR	0
 #endif
 bool	gbCPP65DefaultUseIR = CPP65_DEFAULT_USE_IR != 0;
+bool	gbCPP65DefaultWarnNarrowing = false;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -57,6 +58,41 @@ void CCPP65Generator::SetDefaultUseIR(bool bUseIR)
 bool CCPP65Generator::GetDefaultUseIR(void)
 {
 	return gbCPP65DefaultUseIR;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether generators made from now on warn about narrowing conversions (see
+// SetWarnNarrowing).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::SetDefaultWarnNarrowing(bool bWarnNarrowing)
+{
+	gbCPP65DefaultWarnNarrowing = bWarnNarrowing;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Generator::GetDefaultWarnNarrowing(void)
+{
+	return gbCPP65DefaultWarnNarrowing;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An implicit conversion of a non constant integer to a narrower integer
+// type is warned about ("Integer conversion narrows").  Off by default: code
+// written for a 32 bit int and size has many that are correct.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::SetWarnNarrowing(bool bWarnNarrowing)
+{
+	mbWarnNarrowing = bWarnNarrowing;
 }
 
 
@@ -127,6 +163,7 @@ void CCPP65Generator::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	maszEmitted.Init();
 	miQuiet = 0;
 	miWarningChecks = 0;
+	mbWarnNarrowing = gbCPP65DefaultWarnNarrowing;
 	mbQuietFailed = false;
 	maszStrings.Init();
 	mszInitialise.Init();

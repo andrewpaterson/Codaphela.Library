@@ -3469,6 +3469,7 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 				mpcBlock->Branch(sCondition, pcTrue, pcFalse);
 				return true;
 			}
+			mpcGenerator->ComparisonRange(pcBinary);
 			if (!Value(pcBinary->mpcRight, &sRight) || !Value(pcBinary->mpcLeft, &sLeft) || !Compare(pcBinary->meOperator, &sLeft, &sRight, &sCondition))
 			{
 				return false;

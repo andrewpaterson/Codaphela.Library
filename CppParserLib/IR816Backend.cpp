@@ -180,9 +180,10 @@ static const SIR816Routine gasIR816Routines[] =
 	{ "R816_Mul32",
 		"\t\t.width (A, X), 16\n"
 		"\t\tpea 0\n\t\tpea 0\n\t\tphd\n\t\ttsc\n\t\ttcd\n"
-		"\t\tlda [D + 14]\n\t\tcmp [D + 10]\n\t\tlda [D + 16]\n\t\tsbc [D + 12]\n\t\tbcc R816_Mul32_Bit\n"
+		"\t\tlda [D + 14]\n\t\tcmp [D + 10]\n\t\tlda [D + 16]\n\t\tsbc [D + 12]\n\t\tbcc R816_Mul32_Smaller\n"
 		"\t\tlda [D + 10]\n\t\tldx [D + 14]\n\t\tsta [D + 14]\n\t\tstx [D + 10]\n"
 		"\t\tlda [D + 12]\n\t\tldx [D + 16]\n\t\tsta [D + 16]\n\t\tstx [D + 12]\n"
+		"R816_Mul32_Smaller:\n"
 		"\t\tlda [D + 16]\n\t\tbne R816_Mul32_Bit\n"
 		"\t\tldx [D + 14]\n\t\tbeq R816_Mul32_Done\n"
 		"R816_Mul32_Short:\n"
@@ -265,6 +266,7 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 	maiUses.Init();
 	maiUseBlock.Init();
 	mabInX.Init();
+	miFused = 0;
 	miFrameBytes = 0;
 	miHiddenResult = -1;
 	mszSectionOptions = "";
@@ -1993,6 +1995,11 @@ void CIR816Backend::Operand(const char* szMnemonic, SIRReference sValue, int iWo
 	uint16	uiWord;
 	char*	szName;
 
+	if ((miFused > 0) && (strcmp(szMnemonic, "lda") == 0) && Fused(sValue))
+	{
+		WordInA(Fused(sValue), iWord);
+		return;
+	}
 	if (sValue.IsTemporary())
 	{
 		if ((iWord == 0) && InX(sValue))
@@ -2241,7 +2248,7 @@ void CIR816Backend::PushFrameAddress(int32 iOffset)
 void CIR816Backend::PointerPlace(SIRReference sPointer, int32* piPlace, char** pszSymbol, int32* piOffset)
 {
 	*piOffset = 0;
-	if (sPointer.IsTemporary() && !FoldedBase(sPointer).IsNone() && !FoldedBase(sPointer).Equals(sPointer))
+	if (!FoldedBase(sPointer).Equals(sPointer))
 	{
 		*piOffset = *maiFoldOffset.Get(sPointer.Index());
 		sPointer = FoldedBase(sPointer);
@@ -2264,15 +2271,104 @@ void CIR816Backend::PointerPlace(SIRReference sPointer, int32* piPlace, char** p
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The function's code from uiStart without its frame when it never reads
+// or writes the frame's bytes (D + 1 to D + frame size; its temporaries may
+// all have been kept in A or fused) or D but to move S back: S isn't moved
+// down and back, so D is S and each D + n is n - frame size.  Without any
+// D + n, D isn't saved and set either.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::DropFrame(size uiStart)
+{
+	CChars		sz;
+	CChars		szPrologue;
+	CChars		szEpilogue;
+	const char*	szCode;
+	const char*	szAt;
+	int32		iOffset;
+	int			iEpilogues;
+	int			iTdcs;
+	bool		bUsesD;
+
+	szCode = mpszOut->Text() + uiStart;
+	if ((miFrameBytes == 0) || (strstr(szCode, "[D + X]") != NULL))
+	{
+		return;
+	}
+	for (szAt = strstr(szCode, "D + "); szAt; szAt = strstr(szAt + 4, "D + "))
+	{
+		if (atoi(szAt + 4) <= miFrameBytes)
+		{
+			return;
+		}
+	}
+	szPrologue.Init("\t\tphd\n\t\ttsc\n\t\tsec\n\t\tsbc ");
+	szPrologue.Append(miFrameBytes);
+	szPrologue.Append("\n\t\ttcs\n\t\ttcd\n");
+	szEpilogue.Init("\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc ");
+	szEpilogue.Append(miFrameBytes);
+	szEpilogue.Append("\n\t\ttcs\n\t\ttya\n\t\tpld\n");
+	iEpilogues = 0;
+	for (szAt = strstr(szCode, szEpilogue.Text()); szAt; szAt = strstr(szAt + 1, szEpilogue.Text()))
+	{
+		iEpilogues++;
+	}
+	iTdcs = 0;
+	for (szAt = strstr(szCode, "\t\ttdc\n"); szAt; szAt = strstr(szAt + 1, "\t\ttdc\n"))
+	{
+		iTdcs++;
+	}
+	if ((iTdcs != iEpilogues) || (strstr(szCode, szPrologue.Text()) == NULL))
+	{
+		szPrologue.Kill();
+		szEpilogue.Kill();
+		return;
+	}
+
+	//Without D + anything it needn't set D either.
+	bUsesD = strstr(szCode, "D + ") != NULL;
+	sz.Init();
+	while (*szCode)
+	{
+		if (strncmp(szCode, szPrologue.Text(), szPrologue.Length()) == 0)
+		{
+			sz.Append(bUsesD ? "\t\tphd\n\t\ttsc\n\t\ttcd\n" : "");
+			szCode += szPrologue.Length();
+		}
+		else if (strncmp(szCode, szEpilogue.Text(), szEpilogue.Length()) == 0)
+		{
+			sz.Append(bUsesD ? "\t\tpld\n" : "");
+			szCode += szEpilogue.Length();
+		}
+		else if (strncmp(szCode, "D + ", 4) == 0)
+		{
+			iOffset = atoi(szCode + 4);
+			sz.Append("D + ");
+			sz.Append(iOffset - miFrameBytes);
+			for (szCode += 4; (*szCode >= '0') && (*szCode <= '9'); szCode++)
+			{
+			}
+		}
+		else
+		{
+			sz.Append(*szCode);
+			szCode++;
+		}
+	}
+	mpszOut->RemoveEnd(uiStart);
+	mpszOut->Append(sz);
+	sz.Kill();
+	szPrologue.Kill();
+	szEpilogue.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors)
 {
-	size		ui;
-	size		uiInstruction;
-	CIRBlock*	pcBlock;
-	CIRBlock*	pcNext;
-	int32		iLabel;
 	size		uiStart;
 
 	mpcFunction = pcFunction;
@@ -2293,8 +2389,30 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 		szBytes.Kill();
 		return false;
 	}
+	GenerateBody(szLabel, uiStart);
+	DropFrame(uiStart);
+	pszDest->AppendNewLine();
+	return mbResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function's code after Layout: the prologue, each block's
+// instructions (those CanFuse finds read by the next as it goes) and jump,
+// then Peephole from uiStart.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
+{
+	size		ui;
+	size		uiInstruction;
+	CIRBlock*	pcBlock;
+	CIRBlock*	pcNext;
+	int32		iLabel;
+
 	maiBlockLabels.FakeSetUsedElements(0);
-	for (ui = 0; ui < pcFunction->NumBlocks(); ui++)
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
 		iLabel = NewLabel();
 		maiBlockLabels.Add(&iLabel);
@@ -2302,24 +2420,31 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 
 	FindSingleUses();
 	Prologue(szLabel);
-	for (ui = 0; ui < pcFunction->NumBlocks(); ui++)
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
-		pcBlock = pcFunction->GetBlock(ui);
-		pcNext = (ui + 1 < pcFunction->NumBlocks()) ? pcFunction->GetBlock(ui + 1) : NULL;
+		pcBlock = mpcFunction->GetBlock(ui);
+		pcNext = (ui + 1 < mpcFunction->NumBlocks()) ? mpcFunction->GetBlock(ui + 1) : NULL;
 		miBlock = (int32)ui;
 		Label(*maiBlockLabels.Get(ui));
 		PhiCopies(pcBlock);
 		maiPendingArguments.FakeSetUsedElements(0);
+		miFused = 0;
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
+			if (CanFuse(pcBlock, uiInstruction))
+			{
+				mapsFused[miFused] = pcBlock->masInstructions.Get(uiInstruction);
+				miFused++;
+				continue;
+			}
 			Instruction(pcBlock, uiInstruction);
+			miFused = 0;
 		}
 		Jump(pcBlock, pcNext);
+		miFused = 0;
 	}
 	miBlock = -1;
-	Peephole(pszDest, uiStart);
-	pszDest->AppendNewLine();
-	return mbResult;
+	Peephole(mpszOut, uiStart);
 }
 
 
@@ -3187,6 +3312,13 @@ void CIR816Backend::Return(CIRBlock* pcBlock)
 				Line("sta [[D + 1]:24 + Y]");
 			}
 		}
+		else if (Fused(psJump->sArgument))
+		{
+			//The high word first (CanFuseReturn).
+			Operand("lda", psJump->sArgument, 1);
+			Line("tax");
+			Operand("lda", psJump->sArgument, 0);
+		}
 		else if (!psJump->sArgument.IsTemporary() || (OffsetOf(psJump->sArgument) + 2 * iWords <= 255))
 		{
 			//Straight into A and X.
@@ -3452,23 +3584,23 @@ bool CIR816Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 	case IRO_PtrAdd:
 		if (FoldedBase(psInstruction->sResult).Equals(psInstruction->sResult))
 		{
-			Arithmetic(psInstruction, "clc", "adc");
+			Arithmetic(psInstruction);
 		}
 		return true;
 	case IRO_Sub:
-		Arithmetic(psInstruction, "sec", "sbc");
+		Arithmetic(psInstruction);
 		return true;
 	case IRO_And:
-		Logic(psInstruction, "and", 0);
+		Logic(psInstruction);
 		return true;
 	case IRO_Or:
-		Logic(psInstruction, "ora", 0);
+		Logic(psInstruction);
 		return true;
 	case IRO_Xor:
-		Logic(psInstruction, "eor", 0);
+		Logic(psInstruction);
 		return true;
 	case IRO_Not:
-		Logic(psInstruction, "eor", 0xFFFFFFFFFFFFFFFFULL);
+		Logic(psInstruction);
 		return true;
 	case IRO_Neg:
 		Line("sec");
@@ -3807,40 +3939,33 @@ void CIR816Backend::PushInt32(SIRReference sValue, SIRType sType, bool bSigned)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// add, sub and ptradd: a word at a time with the carry between them.
+// add, sub and ptradd: a word at a time with the carry between them
+// (WordInA), or an i16 kept in X stepped by 1 or 2.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Arithmetic(SIRInstruction* psInstruction, const char* szCarry, const char* szMnemonic)
+void CIR816Backend::Arithmetic(SIRInstruction* psInstruction)
 {
-	int				i;
-	int				iWords;
-	uint16			uiStep;
-	SIRReference	sFirst;
-	SIRReference	sSecond;
+	int		i;
+	int		iWords;
+	uint16	uiStep;
 
 	iWords = Words(psInstruction->sType);
-	sFirst = psInstruction->asArguments[0];
-	sSecond = psInstruction->asArguments[1];
-	if ((iWords == 1) && psInstruction->sType.Is(IRTK_I16) && InX(psInstruction->sResult) && InX(sFirst) && ConstantWord(sSecond, 0, &uiStep) && (uiStep >= 1) && (uiStep <= 2))
+	if ((iWords == 1) && psInstruction->sType.Is(IRTK_I16) && InX(psInstruction->sResult) && InX(psInstruction->asArguments[0]) &&
+		ConstantWord(psInstruction->asArguments[1], 0, &uiStep) && (uiStep >= 1) && (uiStep <= 2))
 	{
-		//Stepped in X.
 		for (i = 0; i < uiStep; i++)
 		{
-			Line((strcmp(szMnemonic, "adc") == 0) ? "inx" : "dex");
+			Line((psInstruction->uiOpcode == IRO_Sub) ? "dex" : "inx");
 		}
 		return;
 	}
-	if ((iWords == 1) && (strcmp(szMnemonic, "adc") == 0) && InX(sSecond) && !InX(sFirst))
+	if (StepInPlace(psInstruction))
 	{
-		//The one in X first (txa).
-		sFirst = psInstruction->asArguments[1];
-		sSecond = psInstruction->asArguments[0];
+		return;
 	}
-	Line(szCarry);
 	for (i = 0; i < iWords; i++)
 	{
-		Operand("lda", sFirst, i);
-		Operand(szMnemonic, sSecond, i);
+		WordInA(psInstruction, i);
 		if (iWords == 1)
 		{
 			Mask(psInstruction->sType);
@@ -3852,61 +3977,83 @@ void CIR816Backend::Arithmetic(SIRInstruction* psInstruction, const char* szCarr
 
 //////////////////////////////////////////////////////////////////////////
 //
-// and, or, xor, or not (eor with ulliNot's words) when ulliNot isn't 0.
+// A two word value stepped by 1 or -1 into its own place (the result shares
+// the operand's) with inc and dec on the direct page: inc low, and high when
+// low wrapped to 0; or dec high when low is 0, then dec low.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::Logic(SIRInstruction* psInstruction, const char* szMnemonic, uint64 ulliNot)
+bool CIR816Backend::StepInPlace(SIRInstruction* psInstruction)
 {
-	int				i;
-	uint16			uiWord;
-	uint16			uiAll;
-	bool			bAnd;
-	SIRReference	sFirst;
-	SIRReference	sSecond;
+	SIRReference	sValue;
+	uint32			uiStep;
+	int32			iOffset;
+	int32			iSkip;
 
-	bAnd = strcmp(szMnemonic, "and") == 0;
-	uiAll = psInstruction->sType.Is(IRTK_I8) ? 0xFF : (psInstruction->sType.Is(IRTK_I1) ? 1 : 0xFFFF);
-	sFirst = psInstruction->asArguments[0];
-	sSecond = psInstruction->asArguments[1];
-	if (!ulliNot && (Words(psInstruction->sType) == 1) && InX(sSecond) && !InX(sFirst))
+	sValue = psInstruction->asArguments[0];
+	if ((Words(psInstruction->sType) != 2) || !psInstruction->sResult.IsTemporary() || !sValue.IsTemporary() || Fused(sValue) ||
+		!psInstruction->asArguments[1].IsConstant() || (OffsetOf(psInstruction->sResult) != OffsetOf(sValue)) || (OffsetOf(sValue) > 253))
 	{
-		//The one in X first (txa).
-		sFirst = psInstruction->asArguments[1];
-		sSecond = psInstruction->asArguments[0];
+		return false;
 	}
+	uiStep = (uint32)mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits;
+	if (psInstruction->uiOpcode == IRO_Sub)
+	{
+		uiStep = 0 - uiStep;
+	}
+	if ((uiStep != 1) && (uiStep != 0xFFFFFFFF))
+	{
+		return false;
+	}
+	iOffset = OffsetOf(sValue);
+	iSkip = NewLabel();
+	if (uiStep == 1)
+	{
+		Frame("inc", iOffset);
+		Branch("bne", iSkip);
+		Frame("inc", iOffset + 2);
+		Label(iSkip);
+	}
+	else
+	{
+		Frame("lda", iOffset);
+		Branch("bne", iSkip);
+		Frame("dec", iOffset + 2);
+		Label(iSkip);
+		Frame("dec", iOffset);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// and, or, xor and not a word at a time (WordInA); an and with a constant
+// word 0 is 0 without reading the other.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::Logic(SIRInstruction* psInstruction)
+{
+	int		i;
+	uint16	uiWord;
+
 	for (i = 0; i < Words(psInstruction->sType); i++)
 	{
-		//A constant word that leaves the other's (and all ones, or and eor 0) is a copy; and 0 is 0.
-		if (!ulliNot && ConstantWord(sSecond, i, &uiWord))
+		if ((psInstruction->uiOpcode == IRO_And) && (ConstantWord(psInstruction->asArguments[1], i, &uiWord) || ConstantWord(psInstruction->asArguments[0], i, &uiWord)) && (uiWord == 0))
 		{
-			if (bAnd && (uiWord == 0))
+			if (InX(psInstruction->sResult))
 			{
-				if (InX(psInstruction->sResult))
-				{
-					Line("ldx 0");
-				}
-				else
-				{
-					Frame("stz", OffsetOf(psInstruction->sResult) + 2 * i);
-				}
-				continue;
+				Line("ldx 0");
 			}
-			if ((bAnd && (uiWord == uiAll)) || (!bAnd && (uiWord == 0)))
+			else
 			{
-				Operand("lda", sFirst, i);
-				Store(psInstruction->sResult, i);
-				continue;
+				Frame("stz", OffsetOf(psInstruction->sResult) + 2 * i);
 			}
+			continue;
 		}
-		Operand("lda", sFirst, i);
-		if (ulliNot)
+		WordInA(psInstruction, i);
+		if (psInstruction->uiOpcode == IRO_Not)
 		{
-			Line("eor $FFFF");
 			Mask(psInstruction->sType);
-		}
-		else
-		{
-			Operand(szMnemonic, sSecond, i);
 		}
 		Store(psInstruction->sResult, i);
 	}
@@ -4733,50 +4880,405 @@ void CIR816Backend::Address(SIRInstruction* psInstruction, int32 iOffset)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A word at a time through the pointer ([[D + p]:24 + Y]) or a symbol's long address; an i8 with m 8 bits.
+// A word at a time (WordInA).  An i8 is read as a word and masked (the byte after it is only memory), or with m 8 bits
+// when volatile (it may be a device's register).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::Load(SIRInstruction* psInstruction)
 {
-	int32	iPlace;
-	int32	iOffset;
-	char*	szSymbol;
 	int		i;
-	CChars	sz;
+	bool	bByte;
 
-	PointerPlace(psInstruction->asArguments[0], &iPlace, &szSymbol, &iOffset);
-	sz.Init();
-	if (psInstruction->sType.Is(IRTK_I8))
+	bByte = psInstruction->sType.Is(IRTK_I8) && (psInstruction->uiFlags & IRF_Volatile);
+	if (bByte)
 	{
 		Line("sep m");
 	}
 	for (i = 0; i < Words(psInstruction->sType); i++)
 	{
-		sz.Clear();
+		WordInA(psInstruction, i);
+		if (bByte)
+		{
+			Line("rep m");
+		}
+		Mask(psInstruction->sType);
+		Store(psInstruction->sResult, i);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether sResult's place overlaps sInput's (a temporary's) so that writing
+// its first word changes a later word of sInput's: any overlap when
+// bAnyOverlap (a pointer read for each word), else one not at the same place.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::FusedOverlaps(SIRReference sResult, SIRReference sInput, bool bAnyOverlap)
+{
+	int32	iResult;
+	int32	iInput;
+
+	if (!sInput.IsTemporary() || sResult.IsNone())
+	{
+		return false;
+	}
+	iResult = OffsetOf(sResult);
+	iInput = OffsetOf(sInput);
+	if ((iResult >= iInput + ValueBytes(mpcFunction->GetTemporaryType(sInput))) || (iInput >= iResult + ValueBytes(mpcFunction->GetTemporaryType(sResult))))
+	{
+		return false;
+	}
+	return bAnyOverlap || (iResult != iInput);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instruction waiting to be read into A (CanFuse) that works out
+// sValue, else NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRInstruction* CIR816Backend::Fused(SIRReference sValue)
+{
+	int		i;
+
+	for (i = 0; i < miFused; i++)
+	{
+		if (mapsFused[i]->sResult.Equals(sValue))
+		{
+			return mapsFused[i];
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether what psInstruction (to be fused) reads is still there for each
+// word after sResult's earlier words are written: a load's pointer anywhere
+// else (it is read for each word) and in the direct page, other values not
+// partly overlapped.  The fused values it reads aren't written.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::FusedInputsKept(SIRInstruction* psInstruction, SIRReference sResult)
+{
+	SIRReference	sPointer;
+	int				i;
+
+	if (psInstruction->uiOpcode == IRO_Load)
+	{
+		sPointer = FoldedBase(psInstruction->asArguments[0]);
+		if (sPointer.IsTemporary())
+		{
+			return (OffsetOf(sPointer) <= 253) && !FusedOverlaps(sResult, sPointer, true);
+		}
+		return sPointer.IsSymbol();
+	}
+	for (i = 0; i < 2; i++)
+	{
+		if (!Fused(psInstruction->asArguments[i]) && FusedOverlaps(sResult, psInstruction->asArguments[i], false))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether psInstruction is an and with a constant.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816AndsConstant(SIRInstruction* psInstruction)
+{
+	return (psInstruction->uiOpcode == IRO_And) && (psInstruction->asArguments[0].IsConstant() || psInstruction->asArguments[1].IsConstant());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether instruction uiIndex of pcBlock, a load, and, or, xor or not of
+// two or more words, or an add or sub, needn't be written: its result's one
+// use is the next instruction, an and, or, xor, not, add or sub, or the
+// value of a store, which then reads each word into A as it gets to it
+// (WordInA): no store and load of each.  The instructions before it may
+// be fused too (a chain read into A a word at a time), with one add or sub
+// at most in the chain and the instruction that reads it (the carry), and a
+// load in it only when the store at the end is to the same place (else the
+// store could change a word still to be loaded).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::CanFuse(CIRBlock* pcBlock, size uiIndex)
+{
+	SIRInstruction*	psInstruction;
+	SIRInstruction*	psNext;
+	SIRInstruction*	psChained;
+	SIRReference	sResult;
+	SIRReference	sNextResult;
+	int				iCarries;		//The next instruction's.
+	int				iChainCarries;	//The chain's, this one's too.
+	int				i;
+	bool			bStore;
+
+	if (miFused >= IR816_MAX_FUSED)
+	{
+		return false;
+	}
+	psInstruction = pcBlock->masInstructions.Get(uiIndex);
+	if (uiIndex + 1 >= pcBlock->masInstructions.NumElements())
+	{
+		return CanFuseReturn(pcBlock, psInstruction);
+	}
+	psNext = pcBlock->masInstructions.Get(uiIndex + 1);
+	sResult = psInstruction->sResult;
+	if (!sResult.IsTemporary() || (Words(psInstruction->sType) < 2) || psInstruction->sType.IsFloat() ||
+		(*maiUseBlock.Get(sResult.Index()) != miBlock))
+	{
+		return false;
+	}
+
+	iCarries = 0;
+	iChainCarries = 0;
+	switch (psInstruction->uiOpcode)
+	{
+	case IRO_Load:
+		if (psInstruction->uiFlags & IRF_Volatile)
+		{
+			return false;
+		}
+		break;
+	case IRO_Add:
+	case IRO_PtrAdd:
+		if (!FoldedBase(sResult).Equals(sResult))
+		{
+			return false;
+		}
+		break;
+	case IRO_Sub:
+		break;
+	case IRO_And:
+	case IRO_Or:
+	case IRO_Xor:
+	case IRO_Not:
+		break;
+	default:
+		return false;
+	}
+
+	bStore = false;
+	sNextResult = IRNone();
+	switch (psNext->uiOpcode)
+	{
+	case IRO_Store:
+		if (!psNext->asArguments[0].Equals(sResult) || psNext->asArguments[1].Equals(sResult))
+		{
+			return false;
+		}
+		bStore = true;
+		break;
+	case IRO_Add:
+	case IRO_PtrAdd:
+	case IRO_Sub:
+		if ((psNext->uiOpcode != IRO_Sub) && !FoldedBase(psNext->sResult).Equals(psNext->sResult))
+		{
+			return false;
+		}
+		iCarries++;
+	case IRO_And:
+	case IRO_Or:
+	case IRO_Xor:
+	case IRO_Not:
+		if ((Words(psNext->sType) != Words(psInstruction->sType)) || psNext->asArguments[0].Equals(psNext->asArguments[1]))
+		{
+			return false;
+		}
+		if (!psNext->asArguments[0].Equals(sResult) && !(psNext->asArguments[1].Equals(sResult) && (psNext->uiOpcode != IRO_Sub) && (psNext->uiOpcode != IRO_Not)))
+		{
+			return false;
+		}
+		sNextResult = psNext->sResult;
+		break;
+	default:
+		return false;
+	}
+	if (sNextResult.IsTemporary() && (InX(sNextResult) || (OffsetOf(sNextResult) > 255)))
+	{
+		return false;
+	}
+
+	//The whole chain: the carry, loads before a store, and what each reads.
+	for (i = 0; i <= miFused; i++)
+	{
+		psChained = (i < miFused) ? mapsFused[i] : psInstruction;
+		if ((psChained->uiOpcode == IRO_Add) || (psChained->uiOpcode == IRO_PtrAdd) || (psChained->uiOpcode == IRO_Sub))
+		{
+			iChainCarries++;
+		}
+		if ((psChained->uiOpcode == IRO_Load) && bStore && !psChained->asArguments[0].Equals(psNext->asArguments[1]))
+		{
+			return false;
+		}
+		if (!FusedInputsKept(psChained, sNextResult))
+		{
+			return false;
+		}
+	}
+	if (iChainCarries && (IR816AndsConstant(psInstruction) || IR816AndsConstant(psNext)))
+	{
+		//An and of a constant word 0 doesn't read the word: an add's carry wouldn't get to the next.
+		return false;
+	}
+	return iChainCarries + iCarries <= 1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A word of all ones of sType: an i8's or i1's only its bits.
+//
+//////////////////////////////////////////////////////////////////////////
+static uint16 IR816AllOnes(SIRType sType)
+{
+	return sType.Is(IRTK_I8) ? 0xFF : (sType.Is(IRTK_I1) ? 1 : 0xFFFF);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether psInstruction, pcBlock's last, is fused into the block's ret of
+// its two words (Return reads the high word into A then X first, so the
+// chain can't have an add or sub's carry).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR816Backend::CanFuseReturn(CIRBlock* pcBlock, SIRInstruction* psInstruction)
+{
+	SIRInstruction*	psChained;
+	int				i;
+
+	if ((pcBlock->msJump.uiKind != IRJ_Return) || !pcBlock->msJump.sArgument.Equals(psInstruction->sResult) || (miHiddenResult >= 0) ||
+		!psInstruction->sResult.IsTemporary() || (Words(psInstruction->sType) != 2) || psInstruction->sType.IsFloat() ||
+		(*maiUseBlock.Get(psInstruction->sResult.Index()) != miBlock))
+	{
+		return false;
+	}
+	for (i = 0; i <= miFused; i++)
+	{
+		psChained = (i < miFused) ? mapsFused[i] : psInstruction;
+		switch (psChained->uiOpcode)
+		{
+		case IRO_Load:
+			if (psChained->uiFlags & IRF_Volatile)
+			{
+				return false;
+			}
+		case IRO_And:
+		case IRO_Or:
+		case IRO_Xor:
+		case IRO_Not:
+			break;
+		default:
+			return false;
+		}
+		if (!FusedInputsKept(psChained, IRNone()))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Word iWord of a load's, add's, sub's, ptradd's, and's, or's, xor's or
+// not's value into A: through the pointer ([[D + p]:24 + Y]) or a symbol's
+// long address, or the first operand's word and the second's (an add's or
+// sub's carry first with word 0).  A commutative one reads the operand kept
+// in X, or fused (CanFuse), first.  Fused operands are worked out as they
+// are read.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::WordInA(SIRInstruction* psInstruction, int iWord)
+{
+	int32			iPlace;
+	int32			iOffset;
+	char*			szSymbol;
+	uint16			uiWord;
+	const char*		szMnemonic;
+	SIRReference	sFirst;
+	SIRReference	sSecond;
+	bool			bAnd;
+	CChars			sz;
+
+	sFirst = psInstruction->asArguments[0];
+	sSecond = psInstruction->asArguments[1];
+	if ((psInstruction->uiOpcode != IRO_Sub) && (psInstruction->uiOpcode != IRO_Not) && (psInstruction->uiOpcode != IRO_Load) &&
+		(Fused(sSecond) || ((Words(psInstruction->sType) == 1) && InX(sSecond) && !InX(sFirst))))
+	{
+		sFirst = psInstruction->asArguments[1];
+		sSecond = psInstruction->asArguments[0];
+	}
+	switch (psInstruction->uiOpcode)
+	{
+	case IRO_Load:
+		PointerPlace(sFirst, &iPlace, &szSymbol, &iOffset);
+		sz.Init();
 		if (szSymbol)
 		{
 			sz.Append("lda [");
 			sz.Append(szSymbol);
 			sz.Append(" + ");
-			sz.Append(iOffset + 2 * i);
+			sz.Append(iOffset + 2 * iWord);
 			sz.Append("]:24");
 		}
 		else
 		{
-			Line("ldy ", iOffset + 2 * i);
+			Line("ldy ", iOffset + 2 * iWord);
 			sz.Append("lda [[D + ");
 			sz.Append(iPlace);
 			sz.Append("]:24 + Y]");
 		}
 		Line(sz.Text());
-		if (psInstruction->sType.Is(IRTK_I8))
+		sz.Kill();
+		return;
+	case IRO_Add:
+	case IRO_PtrAdd:
+	case IRO_Sub:
+		if (iWord == 0)
 		{
-			Line("rep m");
-			Line("and $FF");
+			Line((psInstruction->uiOpcode == IRO_Sub) ? "sec" : "clc");
 		}
-		Store(psInstruction->sResult, i);
+		Operand("lda", sFirst, iWord);
+		Operand((psInstruction->uiOpcode == IRO_Sub) ? "sbc" : "adc", sSecond, iWord);
+		return;
+	case IRO_Not:
+		Operand("lda", sFirst, iWord);
+		Line("eor $FFFF");
+		return;
+	default:
+		//A constant word that leaves the other's (and all ones, or and eor 0) is a copy; and 0 is 0.
+		bAnd = psInstruction->uiOpcode == IRO_And;
+		szMnemonic = bAnd ? "and" : ((psInstruction->uiOpcode == IRO_Or) ? "ora" : "eor");
+		if (ConstantWord(sSecond, iWord, &uiWord))
+		{
+			if (bAnd && (uiWord == 0))
+			{
+				Line("lda 0");
+				return;
+			}
+			if ((bAnd && (uiWord == IR816AllOnes(psInstruction->sType))) || (!bAnd && (uiWord == 0)))
+			{
+				Operand("lda", sFirst, iWord);
+				return;
+			}
+		}
+		Operand("lda", sFirst, iWord);
+		Operand(szMnemonic, sSecond, iWord);
+		return;
 	}
-	sz.Kill();
 }
 
 
@@ -4811,12 +5313,17 @@ void CIR816Backend::StoreMemory(SIRInstruction* psInstruction)
 		}
 		else
 		{
-			Line("ldy ", iOffset + 2 * i);
 			sz.Append("sta [[D + ");
 			sz.Append(iPlace);
 			sz.Append("]:24 + Y]");
 		}
+
+		//The value first: a fused load sets Y.
 		Operand("lda", psInstruction->asArguments[0], i);
+		if (!szSymbol)
+		{
+			Line("ldy ", iOffset + 2 * i);
+		}
 		Line(sz.Text());
 	}
 	if (psInstruction->sType.Is(IRTK_I8))
