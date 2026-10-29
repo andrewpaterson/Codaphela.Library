@@ -117,3 +117,8 @@ TestBaseLib65 816 now 45.774G (-2.01% from 46.715G), TestCPP816 -5.30% overall.
 The 6502.org "Fast multiplication" thread (t=6838) was read 2026-10-29: its fastest
 method is the same 128KB 8x8 product table; shift-and-add and quarter squares are
 slower.  What is left in R816_Mul32 is mostly call and frame overhead (~1.0G of 1.9G).
+Runtime calling convention (2026-10-29, W65C816.txt): operands in the caller's scratch
+bytes (-0.83% TestBaseLib65 816).  Routines chosen from a back end UpperBound (-0.19%)
+were removed for their complexity; R816_Mul32 checks b < 256 at run time instead
+(-0.26%).  TestBaseLib65 816 46.715G -> 44.887G (-3.91%) for all of the table, loop and
+convention work; TestCPP816 -7.48%.
