@@ -85,6 +85,16 @@ struct SIRSlotAccess
 };
 
 
+//An unsigned divide or remainder by a constant that BoundDivisions makes cheaper: the dividend is below the divisor
+//(bOnce false) or below twice it.
+struct SIRBoundDivision
+{
+	CIRBlock*		pcBlock;
+	size			uiInstruction;
+	bool			bOnce;
+};
+
+
 //A loop's counter for ReplaceLoopIdioms: i = phi [init, i + 1], round while i + 1 < n (signed, unsigned or not equal).
 struct SIRIdiomCounter
 {
@@ -126,6 +136,9 @@ struct SIRIdiomAddress
 //						values as an earlier phi of its block is that phi
 //	narrowing			trunc of add, sub, mul, and, or, xor or shl by a constant that only it uses, with an
 //						extended or constant operand, is the operation done narrow (C's char promotions)
+//	bounded divisions	an unsigned x / c or x % c with x known to be below c (its most worked out from
+//						constants, extensions, ands, shifts, adds and the branches into phis) is 0 or x,
+//						and below 2c a compare and subtract
 //	constant folding	integer instructions (and integer and pointer conversions) of constants; x * 2^n is
 //						x << n and unsigned / and % by 2^n are >> and &; a comparison of two extended narrow
 //						values compares the narrow values; a comparison a branch on the way in decides is a
@@ -137,11 +150,12 @@ struct SIRIdiomAddress
 //						that may change it between) is that value; a load from a constant global or known
 //						data (a vtable) is what is there
 //	loop rotation		a loop whose head tests and whose latch jumps back tests at the bottom: the head is
-//						copied to the preheader and the latch (the SSA updater joins the copies' values)
+//						copied to the preheader and the latch (the SSA updater joins the copies' values); a
+//						loop entered from several blocks gets a preheader whose phis join what they pass
 //	loop idioms			a loop that only fills (or copies) memory a byte or element at a time is a memset (or a
 //						memmove, when a check on the way in finds the copy doesn't overlap the wrong way); one
 //						that counts bytes until a 0 is strlen (what leaves it worked out from the length); one
-//						that leaves at the first elements that differ is memcmp (as equal or not)
+//						that leaves at the first elements that differ is memcmp (as equal or not); one
 //						that leaves at the first byte that is c is memchr (what found uses worked out from where
 //						it is); one that steps a pointer to c, leaving at a 0 first, is strchr
 //	less loop tests		a loop that goes round while a <= b (signed) goes round while a < b + 1 when b + 1 can't
@@ -151,6 +165,7 @@ struct SIRIdiomAddress
 //	invariant code		loads and integer operations in a loop of what the loop doesn't change move to the
 //						block that enters it (one put on the way when that block branches)
 //	dead code			instructions without effects whose results are not used
+//	sunk comparisons	an integer comparison only its block's brif uses moves to the block's end
 
 
 class CIROptimiser
@@ -194,8 +209,10 @@ public:
 	bool			HoistInvariants(void);
 	bool			RotateLoops(void);
 	bool			NarrowTruncations(void);
+	bool			BoundDivisions(void);
 	bool			ReplaceLoopIdioms(void);
 	bool			RemoveDeadCode(void);
+	bool			SinkComparisons(void);
 
 protected:
 	void			ClearReplacements(void);
@@ -241,7 +258,6 @@ protected:
 	SIRReference	SamePhi(CIRBlock* pcBlock, size uiPhi);
 	void			MergeAvailable(CIRBlock* pcBlock, CArrayIRAvailables* pasAvailable, CArrayIRAvailables* pasEnds, CArrayTemplate<SIRBlockEnd>* pasBlockEnds);
 	bool			CanStep(SIRReference sValue, int iStep);
-	SIRReference	AppendInstruction(CIRBlock* pcBlock, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond);
 	void			SplitAddress(SIRReference sAddress, SIRReference* psRoot, int64* plliOffset);
 	bool			IsFrameRoot(SIRReference sRoot);
 	bool			MayAlias(SIRAvailable* psAvailable, SIRReference sRoot, int64 lliOffset, int iBytes);
@@ -250,6 +266,7 @@ protected:
 	bool			NarrowComparison(SIRInstruction* psInstruction);
 	bool			SlotOffset(SIRReference sAddress, SIRReference* psSlot, int64* plliOffset);
 	CIRBlock*		AddPreheader(size uiLoop);
+	CIRBlock*		AddMergedPreheader(size uiLoop);
 	bool			CanRotate(size uiLoop, CIRBlock** ppcBody, CIRBlock** ppcExit);
 	void			CopyHead(CIRBlock* pcHead, CIRBlock* pcBlock, CArrayIRReferences* pasMap);
 	void			SplitPhiArguments(CIRBlock* pcBlock, CIRBlock* pcHead, CIRBlock* pcPreheader, CArrayIRReferences* pasPreheader, CIRBlock* pcLatch, CArrayIRReferences* pasLatch);
@@ -268,8 +285,13 @@ protected:
 	bool			MatchLinear(size uiLoop, SIRReference sValue, SIRReference* psStart, int64* plliStep, bool* pbNext);
 	SIRReference	IdiomStart(CIRBlock* pcBlock, SIRIdiomAddress* psAddress, SIRIdiomCounter* psCounter);
 	SIRReference	IdiomBytes(CIRBlock* pcBlock, SIRIdiomCounter* psCounter, int64 lliBytes);
-	SIRReference	LibraryCall(CIRBlock* pcBlock, const char* szName, SIRReference sFirst, SIRType sFirstType, SIRReference sSecond, SIRType sSecondType, SIRReference sBytes);
+	bool			OnlyLoads(CIRBlock* pcBlock, int iLoads, SIRInstruction** apsLoads);
+	bool			GuardedBy(size uiLoop, uint16 uiOpcode, SIRReference sLeft, SIRReference sRight);
+	SIRReference	LibraryCall(CIRBlock* pcBlock, const char* szName, SIRType sResultType, SIRReference sFirst, SIRType sFirstType, SIRReference sSecond = IRNone(), SIRType sSecondType = IRType(IRTK_I32), SIRReference sThird = IRNone(), SIRType sThirdType = IRType(IRTK_I32));
 	SIRReference	FreeNarrow(SIRReference sValue, SIRType sType);
+	uint64			UpperBound(SIRReference sValue, int iDepth);
+	uint64			EdgeBound(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue);
+	SIRReference	InsertInstruction(CIRBlock* pcBlock, size uiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond);
 	SIRReference	Narrowed(SIRReference sValue, SIRType sType, CArrayIRInstructions* pasNew, int iDepth);
 };
 

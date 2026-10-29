@@ -3175,6 +3175,7 @@ bool CCPP65Generator::Condition(CCPPSyntax* pcExpression, bool bJumpIf, int iLab
 				mpszOut->AppendNewLine();
 				return true;
 			}
+			ComparisonRange(pcBinary);
 			psLeft = Operands(pcBinary->mpcLeft, pcBinary->mpcRight, &sRight);
 			return Compare(pcBinary->meOperator, psLeft, &sRight, bJumpIf, iLabel, pcBinary);
 		default:
@@ -4324,7 +4325,9 @@ void CCPP65Generator::ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue,
 // Warns if pcExpression is an integer constant that an implicit conversion to
 // psTo truncates: it fits neither psTo's signed nor its unsigned range (so -1
 // to an unsigned type and 0xFFFF to a 16 bit signed one are bit patterns, not
-// warned about).  89037124 passed to an int parameter is.
+// warned about).  89037124 passed to an int parameter is.  With
+// SetWarnNarrowing a non constant integer converted to a narrower type is
+// warned about too: a 32 bit index stored in a 16 bit one.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo)
@@ -4356,6 +4359,13 @@ void CCPP65Generator::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* p
 	mbQuietFailed = bQuietFailed;
 	if (!bConstant)
 	{
+		if (mbWarnNarrowing && (psFrom->eKind == CPP65TK_Integer) && (psFrom->iBytes > psTo->iBytes))
+		{
+			szMessage.Init("Integer conversion narrows: a ");
+			szMessage.Append(psFrom->iBytes * 8)->Append(" bit value is converted to the ")->Append(psTo->iBytes * 8)->Append(" bit type and may be truncated.");
+			Warning(pcExpression, szMessage.Text());
+			szMessage.Kill();
+		}
 		return;
 	}
 
@@ -4368,6 +4378,120 @@ void CCPP65Generator::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* p
 	szMessage.Init("Integer conversion overflow: the constant ");
 	szMessage.Append(lliValue)->Append(" doesn't fit the ")->Append(iBits)->Append(" bit type it is converted to and is truncated.");
 	Warning(pcExpression, szMessage.Text());
+	szMessage.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Warns if one side of an integer comparison is a constant outside the range
+// of the other side's type, so the comparison is always true or always false:
+// a 16 bit size compared with 0xFFFFFFFF (a 32 bit "not found").  The constant
+// is converted to the comparison's type first, so -1 compared with a 16 bit
+// unsigned int is 0xFFFF and fine.  A side the comparison's type can't hold
+// every value of (signed compared as unsigned, or a 32 bit unsigned enum
+// compared as a 32 bit long) wraps, so it isn't looked at.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary)
+{
+	SCPP65Type*		psLeft;
+	SCPP65Type*		psRight;
+	SCPP65Type*		psVariable;
+	SCPP65Type*		psCommon;
+	CCPPSyntax*		pcConstant;
+	int64			lliValue;
+	int64			lliMin;
+	int64			lliMax;
+	int64			lliMask;
+	int				iBits;
+	bool			bConstant;
+	bool			bQuietFailed;
+	bool			bAlways;
+	CChars			szMessage;
+
+	if (miWarningChecks > 0)
+	{
+		return;
+	}
+	miWarningChecks++;
+	psLeft = TypeOf(pcBinary->mpcLeft);
+	psRight = TypeOf(pcBinary->mpcRight);
+	miWarningChecks--;
+	if (!psLeft || !psRight || (psLeft->eKind != CPP65TK_Integer) || (psRight->eKind != CPP65TK_Integer))
+	{
+		return;
+	}
+
+	//Most comparisons have no constant side; looking must not leave an error.
+	bQuietFailed = mbQuietFailed;
+	BeginQuiet();
+	pcConstant = pcBinary->mpcRight;
+	psVariable = psLeft;
+	bConstant = Constant(pcConstant, &lliValue);
+	if (!bConstant)
+	{
+		pcConstant = pcBinary->mpcLeft;
+		psVariable = psRight;
+		bConstant = Constant(pcConstant, &lliValue) && !Constant(pcBinary->mpcRight, &lliMin);
+	}
+	else if (Constant(pcBinary->mpcLeft, &lliMin))
+	{
+		bConstant = false;
+	}
+	EndQuiet();
+	mbQuietFailed = bQuietFailed;
+	if (!bConstant)
+	{
+		return;
+	}
+
+	psCommon = mcTypes.Arithmetic(psLeft, psRight);
+	if (!psCommon || (psCommon->iBytes >= 8) || (psVariable->bSigned && !psCommon->bSigned) || (!psVariable->bSigned && psCommon->bSigned && (psCommon->iBytes <= psVariable->iBytes)))
+	{
+		return;
+	}
+
+	//The constant as the comparison's type sees it.
+	iBits = psCommon->iBytes * 8;
+	lliMask = ((int64)1 << iBits) - 1;
+	lliValue &= lliMask;
+	if (psCommon->bSigned && (lliValue > (lliMask >> 1)))
+	{
+		lliValue -= lliMask + 1;
+	}
+
+	iBits = psVariable->iBytes * 8;
+	if (psVariable->bSigned)
+	{
+		lliMin = -((int64)1 << (iBits - 1));
+		lliMax = ((int64)1 << (iBits - 1)) - 1;
+	}
+	else
+	{
+		lliMin = 0;
+		lliMax = ((int64)1 << iBits) - 1;
+	}
+	if ((lliValue >= lliMin) && (lliValue <= lliMax))
+	{
+		return;
+	}
+
+	//Out of range: the result is the same for every value of the variable side.
+	switch (pcBinary->meOperator)
+	{
+	case CT_EqualTo:				bAlways = false;	break;
+	case CT_NotEqualTo:				bAlways = true;		break;
+	case CT_LessThan:
+	case CT_LessThanEqualTo:		bAlways = (lliValue > lliMax) == (pcConstant == pcBinary->mpcRight);	break;
+	case CT_GreaterThan:
+	case CT_GreaterThanEqualTo:		bAlways = (lliValue < lliMin) == (pcConstant == pcBinary->mpcRight);	break;
+	default:						return;
+	}
+
+	szMessage.Init("Comparison is always ");
+	szMessage.Append(bAlways ? "true" : "false")->Append(": the constant ")->Append(lliValue)->Append(" is out of the range of the ")->Append(iBits)->Append(" bit ")->Append(psVariable->bSigned ? "signed" : "unsigned")->Append(" value it is compared with.");
+	Warning(pcBinary, szMessage.Text());
 	szMessage.Kill();
 }
 

@@ -310,6 +310,17 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	- softfloat816.asm and string816.asm
 	- a fixed page for leaf functions without a prologue
 	QUESTION 2 decides the order.
+	Done so far (2026-10-29), TestBaseLib65 816 from 108G cycles to 48G: string816.asm
+	(mvn/mvp patched at run time) and runtime fast paths for multiply and divide;
+	temporaries packed into shared places by live ranges with holes; 1 word values kept
+	in A from their store to their one load in a block, and some in X (AllocateX); dead
+	store and load removal; .relax branches; shifts by a count in X with a word in A;
+	pei pushes; byte loads as a masked word unless volatile; and values of two or more
+	words used once by the next instruction read into A a word at a time as it goes, in
+	chains (CanFuse, WordInA: a load, or and store back is lda, ora, sta per word).  The
+	IR side: loop rotation (with a preheader joining several ways in), strength reduction
+	of p + i, loop idioms (memset, memmove, strlen, memcmp, memchr, strchr), narrowing,
+	and unsigned divides by constants of bounded values as compares.
 
 8.	The real machine: a memory map description (ROM and RAM regions, load and run
 	addresses, the bank swap), a ROM image as the link output, a start up in the

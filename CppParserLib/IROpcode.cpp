@@ -222,6 +222,29 @@ uint16 IRInvertedComparison(uint16 uiOpcode)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The integer comparison of the operands the other way round: a < b is
+// b > a.
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 IRSwappedComparison(uint16 uiOpcode)
+{
+	switch (uiOpcode)
+	{
+	case IRO_SLt:	return IRO_SGt;
+	case IRO_SLe:	return IRO_SGe;
+	case IRO_SGt:	return IRO_SLt;
+	case IRO_SGe:	return IRO_SLe;
+	case IRO_ULt:	return IRO_UGt;
+	case IRO_ULe:	return IRO_UGe;
+	case IRO_UGt:	return IRO_ULt;
+	case IRO_UGe:	return IRO_ULe;
+	default:		return uiOpcode;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // trunc, sext and zext: an integer to an integer of another width.
 //
 //////////////////////////////////////////////////////////////////////////

@@ -34,6 +34,7 @@ class CIR816LiveRanges;
 #define IR816_SCRATCH_RESULT	5
 #define IR816_SCRATCH_COUNT		13
 #define IR816_SCRATCH_VALUE		15
+#define IR816_MAX_FUSED			4
 #define IR816_FIRST_TEMPORARY	23
 
 //The bytes between the frame and the arguments: the caller's D (phd) and the return address (jsl).
@@ -84,12 +85,16 @@ protected:
 	CArrayTemplate<int32>	maiUseBlock;		//Per temporary: the block of its one use by an instruction or a jump, else -1.
 	int32					miBlock;			//The block being written.
 	CArrayTemplate<uint8>	mabInX;				//Per temporary: kept in X instead of its frame place (AllocateX).
+	SIRInstruction*			mapsFused[IR816_MAX_FUSED];	//Not written: the next instruction reads their words into A as it goes (CanFuse).
+	int						miFused;
 
 public:
 	void			Init(CIRModule* pcModule, int* piLabels);
 	void			Kill(void);
 	bool			GenerateModule(CChars* pszDest, CCPPErrors* pcErrors);
 	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors);
+	void			GenerateBody(const char* szLabel, size uiStart);
+	void			DropFrame(size uiStart);
 	void			FindSingleUses(void);
 	void			GenerateGlobal(CIRGlobal* pcGlobal, CChars* pszDest);
 	CArrayChars*	GetRuntime(void);
@@ -132,8 +137,9 @@ protected:
 	SIRReference	FoldedBase(SIRReference sValue);
 
 	bool			Instruction(CIRBlock* pcBlock, size uiIndex);
-	void			Arithmetic(SIRInstruction* psInstruction, const char* szCarry, const char* szMnemonic);
-	void			Logic(SIRInstruction* psInstruction, const char* szMnemonic, uint64 ulliNot);
+	void			Arithmetic(SIRInstruction* psInstruction);
+	bool			StepInPlace(SIRInstruction* psInstruction);
+	void			Logic(SIRInstruction* psInstruction);
 	void			Shift(SIRInstruction* psInstruction);
 	void			ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd);
 	void			ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd);
@@ -150,6 +156,12 @@ protected:
 	void			ExtendInX(SIRInstruction* psInstruction);
 	void			Address(SIRInstruction* psInstruction, int32 iOffset);
 	void			Load(SIRInstruction* psInstruction);
+	bool			CanFuse(CIRBlock* pcBlock, size uiIndex);
+	bool			CanFuseReturn(CIRBlock* pcBlock, SIRInstruction* psInstruction);
+	bool			FusedOverlaps(SIRReference sResult, SIRReference sInput, bool bAnyOverlap);
+	bool			FusedInputsKept(SIRInstruction* psInstruction, SIRReference sResult);
+	SIRInstruction*	Fused(SIRReference sValue);
+	void			WordInA(SIRInstruction* psInstruction, int iWord);
 	void			StoreMemory(SIRInstruction* psInstruction);
 	void			Call(CIRBlock* pcBlock, SIRInstruction* psInstruction);
 	void			CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction);

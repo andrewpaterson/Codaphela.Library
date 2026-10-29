@@ -447,6 +447,7 @@ protected:
 	CArrayChars				maszEmitted;		//Labels of the functions, vtables, thunks and runtime routines written.
 	int						miQuiet;			//Errors are not reported, only noted in mbQuietFailed.
 	int						miWarningChecks;	//Above 0 while a warning check works out a type (TypeOf can fold the same constant again).
+	bool					mbWarnNarrowing;	//Implicit conversions of non constant integers to a narrower type are warned about.
 	bool					mbQuietFailed;
 	CArrayCPP65Strings		maszStrings;
 	CChars					mszInitialise;		//Works out the global being defined (its R_Initialise).
@@ -484,6 +485,9 @@ public:
 	void					SetUseIR(bool bUseIR);
 	static void				SetDefaultUseIR(bool bUseIR);
 	static bool				GetDefaultUseIR(void);
+	void					SetWarnNarrowing(bool bWarnNarrowing);
+	static void				SetDefaultWarnNarrowing(bool bWarnNarrowing);
+	static bool				GetDefaultWarnNarrowing(void);
 
 	bool					Generate(CChars* pszDest);
 	bool					GenerateProgram(CChars* pszDest);
@@ -818,6 +822,7 @@ protected:
 	bool					Constant(CCPPSyntax* pcExpression, int64* plliValue);
 	void					ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue, bool bUnsignedWraps);
 	void					ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo);
+	void					ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary);
 	bool					TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValue);
 	bool					EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue);
 	SCPP65Type*				EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSpecifier);
