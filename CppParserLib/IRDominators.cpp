@@ -36,6 +36,8 @@ void CIRDominators::Init(void)
 	maiTreePost.Init();
 	maiChildStart.Init();
 	maiChildren.Init();
+	mapcFrontiers.Init();
+	maiFrontierStarts.Init();
 	masStack.Init();
 }
 
@@ -47,6 +49,8 @@ void CIRDominators::Init(void)
 void CIRDominators::Kill(void)
 {
 	masStack.Kill();
+	maiFrontierStarts.Kill();
+	mapcFrontiers.Kill();
 	maiChildren.Kill();
 	maiChildStart.Kill();
 	maiTreePost.Kill();
@@ -355,4 +359,126 @@ size CIRDominators::NumReachable(void)
 CIRBlock* CIRDominators::GetReversePostOrder(size uiIndex)
 {
 	return mapcReversePostOrder.GetPtr(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The blocks pcBlock immediately dominates, in the function's order.
+//
+//////////////////////////////////////////////////////////////////////////
+size CIRDominators::NumChildren(CIRBlock* pcBlock)
+{
+	int32	iStart;
+
+	iStart = (pcBlock->muiIndex == 0) ? 0 : *maiChildStart.Get(pcBlock->muiIndex - 1);
+	return (size)(*maiChildStart.Get(pcBlock->muiIndex) - iStart);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIRBlock* CIRDominators::GetChild(CIRBlock* pcBlock, size uiIndex)
+{
+	int32	iStart;
+
+	iStart = (pcBlock->muiIndex == 0) ? 0 : *maiChildStart.Get(pcBlock->muiIndex - 1);
+	return mpcFunction->GetBlock(*maiChildren.Get(iStart + uiIndex));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each block's dominance frontier (Cooper, Harvey and Kennedy): the join
+// blocks it reaches where its dominance ends.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRDominators::ComputeFrontiers(void)
+{
+	size					ui;
+	size					uiPredecessor;
+	size					uiNumBlocks;
+	CIRBlock*				pcBlock;
+	CIRBlock*				pcRunner;
+	CIRBlock*				pcIdom;
+	CArrayTemplate<int32>	aiPairs;		//Block index, frontier block index, ...
+	CArrayTemplate<int32>	aiStamps;
+	int32					iPair[2];
+	int32*					piStart;
+
+	uiNumBlocks = mpcFunction->NumBlocks();
+	aiPairs.Init();
+	aiStamps.Init();
+	aiStamps.GrowToAtLeastNumElements(uiNumBlocks, true, 0xFF);
+	for (ui = 0; ui < uiNumBlocks; ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		if ((pcBlock->mapcPredecessors.NumElements() < 2) || !IsReachable(pcBlock))
+		{
+			continue;
+		}
+		pcIdom = GetImmediate(pcBlock);
+		for (uiPredecessor = 0; uiPredecessor < pcBlock->mapcPredecessors.NumElements(); uiPredecessor++)
+		{
+			pcRunner = pcBlock->mapcPredecessors.GetPtr(uiPredecessor);
+			while (pcRunner && (pcRunner != pcIdom) && IsReachable(pcRunner))
+			{
+				if (*aiStamps.Get(pcRunner->muiIndex) != (int32)ui)
+				{
+					*aiStamps.Get(pcRunner->muiIndex) = (int32)ui;
+					iPair[0] = (int32)pcRunner->muiIndex;
+					iPair[1] = (int32)ui;
+					aiPairs.Add(&iPair[0]);
+					aiPairs.Add(&iPair[1]);
+				}
+				pcRunner = GetImmediate(pcRunner);
+			}
+		}
+	}
+
+	//Grouped by block: maiFrontierStarts[b] to [b + 1].
+	maiFrontierStarts.FakeSetUsedElements(0);
+	maiFrontierStarts.GrowToAtLeastNumElements(uiNumBlocks + 1, true, 0);
+	for (ui = 0; ui < aiPairs.NumElements(); ui += 2)
+	{
+		(*maiFrontierStarts.Get(*aiPairs.Get(ui) + 1))++;
+	}
+	for (ui = 1; ui <= uiNumBlocks; ui++)
+	{
+		*maiFrontierStarts.Get(ui) += *maiFrontierStarts.Get(ui - 1);
+	}
+	mapcFrontiers.FakeSetUsedElements(0);
+	mapcFrontiers.GrowToAtLeastNumElements(aiPairs.NumElements() / 2 + 1, true, 0);
+	aiStamps.FakeSetUsedElements(0);
+	aiStamps.GrowToAtLeastNumElements(uiNumBlocks, true, 0);
+	for (ui = 0; ui < aiPairs.NumElements(); ui += 2)
+	{
+		piStart = aiStamps.Get(*aiPairs.Get(ui));
+		*mapcFrontiers.Get(*maiFrontierStarts.Get(*aiPairs.Get(ui)) + *piStart) = mpcFunction->GetBlock(*aiPairs.Get(ui + 1));
+		(*piStart)++;
+	}
+	aiStamps.Kill();
+	aiPairs.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CIRDominators::NumFrontiers(CIRBlock* pcBlock)
+{
+	return (size)(*maiFrontierStarts.Get(pcBlock->muiIndex + 1) - *maiFrontierStarts.Get(pcBlock->muiIndex));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIRBlock* CIRDominators::GetFrontier(CIRBlock* pcBlock, size uiIndex)
+{
+	return mapcFrontiers.GetPtr(*maiFrontierStarts.Get(pcBlock->muiIndex) + uiIndex);
 }

@@ -22,6 +22,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __I_R_OPTIMISER_H__
 #include "IRModule.h"
 #include "IRDominators.h"
+#include "IRLoops.h"
+
+
+class CIRSSAUpdater;
 
 
 //A slot (or argaddr) being promoted: its accesses' type and its value where nothing has been stored.
@@ -69,8 +73,6 @@ struct SIRBlockEnd
 };
 
 
-typedef CArrayTemplatePtr<SIRInstruction>	CArrayIRInstructionPtrs;
-typedef CArrayTemplatePtr<SIRPhi>			CArrayIRPhiPtrs;
 
 
 //A load or store of a slot at a constant offset, and the slot of its own it gets when the slot is split.
@@ -91,8 +93,8 @@ struct SIRSlotAccess
 //
 //	simplify cfg		removes unreachable blocks, jumps through empty blocks, joins a block to its only
 //						successor when it is that block's only predecessor, folds brif on a constant, skips
-//						an empty brif a predecessor knows the way of, and copies a block of only phis and a
-//						ret into the blocks that jump to it
+//						an empty brif a predecessor knows the way of (or a brif its phi arguments decide),
+//						and copies a block of only phis and a ret into the blocks that jump to it
 //	slot splitting		a slot only loaded and stored at constant offsets that don't overlap (an object's
 //						fields) becomes a slot per offset
 //	slot promotion		slots and argaddrs only loaded and stored (all at one type, not volatile) become
@@ -107,6 +109,8 @@ struct SIRSlotAccess
 //	redundant loads		a load of a value known to be in memory (loaded or stored before it, with nothing
 //						that may change it between) is that value; a load from a constant global or known
 //						data (a vtable) is what is there
+//	loop rotation		a loop whose head tests and whose latch jumps back tests at the bottom: the head is
+//						copied to the preheader and the latch (the SSA updater joins the copies' values)
 //	less loop tests		a loop that goes round while a <= b (signed) goes round while a < b + 1 when b + 1 can't
 //						wrap and b is invariant (or a - 1 < b): the 65C64 branches on less in one instruction
 //	strength reduction	in a loop with a counter i (i + c each time round), an address p + (i << s) or p + i * k
@@ -122,6 +126,8 @@ protected:
 	CIRModule*				mpcModule;
 	CIRFunction*			mpcFunction;
 	CIRDominators			mcDominators;
+	CIRDefinitions			mcDefinitions;		//Each temporary's definition (FindDefinitions).
+	CIRLoops				mcLoops;			//The loops (ComputeLoops).
 	CArrayIRReferences		masReplacements;	//Per temporary: what to use instead, IRNone to keep it.
 	CArrayTemplate<uint32>	mauiUses;			//Per temporary.
 	CArrayIRPromotions		masPromotions;
@@ -131,12 +137,6 @@ protected:
 	CArrayTemplate<int32>	maiValueLinks;		//...as a list through this (the previous value's index, -1).
 	CArrayTemplate<int32>	maiTops;			//Per promotion: the top value's index, -1 for none.
 	CArrayTemplate<int32>	maiPushedPromotions;	//The promotion of each value pushed, in order.
-	CArrayIRBlocks			mapcFrontiers;		//Dominance frontiers, per block from maiFrontierStarts.
-	CArrayTemplate<int32>	maiFrontierStarts;
-	CArrayTemplate<int32>	maiChildren;		//The dominator tree, per block from maiChildStarts.
-	CArrayTemplate<int32>	maiChildStarts;
-	CArrayIRInstructionPtrs	mapsDefinitions;	//Per temporary: the instruction that defines it, NULL for none.
-	CArrayIRPhiPtrs			mapsPhis;			//Per temporary: the phi that defines it, NULL for none.
 	CArrayIRReferences		masArgAddresses;	//Per parameter: its first argaddr, IRNone for none.
 
 public:
@@ -155,6 +155,7 @@ public:
 	bool			LessLoopTests(void);
 	bool			ReduceStrength(void);
 	bool			HoistInvariants(void);
+	bool			RotateLoops(void);
 	bool			RemoveDeadCode(void);
 
 protected:
@@ -172,12 +173,13 @@ protected:
 	bool			SkipEmptyBlocks(void);
 	int				KnownCondition(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIRReference sCondition);
 	bool			ThreadBranches(void);
+	bool			OnlyUsedInBlock(CIRBlock* pcBlock);
+	CIRBlock*		KnownTarget(CIRBlock* pcPredecessor, CIRBlock* pcBlock);
+	bool			ThreadPhis(void);
 	bool			DuplicateReturns(void);
 	bool			JoinBlocks(void);
 	int32			PromotionOf(SIRReference sAddress);
 	void			FindPromotions(void);
-	void			ComputeFrontiers(void);
-	void			ComputeChildren(void);
 	void			PlacePhis(void);
 	void			PushValue(int32 iPromotion, SIRReference sValue);
 	void			PopValue(void);
@@ -193,13 +195,10 @@ protected:
 	int				EntryRelations(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIRInstruction* psInstruction);
 	bool			ImpliedComparison(CIRBlock* pcBlock, SIRInstruction* psInstruction, uint64* pulliResult, bool* pbChanged);
 	void			FindDefinitions(void);
-	SIRInstruction*	Definition(SIRReference sValue);
+	void			ComputeLoops(void);
 	SIRReference	ConstantData(SIRReference sRoot, int64 lliOffset, SIRType sType);
 	SIRReference	SamePhi(CIRBlock* pcBlock, size uiPhi);
 	void			MergeAvailable(CIRBlock* pcBlock, CArrayIRAvailables* pasAvailable, CArrayIRAvailables* pasEnds, CArrayTemplate<SIRBlockEnd>* pasBlockEnds);
-	bool			FindLoop(CIRBlock* pcHead, CArrayTemplate<int32>* paiLoop, CArrayIRBlocks* papcStack, CIRBlock** ppcEntering);
-	void			FindDefiningBlocks(CArrayTemplate<int32>* paiDefined);
-	bool			IsLoopInvariant(SIRReference sValue, CArrayTemplate<int32>* paiDefined, CArrayTemplate<int32>* paiLoop, int32 iHead);
 	bool			CanStep(SIRReference sValue, int iStep);
 	SIRReference	AppendInstruction(CIRBlock* pcBlock, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond);
 	void			SplitAddress(SIRReference sAddress, SIRReference* psRoot, int64* plliOffset);
@@ -209,7 +208,11 @@ protected:
 	SIRReference	Unextended(SIRReference sValue, uint16 uiOpcode, SIRType* psType);
 	bool			NarrowComparison(SIRInstruction* psInstruction);
 	bool			SlotOffset(SIRReference sAddress, SIRReference* psSlot, int64* plliOffset);
-	CIRBlock*		AddPreheader(CIRBlock* pcEntering, CIRBlock* pcHead);
+	CIRBlock*		AddPreheader(size uiLoop);
+	bool			CanRotate(size uiLoop, CIRBlock** ppcBody, CIRBlock** ppcExit);
+	void			CopyHead(CIRBlock* pcHead, CIRBlock* pcBlock, CArrayIRReferences* pasMap);
+	void			SplitPhiArguments(CIRBlock* pcBlock, CIRBlock* pcHead, CIRBlock* pcPreheader, CArrayIRReferences* pasPreheader, CIRBlock* pcLatch, CArrayIRReferences* pasLatch);
+	void			RewriteUses(SIRReference sValue, CIRSSAUpdater* pcUpdater);
 };
 
 

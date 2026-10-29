@@ -21,7 +21,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __I_R_LIVENESS_H__
 #define __I_R_LIVENESS_H__
 #include "IRFunction.h"
-#include "IRDominators.h"
+#include "IRLoops.h"
 
 
 //Positions [iFrom, iTo) a temporary is live over.
@@ -49,7 +49,7 @@ protected:
 	CArrayTemplate<uint32>	mauiLiveIn;			//Per block index: muiWords words of bits, one per temporary.
 	CArrayTemplate<uint32>	mauiLiveOut;
 	CArrayIRBlockNumbers	maiStarts;			//Per block index.
-	CArrayIRBlockNumbers	maiLoopDepths;		//Per block index: how many loops it is in.
+	CIRLoops				mcLoops;
 	CArrayIRRanges			masRanges;			//Every temporary's ranges, in order, from maiFirstRanges.
 	CArrayIRBlockNumbers	maiFirstRanges;		//Per temporary + 1.
 	CArrayTemplate<uint32>	mauiWeights;		//Per temporary: its definition and uses, 8 times more per loop.
@@ -59,7 +59,6 @@ public:
 	void			Kill(void);
 
 	void			Compute(CIRFunction* pcFunction, CIRDominators* pcDominators);
-	void			ComputeLoops(CIRFunction* pcFunction, CIRDominators* pcDominators);
 
 	int32			Start(CIRBlock* pcBlock);
 	int32			Position(CIRBlock* pcBlock, size uiInstruction);
@@ -75,7 +74,6 @@ public:
 
 protected:
 	void			Number(void);
-	void			ComputeLoopDepths(CIRDominators* pcDominators);
 	uint32*			LiveIn(size uiBlock);
 	uint32*			LiveOut(size uiBlock);
 	void			ComputeSets(void);

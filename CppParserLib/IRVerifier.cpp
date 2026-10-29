@@ -379,7 +379,7 @@ bool CIRVerifier::CheckDefinitions(void)
 //////////////////////////////////////////////////////////////////////////
 void CIRVerifier::Define(SIRReference sResult, CIRBlock* pcBlock, int32 iPosition)
 {
-	SIRDefinition*	psDefinition;
+	SIRVerifierDefinition*	psDefinition;
 
 	if (!sResult.IsTemporary() || !CheckReference(sResult))
 	{
@@ -407,7 +407,7 @@ void CIRVerifier::Define(SIRReference sResult, CIRBlock* pcBlock, int32 iPositio
 //////////////////////////////////////////////////////////////////////////
 void CIRVerifier::CheckUse(SIRReference sOperand, CIRBlock* pcBlock, int32 iPosition)
 {
-	SIRDefinition*	psDefinition;
+	SIRVerifierDefinition*	psDefinition;
 
 	if (!sOperand.IsTemporary())
 	{

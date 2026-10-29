@@ -52,6 +52,8 @@ protected:
 	CArrayIRBlockNumbers	maiTreePost;
 	CArrayIRBlockNumbers	maiChildStart;		//Per block index + 1: where its children start in maiChildren.
 	CArrayIRBlockNumbers	maiChildren;
+	CArrayIRBlocks			mapcFrontiers;		//Dominance frontiers (ComputeFrontiers), per block from maiFrontierStarts.
+	CArrayIRBlockNumbers	maiFrontierStarts;	//Per block index + 1.
 	CArrayIRSearches		masStack;
 
 public:
@@ -65,6 +67,12 @@ public:
 	bool		IsBackEdge(CIRBlock* pcFrom, CIRBlock* pcHead);
 	size		NumReachable(void);
 	CIRBlock*	GetReversePostOrder(size uiIndex);
+	size		NumChildren(CIRBlock* pcBlock);
+	CIRBlock*	GetChild(CIRBlock* pcBlock, size uiIndex);
+
+	void		ComputeFrontiers(void);
+	size		NumFrontiers(CIRBlock* pcBlock);
+	CIRBlock*	GetFrontier(CIRBlock* pcBlock, size uiIndex);
 
 protected:
 	void		Reset(CArrayIRBlockNumbers* paiNumbers, size uiNumBlocks);

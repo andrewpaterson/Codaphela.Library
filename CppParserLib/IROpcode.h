@@ -133,6 +133,12 @@ enum EIRShape
 #define IRF_NumWordFlags	3
 
 
+//What optimising may do with an opcode's instructions.  A target's opcodes have none, so are left alone.
+#define IROP_Pure			0x01		//No effect and reads no memory: removed when unused, worked out once, moved.
+#define IROP_Commutative	0x02		//a op b is b op a.
+#define IROP_MayTrap		0x04		//Fails on some operands (division by 0): only moved where it would be done anyway.
+
+
 struct SIROpcode
 {
 	const char*	szName;
@@ -142,6 +148,7 @@ struct SIROpcode
 	uint8		auiOperands[2];		//EIROperandKind.
 	uint8		uiResult;			//EIRResultKind.
 	uint8		uiFlags;			//The IRF_ flags allowed.
+	uint8		uiProperties;		//IROP_.
 
 	int			NumOperands(void);
 };
@@ -164,6 +171,8 @@ bool		IsIRSignedComparison(uint16 uiOpcode);
 bool		IsIRSwappedComparison(uint16 uiOpcode);
 uint16		IRInvertedComparison(uint16 uiOpcode);
 bool		IsIRIntegerConversion(uint16 uiOpcode);
+bool		IsIRPure(uint16 uiOpcode);
+bool		IsIRCommutative(uint16 uiOpcode);
 
 
 #endif // __I_R_OPCODE_H__

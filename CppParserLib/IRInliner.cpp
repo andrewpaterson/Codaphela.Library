@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "IRLiveness.h"
+#include "IRLoops.h"
 #include "IRInliner.h"
 
 
@@ -223,7 +223,7 @@ bool CIRInliner::InlineCalls(CIRFunction* pcCaller)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Which of the caller's blocks are in a loop (CIRLiveness's loop depths),
+// Which of the caller's blocks are in a loop (CIRLoops),
 // worked out only if a call's callee is small enough for a loop but not
 // otherwise.
 //
@@ -231,7 +231,7 @@ bool CIRInliner::InlineCalls(CIRFunction* pcCaller)
 void CIRInliner::FindLoops(void)
 {
 	CIRDominators	cDominators;
-	CIRLiveness		cLiveness;
+	CIRLoops		cLoops;
 	size			ui;
 	bool			bInLoop;
 
@@ -250,14 +250,14 @@ void CIRInliner::FindLoops(void)
 	mpcCaller->ComputePredecessors();
 	cDominators.Init();
 	cDominators.Compute(mpcCaller);
-	cLiveness.Init();
-	cLiveness.ComputeLoops(mpcCaller, &cDominators);
+	cLoops.Init();
+	cLoops.Compute(mpcCaller, &cDominators);
 	for (ui = 0; ui < mpcCaller->NumBlocks(); ui++)
 	{
-		bInLoop = cLiveness.LoopDepth(mpcCaller->GetBlock(ui)) > 0;
+		bInLoop = cLoops.Depth(mpcCaller->GetBlock(ui)) > 0;
 		mabInLoop.Add(&bInLoop);
 	}
-	cLiveness.Kill();
+	cLoops.Kill();
 	cDominators.Kill();
 }
 

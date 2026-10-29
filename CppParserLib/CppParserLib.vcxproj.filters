@@ -156,6 +156,15 @@
     <ClCompile Include="IRDominators.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IRDefinitions.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IRLoops.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
+    <ClCompile Include="IRSSAUpdater.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IRFunction.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
@@ -729,6 +738,15 @@
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRDominators.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRDefinitions.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRLoops.h">
+      <Filter>Source\IR</Filter>
+    </ClInclude>
+    <ClInclude Include="IRSSAUpdater.h">
       <Filter>Source\IR</Filter>
     </ClInclude>
     <ClInclude Include="IRFunction.h">
