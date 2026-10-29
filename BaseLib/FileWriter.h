@@ -56,6 +56,9 @@ public:
 						bool	WriteInt64(int64 i);
 						bool	WriteInt64(uint64 i);
 						bool	WriteSize(lsize ui);  //Four bytes in 32 and 64 bit builds, see ReadSize.
+#ifndef SIZE_IS_LSIZE
+						bool	WriteSize(size ui);  //MAX_SIZE is written as MAX_LSIZE so it reads back the same everywhere.
+#endif // SIZE_IS_LSIZE
 						bool	WriteSizes(size* pai, size iLength);
 						bool	WriteSInt(int i);
 						bool	WriteSInt(uint i);

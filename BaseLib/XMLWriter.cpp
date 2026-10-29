@@ -56,7 +56,7 @@ void CXMLWriter::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CXMLWriter::Indent(void)
 {
-	mszText.Append(' ', maszOpen.NumElements() * 2);
+	mszText.Append(' ', (lsize)(maszOpen.NumElements() * 2));
 }
 
 
@@ -115,7 +115,7 @@ void CXMLWriter::End(void)
 	}
 	else
 	{
-		mszText.Append(' ', (maszOpen.NumElements() - 1) * 2);
+		mszText.Append(' ', (lsize)((maszOpen.NumElements() - 1) * 2));
 		mszText.Append("</");
 		mszText.Append(maszOpen.Tail()->Text());
 		mszText.Append(">\n");

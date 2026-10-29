@@ -40,10 +40,22 @@ bool CFileReader::ReadData(void* pvData, lsize iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+bool CFileReader::ReadStringLength(lsize* piLength)
+{
+	return ReadSize(piLength);
+}
+
+
+#ifndef SIZE_IS_LSIZE
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 bool CFileReader::ReadStringLength(size* piLength)
 {
 	return ReadSize(piLength);
 }
+#endif // SIZE_IS_LSIZE
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -177,6 +189,34 @@ bool CFileReader::ReadSize(lsize* pui)
 	*pui = (lsize)(ptrdiff)i32;
 	return true;
 }
+
+
+#ifndef SIZE_IS_LSIZE
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CFileReader::ReadSize(size* pui)
+{
+	lsize	ui;
+
+	if (!ReadSize(&ui))
+	{
+		return false;
+	}
+	if (ui == MAX_LSIZE)
+	{
+		*pui = MAX_SIZE;
+		return true;
+	}
+	if (ui > MAX_SIZE)
+	{
+		return false;
+	}
+	*pui = (size)ui;
+	return true;
+}
+#endif // SIZE_IS_LSIZE
 
 
 //////////////////////////////////////////////////////////////////////////

@@ -64,6 +64,7 @@ class CIR816LiveRanges;
 //the caller's D, using its other scratch bytes; nothing is pushed for them.  Float operations call
 //Libc65's soft float functions (_SoftFloatAdd ..., softfloat.cpp compiled for the W65C816).  A, X and Y may change
 //in a call; D and the widths are kept.
+class CIRDominators;
 class CIR816Backend
 {
 protected:
@@ -89,6 +90,7 @@ protected:
 	CArrayTemplate<int32>	maiUses;			//Per temporary: how many times it is used.
 	CArrayTemplate<int32>	maiUseBlock;		//Per temporary: the block of its one use by an instruction or a jump, else -1.
 	int32					miBlock;			//The block being written.
+	CIRDominators*			mpcDominators;		//While the body is written: which jumps go round loops (JumpTo).
 	CArrayTemplate<uint8>	mabInX;				//Per temporary: kept in X instead of its frame place (AllocateX).
 	SIRInstruction*			mapsFused[IR816_MAX_FUSED];	//Not written: the next instruction reads their words into A as it goes (CanFuse).
 	int						miFused;
@@ -189,7 +191,7 @@ protected:
 	void			EdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo);
 	void			PhiCopies(CIRBlock* pcBlock);
 	bool			IsCoalescedPhiBlock(CIRBlock* pcBlock);
-	void			JumpTo(CIRBlock* pcTo, CIRBlock* pcNext);
+	void			JumpTo(CIRBlock* pcFrom, CIRBlock* pcTo, CIRBlock* pcNext);
 	void			Jump(CIRBlock* pcBlock, CIRBlock* pcNext);
 };
 

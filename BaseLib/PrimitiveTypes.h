@@ -115,17 +115,24 @@ typedef unsigned int	uint;
 typedef uint64			size;
 typedef uint64			ptr;
 typedef int64			ptrdiff;
+#elif defined(__W65C816__)
+//size is the W65C816's natural width; pointers (and size_t) stay 32 bits.  Use lsize past 64KB.
+typedef uint16			size;
+typedef uintptr_t		ptr;
+typedef ptrdiff_t		ptrdiff;
 #else
 typedef size_t			size;
 typedef uintptr_t		ptr;
 typedef ptrdiff_t		ptrdiff;
 #endif // LINUX_GNU && BUILD_64
 
-//lsize counts and measures things that can pass 64KB.  It is the same type as size except on 16 bit targets.
+//lsize counts and measures things that can pass 64KB.  It is the same type as size except on 16 bit targets, so
+//only those can overload on size and lsize (SIZE_IS_LSIZE is defined everywhere else).
 #if defined(__W65C816__)
 typedef uint32			lsize;
 #else
 typedef size			lsize;
+#define SIZE_IS_LSIZE
 #endif // __W65C816__
 #define MAX_SIZE		((size)-1)
 #define MAX_LSIZE		((lsize)-1)
