@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <string.h>
 #include "BaseLib/IntegerHelper.h"
 #include "IRSSAUpdater.h"
 #include "IROptimiser.h"
@@ -27,6 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define IR_ROTATE_LIMIT			8		//The most instructions a loop's head may have for RotateLoops to copy it.
 #define IR_THREAD_LIMIT			8		//The most instructions a block may have for ThreadPhis to work out.
 #define IR_NARROW_DEPTH			4		//How deep NarrowTruncations follows operations to narrow.
+#define IR_IDIOM_MIN_BYTES		16		//A loop filling or copying a known number of bytes up to this many stays a loop.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -38,6 +40,7 @@ void CIROptimiser::Init(CIRModule* pcModule)
 	mpcModule = pcModule;
 	mpcFunction = NULL;
 	mbIndexedAddresses = true;
+	msLibraryInt = IRType(IRTK_None);
 	mcDominators.Init();
 	mcDefinitions.Init();
 	mcLoops.Init();
@@ -73,6 +76,19 @@ void CIROptimiser::Kill(void)
 	mcLoops.Kill();
 	mcDefinitions.Kill();
 	mcDominators.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type memset's int is (16 or 32 bits): loops that fill or copy memory
+// become calls to the library's memset and memmove (ReplaceLoopIdioms).
+// IRTK_None (the default) leaves them loops.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::SetLibraryInt(SIRType sInt)
+{
+	msLibraryInt = sInt;
 }
 
 
@@ -116,6 +132,7 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 		bChanged |= LessLoopTests();
 		bChanged |= ReduceStrength();
 		bChanged |= HoistInvariants();
+		bChanged |= ReplaceLoopIdioms();
 		bChanged |= RemoveDeadCode();
 		if (!bChanged)
 		{
@@ -565,8 +582,9 @@ bool CIROptimiser::ThreadBranches(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if pcBlock's phis and results are only used in pcBlock (so a
-// predecessor can go round it without them).  mauiUses must be counted.
+// True if pcBlock's phis and results are only used in pcBlock (by its
+// instructions, jump or phis; so a predecessor can go round it without
+// them).  mauiUses must be counted.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::OnlyUsedInBlock(CIRBlock* pcBlock)
@@ -580,6 +598,17 @@ bool CIROptimiser::OnlyUsedInBlock(CIRBlock* pcBlock)
 
 	auiInside.Init();
 	auiInside.GrowToAtLeastNumElements(mpcFunction->NumTemporaries() + 1, true, 0);
+	for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
+	{
+		for (uiArgument = 0; uiArgument < pcBlock->masPhis.Get(ui)->asArguments.NumElements(); uiArgument++)
+		{
+			sValue = pcBlock->masPhis.Get(ui)->asArguments.Get(uiArgument)->sValue;
+			if (sValue.IsTemporary())
+			{
+				(*auiInside.Get(sValue.Index()))++;
+			}
+		}
+	}
 	for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
 	{
 		psInstruction = pcBlock->masInstructions.Get(ui);
@@ -1722,7 +1751,7 @@ bool CIROptimiser::FoldConstants(void)
 				Replace(psInstruction->sResult, mpcFunction->AddConstant(sResultType, ulliResult));
 				bChanged = true;
 			}
-			else if (UndoesExtension(psInstruction, &sValue) || ConvertPhi(psInstruction, &sValue))
+			else if (UndoesExtension(psInstruction, &sValue) || ConvertPhi(psInstruction, &sValue) || IsIdentity(psInstruction, &sValue))
 			{
 				//The value's uses go up by the result's (ConvertPhi mustn't change a phi something else now uses).
 				Replace(psInstruction->sResult, sValue);
@@ -1813,6 +1842,57 @@ bool CIROptimiser::UndoesExtension(SIRInstruction* psInstruction, SIRReference* 
 		return false;
 	}
 	*psValue = sInner;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if psInstruction gives back its first operand (*psValue): x + 0,
+// x - 0, x | 0, x ^ 0, a shift by 0, x * 1, x & all ones, ptradd x, 0.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::IsIdentity(SIRInstruction* psInstruction, SIRReference* psValue)
+{
+	uint64	ulliBits;
+
+	if (!psInstruction->sResult.IsTemporary() || !psInstruction->asArguments[1].IsConstant() ||
+		!mpcFunction->TypeOf(psInstruction->asArguments[0]).Equals(mpcFunction->GetTemporaryType(psInstruction->sResult)))
+	{
+		return false;
+	}
+	ulliBits = IRTruncate(mpcFunction->TypeOf(psInstruction->asArguments[1]), mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
+	switch (psInstruction->uiOpcode)
+	{
+	case IRO_Add:
+	case IRO_Sub:
+	case IRO_Or:
+	case IRO_Xor:
+	case IRO_Shl:
+	case IRO_LShr:
+	case IRO_AShr:
+	case IRO_PtrAdd:
+		if (ulliBits != 0)
+		{
+			return false;
+		}
+		break;
+	case IRO_Mul:
+		if (ulliBits != 1)
+		{
+			return false;
+		}
+		break;
+	case IRO_And:
+		if (ulliBits != IRTruncate(psInstruction->sType, (uint64)-1))
+		{
+			return false;
+		}
+		break;
+	default:
+		return false;
+	}
+	*psValue = psInstruction->asArguments[0];
 	return true;
 }
 
@@ -3868,5 +3948,461 @@ bool CIROptimiser::NarrowTruncations(void)
 		}
 	}
 	asNew.Kill();
+	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The counter of a loop of one block (ReplaceLoopIdioms): i = phi [init,
+// i + 1], going round while i + 1 < n (signed or unsigned) or i + 1 != n
+// with n not changed by the loop.  The way in must have tested init the
+// same way (as RotateLoops leaves it), or init and n be constants that pass
+// it, so the loop goes round n - init times.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::MatchIdiomCounter(size uiLoop, CIRBlock* pcLoop, SIRIdiomCounter* psCounter)
+{
+	SIRInstruction*	psCompare;
+	SIRInstruction*	psNext;
+	SIRInstruction*	psGuard;
+	SIRPhi*			psPhi;
+	SIRPhiArgument*	psArgument;
+	CIRBlock*		pcEntering;
+	CIRBlock*		pcTarget;
+	SIRType			sType;
+	int				iSteps;
+	uint64			ulliInit;
+	uint64			ulliBound;
+	uint16			uiOpcode;
+
+	pcEntering = mcLoops.GetLoop(uiLoop)->pcEntering;
+	psCompare = mcDefinitions.Instruction(pcLoop->msJump.sArgument);
+	if ((psCompare == NULL) || !IsIRIntegerComparison(psCompare->uiOpcode) || !pcEntering)
+	{
+		return false;
+	}
+	uiOpcode = (pcLoop->msJump.pcThen == pcLoop) ? psCompare->uiOpcode : IRInvertedComparison(psCompare->uiOpcode);
+	if (((uiOpcode != IRO_SLt) && (uiOpcode != IRO_ULt) && (uiOpcode != IRO_Ne)) || !mcLoops.IsInvariant(uiLoop, psCompare->asArguments[1], &mcDefinitions))
+	{
+		return false;
+	}
+	psCounter->uiOpcode = uiOpcode;
+	psCounter->sNext = psCompare->asArguments[0];
+	psCounter->sBound = psCompare->asArguments[1];
+	psNext = mcDefinitions.Instruction(psCounter->sNext);
+	if ((psNext == NULL) || (psNext->uiOpcode != IRO_Add) || !psNext->asArguments[1].IsConstant() || (mpcFunction->GetSigned(psNext->asArguments[1]) != 1))
+	{
+		return false;
+	}
+	psCounter->sCounter = psNext->asArguments[0];
+	psPhi = mcDefinitions.Phi(psCounter->sCounter);
+	if ((psPhi == NULL) || (mcDefinitions.Block(psCounter->sCounter) != pcLoop) || (psPhi->asArguments.NumElements() != 2))
+	{
+		return false;
+	}
+	psArgument = pcLoop->FindPhiArgument(psPhi, pcLoop);
+	if (!psArgument || !psArgument->sValue.Equals(psCounter->sNext))
+	{
+		return false;
+	}
+	psArgument = pcLoop->FindPhiArgument(psPhi, pcEntering);
+	if (!psArgument)
+	{
+		return false;
+	}
+	psCounter->sInit = psArgument->sValue;
+
+	//The way in: its test, before the blocks of only a jump (preheaders) on the way.
+	pcTarget = pcLoop;
+	for (iSteps = 0; (iSteps < 2) && (pcEntering->msJump.uiKind == IRJ_Jump) && (pcEntering->masPhis.NumElements() == 0) &&
+					 (pcEntering->mapcPredecessors.NumElements() == 1); iSteps++)
+	{
+		pcTarget = pcEntering;
+		pcEntering = pcEntering->mapcPredecessors.GetPtr(0);
+	}
+	if ((pcEntering->msJump.uiKind == IRJ_Branch) && (pcEntering->msJump.pcThen != pcEntering->msJump.pcElse))
+	{
+		psGuard = mcDefinitions.Instruction(pcEntering->msJump.sArgument);
+		if ((psGuard == NULL) || !IsIRIntegerComparison(psGuard->uiOpcode) || ((pcEntering->msJump.pcThen != pcTarget) && (pcEntering->msJump.pcElse != pcTarget)))
+		{
+			return false;
+		}
+		return (((pcEntering->msJump.pcThen == pcTarget) ? psGuard->uiOpcode : IRInvertedComparison(psGuard->uiOpcode)) == uiOpcode) &&
+			   psGuard->asArguments[0].Equals(psCounter->sInit) && psGuard->asArguments[1].Equals(psCounter->sBound);
+	}
+	if (!psCounter->sInit.IsConstant() || !psCounter->sBound.IsConstant())
+	{
+		return false;
+	}
+	sType = mpcFunction->TypeOf(psCounter->sInit);
+	ulliInit = IRTruncate(sType, mpcFunction->GetConstant(psCounter->sInit)->ulliBits);
+	ulliBound = IRTruncate(sType, mpcFunction->GetConstant(psCounter->sBound)->ulliBits);
+	switch (uiOpcode)
+	{
+	case IRO_SLt:
+		return IRSignExtend(sType, ulliInit) < IRSignExtend(sType, ulliBound);
+	case IRO_ULt:
+		return ulliInit < ulliBound;
+	default:
+		return ulliInit != ulliBound;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An address the loop pcLoop steps lliBytes a time round: a pointer phi of
+// the loop stepped by lliBytes, or base + i * lliBytes with the base not
+// changed by the loop and i the counter (extended to the pointer's offset
+// the way it is compared: sext for signed, zext for unsigned).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::MatchIdiomAddress(CIRBlock* pcLoop, SIRReference sAddress, SIRIdiomCounter* psCounter, int64 lliBytes, SIRIdiomAddress* psAddress)
+{
+	SIRPhi*			psPhi;
+	SIRPhiArgument*	psArgument;
+	SIRInstruction*	psAdd;
+	SIRInstruction*	psIndex;
+	SIRReference	sIndex;
+	CIRBlock*		pcEntering;
+	size			ui;
+
+	psAddress->sPhiStart = IRNone();
+	psAddress->sBase = IRNone();
+	psAddress->lliScale = 1;
+	psAddress->uiExtension = IRO_None;
+	if (!sAddress.IsTemporary() || !mpcFunction->TypeOf(sAddress).Equals(IRType(IRTK_Pointer)))
+	{
+		return false;
+	}
+
+	//A pointer phi: [entering, start], [loop, ptradd phi, lliBytes].
+	psPhi = mcDefinitions.Phi(sAddress);
+	if (psPhi)
+	{
+		if ((mcDefinitions.Block(sAddress) != pcLoop) || (psPhi->asArguments.NumElements() != 2))
+		{
+			return false;
+		}
+		pcEntering = NULL;
+		for (ui = 0; ui < 2; ui++)
+		{
+			psArgument = psPhi->asArguments.Get(ui);
+			if (psArgument->pcBlock == pcLoop)
+			{
+				psAdd = mcDefinitions.Instruction(psArgument->sValue);
+				if ((psAdd == NULL) || (psAdd->uiOpcode != IRO_PtrAdd) || !psAdd->asArguments[0].Equals(sAddress) || !psAdd->asArguments[1].IsConstant() ||
+					(mpcFunction->GetSigned(psAdd->asArguments[1]) != lliBytes))
+				{
+					return false;
+				}
+			}
+			else
+			{
+				pcEntering = psArgument->pcBlock;
+				psAddress->sPhiStart = psArgument->sValue;
+			}
+		}
+		return pcEntering != NULL;
+	}
+
+	//base + index.
+	psAdd = mcDefinitions.Instruction(sAddress);
+	if ((psAdd == NULL) || (psAdd->uiOpcode != IRO_PtrAdd) || (mcDefinitions.Block(sAddress) != pcLoop) ||
+		(mcDefinitions.Block(psAdd->asArguments[0]) == pcLoop))
+	{
+		return false;
+	}
+	psAddress->sBase = psAdd->asArguments[0];
+	sIndex = psAdd->asArguments[1];
+	psIndex = mcDefinitions.Instruction(sIndex);
+	if (psIndex && ((psIndex->uiOpcode == IRO_Shl) || (psIndex->uiOpcode == IRO_Mul)) && psIndex->asArguments[1].IsConstant())
+	{
+		psAddress->lliScale = (psIndex->uiOpcode == IRO_Shl) ? ((int64)1 << (mpcFunction->GetSigned(psIndex->asArguments[1]) & 31)) : mpcFunction->GetSigned(psIndex->asArguments[1]);
+		sIndex = psIndex->asArguments[0];
+		psIndex = mcDefinitions.Instruction(sIndex);
+	}
+	if (psIndex && ((psIndex->uiOpcode == IRO_SExt) || (psIndex->uiOpcode == IRO_ZExt)))
+	{
+		psAddress->uiExtension = psIndex->uiOpcode;
+		sIndex = psIndex->asArguments[0];
+		if (((psAddress->uiExtension == IRO_SExt) && (psCounter->uiOpcode != IRO_SLt)) || ((psAddress->uiExtension == IRO_ZExt) && (psCounter->uiOpcode != IRO_ULt)))
+		{
+			return false;
+		}
+	}
+	else if (!mpcFunction->TypeOf(psCounter->sCounter).Is(IRTK_I32))
+	{
+		return false;
+	}
+	return sIndex.Equals(psCounter->sCounter) && (psAddress->lliScale == lliBytes);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The address a loop's first time round uses, worked out at the end of
+// pcBlock.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIROptimiser::IdiomStart(CIRBlock* pcBlock, SIRIdiomAddress* psAddress, SIRIdiomCounter* psCounter)
+{
+	SIRReference	sOffset;
+	SIRType			sOffsetType;
+
+	if (!psAddress->sPhiStart.IsNone())
+	{
+		return psAddress->sPhiStart;
+	}
+	sOffsetType = IRType(IRTK_I32);
+	sOffset = psCounter->sInit;
+	if (psAddress->uiExtension != IRO_None)
+	{
+		sOffset = mpcFunction->Add(pcBlock, psAddress->uiExtension, sOffsetType, sOffset);
+	}
+	if (psAddress->lliScale != 1)
+	{
+		sOffset = mpcFunction->Add(pcBlock, IRO_Mul, sOffsetType, sOffset, mpcFunction->AddInteger(sOffsetType, psAddress->lliScale));
+	}
+	return mpcFunction->Add(pcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), psAddress->sBase, sOffset);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bytes a loop of n - init times round, lliBytes each, fills or copies
+// (a size_t), worked out at the end of pcBlock.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIROptimiser::IdiomBytes(CIRBlock* pcBlock, SIRIdiomCounter* psCounter, int64 lliBytes)
+{
+	SIRType			sType;
+	SIRType			sSize;
+	SIRReference	sTimes;
+
+	sType = mpcFunction->TypeOf(psCounter->sInit);
+	sSize = IRType(IRTK_I32);
+	sTimes = mpcFunction->Add(pcBlock, IRO_Sub, sType, psCounter->sBound, psCounter->sInit);
+	if (!sType.Is(IRTK_I32))
+	{
+		sTimes = mpcFunction->Add(pcBlock, IRO_ZExt, sSize, sTimes);
+	}
+	if (lliBytes != 1)
+	{
+		sTimes = mpcFunction->Add(pcBlock, IRO_Mul, sSize, sTimes, mpcFunction->AddInteger(sSize, lliBytes));
+	}
+	return sTimes;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A call of the library's szName (memset or memmove) at the end of pcBlock.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIROptimiser::LibraryCall(CIRBlock* pcBlock, const char* szName, SIRReference sFirst, SIRType sFirstType, SIRReference sSecond, SIRType sSecondType, SIRReference sBytes)
+{
+	mpcFunction->Argument(pcBlock, sFirstType, sFirst);
+	mpcFunction->Argument(pcBlock, sSecondType, sSecond);
+	mpcFunction->Argument(pcBlock, IRType(IRTK_I32), sBytes);
+	return mpcFunction->Call(pcBlock, IRType(IRTK_Pointer), IRReference(IRRK_Symbol, mpcModule->AddSymbol(szName)));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Loop idioms: a loop of one block (as RotateLoops leaves a simple loop)
+// whose values are only used in it, that does nothing but store a value
+// the loop doesn't change through an address stepped an element at a time
+// (MatchIdiomAddress), counted n - init times (MatchIdiomCounter), is a
+// memset on the way in: of bytes, or of wider elements whose bytes are all
+// the same constant.  One that only stores what it loads, element for
+// element, is a memmove on the way in when the destination is at or below
+// the source or past its end (as the loop would copy), else the loop.  A
+// known count of IR_IDIOM_MIN_BYTES or fewer stays a loop.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::ReplaceLoopIdioms(void)
+{
+	SIRIdiomCounter		sCounter;
+	SIRIdiomAddress		sDestination;
+	SIRIdiomAddress		sSource;
+	SIRInstruction*		psStore;
+	SIRInstruction*		psLoad;
+	SIRInstruction*		psInstruction;
+	SIRInstruction		sStore;
+	SIRLoop*			psLoop;
+	CIRBlock*			pcLoop;
+	CIRBlock*			pcExit;
+	CIRBlock*			pcPreheader;
+	CIRBlock*			pcCall;
+	SIRPhiArgument*		psArgument;
+	SIRReference		sDestinationStart;
+	SIRReference		sSourceStart;
+	SIRReference		sBytes;
+	SIRReference		sValue;
+	SIRReference		sTest;
+	SIRType				sPointer;
+	uint64				ulliValue;
+	int64				lliBytes;
+	int64				lliTimes;
+	size				uiLoop;
+	size				ui;
+	int					iStores;
+	int					iLoads;
+	bool				bChanged;
+	bool				bSame;
+	char*				szName;
+
+	szName = mpcModule->GetSymbolName(mpcFunction->muiSymbol);
+	if (msLibraryInt.IsNone() || (strcmp(szName, "_memset") == 0) || (strcmp(szName, "_memmove") == 0) || (strcmp(szName, "_memcpy") == 0))
+	{
+		//The library's own loops stay loops.
+		return false;
+	}
+	sPointer = IRType(IRTK_Pointer);
+	bChanged = false;
+	ComputeLoops();
+	mpcFunction->CountUses(&mauiUses);
+	for (uiLoop = 0; uiLoop < mcLoops.NumLoops(); uiLoop++)
+	{
+		psLoop = mcLoops.GetLoop(uiLoop);
+		pcLoop = psLoop->pcHead;
+		if ((mcLoops.NumBlocks(uiLoop) != 1) || (mcLoops.NumLatches(uiLoop) != 1) || !psLoop->pcEntering || (pcLoop->msJump.uiKind != IRJ_Branch) ||
+			!OnlyUsedInBlock(pcLoop))
+		{
+			continue;
+		}
+		pcExit = (pcLoop->msJump.pcThen == pcLoop) ? pcLoop->msJump.pcElse : pcLoop->msJump.pcThen;
+		if (pcExit == pcLoop)
+		{
+			continue;
+		}
+
+		//One store (and a load for a copy); everything else pure.
+		psStore = NULL;
+		psLoad = NULL;
+		iStores = 0;
+		iLoads = 0;
+		for (ui = 0; ui < pcLoop->masInstructions.NumElements(); ui++)
+		{
+			psInstruction = pcLoop->masInstructions.Get(ui);
+			if (psInstruction->uiOpcode == IRO_Store)
+			{
+				psStore = psInstruction;
+				iStores++;
+			}
+			else if (psInstruction->uiOpcode == IRO_Load)
+			{
+				psLoad = psInstruction;
+				iLoads++;
+			}
+			else if (!IsIRPure(psInstruction->uiOpcode))
+			{
+				iStores = 2;
+			}
+		}
+		if ((iStores != 1) || (iLoads > 1) || (psStore->uiFlags & IRF_Volatile) || (psLoad && (psLoad->uiFlags & IRF_Volatile)) ||
+			!MatchIdiomCounter(uiLoop, pcLoop, &sCounter))
+		{
+			continue;
+		}
+		lliBytes = mpcModule->GetSize(psStore->sType);
+		if (!MatchIdiomAddress(pcLoop, psStore->asArguments[1], &sCounter, lliBytes, &sDestination))
+		{
+			continue;
+		}
+		if (psLoad)
+		{
+			if (!psLoad->sResult.Equals(psStore->asArguments[0]) || !psLoad->sType.Equals(psStore->sType) || (*mauiUses.Get(psLoad->sResult.Index()) != 1) ||
+				!MatchIdiomAddress(pcLoop, psLoad->asArguments[0], &sCounter, lliBytes, &sSource))
+			{
+				continue;
+			}
+		}
+		else
+		{
+			//The same byte in every byte of each element.
+			sValue = psStore->asArguments[0];
+			if (!mcLoops.IsInvariant(uiLoop, sValue, &mcDefinitions) || !psStore->sType.IsInteger())
+			{
+				continue;
+			}
+			if (lliBytes != 1)
+			{
+				if (!sValue.IsConstant())
+				{
+					continue;
+				}
+				ulliValue = IRTruncate(psStore->sType, mpcFunction->GetConstant(sValue)->ulliBits);
+				bSame = true;
+				for (ui = 1; ui < (size)lliBytes; ui++)
+				{
+					bSame &= ((ulliValue >> (8 * ui)) & 0xFF) == (ulliValue & 0xFF);
+				}
+				if (!bSame)
+				{
+					continue;
+				}
+			}
+		}
+		if (sCounter.sInit.IsConstant() && sCounter.sBound.IsConstant())
+		{
+			lliTimes = mpcFunction->GetSigned(sCounter.sBound) - mpcFunction->GetSigned(sCounter.sInit);
+			if ((lliTimes > 0) && (lliTimes * lliBytes <= IR_IDIOM_MIN_BYTES))
+			{
+				continue;
+			}
+		}
+
+		//The call on the way in.
+		sStore = *psStore;
+		pcPreheader = AddPreheader(uiLoop);
+		sDestinationStart = IdiomStart(pcPreheader, &sDestination, &sCounter);
+		sBytes = IdiomBytes(pcPreheader, &sCounter, lliBytes);
+		if (!psLoad)
+		{
+			sValue = sStore.asArguments[0];
+			if (sValue.IsConstant())
+			{
+				sValue = mpcFunction->AddConstant(msLibraryInt, mpcFunction->GetConstant(sValue)->ulliBits & 0xFF);
+			}
+			else if (!mpcFunction->TypeOf(sValue).Equals(msLibraryInt))
+			{
+				sValue = mpcFunction->Add(pcPreheader, IRO_ZExt, msLibraryInt, sValue);
+			}
+			LibraryCall(pcPreheader, "_memset", sDestinationStart, sPointer, sValue, msLibraryInt, sBytes);
+			pcCall = pcPreheader;
+			RemovePhiArguments(pcLoop, pcPreheader);
+			pcPreheader->Jump(pcExit);
+		}
+		else
+		{
+			sSourceStart = IdiomStart(pcPreheader, &sSource, &sCounter);
+			sTest = mpcFunction->Add(pcPreheader, IRO_ULe, sPointer, sDestinationStart, sSourceStart);
+			sValue = mpcFunction->Add(pcPreheader, IRO_PtrAdd, sPointer, sSourceStart, sBytes);
+			sValue = mpcFunction->Add(pcPreheader, IRO_UGe, sPointer, sDestinationStart, sValue);
+			sTest = mpcFunction->Add(pcPreheader, IRO_Or, IRType(IRTK_I1), sTest, sValue);
+			pcCall = mpcFunction->AddBlock();
+			LibraryCall(pcCall, "_memmove", sDestinationStart, sPointer, sSourceStart, sPointer, sBytes);
+			pcCall->Jump(pcExit);
+			pcPreheader->Branch(sTest, pcCall, pcLoop);
+		}
+
+		//The exit's phis take from the call's block what they took from the loop (none of the loop's own values).
+		for (ui = 0; ui < pcExit->masPhis.NumElements(); ui++)
+		{
+			psArgument = pcExit->FindPhiArgument(pcExit->masPhis.Get(ui), pcLoop);
+			if (psArgument)
+			{
+				pcExit->AddPhiArgument(pcExit->masPhis.Get(ui), pcCall, psArgument->sValue);
+			}
+		}
+		bChanged = true;
+		ComputeLoops();
+		mpcFunction->CountUses(&mauiUses);
+		uiLoop = (size)-1;
+	}
 	return bChanged;
 }

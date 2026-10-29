@@ -976,3 +976,70 @@ MoreNone:
 		.width (A, X), 16
 		sec
 		rts
+
+
+		.section text.MemSwp816
+		.global _MemSwp__FPvPvj
+
+; void MemSwp(const void* pv1, const void* pv2, size uiLength) (BaseLib's StringHelper.cpp, left
+; out for the W65C816): a word at a time, then the byte left, Y running up from both pointers
+; (carrying into the next bank), 64KB at a time.  D points at the stack: the pointers are at
+; D + 6 and D + 10, the length at D + 14.
+_MemSwp__FPvPvj:
+		.width (A, X), 16
+		phd
+		tsc
+		tcd
+MemSwpChunk:
+		.width (A, X), 16
+		lda [D + 16]
+		beq MemSwpLast
+		ldy 0
+		ldx 32768
+		jsr MemSwpWords
+		sep m
+		inc [D + 8]
+		inc [D + 12]
+		rep m
+		dec [D + 16]
+		bra MemSwpChunk
+MemSwpLast:
+		.width (A, X), 16
+		ldy 0
+		lda [D + 14]
+		lsr A
+		beq MemSwpOdd
+		tax
+		jsr MemSwpWords
+MemSwpOdd:
+		.width (A, X), 16
+		lda [D + 14]
+		and 1
+		beq MemSwpDone
+		sep m
+		lda [[D + 6]:24 + Y]
+		pha
+		lda [[D + 10]:24 + Y]
+		sta [[D + 6]:24 + Y]
+		pla
+		sta [[D + 10]:24 + Y]
+		rep m
+MemSwpDone:
+		.width (A, X), 16
+		pld
+		rtl
+
+; X words from Y, Y after them.
+MemSwpWords:
+		.width (A, X), 16
+		lda [[D + 6]:24 + Y]
+		pha
+		lda [[D + 10]:24 + Y]
+		sta [[D + 6]:24 + Y]
+		pla
+		sta [[D + 10]:24 + Y]
+		iny
+		iny
+		dex
+		bne MemSwpWords
+		rts

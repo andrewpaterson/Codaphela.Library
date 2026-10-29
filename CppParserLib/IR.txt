@@ -313,6 +313,20 @@ whose phi arguments decide the brif (an inlined test returning a constant on som
 that predecessor doesn't already jump to where it goes.  CSE matches a op b with b op a for a
 commutative op.
 
+Loop idioms (ReplaceLoopIdioms, 2026-10-29): a loop of one block (as rotation leaves a
+simple loop) whose values are only used in it, counted by i = phi [init, i + 1] round while
+i + 1 < n (signed or unsigned) or != n with n invariant and the way in testing init the same
+way (so it goes round n - init times), that only stores an invariant value through an
+address stepped one element a time (a pointer phi stepped by the element's size, or
+base + i * size with i extended the way it is compared) is memset on the way in: of bytes,
+or of wider elements whose bytes are all the same constant.  One that only stores what it
+loads, element for element, is memmove when the destination is at or below the source or
+past its end (what the loop would copy), checked on the way in, else the loop.  A known count
+of 16 bytes or fewer stays a loop, and so do the loops of memset, memmove and memcpy
+themselves.  The front end turns it on with the target's int (CIROptimiser::SetLibraryInt);
+programs that use it link Libc65's string routines.  Constant folding also takes x + 0,
+x * 1 and the like to x.
+
 
 Front end
 ---------
