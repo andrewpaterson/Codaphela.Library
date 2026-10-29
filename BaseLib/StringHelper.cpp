@@ -201,6 +201,7 @@ int MemCmp(const void* pv1, size iLen1, const void* pv2, size iLen2)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
+#ifndef __W65C816__
 void MemSwp(const void* pv1, const void* pv2, size uiLength)
 {
 	size	i;
@@ -227,6 +228,7 @@ void MemSwp(const void* pv1, const void* pv2, size uiLength)
 		((char*)pv2)[iCharIndex + i] = cTemp;
 	}
 }
+#endif // __W65C816__ (Libc65's string816.asm has it)
 
 
 ////////////////////////////////////////////////////////////////////////////////////
