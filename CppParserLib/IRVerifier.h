@@ -26,7 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //Where a temporary is defined: a parameter, a phi or an instruction of a block.
-struct SIRDefinition
+struct SIRVerifierDefinition
 {
 	CIRBlock*	pcBlock;		//NULL for a parameter.
 	int32		iPosition;		//-1 for a phi, otherwise the instruction's index.
@@ -34,7 +34,7 @@ struct SIRDefinition
 };
 
 
-typedef CArrayTemplate<SIRDefinition>	CArrayIRDefinitions;
+typedef CArrayTemplate<SIRVerifierDefinition>	CArrayIRVerifierDefinitions;
 
 
 //Checks a module's functions are well formed (IR.txt Text form), using the opcodes' table entries.  Each problem is
@@ -47,7 +47,7 @@ protected:
 	CCPPErrors*				mpcErrors;
 	CIRFunction*			mpcFunction;
 	CIRBlock*				mpcBlock;
-	CArrayIRDefinitions		masDefinitions;
+	CArrayIRVerifierDefinitions	masDefinitions;
 	CIRDominators			mcDominators;
 	CArrayTemplate<uint32>	mauiCounts;			//Per block index: edges into it.
 	CArrayTemplate<uint32>	mauiStamps;			//Per block index: the last check that marked it.

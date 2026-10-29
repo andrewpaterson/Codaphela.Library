@@ -78,12 +78,15 @@ protected:
 	CArrayTemplate<SIRReference>	masFoldBase;	//Per temporary: the pointer a folded pointer adds a constant to, else none.
 	CArrayTemplate<int32>	maiFoldOffset;		//Per temporary: that constant.
 	CArrayTemplate<int32>	maiUses;			//Per temporary: how many times it is used.
+	CArrayTemplate<int32>	maiUseBlock;		//Per temporary: the block of its one use by an instruction or a jump, else -1.
+	int32					miBlock;			//The block being written.
 
 public:
 	void			Init(CIRModule* pcModule, int* piLabels);
 	void			Kill(void);
 	bool			GenerateModule(CChars* pszDest, CCPPErrors* pcErrors);
 	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors);
+	void			FindSingleUses(void);
 	void			GenerateGlobal(CIRGlobal* pcGlobal, CChars* pszDest);
 	CArrayChars*	GetRuntime(void);
 

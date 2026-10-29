@@ -195,6 +195,9 @@
     <ClCompile Include="IR65Widths.cpp" />
     <ClCompile Include="IRBlock.cpp" />
     <ClCompile Include="IRDominators.cpp" />
+    <ClCompile Include="IRDefinitions.cpp" />
+    <ClCompile Include="IRLoops.cpp" />
+    <ClCompile Include="IRSSAUpdater.cpp" />
     <ClCompile Include="IRFunction.cpp" />
     <ClCompile Include="IRInliner.cpp" />
     <ClCompile Include="IRLiveness.cpp" />
@@ -392,6 +395,9 @@
     <ClInclude Include="IR65Widths.h" />
     <ClInclude Include="IRBlock.h" />
     <ClInclude Include="IRDominators.h" />
+    <ClInclude Include="IRDefinitions.h" />
+    <ClInclude Include="IRLoops.h" />
+    <ClInclude Include="IRSSAUpdater.h" />
     <ClInclude Include="IRFunction.h" />
     <ClInclude Include="IRInliner.h" />
     <ClInclude Include="IRLiveness.h" />

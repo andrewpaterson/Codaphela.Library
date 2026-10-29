@@ -291,6 +291,28 @@ the optimiser sees becomes a call of the function, and may be inlined.  Calls th
 function pointers held in objects (CArrayBlockSorted's mfCompare) stay indirect.  The front end runs it
 on every function it writes (CCPP65IRFrontEnd::sbOptimise switches it off).
 
+Analyses shared by the passes and back ends (2026-10-29): CIRDefinitions (each temporary's
+defining instruction or phi, its block and its number of uses, kept as block and index so it
+stays right while instructions only change in place), CIRLoops (the natural loops, a loop
+before the loops inside it: head, blocks, latches, the one block entering it and whether that
+is a preheader, the loop each block is innermost in, depths, exits, and whether a value is
+invariant), the dominator tree's children and dominance frontiers in CIRDominators, and the
+opcodes' IROP_ properties (pure, commutative, may trap) in the opcode table.  CIRSSAUpdater
+puts a value with several definitions back into SSA form (Braun et al.), making phis where
+blocks join as they are asked for.  The loop passes find their loops with CIRLoops;
+CIRLiveness takes its loop depths from it.
+
+Loop rotation (RotateLoops, 2026-10-29): a loop whose head tests (at most 8 instructions without
+effects ending in a brif to a block only it enters, or out) and whose one latch jumps back to it
+tests at the bottom: the head is copied to the end of the preheader (the loop is only entered
+if the first test passes) and of the latch (round while it passes), and goes.  Each time round
+takes one jump fewer, and what is hoisted out of the loop is only worked out when the loop runs.
+Jump threading through phis (ThreadPhis, in simplify cfg): a block of phis and up to 8 pure
+instructions ending in a brif, whose values are only used in it, is gone round by a predecessor
+whose phi arguments decide the brif (an inlined test returning a constant on some ways), when
+that predecessor doesn't already jump to where it goes.  CSE matches a op b with b op a for a
+commutative op.
+
 
 Front end
 ---------
@@ -647,10 +669,17 @@ Code
 	IRParser.h / .cpp				text to module, errors in a CCPPErrors
 	IRVerifier.h / .cpp				the checks above, errors in a CCPPErrors
 	IRDominators.h / .cpp			dominator tree (Cooper, Harvey and Kennedy), numbered
-									so dominance is constant time
+									so dominance is constant time; children and dominance
+									frontiers
+	IRDefinitions.h / .cpp			each temporary's definition and number of uses
+	IRLoops.h / .cpp				natural loops (CIRLoops)
+	IRSSAUpdater.h / .cpp			SSA repair for a value given several definitions
+	IROptimiser.h / .cpp			the mid level passes
+	IRLiveness.h / .cpp				live ranges for register allocation
 
 Tests are in test/TestCppParserLib/TestCppParserLib/TestIR.cpp (round trips, the API,
-parser and verifier errors, dominators, target opcodes and a large function).
+parser and verifier errors, dominators, loops, the optimiser, target opcodes and a large
+function).
 
 
 Steps

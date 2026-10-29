@@ -42,7 +42,7 @@ void CIRLiveness::Init(void)
 	mauiLiveIn.Init();
 	mauiLiveOut.Init();
 	maiStarts.Init();
-	maiLoopDepths.Init();
+	mcLoops.Init();
 	masRanges.Init();
 	maiFirstRanges.Init();
 	mauiWeights.Init();
@@ -58,7 +58,7 @@ void CIRLiveness::Kill(void)
 	mauiWeights.Kill();
 	maiFirstRanges.Kill();
 	masRanges.Kill();
-	maiLoopDepths.Kill();
+	mcLoops.Kill();
 	maiStarts.Kill();
 	mauiLiveOut.Kill();
 	mauiLiveIn.Kill();
@@ -76,21 +76,9 @@ void CIRLiveness::Compute(CIRFunction* pcFunction, CIRDominators* pcDominators)
 {
 	mpcFunction = pcFunction;
 	Number();
-	ComputeLoopDepths(pcDominators);
+	mcLoops.Compute(pcFunction, pcDominators);
 	ComputeSets();
 	BuildRanges();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Only each block's loop depth (LoopDepth), for a pass that needs no more.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRLiveness::ComputeLoops(CIRFunction* pcFunction, CIRDominators* pcDominators)
-{
-	mpcFunction = pcFunction;
-	ComputeLoopDepths(pcDominators);
 }
 
 
@@ -113,72 +101,6 @@ void CIRLiveness::Number(void)
 		maiStarts.Add(&iPosition);
 		iPosition += 4 + 2 * (int32)pcBlock->masInstructions.NumElements();
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A block is in a loop for each block it dominates that jumps back to it
-// (the natural loops), counted once per loop head.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRLiveness::ComputeLoopDepths(CIRDominators* pcDominators)
-{
-	CArrayIRBlockNumbers	aiVisited;
-	CArrayIRBlocks			apcStack;
-	size					uiNumBlocks;
-	size					ui;
-	size					uiBlock;
-	size					uiPredecessor;
-	size					uiOther;
-	CIRBlock*				pcHead;
-	CIRBlock*				pcBlock;
-	CIRBlock*				pcLatch;
-	bool					bLoop;
-
-	uiNumBlocks = mpcFunction->NumBlocks();
-	maiLoopDepths.FakeSetUsedElements(0);
-	maiLoopDepths.GrowToAtLeastNumElements(uiNumBlocks, true, 0);
-	aiVisited.Init();
-	aiVisited.GrowToAtLeastNumElements(uiNumBlocks, true, -1);
-	apcStack.Init();
-	for (ui = 0; ui < uiNumBlocks; ui++)
-	{
-		pcHead = mpcFunction->GetBlock(ui);
-		bLoop = false;
-		for (uiPredecessor = 0; uiPredecessor < pcHead->mapcPredecessors.NumElements(); uiPredecessor++)
-		{
-			pcLatch = pcHead->mapcPredecessors.GetPtr(uiPredecessor);
-			if (!pcDominators->IsBackEdge(pcLatch, pcHead))
-			{
-				continue;
-			}
-			if (!bLoop)
-			{
-				bLoop = true;
-				*aiVisited.Get(ui) = (int32)ui;
-				(*maiLoopDepths.Get(ui))++;
-			}
-			apcStack.Push(pcLatch);
-			while (apcStack.NumElements() > 0)
-			{
-				pcBlock = apcStack.Pop();
-				uiBlock = pcBlock->muiIndex;
-				if (*aiVisited.Get(uiBlock) == (int32)ui)
-				{
-					continue;
-				}
-				*aiVisited.Get(uiBlock) = (int32)ui;
-				(*maiLoopDepths.Get(uiBlock))++;
-				for (uiOther = 0; uiOther < pcBlock->mapcPredecessors.NumElements(); uiOther++)
-				{
-					apcStack.Push(pcBlock->mapcPredecessors.GetPtr(uiOther));
-				}
-			}
-		}
-	}
-	apcStack.Kill();
-	aiVisited.Kill();
 }
 
 
@@ -607,7 +529,7 @@ int32 CIRLiveness::Jump(CIRBlock* pcBlock)
 //////////////////////////////////////////////////////////////////////////
 int32 CIRLiveness::LoopDepth(CIRBlock* pcBlock)
 {
-	return *maiLoopDepths.Get(pcBlock->muiIndex);
+	return mcLoops.Depth(pcBlock);
 }
 
 
