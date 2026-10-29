@@ -331,7 +331,17 @@ the exit's phis, a phi stepped by a constant c (or its next value), is start + l
 addresses and leaves for one exit when they differ, and a latch counting n - init times
 round that leaves for another, with nothing it works out used outside, is memcmp of the
 bytes on the way in, to the first exit when it isn't 0, else the second (equal or not, so
-any element size).  strlen and memcmp's own loops stay loops.  The front end turns it on with the target's int (CIROptimiser::SetLibraryInt);
+any element size).  A loop of a head that loads a byte through an address stepped one byte
+a time and leaves for one exit (found) when it is an invariant c, and a latch counting
+n - init times round that leaves for another, is memchr on the way in: NULL goes to the
+second exit, else a block works out the head's phis used past found (each stepped by a
+constant) from the offset memchr found the byte at, the stepped pointer itself being what
+memchr returned.  A loop of a pointer stepped one byte a time that leaves for found when the
+byte is c and for another exit when it is 0 (rotation leaves the first byte tested on the
+way in) is strchr of the next byte, NULL going to the other exit; c = 0 is found at the
+terminator, as the loop would.  The loop that tests both in one condition
+(while (*p && *p != c)) and works out which after it is not taken.  strlen, memcmp, memchr
+and strchr's own loops stay loops.  The front end turns it on with the target's int (CIROptimiser::SetLibraryInt);
 programs that use it link Libc65's string routines.  Constant folding also takes x + 0,
 x * 1 and the like to x.
 
