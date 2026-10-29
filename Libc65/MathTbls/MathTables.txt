@@ -88,9 +88,32 @@ Status (2026-10-29, not committed)
 Done: 1 (BaseLib/IntelHex.h/.cpp, test TestIntelHex), 2 (.inchex, SetDirectory; test
 TestAsm65IncHex checks every MULT product after linking), 3 for MULT (MathMult.asm),
 5 for multiply (R816_Mul16/R816_Mul32 in IR816Backend.cpp; CCPP65Builder::AddMathTables
-links MathMult; test TestIR816BackendMultiply).  Not started: INVERT slice and the
-table divide, step 4 (copy to RAM at startup), ROM image output.
+links MathMult; test TestIR816BackendMultiply).  Divide done too: MathInvert.asm (the
+128KB slice, .inchex "INVERT.HEX", $60000, $20000), R816_UDiv16/URem16 with the
+reciprocal (checked for all 2^32 n, d in C: the estimate is never over and at most 1
+under, so one correction), and R816_UDiv32/URem32 jump to them when both operands are
+under 65536 (test TestIR816BackendDivide16).  A 32 bit dividend with a 16 bit or wider
+divisor keeps the loop.  Checked in C (2026-10-29): the reciprocals are only 17 bits, so
+one pass over a 32 bit dividend is out by up to ~5500 (and over); two 16 bit quotient
+halves each need all 8 byte products of X * Rlo (dropping any gives errors up to 43)
+plus about 4 for the remainder check, and come out over or under by 1.  Estimated
+~1100 cycles for a full 32 / 16 against the loop's 1000-1170, ~650-700 against 640 when
+the dividend's high word is below the divisor: no gain.  The full INVERT table has the
+same 17 bit precision for large divisors, so it would not help either.  Not started: step 4
+(copy to RAM at startup), ROM image output.
 Measured: TestCPP816's timed programs -4.9% cycles (MersenneTwister -27..-33%);
 TestBaseLib65 816 46.715G -> 46.320G (-0.85%, best programs -7%, worst +0.3%).  Slower
 than the old loop: 16 bit 0 * 0, and 32 bit with a 1-3 byte operand against a wide one
 (about 10%).
+Divide: 16 bit 406-533 cycles typical (loop 515-599), 60000 / 300 566 (loop 539), n < d
+130, d >= $8000 151, powers of two 264-295; 32 bit with both under 65536 537-577 (loop
+630-678).  Totals with multiply and divide: TestBaseLib65 816 46.715G -> 46.158G (-1.19%,
+divide -0.35% of it), TestCPP816 -0.15% for divide.
+32 bit divide loops (IR816_DIVIDE_32): the quotient bit is left in C by the compare /
+subtract and rotated into the dividend word as its next bit comes out (no inc), the 16
+step halves unrolled (IR816_DIVIDE_STEP).  32/16 with the dividend's high word below the
+divisor 638-674 -> 536-554, full 32/16 1052-1172 -> 844-928, wide divisor -3%.
+TestBaseLib65 816 now 45.774G (-2.01% from 46.715G), TestCPP816 -5.30% overall.
+The 6502.org "Fast multiplication" thread (t=6838) was read 2026-10-29: its fastest
+method is the same 128KB 8x8 product table; shift-and-add and quarter squares are
+slower.  What is left in R816_Mul32 is mostly call and frame overhead (~1.0G of 1.9G).
