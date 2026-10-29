@@ -353,11 +353,18 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	  guess from where labels are (a branch back is taken) was tried first and
 	  dropped: it turned a row's branch the wrong way.  Tide/Video 20.40M ->
 	  20.21M.
-	- A mul of a loop counter (i0, going round as i + c) by a value the loop
-	  doesn't change is a phi of its own: i0 * w before the loop, + w * c
-	  going round (CIROptimiser::ReduceMultiplies, both targets; exact as
-	  integers wrap the same either way).  A counter only stepped on some
-	  ways round (the transparent sprite's y) isn't one.  Peephole: txa after
+	- A mul of i by a value w the loop doesn't change, i one of a web of
+	  values the loop works out from each other alone (phis of the web or of
+	  values from before the loop, and web values plus constants: a counter,
+	  or one stepped on some ways round only, like the transparent sprite's
+	  y), becomes a product web: v * w in the preheader for each value from
+	  before, a phi for each phi, + w * c for each add (CIROptimiser::
+	  ReduceMultiplies, both targets, at most 32 values; exact as integers
+	  wrap the same either way).  Tide/Video 20.17M -> 20.05M.  Peephole
+	  (PeepholeBranches): an lda of a direct page word or a constant goes
+	  when what runs next, through labels and bras, sets A before reading A
+	  or the flags; a tax goes when X is written before it is read in the
+	  straight line code after it (IR816SetsXFirst; 20.04M).  Peephole: txa after
 	  tax (or the other way) with clc or sec between goes; cmp 0 after what
 	  set N and Z from A goes when labels come before the branch too
 	  (IR816SkipLabels).  Tide/Video 20.21M -> 20.17M, the sprite test 5.98M

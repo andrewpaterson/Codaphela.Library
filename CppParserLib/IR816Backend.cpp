@@ -3497,13 +3497,89 @@ static bool IR816Unreachable(CArrayChars* paszLines)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether what runs from line uiFrom on (past labels, following bras, past
+// instructions in aszIgnoreA) starts with an instruction in aszSetsA: it
+// sets A and N and Z, so a value in A and its flags aren't read.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816SetsAFirst(CArrayChars* paszLines, size uiFrom, const char** aszSetsA, const char** aszIgnoreA)
+{
+	size	ui;
+	size	uiTarget;
+	int		iSteps;
+	char	szMnemonic[8];
+	char	szLabel[32];
+
+	ui = uiFrom;
+	for (iSteps = 0; (iSteps < 32) && (ui < paszLines->NumElements()); iSteps++)
+	{
+		if (IR816IsLabel(paszLines->Get(ui)) || IR816LineIsOneOf(paszLines->Get(ui), aszIgnoreA))
+		{
+			ui++;
+			continue;
+		}
+		if (IR816BranchLine(paszLines->Get(ui), szMnemonic, szLabel) && (strcmp(szMnemonic, "bra") == 0))
+		{
+			uiTarget = IR816LabelledInstruction(paszLines, szLabel);
+			if (uiTarget == (size)-1)
+			{
+				return false;
+			}
+			ui = uiTarget;
+			continue;
+		}
+		return IR816LineIsOneOf(paszLines->Get(ui), aszSetsA);
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the straight line code from line uiFrom on writes X (tax, ldx,
+// plx) before anything that might read it: only instructions that don't
+// (on A, Y, the flags or the direct page, not "[D + X]") come between, and
+// no label, branch, call or return.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816SetsXFirst(CArrayChars* paszLines, size uiFrom)
+{
+	static const char*	aszKeepX[] = { "lda", "sta", "stz", "clc", "sec", "adc", "sbc", "and", "ora", "eor", "cmp", "bit", "ldy", "sty", "tay", "tya", "sep", "rep",
+										"asl", "lsr", "rol", "ror", "inc", "dec", "iny", "dey", "cpy", NULL };
+	static const char*	aszSetsX[] = { "tax", "ldx", "plx", NULL };
+	size				ui;
+	CChars*				psz;
+
+	for (ui = uiFrom; ui < paszLines->NumElements(); ui++)
+	{
+		psz = paszLines->Get(ui);
+		if ((psz->Length() < 3) || (psz->Text()[0] != '\t') || (strstr(psz->Text(), "X]") != NULL) || (strstr(psz->Text(), ", X") != NULL))
+		{
+			return false;
+		}
+		if (IR816LineIsOneOf(psz, aszSetsX))
+		{
+			return true;
+		}
+		if (!IR816LineIsOneOf(psz, aszKeepX))
+		{
+			return false;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Branches tidied in the code written from uiStart on, until none changes:
 // a bra to the label that follows goes; a branch to a label whose first
 // instruction is a bra goes where that does; Bcc X, bra Y, X: is B!cc Y,
 // X: (and bcc X, beq X, bra Y, X: is beq X, bcs Y, X:); Bcc X, bra Y
 // round a loop (marked IR816_ROUND by JumpTo) is B!cc Y, bra X; an lda of a direct
-// page word or a constant before a bra to code that sets A and N and Z
-// before reading A or the flags goes; txa after tax (or tax after txa),
+// page word or a constant goes when what runs next (falling through or
+// after a bra) sets A and N and Z before reading A or the flags; a tax goes
+// when X is written before it is read (IR816SetsXFirst); txa after tax (or tax after txa),
 // only clc or sec between, goes; a txy goes after a txy and an instruction that changes neither X
 // nor Y; and code after a bra, rtl or stp up to a label that is used goes
 // (IR816Unreachable).
@@ -3618,29 +3694,27 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 				continue;
 			}
 
-			//An lda for nothing before a bra.
-			if ((ui + 1 < aszLines.NumElements()) && (psz->Length() > 3) && (psz->Text()[0] == '\t') &&
-				IR816BranchLine(aszLines.Get(ui + 1), szMnemonic2, szLabel2) && (strcmp(szMnemonic2, "bra") == 0))
+			//An lda (of a direct page word or a constant) for nothing: what runs next sets A before reading A or N and Z.
+			if ((psz->Length() > 3) && (psz->Text()[0] == '\t'))
 			{
 				IR816SplitLine(psz->Text(), szMnemonic, &szOperand, &uiOperand);
-				uiTarget = IR816LabelledInstruction(&aszLines, szLabel2);
-				while ((uiTarget != (size)-1) && (uiTarget < aszLines.NumElements()) &&
-					(IR816IsLabel(aszLines.Get(uiTarget)) || IR816LineIsOneOf(aszLines.Get(uiTarget), aszIgnoreA)))
-				{
-					uiTarget++;
-				}
-				if (uiTarget >= aszLines.NumElements())
-				{
-					uiTarget = (size)-1;
-				}
 				if ((strcmp(szMnemonic, "lda") == 0) && ((strncmp(szOperand, "[D + ", 5) == 0) || ((szOperand[0] >= '0') && (szOperand[0] <= '9'))) &&
-					(uiTarget != (size)-1) && IR816LineIsOneOf(aszLines.Get(uiTarget), aszSetsA))
+					IR816SetsAFirst(&aszLines, ui + 1, aszSetsA, aszIgnoreA))
 				{
 					aszLines.Remove(ui);
 					ui--;
 					bChanged = true;
 					continue;
 				}
+			}
+
+			//A tax for nothing: X is written again before anything reads it.
+			if ((strcmp(psz->Text(), "\t\ttax") == 0) && IR816SetsXFirst(&aszLines, ui + 1))
+			{
+				aszLines.Remove(ui);
+				ui--;
+				bChanged = true;
+				continue;
 			}
 
 			//tax then txa, or txa then tax, with only clc or sec between: A and X hold the same already (and N and Z
