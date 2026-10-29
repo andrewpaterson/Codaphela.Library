@@ -982,7 +982,8 @@ public:
 	CArrayTemplate<int32>	maiPairFirst;	//Per temporary: its first pair (or -1), a list through maiPairNext.
 	CArrayTemplate<int32>	maiPairNext;
 	CArrayTemplate<int32>	maiPairOther;	//Per pair: the other temporary...
-	CArrayTemplate<int32>	maiPairPosition;	//...and where they meet.
+	CArrayTemplate<int32>	maiPairPosition;	//...where they meet...
+	CArrayTemplate<int32>	maiPairWeight;		//...and how many loops the copy sharing a place saves is in.
 	CArrayTemplate<int32>	maiWordFirst;		//Per word of the frame: its first occupant (or -1), a list through maiOccupantNext.
 	CArrayTemplate<int32>	maiOccupantNext;
 	CArrayTemplate<int32>	maiOccupant;		//Per occupant: the temporary placed on the word.
@@ -990,7 +991,7 @@ public:
 	void	Init(size uiTemporaries);
 	void	Kill(void);
 	void	Add(int32 iTemporary, int32 iStart, int32 iEnd);
-	void	AddPair(SIRReference sOne, SIRReference sOther, int32 iPosition);
+	void	AddPair(SIRReference sOne, SIRReference sOther, int32 iPosition, int32 iWeight);
 	bool	IsPair(int32 iOne, int32 iOther, int32 iPosition);
 	bool	Interferes(int32 iOne, int32 iOther, bool bSamePlace);
 	int32	Start(int32 iTemporary);
@@ -1025,6 +1026,7 @@ void CIR816LiveRanges::Init(size uiTemporaries)
 	maiPairNext.Init();
 	maiPairOther.Init();
 	maiPairPosition.Init();
+	maiPairWeight.Init();
 	maiWordFirst.Init();
 	maiOccupantNext.Init();
 	maiOccupant.Init();
@@ -1040,6 +1042,7 @@ void CIR816LiveRanges::Kill(void)
 	maiOccupant.Kill();
 	maiOccupantNext.Kill();
 	maiWordFirst.Kill();
+	maiPairWeight.Kill();
 	maiPairPosition.Kill();
 	maiPairOther.Kill();
 	maiPairNext.Kill();
@@ -1093,7 +1096,7 @@ void CIR816LiveRanges::Add(int32 iTemporary, int32 iStart, int32 iEnd)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816LiveRanges::AddPair(SIRReference sOne, SIRReference sOther, int32 iPosition)
+void CIR816LiveRanges::AddPair(SIRReference sOne, SIRReference sOther, int32 iPosition, int32 iWeight)
 {
 	int32	iPair;
 	int32	iOne;
@@ -1109,12 +1112,14 @@ void CIR816LiveRanges::AddPair(SIRReference sOne, SIRReference sOther, int32 iPo
 	iPair = (int32)maiPairOther.NumElements();
 	maiPairOther.Add(&iOther);
 	maiPairPosition.Add(&iPosition);
+	maiPairWeight.Add(&iWeight);
 	maiPairNext.Add(maiPairFirst.Get(iOne));
 	*maiPairFirst.Get(iOne) = iPair;
 
 	iPair = (int32)maiPairOther.NumElements();
 	maiPairOther.Add(&iOne);
 	maiPairPosition.Add(&iPosition);
+	maiPairWeight.Add(&iWeight);
 	maiPairNext.Add(maiPairFirst.Get(iOther));
 	*maiPairFirst.Get(iOther) = iPair;
 }
@@ -1455,6 +1460,12 @@ int32 CIR816Backend::PackTemporaries(void)
 	uint32						uiNew;
 	bool						bChanged;
 	bool						bFree;
+	CArrayTemplate<int32>		aiDepths;		//Per block: how many loops it is in.
+	CIRDominators				cDominators;
+	CIRLoops					cLoops;
+	int32						iDepth;
+	int32						iBestDepth;
+	int32						iBestOffset;
 
 	uiTemporaries = mpcFunction->NumTemporaries();
 	uiWords = (uiTemporaries + 31) / 32;
@@ -1465,6 +1476,21 @@ int32 CIR816Backend::PackTemporaries(void)
 	aiBlockEvents.Init();
 	aiBlockStart.Init();
 	aiBlockEnd.Init();
+
+	//Each block's loop depth, for choosing between pairs.
+	aiDepths.Init();
+	mpcFunction->ComputePredecessors();
+	cDominators.Init();
+	cDominators.Compute(mpcFunction);
+	cLoops.Init();
+	cLoops.Compute(mpcFunction, &cDominators);
+	for (ui = 0; ui < uiBlocks; ui++)
+	{
+		iDepth = cLoops.Depth(mpcFunction->GetBlock(ui));
+		aiDepths.Add(&iDepth);
+	}
+	cLoops.Kill();
+	cDominators.Kill();
 
 	//The uses, definitions and writes, and the pairs.
 	iPosition = 0;
@@ -1491,7 +1517,7 @@ int32 CIR816Backend::PackTemporaries(void)
 					if (pcBlock->masInstructions.Get(uk)->uiOpcode == IRO_Call)
 					{
 						iCallPosition = iPosition + (int32)(uk - uj);
-						cRanges.AddPair(pcBlock->masInstructions.Get(uk)->sResult, FoldedBase(psInstruction->asArguments[0]), iCallPosition);
+						cRanges.AddPair(pcBlock->masInstructions.Get(uk)->sResult, FoldedBase(psInstruction->asArguments[0]), iCallPosition, *aiDepths.Get(ui));
 						break;
 					}
 				}
@@ -1509,7 +1535,7 @@ int32 CIR816Backend::PackTemporaries(void)
 				{
 					if (IR816CanShareArgument(psInstruction->uiOpcode, iArgument) && FoldedBase(psInstruction->asArguments[iArgument]).Equals(psInstruction->asArguments[iArgument]))
 					{
-						cRanges.AddPair(psInstruction->sResult, psInstruction->asArguments[iArgument], iPosition);
+						cRanges.AddPair(psInstruction->sResult, psInstruction->asArguments[iArgument], iPosition, *aiDepths.Get(ui));
 					}
 				}
 			}
@@ -1535,7 +1561,13 @@ int32 CIR816Backend::PackTemporaries(void)
 					IR816AddEvent(&asEvents, psPhi->sResult, iPosition, IR816_EVENT_WRITE);
 					if (psArgument)
 					{
-						cRanges.AddPair(psPhi->sResult, psArgument->sValue, iPosition);
+						//The copy is made going that way: as often as the shallower block of the two.
+						iDepth = *aiDepths.Get(ui);
+						if (*aiDepths.Get(pcSuccessor->muiIndex) < iDepth)
+						{
+							iDepth = *aiDepths.Get(pcSuccessor->muiIndex);
+						}
+						cRanges.AddPair(psPhi->sResult, psArgument->sValue, iPosition, iDepth);
 					}
 				}
 			}
@@ -1701,15 +1733,28 @@ int32 CIR816Backend::PackTemporaries(void)
 		iTemporary = *aiOrder.Get(ui);
 		iBytes = (ValueBytes(mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)iTemporary))) + 1) & ~1;
 
-		//A pair's place, then the first place free.
+		//A pair's place (the one where they meet in the deepest loop: the copy saved is done most), then the first
+		//place free.
 		bFree = false;
-		for (iPair = *cRanges.maiPairFirst.Get(iTemporary); (iPair != -1) && !bFree; iPair = *cRanges.maiPairNext.Get(iPair))
+		iBestDepth = -1;
+		iBestOffset = -1;
+		for (iPair = *cRanges.maiPairFirst.Get(iTemporary); iPair != -1; iPair = *cRanges.maiPairNext.Get(iPair))
 		{
 			iOffset = *maiOffsets.Get(*cRanges.maiPairOther.Get(iPair));
-			if (iOffset >= IR816_FIRST_TEMPORARY)
+			if ((iOffset >= IR816_FIRST_TEMPORARY) && cRanges.IsFree(iTemporary, iOffset, iBytes, &maiOffsets))
 			{
-				bFree = cRanges.IsFree(iTemporary, iOffset, iBytes, &maiOffsets);
+				iDepth = *cRanges.maiPairWeight.Get(iPair);
+				if (iDepth > iBestDepth)
+				{
+					iBestDepth = iDepth;
+					iBestOffset = iOffset;
+				}
 			}
+		}
+		if (iBestOffset >= 0)
+		{
+			iOffset = iBestOffset;
+			bFree = true;
 		}
 		if (!bFree)
 		{
@@ -1737,6 +1782,7 @@ int32 CIR816Backend::PackTemporaries(void)
 	}
 
 	AllocateX(&cRanges, &abParameter);
+	aiDepths.Kill();
 	abParameter.Kill();
 	aiOrder.Kill();
 	aiOpened.Kill();

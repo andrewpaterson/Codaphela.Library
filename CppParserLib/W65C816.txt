@@ -257,6 +257,24 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	  to no symbol are kept after it is compiled, the inliner looks for callees
 	  with no body there, and a unit that called one before it was kept is
 	  compiled again at the end (CCPP65Builder::CompileUnits).
+	- A constant goes to the right of a commutative operation (320 * y is
+	  y * 320, so 256 * y is a shift too) (CIROptimiser::FoldConstants).
+	- A mul of an extended i8/i16 by a constant whose product fits 16 bits
+	  unsigned, from the branches the block is reached through
+	  (DominatingRange), is a 16 bit mul zero extended (NarrowMultiplies, the
+	  W65C816's only): DrawPixel's (long)y * 320 with y 0..199.
+	- Then, general loop work from the sprite's pixel loop (both targets but the
+	  last): a sext of a value the branches to it keep 0 or more is a zext
+	  (NotNegative); ptradd p, (a + i) in a loop with p and a invariant is
+	  (p + a) + i, hoisted (SplitLoopAddresses); a loop with a branch on an
+	  invariant condition is two loops (UnswitchLoops, at most 48 instructions,
+	  4 a function each Optimise); and the 816's places prefer the pair whose
+	  copy is in the deepest loop (a phi's copy weighs the shallower block of the
+	  edge), so a pointer stepped in a loop keeps its place (inc in place).
+	  DrawSprite's opaque pixel ~200 -> ~120 cycles.
+	Cost (2026-10-29): TestBaseLib65 816 44.887G -> 41.830G (-6.81%) from the three
+	above, then 41.833G with the last two (no change there; TestCPP816 -0.26%); cross-unit inlining recompiles 349 of 591 units,
+	compile 19s -> 32s for TestBaseLib65 816, TestCPP816 219s -> 331s.
 
 5.	C++ end to end: the runtime routines, the start up, Libc65 for the W65C816
 	(softfloat.cpp, string.cpp, stdlib.cpp...) and closing the IR front end's gaps.

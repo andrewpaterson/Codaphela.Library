@@ -232,6 +232,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 		{
 			cOptimiser.Init(&mcModule);
 			cOptimiser.SetIndexedAddresses(mpcGenerator->mpsTarget->eTarget != CPPT_W65C816);
+			cOptimiser.SetNarrowMultiplies(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
 			cOptimiser.SetLibraryInt(IRTypeOf(&mpcTypes->msInt));
 			cOptimiser.Optimise(mpcFunction);
 			cOptimiser.Kill();
@@ -859,6 +860,7 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 		{
 			cOptimiser.Init(&mcModule);
 			cOptimiser.SetIndexedAddresses(mpcGenerator->mpsTarget->eTarget != CPPT_W65C816);
+			cOptimiser.SetNarrowMultiplies(mpcGenerator->mpsTarget->eTarget == CPPT_W65C816);
 			cOptimiser.SetLibraryInt(IRTypeOf(&mpcTypes->msInt));
 			cOptimiser.Optimise(psWritten->pcFunction);
 			cOptimiser.Kill();

@@ -40,6 +40,8 @@ void CIROptimiser::Init(CIRModule* pcModule)
 	mpcModule = pcModule;
 	mpcFunction = NULL;
 	mbIndexedAddresses = true;
+	mbNarrowMultiplies = false;
+	miUnswitched = 0;
 	msLibraryInt = IRType(IRTK_None);
 	mcDominators.Init();
 	mcDefinitions.Init();
@@ -107,6 +109,18 @@ void CIROptimiser::SetIndexedAddresses(bool bIndexedAddresses)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether NarrowMultiplies runs (for a target whose multiplies cost more
+// the wider they are: the W65C816's are shifts and adds or calls).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::SetNarrowMultiplies(bool bNarrowMultiplies)
+{
+	mbNarrowMultiplies = bNarrowMultiplies;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Runs the passes until none changes the function.  Returns true if any did.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -117,6 +131,7 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 	int		iRound;
 
 	mpcFunction = pcFunction;
+	miUnswitched = 0;
 	bAny = false;
 	for (iRound = 0; iRound < IR_OPTIMISE_ROUNDS; iRound++)
 	{
@@ -132,7 +147,9 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 		bChanged |= RotateLoops();
 		bChanged |= LessLoopTests();
 		bChanged |= ReduceStrength();
+		bChanged |= SplitLoopAddresses();
 		bChanged |= HoistInvariants();
+		bChanged |= UnswitchLoops();
 		bChanged |= ReplaceLoopIdioms();
 		bChanged |= RemoveDeadCode();
 		bChanged |= SinkComparisons();
@@ -140,6 +157,12 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 		{
 			break;
 		}
+		bAny = true;
+	}
+	if (mbNarrowMultiplies && NarrowMultiplies())
+	{
+		FoldConstants();
+		RemoveDeadCode();
 		bAny = true;
 	}
 	mpcFunction->Renumber();
@@ -1786,6 +1809,14 @@ bool CIROptimiser::FoldConstants(void)
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 			psInstruction->asArguments[0] = Replacement(psInstruction->asArguments[0]);
 			psInstruction->asArguments[1] = Replacement(psInstruction->asArguments[1]);
+			if (IsIRCommutative(psInstruction->uiOpcode) && psInstruction->asArguments[0].IsConstant() && !psInstruction->asArguments[1].IsConstant())
+			{
+				//A constant goes on the right (320 * y is y * 320), where the rules below and the back ends look for it.
+				sValue = psInstruction->asArguments[0];
+				psInstruction->asArguments[0] = psInstruction->asArguments[1];
+				psInstruction->asArguments[1] = sValue;
+				bChanged = true;
+			}
 			if (NarrowComparison(psInstruction))
 			{
 				bChanged = true;
@@ -1811,9 +1842,11 @@ bool CIROptimiser::FoldConstants(void)
 				bChanged = true;
 			}
 			else if ((psInstruction->uiOpcode == IRO_SExt) && (mpcFunction->TypeOf(psInstruction->asArguments[0]).IntegerBits() > 1) &&
-					 Extended(psInstruction->asArguments[0], mpcFunction->TypeOf(psInstruction->asArguments[0]).IntegerBits() - 1, false, 0))
+					 (Extended(psInstruction->asArguments[0], mpcFunction->TypeOf(psInstruction->asArguments[0]).IntegerBits() - 1, false, 0) ||
+					  NotNegative(pcBlock, psInstruction->asArguments[0])))
 			{
-				//A sext of a value whose top bit is 0 is a zext (cheaper where a sign must be worked out).
+				//A sext of a value whose top bit is 0 (or that the branches to here keep 0 or more) is a zext (cheaper
+				//where a sign must be worked out).
 				psInstruction->uiOpcode = IRO_ZExt;
 				bChanged = true;
 			}
@@ -4439,6 +4472,605 @@ bool CIROptimiser::BoundDivisions(void)
 	{
 		ApplyReplacements();
 	}
+	return bChanged;
+}
+
+
+#define IR_RANGE_DEPTH	8
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Narrows the signed range [*plliMin, *plliMax] of sValue in pcBlock by the
+// branches pcBlock is reached through: while a block has one predecessor,
+// that predecessor's branch on a compare of sValue with a constant holds
+// (the way to the block), up to IR_RANGE_DEPTH blocks up.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::DominatingRange(CIRBlock* pcBlock, SIRReference sValue, int64* plliMin, int64* plliMax)
+{
+	CIRBlock*		pcTo;
+	CIRBlock*		pcFrom;
+	SIRInstruction*	psCompare;
+	SIRReference	sConstant;
+	uint16			uiOpcode;
+	int64			lliConstant;
+	int				iDepth;
+
+	pcTo = pcBlock;
+	for (iDepth = 0; (iDepth < IR_RANGE_DEPTH) && (pcTo->mapcPredecessors.NumElements() == 1); iDepth++)
+	{
+		pcFrom = pcTo->mapcPredecessors.GetPtr(0);
+		psCompare = ((pcFrom->msJump.uiKind == IRJ_Branch) && (pcFrom->msJump.pcThen != pcFrom->msJump.pcElse)) ? mcDefinitions.Instruction(pcFrom->msJump.sArgument) : NULL;
+		if (psCompare && (psCompare->asArguments[0].Equals(sValue) || psCompare->asArguments[1].Equals(sValue)))
+		{
+			uiOpcode = psCompare->uiOpcode;
+			sConstant = psCompare->asArguments[1];
+			if (psCompare->asArguments[1].Equals(sValue))
+			{
+				sConstant = psCompare->asArguments[0];
+				uiOpcode = IRSwappedComparison(uiOpcode);
+			}
+			if (sConstant.IsConstant())
+			{
+				if (pcFrom->msJump.pcElse == pcTo)
+				{
+					uiOpcode = IRInvertedComparison(uiOpcode);
+				}
+				lliConstant = mpcFunction->GetSigned(sConstant);
+				switch (uiOpcode)
+				{
+				case IRO_SLt:	*plliMax = (lliConstant - 1 < *plliMax) ? lliConstant - 1 : *plliMax;	break;
+				case IRO_SLe:	*plliMax = (lliConstant < *plliMax) ? lliConstant : *plliMax;			break;
+				case IRO_SGt:	*plliMin = (lliConstant + 1 > *plliMin) ? lliConstant + 1 : *plliMin;	break;
+				case IRO_SGe:	*plliMin = (lliConstant > *plliMin) ? lliConstant : *plliMin;			break;
+				case IRO_ULt:
+				case IRO_ULe:
+					//Below a constant that is positive as signed: 0 up to it.
+					if (lliConstant > 0)
+					{
+						*plliMin = (*plliMin < 0) ? 0 : *plliMin;
+						lliConstant -= (uiOpcode == IRO_ULt) ? 1 : 0;
+						*plliMax = (lliConstant < *plliMax) ? lliConstant : *plliMax;
+					}
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		pcTo = pcFrom;
+	}
+}
+
+
+#define IR_UNSWITCH_INSTRUCTIONS	48		//The most instructions and phis a loop unswitched may have...
+#define IR_UNSWITCH_LOOPS			4		//...and the most loops unswitched in a function each time it is optimised.
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcBlock's copy when it is one of the loop's blocks (apcBlocks, copied to
+// apcCopies), else pcBlock.
+//
+//////////////////////////////////////////////////////////////////////////
+static CIRBlock* IROptimiserCopyOf(CArrayIRBlocks* papcBlocks, CArrayIRBlocks* papcCopies, CIRBlock* pcBlock)
+{
+	size	ui;
+
+	for (ui = 0; ui < papcBlocks->NumElements(); ui++)
+	{
+		if (papcBlocks->GetPtr(ui) == pcBlock)
+		{
+			return papcCopies->GetPtr(ui);
+		}
+	}
+	return pcBlock;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcBlock is one of the loop's blocks or their copies.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IROptimiserInEither(CArrayIRBlocks* papcBlocks, CArrayIRBlocks* papcCopies, CIRBlock* pcBlock)
+{
+	size	ui;
+
+	for (ui = 0; ui < papcBlocks->NumElements(); ui++)
+	{
+		if ((papcBlocks->GetPtr(ui) == pcBlock) || (papcCopies->GetPtr(ui) == pcBlock))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcBlock's phis lose their arguments from pcFrom (an edge taken away).
+//
+//////////////////////////////////////////////////////////////////////////
+static void IROptimiserRemovePhiArguments(CIRBlock* pcBlock, CIRBlock* pcFrom)
+{
+	size	ui;
+	size	uiArgument;
+	SIRPhi*	psPhi;
+
+	for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
+	{
+		psPhi = pcBlock->masPhis.Get(ui);
+		for (uiArgument = psPhi->asArguments.NumElements(); uiArgument > 0; uiArgument--)
+		{
+			if (psPhi->asArguments.Get(uiArgument - 1)->pcBlock == pcFrom)
+			{
+				psPhi->asArguments.RemoveAt(uiArgument - 1, true);
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The uses of sValue outside the loop's blocks and their copies are what
+// pcUpdater gives (sValue or its copy, or a phi of both).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIROptimiser::RewriteOutsideUses(SIRReference sValue, CArrayIRBlocks* papcBlocks, CArrayIRBlocks* papcCopies, CIRSSAUpdater* pcUpdater)
+{
+	size			ui;
+	size			uiIndex;
+	size			uiArgument;
+	CIRBlock*		pcBlock;
+	SIRPhiArgument*	psArgument;
+	SIRInstruction*	psInstruction;
+	bool			bInside;
+
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		bInside = IROptimiserInEither(papcBlocks, papcCopies, pcBlock);
+		for (uiIndex = 0; uiIndex < pcBlock->masPhis.NumElements(); uiIndex++)
+		{
+			for (uiArgument = 0; uiArgument < pcBlock->masPhis.Get(uiIndex)->asArguments.NumElements(); uiArgument++)
+			{
+				psArgument = pcBlock->masPhis.Get(uiIndex)->asArguments.Get(uiArgument);
+				if (psArgument->sValue.Equals(sValue) && !IROptimiserInEither(papcBlocks, papcCopies, psArgument->pcBlock))
+				{
+					psArgument->sValue = pcUpdater->ValueAtEnd(psArgument->pcBlock);
+				}
+			}
+		}
+		if (bInside)
+		{
+			continue;
+		}
+		for (uiIndex = 0; uiIndex < pcBlock->masInstructions.NumElements(); uiIndex++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiIndex);
+			for (uiArgument = 0; uiArgument < 2; uiArgument++)
+			{
+				if (psInstruction->asArguments[uiArgument].Equals(sValue))
+				{
+					psInstruction->asArguments[uiArgument] = pcUpdater->ValueAtStart(pcBlock);
+					psInstruction = pcBlock->masInstructions.Get(uiIndex);
+				}
+			}
+		}
+		if (pcBlock->msJump.sArgument.Equals(sValue))
+		{
+			pcBlock->msJump.sArgument = pcUpdater->ValueAtStart(pcBlock);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A loop (of at most IR_UNSWITCH_INSTRUCTIONS) with a branch on a condition
+// that is the same each time round is two loops: the loop is copied, the
+// branch goes one way in the loop and the other way in the copy, and the
+// preheader branches on the condition to one or the other.  The blocks the
+// loop leaves to take the copy's values from it too; values used after the
+// loop are phis of both (CIRSSAUpdater).  One loop at a time, innermost
+// first, at most IR_UNSWITCH_LOOPS each Optimise.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::UnswitchLoops(void)
+{
+	CArrayIRReferences	asMap;
+	CArrayIRBlocks		apcBlocks;
+	CArrayIRBlocks		apcCopies;
+	CIRSSAUpdater		cUpdater;
+	SIRInstruction		sCopy;
+	SIRLoop*			psLoop;
+	CIRBlock*			pcBlock;
+	CIRBlock*			pcCopy;
+	CIRBlock*			pcSwitch;
+	CIRBlock*			pcSwitchCopy;
+	CIRBlock*			pcPreheader;
+	CIRBlock*			pcSuccessor;
+	CIRBlock*			pcThen;
+	CIRBlock*			pcElse;
+	SIRPhi*				psPhi;
+	SIRPhi*				psCopyPhi;
+	SIRPhiArgument*		psArgument;
+	SIRReference		sCondition;
+	SIRReference		sValue;
+	size				uiLoop;
+	size				ui;
+	size				uiIndex;
+	size				uiArgument;
+	size				uiSize;
+	size				uiSuccessor;
+
+	if (miUnswitched >= IR_UNSWITCH_LOOPS)
+	{
+		return false;
+	}
+	ComputeLoops();
+	for (uiLoop = mcLoops.NumLoops(); uiLoop > 0; uiLoop--)
+	{
+		psLoop = mcLoops.GetLoop(uiLoop - 1);
+		uiSize = 0;
+		pcSwitch = NULL;
+		for (ui = 0; ui < mcLoops.NumBlocks(uiLoop - 1); ui++)
+		{
+			pcBlock = mcLoops.GetBlock(uiLoop - 1, ui);
+			uiSize += pcBlock->masInstructions.NumElements() + pcBlock->masPhis.NumElements();
+			if (!pcSwitch && (pcBlock->msJump.uiKind == IRJ_Branch) && (pcBlock->msJump.pcThen != pcBlock->msJump.pcElse) &&
+				pcBlock->msJump.sArgument.IsTemporary() && mcLoops.IsInvariant(uiLoop - 1, pcBlock->msJump.sArgument, &mcDefinitions))
+			{
+				pcSwitch = pcBlock;
+			}
+		}
+		if (!pcSwitch || (uiSize > IR_UNSWITCH_INSTRUCTIONS))
+		{
+			continue;
+		}
+
+		pcPreheader = psLoop->pcPreheader;
+		if (!pcPreheader)
+		{
+			pcPreheader = psLoop->pcEntering ? AddPreheader(uiLoop - 1) : AddMergedPreheader(uiLoop - 1);
+			psLoop = mcLoops.GetLoop(uiLoop - 1);
+		}
+
+		//The copy's blocks and a temporary for each value the loop defines.
+		apcBlocks.Init();
+		apcCopies.Init();
+		asMap.Init();
+		asMap.GrowToAtLeastNumElements(mpcFunction->NumTemporaries(), true, 0);
+		for (ui = 0; ui < mcLoops.NumBlocks(uiLoop - 1); ui++)
+		{
+			pcBlock = mcLoops.GetBlock(uiLoop - 1, ui);
+			apcBlocks.Add(pcBlock);
+			apcCopies.Add(mpcFunction->AddBlock());
+			for (uiIndex = 0; uiIndex < pcBlock->masPhis.NumElements(); uiIndex++)
+			{
+				sValue = pcBlock->masPhis.Get(uiIndex)->sResult;
+				*asMap.Get(sValue.Index()) = mpcFunction->AddTemporary(mpcFunction->GetTemporaryType(sValue));
+			}
+			for (uiIndex = 0; uiIndex < pcBlock->masInstructions.NumElements(); uiIndex++)
+			{
+				sValue = pcBlock->masInstructions.Get(uiIndex)->sResult;
+				if (sValue.IsTemporary())
+				{
+					*asMap.Get(sValue.Index()) = mpcFunction->AddTemporary(mpcFunction->GetTemporaryType(sValue));
+				}
+			}
+		}
+
+		//The copies: their phis, instructions and jumps taking the copies' values and blocks.
+		for (ui = 0; ui < apcBlocks.NumElements(); ui++)
+		{
+			pcBlock = apcBlocks.GetPtr(ui);
+			pcCopy = apcCopies.GetPtr(ui);
+			for (uiIndex = 0; uiIndex < pcBlock->masPhis.NumElements(); uiIndex++)
+			{
+				psPhi = pcBlock->masPhis.Get(uiIndex);
+				psCopyPhi = pcCopy->AddPhi(psPhi->sType, IROptimiserMapped(&asMap, psPhi->sResult));
+				for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
+				{
+					psArgument = psPhi->asArguments.Get(uiArgument);
+					pcCopy->AddPhiArgument(psCopyPhi, IROptimiserCopyOf(&apcBlocks, &apcCopies, psArgument->pcBlock), IROptimiserMapped(&asMap, psArgument->sValue));
+				}
+			}
+			for (uiIndex = 0; uiIndex < pcBlock->masInstructions.NumElements(); uiIndex++)
+			{
+				sCopy = *pcBlock->masInstructions.Get(uiIndex);
+				sCopy.asArguments[0] = IROptimiserMapped(&asMap, sCopy.asArguments[0]);
+				sCopy.asArguments[1] = IROptimiserMapped(&asMap, sCopy.asArguments[1]);
+				sCopy.sResult = IROptimiserMapped(&asMap, sCopy.sResult);
+				pcCopy->masInstructions.Add(&sCopy);
+			}
+			switch (pcBlock->msJump.uiKind)
+			{
+			case IRJ_Jump:
+				pcCopy->Jump(IROptimiserCopyOf(&apcBlocks, &apcCopies, pcBlock->msJump.pcThen));
+				break;
+			case IRJ_Branch:
+				pcCopy->Branch(IROptimiserMapped(&asMap, pcBlock->msJump.sArgument), IROptimiserCopyOf(&apcBlocks, &apcCopies, pcBlock->msJump.pcThen), IROptimiserCopyOf(&apcBlocks, &apcCopies, pcBlock->msJump.pcElse));
+				break;
+			case IRJ_Return:
+				if (pcBlock->msJump.sType.IsNone())
+				{
+					pcCopy->Return();
+				}
+				else
+				{
+					pcCopy->Return(pcBlock->msJump.sType, IROptimiserMapped(&asMap, pcBlock->msJump.sArgument));
+				}
+				break;
+			default:
+				pcCopy->Unreachable();
+				break;
+			}
+
+			//The blocks the loop leaves to take the copy's values from the copy.
+			for (uiSuccessor = 0; uiSuccessor < pcBlock->NumSuccessors(); uiSuccessor++)
+			{
+				pcSuccessor = pcBlock->GetSuccessor(uiSuccessor);
+				if (mcLoops.Contains(uiLoop - 1, pcSuccessor) || ((uiSuccessor == 1) && (pcSuccessor == pcBlock->GetSuccessor(0))))
+				{
+					continue;
+				}
+				for (uiIndex = 0; uiIndex < pcSuccessor->masPhis.NumElements(); uiIndex++)
+				{
+					psPhi = pcSuccessor->masPhis.Get(uiIndex);
+					psArgument = pcSuccessor->FindPhiArgument(psPhi, pcBlock);
+					if (psArgument)
+					{
+						sValue = IROptimiserMapped(&asMap, psArgument->sValue);
+						pcSuccessor->AddPhiArgument(psPhi, pcCopy, sValue);
+					}
+				}
+			}
+		}
+
+		//The branch goes one way in the loop and the other in the copy; the preheader chooses.
+		pcSwitchCopy = IROptimiserCopyOf(&apcBlocks, &apcCopies, pcSwitch);
+		sCondition = pcSwitch->msJump.sArgument;
+		pcThen = pcSwitch->msJump.pcThen;
+		pcElse = pcSwitch->msJump.pcElse;
+		pcSwitch->Jump(pcThen);
+		IROptimiserRemovePhiArguments(pcElse, pcSwitch);
+		pcSwitchCopy->Jump(IROptimiserCopyOf(&apcBlocks, &apcCopies, pcElse));
+		IROptimiserRemovePhiArguments(IROptimiserCopyOf(&apcBlocks, &apcCopies, pcThen), pcSwitchCopy);
+		pcPreheader->Branch(sCondition, psLoop->pcHead, IROptimiserCopyOf(&apcBlocks, &apcCopies, psLoop->pcHead));
+		mpcFunction->ComputePredecessors();
+
+		//Values used after the loop come from the loop or the copy.
+		cUpdater.Init(mpcFunction);
+		for (ui = 0; ui < apcBlocks.NumElements(); ui++)
+		{
+			pcBlock = apcBlocks.GetPtr(ui);
+			for (uiIndex = 0; uiIndex < pcBlock->masPhis.NumElements() + pcBlock->masInstructions.NumElements(); uiIndex++)
+			{
+				sValue = (uiIndex < pcBlock->masPhis.NumElements()) ? pcBlock->masPhis.Get(uiIndex)->sResult : pcBlock->masInstructions.Get(uiIndex - pcBlock->masPhis.NumElements())->sResult;
+				if (sValue.IsTemporary())
+				{
+					cUpdater.Begin(mpcFunction->GetTemporaryType(sValue));
+					cUpdater.Define(pcBlock, sValue);
+					cUpdater.Define(apcCopies.GetPtr(ui), IROptimiserMapped(&asMap, sValue));
+					RewriteOutsideUses(sValue, &apcBlocks, &apcCopies, &cUpdater);
+				}
+			}
+		}
+		cUpdater.Kill();
+		asMap.Kill();
+		apcCopies.Kill();
+		apcBlocks.Kill();
+		miUnswitched++;
+		return true;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In a loop, ptradd p, (a + b) with p and a the same each time round (and
+// the add only used there) is ptradd (ptradd p, a), b: the inner ptradd is
+// then hoisted out of the loop (HoistInvariants), leaving one add a time
+// round instead of two.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::SplitLoopAddresses(void)
+{
+	CArrayTemplate<SIRSplitAddress>	asFound;
+	SIRSplitAddress*				psFound;
+	CIRBlock*						pcBlock;
+	SIRInstruction*					psAddress;
+	SIRInstruction*					psAdd;
+	SIRReference					sInner;
+	int32							iLoop;
+	size							ui;
+	size							uiInstruction;
+	int								i;
+	bool							bChanged;
+
+	//Found first: the inserts move the definitions IsInvariant reads.
+	ComputeLoops();
+	asFound.Init();
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		iLoop = mcLoops.Innermost(pcBlock);
+		if (iLoop < 0)
+		{
+			continue;
+		}
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psAddress = pcBlock->masInstructions.Get(uiInstruction);
+			if ((psAddress->uiOpcode != IRO_PtrAdd) || (psAddress->uiFlags != 0) || !psAddress->asArguments[1].IsTemporary() ||
+				!mcLoops.IsInvariant((size)iLoop, psAddress->asArguments[0], &mcDefinitions) || (mcDefinitions.NumUses(psAddress->asArguments[1]) != 1))
+			{
+				continue;
+			}
+			psAdd = mcDefinitions.Instruction(psAddress->asArguments[1]);
+			if (!psAdd || (psAdd->uiOpcode != IRO_Add))
+			{
+				continue;
+			}
+			for (i = 0; i < 2; i++)
+			{
+				if (!psAdd->asArguments[i].IsConstant() && mcLoops.IsInvariant((size)iLoop, psAdd->asArguments[i], &mcDefinitions) &&
+					!mcLoops.IsInvariant((size)iLoop, psAdd->asArguments[1 - i], &mcDefinitions))
+				{
+					psFound = asFound.Add();
+					psFound->pcBlock = pcBlock;
+					psFound->uiInstruction = uiInstruction;
+					psFound->sInvariant = psAdd->asArguments[i];
+					psFound->sVariant = psAdd->asArguments[1 - i];
+					break;
+				}
+			}
+		}
+	}
+
+	//Last first, so each instruction's index is still where it was found.
+	bChanged = asFound.NumElements() > 0;
+	for (ui = asFound.NumElements(); ui > 0; ui--)
+	{
+		psFound = asFound.Get(ui - 1);
+		psAddress = psFound->pcBlock->masInstructions.Get(psFound->uiInstruction);
+		sInner = InsertInstruction(psFound->pcBlock, psFound->uiInstruction, IRO_PtrAdd, psAddress->sType, psAddress->asArguments[0], psFound->sInvariant);
+		psAddress = psFound->pcBlock->masInstructions.Get(psFound->uiInstruction + 1);
+		psAddress->asArguments[0] = sInner;
+		psAddress->asArguments[1] = psFound->sVariant;
+	}
+	asFound.Kill();
+	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the branches pcBlock is reached through keep the integer sValue 0
+// or more (DominatingRange).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::NotNegative(CIRBlock* pcBlock, SIRReference sValue)
+{
+	int		iBits;
+	int64	lliMin;
+	int64	lliMax;
+
+	iBits = mpcFunction->TypeOf(sValue).IntegerBits();
+	if ((iBits < 2) || (iBits > 32) || sValue.IsConstant())
+	{
+		return false;
+	}
+	lliMin = -((int64)1 << (iBits - 1));
+	lliMax = ((int64)1 << (iBits - 1)) - 1;
+	DominatingRange(pcBlock, sValue, &lliMin, &lliMax);
+	return lliMin >= 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A mul of an extended i8 or i16 value by a constant whose product fits 16
+// bits unsigned (the value 0 or more, its range from the branches the block
+// is reached through, DominatingRange, or a zext's bits) is a 16 bit mul,
+// zero extended: (long)y * 320 with y from 0 to 199 is a 16 bit y * 320.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::NarrowMultiplies(void)
+{
+	CArrayTemplate<SIRNarrowMultiply>	asFound;
+	SIRNarrowMultiply*					psFound;
+	SIRInstruction*						psInstruction;
+	SIRInstruction*						psExtension;
+	CIRBlock*							pcBlock;
+	SIRReference						sNarrow;
+	SIRType								sType;
+	SIRType								sShort;
+	uint64								ulliConstant;
+	int64								lliMin;
+	int64								lliMax;
+	int									iBits;
+	size								ui;
+	size								uiInstruction;
+	bool								bChanged;
+
+	//Found first: the inserts move the definitions DominatingRange reads.
+	FindDefinitions();
+	mpcFunction->ComputePredecessors();
+	sShort = IRType(IRTK_I16);
+	asFound.Init();
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			sType = psInstruction->sType;
+			if ((psInstruction->uiOpcode != IRO_Mul) || !psInstruction->sResult.IsTemporary() || !sType.IsInteger() || (sType.IntegerBits() <= 16) ||
+				!psInstruction->asArguments[1].IsConstant())
+			{
+				continue;
+			}
+			ulliConstant = IRTruncate(sType, mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits);
+			psExtension = mcDefinitions.Instruction(psInstruction->asArguments[0]);
+			if ((ulliConstant == 0) || (ulliConstant > 0xFFFF) || !psExtension || ((psExtension->uiOpcode != IRO_SExt) && (psExtension->uiOpcode != IRO_ZExt)))
+			{
+				continue;
+			}
+			sNarrow = psExtension->asArguments[0];
+			iBits = mpcFunction->TypeOf(sNarrow).IntegerBits();
+			if ((iBits != 8) && (iBits != 16))
+			{
+				continue;
+			}
+			//The compares are of the narrow value as it is (a signed compare sees it signed); a zext of one that may be
+			//negative is up to all its bits.
+			lliMin = -((int64)1 << (iBits - 1));
+			lliMax = ((int64)1 << (iBits - 1)) - 1;
+			DominatingRange(pcBlock, sNarrow, &lliMin, &lliMax);
+			if ((lliMin < 0) && (psExtension->uiOpcode == IRO_ZExt))
+			{
+				lliMin = 0;
+				lliMax = ((int64)1 << iBits) - 1;
+			}
+			if ((lliMin < 0) || ((uint64)lliMax * ulliConstant > 0xFFFF))
+			{
+				continue;
+			}
+			psFound = asFound.Add();
+			psFound->pcBlock = pcBlock;
+			psFound->uiInstruction = uiInstruction;
+			psFound->sNarrow = sNarrow;
+		}
+	}
+
+	//Last first, so each instruction's index is still where it was found.
+	bChanged = asFound.NumElements() > 0;
+	for (ui = asFound.NumElements(); ui > 0; ui--)
+	{
+		psFound = asFound.Get(ui - 1);
+		pcBlock = psFound->pcBlock;
+		uiInstruction = psFound->uiInstruction;
+		ulliConstant = mpcFunction->GetConstant(pcBlock->masInstructions.Get(uiInstruction)->asArguments[1])->ulliBits;
+		sNarrow = psFound->sNarrow;
+		if (mpcFunction->TypeOf(sNarrow).IntegerBits() == 8)
+		{
+			sNarrow = InsertInstruction(pcBlock, uiInstruction, IRO_ZExt, sShort, sNarrow, IRNone());
+			uiInstruction++;
+		}
+		sNarrow = InsertInstruction(pcBlock, uiInstruction, IRO_Mul, sShort, sNarrow, mpcFunction->AddInteger(sShort, (int64)(ulliConstant & 0xFFFF)));
+		psInstruction = pcBlock->masInstructions.Get(uiInstruction + 1);
+		psInstruction->uiOpcode = IRO_ZExt;
+		psInstruction->asArguments[0] = sNarrow;
+		psInstruction->asArguments[1] = IRNone();
+	}
+	asFound.Kill();
 	return bChanged;
 }
 
