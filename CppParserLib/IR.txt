@@ -343,7 +343,8 @@ terminator, as the loop would.  The loop that tests both in one condition
 (while (*p && *p != c)) and works out which after it is not taken.  strlen, memcmp, memchr
 and strchr's own loops stay loops.  The front end turns it on with the target's int (CIROptimiser::SetLibraryInt);
 programs that use it link Libc65's string routines.  Constant folding also takes x + 0,
-x * 1 and the like to x.
+x * 1 and the like to x, and sums that cancel ((x + y) - y, x + (y - x), and p + (q - p))
+to what is left (Cancels): memchr's found pointer, worked out as start + (found - start), is the pointer memchr gave.
 
 
 Front end

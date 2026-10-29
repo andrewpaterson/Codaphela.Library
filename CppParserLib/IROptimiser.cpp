@@ -1712,8 +1712,9 @@ bool CIROptimiser::Fold(SIRInstruction* psInstruction, uint64* pulliResult)
 // Instructions of constants are their constant results, and so are
 // comparisons a branch on the way in decides (ImpliedComparison); x * 2^n,
 // unsigned x / 2^n and x % 2^n are shifts and ands; comparisons of
-// extended values are narrowed (NarrowComparison) and extensions that are
-// undone go (UndoesExtension, ConvertPhi).
+// extended values are narrowed (NarrowComparison), extensions that are
+// undone go (UndoesExtension, ConvertPhi) and so do x + 0 and the like
+// (IsIdentity) and sums that cancel ((x + y) - y, Cancels).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::FoldConstants(void)
@@ -1751,7 +1752,7 @@ bool CIROptimiser::FoldConstants(void)
 				Replace(psInstruction->sResult, mpcFunction->AddConstant(sResultType, ulliResult));
 				bChanged = true;
 			}
-			else if (UndoesExtension(psInstruction, &sValue) || ConvertPhi(psInstruction, &sValue) || IsIdentity(psInstruction, &sValue))
+			else if (UndoesExtension(psInstruction, &sValue) || ConvertPhi(psInstruction, &sValue) || IsIdentity(psInstruction, &sValue) || Cancels(psInstruction, &sValue))
 			{
 				//The value's uses go up by the result's (ConvertPhi mustn't change a phi something else now uses).
 				Replace(psInstruction->sResult, sValue);
@@ -1905,6 +1906,95 @@ bool CIROptimiser::IsIdentity(SIRInstruction* psInstruction, SIRReference* psVal
 	}
 	*psValue = sValue;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if psInstruction adds and takes away the same value: (x + y) - y,
+// (y + x) - y, x + (y - x), (y - x) + x, and p + (q - p) (an offset is as
+// wide as a pointer).  The arithmetic wraps, so it is exact.  *psValue is what is left.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::Cancels(SIRInstruction* psInstruction, SIRReference* psValue)
+{
+	SIRInstruction*	psDefinition;
+	SIRInstruction*	psTo;
+	SIRInstruction*	psFrom;
+	SIRReference	sValue;
+	SIRType			sType;
+	int				i;
+
+	if (!psInstruction->sResult.IsTemporary())
+	{
+		return false;
+	}
+	sType = mpcFunction->GetTemporaryType(psInstruction->sResult);
+	switch (psInstruction->uiOpcode)
+	{
+	case IRO_Sub:
+		//(x + y) - y or (y + x) - y.
+		psDefinition = mcDefinitions.Instruction(Replacement(psInstruction->asArguments[0]));
+		if (psDefinition && (psDefinition->uiOpcode == IRO_Add) && psDefinition->sType.Equals(psInstruction->sType))
+		{
+			for (i = 0; i < 2; i++)
+			{
+				if (Replacement(psDefinition->asArguments[1 - i]).Equals(psInstruction->asArguments[1]))
+				{
+					sValue = Replacement(psDefinition->asArguments[i]);
+					if (mpcFunction->TypeOf(sValue).Equals(sType))
+					{
+						*psValue = sValue;
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+
+	case IRO_Add:
+		//x + (y - x) or (y - x) + x.
+		for (i = 0; i < 2; i++)
+		{
+			psDefinition = mcDefinitions.Instruction(Replacement(psInstruction->asArguments[i]));
+			if (psDefinition && (psDefinition->uiOpcode == IRO_Sub) && psDefinition->sType.Equals(psInstruction->sType) &&
+				Replacement(psDefinition->asArguments[1]).Equals(psInstruction->asArguments[1 - i]))
+			{
+				sValue = Replacement(psDefinition->asArguments[0]);
+				if (mpcFunction->TypeOf(sValue).Equals(sType))
+				{
+					*psValue = sValue;
+					return true;
+				}
+			}
+		}
+		return false;
+
+	case IRO_PtrAdd:
+		//p + (q - p).
+		psDefinition = mcDefinitions.Instruction(Replacement(psInstruction->asArguments[1]));
+		if (!psDefinition || (psDefinition->uiOpcode != IRO_Sub))
+		{
+			return false;
+		}
+		psTo = mcDefinitions.Instruction(Replacement(psDefinition->asArguments[0]));
+		psFrom = mcDefinitions.Instruction(Replacement(psDefinition->asArguments[1]));
+		if (!psTo || !psFrom || (psTo->uiOpcode != IRO_PtrToI) || (psFrom->uiOpcode != IRO_PtrToI) ||
+			!Replacement(psFrom->asArguments[0]).Equals(psInstruction->asArguments[0]))
+		{
+			return false;
+		}
+		sValue = Replacement(psTo->asArguments[0]);
+		if (!mpcFunction->TypeOf(sValue).Equals(sType))
+		{
+			return false;
+		}
+		*psValue = sValue;
+		return true;
+
+	default:
+		return false;
+	}
 }
 
 
@@ -5066,13 +5156,12 @@ bool CIROptimiser::FoundValues(size uiLoop, CIRBlock* pcFrom, CIRBlock* pcFound,
 //
 // The values a search loop found at k times round (sTimes, an i32): each in
 // pasUsed (a phi of the head stepped by a constant) is start + k * step,
-// worked out at the end of pcBlock, or sAt for a pointer stepped a byte a time
-// from sBase (sAt being sBase + k); the uses outside the loop (by pcFound's
+// worked out at the end of pcBlock; the uses outside the loop (by pcFound's
 // phis from pcFrom, which then take them from pcBlock, and in the blocks
 // pcFound dominates) use them.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIROptimiser::FoundAt(size uiLoop, CIRBlock* pcBlock, SIRReference sTimes, SIRReference sBase, SIRReference sAt, CIRBlock* pcFrom, CIRBlock* pcFound, CArrayIRReferences* pasUsed)
+void CIROptimiser::FoundAt(size uiLoop, CIRBlock* pcBlock, SIRReference sTimes, CIRBlock* pcFrom, CIRBlock* pcFound, CArrayIRReferences* pasUsed)
 {
 	CIRBlock*		pcUser;
 	SIRInstruction*	psInstruction;
@@ -5106,11 +5195,7 @@ void CIROptimiser::FoundAt(size uiLoop, CIRBlock* pcBlock, SIRReference sTimes, 
 		}
 		MatchLinear(uiLoop, sValue, &sStart, &lliStep, &bNext);
 		sType = mpcFunction->TypeOf(sValue);
-		if (sType.IsPointer() && (lliStep == 1) && sStart.Equals(sBase))
-		{
-			sNew = sAt;
-		}
-		else if (sType.IsPointer())
+		if (sType.IsPointer())
 		{
 			sOffset = mpcFunction->Add(pcBlock, IRO_Mul, IRType(IRTK_I32), sTimes, mpcFunction->AddInteger(IRType(IRTK_I32), lliStep));
 			sNew = mpcFunction->Add(pcBlock, IRO_PtrAdd, sType, sStart, sOffset);
@@ -5335,7 +5420,7 @@ bool CIROptimiser::ReplaceMemchr(size uiLoop)
 	pcAt = mpcFunction->AddBlock();
 	sTimes = mpcFunction->Add(pcAt, IRO_PtrToI, IRType(IRTK_I32), sResult);
 	sTimes = mpcFunction->Add(pcAt, IRO_Sub, IRType(IRTK_I32), sTimes, mpcFunction->Add(pcAt, IRO_PtrToI, IRType(IRTK_I32), sStart));
-	FoundAt(uiLoop, pcAt, sTimes, sStart, sResult, pcHead, pcFound, &asUsed);
+	FoundAt(uiLoop, pcAt, sTimes, pcHead, pcFound, &asUsed);
 	pcAt->Jump(pcFound);
 	for (ui = 0; ui < pcMissing->masPhis.NumElements(); ui++)
 	{

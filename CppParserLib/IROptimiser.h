@@ -130,7 +130,8 @@ struct SIRIdiomAddress
 //						x << n and unsigned / and % by 2^n are >> and &; a comparison of two extended narrow
 //						values compares the narrow values; a comparison a branch on the way in decides is a
 //						constant (or eq, ne); an extension undone, or of a phi of constants, goes; a sext of
-//						a value whose top bit is 0 is a zext; x + 0, x * 1 and the like are x
+//						a value whose top bit is 0 is a zext; x + 0, x * 1 and the like are x, and so are
+//						(x + y) - y and x + (y - x) (p + (q - p) is q)
 //	local cse			an instruction without effects that a block already did is the earlier result
 //	redundant loads		a load of a value known to be in memory (loaded or stored before it, with nothing
 //						that may change it between) is that value; a load from a constant global or known
@@ -230,6 +231,7 @@ protected:
 	bool			UndoesExtension(SIRInstruction* psInstruction, SIRReference* psValue);
 	bool			ConvertPhi(SIRInstruction* psInstruction, SIRReference* psValue);
 	bool			IsIdentity(SIRInstruction* psInstruction, SIRReference* psValue);
+	bool			Cancels(SIRInstruction* psInstruction, SIRReference* psValue);
 	bool			Extended(SIRReference sValue, int iBits, bool bSigned, int iDepth);
 	int				EntryRelations(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIRInstruction* psInstruction);
 	bool			ImpliedComparison(CIRBlock* pcBlock, SIRInstruction* psInstruction, uint64* pulliResult, bool* pbChanged);
@@ -262,7 +264,7 @@ protected:
 	bool			ReplaceStrchr(size uiLoop);
 	bool			IsLoopValue(size uiLoop, SIRReference sValue);
 	bool			FoundValues(size uiLoop, CIRBlock* pcFrom, CIRBlock* pcFound, CArrayIRReferences* pasUsed);
-	void			FoundAt(size uiLoop, CIRBlock* pcBlock, SIRReference sTimes, SIRReference sBase, SIRReference sAt, CIRBlock* pcFrom, CIRBlock* pcFound, CArrayIRReferences* pasUsed);
+	void			FoundAt(size uiLoop, CIRBlock* pcBlock, SIRReference sTimes, CIRBlock* pcFrom, CIRBlock* pcFound, CArrayIRReferences* pasUsed);
 	bool			MatchLinear(size uiLoop, SIRReference sValue, SIRReference* psStart, int64* plliStep, bool* pbNext);
 	SIRReference	IdiomStart(CIRBlock* pcBlock, SIRIdiomAddress* psAddress, SIRIdiomCounter* psCounter);
 	SIRReference	IdiomBytes(CIRBlock* pcBlock, SIRIdiomCounter* psCounter, int64 lliBytes);
