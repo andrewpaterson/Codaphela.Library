@@ -1677,13 +1677,24 @@ static int32 IR816XUse(uint16 uiOpcode, int iArgument)
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether an instruction's result goes to its place through Store (which
-// can put it in X).
+// can put it in X), or can be worked out in A and put in X (a copy, an
+// extension or trunc, a 16 bit shift by a constant).
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816XResult(uint16 uiOpcode)
+static bool IR816XResult(SIRInstruction* psInstruction)
 {
-	switch (uiOpcode)
+	switch (psInstruction->uiOpcode)
 	{
+	case IRO_Copy:
+	case IRO_SExt:
+	case IRO_ZExt:
+	case IRO_Trunc:
+	case IRO_PtrToI:
+		return true;
+	case IRO_Shl:
+	case IRO_LShr:
+	case IRO_AShr:
+		return psInstruction->asArguments[1].IsConstant() && psInstruction->sType.Is(IRTK_I16);
 	case IRO_Add:
 	case IRO_Sub:
 	case IRO_And:
@@ -1838,7 +1849,7 @@ void CIR816Backend::AllocateX(CIR816LiveRanges* pcRanges, CArrayTemplate<bool>* 
 				}
 			}
 			sValue = psInstruction->sResult;
-			if (sValue.IsTemporary() && FoldedBase(sValue).Equals(sValue) && IR816XResult(psInstruction->uiOpcode))
+			if (sValue.IsTemporary() && FoldedBase(sValue).Equals(sValue) && IR816XResult(psInstruction))
 			{
 				*abCandidate.Get(sValue.Index()) = true;
 				*aiScore.Get(sValue.Index()) += 3 * iWeight;
@@ -3473,6 +3484,11 @@ bool CIR816Backend::Instruction(CIRBlock* pcBlock, size uiIndex)
 		}
 		return true;
 	case IRO_Copy:
+		if (InX(psInstruction->sResult))
+		{
+			Operand("ldx", psInstruction->asArguments[0], 0);
+			return true;
+		}
 		CopyWords(OffsetOf(psInstruction->sResult), psInstruction->asArguments[0], Words(psInstruction->sType));
 		return true;
 	case IRO_Shl:
@@ -3917,6 +3933,29 @@ void CIR816Backend::Shift(SIRInstruction* psInstruction)
 	iResult = OffsetOf(psInstruction->sResult);
 	iWords = Words(sType);
 	sAmount = psInstruction->asArguments[1];
+	if (InX(psInstruction->sResult))
+	{
+		//A 16 bit shift by a constant (AllocateX), in A.
+		Operand("lda", psInstruction->asArguments[0], 0);
+		for (lliAmount = (int64)(mpcFunction->GetConstant(sAmount)->ulliBits & 63); lliAmount > 0; lliAmount--)
+		{
+			if (psInstruction->uiOpcode == IRO_Shl)
+			{
+				Line("asl A");
+			}
+			else if (psInstruction->uiOpcode == IRO_LShr)
+			{
+				Line("lsr A");
+			}
+			else
+			{
+				Line("cmp $8000");
+				Line("ror A");
+			}
+		}
+		Line("tax");
+		return;
+	}
 	CopyWords(iResult, psInstruction->asArguments[0], iWords);
 	if (sAmount.IsConstant())
 	{
@@ -4560,6 +4599,51 @@ void CIR816Backend::Compare(SIRInstruction* psInstruction)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An extension or trunc to one word kept in X: the value's low word in A,
+// masked to a narrow result or sign extended from i8 or i1, then tax (a
+// zero extension or trunc to 16 bits is ldx of the word).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::ExtendInX(SIRInstruction* psInstruction)
+{
+	SIRReference	sValue;
+	SIRType			sSource;
+	SIRType			sType;
+
+	sValue = psInstruction->asArguments[0];
+	sSource = mpcFunction->TypeOf(sValue);
+	sType = psInstruction->sType;
+	if ((psInstruction->uiOpcode == IRO_SExt) && sSource.Is(IRTK_I1))
+	{
+		Line("lda 0");
+		Line("sec");
+		Operand("sbc", sValue, 0);
+		Mask(sType);
+	}
+	else if ((psInstruction->uiOpcode == IRO_SExt) && sSource.Is(IRTK_I8))
+	{
+		Operand("lda", sValue, 0);
+		Line("eor $80");
+		Line("sec");
+		Line("sbc $80");
+		Mask(sType);
+	}
+	else if (sType.Is(IRTK_I8) || sType.Is(IRTK_I1))
+	{
+		Operand("lda", sValue, 0);
+		Mask(sType);
+	}
+	else
+	{
+		Operand("ldx", sValue, 0);
+		return;
+	}
+	Line("tax");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // zext, sext, trunc and the pointer conversions.  Narrow values are already zero extended in their word.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -4576,6 +4660,11 @@ void CIR816Backend::Extend(SIRInstruction* psInstruction)
 	sValue = psInstruction->asArguments[0];
 	sSource = mpcFunction->TypeOf(sValue);
 	sType = psInstruction->sType;
+	if (InX(psInstruction->sResult))
+	{
+		ExtendInX(psInstruction);
+		return;
+	}
 	iResult = OffsetOf(psInstruction->sResult);
 	iSourceWords = Words(sSource);
 	iWords = Words(sType);
