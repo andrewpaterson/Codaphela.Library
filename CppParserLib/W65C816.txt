@@ -237,6 +237,14 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	174-259 (was 128-848), 32 bit 252-745 (was 312-2803).  R816_UDiv16 and R816_URem16 use the
 	reciprocal slice MathInvert (Libc65/MathTbls/MathInvert.asm, linked by AddMathTables
 	too); R816_UDiv32/URem32 jump to them when both operands are under 65536.
+	2026-10-29, the runtime's calling convention (user chose operands in scratch):
+	R816_Mul16/32 and R816_UDiv/URem16/32 take a at D + 15 and b at D + 19 in the
+	caller's scratch bytes (IR816_SCRATCH_ARGUMENT_A/_B) and run on the caller's D,
+	using D + 1 to D + 14 too; nothing is pushed or removed.  The signed divides (IR,
+	using udiv/urem) and the 64 bit routines are still pushed.  Choosing routines from
+	compile time bounds (an UpperBound in the back end, R816_Mul32x8) was tried and
+	removed: -0.19% wasn't worth a second UpperBound (user, 2026-10-29).  R816_Mul32
+	checks b < 256 at run time instead (a's bytes times b): -0.26%.
 
 5.	C++ end to end: the runtime routines, the start up, Libc65 for the W65C816
 	(softfloat.cpp, string.cpp, stdlib.cpp...) and closing the IR front end's gaps.

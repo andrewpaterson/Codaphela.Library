@@ -34,6 +34,8 @@ class CIR816LiveRanges;
 #define IR816_SCRATCH_RESULT	5
 #define IR816_SCRATCH_COUNT		13
 #define IR816_SCRATCH_VALUE		15
+#define IR816_SCRATCH_ARGUMENT_A	15		//A scratch runtime routine's (IR816ScratchRoutine) operands: a, then b.
+#define IR816_SCRATCH_ARGUMENT_B	19
 #define IR816_MAX_FUSED			4
 #define IR816_FIRST_TEMPORARY	23
 
@@ -57,7 +59,9 @@ class CIR816LiveRanges;
 //the caller removes them.  A result of up to 16 bits is in A, of 32 bits in A (low) and X (high); a 64 bit result
 //is written through a hidden pointer the caller pushes after the arguments (the function's first parameter).  A
 //call through a pointer pushes the return address and the target then rtl's.  Multiply, divide and remainder are
-//calls to runtime routines written in IR (R816_Mul16 ...), which GenerateRuntime generates.  Float operations call
+//calls to runtime routines (R816_Mul16 ...), which GenerateRuntime generates.  The 16 and 32 bit multiply and unsigned
+//divide and remainder take their operands in the caller's scratch bytes (IR816_SCRATCH_ARGUMENT_A and _B) and run on
+//the caller's D, using its other scratch bytes; nothing is pushed for them.  Float operations call
 //Libc65's soft float functions (_SoftFloatAdd ..., softfloat.cpp compiled for the W65C816).  A, X and Y may change
 //in a call; D and the widths are kept.
 class CIR816Backend
