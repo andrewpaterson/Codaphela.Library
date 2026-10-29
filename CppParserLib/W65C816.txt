@@ -326,6 +326,27 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	  no profile, which way a branch goes isn't known (Tide's drawn pixel and
 	  the sprite test's hash of zero bytes want opposite orders: -1% and +4%;
 	  keeping the source's order where it was a successor: +0.4%).
+	- Final values (CIROptimiser::ReplaceExitValues, both targets): a loop
+	  with one way out, left when v + 1 != v0 + d is false (v up by 1, d not
+	  changed by the loop and 0 < d guarding the way in, LoopGuarded) goes
+	  round d times, so outside it v + 1 is v0 + d and a value w stepped by a
+	  constant t beside v (an add, or a ptradd for a pointer) is w0 + d * t,
+	  worked out in the preheader.  Then a loop that does nothing (no store,
+	  call or volatile load) whose values nothing outside reads goes
+	  (DeleteDeadLoops: C11 6.8.5 and C++ [intro.progress] let it be assumed
+	  to end).  DrawSprite's rows clipped off the top and bottom are p +=
+	  width.  Not done (no general form): Y = x for the source as well as the
+	  destination (x may wrap past 0 inside the loop, and [d],y adds Y zero
+	  extended), and x > c as x >= c + 1 (c may be $FFFF).
+	- An integer comparison only a brif in a later block reads moves to that
+	  block (SinkComparisons; not into a loop it wasn't in), so no 0 or 1 is
+	  kept for it; an instruction both ways of a brif work out (each reached
+	  only from it, reading values from before) is worked out once before it
+	  (HoistCommon; what can't trap, not loads).  PeepholeBranches: txa after
+	  tax (or tax after txa) goes, and the lda before a bra looks past clc,
+	  sec, ldx, ldy, inx, iny, dex, dey, stz, stx and sty for the lda (txa...)
+	  that makes it dead.  Tide/Video 20.75M -> 20.40M, the sprite test 6.30M
+	  -> 5.98M.
 	Cost (2026-10-29): TestBaseLib65 816 44.887G -> 41.830G (-6.81%) from the three
 	above, then 41.833G with the last two (no change there; TestCPP816 -0.26%); cross-unit inlining recompiles 349 of 591 units,
 	compile 19s -> 32s for TestBaseLib65 816, TestCPP816 219s -> 331s.

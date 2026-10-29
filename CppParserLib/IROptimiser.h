@@ -259,7 +259,13 @@ public:
 	bool			RemoveRedundantLoads(void);
 	bool			LessLoopTests(void);
 	bool			ReplaceLoopCounters(void);
+	bool			ReplaceExitValues(void);
+	bool			DeleteDeadLoops(void);
+	bool			SingleExit(size uiLoop, CIRBlock** ppcFrom, CIRBlock** ppcTo);
+	bool			UsedOutside(size uiLoop, SIRReference sValue);
+	void			ReplaceOutside(size uiLoop, SIRReference sValue, SIRReference sNew);
 	bool			SinkLoads(void);
+	bool			HoistCommon(void);
 	bool			SinkLoad(CIRBlock* pcFrom, size uiLoad, CIRBlock* pcTo, size uiUse);
 	bool			WritesBetween(CIRBlock* pcBlock, size uiStart, size uiEnd, SIRReference sRoot, int64 lliOffset, int iBytes);
 	bool			StepsByOne(SIRReference sStepped, SIRReference sValue);

@@ -3464,14 +3464,16 @@ static bool IR816Unreachable(CArrayChars* paszLines)
 // instruction is a bra goes where that does; Bcc X, bra Y, X: is B!cc Y,
 // X: (and bcc X, beq X, bra Y, X: is beq X, bcs Y, X:); an lda of a direct
 // page word or a constant before a bra to code that sets A and N and Z
-// first goes; a txy goes after a txy and an instruction that changes
-// neither X nor Y; and code after a bra, rtl or stp up to a label that is
-// used goes (IR816Unreachable).
+// before reading A or the flags goes; txa after tax (or tax after txa)
+// goes; a txy goes after a txy and an instruction that changes neither X
+// nor Y; and code after a bra, rtl or stp up to a label that is used goes
+// (IR816Unreachable).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 {
 	static const char*	aszSetsA[] = { "lda", "txa", "tya", "pla", "tdc", "tsc", NULL };
+	static const char*	aszIgnoreA[] = { "clc", "sec", "ldx", "ldy", "inx", "iny", "dex", "dey", "stz", "stx", "sty", NULL };
 	static const char*	aszKeepsXY[] = { "lda", "sta", "and", "ora", "eor", "adc", "sbc", "cmp", "sep", "rep", "clc", "sec", NULL };
 	CArrayChars			aszLines;
 	CChars				szOut;
@@ -3566,6 +3568,15 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 			{
 				IR816SplitLine(psz->Text(), szMnemonic, &szOperand, &uiOperand);
 				uiTarget = IR816LabelledInstruction(&aszLines, szLabel2);
+				while ((uiTarget != (size)-1) && (uiTarget < aszLines.NumElements()) &&
+					(IR816IsLabel(aszLines.Get(uiTarget)) || IR816LineIsOneOf(aszLines.Get(uiTarget), aszIgnoreA)))
+				{
+					uiTarget++;
+				}
+				if (uiTarget >= aszLines.NumElements())
+				{
+					uiTarget = (size)-1;
+				}
 				if ((strcmp(szMnemonic, "lda") == 0) && ((strncmp(szOperand, "[D + ", 5) == 0) || ((szOperand[0] >= '0') && (szOperand[0] <= '9'))) &&
 					(uiTarget != (size)-1) && IR816LineIsOneOf(aszLines.Get(uiTarget), aszSetsA))
 				{
@@ -3574,6 +3585,16 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 					bChanged = true;
 					continue;
 				}
+			}
+
+			//tax then txa, or txa then tax: A and X hold the same already (and set N and Z the same).
+			if ((ui + 1 < aszLines.NumElements()) &&
+				(((strcmp(psz->Text(), "\t\ttax") == 0) && (strcmp(aszLines.Get(ui + 1)->Text(), "\t\ttxa") == 0)) ||
+				 ((strcmp(psz->Text(), "\t\ttxa") == 0) && (strcmp(aszLines.Get(ui + 1)->Text(), "\t\ttax") == 0))))
+			{
+				aszLines.Remove(ui + 1);
+				bChanged = true;
+				continue;
 			}
 
 			//txy, an instruction that keeps X and Y, txy.
