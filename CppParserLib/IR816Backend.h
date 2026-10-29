@@ -147,6 +147,7 @@ protected:
 	void			BranchWhen(CIRBlock* pcBlock, bool bWhen, int32 iLabel);
 	void			CompareFlags(SIRReference sLeft, SIRReference sRight, SIRType sType, bool bSigned);
 	void			Extend(SIRInstruction* psInstruction);
+	void			ExtendInX(SIRInstruction* psInstruction);
 	void			Address(SIRInstruction* psInstruction, int32 iOffset);
 	void			Load(SIRInstruction* psInstruction);
 	void			StoreMemory(SIRInstruction* psInstruction);
