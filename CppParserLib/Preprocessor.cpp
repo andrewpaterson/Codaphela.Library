@@ -22,7 +22,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include <time.h>
 #include "BaseLib/TextFile.h"
 #include "BaseLib/Logger.h"
-#include "BaseLib/FastFunctions.h"
+#include <string.h>
 #include "BaseLib/Numbers.h"
 #include "PreprocessorExpression.h"
 #include "Punctuators.h"

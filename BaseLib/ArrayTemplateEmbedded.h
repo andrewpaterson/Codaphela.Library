@@ -764,7 +764,7 @@ void CArrayTemplateEmbedded<M, I>::Zero(void)
 	{
 		if (miUsedElements != 0)
 		{
-			memset_fast(mam, 0, miUsedElements * sizeof(M));
+			memset(mam, 0, miUsedElements * sizeof(M));
 		}
 	}
 	else

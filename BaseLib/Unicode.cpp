@@ -1,5 +1,5 @@
 #include "Logger.h"
-#include "FastMemcpy.h"
+#include <string.h>
 #include "Unicode.h"
 
 
@@ -73,19 +73,19 @@ size CUnicode::AppendCodePoint(uint32 uiCodePoint, size uiCodePointLength, uint8
 
 	if (uiCodePointLength == 1)
 	{
-		memcpy_fast_1byte(&puiBuffer[uiBufferPos], &uiCodePoint);
+		memcpy(&puiBuffer[uiBufferPos], &uiCodePoint, 1);
 	}
 	else if (uiCodePointLength == 2)
 	{
-		memcpy_fast_2bytes(&puiBuffer[uiBufferPos], &uiCodePoint);
+		memcpy(&puiBuffer[uiBufferPos], &uiCodePoint, 2);
 	}
 	else if (uiCodePointLength == 3)
 	{
-		memcpy_fast_3bytes(&puiBuffer[uiBufferPos], &uiCodePoint);
+		memcpy(&puiBuffer[uiBufferPos], &uiCodePoint, 3);
 	}
 	else if (uiCodePointLength == 4)
 	{
-		memcpy_fast_4bytes(&puiBuffer[uiBufferPos], &uiCodePoint);
+		memcpy(&puiBuffer[uiBufferPos], &uiCodePoint, 4);
 	}
 	else
 	{
@@ -109,11 +109,11 @@ size CUnicode::AppendCodePoint(uint16 uiCodePoint, size uiCodePointLength, uint8
 
 	if (uiCodePointLength == 1)
 	{
-		memcpy_fast_1byte(&puiBuffer[uiBufferPos], &uiCodePoint);
+		memcpy(&puiBuffer[uiBufferPos], &uiCodePoint, 1);
 	}
 	else if (uiCodePointLength == 2)
 	{
-		memcpy_fast_2bytes(&puiBuffer[uiBufferPos], &uiCodePoint);
+		memcpy(&puiBuffer[uiBufferPos], &uiCodePoint, 2);
 	}
 	else
 	{

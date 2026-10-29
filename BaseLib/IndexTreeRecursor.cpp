@@ -74,7 +74,7 @@ void CIndexTreeRecursor::GetKey(void* pc, size* piKeySize)
 	size	iKeySize;
 
 	iKeySize = macKey.NumElements();
-	memcpy_fast(pc, macKey.GetData(), iKeySize);
+	memcpy(pc, macKey.GetData(), iKeySize);
 	SafeAssign(piKeySize, iKeySize);
 }
 

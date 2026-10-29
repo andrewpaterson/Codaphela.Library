@@ -1,8 +1,6 @@
 #ifndef __ARRAY_BASE_H__
 #define __ARRAY_BASE_H__
-#include "FastMemset.h"
 #include "PointerRemapper.h"
-#include "FastFunctions.h"
 #include "Mallocator.h"
 #include "FileIO.h"
 #include "Malloc.h"

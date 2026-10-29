@@ -851,6 +851,7 @@ void CAsm65Linker::Layout(void)
 	SAsm65Section*		psSection;
 	SAsm65LinkSection*	psLinkSection;
 	CChars				szMessage;
+	bool				bFirst;
 
 	LayoutAt();
 	uiAddress = mauiAddress[ASK65_Text];
@@ -860,7 +861,10 @@ void CAsm65Linker::Layout(void)
 		{
 			uiAddress = mauiAddress[iKind];
 		}
+		//The kind starts where its first section goes (after aligning it or moving it to a bank): a table of entries
+		//(init, fini) must start on its first entry.
 		mauiStart[iKind] = (uint32)uiAddress;
+		bFirst = true;
 		for (i = 0; i < masObjects.NumElements(); i++)
 		{
 			psObject = masObjects.Get(i);
@@ -874,6 +878,11 @@ void CAsm65Linker::Layout(void)
 				}
 				uiAddress = FlowAddress(uiAddress, psSection);
 				psLinkSection->uiAddress = (uint32)uiAddress;
+				if (bFirst)
+				{
+					mauiStart[iKind] = (uint32)uiAddress;
+					bFirst = false;
+				}
 				if ((muiBankSize != 0) && (uiAddress < muiBankSize) && (psSection->uiSize != 0))
 				{
 					//Bank 0 is the stack and direct page (the user, 2026-10-25), and the vectors and their stubs placed with at.

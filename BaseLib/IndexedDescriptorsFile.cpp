@@ -331,7 +331,7 @@ size CIndexedDescriptorsFile::IndexTreeDataSize(size uiSourceSize)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexedDescriptorsFile::IndexTreeWriteData(void* pvDataBuffer, void* pvSource, size iFileDataSize, size uiSourceDataSize)
 {
-	memcpy_fast(pvDataBuffer, pvSource, iFileDataSize);
+	memcpy(pvDataBuffer, pvSource, iFileDataSize);
 	return true;
 }
 
@@ -342,8 +342,8 @@ bool CIndexedDescriptorsFile::IndexTreeWriteData(void* pvDataBuffer, void* pvSou
 //////////////////////////////////////////////////////////////////////////
 bool CIndexedDescriptorsFile::IndexTreeReadData(void* pvDest, void* pvDataBuffer, size uiDestDataSize, size iFileDataSize)
 {
-	memset_fast(pvDest, 0, uiDestDataSize);
-	memcpy_fast(pvDest, pvDataBuffer, iFileDataSize);
+	memset(pvDest, 0, uiDestDataSize);
+	memcpy(pvDest, pvDataBuffer, iFileDataSize);
 	return true;
 }
 

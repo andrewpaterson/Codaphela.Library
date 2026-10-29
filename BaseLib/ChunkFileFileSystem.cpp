@@ -274,7 +274,7 @@ bool CChunkFileFileSystem::ReadChunkBegin(const char* szChunkName)
 	}
 
 	abFoundFirst = (bool*)malloc(sizeof(bool) * iLength);
-	memset_fast(abFoundFirst, 0, sizeof(bool) * iLength);
+	memset(abFoundFirst, 0, sizeof(bool) * iLength);
 
 	for (iDepth = 0;;)
 	{

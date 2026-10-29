@@ -49,7 +49,7 @@ void CChannelAccessor::Init(size iAccessByteSize, size iAccessBitSize, EPrimitiv
 void CChannelAccessor::GetNative(void* pvBase, void* pvDest)
 {
 	pvBase = RemapSinglePointer(pvBase, miChannelByteOffset);
-	ga_memcpy_fast[miChannelByteSize](pvDest, pvBase);
+	memcpy(pvDest, pvBase, miChannelByteSize);
 }
 
 
@@ -105,7 +105,7 @@ void CChannelAccessor::GetBits(void* pvBase, size iBitOffset, size iNumBits, voi
 void CChannelAccessor::SetNative(void* pvBase, void* pvSource)
 {
 	pvBase = RemapSinglePointer(pvBase, miChannelByteOffset);
-	ga_memcpy_fast[miChannelByteSize](pvBase, pvSource);
+	memcpy(pvBase, pvSource, miChannelByteSize);
 }
 
 

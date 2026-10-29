@@ -19,7 +19,7 @@ void CImageRowBlitterByteAlignedOpaque::Copy(CImageBlitterContext* pcContext, vo
 
 	for (x = iSourceXLeft; x < iSourceXRight; x++)
 	{
-		ga_memcpy_fast[pcContext->muiColourWidth](pvDest, pvSource);
+		memcpy(pvDest, pvSource, pcContext->muiColourWidth);
 
 		pvSource = RemapSinglePointer(pvSource, pcContext->miSourcePixelStride);
 		pvDest = RemapSinglePointer(pvDest, pcContext->miDestPixelStride);
@@ -55,7 +55,7 @@ void CImageRowBlitterByteAlignedOpaqueDestAlpha::Copy(CImageBlitterContext* pcCo
 
 	for (x = iSourceXLeft; x < iSourceXRight; x++)
 	{
-		ga_memcpy_fast[pcContext->muiColourWidth](pvDest, pvSource);
+		memcpy(pvDest, pvSource, pcContext->muiColourWidth);
 		*(uint8*)pvAlphaDest = 255;
 
 		pvSource = RemapSinglePointer(pvSource, pcContext->miSourcePixelStride);

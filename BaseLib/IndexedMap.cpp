@@ -133,7 +133,7 @@ bool CIndexedMap::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor,
 	{
 		if (pcDescriptor)
 		{
-			memcpy_fast(pcDescriptor, pcResult, sizeof(CIndexedDataDescriptor));
+			memcpy(pcDescriptor, pcResult, sizeof(CIndexedDataDescriptor));
 		}
 		return true;
 	}

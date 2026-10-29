@@ -515,11 +515,6 @@
     <ClInclude Include="StackMark.h" />
     <ClInclude Include="GeneralMemory.h" />
     <ClInclude Include="ScratchPad.h" />
-    <ClInclude Include="FastFunctions.h" />
-    <ClInclude Include="FastMemcmp.h" />
-    <ClInclude Include="FastMemcpy.h" />
-    <ClInclude Include="FastMemcpyBackwards.h" />
-    <ClInclude Include="FastMemset.h" />
     <ClInclude Include="PointerFunctions.h" />
     <ClInclude Include="PointerRemapper.h" />
     <ClInclude Include="Define.h" />
@@ -929,11 +924,6 @@
     <ClCompile Include="StackMark.cpp" />
     <ClCompile Include="GeneralMemory.cpp" />
     <ClCompile Include="ScratchPad.cpp" />
-    <ClCompile Include="FastFunctions.cpp" />
-    <ClCompile Include="FastMemcmp.cpp" />
-    <ClCompile Include="FastMemcpy.cpp" />
-    <ClCompile Include="FastMemcpyBackwards.cpp" />
-    <ClCompile Include="FastMemset.cpp" />
     <ClCompile Include="PointerFunctions.cpp" />
     <ClCompile Include="TypeConverter.cpp" />
     <ClCompile Include="TypeNames.cpp" />

@@ -23,7 +23,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ClassDefines.h"
 #include "BaseLib/IntegerHelper.h"
-#include "BaseLib/FastFunctions.h"
 #include "Image.h"
 #include "ImageAccessorCreator.h"
 #include "ImageResampleBilinear.h"

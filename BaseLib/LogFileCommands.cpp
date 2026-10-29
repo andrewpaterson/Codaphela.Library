@@ -1,6 +1,6 @@
 #include "FileUtil.h"
 #include "PointerRemapper.h"
-#include "FastMemcpy.h"
+#include <string.h>
 #include "LogFileCommands.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -145,7 +145,7 @@ void CLogFileCommandWrite::Init(filePos iPosition, void* pvSource, size iSize)
 	Init(iPosition, iSize);
 
 	pvData = RemapSinglePointer(this, sizeof(CLogFileCommandWrite));
-	memcpy_fast(pvData, (void*)pvSource, iSize);
+	memcpy(pvData, (void*)pvSource, iSize);
 }
 
 

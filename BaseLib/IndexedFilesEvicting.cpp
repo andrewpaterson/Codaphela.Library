@@ -70,7 +70,7 @@ bool CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistin
 	{
 		//Data already in cache so just copy it into pvData.  Assume pvData is large enough.
 		uiDataSize = pcExistingDescriptor->GetCacheDataSize();
-		memcpy_fast(pvData, pvCache, MinDataSize(uiDataSize, uiMaxDataSize));
+		memcpy(pvData, pvCache, MinDataSize(uiDataSize, uiMaxDataSize));
 		return true;
 	}
 	else
@@ -87,7 +87,7 @@ bool CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistin
 				bResult = mcDataFiles.Read(&cDataIndex, pvCache);
 				if (bResult)
 				{
-					memcpy_fast(pvData, pvCache, MinDataSize(uiDataSize, uiMaxDataSize));
+					memcpy(pvData, pvCache, MinDataSize(uiDataSize, uiMaxDataSize));
 					mpcEvictionCallback->UpdateDescriptorCache(oi, pvCache, uiDataSize);
 					return true;
 				}
@@ -402,7 +402,7 @@ void* CIndexedFilesEvicting::SetCacheData(OIndex oi, CIndexedDataDescriptor* pcD
 			return NULL;
 		}
 		pvNewCache = cCacheResult.GetCache();
-		memcpy_fast(pvNewCache, pvData, uiDataSize);
+		memcpy(pvNewCache, pvData, uiDataSize);
 		return pvNewCache;
 	}
 	else
@@ -410,7 +410,7 @@ void* CIndexedFilesEvicting::SetCacheData(OIndex oi, CIndexedDataDescriptor* pcD
 		if (uiDataSize == pcDescriptor->GetCacheDataSize())
 		{
 			//Descriptor size same as Set size.  Cached data.  File exists.
-			memcpy_fast(pvExistingCache, pvData, uiDataSize);
+			memcpy(pvExistingCache, pvData, uiDataSize);
 			return pvExistingCache;
 		}
 		else
@@ -422,7 +422,7 @@ void* CIndexedFilesEvicting::SetCacheData(OIndex oi, CIndexedDataDescriptor* pcD
 			}
 
 			pvNewCache = cCacheResult.GetCache();
-			memcpy_fast(pvNewCache, pvData, uiDataSize);
+			memcpy(pvNewCache, pvData, uiDataSize);
 			mcDataCache.Invalidate(pvExistingCache);
 			return pvNewCache;
 		}

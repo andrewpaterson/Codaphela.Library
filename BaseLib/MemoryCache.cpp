@@ -23,9 +23,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Logger.h"
 #include "PointerFunctions.h"
 #include "PointerRemapper.h"
-#include "FastMemcpy.h"
-#include "FastMemcmp.h"
-#include "FastMemset.h"
 #include "Chars.h"
 #include "MemoryCache.h"
 

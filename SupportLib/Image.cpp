@@ -25,7 +25,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include <math.h>
 #include "BaseLib/IntegerHelper.h"
 #include "BaseLib/PointerRemapper.h"
-#include "BaseLib/FastFunctions.h"
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/NaiveFile.h"
 #include "BaseLib/TypeNames.h"

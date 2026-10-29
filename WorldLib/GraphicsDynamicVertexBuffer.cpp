@@ -21,7 +21,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/PointerRemapper.h"
-#include "BaseLib/FastFunctions.h"
+#include <string.h>
 #include "BaseLib/IntegerHelper.h"
 #include "GraphicsDynamicVertexBuffer.h"
 
@@ -157,7 +157,7 @@ bool CGraphicsDynamicVertexBuffer::Unlock(void)
 			return false;
 		}
 
-		memcpy_fast(pvLockedBuffer, mcVerts.GetData(), miUsedVerticies * iVertexSize);
+		memcpy(pvLockedBuffer, mcVerts.GetData(), miUsedVerticies * iVertexSize);
 
 		gcD3D.UnlockVertexBuffer(this);
 		return true;

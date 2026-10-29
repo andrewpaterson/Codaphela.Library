@@ -21,7 +21,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "GraphicsVertexBuffer.h"
-#include "BaseLib/FastFunctions.h"
+#include <string.h>
 #include "BaseLib/ErrorHandler.h"
 #include "BaseLib/PointerRemapper.h"
 #include "BaseLib/PointerFunctions.h"
@@ -90,7 +90,7 @@ bool CVertexBufferExtended::AppendVerticies(int iNumVerts, void* psVerts)
 	AppendVerticies(iNumVerts, &psPos, &iByteSize);
 
 	//There are no vertex formats which are not 4 byte aligned.
-	memcpy_fast(psPos, psVerts, iByteSize);
+	memcpy(psPos, psVerts, iByteSize);
 	return true;
 }
 
@@ -116,10 +116,10 @@ bool CVertexBufferExtended::InsertVerticies(int iNumVerts, int iPos, void* psVer
 	psTrailingPos = RemapSinglePointer(pvLockedBuffer, (iPos + iNumVerts) * iVertexSize);
 
 	//Move the existing trailing verticies to the new end.
-	memcpy_fast_backwards(psTrailingPos, psStartPos, iMovedVerts * iVertexSize);
+	memmove(psTrailingPos, psStartPos, iMovedVerts * iVertexSize);
 
 	//Now copy the new verts into the empty spaces.
-	memcpy_fast(psStartPos, psVerts, iByteSize);
+	memcpy(psStartPos, psVerts, iByteSize);
 	return true;
 }
 
@@ -252,7 +252,7 @@ bool CVertexBufferExtended::PrivateReleaseAndCopy(void* pvDest)
 	}
 
 	//Copy them.
-	memcpy_fast(pvDest, psOldVerts,	miUsedVerticies * iVertexSize);
+	memcpy(pvDest, psOldVerts,	miUsedVerticies * iVertexSize);
 
 	//Destroy the old vertex buffer.
 	gcD3D.UnlockVertexBuffer(this);  //Not sure if this is necessary or if it will cause slowdown.

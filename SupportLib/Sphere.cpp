@@ -22,7 +22,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/PointerRemapper.h"
 #include "BaseLib/Numbers.h"
 #include "BaseLib/FloatHelper.h"
-#include "BaseLib/FastFunctions.h"
+#include <string.h>
 #include "Triangle.h"
 
 
@@ -180,7 +180,7 @@ float32 CSphere::IntersectSphereVolume(CSphere* pcOther)
 
 	r1 = this->mfRadius;
 	r2 = pcOther->mfRadius;
-	ga_memcpy_fast[sizeof(SFloat32Vec3)](&st, this->mpsPosition);
+	memcpy(&st, this->mpsPosition, sizeof(SFloat32Vec3));
 	st -= *((SFloat32Vec3*)pcOther->mpsPosition);
 	d = st.Magnitude();
 

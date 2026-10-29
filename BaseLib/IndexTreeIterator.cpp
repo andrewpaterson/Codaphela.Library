@@ -78,7 +78,7 @@ void CIndexTreeIterator::Clear(void)
 	{
 		macKey.Resize(0);
 	}
-	memset_fast(macData, 0, MAX_DATA_SIZE);
+	memset(macData, 0, MAX_DATA_SIZE);
 	miDataSize = 0;
 	miKeySize = 0;
 }

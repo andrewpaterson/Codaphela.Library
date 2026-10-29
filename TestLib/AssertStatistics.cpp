@@ -37,10 +37,6 @@ void CAssertStatistics::Kill(void)
 	{
 		NumberKill();
 	}
-	if (gbFastFunctions)
-	{
-		FastFunctionsKill();
-	}
 
 	gcLogger.Kill();
 }
@@ -71,7 +67,7 @@ void CAssertStatistics::PrintTest(CChars* psz)
 	{
 		psz->Append("No Tests Run!");
 	}
-	if (gbFastFunctions && gbNumberControl)
+	if (gbNumberControl)
 	{
 		psz->AppendNewLine();
 		psz->Append("Time:   ");
@@ -96,10 +92,6 @@ void CAssertStatistics::PrintTotal(CChars* psz)
 
 	psz->Append("------------------------------ Total Results ------------------------------\n");
 
-	if (!gbFastFunctions)
-	{
-		FastFunctionsInit();
-	}
 	if (!gbNumberControl)
 	{
 		NumberInit();

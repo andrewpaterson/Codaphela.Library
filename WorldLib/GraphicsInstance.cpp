@@ -20,7 +20,7 @@ along with Codaphela WorldLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft DirectX is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/FastFunctions.h"
+#include <string.h>
 #include "BaseLib/IntegerHelper.h"
 #include "GraphicsInstance.h"
 #include "World.h"
@@ -79,13 +79,13 @@ void CGraphicsInstance::Draw(void)
 	}
 
 	//Copy the instances controlling matrix pointers over the objects.  This allows object to be drawn at different positions in the safe frame.
-	memcpy_fast(mpcGraphicsObject->GetMatricies()->GetData(), mapMatrices.GetData(), mapMatrices.ByteSize());
+	memcpy(mpcGraphicsObject->GetMatricies()->GetData(), mapMatrices.GetData(), mapMatrices.ByteSize());
 
 	//Copy the instances states over the objects.  This allows different types of filtering on the same object... is it really necessary?
-	memcpy_fast(mpcGraphicsObject->GetStates()->GetData(), mapStates.GetData(), mapStates.ByteSize());
+	memcpy(mpcGraphicsObject->GetStates()->GetData(), mapStates.GetData(), mapStates.ByteSize());
 
 	//Copy the instances materials over the objects.  This allows different textures on the same object...
-	memcpy_fast(mpcGraphicsObject->GetMaterials()->GetData(), mapMaterials.GetData(), mapMaterials.ByteSize());
+	memcpy(mpcGraphicsObject->GetMaterials()->GetData(), mapMaterials.GetData(), mapMaterials.ByteSize());
 
 	mpcWorld->UseLights(&mapLights);
 

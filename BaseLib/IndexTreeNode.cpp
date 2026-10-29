@@ -645,11 +645,11 @@ void CIndexTreeNode::SetData(const void* pvData, size uiDataSize)
 	{
 		if (pvData)
 		{
-			memcpy_fast(GetDataPtr(), pvData, uiDataSize);
+			memcpy(GetDataPtr(), pvData, uiDataSize);
 		}
 		else
 		{
-			memset_fast(GetDataPtr(), 0, uiDataSize);
+			memset(GetDataPtr(), 0, uiDataSize);
 		}
 	}
 }

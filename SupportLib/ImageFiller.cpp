@@ -21,7 +21,6 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/FastFunctions.h"
 #include "BaseLib/IntegerHelper.h"
 #include "ImageFiller.h"
 #include "ImageColour.h"

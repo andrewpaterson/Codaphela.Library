@@ -24,7 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __ARRAY_DENSE_TEMPLATE_H__
 #include <stdlib.h>
 #include "Define.h"
-#include "FastMemset.h"
+#include <string.h>
 #include "FreeList.h"
 #include "FreeList.h"
 #include "PointerFunctions.h"

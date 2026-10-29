@@ -58,7 +58,7 @@ void CChannelsAccessorContiguous::Set(size iPos, void* pvSource)
 	void*	pvDest;
 
 	pvDest = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride() + miByteOffset);
-	memcpy_fast(pvDest, pvSource, miByteSize);
+	memcpy(pvDest, pvSource, miByteSize);
 }
 
 

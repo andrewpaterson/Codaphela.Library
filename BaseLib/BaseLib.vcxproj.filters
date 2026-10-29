@@ -645,21 +645,6 @@
     <ClInclude Include="ScratchPad.h">
       <Filter>Source\Memory\ScratchPad</Filter>
     </ClInclude>
-    <ClInclude Include="FastFunctions.h">
-      <Filter>Source\Fast</Filter>
-    </ClInclude>
-    <ClInclude Include="FastMemcmp.h">
-      <Filter>Source\Fast</Filter>
-    </ClInclude>
-    <ClInclude Include="FastMemcpy.h">
-      <Filter>Source\Fast</Filter>
-    </ClInclude>
-    <ClInclude Include="FastMemcpyBackwards.h">
-      <Filter>Source\Fast</Filter>
-    </ClInclude>
-    <ClInclude Include="FastMemset.h">
-      <Filter>Source\Fast</Filter>
-    </ClInclude>
     <ClInclude Include="PointerFunctions.h">
       <Filter>Source\Pointer</Filter>
     </ClInclude>
@@ -1960,21 +1945,6 @@
     </ClCompile>
     <ClCompile Include="ScratchPad.cpp">
       <Filter>Source\Memory\ScratchPad</Filter>
-    </ClCompile>
-    <ClCompile Include="FastFunctions.cpp">
-      <Filter>Source\Fast</Filter>
-    </ClCompile>
-    <ClCompile Include="FastMemcmp.cpp">
-      <Filter>Source\Fast</Filter>
-    </ClCompile>
-    <ClCompile Include="FastMemcpy.cpp">
-      <Filter>Source\Fast</Filter>
-    </ClCompile>
-    <ClCompile Include="FastMemcpyBackwards.cpp">
-      <Filter>Source\Fast</Filter>
-    </ClCompile>
-    <ClCompile Include="FastMemset.cpp">
-      <Filter>Source\Fast</Filter>
     </ClCompile>
     <ClCompile Include="PointerFunctions.cpp">
       <Filter>Source\Pointer</Filter>
