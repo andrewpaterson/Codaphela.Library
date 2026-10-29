@@ -104,6 +104,7 @@ struct SIRIdiomAddress
 	SIRReference	sBase;
 	int64			lliScale;
 	uint16			uiExtension;	//IRO_SExt or IRO_ZExt of the counter in the index, IRO_None for none.
+	bool			bNext;			//The index is the counter's next value (i + 1).
 };
 
 
@@ -137,7 +138,9 @@ struct SIRIdiomAddress
 //	loop rotation		a loop whose head tests and whose latch jumps back tests at the bottom: the head is
 //						copied to the preheader and the latch (the SSA updater joins the copies' values)
 //	loop idioms			a loop that only fills (or copies) memory a byte or element at a time is a memset (or a
-//						memmove, when a check on the way in finds the copy doesn't overlap the wrong way)
+//						memmove, when a check on the way in finds the copy doesn't overlap the wrong way); one
+//						that counts bytes until a 0 is strlen (what leaves it worked out from the length); one
+//						that leaves at the first elements that differ is memcmp (as equal or not)
 //	less loop tests		a loop that goes round while a <= b (signed) goes round while a < b + 1 when b + 1 can't
 //						wrap and b is invariant (or a - 1 < b): the 65C64 branches on less in one instruction
 //	strength reduction	in a loop with a counter i (i + c each time round), an address p + (i << s) or p + i * k
@@ -247,8 +250,13 @@ protected:
 	void			CopyHead(CIRBlock* pcHead, CIRBlock* pcBlock, CArrayIRReferences* pasMap);
 	void			SplitPhiArguments(CIRBlock* pcBlock, CIRBlock* pcHead, CIRBlock* pcPreheader, CArrayIRReferences* pasPreheader, CIRBlock* pcLatch, CArrayIRReferences* pasLatch);
 	void			RewriteUses(SIRReference sValue, CIRSSAUpdater* pcUpdater);
-	bool			MatchIdiomCounter(size uiLoop, CIRBlock* pcLoop, SIRIdiomCounter* psCounter);
-	bool			MatchIdiomAddress(CIRBlock* pcLoop, SIRReference sAddress, SIRIdiomCounter* psCounter, int64 lliBytes, SIRIdiomAddress* psAddress);
+	bool			MatchIdiomCounter(size uiLoop, CIRBlock* pcHead, CIRBlock* pcLatch, SIRIdiomCounter* psCounter);
+	bool			MatchIdiomStep(size uiLoop, CIRBlock* pcHead, CIRBlock* pcLatch, SIRReference sValue, SIRIdiomCounter* psCounter);
+	bool			MatchIdiomAddress(size uiLoop, CIRBlock* pcHead, CIRBlock* pcLatch, SIRReference sAddress, SIRIdiomCounter* psCounter, int64 lliBytes, SIRIdiomAddress* psAddress);
+	bool			OnlyUsedInLoop(size uiLoop);
+	bool			ReplaceStrlen(size uiLoop);
+	bool			ReplaceMemcmp(size uiLoop);
+	bool			MatchLinear(CIRBlock* pcLoop, SIRReference sValue, SIRReference* psStart, int64* plliStep, bool* pbNext);
 	SIRReference	IdiomStart(CIRBlock* pcBlock, SIRIdiomAddress* psAddress, SIRIdiomCounter* psCounter);
 	SIRReference	IdiomBytes(CIRBlock* pcBlock, SIRIdiomCounter* psCounter, int64 lliBytes);
 	SIRReference	LibraryCall(CIRBlock* pcBlock, const char* szName, SIRReference sFirst, SIRType sFirstType, SIRReference sSecond, SIRType sSecondType, SIRReference sBytes);

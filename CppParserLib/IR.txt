@@ -323,7 +323,15 @@ or of wider elements whose bytes are all the same constant.  One that only store
 loads, element for element, is memmove when the destination is at or below the source or
 past its end (what the loop would copy), checked on the way in, else the loop.  A known count
 of 16 bytes or fewer stays a loop, and so do the loops of memset, memmove and memcpy
-themselves.  The front end turns it on with the target's int (CIROptimiser::SetLibraryInt);
+themselves.  A loop of one block that only loads a byte through an address stepped one
+byte a time (the counter or pointer, or its next value, as rotation leaves it) and goes
+round while it isn't 0 is strlen of the first address: each value that leaves it through
+the exit's phis, a phi stepped by a constant c (or its next value), is start + length * c
+(or (length + 1) * c).  A loop of a head that loads an element through each of two stepped
+addresses and leaves for one exit when they differ, and a latch counting n - init times
+round that leaves for another, with nothing it works out used outside, is memcmp of the
+bytes on the way in, to the first exit when it isn't 0, else the second (equal or not, so
+any element size).  strlen and memcmp's own loops stay loops.  The front end turns it on with the target's int (CIROptimiser::SetLibraryInt);
 programs that use it link Libc65's string routines.  Constant folding also takes x + 0,
 x * 1 and the like to x.
 
