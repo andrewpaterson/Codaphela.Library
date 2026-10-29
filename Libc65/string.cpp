@@ -1,12 +1,13 @@
 //Memory and string functions for the 65C64.  All but strstr are in string.asm, written with the 65C64's block and
 //vector operations; the C++ versions here are their reference and are not built for the 65C64.  memcpy, memset and
 //memcmp work a 32 bit word (uint32_t: an int is 16 bits on the W65C816) at a time when the addresses are 4 byte
-//aligned, otherwise a byte at a time.
+//aligned, otherwise a byte at a time.  On the W65C816 all but strstr are in string816.asm (block moves for memcpy,
+//memmove and memset).
 #include <string.h>
 #include <stdint.h>
 
 
-#ifndef __65C64__
+#if !defined(__65C64__) && !defined(__W65C816__)
 void* memcpy(void* pvDest, const void* pvSource, size_t uiBytes)
 {
 	char*		pcDest;
@@ -271,7 +272,7 @@ char* strrchr(const char* sz, int c)
 }
 
 
-#endif // __65C64__
+#endif // !__65C64__ && !__W65C816__
 
 
 //The places sz could hold szFind start with szFind's first character: memchr finds them and memcmp checks them.

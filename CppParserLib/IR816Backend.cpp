@@ -39,9 +39,42 @@ struct SIR816Routine
 };
 
 
+//A 32 bit divide with both operands under 65536 runs 16 steps with the remainder in A (a step that carries out of A
+//always subtracts: the remainder was over the divisor).  A divisor under 65536 keeps the remainder in A too: 16 steps
+//from the dividend's high word as the remainder when that is below the divisor (the quotient's high word is 0),
+//else 32.  A dividend under 65536 with a wider divisor is a quotient of 0.  Otherwise 32 steps on the remainder at
+//D + 3 and D + 5.
 #define IR816_DIVIDE_32(NAME, RESULT_LOW, RESULT_HIGH) \
 	"\t\t.width (A, X), 16\n" \
 	"\t\tpea 0\n\t\tpea 0\n\t\tphd\n\t\ttsc\n\t\ttcd\n" \
+	"\t\tlda [D + 12]\n\t\tora [D + 16]\n\t\tbne " NAME "_Wide\n" \
+	"\t\tldx 16\n\t\tlda 0\n" \
+	NAME "_Bit16:\n" \
+	"\t\tasl [D + 10]\n\t\trol A\n\t\tbcs " NAME "_Over16\n" \
+	"\t\tcmp [D + 14]\n\t\tbcc " NAME "_Next16\n" \
+	NAME "_Over16:\n" \
+	"\t\tsbc [D + 14]\n\t\tinc [D + 10]\n" \
+	NAME "_Next16:\n" \
+	"\t\tdex\n\t\tbne " NAME "_Bit16\n" \
+	"\t\tsta [D + 3]\n\t\tbra " NAME "_Done\n" \
+	NAME "_Wide:\n" \
+	"\t\tlda [D + 16]\n\t\tbne " NAME "_WideDivisor\n" \
+	"\t\tlda [D + 12]\n\t\tcmp [D + 14]\n\t\tbcs " NAME "_Mid\n" \
+	"\t\tstz [D + 12]\n\t\tldx 16\n\t\tbra " NAME "_Bit16\n" \
+	NAME "_Mid:\n" \
+	"\t\tldx 32\n\t\tlda 0\n" \
+	NAME "_Bit32:\n" \
+	"\t\tasl [D + 10]\n\t\trol [D + 12]\n\t\trol A\n\t\tbcs " NAME "_Over32\n" \
+	"\t\tcmp [D + 14]\n\t\tbcc " NAME "_Next32\n" \
+	NAME "_Over32:\n" \
+	"\t\tsbc [D + 14]\n\t\tinc [D + 10]\n" \
+	NAME "_Next32:\n" \
+	"\t\tdex\n\t\tbne " NAME "_Bit32\n" \
+	"\t\tsta [D + 3]\n\t\tbra " NAME "_Done\n" \
+	NAME "_WideDivisor:\n" \
+	"\t\tlda [D + 12]\n\t\tbne " NAME "_Long\n" \
+	"\t\tlda [D + 10]\n\t\tsta [D + 3]\n\t\tstz [D + 10]\n\t\tbra " NAME "_Done\n" \
+	NAME "_Long:\n" \
 	"\t\tldx 32\n" \
 	NAME "_Bit:\n" \
 	"\t\tasl [D + 10]\n\t\trol [D + 12]\n\t\trol [D + 3]\n\t\trol [D + 5]\n" \
@@ -55,30 +88,63 @@ struct SIR816Routine
 	"\t\tsta [D + 5]\n\t\tsty [D + 3]\n\t\tinc [D + 10]\n" \
 	NAME "_Next:\n" \
 	"\t\tdex\n\t\tbne " NAME "_Bit\n" \
+	NAME "_Done:\n" \
 	"\t\tlda [D + " RESULT_HIGH "]\n\t\ttax\n\t\tlda [D + " RESULT_LOW "]\n\t\ttay\n" \
 	"\t\tpld\n\t\tpla\n\t\tpla\n\t\ttya\n\t\trtl\n"
 
+//16 steps with the remainder in A, as the 32 bit divide's fast path.
 #define IR816_DIVIDE_16(NAME, RESULT) \
 	"\t\t.width (A, X), 16\n" \
 	"\t\tpea 0\n\t\tphd\n\t\ttsc\n\t\ttcd\n" \
-	"\t\tldx 16\n" \
+	"\t\tldx 16\n\t\tlda 0\n" \
 	NAME "_Bit:\n" \
-	"\t\tasl [D + 8]\n\t\trol [D + 3]\n" \
-	"\t\tbcs " NAME "_Over\n" \
-	"\t\tsec\n\t\tlda [D + 3]\n\t\tsbc [D + 10]\n" \
-	"\t\tbcc " NAME "_Next\n" \
-	"\t\tbra " NAME "_Keep\n" \
+	"\t\tasl [D + 8]\n\t\trol A\n\t\tbcs " NAME "_Over\n" \
+	"\t\tcmp [D + 10]\n\t\tbcc " NAME "_Next\n" \
 	NAME "_Over:\n" \
-	"\t\tsec\n\t\tlda [D + 3]\n\t\tsbc [D + 10]\n" \
-	NAME "_Keep:\n" \
-	"\t\tsta [D + 3]\n\t\tinc [D + 8]\n" \
+	"\t\tsbc [D + 10]\n\t\tinc [D + 8]\n" \
 	NAME "_Next:\n" \
 	"\t\tdex\n\t\tbne " NAME "_Bit\n" \
+	"\t\tsta [D + 3]\n" \
 	"\t\tlda [D + " RESULT "]\n\t\ttay\n" \
 	"\t\tpld\n\t\tpla\n\t\ttya\n\t\trtl\n"
 
+//The 64 bit divide: D + 3 to D + 10 is the remainder, then the caller's return address, the hidden result pointer at
+//D + 14, the dividend (shifted into the quotient) at D + 18 and the divisor at D + 26.  Zero words at the top of the
+//dividend are skipped 16 steps at a time (the remainder stays 0 through them); the result is written through the
+//pointer.
+#define IR816_DIVIDE_64(NAME, RESULT) \
+	"\t\t.width (A, X), 16\n" \
+	"\t\tpea 0\n\t\tpea 0\n\t\tpea 0\n\t\tpea 0\n\t\tphd\n\t\ttsc\n\t\ttcd\n" \
+	"\t\tldx 64\n" \
+	NAME "_Skip:\n" \
+	"\t\tlda [D + 24]\n\t\tbne " NAME "_Bit\n\t\tcpx 16\n\t\tbeq " NAME "_Bit\n" \
+	"\t\tlda [D + 22]\n\t\tsta [D + 24]\n\t\tlda [D + 20]\n\t\tsta [D + 22]\n\t\tlda [D + 18]\n\t\tsta [D + 20]\n\t\tstz [D + 18]\n" \
+	"\t\ttxa\n\t\tsec\n\t\tsbc 16\n\t\ttax\n\t\tbra " NAME "_Skip\n" \
+	NAME "_Bit:\n" \
+	"\t\tasl [D + 18]\n\t\trol [D + 20]\n\t\trol [D + 22]\n\t\trol [D + 24]\n" \
+	"\t\trol [D + 3]\n\t\trol [D + 5]\n\t\trol [D + 7]\n\t\trol [D + 9]\n" \
+	"\t\tbcs " NAME "_Subtract\n" \
+	"\t\tlda [D + 9]\n\t\tcmp [D + 32]\n\t\tbcc " NAME "_Next\n\t\tbne " NAME "_Subtract\n" \
+	"\t\tlda [D + 7]\n\t\tcmp [D + 30]\n\t\tbcc " NAME "_Next\n\t\tbne " NAME "_Subtract\n" \
+	"\t\tlda [D + 5]\n\t\tcmp [D + 28]\n\t\tbcc " NAME "_Next\n\t\tbne " NAME "_Subtract\n" \
+	"\t\tlda [D + 3]\n\t\tcmp [D + 26]\n\t\tbcc " NAME "_Next\n" \
+	NAME "_Subtract:\n" \
+	"\t\tsec\n" \
+	"\t\tlda [D + 3]\n\t\tsbc [D + 26]\n\t\tsta [D + 3]\n\t\tlda [D + 5]\n\t\tsbc [D + 28]\n\t\tsta [D + 5]\n" \
+	"\t\tlda [D + 7]\n\t\tsbc [D + 30]\n\t\tsta [D + 7]\n\t\tlda [D + 9]\n\t\tsbc [D + 32]\n\t\tsta [D + 9]\n" \
+	"\t\tinc [D + 18]\n" \
+	NAME "_Next:\n" \
+	"\t\tdex\n\t\tbne " NAME "_Bit\n" \
+	"\t\tldy 0\n\t\tlda [D + " RESULT "]\n\t\tsta [[D + 14]:24 + Y]\n" \
+	"\t\tldy 2\n\t\tlda [D + " RESULT " + 2]\n\t\tsta [[D + 14]:24 + Y]\n" \
+	"\t\tldy 4\n\t\tlda [D + " RESULT " + 4]\n\t\tsta [[D + 14]:24 + Y]\n" \
+	"\t\tldy 6\n\t\tlda [D + " RESULT " + 6]\n\t\tsta [[D + 14]:24 + Y]\n" \
+	"\t\tpld\n\t\tpla\n\t\tpla\n\t\tpla\n\t\tpla\n\t\trtl\n"
+
 static const SIR816Routine gasIR816Routines[] =
 {
+	{ "R816_UDiv64", IR816_DIVIDE_64("R816_UDiv64", "18") },
+	{ "R816_URem64", IR816_DIVIDE_64("R816_URem64", "3") },
 	{ "R816_UDiv32", IR816_DIVIDE_32("R816_UDiv32", "10", "12") },
 	{ "R816_URem32", IR816_DIVIDE_32("R816_URem32", "3", "5") },
 	{ "R816_UDiv16", IR816_DIVIDE_16("R816_UDiv16", "8") },
@@ -1374,11 +1440,151 @@ static bool IR816BranchesOnZN(const char* szEnd)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the line at szLine is a branch on the carry.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816BranchesOnCarry(const char* szLine)
+{
+	return (strncmp(szLine, "\t\tbcc", 5) == 0) || (strncmp(szLine, "\t\tbcs", 5) == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first instruction at or after szLine, past labels and directives
+// (.width follows every label); NULL at the end.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* IR816NextInstruction(const char* szLine)
+{
+	const char*	szEnd;
+
+	while (szLine && *szLine)
+	{
+		if ((szLine[0] == '\t') && (szLine[1] == '\t') && (szLine[2] != '.') && (szLine[2] != '\0') && (szLine[2] != '\n'))
+		{
+			return szLine;
+		}
+		szEnd = strchr(szLine, '\n');
+		szLine = szEnd ? szEnd + 1 : NULL;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the run of conditional branches from the instruction at or after
+// szLine (past labels and directives) has a branch on the carry: a 32 bit
+// unsigned compare branches on Z then C ("L: beq L2 / bcs L3").
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816CarryReadAt(const char* szLine)
+{
+	const char*	szEnd;
+
+	for (szLine = IR816NextInstruction(szLine); szLine; szLine = IR816NextInstruction(szEnd + 1))
+	{
+		if (IR816BranchesOnCarry(szLine))
+		{
+			return true;
+		}
+		if ((strncmp(szLine, "\t\tbeq", 5) != 0) && (strncmp(szLine, "\t\tbne", 5) != 0) && (strncmp(szLine, "\t\tbmi", 5) != 0) &&
+			(strncmp(szLine, "\t\tbpl", 5) != 0) && (strncmp(szLine, "\t\tbvs", 5) != 0) && (strncmp(szLine, "\t\tbvc", 5) != 0))
+		{
+			return false;
+		}
+		szEnd = strchr(szLine, '\n');
+		if (szEnd == NULL)
+		{
+			return false;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the carry may be read after the branch on the line after szEnd:
+// after it, or where it branches to (IR816CarryReadAt; branching on the
+// carry is the only way the code reads a carry it didn't set).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816CarryReadAfterBranch(const char* szText, const char* szEnd)
+{
+	const char*	szBranch;
+	const char*	szAfter;
+	const char*	szLabel;
+	const char*	szFound;
+	char		szTarget[40];
+	size		uiLabel;
+
+	szBranch = szEnd + 1;
+	szAfter = strchr(szBranch, '\n');
+	if ((szAfter == NULL) || IR816CarryReadAt(szAfter + 1))
+	{
+		return true;
+	}
+
+	//"\t\tbne L63": the label's line is "L63:".
+	szLabel = szBranch + 6;
+	uiLabel = (size)(szAfter - szLabel);
+	if ((uiLabel == 0) || (uiLabel + 3 > sizeof(szTarget)))
+	{
+		return true;
+	}
+	szTarget[0] = '\n';
+	memcpy(&szTarget[1], szLabel, uiLabel);
+	szTarget[1 + uiLabel] = ':';
+	szTarget[2 + uiLabel] = '\n';
+	szTarget[3 + uiLabel] = '\0';
+	szFound = strstr(szText, szTarget);
+	if (szFound == NULL)
+	{
+		return true;
+	}
+	return IR816CarryReadAt(szFound + uiLabel + 3);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the mnemonic sets N and Z from all of A (as wide as it is).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816SetsZNFromA(const char* szMnemonic, const char* szOperand, size uiOperand)
+{
+	static const char*	aszMnemonics[] = { "lda", "and", "ora", "eor", "adc", "sbc", "txa", "tya", "tdc", "pla", NULL };
+	int					i;
+
+	for (i = 0; aszMnemonics[i]; i++)
+	{
+		if (strcmp(szMnemonic, aszMnemonics[i]) == 0)
+		{
+			return true;
+		}
+	}
+	if ((uiOperand == 1) && (szOperand[0] == 'A'))
+	{
+		return (strcmp(szMnemonic, "asl") == 0) || (strcmp(szMnemonic, "lsr") == 0) || (strcmp(szMnemonic, "rol") == 0) ||
+			   (strcmp(szMnemonic, "ror") == 0) || (strcmp(szMnemonic, "inc") == 0) || (strcmp(szMnemonic, "dec") == 0);
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Removes instructions that change nothing from the code written from
 // uiStart on, in straight line code (a label, a call or a width change
 // forgets what is known): an lda of the direct page word A already has (but
-// not before a branch on its Z or N), an ldy of the constant Y already has,
-// and adc 0 after clc and an lda (the carry stays clear).
+// not before a branch on its Z or N), an sta of it back to that word, an lda
+// of a direct page word or a constant that the next lda replaces, an ldy of
+// the constant Y already has, adc 0 after clc and an lda (the carry stays
+// clear), and cmp 0 after an instruction that set N and Z from A when only a
+// branch on Z or N follows (not a branch on the carry it sets, after the
+// branch or where it goes).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::Peephole(CChars* pszDest, size uiStart)
@@ -1393,7 +1599,9 @@ void CIR816Backend::Peephole(CChars* pszDest, size uiStart)
 	char		szMnemonic[8];
 	size		uiLength;
 	size		uiOperand;
+	size		uiDeadLoad;		//Where in szOut the last line starts if it is an lda of a direct page word or a constant, else -1.
 	bool		bClearCarry;
+	bool		bZNFromA;		//The last instruction kept set N and Z from A.
 	bool		bKeep;
 	bool		bDirect;
 	int			i;
@@ -1403,6 +1611,8 @@ void CIR816Backend::Peephole(CChars* pszDest, size uiStart)
 	szA[0] = '\0';
 	szY[0] = '\0';
 	bClearCarry = false;
+	bZNFromA = false;
+	uiDeadLoad = (size)-1;
 	for (szLine = szText; *szLine; szLine = szEnd + ((*szEnd == '\n') ? 1 : 0))
 	{
 		szEnd = strchr(szLine, '\n');
@@ -1419,6 +1629,8 @@ void CIR816Backend::Peephole(CChars* pszDest, size uiStart)
 			szA[0] = '\0';
 			szY[0] = '\0';
 			bClearCarry = false;
+			bZNFromA = false;
+			uiDeadLoad = (size)-1;
 			szOut.Append(szLine, uiLength);
 			szOut.AppendNewLine();
 			continue;
@@ -1446,12 +1658,34 @@ void CIR816Backend::Peephole(CChars* pszDest, size uiStart)
 		{
 			bKeep = false;
 		}
+		else if ((strcmp(szMnemonic, "sta") == 0) && bDirect && (strlen(szA) == uiOperand) && (strncmp(szA, szOperand, uiOperand) == 0))
+		{
+			//The word already holds A.
+			bKeep = false;
+		}
+		else if ((strcmp(szMnemonic, "cmp") == 0) && (uiOperand == 1) && (szOperand[0] == '0') && bZNFromA && IR816BranchesOnZN(szEnd) &&
+				 !IR816CarryReadAfterBranch(szText, szEnd))
+		{
+			bKeep = false;
+		}
 		if (!bKeep)
 		{
 			continue;
 		}
+		if ((strcmp(szMnemonic, "lda") == 0) && (uiDeadLoad != (size)-1))
+		{
+			//The lda before it loaded A for nothing.
+			szOut.SetLength(uiDeadLoad);
+		}
+		uiDeadLoad = ((strcmp(szMnemonic, "lda") == 0) && (bDirect || ((szOperand[0] >= '0') && (szOperand[0] <= '9')))) ? szOut.Length() : (size)-1;
 		szOut.Append(szLine, uiLength);
 		szOut.AppendNewLine();
+		if ((strcmp(szMnemonic, "sta") != 0) && (strcmp(szMnemonic, "stx") != 0) && (strcmp(szMnemonic, "sty") != 0) &&
+			(strcmp(szMnemonic, "stz") != 0) && (strcmp(szMnemonic, "pha") != 0))
+		{
+			//Stores change neither A nor the flags.
+			bZNFromA = IR816SetsZNFromA(szMnemonic, szOperand, uiOperand);
+		}
 
 		//What A and Y hold after it.
 		if (((strcmp(szMnemonic, "lda") == 0) || (strcmp(szMnemonic, "sta") == 0)) && bDirect)
