@@ -106,6 +106,7 @@ protected:
 	bool			IsHiddenResult(SIRType sType);
 	void			Layout(void);
 	void			Peephole(CChars* pszDest, size uiStart);
+	void			RemoveDeadStores(CChars* pszDest, size uiStart);
 	int32			PackTemporaries(void);
 	int32			Allocate(int32* piNext, int32 iBytes);
 	int32			OffsetOf(SIRReference sTemporary);
@@ -114,6 +115,7 @@ protected:
 	void			Operand(const char* szMnemonic, SIRReference sValue, int iWord);
 	void			Store(SIRReference sResult, int iWord);
 	void			Mask(SIRType sType);
+	bool			ConstantWord(SIRReference sValue, int iWord, uint16* puiWord);
 	void			CopyWords(int32 iDestination, SIRReference sValue, int iWords);
 	void			ZeroWords(int32 iDestination, int iFirst, int iWords);
 	void			FillSign(int32 iDestination, int iFirst, int iWords);
@@ -127,11 +129,16 @@ protected:
 	void			Arithmetic(SIRInstruction* psInstruction, const char* szCarry, const char* szMnemonic);
 	void			Logic(SIRInstruction* psInstruction, const char* szMnemonic, uint64 ulliNot);
 	void			Shift(SIRInstruction* psInstruction);
+	void			ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd);
+	void			ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd);
 	void			ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, int iAmount);
 	bool			RuntimeCall(SIRInstruction* psInstruction);
 	void			Compare(SIRInstruction* psInstruction);
 	bool			IsFusedCompare(CIRBlock* pcBlock, size uiIndex);
-	void			FusedBranch(SIRInstruction* psInstruction, int32 iElse);
+	void			FusedBranch(SIRInstruction* psInstruction, bool bWhen, int32 iLabel);
+	void			Branch(const char* szMnemonic, int32 iLabel);
+	bool			HasEdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo);
+	void			BranchWhen(CIRBlock* pcBlock, bool bWhen, int32 iLabel);
 	void			CompareFlags(SIRReference sLeft, SIRReference sRight, SIRType sType, bool bSigned);
 	void			Extend(SIRInstruction* psInstruction);
 	void			Address(SIRInstruction* psInstruction, int32 iOffset);

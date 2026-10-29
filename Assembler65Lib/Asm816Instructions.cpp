@@ -421,6 +421,38 @@ bool CAsm816Assembler::ChooseMode(int iMnemonic, SAsm816Operand* psOperand, SAsm
 
 //////////////////////////////////////////////////////////////////////////
 //
+// After .relax, whether a branch to a label must reach further than a byte:
+// it did in an earlier pass (lengths only grow), it is in another section,
+// or it is known to be too far.  A branch to C + offset never is.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CAsm816Assembler::IsLongBranch(SAsm65Value* psTarget)
+{
+	int64	lliOffset;
+
+	if (!mbRelax || !psTarget->bLabel || (psTarget->iProgramCounter != 0))
+	{
+		return false;
+	}
+	if (GetMinimumWords() > 2)
+	{
+		return true;
+	}
+	if (!IsLocalTarget(psTarget) && IsRelocatable(psTarget))
+	{
+		return true;
+	}
+	if (!psTarget->bResolved)
+	{
+		return false;
+	}
+	lliOffset = psTarget->iValue - (int64)(muiStatementAddress + 2);
+	return !Asm65Fits(lliOffset, 1, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // [value] is absolute (16 bits in the data bank) unless :24 is given or the value
 // doesn't fit 16 bits, then long.  An instruction once long stays long in later passes.
 //
@@ -588,7 +620,26 @@ bool CAsm816Assembler::Encode(int iMnemonic, uint8 uiMode, SAsm816Operand* psOpe
 		bResult = DirectOffset(&sInstruction, psOperand);
 		break;
 	case A816M_Relative:
-		bResult = AddRelative(&sInstruction, &sValue, 1, 2, psOperand->psToken);
+		if (IsLongBranch(&sValue))
+		{
+			//bra is brl; a conditional branch is the opposite branch over a brl (bit 5 of the opcode is the condition).
+			if (sInstruction.auiBytes[0] == 0x80)
+			{
+				sInstruction.auiBytes[0] = 0x82;
+				bResult = AddRelative(&sInstruction, &sValue, 2, 3, psOperand->psToken);
+			}
+			else
+			{
+				sInstruction.auiBytes[0] ^= 0x20;
+				AddByte(&sInstruction, 3);
+				AddByte(&sInstruction, 0x82);
+				bResult = AddRelative(&sInstruction, &sValue, 2, 5, psOperand->psToken);
+			}
+		}
+		else
+		{
+			bResult = AddRelative(&sInstruction, &sValue, 1, 2, psOperand->psToken);
+		}
 		break;
 	case A816M_RelativeLong:
 		bResult = AddRelative(&sInstruction, &sValue, 2, 3, psOperand->psToken);

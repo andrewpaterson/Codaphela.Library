@@ -100,6 +100,12 @@ As Assembler65Syntax.txt, the target of a jump is the effective address:
 						and C + offset / C - offset (C is the next instruction)
 	per Label			pushes the label's address relative to the next instruction
 
+After .relax (to the end of the section; the C++ back end writes it in each function), a
+branch to a label too far for a byte, or in another section, is assembled as the opposite
+branch over a brl to the label (bne Far is beq C + 3 / brl Far, 5 bytes), and bra as brl.
+A branch once long stays long in later passes.  Raw and C + offset targets are never
+changed.
+
 
 Block moves and banks
 ---------------------

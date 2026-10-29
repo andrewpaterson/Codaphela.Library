@@ -101,10 +101,13 @@ struct SIRSlotAccess
 //						temporaries and phis (as LLVM's mem2reg, with dominance frontiers)
 //	trivial phis		a phi whose arguments are all one value (or itself) is that value; a phi taking the same
 //						values as an earlier phi of its block is that phi
+//	narrowing			trunc of add, sub, mul, and, or, xor or shl by a constant that only it uses, with an
+//						extended or constant operand, is the operation done narrow (C's char promotions)
 //	constant folding	integer instructions (and integer and pointer conversions) of constants; x * 2^n is
 //						x << n and unsigned / and % by 2^n are >> and &; a comparison of two extended narrow
 //						values compares the narrow values; a comparison a branch on the way in decides is a
-//						constant (or eq, ne); an extension undone, or of a phi of constants, goes
+//						constant (or eq, ne); an extension undone, or of a phi of constants, goes; a sext of
+//						a value whose top bit is 0 is a zext
 //	local cse			an instruction without effects that a block already did is the earlier result
 //	redundant loads		a load of a value known to be in memory (loaded or stored before it, with nothing
 //						that may change it between) is that value; a load from a constant global or known
@@ -125,6 +128,7 @@ class CIROptimiser
 protected:
 	CIRModule*				mpcModule;
 	CIRFunction*			mpcFunction;
+	bool					mbIndexedAddresses;	//Loads and stores add a pointer and an index for nothing (the 65C64's [R1 + R2]).
 	CIRDominators			mcDominators;
 	CIRDefinitions			mcDefinitions;		//Each temporary's definition (FindDefinitions).
 	CIRLoops				mcLoops;			//The loops (ComputeLoops).
@@ -144,6 +148,7 @@ public:
 	void			Kill(void);
 
 	bool			Optimise(CIRFunction* pcFunction);
+	void			SetIndexedAddresses(bool bIndexedAddresses);
 
 	bool			SimplifyCFG(void);
 	bool			SplitSlots(void);
@@ -156,6 +161,7 @@ public:
 	bool			ReduceStrength(void);
 	bool			HoistInvariants(void);
 	bool			RotateLoops(void);
+	bool			NarrowTruncations(void);
 	bool			RemoveDeadCode(void);
 
 protected:
@@ -213,6 +219,8 @@ protected:
 	void			CopyHead(CIRBlock* pcHead, CIRBlock* pcBlock, CArrayIRReferences* pasMap);
 	void			SplitPhiArguments(CIRBlock* pcBlock, CIRBlock* pcHead, CIRBlock* pcPreheader, CArrayIRReferences* pasPreheader, CIRBlock* pcLatch, CArrayIRReferences* pasLatch);
 	void			RewriteUses(SIRReference sValue, CIRSSAUpdater* pcUpdater);
+	SIRReference	FreeNarrow(SIRReference sValue, SIRType sType);
+	SIRReference	Narrowed(SIRReference sValue, SIRType sType, CArrayIRInstructions* pasNew, int iDepth);
 };
 
 

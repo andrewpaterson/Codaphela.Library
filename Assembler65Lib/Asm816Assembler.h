@@ -23,7 +23,7 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #include "Asm65Assembler.h"
 
 
-#define ASM816_MAX_BYTES		4
+#define ASM816_MAX_BYTES		5
 #define ASM816_MAX_RELOCATIONS	2
 #define ASM816_WIDTH_UNKNOWN	0
 
@@ -119,6 +119,7 @@ class CAsm816Assembler : public CAsm65Assembler
 protected:
 	uint8	muiWidthA;		//8, 16 or ASM816_WIDTH_UNKNOWN.
 	uint8	muiWidthX;
+	bool	mbRelax;		//.relax: a branch to a label too far away becomes a branch round a brl.
 
 public:
 	void			Init(void);
@@ -145,6 +146,7 @@ protected:
 
 	//Asm816Instructions.cpp: choosing the opcode and writing its operand.
 	bool			ChooseMode(int iMnemonic, SAsm816Operand* psOperand, SAsm65Token* psMnemonic, uint8* puiMode);
+	bool			IsLongBranch(SAsm65Value* psTarget);
 	bool			AbsoluteOrLong(int iMnemonic, SAsm816Operand* psOperand, uint8 uiAbsolute, uint8 uiLong, uint8* puiMode);
 	bool			Encode(int iMnemonic, uint8 uiMode, SAsm816Operand* psOperand, SAsm816Operand* psSecond, SAsm65Token* psMnemonic);
 	bool			Immediate(SAsm816Instruction* psInstruction, SAsm816Operand* psOperand, uint8 uiWidth, const char* szRegister);
