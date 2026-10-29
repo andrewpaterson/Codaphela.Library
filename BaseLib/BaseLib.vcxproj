@@ -481,6 +481,7 @@
     <ClInclude Include="CSVFileEditable.h" />
     <ClInclude Include="CSVFileImutable.h" />
     <ClInclude Include="CSVHelper.h" />
+    <ClInclude Include="IntelHex.h" />
     <ClInclude Include="TextFile.h" />
     <ClInclude Include="NaiveFile.h" />
     <ClInclude Include="AbstractFile.h" />
@@ -891,6 +892,7 @@
     <ClCompile Include="CSVFileEditable.cpp" />
     <ClCompile Include="CSVFileImutable.cpp" />
     <ClCompile Include="CSVHelper.cpp" />
+    <ClCompile Include="IntelHex.cpp" />
     <ClCompile Include="TextFile.cpp" />
     <ClCompile Include="NaiveFile.cpp" />
     <ClCompile Include="AbstractFile.cpp" />

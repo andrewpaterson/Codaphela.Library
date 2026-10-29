@@ -99,6 +99,11 @@ Directives
 	.long value, ...			32 bits
 	.quad value, ...			64 bits
 	.space bytes				zeros
+	.inchex "file" {, base}	the bytes of an Intel HEX file (BaseLib's CIntelHex) from
+								base (its lowest address when not given) to its highest,
+								$FF where the file has none; the file name is relative to
+								SetDirectory's directory (Garth Wilson's tables in
+								Libc65/MathTbls)
 	name = expression
 
 Only when assembling an object (AssembleObject):

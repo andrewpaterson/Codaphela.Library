@@ -564,6 +564,9 @@
     <ClInclude Include="CSVHelper.h">
       <Filter>Source\File\CSV</Filter>
     </ClInclude>
+    <ClInclude Include="IntelHex.h">
+      <Filter>Source\File\Text</Filter>
+    </ClInclude>
     <ClInclude Include="TextFile.h">
       <Filter>Source\File\Text</Filter>
     </ClInclude>
@@ -1864,6 +1867,9 @@
     </ClCompile>
     <ClCompile Include="CSVHelper.cpp">
       <Filter>Source\File\CSV</Filter>
+    </ClCompile>
+    <ClCompile Include="IntelHex.cpp">
+      <Filter>Source\File\Text</Filter>
     </ClCompile>
     <ClCompile Include="TextFile.cpp">
       <Filter>Source\File\Text</Filter>

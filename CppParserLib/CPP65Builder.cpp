@@ -150,13 +150,14 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 		{
 			cFile.PassifyNewlines();
 			pcLinkLibrary = GetLinkLibrary(pcLibrary);
+			cFileUtil.RemoveLastFromPath(&szPath);
 			if (pcLinkLibrary)
 			{
-				Assemble(pcLinkLibrary->AddObject(szFile), cFile.Text());
+				Assemble(pcLinkLibrary->AddObject(szFile), cFile.Text(), szPath.Text());
 			}
 			else
 			{
-				AddObject(szFile, cFile.Text());
+				AddObject(szFile, cFile.Text(), false, szPath.Text());
 			}
 		}
 		else
@@ -172,6 +173,29 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 		muiUnits++;
 	}
 	szName.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The W65C816's maths tables (Libc65/MathTbls, Garth Wilson's): MathMult for
+// the runtime's multiply.  Each is linked only when it is used.  The other
+// targets need none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::AddMathTables(const char* szLibc65Directory)
+{
+	CChars		szDirectory;
+	CFileUtil	cFileUtil;
+
+	if (meTarget != CPPT_W65C816)
+	{
+		return;
+	}
+	szDirectory.Init(szLibc65Directory);
+	cFileUtil.AppendToPath(&szDirectory, "MathTbls");
+	AddUnit("MathTables", szDirectory.Text(), "MathMult.asm", true);
+	szDirectory.Kill();
 }
 
 
@@ -684,17 +708,18 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Assembles one object and adds it to the link.
+// Assembles one object and adds it to the link.  .inchex file names are
+// relative to szDirectory.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::AddObject(const char* szName, const char* szAssembly, bool bResident)
+bool CCPP65Builder::AddObject(const char* szName, const char* szAssembly, bool bResident, const char* szDirectory)
 {
 	CAsm65Object*	pcObject;
 	SCPP65Object*	psObject;
 	bool			bResult;
 
 	pcObject = mcObjects.AddObject(szName);
-	bResult = Assemble(pcObject, szAssembly);
+	bResult = Assemble(pcObject, szAssembly, szDirectory);
 	psObject = macObjects.Add();
 	psObject->pcObject = pcObject;
 	psObject->bResident = bResident;
@@ -712,9 +737,11 @@ bool CCPP65Builder::AddObject(const char* szName, const char* szAssembly, bool b
 
 //////////////////////////////////////////////////////////////////////////
 //
+// szDirectory is the directory .inchex file names are relative to (an
+// assembly unit's own).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Assemble(CAsm65Object* pcObject, const char* szAssembly)
+bool CCPP65Builder::Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory)
 {
 	CAsm65Assembler		cAssembler;
 	CAsm816Assembler	cAssembler816;
@@ -723,12 +750,20 @@ bool CCPP65Builder::Assemble(CAsm65Object* pcObject, const char* szAssembly)
 	if (meTarget == CPPT_W65C816)
 	{
 		cAssembler816.Init();
+		if (szDirectory)
+		{
+			cAssembler816.SetDirectory(szDirectory);
+		}
 		bResult = cAssembler816.AssembleObject(szAssembly, pcObject);
 		mszErrors.Append(cAssembler816.GetErrors());
 		cAssembler816.Kill();
 		return bResult;
 	}
 	cAssembler.Init();
+	if (szDirectory)
+	{
+		cAssembler.SetDirectory(szDirectory);
+	}
 	bResult = cAssembler.AssembleObject(szAssembly, pcObject);
 	mszErrors.Append(cAssembler.GetErrors());
 	cAssembler.Kill();

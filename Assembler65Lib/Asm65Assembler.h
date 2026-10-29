@@ -23,6 +23,9 @@ along with Codaphela Assembler65Lib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayUint8.h"
 #include "BaseLib/ArraySize.h"
 #include "BaseLib/ArrayUint32.h"
+#include "BaseLib/ArrayTemplatePtr.h"
+#include "BaseLib/ArrayChars.h"
+#include "BaseLib/IntelHex.h"
 #include "MicroprocessorLib/65C64Decoded.h"
 #include "Asm65Tokeniser.h"
 #include "Asm65Symbols.h"
@@ -170,12 +173,17 @@ protected:
 	uint32				muiStatementTermsUsed;
 	SAsm65Token*		mpsTermToken;
 
+	CChars							mszDirectory;
+	CArrayChars						maszHexFiles;
+	CArrayTemplatePtr<CIntelHex>	mapcHexFiles;
+
 public:
 	void			Init(void);
 	void			Kill(void);
 
 	bool			Assemble(const char* szSource);
 	bool			AssembleObject(const char* szSource, CAsm65Object* pcObject);
+	void			SetDirectory(const char* szDirectory);
 
 	CAsm65Output*	GetOutput(void);
 	char*			GetErrors(void);
@@ -206,6 +214,8 @@ protected:
 	bool			Data(uint8 uiBytes);
 	bool			Constant(SAsm65Token* psName);
 	bool			Space(void);
+	bool			IncludeHex(void);
+	CIntelHex*		GetHexFile(SAsm65Token* psName);
 	bool			Section(void);
 	bool			SectionOptions(SAsm65Token* psName, SAsm65Token** ppsGroup, SAsm65Token** ppsAssociated, bool* pbKeep, bool* pbResident, bool* pbAt, uint32* puiAt);
 	void			Associate(void);
