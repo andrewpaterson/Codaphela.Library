@@ -128,6 +128,7 @@ protected:
 	CIRBlock*				mpcExit;			//A destructor's last block (it destroys the fields and bases); NULL in others.
 	CArraySyntax			mapcNone;			//No arguments.
 	CArrayChars				maszRuntime;		//Runtime routines called, given to the generator if the function is written.
+	CArrayChars				maszMissing;		//Named callees with no body in the unit or the imports (GetMissingCallees).
 	CArrayUint8				mauiStringBytes;	//String literals, given to the generator if the function is written.
 	CArrayTemplate<size>	mauiStringLengths;
 	size					muiFirstString;		//The generator's number for the first of them.
@@ -151,6 +152,7 @@ public:
 	bool			Body(SCPP65Function* psFunction);
 	bool			GlobalRoutine(const char* szLabel, const char* szGlobal, SCPP65Type* psType, CCPPSyntax* pcInitialiser, bool bFinalise);
 	void			FinishUnit(void);
+	CArrayChars*	GetMissingCallees(void);
 
 protected:
 	void			BeginWriting(SCPP65Function* psFunction, const char* szLabel, SIRType sReturn, uint32 uiAttributes);

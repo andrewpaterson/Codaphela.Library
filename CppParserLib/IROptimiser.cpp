@@ -1806,6 +1806,10 @@ bool CIROptimiser::FoldConstants(void)
 				}
 				bChanged = true;
 			}
+			else if (PointerOffset(psInstruction))
+			{
+				bChanged = true;
+			}
 			else if ((psInstruction->uiOpcode == IRO_SExt) && (mpcFunction->TypeOf(psInstruction->asArguments[0]).IntegerBits() > 1) &&
 					 Extended(psInstruction->asArguments[0], mpcFunction->TypeOf(psInstruction->asArguments[0]).IntegerBits() - 1, false, 0))
 			{
@@ -1846,6 +1850,52 @@ bool CIROptimiser::FoldConstants(void)
 		ApplyReplacements();
 	}
 	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An itoptr of the sum of a ptrtoi and an integer, p turned into an integer
+// and back with an offset added, becomes ptradd p, offset (a pointer add
+// needs no conversions: the W65C816 masks an itoptr's top byte).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::PointerOffset(SIRInstruction* psInstruction)
+{
+	SIRInstruction*	psAdd;
+	SIRInstruction*	psToInteger;
+	SIRReference	sPointer;
+	SIRType			sType;
+	int				i;
+
+	if ((psInstruction->uiOpcode != IRO_IToPtr) || !psInstruction->sResult.IsTemporary())
+	{
+		return false;
+	}
+	sType = mpcFunction->GetTemporaryType(psInstruction->sResult);
+	psAdd = mcDefinitions.Instruction(Replacement(psInstruction->asArguments[0]));
+	if (!psAdd || (psAdd->uiOpcode != IRO_Add) || !psAdd->sType.Equals(IRIntegerType(mpcModule->GetPointerSize(sType.uiSpace))))
+	{
+		return false;
+	}
+	for (i = 0; i < 2; i++)
+	{
+		psToInteger = mcDefinitions.Instruction(Replacement(psAdd->asArguments[i]));
+		if (psToInteger && (psToInteger->uiOpcode == IRO_PtrToI))
+		{
+			sPointer = Replacement(psToInteger->asArguments[0]);
+			if (mpcFunction->TypeOf(sPointer).Equals(sType))
+			{
+				psInstruction->uiOpcode = IRO_PtrAdd;
+				psInstruction->uiFlags = 0;
+				psInstruction->sType = sType;
+				psInstruction->asArguments[0] = sPointer;
+				psInstruction->asArguments[1] = Replacement(psAdd->asArguments[1 - i]);
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 
@@ -1965,7 +2015,8 @@ bool CIROptimiser::IsIdentity(SIRInstruction* psInstruction, SIRReference* psVal
 //
 // True if psInstruction adds and takes away the same value: (x + y) - y,
 // (y + x) - y, x - (x - y), x + (y - x), (y - x) + x, and p + (q - p) (an offset is as
-// wide as a pointer).  The arithmetic wraps, so it is exact.  *psValue is what is left.
+// wide as a pointer), or turns a pointer into an integer and back (itoptr of ptrtoi p).
+// The arithmetic wraps, so it is exact.  *psValue is what is left.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::Cancels(SIRInstruction* psInstruction, SIRReference* psValue)
@@ -2034,6 +2085,21 @@ bool CIROptimiser::Cancels(SIRInstruction* psInstruction, SIRReference* psValue)
 			}
 		}
 		return false;
+
+	case IRO_IToPtr:
+		//A pointer turned into an integer and back.
+		psDefinition = mcDefinitions.Instruction(Replacement(psInstruction->asArguments[0]));
+		if (!psDefinition || (psDefinition->uiOpcode != IRO_PtrToI))
+		{
+			return false;
+		}
+		sValue = Replacement(psDefinition->asArguments[0]);
+		if (!mpcFunction->TypeOf(sValue).Equals(sType))
+		{
+			return false;
+		}
+		*psValue = sValue;
+		return true;
 
 	case IRO_PtrAdd:
 		//p + (q - p).

@@ -2516,6 +2516,7 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 	mbResult = true;
 	uiStart = pszDest->Length();
 
+	ExpandMultiplies();
 	pcFunction->Renumber();
 	Layout();
 	if (miFrameBytes > IR816_MAX_FRAME_BYTES)
@@ -2532,6 +2533,172 @@ bool CIR816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabe
 	DropFrame(uiStart);
 	pszDest->AppendNewLine();
 	return mbResult;
+}
+
+
+//The cycles a multiply by a constant costs as a runtime call (with its operands' stores), and roughly what a constant
+//shift (by whole bytes, then bits), an add or sub and a neg cost, for 1, 2 and 4 word values (IR816MultiplyCost).
+#define IR816_MULTIPLY_CALL_16	150
+#define IR816_MULTIPLY_CALL_32	230
+#define IR816_MULTIPLY_CALL_64	3000
+#define IR816_MAX_MULTIPLY_DIGITS	8
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Roughly the cycles of shifts and adds in a value of iWords words: a shift
+// of iShift bits, then iAdds adds (or subs).
+//
+//////////////////////////////////////////////////////////////////////////
+static int IR816ShiftAddCost(int iWords, int iShift, int iAdds)
+{
+	int	iCost;
+
+	iCost = 0;
+	if (iShift > 0)
+	{
+		iCost = 5 * iWords + 12 * iWords * (iShift / 8) + 7 * iWords * (iShift % 8);
+	}
+	return iCost + 12 * iWords * iAdds;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A mul by a constant (either side) costs a runtime call: when shifts and
+// adds cost less, it is written as them, x times the constant's signed
+// digits (its non-adjacent form, top first) Horner's way: acc = x (or -x),
+// then for each digit acc = (acc << the gap) + x (or - x), and the last
+// acc << the lowest digit's place.  Multiplies by powers of 2, 0 and 1 were
+// already made shifts by the optimiser (FoldConstants).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR816Backend::ExpandMultiplies(void)
+{
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	SIRReference	sValue;
+	SIRReference	sAcc;
+	SIRType			sType;
+	uint64			ulliConstant;
+	int				aiPlaces[IR816_MAX_MULTIPLY_DIGITS];
+	int				aiSigns[IR816_MAX_MULTIPLY_DIGITS];
+	int				iDigits;
+	int				iBits;
+	int				iWords;
+	int				iCost;
+	int				iCall;
+	int				iPlace;
+	int				i;
+	size			ui;
+	size			uiIndex;
+	bool			bTooMany;
+	bool			bDone;
+
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uiIndex = 0; uiIndex < pcBlock->masInstructions.NumElements(); uiIndex++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiIndex);
+			sType = psInstruction->sType;
+			if ((psInstruction->uiOpcode != IRO_Mul) || !psInstruction->sResult.IsTemporary() || !sType.IsInteger() || sType.Is(IRTK_I1) ||
+				(psInstruction->asArguments[0].IsConstant() == psInstruction->asArguments[1].IsConstant()))
+			{
+				continue;
+			}
+			i = psInstruction->asArguments[0].IsConstant() ? 0 : 1;
+			ulliConstant = IRTruncate(sType, mpcFunction->GetConstant(psInstruction->asArguments[i])->ulliBits);
+			sValue = psInstruction->asArguments[1 - i];
+			iBits = sType.IntegerBits();
+			iWords = Words(sType);
+
+			//The non-adjacent form: digits of +1 and -1, never two next to each other.  Digits past the top are 0.
+			iDigits = 0;
+			bTooMany = false;
+			for (iPlace = 0; (ulliConstant != 0) && (iPlace < iBits); iPlace++)
+			{
+				if (ulliConstant & 1)
+				{
+					if (iDigits == IR816_MAX_MULTIPLY_DIGITS)
+					{
+						bTooMany = true;
+						break;
+					}
+					aiPlaces[iDigits] = iPlace;
+					aiSigns[iDigits] = ((ulliConstant & 3) == 3) ? -1 : 1;
+					ulliConstant = (aiSigns[iDigits] < 0) ? ulliConstant + 1 : ulliConstant - 1;
+					iDigits++;
+				}
+				ulliConstant >>= 1;
+			}
+			if (bTooMany || (iDigits < 2))
+			{
+				continue;
+			}
+
+			//Horner's way: the shifts add up to the top digit's place.
+			iCost = IR816ShiftAddCost(iWords, aiPlaces[iDigits - 1], iDigits - 1) + 5 * iWords * (iDigits - 1) + ((aiSigns[iDigits - 1] < 0) ? 12 * iWords : 0);
+			iCall = (iWords == 1) ? IR816_MULTIPLY_CALL_16 : ((iWords == 2) ? IR816_MULTIPLY_CALL_32 : IR816_MULTIPLY_CALL_64);
+			if (iCost >= iCall)
+			{
+				continue;
+			}
+
+			//The new instructions go before the mul, which becomes the last of them (keeping its result).
+			sAcc = sValue;
+			if (aiSigns[iDigits - 1] < 0)
+			{
+				sAcc = InsertBefore(pcBlock, &uiIndex, IRO_Neg, sType, sAcc, IRNone());
+			}
+			bDone = false;
+			for (i = iDigits - 1; i > 0; i--)
+			{
+				sAcc = InsertBefore(pcBlock, &uiIndex, IRO_Shl, sType, sAcc, mpcFunction->AddInteger(sType, aiPlaces[i] - aiPlaces[i - 1]));
+				if ((i == 1) && (aiPlaces[0] == 0))
+				{
+					//The last digit is at bit 0: its add is the mul's place.
+					psInstruction = pcBlock->masInstructions.Get(uiIndex);
+					psInstruction->uiOpcode = (aiSigns[0] > 0) ? IRO_Add : IRO_Sub;
+					psInstruction->asArguments[0] = sAcc;
+					psInstruction->asArguments[1] = sValue;
+					bDone = true;
+					break;
+				}
+				sAcc = InsertBefore(pcBlock, &uiIndex, (aiSigns[i - 1] > 0) ? IRO_Add : IRO_Sub, sType, sAcc, sValue);
+			}
+			if (!bDone)
+			{
+				//acc << the lowest digit's place is the mul's place.
+				psInstruction = pcBlock->masInstructions.Get(uiIndex);
+				psInstruction->uiOpcode = IRO_Shl;
+				psInstruction->asArguments[0] = sAcc;
+				psInstruction->asArguments[1] = mpcFunction->AddInteger(sType, aiPlaces[0]);
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new instruction before pcBlock's instruction *puiIndex, which moves up
+// one (*puiIndex follows it).  Returns its result.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIR816Backend::InsertBefore(CIRBlock* pcBlock, size* puiIndex, uint16 uiOpcode, SIRType sType, SIRReference sFirst, SIRReference sSecond)
+{
+	SIRInstruction	sMoved;
+	SIRReference	sResult;
+	size			uiLast;
+
+	sResult = mpcFunction->Add(pcBlock, uiOpcode, sType, sFirst, sSecond);
+	uiLast = pcBlock->masInstructions.NumElements() - 1;
+	sMoved = *pcBlock->masInstructions.Get(uiLast);
+	pcBlock->masInstructions.RemoveAt(uiLast, true);
+	pcBlock->masInstructions.InsertAt(&sMoved, *puiIndex);
+	(*puiIndex)++;
+	return sResult;
 }
 
 
@@ -4243,18 +4410,9 @@ void CIR816Backend::Shift(SIRInstruction* psInstruction)
 		return;
 	}
 	CopyWords(iResult, psInstruction->asArguments[0], iWords);
-	if (sAmount.IsConstant())
+	if (sAmount.IsConstant() && ((mpcFunction->GetConstant(sAmount)->ulliBits & 63) == 0))
 	{
-		lliAmount = (int64)(mpcFunction->GetConstant(sAmount)->ulliBits & 63);
-		if (lliAmount == 0)
-		{
-			return;
-		}
-		if (!sType.Is(IRTK_I8) && !sType.Is(IRTK_I1))
-		{
-			ShiftConstant(psInstruction->uiOpcode, iResult, iWords, (int)lliAmount);
-			return;
-		}
+		return;
 	}
 
 	if ((psInstruction->uiOpcode == IRO_AShr) && (sType.Is(IRTK_I8) || sType.Is(IRTK_I1)))
@@ -4264,6 +4422,19 @@ void CIR816Backend::Shift(SIRInstruction* psInstruction)
 		Line("sec");
 		Line(sType.Is(IRTK_I8) ? "sbc $80" : "sbc 1");
 		Frame("sta", iResult);
+	}
+
+	if (sAmount.IsConstant())
+	{
+		//Without a count in X (a value kept in X may be live: AllocateX only keeps them from variable shifts).
+		ShiftConstant(psInstruction->uiOpcode, iResult, iWords, (int)(mpcFunction->GetConstant(sAmount)->ulliBits & 63));
+		if (sType.Is(IRTK_I8) || sType.Is(IRTK_I1))
+		{
+			Frame("lda", iResult);
+			Mask(sType);
+			Frame("sta", iResult);
+		}
+		return;
 	}
 
 	iLoop = NewLabel();
@@ -4403,7 +4574,8 @@ void CIR816Backend::ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWords, SI
 //
 // The value at iResult (iWords words) shifted iAmount bits where it is: whole
 // words are moved first (the words shifted in are 0, or the sign for ashr),
-// then the bits left are shifted a bit at a time without a count.
+// then a byte when 8 or more bits are left, then the bits left a bit at a
+// time without a count.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, int iAmount)
@@ -4465,6 +4637,43 @@ void CIR816Backend::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWords, in
 				}
 			}
 		}
+	}
+
+	if ((iBits >= 8) && (uiOpcode != IRO_AShr || (iWordShift == 0)))
+	{
+		//A byte is moved a word at a time: a word read a byte along is the bytes shifted 8 bits.  The byte past the
+		//value's end (or before its start) is 0, or the sign for ashr, except at the value's own ends.
+		if (uiOpcode == IRO_Shl)
+		{
+			for (i = iWords - 1; i >= iWordShift; i--)
+			{
+				Frame("lda", iResult + 2 * i - 1);
+				if (i == 0)
+				{
+					Line("and $FF00");
+				}
+				Frame("sta", iResult + 2 * i);
+			}
+		}
+		else
+		{
+			for (i = 0; i < iWords - iWordShift; i++)
+			{
+				Frame("lda", iResult + 2 * i + 1);
+				if (i == iWords - 1)
+				{
+					Line("and $FF");
+					if (uiOpcode == IRO_AShr)
+					{
+						Line("cmp $80");
+						Line("bcc C + 3");
+						Line("ora $FF00");
+					}
+				}
+				Frame("sta", iResult + 2 * i);
+			}
+		}
+		iBits -= 8;
 	}
 
 	if ((iWords - iWordShift == 1) && (iBits >= 2))

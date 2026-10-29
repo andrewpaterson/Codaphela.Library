@@ -246,6 +246,18 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	removed: -0.19% wasn't worth a second UpperBound (user, 2026-10-29).  R816_Mul32
 	checks b < 256 at run time instead (a's bytes times b): -0.26%.
 
+	2026-10-29, from a sprite drawing test (TestCPP816Sprites, SpriteProject):
+	- A mul by a constant is shifts and adds when they cost less than the call
+	  (CIR816Backend::ExpandMultiplies, the constant's signed digits Horner's way);
+	  constant shifts move a byte at a time a word along (ShiftConstant).
+	- An itoptr of ptrtoi p plus an offset is ptradd p, offset, and an itoptr of
+	  ptrtoi p is p (CIROptimiser, both targets): no top byte mask after casts.
+	- Small functions are inlined across a project's units on the W65C816
+	  (CIRImports): each unit's small functions with external linkage that refer
+	  to no symbol are kept after it is compiled, the inliner looks for callees
+	  with no body there, and a unit that called one before it was kept is
+	  compiled again at the end (CCPP65Builder::CompileUnits).
+
 5.	C++ end to end: the runtime routines, the start up, Libc65 for the W65C816
 	(softfloat.cpp, string.cpp, stdlib.cpp...) and closing the IR front end's gaps.
 	Then the TestCPP65 projects and TestLibc65 run on the W65C816, compared with the

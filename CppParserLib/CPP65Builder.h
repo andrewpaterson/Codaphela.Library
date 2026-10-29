@@ -26,6 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Assembler65Lib/Asm65Linker.h"
 #include "Project.h"
 #include "CPPTarget.h"
+#include "IRImports.h"
 
 
 struct SCPP65IncludeDirectory
@@ -61,6 +62,19 @@ struct SCPP65Object
 typedef CArrayTemplate<SCPP65Object>	CArrayCPP65Objects;
 
 
+//A translation unit compiled by CompileUnits: its object, and the functions it calls that no unit had exported
+//when it was compiled (it is compiled again if one is exported later).
+struct SCPP65CompiledUnit
+{
+	CTranslationUnit*	pcFile;
+	CAsm65Object*		pcObject;
+	CArrayChars			aszMissing;
+};
+
+
+typedef CArrayTemplate<SCPP65CompiledUnit>	CArrayCPP65CompiledUnits;
+
+
 //Builds a program for a target (SetTarget, before anything is added: the 65C64 unless set, or the W65C816, whose
 //sections are kept inside 64KB banks and only the vectors and their stubs are in bank 0).  Each part is an object: the start up, C++ sources given as text, assembly, and the
 //translation units of a project.  They are linked in the order they were added (the project's units last, when
@@ -72,7 +86,8 @@ typedef CArrayTemplate<SCPP65Object>	CArrayCPP65Objects;
 //SetLazy the functions are loaded from a drive when they are first called (only the start up and the runtime
 //routines are resident); GetLazyImage is what to write to the drive.  Compile then LinkWith links the compiled
 //objects again and again, each time with another source (a main, for example), so a large project can be run as
-//several programs that each fit.
+//several programs that each fit.  On the W65C816 small functions are inlined across the project's units (CIRImports):
+//a unit compiled before one whose function it calls is compiled again at the end.
 class CCPP65Builder
 {
 protected:
@@ -94,6 +109,7 @@ protected:
 	CAsm65Linker					mcLinker;
 	CChars							mszErrors;
 	CChars							mszWarnings;		//The generator's warnings for every unit compiled; they don't fail a build.
+	CIRImports						mcImports;			//The units' small functions, for inlining in the others.
 
 public:
 	void			Init(void);
@@ -134,6 +150,7 @@ protected:
 	bool			AddObject(const char* szName, const char* szAssembly, bool bResident = false, const char* szDirectory = NULL);
 	bool			Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory = NULL);
 	bool			CompileUnits(void);
+	bool			CompileUnit(SCPP65CompiledUnit* psUnit);
 	CAsm65Library*	GetLinkLibrary(CLibrary* pcLibrary);
 	bool			LinkObjects(void);
 	void			ResetLinker(void);

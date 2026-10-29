@@ -38,6 +38,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPPSyntaxes.h"
 #include "CPPSymbol.h"
 #include "CPP65Type.h"
+#include "IRImports.h"
 #include "CPPTarget.h"
 #include "CPPErrors.h"
 #include "Config.h"
@@ -478,6 +479,7 @@ protected:
 	bool					mbSignedModulus;
 	bool					mbSignedDivide64;
 	CCPP65IRFrontEnd*		mpcIRFrontEnd;		//NULL unless SetUseIR(true).
+	CIRImports*				mpcImports;			//Other units' functions the IR inliner may use (SetImports), NULL for none.
 
 public:
 	void					Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget = CPPT_65C64);
@@ -498,6 +500,8 @@ public:
 	CCPPErrors*				GetWarnings(void);
 	int						NumErrors(void);
 	void					GetExternals(CArrayChars* paszLabels);
+	void					SetImports(CIRImports* pcImports);
+	void					GetMissingCallees(CArrayChars* paszNames);
 
 protected:
 	//Declarations, functions and statements.  CPP65Generator.cpp

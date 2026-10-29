@@ -199,6 +199,7 @@
     <ClCompile Include="IRLoops.cpp" />
     <ClCompile Include="IRSSAUpdater.cpp" />
     <ClCompile Include="IRFunction.cpp" />
+    <ClCompile Include="IRImports.cpp" />
     <ClCompile Include="IRInliner.cpp" />
     <ClCompile Include="IRLiveness.cpp" />
     <ClCompile Include="IRModule.cpp" />
@@ -399,6 +400,7 @@
     <ClInclude Include="IRLoops.h" />
     <ClInclude Include="IRSSAUpdater.h" />
     <ClInclude Include="IRFunction.h" />
+    <ClInclude Include="IRImports.h" />
     <ClInclude Include="IRInliner.h" />
     <ClInclude Include="IRLiveness.h" />
     <ClInclude Include="IRModule.h" />

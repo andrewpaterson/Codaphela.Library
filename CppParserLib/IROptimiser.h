@@ -249,6 +249,7 @@ protected:
 	bool			ConvertPhi(SIRInstruction* psInstruction, SIRReference* psValue);
 	bool			IsIdentity(SIRInstruction* psInstruction, SIRReference* psValue);
 	bool			Cancels(SIRInstruction* psInstruction, SIRReference* psValue);
+	bool			PointerOffset(SIRInstruction* psInstruction);
 	bool			Extended(SIRReference sValue, int iBits, bool bSigned, int iDepth);
 	int				EntryRelations(CIRBlock* pcPredecessor, CIRBlock* pcBlock, SIRInstruction* psInstruction);
 	bool			ImpliedComparison(CIRBlock* pcBlock, SIRInstruction* psInstruction, uint64* pulliResult, bool* pbChanged);

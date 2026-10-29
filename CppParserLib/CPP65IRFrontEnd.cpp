@@ -72,6 +72,7 @@ void CCPP65IRFrontEnd::Init(CCPP65Generator* pcGenerator)
 	mpcExit = NULL;
 	mapcNone.Init();
 	maszRuntime.Init();
+	maszMissing.Init();
 	mauiStringBytes.Init();
 	mauiStringLengths.Init();
 	muiFirstString = 0;
@@ -89,6 +90,7 @@ void CCPP65IRFrontEnd::Kill(void)
 
 	mauiStringLengths.Kill();
 	mauiStringBytes.Kill();
+	maszMissing.Kill();
 	maszRuntime.Kill();
 	for (ui = 0; ui < masWritten.NumElements(); ui++)
 	{
@@ -804,12 +806,26 @@ bool CCPP65IRFrontEnd::GenerateCode(CIRFunction* pcFunction, const char* szLabel
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The named functions the unit's inliner looked for and found neither in
+// the unit nor in the generator's imports.
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayChars* CCPP65IRFrontEnd::GetMissingCallees(void)
+{
+	return &maszMissing;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // After the generator has written every function of the unit: small
 // functions are inlined into the functions written as IR (callees, which
 // are written after their callers, first), which are optimised and
 // generated again, and each function's code replaces its marker in the
 // generator's code.  A function that then fails keeps the code Body
-// generated (and isn't inlined into others).
+// generated (and isn't inlined into others).  Functions of other units are
+// inlined too when the generator has imports (CCPP65Generator::SetImports),
+// and the unit's small functions are added to them at the end.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::FinishUnit(void)
@@ -829,6 +845,7 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 	bool				bResult;
 
 	cInliner.Init(&mcModule, IR65_INLINE_INSTRUCTIONS, IR65_INLINE_LOOP_INSTRUCTIONS, IR65_INLINE_CALLS);
+	cInliner.SetImports(mpcGenerator->mpcImports, &maszMissing);
 	for (ui = masWritten.NumElements(); sbInline && (ui > 0); ui--)
 	{
 		psWritten = masWritten.Get(ui - 1);
@@ -878,6 +895,16 @@ void CCPP65IRFrontEnd::FinishUnit(void)
 		szCode.Kill();
 	}
 	cInliner.Kill();
+
+	//The unit's small functions, as finished, for the units compiled after it.
+	for (ui = 0; mpcGenerator->mpcImports && (ui < masWritten.NumElements()); ui++)
+	{
+		psWritten = masWritten.Get(ui);
+		if (psWritten->pcFunction)
+		{
+			mpcGenerator->mpcImports->Export(&mcModule, psWritten->pcFunction);
+		}
+	}
 
 	//The markers become the code.
 	szAll.Init();
