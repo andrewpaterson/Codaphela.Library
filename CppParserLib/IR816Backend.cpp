@@ -3462,7 +3462,9 @@ static bool IR816Unreachable(CArrayChars* paszLines)
 // Branches tidied in the code written from uiStart on, until none changes:
 // a bra to the label that follows goes; a branch to a label whose first
 // instruction is a bra goes where that does; Bcc X, bra Y, X: is B!cc Y,
-// X: (and bcc X, beq X, bra Y, X: is beq X, bcs Y, X:); an lda of a direct
+// X: (and bcc X, beq X, bra Y, X: is beq X, bcs Y, X:); Bcc X, bra Y with
+// X ahead and Y behind is B!cc Y, bra X (a branch back is usually taken:
+// a loop going round); an lda of a direct
 // page word or a constant before a bra to code that sets A and N and Z
 // before reading A or the flags goes; txa after tax (or tax after txa)
 // goes; a txy goes after a txy and an instruction that changes neither X
@@ -3488,6 +3490,7 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 	size				uiOperand;
 	size				ui;
 	size				uiTarget;
+	size				uiBackward;
 	int					iPass;
 	bool				bChanged;
 
@@ -3540,6 +3543,28 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 					aszLines.Remove(ui + 1);
 					bChanged = true;
 					continue;
+				}
+
+				//Bcc X (forward), bra Y (backward) is B!cc Y, bra X: going round a loop, the usual way, is one taken branch.
+				if ((ui + 1 < aszLines.NumElements()) && IR816InvertedBranch(szMnemonic) && IR816BranchLine(aszLines.Get(ui + 1), szMnemonic2, szLabel2) &&
+					(strcmp(szMnemonic2, "bra") == 0))
+				{
+					uiTarget = IR816LabelledInstruction(&aszLines, szLabel);
+					uiBackward = IR816LabelledInstruction(&aszLines, szLabel2);
+					if ((uiTarget != (size)-1) && (uiBackward != (size)-1) && (uiTarget > ui) && (uiBackward <= ui))
+					{
+						psz->Clear();
+						psz->Append("\t\t");
+						psz->Append(IR816InvertedBranch(szMnemonic));
+						psz->Append(" ");
+						psz->Append(szLabel2);
+						psz = aszLines.Get(ui + 1);
+						psz->Clear();
+						psz->Append("\t\tbra ");
+						psz->Append(szLabel);
+						bChanged = true;
+						continue;
+					}
 				}
 
 				//bcc X, beq X, bra Y, X: (either order of the first two) is beq X, bcs Y, X:.
