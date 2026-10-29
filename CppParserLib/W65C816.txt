@@ -347,6 +347,21 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	  sec, ldx, ldy, inx, iny, dex, dey, stz, stx and sty for the lda (txa...)
 	  that makes it dead.  Tide/Video 20.75M -> 20.40M, the sprite test 6.30M
 	  -> 5.98M.
+	- A bra that goes round a loop (a back edge, JumpTo) is marked (IR816_ROUND)
+	  so PeepholeBranches makes Bcc X, bra Y (Y round the loop) B!cc Y, bra X
+	  once the copies between are gone: going round is one taken branch.  A
+	  guess from where labels are (a branch back is taken) was tried first and
+	  dropped: it turned a row's branch the wrong way.  Tide/Video 20.40M ->
+	  20.21M.
+	- A mul of a loop counter (i0, going round as i + c) by a value the loop
+	  doesn't change is a phi of its own: i0 * w before the loop, + w * c
+	  going round (CIROptimiser::ReduceMultiplies, both targets; exact as
+	  integers wrap the same either way).  A counter only stepped on some
+	  ways round (the transparent sprite's y) isn't one.  Peephole: txa after
+	  tax (or the other way) with clc or sec between goes; cmp 0 after what
+	  set N and Z from A goes when labels come before the branch too
+	  (IR816SkipLabels).  Tide/Video 20.21M -> 20.17M, the sprite test 5.98M
+	  -> 5.78M.
 	Cost (2026-10-29): TestBaseLib65 816 44.887G -> 41.830G (-6.81%) from the three
 	above, then 41.833G with the last two (no change there; TestCPP816 -0.26%); cross-unit inlining recompiles 349 of 591 units,
 	compile 19s -> 32s for TestBaseLib65 816, TestCPP816 219s -> 331s.

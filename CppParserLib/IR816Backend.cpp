@@ -27,6 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #define IR816_KEEP_IN_A	" ;A"		//Ends a store Peephole may leave the value in A for (Store).
+#define IR816_ROUND		" ;R"		//Ends a bra round a loop (JumpTo), for PeepholeBranches.
 
 
 //The runtime routines, as IR for each width: $T is the type, $N its bits, $M its bits - 1 and $NAME the routine
@@ -403,6 +404,7 @@ void CIR816Backend::Init(CIRModule* pcModule, int* piLabels)
 	masFoldBase.Init();
 	maiFoldOffset.Init();
 	masFoldIndex.Init();
+	mpcDominators = NULL;
 	maiUses.Init();
 	maiUseBlock.Init();
 	mabInX.Init();
@@ -2940,11 +2942,12 @@ SIRReference CIR816Backend::InsertBefore(CIRBlock* pcBlock, size* puiIndex, uint
 //////////////////////////////////////////////////////////////////////////
 void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 {
-	size		ui;
-	size		uiInstruction;
-	CIRBlock*	pcBlock;
-	CIRBlock*	pcNext;
-	int32		iLabel;
+	size			ui;
+	size			uiInstruction;
+	CIRBlock*		pcBlock;
+	CIRBlock*		pcNext;
+	int32			iLabel;
+	CIRDominators	cDominators;
 
 	maiBlockLabels.FakeSetUsedElements(0);
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
@@ -2954,6 +2957,10 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 	}
 
 	FindSingleUses();
+	mpcFunction->ComputePredecessors();
+	cDominators.Init();
+	cDominators.Compute(mpcFunction);
+	mpcDominators = &cDominators;
 	Prologue(szLabel);
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
@@ -2984,6 +2991,8 @@ void CIR816Backend::GenerateBody(const char* szLabel, size uiStart)
 		miFused = 0;
 	}
 	miBlock = -1;
+	mpcDominators = NULL;
+	cDominators.Kill();
 	Peephole(mpszOut, uiStart);
 	PeepholeBranches(mpszOut, uiStart);
 }
@@ -3058,11 +3067,36 @@ void CIR816Backend::FindSingleUses(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the line after szEnd (the end of a line) branches on Z or N.
+// The end of the last label line after the line ending at szEnd (labels
+// change nothing on the way through), or szEnd when none follows.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* IR816SkipLabels(const char* szEnd)
+{
+	const char*	szNext;
+
+	while ((*szEnd == '\n') && (szEnd[1] != '\0') && (szEnd[1] != '\t'))
+	{
+		szNext = strchr(szEnd + 1, '\n');
+		if (szNext == NULL)
+		{
+			break;
+		}
+		szEnd = szNext;
+	}
+	return szEnd;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the next instruction after szEnd (the end of a line, past any
+// labels) branches on Z or N.
 //
 //////////////////////////////////////////////////////////////////////////
 static bool IR816BranchesOnZN(const char* szEnd)
 {
+	szEnd = IR816SkipLabels(szEnd);
 	if (*szEnd != '\n')
 	{
 		return false;
@@ -3154,7 +3188,7 @@ static bool IR816CarryReadAfterBranch(const char* szText, const char* szEnd)
 	char		szTarget[40];
 	size		uiLabel;
 
-	szBranch = szEnd + 1;
+	szBranch = IR816SkipLabels(szEnd) + 1;
 	szAfter = strchr(szBranch, '\n');
 	if ((szAfter == NULL) || IR816CarryReadAt(szAfter + 1))
 	{
@@ -3257,6 +3291,7 @@ static bool IR816BranchLine(CChars* psz, char* szMnemonic, char* szLabel)
 {
 	const char*	szOperand;
 	size		uiOperand;
+	size		ui;
 
 	if ((psz->Length() < 3) || (psz->Text()[0] != '\t'))
 	{
@@ -3268,8 +3303,11 @@ static bool IR816BranchLine(CChars* psz, char* szMnemonic, char* szLabel)
 	{
 		return false;
 	}
-	memcpy(szLabel, szOperand, uiOperand);
-	szLabel[uiOperand] = '\0';
+	for (ui = 0; (ui < uiOperand) && (szOperand[ui] != ' '); ui++)
+	{
+		szLabel[ui] = szOperand[ui];
+	}
+	szLabel[ui] = '\0';
 	return true;
 }
 
@@ -3462,12 +3500,11 @@ static bool IR816Unreachable(CArrayChars* paszLines)
 // Branches tidied in the code written from uiStart on, until none changes:
 // a bra to the label that follows goes; a branch to a label whose first
 // instruction is a bra goes where that does; Bcc X, bra Y, X: is B!cc Y,
-// X: (and bcc X, beq X, bra Y, X: is beq X, bcs Y, X:); Bcc X, bra Y with
-// X ahead and Y behind is B!cc Y, bra X (a branch back is usually taken:
-// a loop going round); an lda of a direct
+// X: (and bcc X, beq X, bra Y, X: is beq X, bcs Y, X:); Bcc X, bra Y
+// round a loop (marked IR816_ROUND by JumpTo) is B!cc Y, bra X; an lda of a direct
 // page word or a constant before a bra to code that sets A and N and Z
-// before reading A or the flags goes; txa after tax (or tax after txa)
-// goes; a txy goes after a txy and an instruction that changes neither X
+// before reading A or the flags goes; txa after tax (or tax after txa),
+// only clc or sec between, goes; a txy goes after a txy and an instruction that changes neither X
 // nor Y; and code after a bra, rtl or stp up to a label that is used goes
 // (IR816Unreachable).
 //
@@ -3490,7 +3527,6 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 	size				uiOperand;
 	size				ui;
 	size				uiTarget;
-	size				uiBackward;
 	int					iPass;
 	bool				bChanged;
 
@@ -3545,26 +3581,21 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 					continue;
 				}
 
-				//Bcc X (forward), bra Y (backward) is B!cc Y, bra X: going round a loop, the usual way, is one taken branch.
+				//Bcc X, bra Y round a loop (JumpTo marked it) is B!cc Y, bra X: going round, the usual way, is one branch taken.
 				if ((ui + 1 < aszLines.NumElements()) && IR816InvertedBranch(szMnemonic) && IR816BranchLine(aszLines.Get(ui + 1), szMnemonic2, szLabel2) &&
-					(strcmp(szMnemonic2, "bra") == 0))
+					(strcmp(szMnemonic2, "bra") == 0) && aszLines.Get(ui + 1)->EndsWith(IR816_ROUND) && (strcmp(szLabel, szLabel2) != 0))
 				{
-					uiTarget = IR816LabelledInstruction(&aszLines, szLabel);
-					uiBackward = IR816LabelledInstruction(&aszLines, szLabel2);
-					if ((uiTarget != (size)-1) && (uiBackward != (size)-1) && (uiTarget > ui) && (uiBackward <= ui))
-					{
-						psz->Clear();
-						psz->Append("\t\t");
-						psz->Append(IR816InvertedBranch(szMnemonic));
-						psz->Append(" ");
-						psz->Append(szLabel2);
-						psz = aszLines.Get(ui + 1);
-						psz->Clear();
-						psz->Append("\t\tbra ");
-						psz->Append(szLabel);
-						bChanged = true;
-						continue;
-					}
+					psz->Clear();
+					psz->Append("\t\t");
+					psz->Append(IR816InvertedBranch(szMnemonic));
+					psz->Append(" ");
+					psz->Append(szLabel2);
+					psz = aszLines.Get(ui + 1);
+					psz->Clear();
+					psz->Append("\t\tbra ");
+					psz->Append(szLabel);
+					bChanged = true;
+					continue;
 				}
 
 				//bcc X, beq X, bra Y, X: (either order of the first two) is beq X, bcs Y, X:.
@@ -3612,14 +3643,20 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 				}
 			}
 
-			//tax then txa, or txa then tax: A and X hold the same already (and set N and Z the same).
-			if ((ui + 1 < aszLines.NumElements()) &&
-				(((strcmp(psz->Text(), "\t\ttax") == 0) && (strcmp(aszLines.Get(ui + 1)->Text(), "\t\ttxa") == 0)) ||
-				 ((strcmp(psz->Text(), "\t\ttxa") == 0) && (strcmp(aszLines.Get(ui + 1)->Text(), "\t\ttax") == 0))))
+			//tax then txa, or txa then tax, with only clc or sec between: A and X hold the same already (and N and Z
+			//are as the first set them).
+			if ((strcmp(psz->Text(), "\t\ttax") == 0) || (strcmp(psz->Text(), "\t\ttxa") == 0))
 			{
-				aszLines.Remove(ui + 1);
-				bChanged = true;
-				continue;
+				for (uiTarget = ui + 1; (uiTarget < aszLines.NumElements()) &&
+					((strcmp(aszLines.GetText(uiTarget), "\t\tclc") == 0) || (strcmp(aszLines.GetText(uiTarget), "\t\tsec") == 0)); uiTarget++)
+				{
+				}
+				if ((uiTarget < aszLines.NumElements()) && (strcmp(aszLines.GetText(uiTarget), (psz->Text()[3] == 'a') ? "\t\ttxa" : "\t\ttax") == 0))
+				{
+					aszLines.Remove(uiTarget);
+					bChanged = true;
+					continue;
+				}
 			}
 
 			//txy, an instruction that keeps X and Y, txy.
@@ -3641,7 +3678,12 @@ void CIR816Backend::PeepholeBranches(CChars* pszDest, size uiStart)
 	szOut.Init();
 	for (ui = 0; ui < aszLines.NumElements(); ui++)
 	{
-		szOut.Append(aszLines.Get(ui));
+		psz = aszLines.Get(ui);
+		if (psz->EndsWith(IR816_ROUND))
+		{
+			psz->RemoveFromEnd(strlen(IR816_ROUND));
+		}
+		szOut.Append(psz);
 		szOut.AppendNewLine();
 	}
 	pszDest->SetLength(uiStart);
@@ -4401,10 +4443,22 @@ void CIR816Backend::PhiCopies(CIRBlock* pcBlock)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816Backend::JumpTo(CIRBlock* pcTo, CIRBlock* pcNext)
+void CIR816Backend::JumpTo(CIRBlock* pcFrom, CIRBlock* pcTo, CIRBlock* pcNext)
 {
+	CChars	sz;
+
 	if (pcTo == pcNext)
 	{
+		return;
+	}
+	if (mpcDominators && mpcDominators->IsBackEdge(pcFrom, pcTo))
+	{
+		//Going round a loop: marked for PeepholeBranches.
+		sz.Init("bra L");
+		sz.Append(*maiBlockLabels.Get(pcTo->muiIndex));
+		sz.Append(IR816_ROUND);
+		Line(sz.Text());
+		sz.Kill();
 		return;
 	}
 	Branch("bra", *maiBlockLabels.Get(pcTo->muiIndex));
@@ -4485,7 +4539,7 @@ void CIR816Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext)
 	{
 	case IRJ_Jump:
 		EdgeCopies(pcBlock, psJump->pcThen);
-		JumpTo(psJump->pcThen, pcNext);
+		JumpTo(pcBlock, psJump->pcThen, pcNext);
 		break;
 	case IRJ_Branch:
 		//Straight to a block whose edge has no copies, falling through to the next block where it can.
@@ -4495,23 +4549,23 @@ void CIR816Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext)
 		{
 			BranchWhen(pcBlock, false, *maiBlockLabels.Get(psJump->pcElse->muiIndex));
 			EdgeCopies(pcBlock, psJump->pcThen);
-			JumpTo(psJump->pcThen, pcNext);
+			JumpTo(pcBlock, psJump->pcThen, pcNext);
 		}
 		else if (!bThenCopies)
 		{
 			BranchWhen(pcBlock, true, *maiBlockLabels.Get(psJump->pcThen->muiIndex));
 			EdgeCopies(pcBlock, psJump->pcElse);
-			JumpTo(psJump->pcElse, pcNext);
+			JumpTo(pcBlock, psJump->pcElse, pcNext);
 		}
 		else
 		{
 			iThen = NewLabel();
 			BranchWhen(pcBlock, true, iThen);
 			EdgeCopies(pcBlock, psJump->pcElse);
-			JumpTo(psJump->pcElse, NULL);
+			JumpTo(pcBlock, psJump->pcElse, NULL);
 			Label(iThen);
 			EdgeCopies(pcBlock, psJump->pcThen);
-			JumpTo(psJump->pcThen, pcNext);
+			JumpTo(pcBlock, psJump->pcThen, pcNext);
 		}
 		break;
 	case IRJ_Return:

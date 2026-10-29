@@ -260,6 +260,7 @@ public:
 	bool			LessLoopTests(void);
 	bool			ReplaceLoopCounters(void);
 	bool			ReplaceExitValues(void);
+	bool			ReduceMultiplies(void);
 	bool			DeleteDeadLoops(void);
 	bool			SingleExit(size uiLoop, CIRBlock** ppcFrom, CIRBlock** ppcTo);
 	bool			UsedOutside(size uiLoop, SIRReference sValue);

@@ -36,7 +36,10 @@ public:
 						bool	ReadData(void* pvData, lsize iDataSize);
 
 	//Strings.
+						bool	ReadStringLength(lsize* piLength);
+#ifndef SIZE_IS_LSIZE
 						bool	ReadStringLength(size* piLength);
+#endif // SIZE_IS_LSIZE
 						bool	ReadStringChars(char* szString, size iLength);
 						bool	ReadString(char* szString, size iMaxLength);
 
@@ -57,6 +60,9 @@ public:
 						bool	ReadSInt(int* pi);
 						bool	ReadSInt(uint* pi);
 						bool	ReadSize(lsize* pui);  //Four bytes in 32 and 64 bit builds, sign extended so 0xffffffff is SIZE_MAX.
+#ifndef SIZE_IS_LSIZE
+						bool	ReadSize(size* pui);  //The same four bytes; fails if the value does not fit (all ones reads as MAX_SIZE).
+#endif // SIZE_IS_LSIZE
 						bool	ReadSizes(size* pai, size iLength);
 						bool	ReadFloat(float32* pf);
 						bool	ReadFloat(float64* pf);

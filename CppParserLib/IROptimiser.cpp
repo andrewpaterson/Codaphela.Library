@@ -149,6 +149,7 @@ bool CIROptimiser::Optimise(CIRFunction* pcFunction)
 		bChanged |= RotateLoops();
 		bChanged |= LessLoopTests();
 		bChanged |= ReplaceLoopCounters();
+		bChanged |= ReduceMultiplies();
 		bChanged |= ReplaceExitValues();
 		bChanged |= DeleteDeadLoops();
 		bChanged |= ReduceStrength();
@@ -4521,6 +4522,121 @@ bool CIROptimiser::HoistCommon(void)
 		}
 	}
 	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In a loop with one way in and one way round, a mul of a counter i (a phi
+// of its head from i0, going round as i + c, c a constant) by a value w the
+// loop doesn't change becomes a phi of its own: i0 * w before the loop,
+// going round as + w * c.  Integers wrap the same way either way, so it
+// is exact (a 16 bit int's y * width, say).  The multiply each time round
+// becomes an add.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIROptimiser::ReduceMultiplies(void)
+{
+	size			uiLoop;
+	size			uiBlock;
+	size			uiIndex;
+	size			uiPhi;
+	size			uiOutside;
+	CIRBlock*		pcHead;
+	CIRBlock*		pcLatch;
+	CIRBlock*		pcPreheader;
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psMul;
+	SIRInstruction*	psStep;
+	SIRPhi*			psCounter;
+	SIRPhi*			psProduct;
+	SIRReference	sCounter;
+	SIRReference	sFactor;
+	SIRReference	sInitial;
+	SIRReference	sStep;
+	SIRReference	sResult;
+	SIRReference	sProduct;
+	SIRReference	sStepped;
+	SIRType			sType;
+	int64			lliStep;
+
+	ComputeLoops();
+	for (uiLoop = 0; uiLoop < mcLoops.NumLoops(); uiLoop++)
+	{
+		pcHead = mcLoops.GetLoop(uiLoop)->pcHead;
+		if ((mcLoops.NumLatches(uiLoop) != 1) || (mcLoops.GetLoop(uiLoop)->pcEntering == NULL) || (pcHead->mapcPredecessors.NumElements() != 2))
+		{
+			continue;
+		}
+		pcLatch = mcLoops.GetLatch(uiLoop, 0);
+		for (uiBlock = 0; uiBlock < mcLoops.NumBlocks(uiLoop); uiBlock++)
+		{
+			pcBlock = mcLoops.GetBlock(uiLoop, uiBlock);
+			for (uiIndex = 0; uiIndex < pcBlock->masInstructions.NumElements(); uiIndex++)
+			{
+				psMul = pcBlock->masInstructions.Get(uiIndex);
+				if ((psMul->uiOpcode != IRO_Mul) || !psMul->sResult.IsTemporary() || !psMul->sType.IsInteger())
+				{
+					continue;
+				}
+
+				//mul i, w (either way round), i a counter of the head.
+				psCounter = NULL;
+				for (uiPhi = 0; (psCounter == NULL) && (uiPhi < pcHead->masPhis.NumElements()); uiPhi++)
+				{
+					sCounter = pcHead->masPhis.Get(uiPhi)->sResult;
+					if (psMul->asArguments[0].Equals(sCounter) || psMul->asArguments[1].Equals(sCounter))
+					{
+						psCounter = pcHead->masPhis.Get(uiPhi);
+					}
+				}
+				if ((psCounter == NULL) || (psCounter->asArguments.NumElements() != 2) || !psCounter->sType.Equals(psMul->sType))
+				{
+					continue;
+				}
+				sFactor = psMul->asArguments[0].Equals(sCounter) ? psMul->asArguments[1] : psMul->asArguments[0];
+				if (sFactor.Equals(sCounter) || !mcLoops.IsInvariant(uiLoop, sFactor, &mcDefinitions))
+				{
+					continue;
+				}
+				uiOutside = mcLoops.Contains(uiLoop, psCounter->asArguments.Get(0)->pcBlock) ? 1 : 0;
+				if (mcLoops.Contains(uiLoop, psCounter->asArguments.Get(uiOutside)->pcBlock) || (psCounter->asArguments.Get(1 - uiOutside)->pcBlock != pcLatch))
+				{
+					continue;
+				}
+				sStepped = psCounter->asArguments.Get(1 - uiOutside)->sValue;
+				psStep = mcDefinitions.Instruction(sStepped);
+				if ((psStep == NULL) || (psStep->uiOpcode != IRO_Add) || !psStep->asArguments[0].Equals(sCounter) || !psStep->asArguments[1].IsConstant())
+				{
+					continue;
+				}
+
+				//The new phi: i0 * w in the preheader, + w * c on the way round.
+				lliStep = mpcFunction->GetSigned(psStep->asArguments[1]);
+				sType = psMul->sType;
+				sResult = psMul->sResult;
+				pcPreheader = mcLoops.GetLoop(uiLoop)->pcPreheader;
+				if (pcPreheader == NULL)
+				{
+					pcPreheader = AddPreheader(uiLoop);
+				}
+				sInitial = psCounter->asArguments.Get(0)->pcBlock == pcPreheader ? psCounter->asArguments.Get(0)->sValue : psCounter->asArguments.Get(1)->sValue;
+				sInitial = mpcFunction->Add(pcPreheader, IRO_Mul, sType, sInitial, sFactor);
+				sStep = (lliStep == 1) ? sFactor : mpcFunction->Add(pcPreheader, IRO_Mul, sType, sFactor, mpcFunction->AddInteger(sType, lliStep));
+				sProduct = mpcFunction->AddTemporary(sType);
+				psProduct = pcHead->AddPhi(sType, sProduct);
+				sStepped = mpcFunction->Add(pcLatch, IRO_Add, sType, sProduct, sStep);
+				pcHead->AddPhiArgument(psProduct, pcPreheader, sInitial);
+				pcHead->AddPhiArgument(psProduct, pcLatch, sStepped);
+				ClearReplacements();
+				Replace(sResult, sProduct);
+				ApplyReplacements();
+				FindDefinitions();
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 
