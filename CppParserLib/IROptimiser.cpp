@@ -4525,14 +4525,70 @@ bool CIROptimiser::HoistCommon(void)
 }
 
 
+#define IR_REDUCE_VALUES	32		//The most values a counter's web may have (ReduceMultiplies).
+
+
 //////////////////////////////////////////////////////////////////////////
 //
-// In a loop with one way in and one way round, a mul of a counter i (a phi
-// of its head from i0, going round as i + c, c a constant) by a value w the
-// loop doesn't change becomes a phi of its own: i0 * w before the loop,
-// going round as + w * c.  Integers wrap the same way either way, so it
-// is exact (a 16 bit int's y * width, say).  The multiply each time round
-// becomes an add.
+// pcBlock's phi of sResult, else NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+static SIRPhi* IROptimiserFindPhi(CIRBlock* pcBlock, SIRReference sResult)
+{
+	size	ui;
+
+	for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
+	{
+		if (pcBlock->masPhis.Get(ui)->sResult.Equals(sResult))
+		{
+			return pcBlock->masPhis.Get(ui);
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Adds sValue to the web (ReduceMultiplies) if it isn't in it: false if it
+// can't be (another type, or too many values).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IROptimiserAddToWeb(SIRReference* asValues, size* puiValues, SIRReference sValue, SIRType sType, CIRFunction* pcFunction)
+{
+	size	ui;
+
+	if (!(sValue.IsTemporary() && pcFunction->GetTemporaryType(sValue).Equals(sType)) && !(sValue.IsConstant() && pcFunction->GetConstant(sValue)->sType.Equals(sType)))
+	{
+		return false;
+	}
+	for (ui = 0; ui < *puiValues; ui++)
+	{
+		if (asValues[ui].Equals(sValue))
+		{
+			return true;
+		}
+	}
+	if (*puiValues == IR_REDUCE_VALUES)
+	{
+		return false;
+	}
+	asValues[(*puiValues)++] = sValue;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In a loop with one way in, a mul of i by a value w the loop doesn't
+// change, i one of a web of values the loop works out from each other
+// alone (each a phi of values of the web or from before the loop, or a
+// value of the web plus a constant c: a counter i0, i + 1 going round, or
+// one stepped on some ways round only), becomes a web of its own: v * w
+// for each value from before the loop worked out in the preheader, a phi
+// for each phi, + w * c for each add.  Integers wrap the same way either
+// way, so it is exact (a 16 bit int's y * width, say).  The multiply each
+// time round becomes adds.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIROptimiser::ReduceMultiplies(void)
@@ -4540,35 +4596,36 @@ bool CIROptimiser::ReduceMultiplies(void)
 	size			uiLoop;
 	size			uiBlock;
 	size			uiIndex;
-	size			uiPhi;
-	size			uiOutside;
-	CIRBlock*		pcHead;
-	CIRBlock*		pcLatch;
-	CIRBlock*		pcPreheader;
+	size			ui;
+	size			uj;
+	size			uiValues;
+	size			uiArgument;
 	CIRBlock*		pcBlock;
+	CIRBlock*		pcPreheader;
+	CIRBlock*		pcValue;
 	SIRInstruction*	psMul;
-	SIRInstruction*	psStep;
-	SIRPhi*			psCounter;
-	SIRPhi*			psProduct;
+	SIRInstruction*	psAdd;
+	SIRInstruction	sNew;
+	SIRPhi*			psPhi;
+	SIRPhi*			psProductPhi;
+	SIRReference	asValues[IR_REDUCE_VALUES];
+	SIRReference	asProducts[IR_REDUCE_VALUES];
 	SIRReference	sCounter;
 	SIRReference	sFactor;
-	SIRReference	sInitial;
-	SIRReference	sStep;
-	SIRReference	sResult;
+	SIRReference	sValue;
 	SIRReference	sProduct;
-	SIRReference	sStepped;
 	SIRType			sType;
-	int64			lliStep;
+	bool			bWeb;
+	int				iArgument;
+	int32			iIndex;
 
 	ComputeLoops();
 	for (uiLoop = 0; uiLoop < mcLoops.NumLoops(); uiLoop++)
 	{
-		pcHead = mcLoops.GetLoop(uiLoop)->pcHead;
-		if ((mcLoops.NumLatches(uiLoop) != 1) || (mcLoops.GetLoop(uiLoop)->pcEntering == NULL) || (pcHead->mapcPredecessors.NumElements() != 2))
+		if (mcLoops.GetLoop(uiLoop)->pcEntering == NULL)
 		{
 			continue;
 		}
-		pcLatch = mcLoops.GetLatch(uiLoop, 0);
 		for (uiBlock = 0; uiBlock < mcLoops.NumBlocks(uiLoop); uiBlock++)
 		{
 			pcBlock = mcLoops.GetBlock(uiLoop, uiBlock);
@@ -4579,57 +4636,124 @@ bool CIROptimiser::ReduceMultiplies(void)
 				{
 					continue;
 				}
+				sType = psMul->sType;
 
-				//mul i, w (either way round), i a counter of the head.
-				psCounter = NULL;
-				for (uiPhi = 0; (psCounter == NULL) && (uiPhi < pcHead->masPhis.NumElements()); uiPhi++)
+				//mul i, w (either way round): i in the loop, w not changed by it.
+				for (iArgument = 0; iArgument < 2; iArgument++)
 				{
-					sCounter = pcHead->masPhis.Get(uiPhi)->sResult;
-					if (psMul->asArguments[0].Equals(sCounter) || psMul->asArguments[1].Equals(sCounter))
+					sCounter = psMul->asArguments[iArgument];
+					sFactor = psMul->asArguments[1 - iArgument];
+					if (sCounter.IsTemporary() && mcDefinitions.Block(sCounter) && mcLoops.Contains(uiLoop, mcDefinitions.Block(sCounter)) &&
+						mcLoops.IsInvariant(uiLoop, sFactor, &mcDefinitions))
 					{
-						psCounter = pcHead->masPhis.Get(uiPhi);
+						break;
 					}
 				}
-				if ((psCounter == NULL) || (psCounter->asArguments.NumElements() != 2) || !psCounter->sType.Equals(psMul->sType))
-				{
-					continue;
-				}
-				sFactor = psMul->asArguments[0].Equals(sCounter) ? psMul->asArguments[1] : psMul->asArguments[0];
-				if (sFactor.Equals(sCounter) || !mcLoops.IsInvariant(uiLoop, sFactor, &mcDefinitions))
-				{
-					continue;
-				}
-				uiOutside = mcLoops.Contains(uiLoop, psCounter->asArguments.Get(0)->pcBlock) ? 1 : 0;
-				if (mcLoops.Contains(uiLoop, psCounter->asArguments.Get(uiOutside)->pcBlock) || (psCounter->asArguments.Get(1 - uiOutside)->pcBlock != pcLatch))
-				{
-					continue;
-				}
-				sStepped = psCounter->asArguments.Get(1 - uiOutside)->sValue;
-				psStep = mcDefinitions.Instruction(sStepped);
-				if ((psStep == NULL) || (psStep->uiOpcode != IRO_Add) || !psStep->asArguments[0].Equals(sCounter) || !psStep->asArguments[1].IsConstant())
+				if (iArgument == 2)
 				{
 					continue;
 				}
 
-				//The new phi: i0 * w in the preheader, + w * c on the way round.
-				lliStep = mpcFunction->GetSigned(psStep->asArguments[1]);
-				sType = psMul->sType;
-				sResult = psMul->sResult;
+				//The web: phis and adds of a constant in the loop, reaching values from before it.
+				asValues[0] = sCounter;
+				uiValues = 1;
+				bWeb = true;
+				for (ui = 0; bWeb && (ui < uiValues); ui++)
+				{
+					sValue = asValues[ui];
+					pcValue = sValue.IsTemporary() ? mcDefinitions.Block(sValue) : NULL;
+					if ((pcValue == NULL) || !mcLoops.Contains(uiLoop, pcValue))
+					{
+						//From before the loop: its product is worked out in the preheader.
+						continue;
+					}
+					psPhi = mcDefinitions.Phi(sValue);
+					psAdd = mcDefinitions.Instruction(sValue);
+					if (psPhi)
+					{
+						for (uiArgument = 0; bWeb && (uiArgument < psPhi->asArguments.NumElements()); uiArgument++)
+						{
+							bWeb = IROptimiserAddToWeb(asValues, &uiValues, psPhi->asArguments.Get(uiArgument)->sValue, sType, mpcFunction);
+						}
+					}
+					else if (psAdd && (psAdd->uiOpcode == IRO_Add) && psAdd->asArguments[1].IsConstant() && psAdd->sType.Equals(sType))
+					{
+						bWeb = IROptimiserAddToWeb(asValues, &uiValues, psAdd->asArguments[0], sType, mpcFunction);
+					}
+					else
+					{
+						bWeb = false;
+					}
+				}
+				if (!bWeb)
+				{
+					continue;
+				}
+
+				//A product for each value: made first (phis' arguments may come later), then filled in.
 				pcPreheader = mcLoops.GetLoop(uiLoop)->pcPreheader;
 				if (pcPreheader == NULL)
 				{
 					pcPreheader = AddPreheader(uiLoop);
+					FindDefinitions();
 				}
-				sInitial = psCounter->asArguments.Get(0)->pcBlock == pcPreheader ? psCounter->asArguments.Get(0)->sValue : psCounter->asArguments.Get(1)->sValue;
-				sInitial = mpcFunction->Add(pcPreheader, IRO_Mul, sType, sInitial, sFactor);
-				sStep = (lliStep == 1) ? sFactor : mpcFunction->Add(pcPreheader, IRO_Mul, sType, sFactor, mpcFunction->AddInteger(sType, lliStep));
-				sProduct = mpcFunction->AddTemporary(sType);
-				psProduct = pcHead->AddPhi(sType, sProduct);
-				sStepped = mpcFunction->Add(pcLatch, IRO_Add, sType, sProduct, sStep);
-				pcHead->AddPhiArgument(psProduct, pcPreheader, sInitial);
-				pcHead->AddPhiArgument(psProduct, pcLatch, sStepped);
+				for (ui = 0; ui < uiValues; ui++)
+				{
+					pcValue = asValues[ui].IsTemporary() ? mcDefinitions.Block(asValues[ui]) : NULL;
+					if ((pcValue == NULL) || !mcLoops.Contains(uiLoop, pcValue))
+					{
+						asProducts[ui] = mpcFunction->Add(pcPreheader, IRO_Mul, sType, asValues[ui], sFactor);
+					}
+					else
+					{
+						asProducts[ui] = mpcFunction->AddTemporary(sType);
+					}
+				}
+				for (ui = 0; ui < uiValues; ui++)
+				{
+					pcValue = asValues[ui].IsTemporary() ? mcDefinitions.Block(asValues[ui]) : NULL;
+					if ((pcValue == NULL) || !mcLoops.Contains(uiLoop, pcValue))
+					{
+						continue;
+					}
+					if (mcDefinitions.Phi(asValues[ui]))
+					{
+						//The block's phis move when one is added: found again by their results.
+						pcValue->AddPhi(sType, asProducts[ui]);
+						psProductPhi = IROptimiserFindPhi(pcValue, asProducts[ui]);
+						psPhi = IROptimiserFindPhi(pcValue, asValues[ui]);
+						for (uiArgument = 0; uiArgument < psPhi->asArguments.NumElements(); uiArgument++)
+						{
+							sValue = psPhi->asArguments.Get(uiArgument)->sValue;
+							for (uj = 0; !asValues[uj].Equals(sValue); uj++)
+							{
+							}
+							pcValue->AddPhiArgument(psProductPhi, psPhi->asArguments.Get(uiArgument)->pcBlock, asProducts[uj]);
+						}
+						FindDefinitions();
+					}
+					else
+					{
+						//p + w * c just after v + c.
+						psAdd = mcDefinitions.Instruction(asValues[ui]);
+						for (uj = 0; !asValues[uj].Equals(psAdd->asArguments[0]); uj++)
+						{
+						}
+						sProduct = (mpcFunction->GetSigned(psAdd->asArguments[1]) == 1) ? sFactor :
+							mpcFunction->Add(pcPreheader, IRO_Mul, sType, sFactor, psAdd->asArguments[1]);
+						memset(&sNew, 0, sizeof(SIRInstruction));
+						sNew.uiOpcode = IRO_Add;
+						sNew.sType = sType;
+						sNew.sResult = asProducts[ui];
+						sNew.asArguments[0] = asProducts[uj];
+						sNew.asArguments[1] = sProduct;
+						iIndex = mcDefinitions.Index(asValues[ui]);
+						pcValue->masInstructions.InsertAt(&sNew, (size)iIndex + 1);
+						FindDefinitions();
+					}
+				}
 				ClearReplacements();
-				Replace(sResult, sProduct);
+				Replace(psMul->sResult, asProducts[0]);
 				ApplyReplacements();
 				FindDefinitions();
 				return true;
