@@ -342,6 +342,10 @@ void CCPP65Generator::AppendStartUpEntry(const char* szTable, CChars* pszLabel, 
 	szOptions.Init(", associated data.");
 	szOptions.Append(pszData);
 	AppendSection(&mszData, szTable, pszLabel, szOptions.Text());
+
+	//Aligned, so an entry never crosses the end of a W65C816 bank (the linker would move it on, leaving a gap the start
+	//up would read as an entry).
+	mszData.Append("\t\t.align 4\n");
 	mszData.Append("\t\t.long ");
 	mszData.Append(pszLabel);
 	mszData.AppendNewLine();

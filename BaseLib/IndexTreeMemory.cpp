@@ -1222,11 +1222,11 @@ size CIndexTreeMemory::GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, siz
 		pvData = pcNode->GetDataPtr();
 		if (iDataSize > iDestDataSize)
 		{
-			memcpy_fast(pvDestData, pvData, iDestDataSize);
+			memcpy(pvDestData, pvData, iDestDataSize);
 		}
 		else
 		{
-			memcpy_fast(pvDestData, pvData, iDataSize);
+			memcpy(pvDestData, pvData, iDataSize);
 		}
 		return iDataSize;
 	}

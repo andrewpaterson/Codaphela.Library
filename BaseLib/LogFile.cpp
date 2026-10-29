@@ -24,7 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FileBasic.h"
 #include "FileUtil.h"
 #include "PointerRemapper.h"
-#include "FastFunctions.h"
+#include <string.h>
 #include "DiskFile.h"
 #include "ConstructorCall.h"
 #include "LogFile.h"
@@ -647,7 +647,7 @@ bool CLogFile::ExtendLastWrite(CArrayIntAndPointer* papvOverlapping, const void*
 	}
 
 	pvDest = RemapSinglePointer(psWrite->GetData(), (ptrdiff)(iPosition - psWrite->iPosition));
-	memcpy_fast(pvDest, (void*)pvSource, iLength);
+	memcpy(pvDest, (void*)pvSource, iLength);
 	psWrite->iSize = uiNewSize;
 	return true;
 }
@@ -709,11 +709,11 @@ bool CLogFile::AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping,
 		psWrite = (CLogFileCommandWrite*)macCommands.Get(iIndex);
 		pvDest = RemapSinglePointer(pvData, (ptrdiff)(psWrite->iPosition - iStart));
 		pvNewSource = RemapSinglePointer(psWrite, sizeof(CLogFileCommandWrite));
-		memcpy_fast(pvDest, pvNewSource, psWrite->iSize);
+		memcpy(pvDest, pvNewSource, psWrite->iSize);
 	}
 
 	pvDest = RemapSinglePointer(pvData, (ptrdiff)(iPosition - iStart));
-	memcpy_fast(pvDest, (void*)pvSource, iLength);
+	memcpy(pvDest, (void*)pvSource, iLength);
 
 	//Remove all the old overlapping chunks.
 	i = papvOverlapping->NumElements();
@@ -924,7 +924,7 @@ void CLogFile::CopyWritesToRead(CArrayIntAndPointer* papvOverlapping, size iByte
 		pvSource = RemapSinglePointer(pvData, (ptrdiff)iSourceOffset);
 		pvNewDest = RemapSinglePointer(pvDest, (ptrdiff)iDestOffset);
 
-		memcpy_fast(pvNewDest, pvSource, iLength);
+		memcpy(pvNewDest, pvSource, iLength);
 	}
 }
 

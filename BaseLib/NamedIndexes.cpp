@@ -397,7 +397,7 @@ size CNamedIndexes::IndexTreeDataSize(size uiSourceSize)
 //////////////////////////////////////////////////////////////////////////
 bool CNamedIndexes::IndexTreeWriteData(void* pvDataBuffer, void* pvSource, size iFileDataSize, size uiSourceDataSize)
 {
-	memcpy_fast(pvDataBuffer, pvSource, iFileDataSize);
+	memcpy(pvDataBuffer, pvSource, iFileDataSize);
 	return true;
 }
 
@@ -408,8 +408,8 @@ bool CNamedIndexes::IndexTreeWriteData(void* pvDataBuffer, void* pvSource, size 
 //////////////////////////////////////////////////////////////////////////
 bool CNamedIndexes::IndexTreeReadData(void* pvDest, void* pvDataBuffer, size uiDestDataSize, size iFileDataSize)
 {
-	memset_fast(pvDest, 0, uiDestDataSize);
-	memcpy_fast(pvDest, pvDataBuffer, iFileDataSize);
+	memset(pvDest, 0, uiDestDataSize);
+	memcpy(pvDest, pvDataBuffer, iFileDataSize);
 	return true;
 }
 

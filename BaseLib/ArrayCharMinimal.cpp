@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "ArrayCharMinimal.h"
 #include "PointerRemapper.h"
-#include "FastFunctions.h"
+#include <string.h>
 
 
 //////////////////////////////////////////////////////////////////////////

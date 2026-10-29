@@ -1485,7 +1485,7 @@ void CArrayBlock::InsertBatch(size iFirstElementPos, size iNumInBatch, int32 iNu
 			do
 			{
 				i--;
-				memcpy_fast_1byte(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+				memcpy(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), 1);
 			}
 			while (i != 0);
 		}
@@ -1498,7 +1498,7 @@ void CArrayBlock::InsertBatch(size iFirstElementPos, size iNumInBatch, int32 iNu
 			do
 			{
 				i--;
-				memcpy_fast_2bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+				memcpy(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), 2);
 			}
 			while (i != 0);
 		}
@@ -1511,7 +1511,7 @@ void CArrayBlock::InsertBatch(size iFirstElementPos, size iNumInBatch, int32 iNu
 			do
 			{
 				i--;
-				memcpy_fast_4bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+				memcpy(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), 4);
 			}
 			while (i != 0);
 		}
@@ -1524,7 +1524,7 @@ void CArrayBlock::InsertBatch(size iFirstElementPos, size iNumInBatch, int32 iNu
 			do
 			{
 				i--;
-				memcpy_fast_backwards_8bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+				memmove(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), 8);
 			}
 			while (i != 0);
 		}
@@ -1537,7 +1537,7 @@ void CArrayBlock::InsertBatch(size iFirstElementPos, size iNumInBatch, int32 iNu
 			do
 			{
 				i--;
-				memcpy_fast_backwards_12bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+				memmove(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), 12);
 			}
 			while (i != 0);
 		}

@@ -22,7 +22,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "PointerRemapper.h"
 #include "FileUtil.h"
-#include "FastFunctions.h"
 #include "PointerFunctions.h"
 #include "Logger.h"
 #include "IndexedData.h"

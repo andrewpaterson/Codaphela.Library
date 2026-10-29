@@ -25,7 +25,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FileBasic.h"
 #include "FileUtil.h"
 #include "PointerRemapper.h"
-#include "FastFunctions.h"
 #include "DiskFile.h"
 #include "ConstructorCall.h"
 #include "DurableFile.h"

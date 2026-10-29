@@ -1,4 +1,4 @@
-#include "FastMemcpy.h"
+#include <string.h>
 #include "IndexTreeFileDefaultDataCallback.h"
 
 
@@ -23,7 +23,7 @@ bool CIndexTreeFileDefaultDataCallback::IndexTreeWriteData(void* pvDataBuffer, v
 {
 	if (iFileDataSize == uiSourceDataSize)
 	{
-		memcpy_fast(pvDataBuffer, pvSource, uiSourceDataSize);
+		memcpy(pvDataBuffer, pvSource, uiSourceDataSize);
 		return true;
 	}
 	else
@@ -41,7 +41,7 @@ bool CIndexTreeFileDefaultDataCallback::IndexTreeReadData(void* pvDest, void* pv
 {
 	if (uiDestDataSize == iFileDataSize)
 	{
-		memcpy_fast(pvDest, pvDataBuffer, uiDestDataSize);
+		memcpy(pvDest, pvDataBuffer, uiDestDataSize);
 		return true;
 	}
 	else

@@ -38,7 +38,7 @@ size CTextUTF16Multi::CharByteLength(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextUTF16Multi::Copy(void* pviData)
 {
-	memcpy_fast(GetChar(), pviData, muiNumChars);
+	memcpy(GetChar(), pviData, muiNumChars);
 }
 
 

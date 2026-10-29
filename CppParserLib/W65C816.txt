@@ -267,7 +267,7 @@ Each step ends with every 65C64 suite still passing, so the 65C64 doesn't regres
 	- an int passed to ReadInt32/WriteInt32 picks the 16 bit overload: 2 bytes of a 4
 	  byte file field (object readers, dist to root, test classes' Save and Load)
 	- *(int*) and sizeof(int) for 4 byte data (the serialised object's type tag, the
-	  index tree node header, FastMemcpy/Memset/MemcpyBackwards words)
+	  index tree node header, FastMemcpy/Memset/MemcpyBackwards words, since removed)
 	- uint16 and unsigned short promote to unsigned int: u16 - 1 is 65535, not -1
 	  (FatClusterCache's loop never ended), TypeConverter, CalculateOffset, TextParser
 	- uint8 << 16 or more; seeds, counts and sizes cast to int (CRandom::Init and Next,

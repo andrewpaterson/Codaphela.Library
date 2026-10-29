@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <stdlib.h>
 #include "DataMacro.h"
 #include "Define.h"
-#include "FastMemset.h"
+#include <string.h>
 #include "FreeList.h"
 
 

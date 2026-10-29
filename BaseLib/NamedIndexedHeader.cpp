@@ -1,4 +1,4 @@
-#include "FastMemcpy.h"
+#include <string.h>
 #include "StringHelper.h"
 #include "PointerRemapper.h"
 #include "NamedIndexedHeader.h"

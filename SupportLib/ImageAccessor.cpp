@@ -130,7 +130,7 @@ void CImageAccessor::Get(int32 x, int32 y, void* pvDest)
 {
 	void*	pvData;
 	pvData = Get(x, y);
-	memcpy_fast(pvDest, pvData, mpcAccessor->GetBufferSize());
+	memcpy(pvDest, pvData, mpcAccessor->GetBufferSize());
 }
 
 
@@ -192,7 +192,7 @@ bool CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 		{
 			gcTypeConverter.Do(pcAccessor->meAccessType, &sTemp, PT_float32, &fValue);
 
-			ga_memcpy_fast[pcAccessor->miAccessByteSize](pvData, &sTemp);
+			memcpy(pvData, &sTemp, pcAccessor->miAccessByteSize);
 		}
 		else
 		{

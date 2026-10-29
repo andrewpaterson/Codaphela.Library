@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Number.h"
 #include <stdio.h>
 #include "DataTypes.h"
-#include "FastFunctions.h"
+#include <string.h>
 #include "IntegerHelper.h"
 #include "FloatHelper.h"
 #include "NumberControl.h"
@@ -41,7 +41,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CNumber::PrivateInit(void)
 {
-	memset_fast(this, 0, NUMBER_SIZE(DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS));
+	memset(this, 0, NUMBER_SIZE(DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS));
 	mcMaxWholeNumbers = DEFAULT_WHOLE_NUMBERS;
 	mcMaxDecimals = DEFAULT_DECIMALS;
 }
@@ -53,7 +53,7 @@ void CNumber::PrivateInit(void)
 //////////////////////////////////////////////////////////////////////////
 void CNumber::PrivateInit(size cWholeNumbers, size cMaxDecimals)
 {
-	memset_fast(this, 0, NUMBER_SIZE(cWholeNumbers, cMaxDecimals));
+	memset(this, 0, NUMBER_SIZE(cWholeNumbers, cMaxDecimals));
 	mcMaxWholeNumbers = (int16)cWholeNumbers;
 	mcMaxDecimals = (int16)cMaxDecimals;
 }
@@ -364,7 +364,7 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 		SetFlag(NUMBER_FLAGS_UNDERFLOW);
 	}
 
-	memcpy_fast(&mcDigits[mcMaxWholeNumbers-iDecimalPoint], cDigits, iPos);
+	memcpy(&mcDigits[mcMaxWholeNumbers-iDecimalPoint], cDigits, iPos);
 	cStack.Kill();
 	SetFirstNonZerotDigit(iDecimalPoint);
 	SetLastNonZeroDigit(-(iPos-iDecimalPoint));
@@ -387,7 +387,7 @@ CNumber* CNumber::Init(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDeci
 {
 	if ((cMaxWholeNumbers + cMaxDecimals) == (pcNumber->mcMaxWholeNumbers + pcNumber->mcMaxDecimals))
 	{
-		memcpy_fast(this, pcNumber, NUMBER_SIZE(cMaxWholeNumbers, cMaxDecimals));
+		memcpy(this, pcNumber, NUMBER_SIZE(cMaxWholeNumbers, cMaxDecimals));
 		return this;
 	}
 	else
@@ -400,7 +400,7 @@ CNumber* CNumber::Init(CNumber* pcNumber)
 {
 	if (DEFAULT_DIGITS == (pcNumber->mcMaxWholeNumbers + pcNumber->mcMaxDecimals))
 	{
-		memcpy_fast_52bytes(this, pcNumber);
+		memcpy(this, pcNumber, 52);
 		return this;
 	}
 	else
@@ -1147,7 +1147,7 @@ void CNumber::PrivateZeroDigits(int16 iFirst, int16 iLast)
 
 	pcStart = DigitToArray(iFirst);
 	iLength = GetDigitsBetween(iFirst, iLast);
-	memset_fast(pcStart, (uint8)0, iLength);
+	memset(pcStart, (uint8)0, iLength);
 }
 
 
@@ -1164,7 +1164,7 @@ void CNumber::PrivateZeroEnds(void)
 	if (iFirst <= mcMaxWholeNumbers)
 	{
 		//The highest whole number digit is the start of mcDigits.
-		memset_fast(mcDigits, (uint8)0, GetDigitsBetween(mcMaxWholeNumbers, iFirst));
+		memset(mcDigits, (uint8)0, GetDigitsBetween(mcMaxWholeNumbers, iFirst));
 	}
 
 	iLast = GetLastNonZeroDigit();
@@ -1320,7 +1320,7 @@ CNumber* CNumber::Shift(int16 iOffset)
 	pcOld = DigitToArray(iStart);
 	pcNew = DigitToArray(iFirst);
 
-	memmove_fast(pcNew, pcOld, (int)iLength);
+	memmove(pcNew, pcOld, (int)iLength);
 	SetFirstNonZerotDigit(iFirst);
 	SetLastNonZeroDigit(iLast);
 
@@ -1329,11 +1329,11 @@ CNumber* CNumber::Shift(int16 iOffset)
 		iLast = OffsetDigit(iLast, -1);
 
 		pcNew = DigitToArray(iLast);
-		memset_fast(pcNew, (uint8)0, iOffset);
+		memset(pcNew, (uint8)0, iOffset);
 	}
 	else
 	{
-		memset_fast(pcOld, (uint8)0, -iOffset);
+		memset(pcOld, (uint8)0, -iOffset);
 	}
 	return this;
 }
@@ -2679,7 +2679,7 @@ void CNumber::PrivateCopy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxD
 	}
 
 	iLength = GetDigitsBetween(iOtherFirst, iOtherLast);
-	memcpy_fast(DigitToArray(iOtherFirst), pcNumber->DigitToArray(iOtherFirst), iLength);
+	memcpy(DigitToArray(iOtherFirst), pcNumber->DigitToArray(iOtherFirst), iLength);
 
 	SetFirstNonZerotDigit(iOtherFirst);
 	SetLastNonZeroDigit(iOtherLast);

@@ -21,7 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/FastFunctions.h"
+#include <string.h>
 #include "ImageAccessorCreator.h"
 #include "ImageColour.h"
 #include "ImageCelMask.h"
@@ -51,7 +51,7 @@ void CImageDivider::Init(Ptr<CImage> pImage, SImageColour* psTransparentColour, 
 		pcAccessor->Kill();
 
 		msTransparentColour.Zero();
-		memcpy_fast(&msTransparentColour, psTransparentColour, iDataSize);
+		memcpy(&msTransparentColour, psTransparentColour, iDataSize);
 		mbUseTransparentColour = true;
 	}
 	else

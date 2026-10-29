@@ -117,7 +117,7 @@ void CArrayBit::GrowBy(size iNumBits)
 	if ((uiOldByteSize <= uiTransitionSize) && (uiNewByteSize > uiTransitionSize))
 	{
 		pvData = Malloc(uiNewByteSize);
-		memcpy_fast(pvData, GetData(), uiOldByteSize);
+		memcpy(pvData, GetData(), uiOldByteSize);
         u.aLarge.mpvData = pvData;
 		miNumBits += iNumBits;
 		return;

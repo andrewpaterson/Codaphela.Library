@@ -21,7 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/FastFunctions.h"
+#include <string.h>
 #include "ImageColour.h"
 
 
@@ -137,7 +137,7 @@ bool SImageColour::IsZero(size iDataSize)
 //////////////////////////////////////////////////////////////////////////
 bool SImageColour::Equals(SImageColour* psColour, size iDataSize)
 {
-	return ga_memcmp_fast[iDataSize](this, psColour) == 0;
+	return memcmp(this, psColour, iDataSize) == 0;
 }
 
 
@@ -148,7 +148,7 @@ bool SImageColour::Equals(SImageColour* psColour, size iDataSize)
 //////////////////////////////////////////////////////////////////////////
 bool SImageColour::Equals(void* pvColour, size iDataSize)
 {
-	return ga_memcmp_fast[iDataSize](this, pvColour) == 0;
+	return memcmp(this, pvColour, iDataSize) == 0;
 }
 
 
