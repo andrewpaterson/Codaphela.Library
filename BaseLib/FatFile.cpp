@@ -48,7 +48,7 @@ EFatCode FindBackslash(const char* szFilename, const char** ppcFilenameScanner)
 	size		iPathLength;
 	const char*	pcFilenameScanner;
 
-	iPathLength = strlen(szFilename);
+	iPathLength = StrLen(szFilename);
 
 	pcFilenameScanner = szFilename + (iPathLength - 1);
 

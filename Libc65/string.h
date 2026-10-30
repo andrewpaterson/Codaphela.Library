@@ -29,6 +29,7 @@ void*	memcpy16(void* pvDest, const void* pvSource, unsigned short uiBytes);
 void*	memmove16(void* pvDest, const void* pvSource, unsigned short uiBytes);
 void*	memset16(void* pvDest, int iValue, unsigned short uiBytes);
 int		memcmp16(const void* pv1, const void* pv2, unsigned short uiBytes);
+unsigned short	strlen16(const char* sz);  //65535 when sz is that long or longer.
 #endif // __W65C816__
 }
 

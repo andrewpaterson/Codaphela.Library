@@ -1,4 +1,4 @@
-; memcpy, memmove, memset and memcmp with 16 bit counts for the W65C816, and BaseLib's MemSwp16
+; memcpy, memmove, memset, memcmp and strlen with 16 bit counts for the W65C816, and BaseLib's MemSwp16
 ; (MemSwp with a size length): what BaseLib's natural arrays (counted with size, so at most
 ; 65535 bytes) call through ARRAY_MEMCPY and the like (ArraySizeNatural.inl).  string816.asm
 ; has the C library's, with size_t (32 bit) counts.  The count is pushed as 2 bytes and kept
@@ -498,5 +498,35 @@ MemSwpOdd:
 		rep m
 MemSwpDone:
 		.width (A, X), 16
+		pld
+		rtl
+
+
+		.section text.Strlen816_16
+		.global _strlen16
+
+; unsigned short strlen16(const char* sz): sz's length, counted in Y (a word), or 65535 (MAX_SIZE)
+; when there is no zero in its first 65535 bytes: what BaseLib's StrLen (natural strings) uses.
+; D points at the stack: sz is at D + 6.
+_strlen16:
+		.width (A, X), 16
+		phd
+		tsc
+		tcd
+		sep m
+		ldy 0
+Strlen16Char:
+		.width A, 8
+		.width X, 16
+		lda [[D + 6]:24 + Y]
+		beq Strlen16Done
+		iny
+		cpy 65535
+		bne Strlen16Char
+Strlen16Done:
+		.width A, 8
+		.width X, 16
+		rep m
+		tya
 		pld
 		rtl

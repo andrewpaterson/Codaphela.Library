@@ -202,6 +202,7 @@ protected:
 	void	CleanIfEmpty(void);
 	void	InitEmpty(void);
 	bool	IsFakeEmpty(void);
+	ASIZE	CStringLength(const char* szString);
 	void	Unfake(void);
 	void	UnfakeIfFakeEmpty(void);
 };

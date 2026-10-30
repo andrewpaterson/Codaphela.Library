@@ -13,7 +13,7 @@ void HexJustify(char* sz, size uiWantedLength, char cPad)
 	size	uiShift;
 	char*	szDest;
 
-	uiLen = strlen(sz);
+	uiLen = StrLen(sz);
 	uiShift = uiWantedLength - uiLen;
 
 	if (uiShift > 0)

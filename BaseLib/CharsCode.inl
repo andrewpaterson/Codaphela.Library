@@ -335,7 +335,7 @@ void CHARS::Fake(const char* szString)
 {
 	if (szString)
 	{
-		mcText.Fake((char*)szString, strlen(szString) + 1);
+		mcText.Fake((char*)szString, CStringLength(szString) + 1);
 	}
 	else
 	{
@@ -372,6 +372,31 @@ CHARS* CHARS::ReInit(void)
 {
 	Kill();
 	return Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szString's length if it fits (ARRAY_SIZE_MAX - 1 characters and the zero).
+// A longer one is an overflow (ARRAY_CHECK_SIZE): reported in debug, and
+// treated as empty rather than cut short.
+//
+//////////////////////////////////////////////////////////////////////////
+ASIZE CHARS::CStringLength(const char* szString)
+{
+	lsize	uiLength;
+
+	uiLength = strlen(szString);
+#ifdef ARRAY_CHECK_SIZE
+	if (uiLength >= ARRAY_SIZE_MAX)
+	{
+#ifdef _DEBUG
+		gcUserError.Set("A string counted with size can't hold a C string of MAX_SIZE characters or more.  Use CLargeChars.");
+#endif // _DEBUG
+		return 0;
+	}
+#endif // ARRAY_CHECK_SIZE
+	return (ASIZE)uiLength;
 }
 
 
@@ -440,7 +465,7 @@ void CHARS::Set(const char* szString)
 
 	if (!StrEmpty(szString))
 	{
-		uiLen = (strlen(szString)) + 1;
+		uiLen = (CStringLength(szString)) + 1;
 		SetNonNull(szString, uiLen);
 	}
 	else
@@ -507,7 +532,7 @@ CHARS* CHARS::Append(const char* szString)
 
 	if (!StrEmpty(szString))
 	{
-		uiLen = strlen(szString);
+		uiLen = CStringLength(szString);
 		pcPosition = PrivateGrow(uiLen);
 		ARRAY_MEMCPY(pcPosition, szString, uiLen);
 		pcPosition[uiLen] = '\0';
@@ -982,7 +1007,7 @@ void CHARS::Insert(ASIZE iPos, const char* szString)
 	}
 
 	UnfakeIfFakeEmpty();
-	uiInsertLen = strlen(szString);
+	uiInsertLen = CStringLength(szString);
 	pcNew = mcText.InsertNumAt(uiInsertLen, iPos);
 	if (pcNew)
 	{
@@ -1165,10 +1190,10 @@ void CHARS::LeftAlign(const char* szString, char cPadCharacter, ASIZE uiWidth)
 {
 	ASIZE	uiLen;
 
-	uiLen = strlen(szString);
+	uiLen = CStringLength(szString);
 	if (uiLen != 0)
 	{
-		uiLen = strlen(szString);
+		uiLen = CStringLength(szString);
 		if (uiLen <= uiWidth)
 		{
 			Append(szString);
@@ -1190,7 +1215,7 @@ void CHARS::RightAlign(const char* szString, char cPadCharacter, ASIZE uiWidth)
 {
 	ASIZE	uiLen;
 
-	uiLen = strlen(szString);
+	uiLen = CStringLength(szString);
 	if (uiLen != 0)
 	{
 		if (uiLen <= uiWidth)
@@ -1647,7 +1672,7 @@ ASIZE CHARS::Occurrences(const char* szString)
 	ASIZE	iIndex;
 	ASIZE	iFindLen;
 
-	iFindLen = strlen(szString);
+	iFindLen = CStringLength(szString);
 	if (iFindLen == 0)
 	{
 		return 0;
@@ -1736,7 +1761,7 @@ bool CHARS::EndsWith(const char* szString)
 		return false;
 	}
 
-	uiLen = strlen(szString);
+	uiLen = CStringLength(szString);
 	if (uiLen > Length())
 	{ 
 		return false;
@@ -1779,13 +1804,13 @@ bool CHARS::EndsWithIgnoreCase(const char* szString)
 		return false;
 	}
 
-	uiLen = strlen(szString);
+	uiLen = CStringLength(szString);
 	if (uiLen > Length())
 	{
 		return false;
 	}
 
-	return SubStringEqualsIgnoreCase(Length() - strlen(szString), szString);
+	return SubStringEqualsIgnoreCase(Length() - CStringLength(szString), szString);
 }
 
 
@@ -1805,7 +1830,7 @@ bool CHARS::SubStringEquals(ASIZE iStart, const char* szString)
 	uiLen = Length();
 	if (uiLen == 0)
 	{
-		iSubLen = strlen(szString);
+		iSubLen = CStringLength(szString);
 		if (iSubLen != 0)
 		{
 			return false;
@@ -1882,7 +1907,7 @@ ASIZE CHARS::FindFromEnd(const char* szString)
 {
 	ASIZE iOtherLen;
 
-	iOtherLen = strlen(szString);
+	iOtherLen = CStringLength(szString);
 	return FindFromEnd(Length() - iOtherLen, szString);
 }
 
@@ -1938,6 +1963,18 @@ ASIZE CHARS::FindFromEnd(ASIZE iIndex, char c)
 {
 	ASIZE	i;
 	char*	szText;
+	ASIZE	uiLength;
+
+	//An index past the end starts at the last character.
+	uiLength = Length();
+	if (uiLength == 0)
+	{
+		return ARRAY_NOT_FOUND;
+	}
+	if (iIndex >= uiLength)
+	{
+		iIndex = uiLength - 1;
+	}
 
 	szText = Text();
 	i = iIndex + 1;
@@ -1981,7 +2018,7 @@ ASIZE CHARS::Find(ASIZE iIndex, const char* szString)
 		return ARRAY_NOT_FOUND;
 	}
 
-	iOtherLen = strlen(szString);
+	iOtherLen = CStringLength(szString);
 	if (iOtherLen > uiLen - iIndex)
 	{
 		return ARRAY_NOT_FOUND;
@@ -2327,7 +2364,7 @@ ASIZE CHARS::Replace(const char* szFind, const char* szReplace)
 		return 0;
 	}
 
-	iFindLen = strlen(szFind);
+	iFindLen = CStringLength(szFind);
 	if (iFindLen == 0)
 	{
 		return 0;
@@ -2339,7 +2376,7 @@ ASIZE CHARS::Replace(const char* szFind, const char* szReplace)
 	}
 	else
 	{
-		iReplaceLen = strlen(szReplace);
+		iReplaceLen = CStringLength(szReplace);
 	}
 
 	if (iReplaceLen > iFindLen)

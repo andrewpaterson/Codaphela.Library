@@ -25,7 +25,7 @@ along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 
 bool PrivateAssertFile(const char* szExpectedFilename, const char* szActualFilename, const char* szPrefix, size iLine, const char* szFile);
 bool PrivateAssertFile(CChars szExpectedFilename, CChars szActualFilename, const char* szPrefix, size iLine, const char* szFile);
-bool PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, size iLength, const char* szPrefix, size iLine, const char* szFile);
+bool PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, lsize iLength, const char* szPrefix, size iLine, const char* szFile);
 bool PrivateAssertFileString(const char* szExpectedFilename, const char* szString, const char* szPrefix, size iLine, const char* szFile);
 
 bool PrivateAssertDirectory(char* szExpectedDirectoryName, char* szActualDirectoryName, char* szPrefix, size iLine, char* szFile);

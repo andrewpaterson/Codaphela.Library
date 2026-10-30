@@ -50,7 +50,7 @@ char		ToLower(char c);
 char		ToUpper(char c);
 size		StrPrintable(const char* szString);
 size		StrPrintable(const char* szString, size iLength);
-size		StrLen(const char* szString);
+size		StrLen(const char* szString);  //A natural length: MAX_SIZE when szString is that long or longer.  strlen is an lsize.
 size		StrLen(const char* szString, const char* szLastCharInclusive);
 bool		StrEmpty(const char* szString);
 char*		NullToEmpty(const char* szString);

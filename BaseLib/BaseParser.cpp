@@ -26,7 +26,7 @@ void CBaseParser::Init(const char* szText, const char* szFileName, CLogger* pcLo
 {
 	size	uiLength;
 
-	uiLength = strlen(szText);
+	uiLength = StrLen(szText);
 
 	Init(szText, uiLength, szFileName, pcLogger, pfSkipWhitespace, pfParseString, pfParseExactIdentifier, pfParseIdentifier);
 	mpcCurrent = NULL;

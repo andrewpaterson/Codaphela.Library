@@ -81,7 +81,7 @@ void CIndexTreeFileDiagnosticLoggingCallback::Log(const char* szOperation, void*
 {
 	szLog.Append(szOperation);
 	szLog.Append(":");
-	szLog.Append(' ' , 7 - strlen(szOperation));
+	szLog.Append(' ' , 7 - StrLen(szOperation));
 	szLog.AppendData2((char*)pvKey, iKeySize);
 	szLog.Append(" [");
 	szLog.Append(iDataSize);

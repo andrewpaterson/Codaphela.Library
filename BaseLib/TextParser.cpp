@@ -39,7 +39,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 bool CTextParser::Init(const char* szText)
 {
-	return Init(szText, strlen(szText));
+	return Init(szText, StrLen(szText));
 }
 
 
@@ -83,7 +83,7 @@ bool CTextParser::Init(const char* szText, size iTextLen)
 //////////////////////////////////////////////////////////////////////////
 bool CTextParser::Init(const char* szText, STextParserConfig* psConfig)
 {
-	return Init(szText, strlen(szText), psConfig);
+	return Init(szText, StrLen(szText), psConfig);
 }
 
 
@@ -425,7 +425,7 @@ TRISTATE CTextParser::GetEnumeratedCharacter(char* szCharacters, char* c, bool b
 		SkipWhitespace();
 	}
 
-	iNumCharacters = strlen(szCharacters);
+	iNumCharacters = StrLen(szCharacters);
 	for (i = 0; i < iNumCharacters; i++)
 	{
 		cCurrent = szCharacters[i];

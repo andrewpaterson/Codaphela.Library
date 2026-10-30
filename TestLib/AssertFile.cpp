@@ -73,7 +73,7 @@ bool PrivateAssertFile(CChars szExpectedFilename, CChars szActualFilename, const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, size iLength, const char* szPrefix, size iLine, const char* szFile)
+bool PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, lsize iLength, const char* szPrefix, size iLine, const char* szFile)
 {
 	CFileCompare	cCompare;
 	bool			bResult;
@@ -106,7 +106,7 @@ bool PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, siz
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertFileString(const char* szExpectedFilename, const char* szString, const char* szPrefix, size iLine, const char* szFile)
 {
-	size iLength;
+	lsize iLength;
 
 	iLength = strlen(szString);
 	return PrivateAssertFileMemory(szExpectedFilename, (void*)szString, iLength, szPrefix, iLine, szFile);

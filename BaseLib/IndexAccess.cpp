@@ -563,7 +563,7 @@ bool CIndexAccess::GetStringData(const char* pszKey, void* pvData, size* piDataS
 		return false;
 	}
 
-	iKeySize = strlen(pszKey);
+	iKeySize = StrLen(pszKey);
 
 	return Get((uint8*)pszKey, iKeySize, pvData, piDataSize, uiMaxDataSize);
 }
@@ -584,7 +584,7 @@ void* CIndexAccess::GetStringPtr(const char* pszKey)
 		return NULL;
 	}
 
-	iKeySize = strlen(pszKey);
+	iKeySize = StrLen(pszKey);
 	bResult = Get((uint8*)pszKey, iKeySize, &pv, NULL, sizeof(void*));
 	if (bResult)
 	{
@@ -685,7 +685,7 @@ CChars CIndexAccess::GetStringString(const char* pszKey, size uiMaxDataSize)
 		return sz;
 	}
 
-	iKeySize = strlen(pszKey);
+	iKeySize = StrLen(pszKey);
 
 	uiDataSize = DataSize((uint8*)pszKey, iKeySize);
 	if (uiDataSize != 0)

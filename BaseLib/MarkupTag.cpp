@@ -674,7 +674,7 @@ CMarkupNamedRef* CMarkupTag::AppendNamedReference(char* szIdentifier)
 //////////////////////////////////////////////////////////////////////////
 char* CMarkupTag::MallocString(char* szSource)
 {
-	size			uiLength;
+	lsize			uiLength;
 	char*			szAllocatedString;
 	CMallocator*	pcMalloc;
 

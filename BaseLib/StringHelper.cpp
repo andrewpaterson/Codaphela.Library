@@ -615,7 +615,7 @@ char* StrRev(char* szString)
 {
 	size iLength;
 
-	iLength = strlen(szString);
+	iLength = StrLen(szString);
 	return StrRev(szString, iLength);
 }
 
@@ -626,10 +626,10 @@ char* StrRev(char* szString)
 ////////////////////////////////////////////////////////////////////////////////////
 char* StrIStr(char* ps1, const char* ps2)
 {
-	size iS1Len;
-	size iS2Len;
-	size iSearchCount;
-	size i;
+	lsize iS1Len;
+	lsize iS2Len;
+	lsize iSearchCount;
+	lsize i;
 
     if ((ps1 == NULL) || (ps2 == NULL))
     {
@@ -669,8 +669,8 @@ char* StrIStr(char* ps1, const char* ps2)
 ////////////////////////////////////////////////////////////////////////////////////
 const char* FindChar(const char* szString, char c, bool bReverse)
 {
-	size	iLen;
-	size	i;
+	lsize	iLen;
+	lsize	i;
 
 	if (szString)
 	{
@@ -738,10 +738,10 @@ size FindCharIndex(char chr, const char* str, size index)
 //////////////////////////////////////////////////////////////////////////
 void StrCpySafeStripSurroundingSpaces(char* szDest, char* szSource, size uiMaxLength)
 {
-	size	uiSourceLength;
-	size	uiLeadSpaces;
-	size	uiLastChar;
-	size	i;
+	lsize	uiSourceLength;
+	lsize	uiLeadSpaces;
+	lsize	uiLastChar;
+	lsize	i;
 	char*	szFirstCharOfDest;
 
 	uiLeadSpaces = 0;
@@ -787,7 +787,7 @@ char* StrCpySafe(char* szDest, const char* szSource, size iDestLength, size* piS
 {
 	size iLen;
 
-	iLen = strlen(szSource);
+	iLen = StrLen(szSource);
 	SafeAssign(piSourceLength, iLen);
 
 	if (iDestLength == 0)
@@ -817,7 +817,7 @@ char* StrCatSafe(char* szDest, const char* szSource, size iDestLength, size* piS
 	size	iDestLen;
 	size	iRemaining;
 
-	iLen = strlen(szSource);
+	iLen = StrLen(szSource);
 	SafeAssign(piSourceLength, iLen);
 
 	if (iDestLength == 0)
@@ -851,8 +851,8 @@ char* StrCatSafe(char* szDest, const char* szSource, size iDestLength, size* piS
 //////////////////////////////////////////////////////////////////////////
 char* ToLower(char* szString)
 {
-	size	iLen;
-	size	i;
+	lsize	iLen;
+	lsize	i;
 	char	c;
 
 	if (szString)
@@ -877,8 +877,8 @@ char* ToLower(char* szString)
 //////////////////////////////////////////////////////////////////////////
 char* ToUpper(char* szString)
 {
-	size	iLen;
-	size	i;
+	lsize	iLen;
+	lsize	i;
 	char	c;
 
 	if (szString)
@@ -989,7 +989,14 @@ size StrPrintable(const char* szString, size iLength)
 //////////////////////////////////////////////////////////////////////////
 size StrLen(const char* szString)
 {
-	return strlen(szString);
+#if defined(__W65C816__)
+	return strlen16(szString);
+#else
+	lsize	uiLength;
+
+	uiLength = strlen(szString);
+	return (uiLength >= MAX_SIZE) ? MAX_SIZE : (size)uiLength;
+#endif // __W65C816__
 }
 
 
@@ -1005,11 +1012,11 @@ size StrLen(const char* szString, const char* szLastCharInclusive)
 		{
 			return 0;
 		}
-		return szLastCharInclusive - szString + 1;
+		return (size)(szLastCharInclusive - szString + 1);
 	}
 	else
 	{
-		return strlen(szString);
+		return StrLen(szString);
 	}
 
 }

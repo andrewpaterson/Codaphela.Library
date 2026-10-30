@@ -45,14 +45,14 @@ class CAssertStatistics
 {
 protected:
 
-	size	miTestsRun;
-	size	miTestsPassed;
-	size	miTestsFailed;
+	lsize	miTestsRun;
+	lsize	miTestsPassed;
+	lsize	miTestsFailed;
 	CTimer	mcTestTimer;
 
-	size	miTotalTestsRun;
-	size	miTotalTestsPassed;
-	size	miTotalTestsFailed;
+	lsize	miTotalTestsRun;
+	lsize	miTotalTestsPassed;
+	lsize	miTotalTestsFailed;
 	CTimer	mcTotalTimer;
 
 public:

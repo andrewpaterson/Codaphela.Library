@@ -125,7 +125,7 @@ bool CExternalString::Equals(char* sz)
 {
 	size iLen;
 
-	iLen = strlen(sz);
+	iLen = StrLen(sz);
 	if (iLen == miLen)
 	{
 		if (miLen == 0)

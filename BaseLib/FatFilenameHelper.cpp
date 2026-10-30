@@ -15,7 +15,7 @@ EFatCode GetFatLongNameForEntry(uint16* puiDest, char* szSource)
 	size	i;
 	size	uiLength;
 
-	uiLength = strlen(szSource);
+	uiLength = StrLen(szSource);
 	for (i = 0; i < uiLength; i++)
 	{
 		puiDest[i] = (uint16)szSource[i];
@@ -116,7 +116,7 @@ EFatCode GetFatShortNameForEntry(char* szDest, const char* szSource, bool bLFNDi
 	{
 		bLFN = false;
 
-		uiLength = strlen(szSource);
+		uiLength = StrLen(szSource);
 		uiDotIndex = FindCharIndex('.', szSource, 0);
 
 		if (uiDotIndex == ARRAY_ELEMENT_NOT_FOUND && uiLength > 8)
@@ -225,7 +225,7 @@ EFatCode GetFatShortNameForEntry(char* szDest, const char* szSource, bool bLFNDi
 
 	StrCpySafeStripSurroundingSpaces(szName, (char*)szSource, 12);
 
-	uiLength = strlen(szName);
+	uiLength = StrLen(szName);
 	if (uiLength == 0 || uiLength > 12)
 	{
 		return FAT_INVALID_FILENAME;
@@ -543,7 +543,7 @@ void GenerateShortNameWithSuffix(uint16 uiNameSuffix, uint8* szShortName)
 	size	uiSuffixLength;
 
 	sprintf(szNameSuffix, "~%i", uiNameSuffix);
-	uiSuffixLength = strlen(szNameSuffix);
+	uiSuffixLength = StrLen(szNameSuffix);
 
 	for (i = 0; i < 8 - uiSuffixLength; i++)
 	{

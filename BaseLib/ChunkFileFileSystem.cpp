@@ -371,7 +371,7 @@ char* CChunkFileFileSystem::IterateName(SChunkFilenameIterator* psIter)
 
 		piIndex = psIter->aiIndex.Tail();
 		szName = mpcChunkFile->GetTailChunkNameForIndex(*piIndex);
-		iLength = strlen(szName);
+		iLength = StrLen(szName);
 		psIter->szValue.Kill();
 		psIter->szValue.Init(psIter->szFullName.Text(), 1);
 		psIter->szFullName.RemoveFromEnd(1 + iLength);
@@ -394,7 +394,7 @@ char* CChunkFileFileSystem::IterateName(SChunkFilenameIterator* psIter)
 
 		piIndex = psIter->aiIndex.Tail();
 		szName = mpcChunkFile->GetTailChunkNameForIndex(*piIndex);
-		iLength = strlen(szName);
+		iLength = StrLen(szName);
 		psIter->szFullName.RemoveFromEnd(1 + iLength);
 		(*piIndex)++;
 		return IterateName(psIter);

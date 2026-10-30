@@ -3193,7 +3193,7 @@ EFatCode CFatVolume::CreateDirectory(const char* szDirectory, SFatDirectoryEntry
 	SFatDirectoryEntry	sParentEntry;
 	EFatCode			eResult;
 
-	uiPathLength = strlen(szDirectory);
+	uiPathLength = StrLen(szDirectory);
 
 	szPathScanner = szDirectory + (uiPathLength - 0x1);
 

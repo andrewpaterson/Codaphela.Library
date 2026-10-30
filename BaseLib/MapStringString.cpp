@@ -37,7 +37,7 @@ bool CMapStringString::Put(const char* szKey, const char* szValue)
 		return false;
 	}
 
-	iStrLen = strlen(szValue);
+	iStrLen = StrLen(szValue);
 	bResult = CMapStringBlock::Put(szKey, szValue, iStrLen + 1);
 	return bResult;
 }

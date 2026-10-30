@@ -1056,7 +1056,7 @@ bool CIndexTreeFile::ValidateKey(char* pszKey)
 		return false;
 	}
 
-	iKeySize = strlen(pszKey);
+	iKeySize = StrLen(pszKey);
 	return ValidateKey((uint8*)pszKey, iKeySize);
 }
 
