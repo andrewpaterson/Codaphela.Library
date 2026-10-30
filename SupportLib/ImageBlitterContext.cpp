@@ -25,8 +25,8 @@ void CImageBlitterContext::Init(Ptr<CImage> pSource, Ptr<CImage> pDest)
 	miDestPixelStride = (size)pDest->GetPixelByteStride();
 	miSourceWidth = pSource->GetWidth();
 	miDestWidth = pDest->GetWidth();
-	miSourceRowStride = miSourceWidth * miSourcePixelStride;
-	miDestRowStride = miDestWidth * miDestPixelStride;
+	miSourceRowStride = (lsize)miSourceWidth * miSourcePixelStride;
+	miDestRowStride = (lsize)miDestWidth * miDestPixelStride;
 }
 
 

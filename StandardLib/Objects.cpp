@@ -1804,7 +1804,7 @@ void CObjects::RemapFatHollowEmbeddedObjects(CBaseObject* pcObject, size uiNumEm
 
 	for (i = 1; i < uiNumEmbedded; i++)
 	{
-		pcOldEmbedded = (CEmbeddedObject*)RemapSinglePointer(pcObject, sizeof(CHollowObject) + (sizeof(CHollowEmbeddedObject) * (i - 1)));
+		pcOldEmbedded = (CEmbeddedObject*)RemapSinglePointer(pcObject, sizeof(CHollowObject) + ((lsize)sizeof(CHollowEmbeddedObject) * (i - 1)));
 		pcOldEmbeddedFroms = (CHollowEmbeddedObject*)RemapSinglePointer(pvHollowEmbedded, (lsize)sizeof(CHollowEmbeddedObject) * (i - 1));
 		pcNewEmbedded = pcObject->GetEmbeddedObject(i);
 

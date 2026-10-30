@@ -322,7 +322,7 @@ void BMPPaletteColour(SBMPInfo* psInfo, int iIndex, uint8* puiRGBA)
 //////////////////////////////////////////////////////////////////////////
 bool BMPReadRow(CFileBasic* pcFile, SBMPInfo* psInfo, uint8* puiRGBA)
 {
-	int		x;
+	int32	x;
 	uint8*	puiPixel;
 	uint8	uiByte;
 	uint8	auiBGR[3];
@@ -404,9 +404,9 @@ bool BMPReadRow(CFileBasic* pcFile, SBMPInfo* psInfo, uint8* puiRGBA)
 bool BMPDecodeRLEPixels(CFileBasic* pcFile, SBMPInfo* psInfo, uint8* puiRGBA)
 {
 	uint8*				puiIndices;
-	int					x;
-	int					y;
-	int					iFileRow;
+	int32				x;
+	int32				y;
+	int32				iFileRow;
 	CRLEBitmapDecoder	cDecoder;
 	bool				bResult;
 
@@ -445,8 +445,8 @@ bool BMPDecodeRLEPixels(CFileBasic* pcFile, SBMPInfo* psInfo, uint8* puiRGBA)
 bool BMPDecodePixels(CFileBasic* pcFile, lsize uiFileSize, SBMPInfo* psInfo, uint8* puiRGBA)
 {
 	lsize	uiStride;
-	int		y;
-	int		iFileRow;
+	int32	y;
+	int32	iFileRow;
 
 	if ((psInfo->uiCompression == BMP_RLE8) || (psInfo->uiCompression == BMP_RLE4))
 	{
@@ -462,7 +462,7 @@ bool BMPDecodePixels(CFileBasic* pcFile, lsize uiFileSize, SBMPInfo* psInfo, uin
 	for (y = 0; y < psInfo->iHeight; y++)
 	{
 		iFileRow = psInfo->bTopDown ? y : psInfo->iHeight - 1 - y;
-		if (!pcFile->Seek(psInfo->uiPixelOffset + iFileRow * uiStride) || !BMPReadRow(pcFile, psInfo, &puiRGBA[y * psInfo->iWidth * 4]))
+		if (!pcFile->Seek(psInfo->uiPixelOffset + (filePos)iFileRow * uiStride) || !BMPReadRow(pcFile, psInfo, &puiRGBA[y * psInfo->iWidth * 4]))
 		{
 			return false;
 		}

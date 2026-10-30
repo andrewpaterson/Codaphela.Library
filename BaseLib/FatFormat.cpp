@@ -534,7 +534,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 			}
 
 			// write the sector to all the FAT tables
-			bSuccess = device->Write(uiNoOfReservedSectors + i + (c * uiFatTableSizeInSectors), uiBuffer);
+			bSuccess = device->Write(uiNoOfReservedSectors + i + ((uint64)c * uiFatTableSizeInSectors), uiBuffer);
 			if (!bSuccess)
 			{
 				return FAT_CANNOT_WRITE_MEDIA;
@@ -577,7 +577,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 		}
 		else
 		{
-			bSuccess = device->Write(uiNoOfReservedSectors + (uiNoOfFatTables * uiFatTableSizeInSectors) + i, uiBuffer);
+			bSuccess = device->Write(uiNoOfReservedSectors + ((uint64)uiNoOfFatTables * uiFatTableSizeInSectors) + i, uiBuffer);
 			if (!bSuccess)
 			{
 				return FAT_CANNOT_WRITE_MEDIA;
@@ -619,7 +619,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 	// write the volume label entry to the root dir
 	if (fs_type == FAT_FS_TYPE_FAT32)
 	{
-		bSuccess = device->Write(((root_cluster - 2) * uiSectorsPerCluster) + uiNoOfReservedSectors + (uiNoOfFatTables * uiFatTableSizeInSectors) + root_dir_sectors, uiBuffer);
+		bSuccess = device->Write(((uint64)(root_cluster - 2) * uiSectorsPerCluster) + uiNoOfReservedSectors + ((uint64)uiNoOfFatTables * uiFatTableSizeInSectors) + root_dir_sectors, uiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_WRITE_MEDIA;
@@ -627,7 +627,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 	}
 	else
 	{
-		bSuccess = device->Write(uiNoOfReservedSectors + (uiNoOfFatTables * uiFatTableSizeInSectors), uiBuffer);
+		bSuccess = device->Write(uiNoOfReservedSectors + ((uint64)uiNoOfFatTables * uiFatTableSizeInSectors), uiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_WRITE_MEDIA;

@@ -166,7 +166,7 @@ uint32 CUTF8::GetCodePointUint32(void)
 		}
 
 		c2 = mszText[muiPos + 1];
-		c32 = ((c & 0x1F) << 6) | (c2 & 0x3F);
+		c32 = ((uint32)(c & 0x1F) << 6) | (c2 & 0x3F);
 		muiPos += 2;
 		return c32;
 	}

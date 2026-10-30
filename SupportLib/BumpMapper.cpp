@@ -98,7 +98,7 @@ void GenerateNormalMapFromMono(CImage* pcImage, SFloat32Vec3* pasNormals, EChann
 void AssignNormalMapFromNormals(Ptr<CImage> pcImage, SFloat32Vec3* pasNormals)
 {
 	uint32				x, y;
-	int					iColour;
+	ARGB32				iColour;
 	SFloat32Vec3		sNormal;
 	SFloat32Vec3*		pn1; 
 	SFloat32Vec3*		pn2; 

@@ -37,8 +37,8 @@ public:
 	size	miDestPixelStride;
 	size	miSourceWidth;
 	size	miDestWidth;
-	size	miSourceRowStride;
-	size	miDestRowStride;
+	lsize	miSourceRowStride;
+	lsize	miDestRowStride;
 
 	size	muiSourceColourOffset;
 	size	muiDestColourOffset;

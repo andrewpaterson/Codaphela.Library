@@ -352,10 +352,10 @@ bool TGADecodePixels(CFileBasic* pcFile, STGAInfo* psInfo, uint8* puiRGBA)
 	int					iPixel;
 	bool				bRepeat;
 	uint8				auiPixel[4];
-	int					iFileRow;
+	int32				iFileRow;
 	int					iFileColumn;
-	int					x;
-	int					y;
+	int32				x;
+	int32				y;
 	CRLEPacketDecoder	cDecoder;
 	bool				bResult;
 

@@ -4408,7 +4408,6 @@ void CCPP65Generator::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* p
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Generator::WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* psFrom, SCPP65Type* psTo)
 {
-	CCPPSyntax*					pcInner;
 	CCPPSyntaxBinaryExpression*	pcBinary;
 	CChars						szMessage;
 	int64						lliValue;
@@ -4419,20 +4418,15 @@ void CCPP65Generator::WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* p
 	{
 		return;
 	}
-	pcInner = SkipParentheses(pcExpression);
-	if (!pcInner || (pcInner->GetKind() != CPPS_BinaryExpression))
-	{
-		return;
-	}
-	pcBinary = (CCPPSyntaxBinaryExpression*)pcInner;
-	if ((pcBinary->meOperator != CT_Multiply) && (pcBinary->meOperator != CT_LeftShift))
+	pcBinary = NarrowMultiply(pcExpression, psFrom);
+	if (!pcBinary)
 	{
 		return;
 	}
 
 	bQuietFailed = mbQuietFailed;
 	BeginQuiet();
-	bConstant = Constant(pcInner, &lliValue);
+	bConstant = Constant(pcBinary, &lliValue);
 	EndQuiet();
 	mbQuietFailed = bQuietFailed;
 	if (bConstant)
@@ -4482,6 +4476,59 @@ void CCPP65Generator::ShiftCount(CCPPSyntaxBinaryExpression* pcBinary, int iBits
 	szMessage.Append(lliCount)->Append(" is not less than the ")->Append(iBits)->Append(" bit width of the value shifted, so the result is undefined.  Convert the operand first to shift in a wider type.");
 	Warning(pcBinary, szMessage.Text());
 	szMessage.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The multiply or left shift WideningArithmetic warns about in pcExpression:
+// the expression itself, or one under +, -, |, ^ or & that is done in the
+// same type (psType): y * uiRowStride + x * uiPixelStride with 16 bit
+// operands made a 16 bit offset before it was widened to the pointer's
+// ptrdiff.  NULL if there isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxBinaryExpression* CCPP65Generator::NarrowMultiply(CCPPSyntax* pcExpression, SCPP65Type* psType)
+{
+	CCPPSyntax*					pcInner;
+	CCPPSyntaxBinaryExpression*	pcBinary;
+	CCPPSyntaxBinaryExpression*	pcFound;
+	SCPP65Type*					psSide;
+	int							i;
+
+	pcInner = SkipParentheses(pcExpression);
+	if (!pcInner || (pcInner->GetKind() != CPPS_BinaryExpression))
+	{
+		return NULL;
+	}
+	pcBinary = (CCPPSyntaxBinaryExpression*)pcInner;
+	if ((pcBinary->meOperator == CT_Multiply) || (pcBinary->meOperator == CT_LeftShift))
+	{
+		return pcBinary;
+	}
+	if ((pcBinary->meOperator != CT_Add) && (pcBinary->meOperator != CT_Subtract) && (pcBinary->meOperator != CT_BitwiseOr) &&
+		(pcBinary->meOperator != CT_BitwiseXor) && (pcBinary->meOperator != CT_BitwiseAnd))
+	{
+		return NULL;
+	}
+
+	//Only a side already the type the whole is done in: a wider side would have made the whole wider.
+	for (i = 0; i < 2; i++)
+	{
+		miWarningChecks++;
+		psSide = TypeOf((i == 0) ? pcBinary->mpcLeft : pcBinary->mpcRight);
+		miWarningChecks--;
+		if (!psSide || (psSide->eKind != CPP65TK_Integer) || (psSide->iBytes != psType->iBytes))
+		{
+			continue;
+		}
+		pcFound = NarrowMultiply((i == 0) ? pcBinary->mpcLeft : pcBinary->mpcRight, psType);
+		if (pcFound)
+		{
+			return pcFound;
+		}
+	}
+	return NULL;
 }
 
 
@@ -4769,6 +4816,7 @@ void CCPP65Generator::ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary)
 	}
 	if ((lliValue >= lliMin) && (lliValue <= lliMax))
 	{
+		ComparisonAtLimit(pcBinary, pcConstant, psVariable, lliValue, lliMin, lliMax);
 		return;
 	}
 
@@ -4786,6 +4834,57 @@ void CCPP65Generator::ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary)
 
 	szMessage.Init("Comparison is always ");
 	szMessage.Append(bAlways ? "true" : "false")->Append(": the constant ")->Append(lliValue)->Append(" is out of the range of the ")->Append(iBits)->Append(" bit ")->Append(psVariable->bSigned ? "signed" : "unsigned")->Append(" value it is compared with.");
+	Warning(pcBinary, szMessage.Text());
+	szMessage.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Warns if a <= (or >=) comparison's constant is the largest value the
+// variable side's type holds (or a signed type's smallest), so it is always
+// true: for (i = -32768; i <= 32767; i++) with a 16 bit int never ends.
+// Always false comparisons at a limit (ui > MAX_UINT32, a guard for wider
+// builds) and an unsigned value compared with 0 (u >= 0, written to say what
+// is expected) aren't warned about.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Generator::ComparisonAtLimit(CCPPSyntaxBinaryExpression* pcBinary, CCPPSyntax* pcConstant, SCPP65Type* psVariable, int64 lliValue, int64 lliMin, int64 lliMax)
+{
+	ECppTokens	eOperator;
+	bool		bAlways;
+	CChars		szMessage;
+
+	//As variable OP constant.
+	eOperator = pcBinary->meOperator;
+	if (pcConstant == pcBinary->mpcLeft)
+	{
+		switch (eOperator)
+		{
+		case CT_LessThan:				eOperator = CT_GreaterThan;			break;
+		case CT_LessThanEqualTo:		eOperator = CT_GreaterThanEqualTo;	break;
+		case CT_GreaterThan:			eOperator = CT_LessThan;			break;
+		case CT_GreaterThanEqualTo:		eOperator = CT_LessThanEqualTo;		break;
+		default:						break;
+		}
+	}
+
+	if ((lliValue == lliMax) && (eOperator == CT_LessThanEqualTo))
+	{
+		bAlways = true;
+	}
+	else if (psVariable->bSigned && (lliValue == lliMin) && (eOperator == CT_GreaterThanEqualTo))
+	{
+		bAlways = true;
+	}
+	else
+	{
+		return;
+	}
+
+	szMessage.Init("Comparison is always ");
+	szMessage.Append(bAlways ? "true" : "false")->Append(": the constant ")->Append(lliValue)->Append(" is the ")->Append((lliValue == lliMax) ? "largest" : "smallest");
+	szMessage.Append(" value of the ")->Append(psVariable->iBytes * 8)->Append(" bit ")->Append(psVariable->bSigned ? "signed" : "unsigned")->Append(" value it is compared with.");
 	Warning(pcBinary, szMessage.Text());
 	szMessage.Kill();
 }

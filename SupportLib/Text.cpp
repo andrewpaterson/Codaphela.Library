@@ -138,7 +138,7 @@ CTextUTF16Short* CText::AllocateUTF16Short(size uiNumShorts, uint16* puiData)
 {
 	CTextUTF16Short*		pcUTF16Short;
 
-	pcUTF16Short = (CTextUTF16Short*)mpcMalloc->Malloc(sizeof(CTextUTF16Short) + (uiNumShorts * sizeof(uint16)));
+	pcUTF16Short = (CTextUTF16Short*)mpcMalloc->Malloc(sizeof(CTextUTF16Short) + ((lsize)uiNumShorts * sizeof(uint16)));
 	if (pcUTF16Short)
 	{
 		New<CTextUTF16Short>(pcUTF16Short);
@@ -158,7 +158,7 @@ CTextUTF16Long* CText::AllocateUTF16Long(size uiNumLongs, uint32* puiData)
 {
 	CTextUTF16Long*		pcUTF16Long;
 
-	pcUTF16Long = (CTextUTF16Long*)mpcMalloc->Malloc(sizeof(CTextUTF16Long) + (uiNumLongs * sizeof(uint32)));
+	pcUTF16Long = (CTextUTF16Long*)mpcMalloc->Malloc(sizeof(CTextUTF16Long) + ((lsize)uiNumLongs * sizeof(uint32)));
 	if (pcUTF16Long)
 	{
 		New<CTextUTF16Long>(pcUTF16Long);

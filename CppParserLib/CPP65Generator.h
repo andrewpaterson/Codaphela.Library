@@ -845,8 +845,10 @@ protected:
 	void					ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue, bool bUnsignedWraps);
 	void					ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	void					WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* psFrom, SCPP65Type* psTo);
+	CCPPSyntaxBinaryExpression*	NarrowMultiply(CCPPSyntax* pcExpression, SCPP65Type* psType);
 	void					ShiftCount(CCPPSyntaxBinaryExpression* pcBinary, int iBits);
 	void					ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary);
+	void					ComparisonAtLimit(CCPPSyntaxBinaryExpression* pcBinary, CCPPSyntax* pcConstant, SCPP65Type* psVariable, int64 lliValue, int64 lliMin, int64 lliMax);
 	void					LoopCounterWidth(CCPPSyntaxForStatement* pcFor);
 	void					LoopCounters(CCPPSyntax* pcIncrement, CArrayVoidPtr* papcCounters);
 	void					LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoidPtr* papcCounters);

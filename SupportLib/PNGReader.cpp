@@ -458,8 +458,8 @@ bool PNGDecodeRows(uint8* puiFiltered, SPNGInfo* psInfo, uint8* puiPixels)
 	int		iPassWidth;
 	int		iPassHeight;
 	lsize	uiPassRowBytes;
-	int		x;
-	int		y;
+	int32	x;
+	int32	y;
 	uint8*	puiPassRow;
 	int		iDestY;
 
@@ -515,8 +515,8 @@ bool PNGDecodeRows(uint8* puiFiltered, SPNGInfo* psInfo, uint8* puiPixels)
 //////////////////////////////////////////////////////////////////////////
 void PNGExpandPalette(SPNGInfo* psInfo, uint8* puiPixels, uint8* puiRGBA)
 {
-	int		x;
-	int		y;
+	int32	x;
+	int32	y;
 	uint8	uiIndex;
 	uint8*	puiRow;
 	uint8*	puiDest;
@@ -621,7 +621,7 @@ Ptr<CImage> PNGCreateImage(SPNGInfo* psInfo, uint8* puiPixels, bool bAddDebug)
 	bool				bReverse;
 	CImage				cImageImport;
 	CImageCopier		cCopier;
-	int					y;
+	int32				y;
 	bool				bResult;
 	Ptr<CImage>			pcImage;
 
